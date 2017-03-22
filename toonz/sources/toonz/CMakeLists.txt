@@ -540,7 +540,7 @@ elseif(BUILD_ENV_UNIXLIKE)
     # 変なところにライブラリ生成するカスども
     set(EXTRA_LIBS ${EXTRA_LIBS} "$<TARGET_FILE:tnzstdfx>" "$<TARGET_FILE:tfarm>")
 
-    set(EXTRA_LIBS ${EXTRA_LIBS} ${Boost_LIBRARIES} ${OPENBLAS_LIB})
+    set(EXTRA_LIBS ${EXTRA_LIBS} ${Boost_LIBRARIES} ${OPENBLAS_LIB} ${EXECINFO_LIBRARY})
     if(PLATFORM EQUAL 64)
         set(EXTRA_LIBS ${EXTRA_LIBS} Qt5::SerialPort ${TURBOJPEG_LIB} ${OpenCV_LIBS})
     endif()
@@ -701,7 +701,7 @@ TOONZSTUDIOPALETTE=\"\$HOME/.config/OpenToonz/stuff/studiopalette\"
 EOF
 fi
 
-export LD_LIBRARY_PATH=\${OPENTOONZ_BASE}/lib/opentoonz:\${LD_LIBRARY_PATH}
+export ${PRELOAD_VARIABLE}=\${OPENTOONZ_BASE}/lib/opentoonz:\${${PRELOAD_VARIABLE}}
 
 exec \$OPENTOONZ_BASE/bin/OpenToonz \"\$@\"
 ")

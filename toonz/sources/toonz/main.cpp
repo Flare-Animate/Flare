@@ -479,7 +479,9 @@ int main(int argc, char *argv[]) {
   fmt.setStencil(true);
   QGLFormat::setDefaultFormat(fmt);
 
+#ifndef __HAIKU__
   glutInit(&argc, argv);
+#endif
 
   splash.showMessage(offsetStr + "Initializing Toonz environment ...",
                      Qt::AlignCenter, Qt::white);
