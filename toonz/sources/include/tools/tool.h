@@ -391,7 +391,7 @@ return true if the method execution can have changed the current tool
   virtual void rightButtonDown(const TPointD &, const TMouseEvent &) {}
   virtual bool keyDown(QKeyEvent *) { return false; }
 
-  virtual void onInputText(std::wstring, std::wstring, int, int){};
+  virtual void onInputText(const std::wstring&, const std::wstring&, int, int){};
 
   virtual void onSetViewer() {}
 
