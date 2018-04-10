@@ -123,9 +123,9 @@ FullColorBrushTool::FullColorBrushTool(std::string name)
     , m_modifierEraser("ModifierEraser", false)
     , m_modifierLockAlpha("Lock Alpha", false)
     , m_preset("Preset:")
+    , m_enabledPressure(false)
     , m_minCursorThick(0)
     , m_maxCursorThick(0)
-    , m_enabledPressure(false)
     , m_toonz_brush(0)
     , m_tileSet(0)
     , m_tileSaver(0)
@@ -134,6 +134,11 @@ FullColorBrushTool::FullColorBrushTool(std::string name)
     , m_firstTime(true) {
   bind(TTool::RasterImage | TTool::EmptyTarget);
 
+  m_inputmanager.setHandler(this);
+  m_modifierTest = new TModifierTest();
+  m_modifierTangents = new TModifierTangents();
+  m_modifierSegmentation = new TModifierSegmentation();
+  
   m_thickness.setNonLinearSlider();
 
   m_prop.bind(m_thickness);
@@ -219,7 +224,7 @@ void FullColorBrushTool::onActivate() {
 //--------------------------------------------------------------------------------------------------
 
 void FullColorBrushTool::onDeactivate() {
-  if (m_mousePressed) leftButtonUp(m_mousePos, m_mouseEvent);
+  m_inputmanager.finishTracks();
   m_workRaster = TRaster32P();
   m_backUpRas  = TRasterP();
 }
@@ -288,6 +293,11 @@ bool FullColorBrushTool::askWrite(const TRect &rect) {
 //--------------------------------------------------------------------------------------------------
 
 bool FullColorBrushTool::preLeftButtonDown() {
+  m_inputmanager.clearModifiers();
+  m_inputmanager.addModifier( TInputModifierP(m_modifierTangents.getPointer()) );
+  m_inputmanager.addModifier( TInputModifierP(m_modifierSegmentation.getPointer()) );
+  m_inputmanager.addModifier( TInputModifierP(m_modifierTest.getPointer()) );
+  
   touchImage();
 
   if (m_isFrameCreated) {
@@ -303,12 +313,50 @@ bool FullColorBrushTool::preLeftButtonDown() {
 
 //---------------------------------------------------------------------------------------------------
 
-void FullColorBrushTool::leftButtonDown(const TPointD &pos,
-                                        const TMouseEvent &e) {
+void FullColorBrushTool::handleMouseEvent(MouseEventType type, const TPointD &pos, const TMouseEvent &e) {
+  TTimerTicks t = TToolTimer::ticks();
+  bool alt = e.getModifiersMask() & TMouseEvent::ALT_KEY;
+  bool shift = e.getModifiersMask() & TMouseEvent::SHIFT_KEY;
+  bool control = e.getModifiersMask() & TMouseEvent::CTRL_KEY;
+  if (alt != m_inputmanager.state.isKeyPressed(TKey::alt))
+    m_inputmanager.keyEvent(alt, TKey::alt, t, nullptr);
+  if (shift != m_inputmanager.state.isKeyPressed(TKey::shift))
+    m_inputmanager.keyEvent(shift, TKey::shift, t, nullptr);
+  if (control != m_inputmanager.state.isKeyPressed(TKey::control))
+    m_inputmanager.keyEvent(control, TKey::control, t, nullptr);
+  
+  if (type == ME_MOVE) {
+    THoverList hovers(1, pos);
+    m_inputmanager.hoverEvent(hovers);
+  } else {
+    m_inputmanager.trackEvent(
+      e.isTablet(), 0, pos,
+      e.isTablet() ? &e.m_pressure : nullptr, nullptr,
+      type == ME_UP, t );
+    m_inputmanager.processTracks();
+  }
+}
+
+//---------------------------------------------------------------------------------------------------
+
+void FullColorBrushTool::leftButtonDown(const TPointD &pos, const TMouseEvent &e)
+  { handleMouseEvent(ME_DOWN, pos, e); }
+void FullColorBrushTool::leftButtonDrag(const TPointD &pos, const TMouseEvent &e)
+  { handleMouseEvent(ME_DRAG, pos, e); }
+void FullColorBrushTool::leftButtonUp(const TPointD &pos, const TMouseEvent &e)
+  { handleMouseEvent(ME_UP, pos, e); }
+void FullColorBrushTool::mouseMove(const TPointD &pos, const TMouseEvent &e)
+  { handleMouseEvent(ME_MOVE, pos, e); }
+
+//---------------------------------------------------------------------------------------------------
+
+void FullColorBrushTool::inputLeftButtonDown(
+  const TTrackPoint &point, const TTrack &track )
+{
+  const TPointD &pos = point.position;
   TPointD previousBrushPos = m_brushPos;
   m_brushPos = m_mousePos = pos;
   m_mousePressed          = true;
-  m_mouseEvent            = e;
   Viewer *viewer          = getViewer();
   if (!viewer) return;
 
@@ -318,7 +366,8 @@ void FullColorBrushTool::leftButtonDown(const TPointD &pos,
   if (!ri) return;
 
   // Modifier to do straight line
-  if (e.isShiftPressed() || e.isCtrlPressed()) {
+  TInputState::KeyState::Holder keys = track.getKeyState(point);
+  if (keys.isPressed(TKey::shift) || keys.isPressed(TKey::control)) {
     m_isStraight = true;
     m_firstPoint = pos;
     m_lastPoint  = pos;
@@ -335,26 +384,24 @@ void FullColorBrushTool::leftButtonDown(const TPointD &pos,
   m_workRaster->lock();
 
   TPointD rasCenter = ras->getCenterD();
-  TPointD point(pos + rasCenter);
+  TPointD pt(pos + rasCenter);
 
-  double pressure;
-  if (getApplication()->getCurrentLevelStyle()->getTagId() ==
-      4001)  // mypaint brush case
-    pressure = m_enabledPressure && e.isTablet() ? e.m_pressure : 0.5;
-  else
-    pressure = m_enabledPressure ? e.m_pressure : 1.0;
+  double defPressure = 1.0;
+  if (getApplication()->getCurrentLevelStyle()->getTagId() == 4001) // mypaint brush case
+    defPressure = 0.5;
+  double pressure = m_enabledPressure && track.hasPressure ? point.pressure : defPressure;
 
   m_tileSet   = new TTileSetFullColor(ras->getSize());
   m_tileSaver = new TTileSaverFullColor(ras, m_tileSet);
 
   mypaint::Brush mypaintBrush;
   applyToonzBrushSettings(mypaintBrush);
-  m_toonz_brush = new MyPaintToonzBrush(m_workRaster, *this, mypaintBrush);
+  m_toonz_brush = new MyPaintToonzBrush(m_workRaster, *this, mypaintBrush, false);
 
   m_strokeRect.empty();
   m_strokeSegmentRect.empty();
   m_toonz_brush->beginStroke();
-  m_toonz_brush->strokeTo(point, pressure, restartBrushTimer());
+  m_toonz_brush->strokeTo(pt, pressure, restartBrushTimer());
   TRect updateRect = m_strokeSegmentRect * ras->getBounds();
   if (!updateRect.isEmpty())
     ras->extract(updateRect)->copy(m_workRaster->extract(updateRect));
@@ -369,14 +416,16 @@ void FullColorBrushTool::leftButtonDown(const TPointD &pos,
 
 //-------------------------------------------------------------------------------------------------------------
 
-void FullColorBrushTool::leftButtonDrag(const TPointD &pos,
-                                        const TMouseEvent &e) {
+void FullColorBrushTool::inputLeftButtonDrag(
+  const TTrackPoint &point, const TTrack &track )
+{
+  const TPointD &pos = point.position;
   TRectD invalidateRect;
+  TPointD previousLastPoint = m_lastPoint;
   m_lastPoint = pos;
 
   TPointD previousBrushPos = m_brushPos;
   m_brushPos = m_mousePos = pos;
-  m_mouseEvent            = e;
   TRasterImageP ri        = (TRasterImageP)getImage(true);
   if (!ri) return;
 
@@ -384,31 +433,23 @@ void FullColorBrushTool::leftButtonDrag(const TPointD &pos,
 
   TRasterP ras      = ri->getRaster();
   TPointD rasCenter = ras->getCenterD();
-  TPointD point(pos + rasCenter);
-  double pressure;
-  if (getApplication()->getCurrentLevelStyle()->getTagId() ==
-      4001)  // mypaint brush case
-    pressure = m_enabledPressure && e.isTablet() ? e.m_pressure : 0.5;
-  else
-    pressure = m_enabledPressure ? e.m_pressure : 1.0;
+  TPointD pt(pos + rasCenter);
+
+  double defPressure = 1.0;
+  if (getApplication()->getCurrentLevelStyle()->getTagId() == 4001) // mypaint brush case
+    defPressure = 0.5;
+  double pressure = m_enabledPressure && track.hasPressure ? point.pressure : defPressure;
 
   if (m_maxPressure < pressure) m_maxPressure = pressure;
 
   if (m_isStraight) {
-    invalidateRect = TRectD(m_firstPoint, m_lastPoint).enlarge(2);
-    if (e.isCtrlPressed()) {
-      double distance = (m_brushPos.x - m_maxCursorThick + 1) * 0.5;
-      TRectD brushRect =
-          TRectD(TPointD(m_brushPos.x - distance, m_brushPos.y - distance),
-                 TPointD(m_brushPos.x + distance, m_brushPos.y + distance));
-      invalidateRect += (brushRect);
-      double denominator = m_lastPoint.x - m_firstPoint.x;
-      if (denominator == 0) denominator = 0.001;
-      double slope = ((m_lastPoint.y - m_firstPoint.y) / denominator);
-      double angle = std::atan(slope) * (180 / 3.14159);
-      if (abs(angle) > 67.5)
+    if (track.getKeyState(point).isPressed(TKey::control)) {
+      TPointD dist = m_lastPoint - m_firstPoint;
+      double angle = fabs(atan(dist)) * (180 / 3.14159);
+      if (angle > 90) angle = 180 - angle;
+      if (angle > 90 - 22.5)
         m_lastPoint.x = m_firstPoint.x;
-      else if (abs(angle) < 22.5)
+      else if (angle < 22.5)
         m_lastPoint.y = m_firstPoint.y;
       else {
         double xDistance = m_lastPoint.x - m_firstPoint.x;
@@ -426,14 +467,18 @@ void FullColorBrushTool::leftButtonDrag(const TPointD &pos,
         }
       }
     }
-    m_mousePos = pos;
-    m_brushPos = pos;
+    double cursorSize = m_maxCursorThick/2 + 2;
+    TPointD cursorSize2d(cursorSize, cursorSize);
+    invalidateRect = TRectD(m_firstPoint, previousLastPoint).enlarge(2);
+    invalidateRect += TRectD(previousBrushPos - cursorSize2d, previousBrushPos + cursorSize2d);
+    invalidateRect += TRectD(m_brushPos - cursorSize2d, m_brushPos + cursorSize2d);
+    invalidateRect += TRectD(m_firstPoint, m_lastPoint).enlarge(2);
     invalidate(invalidateRect);
     return;
   }
 
   m_strokeSegmentRect.empty();
-  m_toonz_brush->strokeTo(point, pressure, restartBrushTimer());
+  m_toonz_brush->strokeTo(pt, pressure, restartBrushTimer());
   TRect updateRect = m_strokeSegmentRect * ras->getBounds();
   if (!updateRect.isEmpty())
     ras->extract(updateRect)->copy(m_workRaster->extract(updateRect));
@@ -448,8 +493,10 @@ void FullColorBrushTool::leftButtonDrag(const TPointD &pos,
 
 //---------------------------------------------------------------------------------------------------------------
 
-void FullColorBrushTool::leftButtonUp(const TPointD &pos,
-                                      const TMouseEvent &e) {
+void FullColorBrushTool::inputLeftButtonUp(
+  const TTrackPoint &point, const TTrack &track )
+{
+  const TPointD &pos = point.position;
   TPointD previousBrushPos = m_brushPos;
   m_brushPos = m_mousePos = pos;
 
@@ -460,24 +507,22 @@ void FullColorBrushTool::leftButtonUp(const TPointD &pos,
 
   TRasterP ras      = ri->getRaster();
   TPointD rasCenter = ras->getCenterD();
-  TPointD point;
+  TPointD pt;
   if (m_isStraight)
-    point = TPointD(m_lastPoint + rasCenter);
+    pt = TPointD(m_lastPoint + rasCenter);
   else
-    point = TPointD(pos + rasCenter);
-  double pressure;
-  if (getApplication()->getCurrentLevelStyle()->getTagId() ==
-      4001)  // mypaint brush case
-    pressure = m_enabledPressure && e.isTablet() ? e.m_pressure : 0.5;
-  else
-    pressure = m_enabledPressure ? e.m_pressure : 1.0;
+    pt = TPointD(pos + rasCenter);
 
-  if (m_isStraight && m_maxPressure > 0.0) {
+  double defPressure = 1.0;
+  if (getApplication()->getCurrentLevelStyle()->getTagId() == 4001) // mypaint brush case
+    defPressure = 0.5;
+  double pressure = m_enabledPressure && track.hasPressure ? point.pressure : defPressure;
+
+  if (m_isStraight && m_maxPressure > 0.0)
     pressure = m_maxPressure;
-  }
 
   m_strokeSegmentRect.empty();
-  m_toonz_brush->strokeTo(point, pressure, restartBrushTimer());
+  m_toonz_brush->strokeTo(pt, pressure, restartBrushTimer());
   m_toonz_brush->endStroke();
   TRect updateRect = m_strokeSegmentRect * ras->getBounds();
   if (!updateRect.isEmpty())
@@ -519,7 +564,9 @@ void FullColorBrushTool::leftButtonUp(const TPointD &pos,
 
 //---------------------------------------------------------------------------------------------------------------
 
-void FullColorBrushTool::mouseMove(const TPointD &pos, const TMouseEvent &e) {
+void FullColorBrushTool::inputMouseMove(
+  const TPointD &position, const TInputState &state )
+{
   struct Locals {
     FullColorBrushTool *m_this;
 
@@ -555,26 +602,18 @@ void FullColorBrushTool::mouseMove(const TPointD &pos, const TMouseEvent &e) {
 
       setValue(prop, value);
     }
-
   } locals = {this};
 
-  // if (e.isAltPressed() && !e.isCtrlPressed()) {
-  // const TPointD &diff = pos - m_mousePos;
-  // double add = (fabs(diff.x) > fabs(diff.y)) ? diff.x : diff.y;
-
-  // locals.addMinMax(m_thickness, int(add));
-  //} else
-  if (e.isCtrlPressed() && e.isAltPressed()) {
-    const TPointD &diff = pos - m_mousePos;
+  if (state.isKeyPressed(TKey::control) && state.isKeyPressed(TKey::alt)) {
+    const TPointD &diff = position - m_mousePos;
     double max          = diff.x / 2;
     double min          = diff.y / 2;
-
     locals.addMinMaxSeparate(m_thickness, int(min), int(max));
   } else {
-    m_brushPos = pos;
+    m_brushPos = position;
   }
 
-  m_mousePos = pos;
+  m_mousePos = position;
   invalidate();
 }
 

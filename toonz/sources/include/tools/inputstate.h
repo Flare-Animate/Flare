@@ -18,6 +18,7 @@
 // std includes
 #include <map>
 #include <vector>
+#include <iostream>
 
 
 #undef DVAPI
@@ -199,6 +200,10 @@ public:
     { return ButtonHistory::Holder(buttonHistory(deviceId), ticks, timeOffset); }
   inline ButtonHistory::Holder buttonHistoryHolder(DeviceId deviceId)
     { return buttonHistoryHolder(deviceId, m_ticks); }
+    
+  void print(std::ostream &stream, const std::string &tab = std::string()) const;
+  inline void print(const std::string &tab = std::string()) const
+    { print(std::cout, tab); }
 };
 
 

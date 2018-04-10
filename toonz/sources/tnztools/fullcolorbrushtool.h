@@ -5,6 +5,11 @@
 
 #include <ctime>
 
+#include <tools/inputmanager.h>
+#include <tools/modifiers/modifiertest.h>
+#include <tools/modifiers/modifiertangents.h>
+#include <tools/modifiers/modifiersegmentation.h>
+
 #include "toonzrasterbrushtool.h"
 #include "mypainttoonzbrush.h"
 #include "toonz/mypaintbrushstyle.h"
@@ -28,7 +33,7 @@ class Brush;
 //    FullColor Brush Tool declaration
 //************************************************************************
 
-class FullColorBrushTool final : public TTool, public RasterController {
+class FullColorBrushTool final : public TTool, public RasterController, public TInputHandler {
   Q_DECLARE_TR_FUNCTIONS(FullColorBrushTool)
 
   void updateCurrentStyle();
@@ -57,6 +62,11 @@ public:
   void leftButtonUp(const TPointD &pos, const TMouseEvent &e) override;
   void mouseMove(const TPointD &pos, const TMouseEvent &e) override;
 
+  void inputLeftButtonDown(const TTrackPoint &point, const TTrack &track) override;
+  void inputLeftButtonDrag(const TTrackPoint &point, const TTrack &track) override;
+  void inputLeftButtonUp(const TTrackPoint &point, const TTrack &track) override;
+  void inputMouseMove(const TPointD &position, const TInputState &state) override;
+
   void draw() override;
 
   void onEnter() override;
@@ -83,7 +93,16 @@ public:
 
   TMyPaintBrushStyle *getBrushStyle();
 
+private:
+  enum MouseEventType { ME_DOWN, ME_DRAG, ME_UP, ME_MOVE };
+  void handleMouseEvent(MouseEventType type, const TPointD &pos, const TMouseEvent &e);
+  
 protected:
+  TInputManager m_inputmanager;
+  TSmartPointerT<TModifierTest> m_modifierTest;
+  TSmartPointerT<TModifierTangents> m_modifierTangents;
+  TSmartPointerT<TModifierSegmentation> m_modifierSegmentation;
+  
   TPropertyGroup m_prop;
 
   TIntPairProperty m_thickness;
@@ -121,7 +140,6 @@ protected:
   bool m_presetsLoaded;
   bool m_firstTime;
   bool m_mousePressed = false;
-  TMouseEvent m_mouseEvent;
 
   bool m_isStraight = false;
   TPointD m_firstPoint;

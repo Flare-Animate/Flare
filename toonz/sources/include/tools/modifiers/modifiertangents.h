@@ -1,13 +1,10 @@
 #pragma once
 
-#ifndef MODIFIERTEST_INCLUDED
-#define MODIFIERTEST_INCLUDED
+#ifndef MODIFIERTANGENTS_INCLUDED
+#define MODIFIERTANGENTS_INCLUDED
 
 // TnzTools includes
 #include <tools/inputmanager.h>
-
-// std includes
-#include <cmath>
 
 
 #undef DVAPI
@@ -24,38 +21,26 @@
 //===================================================================
 
 //*****************************************************************************************
-//    TModifierTest definition
+//    TModifierTangents definition
 //*****************************************************************************************
 
-class TModifierTest: public TInputModifier {
+class TModifierTangents: public TInputModifier {
 public:
-  class Handler: public TTrackHandler {
-  public:
-    std::vector<double> angles;
-    Handler(TTrack &original): TTrackHandler(original) { }
-  };
-
   class Modifier: public TTrackModifier {
   public:
-    double angle;
-    double radius;
-    double speed;
+    explicit Modifier(TTrackHandler &handler):
+      TTrackModifier(handler) { }
 
-    Modifier(TTrackHandler &handler, double angle, double radius, double speed = 0.25);
-    TTrackPoint calcPoint(double originalIndex);
+    TInputSavePoint::Holder savePoint;
+    TTrackTangentList tangents;
+
+    TTrackPoint calcPoint(double originalIndex) override;
   };
-
-public:
-  int count;
-  double radius;
-
-  explicit TModifierTest();
 
   void modifyTrack(
     const TTrackP &track,
     const TInputSavePoint::Holder &savePoint,
     TTrackList &outTracks ) override;
 };
-
 
 #endif

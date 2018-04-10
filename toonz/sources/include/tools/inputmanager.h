@@ -40,7 +40,6 @@ class TInputModifier;
 class TInputManager;
 
 typedef TSmartPointerT<TInputModifier> TInputModifierP;
-typedef TSmartPointerT<TInputManager> TInputManagerP;
 
 //===================================================================
 
@@ -69,6 +68,9 @@ public:
     inline Holder& operator= (const Holder &other)
       { set(other.m_savePoint, other.m_lock); return *this; }
 
+    inline operator bool () const
+      { return assigned(); }
+
     inline void set(TInputSavePoint *savePoint, bool lock) {
       if (m_savePoint != savePoint) {
         if (m_savePoint) {
@@ -83,8 +85,10 @@ public:
         }
       } else
       if (m_lock != lock) {
-        if (lock) m_savePoint->lock();
-             else m_savePoint->unlock();
+        if (m_savePoint) {
+          if (lock) m_savePoint->lock();
+               else m_savePoint->unlock();
+        }
         m_lock = lock;
       }
     }
@@ -98,6 +102,8 @@ public:
 
     inline TInputSavePoint* savePoint() const
       { return m_savePoint; }
+    inline bool assigned() const
+      { return savePoint(); }
     inline bool locked() const
       { return m_savePoint && m_lock; }
     inline bool available() const
@@ -235,7 +241,7 @@ public:
 //    TInputManager definition
 //*****************************************************************************************
 
-class TInputManager: public TSmartObject {
+class TInputManager {
 public:
   class TrackHandler: public TTrackHandler {
   public:
@@ -246,6 +252,7 @@ public:
   };
 
 private:
+  TTimerTicks m_lastTicks;
   TInputHandler *m_handler;
   TInputModifier::List m_modifiers;
   std::vector<TTrackList> m_tracks;
@@ -264,6 +271,11 @@ public:
   TInputManager();
 
 private:
+  inline TTimerTicks fixTicks(TTimerTicks ticks) {
+    if (ticks <= m_lastTicks) ticks = m_lastTicks + 1;
+    return m_lastTicks = ticks;
+  }
+  
   void paintRollbackTo(int saveIndex, TTrackList &subTracks);
   void paintApply(int count, TTrackList &subTracks);
   void paintTracks();
@@ -271,7 +283,7 @@ private:
   int trackCompare(
     const TTrack &track,
     TInputState::DeviceId deviceId,
-    TInputState::TouchId touchId );
+    TInputState::TouchId touchId ) const;
   const TTrackP& createTrack(
     int index,
     TInputState::DeviceId deviceId,

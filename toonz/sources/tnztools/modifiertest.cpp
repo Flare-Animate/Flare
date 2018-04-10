@@ -1,7 +1,9 @@
 
 
-#include <tools/modifiertest.h>
+#include <tools/modifiers/modifiertest.h>
 
+// std includes
+#include <cmath>
 
 //*****************************************************************************************
 //    TModifierTest::Modifier implementation
@@ -71,7 +73,7 @@ TModifierTest::modifyTrack(
   const double segmentSize = M_PI/180.0*10.0;
 
   if (!track->handler) {
-    if (track->getCurrentKeyState().isPressed(TKey(Qt::Key_T))) {
+    if (track->getCurrentKeyState().isPressed(TKey(Qt::Key_Alt))) {
       // TModifierTest::Handler for spiro
       track->handler = new Handler(*track);
       for(int i = 0; i < count; ++i)

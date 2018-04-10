@@ -116,7 +116,7 @@ TInputHandler::inputKeyEvent(
   QKeyEvent *event,
   const TInputManager &manager )
 {
-  return press && inputKeyDown(event);
+  return press && event && inputKeyDown(event);
 }
 
 
@@ -185,6 +185,7 @@ TInputHandler::inputPaintTracks(const TTrackList &tracks) {
 
 
 TInputManager::TInputManager():
+  m_lastTicks(TToolTimer::ticks()),
   m_handler(),
   m_tracks(1),
   m_hovers(1),
@@ -338,7 +339,7 @@ int
 TInputManager::trackCompare(
   const TTrack &track,
   TInputState::DeviceId deviceId,
-  TInputState::TouchId touchId )
+  TInputState::TouchId touchId ) const
 {
   if (track.deviceId < deviceId) return -1;
   if (deviceId < track.deviceId) return  1;
@@ -430,7 +431,7 @@ TInputManager::touchTracks(bool finish) {
   for(TTrackList::const_iterator i = m_tracks.front().begin(); i != m_tracks.front().end(); ++i) {
     if (!(*i)->finished() && (*i)->size() > 0) {
       const TTrackPoint &p = (*i)->back();
-      addTrackPoint(*i, p.position, p.pressure, p.tilt, p.time, finish);
+      addTrackPoint(*i, p.position, p.pressure, p.tilt, fixTicks(m_lastTicks)*TToolTimer::step, finish);
     }
   }
 }
@@ -481,9 +482,8 @@ TInputManager::reset() {
 
 void
 TInputManager::setHandler(TInputHandler *handler) {
-  if (m_handler == handler)
-    return;
-  reset();
+  if (m_handler == handler) return;
+  finishTracks();
   m_handler = handler;
 }
 
@@ -540,8 +540,10 @@ TInputManager::trackEvent(
   if (getInputTracks().empty() && m_handler)
     m_handler->inputSetBusy(true);
 
+  ticks = fixTicks(ticks);
   TTrackP track = getTrack(deviceId, touchId, ticks, (bool)pressure, (bool)tilt);
   if (!track->finished()) {
+    ticks = fixTicks(ticks);
     double time = (double)(ticks - track->ticks())*TToolTimer::step - track->timeOffset();
     addTrackPoint(
       track,
@@ -561,6 +563,7 @@ TInputManager::keyEvent(
   TTimerTicks ticks,
   QKeyEvent *event )
 {
+  ticks = fixTicks(ticks);
   state.keyEvent(press, key, ticks);
   processTracks();
   bool result = m_handler && m_handler->inputKeyEvent(press, key, event, *this);
@@ -578,6 +581,7 @@ TInputManager::buttonEvent(
   TInputState::Button button,
   TTimerTicks ticks )
 {
+  ticks = fixTicks(ticks);
   state.buttonEvent(press, deviceId, button, ticks);
   processTracks();
   if (m_handler) m_handler->inputButtonEvent(press, deviceId, button, *this);

@@ -2,6 +2,9 @@
 
 #include <tools/inputstate.h>
 
+#include <iomanip>
+#include <QKeySequence>
+
 
 //*****************************************************************************************
 //    TKey static members
@@ -80,3 +83,61 @@ TInputState::buttonFindAny(Button button, DeviceId &outDevice) {
   outDevice = DeviceId();
   return ButtonState::Pointer();
 }
+
+
+namespace {
+  
+template<typename T>
+void printKey(const T &k, std::ostream &stream)
+  { stream << k; }
+
+template<>
+void printKey<TKey>(const TKey &k, std::ostream &stream) {
+  stream << QKeySequence(k.key).toString().toStdString() << "[" << std::hex << k.key << std::dec;
+  if (k.generic) stream << "g";
+  if (k.numPad) stream << "n";
+  stream << "]";
+}
+
+template<typename T>
+class Print {
+public:
+  typedef T Type;
+  typedef TKeyHistoryT<Type> History;
+  typedef typename History::StatePointer StatePointer;
+  typedef typename History::StateMap StateMap;
+  typedef typename History::LockSet LockSet;
+
+  static void print(const History &history, std::ostream &stream, const std::string &tab) {
+    const StateMap &states = history.getStates();
+    stream << tab << "states: " << std::endl;
+    for(typename StateMap::const_iterator i = states.begin(); i != states.end(); ++i) {
+      stream << tab << "- " << i->first << std::endl;
+      for(StatePointer p = i->second; p; p = p->previous) {
+        stream << tab << "- - " << p->ticks << ": ";
+        printKey(p->value, stream);
+        stream << std::endl;
+      }
+    }
+    
+    const LockSet &locks = history.getLocks();
+    stream << tab << "locks: ";
+    for(typename LockSet::const_iterator i = locks.begin(); i != locks.end(); ++i) {
+      if (i != locks.begin()) stream << ", ";
+      stream << *i;
+    }
+    stream << std::endl;
+  }
+};
+}
+
+
+void TInputState::print(std::ostream &stream, const std::string &tab) const {
+  stream << tab << "keys:" << std::endl;
+  Print<TKey>::print(*m_keyHistory, stream, tab + "  ");
+  for(ButtonHistoryMap::const_iterator i = m_buttonHistories.begin(); i != m_buttonHistories.end(); ++i) {
+    stream << tab << "buttons[" << i->first << "]:" << std::endl;
+    Print<TKey>::print(*m_keyHistory, stream, tab + "  ");
+  }
+}
+
