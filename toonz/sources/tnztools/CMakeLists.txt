@@ -48,6 +48,7 @@ set(HEADERS
     ../include/tools/inputstate.h
     ../include/tools/track.h
     ../include/tools/inputmanager.h
+    ../include/tools/modifiertest.h
 )
 
 set(SOURCES
@@ -115,6 +116,7 @@ set(SOURCES
     inputstate.cpp
     track.cpp
     inputmanager.cpp
+    modifiertest.cpp
 )
 
 set(RESOURCES tnztools.qrc)
