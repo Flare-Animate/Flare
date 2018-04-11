@@ -66,6 +66,7 @@ public:
   void inputLeftButtonDrag(const TTrackPoint &point, const TTrack &track) override;
   void inputLeftButtonUp(const TTrackPoint &point, const TTrack &track) override;
   void inputMouseMove(const TPointD &position, const TInputState &state) override;
+  void inputInvalidateRect(const TRectD &bounds) override;
 
   void draw() override;
 

@@ -619,6 +619,11 @@ void FullColorBrushTool::inputMouseMove(
 
 //-------------------------------------------------------------------------------------------------------------
 
+void FullColorBrushTool::inputInvalidateRect(const TRectD &bounds)
+  { invalidate(bounds); }
+
+//-------------------------------------------------------------------------------------------------------------
+
 void FullColorBrushTool::draw() {
   if (TRasterImageP ri = TRasterImageP(getImage(false))) {
     // Draw line segment on straight line mode

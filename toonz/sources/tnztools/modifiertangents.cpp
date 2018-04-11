@@ -62,7 +62,6 @@ TModifierTangents::modifyTrack(
     // add temporary point
     modifier->tangents.push_back(TTrackTangent());
     subTrack.push_back(track.back());
-    ++subTrack.pointsAdded;
   } else {
     // apply permanent changes
 
@@ -70,14 +69,12 @@ TModifierTangents::modifyTrack(
     int start = track.size() - track.pointsAdded;
     if (start < 0) start = 0;
     if (start > 1) --start;
-    if (start < subTrack.size()) {
-      subTrack.pointsRemoved += subTrack.size() - start;
-      subTrack.truncate(start);
-    }
-    if (start < (int)modifier->tangents.size())
-      modifier->tangents.erase(
-        modifier->tangents.begin() + start,
-        modifier->tangents.end() );
+    subTrack.truncate(start);
+    TTrackTangent lastTangent =
+        start < (int)modifier->tangents.size() ? modifier->tangents[start]
+      : modifier->tangents.empty() ? TTrackTangent()
+      : modifier->tangents.back();
+    modifier->tangents.resize(start, lastTangent);
 
     // add first point
     int index = start;
@@ -103,9 +100,7 @@ TModifierTangents::modifyTrack(
       ++index;
     }
 
-    track.pointsRemoved = 0;
-    track.pointsAdded = 0;
-    subTrack.pointsAdded += index - start;
+    track.resetChanges();
 
     // release previous key point
     modifier->savePoint.reset();
@@ -114,7 +109,6 @@ TModifierTangents::modifyTrack(
       // finish
       modifier->tangents.push_back(TTrackTangent());
       subTrack.push_back(track.back());
-      ++subTrack.pointsAdded;
     } else {
       // save key point
       modifier->savePoint = savePoint;
