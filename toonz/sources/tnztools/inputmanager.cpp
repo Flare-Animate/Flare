@@ -2,6 +2,9 @@
 
 #include <tools/inputmanager.h>
 
+// TnzCore includes
+#include <tgl.h>
+
 
 //*****************************************************************************************
 //    static members
@@ -24,44 +27,44 @@ TInputModifier::setManager(TInputManager *manager) {
 
 void
 TInputModifier::modifyTrack(
-  const TTrackP &track,
+  const TTrack &track,
   const TInputSavePoint::Holder &savePoint,
   TTrackList &outTracks )
 {
-  if (!track->handler) {
-      track->handler = new TTrackHandler(*track);
-      track->handler->tracks.push_back(
+  if (!track.handler) {
+      track.handler = new TTrackHandler(track);
+      track.handler->tracks.push_back(
         new TTrack(
-          new TTrackModifier(*track->handler) ));
+          new TTrackModifier(*track.handler) ));
   }
 
   outTracks.insert(
     outTracks.end(),
-    track->handler->tracks.begin(),
-    track->handler->tracks.end() );
-  if (!track->changed())
+    track.handler->tracks.begin(),
+    track.handler->tracks.end() );
+  if (!track.changed())
     return;
 
-  int start = track->size() - track->pointsAdded;
+  int start = track.size() - track.pointsAdded;
   if (start < 0) start = 0;
 
-  for(TTrackList::const_iterator ti = track->handler->tracks.begin(); ti != track->handler->tracks.end(); ++ti) {
+  for(TTrackList::const_iterator ti = track.handler->tracks.begin(); ti != track.handler->tracks.end(); ++ti) {
     TTrack &subTrack = **ti;
 
     // remove points
-    if (start < track->size()) {
+    if (start < track.size()) {
       subTrack.pointsRemoved += subTrack.size() - start;
       subTrack.truncate(start);
     }
 
     // add points
-    for(int i = start; i < track->size(); ++i)
+    for(int i = start; i < track.size(); ++i)
       subTrack.push_back( subTrack.modifier->calcPoint(i) );
     subTrack.pointsAdded += subTrack.size() - start;
   }
 
-  track->pointsRemoved = 0;
-  track->pointsAdded = 0;
+  track.pointsRemoved = 0;
+  track.pointsAdded = 0;
 }
 
 
@@ -72,7 +75,7 @@ TInputModifier::modifyTracks(
     TTrackList &outTracks )
 {
   for(TTrackList::const_iterator i = tracks.begin(); i != tracks.end(); ++i)
-    modifyTrack(*i, savePoint, outTracks);
+    modifyTrack(**i, savePoint, outTracks);
 }
 
 
@@ -95,10 +98,21 @@ TInputModifier::modifyHovers(
 }
 
 
+TRectD
+TInputModifier::calcDrawBounds(const TTrackList &tracks, const THoverList &hovers) {
+  TRectD bounds;
+  for(TTrackList::const_iterator i = tracks.begin(); i != tracks.end(); ++i)
+    bounds += calcDrawBoundsTrack(**i);
+  for(std::vector<TPointD>::const_iterator i = hovers.begin(); i != hovers.end(); ++i)
+    bounds += calcDrawBoundsHover(*i);
+  return bounds;
+}
+
+
 void
 TInputModifier::draw(const TTrackList &tracks, const THoverList &hovers) {
   for(TTrackList::const_iterator i = tracks.begin(); i != tracks.end(); ++i)
-    drawTrack(*i);
+    drawTrack(**i);
   for(THoverList::const_iterator i = hovers.begin(); i != hovers.end(); ++i)
     drawHover(*i);
 }
@@ -314,6 +328,7 @@ TInputManager::paintTracks() {
     }
 
     // is paint finished?
+    newSavePoint.unlock();
     if (newSavePoint.isFree()) {
       newSavePoint.savePoint()->available = false;
       if (allFinished) {
@@ -452,8 +467,12 @@ TInputManager::modifierDeactivate(const TInputModifierP &modifier) {
 
 
 void
-TInputManager::processTracks()
-  { paintTracks(); }
+TInputManager::processTracks() {
+  paintTracks();
+  TRectD bounds = calcDrawBounds();
+  if (!bounds.isEmpty())
+    m_handler->inputInvalidateRect(bounds);
+}
 
 
 void
@@ -602,40 +621,59 @@ TInputManager::hoverEvent(const THoverList &hovers) {
 }
 
 
-void
-TInputManager::draw() {
-  // TODO: paint
+TRectD
+TInputManager::calcDrawBounds() {
+  TRectD bounds;
+  for(int i = 0; i < (int)m_modifiers.size(); ++i)
+    bounds += m_modifiers[i]->calcDrawBounds(m_tracks[i], m_hovers[i]);
 
-  // paint not sent sub-tracks
   if (m_savePointsSent < (int)m_savePoints.size()) {
-    //context.Save();
-    //penPreview.apply(context);
-    for(TTrackList::const_iterator i = getOutputTracks().begin(); i != getOutputTracks().end(); ++i) {
-      TTrack &track = **i;
+    for(TTrackList::const_iterator ti = getOutputTracks().begin(); ti != getOutputTracks().end(); ++ti) {
+      TTrack &track = **ti;
       if (TrackHandler *handler = dynamic_cast<TrackHandler*>(track.handler.getPointer())) {
         int start = handler->saves[m_savePointsSent] - 1;
         if (start < 0) start = 0;
-        if (start < track.size()) {
-          //Drawing.Color color = penPreview.color;
-          int level = m_savePointsSent;
+        if (start + 1 < track.size())
+          for(int i = start + 1; i < track.size(); ++i)
+            bounds += boundingBox(track[i-1].position, track[i].position);
+      }
+    }
+  }
 
-          //color.apply(context);
-          //context.MoveTo(track[start].position.x, track.points[start].position.y);
+  if (!bounds.isEmpty())
+    bounds.enlarge(2.0);
+  
+  return bounds;
+}
+
+
+void
+TInputManager::draw() {
+  // paint not sent sub-tracks
+  if (m_savePointsSent < (int)m_savePoints.size()) {
+    glPushAttrib(GL_ALL_ATTRIB_BITS);
+    tglEnableBlending();
+    tglEnableLineSmooth(true, 0.5);
+    for(TTrackList::const_iterator ti = getOutputTracks().begin(); ti != getOutputTracks().end(); ++ti) {
+      TTrack &track = **ti;
+      if (TrackHandler *handler = dynamic_cast<TrackHandler*>(track.handler.getPointer())) {
+        int start = handler->saves[m_savePointsSent] - 1;
+        if (start < 0) start = 0;
+        if (start + 1 < track.size()) {
+          int level = m_savePointsSent;
+          double alpha = 1.0;
+          glColor4d(1.0, 1.0, 1.0, alpha);
           for(int i = start + 1; i < track.size(); ++i) {
             while(level < (int)handler->saves.size() && handler->saves[level] <= i) {
-              //context.Stroke();
-              //context.MoveTo(track[i-1].position.x, track[i-1].position.y);
-              //color.a *= levelAlpha;
-              //color.apply(context);
+              glColor4d(1.0, 1.0, 1.0, alpha *= 1.0);
               ++level;
             }
-            //context.LineTo(track[i].position.x, track[i].position.y);
+            tglDrawDoubleSegment(track[i-1].position, track[i].position);
           }
         }
       }
     }
-    //context.Stroke();
-    //context.Restore();
+    glPopAttrib();
   }
 
   // paint modifiers

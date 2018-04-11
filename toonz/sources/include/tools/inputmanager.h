@@ -123,9 +123,9 @@ private:
   inline void release()
     { if ((--m_refCount) <= 0) delete this; }
   inline void lock()
-    { ++m_refCount; }
+    { ++m_lockCount; }
   inline void unlock()
-    { if ((--m_refCount) <= 0) delete this; }
+    { --m_lockCount; }
 
 public:
   bool available;
@@ -159,7 +159,7 @@ public:
   virtual void activate() { }
 
   virtual void modifyTrack(
-    const TTrackP &track,
+    const TTrack &track,
     const TInputSavePoint::Holder &savePoint,
     TTrackList &outTracks );
   virtual void modifyTracks(
@@ -174,8 +174,12 @@ public:
     const THoverList &hovers,
     THoverList &outHovers );
 
+  virtual TRectD calcDrawBoundsHover(const TPointD &hover) { return TRectD(); }
+  virtual TRectD calcDrawBoundsTrack(const TTrack &track) { return TRectD(); }
+  virtual TRectD calcDrawBounds(const TTrackList &tracks, const THoverList &hovers);
+
   virtual void drawHover(const TPointD &hover) { }
-  virtual void drawTrack(const TTrackP &track) { }
+  virtual void drawTrack(const TTrack &track) { }
   virtual void draw(const TTrackList &tracks, const THoverList &hovers);
 
   virtual void deactivate() { }
@@ -234,6 +238,8 @@ public:
       was:            ------O-------O------O------
       become (N = 2): ------O------- */
   virtual void inputPaintPop(int count) { }
+  
+  virtual void inputInvalidateRect(const TRectD &bounds) { }
 };
 
 
@@ -361,6 +367,7 @@ public:
     TTimerTicks ticks);
   void hoverEvent(const THoverList &hovers);
 
+  TRectD calcDrawBounds();
   void draw();
 
   static TInputState::TouchId genTouchId();
