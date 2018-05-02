@@ -10,6 +10,7 @@
 
 // TnzCore includes
 #include <tcommon.h>
+#include <tgeometry.h>
 #include <tsmartpointer.h>
 
 // Qt includes
@@ -36,6 +37,7 @@
 
 //  Forward declarations
 
+class TTool;
 class TInputModifier;
 class TInputManager;
 
@@ -178,8 +180,10 @@ public:
   virtual TRectD calcDrawBoundsTrack(const TTrack &track) { return TRectD(); }
   virtual TRectD calcDrawBounds(const TTrackList &tracks, const THoverList &hovers);
 
-  virtual void drawHover(const TPointD &hover) { }
   virtual void drawTrack(const TTrack &track) { }
+  virtual void drawHover(const TPointD &hover) { }
+  virtual void drawTracks(const TTrackList &tracks);
+  virtual void drawHovers(const THoverList &hovers);
   virtual void draw(const TTrackList &tracks, const THoverList &hovers);
 
   virtual void deactivate() { }
@@ -240,6 +244,9 @@ public:
   virtual void inputPaintPop(int count) { }
   
   virtual void inputInvalidateRect(const TRectD &bounds) { }
+  
+  virtual TAffine toWorld() { return TAffine(); };
+  virtual TTool* getTool() { return nullptr; };
 };
 
 
