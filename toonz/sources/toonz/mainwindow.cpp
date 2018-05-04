@@ -2472,6 +2472,7 @@ void MainWindow::defineActions() {
   createToolAction(T_Plastic, "plastic", QT_TR_NOOP("Plastic Tool"), "X");
   createToolAction(T_Ruler, "ruler", QT_TR_NOOP("Ruler Tool"), "");
   createToolAction(T_Finger, "finger", QT_TR_NOOP("Finger Tool"), "");
+  createToolAction(T_EditAssistants, "geometric", QT_TR_NOOP("Edit Assistants"), "");
 
   /*-- Animate tool + mode switching shortcuts --*/
   createAction(MI_EditNextMode, QT_TR_NOOP("Animate Tool - Next Mode"), "",

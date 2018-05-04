@@ -1592,7 +1592,7 @@ void IconGenerator::invalidate(TXshLevel *xl, const TFrameId &fid,
                                             m_settings));
       break;
     default:
-      assert(false);
+      addTask(id, new NoImageIconRenderer(id, getIconSize()));
       break;
     }
 
@@ -1630,7 +1630,7 @@ void IconGenerator::invalidate(TXshLevel *xl, const TFrameId &fid,
                                             m_settings));
       break;
     default:
-      assert(false);
+      addTask(id, new NoImageIconRenderer(id, TDimension(80, 60)));
       break;
     }
 

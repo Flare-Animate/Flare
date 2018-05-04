@@ -127,6 +127,7 @@ set(SOURCES
     modifiers/modifierassistants.cpp
     assistants/guidelineline.cpp
     assistants/assistantvanishingpoint.cpp
+    editassistantstool.cpp
 )
 
 set(RESOURCES tnztools.qrc)
