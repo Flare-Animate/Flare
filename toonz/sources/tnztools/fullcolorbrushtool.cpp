@@ -364,10 +364,7 @@ void FullColorBrushTool::inputMouseMove(
   struct Locals {
     FullColorBrushTool *m_this;
 
-    void setValue(TIntPairProperty &prop,
-                  const TIntPairProperty::Value &value) {
-      prop.setValue(value);
-
+    void notify(TProperty &prop) {
       m_this->onPropertyChanged(prop.getName());
       TTool::getApplication()->getCurrentTool()->notifyToolChanged();
     }
@@ -379,8 +376,9 @@ void FullColorBrushTool::inputMouseMove(
       value.second =
           tcrop<double>(value.second + add, range.first, range.second);
       value.first = tcrop<double>(value.first + add, range.first, range.second);
+      prop.setValue(value);
 
-      setValue(prop, value);
+      notify(prop);
     }
 
     void addMinMaxSeparate(TIntPairProperty &prop, double min, double max) {
@@ -392,17 +390,31 @@ void FullColorBrushTool::inputMouseMove(
       value.second += max;
       if (value.first > value.second) value.first = value.second;
       value.first  = tcrop<double>(value.first, range.first, range.second);
-      value.second = tcrop<double>(value.second, range.first, range.second);
 
-      setValue(prop, value);
+      value.second = tcrop<double>(value.second, range.first, range.second);
+      prop.setValue(value);
+
+      notify(prop);
+    }
+
+    void add(TDoubleProperty &prop, double x) {
+      if (x == 0.0) return;
+
+      const TDoubleProperty::Range &range = prop.getRange();
+      double value = tcrop<double>(prop.getValue() + x, range.first, range.second);
+      prop.setValue(value);
+
+      notify(prop);
     }
   } locals = {this};
 
   if (state.isKeyPressed(TKey::control) && state.isKeyPressed(TKey::alt)) {
     const TPointD &diff = position - m_mousePos;
-    double max          = diff.x / 2;
-    double min          = diff.y / 2;
-    locals.addMinMaxSeparate(m_thickness, int(min), int(max));
+    if (getBrushStyle()) {
+      locals.add(m_modifierSize, 0.01*diff.x);
+    } else {
+      locals.addMinMaxSeparate(m_thickness, int(diff.x/2), int(diff.y/2));
+    }
   } else {
     m_brushPos = position;
   }
