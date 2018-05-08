@@ -63,7 +63,7 @@ class DVAPI TTrackToolHandler : public TSmartObject { };
 //    TTrackPoint definition
 //*****************************************************************************************
 
-class TTrackPoint {
+class DVAPI TTrackPoint {
 public:
   TPointD position;
   double pressure;
@@ -99,7 +99,7 @@ public:
 //    TTrackTangent definition
 //*****************************************************************************************
 
-class TTrackTangent {
+class DVAPI TTrackTangent {
 public:
   TPointD position;
   double pressure;

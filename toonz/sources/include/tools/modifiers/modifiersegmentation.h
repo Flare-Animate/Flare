@@ -24,7 +24,7 @@
 //    TModifierSegmentation definition
 //*****************************************************************************************
 
-class TModifierSegmentation: public TInputModifier {
+class DVAPI TModifierSegmentation: public TInputModifier {
 public:
   const double precision;
   const double precisionSqr;
