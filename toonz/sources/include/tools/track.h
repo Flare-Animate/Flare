@@ -60,6 +60,18 @@ class DVAPI TTrackToolHandler : public TSmartObject { };
 
 
 //*****************************************************************************************
+//    export template implementations for win32
+//*****************************************************************************************
+
+#ifdef _WIN32
+template class DVAPI TSmartPointerT<TTrack>;
+template class DVAPI TSmartPointerT<TTrackHandler>;
+template class DVAPI TSmartPointerT<TTrackToolHandler>;
+template class DVAPI TSmartPointerT<TTrackModifier>;
+#endif
+
+
+//*****************************************************************************************
 //    TTrackPoint definition
 //*****************************************************************************************
 
@@ -376,5 +388,6 @@ public:
       interpolationLinear(p0.length        , p1.length        , l) );
   }
 };
+
 
 #endif

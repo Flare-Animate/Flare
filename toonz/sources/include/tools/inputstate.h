@@ -38,11 +38,6 @@
 
 typedef std::vector<TPointD> THoverList;
 
-#ifdef _WIN32
-template class DVAPI TKeyHistoryT<TKey>;
-template class DVAPI TKeyHistoryT<Qt::MouseButton>;
-#endif
-
 //===================================================================
 
 
@@ -85,6 +80,23 @@ public:
   static bool isNumber(Qt::Key key);
   static bool isModifier(Qt::Key key);
 };
+
+
+//*****************************************************************************************
+//    export template implementations for win32
+//*****************************************************************************************
+
+#ifdef _WIN32
+template class DVAPI TKeyStateT<TKey>;
+template class DVAPI TSmartPointerT< TKeyStateT<TKey> >;
+template class DVAPI TKeyHistoryT<TKey>;
+template class DVAPI TKeyHistoryT<TKey>::Holder;
+
+template class DVAPI TKeyStateT<Qt::MouseButton>;
+template class DVAPI TSmartPointerT< TKeyStateT<Qt::MouseButton> >;
+template class DVAPI TKeyHistoryT<Qt::MouseButton>;
+template class DVAPI TKeyHistoryT<Qt::MouseButton>::Holder;
+#endif
 
 
 //*****************************************************************************************

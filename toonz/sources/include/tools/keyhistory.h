@@ -64,8 +64,15 @@ public:
     }
   };
 
-  static const Type none;
-  static const Pointer empty;
+  static const Type& none() {
+    static Type none;
+    return none;
+  }
+
+  static const Pointer& empty() {
+    static Pointer empty = new TKeyStateT();
+	return empty;
+  }
 
   const Pointer previous;
   const TTimerTicks ticks;
@@ -82,17 +89,17 @@ private:
   }
 
 public:
-  TKeyStateT(): ticks(0), value(none) { }
+  TKeyStateT(): ticks(0), value(none()) { }
 
   Pointer find(const Type &value) {
-    return value == none        ? Pointer()
+    return value == none()      ? Pointer()
          : value == this->value ? this
          : previous             ? previous->find(value)
          :                        Pointer();
   }
 
   Pointer change(bool press, const Type &value, TTimerTicks ticks) {
-    if (value == none)
+    if (value == none())
       return Pointer(this);
     
     Pointer p = find(value);
@@ -105,11 +112,11 @@ public:
     if (press)
       return Pointer(new TKeyStateT((isEmpty() ? Pointer() : Pointer(this)), ticks, value));
     Pointer chain = makeChainWithout(p);
-    return chain ? chain : Pointer(new TKeyStateT(Pointer(), ticks, none));
+    return chain ? chain : Pointer(new TKeyStateT(Pointer(), ticks, none()));
   }
 
   bool isEmpty()
-    { return value == none && (!previous || previous->isEmpty()); }
+    { return value == none() && (!previous || previous->isEmpty()); }
   bool isPressed(const Type &value)
     { return find(value); }
 
@@ -118,13 +125,6 @@ public:
   Pointer released(const Type &value, long ticks)
     { return change(false, value, ticks); }
 };
-
-
-template<typename T>
-const typename TKeyStateT<T>::Type TKeyStateT<T>::none = typename TKeyStateT<T>::Type();
-
-template<typename T>
-const typename TKeyStateT<T>::Pointer TKeyStateT<T>::empty = new TKeyStateT<T>();
 
 
 //*****************************************************************************************
@@ -187,7 +187,7 @@ public:
 
     Holder offset(double timeOffset) const {
       return fabs(timeOffset) < TToolTimer::epsilon ? *this
-           : Holder(history, ticks, this->timeOffset + timeOffset);
+           : Holder(m_history, m_ticks, m_timeOffset + timeOffset);
     }
 
     StateHolder get(double time) const {

@@ -385,4 +385,13 @@ public:
 };
 
 
+//*****************************************************************************************
+//    export template implementations for win32
+//*****************************************************************************************
+
+#ifdef _WIN32
+template class DVAPI TSmartPointerT<TInputModifier>;
+#endif
+
+
 #endif
