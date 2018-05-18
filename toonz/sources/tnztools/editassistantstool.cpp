@@ -357,14 +357,20 @@ protected:
         if (!assistant) continue;
 
         assistant->deselectAll();
-        const TAssistantPointMap &points = assistant->points();
-        for(TAssistantPointMap::const_iterator j = points.begin(); j != points.end() && m_currentAssistantIndex < 0; ++j) {
-          const TAssistantPoint &p = j->second;
+
+        // last points is less significant and don't affecting the first points
+        // so iterate points in reverse order to avoid unsolvable points overlapping
+        const TAssistantPointOrder &points = assistant->pointsOrder();
+        for( TAssistantPointOrder::const_reverse_iterator j = points.rbegin();
+             j != points.rend() && m_currentAssistantIndex < 0;
+             ++j )
+        {
+          const TAssistantPoint &p = **j;
           TPointD offset = p.position - position;
           if (p.visible && norm2(offset) <= p.radius*p.radius*pixelSize*pixelSize) {
             m_currentAssistant.set(*i);
             m_currentAssistantIndex = i - (*m_reader)->begin();
-            m_currentPointName = j->first;
+            m_currentPointName = p.name;
             m_currentPointOffset = offset;
             assistant->selectAll();
           }
@@ -379,7 +385,7 @@ protected:
   bool apply() {
     bool success = false;
     if (m_currentAssistantChanged || m_currentAssistantCreated) {
-      if (Closer closer = write(ModePoint)) {
+      if (Closer closer = write(ModeAssistant)) {
         m_writeAssistant->fixData();
         TUndoManager::manager()->add(new EditAssistantsUndo(
           getApplication()->getCurrentLevel()->getLevel()->getSimpleLevel(),
@@ -419,12 +425,13 @@ public:
     m_dragging = true;
     if (m_newAssisnantType) {
       // create assistant
-      resetCurrentPoint();
+      resetCurrentPoint(false);
       if (Closer closer = write(ModeImage)) {
         TMetaObjectP object(new TMetaObject(m_newAssisnantType));
         if (TAssistant *assistant = object->getHandler<TAssistant>()) {
           assistant->setDefaults();
-          assistant->movePoint(assistant->getBasePoint().name, position);
+          assistant->move(position);
+          assistant->selectAll();
           m_currentAssistantCreated = true;
           m_currentAssistantChanged = true;
           m_currentAssistantIndex = (int)(*m_writer)->size();
@@ -435,6 +442,7 @@ public:
           (*m_writer)->push_back(object);
         }
       }
+      updateOptionsBox();
       m_newAssisnantType.reset();
     } else {
       findCurrentPoint(position);
@@ -445,19 +453,29 @@ public:
   }
 
   void leftButtonDrag(const TPointD &position, const TMouseEvent&) override {
-    if (Closer closer = write(ModePoint, true))
-      m_writeAssistant->movePoint(
-        m_currentPointName,
-        position + m_currentPointOffset);
+    if (m_currentAssistantCreated) {
+      if (Closer closer = write(ModeAssistant, true))
+        m_writeAssistant->move( position + m_currentPointOffset );
+    } else {
+      if (Closer closer = write(ModePoint, true))
+        m_writeAssistant->movePoint(
+          m_currentPointName,
+          position + m_currentPointOffset);
+    }
     m_currentPosition = position;
     getViewer()->GLInvalidateAll();
   }
 
   void leftButtonUp(const TPointD &position, const TMouseEvent&) override {
-    if (Closer closer = write(ModePoint, true))
-      m_writeAssistant->movePoint(
-        m_currentPointName,
-        position + m_currentPointOffset);
+    if (m_currentAssistantCreated) {
+      if (Closer closer = write(ModeAssistant, true))
+        m_writeAssistant->move( position + m_currentPointOffset );
+    } else {
+      if (Closer closer = write(ModePoint, true))
+        m_writeAssistant->movePoint(
+          m_currentPointName,
+          position + m_currentPointOffset);
+    }
 
     apply();
     m_assistantType.setIndex(0);
