@@ -123,6 +123,7 @@ protected:
   TStringId m_newAssisnantType;
 
   bool           m_dragging;
+  bool           m_dragAllPoints;
   TMetaObjectH   m_currentAssistant;
   bool           m_currentAssistantCreated;
   bool           m_currentAssistantChanged;
@@ -148,6 +149,7 @@ public:
     TTool("T_EditAssistants"),
     m_assistantType("AssistantType"),
     m_dragging(),
+    m_dragAllPoints(),
     m_currentAssistantCreated(),
     m_currentAssistantChanged(),
     m_currentAssistantIndex(-1),
@@ -420,9 +422,10 @@ public:
     return true;
   }
 
-  void leftButtonDown(const TPointD &position, const TMouseEvent&) override {
+  void leftButtonDown(const TPointD &position, const TMouseEvent &event) override {
     apply();
     m_dragging = true;
+    m_dragAllPoints = false;
     if (m_newAssisnantType) {
       // create assistant
       resetCurrentPoint(false);
@@ -432,6 +435,7 @@ public:
           assistant->setDefaults();
           assistant->move(position);
           assistant->selectAll();
+          m_dragAllPoints = true;
           m_currentAssistantCreated = true;
           m_currentAssistantChanged = true;
           m_currentAssistantIndex = (int)(*m_writer)->size();
@@ -446,6 +450,12 @@ public:
       m_newAssisnantType.reset();
     } else {
       findCurrentPoint(position);
+      if (event.isShiftPressed())
+        if (Closer closer = read(ModePoint)) {
+          m_currentPointName = m_readAssistant->getBasePoint().name;
+          m_currentPointOffset = m_readAssistant->getBasePoint().position - position;
+          m_dragAllPoints = true;
+        }
     }
 
     m_currentPosition = position;
@@ -453,7 +463,7 @@ public:
   }
 
   void leftButtonDrag(const TPointD &position, const TMouseEvent&) override {
-    if (m_currentAssistantCreated) {
+    if (m_dragAllPoints) {
       if (Closer closer = write(ModeAssistant, true))
         m_writeAssistant->move( position + m_currentPointOffset );
     } else {
@@ -468,8 +478,10 @@ public:
 
   void leftButtonUp(const TPointD &position, const TMouseEvent&) override {
     if (m_currentAssistantCreated) {
-      if (Closer closer = write(ModeAssistant, true))
+      if (Closer closer = write(ModeAssistant, true)) {
+        m_writeAssistant->getBasePoint();
         m_writeAssistant->move( position + m_currentPointOffset );
+      }
     } else {
       if (Closer closer = write(ModePoint, true))
         m_writeAssistant->movePoint(
@@ -483,6 +495,7 @@ public:
     emit getApplication()->getCurrentTool()->toolChanged();
     m_currentPosition = position;
     getViewer()->GLInvalidateAll();
+    m_dragAllPoints = false;
     m_dragging = false;
   }
 
