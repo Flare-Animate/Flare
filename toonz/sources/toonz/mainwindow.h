@@ -99,6 +99,7 @@ public:
   void onNewToonzRasterLevelButtonPressed();
   void onNewRasterLevelButtonPressed();
   void clearCacheFolder();
+  void onNewMetaLevelButtonPressed();
 
   QString getLayoutName() { return m_layoutName; }
 
