@@ -98,7 +98,7 @@ bool parseFrame(const std::wstring &str, int &frame, QString &letter, int &paddi
   wchar_t l = str[i] >= L'a' && str[i] <= L'z' ? str[i++]
             : str[i] >= L'A' && str[i] <= L'Z' ? str[i++]
             : L'\0';
-  if (number == 0 || i < (int)str.size())
+  if (digits <= 0 || i < (int)str.size())
     return false;
 
   frame = number;
