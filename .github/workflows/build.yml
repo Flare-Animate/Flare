@@ -52,8 +52,8 @@ jobs:
         cp appdir/usr/share/applications/*.desktop appdir
         cp appdir/usr/share/icons/hicolor/*/apps/*.png appdir
 
-        mkdir -p artifact/OpenToonzPortable
-        mv appdir/usr/share/opentoonz/stuff artifact/OpenToonzPortable/portablestuff
+        mkdir artifact
+        mv appdir/usr/share/opentoonz/stuff artifact/portablestuff
         rmdir appdir/usr/share/opentoonz
 
         wget -q -c 'https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage'
@@ -78,12 +78,15 @@ jobs:
         --executable=appdir/usr/bin/tconverter \
         --executable=appdir/usr/bin/tfarmcontroller \
         --executable=appdir/usr/bin/tfarmserver
-        mv OpenToonz*.AppImage artifact/OpenToonzPortable/OpenToonz.AppImage
+        mv OpenToonz*.AppImage artifact/OpenToonz.AppImage
+        ARTIFACT_NAME=Opentoonz-${{ runner.os }}-${{ matrix.compiler }}-${{ github.sha }}
+        mv artifact ${ARTIFACT_NAME}
+        tar zcf ${ARTIFACT_NAME}.tar.gz ${ARTIFACT_NAME}
 
     - uses: actions/upload-artifact@v1
       with:
         name: Opentoonz-${{ runner.os }}-${{ matrix.compiler }}-${{ github.sha }}
-        path: toonz/build/artifact
+        path: toonz/build/Opentoonz-${{ runner.os }}-${{ matrix.compiler }}-${{ github.sha }}.tar.gz
 
   macOS:
     runs-on: macos-latest
