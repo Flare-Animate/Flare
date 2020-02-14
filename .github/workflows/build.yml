@@ -180,6 +180,7 @@ jobs:
         vcpkg install --clean-after-build --triplet x64-windows-static json-c libjpeg-turbo libpng lz4 lzo openblas zlib
         vcpkg install --clean-after-build --triplet x64-windows freeglut glew
         vcpkg install --clean-after-build --triplet x64-windows qt5-base qt5-multimedia qt5-script qt5-svg qt5-tools
+        ls -Recurse C:/vcpkg/installed -Filter *.pdb | rm
 
     - name: Install clcache
       run: |
