@@ -507,7 +507,7 @@ void TEnv::setApplicationFileName(std::string appFileName) {
 #ifdef MACOSX
   if (fp.getWideName().find(L".app"))
     for (int i = 0; i < 3; i++) fp = fp.getParentDir();
-#elif LINUX
+#elif defined(LINUX) || defined(FREEBSD)
   if (fp.getWideName().find(L".appimage"))
     for (int i = 0; i < 2; i++) fp = fp.getParentDir();
 #endif
