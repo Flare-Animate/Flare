@@ -82,7 +82,7 @@ public:
   void validateRegions(bool state = false);
   //! Get valid regions flags
   /*! Call validateRegions() after region/stroke changes
-*/
+   */
   bool areValidRegions();
 
   //! Return a clone of image
@@ -306,7 +306,7 @@ get the stroke nearest at point
 
   /*! if enabled, region edges are joined together when possible. for flash
    * render, should be disabled!
-*/
+   */
   void enableMinimizeEdges(bool enabled);
   /*! Creates a new Image using the selected strokes. If removeFlag==true then
      removes selected strokes
@@ -316,12 +316,12 @@ get the stroke nearest at point
   TVectorImageP splitSelected(bool removeFlag);
 
   //! Merge the image with the \b img.
-  void mergeImage(const TVectorImageP &img, const TAffine &affine,
-                  bool sameStrokeId = true);
+  int mergeImage(const TVectorImageP &img, const TAffine &affine,
+                 bool sameStrokeId = true);
 
-  void mergeImage(const TVectorImageP &img, const TAffine &affine,
-                  const std::map<int, int> &styleTable,
-                  bool sameStrokeId = true);
+  int mergeImage(const TVectorImageP &img, const TAffine &affine,
+                 const std::map<int, int> &styleTable,
+                 bool sameStrokeId = true);
   //! Merge the image with the vector of image \b images.
   void mergeImage(const std::vector<const TVectorImage *> &images);
 
