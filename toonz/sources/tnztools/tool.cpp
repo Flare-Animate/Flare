@@ -1287,6 +1287,7 @@ void TTool::tweenSelectedGuideStrokes() {
   if (vbTool) {
     m_isFrameCreated = false;
     m_isLevelCreated = false;
+    vbTool->touchImage();
     vbTool->setViewer(m_viewer);
     vbTool->doFrameRangeStrokes(
         bFid, bStroke, fFid, fStroke,
@@ -1388,6 +1389,7 @@ void TTool::tweenGuideStrokeToSelected() {
   if (vbTool) {
     m_isFrameCreated = false;
     m_isLevelCreated = false;
+    vbTool->touchImage();
     vbTool->setViewer(m_viewer);
     TUndoManager::manager()->beginBlock();
     if (bStroke)
