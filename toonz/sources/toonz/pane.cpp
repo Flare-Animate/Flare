@@ -46,7 +46,6 @@ TPanel::TPanel(QWidget *parent, Qt::WindowFlags flags,
     , m_panelType("")
     , m_isMaximizable(true)
     , m_isMaximized(false)
-    , m_isActive(true)
     , m_panelTitleBar(0)
     , m_multipleInstancesAllowed(true) {
   // setFeatures(QDockWidget::DockWidgetMovable |
@@ -78,15 +77,6 @@ TPanel::~TPanel() {
     if (SaveLoadQSettings *persistent =
             dynamic_cast<SaveLoadQSettings *>(widget()))
       persistent->save(settings);
-  }
-}
-
-//-----------------------------------------------------------------------------
-
-void TPanel::setActive(bool value) {
-  m_isActive = value;
-  if (m_panelTitleBar) {
-    m_panelTitleBar->setIsActive(m_isActive);
   }
 }
 
@@ -401,16 +391,9 @@ void TPanelTitleBarButtonSet::select(TPanelTitleBarButton *button) {
 
 TPanelTitleBar::TPanelTitleBar(QWidget *parent,
                                TDockWidget::Orientation orientation)
-    : QFrame(parent), m_isActive(true), m_closeButtonHighlighted(false) {
+    : QFrame(parent), m_closeButtonHighlighted(false) {
   setMouseTracking(true);
   setFocusPolicy(Qt::NoFocus);
-}
-
-//-----------------------------------------------------------------------------
-
-void TPanelTitleBar::setIsActive(bool value) {
-  if (m_isActive == value) return;
-  m_isActive = value;
 }
 
 //-----------------------------------------------------------------------------
