@@ -40,8 +40,8 @@ class PaletteViewerPanel final : public StyleShortcutSwitchablePanel {
   TPaletteHandle *m_paletteHandle;
   PaletteViewer *m_paletteViewer;
 
-  TPanelTitleBarButton *m_isCurrentButton;
-  bool m_isCurrent;
+  TPanelTitleBarButton *m_freezeButton;
+  bool m_isFrozen;
 
 public:
   PaletteViewerPanel(QWidget *parent);
@@ -51,6 +51,9 @@ public:
 
   void reset() override;
 
+  bool isFrozen() { return m_isFrozen; }
+  void setFrozen(bool frozen) { m_isFrozen = frozen; }
+
 protected:
   void initializeTitleBar();
   bool isActivatableOnEnter() override { return true; }
@@ -58,7 +61,7 @@ protected:
 protected slots:
   void onColorStyleSwitched();
   void onPaletteSwitched();
-  void onCurrentButtonToggled(bool isCurrent);
+  void onFreezeButtonToggled(bool isFrozen);
   void onSceneSwitched();
 };
 
@@ -277,18 +280,18 @@ protected:
 //---------------------------------------------------------
 
 class SceneViewerPanelContainer final : public StyleShortcutSwitchablePanel {
-    Q_OBJECT
-        SceneViewerPanel *m_sceneViewer;
+  Q_OBJECT
+  SceneViewerPanel *m_sceneViewer;
 
 public:
-    SceneViewerPanelContainer(QWidget* parent);
-    // reimplementation of TPanel::widgetInThisPanelIsFocused
-    bool widgetInThisPanelIsFocused() override;
+  SceneViewerPanelContainer(QWidget *parent);
+  // reimplementation of TPanel::widgetInThisPanelIsFocused
+  bool widgetInThisPanelIsFocused() override;
 
 protected:
-    // reimplementation of TPanel::widgetFocusOnEnter
-    void widgetFocusOnEnter() override;
-    void widgetClearFocusOnLeave() override;
+  // reimplementation of TPanel::widgetFocusOnEnter
+  void widgetFocusOnEnter() override;
+  void widgetClearFocusOnLeave() override;
 };
 
 //=========================================================
