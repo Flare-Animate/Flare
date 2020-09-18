@@ -953,6 +953,7 @@ QComboBox QAbstractItemView {
 .LineEdit,
 QPlainTextEdit,
 QLineEdit,
+QTextEdit,
 #TaskSheetItem,
 #tasksRemoveBox,
 #tasksAddBox {
@@ -967,6 +968,7 @@ QLineEdit,
 .LineEdit:focus,
 QPlainTextEdit:focus,
 QLineEdit:focus,
+QTextEdit:focus,
 #TaskSheetItem:focus,
 #tasksRemoveBox:focus,
 #tasksAddBox:focus {
@@ -977,6 +979,7 @@ QLineEdit:focus,
 .LineEdit:disabled,
 QPlainTextEdit:disabled,
 QLineEdit:disabled,
+QTextEdit:disabled,
 #TaskSheetItem:disabled,
 #tasksRemoveBox:disabled,
 #tasksAddBox:disabled {

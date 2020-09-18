@@ -102,7 +102,7 @@ SizeField::SizeField(QSize min, QSize max, QSize value, QWidget* parent)
   bool ret = true;
   ret      = ret && connect(m_fieldX, SIGNAL(editingFinished()), this,
                        SIGNAL(editingFinished()));
-  ret = ret && connect(m_fieldY, SIGNAL(editingFinished()), this,
+  ret      = ret && connect(m_fieldY, SIGNAL(editingFinished()), this,
                        SIGNAL(editingFinished()));
   assert(ret);
 }
@@ -267,6 +267,53 @@ Preferences::LevelFormat PreferencesPopup::FormatProperties::levelFormat()
 }
 
 //**********************************************************************************
+//    PreferencesPopup::AdditionalStyleEdit  implementation
+//**********************************************************************************
+
+PreferencesPopup::AdditionalStyleEdit::AdditionalStyleEdit(
+    PreferencesPopup* parent)
+    : DVGui::Dialog(parent, true, false, "AdditionalStyleEdit") {
+  setWindowTitle(tr("Additional Style Sheet"));
+  setModal(true);
+
+  m_edit                   = new QTextEdit(this);
+  QPushButton* okButton    = new QPushButton(tr("OK"), this);
+  QPushButton* applyButton = new QPushButton(tr("Apply"), this);
+  QPushButton* closeButton = new QPushButton(tr("Close"), this);
+
+  QString placeHolderTxt(
+      "/* Type additional style sheet here to customize GUI. \n"
+      "   Example: To enlarge the Style Editor buttons */\n\n"
+      "#StyleEditor #bottomWidget QPushButton{ \n  padding : 13 21; \n }");
+  m_edit->setPlaceholderText(placeHolderTxt);
+  m_edit->setAcceptRichText(false);
+
+  m_topLayout->addWidget(m_edit);
+
+  addButtonBarWidget(okButton, applyButton, closeButton);
+
+  bool ret = true;
+  ret      = ret && connect(okButton, SIGNAL(pressed()), this, SLOT(onOK()));
+  ret = ret && connect(applyButton, SIGNAL(pressed()), this, SLOT(onApply()));
+  ret = ret && connect(closeButton, SIGNAL(pressed()), this, SLOT(close()));
+}
+
+void PreferencesPopup::AdditionalStyleEdit::showEvent(QShowEvent*) {
+  m_edit->setPlainText(Preferences::instance()->getAdditionalStyleSheet());
+}
+
+void PreferencesPopup::AdditionalStyleEdit::onOK() {
+  onApply();
+  close();
+}
+
+void PreferencesPopup::AdditionalStyleEdit::onApply() {
+  Preferences::instance()->setValue(additionalStyleSheet,
+                                    m_edit->toPlainText());
+  emit additionalSheetEdited();
+}
+
+//**********************************************************************************
 //    PreferencesPopup  implementation
 //**********************************************************************************
 
@@ -348,7 +395,7 @@ void PreferencesPopup::onPathAliasPriorityChanged() {
 
 void PreferencesPopup::onStyleSheetTypeChanged() {
   QApplication::setOverrideCursor(Qt::WaitCursor);
-  QString currentStyle = m_pref->getCurrentStyleSheetPath();
+  QString currentStyle = m_pref->getCurrentStyleSheet();
   qApp->setStyleSheet(currentStyle);
   QApplication::restoreOverrideCursor();
 }
@@ -602,6 +649,25 @@ void PreferencesPopup::onProjectRootChanged() {
 }
 //-----------------------------------------------------------------------------
 
+void PreferencesPopup::onEditAdditionalStyleSheet() {
+  if (!m_additionalStyleEdit) {
+    m_additionalStyleEdit = new AdditionalStyleEdit(this);
+
+    bool ret = connect(m_additionalStyleEdit, SIGNAL(additionalSheetEdited()),
+                       this, SLOT(onAdditionalStyleSheetEdited()));
+    assert(ret);
+  }
+  m_additionalStyleEdit->show();
+}
+
+//-----------------------------------------------------------------------------
+
+void PreferencesPopup::onAdditionalStyleSheetEdited() {
+  onStyleSheetTypeChanged();
+}
+
+//-----------------------------------------------------------------------------
+
 void PreferencesPopup::onPixelUnitExternallySelected(bool on) {
   CheckBox* pixelsOnlyCB = getUI<CheckBox*>(pixelsOnly);
   // call slot function onPixelsOnlyChanged() accordingly
@@ -621,7 +687,7 @@ void PreferencesPopup::onInterfaceFontChanged(const QString& text) {
   for (ComboBoxItem& item : newStyleItems)
     fontStyleCombo->addItem(item.first, item.second);
   if (!oldTypeface.isEmpty()) {
-    int newIndex               = fontStyleCombo->findText(oldTypeface);
+    int newIndex = fontStyleCombo->findText(oldTypeface);
     if (newIndex < 0) newIndex = 0;
     fontStyleCombo->setCurrentIndex(newIndex);
   }
@@ -729,7 +795,7 @@ QWidget* PreferencesPopup::createUI(PreferencesItemId id,
       for (const ComboBoxItem& item : comboItems)
         combo->addItem(item.first, item.second);
       combo->setCurrentIndex(combo->findData(item.value));
-      ret = connect(combo, SIGNAL(currentIndexChanged(int)), this,
+      ret    = connect(combo, SIGNAL(currentIndexChanged(int)), this,
                     SLOT(onChange()));
       widget = combo;
     } else {  // create IntLineEdit
@@ -766,7 +832,7 @@ QWidget* PreferencesPopup::createUI(PreferencesItemId id,
     if (id == interfaceFont) {  // create QFontComboBox
       QFontComboBox* combo = new QFontComboBox(this);
       combo->setCurrentText(item.value.toString());
-      ret = connect(combo, SIGNAL(currentIndexChanged(const QString&)), this,
+      ret    = connect(combo, SIGNAL(currentIndexChanged(const QString&)), this,
                     SLOT(onInterfaceFontChanged(const QString&)));
       widget = combo;
     } else if (!comboItems.isEmpty()) {  // create QComboBox
@@ -774,7 +840,7 @@ QWidget* PreferencesPopup::createUI(PreferencesItemId id,
       for (const ComboBoxItem& item : comboItems)
         combo->addItem(item.first, item.second);
       combo->setCurrentIndex(combo->findData(item.value));
-      ret = connect(combo, SIGNAL(currentIndexChanged(int)), this,
+      ret    = connect(combo, SIGNAL(currentIndexChanged(int)), this,
                     SLOT(onChange()));
       widget = combo;
     } else {  // create FileField
@@ -797,7 +863,7 @@ QWidget* PreferencesPopup::createUI(PreferencesItemId id,
   {
     ColorField* field =
         new ColorField(this, false, colorToTPixel(item.value.value<QColor>()));
-    ret = connect(field, SIGNAL(colorChanged(const TPixel32&, bool)), this,
+    ret    = connect(field, SIGNAL(colorChanged(const TPixel32&, bool)), this,
                   SLOT(onColorFieldChanged(const TPixel32&, bool)));
     widget = field;
   } break;
@@ -1205,7 +1271,9 @@ inline T PreferencesPopup::getUI(PreferencesItemId id) {
 //**********************************************************************************
 
 PreferencesPopup::PreferencesPopup()
-    : QDialog(TApp::instance()->getMainWindow()), m_formatProperties() {
+    : QDialog(TApp::instance()->getMainWindow())
+    , m_formatProperties()
+    , m_additionalStyleEdit(nullptr) {
   setWindowTitle(tr("Preferences"));
   setObjectName("PreferencesPopup");
 
@@ -1347,9 +1415,9 @@ QWidget* PreferencesPopup::createGeneralPage() {
   bool ret = true;
   ret      = ret && connect(m_pref, SIGNAL(stopAutoSave()), this,
                        SLOT(onAutoSaveExternallyChanged()));
-  ret = ret && connect(m_pref, SIGNAL(startAutoSave()), this,
+  ret      = ret && connect(m_pref, SIGNAL(startAutoSave()), this,
                        SLOT(onAutoSaveExternallyChanged()));
-  ret = ret && connect(m_pref, SIGNAL(autoSavePeriodChanged()), this,
+  ret      = ret && connect(m_pref, SIGNAL(autoSavePeriodChanged()), this,
                        SLOT(onAutoSavePeriodExternallyChanged()));
 
   ret = ret && connect(m_projectRootDocuments, SIGNAL(stateChanged(int)),
@@ -1383,11 +1451,16 @@ QWidget* PreferencesPopup::createInterfacePage() {
   for (const QString& name : m_pref->getLanguageList())
     languageItemList.push_back(ComboBoxItem(name, name));
 
+  QPushButton* additionalStyleSheetBtn =
+      new QPushButton(tr("Edit Additional Style Sheet.."));
+
   QWidget* widget  = new QWidget(this);
   QGridLayout* lay = new QGridLayout();
   setupLayout(lay);
 
   insertUI(CurrentStyleSheetName, lay, styleSheetItemList);
+  int row = lay->rowCount();
+  lay->addWidget(additionalStyleSheetBtn, row - 1, 3);
 
   lay->addWidget(new QLabel(tr("Icon Theme*:"), this), 2, 0,
                  Qt::AlignRight | Qt::AlignVCenter);
@@ -1431,6 +1504,8 @@ QWidget* PreferencesPopup::createInterfacePage() {
   ret      = ret && connect(TApp::instance()->getCurrentScene(),
                        SIGNAL(pixelUnitSelected(bool)), this,
                        SLOT(onPixelUnitExternallySelected(bool)));
+  ret      = ret && connect(additionalStyleSheetBtn, SIGNAL(clicked()), this,
+                       SLOT(onEditAdditionalStyleSheet()));
   assert(ret);
 
   m_onEditedFuncMap.insert(CurrentStyleSheetName,
