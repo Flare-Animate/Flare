@@ -189,11 +189,13 @@ QTabBar::tab:only-one {
 /* -----------------------------------------------------------------------------
    Main
 ----------------------------------------------------------------------------- */
-QWidget {
+QWidget,
+QTextEdit[readOnly="true"] {
   background-color: #303030;
   color: #e6e6e6;
 }
-QWidget:disabled {
+QWidget:disabled,
+QTextEdit[readOnly="true"]:disabled {
   color: rgba(230, 230, 230, 0.4);
 }
 QFrame {
@@ -986,6 +988,15 @@ QTextEdit:disabled,
   background-color: #262626;
   border-color: #434343;
   color: rgba(230, 230, 230, 0.4);
+}
+QTextEdit[readOnly="true"] {
+  border: 0;
+}
+QTextEdit[readOnly="true"]:focus,
+QTextEdit[readOnly="true"]:disabled {
+  background-color: #303030;
+  color: #e6e6e6;
+  border: 0;
 }
 /* -----------------------------------------------------------------------------
    CheckBox
@@ -2157,7 +2168,9 @@ Ruler {
 /* ScrollAreas (Row, Column and Cell)
 ----------------------------------------------------------------------------- */
 #xsheetArea,
-#ScrollArea {
+#ScrollColumnArea,
+#ScrollRowArea,
+#ScrollCellArea {
   background-color: #303030;
   border: 0;
 }
@@ -2329,6 +2342,16 @@ FunctionTreeView {
 }
 /* Function Editor Spreadsheet
 ----------------------------------------------------------------------------- */
+#ScrollRowArea,
+#ScrollCellArea {
+  border-top: 1 solid rgba(0, 0, 0, 0.4);
+}
+#ScrollCellArea {
+  border-left: 1 solid rgba(0, 0, 0, 0.4);
+}
+#ScrollColumnArea {
+  padding-left: 2;
+}
 FunctionPanel {
   qproperty-BGColor: #303030;
   qproperty-ValueLineColor: rgba(0, 0, 0, 0.1);
@@ -2344,7 +2367,7 @@ SpreadsheetViewer {
   qproperty-CurrentRowBgColor: rgba(83, 133, 166, 0.7);
   qproperty-LightLineColor: rgba(0, 0, 0, 0.3);
   qproperty-MarkerLineColor: rgba(255, 255, 255, 0.15);
-  qproperty-BGColor: #303030;
+  qproperty-BGColor: #262626;
   qproperty-VerticalLineColor: rgba(0, 0, 0, 0.4);
   qproperty-KeyFrameColor: #995d1d;
   qproperty-KeyFrameBorderColor: #db9041;
@@ -2355,7 +2378,7 @@ SpreadsheetViewer {
   qproperty-SelectedEmptyColor: rgba(90, 100, 106, 0.5);
   qproperty-SelectedSceneRangeEmptyColor: rgba(90, 100, 106, 0.5);
   qproperty-TextColor: #e6e6e6;
-  qproperty-ColumnHeaderBorderColor: #0f0f0f;
+  qproperty-ColumnHeaderBorderColor: #4a4a4a;
 }
 #ExpressionField {
   background-color: #cecece;
