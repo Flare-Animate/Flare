@@ -189,11 +189,13 @@ QTabBar::tab:only-one {
 /* -----------------------------------------------------------------------------
    Main
 ----------------------------------------------------------------------------- */
-QWidget {
+QWidget,
+QTextEdit[readOnly="true"] {
   background-color: #414345;
   color: #d6d8dd;
 }
-QWidget:disabled {
+QWidget:disabled,
+QTextEdit[readOnly="true"]:disabled {
   color: rgba(214, 216, 221, 0.4);
 }
 QFrame {
@@ -986,6 +988,15 @@ QTextEdit:disabled,
   background-color: #353638;
   border-color: #333537;
   color: rgba(214, 216, 221, 0.4);
+}
+QTextEdit[readOnly="true"] {
+  border: 0;
+}
+QTextEdit[readOnly="true"]:focus,
+QTextEdit[readOnly="true"]:disabled {
+  background-color: #414345;
+  color: #d6d8dd;
+  border: 0;
 }
 /* -----------------------------------------------------------------------------
    CheckBox
@@ -2157,7 +2168,9 @@ Ruler {
 /* ScrollAreas (Row, Column and Cell)
 ----------------------------------------------------------------------------- */
 #xsheetArea,
-#ScrollArea {
+#ScrollColumnArea,
+#ScrollRowArea,
+#ScrollCellArea {
   background-color: #414345;
   border: 0;
 }
@@ -2329,6 +2342,16 @@ FunctionTreeView {
 }
 /* Function Editor Spreadsheet
 ----------------------------------------------------------------------------- */
+#ScrollRowArea,
+#ScrollCellArea {
+  border-top: 1 solid rgba(0, 0, 0, 0.3);
+}
+#ScrollCellArea {
+  border-left: 1 solid rgba(0, 0, 0, 0.3);
+}
+#ScrollColumnArea {
+  padding-left: 2;
+}
 FunctionPanel {
   qproperty-BGColor: #3a3b3d;
   qproperty-ValueLineColor: rgba(0, 0, 0, 0.1);
