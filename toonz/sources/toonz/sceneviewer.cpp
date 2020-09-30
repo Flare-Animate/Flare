@@ -1014,52 +1014,62 @@ void SceneViewer::showEvent(QShowEvent *) {
   TApp *app = TApp::instance();
 
   TSceneHandle *sceneHandle = app->getCurrentScene();
-  connect(sceneHandle, SIGNAL(sceneSwitched()), this, SLOT(resetSceneViewer()));
-  connect(sceneHandle, SIGNAL(sceneChanged()), this, SLOT(onSceneChanged()));
+  bool ret = connect(sceneHandle, SIGNAL(sceneSwitched()), this,
+                     SLOT(resetSceneViewer()));
+  ret      = ret && connect(sceneHandle, SIGNAL(sceneChanged()), this,
+                       SLOT(onSceneChanged()));
+  ret = ret && connect(sceneHandle, SIGNAL(preferenceChanged(const QString &)),
+                       this, SLOT(onPreferenceChanged(const QString &)));
 
   TFrameHandle *frameHandle = app->getCurrentFrame();
-  connect(frameHandle, SIGNAL(frameSwitched()), this, SLOT(onFrameSwitched()));
+  ret = ret && connect(frameHandle, SIGNAL(frameSwitched()), this,
+                       SLOT(onFrameSwitched()));
 
   TPaletteHandle *paletteHandle =
       app->getPaletteController()->getCurrentLevelPalette();
-  connect(paletteHandle, SIGNAL(colorStyleChanged(bool)), this, SLOT(update()));
+  ret = ret && connect(paletteHandle, SIGNAL(colorStyleChanged(bool)), this,
+                       SLOT(update()));
 
-  connect(app->getCurrentObject(), SIGNAL(objectSwitched()), this,
-          SLOT(onObjectSwitched()));
-  connect(app->getCurrentObject(), SIGNAL(objectChanged(bool)), this,
-          SLOT(update()));
+  ret = ret && connect(app->getCurrentObject(), SIGNAL(objectSwitched()), this,
+                       SLOT(onObjectSwitched()));
+  ret = ret && connect(app->getCurrentObject(), SIGNAL(objectChanged(bool)),
+                       this, SLOT(update()));
 
-  connect(app->getCurrentOnionSkin(), SIGNAL(onionSkinMaskChanged()), this,
-          SLOT(onOnionSkinMaskChanged()));
+  ret =
+      ret && connect(app->getCurrentOnionSkin(), SIGNAL(onionSkinMaskChanged()),
+                     this, SLOT(onOnionSkinMaskChanged()));
 
-  connect(app->getCurrentLevel(), SIGNAL(xshLevelChanged()), this,
-          SLOT(update()));
-  connect(app->getCurrentLevel(), SIGNAL(xshCanvasSizeChanged()), this,
-          SLOT(update()));
+  ret = ret && connect(app->getCurrentLevel(), SIGNAL(xshLevelChanged()), this,
+                       SLOT(update()));
+  ret = ret && connect(app->getCurrentLevel(), SIGNAL(xshCanvasSizeChanged()),
+                       this, SLOT(update()));
   // when level is switched, update m_dpiScale in order to show white background
   // for Ink&Paint work properly
-  connect(app->getCurrentLevel(), SIGNAL(xshLevelSwitched(TXshLevel *)), this,
-          SLOT(onLevelSwitched()));
+  ret = ret &&
+        connect(app->getCurrentLevel(), SIGNAL(xshLevelSwitched(TXshLevel *)),
+                this, SLOT(onLevelSwitched()));
 
-  connect(app->getCurrentXsheet(), SIGNAL(xsheetChanged()), this,
-          SLOT(onXsheetChanged()));
-  connect(app->getCurrentXsheet(), SIGNAL(xsheetSwitched()), this,
-          SLOT(update()));
+  ret = ret && connect(app->getCurrentXsheet(), SIGNAL(xsheetChanged()), this,
+                       SLOT(onXsheetChanged()));
+  ret = ret && connect(app->getCurrentXsheet(), SIGNAL(xsheetSwitched()), this,
+                       SLOT(update()));
 
   // update tooltip when tool options are changed
-  connect(app->getCurrentTool(), SIGNAL(toolChanged()), this,
-          SLOT(onToolChanged()));
-  connect(app->getCurrentTool(), SIGNAL(toolCursorTypeChanged()), this,
-          SLOT(onToolChanged()));
+  ret = ret && connect(app->getCurrentTool(), SIGNAL(toolChanged()), this,
+                       SLOT(onToolChanged()));
+  ret = ret && connect(app->getCurrentTool(), SIGNAL(toolCursorTypeChanged()),
+                       this, SLOT(onToolChanged()));
 
-  connect(app, SIGNAL(tabletLeft()), this, SLOT(resetTabletStatus()));
+  ret = ret &&
+        connect(app, SIGNAL(tabletLeft()), this, SLOT(resetTabletStatus()));
 
   if (m_stopMotion) {
-    connect(m_stopMotion, SIGNAL(newLiveViewImageReady()), this,
-            SLOT(onNewStopMotionImageReady()));
-    connect(m_stopMotion, SIGNAL(liveViewStopped()), this,
-            SLOT(onStopMotionLiveViewStopped()));
+    ret = ret && connect(m_stopMotion, SIGNAL(newLiveViewImageReady()), this,
+                         SLOT(onNewStopMotionImageReady()));
+    ret = ret && connect(m_stopMotion, SIGNAL(liveViewStopped()), this,
+                         SLOT(onStopMotionLiveViewStopped()));
   }
+  assert(ret);
 
   if (m_hRuler && m_vRuler) {
     if (!viewRulerToggle.getStatus()) {
@@ -1076,6 +1086,7 @@ void SceneViewer::showEvent(QShowEvent *) {
   }
   TApp::instance()->setActiveViewer(this);
 
+  onPreferenceChanged("ColorCalibration");
   update();
 }
 
@@ -1178,6 +1189,27 @@ void SceneViewer::onNewStopMotionImageReady() {
 //-----------------------------------------------------------------------------
 
 void SceneViewer::onStopMotionLiveViewStopped() { onSceneChanged(); }
+
+//-----------------------------------------------------------------------------
+
+void SceneViewer::onPreferenceChanged(const QString &prefName) {
+  if (prefName == "ColorCalibration") {
+    if (Preferences::instance()->isColorCalibrationEnabled()) {
+      makeCurrent();
+      if (!m_lutCalibrator)
+        m_lutCalibrator = new LutCalibrator();
+      else
+        m_lutCalibrator->cleanup();
+      m_lutCalibrator->initialize();
+      connect(context(), SIGNAL(aboutToBeDestroyed()), this,
+              SLOT(onContextAboutToBeDestroyed()));
+      if (m_lutCalibrator->isValid() && !m_fbo)
+        m_fbo = new QOpenGLFramebufferObject(width(), height());
+      doneCurrent();
+    }
+    update();
+  }
+}
 
 //-----------------------------------------------------------------------------
 void SceneViewer::initializeGL() {

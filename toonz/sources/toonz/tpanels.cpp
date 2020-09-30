@@ -568,6 +568,28 @@ void PaletteViewerPanel::onSceneSwitched() {
   m_paletteViewer->updateView();
 }
 
+//-----------------------------------------------------------------------------
+
+void PaletteViewerPanel::showEvent(QShowEvent *) {
+  TSceneHandle *sceneHandle = TApp::instance()->getCurrentScene();
+  bool ret = connect(sceneHandle, SIGNAL(preferenceChanged(const QString &)),
+                     this, SLOT(onPreferenceChanged(const QString &)));
+  assert(ret);
+}
+
+//-----------------------------------------------------------------------------
+
+void PaletteViewerPanel::hideEvent(QHideEvent *) {
+  TSceneHandle *sceneHandle = TApp::instance()->getCurrentScene();
+  if (sceneHandle) sceneHandle->disconnect(this);
+}
+
+//-----------------------------------------------------------------------------
+
+void PaletteViewerPanel::onPreferenceChanged(const QString &prefName) {
+  if (prefName == "ColorCalibration") update();
+}
+
 //=============================================================================
 
 class PaletteViewerFactory final : public TPanelFactory {
@@ -833,6 +855,23 @@ StyleEditorPanel::StyleEditorPanel(QWidget *parent) : TPanel(parent) {
   resize(340, 630);
 }
 
+//-----------------------------------------------------------------------------
+void StyleEditorPanel::showEvent(QShowEvent *) {
+  TSceneHandle *sceneHandle = TApp::instance()->getCurrentScene();
+  bool ret = connect(sceneHandle, SIGNAL(preferenceChanged(const QString &)),
+                     this, SLOT(onPreferenceChanged(const QString &)));
+  onPreferenceChanged("ColorCalibration");
+  assert(ret);
+}
+//-----------------------------------------------------------------------------
+void StyleEditorPanel::hideEvent(QHideEvent *) {
+  TSceneHandle *sceneHandle = TApp::instance()->getCurrentScene();
+  if (sceneHandle) sceneHandle->disconnect(this);
+}
+//-----------------------------------------------------------------------------
+void StyleEditorPanel::onPreferenceChanged(const QString &prefName) {
+  if (prefName == "ColorCalibration") m_styleEditor->updateColorCalibration();
+}
 //-----------------------------------------------------------------------------
 
 class StyleEditorFactory final : public TPanelFactory {
