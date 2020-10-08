@@ -796,6 +796,19 @@ TStroke getIntersectedStroke(TStroke &stroke, TRectD bbox) {
       TThickPoint p  = getIntersectionPoint(bbox, stroke.getChunk(chunkIndex),
                                            currentSegmentIndex,
                                            chunkIndex == precChunkIndex);
+
+      // exactly match the position with the edge of bbox
+      // or the pasted raster may offset by 1pixel due to truncation in
+      // ToonzImageUtils::convertWorldToRaster()
+      if (areAlmostEqual(p.x, bbox.getP00().x, 1e-6))
+        p.x = bbox.getP00().x;
+      else if (areAlmostEqual(p.x, bbox.getP11().x, 1e-6))
+        p.x = bbox.getP11().x;
+      if (areAlmostEqual(p.y, bbox.getP00().y, 1e-6))
+        p.y = bbox.getP00().y;
+      else if (areAlmostEqual(p.y, bbox.getP11().y, 1e-6))
+        p.y = bbox.getP11().y;
+
       precChunkIndex = chunkIndex;
       addPointToVector(p, outPoints, (int)outPoints.size() % 2 == 1);
       if (!isPrecPointInternal && points.size() > 0 && outPoints.size() > 0) {
@@ -1163,7 +1176,7 @@ void RasterSelection::pasteSelection(const RasterImageData *riData) {
     m_originalfloatingSelection = m_floatingSelection->clone();
   TScale sc;
   if (dpiX != 0 && dpiY != 0 && currentDpiX != 0 && currentDpiY != 0)
-    sc     = TScale(currentDpiX / dpiX, currentDpiY / dpiY);
+    sc = TScale(currentDpiX / dpiX, currentDpiY / dpiY);
   m_affine = m_affine * sc;
 }
 
@@ -1275,7 +1288,7 @@ TRectD RasterSelection::getStrokesBound(std::vector<TStroke> strokes) const {
 
 TRectD RasterSelection::getSelectionBound() const {
   if (m_strokes.size() == 0) return TRectD();
-  TRectD selectionBox            = getStrokesBound(m_strokes);
+  TRectD selectionBox = getStrokesBound(m_strokes);
   if (isFloating()) selectionBox = m_affine * selectionBox;
   return selectionBox;
 }
@@ -1290,7 +1303,7 @@ TRectD RasterSelection::getOriginalSelectionBound() const {
 //-----------------------------------------------------------------------------
 
 TRectD RasterSelection::getSelectionBbox() const {
-  TRectD rect            = m_selectionBbox;
+  TRectD rect = m_selectionBbox;
   if (isFloating()) rect = m_affine * m_selectionBbox;
   return rect;
 }
