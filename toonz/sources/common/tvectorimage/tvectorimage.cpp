@@ -1034,8 +1034,8 @@ bool TVectorImage::Imp::areWholeGroups(const std::vector<int> &indexes) const {
     if (!m_strokes[indexes[i]]->m_groupId.isGrouped()) return false;
     for (j = 0; j < m_strokes.size(); j++) {
       int ret = areDifferentGroup(indexes[i], false, j, false);
-      if (ret == -1 ||
-          (ret >= 1 && find(indexes.begin(), indexes.end(), j) == indexes.end()))
+      if (ret == -1 || (ret >= 1 && find(indexes.begin(), indexes.end(), j) ==
+                                        indexes.end()))
         return false;
     }
   }
@@ -1219,8 +1219,8 @@ VIStroke::VIStroke(const VIStroke &s, bool sameId)
 
 //-----------------------------------------------------------------------------
 
-void TVectorImage::mergeImage(const TVectorImageP &img, const TAffine &affine,
-                              bool sameStrokeId) {
+int TVectorImage::mergeImage(const TVectorImageP &img, const TAffine &affine,
+                             bool sameStrokeId) {
   QMutexLocker sl(m_imp->m_mutex);
 
 #ifdef _DEBUG
@@ -1243,16 +1243,16 @@ void TVectorImage::mergeImage(const TVectorImageP &img, const TAffine &affine,
   // mettere comunque un test qui
   if (srcPlt) mergePalette(tarPlt, styleTable, srcPlt, usedStyles);
 
-  mergeImage(img, affine, styleTable, sameStrokeId);
+  return mergeImage(img, affine, styleTable, sameStrokeId);
 }
 
 //-----------------------------------------------------------------------------
 
-void TVectorImage::mergeImage(const TVectorImageP &img, const TAffine &affine,
-                              const std::map<int, int> &styleTable,
-                              bool sameStrokeId) {
+int TVectorImage::mergeImage(const TVectorImageP &img, const TAffine &affine,
+                             const std::map<int, int> &styleTable,
+                             bool sameStrokeId) {
   int imageSize = img->getStrokeCount();
-  if (imageSize == 0) return;
+  if (imageSize == 0) return 0;
   QMutexLocker sl(m_imp->m_mutex);
 
   m_imp->m_computedAlmostOnce |= img->m_imp->m_computedAlmostOnce;
@@ -1282,7 +1282,7 @@ void TVectorImage::mergeImage(const TVectorImageP &img, const TAffine &affine,
         } else {
           img->m_imp->m_strokes[i]->m_groupId =
               TGroupId(groupId, img->m_imp->m_strokes[i]->m_groupId);
-	}
+        }
       }
     }
   }
@@ -1351,6 +1351,8 @@ void TVectorImage::mergeImage(const TVectorImageP &img, const TAffine &affine,
 #ifdef _DEBUG
   checkIntersections();
 #endif
+
+  return insertAt;
 }
 
 //-----------------------------------------------------------------------------
@@ -2908,7 +2910,7 @@ void TVectorImage::Imp::regroupGhosts(std::vector<int> &changedStrokes) {
              ((currGroupId.isGrouped(false) != 0 &&
                m_strokes[i]->m_groupId == currGroupId) ||
               (currGroupId.isGrouped(true) != 0 &&
-                  m_strokes[i]->m_groupId.isGrouped(true) != 0))) {
+               m_strokes[i]->m_groupId.isGrouped(true) != 0))) {
         if (m_strokes[i]->m_groupId != currGroupId) {
           m_strokes[i]->m_groupId = currGroupId;
           changedStrokes.push_back(i);
