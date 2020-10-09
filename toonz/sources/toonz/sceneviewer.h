@@ -446,6 +446,7 @@ public slots:
   void onContextAboutToBeDestroyed();
   void onNewStopMotionImageReady();
   void onStopMotionLiveViewStopped();
+  void onPreferenceChanged(const QString &prefName);
 
 signals:
 

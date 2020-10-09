@@ -577,6 +577,25 @@ HexagonalColorWheel::~HexagonalColorWheel() {
 
 //-----------------------------------------------------------------------------
 
+void HexagonalColorWheel::updateColorCalibration() {
+  if (Preferences::instance()->isColorCalibrationEnabled()) {
+    makeCurrent();
+    if (!m_lutCalibrator)
+      m_lutCalibrator = new LutCalibrator();
+    else
+      m_lutCalibrator->cleanup();
+    m_lutCalibrator->initialize();
+    connect(context(), SIGNAL(aboutToBeDestroyed()), this,
+            SLOT(onContextAboutToBeDestroyed()));
+    if (m_lutCalibrator->isValid() && !m_fbo)
+      m_fbo = new QOpenGLFramebufferObject(width(), height());
+    doneCurrent();
+  }
+  update();
+}
+
+//-----------------------------------------------------------------------------
+
 void HexagonalColorWheel::initializeGL() {
   initializeOpenGLFunctions();
 
@@ -837,7 +856,7 @@ void HexagonalColorWheel::clickLeftWheel(const QPoint &pos) {
   // d is a length from center to edge of the wheel when saturation = 100
   float d = m_triHeight / cosf(phi / 180.0f * 3.1415f);
 
-  int h          = (int)theta;
+  int h = (int)theta;
   if (h > 359) h = 359;
   // clamping
   int s = (int)(std::min(p.length() / d, 1.0) * 100.0f);
@@ -1695,6 +1714,12 @@ void PlainColorPage::setSplitterState(QByteArray state) {
 }
 
 //-----------------------------------------------------------------------------
+
+void PlainColorPage::updateColorCalibration() {
+  m_hexagonalColorWheel->updateColorCalibration();
+}
+
+//-----------------------------------------------------------------------------
 /*
 void PlainColorPage::setWheelChannel(int channel)
 {
@@ -2345,7 +2370,7 @@ void SpecialStyleChooserPage::loadItems() {
         tagId == 2002 ||  // ??
         tagId == 3000 ||  // vector brush
         tagId == 4001     // mypaint brush
-        )
+    )
       continue;
 
     TColorStyle *style = TColorStyle::create(tagId);
@@ -3140,7 +3165,7 @@ QFrame *StyleEditor::createBottomWidget() {
   bool ret = true;
   ret      = ret && connect(m_applyButton, SIGNAL(clicked()), this,
                        SLOT(applyButtonClicked()));
-  ret = ret && connect(m_autoButton, SIGNAL(toggled(bool)), this,
+  ret      = ret && connect(m_autoButton, SIGNAL(toggled(bool)), this,
                        SLOT(autoCheckChanged(bool)));
   ret = ret && connect(m_oldColor, SIGNAL(clicked(const TColorStyle &)), this,
                        SLOT(onOldStyleClicked(const TColorStyle &)));
@@ -3203,9 +3228,9 @@ QFrame *StyleEditor::createVectorPage() {
   bool ret = true;
   ret      = ret && connect(specialButton, SIGNAL(toggled(bool)), this,
                        SLOT(onSpecialButtonToggled(bool)));
-  ret = ret && connect(customButton, SIGNAL(toggled(bool)), this,
+  ret      = ret && connect(customButton, SIGNAL(toggled(bool)), this,
                        SLOT(onCustomButtonToggled(bool)));
-  ret = ret && connect(vectorBrushButton, SIGNAL(toggled(bool)), this,
+  ret      = ret && connect(vectorBrushButton, SIGNAL(toggled(bool)), this,
                        SLOT(onVectorBrushButtonToggled(bool)));
   assert(ret);
   return vectorOutsideFrame;
@@ -3242,9 +3267,9 @@ void StyleEditor::showEvent(QShowEvent *) {
   bool ret = true;
   ret      = ret && connect(m_paletteHandle, SIGNAL(colorStyleSwitched()),
                        SLOT(onStyleSwitched()));
-  ret = ret && connect(m_paletteHandle, SIGNAL(colorStyleChanged(bool)),
+  ret      = ret && connect(m_paletteHandle, SIGNAL(colorStyleChanged(bool)),
                        SLOT(onStyleChanged(bool)));
-  ret = ret && connect(m_paletteHandle, SIGNAL(paletteSwitched()), this,
+  ret      = ret && connect(m_paletteHandle, SIGNAL(paletteSwitched()), this,
                        SLOT(onStyleSwitched()));
   if (m_cleanupPaletteHandle)
     ret =
@@ -3751,4 +3776,10 @@ void StyleEditor::load(QSettings &settings) {
   QVariant splitterState = settings.value("splitterState");
   if (splitterState.canConvert(QVariant::ByteArray))
     m_plainColorPage->setSplitterState(splitterState.toByteArray());
+}
+
+//-----------------------------------------------------------------------------
+
+void StyleEditor::updateColorCalibration() {
+  m_plainColorPage->updateColorCalibration();
 }

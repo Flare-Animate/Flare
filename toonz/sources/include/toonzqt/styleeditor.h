@@ -168,6 +168,8 @@ public:
   void setBGColor(const QColor &color) { m_bgColor = color; }
   QColor getBGColor() const { return m_bgColor; }
 
+  void updateColorCalibration();
+
 protected:
   void initializeGL() override;
   void resizeGL(int width, int height) override;
@@ -477,6 +479,8 @@ public:
   QByteArray getSplitterState();
   void setSplitterState(QByteArray state);
 
+  void updateColorCalibration();
+
 protected:
   void resizeEvent(QResizeEvent *) override;
 
@@ -682,6 +686,8 @@ public:
   // SaveLoadQSettings
   virtual void save(QSettings &settings) const override;
   virtual void load(QSettings &settings) override;
+
+  void updateColorCalibration();
 
 protected:
   /*! Return false if style is linked and style must be set to null.*/
