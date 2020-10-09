@@ -1516,6 +1516,8 @@ void ToonzRasterBrushTool::leftButtonUp(const TPointD &pos,
   TPointD centeredPos = getCenteredCursorPos(pos);
   double pressure = m_pressure.getValue() && e.isTablet() ? e.m_pressure : 0.5;
   finishRasterBrush(centeredPos, pressure);
+  int tc = ToonzCheck::instance()->getChecks();
+  if (tc & ToonzCheck::eGap || tc & ToonzCheck::eAutoclose) invalidate();
 }
 
 //---------------------------------------------------------------------------------------------------------------
