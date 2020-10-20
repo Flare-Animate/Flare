@@ -289,7 +289,8 @@ static int getEnlargement(const std::vector<TRasterFxRenderDataP> &fxs,
 //-------------------------------------------------------------------
 
 static void applyPaletteFilter(TPalette *&plt, bool keep,
-                               const set<int> &colors, const TPalette *srcPlt) {
+                               const std::set<int> &colors,
+                               const TPalette *srcPlt) {
   if (colors.empty()) return;
 
   if (!plt) plt = srcPlt->clone();
@@ -414,7 +415,7 @@ static TImageP applyCmappedFx(TToonzImageP &ti,
                PaletteFilterData->m_type == eApplyToInksAndPaints) {
       bool keep = PaletteFilterData->m_keep;
 
-      set<int> colors;
+      std::set<int> colors;
       colors.insert(PaletteFilterData->m_colors.begin(),
                     PaletteFilterData->m_colors.end());
 
@@ -450,7 +451,7 @@ static TImageP applyCmappedFx(TToonzImageP &ti,
       std::vector<int> indexes;
       indexes.resize(PaletteFilterData->m_colors.size());
 
-      set<int>::const_iterator jt = PaletteFilterData->m_colors.begin();
+      std::set<int>::const_iterator jt = PaletteFilterData->m_colors.begin();
       for (int j = 0; j < (int)indexes.size(); ++j, ++jt) indexes[j] = *jt;
 
       if (copyRas == TRasterCM32P())
@@ -680,7 +681,7 @@ static void applyCmappedFx(TVectorImageP &vi,
   TRasterP ras;
   bool keep = false;
   TPaletteP modPalette;
-  set<int> colors;
+  std::set<int> colors;
   std::vector<TRasterFxRenderDataP>::const_iterator it = fxs.begin();
 
   // prima tutti gli effetti che agiscono sulla paletta....
