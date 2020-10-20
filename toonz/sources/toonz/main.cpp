@@ -8,6 +8,7 @@
 #include "previewfxmanager.h"
 #include "cleanupsettingspopup.h"
 #include "filebrowsermodel.h"
+#include "expressionreferencemanager.h"
 
 // TnzTools includes
 #include "tools/tool.h"
@@ -701,6 +702,8 @@ int main(int argc, char *argv[]) {
   TFilePath fp = ToonzFolder::getModuleFile("mainwindow.ini");
   QSettings settings(toQString(fp), QSettings::IniFormat);
   w.restoreGeometry(settings.value("MainWindowGeometry").toByteArray());
+
+  ExpressionReferenceManager::instance()->init();
 
 #ifndef MACOSX
   // Workaround for the maximized window case: Qt delivers two resize events,

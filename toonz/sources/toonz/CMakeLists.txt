@@ -120,6 +120,7 @@ set(MOC_HEADERS
     xshrowviewer.h
     xshtoolbar.h
 	xdtsimportpopup.h
+	expressionreferencemanager.h
 )
 
 if(WITH_STOPMOTION)
@@ -351,6 +352,7 @@ set(SOURCES
 	separatecolorspopup.cpp
     xdtsio.cpp
 	xdtsimportpopup.cpp
+	expressionreferencemanager.cpp
 # Tracker file
     dummyprocessor.cpp
     metnum.cpp

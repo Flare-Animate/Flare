@@ -133,6 +133,8 @@ private:
   // Xsheet
   void onShowKeyframesOnCellAreaChanged();
   void onShowXSheetToolbarClicked();
+  // Animation
+  void onModifyExpressionOnMovingReferencesChanged();
   // Preview
   void onBlankCountChanged();
   void onBlankColorChanged();

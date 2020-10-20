@@ -32,8 +32,12 @@
 #include "toonz/textureutils.h"
 #include "xshhandlemanager.h"
 #include "orientation.h"
+#include "toonz/expressionreferencemonitor.h"
 
 #include "toonz/txsheet.h"
+
+// STD includes
+#include <set>
 
 using namespace std;
 
@@ -97,6 +101,8 @@ struct TXsheet::TXsheetImp {
   XshHandleManager *m_handleManager;
   ToonzScene *m_scene;
 
+  ExpressionReferenceMonitor *m_expRefMonitor;
+
 public:
   TXsheetImp();
   ~TXsheetImp();
@@ -149,7 +155,8 @@ TXsheet::TXsheetImp::TXsheetImp()
     , m_soloColumn(-1)
     , m_viewColumn(-1)
     , m_mixedSound(0)
-    , m_scene(0) {
+    , m_scene(0)
+    , m_expRefMonitor(new ExpressionReferenceMonitor()) {
   initColumnFans();
 }
 
@@ -188,7 +195,8 @@ TXsheet::TXsheet()
     , m_player(0)
     , m_imp(new TXsheet::TXsheetImp)
     , m_notes(new TXshNoteSet())
-    , m_cameraColumnIndex(0) {
+    , m_cameraColumnIndex(0)
+    , m_observer(nullptr) {
   // extern TSyntax::Grammar *createXsheetGrammar(TXsheet*);
   m_soundProperties      = new TXsheet::SoundProperties();
   m_imp->m_handleManager = new XshHandleManager(this);
@@ -1323,6 +1331,8 @@ void TXsheet::insertColumn(int col, TXshColumn *column) {
     columnFan.rollRightFoldedState(col,
                                    m_imp->m_columnSet.getColumnCount() - col);
   }
+
+  notify(TXsheetColumnChange(TXsheetColumnChange::Insert, col));
 }
 
 //-----------------------------------------------------------------------------
@@ -1346,6 +1356,8 @@ void TXsheet::removeColumn(int col) {
     columnFan.rollLeftFoldedState(col,
                                   m_imp->m_columnSet.getColumnCount() - col);
   }
+
+  notify(TXsheetColumnChange(TXsheetColumnChange::Remove, col));
 }
 
 //-----------------------------------------------------------------------------
@@ -1385,6 +1397,8 @@ void TXsheet::moveColumn(int srcIndex, int dstIndex) {
       columnFan.rollRightFoldedState(c0, c1 - c0 + 1);
     for (int c = c1 - 1; c >= c0; --c) m_imp->m_pegTree->swapColumns(c, c + 1);
   }
+
+  notify(TXsheetColumnChange(TXsheetColumnChange::Move, srcIndex, dstIndex));
 }
 
 //-----------------------------------------------------------------------------
@@ -1477,7 +1491,7 @@ TSoundTrack *TXsheet::makeSound(SoundProperties *properties) {
 void TXsheet::scrub(int frame, bool isPreview) {
   try {
     double fps =
-      getScene()->getProperties()->getOutputProperties()->getFrameRate();
+        getScene()->getProperties()->getOutputProperties()->getFrameRate();
 
     TXsheet::SoundProperties *prop = new TXsheet::SoundProperties();
     prop->m_isPreview              = isPreview;
@@ -1775,3 +1789,29 @@ void TXsheet::autoInputCellNumbers(int increment, int interval, int step,
     }
   }
 }
+
+//---------------------------------------------------------
+
+void TXsheet::setObserver(TXsheetColumnChangeObserver *observer) {
+  m_observer = observer;
+}
+
+//---------------------------------------------------------
+
+void TXsheet::notify(const TXsheetColumnChange &change) {
+  if (m_observer) m_observer->onChange(change);
+}
+void TXsheet::notifyFxAdded(const std::vector<TFx *> &fxs) {
+  if (m_observer) m_observer->onFxAdded(fxs);
+}
+void TXsheet::notifyStageObjectAdded(const TStageObjectId id) {
+  if (m_observer) m_observer->onStageObjectAdded(id);
+}
+bool TXsheet::isReferenceManagementIgnored(TDoubleParam *param) {
+  if (m_observer) return m_observer->isIgnored(param);
+  return false;
+}
+ExpressionReferenceMonitor *TXsheet::getExpRefMonitor() const {
+  return m_imp->m_expRefMonitor;
+}
+//---------------------------------------------------------
