@@ -1989,11 +1989,13 @@ void SceneViewer::drawScene() {
       args.m_osm         = &osm;
       args.m_xsheetLevel = xsheetLevel;
       args.m_isPlaying   = frameHandle->isPlaying();
-      args.m_currentFrameId =
-          app->getCurrentXsheet()
-              ->getXsheet()
-              ->getCell(app->getCurrentFrame()->getFrame(), args.m_col)
-              .getFrameId();
+      if (app->getCurrentColumn()->getColumn() &&
+          !app->getCurrentColumn()->getColumn()->getSoundColumn())
+        args.m_currentFrameId =
+            app->getCurrentXsheet()
+                ->getXsheet()
+                ->getCell(app->getCurrentFrame()->getFrame(), args.m_col)
+                .getFrameId();
       args.m_isGuidedDrawingEnabled = useGuidedDrawing;
       args.m_guidedFrontStroke      = guidedFrontStroke;
       args.m_guidedBackStroke       = guidedBackStroke;

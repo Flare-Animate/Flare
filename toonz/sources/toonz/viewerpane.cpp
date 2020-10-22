@@ -611,15 +611,18 @@ void SceneViewerPanel::changeWindowTitle() {
       parentWidget()->setWindowTitle(name);
       return;
     }
-    TXsheet *xsh  = app->getCurrentXsheet()->getXsheet();
-    TXshCell cell = xsh->getCell(frame, col);
+    TXsheet *xsh = app->getCurrentXsheet()->getXsheet();
+    TXshCell cell;
+    if (app->getCurrentColumn()->getColumn() &&
+        !app->getCurrentColumn()->getColumn()->getSoundColumn())
+      cell = xsh->getCell(frame, col);
     if (cell.isEmpty()) {
       if (!m_sceneViewer->is3DView()) {
         TAffine aff = m_sceneViewer->getViewMatrix() *
                       m_sceneViewer->getNormalZoomScale().inv();
         if (m_sceneViewer->getIsFlippedX()) aff = aff * TScale(-1, 1);
         if (m_sceneViewer->getIsFlippedY()) aff = aff * TScale(1, -1);
-        name                                    = name + tr("  ::  Zoom : ") +
+        name = name + tr("  ::  Zoom : ") +
                QString::number(tround(100.0 * sqrt(aff.det()))) + "%";
         if (m_sceneViewer->getIsFlippedX() || m_sceneViewer->getIsFlippedY()) {
           name = name + tr(" (Flipped)");
@@ -647,7 +650,7 @@ void SceneViewerPanel::changeWindowTitle() {
                   m_sceneViewer->getNormalZoomScale().inv();
     if (m_sceneViewer->getIsFlippedX()) aff = aff * TScale(-1, 1);
     if (m_sceneViewer->getIsFlippedY()) aff = aff * TScale(1, -1);
-    name                                    = name + tr("  ::  Zoom : ") +
+    name = name + tr("  ::  Zoom : ") +
            QString::number(tround(100.0 * sqrt(aff.det()))) + "%";
     if (m_sceneViewer->getIsFlippedX() || m_sceneViewer->getIsFlippedY()) {
       name = name + tr(" (Flipped)");
