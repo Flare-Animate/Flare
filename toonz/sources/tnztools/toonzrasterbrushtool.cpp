@@ -1135,7 +1135,9 @@ void ToonzRasterBrushTool::onActivate() {
         QString::fromStdString(RasterBrushPreset.getValue()).toStdWString();
     if (wpreset != CUSTOM_WSTR) {
       initPresets();
+      if (!m_preset.isValue(wpreset)) wpreset = CUSTOM_WSTR;
       m_preset.setValue(wpreset);
+      RasterBrushPreset = m_preset.getValueAsString();
       loadPreset();
     } else
       loadLastBrush();
@@ -2071,6 +2073,7 @@ void ToonzRasterBrushTool::addPreset(QString name) {
 
   // Set the value to the specified one
   m_preset.setValue(preset.m_name);
+  RasterBrushPreset = m_preset.getValueAsString();
 }
 
 //------------------------------------------------------------------
@@ -2084,6 +2087,7 @@ void ToonzRasterBrushTool::removePreset() {
 
   // No parameter change, and set the preset value to custom
   m_preset.setValue(CUSTOM_WSTR);
+  RasterBrushPreset = m_preset.getValueAsString();
 }
 
 //------------------------------------------------------------------
