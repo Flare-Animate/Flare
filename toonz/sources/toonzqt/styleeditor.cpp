@@ -596,6 +596,15 @@ void HexagonalColorWheel::updateColorCalibration() {
 
 //-----------------------------------------------------------------------------
 
+void HexagonalColorWheel::showEvent(QShowEvent *) {
+  if (m_cuedCalibrationUpdate) {
+    updateColorCalibration();
+    m_cuedCalibrationUpdate = false;
+  }
+}
+
+//-----------------------------------------------------------------------------
+
 void HexagonalColorWheel::initializeGL() {
   initializeOpenGLFunctions();
 
@@ -1716,7 +1725,10 @@ void PlainColorPage::setSplitterState(QByteArray state) {
 //-----------------------------------------------------------------------------
 
 void PlainColorPage::updateColorCalibration() {
-  m_hexagonalColorWheel->updateColorCalibration();
+  if (m_hexagonalColorWheel->isVisible())
+    m_hexagonalColorWheel->updateColorCalibration();
+  else
+    m_hexagonalColorWheel->cueCalibrationUpdate();
 }
 
 //-----------------------------------------------------------------------------
