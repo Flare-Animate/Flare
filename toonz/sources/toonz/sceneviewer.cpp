@@ -1989,8 +1989,8 @@ void SceneViewer::drawScene() {
       args.m_osm         = &osm;
       args.m_xsheetLevel = xsheetLevel;
       args.m_isPlaying   = frameHandle->isPlaying();
-      if (app->getCurrentColumn()->getColumn() &&
-          !app->getCurrentColumn()->getColumn()->getSoundColumn())
+      if (app->getCurrentLevel() && app->getCurrentLevel()->getLevel() &&
+          !app->getCurrentLevel()->getLevel()->getSoundLevel())
         args.m_currentFrameId =
             app->getCurrentXsheet()
                 ->getXsheet()
