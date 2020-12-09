@@ -727,6 +727,7 @@ protected slots:
   void onCleanupStyleChanged(bool isDragging);
   void onOldStyleClicked(const TColorStyle &);
   void updateOrientationButton();
+  void checkPaletteLock();
   // called (e.g.) by PaletteController when an other StyleEditor change the
   // toggle
   void enableColorAutoApply(bool enabled);
