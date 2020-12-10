@@ -1643,7 +1643,8 @@ void Filmstrip::updateChooseLevelComboItems() {
     }
   }
 
-  m_chooseLevelCombo->addItem(tr("- No Current Level -"));
+  if (m_chooseLevelCombo->count() == 0)
+    m_chooseLevelCombo->addItem(tr("- No Current Level -"));
 
   // swap the list
   m_workingFrames.clear();
@@ -1657,7 +1658,8 @@ void Filmstrip::updateChooseLevelComboItems() {
 /*! synchronize the current index of combo to the current level
  */
 void Filmstrip::updateCurrentLevelComboItem() {
-  if (m_chooseLevelCombo->count() == 1) {
+  if (m_chooseLevelCombo->count() == 1 &&
+      m_chooseLevelCombo->itemText(0) == tr("- No Current Level -")) {
     m_chooseLevelCombo->setCurrentIndex(0);
     return;
   }
@@ -1666,6 +1668,10 @@ void Filmstrip::updateCurrentLevelComboItem() {
       TApp::instance()->getCurrentLevel()->getSimpleLevel();
   if (!currentLevel) {
     int noLevelIndex = m_chooseLevelCombo->findText(tr("- No Current Level -"));
+    if (noLevelIndex == -1) {
+      noLevelIndex = m_chooseLevelCombo->count();
+      m_chooseLevelCombo->addItem(tr("- No Current Level -"));
+    }
     m_chooseLevelCombo->setCurrentIndex(noLevelIndex);
     return;
   }
@@ -1673,11 +1679,18 @@ void Filmstrip::updateCurrentLevelComboItem() {
   for (int i = 0; i < m_levels.size(); i++) {
     if (currentLevel->getName() == m_levels[i]->getName()) {
       m_chooseLevelCombo->setCurrentIndex(i);
+      int noLevelIndex =
+          m_chooseLevelCombo->findText(tr("- No Current Level -"));
+      if (noLevelIndex != -1) m_chooseLevelCombo->removeItem(noLevelIndex);
       return;
     }
   }
 
   int noLevelIndex = m_chooseLevelCombo->findText(tr("- No Current Level -"));
+  if (noLevelIndex == -1) {
+    noLevelIndex = m_chooseLevelCombo->count();
+    m_chooseLevelCombo->addItem(tr("- No Current Level -"));
+  }
   m_chooseLevelCombo->setCurrentIndex(noLevelIndex);
 }
 
