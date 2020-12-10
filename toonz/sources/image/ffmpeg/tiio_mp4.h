@@ -88,6 +88,6 @@ public:
 // Tiio::Reader *makeMp4Reader();
 // Tiio::Writer *makeMp4Writer();
 
-}  // namespace
+}  // namespace Tiio
 
 #endif

@@ -92,6 +92,6 @@ public:
 // Tiio::Reader *makeGifReader();
 // Tiio::Writer *makeGifWriter();
 
-}  // namespace
+}  // namespace Tiio
 
 #endif

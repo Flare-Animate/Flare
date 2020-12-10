@@ -60,7 +60,7 @@ public:
                                   bool cacheImagesAsWell) override;
 
   /* Exposed to allow Fid to be updated due to a renumber operation
-  */
+   */
   void setFid(const TFrameId &fid) override;
 
 protected:

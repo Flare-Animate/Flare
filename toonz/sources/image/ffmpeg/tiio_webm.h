@@ -87,6 +87,6 @@ public:
 // Tiio::Reader *makeWebmReader();
 // Tiio::Writer *makeWebmWriter();
 
-}  // namespace
+}  // namespace Tiio
 
 #endif
