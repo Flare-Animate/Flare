@@ -320,8 +320,6 @@ LevelSettingsPopup::LevelSettingsPopup()
     , m_whiteTransp(0)
     , m_scanPathFld(0) {
   setWindowTitle(tr("Level Settings"));
-  m_mainFrame->setFixedHeight(280);
-  this->layout()->setSizeConstraint(QLayout::SetFixedSize);
 
   m_nameFld             = new LineEdit();
   m_pathFld             = new FileField();  // Path
@@ -614,6 +612,7 @@ void LevelSettingsPopup::onPreferenceChanged(const QString &propertyName) {
   int decimals = (pixelsMode) ? 0 : 4;
   m_widthFld->setDecimals(decimals);
   m_heightFld->setDecimals(decimals);
+  adjustSize();
 }
 
 //-----------------------------------------------------------------------------

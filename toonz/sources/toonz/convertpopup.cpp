@@ -330,8 +330,6 @@ ConvertPopup::ConvertPopup(bool specifyInput)
     , m_isConverting(false) {
   // Su MAC i dialog modali non hanno bottoni di chiusura nella titleBar
   setModal(false);
-  m_mainFrame->setFixedHeight(220);
-  this->layout()->setSizeConstraint(QLayout::SetFixedSize);
   TlvMode_Unpainted            = tr("Unpainted tlv");
   TlvMode_UnpaintedFromNonAA   = tr("Unpainted tlv from non AA source");
   TlvMode_PaintedFromTwoImages = tr("Painted tlv from two images");
@@ -513,6 +511,8 @@ ConvertPopup::ConvertPopup(bool specifyInput)
     ret = ret && connect(m_convertFileFld, SIGNAL(pathChanged()), this,
                          SLOT(onFileInChanged()));
 
+  // resize the dialog
+  onFormatSelected(m_fileFormat->currentText());
   // update unable/enable of checkboxes
   onTlvModeSelected(m_tlvMode->currentText());
 
@@ -764,6 +764,11 @@ void ConvertPopup::onFormatSelected(const QString &format) {
     m_saveBackupToNopaint->setEnabled(m_tlvMode->currentText() ==
                                       TlvMode_Unpainted);
   }
+  // For unknown reasons, calling adjustSize twice is needed to
+  // prevent the dialog from remaining large size when the current
+  // format is switched from tlv to another format.
+  adjustSize();
+  adjustSize();
 }
 
 //------------------------------------------------------------------

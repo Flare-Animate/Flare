@@ -51,6 +51,7 @@
 #include <QStringList>
 #include <QListWidget>
 #include <QGroupBox>
+#include <QKeySequence>
 
 using namespace DVGui;
 
@@ -998,6 +999,13 @@ void PreferencesPopup::insertFootNote(QGridLayout* layout) {
 //-----------------------------------------------------------------------------
 
 QString PreferencesPopup::getUIString(PreferencesItemId id) {
+  auto CtrlAltStr = []() {
+    QString str =
+        QKeySequence(Qt::CTRL + Qt::ALT).toString(QKeySequence::NativeText);
+    if (str.endsWith("+")) str.chop(1);
+    return str;
+  };
+
   const static QMap<PreferencesItemId, QString> uiStringTable = {
       // General
       {defaultViewerEnabled, tr("Use Default Viewer for Movie Formats")},
@@ -1112,7 +1120,7 @@ QString PreferencesPopup::getUIString(PreferencesItemId id) {
       {cursorBrushStyle, tr("Cursor Style:")},
       {cursorOutlineEnabled, tr("Show Cursor Size Outlines")},
       {levelBasedToolsDisplay, tr("Toolbar Display Behaviour:")},
-      {useCtrlAltToResizeBrush, tr("Use Ctrl+Alt to Resize Brush")},
+      {useCtrlAltToResizeBrush, tr("Use %1 to Resize Brush").arg(CtrlAltStr())},
 
       // Xsheet
       {xsheetLayoutPreference, tr("Column Header Layout*:")},
@@ -1614,9 +1622,9 @@ QWidget* PreferencesPopup::createSavingPage() {
   setupLayout(lay);
   QGridLayout* autoSaveLay = insertGroupBoxUI(autosaveEnabled, lay);
   {
-      insertUI(autosavePeriod, autoSaveLay);
-      insertUI(autosaveSceneEnabled, autoSaveLay);
-      insertUI(autosaveOtherFilesEnabled, autoSaveLay);
+    insertUI(autosavePeriod, autoSaveLay);
+    insertUI(autosaveSceneEnabled, autoSaveLay);
+    insertUI(autosaveOtherFilesEnabled, autoSaveLay);
   }
   insertUI(replaceAfterSaveLevelAs, lay);
   QGridLayout* backupLay = insertGroupBoxUI(backupEnabled, lay);
@@ -1626,7 +1634,7 @@ QWidget* PreferencesPopup::createSavingPage() {
                     "raster levels with transparent pixels\nin non "
                     "alpha-enabled image format."),
                  this);
-  lay->addWidget(matteColorLabel, 0, 0, 1, 3, Qt::AlignLeft);
+  lay->addWidget(matteColorLabel, lay->rowCount(), 0, 1, 3, Qt::AlignLeft);
   insertUI(rasterBackgroundColor, lay);
   insertUI(resetUndoOnSavingLevel, lay);
 
@@ -1744,7 +1752,7 @@ QWidget* PreferencesPopup::createToolsPage() {
   }
   insertUI(levelBasedToolsDisplay, lay,
            getComboItemList(levelBasedToolsDisplay));
-  //insertUI(useCtrlAltToResizeBrush, lay);
+  insertUI(useCtrlAltToResizeBrush, lay);
 
   lay->setRowStretch(lay->rowCount(), 1);
   widget->setLayout(lay);

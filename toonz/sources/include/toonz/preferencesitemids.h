@@ -5,16 +5,9 @@ enum PreferencesItemId {
   // General
   defaultViewerEnabled,
   rasterOptimizedMemory,
-  autosaveEnabled,
-  autosavePeriod,
-  autosaveSceneEnabled,
-  autosaveOtherFilesEnabled,
   startupPopupEnabled,
   undoMemorySize,
   taskchunksize,
-  replaceAfterSaveLevelAs,
-  backupEnabled,
-  backupKeepCount,
   sceneNumberingEnabled,
   watchFileSystemEnabled,
   projectRoot,
@@ -66,6 +59,13 @@ enum PreferencesItemId {
 
   //----------
   // Saving
+  autosaveEnabled,
+  autosavePeriod,
+  autosaveSceneEnabled,
+  autosaveOtherFilesEnabled,
+  replaceAfterSaveLevelAs,
+  backupEnabled,
+  backupKeepCount,
   rasterBackgroundColor,
   resetUndoOnSavingLevel,
 

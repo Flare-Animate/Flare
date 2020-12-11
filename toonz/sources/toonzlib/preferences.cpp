@@ -337,19 +337,9 @@ void Preferences::definePreferenceItems() {
   define(defaultViewerEnabled, "defaultViewerEnabled", QMetaType::Bool, false);
   define(rasterOptimizedMemory, "rasterOptimizedMemory", QMetaType::Bool,
          false);
-  define(autosaveEnabled, "autosaveEnabled", QMetaType::Bool, false);
-  define(autosavePeriod, "autosavePeriod", QMetaType::Int, 15, 1, 60);
-  define(autosaveSceneEnabled, "autosaveSceneEnabled", QMetaType::Bool, true);
-  define(autosaveOtherFilesEnabled, "autosaveOtherFilesEnabled",
-         QMetaType::Bool, true);
   define(startupPopupEnabled, "startupPopupEnabled", QMetaType::Bool, true);
   define(undoMemorySize, "undoMemorySize", QMetaType::Int, 100, 0, 2000);
   define(taskchunksize, "taskchunksize", QMetaType::Int, 10, 1, 2000);
-  define(replaceAfterSaveLevelAs, "replaceAfterSaveLevelAs", QMetaType::Bool,
-         true);
-  define(backupEnabled, "backupEnabled", QMetaType::Bool, true);
-  define(backupKeepCount, "backupKeepCount", QMetaType::Int, 1, 1,
-         std::numeric_limits<int>::max());
   define(sceneNumberingEnabled, "sceneNumberingEnabled", QMetaType::Bool,
          false);
   define(watchFileSystemEnabled, "watchFileSystemEnabled", QMetaType::Bool,
@@ -359,8 +349,6 @@ void Preferences::definePreferenceItems() {
   define(pathAliasPriority, "pathAliasPriority", QMetaType::Int,
          (int)ProjectFolderOnly);
 
-  setCallBack(autosaveEnabled, &Preferences::enableAutosave);
-  setCallBack(autosavePeriod, &Preferences::setAutosavePeriod);
   setCallBack(undoMemorySize, &Preferences::setUndoMemorySize);
 
   // Interface
@@ -431,12 +419,24 @@ void Preferences::definePreferenceItems() {
   //"levelFormats" need to be handle separately
 
   // Saving
+  define(autosaveEnabled, "autosaveEnabled", QMetaType::Bool, false);
+  define(autosavePeriod, "autosavePeriod", QMetaType::Int, 15, 1, 60);
+  define(autosaveSceneEnabled, "autosaveSceneEnabled", QMetaType::Bool, true);
+  define(autosaveOtherFilesEnabled, "autosaveOtherFilesEnabled",
+         QMetaType::Bool, true);
+  define(replaceAfterSaveLevelAs, "replaceAfterSaveLevelAs", QMetaType::Bool,
+         true);
+  define(backupEnabled, "backupEnabled", QMetaType::Bool, true);
+  define(backupKeepCount, "backupKeepCount", QMetaType::Int, 1, 1,
+         std::numeric_limits<int>::max());
   define(rasterBackgroundColor, "rasterBackgroundColor", QMetaType::QColor,
          QColor(Qt::white));
   define(resetUndoOnSavingLevel, "resetUndoOnSavingLevel", QMetaType::Bool,
          true);
 
   setCallBack(rasterBackgroundColor, &Preferences::setRasterBackgroundColor);
+  setCallBack(autosaveEnabled, &Preferences::enableAutosave);
+  setCallBack(autosavePeriod, &Preferences::setAutosavePeriod);
 
   // Import / Export
   define(ffmpegPath, "ffmpegPath", QMetaType::QString, "");
