@@ -488,10 +488,6 @@ TFx *explodeFxSubTree(TFx *innerFx, QMap<TFx *, QPair<TFx *, int>> &fxs,
   } else {
     TFxSet *innerTerminals = innerDag->getTerminalFxs();
     int i, terminalCount = innerTerminals->getFxCount();
-    if (!terminalCount) {
-      fxs[innerFx] = QPair<TFx *, int>(nullptr, -1);
-      return nullptr;
-    }
     QMultiMap<int, TFx *> sortedFx;
     for (i = 0; i < terminalCount; i++) {
       TFx *terminalFx = innerTerminals->getFx(i);
@@ -506,6 +502,13 @@ TFx *explodeFxSubTree(TFx *innerFx, QMap<TFx *, QPair<TFx *, int>> &fxs,
       if (innerDag->getCurrentOutputFx() ==
           xsheetFx->getOutputConnection(0)->getOwnerFx())
         return nullptr;
+    }
+
+    // in case no nodes connected to the xsheet the xsheet node will not be
+    // merged, but will just be removed
+    if (terminalCount == 0) {
+      fxs[innerFx] = QPair<TFx *, int>(nullptr, -1);
+      return innerFx;  // just to return non-zero value
     }
 
     TFx *root = sortedFx.begin().value();
@@ -836,7 +839,7 @@ void explodeFxs(TXsheet *xsh, TXsheet *subXsh, const GroupData &fxGroupData,
                                innerDag, fxGroupData, outPorts);
 
   // in case the child and parent Xsheet nodes will be "merged"
-  if (!root && innerDag->getTerminalFxs()->getFxCount()) {
+  if (!root) {
     TFxSet *internals = innerDag->getTerminalFxs();
     for (int j = 0; j < internals->getFxCount(); j++) {
       TFx *fx = internals->getFx(j);
@@ -942,12 +945,13 @@ void setGrammerToParams(const ParamCont *cont,
 //-----------------------------------------------------------------------------
 
 std::set<int> explode(TXsheet *xsh, TXsheet *subXsh, int index,
-                 const TStageObjectId &parentId, const GroupData &objGroupData,
-                 const TPointD &stageSubPos, const GroupData &fxGroupData,
-                 const TPointD &fxSubPos, QList<TStageObject *> &pegObjects,
-                 QMap<TStageObjectSpline *, TStageObjectSpline *> &splines,
-                 const std::vector<TFxPort *> &outPorts, bool onlyColumn,
-                 bool linkToXsheet) {
+                      const TStageObjectId &parentId,
+                      const GroupData &objGroupData, const TPointD &stageSubPos,
+                      const GroupData &fxGroupData, const TPointD &fxSubPos,
+                      QList<TStageObject *> &pegObjects,
+                      QMap<TStageObjectSpline *, TStageObjectSpline *> &splines,
+                      const std::vector<TFxPort *> &outPorts, bool onlyColumn,
+                      bool linkToXsheet) {
   // innerFx->outerFxs
   QMap<TFx *, QPair<TFx *, int>> fxs;
   // inner id->outer id
@@ -972,6 +976,7 @@ std::set<int> explode(TXsheet *xsh, TXsheet *subXsh, int index,
 
   QMap<TFx *, TFx *> fxMap;
   for (auto it = fxs.constBegin(); it != fxs.constEnd(); ++it) {
+    if (it.value().first == nullptr) continue;
     setGrammerToParams(it.value().first->getParams(), grammer);
     fxMap.insert(it.key(), it.value().first);
   }
