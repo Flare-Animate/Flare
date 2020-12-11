@@ -1,0 +1,67 @@
+name: MacOS Build
+
+on: [push, pull_request]
+
+jobs:
+  macOS:
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Install libraries
+      run: |
+        checkPkgAndInstall()
+        {
+          while [ $# -ne 0 ]
+          do
+            if brew ls --versions $1 ; then
+              brew upgrade $1
+            else
+              brew install $1
+            fi
+            shift
+          done
+        }
+        brew update
+        checkPkgAndInstall pkg-config glew lz4 libjpeg libpng lzo qt boost libusb libmypaint ccache
+        curl -O https://raw.githubusercontent.com/Homebrew/homebrew-core/284557d4f5b29a7b9fb48bf8a54cf8a72d26c5eb/Formula/ninja.rb
+        brew install ./ninja.rb
+
+    - uses: actions/cache@v1
+      with:
+        path: /Users/runner/.ccache
+        key: ${{ runner.os }}-${{ github.sha }}
+        restore-keys: ${{ runner.os }}-
+
+    - name: Build libtiff
+      run: |
+        export PATH="/usr/local/opt/ccache/libexec:$PATH"
+        cd thirdparty/tiff-4.0.3
+        CFLAGS='-fPIC' CXXFLAGS='-fPIC' ./configure --disable-lzma
+        make -j $(nproc)
+
+    - name: Build
+      run: |
+        cd toonz
+        mkdir build
+        cd build
+        cmake ../sources -G Ninja -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DQT_PATH='/usr/local/opt/qt/lib'
+        ninja -w dupbuild=warn
+
+    - name: Create Artifact
+      run: |
+        cd toonz/build/toonz
+        cp -pr ../../../stuff OpenToonz.app/portablestuff
+        /usr/local/opt/qt/bin/macdeployqt OpenToonz.app -dmg -verbose=1 -always-overwrite \
+        -executable=OpenToonz.app/Contents/MacOS/lzocompress \
+        -executable=OpenToonz.app/Contents/MacOS/lzodecompress \
+        -executable=OpenToonz.app/Contents/MacOS/tcleanup \
+        -executable=OpenToonz.app/Contents/MacOS/tcomposer \
+        -executable=OpenToonz.app/Contents/MacOS/tconverter \
+        -executable=OpenToonz.app/Contents/MacOS/tfarmcontroller \
+        -executable=OpenToonz.app/Contents/MacOS/tfarmserver
+
+    - uses: actions/upload-artifact@v1
+      with:
+        name: Opentoonz-${{ runner.os }}-${{ github.sha }}
+        path: toonz/build/toonz/OpenToonz.dmg
