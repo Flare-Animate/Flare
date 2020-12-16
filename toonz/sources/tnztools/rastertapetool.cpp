@@ -219,7 +219,7 @@ public:
         TTool::getApplication()
             ->getCurrentLevelStyleIndex();  // TApp::instance()->getCurrentPalette()->getStyleIndex();
     if (isInt(inkString)) inkIndex = std::stoi(inkString);
-    params.m_inkIndex              = inkIndex;
+    params.m_inkIndex = inkIndex;
 
     TPoint delta;
     TRasterCM32P ras, raux = ti->getRaster();

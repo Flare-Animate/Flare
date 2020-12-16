@@ -387,7 +387,7 @@ DVAPI void swapRBChannels(const TRaster32P &r);
 
 //! Convert TRasterP in an old toonz raster!
 /*! Use the same buffer, not creates a new raster (the palette is new instead!)
-  */
+ */
 DVAPI _RASTER *convertRaster50to46(const TRasterP &inRas,
                                    const TPaletteP &inPalette);
 
@@ -408,4 +408,4 @@ DVAPI void lockRaster(_RASTER *raster);
 //! inactivity periods.
 DVAPI void unlockRaster(_RASTER *raster);
 
-}  // TRop namespace
+}  // namespace TRop

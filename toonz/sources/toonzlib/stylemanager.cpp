@@ -113,9 +113,9 @@ void CustomStyleManager::StyleLoaderTask::run() {
       vimg->setPalette(vPalette);
 
 #ifdef LINUX
-	  TOfflineGL *glContext = 0;
-	  glContext = TOfflineGL::getStock(chipSize);
-	  glContext->clear(TPixel32::White);
+      TOfflineGL *glContext = 0;
+      glContext             = TOfflineGL::getStock(chipSize);
+      glContext->clear(TPixel32::White);
 #else
       QOpenGLContext *glContext = new QOpenGLContext();
       if (QOpenGLContext::currentContext())
@@ -155,10 +155,10 @@ void CustomStyleManager::StyleLoaderTask::run() {
       TVectorRenderData rd(aff, chipSize, vPalette, 0, true);
 
 #ifdef LINUX
-	  glContext->draw(img, rd);
-	  // No need to clone! The received raster already is a copy of the	
-	  // context's buffer	
-	  ras = glContext->getRaster();  //->clone();
+      glContext->draw(img, rd);
+      // No need to clone! The received raster already is a copy of the
+      // context's buffer
+      ras = glContext->getRaster();  //->clone();
 #else
       tglDraw(rd, vimg.getPointer());
 
@@ -190,8 +190,8 @@ void CustomStyleManager::StyleLoaderTask::run() {
       assert(!"unsupported type for custom styles!");
 
 #ifdef LINUX
-	image = new QImage(chipSize.lx, chipSize.ly, QImage::Format_RGB32);
-	convertRaster32ToImage(ras, image);
+    image = new QImage(chipSize.lx, chipSize.ly, QImage::Format_RGB32);
+    convertRaster32ToImage(ras, image);
 #endif
 
     m_data.m_patternName = m_fp.getName();

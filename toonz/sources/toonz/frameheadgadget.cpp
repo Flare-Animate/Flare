@@ -394,7 +394,7 @@ void FilmstripFrameHeadGadget::drawOnionSkinSelection(QPainter &p,
     int minMos = 0;
     int maxMos = 0;
     for (i = 0; i < mosCount; i++) {
-      int mos                  = osMask.getMos(i);
+      int mos = osMask.getMos(i);
       if (minMos > mos) minMos = mos;
       if (maxMos < mos) maxMos = mos;
     }
@@ -600,7 +600,10 @@ void FilmstripFrameHeadGadget::drawShiftTraceMarker(QPainter &p) {
 //-----------------------------------------------------------------------------
 
 bool FilmstripFrameHeadGadget::eventFilter(QObject *obj, QEvent *e) {
-  if (e->type() != QEvent::MouseButtonPress && e->type() != QEvent::MouseButtonDblClick && e->type() != QEvent::MouseMove) return false;
+  if (e->type() != QEvent::MouseButtonPress &&
+      e->type() != QEvent::MouseButtonDblClick &&
+      e->type() != QEvent::MouseMove)
+    return false;
   // shift & trace case
   if (CommandManager::instance()->getAction(MI_ShiftTrace)->isChecked())
     return shiftTraceEventFilter(obj, e);
@@ -654,11 +657,11 @@ bool FilmstripFrameHeadGadget::eventFilter(QObject *obj, QEvent *e) {
 
     //----- 以下、クリック位置に応じてアクションを変えていく
     //クリックされたフレームを取得
-    QMouseEvent *mouseEvent               = dynamic_cast<QMouseEvent *>(e);
-    int frame                             = y2index(mouseEvent->pos().y());
+    QMouseEvent *mouseEvent = dynamic_cast<QMouseEvent *>(e);
+    int frame               = y2index(mouseEvent->pos().y());
     if (!m_filmstrip->m_isVertical) frame = x2index(mouseEvent->pos().x());
-    m_buttonPressCellIndex                = frame;
-    int currentFrame                      = getCurrentFrame();
+    m_buttonPressCellIndex = frame;
+    int currentFrame       = getCurrentFrame();
 
     //各フレーム左上からの位置
     QPoint clickedPos = mouseEvent->pos() + QPoint(0, -index2y(frame));
@@ -702,7 +705,7 @@ bool FilmstripFrameHeadGadget::eventFilter(QObject *obj, QEvent *e) {
   else if (e->type() == QEvent::MouseButtonDblClick) {
     QMouseEvent *mouseEvent = dynamic_cast<QMouseEvent *>(e);
     if (mouseEvent->buttons() & Qt::LeftButton) {
-      int frame                             = y2index(mouseEvent->pos().y());
+      int frame = y2index(mouseEvent->pos().y());
       if (!m_filmstrip->m_isVertical) frame = x2index(mouseEvent->pos().x());
       //各フレーム左上からの位置
       QPoint clickedPos = mouseEvent->pos() + QPoint(0, -index2y(frame));
@@ -729,8 +732,8 @@ bool FilmstripFrameHeadGadget::eventFilter(QObject *obj, QEvent *e) {
   }
   //----
   else if (e->type() == QEvent::MouseMove) {
-    QMouseEvent *mouseEvent               = dynamic_cast<QMouseEvent *>(e);
-    int frame                             = y2index(mouseEvent->pos().y());
+    QMouseEvent *mouseEvent = dynamic_cast<QMouseEvent *>(e);
+    int frame               = y2index(mouseEvent->pos().y());
     if (!m_filmstrip->m_isVertical) frame = x2index(mouseEvent->pos().x());
     //各フレーム左上からの位置
     QPoint clickedPos = mouseEvent->pos() + QPoint(0, -index2y(frame));
@@ -863,13 +866,13 @@ bool FilmstripFrameHeadGadget::shiftTraceEventFilter(QObject *obj, QEvent *e) {
     viewer->update();
   }
 
-  QMouseEvent *mouseEvent               = dynamic_cast<QMouseEvent *>(e);
-  int frame                             = y2index(mouseEvent->pos().y());
+  QMouseEvent *mouseEvent = dynamic_cast<QMouseEvent *>(e);
+  int frame               = y2index(mouseEvent->pos().y());
   if (!m_filmstrip->m_isVertical) frame = x2index(mouseEvent->pos().x());
   // position from top-left of the frame
   QPoint mousePos = mouseEvent->pos() + QPoint(0, -index2y(frame));
   if (!m_filmstrip->m_isVertical)
-    mousePos       = mouseEvent->pos() + QPoint(-index2x(frame), 0);
+    mousePos = mouseEvent->pos() + QPoint(-index2x(frame), 0);
   int currentFrame = getCurrentFrame();
 
   if (m_filmstrip->m_isVertical) {

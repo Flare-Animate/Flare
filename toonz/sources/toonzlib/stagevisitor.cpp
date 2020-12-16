@@ -247,7 +247,7 @@ void Picker::onImage(const Stage::Player &player) {
     double dist2     = 0;
     TRegion *r       = vi->getRegion(point);
     int styleId      = 0;
-    if (r) styleId   = r->getStyle();
+    if (r) styleId = r->getStyle();
     if (styleId != 0)
       picked = true;
     else if (vi->getNearestStroke(point, w, strokeIndex, dist2)) {
@@ -277,7 +277,7 @@ void Picker::onImage(const Stage::Player &player) {
     TPoint p(tround(pp.x), tround(pp.y));
     if (!ras->getBounds().contains(p)) return;
 
-    TPixel32 *pix               = ras->pixels(p.y);
+    TPixel32 *pix = ras->pixels(p.y);
     if (pix[p.x].m != 0) picked = true;
 
     TAffine aff2 = (aff * player.m_dpiAff).inv();
@@ -292,7 +292,7 @@ void Picker::onImage(const Stage::Player &player) {
                  ras->getBounds();
     for (int y = rect.y0; !picked && y <= rect.y1; y++) {
       pix = ras->pixels(y);
-      for (int x                  = rect.x0; !picked && x <= rect.x1; x++)
+      for (int x = rect.x0; !picked && x <= rect.x1; x++)
         if (pix[x].m != 0) picked = true;
     }
 
@@ -890,7 +890,7 @@ void RasterPainter::onVectorImage(TVectorImage *vi,
 
   TVectorRenderData rd(m_viewAff * player.m_placement, TRect(), vPalette, cf,
                        true  // alpha enabled
-                       );
+  );
 
   rd.m_drawRegions           = !inksOnly;
   rd.m_inkCheckEnabled       = tc & ToonzCheck::eInk;
@@ -996,7 +996,7 @@ void RasterPainter::onVectorImage(TVectorImage *vi,
 //-----------------------------------------------------
 
 /*! Create a \b Node and put it in \b m_nodes.
-*/
+ */
 void RasterPainter::onRasterImage(TRasterImage *ri,
                                   const Stage::Player &player) {
   TRasterP r = ri->getRaster();
@@ -1036,7 +1036,7 @@ void RasterPainter::onRasterImage(TRasterImage *ri,
                                                   : Node::eOnionSkinNone);
     }
   } else if (player.m_opacity < 255)
-    alpha             = player.m_opacity;
+    alpha = player.m_opacity;
   TXshSimpleLevel *sl = player.m_sl;
   bool doPremultiply  = false;
   bool whiteTransp    = false;
@@ -1062,7 +1062,7 @@ void RasterPainter::onRasterImage(TRasterImage *ri,
 
 //-----------------------------------------------------------------------------
 /*! Create a \b Node and put it in \b m_nodes.
-*/
+ */
 void RasterPainter::onToonzImage(TToonzImage *ti, const Stage::Player &player) {
   TRasterCM32P r = ti->getRaster();
   if (!ti->getPalette()) return;
@@ -1375,9 +1375,9 @@ void onMeshImage(TMeshImage *mi, const Stage::Player &player,
                  const TAffine &viewAff) {
   assert(mi);
 
-  static const double soMinColor[4] = {0.0, 0.0, 0.0,
+  static const double soMinColor[4]  = {0.0, 0.0, 0.0,
                                        0.6};  // Translucent black
-  static const double soMaxColor[4] = {1.0, 1.0, 1.0,
+  static const double soMaxColor[4]  = {1.0, 1.0, 1.0,
                                        0.6};  // Translucent white
   static const double rigMinColor[4] = {0.0, 1.0, 0.0,
                                         0.6};  // Translucent green
