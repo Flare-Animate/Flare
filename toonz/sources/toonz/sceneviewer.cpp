@@ -831,6 +831,9 @@ void SceneViewer::setVisual(const ImagePainter::VisualSettings &settings) {
 //-----------------------------------------------------------------------------
 
 SceneViewer::~SceneViewer() {
+  // notify FilmStripFrames and safely disconnect with this
+  emit aboutToBeDestroyed();
+
   if (m_fbo) delete m_fbo;
 
   // release all the registered context (once when exit the software)
