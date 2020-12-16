@@ -261,8 +261,8 @@ bool FxSelection::insertPasteSelection() {
 
     // auto ends the undo block in the destructor.
     if (!auto_.m_destruct) {
-        auto_.m_destruct = true;
-        TUndoManager::manager()->beginBlock();
+      auto_.m_destruct = true;
+      TUndoManager::manager()->beginBlock();
     }
 
     TFxCommand::insertPasteFxs(selectedLinks[i], fxs.toStdList(),
@@ -384,7 +384,7 @@ void FxSelection::ungroupSelection() {
   TUndoManager::manager()->beginBlock();
   QSet<int>::iterator it;
   for (it = idSet.begin(); it != idSet.end(); it++) {
-      TFxCommand::ungroupFxs(*it, m_xshHandle);
+    TFxCommand::ungroupFxs(*it, m_xshHandle);
   }
   TUndoManager::manager()->endBlock();
   selectNone();
