@@ -45,9 +45,9 @@ public:
     setFlags(Qt::ItemIsSelectable | Qt::ItemIsDragEnabled | Qt::ItemIsEnabled |
              Qt::ItemNeverHasChildren);
     QString tempText = m_action->text();
-    if (tempText.indexOf("&") == 0) {
-        tempText = tempText.remove(0, 1);
-    }
+    // removing accelerator key indicator
+    tempText = tempText.replace(QRegExp("&([^& ])"), "\\1");
+    // removing doubled &s
     tempText = tempText.replace("&&", "&");
     setText(0, tempText);
     setToolTip(0, QObject::tr("[Drag] to move position"));

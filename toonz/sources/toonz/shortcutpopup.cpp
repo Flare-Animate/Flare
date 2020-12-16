@@ -57,9 +57,9 @@ public:
   }
   void updateText() {
     QString text = m_action->text();
-    if (text.indexOf("&") == 0) {
-        text = text.remove(0, 1);
-    }
+    // removing accelerator key indicator
+    text = text.replace(QRegExp("&([^& ])"), "\\1");
+    // removing doubled &s
     text = text.replace("&&", "&");
     setText(0, text);
     QString shortcut = m_action->shortcut().toString();
