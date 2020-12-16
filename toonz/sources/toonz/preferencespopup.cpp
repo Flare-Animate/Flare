@@ -51,6 +51,7 @@
 #include <QStringList>
 #include <QListWidget>
 #include <QGroupBox>
+#include <QKeySequence>
 
 using namespace DVGui;
 
@@ -998,6 +999,13 @@ void PreferencesPopup::insertFootNote(QGridLayout* layout) {
 //-----------------------------------------------------------------------------
 
 QString PreferencesPopup::getUIString(PreferencesItemId id) {
+  auto CtrlAltStr = []() {
+    QString str =
+        QKeySequence(Qt::CTRL + Qt::ALT).toString(QKeySequence::NativeText);
+    if (str.endsWith("+")) str.chop(1);
+    return str;
+  };
+
   const static QMap<PreferencesItemId, QString> uiStringTable = {
       // General
       {defaultViewerEnabled, tr("Use Default Viewer for Movie Formats")},
@@ -1040,7 +1048,7 @@ QString PreferencesPopup::getUIString(PreferencesItemId id) {
        tr("Show Raster Images Darken Blended")},
       {showFrameNumberWithLetters,
        tr("Show \"ABC\" Appendix to the Frame Number in Xsheet Cell")},
-      {iconSize, tr("Level Strip Icon Size*:")},
+      {iconSize, tr("Level Strip Thumbnail Size*:")},
       {viewShrink, tr("Viewer Shrink:")},
       {viewStep, tr("Step:")},
       {viewerZoomCenter, tr("Viewer Zoom Center:")},
@@ -1112,7 +1120,7 @@ QString PreferencesPopup::getUIString(PreferencesItemId id) {
       {cursorBrushStyle, tr("Cursor Style:")},
       {cursorOutlineEnabled, tr("Show Cursor Size Outlines")},
       {levelBasedToolsDisplay, tr("Toolbar Display Behaviour:")},
-      {useCtrlAltToResizeBrush, tr("Use Ctrl+Alt to Resize Brush")},
+      {useCtrlAltToResizeBrush, tr("Use %1 to Resize Brush").arg(CtrlAltStr())},
 
       // Xsheet
       {xsheetLayoutPreference, tr("Column Header Layout*:")},
@@ -1372,18 +1380,9 @@ QWidget* PreferencesPopup::createGeneralPage() {
 
   insertUI(defaultViewerEnabled, lay);
   insertUI(rasterOptimizedMemory, lay);
-  QGridLayout* autoSaveLay = insertGroupBoxUI(autosaveEnabled, lay);
-  {
-    insertUI(autosavePeriod, autoSaveLay);
-    insertUI(autosaveSceneEnabled, autoSaveLay);
-    insertUI(autosaveOtherFilesEnabled, autoSaveLay);
-  }
   insertUI(startupPopupEnabled, lay);
   insertUI(undoMemorySize, lay);
   insertUI(taskchunksize, lay);
-  insertUI(replaceAfterSaveLevelAs, lay);
-  QGridLayout* backupLay = insertGroupBoxUI(backupEnabled, lay);
-  { insertUI(backupKeepCount, backupLay); }
   insertUI(sceneNumberingEnabled, lay);
   insertUI(watchFileSystemEnabled, lay);
 
@@ -1621,13 +1620,21 @@ QWidget* PreferencesPopup::createSavingPage() {
   QWidget* widget  = new QWidget(this);
   QGridLayout* lay = new QGridLayout();
   setupLayout(lay);
-
+  QGridLayout* autoSaveLay = insertGroupBoxUI(autosaveEnabled, lay);
+  {
+    insertUI(autosavePeriod, autoSaveLay);
+    insertUI(autosaveSceneEnabled, autoSaveLay);
+    insertUI(autosaveOtherFilesEnabled, autoSaveLay);
+  }
+  insertUI(replaceAfterSaveLevelAs, lay);
+  QGridLayout* backupLay = insertGroupBoxUI(backupEnabled, lay);
+  { insertUI(backupKeepCount, backupLay); }
   QLabel* matteColorLabel =
       new QLabel(tr("Matte color is used for background when overwriting "
                     "raster levels with transparent pixels\nin non "
                     "alpha-enabled image format."),
                  this);
-  lay->addWidget(matteColorLabel, 0, 0, 1, 3, Qt::AlignLeft);
+  lay->addWidget(matteColorLabel, lay->rowCount(), 0, 1, 3, Qt::AlignLeft);
   insertUI(rasterBackgroundColor, lay);
   insertUI(resetUndoOnSavingLevel, lay);
 

@@ -511,6 +511,8 @@ ConvertPopup::ConvertPopup(bool specifyInput)
     ret = ret && connect(m_convertFileFld, SIGNAL(pathChanged()), this,
                          SLOT(onFileInChanged()));
 
+  // resize the dialog
+  onFormatSelected(m_fileFormat->currentText());
   // update unable/enable of checkboxes
   onTlvModeSelected(m_tlvMode->currentText());
 
@@ -762,6 +764,11 @@ void ConvertPopup::onFormatSelected(const QString &format) {
     m_saveBackupToNopaint->setEnabled(m_tlvMode->currentText() ==
                                       TlvMode_Unpainted);
   }
+  // For unknown reasons, calling adjustSize twice is needed to
+  // prevent the dialog from remaining large size when the current
+  // format is switched from tlv to another format.
+  adjustSize();
+  adjustSize();
 }
 
 //------------------------------------------------------------------

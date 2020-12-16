@@ -612,6 +612,7 @@ void LevelSettingsPopup::onPreferenceChanged(const QString &propertyName) {
   int decimals = (pixelsMode) ? 0 : 4;
   m_widthFld->setDecimals(decimals);
   m_heightFld->setDecimals(decimals);
+  adjustSize();
 }
 
 //-----------------------------------------------------------------------------
