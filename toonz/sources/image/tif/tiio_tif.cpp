@@ -257,7 +257,7 @@ break;*/
 
   if (bps == 10 || bps == 12 ||
       bps == 14)  // immagini con bps = 10 , 12 , 14 , 24 , 32
-    bps                           = 8;
+    bps = 8;
   if (bps == 24 || bps == 32) bps = 16;
 
   m_info.m_bitsPerSample = bps;
@@ -928,9 +928,9 @@ void TifWriter::open(FILE *file, const TImageInfo &info) {
       assert(false);
   }
   TIFFSetField(m_tiff, TIFFTAG_PLANARCONFIG, PLANARCONFIG_CONTIG);
-  TIFFSetField(m_tiff, TIFFTAG_PHOTOMETRIC, (m_bpp == 8 || m_bpp == 1)
-                                                ? PHOTOMETRIC_MINISBLACK
-                                                : PHOTOMETRIC_RGB);
+  TIFFSetField(
+      m_tiff, TIFFTAG_PHOTOMETRIC,
+      (m_bpp == 8 || m_bpp == 1) ? PHOTOMETRIC_MINISBLACK : PHOTOMETRIC_RGB);
   TIFFSetField(m_tiff, TIFFTAG_XRESOLUTION, m_info.m_dpix);
   TIFFSetField(m_tiff, TIFFTAG_YRESOLUTION, m_info.m_dpiy);
   TIFFSetField(m_tiff, TIFFTAG_RESOLUTIONUNIT, RESUNIT_INCH);
@@ -1055,7 +1055,7 @@ extern "C" {
 static void MyWarningHandler(const char *module, const char *fmt, va_list ap) {
   std::string outMsg;
   char msg[2048];
-  msg[0]                     = 0;
+  msg[0] = 0;
   if (module != NULL) outMsg = std::string(module);
   outMsg += "Warning, ";
 
@@ -1069,7 +1069,7 @@ static void MyWarningHandler(const char *module, const char *fmt, va_list ap) {
 static void MyErrorHandler(const char *module, const char *fmt, va_list ap) {
   std::string outMsg;
   char msg[2048];
-  msg[0]                     = 0;
+  msg[0] = 0;
   if (module != NULL) outMsg = std::string(module);
   // outMsg += "Warning, ";
 

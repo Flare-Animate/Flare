@@ -58,7 +58,7 @@ void update_param(double &param, TRaster64P ras) {
   param = param * 257;
   return;
 }
-}
+}  // namespace
 
 //-------------------------------------------------------------------
 
