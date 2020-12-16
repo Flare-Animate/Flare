@@ -941,12 +941,13 @@ void setGrammerToParams(const ParamCont *cont,
 //-----------------------------------------------------------------------------
 
 std::set<int> explode(TXsheet *xsh, TXsheet *subXsh, int index,
-                 const TStageObjectId &parentId, const GroupData &objGroupData,
-                 const TPointD &stageSubPos, const GroupData &fxGroupData,
-                 const TPointD &fxSubPos, QList<TStageObject *> &pegObjects,
-                 QMap<TStageObjectSpline *, TStageObjectSpline *> &splines,
-                 const std::vector<TFxPort *> &outPorts, bool onlyColumn,
-                 bool linkToXsheet) {
+                      const TStageObjectId &parentId,
+                      const GroupData &objGroupData, const TPointD &stageSubPos,
+                      const GroupData &fxGroupData, const TPointD &fxSubPos,
+                      QList<TStageObject *> &pegObjects,
+                      QMap<TStageObjectSpline *, TStageObjectSpline *> &splines,
+                      const std::vector<TFxPort *> &outPorts, bool onlyColumn,
+                      bool linkToXsheet) {
   // innerFx->outerFxs
   QMap<TFx *, QPair<TFx *, int>> fxs;
   // inner id->outer id
@@ -2282,10 +2283,11 @@ void SubsceneCmd::collapse(std::set<int> &indices) {
     QString question(QObject::tr("Collapsing columns: what you want to do?"));
 
     QList<QString> list;
+    list.append(QObject::tr(
+        "Maintain parenting relationships in the sub-xsheet as well."));
     list.append(
-        QObject::tr("Include relevant pegbars in the sub-xsheet as well."));
-    list.append(
-        QObject::tr("Include only selected columns in the sub-xsheet."));
+        QObject::tr("Include the selected columns in the sub-xsheet without "
+                    "parenting info."));
 
     int ret = DVGui::RadioButtonMsgBox(DVGui::WARNING, question, list);
     if (ret == 0) return;
@@ -2393,10 +2395,11 @@ void SubsceneCmd::collapse(const QList<TFxP> &fxs) {
     // User must decide if pegbars must be collapsed too
     QString question(QObject::tr("Collapsing columns: what you want to do?"));
     QList<QString> list;
+    list.append(QObject::tr(
+        "Maintain parenting relationships in the sub-xsheet as well."));
     list.append(
-        QObject::tr("Include relevant pegbars in the sub-xsheet as well."));
-    list.append(
-        QObject::tr("Include only selected columns in the sub-xsheet."));
+        QObject::tr("Include the selected columns in the sub-xsheet without "
+                    "parenting info."));
     int ret = DVGui::RadioButtonMsgBox(DVGui::WARNING, question, list);
     if (ret == 0) return;
     onlyColumns = (ret == 2);
@@ -2471,8 +2474,10 @@ void SubsceneCmd::explode(int index) {
   /*- Pegbarを親Sheetに持って出るか？の質問ダイアログ -*/
   QString question(QObject::tr("Exploding Sub-xsheet: what you want to do?"));
   QList<QString> list;
-  list.append(QObject::tr("Bring relevant pegbars in the main xsheet."));
-  list.append(QObject::tr("Bring only columns in the main xsheet."));
+  list.append(
+      QObject::tr("Maintain parenting relationships in the main xsheet."));
+  list.append(
+      QObject::tr("Bring columns in the main xsheet without parenting."));
   int ret = DVGui::RadioButtonMsgBox(DVGui::WARNING, question, list);
   if (ret == 0) return;
 

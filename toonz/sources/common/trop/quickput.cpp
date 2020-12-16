@@ -773,7 +773,7 @@ void doQuickPutNoFilter(const TRaster32P &dn, const TRaster64P &up,
       assert((0 <= xI) && (xI <= up->getLx() - 1) && (0 <= yI) &&
              (yI <= up->getLy() - 1));
 
-      TPixel64 *upPix           = upBasePix + (yI * upWrap + xI);
+      TPixel64 *upPix = upBasePix + (yI * upWrap + xI);
       if (firstColumn) upPix->m = 65535;
       if (upPix->m == 0)
         continue;
@@ -2050,7 +2050,7 @@ void doQuickResampleColorFilter(const TRaster32P &dn, const TRaster32P &up,
     } else if (deltaXL > 0) {
       if (lxPred < xL0) continue;
 
-      kMaxX              = (lxPred - xL0) / deltaXL;          //  floor
+      kMaxX = (lxPred - xL0) / deltaXL;                       //  floor
       if (xL0 < 0) kMinX = ((-xL0) + deltaXL - 1) / deltaXL;  //  ceil
     } else                                                    //  (deltaXL < 0)
     {
@@ -2064,7 +2064,7 @@ void doQuickResampleColorFilter(const TRaster32P &dn, const TRaster32P &up,
     } else if (deltaYL > 0) {
       if (lyPred < yL0) continue;
 
-      kMaxY              = (lyPred - yL0) / deltaYL;          //  floor
+      kMaxY = (lyPred - yL0) / deltaYL;                       //  floor
       if (yL0 < 0) kMinY = ((-yL0) + deltaYL - 1) / deltaYL;  //  ceil
     } else                                                    //  (deltaYL < 0)
     {
@@ -2167,7 +2167,7 @@ void doQuickResampleColorFilter(const TRaster32P &dn, const TRaster64P &up,
     } else if (deltaXL > 0) {
       if (lxPred < xL0) continue;
 
-      kMaxX              = (lxPred - xL0) / deltaXL;          //  floor
+      kMaxX = (lxPred - xL0) / deltaXL;                       //  floor
       if (xL0 < 0) kMinX = ((-xL0) + deltaXL - 1) / deltaXL;  //  ceil
     } else                                                    //  (deltaXL < 0)
     {
@@ -2181,7 +2181,7 @@ void doQuickResampleColorFilter(const TRaster32P &dn, const TRaster64P &up,
     } else if (deltaYL > 0) {
       if (lyPred < yL0) continue;
 
-      kMaxY              = (lyPred - yL0) / deltaYL;          //  floor
+      kMaxY = (lyPred - yL0) / deltaYL;                       //  floor
       if (yL0 < 0) kMinY = ((-yL0) + deltaYL - 1) / deltaYL;  //  ceil
     } else                                                    //  (deltaYL < 0)
     {
@@ -2993,11 +2993,11 @@ void doQuickPutCmapped(const TRaster32P &dn, const TRasterCM32P &up,
   // vector<TPixel32> inks(palette->getStyleCount());
 
   if (globalColorScale != TPixel::Black)
-    for (int i  = 0; i < palette->getStyleCount(); i++)
+    for (int i = 0; i < palette->getStyleCount(); i++)
       colors[i] = applyColorScaleCMapped(
           palette->getStyle(i)->getAverageColor(), globalColorScale);
   else
-    for (int i  = 0; i < palette->getStyleCount(); i++)
+    for (int i = 0; i < palette->getStyleCount(); i++)
       colors[i] = ::premultiply(palette->getStyle(i)->getAverageColor());
 
   dn->lock();
@@ -3233,17 +3233,22 @@ void doQuickPutCmapped(const TRaster32P &dn, const TRasterCM32P &up,
   std::vector<TPixel32> paints(palette->getStyleCount());
   std::vector<TPixel32> inks(palette->getStyleCount());
 
-  if (s.m_transparencyCheck)
+  if (s.m_transparencyCheck && !s.m_isOnionSkin) {
     for (int i = 0; i < palette->getStyleCount(); i++) {
-      paints[i] = s.m_transpCheckPaint;
-      inks[i]   = s.m_blackBgCheck ? s.m_transpCheckBg : s.m_transpCheckInk;
+      if (i == s.m_gapCheckIndex) {
+        paints[i] = inks[i] = applyColorScaleCMapped(
+            palette->getStyle(i)->getAverageColor(), s.m_globalColorScale);
+      } else {
+        paints[i] = s.m_transpCheckPaint;
+        inks[i]   = s.m_blackBgCheck ? s.m_transpCheckBg : s.m_transpCheckInk;
+      }
     }
-  else if (s.m_globalColorScale == TPixel::Black)
-    for (int i  = 0; i < palette->getStyleCount(); i++)
+  } else if (s.m_globalColorScale == TPixel::Black)
+    for (int i = 0; i < palette->getStyleCount(); i++)
       paints[i] = inks[i] =
           ::premultiply(palette->getStyle(i)->getAverageColor());
   else
-    for (int i  = 0; i < palette->getStyleCount(); i++)
+    for (int i = 0; i < palette->getStyleCount(); i++)
       paints[i] = inks[i] = applyColorScaleCMapped(
           palette->getStyle(i)->getAverageColor(), s.m_globalColorScale);
 
@@ -3263,7 +3268,7 @@ void doQuickPutCmapped(const TRaster32P &dn, const TRasterCM32P &up,
     } else if (deltaXL > 0) {
       if (lxPred < xL0) continue;
 
-      kMaxX              = (lxPred - xL0) / deltaXL;          //  floor
+      kMaxX = (lxPred - xL0) / deltaXL;                       //  floor
       if (xL0 < 0) kMinX = ((-xL0) + deltaXL - 1) / deltaXL;  //  ceil
     } else {
       if (xL0 < 0) continue;
@@ -3277,7 +3282,7 @@ void doQuickPutCmapped(const TRaster32P &dn, const TRasterCM32P &up,
     } else if (deltaYL > 0) {
       if (lyPred < yL0) continue;
 
-      kMaxY              = (lyPred - yL0) / deltaYL;
+      kMaxY = (lyPred - yL0) / deltaYL;
       if (yL0 < 0) kMinY = ((-yL0) + deltaYL - 1) / deltaYL;
     } else {
       if (yL0 < 0) continue;
@@ -3553,11 +3558,11 @@ void doQuickPutCmapped(const TRaster32P &dn, const TRasterCM32P &up,
   std::vector<TPixel32> paints(count, TPixel32::Red);
   std::vector<TPixel32> inks(count, TPixel32::Red);
   if (globalColorScale != TPixel::Black)
-    for (int i  = 0; i < palette->getStyleCount(); i++)
+    for (int i = 0; i < palette->getStyleCount(); i++)
       paints[i] = inks[i] = applyColorScaleCMapped(
           palette->getStyle(i)->getAverageColor(), globalColorScale);
   else
-    for (int i  = 0; i < palette->getStyleCount(); i++)
+    for (int i = 0; i < palette->getStyleCount(); i++)
       paints[i] = inks[i] =
           ::premultiply(palette->getStyle(i)->getAverageColor());
 
@@ -3655,7 +3660,7 @@ void doQuickResampleColorFilter(const TRaster32P &dn, const TRasterCM32P &up,
   std::vector<TPixel32> paints(plt->getStyleCount());
   std::vector<TPixel32> inks(plt->getStyleCount());
 
-  for (int i  = 0; i < plt->getStyleCount(); i++)
+  for (int i = 0; i < plt->getStyleCount(); i++)
     paints[i] = inks[i] = ::premultiply(plt->getStyle(i)->getAverageColor());
 
   assert(std::max(up->getLx(), up->getLy()) <
@@ -3709,7 +3714,7 @@ void doQuickResampleColorFilter(const TRaster32P &dn, const TRasterCM32P &up,
     } else if (deltaXL > 0) {
       if (lxPred < xL0) continue;
 
-      kMaxX              = (lxPred - xL0) / deltaXL;          //  floor
+      kMaxX = (lxPred - xL0) / deltaXL;                       //  floor
       if (xL0 < 0) kMinX = ((-xL0) + deltaXL - 1) / deltaXL;  //  ceil
     } else                                                    //  (deltaXL < 0)
     {
@@ -3723,7 +3728,7 @@ void doQuickResampleColorFilter(const TRaster32P &dn, const TRasterCM32P &up,
     } else if (deltaYL > 0) {
       if (lyPred < yL0) continue;
 
-      kMaxY              = (lyPred - yL0) / deltaYL;          //  floor
+      kMaxY = (lyPred - yL0) / deltaYL;                       //  floor
       if (yL0 < 0) kMinY = ((-yL0) + deltaYL - 1) / deltaYL;  //  ceil
     } else                                                    //  (deltaYL < 0)
     {
@@ -4175,7 +4180,7 @@ void doQuickResampleFilter_optimized(const TRaster32P &dn, const TRaster32P &up,
 #endif
 
 // namespace
-};
+};  // namespace
 
 #ifndef TNZCORE_LIGHT
 //=============================================================================

@@ -501,6 +501,8 @@ void FilmstripFrames::getViewer() {
     if (m_viewer) {
       disconnect(m_viewer, SIGNAL(onZoomChanged()), this, SLOT(update()));
       disconnect(m_viewer, SIGNAL(refreshNavi()), this, SLOT(update()));
+      disconnect(m_viewer, SIGNAL(aboutToBeDestroyed()), this,
+                 SLOT(onViewerAboutToBeDestroyed()));
     }
     viewerChanged = true;
   }
@@ -510,6 +512,8 @@ void FilmstripFrames::getViewer() {
   if (m_viewer && viewerChanged) {
     connect(m_viewer, SIGNAL(onZoomChanged()), this, SLOT(update()));
     connect(m_viewer, SIGNAL(refreshNavi()), this, SLOT(update()));
+    connect(m_viewer, SIGNAL(aboutToBeDestroyed()), this,
+            SLOT(onViewerAboutToBeDestroyed()));
     update();
   }
 }
@@ -1489,6 +1493,16 @@ void FilmstripFrames::inbetween() {
 
   // inbetween
   FilmstripCmd::inbetween(getLevel(), range.first, range.second, interpolation);
+}
+
+//-----------------------------------------------------------------------------
+
+void FilmstripFrames::onViewerAboutToBeDestroyed() {
+  if (m_viewer) {
+    disconnect(m_viewer, SIGNAL(onZoomChanged()), this, SLOT(update()));
+    disconnect(m_viewer, SIGNAL(refreshNavi()), this, SLOT(update()));
+    m_viewer = nullptr;
+  }
 }
 
 //=============================================================================

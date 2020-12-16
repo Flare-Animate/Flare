@@ -460,6 +460,8 @@ signals:
   void refreshNavi();
   // for updating the titlebar
   void previewToggled();
+  // to notify FilmStripFrames and safely disconnect with this
+  void aboutToBeDestroyed();
 };
 
 // Functions

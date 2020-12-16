@@ -44,7 +44,12 @@ public:
       : QTreeWidgetItem(parent, UserType), m_action(action) {
     setFlags(Qt::ItemIsSelectable | Qt::ItemIsDragEnabled | Qt::ItemIsEnabled |
              Qt::ItemNeverHasChildren);
-    setText(0, m_action->text().remove("&"));
+    QString tempText = m_action->text();
+    // removing accelerator key indicator
+    tempText = tempText.replace(QRegExp("&([^& ])"), "\\1");
+    // removing doubled &s
+    tempText = tempText.replace("&&", "&");
+    setText(0, tempText);
     setToolTip(0, QObject::tr("[Drag] to move position"));
   }
   QAction* getAction() const { return m_action; }

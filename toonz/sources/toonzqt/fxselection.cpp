@@ -259,8 +259,11 @@ bool FxSelection::insertPasteSelection() {
     fxsData->getFxs(fxs, zeraryFxColumnSize, columns);
     if (fxs.empty() && columns.empty()) return true;
 
-    if (!auto_.m_destruct)
-      auto_.m_destruct = true, TUndoManager::manager()->beginBlock();
+    // auto ends the undo block in the destructor.
+    if (!auto_.m_destruct) {
+      auto_.m_destruct = true;
+      TUndoManager::manager()->beginBlock();
+    }
 
     TFxCommand::insertPasteFxs(selectedLinks[i], fxs.toStdList(),
                                zeraryFxColumnSize.toStdMap(),
@@ -301,6 +304,7 @@ bool FxSelection::addPasteSelection() {
     fxsData->getFxs(fxs, zeraryFxColumnSize, columns);
     if (fxs.empty() && columns.empty()) return true;
 
+    // auto ends the undo block in its destructor
     if (!auto_.m_destruct)
       auto_.m_destruct = true, TUndoManager::manager()->beginBlock();
 
@@ -344,6 +348,7 @@ bool FxSelection::replacePasteSelection() {
     fxsData->getFxs(fxs, zeraryFxColumnSize, columns);
     if (fxs.empty() && columns.empty()) return true;
 
+    // auto ends the undo block in its destructor
     if (!auto_.m_destruct)
       auto_.m_destruct = true, TUndoManager::manager()->beginBlock();
 
@@ -378,8 +383,9 @@ void FxSelection::ungroupSelection() {
 
   TUndoManager::manager()->beginBlock();
   QSet<int>::iterator it;
-  for (it = idSet.begin(); it != idSet.end(); it++)
+  for (it = idSet.begin(); it != idSet.end(); it++) {
     TFxCommand::ungroupFxs(*it, m_xshHandle);
+  }
   TUndoManager::manager()->endBlock();
   selectNone();
   m_xshHandle->notifyXsheetChanged();

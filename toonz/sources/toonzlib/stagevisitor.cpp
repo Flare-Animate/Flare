@@ -247,7 +247,7 @@ void Picker::onImage(const Stage::Player &player) {
     double dist2     = 0;
     TRegion *r       = vi->getRegion(point);
     int styleId      = 0;
-    if (r) styleId   = r->getStyle();
+    if (r) styleId = r->getStyle();
     if (styleId != 0)
       picked = true;
     else if (vi->getNearestStroke(point, w, strokeIndex, dist2)) {
@@ -261,13 +261,12 @@ void Picker::onImage(const Stage::Player &player) {
       double maxDist2  = maxDist * maxDist;
       double checkDist = maxDist2 * 4;
 
-      TStroke *stroke = vi->getStroke(strokeIndex);
+      TStroke *stroke        = vi->getStroke(strokeIndex);
       TThickPoint thickPoint = stroke->getThickPoint(w);
-      double thickness = thickPoint.thick;
-      double len = thickness * pixelSize * sqrt(m_viewAff.det());
-      checkDist = std::max(checkDist, (len * len));
-      if (dist2 < checkDist)
-        picked = true;
+      double thickness       = thickPoint.thick;
+      double len             = thickness * pixelSize * sqrt(m_viewAff.det());
+      checkDist              = std::max(checkDist, (len * len));
+      if (dist2 < checkDist) picked = true;
     }
   } else if (TRasterImageP ri = img) {
     TRaster32P ras = ri->getRaster();
@@ -278,7 +277,7 @@ void Picker::onImage(const Stage::Player &player) {
     TPoint p(tround(pp.x), tround(pp.y));
     if (!ras->getBounds().contains(p)) return;
 
-    TPixel32 *pix               = ras->pixels(p.y);
+    TPixel32 *pix = ras->pixels(p.y);
     if (pix[p.x].m != 0) picked = true;
 
     TAffine aff2 = (aff * player.m_dpiAff).inv();
@@ -293,7 +292,7 @@ void Picker::onImage(const Stage::Player &player) {
                  ras->getBounds();
     for (int y = rect.y0; !picked && y <= rect.y1; y++) {
       pix = ras->pixels(y);
-      for (int x                  = rect.x0; !picked && x <= rect.x1; x++)
+      for (int x = rect.x0; !picked && x <= rect.x1; x++)
         if (pix[x].m != 0) picked = true;
     }
 
@@ -574,11 +573,12 @@ void RasterPainter::flushRasterImages() {
       m_nodes[i].m_palette->setFrame(m_nodes[i].m_frame);
 
       TPaletteP plt;
+      int styleIndex = -1;
       if ((tc & ToonzCheck::eGap || tc & ToonzCheck::eAutoclose) &&
           m_nodes[i].m_isCurrentColumn) {
-        srcCm          = srcCm->clone();
-        plt            = m_nodes[i].m_palette->clone();
-        int styleIndex = plt->addStyle(TPixel::Magenta);
+        srcCm      = srcCm->clone();
+        plt        = m_nodes[i].m_palette->clone();
+        styleIndex = plt->addStyle(TPixel::Magenta);
         if (tc & ToonzCheck::eAutoclose)
           TAutocloser(srcCm, AutocloseDistance, AutocloseAngle, styleIndex,
                       AutocloseOpacity)
@@ -613,6 +613,9 @@ void RasterPainter::flushRasterImages() {
         Preferences::instance()->getTranspCheckData(
             settings.m_transpCheckBg, settings.m_transpCheckInk,
             settings.m_transpCheckPaint);
+
+        settings.m_isOnionSkin = m_nodes[i].m_onionMode != Node::eOnionSkinNone;
+        settings.m_gapCheckIndex = styleIndex;
 
         TRop::quickPut(viewedRaster, srcCm, plt, aff, settings);
       }
@@ -661,7 +664,7 @@ void RasterPainter::flushRasterImages() {
 #endif
 
 #ifdef GL_EXT_texture3D
-  if( GL_EXT_texture3D ) {
+  if (GL_EXT_texture3D) {
     glDisable(GL_TEXTURE_3D_EXT);
   }
 #endif
@@ -768,7 +771,7 @@ static void drawAutocloses(TVectorImage *vi, TVectorRenderData &rd) {
   buildAutocloseImage(vaux, vi, startPoints, endPoints);
   // temporarily disable fill check, to preserve the gap indicator color
   bool tCheckEnabledOriginal = rd.m_tcheckEnabled;
-  rd.m_tcheckEnabled = false;
+  rd.m_tcheckEnabled         = false;
   // draw
   tglDraw(rd, vaux);
   // restore original value
@@ -887,7 +890,7 @@ void RasterPainter::onVectorImage(TVectorImage *vi,
 
   TVectorRenderData rd(m_viewAff * player.m_placement, TRect(), vPalette, cf,
                        true  // alpha enabled
-                       );
+  );
 
   rd.m_drawRegions           = !inksOnly;
   rd.m_inkCheckEnabled       = tc & ToonzCheck::eInk;
@@ -993,7 +996,7 @@ void RasterPainter::onVectorImage(TVectorImage *vi,
 //-----------------------------------------------------
 
 /*! Create a \b Node and put it in \b m_nodes.
-*/
+ */
 void RasterPainter::onRasterImage(TRasterImage *ri,
                                   const Stage::Player &player) {
   TRasterP r = ri->getRaster();
@@ -1033,7 +1036,7 @@ void RasterPainter::onRasterImage(TRasterImage *ri,
                                                   : Node::eOnionSkinNone);
     }
   } else if (player.m_opacity < 255)
-    alpha             = player.m_opacity;
+    alpha = player.m_opacity;
   TXshSimpleLevel *sl = player.m_sl;
   bool doPremultiply  = false;
   bool whiteTransp    = false;
@@ -1059,7 +1062,7 @@ void RasterPainter::onRasterImage(TRasterImage *ri,
 
 //-----------------------------------------------------------------------------
 /*! Create a \b Node and put it in \b m_nodes.
-*/
+ */
 void RasterPainter::onToonzImage(TToonzImage *ti, const Stage::Player &player) {
   TRasterCM32P r = ti->getRaster();
   if (!ti->getPalette()) return;
@@ -1075,11 +1078,11 @@ void RasterPainter::onToonzImage(TToonzImage *ti, const Stage::Player &player) {
   int alpha                 = 255;
   Node::OnionMode onionMode = Node::eOnionSkinNone;
   if (player.m_onionSkinDistance != c_noOnionSkin) {
-    // GetOnionSkinFade va bene per il vettoriale mentre il raster funziona al
-    // contrario
-    // 1 opaco -> 0 completamente trasparente
-    // inverto quindi il risultato della funzione stando attento al caso 0
-    // (in cui era scolpito il valore 0.9)
+    // GetOnionSkinFade is good for the vector while the raster works at the
+    //    Opposite 1 opaque -> 0 completely transparent
+    //    I therefore reverse the result of the function by being attentive to
+    //    case 0
+    //    (where the value 0.9 was carved)
     double onionSkiFade = player.m_onionSkinDistance == 0
                               ? 0.9
                               : (1.0 - OnionSkinMask::getOnionSkinFade(
@@ -1372,9 +1375,9 @@ void onMeshImage(TMeshImage *mi, const Stage::Player &player,
                  const TAffine &viewAff) {
   assert(mi);
 
-  static const double soMinColor[4] = {0.0, 0.0, 0.0,
+  static const double soMinColor[4]  = {0.0, 0.0, 0.0,
                                        0.6};  // Translucent black
-  static const double soMaxColor[4] = {1.0, 1.0, 1.0,
+  static const double soMaxColor[4]  = {1.0, 1.0, 1.0,
                                        0.6};  // Translucent white
   static const double rigMinColor[4] = {0.0, 1.0, 0.0,
                                         0.6};  // Translucent green

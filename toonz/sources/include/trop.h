@@ -178,13 +178,16 @@ public:
 
   int m_inkIndex, m_paintIndex;
 
-  bool m_inksOnly, m_transparencyCheck, m_blackBgCheck;
+  bool m_inksOnly, m_transparencyCheck, m_blackBgCheck, m_isOnionSkin;
+  int m_gapCheckIndex = -1;
 
   CmappedQuickputSettings()
       : m_globalColorScale(TPixel32::Black)
       , m_inksOnly(false)
       , m_transparencyCheck(false)
       , m_blackBgCheck(false)
+      , m_isOnionSkin(false)
+      , m_gapCheckIndex(-1)
       , m_inkIndex(-1)
       , m_paintIndex(-1) {}
 };
@@ -384,7 +387,7 @@ DVAPI void swapRBChannels(const TRaster32P &r);
 
 //! Convert TRasterP in an old toonz raster!
 /*! Use the same buffer, not creates a new raster (the palette is new instead!)
-  */
+ */
 DVAPI _RASTER *convertRaster50to46(const TRasterP &inRas,
                                    const TPaletteP &inPalette);
 
@@ -405,4 +408,4 @@ DVAPI void lockRaster(_RASTER *raster);
 //! inactivity periods.
 DVAPI void unlockRaster(_RASTER *raster);
 
-}  // TRop namespace
+}  // namespace TRop
