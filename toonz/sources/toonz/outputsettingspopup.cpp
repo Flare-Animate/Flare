@@ -201,7 +201,7 @@ OutputSettingsPopup::OutputSettingsPopup(bool isPreview)
 
   QListWidget *categoryList = new QListWidget(this);
   QStringList categories;
-  categories << tr("Camera") << tr("File") << tr("Others");
+  categories << tr("Camera") << tr("File") << tr("More");
   categoryList->addItems(categories);
   categoryList->setFixedWidth(100);
   categoryList->setCurrentRow(0);
@@ -268,9 +268,9 @@ void OutputSettingsPopup::onCategoryActivated(QListWidgetItem *item) {
   } else if (item->text() == tr("File")) {
     label = m_fileLabel;
     frame = m_fileBox;
-  } else if (item->text() == tr("Others")) {
-    label = m_othersLabel;
-    frame = m_othersBox;
+  } else if (item->text() == tr("More")) {
+    label = m_moreLabel;
+    frame = m_moreBox;
   } else
     return;
 
@@ -293,8 +293,8 @@ QFrame *OutputSettingsPopup::createPanel(bool isPreview) {
   m_cameraBox   = createCameraSettingsBox(isPreview);
   m_fileBox     = createFileSettingsBox(isPreview);
   if (!isPreview) {
-    m_othersLabel = new AnimatedLabel(tr("Other Settings"), this);
-    m_othersBox   = createOtherSettingsBox();
+    m_moreLabel = new AnimatedLabel(tr("More Settings"), this);
+    m_moreBox   = createMoreSettingsBox();
   }
   QVBoxLayout *lay = new QVBoxLayout();
   lay->setMargin(5);
@@ -309,8 +309,8 @@ QFrame *OutputSettingsPopup::createPanel(bool isPreview) {
 
     if (!isPreview) {
       lay->addSpacing(10);
-      lay->addWidget(m_othersLabel, 0);
-      lay->addWidget(m_othersBox, 0);
+      lay->addWidget(m_moreLabel, 0);
+      lay->addWidget(m_moreBox, 0);
     }
     lay->addStretch(1);
   }
@@ -577,9 +577,9 @@ QFrame *OutputSettingsPopup::createFileSettingsBox(bool isPreview) {
 
 //-----------------------------------------------------------------------------
 
-QFrame *OutputSettingsPopup::createOtherSettingsBox() {
-  QFrame *otherSettingsBox = new QFrame(this);
-  otherSettingsBox->setObjectName("OutputSettingsBox");
+QFrame *OutputSettingsPopup::createMoreSettingsBox() {
+  QFrame *moreSettingsBox = new QFrame(this);
+  moreSettingsBox->setObjectName("OutputSettingsBox");
 
   // Board
   m_addBoard         = new DVGui::CheckBox(tr("Add Clapperboard"), this);
@@ -664,7 +664,7 @@ QFrame *OutputSettingsPopup::createOtherSettingsBox() {
   }
   lay->setColumnStretch(4, 1);
 
-  otherSettingsBox->setLayout(lay);
+  moreSettingsBox->setLayout(lay);
 
   //-----
 
@@ -692,7 +692,7 @@ QFrame *OutputSettingsPopup::createOtherSettingsBox() {
   ret = ret && connect(m_stereoShift, SIGNAL(editingFinished()),
                        SLOT(onStereoChanged()));
   assert(ret);
-  return otherSettingsBox;
+  return moreSettingsBox;
 }
 
 //-----------------------------------------------------------------------------

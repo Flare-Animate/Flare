@@ -78,8 +78,8 @@ class OutputSettingsPopup : public DVGui::Dialog {
   QPushButton *m_boardSettingsBtn;
 
   QScrollArea *m_scrollArea;
-  AnimatedLabel *m_cameraLabel, *m_fileLabel, *m_othersLabel;
-  QFrame *m_cameraBox, *m_fileBox, *m_othersBox;
+  AnimatedLabel *m_cameraLabel, *m_fileLabel, *m_moreLabel;
+  QFrame *m_cameraBox, *m_fileBox, *m_moreBox;
 
   bool m_isPreviewSettings;
 
@@ -89,7 +89,7 @@ class OutputSettingsPopup : public DVGui::Dialog {
   QFrame *createPanel(bool isPreview);
   QFrame *createCameraSettingsBox(bool isPreview);
   QFrame *createFileSettingsBox(bool isPreview);
-  QFrame *createOtherSettingsBox();
+  QFrame *createMoreSettingsBox();
 
 public:
   OutputSettingsPopup(bool isPreview = false);
