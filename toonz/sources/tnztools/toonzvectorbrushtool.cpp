@@ -339,7 +339,7 @@ static void addStroke(TTool::Application *application, const TVectorImageP &vi,
                       TStroke *stroke, bool breakAngles, bool autoGroup,
                       bool autoFill, bool frameCreated, bool levelCreated,
                       TXshSimpleLevel *sLevel = NULL,
-                      TFrameId fid = TFrameId::NO_FRAME) {
+                      TFrameId fid            = TFrameId::NO_FRAME) {
   QMutexLocker lock(vi->getMutex());
 
   if (application->getCurrentObject()->isSpline()) {
@@ -446,7 +446,7 @@ void addStrokeToImage(TTool::Application *application, const TVectorImageP &vi,
                       TStroke *stroke, bool breakAngles, bool autoGroup,
                       bool autoFill, bool frameCreated, bool levelCreated,
                       TXshSimpleLevel *sLevel = NULL,
-                      TFrameId id = TFrameId::NO_FRAME) {
+                      TFrameId id             = TFrameId::NO_FRAME) {
   QMutexLocker lock(vi->getMutex());
   addStroke(application, vi.getPointer(), stroke, breakAngles, autoGroup,
             autoFill, frameCreated, levelCreated, sLevel, id);
@@ -1139,7 +1139,7 @@ bool ToonzVectorBrushTool::doGuidedAutoInbetween(
   bool resultBack            = false;
   bool resultFront           = false;
   TFrameId oFid;
-  int cStrokeIdx   = cvi->getStrokeCount();
+  int cStrokeIdx = cvi->getStrokeCount();
   if (!drawStroke) cStrokeIdx--;
 
   TUndoManager::manager()->beginBlock();
@@ -1148,7 +1148,7 @@ bool ToonzVectorBrushTool::doGuidedAutoInbetween(
       TXsheet *xsh = app->getCurrentXsheet()->getXsheet();
       int col      = app->getCurrentColumn()->getColumnIndex();
       if (xsh && col >= 0) {
-        TXshCell cell             = xsh->getCell(osBack, col);
+        TXshCell cell = xsh->getCell(osBack, col);
         if (!cell.isEmpty()) oFid = cell.getFrameId();
       }
     } else
@@ -1182,7 +1182,7 @@ bool ToonzVectorBrushTool::doGuidedAutoInbetween(
       TXsheet *xsh = app->getCurrentXsheet()->getXsheet();
       int col      = app->getCurrentColumn()->getColumnIndex();
       if (xsh && col >= 0) {
-        TXshCell cell             = xsh->getCell(osFront, col);
+        TXshCell cell = xsh->getCell(osFront, col);
         if (!cell.isEmpty()) oFid = cell.getFrameId();
       }
     } else
