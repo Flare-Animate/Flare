@@ -3283,6 +3283,8 @@ void StyleEditor::showEvent(QShowEvent *) {
                        SLOT(onStyleChanged(bool)));
   ret      = ret && connect(m_paletteHandle, SIGNAL(paletteSwitched()), this,
                        SLOT(onStyleSwitched()));
+  ret = ret && connect(m_paletteController, SIGNAL(checkPaletteLock()), this,
+                       SLOT(checkPaletteLock()));
   if (m_cleanupPaletteHandle)
     ret =
         ret && connect(m_cleanupPaletteHandle, SIGNAL(colorStyleChanged(bool)),
@@ -3492,8 +3494,8 @@ void StyleEditor::onColorChanged(const ColorModel &color, bool isDragging) {
 
     m_newColor->setStyle(*m_editedStyle);
     m_colorParameterSelector->setStyle(*m_editedStyle);
-
-    if (m_autoButton->isChecked()) {
+    // Auto Button should be disabled with locked palette
+    if (m_autoButton->isEnabled() && m_autoButton->isChecked()) {
       copyEditedStyleToPalette(isDragging);
     }
   }
@@ -3525,13 +3527,23 @@ void StyleEditor::enable(bool enabled, bool enabledOnlyFirstTab,
     // when the palette is locked
     if (palette->isLocked()) {
       m_applyButton->setEnabled(false);
-      m_autoButton->setChecked(false);
       m_autoButton->setEnabled(false);
     } else  // when the palette is unlocked
     {
       m_applyButton->setDisabled(m_autoButton->isChecked());
       m_autoButton->setEnabled(true);
     }
+  }
+}
+//-----------------------------------------------------------------------------
+
+void StyleEditor::checkPaletteLock() {
+  if (getPalette() && getPalette()->isLocked()) {
+    m_applyButton->setEnabled(false);
+    m_autoButton->setEnabled(false);
+  } else {
+    m_applyButton->setDisabled(m_autoButton->isChecked());
+    m_autoButton->setEnabled(true);
   }
 }
 

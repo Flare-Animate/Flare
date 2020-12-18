@@ -90,6 +90,7 @@ void PaletteController::setCurrentPalette(TPaletteHandle *paletteHandle) {
 
 void PaletteController::editLevelPalette() {
   setCurrentPalette(m_currentLevelPalette);
+  emit(checkPaletteLock());
 }
 
 //-----------------------------------------------------------------------------
