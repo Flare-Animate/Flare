@@ -137,8 +137,8 @@ void Ruler::drawVertical(QPainter &p) {
   for (i = 0; i < count; i++) {
     QColor color = (m_moving && count - 1 == i ? QColor(getHandleDragColor())
                                                : QColor(getHandleColor()));
-    double v = guides[i] / (double)getDevPixRatio();
-    int y    = (int)(origin - zoom * v);
+    double v     = guides[i] / (double)getDevPixRatio();
+    int y        = (int)(origin - zoom * v);
     p.fillRect(QRect(x0, y - 1, x1 - x0, 2), QBrush(color));
   }
 
@@ -192,8 +192,8 @@ void Ruler::drawHorizontal(QPainter &p) {
   for (i = 0; i < count; i++) {
     QColor color = (m_moving && count - 1 == i ? QColor(getHandleDragColor())
                                                : QColor(getHandleColor()));
-    double v = guides[i] / (double)getDevPixRatio();
-    int x    = (int)(origin + zoom * v);
+    double v     = guides[i] / (double)getDevPixRatio();
+    int x        = (int)(origin + zoom * v);
     p.fillRect(QRect(x - 1, y0, 2, y1 - y0), QBrush(color));
   }
 
@@ -334,6 +334,13 @@ void Ruler::mouseReleaseEvent(QMouseEvent *e) {
   m_moving = m_hiding = false;
   update();
   m_viewer->update();
+}
+
+//-----------------------------------------------------------------------------
+
+void Ruler::contextMenuEvent(QContextMenuEvent *event) {
+  // do nothing. just accept event to prevent context menu to open
+  event->accept();
 }
 
 //-----------------------------------------------------------------------------
