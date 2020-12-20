@@ -1888,11 +1888,12 @@ BrushToolOptionsBox::BrushToolOptionsBox(QWidget *parent, TTool *tool,
     builder.setSingleValueWidgetType(ToolOptionControlBuilder::FIELD);
 
     addSeparator();
-    if (tool && tool->getProperties(1)) tool->getProperties(1)->accept(builder);
     m_snapCheckbox =
         dynamic_cast<ToolOptionCheckbox *>(m_controls.value("Snap"));
     m_snapSensitivityCombo =
         dynamic_cast<ToolOptionCombo *>(m_controls.value("Sensitivity:"));
+
+    if (tool && tool->getProperties(1)) tool->getProperties(1)->accept(builder);
     m_joinStyleCombo =
         dynamic_cast<ToolOptionPopupButton *>(m_controls.value("Join"));
     m_miterField =

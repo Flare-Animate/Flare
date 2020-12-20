@@ -44,6 +44,7 @@
 #include "toonz/txshleveltypes.h"
 #include "toonz/tcamera.h"
 #include "toonz/preferences.h"
+#include "toonz/txshsoundcolumn.h"
 
 // TnzCore includes
 #include "tbigmemorymanager.h"
@@ -294,7 +295,9 @@ int TApp::getCurrentImageType() {
                      : TImage::RASTER;  // and OVL_XSHLEVEL level types
     }
 
-    TXsheet *xsh  = getCurrentXsheet()->getXsheet();
+    TXsheet *xsh = getCurrentXsheet()->getXsheet();
+    if (xsh->getColumn(col) && xsh->getColumn(col)->getSoundColumn())
+      return TImage::VECTOR;
     TXshCell cell = xsh->getCell(row, col);
     if (cell.isEmpty()) {
       int r0, r1;
@@ -342,7 +345,17 @@ void TApp::updateXshLevel() {
     int column      = m_currentColumn->getColumnIndex();
     TXsheet *xsheet = m_currentXsheet->getXsheet();
 
-    if (xsheet && column >= 0 && frame >= 0 && !xsheet->isColumnEmpty(column)) {
+    // sound column case
+    if (xsheet->getColumn(column) &&
+        xsheet->getColumn(column)->getSoundColumn()) {
+      if (xsheet->getColumn(column)->getSoundColumn()->m_levels.size() > 0) {
+        xl = static_cast<TXshLevel *>(xsheet->getColumn(column)
+                                          ->getSoundColumn()
+                                          ->m_levels.at(0)
+                                          ->getSoundLevel());
+      }
+    } else if (xsheet && column >= 0 && frame >= 0 &&
+               !xsheet->isColumnEmpty(column)) {
       TXshCell cell = xsheet->getCell(frame, column);
       xl            = cell.m_level.getPointer();
 

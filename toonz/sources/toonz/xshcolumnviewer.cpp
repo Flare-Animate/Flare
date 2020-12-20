@@ -86,7 +86,7 @@ const QSet<TXshSimpleLevel *> getLevels(TXshColumn *column) {
 bool containsRasterLevel(TColumnSelection *selection) {
   if (!selection || selection->isEmpty()) return false;
   std::set<int> indexes = selection->getIndices();
-  TXsheet *xsh     = TApp::instance()->getCurrentXsheet()->getXsheet();
+  TXsheet *xsh          = TApp::instance()->getCurrentXsheet()->getXsheet();
   for (auto const &e : indexes) {
     TXshColumn *col = xsh->getColumn(e);
     if (!col || col->getColumnType() != TXshColumn::eLevelType) continue;
@@ -2203,8 +2203,12 @@ void ColumnArea::mousePressEvent(QMouseEvent *event) {
               TSoundTrackP sTrack = s->getCurrentPlaySoundTruck();
               interval            = sTrack->getDuration() * 1000 + 300;
             }
-            if (s->isPlaying() && interval > 0)
-              QTimer::singleShot(interval, this, SLOT(update()));
+            if (s->isPlaying() && interval > 0) {
+              QTimer::singleShot(interval, this, [this, s] {
+                if (s && s->isPlaying()) s->stop();
+                update();
+              });
+            }
           }
           update();
         } else if (!o->flag(PredefinedFlag::CONFIG_AREA_VISIBLE) &&
