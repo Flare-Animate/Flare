@@ -10217,7 +10217,7 @@ Save the scene first.</source>
         <location filename="../../toonz/rendercommand.cpp" line="903"/>
         <source> is read only.</source>
         <comment>RenderCommand</comment>
-        <translation>только для чтения.</translation>
+        <translation> только для чтения.</translation>
     </message>
     <message>
         <location filename="../../toonz/rendercommand.cpp" line="929"/>
@@ -11644,12 +11644,12 @@ What do you want to do? </source>
     <message>
         <location filename="../../toonz/fileselection.cpp" line="241"/>
         <source> Task added to the Batch Render List.</source>
-        <translation>Задача добавлена в список пакетного рендеринга.</translation>
+        <translation> Задача добавлена в список пакетного рендеринга.</translation>
     </message>
     <message>
         <location filename="../../toonz/fileselection.cpp" line="253"/>
         <source> Task added to the Batch Cleanup List.</source>
-        <translation>Задача добавлена в список пакетной очистки.</translation>
+        <translation> Задача добавлена в список пакетной очистки.</translation>
     </message>
     <message>
         <location filename="../../toonz/fileselection.cpp" line="266"/>

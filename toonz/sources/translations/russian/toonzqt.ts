@@ -2413,7 +2413,7 @@ Are you sure?</source>
     <message>
         <location filename="../../toonzqt/infoviewer.cpp" line="214"/>
         <source>Camera Dpi:       </source>
-        <translation> DPI Камеры:       </translation>
+        <translation>DPI Камеры:       </translation>
     </message>
     <message>
         <location filename="../../toonzqt/infoviewer.cpp" line="215"/>
