@@ -11,7 +11,7 @@
 
 #include "tconvert.h"
 
-#ifdef LINUX
+#if defined(LINUX) || defined(FREEBSD)
 #include "texception.h"
 //#include "tsystem.h"
 #include <unistd.h>
