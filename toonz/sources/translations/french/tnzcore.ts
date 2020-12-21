@@ -5,7 +5,7 @@
     <name>BmpWriterProperties</name>
     <message>
         <source>Bits Per Pixel</source>
-        <translation>Bits par pixels</translation>
+        <translation>Bits par pixel</translation>
     </message>
     <message>
         <source>24 bits</source>
@@ -13,7 +13,7 @@
     </message>
     <message>
         <source>8 bits (Greyscale)</source>
-        <translation>8 bits (niveaux de gris)</translation>
+        <translation>8 bits (Niveaux de gris)</translation>
     </message>
 </context>
 <context>
@@ -39,14 +39,18 @@
     </message>
     <message>
         <source>Skipping frame.</source>
-        <translation>Ignorer l'image.</translation>
+        <translation>Ignorer l&apos;image.</translation>
+    </message>
+    <message>
+        <source>Malformed frame name</source>
+        <translation type="vanished">フレーム番号が不正な形式です</translation>
     </message>
 </context>
 <context>
     <name>TCenterLineStrokeStyle</name>
     <message>
         <source>Constant</source>
-        <translation>Constant</translation>
+        <translation>Constante</translation>
     </message>
     <message>
         <source>Thickness</source>
@@ -61,7 +65,7 @@
     </message>
     <message>
         <source>Rotation</source>
-        <translation>Angle</translation>
+        <translation>Rotation</translation>
     </message>
 </context>
 <context>

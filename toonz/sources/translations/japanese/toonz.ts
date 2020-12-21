@@ -5646,7 +5646,7 @@ or you may delete necessary files for it.</source>
     </message>
     <message>
         <source>https://github.com/opentoonz/opentoonz/releases/latest</source>
-        <translation type="unfinished"></translation>
+        <translation>https://github.com/opentoonz/opentoonz/releases/latest</translation>
     </message>
     <message>
         <source>https://groups.google.com/forum/#!forum/opentoonz_en</source>
@@ -7615,11 +7615,11 @@ Is it OK to release these shortcuts?</source>
     </message>
     <message>
         <source>Life is too short for Comic Sans</source>
-        <translation type="unfinished"></translation>
+        <translation>ComicSansには寿命が短すぎる</translation>
     </message>
     <message>
         <source>Good luck.  You&apos;re on your own from here.</source>
-        <translation type="unfinished"></translation>
+        <translation>幸運を。あなたはここからあなた自身です。</translation>
     </message>
     <message>
         <source>Font*:</source>

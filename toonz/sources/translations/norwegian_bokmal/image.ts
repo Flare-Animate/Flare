@@ -1,22 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.1" language="nb">
+<TS version="2.1" language="nb_NO" sourcelanguage="en">
+<context>
+    <name>AviWriterProperties</name>
+    <message>
+        <location filename="../../image/avi/tiio_avi.cpp" line="1182"/>
+        <source>Codec</source>
+        <translation>Skala</translation>
+    </message>
+    <message>
+        <location filename="../../image/avi/tiio_avi.cpp" line="1183"/>
+        <source>Uncompressed</source>
+        <translation>Ukomprimert</translation>
+    </message>
+</context>
 <context>
     <name>GifWriterProperties</name>
     <message>
         <location filename="../../image/ffmpeg/tiio_gif.cpp" line="257"/>
         <source>Scale</source>
-        <translation type="unfinished"></translation>
+        <translation>Skala</translation>
     </message>
     <message>
         <location filename="../../image/ffmpeg/tiio_gif.cpp" line="258"/>
         <source>Looping</source>
-        <translation type="unfinished"></translation>
+        <translation>Gjentagelse</translation>
     </message>
     <message>
         <location filename="../../image/ffmpeg/tiio_gif.cpp" line="259"/>
         <source>Generate Palette</source>
-        <translation type="unfinished"></translation>
+        <translation>Generer fargepalett</translation>
     </message>
 </context>
 <context>
@@ -24,12 +37,20 @@
     <message>
         <location filename="../../image/ffmpeg/tiio_mp4.cpp" line="234"/>
         <source>Quality</source>
-        <translation type="unfinished"></translation>
+        <translation>Kvalitet</translation>
     </message>
     <message>
         <location filename="../../image/ffmpeg/tiio_mp4.cpp" line="235"/>
         <source>Scale</source>
-        <translation type="unfinished"></translation>
+        <translation>Skala</translation>
+    </message>
+</context>
+<context>
+    <name>PngWriterProperties</name>
+    <message>
+        <location filename="../../image/png/tiio_png.cpp" line="738"/>
+        <source>Alpha Channel</source>
+        <translation>Alfa-kanal</translation>
     </message>
 </context>
 <context>
@@ -40,6 +61,59 @@
 Please check the file for errors.
 If the file doesn&apos;t play or is incomplete, 
 Please try raising the FFmpeg timeout in Preferences.</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>SgiWriterProperties</name>
+    <message>
+        <location filename="../../image/sgi/filesgi.cpp" line="1231"/>
+        <source>Bits Per Pixel</source>
+        <translation>Biter per piksel</translation>
+    </message>
+    <message>
+        <location filename="../../image/sgi/filesgi.cpp" line="1232"/>
+        <source>24 bits</source>
+        <translation>24-biter</translation>
+    </message>
+    <message>
+        <location filename="../../image/sgi/filesgi.cpp" line="1233"/>
+        <source>32 bits</source>
+        <translation>32-biter</translation>
+    </message>
+    <message>
+        <location filename="../../image/sgi/filesgi.cpp" line="1234"/>
+        <source>48 bits</source>
+        <translation>48-biter</translation>
+    </message>
+    <message>
+        <location filename="../../image/sgi/filesgi.cpp" line="1235"/>
+        <source>64 bits</source>
+        <translation>64-biter</translation>
+    </message>
+    <message>
+        <location filename="../../image/sgi/filesgi.cpp" line="1236"/>
+        <source>8 bits (Greyscale)</source>
+        <translation>8-biter (gråskala)</translation>
+    </message>
+    <message>
+        <location filename="../../image/sgi/filesgi.cpp" line="1237"/>
+        <source>Endianess</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../image/sgi/filesgi.cpp" line="1238"/>
+        <source>Big Endian</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../image/sgi/filesgi.cpp" line="1239"/>
+        <source>Little Endian</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../image/sgi/filesgi.cpp" line="1240"/>
+        <source>RLE-Compressed</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -55,11 +129,17 @@ Please try raising the FFmpeg timeout in Preferences.</source>
         <source>Bottom Padding</source>
         <translation type="unfinished"></translation>
     </message>
+</context>
+<context>
+    <name>Tiio::PngWriterProperties</name>
     <message>
         <location filename="../../image/sprite/tiio_sprite.cpp" line="315"/>
         <source>Left Padding</source>
         <translation type="unfinished"></translation>
     </message>
+</context>
+<context>
+    <name>Tiio::SgiWriterProperties</name>
     <message>
         <location filename="../../image/sprite/tiio_sprite.cpp" line="316"/>
         <source>Right Padding</source>
@@ -68,17 +148,17 @@ Please try raising the FFmpeg timeout in Preferences.</source>
     <message>
         <location filename="../../image/sprite/tiio_sprite.cpp" line="317"/>
         <source>Scale</source>
-        <translation type="unfinished"></translation>
+        <translation>Skala</translation>
     </message>
     <message>
         <location filename="../../image/sprite/tiio_sprite.cpp" line="318"/>
         <source>Format</source>
-        <translation type="unfinished"></translation>
+        <translation>Format</translation>
     </message>
     <message>
         <location filename="../../image/sprite/tiio_sprite.cpp" line="319"/>
         <source>Grid</source>
-        <translation type="unfinished"></translation>
+        <translation>Rutenett</translation>
     </message>
     <message>
         <location filename="../../image/sprite/tiio_sprite.cpp" line="320"/>
@@ -102,81 +182,7 @@ Please try raising the FFmpeg timeout in Preferences.</source>
     </message>
 </context>
 <context>
-    <name>Tiio::AviWriterProperties</name>
-    <message>
-        <location filename="../../image/avi/tiio_avi.cpp" line="1182"/>
-        <source>Codec</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../image/avi/tiio_avi.cpp" line="1183"/>
-        <source>Uncompressed</source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
-    <name>Tiio::PngWriterProperties</name>
-    <message>
-        <location filename="../../image/png/tiio_png.cpp" line="746"/>
-        <source>Alpha Channel</source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
-    <name>Tiio::SgiWriterProperties</name>
-    <message>
-        <location filename="../../image/sgi/filesgi.cpp" line="1229"/>
-        <source>Bits Per Pixel</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../image/sgi/filesgi.cpp" line="1230"/>
-        <source>24 bits</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../image/sgi/filesgi.cpp" line="1231"/>
-        <source>32 bits</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../image/sgi/filesgi.cpp" line="1232"/>
-        <source>48 bits</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../image/sgi/filesgi.cpp" line="1233"/>
-        <source>64 bits</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../image/sgi/filesgi.cpp" line="1234"/>
-        <source>8 bits (Greyscale)</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../image/sgi/filesgi.cpp" line="1235"/>
-        <source>Endianess</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../image/sgi/filesgi.cpp" line="1236"/>
-        <source>Big Endian</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../image/sgi/filesgi.cpp" line="1237"/>
-        <source>Little Endian</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../image/sgi/filesgi.cpp" line="1238"/>
-        <source>RLE-Compressed</source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
-    <name>Tiio::SvgWriterProperties</name>
+    <name>SvgWriterProperties</name>
     <message>
         <location filename="../../image/svg/tiio_svg.cpp" line="1969"/>
         <source>Stroke Mode</source>
@@ -214,35 +220,35 @@ Please try raising the FFmpeg timeout in Preferences.</source>
     </message>
 </context>
 <context>
-    <name>Tiio::TgaWriterProperties</name>
+    <name>TgaWriterProperties</name>
     <message>
         <location filename="../../image/tga/tiio_tga.cpp" line="523"/>
         <source>Bits Per Pixel</source>
-        <translation type="unfinished"></translation>
+        <translation>Biter per piksel</translation>
     </message>
     <message>
         <location filename="../../image/tga/tiio_tga.cpp" line="524"/>
         <source>16 bits</source>
-        <translation type="unfinished"></translation>
+        <translation>16-biter</translation>
     </message>
     <message>
         <location filename="../../image/tga/tiio_tga.cpp" line="525"/>
         <source>24 bits</source>
-        <translation type="unfinished"></translation>
+        <translation>24-biter</translation>
     </message>
     <message>
         <location filename="../../image/tga/tiio_tga.cpp" line="526"/>
         <source>32 bits</source>
-        <translation type="unfinished"></translation>
+        <translation>32-biter</translation>
     </message>
     <message>
         <location filename="../../image/tga/tiio_tga.cpp" line="527"/>
         <source>Compression</source>
-        <translation type="unfinished"></translation>
+        <translation>Komprimering</translation>
     </message>
 </context>
 <context>
-    <name>Tiio::TifWriterProperties</name>
+    <name>TifWriterProperties</name>
     <message>
         <location filename="../../image/tif/tiio_tif.cpp" line="730"/>
         <source>Byte Ordering</source>
@@ -251,42 +257,42 @@ Please try raising the FFmpeg timeout in Preferences.</source>
     <message>
         <location filename="../../image/tif/tiio_tif.cpp" line="731"/>
         <source>Compression Type</source>
-        <translation type="unfinished"></translation>
+        <translation>Kompresjonstype</translation>
     </message>
     <message>
         <location filename="../../image/tif/tiio_tif.cpp" line="732"/>
         <source>Bits Per Pixel</source>
-        <translation type="unfinished"></translation>
+        <translation>Biter per piksel</translation>
     </message>
     <message>
         <location filename="../../image/tif/tiio_tif.cpp" line="733"/>
         <source>24(RGB)</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">(24) (RGB)</translation>
     </message>
     <message>
         <location filename="../../image/tif/tiio_tif.cpp" line="734"/>
         <source>48(RGB)</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">48 (RGB)</translation>
     </message>
     <message>
         <location filename="../../image/tif/tiio_tif.cpp" line="735"/>
         <source> 1(BW)</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"> 1 (SV)</translation>
     </message>
     <message>
         <location filename="../../image/tif/tiio_tif.cpp" line="736"/>
         <source> 8(GREYTONES)</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished"> 8 (gråtoner)</translation>
     </message>
     <message>
         <location filename="../../image/tif/tiio_tif.cpp" line="737"/>
         <source>32(RGBM)</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">32 (RGBM)</translation>
     </message>
     <message>
         <location filename="../../image/tif/tiio_tif.cpp" line="738"/>
         <source>64(RGBM)</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">64 (RGBM)</translation>
     </message>
     <message>
         <location filename="../../image/tif/tiio_tif.cpp" line="739"/>
@@ -339,12 +345,12 @@ Please try raising the FFmpeg timeout in Preferences.</source>
     <message>
         <location filename="../../image/ffmpeg/tiio_webm.cpp" line="235"/>
         <source>Quality</source>
-        <translation type="unfinished"></translation>
+        <translation>Kvalitet</translation>
     </message>
     <message>
         <location filename="../../image/ffmpeg/tiio_webm.cpp" line="236"/>
         <source>Scale</source>
-        <translation type="unfinished"></translation>
+        <translation>Skala</translation>
     </message>
 </context>
 </TS>

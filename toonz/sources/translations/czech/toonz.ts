@@ -749,7 +749,9 @@ does not match with that of previously cleaned up level drawings.
 
 Please set the right camera resolution and closest field, or choose to delete
 the existing level and create a new one when running the cleanup process.</source>
-        <translation type="unfinished"></translation>
+        <translation>Výsledné rozlišení úrovně „% 1“ neodpovídá předchozím vyčištěným 
+
+výkresům úrovně. Nastavte prosím správné rozlišení kamery a nejbližší pole, nebo zvolte smazání stávající úroveň a při spuštění procesu čištění vytvořte novou.</translation>
     </message>
     <message>
         <source>Selected drawings will overwrite the original files after the cleanup process.
