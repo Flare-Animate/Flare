@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.1" language="nb">
+<TS version="2.1" language="nb_NO" sourcelanguage="en">
 <context>
     <name>ArtisticSolidColor</name>
     <message>
@@ -12,12 +12,10 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../colorfx/regionstyles.cpp" line="1787"/>
         <source>Vert Offset</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../colorfx/regionstyles.cpp" line="1790"/>
         <source>Noise</source>
         <translation>Støy</translation>
     </message>
@@ -48,28 +46,19 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../colorfx/strokestyles.cpp" line="4087"/>
         <source>Center Line</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../colorfx/strokestyles.cpp" line="4089"/>
         <source>Outline Mode</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../colorfx/strokestyles.cpp" line="4091"/>
         <source>Distance</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../colorfx/strokestyles.cpp" line="4103"/>
         <source>distance</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../colorfx/strokestyles.h" line="1240"/>
-        <source>OutlineViewer(OnlyDebug)</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -84,12 +73,10 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../colorfx/regionstyles.cpp" line="218"/>
         <source>Density</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../colorfx/regionstyles.cpp" line="220"/>
         <source>Length</source>
         <translation>Lengde</translation>
     </message>
@@ -112,12 +99,10 @@
 <context>
     <name>TAirbrushRasterStyle</name>
     <message>
-        <location filename="../../colorfx/rasterstyles.h" line="58"/>
         <source>Airbrush</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../colorfx/rasterstyles.h" line="69"/>
         <source>Blur value</source>
         <translation type="unfinished"></translation>
     </message>
@@ -125,7 +110,6 @@
 <context>
     <name>TBiColorStrokeStyle</name>
     <message>
-        <location filename="../../colorfx/strokestyles.h" line="577"/>
         <source>Shade</source>
         <translation type="unfinished"></translation>
     </message>
@@ -133,7 +117,6 @@
 <context>
     <name>TBlendRasterStyle</name>
     <message>
-        <location filename="../../colorfx/rasterstyles.h" line="122"/>
         <source>Blend</source>
         <translation type="unfinished"></translation>
     </message>
@@ -149,18 +132,11 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../colorfx/strokestyles.cpp" line="2526"/>
         <source>Fade In</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../colorfx/strokestyles.cpp" line="2529"/>
         <source>Fade Out</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../colorfx/strokestyles.h" line="725"/>
-        <source>Fade</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -178,7 +154,6 @@
 <context>
     <name>TBubbleStrokeStyle</name>
     <message>
-        <location filename="../../colorfx/strokestyles.h" line="475"/>
         <source>Bubbles</source>
         <translation type="unfinished"></translation>
     </message>
@@ -186,7 +161,6 @@
 <context>
     <name>TChainStrokeStyle</name>
     <message>
-        <location filename="../../colorfx/strokestyles.h" line="133"/>
         <source>Chain</source>
         <translation type="unfinished"></translation>
     </message>
@@ -217,22 +191,18 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../colorfx/strokestyles.cpp" line="2271"/>
         <source>Density</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../colorfx/strokestyles.cpp" line="2274"/>
         <source>Fade In</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../colorfx/strokestyles.cpp" line="2277"/>
         <source>Fade Out</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../colorfx/strokestyles.cpp" line="2280"/>
         <source>Noise</source>
         <translation>Støy</translation>
     </message>
@@ -248,22 +218,18 @@
         <translation>Vannrett dist.</translation>
     </message>
     <message>
-        <location filename="../../colorfx/regionstyles.cpp" line="1416"/>
         <source>Horiz Angle</source>
         <translation>Vannrett vinkel</translation>
     </message>
     <message>
-        <location filename="../../colorfx/regionstyles.cpp" line="1419"/>
         <source>Vert Dist</source>
         <translation>Loddrett dist.</translation>
     </message>
     <message>
-        <location filename="../../colorfx/regionstyles.cpp" line="1422"/>
         <source>Vert Angle</source>
         <translation>Loddrett vinkel</translation>
     </message>
     <message>
-        <location filename="../../colorfx/regionstyles.cpp" line="1425"/>
         <source>Thickness</source>
         <translation>Tykkelse</translation>
     </message>
@@ -279,12 +245,10 @@
         <translation>Vennrett størrelse</translation>
     </message>
     <message>
-        <location filename="../../colorfx/regionstyles.cpp" line="2141"/>
         <source>Vert Size</source>
         <translation>Vannrett størrelse</translation>
     </message>
     <message>
-        <location filename="../../colorfx/regionstyles.cpp" line="2144"/>
         <source>Angle</source>
         <translation>Vinkel</translation>
     </message>
@@ -300,23 +264,15 @@
         <translation>X-posisjon</translation>
     </message>
     <message>
-        <location filename="../../colorfx/regionstyles.cpp" line="3245"/>
         <source>Y Position</source>
         <translation>Y-posisjon</translation>
     </message>
     <message>
-        <location filename="../../colorfx/regionstyles.cpp" line="3248"/>
         <source>Distance</source>
         <translation>Avstand</translation>
     </message>
     <message>
-        <location filename="../../colorfx/regionstyles.cpp" line="3251"/>
         <source>Thickness</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../colorfx/regionstyles.h" line="766"/>
-        <source>Concentric</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -365,18 +321,11 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../colorfx/strokestyles.cpp" line="769"/>
         <source>Fade Out</source>
         <translation>Ton ut</translation>
     </message>
     <message>
-        <location filename="../../colorfx/strokestyles.cpp" line="772"/>
         <source>Gap</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../colorfx/strokestyles.h" line="254"/>
-        <source>Vanishing</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -447,18 +396,11 @@
         <translation>X-posisjon</translation>
     </message>
     <message>
-        <location filename="../../colorfx/regionstyles.cpp" line="2747"/>
         <source>Y Position</source>
         <translation>Y-posisjon</translation>
     </message>
     <message>
-        <location filename="../../colorfx/regionstyles.cpp" line="2750"/>
         <source>Smoothness</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../colorfx/regionstyles.h" line="665"/>
-        <source>Linear Gradient</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -495,23 +437,15 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../colorfx/regionstyles.cpp" line="3534"/>
         <source>Distortion</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../colorfx/regionstyles.cpp" line="3537"/>
         <source>Min Thick</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../colorfx/regionstyles.cpp" line="3540"/>
         <source>Max Thick</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../colorfx/regionstyles.h" line="822"/>
-        <source>Stained Glass</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -526,17 +460,14 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../colorfx/strokestyles.cpp" line="3028"/>
         <source>Size</source>
         <translation>Størrelse</translation>
     </message>
     <message>
-        <location filename="../../colorfx/strokestyles.cpp" line="3031"/>
         <source>Thickness</source>
         <translation>Tykkelse</translation>
     </message>
     <message>
-        <location filename="../../colorfx/strokestyles.cpp" line="3034"/>
         <source>Noise</source>
         <translation>Støy</translation>
     </message>
@@ -544,7 +475,6 @@
 <context>
     <name>TNoColorRasterStyle</name>
     <message>
-        <location filename="../../colorfx/rasterstyles.h" line="151"/>
         <source>Markup</source>
         <translation type="unfinished"></translation>
     </message>
@@ -560,17 +490,14 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../colorfx/strokestyles.cpp" line="2013"/>
         <source>Light Y Pos</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../colorfx/strokestyles.cpp" line="2016"/>
         <source>Shininess</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../colorfx/strokestyles.cpp" line="2019"/>
         <source>Plastic</source>
         <translation>Plastikk</translation>
     </message>
@@ -590,7 +517,6 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../colorfx/regionstyles.cpp" line="3825"/>
         <source>Thickness</source>
         <translation>Tykkelse</translation>
     </message>
@@ -610,18 +536,11 @@
         <translation>Tetthet</translation>
     </message>
     <message>
-        <location filename="../../colorfx/regionstyles.cpp" line="904"/>
         <source>Size</source>
         <translation>Størrelse</translation>
     </message>
     <message>
-        <location filename="../../colorfx/regionstyles.cpp" line="907"/>
         <source>Point Size</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../colorfx/regionstyles.h" line="283"/>
-        <source>Sponge Shading</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -636,23 +555,15 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../colorfx/regionstyles.cpp" line="3009"/>
         <source>Y Position</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../colorfx/regionstyles.cpp" line="3012"/>
         <source>Radius</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../colorfx/regionstyles.cpp" line="3015"/>
         <source>Smoothness</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../colorfx/regionstyles.h" line="718"/>
-        <source>Radial Gradient</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -722,12 +633,10 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../colorfx/strokestyles.cpp" line="440"/>
         <source>Density</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../colorfx/strokestyles.cpp" line="443"/>
         <source>Size</source>
         <translation>Størrelse</translation>
     </message>
@@ -743,12 +652,10 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../colorfx/regionstyles.cpp" line="2387"/>
         <source>Angle</source>
         <translation>Vinkel</translation>
     </message>
     <message>
-        <location filename="../../colorfx/regionstyles.cpp" line="2390"/>
         <source>Thickness</source>
         <translation>Tykkelse</translation>
     </message>
@@ -786,7 +693,6 @@
 <context>
     <name>TZigzTSinStrokeStyleagStrokeStyle</name>
     <message>
-        <location filename="../../colorfx/strokestyles.cpp" line="3510"/>
         <source>Thickness</source>
         <translation>Tykkelse</translation>
     </message>
@@ -802,22 +708,18 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../colorfx/strokestyles.cpp" line="3266"/>
         <source>Max Distance</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../colorfx/strokestyles.cpp" line="3269"/>
         <source>Min Angle</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../colorfx/strokestyles.cpp" line="3272"/>
         <source>Max Angle</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../colorfx/strokestyles.cpp" line="3275"/>
         <source>Thickness</source>
         <translation>Tykkelse</translation>
     </message>
