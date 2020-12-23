@@ -376,7 +376,9 @@ set(SOURCES
 )
 endif()
 
-add_translation(toonz ${HEADERS} ${SOURCES})
+if(WITH_TRANSLATION)
+    add_translation(toonz ${HEADERS} ${SOURCES})
+endif()
 
 set(OBJCSOURCES filebrowsermodel.cpp)
 

@@ -258,7 +258,9 @@ elseif(BUILD_TARGET_UNIX)
     )
 endif()
 
-add_translation(tnzcore ${HEADERS} ${SOURCES})
+if(WITH_TRANSLATION)
+    add_translation(tnzcore ${HEADERS} ${SOURCES})
+endif()
 
 qt5_wrap_cpp(SOURCES ${MOC_HEADERS})
 
