@@ -90,7 +90,9 @@ elseif(BUILD_TARGET_UNIX)
     )
 endif()
 
-add_translation(image ${HEADERS} ${SOURCES})
+if(WITH_TRANSLATION)
+    add_translation(image ${HEADERS} ${SOURCES})
+endif()
 
 add_library(image SHARED ${HEADERS} ${SOURCES})
 add_definitions(
