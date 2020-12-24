@@ -24,8 +24,8 @@ jobs:
         }
         brew update
         checkPkgAndInstall pkg-config glew lz4 libjpeg libpng lzo qt boost libusb libmypaint ccache
-        curl -O https://raw.githubusercontent.com/Homebrew/homebrew-core/284557d4f5b29a7b9fb48bf8a54cf8a72d26c5eb/Formula/ninja.rb
-        brew install ./ninja.rb
+        rm -f '/usr/local/bin/2to3'
+        checkPkgAndInstall ninja
 
     - uses: actions/cache@v1
       with:
@@ -45,7 +45,7 @@ jobs:
         cd toonz
         mkdir build
         cd build
-        cmake ../sources -G Ninja -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DQT_PATH='/usr/local/opt/qt/lib'
+        cmake ../sources -G Ninja -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DQT_PATH='/usr/local/opt/qt/lib' -DWITH_TRANSLATION=OFF
         ninja -w dupbuild=warn
 
     - name: Create Artifact

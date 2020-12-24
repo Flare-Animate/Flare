@@ -11,11 +11,6 @@
 - boost (1.55.0 or later)
 
 ## Building on macOS
-### Download boost from https://boost.org
-
-Download the .bz2 mac (unix if mac not specified) version 1_55_0 or later (last tested with 1_72_0)
-
-Save for later step.
 
 ### Download and install Xcode from Apple
 
@@ -39,7 +34,7 @@ $ /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/
 
 In a Terminal window, execute the following statements:
 ```
-$ brew install glew lz4 libjpeg libpng lzo pkg-config libusb cmake git-lfs libmypaint qt
+$ brew install glew lz4 libjpeg libpng lzo pkg-config libusb cmake git-lfs libmypaint qt boost
 $ git lfs install
 ```
 
@@ -62,21 +57,18 @@ $ cd ~/Documents   #or where you want to store the repository#
 $ git clone https://github.com/opentoonz/opentoonz
 $ cd opentoonz
 $ git lfs pull
-$ cd thirdparty/boost
-$ mv ~/Downloads/boost_1_72_0.tar.bz2 .   #or whatever the boost filename you downloaded is#
-$ tar xvjf boost_1_72_0.tar.bz2
-$ cd ../lzo
+$ cd thirdparty/lzo
 $ cp -r 2.03/include/lzo driver
 $ cd ../tiff-4.0.3
 $ ./configure && make
 ```
 
-### Configure build for QT version
-
-Edit the `/Users/yourlogin/Documents/opentoonz/toonz/sources/CMakeLists.txt` file at line 160 (64-bit OS) or 172 (32-bit OS) and modify the root path for the QT lib directory
-
-If you installed QT using `brew`, you can get the version and path to use with: `$ brew info qt`.  The lib path will look something like this: `/usr/local/Cellar/qt/5.12.2/lib`
-If you downloaded the QT installer and installed to `/Users/yourlogin/Qt`, your lib path may look something like this: `~/Qt/5.12.2/clang_64/lib` or `~/Qt/5.12.2/clang_32/lib`
+If you downloaded and installed boost from https://boost.org instead of homebrew, move the package under `thirdparty/boost` as follows: 
+```
+$ cd thirdparty/boost
+$ mv ~/Downloads/boost_1_72_0.tar.bz2 .   #or whatever the boost filename you downloaded is#
+$ tar xvjf boost_1_72_0.tar.bz2
+```
 
 ### Configure environment and Build OpenToonz
 
@@ -91,16 +83,17 @@ $ cd build
 
 To build from command line, do the following:
 ```
-$ CMAKE_PREFIX_PATH=/usr/local/Cellar/qt/5.12.2 cmake ../sources   #replace QT path with your installed QT version#
+$ cmake ../sources -DQT_PATH='/usr/local/opt/qt/lib'  #replace QT path with your installed QT version#
 $ make
 ```
+- If you downloaded the QT installer and installed to `/Users/yourlogin/Qt` instead of by using homebrew, your lib path may look something like this: `~/Qt/5.12.2/clang_64/lib` or `~/Qt/5.12.2/clang_32/lib`
 
 To build using Xcode, do the following:
 ```
 $ sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
-$ CMAKE_PREFIX_PATH=/usr/local/Cellar/qt/5.12.2 cmake -G Xcode ../sources -B.   #replace QT path with your installed QT version#
+$ cmake -G Xcode ../sources -B. -DQT_PATH='/usr/local/opt/qt/lib' -DWITH_TRANSLATION=OFF   #replace QT path with your installed QT version#
 ```
-
+- Note that the option `-DWITH_TRANSLATION=OFF` is needed to avoid error when using XCode 12+ which does not allow to add the same source to multiple targets.
 - Open Xcode app and open project /Users/yourlogin/Documents/opentoonz/toonz/build/OpenToonz.xcodeproj
 - Change `ALL_BUILD` to `OpenToonz`
 - Start build with: Product -> Build
