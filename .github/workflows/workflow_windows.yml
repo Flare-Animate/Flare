@@ -44,7 +44,7 @@ jobs:
       run: |
         vcpkg install --clean-after-build --triplet x64-windows icu
         vcpkg install --clean-after-build --triplet x64-windows-static json-c libjpeg-turbo libpng lz4 lzo openblas zlib
-        vcpkg install --clean-after-build --triplet x64-windows freeglut glew
+        vcpkg install --clean-after-build --triplet x64-windows freeglut glew opencv
         ls -Recurse C:/vcpkg/installed -Filter *.pdb | rm
 
     - name: Cache Qt
@@ -128,6 +128,8 @@ jobs:
         cp D:/a/opentoonz/opentoonz/libmypaint/build/Release/libmypaint.lib libmypaint/dist/64/libmypaint.lib
         cp D:/a/opentoonz/opentoonz/superlu/build/SRC/Release/superlu.lib superlu/SuperLU_2015_64.lib
         cp D:/a/opentoonz/opentoonz/thirdparty/tiff-4.0.3/prj/LibTIFF/x64/Release/LibTIFF.lib tiff-4.0.3/lib/LibTIFF-4.0.3_2015_64.lib
+        mkdir libjpeg-turbo64/lib
+        cp C:/vcpkg/installed/x64-windows-static/lib/turbojpeg.lib libjpeg-turbo64/lib/turbojpeg.lib
 
     - name: Copy headers
       run: |
@@ -138,10 +140,13 @@ jobs:
     - name: Build
       run: |
         cd toonz
-        mkdir build | Out-Null
+        if [ -d build ];then
+          ls build
+        fi
+        mkdir build
         cd build
         $env:CLCACHE_CL = '${{ env.CLCACHE_CL }}'
-        cmake ../sources -G 'Visual Studio 16 2019' -Ax64 -DQT_PATH='D:/a/opentoonz/Qt/5.15.2/msvc2019_64' -DBOOST_ROOT="$env:BOOST_ROOT_1_72_0"
+        cmake ../sources -G 'Visual Studio 16 2019' -Ax64 -DQT_PATH='D:/a/opentoonz/Qt/5.15.2/msvc2019_64' -DOpenCV_DIR='C:/vcpkg/installed/x64-windows/share/opencv' -DBOOST_ROOT="$env:BOOST_ROOT_1_72_0"
         cmake --build . --config Release
 
     - name: Create Artifact

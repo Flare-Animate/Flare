@@ -13,6 +13,7 @@
 
 // TnzLib includes
 #include "toonz/imagepainter.h"
+#include "stageplayer.h"
 
 #undef DVAPI
 #undef DVVAR
@@ -97,6 +98,8 @@ public:
 
   virtual void onImage(
       const Player &player) = 0;  //!< The \a visitation function.
+  
+  virtual void onRasterImage(TRasterImage *ri, const Stage::Player &data) = 0;
 
   // I've not checked the actual meaning of the methods below. They are unused
   // in Toonz, but *are*
@@ -134,6 +137,12 @@ struct DVAPI VisitArgs {
   int m_isGuidedDrawingEnabled;
   int m_guidedFrontStroke;
   int m_guidedBackStroke;
+#if defined(x64)
+  TRasterImageP m_liveViewImage = 0;
+  TRasterImageP m_lineupImage = 0;
+  Stage::Player m_liveViewPlayer;
+  Stage::Player m_lineupPlayer;
+#endif
 
 public:
   VisitArgs()
@@ -264,7 +273,7 @@ public:
 
   void onImage(const Stage::Player &data) override;
   void onVectorImage(TVectorImage *vi, const Stage::Player &data);
-  void onRasterImage(TRasterImage *ri, const Stage::Player &data);
+  void onRasterImage(TRasterImage *ri, const Stage::Player &data) override;
   void onToonzImage(TToonzImage *ri, const Stage::Player &data);
 
   void beginMask() override;
@@ -307,6 +316,7 @@ public:
   void setMinimumDistance(double d);
 
   void onImage(const Stage::Player &data) override;
+  void onRasterImage(TRasterImage *ri, const Stage::Player &data) override {};
   void beginMask() override;
   void endMask() override;
   void enableMask() override;

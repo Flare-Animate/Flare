@@ -212,6 +212,13 @@ public:
 
   const ImagePainter::VisualSettings *m_vs;
 
+#if defined(x64)
+  TRasterImageP m_liveViewImage;
+  TRasterImageP m_lineupImage;
+  Stage::Player m_liveViewPlayer;
+  Stage::Player m_lineupPlayer;
+#endif
+
 public:
   StageBuilder();
   virtual ~StageBuilder();
@@ -361,7 +368,29 @@ void StageBuilder::addCell(PlayerSet &players, ToonzScene *scene, TXsheet *xsh,
 
   TXshCell cell = xsh->getCell(row, col);
   TXshLevel *xl = cell.m_level.getPointer();
+
+#if defined(x64)
+  // check the previous row for a stop motion layer
+  if (!xl) {
+    if (!m_liveViewImage) return;
+    cell = xsh->getCell(row - 1, col);
+    xl = cell.m_level.getPointer();
+    if (!xl) {
+      return;
+    }
+    else {
+      xl = cell.m_level.getPointer();
+      TXshSimpleLevel *sl = xl->getSimpleLevel();
+      if (sl && sl == m_liveViewPlayer.m_sl) {
+        row -= 1;
+      }
+      else
+        return;
+    }
+  }
+#else
   if (!xl) return;
+#endif
 
   ZPlacement cameraPlacement;
   if (m_subXSheetStack.empty())
@@ -815,6 +844,7 @@ void StageBuilder::visit(PlayerSet &players, Visitor &visitor, bool isPlaying) {
   std::vector<int> masks;
   int m = players.size();
   int h = 0;
+  bool stopMotionShown = false;
   for (; h < m; h++) {
     Player &player = players[h];
     unsigned int i = 0;
@@ -838,7 +868,37 @@ void StageBuilder::visit(PlayerSet &players, Visitor &visitor, bool isPlaying) {
       }
     }
     player.m_isPlaying = isPlaying;
+
+#if defined(x64)
+    if (m_liveViewImage && player.m_sl == m_liveViewPlayer.m_sl) {
+      if (m_lineupImage) {
+        m_lineupPlayer.m_sl = NULL;
+        visitor.onRasterImage(m_lineupImage.getPointer(), m_lineupPlayer);
+        stopMotionShown = true;
+      }
+      if (m_liveViewImage) {
+        m_liveViewPlayer.m_sl = NULL;
+        visitor.onRasterImage(m_liveViewImage.getPointer(), m_liveViewPlayer);
+        stopMotionShown = true;
+      }
+    }
+    else {
+      visitor.onImage(player);
+    }
+  }
+  if (!stopMotionShown && (m_liveViewImage || m_lineupImage)) {
+    if (m_lineupImage) {
+      m_lineupPlayer.m_sl = NULL;
+      visitor.onRasterImage(m_lineupImage.getPointer(), m_lineupPlayer);
+    }
+    if (m_liveViewImage) {
+      m_liveViewPlayer.m_sl = NULL;
+      visitor.onRasterImage(m_liveViewImage.getPointer(), m_liveViewPlayer);
+    }
+#else
     visitor.onImage(player);
+#endif
+
   }
   // vale solo per TAB pro
   for (h = 0; h < (int)masks.size(); h++) visitor.disableMask();
@@ -877,6 +937,16 @@ void Stage::visit(Visitor &visitor, const VisitArgs &args) {
   sb.m_isGuidedDrawingEnabled = args.m_isGuidedDrawingEnabled;
   sb.m_guidedFrontStroke      = args.m_guidedFrontStroke;
   sb.m_guidedBackStroke       = args.m_guidedBackStroke;
+#if defined(x64)
+  if (args.m_liveViewImage) {
+    sb.m_liveViewImage = args.m_liveViewImage;
+    sb.m_liveViewPlayer = args.m_liveViewPlayer;
+  }
+  if (args.m_lineupImage) {
+    sb.m_lineupImage = args.m_lineupImage;
+    sb.m_lineupPlayer = args.m_lineupPlayer;
+  }
+#endif
   Player::m_onionSkinFrontSize     = 0;
   Player::m_onionSkinBackSize      = 0;
   Player::m_firstFrontOnionSkin    = 0;

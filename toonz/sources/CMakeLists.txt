@@ -101,7 +101,7 @@ endif()
 
 option(WITH_SYSTEM_LZO "Use the system LZO library instead of 'thirdpary'" ${_init_SYSTEM_LZO})
 option(WITH_SYSTEM_SUPERLU "Use the system SuperLU library instead of 'thirdpary'" ${_init_SYSTEM_SUPERLU})
-option(WITH_STOPMOTION "Build with Stop Motion features - Requires Canon SDK" OFF)
+option(WITH_CANON "Build with Canon DSLR support - Requires Canon SDK" OFF)
 option(WITH_TRANSLATION "Generate translation projects as well" ON)
 
 # avoid using again
@@ -109,6 +109,27 @@ option_defaults_clear()
 
 # end option(...)
 
+#-----------------------------------------------------------------------------
+# Platform Architecture
+
+if(BUILD_ENV_APPLE)
+    if(NOT PLATFORM)
+        set(PLATFORM 64)
+    endif()
+else() # Windows and Linux case
+    if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+        set(PLATFORM 64)
+        set(PLATFORM2 _64)
+    elseif(CMAKE_SIZEOF_VOID_P EQUAL 4)
+        set(PLATFORM 32)
+        set(PLATFORM2)
+    else()
+        message("Warning : CMAKE_SIZEOF_VOID_P = ${CMAKE_SIZEOF_VOID_P}")
+        set(PLATFORM 64)
+        set(PLATFORM2 _64)
+    endif()
+endif()
+message("PLATFORM:" ${PLATFORM})
 
 #-----------------------------------------------------------------------------
 # Third Party & System Libs
@@ -127,19 +148,7 @@ endif()
 message(STATUS "Thirdpary Library Search path:" ${THIRDPARTY_LIBS_HINTS})
 
 if(BUILD_ENV_MSVC)
-    if(MSVC_VERSION GREATER 1800)
-        if(CMAKE_SIZEOF_VOID_P EQUAL 4)
-            set(QT_PATH "C:/Qt/5.9.2/msvc2015" CACHE PATH "Qt installation directory")
-        else()
-            set(QT_PATH "C:/Qt/5.9.2/msvc2015_64" CACHE PATH "Qt installation directory")
-        endif()
-    else()
-        if(CMAKE_SIZEOF_VOID_P EQUAL 4)
-            set(QT_PATH "C:/Qt/5.9.2/msvc2013" CACHE PATH "Qt installation directory")
-        else()
-            set(QT_PATH "C:/Qt/5.9.2/msvc2013_64" CACHE PATH "Qt installation directory")
-        endif()
-    endif()
+    set(QT_PATH "C:/Qt/5.9.2/msvc2015${PLATFORM2}" CACHE PATH "Qt installation directory")
     if(NOT EXISTS ${QT_PATH})
         message("Specify QT_PATH properly")
         return()
@@ -154,32 +163,19 @@ if(BUILD_ENV_MSVC)
         -D_USE_MATH_DEFINES
     )
 elseif(BUILD_ENV_APPLE)
-    if(NOT PLATFORM)
-        set(PLATFORM 64)
-    endif()
-    message("PLATFORM:" ${PLATFORM})
+    set(QT_PATH "~/Qt5.9.2/5.9.2/clang_${PLATFORM}/lib" CACHE PATH "Qt installation directory")
+    set(QT_LIB_PATH "${QT_PATH}/")
+    set(CMAKE_PREFIX_PATH "${QT_LIB_PATH}cmake/")
+    message("CMAKE_PREFIX_PATH:" ${CMAKE_PREFIX_PATH})
+    add_definitions(
+        -DMACOSX
+        -Di386
+        -D__MACOS__
+    )
     if(PLATFORM EQUAL 64)
-        set(QT_PATH "~/Qt5.9.2/5.9.2/clang_64/lib" CACHE PATH "Qt installation directory")
-        set(QT_LIB_PATH "${QT_PATH}/")
-        set(CMAKE_PREFIX_PATH "${QT_LIB_PATH}cmake/")
-
-        message("CMAKE_PREFIX_PATH:" ${CMAKE_PREFIX_PATH})
-        add_definitions(
-            -DMACOSX
-            -Di386
-        )
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m64 -std=c++11 -stdlib=libc++ -fno-implicit-templates")
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -m64")
     elseif(PLATFORM EQUAL 32)
-        set(QT_PATH "~/Qt5.9.2/5.9.2/clang_32/lib" CACHE PATH "Qt installation directory")
-        set(QT_LIB_PATH "${QT_PATH}/")
-        set(CMAKE_PREFIX_PATH "${QT_LIB_PATH}cmake/")
-
-        message("CMAKE_PREFIX_PATH:" ${CMAKE_PREFIX_PATH})
-        add_definitions(
-            -DMACOSX
-            -Di386
-        )
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m32 -std=c++11 -stdlib=libc++ -fno-implicit-templates -D HAS_QUICKDRAW")
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -m32")
         set(CMAKE_LINKER_FLAGS "${CMAKE_LINKER_FLAGS} -m32")
@@ -189,12 +185,6 @@ elseif(BUILD_ENV_APPLE)
 elseif(BUILD_ENV_UNIXLIKE)
     # Needed for correct Qt detection
     cmake_minimum_required(VERSION 2.8.12)
-
-    if(CMAKE_SIZEOF_VOID_P MATCHES "8")
-        set(PLATFORM 64)
-    else()
-        set(PLATFORM 32)
-    endif()
     if(CMAKE_SYSTEM_NAME MATCHES "Linux")
         add_definitions(-DLINUX)
     elseif(CMAKE_SYSTEM_NAME MATCHES "^.*BSD$|DragonFly")
@@ -257,6 +247,7 @@ find_package(Qt5 REQUIRED
     LinguistTools
     Multimedia
     MultimediaWidgets
+    SerialPort
 )
 
 set(QT_MINIMUM_VERSION 5.5.0)
@@ -266,7 +257,7 @@ if(Qt5Core_VERSION VERSION_LESS QT_MINIMUM_VERSION)
 endif()
 unset(QT_MINIMUM_VERSION)
 
-if(BUILD_ENV_MSVC AND NOT WITH_STOPMOTION)
+if(BUILD_ENV_MSVC)
     include_directories(
         SYSTEM
         ${SDKROOT}/glut/3.7.6/include
@@ -278,20 +269,21 @@ if(BUILD_ENV_MSVC AND NOT WITH_STOPMOTION)
     )
 endif()
 
-if(BUILD_ENV_MSVC AND WITH_STOPMOTION)
-    find_package(OpenCV 4.1 REQUIRED)
+
+if(PLATFORM EQUAL 64)
+    if(BUILD_ENV_UNIXLIKE)
+        find_package(OpenCV 3.2 REQUIRED)
+    else() # Windows and MacOS case
+        find_package(OpenCV 4.1 REQUIRED)
+    endif()
     include_directories(
-        SYSTEM
-        ${SDKROOT}/glut/3.7.6/include
-        ${SDKROOT}/zlib-1.2.8
-        ${SDKROOT}/LibJPEG/jpeg-9
-        ${SDKROOT}/canon/Header
         ${SDKROOT}/libjpeg-turbo64/include
-        ${OpenCV_INCLUDE_DIRS}
     )
-    add_definitions(
-        -DGLUT_NO_LIB_PRAGMA
-    )
+    if(WITH_CANON)
+        include_directories(
+            ${SDKROOT}/canon/Header
+        )
+    endif()
 endif()
 
 get_target_property(QtCore_location Qt5::Core LOCATION)
@@ -319,19 +311,7 @@ set(TFARM_Location)
 set(QT_LIB)  # avoid warning
 
 if(BUILD_ENV_MSVC)
-    if(CMAKE_SIZEOF_VOID_P EQUAL 4)
-        set(PLATFORM 32)
-        set(PLATFORM2)
-    else()
-        set(PLATFORM 64)
-        set(PLATFORM2 _64)
-    endif()
-
-    if(MSVC_VERSION GREATER 1800)
-        set(MSVC_LIB_VERSION 2015)
-    else()
-        set(MSVC_LIB_VERSION 2013)
-    endif()
+    set(MSVC_LIB_VERSION 2015)
 
     set(GLUT_LIB ${SDKROOT}/glut/3.7.6/lib/glut${PLATFORM}.lib)
     set(GL_LIB opengl32.lib)
@@ -354,15 +334,19 @@ if(BUILD_ENV_MSVC)
     set(SUPERLU_LIB ${SDKROOT}/superlu/SuperLU_${MSVC_LIB_VERSION}_${PLATFORM}.lib)
     set(OPENBLAS_LIB ${SDKROOT}/openblas/libopenblas_${PLATFORM}.lib)
     set(USB_LIB)  # unused
-    if (WITH_STOPMOTION)
-        set(CANON_LIB ${SDKROOT}/canon/library/EDSDK.lib)
-        set(TURBOJPEG_LIB ${SDKROOT}/libjpeg-turbo64/lib/turbojpeg.lib)
-    endif()
+    
     if(PLATFORM EQUAL 32)
         set(QT_LIB ${SDKROOT}/quicktime/QT73SDK/Libraries/QTMLClient.lib)
     endif()
     set(MYPAINT_LIB_INCLUDE_DIRS ${SDKROOT}/libmypaint/dist/${PLATFORM}/include/libmypaint)
     set(MYPAINT_LIB_LDFLAGS ${SDKROOT}/libmypaint/dist/${PLATFORM}/libmypaint.lib)
+
+    if(PLATFORM EQUAL 64)
+        set(TURBOJPEG_LIB ${SDKROOT}/libjpeg-turbo64/lib/turbojpeg.lib)
+        if (WITH_CANON)
+            set(CANON_LIB ${SDKROOT}/canon/library/EDSDK.lib)
+        endif()
+    endif()
 elseif(BUILD_ENV_APPLE)
     find_library(GLUT_LIB GLUT)
     find_library(GL_LIB OpenGL)
@@ -415,6 +399,17 @@ elseif(BUILD_ENV_APPLE)
     message("LZO:" ${LZO_INCLUDE_DIR})
 
     pkg_check_modules(MYPAINT_LIB REQUIRED libmypaint)
+
+    if(PLATFORM EQUAL 64)
+    	pkg_check_modules(TURBOJPEG REQUIRED libturbojpeg)
+        find_library(TURBOJPEG_LIB turbojpeg ${TURBOJPEG_LIBRARY_DIRS})
+        message("**************** turbojpeg lib:" ${TURBOJPEG_LIB})
+
+        if (WITH_CANON)
+            set(CANON_LIB ${SDKROOT}/canon/Framework/EDSDK.framework)
+        endif()
+    endif()
+
 elseif(BUILD_ENV_UNIXLIKE)
     if(BUILD_TARGET_WIN)
         find_library(GL_LIB opengl32)
@@ -479,6 +474,11 @@ elseif(BUILD_ENV_UNIXLIKE)
     endif()
     # Can be 'libmypaint' or 'libmypaint-1.x'
     pkg_search_module(MYPAINT_LIB REQUIRED libmypaint libmypaint-1.3>=1.3)
+    
+    if(PLATFORM EQUAL 64)
+        find_library(TURBOJPEG_LIB turbojpeg)
+        message("**************** turbojpeg lib:" ${TURBOJPEG_LIB})
+    endif()
 endif()
 
 
@@ -521,14 +521,10 @@ if(BUILD_ENV_MSVC OR BUILD_ENV_APPLE)
         HINTS
             ${THIRDPARTY_LIBS_HINTS}
         PATH_SUFFIXES
-            boost/boost_1_61_0/
-            boost/boost_1_60_0/
-            boost/boost_1_59_0/
-            boost/boost_1_58_0/
-            boost/boost_1_57_0/
-            boost/boost_1_56_0/
-            boost155/1.55.0_1/
-            boost/boost_1_55_0/
+            boost/boost_1_75_0/
+            boost/boost_1_74_0/
+            boost/boost_1_73_0/
+            boost/boost_1_72_0/
     )
     find_package(Boost 1.55 REQUIRED)
 else()
@@ -545,7 +541,7 @@ include_directories(
     ${MYPAINT_LIB_INCLUDE_DIRS}
 )
 
-if(BUILD_TARGET_WIN AND PLATFORM EQUAL 64)
+if(PLATFORM EQUAL 64)
     add_definitions(-Dx64)
 endif()
 

@@ -28,7 +28,7 @@
 
 #include "expressionreferencemanager.h"
 
-#ifdef WITH_STOPMOTION
+#if defined(x64)
 #include "stopmotioncontroller.h"
 #endif
 
@@ -1353,7 +1353,6 @@ public:
     panel->setObjectName(getPanelType());
     panel->setWindowTitle(QObject::tr("Viewer"));
     panel->setMinimumSize(220, 280);
-    // panel->resize(700, 600);
     return panel;
   }
   void initialize(TPanel *panel) override { assert(0); }
@@ -1405,7 +1404,7 @@ OpenFloatingPanel openHistoryPanelCommand(MI_OpenHistoryPanel, "HistoryPanel",
                                           QObject::tr("History"));
 //=============================================================================
 
-#ifdef WITH_STOPMOTION
+#if defined(x64)
 //=============================================================================
 // StopMotion Controller
 //-----------------------------------------------------------------------------
@@ -1431,7 +1430,7 @@ OpenFloatingPanel openStopMotionPanelCommand(
     QObject::tr("Stop Motion Controller"));
 //-----------------------------------------------------------------------------
 
-#endif
+#endif // x64
 
 //=============================================================================
 // FxSettings

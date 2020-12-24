@@ -1617,6 +1617,13 @@ QAction *MainWindow::createToolOptionsAction(const char *id,
 
 //-----------------------------------------------------------------------------
 
+QAction *MainWindow::createStopMotionAction(const char *id, const QString &name,
+  const QString &defaultShortcut) {
+  return createAction(id, name, defaultShortcut, StopMotionCommandType);
+}
+
+//-----------------------------------------------------------------------------
+
 QAction *MainWindow::createToggle(const char *id, const QString &name,
                                   const QString &defaultShortcut,
                                   bool startStatus, CommandType type) {
@@ -1732,6 +1739,10 @@ void MainWindow::defineActions() {
   menuAct = createMenuRenderAction(MI_Preview, tr("&Preview"), "Ctrl+R");
   menuAct->setIcon(createQIcon("preview"));
   createMenuFileAction(MI_SoundTrack, tr("&Export Soundtrack"), "");
+#if defined(x64)
+  createStopMotionAction(MI_StopMotionExportImageSequence,
+    tr("&Export Stop Motion Image Sequence"), "");
+#endif
   menuAct = createMenuRenderAction(MI_SavePreviewedFrames,
                                    tr("&Save Previewed Frames"), "");
   menuAct->setIcon(createQIcon("save_previewed_frames"));
@@ -2279,10 +2290,9 @@ void MainWindow::defineActions() {
   createMenuWindowsAction(MI_OpenToolbar, tr("&Toolbar"), "");
   createMenuWindowsAction(MI_OpenToolOptionBar, tr("&Tool Option Bar"), "");
   createMenuWindowsAction(MI_OpenCommandToolbar, tr("&Command Bar"), "");
-#ifdef WITH_STOPMOTION
+#if defined(x64)
   createMenuWindowsAction(MI_OpenStopMotionPanel, tr("&Stop Motion Controls"),
                           "");
-
 #endif
   menuAct = createMenuWindowsAction(MI_OpenLevelView, tr("&Viewer"), "");
   menuAct->setIcon(createQIcon("viewer"));
@@ -2872,20 +2882,30 @@ void MainWindow::defineActions() {
                ToolCommandType);
 
   createMiscAction("A_FxSchematicToggle", tr("Toggle FX/Stage schematic"), "");
-#ifdef WITH_STOPMOTION
-  createAction(MI_StopMotionCapture, tr("Capture Stop Motion Frame"), "");
-  createAction(MI_StopMotionRaiseOpacity, tr("Raise Stop Motion Opacity"), "");
-  createAction(MI_StopMotionLowerOpacity, tr("Lower Stop Motion Opacity"), "");
-  createAction(MI_StopMotionToggleLiveView, tr("Toggle Stop Motion Live View"),
+#if defined(x64)
+  createStopMotionAction(MI_StopMotionCapture, tr("Capture Stop Motion Frame"), "");
+  createStopMotionAction(MI_StopMotionRaiseOpacity, tr("Raise Stop Motion Opacity"), "");
+  createStopMotionAction(MI_StopMotionLowerOpacity, tr("Lower Stop Motion Opacity"), "");
+  createStopMotionAction(MI_StopMotionToggleLiveView, tr("Toggle Stop Motion Live View"),
                "");
-  createAction(MI_StopMotionToggleZoom, tr("Toggle Stop Motion Zoom"), "");
-  createAction(MI_StopMotionLowerSubsampling,
+#ifdef WITH_CANON
+  createStopMotionAction(MI_StopMotionToggleZoom, tr("Toggle Stop Motion Zoom"), "");
+  createStopMotionAction(MI_StopMotionPickFocusCheck,
+    tr("Pick Focus Check Location"), "");
+#endif // WITH_CANON
+  createStopMotionAction(MI_StopMotionLowerSubsampling,
                tr("Lower Stop Motion Level Subsampling"), "");
-  createAction(MI_StopMotionRaiseSubsampling,
+  createStopMotionAction(MI_StopMotionRaiseSubsampling,
                tr("Raise Stop Motion Level Subsampling"), "");
-  createAction(MI_StopMotionJumpToCamera, tr("Go to Stop Motion Insert Frame"),
+  createStopMotionAction(MI_StopMotionJumpToCamera, tr("Go to Stop Motion Insert Frame"),
                "");
-#endif
+  createStopMotionAction(MI_StopMotionRemoveFrame,
+    tr("Remove frame before Stop Motion Camera"), "");
+  createStopMotionAction(MI_StopMotionNextFrame,
+    tr("Next Frame including Stop Motion Camera"), "");
+  createStopMotionAction(MI_StopMotionToggleUseLiveViewImages,
+    tr("Show original live view images."), "");
+#endif // x64
 }
 
 //-----------------------------------------------------------------------------
