@@ -1190,12 +1190,12 @@ void SceneViewer::onNewStopMotionImageReady() {
 //-----------------------------------------------------------------------------
 
 void SceneViewer::onStopMotionLiveViewStopped() {
-  m_hasStopMotionImage = false;
-  m_hasStopMotionLineUpImage = false; 
-  onSceneChanged(); 
+  m_hasStopMotionImage       = false;
+  m_hasStopMotionLineUpImage = false;
+  onSceneChanged();
 }
 
-#endif //x64
+#endif  // x64
 //-----------------------------------------------------------------------------
 
 void SceneViewer::onPreferenceChanged(const QString &prefName) {
@@ -1629,8 +1629,8 @@ void SceneViewer::drawOverlay() {
 
 #ifdef WITH_CANON
     if (m_stopMotion->m_liveViewStatus == StopMotion::LiveViewOpen &&
-      app->getCurrentFrame()->getFrame() ==
-      m_stopMotion->getXSheetFrameNumber() - 1) {
+        app->getCurrentFrame()->getFrame() ==
+            m_stopMotion->getXSheetFrameNumber() - 1) {
       int x0, x1, y0, y1;
       rect().getCoords(&x0, &y0, &x1, &y1);
       x0 = (-(x1 / 2)) + 15;
@@ -1640,11 +1640,11 @@ void SceneViewer::drawOverlay() {
 
     // draw Stop Motion Zoom Box
     if (m_stopMotion->m_liveViewStatus == 2 &&
-      m_stopMotion->m_canon->m_pickLiveViewZoom) {
+        m_stopMotion->m_canon->m_pickLiveViewZoom) {
       glPushMatrix();
       tglMultMatrix(m_drawCameraAff);
       m_pixelSize = sqrt(tglGetPixelSize2()) * getDevPixRatio();
-      TRect rect = m_stopMotion->m_canon->m_zoomRect;
+      TRect rect  = m_stopMotion->m_canon->m_zoomRect;
 
       glColor3d(1.0, 0.0, 0.0);
 
@@ -2040,36 +2040,36 @@ void SceneViewer::drawScene() {
 
 #if defined(x64)
       if (m_stopMotion->m_alwaysUseLiveViewImages &&
-        m_stopMotion->m_liveViewStatus > 0 &&
-        frame != m_stopMotion->getXSheetFrameNumber() - 1 &&
-        m_hasStopMotionImage && !m_stopMotion->m_reviewTimer->isActive()) {
+          m_stopMotion->m_liveViewStatus > 0 &&
+          frame != m_stopMotion->getXSheetFrameNumber() - 1 &&
+          m_hasStopMotionImage && !m_stopMotion->m_reviewTimer->isActive()) {
         TRaster32P image;
         bool hasImage = m_stopMotion->loadLiveViewImage(frame, image);
         if (hasImage) {
           Stage::Player smPlayer;
           double dpiX, dpiY;
           m_stopMotionImage->getDpi(dpiX, dpiY);
-          smPlayer.m_dpiAff = TScale(Stage::inch / dpiX, Stage::inch / dpiY);
-          smPlayer.m_opacity = 255;
-          smPlayer.m_sl = m_stopMotion->m_sl;
+          smPlayer.m_dpiAff    = TScale(Stage::inch / dpiX, Stage::inch / dpiY);
+          smPlayer.m_opacity   = 255;
+          smPlayer.m_sl        = m_stopMotion->m_sl;
           args.m_liveViewImage = static_cast<TRasterImageP>(image);
           args.m_liveViewPlayer = smPlayer;
           // painter.onRasterImage(static_cast<TRasterImageP>(image).getPointer(),
           //                      smPlayer);
         }
       }
-      if (//!m_stopMotion->m_drawBeneathLevels &&
-        m_stopMotion->m_liveViewStatus == 2 &&
-        (  //! frameHandle->isPlaying() ||
-          frame == m_stopMotion->getXSheetFrameNumber() - 1)) {
+      if (  //! m_stopMotion->m_drawBeneathLevels &&
+          m_stopMotion->m_liveViewStatus == 2 &&
+          (  //! frameHandle->isPlaying() ||
+              frame == m_stopMotion->getXSheetFrameNumber() - 1)) {
         if (m_hasStopMotionLineUpImage && m_stopMotion->m_showLineUpImage) {
           Stage::Player smPlayer;
           double dpiX, dpiY;
           m_stopMotionLineUpImage->getDpi(dpiX, dpiY);
-          smPlayer.m_dpiAff = TScale(Stage::inch / dpiX, Stage::inch / dpiY);
-          smPlayer.m_opacity = 255;
-          smPlayer.m_sl = m_stopMotion->m_sl;
-          args.m_lineupImage = m_stopMotionLineUpImage;
+          smPlayer.m_dpiAff   = TScale(Stage::inch / dpiX, Stage::inch / dpiY);
+          smPlayer.m_opacity  = 255;
+          smPlayer.m_sl       = m_stopMotion->m_sl;
+          args.m_lineupImage  = m_stopMotionLineUpImage;
           args.m_lineupPlayer = smPlayer;
           // painter.onRasterImage(m_stopMotionLineUpImage.getPointer(),
           // smPlayer);
@@ -2082,21 +2082,20 @@ void SceneViewer::drawScene() {
           bool hide_opacity = false;
 #ifdef WITH_CANON
           hide_opacity = m_stopMotion->m_canon->m_zooming ||
-            m_stopMotion->m_canon->m_pickLiveViewZoom ||
-            !m_hasStopMotionLineUpImage;
+                         m_stopMotion->m_canon->m_pickLiveViewZoom ||
+                         !m_hasStopMotionLineUpImage;
 #endif
           smPlayer.m_opacity =
-            hide_opacity ? 255.0 : m_stopMotion->getOpacity();
-          smPlayer.m_sl = m_stopMotion->m_sl;
-          args.m_liveViewImage = m_stopMotionImage;
+              hide_opacity ? 255.0 : m_stopMotion->getOpacity();
+          smPlayer.m_sl         = m_stopMotion->m_sl;
+          args.m_liveViewImage  = m_stopMotionImage;
           args.m_liveViewPlayer = smPlayer;
           // painter.onRasterImage(m_stopMotionImage.getPointer(), smPlayer);
         }
+      }
+#endif  // x64
+      Stage::visit(painter, args);
     }
-#endif //x64
-    Stage::visit(painter, args);
-    }
-
 
     assert(glGetError() == 0);
     painter.flushRasterImages();

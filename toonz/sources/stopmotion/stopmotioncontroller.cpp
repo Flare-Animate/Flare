@@ -2076,7 +2076,7 @@ void StopMotionController::onCaptureFilterSettingsBtnPressed() {
         m_stopMotion->m_webcam->getWebcamDeviceName()) {
 #ifdef _WIN32
       m_stopMotion->m_webcam->openSettingsWindow();
-// openCaptureFilterSettings(this, cameras.at(c).description());
+      // openCaptureFilterSettings(this, cameras.at(c).description());
 
 #endif
       return;

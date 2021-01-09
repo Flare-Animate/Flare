@@ -98,7 +98,7 @@ public:
 
   virtual void onImage(
       const Player &player) = 0;  //!< The \a visitation function.
-  
+
   virtual void onRasterImage(TRasterImage *ri, const Stage::Player &data) = 0;
 
   // I've not checked the actual meaning of the methods below. They are unused
@@ -139,7 +139,7 @@ struct DVAPI VisitArgs {
   int m_guidedBackStroke;
 #if defined(x64)
   TRasterImageP m_liveViewImage = 0;
-  TRasterImageP m_lineupImage = 0;
+  TRasterImageP m_lineupImage   = 0;
   Stage::Player m_liveViewPlayer;
   Stage::Player m_lineupPlayer;
 #endif
@@ -316,7 +316,7 @@ public:
   void setMinimumDistance(double d);
 
   void onImage(const Stage::Player &data) override;
-  void onRasterImage(TRasterImage *ri, const Stage::Player &data) override {};
+  void onRasterImage(TRasterImage *ri, const Stage::Player &data) override{};
   void beginMask() override;
   void endMask() override;
   void enableMask() override;

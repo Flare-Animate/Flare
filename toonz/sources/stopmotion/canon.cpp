@@ -159,7 +159,7 @@ void Canon::resetCanon(bool liveViewOpen) {
 
 EdsError Canon::openCameraSession() {
   if (m_camera != NULL) {
-    m_error                                  = EdsOpenSession(m_camera);
+    m_error = EdsOpenSession(m_camera);
     if (m_error == EDS_ERR_OK) m_sessionOpen = true;
   }
   m_error = EdsSetObjectEventHandler(m_camera, kEdsObjectEvent_All,
@@ -176,8 +176,8 @@ EdsError Canon::openCameraSession() {
   if (getCurrentImageQuality().contains("RAW"))
     setImageQuality("Large Fine Jpeg");
 
-  EdsUInt32 saveto = kEdsSaveTo_Host;
-  m_error          = EdsSetPropertyData(m_camera, kEdsPropID_SaveTo, 0,
+  EdsUInt32 saveto        = kEdsSaveTo_Host;
+  m_error                 = EdsSetPropertyData(m_camera, kEdsPropID_SaveTo, 0,
                                sizeof(EdsUInt32), &saveto);
   EdsCapacity newCapacity = {0x7FFFFFFF, 0x1000, 1};
   m_error                 = EdsSetCapacity(m_camera, newCapacity);
@@ -309,7 +309,7 @@ EdsError Canon::getAvailableExposureCompensations() {
   EdsError err                  = EDS_ERR_OK;
   m_exposureOptions.clear();
 
-  err = EdsGetPropertyDesc(m_camera, kEdsPropID_ExposureCompensation,
+  err       = EdsGetPropertyDesc(m_camera, kEdsPropID_ExposureCompensation,
                            exposureDesc);
   int count = exposureDesc->numElements;
   if (count > 0) {
@@ -736,7 +736,7 @@ bool Canon::downloadImage(EdsBaseRef object) {
   err = EdsDownload(object, dirItemInfo.size, stream);
   EdsDownloadComplete(object);
 
-// tj code
+  // tj code
 
 #ifdef MACOSX
   UInt64 mySize = 0;
@@ -806,7 +806,7 @@ bool Canon::downloadImage(EdsBaseRef object) {
     m_proxyImageDimensions = TDimension(tempWidth, tempHeight);
     double minimumDpi      = std::min(m_proxyImageDimensions.lx / size.lx,
                                  m_proxyImageDimensions.ly / size.ly);
-    m_proxyDpi = TPointD(minimumDpi, minimumDpi);
+    m_proxyDpi             = TPointD(minimumDpi, minimumDpi);
   }
 
   tjDecompress2(tjInstance, data, mySize, imgBuf, tempWidth,
@@ -1328,10 +1328,10 @@ EdsError Canon::handlePropertyEvent(EdsPropertyEvent event,
 EdsError Canon::handleStateEvent(EdsStateEvent event, EdsUInt32 parameter,
                                  EdsVoid* context) {
   if (event == kEdsStateEvent_Shutdown) {
-      instance()->m_sessionOpen = false;
-      instance()->releaseCamera();
+    instance()->m_sessionOpen = false;
+    instance()->releaseCamera();
     if (instance()->m_sessionOpen && instance()->getCameraCount() > 0) {
-      //instance()->closeCameraSession();
+      // instance()->closeCameraSession();
     }
     StopMotion::instance()->m_liveViewStatus = 0;
     emit(instance()->canonCameraChanged(QString("")));

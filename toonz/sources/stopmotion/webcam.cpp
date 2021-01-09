@@ -424,9 +424,9 @@ bool Webcam::translateIndex(int index) {
 
 #ifdef WIN32
 
-// Thanks to:
-// https://elcharolin.wordpress.com/2017/08/28/webcam-capture-with-the-media-foundation-sdk/
-// for the webcam enumeration here
+  // Thanks to:
+  // https://elcharolin.wordpress.com/2017/08/28/webcam-capture-with-the-media-foundation-sdk/
+  // for the webcam enumeration here
 
 #define CLEAN_ATTRIBUTES()                                                     \
   if (attributes) {                                                            \

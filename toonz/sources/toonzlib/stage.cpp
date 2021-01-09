@@ -374,17 +374,15 @@ void StageBuilder::addCell(PlayerSet &players, ToonzScene *scene, TXsheet *xsh,
   if (!xl) {
     if (!m_liveViewImage) return;
     cell = xsh->getCell(row - 1, col);
-    xl = cell.m_level.getPointer();
+    xl   = cell.m_level.getPointer();
     if (!xl) {
       return;
-    }
-    else {
-      xl = cell.m_level.getPointer();
+    } else {
+      xl                  = cell.m_level.getPointer();
       TXshSimpleLevel *sl = xl->getSimpleLevel();
       if (sl && sl == m_liveViewPlayer.m_sl) {
         row -= 1;
-      }
-      else
+      } else
         return;
     }
   }
@@ -842,8 +840,8 @@ void StageBuilder::addSimpleLevelFrame(PlayerSet &players,
 
 void StageBuilder::visit(PlayerSet &players, Visitor &visitor, bool isPlaying) {
   std::vector<int> masks;
-  int m = players.size();
-  int h = 0;
+  int m                = players.size();
+  int h                = 0;
   bool stopMotionShown = false;
   for (; h < m; h++) {
     Player &player = players[h];
@@ -881,8 +879,7 @@ void StageBuilder::visit(PlayerSet &players, Visitor &visitor, bool isPlaying) {
         visitor.onRasterImage(m_liveViewImage.getPointer(), m_liveViewPlayer);
         stopMotionShown = true;
       }
-    }
-    else {
+    } else {
       visitor.onImage(player);
     }
   }
@@ -898,7 +895,6 @@ void StageBuilder::visit(PlayerSet &players, Visitor &visitor, bool isPlaying) {
 #else
     visitor.onImage(player);
 #endif
-
   }
   // vale solo per TAB pro
   for (h = 0; h < (int)masks.size(); h++) visitor.disableMask();
@@ -939,11 +935,11 @@ void Stage::visit(Visitor &visitor, const VisitArgs &args) {
   sb.m_guidedBackStroke       = args.m_guidedBackStroke;
 #if defined(x64)
   if (args.m_liveViewImage) {
-    sb.m_liveViewImage = args.m_liveViewImage;
+    sb.m_liveViewImage  = args.m_liveViewImage;
     sb.m_liveViewPlayer = args.m_liveViewPlayer;
   }
   if (args.m_lineupImage) {
-    sb.m_lineupImage = args.m_lineupImage;
+    sb.m_lineupImage  = args.m_lineupImage;
     sb.m_lineupPlayer = args.m_lineupPlayer;
   }
 #endif

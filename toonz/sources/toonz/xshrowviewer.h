@@ -101,6 +101,6 @@ protected slots:
   void onPreviewThis();
 };
 
-}  // namespace XsheetGUI;
+}  // namespace XsheetGUI
 
 #endif  // XSHROWVIEWER_H

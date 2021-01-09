@@ -135,9 +135,9 @@ bool JpgConverter::loadJpg(TFilePath path, TRaster32P& image) {
   if ((jpegFile = fopen(c_path, "rb")) == NULL) success = false;
   if (success && fseek(jpegFile, 0, SEEK_END) < 0 ||
       ((size = ftell(jpegFile)) < 0) || fseek(jpegFile, 0, SEEK_SET) < 0)
-    success                         = false;
+    success = false;
   if (success && size == 0) success = false;
-  jpegSize                          = (unsigned long)size;
+  jpegSize = (unsigned long)size;
   if (success && (jpegBuf = (unsigned char*)tjAlloc(jpegSize)) == NULL)
     success = false;
   if (success && fread(jpegBuf, jpegSize, 1, jpegFile) < 1) success = false;
@@ -146,9 +146,8 @@ bool JpgConverter::loadJpg(TFilePath path, TRaster32P& image) {
 
   if (success && (tjInstance = tjInitDecompress()) == NULL) success = false;
 
-  if (success &&
-      tjDecompressHeader3(tjInstance, jpegBuf, jpegSize, &width, &height,
-                          &inSubsamp, &inColorspace) < 0)
+  if (success && tjDecompressHeader3(tjInstance, jpegBuf, jpegSize, &width,
+                                     &height, &inSubsamp, &inColorspace) < 0)
     success = false;
 
   int pixelFormat       = TJPF_BGRX;
@@ -159,9 +158,8 @@ bool JpgConverter::loadJpg(TFilePath path, TRaster32P& image) {
 
   int flags = 0;
   flags |= TJFLAG_BOTTOMUP;
-  if (success &&
-      tjDecompress2(tjInstance, jpegBuf, jpegSize, imgBuf, width, 0, height,
-                    pixelFormat, flags) < 0)
+  if (success && tjDecompress2(tjInstance, jpegBuf, jpegSize, imgBuf, width, 0,
+                               height, pixelFormat, flags) < 0)
     success = false;
   tjFree(jpegBuf);
   jpegBuf = NULL;

@@ -309,7 +309,7 @@ void StopMotion::onSceneSwitched() {
         setXSheetFrameNumber(xsh->getFrameCount() + 1);
         loadXmlFile();
         buildLiveViewMap(sl);
-        m_sl = sl;
+        m_sl  = sl;
         found = true;
         break;
       }
@@ -632,7 +632,7 @@ void StopMotion::toggleNumpadShortcuts(bool on) {
   // can't just return if this feature is off
   // it could have been toggled while the camera was active
   if (!m_useNumpadShortcuts) on = false;
-  CommandManager *comm          = CommandManager::instance();
+  CommandManager *comm = CommandManager::instance();
 
   if (on) {
     m_oldActionMap.clear();
@@ -1386,10 +1386,10 @@ void StopMotion::setLiveViewImage() {
         TDimension(m_liveViewImage->getLx(), m_liveViewImage->getLy());
     double minimumDpi = std::min(m_liveViewImageDimensions.lx / size.lx,
                                  m_liveViewImageDimensions.ly / size.ly);
-    m_liveViewDpi = TPointD(minimumDpi, minimumDpi);
+    m_liveViewDpi     = TPointD(minimumDpi, minimumDpi);
 
     if (!m_usingWebcam) {
-      minimumDpi = std::min(m_fullImageDimensions.lx / size.lx,
+      minimumDpi     = std::min(m_fullImageDimensions.lx / size.lx,
                             m_fullImageDimensions.ly / size.ly);
       m_fullImageDpi = TPointD(minimumDpi, minimumDpi);
     } else {
@@ -1534,9 +1534,8 @@ bool StopMotion::importImage() {
 
       /* if the loaded level does not match in pixel size, then return */
       sl = level->getSimpleLevel();
-      if (!sl ||
-          sl->getProperties()->getImageRes() !=
-              TDimension(m_newImage->getLx(), m_newImage->getLy())) {
+      if (!sl || sl->getProperties()->getImageRes() !=
+                     TDimension(m_newImage->getLx(), m_newImage->getLy())) {
         DVGui::error(
             tr("The captured image size does not match with the existing "
                "level."));
@@ -1558,7 +1557,7 @@ bool StopMotion::importImage() {
     else {
       TXshLevel *level = scene->createNewLevel(OVL_XSHLEVEL, levelName,
                                                TDimension(), 0, levelFp);
-      sl = level->getSimpleLevel();
+      sl               = level->getSimpleLevel();
       sl->setPath(levelFp, true);
       sl->getProperties()->setDpiPolicy(LevelProperties::DP_CustomDpi);
       TPointD dpi;
@@ -1573,7 +1572,7 @@ bool StopMotion::importImage() {
         TDimensionD size  = camera->getSize();
         double minimumDpi = std::min(m_newImage->getLx() / size.lx,
                                      m_newImage->getLy() / size.ly);
-        dpi = TPointD(minimumDpi, minimumDpi);
+        dpi               = TPointD(minimumDpi, minimumDpi);
       }
       sl->getProperties()->setDpi(dpi.x);
       sl->getProperties()->setImageDpi(dpi);
@@ -1978,7 +1977,7 @@ bool StopMotion::loadXmlFile() {
   while (!xmlReader.atEnd()) {
     if (xmlReader.isStartElement()) {
       if (xmlReader.name() == "Webcam") {
-        text                      = xmlReader.readElementText();
+        text = xmlReader.readElementText();
         if (text == "yes") webcam = true;
       }
       if (xmlReader.name() == "CameraName") {
@@ -2247,7 +2246,7 @@ void StopMotion::refreshFrameInfo() {
   int frameNumber        = m_frameNumber;
 
   TDimension stopMotionRes;
-  bool checkRes                    = true;
+  bool checkRes = true;
   if (m_usingWebcam) stopMotionRes = m_liveViewImageDimensions;
 #ifdef WITH_CANON
   else if (m_canon->m_useScaledImages ||
@@ -2280,7 +2279,7 @@ void StopMotion::refreshFrameInfo() {
 
   // frame existence
   TFilePath frameFp(actualLevelFp.withFrame(frameNumber));
-  bool frameExist            = false;
+  bool frameExist = false;
   if (levelExist) frameExist = TFileStatus(frameFp).doesExist();
 
   // reset acceptable camera size

@@ -140,10 +140,7 @@ jobs:
     - name: Build
       run: |
         cd toonz
-        if [ -d build ];then
-          ls build
-        fi
-        mkdir build
+        mkdir build | Out-Null
         cd build
         $env:CLCACHE_CL = '${{ env.CLCACHE_CL }}'
         cmake ../sources -G 'Visual Studio 16 2019' -Ax64 -DQT_PATH='D:/a/opentoonz/Qt/5.15.2/msvc2019_64' -DOpenCV_DIR='C:/vcpkg/installed/x64-windows/share/opencv' -DBOOST_ROOT="$env:BOOST_ROOT_1_72_0"

@@ -1430,7 +1430,7 @@ OpenFloatingPanel openStopMotionPanelCommand(
     QObject::tr("Stop Motion Controller"));
 //-----------------------------------------------------------------------------
 
-#endif // x64
+#endif  // x64
 
 //=============================================================================
 // FxSettings
