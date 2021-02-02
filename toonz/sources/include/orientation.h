@@ -268,6 +268,8 @@ public:
   virtual int cellHeight() const     = 0;
   virtual int foldedCellSize() const = 0;
 
+  virtual ~Orientation() {}
+
 protected:
   void addRect(PredefinedRect which, const QRect &rect);
   void addLine(PredefinedLine which, const QLine &line);
