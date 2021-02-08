@@ -225,6 +225,7 @@ int SchematicScenePanel::getViewType() {
 //-----------------------------------------------------------------------------
 
 void SchematicScenePanel::onDeleteFxs(const FxSelection *selection) {
+  if (selection->isEmpty()) return;
   std::set<int> colIndices;
   std::set<TFx *> fxs;
   for (auto index : selection->getColumnIndexes()) colIndices.insert(index);
