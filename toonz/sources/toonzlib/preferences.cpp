@@ -492,6 +492,8 @@ void Preferences::definePreferenceItems() {
          0);  // Default
   define(useCtrlAltToResizeBrush, "useCtrlAltToResizeBrush", QMetaType::Bool,
          true);
+  define(tempToolSwitchTimer, "tempToolSwitchTimer", QMetaType::Int, 500, 1,
+         std::numeric_limits<int>::max());
 
   // Xsheet
   define(xsheetLayoutPreference, "xsheetLayoutPreference", QMetaType::QString,
