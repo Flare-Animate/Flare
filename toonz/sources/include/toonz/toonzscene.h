@@ -112,9 +112,9 @@ public:
 
   /*! \return   The \a coded path to be used for import. */
 
-  TFilePath getImportedLevelPath(const TFilePath path)
-      const;  //!< Builds the path to be used during a level import
-              //!< operation.
+  TFilePath getImportedLevelPath(
+      const TFilePath path) const;  //!< Builds the path to be used during a
+                                    //!< level import operation.
 
   /*! \details  If convertion is required, a new level file will be created
           and \p levelPath will be substituted with its new path.
@@ -276,6 +276,7 @@ private:
   ToonzScene(const ToonzScene &);
   ToonzScene &operator=(const ToonzScene &);
 
+public:
   // if the option is set in the preferences,
   // remove the scene numbers("c####_") from the file name
   std::wstring getLevelNameWithoutSceneNumber(std::wstring orgName);

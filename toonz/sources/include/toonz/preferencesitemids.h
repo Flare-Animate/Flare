@@ -56,6 +56,7 @@ enum PreferencesItemId {
   initialLoadTlvCachingBehavior,
   columnIconLoadingPolicy,
   levelFormats,  // need to be handle separately
+  autoRemoveUnusedLevels,
 
   //----------
   // Saving

@@ -1067,6 +1067,8 @@ QString PreferencesPopup::getUIString(PreferencesItemId id) {
       // Loading
       {importPolicy, tr("Default File Import Behavior:")},
       {autoExposeEnabled, tr("Expose Loaded Levels in Xsheet")},
+      {autoRemoveUnusedLevels,
+       tr("Automatically Remove Unused Levels From Scene Cast")},
       {subsceneFolderEnabled,
        tr("Create Sub-folder when Importing Sub-Xsheet")},
       {removeSceneNumberFromLoadedLevelName,
@@ -1573,7 +1575,8 @@ QWidget* PreferencesPopup::createLoadingPage() {
   setupLayout(lay);
 
   insertUI(importPolicy, lay, getComboItemList(importPolicy));
-  insertUI(autoExposeEnabled, lay);
+  QGridLayout* autoExposeLay = insertGroupBoxUI(autoExposeEnabled, lay);
+  { insertUI(autoRemoveUnusedLevels, autoExposeLay); }
   insertUI(subsceneFolderEnabled, lay);
   insertUI(removeSceneNumberFromLoadedLevelName, lay);
   insertUI(IgnoreImageDpi, lay);
