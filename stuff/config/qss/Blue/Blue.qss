@@ -1699,6 +1699,12 @@ ProjectPopup QLabel {
 #GearButton::menu-indicator {
   image: url("");
 }
+#LiveViewButton {
+  qproperty-icon: url('../Default/imgs/white/liveview.svg');
+}
+#LiveViewButton::menu-indicator {
+  image: "";
+}
 #SubfolderButton {
   padding-left: 5px;
   padding-right: 5px;

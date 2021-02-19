@@ -32,5 +32,7 @@
 	<true/>
 	<key>NSHumanReadableCopyright</key>
 	<string>This Open Source Program is developed from Toonz, a software originally created by Digital Video, S.p.A., Rome Italy</string>
+	<key>NSCameraUsageDescription</key>
+  <string>OpenToonz needs access to the camera in order to use Camera Capture</string>
 </dict>
 </plist>

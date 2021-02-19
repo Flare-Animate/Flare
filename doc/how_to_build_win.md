@@ -18,7 +18,7 @@ This software can be built using Visual Studio 2015 or above and Qt 5.9 (later Q
 ### Qt
 - https://www.qt.io/download-open-source/
 - Qt is a cross-platform GUI framework.
-- Install Qt 5.9 (64-bit version, tested up to 5.9.9) with the [Qt Online Installer for Windows](http://download.qt.io/official_releases/online_installers/qt-unified-windows-x86-online.exe).
+- Install Qt 5.9 or higher (64-bit version, tested up to 5.9.9) with the [Qt Online Installer for Windows](http://download.qt.io/official_releases/online_installers/qt-unified-windows-x86-online.exe).
 
 ### boost
 - Boost 1.55.0 or later is required (tested up to 1.61.0).
@@ -26,6 +26,15 @@ This software can be built using Visual Studio 2015 or above and Qt 5.9 (later Q
 - Download boost_1_73_0.zip from the above link. Extract all contents to the - '$opentoonz/thirdparty/boost' directory.
 - Install the following patch (Make the changes listed in the patch file), if you use Boost 1.55.0 with Visual Studio 2013.
 - https://svn.boost.org/trac/boost/attachment/ticket/9369/vc12_fix_has_member_function_callable_with.patch
+
+### OpenCV
+- v4.1.0 and later
+- https://opencv.org/
+- On configuring with CMake or in the environmental variables, specify `OpenCV_DIR` to the `build` folder in the install folder of OpenCV (like `C:/opencv/build`).
+
+### libjpeg-turbo
+- https://www.libjpeg-turbo.org/
+- Copy the lib and include folders from libjpeg-turbo64 into `$opentoonz/thirdparty/libjpeg-turbo64`.
 
 ## Acquiring the Source Code
 - Note: You can also perform these next commands with Github for Desktop client.
@@ -67,21 +76,15 @@ Rename the following files:
 - Compile the build.
 - The output will be in the corresponding folder in `$opentoonz/toonz/build/`
 
-## Building with extended stop motion support for webcams and Canon DSLR cameras.
- You will need three additional libraries.
-- [OpenCV](https://opencv.org/) (v4.1.0 and later)
-  - [libjpeg-turbo](https://www.libjpeg-turbo.org/)
-  - The Canon SDK.  This requires applying for the Canon developer program and downloading the SDK.
+## Building with Canon DSLR camera support
+ You will need the Canon SDK. This requires applying for the Canon developer program and downloading the SDK.
 
-Copy the following folders into the `$opentoonz/thirdparty` folder.
-  - Copy the Header and library folders from the Canon SDK to `$opentoonz/thirdparty/canon`
-    - Make sure that the library is the one from the EDSDK_64 folder.
-  - Copy the lib and include folders from libjpeg-turbo64 into `$opentoonz/thirdparty/libjpeg-turbo64`.
+- Copy the Header and library folders from the Canon SDK to `$opentoonz/thirdparty/canon`
+  - Make sure that the library is the one from the EDSDK_64 folder.
 
-Check the checkbox in CMake to build with stop motion support.
-On configuring with CMake or in the environmental variables, specify `OpenCV_DIR` to the `build` folder in the install folder of OpenCV (like `C:/opencv/build`).
+Check the `WITH_CANON` checkbox in CMake to build with Canon DSLR camera support.
 
-To run the program with stop motion support, you will need to copy the .dll files from opencv2, libjpeg-turbo and the Canon SDK into the folder where your project is built.
+To run the program with Canon DSLR camera support, you will need to copy the .dll files from the Canon SDK into the folder where your project is built.
 
 ## Running the Program
 ### Setting Up the Program's Path
@@ -118,6 +121,8 @@ To run the program with stop motion support, you will need to copy the .dll file
 3. Copy the following files to the same folder as `OpenToonz.exe`
   - `$opentoonz/thirdparty/glut/3.7.6/lib/glut64.dll`
   - `$opentoonz/thirdparty/glew/glew-1.9.0/bin/64bit/glew32.dll`
+  - `turbojpeg.dll` from libjpeg-turbo package
+  - `opencv_world***.dll` from OpenCV package
 
 4. Copy the `srv` folder from the previous OpenToonz installation to the same folder as `OpenToonz.exe`
   - If there is no `srv` folder, OpenToonz can still be used.  However, various file formats such as `mov` cannot be used.
