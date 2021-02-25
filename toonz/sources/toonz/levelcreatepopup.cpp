@@ -276,8 +276,8 @@ LevelCreatePopup::LevelCreatePopup()
   bool ret = true;
   ret      = ret && connect(m_levelTypeOm, SIGNAL(currentIndexChanged(int)),
                        SLOT(onLevelTypeChanged(int)));
-  ret = ret && connect(okBtn, SIGNAL(clicked()), this, SLOT(onOkBtn()));
-  ret = ret && connect(cancelBtn, SIGNAL(clicked()), this, SLOT(reject()));
+  ret      = ret && connect(okBtn, SIGNAL(clicked()), this, SLOT(onOkBtn()));
+  ret      = ret && connect(cancelBtn, SIGNAL(clicked()), this, SLOT(reject()));
   ret =
       ret && connect(applyBtn, SIGNAL(clicked()), this, SLOT(onApplyButton()));
 
