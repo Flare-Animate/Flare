@@ -1239,6 +1239,8 @@ void SceneViewer::initializeGL() {
     resizeGL(width(), height());
     update();
   }
+  // re-computing the display list for the table
+  m_tableDLId = -1;
 }
 
 //-----------------------------------------------------------------------------
