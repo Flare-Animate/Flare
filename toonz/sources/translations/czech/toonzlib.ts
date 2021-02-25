@@ -4,17 +4,17 @@
 <context>
     <name>Preferences</name>
     <message>
-        <location filename="../../toonzlib/preferences.cpp" line="100"/>
+        <location filename="../../toonzlib/preferences.cpp" line="101"/>
         <source>Retas Level Format</source>
         <translation>Formát úrovně RETAS</translation>
     </message>
     <message>
-        <location filename="../../toonzlib/preferences.cpp" line="106"/>
+        <location filename="../../toonzlib/preferences.cpp" line="107"/>
         <source>Adobe Photoshop</source>
         <translation>Adobe Photoshop</translation>
     </message>
     <message>
-        <location filename="../../toonzlib/preferences.cpp" line="111"/>
+        <location filename="../../toonzlib/preferences.cpp" line="112"/>
         <source>PNG</source>
         <translation>PNG</translation>
     </message>
@@ -84,72 +84,77 @@ Pravděpodobně kodek nemůže pracovat řádně.</translation>
         <translation>Spojit cestu pohybu %1 &gt; %2</translation>
     </message>
     <message>
-        <location filename="../../toonzlib/tstageobjectcmd.cpp" line="459"/>
+        <location filename="../../toonzlib/tstageobjectcmd.cpp" line="460"/>
         <source>Remove Object  %1</source>
         <translation>Odstranit předmět %1</translation>
     </message>
     <message>
-        <location filename="../../toonzlib/tstageobjectcmd.cpp" line="544"/>
+        <location filename="../../toonzlib/tstageobjectcmd.cpp" line="546"/>
         <source>Remove Column  </source>
         <translation>Odstranit sloupec  </translation>
     </message>
     <message>
-        <location filename="../../toonzlib/studiopalettecmd.cpp" line="68"/>
+        <location filename="../../toonzlib/studiopalettecmd.cpp" line="47"/>
+        <source>Failed to save palette.</source>
+        <translation>Nepodařilo se uložit paletu.</translation>
+    </message>
+    <message>
+        <location filename="../../toonzlib/studiopalettecmd.cpp" line="85"/>
         <source>Load into Current Palette  &gt; %1</source>
         <translation>Nahrát do nynější palety &gt; %1</translation>
     </message>
     <message>
-        <location filename="../../toonzlib/studiopalettecmd.cpp" line="111"/>
+        <location filename="../../toonzlib/studiopalettecmd.cpp" line="126"/>
         <source>Replace with Current Palette  &gt; %1</source>
         <translation>Nahradit nynější paletou &gt; %1</translation>
     </message>
     <message>
-        <location filename="../../toonzlib/studiopalettecmd.cpp" line="138"/>
+        <location filename="../../toonzlib/studiopalettecmd.cpp" line="152"/>
         <source>Delete Studio Palette  : %1</source>
         <translation>Smazat studiovou paletu: %1</translation>
     </message>
     <message>
-        <location filename="../../toonzlib/studiopalettecmd.cpp" line="165"/>
+        <location filename="../../toonzlib/studiopalettecmd.cpp" line="178"/>
         <source>Create Studio Palette  : %1</source>
         <translation>Vytvořit studiovou paletu: %1</translation>
     </message>
     <message>
-        <location filename="../../toonzlib/studiopalettecmd.cpp" line="210"/>
+        <location filename="../../toonzlib/studiopalettecmd.cpp" line="223"/>
         <source>Delete Studio Palette Folder  : %1</source>
         <translation>Smazat složku se studiovou paletou: %1</translation>
     </message>
     <message>
-        <location filename="../../toonzlib/studiopalettecmd.cpp" line="234"/>
+        <location filename="../../toonzlib/studiopalettecmd.cpp" line="247"/>
         <source>Create Studio Palette Folder  : %1</source>
         <translation>Vytvořit složku se studiovou paletou: %1</translation>
     </message>
     <message>
-        <location filename="../../toonzlib/studiopalettecmd.cpp" line="254"/>
+        <location filename="../../toonzlib/studiopalettecmd.cpp" line="267"/>
         <source>Can&apos;t undo rename palette</source>
         <translation>Přejmenování palety nelze vrátit zpět</translation>
     </message>
     <message>
-        <location filename="../../toonzlib/studiopalettecmd.cpp" line="255"/>
+        <location filename="../../toonzlib/studiopalettecmd.cpp" line="268"/>
         <source>Can&apos;t undo move palette</source>
         <translation>Přesunutí palety nelze vrátit zpět</translation>
     </message>
     <message>
-        <location filename="../../toonzlib/studiopalettecmd.cpp" line="267"/>
+        <location filename="../../toonzlib/studiopalettecmd.cpp" line="280"/>
         <source>Can&apos;t redo rename palette</source>
         <translation>Nelze zopakovat přejmenování palety</translation>
     </message>
     <message>
-        <location filename="../../toonzlib/studiopalettecmd.cpp" line="268"/>
+        <location filename="../../toonzlib/studiopalettecmd.cpp" line="281"/>
         <source>Can&apos;t redo move palette</source>
         <translation>Nelze zopakovat přesunutí palety</translation>
     </message>
     <message>
-        <location filename="../../toonzlib/studiopalettecmd.cpp" line="281"/>
+        <location filename="../../toonzlib/studiopalettecmd.cpp" line="294"/>
         <source>Rename Studio Palette : %1 &gt; %2</source>
         <translation>Přejmenovat studiovou paletu: %1 &gt; %2</translation>
     </message>
     <message>
-        <location filename="../../toonzlib/studiopalettecmd.cpp" line="285"/>
+        <location filename="../../toonzlib/studiopalettecmd.cpp" line="298"/>
         <source>Move Studio Palette Folder  : %1 : %2 &gt; %3</source>
         <translation>Přesunout složku se studiovou paletou: %1 : %2 &gt; %3</translation>
     </message>
@@ -214,98 +219,98 @@ Pravděpodobně kodek nemůže pracovat řádně.</translation>
         <translation>Obnovit barvy použitím vybraných poloh v paletě %1</translation>
     </message>
     <message>
-        <location filename="../../toonzlib/fxcommand.cpp" line="905"/>
+        <location filename="../../toonzlib/fxcommand.cpp" line="902"/>
         <source>Add Fx  : </source>
         <translation>Přidat efekt: </translation>
     </message>
     <message>
-        <location filename="../../toonzlib/fxcommand.cpp" line="906"/>
+        <location filename="../../toonzlib/fxcommand.cpp" line="903"/>
         <source>Insert Fx  : </source>
         <translation>Vložit efekt: </translation>
     </message>
     <message>
+        <location filename="../../toonzlib/fxcommand.cpp" line="1059"/>
         <location filename="../../toonzlib/fxcommand.cpp" line="1062"/>
-        <location filename="../../toonzlib/fxcommand.cpp" line="1065"/>
         <source>Create Linked Fx  : %1</source>
         <translation>Vytvořit propojený efekt: %1</translation>
     </message>
     <message>
-        <location filename="../../toonzlib/fxcommand.cpp" line="1287"/>
+        <location filename="../../toonzlib/fxcommand.cpp" line="1284"/>
         <source>Replace Fx  : </source>
         <translation>Nahradit efekt: %1</translation>
     </message>
     <message>
-        <location filename="../../toonzlib/fxcommand.cpp" line="1353"/>
+        <location filename="../../toonzlib/fxcommand.cpp" line="1350"/>
         <source>Unlink Fx  : %1 - - %2</source>
         <translation>Zrušit propojení efektu: %1 - - %2</translation>
     </message>
     <message>
-        <location filename="../../toonzlib/fxcommand.cpp" line="1394"/>
+        <location filename="../../toonzlib/fxcommand.cpp" line="1391"/>
         <source>Make Macro Fx  : %1</source>
         <translation>Vytvořit makro efekt: %1</translation>
     </message>
     <message>
-        <location filename="../../toonzlib/fxcommand.cpp" line="1537"/>
+        <location filename="../../toonzlib/fxcommand.cpp" line="1534"/>
         <source>Explode Macro Fx  : %1</source>
         <translation>Rozbalit makro efekt: %1</translation>
     </message>
     <message>
-        <location filename="../../toonzlib/fxcommand.cpp" line="1600"/>
+        <location filename="../../toonzlib/fxcommand.cpp" line="1597"/>
         <source>Create Output Fx</source>
         <translation>Vytvořit výstupní efekt</translation>
     </message>
     <message>
-        <location filename="../../toonzlib/fxcommand.cpp" line="1691"/>
+        <location filename="../../toonzlib/fxcommand.cpp" line="1688"/>
         <source>Connect to Xsheet  : </source>
         <translation>Spojit s Xsheet: </translation>
     </message>
     <message>
-        <location filename="../../toonzlib/fxcommand.cpp" line="1751"/>
+        <location filename="../../toonzlib/fxcommand.cpp" line="1748"/>
         <source>Disconnect from Xsheet  : </source>
         <translation>Odpojit od Xsheet: </translation>
     </message>
     <message>
-        <location filename="../../toonzlib/fxcommand.cpp" line="2022"/>
+        <location filename="../../toonzlib/fxcommand.cpp" line="2021"/>
         <source>Delete Link</source>
         <translation>Smazat spojení</translation>
     </message>
     <message>
-        <location filename="../../toonzlib/fxcommand.cpp" line="2307"/>
+        <location filename="../../toonzlib/fxcommand.cpp" line="2308"/>
         <source>Delete Fx Node : %1</source>
         <translation>Smazat uzel efektu: %1</translation>
     </message>
     <message>
-        <location filename="../../toonzlib/fxcommand.cpp" line="2724"/>
+        <location filename="../../toonzlib/fxcommand.cpp" line="2731"/>
         <source>Paste Fx  :  </source>
         <translation>Vložit efekt:  </translation>
     </message>
     <message>
-        <location filename="../../toonzlib/fxcommand.cpp" line="3090"/>
+        <location filename="../../toonzlib/fxcommand.cpp" line="3100"/>
         <source>Disconnect Fx</source>
         <translation>Odpojit od efekt</translation>
     </message>
     <message>
-        <location filename="../../toonzlib/fxcommand.cpp" line="3337"/>
+        <location filename="../../toonzlib/fxcommand.cpp" line="3352"/>
         <source>Connect Fx : %1 - %2</source>
         <translation>Spojit efekt: %1 - %2</translation>
     </message>
     <message>
-        <location filename="../../toonzlib/fxcommand.cpp" line="3519"/>
+        <location filename="../../toonzlib/fxcommand.cpp" line="3534"/>
         <source>Rename Fx : %1 &gt; %2</source>
         <translation>Přejmenovat efekt: %1 - %2</translation>
     </message>
     <message>
-        <location filename="../../toonzlib/fxcommand.cpp" line="3571"/>
+        <location filename="../../toonzlib/fxcommand.cpp" line="3586"/>
         <source>Group Fx</source>
         <translation>Seskupit efekt</translation>
     </message>
     <message>
-        <location filename="../../toonzlib/fxcommand.cpp" line="3675"/>
+        <location filename="../../toonzlib/fxcommand.cpp" line="3690"/>
         <source>Ungroup Fx</source>
         <translation>Zrušit seskupení efektu</translation>
     </message>
     <message>
-        <location filename="../../toonzlib/fxcommand.cpp" line="3777"/>
+        <location filename="../../toonzlib/fxcommand.cpp" line="3792"/>
         <source>Rename Group  : %1 &gt; %2</source>
         <translation>Přejmenovat skupinu: %1 &gt; %2</translation>
     </message>
@@ -488,24 +493,29 @@ Pravděpodobně kodek nemůže pracovat řádně.</translation>
         <translation></translation>
     </message>
     <message>
-        <location filename="../../toonzlib/sceneresources.cpp" line="437"/>
+        <location filename="../../toonzlib/sceneresources.cpp" line="445"/>
         <source>Can&apos;t save</source>
         <translation>Nelze uložit</translation>
     </message>
     <message>
-        <location filename="../../toonzlib/sceneresources.cpp" line="510"/>
+        <location filename="../../toonzlib/sceneresources.cpp" line="519"/>
+        <source>and %1 more item(s).</source>
+        <translation>a %1 další položku(y).</translation>
+    </message>
+    <message>
+        <location filename="../../toonzlib/sceneresources.cpp" line="522"/>
         <source>Failed to save the following resources:
 </source>
         <translation>Nepodařilo se uložit následující zdroje:
 </translation>
     </message>
     <message>
-        <location filename="../../toonzlib/orientation.cpp" line="78"/>
+        <location filename="../../toonzlib/orientation.cpp" line="76"/>
         <source>Xsheet</source>
         <translation>Xsheet</translation>
     </message>
     <message>
-        <location filename="../../toonzlib/orientation.cpp" line="143"/>
+        <location filename="../../toonzlib/orientation.cpp" line="141"/>
         <source>Timeline</source>
         <translation>Časová osa</translation>
     </message>

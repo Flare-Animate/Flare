@@ -58,7 +58,7 @@
     </message>
     <message>
         <source>%1 is not a valid color (valid color names are &apos;red&apos;, &apos;transparent&apos;, &apos;#FF8800&apos;, ecc.)</source>
-        <translation>%1 n&apos;est pas une couleur valide (les noms de couleur valides sont « red », « transparent », « #FF8800 », etc.)</translation>
+        <translation>%1 n&apos;est pas une couleur valide (les noms de couleur valides sont «&#xa0;red&#xa0;», «&#xa0;transparent&#xa0;», «&#xa0;#FF8800&#xa0;», etc.)</translation>
     </message>
     <message>
         <source>Vectorization failed</source>
@@ -74,7 +74,7 @@
     </message>
     <message>
         <source>Argument &apos;%1&apos; does not look like a FrameId</source>
-        <translation>L&apos;argument « %1 » ne ressemble pas à un identifiant d&apos;image</translation>
+        <translation>L&apos;argument «&#xa0;%1&#xa0;» ne ressemble pas à un identifiant d&apos;image</translation>
     </message>
     <message>
         <source>First argument must be a scene : %1</source>
@@ -282,11 +282,11 @@
     </message>
     <message>
         <source>Move E/W</source>
-        <translation>Déplacement E/O</translation>
+        <translation type="vanished">Déplacement E/O</translation>
     </message>
     <message>
         <source>Move N/S</source>
-        <translation>Déplacement N/S</translation>
+        <translation type="vanished">Déplacement N/S</translation>
     </message>
     <message>
         <source>Move Z</source>
@@ -442,6 +442,22 @@
         <translation>Échec de l&apos;enregistrement des ressources suivantes :
 </translation>
     </message>
+    <message>
+        <source>Failed to save palette.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Move X</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Move Y</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>and %1 more item(s).</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>TScriptBinding::CenterlineVectorizer</name>
@@ -466,7 +482,7 @@
     <name>TScriptBinding::FilePath</name>
     <message>
         <source>&quot;%1&quot;</source>
-        <translation>« %1 »</translation>
+        <translation>«&#xa0;%1&#xa0;»</translation>
     </message>
     <message>
         <source>can&apos;t concatenate an absolute path : %1</source>
@@ -512,7 +528,7 @@
     <name>TScriptBinding::ImageBuilder</name>
     <message>
         <source>Bad argument (%1): should be &apos;Raster&apos; or ToonzRaster&apos;</source>
-        <translation>Mauvais argument (%1) : doit prendre la valeur « Raster » ou « ToonzRaster »</translation>
+        <translation>Mauvais argument (%1) : doit prendre la valeur «&#xa0;Raster&#xa0;» ou «&#xa0;ToonzRaster&#xa0;»</translation>
     </message>
     <message>
         <source>ImageBuilder(%1 image)</source>
@@ -648,7 +664,7 @@
     </message>
     <message>
         <source>Bad level type (%1): must be Vector,Raster or ToonzRaster</source>
-        <translation>Mauvais type de niveau (%1) : doit être défini à « Vector », « Raster » ou «ToonzRaster  »</translation>
+        <translation>Mauvais type de niveau (%1) : doit être défini à «&#xa0;Vector&#xa0;», «&#xa0;Raster&#xa0;» ou «ToonzRaster&#xa0;&#xa0;»</translation>
     </message>
     <message>
         <source>Can&apos;t add the level: name(%1) is already used</source>
@@ -672,7 +688,7 @@
     </message>
     <message>
         <source>Level &apos;%1&apos; is not included in the scene</source>
-        <translation>Le niveau « %1 » n&apos;est pas inclus dans la scène</translation>
+        <translation>Le niveau «&#xa0;%1&#xa0;» n&apos;est pas inclus dans la scène</translation>
     </message>
 </context>
 <context>

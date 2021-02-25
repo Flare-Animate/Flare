@@ -260,6 +260,34 @@
         <source>Auto Select Drawing</source>
         <translation>自动选择绘图</translation>
     </message>
+    <message>
+        <source>Snap</source>
+        <translation type="unfinished">吸附</translation>
+    </message>
+    <message>
+        <source>Type:</source>
+        <translation type="unfinished">类型:</translation>
+    </message>
+    <message>
+        <source>Rectangular</source>
+        <translation type="unfinished">矩形</translation>
+    </message>
+    <message>
+        <source>Freehand</source>
+        <translation type="unfinished">手绘</translation>
+    </message>
+    <message>
+        <source>Low</source>
+        <translation type="unfinished">低</translation>
+    </message>
+    <message>
+        <source>Med</source>
+        <translation type="unfinished">中</translation>
+    </message>
+    <message>
+        <source>High</source>
+        <translation type="unfinished">高</translation>
+    </message>
 </context>
 <context>
     <name>ControlPointSelection</name>
@@ -467,6 +495,26 @@
     <message>
         <source>Lines &amp; Areas</source>
         <translation>线和区域</translation>
+    </message>
+    <message>
+        <source>Segment</source>
+        <translation type="unfinished">自动分段</translation>
+    </message>
+    <message>
+        <source>Linear</source>
+        <translation type="unfinished">线性</translation>
+    </message>
+    <message>
+        <source>Ease In</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Ease Out</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Ease In/Out</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -999,6 +1047,14 @@ Do you want to proceed?</source>
         <source>Med</source>
         <translation>中</translation>
     </message>
+    <message>
+        <source>MultiArc</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Smooth</source>
+        <translation type="unfinished">平滑</translation>
+    </message>
 </context>
 <context>
     <name>PumpTool</name>
@@ -1204,6 +1260,10 @@ Do you want to proceed?</source>
     <message>
         <source>The selection cannot be moved. It is not editable.</source>
         <translation>所选择的不能被移动。它不是可编辑的。</translation>
+    </message>
+    <message>
+        <source>Snap At Intersection</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -1773,6 +1833,10 @@ moved to the end of the first page of the palette.</source>
     <message>
         <source>Bevel join</source>
         <translation>斜角连接</translation>
+    </message>
+    <message>
+        <source>Include Intersection</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>

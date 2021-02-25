@@ -426,6 +426,18 @@ Es posible que el archivo de dicho ajuste se encuentre corrupto.</translation>
         <source>Channel:</source>
         <translation>Canal:</translation>
     </message>
+    <message>
+        <source>Range:</source>
+        <translation>Rango:</translation>
+    </message>
+    <message>
+        <source>Output:</source>
+        <translation>Salida:</translation>
+    </message>
+    <message>
+        <source>Input:</source>
+        <translation>Entrada:</translation>
+    </message>
 </context>
 <context>
     <name>DVGui::ValidatedChoiceDialog</name>
@@ -609,7 +621,7 @@ Es posible que el archivo de dicho ajuste se encuentre corrupto.</translation>
     </message>
     <message>
         <source>&amp;Next frame</source>
-        <translation>Fotograma &amp;siguiente</translation>
+        <translation type="vanished">Fotograma &amp;siguiente</translation>
     </message>
     <message>
         <source>&amp;Last Frame</source>
@@ -719,6 +731,18 @@ Es posible que el archivo de dicho ajuste se encuentre corrupto.</translation>
         <source>&amp;Reset View</source>
         <translation>&amp;Restablecer vista</translation>
     </message>
+    <message>
+        <source>Sound</source>
+        <translation>Sonido</translation>
+    </message>
+    <message>
+        <source>Locator</source>
+        <translation>Localizador</translation>
+    </message>
+    <message>
+        <source>&amp;Next Frame</source>
+        <translation>Fotograma &amp;siguiente</translation>
+    </message>
 </context>
 <context>
     <name>FontParamField</name>
@@ -793,7 +817,7 @@ Es posible que el archivo de dicho ajuste se encuentre corrupto.</translation>
     </message>
     <message>
         <source>Speed In / Speed Out Interpolation</source>
-        <translation>Interpolación Bézier</translation>
+        <translation>Interpolación Bezier</translation>
     </message>
     <message>
         <source>Ease In / Ease Out Interpolation</source>
@@ -872,7 +896,7 @@ Es posible que el archivo de dicho ajuste se encuentre corrupto.</translation>
     </message>
     <message>
         <source>Speed In / Speed Out</source>
-        <translation>Bézier</translation>
+        <translation>Bezier</translation>
     </message>
     <message>
         <source>Ease In / Ease Out</source>
@@ -928,7 +952,7 @@ Es posible que el archivo de dicho ajuste se encuentre corrupto.</translation>
     </message>
     <message>
         <source>Speed</source>
-        <translation>Bézier</translation>
+        <translation>Bezier</translation>
     </message>
     <message>
         <source>Ease</source>
@@ -970,6 +994,10 @@ Es posible que el archivo de dicho ajuste se encuentre corrupto.</translation>
         <source>Step</source>
         <translation>Exposición</translation>
     </message>
+    <message>
+        <source>Link/Unlink Handles</source>
+        <translation>Vincular/Desvincular tangentes</translation>
+    </message>
 </context>
 <context>
     <name>FunctionSelection</name>
@@ -1001,7 +1029,7 @@ Es posible que el archivo de dicho ajuste se encuentre corrupto.</translation>
     </message>
     <message>
         <source>Speed In / Speed Out Interpolation</source>
-        <translation>Interpolación Bézier</translation>
+        <translation>Interpolación Bezier</translation>
     </message>
     <message>
         <source>Ease In / Ease Out Interpolation</source>
@@ -1073,6 +1101,15 @@ Es posible que el archivo de dicho ajuste se encuentre corrupto.</translation>
     </message>
 </context>
 <context>
+    <name>FunctionSheetColumnHeadViewer</name>
+    <message>
+        <source>Some key(s) in this parameter loses original reference in expression.
+Manually changing any keyframe will clear the warning.</source>
+        <translation>Algunos claves en este parámetro perderán su referencia original en la expresión.
+Cambiar el fotograma clave de forma manual eliminará la advertencia.</translation>
+    </message>
+</context>
+<context>
     <name>FunctionToolbar</name>
     <message>
         <source>Value</source>
@@ -1100,6 +1137,12 @@ Es posible que el archivo de dicho ajuste se encuentre corrupto.</translation>
     <message>
         <source>Plastic Skeleton</source>
         <translation>Esqueleto de Plástico</translation>
+    </message>
+    <message>
+        <source>Some key(s) in this parameter loses original reference in expression.
+Manually changing any keyframe will clear the warning.</source>
+        <translation>Algunos claves en este parámetro perderán su referencia original en la expresión.
+Cambiar el fotograma clave de forma manual eliminará la advertencia.</translation>
     </message>
 </context>
 <context>
@@ -1598,6 +1641,18 @@ Seleccionar los nodos de efecto y sus vínculos relacionados antes de copiar o c
         <source>)</source>
         <translation>)</translation>
     </message>
+    <message>
+        <source>Hide New Style Button</source>
+        <translation>Ocultar botón de nuevo estilo</translation>
+    </message>
+    <message>
+        <source>Show New Style Button</source>
+        <translation>Mostrar botón de nuevo estilo</translation>
+    </message>
+    <message>
+        <source>Failed to save palette.</source>
+        <translation>Falla al guardar paleta.</translation>
+    </message>
 </context>
 <context>
     <name>PaletteViewerGUI::PageViewer</name>
@@ -1621,6 +1676,10 @@ Seleccionar los nodos de efecto y sus vínculos relacionados antes de copiar o c
         <source>Name Editor</source>
         <translation>Editor de nombres</translation>
     </message>
+    <message>
+        <source> + </source>
+        <translation> + </translation>
+    </message>
 </context>
 <context>
     <name>PalettesScanPopup</name>
@@ -1640,6 +1699,10 @@ Seleccionar los nodos de efecto y sus vínculos relacionados antes de copiar o c
         <source>&lt;files&gt;</source>
         <translation>&lt;archivos&gt;</translation>
     </message>
+    <message>
+        <source>Failed to import palette.</source>
+        <translation>Falla al importar paleta.</translation>
+    </message>
 </context>
 <context>
     <name>ParamViewer</name>
@@ -1652,7 +1715,11 @@ Seleccionar los nodos de efecto y sus vínculos relacionados antes de copiar o c
     <name>ParamsPageSet</name>
     <message>
         <source>Fx Help</source>
-        <translation>Ayuda del efecto</translation>
+        <translation type="vanished">Ayuda del efecto</translation>
+    </message>
+    <message>
+        <source>View help page</source>
+        <translation>Ver ayuda</translation>
     </message>
 </context>
 <context>
@@ -1748,7 +1815,7 @@ Seleccionar los nodos de efecto y sus vínculos relacionados antes de copiar o c
     </message>
     <message>
         <source>Palette</source>
-        <translation>Paleta</translation>
+        <translation type="vanished">Paleta</translation>
     </message>
     <message>
         <source>Save</source>
@@ -2265,6 +2332,30 @@ La segunda línea debería tener la forma &quot;Mesh [profundidad de bits de ent
         <source>That is a reserved file name and cannot be used.</source>
         <translation>Ése es un nombre de archivo reservado y no es posible su uso.</translation>
     </message>
+    <message>
+        <source>There are no unused styles.</source>
+        <translation>No hay estilos no utilizados.</translation>
+    </message>
+    <message>
+        <source>and %1 more styles.</source>
+        <translation>y %1 estilo(s) más.</translation>
+    </message>
+    <message>
+        <source>Erasing unused styles with following indices. Are you sure?
+
+%1</source>
+        <translation>Borrar estilos no utilizados con los siguientes identificadores. ¿Seguro?
+
+%1</translation>
+    </message>
+    <message>
+        <source>Erase</source>
+        <translation>Borrar</translation>
+    </message>
+    <message>
+        <source>Click &amp; Drag Palette into Studio Palette</source>
+        <translation>Arrastrar la paleta a la Paleta de estudio</translation>
+    </message>
 </context>
 <context>
     <name>QPushButton</name>
@@ -2577,6 +2668,10 @@ Are you sure ?</source>
         <source>Convert</source>
         <translation>Convertir</translation>
     </message>
+    <message>
+        <source>Failed to save palette.</source>
+        <translation>Falla al guardar paleta.</translation>
+    </message>
 </context>
 <context>
     <name>StudioPaletteViewer</name>
@@ -2663,15 +2758,15 @@ Autom</translation>
     </message>
     <message>
         <source>[CLEANUP]  </source>
-        <translation>[LIMPIEZA]  </translation>
+        <translation type="vanished">[LIMPIEZA]  </translation>
     </message>
     <message>
         <source>[STUDIO]  </source>
-        <translation>[ESTUDIO]  </translation>
+        <translation type="vanished">[ESTUDIO]  </translation>
     </message>
     <message>
         <source>[LEVEL]  </source>
-        <translation>[NIVEL]  </translation>
+        <translation type="vanished">[NIVEL]  </translation>
     </message>
     <message>
         <source>- Style is Not Valid -</source>
@@ -2733,6 +2828,18 @@ Autom</translation>
         <source>Palette</source>
         <translation>Paleta</translation>
     </message>
+    <message>
+        <source>Cleanup </source>
+        <translation>Limpieza </translation>
+    </message>
+    <message>
+        <source>Studio </source>
+        <translation>Estudio </translation>
+    </message>
+    <message>
+        <source>Level </source>
+        <translation>Nivel </translation>
+    </message>
 </context>
 <context>
     <name>StyleEditorGUI::ColorChannelControl</name>
@@ -2792,7 +2899,7 @@ Autom</translation>
     <name>StyleEditorGUI::SettingsPage</name>
     <message>
         <source>Autopaint for Lines</source>
-        <translation>Pintar (líneas) automáticamente al rellenar</translation>
+        <translation>Pintar líneas automáticamente al rellenar</translation>
     </message>
     <message>
         <source>Reset to default</source>

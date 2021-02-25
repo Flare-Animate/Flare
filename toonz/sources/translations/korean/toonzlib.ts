@@ -23,10 +23,6 @@
 <context>
     <name>FilePath</name>
     <message>
-        <source>&quot;%1&quot;</source>
-        <translation type="vanished"></translation>
-    </message>
-    <message>
         <source>can&apos;t concatenate an absolute path : %1</source>
         <translation type="vanished">절대 경로를 연결하세요: %1</translation>
     </message>
@@ -75,10 +71,6 @@
     <message>
         <source>ImageBuilder(%1 image)</source>
         <translation type="vanished">이미지 빌더 (%1 이미지)</translation>
-    </message>
-    <message>
-        <source>%1 : %2</source>
-        <translation type="vanished"></translation>
     </message>
     <message>
         <source>Bad argument (%1): should be a Transformation</source>
@@ -611,6 +603,14 @@
 </source>
         <translation>다음 리소스 저장 실패:
 </translation>
+    </message>
+    <message>
+        <source>Failed to save palette.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>and %1 more item(s).</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
