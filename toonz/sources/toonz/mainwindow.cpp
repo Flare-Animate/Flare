@@ -2449,47 +2449,48 @@ void MainWindow::defineActions() {
   createAction(MI_EditNextMode, QT_TR_NOOP("Animate Tool - Next Mode"), "",
                ToolCommandType);
   createAction(MI_EditPosition, QT_TR_NOOP("Animate Tool - Position"), "",
-               ToolCommandType);
+               ToolCommandType, "edit_position");
   createAction(MI_EditRotation, QT_TR_NOOP("Animate Tool - Rotation"), "",
-               ToolCommandType);
+               ToolCommandType, "edit_rotation");
   createAction(MI_EditScale, QT_TR_NOOP("Animate Tool - Scale"), "",
-               ToolCommandType);
+               ToolCommandType, "edit_scale");
   createAction(MI_EditShear, QT_TR_NOOP("Animate Tool - Shear"), "",
-               ToolCommandType);
+               ToolCommandType, "edit_shear");
   createAction(MI_EditCenter, QT_TR_NOOP("Animate Tool - Center"), "",
-               ToolCommandType);
+               ToolCommandType, "edit_center");
   createAction(MI_EditAll, QT_TR_NOOP("Animate Tool - All"), "",
-               ToolCommandType);
+               ToolCommandType, "edit_all");
 
   /*-- Selection tool + type switching shortcuts --*/
   createAction(MI_SelectionNextType, QT_TR_NOOP("Selection Tool - Next Type"),
                "", ToolCommandType);
   createAction(MI_SelectionRectangular,
-               QT_TR_NOOP("Selection Tool - Rectangular"), "", ToolCommandType);
+               QT_TR_NOOP("Selection Tool - Rectangular"), "", ToolCommandType,
+               "selection_rectangular");
   createAction(MI_SelectionFreehand, QT_TR_NOOP("Selection Tool - Freehand"),
-               "", ToolCommandType);
+               "", ToolCommandType, "selection_freehand");
   createAction(MI_SelectionPolyline, QT_TR_NOOP("Selection Tool - Polyline"),
-               "", ToolCommandType);
+               "", ToolCommandType, "selection_polyline");
 
   /*-- Geometric tool + shape switching shortcuts --*/
   createAction(MI_GeometricNextShape, QT_TR_NOOP("Geometric Tool - Next Shape"),
                "", ToolCommandType);
   createAction(MI_GeometricRectangle, QT_TR_NOOP("Geometric Tool - Rectangle"),
-               "", ToolCommandType);
+               "", ToolCommandType, "geometric_rectangle");
   createAction(MI_GeometricCircle, QT_TR_NOOP("Geometric Tool - Circle"), "",
-               ToolCommandType);
+               ToolCommandType, "geometric_circle");
   createAction(MI_GeometricEllipse, QT_TR_NOOP("Geometric Tool - Ellipse"), "",
-               ToolCommandType);
+               ToolCommandType, "geometric_ellipse");
   createAction(MI_GeometricLine, QT_TR_NOOP("Geometric Tool - Line"), "",
-               ToolCommandType);
+               ToolCommandType, "geometric_line");
   createAction(MI_GeometricPolyline, QT_TR_NOOP("Geometric Tool - Polyline"),
-               "", ToolCommandType);
+               "", ToolCommandType, "geometric_polyline");
   createAction(MI_GeometricArc, QT_TR_NOOP("Geometric Tool - Arc"), "",
-               ToolCommandType);
+               ToolCommandType, "geometric_arc");
   createAction(MI_GeometricMultiArc, QT_TR_NOOP("Geometric Tool - MultiArc"),
-               "", ToolCommandType);
+               "", ToolCommandType, "geometric_multiarc");
   createAction(MI_GeometricPolygon, QT_TR_NOOP("Geometric Tool - Polygon"), "",
-               ToolCommandType);
+               ToolCommandType, "geometric_polygon");
 
   /*-- Type tool + style switching shortcuts --*/
   createAction(MI_TypeNextStyle, QT_TR_NOOP("Type Tool - Next Style"), "",
@@ -2517,25 +2518,25 @@ void MainWindow::defineActions() {
   createAction(MI_FillNextMode, QT_TR_NOOP("Fill Tool - Next Mode"), "",
                ToolCommandType);
   createAction(MI_FillAreas, QT_TR_NOOP("Fill Tool - Areas"), "",
-               ToolCommandType);
+               ToolCommandType, "fill_mode_areas");
   createAction(MI_FillLines, QT_TR_NOOP("Fill Tool - Lines"), "",
-               ToolCommandType);
+               ToolCommandType, "fill_mode_lines");
   createAction(MI_FillLinesAndAreas, QT_TR_NOOP("Fill Tool - Lines & Areas"),
-               "", ToolCommandType);
+               "", ToolCommandType, "fill_mode_lines_areas");
 
   /*-- Eraser tool + type switching shortcuts --*/
   createAction(MI_EraserNextType, QT_TR_NOOP("Eraser Tool - Next Type"), "",
                ToolCommandType);
   createAction(MI_EraserNormal, QT_TR_NOOP("Eraser Tool - Normal"), "",
-               ToolCommandType);
+               ToolCommandType, "eraser_normal");
   createAction(MI_EraserRectangular, QT_TR_NOOP("Eraser Tool - Rectangular"),
-               "", ToolCommandType);
+               "", ToolCommandType, "eraser_rectangular");
   createAction(MI_EraserFreehand, QT_TR_NOOP("Eraser Tool - Freehand"), "",
-               ToolCommandType);
+               ToolCommandType, "eraser_freehand");
   createAction(MI_EraserPolyline, QT_TR_NOOP("Eraser Tool - Polyline"), "",
-               ToolCommandType);
+               ToolCommandType, "eraser_polyline");
   createAction(MI_EraserSegment, QT_TR_NOOP("Eraser Tool - Segment"), "",
-               ToolCommandType);
+               ToolCommandType, "eraser_segment");
 
   /*-- Tape tool + type/mode switching shortcuts --*/
   createAction(MI_TapeNextType, QT_TR_NOOP("Tape Tool - Next Type"), "",
