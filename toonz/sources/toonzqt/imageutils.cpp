@@ -965,6 +965,7 @@ void FullScreenWidget::setWidget(QWidget *widget) {
 		// application is in the process of quiting.
 		if (!kfApplicationQuitInProgress)
 		{
+#if	!defined( _WIN32 )
 			//==============================================================
 			//
 			//	NOTE:
@@ -1052,6 +1053,15 @@ void FullScreenWidget::setWidget(QWidget *widget) {
 					}
 				}
 			}
+#else
+			this->setWindowFlags( this->windowFlags() | Qt::Window | Qt::WindowStaysOnTopHint );
+
+			// http://doc.qt.io/qt-5/windows-issues.html#fullscreen-opengl-based-windows
+			this->winId();
+			QWindowsWindowFunctions::setHasBorderInFullScreen( this->windowHandle(), true );
+
+			this->showFullScreen();
+#endif
 			
 			
 			// Set the return value to indicate that the full screen mode has been changed.
