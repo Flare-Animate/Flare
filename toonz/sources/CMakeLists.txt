@@ -262,7 +262,8 @@ if(BUILD_ENV_MSVC)
         SYSTEM
         ${SDKROOT}/glut/3.7.6/include
         ${SDKROOT}/zlib-1.2.8
-        ${SDKROOT}/LibJPEG/jpeg-9
+        #${SDKROOT}/LibJPEG/jpeg-9
+        ${SDKROOT}/libjpeg-turbo/include
     )
     add_definitions(
         -DGLUT_NO_LIB_PRAGMA
@@ -276,9 +277,9 @@ if(PLATFORM EQUAL 64)
     else() # Windows and MacOS case
         find_package(OpenCV 4.1 REQUIRED)
     endif()
-    include_directories(
-        ${SDKROOT}/libjpeg-turbo64/include
-    )
+    #include_directories(
+    #    ${SDKROOT}/libjpeg-turbo64/include
+    #)
     if(WITH_CANON)
         include_directories(
             ${SDKROOT}/canon/Header
@@ -319,7 +320,9 @@ if(BUILD_ENV_MSVC)
         optimized ${SDKROOT}/zlib-1.2.8/lib/zlib-1.2.8_${MSVC_LIB_VERSION}${PLATFORM2}.lib
         debug ${SDKROOT}/zlib-1.2.8/lib/zlib-1.2.8_${MSVC_LIB_VERSION}${PLATFORM2}d.lib
     )
-    set(JPEG_LIB ${SDKROOT}/LibJPEG/jpeg-9/lib/LibJPEG-9_${MSVC_LIB_VERSION}${PLATFORM2}.lib)
+    #set(JPEG_LIB ${SDKROOT}/LibJPEG/jpeg-9/lib/LibJPEG-9_${MSVC_LIB_VERSION}${PLATFORM2}.lib)
+    set(JPEG_LIB ${SDKROOT}/libjpeg-turbo/lib/jpeg-static_${MSVC_LIB_VERSION}${PLATFORM2}.lib)
+    set(TURBOJPEG_LIB ${SDKROOT}/libjpeg-turbo/lib/turbojpeg-static_${MSVC_LIB_VERSION}${PLATFORM2}.lib)
     set(TIFF_INCLUDE_DIR ${SDKROOT}/tiff-4.0.3/libtiff)
     set(TIFF_LIB
         optimized ${SDKROOT}/tiff-4.0.3/lib/LibTIFF-4.0.3_${MSVC_LIB_VERSION}${PLATFORM2}.lib
@@ -342,7 +345,6 @@ if(BUILD_ENV_MSVC)
     set(MYPAINT_LIB_LDFLAGS ${SDKROOT}/libmypaint/dist/${PLATFORM}/libmypaint.lib)
 
     if(PLATFORM EQUAL 64)
-        set(TURBOJPEG_LIB ${SDKROOT}/libjpeg-turbo64/lib/turbojpeg.lib)
         if (WITH_CANON)
             set(CANON_LIB ${SDKROOT}/canon/library/EDSDK.lib)
         endif()

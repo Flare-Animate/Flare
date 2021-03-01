@@ -117,7 +117,6 @@ jobs:
     - name: Workaround
       run: |
         cd thirdparty
-        cp C:/vcpkg/installed/x64-windows-static/lib/jpeg.lib LibJPEG/jpeg-9/lib/LibJPEG-9_2015_64.lib
         cp C:/vcpkg/installed/x64-windows-static/lib/libpng16.lib libpng-1.6.21/lib/libpng16_2015_64.lib
         cp C:/vcpkg/installed/x64-windows-static/lib/lz4.lib Lz4/Lz4_131/lz4_64.lib
         cp C:/vcpkg/installed/x64-windows-static/lib/lzo2.lib lzo/2.03/LZO_lib/lzo2_64.lib
@@ -128,13 +127,12 @@ jobs:
         cp D:/a/opentoonz/opentoonz/libmypaint/build/Release/libmypaint.lib libmypaint/dist/64/libmypaint.lib
         cp D:/a/opentoonz/opentoonz/superlu/build/SRC/Release/superlu.lib superlu/SuperLU_2015_64.lib
         cp D:/a/opentoonz/opentoonz/thirdparty/tiff-4.0.3/prj/LibTIFF/x64/Release/LibTIFF.lib tiff-4.0.3/lib/LibTIFF-4.0.3_2015_64.lib
-        mkdir libjpeg-turbo64/lib
-        cp C:/vcpkg/installed/x64-windows-static/lib/turbojpeg.lib libjpeg-turbo64/lib/turbojpeg.lib
+        cp C:/vcpkg/installed/x64-windows-static/lib/turbojpeg.lib libjpeg-turbo/lib/turbojpeg-static_2015_64.lib
+        cp C:/vcpkg/installed/x64-windows-static/lib/jpeg.lib libjpeg-turbo/lib/jpeg-static_2015_64.lib
 
     - name: Copy headers
       run: |
         cd thirdparty
-        cp LibJPEG/jpeg-9/jconfig.vc LibJPEG/jpeg-9/jconfig.h
         cp libpng-1.6.21/scripts/pnglibconf.h.prebuilt libpng-1.6.21/pnglibconf.h
 
     - name: Build
