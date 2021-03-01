@@ -262,31 +262,31 @@
     </message>
     <message>
         <source>Snap</source>
-        <translation type="unfinished">吸附</translation>
+        <translation>吸附</translation>
     </message>
     <message>
         <source>Type:</source>
-        <translation type="unfinished">类型:</translation>
+        <translation>类型:</translation>
     </message>
     <message>
         <source>Rectangular</source>
-        <translation type="unfinished">矩形</translation>
+        <translation>矩形</translation>
     </message>
     <message>
         <source>Freehand</source>
-        <translation type="unfinished">手绘</translation>
+        <translation>手绘</translation>
     </message>
     <message>
         <source>Low</source>
-        <translation type="unfinished">低</translation>
+        <translation>低</translation>
     </message>
     <message>
         <source>Med</source>
-        <translation type="unfinished">中</translation>
+        <translation>中</translation>
     </message>
     <message>
         <source>High</source>
-        <translation type="unfinished">高</translation>
+        <translation>高</translation>
     </message>
 </context>
 <context>
@@ -498,23 +498,23 @@
     </message>
     <message>
         <source>Segment</source>
-        <translation type="unfinished">自动分段</translation>
+        <translation>自动分段</translation>
     </message>
     <message>
         <source>Linear</source>
-        <translation type="unfinished">线性</translation>
+        <translation>线性</translation>
     </message>
     <message>
         <source>Ease In</source>
-        <translation type="unfinished"></translation>
+        <translation>渐入</translation>
     </message>
     <message>
         <source>Ease Out</source>
-        <translation type="unfinished"></translation>
+        <translation>渐出</translation>
     </message>
     <message>
         <source>Ease In/Out</source>
-        <translation type="unfinished"></translation>
+        <translation>渐入/出</translation>
     </message>
 </context>
 <context>
@@ -1049,11 +1049,11 @@ Do you want to proceed?</source>
     </message>
     <message>
         <source>MultiArc</source>
-        <translation type="unfinished"></translation>
+        <translation>多段弧形</translation>
     </message>
     <message>
         <source>Smooth</source>
-        <translation type="unfinished">平滑</translation>
+        <translation>平滑</translation>
     </message>
 </context>
 <context>
@@ -1263,7 +1263,7 @@ Do you want to proceed?</source>
     </message>
     <message>
         <source>Snap At Intersection</source>
-        <translation type="unfinished"></translation>
+        <translation>吸附在交点</translation>
     </message>
 </context>
 <context>
@@ -1836,7 +1836,7 @@ moved to the end of the first page of the palette.</source>
     </message>
     <message>
         <source>Include Intersection</source>
-        <translation type="unfinished"></translation>
+        <translation>包括交点</translation>
     </message>
 </context>
 <context>
