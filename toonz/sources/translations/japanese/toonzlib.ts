@@ -346,7 +346,7 @@
     </message>
     <message>
         <source>Update Colors by Using Picked Positions in Palette %1</source>
-        <translation>パレット%1　サンプル位置を用いて色を更新</translation>
+        <translation>パレット%1&#x3000;サンプル位置を用いて色を更新</translation>
     </message>
     <message>
         <source>Can&apos;t save</source>
@@ -441,6 +441,14 @@
 </source>
         <translation>以下の素材の保存に失敗しました：
 </translation>
+    </message>
+    <message>
+        <source>Failed to save palette.</source>
+        <translation>パレットの保存に失敗しました。</translation>
+    </message>
+    <message>
+        <source>and %1 more item(s).</source>
+        <translation>さらに %1 個のファイル。</translation>
     </message>
 </context>
 <context>

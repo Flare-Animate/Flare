@@ -426,6 +426,18 @@ Possibly the preset file has been corrupted</source>
         <source>Channel:</source>
         <translation>チャンネル：</translation>
     </message>
+    <message>
+        <source>Range:</source>
+        <translation>範囲：</translation>
+    </message>
+    <message>
+        <source>Output:</source>
+        <translation>出力:</translation>
+    </message>
+    <message>
+        <source>Input:</source>
+        <translation>入力:</translation>
+    </message>
 </context>
 <context>
     <name>DVGui::ValidatedChoiceDialog</name>
@@ -609,7 +621,7 @@ Possibly the preset file has been corrupted</source>
     </message>
     <message>
         <source>&amp;Next frame</source>
-        <translation>次のフレーム (&amp;N)</translation>
+        <translation type="vanished">次のフレーム (&amp;N)</translation>
     </message>
     <message>
         <source>&amp;Last Frame</source>
@@ -718,6 +730,18 @@ Possibly the preset file has been corrupted</source>
     <message>
         <source>&amp;Reset View</source>
         <translation>表示をリセット (&amp;R)</translation>
+    </message>
+    <message>
+        <source>Sound</source>
+        <translation>サウンド</translation>
+    </message>
+    <message>
+        <source>Locator</source>
+        <translation>ロケーター</translation>
+    </message>
+    <message>
+        <source>&amp;Next Frame</source>
+        <translation>次のフレーム (&amp;N)</translation>
     </message>
 </context>
 <context>
@@ -970,6 +994,10 @@ Possibly the preset file has been corrupted</source>
         <source>Step</source>
         <translation>ステップ</translation>
     </message>
+    <message>
+        <source>Link/Unlink Handles</source>
+        <translation>ハンドルを連結/分離</translation>
+    </message>
 </context>
 <context>
     <name>FunctionSelection</name>
@@ -1073,6 +1101,15 @@ Possibly the preset file has been corrupted</source>
     </message>
 </context>
 <context>
+    <name>FunctionSheetColumnHeadViewer</name>
+    <message>
+        <source>Some key(s) in this parameter loses original reference in expression.
+Manually changing any keyframe will clear the warning.</source>
+        <translation>このパラメータの中の１つまたは複数のキーフレームで、エクスプレッションによる参照が切れています。
+手動でいずれかのキーフレームを変更するとこの警告は消えます。</translation>
+    </message>
+</context>
+<context>
     <name>FunctionToolbar</name>
     <message>
         <source>Value</source>
@@ -1100,6 +1137,12 @@ Possibly the preset file has been corrupted</source>
     <message>
         <source>Plastic Skeleton</source>
         <translation>プラスチックのボーン</translation>
+    </message>
+    <message>
+        <source>Some key(s) in this parameter loses original reference in expression.
+Manually changing any keyframe will clear the warning.</source>
+        <translation>このパラメータの中の１つまたは複数のキーフレームで、エクスプレッションによる参照が切れています。
+手動でいずれかのキーフレームを変更するとこの警告は消えます。</translation>
     </message>
 </context>
 <context>
@@ -1598,6 +1641,18 @@ Select FX nodes and related links before copying or cutting the selection you wa
         <source>)</source>
         <translation>)</translation>
     </message>
+    <message>
+        <source>Hide New Style Button</source>
+        <translation>スタイル追加ボタンを隠す</translation>
+    </message>
+    <message>
+        <source>Show New Style Button</source>
+        <translation>スタイル追加ボタンを表示する</translation>
+    </message>
+    <message>
+        <source>Failed to save palette.</source>
+        <translation>パレットの保存に失敗しました。</translation>
+    </message>
 </context>
 <context>
     <name>PaletteViewerGUI::PageViewer</name>
@@ -1621,6 +1676,10 @@ Select FX nodes and related links before copying or cutting the selection you wa
         <source>Name Editor</source>
         <translation>スタイル名エディタ</translation>
     </message>
+    <message>
+        <source> + </source>
+        <translation></translation>
+    </message>
 </context>
 <context>
     <name>PalettesScanPopup</name>
@@ -1640,6 +1699,10 @@ Select FX nodes and related links before copying or cutting the selection you wa
         <source>&lt;files&gt;</source>
         <translation>&lt;ファイル&gt;</translation>
     </message>
+    <message>
+        <source>Failed to import palette.</source>
+        <translation>パレットの読み込みに失敗しました。</translation>
+    </message>
 </context>
 <context>
     <name>ParamViewer</name>
@@ -1652,7 +1715,11 @@ Select FX nodes and related links before copying or cutting the selection you wa
     <name>ParamsPageSet</name>
     <message>
         <source>Fx Help</source>
-        <translation>ヘルプ</translation>
+        <translation type="vanished">ヘルプ</translation>
+    </message>
+    <message>
+        <source>View help page</source>
+        <translation>ヘルプの表示</translation>
     </message>
 </context>
 <context>
@@ -1806,7 +1873,7 @@ Select FX nodes and related links before copying or cutting the selection you wa
     </message>
     <message>
         <source>Palette</source>
-        <translation>パレット</translation>
+        <translation type="vanished">パレット</translation>
     </message>
     <message>
         <source>Apply</source>
@@ -2193,7 +2260,7 @@ Are you sure?</source>
     <message>
         <source>Failed to get attribute location of %1</source>
         <comment>gl</comment>
-        <translation>%1　のアトリビュート位置の取得に失敗しました</translation>
+        <translation>%1&#x3000;のアトリビュート位置の取得に失敗しました</translation>
     </message>
     <message>
         <source>Failed to get uniform location of %1</source>
@@ -2255,6 +2322,30 @@ The second line should be &quot;Mesh [Input bit depth] [Output bit depth]&quot;<
     <message>
         <source>That is a reserved file name and cannot be used.</source>
         <translation>システムの予約語のため、使用できません。</translation>
+    </message>
+    <message>
+        <source>There are no unused styles.</source>
+        <translation>使用していないスタイルがありません。</translation>
+    </message>
+    <message>
+        <source>and %1 more styles.</source>
+        <translation>さらに %1 個のスタイル。</translation>
+    </message>
+    <message>
+        <source>Erasing unused styles with following indices. Are you sure?
+
+%1</source>
+        <translation>以下の番号のスタイルを削除します。よろしいですか？
+
+%1</translation>
+    </message>
+    <message>
+        <source>Erase</source>
+        <translation>削除</translation>
+    </message>
+    <message>
+        <source>Click &amp; Drag Palette into Studio Palette</source>
+        <translation>[スタジオパレットにドラッグ] このパレットをスタジオパレットに登録する</translation>
     </message>
 </context>
 <context>
@@ -2428,7 +2519,7 @@ The second line should be &quot;Mesh [Input bit depth] [Output bit depth]&quot;<
     <name>StageSchematicNode</name>
     <message>
         <source>Toggle Autorotate Along Motion Path</source>
-        <translation>モーションパスに沿って自動回転　の切り替え</translation>
+        <translation>モーションパスに沿って自動回転&#x3000;の切り替え</translation>
     </message>
     <message>
         <source>Toggle Link Motion Path to Control Points</source>
@@ -2568,6 +2659,10 @@ Are you sure ?</source>
         <source>Convert</source>
         <translation>変換する</translation>
     </message>
+    <message>
+        <source>Failed to save palette.</source>
+        <translation>パレットの保存に失敗しました。</translation>
+    </message>
 </context>
 <context>
     <name>StudioPaletteViewer</name>
@@ -2654,15 +2749,15 @@ Apply</source>
     </message>
     <message>
         <source>[CLEANUP]  </source>
-        <translation>[トレース]  </translation>
+        <translation type="vanished">[トレース]  </translation>
     </message>
     <message>
         <source>[STUDIO]  </source>
-        <translation>[スタジオ]  </translation>
+        <translation type="vanished">[スタジオ]  </translation>
     </message>
     <message>
         <source>[LEVEL]  </source>
-        <translation>[レベル]  </translation>
+        <translation type="vanished">[レベル]  </translation>
     </message>
     <message>
         <source>- Style is Not Valid -</source>
@@ -2723,6 +2818,18 @@ Apply</source>
     <message>
         <source>Palette</source>
         <translation>パレット</translation>
+    </message>
+    <message>
+        <source>Cleanup </source>
+        <translation>トレース</translation>
+    </message>
+    <message>
+        <source>Studio </source>
+        <translation>スタジオ</translation>
+    </message>
+    <message>
+        <source>Level </source>
+        <translation>レベル</translation>
     </message>
 </context>
 <context>

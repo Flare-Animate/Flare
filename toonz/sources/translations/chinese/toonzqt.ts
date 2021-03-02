@@ -432,6 +432,18 @@ Possibly the preset file has been corrupted</source>
         <source>Channel:</source>
         <translation>通道:</translation>
     </message>
+    <message>
+        <source>Range:</source>
+        <translation>范围:</translation>
+    </message>
+    <message>
+        <source>Output:</source>
+        <translation>输出:</translation>
+    </message>
+    <message>
+        <source>Input:</source>
+        <translation>输入:</translation>
+    </message>
 </context>
 <context>
     <name>DVGui::ValidatedChoiceDialog</name>
@@ -615,7 +627,7 @@ Possibly the preset file has been corrupted</source>
     </message>
     <message>
         <source>&amp;Next frame</source>
-        <translation>下一帧(&amp;N)</translation>
+        <translation type="vanished">下一帧(&amp;N)</translation>
     </message>
     <message>
         <source>&amp;Last Frame</source>
@@ -724,6 +736,18 @@ Possibly the preset file has been corrupted</source>
     <message>
         <source>&amp;Reset View</source>
         <translation>重置视图(&amp;R)</translation>
+    </message>
+    <message>
+        <source>Sound</source>
+        <translation>声音</translation>
+    </message>
+    <message>
+        <source>Locator</source>
+        <translation>定位器</translation>
+    </message>
+    <message>
+        <source>&amp;Next Frame</source>
+        <translation>下一帧(&amp;N)</translation>
     </message>
 </context>
 <context>
@@ -976,6 +1000,10 @@ Possibly the preset file has been corrupted</source>
         <source>Step</source>
         <translation>步长</translation>
     </message>
+    <message>
+        <source>Link/Unlink Handles</source>
+        <translation>链接/断开手柄</translation>
+    </message>
 </context>
 <context>
     <name>FunctionSelection</name>
@@ -1079,6 +1107,15 @@ Possibly the preset file has been corrupted</source>
     </message>
 </context>
 <context>
+    <name>FunctionSheetColumnHeadViewer</name>
+    <message>
+        <source>Some key(s) in this parameter loses original reference in expression.
+Manually changing any keyframe will clear the warning.</source>
+        <translation>在表达式中此参数的某些关键帧丢失原引用。
+手工更改任意的关键帧将清理该警告。</translation>
+    </message>
+</context>
+<context>
     <name>FunctionToolbar</name>
     <message>
         <source>Value</source>
@@ -1106,6 +1143,12 @@ Possibly the preset file has been corrupted</source>
     <message>
         <source>Plastic Skeleton</source>
         <translation>塑料骨架</translation>
+    </message>
+    <message>
+        <source>Some key(s) in this parameter loses original reference in expression.
+Manually changing any keyframe will clear the warning.</source>
+        <translation>在表达式中此参数的某些关键帧丢失原引用。
+手工更改任意的关键帧将清理该警告。</translation>
     </message>
 </context>
 <context>
@@ -1612,6 +1655,18 @@ Select FX nodes and related links before copying or cutting the selection you wa
         <source>)</source>
         <translation>)</translation>
     </message>
+    <message>
+        <source>Hide New Style Button</source>
+        <translation>隐藏新建样式按钮</translation>
+    </message>
+    <message>
+        <source>Show New Style Button</source>
+        <translation>显示新建样式按钮</translation>
+    </message>
+    <message>
+        <source>Failed to save palette.</source>
+        <translation>保存调色板失败。</translation>
+    </message>
 </context>
 <context>
     <name>PaletteViewerGUI::PageViewer</name>
@@ -1635,6 +1690,10 @@ Select FX nodes and related links before copying or cutting the selection you wa
         <source>Name Editor</source>
         <translation>名字编辑器</translation>
     </message>
+    <message>
+        <source> + </source>
+        <translation></translation>
+    </message>
 </context>
 <context>
     <name>PalettesScanPopup</name>
@@ -1654,6 +1713,10 @@ Select FX nodes and related links before copying or cutting the selection you wa
         <source>&lt;files&gt;</source>
         <translation>&lt;文件&gt;</translation>
     </message>
+    <message>
+        <source>Failed to import palette.</source>
+        <translation>导入调色板失败。</translation>
+    </message>
 </context>
 <context>
     <name>ParamViewer</name>
@@ -1666,7 +1729,11 @@ Select FX nodes and related links before copying or cutting the selection you wa
     <name>ParamsPageSet</name>
     <message>
         <source>Fx Help</source>
-        <translation>特效帮助</translation>
+        <translation type="vanished">特效帮助</translation>
+    </message>
+    <message>
+        <source>View help page</source>
+        <translation>查看帮助页</translation>
     </message>
 </context>
 <context>
@@ -1842,7 +1909,7 @@ Select FX nodes and related links before copying or cutting the selection you wa
     </message>
     <message>
         <source>Palette</source>
-        <translation>调色板</translation>
+        <translation type="vanished">调色板</translation>
     </message>
     <message>
         <source>Apply</source>
@@ -2303,6 +2370,30 @@ The second line should be &quot;Mesh [Input bit depth] [Output bit depth]&quot;<
         <source>That is a reserved file name and cannot be used.</source>
         <translation>被保留的文件名不可使用。</translation>
     </message>
+    <message>
+        <source>There are no unused styles.</source>
+        <translation>没有未使用的样式。</translation>
+    </message>
+    <message>
+        <source>and %1 more styles.</source>
+        <translation>和 %1 更多样式。</translation>
+    </message>
+    <message>
+        <source>Erasing unused styles with following indices. Are you sure?
+
+%1</source>
+        <translation>擦除未使用的样式时有如下问题。你确认吗？
+
+%1</translation>
+    </message>
+    <message>
+        <source>Erase</source>
+        <translation>擦除</translation>
+    </message>
+    <message>
+        <source>Click &amp; Drag Palette into Studio Palette</source>
+        <translation>点击 &amp; 拖放调色板到工作室调色板</translation>
+    </message>
 </context>
 <context>
     <name>QPushButton</name>
@@ -2626,6 +2717,10 @@ Are you sure ?</source>
         <source>Convert</source>
         <translation>转换</translation>
     </message>
+    <message>
+        <source>Failed to save palette.</source>
+        <translation>保存调色板失败。</translation>
+    </message>
 </context>
 <context>
     <name>StudioPaletteViewer</name>
@@ -2718,15 +2813,15 @@ Apply</source>
     </message>
     <message>
         <source>[CLEANUP]  </source>
-        <translation>[清稿]  </translation>
+        <translation type="vanished">[清稿]  </translation>
     </message>
     <message>
         <source>[STUDIO]  </source>
-        <translation>[工作室]  </translation>
+        <translation type="vanished">[工作室]  </translation>
     </message>
     <message>
         <source>[LEVEL]  </source>
-        <translation>[层级]  </translation>
+        <translation type="vanished">[层级]  </translation>
     </message>
     <message>
         <source>- Style is Not Valid -</source>
@@ -2787,6 +2882,18 @@ Apply</source>
     <message>
         <source>Palette</source>
         <translation>调色板</translation>
+    </message>
+    <message>
+        <source>Cleanup </source>
+        <translation>清理 </translation>
+    </message>
+    <message>
+        <source>Studio </source>
+        <translation>工作室 </translation>
+    </message>
+    <message>
+        <source>Level </source>
+        <translation>层级 </translation>
     </message>
 </context>
 <context>

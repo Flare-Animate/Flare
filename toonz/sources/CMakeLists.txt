@@ -272,7 +272,7 @@ endif()
 
 if(PLATFORM EQUAL 64)
     if(BUILD_ENV_UNIXLIKE)
-        find_package(OpenCV 3.2 REQUIRED)
+        find_package(OpenCV REQUIRED)
     else() # Windows and MacOS case
         find_package(OpenCV 4.1 REQUIRED)
     endif()

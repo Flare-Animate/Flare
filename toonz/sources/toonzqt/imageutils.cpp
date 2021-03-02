@@ -434,7 +434,7 @@ static void convertFromVI(const TLevelReaderP &lr, const TPaletteP &plt,
   maxBbox = maxBbox.enlarge(2);
   TAffine aff;
   if (width)  // calcolo l'affine
-    aff   = TScale((double)width / maxBbox.getLx());
+    aff = TScale((double)width / maxBbox.getLx());
   maxBbox = aff * maxBbox;
 
   for (i = 0; i < (int)images.size(); i++) {
@@ -471,9 +471,8 @@ static void convertFromFullRaster(
     const TRop::ResampleFilterType &resType, FrameTaskNotifier *frameNotifier,
     const TPixel &bgColor, bool removeDotBeforeFrameNumber = false) {
   std::vector<TFrameId> frames = _frames;
-  if (frames.empty() &&
-      lr->loadInfo()->getFrameCount() ==
-          1)  // e' una immagine singola, non un livello
+  if (frames.empty() && lr->loadInfo()->getFrameCount() ==
+                            1)  // e' una immagine singola, non un livello
     frames.push_back(TFrameId());
 
   for (int i = 0; i < (int)frames.size(); i++) {
@@ -854,9 +853,8 @@ bool ShortcutZoomer::exec(QKeyEvent *event) {
   if (key == Qt::Key_Control || key == Qt::Key_Shift || key == Qt::Key_Alt)
     return false;
 
-  key =
-      key |
-      event->modifiers() & (~0xf0000000);  // Ignore if the key is a numpad key
+  key = key | event->modifiers() &
+                  (~0xf0000000);  // Ignore if the key is a numpad key
 
   return (key == showHideFullScreenKey)
              ? toggleFullScreen()
@@ -895,12 +893,6 @@ FullScreenWidget::FullScreenWidget(QWidget *parent) : QWidget(parent) {
   layout->setSpacing(0);
 
   setLayout(layout);
-
-#ifdef _WIN32
-  // http://doc.qt.io/qt-5/windows-issues.html#fullscreen-opengl-based-windows
-  winId();
-  QWindowsWindowFunctions::setHasBorderInFullScreen(windowHandle(), true);
-#endif
 }
 
 //---------------------------------------------------------------------------------
@@ -1073,4 +1065,4 @@ void FullScreenWidget::setWidget(QWidget *widget) {
 	return( fFullScreenStateToggled );
 }
 
-}  // imageutils
+}  // namespace ImageUtils

@@ -501,10 +501,6 @@ Stop it or wait for its completion before removing it.</source>
 <context>
     <name>CameraCaptureLevelHistogram</name>
     <message>
-        <source>Click to Update Histogram</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>Drag to Move White Point</source>
         <translation type="unfinished"></translation>
     </message>
@@ -612,52 +608,16 @@ Vuoi tagliare il canvas?</translation>
 <context>
     <name>CaptureSettingsPopup</name>
     <message>
-        <source>Define Device</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>V Resolution</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>H Resolution</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>White Calibration</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>Capture</source>
-        <translation type="unfinished">Acquisizione</translation>
+        <translation type="obsolete">Acquisizione</translation>
     </message>
     <message>
         <source>Brightness:</source>
-        <translation type="unfinished">Luminosità:</translation>
+        <translation type="obsolete">Luminosità:</translation>
     </message>
     <message>
         <source>Contrast:</source>
-        <translation type="unfinished">Contrasto:</translation>
-    </message>
-    <message>
-        <source> Upside-down</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>A Device is Connected.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>No cameras found.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Device Disconnected.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>No Device Defined.</source>
-        <translation type="unfinished"></translation>
+        <translation type="obsolete">Contrasto:</translation>
     </message>
 </context>
 <context>
@@ -702,11 +662,11 @@ Vuoi tagliare il canvas?</translation>
     <name>ChooseCameraDialog</name>
     <message>
         <source>Ok</source>
-        <translation type="unfinished">OK</translation>
+        <translation type="obsolete">OK</translation>
     </message>
     <message>
         <source>Cancel</source>
-        <translation type="unfinished">Annullare</translation>
+        <translation type="obsolete">Annullare</translation>
     </message>
 </context>
 <context>
@@ -1216,7 +1176,7 @@ Cosa vuoi fare?</translation>
     </message>
     <message>
         <source>Scene: </source>
-        <translation type="obsolete">Scena:</translation>
+        <translation type="unfinished">Scena:</translation>
     </message>
     <message>
         <source>   ::   Frame: </source>
@@ -1228,18 +1188,10 @@ Cosa vuoi fare?</translation>
     </message>
     <message>
         <source>Level: </source>
-        <translation type="obsolete">Livello:</translation>
+        <translation type="unfinished">Livello:</translation>
     </message>
     <message>
         <source> (Flipped)</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>[SCENE]: </source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>[LEVEL]: </source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -2051,6 +2003,54 @@ contain the dpi information, then the current camera dpi will be used.
     </message>
 </context>
 <context>
+    <name>ExpressionReferenceManager</name>
+    <message>
+        <source>Expression monitoring restarted: &quot;%1&quot;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Expression modified: &quot;%1&quot; key at frame %2, %3 -&gt; %4</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Following parameters will lose reference in expressions:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>(To be in the sub xsheet)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Do you want to continue the operation anyway ?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>(In the current xsheet)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>(To be brought from the subxsheet)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>
+Do you want to explode anyway ?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>(In a sub xsheet)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Following parameters may contain broken references in expressions:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Do you want to save the scene anyway ?</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>FarmServerListView</name>
     <message>
         <source>Activate</source>
@@ -2085,11 +2085,11 @@ contain the dpi information, then the current camera dpi will be used.
     </message>
     <message>
         <source>Preview Screensaver</source>
-        <translation>Anteprima del Salvaschermo</translation>
+        <translation type="vanished">Anteprima del Salvaschermo</translation>
     </message>
     <message>
         <source>Install Screensaver</source>
-        <translation>Installa il Salvaschermo</translation>
+        <translation type="vanished">Installa il Salvaschermo</translation>
     </message>
     <message>
         <source>Load As Sub-xsheet</source>
@@ -2286,17 +2286,6 @@ contain the dpi information, then the current camera dpi will be used.
     </message>
 </context>
 <context>
-    <name>FileSettingsPopup</name>
-    <message>
-        <source>Save in:</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>File Format:</source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
     <name>Filmstrip</name>
     <message>
         <source>Level Strip</source>
@@ -2357,6 +2346,30 @@ Hold F3 Key on the Viewer to Show This Frame Only</source>
     </message>
     <message>
         <source>Auto Inbetween</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>INBETWEEN</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Panel Settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Toggle Orientation</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Show/Hide Drop Down Menu</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Show/Hide Level Navigator</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Select Level</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -2616,6 +2629,10 @@ Vuoi sovrascriverlo?</translation>
     <message>
         <source>It is not possible to delete %1.</source>
         <translation>Non è possibile eliminare %1.</translation>
+    </message>
+    <message>
+        <source>Search:</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -2974,110 +2991,58 @@ Vuoi crearla?</translation>
     <name>LineTestCapturePane</name>
     <message>
         <source>Name:</source>
-        <translation type="unfinished">Nome:</translation>
-    </message>
-    <message>
-        <source>Frame:</source>
-        <translation type="unfinished"></translation>
+        <translation type="obsolete">Nome:</translation>
     </message>
     <message>
         <source>Increment:</source>
-        <translation type="unfinished">Incremento:</translation>
+        <translation type="obsolete">Incremento:</translation>
     </message>
     <message>
         <source>Step:</source>
-        <translation type="unfinished">Passo:</translation>
+        <translation type="obsolete">Passo:</translation>
     </message>
     <message>
         <source>Mode:</source>
-        <translation type="unfinished">Modo:</translation>
-    </message>
-    <message>
-        <source>New     </source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Overwite     </source>
-        <translation type="unfinished"></translation>
+        <translation type="obsolete">Modo:</translation>
     </message>
     <message>
         <source>Insert</source>
-        <translation type="unfinished">Inserisci</translation>
-    </message>
-    <message>
-        <source> Onion Skin  </source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source> View Frame</source>
-        <translation type="unfinished"></translation>
+        <translation type="obsolete">Inserisci</translation>
     </message>
     <message>
         <source>Fade:</source>
-        <translation type="unfinished">Dissolvenza</translation>
-    </message>
-    <message>
-        <source> Connection</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>       Capture       </source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Capture Settings</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>   File Settings    </source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Bad Selection.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>No Device Defined.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Cannot connect Camera</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Device Disconnected.</source>
-        <translation type="unfinished"></translation>
+        <translation type="obsolete">Dissolvenza</translation>
     </message>
     <message>
         <source>LineTest Capture</source>
-        <translation type="unfinished">LineTest Acquisizione</translation>
+        <translation type="obsolete">LineTest Acquisizione</translation>
     </message>
 </context>
 <context>
     <name>LineTestPane</name>
     <message>
         <source>Preview</source>
-        <translation>Anteprima</translation>
+        <translation type="vanished">Anteprima</translation>
     </message>
     <message>
         <source>Untitled</source>
-        <translation>Senzatitolo</translation>
+        <translation type="vanished">Senzatitolo</translation>
     </message>
     <message>
         <source>Scene: </source>
-        <translation>Scena:</translation>
+        <translation type="vanished">Scena:</translation>
     </message>
     <message>
         <source>   ::   Frame: </source>
-        <translation>   ::   Fotogramma: </translation>
+        <translation type="vanished">   ::   Fotogramma: </translation>
     </message>
     <message>
         <source>   ::   Level: </source>
-        <translation>   ::   Livello: </translation>
+        <translation type="vanished">   ::   Livello: </translation>
     </message>
     <message>
         <source>Level: </source>
-        <translation>Livello:</translation>
+        <translation type="vanished">Livello:</translation>
     </message>
 </context>
 <context>
@@ -3755,11 +3720,11 @@ Please use the frame numbers for reference.</source>
     </message>
     <message>
         <source>&amp;Bring to Front</source>
-        <translation>&amp;Porta in Primo Piano</translation>
+        <translation type="vanished">&amp;Porta in Primo Piano</translation>
     </message>
     <message>
         <source>&amp;Bring Forward</source>
-        <translation>&amp;Porta Avanti</translation>
+        <translation type="vanished">&amp;Porta Avanti</translation>
     </message>
     <message>
         <source>&amp;Send Back</source>
@@ -3767,7 +3732,7 @@ Please use the frame numbers for reference.</source>
     </message>
     <message>
         <source>&amp;Send Backward</source>
-        <translation>&amp;Porta Indietro</translation>
+        <translation type="vanished">&amp;Porta Indietro</translation>
     </message>
     <message>
         <source>&amp;Enter Group</source>
@@ -3883,15 +3848,15 @@ Please use the frame numbers for reference.</source>
     </message>
     <message>
         <source>&amp;Open Sub-xsheet</source>
-        <translation>&amp;Apri il Sub-xsheet</translation>
+        <translation type="vanished">&amp;Apri il Sub-xsheet</translation>
     </message>
     <message>
         <source>&amp;Close Sub-xsheet</source>
-        <translation>&amp;Chiudi il Sub-xsheet</translation>
+        <translation type="vanished">&amp;Chiudi il Sub-xsheet</translation>
     </message>
     <message>
         <source>Explode Sub-xsheet</source>
-        <translation>Esplodi il Sub-xsheet</translation>
+        <translation type="vanished">Esplodi il Sub-xsheet</translation>
     </message>
     <message>
         <source>Collapse</source>
@@ -3899,7 +3864,7 @@ Please use the frame numbers for reference.</source>
     </message>
     <message>
         <source>&amp;Save Sub-xsheet As...</source>
-        <translation>&amp;Salva il Sub-xsheet Come...</translation>
+        <translation type="vanished">&amp;Salva il Sub-xsheet Come...</translation>
     </message>
     <message>
         <source>Resequence</source>
@@ -3907,7 +3872,7 @@ Please use the frame numbers for reference.</source>
     </message>
     <message>
         <source>Clone Sub-xsheet</source>
-        <translation>Clona il Sub-xsheet</translation>
+        <translation type="vanished">Clona il Sub-xsheet</translation>
     </message>
     <message>
         <source>&amp;Apply Match Lines...</source>
@@ -4015,7 +3980,7 @@ Please use the frame numbers for reference.</source>
     </message>
     <message>
         <source>&amp;Clone</source>
-        <translation>&amp;Clona</translation>
+        <translation type="vanished">&amp;Clona</translation>
     </message>
     <message>
         <source>Drawing Substitution Forward</source>
@@ -4091,7 +4056,7 @@ Please use the frame numbers for reference.</source>
     </message>
     <message>
         <source>&amp;Capture</source>
-        <translation>&amp;Acquisisci</translation>
+        <translation type="vanished">&amp;Acquisisci</translation>
     </message>
     <message>
         <source>Play</source>
@@ -4227,11 +4192,11 @@ Please use the frame numbers for reference.</source>
     </message>
     <message>
         <source>&amp;LineTest Viewer</source>
-        <translation>&amp;Visualizzatore di Linetest</translation>
+        <translation type="vanished">&amp;Visualizzatore di Linetest</translation>
     </message>
     <message>
         <source>&amp;LineTest Capture</source>
-        <translation>&amp;Acquisizione di Linetest</translation>
+        <translation type="vanished">&amp;Acquisizione di Linetest</translation>
     </message>
     <message>
         <source>&amp;Xsheet</source>
@@ -4815,7 +4780,7 @@ Please use the frame numbers for reference.</source>
     </message>
     <message>
         <source>&amp;Field Guide in Capture Window</source>
-        <translation>Field Guide Finestra di Acquisizione</translation>
+        <translation type="vanished">Field Guide Finestra di Acquisizione</translation>
     </message>
     <message>
         <source>&amp;Guide</source>
@@ -4847,7 +4812,7 @@ Please use the frame numbers for reference.</source>
     </message>
     <message>
         <source>Prev Drawing</source>
-        <translation>Disegno Precedente</translation>
+        <translation type="vanished">Disegno Precedente</translation>
     </message>
     <message>
         <source>Toggle Autofill on Current Palette Color</source>
@@ -4855,7 +4820,7 @@ Please use the frame numbers for reference.</source>
     </message>
     <message>
         <source>&amp;Export</source>
-        <translation>&amp;Esporta</translation>
+        <translation type="vanished">&amp;Esporta</translation>
     </message>
     <message>
         <source>Increase max brush thickness</source>
@@ -4960,7 +4925,7 @@ Decrementa lo spessore minimo del pennello</translation>
     </message>
     <message>
         <source>Prev Step</source>
-        <translation>Passo Precedente</translation>
+        <translation type="vanished">Passo Precedente</translation>
     </message>
     <message>
         <source>Untitled</source>
@@ -5016,22 +4981,6 @@ Decrementa lo spessore minimo del pennello</translation>
     </message>
     <message>
         <source>&amp;Replace Parent Directory...</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>1&apos;s</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>2&apos;s</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>3&apos;s</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>4&apos;s</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -5159,10 +5108,6 @@ Decrementa lo spessore minimo del pennello</translation>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Mode - Lines &amp; Areas</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>Type - Normal</source>
         <translation type="unfinished"></translation>
     </message>
@@ -5255,23 +5200,11 @@ Decrementa lo spessore minimo del pennello</translation>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>New Vector Level</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>&amp;New Toonz Raster Level</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>New Toonz Raster Level</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>&amp;New Raster Level</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>New Raster Level</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -5439,10 +5372,6 @@ Decrementa lo spessore minimo del pennello</translation>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>&amp;Send to Back</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>Reset Zoom</source>
         <translation type="unfinished"></translation>
     </message>
@@ -5496,10 +5425,6 @@ Decrementa lo spessore minimo del pennello</translation>
     </message>
     <message>
         <source>Next Key</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Prev Key</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -5650,6 +5575,426 @@ or you may delete necessary files for it.</source>
     </message>
     <message>
         <source>Flip Previous Guide Stroke Direction</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Save All</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Paste as a Copy</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Move to Back</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Move Back One</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Move Forward One</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Move to Front</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Open Sub-Xsheet</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Close Sub-Xsheet</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Explode Sub-Xsheet</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Save Sub-Xsheet As...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Clone Sub-Xsheet</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Clone Cells</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Reframe on 1&apos;s</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Reframe on 2&apos;s</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Reframe on 3&apos;s</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Reframe on 4&apos;s</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Previous Drawing</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Previous Step</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Previous Key</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>About OpenToonz...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Online Manual...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>What&apos;s New...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Community Forum...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Report a Bug...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Geometric Shape Rectangle</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Geometric Shape Circle</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Geometric Shape Ellipse</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Geometric Shape Line</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Geometric Shape Polyline</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Geometric Shape Arc</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Geometric Shape MultiArc</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Geometric Shape Polygon</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Mode - Lines &amp;&amp; Areas</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Mode - Endpoint to Endpoint</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Mode - Endpoint to Line</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Mode - Line to Line</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Type - Segment</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>TypeTool Style - Oblique</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>TypeTool Style - Regular</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>TypeTool Style - Bold Oblique</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>TypeTool Style - Bold</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Skeleton Mode</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Edit Mesh Mode</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Paint Rigid Mode</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Animate Tool - Next Mode</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Animate Tool - Position</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Animate Tool - Rotation</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Animate Tool - Scale</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Animate Tool - Shear</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Animate Tool - Center</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Animate Tool - All</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Selection Tool - Next Type</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Selection Tool - Rectangular</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Selection Tool - Freehand</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Selection Tool - Polyline</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Geometric Tool - Next Shape</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Geometric Tool - Rectangle</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Geometric Tool - Circle</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Geometric Tool - Ellipse</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Geometric Tool - Line</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Geometric Tool - Polyline</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Geometric Tool - Arc</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Geometric Tool - MultiArc</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Geometric Tool - Polygon</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Type Tool - Next Style</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Type Tool - Oblique</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Type Tool - Regular</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Type Tool - Bold Oblique</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Type Tool - Bold</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Fill Tool - Next Type</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Fill Tool - Normal</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Fill Tool - Rectangular</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Fill Tool - Freehand</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Fill Tool - Polyline</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Fill Tool - Next Mode</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Fill Tool - Lines &amp; Areas</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Eraser Tool - Next Type</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Eraser Tool - Normal</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Eraser Tool - Rectangular</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Eraser Tool - Freehand</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Eraser Tool - Polyline</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Eraser Tool - Segment</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Tape Tool - Next Type</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Tape Tool - Normal</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Tape Tool - Rectangular</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Tape Tool - Next Mode</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Tape Tool - Endpoint to Endpoint</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Tape Tool - Endpoint to Line</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Tape Tool - Line to Line</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Style Picker Tool - Next Mode</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Style Picker Tool - Lines &amp; Areas</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>RGB Picker Tool - Next Type</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>RGB Picker Tool - Normal</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>RGB Picker Tool - Rectangular</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>RGB Picker Tool - Freehand</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>RGB Picker Tool - Polyline</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Skeleton Tool - Next Mode</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Skeleton Tool - Build Skeleton</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Skeleton Tool - Animate</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Skeleton Tool - Inverse Kinematics</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Plastic Tool - Next Mode</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Plastic Tool - Edit Mesh</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Plastic Tool - Paint Rigid</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Plastic Tool - Build Skeleton</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Plastic Tool - Animate</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -6098,10 +6443,6 @@ Cosa vuoi fare?</translation>
         <translation type="unfinished">Impostazioni del File</translation>
     </message>
     <message>
-        <source>Other Settings</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>Add</source>
         <translation type="unfinished">Aggiungi</translation>
     </message>
@@ -6190,10 +6531,6 @@ Cosa vuoi fare?</translation>
         <translation type="unfinished">Nome:</translation>
     </message>
     <message>
-        <source>Frame Rate (linked to Scene Settings):</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>  To:</source>
         <translation type="unfinished"></translation>
     </message>
@@ -6246,6 +6583,30 @@ The parameters to be saved are:
 - File options
 - Resample Balance
 - Channel width</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Camera</source>
+        <translation type="unfinished">Camera</translation>
+    </message>
+    <message>
+        <source>File</source>
+        <translation type="unfinished">File</translation>
+    </message>
+    <message>
+        <source>More</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>More Settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Frame Rate:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>(linked to Scene Settings)</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -6627,6 +6988,14 @@ WARNING : Image size mismatch. The size of level with the same path is %1 x %2.<
     </message>
     <message>
         <source>Subcamera</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Use Direct Show Webcam Drivers</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Use MJPG with Webcam</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -7168,20 +7537,12 @@ Set the output folder path to the subfolder as well.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Category</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>Viewer BG Color:</source>
         <translation>Colore del Fondale del Visualizzatore:</translation>
     </message>
     <message>
         <source>Preview BG Color:</source>
         <translation>Colore del Fondale dell&apos;Anteprima:</translation>
-    </message>
-    <message>
-        <source>Level Strip Icon Size*:</source>
-        <translation type="unfinished"></translation>
     </message>
     <message>
         <source>Viewer Shrink:</source>
@@ -7210,14 +7571,6 @@ Set the output folder path to the subfolder as well.</source>
     <message>
         <source>Previous Frames Correction:</source>
         <translation>Correzione dei Fotogrammi Precedenti:</translation>
-    </message>
-    <message>
-        <source>Ink Color on White Bg:</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Ink Color on Black Bg:</source>
-        <translation type="unfinished"></translation>
     </message>
     <message>
         <source>Paint Color:</source>
@@ -7564,10 +7917,6 @@ if both are possible on coding file path.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Color Calibration using 3D Look-up Table*</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>Show Cursor Size Outlines</source>
         <translation type="unfinished"></translation>
     </message>
@@ -7594,10 +7943,6 @@ Also the initial output destination for new scenes will be set to $scenefolder a
     </message>
     <message>
         <source>Function Editor*:</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>3DLUT File for [%1]*:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -7756,6 +8101,69 @@ in non alpha-enabled image format.</source>
     <message>
         <source>Number of Frames to Play for Short Play:</source>
         <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Switch to dark icons</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Level Strip Thumbnail Size*:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Color Calibration using 3D Look-up Table</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>3DLUT File for [%1]:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Clear Undo History when Saving Levels</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Use %1 to Resize Brush</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Switch Tool Temporarily Keypress Length (ms):</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>[Experimental Feature] </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Automatically Modify Expression On Moving Referenced Objects</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Edit Additional Style Sheet..</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Icon Theme*:</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>PreferencesPopup::AdditionalStyleEdit</name>
+    <message>
+        <source>Additional Style Sheet</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>OK</source>
+        <translation type="unfinished">OK</translation>
+    </message>
+    <message>
+        <source>Apply</source>
+        <translation type="unfinished">Applica</translation>
+    </message>
+    <message>
+        <source>Close</source>
+        <translation type="unfinished">Chiudi</translation>
     </message>
 </context>
 <context>
@@ -8131,7 +8539,7 @@ Cosa vuoi fare?</translation>
     </message>
     <message>
         <source>LineTest Viewer</source>
-        <translation>Visualizzatore di LineTest</translation>
+        <translation type="vanished">Visualizzatore di LineTest</translation>
     </message>
     <message>
         <source>Xsheet</source>
@@ -8162,6 +8570,7 @@ Cosa vuoi fare?</translation>
         <translation>
             <numerusform>
         </numerusform>
+            <numerusform></numerusform>
         </translation>
     </message>
     <message>
@@ -8414,11 +8823,11 @@ Sei sicuro di voler tornare alla versione precedente?</translation>
     </message>
     <message>
         <source>Include relevant pegbars in the sub-xsheet as well.</source>
-        <translation>Includi nel sub-xsheet anche le reggette pertinenti.</translation>
+        <translation type="vanished">Includi nel sub-xsheet anche le reggette pertinenti.</translation>
     </message>
     <message>
         <source>Include only selected columns in the sub-xsheet.</source>
-        <translation>Includi nel sub-xsheet solo le colonne selezionate.</translation>
+        <translation type="vanished">Includi nel sub-xsheet solo le colonne selezionate.</translation>
     </message>
     <message>
         <source>Exploding Sub-xsheet: what you want to do?</source>
@@ -8426,11 +8835,11 @@ Sei sicuro di voler tornare alla versione precedente?</translation>
     </message>
     <message>
         <source>Bring relevant pegbars in the main xsheet.</source>
-        <translation>Porta le reggette pertinenti nell&apos;xsheet principale.</translation>
+        <translation type="vanished">Porta le reggette pertinenti nell&apos;xsheet principale.</translation>
     </message>
     <message>
         <source>Bring only columns in the main xsheet.</source>
-        <translation>Porta solo le colonne nell&apos;xsheet principale.</translation>
+        <translation type="vanished">Porta solo le colonne nell&apos;xsheet principale.</translation>
     </message>
     <message>
         <source>Invalid selection: each selected column must contain one single level with increasing frame numbering.</source>
@@ -8798,7 +9207,7 @@ Alcuni livelli potrebbero non essere stati caricati perché la loro versione non
     </message>
     <message>
         <source>LineTest Capture</source>
-        <translation>LineTest Acquisizione</translation>
+        <translation type="vanished">LineTest Acquisizione</translation>
     </message>
     <message>
         <source>It is not possible to save images in camera stand view.</source>
@@ -9515,10 +9924,6 @@ What do you want to do?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Layer name</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>Paste Numbers</source>
         <translation type="unfinished"></translation>
     </message>
@@ -9908,11 +10313,6 @@ Lo vuoi sovrascrivere?</translation>
         <translation type="unfinished">%1 non esiste.</translation>
     </message>
     <message>
-        <source>The file %1 already exists.
-Do you want to overwrite it?</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>The file %1 has been exported successfully.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -10025,6 +10425,66 @@ Do you want to create it?</source>
         <source>Close</source>
         <translation type="unfinished">Chiudi</translation>
     </message>
+    <message>
+        <source>No columns can be exported.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Export Exchange Digital Time Sheet (XDTS)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Maintain parenting relationships in the sub-xsheet as well.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Include the selected columns in the sub-xsheet without parenting info.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Maintain parenting relationships in the main xsheet.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Bring columns in the main xsheet without parenting.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>and %1 more item(s).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Convert to Vectors</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>There are no copied cells to duplicate.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Cannot paste cells on locked layers.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Can&apos;t place drawings on the camera column.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Cannot duplicate frames in read only levels</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Can only duplicate frames in image sequence levels.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Toggle vector column as mask. </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Script file %1 does not exists.</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>ReframePopup</name>
@@ -10127,6 +10587,19 @@ Il file audio non sarà incluso nel clip renderizzato.</translation>
         <translation>La scena %1 ha risoluzione differente dalla scena %2.
 Il risultato del render può essere diverso dal previsto. Cosa vuoi fare?</translation>
     </message>
+    <message>
+        <source>Please specify an file name.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Drag a scene into the box to export a scene.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The %1 scene contains a plastic deformed level.
+These levels can&apos;t be exported with this tool.</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>RenumberPopup</name>
@@ -10220,7 +10693,11 @@ Il risultato del render può essere diverso dal previsto. Cosa vuoi fare?</trans
         <translation type="vanished">Clicca e trascina per spostare la guida</translation>
     </message>
     <message>
-        <source>Left click and drag to move guide. Right click to delete guide</source>
+        <source>Left-click and drag to move guide, right-click to delete guide.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Click to create a horizontal guide</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -11402,7 +11879,7 @@ Per favore sottometti o ripristina i cambiamenti prima di proseguire.</translati
     </message>
     <message>
         <source>Scene: </source>
-        <translation type="vanished">Scena:</translation>
+        <translation>Scena:</translation>
     </message>
     <message>
         <source>   ::   Frame: </source>
@@ -11414,7 +11891,7 @@ Per favore sottometti o ripristina i cambiamenti prima di proseguire.</translati
     </message>
     <message>
         <source>Level: </source>
-        <translation type="vanished">Livello:</translation>
+        <translation>Livello:</translation>
     </message>
     <message>
         <source>  ::  Zoom : </source>
@@ -11433,11 +11910,15 @@ Per favore sottometti o ripristina i cambiamenti prima di proseguire.</translati
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>[SCENE]: </source>
+        <source>GUI Show / Hide</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>[LEVEL]: </source>
+        <source>Playback Toolbar</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Frame Slider</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -11582,6 +12063,22 @@ Per favore sottometti o ripristina i cambiamenti prima di proseguire.</translati
     <message>
         <source>Converting level %1 of %2: %3</source>
         <translation type="unfinished">Converti %1 livelli di %2: %3</translation>
+    </message>
+    <message>
+        <source>Save Settings</source>
+        <translation type="unfinished">Salva le Impostazioni</translation>
+    </message>
+    <message>
+        <source>Load Settings</source>
+        <translation type="unfinished">Carica le Impostazioni</translation>
+    </message>
+    <message>
+        <source>Failed to load %1.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Failed to create the folder.</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -13244,6 +13741,19 @@ Clicca la freccia per creare un nuovo sub-xsheet</translation>
     <message>
         <source>Load Vectorizer Parameters</source>
         <translation>Caricare Parametri Vettorializzazione</translation>
+    </message>
+    <message>
+        <source>Align Boundary Strokes Direction</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Align boundary strokes direction to be the same.
+(clockwise, i.e. left to right as viewed from inside of the shape)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Options</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>

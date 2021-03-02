@@ -260,6 +260,34 @@
         <source>Auto Select Drawing</source>
         <translation>Seleccionar dibujo automáticamente</translation>
     </message>
+    <message>
+        <source>Snap</source>
+        <translation>Adherencia</translation>
+    </message>
+    <message>
+        <source>Type:</source>
+        <translation>Tipo:</translation>
+    </message>
+    <message>
+        <source>Rectangular</source>
+        <translation>Rectangular</translation>
+    </message>
+    <message>
+        <source>Freehand</source>
+        <translation>Lazo</translation>
+    </message>
+    <message>
+        <source>Low</source>
+        <translation>Baja</translation>
+    </message>
+    <message>
+        <source>Med</source>
+        <translation>Media</translation>
+    </message>
+    <message>
+        <source>High</source>
+        <translation>Alta</translation>
+    </message>
 </context>
 <context>
     <name>ControlPointSelection</name>
@@ -269,7 +297,7 @@
     </message>
     <message>
         <source>Set Nonlinear Control Point</source>
-        <translation>Punto de control Bézier</translation>
+        <translation>Punto de control Bezier</translation>
     </message>
 </context>
 <context>
@@ -467,6 +495,26 @@
     <message>
         <source>Lines &amp; Areas</source>
         <translation>Líneas y áreas</translation>
+    </message>
+    <message>
+        <source>Segment</source>
+        <translation>Segmento</translation>
+    </message>
+    <message>
+        <source>Linear</source>
+        <translation>Lineal</translation>
+    </message>
+    <message>
+        <source>Ease In</source>
+        <translation>Desaceleración suave</translation>
+    </message>
+    <message>
+        <source>Ease Out</source>
+        <translation>Aceleración suave</translation>
+    </message>
+    <message>
+        <source>Ease In/Out</source>
+        <translation>Aceleración y desaceleración suaves</translation>
     </message>
 </context>
 <context>
@@ -949,7 +997,7 @@ Do you want to proceed?</source>
     </message>
     <message>
         <source>Polyline</source>
-        <translation>Curva Bézier</translation>
+        <translation>Curva Bezier</translation>
     </message>
     <message>
         <source>Arc</source>
@@ -994,6 +1042,14 @@ Do you want to proceed?</source>
     <message>
         <source>Med</source>
         <translation>Media</translation>
+    </message>
+    <message>
+        <source>MultiArc</source>
+        <translation>Arco múltiple</translation>
+    </message>
+    <message>
+        <source>Smooth</source>
+        <translation>Suavizar</translation>
     </message>
 </context>
 <context>
@@ -1201,6 +1257,10 @@ Do you want to proceed?</source>
         <source>The selection cannot be moved. It is not editable.</source>
         <translation>La selección no puede ser movida. No es editable.</translation>
     </message>
+    <message>
+        <source>Snap At Intersection</source>
+        <translation>Adherir a intersecciones</translation>
+    </message>
 </context>
 <context>
     <name>RGBPickerTool</name>
@@ -1259,7 +1319,7 @@ Do you want to proceed?</source>
     </message>
     <message>
         <source>Style Index:</source>
-        <translation>Índice del estilo:</translation>
+        <translation>Identificador del estilo:</translation>
     </message>
     <message>
         <source>Opacity:</source>
@@ -1388,7 +1448,7 @@ Do you want to proceed?</source>
     </message>
     <message>
         <source>Link</source>
-        <translation>Vinculado</translation>
+        <translation>Vincular</translation>
     </message>
     <message>
         <source>Scale</source>
@@ -1770,6 +1830,10 @@ movido hacia el final de la primera página de la paleta.</translation>
     <message>
         <source>Bevel join</source>
         <translation>Biseladas</translation>
+    </message>
+    <message>
+        <source>Include Intersection</source>
+        <translation>Incluir intersección</translation>
     </message>
 </context>
 <context>

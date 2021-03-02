@@ -260,6 +260,34 @@
         <source>Auto Select Drawing</source>
         <translation>レベルをまたいで選択</translation>
     </message>
+    <message>
+        <source>Snap</source>
+        <translation>スナップ</translation>
+    </message>
+    <message>
+        <source>Type:</source>
+        <translation>タイプ：</translation>
+    </message>
+    <message>
+        <source>Rectangular</source>
+        <translation>長方形</translation>
+    </message>
+    <message>
+        <source>Freehand</source>
+        <translation>なげなわ</translation>
+    </message>
+    <message>
+        <source>Low</source>
+        <translation>低</translation>
+    </message>
+    <message>
+        <source>Med</source>
+        <translation>中</translation>
+    </message>
+    <message>
+        <source>High</source>
+        <translation>高</translation>
+    </message>
 </context>
 <context>
     <name>ControlPointSelection</name>
@@ -467,6 +495,26 @@
     <message>
         <source>Lines &amp; Areas</source>
         <translation>線と塗り</translation>
+    </message>
+    <message>
+        <source>Segment</source>
+        <translation>線分の自動検出</translation>
+    </message>
+    <message>
+        <source>Linear</source>
+        <translation>均等割り</translation>
+    </message>
+    <message>
+        <source>Ease In</source>
+        <translation>後詰め</translation>
+    </message>
+    <message>
+        <source>Ease Out</source>
+        <translation>先詰め</translation>
+    </message>
+    <message>
+        <source>Ease In/Out</source>
+        <translation>両詰め</translation>
     </message>
 </context>
 <context>
@@ -995,6 +1043,14 @@ Do you want to proceed?</source>
         <source>High</source>
         <translation>高</translation>
     </message>
+    <message>
+        <source>MultiArc</source>
+        <translation>連続円弧</translation>
+    </message>
+    <message>
+        <source>Smooth</source>
+        <translation>滑らかに連結</translation>
+    </message>
 </context>
 <context>
     <name>PumpTool</name>
@@ -1200,6 +1256,10 @@ Do you want to proceed?</source>
     <message>
         <source>The selection cannot be moved. It is not editable.</source>
         <translation>選択グループを移動できません。レベルまたは列が編集不可に設定されています。</translation>
+    </message>
+    <message>
+        <source>Snap At Intersection</source>
+        <translation>交点にスナップ</translation>
     </message>
 </context>
 <context>
@@ -1770,6 +1830,10 @@ moved to the end of the first page of the palette.</source>
     <message>
         <source>Round cap</source>
         <translation>丸型線端</translation>
+    </message>
+    <message>
+        <source>Include Intersection</source>
+        <translation>交差選択</translation>
     </message>
 </context>
 <context>

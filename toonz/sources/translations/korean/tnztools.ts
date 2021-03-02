@@ -208,6 +208,34 @@
         <source>Auto Select Drawing</source>
         <translation>자동 그리기 선택</translation>
     </message>
+    <message>
+        <source>Snap</source>
+        <translation type="unfinished">스냅</translation>
+    </message>
+    <message>
+        <source>Type:</source>
+        <translation type="unfinished">유형:</translation>
+    </message>
+    <message>
+        <source>Rectangular</source>
+        <translation type="unfinished">직사각형</translation>
+    </message>
+    <message>
+        <source>Freehand</source>
+        <translation type="unfinished">올가미</translation>
+    </message>
+    <message>
+        <source>Low</source>
+        <translation type="unfinished">낮은</translation>
+    </message>
+    <message>
+        <source>Med</source>
+        <translation type="unfinished">중간</translation>
+    </message>
+    <message>
+        <source>High</source>
+        <translation type="unfinished">높은</translation>
+    </message>
 </context>
 <context>
     <name>ControlPointSelection</name>
@@ -415,6 +443,26 @@
     <message>
         <source>Pencil Mode</source>
         <translation>연필 모드</translation>
+    </message>
+    <message>
+        <source>Segment</source>
+        <translation type="unfinished">세그먼트</translation>
+    </message>
+    <message>
+        <source>Linear</source>
+        <translation type="unfinished">선형</translation>
+    </message>
+    <message>
+        <source>Ease In</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Ease Out</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Ease In/Out</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -931,6 +979,14 @@ Do you want to proceed?</source>
         <source>High</source>
         <translation>높은</translation>
     </message>
+    <message>
+        <source>MultiArc</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Smooth</source>
+        <translation type="unfinished">부드러운</translation>
+    </message>
 </context>
 <context>
     <name>PumpTool</name>
@@ -1128,6 +1184,10 @@ Do you want to proceed?</source>
     <message>
         <source>The selection cannot be moved. It is not editable.</source>
         <translation>선택을 이동할 수 없습니다. 편집 할 수 없습니다.</translation>
+    </message>
+    <message>
+        <source>Snap At Intersection</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -1704,6 +1764,10 @@ moved to the end of the first page of the palette.</source>
     <message>
         <source>Miter:</source>
         <translation>마이터:</translation>
+    </message>
+    <message>
+        <source>Include Intersection</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
