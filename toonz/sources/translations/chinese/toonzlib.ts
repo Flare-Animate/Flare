@@ -614,11 +614,11 @@
     </message>
     <message>
         <source>Failed to save palette.</source>
-        <translation type="unfinished"></translation>
+        <translation>保存调色板失败。</translation>
     </message>
     <message>
         <source>and %1 more item(s).</source>
-        <translation type="unfinished"></translation>
+        <translation>和 %1 更多项目。</translation>
     </message>
 </context>
 <context>

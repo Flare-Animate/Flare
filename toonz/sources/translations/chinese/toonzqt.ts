@@ -434,15 +434,15 @@ Possibly the preset file has been corrupted</source>
     </message>
     <message>
         <source>Range:</source>
-        <translation type="unfinished">范围:</translation>
+        <translation>范围:</translation>
     </message>
     <message>
         <source>Output:</source>
-        <translation type="unfinished"></translation>
+        <translation>输出:</translation>
     </message>
     <message>
         <source>Input:</source>
-        <translation type="unfinished"></translation>
+        <translation>输入:</translation>
     </message>
 </context>
 <context>
@@ -739,15 +739,15 @@ Possibly the preset file has been corrupted</source>
     </message>
     <message>
         <source>Sound</source>
-        <translation type="unfinished"></translation>
+        <translation>声音</translation>
     </message>
     <message>
         <source>Locator</source>
-        <translation type="unfinished"></translation>
+        <translation>定位器</translation>
     </message>
     <message>
         <source>&amp;Next Frame</source>
-        <translation type="unfinished"></translation>
+        <translation>下一帧(&amp;N)</translation>
     </message>
 </context>
 <context>
@@ -1002,7 +1002,7 @@ Possibly the preset file has been corrupted</source>
     </message>
     <message>
         <source>Link/Unlink Handles</source>
-        <translation type="unfinished"></translation>
+        <translation>链接/断开手柄</translation>
     </message>
 </context>
 <context>
@@ -1111,7 +1111,8 @@ Possibly the preset file has been corrupted</source>
     <message>
         <source>Some key(s) in this parameter loses original reference in expression.
 Manually changing any keyframe will clear the warning.</source>
-        <translation type="unfinished"></translation>
+        <translation>在表达式中此参数的某些关键帧丢失原引用。
+手工更改任意的关键帧将清理该警告。</translation>
     </message>
 </context>
 <context>
@@ -1146,7 +1147,8 @@ Manually changing any keyframe will clear the warning.</source>
     <message>
         <source>Some key(s) in this parameter loses original reference in expression.
 Manually changing any keyframe will clear the warning.</source>
-        <translation type="unfinished"></translation>
+        <translation>在表达式中此参数的某些关键帧丢失原引用。
+手工更改任意的关键帧将清理该警告。</translation>
     </message>
 </context>
 <context>
@@ -1655,15 +1657,15 @@ Select FX nodes and related links before copying or cutting the selection you wa
     </message>
     <message>
         <source>Hide New Style Button</source>
-        <translation type="unfinished"></translation>
+        <translation>隐藏新建样式按钮</translation>
     </message>
     <message>
         <source>Show New Style Button</source>
-        <translation type="unfinished"></translation>
+        <translation>显示新建样式按钮</translation>
     </message>
     <message>
         <source>Failed to save palette.</source>
-        <translation type="unfinished"></translation>
+        <translation>保存调色板失败。</translation>
     </message>
 </context>
 <context>
@@ -1690,7 +1692,7 @@ Select FX nodes and related links before copying or cutting the selection you wa
     </message>
     <message>
         <source> + </source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
 </context>
 <context>
@@ -1713,7 +1715,7 @@ Select FX nodes and related links before copying or cutting the selection you wa
     </message>
     <message>
         <source>Failed to import palette.</source>
-        <translation type="unfinished"></translation>
+        <translation>导入调色板失败。</translation>
     </message>
 </context>
 <context>
@@ -1731,7 +1733,7 @@ Select FX nodes and related links before copying or cutting the selection you wa
     </message>
     <message>
         <source>View help page</source>
-        <translation type="unfinished"></translation>
+        <translation>查看帮助页</translation>
     </message>
 </context>
 <context>
@@ -2370,25 +2372,27 @@ The second line should be &quot;Mesh [Input bit depth] [Output bit depth]&quot;<
     </message>
     <message>
         <source>There are no unused styles.</source>
-        <translation type="unfinished"></translation>
+        <translation>没有未使用的样式。</translation>
     </message>
     <message>
         <source>and %1 more styles.</source>
-        <translation type="unfinished"></translation>
+        <translation>和 %1 更多样式。</translation>
     </message>
     <message>
         <source>Erasing unused styles with following indices. Are you sure?
 
 %1</source>
-        <translation type="unfinished"></translation>
+        <translation>擦除未使用的样式时有如下问题。你确认吗？
+
+%1</translation>
     </message>
     <message>
         <source>Erase</source>
-        <translation type="unfinished"></translation>
+        <translation>擦除</translation>
     </message>
     <message>
         <source>Click &amp; Drag Palette into Studio Palette</source>
-        <translation type="unfinished"></translation>
+        <translation>点击 &amp; 拖放调色板到工作室调色板</translation>
     </message>
 </context>
 <context>
@@ -2715,7 +2719,7 @@ Are you sure ?</source>
     </message>
     <message>
         <source>Failed to save palette.</source>
-        <translation type="unfinished"></translation>
+        <translation>保存调色板失败。</translation>
     </message>
 </context>
 <context>
@@ -2881,15 +2885,15 @@ Apply</source>
     </message>
     <message>
         <source>Cleanup </source>
-        <translation type="unfinished"></translation>
+        <translation>清理 </translation>
     </message>
     <message>
         <source>Studio </source>
-        <translation type="unfinished"></translation>
+        <translation>工作室 </translation>
     </message>
     <message>
         <source>Level </source>
-        <translation type="unfinished"></translation>
+        <translation>层级 </translation>
     </message>
 </context>
 <context>
