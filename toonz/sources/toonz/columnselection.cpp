@@ -7,6 +7,7 @@
 #include "menubarcommandids.h"
 #include "columncommand.h"
 #include "tapp.h"
+#include "levelcommand.h"
 
 // TnzLib includes
 #include "toonz/txsheethandle.h"
@@ -19,10 +20,48 @@
 #include "toonz/levelproperties.h"
 #include "orientation.h"
 #include "toonz/preferences.h"
+#include "toonz/txshchildlevel.h"
 
 // TnzCore includes
 #include "tvectorimage.h"
 #include "ttoonzimage.h"
+#include "tundo.h"
+
+namespace {
+// obtain level set contained in the column specified by indices
+// it is used for checking and updating the scene cast when pasting
+// based on TXsheet::getUsedLevels
+void getLevelSetFromColumnIndices(const std::set<int>& indices,
+                                  std::set<TXshLevel*>& levelSet) {
+  TXsheet* xsh = TApp::instance()->getCurrentXsheet()->getXsheet();
+  for (auto c : indices) {
+    TXshColumnP column = const_cast<TXsheet*>(xsh)->getColumn(c);
+    if (!column) continue;
+
+    TXshCellColumn* cellColumn = column->getCellColumn();
+    if (!cellColumn) continue;
+
+    int r0, r1;
+    if (!cellColumn->getRange(r0, r1)) continue;
+
+    TXshLevel* level = 0;
+    for (int r = r0; r <= r1; r++) {
+      TXshCell cell = cellColumn->getCell(r);
+      if (cell.isEmpty() || !cell.m_level) continue;
+
+      if (level != cell.m_level.getPointer()) {
+        level = cell.m_level.getPointer();
+        levelSet.insert(level);
+        if (level->getChildLevel()) {
+          TXsheet* childXsh = level->getChildLevel()->getXsheet();
+          childXsh->getUsedLevels(levelSet);
+        }
+      }
+    }
+  }
+}
+
+}  // namespace
 
 //=============================================================================
 // TColumnSelection
@@ -78,7 +117,21 @@ void TColumnSelection::pasteColumns() {
     return;
   else
     indices.insert(*m_indices.begin());
+
+  TUndoManager::manager()->beginBlock();
+
   ColumnCmd::pasteColumns(indices);
+
+  if (!indices.empty()) {
+    // make sure that the levels contained in the pasted columns are registered
+    // in the scene cast it may rename the level if there is another level with
+    // the same name
+    std::set<TXshLevel*> pastedLevels;
+    getLevelSetFromColumnIndices(indices, pastedLevels);
+    LevelCmd::addMissingLevelsToCast(pastedLevels);
+  }
+
+  TUndoManager::manager()->endBlock();
 }
 
 //-----------------------------------------------------------------------------
@@ -86,11 +139,25 @@ void TColumnSelection::pasteColumns() {
 void TColumnSelection::pasteColumnsAbove() {
   std::set<int> indices;
   if (isEmpty()) {  // in case that no columns are selected
-    TXsheet *xsh = TApp::instance()->getCurrentXsheet()->getXsheet();
+    TXsheet* xsh = TApp::instance()->getCurrentXsheet()->getXsheet();
     indices.insert(xsh->getFirstFreeColumnIndex());
   } else
     indices.insert(*m_indices.rbegin() + 1);
+
+  TUndoManager::manager()->beginBlock();
+
   ColumnCmd::pasteColumns(indices);
+
+  if (!indices.empty()) {
+    // make sure that the levels contained in the pasted columns are registered
+    // in the scene cast it may rename the level if there is another level with
+    // the same name
+    std::set<TXshLevel*> pastedLevels;
+    getLevelSetFromColumnIndices(indices, pastedLevels);
+    LevelCmd::addMissingLevelsToCast(pastedLevels);
+  }
+
+  TUndoManager::manager()->endBlock();
 }
 
 //-----------------------------------------------------------------------------
@@ -136,7 +203,7 @@ void TColumnSelection::explodeChild() {
 //-----------------------------------------------------------------------------
 
 static bool canMergeColumns(int column, int mColumn, bool forMatchlines) {
-  TXsheet *xsh = TApp::instance()->getCurrentXsheet()->getXsheet();
+  TXsheet* xsh = TApp::instance()->getCurrentXsheet()->getXsheet();
 
   if (column < 0 || mColumn < 0) return false;
 
@@ -256,9 +323,9 @@ void TColumnSelection::cloneChild() {
 //-----------------------------------------------------------------------------
 
 void TColumnSelection::hideColumns() {
-  TApp *app = TApp::instance();
+  TApp* app = TApp::instance();
   for (auto o : Orientations::all()) {
-    ColumnFan *columnFan =
+    ColumnFan* columnFan =
         app->getCurrentXsheet()->getXsheet()->getColumnFan(o);
     std::set<int>::iterator it = m_indices.begin();
     for (; it != m_indices.end(); ++it) columnFan->deactivate(*it);
