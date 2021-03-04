@@ -7,7 +7,7 @@
 - brew
 - Xcode
 - cmake (3.2.2 or later)
-- Qt (5.9.2 or later)
+- Qt 5.x (5.9.2 or later)
 - boost (1.55.0 or later)
 
 ## Building on macOS
@@ -34,11 +34,11 @@ $ /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/
 
 In a Terminal window, execute the following statements:
 ```
-$ brew install glew lz4 libjpeg libpng lzo pkg-config libusb cmake git-lfs libmypaint qt boost
+$ brew install glew lz4 libjpeg libpng lzo pkg-config libusb cmake git-lfs libmypaint qt@5 boost jpeg-turbo
 $ git lfs install
 ```
 
-NOTE: This will install the latest version of QT which may not be compatible with older OS versions.
+NOTE: This will install the latest version of QT v5.x which may not be compatible with older OS versions.
 
 If you cannot use the most recent version, download the online installer from https://www.qt.io/download and install the appropriate `macOS` version (min 5.9.2).  If installing via this method, be sure to install the `Qt Script (Deprecated)` libraries.
 
@@ -78,12 +78,17 @@ $ cd ~/Documents/opentoonz/toonz
 $ mkdir build
 $ cd build
 ```
+2. Include libjpeg-turbo path to PKG_CONFIG_PATH
 
-2. Set up build environment
+```
+$ export PKG_CONFIG_PATH="/usr/local/opt/jpeg-turbo/lib/pkgconfig:$PKG_CONFIG_PATH"
+```
+
+3. Set up build environment
 
 To build from command line, do the following:
 ```
-$ cmake ../sources -DQT_PATH='/usr/local/opt/qt/lib'  #replace QT path with your installed QT version#
+$ cmake ../sources -DQT_PATH='/usr/local/opt/qt@5/lib'  #replace QT path with your installed QT version#
 $ make
 ```
 - If you downloaded the QT installer and installed to `/Users/yourlogin/Qt` instead of by using homebrew, your lib path may look something like this: `~/Qt/5.12.2/clang_64/lib` or `~/Qt/5.12.2/clang_32/lib`
@@ -91,7 +96,7 @@ $ make
 To build using Xcode, do the following:
 ```
 $ sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
-$ cmake -G Xcode ../sources -B. -DQT_PATH='/usr/local/opt/qt/lib' -DWITH_TRANSLATION=OFF   #replace QT path with your installed QT version#
+$ cmake -G Xcode ../sources -B. -DQT_PATH='/usr/local/opt/qt@5/lib' -DWITH_TRANSLATION=OFF   #replace QT path with your installed QT version#
 ```
 - Note that the option `-DWITH_TRANSLATION=OFF` is needed to avoid error when using XCode 12+ which does not allow to add the same source to multiple targets.
 - Open Xcode app and open project /Users/yourlogin/Documents/opentoonz/toonz/build/OpenToonz.xcodeproj

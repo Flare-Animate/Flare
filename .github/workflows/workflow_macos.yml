@@ -24,7 +24,7 @@ jobs:
           done
         }
         brew update
-        checkPkgAndInstall pkg-config glew lz4 libjpeg libpng lzo qt boost libusb libmypaint ccache jpeg-turbo ninja
+        checkPkgAndInstall pkg-config glew lz4 libjpeg libpng lzo qt@5 boost libusb libmypaint ccache jpeg-turbo ninja
         brew unlink gcc@8
         brew unlink gcc@9
         checkPkgAndInstall opencv
@@ -48,14 +48,14 @@ jobs:
         cd toonz
         mkdir build
         cd build
-        cmake ../sources -G Ninja -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DQT_PATH='/usr/local/opt/qt/lib' -DWITH_TRANSLATION=OFF
+        cmake ../sources -G Ninja -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DQT_PATH='/usr/local/opt/qt@5/lib' -DWITH_TRANSLATION=OFF
         ninja -w dupbuild=warn
 
     - name: Create Artifact
       run: |
         cd toonz/build/toonz
         cp -pr ../../../stuff OpenToonz.app/portablestuff
-        /usr/local/opt/qt/bin/macdeployqt OpenToonz.app -dmg -verbose=1 -always-overwrite \
+        /usr/local/opt/qt@5/bin/macdeployqt OpenToonz.app -dmg -verbose=1 -always-overwrite \
         -executable=OpenToonz.app/Contents/MacOS/lzocompress \
         -executable=OpenToonz.app/Contents/MacOS/lzodecompress \
         -executable=OpenToonz.app/Contents/MacOS/tcleanup \
