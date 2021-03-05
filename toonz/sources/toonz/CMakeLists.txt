@@ -185,6 +185,7 @@ set(HEADERS
     ../include/orientation.h
     ../include/saveloadqsettings.h
     xdtsio.h
+    levelcommand.h
 # Tracker file
     ObjectTracker.h
     dummyprocessor.h
