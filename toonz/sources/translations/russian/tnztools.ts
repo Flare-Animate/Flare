@@ -560,17 +560,17 @@
     <message>
         <location filename="../../tnztools/vectorerasertool.cpp" line="441"/>
         <source>Ease In</source>
-        <translation>Замедл. в конце</translation>
+        <translation>Замедление</translation>
     </message>
     <message>
         <location filename="../../tnztools/vectorerasertool.cpp" line="442"/>
         <source>Ease Out</source>
-        <translation>Замедл. в начале</translation>
+        <translation>Ускорение</translation>
     </message>
     <message>
         <location filename="../../tnztools/vectorerasertool.cpp" line="443"/>
         <source>Ease In/Out</source>
-        <translation>Замедл. в конце/ начале</translation>
+        <translation>Замедл. в начале/в конце</translation>
     </message>
     <message>
         <location filename="../../tnztools/rastererasertool.cpp" line="632"/>
@@ -2021,17 +2021,17 @@ moved to the end of the first page of the palette.</source>
     <message>
         <location filename="../../tnztools/toonzvectorbrushtool.cpp" line="598"/>
         <source>In</source>
-        <translation>Замедл. в начале</translation>
+        <translation>Замедление</translation>
     </message>
     <message>
         <location filename="../../tnztools/toonzvectorbrushtool.cpp" line="599"/>
         <source>Out</source>
-        <translation>Замедл. в конце</translation>
+        <translation>Ускорение</translation>
     </message>
     <message>
         <location filename="../../tnztools/toonzvectorbrushtool.cpp" line="600"/>
         <source>In&amp;Out</source>
-        <translation>В начале &amp;в конце</translation>
+        <translation>Медл. начало&amp;конец</translation>
     </message>
     <message>
         <location filename="../../tnztools/toonzvectorbrushtool.cpp" line="601"/>
