@@ -3374,17 +3374,17 @@ Do you want to overwrite it?</source>
     <message>
         <location filename="../../toonz/filmstrip.cpp" line="1980"/>
         <source>Ease In</source>
-        <translation>Замедл. в конце</translation>
+        <translation>Замедление</translation>
     </message>
     <message>
         <location filename="../../toonz/filmstrip.cpp" line="1981"/>
         <source>Ease Out</source>
-        <translation>Замедл. в начале</translation>
+        <translation>Ускорение</translation>
     </message>
     <message>
         <location filename="../../toonz/filmstrip.cpp" line="1982"/>
         <source>Ease In / Ease Out</source>
-        <translation>Замедл. в конце/в начале</translation>
+        <translation>Медл. начало и конец</translation>
     </message>
     <message>
         <location filename="../../toonz/filmstrip.cpp" line="1989"/>
@@ -6412,17 +6412,17 @@ or you may delete necessary files for it.</source>
     <message>
         <location filename="../../toonz/mainwindow.cpp" line="2422"/>
         <source>Speed In / Speed Out Interpolation</source>
-        <translation>Интерполяция ускорения в конце/в начале</translation>
+        <translation>Интерполяция ускорения в начале/в конце</translation>
     </message>
     <message>
         <location filename="../../toonz/mainwindow.cpp" line="2424"/>
         <source>Ease In / Ease Out Interpolation</source>
-        <translation>Интерполяция замедления в конце/в начале</translation>
+        <translation>Интерполяция замедления в начале/в конце</translation>
     </message>
     <message>
         <location filename="../../toonz/mainwindow.cpp" line="2426"/>
         <source>Ease In / Ease Out (%) Interpolation</source>
-        <translation>Интерполяция замедления в конце/в начале (%)</translation>
+        <translation>Интерполяция замедления в начале/в конце (%)</translation>
     </message>
     <message>
         <location filename="../../toonz/mainwindow.cpp" line="2428"/>
@@ -9819,12 +9819,12 @@ if both are possible on coding file path.</source>
     <message>
         <location filename="../../toonz/preferencespopup.cpp" line="1278"/>
         <source>Ease In / Ease Out</source>
-        <translation>Замедл. в конце/в начале</translation>
+        <translation>Замедл. в начале/в конце</translation>
     </message>
     <message>
         <location filename="../../toonz/preferencespopup.cpp" line="1279"/>
         <source>Ease In / Ease Out %</source>
-        <translation>Замедл. в конце/в начале %</translation>
+        <translation>Замедл. в начале/в конце %</translation>
     </message>
     <message>
         <location filename="../../toonz/preferencespopup.cpp" line="1284"/>
@@ -15028,17 +15028,17 @@ Please commit or revert changes first.</source>
     <message>
         <location filename="../../toonz/sceneviewercontextmenu.cpp" line="177"/>
         <source>Ease In Interpolation</source>
-        <translation>Интерполяция замедления в конце</translation>
+        <translation>Интерполяция замедления</translation>
     </message>
     <message>
         <location filename="../../toonz/sceneviewercontextmenu.cpp" line="179"/>
         <source>Ease Out Interpolation</source>
-        <translation>Интерполяция замедления в начале</translation>
+        <translation>Интерполяция ускорения</translation>
     </message>
     <message>
         <location filename="../../toonz/sceneviewercontextmenu.cpp" line="181"/>
         <source>Ease In/Out Interpolation</source>
-        <translation>Интерполяция замедления в конце/в начале</translation>
+        <translation>Интерполяция замедления в начале/в конце</translation>
     </message>
     <message>
         <location filename="../../toonz/sceneviewercontextmenu.cpp" line="230"/>
@@ -17353,17 +17353,17 @@ WARNING : Image size mismatch. The size of level with the same path is %1 x %2.<
     <message>
         <location filename="../../toonz/vectorguideddrawingpane.cpp" line="49"/>
         <source>Ease In</source>
-        <translation>Замедл. в конце</translation>
+        <translation>Замедление</translation>
     </message>
     <message>
         <location filename="../../toonz/vectorguideddrawingpane.cpp" line="49"/>
         <source>Ease Out</source>
-        <translation>Замедл. в начале</translation>
+        <translation>Ускорение</translation>
     </message>
     <message>
         <location filename="../../toonz/vectorguideddrawingpane.cpp" line="49"/>
         <source>EaseIn/Out</source>
-        <translation>Замедл.в конце/в начале</translation>
+        <translation>Замедл.в начале/в конце</translation>
     </message>
     <message>
         <location filename="../../toonz/vectorguideddrawingpane.cpp" line="61"/>

@@ -536,12 +536,12 @@ Possibly the preset file has been corrupted</source>
     <message>
         <location filename="../../toonzqt/functionsegmentviewer.cpp" line="384"/>
         <source>Ease In:</source>
-        <translation>Замедл. в нач:</translation>
+        <translation>Замедление:</translation>
     </message>
     <message>
         <location filename="../../toonzqt/functionsegmentviewer.cpp" line="381"/>
         <source>Ease Out:</source>
-        <translation>Замедл. в конце:</translation>
+        <translation>Ускорение:</translation>
     </message>
 </context>
 <context>
@@ -950,17 +950,17 @@ Possibly the preset file has been corrupted</source>
     <message>
         <location filename="../../toonzqt/functionpanel.cpp" line="1540"/>
         <source>Speed In / Speed Out Interpolation</source>
-        <translation>Интерполяция Замедл. в начале/в конце</translation>
+        <translation>Интерполяция Ускорение в начале/в конце</translation>
     </message>
     <message>
         <location filename="../../toonzqt/functionpanel.cpp" line="1541"/>
         <source>Ease In / Ease Out Interpolation</source>
-        <translation>Ease In / Ease Out Интерполяция</translation>
+        <translation>Интерполяция Медленное начало/конец</translation>
     </message>
     <message>
         <location filename="../../toonzqt/functionpanel.cpp" line="1542"/>
         <source>Ease In / Ease Out (%) Interpolation</source>
-        <translation>Ease In / Ease Out (%) Интерполяция</translation>
+        <translation>Интерполяция Медленное начало/конец (%)</translation>
     </message>
     <message>
         <location filename="../../toonzqt/functionpanel.cpp" line="1543"/>
