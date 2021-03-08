@@ -1392,6 +1392,7 @@ void IoCmd::newScene() {
 bool IoCmd::saveScene(const TFilePath &path, int flags) {
   bool overwrite     = (flags & SILENTLY_OVERWRITE) != 0;
   bool saveSubxsheet = (flags & SAVE_SUBXSHEET) != 0;
+  bool isAutosave    = (flags & AUTO_SAVE) != 0;
   TApp *app          = TApp::instance();
 
   assert(!path.isEmpty());
@@ -1432,7 +1433,7 @@ bool IoCmd::saveScene(const TFilePath &path, int flags) {
   if (saveSubxsheet) xsheet = TApp::instance()->getCurrentXsheet()->getXsheet();
 
   // Automatically remove unused levels
-  if (!saveSubxsheet &&
+  if (!saveSubxsheet && !isAutosave &&
       Preferences::instance()->isAutoRemoveUnusedLevelsEnabled()) {
     if (LevelCmd::removeUnusedLevelsFromCast(false))
       DVGui::info(
@@ -1546,7 +1547,7 @@ bool IoCmd::saveScene(const TFilePath &path, int flags) {
 // IoCmd::saveScene()
 //---------------------------------------------------------------------------
 
-bool IoCmd::saveScene() {
+bool IoCmd::saveScene(int flags) {
   TSelection *oldSelection =
       TApp::instance()->getCurrentSelection()->getSelection();
   ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
@@ -1564,7 +1565,7 @@ bool IoCmd::saveScene() {
   } else {
     TFilePath fp = scene->getScenePath();
     // salva la scena con il nome fp. se fp esiste gia' lo sovrascrive
-    return saveScene(fp, SILENTLY_OVERWRITE);
+    return saveScene(fp, SILENTLY_OVERWRITE | flags);
   }
 }
 
@@ -1709,10 +1710,10 @@ bool IoCmd::saveLevel(TXshSimpleLevel *sl) {
 // IoCmd::saveAll()
 //---------------------------------------------------------------------------
 
-bool IoCmd::saveAll() {
+bool IoCmd::saveAll(int flags) {
   // try to save as much as possible
   // if anything is wrong, return false
-  bool result = saveScene();
+  bool result = saveScene(flags);
 
   TApp *app         = TApp::instance();
   ToonzScene *scene = app->getCurrentScene()->getScene();
