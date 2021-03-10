@@ -6,6 +6,7 @@
 #include "toonz/studiopalette.h"
 #include "toonz/tproject.h"
 #include "toonzqt/dvdialog.h"
+#include "saveloadqsettings.h"
 
 #include <QTreeWidget>
 #include <QSplitter>
@@ -212,7 +213,8 @@ protected:
                 allows to show and modify current studio palette selected in
    tree.
 */
-class DVAPI StudioPaletteViewer final : public QSplitter {
+class DVAPI StudioPaletteViewer final : public QSplitter,
+                                        public SaveLoadQSettings {
   Q_OBJECT
 
   StudioPaletteTreeViewer *m_studioPaletteTreeViewer;
@@ -230,6 +232,10 @@ public:
 
   int getViewMode() const;
   void setViewMode(int mode);
+
+  // SaveLoadQSettings
+  virtual void save(QSettings &settings) const override;
+  virtual void load(QSettings &settings) override;
 };
 
 //-----------------------------------------------------------------------------

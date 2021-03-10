@@ -1588,6 +1588,9 @@ PaletteViewer QToolBar #keyFrameNavigator #KeyTotal {
   background-color: #d28b8b;
   border-color: #7b3030;
 }
+#PltPageViewerScrollArea {
+  border-bottom: 1px solid #5a5a5a;
+}
 /* -----------------------------------------------------------------------------
    Quick Renamer
 ----------------------------------------------------------------------------- */
