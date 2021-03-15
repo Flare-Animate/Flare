@@ -50,12 +50,12 @@ jobs:
         cd build
         cmake ../sources -G Ninja -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DQT_PATH='/usr/local/opt/qt@5/lib' -DWITH_TRANSLATION=OFF
         ninja -w dupbuild=warn
-
-    - name: Create Artifact
+    
+    - name: Introduce Libraries and Stuff
       run: |
         cd toonz/build/toonz
         cp -pr ../../../stuff OpenToonz.app/portablestuff
-        /usr/local/opt/qt@5/bin/macdeployqt OpenToonz.app -dmg -verbose=1 -always-overwrite \
+        /usr/local/opt/qt@5/bin/macdeployqt OpenToonz.app -verbose=1 -always-overwrite \
         -executable=OpenToonz.app/Contents/MacOS/lzocompress \
         -executable=OpenToonz.app/Contents/MacOS/lzodecompress \
         -executable=OpenToonz.app/Contents/MacOS/tcleanup \
@@ -63,7 +63,29 @@ jobs:
         -executable=OpenToonz.app/Contents/MacOS/tconverter \
         -executable=OpenToonz.app/Contents/MacOS/tfarmcontroller \
         -executable=OpenToonz.app/Contents/MacOS/tfarmserver
+    
+    - name: Modify Library Paths
+      run: |
+        cd toonz/build/toonz/OpenToonz.app/Contents/Frameworks
+        for TARGETLIB in `ls ./ | grep dylib`
+        do
+          echo $TARGETLIB
+          for FROMPATH in `otool -L "$TARGETLIB" | grep ".dylib" | grep -v "$TARGETLIB" | grep -v "@executable_path/../Frameworks" | sed -e"s/ (.*$//"`
+          do
+            echo "  $FROMPATH"
+            LIBNAME=`basename $FROMPATH`
+            if [[ -e ./$LIBNAME ]]; then
+              echo "updating library path of $LIBNAME in $TARGETLIB"
+              install_name_tool -change "$FROMPATH" "@executable_path/../Frameworks/$LIBNAME" $TARGETLIB
+            fi
+          done
+        done
 
+    - name: Create Artifact
+      run: |
+        cd toonz/build/toonz
+        /usr/local/opt/qt@5/bin/macdeployqt OpenToonz.app -dmg -verbose=1
+    
     - uses: actions/upload-artifact@v1
       with:
         name: Opentoonz-${{ runner.os }}-${{ github.sha }}
