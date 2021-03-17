@@ -3,8 +3,12 @@
 #ifndef PALETTEVIEWER_H
 #define PALETTEVIEWER_H
 
+#include "saveloadqsettings.h"
 #include "paletteviewergui.h"
 #include "toonz/tpalettehandle.h"
+#include "toonz/preferences.h"
+#include <QVBoxLayout>
+#include <QHBoxLayout>
 
 #undef DVAPI
 #undef DVVAR
@@ -18,6 +22,7 @@
 
 // forward declaration
 class QScrollArea;
+class DvScrollWidget;
 class QToolBar;
 class PaletteKeyframeNavigator;
 class TFrameHandle;
@@ -40,7 +45,7 @@ class TXsheetHandle;
 // PaletteViewer
 //-----------------------------------------------------------------------------
 
-class DVAPI PaletteViewer final : public QFrame {
+class DVAPI PaletteViewer final : public QFrame, public SaveLoadQSettings {
   Q_OBJECT
 
 public:
@@ -48,6 +53,12 @@ public:
                 bool hasSaveToolBar = true, bool hasPageCommand = true,
                 bool hasPasteColors = true);
   ~PaletteViewer();
+
+  QString currentRoomChoice = Preferences::instance()->getCurrentRoomChoice();
+
+  bool m_toolbarOnTop = currentRoomChoice.contains("StudioGhibli", Qt::CaseInsensitive) ? true : false;
+
+  void setToolbarOnTop(bool isToolbarOnTop);
 
   const TPaletteHandle *getPaletteHandle() const { return m_paletteHandle; }
   void setPaletteHandle(TPaletteHandle *paletteHandle);
@@ -78,19 +89,32 @@ public:
 
   void enableSaveAction(bool enable);
 
+  bool getStudioGhibli();
+
+  // SaveLoadQSettings
+  virtual void save(QSettings &settings) const override;
+  virtual void load(QSettings &settings) override;
+
+public slots:
+  void toolbarOnTopToggled(bool ignore);
+
 protected:
   TPaletteHandle *m_paletteHandle;
   TFrameHandle *m_frameHandle;
   TXsheetHandle *m_xsheetHandle;
   TXshLevelHandle *m_levelHandle;
 
+  QAction *m_showToolbarOnTopAct;
   QScrollArea *m_pageViewerScrollArea;
   PaletteViewerGUI::PageViewer *m_pageViewer;
   TabBarContainter *m_tabBarContainer;
   PaletteTabBar *m_pagesBar;
-
   QToolBar *m_paletteToolBar;
   QToolBar *m_savePaletteToolBar;
+  QSpacerItem *m_spacer_hExpanding;
+  DvScrollWidget *m_toolbarScrollWidget;
+  QHBoxLayout *m_hLayout;
+  QVBoxLayout *m_mainLayout;
 
   int m_indexPageToDelete;
 

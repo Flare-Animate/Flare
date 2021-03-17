@@ -20,8 +20,10 @@
 #include "toonz/sceneproperties.h"
 #include "toonz/txsheethandle.h"
 #include "toonz/txshlevelhandle.h"
+#include "toonz/preferences.h"
 
 // TnzCore includes
+#include "saveloadqsettings.h"
 #include "tconvert.h"
 #include "tundo.h"
 #include "tsystem.h"
@@ -29,6 +31,7 @@
 #include "../toonz/menubarcommandids.h"
 
 // Qt includes
+#include <QSettings>
 #include <QHeaderView>
 #include <QContextMenuEvent>
 #include <QMenu>
@@ -129,7 +132,7 @@ StudioPaletteTreeViewer::StudioPaletteTreeViewer(
 
   bool ret = connect(this, SIGNAL(itemChanged(QTreeWidgetItem *, int)),
                      SLOT(onItemChanged(QTreeWidgetItem *, int)));
-  ret = ret && connect(this, SIGNAL(itemClicked(QTreeWidgetItem *, int)),
+  ret      = ret && connect(this, SIGNAL(itemClicked(QTreeWidgetItem *, int)),
                        SLOT(onItemClicked(QTreeWidgetItem *, int)));
   ret =
       ret &&
@@ -942,8 +945,8 @@ void StudioPaletteTreeViewer::contextMenuEvent(QContextMenuEvent *event) {
     QTreeWidgetItem *item = items[i];
     QRect rect            = visualItemRect(item);
     if (QRect(0, rect.y(), width(), rect.height()).contains(event->pos()))
-      isClickInSelection                             = true;
-    TFilePath path                                   = getItemPath(item);
+      isClickInSelection = true;
+    TFilePath path = getItemPath(item);
     if (studioPalette->isFolder(path)) areAllPalette = false;
   }
   if (!isClickInSelection) return;
@@ -986,9 +989,8 @@ void StudioPaletteTreeViewer::mousePressEvent(QMouseEvent *event) {
 void StudioPaletteTreeViewer::mouseMoveEvent(QMouseEvent *event) {
   // If left button is not pressed return; is not drag event.
   if (!(event->buttons() & Qt::LeftButton)) return;
-  if (!m_startPos.isNull() &&
-      (m_startPos - event->pos()).manhattanLength() >=
-          QApplication::startDragDistance())
+  if (!m_startPos.isNull() && (m_startPos - event->pos()).manhattanLength() >=
+                                  QApplication::startDragDistance())
     startDragDrop();
 }
 
@@ -1140,7 +1142,7 @@ void StudioPaletteTreeViewer::dropEvent(QDropEvent *event) {
     pltName = tr("the palette \"%1\"")
                   .arg(QString::fromStdWString(palettePaths[0].getWideName()));
   else
-    pltName       = tr("the selected palettes");
+    pltName = tr("the selected palettes");
   QString dstName = QString::fromStdWString(newPath.getWideName());
 
   QString question =
@@ -1248,4 +1250,23 @@ int StudioPaletteViewer::getViewMode() const {
 void StudioPaletteViewer::setViewMode(int mode) {
   m_studioPaletteViewer->setViewMode(
       (PaletteViewerGUI::PageViewer::ViewMode)mode);
+}
+
+//-----------------------------------------------------------------------------
+
+void StudioPaletteViewer::save(QSettings &settings) const {
+  bool toolbarOnTop = m_studioPaletteViewer->m_toolbarOnTop ? 1 : 0;
+  settings.setValue("toolbarOnTop", toolbarOnTop);
+}
+
+void StudioPaletteViewer::load(QSettings &settings) {
+  bool isStudioGhibli = m_studioPaletteViewer->getStudioGhibli();
+
+  QVariant toolbarOnTop =
+      settings.value("toolbarOnTop", isStudioGhibli).toBool();
+  if (toolbarOnTop.canConvert(QVariant::Bool)) {
+    m_studioPaletteViewer->m_toolbarOnTop = toolbarOnTop.toBool();
+    m_studioPaletteViewer->setToolbarOnTop(
+        m_studioPaletteViewer->m_toolbarOnTop);
+  }
 }
