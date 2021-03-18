@@ -154,7 +154,7 @@ if(BUILD_ENV_MSVC)
         return()
     endif()
     set(QT_LIB_PATH ${QT_PATH})
-    set(CMAKE_PREFIX_PATH "${QT_PATH}/lib/cmake/")
+    set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH};${QT_PATH}/lib/cmake/")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /wd4251")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4251")
     add_definitions(
@@ -165,8 +165,10 @@ if(BUILD_ENV_MSVC)
 elseif(BUILD_ENV_APPLE)
     set(QT_PATH "~/Qt5.9.2/5.9.2/clang_${PLATFORM}/lib" CACHE PATH "Qt installation directory")
     set(QT_LIB_PATH "${QT_PATH}/")
-    set(CMAKE_PREFIX_PATH "${QT_LIB_PATH}cmake/")
-    message("CMAKE_PREFIX_PATH:" ${CMAKE_PREFIX_PATH})
+    set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH};${QT_LIB_PATH}cmake/")
+    foreach(path ${CMAKE_PREFIX_PATH})
+      message("CMAKE_PREFIX_PATH: " ${path})
+    endforeach(path)
     add_definitions(
         -DMACOSX
         -Di386
