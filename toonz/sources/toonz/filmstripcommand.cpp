@@ -404,8 +404,11 @@ std::map<TFrameId, QString> clearFramesWithoutUndo(
                  "-" + QString::number(it->getNumber());
     TImageCache::instance()->add(id, sl->getFrame(frameId, false));
     clearedFrames[frameId] = id;
+    // empty frame must be created BEFORE erasing frame or it may initialize
+    // palette.
+    TImageP emptyFrame = sl->createEmptyFrame();
     sl->eraseFrame(frameId);
-    sl->setFrame(*it, sl->createEmptyFrame());
+    sl->setFrame(*it, emptyFrame);
   }
   invalidateIcons(sl.getPointer(), frames);
   TApp::instance()->getCurrentLevel()->notifyLevelChange();
@@ -629,9 +632,9 @@ public:
           ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
           if (scene) {
             TCamera *camera = scene->getCurrentCamera();
-            TPointD dpi = camera->getDpi();
-            dpiX              = dpi.x;
-            dpiY              = dpi.y;
+            TPointD dpi     = camera->getDpi();
+            dpiX            = dpi.x;
+            dpiY            = dpi.y;
           } else
             return;
         }
