@@ -639,6 +639,8 @@ bool pasteRasterImageInCellWithoutUndo(int row, int col,
       app->getCurrentLevel()->setLevel(sl);
       app->getCurrentLevel()->notifyLevelChange();
       sl->save();
+      // after saving you need to obtain the image again
+      img = sl->getFrame(fid, true);
     } else {
       img = sl->createEmptyFrame();
       assert(img);
@@ -648,6 +650,8 @@ bool pasteRasterImageInCellWithoutUndo(int row, int col,
       sl->setFrame(fid, img);
     }
     xsh->setCell(row, col, TXshCell(sl, fid));
+    // to let the undo to know which frame is edited
+    TTool::m_cellsData.push_back({row, row, TTool::CellOps::BlankToNew});
   } else {
     sl  = cell.getSimpleLevel();
     fid = cell.getFrameId();
@@ -1630,6 +1634,9 @@ static void pasteStrokesInCell(int row, int col,
 
 static void pasteRasterImageInCell(int row, int col,
                                    const RasterImageData *rasterImageData) {
+  // to let the undo to know which frame is edited
+  TTool::m_cellsData.clear();
+
   TXsheet *xsh         = TApp::instance()->getCurrentXsheet()->getXsheet();
   TXshCell cell        = xsh->getCell(row, col);
   bool createdFrame    = false;
