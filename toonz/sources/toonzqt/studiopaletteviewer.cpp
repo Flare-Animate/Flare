@@ -1255,18 +1255,9 @@ void StudioPaletteViewer::setViewMode(int mode) {
 //-----------------------------------------------------------------------------
 
 void StudioPaletteViewer::save(QSettings &settings) const {
-  bool toolbarOnTop = m_studioPaletteViewer->m_toolbarOnTop ? 1 : 0;
-  settings.setValue("toolbarOnTop", toolbarOnTop);
+  m_studioPaletteViewer->save(settings);
 }
 
 void StudioPaletteViewer::load(QSettings &settings) {
-  bool isStudioGhibli = m_studioPaletteViewer->getStudioGhibli();
-
-  QVariant toolbarOnTop =
-      settings.value("toolbarOnTop", isStudioGhibli).toBool();
-  if (toolbarOnTop.canConvert(QVariant::Bool)) {
-    m_studioPaletteViewer->m_toolbarOnTop = toolbarOnTop.toBool();
-    m_studioPaletteViewer->setToolbarOnTop(
-        m_studioPaletteViewer->m_toolbarOnTop);
-  }
+  m_studioPaletteViewer->load(settings);
 }

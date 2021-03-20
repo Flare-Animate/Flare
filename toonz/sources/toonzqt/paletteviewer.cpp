@@ -45,6 +45,22 @@
 TEnv::IntVar ShowNewStyleButton("ShowNewStyleButton", 1);
 using namespace PaletteViewerGUI;
 
+namespace {
+
+bool isStudioGhibliLayout() {
+  // To prevent interruption to users of long established layout, we will handle
+  // that if the current room choice is [StudioGhibli], make sure the toolbar is
+  // set to display [ABOVE] styles like before by default.
+  //
+  // All other choices has the reverse behaviour. This will affect both
+  // currently docked and newly opened floating panels.
+
+  QString currentRoomChoice = Preferences::instance()->getCurrentRoomChoice();
+  return currentRoomChoice.contains("StudioGhibli", Qt::CaseInsensitive);
+}
+
+}  // namespace
+
 //=============================================================================
 /*! \class PaletteViewer
 \brief The PaletteViewer class provides an object to view and
@@ -85,19 +101,10 @@ PaletteViewer::PaletteViewer(QWidget *parent, PaletteViewType viewType,
                              bool hasSaveToolBar, bool hasPageCommand,
                              bool hasPasteColors)
     : QFrame(parent)
-    , m_toolbarOnTop(
-          currentRoomChoice.contains("StudioGhibli", Qt::CaseInsensitive)
-              ? true
-              : false)
-    , m_showToolbarOnTopAct(0)
     , m_tabBarContainer(0)
     , m_pagesBar(0)
     , m_paletteToolBar(0)
     , m_savePaletteToolBar(0)
-    , m_spacer_hExpanding(0)
-    , m_toolbarScrollWidget(0)
-    , m_hLayout(0)
-    , m_mainLayout(0)
     , m_pageViewer(0)
     , m_pageViewerScrollArea(0)
     , m_indexPageToDelete(-1)
@@ -110,7 +117,11 @@ PaletteViewer::PaletteViewer(QWidget *parent, PaletteViewType viewType,
     , m_hasPageCommand(hasPageCommand)
     , m_isSaveActionEnabled(true)
     , m_lockPaletteAction(0)
-    , m_lockPaletteToolButton(0) {
+    , m_lockPaletteToolButton(0)
+    , m_toolbarOnTop(false)
+    , m_showToolbarOnTopAct(nullptr)
+    , m_toolbarContainer(0)
+    , m_hLayout(0) {
   setObjectName("OnePixelMarginFrame");
   setFrameStyle(QFrame::StyledPanel);
 
@@ -131,11 +142,11 @@ PaletteViewer::PaletteViewer(QWidget *parent, PaletteViewType viewType,
   m_pagesBar->setPageViewer(m_pageViewer);
 
   // Create toolbar. It is an horizontal layout with three internal toolbar.
-  m_toolbarScrollWidget = new DvScrollWidget;
+  m_toolbarContainer = new DvScrollWidget;
 
-  m_toolbarScrollWidget->setObjectName("ToolBarContainer");
+  m_toolbarContainer->setObjectName("ToolBarContainer");
   QWidget *toolBarWidget = new QWidget;  // children of this parent name.
-  m_toolbarScrollWidget->setWidget(toolBarWidget);
+  m_toolbarContainer->setWidget(toolBarWidget);
   toolBarWidget->setSizePolicy(QSizePolicy::MinimumExpanding,
                                QSizePolicy::Fixed);
   toolBarWidget->setFixedHeight(22);
@@ -144,15 +155,13 @@ PaletteViewer::PaletteViewer(QWidget *parent, PaletteViewType viewType,
   m_savePaletteToolBar = new QToolBar(toolBarWidget);
   createToolBar();
 
-  m_spacer_hExpanding =
-      new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Minimum);
-
   QHBoxLayout *toolBarLayout = new QHBoxLayout(toolBarWidget);
   toolBarLayout->setMargin(0);
   toolBarLayout->setSpacing(0);
   {
     toolBarLayout->addWidget(m_savePaletteToolBar, 0, Qt::AlignLeft);
-    toolBarLayout->addItem(m_spacer_hExpanding);
+    toolBarLayout->addItem(
+        new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Minimum));
     toolBarLayout->addWidget(m_paletteToolBar, 0, Qt::AlignRight);
   }
   toolBarWidget->setLayout(toolBarLayout);
@@ -160,9 +169,9 @@ PaletteViewer::PaletteViewer(QWidget *parent, PaletteViewType viewType,
   // This is for setting tab container bg color in stylesheet
   m_tabBarContainer = new TabBarContainter(this);
 
-  m_mainLayout = new QVBoxLayout(this);
-  m_mainLayout->setMargin(0);
-  m_mainLayout->setSpacing(0);
+  QVBoxLayout *mainLayout = new QVBoxLayout(this);
+  mainLayout->setMargin(0);
+  mainLayout->setSpacing(0);
   {
     m_hLayout = new QHBoxLayout;
     m_hLayout->setMargin(0);
@@ -173,11 +182,11 @@ PaletteViewer::PaletteViewer(QWidget *parent, PaletteViewType viewType,
     m_tabBarContainer->setLayout(m_hLayout);
 
     // To align this panel with the style Editor
-    m_mainLayout->addWidget(m_tabBarContainer, 0);
-    m_mainLayout->addWidget(m_pageViewerScrollArea, 1);
-    m_mainLayout->addWidget(m_toolbarScrollWidget, 0);
+    mainLayout->addWidget(m_tabBarContainer, 0);
+    mainLayout->addWidget(m_pageViewerScrollArea, 1);
+    mainLayout->addWidget(m_toolbarContainer, 0);
   }
-  setLayout(m_mainLayout);
+  setLayout(mainLayout);
 
   connect(m_pagesBar, SIGNAL(currentChanged(int)), this,
           SLOT(setPageView(int)));
@@ -191,6 +200,9 @@ PaletteViewer::PaletteViewer(QWidget *parent, PaletteViewType viewType,
   changeWindowTitle();
 
   setAcceptDrops(true);
+
+  // set Toolbar on top by default for Studio Ghibli Layout
+  if (m_toolbarOnTop != isStudioGhibliLayout()) toggleToolbarOnTop();
 }
 
 //-----------------------------------------------------------------------------
@@ -199,73 +211,35 @@ PaletteViewer::~PaletteViewer() { delete m_changeStyleCommand; }
 
 //-----------------------------------------------------------------------------
 
-void PaletteViewer::toolbarOnTopToggled(bool ignore) {
+void PaletteViewer::toggleToolbarOnTop() {
   m_toolbarOnTop = !m_toolbarOnTop;
-  setToolbarOnTop(m_toolbarOnTop);
-}
-
-//-----------------------------------------------------------------------------
-
-void PaletteViewer::setToolbarOnTop(bool isToolbarOnTop) {
-  m_toolbarOnTop = isToolbarOnTop;
 
   // Swap toolbar position in layout
-  if (isToolbarOnTop == true) {
+  if (m_toolbarOnTop) {
     // Show a border line between toolbar and pageViewerScrollArea when toolbar
     // is set to below styles only, this is styled in the stylesheet, set it to
     // 0px width to hide it when toolbar is set to display above styles.
     m_pageViewerScrollArea->setStyleSheet("border-width: 0px;");  // hide
-    m_mainLayout->removeWidget(m_toolbarScrollWidget);
-    m_hLayout->addWidget(m_toolbarScrollWidget, 0);
-  } else {
-    m_pageViewerScrollArea->setStyleSheet("border-width: 1px;");  // show
-    m_hLayout->removeWidget(m_toolbarScrollWidget);
-    m_mainLayout->addWidget(m_toolbarScrollWidget, 0);
-  }
-
-  // Handle check state for menu action
-  if (m_toolbarOnTop == true) {
+    m_hLayout->addWidget(m_toolbarContainer);
     m_showToolbarOnTopAct->setText(tr("Set Toolbar Below Styles"));
   } else {
+    m_pageViewerScrollArea->setStyleSheet("border-width: 1px;");  // show
+    layout()->addWidget(m_toolbarContainer);
     m_showToolbarOnTopAct->setText(tr("Set Toolbar Above Styles"));
   }
 }
 
 //-----------------------------------------------------------------------------
 
-bool PaletteViewer::getStudioGhibli() {
-  // To prevent interruption to users of long established layout, we will handle
-  // that if the current room choice is [StudioGhibli], make sure the toolbar is
-  // set to display [ABOVE] styles like before by default.
-  //
-  // All other choices has the reverse behaviour. This will affect both
-  // currently docked and newly opened floating panels.
-
-  QString currentRoomChoice = Preferences::instance()->getCurrentRoomChoice();
-  bool isStudioGhibli       = 0;
-  if (currentRoomChoice.contains("StudioGhibli", Qt::CaseInsensitive))
-    isStudioGhibli = 1;
-  else
-    isStudioGhibli = 0;
-  return isStudioGhibli;
-}
-
-//-----------------------------------------------------------------------------
-
 void PaletteViewer::save(QSettings &settings) const {
-  bool toolbarOnTop = m_toolbarOnTop ? 1 : 0;
+  int toolbarOnTop = m_toolbarOnTop ? 1 : 0;
   settings.setValue("toolbarOnTop", toolbarOnTop);
 }
 
 void PaletteViewer::load(QSettings &settings) {
-  bool isStudioGhibli = getStudioGhibli();
-
-  QVariant toolbarOnTop =
-      settings.value("toolbarOnTop", isStudioGhibli).toBool();
-  if (toolbarOnTop.canConvert(QVariant::Bool)) {
-    m_toolbarOnTop = toolbarOnTop.toBool();
-    setToolbarOnTop(m_toolbarOnTop);
-  }
+  bool toolbarOnTop =
+      settings.value("toolbarOnTop", m_toolbarOnTop).toInt() != 0;
+  if (toolbarOnTop != m_toolbarOnTop) toggleToolbarOnTop();
 }
 
 //-----------------------------------------------------------------------------
@@ -483,12 +457,11 @@ void PaletteViewer::createPaletteToolBar() {
   m_showToolbarOnTopAct = new QAction;
   if (m_toolbarOnTop)
     m_showToolbarOnTopAct->setText(tr("Set Toolbar Below Styles"));
-  if (!m_toolbarOnTop)
+  else
     m_showToolbarOnTopAct->setText(tr("Set Toolbar Above Styles"));
   viewMode->addAction(m_showToolbarOnTopAct);
-  m_showToolbarOnTopAct->setCheckable(false);
-  connect(m_showToolbarOnTopAct, SIGNAL(triggered(bool)), this,
-          SLOT(toolbarOnTopToggled(bool)));
+  connect(m_showToolbarOnTopAct, SIGNAL(triggered()), this,
+          SLOT(toggleToolbarOnTop()));
 
   QString str = (ShowNewStyleButton) ? tr("Hide New Style Button")
                                      : tr("Show New Style Button");
