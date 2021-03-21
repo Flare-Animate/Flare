@@ -14,6 +14,9 @@
 #include "toonz/preferences.h"
 #include "toonz/toonzfolders.h"
 
+// TnzCore includes
+#include "tversion.h"
+
 // Qt includes
 #include <QFrame>
 #include <QLayout>
@@ -31,8 +34,6 @@
 #include <algorithm>
 
 using namespace DVGui;
-
-QString DialogTitle = "OpenToonz 1.4";
 
 //=============================================================================
 namespace {
@@ -69,7 +70,9 @@ QPixmap getMsgBoxPixmap(MsgType type) {
 //-----------------------------------------------------------------------------
 
 QString getMsgBoxTitle(MsgType type) {
-  QString title = DialogTitle + " - ";
+  TVER::ToonzVersion tver;
+  QString title = QString::fromStdString(tver.getAppName() + " " +
+                                         tver.getAppVersionString() + " - ");
 
   switch (type) {
   case DVGui::INFORMATION:
@@ -314,10 +317,10 @@ Dialog::Dialog(QWidget *parent, bool hasButton, bool hasFixedSize,
     // on another monitor by default, but this is better than
     // a user thinking the program is broken because they didn't notice
     // the popup on another monitor
-    if (x > screen.right() - 50) x  = screen.right() - 50;
-    if (x < screen.left()) x        = screen.left();
+    if (x > screen.right() - 50) x = screen.right() - 50;
+    if (x < screen.left()) x = screen.left();
     if (y > screen.bottom() - 90) y = screen.bottom() - 90;
-    if (y < screen.top()) y         = screen.top();
+    if (y < screen.top()) y = screen.top();
     setGeometry(x, y, values.at(2).toInt(), values.at(3).toInt());
     settings.setValue(m_name, QString::number(x) + " " + QString::number(y) +
                                   " " + QString::number(values.at(2).toInt()) +
@@ -370,10 +373,10 @@ void Dialog::hideEvent(QHideEvent *event) {
   }
   QRect screen = QApplication::desktop()->availableGeometry(currentScreen);
 
-  if (x > screen.right() - 50) x  = screen.right() - 50;
-  if (x < screen.left()) x        = screen.left();
+  if (x > screen.right() - 50) x = screen.right() - 50;
+  if (x < screen.left()) x = screen.left();
   if (y > screen.bottom() - 90) y = screen.bottom() - 90;
-  if (y < screen.top()) y         = screen.top();
+  if (y < screen.top()) y = screen.top();
   move(QPoint(x, y));
   resize(size());
   QRect r = geometry();
@@ -1347,7 +1350,7 @@ QString DVGui::getText(const QString &title, const QString &labelText,
 
   dialog.addButtonBarWidget(okBtn, cancelBtn);
 
-  int ret     = dialog.exec();
+  int ret = dialog.exec();
   if (ok) *ok = (ret == QDialog::Accepted);
 
   return nameFld->text();
@@ -1449,12 +1452,6 @@ int DVGui::eraseStylesInDemand(TPalette *palette, std::vector<int> styleIds,
   QApplication::restoreOverrideCursor();
 
   return (assert(ret == 2), ret);  // return 2 ?     :D
-}
-
-//-----------------------------------------------------------------------------
-
-void DVGui::setDialogTitle(const QString &dialogTitle) {
-  DialogTitle = dialogTitle;
 }
 
 //-----------------------------------------------------------------------------
