@@ -1200,7 +1200,8 @@ void ColumnArea::DrawHeader::drawVolumeControl(double volume) const {
                                      NumberRange(layerAxis, layerAxis + 2)));
   }
 
-  // slider track
+
+  // slider track 
   QPainterPath track =
       o->path(PredefinedPath::VOLUME_SLIDER_TRACK).translated(orig);
   p.drawPath(track);
