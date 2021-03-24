@@ -1084,7 +1084,6 @@ void ColumnArea::DrawHeader::drawThumbnail(QPixmap &iconPixmap) const {
         meshColumn->setIconVisible(true);
       else if (zColumn)
         zColumn->setIconVisible(true);
-    }
   }
 }
 
