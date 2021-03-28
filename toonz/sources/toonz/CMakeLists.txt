@@ -448,6 +448,10 @@ if (WITH_CANON)
     add_definitions(-DWITH_CANON)
 endif()
 
+if (WITH_WINTAB AND BUILD_TARGET_WIN AND (PLATFORM EQUAL 64))
+    add_definitions(-DWITH_WINTAB)
+endif()
+
 if(BUILD_ENV_APPLE)
     include_directories(../../sources/mousedragfilter)
     if(PLATFORM EQUAL 64)
