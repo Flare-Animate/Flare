@@ -29,7 +29,7 @@
 #include <QVBoxLayout>
 #include <QObject>
 
-TEnv::IntVar ShowAllToolsToggle("ShowAllToolsToggle", 0);
+TEnv::IntVar ShowAllToolsToggle("ShowAllToolsToggle", 1);
 
 namespace {
 struct {
