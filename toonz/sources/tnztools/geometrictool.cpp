@@ -977,12 +977,21 @@ protected:
   bool m_active;
   bool m_firstTime;
 
+  // for rotation
+  bool m_isRotating;
+  TStroke *m_rotatedStroke;
+  TPointD m_rotateCenter;
+  TPointD m_originalCursorPos;
+  TPointD m_currentCursorPos;
+
 public:
   GeometricTool(int targetType)
       : TTool("T_Geometric")
       , m_primitive(0)
       , m_param(targetType)
       , m_active(false)
+      , m_isRotating(false)
+      , m_rotatedStroke(0)
       , m_firstTime(true) {
     bind(targetType);
     if ((targetType & TTool::RasterImage) || (targetType & TTool::ToonzImage)) {
@@ -1057,6 +1066,12 @@ public:
       getViewer()->doPickGuideStroke(p);
       return;
     }
+
+    if (m_isRotating) {
+      addStroke();
+      return;
+    }
+
     if (m_primitive) m_primitive->leftButtonDown(p, e);
     invalidate();
   }
@@ -1082,6 +1097,11 @@ public:
 
   void onImageChanged() override {
     if (m_primitive) m_primitive->onImageChanged();
+
+    m_isRotating = false;
+    delete m_rotatedStroke;
+    m_rotatedStroke = 0;
+
     invalidate();
   }
 
@@ -1090,7 +1110,31 @@ public:
     invalidate();
   }
 
+  double getAngle(const TPointD &center, const TPointD &a,
+                  const TPointD &b) const {
+    // this formula is from: https://stackoverflow.com/a/31334882
+    double r = atan2(b.y - center.y, b.x - center.x) -
+               atan2(a.y - center.y, a.x - center.x);
+    return r * 180 / 3.14;
+  }
+
   void mouseMove(const TPointD &p, const TMouseEvent &e) override {
+    if (m_isRotating) {
+      // first, rotate the stroke back to original
+      double angle =
+          getAngle(m_rotateCenter, m_originalCursorPos, m_currentCursorPos);
+      m_rotatedStroke->transform(TRotation(m_rotateCenter, -angle));
+
+      m_currentCursorPos = p;
+
+      // then, rotate it according to mouse position
+      angle = getAngle(m_rotateCenter, m_originalCursorPos, m_currentCursorPos);
+      m_rotatedStroke->transform(TRotation(m_rotateCenter, angle));
+      invalidate();
+      return;
+    }
+
+    m_currentCursorPos = p;
     if (m_primitive) m_primitive->mouseMove(p, e);
   }
 
@@ -1144,6 +1188,9 @@ public:
 
   void onDeactivate() override {
     if (m_primitive) m_primitive->onDeactivate();
+    m_isRotating = false;
+    delete m_rotatedStroke;
+    m_rotatedStroke = 0;
   }
 
   void onEnter() override {
@@ -1152,6 +1199,10 @@ public:
   }
 
   void draw() override {
+    if (m_isRotating) {
+      drawStrokeCenterline(*m_rotatedStroke, sqrt(tglGetPixelSize2()));
+      return;
+    }
     if (m_primitive) m_primitive->draw();
   }
 
@@ -1249,8 +1300,26 @@ public:
 
   void addStroke() {
     if (!m_primitive) return;
-    TStroke *stroke = m_primitive->makeStroke();
-    if (!stroke) return;
+
+    TStroke *stroke = 0;
+    if (!m_isRotating) {
+      stroke = m_primitive->makeStroke();
+      if (!stroke) return;
+
+      if (m_param.m_rotate.getValue()) {
+        m_isRotating        = true;
+        m_rotatedStroke     = stroke;
+        TRectD bbox         = stroke->getBBox();
+        m_rotateCenter      = 0.5 * (bbox.getP11() + bbox.getP00());
+        m_originalCursorPos = m_currentCursorPos;
+
+        return;
+      }
+    } else {
+      stroke          = m_rotatedStroke;
+      m_isRotating    = false;
+      m_rotatedStroke = 0;
+    }
 
     TStroke::OutlineOptions &options = stroke->outlineOptions();
     options.m_capStyle               = m_param.m_capStyle.getIndex();
