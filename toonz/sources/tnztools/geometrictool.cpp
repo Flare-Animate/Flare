@@ -45,6 +45,7 @@ TEnv::DoubleVar GeometricRasterSize("InknpaintGeometricRasterSize", 1);
 TEnv::StringVar GeometricType("InknpaintGeometricType", "Rectangle");
 TEnv::IntVar GeometricEdgeCount("InknpaintGeometricEdgeCount", 3);
 TEnv::IntVar GeometricSelective("InknpaintGeometricSelective", 0);
+TEnv::IntVar GeometricRotate("InknpaintGeometricRotate", 0);
 TEnv::IntVar GeometricGroupIt("InknpaintGeometricGroupIt", 0);
 TEnv::IntVar GeometricAutofill("InknpaintGeometricAutofill", 0);
 TEnv::IntVar GeometricSmooth("InknpaintGeometricSmooth", 0);
@@ -376,6 +377,7 @@ public:
   TDoubleProperty m_hardness;
   TEnumProperty m_type;
   TIntProperty m_edgeCount;
+  TBoolProperty m_rotate;
   TBoolProperty m_autogroup;
   TBoolProperty m_autofill;
   TBoolProperty m_smooth;
@@ -404,6 +406,7 @@ public:
       , m_opacity("Opacity:", 0, 100, 100)
       , m_hardness("Hardness:", 0, 100, 100)
       , m_edgeCount("Polygon Sides:", 3, 15, 3)
+      , m_rotate("rotate", false)
       , m_autogroup("Auto Group", false)
       , m_autofill("Auto Fill", false)
       , m_smooth("Smooth", false)
@@ -424,6 +427,7 @@ public:
     m_prop[0].bind(m_type);
 
     m_prop[0].bind(m_edgeCount);
+    m_prop[0].bind(m_rotate);
     if (targetType & TTool::Vectors) {
       m_prop[0].bind(m_autogroup);
       m_prop[0].bind(m_autofill);
@@ -460,6 +464,7 @@ public:
     m_prop[1].bind(m_miterJoinLimit);
 
     m_selective.setId("Selective");
+    m_rotate.setId("Rotate");
     m_autogroup.setId("AutoGroup");
     m_autofill.setId("Autofill");
     m_smooth.setId("Smooth");
@@ -483,6 +488,7 @@ public:
     m_opacity.setQStringName(tr("Opacity:"));
     m_hardness.setQStringName(tr("Hardness:"));
     m_edgeCount.setQStringName(tr("Polygon Sides:"));
+    m_rotate.setQStringName(tr("Rotate"));
     m_autogroup.setQStringName(tr("Auto Group"));
     m_autofill.setQStringName(tr("Auto Fill"));
     m_smooth.setQStringName(tr("Smooth"));
@@ -1095,6 +1101,7 @@ public:
       m_param.m_opacity.setValue(GeometricOpacity);
       m_param.m_hardness.setValue(GeometricBrushHardness);
       m_param.m_selective.setValue(GeometricSelective ? 1 : 0);
+      m_param.m_rotate.setValue(GeometricRotate ? 1 : 0);
       m_param.m_autogroup.setValue(GeometricGroupIt ? 1 : 0);
       m_param.m_smooth.setValue(GeometricSmooth ? 1 : 0);
       m_param.m_autofill.setValue(GeometricAutofill ? 1 : 0);
@@ -1180,6 +1187,8 @@ public:
       }
     } else if (propertyName == m_param.m_edgeCount.getName())
       GeometricEdgeCount = m_param.m_edgeCount.getValue();
+    else if (propertyName == m_param.m_rotate.getName())
+      GeometricRotate = m_param.m_rotate.getValue();
     else if (propertyName == m_param.m_autogroup.getName()) {
       if (!m_param.m_autogroup.getValue()) {
         m_param.m_autofill.setValue(false);
@@ -1527,9 +1536,9 @@ void RectanglePrimitive::leftButtonDrag(const TPointD &realPos,
   if (e.isShiftPressed()) {
     double distance = tdistance(realPos, m_startPoint) * M_SQRT1_2;
     pos.x           = (realPos.x > m_startPoint.x) ? m_startPoint.x + distance
-                                         : m_startPoint.x - distance;
-    pos.y = (realPos.y > m_startPoint.y) ? m_startPoint.y + distance
-                                         : m_startPoint.y - distance;
+                                                   : m_startPoint.x - distance;
+    pos.y           = (realPos.y > m_startPoint.y) ? m_startPoint.y + distance
+                                                   : m_startPoint.y - distance;
   } else {
     pos = calculateSnap(realPos);
     pos = checkGuideSnapping(realPos);
@@ -2255,9 +2264,9 @@ void EllipsePrimitive::leftButtonDrag(const TPointD &realPos,
   if (e.isShiftPressed()) {
     double distance = tdistance(realPos, m_startPoint) * M_SQRT1_2;
     pos.x           = (realPos.x > m_startPoint.x) ? m_startPoint.x + distance
-                                         : m_startPoint.x - distance;
-    pos.y = (realPos.y > m_startPoint.y) ? m_startPoint.y + distance
-                                         : m_startPoint.y - distance;
+                                                   : m_startPoint.x - distance;
+    pos.y           = (realPos.y > m_startPoint.y) ? m_startPoint.y + distance
+                                                   : m_startPoint.y - distance;
   } else {
     pos = calculateSnap(realPos);
     pos = checkGuideSnapping(realPos);
