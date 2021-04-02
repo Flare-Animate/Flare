@@ -979,6 +979,7 @@ protected:
 
   // for rotation
   bool m_isRotating;
+  double m_lastRotateAngle;
   TStroke *m_rotatedStroke;
   TPointD m_rotateCenter;
   TPointD m_originalCursorPos;
@@ -1110,31 +1111,29 @@ public:
     invalidate();
   }
 
-  double getAngle(const TPointD &center, const TPointD &a,
-                  const TPointD &b) const {
-    // this formula is from: https://stackoverflow.com/a/31334882
-    double r = atan2(b.y - center.y, b.x - center.x) -
-               atan2(a.y - center.y, a.x - center.x);
-    return r * 180 / 3.14;
-  }
-
   void mouseMove(const TPointD &p, const TMouseEvent &e) override {
+    m_currentCursorPos = p;
     if (m_isRotating) {
       // first, rotate the stroke back to original
-      double angle =
-          getAngle(m_rotateCenter, m_originalCursorPos, m_currentCursorPos);
-      m_rotatedStroke->transform(TRotation(m_rotateCenter, -angle));
-
-      m_currentCursorPos = p;
+      m_rotatedStroke->transform(TRotation(m_rotateCenter, -m_lastRotateAngle));
 
       // then, rotate it according to mouse position
-      angle = getAngle(m_rotateCenter, m_originalCursorPos, m_currentCursorPos);
+      // this formula is from: https://stackoverflow.com/a/31334882
+      TPointD center = m_rotateCenter;
+      TPointD org    = m_originalCursorPos;
+      TPointD cur    = m_currentCursorPos;
+      double angle1  = atan2(cur.y - center.y, cur.x - center.x);
+      double angle2  = atan2(org.y - center.y, org.x - center.x);
+      double angle   = (angle1 - angle2) * 180 / 3.14;
+      if (e.isShiftPressed()) {
+        angle = ((int)angle / 45) * 45;
+      }
       m_rotatedStroke->transform(TRotation(m_rotateCenter, angle));
+      m_lastRotateAngle = angle;
       invalidate();
       return;
     }
 
-    m_currentCursorPos = p;
     if (m_primitive) m_primitive->mouseMove(p, e);
   }
 
@@ -1312,6 +1311,7 @@ public:
         TRectD bbox         = stroke->getBBox();
         m_rotateCenter      = 0.5 * (bbox.getP11() + bbox.getP00());
         m_originalCursorPos = m_currentCursorPos;
+        m_lastRotateAngle   = 0;
 
         return;
       }
