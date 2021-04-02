@@ -977,13 +977,19 @@ protected:
   bool m_active;
   bool m_firstTime;
 
-  // for rotation
-  bool m_isRotating;
-  double m_lastRotateAngle;
+  // for both rotation and move
+  bool m_isRotatingOrMoving;
+  bool m_wasCtrlPressed;
   TStroke *m_rotatedStroke;
-  TPointD m_rotateCenter;
   TPointD m_originalCursorPos;
   TPointD m_currentCursorPos;
+
+  // for rotation
+  double m_lastRotateAngle;
+  TPointD m_rotateCenter;
+
+  // for move
+  TPointD m_lastMoveStrokePos;
 
 public:
   GeometricTool(int targetType)
@@ -991,7 +997,7 @@ public:
       , m_primitive(0)
       , m_param(targetType)
       , m_active(false)
-      , m_isRotating(false)
+      , m_isRotatingOrMoving(false)
       , m_rotatedStroke(0)
       , m_firstTime(true) {
     bind(targetType);
@@ -1019,6 +1025,7 @@ public:
   }
 
   ~GeometricTool() {
+    delete m_rotatedStroke;
     std::map<std::wstring, Primitive *>::iterator it;
     for (it = m_primitiveTable.begin(); it != m_primitiveTable.end(); ++it)
       delete it->second;
@@ -1068,7 +1075,7 @@ public:
       return;
     }
 
-    if (m_isRotating) {
+    if (m_isRotatingOrMoving) {
       addStroke();
       return;
     }
@@ -1099,7 +1106,7 @@ public:
   void onImageChanged() override {
     if (m_primitive) m_primitive->onImageChanged();
 
-    m_isRotating = false;
+    m_isRotatingOrMoving = false;
     delete m_rotatedStroke;
     m_rotatedStroke = 0;
 
@@ -1113,7 +1120,44 @@ public:
 
   void mouseMove(const TPointD &p, const TMouseEvent &e) override {
     m_currentCursorPos = p;
-    if (m_isRotating) {
+    if (m_isRotatingOrMoving) {
+      // move
+      if (e.isCtrlPressed()) {
+        // if ctrl wasn't pressed, it means the user has switched from
+        // rotation to move. Thus, re-initiate move-relevant variables
+        if (!m_wasCtrlPressed) {
+          m_wasCtrlPressed = true;
+
+          m_originalCursorPos = m_currentCursorPos;
+          m_lastMoveStrokePos = TPointD(0, 0);
+        }
+
+        // move the stroke to the original location
+        double x = -m_lastMoveStrokePos.x;
+        double y = -m_lastMoveStrokePos.y;
+        m_rotatedStroke->transform(TTranslation(x, y));
+
+        // move the stroke according to current mouse position
+        double dx           = m_currentCursorPos.x - m_originalCursorPos.x;
+        double dy           = m_currentCursorPos.y - m_originalCursorPos.y;
+        m_lastMoveStrokePos = TPointD(dx, dy);
+        m_rotatedStroke->transform(TTranslation(dx, dy));
+        invalidate();
+        return;
+      }
+
+      // if ctrl was pressed, it means the user has switched from
+      // move to rotation. Thus, re-initiate rotation-relevant variables
+      if (m_wasCtrlPressed) {
+        m_wasCtrlPressed = false;
+
+        m_lastRotateAngle   = 0;
+        m_originalCursorPos = m_currentCursorPos;
+        TRectD bbox         = m_rotatedStroke->getBBox();
+        m_rotateCenter      = 0.5 * (bbox.getP11() + bbox.getP00());
+      }
+
+      // rotate
       // first, rotate the stroke back to original
       m_rotatedStroke->transform(TRotation(m_rotateCenter, -m_lastRotateAngle));
 
@@ -1187,7 +1231,7 @@ public:
 
   void onDeactivate() override {
     if (m_primitive) m_primitive->onDeactivate();
-    m_isRotating = false;
+    m_isRotatingOrMoving = false;
     delete m_rotatedStroke;
     m_rotatedStroke = 0;
   }
@@ -1198,7 +1242,7 @@ public:
   }
 
   void draw() override {
-    if (m_isRotating) {
+    if (m_isRotatingOrMoving) {
       drawStrokeCenterline(*m_rotatedStroke, sqrt(tglGetPixelSize2()));
       return;
     }
@@ -1301,24 +1345,26 @@ public:
     if (!m_primitive) return;
 
     TStroke *stroke = 0;
-    if (!m_isRotating) {
+    if (!m_isRotatingOrMoving) {
       stroke = m_primitive->makeStroke();
       if (!stroke) return;
 
       if (m_param.m_rotate.getValue()) {
-        m_isRotating        = true;
-        m_rotatedStroke     = stroke;
-        TRectD bbox         = stroke->getBBox();
-        m_rotateCenter      = 0.5 * (bbox.getP11() + bbox.getP00());
-        m_originalCursorPos = m_currentCursorPos;
-        m_lastRotateAngle   = 0;
+        m_isRotatingOrMoving = true;
+        m_rotatedStroke      = stroke;
+        TRectD bbox          = stroke->getBBox();
+        m_rotateCenter       = 0.5 * (bbox.getP11() + bbox.getP00());
+        m_originalCursorPos  = m_currentCursorPos;
+        m_lastRotateAngle    = 0;
+        m_lastMoveStrokePos  = TPointD(0, 0);
+        m_wasCtrlPressed     = false;
 
         return;
       }
     } else {
-      stroke          = m_rotatedStroke;
-      m_isRotating    = false;
-      m_rotatedStroke = 0;
+      stroke               = m_rotatedStroke;
+      m_isRotatingOrMoving = false;
+      m_rotatedStroke      = 0;
     }
 
     TStroke::OutlineOptions &options = stroke->outlineOptions();
