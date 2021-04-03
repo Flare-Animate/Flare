@@ -1480,7 +1480,7 @@ QAction *MainWindow::createAction(const char *id, const char *name,
 #endif
     // do nothing for other platforms
   } else
-    action->setIcon(createQIcon(iconSVGName));
+    action->setIcon(createQIcon(iconSVGName, false, true));
   addAction(action);
 #ifdef MACOSX
   // To prevent the wrong menu items (due to MacOS menu naming conventions),
@@ -2873,7 +2873,7 @@ void MainWindow::defineActions() {
   menuAct =
       createMiscAction(MI_RefreshTree, QT_TR_NOOP("Refresh Folder Tree"), "");
   menuAct->setIconText(tr("Refresh"));
-  menuAct->setIcon(createQIcon("refresh"));
+  menuAct->setIcon(createQIcon("refresh", false, true));
   createMiscAction("A_FxSchematicToggle",
                    QT_TR_NOOP("Toggle FX/Stage schematic"), "");
 
