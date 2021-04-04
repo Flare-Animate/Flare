@@ -431,9 +431,10 @@ bool Region::checkWidgetsToBeFixedWidth(std::vector<QWidget *> &widgets,
       return false;
     }
     if ((m_item->objectName() == "FilmStrip" && m_item->getCanFixWidth()) ||
-        m_item->objectName() == "StyleEditor" ||
-        m_item->objectName() == "ToolBar") {
+        m_item->objectName() == "StyleEditor") {
       widgets.push_back(m_item);
+      return true;
+    } else if (m_item->objectName() == "ToolBar") {
       return true;
     } else
       return false;
