@@ -547,6 +547,17 @@ Stop it or wait for its completion before removing it.</source>
     </message>
 </context>
 <context>
+    <name>Canon</name>
+    <message>
+        <source>AC Power</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Full</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>CanvasSizePopup</name>
     <message>
         <source>Canvas Size</source>
@@ -5345,7 +5356,7 @@ Please use the frame numbers for reference.</source>
     </message>
     <message>
         <source>Toggle Edit in Place</source>
-        <translation>显示/隐藏位置中的编辑</translation>
+        <translation type="vanished">显示/隐藏位置中的编辑</translation>
     </message>
     <message>
         <source>Refresh Folder Tree</source>
@@ -5809,7 +5820,7 @@ or you may delete necessary files for it.</source>
     </message>
     <message>
         <source>Save All</source>
-        <translation>保存全部</translation>
+        <translation type="vanished">保存全部</translation>
     </message>
     <message>
         <source>&amp;Paste as a Copy</source>
@@ -5885,23 +5896,23 @@ or you may delete necessary files for it.</source>
     </message>
     <message>
         <source>About OpenToonz...</source>
-        <translation>关于 OpenToonz...</translation>
+        <translation type="vanished">关于 OpenToonz...</translation>
     </message>
     <message>
         <source>Online Manual...</source>
-        <translation>在线手册...</translation>
+        <translation type="vanished">在线手册...</translation>
     </message>
     <message>
         <source>What&apos;s New...</source>
-        <translation>更新...</translation>
+        <translation type="vanished">更新...</translation>
     </message>
     <message>
         <source>Community Forum...</source>
-        <translation>社区论坛...</translation>
+        <translation type="vanished">社区论坛...</translation>
     </message>
     <message>
         <source>Report a Bug...</source>
-        <translation>上报 Bug...</translation>
+        <translation type="vanished">上报 Bug...</translation>
     </message>
     <message>
         <source>Geometric Shape Rectangle</source>
@@ -6226,6 +6237,26 @@ or you may delete necessary files for it.</source>
     <message>
         <source>Plastic Tool - Animate</source>
         <translation>塑形工具 - 动画</translation>
+    </message>
+    <message>
+        <source>&amp;Export Stop Motion Image Sequence</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Pick Focus Check Location</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Remove frame before Stop Motion Camera</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Next Frame including Stop Motion Camera</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Show original live view images.</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -6939,6 +6970,13 @@ What do you want to do?</source>
 Do you want to overwrite it?</source>
         <translation type="vanished">文件“%1”已经存在。
 要覆盖它吗？</translation>
+    </message>
+</context>
+<context>
+    <name>PaletteViewerPanel</name>
+    <message>
+        <source>Freeze</source>
+        <translation type="unfinished">冻结</translation>
     </message>
 </context>
 <context>
@@ -8558,6 +8596,16 @@ in non alpha-enabled image format.</source>
     <message>
         <source>Icon Theme*:</source>
         <translation>图标主题*:</translation>
+    </message>
+    <message>
+        <source>Show Icons In Menu*</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Use Qt&apos;s Native Windows Ink Support*
+(CAUTION: This options is for maintenance purpose. 
+ Do not activate this option or the tablet won&apos;t work properly.)</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -10985,6 +11033,14 @@ Do you want to create it?</source>
         <source>Script file %1 does not exists.</source>
         <translation>脚本文件 %1 不存在。</translation>
     </message>
+    <message>
+        <source>Add Level to Scene Cast : %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The Premultiply options in the following levels are disabled, since PNG files are premultiplied on loading in the current version: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>ReframePopup</name>
@@ -12846,6 +12902,10 @@ Please commit or revert changes first.</source>
         <source>Help</source>
         <translation>帮助</translation>
     </message>
+    <message>
+        <source>Stop Motion</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>ShortcutViewer</name>
@@ -13378,7 +13438,51 @@ WARNING : Image size mismatch. The size of level with the same path is %1 x %2.<
     </message>
     <message>
         <source>Cannot capture webcam image unless live view is active.</source>
-        <translation>除非实时查看模式开启，否则不能获得摄像头图像。</translation>
+        <translation type="vanished">除非实时查看模式开启，否则不能获得摄像头图像。</translation>
+    </message>
+    <message>
+        <source>Please start live view before using time lapse.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Cannot capture image unless live view is active.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>No level exists with the current name.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>This is not an image level.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>This is not a stop motion level.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Could not find an xsheet level with  the current level</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>No export path given.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Could not find the source file.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Overwrite existing files?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>An error occurred.  Aborting.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Successfully exported %1 images.</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -13461,11 +13565,11 @@ WARNING : Image size mismatch. The size of level with the same path is %1 x %2.<
     </message>
     <message>
         <source>Zoom</source>
-        <translation>缩放</translation>
+        <translation type="vanished">缩放</translation>
     </message>
     <message>
         <source>Pick Zoom</source>
-        <translation>拾取缩放</translation>
+        <translation type="vanished">拾取缩放</translation>
     </message>
     <message>
         <source>&lt;</source>
@@ -13573,7 +13677,7 @@ WARNING : Image size mismatch. The size of level with the same path is %1 x %2.<
     </message>
     <message>
         <source>Black Screen for Capture</source>
-        <translation>空白屏幕拍摄</translation>
+        <translation type="vanished">空白屏幕拍摄</translation>
     </message>
     <message>
         <source>Use Reduced Resolution Images</source>
@@ -13585,7 +13689,7 @@ WARNING : Image size mismatch. The size of level with the same path is %1 x %2.<
     </message>
     <message>
         <source>Place on XSheet</source>
-        <translation>放至摄影表</translation>
+        <translation type="vanished">放至摄影表</translation>
     </message>
     <message>
         <source>Use Numpad Shortcuts When Active</source>
@@ -13593,7 +13697,7 @@ WARNING : Image size mismatch. The size of level with the same path is %1 x %2.<
     </message>
     <message>
         <source>Show Live View on All Frames</source>
-        <translation>所以帧都显示实况视图</translation>
+        <translation type="vanished">所以帧都显示实况视图</translation>
     </message>
     <message>
         <source>Capture Review Time: </source>
@@ -13601,7 +13705,7 @@ WARNING : Image size mismatch. The size of level with the same path is %1 x %2.<
     </message>
     <message>
         <source>Level Subsampling: </source>
-        <translation>层级子采样: </translation>
+        <translation type="vanished">层级子采样: </translation>
     </message>
     <message>
         <source>Opacity:</source>
@@ -13634,6 +13738,141 @@ WARNING : Image size mismatch. The size of level with the same path is %1 x %2.<
     <message>
         <source>Stop Live View</source>
         <translation>停止实况视图</translation>
+    </message>
+    <message>
+        <source>Light</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Motion</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Camera Status</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Show original live view images in timeline</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Check</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Zoom in to check focus</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Pick</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Set focus check location</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Select a camera to change settings.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>insert webcam name here</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Manual Focus</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Focus: </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Brightness: </source>
+        <translation type="unfinished">亮度: </translation>
+    </message>
+    <message>
+        <source>Contrast: </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Gain: </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Saturation: </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>More</source>
+        <translation type="unfinished">更多</translation>
+    </message>
+    <message>
+        <source>Time Lapse</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Use time lapse</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Interval(sec):</source>
+        <translation type="unfinished">间隔(秒):</translation>
+    </message>
+    <message>
+        <source>Blackout all Screens</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Test</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Screen 1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Screen 2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Screen 3</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Motion Control</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Port: </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source> - Battery: </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Aperture: Auto</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Shutter Speed: Auto</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Start Capturing</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Stop Capturing</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>StopMotionSerial</name>
+    <message>
+        <source>No Device</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>

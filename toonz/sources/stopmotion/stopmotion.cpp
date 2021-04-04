@@ -2210,11 +2210,9 @@ bool StopMotion::exportImageSequence() {
       return false;
     }
   }
-  QString message1 = tr("Successfully exported ");
-  QString message2 = tr(" images.");
-  QString finalMessage =
-      message1 + QString::number(exportFrameNumber - 1) + message2;
-  DVGui::MsgBoxInPopup(DVGui::MsgType(DVGui::INFORMATION), finalMessage);
+  QString msg = tr("Successfully exported %1 images.")
+                    .arg(QString::number(exportFrameNumber - 1));
+  DVGui::MsgBoxInPopup(DVGui::MsgType(DVGui::INFORMATION), msg);
   return true;
 }
 

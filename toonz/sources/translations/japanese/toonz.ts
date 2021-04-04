@@ -540,6 +540,17 @@ Stop it or wait for its completion before removing it.</source>
     </message>
 </context>
 <context>
+    <name>Canon</name>
+    <message>
+        <source>AC Power</source>
+        <translation>AC電源</translation>
+    </message>
+    <message>
+        <source>Full</source>
+        <translation>フル</translation>
+    </message>
+</context>
+<context>
     <name>CanvasSizePopup</name>
     <message>
         <source>Canvas Size</source>
@@ -5299,7 +5310,7 @@ Please use the frame numbers for reference.</source>
     </message>
     <message>
         <source>Toggle Edit in Place</source>
-        <translation>親シートの内容をビューアに表示/非表示</translation>
+        <translation type="vanished">親シートの内容をビューアに表示/非表示</translation>
     </message>
     <message>
         <source>Refresh Folder Tree</source>
@@ -5765,7 +5776,7 @@ or you may delete necessary files for it.</source>
     </message>
     <message>
         <source>Save All</source>
-        <translation>シーンとレベルを全て保存</translation>
+        <translation type="vanished">シーンとレベルを全て保存</translation>
     </message>
     <message>
         <source>&amp;Paste as a Copy</source>
@@ -5841,23 +5852,23 @@ or you may delete necessary files for it.</source>
     </message>
     <message>
         <source>About OpenToonz...</source>
-        <translation>OpenToonzについて...</translation>
+        <translation type="vanished">OpenToonzについて...</translation>
     </message>
     <message>
         <source>Online Manual...</source>
-        <translation>オンラインマニュアル...</translation>
+        <translation type="vanished">オンラインマニュアル...</translation>
     </message>
     <message>
         <source>What&apos;s New...</source>
-        <translation>リリースノート...</translation>
+        <translation type="vanished">リリースノート...</translation>
     </message>
     <message>
         <source>Community Forum...</source>
-        <translation>ユーザーフォーラム...</translation>
+        <translation type="vanished">ユーザーフォーラム...</translation>
     </message>
     <message>
         <source>Report a Bug...</source>
-        <translation>不具合を報告する...</translation>
+        <translation type="vanished">不具合を報告する...</translation>
     </message>
     <message>
         <source>Geometric Shape Rectangle</source>
@@ -6182,6 +6193,26 @@ or you may delete necessary files for it.</source>
     <message>
         <source>Plastic Tool - Animate</source>
         <translation>プラスチックツール（切り替え） - モード - アニメート</translation>
+    </message>
+    <message>
+        <source>&amp;Export Stop Motion Image Sequence</source>
+        <translation>ストップモーション連番画像のエクスポート (&amp;E)</translation>
+    </message>
+    <message>
+        <source>Pick Focus Check Location</source>
+        <translation>フォーカス位置を指定</translation>
+    </message>
+    <message>
+        <source>Remove frame before Stop Motion Camera</source>
+        <translation>ストップモーション：前のコマを消去</translation>
+    </message>
+    <message>
+        <source>Next Frame including Stop Motion Camera</source>
+        <translation>ストップモーション：次のフレーム</translation>
+    </message>
+    <message>
+        <source>Show original live view images.</source>
+        <translation>元のライブビュー画像を表示</translation>
     </message>
 </context>
 <context>
@@ -6896,6 +6927,13 @@ What do you want to do?</source>
 Do you want to overwrite it?</source>
         <translation type="vanished">ファイル&quot;%1&quot;は既に存在します。
 上書きしますか？ </translation>
+    </message>
+</context>
+<context>
+    <name>PaletteViewerPanel</name>
+    <message>
+        <source>Freeze</source>
+        <translation>フリーズ</translation>
     </message>
 </context>
 <context>
@@ -8519,6 +8557,17 @@ in non alpha-enabled image format.</source>
     <message>
         <source>Icon Theme*:</source>
         <translation>アイコンのテーマ*:</translation>
+    </message>
+    <message>
+        <source>Show Icons In Menu*</source>
+        <translation>メニュー項目にアイコンを表示する *</translation>
+    </message>
+    <message>
+        <source>Use Qt&apos;s Native Windows Ink Support*
+(CAUTION: This options is for maintenance purpose. 
+ Do not activate this option or the tablet won&apos;t work properly.)</source>
+        <translation>QtのWindows Ink機能を用いる *
+（注意：開発目的のオプションです。オンにするとタブレットが正しく動作しなくなります。）</translation>
     </message>
 </context>
 <context>
@@ -10932,6 +10981,15 @@ Do you want to create it?</source>
         <source>Script file %1 does not exists.</source>
         <translation>スクリプトファイル %1 は存在しません。</translation>
     </message>
+    <message>
+        <source>Add Level to Scene Cast : %1</source>
+        <translation>レベルをシーンアセットに追加： %1</translation>
+    </message>
+    <message>
+        <source>The Premultiply options in the following levels are disabled, since PNG files are premultiplied on loading in the current version: %1</source>
+        <translation>以下のレベルの「合成チャンネル（黒マット）」オプションを解除しました。： %1
+現在のバージョンではPNGファイルは読み込み時に同等の処理を行っているためです。</translation>
+    </message>
 </context>
 <context>
     <name>ReframePopup</name>
@@ -12796,6 +12854,10 @@ Please commit or revert changes first.</source>
         <source>Help</source>
         <translation>ヘルプ</translation>
     </message>
+    <message>
+        <source>Stop Motion</source>
+        <translation>ストップモーション</translation>
+    </message>
 </context>
 <context>
     <name>ShortcutViewer</name>
@@ -13327,7 +13389,51 @@ WARNING : Image size mismatch. The size of level with the same path is %1 x %2.<
     </message>
     <message>
         <source>Cannot capture webcam image unless live view is active.</source>
-        <translation>ライブビューが有効でないと、Webカメラの画像を取り込むことはできません。</translation>
+        <translation type="vanished">ライブビューが有効でないと、Webカメラの画像を取り込むことはできません。</translation>
+    </message>
+    <message>
+        <source>Please start live view before using time lapse.</source>
+        <translation>タイムラプスを使用する前にライブビューを開始してください。</translation>
+    </message>
+    <message>
+        <source>Cannot capture image unless live view is active.</source>
+        <translation>ライブビューが有効でないと、画像取り込みができません。</translation>
+    </message>
+    <message>
+        <source>No level exists with the current name.</source>
+        <translation>現在の名前の付いたレベルがありません。</translation>
+    </message>
+    <message>
+        <source>This is not an image level.</source>
+        <translation>これは画像のレベルではありません。</translation>
+    </message>
+    <message>
+        <source>This is not a stop motion level.</source>
+        <translation>これはストップモーションレベルではありません。</translation>
+    </message>
+    <message>
+        <source>Could not find an xsheet level with  the current level</source>
+        <translation>現在のレベルがタイムシート内に見つかりません</translation>
+    </message>
+    <message>
+        <source>No export path given.</source>
+        <translation>書き出し先のパスが指定されていません。</translation>
+    </message>
+    <message>
+        <source>Could not find the source file.</source>
+        <translation>ファイルが見つかりませんでした。</translation>
+    </message>
+    <message>
+        <source>Overwrite existing files?</source>
+        <translation>既存のファイルを上書きしますか？</translation>
+    </message>
+    <message>
+        <source>An error occurred.  Aborting.</source>
+        <translation>エラーが発生しました。中断します。</translation>
+    </message>
+    <message>
+        <source>Successfully exported %1 images.</source>
+        <translation>%1 枚の画像の書き出しが完了しました。</translation>
     </message>
 </context>
 <context>
@@ -13410,11 +13516,11 @@ WARNING : Image size mismatch. The size of level with the same path is %1 x %2.<
     </message>
     <message>
         <source>Zoom</source>
-        <translation>ズーム</translation>
+        <translation type="vanished">ズーム</translation>
     </message>
     <message>
         <source>Pick Zoom</source>
-        <translation>フォーカス位置を指定</translation>
+        <translation type="vanished">フォーカス位置を指定</translation>
     </message>
     <message>
         <source>&lt;</source>
@@ -13522,7 +13628,7 @@ WARNING : Image size mismatch. The size of level with the same path is %1 x %2.<
     </message>
     <message>
         <source>Black Screen for Capture</source>
-        <translation>取り込み時に画面を暗くする</translation>
+        <translation type="vanished">取り込み時に画面を暗くする</translation>
     </message>
     <message>
         <source>Use Reduced Resolution Images</source>
@@ -13534,7 +13640,7 @@ WARNING : Image size mismatch. The size of level with the same path is %1 x %2.<
     </message>
     <message>
         <source>Place on XSheet</source>
-        <translation>タイムシート内に配置</translation>
+        <translation type="vanished">タイムシート内に配置</translation>
     </message>
     <message>
         <source>Use Numpad Shortcuts When Active</source>
@@ -13542,7 +13648,7 @@ WARNING : Image size mismatch. The size of level with the same path is %1 x %2.<
     </message>
     <message>
         <source>Show Live View on All Frames</source>
-        <translation>全てのフレームでライブビューを表示</translation>
+        <translation type="vanished">全てのフレームでライブビューを表示</translation>
     </message>
     <message>
         <source>Capture Review Time: </source>
@@ -13550,7 +13656,7 @@ WARNING : Image size mismatch. The size of level with the same path is %1 x %2.<
     </message>
     <message>
         <source>Level Subsampling: </source>
-        <translation>レベルの離散サンプリング: </translation>
+        <translation type="vanished">レベルの離散サンプリング: </translation>
     </message>
     <message>
         <source>Opacity:</source>
@@ -13583,6 +13689,141 @@ WARNING : Image size mismatch. The size of level with the same path is %1 x %2.<
     <message>
         <source>Stop Live View</source>
         <translation>ライブビューを停止</translation>
+    </message>
+    <message>
+        <source>Light</source>
+        <translation>ライト</translation>
+    </message>
+    <message>
+        <source>Motion</source>
+        <translation>モーション</translation>
+    </message>
+    <message>
+        <source>Camera Status</source>
+        <translation>カメラの状態</translation>
+    </message>
+    <message>
+        <source>Show original live view images in timeline</source>
+        <translation>タイムラインに元のライブビュー画像を表示</translation>
+    </message>
+    <message>
+        <source>Check</source>
+        <translation>チェック</translation>
+    </message>
+    <message>
+        <source>Zoom in to check focus</source>
+        <translation>フォーカスの確認のために拡大します</translation>
+    </message>
+    <message>
+        <source>Pick</source>
+        <translation>選択</translation>
+    </message>
+    <message>
+        <source>Set focus check location</source>
+        <translation>フォーカス位置をセット</translation>
+    </message>
+    <message>
+        <source>Select a camera to change settings.</source>
+        <translation>設定を変更するカメラを選択してください。</translation>
+    </message>
+    <message>
+        <source>insert webcam name here</source>
+        <translation>ウェブカメラの名称がここに表示されます</translation>
+    </message>
+    <message>
+        <source>Manual Focus</source>
+        <translation>マニュアルフォーカス</translation>
+    </message>
+    <message>
+        <source>Focus: </source>
+        <translation>フォーカス：</translation>
+    </message>
+    <message>
+        <source>Brightness: </source>
+        <translation>明るさ： </translation>
+    </message>
+    <message>
+        <source>Contrast: </source>
+        <translation>コントラスト： </translation>
+    </message>
+    <message>
+        <source>Gain: </source>
+        <translation>ゲイン： </translation>
+    </message>
+    <message>
+        <source>Saturation: </source>
+        <translation>彩度： </translation>
+    </message>
+    <message>
+        <source>More</source>
+        <translation>その他</translation>
+    </message>
+    <message>
+        <source>Time Lapse</source>
+        <translation>タイムラプス</translation>
+    </message>
+    <message>
+        <source>Use time lapse</source>
+        <translation>タイムラプスを使用する</translation>
+    </message>
+    <message>
+        <source>Interval(sec):</source>
+        <translation>間隔（秒）：</translation>
+    </message>
+    <message>
+        <source>Blackout all Screens</source>
+        <translation>スクリーン全体を暗転する</translation>
+    </message>
+    <message>
+        <source>Test</source>
+        <translation>テスト</translation>
+    </message>
+    <message>
+        <source>Screen 1</source>
+        <translation>スクリーン１</translation>
+    </message>
+    <message>
+        <source>Screen 2</source>
+        <translation>スクリーン２</translation>
+    </message>
+    <message>
+        <source>Screen 3</source>
+        <translation>スクリーン３</translation>
+    </message>
+    <message>
+        <source>Motion Control</source>
+        <translation>モーションコントロール</translation>
+    </message>
+    <message>
+        <source>Port: </source>
+        <translation>ポート： </translation>
+    </message>
+    <message>
+        <source> - Battery: </source>
+        <translation> - バッテリー： </translation>
+    </message>
+    <message>
+        <source>Aperture: Auto</source>
+        <translation>絞り： オート</translation>
+    </message>
+    <message>
+        <source>Shutter Speed: Auto</source>
+        <translation>シャッタースピード： オート</translation>
+    </message>
+    <message>
+        <source>Start Capturing</source>
+        <translation>キャプチャ開始</translation>
+    </message>
+    <message>
+        <source>Stop Capturing</source>
+        <translation>キャプチャ停止</translation>
+    </message>
+</context>
+<context>
+    <name>StopMotionSerial</name>
+    <message>
+        <source>No Device</source>
+        <translation>デバイスなし</translation>
     </message>
 </context>
 <context>

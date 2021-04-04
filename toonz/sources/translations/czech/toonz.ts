@@ -537,6 +537,17 @@ Zastavte ji nebo počkejte na její dokončení, předtím než ji odstraníte.<
     </message>
 </context>
 <context>
+    <name>Canon</name>
+    <message>
+        <source>AC Power</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Full</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>CanvasSizePopup</name>
     <message>
         <source>Canvas Size</source>
@@ -5444,7 +5455,7 @@ Pro odkaz, prosím, použijte čísla snímků.</translation>
     </message>
     <message>
         <source>Toggle Edit in Place</source>
-        <translation>Přepnout úpravy v místě</translation>
+        <translation type="vanished">Přepnout úpravy v místě</translation>
     </message>
     <message>
         <source>Link Flipbooks</source>
@@ -5916,7 +5927,7 @@ protože jinak můžete smazat pro něj nezbytné soubory.</translation>
     </message>
     <message>
         <source>Save All</source>
-        <translation>Uložit vše</translation>
+        <translation type="vanished">Uložit vše</translation>
     </message>
     <message>
         <source>&amp;Paste as a Copy</source>
@@ -5992,23 +6003,23 @@ protože jinak můžete smazat pro něj nezbytné soubory.</translation>
     </message>
     <message>
         <source>About OpenToonz...</source>
-        <translation>O programu OpenToonz...</translation>
+        <translation type="vanished">O programu OpenToonz...</translation>
     </message>
     <message>
         <source>Online Manual...</source>
-        <translation>Internetová příručka...</translation>
+        <translation type="vanished">Internetová příručka...</translation>
     </message>
     <message>
         <source>What&apos;s New...</source>
-        <translation>Co je nového...</translation>
+        <translation type="vanished">Co je nového...</translation>
     </message>
     <message>
         <source>Community Forum...</source>
-        <translation>Společné fórum...</translation>
+        <translation type="vanished">Společné fórum...</translation>
     </message>
     <message>
         <source>Report a Bug...</source>
-        <translation>Nahlásit chybu...</translation>
+        <translation type="vanished">Nahlásit chybu...</translation>
     </message>
     <message>
         <source>Geometric Shape Rectangle</source>
@@ -6333,6 +6344,26 @@ protože jinak můžete smazat pro něj nezbytné soubory.</translation>
     <message>
         <source>Plastic Tool - Animate</source>
         <translation>Plastický nástroj - Animování</translation>
+    </message>
+    <message>
+        <source>&amp;Export Stop Motion Image Sequence</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Pick Focus Check Location</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Remove frame before Stop Motion Camera</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Next Frame including Stop Motion Camera</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Show original live view images.</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -7047,6 +7078,13 @@ Co chcete dělat?</translation>
 Do you want to overwrite it?</source>
         <translation type="vanished">Soubor %1 již existuje.
 Chcete jej přepsat?</translation>
+    </message>
+</context>
+<context>
+    <name>PaletteViewerPanel</name>
+    <message>
+        <source>Freeze</source>
+        <translation type="unfinished">Pozastavit</translation>
     </message>
 </context>
 <context>
@@ -8612,6 +8650,16 @@ v obrázkových formátech, kde není povolen kanál alfa.</translation>
     <message>
         <source>Icon Theme*:</source>
         <translation>Téma ikony*:</translation>
+    </message>
+    <message>
+        <source>Show Icons In Menu*</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Use Qt&apos;s Native Windows Ink Support*
+(CAUTION: This options is for maintenance purpose. 
+ Do not activate this option or the tablet won&apos;t work properly.)</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -11077,6 +11125,14 @@ Chcete ji vytvořit?</translation>
         <source>Script file %1 does not exists.</source>
         <translation>Soubor se skriptem %1 neexistuje.</translation>
     </message>
+    <message>
+        <source>Add Level to Scene Cast : %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The Premultiply options in the following levels are disabled, since PNG files are premultiplied on loading in the current version: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>ReframePopup</name>
@@ -12938,6 +12994,10 @@ Chcete jej nahradit?</translation>
         <source>Help</source>
         <translation>Nápověda</translation>
     </message>
+    <message>
+        <source>Stop Motion</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>ShortcutViewer</name>
@@ -13457,7 +13517,51 @@ VAROVÁNÍ: Nesoulad ve velikosti obrázku. Velikost úrovně se stejnou cestou 
     </message>
     <message>
         <source>Cannot capture webcam image unless live view is active.</source>
-        <translation>Nelze pořídit snímek webové kamery, pokud není zapnuto živé zobrazení.</translation>
+        <translation type="vanished">Nelze pořídit snímek webové kamery, pokud není zapnuto živé zobrazení.</translation>
+    </message>
+    <message>
+        <source>Please start live view before using time lapse.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Cannot capture image unless live view is active.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>No level exists with the current name.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>This is not an image level.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>This is not a stop motion level.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Could not find an xsheet level with  the current level</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>No export path given.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Could not find the source file.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Overwrite existing files?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>An error occurred.  Aborting.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Successfully exported %1 images.</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -13540,11 +13644,11 @@ VAROVÁNÍ: Nesoulad ve velikosti obrázku. Velikost úrovně se stejnou cestou 
     </message>
     <message>
         <source>Zoom</source>
-        <translation>Zvětšení</translation>
+        <translation type="vanished">Zvětšení</translation>
     </message>
     <message>
         <source>Pick Zoom</source>
-        <translation>Zvolit zvětšení</translation>
+        <translation type="vanished">Zvolit zvětšení</translation>
     </message>
     <message>
         <source>&lt;</source>
@@ -13652,7 +13756,7 @@ VAROVÁNÍ: Nesoulad ve velikosti obrázku. Velikost úrovně se stejnou cestou 
     </message>
     <message>
         <source>Black Screen for Capture</source>
-        <translation>Černá obrazovka pro zachycení</translation>
+        <translation type="vanished">Černá obrazovka pro zachycení</translation>
     </message>
     <message>
         <source>Use Reduced Resolution Images</source>
@@ -13664,7 +13768,7 @@ VAROVÁNÍ: Nesoulad ve velikosti obrázku. Velikost úrovně se stejnou cestou 
     </message>
     <message>
         <source>Place on XSheet</source>
-        <translation>Umístit v záběru</translation>
+        <translation type="vanished">Umístit v záběru</translation>
     </message>
     <message>
         <source>Use Numpad Shortcuts When Active</source>
@@ -13672,7 +13776,7 @@ VAROVÁNÍ: Nesoulad ve velikosti obrázku. Velikost úrovně se stejnou cestou 
     </message>
     <message>
         <source>Show Live View on All Frames</source>
-        <translation>Ukázat živý pohled na všechny snímky</translation>
+        <translation type="vanished">Ukázat živý pohled na všechny snímky</translation>
     </message>
     <message>
         <source>Capture Review Time: </source>
@@ -13680,7 +13784,7 @@ VAROVÁNÍ: Nesoulad ve velikosti obrázku. Velikost úrovně se stejnou cestou 
     </message>
     <message>
         <source>Level Subsampling: </source>
-        <translation>Podvzorkování úrovně: </translation>
+        <translation type="vanished">Podvzorkování úrovně: </translation>
     </message>
     <message>
         <source>Opacity:</source>
@@ -13713,6 +13817,141 @@ VAROVÁNÍ: Nesoulad ve velikosti obrázku. Velikost úrovně se stejnou cestou 
     <message>
         <source>Stop Live View</source>
         <translation>Zastavit živý pohled</translation>
+    </message>
+    <message>
+        <source>Light</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Motion</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Camera Status</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Show original live view images in timeline</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Check</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Zoom in to check focus</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Pick</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Set focus check location</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Select a camera to change settings.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>insert webcam name here</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Manual Focus</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Focus: </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Brightness: </source>
+        <translation type="unfinished">Jas: </translation>
+    </message>
+    <message>
+        <source>Contrast: </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Gain: </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Saturation: </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>More</source>
+        <translation type="unfinished">Více</translation>
+    </message>
+    <message>
+        <source>Time Lapse</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Use time lapse</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Interval(sec):</source>
+        <translation type="unfinished">Interval (s):</translation>
+    </message>
+    <message>
+        <source>Blackout all Screens</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Test</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Screen 1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Screen 2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Screen 3</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Motion Control</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Port: </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source> - Battery: </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Aperture: Auto</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Shutter Speed: Auto</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Start Capturing</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Stop Capturing</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>StopMotionSerial</name>
+    <message>
+        <source>No Device</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>

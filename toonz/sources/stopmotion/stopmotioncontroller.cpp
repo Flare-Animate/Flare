@@ -573,7 +573,7 @@ StopMotionController::StopMotionController(QWidget *parent) : QWidget(parent) {
     webcamSettingsLayout->setSpacing(0);
     webcamSettingsLayout->setMargin(5);
     QHBoxLayout *webcamLabelLayout = new QHBoxLayout();
-    m_webcamLabel = new QLabel("insert webcam name here", this);
+    m_webcamLabel = new QLabel(tr("insert webcam name here"), this);
     webcamLabelLayout->addStretch();
     webcamLabelLayout->addWidget(m_webcamLabel);
     webcamLabelLayout->addStretch();
@@ -1688,7 +1688,8 @@ void StopMotionController::refreshMode() {
   QString mode    = m_stopMotion->m_canon->getMode();
   QString battery = m_stopMotion->m_canon->getCurrentBatteryLevel();
   m_cameraModeLabel->setText(tr("Mode: ") + mode);
-  m_cameraStatusLabel->setText("Mode: " + mode + " - Battery: " + battery);
+  m_cameraStatusLabel->setText(tr("Mode: ") + mode + tr(" - Battery: ") +
+                               battery);
 #endif
 }
 
@@ -1785,7 +1786,7 @@ void StopMotionController::refreshExposureList() {
   if (m_exposureCombo->count() == 0) {
     m_exposureCombo->addItem(tr("Disabled"));
     m_exposureCombo->setDisabled(true);
-    m_exposureCombo->setMaximumWidth(fontMetrics().width("Disabled") + 25);
+    m_exposureCombo->setMaximumWidth(fontMetrics().width(tr("Disabled")) + 25);
   } else {
     m_exposureCombo->setEnabled(true);
     m_exposureCombo->setCurrentText(
@@ -1812,7 +1813,8 @@ void StopMotionController::refreshWhiteBalanceList() {
   if (m_whiteBalanceCombo->count() == 0) {
     m_whiteBalanceCombo->addItem(tr("Disabled"));
     m_whiteBalanceCombo->setDisabled(true);
-    m_whiteBalanceCombo->setMaximumWidth(fontMetrics().width("Disabled") + 25);
+    m_whiteBalanceCombo->setMaximumWidth(fontMetrics().width(tr("Disabled")) +
+                                         25);
   } else {
     m_whiteBalanceCombo->setEnabled(true);
     m_whiteBalanceCombo->setCurrentText(
@@ -1867,7 +1869,8 @@ void StopMotionController::refreshImageQualityList() {
   if (m_imageQualityCombo->count() == 0) {
     m_imageQualityCombo->addItem(tr("Disabled"));
     m_imageQualityCombo->setDisabled(true);
-    m_imageQualityCombo->setMaximumWidth(fontMetrics().width("Disabled") + 25);
+    m_imageQualityCombo->setMaximumWidth(fontMetrics().width(tr("Disabled")) +
+                                         25);
   } else {
     m_imageQualityCombo->setEnabled(true);
     m_imageQualityCombo->setCurrentText(
@@ -1895,7 +1898,8 @@ void StopMotionController::refreshPictureStyleList() {
   if (m_pictureStyleCombo->count() == 0) {
     m_pictureStyleCombo->addItem(tr("Disabled"));
     m_pictureStyleCombo->setDisabled(true);
-    m_pictureStyleCombo->setMaximumWidth(fontMetrics().width("Disabled") + 25);
+    m_pictureStyleCombo->setMaximumWidth(fontMetrics().width(tr("Disabled")) +
+                                         25);
   } else {
     m_pictureStyleCombo->setEnabled(true);
     m_pictureStyleCombo->setCurrentText(

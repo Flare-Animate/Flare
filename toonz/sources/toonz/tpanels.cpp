@@ -531,7 +531,7 @@ void PaletteViewerPanel::reset() {
 void PaletteViewerPanel::initializeTitleBar() {
   m_freezeButton = new TPanelTitleBarButton(
       getTitleBar(), getIconThemePath("actions/20/pane_freeze.svg"));
-  m_freezeButton->setToolTip("Freeze");
+  m_freezeButton->setToolTip(tr("Freeze"));
   getTitleBar()->add(QPoint(-54, 0), m_freezeButton);
   m_freezeButton->setPressed(m_isFrozen);
   connect(m_freezeButton, SIGNAL(toggled(bool)),

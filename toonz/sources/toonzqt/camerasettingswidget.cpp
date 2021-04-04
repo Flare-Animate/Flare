@@ -64,6 +64,10 @@ QString removeZeros(QString srcStr) {
   }
   return srcStr;
 }
+
+// Preference values of the unit - translation text
+QMap<QString, QString> unitTrMap;
+
 }  // namespace
 
 //=============================================================================
@@ -174,6 +178,14 @@ CameraSettingsWidget::CameraSettingsWidget(bool forCleanup)
     , m_arValue(0)
     , m_presetListFile("")
     , m_currentLevel(0) {
+  if (unitTrMap.isEmpty()) {
+    unitTrMap["cm"]    = tr("cm");
+    unitTrMap["mm"]    = tr("mm");
+    unitTrMap["inch"]  = tr("inch");
+    unitTrMap["field"] = tr("field");
+    unitTrMap["pixel"] = tr("pixel");
+  }
+
   m_xPrev    = new QRadioButton();
   m_yPrev    = new QRadioButton();
   m_arPrev   = new QRadioButton();
@@ -193,7 +205,8 @@ CameraSettingsWidget::CameraSettingsWidget(bool forCleanup)
   if (Preferences::instance()->getPixelsOnly())
     m_unitLabel->setText(tr("Pixels"));
   else
-    m_unitLabel->setText(Preferences::instance()->getCameraUnits());
+    m_unitLabel->setText(
+        unitTrMap.value(Preferences::instance()->getCameraUnits()));
   m_dpiLabel = new QLabel(tr("DPI"));
   m_resLabel = new QLabel(tr("Pixels"));
   m_xLabel   = new QLabel(tr("x"));
@@ -396,7 +409,8 @@ void CameraSettingsWidget::showEvent(QShowEvent *e) {
   if (Preferences::instance()->getPixelsOnly())
     m_unitLabel->setText(tr("Pixels"));
   else
-    m_unitLabel->setText(Preferences::instance()->getCameraUnits());
+    m_unitLabel->setText(
+        unitTrMap.value(Preferences::instance()->getCameraUnits()));
 }
 
 void CameraSettingsWidget::loadPresetList() {

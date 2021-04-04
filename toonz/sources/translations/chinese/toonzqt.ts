@@ -179,6 +179,26 @@ Possibly the preset file has been corrupted</source>
         <source>&lt;custom&gt;</source>
         <translation>&lt;定制&gt;</translation>
     </message>
+    <message>
+        <source>cm</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>mm</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>inch</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>field</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>pixel</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>ChannelHisto</name>
@@ -1666,6 +1686,14 @@ Select FX nodes and related links before copying or cutting the selection you wa
     <message>
         <source>Failed to save palette.</source>
         <translation>保存调色板失败。</translation>
+    </message>
+    <message>
+        <source>Set Toolbar Below Styles</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Set Toolbar Above Styles</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
