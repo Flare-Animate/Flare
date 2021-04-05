@@ -983,6 +983,7 @@ protected:
   TStroke *m_rotatedStroke;
   TPointD m_originalCursorPos;
   TPointD m_currentCursorPos;
+  TPixel32 m_color;
 
   // for rotation
   double m_lastRotateAngle;
@@ -1243,6 +1244,7 @@ public:
 
   void draw() override {
     if (m_isRotatingOrMoving) {
+      tglColor(m_color);
       drawStrokeCenterline(*m_rotatedStroke, sqrt(tglGetPixelSize2()));
       return;
     }
@@ -1358,6 +1360,20 @@ public:
         m_lastRotateAngle    = 0;
         m_lastMoveStrokePos  = TPointD(0, 0);
         m_wasCtrlPressed     = false;
+
+        const TTool::Application *app = TTool::getApplication();
+        if (!app) {
+          m_color = TPixel32::Red;
+          return;
+        }
+
+        const TColorStyle *style = app->getCurrentLevelStyle();
+        if (!style) {
+          m_color = TPixel32::Red;
+          return;
+        }
+
+        m_color = style->getAverageColor();
 
         return;
       }
