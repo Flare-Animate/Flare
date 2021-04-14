@@ -1693,6 +1693,12 @@ QAction *MainWindow::createToggle(const char *id, const char *name,
   QAction *action = createAction(id, name, defaultShortcut, type, iconSVGName);
   // Remove if the icon is not set. Checkbox will be drawn by style sheet.
   if (!iconSVGName || !*iconSVGName) action->setIcon(QIcon());
+#if defined(_WIN32)
+  else {
+    bool visible = Preferences::instance()->getBoolValue(showIconsInMenu);
+    action->setIconVisibleInMenu(visible);
+  }
+#endif
   action->setCheckable(true);
   if (startStatus == true) action->trigger();
   bool ret =
