@@ -65,8 +65,9 @@ public:
                    // [TDoubleParamP] }
     LINEAR_RANGE,  // A band-like range between two points.
                    // { [2 TPointParamP] }
-
     RAYLIT,
+
+    RAINBOW_WIDTH,
 
     TYPESCOUNT
   };
