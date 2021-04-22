@@ -121,6 +121,7 @@ set(MOC_HEADERS
     xshtoolbar.h
 	xdtsimportpopup.h
 	expressionreferencemanager.h
+    tooloptionsshortcutinvoker.h
 )
 
 if(PLATFORM EQUAL 64)
@@ -359,6 +360,7 @@ set(SOURCES
     xdtsio.cpp
 	xdtsimportpopup.cpp
 	expressionreferencemanager.cpp
+    tooloptionsshortcutinvoker.cpp
 # Tracker file
     dummyprocessor.cpp
     metnum.cpp
