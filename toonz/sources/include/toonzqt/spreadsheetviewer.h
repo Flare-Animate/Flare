@@ -61,7 +61,7 @@ public:
   void registerFrameScroller();
   void unregisterFrameScroller();
 
-  void prepareToScrollOthers(const QPoint &offset);
+  void prepareToScrollOthers(const QPointF &offset);
 
   void setSyncing(bool s) { m_syncing = s; }
   bool isSyncing() { return m_syncing; }
@@ -79,8 +79,8 @@ private slots:
   void onVScroll(int value);
   void onHScroll(int value);
 signals:
-  void prepareToScrollOffset(const QPoint &offset);
-  void zoomScrollAdjust(QPoint &offset, bool toZoom);
+  void prepareToScrollOffset(const QPointF &offset);
+  void zoomScrollAdjust(QPointF &offset, bool toZoom);
 };
 
 //-------------------------------------------------------------------
@@ -303,6 +303,7 @@ class DVAPI SpreadsheetViewer : public QDialog {
 
   int m_columnWidth;
   int m_rowHeight;
+  int m_scaleFactor;
 
   // QPoint m_delta;
   int m_timerId;
@@ -328,9 +329,12 @@ public:
   int getRowHeight() const { return m_rowHeight; }
   void setRowHeight(int height) { m_rowHeight = height; }
 
+  void setScaleFactor(int factor) { m_scaleFactor = factor; }
+
   void setRowsPanel(Spreadsheet::RowPanel *rows);
   void setColumnsPanel(Spreadsheet::ColumnPanel *columns);
   void setCellsPanel(Spreadsheet::CellPanel *cells);
+  void setButtonAreaWidget(QWidget *widget);
 
   int getRowCount() const { return m_rowCount; }
 
@@ -466,6 +470,8 @@ public:
 
   void ensureVisibleCol(int col);
 
+  virtual int getFrameZoomFactor() const { return 100; }
+
 protected:
   void showEvent(QShowEvent *) override;
   void hideEvent(QHideEvent *) override;
@@ -484,7 +490,9 @@ public slots:
   void onVSliderChanged(int);
   void onHSliderChanged(int);
 
-  void onPrepareToScrollOffset(const QPoint &offset);
+  void onPrepareToScrollOffset(const QPointF &offset);
+  void onZoomScrollAdjust(QPointF &offset, bool toZoom);
+
   /*
 void updateAllAree();
 void updateCellColumnAree();
