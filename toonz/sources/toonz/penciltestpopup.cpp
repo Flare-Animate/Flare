@@ -1610,9 +1610,20 @@ PencilTestPopup::PencilTestPopup()
 
   int startupCamIndex = m_cameraListCombo->findText(
       QString::fromStdString(CamCapCameraName.getValue()));
+  // if previous camera is not found, then try to activate the connected default
+  // camera
+  if (startupCamIndex <= 0 && !QCameraInfo::defaultCamera().isNull()) {
+    startupCamIndex =
+        m_cameraListCombo->findText(QCameraInfo::defaultCamera().description());
+  }
   if (startupCamIndex > 0) {
     m_cameraListCombo->setCurrentIndex(startupCamIndex);
     onCameraListComboActivated(startupCamIndex);
+  }
+  // just in case, try to activate any connected camera
+  else if (m_cameraListCombo->count() >= 2) {
+    m_cameraListCombo->setCurrentIndex(1);
+    onCameraListComboActivated(1);
   }
 
   QString resStr = QString::fromStdString(CamCapCameraResolution.getValue());
