@@ -387,6 +387,7 @@ void FunctionViewer::setXsheetHandle(TXsheetHandle *xshHandle) {
   m_xshHandle = xshHandle;
   m_segmentViewer->setXsheetHandle(xshHandle);
   m_treeView->setXsheetHandle(xshHandle);
+  m_numericalColumns->setXsheetHandle(xshHandle);
 
   if (m_xshHandle && isVisible()) {
     TXsheet *xsh = m_xshHandle->getXsheet();
@@ -729,6 +730,7 @@ void FunctionViewer::save(QSettings &settings) const {
   settings.setValue("toggleStatus", m_toggleStatus);
   settings.setValue("showIbtwnValuesInSheet",
                     m_numericalColumns->isIbtwnValueVisible());
+  settings.setValue("syncSize", m_numericalColumns->isSyncSize());
 }
 
 //----------------------------------------------------------------------------
@@ -744,6 +746,10 @@ void FunctionViewer::load(QSettings &settings) {
                                  m_numericalColumns->isIbtwnValueVisible())
                           .toBool();
   m_numericalColumns->setIbtwnValueVisible(ibtwnVisible);
+
+  bool syncSize =
+      settings.value("syncSize", m_numericalColumns->isSyncSize()).toBool();
+  m_numericalColumns->setSyncSize(syncSize);
 }
 
 //-----------------------------------------------------------------------------
