@@ -1514,7 +1514,7 @@ void FilmstripCmd::paste(TXshSimpleLevel *sl, std::set<TFrameId> &frames) {
   if (drawingData) {
     if (sl->isSubsequence()) return;
 
-    // keep the choosed option of "Keep Original Palette" and reproduce it in
+    // keep the chosen option of "Keep Original Palette" and reproduce it in
     // undo
     bool keepOriginalPalette;
 

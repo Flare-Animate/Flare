@@ -1033,7 +1033,7 @@ PencilTestSaveInFolderPopup::PencilTestSaveInFolderPopup(QWidget* parent)
 
   QFrame* subFolderFrame = new QFrame(this);
 
-  QGroupBox* infoGroupBox    = new QGroupBox(tr("Infomation"), this);
+  QGroupBox* infoGroupBox    = new QGroupBox(tr("Information"), this);
   QGroupBox* subNameGroupBox = new QGroupBox(tr("Subfolder Name"), this);
 
   m_projectField  = new QLineEdit(this);
@@ -2032,8 +2032,8 @@ void PencilTestPopup::onPreviousName() {
 
   std::wstring levelName;
 
-  // if the current level name is non-sequencial, then try to switch the last
-  // sequencial level in the scene.
+  // if the current level name is non-sequential, then try to switch the last
+  // sequential level in the scene.
   if (!nameCreator->setCurrent(m_levelNameEdit->text().toStdWString())) {
     TLevelSet* levelSet =
         TApp::instance()->getCurrentScene()->getScene()->getLevelSet();
