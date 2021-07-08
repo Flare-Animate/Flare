@@ -1137,7 +1137,7 @@ void LevelSettingsPopup::onScanPathChanged() {
   QString text = m_scanPathFld->getPath();
   TFilePath newScanPath(text.toStdWString());
 
-  // limit the avaiable formats for now
+  // limit the available formats for now
   if (newScanPath.getType() != "tif" && newScanPath.getType() != "tiff" &&
       newScanPath.getType() != "tzi") {
     m_scanPathFld->setPath(toQString(sl->getScannedPath()));
