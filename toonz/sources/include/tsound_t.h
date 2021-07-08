@@ -85,7 +85,7 @@ public:
   //----------------------------------------------------------------------------
 
   /*!
-Returns a soundtrack whom is a clone of the object for the spicified channel.
+Returns a soundtrack whom is a clone of the object for the specified channel.
 A clone means that it's an object who lives independently from the other
 from which it's created. It has no reference to the object.
 */

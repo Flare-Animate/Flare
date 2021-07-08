@@ -3049,7 +3049,7 @@ void pixel_line_root::exec09_same_way_expand(
     }
   }
 
-  /* 各端点(one,ananother)ごと
+  /* 各端点(one,another)ごと
      伸ばした線分を、一時保管した角度に曲げる */
   i32_count_one     = 0;
   i32_count_another = 0;
