@@ -87,8 +87,14 @@ ShortcutViewer::~ShortcutViewer() {}
 
 void ShortcutViewer::setAction(QAction *action) {
   m_action = action;
-  setKeySequence(m_action->shortcut());
-  setFocus();
+  if (m_action) {
+    setEnabled(true);
+    setKeySequence(m_action->shortcut());
+    setFocus();
+  } else {
+    setEnabled(false);
+    setKeySequence(QKeySequence());
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -212,6 +218,8 @@ ShortcutTree::ShortcutTree(QWidget *parent) : QTreeWidget(parent) {
   connect(
       this, SIGNAL(currentItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)),
       this, SLOT(onCurrentItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)));
+  connect(this, SIGNAL(clicked(const QModelIndex &)), this,
+          SLOT(onItemClicked(const QModelIndex &)));
 }
 
 //-----------------------------------------------------------------------------
@@ -327,6 +335,12 @@ void ShortcutTree::onCurrentItemChanged(QTreeWidgetItem *current,
 void ShortcutTree::onShortcutChanged() {
   int i;
   for (i = 0; i < (int)m_items.size(); i++) m_items[i]->updateText();
+}
+
+//-----------------------------------------------------------------------------
+
+void ShortcutTree::onItemClicked(const QModelIndex &index) {
+  isExpanded(index) ? collapse(index) : expand(index);
 }
 
 //=============================================================================
