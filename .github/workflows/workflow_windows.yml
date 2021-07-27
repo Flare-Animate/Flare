@@ -6,7 +6,7 @@ jobs:
   Windows:
     runs-on: windows-2019
     env:
-      vcpkg_ref: 1d8728ae1ba66ad94b344708cf8d0ace1a6330b8
+      vcpkg_ref: 111220b3cf3311744369425d5c323a0f17941076
       CLCACHE_CL: 'C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Tools/MSVC/14.29.30037/bin/Hostx64/x64/cl_original.exe'
       BOOST_ROOT: ${{github.workspace}}/3rdparty/boost
       BOOST_URL: https://sourceforge.net/projects/boost/files/boost/1.72.0/boost_1_72_0.tar.bz2/download
