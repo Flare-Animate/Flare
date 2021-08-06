@@ -2739,7 +2739,7 @@ void StopMotionController::onFileTypeActivated() {
 //-----------------------------------------------------------------------------
 
 void StopMotionController::onFrameNumberChanged() {
-  m_stopMotion->setFrameNumber(m_frameNumberEdit->getValue());
+  m_stopMotion->setFrameNumber(m_frameNumberEdit->getValue().getNumber());
 }
 
 //-----------------------------------------------------------------------------
