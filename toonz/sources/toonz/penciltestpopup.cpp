@@ -347,19 +347,26 @@ QString fidsToString(const std::vector<TFrameId>& fids,
   } else {
     bool beginBlock = true;
     for (int f = 0; f < fids.size() - 1; f++) {
-      int num      = fids[f].getNumber();
-      int next_num = fids[f + 1].getNumber();
-      if (num + 1 == next_num) {
+      int num          = fids[f].getNumber();
+      char letter      = fids[f].getLetter();
+      int next_num     = fids[f + 1].getNumber();
+      char next_letter = fids[f + 1].getLetter();
+
+      if (num + 1 == next_num && letter == '\0' && next_letter == '\0') {
         if (beginBlock) {
           retStr += QString::number(num) + " - ";
           beginBlock = false;
         }
       } else {
-        retStr += QString::number(num) + ", ";
+        retStr += QString::number(num);
+        if (letter != '\0') retStr += QString(letter);
+        retStr += ", ";
         beginBlock = true;
       }
     }
     retStr += QString::number(fids.back().getNumber());
+    if (fids.back().getLetter() != '\0')
+      retStr += QString(fids.back().getLetter());
   }
   return retStr;
 }
@@ -679,42 +686,44 @@ void MyVideoWidget::mouseReleaseEvent(QMouseEvent* event) {
 
 //=============================================================================
 
-FrameNumberLineEdit::FrameNumberLineEdit(QWidget* parent, int value)
+FrameNumberLineEdit::FrameNumberLineEdit(QWidget* parent, TFrameId fId,
+                                         bool acceptLetter)
     : LineEdit(parent) {
-  setFixedWidth(54);
-  m_intValidator = new QIntValidator(this);
-  setValue(value);
-  m_intValidator->setRange(1, 9999);
+  setFixedWidth(60);
+  if (acceptLetter)
+    m_regexpValidator =
+        new QRegExpValidator(QRegExp("^\\d{1,4}[A-Za-z]?$"), this);
+  else
+    m_regexpValidator = new QRegExpValidator(QRegExp("^\\d{1,4}$"), this);
 
-  QRegExp rx("^[0-9]{1,4}[A-Ia-i]?$");
-  m_regexpValidator = new QRegExpValidator(rx, this);
+  m_regexpValidator_alt =
+      new QRegExpValidator(QRegExp("^\\d{1,3}[A-Ia-i]?$"), this);
 
   updateValidator();
+
+  setValue(fId);
 }
 
 //-----------------------------------------------------------------------------
 
 void FrameNumberLineEdit::updateValidator() {
   if (Preferences::instance()->isShowFrameNumberWithLettersEnabled())
-    setValidator(m_regexpValidator);
+    setValidator(m_regexpValidator_alt);
   else
-    setValidator(m_intValidator);
+    setValidator(m_regexpValidator);
 }
 
 //-----------------------------------------------------------------------------
 
-void FrameNumberLineEdit::setValue(int value) {
-  if (value <= 0)
-    value = 1;
-  else if (value > 9999)
-    value = 9999;
-
+void FrameNumberLineEdit::setValue(TFrameId fId) {
   QString str;
   if (Preferences::instance()->isShowFrameNumberWithLettersEnabled()) {
-    str = convertToFrameWithLetter(value, 3);
+    if (fId.getLetter() != '\0') {
+      // need some warning?
+    }
+    str = convertToFrameWithLetter(fId.getNumber(), 3);
   } else {
-    str.setNum(value);
-    while (str.length() < 4) str.push_front("0");
+    str = QString::fromStdString(fId.expand());
   }
   setText(str);
   setCursorPosition(0);
@@ -722,18 +731,27 @@ void FrameNumberLineEdit::setValue(int value) {
 
 //-----------------------------------------------------------------------------
 
-int FrameNumberLineEdit::getValue() {
+TFrameId FrameNumberLineEdit::getValue() {
   if (Preferences::instance()->isShowFrameNumberWithLettersEnabled()) {
     QString str = text();
+    int f;
     // if no letters added
     if (str.at(str.size() - 1).isDigit())
-      return str.toInt() * 10;
+      f = str.toInt() * 10;
     else {
-      return str.left(str.size() - 1).toInt() * 10 +
-             letterToNum(str.at(str.size() - 1));
+      f = str.left(str.size() - 1).toInt() * 10 +
+          letterToNum(str.at(str.size() - 1));
     }
-  } else
-    return text().toInt();
+    return TFrameId(f);
+  } else {
+    QRegExp rx("^(\\d{1,4})([A-Za-z]?)$");
+    int pos = rx.indexIn(text());
+    if (pos < 0) return TFrameId();
+    if (rx.cap(2).isEmpty())
+      return TFrameId(rx.cap(1).toInt());
+    else
+      return TFrameId(rx.cap(1).toInt(), rx.cap(2).at(0).toLatin1());
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -2099,13 +2117,23 @@ void PencilTestPopup::onFrameCaptured(cv::Mat& image) {
     if (importImage(qimg)) {
       m_videoWidget->setPreviousImage(qimg.copy());
       if (Preferences::instance()->isShowFrameNumberWithLettersEnabled()) {
-        int f = m_frameNumberEdit->getValue();
+        TFrameId fId = m_frameNumberEdit->getValue();
+        int f        = fId.getNumber();
         if (f % 10 == 0)  // next number
-          m_frameNumberEdit->setValue(((int)(f / 10) + 1) * 10);
+          m_frameNumberEdit->setValue(TFrameId(((int)(f / 10) + 1) * 10));
         else  // next alphabet
-          m_frameNumberEdit->setValue(f + 1);
-      } else
-        m_frameNumberEdit->setValue(m_frameNumberEdit->getValue() + 1);
+          m_frameNumberEdit->setValue(TFrameId(f + 1));
+      } else {
+        TFrameId fId = m_frameNumberEdit->getValue();
+
+        if (fId.getLetter() == '\0' || fId.getLetter() == 'Z' ||
+            fId.getLetter() == 'z')  // next number
+          m_frameNumberEdit->setValue(TFrameId(fId.getNumber() + 1));
+        else {  // next alphabet
+          char letter = fId.getLetter() + 1;
+          m_frameNumberEdit->setValue(TFrameId(fId.getNumber(), letter));
+        }
+      }
 
       /* notify */
       TApp::instance()->getCurrentScene()->notifySceneChanged();
@@ -2376,7 +2404,7 @@ bool PencilTestPopup::importImage(QImage image) {
     return false;
   }
 
-  int frameNumber = m_frameNumberEdit->getValue();
+  TFrameId fId = m_frameNumberEdit->getValue();
 
   /* create parent directory if it does not exist */
   TFilePath parentDir =
@@ -2436,7 +2464,7 @@ bool PencilTestPopup::importImage(QImage image) {
       return false;
     }
     /* if the level already have the same frame, then ask if overwrite it */
-    TFilePath frameFp(actualLevelFp.withFrame(frameNumber));
+    TFilePath frameFp(actualLevelFp.withFrame(fId));
     if (TFileStatus(frameFp).doesExist()) {
       if (!m_alwaysOverwrite) {
         QString question =
@@ -2472,7 +2500,7 @@ bool PencilTestPopup::importImage(QImage image) {
       }
 
       /* confirm overwrite */
-      TFilePath frameFp(actualLevelFp.withFrame(frameNumber));
+      TFilePath frameFp(actualLevelFp.withFrame(fId));
       if (TFileStatus(frameFp).doesExist()) {
         if (!m_alwaysOverwrite) {
           QString question =
@@ -2519,7 +2547,6 @@ bool PencilTestPopup::importImage(QImage image) {
     state = NEWLEVEL;
   }
 
-  TFrameId fid(frameNumber);
   TPointD levelDpi = sl->getDpi();
   /* create the raster */
   TRaster32P raster(image.width(), image.height());
@@ -2528,7 +2555,7 @@ bool PencilTestPopup::importImage(QImage image) {
   TRasterImageP ri(raster);
   ri->setDpi(levelDpi.x, levelDpi.y);
   /* setting the frame */
-  sl->setFrame(fid, ri);
+  sl->setFrame(fId, ri);
 
   /* set dirty flag */
   sl->getProperties()->setDirtyFlag(true);
@@ -2546,7 +2573,7 @@ bool PencilTestPopup::importImage(QImage image) {
       col += 1;
       xsh->insertColumn(col);
     }
-    xsh->setCell(row, col, TXshCell(sl, fid));
+    xsh->setCell(row, col, TXshCell(sl, fId));
     app->getCurrentColumn()->setColumnIndex(col);
     return true;
   }
@@ -2558,7 +2585,7 @@ bool PencilTestPopup::importImage(QImage image) {
   int foundCol, foundRow = -1;
   // most possibly, it's in the current column
   int rowCheck;
-  if (findCell(xsh, col, TXshCell(sl, fid), rowCheck)) return true;
+  if (findCell(xsh, col, TXshCell(sl, fId), rowCheck)) return true;
   if (rowCheck >= 0) {
     foundRow = rowCheck;
     foundCol = col;
@@ -2566,7 +2593,7 @@ bool PencilTestPopup::importImage(QImage image) {
   // search entire xsheet
   for (int c = 0; c < xsh->getColumnCount(); c++) {
     if (c == col) continue;
-    if (findCell(xsh, c, TXshCell(sl, fid), rowCheck)) return true;
+    if (findCell(xsh, c, TXshCell(sl, fId), rowCheck)) return true;
     if (rowCheck >= 0) {
       foundRow = rowCheck;
       foundCol = c;
@@ -2578,7 +2605,7 @@ bool PencilTestPopup::importImage(QImage image) {
     int tmpRow = foundRow + 1;
     while (1) {
       if (xsh->getCell(tmpRow, foundCol).isEmpty()) {
-        xsh->setCell(tmpRow, foundCol, TXshCell(sl, fid));
+        xsh->setCell(tmpRow, foundCol, TXshCell(sl, fId));
         app->getCurrentColumn()->setColumnIndex(foundCol);
         break;
       }
@@ -2592,7 +2619,7 @@ bool PencilTestPopup::importImage(QImage image) {
       col += 1;
       xsh->insertColumn(col);
     }
-    xsh->setCell(row, col, TXshCell(sl, fid));
+    xsh->setCell(row, col, TXshCell(sl, fId));
     app->getCurrentColumn()->setColumnIndex(col);
   }
 
@@ -2648,7 +2675,7 @@ void PencilTestPopup::refreshFrameInfo() {
   TLevelSet* levelSet      = currentScene->getLevelSet();
 
   std::wstring levelName = m_levelNameEdit->text().toStdWString();
-  int frameNumber        = m_frameNumberEdit->getValue();
+  TFrameId fId           = m_frameNumberEdit->getValue();
 
   TDimension camRes;
   if (m_subcameraButton->isChecked())
@@ -2678,7 +2705,7 @@ void PencilTestPopup::refreshFrameInfo() {
   bool levelExist = TSystem::doesExistFileOrLevel(actualLevelFp);
 
   // frame existence
-  TFilePath frameFp(actualLevelFp.withFrame(frameNumber));
+  TFilePath frameFp(actualLevelFp.withFrame(fId));
   bool frameExist = false;
   if (levelExist) frameExist = TFileStatus(frameFp).doesExist();
 
@@ -2818,7 +2845,7 @@ void PencilTestPopup::refreshFrameInfo() {
       // Check if the target frame already exist in the level
       bool hasFrame = false;
       for (int f = 0; f < frameCount; f++) {
-        if (fids.at(f).getNumber() == frameNumber) {
+        if (fids.at(f) == fId) {
           hasFrame = true;
           break;
         }
