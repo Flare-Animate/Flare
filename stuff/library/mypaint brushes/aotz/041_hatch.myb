@@ -2,8 +2,8 @@
     "comment": "MyPaint brush file",
     "description": "A brush to simulate cross hatching effect",
     "group": "",
-    "notes": "Brush package optimized for OpenToonz v0.2\n\nAuthor: Anderson Prado (aka AndeOn)\nLicense: CC0/Public Domain",
-    "parent_brush_name": "", 
+    "notes": "Brush package optimized for OpenToonz v0.3\n\nAuthor: Anderson Prado (aka AndeOn)\nLicense: CC0/Public Domain",
+    "parent_brush_name": "",
     "settings": {
         "anti_aliasing": {
             "base_value": 0.0,
@@ -70,26 +70,22 @@
             "inputs": {}
         },
         "elliptical_dab_angle": {
-            "base_value": 15.0,
+            "base_value": 75.0,
             "inputs": {
                 "direction": [
                     [
                         0.0,
-                        -41.567346938775515
+                        0.0
                     ],
                     [
-                        99.00000000000001,
-                        -12.729999999999997
-                    ],
-                    [
-                        180.0,
-                        63.65
+                        75.0,
+                        75.0
                     ]
                 ]
             }
         },
         "elliptical_dab_ratio": {
-            "base_value": 9.46,
+            "base_value": 10.0,
             "inputs": {}
         },
         "eraser": {
@@ -215,7 +211,7 @@
             }
         },
         "opaque_linearize": {
-            "base_value": 0.0,
+            "base_value": 0.1,
             "inputs": {}
         },
         "opaque_multiply": {
