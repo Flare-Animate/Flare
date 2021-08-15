@@ -2065,6 +2065,171 @@ contain the dpi information, then the current camera dpi will be used.
     </message>
 </context>
 <context>
+    <name>ExportXsheetPdfPopup</name>
+    <message>
+        <source>Export Xsheet PDF</source>
+        <translation>タイムシートをPDFにエクスポート</translation>
+    </message>
+    <message>
+        <source>Print Export DateTime</source>
+        <translation>日時を出力する</translation>
+    </message>
+    <message>
+        <source>Print Scene Path</source>
+        <translation>シーンのパスを出力する</translation>
+    </message>
+    <message>
+        <source>Print Soundtrack</source>
+        <translation>音声トラックを出力する</translation>
+    </message>
+    <message>
+        <source>Print Scene Name</source>
+        <translation>シーン名を出力する</translation>
+    </message>
+    <message>
+        <source>Text</source>
+        <translation>テキスト</translation>
+    </message>
+    <message>
+        <source>Image</source>
+        <translation>画像</translation>
+    </message>
+    <message>
+        <source>&lt; Prev</source>
+        <translation>＜前ページ</translation>
+    </message>
+    <message>
+        <source>Next &gt;</source>
+        <translation>次ページ＞</translation>
+    </message>
+    <message>
+        <source>Export PDF</source>
+        <translation>PDFをエクスポート</translation>
+    </message>
+    <message>
+        <source>Export PNG</source>
+        <translation>PNGをエクスポート</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>キャンセル</translation>
+    </message>
+    <message>
+        <source>B4 size, 6 seconds sheet</source>
+        <translation>B4サイズ、6秒シート</translation>
+    </message>
+    <message>
+        <source>B4 size, 3 seconds sheet</source>
+        <translation type="vanished">B4サイズ、3秒シート</translation>
+    </message>
+    <message>
+        <source>ACTIONS</source>
+        <translation>アクション</translation>
+    </message>
+    <message>
+        <source>CELLS</source>
+        <translation>セル</translation>
+    </message>
+    <message>
+        <source>Template Settings</source>
+        <translation>用紙設定</translation>
+    </message>
+    <message>
+        <source>Template:</source>
+        <translation>テンプレート：</translation>
+    </message>
+    <message>
+        <source>Line color:</source>
+        <translation>線の色：</translation>
+    </message>
+    <message>
+        <source>Template font:</source>
+        <translation>フォント：</translation>
+    </message>
+    <message>
+        <source>Logo:</source>
+        <translation>ロゴ：</translation>
+    </message>
+    <message>
+        <source>Export Settings</source>
+        <translation>エクスポート設定</translation>
+    </message>
+    <message>
+        <source>Output area:</source>
+        <translation>出力エリア：</translation>
+    </message>
+    <message>
+        <source>Output font:</source>
+        <translation>出力フォント：</translation>
+    </message>
+    <message>
+        <source>Memo:</source>
+        <translation>メモ：</translation>
+    </message>
+    <message>
+        <source>Save to:</source>
+        <translation type="vanished">保存先：</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n page(s)</source>
+        <translation>
+            <numerusform>%n ページ</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>%1 x %2 pages</source>
+        <translation>%1 x %2 ページ</translation>
+    </message>
+    <message>
+        <source>Please specify the file path.</source>
+        <translation type="vanished">保存先を指定して下さい。</translation>
+    </message>
+    <message>
+        <source>The file %1 already exists.
+Do you want to overwrite it?</source>
+        <translation>ファイル%1は既に存在します。
+上書きしてもよろしいですか？</translation>
+    </message>
+    <message>
+        <source>A folder %1 does not exist.
+Do you want to create it?</source>
+        <translation>フォルダー %1 は存在しません。
+作成しますか？</translation>
+    </message>
+    <message>
+        <source>Failed to create folder %1.</source>
+        <translation>フォルダ %1 の作成に失敗しました。</translation>
+    </message>
+    <message>
+        <source>Put Serial Frame Numbers Over Pages</source>
+        <translation>秒数、フレーム番号を通しで表示する</translation>
+    </message>
+    <message>
+        <source>Print Level Names On The Botom</source>
+        <translation>レベル名をページ下部にも出力する</translation>
+    </message>
+    <message>
+        <source>A3 size, 6 seconds sheet</source>
+        <translation type="vanished">A3サイズ、6秒シート</translation>
+    </message>
+    <message>
+        <source>The preset file %1 is not valid.</source>
+        <translation>%1は有効なプリセットファイルではありません。</translation>
+    </message>
+    <message>
+        <source>Name:</source>
+        <translation>ファイル名：</translation>
+    </message>
+    <message>
+        <source>Please specify the file name.</source>
+        <translation>ファイル名を指定して下さい。</translation>
+    </message>
+    <message>
+        <source>Save in:</source>
+        <translation>保存先フォルダ：</translation>
+    </message>
+</context>
+<context>
     <name>ExpressionReferenceManager</name>
     <message>
         <source>Expression monitoring restarted: &quot;%1&quot;</source>
@@ -2794,6 +2959,14 @@ Do you want to overwrite it?</source>
     <message>
         <source>Zoom out (Ctrl-click to zoom out all the way)</source>
         <translation>タイムラインの縮小 [Ctrl+クリック] 最小まで縮小</translation>
+    </message>
+    <message>
+        <source>Zoom in/out of xsheet</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 frames per page</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -6214,6 +6387,14 @@ or you may delete necessary files for it.</source>
         <source>Show original live view images.</source>
         <translation>元のライブビュー画像を表示</translation>
     </message>
+    <message>
+        <source>&amp;Export Xsheet to PDF</source>
+        <translation>タイムシートをPDFにエクスポート</translation>
+    </message>
+    <message>
+        <source>Export TVPaint JSON File</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>MatchlinesDialog</name>
@@ -7286,7 +7467,7 @@ WARNING : Image size mismatch. The saved image size is %1 x %2.</source>
     </message>
     <message>
         <source>Infomation</source>
-        <translation>基本情報</translation>
+        <translation type="vanished">基本情報</translation>
     </message>
     <message>
         <source>Subfolder Name</source>
@@ -7391,6 +7572,10 @@ WARNING : Image size mismatch. The saved image size is %1 x %2.</source>
 Set the output folder path to the subfolder as well.</source>
         <translation>カットフォルダ内にシーンファイルを保存します。同時に、
 出力設定の保存先をカットフォルダのパスに設定します。</translation>
+    </message>
+    <message>
+        <source>Information</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -8248,11 +8433,11 @@ if both are possible on coding file path.</source>
     </message>
     <message>
         <source>Open the dropdown to display all options</source>
-        <translation>コンボボックスを展開して全てのオプションを表示する</translation>
+        <translation type="vanished">コンボボックスを展開して全てのオプションを表示する</translation>
     </message>
     <message>
         <source>Cycle through the available options</source>
-        <translation>オプションを順番に切り替える</translation>
+        <translation type="vanished">オプションを順番に切り替える</translation>
     </message>
     <message>
         <source>Path Alias Priority:</source>
@@ -8264,7 +8449,7 @@ if both are possible on coding file path.</source>
     </message>
     <message>
         <source>Dropdown Shortcuts:</source>
-        <translation>コンボボックス表示のオプションにショートカットを用いたとき:</translation>
+        <translation type="vanished">コンボボックス表示のオプションにショートカットを用いたとき:</translation>
     </message>
     <message>
         <source>Show Raster Images Darken Blended</source>
@@ -8568,6 +8753,10 @@ in non alpha-enabled image format.</source>
  Do not activate this option or the tablet won&apos;t work properly.)</source>
         <translation>QtのWindows Ink機能を用いる *
 （注意：開発目的のオプションです。オンにするとタブレットが正しく動作しなくなります。）</translation>
+    </message>
+    <message>
+        <source>Automatically Remove Unused Levels From Scene Cast</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -9635,7 +9824,7 @@ Some levels have not been loaded because their version is not supported</source>
     </message>
     <message>
         <source>A convertion task is in progress! wait until it stops or cancel it</source>
-        <translation>変換タスクの処理中です! 完了まで待つか、またはキャンセルして下さい</translation>
+        <translation type="vanished">変換タスクの処理中です! 完了まで待つか、またはキャンセルして下さい</translation>
     </message>
     <message>
         <source>Error loading scene %1 :%2</source>
@@ -10453,7 +10642,7 @@ Save the scene first.</source>
 A partial save file was generated and changes may be manually salvaged from &apos;%2&apos;.
 
 Do you wish to continue loading the last good save or stop and try to salvage the prior save?</source>
-        <translation>シーン &apos; %1 &apos; は直前の保存作業が不正に中断しました。
+        <translation type="vanished">シーン &apos; %1 &apos; は直前の保存作業が不正に中断しました。
 
 生成された一時保存ファイル &apos;%2&apos; から直前の編集内容を手動で復旧できる可能性があります。
 
@@ -10989,6 +11178,123 @@ Do you want to create it?</source>
         <source>The Premultiply options in the following levels are disabled, since PNG files are premultiplied on loading in the current version: %1</source>
         <translation>以下のレベルの「合成チャンネル（黒マット）」オプションを解除しました。： %1
 現在のバージョンではPNGファイルは読み込み時に同等の処理を行っているためです。</translation>
+    </message>
+    <message>
+        <source>Removed unused level %1 from the scene cast. (This behavior can be disabled in Preferences.)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Removed unused levels from the scene cast. (This behavior can be disabled in Preferences.)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>A prior save of Scene &apos;%1&apos; was critically interrupted. 
+
+A partial save file was generated and changes may be manually salvaged from &apos;%2&apos;.
+
+Do you wish to continue loading the last good save or stop and try to salvage the prior save?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>A conversion task is in progress! wait until it stops or cancel it</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>ACTION</source>
+        <comment>XSheetPDF</comment>
+        <translation>アクション</translation>
+    </message>
+    <message>
+        <source>S</source>
+        <comment>XSheetPDF</comment>
+        <translation>台詞</translation>
+    </message>
+    <message>
+        <source>CELL</source>
+        <comment>XSheetPDF</comment>
+        <translation>セル</translation>
+    </message>
+    <message>
+        <source>CAMERA</source>
+        <comment>XSheetPDF</comment>
+        <translation>キャメラ</translation>
+    </message>
+    <message>
+        <source>&apos;</source>
+        <comment>XSheetPDF:second</comment>
+        <translation>秒</translation>
+    </message>
+    <message>
+        <source>&quot;</source>
+        <comment>XSheetPDF:frame</comment>
+        <translation>コマ</translation>
+    </message>
+    <message>
+        <source>+</source>
+        <comment>XSheetPDF</comment>
+        <translation>＋</translation>
+    </message>
+    <message>
+        <source>TOT</source>
+        <comment>XSheetPDF</comment>
+        <translation>枚</translation>
+    </message>
+    <message>
+        <source>th</source>
+        <comment>XSheetPDF</comment>
+        <translation>枚目</translation>
+    </message>
+    <message>
+        <source>TVPaint JSON file cannot be exported from untitled scene. Save the scene first.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>No columns can be exported. Please note the followings:
+ - The level files must be placed at the same or child folder relative to the scene file.
+ - Currently only the columns containing raster levels can be exported.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Export TVPaint JSON File</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>EPISODE</source>
+        <comment>XSheetPDF</comment>
+        <translation>第&#x3000;&#x3000;話</translation>
+    </message>
+    <message>
+        <source>SEQ.</source>
+        <comment>XSheetPDF</comment>
+        <translation>シーン</translation>
+    </message>
+    <message>
+        <source>SCENE</source>
+        <comment>XSheetPDF</comment>
+        <translation>カット</translation>
+    </message>
+    <message>
+        <source>TIME</source>
+        <comment>XSheetPDF</comment>
+        <translation>タイム</translation>
+    </message>
+    <message>
+        <source>NAME</source>
+        <comment>XSheetPDF</comment>
+        <translation>原画</translation>
+    </message>
+    <message>
+        <source>SHEET</source>
+        <comment>XSheetPDF</comment>
+        <translation>シート</translation>
+    </message>
+    <message>
+        <source>Ovewrite</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Create folder</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -14604,6 +14910,33 @@ Please refer to the user guide for details.</source>
     </message>
 </context>
 <context>
+    <name>XSheetPDF</name>
+    <message>
+        <source>EPISODE</source>
+        <translation type="vanished">第&#x3000;&#x3000;話</translation>
+    </message>
+    <message>
+        <source>SEQUENCE</source>
+        <translation type="vanished">シーン</translation>
+    </message>
+    <message>
+        <source>SCENE</source>
+        <translation type="vanished">カット</translation>
+    </message>
+    <message>
+        <source>TIME</source>
+        <translation type="vanished">タイム</translation>
+    </message>
+    <message>
+        <source>NAME</source>
+        <translation type="vanished">原画</translation>
+    </message>
+    <message>
+        <source>SHEET</source>
+        <translation type="vanished">シート</translation>
+    </message>
+</context>
+<context>
     <name>XsheetGUI::CellArea</name>
     <message>
         <source>Click to select keyframe, drag to move it</source>
@@ -15018,6 +15351,13 @@ Hold F3 Key on the Viewer to Show This Frame Only</source>
     <message>
         <source>Customize XSheet Toolbar</source>
         <translation>タイムシートツールバーをカスタマイズ</translation>
+    </message>
+</context>
+<context>
+    <name>XsheetPdfPreviewArea</name>
+    <message>
+        <source>Fit To Window</source>
+        <translation>ウィンドウに全体を表示</translation>
     </message>
 </context>
 <context>

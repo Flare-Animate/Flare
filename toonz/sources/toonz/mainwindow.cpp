@@ -1666,6 +1666,10 @@ void MainWindow::defineActions() {
                        "", "shortcuts");
   createMenuFileAction(MI_PrintXsheet, QT_TR_NOOP("&Print Xsheet"), "",
                        "printer");
+
+  createMenuFileAction(MI_ExportXsheetPDF, QT_TR_NOOP("&Export Xsheet to PDF"),
+                       "");
+
   createMenuFileAction(
       MI_ExportXDTS,
       QT_TRANSLATE_NOOP("MainWindow",
