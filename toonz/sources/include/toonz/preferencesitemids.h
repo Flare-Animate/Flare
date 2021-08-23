@@ -28,9 +28,7 @@ enum PreferencesItemId {
   functionEditorToggle,
   moveCurrentFrameByClickCellArea,
   actualPixelViewOnSceneEditingMode,
-  levelNameOnEachMarkerEnabled,
   showRasterImagesDarkenBlendedInViewer,
-  showFrameNumberWithLetters,
   iconSize,
   viewShrink,
   viewStep,
@@ -130,6 +128,8 @@ enum PreferencesItemId {
   syncLevelRenumberWithXsheet,
   currentTimelineEnabled,
   currentColumnColor,
+  levelNameDisplayType,
+  showFrameNumberWithLetters,
 
   //----------
   // Animation

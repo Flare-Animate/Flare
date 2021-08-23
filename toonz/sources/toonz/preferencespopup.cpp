@@ -1131,11 +1131,8 @@ QString PreferencesPopup::getUIString(PreferencesItemId id) {
           "Area")},
       {actualPixelViewOnSceneEditingMode,
        tr("Enable Actual Pixel View on Scene Editing Mode")},
-      {levelNameOnEachMarkerEnabled, tr("Display Level Name on Each Marker")},
       {showRasterImagesDarkenBlendedInViewer,
        tr("Show Raster Images Darken Blended")},
-      {showFrameNumberWithLetters,
-       tr("Show \"ABC\" Appendix to the Frame Number in Xsheet Cell")},
       {iconSize, tr("Level Strip Thumbnail Size*:")},
       {viewShrink, tr("Viewer Shrink:")},
       {viewStep, tr("Step:")},
@@ -1240,6 +1237,11 @@ QString PreferencesPopup::getUIString(PreferencesItemId id) {
       {currentTimelineEnabled,
        tr("Show Current Time Indicator (Timeline Mode only)")},
       {currentColumnColor, tr("Current Column Color:")},
+      //{ levelNameOnEachMarkerEnabled, tr("Display Level Name on Each Marker")
+      //},
+      {levelNameDisplayType, tr("Level Name Display:")},
+      {showFrameNumberWithLetters,
+       tr("Show \"ABC\" Appendix to the Frame Number in Xsheet Cell")},
 
       // Animation
       {keyframeType, tr("Default Interpolation:")},
@@ -1364,7 +1366,13 @@ QList<ComboBoxItem> PreferencesPopup::getComboItemList(
       {xsheetLayoutPreference,
        {{tr("Classic"), "Classic"},
         {tr("Classic-revised"), "Classic-revised"},
-        {tr("Compact"), "Compact"}}},
+        {tr("Compact"), "Compact"},
+        {tr("Minimum"), "Minimum"}}},
+      {levelNameDisplayType,
+       {{tr("Default"), Preferences::ShowLevelName_Default},
+        {tr("Display on Each Marker"), Preferences::ShowLevelNameOnEachMarker},
+        {tr("Display on Column Header"),
+         Preferences::ShowLevelNameOnColumnHeader}}},
       {DragCellsBehaviour,
        {{tr("Cells Only"), 0}, {tr("Cells and Column Data"), 1}}},
       {keyframeType,  // note that the value starts from 1, not 0
@@ -1594,9 +1602,7 @@ QWidget* PreferencesPopup::createInterfacePage() {
   insertUI(functionEditorToggle, lay, getComboItemList(functionEditorToggle));
   insertUI(moveCurrentFrameByClickCellArea, lay);
   insertUI(actualPixelViewOnSceneEditingMode, lay);
-  insertUI(levelNameOnEachMarkerEnabled, lay);
   insertUI(showRasterImagesDarkenBlendedInViewer, lay);
-  insertUI(showFrameNumberWithLetters, lay);
   insertUI(iconSize, lay);
   insertDualUIs(viewShrink, viewStep, lay);
   insertUI(viewerZoomCenter, lay, getComboItemList(viewerZoomCenter));
@@ -1881,6 +1887,7 @@ QWidget* PreferencesPopup::createXsheetPage() {
 
   insertUI(xsheetLayoutPreference, lay,
            getComboItemList(xsheetLayoutPreference));
+  insertUI(levelNameDisplayType, lay, getComboItemList(levelNameDisplayType));
   insertUI(xsheetStep, lay);
   insertUI(xsheetAutopanEnabled, lay);
   insertUI(DragCellsBehaviour, lay, getComboItemList(DragCellsBehaviour));
@@ -1897,6 +1904,7 @@ QWidget* PreferencesPopup::createXsheetPage() {
   insertUI(syncLevelRenumberWithXsheet, lay);
   insertUI(currentTimelineEnabled, lay);
   insertUI(currentColumnColor, lay);
+  insertUI(showFrameNumberWithLetters, lay);
 
   lay->setRowStretch(lay->rowCount(), 1);
   insertFootNote(lay);
