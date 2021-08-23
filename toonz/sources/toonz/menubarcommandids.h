@@ -453,4 +453,5 @@
 #define MI_FlipPrevGuideStroke "MI_FlipPrevGuideStroke"
 
 #define MI_ExportXDTS "MI_ExportXDTS"
+#define MI_ExportTvpJson "MI_ExportTvpJson"
 #endif
