@@ -2708,7 +2708,8 @@ static void dRenumberCells(int col, int r0, int r1) {
       TXshSimpleLevel *sl = cell.getSimpleLevel();
 
       TFrameId oldFid = cell.getFrameId();
-      TFrameId newFid = TFrameId(r + 1);
+      TFrameId newFid =
+          TFrameId(r + 1, 0, oldFid.getZeroPadding(), oldFid.getStartSeqInd());
 
       toCell.m_level   = sl;
       toCell.m_frameId = newFid;
@@ -2728,7 +2729,8 @@ static void dRenumberCells(int col, int r0, int r1) {
           it->first.getSimpleLevel()->isFid(it->second.getFrameId())) {
         TFrameId &fid = it->second.m_frameId;
         fid           = TFrameId(fid.getNumber(),
-                       fid.getLetter() ? fid.getLetter() + 1 : 'a');
+                       fid.getLetter() ? fid.getLetter() + 1 : 'a',
+                       fid.getZeroPadding(), fid.getStartSeqInd());
       }
     }
   }
