@@ -378,6 +378,9 @@ class SelectionToolOptionsBox final : public ToolOptionsBox,
   ToolOptionPopupButton *m_joinStyle;
   ToolOptionIntSlider *m_miterField;
 
+  QPushButton *m_hFlipButton, *m_vFlipButton, *m_leftRotateButton,
+      *m_rightRotateButton;
+
 public:
   SelectionToolOptionsBox(QWidget *parent, TTool *tool,
                           TPaletteHandle *pltHandle, ToolHandle *toolHandle);
@@ -391,6 +394,10 @@ protected slots:
   void onScaleXValueChanged(bool addToUndo = true);
   void onScaleYValueChanged(bool addToUndo = true);
   void onSetSaveboxCheckboxChanged(bool);
+  void onFlipHorizontal();
+  void onFlipVertical();
+  void onRotateLeft();
+  void onRotateRight();
 };
 
 //=============================================================================
