@@ -2205,10 +2205,6 @@ Do you want to create it?</source>
         <translation>秒数、フレーム番号を通しで表示する</translation>
     </message>
     <message>
-        <source>Print Level Names On The Botom</source>
-        <translation>レベル名をページ下部にも出力する</translation>
-    </message>
-    <message>
         <source>A3 size, 6 seconds sheet</source>
         <translation type="vanished">A3サイズ、6秒シート</translation>
     </message>
@@ -2227,6 +2223,10 @@ Do you want to create it?</source>
     <message>
         <source>Save in:</source>
         <translation>保存先フォルダ：</translation>
+    </message>
+    <message>
+        <source>Print Level Names On The Bottom</source>
+        <translation>レベル名をページ下部にも出力する</translation>
     </message>
 </context>
 <context>
