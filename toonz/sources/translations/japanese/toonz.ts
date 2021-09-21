@@ -2120,7 +2120,7 @@ contain the dpi information, then the current camera dpi will be used.
     </message>
     <message>
         <source>B4 size, 3 seconds sheet</source>
-        <translation type="vanished">B4サイズ、3秒シート</translation>
+        <translation>B4サイズ、3秒シート</translation>
     </message>
     <message>
         <source>ACTIONS</source>
@@ -2206,7 +2206,7 @@ Do you want to create it?</source>
     </message>
     <message>
         <source>A3 size, 6 seconds sheet</source>
-        <translation type="vanished">A3サイズ、6秒シート</translation>
+        <translation>A3サイズ、6秒シート</translation>
     </message>
     <message>
         <source>The preset file %1 is not valid.</source>
@@ -2227,6 +2227,26 @@ Do you want to create it?</source>
     <message>
         <source>Print Level Names On The Bottom</source>
         <translation>レベル名をページ下部にも出力する</translation>
+    </message>
+    <message>
+        <source>Always</source>
+        <translation>常に描く</translation>
+    </message>
+    <message>
+        <source>More Than 3 Continuous Cells</source>
+        <translation>4コマ以上連続したコマに描く</translation>
+    </message>
+    <message>
+        <source>None</source>
+        <translation>常に描かない</translation>
+    </message>
+    <message>
+        <source>Continuous line:</source>
+        <translation>連続コマの線：</translation>
+    </message>
+    <message>
+        <source>A3 size, 3 seconds sheet</source>
+        <translation>A3サイズ、3秒シート</translation>
     </message>
 </context>
 <context>
@@ -11295,6 +11315,16 @@ Do you wish to continue loading the last good save or stop and try to salvage th
     <message>
         <source>Create folder</source>
         <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>TITLE</source>
+        <comment>XSheetPDF</comment>
+        <translation>タイトル</translation>
+    </message>
+    <message>
+        <source>CAMERAMAN</source>
+        <comment>XSheetPDF</comment>
+        <translation>撮影</translation>
     </message>
 </context>
 <context>
