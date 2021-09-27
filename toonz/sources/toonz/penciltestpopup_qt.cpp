@@ -887,10 +887,12 @@ FrameNumberLineEdit::FrameNumberLineEdit(QWidget* parent, TFrameId fId,
                                          bool acceptLetter)
     : LineEdit(parent) {
   setFixedWidth(60);
-  if (acceptLetter)
-    m_regexpValidator =
-        new QRegExpValidator(QRegExp("^\\d{1,4}[A-Za-z]?$"), this);
-  else
+  if (acceptLetter) {
+    QString regExpStr   = QString("^%1$").arg(TFilePath::fidRegExpStr());
+    m_regexpValidator   = new QRegExpValidator(QRegExp(regExpStr), this);
+    TProjectManager* pm = TProjectManager::instance();
+    pm->addListener(this);
+  } else
     m_regexpValidator = new QRegExpValidator(QRegExp("^\\d{1,4}$"), this);
 
   m_regexpValidator_alt =
@@ -915,7 +917,7 @@ void FrameNumberLineEdit::updateValidator() {
 void FrameNumberLineEdit::setValue(TFrameId fId) {
   QString str;
   if (Preferences::instance()->isShowFrameNumberWithLettersEnabled()) {
-    if (fId.getLetter() != '\0') {
+    if (!fId.getLetter().isEmpty()) {
       // need some warning?
     }
     str = convertToFrameWithLetter(fId.getNumber(), 3);
@@ -941,15 +943,28 @@ TFrameId FrameNumberLineEdit::getValue() {
     }
     return TFrameId(f);
   } else {
-    QRegExp rx("^(\\d{1,4})([A-Za-z]?)$");
+    QString regExpStr = QString("^%1$").arg(TFilePath::fidRegExpStr());
+    QRegExp rx(regExpStr);
     int pos = rx.indexIn(text());
     if (pos < 0) return TFrameId();
     if (rx.cap(2).isEmpty())
       return TFrameId(rx.cap(1).toInt());
     else
-      return TFrameId(rx.cap(1).toInt(), rx.cap(2).at(0).toLatin1());
+      return TFrameId(rx.cap(1).toInt(), rx.cap(2));
   }
 }
+
+//-----------------------------------------------------------------------------
+
+void FrameNumberLineEdit::onProjectSwitched() {
+  QRegExpValidator* oldValidator = m_regexpValidator;
+  QString regExpStr = QString("^%1$").arg(TFilePath::fidRegExpStr());
+  m_regexpValidator = new QRegExpValidator(QRegExp(regExpStr), this);
+  updateValidator();
+  if (oldValidator) delete oldValidator;
+}
+
+void FrameNumberLineEdit::onProjectChanged() { onProjectSwitched(); }
 
 //-----------------------------------------------------------------------------
 
@@ -2180,8 +2195,11 @@ void PencilTestPopup::onFrameCaptured(QImage& image) {
             fId.getLetter() == 'z')  // next number
           m_frameNumberEdit->setValue(TFrameId(fId.getNumber() + 1));
         else {  // next alphabet
-          char letter = fId.getLetter() + 1;
-          m_frameNumberEdit->setValue(TFrameId(fId.getNumber(), letter));
+          QByteArray byteArray = fId.getLetter().toUtf8();
+          // return incrementing the last letter
+          byteArray.data()[byteArray.size() - 1]++;
+          m_frameNumberEdit->setValue(
+              TFrameId(fId.getNumber(), QString::fromUtf8(byteArray)));
         }
       }
 
