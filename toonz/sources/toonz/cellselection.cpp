@@ -1879,14 +1879,14 @@ void TCellSelection::pasteCells() {
         dynamic_cast<const FullColorImageData *>(rasterImageData);
     TToonzImageP ti(img);
     TVectorImageP vi(img);
-    if (!initUndo) {
-      initUndo = true;
-      TUndoManager::manager()->beginBlock();
-    }
     if (fullColData && (vi || ti)) {
       DVGui::error(QObject::tr(
           "The copied selection cannot be pasted in the current drawing."));
       return;
+    }
+    if (!initUndo) {
+      initUndo = true;
+      TUndoManager::manager()->beginBlock();
     }
     if (vi) {
       TXshSimpleLevel *sl = xsh->getCell(r0, c0).getSimpleLevel();
