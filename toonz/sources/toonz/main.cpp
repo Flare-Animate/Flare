@@ -490,6 +490,16 @@ int main(int argc, char *argv[]) {
   // Toonz environment
   initToonzEnv(argumentPathValues);
 
+  // prepare for 30bit display
+  if (Preferences::instance()->is30bitDisplayEnabled()) {
+    QSurfaceFormat sFmt = QSurfaceFormat::defaultFormat();
+    sFmt.setRedBufferSize(10);
+    sFmt.setGreenBufferSize(10);
+    sFmt.setBlueBufferSize(10);
+    sFmt.setAlphaBufferSize(2);
+    QSurfaceFormat::setDefaultFormat(sFmt);
+  }
+
   // Initialize thread components
   TThread::init();
 
