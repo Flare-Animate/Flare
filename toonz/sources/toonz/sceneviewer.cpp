@@ -816,6 +816,8 @@ SceneViewer::SceneViewer(ImageUtils::FullScreenWidget *parent)
 
   if (Preferences::instance()->isColorCalibrationEnabled())
     m_lutCalibrator = new LutCalibrator();
+  if (Preferences::instance()->is30bitDisplayEnabled())
+    setTextureFormat(TGL_TexFmt10);
 }
 
 //-----------------------------------------------------------------------------
@@ -1212,8 +1214,14 @@ void SceneViewer::onPreferenceChanged(const QString &prefName) {
       m_lutCalibrator->initialize();
       connect(context(), SIGNAL(aboutToBeDestroyed()), this,
               SLOT(onContextAboutToBeDestroyed()));
-      if (m_lutCalibrator->isValid() && !m_fbo)
-        m_fbo = new QOpenGLFramebufferObject(width(), height());
+      if (m_lutCalibrator->isValid() && !m_fbo) {
+        if (Preferences::instance()->is30bitDisplayEnabled()) {
+          QOpenGLFramebufferObjectFormat format;
+          format.setInternalTextureFormat(TGL_TexFmt10);
+          m_fbo = new QOpenGLFramebufferObject(width(), height(), format);
+        } else  // normally, initialize with GL_RGBA8 format
+          m_fbo = new QOpenGLFramebufferObject(width(), height());
+      }
       doneCurrent();
     }
     update();
@@ -1271,7 +1279,12 @@ void SceneViewer::resizeGL(int w, int h) {
   // remake fbo with new size
   if (m_lutCalibrator && m_lutCalibrator->isValid()) {
     if (m_fbo) delete m_fbo;
-    m_fbo = new QOpenGLFramebufferObject(w, h);
+    if (Preferences::instance()->is30bitDisplayEnabled()) {
+      QOpenGLFramebufferObjectFormat format;
+      format.setInternalTextureFormat(TGL_TexFmt10);
+      m_fbo = new QOpenGLFramebufferObject(w, h, format);
+    } else  // normally, initialize with GL_RGBA8 format
+      m_fbo = new QOpenGLFramebufferObject(w, h);
   }
 
   // for updating the navigator in levelstrip
