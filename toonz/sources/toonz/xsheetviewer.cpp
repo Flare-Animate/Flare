@@ -144,8 +144,8 @@ void XsheetViewer::getColumnColor(QColor &color, QColor &sideColor, int index,
 
 //-----------------------------------------------------------------------------
 
-void XsheetViewer::getButton(int &btype, QColor &bgColor, QImage &iconImage,
-                             bool isTimeline) {
+void XsheetViewer::getButton(const int &btype, QColor &bgColor,
+                             QImage &iconImage, bool isTimeline) {
   switch (btype) {
   case PREVIEW_ON_XSHBUTTON:
     bgColor = (isTimeline) ? getTimelinePreviewButtonBgOnColor()
@@ -247,7 +247,6 @@ XsheetViewer::XsheetViewer(QWidget *parent, Qt::WFlags flags)
   m_toolbar = new XsheetGUI::XSheetToolbar(this, 0, true);
   m_toolbarScrollArea->setWidget(m_toolbar);
 
-  QRect noteArea(0, 0, 75, 120);
   m_noteArea       = new XsheetGUI::NoteArea(this);
   m_noteScrollArea = new XsheetScrollArea(this);
   m_noteScrollArea->setObjectName("xsheetArea");
