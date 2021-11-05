@@ -3638,7 +3638,6 @@ bool StyleEditor::setStyle(TColorStyle *currentStyle) {
     m_plainColorPage->setColor(*currentStyle, getColorParam());
     m_oldColor->setStyle(*currentStyle);
     m_newColor->setStyle(*currentStyle);
-
     setOldStyleToStyle(currentStyle);
   }
 

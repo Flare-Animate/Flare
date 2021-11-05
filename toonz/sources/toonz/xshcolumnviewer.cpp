@@ -339,6 +339,7 @@ void ChangeObjectWidget::show(const QPoint &pos) {
   }
   setGeometry(pos.x(), pos.y(), m_width, itemNumber * 16 + 2);
   QListWidget::show();
+  raise();
   setFocus();
   scrollToItem(currentItem());
 }
@@ -366,10 +367,19 @@ void ChangeObjectWidget::mouseMoveEvent(QMouseEvent *event) {
 
 //-----------------------------------------------------------------------------
 
+void ChangeObjectWidget::wheelEvent(QWheelEvent *event) {
+  QListWidget::wheelEvent(event);
+  event->accept();
+}
+
+//-----------------------------------------------------------------------------
+
 void ChangeObjectWidget::focusOutEvent(QFocusEvent *e) {
   if (!isVisible()) return;
   hide();
-  parentWidget()->update();
+  if (parentWidget()) {
+    parentWidget()->update();
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -419,18 +429,36 @@ void ChangeObjectParent::refresh() {
     QString indexStr(std::to_string(id.getIndex() + 1).c_str());
     QString newText;
     if (id == parentId) {
-      if (parentId.isPegbar())
+      if (parentId.isTable())
+        text = QString("Table");
+      else if (parentId.isPegbar())
         text = QString("Peg ") + indexStr;
-      else if (parentId.isColumn())
-        text = QString("Col ") + indexStr;
+      else if (parentId.isColumn()) {
+        text             = QString("Col ") + indexStr;
+        QString tempText = newText;
+        std::string name = tree->getStageObject(i)->getName();
+        if (name != tempText.replace(" ", "").toStdString()) {
+          text += " (" + QString::fromStdString(name) + " )";
+        }
+      }
     }
     if (id == currentObjectId) continue;
+    if (id.isTable()) {
+      newText = QString("Table");
+      pegbarList.append(newText);
+    }
     if (id.isPegbar()) {
       newText = QString("Peg ") + indexStr;
       pegbarList.append(newText);
     }
     if (id.isColumn() && (!xsh->isColumnEmpty(index) || index < 2)) {
-      newText = QString("Col ") + indexStr;
+      newText          = QString("Col ") + indexStr;
+      QString tempText = newText;
+      std::string name = tree->getStageObject(i)->getName();
+      if (name.length() > 0 &&
+          name != tempText.replace(" ", "").toStdString()) {
+        newText += " (" + QString::fromStdString(name) + " )";
+      }
       columnList.append(newText);
     }
     if (newText.length() > theLongestTxt.length()) theLongestTxt = newText;
@@ -450,7 +478,8 @@ void ChangeObjectParent::refresh() {
   // set font size in pixel
   font.setPixelSize(XSHEET_FONT_PX_SIZE);
 
-  m_width = QFontMetrics(font).width(theLongestTxt) + 2;
+  m_width             = QFontMetrics(font).width(theLongestTxt) + 22;
+  std::string strText = text.toStdString();
   selectCurrent(text);
 }
 
@@ -465,21 +494,33 @@ void ChangeObjectParent::onTextChanged(const QString &text) {
   }
   bool isPegbar = false;
   if (text.startsWith("Peg")) isPegbar = true;
+  bool isTable = false;
+  if (text == "Table") isTable = true;
   QString number = text;
   number.remove(0, 4);
+  // Remove names from the index
+  int spaceIndex = number.indexOf(" ");
+  if (spaceIndex > -1) number.remove(spaceIndex, 1000);
   int index = number.toInt() - 1;
-  if (index < 0) {
+  if (!isTable && index < 0) {
     hide();
     return;
   }
+  TXsheet *xsh                   = m_xsheetHandle->getXsheet();
   TStageObjectId currentObjectId = m_objectHandle->getObjectId();
+  TStageObjectId currentParentId =
+      xsh->getStageObject(currentObjectId)->getParent();
   TStageObjectId newStageObjectId;
   if (isPegbar)
     newStageObjectId = TStageObjectId::PegbarId(index);
+  else if (isTable)
+    newStageObjectId = TStageObjectId::TableId;
   else
     newStageObjectId = TStageObjectId::ColumnId(index);
 
   if (newStageObjectId == currentObjectId) return;
+
+  if (newStageObjectId == currentParentId) return;
 
   TStageObject *stageObject =
       m_xsheetHandle->getXsheet()->getStageObject(currentObjectId);
@@ -1128,6 +1169,30 @@ void ColumnArea::DrawHeader::drawPegbarName() const {
 
   TStageObjectId columnId = m_viewer->getObjectId(col);
   TStageObjectId parentId = xsh->getStageObjectParent(columnId);
+  std::string strName     = xsh->getStageObject(parentId)->getName();
+  QString name            = QString(parentId.toString().c_str());
+  if (strName.length() > 0 && parentId.toString() != strName) {
+    name = QString::fromStdString(strName);
+  }
+
+  QString fontName = Preferences::instance()->getInterfaceFont();
+  if (fontName == "") {
+#ifdef _WIN32
+    fontName = "Arial";
+#else
+    fontName = "Helvetica";
+#endif
+  }
+  static QFont font(fontName, -1, QFont::Normal);
+  // set font size in pixel
+  font.setPixelSize(XSHEET_FONT_PX_SIZE);
+
+  int width = QFontMetrics(font).width(name);
+
+  while (width > o->rect(PredefinedRect::PEGBAR_NAME).width() - 20) {
+    name.remove(-1, 1000);
+    width = QFontMetrics(font).width(name);
+  }
 
   // pegbar name
   QRect pegbarnamerect = o->rect(PredefinedRect::PEGBAR_NAME).translated(orig);
@@ -1141,8 +1206,7 @@ void ColumnArea::DrawHeader::drawPegbarName() const {
   p.setPen(m_viewer->getTextColor());
 
   p.drawText(pegbarnamerect.adjusted(3, 0, 0, 0),
-             Qt::AlignLeft | Qt::AlignVCenter | Qt::TextSingleLine,
-             QString(parentId.toString().c_str()));
+             Qt::AlignLeft | Qt::AlignVCenter | Qt::TextSingleLine, name);
 }
 
 void ColumnArea::DrawHeader::drawParentHandleName() const {
@@ -1160,12 +1224,13 @@ void ColumnArea::DrawHeader::drawParentHandleName() const {
 
   TStageObjectId columnId = m_viewer->getObjectId(col);
   TStageObjectId parentId = xsh->getStageObjectParent(columnId);
-
+  // p.setPen(m_viewer->getVerticalLineColor());
+  // p.drawRect(parenthandleRect.adjusted(2, 0, 0, 0));
   p.setPen(m_viewer->getTextColor());
 
   std::string handle = xsh->getStageObject(columnId)->getParentHandle();
   if (handle[0] == 'H' && handle.length() > 1) handle = handle.substr(1);
-  if (parentId != TStageObjectId::TableId)
+  if (parentId != TStageObjectId::TableId || handle != "B")
     p.drawText(parenthandleRect,
                Qt::AlignHCenter | Qt::AlignVCenter | Qt::TextSingleLine,
                QString::fromStdString(handle));
@@ -1281,12 +1346,12 @@ ColumnArea::ColumnArea(XsheetViewer *parent, Qt::WFlags flags)
     , m_soundColumnPopup(0) {
   TXsheetHandle *xsheetHandle = TApp::instance()->getCurrentXsheet();
   TObjectHandle *objectHandle = TApp::instance()->getCurrentObject();
-  m_changeObjectParent        = new ChangeObjectParent(0);
+  m_changeObjectParent        = new ChangeObjectParent(m_viewer);
   m_changeObjectParent->setObjectHandle(objectHandle);
   m_changeObjectParent->setXsheetHandle(xsheetHandle);
   m_changeObjectParent->hide();
 
-  m_changeObjectHandle = new ChangeObjectHandle(0);
+  m_changeObjectHandle = new ChangeObjectHandle(m_viewer);
   m_changeObjectHandle->setObjectHandle(objectHandle);
   m_changeObjectHandle->setXsheetHandle(xsheetHandle);
   m_changeObjectHandle->hide();
@@ -2314,6 +2379,25 @@ void ColumnArea::mousePressEvent(QMouseEvent *event) {
             event->button() == Qt::RightButton)
           return;
 
+        if (o->rect(PredefinedRect::PEGBAR_NAME)
+                .adjusted(0, 0, -20, 0)
+                .contains(mouseInCell)) {
+          m_changeObjectParent->refresh();
+          m_changeObjectParent->show(
+              QPoint(o->rect(PredefinedRect::PARENT_HANDLE_NAME).bottomLeft() +
+                     m_viewer->positionToXY(CellPosition(0, m_col)) +
+                     QPoint(o->rect(PredefinedRect::CAMERA_CELL).width(), 4)));
+          return;
+        }
+        if (o->rect(PredefinedRect::PARENT_HANDLE_NAME).contains(mouseInCell)) {
+          m_changeObjectHandle->refresh();
+          m_changeObjectHandle->show(
+              QPoint(o->rect(PredefinedRect::PARENT_HANDLE_NAME).bottomLeft() +
+                     m_viewer->positionToXY(CellPosition(0, m_col + 1)) +
+                     QPoint(2, 0)));
+          return;
+        }
+
         setDragTool(XsheetGUI::DragTool::makeColumnSelectionTool(m_viewer));
 
         if (column) {
@@ -2440,6 +2524,11 @@ void ColumnArea::mouseMoveEvent(QMouseEvent *event) {
   } else if (o->rect(PredefinedRect::PREVIEW_LAYER_AREA)
                  .contains(mouseInCell)) {
     m_tooltip = tr("Camera Stand Visibility Toggle");
+  } else if (o->rect(PredefinedRect::PARENT_HANDLE_NAME)
+                 .contains(mouseInCell)) {
+    m_tooltip = tr("Click to select parent handle");
+  } else if (o->rect(PredefinedRect::PEGBAR_NAME).contains(mouseInCell)) {
+    m_tooltip = tr("Click to select parent object");
   } else {
     if (column && column->getSoundColumn()) {
       // sound column
