@@ -455,4 +455,7 @@
 #define MI_ExportXDTS "MI_ExportXDTS"
 #define MI_ExportTvpJson "MI_ExportTvpJson"
 #define MI_ExportXsheetPDF "MI_ExportXsheetPDF"
+
+// mark id is added for each actual command (i.g. MI_SetCellMark1)
+#define MI_SetCellMark "MI_SetCellMark"
 #endif
