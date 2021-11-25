@@ -184,6 +184,7 @@
   SHADER_wavy
   SHADER_radialblurGPU
   SHADER_spinblurGPU
+  SHADER_HSLBlendGPU
 </Shaders>
   <Utility>
     STD_nothingFx
