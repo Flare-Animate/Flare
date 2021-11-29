@@ -72,7 +72,6 @@ AudioRecordingPopup::AudioRecordingPopup()
   m_playXSheetCB       = new QCheckBox(tr("Sync with XSheet/Timeline"), this);
   m_timer              = new QElapsedTimer();
   m_recordedLevels     = QMap<qint64, double>();
-  m_oldElapsed         = 0;
   m_player             = new QMediaPlayer(this);
   m_console            = FlipConsole::getCurrent();
 
@@ -284,7 +283,6 @@ void AudioRecordingPopup::onRecordButtonPressed() {
     m_comboSamplerate->setDisabled(true);
     m_comboSamplefmt->setDisabled(true);
     m_recordedLevels.clear();
-    m_oldElapsed   = 0;
     m_pausedTime   = 0;
     m_startPause   = 0;
     m_endPause     = 0;
@@ -309,6 +307,7 @@ void AudioRecordingPopup::onRecordButtonPressed() {
       m_saveButton->setEnabled(true);
       m_playButton->setEnabled(true);
     }
+    m_audioWriterWAV->freeup();
     m_audioLevelsDisplay->setLevel(-1);
     m_recordButton->setIcon(m_recordIcon);
     m_pauseRecordingButton->setDisabled(true);
@@ -616,6 +615,9 @@ void AudioRecordingPopup::hideEvent(QHideEvent *event) {
   if (TSystem::doesExistFileOrLevel(TFilePath(m_filePath.getQString()))) {
     TSystem::removeFileOrLevel(TFilePath(m_filePath.getQString()));
   }
+  // Free up memory used in recording
+  m_recordedLevels.clear();
+  m_audioWriterWAV->freeup();
 }
 
 //-----------------------------------------------------------------------------
@@ -783,6 +785,8 @@ bool AudioWriterWAV::save(const QString &filename)
   out.writeRawData(m_barray.constData(), m_barray.size());
   return true;
 }
+
+void AudioWriterWAV::freeup() { m_barray.clear(); }
 
 //-----------------------------------------------------------------------------
 // AudioLevelsDisplay Class
