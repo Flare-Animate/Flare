@@ -1300,7 +1300,7 @@ void collapseColumns(std::set<int> indices, bool columnsOnly) {
   data->storeColumns(indices, xsh, StageObjectsData::eDoClone);
   data->storeColumnFxs(indices, xsh, StageObjectsData::eDoClone);
 
-  ExpressionReferenceMonitor *monitor = xsh->getExpRefMonitor()->clone();
+  // ExpressionReferenceMonitor *monitor = xsh->getExpRefMonitor()->clone();
 
   ToonzScene *scene = app->getCurrentScene()->getScene();
   TXshLevel *xl     = scene->createNewLevel(CHILD_XSHLEVEL);
@@ -1323,6 +1323,7 @@ void collapseColumns(std::set<int> indices, bool columnsOnly) {
   if (!columnsOnly)
     bringPegbarsInsideChildXsheet(xsh, childXsh, indices, newIndices, idTable);
 
+  ExpressionReferenceManager::instance()->refreshXsheetRefInfo(childXsh);
   ExpressionReferenceManager::instance()->transferReference(xsh, childXsh,
                                                             idTable, fxTable);
 
@@ -1411,7 +1412,7 @@ void collapseColumns(std::set<int> indices,
                      StageObjectsData::eDoClone);
   data->storeColumnFxs(indices, xsh, StageObjectsData::eDoClone);
 
-  ExpressionReferenceMonitor *monitor = xsh->getExpRefMonitor()->clone();
+  // ExpressionReferenceMonitor *monitor = xsh->getExpRefMonitor()->clone();
 
   ToonzScene *scene = app->getCurrentScene()->getScene();
   TXshLevel *xl     = scene->createNewLevel(CHILD_XSHLEVEL);
@@ -1430,6 +1431,7 @@ void collapseColumns(std::set<int> indices,
                        fxTable);
   childXsh->updateFrameCount();
 
+  ExpressionReferenceManager::instance()->refreshXsheetRefInfo(childXsh);
   ExpressionReferenceManager::instance()->transferReference(xsh, childXsh,
                                                             idTable, fxTable);
 
@@ -1475,7 +1477,7 @@ void collapseColumns(std::set<int> indices, const std::set<TFx *> &fxs,
   data->storeColumns(indices, xsh, StageObjectsData::eDoClone);
   data->storeFxs(fxs, xsh, StageObjectsData::eDoClone);
 
-  ExpressionReferenceMonitor *monitor = xsh->getExpRefMonitor()->clone();
+  // ExpressionReferenceMonitor *monitor = xsh->getExpRefMonitor()->clone();
 
   ToonzScene *scene = app->getCurrentScene()->getScene();
   TXshLevel *xl     = scene->createNewLevel(CHILD_XSHLEVEL);
@@ -1494,6 +1496,7 @@ void collapseColumns(std::set<int> indices, const std::set<TFx *> &fxs,
   if (!columnsOnly)
     bringPegbarsInsideChildXsheet(xsh, childXsh, indices, newIndices, idTable);
 
+  ExpressionReferenceManager::instance()->refreshXsheetRefInfo(childXsh);
   ExpressionReferenceManager::instance()->transferReference(xsh, childXsh,
                                                             idTable, fxTable);
 
