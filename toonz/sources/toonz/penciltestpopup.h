@@ -8,6 +8,7 @@
 #include "toonz/namebuilder.h"
 #include "opencv2/opencv.hpp"
 #include "tfilepath.h"
+#include "toonz/tproject.h"
 
 #include <QAbstractVideoSurface>
 #include <QRunnable>
@@ -118,7 +119,8 @@ signals:
 // "Show ABC Appendix to the Frame Number in Xsheet Cell" is active.
 //-----------------------------------------------------------------------------
 
-class FrameNumberLineEdit : public DVGui::LineEdit {
+class FrameNumberLineEdit : public DVGui::LineEdit,
+                            public TProjectManager::Listener {
   Q_OBJECT
   /* having two validators and switch them according to the preferences*/
   QRegExpValidator *m_regexpValidator, *m_regexpValidator_alt;
@@ -135,6 +137,10 @@ public:
   void setValue(TFrameId fId);
   /*! Return an integer with text field value. */
   TFrameId getValue();
+
+  // TProjectManager::Listener
+  void onProjectSwitched() override;
+  void onProjectChanged() override;
 
 protected:
   /*! If focus is lost and current text value is out of range emit signal
