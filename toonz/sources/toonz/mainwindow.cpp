@@ -2822,6 +2822,16 @@ void MainWindow::defineActions() {
   createStopMotionAction(MI_StopMotionToggleUseLiveViewImages,
                          QT_TR_NOOP("Show original live view images."), "");
 #endif  // x64
+
+  // create cell mark actions
+  for (int markId = 0; markId < 12; markId++) {
+    std::string cmdId = (std::string)MI_SetCellMark + std::to_string(markId);
+    std::string labelStr =
+        QT_TR_NOOP("Set Cell Mark ") + std::to_string(markId);
+    QAction *action =
+        createAction(cmdId.c_str(), labelStr.c_str(), "", CellMarkCommandType);
+    action->setData(markId);
+  }
 }
 
 //-----------------------------------------------------------------------------
