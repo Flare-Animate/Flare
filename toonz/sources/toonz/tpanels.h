@@ -44,6 +44,7 @@ class PaletteViewerPanel final : public StyleShortcutSwitchablePanel {
 
   TPanelTitleBarButton *m_freezeButton;
   bool m_isFrozen;
+  TPaletteP m_frozenPalette;
 
 public:
   PaletteViewerPanel(QWidget *parent);
