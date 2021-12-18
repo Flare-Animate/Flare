@@ -110,6 +110,7 @@ class CellArea final : public QWidget {
   void drawLevelCell(QPainter &p, int row, int col, bool isReference = false,
                      bool showLevelName = true);
   void drawSoundTextCell(QPainter &p, int row, int col);
+  void drawSoundTextColumn(QPainter &p, int r0, int r1, int col);
   void drawSoundCell(QPainter &p, int row, int col, bool isReference = false);
   void drawPaletteCell(QPainter &p, int row, int col, bool isReference = false);
 
