@@ -2117,7 +2117,7 @@ QPointF newViewerGeomCenter(
 
 //-----------------------------------------------------------------------------
 
-void FlipBook::onDoubleClick(QMouseEvent *me) {
+void FlipBook::adaptGeometryToCurrentSize() {
   TImageP img(m_imageViewer->getImage());
   if (!img) return;
 
@@ -2140,6 +2140,17 @@ void FlipBook::onDoubleClick(QMouseEvent *me) {
   // performing the inverse.
 
   adaptWidGeometry(pixGeom, pixGeom, false);
+}
+
+//-----------------------------------------------------------------------------
+
+void FlipBook::onDoubleClick(QMouseEvent *me) { adaptGeometryToCurrentSize(); }
+
+//-----------------------------------------------------------------------------
+
+void FlipBook::zoomAndAdaptGeometry(bool forward) {
+  m_imageViewer->zoomQt(forward, false);
+  adaptGeometryToCurrentSize();
 }
 
 //-----------------------------------------------------------------------------
