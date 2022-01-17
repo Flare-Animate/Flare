@@ -59,6 +59,15 @@
 #include <QMenu>
 #include <QOpenGLFramebufferObject>
 
+namespace {
+enum ColorSliderAppearance {
+  RelativeColoredTriangleHandle,
+  AbsoluteColoredLineHandle
+};
+}
+TEnv::IntVar StyleEditorColorSliderAppearance(
+    "StyleEditorColorSliderAppearance", RelativeColoredTriangleHandle);
+
 using namespace StyleEditorGUI;
 
 //*****************************************************************************
@@ -140,7 +149,7 @@ bool HexLineEdit::fromText(QString text) {
   text.remove(space);
   if (text.size() == 0) return false;
   if (text[0] == "#") return fromHex(text);
-  text = text.toLower(); // table names are lowercase
+  text = text.toLower();  // table names are lowercase
 
   // Find color from tables, user takes priority
   QMap<QString, QString>::const_iterator it;
@@ -165,19 +174,19 @@ bool HexLineEdit::fromHex(QString text) {
   if (!ok) return false;
 
   switch (text.length()) {
-  case 8: // #RRGGBBAA
+  case 8:  // #RRGGBBAA
     m_color.r = parsedValue >> 24;
     m_color.g = parsedValue >> 16;
     m_color.b = parsedValue >> 8;
     m_color.m = parsedValue;
     break;
-  case 6: // #RRGGBB
+  case 6:  // #RRGGBB
     m_color.r = parsedValue >> 16;
     m_color.g = parsedValue >> 8;
     m_color.b = parsedValue;
     m_color.m = 255;
     break;
-  case 4: // #RGBA
+  case 4:  // #RGBA
     m_color.r = (parsedValue >> 12) & 15;
     m_color.r |= m_color.r << 4;
     m_color.g = (parsedValue >> 8) & 15;
@@ -187,7 +196,7 @@ bool HexLineEdit::fromHex(QString text) {
     m_color.m = parsedValue & 15;
     m_color.m |= m_color.m << 4;
     break;
-  case 3: // #RGB
+  case 3:  // #RGB
     m_color.r = (parsedValue >> 8) & 15;
     m_color.r |= m_color.r << 4;
     m_color.g = (parsedValue >> 4) & 15;
@@ -196,13 +205,13 @@ bool HexLineEdit::fromHex(QString text) {
     m_color.b |= m_color.b << 4;
     m_color.m = 255;
     break;
-  case 2: // #VV (non-standard)
+  case 2:  // #VV (non-standard)
     m_color.r = parsedValue;
     m_color.g = m_color.r;
     m_color.b = m_color.r;
     m_color.m = 255;
     break;
-  case 1: // #V (non-standard)
+  case 1:  // #V (non-standard)
     m_color.r = parsedValue & 15;
     m_color.r |= m_color.r << 4;
     m_color.g = m_color.r;
@@ -681,15 +690,29 @@ QPixmap makeLinearShading(const ShadeMaker &shadeMaker, int size,
 
 QPixmap makeLinearShading(const ColorModel &color, ColorChannel channel,
                           int size, bool isVertical) {
+  bool relative =
+      ColorSlider::s_slider_appearance == RelativeColoredTriangleHandle;
   switch (channel) {
   case eRed:
-    return makeLinearShading(RedShadeMaker(color), size, isVertical);
+    if (isVertical || relative)
+      return makeLinearShading(RedShadeMaker(color), size, isVertical);
+    else
+      return QPixmap(":Resources/grad_r.png").scaled(size, 1);
   case eGreen:
-    return makeLinearShading(GreenShadeMaker(color), size, isVertical);
+    if (isVertical || relative)
+      return makeLinearShading(GreenShadeMaker(color), size, isVertical);
+    else
+      return QPixmap(":Resources/grad_g.png").scaled(size, 1);
   case eBlue:
-    return makeLinearShading(BlueShadeMaker(color), size, isVertical);
+    if (isVertical || relative)
+      return makeLinearShading(BlueShadeMaker(color), size, isVertical);
+    else
+      return QPixmap(":Resources/grad_b.png").scaled(size, 1);
   case eAlpha:
-    return makeLinearShading(AlphaShadeMaker(color), size, isVertical);
+    if (isVertical || relative)
+      return makeLinearShading(AlphaShadeMaker(color), size, isVertical);
+    else
+      return QPixmap(":Resources/grad_m.png").scaled(size, 1);
   case eHue:
     return makeLinearShading(HueShadeMaker(color), size, isVertical);
   case eSaturation:
@@ -774,6 +797,13 @@ HexagonalColorWheel::~HexagonalColorWheel() {
 
 void HexagonalColorWheel::updateColorCalibration() {
   if (Preferences::instance()->isColorCalibrationEnabled()) {
+    // prevent to initialize LutCalibrator before this instance is initialized
+    // or OT may crash due to missing OpenGL context
+    if (m_firstInitialized) {
+      cueCalibrationUpdate();
+      return;
+    }
+
     makeCurrent();
     if (!m_lutCalibrator)
       m_lutCalibrator = new LutCalibrator();
@@ -1177,8 +1207,9 @@ void SquaredColorWheel::setChannel(int channel) {
 //*****************************************************************************
 
 // Adquire size later...
-int ColorSlider::s_chandle_size = -1;
-int ColorSlider::s_chandle_tall = -1;
+int ColorSlider::s_chandle_size      = -1;
+int ColorSlider::s_chandle_tall      = -1;
+int ColorSlider::s_slider_appearance = -1;
 
 ColorSlider::ColorSlider(Qt::Orientation orientation, QWidget *parent)
     : QAbstractSlider(parent), m_channel(eRed), m_color() {
@@ -1193,9 +1224,10 @@ ColorSlider::ColorSlider(Qt::Orientation orientation, QWidget *parent)
 
   // Get color handle size once
   if (s_chandle_size == -1) {
-    QImage chandle = QImage(":Resources/h_chandle_arrow.svg");
-    s_chandle_size  = chandle.width();
-    s_chandle_tall  = chandle.height();
+    QImage chandle      = QImage(":Resources/h_chandle_arrow.svg");
+    s_chandle_size      = chandle.width();
+    s_chandle_tall      = chandle.height();
+    s_slider_appearance = StyleEditorColorSliderAppearance;
   }
 
   // Attenzione: necessario per poter individuare l'oggetto nel file di
@@ -1226,6 +1258,8 @@ void ColorSlider::paintEvent(QPaintEvent *event) {
   int h = height();
 
   bool isVertical = orientation() == Qt::Vertical;
+  bool isLineHandle =
+      ColorSlider::s_slider_appearance == AbsoluteColoredLineHandle;
 
   if (isVertical) {
     y += s_chandle_size / 2;
@@ -1235,13 +1269,18 @@ void ColorSlider::paintEvent(QPaintEvent *event) {
     x += s_chandle_size / 2;
     w -= s_chandle_size;
     h -= 3;
+    if (isLineHandle) {
+      y += 1;
+      h -= 2;
+    }
   }
 
   QPixmap bgPixmap =
       makeLinearShading(m_color, m_channel, isVertical ? h : w, isVertical);
 
   if (m_channel == eAlpha) {
-    p.drawTiledPixmap(x, y, w, h, DVGui::CommonChessboard::instance()->getPixmap());
+    p.drawTiledPixmap(x, y, w, h,
+                      DVGui::CommonChessboard::instance()->getPixmap());
   }
 
   if (!bgPixmap.isNull()) {
@@ -1253,13 +1292,27 @@ void ColorSlider::paintEvent(QPaintEvent *event) {
      In this case we draw "manually" the slider handle at correct position
   */
   if (isVertical) {
-    static QPixmap vHandlePixmap = svgToPixmap(":Resources/v_chandle_arrow.svg");
+    static QPixmap vHandlePixmap =
+        svgToPixmap(":Resources/v_chandle_arrow.svg");
     int pos = QStyle::sliderPositionFromValue(0, maximum(), value(), h, true);
     p.drawPixmap(width() - s_chandle_tall, pos, vHandlePixmap);
   } else {
-    static QPixmap hHandlePixmap = svgToPixmap(":Resources/h_chandle_arrow.svg");
     int pos = QStyle::sliderPositionFromValue(0, maximum(), value(), w, false);
-    p.drawPixmap(pos, height() - s_chandle_tall, hHandlePixmap);
+    if (isLineHandle) {
+      static QPixmap hHandleUpPm(":Resources/h_chandleUp.png");
+      static QPixmap hHandleDownPm(":Resources/h_chandleDown.png");
+      static QPixmap hHandleCenterPm(":Resources/h_chandleCenter.png");
+      int linePos = pos + (s_chandle_size - hHandleCenterPm.width()) / 2;
+      p.drawPixmap(linePos, 0, hHandleUpPm);
+      p.drawPixmap(linePos, height() - hHandleDownPm.height(), hHandleDownPm);
+      p.drawPixmap(linePos, hHandleUpPm.height(), hHandleCenterPm.width(),
+                   height() - hHandleUpPm.height() - hHandleDownPm.height(),
+                   hHandleCenterPm);
+    } else {
+      static QPixmap hHandlePixmap =
+          svgToPixmap(":Resources/h_chandle_arrow.svg");
+      p.drawPixmap(pos, height() - s_chandle_tall, hHandlePixmap);
+    }
   }
 };
 
@@ -1657,6 +1710,7 @@ void ColorParameterSelector::setStyle(const TColorStyle &style) {
     clear();
     return;
   }
+  show();
   if (m_colors.size() != count) {
     m_index = 0;
     m_colors.resize(count);
@@ -1674,7 +1728,11 @@ void ColorParameterSelector::setStyle(const TColorStyle &style) {
 void ColorParameterSelector::clear() {
   if (m_colors.size() != 0) m_colors.clear();
   m_index = 0;
-  update();
+  if (isVisible()) {
+    hide();
+    update();
+    qApp->processEvents();
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -3196,54 +3254,6 @@ StyleEditor::StyleEditor(PaletteController *paletteController, QWidget *parent)
   m_styleChooser->setFocusPolicy(Qt::NoFocus);
 
   QFrame *bottomWidget = createBottomWidget();
-
-  m_toolBar = new QToolBar(this);
-  m_toolBar->setMovable(false);
-  m_toolBar->setMaximumHeight(22);
-  m_toolBar->addWidget(m_colorParameterSelector);
-
-  QMenu *menu   = new QMenu();
-  m_wheelAction = new QAction(tr("Wheel"), this);
-  m_hsvAction   = new QAction(tr("HSV"), this);
-  m_alphaAction = new QAction(tr("Alpha"), this);
-  m_rgbAction   = new QAction(tr("RGB"), this);
-  m_hexAction   = new QAction(tr("Hex"), this);
-
-  m_wheelAction->setCheckable(true);
-  m_hsvAction->setCheckable(true);
-  m_alphaAction->setCheckable(true);
-  m_rgbAction->setCheckable(true);
-  m_hexAction->setCheckable(true);
-  m_wheelAction->setChecked(true);
-  m_hsvAction->setChecked(true);
-  m_alphaAction->setChecked(true);
-  m_rgbAction->setChecked(true);
-  m_hexAction->setChecked(false);
-  menu->addAction(m_wheelAction);
-  menu->addAction(m_hsvAction);
-  menu->addAction(m_alphaAction);
-  menu->addAction(m_rgbAction);
-  menu->addAction(m_hexAction);
-
-  QToolButton *toolButton = new QToolButton(this);
-  toolButton->setIcon(createQIcon("menu"));
-  toolButton->setFixedSize(22, 22);
-  toolButton->setMenu(menu);
-  toolButton->setPopupMode(QToolButton::InstantPopup);
-  toolButton->setToolTip(tr("Show or hide parts of the Color Page."));
-  QToolBar *displayToolbar = new QToolBar(this);
-  m_toggleOrientationAction =
-      displayToolbar->addAction(createQIcon("orientation_h"), "");
-  m_toggleOrientationAction->setToolTip(
-      tr("Toggle orientation of the Color Page."));
-  QWidget *toggleOrientationButton =
-      displayToolbar->widgetForAction(m_toggleOrientationAction);
-  toggleOrientationButton->setFixedSize(22, 22);
-  toggleOrientationButton->setFocusPolicy(Qt::NoFocus);
-  displayToolbar->addWidget(toolButton);
-  displayToolbar->setMaximumHeight(22);
-  displayToolbar->setIconSize(QSize(16, 16));
-
   /* ------- layout ------- */
   QGridLayout *mainLayout = new QGridLayout;
   mainLayout->setMargin(0);
@@ -3261,8 +3271,8 @@ StyleEditor::StyleEditor(PaletteController *paletteController, QWidget *parent)
     mainLayout->addWidget(m_tabBarContainer, 0, 0, 1, 2);
     mainLayout->addWidget(m_styleChooser, 1, 0, 1, 2);
     mainLayout->addWidget(bottomWidget, 2, 0, 1, 2);
-    mainLayout->addWidget(m_toolBar, 3, 0);
-    mainLayout->addWidget(displayToolbar, 3, 1);
+    // mainLayout->addWidget(m_toolBar, 3, 0);
+    // mainLayout->addWidget(displayToolbar, 3, 1);
   }
   mainLayout->setColumnStretch(0, 1);
   mainLayout->setRowStretch(1, 1);
@@ -3295,23 +3305,6 @@ StyleEditor::StyleEditor(PaletteController *paletteController, QWidget *parent)
   ret = ret && connect(m_plainColorPage,
                        SIGNAL(colorChanged(const ColorModel &, bool)), this,
                        SLOT(onColorChanged(const ColorModel &, bool)));
-
-  ret = ret && connect(m_wheelAction, SIGNAL(toggled(bool)),
-                       m_plainColorPage->m_wheelFrame, SLOT(setVisible(bool)));
-  ret = ret && connect(m_hsvAction, SIGNAL(toggled(bool)),
-                       m_plainColorPage->m_hsvFrame, SLOT(setVisible(bool)));
-  ret = ret && connect(m_alphaAction, SIGNAL(toggled(bool)),
-                       m_plainColorPage->m_alphaFrame, SLOT(setVisible(bool)));
-  ret = ret && connect(m_rgbAction, SIGNAL(toggled(bool)),
-                       m_plainColorPage->m_rgbFrame, SLOT(setVisible(bool)));
-  ret = ret && connect(m_hexAction, SIGNAL(toggled(bool)), m_hexLineEdit,
-                       SLOT(setVisible(bool)));
-  ret = ret && connect(m_hexLineEdit, SIGNAL(editingFinished()), this,
-                       SLOT(onHexChanged()));
-  ret = ret && connect(m_toggleOrientationAction, SIGNAL(triggered()),
-                       m_plainColorPage, SLOT(toggleOrientation()));
-  ret = ret && connect(m_toggleOrientationAction, SIGNAL(triggered()), this,
-                       SLOT(updateOrientationButton()));
   assert(ret);
   /* ------- initial conditions ------- */
   enable(false, false, false);
@@ -3344,6 +3337,7 @@ QFrame *StyleEditor::createBottomWidget() {
   bottomWidget->setFrameStyle(QFrame::StyledPanel);
   bottomWidget->setObjectName("bottomWidget");
   bottomWidget->setContentsMargins(0, 0, 0, 0);
+  bottomWidget->setMinimumHeight(60);
   m_applyButton->setToolTip(tr("Apply changes to current style"));
   m_applyButton->setDisabled(m_paletteController->isColorAutoApplyEnabled());
   m_applyButton->setFocusPolicy(Qt::NoFocus);
@@ -3369,31 +3363,107 @@ QFrame *StyleEditor::createBottomWidget() {
   m_hexLineEdit->loadDefaultColorNames(false);
   m_hexLineEdit->loadUserColorNames(false);
 
-  /* ------ layout ------ */
-  QVBoxLayout *mainLayout = new QVBoxLayout;
-  mainLayout->setMargin(2);
-  mainLayout->setSpacing(1);
-  {
-    QHBoxLayout *hLayout = new QHBoxLayout;
-    hLayout->setMargin(0);
-    hLayout->setSpacing(0);
-    {
-      hLayout->addWidget(m_autoButton);
-      hLayout->addSpacing(2);
-      hLayout->addWidget(m_applyButton);
-      hLayout->addSpacing(2);
-      hLayout->addWidget(m_newColor, 1);
-      hLayout->addWidget(m_oldColor, 1);
-      hLayout->addSpacing(2);
-      hLayout->addWidget(m_hexLineEdit);
-    }
-    mainLayout->addLayout(hLayout);
+  m_toolBar = new QToolBar(this);
+  m_toolBar->setMovable(false);
+  m_toolBar->setMaximumHeight(22);
+  QMenu *menu   = new QMenu();
+  m_wheelAction = new QAction(tr("Wheel"), this);
+  m_hsvAction   = new QAction(tr("HSV"), this);
+  m_alphaAction = new QAction(tr("Alpha"), this);
+  m_rgbAction   = new QAction(tr("RGB"), this);
+  m_hexAction   = new QAction(tr("Hex"), this);
 
-    // QHBoxLayout *buttonsLayout = new QHBoxLayout;
-    // buttonsLayout->setMargin(0);
-    // buttonsLayout->setSpacing(5);
-    //{ buttonsLayout->addWidget(m_applyButton); }
-    // mainLayout->addLayout(buttonsLayout);
+  m_wheelAction->setCheckable(true);
+  m_hsvAction->setCheckable(true);
+  m_alphaAction->setCheckable(true);
+  m_rgbAction->setCheckable(true);
+  m_hexAction->setCheckable(true);
+  m_wheelAction->setChecked(true);
+  m_hsvAction->setChecked(true);
+  m_alphaAction->setChecked(true);
+  m_rgbAction->setChecked(true);
+  m_hexAction->setChecked(false);
+  menu->addAction(m_wheelAction);
+  menu->addAction(m_hsvAction);
+  menu->addAction(m_alphaAction);
+  menu->addAction(m_rgbAction);
+  menu->addAction(m_hexAction);
+
+  m_sliderAppearanceAG = new QActionGroup(this);
+  QAction *relColorAct =
+      new QAction(tr("Relative colored + Triangle handle"), this);
+  QAction *absColorAct =
+      new QAction(tr("Absolute colored + Line handle"), this);
+  relColorAct->setData(RelativeColoredTriangleHandle);
+  absColorAct->setData(AbsoluteColoredLineHandle);
+  relColorAct->setCheckable(true);
+  absColorAct->setCheckable(true);
+  if (StyleEditorColorSliderAppearance == RelativeColoredTriangleHandle)
+    relColorAct->setChecked(true);
+  else
+    absColorAct->setChecked(true);
+  m_sliderAppearanceAG->addAction(relColorAct);
+  m_sliderAppearanceAG->addAction(absColorAct);
+  m_sliderAppearanceAG->setExclusive(true);
+  menu->addSeparator();
+  QMenu *appearanceSubMenu = menu->addMenu(tr("Slider Appearance"));
+  appearanceSubMenu->addAction(relColorAct);
+  appearanceSubMenu->addAction(absColorAct);
+
+  QToolButton *toolButton = new QToolButton(this);
+  toolButton->setIcon(createQIcon("menu"));
+  toolButton->setFixedSize(22, 22);
+  toolButton->setMenu(menu);
+  toolButton->setPopupMode(QToolButton::InstantPopup);
+  toolButton->setToolTip(tr("Show or hide parts of the Color Page."));
+  // QToolBar* displayToolbar = new QToolBar(this);
+  m_toggleOrientationAction =
+      m_toolBar->addAction(createQIcon("orientation_h"), "");
+  m_toggleOrientationAction->setToolTip(
+      tr("Toggle orientation of the Color Page."));
+  QWidget *toggleOrientationButton =
+      m_toolBar->widgetForAction(m_toggleOrientationAction);
+  toggleOrientationButton->setFixedSize(22, 22);
+  toggleOrientationButton->setFocusPolicy(Qt::NoFocus);
+  m_toolBar->addWidget(toolButton);
+  m_toolBar->setMaximumHeight(22);
+  m_toolBar->setIconSize(QSize(16, 16));
+  /* ------ layout ------ */
+  QHBoxLayout *mainLayout = new QHBoxLayout;
+  mainLayout->setMargin(2);
+  mainLayout->setSpacing(0);
+  {
+    mainLayout->addWidget(m_autoButton);
+    mainLayout->addSpacing(4);
+    mainLayout->addWidget(m_applyButton);
+    mainLayout->addSpacing(4);
+
+    QVBoxLayout *colorLay = new QVBoxLayout();
+    colorLay->setMargin(0);
+    colorLay->setSpacing(2);
+    {
+      QHBoxLayout *chipLay = new QHBoxLayout();
+      chipLay->setMargin(0);
+      chipLay->setSpacing(0);
+      {
+        chipLay->addWidget(m_newColor, 1);
+        chipLay->addWidget(m_oldColor, 1);
+      }
+      colorLay->addLayout(chipLay, 1);
+
+      colorLay->addWidget(m_colorParameterSelector, 0);
+    }
+    mainLayout->addLayout(colorLay, 1);
+    mainLayout->addSpacing(4);
+
+    QVBoxLayout *hexLay = new QVBoxLayout();
+    hexLay->setMargin(0);
+    hexLay->setSpacing(2);
+    {
+      hexLay->addWidget(m_hexLineEdit);
+      hexLay->addWidget(m_toolBar, 0, Qt::AlignBottom | Qt::AlignRight);
+    }
+    mainLayout->addLayout(hexLay, 0);
   }
   bottomWidget->setLayout(mainLayout);
 
@@ -3403,10 +3473,30 @@ QFrame *StyleEditor::createBottomWidget() {
                        SLOT(applyButtonClicked()));
   ret      = ret && connect(m_autoButton, SIGNAL(toggled(bool)), this,
                        SLOT(autoCheckChanged(bool)));
-  ret = ret && connect(m_oldColor, SIGNAL(clicked()), this,
-                       SLOT(onOldStyleClicked()));
-  ret = ret && connect(m_newColor, SIGNAL(clicked()), this,
-                       SLOT(onNewStyleClicked()));
+  ret      = ret &&
+        connect(m_oldColor, SIGNAL(clicked()), this, SLOT(onOldStyleClicked()));
+  ret = ret &&
+        connect(m_newColor, SIGNAL(clicked()), this, SLOT(onNewStyleClicked()));
+  ret = ret && connect(m_wheelAction, SIGNAL(toggled(bool)),
+                       m_plainColorPage->m_wheelFrame, SLOT(setVisible(bool)));
+  ret = ret && connect(m_hsvAction, SIGNAL(toggled(bool)),
+                       m_plainColorPage->m_hsvFrame, SLOT(setVisible(bool)));
+  ret = ret && connect(m_alphaAction, SIGNAL(toggled(bool)),
+                       m_plainColorPage->m_alphaFrame, SLOT(setVisible(bool)));
+  ret = ret && connect(m_rgbAction, SIGNAL(toggled(bool)),
+                       m_plainColorPage->m_rgbFrame, SLOT(setVisible(bool)));
+  ret = ret && connect(m_hexAction, SIGNAL(toggled(bool)), m_hexLineEdit,
+                       SLOT(setVisible(bool)));
+  ret = ret && connect(m_hexLineEdit, SIGNAL(editingFinished()), this,
+                       SLOT(onHexChanged()));
+  ret = ret && connect(m_toggleOrientationAction, SIGNAL(triggered()),
+                       m_plainColorPage, SLOT(toggleOrientation()));
+  ret = ret && connect(m_toggleOrientationAction, SIGNAL(triggered()), this,
+                       SLOT(updateOrientationButton()));
+  ret = ret && connect(m_sliderAppearanceAG, SIGNAL(triggered(QAction *)), this,
+                       SLOT(onSliderAppearanceSelected(QAction *)));
+  ret = ret && connect(menu, SIGNAL(aboutToShow()), this,
+                       SLOT(onPopupMenuAboutToShow()));
   assert(ret);
 
   return bottomWidget;
@@ -3787,9 +3877,7 @@ void StyleEditor::onOldStyleClicked() {
 
 //-----------------------------------------------------------------------------
 
-void StyleEditor::onNewStyleClicked() {
-  applyButtonClicked();
-}
+void StyleEditor::onNewStyleClicked() { applyButtonClicked(); }
 
 //-----------------------------------------------------------------------------
 
@@ -3931,9 +4019,9 @@ void StyleEditor::selectStyle(const TColorStyle &newStyle) {
   }
 
   // Update editor widgets
+  m_colorParameterSelector->setStyle(*m_editedStyle);
   m_newColor->setStyle(*m_editedStyle, getColorParam());
   m_plainColorPage->setColor(*m_editedStyle, getColorParam());
-  m_colorParameterSelector->setStyle(*m_editedStyle);
   m_settingsPage->setStyle(m_editedStyle);
   m_hexLineEdit->setStyle(*m_editedStyle, getColorParam());
 }
@@ -3947,15 +4035,17 @@ void StyleEditor::onColorParamChanged() {
   int styleIndex = getStyleIndex();
   if (styleIndex < 0 || palette->getStyleCount() <= styleIndex) return;
 
+  if (*m_oldStyle != *m_editedStyle) applyButtonClicked();
+
   m_paletteHandle->setStyleParamIndex(getColorParam());
 
   if (TColorStyle *currentStyle = palette->getStyle(styleIndex)) {
     setEditedStyleToStyle(currentStyle);
 
+    m_colorParameterSelector->setStyle(*m_editedStyle);
     m_newColor->setStyle(*m_editedStyle, getColorParam());
     m_oldColor->setStyle(*m_editedStyle, getColorParam());
     m_plainColorPage->setColor(*m_editedStyle, getColorParam());
-    m_colorParameterSelector->setStyle(*m_editedStyle);
     m_settingsPage->setStyle(m_editedStyle);
     m_hexLineEdit->setStyle(*m_editedStyle, getColorParam());
   }
@@ -3972,7 +4062,7 @@ void StyleEditor::onParamStyleChanged(bool isDragging) {
 
   if (m_autoButton->isChecked()) copyEditedStyleToPalette(isDragging);
 
-  m_editedStyle->invalidateIcon();       // Refresh the new color icon
+  m_editedStyle->invalidateIcon();  // Refresh the new color icon
   m_newColor->setStyle(*m_editedStyle, getColorParam());
   m_hexLineEdit->setStyle(*m_editedStyle, getColorParam());
 }
@@ -4065,4 +4155,28 @@ void StyleEditor::load(QSettings &settings) {
 
 void StyleEditor::updateColorCalibration() {
   m_plainColorPage->updateColorCalibration();
+}
+
+//-----------------------------------------------------------------------------
+
+void StyleEditor::onSliderAppearanceSelected(QAction *action) {
+  bool ok          = true;
+  int appearanceId = action->data().toInt(&ok);
+  if (!ok) return;
+  if (appearanceId == StyleEditorColorSliderAppearance) return;
+  StyleEditorColorSliderAppearance = appearanceId;
+  ColorSlider::s_slider_appearance = appearanceId;
+  m_plainColorPage->update();
+}
+
+//-----------------------------------------------------------------------------
+
+void StyleEditor::onPopupMenuAboutToShow() {
+  // sync radio button state to the current user env settings
+  for (auto action : m_sliderAppearanceAG->actions()) {
+    bool ok          = true;
+    int appearanceId = action->data().toInt(&ok);
+    if (ok && appearanceId == StyleEditorColorSliderAppearance)
+      action->setChecked(true);
+  }
 }

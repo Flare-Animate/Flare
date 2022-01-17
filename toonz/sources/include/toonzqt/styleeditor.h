@@ -275,6 +275,7 @@ signals:
 */
 class DVAPI ColorSlider final : public QAbstractSlider {
   Q_OBJECT
+
 public:
   ColorSlider(Qt::Orientation orientation, QWidget *parent = 0);
 
@@ -302,6 +303,9 @@ private:
   ColorModel m_color;
   static int s_chandle_size;
   static int s_chandle_tall;
+
+public:
+  static int s_slider_appearance;
 };
 
 //=============================================================================
@@ -688,6 +692,7 @@ class DVAPI StyleEditor final : public QWidget, public SaveLoadQSettings {
   QAction *m_alphaAction;
   QAction *m_rgbAction;
   QAction *m_hexAction;
+  QActionGroup *m_sliderAppearanceAG;
 
   TColorStyleP
       m_oldStyle;  //!< A copy of current style \a before the last change.
@@ -794,6 +799,9 @@ protected slots:
   void onSpecialButtonToggled(bool on);
   void onCustomButtonToggled(bool on);
   void onVectorBrushButtonToggled(bool on);
+
+  void onSliderAppearanceSelected(QAction *);
+  void onPopupMenuAboutToShow();
 
 private:
   QFrame *createBottomWidget();

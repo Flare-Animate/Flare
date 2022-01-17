@@ -1179,7 +1179,8 @@ QString PreferencesPopup::getUIString(PreferencesItemId id) {
       {ffmpegPath, tr("FFmpeg Path:")},
       {ffmpegTimeout, tr("FFmpeg Timeout:")},
       {fastRenderPath, tr("Fast Render Path:")},
-      {ffmpegMultiThread, tr("Allow Multi-Thread in FFMPEG Rendering (UNSTABLE)")},
+      {ffmpegMultiThread,
+       tr("Allow Multi-Thread in FFMPEG Rendering (UNSTABLE)")},
 
       // Drawing
       {scanLevelType, tr("Scan File Format:")},
