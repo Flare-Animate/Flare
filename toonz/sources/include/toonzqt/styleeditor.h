@@ -22,6 +22,7 @@
 #include "toonzqt/colorfield.h"
 #include "toonzqt/tabbar.h"
 #include "toonzqt/glwidget_for_highdpi.h"
+#include "toonzqt/hexcolornames.h"
 
 // Qt includes
 #include <QWidget>
@@ -73,35 +74,6 @@ class StyleEditor;
 class LutCalibrator;
 
 //=============================================
-
-class HexLineEdit : public QLineEdit {
-  Q_OBJECT
-
-public:
-  HexLineEdit(const QString &contents, QWidget *parent);
-  ~HexLineEdit() {}
-
-  bool loadDefaultColorNames(bool reload);
-  bool hasUserColorNames();
-  bool loadUserColorNames(bool reload);
-  void setStyle(TColorStyle &style, int index);
-  void updateColor();
-  void setColor(TPixel color);
-  TPixel getColor() { return m_color; }
-  bool fromText(QString text);
-  bool fromHex(QString text);
-
-protected:
-  void loadColorTableXML(QMap<QString, QString> &table, const TFilePath &fp);
-  void mousePressEvent(QMouseEvent *event) override;
-  void focusOutEvent(QFocusEvent *event) override;
-  void showEvent(QShowEvent *event) override;
-
-  bool m_editing;
-  TPixel m_color;
-  static QMap<QString, QString> s_defcolornames;   // make it shared
-  static QMap<QString, QString> s_usercolornames;  // ...
-};
 
 //=============================================================================
 namespace StyleEditorGUI {
@@ -652,7 +624,8 @@ class DVAPI StyleEditor final : public QWidget, public SaveLoadQSettings {
   PaletteController *m_paletteController;
   TPaletteHandle *m_paletteHandle;
   TPaletteHandle *m_cleanupPaletteHandle;
-  HexLineEdit *m_hexLineEdit;
+  DVGui::HexLineEdit *m_hexLineEdit;
+  DVGui::HexColorNamesEditor *m_hexColorNamesEditor;
   QWidget *m_parent;
   TXshLevelHandle
       *m_levelHandle;  //!< for clearing the level cache when the color changed
@@ -693,6 +666,7 @@ class DVAPI StyleEditor final : public QWidget, public SaveLoadQSettings {
   QAction *m_rgbAction;
   QAction *m_hexAction;
   QActionGroup *m_sliderAppearanceAG;
+  QAction *m_hexEditorAction;
 
   TColorStyleP
       m_oldStyle;  //!< A copy of current style \a before the last change.
@@ -795,6 +769,7 @@ protected slots:
   void onParamStyleChanged(bool isDragging);
 
   void onHexChanged();
+  void onHexEditor();
 
   void onSpecialButtonToggled(bool on);
   void onCustomButtonToggled(bool on);
