@@ -125,19 +125,6 @@ TStageObjectSpline::TStageObjectSpline()
   points.push_back(TPointD(d, 0));
   points.push_back(TPointD(2.0 * d, 0));
   m_stroke = new TStroke(points);
-
-  // Needed for T2D compatibility
-  m_interpolationStroke.push_back(TPointD(-40, 0));
-  m_interpolationStroke.push_back(TPointD(-20, 0));
-  m_interpolationStroke.push_back(TPointD(-20, 0));
-  m_interpolationStroke.push_back(TPointD(0, 0));
-  m_interpolationStroke.push_back(TPointD(65, 65));
-
-  m_interpolationStroke.push_back(TPointD(935, 935));
-  m_interpolationStroke.push_back(TPointD(1000, 1000));
-  m_interpolationStroke.push_back(TPointD(1020, 1000));
-  m_interpolationStroke.push_back(TPointD(1020, 1000));
-  m_interpolationStroke.push_back(TPointD(1040, 1000));
 }
 
 //-----------------------------------------------------------------------------
@@ -171,13 +158,6 @@ TStageObjectSpline *TStageObjectSpline::clone() const {
 //-----------------------------------------------------------------------------
 
 const TStroke *TStageObjectSpline::getStroke() const { return m_stroke; }
-
-//-----------------------------------------------------------------------------
-
-// Needed for T2D compatibility
-QList<TPointD> TStageObjectSpline::getInterpolationStroke() {
-  return m_interpolationStroke;
-}
 
 //-----------------------------------------------------------------------------
 
@@ -270,8 +250,6 @@ void TStageObjectSpline::loadData(TIStream &is) {
 
 void TStageObjectSpline::saveData(TOStream &os) {
   const TStroke *stroke = getStroke();
-  QList<TPointD> interpStroke =
-      getInterpolationStroke();  // Needed for T2D compatibility
   os.child("splineId") << (int)m_id;
   if (!m_name.empty()) os.child("name") << m_name;
   os.child("isOpened") << (int)m_isOpened;
@@ -291,13 +269,15 @@ void TStageObjectSpline::saveData(TOStream &os) {
   }
   os.closeChild();
   if (m_externalDataFound) {  // Needed for T2D compatibility
-    os.openChild("interpolationStroke");
-    n = interpStroke.size();
-    os << n;
-    for (auto p : interpStroke) {
-      os << p.x << p.y;
+    n = m_interpolationStroke.size();
+    if (n) {
+      os.openChild("interpolationStroke");
+      os << n;
+      for (auto p : m_interpolationStroke) {
+        os << p.x << p.y;
+      }
+      os.closeChild();
     }
-    os.closeChild();
   }
 }
 

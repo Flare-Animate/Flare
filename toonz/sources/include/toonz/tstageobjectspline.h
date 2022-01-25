@@ -65,7 +65,6 @@ Return spline stroke.
 \sa setStroke()
 */
   const TStroke *getStroke() const;
-  QList<TPointD> getInterpolationStroke();  // Needed for T2D compatibility
   /*!
 Set spline stroke to \b stroke.
 \sa getStroke()
