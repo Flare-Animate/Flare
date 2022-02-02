@@ -2041,13 +2041,19 @@ void PencilTestPopup::onResolutionComboActivated(const QString& itemText) {
 //-----------------------------------------------------------------------------
 
 void PencilTestPopup::onFileFormatOptionButtonPressed() {
-  if (m_fileTypeCombo->currentIndex() == 0) return;
   // Tentatively use the preview output settings
   ToonzScene* scene = TApp::instance()->getCurrentScene()->getScene();
   if (!scene) return;
   TOutputProperties* prop = scene->getProperties()->getPreviewProperties();
   std::string ext         = m_fileTypeCombo->currentText().toStdString();
-  openFormatSettingsPopup(this, ext, prop->getFileFormatProperties(ext));
+  TFrameId oldTmplFId     = scene->getProperties()->formatTemplateFIdForInput();
+  openFormatSettingsPopup(this, ext, prop->getFileFormatProperties(ext),
+                          &scene->getProperties()->formatTemplateFIdForInput());
+
+  TFrameId newTmplFId = scene->getProperties()->formatTemplateFIdForInput();
+  if (oldTmplFId.getZeroPadding() != newTmplFId.getZeroPadding() ||
+      oldTmplFId.getStartSeqInd() != newTmplFId.getStartSeqInd())
+    refreshFrameInfo();
 }
 
 //-----------------------------------------------------------------------------
@@ -2531,9 +2537,12 @@ bool PencilTestPopup::importImage(QImage image) {
     }
   }
 
+  TFrameId tmplFId = scene->getProperties()->formatTemplateFIdForInput();
+
   TFilePath levelFp = TFilePath(m_saveInFileFld->getPath()) +
-                      TFilePath(levelName + L".." +
-                                m_fileTypeCombo->currentText().toStdWString());
+                      TFilePath(levelName + L"." +
+                                m_fileTypeCombo->currentText().toStdWString())
+                          .withFrame(tmplFId);
   TFilePath actualLevelFp = scene->decodeFilePath(levelFp);
 
   TXshSimpleLevel* sl = 0;
@@ -2570,6 +2579,11 @@ bool PencilTestPopup::importImage(QImage image) {
           "The captured image size does not match with the existing level."));
       return false;
     }
+
+    // if the level already has a frame, use the same zero padding regardless of
+    // the frame format setting
+    sl->formatFId(fId, tmplFId);
+
     /* if the level already have the same frame, then ask if overwrite it */
     TFilePath frameFp(actualLevelFp.withFrame(fId));
     if (TFileStatus(frameFp).doesExist()) {
@@ -2605,6 +2619,9 @@ bool PencilTestPopup::importImage(QImage image) {
             "The captured image size does not match with the existing level."));
         return false;
       }
+      // if the level already has a frame, use the same zero padding regardless
+      // of the frame format setting
+      sl->formatFId(fId, tmplFId);
 
       /* confirm overwrite */
       TFilePath frameFp(actualLevelFp.withFrame(fId));
@@ -2649,6 +2666,7 @@ bool PencilTestPopup::importImage(QImage image) {
       sl->getProperties()->setImageDpi(dpi);
       sl->getProperties()->setImageRes(
           TDimension(image.width(), image.height()));
+      sl->formatFId(fId, tmplFId);
     }
 
     state = NEWLEVEL;
@@ -2799,9 +2817,14 @@ void PencilTestPopup::refreshFrameInfo() {
   // level with the same name
   TXshLevel* level_sameName = levelSet->getLevel(levelName);
 
+  TOutputProperties* prop =
+      currentScene->getProperties()->getPreviewProperties();
+  TFrameId tmplFId = prop->formatTemplateFId();
+
   TFilePath levelFp = TFilePath(m_saveInFileFld->getPath()) +
-                      TFilePath(levelName + L".." +
-                                m_fileTypeCombo->currentText().toStdWString());
+                      TFilePath(levelName + L"." +
+                                m_fileTypeCombo->currentText().toStdWString())
+                          .withFrame(tmplFId);
 
   // level with the same path
   TXshLevel* level_samePath = levelSet->getLevel(*(currentScene), levelFp);
@@ -2853,8 +2876,11 @@ void PencilTestPopup::refreshFrameInfo() {
       int frameCount      = level_p->getFrameCount();
       TLevel::Iterator it = level_p->begin();
       std::vector<TFrameId> fids;
-      for (int i = 0; it != level_p->end(); ++it, ++i)
+      for (int i = 0; it != level_p->end(); ++it, ++i) {
         fids.push_back(it->first);
+        // in case fId with different format
+        if (!frameExist && fId == it->first) frameExist = true;
+      }
 
       tooltipStr +=
           tr("The level is not registered in the scene, but exists in the file "

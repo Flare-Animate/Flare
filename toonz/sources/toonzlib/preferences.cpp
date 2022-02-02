@@ -18,7 +18,6 @@
 #include "tconvert.h"
 #include "tundo.h"
 #include "tbigmemorymanager.h"
-#include "tfilepath.h"
 #include "timage_io.h"
 
 // Qt includes
@@ -501,7 +500,8 @@ void Preferences::definePreferenceItems() {
   define(ffmpegMultiThread, "ffmpegMultiThread", QMetaType::Bool, false);
 
   // Drawing
-  define(scanLevelType, "scanLevelType", QMetaType::QString, "tif");
+  define(DefRasterFormat, "DefRasterFormat", QMetaType::QString, "tif");
+  // define(scanLevelType, "scanLevelType", QMetaType::QString, "tif");
   define(DefLevelType, "DefLevelType", QMetaType::Int, TZP_XSHLEVEL);
   define(newLevelSizeToCameraSizeEnabled, "newLevelSizeToCameraSizeEnabled",
          QMetaType::Bool, false);
@@ -780,6 +780,12 @@ void Preferences::resolveCompatibility() {
       setValue(levelNameDisplayType, ShowLevelNameOnEachMarker);
     else  // Default (level name on top of each cell block)
       setValue(levelNameDisplayType, ShowLevelName_Default);
+  }
+  // "scanLevelType" is changed to "DefRasterFormat", enabling to specify
+  // default format for both the Scan and the Raster levels.
+  if (m_settings->contains("scanLevelType") &&
+      !m_settings->contains("DefRasterFormat")) {
+    setValue(DefRasterFormat, m_settings->value("scanLevelType").toString());
   }
 }
 
