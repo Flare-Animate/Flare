@@ -8,6 +8,7 @@
 #include "levelsettingspopup.h"
 #include "tapp.h"
 #include "cleanupsettingsmodel.h"
+#include "formatsettingspopups.h"
 
 // TnzQt includes
 #include "toonzqt/tabbar.h"
@@ -1043,15 +1044,26 @@ void PreferencesPopup::insertUI(PreferencesItemId id, QGridLayout* layout,
 
   // CheckBox contains label in itself
   if (item.type == QMetaType::Bool)
-    layout->addWidget(widget, layout->rowCount(), 0, 1, 2);
+    layout->addWidget(widget, layout->rowCount(), 0, 1, 3, Qt::AlignLeft);
   else {  // insert labels for other types
     int row = layout->rowCount();
     layout->addWidget(new QLabel(getUIString(id), this), row, 0,
                       Qt::AlignRight | Qt::AlignVCenter);
     if (isFileField)
       layout->addWidget(widget, row, 1, 1, 2);
-    else
-      layout->addWidget(widget, row, 1, Qt::AlignLeft | Qt::AlignVCenter);
+    else {
+      bool isWideComboBox = false;
+      for (auto cbItem : comboItems) {
+        if (widget->fontMetrics().width(cbItem.first) > 100) {
+          isWideComboBox = true;
+          break;
+        }
+      }
+      if (id == interfaceFont) isWideComboBox = true;
+
+      layout->addWidget(widget, row, 1, 1, (isWideComboBox) ? 2 : 1,
+                        Qt::AlignLeft | Qt::AlignVCenter);
+    }
   }
 }
 
@@ -1086,7 +1098,7 @@ void PreferencesPopup::insertFootNote(QGridLayout* layout) {
   QLabel* note = new QLabel(
       tr("* Changes will take effect the next time you run OpenToonz"));
   note->setStyleSheet("font-size: 10px; font: italic;");
-  layout->addWidget(note, layout->rowCount(), 0, 1, 2,
+  layout->addWidget(note, layout->rowCount(), 0, 1, 3,
                     Qt::AlignLeft | Qt::AlignVCenter);
 }
 
@@ -1183,7 +1195,8 @@ QString PreferencesPopup::getUIString(PreferencesItemId id) {
        tr("Allow Multi-Thread in FFMPEG Rendering (UNSTABLE)")},
 
       // Drawing
-      {scanLevelType, tr("Scan File Format:")},
+      {DefRasterFormat, tr("Default Raster / Scan Level Format:")},
+      //{scanLevelType, tr("Scan File Format:")},
       {DefLevelType, tr("Default Level Type:")},
       {newLevelSizeToCameraSizeEnabled,
        tr("New Levels Default to the Current Camera Size")},
@@ -1262,7 +1275,7 @@ QString PreferencesPopup::getUIString(PreferencesItemId id) {
       {blanksCount, tr("Blank Frames:")},
       {blankColor, tr("Blank Frames Color:")},
       {rewindAfterPlayback, tr("Rewind after Playback")},
-      {shortPlayFrameCount, tr("Number of Frames to Play for Short Play:")},
+      {shortPlayFrameCount, tr("Number of Frames to Play \nfor Short Play:")},
       {previewAlwaysOpenNewFlip, tr("Display in a New Flipbook Window")},
       {fitToFlipbook, tr("Fit to Flipbook")},
       {generatedMovieViewEnabled, tr("Open Flipbook after Rendering")},
@@ -1347,7 +1360,8 @@ QList<ComboBoxItem> PreferencesPopup::getComboItemList(
       {columnIconLoadingPolicy,
        {{tr("At Once"), Preferences::LoadAtOnce},
         {tr("On Demand"), Preferences::LoadOnDemand}}},
-      {scanLevelType, {{"tif", "tif"}, {"png", "png"}}},
+      {DefRasterFormat, {{"tif", "tif"}, {"png", "png"}}},
+      //{scanLevelType, {{"tif", "tif"}, {"png", "png"}}},
       {DefLevelType,
        {{tr("Toonz Vector Level"), PLI_XSHLEVEL},
         {tr("Toonz Raster Level"), TZP_XSHLEVEL},
@@ -1592,7 +1606,7 @@ QWidget* PreferencesPopup::createInterfacePage() {
 
   insertUI(CurrentStyleSheetName, lay, styleSheetItemList);
   int row = lay->rowCount();
-  lay->addWidget(additionalStyleSheetBtn, row - 1, 3);
+  lay->addWidget(additionalStyleSheetBtn, row - 1, 2, Qt::AlignRight);
 
   lay->addWidget(new QLabel(tr("Icon Theme*:"), this), 2, 0,
                  Qt::AlignRight | Qt::AlignVCenter);
@@ -1604,7 +1618,7 @@ QWidget* PreferencesPopup::createInterfacePage() {
 
   lay->addWidget(new QLabel(tr("Pixels Only:"), this), 5, 0,
                  Qt::AlignRight | Qt::AlignVCenter);
-  lay->addWidget(createUI(pixelsOnly), 5, 1);
+  lay->addWidget(createUI(pixelsOnly), 5, 1, 1, 2, Qt::AlignLeft);
 
   insertUI(CurrentRoomChoice, lay, roomItemList);
   insertUI(functionEditorToggle, lay, getComboItemList(functionEditorToggle));
@@ -1621,7 +1635,7 @@ QWidget* PreferencesPopup::createInterfacePage() {
   { insertUI(colorCalibrationLutPaths, colorCalibLay); }
   insertUI(displayIn30bit, lay);
   row = lay->rowCount();
-  lay->addWidget(check30bitBtn, row - 1, 3);
+  lay->addWidget(check30bitBtn, row - 1, 2, Qt::AlignRight);
   insertUI(showIconsInMenu, lay);
 
   lay->setRowStretch(lay->rowCount(), 1);
@@ -1797,7 +1811,7 @@ QWidget* PreferencesPopup::createImportExportPage() {
 
   putLabel("", lay);
   putLabel(
-      tr("Enabling multi-thread rendering will render significantly faster "
+      tr("Enabling multi-thread rendering will render significantly faster \n"
          "but a random crash might occur, use at your own risk."),
       lay);
   insertUI(ffmpegMultiThread, lay);
@@ -1815,7 +1829,7 @@ QWidget* PreferencesPopup::createDrawingPage() {
   QGridLayout* lay = new QGridLayout();
   setupLayout(lay);
 
-  insertUI(scanLevelType, lay, getComboItemList(scanLevelType));
+  insertUI(DefRasterFormat, lay, getComboItemList(DefRasterFormat));
   insertUI(DefLevelType, lay, getComboItemList(DefLevelType));
   insertUI(newLevelSizeToCameraSizeEnabled, lay);
   insertDualUIs(DefLevelWidth, DefLevelHeight, lay);

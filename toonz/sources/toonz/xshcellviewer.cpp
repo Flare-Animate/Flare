@@ -57,6 +57,7 @@
 #include "toonz/txshpalettelevel.h"
 #include "toonz/doubleparamcmd.h"
 #include "toonz/preferences.h"
+#include "toutputproperties.h"
 
 // TnzBase includes
 #include "tdoublekeyframe.h"
@@ -864,6 +865,9 @@ void RenameCellField::renameCell() {
       TApp::instance()->getCurrentSelection()->getSelection());
   if (!cellSelection) return;
 
+  ToonzScene *scene = m_viewer->getXsheet()->getScene();
+  TFrameId tmplFId  = scene->getProperties()->formatTemplateFIdForInput();
+
   QList<TXshCell> cells;
   bool hasFrameZero = false;
 
@@ -901,15 +905,20 @@ void RenameCellField::renameCell() {
         }
       }
 
-      TXshLevel *xl = cell.m_level.getPointer();
-      if (!xl || (xl->getSimpleLevel() && !xl->getSimpleLevel()->isEmpty() &&
-                  xl->getSimpleLevel()->getFirstFid() == TFrameId::NO_FRAME)) {
+      TXshLevel *xl       = cell.m_level.getPointer();
+      TXshSimpleLevel *sl = (xl) ? xl->getSimpleLevel() : nullptr;
+      if (!xl ||
+          (sl && !sl->isEmpty() && sl->getFirstFid() == TFrameId::NO_FRAME)) {
         cells.append(TXshCell());
         continue;
       }
       // if the next upper cell is empty, then make this cell empty too
       if (fid == TFrameId::NO_FRAME)
         fid = (m_row - tmpRow <= 1) ? cell.m_frameId : TFrameId(0);
+
+      // modify frameId to be with the same frame format as existing frames
+      if (sl) sl->formatFId(fid, tmplFId);
+
       cells.append(TXshCell(xl, fid));
       changed      = true;
       hasFrameZero = (fid.getNumber() == 0 && xl->getSimpleLevel() &&
@@ -917,7 +926,6 @@ void RenameCellField::renameCell() {
     }
     if (!changed) return;
   } else {
-    ToonzScene *scene   = m_viewer->getXsheet()->getScene();
     TLevelSet *levelSet = scene->getLevelSet();
     TXshLevel *xl       = levelSet->getLevel(levelName);
     if (!xl && fid != TFrameId::NO_FRAME) {
@@ -926,12 +934,19 @@ void RenameCellField::renameCell() {
         int levelType       = pref->getDefLevelType();
         xl                  = scene->createNewLevel(levelType, levelName);
         TXshSimpleLevel *sl = xl->getSimpleLevel();
-        if (levelType == TZP_XSHLEVEL || levelType == OVL_XSHLEVEL)
+        if (levelType == TZP_XSHLEVEL || levelType == OVL_XSHLEVEL) {
+          // modify frameId to be with the same frame format as existing frames
+          sl->formatFId(fid, tmplFId);
           sl->setFrame(fid, sl->createEmptyFrame());
+        }
       } else
         xl = scene->createNewLevel(TZI_XSHLEVEL, levelName);
     }
     if (!xl) return;
+
+    // modify frameId to be with the same frame format as existing frames
+    if (xl->getSimpleLevel()) xl->getSimpleLevel()->formatFId(fid, tmplFId);
+
     cells.append(TXshCell(xl, fid));
     hasFrameZero = (fid.getNumber() == 0 && xl->getSimpleLevel() &&
                     xl->getSimpleLevel()->isFid(fid));

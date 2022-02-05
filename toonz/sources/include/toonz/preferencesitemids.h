@@ -79,7 +79,8 @@ enum PreferencesItemId {
 
   //----------
   // Drawing
-  scanLevelType,
+  DefRasterFormat,
+  // scanLevelType,// deprecated
   DefLevelType,
   newLevelSizeToCameraSizeEnabled,
   DefLevelWidth,

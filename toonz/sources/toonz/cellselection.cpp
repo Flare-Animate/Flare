@@ -54,6 +54,8 @@
 #include "toonz/tstageobjecttree.h"
 #include "toonz/stage.h"
 #include "vectorizerpopup.h"
+#include "toonz/sceneproperties.h"
+#include "toutputproperties.h"
 
 // TnzCore includes
 #include "timagecache.h"
@@ -607,7 +609,9 @@ bool pasteRasterImageInCellWithoutUndo(int row, int col,
   TXshSimpleLevel *sl = 0;
   TFrameId fid(1);
   ToonzScene *scene = app->getCurrentScene()->getScene();
-  TCamera *camera   = scene->getCurrentCamera();
+  TFrameId tmplFId  = scene->getProperties()->formatTemplateFIdForInput();
+
+  TCamera *camera = scene->getCurrentCamera();
   if (cell.isEmpty()) {
     if (row > 0) cell = xsh->getCell(row - 1, col);
     sl = cell.getSimpleLevel();
@@ -635,6 +639,10 @@ bool pasteRasterImageInCellWithoutUndo(int row, int col,
         img = sl->createEmptyFrame();
       } else
         return false;
+
+      // modify frameId to be with the same frame format as existing frames
+      sl->formatFId(fid, tmplFId);
+
       sl->setFrame(fid, img);
       app->getCurrentLevel()->setLevel(sl);
       app->getCurrentLevel()->notifyLevelChange();
@@ -647,6 +655,10 @@ bool pasteRasterImageInCellWithoutUndo(int row, int col,
       std::vector<TFrameId> fids;
       sl->getFids(fids);
       if (fids.size() > 0) fid = TFrameId(fids.back().getNumber() + 1);
+
+      // modify frameId to be with the same frame format as existing frames
+      sl->formatFId(fid, tmplFId);
+
       sl->setFrame(fid, img);
     }
     xsh->setCell(row, col, TXshCell(sl, fid));
@@ -2932,6 +2944,10 @@ static void createNewDrawing(TXsheet *xsh, int row, int col,
     while (fid.getLetter().toUtf8().at(0) < 'z' && sl->isFid(fid))
       fid = TFrameId(fid.getNumber(), fid.getLetter().toUtf8().at(0) + 1);
   }
+  // modify frameId to be with the same frame format as existing frames
+  TFrameId tmplFId =
+      xsh->getScene()->getProperties()->formatTemplateFIdForInput();
+  sl->formatFId(fid, tmplFId);
   // add the new frame
   sl->setFrame(fid, sl->createEmptyFrame());
   TApp::instance()->getCurrentLevel()->notifyLevelChange();
