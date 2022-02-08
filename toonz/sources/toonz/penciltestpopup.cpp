@@ -89,6 +89,7 @@
 #include <QVideoSurfaceFormat>
 #include <QThreadPool>
 #include <QHostInfo>
+#include <QDesktopServices>
 
 #ifdef _WIN32
 #include <dshow.h>
@@ -1432,6 +1433,10 @@ PencilTestPopup::PencilTestPopup()
   // Calibration
   m_calibration.groupBox->setCheckable(true);
   m_calibration.groupBox->setChecked(CamCapDoCalibration);
+  QAction* calibrationHelp =
+      new QAction(tr("Open Readme.txt for Camera calibration..."));
+  m_calibration.groupBox->addAction(calibrationHelp);
+  m_calibration.groupBox->setContextMenuPolicy(Qt::ActionsContextMenu);
   m_calibration.capBtn->hide();
   m_calibration.cancelBtn->hide();
   m_calibration.label->hide();
@@ -1707,6 +1712,8 @@ PencilTestPopup::PencilTestPopup()
                        SLOT(onCalibLoadBtnClicked()));
   ret = ret && connect(m_calibration.exportBtn, SIGNAL(clicked()), this,
                        SLOT(onCalibExportBtnClicked()));
+  ret = ret && connect(calibrationHelp, SIGNAL(triggered()), this,
+                       SLOT(onCalibReadme()));
 
   assert(ret);
 
@@ -3328,6 +3335,17 @@ void PencilTestPopup::onCalibExportBtnClicked() {
   }
 }
 
+//-----------------------------------------------------------------------------
+
+void PencilTestPopup::onCalibReadme() {
+  TFilePath readmeFp =
+      ToonzFolder::getLibraryFolder() + "camera calibration" + "readme.txt";
+  if (!TFileStatus(readmeFp).doesExist()) return;
+  if (TSystem::isUNC(readmeFp))
+    QDesktopServices::openUrl(QUrl(readmeFp.getQString()));
+  else
+    QDesktopServices::openUrl(QUrl::fromLocalFile(readmeFp.getQString()));
+}
 //-----------------------------------------------------------------------------
 
 OpenPopupCommandHandler<PencilTestPopup> openPencilTestPopup(MI_PencilTest);

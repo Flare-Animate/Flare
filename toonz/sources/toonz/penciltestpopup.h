@@ -354,6 +354,8 @@ protected slots:
   void resetCalibSettingsFromFile();
   void onCalibLoadBtnClicked();
   void onCalibExportBtnClicked();
+  void onCalibReadme();
+
 public slots:
   void openSaveInFolderPopup();
 };
