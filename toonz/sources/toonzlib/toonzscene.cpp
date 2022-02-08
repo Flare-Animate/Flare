@@ -1386,6 +1386,7 @@ TFilePath ToonzScene::getDefaultLevelPath(int levelType,
     break;
   case TZP_XSHLEVEL:
     levelPath = TFilePath(levelName).withType("tlv");
+    break;
   default:
     levelPath = TFilePath(levelName + L"..png");
   }
