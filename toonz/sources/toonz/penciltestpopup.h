@@ -9,6 +9,7 @@
 #include "opencv2/opencv.hpp"
 #include "tfilepath.h"
 #include "toonz/tproject.h"
+#include "filebrowserpopup.h"
 
 #include <QAbstractVideoSurface>
 #include <QRunnable>
@@ -27,6 +28,8 @@ class QTimer;
 class QIntValidator;
 class QRegExpValidator;
 class QPushButton;
+class QLabel;
+class QGroupBox;
 #ifdef MACOSX
 class QCameraViewfinder;
 #endif
@@ -236,7 +239,8 @@ class PencilTestPopup : public DVGui::Dialog {
   QComboBox *m_cameraListCombo, *m_resolutionCombo, *m_fileTypeCombo,
       *m_colorTypeCombo;
   LevelNameLineEdit* m_levelNameEdit;
-  QCheckBox *m_upsideDownCB, *m_onionSkinCB, *m_saveOnCaptureCB, *m_timerCB;
+  QCheckBox *m_upsideDownCB, *m_saveOnCaptureCB;
+  QGroupBox *m_onionSkinGBox, *m_timerGBox;
   QPushButton *m_fileFormatOptionButton, *m_captureWhiteBGButton,
       *m_captureButton, *m_loadImageButton;
   DVGui::FileField* m_saveInFileFld;
@@ -270,6 +274,24 @@ class PencilTestPopup : public DVGui::Dialog {
   bool m_useDirectShow;
 #endif
 
+  // calibration feature
+  struct Calibration {
+    // Parameters
+    bool captureCue    = false;
+    cv::Size boardSize = {10, 7};
+    int refCaptured    = 0;
+    std::vector<std::vector<cv::Point3f>> obj_points;
+    std::vector<std::vector<cv::Point2f>> image_points;
+    cv::Mat mapX, mapY;
+    bool isValid = false;
+    // UIs
+    QPushButton *capBtn, *newBtn, *loadBtn, *cancelBtn, *exportBtn;
+    QLabel* label;
+    QGroupBox* groupBox;
+  } m_calibration;
+
+  void captureCalibrationRefImage(cv::Mat& procImage);
+
   void processImage(cv::Mat& procImage);
   bool importImage(QImage image);
 
@@ -281,6 +303,8 @@ class PencilTestPopup : public DVGui::Dialog {
   QMenu* createOptionsMenu();
 
   int translateIndex(int camIndex);
+
+  QString getCurrentCalibFilePath();
 
 public:
   PencilTestPopup();
@@ -324,8 +348,38 @@ protected slots:
   void onSubCameraSizeEdited();
 
   void onTimeout();
+
+  void onCalibCapBtnClicked();
+  void onCalibNewBtnClicked();
+  void resetCalibSettingsFromFile();
+  void onCalibLoadBtnClicked();
+  void onCalibExportBtnClicked();
+  void onCalibReadme();
+
 public slots:
   void openSaveInFolderPopup();
+};
+
+//=============================================================================
+
+class ExportCalibrationFilePopup final : public GenericSaveFilePopup {
+  Q_OBJECT
+public:
+  ExportCalibrationFilePopup(QWidget* parent);
+
+protected:
+  void showEvent(QShowEvent*) override;
+};
+
+//=============================================================================
+
+class LoadCalibrationFilePopup final : public GenericLoadFilePopup {
+  Q_OBJECT
+public:
+  LoadCalibrationFilePopup(QWidget* parent);
+
+protected:
+  void showEvent(QShowEvent*) override;
 };
 
 #endif
