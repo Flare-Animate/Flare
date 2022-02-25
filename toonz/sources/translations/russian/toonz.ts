@@ -11137,6 +11137,10 @@ but a random crash might occur, use at your own risk.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <source>Show Column Parent&apos;s Color in the Xsheet</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location filename="../../toonz/preferencespopup.cpp" line="2141"/>
         <source>Enable Touch Gesture Controls</source>
         <translation>Включить сенсорные жесты</translation>
@@ -19366,6 +19370,13 @@ Please refer to the user guide for details.</source>
         <location filename="../../toonz/xshcellviewer.cpp" line="4164"/>
         <source>Delete Memo</source>
         <translation>Удалить мемо</translation>
+    </message>
+</context>
+<context>
+    <name>XsheetGUI::ChangeObjectParent</name>
+    <message>
+        <source>Table</source>
+        <translation>Таблица</translation>
     </message>
 </context>
 <context>

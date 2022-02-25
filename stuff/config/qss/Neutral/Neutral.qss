@@ -2293,6 +2293,8 @@ XsheetViewer {
   qproperty-MeshColumnColor: #8b73a7;
   qproperty-MeshColumnBorderColor: #654f7e;
   qproperty-SelectedMeshColumnColor: #a18fc3;
+  qproperty-TableColor: #a4a4bf;
+  qproperty-PegColor: #be8a56;
   qproperty-SoundTextColumnColor: #a7a7a7;
   qproperty-SoundTextColumnBorderColor: #818181;
   qproperty-SelectedSoundTextColumnColor: #bbbfc3;
