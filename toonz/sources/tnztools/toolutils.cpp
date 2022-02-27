@@ -1500,7 +1500,9 @@ void ToolUtils::drawBalloon(const TPointD &pos, std::string text,
                             const TPixel32 &color, TPoint delta,
                             double pixelSize, bool isPicking,
                             std::vector<TRectD> *otherBalloons) {
-  int devPixRatio = getDevPixRatio();
+  TTool::Viewer *viewer =
+      TTool::getApplication()->getCurrentTool()->getTool()->getViewer();
+  int devPixRatio = getDevicePixelRatio(viewer->viewerWidget());
   QString qText   = QString::fromStdString(text);
   QFont font("Arial");  // ,QFont::Bold);
   font.setPixelSize(13 * devPixRatio);
@@ -1553,9 +1555,6 @@ void ToolUtils::drawBalloon(const TPointD &pos, std::string text,
   int y1 = textRect.bottom() + mrg;
 
   if (isPicking) {
-    TTool::Viewer *viewer =
-        TTool::getApplication()->getCurrentTool()->getTool()->getViewer();
-
     if (viewer->is3DView()) {
       double x0 = pos.x + textRect.left() * pixelSize,
              y0 = pos.y + delta.y * pixelSize;
@@ -1645,7 +1644,9 @@ void ToolUtils::drawBalloon(const TPointD &pos, std::string text,
 
 void ToolUtils::drawHook(const TPointD &pos, ToolUtils::HookType type,
                          bool highlighted, bool onionSkin) {
-  int devPixRatio = getDevPixRatio();
+  TTool::Viewer *viewer =
+      TTool::getApplication()->getCurrentTool()->getTool()->getViewer();
+  int devPixRatio = getDevicePixelRatio(viewer->viewerWidget());
   int r = 10, d = r + r;
   QImage image(d * devPixRatio, d * devPixRatio, QImage::Format_ARGB32);
   image.fill(Qt::transparent);
