@@ -10,6 +10,8 @@
 #define TRK_S16 18
 #define TRK_M24 25
 #define TRK_S24 26
+#define TRK_M32 33
+#define TRK_S32 34
 
 //==============================================================================
 
@@ -26,8 +28,7 @@ TSoundTrack::TSoundTrack()
 //------------------------------------------------------------------------------
 
 TSoundTrack::TSoundTrack(TUINT32 sampleRate, int bitPerSample, int channelCount,
-                         int sampleSize, TINT32 sampleCount,
-                         bool isSampleSigned)
+                         int sampleSize, TINT32 sampleCount, int sampleType)
 
     : TSmartObject(m_classCode)
     , m_sampleRate(sampleRate)
@@ -41,7 +42,7 @@ TSoundTrack::TSoundTrack(TUINT32 sampleRate, int bitPerSample, int channelCount,
   if (!m_buffer) return;
 
   // m_buffer = new UCHAR[sampleCount*m_sampleSize];
-  if (isSampleSigned)
+  if (sampleType != TSound::UINT)
     memset(m_buffer, 0, sampleCount * sampleSize);
   else
     memset(m_buffer, 127, sampleCount * sampleSize);
@@ -50,8 +51,8 @@ TSoundTrack::TSoundTrack(TUINT32 sampleRate, int bitPerSample, int channelCount,
 //------------------------------------------------------------------------------
 
 TSoundTrack::TSoundTrack(TUINT32 sampleRate, int bitPerSample, int channelCount,
-                         int sampleSize, TINT32 sampleCount, UCHAR *buffer,
-                         TSoundTrack *parent)
+                         int sampleSize, TINT32 sampleCount, int sampleType,
+                         UCHAR *buffer, TSoundTrack *parent)
 
     : TSmartObject(m_classCode)
     , m_sampleRate(sampleRate)
@@ -59,6 +60,7 @@ TSoundTrack::TSoundTrack(TUINT32 sampleRate, int bitPerSample, int channelCount,
     , m_bitPerSample(bitPerSample)
     , m_sampleCount(sampleCount)
     , m_channelCount(channelCount)
+    , m_sampleType(sampleType)
     , m_parent(parent)
     , m_buffer(buffer)
     , m_bufferOwner(false) {
@@ -77,41 +79,57 @@ TSoundTrack::~TSoundTrack() {
 
 TSoundTrackP TSoundTrack::create(TUINT32 sampleRate, int bitPerSample,
                                  int channelCount, TINT32 sampleCount,
-                                 bool signedSample) {
-  TSoundTrackP st;
+                                 int sampleType) {
+  TSoundTrackP st = 0;
   int type = bitPerSample + channelCount;
   switch (type) {
   case TRK_M8:
-    if (signedSample)
+    if (sampleType == TSound::INT)
       st = new TSoundTrackMono8Signed(sampleRate, channelCount, sampleCount);
-    else
+    else if (sampleType == TSound::UINT)
       st = new TSoundTrackMono8Unsigned(sampleRate, channelCount, sampleCount);
     break;
+
   case TRK_S8:
-    if (signedSample)
+    if (sampleType == TSound::INT)
       st = new TSoundTrackStereo8Signed(sampleRate, channelCount, sampleCount);
-    else
+    else if (sampleType == TSound::UINT)
       st =
           new TSoundTrackStereo8Unsigned(sampleRate, channelCount, sampleCount);
     break;
 
   case TRK_M16:
-    st = new TSoundTrackMono16(sampleRate, channelCount, sampleCount);
+    if (sampleType == TSound::INT)
+      st = new TSoundTrackMono16(sampleRate, channelCount, sampleCount);
     break;
 
   case TRK_S16:
-    st = new TSoundTrackStereo16(sampleRate, channelCount, sampleCount);
+    if (sampleType == TSound::INT)
+      st = new TSoundTrackStereo16(sampleRate, channelCount, sampleCount);
     break;
 
   case TRK_M24:
-    st = new TSoundTrackMono24(sampleRate, channelCount, sampleCount);
+    if (sampleType == TSound::INT)
+      st = new TSoundTrackMono24(sampleRate, channelCount, sampleCount);
     break;
 
   case TRK_S24:
-    st = new TSoundTrackStereo24(sampleRate, channelCount, sampleCount);
+    if (sampleType == TSound::INT)
+      st = new TSoundTrackStereo24(sampleRate, channelCount, sampleCount);
     break;
 
-  default:
+  case TRK_M32:
+    if (sampleType == TSound::FLOAT)
+      st = new TSoundTrackMono32Float(sampleRate, channelCount, sampleCount);
+    break;
+
+  case TRK_S32:
+    if (sampleType == TSound::FLOAT)
+      st = new TSoundTrackStereo32Float(sampleRate, channelCount, sampleCount);
+    break;
+  }
+
+  if (!st) {
     std::string s;
     s = "Type " + std::to_string(sampleRate) + " Hz " +
         std::to_string(bitPerSample) + " bits ";
@@ -134,20 +152,21 @@ TSoundTrackP TSoundTrack::create(TUINT32 sampleRate, int bitPerSample,
 
 TSoundTrackP TSoundTrack::create(TUINT32 sampleRate, int bitPerSample,
                                  int channelCount, TINT32 sampleCount,
-                                 void *buffer, bool signedSample) {
+                                 int sampleType, void *buffer) {
   TSoundTrackP st;
   int type = bitPerSample + channelCount;
   switch (type) {
   case TRK_M8:
-    if (signedSample)
+    if (sampleType == TSound::INT)
       st = new TSoundTrackMono8Signed(sampleRate, channelCount, sampleCount,
                                       (TMono8SignedSample *)buffer, 0);
-    else
+    else if (sampleType == TSound::UINT)
       st = new TSoundTrackMono8Unsigned(sampleRate, channelCount, sampleCount,
                                         (TMono8UnsignedSample *)buffer, 0);
     break;
+
   case TRK_S8:
-    if (signedSample)
+    if (sampleType == TSound::INT)
       st = new TSoundTrackStereo8Signed(sampleRate, channelCount, sampleCount,
                                         (TStereo8SignedSample *)buffer, 0);
     else
@@ -156,26 +175,43 @@ TSoundTrackP TSoundTrack::create(TUINT32 sampleRate, int bitPerSample,
     break;
 
   case TRK_M16:
-    st = new TSoundTrackMono16(sampleRate, channelCount, sampleCount,
-                               (TMono16Sample *)buffer, 0);
+    if (sampleType == TSound::INT)
+      st = new TSoundTrackMono16(sampleRate, channelCount, sampleCount,
+                                 (TMono16Sample *)buffer, 0);
     break;
 
   case TRK_S16:
-    st = new TSoundTrackStereo16(sampleRate, channelCount, sampleCount,
-                                 (TStereo16Sample *)buffer, 0);
+    if (sampleType == TSound::INT)
+      st = new TSoundTrackStereo16(sampleRate, channelCount, sampleCount,
+                                   (TStereo16Sample *)buffer, 0);
     break;
 
   case TRK_M24:
-    st = new TSoundTrackMono24(sampleRate, channelCount, sampleCount,
-                               (TMono24Sample *)buffer, 0);
+    if (sampleType == TSound::INT)
+      st = new TSoundTrackMono24(sampleRate, channelCount, sampleCount,
+                                 (TMono24Sample *)buffer, 0);
     break;
 
   case TRK_S24:
-    st = new TSoundTrackStereo24(sampleRate, channelCount, sampleCount,
-                                 (TStereo24Sample *)buffer, 0);
+    if (sampleType == TSound::INT)
+      st = new TSoundTrackStereo24(sampleRate, channelCount, sampleCount,
+                                   (TStereo24Sample *)buffer, 0);
     break;
 
-  default:
+  case TRK_M32:
+    if (sampleType == TSound::FLOAT)
+      st = new TSoundTrackMono32Float(sampleRate, channelCount, sampleCount,
+                                      (TMono32FloatSample *)buffer, 0);
+    break;
+
+  case TRK_S32:
+    if (sampleType == TSound::FLOAT)
+      st = new TSoundTrackStereo32Float(sampleRate, channelCount, sampleCount,
+                                        (TStereo32FloatSample *)buffer, 0);
+    break;
+  }
+
+  if (!st) {
     std::string s;
     s = "Type " + std::to_string(sampleRate) + " Hz " +
         std::to_string(bitPerSample) + " bits ";
@@ -196,8 +232,8 @@ TSoundTrackP TSoundTrack::create(TUINT32 sampleRate, int bitPerSample,
 TSoundTrackP TSoundTrack::create(const TSoundTrackFormat &format,
                                  TINT32 sampleCount, void *buffer) {
   return TSoundTrack::create((int)format.m_sampleRate, format.m_bitPerSample,
-                             format.m_channelCount, sampleCount, buffer,
-                             format.m_signedSample);
+                             format.m_channelCount, sampleCount,
+                             format.m_sampleType, buffer);
 }
 
 //------------------------------------------------------------------------------
@@ -206,7 +242,7 @@ TSoundTrackP TSoundTrack::create(const TSoundTrackFormat &format,
                                  TINT32 sampleCount) {
   return TSoundTrack::create((int)format.m_sampleRate, format.m_bitPerSample,
                              format.m_channelCount, sampleCount,
-                             format.m_signedSample);
+                             format.m_sampleType);
 }
 
 //------------------------------------------------------------------------------
@@ -230,7 +266,7 @@ bool TSoundTrackFormat::operator==(const TSoundTrackFormat &rhs) {
   return (m_sampleRate == rhs.m_sampleRate &&
           m_bitPerSample == rhs.m_bitPerSample &&
           m_channelCount == rhs.m_channelCount &&
-          m_signedSample == rhs.m_signedSample);
+          m_sampleType == rhs.m_sampleType);
 }
 
 //------------------------------------------------------------------------------
@@ -249,7 +285,7 @@ double TSoundTrack::getDuration() const {
 
 TSoundTrackFormat TSoundTrack::getFormat() const {
   return TSoundTrackFormat(getSampleRate(), getBitPerSample(),
-                           getChannelCount(), isSampleSigned());
+                           getChannelCount(), getSampleType());
 }
 
 //------------------------------------------------------------------------------
