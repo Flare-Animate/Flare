@@ -290,6 +290,13 @@ class PencilTestPopup : public DVGui::Dialog {
     QGroupBox* groupBox;
   } m_calibration;
 
+  // dpi settings
+  bool m_doAutoDpi;
+  double m_customDpi;
+  QWidget* m_dpiMenuWidget;
+  QPushButton* m_dpiBtn;
+  QLineEdit* m_customDpiField;
+
   void captureCalibrationRefImage(cv::Mat& procImage);
 
   void processImage(cv::Mat& procImage);
@@ -305,6 +312,8 @@ class PencilTestPopup : public DVGui::Dialog {
   int translateIndex(int camIndex);
 
   QString getCurrentCalibFilePath();
+
+  QWidget* createDpiMenuWidget();
 
 public:
   PencilTestPopup();
@@ -355,6 +364,7 @@ protected slots:
   void onCalibLoadBtnClicked();
   void onCalibExportBtnClicked();
   void onCalibReadme();
+  void onPreferenceChanged(const QString&);
 
 public slots:
   void openSaveInFolderPopup();
