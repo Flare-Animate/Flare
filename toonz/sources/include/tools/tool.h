@@ -594,9 +594,10 @@ protected:
   int guidedStrokePickMode = 0;
   int m_guidedFrontStroke  = -1;
   int m_guidedBackStroke   = -1;
+  QWidget *m_viewerWidget  = nullptr;
 
 public:
-  Viewer() {}
+  Viewer(QWidget *widget) : m_viewerWidget(widget) {}
   virtual ~Viewer() {}
 
   const ImagePainter::VisualSettings &visualSettings() const {
@@ -706,6 +707,8 @@ public:
 
   void getGuidedFrameIdx(int *backIdx, int *frontIdx);
   void doPickGuideStroke(const TPointD &pos);
+
+  QWidget *viewerWidget() { return m_viewerWidget; }
 };
 
 #endif

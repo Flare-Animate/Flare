@@ -444,8 +444,7 @@ int main(int argc, char *argv[]) {
 
   // splash screen
   QPixmap splashPixmap = QIcon(":Resources/splash.svg").pixmap(QSize(610, 344));
-  splashPixmap.setDevicePixelRatio(QApplication::desktop()->devicePixelRatio());
-// QPixmap splashPixmap(":Resources/splash.png");
+
 #ifdef _WIN32
   QFont font("Segoe UI", -1);
 #else
