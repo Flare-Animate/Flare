@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.1" language="zh_CN" sourcelanguage="en">
+<TS version="2.1" language="zh_CN" sourcelanguage="en_US">
 <context>
     <name>AviWriterProperties</name>
     <message>
@@ -19,62 +19,62 @@
     <message>
         <location filename="../../image/exr/tiio_exr.cpp" line="227"/>
         <source>Bits Per Pixel</source>
-        <translation type="unfinished"></translation>
+        <translation>像素位数</translation>
     </message>
     <message>
         <location filename="../../image/exr/tiio_exr.cpp" line="228"/>
         <source>48(RGB Half Float)</source>
-        <translation type="unfinished"></translation>
+        <translation>48(RGB 半浮点)</translation>
     </message>
     <message>
         <location filename="../../image/exr/tiio_exr.cpp" line="229"/>
         <source>64(RGBA Half Float)</source>
-        <translation type="unfinished"></translation>
+        <translation>64(RGBA 半浮点)</translation>
     </message>
     <message>
         <location filename="../../image/exr/tiio_exr.cpp" line="231"/>
         <source>Compression Type</source>
-        <translation type="unfinished">压缩方式</translation>
+        <translation>压缩方式</translation>
     </message>
     <message>
         <location filename="../../image/exr/tiio_exr.cpp" line="233"/>
         <source>No compression</source>
-        <translation type="unfinished"></translation>
+        <translation>不压缩</translation>
     </message>
     <message>
         <location filename="../../image/exr/tiio_exr.cpp" line="236"/>
         <source>Run Length Encoding (RLE)</source>
-        <translation type="unfinished"></translation>
+        <translation>行程编码</translation>
     </message>
     <message>
         <location filename="../../image/exr/tiio_exr.cpp" line="239"/>
         <source>ZIP compression per Scanline (ZIPS)</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="../../image/exr/tiio_exr.cpp" line="242"/>
         <source>ZIP compression per scanline band (ZIP)</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="../../image/exr/tiio_exr.cpp" line="245"/>
         <source>PIZ-based wavelet compression (PIZ)</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="../../image/exr/tiio_exr.cpp" line="247"/>
         <source>Storage Type</source>
-        <translation type="unfinished"></translation>
+        <translation>存储类型</translation>
     </message>
     <message>
         <location filename="../../image/exr/tiio_exr.cpp" line="248"/>
         <source>Scan-line based</source>
-        <translation type="unfinished"></translation>
+        <translation>基于扫描线</translation>
     </message>
     <message>
         <location filename="../../image/exr/tiio_exr.cpp" line="249"/>
         <source>Tile based</source>
-        <translation type="unfinished"></translation>
+        <translation>基于块</translation>
     </message>
 </context>
 <context>
@@ -82,67 +82,67 @@
     <message>
         <location filename="../../image/ffmpeg/tiio_gif.cpp" line="307"/>
         <source>Global Palette</source>
-        <translation type="unfinished"></translation>
+        <translation>全局调色板</translation>
     </message>
     <message>
         <location filename="../../image/ffmpeg/tiio_gif.cpp" line="308"/>
         <source>Global Palette + Sierra Dither</source>
-        <translation type="unfinished"></translation>
+        <translation>全局调色板 + Sierra抖动</translation>
     </message>
     <message>
         <location filename="../../image/ffmpeg/tiio_gif.cpp" line="309"/>
         <source>Global Palette + Bayer2 Dither</source>
-        <translation type="unfinished"></translation>
+        <translation>全局调色版 + 拜尔2抖动</translation>
     </message>
     <message>
         <location filename="../../image/ffmpeg/tiio_gif.cpp" line="310"/>
         <source>Global Palette + Bayer1 Dither</source>
-        <translation type="unfinished"></translation>
+        <translation>全局调色版 + 拜尔1抖动</translation>
     </message>
     <message>
         <location filename="../../image/ffmpeg/tiio_gif.cpp" line="311"/>
         <source>Diff Palette</source>
-        <translation type="unfinished"></translation>
+        <translation>差异调色板</translation>
     </message>
     <message>
         <location filename="../../image/ffmpeg/tiio_gif.cpp" line="312"/>
         <source>Diff Palette + Sierra Dither</source>
-        <translation type="unfinished"></translation>
+        <translation>差异调色板 + Sierra抖动</translation>
     </message>
     <message>
         <location filename="../../image/ffmpeg/tiio_gif.cpp" line="313"/>
         <source>Diff Palette + Bayer2 Dither</source>
-        <translation type="unfinished"></translation>
+        <translation>差异调色板 + 拜尔1抖动</translation>
     </message>
     <message>
         <location filename="../../image/ffmpeg/tiio_gif.cpp" line="314"/>
         <source>Diff Palette + Bayer1 Dither</source>
-        <translation type="unfinished"></translation>
+        <translation>差异调色板 + 拜尔1抖动</translation>
     </message>
     <message>
         <location filename="../../image/ffmpeg/tiio_gif.cpp" line="315"/>
         <source>New Pal Per Frame</source>
-        <translation type="unfinished"></translation>
+        <translation>新建每帧调色板</translation>
     </message>
     <message>
         <location filename="../../image/ffmpeg/tiio_gif.cpp" line="316"/>
         <source>New Pal Per Frame + Sierra Dither</source>
-        <translation type="unfinished"></translation>
+        <translation>新建每帧调色板 + Sierra抖动</translation>
     </message>
     <message>
         <location filename="../../image/ffmpeg/tiio_gif.cpp" line="317"/>
         <source>New Pal Per Frame + Bayer2 Dither</source>
-        <translation type="unfinished"></translation>
+        <translation>新建每帧调色板 + 拜尔2抖动</translation>
     </message>
     <message>
         <location filename="../../image/ffmpeg/tiio_gif.cpp" line="318"/>
         <source>New Pal Per Frame + Bayer1 Dither</source>
-        <translation type="unfinished"></translation>
+        <translation>新建每帧调色板 + 拜尔1抖动</translation>
     </message>
     <message>
         <location filename="../../image/ffmpeg/tiio_gif.cpp" line="319"/>
         <source>Opaque, Dither, 256 Colors Only</source>
-        <translation type="unfinished"></translation>
+        <translation>不透明，抖动，仅256色</translation>
     </message>
     <message>
         <location filename="../../image/ffmpeg/tiio_gif.cpp" line="328"/>
@@ -157,12 +157,12 @@
     <message>
         <location filename="../../image/ffmpeg/tiio_gif.cpp" line="330"/>
         <source>Mode</source>
-        <translation type="unfinished"></translation>
+        <translation>模式</translation>
     </message>
     <message>
         <location filename="../../image/ffmpeg/tiio_gif.cpp" line="331"/>
         <source>Max Colors</source>
-        <translation type="unfinished"></translation>
+        <translation>最大色数</translation>
     </message>
     <message>
         <source>Generate Palette</source>
@@ -195,7 +195,7 @@
     <message>
         <location filename="../../image/ffmpeg/tiio_ffmpeg.cpp" line="213"/>
         <source>FFmpeg returned error-code: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>FFmpeg 返回错误编码: %1</translation>
     </message>
     <message>
         <location filename="../../image/ffmpeg/tiio_ffmpeg.cpp" line="217"/>
