@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.1" language="zh_CN" sourcelanguage="en">
+<TS version="2.1" language="zh_CN" sourcelanguage="en_US">
 <context>
     <name>ArrowToolOptionsBox</name>
     <message>
@@ -745,7 +745,7 @@
     </message>
     <message>
         <source>Lock Alpha</source>
-        <translation type="unfinished">锁定透明度</translation>
+        <translation>锁定透明度</translation>
     </message>
 </context>
 <context>
@@ -1061,7 +1061,7 @@ Do you want to proceed?</source>
     </message>
     <message>
         <source>Rotate</source>
-        <translation type="unfinished"></translation>
+        <translation>旋转</translation>
     </message>
 </context>
 <context>
@@ -1616,7 +1616,7 @@ moved to the end of the first page of the palette.</source>
     </message>
     <message>
         <source>Lock Alpha</source>
-        <translation type="unfinished">锁定透明度</translation>
+        <translation>锁定透明度</translation>
     </message>
 </context>
 <context>
