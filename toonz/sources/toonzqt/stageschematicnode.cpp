@@ -2158,7 +2158,6 @@ void StageSchematicSplineNode::setSchematicNodePos(const QPointF &pos) const {
 
 QPixmap StageSchematicSplineNode::getPixmap() {
   return IconGenerator::instance()->getIcon(m_spline);
-  return QPixmap();
 }
 
 //--------------------------------------------------------
