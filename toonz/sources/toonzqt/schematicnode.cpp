@@ -836,6 +836,7 @@ void SchematicPort::mouseMoveEvent(QGraphicsSceneMouseEvent *me) {
 
   // Snapping
   SchematicPort *linkingTo = searchPort(me->scenePos());
+
   if (!linkingTo) {
     for (SchematicLink *ghostLink : m_ghostLinks) {
       ghostLink->updateEndPos(me->scenePos());
@@ -847,8 +848,12 @@ void SchematicPort::mouseMoveEvent(QGraphicsSceneMouseEvent *me) {
       m_linkingTo = nullptr;
     }
   }
-  // if to be connected something
-  else if (linkingTo != this) {
+  // if to be connected something new
+  else if (linkingTo != this && m_linkingTo != linkingTo) {
+    if (m_linkingTo) {
+      m_linkingTo->highLight(false);
+      m_linkingTo->update();
+    }
     m_linkingTo = linkingTo;
     for (SchematicLink *ghostLink : m_ghostLinks) {
       ghostLink->updatePath(ghostLink->getStartPort(), linkingTo);
