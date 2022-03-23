@@ -81,87 +81,87 @@
 <context>
     <name>GifWriterProperties</name>
     <message>
-        <location filename="../../image/ffmpeg/tiio_gif.cpp" line="307"/>
+        <location filename="../../image/ffmpeg/tiio_gif.cpp" line="310"/>
         <source>Global Palette</source>
         <translation>Paleta global</translation>
     </message>
     <message>
-        <location filename="../../image/ffmpeg/tiio_gif.cpp" line="308"/>
+        <location filename="../../image/ffmpeg/tiio_gif.cpp" line="311"/>
         <source>Global Palette + Sierra Dither</source>
         <translation>Paleta global + difuminado Sierra</translation>
     </message>
     <message>
-        <location filename="../../image/ffmpeg/tiio_gif.cpp" line="309"/>
+        <location filename="../../image/ffmpeg/tiio_gif.cpp" line="312"/>
         <source>Global Palette + Bayer2 Dither</source>
         <translation>Paleta global + difuminado Bayer 2</translation>
     </message>
     <message>
-        <location filename="../../image/ffmpeg/tiio_gif.cpp" line="310"/>
+        <location filename="../../image/ffmpeg/tiio_gif.cpp" line="313"/>
         <source>Global Palette + Bayer1 Dither</source>
         <translation>Paleta global + difuminado Bayer 1</translation>
     </message>
     <message>
-        <location filename="../../image/ffmpeg/tiio_gif.cpp" line="311"/>
+        <location filename="../../image/ffmpeg/tiio_gif.cpp" line="314"/>
         <source>Diff Palette</source>
         <translation>Paleta diferencial</translation>
     </message>
     <message>
-        <location filename="../../image/ffmpeg/tiio_gif.cpp" line="312"/>
+        <location filename="../../image/ffmpeg/tiio_gif.cpp" line="315"/>
         <source>Diff Palette + Sierra Dither</source>
         <translation>Paleta diferencial + difuminado Sierra</translation>
     </message>
     <message>
-        <location filename="../../image/ffmpeg/tiio_gif.cpp" line="313"/>
+        <location filename="../../image/ffmpeg/tiio_gif.cpp" line="316"/>
         <source>Diff Palette + Bayer2 Dither</source>
         <translation>Paleta diferencial + difuminado Bayer 2</translation>
     </message>
     <message>
-        <location filename="../../image/ffmpeg/tiio_gif.cpp" line="314"/>
+        <location filename="../../image/ffmpeg/tiio_gif.cpp" line="317"/>
         <source>Diff Palette + Bayer1 Dither</source>
         <translation>Paleta diferencial + difuminado Bayer 1</translation>
     </message>
     <message>
-        <location filename="../../image/ffmpeg/tiio_gif.cpp" line="315"/>
+        <location filename="../../image/ffmpeg/tiio_gif.cpp" line="318"/>
         <source>New Pal Per Frame</source>
         <translation>Paleta por fotograma</translation>
     </message>
     <message>
-        <location filename="../../image/ffmpeg/tiio_gif.cpp" line="316"/>
+        <location filename="../../image/ffmpeg/tiio_gif.cpp" line="319"/>
         <source>New Pal Per Frame + Sierra Dither</source>
         <translation>Paleta por fotograma + difuminado Sierra</translation>
     </message>
     <message>
-        <location filename="../../image/ffmpeg/tiio_gif.cpp" line="317"/>
+        <location filename="../../image/ffmpeg/tiio_gif.cpp" line="320"/>
         <source>New Pal Per Frame + Bayer2 Dither</source>
         <translation>Paleta por fotograma + difuminado Bayer 2</translation>
     </message>
     <message>
-        <location filename="../../image/ffmpeg/tiio_gif.cpp" line="318"/>
+        <location filename="../../image/ffmpeg/tiio_gif.cpp" line="321"/>
         <source>New Pal Per Frame + Bayer1 Dither</source>
         <translation>Paleta por fotograma + difuminado Bayer 1</translation>
     </message>
     <message>
-        <location filename="../../image/ffmpeg/tiio_gif.cpp" line="319"/>
+        <location filename="../../image/ffmpeg/tiio_gif.cpp" line="322"/>
         <source>Opaque, Dither, 256 Colors Only</source>
         <translation>Opaco, difuminado, sólo 256 colores</translation>
     </message>
     <message>
-        <location filename="../../image/ffmpeg/tiio_gif.cpp" line="328"/>
+        <location filename="../../image/ffmpeg/tiio_gif.cpp" line="335"/>
         <source>Scale</source>
         <translation>Escala</translation>
     </message>
     <message>
-        <location filename="../../image/ffmpeg/tiio_gif.cpp" line="329"/>
+        <location filename="../../image/ffmpeg/tiio_gif.cpp" line="336"/>
         <source>Looping</source>
         <translation>Ciclo</translation>
     </message>
     <message>
-        <location filename="../../image/ffmpeg/tiio_gif.cpp" line="330"/>
+        <location filename="../../image/ffmpeg/tiio_gif.cpp" line="337"/>
         <source>Mode</source>
         <translation>Modo</translation>
     </message>
     <message>
-        <location filename="../../image/ffmpeg/tiio_gif.cpp" line="331"/>
+        <location filename="../../image/ffmpeg/tiio_gif.cpp" line="338"/>
         <source>Max Colors</source>
         <translation>Colores máximos</translation>
     </message>

@@ -9262,6 +9262,10 @@ pero es posible que se produzcan ocasionales cuelgues; usar a propio riesgo.</tr
         <source>Number of seconds to wait for Rhubarb to complete processing the audio:</source>
         <translation>Cantidad de segundos a esperar para que Rhubarb complete el procesamiento del audio:</translation>
     </message>
+    <message>
+        <source>Show Column Parent&apos;s Color in the Xsheet</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>PreferencesPopup::AdditionalStyleEdit</name>
@@ -15690,6 +15694,13 @@ Por favor ver la guía de usuario para obtener más detalles.</translation>
     <message>
         <source>None</source>
         <translation>Ninguna</translation>
+    </message>
+</context>
+<context>
+    <name>XsheetGUI::ChangeObjectParent</name>
+    <message>
+        <source>Table</source>
+        <translation type="unfinished">mesa</translation>
     </message>
 </context>
 <context>
