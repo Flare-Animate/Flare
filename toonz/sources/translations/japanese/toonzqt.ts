@@ -2542,6 +2542,29 @@ The second line should be &quot;Mesh [Input bit depth] [Output bit depth]&quot;<
     </message>
 </context>
 <context>
+    <name>SchematicName</name>
+    <message>
+        <source>Cu&amp;t</source>
+        <translation>切り取り (&amp;T)</translation>
+    </message>
+    <message>
+        <source>&amp;Copy</source>
+        <translation>コピー (&amp;C)</translation>
+    </message>
+    <message>
+        <source>&amp;Paste</source>
+        <translation>貼り付け (&amp;P)</translation>
+    </message>
+    <message>
+        <source>&amp;Delete</source>
+        <translation>削除 (&amp;A)</translation>
+    </message>
+    <message>
+        <source>Select &amp;All</source>
+        <translation>すべて選択 (&amp;A)</translation>
+    </message>
+</context>
+<context>
     <name>SchematicViewer</name>
     <message>
         <source>&amp;Fit to Window</source>

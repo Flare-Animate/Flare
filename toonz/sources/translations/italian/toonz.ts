@@ -12720,7 +12720,7 @@ Per favore sottometti o ripristina i cambiamenti prima di proseguire.</translati
     </message>
     <message>
         <source>Table</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Tavolo</translation>
     </message>
     <message>
         <source>Select %1</source>

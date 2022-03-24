@@ -2293,8 +2293,6 @@ XsheetViewer {
   qproperty-MeshColumnColor: #594d75;
   qproperty-MeshColumnBorderColor: #423956;
   qproperty-SelectedMeshColumnColor: #656692;
-  qproperty-TableColor: #62628c;
-  qproperty-PegColor: #9f6e3c;
   qproperty-SoundTextColumnColor: #a7a7a7;
   qproperty-SoundTextColumnBorderColor: #8e8e8e;
   qproperty-SelectedSoundTextColumnColor: #adb9c0;
@@ -2311,6 +2309,8 @@ XsheetViewer {
   qproperty-LightBGColor: #f0f0f0;
   qproperty-DarkBGColor: #e1e1e1;
   qproperty-DarkLineColor: #969696;
+  qproperty-TableColor: #62628c;
+  qproperty-PegColor: #9f6e3c;
   qproperty-TimelineIconLineColor: rgba(0, 0, 0, 0.3);
   qproperty-XsheetColumnNameBgColor: rgba(0, 0, 0, 0);
   qproperty-XsheetDragBarHighlightColor: rgba(255, 255, 255, 0.15);

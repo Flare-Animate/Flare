@@ -13195,7 +13195,7 @@ Bitte tragen Sie die Änderungen ein oder setzen sie zurück.</translation>
     </message>
     <message>
         <source>Table</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Tabelle</translation>
     </message>
     <message>
         <source>Select %1</source>

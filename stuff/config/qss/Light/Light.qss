@@ -2293,8 +2293,6 @@ XsheetViewer {
   qproperty-MeshColumnColor: #b8a2cf;
   qproperty-MeshColumnBorderColor: #9278ac;
   qproperty-SelectedMeshColumnColor: #a49dc2;
-  qproperty-TableColor: #cbcbe4;
-  qproperty-PegColor: #dfb081;
   qproperty-SoundTextColumnColor: #c2c2c2;
   qproperty-SoundTextColumnBorderColor: #9c9c9c;
   qproperty-SelectedSoundTextColumnColor: #abb3b9;
@@ -2304,13 +2302,15 @@ XsheetViewer {
   qproperty-SoundColumnHlColor: #f5ffe6;
   qproperty-SoundColumnTrackColor: rgba(0, 0, 0, 0.8);
   qproperty-ActiveCameraColor: #b7dbfc;
-  qproperty-SelectedActiveCameraColor: #79b5ee;
+  qproperty-SelectedActiveCameraColor: #a4c4e1;
   qproperty-OtherCameraColor: #9ad9e2;
-  qproperty-SelectedOtherCameraColor: #6eb7c2;
+  qproperty-SelectedOtherCameraColor: #90c3cf;
   qproperty-LightLightBGColor: #c2c2c2;
   qproperty-LightBGColor: #ffffff;
   qproperty-DarkBGColor: #ffffff;
   qproperty-DarkLineColor: #ffffff;
+  qproperty-TableColor: #cbcbe4;
+  qproperty-PegColor: #dfb081;
   qproperty-TimelineIconLineColor: rgba(0, 0, 0, 0.144);
   qproperty-XsheetColumnNameBgColor: rgba(0, 0, 0, 0);
   qproperty-XsheetDragBarHighlightColor: rgba(255, 255, 255, 0.15);
