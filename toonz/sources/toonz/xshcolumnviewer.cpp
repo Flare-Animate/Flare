@@ -343,8 +343,7 @@ void ChangeObjectWidget::show(const QPoint &pos) {
     m_width += scrollbarW;
   }
   int height = 0;
-  for (int i = 0; i < itemNumber; i++)
-    height += sizeHintForRow(i);
+  for (int i = 0; i < itemNumber; i++) height += sizeHintForRow(i);
   setGeometry(pos.x(), pos.y(), m_width, height + 2);
   QListWidget::show();
   raise();
@@ -479,7 +478,6 @@ void ChangeObjectParent::refresh() {
     TStageObjectId id = tree->getStageObject(i)->getId();
     int index         = id.getIndex();
     QString indexStr(std::to_string(id.getIndex() + 1).c_str());
-    QString newTextID, newTextTr;
     QColor newTextBG;
 
     // Remove childs from parent list
@@ -487,54 +485,41 @@ void ChangeObjectParent::refresh() {
                             xsh->getStageObject(id)) != children.end());
     if (id == currentObjectId || found) continue;
 
-    if (id.isTable()) {
-      newTextID = QString("Table");
-      newTextTr = tr("Table");
+    QString newTextID = QString::fromStdString(id.toString());
+    QString newTextTr;
+    if (tree->getStageObject(i)->hasSpecifiedName())
+      newTextTr = QString::fromStdString(tree->getStageObject(i)->getName());
+    else
+      newTextTr = getNameTr(id);
+
+    if (id.isTable())
       newTextBG = viewer->getTableColor();
-    }
-    if (id.isPegbar()) {
-      newTextID = QString("Peg ") + indexStr;
-      newTextTr = QString("Peg") + indexStr;
+    else if (id.isPegbar())
       newTextBG = viewer->getPegColor();
-      //
-      std::string name = tree->getStageObject(i)->getName();
-      if (name.length() > 0) newTextTr = QString::fromStdString(name);
-    }
-    if (id.isCamera()) {
-      bool isActive =
-          (id == xsh->getStageObjectTree()->getCurrentCameraId());
-      newTextID = QString("Cam ") + indexStr;
-      newTextTr = QString("Camera") + indexStr;
-      newTextBG = isActive ? viewer->getActiveCameraColor()
+    else if (id.isCamera()) {
+      bool isActive = (id == xsh->getStageObjectTree()->getCurrentCameraId());
+      newTextBG     = isActive ? viewer->getActiveCameraColor()
                            : viewer->getOtherCameraColor();
-      //
-      std::string name = tree->getStageObject(i)->getName();
-      if (name.length() > 0) newTextTr = QString::fromStdString(name);
-    }
-    if (id.isColumn() && (!xsh->isColumnEmpty(index))) {
+    } else if (id.isColumn() && (!xsh->isColumnEmpty(index))) {
       TXshColumn *colx = xsh->getColumn(index);
       if (colx->getColumnType() != TXshColumn::eSoundTextType &&
           colx->getColumnType() != TXshColumn::eSoundType) {
-        newTextID = QString("Col ") + indexStr;
-        newTextTr = QString("Col") + indexStr;
         QColor unused;
         viewer->getColumnColor(newTextBG, unused, id.getIndex(), xsh);
-        std::string name = tree->getStageObject(i)->getName();
-        if (name.length() > 0) newTextTr = QString::fromStdString(name);
       }
-    }
+    } else
+      continue;
+
     if (id == parentId) currentText = newTextID;
     if (newTextTr.length() > theLongestTxt.length()) theLongestTxt = newTextTr;
-    if (!newTextID.isEmpty()) {
-      if (id.isColumn()) {
-        columnListID.append(newTextID);
-        columnListTr.append(newTextTr);
-        columnListColor.append(newTextBG);
-      } else {
-        pegbarListID.append(newTextID);
-        pegbarListTr.append(newTextTr);
-        pegbarListColor.append(newTextBG);
-      }
+    if (id.isColumn()) {
+      columnListID.append(newTextID);
+      columnListTr.append(newTextTr);
+      columnListColor.append(newTextBG);
+    } else {
+      pegbarListID.append(newTextID);
+      pegbarListTr.append(newTextTr);
+      pegbarListColor.append(newTextBG);
     }
   }
   for (i = 0; i < columnListID.size(); i++)
@@ -542,20 +527,17 @@ void ChangeObjectParent::refresh() {
   for (i = 0; i < pegbarListID.size(); i++)
     addText(pegbarListID.at(i), pegbarListTr.at(i), pegbarListColor.at(i));
 
-  QString fontName = Preferences::instance()->getInterfaceFont();
-  if (fontName == "") {
-#ifdef _WIN32
-    fontName = "Arial";
-#else
-    fontName = "Helvetica";
-#endif
-  }
-  static QFont font(fontName, -1, QFont::Normal);
-  // set font size in pixel
-  font.setPixelSize(XSHEET_FONT_PX_SIZE);
-
-  m_width = QFontMetrics(font).width(theLongestTxt) + 32;
+  m_width = fontMetrics().width(theLongestTxt) + 32;
   selectCurrent(currentText);
+}
+
+//-----------------------------------------------------------------------------
+
+QString ChangeObjectParent::getNameTr(const TStageObjectId id) {
+  if (id.isTable()) return tr("Table");
+  // return untranslated string for other types
+  else
+    return QString::fromStdString(id.toString());
 }
 
 //-----------------------------------------------------------------------------
@@ -574,7 +556,7 @@ void ChangeObjectParent::onTextSelected(const QString &text) {
   bool isTable = false;
   if (text == "Table") isTable = true;
   QString number = text;
-  number.remove(0, 4);
+  number.remove(0, 3);
   // Remove names from the index
   int spaceIndex = number.indexOf(" ");
   if (spaceIndex > -1) number.remove(spaceIndex, 1000);
@@ -1256,11 +1238,12 @@ void ColumnArea::DrawHeader::drawPegbarName() const {
 
   TStageObjectId columnId = m_viewer->getObjectId(col);
   TStageObjectId parentId = xsh->getStageObjectParent(columnId);
-  std::string strName     = xsh->getStageObject(parentId)->getName();
-  QString name            = QString(parentId.toString().c_str());
-  if (strName.length() > 0 && parentId.toString() != strName) {
-    name = QString::fromStdString(strName);
-  }
+
+  QString name;
+  if (xsh->getStageObject(parentId)->hasSpecifiedName())
+    name = QString::fromStdString(xsh->getStageObject(parentId)->getName());
+  else
+    name = ChangeObjectParent::getNameTr(parentId);
 
   QString fontName = Preferences::instance()->getInterfaceFont();
   if (fontName == "") {
@@ -1274,9 +1257,9 @@ void ColumnArea::DrawHeader::drawPegbarName() const {
   // set font size in pixel
   font.setPixelSize(XSHEET_FONT_PX_SIZE);
 
-  int handleWidth = 20;
+  int handleWidth    = 20;
   std::string handle = xsh->getStageObject(columnId)->getParentHandle();
-  if (handle == "B") handleWidth = 0; // Default handle
+  if (handle == "B") handleWidth = 0;  // Default handle
 
   int width = QFontMetrics(font).width(name);
 
@@ -1339,10 +1322,10 @@ void ColumnArea::DrawHeader::drawParentHandleName() const {
 
   TStageObjectId columnId = m_viewer->getObjectId(col);
   TStageObjectId parentId = xsh->getStageObjectParent(columnId);
-  std::string handle = xsh->getStageObject(columnId)->getParentHandle();
+  std::string handle      = xsh->getStageObject(columnId)->getParentHandle();
   if (handle[0] == 'H' && handle.length() > 1) handle = handle.substr(1);
 
-  if (handle == "B") { // Default handle
+  if (handle == "B") {  // Default handle
     QPen pen(m_viewer->getVerticalLineColor());
     pen.setStyle(Qt::PenStyle::DotLine);
     p.setPen(pen);
@@ -2401,7 +2384,7 @@ void ColumnArea::mousePressEvent(QMouseEvent *event) {
       }
       // config button
       else if (o->rect(PredefinedRect::CAMERA_CONFIG_AREA)
-                     .contains(mouseInCell)) {
+                   .contains(mouseInCell)) {
         if (event->button() != Qt::LeftButton) return;
         m_doOnRelease = OpenSettings;
       }
