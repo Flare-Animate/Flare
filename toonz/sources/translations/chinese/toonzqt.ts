@@ -806,7 +806,7 @@ Possibly the preset file has been corrupted</source>
     </message>
     <message>
         <source> FPS	</source>
-        <translation>FPS→</translation>
+        <translation> FPS	</translation>
     </message>
     <message>
         <source> Frame  </source>
@@ -1158,7 +1158,7 @@ Possibly the preset file has been corrupted</source>
     <name>FunctionSheetButtonArea</name>
     <message>
         <source>Toggle synchronizing zoom with xsheet</source>
-        <translation>打开/关闭与摄影表同步</translation>
+        <translation>启用/停用与摄影表同步</translation>
     </message>
 </context>
 <context>
@@ -1856,7 +1856,7 @@ Select FX nodes and related links before copying or cutting the selection you wa
     </message>
     <message>
         <source>Name Editor</source>
-        <translation>名字编辑器</translation>
+        <translation>名称编辑器</translation>
     </message>
     <message>
         <source> + </source>
@@ -1984,7 +1984,7 @@ Select FX nodes and related links before copying or cutting the selection you wa
     <message>
         <source>Styles you are going to delete are used to paint lines and areas in the animation level.
 </source>
-        <translation>您要删除的样式已经用于绘制动画层级的线和区域。
+        <translation>你要删除的样式已经用于绘制动画层级的线和区域。
 </translation>
     </message>
     <message>
@@ -2109,15 +2109,15 @@ Select FX nodes and related links before copying or cutting the selection you wa
     </message>
     <message>
         <source>Created:      </source>
-        <translation>创建于:      </translation>
+        <translation>创建时间:      </translation>
     </message>
     <message>
         <source>Modified:     </source>
-        <translation>修改于:     </translation>
+        <translation>修改时间:     </translation>
     </message>
     <message>
         <source>Last Access:  </source>
-        <translation>最近访问于:  </translation>
+        <translation>最近访问时间:  </translation>
     </message>
     <message>
         <source>Image Size:   </source>
@@ -2275,7 +2275,8 @@ Select FX nodes and related links before copying or cutting the selection you wa
     <message>
         <source>Deleting &quot;%1&quot;.
 Are you sure?</source>
-        <translation>您确定要删除“%1”吗？</translation>
+        <translation>删除 &quot;%1。
+你确定吗？</translation>
     </message>
     <message>
         <source>Delete</source>
@@ -2319,7 +2320,7 @@ Are you sure?</source>
     </message>
     <message>
         <source>Toggle Link  in Palette : %1</source>
-        <translation>在调色板 %1 切换链接</translation>
+        <translation>启用/停用链接调色板 %1</translation>
     </message>
     <message>
         <source>Remove Link  in Palette : %1</source>
@@ -2417,7 +2418,7 @@ Are you sure?</source>
         <source>Deletion of Lines and Areas from raster-based levels is not undoable.
 Are you sure?</source>
         <translation>从光栅层级删除线和区域，该操作将无法撤销。
-您确定吗？</translation>
+你确定吗？</translation>
     </message>
     <message>
         <source>Modify Fx Param : %1 Key : %2  Frame %3</source>
@@ -2501,7 +2502,7 @@ The second line should be &quot;Mesh [Input bit depth] [Output bit depth]&quot;<
     <message>
         <source>Custom Texture</source>
         <comment>TextureStyleChooserPage</comment>
-        <translation>自定纹理</translation>
+        <translation>定制纹理</translation>
     </message>
     <message>
         <source>Current Frame: </source>
@@ -2663,7 +2664,7 @@ The second line should be &quot;Mesh [Input bit depth] [Output bit depth]&quot;<
     </message>
     <message>
         <source>&amp;Toggle node icons</source>
-        <translation>打开/关闭节点图标(&amp;T)</translation>
+        <translation>显示/隐藏节点图标(&amp;T)</translation>
     </message>
     <message>
         <source>&amp;Selection Mode</source>
@@ -2772,11 +2773,11 @@ The second line should be &quot;Mesh [Input bit depth] [Output bit depth]&quot;<
     <name>StageSchematicNode</name>
     <message>
         <source>Toggle Autorotate Along Motion Path</source>
-        <translation>打开/关闭追随移动路径自动旋转</translation>
+        <translation>启用/停止追随移动路径自动旋转</translation>
     </message>
     <message>
         <source>Toggle Link Motion Path to Control Points</source>
-        <translation>打开/关闭链接移动路径到控制点</translation>
+        <translation>启用/停止链接移动路径到控制点</translation>
     </message>
 </context>
 <context>
@@ -2868,7 +2869,7 @@ The second line should be &quot;Mesh [Input bit depth] [Output bit depth]&quot;<
         <source>The current palette %1
 in the studio palette has been modified. Do you want to save your changes?</source>
         <translation>当前调色板 %1
-在工作室调色板中已经被修改了。您要保存所做的改动吗？</translation>
+在工作室调色板中已经被修改了。你要保存所做的改动吗？</translation>
     </message>
     <message>
         <source>Save</source>
@@ -2882,7 +2883,7 @@ in the studio palette has been modified. Do you want to save your changes?</sour
         <source>Convert %1 to Studio Palette and Overwrite. 
 Are you sure ?</source>
         <translation>转换 %1 到工作室调色板并覆盖。
-您确定要这样做吗？</translation>
+你确定要这样做吗？</translation>
     </message>
     <message>
         <source>Yes</source>
@@ -2896,13 +2897,13 @@ Are you sure ?</source>
         <source>Replacing all selected palettes with the palette &quot;%1&quot;. 
 Are you sure ?</source>
         <translation>用调色板 &quot;%1&quot; 替换所有被选中的调色版。
-您确定要这样做吗？</translation>
+你确定要这样做吗？</translation>
     </message>
     <message>
         <source>Replacing the palette &quot;%1&quot; with the palette &quot;%2&quot;. 
 Are you sure ?</source>
         <translation>用调色板 &quot;%2&quot; 替换调色板 &quot;%1&quot;。
-您确定要这样做吗？</translation>
+你确定要这样做吗？</translation>
     </message>
     <message>
         <source>Replace</source>
@@ -3108,7 +3109,7 @@ Apply</source>
     </message>
     <message>
         <source>Toggle Orientation</source>
-        <translation>打开/关闭方向</translation>
+        <translation>切换适应方向</translation>
     </message>
     <message>
         <source>Hex Color Names...</source>
@@ -3184,7 +3185,7 @@ Apply</source>
     <name>StyleNameEditor</name>
     <message>
         <source>Name Editor</source>
-        <translation>名字编辑器</translation>
+        <translation>名称编辑器</translation>
     </message>
     <message>
         <source>OK</source>
@@ -3204,7 +3205,7 @@ Apply</source>
     </message>
     <message>
         <source>Name Editor: # %1</source>
-        <translation>名字编辑器: # %1</translation>
+        <translation>名称编辑器: # %1</translation>
     </message>
     <message>
         <source>Apply and Next</source>

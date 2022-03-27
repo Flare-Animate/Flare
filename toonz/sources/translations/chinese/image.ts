@@ -195,7 +195,7 @@
     <message>
         <location filename="../../image/ffmpeg/tiio_ffmpeg.cpp" line="213"/>
         <source>FFmpeg returned error-code: %1</source>
-        <translation>FFmpeg 返回错误编码: %1</translation>
+        <translation>FFmpeg 返回的错误编码: %1</translation>
     </message>
     <message>
         <location filename="../../image/ffmpeg/tiio_ffmpeg.cpp" line="217"/>
@@ -365,7 +365,7 @@ Please try raising the FFmpeg timeout in Preferences.</source>
     <message>
         <location filename="../../image/tga/tiio_tga.cpp" line="523"/>
         <source>Bits Per Pixel</source>
-        <translation>像素的位数</translation>
+        <translation>像素位数</translation>
     </message>
     <message>
         <location filename="../../image/tga/tiio_tga.cpp" line="524"/>
@@ -403,7 +403,7 @@ Please try raising the FFmpeg timeout in Preferences.</source>
     <message>
         <location filename="../../image/tif/tiio_tif.cpp" line="732"/>
         <source>Bits Per Pixel</source>
-        <translation>像素的位数</translation>
+        <translation>像素位数</translation>
     </message>
     <message>
         <location filename="../../image/tif/tiio_tif.cpp" line="733"/>
