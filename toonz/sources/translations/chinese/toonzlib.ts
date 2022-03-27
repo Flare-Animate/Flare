@@ -576,7 +576,7 @@
     </message>
     <message>
         <source>Toggle Autopaint Option  Palette : %1  Style#%2</source>
-        <translation>开关自动填充选项  调色板: %1  样式#%2</translation>
+        <translation>启用/停止自动填充选项  调色板: %1  样式#%2</translation>
     </message>
     <message>
         <source>Can&apos;t undo rename palette</source>

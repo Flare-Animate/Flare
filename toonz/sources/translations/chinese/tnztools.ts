@@ -815,7 +815,7 @@
 Do you want to continue?</source>
         <translation>当前列已经包含了一个骨架组。替换它会换掉全部现有的顶点动画。
 
-您要继续吗？</translation>
+你要继续吗？</translation>
     </message>
     <message>
         <source>Ok</source>
@@ -875,7 +875,7 @@ Do you want to continue?</source>
 Do you want to proceed?</source>
         <translation>之前的顶点名称会被放弃，所有关联的关键帧也会丢失。
 
-您要继续吗？</translation>
+你要继续吗？</translation>
     </message>
     <message>
         <source>Edit Mesh</source>
