@@ -90,6 +90,8 @@
 #include <QThreadPool>
 #include <QHostInfo>
 #include <QDesktopServices>
+#include <QDialogButtonBox>
+#include <QMessageBox>
 
 #ifdef _WIN32
 #include <dshow.h>
@@ -412,6 +414,24 @@ bool getRasterLevelSize(TXshLevel* level, TDimension& dim) {
   return true;
 }
 
+class IconView : public QWidget {
+  QIcon m_icon;
+
+public:
+  IconView(const QString& iconName, const QString& toolTipStr = "",
+           QWidget* parent = 0)
+      : QWidget(parent), m_icon(createQIcon(iconName.toUtf8())) {
+    setMinimumSize(18, 18);
+    setToolTip(toolTipStr);
+  }
+
+protected:
+  void paintEvent(QPaintEvent* e) {
+    QPainter p(this);
+    p.drawPixmap(QRect(0, 2, 18, 18), m_icon.pixmap(18, 18));
+  }
+};
+
 }  // namespace
 
 //=============================================================================
@@ -483,14 +503,17 @@ void MyVideoWidget::computeTransform(QSize imgSize) {
           .scale(scale, scale);
 }
 
-void MyVideoWidget::setSubCameraSize(QSize size) {
+void MyVideoWidget::setSubCameraRect(QRect rect) {
   QSize frameSize = m_image.size();
-  assert(frameSize == size.expandedTo(frameSize));
+  assert(frameSize == rect.size().expandedTo(frameSize));
 
-  m_subCameraRect.setSize(size);
+  m_subCameraRect = rect;
   // make sure the sub camera is inside of the frame
-  if (!QRect(QPoint(0, 0), frameSize).contains(m_subCameraRect))
+  if (rect.isValid() &&
+      !QRect(QPoint(0, 0), frameSize).contains(m_subCameraRect)) {
     m_subCameraRect.moveCenter(QRect(QPoint(0, 0), frameSize).center());
+    emit subCameraChanged(false);
+  }
 
   update();
 }
@@ -654,10 +677,10 @@ void MyVideoWidget::mouseMoveEvent(QMouseEvent* event) {
                  camSize.height() - m_preSubCameraRect.bottom());
         m_subCameraRect.setBottom(m_preSubCameraRect.bottom() + offset.y());
       }
-      // if the sub camera size is changed, notify the parent for updating the
-      // fields
-      emit subCameraResized(true);
     }
+    // if the sub camera size is changed, notify the parent for updating the
+    // fields
+    emit subCameraChanged(true);
     update();
   }
 }
@@ -685,7 +708,8 @@ void MyVideoWidget::mouseReleaseEvent(QMouseEvent* event) {
     return;
 
   m_preSubCameraRect = QRect();
-  if (m_activeSubHandle != HandleFrame) emit subCameraResized(false);
+
+  emit subCameraChanged(false);
 
   // restart the camera
   emit startCamera();
@@ -1269,6 +1293,177 @@ void PencilTestSaveInFolderPopup::updateParentFolder() {
 
 //=============================================================================
 
+SubCameraButton::SubCameraButton(const QString& text, QWidget* parent)
+    : QPushButton(text, parent) {
+  setObjectName("SubcameraButton");
+  setIconSize(QSize(16, 16));
+  setIcon(createQIcon("subcamera"));
+  setCheckable(true);
+
+  // load preference file
+  TFilePath layoutDir = ToonzFolder::getMyModuleDir();
+  TFilePath prefPath  = layoutDir + TFilePath("camera_capture_subcamera.ini");
+  // In case the personal settings is not exist (for new users)
+  if (!TFileStatus(prefPath).doesExist()) {
+    TFilePath templatePath = ToonzFolder::getTemplateModuleDir() +
+                             TFilePath("camera_capture_subcamera.ini");
+    // If there is the template, copy it to the personal one
+    if (TFileStatus(templatePath).doesExist())
+      TSystem::copyFile(prefPath, templatePath);
+  }
+  m_settings.reset(new QSettings(
+      QString::fromStdWString(prefPath.getWideString()), QSettings::IniFormat));
+}
+
+void SubCameraButton::contextMenuEvent(QContextMenuEvent* event) {
+  // return if the current camera is not valid
+  if (!m_curResolution.isValid()) return;
+  // load presets for the current resolution
+  QString groupName = QString("%1x%2")
+                          .arg(m_curResolution.width())
+                          .arg(m_curResolution.height());
+  m_settings->beginGroup(groupName);
+
+  bool hasPresets = !m_settings->childKeys().isEmpty();
+
+  if (!m_curSubCamera.isValid() && !hasPresets) {
+    m_settings->endGroup();
+    return;
+  }
+
+  QMenu menu(this);
+  menu.setToolTipsVisible(true);
+
+  for (auto key : m_settings->childKeys()) {
+    QAction* scAct = menu.addAction(key);
+    scAct->setData(m_settings->value(key));
+    QRect rect = m_settings->value(key).toRect();
+    if (m_curSubCamera == rect) {
+      scAct->setCheckable(true);
+      scAct->setChecked(true);
+      scAct->setEnabled(false);
+    } else {
+      scAct->setToolTip(QString("%1 x %2, X%3 Y%4")
+                            .arg(rect.width())
+                            .arg(rect.height())
+                            .arg(rect.x())
+                            .arg(rect.y()));
+      connect(scAct, SIGNAL(triggered()), this, SLOT(onSubCameraAct()));
+    }
+  }
+
+  if (hasPresets) menu.addSeparator();
+
+  // save preset (visible if the subcamera is active)
+  if (m_curSubCamera.isValid()) {
+    QAction* saveAct = menu.addAction(tr("Save Current Subcamera"));
+    connect(saveAct, SIGNAL(triggered()), this, SLOT(onSaveSubCamera()));
+  }
+
+  // delete preset (visible if there is any)
+  if (hasPresets) {
+    QMenu* delMenu = menu.addMenu(tr("Delete Preset"));
+    for (auto key : m_settings->childKeys()) {
+      QAction* delAct = delMenu->addAction(tr("Delete %1").arg(key));
+      delAct->setData(key);
+      connect(delAct, SIGNAL(triggered()), this, SLOT(onDeletePreset()));
+    }
+  }
+
+  m_settings->endGroup();
+
+  menu.exec(event->globalPos());
+}
+
+void SubCameraButton::onSubCameraAct() {
+  QRect subCameraRect = qobject_cast<QAction*>(sender())->data().toRect();
+  emit subCameraPresetSelected(subCameraRect);
+}
+
+void SubCameraButton::onSaveSubCamera() {
+  auto initDialog = [](QLineEdit** lineEdit) {
+    QDialog* ret = new QDialog();
+    *lineEdit    = new QLineEdit(ret);
+    QDialogButtonBox* buttonBox =
+        new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+    QVBoxLayout* lay = new QVBoxLayout();
+    lay->setMargin(5);
+    lay->setSpacing(10);
+    lay->addWidget(*lineEdit);
+    lay->addWidget(buttonBox);
+    ret->setLayout(lay);
+    connect(buttonBox, &QDialogButtonBox::accepted, ret, &QDialog::accept);
+    connect(buttonBox, &QDialogButtonBox::rejected, ret, &QDialog::reject);
+    return ret;
+  };
+
+  static QDialog* nameDialog = nullptr;
+  static QLineEdit* lineEdit = nullptr;
+  if (!nameDialog) nameDialog = initDialog(&lineEdit);
+
+  // ask name
+  QString oldName;
+  QString groupName = QString("%1x%2")
+                          .arg(m_curResolution.width())
+                          .arg(m_curResolution.height());
+  m_settings->beginGroup(groupName);
+  for (auto key : m_settings->childKeys()) {
+    if (m_curSubCamera == m_settings->value(key).toRect()) {
+      oldName = key;
+    }
+  }
+  lineEdit->setText(oldName);
+  lineEdit->selectAll();
+
+  if (nameDialog->exec() == QDialog::Rejected) {
+    m_settings->endGroup();
+    return;
+  }
+
+  QString newName = lineEdit->text();
+
+  if (newName.isEmpty()) {
+    m_settings->endGroup();
+    return;
+  }
+
+  // ask if there are the same name / data in the existing entries
+  if (m_settings->contains(newName) || !oldName.isEmpty()) {
+    QString txt =
+        tr("Overwriting the existing subcamera preset. Are you sure?");
+    if (QMessageBox::Yes != QMessageBox::question(this, tr("Question"), txt))
+      return;
+    if (!oldName.isEmpty()) m_settings->remove(oldName);
+  }
+
+  // register
+  m_settings->setValue(newName, m_curSubCamera);
+  m_settings->endGroup();
+}
+
+void SubCameraButton::onDeletePreset() {
+  QString key       = qobject_cast<QAction*>(sender())->data().toString();
+  QString groupName = QString("%1x%2")
+                          .arg(m_curResolution.width())
+                          .arg(m_curResolution.height());
+  m_settings->beginGroup(groupName);
+  if (!m_settings->contains(key)) {
+    m_settings->endGroup();
+    return;
+  }
+
+  QString txt = tr("Deleting the subcamera preset %1. Are you sure?").arg(key);
+  if (QMessageBox::Yes != QMessageBox::question(this, tr("Question"), txt)) {
+    m_settings->endGroup();
+    return;
+  }
+
+  m_settings->remove(key);
+  m_settings->endGroup();
+}
+
+//=============================================================================
+
 PencilTestPopup::PencilTestPopup()
     // set the parent 0 in order to enable the popup behind the main window
     : Dialog(0, false, false, "PencilTest")
@@ -1347,9 +1542,11 @@ PencilTestPopup::PencilTestPopup()
   QPushButton* subfolderButton = new QPushButton(tr("Subfolder"), this);
 
   // subcamera
-  m_subcameraButton     = new QPushButton(tr("Subcamera"), this);
+  m_subcameraButton     = new SubCameraButton(tr("Subcamera"), this);
   m_subWidthFld         = new IntLineEdit(this);
   m_subHeightFld        = new IntLineEdit(this);
+  m_subXPosFld          = new IntLineEdit(this);
+  m_subYPosFld          = new IntLineEdit(this);
   QWidget* subCamWidget = new QWidget(this);
 
   // Calibration
@@ -1430,10 +1627,6 @@ PencilTestPopup::PencilTestPopup()
 
   m_saveInFolderPopup->hide();
 
-  m_subcameraButton->setObjectName("SubcameraButton");
-  m_subcameraButton->setIconSize(QSize(16, 16));
-  m_subcameraButton->setIcon(createQIcon("subcamera"));
-  m_subcameraButton->setCheckable(true);
   m_subcameraButton->setChecked(false);
   subCamWidget->setHidden(true);
 
@@ -1448,6 +1641,12 @@ PencilTestPopup::PencilTestPopup()
   m_calibration.cancelBtn->hide();
   m_calibration.label->hide();
   m_calibration.exportBtn->setEnabled(false);
+
+  int subCameraFieldWidth = fontMetrics().width("00000") + 5;
+  m_subWidthFld->setFixedWidth(subCameraFieldWidth);
+  m_subHeightFld->setFixedWidth(subCameraFieldWidth);
+  m_subXPosFld->setFixedWidth(subCameraFieldWidth);
+  m_subYPosFld->setFixedWidth(subCameraFieldWidth);
 
   m_dpiBtn->setObjectName("SubcameraButton");
 
@@ -1477,9 +1676,19 @@ PencilTestPopup::PencilTestPopup()
       subCamLay->setMargin(0);
       subCamLay->setSpacing(3);
       {
+        subCamLay->addWidget(new IconView("edit_scale", tr("Size"), this), 0);
         subCamLay->addWidget(m_subWidthFld, 0);
         subCamLay->addWidget(new QLabel("x", this), 0);
         subCamLay->addWidget(m_subHeightFld, 0);
+
+        subCamLay->addSpacing(3);
+        subCamLay->addWidget(
+            new IconView("edit_position", tr("Position"), this), 0);
+        subCamLay->addWidget(new QLabel("X:", this), 0);
+        subCamLay->addWidget(m_subXPosFld, 0);
+        subCamLay->addWidget(new QLabel("Y:", this), 0);
+        subCamLay->addWidget(m_subYPosFld, 0);
+
         subCamLay->addStretch(0);
       }
       subCamWidget->setLayout(subCamLay);
@@ -1697,12 +1906,19 @@ PencilTestPopup::PencilTestPopup()
                        SLOT(onSubCameraToggled(bool)));
   ret = ret && connect(m_subcameraButton, SIGNAL(toggled(bool)), subCamWidget,
                        SLOT(setVisible(bool)));
+  ret = ret && connect(m_subcameraButton,
+                       SIGNAL(subCameraPresetSelected(const QRect&)), this,
+                       SLOT(onSubCameraPresetSelected(const QRect&)));
   ret = ret && connect(m_subWidthFld, SIGNAL(editingFinished()), this,
-                       SLOT(onSubCameraSizeEdited()));
+                       SLOT(onSubCameraRectEdited()));
   ret = ret && connect(m_subHeightFld, SIGNAL(editingFinished()), this,
-                       SLOT(onSubCameraSizeEdited()));
-  ret = ret && connect(m_videoWidget, SIGNAL(subCameraResized(bool)), this,
-                       SLOT(onSubCameraResized(bool)));
+                       SLOT(onSubCameraRectEdited()));
+  ret = ret && connect(m_subXPosFld, SIGNAL(editingFinished()), this,
+                       SLOT(onSubCameraRectEdited()));
+  ret = ret && connect(m_subYPosFld, SIGNAL(editingFinished()), this,
+                       SLOT(onSubCameraRectEdited()));
+  ret = ret && connect(m_videoWidget, SIGNAL(subCameraChanged(bool)), this,
+                       SLOT(onSubCameraChanged(bool)));
 
   ret = ret && connect(m_timer, SIGNAL(timeout()), this, SLOT(onTimeout()));
 
@@ -1913,6 +2129,7 @@ void PencilTestPopup::onResolutionComboActivated() {
 
   // reset subcamera info
   m_subcameraButton->setChecked(false);  // this will hide the size fields
+  m_subcameraButton->setCurResolution(m_resolution);
   m_subWidthFld->setRange(10, newResolution.width());
   m_subHeightFld->setRange(10, newResolution.height());
   // if there is no existing level or its size is larger than the current camera
@@ -3187,28 +3404,54 @@ void PencilTestPopup::onSceneSwitched() {
 //-----------------------------------------------------------------------------
 
 void PencilTestPopup::onSubCameraToggled(bool on) {
-  m_videoWidget->setSubCameraSize(
-      on ? QSize(m_subWidthFld->getValue(), m_subHeightFld->getValue())
-         : QSize());
+  QRect subCamera =
+      on ? QRect(m_subXPosFld->getValue(), m_subYPosFld->getValue(),
+                 m_subWidthFld->getValue(), m_subHeightFld->getValue())
+         : QRect();
+  m_videoWidget->setSubCameraRect(subCamera);
+  m_subcameraButton->setCurSubCamera(subCamera);
   refreshFrameInfo();
 }
 
 //-----------------------------------------------------------------------------
 
-void PencilTestPopup::onSubCameraResized(bool isDragging) {
-  QSize subSize = m_videoWidget->subCameraRect().size();
-  assert(subSize.isValid());
-  m_subWidthFld->setValue(subSize.width());
-  m_subHeightFld->setValue(subSize.height());
-  if (!isDragging) refreshFrameInfo();
+void PencilTestPopup::onSubCameraChanged(bool isDragging) {
+  QRect subCameraRect = m_videoWidget->subCameraRect();
+  assert(subCameraRect.isValid());
+  m_subWidthFld->setValue(subCameraRect.width());
+  m_subHeightFld->setValue(subCameraRect.height());
+  m_subXPosFld->setValue(subCameraRect.x());
+  m_subYPosFld->setValue(subCameraRect.y());
+
+  if (!isDragging) {
+    refreshFrameInfo();
+    m_subcameraButton->setCurSubCamera(subCameraRect);
+  }
 }
 
 //-----------------------------------------------------------------------------
 
-void PencilTestPopup::onSubCameraSizeEdited() {
-  m_videoWidget->setSubCameraSize(
-      QSize(m_subWidthFld->getValue(), m_subHeightFld->getValue()));
+void PencilTestPopup::onSubCameraRectEdited() {
+  m_videoWidget->setSubCameraRect(
+      QRect(m_subXPosFld->getValue(), m_subYPosFld->getValue(),
+            m_subWidthFld->getValue(), m_subHeightFld->getValue()));
   refreshFrameInfo();
+}
+
+//-----------------------------------------------------------------------------
+
+void PencilTestPopup::onSubCameraPresetSelected(const QRect& subCameraRect) {
+  assert(subCameraRect.isValid());
+  m_subWidthFld->setValue(subCameraRect.width());
+  m_subHeightFld->setValue(subCameraRect.height());
+  m_subXPosFld->setValue(subCameraRect.x());
+  m_subYPosFld->setValue(subCameraRect.y());
+
+  if (!m_subcameraButton->isChecked())
+    // calling onSubCameraToggled() accordingly
+    m_subcameraButton->setChecked(true);
+  else
+    onSubCameraToggled(true);
 }
 
 //-----------------------------------------------------------------------------

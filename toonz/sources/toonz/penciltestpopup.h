@@ -14,6 +14,7 @@
 #include <QAbstractVideoSurface>
 #include <QRunnable>
 #include <QLineEdit>
+#include <QPushButton>
 
 // forward decl.
 class QCamera;
@@ -22,7 +23,6 @@ class QCameraImageCapture;
 class QComboBox;
 class QSlider;
 class QCheckBox;
-class QPushButton;
 class QVideoFrame;
 class QTimer;
 class QIntValidator;
@@ -93,7 +93,7 @@ public:
     repaint();
   }
 
-  void setSubCameraSize(QSize size);
+  void setSubCameraRect(QRect rect);
   QRect subCameraRect() { return m_subCameraRect; }
 
   void computeTransform(QSize imgSize);
@@ -112,7 +112,7 @@ protected slots:
 signals:
   void startCamera();
   void stopCamera();
-  void subCameraResized(bool isDragging);
+  void subCameraChanged(bool isDragging);
 };
 
 //=============================================================================
@@ -220,6 +220,33 @@ protected slots:
 };
 
 //=============================================================================
+// SubCameraButton
+// button with context menu to open preset
+//-----------------------------------------------------------------------------
+
+class SubCameraButton : public QPushButton {
+  Q_OBJECT
+  std::unique_ptr<QSettings> m_settings;
+
+  QSize m_curResolution;
+  QRect m_curSubCamera;
+
+public:
+  SubCameraButton(const QString& text, QWidget* parent = 0);
+  void setCurResolution(const QSize& size) { m_curResolution = size; }
+  void setCurSubCamera(const QRect& rect) { m_curSubCamera = rect; }
+
+protected:
+  void contextMenuEvent(QContextMenuEvent* event) override;
+protected slots:
+  void onSubCameraAct();
+  void onSaveSubCamera();
+  void onDeletePreset();
+signals:
+  void subCameraPresetSelected(const QRect&);
+};
+
+//=============================================================================
 // PencilTestPopup
 //-----------------------------------------------------------------------------
 
@@ -262,8 +289,9 @@ class PencilTestPopup : public DVGui::Dialog {
 
   QToolButton* m_previousLevelButton;
 
-  QPushButton* m_subcameraButton;
+  SubCameraButton* m_subcameraButton;
   DVGui::IntLineEdit *m_subWidthFld, *m_subHeightFld;
+  DVGui::IntLineEdit *m_subXPosFld, *m_subYPosFld;
   QSize m_allowedCameraSize;
 
   bool m_captureWhiteBGCue;
@@ -353,8 +381,9 @@ protected slots:
   void onSceneSwitched();
 
   void onSubCameraToggled(bool);
-  void onSubCameraResized(bool isDragging);
-  void onSubCameraSizeEdited();
+  void onSubCameraChanged(bool isDragging);
+  void onSubCameraRectEdited();
+  void onSubCameraPresetSelected(const QRect&);
 
   void onTimeout();
 
