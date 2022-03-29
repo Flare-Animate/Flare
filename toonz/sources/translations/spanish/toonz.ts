@@ -9264,7 +9264,7 @@ pero es posible que se produzcan ocasionales cuelgues; usar a propio riesgo.</tr
     </message>
     <message>
         <source>Show Column Parent&apos;s Color in the Xsheet</source>
-        <translation type="unfinished"></translation>
+        <translation>Mostrar color del superior de la columna en la planilla</translation>
     </message>
 </context>
 <context>
@@ -15700,7 +15700,7 @@ Por favor ver la guía de usuario para obtener más detalles.</translation>
     <name>XsheetGUI::ChangeObjectParent</name>
     <message>
         <source>Table</source>
-        <translation type="unfinished">mesa</translation>
+        <translation>Mesa</translation>
     </message>
 </context>
 <context>
