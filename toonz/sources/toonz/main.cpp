@@ -735,7 +735,10 @@ int main(int argc, char *argv[]) {
 
   TFilePath fp = ToonzFolder::getModuleFile("mainwindow.ini");
   QSettings settings(toQString(fp), QSettings::IniFormat);
-  w.restoreGeometry(settings.value("MainWindowGeometry").toByteArray());
+  if (settings.contains("MainWindowGeometry"))
+    w.restoreGeometry(settings.value("MainWindowGeometry").toByteArray());
+  else  // maximize window on the first launch
+    w.setWindowState(w.windowState() | Qt::WindowMaximized);
 
   ExpressionReferenceManager::instance()->init();
 
