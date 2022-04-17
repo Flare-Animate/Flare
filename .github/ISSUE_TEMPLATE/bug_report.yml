@@ -5,8 +5,6 @@ body:
   - type: markdown
     attributes:
       value: |
-        This form is for reporting technical issues. If you have a question or you're looking for general support, please visit the OpenToonz User Forum ([English](https://groups.google.com/g/opentoonz_en) | [日本語](https://groups.google.com/g/opentoonz)) or consult the [Manual](https://opentoonz.readthedocs.io/en/latest/).
-        
         Please search existing issues before posting to avoid creating duplicates.
         
         We strongly urge you to test if your issue still persists on the latest nightly build which contains the latest bug fixes before making your report. You can find the latest build [here](https://github.com/opentoonz/opentoonz_nightlies/releases).
@@ -25,17 +23,33 @@ body:
         2. 
   - type: textarea
     attributes:
-      label: Screenshots & Video
-      placeholder: Include any screenshots or video that helps illustrate your problem here.
-  - type: textarea
-    attributes:
       label: Expected Behavior
       placeholder: A clear and concise description of what you expected to happen.
+  - type: textarea
+    attributes:
+      label: Screenshots, Video & Crash Logs
+      placeholder: Include any screenshots, video or crash logs that helps illustrate your problem here.
   - type: markdown
     attributes:
       value: |
-        ## Your Hardware Information
-        Listing your hardware information will help us narrow down the problem.
+        ## System Information
+  - type: dropdown
+    attributes:
+      label: OpenToonz Version
+      description: You can find version information from the main menu bar [Help > About] within the software.
+      multiple: false
+      options:
+        - 1.6
+        - 1.5
+        - 1.4
+        - Nightly (Specify below)
+        - Other (Specify below)
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: OpenToonz Version Information
+      placeholder: Ex. built Mar 25 2016
   - type: dropdown
     attributes:
       label: Operating System
@@ -55,6 +69,8 @@ body:
         - NVIDIA
         - AMD
         - Intel
+    validations:
+      required: true
   - type: dropdown
     attributes:
       label: Graphics Tablet
