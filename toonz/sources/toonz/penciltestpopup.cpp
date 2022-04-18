@@ -119,6 +119,9 @@ TEnv::IntVar CamCapSaveInPopupCreateSceneInFolder(
     "CamCapSaveInPopupCreateSceneInFolder", 0);
 TEnv::IntVar CamCapDoCalibration("CamCapDoCalibration", 0);
 
+TEnv::IntVar CamCapDoAutoDpi("CamCapDoAutoDpi", 1);
+TEnv::DoubleVar CamCapCustomDpi("CamCapDpiForNewLevel", 120.0);
+
 namespace {
 
 void convertImageToRaster(TRaster32P dstRas, const QImage& srcImg) {
@@ -1276,7 +1279,8 @@ PencilTestPopup::PencilTestPopup()
 #ifdef _WIN32
     , m_useDirectShow(CamCapUseDirectShow != 0)
 #endif
-{
+    , m_doAutoDpi(CamCapDoAutoDpi != 0)
+    , m_customDpi(CamCapCustomDpi) {
   setWindowTitle(tr("Camera Capture"));
 
   // add maximize button to the dialog
@@ -1357,6 +1361,9 @@ PencilTestPopup::PencilTestPopup()
   m_calibration.exportBtn = new QPushButton(tr("Export"), this);
   m_calibration.label     = new QLabel(this);
 
+  // dpi settings
+  m_dpiBtn        = new QPushButton(tr("DPI:Auto"), this);
+  m_dpiMenuWidget = createDpiMenuWidget();
   //----
 
   m_resolutionCombo->setMaximumWidth(fontMetrics().width("0000 x 0000") + 25);
@@ -1442,6 +1449,8 @@ PencilTestPopup::PencilTestPopup()
   m_calibration.label->hide();
   m_calibration.exportBtn->setEnabled(false);
 
+  m_dpiBtn->setObjectName("SubcameraButton");
+
   //---- layout ----
   m_topLayout->setMargin(10);
   m_topLayout->setSpacing(10);
@@ -1475,6 +1484,9 @@ PencilTestPopup::PencilTestPopup()
       }
       subCamWidget->setLayout(subCamLay);
       camLay->addWidget(subCamWidget, 0);
+
+      camLay->addSpacing(10);
+      camLay->addWidget(m_dpiBtn, 0);
 
       camLay->addStretch(0);
       camLay->addSpacing(15);
@@ -1714,6 +1726,13 @@ PencilTestPopup::PencilTestPopup()
                        SLOT(onCalibExportBtnClicked()));
   ret = ret && connect(calibrationHelp, SIGNAL(triggered()), this,
                        SLOT(onCalibReadme()));
+
+  ret =
+      ret && connect(m_dpiBtn, &QPushButton::clicked, [&](bool) {
+        m_dpiMenuWidget->move(m_dpiBtn->mapToGlobal(m_dpiBtn->rect().center()));
+        m_dpiMenuWidget->show();
+        m_dpiMenuWidget->updateGeometry();
+      });
 
   assert(ret);
 
@@ -2362,6 +2381,8 @@ void PencilTestPopup::showEvent(QShowEvent* event) {
   TSceneHandle* sceneHandle = TApp::instance()->getCurrentScene();
   connect(sceneHandle, SIGNAL(sceneSwitched()), this, SLOT(onSceneSwitched()));
   connect(sceneHandle, SIGNAL(castChanged()), this, SLOT(refreshFrameInfo()));
+  connect(sceneHandle, SIGNAL(preferenceChanged(const QString&)), this,
+          SLOT(onPreferenceChanged(const QString&)));
 
   bool tmp_alwaysOverwrite = m_alwaysOverwrite;
   onSceneSwitched();
@@ -2369,6 +2390,8 @@ void PencilTestPopup::showEvent(QShowEvent* event) {
 
   onResolutionComboActivated();
   m_videoWidget->computeTransform(m_resolution);
+
+  m_dpiBtn->setHidden(Preferences::instance()->getPixelsOnly());
 }
 
 //-----------------------------------------------------------------------------
@@ -2394,6 +2417,8 @@ void PencilTestPopup::hideEvent(QHideEvent* event) {
              SLOT(refreshFrameInfo()));
   disconnect(sceneHandle, SIGNAL(castChanged()), this,
              SLOT(refreshFrameInfo()));
+  disconnect(sceneHandle, SIGNAL(preferenceChanged(const QString&)), this,
+             SLOT(onPreferenceChanged(const QString&)));
 }
 
 //-----------------------------------------------------------------------------
@@ -2731,21 +2756,29 @@ bool PencilTestPopup::importImage(QImage image) {
       sl->setPath(levelFp, true);
       sl->getProperties()->setDpiPolicy(LevelProperties::DP_CustomDpi);
       TPointD dpi;
-      // if the subcamera is not active or the pixel unit is used, apply the
-      // current camera dpi
-      if (!m_subcameraButton->isChecked() ||
-          !m_videoWidget->subCameraRect().isValid() ||
-          Preferences::instance()->getPixelsOnly())
+
+      // if the pixel unit is used, always apply the current camera dpi
+      if (Preferences::instance()->getPixelsOnly()) {
         dpi = getCurrentCameraDpi();
-      // if the subcamera is active, compute the dpi so that the image will fit
-      // to the camera frame
-      else {
-        TCamera* camera =
-            TApp::instance()->getCurrentScene()->getScene()->getCurrentCamera();
-        TDimensionD size = camera->getSize();
-        double minimumDpi =
-            std::min(image.width() / size.lx, image.height() / size.ly);
-        dpi = TPointD(minimumDpi, minimumDpi);
+      } else if (m_doAutoDpi) {
+        // if the subcamera is not active, apply the current camera dpi
+        if (!m_subcameraButton->isChecked() ||
+            !m_videoWidget->subCameraRect().isValid())
+          dpi = getCurrentCameraDpi();
+        // if the subcamera is active, compute the dpi so that the image will
+        // fit to the camera frame
+        else {
+          TCamera* camera = TApp::instance()
+                                ->getCurrentScene()
+                                ->getScene()
+                                ->getCurrentCamera();
+          TDimensionD size = camera->getSize();
+          double minimumDpi =
+              std::min(image.width() / size.lx, image.height() / size.ly);
+          dpi = TPointD(minimumDpi, minimumDpi);
+        }
+      } else {  // apply the custom dpi value
+        dpi = TPointD(m_customDpi, m_customDpi);
       }
       sl->getProperties()->setDpi(dpi.x);
       sl->getProperties()->setImageDpi(dpi);
@@ -3346,6 +3379,76 @@ void PencilTestPopup::onCalibReadme() {
   else
     QDesktopServices::openUrl(QUrl::fromLocalFile(readmeFp.getQString()));
 }
+//-----------------------------------------------------------------------------
+
+QWidget* PencilTestPopup::createDpiMenuWidget() {
+  QWidget* widget = new QWidget(this, Qt::Popup);
+  widget->hide();
+
+  widget->setToolTip(
+      tr("This option specifies DPI for newly created levels.\n"
+         "Adding frames to the existing level won't refer to this value.\n"
+         "Auto: If the subcamera is not active, apply the current camera dpi.\n"
+         "      If the subcamera is active, compute the dpi so that\n"
+         "      the image will fit to the camera frame.\n"
+         "Custom : Always use the custom dpi specified here."));
+
+  QRadioButton* autoDpiRadioBtn   = new QRadioButton(tr("Auto"), this);
+  QRadioButton* customDpiRadioBtn = new QRadioButton(tr("Custom"), this);
+  m_customDpiField                = new QLineEdit(this);
+
+  m_customDpiField->setValidator(new QDoubleValidator(1.0, 2000.0, 6));
+
+  QGridLayout* layout = new QGridLayout();
+  layout->setMargin(10);
+  layout->setHorizontalSpacing(5);
+  layout->setVerticalSpacing(10);
+  {
+    layout->addWidget(autoDpiRadioBtn, 0, 0, 1, 2,
+                      Qt::AlignLeft | Qt::AlignVCenter);
+    layout->addWidget(customDpiRadioBtn, 1, 0,
+                      Qt::AlignLeft | Qt::AlignVCenter);
+    layout->addWidget(m_customDpiField, 1, 1);
+  }
+  widget->setLayout(layout);
+
+  bool ret = true;
+  ret      = ret &&
+        connect(autoDpiRadioBtn, &QRadioButton::toggled, [&](bool checked) {
+          m_doAutoDpi     = checked;
+          CamCapDoAutoDpi = checked;
+          m_customDpiField->setDisabled(checked);
+          if (checked)
+            m_dpiBtn->setText(tr("DPI:Auto"));
+          else
+            m_dpiBtn->setText(tr("DPI:%1").arg(QString::number(m_customDpi)));
+        });
+
+  ret = ret && connect(m_customDpiField, &QLineEdit::editingFinished, [&]() {
+          m_customDpi     = m_customDpiField->text().toDouble();
+          CamCapCustomDpi = m_customDpi;
+        });
+  assert(ret);
+
+  m_customDpiField->setText(QString::number(m_customDpi));
+  if (m_doAutoDpi)
+    autoDpiRadioBtn->setChecked(true);
+  else
+    customDpiRadioBtn->setChecked(true);
+  m_customDpiField->setDisabled(m_doAutoDpi);
+
+  return widget;
+}
+
+//-----------------------------------------------------------------------------
+
+void PencilTestPopup::onPreferenceChanged(const QString& prefName) {
+  // react only when the related preference is changed
+  if (prefName != "pixelsOnly") return;
+
+  m_dpiBtn->setHidden(Preferences::instance()->getPixelsOnly());
+}
+
 //-----------------------------------------------------------------------------
 
 OpenPopupCommandHandler<PencilTestPopup> openPencilTestPopup(MI_PencilTest);
