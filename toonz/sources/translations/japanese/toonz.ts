@@ -2327,23 +2327,31 @@ contain the dpi information, then the current camera dpi will be used.
     </message>
     <message>
         <source>All columns</source>
-        <translation>全ての列</translation>
+        <translation type="vanished">全ての列</translation>
     </message>
     <message>
         <source>Only active columns</source>
-        <translation>表示中の列のみ</translation>
+        <translation type="vanished">表示中の列のみ</translation>
     </message>
     <message>
         <source>Inbetween symbol mark</source>
-        <translation>中割り記号</translation>
+        <translation type="vanished">中割り記号</translation>
     </message>
     <message>
         <source>Reverse sheet symbol mark</source>
-        <translation>逆シート記号</translation>
+        <translation type="vanished">逆シート記号</translation>
     </message>
     <message>
         <source>Target column</source>
-        <translation>対象の列</translation>
+        <translation type="vanished">対象の列</translation>
+    </message>
+    <message>
+        <source>Cell Mark for Inbetween Symbol 2 (*)</source>
+        <translation type="vanished">中割り記号2 （●）に対応するコママーク</translation>
+    </message>
+    <message>
+        <source>Cell Mark for Inbetween Symbol 1 (O)</source>
+        <translation type="vanished">中割り記号1 （○）に対応するコママーク</translation>
     </message>
 </context>
 <context>
@@ -2536,11 +2544,11 @@ Do you want to create it?</source>
     </message>
     <message>
         <source>Inbetween mark:</source>
-        <translation>中割り記号：</translation>
+        <translation type="vanished">中割り記号：</translation>
     </message>
     <message>
         <source>Reverse sheet mark:</source>
-        <translation>逆シート記号：</translation>
+        <translation type="vanished">逆シート記号：</translation>
     </message>
     <message>
         <source>Keyframe mark:</source>
@@ -2549,6 +2557,14 @@ Do you want to create it?</source>
     <message>
         <source>Col%1</source>
         <translation>列%1</translation>
+    </message>
+    <message>
+        <source>Inbetween mark 1:</source>
+        <translation>中割り記号 1：</translation>
+    </message>
+    <message>
+        <source>Inbetween mark 2:</source>
+        <translation>中割り記号 2：</translation>
     </message>
 </context>
 <context>
@@ -11936,6 +11952,26 @@ Do you wish to continue loading the last good save or stop and try to salvage th
         <source>Apply Auto Lip Sync</source>
         <translation>自動リップシンクの適用</translation>
     </message>
+    <message>
+        <source>All columns</source>
+        <translation>全ての列</translation>
+    </message>
+    <message>
+        <source>Only active columns</source>
+        <translation>表示中の列のみ</translation>
+    </message>
+    <message>
+        <source>Cell Mark for Inbetween Symbol 1 (O)</source>
+        <translation>中割り記号1 （○）に対応するコママーク</translation>
+    </message>
+    <message>
+        <source>Cell Mark for Inbetween Symbol 2 (*)</source>
+        <translation>中割り記号2 （●）に対応するコママーク</translation>
+    </message>
+    <message>
+        <source>Target column</source>
+        <translation>対象の列</translation>
+    </message>
 </context>
 <context>
     <name>ReframePopup</name>
@@ -15614,11 +15650,19 @@ Please refer to the user guide for details.</source>
     </message>
     <message>
         <source>Inbetween symbol mark</source>
-        <translation>中割り記号</translation>
+        <translation type="vanished">中割り記号</translation>
     </message>
     <message>
         <source>Reverse sheet symbol mark</source>
-        <translation>逆シート記号</translation>
+        <translation type="vanished">逆シート記号</translation>
+    </message>
+    <message>
+        <source>Cell Mark for Inbetween Symbol 2 (*)</source>
+        <translation>中割り記号2 （●）に対応するコママーク</translation>
+    </message>
+    <message>
+        <source>Cell Mark for Inbetween Symbol 1 (O)</source>
+        <translation>中割り記号1 （○）に対応するコママーク</translation>
     </message>
 </context>
 <context>
