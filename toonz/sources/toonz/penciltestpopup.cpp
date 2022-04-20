@@ -1292,9 +1292,30 @@ void PencilTestSaveInFolderPopup::updateParentFolder() {
 }
 
 //=============================================================================
+namespace {
+
+bool strToSubCamera(const QString& str, QRect& subCamera, double& dpi) {
+  QStringList values = str.split(',', Qt::SkipEmptyParts);
+  if (values.count() != 4 && values.count() != 5) return false;
+  subCamera = QRect(values[0].toInt(), values[1].toInt(), values[2].toInt(),
+                    values[3].toInt());
+  dpi       = (values.count() == 5) ? values[4].toDouble() : -1.;
+  return true;
+}
+
+const QString subCameraToStr(const QRect& subCamera, const double dpi = -1.) {
+  QString ret = QString("%1,%2,%3,%4")
+                    .arg(subCamera.left())
+                    .arg(subCamera.top())
+                    .arg(subCamera.width())
+                    .arg(subCamera.height());
+  if (dpi > 0.) ret += QString(",%1").arg(dpi);
+  return ret;
+}
+}  // namespace
 
 SubCameraButton::SubCameraButton(const QString& text, QWidget* parent)
-    : QPushButton(text, parent) {
+    : QPushButton(text, parent), m_currentDpi(-1.) {
   setObjectName("SubcameraButton");
   setIconSize(QSize(16, 16));
   setIcon(createQIcon("subcamera"));
@@ -1337,17 +1358,21 @@ void SubCameraButton::contextMenuEvent(QContextMenuEvent* event) {
   for (auto key : m_settings->childKeys()) {
     QAction* scAct = menu.addAction(key);
     scAct->setData(m_settings->value(key));
-    QRect rect = m_settings->value(key).toRect();
-    if (m_curSubCamera == rect) {
+    QRect rect;
+    double dpi;
+    if (!strToSubCamera(m_settings->value(key).toString(), rect, dpi)) continue;
+    if (m_curSubCamera == rect && m_currentDpi == dpi) {
       scAct->setCheckable(true);
       scAct->setChecked(true);
       scAct->setEnabled(false);
     } else {
-      scAct->setToolTip(QString("%1 x %2, X%3 Y%4")
+      QString toolTip = QString("%1 x %2, X%3 Y%4")
                             .arg(rect.width())
                             .arg(rect.height())
                             .arg(rect.x())
-                            .arg(rect.y()));
+                            .arg(rect.y());
+      if (dpi > 0.) toolTip += QString(", %1DPI").arg(dpi);
+      scAct->setToolTip(toolTip);
       connect(scAct, SIGNAL(triggered()), this, SLOT(onSubCameraAct()));
     }
   }
@@ -1376,8 +1401,11 @@ void SubCameraButton::contextMenuEvent(QContextMenuEvent* event) {
 }
 
 void SubCameraButton::onSubCameraAct() {
-  QRect subCameraRect = qobject_cast<QAction*>(sender())->data().toRect();
-  emit subCameraPresetSelected(subCameraRect);
+  QRect subCameraRect;
+  double dpi;
+  if (strToSubCamera(qobject_cast<QAction*>(sender())->data().toString(),
+                     subCameraRect, dpi))
+    emit subCameraPresetSelected(subCameraRect, dpi);
 }
 
 void SubCameraButton::onSaveSubCamera() {
@@ -1408,7 +1436,10 @@ void SubCameraButton::onSaveSubCamera() {
                           .arg(m_curResolution.height());
   m_settings->beginGroup(groupName);
   for (auto key : m_settings->childKeys()) {
-    if (m_curSubCamera == m_settings->value(key).toRect()) {
+    QRect rect;
+    double dpi;
+    if (!strToSubCamera(m_settings->value(key).toString(), rect, dpi)) continue;
+    if (m_curSubCamera == rect && m_currentDpi == dpi) {
       oldName = key;
     }
   }
@@ -1437,7 +1468,7 @@ void SubCameraButton::onSaveSubCamera() {
   }
 
   // register
-  m_settings->setValue(newName, m_curSubCamera);
+  m_settings->setValue(newName, subCameraToStr(m_curSubCamera, m_currentDpi));
   m_settings->endGroup();
 }
 
@@ -1857,15 +1888,15 @@ PencilTestPopup::PencilTestPopup()
   //---- signal-slot connections ----
   bool ret = true;
   ret      = ret && connect(refreshCamListButton, SIGNAL(pressed()), this,
-                       SLOT(refreshCameraList()));
+                            SLOT(refreshCameraList()));
   ret      = ret && connect(m_cameraListCombo, SIGNAL(activated(int)), this,
-                       SLOT(onCameraListComboActivated(int)));
+                            SLOT(onCameraListComboActivated(int)));
   ret      = ret && connect(m_resolutionCombo, SIGNAL(activated(int)), this,
-                       SLOT(onResolutionComboActivated()));
+                            SLOT(onResolutionComboActivated()));
   ret      = ret && connect(m_fileFormatOptionButton, SIGNAL(pressed()), this,
-                       SLOT(onFileFormatOptionButtonPressed()));
+                            SLOT(onFileFormatOptionButtonPressed()));
   ret      = ret && connect(m_levelNameEdit, SIGNAL(levelNameEdited()), this,
-                       SLOT(onLevelNameEdited()));
+                            SLOT(onLevelNameEdited()));
   ret      = ret &&
         connect(nextLevelButton, SIGNAL(pressed()), this, SLOT(onNextName()));
   ret = ret && connect(m_previousLevelButton, SIGNAL(pressed()), this,
@@ -1906,9 +1937,11 @@ PencilTestPopup::PencilTestPopup()
                        SLOT(onSubCameraToggled(bool)));
   ret = ret && connect(m_subcameraButton, SIGNAL(toggled(bool)), subCamWidget,
                        SLOT(setVisible(bool)));
-  ret = ret && connect(m_subcameraButton,
-                       SIGNAL(subCameraPresetSelected(const QRect&)), this,
-                       SLOT(onSubCameraPresetSelected(const QRect&)));
+  ret =
+      ret &&
+      connect(m_subcameraButton,
+              SIGNAL(subCameraPresetSelected(const QRect&, const double)), this,
+              SLOT(onSubCameraPresetSelected(const QRect&, const double)));
   ret = ret && connect(m_subWidthFld, SIGNAL(editingFinished()), this,
                        SLOT(onSubCameraRectEdited()));
   ret = ret && connect(m_subHeightFld, SIGNAL(editingFinished()), this,
@@ -3440,7 +3473,8 @@ void PencilTestPopup::onSubCameraRectEdited() {
 
 //-----------------------------------------------------------------------------
 
-void PencilTestPopup::onSubCameraPresetSelected(const QRect& subCameraRect) {
+void PencilTestPopup::onSubCameraPresetSelected(const QRect& subCameraRect,
+                                                const double dpi) {
   assert(subCameraRect.isValid());
   m_subWidthFld->setValue(subCameraRect.width());
   m_subHeightFld->setValue(subCameraRect.height());
@@ -3452,6 +3486,17 @@ void PencilTestPopup::onSubCameraPresetSelected(const QRect& subCameraRect) {
     m_subcameraButton->setChecked(true);
   else
     onSubCameraToggled(true);
+
+  if (m_dpiMenuWidget) {
+    m_autoDpiRadioBtn->setChecked(true);
+    if (dpi > 0.) {
+      m_customDpi     = dpi;
+      CamCapCustomDpi = dpi;
+      m_customDpiField->setText(QString::number(dpi));
+      m_dpiBtn->setText(tr("DPI:%1").arg(QString::number(dpi)));
+      m_customDpiRadioBtn->setChecked(true);
+    }
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -3636,9 +3681,15 @@ QWidget* PencilTestPopup::createDpiMenuWidget() {
          "      the image will fit to the camera frame.\n"
          "Custom : Always use the custom dpi specified here."));
 
-  QRadioButton* autoDpiRadioBtn   = new QRadioButton(tr("Auto"), this);
-  QRadioButton* customDpiRadioBtn = new QRadioButton(tr("Custom"), this);
-  m_customDpiField                = new QLineEdit(this);
+  m_autoDpiRadioBtn   = new QRadioButton(tr("Auto"), this);
+  m_customDpiRadioBtn = new QRadioButton(tr("Custom"), this);
+  // check the opposite option so that the slot will be called when setting the
+  // initial state
+  if (m_doAutoDpi)
+    m_customDpiRadioBtn->setChecked(true);
+  else
+    m_autoDpiRadioBtn->setChecked(true);
+  m_customDpiField = new QLineEdit(this);
 
   m_customDpiField->setValidator(new QDoubleValidator(1.0, 2000.0, 6));
 
@@ -3647,9 +3698,9 @@ QWidget* PencilTestPopup::createDpiMenuWidget() {
   layout->setHorizontalSpacing(5);
   layout->setVerticalSpacing(10);
   {
-    layout->addWidget(autoDpiRadioBtn, 0, 0, 1, 2,
+    layout->addWidget(m_autoDpiRadioBtn, 0, 0, 1, 2,
                       Qt::AlignLeft | Qt::AlignVCenter);
-    layout->addWidget(customDpiRadioBtn, 1, 0,
+    layout->addWidget(m_customDpiRadioBtn, 1, 0,
                       Qt::AlignLeft | Qt::AlignVCenter);
     layout->addWidget(m_customDpiField, 1, 1);
   }
@@ -3657,28 +3708,34 @@ QWidget* PencilTestPopup::createDpiMenuWidget() {
 
   bool ret = true;
   ret      = ret &&
-        connect(autoDpiRadioBtn, &QRadioButton::toggled, [&](bool checked) {
+        connect(m_autoDpiRadioBtn, &QRadioButton::toggled, [&](bool checked) {
           m_doAutoDpi     = checked;
           CamCapDoAutoDpi = checked;
           m_customDpiField->setDisabled(checked);
-          if (checked)
+          if (checked) {
             m_dpiBtn->setText(tr("DPI:Auto"));
-          else
+            m_subcameraButton->setCurDpi(-1.);
+          } else {
             m_dpiBtn->setText(tr("DPI:%1").arg(QString::number(m_customDpi)));
+            m_subcameraButton->setCurDpi(m_customDpi);
+          }
         });
 
   ret = ret && connect(m_customDpiField, &QLineEdit::editingFinished, [&]() {
           m_customDpi     = m_customDpiField->text().toDouble();
           CamCapCustomDpi = m_customDpi;
+          m_dpiBtn->setText(tr("DPI:%1").arg(QString::number(m_customDpi)));
+          m_subcameraButton->setCurDpi(m_customDpi);
+          m_dpiMenuWidget->hide();
         });
   assert(ret);
 
   m_customDpiField->setText(QString::number(m_customDpi));
   if (m_doAutoDpi)
-    autoDpiRadioBtn->setChecked(true);
+    m_autoDpiRadioBtn->setChecked(true);
   else
-    customDpiRadioBtn->setChecked(true);
-  m_customDpiField->setDisabled(m_doAutoDpi);
+    m_customDpiRadioBtn->setChecked(true);
+  // m_customDpiField->setDisabled(m_doAutoDpi);
 
   return widget;
 }

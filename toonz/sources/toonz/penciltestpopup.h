@@ -27,9 +27,9 @@ class QVideoFrame;
 class QTimer;
 class QIntValidator;
 class QRegExpValidator;
-class QPushButton;
 class QLabel;
 class QGroupBox;
+class QRadioButton;
 #ifdef MACOSX
 class QCameraViewfinder;
 #endif
@@ -230,11 +230,13 @@ class SubCameraButton : public QPushButton {
 
   QSize m_curResolution;
   QRect m_curSubCamera;
+  double m_currentDpi;
 
 public:
   SubCameraButton(const QString& text, QWidget* parent = 0);
   void setCurResolution(const QSize& size) { m_curResolution = size; }
   void setCurSubCamera(const QRect& rect) { m_curSubCamera = rect; }
+  void setCurDpi(const double& dpi) { m_currentDpi = dpi; }
 
 protected:
   void contextMenuEvent(QContextMenuEvent* event) override;
@@ -243,7 +245,7 @@ protected slots:
   void onSaveSubCamera();
   void onDeletePreset();
 signals:
-  void subCameraPresetSelected(const QRect&);
+  void subCameraPresetSelected(const QRect&, const double dpi);
 };
 
 //=============================================================================
@@ -323,6 +325,7 @@ class PencilTestPopup : public DVGui::Dialog {
   double m_customDpi;
   QWidget* m_dpiMenuWidget;
   QPushButton* m_dpiBtn;
+  QRadioButton *m_autoDpiRadioBtn, *m_customDpiRadioBtn;
   QLineEdit* m_customDpiField;
 
   void captureCalibrationRefImage(cv::Mat& procImage);
@@ -383,7 +386,7 @@ protected slots:
   void onSubCameraToggled(bool);
   void onSubCameraChanged(bool isDragging);
   void onSubCameraRectEdited();
-  void onSubCameraPresetSelected(const QRect&);
+  void onSubCameraPresetSelected(const QRect&, const double);
 
   void onTimeout();
 
