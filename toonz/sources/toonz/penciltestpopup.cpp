@@ -121,6 +121,7 @@ TEnv::IntVar CamCapSaveInPopupCreateSceneInFolder(
     "CamCapSaveInPopupCreateSceneInFolder", 0);
 TEnv::IntVar CamCapDoCalibration("CamCapDoCalibration", 0);
 
+TEnv::RectVar CamCapSubCameraRect("CamCapSubCameraRect", TRect());
 TEnv::IntVar CamCapDoAutoDpi("CamCapDoAutoDpi", 1);
 TEnv::DoubleVar CamCapCustomDpi("CamCapDpiForNewLevel", 120.0);
 
@@ -1295,7 +1296,11 @@ void PencilTestSaveInFolderPopup::updateParentFolder() {
 namespace {
 
 bool strToSubCamera(const QString& str, QRect& subCamera, double& dpi) {
+#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
   QStringList values = str.split(',', Qt::SkipEmptyParts);
+#else
+  QStringList values = str.split(',', QString::SkipEmptyParts);
+#endif
   if (values.count() != 4 && values.count() != 5) return false;
   subCamera = QRect(values[0].toInt(), values[1].toInt(), values[2].toInt(),
                     values[3].toInt());
@@ -1659,6 +1664,7 @@ PencilTestPopup::PencilTestPopup()
   m_saveInFolderPopup->hide();
 
   m_subcameraButton->setChecked(false);
+  m_subcameraButton->setEnabled(false);
   subCamWidget->setHidden(true);
 
   // Calibration
@@ -2011,6 +2017,20 @@ PencilTestPopup::PencilTestPopup()
     if (startupResolutionIndex >= 0) {
       m_resolutionCombo->setCurrentIndex(startupResolutionIndex);
       onResolutionComboActivated();
+
+      // if the saved resolution was reproduced, then reproduce the subcamera
+      TRect subCamRect = CamCapSubCameraRect;
+      if (!subCamRect.isEmpty()) {
+        m_subWidthFld->setValue(subCamRect.getLx());
+        m_subHeightFld->setValue(subCamRect.getLy());
+        m_subXPosFld->setValue(subCamRect.x0);
+        m_subYPosFld->setValue(subCamRect.y0);
+        // need to store the dummy image before starting the camera
+        QImage dummyImg(m_resolution, QImage::Format_RGB32);
+        dummyImg.fill(Qt::transparent);
+        m_videoWidget->setImage(dummyImg);
+        m_subcameraButton->setChecked(true);
+      }
     }
   }
 
@@ -2100,6 +2120,7 @@ void PencilTestPopup::onCameraListComboActivated(int comboIndex) {
     m_videoWidget->setImage(QImage());
     // update env
     CamCapCameraName = "";
+    m_subcameraButton->setEnabled(false);
     return;
   }
 
@@ -2131,6 +2152,7 @@ void PencilTestPopup::onCameraListComboActivated(int comboIndex) {
   m_timer->start(40);
   // update env
   CamCapCameraName = m_cameraListCombo->itemText(comboIndex).toStdString();
+  m_subcameraButton->setEnabled(true);
 }
 
 //-----------------------------------------------------------------------------
@@ -2669,6 +2691,14 @@ void PencilTestPopup::hideEvent(QHideEvent* event) {
              SLOT(refreshFrameInfo()));
   disconnect(sceneHandle, SIGNAL(preferenceChanged(const QString&)), this,
              SLOT(onPreferenceChanged(const QString&)));
+
+  // save the current subcamera to env
+  if (m_subcameraButton->isChecked()) {
+    CamCapSubCameraRect = TRect(
+        TPoint(m_subXPosFld->getValue(), m_subYPosFld->getValue()),
+        TDimension(m_subWidthFld->getValue(), m_subHeightFld->getValue()));
+  } else
+    CamCapSubCameraRect = TRect();
 }
 
 //-----------------------------------------------------------------------------
