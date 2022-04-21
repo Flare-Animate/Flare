@@ -646,9 +646,9 @@ void MyVideoWidget::mouseMoveEvent(QMouseEvent* event) {
 
     if (m_activeSubHandle == HandleFrame) {
       clampPoint(offset, -m_preSubCameraRect.left(),
-                 camSize.width() - m_preSubCameraRect.right(),
+                 camSize.width() - m_preSubCameraRect.right() - 1,
                  -m_preSubCameraRect.top(),
-                 camSize.height() - m_preSubCameraRect.bottom());
+                 camSize.height() - m_preSubCameraRect.bottom() - 1);
       m_subCameraRect = m_preSubCameraRect.translated(offset);
     } else {
       if (m_activeSubHandle == HandleTopLeft ||
@@ -661,7 +661,7 @@ void MyVideoWidget::mouseMoveEvent(QMouseEvent* event) {
                  m_activeSubHandle == HandleBottomRight ||
                  m_activeSubHandle == HandleRight) {
         clampVal(offset.rx(), -m_preSubCameraRect.width() + minimumSize,
-                 camSize.width() - m_preSubCameraRect.right());
+                 camSize.width() - m_preSubCameraRect.right() - 1);
         m_subCameraRect.setRight(m_preSubCameraRect.right() + offset.x());
       }
 
@@ -675,7 +675,7 @@ void MyVideoWidget::mouseMoveEvent(QMouseEvent* event) {
                  m_activeSubHandle == HandleBottomLeft ||
                  m_activeSubHandle == HandleBottom) {
         clampVal(offset.ry(), -m_preSubCameraRect.height() + minimumSize,
-                 camSize.height() - m_preSubCameraRect.bottom());
+                 camSize.height() - m_preSubCameraRect.bottom() - 1);
         m_subCameraRect.setBottom(m_preSubCameraRect.bottom() + offset.y());
       }
     }
@@ -1299,7 +1299,7 @@ bool strToSubCamera(const QString& str, QRect& subCamera, double& dpi) {
 #if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
   QStringList values = str.split(',', Qt::SkipEmptyParts);
 #else
-  QStringList values = str.split(',', QString::SkipEmptyParts);
+  QStringList values         = str.split(',', QString::SkipEmptyParts);
 #endif
   if (values.count() != 4 && values.count() != 5) return false;
   subCamera = QRect(values[0].toInt(), values[1].toInt(), values[2].toInt(),
