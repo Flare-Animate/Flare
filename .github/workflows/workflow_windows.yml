@@ -6,7 +6,7 @@ jobs:
   Windows:
     runs-on: windows-2019
     env:
-      vcpkg_ref: 111220b3cf3311744369425d5c323a0f17941076
+      vcpkg_ref: 14e7bb4ae24616ec54ff6b2f6ef4e8659434ea44
       CLCACHE_CL: 'C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Tools/MSVC/14.29.30133/bin/Hostx64/x64/cl_original.exe'
       BOOST_ROOT: ${{github.workspace}}/3rdparty/boost
       BOOST_URL: https://sourceforge.net/projects/boost/files/boost/1.72.0/boost_1_72_0.tar.bz2/download
@@ -191,8 +191,9 @@ jobs:
         cp C:/vcpkg/installed/x64-windows/bin/libpng16.dll .
         cp C:/vcpkg/installed/x64-windows/bin/jpeg62.dll .
         cp C:/vcpkg/installed/x64-windows/bin/tiff.dll .
-        cp C:/vcpkg/installed/x64-windows/bin/lzma.dll .
+        cp C:/vcpkg/installed/x64-windows/bin/liblzma.dll .
         cp C:/vcpkg/installed/x64-windows/bin/libprotobuf.dll .
+        cp C:/vcpkg/installed/x64-windows/bin/webpdecoder.dll .
 
     - uses: actions/upload-artifact@v1
       with:
