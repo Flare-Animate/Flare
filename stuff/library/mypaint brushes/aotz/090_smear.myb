@@ -1,9 +1,9 @@
 {
-    "comment": "MyPaint brush file", 
-    "description": "A brush to blend colors", 
-    "group": "", 
-    "notes": "Brush package v0.5 optimized for OpenToonz\n\nAuthor: Anderson Prado (aka AndeOn)\nLicense: CC0/Public Domain", 
-    "parent_brush_name": "", 
+    "comment": "MyPaint brush file",
+    "description": "A brush to blend colors",
+    "group": "",
+    "notes": "Brush package v0.5 optimized for OpenToonz\n\nAuthor: Anderson Prado (aka AndeOn)\nLicense: CC0/Public Domain",
+    "parent_brush_name": "",
     "settings": {
         "anti_aliasing": {
             "base_value": 1.5, 
