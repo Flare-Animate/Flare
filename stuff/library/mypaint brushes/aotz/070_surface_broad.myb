@@ -1,8 +1,8 @@
 {
     "comment": "MyPaint brush file",
-    "description": "A hard eraser",
+    "description": "A brush to create concept art",
     "group": "",
-    "notes": "Brush package optimized for OpenToonz v0.2\n\nAuthor: Anderson Prado (aka AndeOn)\nLicense: CC0/Public Domain",
+    "notes": "Brush package v0.5 optimized for OpenToonz\n\nAuthor: Anderson Prado (aka AndeOn)\nLicense: CC0/Public Domain",
     "parent_brush_name": "",
     "settings": {
         "anti_aliasing": {
@@ -54,15 +54,15 @@
             "inputs": {}
         },
         "dabs_per_actual_radius": {
-            "base_value": 2.0,
+            "base_value": 2.10,
             "inputs": {}
         },
         "dabs_per_basic_radius": {
-            "base_value": 0.0,
+            "base_value": 2.20,
             "inputs": {}
         },
         "dabs_per_second": {
-            "base_value": 80.0,
+            "base_value": 0.0,
             "inputs": {}
         },
         "direction_filter": {
@@ -71,14 +71,40 @@
         },
         "elliptical_dab_angle": {
             "base_value": 90.0,
-            "inputs": {}
+            "inputs": {
+                "direction": [
+                    [
+                        0.0,
+                        0.0
+                    ],
+                    [
+                        180.0,
+                        180.0
+                    ]
+                ]
+            }
         },
         "elliptical_dab_ratio": {
-            "base_value": 1.0,
-            "inputs": {}
+            "base_value": 5.15,
+            "inputs": {
+                "speed1": [
+                    [
+                        0.0,
+                        -2.576125
+                    ],
+                    [
+                        1.656763,
+                        -0.3125
+                    ],
+                    [
+                        4.0,
+                        0.0
+                    ]
+                ]
+            }
         },
         "eraser": {
-            "base_value": 1.0,
+            "base_value": 0.0,
             "inputs": {}
         },
         "gridmap_scale": {
@@ -154,11 +180,22 @@
             "inputs": {}
         },
         "opaque": {
-            "base_value": 1.0,
-            "inputs": {}
+            "base_value": 1.10,
+            "inputs": {
+                "pressure": [
+                    [
+                        0.0,
+                        1.0
+                    ],
+                    [
+                        1.0,
+                        1.0
+                    ]
+                ]
+            }
         },
         "opaque_linearize": {
-            "base_value": 0.0,
+            "base_value": 0.9,
             "inputs": {}
         },
         "opaque_multiply": {
@@ -170,16 +207,12 @@
                         0.0
                     ],
                     [
-                        0.015,
-                        0.0
-                    ],
-                    [
-                        0.025,
-                        1.0
+                        0.057,
+                        0.258
                     ],
                     [
                         1.0,
-                        1.0
+                        0.43
                     ]
                 ]
             }
@@ -193,7 +226,7 @@
             "inputs": {}
         },
         "posterize_num": {
-            "base_value": 0.0,
+            "base_value": 0.05,
             "inputs": {}
         },
         "pressure_gain_log": {
@@ -205,46 +238,23 @@
             "inputs": {}
         },
         "radius_logarithmic": {
-            "base_value": 3.31,
-            "inputs": {
-                "pressure": [
-                    [
-                        0.0,
-                        -0.255937
-                    ],
-                    [
-                        0.544304,
-                        0.060938
-                    ],
-                    [
-                        0.857595,
-                        0.402187
-                    ],
-                    [
-                        0.939873,
-                        0.743438
-                    ],
-                    [
-                        1.0,
-                        1.17
-                    ]
-                ]
-            }
+            "base_value": 4.25,
+            "inputs": {}
         },
         "restore_color": {
             "base_value": 0.0,
             "inputs": {}
         },
         "slow_tracking": {
-            "base_value": 0.65,
+            "base_value": 0.0,
             "inputs": {}
         },
         "slow_tracking_per_dab": {
-            "base_value": 0.8,
+            "base_value": 0.0,
             "inputs": {}
         },
         "smudge": {
-            "base_value": 0.0,
+            "base_value": 0.93,
             "inputs": {}
         },
         "smudge_bucket": {
@@ -252,7 +262,7 @@
             "inputs": {}
         },
         "smudge_length": {
-            "base_value": 0.5,
+            "base_value": 0.0,
             "inputs": {}
         },
         "smudge_length_log": {
@@ -260,7 +270,7 @@
             "inputs": {}
         },
         "smudge_radius_log": {
-            "base_value": 0.0,
+            "base_value": -1.5,
             "inputs": {}
         },
         "smudge_transparency": {
@@ -272,7 +282,7 @@
             "inputs": {}
         },
         "speed1_gamma": {
-            "base_value": 2.87,
+            "base_value": 4.0,
             "inputs": {}
         },
         "speed1_slowness": {
@@ -284,7 +294,7 @@
             "inputs": {}
         },
         "speed2_slowness": {
-            "base_value": 0.8,
+            "base_value": 0.7,
             "inputs": {}
         },
         "stroke_duration_logarithmic": {

@@ -1,9 +1,9 @@
 {
     "comment": "MyPaint brush file",
-    "description": "A brush to simulate stippling effect",
+    "description": "A brush to create concept art",
     "group": "",
-    "notes": "Brush package optimized for OpenToonz v0.2\n\nAuthor: Anderson Prado (aka AndeOn)\nLicense: CC0/Public Domain",
-    "parent_brush_name": "", 
+    "notes": "Brush package v0.5 optimized for OpenToonz\n\nAuthor: Anderson Prado (aka AndeOn)\nLicense: CC0/Public Domain",
+    "parent_brush_name": "",
     "settings": {
         "anti_aliasing": {
             "base_value": 0.0,
@@ -54,7 +54,7 @@
             "inputs": {}
         },
         "dabs_per_actual_radius": {
-            "base_value": 3.0,
+            "base_value": 5.55,
             "inputs": {}
         },
         "dabs_per_basic_radius": {
@@ -70,11 +70,11 @@
             "inputs": {}
         },
         "elliptical_dab_angle": {
-            "base_value": 90.0,
+            "base_value": 0.0,
             "inputs": {}
         },
         "elliptical_dab_ratio": {
-            "base_value": 1.0,
+            "base_value": 3.75,
             "inputs": {}
         },
         "eraser": {
@@ -94,7 +94,7 @@
             "inputs": {}
         },
         "hardness": {
-            "base_value": 1.0,
+            "base_value": 0.7,
             "inputs": {}
         },
         "lock_alpha": {
@@ -130,49 +130,8 @@
             "inputs": {}
         },
         "offset_by_random": {
-            "base_value": 20.0,
-            "inputs": {
-                "direction": [
-                    [
-                        0.0,
-                        0.0
-                    ],
-                    [
-                        180.0,
-                        1.97
-                    ]
-                ],
-                "pressure": [
-                    [
-                        0.0,
-                        25.0
-                    ],
-                    [
-                        1.0,
-                        25.0
-                    ]
-                ],
-                "speed2": [
-                    [
-                        0.0,
-                        -0.2632852925531914
-                    ],
-                    [
-                        4.0,
-                        1.85
-                    ]
-                ],
-                "stroke": [
-                    [
-                        0.0,
-                        3.0
-                    ],
-                    [
-                        1.0,
-                        3.0
-                    ]
-                ]
-            }
+            "base_value": 0.0,
+            "inputs": {}
         },
         "offset_by_speed": {
             "base_value": 0.0,
@@ -195,15 +154,15 @@
             "inputs": {}
         },
         "opaque": {
-            "base_value": 2.0,
+            "base_value": 1.05,
             "inputs": {}
         },
         "opaque_linearize": {
-            "base_value": 0.0,
+            "base_value": 0.2,
             "inputs": {}
         },
         "opaque_multiply": {
-            "base_value": 1.0,
+            "base_value": 0.0,
             "inputs": {
                 "pressure": [
                     [
@@ -211,8 +170,24 @@
                         0.0
                     ],
                     [
+                        0.175926,
+                        0.35135253893989743
+                    ],
+                    [
+                        0.354938,
+                        0.47297433021702556
+                    ],
+                    [
+                        0.546296,
+                        0.5
+                    ],
+                    [
+                        0.753086,
+                        0.35135253893989743
+                    ],
+                    [
                         1.0,
-                        0.145833
+                        0.13513462616861538
                     ]
                 ]
             }
@@ -226,39 +201,38 @@
             "inputs": {}
         },
         "posterize_num": {
-            "base_value": 0.0,
+            "base_value": 0.05,
             "inputs": {}
         },
         "pressure_gain_log": {
             "base_value": 0.0,
-            "inputs": {
-                "pressure": [
-                    [
-                        0.0,
-                        2.3
-                    ],
-                    [
-                        1.0,
-                        -3.6
-                    ]
-                ]
-            }
+            "inputs": {}
         },
         "radius_by_random": {
             "base_value": 0.0,
             "inputs": {}
         },
         "radius_logarithmic": {
-            "base_value": -1.8,
+            "base_value": 0.28,
             "inputs": {
-                "random": [
+                "pressure": [
                     [
                         0.0,
-                        -0.98
+                        1.2266671999999996
                     ],
                     [
                         1.0,
-                        0.98
+                        -1.84
+                    ]
+                ],
+                "speed1": [
+                    [
+                        0.0,
+                        0.0
+                    ],
+                    [
+                        1.0,
+                        0.81
                     ]
                 ]
             }
@@ -276,7 +250,7 @@
             "inputs": {}
         },
         "smudge": {
-            "base_value": 0.0,
+            "base_value": 0.85,
             "inputs": {}
         },
         "smudge_bucket": {
@@ -284,7 +258,7 @@
             "inputs": {}
         },
         "smudge_length": {
-            "base_value": 0.0,
+            "base_value": 0.5,
             "inputs": {}
         },
         "smudge_length_log": {
@@ -304,23 +278,23 @@
             "inputs": {}
         },
         "speed1_gamma": {
-            "base_value": 4.0,
+            "base_value": 3.88,
             "inputs": {}
         },
         "speed1_slowness": {
-            "base_value": 0.05,
+            "base_value": 0.12,
             "inputs": {}
         },
         "speed2_gamma": {
-            "base_value": 4.0,
+            "base_value": 3.88,
             "inputs": {}
         },
         "speed2_slowness": {
-            "base_value": 0.75,
+            "base_value": 0.3,
             "inputs": {}
         },
         "stroke_duration_logarithmic": {
-            "base_value": 4.0,
+            "base_value": -1.0,
             "inputs": {}
         },
         "stroke_holdtime": {

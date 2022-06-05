@@ -2,7 +2,7 @@
     "comment": "MyPaint brush file",
     "description": "A brush to simulate leaves",
     "group": "",
-    "notes": "Brush package optimized for OpenToonz v0.2\n\nAuthor: Anderson Prado (aka Andeon)\nLicense: CC0/Public Domain",
+    "notes": "Brush package v0.5 optimized for OpenToonz\n\nAuthor: Anderson Prado (aka AndeOn)\nLicense: CC0/Public Domain",
     "parent_brush_name": "",
     "settings": {
         "anti_aliasing": {
@@ -30,15 +30,15 @@
             "inputs": {}
         },
         "color_h": {
-            "base_value": 0.0,
+            "base_value": 0.21044546850998466,
             "inputs": {}
         },
         "color_s": {
-            "base_value": 0.0,
+            "base_value": 0.8821138211382114,
             "inputs": {}
         },
         "color_v": {
-            "base_value": 0.0,
+            "base_value": 0.9647058823529412,
             "inputs": {}
         },
         "colorize": {
@@ -61,11 +61,11 @@
             }
         },
         "custom_input_slowness": {
-            "base_value": 0.69,
+            "base_value": 0.67,
             "inputs": {}
         },
         "dabs_per_actual_radius": {
-            "base_value": 1.5,
+            "base_value": 1.03,
             "inputs": {}
         },
         "dabs_per_basic_radius": {
@@ -127,7 +127,7 @@
             "inputs": {}
         },
         "hardness": {
-            "base_value": 0.8,
+            "base_value": 0.75,
             "inputs": {}
         },
         "lock_alpha": {
@@ -163,7 +163,7 @@
             "inputs": {}
         },
         "offset_by_random": {
-            "base_value": 0.91,
+            "base_value": 0.8,
             "inputs": {}
         },
         "offset_by_speed": {
@@ -191,7 +191,7 @@
             "inputs": {}
         },
         "opaque_linearize": {
-            "base_value": 0.9,
+            "base_value": 0.88,
             "inputs": {}
         },
         "opaque_multiply": {
@@ -226,20 +226,41 @@
             "inputs": {}
         },
         "posterize_num": {
-            "base_value": 0.0,
+            "base_value": 0.05,
             "inputs": {}
         },
         "pressure_gain_log": {
-            "base_value": 0.03,
+            "base_value": 0.0,
             "inputs": {}
         },
         "radius_by_random": {
-            "base_value": 0.31,
+            "base_value": 0.77,
             "inputs": {}
         },
         "radius_logarithmic": {
-            "base_value": 2.58,
-            "inputs": {}
+            "base_value": 2.07,
+            "inputs": {
+                "custom": [
+                    [
+                        -2.0,
+                        0.45
+                    ],
+                    [
+                        2.0,
+                        -0.45
+                    ]
+                ],
+                "pressure": [
+                    [
+                        0.0,
+                        -0.473333
+                    ],
+                    [
+                        1.0,
+                        0.71
+                    ]
+                ]
+            }
         },
         "restore_color": {
             "base_value": 0.0,
@@ -254,7 +275,7 @@
             "inputs": {}
         },
         "smudge": {
-            "base_value": 0.13,
+            "base_value": 0.07,
             "inputs": {
                 "custom": [
                     [
@@ -262,15 +283,15 @@
                         0.94
                     ],
                     [
-                        0.649148,
-                        0.77375
+                        0.648148,
+                        0.76375
                     ],
                     [
                         0.833333,
                         0.5875
                     ],
                     [
-                        0.926667,
+                        0.916667,
                         0.362292
                     ],
                     [
@@ -285,7 +306,7 @@
             "inputs": {}
         },
         "smudge_length": {
-            "base_value": 0.8,
+            "base_value": 0.31,
             "inputs": {}
         },
         "smudge_length_log": {
