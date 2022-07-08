@@ -2362,6 +2362,7 @@ XsheetViewer {
   qproperty-XsheetConfigButtonBgColor: rgba(255, 255, 255, 0);
   qproperty-XsheetConfigButtonImage: url('imgs/white/x_config.svg');
   qproperty-FrameRangeMarkerLineColor: #6e6e6e;
+  qproperty-CurrentTimeIndicatorColor: #ff0000;
   qproperty-TimelinePreviewButtonBgOnColor: #484848;
   qproperty-TimelinePreviewButtonOnImage: url('imgs/white/preview_small.svg');
   qproperty-TimelinePreviewButtonBgOffColor: #484848;

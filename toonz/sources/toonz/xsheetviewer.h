@@ -221,6 +221,7 @@ class XsheetViewer final : public QFrame, public SaveLoadQSettings {
   QColor m_previewFrameTextColor;  // frame number in preview range (blue)
   QColor m_onionSkinAreaBgColor;
   QColor m_frameRangeMarkerLineColor;  // timeline frame markers
+  QColor m_currentTimeIndicatorColor;  // current time indicator
   Q_PROPERTY(QColor CurrentRowBgColor READ getCurrentRowBgColor WRITE
                  setCurrentRowBgColor)
   Q_PROPERTY(
@@ -238,6 +239,8 @@ class XsheetViewer final : public QFrame, public SaveLoadQSettings {
                  setOnionSkinAreaBgColor)
   Q_PROPERTY(QColor FrameRangeMarkerLineColor READ getFrameRangeMarkerLineColor
                  WRITE setFrameRangeMarkerLineColor)
+  Q_PROPERTY(QColor CurrentTimeIndicatorColor READ getCurrentTimeIndicatorColor
+                 WRITE setCurrentTimeIndicatorColor)
   // Column
   QColor m_emptyColumnHeadColor;  // empty column header (200,200,200)
   Q_PROPERTY(QColor EmptyColumnHeadColor READ getEmptyColumnHeadColor WRITE
@@ -765,6 +768,12 @@ public:
   }
   void setFrameRangeMarkerLineColor(const QColor &color) {
     m_frameRangeMarkerLineColor = color;
+  }
+  QColor getCurrentTimeIndicatorColor() const {
+    return m_currentTimeIndicatorColor;
+  }
+  void setCurrentTimeIndicatorColor(const QColor &color) {
+    m_currentTimeIndicatorColor = color;
   }
 
   // Row

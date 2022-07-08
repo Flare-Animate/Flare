@@ -142,7 +142,8 @@ enum class PredefinedLine {
   SEE_MARKER_THROUGH,  //! horizontal marker visible through drag handle
   CONTINUE_LEVEL,      //! level with the same name represented by vertical line
   CONTINUE_LEVEL_WITH_NAME,  //! adjusted when level name is on each marker
-  EXTENDER_LINE              //! see grid through extender handle
+  EXTENDER_LINE,             //! see grid through extender handle
+  CURRENT_TIME_INDICATOR     // current time indicator
 };
 enum class PredefinedDimension {
   LAYER,                 //! width of a layer column / height of layer row
