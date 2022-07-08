@@ -371,16 +371,24 @@ void RowPanel::drawRows(QPainter &p, int r0, int r1) {
   bool simpleView = getViewer()->getFrameZoomFactor() <=
                     Orientations::topToBottom()->dimension(
                         PredefinedDimension::SCALE_THRESHOLD);
+  int currentRow = getViewer()->getCurrentRow();
   int r;
   int y = getViewer()->rowToY(r0);
   for (r = r0; r <= r1; r++) {
     int next_y = getViewer()->rowToY(r + 1);
     // draw horizontal line
     bool isMarkSecRow = getViewer()->isMarkSecRow(r);
-    QColor color      = (isMarkSecRow || getViewer()->isMarkRow(r))
-                       ? getViewer()->getMarkerLineColor()
-                       : getViewer()->getLightLineColor();
-    p.setPen(QPen(color, (isMarkSecRow) ? 3. : 1., Qt::SolidLine, Qt::FlatCap));
+    bool isMarkRow    = getViewer()->isMarkRow(r);
+    QColor color      = (isMarkSecRow)
+                       ? getViewer()->getSecMarkerLineColor()
+                       : (isMarkRow) ? getViewer()->getMarkerLineColor()
+                                     : getViewer()->getLightLineColor();
+    p.setPen(
+        QPen(color,
+             (isMarkSecRow)
+                 ? 3.
+                 : (getViewer()->isSecMarkerActive() && isMarkRow) ? 2. : 1.,
+             Qt::SolidLine, Qt::FlatCap));
     p.drawLine(x0, y, x1, y);
 
     if (simpleView && r > 0 && !getViewer()->isMarkRow(r + 1)) {
@@ -389,7 +397,8 @@ void RowPanel::drawRows(QPainter &p, int r0, int r1) {
     }
 
     // draw numbers
-    p.setPen(getViewer()->getTextColor());
+    p.setPen((r == currentRow) ? getViewer()->getCurrentRowTextColor()
+                               : getViewer()->getTextColor());
 
     QString number = QString::number(r + 1);
     p.drawText(QRect(x0, y + 1, width() - 4, next_y - y - 1),
@@ -491,11 +500,17 @@ void CellPanel::paintEvent(QPaintEvent *e) {
   for (int r = r0; r <= r1; r++) {
     int y             = getViewer()->rowToY(r);
     bool isMarkSecRow = getViewer()->isMarkSecRow(r);
-    QColor color      = (isMarkSecRow || getViewer()->isMarkRow(r))
-                       ? getViewer()->getMarkerLineColor()
-                       : getViewer()->getLightLineColor();
+    bool isMarkRow    = getViewer()->isMarkRow(r);
+    QColor color      = (isMarkSecRow)
+                       ? getViewer()->getSecMarkerLineColor()
+                       : (isMarkRow) ? getViewer()->getMarkerLineColor()
+                                     : getViewer()->getLightLineColor();
     painter.setPen(
-        QPen(color, (isMarkSecRow) ? 3. : 1., Qt::SolidLine, Qt::FlatCap));
+        QPen(color,
+             (isMarkSecRow)
+                 ? 3.
+                 : (getViewer()->isSecMarkerActive() && isMarkRow) ? 2. : 1.,
+             Qt::SolidLine, Qt::FlatCap));
     painter.drawLine(x0, y, x1, y);
   }
 }
