@@ -1055,11 +1055,7 @@ QString TTool::updateEnabled(int rowIndex, int columnIndex) {
                     "The current frame is locked: any editing is forbidden."));
 
       // Check level type write support
-      if (sl->getPath().getType() ==
-              "psd" ||  // We don't have the API to write psd files
-          sl->getPath().getType() == "gif" ||
-          sl->getPath().getType() == "mp4" ||
-          sl->getPath().getType() == "webm" ||
+      if (sl->getPath().isUneditable() ||
           sl->is16BitChannelLevel() ||  // Inherited by previous
                                         // implementation.
                                         // Could be fixed?
