@@ -1105,6 +1105,7 @@ QMenuBar *StackedMenuBar::createFullMenuBar() {
   {
     addMenuItem(exportMenu, MI_SoundTrack);
     addMenuItem(exportMenu, MI_ExportXDTS);
+    addMenuItem(exportMenu, MI_ExportOCA);
     addMenuItem(exportMenu, MI_ExportXsheetPDF);
 #if defined(x64)
     addMenuItem(exportMenu, MI_StopMotionExportImageSequence);
