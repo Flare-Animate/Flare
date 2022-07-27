@@ -12,11 +12,13 @@
 #include <QLabel>
 #include <QCheckBox>
 #include <QGroupBox>
+#include <QListWidget>
 
 // forward declaration
 class QLabel;
 class QComboBox;
 class StartupLabel;
+class StartupScenesList;
 
 //=============================================================================
 // LevelCreatePopup
@@ -58,10 +60,11 @@ class StartupPopup final : public DVGui::Dialog {
   bool m_updating                   = false;
   QString m_presetListFile;
   QGroupBox *m_projectBox;
-  QGroupBox *m_sceneBox;
+  QTabWidget *m_scenesTab;
   QGroupBox *m_recentBox;
   QVBoxLayout *m_recentSceneLay;
   QVector<StartupLabel *> m_recentNamesLabels;
+  StartupScenesList *m_existingList;
 
 public:
   StartupPopup();
@@ -71,19 +74,24 @@ protected:
   void loadPresetList();
   void savePresetList();
   void refreshRecentScenes();
+  void refreshExistingScenes();
   QString aspectRatioValueToString(double value, int width = 0, int height = 0);
   double aspectRatioStringToValue(const QString &s);
   bool parsePresetString(const QString &str, QString &name, int &xres,
                          int &yres, double &fx, double &fy, QString &xoffset,
                          QString &yoffset, double &ar, bool forCleanup = false);
+  void setupProjectChange();
 
 public slots:
   void onRecentSceneClicked(int index);
+  void onExistingSceneClicked(int index);
   void onCreateButton();
   void onShowAtStartChanged(int index);
   void updateProjectCB();
   void onProjectChanged(int index);
   void onNewProjectButtonPressed();
+  void onOpenProjectButtonPressed();
+  void onExploreProjectButtonPressed();
   void onLoadSceneButtonPressed();
   void onSceneChanged();
   void updateResolution();
@@ -110,6 +118,37 @@ signals:
 
 protected:
   void mousePressEvent(QMouseEvent *event);
+};
+
+class StartupScenesList : public QListWidget {
+  Q_OBJECT
+
+public:
+  StartupScenesList(QWidget *parent, const QSize &iconSize);
+  ~StartupScenesList();
+
+  int countScenes() { return count(); }
+  QString getName(int index) { return item(index)->text(); }
+  QString getPath(int index) {
+    return item(index)->data(Qt::UserRole).toString();
+  }
+
+  void clearScenes();
+  void addScene(const QString &name, const QString &path);
+  void findFirstScenePath(const QList<QString> paths);
+
+protected:
+  QPixmap createScenePreview(const QString &name, const TFilePath &fp);
+  void mouseMoveEvent(QMouseEvent *event) override;
+  void leaveEvent(QEvent *event) override;
+
+  QSize m_iconSize;
+
+protected slots:
+  void onItemClicked(QListWidgetItem *item);
+
+signals:
+  void itemClicked(int index);
 };
 
 #endif  // STARTUPPOPUP_H
