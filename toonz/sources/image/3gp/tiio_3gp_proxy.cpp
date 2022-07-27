@@ -226,7 +226,7 @@ void TLevelWriter3gp::saveSoundTrack(TSoundTrack *st) {
   stream << (msg << QString("$LW3gpSaveSoundTrack") << m_id
                  << st->getSampleRate() << st->getBitPerSample()
                  << st->getChannelCount() << st->getSampleCount()
-                 << st->getFormat().m_signedSample);
+                 << (st->getFormat().m_sampleType != TSound::UINT));
 
   t32bitsrv::BufferExchanger exch((UCHAR *)st->getRawData());
   tipc::writeShMemBuffer(stream, msg << tipc::clr, size, &exch);

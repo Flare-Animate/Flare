@@ -27,7 +27,12 @@ typedef UCHAR Channel;
 const int MONO  = 0;
 const int LEFT  = 0;
 const int RIGHT = LEFT + 1;
-}
+
+const int WMASK = 7;  // Mask for wFormat
+const int INT   = 1;  // WAVE_FORMAT_PCM
+const int UINT  = 9;  // WAVE_FORMAT_PCM (Unsigned 8-Bits)
+const int FLOAT = 3;  // WAVE_FORMAT_IEEE_FLOAT
+}  // namespace TSound
 
 //=========================================================
 
@@ -52,14 +57,14 @@ public:
   TUINT32 m_sampleRate;  // frequenza di campionamento
   int m_bitPerSample;    // numero di bit per campione
   int m_channelCount;    // numero di canali
-  bool m_signedSample;
+  int m_sampleType;      // integer or float samples
 
   TSoundTrackFormat(TUINT32 sampleRate = 0, int bitPerSample = 0,
-                    int channelCount = 0, bool signedSample = true)
+                    int channelCount = 0, int sampleType = TSound::INT)
       : m_sampleRate(sampleRate)
       , m_bitPerSample(bitPerSample)
       , m_channelCount(channelCount)
-      , m_signedSample(signedSample) {}
+      , m_sampleType(sampleType) {}
 
   ~TSoundTrackFormat() {}
 
@@ -84,6 +89,7 @@ protected:
   int m_bitPerSample;    // numero di bit per campione
   TINT32 m_sampleCount;  // numero di campioni
   int m_channelCount;    // numero di canali
+  int m_sampleType;      // integer or float samples
 
   TSoundTrack *m_parent;  // nel caso di sotto-traccie
 
@@ -93,10 +99,10 @@ protected:
   TSoundTrack();
 
   TSoundTrack(TUINT32 sampleRate, int bitPerSample, int channelCount,
-              int sampleSize, TINT32 sampleCount, bool isSampleSigned);
+              int sampleSize, TINT32 sampleCount, int sampleType);
 
   TSoundTrack(TUINT32 sampleRate, int bitPerSample, int channelCount,
-              int sampleSize, TINT32 sampleCount, UCHAR *buffer,
+              int sampleSize, TINT32 sampleCount, int sampleType, UCHAR *buffer,
               TSoundTrack *parent);
 
 public:
@@ -107,11 +113,11 @@ signedSample must be true for tracks whose samples are signed
 */
   static TSoundTrackP create(TUINT32 sampleRate, int bitPerSample,
                              int channelCount, TINT32 sampleCount,
-                             bool signedSample = true);
+                             int sampleFormat);
 
   static TSoundTrackP create(TUINT32 sampleRate, int bitPerSample,
-                             int channelCount, TINT32 sampleCount, void *buffer,
-                             bool signedSample = true);
+                             int channelCount, TINT32 sampleCount,
+                             int sampleFormat, void *buffer);
 
   /*!
 Create a new soundtrack according to the format and number of samples
@@ -142,6 +148,9 @@ specified as inputs
 
   //! Returns true if the samples of the soundtrack are signed, false otherwise
   virtual bool isSampleSigned() const = 0;
+
+  //! Returns sample format
+  virtual int getSampleType() const = 0;
 
   //! Returns the soundtrack format
   TSoundTrackFormat getFormat() const;
