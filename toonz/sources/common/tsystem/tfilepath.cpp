@@ -794,10 +794,14 @@ TFrameId TFilePath::getFrame() const {
 
 bool TFilePath::isFfmpegType() const {
   QString type = QString::fromStdString(getType()).toLower();
-  if (type == "gif" || type == "mp4" || type == "webm")
-    return true;
-  else
-    return false;
+  return (type == "gif" || type == "mp4" || type == "webm");
+}
+
+//-----------------------------------------------------------------------------
+
+bool TFilePath::isUneditable() const {
+  QString type = QString::fromStdString(getType()).toLower();
+  return (type == "psd" || type == "gif" || type == "mp4" || type == "webm");
 }
 
 //-----------------------------------------------------------------------------

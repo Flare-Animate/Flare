@@ -1531,10 +1531,7 @@ void CloneLevelUndo::cloneLevels() const {
       assert(lt->first && !lt->second.empty());
 
       TXshSimpleLevel *srcSl = lt->first;
-      if (srcSl->getPath().getType() == "psd" ||
-          srcSl->getPath().getType() == "gif" ||
-          srcSl->getPath().getType() == "mp4" ||
-          srcSl->getPath().getType() == "webm")
+      if (srcSl->getPath().isUneditable())
         continue;
 
       const TFilePath &srcPath = srcSl->getPath();

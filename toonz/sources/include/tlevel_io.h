@@ -245,6 +245,19 @@ inline bool isMovieType(const TFilePath &fp) {
 
 //-----------------------------------------------------------
 
+inline bool isMovieTypeOpaque(std::string type) {
+  return (type == "avi" || type == "3gp" || type == "mp4");
+}
+
+//-----------------------------------------------------------
+
+inline bool isMovieTypeOpaque(const TFilePath &fp) {
+  std::string type(fp.getType());
+  return isMovieTypeOpaque(type);
+}
+
+//-----------------------------------------------------------
+
 inline bool isSequencialRequired(std::string type) {
   return (type == "mov" || type == "avi" || type == "3gp");
 }
@@ -254,6 +267,21 @@ inline bool isSequencialRequired(std::string type) {
 inline bool isSequencialRequired(const TFilePath &fp) {
   std::string type(fp.getType());
   return isSequencialRequired(type);
+}
+
+//-----------------------------------------------------------
+
+inline bool isMultipleFrameType(std::string type) {
+  return (type == "tlv" || type == "tzl" || type == "pli" || type == "mov" ||
+          type == "avi" || type == "3gp" || type == "gif" || type == "mp4" ||
+          type == "webm");
+}
+
+//-----------------------------------------------------------
+
+inline bool isMultipleFrameType(const TFilePath &fp) {
+  std::string type(fp.getType());
+  return isMultipleFrameType(type);
 }
 
 //-----------------------------------------------------------
