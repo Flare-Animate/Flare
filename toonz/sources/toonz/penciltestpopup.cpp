@@ -546,6 +546,15 @@ void MyVideoWidget::drawSubCamera(QPainter& p) {
   drawHandle(HandleTopRight, vidSubRect.topRight());
   drawHandle(HandleBottomLeft, vidSubRect.bottomLeft());
   drawHandle(HandleBottomRight, vidSubRect.bottomRight());
+
+  // draw cross mark at subcamera center when the cursor is in the frame
+  if (m_activeSubHandle != HandleNone) {
+    p.setPen(QPen(Qt::magenta, 1, Qt::DashLine));
+    QPoint crossP(vidSubRect.width() / 40, vidSubRect.height() / 40);
+    p.drawLine(vidSubRect.center() - crossP, vidSubRect.center() + crossP);
+    crossP.setX(-crossP.x());
+    p.drawLine(vidSubRect.center() - crossP, vidSubRect.center() + crossP);
+  }
 }
 
 void MyVideoWidget::mouseMoveEvent(QMouseEvent* event) {
