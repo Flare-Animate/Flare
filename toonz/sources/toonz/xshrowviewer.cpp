@@ -1105,7 +1105,8 @@ void RowArea::mouseMoveEvent(QMouseEvent *event) {
     return;
   }
 
-  m_row = m_viewer->xyToPosition(pos).frame();
+  m_row = std::max(0, m_viewer->xyToPosition(pos).frame());
+
   int x = pos.x();
 
   if ((event->buttons() & Qt::LeftButton) != 0 &&
