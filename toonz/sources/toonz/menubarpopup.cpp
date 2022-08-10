@@ -381,6 +381,8 @@ CommandListTree::CommandListTree(QWidget* parent) : QTreeWidget(parent) {
   addFolder(ShortcutTree::tr("Windows"), MenuWindowsCommandType,
             menuCommandFolder);
   addFolder(ShortcutTree::tr("Help"), MenuHelpCommandType, menuCommandFolder);
+  addFolder(ShortcutTree::tr("SubMenu Commands"), MenuCommandType,
+            menuCommandFolder);
 
   addFolder(ShortcutTree::tr("Tools"), ToolCommandType);
 

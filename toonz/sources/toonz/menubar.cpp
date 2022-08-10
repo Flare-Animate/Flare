@@ -1428,6 +1428,7 @@ QMenuBar *StackedMenuBar::createFullMenuBar() {
 #endif
   addMenuItem(windowsMenu, MI_StartupPopup);
   addMenuItem(windowsMenu, MI_OpenGuidedDrawingControls);
+  addMenuItem(windowsMenu, MI_OpenCustomPanels);
   // windowsMenu->addSeparator();
   // addMenuItem(windowsMenu, MI_OpenExport);
   windowsMenu->addSeparator();
@@ -1574,7 +1575,7 @@ TopBar::TopBar(QWidget *parent) : QToolBar(parent) {
 
   bool ret = true;
   ret      = ret && connect(m_roomTabBar, SIGNAL(currentChanged(int)),
-                       m_stackedMenuBar, SLOT(setCurrentIndex(int)));
+                            m_stackedMenuBar, SLOT(setCurrentIndex(int)));
 
   ret = ret && connect(m_roomTabBar, SIGNAL(indexSwapped(int, int)),
                        m_stackedMenuBar, SLOT(onIndexSwapped(int, int)));

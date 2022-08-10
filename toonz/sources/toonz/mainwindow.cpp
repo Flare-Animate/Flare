@@ -14,6 +14,7 @@
 #include "comboviewerpane.h"
 #include "startuppopup.h"
 #include "tooloptionsshortcutinvoker.h"
+#include "custompanelmanager.h"
 
 // TnzTools includes
 #include "tools/toolcommandids.h"
@@ -218,8 +219,8 @@ int get_version_code_from(std::string ver) {
   // minor version: assume that the minor version is less than 255.
   std::string::size_type const b = ver.find('.', a + 1);
   std::string const minor        = (b == std::string::npos)
-                                ? ver.substr(a + 1)
-                                : ver.substr(a + 1, b - a - 1);
+                                       ? ver.substr(a + 1)
+                                       : ver.substr(a + 1, b - a - 1);
   version += std::stoi(minor) << 16;
   if ((b == std::string::npos) || (b + 1 == ver.length())) {
     return version;
@@ -564,9 +565,9 @@ void MainWindow::readSettings(const QString &argumentLayoutFileName) {
       /*--
        * タイトルバーに表示するレイアウト名を作る：_layoutがあればそこから省く。無ければ.txtのみ省く
        * --*/
-      int pos = (argumentLayoutFileName.indexOf("_layout") == -1)
-                    ? argumentLayoutFileName.indexOf(".txt")
-                    : argumentLayoutFileName.indexOf("_layout");
+      int pos      = (argumentLayoutFileName.indexOf("_layout") == -1)
+                         ? argumentLayoutFileName.indexOf(".txt")
+                         : argumentLayoutFileName.indexOf("_layout");
       m_layoutName = argumentLayoutFileName.left(pos);
     }
   }
@@ -659,6 +660,7 @@ void MainWindow::readSettings(const QString &argumentLayoutFileName) {
   }
 
   RecentFiles::instance()->loadRecentFiles();
+  CustomPanelManager::instance()->loadCustomPanelEntries();
 }
 
 //-----------------------------------------------------------------------------
@@ -1383,7 +1385,7 @@ QAction *MainWindow::createAction(const char *id, const char *name,
     action->setMenuRole(QAction::NoRole);
 #endif
   CommandManager::instance()->define(id, type, defaultShortcut.toStdString(),
-                                     action);
+                                     action, iconSVGName);
   return action;
 }
 
@@ -1515,8 +1517,9 @@ QAction *MainWindow::createFillAction(const char *id, const char *name,
 //-----------------------------------------------------------------------------
 
 QAction *MainWindow::createMenuAction(const char *id, const char *name,
-                                      QList<QString> list) {
-  QMenu *menu     = new DVMenuAction(tr(name), this, list);
+                                      QList<QString> list,
+                                      bool isForRecentFiles) {
+  QMenu *menu     = new DVMenuAction(tr(name), this, list, isForRecentFiles);
   QAction *action = menu->menuAction();
   CommandManager::instance()->define(id, MenuCommandType, "", action);
   return action;
@@ -1608,8 +1611,8 @@ QAction *MainWindow::createToolAction(const char *id, const char *iconName,
   // Adding tool actions to the main window solve this problem!
   addAction(action);
 
-  CommandManager::instance()->define(id, ToolCommandType,
-                                     defaultShortcut.toStdString(), action);
+  CommandManager::instance()->define(
+      id, ToolCommandType, defaultShortcut.toStdString(), action, iconName);
   return action;
 }
 
@@ -2139,6 +2142,12 @@ void MainWindow::defineActions() {
   createMenuWindowsAction(MI_OpenGuidedDrawingControls,
                           QT_TR_NOOP("Guided Drawing Controls"), "",
                           "guided_drawing");
+
+  createMenuAction(MI_OpenCustomPanels, QT_TR_NOOP("&Custom Panels"), files,
+                   false);
+  createMenuWindowsAction(MI_CustomPanelEditor,
+                          QT_TR_NOOP("&Custom Panel Editor..."), "", "");
+
   menuAct =
       createToggle(MI_DockingCheck, QT_TR_NOOP("&Lock Room Panes"), "",
                    DockingCheckToggleAction ? 1 : 0, MenuWindowsCommandType);
@@ -3015,10 +3024,9 @@ RecentFiles::~RecentFiles() {}
 
 void RecentFiles::addFilePath(QString path, FileType fileType,
                               QString projectName) {
-  QList<QString> files =
-      (fileType == Scene)
-          ? m_recentScenes
-          : (fileType == Level) ? m_recentLevels : m_recentFlipbookImages;
+  QList<QString> files = (fileType == Scene)   ? m_recentScenes
+                         : (fileType == Level) ? m_recentLevels
+                                               : m_recentFlipbookImages;
   int i;
   for (i = 0; i < files.size(); i++)
     if (files.at(i) == path) {
@@ -3071,10 +3079,9 @@ void RecentFiles::removeFilePath(int index, FileType fileType) {
 //-----------------------------------------------------------------------------
 
 QString RecentFiles::getFilePath(int index, FileType fileType) const {
-  return (fileType == Scene)
-             ? m_recentScenes[index]
-             : (fileType == Level) ? m_recentLevels[index]
-                                   : m_recentFlipbookImages[index];
+  return (fileType == Scene)   ? m_recentScenes[index]
+         : (fileType == Level) ? m_recentLevels[index]
+                               : m_recentFlipbookImages[index];
 }
 
 //-----------------------------------------------------------------------------
@@ -3184,10 +3191,9 @@ void RecentFiles::saveRecentFiles() {
 //-----------------------------------------------------------------------------
 
 QList<QString> RecentFiles::getFilesNameList(FileType fileType) {
-  QList<QString> files =
-      (fileType == Scene)
-          ? m_recentScenes
-          : (fileType == Level) ? m_recentLevels : m_recentFlipbookImages;
+  QList<QString> files = (fileType == Scene)   ? m_recentScenes
+                         : (fileType == Level) ? m_recentLevels
+                                               : m_recentFlipbookImages;
   QList<QString> names;
   int i;
   for (i = 0; i < files.size(); i++) {
@@ -3202,9 +3208,9 @@ QList<QString> RecentFiles::getFilesNameList(FileType fileType) {
 //-----------------------------------------------------------------------------
 
 void RecentFiles::refreshRecentFilesMenu(FileType fileType) {
-  CommandId id = (fileType == Scene) ? MI_OpenRecentScene
-                                     : (fileType == Level) ? MI_OpenRecentLevel
-                                                           : MI_LoadRecentImage;
+  CommandId id = (fileType == Scene)   ? MI_OpenRecentScene
+                 : (fileType == Level) ? MI_OpenRecentLevel
+                                       : MI_LoadRecentImage;
   QAction *act = CommandManager::instance()->getAction(id);
   if (!act) return;
   DVMenuAction *menu = dynamic_cast<DVMenuAction *>(act->menu());
@@ -3213,10 +3219,9 @@ void RecentFiles::refreshRecentFilesMenu(FileType fileType) {
   if (names.isEmpty())
     menu->setEnabled(false);
   else {
-    CommandId clearActionId =
-        (fileType == Scene)
-            ? MI_ClearRecentScene
-            : (fileType == Level) ? MI_ClearRecentLevel : MI_ClearRecentImage;
+    CommandId clearActionId = (fileType == Scene)   ? MI_ClearRecentScene
+                              : (fileType == Level) ? MI_ClearRecentLevel
+                                                    : MI_ClearRecentImage;
     menu->setActions(names);
     menu->addSeparator();
     QAction *clearAction = CommandManager::instance()->getAction(clearActionId);
