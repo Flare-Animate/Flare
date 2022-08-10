@@ -321,6 +321,7 @@ if(BUILD_ENV_MSVC)
         winmm.lib
         opengl32.lib
         glu32.lib
+        dbghelp.lib
     )
 elseif(BUILD_ENV_APPLE)
     find_library(AUDIOUNIT_LIB AudioUnit)
@@ -349,6 +350,7 @@ elseif(BUILD_ENV_UNIXLIKE)
             -lmpr
             -lwinmm
             -lpsapi
+            -ldbghelp
         )
     endif()
 endif()
