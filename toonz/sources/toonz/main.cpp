@@ -661,6 +661,8 @@ int main(int argc, char *argv[]) {
 
   /*-- Layoutファイル名をMainWindowのctorに渡す --*/
   MainWindow w(argumentLayoutFileName);
+  CrashHandler::attachParentWindow(&w);
+  CrashHandler::reportProjectInfo(true);
 
   if (isRunScript) {
     // load script
