@@ -41,6 +41,7 @@ DVAPI TFilePath getFxPresetFolder();
 DVAPI TFilePath getLibraryFolder();
 DVAPI TFilePath getReslistPath(bool forCleanup);
 DVAPI TFilePath getCacheRootFolder();
+DVAPI TFilePath getCrashReportFolder();
 DVAPI TFilePath getProfileFolder();
 };
 
