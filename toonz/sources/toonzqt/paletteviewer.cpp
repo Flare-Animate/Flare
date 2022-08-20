@@ -477,6 +477,13 @@ void PaletteViewer::createPaletteToolBar() {
   m_paletteToolBar->addWidget(viewModeButton);
   m_paletteToolBar->addSeparator();
 
+  if (m_viewType == LEVEL_PALETTE) {
+    CommandManager *cmd = CommandManager::instance();
+    QAction *gizmo      = cmd->getAction("MI_OpenPltGizmo");
+    m_paletteToolBar->addAction(gizmo);
+    m_paletteToolBar->addSeparator();
+  }
+
   if (m_hasPageCommand) {
     QAction *addPage;
     QIcon addPageIcon = createQIcon("newpage");
