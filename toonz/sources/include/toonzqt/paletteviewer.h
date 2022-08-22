@@ -54,7 +54,16 @@ public:
                 bool hasPasteColors = true);
   ~PaletteViewer();
 
-  const TPaletteHandle *getPaletteHandle() const { return m_paletteHandle; }
+  enum ToolbarButtons : int  //! Toolbar buttons to display
+  {
+    TBVisKeyframe,
+    TBVisNewStylePage,
+    TBVisPaletteGizmo,
+    TBVisNameEditor,
+    TBVisTotal
+  };
+
+  TPaletteHandle *getPaletteHandle() const { return m_paletteHandle; }
   void setPaletteHandle(TPaletteHandle *paletteHandle);
 
   const TFrameHandle *getFrameHandle() const { return m_frameHandle; }
@@ -121,6 +130,16 @@ protected:
   DvScrollWidget *m_toolbarContainer;
   QHBoxLayout *m_hLayout;
 
+  StyleNameEditor *m_styleNameEditor;
+  QAction *m_sharedGizmoAction;
+
+  int m_toolbarVisibleOtherParts;
+  QMultiMap<int, QAction *> m_toolbarParts;
+  QAction *m_visibleKeysAction;
+  QAction *m_visibleNewAction;
+  QAction *m_visibleGizmoAction;
+  QAction *m_visibleNameAction;
+
 protected:
   void createTabBar();
 
@@ -152,6 +171,8 @@ protected:
 
   void clearStyleSelection();
 
+  void applyToolbarPartVisibility(int part, bool visible);
+
 protected slots:
 
   void setPageView(int currentIndexPage);
@@ -182,6 +203,11 @@ protected slots:
   void onShowNewStyleButtonToggled();
 
   void toggleToolbarOnTop();
+
+  void toggleKeyframeVisibility(bool);
+  void toggleNewStylePageVisibility(bool);
+  void togglePaletteGizmoVisibility(bool);
+  void toggleNameEditorVisibility(bool);
 };
 
 #endif  // PALETTEVIEWER_H
