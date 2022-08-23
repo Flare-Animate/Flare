@@ -747,7 +747,7 @@ LevelSettingsValues LevelSettingsPopup::getValues(TXshLevelP level) {
       values.doAntialias = (sl->getProperties()->antialiasSoftness() > 0)
                                ? Qt::Checked
                                : Qt::Unchecked;
-      values.softness = sl->getProperties()->antialiasSoftness();
+      values.softness    = sl->getProperties()->antialiasSoftness();
     }
   }
 
@@ -1438,6 +1438,7 @@ void LevelSettingsPopup::onSubsamplingChanged() {
     return;
   }
 
+  bool somethingChanged = false;
   TUndoManager::manager()->beginBlock();
   QSetIterator<TXshLevelP> levelItr(m_selectedLevels);
   while (levelItr.hasNext()) {
@@ -1454,8 +1455,10 @@ void LevelSettingsPopup::onSubsamplingChanged() {
     TUndoManager::manager()->add(new LevelSettingsUndo(
         levelP.getPointer(), LevelSettingsUndo::Subsampling, oldSubsampling,
         subsampling));
+    somethingChanged = true;
   }
   TUndoManager::manager()->endBlock();
+  if (!somethingChanged) return;
 
   TApp::instance()->getCurrentScene()->setDirtyFlag(true);
   TApp::instance()
