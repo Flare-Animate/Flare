@@ -679,8 +679,9 @@ void RowArea::drawCurrentTimeIndicator(QPainter &p) {
 }
 
 void RowArea::drawCurrentTimeLine(QPainter &p) {
-  QPoint frameAdj = m_viewer->getFrameZoomAdjustment();
-  int currentRow  = m_viewer->getCurrentRow();
+  QPoint frameAdj       = m_viewer->getFrameZoomAdjustment();
+  int currentRow        = m_viewer->getCurrentRow();
+  QColor indicatorColor = m_viewer->getCurrentTimeIndicatorColor();
 
   QPoint topLeft = m_viewer->positionToXY(CellPosition(currentRow, -1));
   if (!m_viewer->orientation()->isVerticalTimeline())
@@ -689,15 +690,22 @@ void RowArea::drawCurrentTimeLine(QPainter &p) {
     topLeft.setX(0);
   QRect header = m_viewer->orientation()
                      ->rect(PredefinedRect::FRAME_HEADER)
-                     .translated(topLeft)
-                     .translated(-frameAdj / 2);
+                     .translated(topLeft);
 
-  int frameMid    = header.left() + (header.width() / 2) - 1;
-  int frameTop    = header.top();
-  int frameBottom = header.bottom();
+  if (m_viewer->orientation()->isVerticalTimeline()) {
+    header.adjust(1, 1, -frameAdj.x(), -frameAdj.y());
+    p.setPen(
+        QPen(indicatorColor, 1, Qt::SolidLine, Qt::SquareCap, Qt::MiterJoin));
+    p.drawRect(header.adjusted(0, 0, -1, -1));
+  } else {
+    header.translate(-frameAdj / 2);
+    int frameMid    = header.left() + (header.width() / 2) - 1;
+    int frameTop    = header.top();
+    int frameBottom = header.bottom();
 
-  p.setPen(Qt::red);
-  p.drawLine(frameMid, frameTop + 23, frameMid, frameBottom);
+    p.setPen(indicatorColor);
+    p.drawLine(frameMid, frameTop + 23, frameMid, frameBottom);
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -926,9 +934,10 @@ void RowArea::paintEvent(QPaintEvent *event) {
   }
 #endif
 
+  // For now, the current frame indicator is not displayed in the xsheet row
+  // area
   if (TApp::instance()->getCurrentFrame()->isEditingScene() &&
-      Preferences::instance()->isCurrentTimelineIndicatorEnabled() &&
-      !m_viewer->orientation()->isVerticalTimeline())
+      Preferences::instance()->isCurrentTimelineIndicatorEnabled())
     drawCurrentTimeLine(p);
 
   drawRows(p, r0, r1);
@@ -938,6 +947,8 @@ void RowArea::paintEvent(QPaintEvent *event) {
       drawShiftTraceMarker(p);
     else if (Preferences::instance()->isOnionSkinEnabled())
       drawOnionSkinSelection(p);
+    // For now, the current frame indicator is not displayed in the xsheet row
+    // area
     else if (Preferences::instance()->isCurrentTimelineIndicatorEnabled() &&
              !m_viewer->orientation()->isVerticalTimeline())
       drawCurrentTimeIndicator(p);

@@ -103,9 +103,9 @@ SizeField::SizeField(QSize min, QSize max, QSize value, QWidget* parent)
 
   bool ret = true;
   ret      = ret && connect(m_fieldX, SIGNAL(editingFinished()), this,
-                       SIGNAL(editingFinished()));
+                            SIGNAL(editingFinished()));
   ret      = ret && connect(m_fieldY, SIGNAL(editingFinished()), this,
-                       SIGNAL(editingFinished()));
+                            SIGNAL(editingFinished()));
   assert(ret);
 }
 
@@ -255,9 +255,9 @@ Preferences::LevelFormat PreferencesPopup::FormatProperties::levelFormat()
   lf.m_priority = m_priority->getValue();
 
   // Assign level format values
-  lf.m_options.m_dpiPolicy = (m_dpiPolicy->currentIndex() == DP_ImageDpi)
-                                 ? LevelOptions::DP_ImageDpi
-                                 : LevelOptions::DP_CustomDpi;
+  lf.m_options.m_dpiPolicy   = (m_dpiPolicy->currentIndex() == DP_ImageDpi)
+                                   ? LevelOptions::DP_ImageDpi
+                                   : LevelOptions::DP_CustomDpi;
   lf.m_options.m_dpi         = m_dpi->getValue();
   lf.m_options.m_subsampling = m_subsampling->getValue();
   lf.m_options.m_antialias =
@@ -374,7 +374,7 @@ PreferencesPopup::Display30bitChecker::Display30bitChecker(
   GLView* view10bit     = new GLView(this, true);
   QPushButton* closeBtn = new QPushButton(tr("Close"), this);
   QString infoLabel     = tr(
-      "If the lower gradient looks smooth and has no banding compared to the upper gradient,\n\
+          "If the lower gradient looks smooth and has no banding compared to the upper gradient,\n\
 30bit display is available in the current configuration.");
 
   QVBoxLayout* lay = new QVBoxLayout();
@@ -908,7 +908,7 @@ QWidget* PreferencesPopup::createUI(PreferencesItemId id,
         combo->addItem(item.first, item.second);
       combo->setCurrentIndex(combo->findData(item.value));
       ret    = connect(combo, SIGNAL(currentIndexChanged(int)), this,
-                    SLOT(onChange()));
+                       SLOT(onChange()));
       widget = combo;
     } else {  // create IntLineEdit
       assert(item.max.toInt() != -1);
@@ -945,7 +945,7 @@ QWidget* PreferencesPopup::createUI(PreferencesItemId id,
       QFontComboBox* combo = new QFontComboBox(this);
       combo->setCurrentText(item.value.toString());
       ret    = connect(combo, SIGNAL(currentIndexChanged(const QString&)), this,
-                    SLOT(onInterfaceFontChanged(const QString&)));
+                       SLOT(onInterfaceFontChanged(const QString&)));
       widget = combo;
     } else if (!comboItems.isEmpty()) {  // create QComboBox
       QComboBox* combo = new QComboBox(this);
@@ -953,7 +953,7 @@ QWidget* PreferencesPopup::createUI(PreferencesItemId id,
         combo->addItem(item.first, item.second);
       combo->setCurrentIndex(combo->findData(item.value));
       ret    = connect(combo, SIGNAL(currentIndexChanged(int)), this,
-                    SLOT(onChange()));
+                       SLOT(onChange()));
       widget = combo;
     } else {  // create FileField
       DVGui::FileField* field =
@@ -976,7 +976,7 @@ QWidget* PreferencesPopup::createUI(PreferencesItemId id,
     ColorField* field =
         new ColorField(this, false, colorToTPixel(item.value.value<QColor>()));
     ret    = connect(field, SIGNAL(colorChanged(const TPixel32&, bool)), this,
-                  SLOT(onColorFieldChanged(const TPixel32&, bool)));
+                     SLOT(onColorFieldChanged(const TPixel32&, bool)));
     widget = field;
   } break;
 
@@ -1260,8 +1260,7 @@ QString PreferencesPopup::getUIString(PreferencesItemId id) {
       {highlightLineEverySecond, tr("Highlight Line Every Second")},
       {syncLevelRenumberWithXsheet,
        tr("Sync Level Strip Drawing Number Changes with the Xsheet")},
-      {currentTimelineEnabled,
-       tr("Show Current Time Indicator (Timeline Mode only)")},
+      {currentTimelineEnabled, tr("Show Current Time Indicator")},
       {currentColumnColor, tr("Current Column Color:")},
       //{ levelNameOnEachMarkerEnabled, tr("Display Level Name on Each Marker")
       //},
@@ -1566,11 +1565,11 @@ QWidget* PreferencesPopup::createGeneralPage() {
 
   bool ret = true;
   ret      = ret && connect(m_pref, SIGNAL(stopAutoSave()), this,
-                       SLOT(onAutoSaveExternallyChanged()));
+                            SLOT(onAutoSaveExternallyChanged()));
   ret      = ret && connect(m_pref, SIGNAL(startAutoSave()), this,
-                       SLOT(onAutoSaveExternallyChanged()));
+                            SLOT(onAutoSaveExternallyChanged()));
   ret      = ret && connect(m_pref, SIGNAL(autoSavePeriodChanged()), this,
-                       SLOT(onAutoSavePeriodExternallyChanged()));
+                            SLOT(onAutoSavePeriodExternallyChanged()));
 
   ret = ret && connect(m_projectRootDocuments, SIGNAL(stateChanged(int)),
                        SLOT(onProjectRootChanged()));
@@ -1660,12 +1659,12 @@ QWidget* PreferencesPopup::createInterfacePage() {
   // IoCmd::loadScene())
   bool ret = true;
   ret      = ret && connect(TApp::instance()->getCurrentScene(),
-                       SIGNAL(pixelUnitSelected(bool)), this,
-                       SLOT(onPixelUnitExternallySelected(bool)));
+                            SIGNAL(pixelUnitSelected(bool)), this,
+                            SLOT(onPixelUnitExternallySelected(bool)));
   ret      = ret && connect(additionalStyleSheetBtn, SIGNAL(clicked()), this,
-                       SLOT(onEditAdditionalStyleSheet()));
+                            SLOT(onEditAdditionalStyleSheet()));
   ret      = ret && connect(check30bitBtn, SIGNAL(clicked()), this,
-                       SLOT(onCheck30bitDisplay()));
+                            SLOT(onCheck30bitDisplay()));
   assert(ret);
 
   m_onEditedFuncMap.insert(CurrentStyleSheetName,

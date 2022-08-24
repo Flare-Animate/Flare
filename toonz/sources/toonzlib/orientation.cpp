@@ -901,6 +901,8 @@ TopToBottomOrientation::TopToBottomOrientation() {
           verticalLine(CELL_WIDTH - 14, NumberRange(0, CELL_HEIGHT)));
   addLine(PredefinedLine::EXTENDER_LINE,
           horizontalLine(0, NumberRange(-EXTENDER_WIDTH - KEY_ICON_WIDTH, 0)));
+  addLine(PredefinedLine::CURRENT_TIME_INDICATOR,
+          horizontalLine(CELL_HEIGHT / 2, NumberRange(0, CELL_WIDTH)));
 
   //
   // Dimensions
@@ -1323,6 +1325,8 @@ LeftToRightOrientation::LeftToRightOrientation() {
           verticalLine(CELL_HEIGHT / 2, NumberRange(0, CELL_WIDTH)));
   addLine(PredefinedLine::EXTENDER_LINE,
           horizontalLine(0, NumberRange(-EXTENDER_WIDTH - KEY_ICON_WIDTH, 0)));
+  addLine(PredefinedLine::CURRENT_TIME_INDICATOR,
+          horizontalLine(CELL_WIDTH / 2 - 1, NumberRange(0, CELL_HEIGHT)));
 
   //
   // Dimensions
