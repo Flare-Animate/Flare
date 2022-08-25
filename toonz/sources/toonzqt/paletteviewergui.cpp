@@ -703,9 +703,13 @@ void PageViewer::paintEvent(QPaintEvent *e) {
       }
 
       // draw frame if the style is selected or current
-      if (m_styleSelection->isSelected(m_page->getIndex(), i) ||
-          currentStyleIndex == styleIndex) {
+      if (m_styleSelection->isSelected(m_page->getIndex(), i)) {
         QRect itemRect = getItemRect(i).adjusted(0, -1, 0, 1);
+        p.setPen(Qt::NoPen);
+        p.setBrush(getSelectedBorderColor());
+        p.drawRoundRect(itemRect, 7, 25);
+      } else if (currentStyleIndex == styleIndex) {
+        QRect itemRect = getItemRect(i).adjusted(1, 0, -1, 0);
         p.setPen(Qt::NoPen);
         p.setBrush(getSelectedBorderColor());
         p.drawRoundRect(itemRect, 7, 25);
@@ -1140,11 +1144,16 @@ void PageViewer::contextMenuEvent(QContextMenuEvent *event) {
   menu.addAction(clearAct);
 
   menu.addSeparator();
-  QAction *openPltGizmoAct = cmd->getAction("MI_OpenPltGizmo");
-  menu.addAction(openPltGizmoAct);
+  // currently palette gizmo can only change colors from the current level
+  // palette due to the way modifyColor works.
+  if (m_viewType == LEVEL_PALETTE) {
+    QAction *openPltGizmoAct = cmd->getAction("MI_OpenPltGizmo");
+    menu.addAction(openPltGizmoAct);
+  }
   QAction *openStyleControlAct = cmd->getAction("MI_OpenStyleControl");
   menu.addAction(openStyleControlAct);
   QAction *openStyleNameEditorAct = menu.addAction(tr("Name Editor"));
+  openStyleNameEditorAct->setIcon(createQIcon("rename", false, true));
   connect(openStyleNameEditorAct, &QAction::triggered, [&]() {
     if (!m_styleNameEditor) {
       m_styleNameEditor = new StyleNameEditor(this);
@@ -1198,9 +1207,11 @@ void PageViewer::contextMenuEvent(QContextMenuEvent *event) {
 
   if (m_page) {
     menu.addSeparator();
-    QAction *newStyle = menu.addAction(tr("New Style"));
+    QIcon newStyleIco = createQIcon("new_style", false, true);
+    QAction *newStyle = menu.addAction(newStyleIco, tr("New Style"));
     connect(newStyle, SIGNAL(triggered()), SLOT(addNewColor()));
-    QAction *newPage = menu.addAction(tr("New Page"));
+    QIcon newPageIco = createQIcon("new_page", false, true);
+    QAction *newPage = menu.addAction(newPageIco, tr("New Page"));
     connect(newPage, SIGNAL(triggered()), SLOT(addNewPage()));
   }
 
