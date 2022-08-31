@@ -1,12 +1,16 @@
+#we should use brew configuration
 # looks for libtiff(4.0.3 modified)
+set(BREW /usr/local/opt)
+set(TIFF_INCLUDE_DIR ${BREW}/libtiff/include)
 find_path(
     TIFF_INCLUDE_DIR
     NAMES
         tiffio.h
     HINTS
-        ${SDKROOT}
+        ${BREW}
     PATH_SUFFIXES
-        tiff-4.0.3/libtiff/
+        # tiff-4.0.3/libtiff/
+        /libtiff/include
 # if mono or another framework with a tif library
 # is installed, ignore it.
 if(BUILD_ENV_APPLE)
@@ -16,14 +20,15 @@ if(BUILD_ENV_APPLE)
 endif()
 )
 
+
 find_library(
     TIFF_LIBRARY
     NAMES
         libtiff.a
     HINTS
-        ${SDKROOT}
+        ${BREW}
     PATH_SUFFIXES
-        tiff-4.0.3/libtiff/.libs
+        /libtiff/lib
     NO_DEFAULT_PATH
 )
 
