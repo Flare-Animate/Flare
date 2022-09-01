@@ -63,6 +63,13 @@ $ cd ../tiff-4.0.3
 $ ./configure && make
 ```
 
+If you install libtiff through brew before, linker tool couses fail. In order to solve this problem use install_name_tool
+```
+$ cd opentoonz/thirdparty/tiff-4.0.3/libtiff/.libs/
+$ install_name_tool -id $PWD/libtiff.5.dylib libtiff.5.dylib 
+```
+
+
 If you downloaded and installed boost from https://boost.org instead of homebrew, move the package under `thirdparty/boost` as follows: 
 ```
 $ cd thirdparty/boost
