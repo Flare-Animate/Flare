@@ -20,7 +20,7 @@ find_library(
     TIFF_LIBRARY
     NAMES
         # libtiff.a 
-        #use shared library instead of static
+        # use shared library instead of static
         libtiff.dylib
     HINTS
         ${SDKROOT}
