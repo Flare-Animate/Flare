@@ -234,7 +234,6 @@ void PaletteViewer::toggleToolbarOnTop() {
 //-----------------------------------------------------------------------------
 
 void PaletteViewer::applyToolbarPartVisibility(int part, bool visible) {
-  assert(m_toolbarParts.contains(part));
   for (QAction *action : m_toolbarParts.values(part)) {
     action->setVisible(visible);
   }
@@ -529,11 +528,9 @@ void PaletteViewer::createPaletteToolBar() {
   visibleButtons->addAction(m_visibleNameAction);
   viewMode->addMenu(visibleButtons);
 
-  if (m_viewType == CLEANUP_PALETTE)
-    m_visibleKeysAction->setVisible(false);
+  if (m_viewType == CLEANUP_PALETTE) m_visibleKeysAction->setVisible(false);
 
-  if (m_viewType != LEVEL_PALETTE)
-    m_visibleGizmoAction->setVisible(false);
+  if (m_viewType != LEVEL_PALETTE) m_visibleGizmoAction->setVisible(false);
 
   connect(m_visibleKeysAction, SIGNAL(toggled(bool)), this,
           SLOT(toggleKeyframeVisibility(bool)));
@@ -555,8 +552,8 @@ void PaletteViewer::createPaletteToolBar() {
   connect(m_showToolbarOnTopAct, SIGNAL(triggered()), this,
           SLOT(toggleToolbarOnTop()));
 
-  QString str = (ShowNewStyleButton) ? tr("Hide New Style Button")
-                                     : tr("Show New Style Button");
+  QString str              = (ShowNewStyleButton) ? tr("Hide New Style Button")
+                                                  : tr("Show New Style Button");
   QAction *showNewStyleBtn = viewMode->addAction(str);
   connect(showNewStyleBtn, SIGNAL(triggered()), this,
           SLOT(onShowNewStyleButtonToggled()));
@@ -622,7 +619,8 @@ void PaletteViewer::createPaletteToolBar() {
   // KeyFrame button
   if (m_viewType != CLEANUP_PALETTE) {
     m_keyFrameButton = new PaletteKeyframeNavigator(m_paletteToolBar);
-    m_toolbarParts.insert(TBVisKeyframe, m_paletteToolBar->addWidget(m_keyFrameButton));
+    m_toolbarParts.insert(TBVisKeyframe,
+                          m_paletteToolBar->addWidget(m_keyFrameButton));
     m_toolbarParts.insert(TBVisKeyframe, m_paletteToolBar->addSeparator());
     m_keyFrameButton->setSelection(m_pageViewer->getSelection());
   }
@@ -647,7 +645,7 @@ void PaletteViewer::createSavePaletteToolBar() {
   // save palette as
   QIcon saveAsPaletteIcon = createQIcon("saveas");
   QAction *saveAsPalette  = new QAction(
-      saveAsPaletteIcon, tr("&Save Palette As"), m_savePaletteToolBar);
+       saveAsPaletteIcon, tr("&Save Palette As"), m_savePaletteToolBar);
   // overwrite palette
   QIcon savePaletteIcon = createQIcon("save");
   QAction *savePalette =
