@@ -15,6 +15,7 @@
 #include "startuppopup.h"
 #include "tooloptionsshortcutinvoker.h"
 #include "custompanelmanager.h"
+#include "seethroughwindowpopup.h"
 
 // TnzTools includes
 #include "tools/toolcommandids.h"
@@ -452,6 +453,7 @@ centralWidget->setLayout(centralWidgetLayout);*/
 
   setCommandHandler(MI_MaximizePanel, this, &MainWindow::maximizePanel);
   setCommandHandler(MI_FullScreenWindow, this, &MainWindow::fullScreenWindow);
+  setCommandHandler(MI_SeeThroughWindow, this, &MainWindow::seeThroughWindow);
   setCommandHandler("MI_NewVectorLevel", this,
                     &MainWindow::onNewVectorLevelButtonPressed);
   setCommandHandler("MI_NewToonzRasterLevel", this,
@@ -1087,6 +1089,14 @@ void MainWindow::fullScreenWindow() {
 #endif
     this->showFullScreen();
   }
+}
+
+void MainWindow::seeThroughWindow() {
+  static SeeThroughWindowPopup *popup = nullptr;
+
+  if (!popup) popup = new SeeThroughWindowPopup();
+
+  popup->toggleMode();
 }
 
 //-----------------------------------------------------------------------------
@@ -2136,6 +2146,9 @@ void MainWindow::defineActions() {
   createMenuWindowsAction(MI_FullScreenWindow,
                           QT_TR_NOOP("Toggle Main Window's Full Screen Mode"),
                           "Ctrl+`", "toggle_fullscreen");
+  createMenuWindowsAction(MI_SeeThroughWindow,
+                          QT_TR_NOOP("Toggle Main Window's See Through Mode"),
+                          "Alt+`", "toggle_seethroughwin_on");
   createMenuHelpAction(MI_About, QT_TR_NOOP("&About OpenToonz..."), "", "info");
   createMenuWindowsAction(MI_StartupPopup, QT_TR_NOOP("&Startup Popup..."),
                           "Alt+S", "opentoonz");

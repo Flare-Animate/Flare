@@ -92,6 +92,7 @@ public:
   void resetRoomsLayout();
   void maximizePanel();
   void fullScreenWindow();
+  void seeThroughWindow();
   void autofillToggle();
   void onUpgradeTabPro();
   void onAbout();

@@ -488,6 +488,8 @@
 		<file>icons/dark/actions/16/console.svg</file>
 		<file>icons/dark/actions/16/pickscreen.svg</file>
 		<file>icons/dark/actions/16/toggle_fullscreen.svg</file>
+		<file>icons/dark/actions/16/toggle_seethroughwin_on.svg</file>
+		<file>icons/dark/actions/16/toggle_seethroughwin_off.svg</file>
 		<file>icons/dark/actions/16/schematic.svg</file>
 		<file>icons/dark/actions/16/viewer.svg</file>
 		<file>icons/dark/actions/16/comboviewer.svg</file>

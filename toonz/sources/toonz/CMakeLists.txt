@@ -86,6 +86,7 @@ set(MOC_HEADERS
     sceneviewer.h
     sceneviewercontextmenu.h
     scriptconsolepanel.h
+    seethroughwindowpopup.h
     separatecolorspopup.h
     separatecolorsswatch.h
     shortcutpopup.h
@@ -287,6 +288,7 @@ set(SOURCES
     sceneviewercontextmenu.cpp
     scenesettingspopup.cpp
     scriptconsolepanel.cpp
+    seethroughwindowpopup.cpp
     shortcutpopup.cpp
     soundtrackexport.cpp
     startuppopup.cpp
