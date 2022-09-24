@@ -9,7 +9,7 @@
 
 #include <QApplication>
 #include <QMainWindow>
-#include <QToolTip>
+#include <QDialog>
 
 TEnv::IntVar SeeThroughWindowOpacity("SeeThroughWindowOpacity", 50);
 
@@ -17,16 +17,14 @@ TEnv::IntVar SeeThroughWindowOpacity("SeeThroughWindowOpacity", 50);
 
 SeeThroughWindowPopup::SeeThroughWindowPopup()
     : Dialog(TApp::instance()->getMainWindow(), true, false, "SeeThroughWindow") {
-  setWindowTitle(tr("See Through Mode"));
+  setWindowTitle(tr("See Through Mode (Main Window)"));
   setModal(false);
+
+  m_suffixTxtSlider = "% " + tr("Opacity");
 
   m_bckValue = 50;
 
-  beginHLayout();
-
-  m_opacityLabel = new QLabel(tr("Opacity:"));
-  m_opacityLabel->setMinimumHeight(25);
-  addWidget(m_opacityLabel);
+  m_layout = new QBoxLayout(QBoxLayout::LeftToRight);
 
   m_opacitySlider = new QSlider(Qt::Horizontal);
   m_opacitySlider->setRange(1, 50);
@@ -34,13 +32,13 @@ SeeThroughWindowPopup::SeeThroughWindowPopup()
   m_opacitySlider->setPageStep(5);
   setOpacitySlider(SeeThroughWindowOpacity);
   m_opacitySlider->setMinimumHeight(25);
-  addWidget(m_opacitySlider);
+  m_layout->addWidget(m_opacitySlider);
 
   m_seeThroughIcon_off = createQIcon("toggle_seethroughwin_off");
   m_seeThroughIcon_on  = createQIcon("toggle_seethroughwin_on");
 
   QString tooltip =
-      tr("Quickly toggle semi-transparent and full opaque.") + "\n" +
+      tr("Quickly toggle main window semi-transparency and full opacity.") + "\n" +
       tr("Hold ALT while clicking to use full transparency instead.") + "\n" +
       tr("When slider is at 100% it acts as ALT is held.");
 
@@ -48,16 +46,20 @@ SeeThroughWindowPopup::SeeThroughWindowPopup()
   m_opacityBtn->setCheckable(true);
   m_opacityBtn->setToolTip(tooltip);
   m_opacityBtn->setFocusPolicy(Qt::NoFocus);
-  m_opacityBtn->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred);
-  m_opacityBtn->setFixedWidth(25);
-  m_opacityBtn->setMinimumHeight(25);
-  addWidget(m_opacityBtn);
-
-  endHLayout();
+  m_opacityBtn->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+  m_opacityBtn->setFixedSize(25, 25);
+  m_layout->addWidget(m_opacityBtn);
 
   m_closeBtn = new QPushButton(tr("Disable See Through Mode"));
+  m_closeBtn->setToolTip(m_closeBtn->text());
   m_closeBtn->setDefault(true);
   m_closeBtn->setFocusPolicy(Qt::NoFocus);
+
+  beginVLayout();
+  addLayout(m_layout);
+  endVLayout();
+  addButtonBarWidget(m_closeBtn);
+  resizeEvent(nullptr);  // set proper orientation
 
   bool ret = true;
 
@@ -67,8 +69,6 @@ SeeThroughWindowPopup::SeeThroughWindowPopup()
         connect(m_opacityBtn, SIGNAL(clicked()), this, SLOT(opacityToggle()));
   ret = ret && connect(m_closeBtn, SIGNAL(clicked()), this, SLOT(accept()));
   assert(ret);
-
-  addButtonBarWidget(m_closeBtn);
 }
 
 //-----------------------------------------------------------------------------
@@ -90,6 +90,16 @@ void SeeThroughWindowPopup::hideEvent(QHideEvent *e) {
 
 //-----------------------------------------------------------------------------
 
+void SeeThroughWindowPopup::resizeEvent(QResizeEvent *e) {
+  bool portrait = width() >= height();
+  m_layout->setDirection(portrait ? QBoxLayout::LeftToRight
+                                  : QBoxLayout::TopToBottom);
+  m_opacitySlider->setOrientation(portrait ? Qt::Orientation::Horizontal
+                                           : Qt::Orientation::Vertical);
+}
+
+//-----------------------------------------------------------------------------
+
 int SeeThroughWindowPopup::getOpacitySlider() {
   return m_opacitySlider->value() * 2;
 }
@@ -107,7 +117,7 @@ int SeeThroughWindowPopup::setOpacitySlider(int opacity) {
 void SeeThroughWindowPopup::sliderChanged(int value) {
   int opacity = getOpacitySlider();
   TApp::instance()->getMainWindow()->setWindowOpacity((double)opacity / 100);
-  m_opacitySlider->setToolTip(QString::number(opacity) + "%");
+  m_opacitySlider->setToolTip(QString::number(opacity) + m_suffixTxtSlider);
   if (m_opacityBtn->isChecked()) {
     m_opacityBtn->setChecked(false);
     m_opacityBtn->setIcon(m_seeThroughIcon_on);

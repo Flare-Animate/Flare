@@ -1078,15 +1078,19 @@ void MainWindow::maximizePanel() {
 }
 
 void MainWindow::fullScreenWindow() {
-  if (isFullScreen())
-    showNormal();
-  else {
+  if (isFullScreen()) {
+    if (m_wasMaximized)
+      showMaximized();
+    else
+      showNormal();
+  } else {
 #if defined(_WIN32)
     // http://doc.qt.io/qt-5/windows-issues.html#fullscreen-opengl-based-windows
     this->winId();
     QWindowsWindowFunctions::setHasBorderInFullScreen(this->windowHandle(),
                                                       true);
 #endif
+    m_wasMaximized = isMaximized();
     this->showFullScreen();
   }
 }
