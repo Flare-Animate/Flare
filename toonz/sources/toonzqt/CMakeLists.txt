@@ -54,6 +54,7 @@ set(MOC_HEADERS
     ../include/toonzqt/schematicviewer.h
     ../include/toonzqt/screenboard.h
     ../include/toonzqt/scriptconsole.h
+    ../include/toonzqt/seethroughwindow.h
     ../include/toonzqt/spectrumfield.h
     ../include/toonzqt/spreadsheetviewer.h
     ../include/toonzqt/stageschematicnode.h
@@ -141,6 +142,7 @@ set(SOURCES
     popupbutton.cpp
     rasterimagedata.cpp
     scriptconsole.cpp
+    seethroughwindow.cpp
     selection.cpp
     stageobjectsdata.cpp
     spectrumfield.cpp

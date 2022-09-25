@@ -15,7 +15,6 @@
 #include "startuppopup.h"
 #include "tooloptionsshortcutinvoker.h"
 #include "custompanelmanager.h"
-#include "seethroughwindowpopup.h"
 
 // TnzTools includes
 #include "tools/toolcommandids.h"
@@ -27,6 +26,7 @@
 #include "toonzqt/viewcommandids.h"
 #include "toonzqt/updatechecker.h"
 #include "toonzqt/paletteviewer.h"
+#include "toonzqt/seethroughwindow.h"
 
 // TnzLib includes
 #include "toonz/toonzfolders.h"
@@ -1096,11 +1096,7 @@ void MainWindow::fullScreenWindow() {
 }
 
 void MainWindow::seeThroughWindow() {
-  static SeeThroughWindowPopup *popup = nullptr;
-
-  if (!popup) popup = new SeeThroughWindowPopup();
-
-  popup->toggleMode();
+  SeeThroughWindowMode::instance()->toggleMode(this);
 }
 
 //-----------------------------------------------------------------------------
