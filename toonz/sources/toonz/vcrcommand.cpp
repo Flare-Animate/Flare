@@ -137,12 +137,11 @@ public:
   ShortPlayCommand() : MenuItemHandler(MI_ShortPlay) {}
 
   void execute() override {
-    int row = TApp::instance()->getCurrentFrame()->getFrame();
+    int row                 = TApp::instance()->getCurrentFrame()->getFrame();
     int shortPlayFrameCount = Preferences::instance()->getShortPlayFrameCount();
     int count =
         TApp::instance()->getCurrentXsheet()->getXsheet()->getFrameCount();
-    int newFrame = std::max(
-      0, count - shortPlayFrameCount);
+    int newFrame = std::max(0, count - shortPlayFrameCount);
     TApp::instance()->getCurrentFrame()->setFrame(newFrame);
     CommandManager::instance()->execute(MI_Play);
   }
@@ -159,7 +158,7 @@ public:
                                  "FunctionEditor", "FxSettings",
                                  "ComboViewer",    "SceneViewer"};
 
-    QWidget *panel    = QApplication::focusWidget();
+    QWidget *panel = QApplication::focusWidget();
     if (!panel) panel = TApp::instance()->getActiveViewer();
     while (panel) {
       QString pane = panel->objectName();
@@ -188,7 +187,7 @@ public:
                                  "FunctionEditor", "FxSettings",
                                  "ComboViewer",    "SceneViewer"};
 
-    QWidget *panel    = QApplication::focusWidget();
+    QWidget *panel = QApplication::focusWidget();
     if (!panel) panel = TApp::instance()->getActiveViewer();
     while (panel) {
       QString pane = panel->objectName();
@@ -227,7 +226,8 @@ VcrCommand playCommand(MI_Play, FlipConsole::ePlay),
     greenChannelGComman(MI_GreenChannelGreyscale, FlipConsole::eGGreen),
     blueChannelGCommand(MI_BlueChannelGreyscale, FlipConsole::eGBlue),
 
-    compareCommand(MI_CompareToSnapshot, FlipConsole::eCompare);
+    compareCommand(MI_CompareToSnapshot, FlipConsole::eCompare),
+    blankFramesCommand(MI_ToggleBlankFrames, FlipConsole::eBlankFrames);
 
 NextDrawingCommand nextDrawingCommand;
 PrevDrawingCommand prevDrawingCommand;
