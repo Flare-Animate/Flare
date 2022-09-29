@@ -1992,6 +1992,8 @@ void MainWindow::defineActions() {
                        "nextkey");
   createMenuPlayAction(MI_PrevKeyframe, QT_TR_NOOP("Previous Key"), "Ctrl+,",
                        "prevkey");
+  createMenuPlayAction(MI_ToggleBlankFrames, QT_TR_NOOP("Toggle Blank Frames"),
+                       "", "blankframes");
 
   // Menu - Render
 
