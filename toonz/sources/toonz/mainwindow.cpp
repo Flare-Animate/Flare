@@ -1652,6 +1652,8 @@ void MainWindow::defineActions() {
                        QT_TR_NOOP("&Clear Recent level File List"), "");
   createMenuFileAction(MI_ConvertFileWithInput, QT_TR_NOOP("&Convert File..."),
                        "", "convert");
+  createMenuFileAction(MI_ConvertTZPInFolder,
+                       QT_TR_NOOP("&Convert TZP Files In Folder..."), "");
   createMenuFileAction(MI_LoadColorModel, QT_TR_NOOP("&Load Color Model..."),
                        "", "load_colormodel");
   createMenuFileAction(MI_ImportMagpieFile,
