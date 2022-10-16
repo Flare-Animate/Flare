@@ -32,6 +32,7 @@ public:
   void updateAverageColor(const TPixel64 &pix);
   void setShowCompare(bool on);
   void invalidateCompHisto();
+  void moveNextToWidget(QWidget *widget);
 };
 
 //=============================================================================
