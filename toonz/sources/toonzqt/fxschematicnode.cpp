@@ -1038,7 +1038,7 @@ void FxOutputPainter::paint(QPainter *painter,
 
   SchematicViewer *viewer = sceneFx->getSchematicViewer();
   QColor outputColor      = m_isActive ? viewer->getActiveOutputColor()
-                                  : viewer->getOtherOutputColor();
+                                       : viewer->getOtherOutputColor();
 
   painter->setBrush(outputColor);
   painter->setPen(Qt::NoPen);
@@ -1279,7 +1279,7 @@ void FxSchematicPort::paint(QPainter *painter,
     } break;
 
     case eFxLinkPort:  // LinkPort
-    default: {         //ここから！！！
+    default: {
       QRect sourceRect =
           scene()->views()[0]->matrix().mapRect(boundingRect()).toRect();
       QPixmap linkPm =
@@ -3000,8 +3000,8 @@ FxSchematicColumnNode::FxSchematicColumnNode(FxSchematicScene *scene,
   m_name            = QString::fromStdString(name);
 
   m_resizeItem = new SchematicThumbnailToggle(
-      this, fx->getAttributes()->isOpened());    //サムネイル矢印
-  m_nameItem = new SchematicName(this, 54, 20);  //リネーム部分
+      this, fx->getAttributes()->isOpened());    // サムネイル矢印
+  m_nameItem = new SchematicName(this, 54, 20);  // リネーム部分
   m_outDock  = new FxSchematicDock(this, "", 0, eFxOutputPort);  // Outポート
   m_renderToggle =
       new SchematicToggle(this, viewer->getSchematicPreviewButtonOnImage(),
@@ -3069,7 +3069,7 @@ FxSchematicColumnNode::FxSchematicColumnNode(FxSchematicScene *scene,
 
   bool ret = true;
   ret      = ret && connect(m_resizeItem, SIGNAL(toggled(bool)), this,
-                       SLOT(onChangedSize(bool)));
+                            SLOT(onChangedSize(bool)));
   ret      = ret &&
         connect(m_nameItem, SIGNAL(focusOut()), this, SLOT(onNameChanged()));
   ret = ret && connect(m_renderToggle, SIGNAL(toggled(bool)), this,

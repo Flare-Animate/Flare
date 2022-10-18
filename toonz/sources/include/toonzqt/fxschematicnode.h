@@ -346,6 +346,7 @@ public:
 
   void toggleNormalIconView() { m_isNormalIconView = !m_isNormalIconView; }
   bool isNormalIconView() { return m_isNormalIconView; }
+
 signals:
 
   void switchCurrentFx(TFx *fx);
