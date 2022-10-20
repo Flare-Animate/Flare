@@ -1,7 +1,7 @@
 
 
 #ifdef _WIN32
-//#define UNICODE  // per le funzioni di conversione da/a UNC
+// #define UNICODE  // per le funzioni di conversione da/a UNC
 #include <windows.h>
 #include <lm.h>
 
@@ -277,8 +277,7 @@ void TFilePath::setPath(std::wstring path) {
       }
     } else if (isSlash(path[pos])) {
       int firstSlashPos = pos;
-      do
-        pos++;
+      do pos++;
       while (pos < length && isSlash(path[pos]));
       if (firstSlashPos == 0 && pos == 4)  // Caso "\\\\MachineName"
         m_path.append(2, wslash);
@@ -1060,9 +1059,9 @@ QString TFilePath::fidRegExpStr() {
   QString suffixLetter = (m_acceptNonAlphabetSuffix)
                              ? "[^\\._ \\\\/:,;*?\"<>|0123456789]"
                              : "[a-zA-Z]";
-  QString countLetter = (m_letterCountForSuffix == 0)
-                            ? "{0,}"
-                            : (QString("{0,%1}").arg(m_letterCountForSuffix));
+  QString countLetter  = (m_letterCountForSuffix == 0)
+                             ? "{0,}"
+                             : (QString("{0,%1}").arg(m_letterCountForSuffix));
   return QString("(\\d+)(%1%2)").arg(suffixLetter).arg(countLetter);
   // const QString fIdRegExp("(\\d+)([a-zA-Z]?)");
 }
@@ -1107,8 +1106,9 @@ TFilePath::TFilePathInfo TFilePath::analyzePath() const {
 
   // hogehoge.0001a.jpg
   // empty frame case : hogehoge..jpg
-  QRegExp rx("^" + levelNameRegExp + sepCharRegExp + "(?:" + fIdRegExp + ")?" +
-             "\\." + extensionRegExp + "$");
+  // empty level name case : ..jpg   .0001a.jpg
+  QRegExp rx("^(?:" + levelNameRegExp + ")?" + sepCharRegExp +
+             "(?:" + fIdRegExp + ")?" + "\\." + extensionRegExp + "$");
   if (rx.indexIn(fileName) != -1) {
     assert(rx.captureCount() == 5);
     info.levelName = rx.cap(1);
