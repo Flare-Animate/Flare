@@ -1543,6 +1543,13 @@ QStatusBar #StatusBarLabel {
 #HexagonalColorWheel {
   qproperty-BGColor: #808080;
 }
+#StyleChooserPage {
+  qproperty-CommonChipBoxColor: #000000;
+  qproperty-PinnedChipBoxColor: #405060;
+  qproperty-SolidChipBoxColor: #e41000;
+  qproperty-SelectedChipBoxColor: #ffffff;
+  qproperty-SelectedChipBox2Color: #c7ca32;
+}
 /* -------------------------------------------------------------------------- */
 /* Horizontal QSlider */
 #colorSlider::groove:horizontal {

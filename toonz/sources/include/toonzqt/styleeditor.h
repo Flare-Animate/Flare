@@ -14,6 +14,7 @@
 #include "toonz/tpalettehandle.h"
 #include "toonz/txshlevelhandle.h"
 #include "toonz/txshlevel.h"
+#include "toonz/stylemanager.h"
 
 // TnzQt includes
 #include "toonzqt/checkbox.h"
@@ -529,16 +530,76 @@ protected:
   int m_chipPerRow;
   static TFilePath m_rootPath;
 
-public:
-  StyleChooserPage(QWidget *parent = 0);
+  volatile bool m_pinsToTopDirty;
+  BaseStyleManager *m_manager;
+  StyleEditor *m_styleEditor;
+  QAction *m_pinToTopAct;
+  QAction *m_setPinsToTopAct;
+  QAction *m_clrPinsToTopAct;
 
+  enum ChipType {
+    COMMONCHIP = 0,  // Common chip
+    PINNEDCHIP = 1,  // Pin-to-top chip
+    SOLIDCHIP  = 2   // Solid/Nobrush chip
+  };
+
+  QColor m_commonChipBoxColor;
+  QColor m_pinnedChipBoxColor;
+  QColor m_solidChipBoxColor;
+  QColor m_selectedChipBoxColor;
+  QColor m_selectedChipBox2Color;
+
+  Q_PROPERTY(QColor CommonChipBoxColor READ getCommonChipBoxColor WRITE
+                 setCommonChipBoxColor)
+  Q_PROPERTY(QColor PinnedChipBoxColor READ getPinnedChipBoxColor WRITE
+                 setPinnedChipBoxColor)
+  Q_PROPERTY(QColor SolidChipBoxColor READ getSolidChipBoxColor WRITE
+                 setSolidChipBoxColor)
+  Q_PROPERTY(QColor SelectedChipBoxColor READ getSelectedChipBoxColor WRITE
+                 setSelectedChipBoxColor)
+  Q_PROPERTY(QColor SelectedChipBox2Color READ getSelectedChipBox2Color WRITE
+                 setSelectedChipBox2Color)
+
+  QColor getCommonChipBoxColor() const { return m_commonChipBoxColor; }
+  QColor getPinnedChipBoxColor() const { return m_pinnedChipBoxColor; }
+  QColor getSolidChipBoxColor() const { return m_solidChipBoxColor; }
+  QColor getSelectedChipBoxColor() const { return m_selectedChipBoxColor; }
+  QColor getSelectedChipBox2Color() const { return m_selectedChipBox2Color; }
+
+  void setSolidChipBoxColor(const QColor &color) {
+    m_solidChipBoxColor = color;
+  }
+  void setPinnedChipBoxColor(const QColor &color) {
+    m_pinnedChipBoxColor = color;
+  }
+  void setCommonChipBoxColor(const QColor &color) {
+    m_commonChipBoxColor = color;
+  }
+  void setSelectedChipBoxColor(const QColor &color) {
+    m_selectedChipBoxColor = color;
+  }
+  void setSelectedChipBox2Color(const QColor &color) {
+    m_selectedChipBox2Color = color;
+  }
+
+public:
+  StyleChooserPage(StyleEditor *styleEditor, QWidget *parent = 0);
+
+  void setChipSize(QSize chipSize);
   QSize getChipSize() const { return m_chipSize; }
+
+  void applyFilter();
+  void applyFilter(const QString text);
 
   virtual bool loadIfNeeded()      = 0;
   virtual int getChipCount() const = 0;
 
-  virtual void drawChip(QPainter &p, QRect rect, int index) = 0;
+  virtual int drawChip(QPainter &p, QRect rect, int index) = 0;
   virtual void onSelect(int index) {}
+
+  virtual bool isSameStyle(const TColorStyleP style, int index) = 0;
+
+  virtual QString getChipDescription(int index) = 0;
 
   //! \see StyleEditor::setRootPath()
   // TOGLIERE
@@ -546,7 +607,7 @@ public:
   static TFilePath getRootPath() { return m_rootPath; }
 
 protected:
-  int m_currentIndex;
+  // int m_currentIndex;
 
   int posToIndex(const QPoint &pos) const;
 
@@ -554,12 +615,191 @@ protected:
   void resizeEvent(QResizeEvent *) override { computeSize(); }
 
   void mousePressEvent(QMouseEvent *event) override;
-  void mouseMoveEvent(QMouseEvent *event) override {}
+  void mouseMoveEvent(QMouseEvent *event) override;
   void mouseReleaseEvent(QMouseEvent *event) override;
-protected slots:
+  void contextMenuEvent(QContextMenuEvent *event) override;
+
+  bool event(QEvent *e) override;
+
+public slots:
+  void patternAdded();
   void computeSize();
+  void togglePinToTop();
+  void doSetPinsToTop();
+  void doClrPinsToTop();
+  void doPinsToTopChange();
+
 signals:
   void styleSelected(const TColorStyle &style);
+};
+
+//*****************************************************************************
+//    CustomStyleChooser  definition
+//*****************************************************************************
+
+class CustomStyleChooserPage final : public StyleChooserPage {
+public:
+  CustomStyleChooserPage(StyleEditor *styleEditor, QWidget *parent = 0)
+      : StyleChooserPage(styleEditor, parent) {
+    static const QString filters(
+        "*.pli *.tif *.png *.tga *.tiff *.sgi *.rgb *.pct *.pic *.exr");
+    static CustomStyleManager theManager(
+        "RasterImagePatternStrokeStyle:", "VectorImagePatternStrokeStyle:",
+        TFilePath("custom styles"), filters, m_chipSize);
+    m_manager = &theManager;
+  }
+
+  void showEvent(QShowEvent *) override {
+    connect(m_manager, SIGNAL(patternAdded()), this, SLOT(patternAdded()));
+    m_manager->loadItems();
+  }
+  void hideEvent(QHideEvent *) override {
+    disconnect(m_manager, SIGNAL(patternAdded()), this, SLOT(patternAdded()));
+  }
+  bool loadIfNeeded() override { return false; }  // serve?
+  /*
+if(!m_loaded) {loadItems(); m_loaded=true;return true;}
+else return false;
+}
+  */
+
+  int getChipCount() const override { return m_manager->countData(); }
+
+  int drawChip(QPainter &p, QRect rect, int index) override;
+  void onSelect(int index) override;
+  bool isSameStyle(const TColorStyleP style, int index) override;
+
+  QString getChipDescription(int index) override;
+};
+
+//*****************************************************************************
+//    VectorBrushStyleChooser  definition
+//*****************************************************************************
+
+class VectorBrushStyleChooserPage final : public StyleChooserPage {
+public:
+  VectorBrushStyleChooserPage(StyleEditor *styleEditor, QWidget *parent = 0)
+      : StyleChooserPage(styleEditor, parent) {
+    m_chipSize = QSize(60, 25);
+    static CustomStyleManager theManager(
+        "InvalidStyle", "VectorBrushStyle:", TFilePath("vector brushes"),
+        "*.pli", m_chipSize);
+    m_manager = &theManager;
+  }
+
+  void showEvent(QShowEvent *) override {
+    bool ret =
+        connect(m_manager, SIGNAL(patternAdded()), this, SLOT(patternAdded()));
+    if (!ret) throw "!";
+    m_manager->loadItems();
+  }
+  void hideEvent(QHideEvent *) override {
+    disconnect(m_manager, SIGNAL(patternAdded()), this, SLOT(patternAdded()));
+  }
+  bool loadIfNeeded() override { return false; }
+
+  int getChipCount() const override { return m_manager->countData() + 1; }
+
+  int drawChip(QPainter &p, QRect rect, int index) override;
+  void onSelect(int index) override;
+  bool isSameStyle(const TColorStyleP style, int index) override;
+
+  QString getChipDescription(int index) override;
+};
+
+//*****************************************************************************
+//    TextureStyleChooser  definition
+//*****************************************************************************
+
+class TextureStyleChooserPage final : public StyleChooserPage {
+public:
+  TextureStyleChooserPage(StyleEditor *styleEditor, QWidget *parent = 0)
+      : StyleChooserPage(styleEditor, parent) {
+    m_chipSize = QSize(25, 25);
+    static TextureStyleManager theManager(TFilePath("textures"), m_chipSize);
+    m_manager = &theManager;
+  }
+
+  bool loadIfNeeded() override {
+    if (!m_manager->isLoaded()) {
+      m_manager->loadItems();
+      return true;
+    } else
+      return false;
+  }
+
+  int getChipCount() const override { return m_manager->countData() + 1; }
+
+  int drawChip(QPainter &p, QRect rect, int index) override;
+  void onSelect(int index) override;
+  bool isSameStyle(const TColorStyleP style, int index) override;
+
+  QString getChipDescription(int index) override;
+};
+
+//*****************************************************************************
+//    MyPaintBrushStyleChooserPage  definition
+//*****************************************************************************
+
+class MyPaintBrushStyleChooserPage final : public StyleChooserPage {
+  MyPaintBrushStyleManager *m_mypManager;
+
+public:
+  MyPaintBrushStyleChooserPage(StyleEditor *styleEditor, QWidget *parent = 0)
+      : StyleChooserPage(styleEditor, parent) {
+    m_chipSize = QSize(64, 64);
+    static MyPaintBrushStyleManager theManager(m_chipSize);
+    m_manager    = &theManager;
+    m_mypManager = &theManager;
+  }
+
+  bool loadIfNeeded() override {
+    if (!m_manager->isLoaded()) {
+      m_manager->loadItems();
+      return true;
+    } else
+      return false;
+  }
+
+  TMyPaintBrushStyle &getBrush(int index) {
+    return m_mypManager->getBrush(index);
+  }
+  int getChipCount() const override { return m_manager->countData() + 1; }
+
+  int drawChip(QPainter &p, QRect rect, int index) override;
+  void onSelect(int index) override;
+  bool isSameStyle(const TColorStyleP style, int index) override;
+
+  QString getChipDescription(int index) override;
+};
+
+//*****************************************************************************
+//    SpecialStyleChooser  definition
+//*****************************************************************************
+
+class SpecialStyleChooserPage final : public StyleChooserPage {
+public:
+  SpecialStyleChooserPage(StyleEditor *styleEditor, QWidget *parent = 0,
+                          const TFilePath &rootDir = TFilePath())
+      : StyleChooserPage(styleEditor, parent) {
+    static SpecialStyleManager theManager(m_chipSize);
+    m_manager = &theManager;
+  }
+
+  bool loadIfNeeded() override {
+    if (!m_manager->isLoaded()) {
+      m_manager->loadItems();
+      return true;
+    } else
+      return false;
+  }
+  int getChipCount() const override { return m_manager->countData() + 1; }
+
+  int drawChip(QPainter &p, QRect rect, int index) override;
+  void onSelect(int index) override;
+  bool isSameStyle(const TColorStyleP style, int index) override;
+
+  QString getChipDescription(int index) override;
 };
 
 //=============================================================================
@@ -654,19 +894,32 @@ class DVAPI StyleEditor final : public QWidget, public SaveLoadQSettings {
 
   PlainColorPage *m_plainColorPage;
   StyleChooserPage *m_textureStylePage;
-  StyleEditorPage *m_specialStylePage;
+  StyleChooserPage *m_specialStylePage;
   StyleChooserPage *m_customStylePage;
   StyleChooserPage *m_vectorBrushesStylePage;
   StyleChooserPage *m_mypaintBrushesStylePage;
   SettingsPage *m_settingsPage;
-  QScrollArea *m_vectorArea;
+  QScrollArea *m_textureArea;
+  QScrollArea *m_vectorsArea;
+  QScrollArea *m_mypaintArea;
   QAction *m_wheelAction;
   QAction *m_hsvAction;
   QAction *m_alphaAction;
   QAction *m_rgbAction;
   QAction *m_hexAction;
+  QAction *m_searchAction;
   QActionGroup *m_sliderAppearanceAG;
   QAction *m_hexEditorAction;
+
+  QFrame *m_textureSearchFrame;
+  QFrame *m_vectorsSearchFrame;
+  QFrame *m_mypaintSearchFrame;
+  QLineEdit *m_textureSearchText;
+  QLineEdit *m_vectorsSearchText;
+  QLineEdit *m_mypaintSearchText;
+  QPushButton *m_textureSearchClear;
+  QPushButton *m_vectorsSearchClear;
+  QPushButton *m_mypaintSearchClear;
 
   TColorStyleP
       m_oldStyle;  //!< A copy of current style \a before the last change.
@@ -692,6 +945,7 @@ public:
 
   TPalette *getPalette() { return m_paletteHandle->getPalette(); }
   int getStyleIndex() { return m_paletteHandle->getStyleIndex(); }
+  const TColorStyleP getEditedStyle() const { return m_editedStyle; }
 
   /*! rootPath generally is STUFFDIR/Library. Contains directories 'textures'
      and
@@ -733,6 +987,8 @@ protected:
   void enable(bool enabled, bool enabledOnlyFirstTab = false,
               bool enabledFirstAndLastTab = false);
 
+  void updateStylePages();
+
 protected:
   void showEvent(QShowEvent *) override;
   void hideEvent(QHideEvent *) override;
@@ -771,6 +1027,8 @@ protected slots:
   void onHexChanged();
   void onHexEditor();
 
+  void onSearchVisible(bool on);
+
   void onSpecialButtonToggled(bool on);
   void onCustomButtonToggled(bool on);
   void onVectorBrushButtonToggled(bool on);
@@ -778,9 +1036,20 @@ protected slots:
   void onSliderAppearanceSelected(QAction *);
   void onPopupMenuAboutToShow();
 
+  void onTextureSearch(const QString &);
+  void onTextureClearSearch();
+
+  void onVectorsSearch(const QString &);
+  void onVectorsClearSearch();
+
+  void onMyPaintSearch(const QString &);
+  void onMyPaintClearSearch();
+
 private:
   QFrame *createBottomWidget();
+  QFrame *createTexturePage();
   QFrame *createVectorPage();
+  QFrame *createMyPaintPage();
   void updateTabBar();
 
   void copyEditedStyleToPalette(bool isDragging);
