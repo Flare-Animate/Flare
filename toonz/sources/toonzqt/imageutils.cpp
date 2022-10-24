@@ -1,6 +1,7 @@
 
 
 // TnzQt includes
+#include "toonzqt/seethroughwindow.h"
 #include "toonzqt/menubarcommand.h"
 #include "toonzqt/viewcommandids.h"
 #include "toonzqt/imageutils.h"
@@ -894,6 +895,10 @@ FullScreenWidget::FullScreenWidget(QWidget *parent) : QWidget(parent) {
   layout->setMargin(0);
   layout->setSpacing(0);
 
+  // Attach see-through window signal so this can detect opacity changes
+  connect(SeeThroughWindowMode::instance(), SIGNAL(opacityChanged(int, bool &)),
+          this, SLOT(opacityChanged(int, bool &)));
+
   setLayout(layout);
 }
 
@@ -948,6 +953,9 @@ bool FullScreenWidget::toggleFullScreen(
     // Set the return value to indicate that the full screen mode has been
     // changed.
     fFullScreenStateToggled = true;
+
+    // Refresh see-through window opacity
+    SeeThroughWindowMode::instance()->refreshOpacity();
   } else {
     // There's no point to switching into full screen if the
     // application is in the process of quitting.
@@ -1048,10 +1056,18 @@ bool FullScreenWidget::toggleFullScreen(
       // Set the return value to indicate that the full screen mode has been
       // changed.
       fFullScreenStateToggled = true;
+
+      // Refresh see-through window opacity
+      SeeThroughWindowMode::instance()->refreshOpacity();
     }
   }
 
   return (fFullScreenStateToggled);
+}
+
+void FullScreenWidget::opacityChanged(int value, bool &hideMain) {
+  this->setWindowOpacity((double)value / 100);
+  if (this->windowState() & Qt::WindowFullScreen) hideMain = true;
 }
 
 }  // namespace ImageUtils

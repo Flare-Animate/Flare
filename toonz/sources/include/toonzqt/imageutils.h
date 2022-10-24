@@ -171,8 +171,10 @@ public:
   QWidget *widget() const { return m_widget; }
 
 public slots:
-
   bool toggleFullScreen(bool quit = false);
+
+private slots:
+  void opacityChanged(int value, bool &hideMain);
 };
 
 //*********************************************************************************************

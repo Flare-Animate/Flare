@@ -325,7 +325,8 @@
         <command>MI_OpenCustomPanels</command>
         <separator/>
         <command>MI_MaximizePanel</command>
-        <command>MI_FullScreenWindow</command>        
+        <command>MI_FullScreenWindow</command>
+        <command>MI_SeeThroughWindow</command>
     </menu>
     <menu title="Help">
         <command>MI_OpenOnlineManual</command>

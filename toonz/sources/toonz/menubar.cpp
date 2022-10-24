@@ -1434,6 +1434,7 @@ QMenuBar *StackedMenuBar::createFullMenuBar() {
   windowsMenu->addSeparator();
   addMenuItem(windowsMenu, MI_MaximizePanel);
   addMenuItem(windowsMenu, MI_FullScreenWindow);
+  addMenuItem(windowsMenu, MI_SeeThroughWindow);
 
   // Menu' HELP
   QMenu *helpMenu = addMenu(tr("Help"), fullMenuBar);
