@@ -10,6 +10,7 @@
 #include "cleanupsettingspopup.h"
 #include "filebrowsermodel.h"
 #include "expressionreferencemanager.h"
+#include "thirdparty.h"
 
 // TnzTools includes
 #include "tools/tool.h"
@@ -494,6 +495,9 @@ int main(int argc, char *argv[]) {
 
   // Toonz environment
   initToonzEnv(argumentPathValues);
+
+  // Setup third party
+  ThirdParty::initialize();
 
   // prepare for 30bit display
   if (Preferences::instance()->is30bitDisplayEnabled()) {

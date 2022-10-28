@@ -1035,6 +1035,17 @@ void MainWindow::autofillToggle() {
 void MainWindow::resetRoomsLayout() {
   if (!m_saveSettingsOnQuit) return;
 
+  QString message(tr("Reset rooms to their default?"));
+  message += "\n" + tr("All user rooms will be lost!");
+
+  QMessageBox::StandardButton ret = QMessageBox::question(
+      this, tr("Reset Rooms"), message,
+      QMessageBox::StandardButtons(QMessageBox::Yes | QMessageBox::No));
+
+  if (ret != QMessageBox::Yes) return;
+
+  // Reflect changes to initwizard.cpp: void UIPage::resetRoom()
+
   m_saveSettingsOnQuit = false;
 
   TFilePath layoutDir = ToonzFolder::getMyRoomsDir();
@@ -1058,7 +1069,13 @@ void MainWindow::resetRoomsLayout() {
   }*/
 
   DVGui::info(
-      QObject::tr("The rooms will be reset the next time you run Toonz."));
+      QObject::tr("The rooms will be reset the next time you run OpenToonz."));
+
+  ret = QMessageBox::question(
+      this, tr("Reset Rooms"), tr("You must restart OpenToonz, close it now?"),
+      QMessageBox::StandardButtons(QMessageBox::Yes | QMessageBox::No));
+
+  if (ret == QMessageBox::Yes) close();
 }
 
 void MainWindow::maximizePanel() {
