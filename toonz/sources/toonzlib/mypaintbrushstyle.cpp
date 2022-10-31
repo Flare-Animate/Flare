@@ -47,6 +47,14 @@ TMyPaintBrushStyle::~TMyPaintBrushStyle() {}
 
 //-----------------------------------------------------------------------------
 
+TColorStyle *TMyPaintBrushStyle::clone(std::string brushIdName) const {
+  TMyPaintBrushStyle *style = new TMyPaintBrushStyle(*this);
+  style->loadBrush(TFilePath(getBrushIdNameParam(brushIdName)));
+  return style;
+}
+
+//-----------------------------------------------------------------------------
+
 TColorStyle &TMyPaintBrushStyle::copy(const TColorStyle &other) {
   const TMyPaintBrushStyle *otherBrushStyle =
       dynamic_cast<const TMyPaintBrushStyle *>(&other);
@@ -66,6 +74,14 @@ TColorStyle &TMyPaintBrushStyle::copy(const TColorStyle &other) {
 
 QString TMyPaintBrushStyle::getDescription() const {
   return "MyPaintBrushStyle";
+}
+
+//-----------------------------------------------------------------------------
+
+std::string TMyPaintBrushStyle::getBrushIdName() const {
+  std::wstring ws = m_path.getWideString();
+  const std::string s(ws.begin(), ws.end());
+  return "MyPaintBrushStyle:" + s;
 }
 
 //-----------------------------------------------------------------------------
