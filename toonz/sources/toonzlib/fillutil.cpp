@@ -149,7 +149,7 @@ void fillautoInks(TRasterCM32P &rin, TRect &rect, const TRasterCM32P &rbefore,
       int paint = pix->getPaint();
       int tone  = pix->getTone();
       int ink   = pix->getInk();
-      if (paint != pixb->getPaint() && tone > 0 && tone < 255 && ink != paint &&
+      if (paint != pixb->getPaint() && ink != paint &&
           plt->getStyle(ink)->getFlags() != 0)
         inkFill(rin, TPoint(j, i) + rect.getP00(), paint, 0, NULL, &rect);
     }
