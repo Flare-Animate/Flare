@@ -900,10 +900,6 @@ FullScreenWidget::FullScreenWidget(QWidget *parent) : QWidget(parent) {
           this, SLOT(opacityChanged(int, bool &)));
 
   setLayout(layout);
-  
-#ifdef _WIN32
-  this->winId();
-#endif
 }
 
 //---------------------------------------------------------------------------------
@@ -1047,6 +1043,7 @@ bool FullScreenWidget::toggleFullScreen(
             this->window()->windowHandle()->setScreen(ptrScreenThisWindowIsOn);
 
             // http://doc.qt.io/qt-5/windows-issues.html#fullscreen-opengl-based-windows
+            this->winId();
             QWindowsWindowFunctions::setHasBorderInFullScreen(
                 this->windowHandle(), true);
 
