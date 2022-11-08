@@ -86,6 +86,11 @@ void XsheetViewer::getCellTypeAndColors(int &ltype, QColor &cellColor,
           (isSelected) ? getSelectedLevelColumnColor() : getLevelColumnColor();
       sideColor = getLevelColumnBorderColor();
       break;
+    case PLT_XSHLEVEL:
+      cellColor = (isSelected) ? getSelectedPaletteColumnColor()
+                               : getPaletteColumnColor();
+      sideColor = getPaletteColumnBorderColor();
+      break;
     case ZERARYFX_XSHLEVEL:
       cellColor =
           (isSelected) ? getSelectedFxColumnColor() : getFxColumnColor();
@@ -148,50 +153,50 @@ void XsheetViewer::getButton(const int &btype, QColor &bgColor,
                              QImage &iconImage, bool isTimeline) {
   switch (btype) {
   case PREVIEW_ON_XSHBUTTON:
-    bgColor = (isTimeline) ? getTimelinePreviewButtonBgOnColor()
-                           : getXsheetPreviewButtonBgOnColor();
+    bgColor   = (isTimeline) ? getTimelinePreviewButtonBgOnColor()
+                             : getXsheetPreviewButtonBgOnColor();
     iconImage = (isTimeline) ? getTimelinePreviewButtonOnImage()
                              : getXsheetPreviewButtonOnImage();
     break;
   case PREVIEW_OFF_XSHBUTTON:
-    bgColor = (isTimeline) ? getTimelinePreviewButtonBgOffColor()
-                           : getXsheetPreviewButtonBgOffColor();
+    bgColor   = (isTimeline) ? getTimelinePreviewButtonBgOffColor()
+                             : getXsheetPreviewButtonBgOffColor();
     iconImage = (isTimeline) ? getTimelinePreviewButtonOffImage()
                              : getXsheetPreviewButtonOffImage();
     break;
   case CAMSTAND_ON_XSHBUTTON:
-    bgColor = (isTimeline) ? getTimelineCamstandButtonBgOnColor()
-                           : getXsheetCamstandButtonBgOnColor();
+    bgColor   = (isTimeline) ? getTimelineCamstandButtonBgOnColor()
+                             : getXsheetCamstandButtonBgOnColor();
     iconImage = (isTimeline) ? getTimelineCamstandButtonOnImage()
                              : getXsheetCamstandButtonOnImage();
     break;
   case CAMSTAND_TRANSP_XSHBUTTON:
-    bgColor = (isTimeline) ? getTimelineCamstandButtonBgOnColor()
-                           : getXsheetCamstandButtonBgOnColor();
+    bgColor   = (isTimeline) ? getTimelineCamstandButtonBgOnColor()
+                             : getXsheetCamstandButtonBgOnColor();
     iconImage = (isTimeline) ? getTimelineCamstandButtonTranspImage()
                              : getXsheetCamstandButtonTranspImage();
     break;
   case CAMSTAND_OFF_XSHBUTTON:
-    bgColor = (isTimeline) ? getTimelineCamstandButtonBgOffColor()
-                           : getXsheetCamstandButtonBgOffColor();
+    bgColor   = (isTimeline) ? getTimelineCamstandButtonBgOffColor()
+                             : getXsheetCamstandButtonBgOffColor();
     iconImage = (isTimeline) ? getTimelineCamstandButtonOffImage()
                              : getXsheetCamstandButtonOffImage();
     break;
   case LOCK_ON_XSHBUTTON:
-    bgColor = (isTimeline) ? getTimelineLockButtonBgOnColor()
-                           : getXsheetLockButtonBgOnColor();
+    bgColor   = (isTimeline) ? getTimelineLockButtonBgOnColor()
+                             : getXsheetLockButtonBgOnColor();
     iconImage = (isTimeline) ? getTimelineLockButtonOnImage()
                              : getXsheetLockButtonOnImage();
     break;
   case LOCK_OFF_XSHBUTTON:
-    bgColor = (isTimeline) ? getTimelineLockButtonBgOffColor()
-                           : getXsheetLockButtonBgOffColor();
+    bgColor   = (isTimeline) ? getTimelineLockButtonBgOffColor()
+                             : getXsheetLockButtonBgOffColor();
     iconImage = (isTimeline) ? getTimelineLockButtonOffImage()
                              : getXsheetLockButtonOffImage();
     break;
   case CONFIG_XSHBUTTON:
-    bgColor = (isTimeline) ? getTimelineConfigButtonBgColor()
-                           : getXsheetConfigButtonBgColor();
+    bgColor   = (isTimeline) ? getTimelineConfigButtonBgColor()
+                             : getXsheetConfigButtonBgColor();
     iconImage = (isTimeline) ? getTimelineConfigButtonImage()
                              : getXsheetConfigButtonImage();
     break;
@@ -1823,9 +1828,9 @@ QList<int> XsheetViewer::availableFramesPerPage() {
   ret << frameRate * 6;
 
   // visible area size
-  int size = (orientation()->isVerticalTimeline())
-                 ? m_cellScrollArea->viewport()->height()
-                 : m_cellScrollArea->viewport()->width();
+  int size     = (orientation()->isVerticalTimeline())
+                     ? m_cellScrollArea->viewport()->height()
+                     : m_cellScrollArea->viewport()->width();
   int scaleMin = (orientation()->isVerticalTimeline()) ? 50 : 20;
   int scaleMax = 100;
 
@@ -1852,9 +1857,9 @@ QList<int> XsheetViewer::availableFramesPerPage() {
 //----------------------------------------------------------------
 
 void XsheetViewer::zoomToFramesPerPage(int frames) {
-  int size = (orientation()->isVerticalTimeline())
-                 ? m_cellScrollArea->viewport()->height()
-                 : m_cellScrollArea->viewport()->width();
+  int size     = (orientation()->isVerticalTimeline())
+                     ? m_cellScrollArea->viewport()->height()
+                     : m_cellScrollArea->viewport()->width();
   int frameDim = orientation()->dimension(PredefinedDimension::FRAME);
 
   double scale = (double)size / ((double)frameDim * (double)frames);

@@ -475,14 +475,13 @@ void ChangeObjectParent::refresh() {
     else if (id.isCamera()) {
       bool isActive = (id == xsh->getStageObjectTree()->getCurrentCameraId());
       newTextBG     = isActive ? viewer->getActiveCameraColor()
-                           : viewer->getOtherCameraColor();
+                               : viewer->getOtherCameraColor();
     } else if (id.isColumn() && (!xsh->isColumnEmpty(index))) {
       TXshColumn *colx = xsh->getColumn(index);
-      if (colx->getColumnType() != TXshColumn::eSoundTextType &&
-          colx->getColumnType() != TXshColumn::eSoundType) {
-        QColor unused;
-        viewer->getColumnColor(newTextBG, unused, id.getIndex(), xsh);
-      }
+      if (!colx->canBeParent()) continue;
+
+      QColor unused;
+      viewer->getColumnColor(newTextBG, unused, id.getIndex(), xsh);
     } else
       continue;
 
@@ -797,8 +796,8 @@ void ColumnArea::DrawHeader::levelColors(QColor &columnColor,
         cameraId.getIndex() == m_viewer->getXsheet()->getCameraColumnIndex();
     columnColor = isActive ? m_viewer->getActiveCameraColor()
                            : m_viewer->getOtherCameraColor();
-    dragColor = isActive ? m_viewer->getActiveCameraColor()
-                         : m_viewer->getOtherCameraColor();
+    dragColor   = isActive ? m_viewer->getActiveCameraColor()
+                           : m_viewer->getOtherCameraColor();
     return;
   }
   enum { Normal, Reference, Control } usage = Reference;
@@ -934,10 +933,9 @@ void ColumnArea::DrawHeader::drawPreviewToggle(int opacity) const {
   // camstand visible toggle
   QColor bgColor;
   QImage icon;
-  int buttonType =
-      !column->isCamstandVisible()
-          ? CAMSTAND_OFF_XSHBUTTON
-          : opacity < 255 ? CAMSTAND_TRANSP_XSHBUTTON : CAMSTAND_ON_XSHBUTTON;
+  int buttonType = !column->isCamstandVisible() ? CAMSTAND_OFF_XSHBUTTON
+                   : opacity < 255              ? CAMSTAND_TRANSP_XSHBUTTON
+                                                : CAMSTAND_ON_XSHBUTTON;
   m_viewer->getButton(buttonType, bgColor, icon, !o->isVerticalTimeline());
 
   QRect tableViewRect =
@@ -1119,8 +1117,9 @@ void ColumnArea::DrawHeader::drawColumnName() const {
         leftadj = 24;
     }
 
-    p.setPen((isCurrent) ? m_viewer->getSelectedColumnTextColor()
-                         : nameBacklit ? Qt::black : m_viewer->getTextColor());
+    p.setPen((isCurrent)   ? m_viewer->getSelectedColumnTextColor()
+             : nameBacklit ? Qt::black
+                           : m_viewer->getTextColor());
   } else
     p.setPen((isCurrent) ? m_viewer->getSelectedColumnTextColor()
                          : m_viewer->getTextColor());
@@ -1258,8 +1257,7 @@ void ColumnArea::DrawHeader::drawPegbarName() const {
   p.setPen(m_viewer->getVerticalLineColor());
   if (o->flag(PredefinedFlag::PEGBAR_NAME_BORDER)) p.drawRect(pegbarnamerect);
 
-  if (column->getSoundColumn() || column->getSoundTextColumn() ||
-      column->getPaletteColumn())
+  if (column->getSoundColumn() || column->getSoundTextColumn())
     return;
 
   if (Preferences::instance()->isParentColorsInXsheetColumnEnabled() &&
@@ -1295,8 +1293,7 @@ void ColumnArea::DrawHeader::drawPegbarName() const {
 void ColumnArea::DrawHeader::drawParentHandleName() const {
   if (col < 0 || isEmpty ||
       !o->flag(PredefinedFlag::PARENT_HANDLE_NAME_VISIBILE) ||
-      column->getSoundColumn() || column->getSoundTextColumn() ||
-      column->getPaletteColumn())
+      column->getSoundColumn() || column->getSoundTextColumn())
     return;
 
   QRect parenthandleRect =

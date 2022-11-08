@@ -166,11 +166,12 @@
 		<file>icons/dark/mimetypes/60/svg_icon.svg</file>
 		<file>icons/dark/mimetypes/60/audio_icon.svg</file>
 		<file>icons/dark/mimetypes/60/script_icon.svg</file>
-    <file>icons/dark/mimetypes/60/broken_icon.svg</file>
-    <file>icons/dark/mimetypes/60/json_icon.svg</file>
+		<file>icons/dark/mimetypes/60/broken_icon.svg</file>
+		<file>icons/dark/mimetypes/60/json_icon.svg</file>
 
 		<!-- Render -->
 		<file>icons/dark/actions/16/render.svg</file>
+		<file>icons/dark/actions/16/save_and_render.svg</file>
 		<file>icons/dark/actions/16/render_clapboard.svg</file>
 		<file>icons/dark/actions/16/render_add.svg</file>
 		<file>icons/dark/actions/16/output_settings.svg</file>
@@ -215,8 +216,8 @@
 		<file>icons/dark/actions/16/nextstep.svg</file>
 		<file>icons/dark/actions/16/prevstep.svg</file>
 		<file>icons/dark/actions/16/nextkey.svg</file>
-    <file>icons/dark/actions/16/prevkey.svg</file>
-    <file>icons/dark/actions/16/blankframes.svg</file>
+		<file>icons/dark/actions/16/prevkey.svg</file>
+		<file>icons/dark/actions/16/blankframes.svg</file>
 
 		<file>icons/dark/actions/16/snapshot.svg</file>
 		<file>icons/dark/actions/16/compare.svg</file>
@@ -522,7 +523,7 @@
 		<file>icons/dark/actions/48/colorchiporder_lowleft.svg</file>
 		<file>icons/dark/actions/48/colorchiporder_upleft.svg</file>
 		<file>icons/dark/misc/startup.png</file>
-    	<file>icons/dark/actions/20/touch.svg</file>
+		<file>icons/dark/actions/20/touch.svg</file>
 		<file>icons/dark/actions/16/quit.svg</file>
 		<file>icons/dark/actions/16/clear_cache.svg</file>
 		<file>icons/dark/actions/16/dialogue.svg</file>
@@ -536,7 +537,7 @@
 		<file>icons/dark/actions/16/tool_options.svg</file>
 		<file>icons/dark/actions/16/view_file.svg</file>
 		<file>icons/dark/actions/16/level_strip.svg</file>
-    <file>icons/dark/actions/17/syncscale.svg</file>
+		<file>icons/dark/actions/17/syncscale.svg</file>
 
 		<!-- Keyframe -->
 		<file>icons/dark/actions/20/key_off.svg</file>
