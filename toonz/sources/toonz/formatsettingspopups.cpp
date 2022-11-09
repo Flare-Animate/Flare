@@ -404,8 +404,7 @@ void FormatSettingsPopup::onPaddingCBChanged() {
 bool openFormatSettingsPopup(QWidget *parent, const std::string &format,
                              TPropertyGroup *props, TFrameId *tmplFId,
                              bool forInput, const TFilePath &levelPath) {
-  bool quicktime =
-      (format == "mov" || format == "3gp") && Tiio::isQuicktimeInstalled();
+  bool quicktime = (format == "mov" || format == "3gp") && Tiio::useQuicktime();
   if (quicktime)  // trattato diversamente; il format
                   // popup dei mov e' quello di
                   // quicktime

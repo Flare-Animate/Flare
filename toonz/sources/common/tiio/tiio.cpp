@@ -263,3 +263,13 @@ void Tiio::Writer::getSupportedFormats(QStringList &formats,
 void Tiio::Writer::setProperties(TPropertyGroup *properties) {
   m_properties = properties ? properties->clone() : 0;
 }
+
+//-----------------------------------------------------
+
+bool Tiio::useQuicktime(bool enable) {
+  static bool state = false;
+  if (enable) state = true;
+  return state;
+}
+
+//-----------------------------------------------------
