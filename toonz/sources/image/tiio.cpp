@@ -247,6 +247,8 @@ void initImageIo(bool lightVersion) {
 #endif  // _WIN32
 
     if (IsQuickTimeInstalled()) {
+      Tiio::useQuicktime(true);
+
       TLevelWriter::define("mov", TLevelWriterMov::create, true);
       TLevelReader::define("mov", TLevelReaderMov::create);
       TFileType::declare("mov", TFileType::RASTER_LEVEL);
