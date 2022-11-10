@@ -196,6 +196,7 @@ protected slots:
   void toggleFillRectangular();
   void toggleFillFreehand();
   void toggleFillPolyline();
+  void toggleFillFreepick();
   void toggleFillNextMode();
   void toggleFillAreas();
   void toggleFillLines();

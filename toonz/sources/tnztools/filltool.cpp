@@ -58,6 +58,7 @@ using namespace ToolUtils;
 #define RECTFILL L"Rectangular"
 #define FREEHANDFILL L"Freehand"
 #define POLYLINEFILL L"Polyline"
+#define FREEPICKFILL L"Freepick"
 
 TEnv::IntVar MinFillDepth("InknpaintMinFillDepth", 0);
 TEnv::IntVar MaxFillDepth("InknpaintMaxFillDepth", 10);
@@ -1229,7 +1230,8 @@ void AreaFillTool::draw() {
       drawRect(m_firstRect, color, 0x3F33, true);
     if (m_selecting || (m_frameRange && !m_firstFrameSelected))
       drawRect(m_selectingRect, color, 0xFFFF, true);
-  } else if ((m_type == FREEHAND || m_type == POLYLINE) && m_frameRange) {
+  } else if ((m_type == FREEHAND || m_type == POLYLINE || m_type == FREEPICK) &&
+             m_frameRange) {
     tglColor(color);
     if (m_firstStroke) drawStrokeCenterline(*m_firstStroke, 1);
   }
@@ -1243,12 +1245,42 @@ void AreaFillTool::draw() {
     tglVertex(m_mousePosition);
     glEnd();
     glPopMatrix();
-  } else if (m_type == FREEHAND && !m_track.isEmpty()) {
+  } else if ((m_type == FREEHAND || m_type == FREEPICK) && !m_track.isEmpty()) {
     tglColor(TPixel::Red);
     glPushMatrix();
     m_track.drawAllFragments();
     glPopMatrix();
   }
+}
+
+int AreaFillTool::pick(const TImageP &image, const TPointD &pos,
+                       const int frame, int mode) {
+  TToonzImageP ti  = image;
+  TVectorImageP vi = image;
+  if (!ti && !vi) return 0;
+
+  TTool::Viewer *viewer = m_parent->getViewer();
+
+  StylePicker picker(viewer->viewerWidget(), image);
+  double scale2 = 1.0;
+  if (vi) {
+    TAffine aff =
+        viewer->getViewMatrix() * m_parent->getCurrentColumnMatrix(frame);
+    scale2 = aff.det();
+  }
+  TPointD pickPos = pos;
+  // in case that the column is animated in scene-editing mode
+  if (frame > 0) {
+    TPointD dpiScale = viewer->getDpiScale();
+    pickPos.x *= dpiScale.x;
+    pickPos.y *= dpiScale.y;
+    TPointD worldPos = m_parent->getCurrentColumnMatrix() * pickPos;
+    pickPos          = m_parent->getCurrentColumnMatrix(frame).inv() * worldPos;
+    pickPos.x /= dpiScale.x;
+    pickPos.y /= dpiScale.y;
+  }
+  // thin stroke can be picked with 10 pixel range
+  return picker.pickStyleId(pickPos, 10.0, scale2, mode);
 }
 
 void AreaFillTool::resetMulti() {
@@ -1265,7 +1297,7 @@ void AreaFillTool::resetMulti() {
   }
 }
 
-void AreaFillTool::leftButtonDown(const TPointD &pos, const TMouseEvent &,
+void AreaFillTool::leftButtonDown(const TPointD &pos, const TMouseEvent &e,
                                   TImage *img) {
   TVectorImageP vi = TImageP(img);
   TToonzImageP ti  = TToonzImageP(img);
@@ -1275,13 +1307,23 @@ void AreaFillTool::leftButtonDown(const TPointD &pos, const TMouseEvent &,
     return;
   }
 
+  if (m_type == FREEPICK) {
+    TTool::Application *app = TTool::getApplication();
+    if (!app) return;
+
+    int fllmode = e.isCtrlPressed() ? 2 : 0;  // Line+Area : Area
+    int styleId = pick(img, pos, -1, fllmode);
+    if (!m_isLeftButtonPressed) m_bckStyleId = app->getCurrentLevelStyleIndex();
+    app->setCurrentLevelStyleIndex(styleId);
+  }
+
   m_selecting = true;
   if (m_type == RECT) {
     m_selectingRect.x0 = pos.x;
     m_selectingRect.y0 = pos.y;
     m_selectingRect.x1 = pos.x + 1;
     m_selectingRect.y1 = pos.y + 1;
-  } else if (m_type == FREEHAND || m_type == POLYLINE) {
+  } else if (m_type == FREEHAND || m_type == POLYLINE || m_type == FREEPICK) {
     int col  = TTool::getApplication()->getCurrentColumn()->getColumnIndex();
     m_isPath = TTool::getApplication()
                    ->getCurrentObject()
@@ -1389,7 +1431,7 @@ void AreaFillTool::leftButtonDrag(const TPointD &pos, const TMouseEvent &e) {
     m_selectingRect.x1 = pos.x;
     m_selectingRect.y1 = pos.y;
     m_parent->invalidate();
-  } else if (m_type == FREEHAND) {
+  } else if (m_type == FREEHAND || m_type == FREEPICK) {
     if (!m_enabled || !m_active) return;
 
     double pixelSize2 = m_parent->getPixelSize() * m_parent->getPixelSize();
@@ -1463,7 +1505,7 @@ void AreaFillTool::leftButtonUp(const TPointD &pos, const TMouseEvent &e) {
       TTool *t = app->getCurrentTool()->getTool();
       if (t) t->notifyImageChanged();
     }
-  } else if (m_type == FREEHAND) {
+  } else if (m_type == FREEHAND || m_type == FREEPICK) {
 #if defined(MACOSX)
 // m_parent->m_viewer->enableRedraw(true);
 #endif
@@ -1527,6 +1569,8 @@ void AreaFillTool::leftButtonUp(const TPointD &pos, const TMouseEvent &e) {
       m_parent->invalidate();
     }
   }
+
+  if (m_type == FREEPICK) app->setCurrentLevelStyleIndex(m_bckStyleId);
 }
 
 void AreaFillTool::onImageChanged() {
@@ -1544,7 +1588,7 @@ void AreaFillTool::onImageChanged() {
                                    // stato iniziale
   else {                           // cambio stato.
     m_firstFrameSelected = true;
-    if (m_type != FREEHAND && m_type != POLYLINE) {
+    if (m_type != FREEHAND && m_type != POLYLINE && m_type != FREEPICK) {
       assert(!m_selectingRect.isEmpty());
       m_firstRect = m_selectingRect;
     }
@@ -1740,6 +1784,7 @@ FillTool::FillTool(int targetType)
   m_fillType.addValue(RECTFILL);
   m_fillType.addValue(FREEHANDFILL);
   m_fillType.addValue(POLYLINEFILL);
+  m_fillType.addValue(FREEPICKFILL);
 
   m_prop.bind(m_colorType);
   m_colorType.addValue(LINES);
@@ -1784,6 +1829,8 @@ int FillTool::getCursorId() const {
     ret = ret | ToolCursor::Ex_PolyLine;
   else if (m_fillType.getValue() == RECTFILL)
     ret = ret | ToolCursor::Ex_Rectangle;
+  if (m_fillType.getValue() == FREEPICKFILL)
+    ret = ret | ToolCursor::Ex_FreePick;
 
   if (ToonzCheck::instance()->getChecks() & ToonzCheck::eBlackBg)
     ret = ret | ToolCursor::Ex_Negate;
@@ -1800,6 +1847,7 @@ void FillTool::updateTranslation() {
   m_fillType.setItemUIName(RECTFILL, tr("Rectangular"));
   m_fillType.setItemUIName(FREEHANDFILL, tr("Freehand"));
   m_fillType.setItemUIName(POLYLINEFILL, tr("Polyline"));
+  m_fillType.setItemUIName(FREEPICKFILL, tr("Pick+Freehand"));
 
   m_selective.setQStringName(tr("Selective"));
 
@@ -2090,6 +2138,8 @@ bool FillTool::onPropertyChanged(std::string propertyName) {
       type = AreaFillTool::FREEHAND;
     else if (m_fillType.getValue() == POLYLINEFILL)
       type = AreaFillTool::POLYLINE;
+    else if (m_fillType.getValue() == FREEPICKFILL)
+      type = AreaFillTool::FREEPICK;
     else
       assert(false);
 
@@ -2294,6 +2344,8 @@ void FillTool::onActivate() {
         type = AreaFillTool::FREEHAND;
       else if (m_fillType.getValue() == POLYLINEFILL)
         type = AreaFillTool::POLYLINE;
+      else if (m_fillType.getValue() == FREEPICKFILL)
+        type = AreaFillTool::FREEPICK;
       else
         assert(false);
 

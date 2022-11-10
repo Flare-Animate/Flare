@@ -24,7 +24,7 @@ class NormalLineFillTool;
 namespace {
 class AreaFillTool {
 public:
-  enum Type { RECT, FREEHAND, POLYLINE };
+  enum Type { RECT, FREEHAND, POLYLINE, FREEPICK };
 
 private:
   bool m_frameRange;
@@ -54,9 +54,12 @@ private:
   bool m_isLeftButtonPressed;
   bool m_autopaintLines;
 
+  int m_bckStyleId;
+
 public:
   AreaFillTool(TTool *Parent);
   void draw();
+  int pick(const TImageP &image, const TPointD &pos, const int frame, int mode);
   void resetMulti();
   void leftButtonDown(const TPointD &pos, const TMouseEvent &, TImage *img);
   void leftButtonDoubleClick(const TPointD &pos, const TMouseEvent &e);
