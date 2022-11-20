@@ -391,6 +391,7 @@
 		<file>icons/dark/actions/20/fill_mode_areas.svg</file>
 		<file>icons/dark/actions/20/fill_mode_lines.svg</file>
 		<file>icons/dark/actions/20/fill_mode_lines_areas.svg</file>
+		<file>icons/dark/actions/20/fill_freepick.svg</file>
 		<file>icons/dark/actions/16/fill_auto.svg</file>
 
 		<file>icons/dark/actions/20/paintbrush_mode_areas.svg</file>
@@ -422,6 +423,7 @@
 		<file>icons/dark/actions/20/type_rectangular.svg</file>
 		<file>icons/dark/actions/20/type_polyline.svg</file>
 		<file>icons/dark/actions/20/type_normal.svg</file>
+		<file>icons/dark/actions/20/type_erase_segment.svg</file>
 
 		<file>icons/dark/actions/16/shift_and_trace.svg</file>
 		<file>icons/dark/actions/16/shift_and_trace_edit.svg</file>
