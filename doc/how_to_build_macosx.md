@@ -34,7 +34,7 @@ $ /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/
 
 In a Terminal window, execute the following statements:
 ```
-$ brew install glew lz4 libjpeg libpng lzo pkg-config libusb cmake git-lfs libmypaint qt@5 boost jpeg-turbo
+$ brew install glew lz4 libjpeg libpng lzo pkg-config libusb cmake git-lfs libmypaint qt@5 boost jpeg-turbo opencv
 $ git lfs install
 ```
 
@@ -60,7 +60,7 @@ $ git lfs pull
 $ cd thirdparty/lzo
 $ cp -r 2.03/include/lzo driver
 $ cd ../tiff-4.0.3
-$ ./configure && make
+$ ./configure --disable-lzma && make
 ```
 
 If you downloaded and installed boost from https://boost.org instead of homebrew, move the package under `thirdparty/boost` as follows: 
