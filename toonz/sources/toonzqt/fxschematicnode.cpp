@@ -724,8 +724,8 @@ void FxPainter::contextMenuEvent(QGraphicsSceneContextMenuEvent *cme) {
   connect(disconnectFromXSheet, SIGNAL(triggered()), fxScene,
           SLOT(onDisconnectFromXSheet()));
 
-  QAction *connectToXSheet =
-      new QAction(createQIcon("xsheet_connect"), tr("&Connect to Xsheet"), &menu);
+  QAction *connectToXSheet = new QAction(createQIcon("xsheet_connect"),
+                                         tr("&Connect to Xsheet"), &menu);
   connect(connectToXSheet, SIGNAL(triggered()), fxScene,
           SLOT(onConnectToXSheet()));
 
@@ -733,7 +733,7 @@ void FxPainter::contextMenuEvent(QGraphicsSceneContextMenuEvent *cme) {
       new QAction(createQIcon("link"), tr("&Create Linked FX"), &menu);
   connect(duplicateFx, SIGNAL(triggered()), fxScene, SLOT(onDuplicateFx()));
 
-  QAction *unlinkFx = new QAction(tr("&Unlink"), &menu);
+  QAction *unlinkFx = new QAction(createQIcon("unlink"), tr("&Unlink"), &menu);
   connect(unlinkFx, SIGNAL(triggered()), fxScene, SLOT(onUnlinkFx()));
 
   QAction *macroFx =
