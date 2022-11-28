@@ -645,7 +645,7 @@ void PaletteViewer::createSavePaletteToolBar() {
   // save palette as
   QIcon saveAsPaletteIcon = createQIcon("saveas");
   QAction *saveAsPalette  = new QAction(
-       saveAsPaletteIcon, tr("&Save Palette As"), m_savePaletteToolBar);
+      saveAsPaletteIcon, tr("&Save Palette As"), m_savePaletteToolBar);
   // overwrite palette
   QIcon savePaletteIcon = createQIcon("save");
   QAction *savePalette =
@@ -783,7 +783,7 @@ void PaletteViewer::contextMenuEvent(QContextMenuEvent *event) {
 
   QMenu *menu = new QMenu(this);
   if (m_hasPageCommand) {
-    QAction *newPage = menu->addAction(tr("New Page"));
+    QAction *newPage = menu->addAction(createQIcon("newpage"), tr("New Page"));
     connect(newPage, SIGNAL(triggered()), SLOT(addNewPage()));
 
     if (m_pagesBar->geometry().contains(pos)) {
