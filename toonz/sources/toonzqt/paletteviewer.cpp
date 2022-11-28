@@ -643,13 +643,11 @@ void PaletteViewer::createSavePaletteToolBar() {
   }
 
   // save palette as
-  QIcon saveAsPaletteIcon = createQIcon("saveas");
-  QAction *saveAsPalette  = new QAction(
-      saveAsPaletteIcon, tr("&Save Palette As"), m_savePaletteToolBar);
+  QAction *saveAsPalette = new QAction(
+      createQIcon("saveas"), tr("&Save Palette As"), m_savePaletteToolBar);
   // overwrite palette
-  QIcon savePaletteIcon = createQIcon("save");
-  QAction *savePalette =
-      new QAction(savePaletteIcon, tr("&Save Palette"), m_savePaletteToolBar);
+  QAction *savePalette = new QAction(createQIcon("save"), tr("&Save Palette"),
+                                     m_savePaletteToolBar);
 
   if (m_viewType == STUDIO_PALETTE) {
     connect(savePalette, SIGNAL(triggered()), this, SLOT(saveStudioPalette()));
@@ -795,7 +793,8 @@ void PaletteViewer::contextMenuEvent(QContextMenuEvent *event) {
           canRemovePage = false;
         if (canRemovePage) {
           m_indexPageToDelete = tabIndex;
-          QAction *deletePage = menu->addAction(tr("Delete Page"));
+          QAction *deletePage =
+              menu->addAction(createQIcon("delete"), tr("Delete Page"));
           connect(deletePage, SIGNAL(triggered()), SLOT(deletePage()));
         }
       }
