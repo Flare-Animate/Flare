@@ -546,6 +546,8 @@ public:
 
   QSize getPreferredSize() override { return QSize(150, 20); }
 
+  int getValue() const;
+
 protected slots:
   void onChange(const QString &str);
 };
