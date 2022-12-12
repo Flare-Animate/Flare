@@ -765,7 +765,7 @@ void OutputSettingsPopup::hideEvent(QHideEvent *e) {
   bool ret = disconnect(sceneHandle, SIGNAL(sceneChanged()), this,
                         SLOT(updateField()));
   ret      = ret && disconnect(sceneHandle, SIGNAL(sceneSwitched()), this,
-                          SLOT(updateField()));
+                               SLOT(updateField()));
 
   ret = ret && disconnect(xsheetHandle, SIGNAL(xsheetChanged()), this,
                           SLOT(updateField()));
@@ -1073,8 +1073,10 @@ void OutputSettingsPopup::onFormatChanged(const QString &str) {
   // .. then add sepchar for sequencial image formats
   if (checkForSeqNum(str)) fp = fp.withFrame(prop->formatTemplateFId());
 
-  prop->setPath(fp);
-  TApp::instance()->getCurrentScene()->setDirtyFlag(true);
+  if (prop->getPath() != fp) {
+    prop->setPath(fp);
+    TApp::instance()->getCurrentScene()->setDirtyFlag(true);
+  }
   m_allowMT = Preferences::instance()->getFfmpegMultiThread();
 
   if (m_presetCombo) m_presetCombo->setCurrentIndex(0);
@@ -1204,7 +1206,9 @@ void OutputSettingsPopup::onFrameFldEditFinished() {
   int step   = (int)m_stepFld->getValue();
   int shrink = (int)m_shrinkFld->getValue();
 
-  bool error = false;
+  bool error            = false;
+  bool somethingChanged = false;
+
   if (r0 < 0) {
     error = true;
     r0    = 0;
@@ -1237,15 +1241,27 @@ void OutputSettingsPopup::onFrameFldEditFinished() {
     r0 = 0;
     r1 = -1;
   }
-  prop->setRange(r0, r1, step);
-  TRenderSettings rs = prop->getRenderSettings();
+  int oldR0, oldR1, oldStep;
+  prop->getRange(oldR0, oldR1, oldStep);
+  if (r0 != oldR0 || r1 != oldR1 || step != oldStep) {
+    prop->setRange(r0, r1, step);
+    somethingChanged = true;
+  }
+  TRenderSettings rs   = prop->getRenderSettings();
+  int oldShrink        = rs.m_shrinkX;
+  bool old_applyShrink = rs.m_applyShrinkToViewer;
+
   rs.m_shrinkX = rs.m_shrinkY = shrink;
   rs.m_applyShrinkToViewer =
       m_applyShrinkChk ? m_applyShrinkChk->checkState() == Qt::Checked : false;
 
-  prop->setRenderSettings(rs);
+  if (rs.m_shrinkX != oldShrink ||
+      rs.m_applyShrinkToViewer != old_applyShrink) {
+    prop->setRenderSettings(rs);
+    somethingChanged = true;
+  }
 
-  TApp::instance()->getCurrentScene()->setDirtyFlag(true);
+  if (somethingChanged) TApp::instance()->getCurrentScene()->setDirtyFlag(true);
 }
 
 //-----------------------------------------------------------------------------
@@ -1254,10 +1270,11 @@ void OutputSettingsPopup::onFrameFldEditFinished() {
 */
 void OutputSettingsPopup::onResampleChanged(int type) {
   if (!getCurrentScene()) return;
-  TOutputProperties *prop = getProperties();
-  TRenderSettings rs      = prop->getRenderSettings();
-
+  TOutputProperties *prop                      = getProperties();
+  TRenderSettings rs                           = prop->getRenderSettings();
+  TRenderSettings::ResampleQuality old_quality = rs.m_quality;
   rs.m_quality = resampleInfoMap[(ResampleOption)type].quality;
+  if (rs.m_quality == old_quality) return;
   prop->setRenderSettings(rs);
   TApp::instance()->getCurrentScene()->setDirtyFlag(true);
   if (m_presetCombo) m_presetCombo->setCurrentIndex(0);
@@ -1271,10 +1288,12 @@ void OutputSettingsPopup::onChannelWidthChanged(int type) {
   if (!getCurrentScene()) return;
   TOutputProperties *prop = getProperties();
   TRenderSettings rs      = prop->getRenderSettings();
+  int old_bpp             = rs.m_bpp;
   if (type == c_8bit)
     rs.m_bpp = 32;
   else
     rs.m_bpp = 64;
+  if (rs.m_bpp == old_bpp) return;
   prop->setRenderSettings(rs);
   TApp::instance()->getCurrentScene()->setDirtyFlag(true);
   if (m_presetCombo) m_presetCombo->setCurrentIndex(0);
@@ -1294,7 +1313,8 @@ void OutputSettingsPopup::onGammaFldEditFinished() {
     m_gammaFld->setValue(gamma);
   }
   TRenderSettings rs = prop->getRenderSettings();
-  rs.m_gamma         = gamma;
+  if (rs.m_gamma == gamma) return;
+  rs.m_gamma = gamma;
   prop->setRenderSettings(rs);
   TApp::instance()->getCurrentScene()->setDirtyFlag(true);
 }
@@ -1309,6 +1329,7 @@ void OutputSettingsPopup::onDominantFieldChanged(int type) {
   if (!getCurrentScene()) return;
   TOutputProperties *prop = getProperties();
   TRenderSettings rs      = prop->getRenderSettings();
+  TRenderSettings::FieldPrevalence oldFieldPrevalence = rs.m_fieldPrevalence;
   if (type != c_none &&
       m_stretchFromFld->getValue() != m_stretchToFld->getValue()) {
     DVGui::error("Can't apply field rendering in a time stretched scene");
@@ -1322,6 +1343,7 @@ void OutputSettingsPopup::onDominantFieldChanged(int type) {
     rs.m_fieldPrevalence = TRenderSettings::NoField;
   m_doStereoscopy->setEnabled(rs.m_fieldPrevalence == TRenderSettings::NoField);
   m_stereoShift->setEnabled(rs.m_fieldPrevalence == TRenderSettings::NoField);
+  if (rs.m_fieldPrevalence == oldFieldPrevalence) return;
   prop->setRenderSettings(rs);
   TApp::instance()->getCurrentScene()->setDirtyFlag(true);
 }
@@ -1340,11 +1362,15 @@ void OutputSettingsPopup::onStretchFldEditFinished() {
     DVGui::error("Can't stretch time in a field rendered scene\n");
     m_stretchFromFld->setValue(rs.m_timeStretchFrom);
     m_stretchToFld->setValue(rs.m_timeStretchTo);
-  } else {
-    rs.m_timeStretchFrom = m_stretchFromFld->getValue();
-    rs.m_timeStretchTo   = m_stretchToFld->getValue();
-    prop->setRenderSettings(rs);
+    return;
+  } else if (rs.m_timeStretchFrom == m_stretchFromFld->getValue() &&
+             rs.m_timeStretchTo == m_stretchToFld->getValue()) {
+    return;
   }
+
+  rs.m_timeStretchFrom = m_stretchFromFld->getValue();
+  rs.m_timeStretchTo   = m_stretchToFld->getValue();
+  prop->setRenderSettings(rs);
 
   TApp::instance()->getCurrentScene()->setDirtyFlag(true);
 }
@@ -1354,6 +1380,7 @@ void OutputSettingsPopup::onStretchFldEditFinished() {
 void OutputSettingsPopup::onMultimediaChanged(int state) {
   if (!getCurrentScene()) return;
   TOutputProperties *prop = getProperties();
+  if (prop->getMultimediaRendering() == state) return;
   prop->setMultimediaRendering(state);
 
   TApp::instance()->getCurrentScene()->setDirtyFlag(true);
@@ -1364,6 +1391,7 @@ void OutputSettingsPopup::onMultimediaChanged(int state) {
 void OutputSettingsPopup::onThreadsComboChanged(int type) {
   if (!getCurrentScene()) return;
   TOutputProperties *prop = getProperties();
+  if (prop->getThreadIndex() == type) return;
   prop->setThreadIndex(type);
 
   TApp::instance()->getCurrentScene()->setDirtyFlag(true);
@@ -1374,6 +1402,7 @@ void OutputSettingsPopup::onThreadsComboChanged(int type) {
 void OutputSettingsPopup::onRasterGranularityChanged(int type) {
   if (!getCurrentScene()) return;
   TOutputProperties *prop = getProperties();
+  if (prop->getMaxTileSizeIndex() == type) return;
   prop->setMaxTileSizeIndex(type);
 
   TApp::instance()->getCurrentScene()->setDirtyFlag(true);
