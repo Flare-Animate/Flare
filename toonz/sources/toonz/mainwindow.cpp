@@ -727,7 +727,7 @@ Room *MainWindow::createCleanupRoom() {
     ComboViewerPanel *cvp = qobject_cast<ComboViewerPanel *>(viewer);
     if (cvp)
       // hide all parts
-      cvp->setVisiblePartsFlag(CVPARTS_None);
+      cvp->setVisiblePartsFlag(VPPARTS_None);
   }
 
   // CleanupSettings
@@ -766,7 +766,7 @@ Room *MainWindow::createPltEditRoom() {
     layout->dockItem(viewer);
 
     ComboViewerPanel *cvp = qobject_cast<ComboViewerPanel *>(viewer);
-    if (cvp) cvp->setVisiblePartsFlag(CVPARTS_TOOLBAR | CVPARTS_TOOLOPTIONS);
+    if (cvp) cvp->setVisiblePartsFlag(VPPARTS_TOOLBAR | VPPARTS_TOOLOPTIONS);
   }
 
   // Palette
@@ -1686,7 +1686,8 @@ void MainWindow::defineActions() {
   createMenuFileAction(MI_ImportMagpieFile,
                        QT_TR_NOOP("&Import Toonz Lip Sync File..."), "",
                        "dialogue_import");
-  createMenuFileAction(MI_NewProject, QT_TR_NOOP("&New Project..."), "", "new_project");
+  createMenuFileAction(MI_NewProject, QT_TR_NOOP("&New Project..."), "",
+                       "new_project");
   createMenuFileAction(MI_ProjectSettings, QT_TR_NOOP("&Project Settings..."),
                        "", "project_settings");
   createMenuFileAction(MI_SaveDefaultSettings,
@@ -2113,7 +2114,8 @@ void MainWindow::defineActions() {
 
   createMenuWindowsAction(MI_OpenFileBrowser, QT_TR_NOOP("&File Browser"), "",
                           "filebrowser");
-  createMenuWindowsAction(MI_OpenPreproductionBoard, QT_TR_NOOP("&Preproduction Board"), "",
+  createMenuWindowsAction(MI_OpenPreproductionBoard,
+                          QT_TR_NOOP("&Preproduction Board"), "",
                           "scenebrowser");
   createMenuWindowsAction(MI_OpenFileViewer, QT_TR_NOOP("&Flipbook"), "",
                           "flipbook");
