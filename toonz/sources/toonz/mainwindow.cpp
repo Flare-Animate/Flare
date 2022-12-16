@@ -1937,6 +1937,20 @@ void MainWindow::defineActions() {
                          QT_TR_NOOP("&Apply Auto Lip Sync to Column"),
                          "Ctrl+Alt+L", "dialogue");
 
+  createMenuXsheetAction(MI_ToggleTaggedFrame,
+                         QT_TR_NOOP("Toggle Navigation Tag"), "",
+                         "toggle_nav_tag");
+  createMenuXsheetAction(MI_NextTaggedFrame, QT_TR_NOOP("Next Tag"), "",
+                         "next_nav_tag");
+  createMenuXsheetAction(MI_PrevTaggedFrame, QT_TR_NOOP("Previous Tag"), "",
+                         "prev_nav_tag");
+  createMenuXsheetAction(MI_EditTaggedFrame, QT_TR_NOOP("Edit Tag"), "", "");
+  createMenuXsheetAction(MI_ClearTags, QT_TR_NOOP("Remove Tags"), "", "");
+  CommandManager::instance()->enable(MI_NextTaggedFrame, false);
+  CommandManager::instance()->enable(MI_PrevTaggedFrame, false);
+  CommandManager::instance()->enable(MI_EditTaggedFrame, false);
+  CommandManager::instance()->enable(MI_ClearTags, false);
+
   // Menu - Cells
 
   createMenuCellsAction(MI_MergeFrames, QT_TR_NOOP("&Merge"), "", "merge");
