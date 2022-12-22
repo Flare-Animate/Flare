@@ -1018,12 +1018,13 @@ PlacedFx FxBuilder::makePF(TZeraryColumnFx *zcfx) {
   PlacedFx pf;
   pf.m_columnIndex = zcfx->getColumn()->getIndex();
 
-  // Add the column placement NaAffineFx
-  if (!getColumnPlacement(pf, m_xsh, m_frame, pf.m_columnIndex, m_isPreview))
-    return PlacedFx();
-
   // if the cell is empty, only inherits its placement
-  if (cell.isEmpty()) return pf;
+  if (cell.isEmpty()) {
+    // Add the column placement NaAffineFx
+    if (!getColumnPlacement(pf, m_xsh, m_frame, pf.m_columnIndex, m_isPreview))
+      return PlacedFx();
+    return pf;
+  }
 
   // set m_fx only when the current cell is not empty
   pf.m_fx =
@@ -1086,7 +1087,11 @@ PlacedFx FxBuilder::makePF(TZeraryColumnFx *zcfx) {
     }
   }
 
-  return pf;
+  // Add the column placement NaAffineFx
+  if (getColumnPlacement(pf, m_xsh, m_frame, pf.m_columnIndex, m_isPreview))
+    return pf;
+  else
+    return PlacedFx();
 }
 
 //-------------------------------------------------------------------
