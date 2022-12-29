@@ -437,18 +437,21 @@ class RasterBrushUndo final : public TRasterUndo {
   bool m_selective;
   bool m_isPaletteOrder;
   bool m_isPencil;
+  bool m_isStraight;
   bool m_modifierLockAlpha;
 
 public:
   RasterBrushUndo(TTileSetCM32 *tileSet, const std::vector<TThickPoint> &points,
                   int styleId, bool selective, TXshSimpleLevel *level,
                   const TFrameId &frameId, bool isPencil, bool isFrameCreated,
-                  bool isLevelCreated, bool isPaletteOrder, bool lockAlpha)
+                  bool isLevelCreated, bool isPaletteOrder, bool lockAlpha,
+                  bool isStraight = false)
       : TRasterUndo(tileSet, level, frameId, isFrameCreated, isLevelCreated, 0)
       , m_points(points)
       , m_styleId(styleId)
       , m_selective(selective)
       , m_isPencil(isPencil)
+      , m_isStraight(isStraight)
       , m_isPaletteOrder(isPaletteOrder)
       , m_modifierLockAlpha(lockAlpha) {}
 
@@ -465,7 +468,7 @@ public:
       m_rasterTrack.setAboveStyleIds(aboveStyleIds);
     }
     m_rasterTrack.setPointsSequence(m_points);
-    m_rasterTrack.generateStroke(m_isPencil);
+    m_rasterTrack.generateStroke(m_isPencil, m_isStraight);
     image->setSavebox(image->getSavebox() +
                       m_rasterTrack.getBBox(m_rasterTrack.getPointsSequence()));
     ToolUtils::updateSaveBox();
@@ -488,6 +491,7 @@ class RasterBluredBrushUndo final : public TRasterUndo {
   DrawOrder m_drawOrder;
   int m_maxThick;
   double m_hardness;
+  bool m_isStraight;
   bool m_modifierLockAlpha;
 
 public:
@@ -496,12 +500,13 @@ public:
                         DrawOrder drawOrder, bool lockAlpha,
                         TXshSimpleLevel *level, const TFrameId &frameId,
                         int maxThick, double hardness, bool isFrameCreated,
-                        bool isLevelCreated)
+                        bool isLevelCreated, bool isStraight = false)
       : TRasterUndo(tileSet, level, frameId, isFrameCreated, isLevelCreated, 0)
       , m_points(points)
       , m_styleId(styleId)
       , m_drawOrder(drawOrder)
       , m_maxThick(maxThick)
+      , m_isStraight(isStraight)
       , m_hardness(hardness)
       , m_modifierLockAlpha(lockAlpha) {}
 
@@ -528,7 +533,16 @@ public:
     brush.addPoint(m_points[0], 1);
     brush.updateDrawing(ras, ras, bbox, m_styleId, (int)m_drawOrder,
                         m_modifierLockAlpha);
-    if (m_points.size() > 1) {
+    if (m_isStraight) {
+      points.clear();
+      points.push_back(m_points[0]);
+      points.push_back(m_points[1]);
+      points.push_back(m_points[2]);
+      bbox = brush.getBoundFromPoints(points);
+      brush.addArc(m_points[0], m_points[1], m_points[2], 1, 1);
+      brush.updateDrawing(ras, backupRas, bbox, m_styleId, (int)m_drawOrder,
+                          m_modifierLockAlpha);
+    } else if (m_points.size() > 1) {
       points.clear();
       points.push_back(m_points[0]);
       points.push_back(m_points[1]);
@@ -613,6 +627,7 @@ double computeThickness(double pressure, const TDoublePairProperty &property) {
   double t      = pressure * pressure * pressure;
   double thick0 = property.getValue().first;
   double thick1 = property.getValue().second;
+
   if (thick1 < 0.0001) thick0 = thick1 = 0.0;
   return (thick0 + (thick1 - thick0) * t) * 0.5;
 }
@@ -1272,6 +1287,13 @@ void ToonzRasterBrushTool::leftButtonDown(const TPointD &pos,
     }
   }
 
+  // Modifier to do straight line
+  if (e.isShiftPressed() || e.isCtrlPressed()) {
+    m_isStraight = true;
+    m_firstPoint = pos;
+    m_lastPoint  = pos;
+  }
+
   // assert(0<=m_styleId && m_styleId<2);
   TImageP img = getImage(true);
   TToonzImageP ri(img);
@@ -1312,6 +1334,7 @@ void ToonzRasterBrushTool::leftButtonDown(const TPointD &pos,
       TPointD point(centeredPos + rasCenter);
       double pressure =
           m_pressure.getValue() && e.isTablet() ? e.m_pressure : 0.5;
+
       updateCurrentStyle();
       if (!(m_workRas && m_backupRas)) setWorkAndBackupImages();
       m_workRas->lock();
@@ -1412,13 +1435,54 @@ void ToonzRasterBrushTool::leftButtonDown(const TPointD &pos,
 
 void ToonzRasterBrushTool::leftButtonDrag(const TPointD &pos,
                                           const TMouseEvent &e) {
+  TRectD invalidateRect;
+  m_lastPoint = pos;
+
   if (!m_enabled || !m_active) {
     m_mousePos = pos;
     m_brushPos = getCenteredCursorPos(pos);
     return;
   }
 
-  TPointD centeredPos = getCenteredCursorPos(pos);
+  if (m_isStraight) {
+    invalidateRect = TRectD(m_firstPoint, m_lastPoint).enlarge(2);
+    if (e.isCtrlPressed()) {
+      double distance = (m_brushPos.x - m_maxCursorThick + 1) * 0.5;
+      TRectD brushRect =
+          TRectD(TPointD(m_brushPos.x - distance, m_brushPos.y - distance),
+                 TPointD(m_brushPos.x + distance, m_brushPos.y + distance));
+      invalidateRect += (brushRect);
+      double denominator = m_lastPoint.x - m_firstPoint.x;
+      if (denominator == 0) denominator == 0.001;
+      double slope = ((m_lastPoint.y - m_firstPoint.y) / denominator);
+      double angle = std::atan(slope) * (180 / 3.14159);
+      if (abs(angle) > 67.5)
+        m_lastPoint.x = m_firstPoint.x;
+      else if (abs(angle) < 22.5)
+        m_lastPoint.y = m_firstPoint.y;
+      else {
+        double xDistance = m_lastPoint.x - m_firstPoint.x;
+        double yDistance = m_lastPoint.y - m_firstPoint.y;
+        if (abs(xDistance) > abs(yDistance)) {
+          if (abs(yDistance) == yDistance)
+            m_lastPoint.y = m_firstPoint.y + abs(xDistance);
+          else
+            m_lastPoint.y = m_firstPoint.y - abs(xDistance);
+        } else {
+          if (abs(xDistance) == xDistance)
+            m_lastPoint.x = m_firstPoint.x + abs(yDistance);
+          else
+            m_lastPoint.x = m_firstPoint.x - abs(yDistance);
+        }
+      }
+    }
+    m_mousePos = pos;
+    m_brushPos = getCenteredCursorPos(pos);
+    invalidate(invalidateRect);
+    return;
+  }
+
+  TPointD centeredPos = getCenteredCursorPos(m_lastPoint);
 
   TToonzImageP ti   = TImageP(getImage(true));
   TPointD rasCenter = ti->getRaster()->getCenterD();
@@ -1426,12 +1490,14 @@ void ToonzRasterBrushTool::leftButtonDrag(const TPointD &pos,
   double thickness  = (m_pressure.getValue())
                          ? computeThickness(e.m_pressure, m_rasThickness) * 2
                          : maxThickness;
-  TRectD invalidateRect;
+
   if (m_isMyPaintStyleSelected) {
     TRasterP ras = ti->getRaster();
     TPointD point(centeredPos + rasCenter);
     double pressure =
         m_pressure.getValue() && e.isTablet() ? e.m_pressure : 0.5;
+
+    if (m_maxPressure < pressure) m_maxPressure = pressure;
 
     m_strokeSegmentRect.empty();
     m_toonz_brush->strokeTo(point, pressure, restartBrushTimer());
@@ -1555,8 +1621,14 @@ void ToonzRasterBrushTool::leftButtonUp(const TPointD &pos,
   if (!isValid) {
     return;
   }
-  TPointD centeredPos = getCenteredCursorPos(pos);
+  TPointD centeredPos;
+  if (m_isStraight)
+    centeredPos = getCenteredCursorPos(m_lastPoint);
+  else
+    centeredPos = getCenteredCursorPos(pos);
   double pressure = m_pressure.getValue() && e.isTablet() ? e.m_pressure : 0.5;
+  if (m_isStraight && m_isMyPaintStyleSelected && m_maxPressure > 0.0)
+    pressure = m_maxPressure;
   finishRasterBrush(centeredPos, pressure);
   int tc = ToonzCheck::instance()->getChecks();
   if (tc & ToonzCheck::eGap || tc & ToonzCheck::eAutoclose) invalidate();
@@ -1630,10 +1702,12 @@ void ToonzRasterBrushTool::finishRasterBrush(const TPointD &pos,
     /*-- Pencilモードでなく、Hardness=100 の場合のブラシサイズを1段階下げる --*/
     if (!m_pencil.getValue()) thickness -= 1.0;
 
+    if (m_isStraight)
+      thickness = m_rasterTrack->getPointsSequence().at(0).thick;
     TRectD invalidateRect;
     TThickPoint thickPoint(pos + rasCenter, thickness);
     std::vector<TThickPoint> pts;
-    if (m_smooth.getValue() == 0) {
+    if (m_smooth.getValue() == 0 || m_isStraight) {
       pts.push_back(thickPoint);
     } else {
       m_smoothStroke.addPoint(thickPoint);
@@ -1643,13 +1717,17 @@ void ToonzRasterBrushTool::finishRasterBrush(const TPointD &pos,
     for (size_t i = 0; i < pts.size(); ++i) {
       const TThickPoint &thickPoint = pts[i];
       m_rasterTrack->add(thickPoint);
-      m_tileSaver->save(m_rasterTrack->getLastRect());
-      m_rasterTrack->generateLastPieceOfStroke(m_pencil.getValue(), true);
+      m_tileSaver->save(m_rasterTrack->getLastRect(m_isStraight));
+      m_rasterTrack->generateLastPieceOfStroke(m_pencil.getValue(), true,
+                                               m_isStraight);
 
       std::vector<TThickPoint> brushPoints = m_rasterTrack->getPointsSequence();
       int m                                = (int)brushPoints.size();
       std::vector<TThickPoint> points;
-      if (m == 3) {
+      if (m_isStraight) {
+        points.push_back(brushPoints[0]);
+        points.push_back(brushPoints[2]);
+      } else if (m == 3) {
         points.push_back(brushPoints[0]);
         points.push_back(brushPoints[1]);
       } else {
@@ -1668,7 +1746,7 @@ void ToonzRasterBrushTool::finishRasterBrush(const TPointD &pos,
           m_rasterTrack->getStyleId(), m_rasterTrack->isSelective(),
           simLevel.getPointer(), frameId, m_pencil.getValue(), m_isFrameCreated,
           m_isLevelCreated, m_rasterTrack->isPaletteOrder(),
-          m_rasterTrack->isAlphaLocked()));
+          m_rasterTrack->isAlphaLocked(), m_isStraight));
     }
     delete m_rasterTrack;
     m_rasterTrack = 0;
@@ -1677,11 +1755,12 @@ void ToonzRasterBrushTool::finishRasterBrush(const TPointD &pos,
     double thickness    = (m_pressure.getValue())
                            ? computeThickness(pressureVal, m_rasThickness)
                            : maxThickness;
+    if (m_isStraight) thickness = m_points[0].thick;
     TPointD rasCenter = ti->getRaster()->getCenterD();
     TRectD invalidateRect;
     TThickPoint thickPoint(pos + rasCenter, thickness);
     std::vector<TThickPoint> pts;
-    if (m_smooth.getValue() == 0) {
+    if (m_smooth.getValue() == 0 || m_isStraight) {
       pts.push_back(thickPoint);
     } else {
       m_smoothStroke.addPoint(thickPoint);
@@ -1691,6 +1770,7 @@ void ToonzRasterBrushTool::finishRasterBrush(const TPointD &pos,
     // we need to skip the for-loop here if pts.size() == 0 or else
     // (pts.size() - 1) becomes ULLONG_MAX since size_t is unsigned
     if (pts.size() > 0) {
+      // this doesn't get run for a straight line
       for (size_t i = 0; i < pts.size() - 1; ++i) {
         TThickPoint old = m_points.back();
 
@@ -1731,13 +1811,26 @@ void ToonzRasterBrushTool::finishRasterBrush(const TPointD &pos,
                                      m_modifierLockAlpha.getValue());
         m_strokeRect += bbox;
       }
-      TThickPoint point = pts.back();
-      m_points.push_back(point);
+      if (!m_isStraight && m_points.size() > 1) {
+        TThickPoint point = pts.back();
+        m_points.push_back(point);
+      }
       int m = m_points.size();
       std::vector<TThickPoint> points;
-      points.push_back(m_points[m - 3]);
-      points.push_back(m_points[m - 2]);
-      points.push_back(m_points[m - 1]);
+      if (!m_isStraight && m_points.size() > 1) {
+        points.push_back(m_points[m - 3]);
+        points.push_back(m_points[m - 2]);
+        points.push_back(m_points[m - 1]);
+      } else {
+        const TThickPoint point = m_points[0];
+        TThickPoint mid((thickPoint + point) * 0.5,
+                        (point.thick + thickPoint.thick) * 0.5);
+        m_points.push_back(mid);
+        m_points.push_back(thickPoint);
+        points.push_back(m_points[0]);
+        points.push_back(m_points[1]);
+        points.push_back(m_points[2]);
+      }
       TRect bbox = m_bluredBrush->getBoundFromPoints(points);
       updateWorkAndBackupRasters(bbox);
       m_tileSaver->save(bbox);
@@ -1762,12 +1855,15 @@ void ToonzRasterBrushTool::finishRasterBrush(const TPointD &pos,
           m_tileSet, m_points, m_styleId, (DrawOrder)m_drawOrder.getIndex(),
           m_modifierLockAlpha.getValue(), simLevel.getPointer(), frameId,
           m_rasThickness.getValue().second, m_hardness.getValue() * 0.01,
-          m_isFrameCreated, m_isLevelCreated));
+          m_isFrameCreated, m_isLevelCreated, m_isStraight));
     }
   }
   delete m_tileSaver;
 
   m_tileSaver = 0;
+
+  if (m_isStraight) invalidate();  // Clean messy red segment line
+  m_isStraight = false;
 
   /*-- FIdを指定して、描画中にフレームが動いても、
   　　描画開始時のFidのサムネイルが更新されるようにする。--*/
@@ -1867,6 +1963,11 @@ void ToonzRasterBrushTool::mouseMove(const TPointD &pos, const TMouseEvent &e) {
 //-------------------------------------------------------------------------------------------------------------
 
 void ToonzRasterBrushTool::draw() {
+  if (m_isStraight) {
+    tglDrawSegment(m_firstPoint, m_lastPoint);
+    invalidate(TRectD(m_firstPoint, m_lastPoint).enlarge(2));
+  }
+
   /*--ショートカットでのツール切り替え時に赤点が描かれるのを防止する--*/
   if (m_minThick == 0 && m_maxThick == 0 &&
       !Preferences::instance()->getShow0ThickLines())
