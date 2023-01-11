@@ -2812,7 +2812,16 @@ void MainWindow::defineActions() {
                               QT_TR_NOOP("Fill Tool - Autopaint Lines"), "");
   menuAct->setIcon(createQIcon("fill_auto"));
 
-  // Visualization
+  createToolOptionsAction("A_ToolOption_FlipHorizontal",
+                          QT_TR_NOOP("Flip Selection/Object Horizontally"), "");
+  createToolOptionsAction("A_ToolOption_FlipVertical",
+                          QT_TR_NOOP("Flip Selection/Object Vertically"), "");
+  createToolOptionsAction("A_ToolOption_RotateLeft",
+                          QT_TR_NOOP("Rotate Selection/Object Left"), "");
+  createToolOptionsAction("A_ToolOption_RotateRight",
+                          QT_TR_NOOP("Rotate Selection/Object Right"), "");
+
+// Visualization
 
   createViewerAction(V_ZoomIn, QT_TR_NOOP("Zoom In"), "+");
   createViewerAction(V_ZoomOut, QT_TR_NOOP("Zoom Out"), "-");
