@@ -1294,6 +1294,12 @@ void ToonzRasterBrushTool::leftButtonDown(const TPointD &pos,
     m_lastPoint  = pos;
   }
 
+  double pressure;
+  if (m_isMyPaintStyleSelected)  // mypaint brush case
+    pressure = m_pressure.getValue() && e.isTablet() ? e.m_pressure : 0.5;
+  else
+    pressure = m_pressure.getValue() ? e.m_pressure : 1.0;
+
   // assert(0<=m_styleId && m_styleId<2);
   TImageP img = getImage(true);
   TToonzImageP ri(img);
@@ -1304,12 +1310,12 @@ void ToonzRasterBrushTool::leftButtonDown(const TPointD &pos,
     m_tileSaver       = new TTileSaverCM32(ras, m_tileSet);
     double maxThick   = m_rasThickness.getValue().second;
     double thickness  = (m_pressure.getValue())
-                           ? computeThickness(e.m_pressure, m_rasThickness) * 2
-                           : maxThick;
+                            ? computeThickness(pressure, m_rasThickness) * 2
+                            : maxThick;
 
     /*--- ストロークの最初にMaxサイズの円が描かれてしまう不具合を防止する
      * ---*/
-    if (m_pressure.getValue() && e.m_pressure == 1.0)
+    if (m_pressure.getValue() && e.m_pressure == 1.0 && !m_isStraight)
       thickness = m_rasThickness.getValue().first;
 
     TPointD halfThick(maxThick * 0.5, maxThick * 0.5);
@@ -1332,8 +1338,6 @@ void ToonzRasterBrushTool::leftButtonDown(const TPointD &pos,
     // mypaint brush case
     if (m_isMyPaintStyleSelected) {
       TPointD point(centeredPos + rasCenter);
-      double pressure =
-          m_pressure.getValue() && e.isTablet() ? e.m_pressure : 0.5;
 
       updateCurrentStyle();
       if (!(m_workRas && m_backupRas)) setWorkAndBackupImages();
@@ -1384,7 +1388,8 @@ void ToonzRasterBrushTool::leftButtonDown(const TPointD &pos,
         m_rasterTrack->setAboveStyleIds(aboveStyleIds);
 
       m_tileSaver->save(m_rasterTrack->getLastRect());
-      m_rasterTrack->generateLastPieceOfStroke(m_pencil.getValue());
+      if (!m_isStraight)
+        m_rasterTrack->generateLastPieceOfStroke(m_pencil.getValue());
 
       std::vector<TThickPoint> pts;
       if (m_smooth.getValue() == 0) {
@@ -1407,9 +1412,10 @@ void ToonzRasterBrushTool::leftButtonDown(const TPointD &pos,
       updateWorkAndBackupRasters(m_strokeRect);
       m_tileSaver->save(m_strokeRect);
       m_bluredBrush->addPoint(point, 1);
-      m_bluredBrush->updateDrawing(ri->getRaster(), m_backupRas, m_strokeRect,
-                                   m_styleId, drawOrder,
-                                   m_modifierLockAlpha.getValue());
+      if (!m_isStraight)
+        m_bluredBrush->updateDrawing(ri->getRaster(), m_backupRas, m_strokeRect,
+                                     m_styleId, drawOrder,
+                                     m_modifierLockAlpha.getValue());
       m_lastRect = m_strokeRect;
 
       std::vector<TThickPoint> pts;
@@ -1443,6 +1449,23 @@ void ToonzRasterBrushTool::leftButtonDrag(const TPointD &pos,
     m_brushPos = getCenteredCursorPos(pos);
     return;
   }
+
+  TPointD centeredPos = getCenteredCursorPos(m_lastPoint);
+
+  double pressure;
+  if (m_isMyPaintStyleSelected)  // mypaint brush case
+    pressure = m_pressure.getValue() && e.isTablet() ? e.m_pressure : 0.5;
+  else
+    pressure = m_pressure.getValue() ? e.m_pressure : 1.0;
+
+  TToonzImageP ti     = TImageP(getImage(true));
+  TPointD rasCenter   = ti->getRaster()->getCenterD();
+  double maxThickness = m_rasThickness.getValue().second;
+  double thickness    = (m_pressure.getValue())
+                            ? computeThickness(pressure, m_rasThickness) * 2
+                            : maxThickness;
+
+  if (m_maxPressure < pressure) m_maxPressure = pressure;
 
   if (m_isStraight) {
     invalidateRect = TRectD(m_firstPoint, m_lastPoint).enlarge(2);
@@ -1482,22 +1505,9 @@ void ToonzRasterBrushTool::leftButtonDrag(const TPointD &pos,
     return;
   }
 
-  TPointD centeredPos = getCenteredCursorPos(m_lastPoint);
-
-  TToonzImageP ti   = TImageP(getImage(true));
-  TPointD rasCenter = ti->getRaster()->getCenterD();
-  int maxThickness  = m_rasThickness.getValue().second;
-  double thickness  = (m_pressure.getValue())
-                         ? computeThickness(e.m_pressure, m_rasThickness) * 2
-                         : maxThickness;
-
   if (m_isMyPaintStyleSelected) {
     TRasterP ras = ti->getRaster();
     TPointD point(centeredPos + rasCenter);
-    double pressure =
-        m_pressure.getValue() && e.isTablet() ? e.m_pressure : 0.5;
-
-    if (m_maxPressure < pressure) m_maxPressure = pressure;
 
     m_strokeSegmentRect.empty();
     m_toonz_brush->strokeTo(point, pressure, restartBrushTimer());
@@ -1626,12 +1636,23 @@ void ToonzRasterBrushTool::leftButtonUp(const TPointD &pos,
     centeredPos = getCenteredCursorPos(m_lastPoint);
   else
     centeredPos = getCenteredCursorPos(pos);
-  double pressure = m_pressure.getValue() && e.isTablet() ? e.m_pressure : 0.5;
-  if (m_isStraight && m_isMyPaintStyleSelected && m_maxPressure > 0.0)
+
+  double pressure;
+  if (m_isMyPaintStyleSelected)  // mypaint brush case
+    pressure = m_pressure.getValue() && e.isTablet() ? e.m_pressure : 0.5;
+  else
+    pressure = m_pressure.getValue() ? e.m_pressure : 1.0;
+
+  if (m_isStraight && m_maxPressure > 0.0)
     pressure = m_maxPressure;
+
   finishRasterBrush(centeredPos, pressure);
   int tc = ToonzCheck::instance()->getChecks();
-  if (tc & ToonzCheck::eGap || tc & ToonzCheck::eAutoclose) invalidate();
+  if (tc & ToonzCheck::eGap || tc & ToonzCheck::eAutoclose || m_isStraight)
+    invalidate();
+
+  m_isStraight  = false;
+  m_maxPressure = -1.0;
 }
 
 //---------------------------------------------------------------------------------------------------------------
@@ -1692,18 +1713,18 @@ void ToonzRasterBrushTool::finishRasterBrush(const TPointD &pos,
   } else if (m_rasterTrack &&
              (m_hardness.getValue() == 100 || m_pencil.getValue())) {
     double thickness = m_pressure.getValue()
-                           ? computeThickness(pressureVal, m_rasThickness)
+                           ? computeThickness(pressureVal, m_rasThickness) * 2
                            : m_rasThickness.getValue().second;
 
-    /*--- ストロークの最初にMaxサイズの円が描かれてしまう不具合を防止する ---*/
-    if (m_pressure.getValue() && pressureVal == 1.0)
-      thickness = m_rasThickness.getValue().first;
+    if (!m_isStraight) {
+      // ストロークの最初にMaxサイズの円が描かれてしまう不具合を防止する
+      if (m_pressure.getValue() && pressureVal == 1.0)
+        thickness = m_rasThickness.getValue().first;
 
-    /*-- Pencilモードでなく、Hardness=100 の場合のブラシサイズを1段階下げる --*/
-    if (!m_pencil.getValue()) thickness -= 1.0;
+      // Pencilモードでなく、Hardness=100 の場合のブラシサイズを1段階下げる
+      if (!m_pencil.getValue()) thickness -= 1.0;
+    }
 
-    if (m_isStraight)
-      thickness = m_rasterTrack->getPointsSequence().at(0).thick;
     TRectD invalidateRect;
     TThickPoint thickPoint(pos + rasCenter, thickness);
     std::vector<TThickPoint> pts;
@@ -1735,7 +1756,7 @@ void ToonzRasterBrushTool::finishRasterBrush(const TPointD &pos,
         points.push_back(brushPoints[m - 3]);
         points.push_back(brushPoints[m - 2]);
       }
-      int maxThickness = m_rasThickness.getValue().second;
+      double maxThickness = m_rasThickness.getValue().second;
       invalidateRect += ToolUtils::getBounds(points, maxThickness) - rasCenter;
     }
     invalidate(invalidateRect.enlarge(2));
@@ -1753,9 +1774,8 @@ void ToonzRasterBrushTool::finishRasterBrush(const TPointD &pos,
   } else {
     double maxThickness = m_rasThickness.getValue().second;
     double thickness    = (m_pressure.getValue())
-                           ? computeThickness(pressureVal, m_rasThickness)
+                           ? computeThickness(pressureVal, m_rasThickness) * 2
                            : maxThickness;
-    if (m_isStraight) thickness = m_points[0].thick;
     TPointD rasCenter = ti->getRaster()->getCenterD();
     TRectD invalidateRect;
     TThickPoint thickPoint(pos + rasCenter, thickness);
@@ -1861,9 +1881,6 @@ void ToonzRasterBrushTool::finishRasterBrush(const TPointD &pos,
   delete m_tileSaver;
 
   m_tileSaver = 0;
-
-  if (m_isStraight) invalidate();  // Clean messy red segment line
-  m_isStraight = false;
 
   /*-- FIdを指定して、描画中にフレームが動いても、
   　　描画開始時のFidのサムネイルが更新されるようにする。--*/
