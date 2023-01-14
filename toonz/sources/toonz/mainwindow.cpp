@@ -1731,6 +1731,8 @@ void MainWindow::defineActions() {
                        QT_TR_NOOP("&Clear Recent Flipbook Image List"), "");
   createMenuFileAction(MI_ClearCacheFolder, QT_TR_NOOP("&Clear Cache Folder"),
                        "", "clear_cache");
+  createMenuFileAction(MI_ExportCurrentScene,
+                       QT_TR_NOOP("&Export Current Scene"), "");
 
   // Menu - Edit
 

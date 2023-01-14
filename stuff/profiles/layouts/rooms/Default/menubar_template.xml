@@ -26,6 +26,7 @@
             <command>MI_ImportMagpieFile</command>
         </menu>
         <menu title="Export">
+            <command>MI_ExportCurrentScene</command>		
             <command>MI_SoundTrack</command>
             <command>MI_ExportXDTS</command>
             <command>MI_ExportOCA</command>
