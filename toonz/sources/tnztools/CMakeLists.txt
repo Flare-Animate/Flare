@@ -45,6 +45,7 @@ set(HEADERS
     ../include/tools/toolutils.h
     ../include/tools/tooltimer.h
     ../include/tools/keyhistory.h
+    ../include/tools/inputstate.h
     ../include/tools/track.h
 )
 
@@ -111,6 +112,7 @@ set(SOURCES
     toonzvectorbrushtool.cpp
     tooltimer.cpp
     keyhistory.cpp
+    inputstate.cpp
     track.cpp
 )
 
