@@ -862,13 +862,13 @@ void TRasterFx::compute(TTile &tile, double frame,
                             tfloor(fracInfoTranslation.y));
   TPointD newTilePos(intTilePos.x - intInfoTranslation.x,
                      intTilePos.y - intInfoTranslation.y);
-  /*-- 入力タイルの位置が、小数値を持っていた場合 --*/
+  /*-- If the position of the input tile had a fractional value --*/
   if (tile.m_pos != newTilePos) {
-    /*-- RenderSettingsのaffine行列に位置ずれを足しこむ --*/
+    /*-- Add the offset to the affine matrix in RenderSettings --*/
     TRenderSettings newInfo(info);
     newInfo.m_affine.a13 = fracInfoTranslation.x - intInfoTranslation.x;
     newInfo.m_affine.a23 = fracInfoTranslation.y - intInfoTranslation.y;
-    /*-- タイルの位置は整数値にする --*/
+    /*-- Tile position should be an integer value --*/
     TPointD oldPos(tile.m_pos);
     tile.m_pos = newTilePos;
 
@@ -899,7 +899,8 @@ void TRasterFx::compute(TTile &tile, double frame,
   if (myIsEmpty(interestingRect)) return;
 
   TDimension tileSize = tile.getRaster()->getSize();
-  // ひとつ前のノードが小数点対応しているかどうかによって、入ってくるラスタの形式が異なる
+  // The format of the incoming raster depends on whether the previous node
+  // supports floating point rendering or not.
   TRaster32P ras32 = tile.getRaster();
   TRaster64P ras64 = tile.getRaster();
   TRasterFP rasF   = tile.getRaster();
@@ -914,7 +915,7 @@ void TRasterFx::compute(TTile &tile, double frame,
       tile.setRaster(rasAuxF);
     }
   }
-  // linear化
+  // convert to linear
   bool isLinear = tile.getRaster()->isLinear();
   bool computeInLinear =
       toBeComputedInLinearColorSpace(info.m_linearColorSpace, isLinear);
@@ -954,7 +955,7 @@ void TRasterFx::compute(TTile &tile, double frame,
   FxResourceBuilder rBuilder(alias, this, info, frame);
   rBuilder.build(interestingTile);
 
-  // linear化
+  // convert to linear
   if (isLinear != computeInLinear) {
     if (isLinear)  //  && !computeInLinear
       TRop::toLinearRGB(tile.getRaster(), info.m_colorSpaceGamma);

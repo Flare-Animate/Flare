@@ -698,21 +698,21 @@ bool isReservedFileName_message(const QString &fileName) {
 
 QString elideText(const QString &srcText, const QFont &font, int width) {
   QFontMetrics metrix(font);
-  int srcWidth = metrix.width(srcText);
+  int srcWidth = metrix.horizontalAdvance(srcText);
   if (srcWidth < width) return srcText;
-  int tilde = metrix.width("~");
+  int tilde = metrix.horizontalAdvance("~");
   int block = (width - tilde) / 2;
   QString text("");
   int i;
   for (i = 0; i < srcText.size(); i++) {
     text += srcText.at(i);
-    if (metrix.width(text) > block) break;
+    if (metrix.horizontalAdvance(text) > block) break;
   }
   text[i] = '~';
   QString endText("");
   for (i = srcText.size() - 1; i >= 0; i--) {
     endText.push_front(srcText.at(i));
-    if (metrix.width(endText) > block) break;
+    if (metrix.horizontalAdvance(endText) > block) break;
   }
   endText.remove(0, 1);
   text += endText;
@@ -725,7 +725,7 @@ QString elideText(const QString &srcText, const QFontMetrics &fm, int width,
                   const QString &elideSymbol) {
   QString text(srcText);
 
-  for (int i = text.size(); i > 1 && fm.width(text) > width;)
+  for (int i = text.size(); i > 1 && fm.horizontalAdvance(text) > width;)
     text = srcText.left(--i).append(elideSymbol);
 
   return text;

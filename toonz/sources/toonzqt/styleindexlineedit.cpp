@@ -15,8 +15,8 @@ using namespace DVGui;
 StyleIndexLineEdit::StyleIndexLineEdit() : m_pltHandle(0) {
   // style index will not be more than 4096, but a longer text
   // "current" may be input instead of style id + chip width + margin
-  int currentWidth = std::max(fontMetrics().width("current"),
-                              fontMetrics().width(tr("current")));
+  int currentWidth = std::max(fontMetrics().horizontalAdvance("current"),
+                              fontMetrics().horizontalAdvance(tr("current")));
   setMaximumWidth(currentWidth + 30);
   setFixedHeight(20);
 }

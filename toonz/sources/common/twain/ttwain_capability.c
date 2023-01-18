@@ -228,8 +228,8 @@ static int ConvertOneValue2Enum(TW_ONEVALUE one_value,
 static int ConvertEnum2OneValue(TW_ENUMERATION tw_enum,
                                 TW_ONEVALUE *one_value) {
   unsigned char *base;
-  TW_UINT32 ofs;
-  TW_UINT32 itemSize;
+  size_t ofs;
+  size_t itemSize;
 
   itemSize = DCItemSize[tw_enum.ItemType];
   base     = tw_enum.ItemList;
@@ -242,8 +242,8 @@ static int ConvertEnum2OneValue(TW_ENUMERATION tw_enum,
 }
 /*---------------------------------------------------------------------------*/
 static int ConvertEnum2Array(TW_ENUMERATION tw_enum, TW_ARRAY *array) {
-  TW_UINT32 itemSize;
-  TW_UINT32 listSize;
+  size_t itemSize;
+  size_t listSize;
 
   itemSize        = DCItemSize[tw_enum.ItemType];
   listSize        = itemSize * tw_enum.NumItems;
@@ -270,7 +270,7 @@ int TTWAIN_SetCap(TW_UINT16 cap_id, TW_UINT16 conType, TW_UINT16 itemType,
   containerH = GLOBAL_ALLOC(GMEM_FIXED, size);
   if (!containerH) goto done;
   container = (TW_ONEVALUE *)GLOBAL_LOCK(containerH);
-
+  if (!container) goto done;
   container->ItemType = itemType;
   container->Item     = *value;
   capabilityH         = GLOBAL_ALLOC(GMEM_FIXED, sizeof(TW_CAPABILITY));
@@ -281,7 +281,8 @@ int TTWAIN_SetCap(TW_UINT16 cap_id, TW_UINT16 conType, TW_UINT16 itemType,
     goto done;
   }
 
-  capability             = (TW_CAPABILITY *)GLOBAL_LOCK(capabilityH);
+  capability = (TW_CAPABILITY *)GLOBAL_LOCK(capabilityH);
+  if (!capability) goto done;
   capability->ConType    = conType;
   capability->hContainer = containerH;
 
@@ -310,7 +311,7 @@ done:
 }
 /*---------------------------------------------------------------------------*/
 static TUINT32 GetContainerSize(int nFormat, unsigned twty, TW_UINT32 nItems) {
-  TUINT32 size;
+  size_t size;
   switch (nFormat) {
   case TWON_ONEVALUE:
     size = sizeof(TW_ONEVALUE);
@@ -332,7 +333,7 @@ static TUINT32 GetContainerSize(int nFormat, unsigned twty, TW_UINT32 nItems) {
     size = 0;
     break;
   } /* switch */
-  return size;
+  return (TUINT32)size;
 }
 /*---------------------------------------------------------------------------*/
 

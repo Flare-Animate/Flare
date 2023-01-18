@@ -28,12 +28,8 @@
 // Toolbar
 //-----------------------------------------------------------------------------
 
-#if QT_VERSION >= 0x050500
 CommandBar::CommandBar(QWidget *parent, Qt::WindowFlags flags,
                        bool isCollapsible, bool isXsheetToolbar)
-#else
-CommandBar::CommandBar(QWidget *parent, Qt::WFlags flags)
-#endif
     : QToolBar(parent), m_isCollapsible(isCollapsible) {
   setObjectName("cornerWidget");
   setObjectName("CommandBar");

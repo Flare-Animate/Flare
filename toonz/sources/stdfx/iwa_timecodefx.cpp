@@ -60,7 +60,7 @@ void Iwa_TimeCodeFx::doCompute(TTile &tile, double frame,
   font.setWeight(QFont::Normal);
   QFontMetrics fm(font);
   QString timeCodeStr = getTimeCodeStr(frame, ri);
-  int width           = fm.width(timeCodeStr);
+  int width           = fm.horizontalAdvance(timeCodeStr);
   int height          = fm.height();
 
   QImage img(width, height, QImage::Format_ARGB32);

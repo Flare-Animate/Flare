@@ -328,8 +328,8 @@ void CustomStyleManager::loadItems() {
   for (i = 0; i < m_chips.size(); i++) {
     ChipData data = m_chips.at(i);
     for (it = fps.begin(); it != fps.end(); ++it) {
-      int isVector = (it->getType() == "pli") ? 1 : 0;
-      QString name = QString::fromStdWString(it->getWideName());
+      bool isVector = (it->getType() == "pli");
+      QString name  = QString::fromStdWString(it->getWideName());
       if (data.name == name && data.isVector == isVector) break;
     }
 

@@ -135,11 +135,7 @@ class NoteArea final : public QFrame {
   QLayout *m_currentLayout;
 
 public:
-#if QT_VERSION >= 0x050500
   NoteArea(XsheetViewer *parent = 0, Qt::WindowFlags flags = 0);
-#else
-  NoteArea(XsheetViewer *parent = 0, Qt::WFlags flags = 0);
-#endif
 
   void updatePopup() { m_newNotePopup->update(); }
   void updateButtons();

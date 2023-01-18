@@ -135,7 +135,7 @@ void fillRow(const TRasterCM32P &r, const TPoint &p, int &xa, int &xb,
     oldtone = tone;
   }
   if (tone == 0) {
-    tmp_limit                    = pix - 10;
+    tmp_limit = pix - 10;
     if (limit < tmp_limit) limit = tmp_limit;
     for (; pix >= limit; pix--) {
       if (pix->getPaint() == paint) break;
@@ -210,7 +210,7 @@ void findSegment(const TRaster32P &r, const TPoint &p, int &xa, int &xb,
     oldmatte = matte;
   }
   if (matte == 0) {
-    tmp_limit                    = pix - 10;
+    tmp_limit = pix - 10;
     if (limit < tmp_limit) limit = tmp_limit;
     for (; pix >= limit; pix--) {
       if (*pix == color) break;
@@ -362,7 +362,7 @@ bool floodCheck(const TPixel32 &clickColor, const TPixel32 *targetPix,
 //-----------------------------------------------------------------------------
 }  // namespace
 //-----------------------------------------------------------------------------
-/*-- 戻り値はsaveBoxが更新されたかどうか --*/
+/*-- The return value is whether the saveBox has been updated or not. --*/
 bool fill(const TRasterCM32P &r, const FillParameters &params,
           TTileSaverCM32 *saver) {
   TPixelCM32 *pix, *limit, *pix0, *oldpix;
@@ -375,15 +375,16 @@ bool fill(const TRasterCM32P &r, const FillParameters &params,
   int fillDepth =
       params.m_shiftFill ? params.m_maxFillDepth : params.m_minFillDepth;
 
-  /*-- getBoundsは画像全面 --*/
+  /*-- getBounds returns the entire image --*/
   TRect bbbox = r->getBounds();
 
-  /*- 画面外のクリックの場合はreturn -*/
+  /*- Return if clicked outside the screen -*/
   if (!bbbox.contains(p)) return false;
-  /*- 既に同じ色が塗られている場合はreturn -*/
+  /*- If the same color has already been painted, return -*/
   int paintAtClickedPos = (r->pixels(p.y) + p.x)->getPaint();
   if (paintAtClickedPos == paint) return false;
-  /*- 「透明部分だけを塗る」オプションが有効で、既に色が付いている場合はreturn
+  /*- If the "paint only transparent areas" option is enabled and the area is
+   * already colored, return
    * -*/
   if (params.m_emptyOnly && (r->pixels(p.y) + p.x)->getPaint() != 0)
     return false;
@@ -400,7 +401,8 @@ bool fill(const TRasterCM32P &r, const FillParameters &params,
   default:
     assert(false);
   }
-  /*-- 四隅の色を見て、一つでも変わったらsaveBoxを更新する --*/
+  /*--Look at the colors in the four corners and update the saveBox if any of
+   * the colors change. --*/
   TPixelCM32 borderIndex[4];
   TPixelCM32 *borderPix[4];
   pix            = r->pixels(0);
@@ -591,7 +593,7 @@ void fill(const TRaster32P &ras, const TRaster32P &ref,
     for (int i = 0; i < (int)segmentVector.size(); i++) {
       std::pair<int, int> segment = segmentVector[i];
       if (segment.second >= segment.first) {
-        pix             = line + segment.first;
+        pix = line + segment.first;
         if (ref) refPix = refLine + segment.first;
         int n;
         for (n = 0; n < segment.second - segment.first + 1; n++, pix++) {
@@ -778,8 +780,8 @@ void fullColorFill(const TRaster32P &ras, const FillParameters &params,
 
   std::map<int, std::vector<std::pair<int, int>>>::iterator it;
   for (it = segments.begin(); it != segments.end(); it++) {
-    TPixel32 *line    = ras->pixels(it->first);
-    TPixel32 *refLine = 0;
+    TPixel32 *line                                 = ras->pixels(it->first);
+    TPixel32 *refLine                              = 0;
     std::vector<std::pair<int, int>> segmentVector = it->second;
     for (int i = 0; i < (int)segmentVector.size(); i++) {
       std::pair<int, int> segment = segmentVector[i];

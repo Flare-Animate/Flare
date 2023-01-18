@@ -2,12 +2,14 @@
 
 #include "texception.h"
 #include "tpropertytype.h"
-//#include "timageinfo.h"
-//#include "tlevel_io.h"
+// #include "timageinfo.h"
+// #include "tlevel_io.h"
 #include "tproperty.h"
 #include "tiio.h"
 
-#if !defined(x64) && !defined(__LP64__) && !(defined(LINUX) || defined(FREEBSD)) && !(defined(__GNUC__) && defined(_WIN32))
+#if !defined(x64) && !defined(__LP64__) &&                                     \
+    !(defined(LINUX) || defined(FREEBSD)) &&                                   \
+    !(defined(__GNUC__) && defined(_WIN32))
 
 //*******************************************************************************
 //    32-bit version
@@ -112,8 +114,8 @@ void visitAtoms(const QTAtomContainer &atoms, const QTAtom &parent,
     int sonCount = QTCountChildrenOfType(atoms, curr, 0);
 
     char buffer[1024];
-    snprintf(buffer, sizeof(buffer), "%d %d %d",
-      (int)atomType, (int)id, sonCount);
+    snprintf(buffer, sizeof(buffer), "%d %d %d", (int)atomType, (int)id,
+             sonCount);
     string str(buffer);
 
     if (sonCount > 0) {
@@ -201,7 +203,7 @@ void compareAtoms(const QTAtomContainer &atoms1, QTAtom parent1,
     }
   } while (curr1 != 0 && curr2 != 0);
 }
-}
+}  // namespace
 
 //------------------------------------------------
 
@@ -370,7 +372,7 @@ bool Tiio::isQuicktimeInstalled() {
   return true;
 #else
 
-  static int ret     = -1;
+  static int ret = -1;
   if (ret == -1) ret = (InitializeQTML(0) == noErr) ? 1 : 0;
 
   return (ret == 1);
@@ -405,7 +407,8 @@ bool Tiio::isQuicktimeInstalled() {
 void openMovSettingsPopup(TPropertyGroup *props, bool unused) {
   QLocalSocket socket;
   if (!tipc::startSlaveConnection(&socket, t32bitsrv::srvName(), 3000,
-                                  t32bitsrv::srvCmdline(), "_main"))
+                                  t32bitsrv::srvCmdlinePrg(),
+                                  t32bitsrv::srvCmdlineArgs(), "_main"))
     return;
 
   // Send the appropriate commands to the server

@@ -302,7 +302,7 @@ void InfoViewerImp::setGeneralFileInfo(const TFilePath &path) {
   setVal(eFileType, getTypeString());
   if (fi.owner() != "") setVal(eOwner, fi.owner());
   setVal(eSize, fileSizeString(fi.size()));
-  setVal(eCreated, fi.created().toString());
+  setVal(eCreated, fi.birthTime().toString());
   setVal(eModified, fi.lastModified().toString());
   setVal(eLastAccess, fi.lastRead().toString());
   m_separator1.show();

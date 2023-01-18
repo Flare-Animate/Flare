@@ -18,13 +18,8 @@
 
 using XsheetGUI::ColumnArea;
 
-#if QT_VERSION >= 0x050500
 LayerFooterPanel::LayerFooterPanel(XsheetViewer *viewer, QWidget *parent,
                                    Qt::WindowFlags flags)
-#else
-LayerFooterPanel::LayerFooterPanel(XsheetViewer *viewer, QWidget *parent,
-                                   Qt::WFlags flags)
-#endif
     : QWidget(parent, flags), m_viewer(viewer) {
   const Orientation *o = viewer->orientation();
 

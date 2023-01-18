@@ -448,11 +448,7 @@ void NoteWidget::paintEvent(QPaintEvent *event) {
 // NoteArea
 //-----------------------------------------------------------------------------
 
-#if QT_VERSION >= 0x050500
 NoteArea::NoteArea(XsheetViewer *parent, Qt::WindowFlags flags)
-#else
-NoteArea::NoteArea(XsheetViewer *parent, Qt::WFlags flags)
-#endif
     : QFrame(parent)
     , m_viewer(parent)
     , m_flipOrientationButton(nullptr)
@@ -464,7 +460,6 @@ NoteArea::NoteArea(XsheetViewer *parent, Qt::WFlags flags)
     , m_hamburgerButton(nullptr)
     , m_popup(nullptr)
     , m_currentLayout(nullptr) {
-
   setFrameStyle(QFrame::StyledPanel);
   setObjectName("cornerWidget");
 
@@ -514,7 +509,7 @@ NoteArea::NoteArea(XsheetViewer *parent, Qt::WFlags flags)
   // signal-slot connections
   bool ret = true;
   ret      = ret && connect(m_flipOrientationButton, SIGNAL(clicked()),
-                       SLOT(flipOrientation()));
+                            SLOT(flipOrientation()));
 
   ret = ret && connect(m_noteButton, SIGNAL(clicked()), SLOT(toggleNewNote()));
   ret = ret &&

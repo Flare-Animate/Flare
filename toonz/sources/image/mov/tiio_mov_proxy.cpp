@@ -41,7 +41,8 @@ bool IsQuickTimeInstalled() {
   // throughout Toonz, even if it's EXPORT-defined.
   QLocalSocket socket;
   if (!tipc::startSlaveConnection(&socket, t32bitsrv::srvName(), 3000,
-                                  t32bitsrv::srvCmdline()))
+                                  t32bitsrv::srvCmdlinePrg(),
+                                  t32bitsrv::srvCmdlineArgs()))
     return false;
 
   tipc::Stream stream(&socket);
@@ -61,7 +62,8 @@ bool IsQuickTimeInstalled() {
 Tiio::MovWriterProperties::MovWriterProperties() {
   QLocalSocket socket;
   tipc::startSlaveConnection(&socket, t32bitsrv::srvName(), -1,
-                             t32bitsrv::srvCmdline());
+                             t32bitsrv::srvCmdlinePrg(),
+                             t32bitsrv::srvCmdlineArgs());
 
   tipc::Stream stream(&socket);
   tipc::Message msg;
@@ -156,7 +158,8 @@ TLevelWriterMov::TLevelWriterMov(const TFilePath &path, TPropertyGroup *winfo)
 
   QLocalSocket socket;
   tipc::startSlaveConnection(&socket, t32bitsrv::srvName(), -1,
-                             t32bitsrv::srvCmdline());
+                             t32bitsrv::srvCmdlinePrg(),
+                             t32bitsrv::srvCmdlineArgs());
 
   tipc::Stream stream(&socket);
   tipc::Message msg;
@@ -201,7 +204,8 @@ err:
 TLevelWriterMov::~TLevelWriterMov() {
   QLocalSocket socket;
   tipc::startSlaveConnection(&socket, t32bitsrv::srvName(), -1,
-                             t32bitsrv::srvCmdline());
+                             t32bitsrv::srvCmdlinePrg(),
+                             t32bitsrv::srvCmdlineArgs());
 
   tipc::Stream stream(&socket);
   tipc::Message msg;
@@ -219,7 +223,8 @@ void TLevelWriterMov::setFrameRate(double fps) {
 
   QLocalSocket socket;
   tipc::startSlaveConnection(&socket, t32bitsrv::srvName(), -1,
-                             t32bitsrv::srvCmdline());
+                             t32bitsrv::srvCmdlinePrg(),
+                             t32bitsrv::srvCmdlineArgs());
 
   tipc::Stream stream(&socket);
   tipc::Message msg;
@@ -256,7 +261,8 @@ void TLevelWriterMov::save(const TImageP &img, int frameIndex) {
   // Send messages
   QLocalSocket socket;
   tipc::startSlaveConnection(&socket, t32bitsrv::srvName(), -1,
-                             t32bitsrv::srvCmdline());
+                             t32bitsrv::srvCmdlinePrg(),
+                             t32bitsrv::srvCmdlineArgs());
 
   tipc::Stream stream(&socket);
   tipc::Message msg;
@@ -283,7 +289,8 @@ void TLevelWriterMov::saveSoundTrack(TSoundTrack *st) {
   // Prepare connection
   QLocalSocket socket;
   tipc::startSlaveConnection(&socket, t32bitsrv::srvName(), -1,
-                             t32bitsrv::srvCmdline());
+                             t32bitsrv::srvCmdlinePrg(),
+                             t32bitsrv::srvCmdlineArgs());
 
   unsigned int size = st->getSampleSize() * st->getSampleCount();
 
@@ -372,7 +379,8 @@ TLevelReaderMov::TLevelReaderMov(const TFilePath &path) : TLevelReader(path) {
 
   QLocalSocket socket;
   tipc::startSlaveConnection(&socket, t32bitsrv::srvName(), -1,
-                             t32bitsrv::srvCmdline());
+                             t32bitsrv::srvCmdlinePrg(),
+                             t32bitsrv::srvCmdlineArgs());
 
   tipc::Stream stream(&socket);
   tipc::Message msg;
@@ -396,7 +404,8 @@ TLevelReaderMov::TLevelReaderMov(const TFilePath &path) : TLevelReader(path) {
 TLevelReaderMov::~TLevelReaderMov() {
   QLocalSocket socket;
   tipc::startSlaveConnection(&socket, t32bitsrv::srvName(), -1,
-                             t32bitsrv::srvCmdline());
+                             t32bitsrv::srvCmdlinePrg(),
+                             t32bitsrv::srvCmdlineArgs());
 
   tipc::Stream stream(&socket);
   tipc::Message msg;
@@ -420,7 +429,8 @@ TImageReaderP TLevelReaderMov::getFrameReader(TFrameId fid) {
 TLevelP TLevelReaderMov::loadInfo() {
   QLocalSocket socket;
   tipc::startSlaveConnection(&socket, t32bitsrv::srvName(), -1,
-                             t32bitsrv::srvCmdline());
+                             t32bitsrv::srvCmdlinePrg(),
+                             t32bitsrv::srvCmdlineArgs());
 
   tipc::Stream stream(&socket);
   tipc::Message msg;
@@ -468,7 +478,8 @@ err:
 void TLevelReaderMov::enableRandomAccessRead(bool enable) {
   QLocalSocket socket;
   tipc::startSlaveConnection(&socket, t32bitsrv::srvName(), -1,
-                             t32bitsrv::srvCmdline());
+                             t32bitsrv::srvCmdlinePrg(),
+                             t32bitsrv::srvCmdlineArgs());
 
   tipc::Stream stream(&socket);
   tipc::Message msg;
@@ -485,7 +496,8 @@ void TLevelReaderMov::load(const TRasterP &ras, int frameIndex,
                            const TPoint &pos, int shrinkX, int shrinkY) {
   QLocalSocket socket;
   tipc::startSlaveConnection(&socket, t32bitsrv::srvName(), -1,
-                             t32bitsrv::srvCmdline());
+                             t32bitsrv::srvCmdlinePrg(),
+                             t32bitsrv::srvCmdlineArgs());
 
   tipc::Stream stream(&socket);
   tipc::Message msg;

@@ -87,13 +87,13 @@ QDateTime TFileStatus::getLastModificationTime() const {
 
 QDateTime TFileStatus::getCreationTime() const {
   if (!m_exist) return QDateTime();
-  return m_fileInfo.created();
+  return m_fileInfo.birthTime();
 }
 
 //-----------------------------------------------------------------------------------
 
 QFile::Permissions TFileStatus::getPermissions() const {
-  if (!m_exist) return 0;
+  if (!m_exist) return QFileDevice::Permissions();
   return m_fileInfo.permissions();
 }
 
@@ -160,7 +160,11 @@ TFilePath TSystem::getTestDir(string name) {
 //------------------------------------------------------------
 
 QString TSystem::getSystemValue(const TFilePath &name) {
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
+  QStringList strlist = toQString(name).split("\\", Qt::SkipEmptyParts);
+#else
   QStringList strlist = toQString(name).split("\\", QString::SkipEmptyParts);
+#endif
 
   assert(strlist.size() > 3);
   assert(strlist.at(0) == "SOFTWARE");
@@ -1004,8 +1008,8 @@ bool TSystem::touchParentDir(const TFilePath &fp) {
 
 bool TSystem::showDocument(const TFilePath &path) {
 #ifdef _WIN32
-  int ret = (int)ShellExecuteW(0, L"open", path.getWideString().c_str(), 0, 0,
-                               SW_SHOWNORMAL);
+  unsigned long long ret = (unsigned long long)ShellExecuteW(
+      0, L"open", path.getWideString().c_str(), 0, 0, SW_SHOWNORMAL);
   if (ret <= 32) {
     return false;
     throw TSystemException(path, "Can't open");
