@@ -171,8 +171,13 @@ class DVAPI DockWidget : public QFrame {
 public:
   void maximizeDock();
 
-  bool getCanFixWidth() { return m_canFixWidth; }
-  void setCanFixWidth(bool fixed) { m_canFixWidth = fixed; }
+  enum {
+      variable = 0,  // default, docked panel may auto resize with window
+      fixed = 1,     // to be used with setFixedWidth()
+      sizeable = 2   // allow panel to be sizeable but doesn't auto resize
+  };
+  int getFixWidthMode() { return m_modeFixWidth; }
+  void setFixWidthMode(int fixedmode) { m_modeFixWidth = fixedmode; }
 
 protected:
   // Private attributes for dragging purposes
@@ -194,7 +199,9 @@ protected:
   // window resize to minimize user frustration
   // This variable is only used by Level Strip right now.
   // This is only true if the level strip is vertical.
-  bool m_canFixWidth = false;
+  //
+  // Edit: Implementation changed to avoid hardcoded checks with panels names
+  int m_modeFixWidth = 0;
 
 private:
   QPoint m_dragInitialPos;

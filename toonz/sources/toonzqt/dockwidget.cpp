@@ -112,6 +112,7 @@ DockWidget::DockWidget(QWidget *parent, Qt::WindowFlags flags)
     , m_undocking(false)
     , m_parentLayout(0)
     , m_selectedPlace(0)
+    , m_modeFixWidth(0)
     , m_maximized(0) {
   // Don't let this widget inherit the parent's background color
   // setAutoFillBackground(true);

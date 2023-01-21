@@ -1930,7 +1930,8 @@ void Filmstrip::setOrientation(bool isVertical) {
     m_frameArea->horizontalScrollBar()->setObjectName("LevelStripScrollBar");
   }
   m_frames->setOrientation(m_isVertical);
-  dynamic_cast<TPanel *>(parentWidget())->setCanFixWidth(m_isVertical);
+  dynamic_cast<TPanel *>(parentWidget())
+      ->setFixWidthMode(m_isVertical ? TPanel::sizeable : TPanel::variable);
 }
 
 // SaveLoadQSettings
