@@ -121,8 +121,8 @@ public:
   std::map<double, std::pair<TRasterP, TRasterP>> m_toBeSaved;
   std::vector<std::pair<double, TFxPair>> m_framesToBeRendered;
   std::string m_renderCacheId;
-  /*--- 同じラスタのキャッシュを使いまわすとき、
-          最初のものだけガンマをかけ、以降はそれを使いまわすようにする。
+  /*--- When caching the same raster, gamma only the first one and use the
+  result in subsequent frames
   ---*/
   std::map<double, bool> m_toBeAppliedGamma;
 
@@ -151,7 +151,7 @@ public:
   void onRenderRasterCompleted(const RenderData &renderData) override;
   void onRenderFailure(const RenderData &renderData, TException &e) override;
 
-  /*-- キャンセル時にはm_overallRenderedRegionを更新しない --*/
+  /*-- Do not update m_overallRenderedRegion on cancel --*/
   void onRenderFinished(bool isCanceled = false) override;
 
   void doRenderRasterCompleted(const RenderData &renderData);
@@ -262,7 +262,7 @@ void MovieRenderer::Imp::prepareForStart() {
   TOutputProperties *oprop = m_scene->getProperties()->getOutputProperties();
   double frameRate         = (double)oprop->getFrameRate();
 
-  /*-- Frame rate の stretch --*/
+  /*-- stretch of the Frame rate --*/
   double stretchFactor = oprop->getRenderSettings().m_timeStretchTo /
                          oprop->getRenderSettings().m_timeStretchFrom;
   frameRate *= stretchFactor;
@@ -470,8 +470,8 @@ std::pair<bool, int> MovieRenderer::Imp::saveFrame(
     TRasterP rasterA = rasters.first, rasterB = rasters.second;
     assert(rasterA);
 
-    /*--- 同じラスタのキャッシュを使いまわすとき、
-    最初のものだけガンマをかけ、以降はそれを使いまわすようにする。
+    /*--- When caching the same raster, gamma only the first one and use the
+result in subsequent frames
 ---*/
     if (m_renderSettings.m_gamma != 1.0 && m_toBeAppliedGamma[frame]) {
       TRop::gammaCorrect(rasterA, m_renderSettings.m_gamma);

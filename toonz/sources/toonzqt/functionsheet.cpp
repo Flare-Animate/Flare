@@ -430,7 +430,7 @@ void FunctionSheetColumnHeadViewer::paintEvent(QPaintEvent *e) {
 /*! update tooltips
  */
 void FunctionSheetColumnHeadViewer::mouseMoveEvent(QMouseEvent *e) {
-  if ((e->buttons() & Qt::MidButton) && m_draggingChannel &&
+  if ((e->buttons() & Qt::MiddleButton) && m_draggingChannel &&
       (e->pos() - m_dragStartPosition).manhattanLength() >=
           QApplication::startDragDistance()) {
     QDrag *drag         = new QDrag(this);
@@ -490,7 +490,7 @@ void FunctionSheetColumnHeadViewer::mousePressEvent(QMouseEvent *e) {
     return;
   }
 
-  if (e->button() == Qt::MidButton) {
+  if (e->button() == Qt::MiddleButton) {
     m_draggingChannel   = channel;
     m_dragStartPosition = e->pos();
     return;
@@ -636,7 +636,7 @@ FunctionSheetCellViewer::FunctionSheetCellViewer(FunctionSheet *parent)
   bool ret = connect(m_lineEdit, SIGNAL(editingFinished()), this,
                      SLOT(onCellEditorEditingFinished()));
   ret      = ret && connect(m_lineEdit, SIGNAL(mouseMoved(QMouseEvent *)), this,
-                       SLOT(onMouseMovedInLineEdit(QMouseEvent *)));
+                            SLOT(onMouseMovedInLineEdit(QMouseEvent *)));
   assert(ret);
   setMouseTracking(true);
 
@@ -799,8 +799,9 @@ void FunctionSheetCellViewer::drawCells(QPainter &painter, int r0, int c0,
           }
         }
 
-        drawValue =
-            (curve->isKeyframe(row)) ? Key : (showIbtwn) ? Inbetween : None;
+        drawValue = (curve->isKeyframe(row)) ? Key
+                    : (showIbtwn)            ? Inbetween
+                                             : None;
 
       }
       // empty cells
@@ -987,7 +988,7 @@ void FunctionSheetCellViewer::mousePressEvent(QMouseEvent *e) {
     if (curve) {
       KeyframeSetter::removeKeyframeAt(curve, row);
     }
-  } else if (e->button() == Qt::LeftButton || e->button() == Qt::MidButton)
+  } else if (e->button() == Qt::LeftButton || e->button() == Qt::MiddleButton)
     Spreadsheet::CellPanel::mousePressEvent(e);
   else if (e->button() == Qt::RightButton) {
     update();

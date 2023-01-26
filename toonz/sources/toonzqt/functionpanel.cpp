@@ -48,7 +48,8 @@ void drawSquare(QPainter &painter, const QPointF &p, double r) {
 }
 
 void drawRoundedSquare(QPainter &painter, const QPointF &p, double r) {
-  painter.drawRoundRect(p.x() - r, p.y() - r, 2 * r, 2 * r, 99, 99);
+  painter.drawRoundedRect(p.x() - r, p.y() - r, 2 * r, 2 * r, 99, 99,
+                          Qt::RelativeSize);
 }
 
 double norm2(const QPointF &p) { return p.x() * p.x() + p.y() * p.y(); }
@@ -548,7 +549,7 @@ void FunctionPanel::drawFrameGrid(QPainter &painter) {
   Ruler ruler;
   ruler.setTransform(m_viewTransform.m11(), m_viewTransform.dx(), -1);
   ruler.setRange(m_valueAxisX, width());
-  ruler.setMinLabelDistance(fm.width("-8888") + 2);
+  ruler.setMinLabelDistance(fm.horizontalAdvance("-8888") + 2);
   ruler.setMinDistance(5);
   ruler.setMinStep(1);
   ruler.compute();
@@ -564,7 +565,8 @@ void FunctionPanel::drawFrameGrid(QPainter &painter) {
     if (isLabel) {
       painter.setPen(m_textColor);
       QString labelText = QString::number(f + 1);
-      painter.drawText(x - fm.width(labelText) / 2, y - 6, labelText);
+      painter.drawText(x - fm.horizontalAdvance(labelText) / 2, y - 6,
+                       labelText);
     }
   }
 }
@@ -594,7 +596,7 @@ void FunctionPanel::drawValueGrid(QPainter &painter) {
     double v     = ruler.getTick(i);
     bool isLabel = ruler.isLabel(i);
     int y        = tround(m_viewTransform.m22() * v +
-                   m_viewTransform.dy());  // valueToY(curve, v);
+                          m_viewTransform.dy());  // valueToY(curve, v);
     painter.setPen(m_textColor);
     int x = m_valueAxisX;
     painter.drawLine(x - (isLabel ? 5 : 2), y, x, y);
@@ -605,7 +607,7 @@ void FunctionPanel::drawValueGrid(QPainter &painter) {
     if (isLabel) {
       painter.setPen(m_textColor);
       QString labelText = QString::number(v);
-      painter.drawText(std::max(0, x - 5 - fm.width(labelText)),
+      painter.drawText(std::max(0, x - 5 - fm.horizontalAdvance(labelText)),
                        y + fm.height() / 2, labelText);
     }
   }
@@ -1088,7 +1090,7 @@ void FunctionPanel::paintEvent(QPaintEvent *e) {
   QFontMetrics fm(font);
 
   // define ruler sizes
-  m_valueAxisX     = fm.width("-888.88") + 2;
+  m_valueAxisX     = fm.horizontalAdvance("-888.88") + 2;
   m_frameAxisY     = fm.height() + 2;
   m_graphViewportY = m_frameAxisY + 12;
   int ox           = m_valueAxisX;
@@ -1136,7 +1138,8 @@ void FunctionPanel::paintEvent(QPaintEvent *e) {
     int x = frameToX(m_cursor.frame);
     painter.drawLine(x, oy0 + 1, x, oy0 + 10);
     QString text = QString::number(tround(m_cursor.frame) + 1);
-    painter.drawText(x - fm.width(text) / 2, oy0 + 10 + fm.height(), text);
+    painter.drawText(x - fm.horizontalAdvance(text) / 2, oy0 + 10 + fm.height(),
+                     text);
 
     TDoubleParam *currentCurve = getCurrentCurve();
     if (currentCurve) {
@@ -1184,7 +1187,7 @@ void FunctionPanel::mousePressEvent(QMouseEvent *e) {
     m_dragTool = nullptr;
   }
 
-  if (e->button() == Qt::MidButton) {
+  if (e->button() == Qt::MiddleButton) {
     // mid mouse click => panning
     bool xLocked = e->pos().x() <= m_valueAxisX;
     bool yLocked = e->pos().y() <= m_valueAxisX;
@@ -1402,7 +1405,7 @@ void FunctionPanel::mouseMoveEvent(QMouseEvent *e) {
         m_curveLabel.text = name.toStdString();
 
         // in order to avoid run off the right-end of visible area
-        int textWidth = fontMetrics().width(name) + 30;
+        int textWidth = fontMetrics().horizontalAdvance(name) + 30;
         double frame  = xToFrame(width() - textWidth);
 
         m_curveLabel.curvePos = getWinPos(curve, frame).toPoint();
@@ -1440,8 +1443,12 @@ void FunctionPanel::leaveEvent(QEvent *) {
 //-----------------------------------------------------------------------------
 
 void FunctionPanel::wheelEvent(QWheelEvent *e) {
-  double factor = exp(0.002 * (double)e->delta());
+  double factor = exp(0.002 * (double)e->angleDelta().y());
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
+  zoom(factor, factor, e->position().toPoint());
+#else
   zoom(factor, factor, e->pos());
+#endif
 }
 
 //-----------------------------------------------------------------------------

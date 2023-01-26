@@ -237,7 +237,7 @@ TPoint TFont::drawChar(TRasterCM32P &outImage, TPoint &unused, int inkId,
 
 TPoint TFont::getDistance(wchar_t firstChar, wchar_t secondChar) const {
   QFontMetrics metrics(m_pimpl->m_font);
-  return TPoint(metrics.width(QChar(firstChar)), 0);
+  return TPoint(metrics.horizontalAdvance(QChar(firstChar)), 0);
 }
 
 //-----------------------------------------------------------------------------

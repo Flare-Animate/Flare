@@ -216,7 +216,7 @@ l'immagine)
     if (TTWAIN_SupportsFeeder()) {
       feeder_status = TTWAIN_GetFeeder();
       rc            = TTWAIN_SetFeeder(TRUE);
-      if (rc) rc    = TTWAIN_GetPhysicalWidth(width);
+      if (rc) rc = TTWAIN_GetPhysicalWidth(width);
       TTWAIN_SetFeeder(feeder_status);
     }
     return rc;
@@ -229,7 +229,7 @@ l'immagine)
     if (TTWAIN_SupportsFeeder()) {
       feeder_status = TTWAIN_GetFeeder();
       rc            = TTWAIN_SetFeeder(TRUE);
-      if (rc) rc    = TTWAIN_GetPhysicalHeight(height);
+      if (rc) rc = TTWAIN_GetPhysicalHeight(height);
       TTWAIN_SetFeeder(feeder_status);
     }
     return rc;
@@ -242,7 +242,7 @@ l'immagine)
     if (TTWAIN_SupportsFeeder()) {
       feeder_status = TTWAIN_GetFeeder();
       rc            = TTWAIN_SetFeeder(TRUE);
-      if (rc) rc    = TTWAIN_GetMinimumWidth(width);
+      if (rc) rc = TTWAIN_GetMinimumWidth(width);
       TTWAIN_SetFeeder(feeder_status);
     }
     return rc;
@@ -255,7 +255,7 @@ l'immagine)
     if (TTWAIN_SupportsFeeder()) {
       feeder_status = TTWAIN_GetFeeder();
       rc            = TTWAIN_SetFeeder(TRUE);
-      if (rc) rc    = TTWAIN_GetMinimumHeight(height);
+      if (rc) rc = TTWAIN_GetMinimumHeight(height);
       TTWAIN_SetFeeder(feeder_status);
     }
     return rc;
@@ -330,7 +330,7 @@ l'immagine)
     container = (TW_ENUMERATION *)GLOBAL_LOCK(handle);
     rc = TTWAIN_GetCap(ICAP_PIXELTYPE, TWON_ENUMERATION, (void *)container, 0);
 
-    if (!rc) goto done;
+    if (!rc || !container) goto done;
     found =
         TTWAIN_IsItemInList(container->ItemList, &twPix, container->NumItems,
                             DCItemSize[container->ItemType]);
@@ -360,7 +360,7 @@ l'immagine)
     rc =
         TTWAIN_GetCap(ICAP_COMPRESSION, TWON_ENUMERATION, (void *)container, 0);
 
-    if (!rc) goto done;
+    if (!rc || !container) goto done;
     found = TTWAIN_IsItemInList(container->ItemList, &comprType,
                                 container->NumItems,
                                 DCItemSize[container->ItemType]);
@@ -443,8 +443,8 @@ l'immagine)
     static char version[5 + 1 + 5 + 1 + 32 + 1];
     snprintf(version, sizeof(version), "%d.%d %s",
              TTwainData.sourceId.Version.MajorNum,
-	     TTwainData.sourceId.Version.MinorNum,
-	     (char *)TTwainData.sourceId.Version.Info);
+             TTwainData.sourceId.Version.MinorNum,
+             (char *)TTwainData.sourceId.Version.Info);
     return version;
   }
   /*---------------------------------------------------------------------------*/
@@ -656,9 +656,9 @@ GLOBAL_FREE(TTwainData.supportedCaps);
     int rc1, rc2;
     TW_FIX32 twfix = TTWAIN_FloatToFix32(resolution);
     rc1            = TTWAIN_SetCap(ICAP_XRESOLUTION, TWON_ONEVALUE, TWTY_FIX32,
-                        (TW_UINT32 *)&twfix);
-    rc2 = TTWAIN_SetCap(ICAP_YRESOLUTION, TWON_ONEVALUE, TWTY_FIX32,
-                        (TW_UINT32 *)&twfix);
+                                   (TW_UINT32 *)&twfix);
+    rc2            = TTWAIN_SetCap(ICAP_YRESOLUTION, TWON_ONEVALUE, TWTY_FIX32,
+                                   (TW_UINT32 *)&twfix);
     return (rc1 & rc2);
   }
   /*---------------------------------------------------------------------------*/
@@ -666,7 +666,7 @@ GLOBAL_FREE(TTwainData.supportedCaps);
     int rc;
     TW_FIX32 twfix = TTWAIN_FloatToFix32(scale);
     rc             = TTWAIN_SetCap(ICAP_XSCALING, TWON_ONEVALUE, TWTY_FIX32,
-                       (TW_UINT32 *)&twfix);
+                                   (TW_UINT32 *)&twfix);
     return rc;
   }
   /*---------------------------------------------------------------------------*/
@@ -674,7 +674,7 @@ GLOBAL_FREE(TTwainData.supportedCaps);
     int rc;
     TW_FIX32 twfix = TTWAIN_FloatToFix32(scale);
     rc             = TTWAIN_SetCap(ICAP_YSCALING, TWON_ONEVALUE, TWTY_FIX32,
-                       (TW_UINT32 *)&twfix);
+                                   (TW_UINT32 *)&twfix);
     return rc;
   }
   /*---------------------------------------------------------------------------*/
@@ -792,7 +792,7 @@ return FALSE;
     layout.DocumentNumber = TWON_DONTCARE32;
     layout.PageNumber     = TWON_DONTCARE32;
     layout.FrameNumber    = TWON_DONTCARE32;
-    rc = (TTWAIN_DS(DG_IMAGE, DAT_IMAGELAYOUT, MSG_SET, &layout) ==
+    rc  = (TTWAIN_DS(DG_IMAGE, DAT_IMAGELAYOUT, MSG_SET, &layout) ==
           TWRC_SUCCESS);
     rc2 = (TTWAIN_DS(DG_IMAGE, DAT_IMAGELAYOUT, MSG_GET, &layout2) ==
            TWRC_SUCCESS);
@@ -1295,7 +1295,7 @@ TTwainData.transferInfo.multiTransfer = status;
     TTwainData.callback.onErrorCb  = proc;
     TTwainData.callback.onErrorArg = arg;
   }
-/*---------------------------------------------------------------------------*/
+  /*---------------------------------------------------------------------------*/
 
 #ifdef __cplusplus
 }

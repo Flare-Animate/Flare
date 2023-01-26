@@ -1423,7 +1423,7 @@ void SubCameraButton::onSubCameraAct() {
 }
 
 void SubCameraButton::onSaveSubCamera() {
-  auto initDialog = [](QLineEdit** lineEdit) {
+  auto initDialog = [&](QLineEdit** lineEdit) {
     QDialog* ret = new QDialog();
     *lineEdit    = new QLineEdit(ret);
     QDialogButtonBox* buttonBox =

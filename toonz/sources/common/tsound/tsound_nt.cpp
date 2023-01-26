@@ -20,8 +20,8 @@ class TSoundInputDeviceImp;
 //=========================================================
 
 namespace {
-void CALLBACK recordCB(HWAVEIN hwi, UINT uMsg, DWORD dwInstance, DWORD dwParam1,
-                       DWORD dwParam2);
+void CALLBACK recordCB(HWAVEIN hwi, UINT uMsg, DWORD_PTR dwInstance,
+                       DWORD_PTR dwParam1, DWORD dwParam2);
 
 bool setRecordLine(TSoundInputDevice::Source typeInput);
 
@@ -43,7 +43,7 @@ MMRESULT isaFormatSupported(int sampleRate, int channelCount, int bitPerSample,
 
 DWORD WINAPI MyWaveOutCallbackThread(LPVOID lpParameter);
 void getAmplitude(int &amplitude, const TSoundTrackP st, TINT32 sample);
-}
+}  // namespace
 
 //==============================================================================
 //     Class to send the message that a playback is completed
@@ -503,8 +503,9 @@ bool TSoundOutputDeviceImp::doOpenDevice(const TSoundTrackFormat &format) {
                            &m_notifyThreadId));
 
   MMRESULT ret;
-  if ((ret = waveOutOpen(&m_wout, WAVE_MAPPER, &wf, (DWORD)m_notifyThreadId,
-                         (DWORD)this, CALLBACK_THREAD)) != MMSYSERR_NOERROR) {
+  if ((ret = waveOutOpen(&m_wout, WAVE_MAPPER, &wf, (DWORD_PTR)m_notifyThreadId,
+                         (DWORD_PTR)this, CALLBACK_THREAD)) !=
+      MMSYSERR_NOERROR) {
     while (!PostThreadMessage(m_notifyThreadId, WM_QUIT, 0, 0))
       ;
   }
@@ -688,7 +689,7 @@ void getAmplitude(int &amplitude, const TSoundTrackP st, TINT32 sample) {
     amplitude += (int)snd->getPressure(sample, k);
   amplitude /= k;
 }
-}
+}  // namespace
 
 //------------------------------------------------------------------------------
 
@@ -821,16 +822,16 @@ TSoundTrackFormat TSoundOutputDevice::getPreferredFormat(TUINT32 sampleRate,
 
   // Normalize bit sample and set preferred sample type
   if (bitPerSample <= 8) {
-    bitPerSample = 8;
+    bitPerSample     = 8;
     fmt.m_sampleType = TSound::UINT;
   } else if (bitPerSample <= 16) {
-    bitPerSample = 16;
+    bitPerSample     = 16;
     fmt.m_sampleType = TSound::INT;
   } else if (bitPerSample <= 24) {
-    bitPerSample = 24;
+    bitPerSample     = 24;
     fmt.m_sampleType = TSound::INT;
   } else if (bitPerSample <= 32) {
-    bitPerSample = 32;
+    bitPerSample     = 32;
     fmt.m_sampleType = TSound::FLOAT;
   }
 
@@ -934,8 +935,8 @@ WinSoundInputDevice::~WinSoundInputDevice() { CloseHandle(m_hBlockDone); }
 void WinSoundInputDevice::open(const WaveFormat &wf) {
   if (m_hWaveIn) close();
 
-  MMRESULT ret = waveInOpen(&m_hWaveIn, WAVE_MAPPER, &wf, (DWORD)recordCB,
-                            (DWORD)m_hBlockDone, CALLBACK_FUNCTION);
+  MMRESULT ret = waveInOpen(&m_hWaveIn, WAVE_MAPPER, &wf, (DWORD_PTR)recordCB,
+                            (DWORD_PTR)m_hBlockDone, CALLBACK_FUNCTION);
 
   if (ret != MMSYSERR_NOERROR) {
     throw TException("Error to open the input device");
@@ -1148,15 +1149,15 @@ bool TSoundInputDeviceImp::verifyRate() {
 
 //====================================================================
 namespace {
-void CALLBACK recordCB(HWAVEIN hwi, UINT uMsg, DWORD dwInstance, DWORD dwParam1,
-                       DWORD dwParam2) {
+void CALLBACK recordCB(HWAVEIN hwi, UINT uMsg, DWORD_PTR dwInstance,
+                       DWORD_PTR dwParam1, DWORD dwParam2) {
   WAVEHDR *whdr     = (WAVEHDR *)dwParam1;
   HANDLE *blockDone = (HANDLE *)dwInstance;
 
   if (uMsg != MM_WIM_DATA) return;
   SetEvent(blockDone);
 }
-}
+}  // namespace
 
 //==============================================================================
 
@@ -1549,7 +1550,7 @@ bool TSoundInputDevice::setVolume(double value) {
   double delta    = (double)(dwMaximum / (mxc.Metrics.cSteps - 1));
   newValue        = (int)(tround(fattProp) * delta);
 
-  MIXERCONTROLDETAILS_UNSIGNED mxcdVolume = {newValue};
+  MIXERCONTROLDETAILS_UNSIGNED mxcdVolume = {(DWORD)newValue};
   ret = setControlDetails((HMIXEROBJ)0, dwVolumeControlID, mxc.cMultipleItems,
                           &mxcdVolume);
   if (ret != MMSYSERR_NOERROR)
@@ -1801,7 +1802,7 @@ MMRESULT getLineInfo(HMIXEROBJ hMixer, MIXERLINE &mxl, DWORD destination,
   mxl.dwDestination = destination;
   mxl.dwSource      = source;
   ret               = mixerGetLineInfo(0, &mxl,
-                         MIXER_OBJECTF_HMIXER | MIXER_GETLINEINFOF_SOURCE);
+                                       MIXER_OBJECTF_HMIXER | MIXER_GETLINEINFOF_SOURCE);
   return ret;
 }
 
@@ -1815,7 +1816,7 @@ MMRESULT getLineInfo(HMIXEROBJ hMixer, MIXERLINE &mxl, DWORD dwLineID) {
   mxl.cbStruct = sizeof(mxl);
   mxl.dwLineID = dwLineID;
   ret          = mixerGetLineInfo((HMIXEROBJ)hMixer, &mxl,
-                         MIXER_OBJECTF_HMIXER | MIXER_GETLINEINFOF_LINEID);
+                                  MIXER_OBJECTF_HMIXER | MIXER_GETLINEINFOF_LINEID);
   return ret;
 }
 
@@ -1913,7 +1914,7 @@ MMRESULT getControlDetails(HMIXEROBJ hMixer, DWORD dwSelectControlID,
   mxcd.cbDetails      = sizeof(MIXERCONTROLDETAILS_LISTTEXT);
   mxcd.paDetails      = pmxcdSelectText;
   ret                 = mixerGetControlDetails((HMIXEROBJ)0, &mxcd,
-                               MIXER_GETCONTROLDETAILSF_LISTTEXT);
+                                               MIXER_GETCONTROLDETAILSF_LISTTEXT);
   return ret;
 }
 
@@ -2119,7 +2120,8 @@ bool setRecordLine(TSoundInputDevice::Source typeInput) {
   case TSoundInputDevice::LineIn:
     dwComponentTypeSrc = MIXERLINE_COMPONENTTYPE_SRC_LINE /*|
                              MIXERLINE_COMPONENTTYPE_SRC_AUXILIARY |
-                             MIXERLINE_COMPONENTTYPE_SRC_ANALOG*/;
+                             MIXERLINE_COMPONENTTYPE_SRC_ANALOG*/
+        ;
     break;
   case TSoundInputDevice::DigitalIn:
     dwComponentTypeSrc = MIXERLINE_COMPONENTTYPE_SRC_DIGITAL;
@@ -2188,4 +2190,4 @@ MMRESULT isaFormatSupported(int sampleRate, int channelCount, int bitPerSample,
     ret = waveOutOpen(NULL, WAVE_MAPPER, &wf, NULL, NULL, WAVE_FORMAT_QUERY);
   return ret;
 }
-}
+}  // namespace

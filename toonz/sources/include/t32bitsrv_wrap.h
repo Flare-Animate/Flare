@@ -43,16 +43,20 @@ static QString srvName() {
 }
 
 #ifdef _WIN32
-static QString srvCmdline() {
-  static QString cmd("srv/t32bitsrv.exe " + srvName());
+static QString srvCmdlinePrg() {
+  static QString cmd("srv/t32bitsrv.exe");
   return cmd;
 }
 #else
-static QString srvCmdline() {
-  return "\"" + QCoreApplication::applicationDirPath() + "/t32bitsrv\" " +
-         srvName();
+static QString srvCmdlinePrg() {
+  return "\"" + QCoreApplication::applicationDirPath() + "/t32bitsrv";
 }
 #endif
+
+static QStringList srvCmdlineArgs() {
+  static QStringList args = {srvName()};
+  return args;
+}
 
 //*************************************************************************************
 //  Buffer data exchanger

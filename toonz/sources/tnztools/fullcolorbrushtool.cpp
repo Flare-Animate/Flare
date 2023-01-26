@@ -403,7 +403,7 @@ void FullColorBrushTool::leftButtonDrag(const TPointD &pos,
                  TPointD(m_brushPos.x + distance, m_brushPos.y + distance));
       invalidateRect += (brushRect);
       double denominator = m_lastPoint.x - m_firstPoint.x;
-      if (denominator == 0) denominator == 0.001;
+      if (denominator == 0) denominator = 0.001;
       double slope = ((m_lastPoint.y - m_firstPoint.y) / denominator);
       double angle = std::atan(slope) * (180 / 3.14159);
       if (abs(angle) > 67.5)

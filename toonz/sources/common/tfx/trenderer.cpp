@@ -989,7 +989,7 @@ void RenderTask::run() {
     if (!m_fieldRender && !m_stereoscopic) {
       // Common case - just build the first tile
       buildTile(m_tileA);
-      /*-- 通常はここがFxのレンダリング処理 --*/
+      /*-- Normally, Fx rendering process is performed here --*/
       m_fx.m_frameA->compute(m_tileA, t, m_info);
     } else {
       assert(!(m_stereoscopic && m_fieldRender));
@@ -1131,7 +1131,7 @@ void RenderTask::onFinished(TThread::RunnableP) {
 
   // If the render instance has just expired
   if (instanceExpires) {
-    /*-- キャンセルされた場合はm_overallRenderedRegionの更新をしない --*/
+    /*-- Do not update m_overallRenderedRegion if canceled --*/
 
     // Inform the render ports
     rendererImp->notifyRenderFinished(isCanceled);
@@ -1184,8 +1184,8 @@ void TRendererStartInvoker::doStartRender(TRendererImp *renderer,
 }
 
 std::vector<const TFx *> calculateSortedFxs(TRasterFxP rootFx) {
-  std::map<const TFx *, std::set<const TFx *>> E; /* 辺の情報 */
-  std::set<const TFx *> Sources; /* 入次数0のノード群 */
+  std::map<const TFx *, std::set<const TFx *>> E; /* information on the edges */
+  std::set<const TFx *> Sources;                  /* Node group with no input */
 
   std::queue<const TFx *> Q;
   Q.push(rootFx.getPointer());
@@ -1199,8 +1199,7 @@ std::vector<const TFx *> calculateSortedFxs(TRasterFxP rootFx) {
       continue;
     }
 
-    /* 繋がっている入力ポートの先の Fx を訪問する
-入力ポートが無ければ終了 */
+    /* If there is no input port to visit Fx connected to input port, exit */
     int portCount = vptr->getInputPortCount();
     if (portCount < 1) {
       Sources.insert(vptr);
@@ -1223,7 +1222,7 @@ std::vector<const TFx *> calculateSortedFxs(TRasterFxP rootFx) {
     }
   }
 
-  /* トポロジカルソート */
+  /* topological sorting */
   std::set<const TFx *> visited;
   std::vector<const TFx *> L;
   std::function<void(const TFx *)> visit = [&visit, &visited, &E,
@@ -1402,10 +1401,10 @@ void TRendererImp::startRendering(
     // Build the frame's description alias
     const TRenderer::RenderData &renderData = *it;
 
-    /*--- カメラサイズ (LevelAutoやノイズで使用する) ---*/
+    /*--- Camera size (used for LevelAuto and noise) ---*/
     TRenderSettings rs = renderData.m_info;
     rs.m_cameraBox     = camBox;
-    /*--- 途中でPreview計算がキャンセルされたときのフラグ ---*/
+    /*--- Flag when Preview calculation is canceled during the process ---*/
     rs.m_isCanceled = &renderInfos->m_canceled;
 
     TRasterFxP fx = renderData.m_fxRoot.m_frameA;
