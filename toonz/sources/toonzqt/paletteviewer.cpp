@@ -12,6 +12,7 @@
 #include "toonzqt/styleselection.h"
 #include "toonzqt/stylenameeditor.h"
 #include "palettedata.h"
+#include "docklayout.h"
 
 // TnzLib includes
 #include "toonz/palettecmd.h"
@@ -123,6 +124,7 @@ PaletteViewer::PaletteViewer(QWidget *parent, PaletteViewType viewType,
     , m_showToolbarOnTopAct(nullptr)
     , m_toolbarContainer(0)
     , m_styleNameEditor(nullptr)
+    , m_variableWidth(true)
     , m_hLayout(0) {
   setObjectName("OnePixelMarginFrame");
   setFrameStyle(QFrame::StyledPanel);
@@ -259,6 +261,18 @@ void PaletteViewer::toggleNameEditorVisibility(bool checked) {
 
 //-----------------------------------------------------------------------------
 
+void PaletteViewer::toggleVariableWidth(bool checked) {
+  m_variableWidth = checked;
+
+  DockWidget *dock = dynamic_cast<DockWidget *>(parentWidget());
+  if (dock) {
+    dock->setFixWidthMode(checked ? DockWidget::variable
+                                  : DockWidget::sizeable);
+  }
+}
+
+//-----------------------------------------------------------------------------
+
 void PaletteViewer::save(QSettings &settings) const {
   int toolbarOnTop = m_toolbarOnTop ? 1 : 0;
   settings.setValue("toolbarOnTop", toolbarOnTop);
@@ -268,6 +282,8 @@ void PaletteViewer::save(QSettings &settings) const {
   if (m_visibleGizmoAction->isChecked()) visibleParts |= 0x04;
   if (m_visibleNameAction->isChecked()) visibleParts |= 0x08;
   settings.setValue("toolbarVisibleMsk", visibleParts);
+  int variableWidth = m_variableWidth ? 1 : 0;
+  settings.setValue("variableWidth", variableWidth);
 }
 
 void PaletteViewer::load(QSettings &settings) {
@@ -293,6 +309,9 @@ void PaletteViewer::load(QSettings &settings) {
   applyToolbarPartVisibility(TBVisNewStylePage, visibleParts & 0x02);
   applyToolbarPartVisibility(TBVisPaletteGizmo, visibleParts & 0x04);
   applyToolbarPartVisibility(TBVisNameEditor, visibleParts & 0x08);
+
+  bool variableWidth = settings.value("variableWidth", m_variableWidth).toInt() != 0;
+  toggleVariableWidth(variableWidth);
 }
 
 //-----------------------------------------------------------------------------
@@ -504,6 +523,16 @@ void PaletteViewer::createPaletteToolBar() {
   addNameDisplayAction(tr("Style Name"), PageViewer::Style);
   addNameDisplayAction(tr("StudioPalette Name"), PageViewer::Original);
   addNameDisplayAction(tr("Both Names"), PageViewer::StyleAndOriginal);
+
+  viewMode->addSeparator();
+
+  // Docked panels will automatically adjust width based of the window size
+  m_variableWidthAct = new QAction(tr("Auto Adjust Panel Width"));
+  m_variableWidthAct->setCheckable(true);
+  m_variableWidthAct->setChecked(m_variableWidth);
+  viewMode->addAction(m_variableWidthAct);
+  connect(m_variableWidthAct, SIGNAL(toggled(bool)), this,
+          SLOT(toggleVariableWidth(bool)));
 
   viewMode->addSeparator();
 
@@ -834,6 +863,7 @@ void PaletteViewer::mousePressEvent(QMouseEvent *event) {
 void PaletteViewer::showEvent(QShowEvent *) {
   onPaletteSwitched();
   changeWindowTitle();
+  toggleVariableWidth(m_variableWidth);
 
   if (!m_paletteHandle) return;
 

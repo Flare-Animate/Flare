@@ -430,6 +430,7 @@ bool Region::checkWidgetsToBeFixedWidth(std::vector<QWidget *> &widgets,
       m_item->clearWasFloating();
       return false;
     }
+    /*
     if ((m_item->objectName() == "FilmStrip" && m_item->getCanFixWidth()) ||
         m_item->objectName() == "StyleEditor") {
       widgets.push_back(m_item);
@@ -438,6 +439,16 @@ bool Region::checkWidgetsToBeFixedWidth(std::vector<QWidget *> &widgets,
       return true;
     } else
       return false;
+    */
+    switch (m_item->getFixWidthMode()) {
+    case 2:
+      widgets.push_back(m_item);
+      // fallthrough
+    case 1:
+      return true;
+    default:
+      return false;
+    }
   }
   if (m_childList.empty()) return false;
   // for horizontal orientation, return true if all items are to be fixed
@@ -465,6 +476,8 @@ bool Region::checkWidgetsToBeFixedWidth(std::vector<QWidget *> &widgets,
 void DockLayout::redistribute() {
   if (!m_regions.empty()) {
     std::vector<QWidget *> widgets;
+    std::vector<QSize> minSizes;
+    std::vector<QSize> maxSizes;
 
     // Recompute extremal region sizes
     // NOTA: Sarebbe da fare solo se un certo flag lo richiede; altrimenti tipo
@@ -478,7 +491,11 @@ void DockLayout::redistribute() {
     bool widgetsCanBeFixedWidth =
         !m_regions.front()->checkWidgetsToBeFixedWidth(widgets, fromDocking);
     if (!fromDocking && widgetsCanBeFixedWidth) {
-      for (QWidget *widget : widgets) widget->setFixedWidth(widget->width());
+      for (QWidget *widget : widgets) {
+        minSizes.push_back(widget->minimumSize());
+        maxSizes.push_back(widget->maximumSize());
+        widget->setFixedWidth(widget->width());
+      }
     }
 
     m_regions.front()->calculateExtremalSizes();
@@ -499,9 +516,15 @@ void DockLayout::redistribute() {
     m_regions.front()->redistribute();
 
     if (!fromDocking && widgetsCanBeFixedWidth) {
+      /*
       for (QWidget *widget : widgets) {
         widget->setMaximumSize(QWIDGETSIZE_MAX, QWIDGETSIZE_MAX);
         widget->setMinimumSize(0, 0);
+      }
+      */
+      for (int i = 0; i < widgets.size(); ++i) {
+        widgets[i]->setMinimumSize(minSizes[i]);
+        widgets[i]->setMaximumSize(maxSizes[i]);
       }
     }
   }

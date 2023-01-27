@@ -659,6 +659,7 @@ public:
 
   TPanel *createPanel(QWidget *parent) override {
     PaletteViewerPanel *panel = new PaletteViewerPanel(parent);
+    panel->setFixWidthMode(TPanel::sizeable);
     panel->setObjectName(getPanelType());
     panel->setWindowTitle(QObject::tr(("Level Palette")));
 
@@ -942,6 +943,7 @@ public:
 
   TPanel *createPanel(QWidget *parent) override {
     StyleEditorPanel *panel = new StyleEditorPanel(parent);
+    panel->setFixWidthMode(TPanel::sizeable);
     panel->setObjectName(getPanelType());
     panel->setWindowTitle(QObject::tr("Style Editor"));
     return panel;
@@ -961,6 +963,7 @@ public:
   ToolbarFactory() : TPanelFactory("ToolBar") {}
   void initialize(TPanel *panel) override {
     Toolbar *toolbar = new Toolbar(panel);
+    panel->setFixWidthMode(TPanel::fixed);
     panel->setWidget(toolbar);
     panel->setIsMaximizable(false);
     // panel->setAllowedAreas(Qt::LeftDockWidgetArea|Qt::RightDockWidgetArea);
