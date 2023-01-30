@@ -139,9 +139,7 @@ protected:
   QAction *m_visibleNewAction;
   QAction *m_visibleGizmoAction;
   QAction *m_visibleNameAction;
-
-  bool m_variableWidth;
-  QAction *m_variableWidthAct;
+  QAction *m_variableWidthAction;
 
 protected:
   void createTabBar();

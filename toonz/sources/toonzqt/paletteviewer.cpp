@@ -124,7 +124,6 @@ PaletteViewer::PaletteViewer(QWidget *parent, PaletteViewType viewType,
     , m_showToolbarOnTopAct(nullptr)
     , m_toolbarContainer(0)
     , m_styleNameEditor(nullptr)
-    , m_variableWidth(true)
     , m_hLayout(0) {
   setObjectName("OnePixelMarginFrame");
   setFrameStyle(QFrame::StyledPanel);
@@ -262,8 +261,6 @@ void PaletteViewer::toggleNameEditorVisibility(bool checked) {
 //-----------------------------------------------------------------------------
 
 void PaletteViewer::toggleVariableWidth(bool checked) {
-  m_variableWidth = checked;
-
   DockWidget *dock = dynamic_cast<DockWidget *>(parentWidget());
   if (dock) {
     dock->setFixWidthMode(checked ? DockWidget::variable
@@ -282,7 +279,7 @@ void PaletteViewer::save(QSettings &settings) const {
   if (m_visibleGizmoAction->isChecked()) visibleParts |= 0x04;
   if (m_visibleNameAction->isChecked()) visibleParts |= 0x08;
   settings.setValue("toolbarVisibleMsk", visibleParts);
-  int variableWidth = m_variableWidth ? 1 : 0;
+  int variableWidth = m_variableWidthAction->isChecked() ? 1 : 0;
   settings.setValue("variableWidth", variableWidth);
 }
 
@@ -310,7 +307,8 @@ void PaletteViewer::load(QSettings &settings) {
   applyToolbarPartVisibility(TBVisPaletteGizmo, visibleParts & 0x04);
   applyToolbarPartVisibility(TBVisNameEditor, visibleParts & 0x08);
 
-  bool variableWidth = settings.value("variableWidth", m_variableWidth).toInt() != 0;
+  bool variableWidth = settings.value("variableWidth", true).toInt() != 0;
+  m_variableWidthAction->setChecked(variableWidth);
   toggleVariableWidth(variableWidth);
 }
 
@@ -527,11 +525,11 @@ void PaletteViewer::createPaletteToolBar() {
   viewMode->addSeparator();
 
   // Docked panels will automatically adjust width based of the window size
-  m_variableWidthAct = new QAction(tr("Auto Adjust Panel Width"));
-  m_variableWidthAct->setCheckable(true);
-  m_variableWidthAct->setChecked(m_variableWidth);
-  viewMode->addAction(m_variableWidthAct);
-  connect(m_variableWidthAct, SIGNAL(toggled(bool)), this,
+  m_variableWidthAction = new QAction(tr("Auto Adjust Panel Width"));
+  m_variableWidthAction->setCheckable(true);
+  m_variableWidthAction->setChecked(true);
+  viewMode->addAction(m_variableWidthAction);
+  connect(m_variableWidthAction, SIGNAL(toggled(bool)), this,
           SLOT(toggleVariableWidth(bool)));
 
   viewMode->addSeparator();
@@ -863,7 +861,7 @@ void PaletteViewer::mousePressEvent(QMouseEvent *event) {
 void PaletteViewer::showEvent(QShowEvent *) {
   onPaletteSwitched();
   changeWindowTitle();
-  toggleVariableWidth(m_variableWidth);
+  toggleVariableWidth(m_variableWidthAction->isChecked());
 
   if (!m_paletteHandle) return;
 
