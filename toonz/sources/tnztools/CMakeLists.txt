@@ -51,6 +51,7 @@ set(HEADERS
     ../include/tools/modifiers/modifiertest.h
     ../include/tools/modifiers/modifiertangents.h
     ../include/tools/modifiers/modifiersegmentation.h
+    ../include/tools/assistant.h
 )
 
 set(SOURCES
@@ -121,6 +122,7 @@ set(SOURCES
     modifiertest.cpp
     modifiertangents.cpp
     modifiersegmentation.cpp
+    assistant.cpp
 )
 
 set(RESOURCES tnztools.qrc)
