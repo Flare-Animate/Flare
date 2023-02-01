@@ -11,6 +11,7 @@
     <separator/>
     <command>MI_PrintXsheet</command>
     <command>MI_Export</command>
+    <command>MI_ExportCameraTrack</command>
     <separator/>
     <command>MI_Quit</command>
   </menu>

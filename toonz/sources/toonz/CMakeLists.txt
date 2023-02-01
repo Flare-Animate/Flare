@@ -129,6 +129,7 @@ set(MOC_HEADERS
     custompanelmanager.h
     custompaneleditorpopup.h
     convertfolderpopup.h
+    exportcameratrackpopup.h
 )
 
 if(PLATFORM EQUAL 64)
@@ -382,6 +383,7 @@ set(SOURCES
     custompanelmanager.cpp
     custompaneleditorpopup.cpp
     convertfolderpopup.cpp
+    exportcameratrackpopup.cpp
 # Tracker file
     dummyprocessor.cpp
     metnum.cpp
