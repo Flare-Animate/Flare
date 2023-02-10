@@ -332,8 +332,8 @@ void OCAData::build(ToonzScene *scene, TXsheet *xsheet, QString name,
   TOutputProperties *oprop = scene->getProperties()->getOutputProperties();
   int from, to, step;
   if (scene->getTopXsheet() == xsheet && oprop->getRange(from, to, step)) {
-    m_startTime = from - 1;
-    m_endTime   = to - 1;
+    m_startTime = from;
+    m_endTime   = to;
     // m_stepTime  = step;
   } else {
     m_startTime = 0;
