@@ -86,7 +86,7 @@
 #include <boost/optional.hpp>
 #include <boost/utility/in_place_factory.hpp>
 
-//#define USE_SQLITE_HDPOOL
+// #define USE_SQLITE_HDPOOL
 
 using namespace DVGui;
 
@@ -2088,6 +2088,13 @@ bool IoCmd::loadScene(const TFilePath &path, bool updateRecentFile,
     }
   }
 
+  // caching raster levels
+  int cacheRasterBehavior =
+      Preferences::instance()->getRasterLevelCachingBehavior();
+  if (cacheRasterBehavior != 0)  // not "On Demand"
+    LevelCmd::loadAllUsedRasterLevelsAndPutInCache(cacheRasterBehavior ==
+                                                   2);  // "All Icons & Images"
+
   printf("%s:%s loadScene() completed :\n", __FILE__, __FUNCTION__);
   return true;
 }
@@ -2581,7 +2588,8 @@ int IoCmd::loadResources(LoadResourceArguments &args, bool updateRecentFile,
         // load the image data of all frames to cache at the beginning
         if (args.cachingBehavior != LoadResourceArguments::ON_DEMAND) {
           TXshSimpleLevel *simpleLevel = xl->getSimpleLevel();
-          if (simpleLevel && simpleLevel->getType() == TZP_XSHLEVEL) {
+          if (simpleLevel && (simpleLevel->getType() == TZP_XSHLEVEL ||
+                              simpleLevel->getType() == OVL_XSHLEVEL)) {
             bool cacheImagesAsWell =
                 (args.cachingBehavior ==
                  LoadResourceArguments::ALL_ICONS_AND_IMAGES);
@@ -2957,6 +2965,9 @@ public:
     QString path =
         RecentFiles::instance()->getFilePath(index, RecentFiles::Level);
     IoCmd::LoadResourceArguments args(TFilePath(path.toStdWString()));
+    args.cachingBehavior = (IoCmd::LoadResourceArguments::CacheRasterBehavior)
+                               Preferences::instance()
+                                   ->getRasterLevelCachingBehavior();
     IoCmd::loadResources(args, false);
 
     RecentFiles::instance()->moveFilePath(index, 0, RecentFiles::Level);

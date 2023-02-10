@@ -1197,7 +1197,7 @@ QString PreferencesPopup::getUIString(PreferencesItemId id) {
       {removeSceneNumberFromLoadedLevelName,
        tr("Automatically Remove Scene Number from Loaded Level Name")},
       {IgnoreImageDpi, tr("Use Camera DPI for All Imported Images")},
-      {initialLoadTlvCachingBehavior, tr("Default TLV Caching Behavior:")},
+      {rasterLevelCachingBehavior, tr("Raster Level Caching Behavior:")},
       {columnIconLoadingPolicy, tr("Column Icon:")},
       //{ levelFormats,                           tr("") },
 
@@ -1375,7 +1375,7 @@ QList<ComboBoxItem> PreferencesPopup::getComboItemList(
        {{tr("Always ask before loading or importing"), 0},
         {tr("Always import the file to the current project"), 1},
         {tr("Always load the file from the current location"), 2}}},
-      {initialLoadTlvCachingBehavior,
+      {rasterLevelCachingBehavior,
        {{tr("On Demand"), 0},
         {tr("All Icons"), 1},
         {tr("All Icons & Images"), 2}}},
@@ -1745,8 +1745,8 @@ QWidget* PreferencesPopup::createLoadingPage() {
   insertUI(subsceneFolderEnabled, lay);
   insertUI(removeSceneNumberFromLoadedLevelName, lay);
   insertUI(IgnoreImageDpi, lay);
-  insertUI(initialLoadTlvCachingBehavior, lay,
-           getComboItemList(initialLoadTlvCachingBehavior));
+  insertUI(rasterLevelCachingBehavior, lay,
+           getComboItemList(rasterLevelCachingBehavior));
   insertUI(columnIconLoadingPolicy, lay,
            getComboItemList(columnIconLoadingPolicy));
 
