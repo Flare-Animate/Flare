@@ -33,6 +33,7 @@
             <command>MI_StopMotionExportImageSequence</command>
             <command>MI_ExportTvpJson</command>
             <command>MI_ExportXsheetPDF</command>
+            <command>MI_ExportCameraTrack</command>
         </menu>
         <separator/>
         <command>MI_PrintXsheet</command>
