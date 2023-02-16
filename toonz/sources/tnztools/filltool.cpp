@@ -1259,7 +1259,7 @@ int AreaFillTool::pick(const TImageP &image, const TPointD &pos,
   TVectorImageP vi = image;
   if (!ti && !vi) return 0;
 
-  TTool::Viewer *viewer = m_parent->getViewer();
+  TToolViewer *viewer = m_parent->getViewer();
 
   StylePicker picker(viewer->viewerWidget(), image);
   double scale2 = 1.0;

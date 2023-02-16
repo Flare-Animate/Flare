@@ -58,6 +58,8 @@ class TFxHandle;
 
 class ToolOptionsBox;
 
+class TToolViewer;
+
 class QMenu;
 class QKeyEvent;
 
@@ -353,11 +355,11 @@ public:
   createOptionsBox();  //!< Factory function returning a newly created
                        //!  GUI options box to be displayed for the tool
 
-  void setViewer(Viewer *viewer) {
+  void setViewer(TToolViewer *viewer) {
     m_viewer = viewer;
     onSetViewer();
   }
-  Viewer *getViewer() const { return m_viewer; }
+  TToolViewer *getViewer() const { return m_viewer; }
 
   double getPixelSize() const;
 
@@ -552,7 +554,7 @@ public:
 protected:
   std::string m_name;  //!< The tool's name.
 
-  Viewer *m_viewer;  //!< Tool's current viewer.
+  TToolViewer *m_viewer;  //!< Tool's current viewer.
   TAffine m_matrix;  //!< World-to-window reference change affine.
 
   int m_targetType;  //!< The tool's image type target.
@@ -576,17 +578,17 @@ protected:
 };
 
 //*****************************************************************************************
-//    TTool::Viewer  declaration
+//    TToolViewer  declaration
 //*****************************************************************************************
 
 /*!
-  \brief    The TTool::Viewer class is the abstract base class that provides an
+  \brief    The TToolViewer class is the abstract base class that provides an
   interface for
             TTool viewer widgets (it is required that such widgets support
   OpenGL).
 */
 
-class TTool::Viewer {
+class TToolViewer {
 protected:
   ImagePainter::VisualSettings
       m_visualSettings;  //!< Settings used by the Viewer to draw scene contents
@@ -597,8 +599,8 @@ protected:
   QWidget *m_viewerWidget  = nullptr;
 
 public:
-  Viewer(QWidget *widget) : m_viewerWidget(widget) {}
-  virtual ~Viewer() {}
+  TToolViewer(QWidget *widget) : m_viewerWidget(widget) {}
+  virtual ~TToolViewer() {}
 
   const ImagePainter::VisualSettings &visualSettings() const {
     return m_visualSettings;

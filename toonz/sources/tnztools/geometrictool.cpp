@@ -1825,7 +1825,7 @@ TPointD Primitive::checkGuideSnapping(TPointD pos) {
   if ((m_param->m_targetType & TTool::Vectors) && m_param->m_snap.getValue()) {
     int vGuideCount = 0, hGuideCount = 0;
     double guideDistance  = sqrt(m_param->m_minDistance2);
-    TTool::Viewer *viewer = m_tool->getViewer();
+    TToolViewer *viewer = m_tool->getViewer();
     if (viewer) {
       vGuideCount = viewer->getVGuideCount();
       hGuideCount = viewer->getHGuideCount();

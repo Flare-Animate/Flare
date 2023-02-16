@@ -1079,15 +1079,15 @@ void TTool::setSelectedFrames(const std::set<TFrameId> &selectedFrames) {
 
 //-------------------------------------------------------------------------------------------------------------
 
-void TTool::Viewer::getGuidedFrameIdx(int *backIdx, int *frontIdx) {
+void TToolViewer::getGuidedFrameIdx(int *backIdx, int *frontIdx) {
   if (!Preferences::instance()->isGuidedDrawingEnabled()) return;
 
   OnionSkinMask osMask =
-      m_application->getCurrentOnionSkin()->getOnionSkinMask();
+      TTool::getApplication()->getCurrentOnionSkin()->getOnionSkinMask();
 
   if (!osMask.isEnabled() || osMask.isEmpty()) return;
 
-  TFrameHandle *currentFrame = getApplication()->getCurrentFrame();
+  TFrameHandle *currentFrame = TTool::getApplication()->getCurrentFrame();
 
   int cidx     = currentFrame->getFrameIndex();
   int mosBack  = 0;
@@ -1158,7 +1158,7 @@ void TTool::Viewer::getGuidedFrameIdx(int *backIdx, int *frontIdx) {
 
 //-------------------------------------------------------------------------------------------------------------
 
-void TTool::Viewer::doPickGuideStroke(const TPointD &pos) {
+void TToolViewer::doPickGuideStroke(const TPointD &pos) {
   int pickerMode = getGuidedStrokePickerMode();
 
   if (!pickerMode) return;
@@ -1177,14 +1177,14 @@ void TTool::Viewer::doPickGuideStroke(const TPointD &pos) {
     os = osFront;
 
   TFrameId fid;
-  TFrameHandle *currentFrame = getApplication()->getCurrentFrame();
+  TFrameHandle *currentFrame = TTool::getApplication()->getCurrentFrame();
   TXshSimpleLevel *sl =
-      getApplication()->getCurrentLevel()->getLevel()->getSimpleLevel();
+      TTool::getApplication()->getCurrentLevel()->getLevel()->getSimpleLevel();
   if (!sl) return;
 
   if (currentFrame->isEditingScene()) {
-    TXsheet *xsh = getApplication()->getCurrentXsheet()->getXsheet();
-    int col      = getApplication()->getCurrentColumn()->getColumnIndex();
+    TXsheet *xsh = TTool::getApplication()->getCurrentXsheet()->getXsheet();
+    int col      = TTool::getApplication()->getCurrentColumn()->getColumnIndex();
     if (xsh && col >= 0) {
       TXshCell cell = xsh->getCell(os, col);
       if (!cell.isEmpty()) fid = cell.getFrameId();

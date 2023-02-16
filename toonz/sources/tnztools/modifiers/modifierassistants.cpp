@@ -107,21 +107,22 @@ TModifierAssistants::modifyTrack(
     if ((int)modifier->guidelines.size() > 1 && modifier->savePoint.available()) {
       // select guideline
       bool longEnough = false;
-      if (TInputManager *manager = getManager()) {
-        if (TToolViewer *viewer = manager->getViewer()) {
-          TAffine trackToScreen = manager->toolToWorld()
-                                * viewer->get3dViewMatrix().get2d().inv();
-          TGuidelineP guideline = TGuideline::findBest(modifier->guidelines, track, trackToScreen, longEnough);
-          if (guideline != modifier->guidelines.front())
-            for(int i = 1; i < (int)modifier->guidelines.size(); ++i)
-              if (modifier->guidelines[i] == guideline) {
-                std::swap(modifier->guidelines[i], modifier->guidelines.front());
-                start = 0;
-                break;
-              }
-        }
+      if (TInputManager *manager = getManager())
+      if (TInputHandler *handler = manager->getHandler())
+      if (TTool *tool = handler->getTool())
+      if (TToolViewer *viewer = tool->getViewer()) {
+        TAffine trackToScreen = manager->toolToWorld()
+                              * viewer->get3dViewMatrix().get2d().inv();
+        TGuidelineP guideline = TGuideline::findBest(modifier->guidelines, track, trackToScreen, longEnough);
+        if (guideline != modifier->guidelines.front())
+          for(int i = 1; i < (int)modifier->guidelines.size(); ++i)
+            if (modifier->guidelines[i] == guideline) {
+              std::swap(modifier->guidelines[i], modifier->guidelines.front());
+              start = 0;
+              break;
+            }
       }
-      modifier->savePoint.setLock(!longEnough);
+      if (longEnough) modifier->savePoint.unlock(); else modifier->savePoint.lock();
     } else {
       modifier->savePoint.reset();
     }

@@ -1506,7 +1506,7 @@ void ToolUtils::drawBalloon(const TPointD &pos, std::string text,
                             const TPixel32 &color, TPoint delta,
                             double pixelSize, bool isPicking,
                             std::vector<TRectD> *otherBalloons) {
-  TTool::Viewer *viewer =
+  TToolViewer *viewer =
       TTool::getApplication()->getCurrentTool()->getTool()->getViewer();
   int devPixRatio = getDevicePixelRatio(viewer->viewerWidget());
   QString qText   = QString::fromStdString(text);
@@ -1650,7 +1650,7 @@ void ToolUtils::drawBalloon(const TPointD &pos, std::string text,
 
 void ToolUtils::drawHook(const TPointD &pos, ToolUtils::HookType type,
                          bool highlighted, bool onionSkin) {
-  TTool::Viewer *viewer =
+  TToolViewer *viewer =
       TTool::getApplication()->getCurrentTool()->getTool()->getViewer();
   int devPixRatio = getDevicePixelRatio(viewer->viewerWidget());
   int r = 10, d = r + r;

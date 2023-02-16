@@ -357,7 +357,7 @@ void FullColorBrushTool::inputLeftButtonDown(
   TPointD previousBrushPos = m_brushPos;
   m_brushPos = m_mousePos = pos;
   m_mousePressed          = true;
-  Viewer *viewer          = getViewer();
+  TToolViewer *viewer     = getViewer();
   if (!viewer) return;
 
   TRasterImageP ri = (TRasterImageP)getImage(true);
