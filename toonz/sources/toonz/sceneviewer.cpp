@@ -2257,6 +2257,37 @@ TRect SceneViewer::getActualClipRect(const TAffine &aff) {
 
 //-----------------------------------------------------------------------------
 
+TAffine4 SceneViewer::get3dViewMatrix() const {
+  if (is3DView()) {
+    TXsheet *xsh = TApp::instance()->getCurrentXsheet()->getXsheet();
+    TStageObjectId cameraId = xsh->getStageObjectTree()->getCurrentCameraId();
+    double z = xsh->getStageObject(cameraId)->getZ(
+                  TApp::instance()->getCurrentFrame()->getFrame());
+
+    TAffine4 affine;
+    affine *= TAffine4::translation(m_pan3D.x, m_pan3D.y, z);
+    affine *= TAffine4::scale(m_zoomScale3D, m_zoomScale3D, m_zoomScale3D);
+    affine *= TAffine4::rotationX(M_PI_180*m_theta3D);
+    affine *= TAffine4::rotationY(M_PI_180*m_phi3D);
+    return affine;
+  }
+
+  int viewMode = TApp::instance()->getCurrentFrame()->isEditingLevel()
+                     ? LEVEL_VIEWMODE
+                     : SCENE_VIEWMODE;
+
+  if (m_referenceMode == CAMERA_REFERENCE) {
+    int frame    = TApp::instance()->getCurrentFrame()->getFrame();
+    TXsheet *xsh = TApp::instance()->getCurrentXsheet()->getXsheet();
+    TAffine aff  = xsh->getCameraAff(frame);
+    return TAffine4(m_viewAff[viewMode] * aff.inv());
+  }
+
+  return TAffine4(m_viewAff[viewMode]);
+}
+
+//-----------------------------------------------------------------------------
+
 TAffine SceneViewer::getViewMatrix() const {
   int viewMode = TApp::instance()->getCurrentFrame()->isEditingLevel()
                      ? LEVEL_VIEWMODE

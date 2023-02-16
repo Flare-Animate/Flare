@@ -11,6 +11,7 @@
 #include <toonz/txsheethandle.h>
 #include <toonz/txsheet.h>
 #include <toonz/tframehandle.h>
+#include <toonz/tobjecthandle.h>
 
 // TnzCore includes
 #include <tmetaimage.h>
@@ -111,8 +112,13 @@ TModifierAssistants::modifyTrack(
       if (TInputHandler *handler = manager->getHandler())
       if (TTool *tool = handler->getTool())
       if (TToolViewer *viewer = tool->getViewer()) {
-        TAffine trackToScreen = manager->toolToWorld()
-                              * viewer->get3dViewMatrix().get2d().inv();
+        TAffine trackToScreen = tool->getMatrix();
+        if (tool->getToolType() & TTool::LevelTool)
+          if (TObjectHandle *objHandle = TTool::getApplication()->getCurrentObject())
+            if (!objHandle->isSpline())
+              trackToScreen *= TScale(viewer->getDpiScale().x, viewer->getDpiScale().y);
+        trackToScreen *= viewer->get3dViewMatrix().get2d().inv();
+        
         TGuidelineP guideline = TGuideline::findBest(modifier->guidelines, track, trackToScreen, longEnough);
         if (guideline != modifier->guidelines.front())
           for(int i = 1; i < (int)modifier->guidelines.size(); ++i)
@@ -122,7 +128,7 @@ TModifierAssistants::modifyTrack(
               break;
             }
       }
-      if (longEnough) modifier->savePoint.unlock(); else modifier->savePoint.lock();
+      modifier->savePoint.setLock(!longEnough);
     } else {
       modifier->savePoint.reset();
     }

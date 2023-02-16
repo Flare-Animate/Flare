@@ -83,7 +83,7 @@ public:
         m_lock = lock;
         if (m_savePoint) {
           m_savePoint->hold();
-           if (m_lock) savePoint->lock();
+          if (m_lock) savePoint->lock();
         }
       } else
       if (m_lock != lock) {
@@ -97,10 +97,12 @@ public:
 
     inline void reset()
       { set(NULL, false); }
+    inline void setLock(bool lock)
+      { set(m_savePoint, lock); }
     inline void lock()
-      { set(m_savePoint, true); }
+      { setLock(true); }
     inline void unlock()
-      { set(m_savePoint, false); }
+      { setLock(false); }
 
     inline TInputSavePoint* savePoint() const
       { return m_savePoint; }
