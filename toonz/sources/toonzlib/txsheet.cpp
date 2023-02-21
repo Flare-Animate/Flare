@@ -870,7 +870,7 @@ void TXsheet::eachCells(int r0, int c0, int r1, int c1, int type) {
 //-----------------------------------------------------------------------------
 /*! force cells order in n-steps. returns the row amount after process
  */
-int TXsheet::reframeCells(int r0, int r1, int col, int type, int withBlank) {
+int TXsheet::reframeCells(int r0, int r1, int col, int step, int withBlank) {
   // Row amount in the selection
   int nr = r1 - r0 + 1;
 
@@ -899,10 +899,10 @@ int TXsheet::reframeCells(int r0, int r1, int col, int type, int withBlank) {
   if (cells.empty()) return 0;
 
   // row amount after n-step
-  int nrows = cells.size() * type;
+  int nrows = cells.size() * step;
 
   if (withBlank > 0) {
-    nrows += cells.size() * withBlank * type;
+    nrows += cells.size() * withBlank * step;
   }
 
   // if needed, insert cells
@@ -915,19 +915,19 @@ int TXsheet::reframeCells(int r0, int r1, int col, int type, int withBlank) {
   }
 
   for (int i = r0, k = 0; i < r0 + nrows; k++) {
-    for (int i1 = 0; i1 < type; i1++) {
+    for (int i1 = 0; i1 < step; i1++) {
       if (cells[k].isEmpty())
         clearCells(i + i1, col);
       else
         setCell(i + i1, col, cells[k]);
     }
-    i += type;  // dipende dal tipo di step (2 o 3 per ora)
+    i += step;  // dipende dal tipo di step (2 o 3 per ora)
 
     if (withBlank > 0) {
-      for (int i1 = 0; i1 < withBlank * type; i1++) {
+      for (int i1 = 0; i1 < withBlank * step; i1++) {
         clearCells(i + i1, col);
       }
-      i += withBlank * type;
+      i += withBlank * step;
     }
   }
 
