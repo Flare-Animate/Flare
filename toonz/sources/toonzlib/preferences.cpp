@@ -567,6 +567,8 @@ void Preferences::definePreferenceItems() {
   define(xsheetAutopanEnabled, "xsheetAutopanEnabled", QMetaType::Bool, true);
   define(DragCellsBehaviour, "DragCellsBehaviour", QMetaType::Int,
          1);  // Cells and Column Data
+  define(deleteCommandBehavior, "deleteCommandBehavior", QMetaType::Int,
+         0);  // Clear Cell / Frame
   define(ignoreAlphaonColumn1Enabled, "ignoreAlphaonColumn1Enabled",
          QMetaType::Bool, false);
   define(showKeyframesOnXsheetCellArea, "showKeyframesOnXsheetCellArea",

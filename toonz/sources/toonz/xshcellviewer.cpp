@@ -929,7 +929,8 @@ void RenameCellField::renameCell() {
 
   if (fid.getNumber() == 0 && !hasFrameZero) {
     TCellSelection::Range range = cellSelection->getSelectedCells();
-    cellSelection->deleteCells();
+    // clear cells without shifting
+    cellSelection->deleteCells(false);
     // revert cell selection
     cellSelection->selectCells(range.m_r0, range.m_c0, range.m_r1, range.m_c1);
   } else if (cells.size() == 1)
