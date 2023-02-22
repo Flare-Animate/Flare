@@ -11680,7 +11680,7 @@ Are you sure to </source>
     </message>
     <message>
         <source>Paste Column :  </source>
-        <translation>列を貼り付け : </translation>
+        <translation>列の貼り付け : </translation>
     </message>
     <message>
         <source>Delete Column :  </source>
@@ -11800,7 +11800,7 @@ Are you sure to </source>
     </message>
     <message>
         <source>Cut Cells</source>
-        <translation>コマのカット</translation>
+        <translation>コマの切り取り</translation>
     </message>
     <message>
         <source>Insert Cells</source>
@@ -12945,6 +12945,61 @@ Do you wish to continue loading the last good save or stop and try to salvage th
     <message>
         <source>Preproduction Board</source>
         <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Copy Columns</source>
+        <comment>TColumnSelection</comment>
+        <translation>列のコピー</translation>
+    </message>
+    <message>
+        <source>Paste Columns</source>
+        <comment>TColumnSelection</comment>
+        <translation>列の貼り付け</translation>
+    </message>
+    <message>
+        <source>Cut Columns</source>
+        <comment>TColumnSelection</comment>
+        <translation>列の切り取り</translation>
+    </message>
+    <message>
+        <source>Delete Columns</source>
+        <comment>TColumnSelection</comment>
+        <translation>列の削除</translation>
+    </message>
+    <message>
+        <source>Insert Columns</source>
+        <comment>TColumnSelection</comment>
+        <translation>列を挿入</translation>
+    </message>
+    <message>
+        <source>Copy Cells</source>
+        <comment>TCellSelection</comment>
+        <translation>コマのコピー</translation>
+    </message>
+    <message>
+        <source>Paste Cells</source>
+        <comment>TCellSelection</comment>
+        <translation>コマの貼り付け</translation>
+    </message>
+    <message>
+        <source>Overwrite Paste Cells</source>
+        <comment>TCellSelection</comment>
+        <translation>コマを上書きして貼り付け</translation>
+    </message>
+    <message>
+        <source>Cut Cells</source>
+        <comment>TCellSelection</comment>
+        <translation>コマの切り取り</translation>
+    </message>
+    <message>
+        <source>Delete Cells</source>
+        <comment>TCellSelection</comment>
+        <translation>コマの削除</translation>
+    </message>
+    <message>
+        <source>Insert Cells</source>
+        <comment>TCellSelection</comment>
+        <translation>空白コマの挿入</translation>
     </message>
     <message>
         <source>Pasting external image from clipboard.

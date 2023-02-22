@@ -1444,7 +1444,9 @@ int TCellSelection::Range::getColCount() const { return m_c1 - m_c0 + 1; }
 // TCellSelection
 //-----------------------------------------------------------------------------
 
-TCellSelection::TCellSelection() : m_timeStretchPopup(0), m_reframePopup(0) {}
+TCellSelection::TCellSelection() : m_timeStretchPopup(0), m_reframePopup(0) {
+  setAlternativeCommandNames();
+}
 
 //-----------------------------------------------------------------------------
 
@@ -1512,6 +1514,19 @@ void TCellSelection::enableCommands() {
   enableCommand(this, MI_Duplicate, &TCellSelection::duplicateFrames);
   enableCommand(this, MI_PasteDuplicate, &TCellSelection::pasteDuplicateCells);
 }
+
+//-----------------------------------------------------------------------------
+
+void TCellSelection::setAlternativeCommandNames() {
+  m_alternativeCommandNames = {
+      {MI_Copy, QObject::tr("Copy Cells", "TCellSelection")},
+      {MI_Paste, QObject::tr("Paste Cells", "TCellSelection")},
+      {MI_PasteInto, QObject::tr("Overwrite Paste Cells", "TCellSelection")},
+      {MI_Cut, QObject::tr("Cut Cells", "TCellSelection")},
+      {MI_Clear, QObject::tr("Delete Cells", "TCellSelection")},
+      {MI_Insert, QObject::tr("Insert Cells", "TCellSelection")}};
+}
+
 //-----------------------------------------------------------------------------
 // Used in RenameCellField::eventFilter()
 
