@@ -455,6 +455,68 @@ void CommandListTree::mousePressEvent(QMouseEvent* event) {
 
   QTreeWidget::mousePressEvent(event);
 }
+//-----------------------------------------------------------------------------
+
+void CommandListTree::displayAll(QTreeWidgetItem* item) {
+  int childCount = item->childCount();
+  for (int i = 0; i < childCount; ++i) {
+    displayAll(item->child(i));
+  }
+  item->setHidden(false);
+  item->setExpanded(false);
+}
+
+//-------------------------------------------------------------------
+
+void CommandListTree::hideAll(QTreeWidgetItem* item) {
+  int childCount = item->childCount();
+  for (int i = 0; i < childCount; ++i) {
+    hideAll(item->child(i));
+  }
+  item->setHidden(true);
+  item->setExpanded(false);
+}
+
+//-----------------------------------------------------------------------------
+
+void CommandListTree::searchItems(const QString& searchWord) {
+  // if search word is empty, show all items
+  if (searchWord.isEmpty()) {
+    int itemCount = topLevelItemCount();
+    for (int i = 0; i < itemCount; ++i) {
+      displayAll(topLevelItem(i));
+    }
+    // revert to the initial state - expanding "Menu Commands" tree
+    findItems(ShortcutTree::tr("Menu Commands"), Qt::MatchExactly)[0]
+        ->setExpanded(true);
+    update();
+    return;
+  }
+
+  // hide all items first
+  int itemCount = topLevelItemCount();
+  for (int i = 0; i < itemCount; ++i) {
+    hideAll(topLevelItem(i));
+  }
+
+  QList<QTreeWidgetItem*> foundItems =
+      findItems(searchWord, Qt::MatchContains | Qt::MatchRecursive, 0);
+  if (foundItems.isEmpty()) {  // if nothing is found, do nothing but update
+    update();
+    return;
+  }
+
+  // for each item found, show it and show its parent
+  for (auto item : foundItems) {
+    while (item) {
+      item->setHidden(false);
+      item->setExpanded(true);
+      item = item->parent();
+    }
+  }
+
+  update();
+}
 
 //=============================================================================
 // MenuBarPopup
@@ -486,6 +548,8 @@ MenuBarPopup::MenuBarPopup(Room* room)
   menuBarLabel->setFont(f);
   menuItemListLabel->setFont(f);
 
+  QLineEdit* searchEdit = new QLineEdit(this);
+
   QLabel* noticeLabel = new QLabel(
       tr("N.B. If you put unique title to submenu, it may not be translated to "
          "another language.\nN.B. Duplicated commands will be ignored. Only "
@@ -507,10 +571,19 @@ MenuBarPopup::MenuBarPopup(Room* room)
     {
       mainUILay->addWidget(menuBarLabel, 0, 0);
       mainUILay->addWidget(menuItemListLabel, 0, 1);
-      mainUILay->addWidget(m_menuBarTree, 1, 0);
-      mainUILay->addWidget(m_commandListTree, 1, 1);
+      mainUILay->addWidget(m_menuBarTree, 1, 0, 2, 1);
 
-      mainUILay->addWidget(noticeLabel, 2, 0, 1, 2);
+      QHBoxLayout* searchLay = new QHBoxLayout();
+      searchLay->setMargin(0);
+      searchLay->setSpacing(5);
+      {
+        searchLay->addWidget(new QLabel(tr("Search:"), this), 0);
+        searchLay->addWidget(searchEdit);
+      }
+      mainUILay->addLayout(searchLay, 1, 1);
+      mainUILay->addWidget(m_commandListTree, 2, 1);
+
+      mainUILay->addWidget(noticeLabel, 3, 0, 1, 2);
     }
     mainUILay->setRowStretch(0, 0);
     mainUILay->setRowStretch(1, 1);
@@ -534,6 +607,8 @@ MenuBarPopup::MenuBarPopup(Room* room)
 
   bool ret = connect(okBtn, SIGNAL(clicked()), this, SLOT(onOkPressed()));
   ret      = ret && connect(cancelBtn, SIGNAL(clicked()), this, SLOT(reject()));
+  ret = ret && connect(searchEdit, SIGNAL(textChanged(const QString&)), this,
+                       SLOT(onSearchTextChanged(const QString&)));
   assert(ret);
 }
 
@@ -543,4 +618,14 @@ void MenuBarPopup::onOkPressed() {
   m_menuBarTree->saveMenuTree();
 
   accept();
+}
+
+//-----------------------------------------------------------------------------
+
+void MenuBarPopup::onSearchTextChanged(const QString& text) {
+  static bool busy = false;
+  if (busy) return;
+  busy = true;
+  m_commandListTree->searchItems(text);
+  busy = false;
 }

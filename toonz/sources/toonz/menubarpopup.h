@@ -55,6 +55,12 @@ class CommandListTree final : public QTreeWidget {
 public:
   CommandListTree(QWidget* parent = 0);
 
+  void searchItems(const QString& searchWord = QString());
+
+private:
+  void displayAll(QTreeWidgetItem* item);
+  void hideAll(QTreeWidgetItem* item);
+
 protected:
   void mousePressEvent(QMouseEvent*) override;
 };
@@ -72,6 +78,7 @@ public:
   MenuBarPopup(Room* room);
 protected slots:
   void onOkPressed();
+  void onSearchTextChanged(const QString& text);
 };
 
 #endif
