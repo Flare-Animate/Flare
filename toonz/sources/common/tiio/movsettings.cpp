@@ -8,7 +8,7 @@
 #include "tiio.h"
 
 #if !defined(x64) && !defined(__LP64__) &&                                     \
-    !(defined(LINUX) || defined(FREEBSD)) &&                                   \
+    !(defined(LINUX) || defined(FREEBSD) || defined(HAIKU)) &&                                   \
     !(defined(__GNUC__) && defined(_WIN32))
 
 //*******************************************************************************

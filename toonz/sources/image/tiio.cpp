@@ -54,7 +54,7 @@
 #include "./mov/tiio_movM.h"
 #include "./3gp/tiio_3gpM.h"
 
-#elif defined(LINUX) || defined(FREEBSD)  // No more supported by the way...
+#elif defined(LINUX) || defined(FREEBSD) || defined(HAIKU)  // No more supported by the way...
 // #include "./mov/tiio_movL.h"
 #include "./mov/tiio_mov_proxy.h"
 #include "./3gp/tiio_3gp_proxy.h"
