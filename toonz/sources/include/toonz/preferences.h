@@ -365,6 +365,10 @@ public:
     return getBoolValue(xsheetAutopanEnabled);
   }  //!< Returns whether xsheet pans during playback.
   int getDragCellsBehaviour() const { return getIntValue(DragCellsBehaviour); }
+  int getDeleteCommandBehaviour() const {
+    return getIntValue(deleteCommandBehavior);
+  }
+
   bool isIgnoreAlphaonColumn1Enabled() const {
     return getBoolValue(ignoreAlphaonColumn1Enabled);
   }

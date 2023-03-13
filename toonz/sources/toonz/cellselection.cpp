@@ -110,7 +110,8 @@ bool pasteCellsWithoutUndo(const TCellData *cellData, int &r0, int &c0, int &r1,
   if (!cellData) return false;
   if (r0 < 0 || c0 < 0) return false;
 
-  bool ret = cellData->getCells(xsh, r0, c0, r1, c1, insert, doZeraryClone);
+  bool ret =
+      cellData->getCells(xsh, r0, c0, r1, c1, insert, doZeraryClone, false);
   if (!ret) return false;
 
   return true;
@@ -118,13 +119,17 @@ bool pasteCellsWithoutUndo(const TCellData *cellData, int &r0, int &c0, int &r1,
 
 //-----------------------------------------------------------------------------
 
-void deleteCellsWithoutUndo(int &r0, int &c0, int &r1, int &c1) {
+void deleteCellsWithoutUndo(int &r0, int &c0, int &r1, int &c1, bool doShift) {
   try {
     TXsheet *xsh = TApp::instance()->getCurrentXsheet()->getXsheet();
     int c;
     for (c = c0; c <= c1; c++) {
       if (xsh->isColumnEmpty(c)) continue;
-      xsh->clearCells(r0, c, r1 - r0 + 1);
+
+      if (doShift)
+        xsh->removeCells(r0, c, r1 - r0 + 1);
+      else
+        xsh->clearCells(r0, c, r1 - r0 + 1);
       // when the column becomes empty after deletion,
       // ColumnCmd::DeleteColumn() will take care of column related operations
       // like disconnecting from fx nodes etc.
@@ -281,8 +286,11 @@ class DeleteCellsUndo final : public TUndo {
   TCellSelection *m_selection;
   QMimeData *m_data;
 
+  bool m_doShift;  // whether clear cell or remove and shift cells up
+
 public:
-  DeleteCellsUndo(TCellSelection *selection, QMimeData *data) : m_data(data) {
+  DeleteCellsUndo(TCellSelection *selection, QMimeData *data, bool doShift)
+      : m_data(data), m_doShift(doShift) {
     int r0, c0, r1, c1;
     selection->getSelectedCells(r0, c0, r1, c1);
     if (c0 < 0) c0 = 0;  // Ignore camera column
@@ -299,14 +307,15 @@ public:
     m_selection->getSelectedCells(r0, c0, r1, c1);
 
     const TCellData *cellData = dynamic_cast<const TCellData *>(m_data);
-    pasteCellsWithoutUndo(cellData, r0, c0, r1, c1, false, false);
+    // insert cells if the delete operation had shifted cells up
+    pasteCellsWithoutUndo(cellData, r0, c0, r1, c1, m_doShift, false);
     TApp::instance()->getCurrentXsheet()->notifyXsheetChanged();
   }
 
   void redo() const override {
     int r0, c0, r1, c1;
     m_selection->getSelectedCells(r0, c0, r1, c1);
-    deleteCellsWithoutUndo(r0, c0, r1, c1);
+    deleteCellsWithoutUndo(r0, c0, r1, c1, m_doShift);
     TApp::instance()->getCurrentXsheet()->notifyXsheetChanged();
   }
 
@@ -2383,13 +2392,26 @@ void TCellSelection::pasteDuplicateCells() {
 //-----------------------------------------------------------------------------
 
 void TCellSelection::deleteCells() {
+  // choose clear or remove+shift behavior
+  // 0: Clear Cell / Frame
+  // 1: Remove and Shift Cells / Frames Up
+  bool withShift = Preferences::instance()->getDeleteCommandBehaviour() == 1;
+  deleteCells(withShift);
+}
+
+//-----------------------------------------------------------------------------
+
+void TCellSelection::deleteCells(bool withShift) {
   if (isEmpty()) return;
   int r0, c0, r1, c1;
   getSelectedCells(r0, c0, r1, c1);
   if (c0 < 0) c0 = 0;  // Ignore camera column
   TXsheet *xsh = TApp::instance()->getCurrentXsheet()->getXsheet();
-  // if all the selected cells are already empty, then do nothing
-  if (xsh->isRectEmpty(CellPosition(r0, c0), CellPosition(r1, c1))) return;
+  // if with "Clear Cell" behavior and all the selected cells are already empty,
+  // then do nothing
+  if (!withShift &&
+      xsh->isRectEmpty(CellPosition(r0, c0), CellPosition(r1, c1)))
+    return;
 
   std::set<int> removedColIds;
   // check if the operation may remove expression reference as column becomes
@@ -2410,9 +2432,9 @@ void TCellSelection::deleteCells() {
   }
 
   DeleteCellsUndo *undo =
-      new DeleteCellsUndo(new TCellSelection(m_range), data);
+      new DeleteCellsUndo(new TCellSelection(m_range), data, withShift);
 
-  deleteCellsWithoutUndo(r0, c0, r1, c1);
+  deleteCellsWithoutUndo(r0, c0, r1, c1, withShift);
 
   TUndoManager::manager()->add(undo);
 
@@ -2480,6 +2502,7 @@ void TCellSelection::cutCells(bool withoutCopy) {
     selectNone();
 
   TApp::instance()->getCurrentScene()->setDirtyFlag(true);
+  TApp::instance()->getCurrentXsheet()->notifyXsheetChanged();
 }
 
 //-----------------------------------------------------------------------------
