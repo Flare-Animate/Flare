@@ -49,6 +49,7 @@
 #include "toonz/tfxhandle.h"
 #include "toonz/tcamera.h"
 #include "toonz/tcolumnhandle.h"
+#include "toonz/levelset.h"
 
 // TnzCore includes
 #include "tconvert.h"
@@ -707,12 +708,18 @@ void RenameColumnField::renameColumn() {
                                        : TStageObjectId::CameraId(cameraIndex);
   TXshColumn *column =
       m_xsheetHandle->getXsheet()->getColumn(columnId.getIndex());
+  if (!column && m_col >= 0) {
+    m_xsheetHandle->getXsheet()->insertColumn(m_col);
+    column = m_xsheetHandle->getXsheet()->getColumn(columnId.getIndex());
+  }
+
   TXshZeraryFxColumn *zColumn = dynamic_cast<TXshZeraryFxColumn *>(column);
   if (zColumn)
     TFxCommand::renameFx(zColumn->getZeraryColumnFx(), ::to_wstring(newName),
                          m_xsheetHandle);
   else
     TStageObjectCmd::rename(columnId, newName, m_xsheetHandle);
+
   m_xsheetHandle->notifyXsheetChanged();
   m_col = -1;
   setText("");
@@ -745,13 +752,25 @@ const bool ColumnArea::isControlPressed() { return isCtrlPressed; }
 //-----------------------------------------------------------------------------
 
 ColumnArea::DrawHeader::DrawHeader(ColumnArea *nArea, QPainter &nP, int nCol)
-    : area(nArea), p(nP), col(nCol) {
+    : area(nArea), p(nP), col(nCol), reservedLevel(nullptr) {
   m_viewer = area->m_viewer;
   o        = m_viewer->orientation();
   app      = TApp::instance();
   xsh      = m_viewer->getXsheet();
   column   = xsh->getColumn(col);
   isEmpty  = col >= 0 ? xsh->isColumnEmpty(col) : false;
+
+  if (isEmpty && Preferences::instance()->isLinkColumnNameWithLevelEnabled() &&
+      m_viewer->getXsheet()
+          ->getStageObject(TStageObjectId::ColumnId(col))
+          ->hasSpecifiedName()) {
+    std::string columnName = m_viewer->getXsheet()
+                                 ->getStageObject(TStageObjectId::ColumnId(col))
+                                 ->getName();
+    ToonzScene *scene   = TApp::instance()->getCurrentScene()->getScene();
+    TLevelSet *levelSet = scene->getLevelSet();
+    reservedLevel       = levelSet->getLevel(to_wstring(columnName));
+  }
 
   TStageObjectId currentColumnId = app->getCurrentObject()->getObjectId();
 
@@ -816,7 +835,11 @@ void ColumnArea::DrawHeader::levelColors(QColor &columnColor,
     if (column->isRendered() || column->getMeshColumn()) usage = Normal;
   }
 
-  if (usage == Reference) {
+  if (reservedLevel) {
+    int ltype;
+    m_viewer->getCellTypeAndColors(ltype, columnColor, dragColor,
+                                   TXshCell(reservedLevel, TFrameId()));
+  } else if (usage == Reference) {
     columnColor = m_viewer->getReferenceColumnColor();
     dragColor   = m_viewer->getReferenceColumnBorderColor();
   } else
@@ -859,15 +882,17 @@ void ColumnArea::DrawHeader::drawBaseFill(const QColor &columnColor,
 
   // Fill base color, in timeline view adjust it right upto thumbnail so column
   // head color doesn't show under icon switches.
-  if (isEmpty)
+  if (isEmpty && !reservedLevel)
     p.fillRect(o->isVerticalTimeline() ? rect : rect.adjusted(80, 0, 0, 0),
                m_viewer->getEmptyColumnHeadColor());
   else if (col < 0)
     p.fillRect(o->isVerticalTimeline() ? rect : rect.adjusted(80, 0, 0, 0),
                columnColor);
   else {
+    QBrush brush(columnColor,
+                 (reservedLevel) ? Qt::DiagCrossPattern : Qt::SolidPattern);
     p.fillRect(o->isVerticalTimeline() ? rect : rect.adjusted(80, 0, 0, 0),
-               columnColor);
+               brush);
 
     if (o->flag(PredefinedFlag::DRAG_LAYER_VISIBLE)) {
       // column handle
@@ -2787,7 +2812,10 @@ void ColumnArea::mouseDoubleClickEvent(QMouseEvent *event) {
   if (!nameRect.contains(mouseInCell)) return;
 
   TXsheet *xsh = m_viewer->getXsheet();
-  if (col >= 0 && xsh->isColumnEmpty(col)) return;
+  // enable to rename empty column when the column name is linked to the level
+  if (!Preferences::instance()->isLinkColumnNameWithLevelEnabled() &&
+      col >= 0 && xsh->isColumnEmpty(col))
+    return;
 
   QPoint fieldPos =
       (col < 0 && o->isVerticalTimeline()) ? nameRect.topLeft() : topLeft;

@@ -1306,6 +1306,7 @@ QString PreferencesPopup::getUIString(PreferencesItemId id) {
       {levelNameDisplayType, tr("Level Name Display:")},
       {showFrameNumberWithLetters,
        tr("Show \"ABC\" Appendix to the Frame Number in Xsheet Cell")},
+      {linkColumnNameWithLevel, tr("Link Column Name with Level")},
 
       // Animation
       {keyframeType, tr("Default Interpolation:")},
@@ -2013,6 +2014,7 @@ QWidget* PreferencesPopup::createXsheetPage() {
   insertUI(xsheetLayoutPreference, lay,
            getComboItemList(xsheetLayoutPreference));
   insertUI(levelNameDisplayType, lay, getComboItemList(levelNameDisplayType));
+  insertUI(linkColumnNameWithLevel, lay);
   insertUI(xsheetStep, lay);
   insertUI(xsheetAutopanEnabled, lay);
   insertUI(DragCellsBehaviour, lay, getComboItemList(DragCellsBehaviour));
@@ -2048,6 +2050,15 @@ QWidget* PreferencesPopup::createXsheetPage() {
       unifyColumnVisibilityToggles,
       &PreferencesPopup::onUnifyColumnVisibilityTogglesChanged);
 
+  QCheckBox* linkColumnNameWithLevelCheck =
+      getUI<QCheckBox*>(linkColumnNameWithLevel);
+  linkColumnNameWithLevelCheck->setToolTip(
+      tr("This option will do the following:\n"
+         "- When setting a cell in the empty column, level name will be copied "
+         "to the column name\n"
+         "- Typing the cell without level name in the empty column will try to "
+         "use a level with the same name as the column\n"
+         "The behavior may be changed in the future development."));
   return widget;
 }
 

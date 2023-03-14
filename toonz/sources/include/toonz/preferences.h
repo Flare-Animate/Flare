@@ -421,6 +421,9 @@ public:
   bool isShowFrameNumberWithLettersEnabled() const {
     return getBoolValue(showFrameNumberWithLetters);
   }
+  bool isLinkColumnNameWithLevelEnabled() const {
+    return getBoolValue(linkColumnNameWithLevel);
+  }
 
   // Animation  tab
   int getKeyframeType() const { return getIntValue(keyframeType); }

@@ -321,6 +321,7 @@ class ColumnArea final : public QWidget {
     bool isEmpty, isCurrent;
     TXshColumn *column;
     QPoint orig;
+    TXshLevel *reservedLevel;
 
   public:
     DrawHeader(ColumnArea *area, QPainter &p, int col);
