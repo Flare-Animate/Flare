@@ -1484,7 +1484,9 @@ void TCellSelection::enableCommands() {
   enableCommand(this, MI_ShiftKeyframesUp, &TCellSelection::shiftKeyframesUp);
 
   enableCommand(this, MI_Copy, &TCellSelection::copyCells);
-  enableCommand(this, MI_Paste, &TCellSelection::pasteCells);
+  enableCommand(this, MI_Paste,
+                &TCellSelection::doPaste);  // choose pasting behavior by
+                                            // preference option
 
   if (dynamic_cast<const TKeyframeData *>(
           QApplication::clipboard()->mimeData()))
@@ -1509,6 +1511,7 @@ void TCellSelection::enableCommands() {
                 &TCellSelection::reframeWithEmptyInbetweens);
 
   enableCommand(this, MI_PasteNumbers, &TCellSelection::overwritePasteNumbers);
+  enableCommand(this, MI_PasteCellContent, &TCellSelection::pasteCells);
   enableCommand(this, MI_CreateBlankDrawing,
                 &TCellSelection::createBlankDrawings);
   enableCommand(this, MI_Duplicate, &TCellSelection::duplicateFrames);
@@ -1567,6 +1570,7 @@ bool TCellSelection::isEnabledCommand(
                                         MI_Undo,
                                         MI_Redo,
                                         MI_PasteNumbers,
+                                        MI_PasteCellContent,
                                         MI_ConvertToToonzRaster,
                                         MI_ConvertVectorToVector,
                                         MI_CreateBlankDrawing,
@@ -1739,6 +1743,16 @@ static void pasteRasterImageInCell(int row, int col,
         rasterImageData, fullColorTiles, cell.getSimpleLevel(),
         cell.getFrameId(), oldPalette, createdFrame, isLevelCreated, col));
   }
+}
+
+//-----------------------------------------------------------------------------
+// choose pasting behavior by preference option
+void TCellSelection::doPaste() {
+  if (Preferences::instance()->getPasteCellsBehavior() ==
+      0)  // insert paste whole contents of copied cells
+    pasteCells();
+  else  // overwrite paste numbers, consistent with QuickChecker
+    overwritePasteNumbers();
 }
 
 //-----------------------------------------------------------------------------

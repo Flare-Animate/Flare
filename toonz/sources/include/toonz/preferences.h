@@ -368,7 +368,7 @@ public:
   int getDeleteCommandBehaviour() const {
     return getIntValue(deleteCommandBehavior);
   }
-
+  int getPasteCellsBehavior() const { return getIntValue(pasteCellsBehavior); }
   bool isIgnoreAlphaonColumn1Enabled() const {
     return getBoolValue(ignoreAlphaonColumn1Enabled);
   }
