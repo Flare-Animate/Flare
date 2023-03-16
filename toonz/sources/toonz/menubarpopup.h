@@ -13,6 +13,7 @@
 class Room;
 class QXmlStreamReader;
 class QXmlStreamWriter;
+class CommandListTree;
 
 //=============================================================================
 // MenuBarTree
@@ -40,29 +41,6 @@ protected slots:
   void insertMenu();
   void removeItem();
   void onItemChanged(QTreeWidgetItem*, int);
-};
-
-//=============================================================================
-// CommandListTree
-//-----------------------------------------------------------------------------
-
-class CommandListTree final : public QTreeWidget {
-  Q_OBJECT
-
-  void addFolder(const QString& title, int commandType,
-                 QTreeWidgetItem* parentFolder = 0);
-
-public:
-  CommandListTree(QWidget* parent = 0);
-
-  void searchItems(const QString& searchWord = QString());
-
-private:
-  void displayAll(QTreeWidgetItem* item);
-  void hideAll(QTreeWidgetItem* item);
-
-protected:
-  void mousePressEvent(QMouseEvent*) override;
 };
 
 //=============================================================================
