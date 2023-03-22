@@ -40,7 +40,8 @@ enum TXshButtonType {
   CAMSTAND_TRANSP_XSHBUTTON,
   LOCK_ON_XSHBUTTON,
   LOCK_OFF_XSHBUTTON,
-  CONFIG_XSHBUTTON
+  CONFIG_XSHBUTTON,
+  UNIFIED_TRANSP_XSHBUTTON
 };
 
 namespace XsheetGUI {
@@ -435,6 +436,7 @@ class XsheetViewer final : public QFrame, public SaveLoadQSettings {
   QImage m_xsheetPreviewButtonOnImage;
   QColor m_xsheetPreviewButtonBgOffColor;
   QImage m_xsheetPreviewButtonOffImage;
+  QImage m_xsheetUnifiedButtonTranspImage;
   Q_PROPERTY(
       QColor XsheetPreviewButtonBgOnColor READ getXsheetPreviewButtonBgOnColor
           WRITE setXsheetPreviewButtonBgOnColor)
@@ -447,6 +449,9 @@ class XsheetViewer final : public QFrame, public SaveLoadQSettings {
   Q_PROPERTY(
       QImage XsheetPreviewButtonOffImage READ getXsheetPreviewButtonOffImage
           WRITE setXsheetPreviewButtonOffImage)
+  Q_PROPERTY(QImage XsheetUnifiedButtonTranspImage READ
+                 getXsheetUnifiedButtonTranspImage WRITE
+                     setXsheetUnifiedButtonTranspImage)
   // Xsheet Camstand Button
   QColor m_xsheetCamstandButtonBgOnColor;
   QImage m_xsheetCamstandButtonOnImage;
@@ -494,6 +499,7 @@ class XsheetViewer final : public QFrame, public SaveLoadQSettings {
   QImage m_timelinePreviewButtonOnImage;
   QColor m_timelinePreviewButtonBgOffColor;
   QImage m_timelinePreviewButtonOffImage;
+  QImage m_timelineUnifiedButtonTranspImage;
   Q_PROPERTY(QColor TimelinePreviewButtonBgOnColor READ
                  getTimelinePreviewButtonBgOnColor WRITE
                      setTimelinePreviewButtonBgOnColor)
@@ -506,6 +512,9 @@ class XsheetViewer final : public QFrame, public SaveLoadQSettings {
   Q_PROPERTY(
       QImage TimelinePreviewButtonOffImage READ getTimelinePreviewButtonOffImage
           WRITE setTimelinePreviewButtonOffImage)
+  Q_PROPERTY(QImage TimelineUnifiedButtonTranspImage READ
+                 getTimelineUnifiedButtonTranspImage WRITE
+                     setTimelineUnifiedButtonTranspImage)
   // Timeline Camstand Button
   QColor m_timelineCamstandButtonBgOnColor;
   QImage m_timelineCamstandButtonOnImage;
@@ -1071,6 +1080,9 @@ public:
   void setXsheetPreviewButtonOffImage(const QImage &image) {
     m_xsheetPreviewButtonOffImage = image;
   }
+  void setXsheetUnifiedButtonTranspImage(const QImage &image) {
+    m_xsheetUnifiedButtonTranspImage = image;
+  }
   QColor getXsheetPreviewButtonBgOnColor() const {
     return m_xsheetPreviewButtonBgOnColor;
   }
@@ -1082,6 +1094,9 @@ public:
   }
   QImage getXsheetPreviewButtonOffImage() const {
     return m_xsheetPreviewButtonOffImage;
+  }
+  QImage getXsheetUnifiedButtonTranspImage() const {
+    return m_xsheetUnifiedButtonTranspImage;
   }
   // Xsheet Camstand Button
   void setXsheetCamstandButtonBgOnColor(const QColor &color) {
@@ -1165,6 +1180,9 @@ public:
   void setTimelinePreviewButtonOffImage(const QImage &image) {
     m_timelinePreviewButtonOffImage = image;
   }
+  void setTimelineUnifiedButtonTranspImage(const QImage &image) {
+    m_timelineUnifiedButtonTranspImage = image;
+  }
   QColor getTimelinePreviewButtonBgOnColor() const {
     return m_timelinePreviewButtonBgOnColor;
   }
@@ -1176,6 +1194,9 @@ public:
   }
   QImage getTimelinePreviewButtonOffImage() const {
     return m_timelinePreviewButtonOffImage;
+  }
+  QImage getTimelineUnifiedButtonTranspImage() const {
+    return m_timelineUnifiedButtonTranspImage;
   }
   // Timeline Camstand Button
   void setTimelineCamstandButtonBgOnColor(const QColor &color) {

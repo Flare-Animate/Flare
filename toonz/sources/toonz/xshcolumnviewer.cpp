@@ -976,6 +976,43 @@ void ColumnArea::DrawHeader::drawPreviewToggle(int opacity) const {
   p.drawImage(tableViewImgRect, icon);
 }
 
+// shows united visibility toggle, which has the same state as the camstand
+// toggle (preview toggle should synchonize with the camstand toggle)
+void ColumnArea::DrawHeader::drawUnifiedViewToggle(int opacity) const {
+  if (isEmpty || !o->flag(PredefinedFlag::PREVIEW_LAYER_AREA_VISIBLE)) return;
+  if (col < 0 && o->isVerticalTimeline())
+    return;  // no camstand toggle in the camera column
+  // camstand visible toggle
+  QColor bgColor;
+  QImage icon;
+  int buttonType = !column->isCamstandVisible() ? PREVIEW_OFF_XSHBUTTON
+                   : opacity < 255              ? UNIFIED_TRANSP_XSHBUTTON
+                                                : PREVIEW_ON_XSHBUTTON;
+  m_viewer->getButton(buttonType, bgColor, icon, !o->isVerticalTimeline());
+
+  QRect unifiedViewRect =
+      o->rect(PredefinedRect::UNIFIEDVIEW_LAYER_AREA).translated(orig);
+  QRect unifiedViewImgRect =
+      o->rect(PredefinedRect::UNIFIEDVIEW_LAYER).translated(orig);
+
+  if (o->isVerticalTimeline())
+    p.setPen(m_viewer->getColumnIconLineColor());  // border color
+  else
+    p.setPen(m_viewer->getTimelineIconLineColor());  // border color
+
+  if (col < 0 || column->getPaletteColumn() || column->getSoundTextColumn()) {
+    if (o->flag(PredefinedFlag::PREVIEW_LAYER_AREA_BORDER))
+      p.drawRect(unifiedViewRect);
+    return;
+  }
+
+  p.fillRect(unifiedViewRect, bgColor);
+  if (o->flag(PredefinedFlag::PREVIEW_LAYER_AREA_BORDER))
+    p.drawRect(unifiedViewRect);
+
+  p.drawImage(unifiedViewImgRect, icon);
+}
+
 void ColumnArea::DrawHeader::drawLock() const {
   if (isEmpty || !o->flag(PredefinedFlag::LOCK_AREA_VISIBLE)) return;
   QColor bgColor;
@@ -1582,65 +1619,19 @@ void ColumnArea::drawFoldedColumnHead(QPainter &p, int col) {
 }
 
 void ColumnArea::drawLevelColumnHead(QPainter &p, int col) {
-  TColumnSelection *selection = m_viewer->getColumnSelection();
-  const Orientation *o        = m_viewer->orientation();
-
-  // Preparing painter
-  QString fontName = Preferences::instance()->getInterfaceFont();
-  if (fontName == "") {
-#ifdef _WIN32
-    fontName = "Arial";
-#else
-    fontName = "Helvetica";
-#endif
-  }
-  static QFont font(fontName, -1, QFont::Normal);
-  font.setPixelSize(XSHEET_FONT_PX_SIZE);
-
-  p.setFont(font);
-  p.setRenderHint(QPainter::SmoothPixmapTransform, true);
-
-  // Retrieve reference coordinates
-  int currentColumnIndex = m_viewer->getCurrentColumn();
-  int layerAxis          = m_viewer->columnToLayerAxis(col);
-
-  QPoint orig = m_viewer->positionToXY(CellPosition(0, col));
-  QRect rect  = o->rect(PredefinedRect::LAYER_HEADER).translated(orig);
-
-  TApp *app    = TApp::instance();
-  TXsheet *xsh = m_viewer->getXsheet();
-
-  TStageObjectId columnId        = m_viewer->getObjectId(col);
-  TStageObjectId currentColumnId = app->getCurrentObject()->getObjectId();
-  TStageObjectId parentId        = xsh->getStageObjectParent(columnId);
-
-  // Retrieve column properties
-  // Check if the column is empty
-  bool isEmpty       = col >= 0 && xsh->isColumnEmpty(col);
-  TXshColumn *column = col >= 0 ? xsh->getColumn(col) : 0;
-
-  bool isEditingSpline = app->getCurrentObject()->isSpline();
-
-  // check if the column is current
-  bool isCurrent = false;
-  if (currentColumnId ==
-      TStageObjectId::CameraId(xsh->getCameraColumnIndex()))  // CAMERA
-    isCurrent = col == -1;
-  else
-    isCurrent = m_viewer->getCurrentColumn() == col;
-
-  bool isSelected =
-      m_viewer->getColumnSelection()->isColumnSelected(col) && !isEditingSpline;
-  // bool isCameraSelected = col == -1 && isCurrent && !isEditingSpline;
-
+  TXshColumn *column = col >= 0 ? m_viewer->getXsheet()->getColumn(col) : 0;
   // Draw column
   DrawHeader drawHeader(this, p, col);
   drawHeader.prepare();
   QColor columnColor, dragColor;
   drawHeader.levelColors(columnColor, dragColor);
   drawHeader.drawBaseFill(columnColor, dragColor);
-  drawHeader.drawEye();
-  drawHeader.drawPreviewToggle(column ? column->getOpacity() : 0);
+  if (Preferences::instance()->isUnifyColumnVisibilityTogglesEnabled())
+    drawHeader.drawUnifiedViewToggle(column ? column->getOpacity() : 0);
+  else {
+    drawHeader.drawEye();
+    drawHeader.drawPreviewToggle(column ? column->getOpacity() : 0);
+  }
   drawHeader.drawLock();
   drawHeader.drawColumnName();
   drawHeader.drawColumnNumber();
@@ -1655,36 +1646,9 @@ void ColumnArea::drawLevelColumnHead(QPainter &p, int col) {
 //-----------------------------------------------------------------------------
 
 void ColumnArea::drawSoundColumnHead(QPainter &p, int col) {  // AREA
-  TColumnSelection *selection = m_viewer->getColumnSelection();
-  const Orientation *o        = m_viewer->orientation();
-
-  int x = m_viewer->columnToLayerAxis(col);
-
-  p.setRenderHint(QPainter::SmoothPixmapTransform, true);
-  QString fontName = Preferences::instance()->getInterfaceFont();
-  if (fontName == "") {
-#ifdef _WIN32
-    fontName = "Arial";
-#else
-    fontName = "Helvetica";
-#endif
-  }
-  static QFont font(fontName, -1, QFont::Normal);
-  font.setPixelSize(XSHEET_FONT_PX_SIZE);
-  p.setFont(font);
-
   TXsheet *xsh = m_viewer->getXsheet();
   TXshSoundColumn *sc =
       xsh->getColumn(col) ? xsh->getColumn(col)->getSoundColumn() : 0;
-
-  QPoint orig = m_viewer->positionToXY(CellPosition(0, col));
-  QRect rect  = m_viewer->orientation()
-                   ->rect(PredefinedRect::LAYER_HEADER)
-                   .translated(orig);
-
-  QPoint columnNamePos = orig + QPoint(12, o->cellHeight());
-
-  bool isCurrent = m_viewer->getCurrentColumn() == col;
 
   DrawHeader drawHeader(this, p, col);
   drawHeader.prepare();
@@ -1710,36 +1674,6 @@ void ColumnArea::drawSoundColumnHead(QPainter &p, int col) {  // AREA
 //-----------------------------------------------------------------------------
 
 void ColumnArea::drawPaletteColumnHead(QPainter &p, int col) {  // AREA
-  TColumnSelection *selection = m_viewer->getColumnSelection();
-  const Orientation *o        = m_viewer->orientation();
-
-  QPoint orig = m_viewer->positionToXY(CellPosition(0, std::max(col, -1)));
-
-  QString fontName = Preferences::instance()->getInterfaceFont();
-  if (fontName == "") {
-#ifdef _WIN32
-    fontName = "Arial";
-#else
-    fontName = "Helvetica";
-#endif
-  }
-  static QFont font(fontName, -1, QFont::Normal);
-  font.setPixelSize(XSHEET_FONT_PX_SIZE);
-
-  p.setFont(font);
-  p.setRenderHint(QPainter::SmoothPixmapTransform, true);
-
-  int currentColumnIndex = m_viewer->getCurrentColumn();
-  int x                  = m_viewer->columnToLayerAxis(col);
-
-  QRect rect(x, 0, o->cellWidth(), height());
-
-  TXsheet *xsh = m_viewer->getXsheet();
-
-  bool isEmpty = false;
-  if (col >= 0)  // Verifico se la colonna e' vuota
-    isEmpty = xsh->isColumnEmpty(col);
-
   DrawHeader drawHeader(this, p, col);
   drawHeader.prepare();
   QColor columnColor, dragColor;
@@ -2417,8 +2351,27 @@ void ColumnArea::mousePressEvent(QMouseEvent *event) {
         if (event->button() != Qt::LeftButton) return;
         m_doOnRelease = isCtrlPressed ? ToggleAllLock : ToggleLock;
       }
-      // preview button
-      else if (o->rect(PredefinedRect::EYE_AREA).contains(mouseInCell)) {
+      // unified view button
+      else if (Preferences::instance()
+                   ->isUnifyColumnVisibilityTogglesEnabled() &&
+               o->rect(PredefinedRect::UNIFIEDVIEW_LAYER_AREA)
+                   .contains(mouseInCell)) {
+        if (event->button() != Qt::LeftButton) return;
+        if (column->getSoundTextColumn()) {
+          // do nothing
+        } else {
+          // sync eye button on release
+          m_doOnRelease =
+              isCtrlPressed ? ToggleAllTransparency : ToggleTransparency;
+          if (!o->flag(PredefinedFlag::CONFIG_AREA_VISIBLE) &&
+              !column->getSoundColumn())
+            startTransparencyPopupTimer(event);
+        }
+      }
+      // separated view - preview button
+      else if (!Preferences::instance()
+                    ->isUnifyColumnVisibilityTogglesEnabled() &&
+               o->rect(PredefinedRect::EYE_AREA).contains(mouseInCell)) {
         if (event->button() != Qt::LeftButton) return;
         if (column->getSoundTextColumn()) {
           // do nothing
@@ -2429,8 +2382,10 @@ void ColumnArea::mousePressEvent(QMouseEvent *event) {
             TApp::instance()->getCurrentXsheet()->notifyXsheetSoundChanged();
         }
       }
-      // camstand button
-      else if (o->rect(PredefinedRect::PREVIEW_LAYER_AREA)
+      // separated view - camstand button
+      else if (!Preferences::instance()
+                    ->isUnifyColumnVisibilityTogglesEnabled() &&
+               o->rect(PredefinedRect::PREVIEW_LAYER_AREA)
                    .contains(mouseInCell)) {
         if (event->button() != Qt::LeftButton) return;
         if (column->getPaletteColumn() || column->getSoundTextColumn()) {
@@ -2683,6 +2638,10 @@ void ColumnArea::mouseReleaseEvent(QMouseEvent *event) {
     TXshColumn *column = xsh->getColumn(m_col);
     if (m_doOnRelease == ToggleTransparency) {
       column->setCamstandVisible(!column->isCamstandVisible());
+      // sync eye button
+      if (Preferences::instance()->isUnifyColumnVisibilityTogglesEnabled())
+        column->setPreviewVisible(column->isCamstandVisible());
+
       if (column->getSoundColumn())
         app->getCurrentXsheet()->notifyXsheetSoundChanged();
     } else if (m_doOnRelease == TogglePreviewVisible)
@@ -2757,6 +2716,9 @@ void ColumnArea::mouseReleaseEvent(QMouseEvent *event) {
         if (!xsh->isColumnEmpty(col) && !column->getPaletteColumn() &&
             !column->getSoundTextColumn()) {
           column->setCamstandVisible(!column->isCamstandVisible());
+          // sync eye button
+          if (Preferences::instance()->isUnifyColumnVisibilityTogglesEnabled())
+            column->setPreviewVisible(column->isCamstandVisible());
           if (column->getSoundColumn()) sound_changed = true;
         }
       }
@@ -2781,10 +2743,12 @@ void ColumnArea::mouseReleaseEvent(QMouseEvent *event) {
     // if necessary. it causes slowness when opening preview flipbook of large
     // scene.
     // KNOWN BUG: Side effect, transparency doesn't sync in schematic if false.
-    bool isTransparencyRendered = app->getCurrentScene()
-                                      ->getScene()
-                                      ->getProperties()
-                                      ->isColumnColorFilterOnRenderEnabled();
+    bool isTransparencyRendered =
+        app->getCurrentScene()
+            ->getScene()
+            ->getProperties()
+            ->isColumnColorFilterOnRenderEnabled() ||
+        Preferences::instance()->isUnifyColumnVisibilityTogglesEnabled();
     bool isStateChanged = m_doOnRelease == TogglePreviewVisible ||
                           m_doOnRelease == ToggleAllPreviewVisible ||
                           m_doOnRelease == ToggleLock ||
@@ -2858,9 +2822,10 @@ void ColumnArea::contextMenuEvent(QContextMenuEvent *event) {
   QMenu menu(this);
   CommandManager *cmdManager = CommandManager::instance();
 
-  //---- Preview
+  //---- Unified
   if (((isCamera && !o->isVerticalTimeline()) || !xsh->isColumnEmpty(col)) &&
-      o->rect(PredefinedRect::EYE_AREA).contains(mouseInCell)) {
+      o->rect(PredefinedRect::UNIFIEDVIEW_LAYER_AREA).contains(mouseInCell) &&
+      Preferences::instance()->isUnifyColumnVisibilityTogglesEnabled()) {
     menu.setObjectName("xsheetColumnAreaMenu_Preview");
 
     menu.addAction(cmdManager->getAction("MI_EnableThisColumnOnly"));
@@ -2869,6 +2834,36 @@ void ColumnArea::contextMenuEvent(QContextMenuEvent *event) {
     menu.addAction(cmdManager->getAction("MI_DisableAllColumns"));
     menu.addAction(cmdManager->getAction("MI_DisableSelectedColumns"));
     menu.addAction(cmdManager->getAction("MI_SwapEnabledColumns"));
+  }
+  //---- Preview
+  else if (((isCamera && !o->isVerticalTimeline()) ||
+            !xsh->isColumnEmpty(col)) &&
+           o->rect(PredefinedRect::EYE_AREA).contains(mouseInCell) &&
+           !Preferences::instance()->isUnifyColumnVisibilityTogglesEnabled()) {
+    menu.setObjectName("xsheetColumnAreaMenu_Preview");
+
+    menu.addAction(cmdManager->getAction("MI_EnableThisColumnOnly"));
+    menu.addAction(cmdManager->getAction("MI_EnableSelectedColumns"));
+    menu.addAction(cmdManager->getAction("MI_EnableAllColumns"));
+    menu.addAction(cmdManager->getAction("MI_DisableAllColumns"));
+    menu.addAction(cmdManager->getAction("MI_DisableSelectedColumns"));
+    menu.addAction(cmdManager->getAction("MI_SwapEnabledColumns"));
+  }
+  //---- Camstand
+  else if (((isCamera && !o->isVerticalTimeline()) ||
+            !xsh->isColumnEmpty(col)) &&
+           o->rect(PredefinedRect::PREVIEW_LAYER_AREA).contains(mouseInCell) &&
+           !Preferences::instance()->isUnifyColumnVisibilityTogglesEnabled()) {
+    menu.setObjectName("xsheetColumnAreaMenu_Camstand");
+
+    menu.addAction(cmdManager->getAction("MI_ActivateThisColumnOnly"));
+    menu.addAction(cmdManager->getAction("MI_ActivateSelectedColumns"));
+    menu.addAction(cmdManager->getAction("MI_ActivateAllColumns"));
+    menu.addAction(cmdManager->getAction("MI_DeactivateAllColumns"));
+    menu.addAction(cmdManager->getAction("MI_DeactivateSelectedColumns"));
+    menu.addAction(cmdManager->getAction("MI_ToggleColumnsActivation"));
+    // hide all columns placed on the left
+    menu.addAction(cmdManager->getAction("MI_DeactivateUpperColumns"));
   }
   //---- Lock
   else if ((isCamera || !xsh->isColumnEmpty(col)) &&
@@ -2883,21 +2878,6 @@ void ColumnArea::contextMenuEvent(QContextMenuEvent *event) {
     menu.addAction(cmdManager->getAction("MI_UnlockSelectedColumns"));
     menu.addAction(cmdManager->getAction("MI_UnlockAllColumns"));
     menu.addAction(cmdManager->getAction("MI_ToggleColumnLocks"));
-  }
-  //---- Camstand
-  else if (((isCamera && !o->isVerticalTimeline()) ||
-            !xsh->isColumnEmpty(col)) &&
-           o->rect(PredefinedRect::PREVIEW_LAYER_AREA).contains(mouseInCell)) {
-    menu.setObjectName("xsheetColumnAreaMenu_Camstand");
-
-    menu.addAction(cmdManager->getAction("MI_ActivateThisColumnOnly"));
-    menu.addAction(cmdManager->getAction("MI_ActivateSelectedColumns"));
-    menu.addAction(cmdManager->getAction("MI_ActivateAllColumns"));
-    menu.addAction(cmdManager->getAction("MI_DeactivateAllColumns"));
-    menu.addAction(cmdManager->getAction("MI_DeactivateSelectedColumns"));
-    menu.addAction(cmdManager->getAction("MI_ToggleColumnsActivation"));
-    // hide all columns placed on the left
-    menu.addAction(cmdManager->getAction("MI_DeactivateUpperColumns"));
   }
   // right clicking another area / right clicking empty column head
   else {

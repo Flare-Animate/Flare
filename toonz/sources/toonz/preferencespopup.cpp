@@ -9,6 +9,7 @@
 #include "tapp.h"
 #include "cleanupsettingsmodel.h"
 #include "formatsettingspopups.h"
+#include "columncommand.h"
 
 // TnzQt includes
 #include "toonzqt/tabbar.h"
@@ -679,6 +680,18 @@ void PreferencesPopup::onShowXSheetToolbarClicked() {
 
 //-----------------------------------------------------------------------------
 
+void PreferencesPopup::onUnifyColumnVisibilityTogglesChanged() {
+  // Check if any column has visibility toggles with different states and the
+  // "unify visibility toggles" option is enabled
+  if (Preferences::instance()->isUnifyColumnVisibilityTogglesEnabled())
+    ColumnCmd::unifyColumnVisibilityToggles();
+
+  TApp::instance()->getCurrentScene()->notifyPreferenceChanged(
+      "unifyColumnVisibilityToggles");
+}
+
+//-----------------------------------------------------------------------------
+
 void PreferencesPopup::onModifyExpressionOnMovingReferencesChanged() {
   TApp::instance()->getCurrentScene()->notifyPreferenceChanged(
       "modifyExpressionOnMovingReferences");
@@ -1279,6 +1292,8 @@ QString PreferencesPopup::getUIString(PreferencesItemId id) {
       {expandFunctionHeader,
        tr("Expand Function Editor Header to Match Xsheet Toolbar Height*")},
       {showColumnNumbers, tr("Show Column Numbers in Column Headers")},
+      {unifyColumnVisibilityToggles,
+       tr("Unify Preview and Camstand Visibility Toggles")},
       {parentColorsInXsheetColumn,
        tr("Show Column Parent's Color in the Xsheet")},
       {highlightLineEverySecond, tr("Highlight Line Every Second")},
@@ -2013,6 +2028,7 @@ QWidget* PreferencesPopup::createXsheetPage() {
   QGridLayout* xshToolbarLay = insertGroupBoxUI(showXSheetToolbar, lay);
   { insertUI(expandFunctionHeader, xshToolbarLay); }
   insertUI(showColumnNumbers, lay);
+  insertUI(unifyColumnVisibilityToggles, lay);
   insertUI(parentColorsInXsheetColumn, lay);
   insertUI(highlightLineEverySecond, lay);
   insertUI(syncLevelRenumberWithXsheet, lay);
@@ -2028,6 +2044,9 @@ QWidget* PreferencesPopup::createXsheetPage() {
                            &PreferencesPopup::onShowKeyframesOnCellAreaChanged);
   m_onEditedFuncMap.insert(showXsheetCameraColumn,
                            &PreferencesPopup::onShowKeyframesOnCellAreaChanged);
+  m_onEditedFuncMap.insert(
+      unifyColumnVisibilityToggles,
+      &PreferencesPopup::onUnifyColumnVisibilityTogglesChanged);
 
   return widget;
 }
