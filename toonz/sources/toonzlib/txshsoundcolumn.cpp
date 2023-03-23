@@ -447,7 +447,7 @@ bool TXshSoundColumn::setCell(int row, const TXshCell &cell,
   if (isBeforeLevelInSequence) {
     int oldEndOffset = lBefore->getEndOffset();
     int endOffset    = (lBefore->getVisibleEndFrame() != row) ? oldEndOffset - 1
-                                                           : oldEndOffset;
+                                                              : oldEndOffset;
     if (isNextLevelInSequence) {
       endOffset = lNext->getEndOffset();
       // Se precedente e successivo sono diversi elimino il successivo (caso in
@@ -468,8 +468,8 @@ bool TXshSoundColumn::setCell(int row, const TXshCell &cell,
   if (isNextLevelInSequence) {
     int oldStartOffset = lNext->getStartOffset();
     int startOffset    = (lNext->getVisibleStartFrame() != row)
-                          ? oldStartOffset - 1
-                          : oldStartOffset;
+                             ? oldStartOffset - 1
+                             : oldStartOffset;
     if (l && l != lNext) {
       if (l->getVisibleFrameCount() == 1)
         removeColumnLevel(l);
