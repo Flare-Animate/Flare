@@ -579,6 +579,10 @@ void PreferencesPopup::onPixelsOnlyChanged() {
 
 //-----------------------------------------------------------------------------
 
+void PreferencesPopup::beforeUnitChanged() { m_pref->storeOldUnits(); }
+
+//-----------------------------------------------------------------------------
+
 void PreferencesPopup::onUnitChanged() {
   CheckBox* pixelsOnlyCB = getUI<CheckBox*>(pixelsOnly);
   if (!pixelsOnlyCB->isChecked() &&
@@ -1705,7 +1709,9 @@ QWidget* PreferencesPopup::createInterfacePage() {
                            &PreferencesPopup::onStyleSheetTypeChanged);
   m_onEditedFuncMap.insert(iconTheme, &PreferencesPopup::onIconThemeChanged);
   m_onEditedFuncMap.insert(pixelsOnly, &PreferencesPopup::onPixelsOnlyChanged);
+  m_preEditedFuncMap.insert(linearUnits, &PreferencesPopup::beforeUnitChanged);
   m_onEditedFuncMap.insert(linearUnits, &PreferencesPopup::onUnitChanged);
+  m_preEditedFuncMap.insert(cameraUnits, &PreferencesPopup::beforeUnitChanged);
   m_onEditedFuncMap.insert(cameraUnits, &PreferencesPopup::onUnitChanged);
   m_preEditedFuncMap.insert(CurrentRoomChoice,
                             &PreferencesPopup::beforeRoomChoiceChanged);

@@ -983,8 +983,10 @@ void Preferences::setRasterBackgroundColor() {
 //-----------------------------------------------------------------
 
 void Preferences::storeOldUnits() {
-  setValue(oldUnits, getStringValue(linearUnits));
-  setValue(oldCameraUnits, getStringValue(cameraUnits));
+  QString linearU = getStringValue(linearUnits);
+  if (linearU != "pixel") setValue(oldUnits, linearU);
+  QString cameraU = getStringValue(cameraUnits);
+  if (cameraU != "pixel") setValue(oldCameraUnits, cameraU);
 }
 
 //-----------------------------------------------------------------
