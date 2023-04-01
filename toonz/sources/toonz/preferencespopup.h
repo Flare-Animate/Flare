@@ -127,6 +127,7 @@ private:
   void onStyleSheetTypeChanged();
   void onIconThemeChanged();
   void onPixelsOnlyChanged();
+  void beforeUnitChanged();
   void onUnitChanged();
   void beforeRoomChoiceChanged();
   void onColorCalibrationChanged();
