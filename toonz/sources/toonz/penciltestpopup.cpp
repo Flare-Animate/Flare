@@ -2750,12 +2750,12 @@ void PencilTestPopup::processImage(cv::Mat& image) {
               cv::INTER_LINEAR);
   }
 
-  //  void PencilTestPopup::processImage(QImage& image) {
-  if (m_upsideDownCB->isChecked())
-    cv::flip(image, image, -1);  // flip in both directions
   // white bg reduction
   if (!m_whiteBGImg.empty() && m_bgReductionFld->getValue() != 0)
     bgReduction(image, m_whiteBGImg, m_bgReductionFld->getValue());
+  //  void PencilTestPopup::processImage(QImage& image) {
+  if (m_upsideDownCB->isChecked())
+    cv::flip(image, image, -1);  // flip in both directions
 
   // obtain histogram AFTER bg reduction
   m_camCapLevelControl->updateHistogram(image);
