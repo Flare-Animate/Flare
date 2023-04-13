@@ -137,7 +137,8 @@ FullColorBrushTool::FullColorBrushTool(std::string name)
   m_inputmanager.setHandler(this);
   m_modifierTest = new TModifierTest();
   m_modifierTangents = new TModifierTangents();
-  m_modifierSegmentation = new TModifierSegmentation();
+  m_modifierAssistants = new TModifierAssistants();
+  m_modifierSegmentation = new TModifierSegmentation(0.25);
   
   m_thickness.setNonLinearSlider();
 
@@ -296,6 +297,7 @@ bool FullColorBrushTool::preLeftButtonDown() {
   m_inputmanager.clearModifiers();
   m_inputmanager.addModifier( TInputModifierP(m_modifierTangents.getPointer()) );
   m_inputmanager.addModifier( TInputModifierP(m_modifierSegmentation.getPointer()) );
+  m_inputmanager.addModifier( TInputModifierP(m_modifierAssistants.getPointer()) );
   m_inputmanager.addModifier( TInputModifierP(m_modifierTest.getPointer()) );
   
   touchImage();

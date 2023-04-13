@@ -8,6 +8,7 @@
 #include <tools/inputmanager.h>
 #include <tools/modifiers/modifiertest.h>
 #include <tools/modifiers/modifiertangents.h>
+#include <tools/modifiers/modifierassistants.h>
 #include <tools/modifiers/modifiersegmentation.h>
 
 #include "toonzrasterbrushtool.h"
@@ -67,6 +68,7 @@ public:
   void inputLeftButtonUp(const TTrackPoint &point, const TTrack &track) override;
   void inputMouseMove(const TPointD &position, const TInputState &state) override;
   void inputInvalidateRect(const TRectD &bounds) override;
+  TTool* inputGetTool() override { return this; };
 
   void draw() override;
 
@@ -102,6 +104,7 @@ protected:
   TInputManager m_inputmanager;
   TSmartPointerT<TModifierTest> m_modifierTest;
   TSmartPointerT<TModifierTangents> m_modifierTangents;
+  TSmartPointerT<TModifierAssistants> m_modifierAssistants;
   TSmartPointerT<TModifierSegmentation> m_modifierSegmentation;
   
   TPropertyGroup m_prop;

@@ -2247,11 +2247,10 @@ TRect SceneViewer::getActualClipRect(const TAffine &aff) {
   else if (m_clipRect.isEmpty())
     clipRect -= TPointD(viewerSize.lx / 2, viewerSize.ly / 2);
   else {
-    TRectD app = aff * (m_clipRect.enlarge(3));
-    clipRect =
-        TRectD(tceil(app.x0), tceil(app.y0), tfloor(app.x1), tfloor(app.y1));
+    clipRect = aff * (m_clipRect.enlarge(3));
   }
 
+  clipRect *= TRectD(viewerSize) - TPointD(viewerSize.lx/2, viewerSize.ly/2);
   return convert(clipRect);
 }
 

@@ -119,13 +119,10 @@ public:
     m_currentPointIndex(-1)
   {
     bind(MetaImage);
-    m_prop.add(&m_assistantType);
+    m_prop.bind(m_assistantType);
     updateTranslation();
   }
   
-  ~EditAssistantsTool()
-    { m_prop.clear(); }
-
   ToolType getToolType() const override
     { return TTool::LevelWriteTool; }
   int getCursorId() const override

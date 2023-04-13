@@ -247,8 +247,7 @@ public:
   
   virtual void inputInvalidateRect(const TRectD &bounds) { }
   
-  virtual TAffine toWorld() { return TAffine(); };
-  virtual TTool* getTool() { return nullptr; };
+  virtual TTool* inputGetTool() { return nullptr; };
 };
 
 
