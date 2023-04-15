@@ -12,6 +12,7 @@
 #include <toonz/txsheet.h>
 #include <toonz/tframehandle.h>
 #include <toonz/tobjecthandle.h>
+#include <toonz/dpiscale.h>
 
 // TnzCore includes
 #include <tgl.h>
@@ -59,24 +60,29 @@ TModifierAssistants::scanAssistants(
   if (TTool *tool = handler->inputGetTool())
   if (TToolViewer *viewer = tool->getViewer())
   if (TApplication *application = tool->getApplication())
+  if (TXshLevelHandle *levelHandle = application->getCurrentLevel())
+  if (TXshLevel *level = levelHandle->getLevel())
+  if (TXshSimpleLevel *simpleLevel = level->getSimpleLevel())
   if (TFrameHandle *frameHandle = application->getCurrentFrame())
   if (TXsheetHandle *XsheetHandle = application->getCurrentXsheet())
   if (TXsheet *Xsheet = XsheetHandle->getXsheet())
   {
+    TPointD dpiScale = getCurrentDpiScale(simpleLevel, tool->getCurrentFid());
     bool findGuidelines = (positions && positionsCount > 0 && outGuidelines);
     bool doSomething = findGuidelines || draw;
 
     int frame = frameHandle->getFrame();
     int count = Xsheet->getColumnCount();
     TAffine worldToTrack = viewer->getViewMatrix();
+    worldToTrack.a11 /= dpiScale.x;
+    worldToTrack.a22 /= dpiScale.y;
 
     for(int i = 0; i < count; ++i)
       if (TImageP image = Xsheet->getCell(frame, i).getImage(false))
       if (image->getType() == TImage::META)
       if (TMetaImage *metaImage = dynamic_cast<TMetaImage*>(image.getPointer()))
       {
-        TAffine imageToTrack = tool->getColumnMatrix(i)
-                             * worldToTrack;
+        TAffine imageToTrack = worldToTrack * tool->getColumnMatrix(i);
         if (draw) { glPushMatrix(); tglMultMatrix(imageToTrack); }
 
         TMetaImage::Reader reader(*metaImage);

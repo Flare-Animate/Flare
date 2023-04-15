@@ -27,7 +27,7 @@ TTrackPoint
 TModifierTest::Modifier::calcPoint(double originalIndex) {
   TTrackPoint p = TTrackModifier::calcPoint(originalIndex);
 
-  if (p.length > 2.0) {
+  if (p.length > TConsts::epsilon) {
     double frac;
     int i0 = original.floorIndex(originalIndex, &frac);
     int i1 = original.ceilIndex(originalIndex);
@@ -40,10 +40,10 @@ TModifierTest::Modifier::calcPoint(double originalIndex) {
       double s = sin(angle);
       double c = cos(angle);
 
-      TPointD tangent = TPointD(1.0, 0.0); // original.calcTangent(originalIndex, fabs(2.0*this->radius/speed));
-      p.position.x += radius*(c*tangent.x - s*tangent.y);
-      p.position.y += radius*(s*tangent.x + c*tangent.y);
-      p.pressure   *= 0.5*(1.0 + c);
+      TPointD tangent = original.calcTangent(originalIndex, fabs(2.0*this->radius/speed));
+      p.position.x -= tangent.y*s*radius;
+      p.position.y += tangent.x*s*radius;
+      p.pressure   *= 1.0 - 0.5*c;
     }
   } else {
     p.pressure = 0.0;
@@ -58,9 +58,9 @@ TModifierTest::Modifier::calcPoint(double originalIndex) {
 //*****************************************************************************************
 
 
-TModifierTest::TModifierTest():
-  count(1),
-  radius(40.0)
+TModifierTest::TModifierTest(int count, double radius):
+  count(count),
+  radius(radius)
 { }
 
 
@@ -70,7 +70,7 @@ TModifierTest::modifyTrack(
   const TInputSavePoint::Holder &savePoint,
   TTrackList &outTracks )
 {
-  const double segmentSize = M_PI/180.0*10.0;
+  const double segmentSize = 2.0*M_PI/10.0;
 
   if (!track.handler) {
     if (track.getKeyState(track.front().time).isPressed(TKey(Qt::Key_Alt))) {
@@ -83,7 +83,7 @@ TModifierTest::modifyTrack(
               *track.handler,
               i*2.0*M_PI/(double)count,
               radius,
-              2.0 )));
+              0.25 )));
     }
   }
 
@@ -113,8 +113,8 @@ TModifierTest::modifyTrack(
   for(int i = start; i < track.size(); ++i) {
     if (i > 0) {
       double dl = track[i].length - track[i-1].length;
-      double da = track[i].pressure > TTrack::epsilon
-                ? dl/(2.0*radius*track[i].pressure) : 0.0;
+      double da = track[i].pressure > TConsts::epsilon
+                ? dl/(radius*track[i].pressure) : 0.0;
       handler->angles.push_back(handler->angles[i-1] + da);
     } else {
       handler->angles.push_back(0.0);
@@ -124,12 +124,13 @@ TModifierTest::modifyTrack(
   // process sub-tracks
   for(TTrackList::const_iterator ti = handler->tracks.begin(); ti != handler->tracks.end(); ++ti) {
     TTrack &subTrack = **ti;
+    double currentSegmentSize = segmentSize;
+    if (const Modifier *modifier = dynamic_cast<const Modifier*>(subTrack.modifier.getPointer()))
+      if (fabs(modifier->speed) > TConsts::epsilon)
+        currentSegmentSize = segmentSize/fabs(modifier->speed);
 
     // remove points
-    int subStart = subTrack.floorIndex(subTrack.indexByOriginalIndex(start));
-    if (subStart < 0) subStart = 0;
-    if (subStart < subTrack.size() && subTrack[subStart].originalIndex + TTrack::epsilon < start)
-      ++subStart;
+    int subStart = subTrack.floorIndex(subTrack.indexByOriginalIndex(start-1)) + 1;
     subTrack.truncate(subStart);
 
     // add points
@@ -137,8 +138,8 @@ TModifierTest::modifyTrack(
       if (i > 0) {
         double prevAngle = handler->angles[i-1];
         double nextAngle = handler->angles[i];
-        if (fabs(nextAngle - prevAngle) > 1.5*segmentSize) {
-          double step = segmentSize/fabs(nextAngle - prevAngle);
+        if (fabs(nextAngle - prevAngle) > 1.5*currentSegmentSize) {
+          double step = currentSegmentSize/fabs(nextAngle - prevAngle);
           double end = 1.0 - 0.5*step;
           for(double frac = step; frac < end; frac += step)
             subTrack.push_back( subTrack.modifier->calcPoint((double)i - 1.0 + frac) );

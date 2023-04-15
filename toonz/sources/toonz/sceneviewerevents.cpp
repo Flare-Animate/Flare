@@ -624,7 +624,7 @@ void SceneViewer::onMove(const TMouseEvent &event) {
     }
 
     TObjectHandle *objHandle = TApp::instance()->getCurrentObject();
-    if (tool->getToolType() & TTool::LevelTool && !objHandle->isSpline()) {
+    if ((tool->getToolType() & TTool::LevelTool) && !objHandle->isSpline()) {
       pos.x /= m_dpiScale.x;
       pos.y /= m_dpiScale.y;
     }
@@ -799,7 +799,7 @@ void SceneViewer::onPress(const TMouseEvent &event) {
   TPointD pos = tool->getMatrix().inv() * winToWorld(m_pos);
 
   TObjectHandle *objHandle = TApp::instance()->getCurrentObject();
-  if (tool->getToolType() & TTool::LevelTool && !objHandle->isSpline()) {
+  if ((tool->getToolType() & TTool::LevelTool) && !objHandle->isSpline()) {
     pos.x /= m_dpiScale.x;
     pos.y /= m_dpiScale.y;
   }
@@ -904,7 +904,7 @@ void SceneViewer::onRelease(const TMouseEvent &event) {
                   winToWorld(event.mousePos() * getDevPixRatio());
 
     TObjectHandle *objHandle = TApp::instance()->getCurrentObject();
-    if (tool->getToolType() & TTool::LevelTool && !objHandle->isSpline()) {
+    if ((tool->getToolType() & TTool::LevelTool) && !objHandle->isSpline()) {
       pos.x /= m_dpiScale.x;
       pos.y /= m_dpiScale.y;
     }
@@ -1500,7 +1500,7 @@ void SceneViewer::keyPressEvent(QKeyEvent *event) {
       TPointD pos = tool->getMatrix().inv() * winToWorld(m_lastMousePos);
 
       TObjectHandle *objHandle = TApp::instance()->getCurrentObject();
-      if (tool->getToolType() & TTool::LevelTool && !objHandle->isSpline()) {
+      if ((tool->getToolType() & TTool::LevelTool) && !objHandle->isSpline()) {
         pos.x /= m_dpiScale.x;
         pos.y /= m_dpiScale.y;
       }
@@ -1587,7 +1587,7 @@ void SceneViewer::keyReleaseEvent(QKeyEvent *event) {
     TPointD pos = tool->getMatrix().inv() * winToWorld(m_lastMousePos);
 
     TObjectHandle *objHandle = TApp::instance()->getCurrentObject();
-    if (tool->getToolType() & TTool::LevelTool && !objHandle->isSpline()) {
+    if ((tool->getToolType() & TTool::LevelTool) && !objHandle->isSpline()) {
       pos.x /= m_dpiScale.x;
       pos.y /= m_dpiScale.y;
     }
@@ -1631,7 +1631,7 @@ void SceneViewer::mouseDoubleClickEvent(QMouseEvent *event) {
   TPointD pos =
       tool->getMatrix().inv() * winToWorld(event->pos() * getDevPixRatio());
   TObjectHandle *objHandle = TApp::instance()->getCurrentObject();
-  if (tool->getToolType() & TTool::LevelTool && !objHandle->isSpline()) {
+  if ((tool->getToolType() & TTool::LevelTool) && !objHandle->isSpline()) {
     pos.x /= m_dpiScale.x;
     pos.y /= m_dpiScale.y;
   }

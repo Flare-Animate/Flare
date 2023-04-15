@@ -135,7 +135,7 @@ FullColorBrushTool::FullColorBrushTool(std::string name)
   bind(TTool::RasterImage | TTool::EmptyTarget);
 
   m_inputmanager.setHandler(this);
-  m_modifierTest = new TModifierTest();
+  m_modifierTest = new TModifierTest(5, 40);
   m_modifierTangents = new TModifierTangents();
   m_modifierAssistants = new TModifierAssistants();
   m_modifierSegmentation = new TModifierSegmentation(0.25);
