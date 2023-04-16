@@ -73,7 +73,7 @@ TModifierAssistants::scanAssistants(
 
     int frame = frameHandle->getFrame();
     int count = Xsheet->getColumnCount();
-    TAffine worldToTrack = viewer->getViewMatrix();
+    TAffine worldToTrack;
     worldToTrack.a11 /= dpiScale.x;
     worldToTrack.a22 /= dpiScale.y;
 
