@@ -59,9 +59,9 @@ class Raster32PMyPaintSurface::Internal
 public:
   typedef SurfaceCustom Parent;
   Internal(Raster32PMyPaintSurface &owner)
-      : SurfaceCustom(owner.m_ras->pixels(), owner.m_ras->getLx(),
-                      owner.m_ras->getLy(), owner.m_ras->getPixelSize(),
-                      owner.m_ras->getRowSize(), &owner) {}
+      : SurfaceCustom(owner.ras->pixels(), owner.ras->getLx(),
+                      owner.ras->getLy(), owner.ras->getPixelSize(),
+                      owner.ras->getRowSize(), &owner) {}
 };
 
 //=======================================================
@@ -71,14 +71,14 @@ public:
 //=======================================================
 
 Raster32PMyPaintSurface::Raster32PMyPaintSurface(const TRaster32P &ras)
-    : m_ras(ras), controller(), internal() {
+    : ras(ras), controller(), internal() {
   assert(ras);
   internal = new Internal(*this);
 }
 
 Raster32PMyPaintSurface::Raster32PMyPaintSurface(const TRaster32P &ras,
                                                  RasterController &controller)
-    : m_ras(ras), controller(&controller), internal() {
+    : ras(ras), controller(&controller), internal() {
   assert(ras);
   internal = new Internal(*this);
 }
@@ -115,15 +115,15 @@ MyPaintToonzBrush::MyPaintToonzBrush(
   const mypaint::Brush &brush,
   bool interpolation
 )
-    : m_ras(ras)
-    , m_mypaintSurface(m_ras, controller)
+    : ras(ras)
+    , mypaintSurface(ras, controller)
     , brush(brush)
     , reset(true)
     , interpolation(interpolation)
 {
   // read brush antialiasing settings
   float aa = this->brush.getBaseValue(MYPAINT_BRUSH_SETTING_ANTI_ALIASING);
-  m_mypaintSurface.setAntialiasing(aa > 0.5f);
+  mypaintSurface.setAntialiasing(aa > 0.5f);
 
   // reset brush antialiasing to zero to avoid radius and hardness correction
   this->brush.setBaseValue(MYPAINT_BRUSH_SETTING_ANTI_ALIASING, 0.f);
@@ -141,14 +141,14 @@ void MyPaintToonzBrush::beginStroke() {
 void MyPaintToonzBrush::endStroke() {
   if (!reset) {
     if (interpolation)
-      strokeTo(TPointD(current.x, current.y), current.pressure, 0.f);
+      strokeTo(TPointD(current.x, current.y), current.pressure, TPointD(current.tx, current.ty), 0.f);
     beginStroke();
   }
 }
 
-void MyPaintToonzBrush::strokeTo(const TPointD &point, double pressure,
-                                 double dtime) {
-  Params next(point.x, point.y, pressure, 0.0);
+void MyPaintToonzBrush::strokeTo(const TPointD &position, double pressure,
+                                 const TPointD &tilt, double dtime) {
+  Params next(position.x, position.y, pressure, tilt.x, tilt.y, 0.0);
 
   if (reset) {
     current  = next;
@@ -190,8 +190,8 @@ void MyPaintToonzBrush::strokeTo(const TPointD &point, double pressure,
         sub->p2.setMedian(sub->p1, segment->p1);
         segment = sub;
       } else {
-        brush.strokeTo(m_mypaintSurface, segment->p2.x, segment->p2.y,
-                      segment->p2.pressure, 0.f, 0.f,
+        brush.strokeTo(mypaintSurface, segment->p2.x, segment->p2.y,
+                      segment->p2.pressure, segment->p2.tx, segment->p2.ty,
                       segment->p2.time - p0.time);
         if (segment == stack) break;
         p0 = segment->p2;
@@ -207,7 +207,7 @@ void MyPaintToonzBrush::strokeTo(const TPointD &point, double pressure,
     previous.time = 0.0;
     current.time  = dtime;
   } else {
-    brush.strokeTo(m_mypaintSurface, point.x, point.y, pressure, 0.f, 0.f, dtime);
+    brush.strokeTo(mypaintSurface, position.x, position.y, pressure, tilt.x, tilt.y, dtime);
   }
 }
 
@@ -224,6 +224,6 @@ void MyPaintToonzBrush::updateDrawing(const TRasterCM32P rasCM,
   if (targetRect.isEmpty()) return;
 
   rasCM->copy(rasBackupCM->extract(targetRect), targetRect.getP00());
-  putOnRasterCM(rasCM->extract(targetRect), m_ras->extract(targetRect), styleId,
+  putOnRasterCM(rasCM->extract(targetRect), ras->extract(targetRect), styleId,
                 lockAlpha);
 }

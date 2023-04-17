@@ -49,10 +49,11 @@ set(HEADERS
     ../include/tools/track.h
     ../include/tools/inputmanager.h
     ../include/tools/assistant.h
-    ../include/tools/modifiers/modifiertest.h
-    ../include/tools/modifiers/modifiertangents.h
-    ../include/tools/modifiers/modifiersegmentation.h
     ../include/tools/modifiers/modifierassistants.h
+    ../include/tools/modifiers/modifierline.h
+    ../include/tools/modifiers/modifiertangents.h
+    ../include/tools/modifiers/modifiertest.h
+    ../include/tools/modifiers/modifiersegmentation.h
 )
 
 set(SOURCES
@@ -121,10 +122,11 @@ set(SOURCES
     track.cpp
     inputmanager.cpp
     assistant.cpp
-    modifiers/modifiertest.cpp
-    modifiers/modifiertangents.cpp
-    modifiers/modifiersegmentation.cpp
     modifiers/modifierassistants.cpp
+    modifiers/modifierline.cpp
+    modifiers/modifiertangents.cpp
+    modifiers/modifiertest.cpp
+    modifiers/modifiersegmentation.cpp
     assistants/guidelineline.cpp
     assistants/assistantvanishingpoint.cpp
     editassistantstool.cpp

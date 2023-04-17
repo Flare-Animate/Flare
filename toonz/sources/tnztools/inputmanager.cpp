@@ -204,6 +204,7 @@ TInputManager::TInputManager():
   m_handler(),
   m_tracks(1),
   m_hovers(1),
+  m_started(),
   m_savePointsSent()
 { }
 
@@ -293,6 +294,12 @@ TInputManager::paintTracks() {
     }
     TTrackList &subTracks = m_tracks.back();
 
+    // is paint started?
+    if (!m_started && !subTracks.empty()) {
+      m_started = true;
+      if (m_handler) m_handler->inputSetBusy(true);
+    }
+
     // create handlers
     for(TTrackList::const_iterator i = subTracks.begin(); i != subTracks.end(); ++i)
       if (!(*i)->handler)
@@ -339,7 +346,10 @@ TInputManager::paintTracks() {
         }
         for(std::vector<TTrackList>::iterator i = m_tracks.begin(); i != m_tracks.end(); ++i)
           i->clear();
-        if (m_handler) m_handler->inputSetBusy(false);
+        if (m_started) {
+          if (m_handler) m_handler->inputSetBusy(false);
+          m_started = false;
+        }
       }
       break;
     }
@@ -473,8 +483,10 @@ void
 TInputManager::processTracks() {
   paintTracks();
   TRectD bounds = calcDrawBounds();
-  if (!bounds.isEmpty())
-    m_handler->inputInvalidateRect(bounds);
+  if (!bounds.isEmpty()) {
+    m_handler->inputInvalidateRect(m_prevBounds + bounds);
+    m_nextBounds += bounds;
+  }
 }
 
 
@@ -489,6 +501,7 @@ void
 TInputManager::reset() {
   // forget about handler paint stack
   // assuime it was already reset by outside
+  m_started = false;
   m_savePointsSent = 0;
 
   // reset save point
@@ -559,9 +572,6 @@ TInputManager::trackEvent(
   bool final,
   TTimerTicks ticks )
 {
-  if (getInputTracks().empty() && m_handler)
-    m_handler->inputSetBusy(true);
-
   ticks = fixTicks(ticks);
   TTrackP track = getTrack(deviceId, touchId, ticks, (bool)pressure, (bool)tilt);
   if (!track->finished()) {
@@ -629,8 +639,10 @@ TInputManager::hoverEvent(const THoverList &hovers) {
   }
   if (m_handler) {
     TRectD bounds = calcDrawBounds();
-    if (!bounds.isEmpty())
-      m_handler->inputInvalidateRect(bounds);
+    if (!bounds.isEmpty()) {
+      m_handler->inputInvalidateRect(m_prevBounds + bounds);
+      m_nextBounds += bounds;
+    }
     m_handler->inputHoverEvent(*this);
   }
 }
@@ -667,6 +679,9 @@ TInputManager::calcDrawBounds() {
 
 void
 TInputManager::draw() {
+  m_prevBounds = m_nextBounds;
+  m_nextBounds = TRectD();
+  
   // paint not sent sub-tracks
   if (debugInputManager || m_savePointsSent < (int)m_savePoints.size()) {
     glPushAttrib(GL_ALL_ATTRIB_BITS);

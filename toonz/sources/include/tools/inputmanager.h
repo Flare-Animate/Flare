@@ -272,6 +272,9 @@ private:
   std::vector<TTrackList> m_tracks;
   std::vector<THoverList> m_hovers;
   TInputSavePoint::List m_savePoints;
+  TRectD m_prevBounds;
+  TRectD m_nextBounds;
+  bool m_started;
   int m_savePointsSent;
 
   static TInputState::TouchId m_lastTouchId;

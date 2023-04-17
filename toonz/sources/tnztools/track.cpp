@@ -107,6 +107,10 @@ TTrack::pop_back(int count) {
   if (count > size()) count = size();
   if (count <= 0) return;
   m_points.resize(size() - count);
+  if (pointsAdded > count)
+    { pointsAdded -= count; return; }
+  if (pointsAdded > 0)
+    { count -= pointsAdded; pointsAdded = 0; }
   pointsRemoved += count;
 }
 
