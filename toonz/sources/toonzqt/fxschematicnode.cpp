@@ -1082,7 +1082,7 @@ void FxOutputPainter::contextMenuEvent(QGraphicsSceneContextMenuEvent *cme) {
   QMenu menu(fxScene->views()[0]);
   if (fxScene->getXsheet()->getFxDag()->getOutputFxCount() > 1) {
     QAction *removeOutput = new QAction(tr("&Delete"), &menu);
-    connect(removeOutput, SIGNAL(triggered()), fxScene, SLOT(onRemoveOutput()));
+    connect(removeOutput, SIGNAL(triggered()), fxScene, SLOT(onDeleteFx()));
 
     QAction *activateOutput = new QAction(tr("&Activate"), &menu);
     connect(activateOutput, SIGNAL(triggered()), fxScene,
@@ -3080,7 +3080,7 @@ FxSchematicColumnNode::FxSchematicColumnNode(FxSchematicScene *scene,
 
   bool ret = true;
   ret      = ret && connect(m_resizeItem, SIGNAL(toggled(bool)), this,
-                       SLOT(onChangedSize(bool)));
+                            SLOT(onChangedSize(bool)));
   ret      = ret &&
         connect(m_nameItem, SIGNAL(focusOut()), this, SLOT(onNameChanged()));
   ret = ret && connect(m_renderToggle, SIGNAL(toggled(bool)), this,
