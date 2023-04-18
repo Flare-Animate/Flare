@@ -174,17 +174,17 @@
 <context>
     <name>Preferences</name>
     <message>
-        <location filename="../../toonzlib/preferences.cpp" line="100"/>
+        <location filename="../../toonzlib/preferences.cpp" line="101"/>
         <source>Retas Level Format</source>
         <translation>Формат уровней Retas</translation>
     </message>
     <message>
-        <location filename="../../toonzlib/preferences.cpp" line="106"/>
+        <location filename="../../toonzlib/preferences.cpp" line="107"/>
         <source>Adobe Photoshop</source>
         <translation>Adobe Photoshop</translation>
     </message>
     <message>
-        <location filename="../../toonzlib/preferences.cpp" line="203"/>
+        <location filename="../../toonzlib/preferences.cpp" line="207"/>
         <source>PNG</source>
         <translation>PNG</translation>
     </message>
@@ -490,12 +490,12 @@
         <translation>Установить ключевой кадр</translation>
     </message>
     <message>
-        <location filename="../../toonzlib/doubleparamcmd.cpp" line="816"/>
+        <location filename="../../toonzlib/doubleparamcmd.cpp" line="817"/>
         <source>Remove Keyframe</source>
         <translation>Удалить ключевой кадр</translation>
     </message>
     <message>
-        <location filename="../../toonzlib/doubleparamcmd.cpp" line="856"/>
+        <location filename="../../toonzlib/doubleparamcmd.cpp" line="857"/>
         <source>Cycle</source>
         <translation>Цикл</translation>
     </message>
@@ -587,7 +587,7 @@
         <translation>Векторизация не выполнена</translation>
     </message>
     <message>
-        <location filename="../../toonzlib/scriptbinding_level.cpp" line="235"/>
+        <location filename="../../toonzlib/scriptbinding_level.cpp" line="231"/>
         <source>Argument &apos;%1&apos; does not look like a FrameId</source>
         <translation>Аргумент %1  не похож на FrameId</translation>
     </message>
@@ -659,41 +659,40 @@
         <translation>Переключить автопокраску палитры : %1  Стиль#%2</translation>
     </message>
     <message>
-        <location filename="../../toonzlib/txshcolumn.cpp" line="689"/>
-        <location filename="../../toonzlib/txshcolumn.cpp" line="717"/>
+        <location filename="../../toonzlib/sceneproperties.cpp" line="46"/>
         <source>None</source>
         <translation>Отсутствует</translation>
     </message>
     <message>
-        <location filename="../../toonzlib/txshcolumn.cpp" line="691"/>
         <location filename="../../toonzlib/sceneproperties.cpp" line="30"/>
+        <location filename="../../toonzlib/sceneproperties.cpp" line="47"/>
         <source>Red</source>
         <translation>Красный</translation>
     </message>
     <message>
-        <location filename="../../toonzlib/txshcolumn.cpp" line="693"/>
         <location filename="../../toonzlib/sceneproperties.cpp" line="34"/>
+        <location filename="../../toonzlib/sceneproperties.cpp" line="48"/>
         <source>Green</source>
         <translation>Зеленый</translation>
     </message>
     <message>
-        <location filename="../../toonzlib/txshcolumn.cpp" line="695"/>
         <location filename="../../toonzlib/sceneproperties.cpp" line="36"/>
+        <location filename="../../toonzlib/sceneproperties.cpp" line="49"/>
         <source>Blue</source>
         <translation>Синий</translation>
     </message>
     <message>
-        <location filename="../../toonzlib/txshcolumn.cpp" line="697"/>
+        <location filename="../../toonzlib/sceneproperties.cpp" line="50"/>
         <source>DarkYellow</source>
         <translation>Темно-желтый</translation>
     </message>
     <message>
-        <location filename="../../toonzlib/txshcolumn.cpp" line="699"/>
+        <location filename="../../toonzlib/sceneproperties.cpp" line="51"/>
         <source>DarkCyan</source>
         <translation>Темный циан</translation>
     </message>
     <message>
-        <location filename="../../toonzlib/txshcolumn.cpp" line="701"/>
+        <location filename="../../toonzlib/sceneproperties.cpp" line="52"/>
         <source>DarkMagenta</source>
         <translation>Темно-пурпурный</translation>
     </message>
@@ -728,12 +727,12 @@
         <translation>Порог яркости</translation>
     </message>
     <message>
-        <location filename="../../toonzlib/orientation.cpp" line="81"/>
+        <location filename="../../toonzlib/orientation.cpp" line="83"/>
         <source>Xsheet</source>
         <translation>Xsheet</translation>
     </message>
     <message>
-        <location filename="../../toonzlib/orientation.cpp" line="148"/>
+        <location filename="../../toonzlib/orientation.cpp" line="150"/>
         <source>Timeline</source>
         <translation>Таймлайн</translation>
     </message>
@@ -780,6 +779,12 @@
     <message>
         <location filename="../../toonzlib/sceneproperties.cpp" line="41"/>
         <source>White</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../toonzlib/stylemanager.cpp" line="510"/>
+        <source>Custom Texture</source>
+        <comment>TextureStyleChooserPage</comment>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -1001,27 +1006,27 @@
         <translation>Запись исключений %1</translation>
     </message>
     <message>
-        <location filename="../../toonzlib/scriptbinding_level.cpp" line="268"/>
+        <location filename="../../toonzlib/scriptbinding_level.cpp" line="264"/>
         <source>frame index (%1) must be a number</source>
         <translation>Индекс кадра (%1) должен быть числом</translation>
     </message>
     <message>
-        <location filename="../../toonzlib/scriptbinding_level.cpp" line="272"/>
+        <location filename="../../toonzlib/scriptbinding_level.cpp" line="268"/>
         <source>frame index (%1) is out of range (0-%2)</source>
         <translation>Индекс кадра (%1) вне диапазона (0-%2)</translation>
     </message>
     <message>
-        <location filename="../../toonzlib/scriptbinding_level.cpp" line="295"/>
+        <location filename="../../toonzlib/scriptbinding_level.cpp" line="291"/>
         <source>second argument (%1) is not an image</source>
         <translation>Второй аргумент (%1) не является изображением</translation>
     </message>
     <message>
-        <location filename="../../toonzlib/scriptbinding_level.cpp" line="308"/>
+        <location filename="../../toonzlib/scriptbinding_level.cpp" line="304"/>
         <source>can not insert a %1 image into a level</source>
         <translation>Невозможно вставить изображение %1 в уровень</translation>
     </message>
     <message>
-        <location filename="../../toonzlib/scriptbinding_level.cpp" line="329"/>
+        <location filename="../../toonzlib/scriptbinding_level.cpp" line="325"/>
         <source>can not insert a %1 image to a %2 level</source>
         <translation>Невозможно  вставить изображение %1 в уровень %2</translation>
     </message>

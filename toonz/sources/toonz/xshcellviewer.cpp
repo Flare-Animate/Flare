@@ -4102,8 +4102,8 @@ void CellArea::createKeyLineMenu(QMenu &menu, int row, int col) {
   QActionGroup *actionGroup = new QActionGroup(this);
   int i;
   for (i = 1; i <= 4; i++) {
-    QAction *act = new QAction(
-        QString("Interpolation on ") + QString::number(i) + "'s", this);
+    QAction *act =
+        new QAction(tr("Interpolation on %1's").arg(QString::number(i)), this);
     // if (paramStep == i) act->setEnabled(false);
     QList<QVariant> list;
     list.append(QVariant(i));

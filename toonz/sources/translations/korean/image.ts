@@ -2,6 +2,21 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="ko" sourcelanguage="en">
 <context>
+    <name>APngWriterProperties</name>
+    <message>
+        <source>Scale</source>
+        <translation type="unfinished">비율</translation>
+    </message>
+    <message>
+        <source>Looping</source>
+        <translation type="unfinished">반복</translation>
+    </message>
+    <message>
+        <source>Write as .png</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>AviWriterProperties</name>
     <message>
         <source>Codec</source>
@@ -61,6 +76,29 @@
     <message>
         <source>Tile based</source>
         <translation>티일기반</translation>
+    </message>
+    <message>
+        <source>96(RGB Float)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>128(RGBA Float)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Color Space Gamma</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>FFMovWriterProperties</name>
+    <message>
+        <source>Quality</source>
+        <translation type="unfinished">품질</translation>
+    </message>
+    <message>
+        <source>Scale</source>
+        <translation type="unfinished">비율</translation>
     </message>
 </context>
 <context>

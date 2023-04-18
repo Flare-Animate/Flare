@@ -19,7 +19,6 @@
 #include "toonz/tstageobject.h"
 #include "toutputproperties.h"
 
-#include "toonzqt/menubarcommand.h"
 #include "toonzqt/gutil.h"
 
 #include "tapp.h"
@@ -74,9 +73,10 @@ void OCAData::write(QJsonObject &json) const {
   json["ocaVersion"] = "1.1.0";
 }
 
-int OCAData::frameLen(TXshCellColumn *column, const QList<int> &rows, int index) {
+int OCAData::frameLen(TXshCellColumn *column, const QList<int> &rows,
+                      int index) {
   // Next cells must match same level and frame-id
-  int length = 0;
+  int length          = 0;
   const TXshCell &stc = column->getCell(rows[index]);
   for (int i = index; i < rows.count(); i++) {
     int currentRow       = rows[i];
@@ -106,14 +106,14 @@ bool OCAData::getCellName(TXshCellColumn *column, int row, QString &out) {
   if (cell.isEmpty()) return false;
 
   TFilePath fp(cell.m_level->getName());
-  fp = fp.withFrame(cell.getFrameId(), TFrameId::FrameFormat::FOUR_ZEROS);
+  fp  = fp.withFrame(cell.getFrameId(), TFrameId::FrameFormat::FOUR_ZEROS);
   out = fp.getQString();
   return true;
- }
+}
 
-bool OCAData::saveCell(TXshCellColumn *column, int row,
-                        const QString &cellname, OCAAsset &out) {
-  TXshCell cell = column->getCell(row);
+bool OCAData::saveCell(TXshCellColumn *column, int row, const QString &cellname,
+                       OCAAsset &out) {
+  TXshCell cell       = column->getCell(row);
   TXshSimpleLevel *sl = cell.getSimpleLevel();
 
   std::string format = m_raEXR ? "exr" : "png";
@@ -124,7 +124,7 @@ bool OCAData::saveCell(TXshCellColumn *column, int row,
 
   if (TRasterImageP ri = (TRasterImageP)(image)) {
     TRasterP raster;
-    raster = ri->getRaster();
+    raster     = ri->getRaster();
     out.width  = raster->getLx();
     out.height = raster->getLy();
     if (!raster) return false;
@@ -151,7 +151,7 @@ bool OCAData::saveCell(TXshCellColumn *column, int row,
   TLevelWriterP lw(fpa);
   lw->setFrameRate(m_framerate);
   TImageWriterP iw = lw->getFrameWriter(cell.getFrameId());
-  iw->setFilePath(fpa); // Added to aid my own sanity!
+  iw->setFilePath(fpa);  // Added to aid my own sanity!
   iw->save(image);
 
   return true;
@@ -172,7 +172,7 @@ bool OCAData::buildGroup(QJsonObject &json, const QList<int> &rows,
   int firstrow       = column->getFirstRow();
   TXshCell firstcell = column->getCell(firstrow);
   TXshChildLevel *cl = firstcell.getChildLevel();
-  TXsheet *xsheet = cl->getXsheet();
+  TXsheet *xsheet    = cl->getXsheet();
   if (!xsheet) return false;
 
   // Build a list of child rows
@@ -262,10 +262,10 @@ bool OCAData::buildLayer(QJsonObject &json, const QList<int> &rows,
     frame["duration"]    = len;
 
     if (isBlank(column, row)) {
-      frame["name"]        = "_blank";
-      frame["fileName"]    = "";
-      frame["width"]       = 0;
-      frame["height"]      = 0;
+      frame["name"]     = "_blank";
+      frame["fileName"] = "";
+      frame["width"]    = 0;
+      frame["height"]   = 0;
     } else {
       // Cell name will be used for the frame name
       if (!getCellName(column, row, cellname)) continue;
@@ -334,11 +334,11 @@ void OCAData::build(ToonzScene *scene, TXsheet *xsheet, QString name,
   if (scene->getTopXsheet() == xsheet && oprop->getRange(from, to, step)) {
     m_startTime = from - 1;
     m_endTime   = to - 1;
-    //m_stepTime  = step;
+    // m_stepTime  = step;
   } else {
     m_startTime = 0;
     m_endTime   = xsheet->getFrameCount() - 1;
-    //m_stepTime  = 1;
+    // m_stepTime  = 1;
   }
   if (m_endTime < 0) m_endTime = 0;
 
@@ -363,7 +363,7 @@ void OCAData::build(ToonzScene *scene, TXsheet *xsheet, QString name,
   for (int col = 0; col < xsheet->getColumnCount(); col++) {
     if (xsheet->isColumnEmpty(col)) continue;
     TXshCellColumn *column = xsheet->getColumn(col)->getCellColumn();
-    if (!column) continue;  // skip non-cell column
+    if (!column) continue;                      // skip non-cell column
     if (!column->isPreviewVisible()) continue;  // skip inactive column
 
     if (column->getColumnType() == column->eLevelType) {
@@ -386,11 +386,7 @@ void OCAData::build(ToonzScene *scene, TXsheet *xsheet, QString name,
   }
 }
 
-class ExportOCACommand final : public MenuItemHandler {
-public:
-  ExportOCACommand() : MenuItemHandler(MI_ExportOCA) {}
-  void execute() override;
-} exportOCACommand;
+ExportOCACommand::ExportOCACommand() : MenuItemHandler(MI_ExportOCA) {}
 
 void ExportOCACommand::execute() {
   ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
@@ -527,3 +523,5 @@ void ExportOCACommand::execute() {
       QDesktopServices::openUrl(QUrl::fromLocalFile(folderPath.getQString()));
   }
 }
+
+ExportOCACommand exportOCACommand;

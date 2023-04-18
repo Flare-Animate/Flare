@@ -79,6 +79,22 @@
         <source>Pick:</source>
         <translation>선택:</translation>
     </message>
+    <message>
+        <source>Flip Object Horizontally</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Flip Object Vertically</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Rotate Object Left</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Rotate Object Right</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>BrushTool</name>
@@ -530,6 +546,10 @@
     <message>
         <source>Autopaint Lines</source>
         <translation>자동 색칠</translation>
+    </message>
+    <message>
+        <source>Pick+Freehand</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -1393,6 +1413,22 @@ Do you want to proceed?</source>
     <message>
         <source>Thickness</source>
         <translation>굵기</translation>
+    </message>
+    <message>
+        <source>Flip Selection Horizontally</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Flip Selection Vertically</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Rotate Selection Left</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Rotate Selection Right</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>

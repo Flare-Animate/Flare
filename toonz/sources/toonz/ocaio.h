@@ -3,6 +3,7 @@
 #define OCAIO_H
 
 #include "toonzqt/dvdialog.h"
+#include "toonzqt/menubarcommand.h"
 
 #include <QString>
 #include <QList>
@@ -63,5 +64,12 @@ public:
 };
 
 }  // namespace OCAIo
+
+class ExportOCACommand final : public MenuItemHandler {
+  Q_OBJECT
+public:
+  ExportOCACommand();
+  void execute() override;
+};
 
 #endif
