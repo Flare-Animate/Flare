@@ -89,19 +89,20 @@
     </message>
     <message>
         <source>Flip Object Horizontally</source>
-        <translation type="unfinished"></translation>
+        <translatorcomment>Invertir objeto horizontalmente</translatorcomment>
+        <translation></translation>
     </message>
     <message>
         <source>Flip Object Vertically</source>
-        <translation type="unfinished"></translation>
+        <translation>Invertir objeto verticalmente</translation>
     </message>
     <message>
         <source>Rotate Object Left</source>
-        <translation type="unfinished"></translation>
+        <translation>Rotar objeto en sentido antihorario</translation>
     </message>
     <message>
         <source>Rotate Object Right</source>
-        <translation type="unfinished"></translation>
+        <translation>Rotar objeto en sentido horario</translation>
     </message>
 </context>
 <context>
@@ -286,7 +287,7 @@
     </message>
     <message>
         <source>Rectangular</source>
-        <translation>Rectangular</translation>
+        <translation>Marco</translation>
     </message>
     <message>
         <source>Freehand</source>
@@ -490,7 +491,7 @@
     </message>
     <message>
         <source>Rectangular</source>
-        <translation>Rectangular</translation>
+        <translation>Marco</translation>
     </message>
     <message>
         <source>Freehand</source>
@@ -573,7 +574,7 @@
     </message>
     <message>
         <source>Rectangular</source>
-        <translation>Rectangular</translation>
+        <translation>Marco</translation>
     </message>
     <message>
         <source>Freehand</source>
@@ -601,7 +602,7 @@
     </message>
     <message>
         <source>Pick+Freehand</source>
-        <translation type="unfinished"></translation>
+        <translation>Escoger+Lazo</translation>
     </message>
 </context>
 <context>
@@ -694,7 +695,7 @@
     </message>
     <message>
         <source>Rectangular</source>
-        <translation>Rectangular</translation>
+        <translation>Marco</translation>
     </message>
     <message>
         <source>Freehand</source>
@@ -1306,7 +1307,7 @@ Do you want to proceed?</source>
     </message>
     <message>
         <source>Rectangular</source>
-        <translation>Rectangular</translation>
+        <translation>Marco</translation>
     </message>
     <message>
         <source>Freehand</source>
@@ -1367,7 +1368,7 @@ Do you want to proceed?</source>
     </message>
     <message>
         <source>Rectangular</source>
-        <translation>Rectangular</translation>
+        <translation>Marco</translation>
     </message>
     <message>
         <source>Freehand</source>
@@ -1437,7 +1438,7 @@ Do you want to proceed?</source>
     </message>
     <message>
         <source>Rectangular</source>
-        <translation>Rectangular</translation>
+        <translation>Marco</translation>
     </message>
     <message>
         <source>Freehand</source>
@@ -1488,19 +1489,19 @@ Do you want to proceed?</source>
     </message>
     <message>
         <source>Flip Selection Horizontally</source>
-        <translation type="unfinished"></translation>
+        <translation>Invertir selección horizontalmente</translation>
     </message>
     <message>
         <source>Flip Selection Vertically</source>
-        <translation type="unfinished"></translation>
+        <translation>Invertir selección verticalmente</translation>
     </message>
     <message>
         <source>Rotate Selection Left</source>
-        <translation type="unfinished"></translation>
+        <translation>Rotar selección en sentido antihorario</translation>
     </message>
     <message>
         <source>Rotate Selection Right</source>
-        <translation type="unfinished"></translation>
+        <translation>Rotar selección en sentido horario</translation>
     </message>
 </context>
 <context>
@@ -1924,7 +1925,7 @@ movido hacia el final de la primera página de la paleta.</translation>
     </message>
     <message>
         <source>Rectangular</source>
-        <translation>Rectangular</translation>
+        <translation>Marco</translation>
     </message>
 </context>
 <context>

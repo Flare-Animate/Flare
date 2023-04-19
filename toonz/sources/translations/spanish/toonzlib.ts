@@ -489,7 +489,7 @@
     <message>
         <source>Custom Texture</source>
         <comment>TextureStyleChooserPage</comment>
-        <translation type="unfinished"></translation>
+        <translation>Textura personalizada</translation>
     </message>
 </context>
 <context>

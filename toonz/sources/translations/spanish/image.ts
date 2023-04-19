@@ -6,17 +6,17 @@
     <message>
         <location filename="../../image/ffmpeg/tiio_apng.cpp" line="225"/>
         <source>Scale</source>
-        <translation type="unfinished">Escala</translation>
+        <translation>Escala</translation>
     </message>
     <message>
         <location filename="../../image/ffmpeg/tiio_apng.cpp" line="226"/>
         <source>Looping</source>
-        <translation type="unfinished">Ciclo</translation>
+        <translation>Cíclico</translation>
     </message>
     <message>
         <location filename="../../image/ffmpeg/tiio_apng.cpp" line="227"/>
         <source>Write as .png</source>
-        <translation type="unfinished"></translation>
+        <translation>Guardar como .png</translation>
     </message>
 </context>
 <context>
@@ -53,12 +53,12 @@
     <message>
         <location filename="../../image/exr/tiio_exr.cpp" line="294"/>
         <source>96(RGB Float)</source>
-        <translation type="unfinished"></translation>
+        <translation>96 (color decimal)</translation>
     </message>
     <message>
         <location filename="../../image/exr/tiio_exr.cpp" line="295"/>
         <source>128(RGBA Float)</source>
-        <translation type="unfinished"></translation>
+        <translation>128 (color + alfa decimal)</translation>
     </message>
     <message>
         <location filename="../../image/exr/tiio_exr.cpp" line="299"/>
@@ -108,7 +108,7 @@
     <message>
         <location filename="../../image/exr/tiio_exr.cpp" line="319"/>
         <source>Color Space Gamma</source>
-        <translation type="unfinished"></translation>
+        <translation>Gama del espacio de color</translation>
     </message>
 </context>
 <context>
@@ -116,12 +116,12 @@
     <message>
         <location filename="../../image/ffmpeg/tiio_ff_mov.cpp" line="234"/>
         <source>Quality</source>
-        <translation type="unfinished">Calidad</translation>
+        <translation>Calidad</translation>
     </message>
     <message>
         <location filename="../../image/ffmpeg/tiio_ff_mov.cpp" line="235"/>
         <source>Scale</source>
-        <translation type="unfinished">Escala</translation>
+        <translation>Escala</translation>
     </message>
 </context>
 <context>

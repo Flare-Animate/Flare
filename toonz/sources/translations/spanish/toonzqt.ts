@@ -291,11 +291,11 @@ Es posible que el archivo de dicho ajuste se encuentre corrupto.</translation>
     </message>
     <message>
         <source> A:%1</source>
-        <translation type="unfinished"></translation>
+        <translation> α:%1</translation>
     </message>
     <message>
         <source>A:%1</source>
-        <translation type="unfinished"></translation>
+        <translation>α:%1</translation>
     </message>
 </context>
 <context>
@@ -326,7 +326,7 @@ Es posible que el archivo de dicho ajuste se encuentre corrupto.</translation>
     </message>
     <message>
         <source>0.0-1.0</source>
-        <translation></translation>
+        <translation>0.0-1.0</translation>
     </message>
 </context>
 <context>
@@ -888,24 +888,25 @@ Es posible que el archivo de dicho ajuste se encuentre corrupto.</translation>
     </message>
     <message>
         <source>Gain Controls</source>
-        <translation type="unfinished"></translation>
+        <translation>Controles de ganancia</translation>
     </message>
     <message>
         <source>&amp;Reduce gain 1/2 stop (divide by sqrt(2))</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Reducir ganancia en 1/2 parada (divide por raíz cuadrada de 2)</translation>
     </message>
     <message>
         <source>Toggle gain between 1 and the previous setting.
 Gain is shown as an f-stop and the &quot;neutral&quot; or 1.0 gain f-stop is f/8.</source>
-        <translation type="unfinished"></translation>
+        <translation>Alterna la ganancia entre 1 y el valor anterior.
+La ganancia se mostrará en forma de f-stops donde el valor &quot;neutral&quot;, con una ganancia de 1.0, será f/8.</translation>
     </message>
     <message>
         <source>&amp;Increase gain 1/2 stop (multiply by sqrt(2))</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Aumentar ganancia en 1/2 parada (multiplica por raíz cuadrada de 2)</translation>
     </message>
     <message>
         <source> (gain %1)</source>
-        <translation type="unfinished"></translation>
+        <translation> (ganancia %1)</translation>
     </message>
 </context>
 <context>
@@ -1852,27 +1853,27 @@ Seleccionar los nodos de efecto y sus vínculos relacionados antes de copiar o c
     </message>
     <message>
         <source>Auto Adjust Panel Width</source>
-        <translation type="unfinished"></translation>
+        <translation>Auto ajustar ancho del panel</translation>
     </message>
     <message>
         <source>Visible Toolbar Buttons</source>
-        <translation type="unfinished"></translation>
+        <translation>Botones barra de herramientas</translation>
     </message>
     <message>
         <source>KeyFrame</source>
-        <translation type="unfinished"></translation>
+        <translation>Marcar clave</translation>
     </message>
     <message>
         <source>New Style/Page</source>
-        <translation type="unfinished"></translation>
+        <translation>Nuevo estilo y página</translation>
     </message>
     <message>
         <source>Palette Gizmo</source>
-        <translation type="unfinished"></translation>
+        <translation>Asistente de paleta</translation>
     </message>
     <message>
         <source>Name Editor</source>
-        <translation type="unfinished">Editor de nombres</translation>
+        <translation>Editor de nombres</translation>
     </message>
 </context>
 <context>
@@ -1946,7 +1947,9 @@ Seleccionar los nodos de efecto y sus vínculos relacionados antes de copiar o c
         <source>This Fx does not support rendering in floating point channel width (32bit).
 The output pixel values from this fx will be clamped to 0.0 - 1.0
 and tone may be slightly discretized.</source>
-        <translation type="unfinished"></translation>
+        <translation>Este efecto no soporta procesamiento en canales decimales de 32 bits.
+Los valores de los píxeles de dalida de este efecto se encontrarán en el rango 0.0 - 1.0
+y su tono puede notarse ligeramente discretizado.</translation>
     </message>
 </context>
 <context>
@@ -2586,11 +2589,11 @@ La segunda línea debería tener la forma &quot;Mesh [profundidad de bits de ent
     <message>
         <source>Plain color</source>
         <comment>TextureStyleChooserPage</comment>
-        <translation type="unfinished"></translation>
+        <translation>Color pleno</translation>
     </message>
     <message>
         <source>Sample Type: </source>
-        <translation type="unfinished"></translation>
+        <translation>Tipo de muestra: </translation>
     </message>
 </context>
 <context>
@@ -2719,27 +2722,27 @@ La segunda línea debería tener la forma &quot;Mesh [profundidad de bits de ent
     <name>SeeThroughWindowPopup</name>
     <message>
         <source>See Through Mode (Main Window)</source>
-        <translation type="unfinished"></translation>
+        <translation>Modo semi transparente (ventana principal)</translation>
     </message>
     <message>
         <source>Opacity</source>
-        <translation type="unfinished"></translation>
+        <translation>Opacidad</translation>
     </message>
     <message>
         <source>Quickly toggle main window semi-transparency and full opacity.</source>
-        <translation type="unfinished"></translation>
+        <translation>Alterna el modo de la ventana principal entre semi transparente y opaco.</translation>
     </message>
     <message>
         <source>Hold ALT while clicking to use full transparency instead.</source>
-        <translation type="unfinished"></translation>
+        <translation>Mantener ALT mientras se hace clic para lograr una transparencia completa.</translation>
     </message>
     <message>
         <source>When slider is at 100% it acts as ALT is held.</source>
-        <translation type="unfinished"></translation>
+        <translation>Cuando el deslizador se encuentre en 100% actuará como cuando la tecla ALT se encuentra presionada</translation>
     </message>
     <message>
         <source>Close</source>
-        <translation type="unfinished">Cerrar</translation>
+        <translation>Cerrar</translation>
     </message>
 </context>
 <context>
@@ -3156,11 +3159,11 @@ Autom</translation>
     </message>
     <message>
         <source>Search</source>
-        <translation type="unfinished"></translation>
+        <translation>Búsqueda</translation>
     </message>
     <message>
         <source>Clear Search</source>
-        <translation type="unfinished"></translation>
+        <translation>Limpiar búsqueda</translation>
     </message>
 </context>
 <context>
@@ -3232,15 +3235,15 @@ Autom</translation>
     <name>StyleEditorGUI::StyleChooserPage</name>
     <message>
         <source>Pin To Top</source>
-        <translation type="unfinished"></translation>
+        <translation>Fijar al inicio</translation>
     </message>
     <message>
         <source>Set Pins To Top</source>
-        <translation type="unfinished"></translation>
+        <translation>Fija al inicio de la lista</translation>
     </message>
     <message>
         <source>Clear Pins To Top</source>
-        <translation type="unfinished"></translation>
+        <translation>Elimina la fijación al inicio de la lista</translation>
     </message>
 </context>
 <context>
