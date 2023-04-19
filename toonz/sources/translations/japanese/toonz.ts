@@ -263,7 +263,7 @@ Nearest format will be internally used.</source>
     <name>AutoInputCellNumberPopup</name>
     <message>
         <source>Auto Input Cell Number</source>
-        <translation>セルの自動入力</translation>
+        <translation>コマの自動入力</translation>
     </message>
     <message>
         <source>Overwrite</source>
@@ -321,7 +321,7 @@ pick up all frames in the selected level.</source>
     </message>
     <message>
         <source>From frame</source>
-        <translation>セルの</translation>
+        <translation>レベルの</translation>
     </message>
     <message>
         <source> </source>
@@ -6609,7 +6609,7 @@ Please use the frame numbers for reference.</source>
     </message>
     <message>
         <source>Auto Input Cell Number...</source>
-        <translation>セルの自動入力...</translation>
+        <translation>コマの自動入力...</translation>
     </message>
     <message>
         <source>Alpha Channel</source>
@@ -9094,7 +9094,7 @@ Set the output folder path to the subfolder as well.</source>
     </message>
     <message>
         <source>Cell-dragging Behaviour:</source>
-        <translation>セルのドラッグ動作：</translation>
+        <translation>コマのドラッグ動作：</translation>
     </message>
     <message>
         <source>Interface</source>
@@ -9394,7 +9394,7 @@ Set the output folder path to the subfolder as well.</source>
     </message>
     <message>
         <source>Show &quot;ABC&quot; Appendix to the Frame Number in Xsheet Cell</source>
-        <translation>タイムシートのセル内で、フレーム番号下一ケタを「A,B,C…」の文字に置き換えて表示する</translation>
+        <translation>タイムシートのコマ内で、フレーム番号下一ケタを「A,B,C…」の文字に置き換えて表示する</translation>
     </message>
     <message>
         <source>Automatically Remove Scene Number from Loaded Level Name</source>
@@ -10652,7 +10652,7 @@ Note that this mode uses regular expression for file name validation and may slo
     </message>
     <message>
         <source>It is not possible to paste the cells: there is a circular reference.</source>
-        <translation>セルを貼る付けできません：循環参照があります。</translation>
+        <translation>コマを貼り付けできません：循環参照があります。</translation>
     </message>
     <message>
         <source>Overwrite</source>
@@ -11795,7 +11795,7 @@ Are you sure to </source>
     </message>
     <message>
         <source>Clear Cells :  Col%1</source>
-        <translation>セルのクリア : Col%1</translation>
+        <translation>コマのクリア : Col%1</translation>
     </message>
     <message>
         <source>Reverse</source>
@@ -12097,7 +12097,7 @@ What would you like to do? </source>
     </message>
     <message>
         <source> Anyway</source>
-        <translation></translation>
+        <translation> </translation>
     </message>
     <message>
         <source>This scene is incompatible with pixels only mode of the current OpenToonz version.
@@ -12150,7 +12150,7 @@ Are you sure?</source>
     </message>
     <message>
         <source>Auto Input Cell Numbers : %1</source>
-        <translation>セルの自動入力：%1</translation>
+        <translation>コマの自動入力：%1</translation>
     </message>
     <message>
         <source>Insert</source>
@@ -17128,7 +17128,7 @@ Please refer to the user guide for details.</source>
     </message>
     <message>
         <source>Click and drag to repeat selected cells</source>
-        <translation>［ドラッグ］選択されているセルを繰り返す</translation>
+        <translation>［ドラッグ］選択されているコマを繰り返す</translation>
     </message>
     <message>
         <source>Open Memo</source>
