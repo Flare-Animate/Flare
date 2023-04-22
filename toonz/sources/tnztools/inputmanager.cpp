@@ -685,7 +685,7 @@ TInputManager::draw() {
   m_nextBounds = TRectD();
   
   // paint not sent sub-tracks
-  if (debugInputManager || m_savePointsSent < (int)m_savePoints.size()) {
+  if (debugInputManager /* || m_savePointsSent < (int)m_savePoints.size() */) {
     glPushAttrib(GL_ALL_ATTRIB_BITS);
     tglEnableBlending();
     tglEnableLineSmooth(true, 0.5);
