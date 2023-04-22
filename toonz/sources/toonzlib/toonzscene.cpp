@@ -1017,6 +1017,12 @@ static LevelType getLevelType(const TFilePath &fp) {
   case TFileType::MESH_LEVEL:
     ret.m_ltype = MESH_XSHLEVEL;
     break;
+
+  case TFileType::META_IMAGE:
+  case TFileType::META_LEVEL:
+    ret.m_ltype = META_XSHLEVEL;
+    break;
+
   default:
     break;
   }
@@ -1400,6 +1406,9 @@ TFilePath ToonzScene::getDefaultLevelPath(int levelType,
     break;
   case TZP_XSHLEVEL:
     levelPath = TFilePath(levelName).withType("tlv");
+    break;
+  case META_XSHLEVEL:
+    levelPath = TFilePath(levelName).withType("tzm");
     break;
   default:
     levelPath = TFilePath(levelName + L"..png");
