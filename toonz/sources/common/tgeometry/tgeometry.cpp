@@ -383,27 +383,38 @@ int TAngleRangeSet::find(Type a) const {
 }
 
 void TAngleRangeSet::insert(Type a) {
-  int i = find(a);
-  if (m_angles[i] == a) m_angles.erase(m_angles.begin() + i); else
-    if (a < m_angles[0]) m_angles.insert(m_angles.begin(), a); else
-      m_angles.insert(m_angles.begin()+i+1, a);
+  if (m_angles.empty()) {
+    m_angles.push_back(a);
+  } else {
+    int i = find(a);
+    if (m_angles[i] == a)
+      m_angles.erase(m_angles.begin() + i);
+    else if (a < m_angles[0])
+      m_angles.insert(m_angles.begin(), a);
+    else
+      m_angles.insert(m_angles.begin() + i + 1, a);
+  }
 }
 
-bool TAngleRangeSet::doAdd(Type a0, Type a1) {
+void TAngleRangeSet::doAdd(Type a0, Type a1) {
+  if (m_angles.empty()) {
+    if (!m_flip) set(a0, a1);
+    return;
+  }
+
   int i0 = find(a0);
   int i1 = find(a1);
   if (i0 == i1) {
     bool visible = (i0%2 != 0) == m_flip;
     if (m_angles[i0] != a0 && m_angles[i0] - a0 <= a1 - a0) {
-      if (visible) { fill(); return true; }
-      set(a0, a1);
+      if (visible) fill(); else set(a0, a1);
     } else
     if (!visible) {
       if (a1 < a0) m_flip = true;
       insert(a0);
       insert(a1);
     }
-    return false;
+    return;
   }
 
   bool visible0 = (i0%2 != 0) == m_flip;
@@ -421,9 +432,8 @@ bool TAngleRangeSet::doAdd(Type a0, Type a1) {
   // insert new angles if need
   if (!visible0) insert(a0);
   if (!visible1) insert(a1);
-  if (m_angles.empty()) { m_flip = true; return true; }
-  if (a1 < a0) m_flip = true;
-  return false;
+  if (m_angles.empty() || a1 < a0)
+    m_flip = true;
 }
 
 bool TAngleRangeSet::contains(Type a) const {
@@ -491,8 +501,8 @@ void TAngleRangeSet::add(const TAngleRangeSet &x) {
   if (&x == this || isFull() || x.isEmpty()) return;
   if (isEmpty()) { set(x); return; }
   if (x.isFull()) { fill(); return; }
-  for(Iterator i(x); i; ++i)
-    if (doAdd(i.a0(), i.a1())) return;
+  for (Iterator i(x); i && !isFull(); ++i)
+    doAdd(i.a0(), i.a1());
 }
 
 void TAngleRangeSet::subtract(Type a0, Type a1) {
@@ -509,8 +519,8 @@ void TAngleRangeSet::subtract(const TAngleRangeSet &x) {
 
   // a - b = !(!a + b)
   invert();
-  for(Iterator i(x); i; ++i)
-    if (doAdd(i.a0(), i.a1())) return;
+  for (Iterator i(x); i && !isFull(); ++i)
+    doAdd(i.a0(), i.a1());
   invert();
 }
 
@@ -529,7 +539,7 @@ void TAngleRangeSet::intersect(const TAngleRangeSet &x) {
 
   // a & b = !(!a + !b)
   invert();
-  for(Iterator i(x, true); i; ++i)
-    if (doAdd(i.a0(), i.a1())) return;
+  for (Iterator i(x, true); i && !isFull(); ++i)
+    doAdd(i.a0(), i.a1());
   invert();
 }
