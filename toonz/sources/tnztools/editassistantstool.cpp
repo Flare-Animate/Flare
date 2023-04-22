@@ -270,6 +270,7 @@ public:
       }
     }
     m_assistantType.setIndex(0);
+    notifyImageChanged();
     getApplication()->getCurrentTool()->notifyToolChanged();
     m_currentPosition = position;
     getViewer()->GLInvalidateAll();
