@@ -340,7 +340,7 @@ TInputManager::paintTracks() {
         paintApply((int)m_savePoints.size(), subTracks);
         // send to tool final
         if (!subTracks.empty()) {
-          m_handler->inputPaintTracks(subTracks);
+          if (m_handler) m_handler->inputPaintTracks(subTracks);
           for(TTrackList::const_iterator i = subTracks.begin(); i != subTracks.end(); ++i)
             (*i)->resetChanges();
         }
@@ -482,10 +482,12 @@ TInputManager::modifierDeactivate(const TInputModifierP &modifier) {
 void
 TInputManager::processTracks() {
   paintTracks();
-  TRectD bounds = calcDrawBounds();
-  if (!bounds.isEmpty()) {
-    m_handler->inputInvalidateRect(m_prevBounds + bounds);
-    m_nextBounds += bounds;
+  if (m_handler) {
+    TRectD bounds = calcDrawBounds();
+    if (!bounds.isEmpty()) {
+      m_handler->inputInvalidateRect(m_prevBounds + bounds);
+      m_nextBounds += bounds;
+    }
   }
 }
 
