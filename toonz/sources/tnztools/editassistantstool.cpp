@@ -319,7 +319,7 @@ protected:
 
 public:
   void updateOptionsBox()
-    { /* getApplication()->getCurrentTool()->notifyToolOptionsBoxChanged(); */ }
+    { getApplication()->getCurrentTool()->notifyToolOptionsBoxChanged(); }
 
   void resetCurrentPoint(bool updateOptionsBox = true) {
     close();
