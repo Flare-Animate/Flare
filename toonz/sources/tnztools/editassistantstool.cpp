@@ -448,7 +448,7 @@ protected:
   }
 
   bool keyDown(QKeyEvent *keyEvent) override {
-    if (keyEvent->key() == Qt::Key_Delete) {
+    if (keyEvent->key() == Qt::Key_Backspace) {
       if (!m_dragging) {
         apply();
         bool success = false;
