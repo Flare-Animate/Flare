@@ -33,7 +33,7 @@ TModifierAssistants::Modifier::Modifier(TTrackHandler &handler):
 TTrackPoint
 TModifierAssistants::Modifier::calcPoint(double originalIndex) {
   TTrackPoint p = TTrackModifier::calcPoint(originalIndex);
-  return guidelines.empty() ? p : guidelines.front()->transformPoint(p);
+  return guidelines.empty() ? p : guidelines.front()->smoothTransformPoint(p);
 }
 
 
@@ -52,7 +52,8 @@ TModifierAssistants::scanAssistants(
   const TPointD *positions,
   int positionsCount,
   TGuidelineList *outGuidelines,
-  bool draw ) const
+  bool draw,
+  bool enabledOnly ) const
 {
   bool found = false;
   if (TInputManager *manager = getManager())
@@ -89,6 +90,7 @@ TModifierAssistants::scanAssistants(
         for(TMetaObjectListCW::iterator i = reader->begin(); i != reader->end(); ++i)
           if (*i)
           if (const TAssistant *assistant = (*i)->getHandler<TAssistant>())
+          if (!enabledOnly || assistant->getEnabled())
           {
             found = true;
             if (findGuidelines)
@@ -115,7 +117,7 @@ TModifierAssistants::modifyTrack(
     track.handler = new TTrackHandler(track);
     Modifier *modifier = new Modifier(*track.handler);
     if (!drawOnly)
-      scanAssistants(&track[0].position, 1, &modifier->guidelines, false);
+      scanAssistants(&track[0].position, 1, &modifier->guidelines, false, true);
 
     track.handler->tracks.push_back(new TTrack(modifier));
 
@@ -172,7 +174,7 @@ TModifierAssistants::modifyTrack(
 
 TRectD
 TModifierAssistants::calcDrawBounds(const TTrackList&, const THoverList&) {
-  if (scanAssistants(NULL, 0, NULL, false))
+  if (scanAssistants(NULL, 0, NULL, false, false))
     return TConsts::infiniteRectD;
   return TRectD();
 }
@@ -208,7 +210,8 @@ TModifierAssistants::draw(const TTrackList &tracks, const THoverList &hovers) {
     allHovers.empty() ? NULL : &allHovers.front(),
     (int)allHovers.size(),
     &guidelines,
-    true );
+    true,
+    false );
 
   // draw guidelines
   for(TGuidelineList::const_iterator i = guidelines.begin(); i != guidelines.end(); ++i)
