@@ -55,6 +55,7 @@ TEnv::DoubleVar FullcolorModifierSize("FullcolorModifierSize", 0);
 TEnv::DoubleVar FullcolorModifierOpacity("FullcolorModifierOpacity", 100);
 TEnv::IntVar FullcolorModifierEraser("FullcolorModifierEraser", 0);
 TEnv::IntVar FullcolorModifierLockAlpha("FullcolorModifierLockAlpha", 0);
+TEnv::IntVar FullcolorAssistants("FullcolorAssistants", 0);
 TEnv::StringVar FullcolorBrushPreset("FullcolorBrushPreset", "<custom>");
 
 //----------------------------------------------------------------------------------
@@ -122,6 +123,7 @@ FullColorBrushTool::FullColorBrushTool(std::string name)
     , m_modifierOpacity("ModifierOpacity", 0, 100, 100, true)
     , m_modifierEraser("ModifierEraser", false)
     , m_modifierLockAlpha("Lock Alpha", false)
+    , m_assistants("Assistants", true)
     , m_preset("Preset:")
     , m_enabledPressure(false)
     , m_minCursorThick(0)
@@ -142,17 +144,6 @@ FullColorBrushTool::FullColorBrushTool(std::string name)
   m_modifierSegmentation = new TModifierSegmentation();
   
   m_thickness.setNonLinearSlider();
-
-  m_prop.bind(m_thickness);
-  m_prop.bind(m_hardness);
-  m_prop.bind(m_opacity);
-  m_prop.bind(m_modifierSize);
-  m_prop.bind(m_modifierOpacity);
-  m_prop.bind(m_modifierEraser);
-  m_prop.bind(m_modifierLockAlpha);
-  m_prop.bind(m_pressure);
-  m_prop.bind(m_preset);
-
   m_preset.setId("BrushPreset");
   m_modifierEraser.setId("RasterEraser");
   m_modifierLockAlpha.setId("LockAlpha");
@@ -193,6 +184,7 @@ void FullColorBrushTool::updateTranslation() {
   m_modifierOpacity.setQStringName(tr("Opacity"));
   m_modifierEraser.setQStringName(tr("Eraser"));
   m_modifierLockAlpha.setQStringName(tr("Lock Alpha"));
+  m_assistants.setQStringName(tr("Assistants"));
 }
 
 //---------------------------------------------------------------------------------------------------
@@ -576,6 +568,24 @@ void FullColorBrushTool::onLeave() {
 
 TPropertyGroup *FullColorBrushTool::getProperties(int targetType) {
   if (!m_presetsLoaded) initPresets();
+ 
+  bool noBrush = !getBrushStyle();
+
+  m_prop.clear();
+  if (noBrush) {
+    m_prop.bind(m_thickness);
+    m_prop.bind(m_hardness);
+    m_prop.bind(m_opacity);
+  } else {
+    m_prop.bind(m_modifierSize);
+    m_prop.bind(m_modifierOpacity);
+    m_prop.bind(m_modifierEraser);
+    m_prop.bind(m_modifierLockAlpha);
+  }
+  m_prop.bind(m_pressure);
+  m_prop.bind(m_assistants);
+  m_prop.bind(m_preset);
+
   return &m_prop;
 }
 
@@ -635,6 +645,7 @@ bool FullColorBrushTool::onPropertyChanged(std::string propertyName) {
   FullcolorModifierOpacity     = m_modifierOpacity.getValue();
   FullcolorModifierEraser      = m_modifierEraser.getValue() ? 1 : 0;
   FullcolorModifierLockAlpha   = m_modifierLockAlpha.getValue() ? 1 : 0;
+  FullcolorAssistants          = m_assistants.getValue() ? 1 : 0;
 
   if (m_preset.getValue() != CUSTOM_WSTR) {
     m_preset.setValue(CUSTOM_WSTR);
@@ -690,6 +701,7 @@ void FullColorBrushTool::loadPreset() {
     m_modifierOpacity.setValue(preset.m_modifierOpacity);
     m_modifierEraser.setValue(preset.m_modifierEraser);
     m_modifierLockAlpha.setValue(preset.m_modifierLockAlpha);
+    m_assistants.setValue(preset.m_assistants);
   } catch (...) {
   }
 }
@@ -710,6 +722,7 @@ void FullColorBrushTool::addPreset(QString name) {
   preset.m_modifierOpacity   = m_modifierOpacity.getValue();
   preset.m_modifierEraser    = m_modifierEraser.getValue();
   preset.m_modifierLockAlpha = m_modifierLockAlpha.getValue();
+  preset.m_assistants        = m_assistants.getValue();
 
   // Pass the preset to the manager
   m_presetsManager.addPreset(preset);
@@ -749,6 +762,7 @@ void FullColorBrushTool::loadLastBrush() {
   m_modifierOpacity.setValue(FullcolorModifierOpacity);
   m_modifierEraser.setValue(FullcolorModifierEraser ? true : false);
   m_modifierLockAlpha.setValue(FullcolorModifierLockAlpha ? true : false);
+  m_assistants.setValue(FullcolorAssistants ? true : false);
 }
 
 //------------------------------------------------------------------

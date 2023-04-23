@@ -130,6 +130,7 @@ protected:
   TDoubleProperty     m_modifierOpacity;
   TBoolProperty       m_modifierEraser;
   TBoolProperty       m_modifierLockAlpha;
+  TBoolProperty       m_assistants;
   TEnumProperty       m_preset;
 
   TPixel32 m_currentColor;
