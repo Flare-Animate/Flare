@@ -139,7 +139,7 @@ FullColorBrushTool::FullColorBrushTool(std::string name)
   m_modifierLine = new TModifierLine();
   m_modifierTangents = new TModifierTangents();
   m_modifierAssistants = new TModifierAssistants();
-  m_modifierSegmentation = new TModifierSegmentation(0.25);
+  m_modifierSegmentation = new TModifierSegmentation();
   
   m_thickness.setNonLinearSlider();
 
