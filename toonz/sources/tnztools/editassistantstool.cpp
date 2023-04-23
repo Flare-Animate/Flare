@@ -203,14 +203,14 @@ public:
       m_readAssistant->updateTranslation();
   }
 
-  bool onPropertyChanged(std::string name/*, bool addToUndo*/) override {
+  bool onPropertyChanged(std::string name, bool addToUndo) override {
     if (TProperty *property = m_toolProperties.getProperty(name)) {
       if (name == m_assistantType.getName())
         m_newAssisnantType = TStringId::find( to_string(m_assistantType.getValue()) );
     } else {
       if (Closer closer = write(ModeAssistant, true))
         m_writeAssistant->propertyChanged(TStringId::find(name));
-      //if (addToUndo) apply();
+      if (addToUndo) apply();
       getViewer()->GLInvalidateAll();
     }
     return true;

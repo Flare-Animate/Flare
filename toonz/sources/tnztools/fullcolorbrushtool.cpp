@@ -285,6 +285,8 @@ bool FullColorBrushTool::askWrite(const TRect &rect) {
 //--------------------------------------------------------------------------------------------------
 
 bool FullColorBrushTool::preLeftButtonDown() {
+  m_modifierAssistants->drawOnly = !FullcolorAssistants;
+  
   m_inputmanager.clearModifiers();
   m_inputmanager.addModifier( TInputModifierP(m_modifierTangents.getPointer()) );
   m_inputmanager.addModifier( TInputModifierP(m_modifierSegmentation.getPointer()) );
