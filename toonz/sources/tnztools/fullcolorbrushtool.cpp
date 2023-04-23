@@ -169,6 +169,7 @@ void FullColorBrushTool::onCanvasSizeChanged() {
 //---------------------------------------------------------------------------------------------------
 
 void FullColorBrushTool::onColorStyleChanged() {
+  getApplication()->getCurrentTool()->notifyToolOptionsBoxChanged();
   getApplication()->getCurrentTool()->notifyToolChanged();
 }
 
@@ -966,6 +967,9 @@ FullColorBrushToolNotifier::FullColorBrushToolNotifier(FullColorBrushTool *tool)
                     SLOT(onColorStyleChanged()));
       assert(ret);
       ret = connect(paletteHandle, SIGNAL(colorStyleSwitched()), this,
+                    SLOT(onColorStyleChanged()));
+      assert(ret);
+      ret = connect(paletteHandle, SIGNAL(paletteSwitched()), this,
                     SLOT(onColorStyleChanged()));
       assert(ret);
     }
