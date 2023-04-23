@@ -79,6 +79,9 @@ TModifierAssistants::scanAssistants(
     worldToTrack.a22 /= dpiScale.y;
 
     for(int i = 0; i < count; ++i)
+      if (TXshColumn *column = Xsheet->getColumn(i))
+      if (column->isCamstandVisible())
+      if (column->isPreviewVisible())
       if (TImageP image = Xsheet->getCell(frame, i).getImage(false))
       if (image->getType() == TImage::META)
       if (TMetaImage *metaImage = dynamic_cast<TMetaImage*>(image.getPointer()))
