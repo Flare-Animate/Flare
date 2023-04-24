@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.1" language="ru" sourcelanguage="en">
+<TS version="2.1" language="ru_RU" sourcelanguage="en_US">
 <context>
     <name>ArrowToolOptionsBox</name>
     <message>
@@ -86,22 +86,22 @@
     <message>
         <location filename="../../tnztools/tooloptions.cpp" line="576"/>
         <source>Flip Object Horizontally</source>
-        <translation type="unfinished"></translation>
+        <translation>Переверните объект горизонтально</translation>
     </message>
     <message>
         <location filename="../../tnztools/tooloptions.cpp" line="577"/>
         <source>Flip Object Vertically</source>
-        <translation type="unfinished"></translation>
+        <translation>Переверните объект вертикально</translation>
     </message>
     <message>
         <location filename="../../tnztools/tooloptions.cpp" line="578"/>
         <source>Rotate Object Left</source>
-        <translation type="unfinished"></translation>
+        <translation>Повернуть объект влево</translation>
     </message>
     <message>
         <location filename="../../tnztools/tooloptions.cpp" line="579"/>
         <source>Rotate Object Right</source>
-        <translation type="unfinished"></translation>
+        <translation>Повернуть объект вправо</translation>
     </message>
     <message>
         <location filename="../../tnztools/tooloptions.cpp" line="713"/>
@@ -658,7 +658,7 @@
     <message>
         <location filename="../../tnztools/filltool.cpp" line="1850"/>
         <source>Pick+Freehand</source>
-        <translation type="unfinished"></translation>
+        <translation>Выбор +Свободная рука</translation>
     </message>
     <message>
         <location filename="../../tnztools/filltool.cpp" line="1852"/>
@@ -889,7 +889,7 @@
     <message>
         <location filename="../../tnztools/paintbrushtool.cpp" line="364"/>
         <source>Lock Alpha</source>
-        <translation type="unfinished">Заблокировать альфа канал</translation>
+        <translation>Заблокировать альфа канал</translation>
     </message>
 </context>
 <context>
@@ -1191,7 +1191,7 @@ Do you want to proceed?</source>
     <message>
         <location filename="../../tnztools/geometrictool.cpp" line="491"/>
         <source>Rotate</source>
-        <translation type="unfinished"></translation>
+        <translation>Вращать</translation>
     </message>
     <message>
         <location filename="../../tnztools/geometrictool.cpp" line="492"/>
@@ -1781,22 +1781,22 @@ Do you want to proceed?</source>
     <message>
         <location filename="../../tnztools/tooloptions.cpp" line="1167"/>
         <source>Flip Selection Horizontally</source>
-        <translation type="unfinished"></translation>
+        <translation>Переверните выделение по горизонтали</translation>
     </message>
     <message>
         <location filename="../../tnztools/tooloptions.cpp" line="1168"/>
         <source>Flip Selection Vertically</source>
-        <translation type="unfinished"></translation>
+        <translation>Переверните выделение по вертикали</translation>
     </message>
     <message>
         <location filename="../../tnztools/tooloptions.cpp" line="1169"/>
         <source>Rotate Selection Left</source>
-        <translation type="unfinished"></translation>
+        <translation>Повернуть выделение влево</translation>
     </message>
     <message>
         <location filename="../../tnztools/tooloptions.cpp" line="1170"/>
         <source>Rotate Selection Right</source>
-        <translation type="unfinished"></translation>
+        <translation>Повернуть выделение вправо</translation>
     </message>
     <message>
         <location filename="../../tnztools/tooloptions.cpp" line="1186"/>
@@ -2002,7 +2002,7 @@ moved to the end of the first page of the palette.</source>
     <message>
         <location filename="../../tnztools/toonzrasterbrushtool.cpp" line="1111"/>
         <source>Lock Alpha</source>
-        <translation type="unfinished">Заблокировать альфа канал</translation>
+        <translation>Заблокировать альфа канал</translation>
     </message>
 </context>
 <context>

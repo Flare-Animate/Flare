@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.1" language="ru" sourcelanguage="en">
+<TS version="2.1" language="ru_RU" sourcelanguage="en_US">
 <context>
     <name>CenterlineVectorizer</name>
     <message>
@@ -452,7 +452,7 @@
     <message>
         <location filename="../../toonzlib/fxcommand.cpp" line="2740"/>
         <source>Paste Fx  :  </source>
-        <translation>Вставить Fx :</translation>
+        <translation>Вставка Эффекта :</translation>
     </message>
     <message>
         <location filename="../../toonzlib/fxcommand.cpp" line="3109"/>
@@ -739,53 +739,54 @@
     <message>
         <location filename="../../toonzlib/sceneproperties.cpp" line="31"/>
         <source>Orange</source>
-        <translation type="unfinished"></translation>
+        <translation>Оранжевый</translation>
     </message>
     <message>
         <location filename="../../toonzlib/sceneproperties.cpp" line="32"/>
         <source>Yellow</source>
-        <translation type="unfinished"></translation>
+        <translation>Желтый</translation>
     </message>
     <message>
         <location filename="../../toonzlib/sceneproperties.cpp" line="33"/>
         <source>Light Green</source>
-        <translation type="unfinished"></translation>
+        <translation>Светло-зеленый</translation>
     </message>
     <message>
         <location filename="../../toonzlib/sceneproperties.cpp" line="35"/>
         <source>Light Blue</source>
-        <translation type="unfinished"></translation>
+        <translation>Светло-синий</translation>
     </message>
     <message>
         <location filename="../../toonzlib/sceneproperties.cpp" line="37"/>
         <source>Dark Blue</source>
-        <translation type="unfinished"></translation>
+        <translation>Тёмно-синий</translation>
     </message>
     <message>
         <location filename="../../toonzlib/sceneproperties.cpp" line="38"/>
         <source>Purple</source>
-        <translation type="unfinished"></translation>
+        <translation>Фиолетовый</translation>
     </message>
     <message>
         <location filename="../../toonzlib/sceneproperties.cpp" line="39"/>
         <source>Pink</source>
-        <translation type="unfinished"></translation>
+        <translation>Розовый</translation>
     </message>
     <message>
         <location filename="../../toonzlib/sceneproperties.cpp" line="40"/>
         <source>Dark Pink</source>
-        <translation type="unfinished"></translation>
+        <translation>Темно-розовый</translation>
     </message>
     <message>
         <location filename="../../toonzlib/sceneproperties.cpp" line="41"/>
         <source>White</source>
-        <translation type="unfinished"></translation>
+        <translation>Белый</translation>
     </message>
     <message>
         <location filename="../../toonzlib/stylemanager.cpp" line="510"/>
         <source>Custom Texture</source>
         <comment>TextureStyleChooserPage</comment>
-        <translation type="unfinished"></translation>
+        <translatorcomment>Страница выбора стиля текстуры</translatorcomment>
+        <translation>Пользовательская текстура</translation>
     </message>
 </context>
 <context>
