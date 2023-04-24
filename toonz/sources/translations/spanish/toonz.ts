@@ -1712,14 +1712,12 @@ What do you want to do? </source>
     <message>
         <source>Level %1 already exists; skipped.
 </source>
-        <translation>El nivel %1 ya existe; omitido.
-</translation>
+        <translation>El nivel %1 ya existe; omitido.</translation>
     </message>
     <message>
         <source>Failed to remove existing level %1; skipped.
 </source>
-        <translation>Falla al eliminar el nivel existente %1; omitido.
-</translation>
+        <translation>Falla al eliminar el nivel existente %1; omitido.</translation>
     </message>
     <message>
         <source>Converting level %1 of %2: %3</source>
@@ -1728,8 +1726,7 @@ What do you want to do? </source>
     <message>
         <source>Convert aborted.
 </source>
-        <translation>Conversión abortada.
-</translation>
+        <translation>Conversión abortada.</translation>
     </message>
     <message>
         <source>Level %1 has no frame; skipped.</source>
@@ -1790,34 +1787,28 @@ What do you want to do? </source>
     <message>
         <source>Convert TZP in folder
 </source>
-        <translation>Convertir TZP en carpeta
-</translation>
+        <translation>Convertir TZP en carpeta</translation>
     </message>
     <message>
         <source>Target Folder: %1
 </source>
-        <translation>Carpeta de destino: %1
-</translation>
+        <translation>Carpeta de destino: %1</translation>
     </message>
     <message>
         <source>Skip Existing Files: %1
 </source>
-        <translation>Omitir archivos existentes: %1
-</translation>
+        <translation>Omitir archivos existentes: %1</translation>
     </message>
     <message>
         <source>Apply to Subfolder: %1
 </source>
-        <translation>Aplicar a subcarpeta: %1
-</translation>
+        <translation>Aplicar a subcarpeta: %1</translation>
     </message>
     <message>
         <source>Approx. levels to be converted: %1
 
 </source>
-        <translation>Niveles (aprox) a ser convertidos: %1
-
-</translation>
+        <translation>Niveles (aprox) a ser convertidos: %1</translation>
     </message>
     <message>
         <source>Started: </source>
@@ -1834,8 +1825,7 @@ What do you want to do? </source>
     <message>
         <source>  %1 level(s) done, %2 level(s) skipped with %3 error(s).
 </source>
-        <translation>  %1 niveles procesados, %2 niveles omitidos con %3 errores.
-</translation>
+        <translation>  %1 niveles procesados, %2 niveles omitidos con %3 errores.</translation>
     </message>
     <message>
         <source>Ended: </source>
@@ -2322,6 +2312,14 @@ contuviera información de PPP, entonces se usarán los de la cámara actual.
     <message>
         <source>OK</source>
         <translation>Aceptar</translation>
+    </message>
+    <message>
+        <source>TWAIN</source>
+        <translation>TWAIN</translation>
+    </message>
+    <message>
+        <source>Internal</source>
+        <translation>Interno</translation>
     </message>
 </context>
 <context>
@@ -3142,7 +3140,7 @@ Desactivado: Los vectores serán guardados en formato SVG</translation>
     </message>
     <message numerus="yes">
         <source>%n page(s)</source>
-        <translation type="unfinished">
+        <translation>
             <numerusform>%n página</numerusform>
             <numerusform>%n páginas</numerusform>
         </translation>
@@ -17130,6 +17128,10 @@ Por favor ver la guía de usuario para obtener más detalles.</translation>
     <message>
         <source>None</source>
         <translation>Ninguna</translation>
+    </message>
+    <message>
+        <source>Interpolation on %1&apos;s</source>
+        <translation>Exposición de interpolación x%1</translation>
     </message>
 </context>
 <context>

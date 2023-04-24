@@ -1022,19 +1022,19 @@ La ganancia se mostrará en forma de f-stops donde el valor &quot;neutral&quot;,
     </message>
     <message>
         <source>Step 1</source>
-        <translation>Exposición x1</translation>
+        <translation>Exposición de interpolación x1</translation>
     </message>
     <message>
         <source>Step 2</source>
-        <translation>Exposición x2</translation>
+        <translation>Exposición de interpolación x2</translation>
     </message>
     <message>
         <source>Step 3</source>
-        <translation>Exposición x3</translation>
+        <translation>Exposición de interpolación x3</translation>
     </message>
     <message>
         <source>Step 4</source>
-        <translation>Exposición x4</translation>
+        <translation>Exposición de interpolación x4</translation>
     </message>
     <message>
         <source>Function Curves</source>
@@ -1265,7 +1265,7 @@ La ganancia se mostrará en forma de f-stops donde el valor &quot;neutral&quot;,
     </message>
     <message>
         <source>Change Step</source>
-        <translation>Cambiar exposición</translation>
+        <translation>Exposición de interpolación</translation>
     </message>
     <message>
         <source>Similar Shape Interpolation</source>
