@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.1" language="ko" sourcelanguage="en">
+<TS version="2.0" language="ko" sourcelanguage="en">
 <context>
     <name>APngWriterProperties</name>
     <message>
         <source>Scale</source>
-        <translation type="unfinished">비율</translation>
+        <translation>비율</translation>
     </message>
     <message>
         <source>Looping</source>
-        <translation type="unfinished">반복</translation>
+        <translation>반복</translation>
     </message>
     <message>
         <source>Write as .png</source>
-        <translation type="unfinished"></translation>
+        <translation>.PNG로 작성하기</translation>
     </message>
 </context>
 <context>
@@ -79,26 +79,26 @@
     </message>
     <message>
         <source>96(RGB Float)</source>
-        <translation type="unfinished"></translation>
+        <translation>96(RGB Float)</translation>
     </message>
     <message>
         <source>128(RGBA Float)</source>
-        <translation type="unfinished"></translation>
+        <translation>128(RGBA Float)</translation>
     </message>
     <message>
         <source>Color Space Gamma</source>
-        <translation type="unfinished"></translation>
+        <translation>색상 공간 감마</translation>
     </message>
 </context>
 <context>
     <name>FFMovWriterProperties</name>
     <message>
         <source>Quality</source>
-        <translation type="unfinished">품질</translation>
+        <translation>품질</translation>
     </message>
     <message>
         <source>Scale</source>
-        <translation type="unfinished">비율</translation>
+        <translation>비율</translation>
     </message>
 </context>
 <context>
@@ -113,7 +113,7 @@
     </message>
     <message>
         <source>Generate Palette</source>
-        <translation type="vanished">팔레트 생성</translation>
+        <translation>팔레트 생성</translation>
     </message>
     <message>
         <source>Global Palette</source>
