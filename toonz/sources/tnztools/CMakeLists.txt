@@ -131,6 +131,7 @@ set(SOURCES
     modifiers/modifiersegmentation.cpp
     assistants/guidelineline.cpp
     assistants/assistantvanishingpoint.cpp
+    assistants/assistantline.cpp
     editassistantstool.cpp
 )
 
