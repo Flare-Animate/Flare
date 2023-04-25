@@ -1042,6 +1042,8 @@ a12*a12+a13*a13+a21*a21+a23*a23) < err;
      identity matrix.
   */
 
+  bool isZero(double err = 1.e-8) const;
+
   bool isTranslation(double err = 1.e-8) const;
   /*Sposto in tgeometry.cpp
 {
@@ -1094,6 +1096,32 @@ return TPointD(p.x*a11+p.y*a12+a13, p.x*a21+p.y*a22+a23);
           See above.
   */
   TAffine place(const TPointD &pIn, const TPointD &pOut) const;
+
+  inline static TAffine identity()
+    { return TAffine(); }
+  inline static TAffine zero()
+    { return TAffine(0, 0, 0, 0, 0, 0); }
+
+  inline static TAffine translation(double x, double y)
+    { return TAffine(1, 0, x, 0, 1, y); }
+  inline static TAffine translation(const TPointD &p)
+    { return translation(p.x, p.y); }
+
+  inline static TAffine scale(double sx, double sy)
+    { return TAffine(sx, 0, 0, 0, sy, 0); }
+  inline static TAffine scale(double s)
+    { return scale(s, s); }
+  inline static TAffine scale(const TPointD &center, double sx, double sy)
+    { return translation(center)*scale(sx, sy)*translation(-center); }
+  inline static TAffine scale(const TPointD &center, double s)
+    { return scale(center, s, s); }
+
+  static TAffine rotation(double angle);
+  inline static TAffine rotation(const TPointD &center, double angle)
+    { return translation(center)*rotation(angle)*translation(-center); }
+
+  inline static TAffine shear(double sx, double sy)
+    { return TAffine(1, sx, 0, sy, 1, 0); }
 };
 
 //-----------------------------------------------------------------------------
@@ -1306,9 +1334,11 @@ public:
 
 //! This class performs binary manipulations with angle ranges
 
+typedef unsigned int TAngleI;
+
 class DVAPI TAngleRangeSet {
 public:
-  typedef unsigned int Type;
+  typedef TAngleI Type;
   typedef std::vector<Type> List;
 
   static const Type max = Type() - Type(1);

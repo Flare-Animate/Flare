@@ -95,12 +95,17 @@ bool TAffine::operator!=(const TAffine &a) const {
 //--------------------------------------------------------------------------------------------------
 bool TAffine::isIdentity(double err) const {
   return ((a11 - 1.0) * (a11 - 1.0) + (a22 - 1.0) * (a22 - 1.0) + a12 * a12 +
-          a13 * a13 + a21 * a21 + a23 * a23) < err;
+          a13 * a13 + a21 * a21 + a23 * a23) <+ err;
+}
+//--------------------------------------------------------------------------------------------------
+bool TAffine::isZero(double err) const {
+  return ( a11*a11 + a12*a12 + a13*a13 +
+           a21*a21 + a22*a22 + a23*a23 ) <= err;
 }
 //--------------------------------------------------------------------------------------------------
 bool TAffine::isTranslation(double err) const {
   return ((a11 - 1.0) * (a11 - 1.0) + (a22 - 1.0) * (a22 - 1.0) + a12 * a12 +
-          a21 * a21) < err;
+          a21 * a21) <= err;
 }
 //--------------------------------------------------------------------------------------------------
 bool TAffine::isIsotropic(double err) const {
@@ -145,6 +150,14 @@ TAffine TAffine::place(double u, double v, double x, double y) const {
 TAffine TAffine::place(const TPointD &pIn, const TPointD &pOut) const {
   return TAffine(a11, a12, pOut.x - (a11 * pIn.x + a12 * pIn.y), a21, a22,
                  pOut.y - (a21 * pIn.x + a22 * pIn.y));
+}
+
+//--------------------------------------------------------------------------------------------------
+
+TAffine TAffine::rotation(double angle) {
+  double s = sin(angle);
+  double c = cos(angle);
+  return TAffine(c, -s, 0, s, c, 0);
 }
 
 //==================================================================================================

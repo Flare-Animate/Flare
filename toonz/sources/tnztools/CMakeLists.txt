@@ -56,6 +56,7 @@ set(HEADERS
     ../include/tools/modifiers/modifiersegmentation.h
     ../include/tools/modifiers/modifierassistants.h
     assistants/guidelineline.h
+    assistants/guidelineellipse.h
 )
 
 set(SOURCES
@@ -130,8 +131,10 @@ set(SOURCES
     modifiers/modifiertest.cpp
     modifiers/modifiersegmentation.cpp
     assistants/guidelineline.cpp
+    assistants/guidelineellipse.cpp
     assistants/assistantvanishingpoint.cpp
     assistants/assistantline.cpp
+    assistants/assistantellipse.cpp
     editassistantstool.cpp
 )
 
