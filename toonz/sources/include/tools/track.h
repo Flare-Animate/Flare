@@ -365,7 +365,8 @@ public:
       interpolationLinear(p0.tilt          , p1.tilt          , l),
       interpolationLinear(p0.originalIndex , p1.originalIndex , l),
       interpolationLinear(p0.time          , p1.time          , l),
-      interpolationLinear(p0.length        , p1.length        , l) );
+      interpolationLinear(p0.length        , p1.length        , l),
+      p0.final && p1.final );
   }
 
   static inline TTrackPoint interpolationSpline(
@@ -385,7 +386,8 @@ public:
       //interpolationSpline(p0.tilt          , p1.tilt          , t0.tilt     , t1.tilt     , l),
       interpolationLinear(p0.originalIndex , p1.originalIndex , l),
       interpolationLinear(p0.time          , p1.time          , l),
-      interpolationLinear(p0.length        , p1.length        , l) );
+      interpolationLinear(p0.length        , p1.length        , l),
+      p0.final && p1.final );
   }
 };
 
