@@ -424,13 +424,13 @@ TAssistant::drawDot(const TPointD &p, double alpha) const {
   tglEnableBlending();
 
   glColor4dv(colorWhite);
-  tglEnablePointSmooth(4.0);
+  tglEnablePointSmooth(6.0);
   glBegin(GL_POINTS);
   glVertex2d(p.x, p.y);
   glEnd();
 
   glColor4dv(colorBlack);
-  tglEnablePointSmooth(2.0);
+  tglEnablePointSmooth(3.0);
   glBegin(GL_POINTS);
   glVertex2d(p.x, p.y);
   glEnd();
