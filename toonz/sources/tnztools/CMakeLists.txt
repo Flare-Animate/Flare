@@ -55,8 +55,8 @@ set(HEADERS
     ../include/tools/modifiers/modifiertest.h
     ../include/tools/modifiers/modifiersegmentation.h
     ../include/tools/modifiers/modifierassistants.h
-    assistants/guidelineline.h
-    assistants/guidelineellipse.h
+    ../include/tools/assistants/guidelineline.h
+    ../include/tools/assistants/guidelineellipse.h
 )
 
 set(SOURCES
