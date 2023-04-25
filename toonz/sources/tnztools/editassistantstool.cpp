@@ -436,7 +436,7 @@ protected:
 
 public:
   bool preLeftButtonDown() override {
-    touchImage();
+    if (m_assistantType.getIndex() != 0) touchImage();
     return true;
   }
 
