@@ -12,6 +12,7 @@ set(MOC_HEADERS
     selectiontool.h
     edittool.h
     controlpointeditortool.h
+    geometrictool.h
     ../include/tools/imagegrouping.h
     ../include/tools/screenpicker.h
     ../include/tools/toolhandle.h
