@@ -430,6 +430,8 @@ class GeometricToolOptionsBox final : public ToolOptionsBox {
   ToolOptionCombo *m_snapSensitivityCombo;
   TTool *m_tool;
 
+  void filterControls();
+
 public:
   GeometricToolOptionsBox(QWidget *parent, TTool *tool,
                           TPaletteHandle *pltHandle, ToolHandle *toolHandle);
