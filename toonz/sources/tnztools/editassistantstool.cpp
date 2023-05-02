@@ -531,7 +531,7 @@ public:
       updateOptionsBox();
       m_newAssisnantType.reset();
     } else {
-      findCurrentPoint(position);
+      findCurrentPoint(position, getViewer()->getPixelSize());
       if (event.isShiftPressed())
         if (Closer closer = read(ModePoint)) {
           m_currentPointName = m_readAssistant->getBasePoint().name;
