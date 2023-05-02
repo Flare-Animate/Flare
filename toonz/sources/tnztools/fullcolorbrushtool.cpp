@@ -287,6 +287,7 @@ bool FullColorBrushTool::askWrite(const TRect &rect) {
 
 bool FullColorBrushTool::preLeftButtonDown() {
   m_modifierAssistants->drawOnly = !FullcolorAssistants;
+  m_inputmanager.drawPreview = !m_modifierAssistants->drawOnly;
   
   m_inputmanager.clearModifiers();
   m_inputmanager.addModifier( TInputModifierP(m_modifierTangents.getPointer()) );
@@ -319,6 +320,7 @@ void FullColorBrushTool::handleMouseEvent(MouseEventType type, const TPointD &po
     m_inputmanager.clearModifiers();
     m_inputmanager.addModifier( TInputModifierP(m_modifierLine.getPointer()) );
     m_inputmanager.addModifier( TInputModifierP(m_modifierSegmentation.getPointer()) );
+    m_inputmanager.drawPreview = true;
   }
   
   if (alt != m_inputmanager.state.isKeyPressed(TKey::alt))

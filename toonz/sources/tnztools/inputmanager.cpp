@@ -205,7 +205,8 @@ TInputManager::TInputManager():
   m_tracks(1),
   m_hovers(1),
   m_started(),
-  m_savePointsSent()
+  m_savePointsSent(),
+  drawPreview()
 { }
 
 
@@ -685,10 +686,10 @@ TInputManager::draw() {
   m_nextBounds = TRectD();
   
   // paint not sent sub-tracks
-  if (debugInputManager /* || m_savePointsSent < (int)m_savePoints.size() */) {
+  if ( debugInputManager || (drawPreview && m_savePointsSent < (int)m_savePoints.size()) ) {
     glPushAttrib(GL_ALL_ATTRIB_BITS);
     tglEnableBlending();
-    tglEnableLineSmooth(true, 0.5);
+    tglEnableLineSmooth(true, 1.0);
     double pixelSize = sqrt(tglGetPixelSize2());
     double colorBlack[4] = { 0.0, 0.0, 0.0, 1.0 };
     double colorWhite[4] = { 1.0, 1.0, 1.0, 1.0 };
@@ -698,12 +699,12 @@ TInputManager::draw() {
         int start = debugInputManager ? 0 : handler->saves[m_savePointsSent] - 1;
         if (start < 0) start = 0;
         if (start + 1 < track.size()) {
-          int level = m_savePointsSent;
-          colorBlack[3] = (colorWhite[3] = 0.8);
+          //int level = m_savePointsSent;
+          //colorBlack[3] = (colorWhite[3] = 0.8);
           double radius = 2.0;
           for(int i = start + 1; i < track.size(); ++i) {
-            while(level < (int)handler->saves.size() && handler->saves[level] <= i)
-              colorBlack[3] = (colorWhite[3] *= 0.8), ++level;
+            //while(level < (int)handler->saves.size() && handler->saves[level] <= i)
+            //  colorBlack[3] = (colorWhite[3] *= 0.8), ++level;
 
             const TPointD &a = track[i-1].position;
             const TPointD &b = track[i].position;

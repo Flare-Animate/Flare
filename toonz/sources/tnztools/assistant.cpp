@@ -25,13 +25,13 @@ TGuideline::drawSegment(
   bool active,
   bool enabled ) const
 {
-  double colorBlack[4] = { 0.0, 0.0, 0.0, 0.5 };
-  double colorWhite[4] = { 1.0, 1.0, 1.0, 0.5 };
+  double colorBlack[4] = { 0.0, 0.0, 0.0, 0.25 };
+  double colorWhite[4] = { 1.0, 1.0, 1.0, 0.25 };
 
   if (!this->enabled || !enabled)
-    colorBlack[3] = (colorWhite[3] = 0.25);
-  else if (!active)
-    colorBlack[3] = (colorWhite[3] = 0.75);
+    colorBlack[3] = (colorWhite[3] = 0.125);
+  else if (active)
+    colorBlack[3] = (colorWhite[3] = 0.5);
 
   glPushAttrib(GL_ALL_ATTRIB_BITS);
   tglEnableBlending();

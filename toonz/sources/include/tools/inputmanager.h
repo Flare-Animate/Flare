@@ -282,6 +282,7 @@ private:
 
 public:
   TInputState state;
+  bool drawPreview;
 
 
 public:
