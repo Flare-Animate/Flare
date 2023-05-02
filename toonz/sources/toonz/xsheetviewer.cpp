@@ -1261,25 +1261,41 @@ void XsheetViewer::keyPressEvent(QKeyEvent *event) {
   // selection range.
   if (Preferences::instance()->isUseArrowKeyToShiftCellSelectionEnabled() &&
       cellSel && !cellSel->isEmpty()) {
-    int r0, c0, r1, c1;
-    cellSel->getSelectedCells(r0, c0, r1, c1);
+    int rowA, colA, rowB, colB;
+    cellSel->getSelectedCells(rowA, colA, rowB, colB);
     stride.setFrame(cellSel->getSelectedCells().getRowCount());
 
     if (m_cellArea->isControlPressed()) {  // resize
-      if (r0 == r1 && shift.frame() < 0) return;
-      if (c0 == c1 && shift.layer() < firstCol) return;
-      cellSel->selectCells(r0, c0, r1 + shift.frame(), c1 + shift.layer());
+
+      // resize selection of frames/rows forward or backwards
+      if (rowA < getCurrentRow())
+        rowA += shift.frame();
+      else
+        rowB += shift.frame();
+
+      // resize selection of layers/columns "up" or "down"
+      if (colA < getCurrentColumn())
+        colA += shift.layer();
+      else
+        colB += shift.layer();
+
+      // keep selection inside the xsheet/timeline
+      if (colA < firstCol || colB < firstCol || rowA < 0 || rowB < 0) return;
+
+      // apply new selection rectangle
+      cellSel->selectCells(rowA, colA, rowB, colB);
       updateCells();
       TApp::instance()->getCurrentSelection()->notifySelectionChanged();
       return;
+
     } else {  // shift
       CellPosition offset(shift * stride);
-      int movedR0   = std::max(0, r0 + offset.frame());
-      int movedC0   = std::max(firstCol, c0 + offset.layer());
-      int diffFrame = movedR0 - r0;
-      int diffLayer = movedC0 - c0;
-      cellSel->selectCells(r0 + diffFrame, c0 + diffLayer, r1 + diffFrame,
-                           c1 + diffLayer);
+      int movedRow0   = std::max(0, rowA + offset.frame());
+      int movedCol0   = std::max(firstCol, colA + offset.layer());
+      int diffRow = movedRow0 - rowA;
+      int diffCol = movedCol0 - colA;
+      cellSel->selectCells(rowA + diffRow, colA + diffCol, rowB + diffRow,
+                           colB + diffCol);
       TApp::instance()->getCurrentSelection()->notifySelectionChanged();
     }
   }
