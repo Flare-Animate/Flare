@@ -142,6 +142,8 @@ FullColorBrushTool::FullColorBrushTool(std::string name)
   m_modifierTangents = new TModifierTangents();
   m_modifierAssistants = new TModifierAssistants();
   m_modifierSegmentation = new TModifierSegmentation();
+
+  m_inputmanager.addModifier( TInputModifierP(m_modifierAssistants.getPointer()) );
   
   m_thickness.setNonLinearSlider();
   m_preset.setId("BrushPreset");
@@ -291,8 +293,8 @@ bool FullColorBrushTool::preLeftButtonDown() {
   
   m_inputmanager.clearModifiers();
   m_inputmanager.addModifier( TInputModifierP(m_modifierTangents.getPointer()) );
-  m_inputmanager.addModifier( TInputModifierP(m_modifierSegmentation.getPointer()) );
   m_inputmanager.addModifier( TInputModifierP(m_modifierAssistants.getPointer()) );
+  m_inputmanager.addModifier( TInputModifierP(m_modifierSegmentation.getPointer()) );
   m_inputmanager.addModifier( TInputModifierP(m_modifierTest.getPointer()) );
   
   touchImage();
@@ -317,8 +319,10 @@ void FullColorBrushTool::handleMouseEvent(MouseEventType type, const TPointD &po
   bool control = e.getModifiersMask() & TMouseEvent::CTRL_KEY;
   
   if ((control || shift) && type == ME_DOWN && e.button() == Qt::LeftButton && !m_started) {
+    m_modifierAssistants->drawOnly = true;
     m_inputmanager.clearModifiers();
     m_inputmanager.addModifier( TInputModifierP(m_modifierLine.getPointer()) );
+    m_inputmanager.addModifier( TInputModifierP(m_modifierAssistants.getPointer()) );
     m_inputmanager.addModifier( TInputModifierP(m_modifierSegmentation.getPointer()) );
     m_inputmanager.drawPreview = true;
   }
