@@ -66,8 +66,9 @@ TGuideline::calcTrackWeight(const TTrack &track, const TAffine &toScreen, bool &
   double sumDeviation = 0.0;
 
   TPointD prev = toScreen*track[0].position;
-  for(int i = 0; i < track.size(); ++i) {
+  for(int i = 1; i < track.size(); ++i) {
     const TTrackPoint &tp = track[i];
+    TTrackPoint mid = TTrack::interpolationLinear(track[i-1], track[i], 0.5);
     TPointD p = toScreen*tp.position;
     double length = tdistance(p, prev);
     sumLength += length;
@@ -77,7 +78,7 @@ TGuideline::calcTrackWeight(const TTrack &track, const TAffine &toScreen, bool &
       double weight = length*logNormalDistribuitionUnscaled(midStepLength, snapLenght, snapScale);
       sumWeight += weight;
 
-      TTrackPoint ntp = transformPoint(tp);
+      TTrackPoint ntp = transformPoint(mid);
       double deviation = tdistance(toScreen*ntp.position, p);
       sumDeviation += weight*deviation;
     }
