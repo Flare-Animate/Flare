@@ -1288,7 +1288,7 @@ void ToonzRasterBrushTool::leftButtonDown(const TPointD &pos,
   }
 
   // Modifier to do straight line
-  if (e.isShiftPressed() || e.isCtrlPressed()) {
+  if (e.isShiftPressed()) {
     m_isStraight = true;
     m_firstPoint = pos;
     m_lastPoint  = pos;
