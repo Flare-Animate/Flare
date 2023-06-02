@@ -2821,8 +2821,11 @@ FxSchematicZeraryNode::FxSchematicZeraryNode(FxSchematicScene *scene,
   connect(m_nameItem, SIGNAL(focusOut()), this, SLOT(onNameChanged()));
   connect(m_renderToggle, SIGNAL(toggled(bool)), this,
           SLOT(onRenderToggleClicked(bool)));
-  connect(m_cameraStandToggle, SIGNAL(stateChanged(int)), this,
-          SLOT(onCameraStandToggleClicked(int)));
+  if (Preferences::instance()->isUnifyColumnVisibilityTogglesEnabled())
+    m_cameraStandToggle->hide();
+  else
+    connect(m_cameraStandToggle, SIGNAL(stateChanged(int)), this,
+            SLOT(onCameraStandToggleClicked(int)));
 
   if (zeraryFx) {
     int i, inputPorts = zeraryFx->getInputPortCount();
@@ -3085,8 +3088,11 @@ FxSchematicColumnNode::FxSchematicColumnNode(FxSchematicScene *scene,
         connect(m_nameItem, SIGNAL(focusOut()), this, SLOT(onNameChanged()));
   ret = ret && connect(m_renderToggle, SIGNAL(toggled(bool)), this,
                        SLOT(onRenderToggleClicked(bool)));
-  ret = ret && connect(m_cameraStandToggle, SIGNAL(stateChanged(int)), this,
-                       SLOT(onCameraStandToggleClicked(int)));
+  if (Preferences::instance()->isUnifyColumnVisibilityTogglesEnabled())
+    m_cameraStandToggle->hide();
+  else
+    ret = ret && connect(m_cameraStandToggle, SIGNAL(stateChanged(int)), this,
+                         SLOT(onCameraStandToggleClicked(int)));
 
   assert(ret);
 
@@ -3122,6 +3128,8 @@ void FxSchematicColumnNode::onRenderToggleClicked(bool toggled) {
   TXshColumn *column = fxScene->getXsheet()->getColumn(m_columnIndex);
   if (column) {
     column->setPreviewVisible(toggled);
+    if (Preferences::instance()->isUnifyColumnVisibilityTogglesEnabled())
+      column->setCamstandVisible(toggled);
     emit sceneChanged();
     emit xsheetChanged();
   }

@@ -66,7 +66,8 @@ void LayerHeaderPanel::paintEvent(QPaintEvent *event) {
                          : m_viewer->getLayerHeaderLockImage());
 
   drawIcon(p, PredefinedRect::PANEL_EYE, boost::none, preview);
-  drawIcon(p, PredefinedRect::PANEL_PREVIEW_LAYER, boost::none, camstand);
+  if (!Preferences::instance()->isUnifyColumnVisibilityTogglesEnabled())
+    drawIcon(p, PredefinedRect::PANEL_PREVIEW_LAYER, boost::none, camstand);
   drawIcon(p, PredefinedRect::PANEL_LOCK, boost::none, lock);
 }
 
