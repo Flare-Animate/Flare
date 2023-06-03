@@ -75,7 +75,8 @@
 		<file>icons/dark/actions/16/save.svg</file>
 		<file>icons/dark/actions/16/saveas.svg</file>
 		<file>icons/dark/actions/16/saveall.svg</file>
-		<file>icons/dark/actions/16/gear.svg</file>
+    <file>icons/dark/actions/16/gear.svg</file>
+    <file>icons/dark/actions/16/gear_check.svg</file>
 		<file>icons/dark/actions/16/settings_reset.svg</file>
 		<file>icons/dark/actions/16/clear.svg</file>
 		<file>icons/dark/actions/16/undo.svg</file>
