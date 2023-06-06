@@ -618,7 +618,6 @@ public:
 protected:
   void keyPressEvent(QKeyEvent *event) override;
   void focusOutEvent(QFocusEvent *e) override;
-  bool eventFilter(QObject *, QEvent *) override;
 
 signals:
   void edited();

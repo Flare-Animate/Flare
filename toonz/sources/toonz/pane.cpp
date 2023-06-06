@@ -34,6 +34,7 @@
 #include <QDesktopWidget>
 #include <QDialog>
 #include <QLineEdit>
+#include <QTextEdit>
 #include <QScreen>
 
 extern TEnv::StringVar EnvSafeAreaName;
@@ -123,7 +124,8 @@ void TPanel::enterEvent(QEvent *event) {
   if (w) {
     // grab the focus, unless a line-edit is focused currently
     QWidget *focusWidget = qApp->focusWidget();
-    if (focusWidget && dynamic_cast<QLineEdit *>(focusWidget)) {
+    if (focusWidget && (dynamic_cast<QLineEdit *>(focusWidget) ||
+                        dynamic_cast<QTextEdit *>(focusWidget))) {
       event->accept();
       return;
     }
