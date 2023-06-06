@@ -82,7 +82,7 @@ TSoundTrackP TSoundTrack::create(TUINT32 sampleRate, int bitPerSample,
                                  int channelCount, TINT32 sampleCount,
                                  int sampleType) {
   TSoundTrackP st = 0;
-  int type = bitPerSample + channelCount;
+  int type        = bitPerSample + channelCount;
   switch (type) {
   case TRK_M8:
     if (sampleType == TSound::INT)
