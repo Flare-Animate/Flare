@@ -140,6 +140,7 @@ enum PreferencesItemId {
   currentColumnColor,
   levelNameDisplayType,
   showFrameNumberWithLetters,
+  linkColumnNameWithLevel,
 
   //----------
   // Animation

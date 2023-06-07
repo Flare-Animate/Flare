@@ -76,7 +76,8 @@
 
 namespace {
 
-const bool checkContainsSingleLevel(TXshColumn *column) {
+const bool checkContainsSingleLevel(TXshColumn *column,
+                                    const std::string &columnName) {
   TXshLevel *level           = nullptr;
   TXshCellColumn *cellColumn = column->getCellColumn();
   if (cellColumn) {
@@ -91,7 +92,9 @@ const bool checkContainsSingleLevel(TXshColumn *column) {
       else if (lvl != level)
         return false;
     }
-    return level != nullptr;
+    // column name should be unspecified or same as the content level
+    return level != nullptr &&
+           (columnName.empty() || level->getName() == to_wstring(columnName));
   }
   return false;
 }
@@ -856,6 +859,26 @@ void RenameCellField::renameCell() {
       // previous frames
       // (when editing not empty column)
       if (xsheet->isColumnEmpty(c)) {
+        // find a level with name same as the column (if the preferences option
+        // is set to do so)
+        if (Preferences::instance()->isLinkColumnNameWithLevelEnabled() &&
+            xsheet->getStageObject(TStageObjectId::ColumnId(c))
+                ->hasSpecifiedName()) {
+          std::string columnName =
+              xsheet->getStageObject(TStageObjectId::ColumnId(c))->getName();
+          TLevelSet *levelSet = scene->getLevelSet();
+          TXshLevel *xl       = levelSet->getLevel(to_wstring(columnName));
+          TXshSimpleLevel *sl = (xl) ? xl->getSimpleLevel() : nullptr;
+          if (sl &&
+              (!sl->isEmpty() || sl->getFirstFid() != TFrameId::NO_FRAME)) {
+            sl->formatFId(fid, tmplFId);
+            cells.append(TXshCell(xl, fid));
+            changed      = true;
+            hasFrameZero = (fid.getNumber() == 0 && xl->getSimpleLevel() &&
+                            xl->getSimpleLevel()->isFid(fid));
+            continue;
+          }
+        }
         cells.append(TXshCell());
         continue;
       }
@@ -1270,10 +1293,16 @@ void CellArea::drawCells(QPainter &p, const QRect toBeUpdated) {
       isPaletteColumn   = column->getPaletteColumn() != 0;
       isSoundTextColumn = column->getSoundTextColumn() != 0;
       if (Preferences::instance()->getLevelNameDisplayType() ==
-          Preferences::ShowLevelNameOnColumnHeader)
+          Preferences::ShowLevelNameOnColumnHeader) {
+        std::string columnName = "";
+        if (col >= 0 && xsh->getStageObject(TStageObjectId::ColumnId(col))
+                            ->hasSpecifiedName())
+          columnName =
+              xsh->getStageObject(TStageObjectId::ColumnId(col))->getName();
         showLevelName =
             (isSoundColumn || isPaletteColumn || isSoundTextColumn ||
-             !checkContainsSingleLevel(column));
+             !checkContainsSingleLevel(column, columnName));
+      }
     }
     // check if the column is reference
     bool isReference = true;
