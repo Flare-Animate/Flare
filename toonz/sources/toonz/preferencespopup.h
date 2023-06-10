@@ -139,6 +139,7 @@ private:
   // Xsheet
   void onShowKeyframesOnCellAreaChanged();
   void onShowXSheetToolbarClicked();
+  void onUnifyColumnVisibilityTogglesChanged();
   // Animation
   void onModifyExpressionOnMovingReferencesChanged();
   // Preview

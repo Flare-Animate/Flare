@@ -132,6 +132,7 @@ enum PreferencesItemId {
   showXSheetToolbar,
   expandFunctionHeader,
   showColumnNumbers,
+  unifyColumnVisibilityToggles,
   parentColorsInXsheetColumn,
   highlightLineEverySecond,
   syncLevelRenumberWithXsheet,
@@ -139,6 +140,7 @@ enum PreferencesItemId {
   currentColumnColor,
   levelNameDisplayType,
   showFrameNumberWithLetters,
+  linkColumnNameWithLevel,
 
   //----------
   // Animation

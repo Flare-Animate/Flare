@@ -321,6 +321,7 @@ class ColumnArea final : public QWidget {
     bool isEmpty, isCurrent;
     TXshColumn *column;
     QPoint orig;
+    TXshLevel *reservedLevel;
 
   public:
     DrawHeader(ColumnArea *area, QPainter &p, int col);
@@ -334,6 +335,7 @@ class ColumnArea final : public QWidget {
     void drawBaseFill(const QColor &columnColor, const QColor &dragColor) const;
     void drawEye() const;
     void drawPreviewToggle(int opacity) const;
+    void drawUnifiedViewToggle(int opacity) const;
     void drawLock() const;
     void drawConfig() const;
     void drawColumnNumber() const;

@@ -318,7 +318,7 @@ void FullColorBrushTool::handleMouseEvent(MouseEventType type, const TPointD &po
   bool shift = e.getModifiersMask() & TMouseEvent::SHIFT_KEY;
   bool control = e.getModifiersMask() & TMouseEvent::CTRL_KEY;
   
-  if ((control || shift) && type == ME_DOWN && e.button() == Qt::LeftButton && !m_started) {
+  if (shift && type == ME_DOWN && e.button() == Qt::LeftButton && !m_started) {
     m_modifierAssistants->drawOnly = true;
     m_inputmanager.clearModifiers();
     m_inputmanager.addModifier( TInputModifierP(m_modifierLine.getPointer()) );

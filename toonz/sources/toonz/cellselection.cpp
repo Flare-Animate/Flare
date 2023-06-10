@@ -58,6 +58,7 @@
 #include "tools/strokeselection.h"
 #include "toonz/sceneproperties.h"
 #include "toutputproperties.h"
+#include "toonz/tstageobjectcmd.h"
 
 // TnzCore includes
 #include "timagecache.h"
@@ -217,13 +218,17 @@ class PasteCellsUndo final : public TUndo {
   TCellData *m_data;
   std::vector<bool> m_areOldColumnsEmpty;
   bool m_containsSoundColumn;
+  std::map<int, std::string> m_oldEmptyColumnNames;
 
 public:
   PasteCellsUndo(int r0, int c0, int r1, int c1, int oldR0, int oldC0,
                  int oldR1, int oldC1, const std::vector<bool> &areColumnsEmpty,
-                 bool containsSoundColumn)
+                 bool containsSoundColumn,
+                 const std::map<int, std::string> &oldEmptyColumnNames =
+                     std::map<int, std::string>())
       : m_areOldColumnsEmpty(areColumnsEmpty)
-      , m_containsSoundColumn(containsSoundColumn) {
+      , m_containsSoundColumn(containsSoundColumn)
+      , m_oldEmptyColumnNames(oldEmptyColumnNames) {
     m_data       = new TCellData();
     TXsheet *xsh = TApp::instance()->getCurrentXsheet()->getXsheet();
     m_data->setCells(xsh, r0, c0, r1, c1);
@@ -246,13 +251,18 @@ public:
     int oldR0, oldC0, oldR1, oldC1;
     m_oldSelection->getSelectedCells(oldR0, oldC0, oldR1, oldC1);
 
+    TXsheet *xsh = TApp::instance()->getCurrentXsheet()->getXsheet();
+    for (const auto &item : m_oldEmptyColumnNames) {
+      xsh->getStageObject(TStageObjectId::ColumnId(item.first))
+          ->setName(item.second);
+    }
+
     int c0BeforeCut = c0;
     int c1BeforeCut = c1;
     // Cut delle celle che sono in newSelection
     cutCellsWithoutUndo(r0, c0, r1, c1);
     // Se le colonne erano vuote le resetto (e' necessario farlo per le colonne
     // particolari, colonne sount o palette)
-    TXsheet *xsh = TApp::instance()->getCurrentXsheet()->getXsheet();
     assert(c1BeforeCut - c0BeforeCut + 1 == (int)m_areOldColumnsEmpty.size());
     int c;
     for (c = c0BeforeCut; c <= c1BeforeCut; c++) {
@@ -1502,7 +1512,8 @@ int TCellSelection::Range::getColCount() const { return m_c1 - m_c0 + 1; }
 // TCellSelection
 //-----------------------------------------------------------------------------
 
-TCellSelection::TCellSelection() : m_timeStretchPopup(0), m_reframePopup(0) {
+TCellSelection::TCellSelection()
+    : m_timeStretchPopup(0), m_reframePopup(0), m_resizePivotRow(-1) {
   setAlternativeCommandNames();
 }
 
@@ -1650,6 +1661,10 @@ void TCellSelection::selectCells(int r0, int c0, int r1, int c1) {
   m_range.m_r1            = r1;
   m_range.m_c1            = c1;
   bool onlyOneRasterLevel = containsOnlyOneRasterLevel(r0, c0, r1, c1);
+  // set the nearest row
+  m_resizePivotRow =
+      (std::abs(r0 - m_resizePivotRow) < std::abs(r1 - m_resizePivotRow)) ? r0
+                                                                          : r1;
   CommandManager::instance()->enable(MI_CanvasSize, onlyOneRasterLevel);
 }
 
@@ -1661,13 +1676,15 @@ void TCellSelection::selectCell(int row, int col) {
   m_range.m_r1            = row;
   m_range.m_c1            = col;
   bool onlyOneRasterLevel = containsOnlyOneRasterLevel(row, col, row, col);
+  m_resizePivotRow        = row;
   CommandManager::instance()->enable(MI_CanvasSize, onlyOneRasterLevel);
 }
 
 //-----------------------------------------------------------------------------
 
 void TCellSelection::selectNone() {
-  m_range = Range();
+  m_range          = Range();
+  m_resizePivotRow = -1;
   CommandManager::instance()->enable(MI_CanvasSize, false);
 }
 
@@ -1861,6 +1878,23 @@ void TCellSelection::pasteCells() {
       return;
     }
 
+    // pasting cells may change empty column names. So keep old column names for
+    // undo
+    std::map<int, std::string> emptyColumnNames;
+    if (Preferences::instance()->isLinkColumnNameWithLevelEnabled()) {
+      for (int c = c0; c < c0 + cellData->getColCount(); c++) {
+        TXshColumn *column = xsh->getColumn(c);
+        if (!column || column->isEmpty()) {
+          if (!xsh->getStageObject(TStageObjectId::ColumnId(c))
+                   ->hasSpecifiedName())
+            emptyColumnNames[c] = "";
+          else
+            emptyColumnNames[c] =
+                xsh->getStageObject(TStageObjectId::ColumnId(c))->getName();
+        }
+      }
+    }
+
     bool isPaste = pasteCellsWithoutUndo(cellData, r0, c0, r1, c1);
 
     // Se la selezione corrente e' TCellSelection selezione le celle copiate
@@ -1898,9 +1932,9 @@ void TCellSelection::pasteCells() {
     getLevelSetFromData(cellData, pastedLevels);
     LevelCmd::addMissingLevelsToCast(pastedLevels);
 
-    TUndoManager::manager()->add(
-        new PasteCellsUndo(r0, c0, r1, c1, oldR0, oldC0, oldR1, oldC1,
-                           areColumnsEmpty, containsSoundColumn));
+    TUndoManager::manager()->add(new PasteCellsUndo(
+        r0, c0, r1, c1, oldR0, oldC0, oldR1, oldC1, areColumnsEmpty,
+        containsSoundColumn, emptyColumnNames));
     TApp::instance()->getCurrentScene()->setDirtyFlag(true);
     if (containsSoundColumn)
       TApp::instance()->getCurrentXsheet()->notifyXsheetSoundChanged();
@@ -2523,8 +2557,20 @@ void TCellSelection::deleteCells(bool withShift) {
     TUndoManager::manager()->beginBlock();
     // remove, then insert empty column
     for (auto colId : removedColIds) {
+      // keep column name if specified
+      std::string columnName = "";
+      if (Preferences::instance()->isLinkColumnNameWithLevelEnabled() &&
+          xsh->getStageObject(TStageObjectId::ColumnId(colId))
+              ->hasSpecifiedName())
+        columnName =
+            xsh->getStageObject(TStageObjectId::ColumnId(colId))->getName();
+
       ColumnCmd::deleteColumn(colId, true);
       ColumnCmd::insertEmptyColumn(colId);
+
+      if (!columnName.empty())
+        TStageObjectCmd::rename(TStageObjectId::ColumnId(colId), columnName,
+                                TApp::instance()->getCurrentXsheet());
     }
   }
 

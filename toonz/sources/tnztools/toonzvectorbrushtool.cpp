@@ -786,7 +786,7 @@ void ToonzVectorBrushTool::leftButtonDrag(const TPointD &pos,
     invalidateRect +=
         TRectD(m_lastSnapPoint - snapThick, m_lastSnapPoint + snapThick);
 
-  if (e.isCtrlPressed()) {
+  if (e.isShiftPressed() && e.isCtrlPressed()) {
     TPointD m_firstPoint = m_track.getFirstPoint();
 
     double denominator = m_lastSnapPoint.x - m_firstPoint.x;
