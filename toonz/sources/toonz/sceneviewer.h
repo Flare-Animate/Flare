@@ -64,7 +64,7 @@ public:
 //-----------------------------------------------------------------------------
 
 class SceneViewer final : public GLWidgetForHighDpi,
-                          public TTool::Viewer,
+                          public TToolViewer,
                           public Previewer::Listener {
   Q_OBJECT
 
@@ -232,6 +232,8 @@ public:
   //! The view matrix is a matrix contained in \b m_viewAff
   TAffine getSceneMatrix() const;
 
+  TAffine4 get3dViewMatrix() const override;
+
   void setViewMatrix(const TAffine &aff, int viewMode);
 
   int getFPS() { return m_FPS; }
@@ -363,10 +365,10 @@ protected:
   // center: window coordinate, pixels, topleft origin
   void zoomQt(const QPoint &center, double scaleFactor);
 
-  // overridden from TTool::Viewer
+  // overridden from TToolViewer
   void pan(const TPointD &delta) override { panQt(QPointF(delta.x, delta.y)); }
 
-  // overridden from TTool::Viewer
+  // overridden from TToolViewer
   void zoom(const TPointD &center, double factor) override;
   void rotate(const TPointD &center, double angle) override;
   void rotate3D(double dPhi, double dTheta) override;

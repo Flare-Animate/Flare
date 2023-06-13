@@ -55,6 +55,7 @@ TEnv::DoubleVar FullcolorModifierSize("FullcolorModifierSize", 0);
 TEnv::DoubleVar FullcolorModifierOpacity("FullcolorModifierOpacity", 100);
 TEnv::IntVar FullcolorModifierEraser("FullcolorModifierEraser", 0);
 TEnv::IntVar FullcolorModifierLockAlpha("FullcolorModifierLockAlpha", 0);
+TEnv::IntVar FullcolorAssistants("FullcolorAssistants", 0);
 TEnv::StringVar FullcolorBrushPreset("FullcolorBrushPreset", "<custom>");
 
 //----------------------------------------------------------------------------------
@@ -122,36 +123,33 @@ FullColorBrushTool::FullColorBrushTool(std::string name)
     , m_modifierOpacity("ModifierOpacity", 0, 100, 100, true)
     , m_modifierEraser("ModifierEraser", false)
     , m_modifierLockAlpha("Lock Alpha", false)
+    , m_assistants("Assistants", true)
     , m_preset("Preset:")
+    , m_enabledPressure(false)
     , m_minCursorThick(0)
     , m_maxCursorThick(0)
-    , m_enabledPressure(false)
-    , m_toonz_brush(0)
     , m_tileSet(0)
     , m_tileSaver(0)
     , m_notifier(0)
     , m_presetsLoaded(false)
-    , m_firstTime(true) {
+    , m_firstTime(true)
+    , m_started(false) {
   bind(TTool::RasterImage | TTool::EmptyTarget);
 
+  m_inputmanager.setHandler(this);
+  m_modifierTest = new TModifierTest(5, 40);
+  m_modifierLine = new TModifierLine();
+  m_modifierTangents = new TModifierTangents();
+  m_modifierAssistants = new TModifierAssistants();
+  m_modifierSegmentation = new TModifierSegmentation();
+
+  m_inputmanager.addModifier( TInputModifierP(m_modifierAssistants.getPointer()) );
+  
   m_thickness.setNonLinearSlider();
-
-  m_prop.bind(m_thickness);
-  m_prop.bind(m_hardness);
-  m_prop.bind(m_opacity);
-  m_prop.bind(m_modifierSize);
-  m_prop.bind(m_modifierOpacity);
-  m_prop.bind(m_modifierEraser);
-  m_prop.bind(m_modifierLockAlpha);
-  m_prop.bind(m_pressure);
-  m_prop.bind(m_preset);
-
   m_preset.setId("BrushPreset");
   m_modifierEraser.setId("RasterEraser");
   m_modifierLockAlpha.setId("LockAlpha");
   m_pressure.setId("PressureSensitivity");
-
-  m_brushTimer.start();
 }
 
 //---------------------------------------------------------------------------------------------------
@@ -173,6 +171,7 @@ void FullColorBrushTool::onCanvasSizeChanged() {
 //---------------------------------------------------------------------------------------------------
 
 void FullColorBrushTool::onColorStyleChanged() {
+  getApplication()->getCurrentTool()->notifyToolOptionsBoxChanged();
   getApplication()->getCurrentTool()->notifyToolChanged();
 }
 
@@ -188,6 +187,7 @@ void FullColorBrushTool::updateTranslation() {
   m_modifierOpacity.setQStringName(tr("Opacity"));
   m_modifierEraser.setQStringName(tr("Eraser"));
   m_modifierLockAlpha.setQStringName(tr("Lock Alpha"));
+  m_assistants.setQStringName(tr("Assistants"));
 }
 
 //---------------------------------------------------------------------------------------------------
@@ -219,7 +219,7 @@ void FullColorBrushTool::onActivate() {
 //--------------------------------------------------------------------------------------------------
 
 void FullColorBrushTool::onDeactivate() {
-  if (m_mousePressed) leftButtonUp(m_mousePos, m_mouseEvent);
+  m_inputmanager.finishTracks();
   m_workRaster = TRaster32P();
   m_backUpRas  = TRasterP();
 }
@@ -288,6 +288,15 @@ bool FullColorBrushTool::askWrite(const TRect &rect) {
 //--------------------------------------------------------------------------------------------------
 
 bool FullColorBrushTool::preLeftButtonDown() {
+  m_modifierAssistants->drawOnly = !FullcolorAssistants;
+  m_inputmanager.drawPreview = false; //!m_modifierAssistants->drawOnly;
+  
+  m_inputmanager.clearModifiers();
+  m_inputmanager.addModifier( TInputModifierP(m_modifierTangents.getPointer()) );
+  m_inputmanager.addModifier( TInputModifierP(m_modifierAssistants.getPointer()) );
+  m_inputmanager.addModifier( TInputModifierP(m_modifierSegmentation.getPointer()) );
+  m_inputmanager.addModifier( TInputModifierP(m_modifierTest.getPointer()) );
+  
   touchImage();
 
   if (m_isFrameCreated) {
@@ -303,230 +312,60 @@ bool FullColorBrushTool::preLeftButtonDown() {
 
 //---------------------------------------------------------------------------------------------------
 
-void FullColorBrushTool::leftButtonDown(const TPointD &pos,
-                                        const TMouseEvent &e) {
-  TPointD previousBrushPos = m_brushPos;
-  m_brushPos = m_mousePos = pos;
-  m_mousePressed          = true;
-  m_mouseEvent            = e;
-  Viewer *viewer          = getViewer();
-  if (!viewer) return;
-
-  TRasterImageP ri = (TRasterImageP)getImage(true);
-  if (!ri) ri = (TRasterImageP)touchImage();
-
-  if (!ri) return;
-
-  // Modifier to do straight line
-  if (e.isShiftPressed()) {
-    m_isStraight = true;
-    m_firstPoint = pos;
-    m_lastPoint  = pos;
+void FullColorBrushTool::handleMouseEvent(MouseEventType type, const TPointD &pos, const TMouseEvent &e) {
+  TTimerTicks t = TToolTimer::ticks();
+  bool alt = e.getModifiersMask() & TMouseEvent::ALT_KEY;
+  bool shift = e.getModifiersMask() & TMouseEvent::SHIFT_KEY;
+  bool control = e.getModifiersMask() & TMouseEvent::CTRL_KEY;
+  
+  if (shift && type == ME_DOWN && e.button() == Qt::LeftButton && !m_started) {
+    m_modifierAssistants->drawOnly = true;
+    m_inputmanager.clearModifiers();
+    m_inputmanager.addModifier( TInputModifierP(m_modifierLine.getPointer()) );
+    m_inputmanager.addModifier( TInputModifierP(m_modifierAssistants.getPointer()) );
+    m_inputmanager.addModifier( TInputModifierP(m_modifierSegmentation.getPointer()) );
+    m_inputmanager.drawPreview = true;
   }
-
-  /* update color here since the current style might be switched with numpad
-   * shortcut keys */
-  updateCurrentStyle();
-
-  TRasterP ras = ri->getRaster();
-
-  if (!(m_workRaster && m_backUpRas)) setWorkAndBackupImages();
-
-  m_workRaster->lock();
-
-  TPointD rasCenter = ras->getCenterD();
-  TPointD point(pos + rasCenter);
-
-  double pressure;
-  if (getApplication()->getCurrentLevelStyle()->getTagId() ==
-      4001)  // mypaint brush case
-    pressure = m_enabledPressure && e.isTablet() ? e.m_pressure : 0.5;
-  else
-    pressure = m_enabledPressure ? e.m_pressure : 1.0;
-
-  m_tileSet   = new TTileSetFullColor(ras->getSize());
-  m_tileSaver = new TTileSaverFullColor(ras, m_tileSet);
-
-  mypaint::Brush mypaintBrush;
-  applyToonzBrushSettings(mypaintBrush);
-  m_toonz_brush = new MyPaintToonzBrush(m_workRaster, *this, mypaintBrush);
-
-  m_strokeRect.empty();
-  m_strokeSegmentRect.empty();
-  m_toonz_brush->beginStroke();
-  m_toonz_brush->strokeTo(point, pressure, restartBrushTimer());
-  TRect updateRect = m_strokeSegmentRect * ras->getBounds();
-  if (!updateRect.isEmpty())
-    ras->extract(updateRect)->copy(m_workRaster->extract(updateRect));
-
-  TPointD thickOffset(m_maxCursorThick * 0.5, m_maxCursorThick * 0.5);
-  TRectD invalidateRect = convert(m_strokeSegmentRect) - rasCenter;
-  invalidateRect += TRectD(m_brushPos - thickOffset, m_brushPos + thickOffset);
-  invalidateRect +=
-      TRectD(previousBrushPos - thickOffset, previousBrushPos + thickOffset);
-  invalidate(invalidateRect.enlarge(2.0));
+  
+  if (alt != m_inputmanager.state.isKeyPressed(TKey::alt))
+    m_inputmanager.keyEvent(alt, TKey::alt, t, nullptr);
+  if (shift != m_inputmanager.state.isKeyPressed(TKey::shift))
+    m_inputmanager.keyEvent(shift, TKey::shift, t, nullptr);
+  if (control != m_inputmanager.state.isKeyPressed(TKey::control))
+    m_inputmanager.keyEvent(control, TKey::control, t, nullptr);
+  
+  if (type == ME_MOVE) {
+    THoverList hovers(1, pos);
+    m_inputmanager.hoverEvent(hovers);
+  } else {
+    m_inputmanager.trackEvent(
+      e.isTablet(), 0, pos,
+      e.isTablet() ? &e.m_pressure : nullptr, nullptr,
+      type == ME_UP, t );
+    m_inputmanager.processTracks();
+  }
 }
 
-//-------------------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------
 
-void FullColorBrushTool::leftButtonDrag(const TPointD &pos,
-                                        const TMouseEvent &e) {
-  TRectD invalidateRect;
-  m_lastPoint = pos;
-
-  TPointD previousBrushPos = m_brushPos;
-  m_brushPos = m_mousePos = pos;
-  m_mouseEvent            = e;
-  TRasterImageP ri        = (TRasterImageP)getImage(true);
-  if (!ri) return;
-
-  if (!m_toonz_brush) return;
-
-  TRasterP ras      = ri->getRaster();
-  TPointD rasCenter = ras->getCenterD();
-  TPointD point(pos + rasCenter);
-  double pressure;
-  if (getApplication()->getCurrentLevelStyle()->getTagId() ==
-      4001)  // mypaint brush case
-    pressure = m_enabledPressure && e.isTablet() ? e.m_pressure : 0.5;
-  else
-    pressure = m_enabledPressure ? e.m_pressure : 1.0;
-
-  if (m_maxPressure < pressure) m_maxPressure = pressure;
-
-  if (m_isStraight) {
-    invalidateRect = TRectD(m_firstPoint, m_lastPoint).enlarge(2);
-    if (e.isCtrlPressed()) {
-      double distance = (m_brushPos.x - m_maxCursorThick + 1) * 0.5;
-      TRectD brushRect =
-          TRectD(TPointD(m_brushPos.x - distance, m_brushPos.y - distance),
-                 TPointD(m_brushPos.x + distance, m_brushPos.y + distance));
-      invalidateRect += (brushRect);
-      double denominator = m_lastPoint.x - m_firstPoint.x;
-      if (denominator == 0) denominator = 0.001;
-      double slope = ((m_lastPoint.y - m_firstPoint.y) / denominator);
-      double angle = std::atan(slope) * (180 / 3.14159);
-      if (abs(angle) > 67.5)
-        m_lastPoint.x = m_firstPoint.x;
-      else if (abs(angle) < 22.5)
-        m_lastPoint.y = m_firstPoint.y;
-      else {
-        double xDistance = m_lastPoint.x - m_firstPoint.x;
-        double yDistance = m_lastPoint.y - m_firstPoint.y;
-        if (abs(xDistance) > abs(yDistance)) {
-          if (abs(yDistance) == yDistance)
-            m_lastPoint.y = m_firstPoint.y + abs(xDistance);
-          else
-            m_lastPoint.y = m_firstPoint.y - abs(xDistance);
-        } else {
-          if (abs(xDistance) == xDistance)
-            m_lastPoint.x = m_firstPoint.x + abs(yDistance);
-          else
-            m_lastPoint.x = m_firstPoint.x - abs(yDistance);
-        }
-      }
-    }
-    m_mousePos = pos;
-    m_brushPos = pos;
-    invalidate(invalidateRect);
-    return;
-  }
-
-  m_strokeSegmentRect.empty();
-  m_toonz_brush->strokeTo(point, pressure, restartBrushTimer());
-  TRect updateRect = m_strokeSegmentRect * ras->getBounds();
-  if (!updateRect.isEmpty())
-    ras->extract(updateRect)->copy(m_workRaster->extract(updateRect));
-
-  TPointD thickOffset(m_maxCursorThick * 0.5, m_maxCursorThick * 0.5);
-  invalidateRect = convert(m_strokeSegmentRect) - rasCenter;
-  invalidateRect += TRectD(m_brushPos - thickOffset, m_brushPos + thickOffset);
-  invalidateRect +=
-      TRectD(previousBrushPos - thickOffset, previousBrushPos + thickOffset);
-  invalidate(invalidateRect.enlarge(2.0));
-}
+void FullColorBrushTool::leftButtonDown(const TPointD &pos, const TMouseEvent &e)
+  { handleMouseEvent(ME_DOWN, pos, e); }
+void FullColorBrushTool::leftButtonDrag(const TPointD &pos, const TMouseEvent &e)
+  { handleMouseEvent(ME_DRAG, pos, e); }
+void FullColorBrushTool::leftButtonUp(const TPointD &pos, const TMouseEvent &e)
+  { handleMouseEvent(ME_UP, pos, e); }
+void FullColorBrushTool::mouseMove(const TPointD &pos, const TMouseEvent &e)
+  { handleMouseEvent(ME_MOVE, pos, e); }
 
 //---------------------------------------------------------------------------------------------------------------
 
-void FullColorBrushTool::leftButtonUp(const TPointD &pos,
-                                      const TMouseEvent &e) {
-  TPointD previousBrushPos = m_brushPos;
-  m_brushPos = m_mousePos = pos;
-
-  TRasterImageP ri = (TRasterImageP)getImage(true);
-  if (!ri) return;
-
-  if (!m_toonz_brush) return;
-
-  TRasterP ras      = ri->getRaster();
-  TPointD rasCenter = ras->getCenterD();
-  TPointD point;
-  if (m_isStraight)
-    point = TPointD(m_lastPoint + rasCenter);
-  else
-    point = TPointD(pos + rasCenter);
-  double pressure;
-  if (getApplication()->getCurrentLevelStyle()->getTagId() ==
-      4001)  // mypaint brush case
-    pressure = m_enabledPressure && e.isTablet() ? e.m_pressure : 0.5;
-  else
-    pressure = m_enabledPressure ? e.m_pressure : 1.0;
-
-  if (m_isStraight && m_maxPressure > 0.0) {
-    pressure = m_maxPressure;
-  }
-
-  m_strokeSegmentRect.empty();
-  m_toonz_brush->strokeTo(point, pressure, restartBrushTimer());
-  m_toonz_brush->endStroke();
-  TRect updateRect = m_strokeSegmentRect * ras->getBounds();
-  if (!updateRect.isEmpty())
-    ras->extract(updateRect)->copy(m_workRaster->extract(updateRect));
-
-  TPointD thickOffset(m_maxCursorThick * 0.5, m_maxCursorThick * 0.5);
-  TRectD invalidateRect = convert(m_strokeSegmentRect) - rasCenter;
-  invalidateRect += TRectD(m_brushPos - thickOffset, m_brushPos + thickOffset);
-  invalidateRect +=
-      TRectD(previousBrushPos - thickOffset, previousBrushPos + thickOffset);
-  invalidate(invalidateRect.enlarge(2.0));
-
-  if (m_toonz_brush) {
-    delete m_toonz_brush;
-    m_toonz_brush = 0;
-  }
-
-  m_lastRect.empty();
-  m_workRaster->unlock();
-
-  if (m_tileSet->getTileCount() > 0) {
-    delete m_tileSaver;
-    TTool::Application *app   = TTool::getApplication();
-    TXshLevel *level          = app->getCurrentLevel()->getLevel();
-    TXshSimpleLevelP simLevel = level->getSimpleLevel();
-    TFrameId frameId          = getCurrentFid();
-    TRasterP subras           = ras->extract(m_strokeRect)->clone();
-    TUndoManager::manager()->add(new FullColorBrushUndo(
-        m_tileSet, simLevel.getPointer(), frameId, m_isFrameCreated, subras,
-        m_strokeRect.getP00()));
-  }
-
-  notifyImageChanged();
-  m_strokeRect.empty();
-  m_mousePressed = false;
-  m_isStraight   = false;
-  m_maxPressure  = -1.0;
-}
-
-//---------------------------------------------------------------------------------------------------------------
-
-void FullColorBrushTool::mouseMove(const TPointD &pos, const TMouseEvent &e) {
+void FullColorBrushTool::inputMouseMove(
+  const TPointD &position, const TInputState &state )
+{
   struct Locals {
     FullColorBrushTool *m_this;
 
-    void setValue(TIntPairProperty &prop,
-                  const TIntPairProperty::Value &value) {
-      prop.setValue(value);
-
+    void notify(TProperty &prop) {
       m_this->onPropertyChanged(prop.getName());
       TTool::getApplication()->getCurrentTool()->notifyToolChanged();
     }
@@ -538,8 +377,9 @@ void FullColorBrushTool::mouseMove(const TPointD &pos, const TMouseEvent &e) {
       value.second =
           tcrop<double>(value.second + add, range.first, range.second);
       value.first = tcrop<double>(value.first + add, range.first, range.second);
+      prop.setValue(value);
 
-      setValue(prop, value);
+      notify(prop);
     }
 
     void addMinMaxSeparate(TIntPairProperty &prop, double min, double max) {
@@ -551,42 +391,140 @@ void FullColorBrushTool::mouseMove(const TPointD &pos, const TMouseEvent &e) {
       value.second += max;
       if (value.first > value.second) value.first = value.second;
       value.first  = tcrop<double>(value.first, range.first, range.second);
-      value.second = tcrop<double>(value.second, range.first, range.second);
 
-      setValue(prop, value);
+      value.second = tcrop<double>(value.second, range.first, range.second);
+      prop.setValue(value);
+
+      notify(prop);
     }
 
+    void add(TDoubleProperty &prop, double x) {
+      if (x == 0.0) return;
+
+      const TDoubleProperty::Range &range = prop.getRange();
+      double value = tcrop<double>(prop.getValue() + x, range.first, range.second);
+      prop.setValue(value);
+
+      notify(prop);
+    }
   } locals = {this};
 
-  // if (e.isAltPressed() && !e.isCtrlPressed()) {
-  // const TPointD &diff = pos - m_mousePos;
-  // double add = (fabs(diff.x) > fabs(diff.y)) ? diff.x : diff.y;
-
-  // locals.addMinMax(m_thickness, int(add));
-  //} else
-  if (e.isCtrlPressed() && e.isAltPressed()) {
-    const TPointD &diff = pos - m_mousePos;
-    double max          = diff.x / 2;
-    double min          = diff.y / 2;
-
-    locals.addMinMaxSeparate(m_thickness, int(min), int(max));
+  if (state.isKeyPressed(TKey::control) && state.isKeyPressed(TKey::alt)) {
+    const TPointD &diff = position - m_mousePos;
+    if (getBrushStyle()) {
+      locals.add(m_modifierSize, 0.01*diff.x);
+    } else {
+      locals.addMinMaxSeparate(m_thickness, int(diff.x/2), int(diff.y/2));
+    }
   } else {
-    m_brushPos = pos;
+    m_brushPos = position;
   }
 
-  m_mousePos = pos;
+  m_mousePos = position;
   invalidate();
 }
 
 //-------------------------------------------------------------------------------------------------------------
 
+void FullColorBrushTool::inputSetBusy(bool busy) {
+  if (m_started == busy) return;
+  if (busy) {
+    // begin paint
+    TRasterImageP ri = (TRasterImageP)getImage(true);
+    if (!ri) ri      = (TRasterImageP)touchImage();
+    if (!ri) return;
+    TRasterP ras = ri->getRaster();
+
+    if (!(m_workRaster && m_backUpRas)) setWorkAndBackupImages();
+    m_workRaster->lock();
+    m_tileSet   = new TTileSetFullColor(ras->getSize());
+    m_tileSaver = new TTileSaverFullColor(ras, m_tileSet);
+
+    // update color here since the current style might be switched
+    // with numpad shortcut keys
+    updateCurrentStyle();
+  } else {
+    // end paint
+    if (TRasterImageP ri = (TRasterImageP)getImage(true)) {
+      TRasterP ras = ri->getRaster();
+
+      m_lastRect.empty();
+      m_workRaster->unlock();
+
+      if (m_tileSet->getTileCount() > 0) {
+        delete m_tileSaver;
+        TTool::Application *app   = TTool::getApplication();
+        TXshLevel *level          = app->getCurrentLevel()->getLevel();
+        TXshSimpleLevelP simLevel = level->getSimpleLevel();
+        TFrameId frameId          = getCurrentFid();
+        TRasterP subras           = ras->extract(m_strokeRect)->clone();
+        TUndoManager::manager()->add(new FullColorBrushUndo(
+            m_tileSet, simLevel.getPointer(), frameId, m_isFrameCreated, subras,
+            m_strokeRect.getP00()));
+      }
+
+      notifyImageChanged();
+      m_strokeRect.empty();
+    }
+  }
+  m_started = busy;
+}
+
+//-------------------------------------------------------------------------------------------------------------
+
+void FullColorBrushTool::inputPaintTrackPoint(const TTrackPoint &point, const TTrack &track, bool firstTrack) {
+  // get raster
+  if (!m_started || !getViewer()) return;
+  TRasterImageP ri = (TRasterImageP)getImage(true);
+  if (!ri) return;
+  TRasterP ras = ri->getRaster();
+  TPointD rasCenter = ras->getCenterD();
+
+  // init brush
+  TrackHandler *handler;
+  if (track.size() == track.pointsAdded && !track.toolHandler && m_workRaster) {
+    mypaint::Brush mypaintBrush;
+    applyToonzBrushSettings(mypaintBrush);
+    handler = new TrackHandler(m_workRaster, *this, mypaintBrush);
+    handler->brush.beginStroke();
+    track.toolHandler = handler;
+  }
+  handler = dynamic_cast<TrackHandler*>(track.toolHandler.getPointer());
+  if (!handler) return;
+
+  // paint stroke
+  m_strokeSegmentRect.empty();
+  handler->brush.strokeTo(
+    point.position + rasCenter,
+    m_enabledPressure ? point.pressure : 0.5,
+    point.tilt,
+    point.time - track.previous().time );
+  if (track.pointsAdded == 1 && track.finished())
+    handler->brush.endStroke();
+
+  // update affected area
+  TRect updateRect = m_strokeSegmentRect * ras->getBounds();
+  if (!updateRect.isEmpty())
+    ras->extract(updateRect)->copy(m_workRaster->extract(updateRect));
+  TRectD invalidateRect = convert(m_strokeSegmentRect) - rasCenter;
+  if (firstTrack) {
+    TPointD thickOffset(m_maxCursorThick * 0.5, m_maxCursorThick * 0.5);
+    invalidateRect += TRectD(m_brushPos - thickOffset, m_brushPos + thickOffset);
+    invalidateRect += TRectD(point.position - thickOffset, point.position + thickOffset);
+    m_brushPos = m_mousePos = point.position;
+  }
+  invalidate(invalidateRect.enlarge(2.0));
+}
+
+//-------------------------------------------------------------------------------------------------------------
+
+void FullColorBrushTool::inputInvalidateRect(const TRectD &bounds)
+  { invalidate(bounds); }
+
+//-------------------------------------------------------------------------------------------------------------
+
 void FullColorBrushTool::draw() {
   if (TRasterImageP ri = TRasterImageP(getImage(false))) {
-    // Draw line segment on straight line mode
-    if (m_isStraight) {
-      tglDrawSegment(m_firstPoint, m_lastPoint);
-    }
-
     // If toggled off, don't draw brush outline
     if (!Preferences::instance()->isCursorOutlineEnabled()) return;
 
@@ -621,6 +559,7 @@ void FullColorBrushTool::draw() {
 
     glPopAttrib();
   }
+  m_inputmanager.draw();
 }
 
 //--------------------------------------------------------------------------------------------------------------
@@ -638,6 +577,24 @@ void FullColorBrushTool::onLeave() {
 
 TPropertyGroup *FullColorBrushTool::getProperties(int targetType) {
   if (!m_presetsLoaded) initPresets();
+ 
+  bool noBrush = !getBrushStyle();
+
+  m_prop.clear();
+  if (noBrush) {
+    m_prop.bind(m_thickness);
+    m_prop.bind(m_hardness);
+    m_prop.bind(m_opacity);
+  } else {
+    m_prop.bind(m_modifierSize);
+    m_prop.bind(m_modifierOpacity);
+    m_prop.bind(m_modifierEraser);
+    m_prop.bind(m_modifierLockAlpha);
+  }
+  m_prop.bind(m_pressure);
+  m_prop.bind(m_assistants);
+  m_prop.bind(m_preset);
+
   return &m_prop;
 }
 
@@ -697,6 +654,7 @@ bool FullColorBrushTool::onPropertyChanged(std::string propertyName) {
   FullcolorModifierOpacity     = m_modifierOpacity.getValue();
   FullcolorModifierEraser      = m_modifierEraser.getValue() ? 1 : 0;
   FullcolorModifierLockAlpha   = m_modifierLockAlpha.getValue() ? 1 : 0;
+  FullcolorAssistants          = m_assistants.getValue() ? 1 : 0;
 
   if (m_preset.getValue() != CUSTOM_WSTR) {
     m_preset.setValue(CUSTOM_WSTR);
@@ -743,7 +701,7 @@ void FullColorBrushTool::loadPreset() {
   try  // Don't bother with RangeErrors
   {
     m_thickness.setValue(
-        TIntPairProperty::Value(std::max((int)preset.m_min, 1), preset.m_max));
+        TIntPairProperty::Value(std::max((int)preset.m_min, 1), (int)preset.m_max));
     m_hardness.setValue(preset.m_hardness, true);
     m_opacity.setValue(
         TDoublePairProperty::Value(preset.m_opacityMin, preset.m_opacityMax));
@@ -752,6 +710,7 @@ void FullColorBrushTool::loadPreset() {
     m_modifierOpacity.setValue(preset.m_modifierOpacity);
     m_modifierEraser.setValue(preset.m_modifierEraser);
     m_modifierLockAlpha.setValue(preset.m_modifierLockAlpha);
+    m_assistants.setValue(preset.m_assistants);
   } catch (...) {
   }
 }
@@ -772,6 +731,7 @@ void FullColorBrushTool::addPreset(QString name) {
   preset.m_modifierOpacity   = m_modifierOpacity.getValue();
   preset.m_modifierEraser    = m_modifierEraser.getValue();
   preset.m_modifierLockAlpha = m_modifierLockAlpha.getValue();
+  preset.m_assistants        = m_assistants.getValue();
 
   // Pass the preset to the manager
   m_presetsManager.addPreset(preset);
@@ -811,6 +771,7 @@ void FullColorBrushTool::loadLastBrush() {
   m_modifierOpacity.setValue(FullcolorModifierOpacity);
   m_modifierEraser.setValue(FullcolorModifierEraser ? true : false);
   m_modifierLockAlpha.setValue(FullcolorModifierLockAlpha ? true : false);
+  m_assistants.setValue(FullcolorAssistants ? true : false);
 }
 
 //------------------------------------------------------------------
@@ -855,14 +816,6 @@ void FullColorBrushTool::updateCurrentStyle() {
         m_brushPos + TPointD(m_maxCursorThick + 2, m_maxCursorThick + 2));
     invalidate(rect);
   }
-}
-
-//------------------------------------------------------------------
-
-double FullColorBrushTool::restartBrushTimer() {
-  double dtime = m_brushTimer.nsecsElapsed() * 1e-9;
-  m_brushTimer.restart();
-  return dtime;
 }
 
 //------------------------------------------------------------------
@@ -1020,6 +973,9 @@ FullColorBrushToolNotifier::FullColorBrushToolNotifier(FullColorBrushTool *tool)
                     SLOT(onColorStyleChanged()));
       assert(ret);
       ret = connect(paletteHandle, SIGNAL(colorStyleSwitched()), this,
+                    SLOT(onColorStyleChanged()));
+      assert(ret);
+      ret = connect(paletteHandle, SIGNAL(paletteSwitched()), this,
                     SLOT(onColorStyleChanged()));
       assert(ret);
     }

@@ -307,11 +307,14 @@ int TApp::getCurrentImageType() {
         cell = xsh->getCell(r0, col);
       } else /*-- Columnが空の場合 --*/
       {
+        return TImage::NONE;
+        /*
         int levelType = Preferences::instance()->getDefLevelType();
         return (levelType == PLI_XSHLEVEL)
                    ? TImage::VECTOR
                    : (levelType == TZP_XSHLEVEL) ? TImage::TOONZ_RASTER
                                                  : TImage::RASTER;
+        */
       }
     }
 
@@ -325,15 +328,18 @@ int TApp::getCurrentImageType() {
       return TImage::TOONZ_RASTER;
     case OVL_XSHLEVEL:
       return TImage::RASTER;
-    case PLI_XSHLEVEL:
-    default:
-      return TImage::VECTOR;
+    case META_XSHLEVEL:
+      return TImage::META;
     case MESH_XSHLEVEL:
       return TImage::MESH;
+    case PLI_XSHLEVEL:
+      return TImage::VECTOR;
+    default:
+      return TImage::NONE;
     }
   }
 
-  return TImage::VECTOR;
+  return TImage::NONE;
 }
 
 //-----------------------------------------------------------------------------

@@ -1357,7 +1357,7 @@ void ToonzRasterBrushTool::leftButtonDown(const TPointD &pos,
       m_strokeRect.empty();
       m_strokeSegmentRect.empty();
       m_toonz_brush->beginStroke();
-      m_toonz_brush->strokeTo(point, pressure, restartBrushTimer());
+      m_toonz_brush->strokeTo(point, pressure, TPointD(), restartBrushTimer());
       TRect updateRect = m_strokeSegmentRect * ras->getBounds();
       if (!updateRect.isEmpty()) {
         // ras->extract(updateRect)->copy(m_workRas->extract(updateRect));
@@ -1510,7 +1510,7 @@ void ToonzRasterBrushTool::leftButtonDrag(const TPointD &pos,
     TPointD point(centeredPos + rasCenter);
 
     m_strokeSegmentRect.empty();
-    m_toonz_brush->strokeTo(point, pressure, restartBrushTimer());
+    m_toonz_brush->strokeTo(point, pressure, TPointD(), restartBrushTimer());
     TRect updateRect = m_strokeSegmentRect * ras->getBounds();
     if (!updateRect.isEmpty()) {
       // ras->extract(updateRect)->copy(m_workRaster->extract(updateRect));
@@ -1681,7 +1681,7 @@ void ToonzRasterBrushTool::finishRasterBrush(const TPointD &pos,
     double pressure = m_pressure.getValue() ? pressureVal : 0.5;
 
     m_strokeSegmentRect.empty();
-    m_toonz_brush->strokeTo(point, pressure, restartBrushTimer());
+    m_toonz_brush->strokeTo(point, pressure, TPointD(), restartBrushTimer());
     m_toonz_brush->endStroke();
     TRect updateRect = m_strokeSegmentRect * ras->getBounds();
     if (!updateRect.isEmpty()) {
@@ -2372,13 +2372,14 @@ BrushData::BrushData()
     , m_hardness(0.0)
     , m_opacityMin(0.0)
     , m_opacityMax(0.0)
-    , m_drawOrder(0)
     , m_pencil(false)
     , m_pressure(false)
     , m_modifierSize(0.0)
+    , m_drawOrder(0)
     , m_modifierOpacity(0.0)
     , m_modifierEraser(0.0)
-    , m_modifierLockAlpha(0.0) {}
+    , m_modifierLockAlpha(0.0)
+    , m_assistants(false) {}
 
 //----------------------------------------------------------------------------------------------------------
 
@@ -2390,13 +2391,14 @@ BrushData::BrushData(const std::wstring &name)
     , m_hardness(0.0)
     , m_opacityMin(0.0)
     , m_opacityMax(0.0)
-    , m_drawOrder(0)
     , m_pencil(false)
     , m_pressure(false)
+    , m_drawOrder(0)
     , m_modifierSize(0.0)
     , m_modifierOpacity(0.0)
     , m_modifierEraser(0.0)
-    , m_modifierLockAlpha(0.0) {}
+    , m_modifierLockAlpha(0.0)
+    , m_assistants(false) {}
 
 //----------------------------------------------------------------------------------------------------------
 
@@ -2437,6 +2439,9 @@ void BrushData::saveData(TOStream &os) {
   os.openChild("Modifier_LockAlpha");
   os << (int)m_modifierLockAlpha;
   os.closeChild();
+  os.openChild("Assistants");
+  os << (int)m_assistants;
+  os.closeChild();
 }
 
 //----------------------------------------------------------------------------------------------------------
@@ -2472,6 +2477,8 @@ void BrushData::loadData(TIStream &is) {
       is >> val, m_modifierEraser = val, is.matchEndTag();
     else if (tagName == "Modifier_LockAlpha")
       is >> val, m_modifierLockAlpha = val, is.matchEndTag();
+    else if (tagName == "Assistants")
+      is >> val, m_assistants = val, is.matchEndTag();
     else
       is.skipCurrentTag();
   }

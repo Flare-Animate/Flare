@@ -134,6 +134,10 @@ XsheetViewer {
   qproperty-MeshColumnBorderColor: desaturate(darken(@xsheet-MeshColumn-color, @columnBorderDarkness), @columnBorderDesaturation);
   qproperty-SelectedMeshColumnColor: mix(shade(@xsheet-MeshColumn-color, @cellHighlightLightness), @cellHighlightTintColor, @cellHighlightTintAmount);
   
+  qproperty-MetaColumnColor: @xsheet-MetaColumn-color;
+  qproperty-MetaColumnBorderColor: desaturate(darken(@xsheet-MetaColumn-color, @columnBorderDarkness), @columnBorderDesaturation);
+  qproperty-SelectedMetaColumnColor: mix(shade(@xsheet-MetaColumn-color, @cellHighlightLightness), @cellHighlightTintColor, @cellHighlightTintAmount);
+
   qproperty-SoundTextColumnColor: @xsheet-SoundTextColumn-color;
   qproperty-SoundTextColumnBorderColor: desaturate(darken(@xsheet-SoundTextColumn-color, @columnBorderDarkness), @columnBorderDesaturation);
   qproperty-SelectedSoundTextColumnColor: mix(shade(@xsheet-SoundTextColumn-color, @cellHighlightLightness), @cellHighlightTintColor, @cellHighlightTintAmount);
@@ -143,7 +147,7 @@ XsheetViewer {
   qproperty-SelectedSoundColumnColor: mix(shade(@xsheet-SoundColumn-color, @cellHighlightLightness), @cellHighlightTintColor, @cellHighlightTintAmount);
   qproperty-SoundColumnHlColor: @xsheet-SoundColumnHL-color;
   qproperty-SoundColumnTrackColor: @xsheet-SoundColumnTrack-color;
-
+  
   qproperty-ActiveCameraColor: @xsheet-ActiveCamera-color;
   qproperty-SelectedActiveCameraColor: mix(shade(@xsheet-ActiveCamera-color, @cellHighlightLightness), @cellHighlightTintColor, @cellHighlightTintAmount);
   qproperty-OtherCameraColor: @xsheet-OtherCamera-color;

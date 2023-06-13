@@ -18,8 +18,39 @@
 // why (it would be included anyway though)
 #include <math.h>
 
+// Common includes
+#include "./quantel/tiio_quantel.h"
+#include "./sgi/tiio_sgi.h"
+#include "./tga/tiio_tga.h"
+#include "./png/tiio_png.h"
+/* Can't build this on FreeBSD: libtiff requires internal API access.
+ * Probably some one get luck to fix this. */
+#ifndef FREEBSD
+#include "./tif/tiio_tif.h"
+#include "./tzp/tiio_tzp.h"
+#include "./tzp/tiio_plt.h"
+#endif
+#include "./psd/tiio_psd.h"
+#include "./avi/tiio_avi.h"
+#include "./pli/tiio_pli.h"
+#include "./tzl/tiio_tzl.h"
+#include "./tzm/tiio_tzm.h"
+#include "./svg/tiio_svg.h"
+#include "./ffmpeg/tiio_gif.h"
+#include "./ffmpeg/tiio_webm.h"
+#include "./ffmpeg/tiio_mp4.h"
+#include "./ffmpeg/tiio_apng.h"
+#include "./ffmpeg/tiio_ff_mov.h"
+#include "./mesh/tiio_mesh.h"
+#include "./sprite/tiio_sprite.h"
+#include "./exr/tiio_exr.h"
+
 // Platform-specific includes
 #if defined(_WIN32)
+
+#include "./zcc/tiio_zcc.h"
+#include "./mov/tiio_mov.h"
+#include "./3gp/tiio_3gp.h"
 
 #if !defined(x64) && !defined(__GNUC__)
 
@@ -46,10 +77,6 @@
 
 #endif
 
-#include "./mov/tiio_mov.h"
-#include "./3gp/tiio_3gp.h"
-#include "./zcc/tiio_zcc.h"
-
 #elif defined(MACOSX)
 #include "./mov/tiio_movM.h"
 #include "./3gp/tiio_3gpM.h"
@@ -59,32 +86,6 @@
 #include "./mov/tiio_mov_proxy.h"
 #include "./3gp/tiio_3gp_proxy.h"
 #endif
-
-// Common includes
-#include "./quantel/tiio_quantel.h"
-#include "./sgi/tiio_sgi.h"
-#include "./tga/tiio_tga.h"
-#include "./png/tiio_png.h"
-/* Can't build this on FreeBSD: libtiff requires internal API access.
- * Probably some one get luck to fix this. */
-#ifndef FREEBSD
-#include "./tif/tiio_tif.h"
-#include "./tzp/tiio_tzp.h"
-#include "./tzp/tiio_plt.h"
-#endif
-#include "./psd/tiio_psd.h"
-#include "./avi/tiio_avi.h"
-#include "./pli/tiio_pli.h"
-#include "./tzl/tiio_tzl.h"
-#include "./svg/tiio_svg.h"
-#include "./ffmpeg/tiio_gif.h"
-#include "./ffmpeg/tiio_webm.h"
-#include "./ffmpeg/tiio_mp4.h"
-#include "./ffmpeg/tiio_apng.h"
-#include "./ffmpeg/tiio_ff_mov.h"
-#include "./mesh/tiio_mesh.h"
-#include "./sprite/tiio_sprite.h"
-#include "./exr/tiio_exr.h"
 
 //-------------------------------------------------------------------
 
@@ -141,6 +142,9 @@ void initImageIo(bool lightVersion) {
     TLevelReader::define("mesh", TLevelReaderMesh::create);
     TFileType::declare("mesh", TFileType::MESH_IMAGE);
 
+    TLevelWriter::define("tzm", tzm::createWriter, false);
+    TLevelReader::define("tzm", tzm::createReader);
+    TFileType::declare("tzm", TFileType::META_LEVEL);
   }  // !lightversion
 
   TFileType::declare("tpl", TFileType::PALETTE_LEVEL);

@@ -456,6 +456,8 @@ centralWidget->setLayout(centralWidgetLayout);*/
   setCommandHandler("MI_NewRasterLevel", this,
                     &MainWindow::onNewRasterLevelButtonPressed);
   setCommandHandler(MI_ClearCacheFolder, this, &MainWindow::clearCacheFolder);
+  setCommandHandler("MI_NewMetaLevel", this,
+                    &MainWindow::onNewMetaLevelButtonPressed);
   // remove ffmpegCache if still exists from crashed exit
   QString ffmpegCachePath =
       ToonzFolder::getCacheRootFolder().getQString() + "//ffmpeg";
@@ -1845,6 +1847,8 @@ void MainWindow::defineActions() {
                         "new_toonz_raster_level");
   createMenuLevelAction(MI_NewRasterLevel, QT_TR_NOOP("&New Raster Level"), "",
                         "new_raster_level");
+  createMenuFileAction(MI_NewMetaLevel, QT_TR_NOOP("&New Assistant Level"),
+                       "new_meta_level");
   createMenuLevelAction(MI_LoadLevel, QT_TR_NOOP("&Load Level..."), "",
                         "load_level");
   createMenuLevelAction(MI_SaveLevel, QT_TR_NOOP("&Save Level"), "",
@@ -2472,6 +2476,7 @@ void MainWindow::defineActions() {
   createToolAction(T_Plastic, "plastic", QT_TR_NOOP("Plastic Tool"), "X");
   createToolAction(T_Ruler, "ruler", QT_TR_NOOP("Ruler Tool"), "");
   createToolAction(T_Finger, "finger", QT_TR_NOOP("Finger Tool"), "");
+  createToolAction(T_EditAssistants, "assistant", QT_TR_NOOP("Edit Assistants"), "");
 
   /*-- Animate tool + mode switching shortcuts --*/
   createAction(MI_EditNextMode, QT_TR_NOOP("Animate Tool - Next Mode"), "",
@@ -3116,6 +3121,15 @@ void MainWindow::clearCacheFolder() {
           tr("Can't delete %1 : ").arg(fileToBeRemoved.getQString()));
     }
   }
+}
+
+//-----------------------------------------------------------------------------
+
+void MainWindow::onNewMetaLevelButtonPressed() {
+  int defaultLevelType = Preferences::instance()->getDefLevelType();
+  Preferences::instance()->setValue(DefLevelType, META_XSHLEVEL);
+  CommandManager::instance()->execute("MI_NewLevel");
+  Preferences::instance()->setValue(DefLevelType, defaultLevelType);
 }
 
 //-----------------------------------------------------------------------------

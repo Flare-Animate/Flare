@@ -57,7 +57,7 @@ namespace {
 // Global variables
 
 typedef std::pair<std::string, TTool::ToolTargetType> ToolKey;
-typedef std::map<ToolKey, TTool *> ToolTable;
+typedef std::multimap<ToolKey, TTool *> ToolTable;
 ToolTable *toolTable = 0;
 
 std::set<std::string> *toolNames = 0;
@@ -181,10 +181,36 @@ TTool::TTool(std::string name)
 
 TTool *TTool::getTool(std::string toolName, ToolTargetType targetType) {
   if (!toolTable) return 0;
-  ToolTable::iterator it =
-      toolTable->find(std::make_pair(toolName, targetType));
-  if (it == toolTable->end()) return 0;
-  return it->second;
+
+  // if to this name and target type was assigned more then one tool
+  // then select tool which more compatible with default target type
+
+  int defTarget = 0;
+  switch(Preferences::instance()->getDefLevelType()) {
+  case PLI_XSHLEVEL:  defTarget = VectorImage; break;
+  case TZP_XSHLEVEL:  defTarget = ToonzImage;  break;
+  case OVL_XSHLEVEL:  defTarget = RasterImage; break;
+  case META_XSHLEVEL: defTarget = MetaImage;   break;
+  default:            defTarget = 0;           break;
+  }
+
+  bool isDefault = false;
+  int target = 0;
+  TTool *tool = 0;
+
+  std::pair<ToolTable::iterator, ToolTable::iterator> range =
+    toolTable->equal_range(std::make_pair(toolName, targetType));
+  for(ToolTable::iterator it = range.first; it != range.second; ++it) {
+    int t = it->second->getTargetType();
+    bool d = (bool)(t & defTarget);
+    if (!tool || (d && !isDefault) || (d == isDefault && t > target)) {
+      isDefault = d;
+      target = t;
+      tool = it->second;
+    }
+  }
+
+  return tool;
 }
 
 //-----------------------------------------------------------------------------
@@ -196,19 +222,24 @@ void TTool::bind(int targetType) {
 
   if (!toolNames) toolNames = new std::set<std::string>();
 
+  ToolTargetType targets[] = {
+    EmptyTarget,
+    ToonzImage,
+    VectorImage,
+    RasterImage,
+    MeshImage,
+    MetaImage };
+  int targetsCount = sizeof(targets)/sizeof(*targets);
+
   std::string name = getName();
   if (toolNames->count(name) == 0) {
     toolNames->insert(name);
 
     // Initialize with the dummy tool
-    toolTable->insert(
-        std::make_pair(std::make_pair(name, ToonzImage), &theDummyTool));
-    toolTable->insert(
-        std::make_pair(std::make_pair(name, VectorImage), &theDummyTool));
-    toolTable->insert(
-        std::make_pair(std::make_pair(name, RasterImage), &theDummyTool));
-    toolTable->insert(
-        std::make_pair(std::make_pair(name, MeshImage), &theDummyTool));
+    for(int i = 0; i < targetsCount; ++i)
+      if (!toolTable->count(std::make_pair(name, targets[i])))
+        toolTable->insert(
+          std::make_pair(std::make_pair(name, targets[i]), &theDummyTool));
 
     ToolSelector *toolSelector = new ToolSelector(name);
     CommandManager::instance()->setHandler(
@@ -216,14 +247,10 @@ void TTool::bind(int targetType) {
                           toolSelector, &ToolSelector::selectTool));
   }
 
-  if (targetType & ToonzImage)
-    (*toolTable)[std::make_pair(name, ToonzImage)] = this;
-  if (targetType & VectorImage)
-    (*toolTable)[std::make_pair(name, VectorImage)] = this;
-  if (targetType & RasterImage)
-    (*toolTable)[std::make_pair(name, RasterImage)] = this;
-  if (targetType & MeshImage)
-    (*toolTable)[std::make_pair(name, MeshImage)] = this;
+  for(int i = 0; i < targetsCount; ++i)
+    if (targetType & targets[i])
+      toolTable->insert(
+        std::make_pair(std::make_pair(name, targets[i]), this));
 }
 
 //-----------------------------------------------------------------------------
@@ -521,7 +548,25 @@ TImage *TTool::touchImage() {
 
   // - - - - empty column case starts here - - - -
   // autoCreate is enabled: we must create a new level
-  int levelType    = pref->getDefLevelType();
+  
+  // select one from supported level types
+  // default level type is preffered
+  int levelType = pref->getDefLevelType();
+  int toolLevelType = UNKNOWN_XSHLEVEL;
+  bool found = false;
+
+  if ( m_targetType & MetaImage )
+    { toolLevelType = META_XSHLEVEL; found = found || toolLevelType == levelType; }
+  if ( m_targetType & RasterImage )
+    { toolLevelType = OVL_XSHLEVEL;  found = found || toolLevelType == levelType; }
+  if ( m_targetType & ToonzImage )
+    { toolLevelType = TZP_XSHLEVEL;  found = found || toolLevelType == levelType; }
+  if ( m_targetType & VectorImage )
+    { toolLevelType = PLI_XSHLEVEL;  found = found || toolLevelType == levelType; }
+
+  if (toolLevelType == UNKNOWN_XSHLEVEL) return 0;
+  if (!found) levelType = toolLevelType;
+
   TXshLevel *xl    = scene->createNewLevel(levelType);
   sl               = xl->getSimpleLevel();
   m_isLevelCreated = true;
@@ -1026,6 +1071,11 @@ QString TTool::updateEnabled(int rowIndex, int columnIndex) {
         return (
             enable(false),
             QObject::tr("The current tool cannot be used on a Mesh Level."));
+
+      if ((levelType == META_XSHLEVEL) && !(targetType & MetaImage))
+        return (
+            enable(false),
+            QObject::tr("The current tool cannot be used on a Assistants (Meta) Level."));
     }
 
     // Check against impossibly traceable movements on the column
@@ -1079,15 +1129,15 @@ void TTool::setSelectedFrames(const std::set<TFrameId> &selectedFrames) {
 
 //-------------------------------------------------------------------------------------------------------------
 
-void TTool::Viewer::getGuidedFrameIdx(int *backIdx, int *frontIdx) {
+void TToolViewer::getGuidedFrameIdx(int *backIdx, int *frontIdx) {
   if (!Preferences::instance()->isGuidedDrawingEnabled()) return;
 
   OnionSkinMask osMask =
-      m_application->getCurrentOnionSkin()->getOnionSkinMask();
+      TTool::getApplication()->getCurrentOnionSkin()->getOnionSkinMask();
 
   if (!osMask.isEnabled() || osMask.isEmpty()) return;
 
-  TFrameHandle *currentFrame = getApplication()->getCurrentFrame();
+  TFrameHandle *currentFrame = TTool::getApplication()->getCurrentFrame();
 
   int cidx     = currentFrame->getFrameIndex();
   int mosBack  = 0;
@@ -1158,7 +1208,7 @@ void TTool::Viewer::getGuidedFrameIdx(int *backIdx, int *frontIdx) {
 
 //-------------------------------------------------------------------------------------------------------------
 
-void TTool::Viewer::doPickGuideStroke(const TPointD &pos) {
+void TToolViewer::doPickGuideStroke(const TPointD &pos) {
   int pickerMode = getGuidedStrokePickerMode();
 
   if (!pickerMode) return;
@@ -1177,14 +1227,14 @@ void TTool::Viewer::doPickGuideStroke(const TPointD &pos) {
     os = osFront;
 
   TFrameId fid;
-  TFrameHandle *currentFrame = getApplication()->getCurrentFrame();
+  TFrameHandle *currentFrame = TTool::getApplication()->getCurrentFrame();
   TXshSimpleLevel *sl =
-      getApplication()->getCurrentLevel()->getLevel()->getSimpleLevel();
+      TTool::getApplication()->getCurrentLevel()->getLevel()->getSimpleLevel();
   if (!sl) return;
 
   if (currentFrame->isEditingScene()) {
-    TXsheet *xsh = getApplication()->getCurrentXsheet()->getXsheet();
-    int col      = getApplication()->getCurrentColumn()->getColumnIndex();
+    TXsheet *xsh = TTool::getApplication()->getCurrentXsheet()->getXsheet();
+    int col      = TTool::getApplication()->getCurrentColumn()->getColumnIndex();
     if (xsh && col >= 0) {
       TXshCell cell = xsh->getCell(os, col);
       if (!cell.isEmpty()) fid = cell.getFrameId();

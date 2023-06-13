@@ -348,6 +348,8 @@ void BaseViewerPanel::showEvent(QShowEvent *event) {
 
   assert(ret);
 
+  m_sceneViewer->onToolSwitched();
+
   m_flipConsole->setActive(true);
   m_flipConsole->onPreferenceChanged("");
 

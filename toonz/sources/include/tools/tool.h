@@ -58,6 +58,8 @@ class TFxHandle;
 
 class ToolOptionsBox;
 
+class TToolViewer;
+
 class QMenu;
 class QKeyEvent;
 
@@ -281,13 +283,15 @@ public:
     MeshImage   = 0x8,   //!< Will work on mesh images
     Splines     = 0x10,  //!< Will work on motion paths
 
-    LevelColumns = 0x20,  //!< Will work on level columns
-    MeshColumns  = 0x40,  //!< Will work on mesh columns
+    LevelColumns= 0x20,  //!< Will work on level columns
+    MeshColumns = 0x40,  //!< Will work on mesh columns
 
     EmptyTarget = 0x80,  //!< Will work on empty cells/columns
 
+    MetaImage   = 0x100, //!< Will work on mets images
+
     CommonImages = VectorImage | ToonzImage | RasterImage,
-    AllImages    = CommonImages | MeshImage,
+    AllImages    = CommonImages | MeshImage | MetaImage,
     Vectors      = VectorImage | Splines,
 
     CommonLevels = CommonImages | LevelColumns,
@@ -319,8 +323,8 @@ public:
       bool toBeModified,
       int subsampling = 0);  //!< Returns the image to be edited by the tool.
 
-  static TImage *touchImage();  //!< Returns a pointer to the actual image - the
-                                //!  one of the frame that has been selected.
+  TImage *touchImage();  //!< Returns a pointer to the actual image - the
+                         //!  one of the frame that has been selected.
 
   /*! \details      This function is necessary since tools are created before
 the main
@@ -353,11 +357,11 @@ public:
   createOptionsBox();  //!< Factory function returning a newly created
                        //!  GUI options box to be displayed for the tool
 
-  void setViewer(Viewer *viewer) {
+  void setViewer(TToolViewer *viewer) {
     m_viewer = viewer;
     onSetViewer();
   }
-  Viewer *getViewer() const { return m_viewer; }
+  TToolViewer *getViewer() const { return m_viewer; }
 
   double getPixelSize() const;
 
@@ -391,7 +395,7 @@ return true if the method execution can have changed the current tool
   virtual void rightButtonDown(const TPointD &, const TMouseEvent &) {}
   virtual bool keyDown(QKeyEvent *) { return false; }
 
-  virtual void onInputText(std::wstring, std::wstring, int, int){};
+  virtual void onInputText(const std::wstring&, const std::wstring&, int, int){};
 
   virtual void onSetViewer() {}
 
@@ -422,6 +426,9 @@ return true if the method execution can have changed the current tool
 
   virtual TPropertyGroup *getProperties(int) { return 0; }
 
+  virtual bool onPropertyChanged(std::string propertyName, bool addToUndo) {
+    return onPropertyChanged(propertyName);
+  }
   /*!
           Does the tasks associated to changes in \p propertyName and returns \p
      true;
@@ -552,7 +559,7 @@ public:
 protected:
   std::string m_name;  //!< The tool's name.
 
-  Viewer *m_viewer;  //!< Tool's current viewer.
+  TToolViewer *m_viewer;  //!< Tool's current viewer.
   TAffine m_matrix;  //!< World-to-window reference change affine.
 
   int m_targetType;  //!< The tool's image type target.
@@ -576,17 +583,17 @@ protected:
 };
 
 //*****************************************************************************************
-//    TTool::Viewer  declaration
+//    TToolViewer  declaration
 //*****************************************************************************************
 
 /*!
-  \brief    The TTool::Viewer class is the abstract base class that provides an
+  \brief    The TToolViewer class is the abstract base class that provides an
   interface for
             TTool viewer widgets (it is required that such widgets support
   OpenGL).
 */
 
-class TTool::Viewer {
+class TToolViewer {
 protected:
   ImagePainter::VisualSettings
       m_visualSettings;  //!< Settings used by the Viewer to draw scene contents
@@ -597,8 +604,8 @@ protected:
   QWidget *m_viewerWidget  = nullptr;
 
 public:
-  Viewer(QWidget *widget) : m_viewerWidget(widget) {}
-  virtual ~Viewer() {}
+  TToolViewer(QWidget *widget) : m_viewerWidget(widget) {}
+  virtual ~TToolViewer() {}
 
   const ImagePainter::VisualSettings &visualSettings() const {
     return m_visualSettings;
@@ -621,6 +628,11 @@ public:
   virtual TAffine getViewMatrix() const {
     return TAffine();
   }  //!< Gets the viewer's current view affine (ie the transform from
+     //!<  starting to current <I> world view <\I>)
+
+  virtual TAffine4 get3dViewMatrix() const {
+    return TAffine4(getViewMatrix());
+  }  //!< Gets the viewer's current view affine 3d (ie the transform from
      //!<  starting to current <I> world view <\I>)
 
   //! return the column index of the drawing intersecting point \b p

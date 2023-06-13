@@ -1794,6 +1794,7 @@ SchematicViewer {
   qproperty-FxColumnColor: #5e5645;
   qproperty-PaletteColumnColor: #42756e;
   qproperty-MeshColumnColor: #594d75;
+  qproperty-MetaColumnColor: #8c8c8c;
   qproperty-ReferenceColumnColor: #4d5052;
   qproperty-TableColor: #62628c;
   qproperty-ActiveCameraColor: #4073a3;
@@ -2343,6 +2344,9 @@ XsheetViewer {
   qproperty-MeshColumnColor: #594d75;
   qproperty-MeshColumnBorderColor: #423956;
   qproperty-SelectedMeshColumnColor: #656692;
+  qproperty-MetaColumnColor: #8c8c8c;
+  qproperty-MetaColumnBorderColor: #c8c8c8;
+  qproperty-SelectedMetaColumnColor: #a6a6a6;
   qproperty-SoundTextColumnColor: #a7a7a7;
   qproperty-SoundTextColumnBorderColor: #8e8e8e;
   qproperty-SelectedSoundTextColumnColor: #adb9c0;

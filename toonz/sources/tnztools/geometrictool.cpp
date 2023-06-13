@@ -1469,8 +1469,8 @@ void GeometricTool::addRasterMyPaintStroke(const TToonzImageP &ti,
     q           = stroke->getChunk(i);
     double step = computeStep(*q, getPixelSize());
     for (double t = 0; t < 1; t += step)
-      toonz_brush.strokeTo(q->getPoint(t), 0.5, 1.);
-    toonz_brush.strokeTo(q->getP2(), 0.5, 1.);
+      toonz_brush.strokeTo(q->getPoint(t), 0.5, TPointD(), 1.0);
+    toonz_brush.strokeTo(q->getP2(), 0.5, TPointD(), 1.0);
   }
   toonz_brush.endStroke();
   if (!m_strokeRect.isEmpty()) {
@@ -1540,8 +1540,8 @@ void GeometricTool::addFullColorMyPaintStroke(const TRasterImageP &ri,
     q           = stroke->getChunk(i);
     double step = computeStep(*q, getPixelSize());
     for (double t = 0; t < 1; t += step)
-      toonz_brush.strokeTo(q->getPoint(t), 0.5, 1.);
-    toonz_brush.strokeTo(q->getP2(), 0.5, 1.);
+      toonz_brush.strokeTo(q->getPoint(t), 0.5, TPointD(), 1.0);
+    toonz_brush.strokeTo(q->getP2(), 0.5, TPointD(), 1.0);
   }
   toonz_brush.endStroke();
   if (!m_strokeRect.isEmpty())
@@ -1825,7 +1825,7 @@ TPointD Primitive::checkGuideSnapping(TPointD pos) {
   if ((m_param->m_targetType & TTool::Vectors) && m_param->m_snap.getValue()) {
     int vGuideCount = 0, hGuideCount = 0;
     double guideDistance  = sqrt(m_param->m_minDistance2);
-    TTool::Viewer *viewer = m_tool->getViewer();
+    TToolViewer *viewer = m_tool->getViewer();
     if (viewer) {
       vGuideCount = viewer->getVGuideCount();
       hGuideCount = viewer->getHGuideCount();

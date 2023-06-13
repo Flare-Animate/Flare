@@ -43,6 +43,20 @@ set(HEADERS
     ../include/tools/tool.h
     ../include/tools/toolcommandids.h
     ../include/tools/toolutils.h
+    ../include/tools/tooltimer.h
+    ../include/tools/keyhistory.h
+    ../include/tools/inputstate.h
+    ../include/tools/track.h
+    ../include/tools/inputmanager.h
+    ../include/tools/assistant.h
+    ../include/tools/modifiers/modifierassistants.h
+    ../include/tools/modifiers/modifierline.h
+    ../include/tools/modifiers/modifiertangents.h
+    ../include/tools/modifiers/modifiertest.h
+    ../include/tools/modifiers/modifiersegmentation.h
+    ../include/tools/modifiers/modifierassistants.h
+    ../include/tools/assistants/guidelineline.h
+    ../include/tools/assistants/guidelineellipse.h
 )
 
 set(SOURCES
@@ -105,7 +119,23 @@ set(SOURCES
     mypainttoonzbrush.cpp
     shifttracetool.cpp
     toonzrasterbrushtool.cpp
-	toonzvectorbrushtool.cpp
+    toonzvectorbrushtool.cpp
+    tooltimer.cpp
+    inputstate.cpp
+    track.cpp
+    inputmanager.cpp
+    assistant.cpp
+    modifiers/modifierassistants.cpp
+    modifiers/modifierline.cpp
+    modifiers/modifiertangents.cpp
+    modifiers/modifiertest.cpp
+    modifiers/modifiersegmentation.cpp
+    assistants/guidelineline.cpp
+    assistants/guidelineellipse.cpp
+    assistants/assistantvanishingpoint.cpp
+    assistants/assistantline.cpp
+    assistants/assistantellipse.cpp
+    editassistantstool.cpp
 )
 
 set(RESOURCES tnztools.qrc)
