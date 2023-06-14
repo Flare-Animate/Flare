@@ -538,6 +538,8 @@ void PageViewer::drawToggleLink(QPainter &p, QRect &chipRect,
     int y      = chipRect.topRight().y();
     QRect rect(x, y, 7, 7);
 
+    p.save();
+
     p.fillRect(rect, QBrush(Qt::white));
     p.setPen(Qt::black);
     p.drawRect(rect);
@@ -554,6 +556,8 @@ void PageViewer::drawToggleLink(QPainter &p, QRect &chipRect,
       p.drawLine(a, c);
       p.drawLine(a, d);
     }
+
+    p.restore();
   }
 }
 
