@@ -1375,7 +1375,7 @@ void ToonzRasterBrushTool::leftButtonDown(const TPointD &pos,
     } else if (m_hardness.getValue() == 100 || m_pencil.getValue()) {
       /*-- Pencilモードでなく、Hardness=100 の場合のブラシサイズを1段階下げる
        * --*/
-      if (!m_pencil.getValue()) thickness -= 1.0;
+      if (!m_pencil.getValue() && !m_isStraight) thickness -= 1.0;
 
       TThickPoint thickPoint(centeredPos + convert(ras->getCenter()),
                              thickness);
@@ -1643,8 +1643,7 @@ void ToonzRasterBrushTool::leftButtonUp(const TPointD &pos,
   else
     pressure = m_pressure.getValue() ? e.m_pressure : 1.0;
 
-  if (m_isStraight && m_maxPressure > 0.0)
-    pressure = m_maxPressure;
+  if (m_isStraight && m_maxPressure > 0.0) pressure = m_maxPressure;
 
   finishRasterBrush(centeredPos, pressure);
   int tc = ToonzCheck::instance()->getChecks();
@@ -1774,9 +1773,9 @@ void ToonzRasterBrushTool::finishRasterBrush(const TPointD &pos,
   } else {
     double maxThickness = m_rasThickness.getValue().second;
     double thickness    = (m_pressure.getValue())
-                           ? computeThickness(pressureVal, m_rasThickness) * 2
-                           : maxThickness;
-    TPointD rasCenter = ti->getRaster()->getCenterD();
+                              ? computeThickness(pressureVal, m_rasThickness) * 2
+                              : maxThickness;
+    TPointD rasCenter   = ti->getRaster()->getCenterD();
     TRectD invalidateRect;
     TThickPoint thickPoint(pos + rasCenter, thickness);
     std::vector<TThickPoint> pts;
