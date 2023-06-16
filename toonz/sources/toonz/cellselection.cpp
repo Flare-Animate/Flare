@@ -2172,6 +2172,8 @@ void TCellSelection::pasteCells() {
             toolHandle->getTool()->onDeactivate();
             toolHandle->getTool()->onActivate();
             rs->pasteSelection();
+            assert(initUndo);
+            TUndoManager::manager()->endBlock();
             return;
           }
         }
