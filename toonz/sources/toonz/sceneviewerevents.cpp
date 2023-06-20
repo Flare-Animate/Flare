@@ -344,10 +344,20 @@ void SceneViewer::tabletEvent(QTabletEvent *e) {
 #endif
   } break;
   case QEvent::TabletMove: {
+#ifdef MACOSX
+    // for now OSX seems to fail to call enter/leaveEvent properly while
+    // the tablet is floating
     bool isHoveringInsideViewer =
         !rect().marginsRemoved(QMargins(5, 5, 5, 5)).contains(e->pos());
     // call the fake enter event
     if (isHoveringInsideViewer) onEnter();
+#else
+    // for Windowsm, use tabletEvent only for the left Button
+    if (m_tabletState != StartStroke && m_tabletState != OnStroke) {
+      m_tabletEvent = false;
+      break;
+    }
+#endif
 
     QPointF curPos = e->posF() * getDevPixRatio();
 #if defined(_WIN32) && QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)

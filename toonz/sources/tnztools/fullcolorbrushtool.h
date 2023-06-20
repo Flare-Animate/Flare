@@ -6,7 +6,9 @@
 #include <ctime>
 
 #include <tools/inputmanager.h>
+#ifndef NDEBUG
 #include <tools/modifiers/modifiertest.h>
+#endif
 #include <tools/modifiers/modifierline.h>
 #include <tools/modifiers/modifiertangents.h>
 #include <tools/modifiers/modifierassistants.h>
@@ -35,19 +37,18 @@ class Brush;
 //    FullColor Brush Tool declaration
 //************************************************************************
 
-class FullColorBrushTool final : public TTool, public RasterController, public TInputHandler {
+class FullColorBrushTool final : public TTool,
+                                 public RasterController,
+                                 public TInputHandler {
   Q_DECLARE_TR_FUNCTIONS(FullColorBrushTool)
 public:
-  class TrackHandler: public TTrackToolHandler {
+  class TrackHandler : public TTrackToolHandler {
   public:
     MyPaintToonzBrush brush;
 
-    TrackHandler(
-      const TRaster32P &ras,
-      RasterController &controller,
-      const mypaint::Brush &brush
-    ):
-      brush(ras, controller, brush) { }
+    TrackHandler(const TRaster32P &ras, RasterController &controller,
+                 const mypaint::Brush &brush)
+        : brush(ras, controller, brush) {}
   };
 
 private:
@@ -76,11 +77,13 @@ public:
   void leftButtonUp(const TPointD &pos, const TMouseEvent &e) override;
   void mouseMove(const TPointD &pos, const TMouseEvent &e) override;
 
-  void inputMouseMove(const TPointD &position, const TInputState &state) override;
+  void inputMouseMove(const TPointD &position,
+                      const TInputState &state) override;
   void inputSetBusy(bool busy) override;
-  void inputPaintTrackPoint(const TTrackPoint &point, const TTrack &track, bool firstTrack) override;
+  void inputPaintTrackPoint(const TTrackPoint &point, const TTrack &track,
+                            bool firstTrack) override;
   void inputInvalidateRect(const TRectD &bounds) override;
-  TTool* inputGetTool() override { return this; };
+  TTool *inputGetTool() override { return this; };
 
   void draw() override;
 
@@ -110,28 +113,31 @@ public:
 
 private:
   enum MouseEventType { ME_DOWN, ME_DRAG, ME_UP, ME_MOVE };
-  void handleMouseEvent(MouseEventType type, const TPointD &pos, const TMouseEvent &e);
-  
+  void handleMouseEvent(MouseEventType type, const TPointD &pos,
+                        const TMouseEvent &e);
+
 protected:
   TInputManager m_inputmanager;
+#ifndef NDEBUG
   TSmartPointerT<TModifierTest> m_modifierTest;
+#endif
   TSmartPointerT<TModifierLine> m_modifierLine;
   TSmartPointerT<TModifierTangents> m_modifierTangents;
   TSmartPointerT<TModifierAssistants> m_modifierAssistants;
   TSmartPointerT<TModifierSegmentation> m_modifierSegmentation;
-  
+
   TPropertyGroup m_prop;
 
-  TIntPairProperty    m_thickness;
-  TBoolProperty       m_pressure;
+  TIntPairProperty m_thickness;
+  TBoolProperty m_pressure;
   TDoublePairProperty m_opacity;
-  TDoubleProperty     m_hardness;
-  TDoubleProperty     m_modifierSize;
-  TDoubleProperty     m_modifierOpacity;
-  TBoolProperty       m_modifierEraser;
-  TBoolProperty       m_modifierLockAlpha;
-  TBoolProperty       m_assistants;
-  TEnumProperty       m_preset;
+  TDoubleProperty m_hardness;
+  TDoubleProperty m_modifierSize;
+  TDoubleProperty m_modifierOpacity;
+  TBoolProperty m_modifierEraser;
+  TBoolProperty m_modifierLockAlpha;
+  TBoolProperty m_assistants;
+  TEnumProperty m_preset;
 
   TPixel32 m_currentColor;
   bool m_enabledPressure;
@@ -169,6 +175,8 @@ class FullColorBrushToolNotifier final : public QObject {
 
 public:
   FullColorBrushToolNotifier(FullColorBrushTool *tool);
+  void onActivate();
+  void onDeactivate();
 
 protected slots:
   void onCanvasSizeChanged() { m_tool->onCanvasSizeChanged(); }
