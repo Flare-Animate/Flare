@@ -52,7 +52,6 @@ TModifierTest::TModifierTest(int count, double radius)
     : count(count), radius(radius) {}
 
 void TModifierTest::modifyTrack(const TTrack &track,
-                                const TInputSavePoint::Holder &savePoint,
                                 TTrackList &outTracks) {
   const double segmentSize = 2.0 * M_PI / 10.0;
 
@@ -68,7 +67,7 @@ void TModifierTest::modifyTrack(const TTrack &track,
 
   Handler *handler = dynamic_cast<Handler *>(track.handler.getPointer());
   if (!handler) {
-    TInputModifier::modifyTrack(track, savePoint, outTracks);
+    TInputModifier::modifyTrack(track, outTracks);
     return;
   }
 
@@ -124,11 +123,16 @@ void TModifierTest::modifyTrack(const TTrack &track,
           double end  = 1.0 - 0.5 * step;
           for (double frac = step; frac < end; frac += step)
             subTrack.push_back(
-                subTrack.modifier->calcPoint((double)i - 1.0 + frac));
+                subTrack.modifier->calcPoint((double)i - 1.0 + frac), false);
         }
       }
-      subTrack.push_back(subTrack.modifier->calcPoint(i));
+      subTrack.push_back(subTrack.modifier->calcPoint(i), false);
     }
+    
+    // fix points
+    if (track.fixedSize())
+      subTrack.fix_to(
+        subTrack.floorIndex(subTrack.indexByOriginalIndex(track.fixedSize() - 1)) + 1 );
   }
 
   track.resetChanges();

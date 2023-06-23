@@ -31,12 +31,10 @@ TTrackPoint TModifierLine::Modifier::calcPoint(double originalIndex) {
 }
 
 void TModifierLine::modifyTrack(const TTrack &track,
-                                const TInputSavePoint::Holder &savePoint,
                                 TTrackList &outTracks) {
   if (!track.handler) {
     track.handler       = new TTrackHandler(track);
     Modifier *modifier  = new Modifier(*track.handler);
-    modifier->savePoint = savePoint;
     track.handler->tracks.push_back(new TTrack(modifier));
   }
 
@@ -66,7 +64,6 @@ void TModifierLine::modifyTrack(const TTrack &track,
   }
   modifier->maxPressure = maxPressure;
   modifier->fixAngle    = fixAngle;
-  if (track.finished()) modifier->savePoint.reset();
 
   subTrack.truncate(0);
 
@@ -75,7 +72,7 @@ void TModifierLine::modifyTrack(const TTrack &track,
     p.originalIndex = 0;
     p.pressure      = maxPressure;
     p.tilt          = TPointD();
-    subTrack.push_back(p);
+    subTrack.push_back(p, false);
   }
 
   if (track.size() > 1) {
@@ -84,8 +81,11 @@ void TModifierLine::modifyTrack(const TTrack &track,
     p.pressure      = maxPressure;
     p.tilt          = TPointD();
     if (fixAngle) calcFixedAngle(subTrack.front(), p);
-    subTrack.push_back(p);
+    subTrack.push_back(p, false);
   }
+
+  if (track.fixedFinished())
+    subTrack.fix_all();
 
   track.resetChanges();
 }

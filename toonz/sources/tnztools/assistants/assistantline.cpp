@@ -159,13 +159,14 @@ public:
 private:
   void drawRuler(const TPointD &a, const TPointD &b, double pixelSize, bool perspective) const {
     double minStep = 10.0*pixelSize;
-    double alpha = getDrawingGridAlpha();
+    double alpha = getDrawingAlpha();
 
     TPointD direction = b - a;
     double l2 = norm2(direction);
     if (l2 <= TConsts::epsilon*TConsts::epsilon) return;
     double dirLen = sqrt(l2);
     TPointD dirProj = direction*(1.0/l2);
+    TPointD normal = TPointD(-direction.y, direction.x)*(1.0/dirLen);
 
     double xg0 = dirProj*(m_grid0.position - a);
     double xg1 = dirProj*(m_grid1.position - a);
@@ -176,13 +177,13 @@ private:
       double k = 0.0, begin = 0.0, end = 0.0;
       if (!calcPerspectiveStep(minStep/dirLen, 0.0, 1.0, xa0, xg0, xg1, k, begin, end)) return;
       for(double x = begin; fabs(x) < fabs(end); x *= k)
-        drawDot(a + direction*(xa0 + x), alpha);
+        drawMark(a + direction*(xa0 + x), normal, pixelSize, alpha);
     } else {
       // draw linear
       double dx = fabs(xg1 - xg0);
       if (dx*dirLen < minStep) return;
       for(double x = xg0 - floor(xg0/dx)*dx; x < 1.0; x += dx)
-        drawDot(a + direction*x, alpha);
+        drawMark(a + direction*x, normal, pixelSize, alpha);
     }
   }
 
@@ -318,7 +319,14 @@ public:
       success = TGuidelineLineBase::truncateRay(oneBox, bb, aa);
     else
       success = TGuidelineLineBase::truncateInfiniteLine(oneBox, aa, bb);
-    if (!success) return;
+
+    if (!success) {
+      // line is out of screen, bud grid still can be visible
+      if (grid && getParallel())
+          drawGrid(matrix, matrixInv, pixelSize, restrictA, restrictB, perspective);
+      return;
+    }
+    
     TPointD a = matrixInv*aa;
     TPointD b = matrixInv*bb;
 

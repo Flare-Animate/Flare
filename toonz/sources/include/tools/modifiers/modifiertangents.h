@@ -31,17 +31,15 @@ public:
     explicit Modifier(TTrackHandler &handler):
       TTrackModifier(handler) { }
 
-    TInputSavePoint::Holder savePoint;
     TTrackTangentList tangents;
 
     TTrackPoint calcPoint(double originalIndex) override;
   };
 
-  TTrackTangent calcLastTangent(const TTrack &track) const;
+  TTrackTangent calcTangent(const TTrack &track, int index) const;
 
   void modifyTrack(
     const TTrack &track,
-    const TInputSavePoint::Holder &savePoint,
     TTrackList &outTracks ) override;
 };
 

@@ -28,17 +28,27 @@ class DVAPI TGuidelineEllipse : public TGuideline {
 public:
   const TAffine matrix;
   const TAffine matrixInv;
+  const double Rx;
+  const double Ry;
 
   TGuidelineEllipse(
     bool enabled,
     double magnetism,
-    TAffine matrix );
+    const TAffine &matrix );
 
   TGuidelineEllipse(
     bool enabled,
     double magnetism,
-    TAffine matrix,
-    TAffine matrixInv );
+    const TAffine &matrix,
+    const TAffine &matrixInv );
+
+  TGuidelineEllipse(
+    bool enabled,
+    double magnetism,
+    const TAffine &matrix,
+    const TAffine &matrixInv,
+    double Rx,
+    double Ry );
 
   //! returns false when ellipse is invisible
   static bool truncateEllipse(
@@ -49,6 +59,7 @@ public:
   static int calcSegmentsCount(const TAffine &ellipseMatrix, double pixelSize);
 
   TTrackPoint transformPoint(const TTrackPoint &point) const override;
+  TPointD nearestPoint(const TPointD &point) const override;
   void draw(bool active, bool enabled) const override;
 };
 

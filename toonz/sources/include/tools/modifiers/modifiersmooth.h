@@ -1,7 +1,7 @@
 #pragma once
 
-#ifndef MODIFIERSEGMENTATION_INCLUDED
-#define MODIFIERSEGMENTATION_INCLUDED
+#ifndef MODIFIERSMOOTH_INCLUDED
+#define MODIFIERSMOOTH_INCLUDED
 
 // TnzTools includes
 #include <tools/inputmanager.h>
@@ -21,24 +21,28 @@
 //===================================================================
 
 //*****************************************************************************************
-//    TModifierSegmentation definition
+//    TModifierSmooth definition
 //*****************************************************************************************
 
-class DVAPI TModifierSegmentation: public TInputModifier {
-private:
-  TPointD m_step;
-  int m_maxLevel;
-  
-  void addSegments(TTrack &track, const TTrackPoint &p0, const TTrackPoint &p1, int maxLevel);
-
+class DVAPI TModifierSmooth: public TInputModifier {
 public:
-  TModifierSegmentation(const TPointD &step = TPointD(1.0, 1.0), int level = 10);
+  class DVAPI Modifier: public TTrackModifier {
+  public:
+    const int radius;
+    TTrack *smoothedTrack;
 
-  void setStep(const TPointD &step);
-  inline const TPointD& getStep() const { return m_step; }
+    Modifier(TTrackHandler &handler, int radius);
+    TTrackPoint calcPoint(double originalIndex) override;
+  };
 
-  void setMaxLevel(int maxLevel);
-  inline int getMaxLevel() const { return m_maxLevel; }
+private:
+  int m_radius;
+  
+public:
+  TModifierSmooth(int radius = 10);
+
+  void setRadius(int radius);
+  int getRadius() const { return m_radius; }
   
   void modifyTrack(
     const TTrack &track,
@@ -47,3 +51,4 @@ public:
 
 
 #endif
+

@@ -81,7 +81,7 @@ public:
                       const TInputState &state) override;
   void inputSetBusy(bool busy) override;
   void inputPaintTrackPoint(const TTrackPoint &point, const TTrack &track,
-                            bool firstTrack) override;
+                            bool firstTrack, bool preview) override;
   void inputInvalidateRect(const TRectD &bounds) override;
   TTool *inputGetTool() override { return this; };
 

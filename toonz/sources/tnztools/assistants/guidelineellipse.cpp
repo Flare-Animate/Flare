@@ -3,32 +3,112 @@
 #include <tools/assistants/guidelineellipse.h>
 
 // TnzCore includes
-#include "tgl.h"
+#include <tgl.h>
+#include <tmathutil.h>
+
+
+
+// returns a point nearest to the ellipse with center in zero
+static TPointD findNearestPoint(const TPointD &p, double Rx, double Ry) {
+  Rx = fabs(Rx);
+  Ry = fabs(Ry);
+  TPointD ep;
+  
+  if (isAlmostZero(Rx)) {
+    ep.y = p.y < -Ry ? -Ry
+         : p.y >  Ry ?  Ry : p.y;
+    return ep;
+  }
+
+  if (isAlmostZero(Ry)) {
+    ep.x = p.x < -Rx ? -Rx
+         : p.x >  Rx ?  Rx : p.x;
+    return ep;
+  }
+
+  double k = 1/Rx;
+  double x0 = p.x*k;
+  double y0 = p.y*k;
+  k *= Ry;
+  k *= k; // k = (Ry/Rx)^2
+  double l = k - 1;
+
+  double a = l*l;
+  double b = 2*l*x0;
+  double c = x0*x0 + y0*y0*k - l*l;
+  double d = -b;
+  double e = -x0*x0;
+
+  double dist = INFINITY;
+  std::complex<double> roots[4];
+  int cnt = solveEquation4(roots, a, b, c, d, e);
+  for(int i = 0; i < cnt; ++i) {
+    if (!isAlmostZero(roots[i].imag()))
+      continue;
+    
+    double x = roots[i].real();
+    double y;
+    if (isAlmostZero(fabs(x) - 1)) {
+      y = 0;
+    } else
+    if (fabs(x) < 1) {
+      y = sqrt(k*(1 - x*x));
+      if (y0 < 0) y = -y;
+    } else {
+      continue;
+    }
+
+    double dd = (x0-x)*(x0-x) + (y0-y)*(y0-y);
+    if (dd < dist)
+      { ep.x = x*Rx; ep.y = y*Rx; dist = dd; }
+  }
+  return ep;
+}
+
 
 
 //*****************************************************************************************
 //    TGuidelineEllipse implementation
 //*****************************************************************************************
 
+
 TGuidelineEllipse::TGuidelineEllipse(
   bool enabled,
   double magnetism,
-  TAffine matrix
+  const TAffine &matrix,
+  const TAffine &matrixInv,
+  double Rx,
+  double Ry
 ):
   TGuideline(enabled, magnetism),
   matrix(matrix),
-  matrixInv(matrix.inv()) { }
+  matrixInv(matrixInv),
+  Rx(Rx),
+  Ry(Ry)
+  { }
 
 
 TGuidelineEllipse::TGuidelineEllipse(
   bool enabled,
   double magnetism,
-  TAffine matrix,
-  TAffine matrixInv
+  const TAffine &matrix,
+  const TAffine &matrixInv
 ):
-  TGuideline(enabled, magnetism),
-  matrix(matrix),
-  matrixInv(matrixInv) { }
+  TGuidelineEllipse(
+    enabled, magnetism, matrix, matrixInv,
+    sqrt(matrix.a11*matrix.a11 + matrix.a21*matrix.a21),
+    sqrt(matrix.a12*matrix.a12 + matrix.a22*matrix.a22) )
+  { }
+
+
+TGuidelineEllipse::TGuidelineEllipse(
+  bool enabled,
+  double magnetism,
+  const TAffine &matrix
+):
+  TGuidelineEllipse(enabled, magnetism, matrix, matrix.inv())
+  { }
+
 
 
 TTrackPoint
@@ -41,6 +121,18 @@ TGuidelineEllipse::transformPoint(const TTrackPoint &point) const
     p.position = matrix*(pp*(1.0/sqrt(l2)));
   return p;
 }
+
+
+TPointD
+TGuidelineEllipse::nearestPoint(const TPointD &point) const
+{
+  TPointD p = matrixInv*point;
+  p = findNearestPoint(TPointD(p.x*Rx, p.y*Ry), Rx, Ry);
+  if (!isAlmostZero(Rx)) p.x /= Rx;
+  if (!isAlmostZero(Ry)) p.y /= Ry;
+  return matrix*p;
+}
+
 
 
 bool

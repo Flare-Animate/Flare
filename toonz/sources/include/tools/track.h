@@ -183,10 +183,12 @@ public:
   mutable TTrackToolHandlerP toolHandler;
   mutable int pointsRemoved;
   mutable int pointsAdded;
+  mutable int fixedPointsAdded;
 
 private:
   TTrackPointList m_points;
   const TTrackPoint m_none;
+  int m_pointsFixed;
 
 public:
 
@@ -208,7 +210,7 @@ public:
   inline TTimerTicks ticks() const
     { return keyHistory.ticks(); }
   inline bool changed() const
-    { return pointsAdded != 0 || pointsRemoved != 0; }
+    { return pointsRemoved || pointsAdded || fixedPointsAdded; }
 
   const TTrack* root() const;
   int level() const;
@@ -236,6 +238,10 @@ public:
 
   inline int size() const
     { return (int)m_points.size(); }
+  inline int fixedSize() const
+    { return m_pointsFixed; }
+  inline int previewSize() const
+    { return size() - fixedSize(); }
   inline bool empty() const
     { return m_points.empty(); }
   inline const TTrackPoint& front() const
@@ -244,6 +250,8 @@ public:
     { return point(size() - 1); }
   inline bool finished() const
     { return !m_points.empty() && back().final; }
+  inline bool fixedFinished() const
+    { return finished() && !previewSize(); }
   inline const TTrackPoint& operator[] (int index) const
     { return point(index); }
   inline const TTrackPointList& points() const
@@ -253,14 +261,21 @@ public:
     { pointsRemoved = 0; }
   inline void resetAdded() const
     { pointsAdded = 0; }
+  inline void resetFixedAdded() const
+    { fixedPointsAdded = 0; }
   inline void resetChanges() const
-    { resetRemoved(); resetAdded(); }
+    { resetRemoved(); resetAdded(); resetFixedAdded(); }
 
-  void push_back(const TTrackPoint &point);
+  void push_back(const TTrackPoint &point, bool fixed);
   void pop_back(int count = 1);
+  void fix_points(int count = 1);
 
   inline void truncate(int count)
     { pop_back(size() - count); }
+  inline void fix_to(int count)
+    { fix_points(count - fixedSize()); }
+  inline void fix_all()
+    { fix_to(size()); }
 
   inline const TTrackPoint& current() const
     { return point(size() - pointsAdded); }
@@ -381,9 +396,9 @@ public:
     return TTrackPoint(
       interpolationSpline(p0.position      , p1.position      , t0.position , t1.position , l),
       interpolationLinear(p0.pressure      , p1.pressure      , l),
-      //interpolationSpline(p0.pressure      , p1.pressure      , t0.pressure , t1.pressure , l),
+    //interpolationSpline(p0.pressure      , p1.pressure      , t0.pressure , t1.pressure , l),
       interpolationLinear(p0.tilt          , p1.tilt          , l),
-      //interpolationSpline(p0.tilt          , p1.tilt          , t0.tilt     , t1.tilt     , l),
+    //interpolationSpline(p0.tilt          , p1.tilt          , t0.tilt     , t1.tilt     , l),
       interpolationLinear(p0.originalIndex , p1.originalIndex , l),
       interpolationLinear(p0.time          , p1.time          , l),
       interpolationLinear(p0.length        , p1.length        , l),
