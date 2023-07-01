@@ -14,13 +14,22 @@ class Room;
 //! icon buttons placed on the panel titlebar (cfr. viewerpane.h)
 class TPanelTitleBarButton : public QWidget {
   Q_OBJECT
+
+  // Pixmaps
   QString m_standardPixmapName;
   QPixmap m_standardPixmap;
+  QMap<QString, QPixmap> m_pixmaps;
+
+  // Colors
   QColor m_overColor;
   QColor m_pressedColor;
   QColor m_freezeColor;
   QColor m_previewColor;
 
+  // Methods
+  void computePixmaps(const QString &standardPixmapName);
+
+  // Stylesheet
   Q_PROPERTY(QColor OverColor READ getOverColor WRITE setOverColor);
   Q_PROPERTY(QColor PressedColor READ getPressedColor WRITE setPressedColor);
   Q_PROPERTY(QColor FreezeColor READ getFreezeColor WRITE setFreezeColor);
@@ -41,6 +50,7 @@ public:
   void setButtonSet(TPanelTitleBarButtonSet *buttonSet, int id);
   int getId() const { return m_id; }
 
+  // Stylesheet
   void setOverColor(const QColor &color) { m_overColor = color; }
   QColor getOverColor() const { return m_overColor; }
   void setPressedColor(const QColor &color) { m_pressedColor = color; }
@@ -136,7 +146,9 @@ class TPanelTitleBar final : public QFrame {
   std::vector<std::pair<QPoint, QWidget *>> m_buttons;
 
   QPixmap m_borderPm, m_activeBorderPm, m_floatBorderPm, m_floatActiveBorderPm;
-  QColor m_titleColor, m_activeTitleColor;
+  QColor m_titleColor, m_activeTitleColor, m_overColor;
+
+  QMap<QString, QPixmap> m_pixmaps;  // cache
 
 public:
   TPanelTitleBar(QWidget *parent                      = 0,
@@ -164,6 +176,8 @@ public:
   void setTitleColor(const QColor &color) { m_titleColor = color; }
   QColor getActiveTitleColor() const { return m_activeTitleColor; }
   void setActiveTitleColor(const QColor &color) { m_activeTitleColor = color; }
+  QColor getOverColor() const { return m_overColor; }
+  void setOverColor(const QColor &color) { m_overColor = color; }
 
 protected:
   void resizeEvent(QResizeEvent *e) override;
@@ -172,9 +186,12 @@ protected:
   void contextMenuEvent(QContextMenuEvent *) override {}
 
   void paintEvent(QPaintEvent *event) override;
+  void leaveEvent(QEvent *);
   void mouseMoveEvent(QMouseEvent *event) override;
   void mousePressEvent(QMouseEvent *event) override;
   void mouseDoubleClickEvent(QMouseEvent *) override;
+
+  QPixmap getPixmap(const QString &iconSVGName, bool rollover);
 
   Q_PROPERTY(QPixmap BorderPixmap READ getBorderPixmap WRITE setBorderPixmap);
   Q_PROPERTY(QPixmap ActiveBorderPixmap READ getActiveBorderPixmap WRITE
@@ -186,6 +203,7 @@ protected:
   Q_PROPERTY(QColor TitleColor READ getTitleColor WRITE setTitleColor);
   Q_PROPERTY(QColor ActiveTitleColor READ getActiveTitleColor WRITE
                  setActiveTitleColor);
+  Q_PROPERTY(QColor OverColor READ getOverColor WRITE setOverColor);
 
 signals:
 
