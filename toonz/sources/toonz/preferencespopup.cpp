@@ -504,12 +504,7 @@ void PreferencesPopup::onStyleSheetTypeChanged() {
 
 //-----------------------------------------------------------------------------
 
-void PreferencesPopup::onIconThemeChanged() {
-  // Switch between dark or light icons
-  QIcon::setThemeName(Preferences::instance()->getIconTheme() ? "dark"
-                                                              : "light");
-  // qDebug() << "Icon theme name (preference switch):" << QIcon::themeName();
-}
+void PreferencesPopup::onIconThemeChanged() {}
 
 //-----------------------------------------------------------------------------
 

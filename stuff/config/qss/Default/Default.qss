@@ -367,6 +367,7 @@ TPanelTitleBar {
   qproperty-ActiveBorderPixmap: url('imgs/white/none');
   qproperty-FloatBorderPixmap: url('none');
   qproperty-FloatActiveBorderPixmap: url('imgs/white/none');
+  qproperty-OverColor: #C34040;
 }
 TPanelTitleBarButton {
   qproperty-PressedColor: #5385a6;
@@ -2345,8 +2346,8 @@ XsheetViewer {
   qproperty-MeshColumnBorderColor: #423956;
   qproperty-SelectedMeshColumnColor: #656692;
   qproperty-MetaColumnColor: #8c8c8c;
-  qproperty-MetaColumnBorderColor: #c8c8c8;
-  qproperty-SelectedMetaColumnColor: #a6a6a6;
+  qproperty-MetaColumnBorderColor: #737373;
+  qproperty-SelectedMetaColumnColor: #94a0a8;
   qproperty-SoundTextColumnColor: #a7a7a7;
   qproperty-SoundTextColumnBorderColor: #8e8e8e;
   qproperty-SelectedSoundTextColumnColor: #adb9c0;
@@ -2389,25 +2390,19 @@ XsheetViewer {
   qproperty-TimelinePreviewButtonBgOnColor: #484848;
   qproperty-TimelinePreviewButtonOnImage: url('imgs/white/preview_small.svg');
   qproperty-TimelinePreviewButtonBgOffColor: #484848;
-  qproperty-TimelinePreviewButtonOffImage: url('none');
+  qproperty-TimelinePreviewButtonOffImage: url('imgs/white/transparent.svg');
   qproperty-TimelineUnifiedButtonTranspImage: url('imgs/white/preview_trans_small.svg');
   qproperty-TimelineCamstandButtonBgOnColor: #484848;
   qproperty-TimelineCamstandButtonOnImage: url('imgs/white/table_small.svg');
   qproperty-TimelineCamstandButtonTranspImage: url('imgs/white/trans_small.svg');
   qproperty-TimelineCamstandButtonBgOffColor: #484848;
-  qproperty-TimelineCamstandButtonOffImage: url('none');
+  qproperty-TimelineCamstandButtonOffImage: url('imgs/white/transparent.svg');
   qproperty-TimelineLockButtonBgOnColor: #484848;
   qproperty-TimelineLockButtonOnImage: url('imgs/white/lock_on_small.svg');
   qproperty-TimelineLockButtonBgOffColor: #484848;
-  qproperty-TimelineLockButtonOffImage: url('none');
+  qproperty-TimelineLockButtonOffImage: url('imgs/white/transparent.svg');
   qproperty-TimelineConfigButtonBgColor: #484848;
   qproperty-TimelineConfigButtonImage: url('imgs/white/timeline_config.svg');
-  qproperty-LayerHeaderPreviewImage: url('imgs/white/layer_header_prev_eye.svg');
-  qproperty-LayerHeaderPreviewOverImage: url('imgs/white/layer_header_prev_eye_over.svg');
-  qproperty-LayerHeaderCamstandImage: url('imgs/white/layer_header_table_view.svg');
-  qproperty-LayerHeaderCamstandOverImage: url('imgs/white/layer_header_table_view_over.svg');
-  qproperty-LayerHeaderLockImage: url('imgs/white/layer_lock_on.svg');
-  qproperty-LayerHeaderLockOverImage: url('imgs/white/layer_lock_on_over.svg');
 }
 /* -----------------------------------------------------------------------------
    Function Editor
