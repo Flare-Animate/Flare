@@ -31,7 +31,7 @@ class TPanelTitleBarButton : public QWidget {
   QColor m_previewColor;
 
   // Methods
-  void TPanelTitleBarButton::updatePixmaps();
+  void updatePixmaps();
 
   // Stylesheet
   Q_PROPERTY(QColor OverColor READ getOverColor WRITE setOverColor);
