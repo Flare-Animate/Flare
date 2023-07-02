@@ -363,10 +363,6 @@ TPanelTitleBar {
   min-height: 18;
   qproperty-TitleColor: #000;
   qproperty-ActiveTitleColor: rgba(255, 255, 255, 0.8);
-  qproperty-BorderPixmap: url('none');
-  qproperty-ActiveBorderPixmap: url('../Default/imgs/black/none');
-  qproperty-FloatBorderPixmap: url('none');
-  qproperty-FloatActiveBorderPixmap: url('../Default/imgs/black/none');
   qproperty-OverColor: #bd5454;
 }
 TPanelTitleBarButton {

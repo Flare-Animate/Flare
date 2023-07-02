@@ -15,10 +15,14 @@ class Room;
 class TPanelTitleBarButton : public QWidget {
   Q_OBJECT
 
-  // Pixmaps
+  // Filepath
   QString m_standardPixmapName;
+
+  // Pixmaps
   QPixmap m_standardPixmap;
-  QMap<QString, QPixmap> m_pixmaps;
+  QPixmap m_onPixmap;
+  QPixmap m_offPixmap;
+  QPixmap m_overPixmap;
 
   // Colors
   QColor m_overColor;
@@ -27,7 +31,7 @@ class TPanelTitleBarButton : public QWidget {
   QColor m_previewColor;
 
   // Methods
-  void computePixmaps(const QString &standardPixmapName);
+  void TPanelTitleBarButton::updatePixmaps();
 
   // Stylesheet
   Q_PROPERTY(QColor OverColor READ getOverColor WRITE setOverColor);
@@ -51,14 +55,17 @@ public:
   int getId() const { return m_id; }
 
   // Stylesheet
-  void setOverColor(const QColor &color) { m_overColor = color; }
-  QColor getOverColor() const { return m_overColor; }
-  void setPressedColor(const QColor &color) { m_pressedColor = color; }
-  QColor getPressedColor() const { return m_pressedColor; }
-  void setFreezeColor(const QColor &color) { m_freezeColor = color; }
-  QColor getFreezeColor() const { return m_freezeColor; }
-  void setPreviewColor(const QColor &color) { m_previewColor = color; }
-  QColor getPreviewColor() const { return m_previewColor; }
+  void setOverColor(const QColor &color);
+  QColor getOverColor() const;
+
+  void setPressedColor(const QColor &color);
+  QColor getPressedColor() const;
+
+  void setFreezeColor(const QColor &color);
+  QColor getFreezeColor() const;
+
+  void setPreviewColor(const QColor &color);
+  QColor getPreviewColor() const;
 
 public slots:
   void setPressed(bool pressed);  // n.b. doesn't emit signals. calls update()
@@ -145,10 +152,8 @@ class TPanelTitleBar final : public QFrame {
   bool m_closeButtonHighlighted;
   std::vector<std::pair<QPoint, QWidget *>> m_buttons;
 
-  QPixmap m_borderPm, m_activeBorderPm, m_floatBorderPm, m_floatActiveBorderPm;
   QColor m_titleColor, m_activeTitleColor, m_overColor;
-
-  QMap<QString, QPixmap> m_pixmaps;  // cache
+  QPixmap m_closeButtonPixmap, m_closeButtonOverPixmap;
 
 public:
   TPanelTitleBar(QWidget *parent                      = 0,
@@ -157,27 +162,18 @@ public:
   QSize sizeHint() const override { return minimumSizeHint(); }
   QSize minimumSizeHint() const override;
 
+  void generateCloseButtonPixmaps();
+
   // pos = widget position. n.b. if pos.x()<0 then origin is topright corner
   void add(const QPoint &pos, QWidget *widget);
-
-  QPixmap getBorderPixmap() const { return m_borderPm; }
-  void setBorderPixmap(const QPixmap &pixmap) { m_borderPm = pixmap; }
-  QPixmap getActiveBorderPixmap() const { return m_activeBorderPm; }
-  void setActiveBorderPixmap(const QPixmap &pixmap) {
-    m_activeBorderPm = pixmap;
-  }
-  QPixmap getFloatBorderPixmap() const { return m_floatBorderPm; }
-  void setFloatBorderPixmap(const QPixmap &pixmap) { m_floatBorderPm = pixmap; }
-  QPixmap getFloatActiveBorderPixmap() const { return m_floatActiveBorderPm; }
-  void setFloatActiveBorderPixmap(const QPixmap &pixmap) {
-    m_floatActiveBorderPm = pixmap;
-  }
+  
   QColor getTitleColor() const { return m_titleColor; }
   void setTitleColor(const QColor &color) { m_titleColor = color; }
   QColor getActiveTitleColor() const { return m_activeTitleColor; }
   void setActiveTitleColor(const QColor &color) { m_activeTitleColor = color; }
-  QColor getOverColor() const { return m_overColor; }
-  void setOverColor(const QColor &color) { m_overColor = color; }
+
+  QColor getOverColor() const;
+  void setOverColor(const QColor &color);
 
 protected:
   void resizeEvent(QResizeEvent *e) override;
@@ -193,13 +189,6 @@ protected:
 
   QPixmap getPixmap(const QString &iconSVGName, bool rollover);
 
-  Q_PROPERTY(QPixmap BorderPixmap READ getBorderPixmap WRITE setBorderPixmap);
-  Q_PROPERTY(QPixmap ActiveBorderPixmap READ getActiveBorderPixmap WRITE
-                 setActiveBorderPixmap);
-  Q_PROPERTY(QPixmap FloatBorderPixmap READ getFloatBorderPixmap WRITE
-                 setFloatBorderPixmap);
-  Q_PROPERTY(QPixmap FloatActiveBorderPixmap READ getFloatActiveBorderPixmap
-                 WRITE setFloatActiveBorderPixmap);
   Q_PROPERTY(QColor TitleColor READ getTitleColor WRITE setTitleColor);
   Q_PROPERTY(QColor ActiveTitleColor READ getActiveTitleColor WRITE
                  setActiveTitleColor);
