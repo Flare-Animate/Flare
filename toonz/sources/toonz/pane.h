@@ -182,7 +182,7 @@ protected:
   void contextMenuEvent(QContextMenuEvent *) override {}
 
   void paintEvent(QPaintEvent *event) override;
-  void leaveEvent(QEvent *);
+  void leaveEvent(QEvent *) override;
   void mouseMoveEvent(QMouseEvent *event) override;
   void mousePressEvent(QMouseEvent *event) override;
   void mouseDoubleClickEvent(QMouseEvent *) override;
