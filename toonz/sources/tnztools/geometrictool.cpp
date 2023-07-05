@@ -1460,7 +1460,7 @@ void GeometricTool::addRasterMyPaintStroke(const TToonzImageP &ti,
 
   m_workRaster = TRaster32P(dim);
   m_workRaster->lock();
-  MyPaintToonzBrush toonz_brush(m_workRaster, *this, mypaintBrush);
+  MyPaintToonzBrush toonz_brush(m_workRaster, *this, mypaintBrush, true);
   m_lastRect.empty();
   m_strokeRect.empty();
   toonz_brush.beginStroke();
@@ -1531,7 +1531,7 @@ void GeometricTool::addFullColorMyPaintStroke(const TRasterImageP &ri,
 
   m_workRaster = TRaster32P(dim);
   m_workRaster->lock();
-  MyPaintToonzBrush toonz_brush(m_workRaster, *this, mypaintBrush);
+  MyPaintToonzBrush toonz_brush(m_workRaster, *this, mypaintBrush, true);
   m_lastRect.empty();
   m_strokeRect.empty();
   toonz_brush.beginStroke();
@@ -1824,8 +1824,8 @@ TPointD Primitive::checkGuideSnapping(TPointD pos) {
   }
   if ((m_param->m_targetType & TTool::Vectors) && m_param->m_snap.getValue()) {
     int vGuideCount = 0, hGuideCount = 0;
-    double guideDistance  = sqrt(m_param->m_minDistance2);
-    TToolViewer *viewer = m_tool->getViewer();
+    double guideDistance = sqrt(m_param->m_minDistance2);
+    TToolViewer *viewer  = m_tool->getViewer();
     if (viewer) {
       vGuideCount = viewer->getVGuideCount();
       hGuideCount = viewer->getHGuideCount();
