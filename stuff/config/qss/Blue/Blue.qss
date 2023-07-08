@@ -363,10 +363,7 @@ TPanelTitleBar {
   min-height: 18;
   qproperty-TitleColor: #8c9093;
   qproperty-ActiveTitleColor: #43AEE5;
-  qproperty-BorderPixmap: url('none');
-  qproperty-ActiveBorderPixmap: url('../Default/imgs/white/none');
-  qproperty-FloatBorderPixmap: url('none');
-  qproperty-FloatActiveBorderPixmap: url('../Default/imgs/white/none');
+  qproperty-OverColor: #C34040;
 }
 TPanelTitleBarButton {
   qproperty-PressedColor: #5385a6;
@@ -2345,8 +2342,8 @@ XsheetViewer {
   qproperty-MeshColumnBorderColor: #423956;
   qproperty-SelectedMeshColumnColor: #656692;
   qproperty-MetaColumnColor: #8c8c8c;
-  qproperty-MetaColumnBorderColor: #c8c8c8;
-  qproperty-SelectedMetaColumnColor: #a6a6a6;
+  qproperty-MetaColumnBorderColor: #737373;
+  qproperty-SelectedMetaColumnColor: #94a0a8;
   qproperty-SoundTextColumnColor: #a7a7a7;
   qproperty-SoundTextColumnBorderColor: #8e8e8e;
   qproperty-SelectedSoundTextColumnColor: #adb9c0;
@@ -2389,25 +2386,19 @@ XsheetViewer {
   qproperty-TimelinePreviewButtonBgOnColor: #414345;
   qproperty-TimelinePreviewButtonOnImage: url('../Default/imgs/white/preview_small.svg');
   qproperty-TimelinePreviewButtonBgOffColor: #414345;
-  qproperty-TimelinePreviewButtonOffImage: url('none');
+  qproperty-TimelinePreviewButtonOffImage: url('../Default/imgs/white/transparent.svg');
   qproperty-TimelineUnifiedButtonTranspImage: url('../Default/imgs/white/preview_trans_small.svg');
   qproperty-TimelineCamstandButtonBgOnColor: #414345;
   qproperty-TimelineCamstandButtonOnImage: url('../Default/imgs/white/table_small.svg');
   qproperty-TimelineCamstandButtonTranspImage: url('../Default/imgs/white/trans_small.svg');
   qproperty-TimelineCamstandButtonBgOffColor: #414345;
-  qproperty-TimelineCamstandButtonOffImage: url('none');
+  qproperty-TimelineCamstandButtonOffImage: url('../Default/imgs/white/transparent.svg');
   qproperty-TimelineLockButtonBgOnColor: #414345;
   qproperty-TimelineLockButtonOnImage: url('../Default/imgs/white/lock_on_small.svg');
   qproperty-TimelineLockButtonBgOffColor: #414345;
-  qproperty-TimelineLockButtonOffImage: url('none');
+  qproperty-TimelineLockButtonOffImage: url('../Default/imgs/white/transparent.svg');
   qproperty-TimelineConfigButtonBgColor: #414345;
   qproperty-TimelineConfigButtonImage: url('../Default/imgs/white/timeline_config.svg');
-  qproperty-LayerHeaderPreviewImage: url('../Default/imgs/white/layer_header_prev_eye.svg');
-  qproperty-LayerHeaderPreviewOverImage: url('../Default/imgs/white/layer_header_prev_eye_over.svg');
-  qproperty-LayerHeaderCamstandImage: url('../Default/imgs/white/layer_header_table_view.svg');
-  qproperty-LayerHeaderCamstandOverImage: url('../Default/imgs/white/layer_header_table_view_over.svg');
-  qproperty-LayerHeaderLockImage: url('../Default/imgs/white/layer_lock_on.svg');
-  qproperty-LayerHeaderLockOverImage: url('../Default/imgs/white/layer_lock_on_over.svg');
 }
 /* -----------------------------------------------------------------------------
    Function Editor
