@@ -187,8 +187,6 @@ protected:
   void mousePressEvent(QMouseEvent *event) override;
   void mouseDoubleClickEvent(QMouseEvent *) override;
 
-  QPixmap getPixmap(const QString &iconSVGName, bool rollover);
-
   Q_PROPERTY(QColor TitleColor READ getTitleColor WRITE setTitleColor);
   Q_PROPERTY(QColor ActiveTitleColor READ getActiveTitleColor WRITE
                  setActiveTitleColor);
