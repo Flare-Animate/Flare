@@ -455,8 +455,7 @@ void addImagesToIcon(QIcon &icon, const QImage &baseImg, const QImage &overImg,
 
 // Add the same pixmap to all modes and states of a QIcon
 void addPixmapToAllModesAndStates(QIcon &icon, const QPixmap &pixmap) {
-  QIcon::Mode modes[]   = {QIcon::Normal, QIcon::Disabled, QIcon::Active,
-                           QIcon::Selected};
+  QIcon::Mode modes[]   = {QIcon::Normal, QIcon::Disabled, QIcon::Selected};
   QIcon::State states[] = {QIcon::On, QIcon::Off};
 
   for (const auto &mode : modes) {
@@ -464,6 +463,7 @@ void addPixmapToAllModesAndStates(QIcon &icon, const QPixmap &pixmap) {
       icon.addPixmap(pixmap, mode, state);
     }
   }
+  icon.addPixmap(pixmap, QIcon::Active, QIcon::Off);
 }
 
 //-----------------------------------------------------------------------------
