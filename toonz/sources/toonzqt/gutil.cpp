@@ -455,8 +455,7 @@ void addImagesToIcon(QIcon &icon, const QImage &baseImg, const QImage &overImg,
 
 // Add the same pixmap to all modes and states of a QIcon
 void addPixmapToAllModesAndStates(QIcon &icon, const QPixmap &pixmap) {
-  QIcon::Mode modes[]   = {QIcon::Normal, QIcon::Disabled, QIcon::Active,
-                           QIcon::Selected};
+  QIcon::Mode modes[]   = {QIcon::Normal, QIcon::Disabled, QIcon::Selected};
   QIcon::State states[] = {QIcon::On, QIcon::Off};
 
   for (const auto &mode : modes) {
@@ -464,6 +463,7 @@ void addPixmapToAllModesAndStates(QIcon &icon, const QPixmap &pixmap) {
       icon.addPixmap(pixmap, mode, state);
     }
   }
+  icon.addPixmap(pixmap, QIcon::Active, QIcon::Off);
 }
 
 //-----------------------------------------------------------------------------
@@ -511,11 +511,19 @@ QIcon createQIcon(const QString &iconSVGName, bool useFullOpacity,
   // there can be scaling artifacts with high dpi and load these in addition
   if (baseImg.width() == (16 * devPixRatio) &&
       baseImg.height() == (16 * devPixRatio)) {
-    QSize expandSize(20, 20);
-    QImage toolBaseImg(compositeImage(baseImg, expandSize));
-    QImage toolOverImg(compositeImage(overImg, expandSize));
-    QImage toolOnImg(compositeImage(onImg, expandSize));
-    addImagesToIcon(icon, toolBaseImg, toolOverImg, toolOnImg, useFullOpacity);
+    for (auto screen : QApplication::screens()) {
+      QSize expandSize(20, 20);
+      int otherDevPixRatio = screen->devicePixelRatio();
+      if (otherDevPixRatio != devPixRatio) {
+        expandSize.setWidth(16 * otherDevPixRatio);
+        expandSize.setHeight(16 * otherDevPixRatio);
+      }
+      QImage toolBaseImg(compositeImage(baseImg, expandSize));
+      QImage toolOverImg(compositeImage(overImg, expandSize));
+      QImage toolOnImg(compositeImage(onImg, expandSize));
+      addImagesToIcon(icon, toolBaseImg, toolOverImg, toolOnImg,
+                      useFullOpacity);
+    }
   }
 
   return icon;
