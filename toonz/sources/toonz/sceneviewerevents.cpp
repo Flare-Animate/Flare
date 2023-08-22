@@ -656,6 +656,12 @@ void SceneViewer::onMove(const TMouseEvent &event) {
     }
     if (!cursorSet) setToolCursor(this, tool->getCursorId());
 
+    if ( m_toolHasAssistants
+      && (tool->getToolHints() & TTool::HintGuidelines)
+      && !areAlmostEqual(m_toolPos, pos) )
+        invalidateAll();
+    m_toolPos = pos;
+    
 #ifdef WITH_CANON
     if (StopMotion::instance()->m_canon->m_pickLiveViewZoom)
       setToolCursor(this, ToolCursor::ZoomCursor);

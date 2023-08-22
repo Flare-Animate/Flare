@@ -51,10 +51,11 @@ set(HEADERS
     ../include/tools/assistant.h
     ../include/tools/modifiers/modifierassistants.h
     ../include/tools/modifiers/modifierline.h
+    ../include/tools/modifiers/modifiersegmentation.h
+    ../include/tools/modifiers/modifiersimplify.h
+    ../include/tools/modifiers/modifiersmooth.h
     ../include/tools/modifiers/modifiertangents.h
     ../include/tools/modifiers/modifiertest.h
-    ../include/tools/modifiers/modifiersegmentation.h
-    ../include/tools/modifiers/modifiersmooth.h
     ../include/tools/assistants/guidelineline.h
     ../include/tools/assistants/guidelineellipse.h
 )
@@ -127,10 +128,11 @@ set(SOURCES
     assistant.cpp
     modifiers/modifierassistants.cpp
     modifiers/modifierline.cpp
+    modifiers/modifiersegmentation.cpp
+    modifiers/modifiersimplify.cpp
+    modifiers/modifiersmooth.cpp
     modifiers/modifiertangents.cpp
     modifiers/modifiertest.cpp
-    modifiers/modifiersegmentation.cpp
-    modifiers/modifiersmooth.cpp
     assistants/guidelineline.cpp
     assistants/guidelineellipse.cpp
     assistants/assistantvanishingpoint.cpp

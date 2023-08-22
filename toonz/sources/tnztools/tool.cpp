@@ -179,6 +179,11 @@ TTool::TTool(std::string name)
 
 //-------------------------------------------------------------------
 
+unsigned int TTool::getToolHints() const
+  { return HintAssistants | HintGuidelines; }
+
+//-------------------------------------------------------------------
+
 TTool *TTool::getTool(std::string toolName, ToolTargetType targetType) {
   if (!toolTable) return 0;
 

@@ -71,6 +71,8 @@ class SceneViewer final : public GLWidgetForHighDpi,
   double m_pressure;
   QPointF m_lastMousePos;
   QPointF m_pos;
+  TPointD m_toolPos;
+  bool m_toolHasAssistants = false;
   Qt::MouseButton m_mouseButton;
   bool m_foregroundDrawing;
   bool m_tabletEvent, m_tabletMove;

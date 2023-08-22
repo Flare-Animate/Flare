@@ -231,8 +231,10 @@ public:
     TInputState::DeviceId deviceId,
     TInputState::TouchId touchId,
     const TPointD &position,
-    const double *pressure,
-    const TPointD *tilt,
+    const double pressure,
+    const TPointD &tilt,
+    bool hasPressure,
+    bool hasTilt,
     bool final,
     TTimerTicks ticks );
   bool keyEvent(

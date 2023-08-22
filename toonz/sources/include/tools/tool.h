@@ -300,6 +300,17 @@ public:
     AllTargets = 0xffffffff,
   };
 
+  enum ToolHints  //!  Misc flags related with tool
+  { HintNone              = 0,
+    HintAssistants        = 1 << 0, //!< Draw asistants when tool active
+    HintGuidelines        = 1 << 1, //!< Draw asistant guidelines
+    HintAssistantsEnabled = 1 << 2, //!< Tool will use assisnats
+    
+    HintAssistantsAll     = HintAssistants
+                          | HintGuidelines
+                          | HintAssistantsEnabled,
+  };
+
 public:
   static TTool *getTool(std::string toolName, ToolTargetType targetType);
 
@@ -346,6 +357,7 @@ public:
 
   virtual ToolType getToolType() const = 0;
   ToolTargetType getTargetType() const { return (ToolTargetType)m_targetType; }
+  virtual unsigned int getToolHints() const;
 
   std::string getName() const { return m_name; }
 

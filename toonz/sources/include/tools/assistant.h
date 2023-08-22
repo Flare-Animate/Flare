@@ -39,6 +39,7 @@
 class TProperty;
 class TPropertyGroup;
 
+class TTool;
 class TToolViewer;
 class TAssistant;
 class TAssistantPoint;
@@ -340,6 +341,17 @@ public:
     double &outK,
     double &outMin,
     double &outMax );
+  
+  static bool scanAssistants(
+    TTool *tool,
+    const TPointD *positions,
+    int positionsCount,
+    TGuidelineList *outGuidelines,
+    bool draw,
+    bool enabledOnly,
+    bool markEnabled,
+    bool drawGuidelines,
+    TImage *skipImage );
 };
 
 

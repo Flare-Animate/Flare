@@ -20,20 +20,15 @@
 
 
 //*****************************************************************************************
-//    TModifierAssistants::Modifier implementation
+//    TModifierAssistants::Interpolator implementation
 //*****************************************************************************************
 
 
-TModifierAssistants::Modifier::Modifier(TTrackHandler &handler):
-  TTrackModifier(handler),
-  initialized()
-{ }
-
-
 TTrackPoint
-TModifierAssistants::Modifier::calcPoint(double originalIndex) {
-  TTrackPoint p = TTrackModifier::calcPoint(originalIndex);
-  return guidelines.empty() ? p : guidelines.front()->smoothTransformPoint(p);
+TModifierAssistants::Interpolator::interpolate(double index) {
+  TTrackPoint p = track.original ? track.calcPointFromOriginal(index)
+                                 : track.interpolateLinear(index);
+  return guidelines.empty() ? p : guidelines.front()->smoothTransformPoint(p, magnetism);
 }
 
 
@@ -42,8 +37,8 @@ TModifierAssistants::Modifier::calcPoint(double originalIndex) {
 //*****************************************************************************************
 
 
-TModifierAssistants::TModifierAssistants(bool drawOnly):
-  drawOnly(drawOnly),
+TModifierAssistants::TModifierAssistants(double magnetism):
+  magnetism(magnetism),
   sensitiveLength(50.0) { }
 
 
@@ -53,60 +48,22 @@ TModifierAssistants::scanAssistants(
   int positionsCount,
   TGuidelineList *outGuidelines,
   bool draw,
-  bool enabledOnly ) const
+  bool enabledOnly,
+  bool drawGuidelines ) const
 {
-  bool found = false;
   if (TInputManager *manager = getManager())
   if (TInputHandler *handler = manager->getHandler())
-  if (TTool *tool = handler->inputGetTool())
-  if (TToolViewer *viewer = tool->getViewer())
-  if (TApplication *application = tool->getApplication())
-  if (TXshLevelHandle *levelHandle = application->getCurrentLevel())
-  if (TXshLevel *level = levelHandle->getLevel())
-  if (TXshSimpleLevel *simpleLevel = level->getSimpleLevel())
-  if (TFrameHandle *frameHandle = application->getCurrentFrame())
-  if (TXsheetHandle *XsheetHandle = application->getCurrentXsheet())
-  if (TXsheet *Xsheet = XsheetHandle->getXsheet())
-  {
-    TPointD dpiScale = getCurrentDpiScale(simpleLevel, tool->getCurrentFid());
-    bool findGuidelines = (positions && positionsCount > 0 && outGuidelines);
-    bool doSomething = findGuidelines || draw;
-
-    int frame = frameHandle->getFrame();
-    int count = Xsheet->getColumnCount();
-    TAffine worldToTrack;
-    worldToTrack.a11 /= dpiScale.x;
-    worldToTrack.a22 /= dpiScale.y;
-
-    for(int i = 0; i < count; ++i)
-      if (TXshColumn *column = Xsheet->getColumn(i))
-      if (column->isCamstandVisible())
-      if (column->isPreviewVisible())
-      if (TImageP image = Xsheet->getCell(frame, i).getImage(false))
-      if (image->getType() == TImage::META)
-      if (TMetaImage *metaImage = dynamic_cast<TMetaImage*>(image.getPointer()))
-      {
-        TAffine imageToTrack = worldToTrack * tool->getColumnMatrix(i);
-        if (draw) { glPushMatrix(); tglMultMatrix(imageToTrack); }
-
-        TMetaImage::Reader reader(*metaImage);
-        for(TMetaObjectListCW::iterator i = reader->begin(); i != reader->end(); ++i)
-          if (*i)
-          if (const TAssistant *assistant = (*i)->getHandler<TAssistant>())
-          if (!enabledOnly || assistant->getEnabled())
-          {
-            found = true;
-            if (findGuidelines)
-              for(int i = 0; i < positionsCount; ++i)
-                assistant->getGuidelines(positions[i], imageToTrack, *outGuidelines);
-            if (draw) assistant->draw(viewer, !drawOnly);
-            if (!doSomething) return true;
-          }
-
-        if (draw) glPopMatrix();
-      }
-  }
-  return found;
+    return TAssistant::scanAssistants(
+      handler->inputGetTool(),
+      positions,
+      positionsCount,          
+      outGuidelines,
+      draw,
+      enabledOnly,
+      magnetism > 0,
+      drawGuidelines,
+      nullptr );
+  return false;
 }
 
 
@@ -116,29 +73,35 @@ TModifierAssistants::modifyTrack(
   TTrackList &outTracks )
 {
   if (!track.handler) {
-    track.handler = new TTrackHandler(track);
-    Modifier *modifier = new Modifier(*track.handler);
-    track.handler->tracks.push_back(new TTrack(modifier));
+    Handler *handler = new Handler();
+    track.handler = handler;
+    handler->track = new TTrack(track);
+    new Interpolator(*handler->track, magnetism);
   }
-
-  outTracks.push_back(track.handler->tracks.front());
-  TTrack &subTrack = *track.handler->tracks.front();
+  
+  Handler *handler = dynamic_cast<Handler*>(track.handler.getPointer());
+  if (!handler)
+    return;
+  
+  outTracks.push_back(handler->track);
+  TTrack &subTrack = *handler->track;
+  Interpolator *intr = dynamic_cast<Interpolator*>(subTrack.getInterpolator().getPointer());
+  if (!intr)
+    return;
+  
   if (!track.changed())
     return;
-  Modifier *modifier = dynamic_cast<Modifier*>(subTrack.modifier.getPointer());
-  if (!modifier)
-    return;
-    
+  
   // remove points
   int start = track.size() - track.pointsAdded;
   if (start < 0) start = 0;
 
-  if (!drawOnly && start <= 0) {
-    modifier->guidelines.clear();
-    scanAssistants(&track[0].position, 1, &modifier->guidelines, false, true);
+  if (intr->magnetism && start <= 0) {
+    intr->guidelines.clear();
+    scanAssistants(&track[0].position, 1, &intr->guidelines, false, true, false);
   }
   
-  bool fixed = subTrack.fixedSize() || modifier->guidelines.size() <= 1;
+  bool fixed = subTrack.fixedSize() || intr->guidelines.size() <= 1;
 
   // select guideline
   if (!fixed)
@@ -152,11 +115,11 @@ TModifierAssistants::modifyTrack(
         if (!objHandle->isSpline())
           trackToScreen *= TScale(viewer->getDpiScale().x, viewer->getDpiScale().y);
     trackToScreen *= viewer->get3dViewMatrix().get2d();
-    TGuidelineP guideline = TGuideline::findBest(modifier->guidelines, track, trackToScreen, fixed);
-    if (guideline != modifier->guidelines.front())
-      for(int i = 1; i < (int)modifier->guidelines.size(); ++i)
-        if (modifier->guidelines[i] == guideline) {
-          std::swap(modifier->guidelines[i], modifier->guidelines.front());
+    TGuidelineP guideline = TGuideline::findBest(intr->guidelines, track, trackToScreen, fixed);
+    if (guideline != intr->guidelines.front())
+      for(int i = 1; i < (int)intr->guidelines.size(); ++i)
+        if (intr->guidelines[i] == guideline) {
+          std::swap(intr->guidelines[i], intr->guidelines.front());
           start = 0;
           break;
         }
@@ -165,7 +128,7 @@ TModifierAssistants::modifyTrack(
   // add points
   subTrack.truncate(start);
   for(int i = start; i < track.size(); ++i)
-    subTrack.push_back( modifier->calcPoint(i), false );
+    subTrack.push_back( intr->interpolate(i), false );
   
   // fix points
   if (fixed || track.fixedFinished())
@@ -177,7 +140,7 @@ TModifierAssistants::modifyTrack(
 
 TRectD
 TModifierAssistants::calcDrawBounds(const TTrackList&, const THoverList&) {
-  if (scanAssistants(NULL, 0, NULL, false, false))
+  if (scanAssistants(NULL, 0, NULL, false, false, false))
     return TConsts::infiniteRectD;
   return TRectD();
 }
@@ -185,16 +148,20 @@ TModifierAssistants::calcDrawBounds(const TTrackList&, const THoverList&) {
 
 void
 TModifierAssistants::drawTrack(const TTrack &track) {
-  if (!track.handler) return;
-  TTrack &subTrack = *track.handler->tracks.front();
-  if (Modifier *modifier = dynamic_cast<Modifier*>(subTrack.modifier.getPointer())) {
-    const TGuidelineList &guidelines = modifier->guidelines;
-    if (!guidelines.empty()) {
-      guidelines.front()->draw(true);
-      for(TGuidelineList::const_iterator i = guidelines.begin() + 1; i != guidelines.end(); ++i)
-        (*i)->draw();
-    }
-  }
+  Handler *handler = dynamic_cast<Handler*>(track.handler.getPointer());
+  if (!handler) return;
+  
+  TTrack &subTrack = *handler->track;
+  Interpolator *intr = dynamic_cast<Interpolator*>(subTrack.getInterpolator().getPointer());
+  if (!intr) return;
+  
+  const TGuidelineList &guidelines = intr->guidelines;
+  if (guidelines.empty())
+    return;
+  
+  guidelines.front()->draw(true);
+  for(TGuidelineList::const_iterator i = guidelines.begin() + 1; i != guidelines.end(); ++i)
+    (*i)->draw();
 }
 
 
@@ -205,21 +172,17 @@ TModifierAssistants::draw(const TTrackList &tracks, const THoverList &hovers) {
   if (tracks.empty()) // hide hovers if track exists
     allHovers.insert(allHovers.end(), hovers.begin(), hovers.end());
   for(TTrackList::const_iterator i = tracks.begin(); i != tracks.end(); ++i)
-    if ((*i)->handler && !(*i)->handler->tracks.empty() && !(*i)->handler->tracks.front()->empty())
-      allHovers.push_back( (*i)->handler->tracks.front()->back().position );
+    if (Handler *handler = dynamic_cast<Handler*>((*i)->handler.getPointer()))
+      allHovers.push_back( handler->track->back().position );
   
-  // draw assistants
-  TGuidelineList guidelines;
+  // draw assistants and guidelines
   scanAssistants(
     allHovers.empty() ? NULL : &allHovers.front(),
     (int)allHovers.size(),
-    &guidelines,
+    nullptr,
     true,
-    false );
-
-  // draw guidelines
-  for(TGuidelineList::const_iterator i = guidelines.begin(); i != guidelines.end(); ++i)
-    (*i)->draw(false, !drawOnly);
+    false,
+    true );
 
   // draw tracks
   TInputModifier::drawTracks(tracks);

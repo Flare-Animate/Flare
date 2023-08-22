@@ -26,28 +26,31 @@
 
 class DVAPI TModifierTest : public TInputModifier {
 public:
-  class DVAPI Handler : public TTrackHandler {
+  class DVAPI Handler : public TMultiTrackHandler {
   public:
+    const double radius;
     std::vector<double> angles;
-    Handler(const TTrack &original) : TTrackHandler(original) {}
+    inline explicit Handler(double radius):
+      radius(std::max(TConsts::epsilon, radius)) { }
   };
 
-  class DVAPI Modifier : public TTrackModifier {
+  class DVAPI Interpolator : public TTrackInterpolator {
   public:
-    double angle;
-    double radius;
-    double speed;
-
-    Modifier(TTrackHandler &handler, double angle, double radius,
-             double speed = 0.25);
-    TTrackPoint calcPoint(double originalIndex) override;
+    const double angle;
+    const double radius;
+    const double speed;
+    inline Interpolator(TTrack &track, double angle, double radius, double speed):
+      TTrackInterpolator(track), angle(angle), radius(radius), speed(speed) { }
+    TTrackPoint interpolateFromOriginal(double originalIndex);
+    TTrackPoint interpolate(double index) override;
   };
 
 public:
-  const int count;
-  const double radius;
+  int count;
+  double radius;
+  double speed;
 
-  TModifierTest(int count, double radius);
+  TModifierTest(int count = 3, double radius = 40, double speed = 0.25);
 
   void modifyTrack(const TTrack &track,
                    TTrackList &outTracks) override;

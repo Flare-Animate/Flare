@@ -202,6 +202,16 @@ inline TPointD normalize(const TPointD &p) {
 
 /*!
 \relates TPointT
+This helper function returns the normalized version of the specified point
+or zero if it is not possible
+*/
+inline TPointD normalizeOrZero(const TPointD &p) {
+  double n = norm2(p);
+  return fabs(n) > TConsts::epsilon*TConsts::epsilon ? p*(1/sqrt(n)) : TPointD();
+}
+
+/*!
+\relates TPointT
 This helper function converts a TPoint (TPointT<int>) into a TPointD
 */
 inline TPointD convert(const TPoint &p) { return TPointD(p.x, p.y); }
@@ -1426,9 +1436,9 @@ public:
     inline Range range() const
       { return Range(a0(), a1()); }
     inline int size() const
-      { return (m_end - m_begin)/2 + 1; }
+      { return (int)(m_end - m_begin)/2 + 1; }
     inline int index() const
-      { return (m_current - m_begin)/2; }
+      { return (int)(m_current - m_begin)/2; }
     inline int reverseIndex() const
       { int i = index(); return i == 0 ? 0 : size() - i; }
     inline bool lapped() const

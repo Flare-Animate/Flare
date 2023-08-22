@@ -55,7 +55,7 @@ TEnv::DoubleVar RasterBrushHardness("RasterBrushHardness", 100);
 TEnv::DoubleVar RasterBrushModifierSize("RasterBrushModifierSize", 0);
 TEnv::StringVar RasterBrushPreset("RasterBrushPreset", "<custom>");
 TEnv::IntVar BrushLockAlpha("InknpaintBrushLockAlpha", 0);
-TEnv::IntVar RasterBrushAssistants("RasterBrushAssistants", 0);
+TEnv::IntVar RasterBrushAssistants("RasterBrushAssistants", 1);
 
 //-------------------------------------------------------------------
 #define CUSTOM_WSTR L"<custom>"
@@ -720,124 +720,6 @@ static void Smooth(std::vector<TThickPoint> &points, const int radius,
   }
 }
 
-//--------------------------------------------------------------------------------------------------
-
-void SmoothStroke::beginStroke(int smooth) {
-  m_smooth      = smooth;
-  m_outputIndex = 0;
-  m_readIndex   = -1;
-  m_rawPoints.clear();
-  m_outputPoints.clear();
-  m_resampledIndex = 0;
-  m_resampledPoints.clear();
-}
-
-//--------------------------------------------------------------------------------------------------
-
-void SmoothStroke::addPoint(const TThickPoint &point) {
-  if (m_rawPoints.size() > 0 && m_rawPoints.back().x == point.x &&
-      m_rawPoints.back().y == point.y) {
-    return;
-  }
-  m_rawPoints.push_back(point);
-  generatePoints();
-}
-
-//--------------------------------------------------------------------------------------------------
-
-void SmoothStroke::endStroke() {
-  generatePoints();
-  // force enable the output all segments
-  m_outputIndex = m_outputPoints.size() - 1;
-}
-
-//--------------------------------------------------------------------------------------------------
-
-void SmoothStroke::clearPoints() {
-  m_outputIndex = 0;
-  m_readIndex   = -1;
-  m_outputPoints.clear();
-  m_rawPoints.clear();
-  m_resampledIndex = 0;
-  m_resampledPoints.clear();
-}
-
-//--------------------------------------------------------------------------------------------------
-
-void SmoothStroke::getSmoothPoints(std::vector<TThickPoint> &smoothPoints) {
-  int n = m_outputPoints.size();
-  for (int i = m_readIndex + 1; i <= m_outputIndex && i < n; ++i) {
-    smoothPoints.push_back(m_outputPoints[i]);
-  }
-  m_readIndex = m_outputIndex;
-}
-
-//--------------------------------------------------------------------------------------------------
-
-void SmoothStroke::generatePoints() {
-  int n = (int)m_rawPoints.size();
-  if (n == 0) {
-    return;
-  }
-
-  // if m_smooth = 0, then skip whole smoothing process
-  if (m_smooth == 0) {
-    for (int i = m_outputIndex; i < (int)m_outputPoints.size(); ++i) {
-      if (m_outputPoints[i] != m_rawPoints[i]) {
-        break;
-      }
-      ++m_outputIndex;
-    }
-    m_outputPoints = m_rawPoints;
-    return;
-  }
-
-  std::vector<TThickPoint> smoothedPoints = m_resampledPoints;
-  // Add more stroke samples before applying the smoothing
-  // This is because the raw inputs points are too few to support smooth result,
-  // especially on stroke ends
-
-  int resampleStartId = m_resampledIndex;
-  for (int i = resampleStartId; i < n - 1; ++i) {
-    const TThickPoint &p1 = m_rawPoints[i];
-    const TThickPoint &p2 = m_rawPoints[i + 1];
-    const TThickPoint &p0 = i - 1 >= 0 ? m_rawPoints[i - 1] : p1;
-    const TThickPoint &p3 = i + 2 < n ? m_rawPoints[i + 2] : p2;
-
-    std::vector<TThickPoint> tmpResampled;
-    tmpResampled.push_back(p1);
-    // define subsample amount according to distance between points
-    int samples = std::min((int)tdistance(p1, p2), 8);
-    if (samples >= 1)
-      CatmullRomInterpolate(p0, p1, p2, p3, samples, tmpResampled);
-
-    if (i + 2 < n) {
-      m_resampledIndex = i + 1;
-      std::copy(tmpResampled.begin(), tmpResampled.end(),
-                std::back_inserter(m_resampledPoints));
-    }
-    std::copy(tmpResampled.begin(), tmpResampled.end(),
-              std::back_inserter(smoothedPoints));
-  }
-  smoothedPoints.push_back(m_rawPoints.back());
-  // Apply the 1D box filter
-  // Multiple passes result in better quality and fix the stroke ends break
-  // issue
-  // level is passed to define range where the points are smoothed
-  for (int level = 2; level >= 0; --level) {
-    Smooth(smoothedPoints, m_smooth, m_readIndex, level);
-  }
-  // Compare the new smoothed stroke with old one
-  // Enable the output for unchanged parts
-  int outputNum = (int)m_outputPoints.size();
-  for (int i = m_outputIndex; i < outputNum; ++i) {
-    if (m_outputPoints[i] != smoothedPoints[i]) {
-      break;
-    }
-    ++m_outputIndex;
-  }
-  m_outputPoints = smoothedPoints;
-}
 
 //===================================================================
 //
@@ -900,7 +782,7 @@ ToonzRasterBrushTool::ToonzRasterBrushTool(std::string name, int targetType)
   for(int i = 0; i < 3; ++i)
     m_modifierSmooth[i]        = new TModifierSmooth();
 #ifndef NDEBUG
-  m_modifierTest = new TModifierTest(5, 40);
+  m_modifierTest = new TModifierTest();
 #endif
 
   m_inputmanager.addModifier(
@@ -1158,15 +1040,15 @@ bool ToonzRasterBrushTool::askWrite(const TRect &rect) {
 
 bool ToonzRasterBrushTool::preLeftButtonDown() {
   int smoothRadius = (int)round(m_smooth.getValue());
-  m_modifierAssistants->drawOnly = !RasterBrushAssistants;
-  m_inputmanager.drawPreview     = false; //!m_modifierAssistants->drawOnly;
+  m_modifierAssistants->magnetism = m_assistants.getValue() ? 1 : 0;
+  m_inputmanager.drawPreview      = false; //!m_modifierAssistants->drawOnly;
 
   m_inputmanager.clearModifiers();
   m_inputmanager.addModifier(TInputModifierP(m_modifierTangents.getPointer()));
   if (smoothRadius > 0) {
     m_inputmanager.addModifier(TInputModifierP(m_modifierSmoothSegmentation.getPointer()));
     for(int i = 0; i < 3; ++i) {
-      m_modifierSmooth[i]->setRadius(smoothRadius);
+      m_modifierSmooth[i]->radius = smoothRadius;
       m_inputmanager.addModifier(TInputModifierP(m_modifierSmooth[i].getPointer()));
     }
   }
@@ -1198,7 +1080,7 @@ void ToonzRasterBrushTool::handleMouseEvent(MouseEventType type,
   bool control  = e.getModifiersMask() & TMouseEvent::CTRL_KEY;
 
   if (shift && type == ME_DOWN && e.button() == Qt::LeftButton && !m_painting.active) {
-    m_modifierAssistants->drawOnly = true;
+    m_modifierAssistants->magnetism = 0;
     m_inputmanager.clearModifiers();
     m_inputmanager.addModifier(TInputModifierP(m_modifierLine.getPointer()));
     m_inputmanager.addModifier(TInputModifierP(m_modifierAssistants.getPointer()));
@@ -1217,9 +1099,13 @@ void ToonzRasterBrushTool::handleMouseEvent(MouseEventType type,
     THoverList hovers(1, pos);
     m_inputmanager.hoverEvent(hovers);
   } else {
-    m_inputmanager.trackEvent(e.isTablet(), 0, pos,
-                              e.isTablet() ? &e.m_pressure : nullptr, nullptr,
-                              type == ME_UP, t);
+    int    deviceId    = e.isTablet() ? 1 : 0;
+    double defPressure = m_isMyPaintStyleSelected ? 0.5 : 1.0;
+    bool   hasPressure = e.isTablet();
+    double pressure    = hasPressure ? e.m_pressure : defPressure;
+    bool   final       = type == ME_UP;
+    m_inputmanager.trackEvent(
+      deviceId, 0, pos, pressure, TPointD(), hasPressure, false, final, t);
     m_inputmanager.processTracks();
   }
 }
@@ -1383,9 +1269,12 @@ void ToonzRasterBrushTool::inputPaintTrackPoint(const TTrackPoint &point, const 
   
   // first point must be without handler, following points must be with handler
   // other behaviour is possible bug and must be ignored
-  assert(firstPoint == !track.toolHandler);
-  if (firstPoint != !track.toolHandler)
+  assert(firstPoint == !track.handler);
+  if (firstPoint != !track.handler)
     return;
+  
+  double defPressure = m_painting.myPaint.isActive ? 0.5 : 1.0;
+  double pressure    = m_pressure.getValue() ? point.pressure : defPressure;
   
   if (m_painting.myPaint.isActive) {
     // mypaint case
@@ -1395,14 +1284,14 @@ void ToonzRasterBrushTool::inputPaintTrackPoint(const TTrackPoint &point, const 
     if (firstPoint) {
       handler = new MyPaintStroke(m_workRas, *this, m_painting.myPaint.baseBrush, false);
       handler->brush.beginStroke();
-      track.toolHandler = handler;
+      track.handler = handler;
     }
-    handler = dynamic_cast<MyPaintStroke*>(track.toolHandler.getPointer());
+    handler = dynamic_cast<MyPaintStroke*>(track.handler.getPointer());
     if (!handler) return;
     
     // paint stroke
     m_painting.myPaint.strokeSegmentRect.empty();
-    handler->brush.strokeTo( fixedPosition + rasCenter, point.pressure,
+    handler->brush.strokeTo( fixedPosition + rasCenter, pressure,
                              point.tilt, point.time - track.previous().time );
     if (lastPoint)
       handler->brush.endStroke();
@@ -1421,7 +1310,7 @@ void ToonzRasterBrushTool::inputPaintTrackPoint(const TTrackPoint &point, const 
     // pencil case
     
     // Pencilモードでなく、Hardness=100 の場合のブラシサイズを1段階下げる
-    double thickness = computeThickness(point.pressure, m_rasThickness)*2;
+    double thickness = computeThickness(pressure, m_rasThickness)*2;
     //if (!m_painting.pencil.realPencil && !m_modifierLine->getManager())
     //  thickness -= 1.0;
     TThickPoint thickPoint(fixedPosition + rasCenter, thickness);
@@ -1441,9 +1330,9 @@ void ToonzRasterBrushTool::inputPaintTrackPoint(const TTrackPoint &point, const 
         getAboveStyleIdSet(m_painting.styleId, ri->getPalette(), aboveStyleIds);
         handler->brush.setAboveStyleIds(aboveStyleIds);
       }
-      track.toolHandler = handler;
+      track.handler = handler;
     }
-    handler = dynamic_cast<PencilStroke*>(track.toolHandler.getPointer());
+    handler = dynamic_cast<PencilStroke*>(track.handler.getPointer());
     if (!handler) return;
 
     // paint stroke
@@ -1476,13 +1365,13 @@ void ToonzRasterBrushTool::inputPaintTrackPoint(const TTrackPoint &point, const 
         getAboveStyleIdSet(m_painting.styleId, ri->getPalette(), aboveStyleIds);
         handler->brush.setAboveStyleIds(aboveStyleIds);
       }
-      track.toolHandler = handler;
+      track.handler = handler;
     }
-    handler = dynamic_cast<BluredStroke*>(track.toolHandler.getPointer());
+    handler = dynamic_cast<BluredStroke*>(track.handler.getPointer());
     if (!handler) return;
 
     // paint stroke
-    double radius = computeThickness(point.pressure, m_rasThickness);
+    double radius = computeThickness(pressure, m_rasThickness);
     TThickPoint thickPoint(fixedPosition + rasCenter, radius*2);
     TRect strokeRect( tfloor(thickPoint.x - maxThick - 0.999),
                       tfloor(thickPoint.y - maxThick - 0.999),

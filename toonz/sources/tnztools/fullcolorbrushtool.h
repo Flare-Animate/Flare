@@ -42,7 +42,7 @@ class FullColorBrushTool final : public TTool,
                                  public TInputHandler {
   Q_DECLARE_TR_FUNCTIONS(FullColorBrushTool)
 public:
-  class TrackHandler : public TTrackToolHandler {
+  class TrackHandler : public TTrackHandler {
   public:
     MyPaintToonzBrush brush;
 
@@ -59,7 +59,10 @@ private:
 public:
   FullColorBrushTool(std::string name);
 
-  ToolType getToolType() const override { return TTool::LevelWriteTool; }
+  ToolType getToolType() const override
+    { return TTool::LevelWriteTool; }
+  unsigned int getToolHints() const override
+    { return TTool::getToolHints() & ~HintAssistantsAll; }
 
   ToolOptionsBox *createOptionsBox() override;
 
