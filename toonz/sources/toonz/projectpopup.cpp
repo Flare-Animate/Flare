@@ -51,7 +51,7 @@ enum { Rule_Standard = 0, Rule_Custom };
 
 QPixmap ProjectDvDirModelProjectNode::getPixmap(bool isOpen) const {
   static QPixmap openProjectPixmap(generateIconPixmap("folder_project_on"));
-  static QPixmap closeProjectPixmap(generateIconPixmap("folder_project.svg"));
+  static QPixmap closeProjectPixmap(generateIconPixmap("folder_project"));
   return isOpen ? openProjectPixmap : closeProjectPixmap;
 }
 
