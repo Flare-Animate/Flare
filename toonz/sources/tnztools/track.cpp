@@ -42,7 +42,9 @@ TTrack::TTrack(
   hasPressure(hasPressure),
   hasTilt(hasTilt),
   pointsRemoved(),
-  pointsAdded()
+  pointsAdded(),
+  fixedPointsAdded(),
+  m_pointsFixed()
   { }
 
 TTrack::TTrack(const TTrackModifierP &modifier):
@@ -55,7 +57,9 @@ TTrack::TTrack(const TTrackModifierP &modifier):
   hasTilt(modifier->original.hasTilt),
   modifier(modifier),
   pointsRemoved(),
-  pointsAdded()
+  pointsAdded(),
+  fixedPointsAdded(),
+  m_pointsFixed()
   { }
 
 const TTrack*
@@ -82,7 +86,7 @@ TTrack::floorIndex(double index, double *outFrac) const {
 }
 
 void
-TTrack::push_back(const TTrackPoint &point) {
+TTrack::push_back(const TTrackPoint &point, bool fixed) {
   m_points.push_back(point);
   if (size() > 1) {
     const TTrackPoint &prev = *(m_points.rbegin() + 1);
@@ -100,18 +104,29 @@ TTrack::push_back(const TTrackPoint &point) {
     p.length = prev.length + sqrt(d.x*d.x + d.y*d.y);
   }
   ++pointsAdded;
+  if (fixed) fix_all();
 }
 
 void
 TTrack::pop_back(int count) {
   if (count > size()) count = size();
   if (count <= 0) return;
+  assert(size() - count >= m_pointsFixed);
   m_points.resize(size() - count);
   if (pointsAdded > count)
     { pointsAdded -= count; return; }
   if (pointsAdded > 0)
     { count -= pointsAdded; pointsAdded = 0; }
   pointsRemoved += count;
+}
+
+void
+TTrack::fix_points(int count) {
+  count = std::min(count, previewSize());
+  assert(count >= 0);
+  if (count <= 0) return;
+  m_pointsFixed += count;
+  fixedPointsAdded += count;
 }
 
 

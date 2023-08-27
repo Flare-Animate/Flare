@@ -197,7 +197,14 @@ BluredBrush::~BluredBrush() {}
 
 //----------------------------------------------------------------------------------
 
-void BluredBrush::addPoint(const TThickPoint &p, double opacity) {
+void BluredBrush::addPoint(const TThickPoint &p, double opacity, bool keepDistance) {
+  if (keepDistance) {
+    double dist = norm2(p - m_lastPoint);
+    double d = 0.12 * m_lastPoint.thick;
+    if (dist < d*d)
+      return;
+  }
+  
   double radius      = p.thick * 0.5;
   double brushRadius = m_size * 0.5;
   double scaleFactor = radius / brushRadius;

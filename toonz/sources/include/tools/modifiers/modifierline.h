@@ -33,14 +33,12 @@ public:
 
     bool fixAngle;
     double maxPressure;
-    TInputSavePoint::Holder savePoint;
-
+    
     TTrackPoint calcPoint(double originalIndex) override;
   };
 
   void modifyTrack(
     const TTrack &track,
-    const TInputSavePoint::Holder &savePoint,
     TTrackList &outTracks ) override;
 };
 

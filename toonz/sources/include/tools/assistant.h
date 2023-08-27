@@ -66,8 +66,15 @@ public:
 
   virtual TTrackPoint transformPoint(const TTrackPoint &point) const
     { return point; }
+  
+  // this function uses in calcTrackWeight to select best guideline,
+  // does not use for drawing
+  virtual TPointD nearestPoint(const TPointD &point) const
+    { return transformPoint(TTrackPoint(point)).position; }
+  
   virtual void draw(bool active, bool enabled) const
     { }
+  
   void draw(bool active = false) const
     { draw(active, true); }
 
@@ -304,6 +311,7 @@ protected:
   double getDrawingGridAlpha() const;
 
   void drawSegment(const TPointD &p0, const TPointD &p1, double pixelSize, double alpha) const;
+  void drawMark(const TPointD &p, const TPointD &normal, double pixelSize, double alpha) const;
   void drawDot(const TPointD &p, double alpha) const;
   void drawPoint(const TAssistantPoint &point, double pixelSize) const;
 

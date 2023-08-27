@@ -78,14 +78,15 @@ TGuideline::calcTrackWeight(const TTrack &track, const TAffine &toScreen, bool &
       double weight = length*logNormalDistribuitionUnscaled(midStepLength, snapLenght, snapScale);
       sumWeight += weight;
 
-      TTrackPoint ntp = transformPoint(mid);
-      double deviation = tdistance(toScreen*ntp.position, p);
+      double deviation = tdistance(
+        toScreen*mid.position,
+        toScreen*nearestPoint(mid.position) );
       sumDeviation += weight*deviation;
     }
     prev = p;
 
     if (sumLength >= maxLength)
-      { outLongEnough = true; break; }
+      { outLongEnough = i < track.fixedSize(); break; }
   }
   return sumWeight > TConsts::epsilon
        ? sumDeviation/sumWeight
@@ -424,6 +425,14 @@ TAssistant::drawSegment(const TPointD &p0, const TPointD &p1, double pixelSize, 
     tglDrawSegment(p0 + d, p1 + d);
   }
   glPopAttrib();
+}
+
+//---------------------------------------------------------------------------------------------------
+
+void
+TAssistant::drawMark(const TPointD &p, const TPointD &normal, double pixelSize, double alpha) const {
+  TPointD d = normal*5*pixelSize;
+  drawSegment(p - d,p + d, pixelSize, alpha);
 }
 
 //---------------------------------------------------------------------------------------------------

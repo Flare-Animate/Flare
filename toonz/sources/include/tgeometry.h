@@ -39,10 +39,10 @@ class TPointT {
 public:
   T x, y;
 
-  TPointT() : x(0), y(0){};
-  TPointT(T _x, T _y) : x(_x), y(_y){};
-  TPointT(const TPointT &point) : x(point.x), y(point.y){};
-  explicit TPointT(const TPoint4T<T> &point);
+  inline TPointT() : x(0), y(0){};
+  inline TPointT(T _x, T _y) : x(_x), y(_y){};
+  inline TPointT(const TPointT &point) : x(point.x), y(point.y){};
+  inline explicit TPointT(const TPoint4T<T> &point);
 
   inline TPointT &operator=(const TPointT &a) {
     x = a.x;
@@ -77,11 +77,11 @@ public:
     T a[4];
   };
 
-  TPoint4T():
+  inline TPoint4T():
     x(), y(), z(), w() { };
-  TPoint4T(T x, T y, T z, T w):
+  inline TPoint4T(T x, T y, T z, T w):
     x(x), y(y), z(z), w(w) { };
-  explicit TPoint4T(const TPointT<T> &p, T w = (T)1):
+  inline explicit TPoint4T(const TPointT<T> &p, T w = (T)1):
       x(p.x), y(p.y), z(), w(w) { };
 };
 
@@ -223,7 +223,7 @@ inline double tdistance2(const TPointD &p1, const TPointD &p2) {
 }
 
 inline bool operator==(const TPointD &p0, const TPointD &p1) {
-  return tdistance2(p0, p1) < TConsts::epsilon * TConsts::epsilon;
+  return tdistance2(p0, p1) <= TConsts::epsilon * TConsts::epsilon;
 }
 inline bool operator!=(const TPointD &p0, const TPointD &p1) {
   return !(p0 == p1);
@@ -1474,7 +1474,7 @@ public:
 
     inline int operator-(const Iterator &i) const {
       assert(m_flip == i.m_flip && m_begin == i.m_begin && m_end == i.m_end && m_prebegin == i.m_prebegin);
-      int ii = m_current - i.m_current;
+      int ii = (int)(m_current - i.m_current);
       return ii < 0 ? ii + size() : ii;
     }
 

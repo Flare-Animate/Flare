@@ -29,7 +29,6 @@ public:
   class DVAPI Modifier: public TTrackModifier {
   public:
     bool initialized;
-    TInputSavePoint::Holder savePoint;
     TGuidelineList guidelines;
 
     Modifier(TTrackHandler &handler);
@@ -52,7 +51,6 @@ public:
 
   void modifyTrack(
     const TTrack &track,
-    const TInputSavePoint::Holder &savePoint,
     TTrackList &outTracks ) override;
 
   TRectD calcDrawBounds(const TTrackList &tracks, const THoverList &hovers) override;

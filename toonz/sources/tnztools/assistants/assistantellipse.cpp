@@ -249,11 +249,9 @@ private:
 
   void drawRuler(const TAffine &ellipseMatrix, double pixelSize) const {
     double minStep = 10.0*pixelSize;
-    double alpha = getDrawingGridAlpha();
+    double alpha = getDrawingAlpha();
 
-    const TAffine &em = ellipseMatrix;
-    double r = sqrt(0.5*(norm2(TPointD(em.a11, em.a21)) + norm2(TPointD(em.a12, em.a22))));
-    double actualMinStep = minStep/r;
+    TAffine em = ellipseMatrix;
     TAffine ellipseMatrixInv = ellipseMatrix.inv();
     TPointD g0 = ellipseMatrixInv*m_grid0.position;
     TPointD g1 = ellipseMatrixInv*m_grid1.position;
@@ -262,22 +260,55 @@ private:
     double ga0 = atan(g0);
     double ga1 = atan(g1);
 
+    // x and y radiuses
+    TPointD r( norm2(TPointD(em.a11, em.a21)), norm2(TPointD(em.a12, em.a22)) );
+    double avgR = 0.5*(r.x + r.y);
+    if (avgR <= TConsts::epsilon*TConsts::epsilon) return;
+    avgR = sqrt(avgR);
+    double actualMinStep = minStep/avgR;
+    r.x = sqrt(r.x);
+    r.y = sqrt(r.y);
+    
+    // remove radiuses from ellipse matrix
+    double rkx = r.x > TConsts::epsilon ? 1.0/r.x : 0.0;
+    double rky = r.y > TConsts::epsilon ? 1.0/r.y : 0.0;
+    em.a11 *= rkx; em.a21 *= rkx;
+    em.a12 *= rky; em.a22 *= rky;
+    
     if (getPerspective()) {
       // draw perspective
       if (ga0 < 0.0) { if (ga1 > 0.0) ga1 -= M_2PI; }
                 else { if (ga1 < 0.0) ga1 += M_2PI; }
       double k = 0.0, begin = 0.0, end = 0.0;
       if (!calcPerspectiveStep(actualMinStep, 0.0, M_2PI, 0.0, fabs(ga0), ga1, k, begin, end)) return;
-      for(double x = begin; fabs(x) < fabs(end); x *= k)
-        drawDot(ellipseMatrix * TPointD(cos(x), (ga0 < 0.0 ? -1.0 : 1.0)*sin(x)));
+      for(double a = begin; fabs(a) < fabs(end); a *= k) {
+        TPointD p( cos(a), (ga0 < 0.0 ? -1.0 : 1.0)*sin(a) );
+        TPointD n( p.x*r.y, p.y*r.x ); // perp to allipse
+        double nl2 = norm2(n);
+        if (nl2 > TConsts::epsilon*TConsts::epsilon) {
+          p.x *= r.x;
+          p.y *= r.y;
+          n = n*(1.0/sqrt(nl2));
+          drawMark(em*p, em.transformDirection(n), pixelSize, alpha);
+        }
+      }
     } else {
       // draw linear
       double da = ga1 - ga0;
       if (da < 0.0)         { da = -da;        std::swap(ga0, ga1); }
       if (ga1 - ga0 > M_PI) { da = M_2PI - da; std::swap(ga0, ga1); }
       if (da < actualMinStep) return;
-      for(double a = ga0 - floor(M_PI/da)*da; a < ga0 + M_PI; a += da)
-        drawDot(ellipseMatrix * TPointD(cos(a), sin(a)));
+      for(double a = ga0 - floor(M_PI/da)*da; a < ga0 + M_PI; a += da) {
+        TPointD p( cos(a), sin(a) );
+        TPointD n( p.x*r.y, p.y*r.x ); // perp to allipse
+        double nl2 = norm2(n);
+        if (nl2 > TConsts::epsilon*TConsts::epsilon) {
+          p.x *= r.x;
+          p.y *= r.y;
+          n = n*(1.0/sqrt(nl2));
+          drawMark(em*p, em.transformDirection(n), pixelSize, alpha);
+        }
+      }
     }
   }
 

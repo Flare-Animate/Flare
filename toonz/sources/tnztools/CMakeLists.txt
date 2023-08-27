@@ -54,7 +54,7 @@ set(HEADERS
     ../include/tools/modifiers/modifiertangents.h
     ../include/tools/modifiers/modifiertest.h
     ../include/tools/modifiers/modifiersegmentation.h
-    ../include/tools/modifiers/modifierassistants.h
+    ../include/tools/modifiers/modifiersmooth.h
     ../include/tools/assistants/guidelineline.h
     ../include/tools/assistants/guidelineellipse.h
 )
@@ -130,6 +130,7 @@ set(SOURCES
     modifiers/modifiertangents.cpp
     modifiers/modifiertest.cpp
     modifiers/modifiersegmentation.cpp
+    modifiers/modifiersmooth.cpp
     assistants/guidelineline.cpp
     assistants/guidelineellipse.cpp
     assistants/assistantvanishingpoint.cpp

@@ -306,17 +306,17 @@ bool FullColorBrushTool::askWrite(const TRect &rect) {
 
 bool FullColorBrushTool::preLeftButtonDown() {
   m_modifierAssistants->drawOnly = !FullcolorAssistants;
-  m_inputmanager.drawPreview     = false;  //! m_modifierAssistants->drawOnly;
+  m_inputmanager.drawPreview     = false; //!m_modifierAssistants->drawOnly;
 
   m_inputmanager.clearModifiers();
   m_inputmanager.addModifier(TInputModifierP(m_modifierTangents.getPointer()));
   m_inputmanager.addModifier(
       TInputModifierP(m_modifierAssistants.getPointer()));
-  m_inputmanager.addModifier(
-      TInputModifierP(m_modifierSegmentation.getPointer()));
 #ifndef NDEBUG
   m_inputmanager.addModifier(TInputModifierP(m_modifierTest.getPointer()));
 #endif
+  m_inputmanager.addModifier(
+      TInputModifierP(m_modifierSegmentation.getPointer()));
 
   touchImage();
 
@@ -505,9 +505,13 @@ void FullColorBrushTool::inputSetBusy(bool busy) {
 
 void FullColorBrushTool::inputPaintTrackPoint(const TTrackPoint &point,
                                               const TTrack &track,
-                                              bool firstTrack) {
+                                              bool firstTrack,
+                                              bool preview)
+{
   // get raster
-  if (!m_started || !getViewer()) return;
+  if (!m_started || !getViewer() || preview)
+    return;
+  
   TRasterImageP ri = (TRasterImageP)getImage(true);
   if (!ri) return;
   TRasterP ras      = ri->getRaster();

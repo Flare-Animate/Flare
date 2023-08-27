@@ -73,12 +73,14 @@ TGuidelineLineBase::truncateInfiniteLine(const TRectD &bounds, TPointD &p0, TPoi
 bool
 TGuidelineLineBase::truncateRay(const TRectD &bounds, TPointD &p0, TPointD &p1) {
   if (bounds.isEmpty()) return false;
-  TRectD b(bounds);
 
-  if (p0.x <= p1.x) { if (b.x0 < p0.x) b.x0 = p0.x; }
-               else { if (b.x1 > p0.x) b.x1 = p0.x; }
-  if (p0.y <= p1.y) { if (b.y0 < p0.y) b.y0 = p0.y; }
-               else { if (b.y1 > p0.y) b.y1 = p0.y; }
+  // restrict bounds by p0
+  // slightly expand this restriction to include vert and hor rays
+  TRectD b(bounds);
+  if (p0.x <= p1.x) { if (b.x0 < p0.x - TConsts::epsilon) b.x0 = p0.x - TConsts::epsilon; }
+               else { if (b.x1 > p0.x + TConsts::epsilon) b.x1 = p0.x + TConsts::epsilon; }
+  if (p0.y <= p1.y) { if (b.y0 < p0.y - TConsts::epsilon) b.y0 = p0.y - TConsts::epsilon; }
+               else { if (b.y1 > p0.y + TConsts::epsilon) b.y1 = p0.y + TConsts::epsilon; }
 
   if (b.isEmpty()) return false;
   return truncateInfiniteLine(b, p0, p1);
@@ -86,7 +88,13 @@ TGuidelineLineBase::truncateRay(const TRectD &bounds, TPointD &p0, TPointD &p1) 
 
 bool
 TGuidelineLineBase::truncateLine(const TRectD &bounds, TPointD &p0, TPointD &p1) {
-  TRectD b = bounds * boundingBox(p0, p1);
+  // restrict bounds by p0 and p1
+  // slightly expand this restriction to include vert and hor lines
+  TRectD b( std::min(p0.x, p1.x) - TConsts::epsilon,
+            std::min(p0.y, p1.y) - TConsts::epsilon,
+            std::max(p0.x, p1.x) + TConsts::epsilon,
+            std::max(p0.y, p1.y) + TConsts::epsilon );
+  b *= bounds;
   if (b.isEmpty()) return false;
   return truncateInfiniteLine(b, p0, p1);
 }

@@ -50,7 +50,6 @@ public:
   TModifierTest(int count, double radius);
 
   void modifyTrack(const TTrack &track,
-                   const TInputSavePoint::Holder &savePoint,
                    TTrackList &outTracks) override;
 };
 

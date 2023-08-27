@@ -113,64 +113,64 @@ TModifierAssistants::scanAssistants(
 void
 TModifierAssistants::modifyTrack(
   const TTrack &track,
-  const TInputSavePoint::Holder &savePoint,
   TTrackList &outTracks )
 {
   if (!track.handler) {
     track.handler = new TTrackHandler(track);
     Modifier *modifier = new Modifier(*track.handler);
-    if (!drawOnly)
-      scanAssistants(&track[0].position, 1, &modifier->guidelines, false, true);
-
     track.handler->tracks.push_back(new TTrack(modifier));
-
-    if ((int)modifier->guidelines.size() > 1) {
-      modifier->savePoint = savePoint;
-      outTracks.push_back(track.handler->tracks.front());
-      return;
-    }
   }
 
   outTracks.push_back(track.handler->tracks.front());
   TTrack &subTrack = *track.handler->tracks.front();
-  if (!track.changed()) return;
-  if (Modifier *modifier = dynamic_cast<Modifier*>(subTrack.modifier.getPointer())) {
-    // remove points
-    int start = track.size() - track.pointsAdded;
-    if (start < 0) start = 0;
+  if (!track.changed())
+    return;
+  Modifier *modifier = dynamic_cast<Modifier*>(subTrack.modifier.getPointer());
+  if (!modifier)
+    return;
+    
+  // remove points
+  int start = track.size() - track.pointsAdded;
+  if (start < 0) start = 0;
 
-    if ((int)modifier->guidelines.size() > 1 && modifier->savePoint.available()) {
-      // select guideline
-      bool longEnough = false;
-      if (TInputManager *manager = getManager())
-      if (TInputHandler *handler = manager->getHandler())
-      if (TTool *tool = handler->inputGetTool())
-      if (TToolViewer *viewer = tool->getViewer()) {
-        TAffine trackToScreen = tool->getMatrix();
-        if (tool->getToolType() & TTool::LevelTool)
-          if (TObjectHandle *objHandle = TTool::getApplication()->getCurrentObject())
-            if (!objHandle->isSpline())
-              trackToScreen *= TScale(viewer->getDpiScale().x, viewer->getDpiScale().y);
-        trackToScreen *= viewer->get3dViewMatrix().get2d().inv();
-        TGuidelineP guideline = TGuideline::findBest(modifier->guidelines, track, trackToScreen, longEnough);
-        if (guideline != modifier->guidelines.front())
-          for(int i = 1; i < (int)modifier->guidelines.size(); ++i)
-            if (modifier->guidelines[i] == guideline) {
-              std::swap(modifier->guidelines[i], modifier->guidelines.front());
-              start = 0;
-              break;
-            }
-      }
-      modifier->savePoint.setLock(!longEnough);
-    } else {
-      modifier->savePoint.reset();
-    }
-
-    // add points
-    subTrack.truncate(start);
-    for(int i = start; i < track.size(); ++i)
-      subTrack.push_back( modifier->calcPoint(i) );
+  if (!drawOnly && start <= 0) {
+    modifier->guidelines.clear();
+    scanAssistants(&track[0].position, 1, &modifier->guidelines, false, true);
   }
+  
+  bool fixed = subTrack.fixedSize() || modifier->guidelines.size() <= 1;
+
+  // select guideline
+  if (!fixed)
+  if (TInputManager *manager = getManager())
+  if (TInputHandler *handler = manager->getHandler())
+  if (TTool *tool = handler->inputGetTool())
+  if (TToolViewer *viewer = tool->getViewer()) {
+    TAffine trackToScreen = tool->getMatrix();
+    if (tool->getToolType() & TTool::LevelTool)
+      if (TObjectHandle *objHandle = TTool::getApplication()->getCurrentObject())
+        if (!objHandle->isSpline())
+          trackToScreen *= TScale(viewer->getDpiScale().x, viewer->getDpiScale().y);
+    trackToScreen *= viewer->get3dViewMatrix().get2d();
+    TGuidelineP guideline = TGuideline::findBest(modifier->guidelines, track, trackToScreen, fixed);
+    if (guideline != modifier->guidelines.front())
+      for(int i = 1; i < (int)modifier->guidelines.size(); ++i)
+        if (modifier->guidelines[i] == guideline) {
+          std::swap(modifier->guidelines[i], modifier->guidelines.front());
+          start = 0;
+          break;
+        }
+  }
+
+  // add points
+  subTrack.truncate(start);
+  for(int i = start; i < track.size(); ++i)
+    subTrack.push_back( modifier->calcPoint(i), false );
+  
+  // fix points
+  if (fixed || track.fixedFinished())
+    subTrack.fix_to(track.fixedSize());
+
   track.resetChanges();
 }
 

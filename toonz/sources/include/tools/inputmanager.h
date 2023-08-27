@@ -47,104 +47,6 @@ typedef TSmartPointerT<TInputModifier> TInputModifierP;
 
 
 //*****************************************************************************************
-//    TInputSavePoint definition
-//*****************************************************************************************
-
-class DVAPI TInputSavePoint {
-public:
-  class DVAPI Holder {
-  private:
-    TInputSavePoint *m_savePoint;
-    bool m_lock = false;
-
-  public:
-    inline explicit Holder(TInputSavePoint *savePoint = NULL, bool lock = true):
-      m_savePoint(), m_lock()
-      { set(savePoint, lock); }
-    inline Holder(const Holder &other):
-      m_savePoint(), m_lock()
-      { *this = other; }
-    inline ~Holder()
-      { reset(); }
-
-    inline Holder& operator= (const Holder &other)
-      { set(other.m_savePoint, other.m_lock); return *this; }
-
-    inline operator bool () const
-      { return assigned(); }
-
-    inline void set(TInputSavePoint *savePoint, bool lock) {
-      if (m_savePoint != savePoint) {
-        if (m_savePoint) {
-          if (m_lock) m_savePoint->unlock();
-          m_savePoint->release();
-        }
-        m_savePoint = savePoint;
-        m_lock = lock;
-        if (m_savePoint) {
-          m_savePoint->hold();
-          if (m_lock) savePoint->lock();
-        }
-      } else
-      if (m_lock != lock) {
-        if (m_savePoint) {
-          if (lock) m_savePoint->lock();
-               else m_savePoint->unlock();
-        }
-        m_lock = lock;
-      }
-    }
-
-    inline void reset()
-      { set(NULL, false); }
-    inline void setLock(bool lock)
-      { set(m_savePoint, lock); }
-    inline void lock()
-      { setLock(true); }
-    inline void unlock()
-      { setLock(false); }
-
-    inline TInputSavePoint* savePoint() const
-      { return m_savePoint; }
-    inline bool assigned() const
-      { return savePoint(); }
-    inline bool locked() const
-      { return m_savePoint && m_lock; }
-    inline bool available() const
-      { return m_savePoint && m_savePoint->available; }
-    inline bool isFree() const
-      { return !m_savePoint || m_savePoint->isFree(); }
-  };
-
-  typedef std::vector<Holder> List;
-
-private:
-  int m_refCount;
-  int m_lockCount;
-
-  inline void hold()
-    { ++m_refCount; }
-  inline void release()
-    { if ((--m_refCount) <= 0) delete this; }
-  inline void lock()
-    { ++m_lockCount; }
-  inline void unlock()
-    { --m_lockCount; }
-
-public:
-  bool available;
-
-  inline explicit TInputSavePoint(bool available = false):
-    m_refCount(), m_lockCount(), available(available) { }
-  inline bool isFree() const
-    { return m_lockCount <= 0; }
-
-  static inline Holder create(bool available = false)
-    { return Holder(new TInputSavePoint(available)); }
-};
-
-
-//*****************************************************************************************
 //    TInputModifier definition
 //*****************************************************************************************
 
@@ -164,11 +66,9 @@ public:
 
   virtual void modifyTrack(
     const TTrack &track,
-    const TInputSavePoint::Holder &savePoint,
     TTrackList &outTracks );
   virtual void modifyTracks(
     const TTrackList &tracks,
-    const TInputSavePoint::Holder &savePoint,
     TTrackList &outTracks );
 
   virtual void modifyHover(
@@ -221,30 +121,11 @@ public:
   
   virtual void inputHoverEvent(const TInputManager &manager);
 
-  /*! paint single track-point at the top painting level */
-  virtual void inputPaintTrackPoint(const TTrackPoint &point, const TTrack &track, bool firstTrack);
-
-  /*! create new painting level and return true, or do nothing and return false
-      was:            ------O-------O------
-      become:         ------O-------O------O */
-  virtual bool inputPaintPush() { return false; }
-  /*! paint several track-points at the top painting level
-      was:            ------O-------O------
-      become:         ------O-------O------------ */
+  virtual void inputPaintTracksBegin() { }
+  virtual void inputPaintTrackPoint(const TTrackPoint &point, const TTrack &track, bool firstTrack, bool preview);
+  virtual void inputPaintTracksEnd() { }
   virtual void inputPaintTracks(const TTrackList &tracks);
-  /*! try to merge N top painting levels and return count of levels that actually merged
-      was:            ------O-------O------O------
-      become (N = 2): ------O--------------------- */
-  virtual int inputPaintApply(int count) { return 0; }
-  /*! reset top level to initial state
-      was:            ------O-------O------O------
-      become:         ------O-------O------O */
-  virtual void inputPaintCancel() { }
-  /*! cancel and pop N painting levels
-      was:            ------O-------O------O------
-      become (N = 2): ------O------- */
-  virtual void inputPaintPop(int count) { }
-  
+
   virtual void inputInvalidateRect(const TRectD &bounds) { }
   
   virtual TTool* inputGetTool() { return nullptr; };
@@ -256,26 +137,15 @@ public:
 //*****************************************************************************************
 
 class DVAPI TInputManager {
-public:
-  class TrackHandler: public TTrackHandler {
-  public:
-    std::vector<int> saves;
-    TrackHandler(TTrack &original, int keysCount = 0):
-      TTrackHandler(original), saves(keysCount, 0)
-      { }
-  };
-
 private:
   TTimerTicks m_lastTicks;
   TInputHandler *m_handler;
   TInputModifier::List m_modifiers;
   std::vector<TTrackList> m_tracks;
   std::vector<THoverList> m_hovers;
-  TInputSavePoint::List m_savePoints;
   TRectD m_prevBounds;
   TRectD m_nextBounds;
   bool m_started;
-  int m_savePointsSent;
 
   static TInputState::TouchId m_lastTouchId;
 
@@ -294,8 +164,6 @@ private:
     return m_lastTicks = ticks;
   }
   
-  void paintRollbackTo(int saveIndex, TTrackList &subTracks);
-  void paintApply(int count, TTrackList &subTracks);
   void paintTracks();
 
   int trackCompare(

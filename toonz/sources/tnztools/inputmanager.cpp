@@ -1,5 +1,6 @@
 
 
+#include <tpixelutils.h>
 #include <tools/inputmanager.h>
 
 // TnzCore includes
@@ -29,7 +30,6 @@ TInputModifier::setManager(TInputManager *manager) {
 void
 TInputModifier::modifyTrack(
   const TTrack &track,
-  const TInputSavePoint::Holder &savePoint,
   TTrackList &outTracks )
 {
   if (!track.handler) {
@@ -51,7 +51,8 @@ TInputModifier::modifyTrack(
     TTrack &subTrack = **ti;
     subTrack.truncate(start);
     for(int i = start; i < track.size(); ++i)
-      subTrack.push_back( subTrack.modifier->calcPoint(i) );
+      subTrack.push_back( subTrack.modifier->calcPoint(i), false );
+    subTrack.fix_to(track.fixedSize());
   }
   track.resetChanges();
 }
@@ -60,11 +61,10 @@ TInputModifier::modifyTrack(
 void
 TInputModifier::modifyTracks(
     const TTrackList &tracks,
-    const TInputSavePoint::Holder &savePoint,
     TTrackList &outTracks )
 {
   for(TTrackList::const_iterator i = tracks.begin(); i != tracks.end(); ++i)
-    modifyTrack(**i, savePoint, outTracks);
+    modifyTrack(**i, outTracks);
 }
 
 
@@ -127,9 +127,9 @@ TInputModifier::draw(const TTrackList &tracks, const std::vector<TPointD> &hover
 bool
 TInputHandler::inputKeyEvent(
   bool press,
-  TInputState::Key key,
+  TInputState::Key,
   QKeyEvent *event,
-  const TInputManager &manager )
+  const TInputManager& )
 {
   return press && event && inputKeyDown(event);
 }
@@ -138,7 +138,7 @@ TInputHandler::inputKeyEvent(
 void
 TInputHandler::inputButtonEvent(
   bool press,
-  TInputState::DeviceId device,
+  TInputState::DeviceId,
   TInputState::Button button,
   const TInputManager &manager )
 {
@@ -155,8 +155,8 @@ TInputHandler::inputHoverEvent(const TInputManager &manager) {
 
 
 void
-TInputHandler::inputPaintTrackPoint(const TTrackPoint &point, const TTrack &track, bool firstTrack) {
-  if (firstTrack) {
+TInputHandler::inputPaintTrackPoint(const TTrackPoint &point, const TTrack &track, bool firstTrack, bool preview) {
+  if (firstTrack && !preview) {
     if (track.pointsAdded == track.size())
       inputLeftButtonDown(point, track);
     else
@@ -164,14 +164,25 @@ TInputHandler::inputPaintTrackPoint(const TTrackPoint &point, const TTrack &trac
       inputLeftButtonUp(point, track);
     else
       inputLeftButtonDrag(point, track);
-   }
+  }
 }
 
 
 void
 TInputHandler::inputPaintTracks(const TTrackList &tracks) {
+  // prepare tracks counters
+  for(TTrackList::const_iterator i = tracks.begin(); i != tracks.end(); ++i) {
+    (*i)->pointsAdded = (*i)->fixedPointsAdded + (*i)->previewSize();
+    (*i)->resetRemoved();
+  }
+  
+  // begin paint
+  bool preview = false;
+  bool paintStarted = false;
+
   // paint track points in chronological order
   while(true) {
+    // find earlier not painted point
     TTrackP track;
     TTimerTicks minTicks = 0;
     double minTimeOffset = 0.0;
@@ -187,10 +198,27 @@ TInputHandler::inputPaintTracks(const TTrackList &tracks) {
         }
       }
     }
-    if (!track) break;
-    inputPaintTrackPoint(track->current(), *track, track == tracks.front());
+    
+    if (!track)
+      break; // all tracks are painted
+    
+    if (track->pointsAdded <= track->previewSize())
+      preview = true;
+    if (!paintStarted)
+      { inputPaintTracksBegin(); paintStarted = true; }
+    inputPaintTrackPoint(track->current(), *track, track == tracks.front(), preview);
+    
+    // update counters
     --track->pointsAdded;
+    if (!preview) {
+      assert(track->fixedPointsAdded > 0);
+      --track->fixedPointsAdded;
+    }
   }
+
+  // end paint
+  if (paintStarted)
+    inputPaintTracksEnd();
 }
 
 
@@ -205,162 +233,53 @@ TInputManager::TInputManager():
   m_tracks(1),
   m_hovers(1),
   m_started(),
-  m_savePointsSent(),
   drawPreview()
 { }
 
 
 void
-TInputManager::paintRollbackTo(int saveIndex, TTrackList &subTracks) {
-  if (saveIndex >= (int)m_savePoints.size())
-    return;
-
-  int level = saveIndex + 1;
-  if (level <= m_savePointsSent) {
-    if (m_handler) {
-      if (level < m_savePointsSent)
-        m_handler->inputPaintPop(m_savePointsSent - level);
-      m_handler->inputPaintCancel();
-    }
-    m_savePointsSent = level;
-  }
-
-  for(TTrackList::const_iterator i = subTracks.begin(); i != subTracks.end(); ++i) {
-    TTrack &track = **i;
-    if (TrackHandler *handler = dynamic_cast<TrackHandler*>(track.handler.getPointer())) {
-      handler->saves.resize(level);
-      int cnt = handler->saves[saveIndex];
-      track.resetRemoved();
-      track.pointsAdded = track.size() - cnt;
-    }
-  }
-  for(int i = level; i < (int)m_savePoints.size(); ++i)
-    m_savePoints[i].savePoint()->available = false;
-  m_savePoints.resize(level);
-}
-
-
-void
-TInputManager::paintApply(int count, TTrackList &subTracks) {
-  if (count <= 0)
-    return;
-
-  int level = (int)m_savePoints.size() - count;
-  bool resend = true;
-
-  if (level < m_savePointsSent) {
-    // apply
-    int applied = m_handler ? m_handler->inputPaintApply(m_savePointsSent - level) : false;
-    applied = std::max(0, std::min(m_savePointsSent - level, applied));
-    m_savePointsSent -= applied;
-    if (m_savePointsSent == level) resend = false;
-  }
-
-  if (level < m_savePointsSent) {
-    // rollback
-    if (m_handler) m_handler->inputPaintPop(m_savePointsSent - level);
-    m_savePointsSent = level;
-  }
-
-  // remove keypoints
-  for(TTrackList::const_iterator i = subTracks.begin(); i != subTracks.end(); ++i) {
-    TTrack &track = **i;
-    if (TrackHandler *handler = dynamic_cast<TrackHandler*>(track.handler.getPointer())) {
-      if (resend) {
-        track.resetRemoved();
-        track.pointsAdded = track.size() - handler->saves[m_savePointsSent];
-      }
-      handler->saves.resize(level);
-    }
-  }
-  for(int i = level; i < (int)m_savePoints.size(); ++i)
-    m_savePoints[i].savePoint()->available = false;
-  m_savePoints.resize(level);
-}
-
-
-void
 TInputManager::paintTracks() {
+  // run modifiers
+  for(int i = 0; i < (int)m_modifiers.size(); ++i) {
+    m_tracks[i+1].clear();
+    m_modifiers[i]->modifyTracks(m_tracks[i], m_tracks[i+1]);
+  }
+  TTrackList &subTracks = m_tracks.back();
+
+  
+  // begin painting if need
+  bool changed = false;
+  for(TTrackList::const_iterator i = subTracks.begin(); i != subTracks.end(); ++i)
+    if ((*i)->changed())
+      { changed = true; break; }
+  if (!m_started && changed) {
+    m_started = true;
+    if (m_handler) m_handler->inputSetBusy(true);
+  }
+
+  
+  // paint tracks
+  if (changed && m_handler)
+    m_handler->inputPaintTracks(subTracks);
+  
+  
+  // end painting if all tracks are finished
   bool allFinished = true;
   for(TTrackList::const_iterator i = m_tracks.front().begin(); i != m_tracks.front().end(); ++i)
-    if (!(*i)->finished())
+    if (!(*i)->fixedFinished())
       { allFinished = false; break; }
-
-  while(true) {
-    // run modifiers
-    TInputSavePoint::Holder newSavePoint = TInputSavePoint::create(true);
-    for(int i = 0; i < (int)m_modifiers.size(); ++i) {
-      m_tracks[i+1].clear();
-      m_modifiers[i]->modifyTracks(m_tracks[i], newSavePoint, m_tracks[i+1]);
-    }
-    TTrackList &subTracks = m_tracks.back();
-
-    // is paint started?
-    if (!m_started && !subTracks.empty()) {
-      m_started = true;
-      if (m_handler) m_handler->inputSetBusy(true);
-    }
-
-    // create handlers
+  if (allFinished)
     for(TTrackList::const_iterator i = subTracks.begin(); i != subTracks.end(); ++i)
-      if (!(*i)->handler)
-        (*i)->handler = new TrackHandler(**i, (int)m_savePoints.size());
-
-    if (!m_savePoints.empty()) {
-      // rollback
-      int rollbackIndex = (int)m_savePoints.size();
-      for(TTrackList::const_iterator i = subTracks.begin(); i != subTracks.end(); ++i) {
-        TTrack &track = **i;
-        if (track.pointsRemoved > 0) {
-          int count = track.size() - track.pointsAdded;
-          if (TrackHandler *handler = dynamic_cast<TrackHandler*>(track.handler.getPointer()))
-            while(rollbackIndex > 0 && (rollbackIndex >= (int)m_savePoints.size() || handler->saves[rollbackIndex] > count))
-              --rollbackIndex;
-        }
-      }
-      paintRollbackTo(rollbackIndex, subTracks);
-
-      // apply
-      int applyCount = 0;
-      while(applyCount < (int)m_savePoints.size() && m_savePoints[(int)m_savePoints.size() - applyCount - 1].isFree())
-        ++applyCount;
-      paintApply(applyCount, subTracks);
+      if (!(*i)->fixedFinished())
+        { allFinished = false; break; }
+        
+  if (allFinished) {
+    if (m_started) {
+      if (m_handler) m_handler->inputSetBusy(false);
+      m_started = false;
     }
-
-    // send to handler
-    if (m_savePointsSent == (int)m_savePoints.size() && !subTracks.empty() && m_handler)
-      m_handler->inputPaintTracks(subTracks);
-    for(TTrackList::const_iterator i = subTracks.begin(); i != subTracks.end(); ++i)
-      (*i)->resetChanges();
-
-    // is paint finished?
-    newSavePoint.unlock();
-    if (newSavePoint.isFree()) {
-      newSavePoint.savePoint()->available = false;
-      if (allFinished) {
-        paintApply((int)m_savePoints.size(), subTracks);
-        // send to tool final
-        if (!subTracks.empty()) {
-          if (m_handler) m_handler->inputPaintTracks(subTracks);
-          for(TTrackList::const_iterator i = subTracks.begin(); i != subTracks.end(); ++i)
-            (*i)->resetChanges();
-        }
-        for(std::vector<TTrackList>::iterator i = m_tracks.begin(); i != m_tracks.end(); ++i)
-          i->clear();
-        if (m_started) {
-          if (m_handler) m_handler->inputSetBusy(false);
-          m_started = false;
-        }
-      }
-      break;
-    }
-
-    // create save point
-    if (m_handler && m_handler->inputPaintPush()) ++m_savePointsSent;
-    m_savePoints.push_back(newSavePoint);
-    for(TTrackList::const_iterator i = subTracks.begin(); i != subTracks.end(); ++i)
-      if (TrackHandler *handler = dynamic_cast<TrackHandler*>((*i)->handler.getPointer()))
-        handler->saves.push_back((*i)->size());
+    for(int i = 0; i < (int)m_tracks.size(); ++i)
+      m_tracks[i].clear();
   }
 }
 
@@ -444,14 +363,16 @@ TInputManager::addTrackPoint(
   double time,
   bool final )
 {
-  track->push_back( TTrackPoint(
-    position,
-    pressure,
-    tilt,
-    (double)track->size(),
-    time,
-    0.0, // length will calculated inside of TTrack::push_back
-    final ));
+  track->push_back(
+    TTrackPoint(
+      position,
+      pressure,
+      tilt,
+      (double)track->size(),
+      time,
+      0.0, // length will calculated inside of TTrack::push_back
+      final ),
+    true );
 }
 
 
@@ -502,15 +423,9 @@ TInputManager::finishTracks() {
 
 void
 TInputManager::reset() {
-  // forget about handler paint stack
+  // forget about handler busy state
   // assuime it was already reset by outside
   m_started = false;
-  m_savePointsSent = 0;
-
-  // reset save point
-  for(int i = 0; i < (int)m_savePoints.size(); ++i)
-    m_savePoints[i].savePoint()->available = false;
-  m_savePoints.clear();
 
   // reset tracks
   for(int i = 0; i < (int)m_tracks.size(); ++i)
@@ -660,16 +575,13 @@ TInputManager::calcDrawBounds() {
   for(int i = 0; i < (int)m_modifiers.size(); ++i)
     bounds += m_modifiers[i]->calcDrawBounds(m_tracks[i], m_hovers[i]);
 
-  if (m_savePointsSent < (int)m_savePoints.size()) {
+  if (drawPreview) {
     for(TTrackList::const_iterator ti = getOutputTracks().begin(); ti != getOutputTracks().end(); ++ti) {
       TTrack &track = **ti;
-      if (TrackHandler *handler = dynamic_cast<TrackHandler*>(track.handler.getPointer())) {
-        int start = handler->saves[m_savePointsSent] - 1;
-        if (start < 0) start = 0;
-        if (start + 1 < track.size())
-          for(int i = start + 1; i < track.size(); ++i)
-            bounds += boundingBox(track[i-1].position, track[i].position);
-      }
+      int start = std::max(0, track.fixedSize() - track.fixedPointsAdded);
+      if (start + 1 < track.size())
+        for(int i = start + 1; i < track.size(); ++i)
+          bounds += boundingBox(track[i-1].position, track[i].position);
     }
   }
 
@@ -685,53 +597,69 @@ TInputManager::draw() {
   m_prevBounds = m_nextBounds;
   m_nextBounds = TRectD();
   
-  // paint not sent sub-tracks
-  if ( debugInputManager || (drawPreview && m_savePointsSent < (int)m_savePoints.size()) ) {
+  // paint not fixed parts of tracks
+  if (drawPreview) {
     glPushAttrib(GL_ALL_ATTRIB_BITS);
     tglEnableBlending();
     tglEnableLineSmooth(true, 1.0);
     double pixelSize = sqrt(tglGetPixelSize2());
-    double colorBlack[4] = { 0.0, 0.0, 0.0, 1.0 };
-    double colorWhite[4] = { 1.0, 1.0, 1.0, 1.0 };
+    double colorBlack[4] = { 0.0, 0.0, 0.0, 0.5 };
+    double colorWhite[4] = { 1.0, 1.0, 1.0, 0.5 };
     for(TTrackList::const_iterator ti = getOutputTracks().begin(); ti != getOutputTracks().end(); ++ti) {
       TTrack &track = **ti;
-      if (TrackHandler *handler = dynamic_cast<TrackHandler*>(track.handler.getPointer())) {
-        int start = debugInputManager ? 0 : handler->saves[m_savePointsSent] - 1;
-        if (start < 0) start = 0;
-        if (start + 1 < track.size()) {
-          //int level = m_savePointsSent;
-          //colorBlack[3] = (colorWhite[3] = 0.8);
-          double radius = 2.0;
-          for(int i = start + 1; i < track.size(); ++i) {
-            //while(level < (int)handler->saves.size() && handler->saves[level] <= i)
-            //  colorBlack[3] = (colorWhite[3] *= 0.8), ++level;
-
-            const TPointD &a = track[i-1].position;
-            const TPointD &b = track[i].position;
-            TPointD d = b - a;
-
-            double k = norm2(d);
-            if (k > TConsts::epsilon*TConsts::epsilon) {
-              k = 0.5*pixelSize/sqrt(k);
-              d = TPointD(-k*d.y, k*d.x);
-              glColor4dv(colorWhite);
-              tglDrawSegment(a - d, b - d);
-              glColor4dv(colorBlack);
-              tglDrawSegment(a + d, b + d);
-              radius = 2.0;
-            } else {
-              radius += 2.0;
-            }
-
-            if (debugInputManager) {
-              glColor4d(0.0, 0.0, 0.0, 0.25);
-              tglDrawCircle(b, radius*pixelSize);
-            }
-          }
+      int start = std::max(0, track.fixedSize() - track.fixedPointsAdded);
+      const TPointD *a = &track[start].position;
+      for(int i = start + 1; i < track.size(); ++i) {
+        const TPointD *b = &track[i].position;
+        TPointD d = *b - *a;
+        double k = norm2(d);
+        if (k > TConsts::epsilon*TConsts::epsilon) {
+          k = 0.5*pixelSize/sqrt(k);
+          d = TPointD(-k*d.y, k*d.x);
+          glColor4dv(colorWhite);
+          tglDrawSegment(*a - d, *b - d);
+          glColor4dv(colorBlack);
+          tglDrawSegment(*a + d, *b + d);
+          a = b;
         }
       }
     }
     glPopAttrib();
+  }
+  
+  // paint all tracks modifications for debug
+  if (debugInputManager) {
+    double pixelSize = sqrt(tglGetPixelSize2());
+    double color[4] = { 0.0, 0.0, 0.0, 0.5 };
+    int cnt = m_tracks.size();
+    for(int li = 0; li < cnt; ++li) {
+      HSV2RGB(240 + li*120.0/(cnt-1), 1, 1, &color[0], &color[1], &color[2]);
+      glColor4dv(color);
+      for(TTrackList::const_iterator ti = m_tracks[li].begin(); ti != m_tracks[li].end(); ++ti) {
+        assert(*ti);
+        const TTrack &track = **ti;
+        int radius = 0;
+        const TPointD *a = &track[0].position;
+        for(int i = 0; i < track.size(); ++i) {
+          const TPointD *b = &track[i].position;
+          
+          if (i) {
+            TPointD d = *b - *a;
+            double k = norm2(d);
+            if (k > 4*pixelSize*pixelSize) {
+              tglDrawSegment(*a, *b);
+              radius = 0;
+              a = b;
+            } else {
+              ++radius;
+            }
+          }
+          
+          if (radius && li == 0)
+            tglDrawCircle(*b, radius*pixelSize*3);
+        }
+      }
+    }
   }
 
   // paint modifiers
