@@ -181,8 +181,10 @@ protected:
   virtual void onFixData() { }
 
 public:
-  void setDefaults()
-    { onSetDefaults(); }
+  void setDefaults() {
+    { LockEvents lock(*this); onSetDefaults(); }
+    data().touch();
+  }
   void dataChanged(const TVariant &value)
     { if (m_locks == 0) onDataChanged(value); }
   void fixData()

@@ -6,6 +6,7 @@
 #include "tools/toolhandle.h"
 #include "tools/toolutils.h"
 #include "tools/tooloptions.h"
+#include "tools/replicator.h"
 
 // TnzQt includes
 #include "toonzqt/dvdialog.h"
@@ -791,6 +792,18 @@ ToonzRasterBrushTool::ToonzRasterBrushTool(std::string name, int targetType)
 
 //-------------------------------------------------------------------------------------------------------
 
+unsigned int ToonzRasterBrushTool::getToolHints() const {
+  unsigned int h = TTool::getToolHints() & ~HintAssistantsAll;
+  if (m_assistants.getValue()) {
+    h |= HintReplicators;
+    h |= HintReplicatorsPoints;
+    h |= HintReplicatorsEnabled;
+  }
+  return h;
+}
+
+//-------------------------------------------------------------------------------------------------------
+
 ToolOptionsBox *ToonzRasterBrushTool::createOptionsBox() {
   TPaletteHandle *currPalette =
       TTool::getApplication()->getPaletteController()->getCurrentLevelPalette();
@@ -1009,6 +1022,7 @@ void ToonzRasterBrushTool::onActivate() {
                                       m_hardness.getValue() * 0.01);
   setWorkAndBackupImages();
 
+  updateModifiers();
   m_brushTimer.start();
   // TODO:app->editImageOrSpline();
 }
@@ -1036,13 +1050,17 @@ bool ToonzRasterBrushTool::askWrite(const TRect &rect) {
   return true;
 }
 
-//--------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------
 
-bool ToonzRasterBrushTool::preLeftButtonDown() {
+void ToonzRasterBrushTool::updateModifiers() {
   int smoothRadius = (int)round(m_smooth.getValue());
   m_modifierAssistants->magnetism = m_assistants.getValue() ? 1 : 0;
   m_inputmanager.drawPreview      = false; //!m_modifierAssistants->drawOnly;
 
+  m_modifierReplicate.clear();
+  if (m_assistants.getValue())
+    TReplicator::scanReplicators(this, nullptr, &m_modifierReplicate, false, true, false, false, nullptr);
+  
   m_inputmanager.clearModifiers();
   m_inputmanager.addModifier(TInputModifierP(m_modifierTangents.getPointer()));
   if (smoothRadius > 0) {
@@ -1056,8 +1074,14 @@ bool ToonzRasterBrushTool::preLeftButtonDown() {
 #ifndef NDEBUG
   m_inputmanager.addModifier(TInputModifierP(m_modifierTest.getPointer()));
 #endif
+  m_inputmanager.addModifiers(m_modifierReplicate);
   m_inputmanager.addModifier(TInputModifierP(m_modifierSegmentation.getPointer()));
+}
 
+//--------------------------------------------------------------------------------------------------
+
+bool ToonzRasterBrushTool::preLeftButtonDown() {
+  updateModifiers();
   touchImage();
   if (m_isFrameCreated) {
     setWorkAndBackupImages();
@@ -1084,6 +1108,7 @@ void ToonzRasterBrushTool::handleMouseEvent(MouseEventType type,
     m_inputmanager.clearModifiers();
     m_inputmanager.addModifier(TInputModifierP(m_modifierLine.getPointer()));
     m_inputmanager.addModifier(TInputModifierP(m_modifierAssistants.getPointer()));
+    m_inputmanager.addModifiers(m_modifierReplicate);
     m_inputmanager.addModifier(TInputModifierP(m_modifierSegmentation.getPointer()));
     m_inputmanager.drawPreview = true;
   }

@@ -61,8 +61,7 @@ public:
 
   ToolType getToolType() const override
     { return TTool::LevelWriteTool; }
-  unsigned int getToolHints() const override
-    { return TTool::getToolHints() & ~HintAssistantsAll; }
+  unsigned int getToolHints() const override;
 
   ToolOptionsBox *createOptionsBox() override;
 
@@ -115,6 +114,8 @@ public:
   TMyPaintBrushStyle *getBrushStyle();
 
 private:
+  void updateModifiers();
+  
   enum MouseEventType { ME_DOWN, ME_DRAG, ME_UP, ME_MOVE };
   void handleMouseEvent(MouseEventType type, const TPointD &pos,
                         const TMouseEvent &e);
@@ -128,6 +129,7 @@ protected:
   TSmartPointerT<TModifierTangents> m_modifierTangents;
   TSmartPointerT<TModifierAssistants> m_modifierAssistants;
   TSmartPointerT<TModifierSegmentation> m_modifierSegmentation;
+  TInputModifier::List m_modifierReplicate;
 
   TPropertyGroup m_prop;
 

@@ -49,7 +49,10 @@ set(HEADERS
     ../include/tools/track.h
     ../include/tools/inputmanager.h
     ../include/tools/assistant.h
+    ../include/tools/replicator.h
     ../include/tools/modifiers/modifierassistants.h
+    ../include/tools/modifiers/modifierclone.h
+    ../include/tools/modifiers/modifierjitter.h
     ../include/tools/modifiers/modifierline.h
     ../include/tools/modifiers/modifiersegmentation.h
     ../include/tools/modifiers/modifiersimplify.h
@@ -126,7 +129,10 @@ set(SOURCES
     track.cpp
     inputmanager.cpp
     assistant.cpp
+    replicator.cpp
     modifiers/modifierassistants.cpp
+    modifiers/modifierclone.cpp
+    modifiers/modifierjitter.cpp
     modifiers/modifierline.cpp
     modifiers/modifiersegmentation.cpp
     modifiers/modifiersimplify.cpp
@@ -138,6 +144,11 @@ set(SOURCES
     assistants/assistantvanishingpoint.cpp
     assistants/assistantline.cpp
     assistants/assistantellipse.cpp
+    assistants/replicatoraffine.cpp
+    assistants/replicatorgrid.cpp
+    assistants/replicatorjitter.cpp
+    assistants/replicatormirror.cpp
+    assistants/replicatorstar.cpp
     editassistantstool.cpp
 )
 

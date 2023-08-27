@@ -36,6 +36,7 @@
 class TTrack;
 class TTrackPoint;
 class TTrackTangent;
+class TTrackTransform;
 class TTrackHandler;
 class TSubTrackHandler;
 class TMultiTrackHandler;
@@ -49,6 +50,7 @@ typedef TSmartPointerT<TTrackInterpolator> TTrackInterpolatorP;
 
 typedef std::vector<TTrackPoint> TTrackPointList;
 typedef std::vector<TTrackTangent> TTrackTangentList;
+typedef std::vector<TTrackTransform> TTrackTransformList;
 typedef std::vector<TTrackP> TTrackList;
 
 //===================================================================
@@ -122,6 +124,65 @@ public:
     pressure(pressure),
     tilt(tilt)
   { }
+};
+
+
+//*****************************************************************************************
+//    TTrackHandler definition
+//*****************************************************************************************
+
+class DVAPI TTrackTransform {
+public:
+  TAffine transform;
+  TAffine tiltTransform;
+  double pressureScale;
+  double pressureOffset;
+
+  inline TTrackTransform(
+    const TAffine &transform,
+    const TAffine &tiltTransform,
+    double pressureScale = 1,
+    double pressureOffset = 0
+  ):
+    transform(transform),
+    tiltTransform(tiltTransform),
+    pressureScale(pressureScale),
+    pressureOffset(pressureOffset) { }
+
+  inline explicit TTrackTransform(
+    const TAffine &transform,
+    double pressureScale = 1,
+    double pressureOffset = 0
+  ):
+    transform(transform),
+    tiltTransform(makeTiltTransform(transform)),
+    pressureScale(pressureScale),
+    pressureOffset(pressureOffset) { }
+
+  inline explicit TTrackTransform(
+    double pressureScale = 1,
+    double pressureOffset = 0
+  ):
+    pressureScale(pressureScale),
+    pressureOffset(pressureOffset) { }
+  
+  inline TTrackPoint apply(TTrackPoint p) const {
+    p.position = transform * p.position;
+    
+    TPointD t = tiltTransform * p.tilt;
+    p.tilt.x = t.x > -1 ? (t.x < 1 ? t.x : 1) : -1;
+    p.tilt.y = t.y > -1 ? (t.y < 1 ? t.y : 1) : -1;
+    
+    double pr = p.pressure*pressureScale + pressureOffset;
+    p.pressure = pr > 0 ? (pr < 1 ? pr : 1) : 0;
+    
+    return p;
+  }
+
+  inline void recalcTiltTransform()
+    { tiltTransform = makeTiltTransform(transform); }
+
+  static TAffine makeTiltTransform(const TAffine &a);
 };
 
 

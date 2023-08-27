@@ -657,9 +657,15 @@ void SceneViewer::onMove(const TMouseEvent &event) {
     if (!cursorSet) setToolCursor(this, tool->getCursorId());
 
     if ( m_toolHasAssistants
-      && (tool->getToolHints() & TTool::HintGuidelines)
+      && (tool->getToolHints() & TTool::HintAssistantsGuidelines)
       && !areAlmostEqual(m_toolPos, pos) )
         invalidateAll();
+    
+    if ( m_toolReplicatedPoints.size() > 1
+      && (tool->getToolHints() & TTool::HintReplicatorsPoints)
+      && !areAlmostEqual(m_toolPos, pos) )
+        invalidateAll();
+
     m_toolPos = pos;
     
 #ifdef WITH_CANON

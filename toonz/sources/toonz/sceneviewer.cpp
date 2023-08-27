@@ -24,6 +24,7 @@
 #include "tools/toolcommandids.h"
 #include "tools/toolutils.h"
 #include "tools/assistant.h"
+#include "tools/replicator.h"
 
 // TnzQt includes
 #include "toonzqt/icongenerator.h"
@@ -1833,19 +1834,45 @@ void SceneViewer::drawOverlay() {
       glScaled(m_dpiScale.x, m_dpiScale.y, 1);
     m_pixelSize = sqrt(tglGetPixelSize2()) * getDevPixRatio();
     
+    unsigned int hints = tool->getToolHints();
+
     // draw assistans and guidelines
     m_toolHasAssistants = false;
-    unsigned int hints = tool->getToolHints();
     if (hints & TTool::HintAssistantsAll) {
+      bool markEnabled    = hints & TTool::HintAssistantsEnabled;
+      bool drawGuidelines = hints & TTool::HintAssistantsGuidelines;
+      
       m_toolHasAssistants = TAssistant::scanAssistants(
-        tool,                                 // tool
-        &m_toolPos, 1,                        // pointer positions
-        nullptr,                              // out guidelines
-        true,                                 // draw
-        false,                                // enabled only
-        hints & TTool::HintAssistantsEnabled, // mark enabled
-        true,                                 // draw guidelines
-        nullptr );                            // skip image
+        tool,           // tool
+        &m_toolPos, 1,  // pointer positions
+        nullptr,        // out guidelines
+        true,           // draw
+        false,          // enabled only
+        markEnabled,    // mark enabled
+        drawGuidelines, // draw guidelines
+        nullptr );      // skip image
+    }
+    
+    // draw replicators
+    m_toolReplicatedPoints.clear();
+    if (hints & TTool::HintReplicatorsAll) {
+      bool drawPoints  = hints & TTool::HintReplicatorsPoints;
+      bool markEnabled = hints & TTool::HintReplicatorsEnabled;
+      TReplicator::PointList *points = nullptr;
+      if (drawPoints) {
+        m_toolReplicatedPoints.push_back(m_toolPos);
+        points = &m_toolReplicatedPoints;
+      }
+      
+      TReplicator::scanReplicators(
+        tool,           // tool
+        points,         // in/out points
+        nullptr,        // out modifiers
+        true,           // draw
+        false,          // enabled only
+        markEnabled,    // mark enabled
+        drawPoints,     // draw points
+        nullptr );      // skip image
     }
     
     // draw tool

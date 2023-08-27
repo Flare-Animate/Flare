@@ -122,7 +122,8 @@ public:
       , m_range(minValue, maxValue)
       , m_value(minValue)
       , m_isMaxRangeLimited(isMaxRangeLimited)
-      , m_isLinearSlider(true) {
+      , m_isLinearSlider(true)
+      , m_isSpinner(false) {
     setValue(value);
   }
 
@@ -151,11 +152,16 @@ public:
   void setNonLinearSlider() { m_isLinearSlider = false; }
   bool isLinearSlider() { return m_isLinearSlider; }
 
+  //! has meaning for int properties only
+  void setSpinner() { m_isSpinner = true; }
+  bool isSpinner() { return m_isSpinner; }
+  
 private:
   Range m_range;
   T m_value;
   bool m_isMaxRangeLimited;
   bool m_isLinearSlider;
+  bool m_isSpinner;
 };
 
 //---------------------------------------------------------

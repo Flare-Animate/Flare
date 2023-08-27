@@ -42,6 +42,7 @@ class TPropertyGroup;
 class TTool;
 class TToolViewer;
 class TAssistant;
+class TAssistantBase;
 class TAssistantPoint;
 class TGuideline;
 
@@ -134,7 +135,7 @@ public:
   TAssistantType(const TStringId &name):
     TMetaObjectType(name) { }
   TMetaObjectHandler* createHandler(TMetaObject &obj) const override;
-  virtual TAssistant* createAssistant(TMetaObject &obj) const
+  virtual TAssistantBase* createAssistant(TMetaObject &obj) const
     { return 0; }
 };
 
@@ -182,7 +183,7 @@ public:
     if (!alias5.empty()) registerAlias(TStringId(alias5));
   }
 
-  TAssistant* createAssistant(TMetaObject &obj) const override
+  TAssistantBase* createAssistant(TMetaObject &obj) const override
     { return new Type(obj); }
   QString getLocalName() const override {
     QString localName = Type::getLocalName();
@@ -192,11 +193,19 @@ public:
 
 
 //*****************************************************************************************
-//    TAssistant definition
+//    TAssistantBase definition
 //*****************************************************************************************
 
-class DVAPI TAssistant : public TMetaObjectHandler {
-  Q_DECLARE_TR_FUNCTIONS(TAssistant)
+class DVAPI TAssistantBase : public TMetaObjectHandler {
+  Q_DECLARE_TR_FUNCTIONS(TAssistantBase)
+public:
+  enum {
+    DRAW_ERROR = 1,
+  };
+  
+  static unsigned int drawFlags;
+  static const double lineWidthScale;
+  
 protected:
   const TStringId m_idEnabled;
   const TStringId m_idPoints;
@@ -211,7 +220,7 @@ protected:
   mutable TPropertyGroup m_properties;
 
 public:
-  TAssistant(TMetaObject &object);
+  TAssistantBase(TMetaObject &object);
 
   static QString getLocalName()
     { return QString(); }
@@ -237,11 +246,6 @@ public:
   void setEnabled(bool x)
     { if (getEnabled() != x) data()[m_idEnabled].setBool(x); }
 
-  double getMagnetism() const
-    { return data()[m_idMagnetism].getDouble(); }
-  void setMagnetism(double x)
-    { if (getMagnetism() != x) data()[m_idMagnetism].setDouble(x); }
-
   inline void selectPoint(const TStringId &name) const
     { setPointSelection(name, true); }
   inline void deselectPoint(const TStringId &name) const
@@ -249,7 +253,7 @@ public:
   inline void selectAll() const
     { setAllPointsSelection(true); }
   inline void deselectAll() const
-  { setAllPointsSelection(false); }
+    { setAllPointsSelection(false); }
 
   TPropertyGroup& getProperties() const
     { return m_properties; }
@@ -300,7 +304,7 @@ protected:
   //! try to move point
   virtual void onMovePoint(TAssistantPoint &point, const TPointD &position);
   //! save object data to variant
-  virtual void onFixData();
+  void onFixData() override;
   //! load all properties from variant
   virtual void updateProperties();
   //! load single property from variant
@@ -315,21 +319,52 @@ protected:
   void drawMark(const TPointD &p, const TPointD &normal, double pixelSize, double alpha) const;
   void drawDot(const TPointD &p, double alpha) const;
   void drawPoint(const TAssistantPoint &point, double pixelSize) const;
+  void drawIndex(const TPointD &p, int index, bool selected, double pixelSize) const;
 
   inline void drawSegment(const TPointD &p0, const TPointD &p1, double pixelSize) const
     { drawSegment(p0, p1, pixelSize, getDrawingAlpha()); }
   inline void drawDot(const TPointD &p) const
     { drawDot(p, getDrawingAlpha()); }
 
+  TIntProperty* createSpinProperty(const TStringId &id, int def, int min, int max, bool hasMax = true);
+  inline TIntProperty* createSpinProperty(const TStringId &id, int def, int min)
+    { return createSpinProperty(id, def, min, 0, false); }
+  
   void addProperty(TProperty *p);
   void setTranslation(const TStringId &name, const QString &localName) const;
 
 public:
   virtual void updateTranslation() const;
-  virtual void getGuidelines(const TPointD &position, const TAffine &toTool, TGuidelineList &outGuidelines) const;
   virtual void draw(TToolViewer *viewer, bool enabled) const;
   void draw(TToolViewer *viewer) const { draw(viewer, true); }
   virtual void drawEdit(TToolViewer *viewer) const;
+  virtual void drawEdit(TToolViewer *viewer, int index) const;
+};
+
+
+//*****************************************************************************************
+//    TAssistant definition
+//*****************************************************************************************
+
+class DVAPI TAssistant : public TAssistantBase {
+  Q_DECLARE_TR_FUNCTIONS(TAssistant)
+protected:
+  const TStringId m_idMagnetism;
+
+  void onSetDefaults() override;
+  void onFixData() override;
+
+public:
+  TAssistant(TMetaObject &object);
+
+  double getMagnetism() const
+    { return data()[m_idMagnetism].getDouble(); }
+  void setMagnetism(double x)
+    { if (getMagnetism() != x) data()[m_idMagnetism].setDouble(x); }
+
+public:
+  void updateTranslation() const override;
+  virtual void getGuidelines(const TPointD &position, const TAffine &toTool, TGuidelineList &outGuidelines) const;
 
   static bool calcPerspectiveStep(
     double minStep,

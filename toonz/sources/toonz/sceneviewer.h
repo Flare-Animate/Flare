@@ -73,6 +73,7 @@ class SceneViewer final : public GLWidgetForHighDpi,
   QPointF m_pos;
   TPointD m_toolPos;
   bool m_toolHasAssistants = false;
+  std::vector<TPointD> m_toolReplicatedPoints;
   Qt::MouseButton m_mouseButton;
   bool m_foregroundDrawing;
   bool m_tabletEvent, m_tabletMove;
