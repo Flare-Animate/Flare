@@ -54,13 +54,8 @@
 
 namespace {
 
-// Global variables
-
 typedef std::pair<std::string, TTool::ToolTargetType> ToolKey;
-typedef std::multimap<ToolKey, TTool *> ToolTable;
-ToolTable *toolTable = 0;
-
-std::set<std::string> *toolNames = 0;
+typedef std::multimap<ToolKey, TTool*> ToolTable;
 
 //===================================================================
 
@@ -76,10 +71,13 @@ struct DummyTool final : public TTool {
   int getCursorId() const override {
     return ToolCursor::ForbiddenCursor;
   }  // Forbids everything
-
-  DummyTool() : TTool("T_Dummy") {}
-
+  DummyTool(): TTool("T_Dummy") {}
 } theDummyTool;
+
+// Local functions
+
+ToolTable& toolTable()
+  { static ToolTable t; return t; }
 
 //-------------------------------------------------------------------
 
@@ -180,8 +178,6 @@ TTool::TTool(std::string name)
 //-------------------------------------------------------------------
 
 TTool *TTool::getTool(std::string toolName, ToolTargetType targetType) {
-  if (!toolTable) return 0;
-
   // if to this name and target type was assigned more then one tool
   // then select tool which more compatible with default target type
 
@@ -199,7 +195,7 @@ TTool *TTool::getTool(std::string toolName, ToolTargetType targetType) {
   TTool *tool = 0;
 
   std::pair<ToolTable::iterator, ToolTable::iterator> range =
-    toolTable->equal_range(std::make_pair(toolName, targetType));
+    toolTable().equal_range(std::make_pair(toolName, targetType));
   for(ToolTable::iterator it = range.first; it != range.second; ++it) {
     int t = it->second->getTargetType();
     bool d = (bool)(t & defTarget);
@@ -215,12 +211,32 @@ TTool *TTool::getTool(std::string toolName, ToolTargetType targetType) {
 
 //-----------------------------------------------------------------------------
 
-void TTool::bind(int targetType) {
+void TTool::bind( int targetType,
+                  const std::string &alias1,
+                  const std::string &alias2,
+                  const std::string &alias3 )
+{
+  bind(targetType);
+  if ( !alias1.empty()
+    && alias1 != m_name )
+      bind(alias1, targetType);
+  if ( !alias2.empty()
+    && alias2 != m_name
+    && alias2 != alias1 )
+      bind(alias2, targetType);
+  if ( !alias3.empty()
+    && alias3 != m_name
+    && alias3 != alias1
+    && alias3 != alias2 )
+      bind(alias3, targetType);
+}
+
+//-----------------------------------------------------------------------------
+
+void TTool::bind(const std::string &name, int targetType) {
+  static std::set<std::string> registeredNames;
+
   m_targetType = targetType;
-
-  if (!toolTable) toolTable = new ToolTable();
-
-  if (!toolNames) toolNames = new std::set<std::string>();
 
   ToolTargetType targets[] = {
     EmptyTarget,
@@ -231,14 +247,13 @@ void TTool::bind(int targetType) {
     MetaImage };
   int targetsCount = sizeof(targets)/sizeof(*targets);
 
-  std::string name = getName();
-  if (toolNames->count(name) == 0) {
-    toolNames->insert(name);
+  if (!registeredNames.count(name)) {
+    registeredNames.insert(name);
 
     // Initialize with the dummy tool
     for(int i = 0; i < targetsCount; ++i)
-      if (!toolTable->count(std::make_pair(name, targets[i])))
-        toolTable->insert(
+      if (!toolTable().count(std::make_pair(name, targets[i])))
+        toolTable().insert(
           std::make_pair(std::make_pair(name, targets[i]), &theDummyTool));
 
     ToolSelector *toolSelector = new ToolSelector(name);
@@ -249,7 +264,7 @@ void TTool::bind(int targetType) {
 
   for(int i = 0; i < targetsCount; ++i)
     if (targetType & targets[i])
-      toolTable->insert(
+      toolTable().insert(
         std::make_pair(std::make_pair(name, targets[i]), this));
 }
 
@@ -590,8 +605,8 @@ TImage *TTool::touchImage() {
 //-----------------------------------------------------------------------------
 
 void TTool::updateToolsPropertiesTranslation() {
-  ToolTable::iterator tt, tEnd(toolTable->end());
-  for (tt = toolTable->begin(); tt != tEnd; ++tt)
+  ToolTable::iterator tt, tEnd(toolTable().end());
+  for (tt = toolTable().begin(); tt != tEnd; ++tt)
     tt->second->updateTranslation();
 }
 
@@ -894,6 +909,20 @@ QString TTool::updateEnabled() {
 
 // See the overridden function EditTool::updateEnabled() for the Animate Tool
 QString TTool::updateEnabled(int rowIndex, int columnIndex) {
+  static const struct LevelTypeDesc {
+    int levelType;
+    ToolTargetType targetType;
+    const char *name;
+  } types[] = {
+    { PLI_XSHLEVEL  , VectorImage , QT_TR_NOOP("Toonz Vector Level") },
+    { TZP_XSHLEVEL  , ToonzImage  , QT_TR_NOOP("Toonz Raster Level") },
+    { OVL_XSHLEVEL  , RasterImage , QT_TR_NOOP("Raster Level")       },
+    { MESH_XSHLEVEL , MeshImage   , QT_TR_NOOP("Mesh Level")         },
+    { META_XSHLEVEL , MetaImage   , QT_TR_NOOP("Assistants Level")   },
+  };
+  static const int typesCnt = sizeof(types)/sizeof(*types);
+
+  
   // Disable every tool during playback
   if (m_application->getCurrentFrame()->isPlaying())
     return (enable(false), QString());
@@ -948,16 +977,15 @@ QString TTool::updateEnabled(int rowIndex, int columnIndex) {
     // a version of the same tool that does
     {
       TTool *tool = this;
-
-      if ((levelType == PLI_XSHLEVEL) && !(targetType & VectorImage))
-        tool = TTool::getTool(m_name, VectorImage);
-      else if ((levelType == TZP_XSHLEVEL) && !(targetType & ToonzImage))
-        tool = TTool::getTool(m_name, ToonzImage);
-      else if ((levelType == OVL_XSHLEVEL) && !(targetType & RasterImage))
-        tool = TTool::getTool(m_name, RasterImage);
-      else if ((levelType == MESH_XSHLEVEL) && !(targetType & MeshImage))
-        tool = TTool::getTool(m_name, MeshImage);
-
+      for(int i = 0; i < typesCnt; ++i) {
+        if ( levelType == types[i].levelType
+          && !(targetType & types[i].targetType) )
+        {
+          tool = getTool(m_name, types[i].targetType);
+          break;
+        }
+      }
+      
       if (tool && tool != this && tool->getTargetType() != TTool::NoTarget)
         return tool->updateEnabled();
     }
@@ -1052,30 +1080,50 @@ QString TTool::updateEnabled(int rowIndex, int columnIndex) {
 
     // Check against level types
     {
-      if ((levelType == PLI_XSHLEVEL) && !(targetType & VectorImage))
-        return (
-            enable(false),
-            QObject::tr("The current tool cannot be used on a Vector Level."));
-
-      if ((levelType == TZP_XSHLEVEL) && !(targetType & ToonzImage))
-        return (
-            enable(false),
-            QObject::tr("The current tool cannot be used on a Toonz Level."));
-
-      if ((levelType == OVL_XSHLEVEL) && !(targetType & RasterImage))
-        return (
-            enable(false),
-            QObject::tr("The current tool cannot be used on a Raster Level."));
-
-      if ((levelType == MESH_XSHLEVEL) && !(targetType & MeshImage))
-        return (
-            enable(false),
-            QObject::tr("The current tool cannot be used on a Mesh Level."));
-
-      if ((levelType == META_XSHLEVEL) && !(targetType & MetaImage))
-        return (
-            enable(false),
-            QObject::tr("The current tool cannot be used on a Assistants (Meta) Level."));
+      for(int i = 0; i < typesCnt; ++i) {
+        if (levelType != types[i].levelType) continue;
+        if (targetType & types[i].targetType) break;
+        
+        // if we are here, then the level is not being supported by the tool
+        // prepeare a detailed message about it
+        
+        QString message = QObject::tr("The current tool cannot be used on: ")
+                        + QObject::tr(types[i].name);
+        
+        QString allowedLevels;
+        
+        // if current tool is dummy, then this->getName() will not informative
+        // we need to know the requested tool name instead
+        if (TApplication *app = getApplication())
+        if (ToolHandle *th = app->getCurrentTool()) {
+          std::string name = th->getRequestedToolName().toStdString();
+          if (!name.empty()) {
+            for(int i = 0; i < typesCnt; ++i) {
+              TTool *tool = getTool(name, types[i].targetType);
+              if (tool && (tool->getTargetType() & types[i].targetType)) {
+                if (!allowedLevels.isEmpty())
+                  allowedLevels += QObject::tr(", ");
+                allowedLevels += QObject::tr(types[i].name);
+              }
+            }
+          }
+        }
+        
+        if (allowedLevels.isEmpty()) {
+          if ( Preferences::instance()->isAutoCreateEnabled()
+            && (targetType & EmptyTarget) )
+            message += "\n\n" + QObject::tr("You can use this tool on empty cell in Xsheet/Timeline.");
+        } else {
+          message += "\n\n" + QObject::tr("You can use this tool with: ")
+                  +  "\n" + allowedLevels;
+          if ( Preferences::instance()->isAutoCreateEnabled()
+            && (targetType & EmptyTarget) )
+            message += "\n\n" + QObject::tr("Or just choose an empty cell in Xsheet/Timeline.");
+        }
+        
+        enable(false);
+        return message;
+      }
     }
 
     // Check against impossibly traceable movements on the column

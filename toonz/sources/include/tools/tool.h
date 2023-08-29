@@ -288,7 +288,7 @@ public:
 
     EmptyTarget = 0x80,  //!< Will work on empty cells/columns
 
-    MetaImage   = 0x100, //!< Will work on mets images
+    MetaImage   = 0x100, //!< Will work on meta images
 
     CommonImages = VectorImage | ToonzImage | RasterImage,
     AllImages    = CommonImages | MeshImage | MetaImage,
@@ -572,8 +572,16 @@ protected:
 
   static std::set<TFrameId> m_selectedFrames;
 
-protected:
-  void bind(int targetType);
+private:
+  void bind(const std::string &name, int targetType);
+
+public:
+  inline void bind(int targetType)
+    { bind(getName(), targetType); }
+  void bind( int targetType,
+             const std::string &alias1,
+             const std::string &alias2 = std::string(),
+             const std::string &alias3 = std::string() );
 
   virtual void onSelectedFramesChanged() {}
 
