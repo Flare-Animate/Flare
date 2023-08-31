@@ -990,7 +990,7 @@ public:
 
 //-----------------------------------------------------------------------------
 CommandBarPanel::CommandBarPanel(QWidget *parent)
-    : TPanel(parent, 0, TDockWidget::horizontal) {
+    : TPanel(parent, Qt::WindowFlags(), TDockWidget::horizontal) {
   CommandBar *xsheetToolbar = new CommandBar();
   setWidget(xsheetToolbar);
   setIsMaximizable(false);
@@ -1018,7 +1018,7 @@ OpenFloatingPanel openCommandBarCommand(MI_OpenCommandToolbar, "CommandBar",
 //---------------------------------------------------------
 
 ToolOptionPanel::ToolOptionPanel(QWidget *parent)
-    : TPanel(parent, 0, TDockWidget::horizontal) {
+    : TPanel(parent, Qt::WindowFlags(), TDockWidget::horizontal) {
   TApp *app    = TApp::instance();
   m_toolOption = new ToolOptions;
 
@@ -1212,7 +1212,7 @@ class BrowserFactory final : public TPanelFactory {
 public:
   BrowserFactory() : TPanelFactory("Browser") {}
   void initialize(TPanel *panel) override {
-    FileBrowser *browser = new FileBrowser(panel, 0, false, true);
+    FileBrowser *browser = new FileBrowser(panel, Qt::WindowFlags(), false, true);
     panel->setWidget(browser);
     panel->setWindowTitle(QObject::tr("File Browser"));
     TFilePath currentProjectFolder =
@@ -1229,7 +1229,7 @@ class PreproductionBoardFactory final : public TPanelFactory {
 public:
   PreproductionBoardFactory() : TPanelFactory("PreproductionBoard") {}
   void initialize(TPanel *panel) override {
-    SceneBrowser *browser = new SceneBrowser(panel, 0, false, true);
+    SceneBrowser *browser = new SceneBrowser(panel, Qt::WindowFlags(), false, true);
     panel->setWidget(browser);
     panel->setWindowTitle(QObject::tr("Preproduction Board"));
     TFilePath scenesFolder =
