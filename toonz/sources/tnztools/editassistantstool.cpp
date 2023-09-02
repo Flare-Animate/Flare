@@ -170,6 +170,11 @@ protected:
   TAssistant         *m_writeAssistant;
 
   Selection *selection;
+  
+  // don't try to follow the pointer from history, it may be invalidated
+  typedef std::pair<const void*, int> HistoryItem;
+  typedef std::vector<HistoryItem> History;
+  History m_history;
 
 public:
   EditAssistantsTool():
@@ -188,7 +193,8 @@ public:
     m_writeAssistant()
   {
     selection = new Selection(*this);
-    bind(MetaImage | EmptyTarget);
+    // also assign assistants to the "brush" button in toolbar
+    bind(MetaImage | EmptyTarget, "T_Brush");
     m_toolProperties.bind(m_assistantType);
     updateTranslation();
   }
@@ -203,7 +209,7 @@ public:
   int getCursorId() const override
     { return ToolCursor::StrokeSelectCursor; }
   void onImageChanged() override {
-    if (m_currentImage != getImage(false)) resetCurrentPoint();
+    if (m_currentImage != getImage(false)) loadHistory();
     getViewer()->GLInvalidateAll();
   }
 
@@ -211,7 +217,7 @@ public:
     std::wstring value = m_assistantType.getValue();
 
     m_assistantType.deleteAllValues();
-    m_assistantType.addValueWithUIName(L"", tr("--"));
+    m_assistantType.addValueWithUIName(L"", tr("<choose to create>"));
 
     const TMetaObject::Registry &registry = TMetaObject::getRegistry();
     for(TMetaObject::Registry::const_iterator i = registry.begin(); i != registry.end(); ++i)
@@ -240,11 +246,11 @@ public:
 
   void onActivate() override {
     updateAssistantTypes();
-    resetCurrentPoint();
+    loadHistory();
   }
 
   void onDeactivate() override
-    { resetCurrentPoint(); }
+    { resetCurrentPoint(true, false); }
 
   void updateTranslation() override {
     m_assistantType.setQStringName( tr("Assistant Type") );
@@ -270,6 +276,22 @@ public:
     { return isSelected() ? selection : 0; }
   
 protected:
+  void putHistory(const void *img, int assistantIndex) {
+    if (!img) return;
+    for(History::iterator i = m_history.begin(); i != m_history.end(); )
+      if (i->first == img) i = m_history.erase(i); else ++i;
+    if (m_history.size() >= 10) m_history.pop_back();
+    m_history.push_back(HistoryItem(img, assistantIndex));
+  }
+  
+  void loadHistory() {
+    int index = -1;
+    if (Closer closer = read(ModeImage))
+      for(History::iterator i = m_history.begin(); i != m_history.end(); ++i)
+        if (i->first == m_readImage) index = i->second;
+    if (index < 0) resetCurrentPoint(true, false); else chooseAssistant(index);
+  }
+  
   void close() {
     m_readAssistant = 0;
     m_readObject.reset();
@@ -377,7 +399,7 @@ protected:
   void updateOptionsBox()
     { getApplication()->getCurrentTool()->notifyToolOptionsBoxChanged(); }
 
-  void resetCurrentPoint(bool updateOptionsBox = true) {
+  void resetCurrentPoint(bool updateOptionsBox = true, bool updateHistory = true) {
     close();
     m_currentImage.reset();
     m_currentAssistant.reset();
@@ -389,15 +411,37 @@ protected:
     m_currentAssistantBackup.reset();
 
     // deselect points
-    if (Closer closer = read(ModeImage))
+    if (Closer closer = read(ModeImage)) {
       for(TMetaObjectListCW::iterator i = (*m_reader)->begin(); i != (*m_reader)->end(); ++i)
         if (*i)
           if (const TAssistant *assistant = (*i)->getHandler<TAssistant>())
             assistant->deselectAll();
+      if (updateHistory) putHistory(m_readImage, -1);
+    }
 
     if (updateOptionsBox) this->updateOptionsBox();
   }
 
+  bool chooseAssistant(int index) {
+    resetCurrentPoint(false);
+    if (index >= 0)
+    if (Closer closer = read(ModeImage)) {
+      m_currentImage.set(m_readImage);
+      if (index < (*m_reader)->size())
+      if (const TMetaObjectPC &obj = (**m_reader)[index])
+      if (const TAssistant *assistant = obj->getHandler<TAssistant>()) {
+        assistant->deselectAll();
+        m_currentAssistant.set(obj);
+        m_currentAssistantIndex = index;
+        m_currentPointName = assistant->getBasePoint().name;
+        assistant->selectAll();
+      }
+      putHistory(m_readImage, m_currentAssistantIndex);
+    }
+    this->updateOptionsBox();
+    return m_currentAssistantIndex >= 0;
+  }
+  
   bool findCurrentPoint(const TPointD &position, double pixelSize = 1, bool updateOptionsBox = true) {
     resetCurrentPoint(false);
     if (Closer closer = read(ModeImage)) {
@@ -428,6 +472,7 @@ protected:
           }
         }
       }
+      putHistory(m_readImage, m_currentAssistantIndex);
     }
 
     if (updateOptionsBox) this->updateOptionsBox();
@@ -469,7 +514,7 @@ protected:
   
 public:
   void deselect()
-    { resetCurrentPoint(); }
+    { resetCurrentPoint(true, false); }
   
   bool isSelected()
     { return read(ModeAssistant); }

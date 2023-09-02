@@ -287,8 +287,7 @@ void Toolbar::hideEvent(QHideEvent *e) {
 
 void Toolbar::onToolChanged() {
   ToolHandle *toolHandle = TApp::instance()->getCurrentTool();
-  TTool *tool            = toolHandle->getTool();
-  std::string toolName   = tool->getName();
+  std::string toolName   = toolHandle->getRequestedToolName().toStdString();
   QAction *act = CommandManager::instance()->getAction(toolName.c_str());
   if (!act || act->isChecked()) return;
   act->setChecked(true);
