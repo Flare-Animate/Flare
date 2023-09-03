@@ -81,20 +81,46 @@ static inline unsigned int trackSeedY(const TTrack &track) {
 //*****************************************************************************************
 
 
-TModifierJitter::Interpolator::Interpolator(TTrack &track, double period, double amplitude):
+TModifierJitter::Interpolator::Interpolator(
+  TTrack &track,
+  double period,
+  double amplitude,
+  bool keepFirstPoint,
+  bool keepLastPoint
+):
   TTrackInterpolator(track),
   seedX(trackSeedX(track)),
   seedY(trackSeedY(track)),
   frequency(fabs(period) > TConsts::epsilon ? 1/period : 0),
-  amplitude(fabs(period) > TConsts::epsilon ? amplitude : 0)
+  amplitude(fabs(period) > TConsts::epsilon ? amplitude : 0),
+  keepFirstPoint(keepFirstPoint),
+  keepLastPoint(keepLastPoint)
   { }
 
 
 TTrackPoint TModifierJitter::Interpolator::interpolateFromOriginal(double originalIndex) {
   TTrackPoint p = track.calcPointFromOriginal(originalIndex);
+  double a = amplitude;
   double l = p.length*frequency;
-  p.position.x += Jitter::func(seedX, l)*amplitude;
-  p.position.y += Jitter::func(seedY, l)*amplitude;
+  if (frequency && a && track.original && (keepFirstPoint || keepLastPoint)) {
+    double ll = track.original->back().length*frequency;
+    if (l < 0) l = 0;
+    if (l > ll) l = ll;
+    if (ll < TConsts::epsilon) {
+      a = 0;
+    } else
+    if (keepFirstPoint && keepLastPoint && ll < 2) {
+      a *= 0.5 - 0.5*cos(l/ll*M_2PI);
+    } else
+    if (keepFirstPoint && l < 1) {
+      a *= 0.5 - 0.5*cos(l*M_PI);
+    } else
+    if (keepLastPoint && (ll - l) < 1) {
+      a *= 0.5 - 0.5*cos((ll - l)*M_PI);
+    }
+  }
+  p.position.x += Jitter::func(seedX, l)*a;
+  p.position.y += Jitter::func(seedY, l)*a;
   return p;
 }
 
@@ -109,8 +135,21 @@ TTrackPoint TModifierJitter::Interpolator::interpolate(double index)
 //*****************************************************************************************
 
 
-TModifierJitter::TModifierJitter(double period, double amplitude, int skipFirst):
-  period(period), amplitude(amplitude), skipFirst(skipFirst) { }
+TModifierJitter::TModifierJitter(
+  double period,
+  double amplitude,
+  int skipFirst,
+  int skipLast,
+  bool keepFirstPoint,
+  bool keepLastPoint
+):
+  period(period),
+  amplitude(amplitude),
+  skipFirst(skipFirst),
+  skipLast(skipLast),
+  keepFirstPoint(keepFirstPoint),
+  keepLastPoint(keepLastPoint)
+{ }
 
 
 void TModifierJitter::modifyTrack(const TTrack &track,
@@ -120,7 +159,7 @@ void TModifierJitter::modifyTrack(const TTrack &track,
     Handler *handler = new Handler();
     track.handler = handler;
     handler->track = new TTrack(track);
-    new Interpolator(*handler->track, period, amplitude);
+    new Interpolator(*handler->track, period, amplitude, keepFirstPoint, keepLastPoint);
   }
   
   Handler *handler = dynamic_cast<Handler*>(track.handler.getPointer());
@@ -137,8 +176,14 @@ void TModifierJitter::modifyTrack(const TTrack &track,
   if (!intr)
     return;
 
+  bool preview = intr->keepLastPoint && intr->frequency && intr->amplitude;
+  
   int start = track.size() - track.pointsAdded;
   if (start < 0) start = 0;
+  if (preview) {
+    double l = track[start].length - 1/intr->frequency;
+    start = track.floorIndex( track.indexByLength(l) );
+  }
 
   // process sub-track
   subTrack.truncate(start);
@@ -146,7 +191,13 @@ void TModifierJitter::modifyTrack(const TTrack &track,
     subTrack.push_back(intr->interpolateFromOriginal(i), false);
   
   // fit points
-  subTrack.fix_to(track.fixedSize());
+  if (track.fixedFinished() || !preview) {
+    subTrack.fix_to(track.fixedSize());
+  } else
+  if (track.fixedSize()) {
+    double l = track[track.fixedSize() - 1].length - 1/intr->frequency;
+    subTrack.fix_to(subTrack.floorIndex( track.indexByLength(l) ));
+  }
   
   track.resetChanges();
 }
@@ -154,15 +205,15 @@ void TModifierJitter::modifyTrack(const TTrack &track,
 
 void
 TModifierJitter::modifyTracks(
-    const TTrackList &tracks,
-    TTrackList &outTracks )
+  const TTrackList &tracks,
+  TTrackList &outTracks )
 {
-  int cnt = std::min( std::max(0, skipFirst), (int)tracks.size() );
-  TTrackList::const_iterator split = tracks.begin() + cnt;
-  for(TTrackList::const_iterator i = tracks.begin(); i != split; ++i)
-    TInputModifier::modifyTrack(**i, outTracks);
-  for(TTrackList::const_iterator i = split; i != tracks.end(); ++i)
-    modifyTrack(**i, outTracks);
+  int cnt = (int)tracks.size();
+  int i0 = skipFirst;
+  int i1 = cnt - skipLast;
+  for(int i = 0; i < cnt; ++i)
+    if (i0 <= i && i < i1) modifyTrack(*tracks[i], outTracks);
+      else TInputModifier::modifyTrack(*tracks[i], outTracks);
 }
 
 

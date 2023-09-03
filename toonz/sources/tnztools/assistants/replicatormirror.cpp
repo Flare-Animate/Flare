@@ -117,15 +117,19 @@ public:
     { return 2; }
   
   
-  void getPoints(const TAffine &toTool, PointList &points) const override
-    { transformPoints(getAffine(toTool), points, (int)points.size()); }
+  void getPoints(const TAffine &toTool, PointList &points) const override {
+    int pointsCount = (int)points.size();
+    int i0 = getSkipFirst();
+    int i1 = pointsCount - getSkipLast();
+    transformPoints(getAffine(toTool), points, i0, i1);
+  }
   
   
   void getModifiers(
     const TAffine &toTool,
     TInputModifier::List &outModifiers ) const override
   {
-    TModifierClone *modifier = new TModifierClone();
+    TModifierClone *modifier = new TModifierClone(true, getSkipFirst(), getSkipLast());
     modifier->transforms.push_back(TTrackTransform(
       getAffine(toTool), getPressure() ));
     outModifiers.push_back(modifier);

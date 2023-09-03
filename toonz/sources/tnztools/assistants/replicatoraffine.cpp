@@ -249,6 +249,8 @@ public:
   void getPoints(const TAffine &toTool, PointList &points) const override {
     points.reserve(points.size() * getMultipler());
     int pointsCount = (int)points.size();
+    int i0 = getSkipFirst();
+    int i1 = pointsCount - getSkipLast();
 
     TAffine aff = getAffine(toTool);
     struct {
@@ -262,7 +264,7 @@ public:
       TAffine a;
       for(int j = 0; j < t[i].count; ++j) {
         a = t[i].aff * a;
-        transformPoints(a, points, pointsCount);
+        transformPoints(a, points, i0, i1);
       }
     }
   }
@@ -285,7 +287,7 @@ public:
       { getCountInv(), aff.inv(), pressureInv },
     };
 
-    TModifierClone *modifier = new TModifierClone();
+    TModifierClone *modifier = new TModifierClone(true, getSkipFirst(), getSkipLast());
     for(int i = 0; i < 2; ++i) {
       TTrackTransform tt;
       for(int j = 0; j < t[i].count; ++j) {

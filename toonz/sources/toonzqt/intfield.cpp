@@ -309,8 +309,13 @@ IntField::IntField(QWidget *parent, bool isMaxRangeLimited, bool isRollerHide,
    
   if (isSpinnerHide) enableSpinner(false);
   
-  layout->addWidget(m_inc);
+  // TODO:
+  // Commonly in OpenToonz spin-buttons has been placed in that order: [+][-]
+  // This seems unusual behavior.
+  // And in this particular case buttons has been placed in another order: [-][+]
+  // We need to know what is better
   layout->addWidget(m_dec);
+  layout->addWidget(m_inc);
   
   m_slider = new QSlider(Qt::Horizontal, this);
   ret      = ret && connect(m_slider, SIGNAL(valueChanged(int)), this,

@@ -116,6 +116,8 @@ public:
   void getPoints(const TAffine &toTool, PointList &points) const override {
     points.reserve(points.size() * getMultipler());
     int pointsCount = (int)points.size();
+    int i0 = getSkipFirst();
+    int i1 = pointsCount - getSkipLast();
     
     int count = getCount();
     bool mirror = getMirror();
@@ -131,12 +133,12 @@ public:
     
     TAffine t0 = t1.inv();
     TRotation r(360.0/getCount());
-                          
+    
     for(int i = 0; i < count; ++i) {
       if (i)
-        transformPoints(t1*t0, points, pointsCount);
+        transformPoints(t1*t0, points, i0, i1);
       if (mirror) {
-        transformPoints(t2*t0, points, pointsCount);
+        transformPoints(t2*t0, points, i0, i1);
         t2 *= r;
       }
       t1 *= r;
@@ -163,7 +165,7 @@ public:
     TAffine t0 = t1.inv();
     TRotation r(360.0/getCount());
                           
-    TModifierClone *modifier = new TModifierClone();
+    TModifierClone *modifier = new TModifierClone(true, getSkipFirst(), getSkipLast());
     for(int i = 0; i < count; ++i) {
       if (i)
         modifier->transforms.push_back(TTrackTransform(t1*t0));

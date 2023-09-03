@@ -108,6 +108,7 @@ public:
     Circle,
     CircleFill,
     CircleCross,
+    CircleDiagonalCross,
     CircleDots,
     CircleDoubleDots,
   };
@@ -211,6 +212,8 @@ protected:
   const TStringId m_idPoints;
   const TStringId m_idX;
   const TStringId m_idY;
+  const TStringId m_idZ;
+  const TStringId m_idW;
   const TStringId m_idMagnetism;
 
   TAssistantPointMap m_points;
@@ -315,12 +318,14 @@ protected:
   double getDrawingAlpha(bool enabled = true) const;
   double getDrawingGridAlpha() const;
 
-  void drawSegment(const TPointD &p0, const TPointD &p1, double pixelSize, double alpha) const;
-  void drawMark(const TPointD &p, const TPointD &normal, double pixelSize, double alpha) const;
-  void drawDot(const TPointD &p, double alpha) const;
-  void drawPoint(const TAssistantPoint &point, double pixelSize) const;
-  void drawIndex(const TPointD &p, int index, bool selected, double pixelSize) const;
+  static void drawSegment(const TPointD &p0, const TPointD &p1, double pixelSize, double alpha0, double alpha1);
+  static void drawMark(const TPointD &p, const TPointD &normal, double pixelSize, double alpha);
+  static void drawDot(const TPointD &p, double alpha);
+  static void drawPoint(const TAssistantPoint &point, double pixelSize);
+  static void drawIndex(const TPointD &p, int index, bool selected, double pixelSize);
 
+  static inline void drawSegment(const TPointD &p0, const TPointD &p1, double pixelSize, double alpha)
+    { drawSegment(p0, p1, pixelSize, alpha, alpha); }
   inline void drawSegment(const TPointD &p0, const TPointD &p1, double pixelSize) const
     { drawSegment(p0, p1, pixelSize, getDrawingAlpha()); }
   inline void drawDot(const TPointD &p) const
@@ -366,6 +371,7 @@ public:
   void updateTranslation() const override;
   virtual void getGuidelines(const TPointD &position, const TAffine &toTool, TGuidelineList &outGuidelines) const;
 
+  // calc W-coefficient and i-bounds for formula: x0 + 1/(i*W + 1)
   static bool calcPerspectiveStep(
     double minStep,
     double minX,
@@ -373,9 +379,9 @@ public:
     double x0,
     double x1,
     double x2,
-    double &outK,
-    double &outMin,
-    double &outMax );
+    double &outW,
+    double &outMinI,
+    double &outMaxI );
   
   static bool scanAssistants(
     TTool *tool,

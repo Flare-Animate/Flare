@@ -16,8 +16,8 @@ TTrackPoint TModifierClone::Interpolator::interpolate(double index)
 //    TModifierClone implementation
 //*****************************************************************************************
 
-TModifierClone::TModifierClone(bool keepOriginals):
-  keepOriginals(keepOriginals) { }
+TModifierClone::TModifierClone(bool keepOriginals, int skipFirst, int skipLast):
+  keepOriginals(keepOriginals), skipFirst(skipFirst), skipLast(skipLast) { }
 
 void TModifierClone::modifyTrack(const TTrack &track,
                                  TTrackList &outTracks)
@@ -71,5 +71,17 @@ void TModifierClone::modifyTrack(const TTrack &track,
   }
   
   track.resetChanges();
+}
+
+void TModifierClone::modifyTracks(
+  const TTrackList &tracks,
+  TTrackList &outTracks )
+{
+  int cnt = (int)tracks.size();
+  int i0 = skipFirst;
+  int i1 = cnt - skipLast;
+  for(int i = 0; i < cnt; ++i)
+    if (i0 <= i && i < i1) modifyTrack(*tracks[i], outTracks);
+      else TInputModifier::modifyTrack(*tracks[i], outTracks);
 }
 
