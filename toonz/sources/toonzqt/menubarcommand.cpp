@@ -410,7 +410,7 @@ void CommandManager::enlargeIcon(CommandId id, const QSize dstSize) {
       return;
   }
 
-  icon = createQIcon(iconSVGName, false, false, dstSize);
+  addSpecifiedSizedImageToIcon(icon, iconSVGName, dstSize);
   
   action->setIcon(icon);
 }
