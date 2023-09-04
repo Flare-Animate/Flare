@@ -13,7 +13,6 @@
 #include "menubarcommandids.h"
 #include "onionskinmaskgui.h"
 #include "ruler.h"
-#include "viewerpane.h"
 #include "locatorpopup.h"
 #include "cellselection.h"
 #include "styleshortcutswitchablepanel.h"
