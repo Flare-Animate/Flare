@@ -26,17 +26,15 @@
 
 class DVAPI TModifierTangents: public TInputModifier {
 public:
-  class DVAPI Modifier: public TTrackModifier {
+  typedef TSubTrackHandler Handler;
+  class DVAPI Interpolator: public TTrackInterpolator {
   public:
-    explicit Modifier(TTrackHandler &handler):
-      TTrackModifier(handler) { }
-
     TTrackTangentList tangents;
-
-    TTrackPoint calcPoint(double originalIndex) override;
+    using TTrackInterpolator::TTrackInterpolator;
+    TTrackPoint interpolate(double index) override;
   };
 
-  TTrackTangent calcTangent(const TTrack &track, int index) const;
+  static TTrackTangent calcTangent(const TTrack &track, int index);
 
   void modifyTrack(
     const TTrack &track,

@@ -25,6 +25,10 @@
 //*****************************************************************************************
 
 class DVAPI TModifierSegmentation: public TInputModifier {
+public:
+  typedef TSubTrackHandler Handler;
+  typedef TTrackIntrOrig Interpolator;
+  
 private:
   TPointD m_step;
   int m_maxLevel;
@@ -32,7 +36,7 @@ private:
   void addSegments(TTrack &track, const TTrackPoint &p0, const TTrackPoint &p1, int maxLevel);
 
 public:
-  TModifierSegmentation(const TPointD &step = TPointD(1.0, 1.0), int level = 10);
+  explicit TModifierSegmentation(const TPointD &step = TPointD(1.0, 1.0), int level = 10);
 
   void setStep(const TPointD &step);
   inline const TPointD& getStep() const { return m_step; }

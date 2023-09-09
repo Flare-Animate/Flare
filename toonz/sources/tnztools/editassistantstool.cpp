@@ -206,6 +206,8 @@ public:
 
   ToolType getToolType() const override
     { return TTool::LevelWriteTool; }
+  unsigned int getToolHints() const override
+    { return TTool::getToolHints() & ~HintAssistantsAll; }
   int getCursorId() const override
     { return ToolCursor::StrokeSelectCursor; }
   void onImageChanged() override {
@@ -644,56 +646,21 @@ public:
       {
         assistant->drawEdit(getViewer());
         assistant->getGuidelines(
-          m_currentPosition + m_currentPointOffset,
+          position,
           TAffine(),
           m_currentGuidelines );
       }
     
-    // draw assistans from other layers
-    TImage *currentImage = getImage(false);
-    if (TToolViewer *viewer = getViewer())
-    if (TApplication *application = getApplication())
-    if (TXshLevelHandle *levelHandle = application->getCurrentLevel())
-    if (TXshLevel *level = levelHandle->getLevel())
-    if (TXshSimpleLevel *simpleLevel = level->getSimpleLevel())
-    if (TFrameHandle *frameHandle = application->getCurrentFrame())
-    if (TXsheetHandle *XsheetHandle = application->getCurrentXsheet())
-    if (TXsheet *Xsheet = XsheetHandle->getXsheet())
-    {
-      TPointD dpiScale = getCurrentDpiScale(simpleLevel, getCurrentFid());
-      int frame = frameHandle->getFrame();
-      int count = Xsheet->getColumnCount();
-      TAffine worldToTrack;
-      worldToTrack.a11 /= dpiScale.x;
-      worldToTrack.a22 /= dpiScale.y;
-
-      for(int i = 0; i < count; ++i)
-      if (TXshColumn *column = Xsheet->getColumn(i))
-      if (column->isCamstandVisible())
-      if (column->isPreviewVisible())
-      if (TImageP image = Xsheet->getCell(frame, i).getImage(false))
-      if (image->getType() == TImage::META)
-      if (image != currentImage)
-      if (TMetaImage *metaImage = dynamic_cast<TMetaImage*>(image.getPointer()))
-      {
-        TAffine imageToTrack = worldToTrack * getColumnMatrix(i);
-        glPushMatrix(); tglMultMatrix(imageToTrack);
-
-        TMetaImage::Reader reader(*metaImage);
-        for(TMetaObjectListCW::iterator i = reader->begin(); i != reader->end(); ++i)
-        if (*i)
-        if (const TAssistant *assistant = (*i)->getHandler<TAssistant>()) {
-          assistant->getGuidelines(position, imageToTrack, m_currentGuidelines);
-          assistant->draw(viewer, false);
-        }
-          
-        glPopMatrix();
-      }
-    }
-
-    // draw guidelines
-    for(TGuidelineList::const_iterator i = m_currentGuidelines.begin(); i != m_currentGuidelines.end(); ++i)
-      (*i)->draw();
+    // draw assistans and guidelines from other layers
+    TAssistant::scanAssistants(
+      this,          // tool
+      &position, 1,  // pointer positions
+      nullptr,       // out guidelines
+      true,          // draw
+      false,         // enabled only
+      false,         // mark enabled
+      true,          // draw guidelines
+      nullptr );     // skip image
   }
 };
 

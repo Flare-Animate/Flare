@@ -26,13 +26,16 @@
 
 class DVAPI TModifierAssistants: public TInputModifier {
 public:
-  class DVAPI Modifier: public TTrackModifier {
+  typedef TSubTrackHandler Handler;
+  class DVAPI Interpolator: public TTrackInterpolator {
   public:
-    bool initialized;
+    const double magnetism;
     TGuidelineList guidelines;
-
-    Modifier(TTrackHandler &handler);
-    TTrackPoint calcPoint(double originalIndex) override;
+    inline Interpolator(TTrack &track, double magnetism):
+      TTrackInterpolator(track),
+      magnetism(magnetism > 0 ? (magnetism < 1 ? magnetism : 1) : 0)
+      { }
+    TTrackPoint interpolate(double index) override;
   };
 
 private:
@@ -41,13 +44,14 @@ private:
     int positionsCount,
     TGuidelineList *outGuidelines,
     bool draw,
-    bool enabledOnly ) const;
+    bool enabledOnly,
+    bool drawGuidelines ) const;
 
 public:
-  bool drawOnly;
+  double magnetism;
   double sensitiveLength;
 
-  explicit TModifierAssistants(bool drawOnly = false);
+  explicit TModifierAssistants(double magnetism = 1);
 
   void modifyTrack(
     const TTrack &track,

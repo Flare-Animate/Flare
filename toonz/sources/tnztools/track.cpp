@@ -11,14 +11,13 @@ TTrack::Id TTrack::m_lastId = 0;
 
 
 //*****************************************************************************************
-//    TTrackModifier implemantation
+//    TTrackIntrOrig implemantation
 //*****************************************************************************************
 
 TTrackPoint
-TTrackModifier::calcPoint(double originalIndex) {
-  TTrackPoint p = original.calcPoint(originalIndex);
-  p.originalIndex = originalIndex;
-  return p;
+TTrackIntrOrig::interpolate(double index) {
+  return track.original ? track.calcPointFromOriginal(track.originalIndexByIndex(index))
+                        : track.interpolateLinear(index);
 }
 
 
@@ -32,7 +31,8 @@ TTrack::TTrack(
   const TInputState::KeyHistory::Holder &keyHistory,
   const TInputState::ButtonHistory::Holder &buttonHistory,
   bool hasPressure,
-  bool hasTilt
+  bool hasTilt,
+  double timeOffset
 ):
   id(++m_lastId),
   deviceId(deviceId),
@@ -41,21 +41,26 @@ TTrack::TTrack(
   buttonHistory(buttonHistory),
   hasPressure(hasPressure),
   hasTilt(hasTilt),
+  original(),
+  timeOffset(timeOffset),
+  rootTimeOffset(timeOffset),
   pointsRemoved(),
   pointsAdded(),
   fixedPointsAdded(),
   m_pointsFixed()
   { }
 
-TTrack::TTrack(const TTrackModifierP &modifier):
+TTrack::TTrack(const TTrack &original, double timeOffset):
   id(++m_lastId),
-  deviceId(modifier->original.deviceId),
-  touchId(modifier->original.touchId),
-  keyHistory(modifier->original.keyHistory),
-  buttonHistory(modifier->original.buttonHistory),
-  hasPressure(modifier->original.hasPressure),
-  hasTilt(modifier->original.hasTilt),
-  modifier(modifier),
+  deviceId(original.deviceId),
+  touchId(original.touchId),
+  keyHistory(original.keyHistory),
+  buttonHistory(original.buttonHistory),
+  hasPressure(original.hasPressure),
+  hasTilt(original.hasTilt),
+  original(&original),
+  timeOffset(timeOffset),
+  rootTimeOffset(original.rootTimeOffset + timeOffset),
   pointsRemoved(),
   pointsAdded(),
   fixedPointsAdded(),
@@ -64,15 +69,15 @@ TTrack::TTrack(const TTrackModifierP &modifier):
 
 const TTrack*
 TTrack::root() const
-  { return original() ? original()->root() : this; }
+  { return original ? original->root() : this; }
 
 int
 TTrack::level() const
-  { return original() ? original()->level() + 1 : 0; }
+  { return original ? original->level() + 1 : 0; }
 
 int
 TTrack::floorIndex(double index, double *outFrac) const {
-  int i = (int)floor(index + TConsts::epsilon);
+  int i = floorIndexNoClamp(index);
   if (i > size() - 1) {
     if (outFrac) *outFrac = 0.0;
     return size() - 1;
@@ -87,10 +92,13 @@ TTrack::floorIndex(double index, double *outFrac) const {
 
 void
 TTrack::push_back(const TTrackPoint &point, bool fixed) {
+  assert(m_points.empty() || !m_points.back().final);
   m_points.push_back(point);
-  if (size() > 1) {
+  TTrackPoint &p = m_points.back();
+  if (m_points.size() <= 1) {
+    p.length = 0;
+  } else {
     const TTrackPoint &prev = *(m_points.rbegin() + 1);
-    TTrackPoint &p = m_points.back();
 
     // fix originalIndex
     if (p.originalIndex < prev.originalIndex)
@@ -100,8 +108,7 @@ TTrack::push_back(const TTrackPoint &point, bool fixed) {
     p.time = std::max(p.time, prev.time + TToolTimer::step);
 
     // calculate length
-    TPointD d = p.position - prev.position;
-    p.length = prev.length + sqrt(d.x*d.x + d.y*d.y);
+    p.length = prev.length + tdistance(p.position, prev.position);
   }
   ++pointsAdded;
   if (fixed) fix_all();
@@ -130,13 +137,6 @@ TTrack::fix_points(int count) {
 }
 
 
-TTrackPoint
-TTrack::calcPoint(double index) const {
-  return modifier
-       ? modifier->calcPoint( originalIndexByIndex(index) )
-       : interpolateLinear(index);
-}
-
 TPointD
 TTrack::calcTangent(double index, double distance) const {
   double minDistance = 10.0*TConsts::epsilon;
@@ -150,14 +150,14 @@ TTrack::calcTangent(double index, double distance) const {
 
 double
 TTrack::rootIndexByIndex(double index) const {
-  return modifier
-       ? modifier->original.rootIndexByIndex( originalIndexByIndex(index) )
+  return original
+       ? original->rootIndexByIndex( originalIndexByIndex(index) )
        : index;
 }
 
 TTrackPoint
 TTrack::calcRootPoint(double index) const {
-  return modifier
-       ? modifier->original.calcRootPoint( originalIndexByIndex(index) )
+  return original
+       ? original->calcRootPoint( originalIndexByIndex(index) )
        : calcPoint(index);
 }

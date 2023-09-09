@@ -55,7 +55,7 @@ TEnv::DoubleVar FullcolorModifierSize("FullcolorModifierSize", 0);
 TEnv::DoubleVar FullcolorModifierOpacity("FullcolorModifierOpacity", 100);
 TEnv::IntVar FullcolorModifierEraser("FullcolorModifierEraser", 0);
 TEnv::IntVar FullcolorModifierLockAlpha("FullcolorModifierLockAlpha", 0);
-TEnv::IntVar FullcolorAssistants("FullcolorAssistants", 0);
+TEnv::IntVar FullcolorAssistants("FullcolorAssistants", 1);
 TEnv::StringVar FullcolorBrushPreset("FullcolorBrushPreset", "<custom>");
 
 //----------------------------------------------------------------------------------
@@ -150,7 +150,7 @@ FullColorBrushTool::FullColorBrushTool(std::string name)
 
   m_inputmanager.setHandler(this);
 #ifndef NDEBUG
-  m_modifierTest = new TModifierTest(5, 40);
+  m_modifierTest = new TModifierTest();
 #endif
   m_modifierLine         = new TModifierLine();
   m_modifierTangents     = new TModifierTangents();
@@ -305,8 +305,8 @@ bool FullColorBrushTool::askWrite(const TRect &rect) {
 //--------------------------------------------------------------------------------------------------
 
 bool FullColorBrushTool::preLeftButtonDown() {
-  m_modifierAssistants->drawOnly = !FullcolorAssistants;
-  m_inputmanager.drawPreview     = false; //!m_modifierAssistants->drawOnly;
+  m_modifierAssistants->magnetism = m_assistants.getValue() ? 1 : 0;
+  m_inputmanager.drawPreview      = false; //!m_modifierAssistants->drawOnly;
 
   m_inputmanager.clearModifiers();
   m_inputmanager.addModifier(TInputModifierP(m_modifierTangents.getPointer()));
@@ -342,7 +342,7 @@ void FullColorBrushTool::handleMouseEvent(MouseEventType type,
   bool control  = e.getModifiersMask() & TMouseEvent::CTRL_KEY;
 
   if (shift && type == ME_DOWN && e.button() == Qt::LeftButton && !m_started) {
-    m_modifierAssistants->drawOnly = true;
+    m_modifierAssistants->magnetism = 0;
     m_inputmanager.clearModifiers();
     m_inputmanager.addModifier(TInputModifierP(m_modifierLine.getPointer()));
     m_inputmanager.addModifier(
@@ -363,9 +363,14 @@ void FullColorBrushTool::handleMouseEvent(MouseEventType type,
     THoverList hovers(1, pos);
     m_inputmanager.hoverEvent(hovers);
   } else {
-    m_inputmanager.trackEvent(e.isTablet(), 0, pos,
-                              e.isTablet() ? &e.m_pressure : nullptr, nullptr,
-                              type == ME_UP, t);
+    bool   isMyPaint   = getApplication()->getCurrentLevelStyle()->getTagId() == 4001;
+    int    deviceId    = e.isTablet() ? 1 : 0;
+    double defPressure = isMyPaint ? 0.5 : 1.0;
+    bool   hasPressure = e.isTablet();
+    double pressure    = hasPressure ? e.m_pressure : defPressure;
+    bool   final       = type == ME_UP;
+    m_inputmanager.trackEvent(
+      deviceId, 0, pos, pressure, TPointD(), hasPressure, false, final, t);
     m_inputmanager.processTracks();
   }
 }
@@ -519,20 +524,24 @@ void FullColorBrushTool::inputPaintTrackPoint(const TTrackPoint &point,
 
   // init brush
   TrackHandler *handler;
-  if (track.size() == track.pointsAdded && !track.toolHandler && m_workRaster) {
+  if (track.size() == track.pointsAdded && !track.handler && m_workRaster) {
     mypaint::Brush mypaintBrush;
     applyToonzBrushSettings(mypaintBrush);
     handler = new TrackHandler(m_workRaster, *this, mypaintBrush);
     handler->brush.beginStroke();
-    track.toolHandler = handler;
+    track.handler = handler;
   }
-  handler = dynamic_cast<TrackHandler *>(track.toolHandler.getPointer());
+  handler = dynamic_cast<TrackHandler *>(track.handler.getPointer());
   if (!handler) return;
 
+  bool   isMyPaint   = getApplication()->getCurrentLevelStyle()->getTagId() == 4001;
+  double defPressure = isMyPaint ? 0.5 : 1.0;
+  double pressure    = m_enabledPressure ? point.pressure : defPressure;
+  
   // paint stroke
   m_strokeSegmentRect.empty();
   handler->brush.strokeTo(point.position + rasCenter,
-                          m_enabledPressure ? point.pressure : 0.5, point.tilt,
+                          pressure, point.tilt,
                           point.time - track.previous().time);
   if (track.pointsAdded == 1 && track.finished()) handler->brush.endStroke();
 

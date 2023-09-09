@@ -1,7 +1,7 @@
 #pragma once
 
-#ifndef MODIFIERLINE_INCLUDED
-#define MODIFIERLINE_INCLUDED
+#ifndef MODIFIERSIMPLIFY_INCLUDED
+#define MODIFIERSIMPLIFY_INCLUDED
 
 // TnzTools includes
 #include <tools/inputmanager.h>
@@ -21,20 +21,22 @@
 //===================================================================
 
 //*****************************************************************************************
-//    TModifierLine definition
+//    TModifierSimplify definition
 //*****************************************************************************************
 
-class DVAPI TModifierLine: public TInputModifier {
+class DVAPI TModifierSimplify: public TInputModifier {
 public:
-  class DVAPI Handler: public TSubTrackHandler {
-  public:
-    double maxPressure;
-    inline Handler(): maxPressure() { }
-  };
+  typedef TSubTrackHandler Handler;
+  typedef TTrackIntrOrig Interpolator;
+  
+  double step;
+  
+  explicit TModifierSimplify(double step = 1.0);
 
   void modifyTrack(
     const TTrack &track,
     TTrackList &outTracks ) override;
 };
+
 
 #endif

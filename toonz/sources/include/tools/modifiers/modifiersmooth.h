@@ -26,23 +26,15 @@
 
 class DVAPI TModifierSmooth: public TInputModifier {
 public:
-  class DVAPI Modifier: public TTrackModifier {
+  class DVAPI Handler: public TSubTrackHandler {
   public:
     const int radius;
-    TTrack *smoothedTrack;
-
-    Modifier(TTrackHandler &handler, int radius);
-    TTrackPoint calcPoint(double originalIndex) override;
+    inline explicit Handler(int radius): radius(radius) { }
   };
 
-private:
-  int m_radius;
-  
-public:
-  TModifierSmooth(int radius = 10);
+  int radius;
 
-  void setRadius(int radius);
-  int getRadius() const { return m_radius; }
+  explicit TModifierSmooth(int radius = 10);
   
   void modifyTrack(
     const TTrack &track,

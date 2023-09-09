@@ -37,13 +37,15 @@ class TTrack;
 class TTrackPoint;
 class TTrackTangent;
 class TTrackHandler;
-class TTrackToolHandler;
-class TTrackModifier;
+class TSubTrackHandler;
+class TMultiTrackHandler;
+class TTrackInterpolator;
 
 typedef TSmartPointerT<TTrack> TTrackP;
 typedef TSmartPointerT<TTrackHandler> TTrackHandlerP;
-typedef TSmartPointerT<TTrackToolHandler> TTrackToolHandlerP;
-typedef TSmartPointerT<TTrackModifier> TTrackModifierP;
+typedef TSmartPointerT<TSubTrackHandler> TSubTrackHandlerP;
+typedef TSmartPointerT<TMultiTrackHandler> TMultiTrackHandlerP;
+typedef TSmartPointerT<TTrackInterpolator> TTrackInterpolatorP;
 
 typedef std::vector<TTrackPoint> TTrackPointList;
 typedef std::vector<TTrackTangent> TTrackTangentList;
@@ -53,21 +55,15 @@ typedef std::vector<TTrackP> TTrackList;
 
 
 //*****************************************************************************************
-//    TTrackToolHandler definition
-//*****************************************************************************************
-
-class DVAPI TTrackToolHandler : public TSmartObject { };
-
-
-//*****************************************************************************************
 //    export template implementations for win32
 //*****************************************************************************************
 
 #ifdef _WIN32
 template class DVAPI TSmartPointerT<TTrack>;
 template class DVAPI TSmartPointerT<TTrackHandler>;
-template class DVAPI TSmartPointerT<TTrackToolHandler>;
-template class DVAPI TSmartPointerT<TTrackModifier>;
+template class DVAPI TSmartPointerT<TSubTrackHandler>;
+template class DVAPI TSmartPointerT<TMultiTrackHandler>;
+template class DVAPI TSmartPointerT<TTrackInterpolator>;
 #endif
 
 
@@ -133,28 +129,38 @@ public:
 //    TTrackHandler definition
 //*****************************************************************************************
 
-class DVAPI TTrackHandler : public TSmartObject {
+class DVAPI TTrackHandler : public TSmartObject { };
+
+
+//*****************************************************************************************
+//    TSubTrackHandler definition
+//*****************************************************************************************
+
+class DVAPI TSubTrackHandler: public TTrackHandler {
 public:
-  const TTrack &original;
-  std::vector<TTrackP> tracks;
-  TTrackHandler(const TTrack &original):
-    original(original) { }
+  TTrackP track;
 };
 
 
 //*****************************************************************************************
-//    TTrackModifier definition
+//    TMultiTrackHandler definition
 //*****************************************************************************************
 
-class DVAPI TTrackModifier : public TSmartObject {
+class DVAPI TMultiTrackHandler: public TTrackHandler {
 public:
-    TTrackHandler &handler;
-    const TTrack &original;
-    const double timeOffset;
+  std::vector<TTrackP> tracks;
+};
 
-    explicit TTrackModifier(TTrackHandler &handler, double timeOffset = 0.0):
-      handler(handler), original(handler.original), timeOffset(timeOffset) { }
-    virtual TTrackPoint calcPoint(double originalIndex);
+
+//*****************************************************************************************
+//    TTrackInterpolator definition
+//*****************************************************************************************
+
+class DVAPI TTrackInterpolator : public TSmartObject {
+public:
+  TTrack &track;
+  inline explicit TTrackInterpolator(TTrack &track);
+  virtual TTrackPoint interpolate(double index) = 0;
 };
 
 
@@ -177,15 +183,19 @@ public:
   const TInputState::ButtonHistory::Holder buttonHistory;
   const bool hasPressure;
   const bool hasTilt;
-  const TTrackModifierP modifier;
 
+  const TTrack* const original;
+  const double timeOffset;
+  const double rootTimeOffset;
+  
   mutable TTrackHandlerP handler;
-  mutable TTrackToolHandlerP toolHandler;
   mutable int pointsRemoved;
   mutable int pointsAdded;
   mutable int fixedPointsAdded;
 
 private:
+  friend class TTrackInterpolator;
+  TTrackInterpolatorP interpolator;
   TTrackPointList m_points;
   const TTrackPoint m_none;
   int m_pointsFixed;
@@ -198,15 +208,17 @@ public:
     const TInputState::KeyHistory::Holder &keyHistory = TInputState::KeyHistory::Holder(),
     const TInputState::ButtonHistory::Holder &buttonHistory = TInputState::ButtonHistory::Holder(),
     bool hasPressure = false,
-    bool hasTilt = false
+    bool hasTilt = false,
+    double timeOffset = 0
   );
 
-  explicit TTrack(const TTrackModifierP &modifier);
+  explicit TTrack(const TTrack &original, double timeOffset = 0);
 
-  inline const TTrack* original() const
-    { return modifier ? &modifier->original : NULL; }
-  inline double timeOffset() const
-    { return modifier ? modifier->timeOffset : 0.0; }
+  const TTrackInterpolatorP& getInterpolator() const
+    { return interpolator; }
+  void removeInterpolator()
+    { interpolator.reset(); }
+
   inline TTimerTicks ticks() const
     { return keyHistory.ticks(); }
   inline bool changed() const
@@ -217,12 +229,14 @@ public:
 
   inline int clampIndex(int index) const
     { return std::min(std::max(index, 0), size() - 1); }
+  inline double clampIndexFloat(double index) const
+    { return std::min(std::max(index, 0.0), (double)(size() - 1)); }
   inline int floorIndexNoClamp(double index) const
     { return (int)floor(index + TConsts::epsilon); }
   inline int floorIndex(double index) const
     { return clampIndex(floorIndexNoClamp(index)); }
   inline int ceilIndexNoClamp(double index) const
-    { return (int)ceil(index - TConsts::epsilon); }
+    { return floorIndexNoClamp(index) + 1; }
   inline int ceilIndex(double index) const
     { return clampIndex(ceilIndexNoClamp(index)); }
 
@@ -287,15 +301,15 @@ public:
   inline TInputState::KeyState::Holder getKeyState(double time) const
     { return keyHistory.get(time); }
   inline TInputState::KeyState::Holder getKeyState(const TTrackPoint &point) const
-    { return getKeyState(timeOffset() + point.time); }
+    { return getKeyState(rootTimeOffset + point.time); }
   inline TInputState::KeyState::Holder getCurrentKeyState() const
-    { return getKeyState(timeOffset() + current().time); }
+    { return getKeyState(rootTimeOffset + current().time); }
   inline TInputState::ButtonState::Holder getButtonState(double time) const
     { return buttonHistory.get(time); }
   inline TInputState::ButtonState::Holder getButtonState(const TTrackPoint &point) const
-    { return getButtonState(timeOffset() + point.time); }
+    { return getButtonState(rootTimeOffset + point.time); }
   inline TInputState::ButtonState::Holder getCurrentButtonState() const
-    { return getButtonState(timeOffset() + current().time); }
+    { return getButtonState(rootTimeOffset + current().time); }
 
 private:
   template<double TTrackPoint::*Field>
@@ -345,10 +359,24 @@ public:
     return interpolationLinear(p0.length, p1.length, frac);
   }
 
-  TTrackPoint calcPoint(double index) const;
+  inline TTrackPoint calcPoint(double index) const
+    { return interpolator ? interpolator->interpolate(index) : interpolateLinear(index); }
   TPointD calcTangent(double index, double distance = 0.1) const;
   double rootIndexByIndex(double index) const;
   TTrackPoint calcRootPoint(double index) const;
+
+  inline TTrackPoint pointFromOriginal(const TTrackPoint &originalPoint, double originalIndex) const {
+    TTrackPoint p = originalPoint;
+    p.originalIndex = original ? original->clampIndexFloat(originalIndex) : originalIndex;
+    p.time -= timeOffset;
+    return p;
+  }
+  
+  inline TTrackPoint pointFromOriginal(int originalIndex) const
+    { return original ? pointFromOriginal(original->point(originalIndex), originalIndex) : TTrackPoint(); }
+  
+  inline TTrackPoint calcPointFromOriginal(double originalIndex) const
+    { return original ? pointFromOriginal(original->calcPoint(originalIndex), originalIndex) : TTrackPoint(); }
 
   inline TTrackPoint interpolateLinear(double index) const {
     double frac;
@@ -404,6 +432,26 @@ public:
       interpolationLinear(p0.length        , p1.length        , l),
       p0.final && p1.final );
   }
+};
+
+
+
+//*****************************************************************************************
+//    TTrackInterpolator implemantation
+//*****************************************************************************************
+
+inline TTrackInterpolator::TTrackInterpolator(TTrack &track):
+  track(track) { track.interpolator = this; }
+
+
+//*****************************************************************************************
+//    TTrackIntrOrig definition
+//*****************************************************************************************
+
+class DVAPI TTrackIntrOrig : public TTrackInterpolator {
+public:
+  using TTrackInterpolator::TTrackInterpolator;
+  TTrackPoint interpolate(double index) override;
 };
 
 

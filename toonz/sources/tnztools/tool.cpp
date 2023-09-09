@@ -177,6 +177,11 @@ TTool::TTool(std::string name)
 
 //-------------------------------------------------------------------
 
+unsigned int TTool::getToolHints() const
+  { return HintAssistants | HintGuidelines; }
+
+//-------------------------------------------------------------------
+
 TTool *TTool::getTool(std::string toolName, ToolTargetType targetType) {
   // if to this name and target type was assigned more then one tool
   // then select tool which more compatible with default target type

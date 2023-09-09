@@ -1,11 +1,23 @@
 
 #include <tools/assistant.h>
 
+#include <tools/tool.h>
+
+#include <toonz/tapplication.h>
+#include <toonz/txsheet.h>
+#include <toonz/txsheethandle.h>
+#include <toonz/txshlevelhandle.h>
+#include <toonz/tframehandle.h>
+#include <toonz/tobjecthandle.h>
+#include <toonz/dpiscale.h>
+
 #include <tgl.h>
 #include <tproperty.h>
 
 #include <limits>
 #include <cassert>
+
+
 
 #ifdef MACOSX
 const double line_width_scale = 1.5;
@@ -593,4 +605,84 @@ TAssistant::calcPerspectiveStep(
   if (fabs(outMin) < TConsts::epsilon) return false;
   outMax = (dx1 > 0.0 ? maxX : minX) - x0;
   return true;
+}
+
+
+bool
+TAssistant::scanAssistants(
+  TTool *tool,
+  const TPointD *positions,
+  int positionsCount,
+  TGuidelineList *outGuidelines,
+  bool draw,
+  bool enabledOnly,
+  bool markEnabled,
+  bool drawGuidelines,
+  TImage *skipImage )
+{
+  TGuidelineList guidelines;
+  if (drawGuidelines && !outGuidelines)
+    outGuidelines = &guidelines;
+
+  bool found = false;
+  bool findGuidelines = (positions && positionsCount > 0 && outGuidelines);
+  if (!findGuidelines) drawGuidelines = false;
+  bool doSomething = findGuidelines || draw;
+  
+  if (tool)
+  if (TToolViewer *viewer = tool->getViewer())
+  if (TApplication *application = tool->getApplication())
+  if (TXshLevelHandle *levelHandle = application->getCurrentLevel())
+  if (TXshLevel *level = levelHandle->getLevel())
+  if (TXshSimpleLevel *simpleLevel = level->getSimpleLevel())
+  if (TFrameHandle *frameHandle = application->getCurrentFrame())
+  if (TXsheetHandle *XsheetHandle = application->getCurrentXsheet())
+  if (TXsheet *Xsheet = XsheetHandle->getXsheet())
+  {
+    TPointD dpiScale = getCurrentDpiScale(simpleLevel, tool->getCurrentFid());
+    int frame = frameHandle->getFrame();
+    int count = Xsheet->getColumnCount();
+    TAffine worldToTrack;
+    if ( tool->getToolType() & TTool::LevelTool
+      && !application->getCurrentObject()->isSpline() )
+    {
+      worldToTrack.a11 /= dpiScale.x;
+      worldToTrack.a22 /= dpiScale.y;
+    }
+
+    for(int i = 0; i < count; ++i)
+      if (TXshColumn *column = Xsheet->getColumn(i))
+      if (column->isCamstandVisible())
+      if (column->isPreviewVisible())
+      if (TImageP image = Xsheet->getCell(frame, i).getImage(false))
+      if (image != skipImage)
+      if (image->getType() == TImage::META)
+      if (TMetaImage *metaImage = dynamic_cast<TMetaImage*>(image.getPointer()))
+      {
+        TAffine imageToTrack = worldToTrack * tool->getColumnMatrix(i);
+        if (draw) { glPushMatrix(); tglMultMatrix(imageToTrack); }
+
+        TMetaImage::Reader reader(*metaImage);
+        for(TMetaObjectListCW::iterator i = reader->begin(); i != reader->end(); ++i)
+          if (*i)
+          if (const TAssistant *assistant = (*i)->getHandler<TAssistant>())
+          if (!enabledOnly || assistant->getEnabled())
+          {
+            found = true;
+            if (findGuidelines)
+              for(int i = 0; i < positionsCount; ++i)
+                assistant->getGuidelines(positions[i], imageToTrack, *outGuidelines);
+            if (draw) assistant->draw(viewer, assistant->getEnabled() && markEnabled);
+            if (!doSomething) return true;
+          }
+
+        if (draw) glPopMatrix();
+      }
+  }
+  
+  if (drawGuidelines)
+    for(TGuidelineList::const_iterator i = outGuidelines->begin(); i != outGuidelines->end(); ++i)
+      (*i)->draw();
+  
+  return found;
 }

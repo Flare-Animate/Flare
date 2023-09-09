@@ -92,42 +92,6 @@ public:
 };
 
 //************************************************************************
-//    Smooth Stroke declaration
-//    Brush stroke smoothing buffer.
-//************************************************************************
-class SmoothStroke {
-public:
-  SmoothStroke() {}
-  ~SmoothStroke() {}
-
-  // begin stroke
-  // smooth is smooth strength, from 0 to 100
-  void beginStroke(int smooth);
-  // add stroke point
-  void addPoint(const TThickPoint &point);
-  // end stroke
-  void endStroke();
-  // Get generated stroke points which has been smoothed.
-  // Both addPoint() and endStroke() generate new smoothed points.
-  // This method will removed generated points
-  void getSmoothPoints(std::vector<TThickPoint> &smoothPoints);
-  // Remove all points - used for straight lines
-  void clearPoints();
-
-private:
-  void generatePoints();
-
-private:
-  int m_smooth;
-  int m_outputIndex;
-  int m_readIndex;
-  std::vector<TThickPoint> m_rawPoints;
-  std::vector<TThickPoint> m_outputPoints;
-
-  int m_resampledIndex;
-  std::vector<TThickPoint> m_resampledPoints;
-};
-//************************************************************************
 //   Toonz Raster Brush Tool declaration
 //************************************************************************
 
@@ -142,8 +106,11 @@ class ToonzRasterBrushTool final : public TTool,
 public:
   ToonzRasterBrushTool(std::string name, int targetType);
 
-  ToolType getToolType() const override { return TTool::LevelWriteTool; }
-
+  ToolType getToolType() const override
+    { return TTool::LevelWriteTool; }
+  unsigned int getToolHints() const override
+    { return TTool::getToolHints() & ~HintAssistantsAll; }
+  
   ToolOptionsBox *createOptionsBox() override;
 
   void updateTranslation() override;
@@ -211,7 +178,7 @@ protected:
   TSmartPointerT<TModifierTest> m_modifierTest;
 #endif
 
-  class MyPaintStroke: public TTrackToolHandler {
+  class MyPaintStroke: public TTrackHandler {
   public:
     MyPaintToonzBrush brush;
     
@@ -225,7 +192,7 @@ protected:
     { }
   };
   
-  class PencilStroke: public TTrackToolHandler {
+  class PencilStroke: public TTrackHandler {
   public:
     RasterStrokeGenerator brush;
     
@@ -238,7 +205,7 @@ protected:
     { }
   };
 
-  class BluredStroke: public TTrackToolHandler {
+  class BluredStroke: public TTrackHandler {
   public:
     BluredBrush brush;
     
@@ -261,8 +228,6 @@ protected:
     TTileSetCM32 *tileSet = nullptr;
     TTileSaverCM32 *tileSaver = nullptr;
     TRect affectedRect;
-    
-    SmoothStroke smoothStroke;
     
     struct Pencil {
       bool isActive = false;

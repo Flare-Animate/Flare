@@ -42,7 +42,7 @@ TModifierSegmentation::addSegments(
   }
 
   --level;
-  TTrackPoint p = track.modifier->calcPoint(0.5*(p0.originalIndex + p1.originalIndex));
+  TTrackPoint p = track.calcPointFromOriginal(0.5*(p0.originalIndex + p1.originalIndex));
   addSegments(track, p0, p, level);
   addSegments(track, p, p1, level);
 }
@@ -54,21 +54,22 @@ TModifierSegmentation::modifyTrack(
   TTrackList &outTracks )
 {
   if (!track.handler) {
-    track.handler = new TTrackHandler(track);
-    track.handler->tracks.push_back(
-      new TTrack(
-        new TTrackModifier(*track.handler) ));
+    Handler *handler = new Handler();
+    track.handler = handler;
+    handler->track = new TTrack(track);
+    new Interpolator(*handler->track);
   }
 
-  if (track.handler->tracks.empty())
+  Handler *handler = dynamic_cast<Handler*>(track.handler.getPointer());
+  if (!handler)
     return;
-
-  TTrack &subTrack = *track.handler->tracks.front();
-  outTracks.push_back(track.handler->tracks.front());
-
+  
+  outTracks.push_back(handler->track);
+  TTrack &subTrack = *handler->track;
+  
   if (!track.changed())
     return;
-
+  
   // remove points
   int start = track.size() - track.pointsAdded;
   if (start < 0) start = 0;
@@ -76,9 +77,9 @@ TModifierSegmentation::modifyTrack(
   subTrack.truncate(subStart);
 
   // add points
-  TTrackPoint p0 = subTrack.modifier->calcPoint(start - 1);
+  TTrackPoint p0 = subTrack.pointFromOriginal(start - 1);
   for(int i = start; i < track.size(); ++i) {
-    TTrackPoint p1 = subTrack.modifier->calcPoint(i);
+    TTrackPoint p1 = subTrack.pointFromOriginal(i);
     addSegments(subTrack, p0, p1, m_maxLevel);
     p0 = p1;
   }

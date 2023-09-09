@@ -33,27 +33,28 @@ TInputModifier::modifyTrack(
   TTrackList &outTracks )
 {
   if (!track.handler) {
-      track.handler = new TTrackHandler(track);
-      track.handler->tracks.push_back(
-        new TTrack(
-          new TTrackModifier(*track.handler) ));
+    TSubTrackHandler *handler = new TSubTrackHandler();
+    track.handler = handler;
+    handler->track = new TTrack(track);
+    new TTrackIntrOrig(*handler->track);
   }
 
-  outTracks.insert(
-    outTracks.end(),
-    track.handler->tracks.begin(),
-    track.handler->tracks.end() );
+  TSubTrackHandler *handler = dynamic_cast<TSubTrackHandler*>(track.handler.getPointer());
+  if (!handler)
+    return;
+  
+  outTracks.push_back(handler->track);
+  TTrack &subTrack = *handler->track;
+
   if (!track.changed())
     return;
-
+  
   int start = std::max(0, track.size() - track.pointsAdded);
-  for(TTrackList::const_iterator ti = track.handler->tracks.begin(); ti != track.handler->tracks.end(); ++ti) {
-    TTrack &subTrack = **ti;
-    subTrack.truncate(start);
-    for(int i = start; i < track.size(); ++i)
-      subTrack.push_back( subTrack.modifier->calcPoint(i), false );
-    subTrack.fix_to(track.fixedSize());
-  }
+  subTrack.truncate(start);
+  for(int i = start; i < track.size(); ++i)
+    subTrack.push_back(subTrack.pointFromOriginal(i), false);
+  subTrack.fix_to(track.fixedSize());
+  
   track.resetChanges();
 }
 
@@ -190,7 +191,7 @@ TInputHandler::inputPaintTracks(const TTrackList &tracks) {
       const TTrack &t = **i;
       if (t.pointsAdded > 0) {
         TTimerTicks ticks = t.ticks();
-        double timeOffset = t.timeOffset() + t.current().time;
+        double timeOffset = t.rootTimeOffset + t.current().time;
         if (!track || (ticks - minTicks)*TToolTimer::frequency + timeOffset - minTimeOffset < 0.0) {
           track = *i;
           minTicks = ticks;
@@ -485,21 +486,23 @@ TInputManager::trackEvent(
   TInputState::DeviceId deviceId,
   TInputState::TouchId touchId,
   const TPointD &position,
-  const double *pressure,
-  const TPointD *tilt,
+  const double pressure,
+  const TPointD &tilt,
+  bool hasPressure,
+  bool hasTilt,
   bool final,
   TTimerTicks ticks )
 {
   ticks = fixTicks(ticks);
-  TTrackP track = getTrack(deviceId, touchId, ticks, (bool)pressure, (bool)tilt);
+  TTrackP track = getTrack(deviceId, touchId, ticks, hasPressure, hasTilt);
   if (!track->finished()) {
     ticks = fixTicks(ticks);
-    double time = (double)(ticks - track->ticks())*TToolTimer::step - track->timeOffset();
+    double time = (double)(ticks - track->ticks())*TToolTimer::step - track->rootTimeOffset;
     addTrackPoint(
       track,
       position,
-      pressure ? *pressure : 0.5,
-      tilt ? *tilt : TPointD(),
+      pressure,
+      tilt,
       time,
       final );
   }

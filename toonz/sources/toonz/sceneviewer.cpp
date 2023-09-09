@@ -23,6 +23,7 @@
 #include "tools/toolhandle.h"
 #include "tools/toolcommandids.h"
 #include "tools/toolutils.h"
+#include "tools/assistant.h"
 
 // TnzQt includes
 #include "toonzqt/icongenerator.h"
@@ -1831,7 +1832,25 @@ void SceneViewer::drawOverlay() {
         !app->getCurrentObject()->isSpline())
       glScaled(m_dpiScale.x, m_dpiScale.y, 1);
     m_pixelSize = sqrt(tglGetPixelSize2()) * getDevPixRatio();
+    
+    // draw assistans and guidelines
+    m_toolHasAssistants = false;
+    unsigned int hints = tool->getToolHints();
+    if (hints & TTool::HintAssistantsAll) {
+      m_toolHasAssistants = TAssistant::scanAssistants(
+        tool,                                 // tool
+        &m_toolPos, 1,                        // pointer positions
+        nullptr,                              // out guidelines
+        true,                                 // draw
+        false,                                // enabled only
+        hints & TTool::HintAssistantsEnabled, // mark enabled
+        true,                                 // draw guidelines
+        nullptr );                            // skip image
+    }
+    
+    // draw tool
     tool->draw();
+    
     glPopMatrix();
     // Used (only in the T_RGBPicker tool) to notify and set the currentColor
     // outside the draw() methods:
@@ -3307,6 +3326,7 @@ TAffine SceneViewer::getNormalZoomScale() {
 //-----------------------------------------------------------------------------
 
 void SceneViewer::invalidateToolStatus() {
+  m_toolHasAssistants = false;
   TTool *tool = TApp::instance()->getCurrentTool()->getTool();
   if (tool) {
     m_toolDisableReason = tool->updateEnabled();

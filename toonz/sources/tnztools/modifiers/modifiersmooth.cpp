@@ -4,38 +4,14 @@
 #include <algorithm>
 
 
-//*****************************************************************************************
-//    TModifierSmooth::Modifier implementation
-//*****************************************************************************************
-
-
-TModifierSmooth::Modifier::Modifier(TTrackHandler &handler, int radius):
-  TTrackModifier(handler),
-  radius(std::max(radius, 0)),
-  smoothedTrack()
-{ }
-
-
-TTrackPoint
-TModifierSmooth::Modifier::calcPoint(double originalIndex) {
-  return smoothedTrack
-       ? smoothedTrack->interpolateLinear(originalIndex)
-       : TTrackModifier::calcPoint(originalIndex);
-}
-
 
 //*****************************************************************************************
 //    TModifierSmooth implementation
 //*****************************************************************************************
 
 
-TModifierSmooth::TModifierSmooth(int radius): m_radius()
-  { setRadius(radius); }
-
-
-void
-TModifierSmooth::setRadius(int radius)
-  { m_radius = std::max(0, radius); }
+TModifierSmooth::TModifierSmooth(int radius):
+  radius(radius) { }
 
 
 void
@@ -43,32 +19,25 @@ TModifierSmooth::modifyTrack(
   const TTrack &track,
   TTrackList &outTracks )
 {
-  if (!m_radius) {
-    TInputModifier::modifyTrack(track, outTracks);
-    return;
-  }
+  int radius = abs(this->radius);
   
-  if (!track.handler) {
-    track.handler = new TTrackHandler(track);
-    Modifier *modifier = new Modifier(*track.handler, m_radius);
-    modifier->smoothedTrack = new TTrack(modifier);
-    track.handler->tracks.push_back(modifier->smoothedTrack);
+  if (!track.handler && radius) {
+    Handler *handler = new Handler(radius);
+    track.handler = handler;
+    handler->track = new TTrack(track);
   }
 
-  if (track.handler->tracks.empty())
-    return;
-
-  TTrack &subTrack = *track.handler->tracks.front();
-  outTracks.push_back(track.handler->tracks.front());
-
+  Handler *handler = dynamic_cast<Handler*>(track.handler.getPointer());
+  if (!handler)
+    return TInputModifier::modifyTrack(track, outTracks);
+  
+  radius = handler->radius;
+  outTracks.push_back(handler->track);
+  TTrack &subTrack = *handler->track;
+  
   if (!track.changed())
     return;
   
-  Modifier *modifier = dynamic_cast<Modifier*>(subTrack.modifier.getPointer());
-  if (!modifier)
-    return;
-  int radius = modifier->radius;
-
   // remove points
   int start = std::max(0, track.size() - track.pointsAdded);
   subTrack.truncate(start);
@@ -87,18 +56,23 @@ TModifierSmooth::modifyTrack(
     if (i < start)
       continue;
 
-    int oi = track.clampIndex(i - radius);
-    const TTrackPoint &p = track[oi];
-    subTrack.push_back(
-      TTrackPoint(
-        accum.position*k,
-        accum.pressure*k,
-        accum.tilt*k,
-        oi,
-        p.time,
-        0,
-        p.final ),
-      false );
+    double originalIndex;
+    if (i <= radius) {
+      originalIndex = i/(double)(radius + 1);
+    } else
+    if (i >= size - radius - 1) {
+      originalIndex = track.size() - 1 - (size - i - 1)/(double)(radius + 1);
+    } else {
+      originalIndex = i - radius;
+    }
+    
+    TTrackPoint p = subTrack.pointFromOriginal(i - radius);
+    p.position = accum.position*k;
+    p.pressure = accum.pressure*k;
+    p.tilt = accum.tilt*k;
+    p.originalIndex = originalIndex;
+    p.final = p.final && i == size - 1;
+    subTrack.push_back(p, false);
     
     const TTrackPoint &p0 = track[i - 2*radius];
     accum.position -= p0.position;
