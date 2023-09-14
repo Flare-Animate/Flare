@@ -52,6 +52,7 @@ public:
     { return tr("Line"); }
 
   void updateTranslation() const override {
+    TAssistant::updateTranslation();
     setTranslation(m_idRestricktA, tr("Restrict A"));
     setTranslation(m_idRestricktB, tr("Restrict B"));
     setTranslation(m_idParallel, tr("Parallel"));

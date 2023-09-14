@@ -51,6 +51,7 @@ public:
     { return tr("Vanishing Point"); }
 
   void updateTranslation() const override {
+    TAssistant::updateTranslation();
     setTranslation(m_idPassThrough, tr("Pass Through"));
     setTranslation(m_idGrid, tr("Grid"));
     setTranslation(m_idPerspective, tr("Perspective"));

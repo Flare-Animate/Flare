@@ -178,7 +178,7 @@ TTool::TTool(std::string name)
 //-------------------------------------------------------------------
 
 unsigned int TTool::getToolHints() const
-  { return HintAssistants | HintGuidelines; }
+  { return HintAssistants | HintAssistantsGuidelines | HintReplicators; }
 
 //-------------------------------------------------------------------
 

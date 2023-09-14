@@ -8,6 +8,7 @@
 #include "tools/toolutils.h"
 #include "tools/toolhandle.h"
 #include "tools/tooloptions.h"
+#include "tools/replicator.h"
 
 #include "mypainttoonzbrush.h"
 
@@ -167,6 +168,18 @@ FullColorBrushTool::FullColorBrushTool(std::string name)
   m_pressure.setId("PressureSensitivity");
 }
 
+//-------------------------------------------------------------------------------------------------------
+
+unsigned int FullColorBrushTool::getToolHints() const {
+  unsigned int h = TTool::getToolHints() & ~HintAssistantsAll;
+  if (m_assistants.getValue()) {
+    h |= HintReplicators;
+    h |= HintReplicatorsPoints;
+    h |= HintReplicatorsEnabled;
+  }
+  return h;
+}
+
 //---------------------------------------------------------------------------------------------------
 
 ToolOptionsBox *FullColorBrushTool::createOptionsBox() {
@@ -229,6 +242,7 @@ void FullColorBrushTool::onActivate() {
 
   setWorkAndBackupImages();
   onColorStyleChanged();
+  updateModifiers();
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -304,10 +318,14 @@ bool FullColorBrushTool::askWrite(const TRect &rect) {
 
 //--------------------------------------------------------------------------------------------------
 
-bool FullColorBrushTool::preLeftButtonDown() {
+void FullColorBrushTool::updateModifiers() {
   m_modifierAssistants->magnetism = m_assistants.getValue() ? 1 : 0;
   m_inputmanager.drawPreview      = false; //!m_modifierAssistants->drawOnly;
 
+  m_modifierReplicate.clear();
+  if (m_assistants.getValue())
+    TReplicator::scanReplicators(this, nullptr, &m_modifierReplicate, false, true, false, false, nullptr);
+  
   m_inputmanager.clearModifiers();
   m_inputmanager.addModifier(TInputModifierP(m_modifierTangents.getPointer()));
   m_inputmanager.addModifier(
@@ -315,9 +333,15 @@ bool FullColorBrushTool::preLeftButtonDown() {
 #ifndef NDEBUG
   m_inputmanager.addModifier(TInputModifierP(m_modifierTest.getPointer()));
 #endif
+  m_inputmanager.addModifiers(m_modifierReplicate);
   m_inputmanager.addModifier(
       TInputModifierP(m_modifierSegmentation.getPointer()));
+}
 
+//--------------------------------------------------------------------------------------------------
+
+bool FullColorBrushTool::preLeftButtonDown() {
+  updateModifiers();
   touchImage();
 
   if (m_isFrameCreated) {
@@ -347,6 +371,7 @@ void FullColorBrushTool::handleMouseEvent(MouseEventType type,
     m_inputmanager.addModifier(TInputModifierP(m_modifierLine.getPointer()));
     m_inputmanager.addModifier(
         TInputModifierP(m_modifierAssistants.getPointer()));
+    m_inputmanager.addModifiers(m_modifierReplicate);
     m_inputmanager.addModifier(
         TInputModifierP(m_modifierSegmentation.getPointer()));
     m_inputmanager.drawPreview = true;

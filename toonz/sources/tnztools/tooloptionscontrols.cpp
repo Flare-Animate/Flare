@@ -267,13 +267,21 @@ ToolOptionIntSlider::ToolOptionIntSlider(TTool *tool, TIntProperty *property,
                                          ToolHandle *toolHandle)
     : IntField(0, property->isMaxRangeLimited())
     , ToolOptionControl(tool, property->getName(), toolHandle)
-    , m_property(property) {
+    , m_property(property)
+{
   setLinearSlider(property->isLinearSlider());
   m_property->addListener(this);
   TIntProperty::Range range = property->getRange();
   setRange(range.first, range.second);
-  setMaximumWidth(300);
-  setMinimumWidth(50);
+  if (property->isSpinner()) {
+    enableSlider(false);
+    enableSpinner(true);
+    setMinimumWidth(60);
+    setMaximumWidth(80);
+  } else {
+    setMinimumWidth(50);
+    setMaximumWidth(300);
+  }
   updateStatus();
   connect(this, SIGNAL(valueChanged(bool)), SLOT(onValueChanged(bool)));
   // synchronize the state with the same widgets in other tool option bars

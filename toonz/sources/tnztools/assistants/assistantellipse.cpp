@@ -57,6 +57,7 @@ public:
     { return tr("Ellipse"); }
 
   void updateTranslation() const override {
+    TAssistant::updateTranslation();
     setTranslation(m_idRestricktA, tr("Restrict A"));
     setTranslation(m_idRestricktB, tr("Restrict B"));
     setTranslation(m_idRepeat, tr("Repeat"));
@@ -448,7 +449,6 @@ private:
     bool grid = getGrid();
     bool ruler = getRestrictA() && getRestrictB();
     bool concentric = !getRestrictA() && !getRestrictB();
-    bool perspective = getPerspective();
 
     drawSegment( ellipseMatrix*TPointD(-crossSize, 0.0),
                  ellipseMatrix*TPointD( crossSize, 0.0), pixelSize, alpha);

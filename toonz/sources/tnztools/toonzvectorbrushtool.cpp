@@ -6,6 +6,7 @@
 #include "tools/toolhandle.h"
 #include "tools/toolutils.h"
 #include "tools/tooloptions.h"
+#include "tools/replicator.h"
 #include "bluredbrush.h"
 
 // TnzQt includes
@@ -599,6 +600,18 @@ ToonzVectorBrushTool::ToonzVectorBrushTool(std::string name, int targetType)
 
 //-------------------------------------------------------------------------------------------------------
 
+unsigned int ToonzVectorBrushTool::getToolHints() const {
+  unsigned int h = TTool::getToolHints() & ~HintAssistantsAll;
+  if (m_assistants.getValue()) {
+    h |= HintReplicators;
+    h |= HintReplicatorsPoints;
+    h |= HintReplicatorsEnabled;
+  }
+  return h;
+}
+  
+//-------------------------------------------------------------------------------------------------------
+
 ToolOptionsBox *ToonzVectorBrushTool::createOptionsBox() {
   TPaletteHandle *currPalette =
       TTool::getApplication()->getPaletteController()->getCurrentLevelPalette();
@@ -657,6 +670,7 @@ void ToonzVectorBrushTool::onActivate() {
       loadLastBrush();
   }
   resetFrameRange();
+  updateModifiers();
   // TODO:app->editImageOrSpline();
 }
 
@@ -1043,9 +1057,7 @@ void ToonzVectorBrushTool::inputPaintTracks(const TTrackList &tracks) {
 
 //--------------------------------------------------------------------------------------------------
 
-bool ToonzVectorBrushTool::preLeftButtonDown() {
-  if (getViewer() && getViewer()->getGuidedStrokePickerMode()) return false;
-
+void ToonzVectorBrushTool::updateModifiers() {
   m_pixelSize = getPixelSize();
   int smoothRadius = (int)round(m_smooth.getValue());
   m_modifierAssistants->magnetism = m_assistants.getValue() ? 1 : 0;
@@ -1054,6 +1066,10 @@ bool ToonzVectorBrushTool::preLeftButtonDown() {
   m_modifierSimplify->step = 2*m_pixelSize;
   m_inputmanager.drawPreview = false;
 
+  m_modifierReplicate.clear();
+  if (m_assistants.getValue())
+    TReplicator::scanReplicators(this, nullptr, &m_modifierReplicate, false, true, false, false, nullptr);
+  
   m_inputmanager.clearModifiers();
   m_inputmanager.addModifier(TInputModifierP(m_modifierTangents.getPointer()));
   if (smoothRadius > 0) {
@@ -1067,9 +1083,16 @@ bool ToonzVectorBrushTool::preLeftButtonDown() {
 #ifndef NDEBUG
   m_inputmanager.addModifier(TInputModifierP(m_modifierTest.getPointer()));
 #endif
+  m_inputmanager.addModifiers(m_modifierReplicate);
   m_inputmanager.addModifier(TInputModifierP(m_modifierSegmentation.getPointer()));
   m_inputmanager.addModifier(TInputModifierP(m_modifierSimplify.getPointer()));
+}
 
+//--------------------------------------------------------------------------------------------------
+
+bool ToonzVectorBrushTool::preLeftButtonDown() {
+  if (getViewer() && getViewer()->getGuidedStrokePickerMode()) return false;
+  updateModifiers();
   touchImage();
   if (m_isFrameCreated) {
     // When the xsheet frame is selected, whole viewer will be updated from
@@ -1096,6 +1119,7 @@ void ToonzVectorBrushTool::handleMouseEvent(MouseEventType type,
     m_inputmanager.clearModifiers();
     m_inputmanager.addModifier(TInputModifierP(m_modifierLine.getPointer()));
     m_inputmanager.addModifier(TInputModifierP(m_modifierAssistants.getPointer()));
+    m_inputmanager.addModifiers(m_modifierReplicate);
     m_inputmanager.addModifier(TInputModifierP(m_modifierSegmentation.getPointer()));
     m_inputmanager.addModifier(TInputModifierP(m_modifierSimplify.getPointer()));
     m_inputmanager.drawPreview = true;

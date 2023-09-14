@@ -5,6 +5,7 @@
 #include <tools/toolhandle.h>
 #include <tools/cursors.h>
 #include <tools/assistant.h>
+#include <tools/replicator.h>
 #include <tools/inputmanager.h>
 
 // TnzLib includes
@@ -30,6 +31,64 @@
 
 
 //-------------------------------------------------------------------
+
+//=============================================================================
+// Edit Assistants Swap Undo
+//-----------------------------------------------------------------------------
+
+class EditAssistantsReorderUndo final : public ToolUtils::TToolUndo {
+private:
+  int m_oldPos;
+  int m_newPos;
+
+public:
+  EditAssistantsReorderUndo(
+    TXshSimpleLevel *level,
+    const TFrameId &frameId,
+    int m_oldPos,
+    int m_newPos
+  ):
+    ToolUtils::TToolUndo(level, frameId),
+    m_oldPos(m_oldPos),
+    m_newPos(m_newPos)
+  { }
+
+  QString getToolName() override
+    { return QString("Edit Assistants Tool"); }
+
+  int getSize() const override
+    { return sizeof(*this); }
+
+  void process(int oldPos, int newPos) const {
+    if (oldPos == newPos || oldPos < 0 || newPos < 0)
+      return;
+    TMetaImage *metaImage = dynamic_cast<TMetaImage*>(m_level->getFrame(m_frameId, true).getPointer());
+    if (!metaImage)
+      return;
+    
+    TMetaImage::Writer writer(*metaImage);
+    TMetaObjectList &list = *writer;
+    if (oldPos >= list.size() || newPos >= writer->size())
+      return;
+    
+    TMetaObjectP obj = list[oldPos];
+    list.erase(list.begin() + oldPos);
+    list.insert(list.begin() + newPos, obj);
+  }
+
+  void undo() const override {
+    process(m_newPos, m_oldPos);
+    TTool::getApplication()->getCurrentXsheet()->notifyXsheetChanged();
+    notifyImageChanged();
+  }
+
+  void redo() const override {
+    process(m_oldPos, m_newPos);
+    TTool::getApplication()->getCurrentXsheet()->notifyXsheetChanged();
+    notifyImageChanged();
+  }
+};
+
 
 //=============================================================================
 // Edit Assistants Undo
@@ -64,7 +123,7 @@ public:
     m_metaObject(metaObject),
     m_oldData(oldData),
     m_newData(m_metaObject->data()),
-    m_size(m_oldData.getMemSize() + m_newData.getMemSize())
+    m_size(sizeof(*this) + m_oldData.getMemSize() + m_newData.getMemSize())
   { }
 
   int getSize() const override
@@ -144,6 +203,7 @@ protected:
   TPropertyGroup m_allProperties;
   TPropertyGroup m_toolProperties;
   TEnumProperty m_assistantType;
+  TIntProperty m_replicatorIndex;
   TStringId m_newAssisnantType;
 
   bool           m_dragging;
@@ -158,16 +218,18 @@ protected:
   TPointD        m_currentPointOffset;
   TPointD        m_currentPosition;
   TGuidelineList m_currentGuidelines;
+  
+  TReplicator::PointList m_replicatorPoints;
+  
+  TMetaImage::Reader   *m_reader;
+  TMetaImage           *m_readImage;
+  TMetaObjectPC         m_readObject;
+  const TAssistantBase *m_readAssistant;
 
-  TMetaImage::Reader *m_reader;
-  TMetaImage         *m_readImage;
-  TMetaObjectPC       m_readObject;
-  const TAssistant   *m_readAssistant;
-
-  TMetaImage::Writer *m_writer;
-  TMetaImage         *m_writeImage;
-  TMetaObjectP        m_writeObject;
-  TAssistant         *m_writeAssistant;
+  TMetaImage::Writer   *m_writer;
+  TMetaImage           *m_writeImage;
+  TMetaObjectP          m_writeObject;
+  TAssistantBase       *m_writeAssistant;
 
   Selection *selection;
   
@@ -180,6 +242,7 @@ public:
   EditAssistantsTool():
     TTool("T_EditAssistants"),
     m_assistantType("AssistantType"),
+    m_replicatorIndex("ReplicatorIndex", 1, 10, 1, false),
     m_dragging(),
     m_dragAllPoints(),
     m_currentAssistantCreated(),
@@ -196,6 +259,7 @@ public:
     // also assign assistants to the "brush" button in toolbar
     bind(MetaImage | EmptyTarget, "T_Brush");
     m_toolProperties.bind(m_assistantType);
+    m_replicatorIndex.setSpinner();
     updateTranslation();
   }
 
@@ -207,7 +271,7 @@ public:
   ToolType getToolType() const override
     { return TTool::LevelWriteTool; }
   unsigned int getToolHints() const override
-    { return TTool::getToolHints() & ~HintAssistantsAll; }
+    { return TTool::getToolHints() & ~(HintAssistantsAll | HintReplicatorsAll); }
   int getCursorId() const override
     { return ToolCursor::StrokeSelectCursor; }
   void onImageChanged() override {
@@ -239,6 +303,10 @@ public:
       m_allProperties.bind( *m_toolProperties.getProperty(i) );
     if (Closer closer = read(ModeAssistant)) {
       m_readAssistant->updateTranslation();
+      if (int i = readReplicatorIndex(*m_reader)) {
+        m_replicatorIndex.setValue(i);
+        m_allProperties.bind( m_replicatorIndex );
+      }
       TPropertyGroup &assistantProperties = m_readAssistant->getProperties();
       for(int i = 0; i < assistantProperties.getPropertyCount(); ++i)
         m_allProperties.bind( *assistantProperties.getProperty(i) );
@@ -256,15 +324,18 @@ public:
 
   void updateTranslation() override {
     m_assistantType.setQStringName( tr("Assistant Type") );
+    m_replicatorIndex.setQStringName( tr("Order") );
     updateAssistantTypes();
     if (Closer closer = read(ModeAssistant))
       m_readAssistant->updateTranslation();
   }
 
   bool onPropertyChanged(std::string name, bool addToUndo) override {
-    if (TProperty *property = m_toolProperties.getProperty(name)) {
-      if (name == m_assistantType.getName())
-        m_newAssisnantType = TStringId::find( to_string(m_assistantType.getValue()) );
+    if (m_replicatorIndex.getName() == name) {
+      writeReplicatorIndex(m_replicatorIndex.getValue());
+    } else
+    if (name == m_assistantType.getName()) {
+      m_newAssisnantType = TStringId::find( to_string(m_assistantType.getValue()) );
     } else {
       if (Closer closer = write(ModeAssistant, true))
         m_writeAssistant->propertyChanged(TStringId::find(name));
@@ -324,7 +395,7 @@ protected:
         && (**m_reader)[m_currentAssistantIndex] == m_currentAssistant )
       {
         m_readObject = (**m_reader)[m_currentAssistantIndex];
-        m_readAssistant = m_readObject->getHandler<TAssistant>();
+        m_readAssistant = m_readObject->getHandler<TAssistantBase>();
         if (mode == ModeAssistant) return true;
 
         if (m_readAssistant->findPoint(m_currentPointName)) {
@@ -360,7 +431,7 @@ protected:
         && (**m_writer)[m_currentAssistantIndex] == m_currentAssistant )
       {
         m_writeObject = (**m_writer)[m_currentAssistantIndex];
-        m_writeAssistant = m_writeObject->getHandler<TAssistant>();
+        m_writeAssistant = m_writeObject->getHandler<TAssistantBase>();
         if ( (mode == ModeAssistant)
           || (mode == ModePoint && m_writeAssistant->findPoint(m_currentPointName)) )
         {
@@ -416,7 +487,7 @@ protected:
     if (Closer closer = read(ModeImage)) {
       for(TMetaObjectListCW::iterator i = (*m_reader)->begin(); i != (*m_reader)->end(); ++i)
         if (*i)
-          if (const TAssistant *assistant = (*i)->getHandler<TAssistant>())
+          if (const TAssistantBase *assistant = (*i)->getHandler<TAssistantBase>())
             assistant->deselectAll();
       if (updateHistory) putHistory(m_readImage, -1);
     }
@@ -451,7 +522,7 @@ protected:
       for(TMetaObjectListCW::iterator i = (*m_reader)->begin(); i != (*m_reader)->end(); ++i) {
         if (!*i) continue;
 
-        const TAssistant *assistant = (*i)->getHandler<TAssistant>();
+        const TAssistantBase *assistant = (*i)->getHandler<TAssistantBase>();
         if (!assistant) continue;
 
         assistant->deselectAll();
@@ -514,6 +585,76 @@ protected:
     return success;
   }
   
+  int readReplicatorIndex(TMetaImage::Reader &reader) {
+    int cnt = (int)reader->size();
+    int index = 0;
+    for(int i = 0; i < cnt; ++i) {
+      if (const TMetaObjectPC &obj = (*reader)[i])
+      if (obj->getHandler<TReplicator>()) {
+        ++index;
+        if (m_currentAssistantIndex == i)
+          return index;
+      }
+    }
+    return 0;
+  }
+
+  void writeReplicatorIndex(int index) {
+    apply();
+    
+    int wantIndex = index;
+    int oldPos = -1;
+    int newPos = -1;
+    bool changed = false;
+    
+    if (Closer closer = write(ModeAssistant)) {
+      if (index < 1)
+        index = 1;
+      
+      int idx = 0;
+      int lastPos = -1;
+      
+      TMetaObjectList &list = **m_writer;
+      
+      int cnt = (int)list.size();
+      for(int i = 0; i < cnt; ++i) {
+        if (list[i] && list[i]->getHandler<TReplicator>()) {
+          ++idx;
+          if (m_currentAssistantIndex == i) oldPos = i;
+          if (idx == index) newPos = i;
+          lastPos = i;
+        }
+      }
+      
+      if (oldPos >= 0 && lastPos >= 0) {
+        assert(idx);
+        if (newPos < 0)
+          { index = idx; newPos = lastPos; }
+        if (oldPos != newPos) {
+          TMetaObjectP obj = list[oldPos];
+          list.erase(list.begin() + oldPos);
+          list.insert(list.begin() + newPos, obj);
+          
+          TUndoManager::manager()->add(new EditAssistantsReorderUndo(
+            getApplication()->getCurrentLevel()->getLevel()->getSimpleLevel(),
+            getCurrentFid(),
+            oldPos,
+            newPos ));
+          
+          changed = true;
+        }
+      }
+    }
+    
+    if (changed) {
+      m_currentAssistantIndex = newPos;
+      invalidate();
+    }
+    
+    if (wantIndex != index)
+      this->updateOptionsBox();
+  }
+  
 public:
   void deselect()
     { resetCurrentPoint(true, false); }
@@ -561,7 +702,7 @@ public:
       resetCurrentPoint(false);
       if (Closer closer = write(ModeImage)) {
         TMetaObjectP object(new TMetaObject(m_newAssisnantType));
-        if (TAssistant *assistant = object->getHandler<TAssistant>()) {
+        if (TAssistantBase *assistant = object->getHandler<TAssistantBase>()) {
           assistant->setDefaults();
           assistant->move(position);
           assistant->selectAll();
@@ -639,17 +780,27 @@ public:
     TPointD position = m_currentPosition + m_currentPointOffset;
     
     // draw assistants
+    int index = 0;
     if (Closer closer = read(ModeImage))
     for(TMetaObjectListCW::iterator i = (*m_reader)->begin(); i != (*m_reader)->end(); ++i)
       if (*i)
-      if (const TAssistant *assistant = (*i)->getHandler<TAssistant>())
+      if (const TAssistantBase *base = (*i)->getHandler<TAssistantBase>())
       {
-        assistant->drawEdit(getViewer());
-        assistant->getGuidelines(
-          position,
-          TAffine(),
-          m_currentGuidelines );
+        if (dynamic_cast<const TReplicator*>(base)) {
+          ++index;
+          base->drawEdit(getViewer(), index);
+        } else {
+          base->drawEdit(getViewer());
+        }
+        
+        if (const TAssistant *assistant = dynamic_cast<const TAssistant*>(base))
+          assistant->getGuidelines(
+            position,
+            TAffine(),
+            m_currentGuidelines );
       }
+    
+    TImage *img = getImage(false);
     
     // draw assistans and guidelines from other layers
     TAssistant::scanAssistants(
@@ -660,6 +811,30 @@ public:
       false,         // enabled only
       false,         // mark enabled
       true,          // draw guidelines
+      img );         // skip image
+    
+    // draw replicators from other layers
+    TReplicator::scanReplicators(
+      this,          // tool
+      nullptr,       // in/out points
+      nullptr,       // out modifiers
+      true,          // draw
+      false,         // enabled only
+      false,         // mark enabled
+      false,         // draw points
+      img );         // skip image
+    
+    // draw replicator points
+    m_replicatorPoints.clear();
+    m_replicatorPoints.push_back(position);
+    TReplicator::scanReplicators(
+      this,          // tool
+      &m_replicatorPoints, // in/out points
+      nullptr,       // out modifiers
+      false,         // draw
+      false,         // enabled only
+      false,         // mark enabled
+      true,          // draw points
       nullptr );     // skip image
   }
 };

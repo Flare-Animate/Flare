@@ -301,14 +301,19 @@ public:
   };
 
   enum ToolHints  //!  Misc flags related with tool
-  { HintNone              = 0,
-    HintAssistants        = 1 << 0, //!< Draw asistants when tool active
-    HintGuidelines        = 1 << 1, //!< Draw asistant guidelines
-    HintAssistantsEnabled = 1 << 2, //!< Tool will use assisnats
+  { HintNone                 = 0,
+    HintAssistants           = 1 << 0, //!< Draw asistants when tool active
+    HintAssistantsGuidelines = 1 << 1, //!< Draw asistant guidelines
+    HintAssistantsEnabled    = 1 << 2, //!< Mark active assistants
+    HintReplicators          = 1 << 3, //!< Draw replicators
+    HintReplicatorsPoints    = 1 << 4, //!< Draw replicated points
+    HintReplicatorsEnabled   = 1 << 5, //!< Mark active replicators
     
     HintAssistantsAll     = HintAssistants
-                          | HintGuidelines
+                          | HintAssistantsGuidelines
                           | HintAssistantsEnabled,
+    HintReplicatorsAll    = HintReplicators
+                          | HintReplicatorsEnabled,
   };
 
 public:

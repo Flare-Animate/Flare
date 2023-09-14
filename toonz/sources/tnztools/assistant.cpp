@@ -20,10 +20,14 @@
 
 
 #ifdef MACOSX
-const double line_width_scale = 1.5;
+const double TAssistantBase::lineWidthScale = 1.5;
 #else
-const double line_width_scale = 1.0;
+const double TAssistantBase::lineWidthScale = 1.0;
 #endif
+
+
+unsigned int TAssistantBase::drawFlags = 0;
+
 
 //************************************************************************
 //    TGuideline implementation
@@ -47,11 +51,11 @@ TGuideline::drawSegment(
 
   glPushAttrib(GL_ALL_ATTRIB_BITS);
   tglEnableBlending();
-  tglEnableLineSmooth(true, 1.0 * line_width_scale);
+  tglEnableLineSmooth(true, 1.0 * TAssistant::lineWidthScale);
   TPointD d = p1 - p0;
   double k = norm2(d);
   if (k > TConsts::epsilon*TConsts::epsilon) {
-    k = 0.5*pixelSize*line_width_scale/sqrt(k);
+    k = 0.5*pixelSize*TAssistant::lineWidthScale/sqrt(k);
     d = TPointD(-k*d.y, k*d.x);
     glColor4dv(colorWhite);
     tglDrawSegment(p0 - d, p1 - d);
@@ -145,26 +149,24 @@ TAssistantType::createHandler(TMetaObject &obj) const
 
 
 //************************************************************************
-//    TAssistant implementation
+//    TAssistantBase implementation
 //************************************************************************
 
-TAssistant::TAssistant(TMetaObject &object):
+TAssistantBase::TAssistantBase(TMetaObject &object):
   TMetaObjectHandler(object),
   m_idEnabled("enabled"),
   m_idPoints("points"),
   m_idX("x"),
   m_idY("y"),
-  m_idMagnetism("magnetism"),
   m_basePoint()
 {
   addProperty( new TBoolProperty(m_idEnabled.str(), getEnabled()) );
-  addProperty( new TDoubleProperty(m_idMagnetism.str(), 0.0, 1.0, getMagnetism()) );
 }
 
 //---------------------------------------------------------------------------------------------------
 
 TAssistantPoint&
-TAssistant::addPoint(
+TAssistantBase::addPoint(
   const TStringId &name,
   TAssistantPoint::Type type,
   const TPointD &defPosition,
@@ -185,7 +187,7 @@ TAssistant::addPoint(
 //---------------------------------------------------------------------------------------------------
 
 TAssistantPoint&
-TAssistant::addPoint(
+TAssistantBase::addPoint(
   const TStringId &name,
   TAssistantPoint::Type type,
   const TPointD &defPosition,
@@ -195,35 +197,43 @@ TAssistant::addPoint(
 //---------------------------------------------------------------------------------------------------
 
 const TAssistantPoint&
-TAssistant::getBasePoint() const
+TAssistantBase::getBasePoint() const
   { assert(m_basePoint); return *m_basePoint; }
 
 //---------------------------------------------------------------------------------------------------
 
-void
-TAssistant::addProperty(TProperty *p)
-  { m_properties.add(p); }
-
-//---------------------------------------------------------------------------------------------------
-
-void
-TAssistant::setTranslation(const TStringId &name, const QString &localName) const
-  { m_properties.getProperty(name)->setQStringName( localName ); }
-
-//---------------------------------------------------------------------------------------------------
-
-void
-TAssistant::updateTranslation() const {
-  setTranslation(m_idEnabled, tr("Enabled"));
-  setTranslation(m_idMagnetism, tr("Magnetism"));
+TIntProperty*
+TAssistantBase::createSpinProperty(const TStringId &id, int def, int min, int max, bool hasMax) {
+  if (!hasMax && max < def) max = def;
+  assert(min <= def && def <= max);
+  TIntProperty *property = new TIntProperty(id.str(), min, max, def, hasMax);
+  property->setSpinner();
+  return property;
 }
 
 //---------------------------------------------------------------------------------------------------
 
 void
-TAssistant::onSetDefaults() {
+TAssistantBase::addProperty(TProperty *p)
+  { m_properties.add(p); }
+
+//---------------------------------------------------------------------------------------------------
+
+void
+TAssistantBase::setTranslation(const TStringId &name, const QString &localName) const
+  { m_properties.getProperty(name)->setQStringName( localName ); }
+
+//---------------------------------------------------------------------------------------------------
+
+void
+TAssistantBase::updateTranslation() const
+  { setTranslation(m_idEnabled, tr("Enabled")); }
+
+//---------------------------------------------------------------------------------------------------
+
+void
+TAssistantBase::onSetDefaults() {
   setEnabled(true);
-  setMagnetism(1.0);
   for(TAssistantPointMap::iterator i = m_points.begin(); i != m_points.end(); ++i)
     i->second.position = i->second.defPosition;
   fixPoints();
@@ -233,13 +243,13 @@ TAssistant::onSetDefaults() {
 //---------------------------------------------------------------------------------------------------
 
 void
-TAssistant::fixPoints()
+TAssistantBase::fixPoints()
   { onFixPoints(); }
 
 //---------------------------------------------------------------------------------------------------
 
 bool
-TAssistant::move(const TPointD &position) {
+TAssistantBase::move(const TPointD &position) {
   TPointD d = position - getBasePoint().position;
   if (d != TPointD()) {
     for(TAssistantPointMap::iterator i = m_points.begin(); i != m_points.end(); ++i)
@@ -253,7 +263,7 @@ TAssistant::move(const TPointD &position) {
 //---------------------------------------------------------------------------------------------------
 
 bool
-TAssistant::movePoint(const TStringId &name, const TPointD &position) {
+TAssistantBase::movePoint(const TStringId &name, const TPointD &position) {
   TAssistantPointMap::iterator i = m_points.find(name);
   if (i != m_points.end() && i->second.position != position) {
     onMovePoint(i->second, position);
@@ -265,7 +275,7 @@ TAssistant::movePoint(const TStringId &name, const TPointD &position) {
 //---------------------------------------------------------------------------------------------------
 
 void
-TAssistant::setPointSelection(const TStringId &name, bool selected)  const {
+TAssistantBase::setPointSelection(const TStringId &name, bool selected)  const {
   if (const TAssistantPoint *p = findPoint(name))
     p->selected = selected;
 }
@@ -273,7 +283,7 @@ TAssistant::setPointSelection(const TStringId &name, bool selected)  const {
 //---------------------------------------------------------------------------------------------------
 
 void
-TAssistant::setAllPointsSelection(bool selected) const {
+TAssistantBase::setAllPointsSelection(bool selected) const {
   for(TAssistantPointMap::const_iterator i = points().begin(); i != points().end(); ++i)
     i->second.selected = selected;
 }
@@ -281,7 +291,7 @@ TAssistant::setAllPointsSelection(bool selected) const {
 //---------------------------------------------------------------------------------------------------
 
 void
-TAssistant::onDataChanged(const TVariant &value) {
+TAssistantBase::onDataChanged(const TVariant &value) {
   const TVariant& pointsData = data()[m_idPoints];
   TVariantPathEntry entry;
 
@@ -303,14 +313,13 @@ TAssistant::onDataChanged(const TVariant &value) {
 //---------------------------------------------------------------------------------------------------
 
 void
-TAssistant::onDataFieldChanged(const TStringId &name, const TVariant &value) {
-  updateProperty(name, value);
-}
+TAssistantBase::onDataFieldChanged(const TStringId &name, const TVariant &value)
+  { updateProperty(name, value); }
 
 //---------------------------------------------------------------------------------------------------
 
 void
-TAssistant::onAllDataChanged() {
+TAssistantBase::onAllDataChanged() {
   const TVariant& pointsData = data()[m_idPoints];
   for(TAssistantPointMap::iterator i = m_points.begin(); i != m_points.end(); ++i) {
     const TVariant& pointData = pointsData[i->first];
@@ -325,32 +334,31 @@ TAssistant::onAllDataChanged() {
 //---------------------------------------------------------------------------------------------------
 
 void
-TAssistant::onFixPoints()
+TAssistantBase::onFixPoints()
   { }
 
 //---------------------------------------------------------------------------------------------------
 
 void
-TAssistant::onMovePoint(TAssistantPoint &point, const TPointD &position)
+TAssistantBase::onMovePoint(TAssistantPoint &point, const TPointD &position)
   { point.position = position; }
 
 //---------------------------------------------------------------------------------------------------
 
 void
-TAssistant::onFixData() {
+TAssistantBase::onFixData() {
   TVariant& pointsData = data()[m_idPoints];
   for(TAssistantPointMap::const_iterator i = points().begin(); i != points().end(); ++i) {
     TVariant& pointData = pointsData[i->first];
     pointData[m_idX].setDouble( i->second.position.x );
     pointData[m_idY].setDouble( i->second.position.y );
   }
-  setMagnetism( std::max(0.0, std::min(1.0, getMagnetism())) );
 }
 
 //---------------------------------------------------------------------------------------------------
 
 void
-TAssistant::updateProperties() {
+TAssistantBase::updateProperties() {
   const TVariantMap &map = data().getMap();
   for(TVariantMap::const_iterator i = map.begin(); i != map.end(); ++i)
     if (i->first != m_idPoints)
@@ -360,7 +368,7 @@ TAssistant::updateProperties() {
 //---------------------------------------------------------------------------------------------------
 
 void
-TAssistant::updateProperty(const TStringId &name, const TVariant &value) {
+TAssistantBase::updateProperty(const TStringId &name, const TVariant &value) {
   TProperty *property = m_properties.getProperty(name);
   if (!property)
     return;
@@ -370,6 +378,9 @@ TAssistant::updateProperty(const TStringId &name, const TVariant &value) {
   } else
   if (TDoubleProperty *doubleProperty = dynamic_cast<TDoubleProperty*>(property)) {
     doubleProperty->setValue( value.getDouble() );
+  } else
+  if (TIntProperty *intProperty = dynamic_cast<TIntProperty*>(property)) {
+    intProperty->setValue( (int)value.getDouble() );
   } else
   if (TStringProperty *stringProperty = dynamic_cast<TStringProperty*>(property)) {
     stringProperty->setValue( to_wstring(value.getString()) );
@@ -382,7 +393,7 @@ TAssistant::updateProperty(const TStringId &name, const TVariant &value) {
 //---------------------------------------------------------------------------------------------------
 
 void
-TAssistant::onPropertyChanged(const TStringId &name) {
+TAssistantBase::onPropertyChanged(const TStringId &name) {
   TProperty *property = m_properties.getProperty(name);
   if (!property)
     return;
@@ -396,6 +407,9 @@ TAssistant::onPropertyChanged(const TStringId &name) {
   if (TDoubleProperty *doubleProperty = dynamic_cast<TDoubleProperty*>(property)) {
     data()[name].setDouble( doubleProperty->getValue() );
   } else
+  if (TIntProperty *intProperty = dynamic_cast<TIntProperty*>(property)) {
+    data()[name].setDouble( (double)intProperty->getValue() );
+  } else
   if (TStringProperty *stringProperty = dynamic_cast<TStringProperty*>(property)) {
     data()[name].setString( to_string(stringProperty->getValue()) );
   } else
@@ -407,29 +421,31 @@ TAssistant::onPropertyChanged(const TStringId &name) {
 //---------------------------------------------------------------------------------------------------
 
 double
-TAssistant::getDrawingAlpha(bool enabled) const
+TAssistantBase::getDrawingAlpha(bool enabled) const
   { return enabled && this->getEnabled() ? 0.5 : 0.25; }
 
 //---------------------------------------------------------------------------------------------------
 
 double
-TAssistant::getDrawingGridAlpha() const
+TAssistantBase::getDrawingGridAlpha() const
   { return 0.2; }
 
 //---------------------------------------------------------------------------------------------------
 
 void
-TAssistant::drawSegment(const TPointD &p0, const TPointD &p1, double pixelSize, double alpha) const {
+TAssistantBase::drawSegment(const TPointD &p0, const TPointD &p1, double pixelSize, double alpha) const {
   double colorBlack[4] = { 0.0, 0.0, 0.0, alpha };
   double colorWhite[4] = { 1.0, 1.0, 1.0, alpha };
+  
+  if (drawFlags & DRAW_ERROR) colorBlack[0] = 1;
 
   glPushAttrib(GL_ALL_ATTRIB_BITS);
   tglEnableBlending();
-  tglEnableLineSmooth(true, 1.0 * line_width_scale);
+  tglEnableLineSmooth(true, 1.0 * lineWidthScale);
   TPointD d = p1 - p0;
   double k = norm2(d);
   if (k > TConsts::epsilon*TConsts::epsilon) {
-    k = 0.5*pixelSize*line_width_scale/sqrt(k);
+    k = 0.5*pixelSize*lineWidthScale/sqrt(k);
     d = TPointD(-k*d.y, k*d.x);
     glColor4dv(colorWhite);
     tglDrawSegment(p0 - d, p1 - d);
@@ -442,7 +458,7 @@ TAssistant::drawSegment(const TPointD &p0, const TPointD &p1, double pixelSize, 
 //---------------------------------------------------------------------------------------------------
 
 void
-TAssistant::drawMark(const TPointD &p, const TPointD &normal, double pixelSize, double alpha) const {
+TAssistantBase::drawMark(const TPointD &p, const TPointD &normal, double pixelSize, double alpha) const {
   TPointD d = normal*5*pixelSize;
   drawSegment(p - d,p + d, pixelSize, alpha);
 }
@@ -450,7 +466,7 @@ TAssistant::drawMark(const TPointD &p, const TPointD &normal, double pixelSize, 
 //---------------------------------------------------------------------------------------------------
 
 void
-TAssistant::drawDot(const TPointD &p, double alpha) const {
+TAssistantBase::drawDot(const TPointD &p, double alpha) const {
   double colorBlack[4] = { 0.0, 0.0, 0.0, alpha };
   double colorWhite[4] = { 1.0, 1.0, 1.0, alpha };
 
@@ -475,7 +491,7 @@ TAssistant::drawDot(const TPointD &p, double alpha) const {
 //---------------------------------------------------------------------------------------------------
 
 void
-TAssistant::drawPoint(const TAssistantPoint &point, double pixelSize) const {
+TAssistantBase::drawPoint(const TAssistantPoint &point, double pixelSize) const {
   if (!point.visible) return;
 
   double radius = point.radius;
@@ -508,7 +524,7 @@ TAssistant::drawPoint(const TAssistantPoint &point, double pixelSize) const {
   TPointD gridDy(0.0, pixelSize*radius);
 
   // back line
-  tglEnableLineSmooth(true, 2.0*width*line_width_scale);
+  tglEnableLineSmooth(true, 2.0*width*lineWidthScale);
   glColor4dv(colorWhite);
   if (point.type == TAssistantPoint::CircleCross) {
     tglDrawSegment(point.position - crossDx, point.position + crossDx);
@@ -517,7 +533,7 @@ TAssistant::drawPoint(const TAssistantPoint &point, double pixelSize) const {
   tglDrawCircle(point.position, radius*pixelSize);
 
   // front line
-  glLineWidth(width * line_width_scale);
+  glLineWidth(width * lineWidthScale);
   glColor4dv(colorBlack);
   if (point.type == TAssistantPoint::CircleCross) {
     tglDrawSegment(point.position - crossDx, point.position + crossDx);
@@ -552,25 +568,147 @@ TAssistant::drawPoint(const TAssistantPoint &point, double pixelSize) const {
 //---------------------------------------------------------------------------------------------------
 
 void
-TAssistant::getGuidelines(const TPointD &position, const TAffine &toTool, TGuidelineList &outGuidelines) const
+TAssistantBase::drawIndex(const TPointD &p, int index, bool selected, double pixelSize) const {
+  static const int segments[7][4] = {
+    { 0, 2, 1, 2 },   // A
+    { 1, 1, 1, 2 },   // B    + A +
+    { 1, 0, 1, 1 },   // C    F   B
+    { 0, 0, 1, 0 },   // D    + G +
+    { 0, 0, 0, 1 },   // E    E   C
+    { 0, 1, 0, 2 },   // F    + D +
+    { 0, 1, 1, 1 } }; // G
+    
+  static const int glyphs[][7] = {
+  // A B C D E F G
+    {1,1,1,1,1,1,0},   // 0
+    {0,1,1,0,0,0,0},   // 1
+    {1,1,0,1,1,0,1},   // 2
+    {1,1,1,1,0,0,1},   // 3
+    {0,1,1,0,0,1,1},   // 4
+    {1,0,1,1,0,1,1},   // 5
+    {1,0,1,1,1,1,1},   // 6
+    {1,1,1,0,0,1,0},   // 7
+    {1,1,1,1,1,1,1},   // 8
+    {1,1,1,1,0,1,1} }; // 9
+  
+  if (index < 0) index = 0;
+  
+  int len = 0;
+  int digits[16] = {};
+  for(int i = index; i; i /= 10)
+    digits[len++] = i%10;
+  if (!len) len = 1;
+  
+  double w = 5, h = 5, d = 0.5, dx = w+2;
+  double alpha = 0.5;
+  double colorBlack[4] = { 0.0, 0.0, 0.0, alpha };
+  double colorWhite[4] = { 1.0, 1.0, 1.0, alpha };
+  if (selected) colorBlack[2] = 1.0;
+
+  glPushAttrib(GL_ALL_ATTRIB_BITS);
+  tglEnableBlending();
+  tglEnableLineSmooth(true, 1.0 * lineWidthScale);
+  double k = 0.5*pixelSize*lineWidthScale;
+  
+  double y = p.y;
+  for(int i = 0; i < len; ++i) {
+    double x = p.x + dx*(len-i-1);
+    const int *g = glyphs[digits[i]];
+    for(int i = 0; i < 7; ++i) {
+      if (!g[i]) continue;
+      const int *s = segments[i];
+      if (s[0] == s[2]) {
+        // vertical
+        glColor4dv(colorWhite);
+        tglDrawSegment(
+          TPointD(x + s[0]*w + k, y + s[1]*h + d),
+          TPointD(x + s[2]*w + k, y + s[3]*h - d) );
+        glColor4dv(colorBlack);
+        tglDrawSegment(
+          TPointD(x + s[0]*w - k, y + s[1]*h + d),
+          TPointD(x + s[2]*w - k, y + s[3]*h - d) );
+      } else {
+        // horisontal
+        glColor4dv(colorWhite);
+        tglDrawSegment(
+          TPointD(x + s[0]*w + d, y + s[1]*h + k),
+          TPointD(x + s[2]*w - d, y + s[3]*h + k) );
+        glColor4dv(colorBlack);
+        tglDrawSegment(
+          TPointD(x + s[0]*w + d, y + s[1]*h - k),
+          TPointD(x + s[2]*w - d, y + s[3]*h - k) );
+      }
+    }
+  }
+  glPopAttrib();
+}
+
+//---------------------------------------------------------------------------------------------------
+
+void
+TAssistantBase::draw(TToolViewer*, bool) const
   { }
 
 //---------------------------------------------------------------------------------------------------
 
 void
-TAssistant::draw(TToolViewer *viewer, bool enabled) const
-  { }
-
-//---------------------------------------------------------------------------------------------------
-
-void
-TAssistant::drawEdit(TToolViewer *viewer) const {
+TAssistantBase::drawEdit(TToolViewer *viewer) const {
   // paint all points
   draw(viewer);
   double pixelSize = sqrt(tglGetPixelSize2());
   for(TAssistantPointMap::const_iterator i = points().begin(); i != points().end(); ++i)
     drawPoint(i->second, pixelSize);
 }
+
+//---------------------------------------------------------------------------------------------------
+
+void
+TAssistantBase::drawEdit(TToolViewer *viewer, int index) const {
+  drawEdit(viewer);
+  drawIndex(
+    getBasePoint().position + TPointD(8, 8),
+    index, getBasePoint().selected, sqrt(tglGetPixelSize2()) );
+}
+
+
+//************************************************************************
+//    TAssistant implementation
+//************************************************************************
+
+TAssistant::TAssistant(TMetaObject &object):
+  TAssistantBase(object),
+  m_idMagnetism("magnetism")
+  { addProperty( new TDoubleProperty(m_idMagnetism.str(), 0.0, 1.0, getMagnetism()) ); }
+
+//---------------------------------------------------------------------------------------------------
+
+void
+TAssistant::updateTranslation() const {
+  TAssistantBase::updateTranslation();
+  setTranslation(m_idMagnetism, tr("Magnetism"));
+}
+
+//---------------------------------------------------------------------------------------------------
+
+void
+TAssistant::onSetDefaults() {
+  setMagnetism(1.0);
+  TAssistantBase::onSetDefaults();
+}
+
+//---------------------------------------------------------------------------------------------------
+
+void
+TAssistant::onFixData() {
+  TAssistantBase::onFixData();
+  setMagnetism( std::max(0.0, std::min(1.0, getMagnetism())) );
+}
+
+//---------------------------------------------------------------------------------------------------
+
+void
+TAssistant::getGuidelines(const TPointD&, const TAffine&, TGuidelineList&) const
+  { }
 
 //---------------------------------------------------------------------------------------------------
 
@@ -669,11 +807,11 @@ TAssistant::scanAssistants(
           if (!enabledOnly || assistant->getEnabled())
           {
             found = true;
+            if (!doSomething) return true;
             if (findGuidelines)
               for(int i = 0; i < positionsCount; ++i)
                 assistant->getGuidelines(positions[i], imageToTrack, *outGuidelines);
             if (draw) assistant->draw(viewer, assistant->getEnabled() && markEnabled);
-            if (!doSomething) return true;
           }
 
         if (draw) glPopMatrix();

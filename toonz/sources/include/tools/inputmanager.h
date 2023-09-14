@@ -222,6 +222,10 @@ public:
   void insertModifier(int index, const TInputModifierP &modifier);
   void addModifier(const TInputModifierP &modifier)
     { insertModifier(getModifiersCount(), modifier); }
+  void addModifiers(const TInputModifier::List &modifiers) {
+    for(TInputModifier::List::const_iterator i = modifiers.begin(); i != modifiers.end(); ++i)
+      addModifier(*i);
+  }
   void removeModifier(int index);
   void removeModifier(const TInputModifierP &modifier)
     { removeModifier(findModifier(modifier)); }
