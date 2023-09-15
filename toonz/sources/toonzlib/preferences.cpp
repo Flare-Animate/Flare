@@ -27,9 +27,6 @@
 #include <QColor>
 #include <QTextStream>
 
-// boost includes
-#include <boost/bind.hpp>
-
 //**********************************************************************************
 //    Local namespace  stuff
 //**********************************************************************************
@@ -1106,7 +1103,7 @@ int Preferences::levelFormatsCount() const {
 int Preferences::matchLevelFormat(const TFilePath &fp) const {
   LevelFormatVector::const_iterator lft =
       std::find_if(m_levelFormats.begin(), m_levelFormats.end(),
-                   boost::bind(&LevelFormat::matches, _1, boost::cref(fp)));
+                   [&fp](const LevelFormat &format) { return format.matches(fp); });
 
   return (lft != m_levelFormats.end()) ? lft - m_levelFormats.begin() : -1;
 }
