@@ -80,6 +80,8 @@ void TAssistantLine::onMovePoint(TAssistantPoint &point, const TPointD &position
   TPointD prevA = m_a.position;
   TPointD prevB = m_b.position;
   point.position = position;
+  if (&point == &m_a)
+    m_b.position += m_a.position - prevA;
   if (&point != &m_grid1)
     fixGrid(prevA, prevB);
 }
