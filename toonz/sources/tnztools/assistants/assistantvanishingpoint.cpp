@@ -149,6 +149,7 @@ void TAssistantVanishingPoint::onMovePoint(TAssistantPoint &point, const TPointD
 void TAssistantVanishingPoint::getGuidelines(
   const TPointD &position,
   const TAffine &toTool,
+  const TPixelD &color,
   TGuidelineList &outGuidelines ) const
 {
   if (getPassThrough()) {
@@ -156,6 +157,7 @@ void TAssistantVanishingPoint::getGuidelines(
       new TGuidelineInfiniteLine(
         getEnabled(),
         getMagnetism(),
+        color,
         toTool * m_center.position,
         position )));
   } else {
@@ -163,6 +165,7 @@ void TAssistantVanishingPoint::getGuidelines(
       new TGuidelineRay(
         getEnabled(),
         getMagnetism(),
+        color,
         toTool * m_center.position,
         position )));
   }

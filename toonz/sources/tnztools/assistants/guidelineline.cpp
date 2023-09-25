@@ -10,8 +10,11 @@
 //    TGuidelineLineBase implementation
 //*****************************************************************************************
 
-TGuidelineLineBase::TGuidelineLineBase(bool enabled, double magnetism, const TPointD &p0, const TPointD &p1):
-  TGuideline(enabled, magnetism), p0(p0), p1(p1) { }
+TGuidelineLineBase::TGuidelineLineBase(
+  bool enabled, double magnetism, const TPixelD &color,
+  const TPointD &p0, const TPointD &p1
+):
+  TGuideline(enabled, magnetism, color), p0(p0), p1(p1) { }
 
 TPointD
 TGuidelineLineBase::calcDirection(const TPointD &p0, const TPointD &p1) {
@@ -124,8 +127,10 @@ TGuidelineLineBase::drawLine(const TPointD &p0, const TPointD &p1, bool restrict
 //    TGuidelineLine implementation
 //*****************************************************************************************
 
-TGuidelineLine::TGuidelineLine(bool enabled, double magnetism, const TPointD &p0, const TPointD &p1):
-  TGuidelineLineBase(enabled, magnetism, p0, p1),
+TGuidelineLine::TGuidelineLine(
+  bool enabled, double magnetism, const TPixelD &color, const TPointD &p0, const TPointD &p1
+):
+  TGuidelineLineBase(enabled, magnetism, color, p0, p1),
   dir(calcDirection(p0, p1)),
   dist(norm(p1 - p0)) { }
 
@@ -145,8 +150,10 @@ TGuidelineLine::draw(bool active, bool enabled) const
 //    TGuidelineInfiniteLine implementation
 //*****************************************************************************************
 
-TGuidelineInfiniteLine::TGuidelineInfiniteLine(bool enabled, double magnetism, const TPointD &p0, const TPointD &p1):
-  TGuidelineLineBase(enabled, magnetism, p0, p1),
+TGuidelineInfiniteLine::TGuidelineInfiniteLine(
+  bool enabled, double magnetism, const TPixelD &color, const TPointD &p0, const TPointD &p1
+):
+  TGuidelineLineBase(enabled, magnetism, color, p0, p1),
   dir(calcDirection(p0, p1)) { }
 
 TTrackPoint
@@ -165,8 +172,10 @@ TGuidelineInfiniteLine::draw(bool active, bool enabled) const
 //    TGuidelineRay implementation
 //*****************************************************************************************
 
-TGuidelineRay::TGuidelineRay(bool enabled, double magnetism, const TPointD &p0, const TPointD &p1):
-  TGuidelineLineBase(enabled, magnetism, p0, p1),
+TGuidelineRay::TGuidelineRay(
+  bool enabled, double magnetism, const TPixelD &color, const TPointD &p0, const TPointD &p1
+):
+  TGuidelineLineBase(enabled, magnetism, color, p0, p1),
   dir(calcDirection(p0, p1)) { }
 
 TTrackPoint

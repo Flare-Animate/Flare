@@ -176,6 +176,7 @@ public:
   void getGuidelines(
     const TPointD &position,
     const TAffine &toTool,
+    const TPixelD &color,
     TGuidelineList &outGuidelines ) const override
   {
     TAffine matrix = calcEllipseMatrix();
@@ -193,6 +194,7 @@ public:
         new TGuidelineLine(
           getEnabled(),
           getMagnetism(),
+          color,
           matrix*TPointD(0, 0),
           matrix*(p/l) )));
     }
@@ -203,6 +205,7 @@ public:
         new TGuidelineEllipse(
           getEnabled(),
           getMagnetism(),
+          color,
           matrix )));
     } else {
       // ellipse scaled by X
@@ -211,6 +214,7 @@ public:
         new TGuidelineEllipse(
           getEnabled(),
           getMagnetism(),
+          color,
           matrix * TAffine::scale(kx, 1.0) )));
 
       // ellipse scaled by Y
@@ -219,6 +223,7 @@ public:
         new TGuidelineEllipse(
           getEnabled(),
           getMagnetism(),
+          color,
           matrix * TAffine::scale(1.0, ky) )));
     }
   }

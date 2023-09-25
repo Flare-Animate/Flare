@@ -10,9 +10,12 @@
 #include <toonz/tframehandle.h>
 #include <toonz/tobjecthandle.h>
 #include <toonz/dpiscale.h>
+#include <toonz/toonzscene.h>
+#include <toonz/sceneproperties.h>
 
 #include <tgl.h>
 #include <tproperty.h>
+#include <tpixelutils.h>
 
 #include <limits>
 #include <cassert>
@@ -27,6 +30,10 @@ const double TAssistantBase::lineWidthScale = 1.0;
 
 
 unsigned int TAssistantBase::drawFlags = 0;
+TPixelD TAssistantBase::colorBase  (0, 0, 0, 1);
+TPixelD TAssistantBase::colorError (1, 0, 0, 1);
+TPixelD TAssistantBase::colorEdit  (0, 0, 0, 1);
+TPixelD TAssistantBase::colorSelect(0, 0, 1, 1);
 
 
 //************************************************************************
@@ -41,13 +48,12 @@ TGuideline::drawSegment(
   bool active,
   bool enabled ) const
 {
-  double colorBlack[4] = { 0.0, 0.0, 0.0, 0.25 };
-  double colorWhite[4] = { 1.0, 1.0, 1.0, 0.25 };
-
-  if (!this->enabled || !enabled)
-    colorBlack[3] = (colorWhite[3] = 0.125);
-  else if (active)
-    colorBlack[3] = (colorWhite[3] = 0.5);
+  double alpha = !this->enabled || !enabled ? 0.125
+               : active                     ? 0.5
+               :                              0.25;
+  TPixelD cl = color;
+  cl.m *= alpha;
+  TPixelD clBack = TAssistantBase::makeContrastColor(cl);
 
   glPushAttrib(GL_ALL_ATTRIB_BITS);
   tglEnableBlending();
@@ -57,9 +63,9 @@ TGuideline::drawSegment(
   if (k > TConsts::epsilon*TConsts::epsilon) {
     k = 0.5*pixelSize*TAssistant::lineWidthScale/sqrt(k);
     d = TPointD(-k*d.y, k*d.x);
-    glColor4dv(colorWhite);
+    tglColor(clBack);
     tglDrawSegment(p0 - d, p1 - d);
-    glColor4dv(colorBlack);
+    tglColor(cl);
     tglDrawSegment(p0 + d, p1 + d);
   }
   glPopAttrib();
@@ -434,17 +440,23 @@ TAssistantBase::getDrawingGridAlpha() const
 
 //---------------------------------------------------------------------------------------------------
 
+TPixelD
+TAssistantBase::makeContrastColor(const TPixelD &color) {
+  return color.r + color.g + color.b < 1.5
+       ? TPixelD(1, 1, 1, color.m)
+       : TPixelD(0, 0, 0, color.m);
+}
+
+//---------------------------------------------------------------------------------------------------
+
 void
 TAssistantBase::drawSegment(const TPointD &p0, const TPointD &p1, double pixelSize, double alpha0, double alpha1) {
-  double colors[][4] = {
-    { 1, 1, 1, alpha0 },
-    { 1, 1, 1, alpha1 },
-    { 0, 0, 0, alpha0 },
-    { 0, 0, 0, alpha1 },
-  };
-  
-  if (drawFlags & DRAW_ERROR)
-    colors[2][0] = colors[3][0] = 1;
+  TPixelD color0 = (drawFlags & DRAW_ERROR) ? colorError : colorBase;
+  TPixelD color1 = color0;
+  color0.m *= alpha0;
+  color1.m *= alpha1;
+  TPixelD colorBack0 = makeContrastColor(color0);
+  TPixelD colorBack1 = makeContrastColor(color1);
 
   glPushAttrib(GL_ALL_ATTRIB_BITS);
   tglEnableBlending();
@@ -455,10 +467,10 @@ TAssistantBase::drawSegment(const TPointD &p0, const TPointD &p1, double pixelSi
     k = 0.5*pixelSize*lineWidthScale/sqrt(k);
     d = TPointD(-k*d.y, k*d.x);
     glBegin(GL_LINES);
-    glColor4dv(colors[0]); tglVertex(p0 - d);
-    glColor4dv(colors[1]); tglVertex(p1 - d);
-    glColor4dv(colors[2]); tglVertex(p0 + d);
-    glColor4dv(colors[3]); tglVertex(p1 + d);
+    tglColor(colorBack0); tglVertex(p0 - d);
+    tglColor(colorBack1); tglVertex(p1 - d);
+    tglColor(color0); tglVertex(p0 + d);
+    tglColor(color1); tglVertex(p1 + d);
     glEnd();
   }
   glPopAttrib();
@@ -475,20 +487,19 @@ TAssistantBase::drawMark(const TPointD &p, const TPointD &normal, double pixelSi
 //---------------------------------------------------------------------------------------------------
 
 void
-TAssistantBase::drawDot(const TPointD &p, double alpha) {
-  double colorBlack[4] = { 0.0, 0.0, 0.0, alpha };
-  double colorWhite[4] = { 1.0, 1.0, 1.0, alpha };
+TAssistantBase::drawDot(const TPointD &p, const TPixelD &color) {
+  TPixelD colorBack = makeContrastColor(color);
 
   glPushAttrib(GL_ALL_ATTRIB_BITS);
   tglEnableBlending();
 
-  glColor4dv(colorWhite);
+  tglColor(colorBack);
   tglEnablePointSmooth(6.0);
   glBegin(GL_POINTS);
   glVertex2d(p.x, p.y);
   glEnd();
 
-  glColor4dv(colorBlack);
+  tglColor(color);
   tglEnablePointSmooth(3.0);
   glBegin(GL_POINTS);
   glVertex2d(p.x, p.y);
@@ -500,30 +511,35 @@ TAssistantBase::drawDot(const TPointD &p, double alpha) {
 //---------------------------------------------------------------------------------------------------
 
 void
+TAssistantBase::drawDot(const TPointD &p, double alpha) {
+  TPixelD color = (drawFlags & DRAW_ERROR) ? colorError : colorBase;
+  color.m *= alpha;
+  drawDot(p, color);
+}
+
+//---------------------------------------------------------------------------------------------------
+
+void
 TAssistantBase::drawPoint(const TAssistantPoint &point, double pixelSize) {
   if (!point.visible) return;
 
   double radius = point.radius;
   double crossSize = 1.2*radius;
-
+  double width = point.selected ? 2.0 : 1.5;
+  
   double alpha = 0.5;
-  double colorBlack[4] = { 0.0, 0.0, 0.0, alpha };
-  double colorGray[4]  = { 0.5, 0.5, 0.5, alpha };
-  double colorWhite[4] = { 1.0, 1.0, 1.0, alpha };
-  double width = 1.5;
-
-  if (point.selected) {
-    colorBlack[2] = 1.0;
-    colorGray[2] = 1.0;
-    width = 2.0;
-  }
+  TPixelD colorStroke = point.selected ? colorSelect : colorEdit;
+  colorStroke.m *= alpha;
+  TPixelD colorFill = colorStroke;
+  colorFill.m *= 0.5;
+  TPixelD colorBack = makeContrastColor(colorStroke);
 
   glPushAttrib(GL_ALL_ATTRIB_BITS);
 
   // fill
   tglEnableBlending();
   if (point.type == TAssistantPoint::CircleFill) {
-    glColor4dv(colorGray);
+    tglColor(colorFill);
     tglDrawDisk(point.position, radius*pixelSize);
   }
 
@@ -539,7 +555,7 @@ TAssistantBase::drawPoint(const TAssistantPoint &point, double pixelSize) {
   
   // back line
   tglEnableLineSmooth(true, 2.0*width*lineWidthScale);
-  glColor4dv(colorWhite);
+  tglColor(colorBack);
   if (cross) {
     tglDrawSegment(point.position - crossA, point.position + crossA);
     tglDrawSegment(point.position - crossB, point.position + crossB);
@@ -548,7 +564,7 @@ TAssistantBase::drawPoint(const TAssistantPoint &point, double pixelSize) {
 
   // front line
   glLineWidth(width * lineWidthScale);
-  glColor4dv(colorBlack);
+  tglColor(colorStroke);
   if (cross) {
     tglDrawSegment(point.position - crossA, point.position + crossA);
     tglDrawSegment(point.position - crossB, point.position + crossB);
@@ -558,19 +574,19 @@ TAssistantBase::drawPoint(const TAssistantPoint &point, double pixelSize) {
   // dots
   switch(point.type) {
   case TAssistantPoint::CircleDoubleDots:
-    drawDot(point.position - gridDx*0.5, alpha);
-    drawDot(point.position + gridDx*0.5, alpha);
-    drawDot(point.position - gridDy*0.5, alpha);
-    drawDot(point.position + gridDy*0.5, alpha);
+    drawDot(point.position - gridDx*0.5, colorStroke);
+    drawDot(point.position + gridDx*0.5, colorStroke);
+    drawDot(point.position - gridDy*0.5, colorStroke);
+    drawDot(point.position + gridDy*0.5, colorStroke);
     //no break
   case TAssistantPoint::CircleDots:
-    drawDot(point.position - gridDx, alpha);
-    drawDot(point.position + gridDx, alpha);
-    drawDot(point.position - gridDy, alpha);
-    drawDot(point.position + gridDy, alpha);
+    drawDot(point.position - gridDx, colorStroke);
+    drawDot(point.position + gridDx, colorStroke);
+    drawDot(point.position - gridDy, colorStroke);
+    drawDot(point.position + gridDy, colorStroke);
     //no break
   case TAssistantPoint::Circle:
-    drawDot(point.position, alpha);
+    drawDot(point.position, colorStroke);
     break;
   default:
     break;
@@ -615,9 +631,9 @@ TAssistantBase::drawIndex(const TPointD &p, int index, bool selected, double pix
   
   double w = 5, h = 5, d = 0.5, dx = w+2;
   double alpha = 0.5;
-  double colorBlack[4] = { 0.0, 0.0, 0.0, alpha };
-  double colorWhite[4] = { 1.0, 1.0, 1.0, alpha };
-  if (selected) colorBlack[2] = 1.0;
+  TPixelD color = selected ? colorSelect : colorEdit;
+  color.m *= alpha;
+  TPixelD colorBack = makeContrastColor(color);
 
   glPushAttrib(GL_ALL_ATTRIB_BITS);
   tglEnableBlending();
@@ -633,21 +649,21 @@ TAssistantBase::drawIndex(const TPointD &p, int index, bool selected, double pix
       const int *s = segments[i];
       if (s[0] == s[2]) {
         // vertical
-        glColor4dv(colorWhite);
+        tglColor(colorBack);
         tglDrawSegment(
           TPointD(x + s[0]*w + k, y + s[1]*h + d),
           TPointD(x + s[2]*w + k, y + s[3]*h - d) );
-        glColor4dv(colorBlack);
+        tglColor(color);
         tglDrawSegment(
           TPointD(x + s[0]*w - k, y + s[1]*h + d),
           TPointD(x + s[2]*w - k, y + s[3]*h - d) );
       } else {
         // horisontal
-        glColor4dv(colorWhite);
+        tglColor(colorBack);
         tglDrawSegment(
           TPointD(x + s[0]*w + d, y + s[1]*h + k),
           TPointD(x + s[2]*w - d, y + s[3]*h + k) );
-        glColor4dv(colorBlack);
+        tglColor(color);
         tglDrawSegment(
           TPointD(x + s[0]*w + d, y + s[1]*h - k),
           TPointD(x + s[2]*w - d, y + s[3]*h - k) );
@@ -721,7 +737,7 @@ TAssistant::onFixData() {
 //---------------------------------------------------------------------------------------------------
 
 void
-TAssistant::getGuidelines(const TPointD&, const TAffine&, TGuidelineList&) const
+TAssistant::getGuidelines(const TPointD&, const TAffine&, const TPixelD&, TGuidelineList&) const
   { }
 
 //---------------------------------------------------------------------------------------------------
@@ -830,6 +846,8 @@ TAssistant::scanAssistants(
   if (TXsheetHandle *XsheetHandle = application->getCurrentXsheet())
   if (TXsheet *Xsheet = XsheetHandle->getXsheet())
   {
+    ToonzScene *scene = Xsheet->getScene();
+    TSceneProperties *props = scene ? scene->getProperties() : nullptr;
     TPointD dpiScale = getCurrentDpiScale(simpleLevel, tool->getCurrentFid());
     int frame = frameHandle->getFrame();
     int count = Xsheet->getColumnCount();
@@ -841,7 +859,7 @@ TAssistant::scanAssistants(
       worldToTrack.a22 /= dpiScale.y;
     }
 
-    for(int i = 0; i < count; ++i)
+    for(int i = 0; i < count; ++i) {
       if (TXshColumn *column = Xsheet->getColumn(i))
       if (column->isCamstandVisible())
       if (column->isPreviewVisible())
@@ -851,10 +869,21 @@ TAssistant::scanAssistants(
       if (TMetaImage *metaImage = dynamic_cast<TMetaImage*>(image.getPointer()))
       {
         TAffine imageToTrack = worldToTrack * tool->getColumnMatrix(i);
-        if (draw) { glPushMatrix(); tglMultMatrix(imageToTrack); }
+        
+        TPixelD origColor = TAssistantBase::colorBase;
+        TPixelD color = props && column->getColorFilterId()
+                      ? toPixelD(props->getColorFilterColor( column->getColorFilterId() ))
+                      : origColor;
+        color.m *= column->getOpacity()/255.0;
+        
+        if (draw) {
+          TAssistantBase::colorBase = color;
+          glPushMatrix();
+          tglMultMatrix(imageToTrack);
+        }
 
         TMetaImage::Reader reader(*metaImage);
-        for(TMetaObjectListCW::iterator i = reader->begin(); i != reader->end(); ++i)
+        for(TMetaObjectListCW::iterator i = reader->begin(); i != reader->end(); ++i) {
           if (*i)
           if (const TAssistant *assistant = (*i)->getHandler<TAssistant>())
           if (!enabledOnly || assistant->getEnabled())
@@ -863,12 +892,17 @@ TAssistant::scanAssistants(
             if (!doSomething) return true;
             if (findGuidelines)
               for(int i = 0; i < positionsCount; ++i)
-                assistant->getGuidelines(positions[i], imageToTrack, *outGuidelines);
+                assistant->getGuidelines(positions[i], imageToTrack, color, *outGuidelines);
             if (draw) assistant->draw(viewer, assistant->getEnabled() && markEnabled);
           }
-
-        if (draw) glPopMatrix();
+        } // for each meta object
+        
+        if (draw) {
+          glPopMatrix();
+          TAssistantBase::colorBase = origColor;
+        }
       }
+    } // for each replication
   }
   
   if (drawGuidelines)

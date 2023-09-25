@@ -75,12 +75,13 @@ static TPointD findNearestPoint(const TPointD &p, double Rx, double Ry) {
 TGuidelineEllipse::TGuidelineEllipse(
   bool enabled,
   double magnetism,
+  const TPixelD &color,
   const TAffine &matrix,
   const TAffine &matrixInv,
   double Rx,
   double Ry
 ):
-  TGuideline(enabled, magnetism),
+  TGuideline(enabled, magnetism, color),
   matrix(matrix),
   matrixInv(matrixInv),
   Rx(Rx),
@@ -91,11 +92,12 @@ TGuidelineEllipse::TGuidelineEllipse(
 TGuidelineEllipse::TGuidelineEllipse(
   bool enabled,
   double magnetism,
+  const TPixelD &color,
   const TAffine &matrix,
   const TAffine &matrixInv
 ):
   TGuidelineEllipse(
-    enabled, magnetism, matrix, matrixInv,
+    enabled, magnetism, color, matrix, matrixInv,
     sqrt(matrix.a11*matrix.a11 + matrix.a21*matrix.a21),
     sqrt(matrix.a12*matrix.a12 + matrix.a22*matrix.a22) )
   { }
@@ -104,9 +106,10 @@ TGuidelineEllipse::TGuidelineEllipse(
 TGuidelineEllipse::TGuidelineEllipse(
   bool enabled,
   double magnetism,
+  const TPixelD &color,
   const TAffine &matrix
 ):
-  TGuidelineEllipse(enabled, magnetism, matrix, matrix.inv())
+  TGuidelineEllipse(enabled, magnetism, color, matrix, matrix.inv())
   { }
 
 

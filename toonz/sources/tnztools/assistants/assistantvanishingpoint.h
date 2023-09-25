@@ -61,6 +61,7 @@ public:
   void getGuidelines(
     const TPointD &position,
     const TAffine &toTool,
+    const TPixelD &color,
     TGuidelineList &outGuidelines ) const override;
 
   static void drawSimpleGrid(
