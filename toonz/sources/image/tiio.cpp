@@ -81,7 +81,8 @@
 #include "./mov/tiio_movM.h"
 #include "./3gp/tiio_3gpM.h"
 
-#elif defined(LINUX) || defined(FREEBSD) || defined(HAIKU)  // No more supported by the way...
+#elif defined(LINUX) || defined(FREEBSD) ||                                    \
+    defined(HAIKU)  // No more supported by the way...
 // #include "./mov/tiio_movL.h"
 #include "./mov/tiio_mov_proxy.h"
 #include "./3gp/tiio_3gp_proxy.h"
@@ -99,7 +100,7 @@ void initImageIo(bool lightVersion) {
     TFileType::declare("pli", TFileType::VECTOR_LEVEL);
 
     TLevelReader::define("svg", 0, TLevelReaderSvg::create);
-    TFileType::declare("svg", TFileType::VECTOR_LEVEL);
+    TFileType::declare("svg", TFileType::VECTOR_IMAGE);
     TLevelWriter::define("svg", TLevelWriterSvg::create, false);
     Tiio::defineWriterProperties("svg", new Tiio::SvgWriterProperties());
 
