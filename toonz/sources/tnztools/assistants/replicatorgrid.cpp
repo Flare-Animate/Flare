@@ -177,6 +177,8 @@ public:
   void getPoints(const TAffine &toTool, PointList &points) const override {
     points.reserve(points.size() * getMultipler());
     int pointsCount = (int)points.size();
+    int i0 = getSkipFirst();
+    int i1 = pointsCount - getSkipLast();
     
     TPointD c = toTool*m_center.position;
     TPointD da = toTool*m_a.position - c;
@@ -212,22 +214,22 @@ public:
         transformPoints(
           TAffine( 1, 0, o.x,
                    0, 1, o.y ),
-          points, pointsCount );
+          points, i0, i1 );
       if (mirrorA)
         transformPoints(
           TAffine( ma.a11, ma.a12, ma.a13 + o.x,
                    ma.a21, ma.a22, ma.a23 + o.y ),
-          points, pointsCount );
+          points, i0, i1 );
       if (mirrorB)
         transformPoints(
           TAffine( mb.a11, mb.a12, mb.a13 + o.x,
                    mb.a21, mb.a22, mb.a23 + o.y ),
-          points, pointsCount );
+          points, i0, i1 );
       if (mirrorA && mirrorB)
         transformPoints(
           TAffine( mc.a11, mc.a12, mc.a13 + o.x,
                    mc.a21, mc.a22, mc.a23 + o.y ),
-          points, pointsCount );
+          points, i0, i1 );
     }
   }
 
@@ -263,7 +265,7 @@ public:
     int a0 = -getCountAInv();
     int b0 = -getCountBInv();
     
-    TModifierClone *modifier = new TModifierClone();
+    TModifierClone *modifier = new TModifierClone(true, getSkipFirst(), getSkipLast());
     for(int ib = b0; ib < b1; ++ib)
     for(int ia = a0; ia < a1; ++ia) {
       TPointD o = da*ia + db*ib;

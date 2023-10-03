@@ -44,11 +44,20 @@ public:
 public:
   bool keepOriginals;
   TTrackTransformList transforms;
+  int skipFirst;
+  int skipLast;
 
-  TModifierClone(bool keepOriginals = true);
+  explicit TModifierClone(
+    bool keepOriginals = true,
+    int skipFirst = 0,
+    int skipLast = 0 );
 
   void modifyTrack(
     const TTrack &track,
+    TTrackList &outTracks ) override;
+
+  void modifyTracks(
+    const TTrackList &tracks,
     TTrackList &outTracks ) override;
 };
 

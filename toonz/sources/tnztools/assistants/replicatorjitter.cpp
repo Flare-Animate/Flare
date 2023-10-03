@@ -16,9 +16,10 @@
 class TReplicatorJitter final : public TReplicator {
   Q_DECLARE_TR_FUNCTIONS(TReplicatorJitter)
 public:
-  const TStringId m_idSkipFirst;
   const TStringId m_idPeriod;
   const TStringId m_idAmplitude;
+  const TStringId m_idKeepFirstPoint;
+  const TStringId m_idKeepLastPoint;
 
 protected:
   TAssistantPoint &m_center;
@@ -26,13 +27,12 @@ protected:
 public:
   TReplicatorJitter(TMetaObject &object):
     TReplicator(object),
-    m_idSkipFirst("skipFirst"),
     m_idPeriod("period"),
-    m_idAmplitude("m_idAmplitude"),
+    m_idAmplitude("amplitude"),
+    m_idKeepFirstPoint("keepFirstPoint"),
+    m_idKeepLastPoint("keepLastPoint"),
     m_center( addPoint("center", TAssistantPoint::CircleCross) )
   {
-    addProperty( createSpinProperty(m_idSkipFirst, getSkipFirst(), 0) );
-
     TDoubleProperty *p;
     
     p = new TDoubleProperty(m_idPeriod.str(), 0.0, 1000, getPeriod());
@@ -42,6 +42,9 @@ public:
     p = new TDoubleProperty(m_idAmplitude.str(), 0.0, 1000, getAmplitude());
     p->setNonLinearSlider();
     addProperty(p);
+    
+    addProperty( new TBoolProperty(m_idKeepFirstPoint.str(), getKeepFirstPoint()) );
+    addProperty( new TBoolProperty(m_idKeepLastPoint.str(), getKeepLastPoint()) );
   }
 
   
@@ -51,22 +54,23 @@ public:
     
   void updateTranslation() const override {
     TReplicator::updateTranslation();
-    setTranslation(m_idSkipFirst, tr("Skip First Tracks"));
     setTranslation(m_idPeriod, tr("Period"));
     setTranslation(m_idAmplitude, tr("Amplitude"));
+    setTranslation(m_idKeepFirstPoint, tr("Fix First Point"));
+    setTranslation(m_idKeepLastPoint, tr("Fix Last Point"));
   }
 
   
-  inline int getSkipFirst() const
-    { return (int)data()[m_idSkipFirst].getDouble(); }
   inline double getPeriod() const
     { return data()[m_idPeriod].getDouble(); }
   inline double getAmplitude() const
     { return data()[m_idAmplitude].getDouble(); }
+  inline bool getKeepFirstPoint() const
+    { return data()[m_idKeepFirstPoint].getBool(); }
+  inline bool getKeepLastPoint() const
+    { return data()[m_idKeepLastPoint].getBool(); }
 
 protected:
-  inline void setSkipFirst(int x)
-    { if (getSkipFirst() != (double)x) data()[m_idSkipFirst].setDouble((double)x); }
   inline void setPeriod(double x)
     { if (getPeriod() != x) data()[m_idPeriod].setDouble(x); }
   inline void setAmplitude(double x)
@@ -95,19 +99,22 @@ protected:
 public:
   
   void getPoints(const TAffine &toTool, PointList &points) const override {
-    int skipFirst = getSkipFirst();
-    if (skipFirst < 0) skipFirst = 0;
-    if (skipFirst >= (int)points.size()) return;
+    int pointsCount = (int)points.size();
+    int i0 = getSkipFirst();
+    int i1 = pointsCount - getSkipLast();
+    if (i0 < 0) i0 = 0;
+    if (i1 > pointsCount) i1 = pointsCount;
+    if (i0 >= i1) return;
     
     double scale = getScale(toTool);
     double period = getPeriod()*scale;
     double amplitude = getAmplitude()*scale;
-    if (!(period > TConsts::epsilon && amplitude > TConsts::epsilon)) {
+    if (period > TConsts::epsilon && amplitude > TConsts::epsilon) {
       int seedX = 0;
       int seedY = 7722441;
-      for(PointList::iterator i = points.begin() + skipFirst; i != points.end(); ++i) {
-        i->x += TModifierJitter::func(seedX, 0)*amplitude;
-        i->y += TModifierJitter::func(seedY, 0)*amplitude;
+      for(int i = i0; i < i1; ++i) {
+        points[i].x += TModifierJitter::func(seedX, points[i].x/period)*amplitude;
+        points[i].y += TModifierJitter::func(seedY, points[i].y/period)*amplitude;
         ++seedX, ++seedY;
       }
     }
@@ -122,7 +129,10 @@ public:
     outModifiers.push_back(new TModifierJitter(
       getPeriod()*scale,
       getAmplitude()*scale,
-      getSkipFirst() ));
+      getSkipFirst(),
+      getSkipLast(),
+      getKeepFirstPoint(),
+      getKeepLastPoint() ));
   }
 
   

@@ -33,6 +33,9 @@ set(HEADERS
     stylepickertool.h
     toonzvectorbrushtool.h
     vectorselectiontool.h
+    assistants/assistantellipse.h
+    assistants/assistantline.h
+    assistants/assistantvanishingpoint.h
     ../include/tools/RGBpicker.h
     ../include/tools/cursormanager.h
     ../include/tools/cursors.h
@@ -141,9 +144,11 @@ set(SOURCES
     modifiers/modifiertest.cpp
     assistants/guidelineline.cpp
     assistants/guidelineellipse.cpp
-    assistants/assistantvanishingpoint.cpp
-    assistants/assistantline.cpp
     assistants/assistantellipse.cpp
+    assistants/assistantfisheye.cpp
+    assistants/assistantline.cpp
+    assistants/assistantperspective.cpp
+    assistants/assistantvanishingpoint.cpp
     assistants/replicatoraffine.cpp
     assistants/replicatorgrid.cpp
     assistants/replicatorjitter.cpp

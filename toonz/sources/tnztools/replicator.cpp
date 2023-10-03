@@ -24,7 +24,22 @@ const int TReplicator::multiplierLimit = 256;
 //************************************************************************
 
 TReplicator::TReplicator(TMetaObject &object):
-  TAssistantBase(object) { }
+  TAssistantBase(object),
+  m_idSkipFirst("skipFirst"),
+  m_idSkipLast("skipLast")
+{
+  addProperty( createSpinProperty(m_idSkipFirst, getSkipFirst(), 0) );
+  addProperty( createSpinProperty(m_idSkipLast, getSkipLast(), 0) );
+}
+
+//---------------------------------------------------------------------------------------------------
+
+void
+TReplicator::updateTranslation() const {
+  TAssistantBase::updateTranslation();
+  setTranslation(m_idSkipFirst, tr("Skip First Tracks"));
+  setTranslation(m_idSkipLast, tr("Skip Last Tracks"));
+}
 
 //---------------------------------------------------------------------------------------------------
 
@@ -57,9 +72,13 @@ TReplicator::createCountProperty(const TStringId &id, int def, int min, int max)
 //---------------------------------------------------------------------------------------------------
 
 void
-TReplicator::transformPoints(const TAffine &aff, PointList &points, int count) {
-  points.reserve(points.size() + count);
-  for(int i = 0; i < count; ++i)
+TReplicator::transformPoints(const TAffine &aff, PointList &points, int i0, int i1) {
+  int cnt = (int)points.size();
+  if (i0 < 0) i0 = 0;
+  if (i1 > cnt) i1 = cnt;
+  if (i0 >= i1) return;
+  points.reserve(points.size() + i1 - i0);
+  for(int i = i0; i < i1; ++i)
     points.push_back(aff*points[i]);
 }
 

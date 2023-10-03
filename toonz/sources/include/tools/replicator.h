@@ -27,16 +27,31 @@ class DVAPI TReplicator : public TAssistantBase {
 public:
   typedef std::vector<TPointD> PointList;
   
+  const TStringId m_idSkipFirst;
+  const TStringId m_idSkipLast;
+
   static const int multiplierSoftLimit;
   static const int multiplierLimit;
   
   TReplicator(TMetaObject &object);
 
+  void updateTranslation() const override;
+
+  inline int getSkipFirst() const
+    { return std::max(0, (int)data()[m_idSkipFirst].getDouble()); }
+  inline int getSkipLast() const
+    { return std::max(0, (int)data()[m_idSkipLast].getDouble()); }
+  
+  inline void setSkipFirst(int x)
+    { if (getSkipFirst() != (double)x) data()[m_idSkipFirst].setDouble((double)x); }
+  inline void setSkipLast(int x)
+    { if (getSkipLast() != (double)x) data()[m_idSkipLast].setDouble((double)x); }
+  
   virtual int getMultipler() const;
   virtual void getPoints(const TAffine &toTool, PointList &points) const;
   virtual void getModifiers(const TAffine &toTool, TInputModifier::List &outModifiers) const;
   
-  static void transformPoints(const TAffine &aff, PointList &points, int count);
+  static void transformPoints(const TAffine &aff, PointList &points, int i0, int i1);
   static void drawReplicatorPoints(const TPointD *points, int count);
   
   //! return summary multiplier, or 0 is no replicators found

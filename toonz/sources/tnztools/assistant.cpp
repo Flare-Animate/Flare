@@ -158,6 +158,8 @@ TAssistantBase::TAssistantBase(TMetaObject &object):
   m_idPoints("points"),
   m_idX("x"),
   m_idY("y"),
+  m_idZ("z"),
+  m_idW("w"),
   m_basePoint()
 {
   addProperty( new TBoolProperty(m_idEnabled.str(), getEnabled()) );
@@ -433,11 +435,16 @@ TAssistantBase::getDrawingGridAlpha() const
 //---------------------------------------------------------------------------------------------------
 
 void
-TAssistantBase::drawSegment(const TPointD &p0, const TPointD &p1, double pixelSize, double alpha) const {
-  double colorBlack[4] = { 0.0, 0.0, 0.0, alpha };
-  double colorWhite[4] = { 1.0, 1.0, 1.0, alpha };
+TAssistantBase::drawSegment(const TPointD &p0, const TPointD &p1, double pixelSize, double alpha0, double alpha1) {
+  double colors[][4] = {
+    { 1, 1, 1, alpha0 },
+    { 1, 1, 1, alpha1 },
+    { 0, 0, 0, alpha0 },
+    { 0, 0, 0, alpha1 },
+  };
   
-  if (drawFlags & DRAW_ERROR) colorBlack[0] = 1;
+  if (drawFlags & DRAW_ERROR)
+    colors[2][0] = colors[3][0] = 1;
 
   glPushAttrib(GL_ALL_ATTRIB_BITS);
   tglEnableBlending();
@@ -447,10 +454,12 @@ TAssistantBase::drawSegment(const TPointD &p0, const TPointD &p1, double pixelSi
   if (k > TConsts::epsilon*TConsts::epsilon) {
     k = 0.5*pixelSize*lineWidthScale/sqrt(k);
     d = TPointD(-k*d.y, k*d.x);
-    glColor4dv(colorWhite);
-    tglDrawSegment(p0 - d, p1 - d);
-    glColor4dv(colorBlack);
-    tglDrawSegment(p0 + d, p1 + d);
+    glBegin(GL_LINES);
+    glColor4dv(colors[0]); tglVertex(p0 - d);
+    glColor4dv(colors[1]); tglVertex(p1 - d);
+    glColor4dv(colors[2]); tglVertex(p0 + d);
+    glColor4dv(colors[3]); tglVertex(p1 + d);
+    glEnd();
   }
   glPopAttrib();
 }
@@ -458,7 +467,7 @@ TAssistantBase::drawSegment(const TPointD &p0, const TPointD &p1, double pixelSi
 //---------------------------------------------------------------------------------------------------
 
 void
-TAssistantBase::drawMark(const TPointD &p, const TPointD &normal, double pixelSize, double alpha) const {
+TAssistantBase::drawMark(const TPointD &p, const TPointD &normal, double pixelSize, double alpha) {
   TPointD d = normal*5*pixelSize;
   drawSegment(p - d,p + d, pixelSize, alpha);
 }
@@ -466,7 +475,7 @@ TAssistantBase::drawMark(const TPointD &p, const TPointD &normal, double pixelSi
 //---------------------------------------------------------------------------------------------------
 
 void
-TAssistantBase::drawDot(const TPointD &p, double alpha) const {
+TAssistantBase::drawDot(const TPointD &p, double alpha) {
   double colorBlack[4] = { 0.0, 0.0, 0.0, alpha };
   double colorWhite[4] = { 1.0, 1.0, 1.0, alpha };
 
@@ -491,7 +500,7 @@ TAssistantBase::drawDot(const TPointD &p, double alpha) const {
 //---------------------------------------------------------------------------------------------------
 
 void
-TAssistantBase::drawPoint(const TAssistantPoint &point, double pixelSize) const {
+TAssistantBase::drawPoint(const TAssistantPoint &point, double pixelSize) {
   if (!point.visible) return;
 
   double radius = point.radius;
@@ -518,26 +527,31 @@ TAssistantBase::drawPoint(const TAssistantPoint &point, double pixelSize) const 
     tglDrawDisk(point.position, radius*pixelSize);
   }
 
-  TPointD crossDx(pixelSize*crossSize, 0.0);
-  TPointD crossDy(0.0, pixelSize*crossSize);
+  TPointD crossA(pixelSize*crossSize, 0.0);
+  TPointD crossB(0.0, pixelSize*crossSize);
   TPointD gridDx(pixelSize*radius, 0.0);
   TPointD gridDy(0.0, pixelSize*radius);
 
+  bool cross = point.type == TAssistantPoint::CircleCross
+            || point.type == TAssistantPoint::CircleDiagonalCross;
+  if (point.type == TAssistantPoint::CircleDiagonalCross)
+    { crossA.y = crossB.y; crossB.x = crossA.x; }
+  
   // back line
   tglEnableLineSmooth(true, 2.0*width*lineWidthScale);
   glColor4dv(colorWhite);
-  if (point.type == TAssistantPoint::CircleCross) {
-    tglDrawSegment(point.position - crossDx, point.position + crossDx);
-    tglDrawSegment(point.position - crossDy, point.position + crossDy);
+  if (cross) {
+    tglDrawSegment(point.position - crossA, point.position + crossA);
+    tglDrawSegment(point.position - crossB, point.position + crossB);
   }
   tglDrawCircle(point.position, radius*pixelSize);
 
   // front line
   glLineWidth(width * lineWidthScale);
   glColor4dv(colorBlack);
-  if (point.type == TAssistantPoint::CircleCross) {
-    tglDrawSegment(point.position - crossDx, point.position + crossDx);
-    tglDrawSegment(point.position - crossDy, point.position + crossDy);
+  if (cross) {
+    tglDrawSegment(point.position - crossA, point.position + crossA);
+    tglDrawSegment(point.position - crossB, point.position + crossB);
   }
   tglDrawCircle(point.position, radius*pixelSize);
 
@@ -568,7 +582,7 @@ TAssistantBase::drawPoint(const TAssistantPoint &point, double pixelSize) const 
 //---------------------------------------------------------------------------------------------------
 
 void
-TAssistantBase::drawIndex(const TPointD &p, int index, bool selected, double pixelSize) const {
+TAssistantBase::drawIndex(const TPointD &p, int index, bool selected, double pixelSize) {
   static const int segments[7][4] = {
     { 0, 2, 1, 2 },   // A
     { 1, 1, 1, 2 },   // B    + A +
@@ -720,28 +734,67 @@ TAssistant::calcPerspectiveStep(
   double x0,
   double x1,
   double x2,
-  double &outK,
-  double &outMin,
-  double &outMax )
+  double &outW,
+  double &outMinI,
+  double &outMaxI )
 {
-  outK = outMin = outMax = 0.0;
+  outW = outMinI = outMaxI = 0;
+  if (!(minStep > TConsts::epsilon)) return false;
+  if (!(minX + TConsts::epsilon < maxX)) return false;
+  
+  minX -= x0;
+  maxX -= x0;
+  x1   -= x0;
+  x2   -= x0;
 
-  double dx1 = x1 - x0;
-  double dx2 = x2 - x0;
-  if (fabs(dx1) <= TConsts::epsilon) return false;
-  if (fabs(dx2) <= TConsts::epsilon) return false;
-  if ((dx1 < 0.0) != (dx2 < 0.0)) dx2 = -dx2;
-  if (fabs(dx2 - dx1) <= minStep) return false;
-  if (fabs(dx2) < fabs(dx1)) std::swap(dx1, dx2);
+  // check and fix input
+  if (!(fabs(x1) > TConsts::epsilon)) return false;
+  if (!(fabs(x2) > TConsts::epsilon)) return false;
+  if (!(fabs(x1 - x2) > TConsts::epsilon)) return false;
+  if ((x1 < 0) != (x2 < 0)) x2 = -x2;
+  if (fabs(x2) < fabs(x1)) std::swap(x1, x2);
 
-  if (x0 <= minX + TConsts::epsilon && dx1 < 0.0) return false;
-  if (x0 >= maxX - TConsts::epsilon && dx1 > 0.0) return false;
+  // check if bounds is behind the horizon
+  if (x1 < 0 && !(minX < -TConsts::epsilon)) return false;
+  if (x1 > 0 && !(maxX >  TConsts::epsilon)) return false;
+  
+  // calc W and initial bounds
+  double w = 1/x2 - 1/x1;
+  double d = sqrt(fabs(w/minStep));
+  if (x1 < 0) d = -d;
+  double i0 = (d - 1)/w;
+  double i1 = -1/w;
+  
+  // min/max bounds
+  if (x1 < 0) {
+    if (maxX < -TConsts::epsilon)
+      i0 = std::max( i0, (1 - maxX)/(maxX*w) );
+    i1 = std::min( i1, (1 - minX)/(minX*w) );
+  } else {
+    if (minX > TConsts::epsilon)
+      i0 = std::max( i0, (1 - minX)/(minX*w) );
+    i1 = std::min( i1, (1 - maxX)/(maxX*w) );
+  }
 
-  outK = dx2/dx1;
-  double minI = log(minStep/fabs(dx1*(1.0 - 1.0/outK)))/log(outK);
-  outMin = dx1*pow(outK, floor(minI - TConsts::epsilon));
-  if (fabs(outMin) < TConsts::epsilon) return false;
-  outMax = (dx1 > 0.0 ? maxX : minX) - x0;
+  // i must be iterable (i < i + 1)
+  const double bound = 1e10;
+  i0 = i0 > -bound ? (i0 < bound ? i0 : bound) : -bound;
+  i1 = i1 > -bound ? (i1 < bound ? i1 : bound) : -bound;
+  
+  // tune beginning of grid to place it axact to grid points
+  // must be: i0 + integer == ig
+  double ig = (1 - x1)/(x1*w);
+  double frac = ig - floor(ig);
+  i0 = ceil(i0 - frac + TConsts::epsilon) + frac;
+  i1 -= TConsts::epsilon;
+  
+  // restrict count
+  if (i1 - i0 > 10000) return false;
+  if (!(i0 < i1)) return false;
+  
+  outW = w;
+  outMinI = i0;
+  outMaxI = i1;
   return true;
 }
 

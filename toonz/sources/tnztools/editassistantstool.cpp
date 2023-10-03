@@ -502,7 +502,7 @@ protected:
       m_currentImage.set(m_readImage);
       if (index < (*m_reader)->size())
       if (const TMetaObjectPC &obj = (**m_reader)[index])
-      if (const TAssistant *assistant = obj->getHandler<TAssistant>()) {
+      if (const TAssistantBase *assistant = obj->getHandler<TAssistantBase>()) {
         assistant->deselectAll();
         m_currentAssistant.set(obj);
         m_currentAssistantIndex = index;
@@ -806,7 +806,7 @@ public:
     TAssistant::scanAssistants(
       this,          // tool
       &position, 1,  // pointer positions
-      nullptr,       // out guidelines
+      &m_currentGuidelines, // out guidelines
       true,          // draw
       false,         // enabled only
       false,         // mark enabled

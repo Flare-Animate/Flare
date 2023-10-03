@@ -186,7 +186,7 @@ public:
     data().touch();
   }
   void dataChanged(const TVariant &value)
-    { if (m_locks == 0) onDataChanged(value); }
+    { LockEvents lock(*this); if (m_locks == 1) onDataChanged(value); }
   void fixData()
     { LockEvents lock(*this); onFixData(); }
 };

@@ -61,9 +61,8 @@ TAffine TAffine::inv() const {
         (a22 == 0.0 ? std::numeric_limits<double>::max() / (1 << 16)
                     : 1.0 / a22);
     return TAffine(inv_a11, 0, -a13 * inv_a11, 0, inv_a22, -a23 * inv_a22);
-  } else if (a11 == 0.0 && a22 == 0.0) {
-    assert(a12 != 0.0);
-    assert(a21 != 0.0);
+  } else
+  if (a11 == 0.0 && a22 == 0.0) {
     double inv_a21 =
         (a21 == 0.0 ? std::numeric_limits<double>::max() / (1 << 16)
                     : 1.0 / a21);
@@ -235,8 +234,79 @@ TScale::TScale(const TPointD &center, double s) {
 
 //==================================================================================================
 
-TPoint4D TAffine4::operator*(const TPoint4D &b) const {
-  return TPoint4D(
+T3DPointD TAffine3::operator*(const T3DPointD &b) const {
+  return T3DPointD(
+    b.x*a11 + b.y*a21 + b.z*a31,
+    b.x*a12 + b.y*a22 + b.z*a32,
+    b.x*a13 + b.y*a23 + b.z*a33 );
+}
+
+TAffine3 TAffine3::operator*(const TAffine3 &b) const {
+  return TAffine3(
+    *this * b.rowX(),
+    *this * b.rowY(),
+    *this * b.rowZ() );
+}
+
+TAffine3 TAffine3::operator*=(const TAffine3 &b)
+  { return *this = *this * b; }
+
+TAffine3 TAffine3::inv() const {
+  TAffine3 r;
+  r.a11 = a22*a33 - a32*a23;
+  r.a12 = a32*a13 - a12*a33;
+  r.a13 = a12*a23 - a22*a13;
+
+  double det = r.a11*a11 + r.a12*a21 + r.a12*a31;
+  det = fabs(det) > TConsts::epsilon ? 1.0/det : 0.0;
+  r.a11 *= det;
+  r.a12 *= det;
+  r.a13 *= det;
+
+  r.a21 = (a31*a23 - a21*a33)*det;
+  r.a22 = (a11*a33 - a31*a13)*det;
+  r.a23 = (a21*a13 - a11*a23)*det;
+  r.a31 = (a21*a32 - a31*a22)*det;
+  r.a32 = (a31*a12 - a11*a32)*det;
+  r.a33 = (a11*a22 - a21*a12)*det;
+  return r;
+}
+
+TAffine TAffine3::get2d() const {
+  return TAffine(
+    a11, a21, a31,
+    a12, a22, a32 );
+}
+
+TAffine3 TAffine3::translation2d(double x, double y) {
+  TAffine3 r;
+  r.rowZ().x = x;
+  r.rowZ().y = y;
+  return r;
+}
+
+TAffine3 TAffine3::scale2d(double x, double y) {
+  TAffine3 r;
+  r.a11 = x;
+  r.a22 = y;
+  return r;
+}
+
+TAffine3 TAffine3::rotation2d(double angle) {
+  TAffine3 r;
+  double s = sin(angle);
+  double c = cos(angle);
+  r.a11 =  c;
+  r.a12 =  s;
+  r.a21 = -s;
+  r.a22 =  c;
+  return r;
+}
+
+//==================================================================================================
+
+T4DPointD TAffine4::operator*(const T4DPointD &b) const {
+  return T4DPointD(
     b.x*a11 + b.y*a21 + b.z*a31 + b.w*a41,
     b.x*a12 + b.y*a22 + b.z*a32 + b.w*a42,
     b.x*a13 + b.y*a23 + b.z*a33 + b.w*a43,
@@ -288,6 +358,13 @@ TAffine TAffine4::get2d(double z) const {
   return TAffine(
     a11, a21, z*a31 + a41,
     a12, a22, z*a32 + a42 );
+}
+
+TAffine3 TAffine4::get2dPersp(double z) const {
+  return TAffine3(
+    T3DPointD( a11       , a12       , a14       ),
+    T3DPointD( a21       , a22       , a24       ),
+    T3DPointD( a31*z+a41 , a32*z+a42 , a34*z+a44 ) );
 }
 
 TAffine4 TAffine4::translation(double x, double y, double z) {
