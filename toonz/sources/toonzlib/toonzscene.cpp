@@ -999,6 +999,7 @@ static LevelType getLevelType(const TFilePath &fp) {
       ret.m_ltype = OVL_XSHLEVEL;
     break;
 
+  case TFileType::VECTOR_IMAGE:
   case TFileType::VECTOR_LEVEL:
     if (format == "svg") {
       ret.m_vectorNotPli = true;
@@ -1194,7 +1195,7 @@ TXshLevel *ToonzScene::loadLevel(const TFilePath &actualPath,
     else {
       const Preferences &prefs = *Preferences::instance();
       int formatIdx            = prefs.matchLevelFormat(
-          levelPath);  // Should I use actualPath here? It's mostly
+                     levelPath);  // Should I use actualPath here? It's mostly
                                   // irrelevant anyway, it's for old tzp/tzu...
       if (formatIdx >= 0) {
         lp->options()   = prefs.levelFormat(formatIdx).m_options;
