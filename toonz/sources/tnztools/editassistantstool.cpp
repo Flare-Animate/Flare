@@ -12,13 +12,18 @@
 #include <toonz/tapplication.h>
 #include <toonz/txshlevelhandle.h>
 #include <toonz/txsheethandle.h>
+#include <toonz/tscenehandle.h>
+#include <toonz/tcolumnhandle.h>
 #include <toonz/tframehandle.h>
 #include <toonz/dpiscale.h>
+#include <toonz/toonzscene.h>
+#include <toonz/sceneproperties.h>
 
 // TnzCore includes
 #include <tgl.h>
 #include <tproperty.h>
 #include <tmetaimage.h>
+#include <tpixelutils.h>
 
 #include <toonzqt/selection.h>
 #include <toonzqt/selectioncommandids.h>
@@ -778,27 +783,49 @@ public:
   void draw() override {
     m_currentGuidelines.clear();
     TPointD position = m_currentPosition + m_currentPointOffset;
-    
+  
+    // get current column color
+    TPixelD color = TAssistantBase::colorBase;
+    if (TApplication *app = getApplication())
+    if (TXsheetHandle *XsheetHandle = app->getCurrentXsheet())
+    if (TXsheet *Xsheet = XsheetHandle->getXsheet())
+    if (TColumnHandle *columnHandle = app->getCurrentColumn())
+    if (TXshColumn *column = Xsheet->getColumn( columnHandle->getColumnIndex() ))
+    {
+      if (int filterId = column->getColorFilterId())
+      if (TSceneHandle *sceneHandle = app->getCurrentScene())
+      if (ToonzScene *scene = sceneHandle->getScene())
+      if (TSceneProperties *props = scene->getProperties())
+        color = toPixelD(props->getColorFilterColor( filterId ));
+      color.m *= column->getOpacity()/255.0;
+    }
+
     // draw assistants
     int index = 0;
-    if (Closer closer = read(ModeImage))
-    for(TMetaObjectListCW::iterator i = (*m_reader)->begin(); i != (*m_reader)->end(); ++i)
-      if (*i)
-      if (const TAssistantBase *base = (*i)->getHandler<TAssistantBase>())
-      {
-        if (dynamic_cast<const TReplicator*>(base)) {
-          ++index;
-          base->drawEdit(getViewer(), index);
-        } else {
-          base->drawEdit(getViewer());
+    if (Closer closer = read(ModeImage)) {
+      TPixelD origColor = TAssistantBase::colorBase;
+      TAssistantBase::colorBase = color;
+      for(TMetaObjectListCW::iterator i = (*m_reader)->begin(); i != (*m_reader)->end(); ++i) {
+        if (*i)
+        if (const TAssistantBase *base = (*i)->getHandler<TAssistantBase>())
+        {
+          if (dynamic_cast<const TReplicator*>(base)) {
+            ++index;
+            base->drawEdit(getViewer(), index);
+          } else {
+            base->drawEdit(getViewer());
+          }
+          
+          if (const TAssistant *assistant = dynamic_cast<const TAssistant*>(base))
+            assistant->getGuidelines(
+              position,
+              TAffine(),
+              color,
+              m_currentGuidelines );
         }
-        
-        if (const TAssistant *assistant = dynamic_cast<const TAssistant*>(base))
-          assistant->getGuidelines(
-            position,
-            TAffine(),
-            m_currentGuidelines );
       }
+      TAssistantBase::colorBase = origColor;
+    }
     
     TImage *img = getImage(false);
     

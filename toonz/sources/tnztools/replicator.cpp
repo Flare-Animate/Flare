@@ -10,8 +10,11 @@
 #include <toonz/tframehandle.h>
 #include <toonz/tobjecthandle.h>
 #include <toonz/dpiscale.h>
+#include <toonz/toonzscene.h>
+#include <toonz/sceneproperties.h>
 
 #include <tgl.h>
+#include <tpixelutils.h>
 
 
 
@@ -86,8 +89,9 @@ TReplicator::transformPoints(const TAffine &aff, PointList &points, int i0, int 
 
 void
 TReplicator::drawReplicatorPoints(const TPointD *points, int count) {
-  double colorBlack[4] = { 0.0, 0.0, 0.0, 0.3 };
-  double colorWhite[4] = { 1.0, 1.0, 1.0, 0.3 };
+  TPixelD color = (drawFlags & DRAW_ERROR) ? colorError : colorBase;
+  color.m *= 0.3;
+  TPixelD colorBack = makeContrastColor(color);
   
   glPushAttrib(GL_ALL_ATTRIB_BITS);
   tglEnableBlending();
@@ -99,10 +103,10 @@ TReplicator::drawReplicatorPoints(const TPointD *points, int count) {
   
   for(int i = 0; i < count; ++i) {
     const TPointD &p = points[i];
-    glColor4dv(colorWhite);
+    tglColor(colorBack);
     tglDrawSegment(p - a - da, p + a - da);
     tglDrawSegment(p - b - db, p + b - db);
-    glColor4dv(colorBlack);
+    tglColor(color);
     tglDrawSegment(p - a + da, p + a + da);
     tglDrawSegment(p - b + db, p + b + db);
   }
@@ -137,6 +141,8 @@ TReplicator::scanReplicators(
   if (TXsheetHandle *XsheetHandle = application->getCurrentXsheet())
   if (TXsheet *Xsheet = XsheetHandle->getXsheet())
   {
+    ToonzScene *scene = Xsheet->getScene();
+    TSceneProperties *props = scene ? scene->getProperties() : nullptr;
     TPointD dpiScale = getCurrentDpiScale(simpleLevel, tool->getCurrentFid());
     int frame = frameHandle->getFrame();
     int count = Xsheet->getColumnCount();
@@ -148,7 +154,7 @@ TReplicator::scanReplicators(
       worldToTrack.a22 /= dpiScale.y;
     }
 
-    for(int i = 0; i < count; ++i)
+    for(int i = 0; i < count; ++i) {
       if (TXshColumn *column = Xsheet->getColumn(i))
       if (column->isCamstandVisible())
       if (column->isPreviewVisible())
@@ -157,11 +163,18 @@ TReplicator::scanReplicators(
       if (image->getType() == TImage::META)
       if (TMetaImage *metaImage = dynamic_cast<TMetaImage*>(image.getPointer()))
       {
+        TPixelD origColor = TAssistantBase::colorBase;
         TAffine imageToTrack = worldToTrack * tool->getColumnMatrix(i);
-        if (draw) { glPushMatrix(); tglMultMatrix(imageToTrack); }
+        if (draw) {
+          if (props)
+            TAssistantBase::colorBase = toPixelD(props->getColorFilterColor( column->getColorFilterId() ));
+          TAssistantBase::colorBase.m *= column->getOpacity()/255.0;
+          glPushMatrix();
+          tglMultMatrix(imageToTrack);
+        }
 
         TMetaImage::Reader reader(*metaImage);
-        for(TMetaObjectListCW::iterator i = reader->begin(); i != reader->end(); ++i)
+        for(TMetaObjectListCW::iterator i = reader->begin(); i != reader->end(); ++i) {
           if (*i)
           if (const TReplicator *replicator = (*i)->getHandler<TReplicator>())
           if (!enabledOnly || replicator->getEnabled())
@@ -190,9 +203,14 @@ TReplicator::scanReplicators(
               TReplicator::drawFlags = oldFlags;
             }
           }
-
-        if (draw) glPopMatrix();
+        } // for each meta object
+        
+        if (draw) {
+          glPopMatrix();
+          TAssistantBase::colorBase = origColor;
+        }
       }
+    } // for each column
   }
   
   

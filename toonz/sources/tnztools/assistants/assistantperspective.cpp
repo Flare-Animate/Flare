@@ -255,6 +255,7 @@ private:
   void addGuideline(
     const TPointD &position,
     const TAffine &toTool,
+    const TPixelD &color,
     const TAssistantPoint &v,
     TGuidelineList &outGuidelines ) const
   {
@@ -265,6 +266,7 @@ private:
           new TGuidelineRay(
             getEnabled(),
             getMagnetism(),
+            color, 
             p,
             position ));
     } else {
@@ -274,6 +276,7 @@ private:
           new TGuidelineInfiniteLine(
             getEnabled(),
             getMagnetism(),
+            color, 
             position,
             position + d ));
     }
@@ -350,11 +353,12 @@ public:
   void getGuidelines(
     const TPointD &position,
     const TAffine &toTool,
+    const TPixelD &color,
     TGuidelineList &outGuidelines ) const override
   {
-    addGuideline(position, toTool, m_vx, outGuidelines);
-    addGuideline(position, toTool, m_vy, outGuidelines);
-    addGuideline(position, toTool, m_vz, outGuidelines);
+    addGuideline(position, toTool, color, m_vx, outGuidelines);
+    addGuideline(position, toTool, color, m_vy, outGuidelines);
+    addGuideline(position, toTool, color, m_vz, outGuidelines);
   }
 
   void drawGrid(

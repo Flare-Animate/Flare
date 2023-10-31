@@ -34,17 +34,20 @@ public:
   TGuidelineEllipse(
     bool enabled,
     double magnetism,
+    const TPixelD &color,
     const TAffine &matrix );
 
   TGuidelineEllipse(
     bool enabled,
     double magnetism,
+    const TPixelD &color,
     const TAffine &matrix,
     const TAffine &matrixInv );
 
   TGuidelineEllipse(
     bool enabled,
     double magnetism,
+    const TPixelD &color,
     const TAffine &matrix,
     const TAffine &matrixInv,
     double Rx,

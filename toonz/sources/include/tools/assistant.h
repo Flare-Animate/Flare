@@ -62,9 +62,10 @@ class DVAPI TGuideline : public TSmartObject {
 public:
   const bool enabled;
   const double magnetism;
+  const TPixelD color;
 
-  TGuideline(bool enabled, double magnetism):
-    enabled(enabled), magnetism(magnetism) { }
+  TGuideline(bool enabled, double magnetism, const TPixelD &color):
+    enabled(enabled), magnetism(magnetism), color(color) { }
 
   virtual TTrackPoint transformPoint(const TTrackPoint &point) const
     { return point; }
@@ -204,6 +205,10 @@ public:
     DRAW_ERROR = 1,
   };
   
+  static TPixelD colorBase;
+  static TPixelD colorError;
+  static TPixelD colorEdit;
+  static TPixelD colorSelect;
   static unsigned int drawFlags;
   static const double lineWidthScale;
   
@@ -318,8 +323,18 @@ protected:
   double getDrawingAlpha(bool enabled = true) const;
   double getDrawingGridAlpha() const;
 
+  TIntProperty* createSpinProperty(const TStringId &id, int def, int min, int max, bool hasMax = true);
+  inline TIntProperty* createSpinProperty(const TStringId &id, int def, int min)
+    { return createSpinProperty(id, def, min, 0, false); }
+  
+  void addProperty(TProperty *p);
+  void setTranslation(const TStringId &name, const QString &localName) const;
+
+public:
+  static TPixelD makeContrastColor(const TPixelD &color);
   static void drawSegment(const TPointD &p0, const TPointD &p1, double pixelSize, double alpha0, double alpha1);
   static void drawMark(const TPointD &p, const TPointD &normal, double pixelSize, double alpha);
+  static void drawDot(const TPointD &p, const TPixelD &color);
   static void drawDot(const TPointD &p, double alpha);
   static void drawPoint(const TAssistantPoint &point, double pixelSize);
   static void drawIndex(const TPointD &p, int index, bool selected, double pixelSize);
@@ -331,14 +346,6 @@ protected:
   inline void drawDot(const TPointD &p) const
     { drawDot(p, getDrawingAlpha()); }
 
-  TIntProperty* createSpinProperty(const TStringId &id, int def, int min, int max, bool hasMax = true);
-  inline TIntProperty* createSpinProperty(const TStringId &id, int def, int min)
-    { return createSpinProperty(id, def, min, 0, false); }
-  
-  void addProperty(TProperty *p);
-  void setTranslation(const TStringId &name, const QString &localName) const;
-
-public:
   virtual void updateTranslation() const;
   virtual void draw(TToolViewer *viewer, bool enabled) const;
   void draw(TToolViewer *viewer) const { draw(viewer, true); }
@@ -369,7 +376,11 @@ public:
 
 public:
   void updateTranslation() const override;
-  virtual void getGuidelines(const TPointD &position, const TAffine &toTool, TGuidelineList &outGuidelines) const;
+  virtual void getGuidelines(
+    const TPointD &position,
+    const TAffine &toTool,
+    const TPixelD &color,
+    TGuidelineList &outGuidelines) const;
 
   // calc W-coefficient and i-bounds for formula: x0 + 1/(i*W + 1)
   static bool calcPerspectiveStep(

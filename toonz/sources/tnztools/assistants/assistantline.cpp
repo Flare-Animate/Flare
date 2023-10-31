@@ -80,6 +80,8 @@ void TAssistantLine::onMovePoint(TAssistantPoint &point, const TPointD &position
   TPointD prevA = m_a.position;
   TPointD prevB = m_b.position;
   point.position = position;
+  if (&point == &m_a)
+    m_b.position += m_a.position - prevA;
   if (&point != &m_grid1)
     fixGrid(prevA, prevB);
 }
@@ -88,6 +90,7 @@ void TAssistantLine::onMovePoint(TAssistantPoint &point, const TPointD &position
 void TAssistantLine::getGuidelines(
   const TPointD &position,
   const TAffine &toTool,
+  const TPixelD &color,
   TGuidelineList &outGuidelines ) const
 {
   bool restrictA = getRestrictA();
@@ -120,19 +123,19 @@ void TAssistantLine::getGuidelines(
   if (restrictA && restrictB)
     outGuidelines.push_back(TGuidelineP(
       new TGuidelineLine(
-        getEnabled(), getMagnetism(), a,  b )));
+        getEnabled(), getMagnetism(), color, a,  b )));
   else if (restrictA)
     outGuidelines.push_back(TGuidelineP(
       new TGuidelineRay(
-        getEnabled(), getMagnetism(), a,  b )));
+        getEnabled(), getMagnetism(), color, a,  b )));
   else if (restrictB)
     outGuidelines.push_back(TGuidelineP(
       new TGuidelineRay(
-        getEnabled(), getMagnetism(), b,  a ))); // b first
+        getEnabled(), getMagnetism(), color, b,  a ))); // b first
   else
     outGuidelines.push_back(TGuidelineP(
       new TGuidelineInfiniteLine(
-        getEnabled(), getMagnetism(), a,  b )));
+        getEnabled(), getMagnetism(), color, a,  b )));
 }
 
 

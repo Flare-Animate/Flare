@@ -130,6 +130,7 @@ TAffine TAssistantEllipse::calcEllipseMatrix() const {
 void TAssistantEllipse::getGuidelines(
   const TPointD &position,
   const TAffine &toTool,
+  const TPixelD &color,
   TGuidelineList &outGuidelines ) const
 {
   bool restrictA = getRestrictA();
@@ -153,6 +154,7 @@ void TAssistantEllipse::getGuidelines(
       new TGuidelineEllipse(
         getEnabled(),
         getMagnetism(),
+        color,
         matrix,
         matrixInv )));
   } else
@@ -164,6 +166,7 @@ void TAssistantEllipse::getGuidelines(
       new TGuidelineEllipse(
         getEnabled(),
         getMagnetism(),
+        color,
         matrix * TAffine::scale(l) )));
   } else { // restrictA
     TPointD p = matrixInv*position;
@@ -180,6 +183,7 @@ void TAssistantEllipse::getGuidelines(
         new TGuidelineInfiniteLine(
           getEnabled(),
           getMagnetism(),
+          color,
           matrix*TPointD(-1.0, 0.0),
           matrix*TPointD(-1.0, 1.0) )));
     } else
@@ -189,6 +193,7 @@ void TAssistantEllipse::getGuidelines(
         new TGuidelineInfiniteLine(
           getEnabled(),
           getMagnetism(),
+          color,
           matrix*TPointD(1.0, 0.0),
           matrix*TPointD(1.0, 1.0) )));
     } else {
@@ -198,6 +203,7 @@ void TAssistantEllipse::getGuidelines(
         new TGuidelineEllipse(
           getEnabled(),
           getMagnetism(),
+          color,
           matrix * TAffine::scale(1.0, k) )));
     }
   }
