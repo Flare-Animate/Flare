@@ -934,6 +934,13 @@ Room *MainWindow::getCurrentRoom() const {
 //-----------------------------------------------------------------------------
 
 void MainWindow::onUndo() {
+  ToolHandle *toolH = TApp::instance()->getCurrentTool();
+
+  // end tool use to avoid applying tool on removed layer on undo
+  if (toolH->isToolBusy()) {
+    toolH->getTool()->onDeactivate();
+  }
+
   bool ret = TUndoManager::manager()->undo();
   if (!ret) DVGui::error(QObject::tr("No more Undo operations available."));
 }
