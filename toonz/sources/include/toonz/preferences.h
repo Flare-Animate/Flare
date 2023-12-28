@@ -390,6 +390,9 @@ public:
   bool isShowXSheetToolbarEnabled() const {
     return getBoolValue(showXSheetToolbar);
   }
+  bool isShowXsheetBreadcrumbsEnabled() const {
+    return getBoolValue(showXsheetBreadcrumbs);
+  }
   bool isExpandFunctionHeaderEnabled() const {
     return getBoolValue(expandFunctionHeader);
   }

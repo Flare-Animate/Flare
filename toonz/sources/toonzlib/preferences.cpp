@@ -581,6 +581,8 @@ void Preferences::definePreferenceItems() {
   define(shortcutCommandsWhileRenamingCellEnabled,
          "shortcutCommandsWhileRenamingCellEnabled", QMetaType::Bool, false);
   define(showXSheetToolbar, "showXSheetToolbar", QMetaType::Bool, true);
+  define(showXsheetBreadcrumbs, "showXsheetBreadcrumbs", QMetaType::Bool,
+         false);
   define(expandFunctionHeader, "expandFunctionHeader", QMetaType::Bool, false);
   define(showColumnNumbers, "showColumnNumbers", QMetaType::Bool, false);
   define(unifyColumnVisibilityToggles, "unifyColumnVisibilityToggles",

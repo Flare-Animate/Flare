@@ -2309,6 +2309,8 @@ void MainWindow::defineActions() {
                              "view_file");
   createRightClickMenuAction(MI_ToggleXSheetToolbar,
                              QT_TR_NOOP("Toggle XSheet Toolbar"), "");
+  createRightClickMenuAction(MI_ToggleXsheetBreadcrumbs,
+                             QT_TR_NOOP("Toggle Sub-Xsheet Navigation Bar"), "");
   createRightClickMenuAction(MI_ToggleXsheetCameraColumn,
                              QT_TR_NOOP("Show/Hide Xsheet Camera Column"), "");
   createRightClickMenuAction(MI_SetKeyframes, QT_TR_NOOP("&Set Key"), "Z",
