@@ -313,6 +313,7 @@
 #define MI_UnlockAllColumns "MI_UnlockAllColumns"
 #define MI_ToggleColumnLocks "MI_ToggleColumnLocks"
 #define MI_ToggleXSheetToolbar "MI_ToggleXSheetToolbar"
+#define MI_ToggleXsheetBreadcrumbs "MI_ToggleXsheetBreadcrumbs"
 #define MI_FoldColumns "MI_FoldColumns"
 #define MI_ToggleXsheetCameraColumn "MI_ToggleXsheetCameraColumn"
 #define MI_ToggleCurrentTimeIndicator "MI_ToggleCurrentTimeIndicator"

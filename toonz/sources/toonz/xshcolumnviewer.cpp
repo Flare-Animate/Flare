@@ -2993,6 +2993,7 @@ void ColumnArea::contextMenuEvent(QContextMenuEvent *event) {
     }
     menu.addSeparator();
     menu.addAction(cmdManager->getAction(MI_ToggleXSheetToolbar));
+    menu.addAction(cmdManager->getAction(MI_ToggleXsheetBreadcrumbs));
 
     if (isCamera) {
       menu.exec(event->globalPos());

@@ -687,6 +687,13 @@ void PreferencesPopup::onUnifyColumnVisibilityTogglesChanged() {
 
 //-----------------------------------------------------------------------------
 
+void PreferencesPopup::onShowXsheetBreadcrumbsClicked() {
+  TApp::instance()->getCurrentScene()->notifyPreferenceChanged(
+      "XsheetBreadcrumbs");
+}
+
+//-----------------------------------------------------------------------------
+
 void PreferencesPopup::onModifyExpressionOnMovingReferencesChanged() {
   TApp::instance()->getCurrentScene()->notifyPreferenceChanged(
       "modifyExpressionOnMovingReferences");
@@ -1284,8 +1291,9 @@ QString PreferencesPopup::getUIString(PreferencesItemId id) {
       {shortcutCommandsWhileRenamingCellEnabled,
        tr("Enable OpenToonz Commands' Shortcut Keys While Renaming Cell")},
       {showXSheetToolbar, tr("Show Toolbar in the Xsheet")},
+      {showXsheetBreadcrumbs, tr("Show Sub-Xsheet Navigation Bar")},
       {expandFunctionHeader,
-       tr("Expand Function Editor Header to Match Xsheet Toolbar Height*")},
+       tr("Expand Function Editor Header to Match Xsheet Header Height*")},
       {showColumnNumbers, tr("Show Column Numbers in Column Headers")},
       {unifyColumnVisibilityToggles,
        tr("Unify Preview and Camstand Visibility Toggles")},
@@ -2024,8 +2032,12 @@ QWidget* PreferencesPopup::createXsheetPage() {
   insertUI(useArrowKeyToShiftCellSelection, lay);
   insertUI(inputCellsWithoutDoubleClickingEnabled, lay);
   insertUI(shortcutCommandsWhileRenamingCellEnabled, lay);
-  QGridLayout* xshToolbarLay = insertGroupBoxUI(showXSheetToolbar, lay);
-  { insertUI(expandFunctionHeader, xshToolbarLay); }
+  QGridLayout* xshToolbarLay = insertGroupBox(tr("Xsheet Tools"), lay);
+  {
+    insertUI(showXSheetToolbar, xshToolbarLay);
+    insertUI(showXsheetBreadcrumbs, xshToolbarLay);
+    insertUI(expandFunctionHeader, xshToolbarLay);
+  }
   insertUI(showColumnNumbers, lay);
   insertUI(unifyColumnVisibilityToggles, lay);
   insertUI(parentColorsInXsheetColumn, lay);
@@ -2046,6 +2058,8 @@ QWidget* PreferencesPopup::createXsheetPage() {
   m_onEditedFuncMap.insert(
       unifyColumnVisibilityToggles,
       &PreferencesPopup::onUnifyColumnVisibilityTogglesChanged);
+  m_onEditedFuncMap.insert(showXsheetBreadcrumbs,
+                           &PreferencesPopup::onShowXsheetBreadcrumbsClicked);
 
   QCheckBox* linkColumnNameWithLevelCheck =
       getUI<QCheckBox*>(linkColumnNameWithLevel);

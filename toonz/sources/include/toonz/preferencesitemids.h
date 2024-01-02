@@ -130,6 +130,7 @@ enum PreferencesItemId {
   inputCellsWithoutDoubleClickingEnabled,
   shortcutCommandsWhileRenamingCellEnabled,
   showXSheetToolbar,
+  showXsheetBreadcrumbs,
   expandFunctionHeader,
   showColumnNumbers,
   unifyColumnVisibilityToggles,
