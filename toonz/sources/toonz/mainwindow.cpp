@@ -934,6 +934,10 @@ Room *MainWindow::getCurrentRoom() const {
 //-----------------------------------------------------------------------------
 
 void MainWindow::onUndo() {
+  // Must wait for current save to finish, just in case
+  while (TApp::instance()->isSaveInProgress())
+    ;
+
   ToolHandle *toolH = TApp::instance()->getCurrentTool();
 
   // do not use undo if tool is currently in use
@@ -946,6 +950,10 @@ void MainWindow::onUndo() {
 //-----------------------------------------------------------------------------
 
 void MainWindow::onRedo() {
+  // Must wait for current save to finish, just in case
+  while (TApp::instance()->isSaveInProgress())
+    ;
+
   bool ret = TUndoManager::manager()->redo();
   if (!ret) DVGui::error(QObject::tr("No more Redo operations available."));
 }
