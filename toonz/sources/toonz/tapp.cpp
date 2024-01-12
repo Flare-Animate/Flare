@@ -103,6 +103,7 @@ TApp::TApp()
     , m_mainWindow(0)
     , m_autosaveTimer(0)
     , m_autosaveSuspended(false)
+    , m_saveInProgress(false)
     , m_isStarting(false)
     , m_isPenCloseToTablet(false) {
   m_currentScene         = new TSceneHandle();
@@ -706,6 +707,8 @@ void TApp::autosave() {
     return;
   } else
     m_autosaveSuspended = false;
+
+  if (m_saveInProgress) return;
 
   DVGui::ProgressDialog pb(
       "Autosaving scene..." + toQString(scene->getScenePath()), 0, 0, 1);
