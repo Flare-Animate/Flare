@@ -813,6 +813,7 @@ void InsertEmptyColumnsUndo::undo() const {
 
 void ColumnCmd::insertEmptyColumns(const std::set<int> &indices,
                                    bool insertAfter) {
+  if (indices.empty()) return;
   // Filter out all less than 0 indices (in particular, the 'camera' column
   // in the Toonz derivative product "Tab")
   std::vector<int> positiveIndices(indices.begin(), indices.end());
