@@ -3,6 +3,8 @@
 #define OCAIO_H
 
 #include "toonzqt/dvdialog.h"
+#include "tfilepath.h"
+#include "toonz/txshlevelhandle.h"
 #include "toonzqt/menubarcommand.h"
 
 #include <QString>
@@ -16,8 +18,11 @@
 class ToonzScene;
 class TXshCellColumn;
 class TXsheet;
-
+class TXshSimpleLevel;
 class TFrameId;
+class TFilePath;
+class TOutputProperties;
+class TXshLevelHandle;
 
 namespace OCAIo {
 
@@ -29,6 +34,7 @@ struct OCAAsset {
 };
 
 class OCAData {
+protected:
   QString m_path;
   QString m_name;
   double m_framerate;
@@ -63,6 +69,27 @@ public:
   bool isEmpty() { return m_layers.isEmpty(); }
 };
 
+class OCAInputData : public OCAData {
+  // json objects
+  QString m_colorDepth;
+  QString m_originApp;
+  QString m_originAppVersion;
+  QString m_ocaVersion;
+  // toonz objects
+  ToonzScene * m_scene;
+  TXsheet *m_xsheet;
+  TOutputProperties *m_oprop;
+  TFilePath m_parentDir;
+
+public:
+  OCAInputData(ToonzScene *scene, TXsheet *xsheet);
+  void load(QString path, QJsonObject &json);
+  void getSceneData();
+  void read(QJsonObject &json);
+  void setSceneData();
+  void importOcaLayer(QJsonObject &jsonLayer);
+  void importOcaFrame(QJsonObject &jsonFrame, TXshSimpleLevel *sl);
+};
 }  // namespace OCAIo
 
 class ExportOCACommand final : public MenuItemHandler {

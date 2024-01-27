@@ -1760,6 +1760,10 @@ void MainWindow::defineActions() {
       MI_ExportOCA,
       QT_TRANSLATE_NOOP("MainWindow", "Export Open Cel Animation (OCA)"), "");
   createMenuFileAction(
+      MI_ImportOCA,
+      QT_TRANSLATE_NOOP("MainWindow", "Import Open Cel Animation (OCA)"), "",
+      "import_oca");
+  createMenuFileAction(
       MI_ExportTvpJson,
       QT_TRANSLATE_NOOP("MainWindow", "Export TVPaint JSON File"), "");
   createMenuFileAction("MI_RunScript", QT_TR_NOOP("Run Script..."), "",
