@@ -580,7 +580,11 @@ void ImportOCACommand::execute() {
   QString ocafile = fp.getQString();
   OCAInputData ocaInputData = OCAInputData(scene, xsheet);
   QJsonObject ocaObject;
-  ocaInputData.load(ocafile, ocaObject);
+  if (!ocaInputData.load(ocafile, ocaObject)) {
+    DVGui::warning(QObject::tr("Failed to load OCA file: ") +
+                   fp.getQString());
+    return;
+  }
   if (ocaInputData.isEmpty()) {
     DVGui::warning(QObject::tr("OCA file has no layer to import: ") + fp.getQString());
   }
@@ -599,7 +603,7 @@ OCAIo::OCAInputData::OCAInputData(ToonzScene *scene, TXsheet *xsheet) {
   m_oprop  = scene->getProperties()->getOutputProperties();
 }
 
-void OCAIo::OCAInputData::load(QString path, QJsonObject &json) { 
+bool OCAIo::OCAInputData::load(QString path, QJsonObject &json) { 
   //see XdtsIo::loadXdtsScene
   m_path = path;
   m_parentDir = TFilePath(m_path).getParentDir();
@@ -608,7 +612,7 @@ void OCAIo::OCAInputData::load(QString path, QJsonObject &json) {
   file.setFileName(path);
   if (!file.open(QIODevice::ReadOnly)) {
     DVGui::error(QObject::tr("Unable to open OCA file for loading."));
-    return;
+    return false;
   } else {
     DVGui::info(QObject::tr("Loading : ") + path);
   }
@@ -624,13 +628,14 @@ void OCAIo::OCAInputData::load(QString path, QJsonObject &json) {
   if (parseError.error != QJsonParseError::NoError) {
     DVGui::warning(QObject::tr("Parse error at %1 while loading OCA file.")
                        .arg(parseError.offset));
-    return;
+    return false;
   }
   //else {
   //  DVGui::info(QObject::tr("jsonDoc content : ") +
   //              jsonDoc.toJson(QJsonDocument::Indented));
   //}
   json = jsonDoc.object();
+  return true;
 }
 
 /// <summary>
@@ -659,7 +664,7 @@ void OCAIo::OCAInputData::getSceneData() {
 /// json OCA parser, getting global properties and creating the layers
 /// </summary>
 /// <param name="json"></param>
-void OCAIo::OCAInputData::read(QJsonObject &json) {
+void OCAIo::OCAInputData::read(const QJsonObject &json) {
   m_originApp        = json.value("originApp").toString();
   m_originAppVersion = json.value("originAppVersion").toString();
   m_ocaVersion       = json.value("ocaVersion").toString();
@@ -700,7 +705,7 @@ void OCAIo::OCAInputData::setSceneData() {
 /// see OCA layer specs https://github.com/RxLaboratory/OCA/blob/master/src-docs/docs/specs/layer.md?plain=1
 /// </summary>
 /// <param name="jsonLayer"></param>
-void OCAIo::OCAInputData::importOcaLayer(QJsonObject &jsonLayer) {
+void OCAIo::OCAInputData::importOcaLayer(const QJsonObject &jsonLayer) {
   if (jsonLayer["type"] == "paintlayer") {
     if (jsonLayer["blendingMode"].toString() != "normal") {
       DVGui::warning(QObject::tr("importOcaLayer : blending modes not implemented ") +
@@ -829,7 +834,7 @@ void OCAIo::OCAInputData::importOcaLayer(QJsonObject &jsonLayer) {
   }
 }
 
-void OCAIo::OCAInputData::importOcaFrame(QJsonObject &jsonFrame,
+void OCAIo::OCAInputData::importOcaFrame(const QJsonObject &jsonFrame,
                                          TXshSimpleLevel *sl) {
   // see LoadLevelPopup, TImageP TImageReader::load(), ResourceImportDialog
   TFrameId fid(jsonFrame["frameNumber"].toInt());
