@@ -579,6 +579,8 @@
 		<file>icons/dark/actions/16/zero_thick_lines.svg</file>
 		<file>icons/dark/actions/16/table.svg</file>
 
+    <file>icons/dark/actions/16/import_oca.svg</file>
+
 		<!-- Keyframe -->
 		<file>icons/dark/actions/20/key_off.svg</file>
 		<file>icons/dark/actions/20/key_on.svg</file>
