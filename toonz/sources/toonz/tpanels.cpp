@@ -85,6 +85,9 @@
 #include "toonz/fxcommand.h"
 #include "toonz/tstageobjectcmd.h"
 
+
+#include "../../toonz/locatorpopup.h"
+
 // TnzBase includes
 #include "trasterfx.h"
 #include "toutputproperties.h"
@@ -1652,8 +1655,46 @@ public:
   void execute() override { zoomAndFitPanel(true); }
 } zoomInAndFitPanel;
 
-class ZoomOutAndFitPanel final : public MenuItemHandler {
+//=============================================================================
+OpenFloatingPanel openFxBrowserCommand(MI_InsertFx, "FxBrowser",
+                                        QObject::tr("Fx Browser"));
+
+//-----------------------------------------------------------------------------
+
+//=============================================================================
+// LocatorPanel
+//-----------------------------------------------------------------------------
+
+LocatorPanel::LocatorPanel(QWidget *parent) : TPanel(parent) {
+  m_locator = new LocatorPopup(parent);
+
+  setWidget(m_locator);
+}
+
+//=============================================================================
+// LocatorFactory
+//-----------------------------------------------------------------------------
+
+class LocatorFactory final : public TPanelFactory {
 public:
-  ZoomOutAndFitPanel() : MenuItemHandler("MI_ZoomOutAndFitPanel") {}
-  void execute() override { zoomAndFitPanel(false); }
-} zoomOutAndFitPanel;
+  LocatorFactory() : TPanelFactory("Locator") {}
+
+  TPanel *createPanel(QWidget *parent) override {
+    LocatorPanel *panel = new LocatorPanel(parent);
+    panel->move(qApp->desktop()->screenGeometry(panel).center());
+    panel->setObjectName(getPanelType());
+    panel->setWindowTitle(QObject::tr("Locator"));
+    panel->allowMultipleInstances(false);
+    panel->getTitleBar()->showTitleBar(TApp::instance()->getShowTitleBars());
+    connect(TApp::instance(), SIGNAL(showTitleBars(bool)), panel->getTitleBar(),
+            SLOT(showTitleBar(bool)));
+    return panel;
+  }
+
+  void initialize(TPanel *panel) override { assert(0); }
+
+} LocatorFactory;
+
+//=============================================================================
+OpenFloatingPanel openLocatorCommand(MI_OpenLocator, "Locator",
+                                       QObject::tr("Locator"));

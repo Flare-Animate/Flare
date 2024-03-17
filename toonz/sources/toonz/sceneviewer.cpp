@@ -798,7 +798,6 @@ SceneViewer::SceneViewer(ImageUtils::FullScreenWidget *parent)
     , m_topRasterPos()
     , m_toolDisableReason("")
     , m_editPreviewSubCamera(false)
-    , m_locator(NULL)
     , m_isLocator(false)
     , m_isBusyOnTabletMove(false) {
   m_visualSettings.m_sceneProperties =
@@ -1196,10 +1195,6 @@ void SceneViewer::hideEvent(QHideEvent *) {
     disconnect(m_stopMotion, SIGNAL(liveViewStopped()), this,
                SLOT(onStopMotionLiveViewStopped()));
   }
-#endif
-
-  // hide locator
-  if (m_locator && m_locator->isVisible()) m_locator->hide();
 }
 
 int SceneViewer::getVGuideCount() {
@@ -2065,8 +2060,11 @@ void SceneViewer::drawScene() {
   // Guided Drawing Check
   int useGuidedDrawing  = Preferences::instance()->getGuidedDrawingType();
   TTool *tool           = app->getCurrentTool()->getTool();
-  int guidedFrontStroke = tool ? tool->getViewer()->getGuidedFrontStroke() : -1;
-  int guidedBackStroke  = tool ? tool->getViewer()->getGuidedBackStroke() : -1;
+  int guidedFrontStroke = tool && tool->getViewer()
+                              ? tool->getViewer()->getGuidedFrontStroke()
+                              : -1;
+  int guidedBackStroke =
+      tool && tool->getViewer() ? tool->getViewer()->getGuidedBackStroke() : -1;
 
   m_minZ = 0;
   if (is3DView()) {

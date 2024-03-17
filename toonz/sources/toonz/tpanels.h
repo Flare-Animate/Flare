@@ -31,6 +31,9 @@ class FxSettings;
 class VectorGuidedDrawingPane;
 class FxSelection;
 class StageObjectSelection;
+class XsheetViewer;
+class InsertFxPopup;
+class LocatorPopup;
 
 //=========================================================
 // PaletteViewerPanel
@@ -345,6 +348,73 @@ class VectorGuidedDrawingPanel final : public TPanel {
 
 public:
   VectorGuidedDrawingPanel(QWidget *parent);
+};
+
+//=========================================================
+// XsheetViewerPanel
+//---------------------------------------------------------
+
+class XsheetViewerPanel final : public TPanel {
+  Q_OBJECT
+
+  XsheetViewer *m_xsheetViewer;
+
+public:
+  XsheetViewerPanel(QWidget *parent = 0);
+
+  void reset() override;
+};
+
+//=========================================================
+// TimelineViewerPanel
+//---------------------------------------------------------
+
+class TimelineViewerPanel final : public TPanel {
+  Q_OBJECT
+
+  XsheetViewer *m_timelineViewer;
+
+public:
+  TimelineViewerPanel(QWidget *parent = 0);
+
+  void reset() override;
+};
+
+//=========================================================
+// AlignmentPanel
+//---------------------------------------------------------
+
+class AlignmentPanel final : public TPanel {
+  Q_OBJECT
+
+public:
+  AlignmentPanel(QWidget *parent);
+};
+
+//=========================================================
+// FxBrowserPanel
+//---------------------------------------------------------
+
+class FxBrowserPanel final : public TPanel {
+  Q_OBJECT
+
+  InsertFxPopup *m_fxBrowser;
+
+public:
+  FxBrowserPanel(QWidget *parent);
+};
+
+//=========================================================
+// LocatorPanel
+//---------------------------------------------------------
+
+class LocatorPanel final : public TPanel {
+  Q_OBJECT
+
+  LocatorPopup *m_locator;
+
+public:
+  LocatorPanel(QWidget *parent);
 };
 
 #endif
