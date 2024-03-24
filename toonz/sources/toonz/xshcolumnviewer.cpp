@@ -1211,7 +1211,7 @@ void ColumnArea::DrawHeader::drawColumnName() const {
     }
 
     p.setPen((isCurrent)   ? m_viewer->getSelectedColumnTextColor()
-             : nameBacklit ? Qt::black
+             : nameBacklit ? m_viewer->getHighlightColumnTextColor()
                            : m_viewer->getTextColor());
   } else
     p.setPen((isCurrent) ? m_viewer->getSelectedColumnTextColor()
