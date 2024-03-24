@@ -261,6 +261,9 @@ class XsheetViewer final : public QFrame, public SaveLoadQSettings {
   Q_PROPERTY(QColor CurrentTimeIndicatorColor READ getCurrentTimeIndicatorColor
                  WRITE setCurrentTimeIndicatorColor)
   // Column
+  QColor m_columnTextColor;
+  Q_PROPERTY(QColor ColumnTextColor READ getColumnTextColor WRITE
+                 setColumnTextColor)
   QColor m_emptyColumnHeadColor;  // empty column header (200,200,200)
   Q_PROPERTY(QColor EmptyColumnHeadColor READ getEmptyColumnHeadColor WRITE
                  setEmptyColumnHeadColor)
@@ -867,6 +870,12 @@ public:
   QColor getOnionSkinAreaBgColor() const { return m_onionSkinAreaBgColor; }
 
   // Column
+  void setColumnTextColor(const QColor &color) {
+    m_columnTextColor = color;
+  }
+  QColor getColumnTextColor() const {
+    return m_columnTextColor;
+  }
   void setEmptyColumnHeadColor(const QColor &color) {
     m_emptyColumnHeadColor = color;
   }

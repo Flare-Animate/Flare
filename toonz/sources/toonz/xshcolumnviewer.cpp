@@ -1187,7 +1187,7 @@ void ColumnArea::DrawHeader::drawColumnName() const {
     {
       if (columnName.contains(area->m_pos) && col >= 0) {
         p.fillRect(columnName.adjusted(0, -1, 0, 0),
-                   m_viewer->getXsheetDragBarHighlightColor());  // Qt::yellow);
+                   m_viewer->getXsheetDragBarHighlightColor());
         nameBacklit = true;
       } else
         p.fillRect(columnName, m_viewer->getXsheetColumnNameBgColor());
@@ -1215,7 +1215,7 @@ void ColumnArea::DrawHeader::drawColumnName() const {
                            : m_viewer->getTextColor());
   } else
     p.setPen((isCurrent) ? m_viewer->getSelectedColumnTextColor()
-                         : m_viewer->getTextColor());
+                         : m_viewer->getColumnTextColor());
 
   if (o->isVerticalTimeline() && col < 0) {
     QString cameraName = QString::fromStdString(name);
