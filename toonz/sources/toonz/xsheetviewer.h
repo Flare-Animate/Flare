@@ -223,6 +223,7 @@ class XsheetViewer final : public QFrame, public SaveLoadQSettings {
   QColor m_textColor;                // text color (black)
   QColor m_errorTextColor;           // error text color (red, probably)
   QColor m_selectedTextColor;        // text color for the selected cells
+  QColor m_frameTextColor;           // text color for frame numbers
   QColor m_currentFrameTextColor;    // text color for the current frame row
   QColor m_previewFrameTextColor;    // frame number in preview range (blue)
   QColor m_onionSkinAreaBgColor;
@@ -247,6 +248,8 @@ class XsheetViewer final : public QFrame, public SaveLoadQSettings {
                  setCurrentFrameTextColor)
   Q_PROPERTY(QColor SelectedTextColor READ getSelectedTextColor WRITE
                  setSelectedTextColor)
+  Q_PROPERTY(QColor FrameTextColor READ getFrameTextColor WRITE
+                 setFrameTextColor)
   Q_PROPERTY(QColor PreviewFrameTextColor READ getPreviewFrameTextColor WRITE
                  setPreviewFrameTextColor)
   Q_PROPERTY(QColor OnionSkinAreaBgColor READ getOnionSkinAreaBgColor WRITE
@@ -840,6 +843,10 @@ public:
     m_selectedTextColor = color;
   }
   QColor getSelectedTextColor() const { return m_selectedTextColor; }
+  void setFrameTextColor(const QColor &color) {
+    m_frameTextColor = color;
+  }
+  QColor getFrameTextColor() const { return m_frameTextColor; }
   void setCurrentFrameTextColor(const QColor &color) {
     m_currentFrameTextColor = color;
   }
