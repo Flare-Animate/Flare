@@ -2319,6 +2319,8 @@ XsheetViewer {
   qproperty-CellFocusColor: #000;
   qproperty-ColumnIconLineColor: #4d4d4d;
   qproperty-EmptyColumnHeadColor: #808080;
+  qproperty-ColumnTextColor: #000;
+  qproperty-HighlightColumnTextColor: #000;
   qproperty-ColumnHeadPastelizer: rgba(0, 0, 0, 0);
   qproperty-SelectedColumnHead: rgba(233, 236, 240, 0.3);
   qproperty-PlayRangeColor: #808080;
