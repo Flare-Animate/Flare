@@ -2303,7 +2303,9 @@ XsheetViewer {
   qproperty-TextColor: #000;
   qproperty-ErrorTextColor: #c01111;
   qproperty-SelectedTextColor: #000;
+  qproperty-FrameTextColor: #000;
   qproperty-CurrentFrameTextColor: #000;
+  qproperty-CycleColor: #000;
   qproperty-BGColor: #cecece;
   qproperty-LightLineColor: rgba(0, 0, 0, 0.15);
   qproperty-MarkerLineColor: rgba(0, 0, 0, 0.3);
@@ -2317,6 +2319,8 @@ XsheetViewer {
   qproperty-CellFocusColor: #000;
   qproperty-ColumnIconLineColor: #707070;
   qproperty-EmptyColumnHeadColor: #DBDBDB;
+  qproperty-ColumnTextColor: #000;
+  qproperty-HighlightColumnTextColor: #000;
   qproperty-ColumnHeadPastelizer: rgba(0, 0, 0, 0);
   qproperty-SelectedColumnHead: rgba(0, 0, 0, 0.15);
   qproperty-PlayRangeColor: #DBDBDB;
@@ -2472,6 +2476,10 @@ SpreadsheetViewer {
   qproperty-SelectedSceneRangeEmptyColor: rgba(146, 153, 158, 0.5);
   qproperty-TextColor: #000;
   qproperty-CurrentRowTextColor: #000;
+  qproperty-FrameTextColor: #000;
+  qproperty-GroupNameTextColor: #000;
+  qproperty-ChannelNameTextColor: #000;
+  qproperty-CycleColor: #000;
   qproperty-ColumnHeaderBorderColor: #5b5b5b;
 }
 #ExpressionField {

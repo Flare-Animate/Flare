@@ -223,6 +223,8 @@ class XsheetViewer final : public QFrame, public SaveLoadQSettings {
   QColor m_textColor;                // text color (black)
   QColor m_errorTextColor;           // error text color (red, probably)
   QColor m_selectedTextColor;        // text color for the selected cells
+  QColor m_frameTextColor;           // text color for frame numbers
+  QColor m_cycleColor;               // color of the zig zag line
   QColor m_currentFrameTextColor;    // text color for the current frame row
   QColor m_previewFrameTextColor;    // frame number in preview range (blue)
   QColor m_onionSkinAreaBgColor;
@@ -247,6 +249,9 @@ class XsheetViewer final : public QFrame, public SaveLoadQSettings {
                  setCurrentFrameTextColor)
   Q_PROPERTY(QColor SelectedTextColor READ getSelectedTextColor WRITE
                  setSelectedTextColor)
+  Q_PROPERTY(QColor FrameTextColor READ getFrameTextColor WRITE
+                 setFrameTextColor)
+  Q_PROPERTY(QColor CycleColor READ getCycleColor WRITE setCycleColor)
   Q_PROPERTY(QColor PreviewFrameTextColor READ getPreviewFrameTextColor WRITE
                  setPreviewFrameTextColor)
   Q_PROPERTY(QColor OnionSkinAreaBgColor READ getOnionSkinAreaBgColor WRITE
@@ -256,6 +261,13 @@ class XsheetViewer final : public QFrame, public SaveLoadQSettings {
   Q_PROPERTY(QColor CurrentTimeIndicatorColor READ getCurrentTimeIndicatorColor
                  WRITE setCurrentTimeIndicatorColor)
   // Column
+  QColor m_columnTextColor;
+  Q_PROPERTY(QColor ColumnTextColor READ getColumnTextColor WRITE
+                 setColumnTextColor)
+  QColor m_highlightColumnTextColor;
+  Q_PROPERTY(QColor HighlightColumnTextColor READ
+                 getHighlightColumnTextColor WRITE
+                 setHighlightColumnTextColor)
   QColor m_emptyColumnHeadColor;  // empty column header (200,200,200)
   Q_PROPERTY(QColor EmptyColumnHeadColor READ getEmptyColumnHeadColor WRITE
                  setEmptyColumnHeadColor)
@@ -840,8 +852,16 @@ public:
     m_selectedTextColor = color;
   }
   QColor getSelectedTextColor() const { return m_selectedTextColor; }
+  void setFrameTextColor(const QColor &color) {
+    m_frameTextColor = color;
+  }
+  QColor getFrameTextColor() const { return m_frameTextColor; }
   void setCurrentFrameTextColor(const QColor &color) {
     m_currentFrameTextColor = color;
+  }
+  QColor getCycleColor() const { return m_cycleColor; }
+  void setCycleColor(const QColor &color) {
+    m_cycleColor = color;
   }
   QColor getCurrentFrameTextColor() const { return m_currentFrameTextColor; }
   void setPreviewFrameTextColor(const QColor &color) {
@@ -854,6 +874,18 @@ public:
   QColor getOnionSkinAreaBgColor() const { return m_onionSkinAreaBgColor; }
 
   // Column
+  void setColumnTextColor(const QColor &color) {
+    m_columnTextColor = color;
+  }
+  QColor getColumnTextColor() const {
+    return m_columnTextColor;
+  }
+  void setHighlightColumnTextColor(const QColor &color) {
+    m_highlightColumnTextColor = color;
+  }
+  QColor getHighlightColumnTextColor() const {
+    return m_highlightColumnTextColor;
+  }
   void setEmptyColumnHeadColor(const QColor &color) {
     m_emptyColumnHeadColor = color;
   }

@@ -394,7 +394,7 @@ void FunctionSheetColumnHeadViewer::paintEvent(QPaintEvent *e) {
                        getViewer()->getColumnHeaderBorderColor());
 
     // channel name
-    painter.setPen(getViewer()->getTextColor());
+    painter.setPen(getViewer()->getChannelNameTextColor());
     if (channel->isCurrent())
       painter.setPen(m_sheet->getViewer()->getCurrentTextColor());
 
@@ -415,7 +415,7 @@ void FunctionSheetColumnHeadViewer::paintEvent(QPaintEvent *e) {
     // group name
     if (firstGroupColumn) {
       int tmpwidth = (lastGroupColumn) ? width : width * 2;
-      painter.setPen(getViewer()->getTextColor());
+      painter.setPen(getViewer()->getGroupNameTextColor());
       if (group == currentGroup)
         painter.setPen(m_sheet->getViewer()->getCurrentTextColor());
       text = group->getShortName();
@@ -880,7 +880,7 @@ void FunctionSheetCellViewer::drawCells(QPainter &painter, int r0, int c0,
       int qx             = x0 + 4;
       int qy             = m_sheet->rowToY(kr1 + 1);
       int zig            = 2;
-      QColor zigzagColor = (isStageObjectCycled) ? getViewer()->getTextColor()
+      QColor zigzagColor = (isStageObjectCycled) ? getViewer()->getCycleColor()
                                                  : KeyFrameBorderColor;
       painter.setPen(zigzagColor);
       painter.drawLine(QPoint(qx, qy), QPoint(qx - zig, qy + zig));
