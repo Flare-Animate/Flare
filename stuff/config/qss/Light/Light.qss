@@ -1762,6 +1762,7 @@ ProjectPopup QLabel {
 ----------------------------------------------------------------------------- */
 SchematicViewer {
   qproperty-TextColor: #000;
+  qproperty-PassThroughTextColor: #000;
   qproperty-VerticalLineColor: rgba(0, 0, 0, 0.15);
   qproperty-LevelColumnColor: #a1cea1;
   qproperty-VectorColumnColor: #d3cf9a;
