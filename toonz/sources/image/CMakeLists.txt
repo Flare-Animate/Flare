@@ -182,6 +182,7 @@ elseif(BUILD_ENV_APPLE)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -F ${OSX_10_6_SDK_PATH}")
     endif()
     set(EXTRA_LIBS
+        Qt5::Widgets
         ${TNZLIBS}
         ${QT_LIB}
         ${CARBON_LIB}
