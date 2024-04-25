@@ -4,7 +4,9 @@ on: [push, pull_request]
 
 jobs:
   macOS:
-    runs-on: macos-latest
+    # runs-on: macos-latest
+    # avoid the headache of arm64 builds?
+    runs-on: macos-12
     steps:
     - uses: actions/checkout@v2
 
@@ -43,9 +45,6 @@ jobs:
         }        
         brew update
         brew cleanup
-        # the thirdparty provided lib isn't arm64: warning: ignoring file 
-        # '/Users/runner/work/opentoonz/opentoonz/thirdparty/superlu/libsuperlu_4.1.a': fat file missing arch 'arm64', file has 'i386,x86_64'
-        checkPkgAndInstall superlu
         checkPkgAndInstall pkg-config glew lz4 libjpeg libpng lzo boost libusb libmypaint ccache jpeg-turbo ninja
         checkPkgAndInstall opencv
         # opencv depends on vtk and vtk depends on qt6
