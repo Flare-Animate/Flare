@@ -4,7 +4,9 @@ on: [push, pull_request]
 
 jobs:
   macOS:
-    runs-on: macos-latest
+    # runs-on: macos-latest
+    # avoid the headache of arm64 builds?
+    runs-on: macos-12
     steps:
     - uses: actions/checkout@v2
 
@@ -68,8 +70,10 @@ jobs:
         cd toonz
         mkdir build
         cd build
-        cmake ../sources -G Ninja -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DQT_PATH='/usr/local/opt/qt@5/lib' -DWITH_TRANSLATION=OFF
-        ninja -w dupbuild=warn
+        # cmake ../sources -G Ninja -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DQT_PATH='/usr/local/opt/qt@5/lib' -DWITH_TRANSLATION=OFF
+        cmake ../sources -G Ninja -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DQT_PATH=$(brew --prefix qt@5)/lib -DQt5_DIR=$(brew --prefix qt@5)/lib/cmake/Qt5 -DCMAKE_PREFIX_PATH=$(brew --prefix qt@5)/lib/cmake/Qt5  -DWITH_TRANSLATION=OFF
+        # ninja -w dupbuild=warn
+        ninja
     
     - name: Introduce Libraries and Stuff
       run: |
