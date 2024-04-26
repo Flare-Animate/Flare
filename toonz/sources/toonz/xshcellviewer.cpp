@@ -1967,7 +1967,7 @@ void CellArea::drawLevelCell(QPainter &p, int row, int col, bool isReference,
       p.drawEllipse(markRect);
     }
 
-    QColor levelEndColor = m_viewer->getTextColor();
+    QColor levelEndColor = m_viewer->getLevelEndColor();
     levelEndColor.setAlphaF(0.3);
     p.setPen(levelEndColor);
     p.drawLine(rect.topLeft(), rect.bottomRight());
@@ -2250,7 +2250,7 @@ void CellArea::drawSoundTextCell(QPainter &p, int row, int col) {
 
     drawFrameSeparator(p, row, col, false, heldFrame);
 
-    QColor levelEndColor = m_viewer->getTextColor();
+    QColor levelEndColor = m_viewer->getLevelEndColor();
     levelEndColor.setAlphaF(0.3);
     p.setPen(levelEndColor);
     p.drawLine(rect.topLeft(), rect.bottomRight());
@@ -2455,7 +2455,7 @@ void CellArea::drawSoundTextColumn(QPainter &p, int r0, int r1, int col) {
       TXshCell prevCell;
       if (row > 0) prevCell = xsh->getCell(row - 1, col);
       if (!prevCell.isEmpty()) {
-        QColor levelEndColor = m_viewer->getTextColor();
+        QColor levelEndColor = m_viewer->getLevelEndColor();
         levelEndColor.setAlphaF(0.3);
         p.setPen(levelEndColor);
         p.drawLine(info.rect.topLeft(), info.rect.bottomRight());
@@ -2710,7 +2710,7 @@ void CellArea::drawPaletteCell(QPainter &p, int row, int col,
 
     drawFrameSeparator(p, row, col, false, heldFrame);
 
-    QColor levelEndColor = m_viewer->getTextColor();
+    QColor levelEndColor = m_viewer->getLevelEndColor();
     levelEndColor.setAlphaF(0.3);
     p.setPen(levelEndColor);
     p.drawLine(rect.topLeft(), rect.bottomRight());
@@ -3006,7 +3006,7 @@ void CellArea::drawKeyframe(QPainter &p, const QRect toBeUpdated) {
       int qy   = icon_frameAxis + 12;
       int zig  = 2;
       int qx   = icon_layerAxis + 5;
-      p.setPen(m_viewer->getCycleColor());
+      p.setPen(m_viewer->getKeyframeLineColor());
       p.drawLine(o->frameLayerToXY(qy, qx),
                  o->frameLayerToXY(qy + zig, qx - zig));
       while (qy < ymax) {
@@ -3031,7 +3031,7 @@ void CellArea::drawKeyframeLine(QPainter &p, int col,
       keyRect.center() + m_viewer->positionToXY(CellPosition(rows.from(), col));
   QPoint end =
       keyRect.center() + m_viewer->positionToXY(CellPosition(rows.to(), col));
-  p.setPen(m_viewer->getTextColor());
+  p.setPen(m_viewer->getKeyframeLineColor());
   p.drawLine(QLine(begin, end));
 }
 

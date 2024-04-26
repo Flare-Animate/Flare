@@ -583,8 +583,6 @@ DvScrollWidget {
   image: url('../Default/imgs/white/scroll-down.svg');
 }
 /* -------------------------------------------------------------------------- */
-/* For the buttons to display a BG color we need to set a blank image, setting
-   an empty URL solves this. */
 #keyFrameNavigator {
   background: transparent;
   margin: 0;
@@ -595,20 +593,12 @@ DvScrollWidget {
   padding-right: -1;
   width: 20px;
   height: 20px;
-  image: url('');
-}
-#keyFrameNavigator #PreviousKey:disabled {
-  image: url('');
 }
 #keyFrameNavigator #NextKey {
   margin: 0 2;
   padding-right: -1;
   width: 20px;
   height: 20px;
-  image: url('');
-}
-#keyFrameNavigator #NextKey:disabled {
-  image: url('');
 }
 #keyFrameNavigator #KeyNo,
 #keyFrameNavigator #KeyPartial,
@@ -617,20 +607,10 @@ DvScrollWidget {
   padding-right: -1;
   width: 20px;
   height: 20px;
-  image: url('');
-}
-#keyFrameNavigator #KeyNo:disabled,
-#keyFrameNavigator #KeyPartial:disabled,
-#keyFrameNavigator #KeyTotal:disabled {
-  image: url('');
 }
 #keyFrameNavigator #KeyNo {
   background-color: rgba(0, 0, 0, 0);
   border: 1 solid rgba(0, 0, 0, 0);
-  image: url('');
-}
-#keyFrameNavigator #KeyNo:disabled {
-  image: url('');
 }
 #keyFrameNavigator #KeyNo:hover {
   background-color: #696c6f;
@@ -639,7 +619,6 @@ DvScrollWidget {
 #keyFrameNavigator #KeyPartial {
   background-color: #be7323;
   border: 1 solid #be7323;
-  image: url('');
 }
 #keyFrameNavigator #KeyPartial:hover {
   background-color: #db8d39;
@@ -1783,6 +1762,7 @@ ProjectPopup QLabel {
 ----------------------------------------------------------------------------- */
 SchematicViewer {
   qproperty-TextColor: #d6d8dd;
+  qproperty-PassThroughTextColor: #d6d8dd;
   qproperty-VerticalLineColor: rgba(0, 0, 0, 0.3);
   qproperty-LevelColumnColor: #4C6E4C;
   qproperty-VectorColumnColor: #7B7B4C;
@@ -2305,7 +2285,6 @@ XsheetViewer {
   qproperty-SelectedTextColor: #d6d8dd;
   qproperty-FrameTextColor: #d6d8dd;
   qproperty-CurrentFrameTextColor: #d6d8dd;
-  qproperty-CycleColor: #d6d8dd;
   qproperty-BGColor: #3a3b3d;
   qproperty-LightLineColor: rgba(0, 0, 0, 0.2);
   qproperty-MarkerLineColor: rgba(255, 255, 255, 0.15);
@@ -2324,6 +2303,8 @@ XsheetViewer {
   qproperty-ColumnHeadPastelizer: rgba(0, 0, 0, 0);
   qproperty-SelectedColumnHead: rgba(221, 231, 237, 0.3);
   qproperty-PlayRangeColor: #414345;
+  qproperty-KeyframeLineColor: #d6d8dd;
+  qproperty-LevelEndColor: #d6d8dd;
   qproperty-FoldedColumnBGColor: #5a5d5f;
   qproperty-FoldedColumnLineColor: #353638;
   qproperty-EmptyCellColor: #323435;
@@ -2479,7 +2460,7 @@ SpreadsheetViewer {
   qproperty-FrameTextColor: #d6d8dd;
   qproperty-GroupNameTextColor: #d6d8dd;
   qproperty-ChannelNameTextColor: #d6d8dd;
-  qproperty-CycleColor: #d6d8dd;
+  qproperty-KeyframeLineColor: #d6d8dd;
   qproperty-ColumnHeaderBorderColor: #212223;
 }
 #ExpressionField {

@@ -224,7 +224,7 @@ class XsheetViewer final : public QFrame, public SaveLoadQSettings {
   QColor m_errorTextColor;           // error text color (red, probably)
   QColor m_selectedTextColor;        // text color for the selected cells
   QColor m_frameTextColor;           // text color for frame numbers
-  QColor m_cycleColor;               // color of the zig zag line
+  QColor m_keyframeLineColor;        // color of keyframe lines
   QColor m_currentFrameTextColor;    // text color for the current frame row
   QColor m_previewFrameTextColor;    // frame number in preview range (blue)
   QColor m_onionSkinAreaBgColor;
@@ -251,7 +251,8 @@ class XsheetViewer final : public QFrame, public SaveLoadQSettings {
                  setSelectedTextColor)
   Q_PROPERTY(QColor FrameTextColor READ getFrameTextColor WRITE
                  setFrameTextColor)
-  Q_PROPERTY(QColor CycleColor READ getCycleColor WRITE setCycleColor)
+  Q_PROPERTY(QColor KeyframeLineColor READ getKeyframeLineColor WRITE
+                 setKeyframeLineColor)
   Q_PROPERTY(QColor PreviewFrameTextColor READ getPreviewFrameTextColor WRITE
                  setPreviewFrameTextColor)
   Q_PROPERTY(QColor OnionSkinAreaBgColor READ getOnionSkinAreaBgColor WRITE
@@ -276,12 +277,14 @@ class XsheetViewer final : public QFrame, public SaveLoadQSettings {
   QColor m_emptyCellColor;          // empty cell (124,124,124)
   QColor m_notEmptyColumnColor;     // occupied column (164,164,164)
   QColor m_selectedEmptyCellColor;  // selected empty cell (210,210,210)
+  QColor m_levelEndColor;           // end level cross
   Q_PROPERTY(
       QColor EmptyCellColor READ getEmptyCellColor WRITE setEmptyCellColor)
   Q_PROPERTY(QColor NotEmptyColumnColor READ getNotEmptyColumnColor WRITE
                  setNotEmptyColumnColor)
   Q_PROPERTY(QColor SelectedEmptyCellColor READ getSelectedEmptyCellColor WRITE
                  setSelectedEmptyCellColor)
+  Q_PROPERTY(QColor LevelEndColor READ getLevelEndColor WRITE setLevelEndColor)
 
   // Cell focus
   QColor m_cellFocusColor;
@@ -859,9 +862,9 @@ public:
   void setCurrentFrameTextColor(const QColor &color) {
     m_currentFrameTextColor = color;
   }
-  QColor getCycleColor() const { return m_cycleColor; }
-  void setCycleColor(const QColor &color) {
-    m_cycleColor = color;
+  QColor getKeyframeLineColor() const { return m_keyframeLineColor; }
+  void setKeyframeLineColor(const QColor &color) {
+    m_keyframeLineColor = color;
   }
   QColor getCurrentFrameTextColor() const { return m_currentFrameTextColor; }
   void setPreviewFrameTextColor(const QColor &color) {
@@ -905,6 +908,8 @@ public:
     m_selectedEmptyCellColor = color;
   }
   QColor getSelectedEmptyCellColor() const { return m_selectedEmptyCellColor; }
+  void setLevelEndColor(const QColor &color) { m_levelEndColor = color; }
+  QColor getLevelEndColor() const { return m_levelEndColor; }
 
   // Cell focus
   void setCellFocusColor(const QColor &color) { m_cellFocusColor = color; }

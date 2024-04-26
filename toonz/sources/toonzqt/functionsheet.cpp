@@ -832,7 +832,7 @@ void FunctionSheetCellViewer::drawCells(QPainter &painter, int r0, int c0,
         if (drawValue == Key || drawValue == Inbetween)
           painter.setPen(getViewer()->getTextColor());
         else {
-          QColor semiTranspTextColor = getViewer()->getTextColor();
+          QColor semiTranspTextColor = getViewer()->getKeyframeLineColor();
           semiTranspTextColor.setAlpha(128);
           painter.setPen(semiTranspTextColor);
         }
@@ -880,8 +880,9 @@ void FunctionSheetCellViewer::drawCells(QPainter &painter, int r0, int c0,
       int qx             = x0 + 4;
       int qy             = m_sheet->rowToY(kr1 + 1);
       int zig            = 2;
-      QColor zigzagColor = (isStageObjectCycled) ? getViewer()->getCycleColor()
-                                                 : KeyFrameBorderColor;
+      QColor zigzagColor = (isStageObjectCycled)
+                               ? getViewer()->getKeyframeLineColor()
+                               : KeyFrameBorderColor;
       painter.setPen(zigzagColor);
       painter.drawLine(QPoint(qx, qy), QPoint(qx - zig, qy + zig));
       qy += zig;

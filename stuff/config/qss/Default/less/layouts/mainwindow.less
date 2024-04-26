@@ -430,8 +430,6 @@ DvScrollWidget {
 
 /* -------------------------------------------------------------------------- */
 
-/* For the buttons to display a BG color we need to set a blank image, setting
-   an empty URL solves this. */
 #keyFrameNavigator {
   background: transparent;
   margin: 0;
@@ -441,20 +439,12 @@ DvScrollWidget {
     padding-right: -1;
     width: 20px;
     height: 20px;
-    image: url('');
-	  &:disabled {
-		  image: url('');
-	  }
   }
   #NextKey {
     margin: 0 2;
     padding-right: -1;
     width: 20px;
     height: 20px;
-    image: url('');
-	  &:disabled {
-		  image: url('');
-	  }
   }
   #KeyNo,
   #KeyPartial,
@@ -463,18 +453,10 @@ DvScrollWidget {
     padding-right: -1;
     width: 20px;
     height: 20px;
-    image: url('');
-    &:disabled {
-      image: url('');
-    }
   }
   #KeyNo {
     background-color: @keyframe-off-color;
     border: 1 solid @keyframe-off-border-color;
-    image: url('');
-    &:disabled {
-      image: url('');
-    }
     &:hover {
       background-color: @keyframe-off-color-hover;
       border-color: @keyframe-off-border-color-hover;
@@ -483,7 +465,6 @@ DvScrollWidget {
   #KeyPartial {
     background-color: @keyframe-partial-color;
     border: 1 solid @keyframe-partial-border-color;
-    image: url('');
     &:hover {
       background-color: @keyframe-partial-color-hover;
       border-color: @keyframe-partial-border-color-hover;
