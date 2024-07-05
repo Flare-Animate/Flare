@@ -5,8 +5,17 @@ body:
     attributes:
       value: |
         Please search existing issues before posting to avoid creating duplicates.
+        As issues are resolved they are incorporated into the latest nightly release.
+        We urge use of the latest nightly build with current bug fixes before making a report. 
+        You can find the latest build [here](https://github.com/opentoonz/opentoonz_nightlies/releases).
+
+        A good source to review will be reports labeled as 'known issue':  [Link](https://github.com/opentoonz/opentoonz/issues?q=is%3Aopen+is%3Aissue+label%3A%22known+issue%22).
+
+        Note that while all bug reports are appreciated failing to supply basic information on what was being done at the time will generally lead to closure
+        of the report due to lack of actionable information sufficient to troubleshoot the problem.
+        A useful report will contain more than automated bug reporting data compiled by the program.
         
-        We strongly urge you to test if your issue still persists on the latest nightly build which contains the latest bug fixes before making your report. You can find the latest build [here](https://github.com/opentoonz/opentoonz_nightlies/releases).
+                
   - type: textarea
     attributes:
       label: Description
