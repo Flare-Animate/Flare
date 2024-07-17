@@ -4,7 +4,7 @@ on: [push, pull_request]
 
 jobs:
   Ubuntu:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         compiler: [gcc, clang]
@@ -16,13 +16,13 @@ jobs:
             cc: clang
             cxx: clang++
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - name: Install libraries
       run: |
         sudo apt-get update
-        sudo apt-get install build-essential cmake pkg-config ninja-build ccache libboost-all-dev qt5-default qtbase5-dev libqt5svg5-dev qtscript5-dev qttools5-dev qttools5-dev-tools libqt5opengl5-dev qtmultimedia5-dev libqt5multimedia5-plugins libqt5serialport5-dev libsuperlu-dev liblz4-dev libusb-1.0-0-dev liblzo2-dev libpng-dev libjpeg-dev libglew-dev freeglut3-dev libfreetype6-dev libjson-c-dev qtwayland5 libmypaint-dev libopencv-dev libturbojpeg-dev libomp-11-dev
+        sudo apt-get install build-essential cmake pkg-config ninja-build ccache libboost-all-dev qtbase5-dev qt5-qmake qtscript5-dev qttools5-dev qttools5-dev-tools qtmultimedia5-dev qtwebengine5-dev qtwayland5 libqt5svg5-dev libqt5websockets5-dev libqt5opengl5-dev libqt5multimedia5-plugins libqt5serialport5-dev libsuperlu-dev liblz4-dev libusb-1.0-0-dev liblzo2-dev libpng-dev libjpeg-dev libglew-dev freeglut3-dev libfreetype6-dev libjson-c-dev libmypaint-dev libopencv-dev libturbojpeg-dev libomp-dev libfuse2
 
-    - uses: actions/cache@v1
+    - uses: actions/cache@v4
       with:
         path: /home/runner/.ccache
         key: ${{ runner.os }}-${{ matrix.compiler }}-${{ github.sha }}
@@ -83,7 +83,7 @@ jobs:
         mv artifact ${ARTIFACT_NAME}
         tar zcf ${ARTIFACT_NAME}.tar.gz ${ARTIFACT_NAME}
 
-    - uses: actions/upload-artifact@v1
+    - uses: actions/upload-artifact@v4
       with:
         name: Opentoonz-${{ runner.os }}-${{ matrix.compiler }}-${{ github.sha }}
         path: toonz/build/Opentoonz-${{ runner.os }}-${{ matrix.compiler }}-${{ github.sha }}.tar.gz
