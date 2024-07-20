@@ -33,7 +33,6 @@ jobs:
         restore-keys: | 
           ${{ runner.os }}-${{ matrix.compiler }}-
           ${{ runner.os }}-
-          ${{ runner.os }}
 
     - name: Build libtiff
       run: |
