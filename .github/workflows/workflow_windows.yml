@@ -31,7 +31,9 @@ jobs:
       - name: Install OpenCV and Boost
         run: |
           @echo on
+          REM  install opencv
           choco install opencv --version=4.5.1
+          REM install boost
           choco install boost-msvc-14.2
         shell: cmd
 
