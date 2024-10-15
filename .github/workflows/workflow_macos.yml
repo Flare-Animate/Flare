@@ -6,93 +6,99 @@ jobs:
   macOS:
     # runs-on: macos-latest
     # avoid the headache of arm64 builds?
-    runs-on: macos-12
+    runs-on: macos-13
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Remove symlinks
-      run: |
-        # remove existing symlinks before installing Python
-        for symlink in 2to3 idle3 pydoc3 python3 python3-config 2to3-3.11 idle3.11 pydoc3.11 python3.11 python3.11-config 2to3-3.12 idle3.12 pydoc3.12 python3.12 python3.12-config; do
-          rm -f /usr/local/bin/$symlink
-        done
-
-    - name: Install libraries
-      run: |
-        checkPkgAndInstall() {
-          for pkg in "$@"; do
-            if brew ls --versions $pkg; then
-              brew upgrade $pkg
-            else
-              brew install $pkg
-            fi
+      - name: Remove symlinks
+        run: |
+          # Remove existing symlinks before installing Python
+          for symlink in 2to3 idle3 pydoc3 python3 python3-config \
+                         2to3-3.11 idle3.11 pydoc3.11 python3.11 python3.11-config \
+                         2to3-3.12 idle3.12 pydoc3.12 python3.12 python3.12-config; do
+            rm -f /usr/local/bin/$symlink
           done
-        }
-        brew update
-        brew cleanup
-        checkPkgAndInstall pkg-config glew lz4 libjpeg libpng lzo boost libusb libmypaint ccache jpeg-turbo ninja opencv qt@5
-        brew unlink qt
 
-    - name: Set up cache
-      run: |
-        export PATH="/usr/local/opt/ccache/libexec:$PATH"
-        mkdir -p /Users/runner/.ccache
+      - name: Install libraries
+        run: |
+          checkPkgAndInstall() {
+            for pkg in "$@"; do
+              if brew ls --versions $pkg; then
+                brew upgrade $pkg
+              else
+                brew install $pkg
+              fi
+            done
+          }
+          
+          brew update
+          brew cleanup
 
-    - uses: actions/cache@v4
-      with:
-        path: /Users/runner/.ccache
-        key: ${{ runner.os }}-${{ github.sha }}
-        restore-keys: ${{ runner.os }}-
+          checkPkgAndInstall pkg-config glew lz4 libjpeg libpng lzo boost libusb libmypaint ccache jpeg-turbo ninja opencv qt@5
+          brew unlink qt
 
-    - name: Build libtiff
-      run: |
-        cd thirdparty/tiff-4.0.3
-        CFLAGS='-fPIC' CXXFLAGS='-fPIC' ./configure --disable-lzma
-        make -j $(sysctl -n hw.ncpu)
+      - name: Set up cache
+        run: |
+          export PATH="/usr/local/opt/ccache/libexec:$PATH"
+          mkdir -p /Users/runner/.ccache
 
-    - name: Build
-      run: |
-        export PKG_CONFIG_PATH="/usr/local/opt/jpeg-turbo/lib/pkgconfig:$PKG_CONFIG_PATH"
-        cd toonz
-        mkdir -p build
-        cd build
-        cmake ../sources -G Ninja -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DQT_PATH=$(brew --prefix qt@5)/lib -DQt5_DIR=$(brew --prefix qt@5)/lib/cmake/Qt5 -DCMAKE_PREFIX_PATH=$(brew --prefix qt@5)/lib/cmake/Qt5 -DWITH_TRANSLATION=OFF
-        ninja
+      - uses: actions/cache@v4
+        with:
+          path: /Users/runner/.ccache
+          key: ${{ runner.os }}-${{ github.sha }}
+          restore-keys: ${{ runner.os }}-
 
-    - name: Introduce Libraries and Stuff
-      run: |
-        cd toonz/build/toonz
-        cp -pr ../../../stuff OpenToonz.app/portablestuff
-        /usr/local/opt/qt@5/bin/macdeployqt OpenToonz.app -verbose=1 -always-overwrite \
-          -executable=OpenToonz.app/Contents/MacOS/lzocompress \
-          -executable=OpenToonz.app/Contents/MacOS/lzodecompress \
-          -executable=OpenToonz.app/Contents/MacOS/tcleanup \
-          -executable=OpenToonz.app/Contents/MacOS/tcomposer \
-          -executable=OpenToonz.app/Contents/MacOS/tconverter \
-          -executable=OpenToonz.app/Contents/MacOS/tfarmcontroller \
-          -executable=OpenToonz.app/Contents/MacOS/tfarmserver
+      - name: Build libtiff
+        run: |
+          cd thirdparty/tiff-4.0.3
+          CFLAGS='-fPIC' CXXFLAGS='-fPIC' ./configure --disable-lzma
+          make -j $(sysctl -n hw.ncpu)
 
-    - name: Modify Library Paths
-      run: |
-        cd toonz/build/toonz/OpenToonz.app/Contents/Frameworks
-        for TARGETLIB in *.dylib; do
-          echo $TARGETLIB
-          otool -L "$TARGETLIB" | grep ".dylib" | grep -v "$TARGETLIB" | grep -v "@executable_path/../Frameworks" | awk '{print $1}' | while read -r FROMPATH; do
-            echo "  $FROMPATH"
-            LIBNAME=$(basename "$FROMPATH")
-            if [[ -e ./$LIBNAME ]]; then
-              echo "updating library path of $LIBNAME in $TARGETLIB"
-              install_name_tool -change "$FROMPATH" "@executable_path/../Frameworks/$LIBNAME" "$TARGETLIB"
-            fi
+      - name: Build
+        run: |
+          export PKG_CONFIG_PATH="/usr/local/opt/jpeg-turbo/lib/pkgconfig:$PKG_CONFIG_PATH"
+          cd toonz
+          mkdir -p build
+          cd build
+          cmake ../sources -G Ninja \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+            -DQT_PATH=$(brew --prefix qt@5)/lib \
+            -DQt5_DIR=$(brew --prefix qt@5)/lib/cmake/Qt5 \
+            -DCMAKE_PREFIX_PATH=$(brew --prefix qt@5)/lib/cmake/Qt5 \
+            -DWITH_TRANSLATION=OFF
+          ninja -j $(sysctl -n hw.ncpu)
+
+      - name: Introduce Libraries and Stuff
+        run: |
+          cd toonz/build/toonz
+          cp -pr ../../../stuff OpenToonz.app/portablestuff
+          /usr/local/opt/qt@5/bin/macdeployqt OpenToonz.app -verbose=1 -always-overwrite \
+            -executable=OpenToonz.app/Contents/MacOS/lzocompress \
+            -executable=OpenToonz.app/Contents/MacOS/lzodecompress \
+            -executable=OpenToonz.app/Contents/MacOS/tcleanup \
+            -executable=OpenToonz.app/Contents/MacOS/tcomposer \
+            -executable=OpenToonz.app/Contents/MacOS/tconverter \
+            -executable=OpenToonz.app/Contents/MacOS/tfarmcontroller \
+            -executable=OpenToonz.app/Contents/MacOS/tfarmserver
+
+      - name: Modify Library Paths
+        run: |
+          cd toonz/build/toonz/OpenToonz.app/Contents/Frameworks
+          for TARGETLIB in *.dylib; do
+            otool -L "$TARGETLIB" | grep ".dylib" | grep -v "$TARGETLIB" | grep -v "@executable_path/../Frameworks" | awk '{print $1}' | while read -r FROMPATH; do
+              LIBNAME=$(basename "$FROMPATH")
+              if [[ -e ./$LIBNAME ]]; then
+                install_name_tool -change "$FROMPATH" "@executable_path/../Frameworks/$LIBNAME" "$TARGETLIB"
+              fi
+            done
           done
-        done
 
-    - name: Create Artifact
-      run: |
-        cd toonz/build/toonz
-        /usr/local/opt/qt@5/bin/macdeployqt OpenToonz.app -dmg -verbose=1
+      - name: Create Artifact
+        run: |
+          cd toonz/build/toonz
+          /usr/local/opt/qt@5/bin/macdeployqt OpenToonz.app -dmg -verbose=1
 
-    - uses: actions/upload-artifact@v4
-      with:
-        name: Opentoonz-${{ runner.os }}-${{ github.sha }}
-        path: toonz/build/toonz/OpenToonz.dmg
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Opentoonz-${{ runner.os }}-${{ github.sha }}
+          path: toonz/build/toonz/OpenToonz.dmg
