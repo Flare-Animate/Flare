@@ -72,7 +72,7 @@ jobs:
         run: |
           cd toonz/build/toonz
           cp -pr ../../../stuff OpenToonz.app/portablestuff
-          /usr/local/opt/qt@5/bin/macdeployqt OpenToonz.app -verbose=1 -always-overwrite \
+          /usr/local/opt/qt@5/bin/macdeployqt OpenToonz.app -verbose=0 -always-overwrite \
             -executable=OpenToonz.app/Contents/MacOS/lzocompress \
             -executable=OpenToonz.app/Contents/MacOS/lzodecompress \
             -executable=OpenToonz.app/Contents/MacOS/tcleanup \
@@ -107,7 +107,7 @@ jobs:
         run: |
           cd toonz/build/toonz
           echo "Creating DMG..."
-          if /usr/local/opt/qt@5/bin/macdeployqt OpenToonz.app -dmg -verbose=1; then
+          if /usr/local/opt/qt@5/bin/macdeployqt OpenToonz.app -dmg -verbose=0; then
             echo "DMG created successfully."
           else
             echo "Failed to create DMG."
