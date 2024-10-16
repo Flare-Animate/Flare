@@ -93,10 +93,26 @@ jobs:
             done
           done
 
+      - name: Unmount Existing Disk Images
+        run: |
+          if mount | grep "/Volumes/OpenToonz"; then
+            echo "Unmounting existing volume..."
+            hdiutil detach /Volumes/OpenToonz || true
+            echo "Volume unmounted."
+          else
+            echo "No volume to unmount."
+          fi
+
       - name: Create Artifact
         run: |
           cd toonz/build/toonz
-          /usr/local/opt/qt@5/bin/macdeployqt OpenToonz.app -dmg -verbose=1
+          echo "Creating DMG..."
+          if /usr/local/opt/qt@5/bin/macdeployqt OpenToonz.app -dmg -verbose=1; then
+            echo "DMG created successfully."
+          else
+            echo "Failed to create DMG."
+            exit 1
+          fi
 
       - uses: actions/upload-artifact@v4
         with:
