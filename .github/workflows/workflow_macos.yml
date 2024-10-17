@@ -4,6 +4,7 @@ on: [push, pull_request]
 
 jobs:
   macOS:
+    timeout-minutes: 90
     # runs-on: macos-latest
     # avoid the headache of arm64 builds?
     runs-on: macos-13
@@ -93,24 +94,43 @@ jobs:
             done
           done
 
-      - name: Unmount Existing Disk Images
-        run: |
-          if mount | grep "/Volumes/OpenToonz"; then
-            echo "Unmounting existing volume..."
-            hdiutil detach /Volumes/OpenToonz || true
-            echo "Volume unmounted."
-          else
-            echo "No volume to unmount."
-          fi
-
       - name: Create Artifact
         run: |
           cd toonz/build/toonz
           echo "Creating DMG..."
-          if /usr/local/opt/qt@5/bin/macdeployqt OpenToonz.app -dmg -verbose=0; then
-            echo "DMG created successfully."
-          else
-            echo "Failed to create DMG."
+          ATTEMPT=1
+          MAX_ATTEMPTS=3
+          while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
+            echo "Building the OpenToonz application into a DMG (Attempt $ATTEMPT of $MAX_ATTEMPTS)..."
+            DMG_OUTPUT=$(/usr/local/opt/qt@5/bin/macdeployqt OpenToonz.app -dmg -verbose=0 2>&1)
+
+            # Check if the DMG file was actually created
+            if [ -f OpenToonz.dmg ]; then
+              echo "DMG created successfully."
+              break
+            else
+              echo "DMG creation failed or file not found. Checking for 'Resource busy' error..."
+
+              # Check if "Resource busy" error occurred
+              if echo "$DMG_OUTPUT" | grep -q "Resource busy"; then
+                echo "'Resource busy' error detected, attempting to kill XProtectBehaviorService..."
+                sudo pkill -9 XProtectBehaviorService >/dev/null || true
+                echo "Waiting for XProtectBehaviorService to terminate..."
+                while pgrep XProtectBehaviorService; do
+                  sleep 3
+                done
+              else
+                echo "No 'Resource busy' error detected. DMG creation failed for another reason."
+              fi
+
+              ATTEMPT=$((ATTEMPT + 1))
+              sleep 10  # Give some time before retrying
+            fi
+          done
+
+          # Check if all attempts have been used up
+          if [ $ATTEMPT -gt $MAX_ATTEMPTS ]; then
+            echo "Failed to create DMG after $MAX_ATTEMPTS attempts."
             exit 1
           fi
 
