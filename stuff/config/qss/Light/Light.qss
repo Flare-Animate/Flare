@@ -3069,7 +3069,7 @@ XsheetViewer {
   qproperty-VerticalLineColor: rgba(0, 0, 0, 0.18);
   qproperty-VerticalLineHeadColor: #828282;
   qproperty-ColumnIconLineColor: #828282;
-  qproperty-CurrentRowBgColor: white;
+  qproperty-CurrentRowBgColor: rgba(255, 117, 117, 0.747);
   qproperty-OnionSkinAreaBgColor: #c3c3c3;
   qproperty-PlayRangeColor: rgba(255, 255, 255, 0.4);
   qproperty-CurrentTimeIndicatorColor: hsl(0, 100%, 64%);
@@ -3290,7 +3290,7 @@ SpreadsheetViewer {
   qproperty-KeyframeLineColor: black;
   qproperty-FrameTextColor: rgba(0, 0, 0, 0.5);
   qproperty-CurrentRowTextColor: #000000;
-  qproperty-CurrentRowBgColor: white;
+  qproperty-CurrentRowBgColor: rgba(255, 117, 117, 0.747);
   qproperty-MarkerLineColor: rgba(95, 22, 231, 0.5);
   qproperty-SecMarkerLineColor: rgba(73, 0, 141, 0.743);
   qproperty-GroupNameTextColor: #341f88;

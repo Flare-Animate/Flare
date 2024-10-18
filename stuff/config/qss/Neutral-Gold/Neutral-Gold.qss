@@ -209,7 +209,7 @@ QMenu::indicator:non-exclusive:checked {
 }
 QMenu::indicator:non-exclusive:checked:hover {
   background-color: #ebdec5;
-  border-color: #ebdec5;
+  border-color: #1c1c1c;
 }
 QMenu::indicator:non-exclusive:checked:disabled {
   background-color: #ad9a73;
@@ -683,7 +683,7 @@ QCheckBox::indicator:checked {
 }
 QCheckBox::indicator:checked:hover {
   background-color: #ebdec5;
-  border-color: #ebdec5;
+  border-color: #1c1c1c;
 }
 QCheckBox::indicator:checked:disabled {
   background-color: #ad9a73;
@@ -791,7 +791,7 @@ QGroupBox::indicator:checked {
 }
 QGroupBox::indicator:checked:hover {
   background-color: #ebdec5;
-  border-color: #ebdec5;
+  border-color: #1c1c1c;
 }
 QGroupBox::indicator:checked:disabled {
   background-color: #ad9a73;
@@ -1552,7 +1552,7 @@ ParamsPage {
 }
 #CameraSettingsRadioButton::indicator:checked:hover {
   background-color: #ebdec5;
-  border-color: #ebdec5;
+  border-color: #1c1c1c;
 }
 #CameraSettingsRadioButton::indicator:checked:disabled {
   background-color: #ad9a73;
