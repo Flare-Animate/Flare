@@ -97,42 +97,22 @@ jobs:
       - name: Create Artifact
         run: |
           cd toonz/build/toonz
-          echo "Creating DMG..."
-          ATTEMPT=1
-          MAX_ATTEMPTS=3
-          while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
-            echo "Building the OpenToonz application into a DMG (Attempt $ATTEMPT of $MAX_ATTEMPTS)..."
-            DMG_OUTPUT=$(/usr/local/opt/qt@5/bin/macdeployqt OpenToonz.app -dmg -verbose=0 2>&1)
-
-            # Check if the DMG file was actually created
+          echo "Creating DMG..."    
+          for ATTEMPT in {1..10}; do
+            echo "Attempt $ATTEMPT to build DMG..."
+            /usr/local/opt/qt@5/bin/macdeployqt OpenToonz.app -dmg -verbose=0
+            
             if [ -f OpenToonz.dmg ]; then
               echo "DMG created successfully."
-              break
-            else
-              echo "DMG creation failed or file not found. Checking for 'Resource busy' error..."
-
-              # Check if "Resource busy" error occurred
-              if echo "$DMG_OUTPUT" | grep -q "Resource busy"; then
-                echo "'Resource busy' error detected, attempting to kill XProtectBehaviorService..."
-                sudo pkill -9 XProtectBehaviorService >/dev/null || true
-                echo "Waiting for XProtectBehaviorService to terminate..."
-                while pgrep XProtectBehaviorService; do
-                  sleep 3
-                done
-              else
-                echo "No 'Resource busy' error detected. DMG creation failed for another reason."
-              fi
-
-              ATTEMPT=$((ATTEMPT + 1))
-              sleep 10  # Give some time before retrying
+              exit 0  # Exit if successful
             fi
+            
+            echo "DMG creation failed. Retrying in 10 seconds..."  
+            sleep 10  
           done
 
-          # Check if all attempts have been used up
-          if [ $ATTEMPT -gt $MAX_ATTEMPTS ]; then
-            echo "Failed to create DMG after $MAX_ATTEMPTS attempts."
-            exit 1
-          fi
+          echo ">>> DMG file creation failed after 10 attempts. Aborting!"
+          exit 1  # Exit with failure status
 
       - uses: actions/upload-artifact@v4
         with:
