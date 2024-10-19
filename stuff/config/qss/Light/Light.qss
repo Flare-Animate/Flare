@@ -3272,14 +3272,14 @@ FunctionTreeView {
   padding-left: 2;
 }
 FunctionPanel {
-  qproperty-BGColor: #c6c6c6;
-  qproperty-ValueLineColor: #cccccc;
-  qproperty-FrameLineColor: #cccccc;
+  qproperty-BGColor: #808080;
+  qproperty-ValueLineColor: #717171;
+  qproperty-FrameLineColor: #717171;
   qproperty-OtherCurvesColor: rgba(255, 255, 255, 0.6);
   qproperty-RulerBackground: #b7b7b7;
   qproperty-TextColor: black;
   qproperty-SubColor: black;
-  qproperty-SelectedColor: #FFA500;
+  qproperty-SelectedColor: #ffde24;
 }
 SpreadsheetViewer {
   qproperty-BGColor: #d3d3d3;
