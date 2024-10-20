@@ -3093,6 +3093,9 @@ ParamFieldKeyToggle {
   border-top-left-radius: 4px;
   border-bottom-left-radius: 4px;
   max-width: 18;
+  background-image: url('../Default/imgs/black/misc/gradient-horizontal.svg');
+  background-position: top left;
+  background-repeat: repeat-y;
 }
 /* -----------------------------------------------------------------------------
    Misc 
