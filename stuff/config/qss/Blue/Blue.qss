@@ -558,14 +558,14 @@ QComboBox:editable {
   color: #e8e8e8;
   background: none;
   background-color: #18191c;
-  border-color: #050606;
+  border-color: #18191c;
   selection-background-color: rgba(79, 123, 199, 0.8);
   selection-color: white;
   padding: 1 0 1 3;
 }
 QComboBox:editable:hover {
   background-color: #18191c;
-  border-color: #050606;
+  border-color: #18191c;
 }
 QComboBox:editable:checked {
   border-color: #4f7bc7;
@@ -609,7 +609,7 @@ QTextEdit[readOnly="false"] {
   background-color: #18191c;
   border-style: solid;
   border-width: 1;
-  border-color: #050606;
+  border-color: #18191c;
   border-radius: 2px;
   color: #e8e8e8;
   selection-background-color: rgba(79, 123, 199, 0.8);
@@ -621,7 +621,7 @@ QLineEdit:hover,
 QTextEdit[readOnly="false"]:hover {
   background-color: #18191c;
   color: #e8e8e8;
-  border-color: #050606;
+  border-color: #18191c;
 }
 QPlainTextEdit:focus,
 QLineEdit:focus,
@@ -636,7 +636,7 @@ QTextEdit[readOnly="false"]:disabled {
   background: none;
   color: #7b7c7f;
   background-color: #323439;
-  border-color: rgba(5, 6, 6, 0.4);
+  border-color: rgba(24, 25, 28, 0.4);
 }
 QTextEdit[readOnly="true"] {
   background-color: #43464d;
@@ -2564,7 +2564,7 @@ Ruler {
   background-color: #18191c;
   border-style: solid;
   border-width: 1;
-  border-color: #050606;
+  border-color: #18191c;
   border-radius: 2px;
   color: #e8e8e8;
   selection-background-color: rgba(79, 123, 199, 0.8);
@@ -2576,7 +2576,7 @@ Ruler {
 #tasksAddBox:hover {
   background-color: #18191c;
   color: #e8e8e8;
-  border-color: #050606;
+  border-color: #18191c;
 }
 #TaskSheetItem:focus,
 #tasksRemoveBox:focus,
@@ -2591,7 +2591,7 @@ Ruler {
   background: none;
   color: #7b7c7f;
   background-color: #323439;
-  border-color: rgba(5, 6, 6, 0.4);
+  border-color: rgba(24, 25, 28, 0.4);
 }
 #TaskSheetItemLabel {
   color: #7fdbfc;
