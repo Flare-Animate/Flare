@@ -715,7 +715,7 @@ void ProjectCreatePopup::createProject() {
 
   TFilePath projectFolder = currentProjectRoot + projectName;
   TFilePath projectPath   = pm->projectFolderToProjectPath(projectFolder);
-  auto project            = std::shared_ptr<TProject>();
+  auto project            = std::make_shared<TProject>();
   updateProjectFromFields(project);
   auto currentProject = pm->getCurrentProject();
   project->setSceneProperties(currentProject->getSceneProperties());
