@@ -49,7 +49,7 @@ jobs:
       - name: Add msbuild to PATH
         uses: microsoft/setup-msbuild@v2
 
-      - name: Build Opentoonz
+      - name: CMake configuration
         run: |
           @echo on
           cd thirdparty
@@ -79,19 +79,23 @@ jobs:
           )
 
           cmake ..\sources -G %MSVCVERSION% -Ax64 -DQT_PATH=%QT_PATH% -DBOOST_ROOT=%BOOST_ROOT% -DOpenCV_DIR=%OPENCV_DIR% -DWITH_WINTAB=%WITH_WINTAB%
+        shell: cmd
+
+      - name: Build Opentoonz
+        run: |
+          @echo on
 
           IF EXIST C:\ProgramData\chocolatey\bin\cl.exe (
               msbuild /p:CLToolPath=C:\ProgramData\chocolatey\bin /p:UseMultiToolTask=true /p:Configuration=RelWithDebInfo /m /verbosity:minimal ALL_BUILD.vcxproj
           ) ELSE (
               msbuild /p:Configuration=RelWithDebInfo /m /verbosity:minimal ALL_BUILD.vcxproj
           )
-
-          cd ../..
         shell: cmd
 
       - name: Create Package
         run: |
           @echo on
+          cd ../..
           cd toonz\build
 
           IF EXIST Opentoonz rmdir /S /Q Opentoonz
