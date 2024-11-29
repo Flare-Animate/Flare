@@ -131,9 +131,10 @@ jobs:
 
           # TEMPORARILY REMOVED: REM Creating Opentoonz Windows Portable package
           
+          REM Copy stuff files directly to OpenToonz stuff          
           IF EXIST Opentoonz\"OpenToonz stuff" rmdir /S /Q Opentoonz\"OpenToonz stuff"
-          REM Copy stuff files directly to OpenToonz stuff
           xcopy /Y /E /I ..\..\stuff .\Opentoonz\"OpenToonz stuff"
+          copy /Y ..\..\scripts\windows\OpenToonzRegistrySetup.bat OpenToonz
 
           cd ..\..
         shell: cmd
