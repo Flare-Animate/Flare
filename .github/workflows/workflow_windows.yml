@@ -128,11 +128,11 @@ jobs:
 
           %QT_PATH%\bin\windeployqt.exe Opentoonz\Opentoonz.exe --opengl
 
-          REM Creating Opentoonz Windows Portable package
-
-          IF EXIST Opentoonz\portablestuff rmdir /S /Q Opentoonz\portablestuff
-          REM Copy stuff files directly to portablestuff
-          xcopy /Y /E /I ..\..\stuff Opentoonz\portablestuff
+          # TEMPORARILY REMOVED: REM Creating Opentoonz Windows Portable package
+          
+          IF EXIST Opentoonz\portablestuff rmdir /S /Q "OpenToonz stuff"
+          REM Copy stuff files directly to OpenToonz stuff
+          xcopy /Y /E /I ..\..\stuff .\"OpenToonz stuff"
 
           cd ..\..
         shell: cmd
