@@ -56,8 +56,7 @@ after_build:
 
     xcopy /Y /E ..\..\stuff "%CONFIGURATION%\OpenToonz stuff"
 
-    copy /Y ..\..\scripts\windows\OpenToonzRegistrySetup.bat %CONFIGURATION%\OpenToonz
-    
+    copy /Y ..\..\scripts\windows\OpenToonzRegistrySetup.bat %CONFIGURATION%\    
 artifacts:
 - path: toonz\$(PLATFORM)\$(CONFIGURATION)
   name: OpenToonz
