@@ -34,7 +34,7 @@ jobs:
           REM  install opencv
           choco install opencv --version=4.5.1
           REM install boost
-          choco install boost-msvc-14.2
+          choco install boost-msvc-14.2 --version=1.74.0
         shell: cmd
 
       - name: Install custom Qt 5.15.2 with WinTab support
