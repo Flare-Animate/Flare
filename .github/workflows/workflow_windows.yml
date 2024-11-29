@@ -84,7 +84,7 @@ jobs:
       - name: Build Opentoonz
         run: |
           @echo on
-	  cd toonz/build/
+	        cd toonz/build/
           IF EXIST C:\ProgramData\chocolatey\bin\cl.exe (
               msbuild /p:CLToolPath=C:\ProgramData\chocolatey\bin /p:UseMultiToolTask=true /p:Configuration=RelWithDebInfo /m /verbosity:minimal ALL_BUILD.vcxproj
           ) ELSE (
