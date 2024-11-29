@@ -544,10 +544,10 @@ include_directories(
 if(BUILD_ENV_MSVC OR BUILD_ENV_APPLE)
        	if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.30)
 		set(BOOST_DIR ${BOOST_ROOT})
-		find_package(Boost)
+		find_package(Boost 1.55 REQUIRED)
 	else()# Cmake version below 3.30
 		find_path(
-        		BOOST_ROOT
+			BOOST_ROOT
        			     	include/boost
             			boost
 	        	HINTS
