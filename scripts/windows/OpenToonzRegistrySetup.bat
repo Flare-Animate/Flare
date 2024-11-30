@@ -2,6 +2,8 @@
 chcp 65001 >nul
 setlocal
 
+REM This Batch should be placed in the same folder with "OpenToonz stuff" folder
+
 REM 设置颜色 / Set colors
 REM 颜色代码示例：0 = 黑色背景, A = 绿色文字, C = 红色文字, E = 黄色文字
 
