@@ -32,31 +32,27 @@ build:
   verbosity: minimal
 after_build:
 - cmd: >-
-    mkdir %CONFIGURATION%\OpenToonz
-
-    move %CONFIGURATION%\*.* %CONFIGURATION%\OpenToonz
-
-    C:\Qt\5.15.2\msvc2019_64\bin\windeployqt.exe %CONFIGURATION%\OpenToonz\OpenToonz.exe
-
-    copy /Y ..\..\thirdparty\glut\3.7.6\lib\glut64.dll %CONFIGURATION%\OpenToonz
-
-    copy /Y ..\..\thirdparty\glew\glew-1.9.0\bin\64bit\glew32.dll %CONFIGURATION%\OpenToonz
-
-    copy /Y ..\..\thirdparty\libmypaint\dist\64\libiconv-2.dll %CONFIGURATION%\OpenToonz
-
-    copy /Y ..\..\thirdparty\libmypaint\dist\64\libintl-8.dll %CONFIGURATION%\OpenToonz
-
-    copy /Y ..\..\thirdparty\libmypaint\dist\64\libjson-c-2.dll %CONFIGURATION%\OpenToonz
     
-    copy /Y ..\..\thirdparty\libmypaint\dist\64\libmypaint-1-4-0.dll %CONFIGURATION%\OpenToonz
+    C:\Qt\5.15.2\msvc2019_64\bin\windeployqt.exe %CONFIGURATION%\OpenToonz.exe
 
-    copy /Y "C:\Tools\opencv\build\x64\vc16\bin\opencv_world4100.dll" %CONFIGURATION%\OpenToonz
+    copy /Y ..\..\thirdparty\glut\3.7.6\lib\glut64.dll %CONFIGURATION%
+    
+    copy /Y ..\..\thirdparty\glew\glew-1.9.0\bin\64bit\glew32.dll %CONFIGURATION%
 
-    mkdir "%CONFIGURATION%\OpenToonz stuff"
+    copy /Y ..\..\thirdparty\libmypaint\dist\64\libiconv-2.dll %CONFIGURATION%
 
-    xcopy /Y /E ..\..\stuff "%CONFIGURATION%\OpenToonz stuff"
+    copy /Y ..\..\thirdparty\libmypaint\dist\64\libintl-8.dll %CONFIGURATION%
 
-    copy /Y ..\..\scripts\windows\OpenToonzRegistrySetup.bat %CONFIGURATION%\    
+    copy /Y ..\..\thirdparty\libmypaint\dist\64\libjson-c-2.dll %CONFIGURATION%
+    
+    copy /Y ..\..\thirdparty\libmypaint\dist\64\libmypaint-1-4-0.dll %CONFIGURATION%
+    
+    copy /Y "C:\Tools\opencv\build\x64\vc16\bin\opencv_world4100.dll" %CONFIGURATION%
+
+    mkdir "%CONFIGURATION%\portablestuff"
+
+    xcopy /Y /E ..\..\stuff "%CONFIGURATION%\portablestuff"
+
 artifacts:
 - path: toonz\$(PLATFORM)\$(CONFIGURATION)
   name: OpenToonz
