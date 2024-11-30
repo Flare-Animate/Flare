@@ -124,7 +124,7 @@ jobs:
           IF EXIST "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC" set VCINSTALLDIR="C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC"
 
           REM Remove PDB files
-          del *.pdb
+          del Opentoonz\*.pdb
           
           %QT_PATH%\bin\windeployqt.exe Opentoonz\Opentoonz.exe --opengl
 
