@@ -99,26 +99,25 @@ jobs:
 
           IF EXIST Opentoonz rmdir /S /Q Opentoonz
           mkdir Opentoonz
-          mkdir Opentoonz\Opentoonz
-
+          
+          REM Remove PDB files
+          del *.pdb
+          
           Rem Copy and configure Opentoonz installation
-          copy /y RelWithDebInfo\*.* Opentoonz\Opentoonz
+          copy /y RelWithDebInfo\*.* Opentoonz
 
-          copy /Y ..\..\thirdparty\glut\3.7.6\lib\glut64.dll Opentoonz\Opentoonz
-          copy /Y ..\..\thirdparty\glew\glew-1.9.0\bin\64bit\glew32.dll Opentoonz\Opentoonz
-          copy /Y ..\..\thirdparty\libmypaint\dist\64\libiconv-2.dll Opentoonz\Opentoonz
-          copy /Y ..\..\thirdparty\libmypaint\dist\64\libintl-8.dll Opentoonz\Opentoonz
-          copy /Y ..\..\thirdparty\libmypaint\dist\64\libjson-c-2.dll Opentoonz\Opentoonz
-          copy /Y ..\..\thirdparty\libmypaint\dist\64\libmypaint-1-4-0.dll Opentoonz\Opentoonz
+          copy /Y ..\..\thirdparty\glut\3.7.6\lib\glut64.dll Opentoonz
+          copy /Y ..\..\thirdparty\glew\glew-1.9.0\bin\64bit\glew32.dll Opentoonz
+          copy /Y ..\..\thirdparty\libmypaint\dist\64\libiconv-2.dll Opentoonz
+          copy /Y ..\..\thirdparty\libmypaint\dist\64\libintl-8.dll Opentoonz
+          copy /Y ..\..\thirdparty\libmypaint\dist\64\libjson-c-2.dll Opentoonz
+          copy /Y ..\..\thirdparty\libmypaint\dist\64\libmypaint-1-4-0.dll Opentoonz
 
           IF EXIST C:\tools\opencv (
-             copy /Y "C:\tools\opencv\build\x64\vc14\bin\opencv_world451.dll" Opentoonz\Opentoonz
+             copy /Y "C:\tools\opencv\build\x64\vc14\bin\opencv_world451.dll" Opentoonz
           ) ELSE (
-             copy /Y "C:\opencv\451\build\x64\vc14\bin\opencv_world451.dll" Opentoonz\Opentoonz
+             copy /Y "C:\opencv\451\build\x64\vc14\bin\opencv_world451.dll" Opentoonz
           )
-
-          REM Remove PDB files
-          del Opentoonz\Opentoonz\*.pdb
 
           REM Configuring Opentoonz.exe for deployment
           set QT_PATH=C:\Qt\5.15.2_wintab\msvc2019_64
@@ -127,14 +126,13 @@ jobs:
           set VCINSTALLDIR="C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC"
           IF EXIST "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC" set VCINSTALLDIR="C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC"
 
-          %QT_PATH%\bin\windeployqt.exe Opentoonz\Opentoonz\Opentoonz.exe --opengl
+          %QT_PATH%\bin\windeployqt.exe Opentoonz\Opentoonz.exe --opengl
 
-          # TEMPORARILY REMOVED: REM Creating Opentoonz Windows Portable package
+          # REM Creating Opentoonz Windows Portable package
           
           REM Copy stuff files directly to OpenToonz stuff          
-          IF EXIST Opentoonz\"OpenToonz stuff" rmdir /S /Q Opentoonz\"OpenToonz stuff"
-          xcopy /Y /E /I ..\..\stuff .\Opentoonz\"OpenToonz stuff"
-          copy /Y ..\..\scripts\windows\OpenToonzRegistrySetup.bat OpenToonz
+          IF EXIST Opentoonz\"portablestuff" rmdir /S /Q Opentoonz\"portablestuff"
+          xcopy /Y /E /I ..\..\stuff .\Opentoonz\"portablestuff"
 
           cd ..\..
         shell: cmd
