@@ -100,9 +100,6 @@ jobs:
           IF EXIST Opentoonz rmdir /S /Q Opentoonz
           mkdir Opentoonz
           
-          REM Remove PDB files
-          del *.pdb
-          
           Rem Copy and configure Opentoonz installation
           copy /y RelWithDebInfo\*.* Opentoonz
 
@@ -126,6 +123,9 @@ jobs:
           set VCINSTALLDIR="C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC"
           IF EXIST "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC" set VCINSTALLDIR="C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC"
 
+          REM Remove PDB files
+          del *.pdb
+          
           %QT_PATH%\bin\windeployqt.exe Opentoonz\Opentoonz.exe --opengl
 
           # REM Creating Opentoonz Windows Portable package
