@@ -765,6 +765,17 @@ public:
         \note the tab mode is used for Tab Application
 */
 
+//-------------------------------------------------------------------
+void TProjectManager::getProjectRoots(std::vector<TFilePath> &projectRoots) {
+  for (TFilePath &path : m_projectsRoots) {
+    // Create project folders if not exist
+    if (!TFileStatus(path).isDirectory()) {
+      TSystem::mkDir(path);
+    }
+  }
+  projectRoots = m_projectsRoots;
+}
+
 TProjectManager::TProjectManager() : m_tabMode(false), m_tabKidsMode(false) {}
 
 //-------------------------------------------------------------------

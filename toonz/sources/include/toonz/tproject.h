@@ -168,9 +168,7 @@ public:
   TFilePath getSandboxProjectFolder();
   TFilePath getSandboxProjectPath();
 
-  void getProjectRoots(std::vector<TFilePath> &projectRoots) const {
-    projectRoots = m_projectsRoots;
-  }
+  void getProjectRoots(std::vector<TFilePath> &projectRoots);
 
   bool isProject(const TFilePath &projectFolder);
 };
