@@ -234,6 +234,7 @@ set(SOURCES
     batchserversviewer.cpp
     castviewer.cpp
     exportlevelpopup.cpp
+    exportalllevelspopup.cpp
     exportscenepopup.cpp
     colormodelviewer.cpp
     exportpanel.cpp
