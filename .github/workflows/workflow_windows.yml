@@ -34,7 +34,7 @@ jobs:
           REM  install opencv
           choco install opencv --version=4.5.1
           REM install boost
-          choco install boost-msvc-14.2
+          choco install boost-msvc-14.2 --version=1.74.0
         shell: cmd
 
       - name: Install custom Qt 5.15.2 with WinTab support
@@ -49,7 +49,7 @@ jobs:
       - name: Add msbuild to PATH
         uses: microsoft/setup-msbuild@v2
 
-      - name: Build Opentoonz
+      - name: CMake configuration
         run: |
           @echo on
           cd thirdparty
@@ -79,14 +79,17 @@ jobs:
           )
 
           cmake ..\sources -G %MSVCVERSION% -Ax64 -DQT_PATH=%QT_PATH% -DBOOST_ROOT=%BOOST_ROOT% -DOpenCV_DIR=%OPENCV_DIR% -DWITH_WINTAB=%WITH_WINTAB%
+        shell: cmd
 
+      - name: Build Opentoonz
+        run: |
+          @echo on
+          cd toonz/build/
           IF EXIST C:\ProgramData\chocolatey\bin\cl.exe (
               msbuild /p:CLToolPath=C:\ProgramData\chocolatey\bin /p:UseMultiToolTask=true /p:Configuration=RelWithDebInfo /m /verbosity:minimal ALL_BUILD.vcxproj
           ) ELSE (
               msbuild /p:Configuration=RelWithDebInfo /m /verbosity:minimal ALL_BUILD.vcxproj
           )
-
-          cd ../..
         shell: cmd
 
       - name: Create Package
@@ -96,7 +99,7 @@ jobs:
 
           IF EXIST Opentoonz rmdir /S /Q Opentoonz
           mkdir Opentoonz
-
+          
           Rem Copy and configure Opentoonz installation
           copy /y RelWithDebInfo\*.* Opentoonz
 
@@ -113,9 +116,6 @@ jobs:
              copy /Y "C:\opencv\451\build\x64\vc14\bin\opencv_world451.dll" Opentoonz
           )
 
-          REM Remove PDB files
-          del Opentoonz\*.pdb
-
           REM Configuring Opentoonz.exe for deployment
           set QT_PATH=C:\Qt\5.15.2_wintab\msvc2019_64
           IF EXIST D:\a\opentoonz\opentoonz\thirdparty\qt\5.15.2_wintab\msvc2019_64 set QT_PATH=D:\a\opentoonz\opentoonz\thirdparty\qt\5.15.2_wintab\msvc2019_64
@@ -123,13 +123,16 @@ jobs:
           set VCINSTALLDIR="C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC"
           IF EXIST "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC" set VCINSTALLDIR="C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC"
 
+          REM Remove PDB files
+          del Opentoonz\*.pdb
+          
           %QT_PATH%\bin\windeployqt.exe Opentoonz\Opentoonz.exe --opengl
 
-          REM Creating Opentoonz Windows Portable package
-
-          IF EXIST Opentoonz\portablestuff rmdir /S /Q Opentoonz\portablestuff
-          REM Copy stuff files directly to portablestuff
-          xcopy /Y /E /I ..\..\stuff Opentoonz\portablestuff
+          # REM Creating Opentoonz Windows Portable package
+          
+          REM Copy stuff files directly to OpenToonz stuff          
+          IF EXIST Opentoonz\"portablestuff" rmdir /S /Q Opentoonz\"portablestuff"
+          xcopy /Y /E /I ..\..\stuff .\Opentoonz\"portablestuff"
 
           cd ..\..
         shell: cmd
