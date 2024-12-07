@@ -11,12 +11,14 @@ class ExportAllLevelsPopup final : public ExportLevelPopup {
 public:
   ExportAllLevelsPopup();
   ~ExportAllLevelsPopup();
-  bool isexport_all;    // set to false when "Export All" be dis-checked
   bool execute() override;  // overrride FileBrowserPopup::execute()
 
 private:
+  bool isexport_all;  // set to false when "Export All" be dis-checked
   int level_exported = 0;
   ToonzScene *scene;
+  std::map<std::wstring ,std::wstring> level_to_foldername;
+  std::wstring backfoldername(std::string colname, std::wstring levelname);
 
   // Widgets
 private:

@@ -32,6 +32,7 @@
 #include "toonz/tproject.h"
 #include "toonz/stage.h"
 #include "toonz/preferences.h"
+#include "toonz/tstageobjectcmd.h"
 
 #include "toonz/txshlevelhandle.h"
 #include "toonz/txsheethandle.h"
@@ -121,7 +122,7 @@ public:
 ExportAllLevelsPopup::ExportAllLevelsPopup(){
   setWindowModality(Qt::ApplicationModal);
   setWindowTitle(QString("Exporting All Levels..."));
-  m_browser->setFolder(TApp::instance()->getCurrentScene()->getScene()->getProject()->getProjectFolder());
+  //m_browser->setFolder(TApp::instance()->getCurrentScene()->getScene()->getProject()->getProjectFolder());
 
   // Export Options Tab
   m_exportOptions->m_createlevelfolder->setChecked(true);
@@ -178,7 +179,11 @@ void ExportAllLevelsPopup::showEvent(QShowEvent *se) {
       m_exportOptions->m_dpiLabel->show();
     }
 
-    GetSelectedSimpLevels();
+    // reset map
+    level_to_foldername.clear();
+
+    GetSelectedSimpLevels();//also init level_to_folder
+
     
     if (outputLevels.empty()) {
         QTimer::singleShot(1000, this, &ExportAllLevelsPopup::hide);
@@ -244,12 +249,17 @@ void ExportAllLevelsPopup::updateOnSelection() {
 
 void ExportAllLevelsPopup::GetSelectedSimpLevels() {
   // get output Levels
-  TXsheet *xsh = TApp::instance()->getCurrentXsheet()->getXsheet();
   outputLevels.clear();
+  TXsheetHandle *xshHandle = TApp::instance()->getCurrentXsheet();
+  TXsheet *xsh  = xshHandle->getXsheet();
   int col_count = xsh->getColumnCount();
   int c, r0, r1;  // columnindex,cellstartpoint
   TXshSimpleLevel *sl;
   std::vector<int> cols;
+  TStageObject *pegbar;
+  TStageObjectId id;
+  std::string colname;
+  std::wstring levelname;
 
   for (int i = 1; i <= col_count; ++i) {
     TXshColumn *col = xsh->getColumn(i - 1);
@@ -261,6 +271,11 @@ void ExportAllLevelsPopup::GetSelectedSimpLevels() {
         sl = xsh->getCell(r0, c).getSimpleLevel();
         assert(sl);
         outputLevels.push_back(sl);
+
+        pegbar = xsh->getStageObject(TStageObjectId::ColumnId(c));
+        colname = pegbar->getName();
+        levelname = sl->getName();
+        level_to_foldername[sl->getName()] = backfoldername(colname,levelname);
       } else
         continue;
     }
@@ -284,8 +299,10 @@ void ExportAllLevelsPopup::onExportAll(bool toggled) {
                          QString::fromStdWString(outputLevels.back()->getName()));
     m_skipButton->setEnabled(true);
     m_nameField->setEnabled(true);
+    
     isexport_all = false;
-    m_nameField->setText(QString::fromStdWString(outputLevels.back()->getName()));
+    m_nameField->setText(QString::fromStdWString(
+        level_to_foldername.find(outputLevels.back()->getName())->second));
   }
 }
 
@@ -308,13 +325,21 @@ bool ExportAllLevelsPopup::execute() {
 
   if (isexport_all) {
     TXshSimpleLevel *sl;
+    std::wstring folderName;
     MultiExportProgressCB progressCB;
     MultiExportOverwriteCB overwriteCB;
+
+    
     while (!outputLevels.empty()) {
       sl  = outputLevels.back()->getSimpleLevel();
-      ret = IoCmd::exportLevel(TFilePath(fp.getWideString()+ L"\\" + sl->getName() + L"."+ to_wstring(ext)), sl,
+      folderName = m_exportOptions->m_createlevelfolder->isChecked()
+                       ? level_to_foldername.find(sl->getName())->second
+                       : std::wstring();
+      std::wstring b = fp.getWideString();
+      std::wstring a = fp.getWideString()+ L"\\" + folderName + L"."+ to_wstring(ext);
+      ret = IoCmd::exportLevel(TFilePath(fp.getWideString()+ L"\\" + folderName + L"."+ to_wstring(ext)), sl,
                                opts, &overwriteCB, &progressCB,
-                               (folderName.empty() ? sl->getName() : folderName)) &&
+                folderName) &&
             ret;
       if (ret) {
         ++level_exported;  // count exported levels
@@ -340,9 +365,12 @@ bool ExportAllLevelsPopup::execute() {
       return false;
 
     TXshSimpleLevel *sl = outputLevels.back()->getSimpleLevel();
-    ret                 = IoCmd::exportLevel(
-              fp.withType(ext).withName(m_nameField->text().toStdWString()), sl,
-              opts, 0, 0, folderName) &&
+    ret = IoCmd::exportLevel(TFilePath(fp.getWideString() + L"\\" +
+                                       m_nameField->text().toStdWString() +
+                                       L"." + to_wstring(ext)),
+              sl,
+              opts, 0, 0, (m_exportOptions->m_createlevelfolder->isChecked() ?
+                    m_nameField->text().toStdWString() : std::wstring())) &&
           ret;
 
     // count levels exported
@@ -363,7 +391,8 @@ bool ExportAllLevelsPopup::execute() {
     level_exported = 0;
     return true;
   } else {  // move to next level
-    m_nameField->setText(QString::fromStdWString(outputLevels.back()->getName()));
+    m_nameField->setText(QString::fromStdWString(
+        level_to_foldername.find(outputLevels.back()->getName())->second));
     this->setWindowTitle(QString("Exporting ") +
                          getLevelTypeName(outputLevels.back()->getType()) +
                          QString(" Level ") +
@@ -372,6 +401,37 @@ bool ExportAllLevelsPopup::execute() {
 
   updateOnSelection();
   return false;
+}
+
+std::wstring ExportAllLevelsPopup::backfoldername(std::string colname,
+                                                  std::wstring levelname) {
+  if (levelname == to_wstring(colname) || colname.substr(0, 3) == "Col")
+    return levelname;
+  else {
+    std::wstring foldername;
+    colname.erase(std::remove(colname.begin(), colname.end(), L'#'),
+                  colname.end());
+
+    int pos = colname.find(L'1');
+    if (pos != std::wstring::npos) {
+      foldername += to_wstring("_1gen");
+      colname.erase(pos);
+    } else {
+      pos = colname.find(L'2');
+      if (!pos == std::wstring::npos) {
+        foldername += to_wstring("_2gen");
+        colname.erase(pos);
+      }
+    }
+
+    pos = colname.find(L'_');    //  '_'
+    if (pos != std::wstring::npos) {
+      foldername.insert(0,to_wstring(colname.substr(0, pos)));
+    } else {
+      foldername.insert(0,to_wstring(colname.substr(0,colname.size())));
+    }
+    return foldername;
+  }
 }
 
 void ExportAllLevelsPopup::skip() {
@@ -389,7 +449,8 @@ void ExportAllLevelsPopup::skip() {
                          getLevelTypeName(outputLevels.back()->getType()) +
                          QString(" Level ") +
                          QString::fromStdWString(outputLevels.back()->getName()));
-    m_nameField->setText(QString::fromStdWString(outputLevels.back()->getName()));
+    m_nameField->setText(QString::fromStdWString(
+        level_to_foldername.find(outputLevels.back()->getName())->second));
   }
   updateOnSelection();
 }

@@ -544,12 +544,6 @@ bool IoCmd::exportLevel(const TFilePath &path, TXshSimpleLevel *sl,
   // Camera (todo)
   assert(opts.m_camera.getRes().lx > 0 && opts.m_camera.getRes().ly > 0);
 
-  // Callbacks
-  std::unique_ptr<OverwriteCallbacks> overwriteDefault(
-      overwriteCB ? 0 : (overwriteCB = new ExportOverwriteCB()));
-  std::unique_ptr<ProgressCallbacks> progressDefault(
-      progressCB ? 0 : (progressCB = new ExportProgressCB()));
-
   // if Need to Create Folder
   TFilePath fp;
   if (!foldername.empty()) {
@@ -566,10 +560,16 @@ bool IoCmd::exportLevel(const TFilePath &path, TXshSimpleLevel *sl,
     fp = path;
   }
 
+  // Callbacks
+  std::unique_ptr<OverwriteCallbacks> overwriteDefault(
+      overwriteCB ? 0 : (overwriteCB = new ExportOverwriteCB()));
+  std::unique_ptr<ProgressCallbacks> progressDefault(
+      progressCB ? 0 : (progressCB = new ExportProgressCB()));
+
   // Initialize variables
   Locals locals = {fp, sl, opts, overwriteCB, progressCB};
   
-  progressCB->setProcessedName(QString::fromStdWString(path.getWideString()));
+  progressCB->setProcessedName(QString::fromStdWString(fp.getWideString()));
   progressCB->setRange(0, sl->getFrameCount());
 
   // Export level

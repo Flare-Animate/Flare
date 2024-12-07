@@ -108,7 +108,6 @@ private slots:
   void onOptionsClicked();
   void onRetas(int);
   void initFolder() override;
-  void setFolderName(bool tocreate);
   void onformatChanged(const QString &);
   void checkAlpha();
   void updatePreview();

@@ -179,7 +179,6 @@ ExportLevelPopup::ExportLevelPopup() : FileBrowserPopup(tr("Export Level"), Opti
   QTabBar *tabBar                   = new QTabBar;
   QStackedWidget *stackedWidget     = new QStackedWidget;
   QFrame *exportOptionsPage         = new QFrame;
-  folderName                        = L"Cell";
 
   // Options / Swatch splitter
   QSplitter *splitter     = new QSplitter(Qt::Vertical);
@@ -428,9 +427,6 @@ void ExportLevelPopup::showEvent(QShowEvent *se) {
     ret = connect(app->getCurrentLevel(), SIGNAL(xshLevelChanged()), this,
                   SLOT(updatePreview())) &&
           ret;
-    ret = connect(m_exportOptions->m_createlevelfolder,SIGNAL(clicked(bool),SLOT),this,
-        SLOT(setFolderName(bool))) &&
-        ret;
   }
   assert(ret);
 
@@ -642,7 +638,7 @@ bool ExportLevelPopup::execute() {
 
         ret = ret && IoCmd::exportLevel(fp.withName(sl->getName()), sl, opts,
                                         &overwriteCB, &progressCB,
-                         folderName);
+        (m_exportOptions->m_createlevelfolder->isChecked() ? m_nameField->text().toStdWString() : std::wstring()));
       }
     }
 
@@ -659,7 +655,8 @@ bool ExportLevelPopup::execute() {
       return false;
 
     return IoCmd::exportLevel(fp.withType(ext).withFrame(tmplFId), 0, opts,
-        0,0,folderName);
+        0,0,
+        (m_exportOptions->m_createlevelfolder->isChecked() ? m_nameField->text().toStdWString() : std::wstring()));
   }
 }
 
@@ -1033,14 +1030,6 @@ void ExportLevelPopup::ExportOptions::onThicknessTransformModeChanged() {
 
   m_fromThicknessDisplacement->setVisible(!scaleMode);
   m_toThicknessDisplacement->setVisible(!scaleMode);
-}
-
-void ExportLevelPopup::setFolderName(bool tocreate) {
-  if (tocreate) {
-    folderName = m_nameField->text().toStdWString();
-  } else {
-    folderName = std::wstring();
-  }
 }
 
 
