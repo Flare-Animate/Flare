@@ -551,19 +551,21 @@ bool IoCmd::exportLevel(const TFilePath &path, TXshSimpleLevel *sl,
       progressCB ? 0 : (progressCB = new ExportProgressCB()));
 
   // if Need to Create Folder
+  TFilePath fp;
   if (CreateLevelFolder) {
-    TFilePath fp;
     fp = TFilePath(path.getParentDir().getWideString() +
                               to_wstring("\\") +
                      sl->getName() +  to_wstring("\\") +
                      path.withoutParentDir().getWideString());
+    TFilePath fp2 = fp.getParentDir();
+    bool exist = TFileStatus(fp2).isDirectory();
     if (!TFileStatus(fp.getParentDir()).isDirectory()) {
       TSystem::mkDir(fp.getParentDir());
     } 
   }
 
   // Initialize variables
-  Locals locals = {path, sl, opts, overwriteCB, progressCB};
+  Locals locals = {fp, sl, opts, overwriteCB, progressCB};
   
   progressCB->setProcessedName(QString::fromStdWString(path.getWideString()));
   progressCB->setRange(0, sl->getFrameCount());
