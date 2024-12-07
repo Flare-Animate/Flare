@@ -10,6 +10,7 @@
 #include "tofflinegl.h"
 #include "tvectorrenderdata.h"
 #include "tstroke.h"
+#include "tfilepath.h"
 
 // ToonzLib includes
 #include "toonz/txshsimplelevel.h"
@@ -413,7 +414,8 @@ TImageP IoCmd::exportedImage(const std::string &ext, const TXshSimpleLevel &sl,
 bool IoCmd::exportLevel(const TFilePath &path, TXshSimpleLevel *sl,
                         ExportLevelOptions opts,
                         OverwriteCallbacks *overwriteCB,
-                        ProgressCallbacks *progressCB) {
+                        ProgressCallbacks *progressCB,
+                        bool CreateLevelFolder) {
   struct Locals {
     const TFilePath &m_path;
     TXshSimpleLevel *m_sl;
@@ -518,7 +520,7 @@ bool IoCmd::exportLevel(const TFilePath &path, TXshSimpleLevel *sl,
   };  // Locals
 
   // Use default values in case some were not specified by input
-
+  
   // Level
   if (!sl) {
     sl = TApp::instance()->getCurrentLevel()->getSimpleLevel();
@@ -548,9 +550,21 @@ bool IoCmd::exportLevel(const TFilePath &path, TXshSimpleLevel *sl,
   std::unique_ptr<ProgressCallbacks> progressDefault(
       progressCB ? 0 : (progressCB = new ExportProgressCB()));
 
+  // if Need to Create Folder
+  if (CreateLevelFolder) {
+    TFilePath fp;
+    fp = TFilePath(path.getParentDir().getWideString() +
+                              to_wstring("\\") +
+                     sl->getName() +  to_wstring("\\") +
+                     path.withoutParentDir().getWideString());
+    if (!TFileStatus(fp.getParentDir()).isDirectory()) {
+      TSystem::mkDir(fp.getParentDir());
+    } 
+  }
+
   // Initialize variables
   Locals locals = {path, sl, opts, overwriteCB, progressCB};
-
+  
   progressCB->setProcessedName(QString::fromStdWString(path.getWideString()));
   progressCB->setRange(0, sl->getFrameCount());
 
