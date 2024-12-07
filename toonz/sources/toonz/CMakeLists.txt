@@ -35,6 +35,7 @@ set(MOC_HEADERS
     dvitemview.h
     dvwidgets.h
     exportlevelpopup.h
+    exportalllevelspopup.h
     exportpanel.h
     exportscenepopup.h
     filebrowser.h
