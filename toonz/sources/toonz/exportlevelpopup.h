@@ -92,6 +92,7 @@ private:
 
   ExportOptions *m_exportOptions;
   Swatch *m_swatch;
+  std::wstring folderName;
 
   // Others
   std::vector<TXshSimpleLevel *> outputLevels;
@@ -107,6 +108,7 @@ private slots:
   void onOptionsClicked();
   void onRetas(int);
   void initFolder() override;
+  void setFolderName(bool tocreate);
   void onformatChanged(const QString &);
   void checkAlpha();
   void updatePreview();

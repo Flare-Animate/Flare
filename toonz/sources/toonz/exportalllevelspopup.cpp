@@ -312,8 +312,9 @@ bool ExportAllLevelsPopup::execute() {
     MultiExportOverwriteCB overwriteCB;
     while (!outputLevels.empty()) {
       sl  = outputLevels.back()->getSimpleLevel();
-      ret = IoCmd::exportLevel(TFilePath(fp.getWideString()+to_wstring("\\") + sl->getName() + to_wstring("."+ext)), sl,
-                               opts, &overwriteCB, &progressCB,m_exportOptions->m_createlevelfolder->isChecked()) &&
+      ret = IoCmd::exportLevel(TFilePath(fp.getWideString()+ L"\\" + sl->getName() + L"."+ to_wstring(ext)), sl,
+                               opts, &overwriteCB, &progressCB,
+                               (folderName.empty() ? sl->getName() : folderName)) &&
             ret;
       if (ret) {
         ++level_exported;  // count exported levels
@@ -341,7 +342,7 @@ bool ExportAllLevelsPopup::execute() {
     TXshSimpleLevel *sl = outputLevels.back()->getSimpleLevel();
     ret                 = IoCmd::exportLevel(
               fp.withType(ext).withName(m_nameField->text().toStdWString()), sl,
-              opts, 0, 0, m_exportOptions->m_createlevelfolder->isChecked()) &&
+              opts, 0, 0, folderName) &&
           ret;
 
     // count levels exported

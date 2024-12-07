@@ -44,7 +44,7 @@
 
 // Qt includes
 #include <QApplication>
-
+#include <QString>
 #include "exportlevelcommand.h"
 
 using namespace DVGui;
@@ -415,7 +415,7 @@ bool IoCmd::exportLevel(const TFilePath &path, TXshSimpleLevel *sl,
                         ExportLevelOptions opts,
                         OverwriteCallbacks *overwriteCB,
                         ProgressCallbacks *progressCB,
-                        bool CreateLevelFolder) {
+                        std::wstring foldername) {
   struct Locals {
     const TFilePath &m_path;
     TXshSimpleLevel *m_sl;
@@ -552,16 +552,18 @@ bool IoCmd::exportLevel(const TFilePath &path, TXshSimpleLevel *sl,
 
   // if Need to Create Folder
   TFilePath fp;
-  if (CreateLevelFolder) {
+  if (!foldername.empty()) {
     fp = TFilePath(path.getParentDir().getWideString() +
                               to_wstring("\\") +
-                     sl->getName() +  to_wstring("\\") +
+                     foldername +  to_wstring("\\") +
                      path.withoutParentDir().getWideString());
     TFilePath fp2 = fp.getParentDir();
     bool exist = TFileStatus(fp2).isDirectory();
     if (!TFileStatus(fp.getParentDir()).isDirectory()) {
       TSystem::mkDir(fp.getParentDir());
     } 
+  } else {
+    fp = path;
   }
 
   // Initialize variables

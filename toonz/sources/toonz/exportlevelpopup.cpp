@@ -179,6 +179,7 @@ ExportLevelPopup::ExportLevelPopup() : FileBrowserPopup(tr("Export Level"), Opti
   QTabBar *tabBar                   = new QTabBar;
   QStackedWidget *stackedWidget     = new QStackedWidget;
   QFrame *exportOptionsPage         = new QFrame;
+  folderName                        = L"Cell";
 
   // Options / Swatch splitter
   QSplitter *splitter     = new QSplitter(Qt::Vertical);
@@ -427,6 +428,9 @@ void ExportLevelPopup::showEvent(QShowEvent *se) {
     ret = connect(app->getCurrentLevel(), SIGNAL(xshLevelChanged()), this,
                   SLOT(updatePreview())) &&
           ret;
+    ret = connect(m_exportOptions->m_createlevelfolder,SIGNAL(clicked(bool),SLOT),this,
+        SLOT(setFolderName(bool))) &&
+        ret;
   }
   assert(ret);
 
@@ -638,7 +642,7 @@ bool ExportLevelPopup::execute() {
 
         ret = ret && IoCmd::exportLevel(fp.withName(sl->getName()), sl, opts,
                                         &overwriteCB, &progressCB,
-                         m_exportOptions->m_createlevelfolder->isChecked());
+                         folderName);
       }
     }
 
@@ -655,7 +659,7 @@ bool ExportLevelPopup::execute() {
       return false;
 
     return IoCmd::exportLevel(fp.withType(ext).withFrame(tmplFId), 0, opts,
-        0,0,m_exportOptions->m_createlevelfolder->isChecked());
+        0,0,folderName);
   }
 }
 
@@ -711,7 +715,7 @@ ExportLevelPopup::ExportOptions::ExportOptions(QWidget *parent)
     m_noAntialias = new QCheckBox(tr("No Antialias"));
     layout->addWidget(m_noAntialias, row++, 2, Qt::AlignLeft);
 
-    m_createlevelfolder = new QCheckBox(tr("Create Level Folder"));
+    m_createlevelfolder = new QCheckBox(tr("Create Folder(equal file name)"));
     layout->addWidget(m_createlevelfolder, row++, 2, Qt::AlignLeft);
     
     //-------------- Vector Options ---------------------
@@ -1029,6 +1033,14 @@ void ExportLevelPopup::ExportOptions::onThicknessTransformModeChanged() {
 
   m_fromThicknessDisplacement->setVisible(!scaleMode);
   m_toThicknessDisplacement->setVisible(!scaleMode);
+}
+
+void ExportLevelPopup::setFolderName(bool tocreate) {
+  if (tocreate) {
+    folderName = m_nameField->text().toStdWString();
+  } else {
+    folderName = std::wstring();
+  }
 }
 
 
