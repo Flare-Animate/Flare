@@ -1884,7 +1884,7 @@ void MainWindow::defineActions() {
                         "export_level");
   createMenuLevelAction(MI_ExportAllLevels,
                         QT_TR_NOOP("&Export All Levels... "), "", 
-                        "export_level");
+                        "export_all_levels");
   createMenuLevelAction(MI_RemoveEndpoints,
                         QT_TR_NOOP("&Remove Vector Overflow"), "",
                         "remove_vector_overflow");
