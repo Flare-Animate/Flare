@@ -251,7 +251,7 @@ void ExportAllLevelsPopup::GetSelectedSimpLevels() {
   TXshSimpleLevel *sl;
   std::vector<int> cols;
 
-  for (int i = 1; i < col_count; ++i) {
+  for (int i = 1; i <= col_count; ++i) {
     TXshColumn *col = xsh->getColumn(i - 1);
     assert(col);
     if (!col->isCamstandVisible()) continue;
