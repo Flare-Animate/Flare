@@ -323,6 +323,7 @@ bool ExportAllLevelsPopup::execute() {
   // Start to export
   bool ret = true;
 
+  // export rest at one time
   if (isexport_all) {
     TXshSimpleLevel *sl;
     std::wstring folderName;
@@ -352,7 +353,8 @@ bool ExportAllLevelsPopup::execute() {
   else {
     // File Name Check
     if (m_nameField->text().isEmpty()) {
-      DVGui::error(tr("Please input the File name!"));
+      m_nameField->setText(QString::fromStdWString(
+          level_to_foldername.find(outputLevels.back()->getName())->second));
       return false;
     }
     if (!isValidFileName(QString::fromStdString(fp.getName()))) {
