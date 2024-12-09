@@ -339,7 +339,11 @@ bool ExportAllLevelsPopup::execute() {
                        : std::wstring();
       std::wstring b = fp.getWideString();
       std::wstring a = fp.getWideString()+ L"\\" + folderName + L"."+ to_wstring(ext);
-      ret = IoCmd::exportLevel(TFilePath(fp.getWideString()+ L"\\" + folderName + L"."+ to_wstring(ext)), sl,
+      ret = IoCmd::exportLevel(
+                TFilePath(fp.getWideString() + L"\\" +
+                          level_to_foldername.find(sl->getName())->second +
+                          L"." + to_wstring(ext)),
+                          sl,
                                opts, &overwriteCB, &progressCB,
                 folderName) &&
             ret;
