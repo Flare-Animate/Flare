@@ -19,6 +19,7 @@ private:
   ToonzScene *scene;
   std::map<std::wstring ,std::wstring> level_to_foldername;
   std::wstring backfoldername(std::string colname, std::wstring levelname);
+  bool isAllLevelsExported();
 
   // Widgets
 private:

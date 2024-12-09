@@ -122,7 +122,7 @@ public:
 ExportAllLevelsPopup::ExportAllLevelsPopup(){
   setWindowModality(Qt::ApplicationModal);
   setWindowTitle(QString("Exporting All Levels..."));
-  //m_browser->setFolder(TApp::instance()->getCurrentScene()->getScene()->getProject()->getProjectFolder());
+  m_browser->setFolder(TApp::instance()->getCurrentScene()->getScene()->getProject()->getProjectFolder());
 
   // Export Options Tab
   m_exportOptions->m_createlevelfolder->setChecked(true);
@@ -384,26 +384,14 @@ bool ExportAllLevelsPopup::execute() {
       return false;
   }
 
-  // The Export Action Done
-  if (outputLevels.empty()) {  // no more level to export
-    QMessageBox::information(
-        nullptr,
-        "Export All Levels",                                   // title
-        QString::number(level_exported) + " Levels Exported",  // content
-        QMessageBox::Ok);
-    level_exported = 0;
+  // Is The Export All Action Done?
+  if (isAllLevelsExported()) {
     return true;
-  } else {  // move to next level
-    m_nameField->setText(QString::fromStdWString(
-        level_to_foldername.find(outputLevels.back()->getName())->second));
-    this->setWindowTitle(QString("Exporting ") +
-                         getLevelTypeName(outputLevels.back()->getType()) +
-                         QString(" Level ") +
-                         QString::fromStdWString(outputLevels.back()->getName()));
   }
-
-  updateOnSelection();
-  return false;
+  else {
+    updateOnSelection();
+    return false;
+  }
 }
 
 std::wstring ExportAllLevelsPopup::backfoldername(std::string colname,
@@ -437,25 +425,34 @@ std::wstring ExportAllLevelsPopup::backfoldername(std::string colname,
   }
 }
 
-void ExportAllLevelsPopup::skip() {
-  outputLevels.pop_back();
-  if (outputLevels.empty()) {
-      QMessageBox::information(nullptr,
-                               tr("Exporting All Levels..."),  // title
-                               QString::number(level_exported) + tr("%1 Levels Exported").arg(level_exported),  // content
-                               QMessageBox::Ok);
+bool ExportAllLevelsPopup::isAllLevelsExported() {
+  if (outputLevels.empty()) {  // no more level to export
+    QMessageBox::information(
+        nullptr,
+        "Export All Levels",                                   // title
+        QString::number(level_exported) + " Levels Exported",  // content
+        QMessageBox::Ok);
     level_exported = 0;
-    close();
-    return;
-  } else {
-    this->setWindowTitle(QString("Exporting ") +
-                         getLevelTypeName(outputLevels.back()->getType()) +
-                         QString(" Level ") +
-                         QString::fromStdWString(outputLevels.back()->getName()));
+    return true;
+  } else {  // move to next level
     m_nameField->setText(QString::fromStdWString(
         level_to_foldername.find(outputLevels.back()->getName())->second));
+    this->setWindowTitle(
+        QString("Exporting ") +
+        getLevelTypeName(outputLevels.back()->getType()) + QString(" Level ") +
+        QString::fromStdWString(outputLevels.back()->getName()));
+    return false;
   }
-  updateOnSelection();
+}
+
+void ExportAllLevelsPopup::skip() {
+  outputLevels.pop_back();
+  // Is The Export All Action Done?
+  if (isAllLevelsExported()) {
+    close();
+  } else {
+    updateOnSelection();
+  }
 }
 
 QString ExportAllLevelsPopup::getLevelTypeName(int type) { 
