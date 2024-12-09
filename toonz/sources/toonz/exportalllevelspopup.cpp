@@ -182,24 +182,13 @@ void ExportAllLevelsPopup::showEvent(QShowEvent *se) {
     // reset map
     level_to_foldername.clear();
 
-    GetSelectedSimpLevels();//also init level_to_folder
+    GetSelectedSimpLevels();//also init level_to_foldername,and sort them
 
-    
     if (outputLevels.empty()) {
         QTimer::singleShot(1000, this, &ExportAllLevelsPopup::hide);
         DVGui::error(tr("No Level in camera stand or null Level !"));
         return;
     }
-
-    //sort
-    std::sort(outputLevels.begin(), outputLevels.end(),
-              [](TXshLevel *lhs, TXshLevel *rhs) {
-                if (lhs->getType() ==
-                    rhs->getType()) {  // vector first,biggest level name second
-                  return lhs->getName() < rhs->getName();
-                } else
-                  return lhs->getType() > rhs->getType();
-              });
 
     onExportAll(isexport_all);
     updateOnSelection();
@@ -280,6 +269,18 @@ void ExportAllLevelsPopup::GetSelectedSimpLevels() {
         continue;
     }
   }
+
+  // sort
+  auto *p = &level_to_foldername;
+  std::sort(outputLevels.begin(), outputLevels.end(),
+            [p](TXshLevel *lhs, TXshLevel *rhs) {
+              if (lhs->getType() ==
+                  rhs->getType()) {  // vector first,biggest level name second
+                return p->find(lhs->getName())->second <
+                       p->find(rhs->getName())->second;
+              } else
+                return lhs->getType() > rhs->getType();
+            });
 }
 
 
