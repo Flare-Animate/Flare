@@ -227,12 +227,12 @@ ExportLevelPopup::ExportLevelPopup() : FileBrowserPopup(tr("Export Level"), Opti
   m_format->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Maximum);
 
   QStringList formats;
-  formats << "tga"
-          << "tif"
-          << "png"
+  formats << "png"
           << "jpg"
-          << "bmp";
-  formats.sort();
+          << "bmp"
+          << "tif"
+          << "tga";
+  //formats.sort();
   m_format->addItems(formats);
 
   m_retas->setMinimumHeight(DVGui::WidgetHeight);
