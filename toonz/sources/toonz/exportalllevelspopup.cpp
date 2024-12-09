@@ -419,7 +419,7 @@ std::wstring ExportAllLevelsPopup::backfoldername(std::string colname,
     if (pos != std::wstring::npos) {
       foldername.insert(0,to_wstring(colname.substr(0, pos)));
     } else {
-      foldername.insert(0,to_wstring(colname.substr(0,colname.size())));
+      foldername.insert(0,to_wstring(colname));
     }
     return foldername;
   }
