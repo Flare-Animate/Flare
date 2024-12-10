@@ -16,7 +16,8 @@ jobs:
           # Remove existing symlinks before installing Python
           for symlink in 2to3 idle3 pydoc3 python3 python3-config \
                          2to3-3.11 idle3.11 pydoc3.11 python3.11 python3.11-config \
-                         2to3-3.12 idle3.12 pydoc3.12 python3.12 python3.12-config; do
+                         2to3-3.12 idle3.12 pydoc3.12 python3.12 python3.12-config \
+                         idle3.13 pydoc3.13 python3.13 python3.13-config; do
             rm -f /usr/local/bin/$symlink
           done
 
