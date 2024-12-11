@@ -198,6 +198,7 @@ void ExportAllLevelsPopup::updateOnSelection() {
     TXshSimpleLevel *sl = outputLevels.back()->getSimpleLevel();
     assert(sl);
 
+    /*   Implement this Feature in the feature
     // Enable tlv output in case all inputs are pli or tlv
     int tlvIdx = m_format->findText("tlv");
         //export all mode
@@ -223,6 +224,7 @@ void ExportAllLevelsPopup::updateOnSelection() {
         if (tlvIdx > 0) m_format->removeItem(tlvIdx);
       }
     }
+    */
 
     //whether be abel to set PliOptions
     if (sl->getType() == PLI_XSHLEVEL) {
