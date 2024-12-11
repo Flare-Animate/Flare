@@ -337,8 +337,6 @@ bool ExportAllLevelsPopup::execute() {
       folderName = m_exportOptions->m_createlevelfolder->isChecked()
                        ? level_to_foldername.find(sl->getName())->second
                        : std::wstring();
-      std::wstring b = fp.getWideString();
-      std::wstring a = fp.getWideString()+ L"\\" + folderName + L"."+ to_wstring(ext);
       ret = IoCmd::exportLevel(
                 TFilePath(fp.getWideString() + L"\\" +
                           level_to_foldername.find(sl->getName())->second +
