@@ -364,23 +364,21 @@ void ExportAllLevelsPopup::updateOnSelection() {
     TXshSimpleLevel *sl = outputLevels.back()->getSimpleLevel();
     assert(sl);
 
-    // Enable tlv output in case all inputs are pli or tlv
+    // Enable tlv output in case all inputs are pli
     int tlvIdx = m_format->findText("tlv");
         //export all mode
     if (isexport_all) {
-      bool allPliTlvs = true;
+      bool allPli = true;
       for (auto sl : outputLevels) {
-        allPliTlvs = (sl && (sl->getType() == PLI_XSHLEVEL ||
-                             sl->getType() == TZP_XSHLEVEL)) &&
-                     allPliTlvs;
+        allPli = (sl && (sl->getType() == PLI_XSHLEVEL)) &&
+                     allPli;
       }
-      if (allPliTlvs) {
+      if (allPli) {
         if (tlvIdx < 0) m_format->addItem("tlv");
       } else {
         if (tlvIdx > 0) m_format->removeItem(tlvIdx);
       }
-      
-    } 
+    }
         //export one by one mode
     else {
       if (sl->getType() == PLI_XSHLEVEL || sl->getType() == TZP_XSHLEVEL) {
