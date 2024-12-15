@@ -706,7 +706,7 @@ void DvDirVersionControlProjectNode::refreshChildren() {
   DvDirModelFileFolderNode::refreshChildren();
   int i;
   TProjectManager *pm = TProjectManager::instance();
-  auto project = std::make_shared<TProject>();
+  auto project        = std::make_shared<TProject>();
   project->load(getProjectPath());
   for (i = 0; i < getChildCount(); i++) {
     DvDirModelFileFolderNode *node =
@@ -724,7 +724,7 @@ void DvDirVersionControlProjectNode::getChildrenNames(
     std::vector<std::wstring> &names) const {
   DvDirVersionControlNode::getChildrenNames(names);
   TProjectManager *pm = TProjectManager::instance();
-  auto project = std::make_shared<TProject>();
+  auto project        = std::make_shared<TProject>();
   project->load(getProjectPath());
   int i;
   for (i = 0; i < project->getFolderCount(); i++) {
@@ -787,7 +787,7 @@ void DvDirModelProjectNode::refreshChildren() {
   DvDirModelFileFolderNode::refreshChildren();
   int i;
   TProjectManager *pm = TProjectManager::instance();
-  auto project = std::make_shared<TProject>();
+  auto project        = std::make_shared<TProject>();
   project->load(getProjectPath());
   for (i = 0; i < getChildCount(); i++) {
     DvDirModelFileFolderNode *node =
@@ -805,7 +805,7 @@ void DvDirModelProjectNode::getChildrenNames(
     std::vector<std::wstring> &names) const {
   DvDirModelFileFolderNode::getChildrenNames(names);
   TProjectManager *pm = TProjectManager::instance();
-  auto project = std::make_shared<TProject>();
+  auto project        = std::make_shared<TProject>();
   project->load(getProjectPath());
   int i;
   for (i = 0; i < project->getFolderCount(); i++) {
@@ -823,7 +823,7 @@ void DvDirModelProjectNode::getChildrenNames(
 DvDirModelNode *DvDirModelProjectNode::makeChild(std::wstring name) {
   if (name != L"" && name[0] == L'+') {
     TProjectManager *pm = TProjectManager::instance();
-    auto project = std::make_shared<TProject>();
+    auto project        = std::make_shared<TProject>();
     project->load(getProjectPath());
     std::string folderName = ::to_string(name.substr(1));
     TFilePath folderPath   = project->getFolder(folderName);
@@ -1295,15 +1295,10 @@ void DvDirModel::onFolderChanged(const TFilePath &path) { refreshFolder(path); }
 void DvDirModel::refresh(const QModelIndex &index) {
   if (!index.isValid()) return;
   DvDirModelNode *node = getNode(index);
-  if (!node || node->getChildCount() < 1) {
-    if (node->getChildCount() == 0 && node->getNodeType() == "FileFolder") {
-      //when creating new folder in a empty folder,do not break
-    }else
-        return;
-  }
+  if (!node || node->getChildCount() < 1) return;
   emit layoutAboutToBeChanged();
-  node->refreshChildren();
   emit beginRemoveRows(index, 0, node->getChildCount() - 1);
+  node->refreshChildren();
   emit endRemoveRows();
   emit layoutChanged();
 }

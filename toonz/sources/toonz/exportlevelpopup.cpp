@@ -378,6 +378,7 @@ void ExportLevelPopup::GetSelectedSimpLevels() {
     TXshSimpleLevel *sl = app->getCurrentLevel()->getSimpleLevel();
     outputLevels.push_back(sl);
   }
+  initFolder();
 }
 //-----------------------------------------------------------------------------
 
@@ -550,15 +551,14 @@ void ExportLevelPopup::updateOnSelection() {
   GetSelectedSimpLevels();
   m_nameField->setEnabled(outputLevels.size() == 1);
 
-  // Enable tlv output in case all inputs are pli or tlv
+  // Enable tlv output in case all inputs are pli
   int tlvIdx = m_format->findText("tlv");
-  bool allPliTlvs = true;
+  bool allPli = true;
   for (auto sl : outputLevels) {
-    allPliTlvs = (sl && (sl->getType() == PLI_XSHLEVEL ||
-                         sl->getType() == TZP_XSHLEVEL)) &&
-                 allPliTlvs;
+    allPli = (sl && (sl->getType() == PLI_XSHLEVEL)) &&
+                 allPli;
   }
-  if (allPliTlvs) {
+  if (allPli) {
     if (tlvIdx < 0) m_format->addItem("tlv");
   } else {
     if (tlvIdx > 0) m_format->removeItem(tlvIdx);
@@ -593,11 +593,12 @@ void ExportLevelPopup::updatePreview() {
 //--------------------------------------------------------------
 
 bool ExportLevelPopup::execute() {
-  if (m_selectedPaths.empty()) {
-    DVGui::error(tr("Please input the File name and select a folder!"));
+  if (m_browser->getFolder().isEmpty()) {
+    DVGui::error(tr("Please select a folder!"));
     return false;
   }
-  TFilePath fp(*m_selectedPaths.begin());
+  TFilePath FolderPath = TFilePath(m_browser->getFolder());
+  TFilePath FilePath;
 
   // Build export options
   const std::string &ext                = m_format->currentText().toStdString();
@@ -608,14 +609,14 @@ bool ExportLevelPopup::execute() {
   ToonzScene *scene = app->getCurrentScene()->getScene();
   TFrameId tmplFId  = scene->getProperties()->formatTemplateFIdForInput();
 
+  // If need to create folder
+  bool createFolder = m_exportOptions->m_createlevelfolder->isChecked();
+
   // Retrieve current column selection
 
   TSelection *selection          = app->getCurrentSelection()->getSelection();
   TColumnSelection *colSelection = dynamic_cast<TColumnSelection *>(selection);
   if (colSelection && colSelection->getIndices().size() > 1) {
-    fp = TFilePath(m_browser->getFolder() + TFilePath("a"))
-             .withType(ext)
-             .withFrame(tmplFId);
 
     bool ret = true;
     MultiExportOverwriteCB overwriteCB;
@@ -625,6 +626,7 @@ bool ExportLevelPopup::execute() {
     const std::set<int> &colIndices = colSelection->getIndices();
 
     std::set<int>::const_iterator it, end = colIndices.end();
+
     for (it = colIndices.begin(); it != end; ++it) {
       if (progressCB.canceled()) break;
 
@@ -635,28 +637,44 @@ bool ExportLevelPopup::execute() {
       {
         TXshSimpleLevel *sl = xsh->getCell(r0, c).getSimpleLevel();
         assert(sl);
-
-        ret = ret && IoCmd::exportLevel(fp.withName(sl->getName()), sl, opts,
-                                        &overwriteCB, &progressCB,
-        (m_exportOptions->m_createlevelfolder->isChecked() ? m_nameField->text().toStdWString() : std::wstring()));
+        FilePath =
+            TFilePath(FolderPath.getWideString() + L"\\" + sl->getName());
+        // if Need to Create Folder
+        if (createFolder) {
+          m_browser->createFolder(FilePath);
+          FilePath = TFilePath(FilePath.getWideString() + L"\\" + sl->getName())
+                    .withType(ext)
+                    .withFrame(tmplFId);
+          ret = ret && IoCmd::exportLevel(FilePath, sl, opts, &overwriteCB,
+                                          &progressCB);
+        } else {
+          ret = ret && IoCmd::exportLevel(FilePath.withName(sl->getName())
+                                              .withType(ext)
+                                              .withFrame(tmplFId),
+                                          sl, opts, &overwriteCB, &progressCB);
+        }
+          
       }
     }
 
     return ret;
   } else {
-    if (!isValidFileName(QString::fromStdString(fp.getName()))) {
-      DVGui::error(
-          tr("The file name cannot be empty or contain any of the following "
-             "characters:(new line)  \\ / : * ? \"  |"));
+    QString FileName = m_nameField->text();
+    if (FileName.isEmpty()) return false;
+    if (!isValidFileName_message(FileName)) {
       return false;
     }
-
-    if (isReservedFileName_message(QString::fromStdString(fp.getName())))
+    if (isReservedFileName_message(FileName))
       return false;
-
-    return IoCmd::exportLevel(fp.withType(ext).withFrame(tmplFId), 0, opts,
-        0,0,
-        (m_exportOptions->m_createlevelfolder->isChecked() ? m_nameField->text().toStdWString() : std::wstring()));
+    
+    if (createFolder) {
+      m_browser->createFolder(FolderPath);
+    }
+    FilePath =
+        TFilePath(FolderPath.getWideString() + L"\\" +
+                    FileName.toStdWString());
+    return IoCmd::exportLevel(FilePath.withType(ext).withFrame(tmplFId), 0, opts,
+        0,0);
   }
 }
 

@@ -92,7 +92,6 @@ private:
 
   ExportOptions *m_exportOptions;
   Swatch *m_swatch;
-  std::wstring folderName;
 
   // Others
   std::vector<TXshSimpleLevel *> outputLevels;

@@ -144,9 +144,8 @@ bool exportLevel(
     OverwriteCallbacks *overwriteCB =
         0,  //!< External callbacks to overwrite requests.
     ProgressCallbacks *progressCB =
-        0,  //!< External callbacks to progress notifications.
-    std::wstring foldername =
-        std::wstring());  // Create a Level Folder if not exist and export to the folder
+        0  //!< External callbacks to progress notifications.
+    );  
 
 }  // namespace IoCmd
 

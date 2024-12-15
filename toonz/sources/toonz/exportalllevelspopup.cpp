@@ -157,6 +157,7 @@ ExportAllLevelsPopup::ExportAllLevelsPopup(){
   ret = connect(m_exportall, SIGNAL(toggled(bool)), this,
                 SLOT(onExportAll(bool))) &&
         ret;
+  initFolder();
   }
 
 ExportAllLevelsPopup::~ExportAllLevelsPopup() { outputLevels.clear(); }
@@ -192,6 +193,171 @@ void ExportAllLevelsPopup::showEvent(QShowEvent *se) {
 
     onExportAll(isexport_all);
     updateOnSelection();
+
+    QDialog::showEvent(se);
+}
+
+bool ExportAllLevelsPopup::execute() {
+  // Get Folder
+  TFilePath FolderPath = TFilePath(m_browser->getFolder());
+  TFilePath FilePath = FolderPath;
+
+  // Do Path Checks
+  if (FolderPath.isEmpty()) {
+    DVGui::error(tr("Please select a Folder!"));
+    return false;
+  }
+  // If need to create folder
+  bool createFolder = m_exportOptions->m_createlevelfolder->isChecked();
+
+  // ReBuild export options
+  const std::string &ext                = m_format->currentText().toStdString();
+  const IoCmd::ExportLevelOptions &opts = getOptions(ext);
+
+  TFrameId tmplFId  = TApp::instance()->getCurrentScene()->getScene()->getProperties()->formatTemplateFIdForInput();
+
+  // Start to export
+  bool ret = true;
+
+  // export rest at one time
+  if (isexport_all) {
+    TXshSimpleLevel *sl;
+    MultiExportProgressCB progressCB;
+    MultiExportOverwriteCB overwriteCB;
+
+    while (!outputLevels.empty()) {
+      if (progressCB.canceled()) break; 
+      sl         = outputLevels.back()->getSimpleLevel();
+
+      // if Need to Create Folder
+      if (createFolder) {
+        FilePath = FolderPath + level_to_foldername.find(sl->getName())->second;
+        m_browser->createFolder(FilePath);
+      }
+      ret = IoCmd::exportLevel(
+                TFilePath(FilePath.getWideString() + L"\\" + level_to_foldername.find(sl->getName())->second)
+                    .withType(ext).withFrame(tmplFId),
+                sl, opts, &overwriteCB, &progressCB) &&
+            ret;
+      if (ret) {
+        ++level_exported;  // count exported levels
+      } else
+        return ret;
+      outputLevels.pop_back();
+    }
+  }
+
+  // Export one by one
+  else {
+    QString FileName = m_nameField->text();
+    // File Name Check
+    if (FileName.isEmpty()) {
+      m_nameField->setText(QString::fromStdWString(
+          level_to_foldername.find(outputLevels.back()->getName())->second));
+      return false;
+    }
+    if (!isValidFileName_message(FileName)) {
+      return false;
+    }
+    if (isReservedFileName_message(FileName))
+      return false;
+
+    // if Need to Create Folder
+    if (createFolder) {
+      FilePath = FolderPath + m_nameField->text().toStdWString();
+      m_browser->createFolder(FilePath);
+    }
+
+    TXshSimpleLevel *sl = outputLevels.back()->getSimpleLevel();
+    ret = IoCmd::exportLevel(TFilePath(FilePath.getWideString() + L"\\" + m_nameField->text().toStdWString()).withType(ext).withFrame(tmplFId),
+                             sl, opts) &&
+          ret;
+
+    // count levels exported
+    if (ret) {
+      ++level_exported;
+      outputLevels.pop_back();
+    } else
+      return false;
+  }
+
+  // Is The Export All Action Done?
+  if (isAllLevelsExported()) {
+    return true;
+  } else {
+    updateOnSelection();
+    return false;
+  }
+}
+
+void ExportAllLevelsPopup::GetSelectedSimpLevels() {
+  // get output Levels
+  outputLevels.clear();
+  TXsheet *xsh             = TApp::instance()->getCurrentXsheet()->getXsheet();
+  int col_count = xsh->getColumnCount();
+  int r0, r1;  // cell start point and end point
+  TXshSimpleLevel *sl;
+  std::vector<int> cols;
+  TStageObject *pegbar;
+  TStageObjectId id;
+  std::string colname;
+  std::wstring levelname;
+
+  for (int index = 0; index < col_count; ++index) {
+    TXshColumn *col = xsh->getColumn(index);//start from a not camera column
+    assert(col);
+    if (col->isEmpty() || !col->isCamstandVisible()) continue;// Not empty and visible
+    if (col->getColumnType()) continue;
+    if (col->getRange(r0, r1)) sl = xsh->getCell(r0, index).getSimpleLevel();
+    assert(sl);
+    int type = sl->getType();
+    if
+      (!(type == PLI_XSHLEVEL ||  // ToonzVector
+        type == TZP_XSHLEVEL ||  // ToonzRaster
+        type == OVL_XSHLEVEL))    // Raster
+          continue;
+    outputLevels.push_back(sl);
+
+    pegbar    = xsh->getStageObject(TStageObjectId::ColumnId(index));
+    colname   = pegbar->getName();
+    levelname = sl->getName();
+    level_to_foldername[sl->getName()] = backfoldername(colname, levelname);
+  }
+
+  // sort
+  auto *p = &level_to_foldername;
+  std::sort(outputLevels.begin(), outputLevels.end(),
+            [p](TXshLevel *lhs, TXshLevel *rhs) {
+              if (lhs->getType() ==
+                  rhs->getType()) {  // vector first,biggest level name second
+                return p->find(lhs->getName())->second <
+                       p->find(rhs->getName())->second;
+              } else
+                return lhs->getType() > rhs->getType();
+            });
+}
+
+void ExportAllLevelsPopup::onExportAll(bool toggled) {
+  if (toggled) {
+    this->setWindowTitle(QString("Exporting All Levels"));
+    m_skipButton->setDisabled(true);
+    m_nameField->setDisabled(true);
+    m_nameField->setText("");
+    isexport_all = true;
+  }
+
+  else {
+    this->setWindowTitle(
+        QString("Exporting ") +
+        getLevelTypeName(outputLevels.back()->getType()) + QString(" Level ") +
+        QString::fromStdWString(outputLevels.back()->getName()));
+    m_skipButton->setEnabled(true);
+    m_nameField->setEnabled(true);
+
+    isexport_all = false;
+    m_nameField->setText(QString::fromStdWString(
+        level_to_foldername.find(outputLevels.back()->getName())->second));
+  }
 }
 
 void ExportAllLevelsPopup::updateOnSelection() {
@@ -234,166 +400,6 @@ void ExportAllLevelsPopup::updateOnSelection() {
     }
     updatePreview();
     return;
-}
-
-void ExportAllLevelsPopup::GetSelectedSimpLevels() {
-  // get output Levels
-  outputLevels.clear();
-  TXsheetHandle *xshHandle = TApp::instance()->getCurrentXsheet();
-  TXsheet *xsh  = xshHandle->getXsheet();
-  int col_count = xsh->getColumnCount();
-  int c, r0, r1;  // columnindex,cellstartpoint
-  TXshSimpleLevel *sl;
-  std::vector<int> cols;
-  TStageObject *pegbar;
-  TStageObjectId id;
-  std::string colname;
-  std::wstring levelname;
-
-  for (int i = 1; i <= col_count; ++i) {
-    TXshColumn *col = xsh->getColumn(i - 1);
-    assert(col);
-    if (!col->isCamstandVisible()) continue;
-    if (!col->getColumnType()) {  // eLevelType
-      c = col->getIndex();
-      if (col->getLevelRange(c, r0, r1)) {  // Not empty
-        sl = xsh->getCell(r0, c).getSimpleLevel();
-        assert(sl);
-        outputLevels.push_back(sl);
-
-        pegbar = xsh->getStageObject(TStageObjectId::ColumnId(c));
-        colname = pegbar->getName();
-        levelname = sl->getName();
-        level_to_foldername[sl->getName()] = backfoldername(colname,levelname);
-      } else
-        continue;
-    }
-  }
-
-  // sort
-  auto *p = &level_to_foldername;
-  std::sort(outputLevels.begin(), outputLevels.end(),
-            [p](TXshLevel *lhs, TXshLevel *rhs) {
-              if (lhs->getType() ==
-                  rhs->getType()) {  // vector first,biggest level name second
-                return p->find(lhs->getName())->second <
-                       p->find(rhs->getName())->second;
-              } else
-                return lhs->getType() > rhs->getType();
-            });
-}
-
-
-void ExportAllLevelsPopup::onExportAll(bool toggled) {
-  if (toggled) {
-    this->setWindowTitle(QString("Exporting All Levels"));
-    m_skipButton->setDisabled(true);
-    m_nameField->setDisabled(true);
-    m_nameField->setText("");
-    isexport_all = true;
-  } 
-  
-  else {
-    this->setWindowTitle(QString("Exporting ") +
-                         getLevelTypeName(outputLevels.back()->getType()) +
-                         QString(" Level ") +
-                         QString::fromStdWString(outputLevels.back()->getName()));
-    m_skipButton->setEnabled(true);
-    m_nameField->setEnabled(true);
-    
-    isexport_all = false;
-    m_nameField->setText(QString::fromStdWString(
-        level_to_foldername.find(outputLevels.back()->getName())->second));
-  }
-}
-
-bool ExportAllLevelsPopup::execute() {
-  // Get Folder 
-    TFilePath fp = TFilePath(m_browser->getFolder().getQString());
-
-  // Do Path Checks
-  if (fp.isEmpty()) {
-    DVGui::error(tr("Please select a Folder!"));
-    return false;
-  }
-
-  // ReBuild export options
-  const std::string &ext                = m_format->currentText().toStdString();
-  const IoCmd::ExportLevelOptions &opts = getOptions(ext);
-
-  // Start to export
-  bool ret = true;
-
-  // export rest at one time
-  if (isexport_all) {
-    TXshSimpleLevel *sl;
-    std::wstring folderName;
-    MultiExportProgressCB progressCB;
-    MultiExportOverwriteCB overwriteCB;
-
-    
-    while (!outputLevels.empty()) {
-      sl  = outputLevels.back()->getSimpleLevel();
-      folderName = m_exportOptions->m_createlevelfolder->isChecked()
-                       ? level_to_foldername.find(sl->getName())->second
-                       : std::wstring();
-      ret = IoCmd::exportLevel(
-                TFilePath(fp.getWideString() + L"\\" +
-                          level_to_foldername.find(sl->getName())->second +
-                          L"." + to_wstring(ext)),
-                          sl,
-                               opts, &overwriteCB, &progressCB,
-                folderName) &&
-            ret;
-      if (ret) {
-        ++level_exported;  // count exported levels
-      };
-      outputLevels.pop_back();
-    }
-  }
-
-  // Export one by one
-  else {
-    // File Name Check
-    if (m_nameField->text().isEmpty()) {
-      m_nameField->setText(QString::fromStdWString(
-          level_to_foldername.find(outputLevels.back()->getName())->second));
-      return false;
-    }
-    if (!isValidFileName(QString::fromStdString(fp.getName()))) {
-      DVGui::error(
-          tr("The file name cannot be empty or contain any of the following "
-             "characters:(new line)  \\ / : * ? \"  |"));
-      return false;
-    }
-    if (isReservedFileName_message(QString::fromStdString(fp.getName())))
-      return false;
-
-    TXshSimpleLevel *sl = outputLevels.back()->getSimpleLevel();
-    ret = IoCmd::exportLevel(TFilePath(fp.getWideString() + L"\\" +
-                                       m_nameField->text().toStdWString() +
-                                       L"." + to_wstring(ext)),
-              sl,
-              opts, 0, 0, (m_exportOptions->m_createlevelfolder->isChecked() ?
-                    m_nameField->text().toStdWString() : std::wstring())) &&
-          ret;
-
-    // count levels exported
-    if (ret) {
-      ++level_exported;
-      outputLevels.pop_back();
-    } else
-      return false;
-  }
-
-  // Is The Export All Action Done?
-  if (isAllLevelsExported()) {
-    return true;
-  }
-  else {
-    updateOnSelection();
-    return false;
-  }
 }
 
 std::wstring ExportAllLevelsPopup::backfoldername(std::string colname,
@@ -471,7 +477,7 @@ QString ExportAllLevelsPopup::getLevelTypeName(int type) {
       return QString("");
     }
 }
-    
+
 //********************************************************************************
 //    Export All Levels Command  instantiation
 //********************************************************************************
