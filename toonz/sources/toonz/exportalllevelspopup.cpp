@@ -120,7 +120,6 @@ public:
 //********************************************************************************
 
 ExportAllLevelsPopup::ExportAllLevelsPopup(){
-  setWindowModality(Qt::ApplicationModal);
   setWindowTitle(QString("Exporting All Levels..."));
   m_browser->setFolder(TApp::instance()->getCurrentScene()->getScene()->getProject()->getProjectFolder());
 
@@ -146,7 +145,7 @@ ExportAllLevelsPopup::ExportAllLevelsPopup(){
           ->layout()
           ->itemAt(2)
           ->widget()
-          ->layout();  // Add below checkbox No Antialias
+          ->layout();
   fileFormatLayout->addWidget(m_exportall);
   fileFormatLayout->addWidget(m_skipButton);
 
@@ -160,11 +159,14 @@ ExportAllLevelsPopup::ExportAllLevelsPopup(){
   initFolder();
   }
 
-ExportAllLevelsPopup::~ExportAllLevelsPopup() { outputLevels.clear(); }
+ExportAllLevelsPopup::~ExportAllLevelsPopup() {
+    QWidget().setLayout(layout());
+  }
 
 //------------------------------------
 
 void ExportAllLevelsPopup::showEvent(QShowEvent *se) {
+    setWindowModality(Qt::ApplicationModal);
     
     if (Preferences::instance()->getPixelsOnly()) {
       m_exportOptions->m_widthFld->hide();
@@ -195,6 +197,16 @@ void ExportAllLevelsPopup::showEvent(QShowEvent *se) {
     updateOnSelection();
 
     QDialog::showEvent(se);
+}
+
+void ExportAllLevelsPopup::hideEvent(QHideEvent* he) {
+  setWindowModality(Qt::NonModal);
+  QDialog::hideEvent(he);
+
+  outputLevels.clear();
+  level_to_foldername.clear();
+
+  m_swatch->image() = TImageP();
 }
 
 bool ExportAllLevelsPopup::execute() {
@@ -455,7 +467,7 @@ void ExportAllLevelsPopup::skip() {
   outputLevels.pop_back();
   // Is The Export All Action Done?
   if (isAllLevelsExported()) {
-    close();
+    hide();
   } else {
     updateOnSelection();
   }

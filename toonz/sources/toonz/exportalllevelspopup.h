@@ -28,6 +28,7 @@ private:
 private slots:
   void GetSelectedSimpLevels() override;
   void showEvent(QShowEvent *se) override;
+  void hideEvent(QHideEvent *he) override;
   void updateOnSelection() override;
   void onExportAll(bool toggled);
   void skip();
