@@ -14,6 +14,7 @@
 #include <QGridLayout>
 #include <QLabel>
 #include <QComboBox>
+#include <QGroupBox>
 
 using namespace DVGui;
 
@@ -28,8 +29,9 @@ QIcon getColorChipIcon(TPixel32 color) {
 //=============================================================================
 
 XDTSImportPopup::XDTSImportPopup(QStringList levelNames, ToonzScene* scene,
-                                 TFilePath scenePath)
+                                 TFilePath scenePath, bool isUextVersion)
     : m_scene(scene)
+    , m_isUext(isUextVersion)
     , DVGui::Dialog(TApp::instance()->getMainWindow(), true, false,
                     "XDTSImport") {
   setWindowTitle(tr("Importing XDTS file %1")
@@ -37,15 +39,22 @@ XDTSImportPopup::XDTSImportPopup(QStringList levelNames, ToonzScene* scene,
   QPushButton* loadButton   = new QPushButton(tr("Load"), this);
   QPushButton* cancelButton = new QPushButton(tr("Cancel"), this);
 
-  m_tick1Combo                            = new QComboBox(this);
-  m_tick2Combo                            = new QComboBox(this);
+  m_tick1Combo             = new QComboBox(this);
+  m_tick2Combo             = new QComboBox(this);
+  QList<QComboBox*> combos = {m_tick1Combo, m_tick2Combo};
+
+  if (m_isUext) {
+    m_keyFrameCombo       = new QComboBox(this);
+    m_referenceFrameCombo = new QComboBox(this);
+    combos << m_keyFrameCombo << m_referenceFrameCombo;
+  }
+
   QList<TSceneProperties::CellMark> marks = TApp::instance()
                                                 ->getCurrentScene()
                                                 ->getScene()
                                                 ->getProperties()
                                                 ->getCellMarks();
-  for (int i = 0; i < 2; i++) {
-    QComboBox* combo = (i == 0) ? m_tick1Combo : m_tick2Combo;
+  for (auto combo : combos) {
     combo->addItem(tr("None"), -1);
     int curId = 0;
     for (auto mark : marks) {
@@ -54,8 +63,12 @@ XDTSImportPopup::XDTSImportPopup(QStringList levelNames, ToonzScene* scene,
       curId++;
     }
   }
-  m_tick1Combo->setCurrentIndex(m_tick1Combo->findData(0));
-  m_tick2Combo->setCurrentIndex(m_tick2Combo->findData(1));
+  m_tick1Combo->setCurrentIndex(m_tick1Combo->findData(6));
+  m_tick2Combo->setCurrentIndex(m_tick2Combo->findData(8));
+  if (m_isUext) {
+    m_keyFrameCombo->setCurrentIndex(m_keyFrameCombo->findData(0));
+    m_referenceFrameCombo->setCurrentIndex(m_referenceFrameCombo->findData(4));
+  }
 
   QString description =
       tr("Please specify the level locations. Suggested paths "
@@ -95,24 +108,36 @@ XDTSImportPopup::XDTSImportPopup(QStringList levelNames, ToonzScene* scene,
   fieldsArea->setWidget(fieldsWidget);
   m_topLayout->addWidget(fieldsArea, 1);
 
-  // cell mark area
-  QGridLayout* markLay = new QGridLayout();
-  markLay->setMargin(0);
-  markLay->setHorizontalSpacing(10);
-  markLay->setVerticalSpacing(10);
-  {
-    markLay->addWidget(
-        new QLabel(tr("Cell Mark for Inbetween Symbol 1 (O)"), this), 0, 0,
-        Qt::AlignRight | Qt::AlignVCenter);
-    markLay->addWidget(m_tick1Combo, 0, 1);
+  // 来週 原画／中割参考のコママークのレイアウトから！
 
-    markLay->addWidget(
-        new QLabel(tr("Cell Mark for Inbetween Symbol 2 (*)"), this), 1, 0,
-        Qt::AlignRight | Qt::AlignVCenter);
-    markLay->addWidget(m_tick2Combo, 1, 1);
+  // cell mark area
+  QGroupBox* cellMarkGroupBox =
+      new QGroupBox(tr("Cell marks for XDTS symbols"));
+  QGridLayout* markLay = new QGridLayout();
+  markLay->setMargin(10);
+  markLay->setVerticalSpacing(10);
+  markLay->setHorizontalSpacing(5);
+  {
+    markLay->addWidget(new QLabel(tr("Inbetween Symbol1 (O):"), this), 0, 0,
+                       Qt::AlignRight | Qt::AlignVCenter);
+    markLay->addWidget(m_tick1Combo, 0, 1);
+    markLay->addItem(new QSpacerItem(10, 1), 0, 2);
+    markLay->addWidget(new QLabel(tr("Inbetween Symbol2 (*)"), this), 0, 3,
+                       Qt::AlignRight | Qt::AlignVCenter);
+    markLay->addWidget(m_tick2Combo, 0, 4);
+
+    if (m_isUext) {
+      markLay->addWidget(new QLabel(QObject::tr("Keyframe Symbol:")), 1, 0,
+                         Qt::AlignRight | Qt::AlignVCenter);
+      markLay->addWidget(m_keyFrameCombo, 1, 1);
+      markLay->addWidget(new QLabel(QObject::tr("Reference Frame Symbol:")), 1,
+                         3, Qt::AlignRight | Qt::AlignVCenter);
+      markLay->addWidget(m_referenceFrameCombo, 1, 4);
+    }
   }
-  markLay->setColumnStretch(2, 1);
-  m_topLayout->addLayout(markLay, 0);
+  cellMarkGroupBox->setLayout(markLay);
+
+  m_topLayout->addWidget(cellMarkGroupBox, 0, Qt::AlignRight);
 
   connect(loadButton, SIGNAL(clicked()), this, SLOT(accept()));
   connect(cancelButton, SIGNAL(clicked()), this, SLOT(reject()));
@@ -240,7 +265,15 @@ QString XDTSImportPopup::getLevelPath(QString levelName) {
 
 //-----------------------------------------------------------------------------
 
-void XDTSImportPopup::getMarkerIds(int& tick1Id, int& tick2Id) {
+void XDTSImportPopup::getMarkerIds(int& tick1Id, int& tick2Id, int& keyFrameId,
+                                   int& referenceFrameId) {
   tick1Id = m_tick1Combo->currentData().toInt();
   tick2Id = m_tick2Combo->currentData().toInt();
+  if (m_isUext) {
+    keyFrameId       = m_keyFrameCombo->currentData().toInt();
+    referenceFrameId = m_referenceFrameCombo->currentData().toInt();
+  } else {
+    keyFrameId       = -1;
+    referenceFrameId = -1;
+  }
 }

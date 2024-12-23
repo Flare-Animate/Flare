@@ -18,15 +18,20 @@ class XDTSImportPopup : public DVGui::Dialog {
   QStringList m_pathSuggestedLevels;
   ToonzScene* m_scene;
 
-  QComboBox *m_tick1Combo, *m_tick2Combo;
+  QComboBox *m_tick1Combo, *m_tick2Combo, *m_keyFrameCombo,
+      *m_referenceFrameCombo;
+
+  bool m_isUext;  // whether if the loading xdts is unofficial extension (UEXT)
+                  // version
 
   void updateSuggestions(const QString samplePath);
 
 public:
   XDTSImportPopup(QStringList levelNames, ToonzScene* scene,
-                  TFilePath scenePath);
+                  TFilePath scenePath, bool isUextVersion);
   QString getLevelPath(QString levelName);
-  void getMarkerIds(int& tick1Id, int& tick2Id);
+  void getMarkerIds(int& tick1Id, int& tick2Id, int& keyFrameId,
+                    int& referenceFrameId);
 protected slots:
   void onPathChanged();
 };
