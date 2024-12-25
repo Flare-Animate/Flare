@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.0" language="ko" sourcelanguage="en">
+<TS version="2.1" language="ko" sourcelanguage="en">
 <context>
     <name>AddFilmstripFramesPopup</name>
     <message>
@@ -109,11 +109,11 @@
     <name>ApplyMatchlinesCommand</name>
     <message>
         <source>It is not possible to apply the match lines because no column was selected.</source>
-        <translation>열이 선택되어 있지 않기 때문에 매치라인을 적용할 수 없음.</translation>
+        <translation type="vanished">열이 선택되어 있지 않기 때문에 매치라인을 적용할 수 없음.</translation>
     </message>
     <message>
         <source>It is not possible to apply the match lines because two columns have to be selected.</source>
-        <translation>두개의 열을 선택되어 있지 않아 매치라인을 적용할 수 없음.</translation>
+        <translation type="vanished">두개의 열을 선택되어 있지 않아 매치라인을 적용할 수 없음.</translation>
     </message>
 </context>
 <context>
@@ -128,7 +128,7 @@
     </message>
     <message>
         <source>Sync with XSheet</source>
-        <translation>타임시트 동기화</translation>
+        <translation type="vanished">타임시트 동기화</translation>
     </message>
     <message>
         <source> </source>
@@ -137,7 +137,7 @@
     <message>
         <source>The microphone is not available: 
 Please select a different device or check the microphone.</source>
-        <translation>마이크를 사용할 수 없음;
+        <translation type="vanished">마이크를 사용할 수 없음;
 다른 장치를 선택하거나 마이크를 확인하세요.</translation>
     </message>
     <message>
@@ -828,7 +828,7 @@ Do you want to save your changes?</source>
     <name>CameraCaptureLevelHistogram</name>
     <message>
         <source>Click to Update Histogram</source>
-        <translation>히스토그램 업데이트 클릭</translation>
+        <translation type="vanished">히스토그램 업데이트 클릭</translation>
     </message>
     <message>
         <source>Drag to Move White Point</source>
@@ -957,51 +957,51 @@ Do you want to crop the canvas?</source>
     <name>CaptureSettingsPopup</name>
     <message>
         <source>Define Device</source>
-        <translation>디바이스 정의</translation>
+        <translation type="vanished">디바이스 정의</translation>
     </message>
     <message>
         <source>V Resolution</source>
-        <translation>수직 해상도</translation>
+        <translation type="vanished">수직 해상도</translation>
     </message>
     <message>
         <source>H Resolution</source>
-        <translation>수평 해상도</translation>
+        <translation type="vanished">수평 해상도</translation>
     </message>
     <message>
         <source>White Calibration</source>
-        <translation>화이트 보정</translation>
+        <translation type="vanished">화이트 보정</translation>
     </message>
     <message>
         <source>Capture</source>
-        <translation>캡처</translation>
+        <translation type="vanished">캡처</translation>
     </message>
     <message>
         <source>Brightness:</source>
-        <translation>밝기:</translation>
+        <translation type="vanished">밝기:</translation>
     </message>
     <message>
         <source>Contrast:</source>
-        <translation>대비:</translation>
+        <translation type="vanished">대비:</translation>
     </message>
     <message>
         <source> Upside-down</source>
-        <translation>업사이드 다운</translation>
+        <translation type="vanished">업사이드 다운</translation>
     </message>
     <message>
         <source>A Device is Connected.</source>
-        <translation>디바이스가 연결됨.</translation>
+        <translation type="vanished">디바이스가 연결됨.</translation>
     </message>
     <message>
         <source>No cameras found.</source>
-        <translation>카메라를 찾을 수 없음.</translation>
+        <translation type="vanished">카메라를 찾을 수 없음.</translation>
     </message>
     <message>
         <source>Device Disconnected.</source>
-        <translation>디바이스 연결 끊김.</translation>
+        <translation type="vanished">디바이스 연결 끊김.</translation>
     </message>
     <message>
         <source>No Device Defined.</source>
-        <translation>디바이스 장치 없음.</translation>
+        <translation type="vanished">디바이스 장치 없음.</translation>
     </message>
 </context>
 <context>
@@ -1053,11 +1053,11 @@ Do you want to crop the canvas?</source>
     <name>ChooseCameraDialog</name>
     <message>
         <source>Ok</source>
-        <translation>네</translation>
+        <translation type="vanished">네</translation>
     </message>
     <message>
         <source>Cancel</source>
-        <translation>취소</translation>
+        <translation type="vanished">취소</translation>
     </message>
 </context>
 <context>
@@ -1396,11 +1396,11 @@ What do you want to do?</source>
     <name>CloneLevelUndo::LevelNamePopup</name>
     <message>
         <source>Clone Level</source>
-        <translation>레벨 복제</translation>
+        <translation type="vanished">레벨 복제</translation>
     </message>
     <message>
         <source>Level Name:</source>
-        <translation>레벨 이름:</translation>
+        <translation type="vanished">레벨 이름:</translation>
     </message>
 </context>
 <context>
@@ -1534,75 +1534,75 @@ What do you want to do? </source>
     </message>
     <message>
         <source>Console</source>
-        <translation>콘솔</translation>
+        <translation type="vanished">콘솔</translation>
     </message>
     <message>
         <source>Safe Area (Right Click to Select)</source>
-        <translation>안전 영역(선택하려면 오늘쪽 클릭)</translation>
+        <translation type="vanished">안전 영역(선택하려면 오늘쪽 클릭)</translation>
     </message>
     <message>
         <source>Field Guide</source>
-        <translation>필드 가이드</translation>
+        <translation type="vanished">필드 가이드</translation>
     </message>
     <message>
         <source>Camera Stand View</source>
-        <translation>카메라 스텐드 보기</translation>
+        <translation type="vanished">카메라 스텐드 보기</translation>
     </message>
     <message>
         <source>3D View</source>
-        <translation>3D 보기</translation>
+        <translation type="vanished">3D 보기</translation>
     </message>
     <message>
         <source>Camera View</source>
-        <translation>카메라 보기</translation>
+        <translation type="vanished">카메라 보기</translation>
     </message>
     <message>
         <source>Freeze</source>
-        <translation>고정</translation>
+        <translation type="vanished">고정</translation>
     </message>
     <message>
         <source>Preview</source>
-        <translation>미리보기</translation>
+        <translation type="vanished">미리보기</translation>
     </message>
     <message>
         <source>Sub-camera Preview</source>
-        <translation>서브 카메라 미리보기</translation>
+        <translation type="vanished">서브 카메라 미리보기</translation>
     </message>
     <message>
         <source>Untitled</source>
-        <translation>제목없음</translation>
+        <translation type="vanished">제목없음</translation>
     </message>
     <message>
         <source>Scene: </source>
-        <translation>장면:</translation>
+        <translation type="vanished">장면:</translation>
     </message>
     <message>
         <source>   ::   Frame: </source>
-        <translation>  ::  프레임: </translation>
+        <translation type="vanished">  ::  프레임: </translation>
     </message>
     <message>
         <source> (Flipped)</source>
-        <translation> (플립)</translation>
+        <translation type="vanished"> (플립)</translation>
     </message>
     <message>
         <source>   ::   Level: </source>
-        <translation>  ::  레벨: </translation>
+        <translation type="vanished">  ::  레벨: </translation>
     </message>
     <message>
         <source>Level: </source>
-        <translation>레벨:</translation>
+        <translation type="vanished">레벨:</translation>
     </message>
     <message>
         <source>   ::   Project: </source>
-        <translation>   ::   프로젝트: </translation>
+        <translation type="vanished">   ::   프로젝트: </translation>
     </message>
     <message>
         <source>[SCENE]: </source>
-        <translation>[장면]:</translation>
+        <translation type="vanished">[장면]:</translation>
     </message>
     <message>
         <source>[LEVEL]: </source>
-        <translation>[레벨]:</translation>
+        <translation type="vanished">[레벨]:</translation>
     </message>
     <message>
         <source>Playback Toolbar</source>
@@ -1624,7 +1624,7 @@ What do you want to do? </source>
     <name>CommandBarListTree</name>
     <message>
         <source>----Separator----</source>
-        <translation>----구분기호----</translation>
+        <translation type="vanished">----구분기호----</translation>
     </message>
 </context>
 <context>
@@ -2281,6 +2281,14 @@ DPI 정보를 포함하면 현재 카메라 DPI가 적용됩니다. </translatio
         <source>Cancel</source>
         <translation>취소</translation>
     </message>
+    <message>
+        <source>TWAIN</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Internal</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>DeleteInkDialog</name>
@@ -2611,11 +2619,11 @@ DPI 정보를 포함하면 현재 카메라 DPI가 적용됩니다. </translatio
     <name>ExportCurvePopup</name>
     <message>
         <source>Export Curve</source>
-        <translation>원 곡선</translation>
+        <translation type="vanished">원 곡선</translation>
     </message>
     <message>
         <source>Export</source>
-        <translation>내보내기</translation>
+        <translation type="vanished">내보내기</translation>
     </message>
 </context>
 <context>
@@ -2732,7 +2740,7 @@ DPI 정보를 포함하면 현재 카메라 DPI가 적용됩니다. </translatio
     </message>
     <message>
         <source>Frame Offset: </source>
-        <translation>프레임 오프셋:</translation>
+        <translation type="vanished">프레임 오프셋:</translation>
     </message>
     <message>
         <source>Checked: Images are saved as EXR
@@ -2748,7 +2756,7 @@ Unchecked: Vectors are saved as SVG</source>
     </message>
     <message>
         <source>Starting Frame Offset</source>
-        <translation>시작 프레임 오프셋</translation>
+        <translation type="vanished">시작 프레임 오프셋</translation>
     </message>
     <message>
         <source>Hide</source>
@@ -2761,6 +2769,15 @@ Unchecked: Vectors are saved as SVG</source>
     <message>
         <source>Starting...</source>
         <translation>시작중...</translation>
+    </message>
+    <message>
+        <source>Export Reference Layers</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Checked: Layers with Preview Visible OFF are also exported
+Unchecked: Only layers with Preview Visible ON are exported</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -2826,7 +2843,7 @@ Unchecked: Vectors are saved as SVG</source>
     </message>
     <message>
         <source>The project name cannot be empty or contain any of the following characters:(new line)  \ / : * ? &quot; I</source>
-        <translation>파일이름은 비워둘 수 없으며, 다음 기호 중 어느 하나를 포함 할 수 없음:(새 줄)  \ / : * ? &quot; I</translation>
+        <translation type="vanished">파일이름은 비워둘 수 없으며, 다음 기호 중 어느 하나를 포함 할 수 없음:(새 줄)  \ / : * ? &quot; I</translation>
     </message>
     <message>
         <source>The project name you specified is already used.</source>
@@ -2849,27 +2866,27 @@ Unchecked: Vectors are saved as SVG</source>
     <name>ExportXDTSCommand</name>
     <message>
         <source>None</source>
-        <translation>없음</translation>
+        <translation type="vanished">없음</translation>
     </message>
     <message>
         <source>All columns</source>
-        <translation>모든 열</translation>
+        <translation type="vanished">모든 열</translation>
     </message>
     <message>
         <source>Only active columns</source>
-        <translation>활성 열만</translation>
+        <translation type="vanished">활성 열만</translation>
     </message>
     <message>
         <source>Inbetween symbol mark</source>
-        <translation>심볼 마크</translation>
+        <translation type="vanished">심볼 마크</translation>
     </message>
     <message>
         <source>Reverse sheet symbol mark</source>
-        <translation>리버스 시트 심볼 마크</translation>
+        <translation type="vanished">리버스 시트 심볼 마크</translation>
     </message>
     <message>
         <source>Target column</source>
-        <translation>대상 열</translation>
+        <translation type="vanished">대상 열</translation>
     </message>
 </context>
 <context>
@@ -2992,11 +3009,11 @@ Unchecked: Vectors are saved as SVG</source>
     </message>
     <message>
         <source>Inbetween mark:</source>
-        <translation>마크 사이:</translation>
+        <translation type="vanished">마크 사이:</translation>
     </message>
     <message>
         <source>Reverse sheet mark:</source>
-        <translation>리버스 시트 마크:</translation>
+        <translation type="vanished">리버스 시트 마크:</translation>
     </message>
     <message>
         <source>Keyframe mark:</source>
@@ -3178,11 +3195,11 @@ Do you want to explode anyway ?</source>
     </message>
     <message>
         <source>Preview Screensaver</source>
-        <translation>화면 보호기 미리보기</translation>
+        <translation type="vanished">화면 보호기 미리보기</translation>
     </message>
     <message>
         <source>Install Screensaver</source>
-        <translation>화면 보호기 설치</translation>
+        <translation type="vanished">화면 보호기 설치</translation>
     </message>
     <message>
         <source>Load As Sub-xsheet</source>
@@ -3332,44 +3349,44 @@ Do you want to explode anyway ?</source>
     <name>FileData</name>
     <message>
         <source>It is not possible to find the %1 level.</source>
-        <translation>레벨 %1을 찾을 수 없음.</translation>
+        <translation type="vanished">레벨 %1을 찾을 수 없음.</translation>
     </message>
     <message>
         <source>There was an error copying %1</source>
-        <translation>%1를 복사하는 중 오류 발생</translation>
+        <translation type="vanished">%1를 복사하는 중 오류 발생</translation>
     </message>
 </context>
 <context>
     <name>FileSelection</name>
     <message>
         <source>Collecting assets...</source>
-        <translation>소재 수집중...</translation>
+        <translation type="vanished">소재 수집중...</translation>
     </message>
     <message>
         <source>Abort</source>
-        <translation>중단</translation>
+        <translation type="vanished">중단</translation>
     </message>
     <message>
         <source>Importing scenes...</source>
-        <translation>장면을 가져오는중...</translation>
+        <translation type="vanished">장면을 가져오는중...</translation>
     </message>
 </context>
 <context>
     <name>FileSettingsPopup</name>
     <message>
         <source>Save in:</source>
-        <translation>저장:</translation>
+        <translation type="vanished">저장:</translation>
     </message>
     <message>
         <source>File Format:</source>
-        <translation>파일 형식:</translation>
+        <translation type="vanished">파일 형식:</translation>
     </message>
 </context>
 <context>
     <name>FileViewerPopup</name>
     <message>
         <source>Viewer</source>
-        <translation>뷰어</translation>
+        <translation type="vanished">뷰어</translation>
     </message>
 </context>
 <context>
@@ -3647,7 +3664,7 @@ Do you want to overwrite it?</source>
     <name>ImportMagpieFilePopup</name>
     <message>
         <source>Import Magpie File</source>
-        <translation>MAGPIE 파일 가져오기</translation>
+        <translation type="vanished">MAGPIE 파일 가져오기</translation>
     </message>
     <message>
         <source>Load</source>
@@ -3841,15 +3858,15 @@ Do you want to overwrite it?</source>
     <name>LayerHeaderPanel</name>
     <message>
         <source>Preview Visibility Toggle All</source>
-        <translation>전체 미리보기 가시성 전환</translation>
+        <translation type="vanished">전체 미리보기 가시성 전환</translation>
     </message>
     <message>
         <source>Camera Stand Visibility Toggle All</source>
-        <translation>카메라 스탠드 가시성 모두 전환</translation>
+        <translation type="vanished">카메라 스탠드 가시성 모두 전환</translation>
     </message>
     <message>
         <source>Lock Toggle All</source>
-        <translation>전체 잠금 전환&gt;</translation>
+        <translation type="vanished">전체 잠금 전환&gt;</translation>
     </message>
 </context>
 <context>
@@ -3964,6 +3981,10 @@ Do you want to create it?</source>
         <source>Frame Format</source>
         <translation>프레임 포맷</translation>
     </message>
+    <message>
+        <source>Assistants Level</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>LevelSettingsPopup</name>
@@ -4057,7 +4078,7 @@ Do you want to create it?</source>
     </message>
     <message>
         <source>Scan level</source>
-        <translation>스캔 레벨</translation>
+        <translation type="vanished">스캔 레벨</translation>
     </message>
     <message>
         <source>Toonz Vector level</source>
@@ -4108,110 +4129,110 @@ Do you want to create it?</source>
     <name>LineTestCapturePane</name>
     <message>
         <source>Name:</source>
-        <translation>이름:</translation>
+        <translation type="vanished">이름:</translation>
     </message>
     <message>
         <source>Frame:</source>
-        <translation>프레임:</translation>
+        <translation type="vanished">프레임:</translation>
     </message>
     <message>
         <source>Increment:</source>
-        <translation>증가:</translation>
+        <translation type="vanished">증가:</translation>
     </message>
     <message>
         <source>Step:</source>
-        <translation>스텝:</translation>
+        <translation type="vanished">스텝:</translation>
     </message>
     <message>
         <source>Mode:</source>
-        <translation>모드:</translation>
+        <translation type="vanished">모드:</translation>
     </message>
     <message>
         <source>New     </source>
-        <translation>신규</translation>
+        <translation type="vanished">신규</translation>
     </message>
     <message>
         <source>Overwite     </source>
-        <translation>덮어쓰기</translation>
+        <translation type="vanished">덮어쓰기</translation>
     </message>
     <message>
         <source>Insert</source>
-        <translation>삽입</translation>
+        <translation type="vanished">삽입</translation>
     </message>
     <message>
         <source> Onion Skin  </source>
-        <translation>어니언 스킨</translation>
+        <translation type="vanished">어니언 스킨</translation>
     </message>
     <message>
         <source> View Frame</source>
-        <translation>프레임 보기</translation>
+        <translation type="vanished">프레임 보기</translation>
     </message>
     <message>
         <source>Fade:</source>
-        <translation>페이드:</translation>
+        <translation type="vanished">페이드:</translation>
     </message>
     <message>
         <source> Connection</source>
-        <translation>연결</translation>
+        <translation type="vanished">연결</translation>
     </message>
     <message>
         <source>       Capture       </source>
-        <translation>캡처</translation>
+        <translation type="vanished">캡처</translation>
     </message>
     <message>
         <source>Capture Settings</source>
-        <translation>캡처 설정</translation>
+        <translation type="vanished">캡처 설정</translation>
     </message>
     <message>
         <source>   File Settings    </source>
-        <translation>파일 설정</translation>
+        <translation type="vanished">파일 설정</translation>
     </message>
     <message>
         <source>Bad Selection.</source>
-        <translation>잘못된 선택.</translation>
+        <translation type="vanished">잘못된 선택.</translation>
     </message>
     <message>
         <source>No Device Defined.</source>
-        <translation>디바이스 장치 없음.</translation>
+        <translation type="vanished">디바이스 장치 없음.</translation>
     </message>
     <message>
         <source>Cannot connect Camera</source>
-        <translation>카메라를 연결할 수 없음</translation>
+        <translation type="vanished">카메라를 연결할 수 없음</translation>
     </message>
     <message>
         <source>Device Disconnected.</source>
-        <translation>디바이스 연결 끊김.</translation>
+        <translation type="vanished">디바이스 연결 끊김.</translation>
     </message>
     <message>
         <source>LineTest Capture</source>
-        <translation>라인 테스트 캡처</translation>
+        <translation type="vanished">라인 테스트 캡처</translation>
     </message>
 </context>
 <context>
     <name>LineTestPane</name>
     <message>
         <source>Preview</source>
-        <translation>미리보기</translation>
+        <translation type="vanished">미리보기</translation>
     </message>
     <message>
         <source>Untitled</source>
-        <translation>제목없음</translation>
+        <translation type="vanished">제목없음</translation>
     </message>
     <message>
         <source>Scene: </source>
-        <translation>장면:</translation>
+        <translation type="vanished">장면:</translation>
     </message>
     <message>
         <source>   ::   Frame: </source>
-        <translation>  ::  프레임: </translation>
+        <translation type="vanished">  ::  프레임: </translation>
     </message>
     <message>
         <source>   ::   Level: </source>
-        <translation>  ::  레벨: </translation>
+        <translation type="vanished">  ::  레벨: </translation>
     </message>
     <message>
         <source>Level: </source>
-        <translation>레벨:</translation>
+        <translation type="vanished">레벨:</translation>
     </message>
 </context>
 <context>
@@ -4364,11 +4385,11 @@ Please use the frame numbers for reference.</source>
     <name>LoadCurvePopup</name>
     <message>
         <source>Load Curve</source>
-        <translation>곡선 가져오기</translation>
+        <translation type="vanished">곡선 가져오기</translation>
     </message>
     <message>
         <source>Load</source>
-        <translation>가져오기</translation>
+        <translation type="vanished">가져오기</translation>
     </message>
 </context>
 <context>
@@ -4425,7 +4446,7 @@ Please use the frame numbers for reference.</source>
     </message>
     <message>
         <source>TLV Caching Behavior</source>
-        <translation>TLV 캐싱 동작</translation>
+        <translation type="vanished">TLV 캐싱 동작</translation>
     </message>
     <message>
         <source>Load Subsequence Level</source>
@@ -4433,7 +4454,7 @@ Please use the frame numbers for reference.</source>
     </message>
     <message>
         <source>Arrangement in Xsheet</source>
-        <translation>X-시트 배치</translation>
+        <translation type="vanished">X-시트 배치</translation>
     </message>
     <message>
         <source>(FILE DOES NOT EXIST)</source>
@@ -4531,22 +4552,22 @@ Please use the frame numbers for reference.</source>
     <name>LoadScriptPopup</name>
     <message>
         <source>Load script</source>
-        <translation>스크립트 가져오기</translation>
+        <translation type="vanished">스크립트 가져오기</translation>
     </message>
 </context>
 <context>
     <name>LoadSettingsPopup</name>
     <message>
         <source>Load Cleanup Settings</source>
-        <translation>가져오기 정리</translation>
+        <translation type="vanished">가져오기 정리</translation>
     </message>
     <message>
         <source>Load</source>
-        <translation>가져오기</translation>
+        <translation type="vanished">가져오기</translation>
     </message>
     <message>
         <source>%1 does not exist.</source>
-        <translation>%1이 존재하지 않음.</translation>
+        <translation type="vanished">%1이 존재하지 않음.</translation>
     </message>
 </context>
 <context>
@@ -4625,7 +4646,7 @@ Please use the frame numbers for reference.</source>
     <name>MagpieFileImportPopup</name>
     <message>
         <source>Import Magpie File</source>
-        <translation>MAGPIE 파일 가져오기</translation>
+        <translation type="vanished">MAGPIE 파일 가져오기</translation>
     </message>
     <message>
         <source>Frame Range</source>
@@ -4633,7 +4654,7 @@ Please use the frame numbers for reference.</source>
     </message>
     <message>
         <source>To:</source>
-        <translation>로:</translation>
+        <translation type="vanished">로:</translation>
     </message>
     <message>
         <source>From:</source>
@@ -4764,7 +4785,7 @@ Please use the frame numbers for reference.</source>
     </message>
     <message>
         <source>New Vector Level</source>
-        <translation>뉴 벡터 레벨</translation>
+        <translation type="vanished">뉴 벡터 레벨</translation>
     </message>
     <message>
         <source>&amp;New Toonz Raster Level</source>
@@ -4772,7 +4793,7 @@ Please use the frame numbers for reference.</source>
     </message>
     <message>
         <source>New Toonz Raster Level</source>
-        <translation>뉴 툰즈 래스터 레벨</translation>
+        <translation type="vanished">뉴 툰즈 래스터 레벨</translation>
     </message>
     <message>
         <source>&amp;New Raster Level</source>
@@ -4780,7 +4801,7 @@ Please use the frame numbers for reference.</source>
     </message>
     <message>
         <source>New Raster Level</source>
-        <translation>뉴 래스터 레벨</translation>
+        <translation type="vanished">뉴 래스터 레벨</translation>
     </message>
     <message>
         <source>&amp;Load Level...</source>
@@ -4820,7 +4841,7 @@ Please use the frame numbers for reference.</source>
     </message>
     <message>
         <source>&amp;Import Magpie File...</source>
-        <translation>MAGPIE 파일 가져오기(&amp;I)...</translation>
+        <translation type="vanished">MAGPIE 파일 가져오기(&amp;I)...</translation>
     </message>
     <message>
         <source>&amp;New Project...</source>
@@ -5020,19 +5041,19 @@ Please use the frame numbers for reference.</source>
     </message>
     <message>
         <source>&amp;Bring to Front</source>
-        <translation>앞으로 가져오기(&amp;B)</translation>
+        <translation type="vanished">앞으로 가져오기(&amp;B)</translation>
     </message>
     <message>
         <source>&amp;Bring Forward</source>
-        <translation>앞으로 가져오기(&amp;B)</translation>
+        <translation type="vanished">앞으로 가져오기(&amp;B)</translation>
     </message>
     <message>
         <source>&amp;Send to Back</source>
-        <translation>뒤로 보내기(&amp;S)</translation>
+        <translation type="vanished">뒤로 보내기(&amp;S)</translation>
     </message>
     <message>
         <source>&amp;Send Backward</source>
-        <translation>뒤로 보내기(&amp;S)</translation>
+        <translation type="vanished">뒤로 보내기(&amp;S)</translation>
     </message>
     <message>
         <source>&amp;Enter Group</source>
@@ -5156,7 +5177,7 @@ Please use the frame numbers for reference.</source>
     </message>
     <message>
         <source>&amp;Capture</source>
-        <translation>캡처(&amp;C)</translation>
+        <translation type="vanished">캡처(&amp;C)</translation>
     </message>
     <message>
         <source>&amp;Canvas Size...</source>
@@ -5188,15 +5209,15 @@ Please use the frame numbers for reference.</source>
     </message>
     <message>
         <source>&amp;Open Sub-xsheet</source>
-        <translation>서브 X-시트 열기(&amp;O)</translation>
+        <translation type="vanished">서브 X-시트 열기(&amp;O)</translation>
     </message>
     <message>
         <source>&amp;Close Sub-xsheet</source>
-        <translation>서브 X시트 닫기(&amp;C)</translation>
+        <translation type="vanished">서브 X시트 닫기(&amp;C)</translation>
     </message>
     <message>
         <source>Explode Sub-xsheet</source>
-        <translation>서브 시트 해제</translation>
+        <translation type="vanished">서브 시트 해제</translation>
     </message>
     <message>
         <source>Collapse</source>
@@ -5208,11 +5229,11 @@ Please use the frame numbers for reference.</source>
     </message>
     <message>
         <source>Toggle Edit in Place</source>
-        <translation>편집 위치 전환</translation>
+        <translation type="vanished">편집 위치 전환</translation>
     </message>
     <message>
         <source>&amp;Save Sub-xsheet As...</source>
-        <translation>서브-X-시트 다른 이름으로 저장(&amp;S)...</translation>
+        <translation type="vanished">서브-X-시트 다른 이름으로 저장(&amp;S)...</translation>
     </message>
     <message>
         <source>Resequence</source>
@@ -5220,7 +5241,7 @@ Please use the frame numbers for reference.</source>
     </message>
     <message>
         <source>Clone Sub-xsheet</source>
-        <translation>하위 서브-X 시트</translation>
+        <translation type="vanished">하위 서브-X 시트</translation>
     </message>
     <message>
         <source>&amp;Apply Match Lines...</source>
@@ -5252,7 +5273,7 @@ Please use the frame numbers for reference.</source>
     </message>
     <message>
         <source>&amp;Edit FX...</source>
-        <translation>Fx 편집(&amp;E)...</translation>
+        <translation type="vanished">Fx 편집(&amp;E)...</translation>
     </message>
     <message>
         <source>Insert Frame</source>
@@ -5356,7 +5377,7 @@ Please use the frame numbers for reference.</source>
     </message>
     <message>
         <source>&amp;Duplicate Drawing</source>
-        <translation>사본 만들기(&amp;D)</translation>
+        <translation type="vanished">사본 만들기(&amp;D)</translation>
     </message>
     <message>
         <source>&amp;Autorenumber</source>
@@ -5364,7 +5385,7 @@ Please use the frame numbers for reference.</source>
     </message>
     <message>
         <source>&amp;Clone</source>
-        <translation>클론(&amp;C)</translation>
+        <translation type="vanished">클론(&amp;C)</translation>
     </message>
     <message>
         <source>Drawing Substitution Forward</source>
@@ -5420,7 +5441,7 @@ Please use the frame numbers for reference.</source>
     </message>
     <message>
         <source>&amp;Field Guide in Capture Window</source>
-        <translation>캡처 창의 필드 안내(&amp;F)</translation>
+        <translation type="vanished">캡처 창의 필드 안내(&amp;F)</translation>
     </message>
     <message>
         <source>&amp;Safe Area</source>
@@ -5532,7 +5553,7 @@ Please use the frame numbers for reference.</source>
     </message>
     <message>
         <source>Prev Drawing</source>
-        <translation>이전 그림</translation>
+        <translation type="vanished">이전 그림</translation>
     </message>
     <message>
         <source>Next Step</source>
@@ -5540,7 +5561,7 @@ Please use the frame numbers for reference.</source>
     </message>
     <message>
         <source>Prev Step</source>
-        <translation>이전 단계</translation>
+        <translation type="vanished">이전 단계</translation>
     </message>
     <message>
         <source>Red Channel</source>
@@ -5584,7 +5605,7 @@ Please use the frame numbers for reference.</source>
     </message>
     <message>
         <source>&amp;Export</source>
-        <translation>내보내기(&amp;E)</translation>
+        <translation type="vanished">내보내기(&amp;E)</translation>
     </message>
     <message>
         <source>&amp;File Browser</source>
@@ -5668,11 +5689,11 @@ Please use the frame numbers for reference.</source>
     </message>
     <message>
         <source>&amp;LineTest Capture</source>
-        <translation>라인 테스트 캡처(&amp;L)</translation>
+        <translation type="vanished">라인 테스트 캡처(&amp;L)</translation>
     </message>
     <message>
         <source>&amp;LineTest Viewer</source>
-        <translation>라인 테스트 뷰어(&amp;L)</translation>
+        <translation type="vanished">라인 테스트 뷰어(&amp;L)</translation>
     </message>
     <message>
         <source>&amp;Xsheet</source>
@@ -6252,7 +6273,7 @@ Please use the frame numbers for reference.</source>
     </message>
     <message>
         <source>Mode - Lines &amp; Areas</source>
-        <translation>모드-라인&amp; 영역</translation>
+        <translation type="vanished">모드-라인&amp; 영역</translation>
     </message>
     <message>
         <source>Type</source>
@@ -6474,7 +6495,7 @@ N.B. Open Toonz 다른 프로세스를 실행하고 있지 않은지 확인하�
     </message>
     <message>
         <source>Prev Key</source>
-        <translation>이전 키</translation>
+        <translation type="vanished">이전 키</translation>
     </message>
     <message>
         <source>&amp;FX Editor</source>
@@ -7161,6 +7182,22 @@ N.B. Open Toonz 다른 프로세스를 실행하고 있지 않은지 확인하�
         <source>Rotate Selection/Object Right</source>
         <translation>선택/객체 오른쪽 회전</translation>
     </message>
+    <message>
+        <source>Import Open Cel Animation (OCA)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;New Assistant Level</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Toggle Sub-Xsheet Navigation Bar</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Edit Assistants</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>MatchlinesDialog</name>
@@ -7283,15 +7320,15 @@ N.B 중복된 명령은 무시된다. 메뉴 표시 줄에는 마지막것만 �
     <name>MergeCmappedCommand</name>
     <message>
         <source>It is not possible to merge tlv columns because no column was selected.</source>
-        <translation>열을 선택하지 않아서 tlv 열을 병합 할 수 없다.</translation>
+        <translation type="vanished">열을 선택하지 않아서 tlv 열을 병합 할 수 없다.</translation>
     </message>
     <message>
         <source>It is not possible to merge tlv columns because at least two columns have to be selected.</source>
-        <translation>최소 두개 이상의 열을 선택해야 하므로 tlv열을 병합 할 수 없다.</translation>
+        <translation type="vanished">최소 두개 이상의 열을 선택해야 하므로 tlv열을 병합 할 수 없다.</translation>
     </message>
     <message>
         <source>Merging Tlv Levels...</source>
-        <translation>Tlv 레벨병합...</translation>
+        <translation type="vanished">Tlv 레벨병합...</translation>
     </message>
 </context>
 <context>
@@ -7329,11 +7366,11 @@ N.B 중복된 명령은 무시된다. 메뉴 표시 줄에는 마지막것만 �
     <name>MergeColumnsCommand</name>
     <message>
         <source>It is not possible to execute the merge column command because no column was selected.</source>
-        <translation>열을 선택하지 않아 열 병합 명령을 실행할 수 없다.</translation>
+        <translation type="vanished">열을 선택하지 않아 열 병합 명령을 실행할 수 없다.</translation>
     </message>
     <message>
         <source>It is not possible to execute the merge column command  because only one columns is  selected.</source>
-        <translation>하나의 열만 선택되었기 때문에 병합 명령을 실행할 수 없다.</translation>
+        <translation type="vanished">하나의 열만 선택되었기 때문에 병합 명령을 실행할 수 없다.</translation>
     </message>
 </context>
 <context>
@@ -7534,7 +7571,7 @@ What do you want to do?</source>
     </message>
     <message>
         <source>Other Settings</source>
-        <translation>기타 설정</translation>
+        <translation type="vanished">기타 설정</translation>
     </message>
     <message>
         <source>Render</source>
@@ -7665,7 +7702,7 @@ The parameters to be saved are:
 - File options
 - Resample Balance
 - Channel width</source>
-        <translation>현재 출력설정을 저장
+        <translation type="vanished">현재 출력설정을 저장
 저장할 매개 변수는 다음과 같다.
 -카메라 설정
 -저장 할 프로젝트 폴도
@@ -7756,7 +7793,7 @@ The parameters to be saved are:
     </message>
     <message>
         <source>Frame Rate (linked to Scene Settings):</source>
-        <translation>프레임 속도(장면 설정에 연결됨):</translation>
+        <translation type="vanished">프레임 속도(장면 설정에 연결됨):</translation>
     </message>
     <message>
         <source>Stretch from FPS:</source>
@@ -7945,16 +7982,16 @@ What do you want to do?</source>
     </message>
     <message>
         <source>Overwrite</source>
-        <translation>덮어쓰기</translation>
+        <translation type="vanished">덮어쓰기</translation>
     </message>
     <message>
         <source>Skip</source>
-        <translation>건너뛰기</translation>
+        <translation type="vanished">건너뛰기</translation>
     </message>
     <message>
         <source>File &quot;%1&quot; already exists.
 Do you want to overwrite it?</source>
-        <translation>파일 %1가 이미 있음.
+        <translation type="vanished">파일 %1가 이미 있음.
 덮어쓰겠습니까?</translation>
     </message>
 </context>
@@ -8006,11 +8043,11 @@ Do you want to overwrite it?</source>
     </message>
     <message>
         <source>Display</source>
-        <translation>디스플레이</translation>
+        <translation type="vanished">디스플레이</translation>
     </message>
     <message>
         <source>Show onion skin</source>
-        <translation>어니언 스킨 보여주기</translation>
+        <translation type="vanished">어니언 스킨 보여주기</translation>
     </message>
     <message>
         <source>Load Selected Image</source>
@@ -8022,7 +8059,7 @@ Do you want to overwrite it?</source>
     </message>
     <message>
         <source>Use interval timer</source>
-        <translation>간격 시간 사용</translation>
+        <translation type="vanished">간격 시간 사용</translation>
     </message>
     <message>
         <source>Capture
@@ -8360,6 +8397,18 @@ Custom : Always use the custom dpi specified here.</source>
         <source>Custom</source>
         <translation>사용자 정의</translation>
     </message>
+    <message>
+        <source>Save Current Image Adjust Parameters As Default</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>BG Reduction is set but the White BG image is missing. Please capture the White BG again.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Do you want to save the current parameters as the default values?</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>PencilTestSaveInFolderPopup</name>
@@ -8381,7 +8430,7 @@ Custom : Always use the custom dpi specified here.</source>
     </message>
     <message>
         <source>Infomation</source>
-        <translation>정보</translation>
+        <translation type="vanished">정보</translation>
     </message>
     <message>
         <source>Subfolder Name</source>
@@ -8607,7 +8656,7 @@ Is it OK to release these shortcuts?</source>
     </message>
     <message>
         <source>Backup Animation Levels when Saving</source>
-        <translation>저장 시 애니메이션 레벨 백업</translation>
+        <translation type="vanished">저장 시 애니메이션 레벨 백업</translation>
     </message>
     <message>
         <source>Show Info in Rendered Frames</source>
@@ -8627,7 +8676,7 @@ Is it OK to release these shortcuts?</source>
     </message>
     <message>
         <source>Stuff Folder*</source>
-        <translation>물건 폴더*</translation>
+        <translation type="vanished">물건 폴더*</translation>
     </message>
     <message>
         <source>Custom*</source>
@@ -8659,11 +8708,11 @@ Is it OK to release these shortcuts?</source>
     </message>
     <message>
         <source>Color Calibration using 3D Look-up Table*</source>
-        <translation>3D 조회 표를 사용한 색상 보정*</translation>
+        <translation type="vanished">3D 조회 표를 사용한 색상 보정*</translation>
     </message>
     <message>
         <source>Enable auto-stretch frame</source>
-        <translation>자동 스트레치 프레임 사용</translation>
+        <translation type="vanished">자동 스트레치 프레임 사용</translation>
     </message>
     <message>
         <source>Show Cursor Size Outlines</source>
@@ -8679,7 +8728,7 @@ Is it OK to release these shortcuts?</source>
     </message>
     <message>
         <source>Display Level Name on Each Marker</source>
-        <translation>각 마커에 레벨 이름 표시</translation>
+        <translation type="vanished">각 마커에 레벨 이름 표시</translation>
     </message>
     <message>
         <source>Show &quot;ABC&quot; Appendix to the Frame Number in Xsheet Cell</source>
@@ -8807,7 +8856,7 @@ Is it OK to release these shortcuts?</source>
     </message>
     <message>
         <source>Show Current Time Indicator (Timeline Mode only)</source>
-        <translation>현재 시간 표시기 표시(타이밍 모드만 해당)</translation>
+        <translation type="vanished">현재 시간 표시기 표시(타이밍 모드만 해당)</translation>
     </message>
     <message>
         <source>Animation</source>
@@ -8935,7 +8984,7 @@ Also the initial output destination for new scenes will be set to $scenefolder a
     </message>
     <message>
         <source>Expand Function Editor Header to Match Xsheet Toolbar Height*</source>
-        <translation>기능 편집기 헤더를 확장하여 X-시트 도구 모음 높이*</translation>
+        <translation type="vanished">기능 편집기 헤더를 확장하여 X-시트 도구 모음 높이*</translation>
     </message>
     <message>
         <source>Classic</source>
@@ -8967,7 +9016,7 @@ Also the initial output destination for new scenes will be set to $scenefolder a
     </message>
     <message>
         <source>Tablet Settings</source>
-        <translation>태블릿 설정</translation>
+        <translation type="vanished">태블릿 설정</translation>
     </message>
     <message>
         <source>Enable Windows Ink Support* (EXPERIMENTAL)</source>
@@ -9057,11 +9106,11 @@ if both are possible on coding file path.</source>
     </message>
     <message>
         <source>Disabled</source>
-        <translation>비활성화</translation>
+        <translation type="vanished">비활성화</translation>
     </message>
     <message>
         <source>Enabled</source>
-        <translation>활성화</translation>
+        <translation type="vanished">활성화</translation>
     </message>
     <message>
         <source>Use Xsheet as Animation Sheet</source>
@@ -9081,11 +9130,11 @@ if both are possible on coding file path.</source>
     </message>
     <message>
         <source>Open the dropdown to display all options</source>
-        <translation>모든 옵션을 표시하려면 드롭다운 열기</translation>
+        <translation type="vanished">모든 옵션을 표시하려면 드롭다운 열기</translation>
     </message>
     <message>
         <source>Cycle through the available options</source>
-        <translation>사용 가능한 옵션 순환</translation>
+        <translation type="vanished">사용 가능한 옵션 순환</translation>
     </message>
     <message>
         <source>Cells Only</source>
@@ -9137,7 +9186,7 @@ if both are possible on coding file path.</source>
     </message>
     <message>
         <source>Category</source>
-        <translation>카테고리</translation>
+        <translation type="vanished">카테고리</translation>
     </message>
     <message>
         <source>Interval (Minutes):</source>
@@ -9181,7 +9230,7 @@ if both are possible on coding file path.</source>
     </message>
     <message>
         <source>Level Strip Icon Size*:</source>
-        <translation>아이콘 크기*:</translation>
+        <translation type="vanished">아이콘 크기*:</translation>
     </message>
     <message>
         <source>Viewer Shrink:</source>
@@ -9197,7 +9246,7 @@ if both are possible on coding file path.</source>
     </message>
     <message>
         <source>3DLUT File for [%1]*:</source>
-        <translation>[%1]에 대한 3D LUT 파일*:</translation>
+        <translation type="vanished">[%1]에 대한 3D LUT 파일*:</translation>
     </message>
     <message>
         <source>Matte color is used for background when overwriting raster levels with transparent pixels
@@ -9259,7 +9308,7 @@ in non alpha-enabled image format.</source>
     </message>
     <message>
         <source>Default TLV Caching Behavior:</source>
-        <translation>기본 TLV 캐싱 동작:</translation>
+        <translation type="vanished">기본 TLV 캐싱 동작:</translation>
     </message>
     <message>
         <source>Column Icon:</source>
@@ -9299,7 +9348,7 @@ in non alpha-enabled image format.</source>
     </message>
     <message>
         <source>Scan File Format:</source>
-        <translation>스캔 파일 형식:</translation>
+        <translation type="vanished">스캔 파일 형식:</translation>
     </message>
     <message>
         <source>Default Level Type:</source>
@@ -9315,7 +9364,7 @@ in non alpha-enabled image format.</source>
     </message>
     <message>
         <source>Autocreation:</source>
-        <translation>자동 생성:</translation>
+        <translation type="vanished">자동 생성:</translation>
     </message>
     <message>
         <source>Vector Snapping:</source>
@@ -9327,7 +9376,7 @@ in non alpha-enabled image format.</source>
     </message>
     <message>
         <source>Dropdown Shortcuts:</source>
-        <translation>드롭 다운 바로가기:</translation>
+        <translation type="vanished">드롭 다운 바로가기:</translation>
     </message>
     <message>
         <source>Next/Previous Step Frames:</source>
@@ -9443,7 +9492,7 @@ in non alpha-enabled image format.</source>
     </message>
     <message>
         <source>Number of Frames to Play for Short Play:</source>
-        <translation>쇼트 플레이에 사용할 프레임 수:</translation>
+        <translation type="vanished">쇼트 플레이에 사용할 프레임 수:</translation>
     </message>
     <message>
         <source>Switch to dark icons</source>
@@ -9647,6 +9696,37 @@ but a random crash might occur, use at your own risk.</source>
         <source>Overwrite Paste Cell Numbers</source>
         <translation>셀 번호 붙여넣기 덮어쓰기</translation>
     </message>
+    <message>
+        <source>Show Sub-Xsheet Navigation Bar</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Expand Function Editor Header to Match Xsheet Header Height*</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Unify Preview and Camstand Visibility Toggles</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Link Column Name with Level</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Disable Dragging Cells</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Xsheet Tools</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>This option will do the following:
+- When setting a cell in the empty column, level name will be copied to the column name
+- Typing the cell without level name in the empty column will try to use a level with the same name as the column
+The behavior may be changed in the future development.</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>PreferencesPopup::AdditionalStyleEdit</name>
@@ -9707,12 +9787,12 @@ but a random crash might occur, use at your own risk.</source>
     <name>Previewer</name>
     <message>
         <source>The file name cannot be empty or contain any of the following characters:(new line)  \ / : * ? &quot;  |</source>
-        <translation>파일 이름은 비워둘 수 없으며, 다음 문자를 포함 할 수 없음:(새 줄)  \ / : * ?  &quot; |</translation>
+        <translation type="vanished">파일 이름은 비워둘 수 없으며, 다음 문자를 포함 할 수 없음:(새 줄)  \ / : * ?  &quot; |</translation>
     </message>
     <message>
         <source>File %1 already exists.
 Do you want to overwrite it?</source>
-        <translation>%1 파일이 이미존재함.
+        <translation type="vanished">%1 파일이 이미존재함.
 덮어쓰시겠습니까?</translation>
     </message>
 </context>
@@ -9900,7 +9980,7 @@ Note that this mode uses regular expression for file name validation and may slo
     </message>
     <message>
         <source>File Name#LayerName</source>
-        <translation>파일이름 # 레이어 이름</translation>
+        <translation type="vanished">파일이름 # 레이어 이름</translation>
     </message>
     <message>
         <source>LayerName</source>
@@ -10340,11 +10420,11 @@ Are you sure ?</source>
     </message>
     <message>
         <source>Include relevant pegbars in the sub-xsheet as well.</source>
-        <translation>하위 X-시트에 관련 페그 바도 포함하세요.</translation>
+        <translation type="vanished">하위 X-시트에 관련 페그 바도 포함하세요.</translation>
     </message>
     <message>
         <source>Include only selected columns in the sub-xsheet.</source>
-        <translation>하위 X-시트에 선택한 열만 포함.</translation>
+        <translation type="vanished">하위 X-시트에 선택한 열만 포함.</translation>
     </message>
     <message>
         <source>Exploding Sub-xsheet: what you want to do?</source>
@@ -10352,11 +10432,11 @@ Are you sure ?</source>
     </message>
     <message>
         <source>Bring relevant pegbars in the main xsheet.</source>
-        <translation>기본 X-시트에 관련 페그바를 가져옴.</translation>
+        <translation type="vanished">기본 X-시트에 관련 페그바를 가져옴.</translation>
     </message>
     <message>
         <source>Bring only columns in the main xsheet.</source>
-        <translation>기본 X-시트에 열만 가져옴.</translation>
+        <translation type="vanished">기본 X-시트에 열만 가져옴.</translation>
     </message>
     <message>
         <source>Delete Level  : %1</source>
@@ -10518,7 +10598,7 @@ Do you want to overwrite it?</source>
 A partial save file was generated and changes may be manually salvaged from &apos;%2&apos;.
 
 Do you wish to continue loading the last good save or stop and try to salvage the prior save?</source>
-        <translation>장면 &apos;%1&apos; 이전 절약은 심각하게 상호작용됨.
+        <translation type="vanished">장면 &apos;%1&apos; 이전 절약은 심각하게 상호작용됨.
 
 부분 저장 파일이 생성되었으며, &apos;%2&apos; 에서 수동으로 변경 사항을 복구할 수 있음.
 
@@ -11013,7 +11093,7 @@ Are you sure?</source>
     </message>
     <message>
         <source>Layer name</source>
-        <translation>레벨 이름</translation>
+        <translation type="vanished">레벨 이름</translation>
     </message>
     <message>
         <source>A filename cannot be empty or contain any of the following characters:
@@ -11097,7 +11177,7 @@ Do you want to overwrite it?</source>
     </message>
     <message>
         <source>A convertion task is in progress! wait until it stops or cancel it</source>
-        <translation>변환 작업이 진행중! 중지 될때까지 기다리거나 취소 하세요</translation>
+        <translation type="vanished">변환 작업이 진행중! 중지 될때까지 기다리거나 취소 하세요</translation>
     </message>
     <message>
         <source>You are going to premultiply selected files.
@@ -11224,16 +11304,16 @@ The operation cannot be undone: are you sure?</source>
     <message>
         <source>Please enable &quot;Sync Level Strip Drawing Number Changes with the XSheet&quot; preference option
 to use the duplicate command in the xsheet / timeline.</source>
-        <translation>사용가능 &quot; X시트: 환경설정 옵션으로 레벨 스트립 그리기 번호 변경
+        <translation type="vanished">사용가능 &quot; X시트: 환경설정 옵션으로 레벨 스트립 그리기 번호 변경
 X시트/ 타임에서 중복 명령을 사용하세요.</translation>
     </message>
     <message>
         <source>Please select only one layer to duplicate a frame.</source>
-        <translation>프레임을 복제하려면 레이어를 하나만 선택하세요.</translation>
+        <translation type="vanished">프레임을 복제하려면 레이어를 하나만 선택하세요.</translation>
     </message>
     <message>
         <source>Please select only one frame to duplicate.</source>
-        <translation>복제할 프레임을 하나만 선택하세요.</translation>
+        <translation type="vanished">복제할 프레임을 하나만 선택하세요.</translation>
     </message>
     <message>
         <source>Cannot paste data 
@@ -11379,11 +11459,11 @@ X시트/ 타임에서 중복 명령을 사용하세요.</translation>
     </message>
     <message>
         <source>LineTest Viewer</source>
-        <translation>라인 테스트 뷰어</translation>
+        <translation type="vanished">라인 테스트 뷰어</translation>
     </message>
     <message>
         <source>LineTest Capture</source>
-        <translation>라인 테스트 캡처</translation>
+        <translation type="vanished">라인 테스트 캡처</translation>
     </message>
     <message>
         <source>Combo Viewer</source>
@@ -11395,11 +11475,11 @@ X시트/ 타임에서 중복 명령을 사용하세요.</translation>
     </message>
     <message>
         <source>Level </source>
-        <translation>레벨</translation>
+        <translation type="vanished">레벨</translation>
     </message>
     <message>
         <source> already exists! Are you sure you want to overwrite it?</source>
-        <translation>이미 존재함! 덮어쓰겠습니까?</translation>
+        <translation type="vanished">이미 존재함! 덮어쓰겠습니까?</translation>
     </message>
     <message>
         <source>Match lines can be applied to Toonz raster levels only.</source>
@@ -11435,7 +11515,7 @@ X시트/ 타임에서 중복 명령을 사용하세요.</translation>
     </message>
     <message>
         <source>Skipping frame.</source>
-        <translation>프레임 건너뛰기.</translation>
+        <translation type="vanished">프레임 건너뛰기.</translation>
     </message>
     <message>
         <source>Don&apos;t Duplicate</source>
@@ -11523,11 +11603,11 @@ X시트/ 타임에서 중복 명령을 사용하세요.</translation>
     </message>
     <message>
         <source>[Drag&amp;Drop] to copy separator to menu bar</source>
-        <translation>[드래그&amp;드롭] 구분 기회를 메뉴 모음에 복사</translation>
+        <translation type="vanished">[드래그&amp;드롭] 구분 기회를 메뉴 모음에 복사</translation>
     </message>
     <message>
         <source>[Drag&amp;Drop] to copy command to menu bar</source>
-        <translation>[드래그&amp;드롭] 명령을 메뉴 모음에 복사</translation>
+        <translation type="vanished">[드래그&amp;드롭] 명령을 메뉴 모음에 복사</translation>
     </message>
     <message>
         <source>Delete Matchline  : Level %1</source>
@@ -11575,7 +11655,7 @@ X시트/ 타임에서 중복 명령을 사용하세요.</translation>
     </message>
     <message>
         <source>The rooms will be reset the next time you run Toonz.</source>
-        <translation>다음에 툰즈를 실행하면 방이 재설정 됨.</translation>
+        <translation type="vanished">다음에 툰즈를 실행하면 방이 재설정 됨.</translation>
     </message>
     <message>
         <source>Visit Web Site</source>
@@ -11619,11 +11699,11 @@ Do you want to import them or load from their original location?</source>
     </message>
     <message>
         <source>File not found</source>
-        <translation>파일을 찾을 수 없음</translation>
+        <translation type="vanished">파일을 찾을 수 없음</translation>
     </message>
     <message>
         <source>Don&apos;t Save</source>
-        <translation>저장하지 마세요</translation>
+        <translation type="vanished">저장하지 마세요</translation>
     </message>
     <message>
         <source>Clone Level</source>
@@ -11867,7 +11947,7 @@ Do you want to overwrite it?</source>
     <message>
         <source>The file %1 already exists.
 Do you want to overwrite it?</source>
-        <translation>파일이 %1 이미있음 덮어 쓰시겠습니까?</translation>
+        <translation type="vanished">파일이 %1 이미있음 덮어 쓰시겠습니까?</translation>
     </message>
     <message>
         <source>The file %1 has been exported successfully.</source>
@@ -12256,11 +12336,11 @@ Do you wish to continue loading the last good save or stop and try to salvage th
     </message>
     <message>
         <source>Cell Mark for Inbetween Symbol 1 (O)</source>
-        <translation>중간기호 1  (O)의 셀 마크</translation>
+        <translation type="vanished">중간기호 1  (O)의 셀 마크</translation>
     </message>
     <message>
         <source>Cell Mark for Inbetween Symbol 2 (*)</source>
-        <translation>기호 2 사이의 셀 마크(*)</translation>
+        <translation type="vanished">기호 2 사이의 셀 마크(*)</translation>
     </message>
     <message>
         <source>Target column</source>
@@ -12365,6 +12445,105 @@ What do you want to do?</source>
         <source>[Drag&amp;Drop] to copy command to %1</source>
         <translation>[드래그&amp;드롭]으로 명령을 %1에 복사합니다</translation>
     </message>
+    <message>
+        <source>Keyframe Symbol:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Reference Frame Symbol:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Unable to create OCA folder.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Unable to open OCA file for saving.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Unable to create folder for saving layers.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Import Open Cel Animation (OCA)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>OCA Import cancelled : empty filepath.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>OCA Import file : %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Do you want to import or load image files from their original location?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Failed to load OCA file: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Unable to open OCA file for loading.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Reading OCA file: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Parse error at %1 while loading OCA file.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Blending mode &apos;%1&apos; not implemented for %2 &apos;%3&apos;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Skipped %1 &apos;%2&apos;. No image file indicated.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Unable to load images for %1 &apos;%2&apos;.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Sub-layers in grouplayer &apos;%1&apos; will be imported without grouping.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Skipping unimplemented %1 &apos;%2&apos;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Ignore all future warnings and errors.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Inbetween Symbol1 (O):</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Inbetween Symbol2 (*):</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The visibility toggles of following columns are modified 
+due to &quot;Unify Preview and Camstand Visibility Toggles&quot; preference option : 
+  %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Cell marks for XDTS symbols</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The Keyframe and the Reference Frame symbols will be exported in an unofficial format,
+which may not be displayed correctly or may cause errors in applications other than XDTS Viewer.</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>ReframePopup</name>
@@ -12382,7 +12561,7 @@ What do you want to do?</source>
     </message>
     <message>
         <source>steps</source>
-        <translation>단계</translation>
+        <translation type="vanished">단계</translation>
     </message>
     <message>
         <source>with</source>
@@ -12394,7 +12573,7 @@ What do you want to do?</source>
     </message>
     <message>
         <source> blank cells will be inserted.)</source>
-        <translation>빈 셀이 삽입됩니다.)</translation>
+        <translation type="vanished">빈 셀이 삽입됩니다.)</translation>
     </message>
     <message>
         <source>Number of steps:</source>
@@ -12493,7 +12672,7 @@ These levels can&apos;t be exported with this tool.</source>
     <name>RenderListener</name>
     <message>
         <source>Finalizing render, please wait.</source>
-        <translation>렌더링을 완료하는 중. 잠시 기다려주세요.</translation>
+        <translation type="vanished">렌더링을 완료하는 중. 잠시 기다려주세요.</translation>
     </message>
 </context>
 <context>
@@ -12527,7 +12706,7 @@ These levels can&apos;t be exported with this tool.</source>
     </message>
     <message>
         <source>File not found</source>
-        <translation>파일을 찾을 수 없음</translation>
+        <translation type="vanished">파일을 찾을 수 없음</translation>
     </message>
     <message>
         <source>File not found
@@ -12582,11 +12761,11 @@ These levels can&apos;t be exported with this tool.</source>
     </message>
     <message>
         <source>Click and drag to move guide</source>
-        <translation>가이드를 클릭하고 드래그 하세요</translation>
+        <translation type="vanished">가이드를 클릭하고 드래그 하세요</translation>
     </message>
     <message>
         <source>Left click and drag to move guide. Right click to delete guide</source>
-        <translation>가이드를 이동 하려면 마우스 왼쪽버튼을 클릭하세요. 가이드를 삭제하려면 마우스 오른쪽 버튼을 클릭하세요</translation>
+        <translation type="vanished">가이드를 이동 하려면 마우스 왼쪽버튼을 클릭하세요. 가이드를 삭제하려면 마우스 오른쪽 버튼을 클릭하세요</translation>
     </message>
     <message>
         <source>Left-click and drag to move guide, right-click to delete guide.</source>
@@ -13392,11 +13571,11 @@ Please commit or revert changes first.</source>
     <name>SaveCurvePopup</name>
     <message>
         <source>Save Curve</source>
-        <translation>곡선 저장</translation>
+        <translation type="vanished">곡선 저장</translation>
     </message>
     <message>
         <source>Save</source>
-        <translation>저장</translation>
+        <translation type="vanished">저장</translation>
     </message>
 </context>
 <context>
@@ -13478,11 +13657,11 @@ Please commit or revert changes first.</source>
     <name>SavePreviewedPopup</name>
     <message>
         <source>Save Previewed Images</source>
-        <translation>미리보기 이미지 저장</translation>
+        <translation type="vanished">미리보기 이미지 저장</translation>
     </message>
     <message>
         <source>Save</source>
-        <translation>저장</translation>
+        <translation type="vanished">저장</translation>
     </message>
 </context>
 <context>
@@ -13500,11 +13679,11 @@ Please commit or revert changes first.</source>
     <name>SaveSettingsPopup</name>
     <message>
         <source>Save Cleanup Settings</source>
-        <translation>정리 설정 저장</translation>
+        <translation type="vanished">정리 설정 저장</translation>
     </message>
     <message>
         <source>Save</source>
-        <translation>저장</translation>
+        <translation type="vanished">저장</translation>
     </message>
 </context>
 <context>
@@ -13896,87 +14075,87 @@ Please commit or revert changes first.</source>
     <name>SceneViewerPanel</name>
     <message>
         <source>Safe Area (Right Click to Select)</source>
-        <translation>안전 영역(선택하려면 오늘쪽 클릭)</translation>
+        <translation type="vanished">안전 영역(선택하려면 오늘쪽 클릭)</translation>
     </message>
     <message>
         <source>Field Guide</source>
-        <translation>필드 가이드</translation>
+        <translation type="vanished">필드 가이드</translation>
     </message>
     <message>
         <source>Camera Stand View</source>
-        <translation>카메라 스텐드 보기</translation>
+        <translation type="vanished">카메라 스텐드 보기</translation>
     </message>
     <message>
         <source>3D View</source>
-        <translation>3D 보기</translation>
+        <translation type="vanished">3D 보기</translation>
     </message>
     <message>
         <source>Camera View</source>
-        <translation>카메라 보기</translation>
+        <translation type="vanished">카메라 보기</translation>
     </message>
     <message>
         <source>Freeze</source>
-        <translation>고정</translation>
+        <translation type="vanished">고정</translation>
     </message>
     <message>
         <source>Preview</source>
-        <translation>미리보기</translation>
+        <translation type="vanished">미리보기</translation>
     </message>
     <message>
         <source>Sub-camera Preview</source>
-        <translation>서브 카메라 미리보기</translation>
+        <translation type="vanished">서브 카메라 미리보기</translation>
     </message>
     <message>
         <source>Untitled</source>
-        <translation>제목없음</translation>
+        <translation type="vanished">제목없음</translation>
     </message>
     <message>
         <source>Scene: </source>
-        <translation>장면:</translation>
+        <translation type="vanished">장면:</translation>
     </message>
     <message>
         <source>   ::   Frame: </source>
-        <translation>  ::  프레임: </translation>
+        <translation type="vanished">  ::  프레임: </translation>
     </message>
     <message>
         <source>  ::  Zoom : </source>
-        <translation>  ::  확대/축소 : </translation>
+        <translation type="vanished">  ::  확대/축소 : </translation>
     </message>
     <message>
         <source> (Flipped)</source>
-        <translation> (플립)</translation>
+        <translation type="vanished"> (플립)</translation>
     </message>
     <message>
         <source>   ::   Level: </source>
-        <translation>  ::  레벨: </translation>
+        <translation type="vanished">  ::  레벨: </translation>
     </message>
     <message>
         <source>Level: </source>
-        <translation>레벨:</translation>
+        <translation type="vanished">레벨:</translation>
     </message>
     <message>
         <source>   ::   Project: </source>
-        <translation>   ::   프로젝트: </translation>
+        <translation type="vanished">   ::   프로젝트: </translation>
     </message>
     <message>
         <source>[SCENE]: </source>
-        <translation>[장면]:</translation>
+        <translation type="vanished">[장면]:</translation>
     </message>
     <message>
         <source>[LEVEL]: </source>
-        <translation>[레벨]:</translation>
+        <translation type="vanished">[레벨]:</translation>
     </message>
     <message>
         <source>GUI Show / Hide</source>
-        <translation>GUI 표시/비표시</translation>
+        <translation type="vanished">GUI 표시/비표시</translation>
     </message>
     <message>
         <source>Playback Toolbar</source>
-        <translation>재생 도구 모음</translation>
+        <translation type="vanished">재생 도구 모음</translation>
     </message>
     <message>
         <source>Frame Slider</source>
-        <translation>프레임 슬라이더</translation>
+        <translation type="vanished">프레임 슬라이더</translation>
     </message>
 </context>
 <context>
@@ -14336,7 +14515,7 @@ Please commit or revert changes first.</source>
     </message>
     <message>
         <source>Playback Controls</source>
-        <translation>재생 제어</translation>
+        <translation type="vanished">재생 제어</translation>
     </message>
     <message>
         <source>RGBA Channels</source>
@@ -14344,7 +14523,7 @@ Please commit or revert changes first.</source>
     </message>
     <message>
         <source>Playback</source>
-        <translation>재생</translation>
+        <translation type="vanished">재생</translation>
     </message>
     <message>
         <source>Play</source>
@@ -14380,7 +14559,7 @@ Please commit or revert changes first.</source>
     <message>
         <source>%1 is already assigned to &apos;%2&apos;
 Assign to &apos;%3&apos;?</source>
-        <translation>%1는 %2에 지정되었음.
+        <translation type="vanished">%1는 %2에 지정되었음.
 %3에 다시 지정 하겠습니까?</translation>
     </message>
     <message>
@@ -14390,6 +14569,16 @@ Assign to &apos;%3&apos;?</source>
     <message>
         <source>No</source>
         <translation>아니오</translation>
+    </message>
+    <message>
+        <source>&apos;%1&apos; is already assigned to &apos;%2&apos;
+Assign to &apos;%3&apos;?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Initial sequence &apos;%1&apos; is assigned to &apos;%2&apos; which takes priority.
+Assign shortcut sequence anyway?</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -14571,7 +14760,7 @@ Assign to &apos;%3&apos;?</source>
     </message>
     <message>
         <source>Choose Project</source>
-        <translation>프레젝트 선택</translation>
+        <translation type="vanished">프레젝트 선택</translation>
     </message>
     <message>
         <source>Create a New Scene</source>
@@ -14579,7 +14768,7 @@ Assign to &apos;%3&apos;?</source>
     </message>
     <message>
         <source>Open Scene</source>
-        <translation>장면 열기</translation>
+        <translation type="vanished">장면 열기</translation>
     </message>
     <message>
         <source>Scene Name:</source>
@@ -14683,7 +14872,7 @@ Assign to &apos;%3&apos;?</source>
     </message>
     <message>
         <source>The chosen file path is not valid.</source>
-        <translation>선택한 파일 경로가 유효하지 않음.</translation>
+        <translation type="vanished">선택한 파일 경로가 유효하지 않음.</translation>
     </message>
     <message>
         <source>The width must be greater than zero.</source>
@@ -14733,7 +14922,7 @@ Possibly the preset file has been corrupted</source>
     </message>
     <message>
         <source>The selected scene project &apos;%1&apos; is not in the Current Project list and may not open automatically.</source>
-        <translation>선택한 장면 프로젝트 &apos;%1&apos; 현재 프로젝트 목록에 없으며 자동으로 열리지 않을 수 있음.</translation>
+        <translation type="vanished">선택한 장면 프로젝트 &apos;%1&apos; 현재 프로젝트 목록에 없으며 자동으로 열리지 않을 수 있음.</translation>
     </message>
     <message>
         <source>Failed to create the folder.</source>
@@ -14903,7 +15092,7 @@ WARNING : Image size mismatch. The size of level with the same path is %1 x %2.<
     </message>
     <message>
         <source>Cannot capture webcam image unless live view is active.</source>
-        <translation>라이브 뷰가 활성화되어 있지 않으면 웹캠 이미지를 캡처할 수 없다.</translation>
+        <translation type="vanished">라이브 뷰가 활성화되어 있지 않으면 웹캠 이미지를 캡처할 수 없다.</translation>
     </message>
     <message>
         <source>Please start live view before using time lapse.</source>
@@ -15030,11 +15219,11 @@ WARNING : Image size mismatch. The size of level with the same path is %1 x %2.<
     </message>
     <message>
         <source>Zoom</source>
-        <translation>확대</translation>
+        <translation type="vanished">확대</translation>
     </message>
     <message>
         <source>Pick Zoom</source>
-        <translation>확대/축소 선택</translation>
+        <translation type="vanished">확대/축소 선택</translation>
     </message>
     <message>
         <source>&lt;</source>
@@ -15142,7 +15331,7 @@ WARNING : Image size mismatch. The size of level with the same path is %1 x %2.<
     </message>
     <message>
         <source>Black Screen for Capture</source>
-        <translation>캡처용 검은색 화면</translation>
+        <translation type="vanished">캡처용 검은색 화면</translation>
     </message>
     <message>
         <source>Use Reduced Resolution Images</source>
@@ -15170,7 +15359,7 @@ WARNING : Image size mismatch. The size of level with the same path is %1 x %2.<
     </message>
     <message>
         <source>Level Subsampling: </source>
-        <translation>레벨 하위 샘플링: </translation>
+        <translation type="vanished">레벨 하위 샘플링: </translation>
     </message>
     <message>
         <source>Opacity:</source>
@@ -15274,11 +15463,11 @@ WARNING : Image size mismatch. The size of level with the same path is %1 x %2.<
     </message>
     <message>
         <source>Time Lapse</source>
-        <translation>타임랩스</translation>
+        <translation type="vanished">타임랩스</translation>
     </message>
     <message>
         <source>Use time lapse</source>
-        <translation>타임랩스 사용</translation>
+        <translation type="vanished">타임랩스 사용</translation>
     </message>
     <message>
         <source>Interval(sec):</source>
@@ -15378,66 +15567,66 @@ Divide = Focus Check</source>
     <name>StudioPaletteTreeViewer</name>
     <message>
         <source>This folder is not empty. Delete anyway?</source>
-        <translation>이 폴더는 비어 있지 않음. 삭제하겠습니까?</translation>
+        <translation type="vanished">이 폴더는 비어 있지 않음. 삭제하겠습니까?</translation>
     </message>
     <message>
         <source>New Palette</source>
-        <translation>새로운 팔레트</translation>
+        <translation type="vanished">새로운 팔레트</translation>
     </message>
     <message>
         <source>New Folder</source>
-        <translation>새폴더</translation>
+        <translation type="vanished">새폴더</translation>
     </message>
     <message>
         <source>New Cleanup Palette</source>
-        <translation>새 정리 팔레트</translation>
+        <translation type="vanished">새 정리 팔레트</translation>
     </message>
     <message>
         <source>Delete Folder</source>
-        <translation>폴더 삭제</translation>
+        <translation type="vanished">폴더 삭제</translation>
     </message>
     <message>
         <source>Load into Current Cleaunp Palette</source>
-        <translation>현재 클리아운프 팔레트에 가져오기</translation>
+        <translation type="vanished">현재 클리아운프 팔레트에 가져오기</translation>
     </message>
     <message>
         <source>Replace with Current Cleaunp Palette</source>
-        <translation>현재 클리어프 팔레트로 교체</translation>
+        <translation type="vanished">현재 클리어프 팔레트로 교체</translation>
     </message>
     <message>
         <source>Load into Current Palette</source>
-        <translation>현재 팔레트로 가져오기</translation>
+        <translation type="vanished">현재 팔레트로 가져오기</translation>
     </message>
     <message>
         <source>Merge to Current Palette</source>
-        <translation>현재 팔레트로 병합</translation>
+        <translation type="vanished">현재 팔레트로 병합</translation>
     </message>
     <message>
         <source>Replace with Current Palette</source>
-        <translation>현재 팔레트로 교체</translation>
+        <translation type="vanished">현재 팔레트로 교체</translation>
     </message>
     <message>
         <source>Delete Palette</source>
-        <translation>팔레트 삭제</translation>
+        <translation type="vanished">팔레트 삭제</translation>
     </message>
     <message>
         <source>Search for Palettes</source>
-        <translation>팔레트 검색</translation>
+        <translation type="vanished">팔레트 검색</translation>
     </message>
 </context>
 <context>
     <name>StudioPaletteViewer</name>
     <message>
         <source>&amp;New Folder</source>
-        <translation>새 폴더(&amp;N)</translation>
+        <translation type="vanished">새 폴더(&amp;N)</translation>
     </message>
     <message>
         <source>&amp;New Palette</source>
-        <translation>새로운 팔레트(&amp;N)</translation>
+        <translation type="vanished">새로운 팔레트(&amp;N)</translation>
     </message>
     <message>
         <source>&amp;Delete</source>
-        <translation>삭제(&amp;D)</translation>
+        <translation type="vanished">삭제(&amp;D)</translation>
     </message>
 </context>
 <context>
@@ -16198,19 +16387,54 @@ Please refer to the user guide for details.</source>
     </message>
     <message>
         <source>Inbetween symbol mark</source>
-        <translation>심볼 마크</translation>
+        <translation type="vanished">심볼 마크</translation>
     </message>
     <message>
         <source>Reverse sheet symbol mark</source>
-        <translation>리버스 시트 심볼 마크</translation>
+        <translation type="vanished">리버스 시트 심볼 마크</translation>
     </message>
     <message>
         <source>Cell Mark for Inbetween Symbol 1 (O)</source>
-        <translation>기호 1(O) 사이의 셀 표시</translation>
+        <translation type="vanished">기호 1(O) 사이의 셀 표시</translation>
     </message>
     <message>
         <source>Cell Mark for Inbetween Symbol 2 (*)</source>
-        <translation>기호 2 사이의 셀 표시(*)</translation>
+        <translation type="vanished">기호 2 사이의 셀 표시(*)</translation>
+    </message>
+    <message>
+        <source>Cell marks for XDTS symbols</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Inbetween Symbol1 (O):</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Inbetween Symbol2 (*)</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>XsheetGUI::BreadcrumbArea</name>
+    <message>
+        <source>  &gt;  </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>  |  </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>---</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Main</source>
+        <translation type="unfinished">메인</translation>
+    </message>
+    <message>
+        <source>Xsheet Depth:</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -16294,6 +16518,10 @@ Please refer to the user guide for details.</source>
     <message>
         <source>None</source>
         <translation>없음</translation>
+    </message>
+    <message>
+        <source>Interpolation on %1&apos;s</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -16649,7 +16877,7 @@ Hold F3 Key on the Viewer to Show This Frame Only</source>
     </message>
     <message>
         <source>   ::   Project: </source>
-        <translation>   ::   프로젝트: </translation>
+        <translation type="vanished">   ::   프로젝트: </translation>
     </message>
     <message>
         <source> Frame</source>

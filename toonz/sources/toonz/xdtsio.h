@@ -79,19 +79,33 @@ class XdtsFrameDataItem {
   // SYMBOL_HYPHEN       Continue previous       All fields
   //                     field instruction
 
+  //------------------
+  // new parameter introduced in PONOC customized version
+  QList<QString> m_options;
+  // [Character string]     [Instruction]                  [Valid field]
+  // OPTION_KEYFRAME        原画フレーム（番号を〇で囲む）     セル
+  // OPTION_REFERENCEFRAME  作画参考フレーム（番号を△で囲む） セル
+  //------------------
+
   TFrameId str2Fid(const QString &) const;
   QString fid2Str(const TFrameId &) const;
 
 public:
   enum { SYMBOL_TICK_1 = -100, SYMBOL_TICK_2 = -200 };
 
-  XdtsFrameDataItem() : m_id(Default) {}
-  XdtsFrameDataItem(TFrameId fId) : m_id(Default) {
+  XdtsFrameDataItem() : m_id(Default), m_options() {}
+  XdtsFrameDataItem(TFrameId fId, QList<QString> options = QList<QString>())
+      : m_id(Default), m_options(options) {
     m_values.append(fid2Str(fId));
   }
   void read(const QJsonObject &json);
   void write(QJsonObject &json) const;
-  TFrameId getFrameId() const;
+
+  struct FrameInfo {
+    TFrameId frameId;
+    QStringList options;
+  };
+  FrameInfo getFrameInfo() const;
 };
 
 //"description": "Individual layer frame information",
@@ -107,12 +121,14 @@ class XdtsTrackFrameItem {
   //"required": ["data", "frame"]
 public:
   XdtsTrackFrameItem() = default;
-  XdtsTrackFrameItem(int frame, TFrameId fId) : m_frame(frame) {
-    m_data.append(XdtsFrameDataItem(fId));
+  XdtsTrackFrameItem(int frame, TFrameId fId,
+                     QList<QString> options = QList<QString>())
+      : m_frame(frame) {
+    m_data.append(XdtsFrameDataItem(fId, options));
   }
   void read(const QJsonObject &json);
   void write(QJsonObject &json) const;
-  QPair<int, TFrameId> frameFid() const;
+  QPair<int, XdtsFrameDataItem::FrameInfo> frameFinfo() const;
 };
 
 //"description": "Individual field layer info",
@@ -133,12 +149,14 @@ public:
   void write(QJsonObject &json) const;
   bool isEmpty() const { return m_frames.isEmpty(); }
   int getTrackNo() const { return m_trackNo; }
-  QVector<TFrameId> getCellFrameIdTrack(QList<int> &tick1,
-                                        QList<int> &tick2) const;
+  QVector<TFrameId> getCellFrameIdTrack(QList<int> &tick1, QList<int> &tick2,
+                                        QList<int> &keyFrames,
+                                        QList<int> &refFrames) const;
 
   QString build(TXshCellColumn *);
-  void addFrame(int frame, TFrameId fId) {
-    m_frames.append(XdtsTrackFrameItem(frame, fId));
+  void addFrame(int frame, TFrameId fId,
+                QList<QString> options = QList<QString>()) {
+    m_frames.append(XdtsTrackFrameItem(frame, fId, options));
   }
 };
 
@@ -157,7 +175,8 @@ public:
   bool isCellField() { return m_fieldId == CELL; }
   QList<int> getOccupiedColumns() const;
   QVector<TFrameId> getColumnTrack(int col, QList<int> &tick1,
-                                   QList<int> &tick2) const;
+                                   QList<int> &tick2, QList<int> &keyFrames,
+                                   QList<int> &refFrames) const;
 
   void build(TXsheet *, QStringList &);
 };
@@ -226,15 +245,22 @@ class XdtsData {
   // "description": "XTDS file format version",
   enum Version { Ver_2018_11_29 = 5 } m_version;
 
+  // https://github.com/shun-iwasawa/XDTS-uext/blob/main/md/XDTS-uext.md
+  //  "description": "extension version identifier(*9)",
+  // *9 Set the string "p1" (to indicate the Studio Ponoc extended version 1).
+  QString m_subversion;
+
   //"required": ["timeTables", "version"]
 public:
-  XdtsData(Version version = Ver_2018_11_29) : m_version(version) {}
+  XdtsData(Version version = Ver_2018_11_29)
+      : m_version(version), m_subversion() {}
   void read(const QJsonObject &json);
   void write(QJsonObject &json) const;
   QStringList getLevelNames() const;
   XdtsTimeTableItem &timeTable() { return m_timeTables[0]; }
   void build(TXsheet *, QString, int duration);
   bool isEmpty() { return m_timeTables.isEmpty(); }
+  bool isUextVersion() { return !m_subversion.isEmpty(); }
 };
 
 bool loadXdtsScene(ToonzScene *scene, const TFilePath &scenePath);

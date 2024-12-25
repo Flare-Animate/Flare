@@ -34,6 +34,7 @@
 #include <QUrl>
 #include <QComboBox>
 #include <QLabel>
+#include <QGroupBox>
 using namespace XdtsIo;
 namespace {
 static QByteArray identifierStr("exchangeDigitalTimeSheet Save Data");
@@ -46,7 +47,14 @@ QIcon getColorChipIcon(TPixel32 color) {
 
 int _tick1Id          = -1;
 int _tick2Id          = -1;
+int _keyFrameId       = -1;
+int _referenceFrameId = -1;
+bool _isUextVersion   = false;  // set to true when XDTS is written in UEXT
+                                // (unofficial extension) version
 bool _exportAllColumn = true;
+
+const QString OPTION_KEYFRAME       = "OPTION_KEYFRAME";
+const QString OPTION_REFERENCEFRAME = "OPTION_REFERENCEFRAME";
 }  // namespace
 //-----------------------------------------------------------------------------
 void XdtsHeader::read(const QJsonObject &json) {
@@ -105,6 +113,12 @@ void XdtsFrameDataItem::read(const QJsonObject &json) {
   for (int vIndex = 0; vIndex < valuesArray.size(); ++vIndex) {
     m_values.append(valuesArray[vIndex].toString());
   }
+  if (json.contains("options")) {
+    QJsonArray optionsArray = json["options"].toArray();
+    for (int vIndex = 0; vIndex < optionsArray.size(); ++vIndex) {
+      m_options.append(optionsArray[vIndex].toString());
+    }
+  }
 }
 
 void XdtsFrameDataItem::write(QJsonObject &json) const {
@@ -114,25 +128,33 @@ void XdtsFrameDataItem::write(QJsonObject &json) const {
     valuesArray.append(value);
   }
   json["values"] = valuesArray;
+
+  if (!m_options.isEmpty()) {
+    QJsonArray optionsArray;
+    foreach (const QString &option, m_options) {
+      optionsArray.append(option);
+    }
+    json["options"] = optionsArray;
+  }
 }
 
-TFrameId XdtsFrameDataItem::getFrameId() const {
+XdtsFrameDataItem::FrameInfo XdtsFrameDataItem::getFrameInfo() const {
   // int getCellNumber() const {
   if (m_values.isEmpty())
-    return TFrameId(-1);  // EMPTY
-                          // if (m_values.isEmpty()) return 0;
+    return {TFrameId(-1), m_options};  // EMPTY
+                                       // if (m_values.isEmpty()) return 0;
   QString val = m_values.at(0);
   if (val == "SYMBOL_NULL_CELL")
-    return TFrameId(-1);  // EMPTY
-                          // ignore sheet symbols for now
+    return {TFrameId(-1), m_options};  // EMPTY
+                                       // ignore sheet symbols for now
   else if (val == "SYMBOL_HYPHEN")
-    return TFrameId(-2);  // IGNORE
+    return {TFrameId(-2), m_options};  // IGNORE
   else if (val == "SYMBOL_TICK_1")
-    return TFrameId(SYMBOL_TICK_1);
+    return {TFrameId(SYMBOL_TICK_1), m_options};
   else if (val == "SYMBOL_TICK_2")
-    return TFrameId(SYMBOL_TICK_2);
+    return {TFrameId(SYMBOL_TICK_2), m_options};
   // return cell number
-  return str2Fid(m_values.at(0));
+  return {str2Fid(m_values.at(0)), m_options};
 }
 
 //-----------------------------------------------------------------------------
@@ -161,8 +183,10 @@ void XdtsTrackFrameItem::write(QJsonObject &json) const {
 
 //-----------------------------------------------------------------------------
 
-QPair<int, TFrameId> XdtsTrackFrameItem::frameFid() const {
-  return QPair<int, TFrameId>(m_frame, m_data[0].getFrameId());
+QPair<int, XdtsFrameDataItem::FrameInfo> XdtsTrackFrameItem::frameFinfo()
+    const {
+  return QPair<int, XdtsFrameDataItem::FrameInfo>(m_frame,
+                                                  m_data[0].getFrameInfo());
 }
 
 //-----------------------------------------------------------------------------
@@ -190,34 +214,35 @@ void XdtsFieldTrackItem::write(QJsonObject &json) const {
 }
 //-----------------------------------------------------------------------------
 
-static bool frameLessThan(const QPair<int, TFrameId> &v1,
-                          const QPair<int, TFrameId> &v2) {
+static bool frameLessThan(const QPair<int, XdtsFrameDataItem::FrameInfo> &v1,
+                          const QPair<int, XdtsFrameDataItem::FrameInfo> &v2) {
   return v1.first < v2.first;
 }
 
 QVector<TFrameId> XdtsFieldTrackItem::getCellFrameIdTrack(
-    QList<int> &tick1, QList<int> &tick2) const {
-  QList<QPair<int, TFrameId>> frameFids;
+    QList<int> &tick1, QList<int> &tick2, QList<int> &keyFrames,
+    QList<int> &refFrames) const {
+  QList<QPair<int, XdtsFrameDataItem::FrameInfo>> frameFinfos;
   for (const XdtsTrackFrameItem &frame : m_frames)
-    frameFids.append(frame.frameFid());
-  std::sort(frameFids.begin(), frameFids.end(), frameLessThan);
+    frameFinfos.append(frame.frameFinfo());
+  std::sort(frameFinfos.begin(), frameFinfos.end(), frameLessThan);
 
   QVector<TFrameId> cells;
   int currentFrame       = 0;
   TFrameId initialNumber = TFrameId();
-  for (QPair<int, TFrameId> &frameFid : frameFids) {
-    while (currentFrame < frameFid.first) {
+  for (QPair<int, XdtsFrameDataItem::FrameInfo> &frameFinfo : frameFinfos) {
+    while (currentFrame < frameFinfo.first) {
       cells.append((cells.isEmpty()) ? initialNumber : cells.last());
       currentFrame++;
     }
     // CSP may export negative frame data (although it is not allowed in XDTS
     // format specification) so handle such case.
-    if (frameFid.first < 0) {
-      initialNumber = frameFid.second;
+    if (frameFinfo.first < 0) {
+      initialNumber = frameFinfo.second.frameId;
       continue;
     }
     // ignore sheet symbols for now
-    TFrameId cellFid = frameFid.second;
+    TFrameId cellFid = frameFinfo.second.frameId;
     if (cellFid.getNumber() == -2)  // IGNORE case
       cells.append((cells.isEmpty()) ? TFrameId(-1) : cells.last());
     else if (cellFid.getNumber() ==
@@ -230,6 +255,11 @@ QVector<TFrameId> XdtsFieldTrackItem::getCellFrameIdTrack(
       tick2.append(currentFrame);
     } else
       cells.append(cellFid);
+
+    QStringList options = frameFinfo.second.options;
+    if (options.contains(OPTION_KEYFRAME)) keyFrames.append(currentFrame);
+    if (options.contains(OPTION_REFERENCEFRAME)) refFrames.append(currentFrame);
+
     currentFrame++;
   }
   return cells;
@@ -262,8 +292,17 @@ QString XdtsFieldTrackItem::build(TXshCellColumn *column) {
     }
     if (cell.isEmpty())
       addFrame(row, TFrameId(-1));
-    else
-      addFrame(row, cell.getFrameId());
+    else {
+      QList<QString> options;
+      // cell mark for keyframe / reference frame symbols
+      if (_keyFrameId >= 0 && column->getCellMark(row) == _keyFrameId)
+        options.append(OPTION_KEYFRAME);
+      else if (_referenceFrameId >= 0 &&
+               column->getCellMark(row) == _referenceFrameId)
+        options.append(OPTION_REFERENCEFRAME);
+      if (!options.isEmpty()) _isUextVersion = true;
+      addFrame(row, cell.getFrameId(), options);
+    }
 
     prevCell = cell;
   }
@@ -308,10 +347,11 @@ QList<int> XdtsTimeTableFieldItem::getOccupiedColumns() const {
 }
 
 QVector<TFrameId> XdtsTimeTableFieldItem::getColumnTrack(
-    int col, QList<int> &tick1, QList<int> &tick2) const {
+    int col, QList<int> &tick1, QList<int> &tick2, QList<int> &keyFrames,
+    QList<int> &refFrames) const {
   for (const XdtsFieldTrackItem &track : m_tracks) {
     if (track.getTrackNo() != col) continue;
-    return track.getCellFrameIdTrack(tick1, tick2);
+    return track.getCellFrameIdTrack(tick1, tick2, keyFrames, refFrames);
   }
   return QVector<TFrameId>();
 }
@@ -457,6 +497,8 @@ void XdtsData::read(const QJsonObject &json) {
     m_timeTables.append(table);
   }
   m_version = Version(qRound(json["version"].toDouble()));
+
+  if (json.contains("subversion")) m_subversion = json["subversion"].toString();
 }
 
 void XdtsData::write(QJsonObject &json) const {
@@ -473,6 +515,8 @@ void XdtsData::write(QJsonObject &json) const {
   }
   json["timeTables"] = tableArray;
   json["version"]    = int(m_version);
+
+  if (!m_subversion.isEmpty()) json["subversion"] = m_subversion;
 }
 
 QStringList XdtsData::getLevelNames() const {
@@ -485,6 +529,8 @@ void XdtsData::build(TXsheet *xsheet, QString name, int duration) {
   timeTable.build(xsheet, name, duration);
   if (timeTable.isEmpty()) return;
   m_timeTables.append(timeTable);
+
+  if (_isUextVersion) m_subversion = "p1";
 }
 
 //-----------------------------------------------------------------------------
@@ -528,7 +574,7 @@ bool XdtsIo::loadXdtsScene(ToonzScene *scene, const TFilePath &scenePath) {
   // in the file browser which opens from XDTSImportPopup
   TApp::instance()->getCurrentScene()->setScene(scene);
 
-  XDTSImportPopup popup(levelNames, scene, scenePath);
+  XDTSImportPopup popup(levelNames, scene, scenePath, xdtsData.isUextVersion());
 
   int ret = popup.exec();
   if (ret == QDialog::Rejected) return false;
@@ -551,8 +597,8 @@ bool XdtsIo::loadXdtsScene(ToonzScene *scene, const TFilePath &scenePath) {
     return false;
   }
 
-  int tick1Id, tick2Id;
-  popup.getMarkerIds(tick1Id, tick2Id);
+  int tick1Id, tick2Id, keyFrameId, referenceFrameId;
+  popup.getMarkerIds(tick1Id, tick2Id, keyFrameId, referenceFrameId);
 
   TFrameId tmplFId = scene->getProperties()->formatTemplateFIdForInput();
 
@@ -566,8 +612,9 @@ bool XdtsIo::loadXdtsScene(ToonzScene *scene, const TFilePath &scenePath) {
     QString levelName   = layerNames.at(column);
     TXshLevel *level    = levels.value(levelName);
     TXshSimpleLevel *sl = level->getSimpleLevel();
-    QList<int> tick1, tick2;
-    QVector<TFrameId> track = cellField.getColumnTrack(column, tick1, tick2);
+    QList<int> tick1, tick2, keyFrames, refFrames;
+    QVector<TFrameId> track =
+        cellField.getColumnTrack(column, tick1, tick2, keyFrames, refFrames);
 
     int row = 0;
     std::vector<TFrameId>::iterator it;
@@ -591,12 +638,24 @@ bool XdtsIo::loadXdtsScene(ToonzScene *scene, const TFilePath &scenePath) {
     }
 
     // set cell marks
-    TXshCellColumn *cellColumn = xsh->getColumn(column)->getCellColumn();
-    if (tick1Id >= 0) {
-      for (auto tick1f : tick1) cellColumn->setCellMark(tick1f, tick1Id);
-    }
-    if (tick2Id >= 0) {
-      for (auto tick2f : tick2) cellColumn->setCellMark(tick2f, tick2Id);
+    TXshCellColumn *cellColumn = nullptr;
+    if (xsh->getColumn(column))
+      cellColumn = xsh->getColumn(column)->getCellColumn();
+    if (cellColumn) {
+      if (tick1Id >= 0) {
+        for (auto tick1f : tick1) cellColumn->setCellMark(tick1f, tick1Id);
+      }
+      if (tick2Id >= 0) {
+        for (auto tick2f : tick2) cellColumn->setCellMark(tick2f, tick2Id);
+      }
+      if (keyFrameId >= 0) {
+        for (auto keyFrame : keyFrames)
+          cellColumn->setCellMark(keyFrame, keyFrameId);
+      }
+      if (referenceFrameId >= 0) {
+        for (auto refFrame : refFrames)
+          cellColumn->setCellMark(refFrame, referenceFrameId);
+      }
     }
 
     TStageObject *pegbar =
@@ -643,7 +702,10 @@ void ExportXDTSCommand::execute() {
   {
     _tick1Id         = -1;
     _tick2Id         = -1;
+    _keyFrameId      = -1;
+    _tick2Id         = -1;
     _exportAllColumn = true;
+    _isUextVersion   = false;
     XdtsData pre_xdtsData;
     pre_xdtsData.build(xsheet, QString::fromStdString(fp.getName()), duration);
     if (pre_xdtsData.isEmpty()) {
@@ -655,9 +717,12 @@ void ExportXDTSCommand::execute() {
   static GenericSaveFilePopup *savePopup = 0;
   static QComboBox *tick1Id              = nullptr;
   static QComboBox *tick2Id              = nullptr;
+  static QComboBox *keyFrameId           = nullptr;
+  static QComboBox *referenceFrameId     = nullptr;
   static QComboBox *targetColumnCombo    = nullptr;
 
   auto refreshCellMarkComboItems = [](QComboBox *combo) {
+    combo->setSizeAdjustPolicy(QComboBox::AdjustToContents);
     int current = -1;
     if (combo->count()) current = combo->currentData().toInt();
 
@@ -667,7 +732,7 @@ void ExportXDTSCommand::execute() {
                                                   ->getScene()
                                                   ->getProperties()
                                                   ->getCellMarks();
-    combo->addItem(tr("None"), -1);
+    combo->addItem(QObject::tr("None"), -1);
     int curId = 0;
     for (auto mark : marks) {
       QString label = QString("%1: %2").arg(curId).arg(mark.name);
@@ -682,32 +747,77 @@ void ExportXDTSCommand::execute() {
     QWidget *custonWidget = new QWidget();
     tick1Id               = new QComboBox();
     tick2Id               = new QComboBox();
+    keyFrameId            = new QComboBox();
+    referenceFrameId      = new QComboBox();
     refreshCellMarkComboItems(tick1Id);
     refreshCellMarkComboItems(tick2Id);
-    tick1Id->setCurrentIndex(tick1Id->findData(0));
-    tick2Id->setCurrentIndex(tick2Id->findData(1));
+    refreshCellMarkComboItems(keyFrameId);
+    refreshCellMarkComboItems(referenceFrameId);
+    tick1Id->setCurrentIndex(tick1Id->findData(6));
+    tick2Id->setCurrentIndex(tick2Id->findData(8));
+    keyFrameId->setCurrentIndex(keyFrameId->findData(0));
+    referenceFrameId->setCurrentIndex(referenceFrameId->findData(4));
     targetColumnCombo = new QComboBox();
     targetColumnCombo->addItem(QObject::tr("All columns"), true);
     targetColumnCombo->addItem(QObject::tr("Only active columns"), false);
     targetColumnCombo->setCurrentIndex(targetColumnCombo->findData(true));
 
-    QGridLayout *customLay = new QGridLayout();
-    customLay->setMargin(0);
+    QLabel *warningLabel = new QLabel();
+    warningLabel->setFixedSize(20, 20);
+    warningLabel->setPixmap(QPixmap(":Resources/warning.svg"));
+    warningLabel->setToolTip(QObject::tr(
+        "The Keyframe and the Reference Frame symbols will be exported in "
+        "an unofficial format,\n"
+        "which may not be displayed correctly or may cause errors in "
+        "applications other than XDTS Viewer."));
+    // The original image and reference symbols will be exported in an
+    // unofficial format, which may not be displayed correctly or may cause
+    // errors in applications other than XDTS Viewer.
+
+    QVBoxLayout *customLay = new QVBoxLayout();
+    customLay->setMargin(5);
     customLay->setSpacing(10);
     {
-      customLay->addWidget(
-          new QLabel(QObject::tr("Cell Mark for Inbetween Symbol 1 (O)")), 0, 0,
-          Qt::AlignRight | Qt::AlignVCenter);
-      customLay->addWidget(tick1Id, 0, 1);
-      customLay->addWidget(
-          new QLabel(QObject::tr("Cell Mark for Inbetween Symbol 2 (*)")), 1, 0,
-          Qt::AlignRight | Qt::AlignVCenter);
-      customLay->addWidget(tick2Id, 1, 1);
-      customLay->addWidget(new QLabel(QObject::tr("Target column")), 2, 0,
-                           Qt::AlignRight | Qt::AlignVCenter);
-      customLay->addWidget(targetColumnCombo, 2, 1);
+      QGroupBox *cellMarkGroupBox =
+          new QGroupBox(QObject::tr("Cell marks for XDTS symbols"));
+
+      QGridLayout *cellMarkLay = new QGridLayout();
+      cellMarkLay->setMargin(10);
+      cellMarkLay->setVerticalSpacing(10);
+      cellMarkLay->setHorizontalSpacing(5);
+      {
+        cellMarkLay->addWidget(
+            new QLabel(QObject::tr("Inbetween Symbol1 (O):")), 0, 0,
+            Qt::AlignRight | Qt::AlignVCenter);
+        cellMarkLay->addWidget(tick1Id, 0, 1);
+        cellMarkLay->addItem(new QSpacerItem(10, 1), 0, 2);
+        cellMarkLay->addWidget(
+            new QLabel(QObject::tr("Inbetween Symbol2 (*):")), 0, 3,
+            Qt::AlignRight | Qt::AlignVCenter);
+        cellMarkLay->addWidget(tick2Id, 0, 4);
+
+        cellMarkLay->addWidget(new QLabel(QObject::tr("Keyframe Symbol:")), 1,
+                               0, Qt::AlignRight | Qt::AlignVCenter);
+        cellMarkLay->addWidget(keyFrameId, 1, 1);
+        cellMarkLay->addWidget(
+            new QLabel(QObject::tr("Reference Frame Symbol:")), 1, 3,
+            Qt::AlignRight | Qt::AlignVCenter);
+        cellMarkLay->addWidget(referenceFrameId, 1, 4);
+        cellMarkLay->addWidget(warningLabel, 1, 5);
+      }
+      cellMarkGroupBox->setLayout(cellMarkLay);
+      customLay->addWidget(cellMarkGroupBox, 0, Qt::AlignRight);
+
+      QHBoxLayout *bottomLay = new QHBoxLayout();
+      bottomLay->setMargin(0);
+      bottomLay->setSpacing(10);
+      {
+        bottomLay->addWidget(new QLabel(QObject::tr("Target column")), 1,
+                             Qt::AlignRight | Qt::AlignVCenter);
+        bottomLay->addWidget(targetColumnCombo, 0);
+      }
+      customLay->addLayout(bottomLay);
     }
-    customLay->setColumnStretch(0, 1);
     custonWidget->setLayout(customLay);
 
     savePopup = new GenericSaveFilePopup(
@@ -716,6 +826,8 @@ void ExportXDTSCommand::execute() {
   } else {
     refreshCellMarkComboItems(tick1Id);
     refreshCellMarkComboItems(tick2Id);
+    refreshCellMarkComboItems(keyFrameId);
+    refreshCellMarkComboItems(referenceFrameId);
   }
   if (!scene->isUntitled())
     savePopup->setFolder(fp.getParentDir());
@@ -733,9 +845,12 @@ void ExportXDTSCommand::execute() {
     return;
   }
 
-  _tick1Id         = tick1Id->currentData().toInt();
-  _tick2Id         = tick2Id->currentData().toInt();
-  _exportAllColumn = targetColumnCombo->currentData().toBool();
+  _tick1Id          = tick1Id->currentData().toInt();
+  _tick2Id          = tick2Id->currentData().toInt();
+  _keyFrameId       = keyFrameId->currentData().toInt();
+  _referenceFrameId = referenceFrameId->currentData().toInt();
+  _exportAllColumn  = targetColumnCombo->currentData().toBool();
+  _isUextVersion    = false;
   XdtsData xdtsData;
   xdtsData.build(xsheet, QString::fromStdString(fp.getName()), duration);
   if (xdtsData.isEmpty()) {
