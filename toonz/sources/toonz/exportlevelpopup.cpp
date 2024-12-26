@@ -234,6 +234,7 @@ ExportLevelPopup::ExportLevelPopup() : FileBrowserPopup(tr("Export Level"), Opti
           << "tga";
   //formats.sort();
   m_format->addItems(formats);
+  onformatChanged(m_format->currentText());
 
   m_retas->setMinimumHeight(DVGui::WidgetHeight);
   m_formatOptions->setMinimumSize(60, 25);
