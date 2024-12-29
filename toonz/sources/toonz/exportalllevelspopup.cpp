@@ -43,6 +43,7 @@
 // TnzCore includes
 #include "tiio.h"
 #include "tproperty.h"
+#include "tsystem.h"
 
 // Qt includes
 #include <QDir>
@@ -56,6 +57,7 @@
 #include <QToolBar>
 #include <QString>
 #include <QMessageBox>
+#include <QDesktopServices>
 
 
 //********************************************************************************
@@ -445,11 +447,21 @@ std::wstring ExportAllLevelsPopup::backfoldername(std::string colname,
 
 bool ExportAllLevelsPopup::isAllLevelsExported() {
   if (outputLevels.empty()) {  // no more level to export
-    QMessageBox::information(
-        nullptr,
-        "Export All Levels",                                   // title
-        QString::number(level_exported) + " Levels Exported",  // content
-        QMessageBox::Ok);
+    // Reused code from xdtsio.cpp. 
+    // Encountered a modal bug when using QMessage:
+    // the dialog doesn't appear correctly with DVGui::info.
+    std::vector<QString> buttons = {QObject::tr("OK"),
+                                    QObject::tr("Open containing folder")};
+    int ret = DVGui::MsgBox(DVGui::INFORMATION,
+                  QString("%1 Levels Exported").arg(level_exported),buttons);
+    if (ret == 2) {
+      TFilePath folderPath = TFilePath(m_browser->getFolder());
+      if (TSystem::isUNC(folderPath))
+        QDesktopServices::openUrl(QUrl(folderPath.getQString()));
+      else
+        QDesktopServices::openUrl(QUrl::fromLocalFile(folderPath.getQString()));
+    }
+    //Reuse END
     level_exported = 0;
     return true;
   } else {  // move to next level
