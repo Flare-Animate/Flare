@@ -168,7 +168,6 @@ ExportAllLevelsPopup::~ExportAllLevelsPopup() {
 //------------------------------------
 
 void ExportAllLevelsPopup::showEvent(QShowEvent *se) {
-    setWindowModality(Qt::ApplicationModal);
     
     if (Preferences::instance()->getPixelsOnly()) {
       m_exportOptions->m_widthFld->hide();
@@ -191,7 +190,7 @@ void ExportAllLevelsPopup::showEvent(QShowEvent *se) {
 
     if (outputLevels.empty()) {
         QTimer::singleShot(1000, this, &ExportAllLevelsPopup::hide);
-        DVGui::error(tr("No Level in camera stand or null Level !"));
+        DVGui::error(tr("No levels found in the camera view or levels are null!!"));
         return;
     }
 
@@ -202,7 +201,6 @@ void ExportAllLevelsPopup::showEvent(QShowEvent *se) {
 }
 
 void ExportAllLevelsPopup::hideEvent(QHideEvent* he) {
-  setWindowModality(Qt::NonModal);
   QDialog::hideEvent(he);
 
   outputLevels.clear();
