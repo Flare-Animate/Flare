@@ -253,8 +253,11 @@ bool ExportAllLevelsPopup::execute() {
             ret;
       if (ret) {
         ++level_exported;  // count exported levels
-      } else
-        return ret;
+      } else {
+        DVGui::error(
+            tr("Export failed,please delete exported files and try again."));
+        return ret; 
+      }
       outputLevels.pop_back();
     }
   }
