@@ -14,19 +14,19 @@ public:
   bool execute() override;  // overrride FileBrowserPopup::execute()
 
 private:
-  bool isexport_all;  // set to false when "Export All" be dis-checked
-  int level_exported = 0;
+  bool m_isExportAll;  // set to false when "Export All" is unchecked
+  int m_levelExportedCount = 0;
   std::map<std::wstring ,std::wstring> level_to_foldername;
-  std::wstring backfoldername(std::string colname, std::wstring levelname);
+  std::wstring backFolderName(std::string colname, std::wstring levelname);
   bool isAllLevelsExported();
 
   // Widgets
 private:
-  DVGui::CheckBox *m_exportall;
+  DVGui::CheckBox *m_exportAll;
   QPushButton *m_skipButton;
 
 private slots:
-  void GetSelectedSimpLevels() override;
+  void collectSelectedSimpleLevels() override;
   void showEvent(QShowEvent *se) override;
   void hideEvent(QHideEvent *he) override;
   void updateOnSelection() override;

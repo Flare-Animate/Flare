@@ -130,11 +130,11 @@ ExportAllLevelsPopup::ExportAllLevelsPopup(){
   m_exportOptions->m_noAntialias->setChecked(true);
 
     // Export All checkbox
-  m_exportall = new DVGui::CheckBox(tr("Export All"), this);
-  m_exportall->setChecked(true);
+  m_exportAll = new DVGui::CheckBox(tr("Export All"), this);
+  m_exportAll->setChecked(true);
   m_nameField->setDisabled(true);
   m_nameField->setText("");
-  isexport_all = true;
+  m_isExportAll = true;
 
   // Skip Button
   m_skipButton = new QPushButton(tr("Skip"), this);
@@ -148,14 +148,14 @@ ExportAllLevelsPopup::ExportAllLevelsPopup(){
           ->itemAt(2)
           ->widget()
           ->layout();
-  fileFormatLayout->addWidget(m_exportall);
+  fileFormatLayout->addWidget(m_exportAll);
   fileFormatLayout->addWidget(m_skipButton);
 
   // Establish connections
   bool ret = true;
 
   ret = connect(m_skipButton, SIGNAL(clicked()), this, SLOT(skip())) && ret;
-  ret = connect(m_exportall, SIGNAL(toggled(bool)), this,
+  ret = connect(m_exportAll, SIGNAL(toggled(bool)), this,
                 SLOT(onExportAll(bool))) &&
         ret;
   initFolder();
@@ -186,7 +186,8 @@ void ExportAllLevelsPopup::showEvent(QShowEvent *se) {
     // reset map
     level_to_foldername.clear();
 
-    GetSelectedSimpLevels();//also init level_to_foldername,and sort them
+    collectSelectedSimpleLevels();  // also init level_to_foldername,and sort
+                                    // them
 
     if (outputLevels.empty()) {
         QTimer::singleShot(1000, this, &ExportAllLevelsPopup::hide);
@@ -194,7 +195,7 @@ void ExportAllLevelsPopup::showEvent(QShowEvent *se) {
         return;
     }
 
-    onExportAll(isexport_all);
+    onExportAll(m_isExportAll);
     updateOnSelection();
 
     QDialog::showEvent(se);
@@ -232,7 +233,7 @@ bool ExportAllLevelsPopup::execute() {
   bool ret = true;
 
   // export rest at one time
-  if (isexport_all) {
+  if (m_isExportAll) {
     TXshSimpleLevel *sl;
     MultiExportProgressCB progressCB;
     MultiExportOverwriteCB overwriteCB;
@@ -252,7 +253,7 @@ bool ExportAllLevelsPopup::execute() {
                 sl, opts, &overwriteCB, &progressCB) &&
             ret;
       if (ret) {
-        ++level_exported;  // count exported levels
+        ++m_levelExportedCount;  // count exported levels
       } else {
         DVGui::error(
             tr("Export failed,please delete exported files and try again."));
@@ -290,7 +291,7 @@ bool ExportAllLevelsPopup::execute() {
 
     // count levels exported
     if (ret) {
-      ++level_exported;
+      ++m_levelExportedCount;
       outputLevels.pop_back();
     } else
       return false;
@@ -305,7 +306,7 @@ bool ExportAllLevelsPopup::execute() {
   }
 }
 
-void ExportAllLevelsPopup::GetSelectedSimpLevels() {
+void ExportAllLevelsPopup::collectSelectedSimpleLevels() {
   // get output Levels
   outputLevels.clear();
   TXsheet *xsh             = TApp::instance()->getCurrentXsheet()->getXsheet();
@@ -336,7 +337,7 @@ void ExportAllLevelsPopup::GetSelectedSimpLevels() {
     pegbar    = xsh->getStageObject(TStageObjectId::ColumnId(index));
     colname   = pegbar->getName();
     levelname = sl->getName();
-    level_to_foldername[sl->getName()] = backfoldername(colname, levelname);
+    level_to_foldername[sl->getName()] = backFolderName(colname, levelname);
   }
 
   // sort
@@ -358,7 +359,7 @@ void ExportAllLevelsPopup::onExportAll(bool toggled) {
     m_skipButton->setDisabled(true);
     m_nameField->setDisabled(true);
     m_nameField->setText("");
-    isexport_all = true;
+    m_isExportAll = true;
   }
 
   else {
@@ -369,7 +370,7 @@ void ExportAllLevelsPopup::onExportAll(bool toggled) {
     m_skipButton->setEnabled(true);
     m_nameField->setEnabled(true);
 
-    isexport_all = false;
+    m_isExportAll = false;
     m_nameField->setText(QString::fromStdWString(
         level_to_foldername.find(outputLevels.back()->getName())->second));
   }
@@ -382,7 +383,7 @@ void ExportAllLevelsPopup::updateOnSelection() {
     // Enable tlv output in case all inputs are pli
     int tlvIdx = m_format->findText("tlv");
         //export all mode
-    if (isexport_all) {
+    if (m_isExportAll) {
       bool allPli = true;
       for (auto sl : outputLevels) {
         allPli = (sl && (sl->getType() == PLI_XSHLEVEL)) &&
@@ -405,17 +406,17 @@ void ExportAllLevelsPopup::updateOnSelection() {
 
     //whether be abel to set PliOptions
     if (sl->getType() == PLI_XSHLEVEL) {
-        m_exportOptions->pliOtionsVisable = true;  // used when exportOptions be shown
+      m_exportOptions->pliOptionsVisible =true;
         m_exportOptions->m_pliOptions->setEnabled(true); 
     } else {
-        m_exportOptions->pliOtionsVisable = false;
-        m_exportOptions->m_pliOptions->setEnabled(false); 
+      m_exportOptions->pliOptionsVisible = false;
+      m_exportOptions->m_pliOptions->setEnabled(false); 
     }
     updatePreview();
     return;
 }
 
-std::wstring ExportAllLevelsPopup::backfoldername(std::string colname,
+std::wstring ExportAllLevelsPopup::backFolderName(std::string colname,
                                                   std::wstring levelname) {
   if (levelname == to_wstring(colname) || colname.substr(0, 3) == "Col")
     return levelname;
@@ -454,7 +455,7 @@ bool ExportAllLevelsPopup::isAllLevelsExported() {
     std::vector<QString> buttons = {QObject::tr("OK"),
                                     QObject::tr("Open containing folder")};
     int ret = DVGui::MsgBox(DVGui::INFORMATION,
-                  QString("%1 Levels Exported").arg(level_exported),buttons);
+        QString("%1 Levels Exported").arg(m_levelExportedCount), buttons);
     if (ret == 2) {
       TFilePath folderPath = TFilePath(m_browser->getFolder());
       if (TSystem::isUNC(folderPath))
@@ -463,7 +464,7 @@ bool ExportAllLevelsPopup::isAllLevelsExported() {
         QDesktopServices::openUrl(QUrl::fromLocalFile(folderPath.getQString()));
     }
     //Reuse END
-    level_exported = 0;
+    m_levelExportedCount = 0;
     return true;
   } else {  // move to next level
     m_nameField->setText(QString::fromStdWString(

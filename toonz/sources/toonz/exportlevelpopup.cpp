@@ -350,7 +350,7 @@ ExportLevelPopup::~ExportLevelPopup() {
   QWidget().setLayout(layout());  // Reparents all layout-managed child widgets
 }  // (i.e. all) to a temporary
 
-void ExportLevelPopup::GetSelectedSimpLevels() {
+void ExportLevelPopup::collectSelectedSimpleLevels() {
   outputLevels.clear();
   TApp *app = TApp::instance();
 
@@ -549,7 +549,7 @@ void ExportLevelPopup::onRetas(int) {
 
 void ExportLevelPopup::updateOnSelection() {
   // Disable name field in case of multiple selection
-  GetSelectedSimpLevels();
+  collectSelectedSimpleLevels();
   m_nameField->setEnabled(outputLevels.size() == 1);
 
   // Enable tlv output in case all inputs are pli
@@ -567,7 +567,8 @@ void ExportLevelPopup::updateOnSelection() {
 
   // whether be abel to set PliOptions
   bool isPli = (outputLevels.back()->getType() == PLI_XSHLEVEL);
-  m_exportOptions->pliOtionsVisable = isPli;//used when exportOptions be shown
+  m_exportOptions->pliOptionsVisible =
+      isPli;  // used when exportOptions be shown
   m_exportOptions->m_pliOptions->setEnabled(isPli);
   updatePreview();
   return;
@@ -932,7 +933,7 @@ ExportLevelPopup::ExportOptions::ExportOptions(QWidget *parent)
 
 void ExportLevelPopup::ExportOptions::showEvent(QShowEvent *se) {
   updateCameraDefault();
-  m_pliOptions->setEnabled(pliOtionsVisable);
+  m_pliOptions->setEnabled(pliOptionsVisible);
 }
 
 //-----------------------------------------------------------------------------

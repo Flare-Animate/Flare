@@ -71,7 +71,7 @@ public:
 
   bool execute() override;
 
-  virtual void GetSelectedSimpLevels();
+  virtual void collectSelectedSimpleLevels();
   TPropertyGroup *getFormatProperties(const std::string &ext);
   IoCmd::ExportLevelOptions getOptions(const std::string &ext);
 
@@ -121,7 +121,8 @@ class ExportLevelPopup::ExportOptions final : public QFrame {
 
 public:
   ExportOptions(QWidget *parent = 0);
-  bool pliOtionsVisable;  // be used when updateonselection,ExportOptions show,
+  bool pliOptionsVisible;  // indicates visibility of PLI (vector) export
+                           // options based on current selection
   IoCmd::ExportLevelOptions getOptions() const;
 
 signals:
