@@ -28,5 +28,9 @@ Files: aotz/*
 Copyright: Author: Anderson Prado (AndeOn) [https://github.com/andeon/aotz]
 License:  CC0-1.0
 
+Files: slos_mpb/*
+Copyright: Author: 森林OS (SenlinOS) [https://github.com/SenlinOS/MyPaintBrushes-GIMP]
+License:  CC0-1.0
+
 See also CC0-1.0 license at creativecommons.org
 https://creativecommons.org/publicdomain/zero/1.0/
