@@ -1,5 +1,3 @@
-
-
 #include "exportalllevelspopup.h"
 
 // Tnz6 includes
@@ -425,7 +423,15 @@ std::wstring ExportAllLevelsPopup::backFolderName(std::string colname,
     colname.erase(std::remove(colname.begin(), colname.end(), L'#'),
                   colname.end());
 
-    int pos = colname.find(L'1');
+    int pos = colname.find(L'_');  //  '_'
+    if (pos != std::wstring::npos) {
+      foldername += to_wstring(colname.substr(0, pos));
+    } else {
+      foldername += to_wstring(colname);
+      return foldername;
+    }
+
+    pos = colname.find(L'1');
     if (pos != std::wstring::npos) {
       foldername += to_wstring("_1gen");
       colname.erase(pos);
@@ -436,13 +442,7 @@ std::wstring ExportAllLevelsPopup::backFolderName(std::string colname,
         colname.erase(pos);
       }
     }
-
-    pos = colname.find(L'_');    //  '_'
-    if (pos != std::wstring::npos) {
-      foldername.insert(0,to_wstring(colname.substr(0, pos)));
-    } else {
-      foldername.insert(0,to_wstring(colname));
-    }
+    
     return foldername;
   }
 }
