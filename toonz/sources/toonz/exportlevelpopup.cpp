@@ -172,7 +172,9 @@ void ExportLevelPopup::Swatch::setActualPixelSize() {
 //********************************************************************************
 //    ExportLevelPopup  implementation
 //********************************************************************************
-ExportLevelPopup::ExportLevelPopup() : FileBrowserPopup(tr("Export Level"), Options(CUSTOM_LAYOUT)) {
+ExportLevelPopup::ExportLevelPopup()
+    : FileBrowserPopup(tr("Export Level"),
+                       Options(CUSTOM_LAYOUT | FOR_SAVING)) {
   setOkText(tr("Export"));
 
   TabBarContainter *tabBarContainer = new TabBarContainter;
