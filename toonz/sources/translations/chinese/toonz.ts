@@ -2874,7 +2874,7 @@ contain the dpi information, then the current camera dpi will be used.
     </message>
     <message>
         <source>Frame Offset: </source>
-        <translation>帧偏移: </translation>
+        <translation type="vanished">帧偏移: </translation>
     </message>
     <message>
         <source>Checked: Images are saved as EXR
@@ -2890,7 +2890,7 @@ Unchecked: Vectors are saved as SVG</source>
     </message>
     <message>
         <source>Starting Frame Offset</source>
-        <translation>起始帧偏移:</translation>
+        <translation type="vanished">起始帧偏移:</translation>
     </message>
     <message>
         <source>Hide</source>
@@ -2903,6 +2903,15 @@ Unchecked: Vectors are saved as SVG</source>
     <message>
         <source>Starting...</source>
         <translation>开始...</translation>
+    </message>
+    <message>
+        <source>Export Reference Layers</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Checked: Layers with Preview Visible OFF are also exported
+Unchecked: Only layers with Preview Visible ON are exported</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -2987,7 +2996,7 @@ Unchecked: Vectors are saved as SVG</source>
     <name>ExportXDTSCommand</name>
     <message>
         <source>None</source>
-        <translation>无</translation>
+        <translation type="vanished">无</translation>
     </message>
     <message>
         <source>All columns</source>
@@ -4002,15 +4011,15 @@ Do you want to overwrite it?</source>
     <name>LayerHeaderPanel</name>
     <message>
         <source>Preview Visibility Toggle All</source>
-        <translation>启用/停止全部预览可见性</translation>
+        <translation type="vanished">启用/停止全部预览可见性</translation>
     </message>
     <message>
         <source>Camera Stand Visibility Toggle All</source>
-        <translation>启用/停止全部摄影机可见性</translation>
+        <translation type="vanished">启用/停止全部摄影机可见性</translation>
     </message>
     <message>
         <source>Lock Toggle All</source>
-        <translation>启用/停止全部锁定</translation>
+        <translation type="vanished">启用/停止全部锁定</translation>
     </message>
 </context>
 <context>
@@ -4132,6 +4141,10 @@ Do you want to create it?</source>
     <message>
         <source>Frame Format</source>
         <translation>帧格式</translation>
+    </message>
+    <message>
+        <source>Assistants Level</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -7596,6 +7609,22 @@ N.B. 确保你没有在运行其他 OpenToonz 进程、
         <source>Rotate Selection/Object Right</source>
         <translation>向右旋转选择/物体</translation>
     </message>
+    <message>
+        <source>Import Open Cel Animation (OCA)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;New Assistant Level</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Toggle Sub-Xsheet Navigation Bar</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Edit Assistants</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>MatchlinesDialog</name>
@@ -8897,6 +8926,18 @@ Custom : Always use the custom dpi specified here.</source>
         <source>Custom</source>
         <translation>定制</translation>
     </message>
+    <message>
+        <source>Save Current Image Adjust Parameters As Default</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>BG Reduction is set but the White BG image is missing. Please capture the White BG again.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Do you want to save the current parameters as the default values?</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>PencilTestSaveInFolderPopup</name>
@@ -9902,7 +9943,7 @@ if both are possible on coding file path.</source>
     </message>
     <message>
         <source>Expand Function Editor Header to Match Xsheet Toolbar Height*</source>
-        <translation>展开功能编辑器头以适配摄影表工具条的高度*</translation>
+        <translation type="vanished">展开功能编辑器头以适配摄影表工具条的高度*</translation>
     </message>
     <message>
         <source>Colors</source>
@@ -10341,6 +10382,37 @@ but a random crash might occur, use at your own risk.</source>
     <message>
         <source>Overwrite Paste Cell Numbers</source>
         <translation>覆盖粘贴帧格编号</translation>
+    </message>
+    <message>
+        <source>Show Sub-Xsheet Navigation Bar</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Expand Function Editor Header to Match Xsheet Header Height*</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Unify Preview and Camstand Visibility Toggles</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Link Column Name with Level</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Disable Dragging Cells</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Xsheet Tools</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>This option will do the following:
+- When setting a cell in the empty column, level name will be copied to the column name
+- Typing the cell without level name in the empty column will try to use a level with the same name as the column
+The behavior may be changed in the future development.</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -12170,7 +12242,7 @@ Are you sure?</source>
     </message>
     <message>
         <source>Skipping frame.</source>
-        <translation>跳帧。</translation>
+        <translation type="vanished">跳帧。</translation>
     </message>
     <message>
         <source>Always do this action.</source>
@@ -13064,11 +13136,11 @@ Do you wish to continue loading the last good save or stop and try to salvage th
     </message>
     <message>
         <source>Cell Mark for Inbetween Symbol 1 (O)</source>
-        <translation>用于过渡帧符号1的帧格标记 (O)</translation>
+        <translation type="vanished">用于过渡帧符号1的帧格标记 (O)</translation>
     </message>
     <message>
         <source>Cell Mark for Inbetween Symbol 2 (*)</source>
-        <translation>用于过渡帧符号2的帧格标记 (*)</translation>
+        <translation type="vanished">用于过渡帧符号2的帧格标记 (*)</translation>
     </message>
     <message>
         <source>Target column</source>
@@ -13172,6 +13244,105 @@ What do you want to do?</source>
     <message>
         <source>[Drag&amp;Drop] to copy command to %1</source>
         <translation>[拖放]以拷贝命令到%1</translation>
+    </message>
+    <message>
+        <source>Keyframe Symbol:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Reference Frame Symbol:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Unable to create OCA folder.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Unable to open OCA file for saving.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Unable to create folder for saving layers.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Import Open Cel Animation (OCA)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>OCA Import cancelled : empty filepath.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>OCA Import file : %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Do you want to import or load image files from their original location?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Failed to load OCA file: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Unable to open OCA file for loading.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Reading OCA file: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Parse error at %1 while loading OCA file.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Blending mode &apos;%1&apos; not implemented for %2 &apos;%3&apos;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Skipped %1 &apos;%2&apos;. No image file indicated.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Unable to load images for %1 &apos;%2&apos;.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Sub-layers in grouplayer &apos;%1&apos; will be imported without grouping.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Skipping unimplemented %1 &apos;%2&apos;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Ignore all future warnings and errors.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Inbetween Symbol1 (O):</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Inbetween Symbol2 (*):</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The visibility toggles of following columns are modified 
+due to &quot;Unify Preview and Camstand Visibility Toggles&quot; preference option : 
+  %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Cell marks for XDTS symbols</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The Keyframe and the Reference Frame symbols will be exported in an unofficial format,
+which may not be displayed correctly or may cause errors in applications other than XDTS Viewer.</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -15248,7 +15419,7 @@ Please commit or revert changes first.</source>
     <message>
         <source>%1 is already assigned to &apos;%2&apos;
 Assign to &apos;%3&apos;?</source>
-        <translation>%1 已经分配给了“%2”。
+        <translation type="vanished">%1 已经分配给了“%2”。
 要重新分配给“%3”吗？</translation>
     </message>
     <message>
@@ -15258,6 +15429,16 @@ Assign to &apos;%3&apos;?</source>
     <message>
         <source>No</source>
         <translation>否</translation>
+    </message>
+    <message>
+        <source>&apos;%1&apos; is already assigned to &apos;%2&apos;
+Assign to &apos;%3&apos;?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Initial sequence &apos;%1&apos; is assigned to &apos;%2&apos; which takes priority.
+Assign shortcut sequence anyway?</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -17175,11 +17356,46 @@ Please refer to the user guide for details.</source>
     </message>
     <message>
         <source>Cell Mark for Inbetween Symbol 1 (O)</source>
-        <translation>用于过渡帧符号1的帧格标记 (O)</translation>
+        <translation type="vanished">用于过渡帧符号1的帧格标记 (O)</translation>
     </message>
     <message>
         <source>Cell Mark for Inbetween Symbol 2 (*)</source>
-        <translation>用于过渡帧符号2的帧格标记 (*)</translation>
+        <translation type="vanished">用于过渡帧符号2的帧格标记 (*)</translation>
+    </message>
+    <message>
+        <source>Cell marks for XDTS symbols</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Inbetween Symbol1 (O):</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Inbetween Symbol2 (*)</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>XsheetGUI::BreadcrumbArea</name>
+    <message>
+        <source>  &gt;  </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>  |  </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>---</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Main</source>
+        <translation type="unfinished">主</translation>
+    </message>
+    <message>
+        <source>Xsheet Depth:</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>

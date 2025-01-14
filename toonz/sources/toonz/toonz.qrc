@@ -712,5 +712,6 @@
 		<file>Resources/match_rup_gap.png</file>
 		<file>Resources/scripticon.png</file>
 		<file>Resources/savescreen.png</file>
+		<file>Resources/warning.svg</file>
 	</qresource>
 </RCC>

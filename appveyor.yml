@@ -11,7 +11,7 @@ clone_depth: 1
 cache: c:\tools\vcpkg\installed
 install:
 - cmd: >-
-    choco install opencv
+    choco install opencv --version=4.10.0
 
     cd thirdparty
 

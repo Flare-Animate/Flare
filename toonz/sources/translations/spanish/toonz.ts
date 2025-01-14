@@ -2836,7 +2836,7 @@ contuviera información de PPP, entonces se usarán los de la cámara actual.
     </message>
     <message>
         <source>Frame Offset: </source>
-        <translation>Desplazamiento de fotogramas: </translation>
+        <translation type="vanished">Desplazamiento de fotogramas: </translation>
     </message>
     <message>
         <source>Checked: Images are saved as EXR
@@ -2852,7 +2852,7 @@ Desactivado: Los vectores serán guardados en formato SVG</translation>
     </message>
     <message>
         <source>Starting Frame Offset</source>
-        <translation>Desplazamiento inicial de los fotogramas</translation>
+        <translation type="vanished">Desplazamiento inicial de los fotogramas</translation>
     </message>
     <message>
         <source>Hide</source>
@@ -2865,6 +2865,15 @@ Desactivado: Los vectores serán guardados en formato SVG</translation>
     <message>
         <source>Starting...</source>
         <translation>Iniciando...</translation>
+    </message>
+    <message>
+        <source>Export Reference Layers</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Checked: Layers with Preview Visible OFF are also exported
+Unchecked: Only layers with Preview Visible ON are exported</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -2949,7 +2958,7 @@ Desactivado: Los vectores serán guardados en formato SVG</translation>
     <name>ExportXDTSCommand</name>
     <message>
         <source>None</source>
-        <translation>Ninguna</translation>
+        <translation type="vanished">Ninguna</translation>
     </message>
     <message>
         <source>All columns</source>
@@ -3958,15 +3967,15 @@ Do you want to overwrite it?</source>
     <name>LayerHeaderPanel</name>
     <message>
         <source>Preview Visibility Toggle All</source>
-        <translation>Ver todas en procesamiento</translation>
+        <translation type="vanished">Ver todas en procesamiento</translation>
     </message>
     <message>
         <source>Camera Stand Visibility Toggle All</source>
-        <translation>Ver todas en mesa de trabajo</translation>
+        <translation type="vanished">Ver todas en mesa de trabajo</translation>
     </message>
     <message>
         <source>Lock Toggle All</source>
-        <translation>Bloquear todas</translation>
+        <translation type="vanished">Bloquear todas</translation>
     </message>
 </context>
 <context>
@@ -4088,6 +4097,10 @@ Do you want to create it?</source>
     <message>
         <source>Frame Format</source>
         <translation>Formato de fotogramas</translation>
+    </message>
+    <message>
+        <source>Assistants Level</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -7547,6 +7560,22 @@ Por favor, sólo reportar errores confirmados y reproducibles, no utilizar ese s
         <source>Rotate Selection/Object Right</source>
         <translation>Rotar selección u objeto en sentido horario</translation>
     </message>
+    <message>
+        <source>Import Open Cel Animation (OCA)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;New Assistant Level</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Toggle Sub-Xsheet Navigation Bar</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Edit Assistants</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>MatchlinesDialog</name>
@@ -8839,6 +8868,18 @@ Personalizado : Siempre usará los PPP especificados aquí.</translation>
         <source>Custom</source>
         <translation>Personalizado</translation>
     </message>
+    <message>
+        <source>Save Current Image Adjust Parameters As Default</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>BG Reduction is set but the White BG image is missing. Please capture the White BG again.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Do you want to save the current parameters as the default values?</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>PencilTestSaveInFolderPopup</name>
@@ -9850,7 +9891,7 @@ la relatividad al resolver la ruta de un archvo.</translation>
     </message>
     <message>
         <source>Expand Function Editor Header to Match Xsheet Toolbar Height*</source>
-        <translation>También expandir la altura del editor de funciones*</translation>
+        <translation type="vanished">También expandir la altura del editor de funciones*</translation>
     </message>
     <message>
         <source>Colors</source>
@@ -10291,6 +10332,37 @@ pero es posible que se produzcan ocasionales cuelgues; usar a propio riesgo.</tr
     <message>
         <source>Overwrite Paste Cell Numbers</source>
         <translation>Pegar números de celda (sobrescribir)</translation>
+    </message>
+    <message>
+        <source>Show Sub-Xsheet Navigation Bar</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Expand Function Editor Header to Match Xsheet Header Height*</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Unify Preview and Camstand Visibility Toggles</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Link Column Name with Level</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Disable Dragging Cells</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Xsheet Tools</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>This option will do the following:
+- When setting a cell in the empty column, level name will be copied to the column name
+- Typing the cell without level name in the empty column will try to use a level with the same name as the column
+The behavior may be changed in the future development.</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -12106,7 +12178,7 @@ Are you sure?</source>
     </message>
     <message>
         <source>Skipping frame.</source>
-        <translation>Omitiendo fotograma.</translation>
+        <translation type="vanished">Omitiendo fotograma.</translation>
     </message>
     <message>
         <source>Toonz cannot Save this Level</source>
@@ -12994,11 +13066,11 @@ Se generó un archivo parcial y los cambios pueden ser guardados manualmente a p
     </message>
     <message>
         <source>Cell Mark for Inbetween Symbol 1 (O)</source>
-        <translation>Marca de celda para el símbolo de intermedios 1 (O)</translation>
+        <translation type="vanished">Marca de celda para el símbolo de intermedios 1 (O)</translation>
     </message>
     <message>
         <source>Cell Mark for Inbetween Symbol 2 (*)</source>
-        <translation>Marca de celda para el símbolo de intermedios 2 (*)</translation>
+        <translation type="vanished">Marca de celda para el símbolo de intermedios 2 (*)</translation>
     </message>
     <message>
         <source>Target column</source>
@@ -13102,6 +13174,105 @@ What do you want to do?</source>
     <message>
         <source>[Drag&amp;Drop] to copy command to %1</source>
         <translation>[Arrastrar] para copiar el comando hacia %1</translation>
+    </message>
+    <message>
+        <source>Keyframe Symbol:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Reference Frame Symbol:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Unable to create OCA folder.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Unable to open OCA file for saving.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Unable to create folder for saving layers.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Import Open Cel Animation (OCA)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>OCA Import cancelled : empty filepath.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>OCA Import file : %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Do you want to import or load image files from their original location?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Failed to load OCA file: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Unable to open OCA file for loading.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Reading OCA file: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Parse error at %1 while loading OCA file.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Blending mode &apos;%1&apos; not implemented for %2 &apos;%3&apos;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Skipped %1 &apos;%2&apos;. No image file indicated.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Unable to load images for %1 &apos;%2&apos;.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Sub-layers in grouplayer &apos;%1&apos; will be imported without grouping.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Skipping unimplemented %1 &apos;%2&apos;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Ignore all future warnings and errors.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Inbetween Symbol1 (O):</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Inbetween Symbol2 (*):</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The visibility toggles of following columns are modified 
+due to &quot;Unify Preview and Camstand Visibility Toggles&quot; preference option : 
+  %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Cell marks for XDTS symbols</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The Keyframe and the Reference Frame symbols will be exported in an unofficial format,
+which may not be displayed correctly or may cause errors in applications other than XDTS Viewer.</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -15181,7 +15352,7 @@ Por favor enviar o revertir los cambios antes.</translation>
     <message>
         <source>%1 is already assigned to &apos;%2&apos;
 Assign to &apos;%3&apos;?</source>
-        <translation>%1 ya se encuentra asignado a &apos;%2&apos;
+        <translation type="vanished">%1 ya se encuentra asignado a &apos;%2&apos;
 ¿Asignarlo a &apos;%3&apos;?</translation>
     </message>
     <message>
@@ -15191,6 +15362,16 @@ Assign to &apos;%3&apos;?</source>
     <message>
         <source>No</source>
         <translation>No</translation>
+    </message>
+    <message>
+        <source>&apos;%1&apos; is already assigned to &apos;%2&apos;
+Assign to &apos;%3&apos;?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Initial sequence &apos;%1&apos; is assigned to &apos;%2&apos; which takes priority.
+Assign shortcut sequence anyway?</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -17036,11 +17217,46 @@ Por favor ver la guía de usuario para obtener más detalles.</translation>
     </message>
     <message>
         <source>Cell Mark for Inbetween Symbol 1 (O)</source>
-        <translation>Marca de celda para el símbolo de intermedios 1 (O)</translation>
+        <translation type="vanished">Marca de celda para el símbolo de intermedios 1 (O)</translation>
     </message>
     <message>
         <source>Cell Mark for Inbetween Symbol 2 (*)</source>
-        <translation>Marca de celda para el símbolo de intermedios 2 (*)</translation>
+        <translation type="vanished">Marca de celda para el símbolo de intermedios 2 (*)</translation>
+    </message>
+    <message>
+        <source>Cell marks for XDTS symbols</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Inbetween Symbol1 (O):</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Inbetween Symbol2 (*)</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>XsheetGUI::BreadcrumbArea</name>
+    <message>
+        <source>  &gt;  </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>  |  </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>---</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Main</source>
+        <translation type="unfinished">Principal</translation>
+    </message>
+    <message>
+        <source>Xsheet Depth:</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
