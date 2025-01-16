@@ -1918,6 +1918,7 @@ ExportXsheetPdfPopup::ExportXsheetPdfPopup()
 
   QPushButton* exportBtn    = new QPushButton(tr("Export PDF"), this);
   QPushButton* exportPngBtn = new QPushButton(tr("Export PNG"), this);
+  QPushButton* exportCsvBtn = new QPushButton(tr("Export CSV"), this);
   QPushButton* cancelBtn    = new QPushButton(tr("Cancel"), this);
 
   m_tick1IdCombo = new QComboBox(this);
@@ -2133,6 +2134,7 @@ ExportXsheetPdfPopup::ExportXsheetPdfPopup()
         btnLay->addStretch(1);
         btnLay->addWidget(exportBtn, 0);
         btnLay->addWidget(exportPngBtn, 0);
+        btnLay->addWidget(exportCsvBtn, 0);
         btnLay->addWidget(cancelBtn, 0);
       }
       rightLay->addLayout(btnLay, 0);
@@ -2146,6 +2148,7 @@ ExportXsheetPdfPopup::ExportXsheetPdfPopup()
 
   connect(exportBtn, SIGNAL(clicked()), this, SLOT(onExport()));
   connect(exportPngBtn, SIGNAL(clicked()), this, SLOT(onExportPNG()));
+  connect(exportCsvBtn, SIGNAL(clicked()), this, SLOT(onExportCSV()));
   connect(cancelBtn, SIGNAL(clicked()), this, SLOT(close()));
 
   connect(m_durationFld, SIGNAL(editingFinished()), this,
@@ -2708,6 +2711,129 @@ void ExportXsheetPdfPopup::onExportPNG() {
   }
 
   onExportFinished(fp);
+}
+
+void ExportXsheetPdfPopup::onExportCSV() {
+  ToonzScene* scene = TApp::instance()->getCurrentScene()->getScene();
+
+  if (m_fileNameFld->text().isEmpty()) {
+    DVGui::MsgBoxInPopup(DVGui::WARNING, tr("Please specify the file name."));
+    return;
+  }
+
+  TFilePath fp(m_pathFld->getPath());
+  fp += m_fileNameFld->text().toStdString() + ".csv";
+  fp = scene->decodeFilePath(fp);
+
+  if (TSystem::doesExistFileOrLevel(fp)) {
+    QString question =
+        tr("The file %1 already exists.\nDo you want to overwrite it?")
+            .arg(fp.getQString());
+    int ret = DVGui::MsgBox(question, QObject::tr("Overwrite"),
+                            QObject::tr("Cancel"));
+    if (ret == 0 || ret == 2) {
+      return;
+    }
+  }
+  if (!TFileStatus(fp.getParentDir()).doesExist()) {
+    QString question =
+        tr("A folder %1 does not exist.\nDo you want to create it?")
+            .arg(fp.getParentDir().getQString());
+    int ret = DVGui::MsgBox(question, QObject::tr("Create folder"),
+                            QObject::tr("Cancel"));
+    if (ret == 0 || ret == 2) {
+      return;
+    }
+
+    if (!TSystem::touchParentDir(fp)) {
+      DVGui::MsgBoxInPopup(DVGui::CRITICAL,
+                           tr("Failed to create folder %1.")
+                               .arg(fp.getParentDir().getQString()));
+      return;
+    }
+  }
+
+  QFile file(fp.getQString());
+  if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+    DVGui::MsgBoxInPopup(
+        DVGui::CRITICAL,
+        tr("Failed to create file %1.").arg(fp.getQString()));
+    return;
+  }
+  QTextStream stream(&file);
+
+  QList<QStringList> csvColumns;
+  for (auto pair = m_columns.begin(); pair != m_columns.end(); pair++) {
+    TXshLevelColumn* column = pair->first;
+    QString columnName      = pair->second;
+    QStringList csvCol;
+
+    // obtain level in this column
+    int r0, r1;
+    column->getRange(r0, r1);
+    TXshLevelP level = column->getCell(r0).m_level;
+
+    if (columnName.isEmpty())
+      columnName = QString::fromStdWString(level->getName());
+    
+    // add col name at col head
+    csvCol.append(columnName);
+
+    TXshCell prevCell,cell;
+    for (int f = 0; f < m_duration; f++) {
+      cell = column->getCell(f);
+      if (prevCell == cell && f) {
+        csvCol.append("");
+        continue;
+      }
+
+      if (cell.m_level != level) cell.m_level = nullptr;
+      
+      //add cell number
+      if (cell.m_level)
+          csvCol.append(QString::number(cell.m_frameId.getNumber()));
+      else//    add ¡Á
+          csvCol.append(QString::fromUtf8("\u00D7"));
+      
+      prevCell = cell;
+      }
+
+    csvColumns.append(csvCol);
+    }
+  
+  QStringList rowData;
+
+  //First Row
+  rowData.append("\"Frame\"");
+  for (const QStringList& column : csvColumns) {
+    rowData.append("\"\"");
+  }
+  stream << rowData.join(",") << "\n";
+  rowData.clear();
+
+  //Second Row
+  rowData.append("\"\"");
+  for (const QStringList& column : csvColumns) {
+    rowData.append("\"" + column[0] + "\"");
+  }
+  stream << rowData.join(",") << "\n";
+  rowData.clear();
+
+  //Third Row and rest rows
+  for (int f = 1; f <= m_duration; ++f) {
+    rowData.append("\"" + QString::number(f) + "\"");
+
+    for (const QStringList& column : csvColumns) {
+      rowData.append("\"" + column[f] + "\"");
+    }
+
+    stream << rowData.join(",") << "\n";
+    rowData.clear();
+  }
+
+  file.close();
+
+  onExportFinished(fp); 
 }
 
 void ExportXsheetPdfPopup::onExportFinished(const TFilePath& fp) {
