@@ -81,14 +81,14 @@ $ cd build
 2. Include libjpeg-turbo path to PKG_CONFIG_PATH
 
 ```
-$ export PKG_CONFIG_PATH="/usr/local/opt/jpeg-turbo/lib/pkgconfig:$PKG_CONFIG_PATH"
+$ export PKG_CONFIG_PATH="/opt/homebrew/opt/jpeg-turbo/lib/pkgconfig:$PKG_CONFIG_PATH"
 ```
 
 3. Set up build environment
 
 To build from command line, do the following:
 ```
-$ cmake ../sources -DQT_PATH='/usr/local/opt/qt@5/lib'  #replace QT path with your installed QT version#
+$ cmake ../sources -DQT_PATH='/opt/homebrew/opt/qt@5/lib'  #replace QT path with your installed QT version#
 $ make
 ```
 - If you downloaded the QT installer and installed to `/Users/yourlogin/Qt` instead of by using homebrew, your lib path may look something like this: `~/Qt/5.12.2/clang_64/lib` or `~/Qt/5.12.2/clang_32/lib`
@@ -96,7 +96,7 @@ $ make
 To build using Xcode, do the following:
 ```
 $ sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
-$ cmake -G Xcode ../sources -B. -DQT_PATH='/usr/local/opt/qt@5/lib' -DWITH_TRANSLATION=OFF   #replace QT path with your installed QT version#
+$ cmake -G Xcode ../sources -B. -DQT_PATH='/opt/homebrew/opt/qt@5/lib' -DWITH_TRANSLATION=OFF   #replace QT path with your installed QT version#
 ```
 - Note that the option `-DWITH_TRANSLATION=OFF` is needed to avoid error when using XCode 12+ which does not allow to add the same source to multiple targets.
 - Open Xcode app and open project /Users/yourlogin/Documents/opentoonz/toonz/build/OpenToonz.xcodeproj
