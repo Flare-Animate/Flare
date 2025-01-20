@@ -340,6 +340,8 @@ ExportLevelPopup::ExportLevelPopup()
                   SLOT(updatePreview())) &&
           ret;
     assert(ret);
+
+    initFolder();
 }
 
 //-----------------------------------------------------------------------------
@@ -360,7 +362,7 @@ void ExportLevelPopup::collectSelectedSimpleLevels() {
   TSelection *selection          = app->getCurrentSelection()->getSelection();
   TColumnSelection *colSelection = dynamic_cast<TColumnSelection *>(selection);
 
-  if (colSelection && colSelection->getIndices().size() > 1) {
+  if (colSelection && colSelection->getIndices().size() > 0) {
     bool enabled = false;
 
     TXsheet *xsh                    = app->getCurrentXsheet()->getXsheet();
@@ -378,11 +380,7 @@ void ExportLevelPopup::collectSelectedSimpleLevels() {
         assert(sl);
       }
     }
-  } else {
-    TXshSimpleLevel *sl = app->getCurrentLevel()->getSimpleLevel();
-    outputLevels.push_back(sl);
   }
-  initFolder();
 }
 //-----------------------------------------------------------------------------
 
@@ -581,6 +579,7 @@ void ExportLevelPopup::updateOnSelection() {
 //--------------------------------------------------------------
 
 void ExportLevelPopup::updatePreview() {
+  if (outputLevels.empty()) return;
   // Build export preview arguments
   TXshSimpleLevel *sl = outputLevels.back();
   int frameIdx        = m_levelFrameIndexHandle.getFrame();
