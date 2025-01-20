@@ -243,7 +243,14 @@ bool ExportAllLevelsPopup::execute() {
       // if Need to Create Folder
       if (createFolder) {
         FilePath = FolderPath + level_to_foldername.find(sl->getName())->second;
-        m_browser->createFolder(FilePath);
+        try {
+          TSystem::mkDir(FilePath);
+
+        } catch (...) {
+          DVGui::error(tr("It is not possible to create the %1 folder.")
+                           .arg(toQString(FilePath)));
+          return false;
+        }
       }
       ret = IoCmd::exportLevel(
                 TFilePath(FilePath.getWideString() + L"\\" + level_to_foldername.find(sl->getName())->second)
@@ -279,7 +286,14 @@ bool ExportAllLevelsPopup::execute() {
     // if Need to Create Folder
     if (createFolder) {
       FilePath = FolderPath + m_nameField->text().toStdWString();
-      m_browser->createFolder(FilePath);
+      try {
+        TSystem::mkDir(FilePath);
+
+      } catch (...) {
+        DVGui::error(tr("It is not possible to create the %1 folder.")
+                         .arg(toQString(FilePath)));
+        return false;
+      }
     }
 
     TXshSimpleLevel *sl = outputLevels.back()->getSimpleLevel();

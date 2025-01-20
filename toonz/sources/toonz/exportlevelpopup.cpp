@@ -41,6 +41,7 @@
 // TnzCore includes
 #include "tiio.h"
 #include "tproperty.h"
+#include <tsystem.h>
 
 // Qt includes
 #include <QDir>
@@ -645,7 +646,14 @@ bool ExportLevelPopup::execute() {
             TFilePath(FolderPath.getWideString() + L"\\" + sl->getName());
         // if Need to Create Folder
         if (createFolder) {
-          m_browser->createFolder(FilePath);
+          try {
+            TSystem::mkDir(FilePath);
+
+          } catch (...) {
+            DVGui::error(tr("It is not possible to create the %1 folder.")
+                             .arg(toQString(FilePath)));
+            return false;
+          }
           FilePath = TFilePath(FilePath.getWideString() + L"\\" + sl->getName())
                     .withType(ext)
                     .withFrame(tmplFId);
@@ -672,7 +680,14 @@ bool ExportLevelPopup::execute() {
       return false;
     
     if (createFolder) {
-      m_browser->createFolder(FolderPath);
+      try {
+        TSystem::mkDir(FilePath);
+
+      } catch (...) {
+        DVGui::error(tr("It is not possible to create the %1 folder.")
+                         .arg(toQString(FilePath)));
+        return false;
+      }
     }
     FilePath =
         TFilePath(FolderPath.getWideString() + L"\\" +
