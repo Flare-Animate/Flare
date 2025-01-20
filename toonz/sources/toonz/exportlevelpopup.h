@@ -95,6 +95,7 @@ private:
 
   // Others
   std::vector<TXshSimpleLevel *> outputLevels;
+  int m_levelExportedCount =0 ;
   bool allPlis;
   std::map<std::string, TPropertyGroup *> m_formatProperties;
 

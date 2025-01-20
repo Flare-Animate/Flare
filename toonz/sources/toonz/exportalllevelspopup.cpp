@@ -166,7 +166,17 @@ ExportAllLevelsPopup::~ExportAllLevelsPopup() {
 //------------------------------------
 
 void ExportAllLevelsPopup::showEvent(QShowEvent *se) {
-    
+
+    collectSelectedSimpleLevels();  // also init level_to_foldername,and sort
+                                    // them
+
+    if (outputLevels.empty()) {
+      DVGui::error(
+          tr("No level found in the camera view or levels are null!!"));
+      QTimer::singleShot(0, this, &ExportAllLevelsPopup::hide);
+      return;
+    }
+
     if (Preferences::instance()->getPixelsOnly()) {
       m_exportOptions->m_widthFld->hide();
       m_exportOptions->m_heightFld->hide();
@@ -183,15 +193,6 @@ void ExportAllLevelsPopup::showEvent(QShowEvent *se) {
 
     // reset map
     level_to_foldername.clear();
-
-    collectSelectedSimpleLevels();  // also init level_to_foldername,and sort
-                                    // them
-
-    if (outputLevels.empty()) {
-        QTimer::singleShot(1000, this, &ExportAllLevelsPopup::hide);
-        DVGui::error(tr("No levels found in the camera view or levels are null!!"));
-        return;
-    }
 
     onExportAll(m_isExportAll);
     updateOnSelection();

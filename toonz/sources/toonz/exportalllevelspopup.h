@@ -15,7 +15,6 @@ public:
 
 private:
   bool m_isExportAll;  // set to false when "Export All" is unchecked
-  int m_levelExportedCount = 0;
   std::map<std::wstring ,std::wstring> level_to_foldername;
   std::wstring backFolderName(std::string colname, std::wstring levelname);
   bool isAllLevelsExported();

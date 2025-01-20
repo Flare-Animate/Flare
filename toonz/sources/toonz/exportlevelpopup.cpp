@@ -55,6 +55,7 @@
 #include <QSplitter>
 #include <QToolBar>
 #include <QMessageBox>
+#include <QDesktopServices>
 
 //********************************************************************************
 //    Export callbacks  definition
@@ -443,6 +444,7 @@ void ExportLevelPopup::hideEvent(QHideEvent *he) {
 
   TApp *app = TApp::instance();
 
+  m_levelExportedCount=0; 
   app->getCurrentSelection()->disconnect(this);
   app->getCurrentLevel()->disconnect(this);
 
@@ -631,10 +633,10 @@ bool ExportLevelPopup::execute() {
 
   // Whether need to create folder
   bool createFolder = m_exportOptions->m_createlevelfolder->isChecked();
+  bool ret          = true;
 
   if (outputLevels.size() > 1) {
     // MORE THAN ONE LEVEL
-    bool ret = true;
     MultiExportOverwriteCB overwriteCB;
     MultiExportProgressCB progressCB;
 
@@ -649,17 +651,12 @@ bool ExportLevelPopup::execute() {
                            .arg(toQString(FilePath)));
           return false;
         }
-        FilePath = TFilePath(FilePath.getWideString() + L"\\" + sl->getName())
-                       .withType(ext)
-                       .withFrame(tmplFId);
-        ret = ret &&
-              IoCmd::exportLevel(FilePath, sl, opts, &overwriteCB, &progressCB);
-      } else {
-        ret = ret && IoCmd::exportLevel(FilePath.withName(sl->getName())
-                                            .withType(ext)
-                                            .withFrame(tmplFId),
-                                        sl, opts, &overwriteCB, &progressCB);
+        FilePath = TFilePath(FilePath.getWideString() + L"\\" + sl->getName());
       }
+      ret = ret && IoCmd::exportLevel(FilePath.withType(ext).withFrame(tmplFId),
+                                        sl, opts, &overwriteCB, &progressCB);
+      if (ret) ++m_levelExportedCount; 
+      else return false;
     }
   } else {
     // ONE LEVEL
@@ -686,9 +683,29 @@ bool ExportLevelPopup::execute() {
           TFilePath(FilePath.getWideString() + L"\\" + FileName.toStdWString());
     }
 
-    return IoCmd::exportLevel(FilePath.withType(ext).withFrame(tmplFId),
-                              *outputLevels.begin(), opts, 0, 0);
+    ret = IoCmd::exportLevel(FilePath.withType(ext).withFrame(tmplFId),
+                           *outputLevels.begin(), opts, 0, 0);
+    m_levelExportedCount = 1;
   }
+
+  // Reused code from xdtsio.cpp.
+  // Encountered a modal bug when using QMessage:
+  // the dialog doesn't appear correctly with DVGui::info.
+  std::vector<QString> buttons = {QObject::tr("OK"),
+                                  QObject::tr("Open containing folder")};
+  int tmp                      = DVGui::MsgBox(
+      DVGui::INFORMATION,
+      QString("%1 Levels Exported").arg(m_levelExportedCount), buttons);
+  if (tmp == 2) {
+    TFilePath folderPath = TFilePath(m_browser->getFolder());
+    if (TSystem::isUNC(folderPath))
+      QDesktopServices::openUrl(QUrl(folderPath.getQString()));
+    else
+      QDesktopServices::openUrl(QUrl::fromLocalFile(folderPath.getQString()));
+  }
+  // Reuse END
+
+  return ret;
 }
 
 //--------------------------------------------------------------
