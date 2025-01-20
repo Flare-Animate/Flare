@@ -551,8 +551,19 @@ void ExportLevelPopup::onRetas(int) {
 void ExportLevelPopup::updateOnSelection() {
   // Disable name field in case of multiple selection
   collectSelectedSimpleLevels();
-  if (outputLevels.empty()) return;
-  m_nameField->setEnabled(outputLevels.size() == 1);
+
+  switch (outputLevels.size()) {
+  case 0:
+    return;
+  case 1:
+    m_nameField->setEnabled(true);
+    m_nameField->setText(
+        QString::fromStdWString(outputLevels.back()->getName()));
+    break;
+  default:
+    m_nameField->clear();
+    m_nameField->setEnabled(false);
+  }
 
   // Enable tlv output in case all inputs are pli
   int tlvIdx = m_format->findText("tlv");
