@@ -553,6 +553,7 @@ void ExportLevelPopup::onRetas(int) {
 void ExportLevelPopup::updateOnSelection() {
   // Disable name field in case of multiple selection
   collectSelectedSimpleLevels();
+  if (outputLevels.empty()) return;
   m_nameField->setEnabled(outputLevels.size() == 1);
 
   // Enable tlv output in case all inputs are pli
@@ -602,6 +603,10 @@ bool ExportLevelPopup::execute() {
     DVGui::error(tr("Please select a folder!"));
     return false;
   }
+  if (outputLevels.empty()) {
+    DVGui::error(tr("Please select at least one level(column)."));
+    return false;
+  }
   TFilePath FolderPath = TFilePath(m_browser->getFolder());
   TFilePath FilePath;
 
@@ -614,71 +619,50 @@ bool ExportLevelPopup::execute() {
   ToonzScene *scene = app->getCurrentScene()->getScene();
   TFrameId tmplFId  = scene->getProperties()->formatTemplateFIdForInput();
 
-  // If need to create folder
+  // Whether need to create folder
   bool createFolder = m_exportOptions->m_createlevelfolder->isChecked();
 
-  // Retrieve current column selection
-
-  TSelection *selection          = app->getCurrentSelection()->getSelection();
-  TColumnSelection *colSelection = dynamic_cast<TColumnSelection *>(selection);
-  if (colSelection && colSelection->getIndices().size() > 1) {
-
+  if (outputLevels.size() > 1) {
+    // MORE THAN ONE LEVEL
     bool ret = true;
     MultiExportOverwriteCB overwriteCB;
     MultiExportProgressCB progressCB;
 
-    TXsheet *xsh                    = app->getCurrentXsheet()->getXsheet();
-    const std::set<int> &colIndices = colSelection->getIndices();
-
-    std::set<int>::const_iterator it, end = colIndices.end();
-
-    for (it = colIndices.begin(); it != end; ++it) {
-      if (progressCB.canceled()) break;
-
-      int r0, r1, c = *it;
-      xsh->getCellRange(c, r0, r1);
-
-      if (r1 >= r0)  // There exists a not-empty cell
-      {
-        TXshSimpleLevel *sl = xsh->getCell(r0, c).getSimpleLevel();
-        assert(sl);
-        FilePath =
-            TFilePath(FolderPath.getWideString() + L"\\" + sl->getName());
-        // if Need to Create Folder
-        if (createFolder) {
-          try {
-            TSystem::mkDir(FilePath);
-
-          } catch (...) {
-            DVGui::error(tr("It is not possible to create the %1 folder.")
-                             .arg(toQString(FilePath)));
-            return false;
-          }
-          FilePath = TFilePath(FilePath.getWideString() + L"\\" + sl->getName())
-                    .withType(ext)
-                    .withFrame(tmplFId);
-          ret = ret && IoCmd::exportLevel(FilePath, sl, opts, &overwriteCB,
-                                          &progressCB);
-        } else {
-          ret = ret && IoCmd::exportLevel(FilePath.withName(sl->getName())
-                                              .withType(ext)
-                                              .withFrame(tmplFId),
-                                          sl, opts, &overwriteCB, &progressCB);
+    for (TXshSimpleLevel *sl : outputLevels) {
+      FilePath = TFilePath(FolderPath.getWideString() + L"\\" + sl->getName());
+      // if Need to Create Folder
+      if (createFolder) {
+        try {
+          TSystem::mkDir(FilePath);
+        } catch (...) {
+          DVGui::error(tr("It is not possible to create the %1 folder.")
+                           .arg(toQString(FilePath)));
+          return false;
         }
-          
+        FilePath = TFilePath(FilePath.getWideString() + L"\\" + sl->getName())
+                       .withType(ext)
+                       .withFrame(tmplFId);
+        ret = ret &&
+              IoCmd::exportLevel(FilePath, sl, opts, &overwriteCB, &progressCB);
+      } else {
+        ret = ret && IoCmd::exportLevel(FilePath.withName(sl->getName())
+                                            .withType(ext)
+                                            .withFrame(tmplFId),
+                                        sl, opts, &overwriteCB, &progressCB);
       }
     }
-
-    return ret;
   } else {
+    // ONE LEVEL
     QString FileName = m_nameField->text();
-    if (FileName.isEmpty()) return false;
-    if (!isValidFileName_message(FileName)) {
+    if (FileName.isEmpty()) {
+      DVGui::error(tr("Please type file name!"));
       return false;
     }
-    if (isReservedFileName_message(FileName))
-      return false;
-    
+    if (!isValidFileName_message(FileName)) return false;
+    if (isReservedFileName_message(FileName)) return false;
+
+    FilePath =
+        TFilePath(FolderPath.getWideString() + L"\\" + FileName.toStdWString());
     if (createFolder) {
       try {
         TSystem::mkDir(FilePath);
@@ -688,12 +672,12 @@ bool ExportLevelPopup::execute() {
                          .arg(toQString(FilePath)));
         return false;
       }
+      FilePath =
+          TFilePath(FilePath.getWideString() + L"\\" + FileName.toStdWString());
     }
-    FilePath =
-        TFilePath(FolderPath.getWideString() + L"\\" +
-                    FileName.toStdWString());
-    return IoCmd::exportLevel(FilePath.withType(ext).withFrame(tmplFId), 0, opts,
-        0,0);
+
+    return IoCmd::exportLevel(FilePath.withType(ext).withFrame(tmplFId),
+                              *outputLevels.begin(), opts, 0, 0);
   }
 }
 
