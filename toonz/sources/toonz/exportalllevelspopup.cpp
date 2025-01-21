@@ -191,9 +191,6 @@ void ExportAllLevelsPopup::showEvent(QShowEvent *se) {
       m_exportOptions->m_dpiLabel->show();
     }
 
-    // reset map
-    level_to_foldername.clear();
-
     onExportAll(m_isExportAll);
     updateOnSelection();
 
@@ -332,6 +329,8 @@ void ExportAllLevelsPopup::collectSelectedSimpleLevels() {
   std::string colname;
   std::wstring levelname;
 
+  // get output level names
+  level_to_foldername.clear();
   for (int index = 0; index < col_count; ++index) {
     TXshColumn *col = xsh->getColumn(index);//start from a not camera column
     assert(col);
