@@ -218,7 +218,7 @@ DvDirModelFileFolderNode *DvDirModelFileFolderNode::createNode(
     DvDirModelNode *parent, const TFilePath &path) {
   DvDirModelFileFolderNode *node;
   // check the project nodes under the Project Root Node
-  if (QString::fromStdWString(parent->getName()).startsWith("Project root") &&
+  if (QString::fromStdWString(parent->getName()).startsWith("*") &&
       TProjectManager::instance()->isProject(path))
     node = new DvDirModelProjectNode(parent, path);
   else {
@@ -1088,8 +1088,8 @@ void DvDirModelRootNode::refreshChildren() {
       DvDirModelSpecialFileFolderNode *projectRootNode =
           new DvDirModelSpecialFileFolderNode(
               this,
-              projectRoot.withoutParentDir().getWideString() + L" (" +
-                  roothDir + L")",
+              L"*" + projectRoot.withoutParentDir().getWideString()
+              + L" (" +roothDir + L")",
               projectRoot);
       projectRootNode->setPixmap(
           QPixmap(generateIconPixmap("folder_project_root")));
