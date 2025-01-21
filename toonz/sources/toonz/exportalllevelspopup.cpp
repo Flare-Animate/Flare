@@ -200,8 +200,8 @@ void ExportAllLevelsPopup::showEvent(QShowEvent *se) {
 void ExportAllLevelsPopup::hideEvent(QHideEvent* he) {
   QDialog::hideEvent(he);
 
-  outputLevels.clear();
-  level_to_foldername.clear();
+  outputLevels        = std::vector<TXshSimpleLevel *>();
+  level_to_foldername = std::map<std::wstring, std::wstring>();
 
   m_swatch->image() = TImageP();
 }
@@ -318,7 +318,6 @@ bool ExportAllLevelsPopup::execute() {
 
 void ExportAllLevelsPopup::collectSelectedSimpleLevels() {
   // get output Levels
-  outputLevels.clear();
   TXsheet *xsh             = TApp::instance()->getCurrentXsheet()->getXsheet();
   int col_count = xsh->getColumnCount();
   int r0, r1;  // cell start point and end point
@@ -330,7 +329,6 @@ void ExportAllLevelsPopup::collectSelectedSimpleLevels() {
   std::wstring levelname;
 
   // get output level names
-  level_to_foldername.clear();
   for (int index = 0; index < col_count; ++index) {
     TXshColumn *col = xsh->getColumn(index);//start from a not camera column
     assert(col);
