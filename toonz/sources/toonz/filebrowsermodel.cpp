@@ -1087,7 +1087,10 @@ void DvDirModelRootNode::refreshChildren() {
       std::wstring roothDir = projectRoot.getWideString();
       DvDirModelSpecialFileFolderNode *projectRootNode =
           new DvDirModelSpecialFileFolderNode(
-              this, L"Project root (" + roothDir + L")", projectRoot);
+              this,
+              projectRoot.withoutParentDir().getWideString() + L" (" +
+                  roothDir + L")",
+              projectRoot);
       projectRootNode->setPixmap(
           QPixmap(generateIconPixmap("folder_project_root")));
       m_projectRootNodes.push_back(projectRootNode);
