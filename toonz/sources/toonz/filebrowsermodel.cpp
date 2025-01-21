@@ -1084,12 +1084,12 @@ void DvDirModelRootNode::refreshChildren() {
     int i;
     for (i = 0; i < (int)projectRoots.size(); i++) {
       TFilePath projectRoot = projectRoots[i];
-      std::wstring roothDir = projectRoot.getWideString();
+      std::wstring rootDir = projectRoot.getWideString();
       DvDirModelSpecialFileFolderNode *projectRootNode =
           new DvDirModelSpecialFileFolderNode(
               this,
               L"*" + projectRoot.withoutParentDir().getWideString()
-              + L" (" +roothDir + L")",
+              + L" (" +rootDir + L")",
               projectRoot);
       projectRootNode->setPixmap(
           QPixmap(generateIconPixmap("folder_project_root")));
