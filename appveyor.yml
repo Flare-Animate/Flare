@@ -30,6 +30,7 @@ build:
   project: $(APPVEYOR_BUILD_FOLDER)\toonz\$(PLATFORM)\ALL_BUILD.vcxproj
   parallel: true
   verbosity: minimal
+  timeout: 120 # increase to maximum allowed timeout
 after_build:
 - cmd: >-
     
