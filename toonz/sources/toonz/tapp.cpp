@@ -720,7 +720,7 @@ void TApp::autosave() {
   QLabel *Label = new QLabel("Autosaving...",parent);
   Label->setStyleSheet(
       "font-size: 20px;"
-      "background-color: black; color: black; "
+      "background-color: black; color: white; "
       "font-weight: bold; padding: 5px;");
   Label->adjustSize();
   QPoint pos = parent->rect().bottomRight();
