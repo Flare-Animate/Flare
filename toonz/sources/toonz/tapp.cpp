@@ -715,7 +715,7 @@ void TApp::autosave() {
   //    "Autosaving scene..." + toQString(scene->getScenePath()), 0, 0, 1);
 
   QMainWindow *parent = TApp::instance()->getMainWindow();
-  parent->setDisabled(true);
+  //parent->setDisabled(true);
 
   QLabel *Label = new QLabel("Autosaving...",parent);
   Label->setStyleSheet(
@@ -736,7 +736,7 @@ void TApp::autosave() {
     IoCmd::saveNonSceneFiles();
   }
 
-  parent->setDisabled(false);
+  //parent->setDisabled(false);
 
   Label->setText("Autosaved");
   Label->setStyleSheet(
