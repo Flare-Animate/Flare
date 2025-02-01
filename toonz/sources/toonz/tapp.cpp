@@ -55,6 +55,7 @@
 
 // Qt includes
 #include <QTimer>
+#include <QLabel>
 #include <QDebug>
 #include <QEvent>
 #include <QCoreApplication>
@@ -710,9 +711,22 @@ void TApp::autosave() {
 
   if (m_saveInProgress) return;
 
-  DVGui::ProgressDialog pb(
-      "Autosaving scene..." + toQString(scene->getScenePath()), 0, 0, 1);
-  pb.show();
+  //DVGui::ProgressDialog pb(
+  //    "Autosaving scene..." + toQString(scene->getScenePath()), 0, 0, 1);
+
+  QMainWindow *parent = TApp::instance()->getMainWindow();
+  parent->setDisabled(true);
+
+  QLabel *Label = new QLabel("Autosaving...",parent);
+  Label->setStyleSheet(
+      "font-size: 20px;"
+      "background-color: black; color: black; "
+      "font-weight: bold; padding: 5px;");
+  Label->adjustSize();
+  QPoint pos = parent->rect().bottomRight();
+  Label->move(pos.x() - Label->width() - 40, pos.y() - Label->height() - 30);
+  Label->show();
+
   Preferences *pref = Preferences::instance();
   if (pref->isAutosaveSceneEnabled() && pref->isAutosaveOtherFilesEnabled()) {
     IoCmd::saveAll(IoCmd::AUTO_SAVE);
@@ -722,7 +736,14 @@ void TApp::autosave() {
     IoCmd::saveNonSceneFiles();
   }
 
-  pb.setValue(1);
+  parent->setDisabled(false);
+
+  Label->setText("Autosaved");
+  Label->setStyleSheet(
+      "font-size: 20px;"
+      "background-color: black; color: green; "
+      "font-weight: bold; padding: 5px;");
+  QTimer::singleShot(2500, Label, &QLabel::deleteLater);
 }
 
 //-----------------------------------------------------------------------------
