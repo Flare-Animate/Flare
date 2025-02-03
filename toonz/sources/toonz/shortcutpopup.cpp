@@ -129,6 +129,12 @@ void ShortcutViewer::keyPressEvent(QKeyEvent *event) {
 //-----------------------------------------------------------------------------
 
 void ShortcutViewer::onEditingFinished() {
+  if (keySequence().toString().contains("Space", Qt::CaseInsensitive)) {
+    setKeySequence(m_action->shortcut());
+    DVGui::warning(tr("The Space key is reserved for viewer navigation."));
+    return;
+  } // TODO: Check for Space + Shift (rotate), and Space + CTRL (zoom)
+
   m_keysPressed = 0;
 
   int seqCount = keySequence().count();

@@ -2902,9 +2902,8 @@ void ToolOptions::onToolSwitched() {
   ToolHandle *currTool    = app->getCurrentTool();
   TTool *tool             = currTool->getTool();
 
-  // Skip panel updates only when temporarily switching to Hand tool via
-  // spacebar
-  if (currTool->isTemporaryTool() && tool && tool->getName() == T_Hand) {
+    // Skip panel updates if we're in navigation mode
+  if (currTool && currTool->isSpacePressed()) {
     return;
   }
 

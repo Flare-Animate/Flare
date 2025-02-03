@@ -63,6 +63,57 @@ void ToolHandle::setTool(QString name) {
 
 //-----------------------------------------------------------------------------
 
+void ToolHandle::setSpacePressed(bool pressed) {
+  if (m_spacePressed == pressed) return;
+
+  m_spacePressed = pressed;
+  if (pressed) {
+    // Store current tool when entering navigation mode
+    m_originalTool     = m_toolName;
+    m_inNavigationMode = true;
+    setTool("T_Hand");
+  } else {
+    // Restore original tool when exiting navigation mode
+    m_inNavigationMode = false;
+    if (!m_originalTool.isEmpty()) {
+      setTool(m_originalTool);
+      m_originalTool.clear();
+    }
+  }
+  updateNavigationState();
+}
+
+void ToolHandle::setShiftPressed(bool pressed) {
+  if (m_shiftPressed == pressed) return;
+
+  m_shiftPressed = pressed;
+  updateNavigationState();
+}
+
+void ToolHandle::setCtrlPressed(bool pressed) {
+  if (m_ctrlPressed == pressed) return;
+
+  m_ctrlPressed = pressed;
+  updateNavigationState();
+}
+
+void ToolHandle::updateNavigationState() {
+  // Only handle state changes when in navigation mode
+  if (!m_inNavigationMode) return;
+
+  if (m_spacePressed) {
+    if (m_ctrlPressed) {
+      setTool("T_Zoom");
+    } else if (m_shiftPressed) {
+      setTool("T_Rotate");
+    } else {
+      setTool("T_Hand");
+	}
+  }
+}
+
+//-----------------------------------------------------------------------------
+
 void ToolHandle::storeTool() {
   m_storedToolName = m_toolName;
   m_storedToolTime.start();
