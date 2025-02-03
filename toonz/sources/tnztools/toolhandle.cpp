@@ -5,7 +5,7 @@
 #include "tools/tool.h"
 #include "tools/toolcommandids.h"
 #include "timage.h"
-//#include "tapp.h"
+// #include "tapp.h"
 #include "toonzqt/menubarcommand.h"
 #include "toonz/preferences.h"
 #include <QAction>
@@ -72,10 +72,17 @@ void ToolHandle::storeTool() {
 
 void ToolHandle::restoreTool() {
   // qDebug() << m_storedToolTime.elapsed();
-  if (m_storedToolName != m_toolName && m_storedToolName != "" &&
-      m_storedToolTime.elapsed() >
-          Preferences::instance()->getTempToolSwitchTimer()) {
-    setTool(m_storedToolName);
+  if (m_storedToolName != m_toolName && m_storedToolName != "") {
+    // Always restore previous tool when switching from Hand tool regardless of
+    // time
+    if (m_toolName == "T_Hand") {
+      setTool(m_storedToolName);
+    }
+    // For all other tools, use the timer check
+    else if (m_storedToolTime.elapsed() >
+             Preferences::instance()->getTempToolSwitchTimer()) {
+      setTool(m_storedToolName);
+    }
   }
 }
 

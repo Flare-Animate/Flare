@@ -55,6 +55,9 @@ public:
   void storeTool();
   void restoreTool();
 
+  // TODO
+  bool isTemporaryTool() const { return !m_storedToolName.isEmpty(); }
+
   // used to set a tool that is not listed in the toolbar (e.g. the
   // ShiftTraceTool).
   void setPseudoTool(QString name);
