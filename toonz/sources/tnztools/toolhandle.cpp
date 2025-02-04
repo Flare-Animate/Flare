@@ -34,6 +34,12 @@ TTool *ToolHandle::getTool() const { return m_tool; }
 //-----------------------------------------------------------------------------
 
 void ToolHandle::setTool(QString name) {
+  // If we're in navigation mode, only allow navigation-related tool changes
+  if (m_inNavigationMode && name != "T_Hand" && name != "T_Rotate" &&
+      name != "T_Zoom") {
+    return;
+  }
+
   m_oldToolName = m_toolName = name;
 
   TTool *tool = TTool::getTool(m_toolName.toStdString(),
@@ -75,6 +81,9 @@ void ToolHandle::setSpacePressed(bool pressed) {
   } else {
     // Restore original tool when exiting navigation mode
     m_inNavigationMode = false;
+    // Reset all modifier states when exiting navigation mode
+    m_ctrlPressed  = false;
+    m_shiftPressed = false;
     if (!m_originalTool.isEmpty()) {
       setTool(m_originalTool);
       m_originalTool.clear();
@@ -108,7 +117,7 @@ void ToolHandle::updateNavigationState() {
       setTool("T_Rotate");
     } else {
       setTool("T_Hand");
-	}
+    }
   }
 }
 
@@ -122,14 +131,12 @@ void ToolHandle::storeTool() {
 //-----------------------------------------------------------------------------
 
 void ToolHandle::restoreTool() {
-  // qDebug() << m_storedToolTime.elapsed();
   if (m_storedToolName != m_toolName && m_storedToolName != "") {
-    // Always restore previous tool when switching from Hand tool regardless of
-    // time
-    if (m_toolName == "T_Hand") {
+    // Only bypass timer when in navigation mode
+    if (m_inNavigationMode) {
       setTool(m_storedToolName);
     }
-    // For all other tools, use the timer check
+    // For all other cases, use the timer check
     else if (m_storedToolTime.elapsed() >
              Preferences::instance()->getTempToolSwitchTimer()) {
       setTool(m_storedToolName);

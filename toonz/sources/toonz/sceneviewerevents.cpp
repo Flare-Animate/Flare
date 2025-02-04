@@ -429,6 +429,15 @@ void SceneViewer::onLeave() {
   if (CommandManager::instance()->getAction(MI_ShiftTrace)->isChecked())
     TTool::getTool("T_ShiftTrace", TTool::ToonzImage)->onLeave();
 
+  // Reset navigation key states when mouse leaves viewer
+  // This prevents stuck states when keys are released while mouse is outside
+  ToolHandle *toolHandle = TApp::instance()->getCurrentTool();
+  if (toolHandle) {
+    toolHandle->setSpacePressed(false);
+    toolHandle->setCtrlPressed(false);
+    toolHandle->setShiftPressed(false);
+  }
+
   update();
 }
 
@@ -1421,7 +1430,7 @@ void SceneViewer::keyPressEvent(QKeyEvent *event) {
       TApp::instance()->getCurrentTool()->setCtrlPressed(true);
       event->accept();
       return;
-	}
+    }
     if (event->key() == Qt::Key_Shift) {
       TApp::instance()->getCurrentTool()->setShiftPressed(true);
       event->accept();
@@ -1623,7 +1632,7 @@ void SceneViewer::keyReleaseEvent(QKeyEvent *event) {
     if (event->key() == Qt::Key_Control) {
       TApp::instance()->getCurrentTool()->setCtrlPressed(false);
       event->accept();
-	}
+    }
     if (event->key() == Qt::Key_Shift) {
       TApp::instance()->getCurrentTool()->setShiftPressed(false);
       event->accept();
