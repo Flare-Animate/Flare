@@ -45,6 +45,7 @@ using namespace ToolUtils;
 #define RECTERASE L"Rectangular"
 #define FREEHANDERASE L"Freehand"
 #define POLYLINEERASE L"Polyline"
+#define MULTIARCERASE L"MultiArc"
 
 TEnv::DoubleVar FullcolorEraseSize("FullcolorEraseSize", 5);
 TEnv::DoubleVar FullcolorEraseHardness("FullcolorEraseHardness", 100);
@@ -398,6 +399,7 @@ FullColorEraserTool::FullColorEraserTool(std::string name)
   m_eraseType.addValue(RECTERASE);
   m_eraseType.addValue(FREEHANDERASE);
   m_eraseType.addValue(POLYLINEERASE);
+  m_eraseType.addValue(MULTIARCERASE);
 
   m_eraseType.setId("Type");
   m_invertOption.setId("Invert");
@@ -420,6 +422,7 @@ void FullColorEraserTool::updateTranslation() {
   m_eraseType.setItemUIName(RECTERASE, tr("Rectangular"));
   m_eraseType.setItemUIName(FREEHANDERASE, tr("Freehand"));
   m_eraseType.setItemUIName(POLYLINEERASE, tr("Polyline"));
+  m_eraseType.setItemUIName(MULTIARCERASE, tr("MultiArc"));
 
   m_invertOption.setQStringName(tr("Invert"));
   m_multi.setQStringName(tr("Frame Range"));
