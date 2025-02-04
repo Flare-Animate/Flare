@@ -1604,8 +1604,6 @@ void SceneViewer::keyPressEvent(QKeyEvent *event) {
 //-----------------------------------------------------------------------------
 
 void SceneViewer::keyReleaseEvent(QKeyEvent *event) {
-  qDebug() << "Raw key release event:" << event->key()
-           << "AutoRepeat:" << event->isAutoRepeat();
   // Skip if viewer is in frozen state
   if (m_freezedStatus != NO_FREEZED) return;
 
