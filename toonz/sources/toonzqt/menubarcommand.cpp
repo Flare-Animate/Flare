@@ -12,7 +12,6 @@
 #include <QSettings>
 #include <QKeySequence>
 #include <QApplication>
-#include <QDebug>
 
 #include <sys/types.h>
 
