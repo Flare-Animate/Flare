@@ -288,16 +288,8 @@ class MultiArcPrimitive {
 
   TTool *m_tool;
   bool m_smooth;
-  bool m_snap;
   int m_size;
   bool m_isEditing;
-
-  // for snapping
-  int m_strokeIndex1;
-  double m_w1, m_pixelSize, m_currThickness,
-      m_minDistance2 = 20.0;  // max to 100.0
-  bool m_foundSnap   = false;
-  TPointD m_snapPoint;
 
   TStroke *m_eraseStroke;
 
@@ -319,13 +311,9 @@ public:
       , m_strokeTemp(0)
       , m_clickNumber(0)
       , m_isSingleArc(false)
-      , m_smooth(smooth) {}
+      , m_smooth(smooth){}
 
   ~MultiArcPrimitive() { delete m_stroke; }
-
-  TPointD calculateSnap(TPointD pos);
-
-  TPointD getSnap(TPointD pos);
 
   TStroke *makeStroke() const;
   void draw();
@@ -1405,64 +1393,17 @@ TStroke *MultiArcPrimitive::makeStroke() const {
   return new TStroke(*m_stroke);
 }
 
-//-----------------------------------------------------------------------------
-TPointD MultiArcPrimitive::calculateSnap(TPointD pos) {
-  m_foundSnap = false;
-  if (Preferences::instance()->getVectorSnappingTarget() == 1) return pos;
-  TVectorImageP vi(TTool::getImage(false));
-  TPointD snapPoint = pos;
-  if (vi && m_snap) {
-    m_strokeIndex1 = -1;
-
-    int i, strokeNumber = vi->getStrokeCount();
-
-    TStroke *stroke;
-    double distance2, outW;
-
-    for (i = 0; i < strokeNumber; i++) {
-      stroke = vi->getStroke(i);
-      if (stroke->getNearestW(pos, outW, distance2) &&
-          distance2 < m_minDistance2) {
-        m_minDistance2            = distance2;
-        m_strokeIndex1 = i;
-        if (areAlmostEqual(outW, 0.0, 1e-3))
-          m_w1 = 0.0;
-        else if (areAlmostEqual(outW, 1.0, 1e-3))
-          m_w1 = 1.0;
-        else
-          m_w1 = outW;
-        TThickPoint point1   = stroke->getPoint(m_w1);
-        snapPoint            = TPointD(point1.x, point1.y);
-        m_foundSnap = true;
-        m_snapPoint = snapPoint;
-      }
-    }
-  }
-  return snapPoint;
-}
-
 void MultiArcPrimitive::leftButtonDown(const TPointD &pos,
                                        const TMouseEvent &) {
   if (m_clickNumber == 0) {
-    TPointD newPos = calculateSnap(pos);
-    m_startPoint   = newPos;
+    m_startPoint   = pos;
     m_isEditing    = true;
   }
-}
-
-//-----------------------------------------------------------------------------
-TPointD MultiArcPrimitive::getSnap(TPointD pos) {
-  if (m_foundSnap)
-    return m_snapPoint;
-  else
-    return pos;
 }
 
 void MultiArcPrimitive::leftButtonUp(const TPointD &pos, const TMouseEvent &) {
   TTool::Application *app = TTool::getApplication();
   if (!app) return;
-
-  TPointD newPos = getSnap(pos);
 
   std::vector<TThickPoint> points(9);
   double thick     = m_size;
@@ -1470,13 +1411,13 @@ void MultiArcPrimitive::leftButtonUp(const TPointD &pos, const TMouseEvent &) {
 
   switch (m_clickNumber) {
   case 0:
-    m_endPoint = newPos;
+    m_endPoint = pos;
 
     m_clickNumber++;
     break;
 
   case 1:
-    m_centralPoint = newPos;
+    m_centralPoint = pos;
     points[0]      = TThickPoint(m_startPoint, thick);
     points[8]      = TThickPoint(m_endPoint, thick);
     points[4]      = TThickPoint(0.5 * (points[0] + points[8]), thick);
@@ -1492,7 +1433,7 @@ void MultiArcPrimitive::leftButtonUp(const TPointD &pos, const TMouseEvent &) {
     break;
 
   case 2:
-    m_startPoint = newPos;
+    m_startPoint = pos;
       m_clickNumber = 1;
       if (m_stroke) {
         TVectorImageP vi = new TVectorImage();
@@ -1540,7 +1481,8 @@ void MultiArcPrimitive::leftButtonDoubleClick(const TPointD &,
       points.push_back(lastPoint);
       points.push_back(firstPoint);
       vi->addStroke(new TStroke(points));
-      vi->joinStroke(0, 0, 0, m_stroke->getControlPointCount() - 1, m_smooth);
+      vi->joinStroke(0, 0, 0, m_stroke->getControlPointCount() - 1,
+                        m_smooth);
       m_stroke = new TStroke(*vi->getStroke(0));
     }
     m_eraseStroke = new TStroke(*m_stroke);
@@ -1569,19 +1511,18 @@ static TPointD rectify(const TPointD &oldPos, const TPointD &pos) {
 }
 
 void MultiArcPrimitive::mouseMove(const TPointD &pos, const TMouseEvent &e) {
-  TPointD newPos = calculateSnap(pos);
 
   double dist = joinDistance * joinDistance;
 
   switch (m_clickNumber) {
   case 0:
-    m_startPoint = newPos;
+    m_startPoint = pos;
     break;
   case 1:
     if (e.isShiftPressed())
       m_endPoint = rectify(m_startPoint, pos);
     else
-      m_endPoint = newPos;
+      m_endPoint = pos;
 
     if (m_stroke) {
       TPointD firstPoint = m_stroke->getControlPoint(0);
@@ -1590,7 +1531,7 @@ void MultiArcPrimitive::mouseMove(const TPointD &pos, const TMouseEvent &e) {
     }
     break;
   case 2:
-    m_centralPoint = newPos;
+    m_centralPoint = pos;
     TThickQuadratic q(m_startPoint, TThickPoint(m_centralPoint, m_size),
                       m_endPoint);
     TThickQuadratic q0, q1, q00, q01, q10, q11;
