@@ -388,6 +388,7 @@
 #define MI_EraserFreehand "MI_EraserFreehand"
 #define MI_EraserPolyline "MI_EraserPolyline"
 #define MI_EraserSegment "MI_EraserSegment"
+#define MI_EraserMultiArc "MI_EraserMultiArc"
 
 #define MI_TapeNextType "MI_TapeNextType"
 #define MI_TapeNormal "MI_TapeNormal"

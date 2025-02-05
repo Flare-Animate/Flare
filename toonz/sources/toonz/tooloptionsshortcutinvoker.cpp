@@ -526,6 +526,8 @@ void ToolOptionsShortcutInvoker::initialize() {
                     &ToolOptionsShortcutInvoker::toggleEraserPolyline);
   setCommandHandler(MI_EraserSegment, this,
                     &ToolOptionsShortcutInvoker::toggleEraserSegment);
+  setCommandHandler(MI_EraserMultiArc, this,
+                    &ToolOptionsShortcutInvoker::toggleEraserMultiArc);
 
   /*-- Tape tool + type/mode switching shortcuts --*/
   setCommandHandler(MI_TapeNextType, this,
@@ -961,6 +963,12 @@ void ToolOptionsShortcutInvoker::toggleEraserSegment() {
   CommandManager::instance()->getAction(T_Eraser)->trigger();
   CommandManager::instance()->getAction("A_ToolOption_Type:Normal")->trigger();
   CommandManager::instance()->getAction("A_ToolOption_Type:Segment")->trigger();
+}
+
+void ToolOptionsShortcutInvoker::toggleEraserMultiArc() {
+  CommandManager::instance()->getAction(T_Eraser)->trigger();
+  CommandManager::instance()->getAction("A_ToolOption_Type:Normal")->trigger();
+  CommandManager::instance()->getAction("A_ToolOption_Type:MultiArc")->trigger();
 }
 //---------------------------------------------------------------------------------------
 /*-- Tape tool + type/mode switching shortcuts --*/

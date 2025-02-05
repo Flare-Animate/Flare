@@ -215,6 +215,7 @@ protected slots:
   void toggleEraserFreehand();
   void toggleEraserPolyline();
   void toggleEraserSegment();
+  void toggleEraserMultiArc();
 
   /*-- Tape tool + type/mode switching shortcuts --*/
   void toggleTapeNextType();
