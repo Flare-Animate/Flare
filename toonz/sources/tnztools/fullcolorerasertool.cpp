@@ -274,11 +274,8 @@ void eraseStroke(const TRasterImageP &ri, TStroke *stroke,
   eraseImage(ri, image, pos, invert);
 }
 
-}  // namespace
-
 
 class MultiArcPrimitive {
-  friend class FullColorEraserTool;
 
   TStroke *m_stroke;
   TStroke *m_strokeTemp;
@@ -304,14 +301,14 @@ public:
       , m_strokeTemp(nullptr)
       , m_clickNumber(0)
       , m_isSingleArc(false) {}
-  MultiArcPrimitive(TTool *tool, bool smooth=false)
+  MultiArcPrimitive(TTool *tool, bool smooth = false)
       : m_tool(tool)
       , m_stroke(0)
       , m_eraseStroke(0)
       , m_strokeTemp(0)
       , m_clickNumber(0)
       , m_isSingleArc(false)
-      , m_smooth(smooth){}
+      , m_smooth(smooth) {}
 
   ~MultiArcPrimitive() { delete m_stroke; }
 
@@ -322,6 +319,8 @@ public:
   void mouseMove(const TPointD &pos, const TMouseEvent &e);
   void leftButtonDoubleClick(const TPointD &, const TMouseEvent &e);
   void onEnter();
+
+  TStroke *getEraseStroke() { return m_isEditing ? 0 : m_eraseStroke; };
 
   void onDeactivate() {
     delete m_stroke;
@@ -347,6 +346,233 @@ public:
   // bool canTouchImageOnPreLeftClick() override { return m_clickNumber == 0; }
 };
 
+
+//=============================================================================
+// Arc Primitive Class Implementation
+//-----------------------------------------------------------------------------
+const double joinDistance = 5.0;
+
+void MultiArcPrimitive::draw() {
+  double pixelSize = m_tool->getPixelSize();
+  m_color          = ToonzCheck::instance()->getChecks() & ToonzCheck::eBlackBg
+                         ? TPixel32::White
+                         : TPixel32::Red;
+  switch (m_clickNumber) {
+  case 1:
+    tglColor(m_color);
+    tglDrawSegment(m_startPoint, m_endPoint);
+
+    if (m_stroke) {
+      drawStrokeCenterline(*m_stroke, sqrt(tglGetPixelSize2()));
+      TPointD firstPoint = m_stroke->getControlPoint(0);
+      if (firstPoint == m_endPoint) {
+        tglColor(TPixel32((m_color.r + 127) % 255, m_color.g,
+                          (m_color.b + 127) % 255, m_color.m));
+      }
+      tglDrawCircle(m_stroke->getControlPoint(0), joinDistance * pixelSize);
+    }
+
+    break;
+
+  case 2:
+    tglColor(ToonzCheck::instance()->getChecks() & ToonzCheck::eBlackBg
+                 ? TPixel32::White
+                 : TPixel32::Black);
+
+    glLineStipple(1, 0x5555);
+    glEnable(GL_LINE_STIPPLE);
+    glBegin(GL_LINE_STRIP);
+    tglVertex(m_startPoint);
+    tglVertex(m_centralPoint);
+    tglVertex(m_endPoint);
+    glEnd();
+    glDisable(GL_LINE_STIPPLE);
+
+    tglColor(m_color);
+
+    if (m_stroke) drawStrokeCenterline(*m_stroke, sqrt(tglGetPixelSize2()));
+
+    if (m_strokeTemp)
+      drawStrokeCenterline(*m_strokeTemp, sqrt(tglGetPixelSize2()));
+
+    if (m_stroke) {
+      TPointD firstPoint = m_stroke->getControlPoint(0);
+      if (firstPoint == m_endPoint) {
+        tglColor(TPixel32((m_color.r + 127) % 255, m_color.g,
+                          (m_color.b + 127) % 255, m_color.m));
+      }
+      tglDrawCircle(m_stroke->getControlPoint(0), joinDistance * pixelSize);
+    }
+    break;
+  };
+}
+
+//-----------------------------------------------------------------------------
+
+TStroke *MultiArcPrimitive::makeStroke() const {
+  return new TStroke(*m_stroke);
+}
+
+void MultiArcPrimitive::leftButtonDown(const TPointD &pos,
+                                       const TMouseEvent &) {
+  if (m_clickNumber == 0) {
+    m_startPoint = pos;
+    m_isEditing  = true;
+  }
+}
+
+void MultiArcPrimitive::leftButtonUp(const TPointD &pos, const TMouseEvent &) {
+  TTool::Application *app = TTool::getApplication();
+  if (!app) return;
+
+  std::vector<TThickPoint> points(9);
+  double thick = m_size;
+  double dist  = joinDistance * joinDistance;
+
+  switch (m_clickNumber) {
+  case 0:
+    m_endPoint = pos;
+
+    m_clickNumber++;
+    break;
+
+  case 1:
+    m_centralPoint = pos;
+    points[0]      = TThickPoint(m_startPoint, thick);
+    points[8]      = TThickPoint(m_endPoint, thick);
+    points[4]      = TThickPoint(0.5 * (points[0] + points[8]), thick);
+    points[2]      = TThickPoint(0.5 * (points[0] + points[4]), thick);
+    points[6]      = TThickPoint(0.5 * (points[4] + points[8]), thick);
+
+    points[1]    = TThickPoint(0.5 * (points[0] + points[2]), thick);
+    points[3]    = TThickPoint(0.5 * (points[2] + points[4]), thick);
+    points[5]    = TThickPoint(0.5 * (points[4] + points[6]), thick);
+    points[7]    = TThickPoint(0.5 * (points[6] + points[8]), thick);
+    m_strokeTemp = new TStroke(points);
+    m_clickNumber++;
+    break;
+
+  case 2:
+    m_startPoint  = pos;
+    m_clickNumber = 1;
+    if (m_stroke) {
+      TVectorImageP vi = new TVectorImage();
+      vi->addStroke(m_stroke);
+      vi->addStroke(m_strokeTemp);
+      m_strokeTemp = 0;
+      vi->joinStroke(0, 1, m_stroke->getControlPointCount() - 1, 0, m_smooth);
+
+      m_stroke           = new TStroke(*vi->getStroke(0));
+      int count          = m_stroke->getControlPointCount();
+      TPointD firstPoint = m_stroke->getControlPoint(0);
+      TPointD lastPoint  = m_stroke->getControlPoint(count - 1);
+      m_startPoint       = lastPoint;
+      if (firstPoint == lastPoint) {
+        vi->joinStroke(0, 0, 0, m_stroke->getControlPointCount() - 1, m_smooth);
+        delete m_stroke;
+        m_stroke      = new TStroke(*vi->getStroke(0));
+        m_eraseStroke = new TStroke(*m_stroke);
+        m_isEditing   = false;
+        onDeactivate();
+      }
+    } else {
+      m_stroke     = m_strokeTemp;
+      m_strokeTemp = 0;
+      m_startPoint = m_endPoint;
+    }
+    break;
+  }
+}
+
+//-----------------------------------------------------------------------------
+
+void MultiArcPrimitive::leftButtonDoubleClick(const TPointD &,
+                                              const TMouseEvent &e) {
+  if (m_stroke) {
+    int count          = m_stroke->getControlPointCount();
+    TPointD firstPoint = m_stroke->getControlPoint(0);
+    TPointD lastPoint  = m_stroke->getControlPoint(count - 1);
+    if (firstPoint != lastPoint) {
+      TVectorImageP vi = new TVectorImage();
+      vi->addStroke(m_stroke);
+      std::vector<TPointD> points;
+      points.push_back(lastPoint);
+      points.push_back(firstPoint);
+      vi->addStroke(new TStroke(points));
+      vi->joinStroke(0, 0, 0, m_stroke->getControlPointCount() - 1, m_smooth);
+      m_stroke = new TStroke(*vi->getStroke(0));
+    }
+    m_eraseStroke = new TStroke(*m_stroke);
+    m_isEditing   = false;
+  }
+  onDeactivate();
+}
+
+//-----------------------------------------------------------------------------
+static TPointD rectify(const TPointD &oldPos, const TPointD &pos) {
+  const double h             = sqrt(2.0) / 2.0;
+  const TPointD directions[] = {TPointD(1, 0),  TPointD(h, h),  TPointD(0, 1),
+                                TPointD(-h, h), TPointD(-1, 0), TPointD(-h, -h),
+                                TPointD(0, -1), TPointD(h, -h)};
+  TPointD v                  = pos - oldPos;
+  int j                      = 0;
+  double bestValue           = v * directions[j];
+  for (int k = 1; k < 8; k++) {
+    double value = v * directions[k];
+    if (value > bestValue) {
+      bestValue = value;
+      j         = k;
+    }
+  }
+  return oldPos + bestValue * directions[j];
+}
+
+void MultiArcPrimitive::mouseMove(const TPointD &pos, const TMouseEvent &e) {
+  double dist = joinDistance * joinDistance;
+
+  switch (m_clickNumber) {
+  case 0:
+    m_startPoint = pos;
+    break;
+  case 1:
+    if (e.isShiftPressed())
+      m_endPoint = rectify(m_startPoint, pos);
+    else
+      m_endPoint = pos;
+
+    if (m_stroke) {
+      TPointD firstPoint = m_stroke->getControlPoint(0);
+      if (tdistance2(m_endPoint, firstPoint) < dist * m_tool->getPixelSize())
+        m_endPoint = firstPoint;
+    }
+    break;
+  case 2:
+    m_centralPoint = pos;
+    TThickQuadratic q(m_startPoint, TThickPoint(m_centralPoint, m_size),
+                      m_endPoint);
+    TThickQuadratic q0, q1, q00, q01, q10, q11;
+
+    q.split(0.5, q0, q1);
+    q0.split(0.5, q00, q01);
+    q1.split(0.5, q10, q11);
+
+    assert(q00.getP2() == q01.getP0());
+    assert(q01.getP2() == q10.getP0());
+    assert(q10.getP2() == q11.getP0());
+
+    m_strokeTemp->setControlPoint(1, q00.getP1());
+    m_strokeTemp->setControlPoint(2, q00.getP2());
+    m_strokeTemp->setControlPoint(3, q01.getP1());
+    m_strokeTemp->setControlPoint(4, q01.getP2());
+    m_strokeTemp->setControlPoint(5, q10.getP1());
+    m_strokeTemp->setControlPoint(6, q10.getP2());
+    m_strokeTemp->setControlPoint(7, q11.getP1());
+    break;
+  }
+  m_tool->invalidate();
+}
+
+}  // namespace
 
 //**********************************************************************************
 //    FullColorEraserTool  definition
@@ -867,9 +1093,7 @@ void FullColorEraserTool::leftButtonUp(const TPointD &pos,
   } else if (m_eraseType.getValue() == MULTIARCERASE) {
     TStroke *stroke;
     m_multiArcPrimitive.leftButtonUp(pos, e);
-    if (m_multiArcPrimitive.m_eraseStroke &&
-        m_multiArcPrimitive.m_isEditing == false) {
-      stroke = m_multiArcPrimitive.m_eraseStroke;
+    if (stroke = m_multiArcPrimitive.getEraseStroke()) {
       TTool::Application *app = TTool::getApplication();
       if (m_multi.getValue())  // stroke multi
       {
@@ -950,11 +1174,8 @@ void FullColorEraserTool::leftButtonDoubleClick(const TPointD &pos,
     assert(stroke->getPoint(0) == stroke->getPoint(1));
   }else if (m_eraseType.getValue() == MULTIARCERASE) {
     m_multiArcPrimitive.leftButtonDoubleClick(pos, e);
-    if (m_multiArcPrimitive.m_eraseStroke &&
-        m_multiArcPrimitive.m_isEditing == false)
-      stroke = m_multiArcPrimitive.m_eraseStroke;
-    else
-      return;
+    if (stroke = m_multiArcPrimitive.getEraseStroke());
+    else return;
   }
   if (m_multi.getValue())  // stroke multi
   {
@@ -1325,233 +1546,4 @@ void FullColorEraserTool::doMultiEraser(const TImageP &img, double t,
                 m_invertOption.getValue(), /*m_multi.getValue(),*/ m_level,
                 fid);
   }
-}
-
-//=============================================================================
-// Arc Primitive Class Implementation
-//-----------------------------------------------------------------------------
-const double joinDistance = 5.0;
-
-void MultiArcPrimitive::draw() {
-  double pixelSize = m_tool->getPixelSize();
-  m_color          = ToonzCheck::instance()->getChecks() & ToonzCheck::eBlackBg
-                         ? TPixel32::White
-                         : TPixel32::Red;
-  switch (m_clickNumber) {
-  case 1:
-    tglColor(m_color);
-    tglDrawSegment(m_startPoint, m_endPoint);
-
-    if (m_stroke) {
-      drawStrokeCenterline(*m_stroke, sqrt(tglGetPixelSize2()));
-      TPointD firstPoint = m_stroke->getControlPoint(0);
-      if (firstPoint == m_endPoint) {
-        tglColor(TPixel32((m_color.r + 127) % 255, m_color.g,
-                          (m_color.b + 127) % 255, m_color.m));
-      }
-      tglDrawCircle(m_stroke->getControlPoint(0), joinDistance * pixelSize);
-    }
-
-    break;
-
-  case 2:
-    tglColor(ToonzCheck::instance()->getChecks() & ToonzCheck::eBlackBg
-                 ? TPixel32::White
-                 : TPixel32::Black);
-
-    glLineStipple(1, 0x5555);
-    glEnable(GL_LINE_STIPPLE);
-    glBegin(GL_LINE_STRIP);
-    tglVertex(m_startPoint);
-    tglVertex(m_centralPoint);
-    tglVertex(m_endPoint);
-    glEnd();
-    glDisable(GL_LINE_STIPPLE);
-
-    tglColor(m_color);
-
-    if (m_stroke) drawStrokeCenterline(*m_stroke, sqrt(tglGetPixelSize2()));
-
-    if (m_strokeTemp)
-      drawStrokeCenterline(*m_strokeTemp, sqrt(tglGetPixelSize2()));
-
-    if (m_stroke) {
-      TPointD firstPoint = m_stroke->getControlPoint(0);
-      if (firstPoint == m_endPoint) {
-        tglColor(TPixel32((m_color.r + 127) % 255, m_color.g,
-                          (m_color.b + 127) % 255, m_color.m));
-      }
-      tglDrawCircle(m_stroke->getControlPoint(0), joinDistance * pixelSize);
-    }
-    break;
-  };
-}
-
-//-----------------------------------------------------------------------------
-
-TStroke *MultiArcPrimitive::makeStroke() const {
-  return new TStroke(*m_stroke);
-}
-
-void MultiArcPrimitive::leftButtonDown(const TPointD &pos,
-                                       const TMouseEvent &) {
-  if (m_clickNumber == 0) {
-    m_startPoint   = pos;
-    m_isEditing    = true;
-  }
-}
-
-void MultiArcPrimitive::leftButtonUp(const TPointD &pos, const TMouseEvent &) {
-  TTool::Application *app = TTool::getApplication();
-  if (!app) return;
-
-  std::vector<TThickPoint> points(9);
-  double thick     = m_size;
-  double dist      = joinDistance * joinDistance;
-
-  switch (m_clickNumber) {
-  case 0:
-    m_endPoint = pos;
-
-    m_clickNumber++;
-    break;
-
-  case 1:
-    m_centralPoint = pos;
-    points[0]      = TThickPoint(m_startPoint, thick);
-    points[8]      = TThickPoint(m_endPoint, thick);
-    points[4]      = TThickPoint(0.5 * (points[0] + points[8]), thick);
-    points[2]      = TThickPoint(0.5 * (points[0] + points[4]), thick);
-    points[6]      = TThickPoint(0.5 * (points[4] + points[8]), thick);
-
-    points[1]    = TThickPoint(0.5 * (points[0] + points[2]), thick);
-    points[3]    = TThickPoint(0.5 * (points[2] + points[4]), thick);
-    points[5]    = TThickPoint(0.5 * (points[4] + points[6]), thick);
-    points[7]    = TThickPoint(0.5 * (points[6] + points[8]), thick);
-    m_strokeTemp = new TStroke(points);
-    m_clickNumber++;
-    break;
-
-  case 2:
-    m_startPoint = pos;
-      m_clickNumber = 1;
-      if (m_stroke) {
-        TVectorImageP vi = new TVectorImage();
-        vi->addStroke(m_stroke);
-        vi->addStroke(m_strokeTemp);
-        m_strokeTemp = 0;
-        vi->joinStroke(0, 1, m_stroke->getControlPointCount() - 1, 0,
-                       m_smooth);
-
-        m_stroke           = new TStroke(*vi->getStroke(0));
-        int count          = m_stroke->getControlPointCount();
-        TPointD firstPoint = m_stroke->getControlPoint(0);
-        TPointD lastPoint  = m_stroke->getControlPoint(count - 1);
-        m_startPoint       = lastPoint;
-        if (firstPoint == lastPoint) {
-          vi->joinStroke(0, 0, 0, m_stroke->getControlPointCount() - 1,
-                         m_smooth);
-          delete m_stroke;
-          m_stroke = new TStroke(*vi->getStroke(0));
-          m_eraseStroke = new TStroke(*m_stroke);
-          m_isEditing   = false;
-          onDeactivate();
-        }
-      } else {
-        m_stroke     = m_strokeTemp;
-        m_strokeTemp = 0;
-        m_startPoint = m_endPoint;
-      }
-    break;
-  }
-}
-
-//-----------------------------------------------------------------------------
-
-void MultiArcPrimitive::leftButtonDoubleClick(const TPointD &,
-                                              const TMouseEvent &e) {
-  if (m_stroke) {
-    int count          = m_stroke->getControlPointCount();
-    TPointD firstPoint = m_stroke->getControlPoint(0);
-    TPointD lastPoint  = m_stroke->getControlPoint(count - 1);
-    if (firstPoint != lastPoint) {
-      TVectorImageP vi = new TVectorImage();
-      vi->addStroke(m_stroke);
-      std::vector<TPointD> points;
-      points.push_back(lastPoint);
-      points.push_back(firstPoint);
-      vi->addStroke(new TStroke(points));
-      vi->joinStroke(0, 0, 0, m_stroke->getControlPointCount() - 1,
-                        m_smooth);
-      m_stroke = new TStroke(*vi->getStroke(0));
-    }
-    m_eraseStroke = new TStroke(*m_stroke);
-    m_isEditing   = false;   
-  }
-  onDeactivate();
-}
-
-//-----------------------------------------------------------------------------
-static TPointD rectify(const TPointD &oldPos, const TPointD &pos) {
-  const double h             = sqrt(2.0) / 2.0;
-  const TPointD directions[] = {TPointD(1, 0),  TPointD(h, h),  TPointD(0, 1),
-                                TPointD(-h, h), TPointD(-1, 0), TPointD(-h, -h),
-                                TPointD(0, -1), TPointD(h, -h)};
-  TPointD v                  = pos - oldPos;
-  int j                      = 0;
-  double bestValue           = v * directions[j];
-  for (int k = 1; k < 8; k++) {
-    double value = v * directions[k];
-    if (value > bestValue) {
-      bestValue = value;
-      j         = k;
-    }
-  }
-  return oldPos + bestValue * directions[j];
-}
-
-void MultiArcPrimitive::mouseMove(const TPointD &pos, const TMouseEvent &e) {
-
-  double dist = joinDistance * joinDistance;
-
-  switch (m_clickNumber) {
-  case 0:
-    m_startPoint = pos;
-    break;
-  case 1:
-    if (e.isShiftPressed())
-      m_endPoint = rectify(m_startPoint, pos);
-    else
-      m_endPoint = pos;
-
-    if (m_stroke) {
-      TPointD firstPoint = m_stroke->getControlPoint(0);
-      if (tdistance2(m_endPoint, firstPoint) < dist * m_tool->getPixelSize())
-        m_endPoint = firstPoint;
-    }
-    break;
-  case 2:
-    m_centralPoint = pos;
-    TThickQuadratic q(m_startPoint, TThickPoint(m_centralPoint, m_size),
-                      m_endPoint);
-    TThickQuadratic q0, q1, q00, q01, q10, q11;
-
-    q.split(0.5, q0, q1);
-    q0.split(0.5, q00, q01);
-    q1.split(0.5, q10, q11);
-
-    assert(q00.getP2() == q01.getP0());
-    assert(q01.getP2() == q10.getP0());
-    assert(q10.getP2() == q11.getP0());
-
-    m_strokeTemp->setControlPoint(1, q00.getP1());
-    m_strokeTemp->setControlPoint(2, q00.getP2());
-    m_strokeTemp->setControlPoint(3, q01.getP1());
-    m_strokeTemp->setControlPoint(4, q01.getP2());
-    m_strokeTemp->setControlPoint(5, q10.getP1());
-    m_strokeTemp->setControlPoint(6, q10.getP2());
-    m_strokeTemp->setControlPoint(7, q11.getP1());
-    break;
-  }
-  m_tool->invalidate();
 }
