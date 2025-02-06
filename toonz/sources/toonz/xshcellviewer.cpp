@@ -707,9 +707,6 @@ void RenameCellField::showInRowCol(int row, int col, bool multiColumnSelected) {
                   if (o->cellWidth()-15 < fm.horizontalAdvance(text))
                     setFixedWidth(fm.horizontalAdvance(text)+10);
                 });
-        connect(this, &QLineEdit::close, m_viewer,
-                [this] { m_viewer->setFocusPolicy(Qt::WheelFocus);
-            });
       }
       // other level types
       else {
