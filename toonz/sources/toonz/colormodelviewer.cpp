@@ -50,6 +50,7 @@
 #include <QMouseEvent>
 #include <QUrl>
 #include <QMenu>
+#include <qtoolbutton.h>
 
 #define LINES "Lines"
 #define AREAS "Areas"
@@ -94,8 +95,19 @@ ColorModelViewer::ColorModelViewer(QWidget *parent)
                     FlipConsole::eFlipVertical, FlipConsole::eResetView}),
                eDontKeepFilesOpened, true)
     , m_mode(0)
-    , m_currentRefImgPath(TFilePath()) {
+    , m_currentRefImgPath(TFilePath()),
+    m_alwaysPickLineStyle(false) {
   setObjectName("colormodel");
+
+  pickLineStyles = new QToolButton(this);
+  QString tip("Pick Line Styles");
+  QIcon icon = createQIcon("centerline");
+  pickLineStyles->setIcon(icon);
+  pickLineStyles->setToolTip(tip);
+  pickLineStyles->setCheckable(true);
+
+  // TODO: add to right place
+  this->layout()->addWidget(pickLineStyles);
 
   setToolCursor(m_imageViewer, ToolCursor::PickerCursor);
 
@@ -105,6 +117,12 @@ ColorModelViewer::ColorModelViewer(QWidget *parent)
 
   bool ret = connect(this, SIGNAL(refImageNotFound()), this,
                      SLOT(onRefImageNotFound()), Qt::QueuedConnection);
+  ret = ret && connect(pickLineStyles, &QToolButton::clicked, this,
+                            [this](bool clicked) {
+                         m_alwaysPickLineStyle = clicked;
+                         changePickType();
+                       });
+
   assert(ret);
 
   m_imageViewer->setMouseTracking(true);
@@ -414,6 +432,8 @@ void ColorModelViewer::changePickType() {
   if (!propGroup) {
     m_mode = 2;
     setToolCursor(m_imageViewer, ToolCursor::PickerCursor);
+    pickLineStyles->setDisabled(true);
+    pickLineStyles->setChecked(true);
     return;
   }
 
@@ -422,23 +442,31 @@ void ColorModelViewer::changePickType() {
   if (!modeProp) {
     m_mode = 2;
     setToolCursor(m_imageViewer, ToolCursor::PickerCursor);
+    pickLineStyles->setDisabled(true);
+    pickLineStyles->setChecked(true);
     return;
   }
 
   else {//A a Temporary change, to always pick Lines and Areas
     std::string var = modeProp->getValueAsString();
     if (var == LINES) {
-      m_mode = 2;
-      setToolCursor(m_imageViewer, ToolCursor::PickerCursor);
+      m_mode = 1;
+      setToolCursor(m_imageViewer, ToolCursor::PickerCursorLine);
     } else if (var == AREAS) {
-      m_mode = 2;
-      setToolCursor(m_imageViewer, ToolCursor::PickerCursor);
+      if (m_alwaysPickLineStyle)
+        m_mode = 2;// Areas & Line
+      else 
+        m_mode = 0;
+      setToolCursor(m_imageViewer, ToolCursor::PickerCursorArea);
     } else  // Line & Areas
     {
       m_mode = 2;
       setToolCursor(m_imageViewer, ToolCursor::PickerCursor);
     }
+    pickLineStyles->setEnabled(var == AREAS);
+    pickLineStyles->setChecked(m_mode != 0);
   }
+
 }
 
 //-----------------------------------------------------------------------------

@@ -17,6 +17,9 @@ class ColorModelViewer final : public FlipBook {
   /*-- ColorModelのファイルパスを覚えておいて、UseCurrentFrame間の移動に対応
    * --*/
   TFilePath m_currentRefImgPath;
+  /*-- Set m_mode to 2 after got m_mode --*/
+  bool m_alwaysPickLineStyle;
+  QToolButton *pickLineStyles;
 
 public:
   ColorModelViewer(QWidget *parent = 0);
