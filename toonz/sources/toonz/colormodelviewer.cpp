@@ -425,14 +425,14 @@ void ColorModelViewer::changePickType() {
     return;
   }
 
-  else {
+  else {//A a Temporary change, to always pick Lines and Areas
     std::string var = modeProp->getValueAsString();
     if (var == LINES) {
-      m_mode = 1;
-      setToolCursor(m_imageViewer, ToolCursor::PickerCursorLine);
+      m_mode = 2;
+      setToolCursor(m_imageViewer, ToolCursor::PickerCursor);
     } else if (var == AREAS) {
-      m_mode = 0;
-      setToolCursor(m_imageViewer, ToolCursor::PickerCursorArea);
+      m_mode = 2;
+      setToolCursor(m_imageViewer, ToolCursor::PickerCursor);
     } else  // Line & Areas
     {
       m_mode = 2;
