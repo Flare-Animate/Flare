@@ -8,6 +8,7 @@
 // #include "tapp.h"
 #include "toonzqt/menubarcommand.h"
 #include "toonz/preferences.h"
+#include <QGuiApplication>
 #include <QAction>
 #include <QMap>
 #include <QDebug>
@@ -34,12 +35,6 @@ TTool *ToolHandle::getTool() const { return m_tool; }
 //-----------------------------------------------------------------------------
 
 void ToolHandle::setTool(QString name) {
-  // If we're in navigation mode, only allow navigation-related tool changes
-  if (m_inNavigationMode && name != "T_Hand" && name != "T_Rotate" &&
-      name != "T_Zoom") {
-    return;
-  }
-
   m_oldToolName = m_toolName = name;
 
   TTool *tool = TTool::getTool(m_toolName.toStdString(),
@@ -70,55 +65,97 @@ void ToolHandle::setTool(QString name) {
 //-----------------------------------------------------------------------------
 
 void ToolHandle::setSpacePressed(bool pressed) {
-  if (m_spacePressed == pressed) return;
+  if (m_navState.spacePressed == pressed) return;
 
-  m_spacePressed = pressed;
+  m_navState.spacePressed = pressed;
+
   if (pressed) {
-    // Store current tool when entering navigation mode
-    m_originalTool     = m_toolName;
-    m_inNavigationMode = true;
-    setTool("T_Hand");
-  } else {
-    // Restore original tool when exiting navigation mode
-    m_inNavigationMode = false;
-    // Reset all modifier states when exiting navigation mode
-    m_ctrlPressed  = false;
-    m_shiftPressed = false;
-    if (!m_originalTool.isEmpty()) {
-      setTool(m_originalTool);
-      m_originalTool.clear();
+    // Enter navigation mode
+    if (!m_navState.active) {
+      m_navState.active       = true;
+      m_navState.originalTool = m_toolName;
     }
+
+    /**
+     * Check actual keyboard state to detect "buffered" modifier keys
+     * ______________________________________________________________
+     *
+     * Normally, we track modifier keys using 'setShiftPressed()' and
+     * 'setCtrlPressed()' when the user presses them. However, there's a case
+     * where a user [holds Shift or Ctrl before pressing Space]. In this case:
+     *
+     * - The Shift/Ctrl state might already be active 'before' space was pressed
+     * - If we don't check the keyboard state here, we'd assume Shift/Ctrl off
+     *  - This would result in the wrong tool being selected (e.g., T_Hand
+     * instead of T_Rotate)
+     *
+     * Example scenario:
+     * 1. User 'holds Shift' but 'setShiftPressed(true)' is not yet called
+     * 2. Pressed 'Space' -> navigation activates
+     * 3. If we don't check the keyboard here, we don't recognize Shift is held
+     * 4. The tool defaults to 'T_Hand' instead of 'T_Rotate' (incorrect!)
+     *
+     * This prevents that issue by explicitly checking what modifier keys are
+     * actually held.
+     */
+    m_navState.shiftPressed =
+        (QGuiApplication::queryKeyboardModifiers() & Qt::ShiftModifier) != 0;
+    m_navState.ctrlPressed =
+        (QGuiApplication::queryKeyboardModifiers() & Qt::ControlModifier) != 0;
+
+    updateNavigationTool(); // Select the correct tool based on modifiers
+  } else {
+    exitNavigation();
   }
-  updateNavigationState();
 }
 
 void ToolHandle::setShiftPressed(bool pressed) {
-  if (m_shiftPressed == pressed) return;
+  if (m_navState.shiftPressed == pressed) return;
 
-  m_shiftPressed = pressed;
-  updateNavigationState();
+  m_navState.shiftPressed = pressed;
+
+  // If we're in navigation mode, update the tool selection
+  if (m_navState.active) {
+    updateNavigationTool();
+  }
 }
 
 void ToolHandle::setCtrlPressed(bool pressed) {
-  if (m_ctrlPressed == pressed) return;
+  if (m_navState.ctrlPressed == pressed) return;
 
-  m_ctrlPressed = pressed;
-  updateNavigationState();
+  m_navState.ctrlPressed = pressed;
+
+  // If we're in navigation mode, update the tool selection
+  if (m_navState.active) {
+    updateNavigationTool();
+  }
 }
 
-void ToolHandle::updateNavigationState() {
-  // Only handle state changes when in navigation mode
-  if (!m_inNavigationMode) return;
+void ToolHandle::updateNavigationTool() {
+  if (!m_navState.active) return;  // Only update if navigation mode is active
 
-  if (m_spacePressed) {
-    if (m_ctrlPressed) {
-      setTool("T_Zoom");
-    } else if (m_shiftPressed) {
-      setTool("T_Rotate");
-    } else {
-      setTool("T_Hand");
-    }
+  // Priority: Ctrl > Shift > Default (T_Hand)
+  if (m_navState.ctrlPressed) {
+    setTool("T_Zoom");
+  } else if (m_navState.shiftPressed) {
+    setTool("T_Rotate");
+  } else {
+    setTool("T_Hand");
   }
+}
+
+void ToolHandle::exitNavigation() {
+  if (!m_navState.active) return;
+
+  // Restore the original tool before navigation mode was activated
+  if (!m_navState.originalTool.isEmpty()) {
+    setTool(m_navState.originalTool);
+    m_storedToolName = m_navState.originalTool;
+  }
+
+  // Reset navigation mode but PRESERVE modifier states for buffering
+  m_navState.active       = false;
+  m_navState.spacePressed = false;
 }
 
 //-----------------------------------------------------------------------------
@@ -131,16 +168,11 @@ void ToolHandle::storeTool() {
 //-----------------------------------------------------------------------------
 
 void ToolHandle::restoreTool() {
-  if (m_storedToolName != m_toolName && m_storedToolName != "") {
-    // Only bypass timer when in navigation mode
-    if (m_inNavigationMode) {
-      setTool(m_storedToolName);
-    }
-    // For all other cases, use the timer check
-    else if (m_storedToolTime.elapsed() >
-             Preferences::instance()->getTempToolSwitchTimer()) {
-      setTool(m_storedToolName);
-    }
+  // qDebug() << m_storedToolTime.elapsed();
+  if (m_storedToolName != m_toolName && m_storedToolName != "" &&
+      m_storedToolTime.elapsed() >
+          Preferences::instance()->getTempToolSwitchTimer()) {
+    setTool(m_storedToolName);
   }
 }
 
