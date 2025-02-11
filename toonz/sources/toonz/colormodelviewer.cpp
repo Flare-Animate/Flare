@@ -1,4 +1,5 @@
-
+#include <Qdebug>
+#include <qstack.h>
 
 // Tnz6 includes
 #include "colormodelviewer.h"
@@ -51,6 +52,7 @@
 #include <QUrl>
 #include <QMenu>
 #include <qtoolbutton.h>
+#include <tpanels.h>
 
 #define LINES "Lines"
 #define AREAS "Areas"
@@ -106,8 +108,10 @@ ColorModelViewer::ColorModelViewer(QWidget *parent)
   pickLineStyles->setToolTip(tip);
   pickLineStyles->setCheckable(true);
 
-  // TODO: add to right place
-  this->layout()->addWidget(pickLineStyles);
+  QToolBar *toolBar = this->findChild<QToolBar *>("FlipConsolePlayToolBar");
+  if (toolBar) {
+    toolBar->addWidget(pickLineStyles);
+  }
 
   setToolCursor(m_imageViewer, ToolCursor::PickerCursor);
 
