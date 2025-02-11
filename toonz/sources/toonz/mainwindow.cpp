@@ -2823,6 +2823,9 @@ void MainWindow::defineActions() {
   menuAct = createToolOptionsAction("A_ToolOption_Type:Segment",
                                     QT_TR_NOOP("Type - Segment"), "",
                                     "type_erase_segment");
+  menuAct = createToolOptionsAction("A_ToolOption_Type:MultiArc",
+                                    QT_TR_NOOP("Eraser Type - MultiArc"), "",
+                                    "type_erase_multiarc");
 
   createToolOptionsAction("A_ToolOption_TypeFont", QT_TR_NOOP("TypeTool Font"),
                           "");
