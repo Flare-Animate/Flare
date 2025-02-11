@@ -1,5 +1,3 @@
-#include <Qdebug>
-#include <qstack.h>
 
 // Tnz6 includes
 #include "colormodelviewer.h"
@@ -451,7 +449,7 @@ void ColorModelViewer::changePickType() {
     return;
   }
 
-  else {//A a Temporary change, to always pick Lines and Areas
+  else {
     std::string var = modeProp->getValueAsString();
     if (var == LINES) {
       m_mode = 1;
