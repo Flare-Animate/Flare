@@ -183,7 +183,7 @@ elseif(BUILD_ENV_APPLE)
     set(QT_LIB_PATH "${QT_PATH}/")
     set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH};${QT_LIB_PATH}cmake/")
     foreach(path ${CMAKE_PREFIX_PATH})
-      message("CMAKE_PREFIX_PATH: " ${path})
+        message("CMAKE_PREFIX_PATH: " ${path})
     endforeach(path)
     add_definitions(
         -DMACOSX
@@ -360,7 +360,7 @@ if(BUILD_ENV_MSVC)
     set(SUPERLU_LIB ${SDKROOT}/superlu/SuperLU_${MSVC_LIB_VERSION}_${PLATFORM}.lib)
     set(OPENBLAS_LIB ${SDKROOT}/openblas/libopenblas_${PLATFORM}.lib)
     set(USB_LIB)  # unused
-    
+
     if(PLATFORM EQUAL 32)
         set(QT_LIB ${SDKROOT}/quicktime/QT73SDK/Libraries/QTMLClient.lib)
     endif()
@@ -398,9 +398,9 @@ elseif(BUILD_ENV_APPLE)
         pkg_check_modules(GLEW REQUIRED glew)
     endif()
     if (TARGET GLEW::GLEW)
-      set(GLEW_LIB GLEW::GLEW)
+        set(GLEW_LIB GLEW::GLEW)
     else()
-      set(GLEW_LIB ${GLEW_LIBRARIES})
+        set(GLEW_LIB ${GLEW_LIBRARIES})
     endif()
 
     pkg_check_modules(LZ4_LIB REQUIRED liblz4)
@@ -502,7 +502,7 @@ elseif(BUILD_ENV_UNIXLIKE)
     endif()
     # Can be 'libmypaint' or 'libmypaint-1.x'
     pkg_search_module(MYPAINT_LIB REQUIRED libmypaint libmypaint-1.3>=1.3)
-    
+
     if(PLATFORM EQUAL 64)
         find_library(TURBOJPEG_LIB turbojpeg)
         message("**************** turbojpeg lib:" ${TURBOJPEG_LIB})
@@ -542,24 +542,24 @@ include_directories(
 )
 
 if(BUILD_ENV_MSVC OR BUILD_ENV_APPLE)
-       	if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.30)
-		set(BOOST_DIR ${BOOST_ROOT})
-		find_package(Boost 1.55 REQUIRED)
-	else()# Cmake version below 3.30
-		find_path(
-			BOOST_ROOT
-       			     	include/boost
-            			boost
-	        	HINTS
-		            	${THIRDPARTY_LIBS_HINTS}
-        		PATH_SUFFIXES
-	            		boost/boost_1_75_0/
-	            		boost/boost_1_74_0/
-        		    	boost/boost_1_73_0/
-	        	    	boost/boost_1_72_0/
-		)
-		find_package(Boost 1.55 REQUIRED)
-	endif()
+    if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.30)
+        set(BOOST_DIR ${BOOST_ROOT})
+        find_package(Boost 1.55 REQUIRED)
+    else() # CMake version below 3.30
+        find_path(
+            BOOST_ROOT
+                include/boost
+                boost
+            HINTS
+                ${THIRDPARTY_LIBS_HINTS}
+            PATH_SUFFIXES
+                boost/boost_1_75_0/
+                boost/boost_1_74_0/
+                boost/boost_1_73_0/
+                boost/boost_1_72_0/
+        )
+        find_package(Boost 1.55 REQUIRED)
+    endif()
 else()
     find_package(Boost)
 endif()
