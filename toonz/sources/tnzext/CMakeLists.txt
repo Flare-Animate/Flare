@@ -117,8 +117,8 @@ if(BUILD_ENV_MSVC)
     )
 elseif(BUILD_ENV_APPLE)
     set(EXTRA_LIBS
-	"$<TARGET_FILE:tnzcore>"
-	"$<TARGET_FILE:tnzbase>"
+        "$<TARGET_FILE:tnzcore>"
+        "$<TARGET_FILE:tnzbase>"
     )
 
     target_link_libraries(tnzext
