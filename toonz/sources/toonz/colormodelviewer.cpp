@@ -101,7 +101,7 @@ ColorModelViewer::ColorModelViewer(QWidget *parent)
 
   pickLineStyles = new QToolButton(this);
   QString tip("Pick Line Styles");
-  QIcon icon = createQIcon("centerline");
+  QIcon icon = createQIcon("stylepicker_lines");
   pickLineStyles->setIcon(icon);
   pickLineStyles->setToolTip(tip);
   pickLineStyles->setCheckable(true);
