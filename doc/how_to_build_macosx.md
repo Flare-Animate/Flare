@@ -7,7 +7,7 @@
 - brew
 - Xcode
 - cmake (3.2.2 or later)
-- Qt 5.x (5.9.2 or later)
+- Qt 5.x (5.15 or later)
 - boost (1.55.0 or later)
 
 ## Building on macOS
@@ -40,7 +40,7 @@ $ git lfs install
 
 NOTE: This will install the latest version of QT v5.x which may not be compatible with older OS versions.
 
-If you cannot use the most recent version, download the online installer from https://www.qt.io/download and install the appropriate `macOS` version (min 5.9.2).  If installing via this method, be sure to install the `Qt Script (Deprecated)` libraries.
+If you cannot use the most recent version, download the online installer from https://www.qt.io/download and install the appropriate `macOS` version (min 5.15).  If installing via this method, be sure to install the `Qt Script (Deprecated)` libraries.
 
 ### Remove incompatible symbolic directory
 Check to see if this symbolic glew directory exists. If so, remove it:
