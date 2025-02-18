@@ -232,8 +232,6 @@ FlipBook::FlipBook(QWidget *parent, QString viewerTitle,
                                   ->getOutputProperties()
                                   ->getFrameRate());
 
-  mainLayout->addWidget(m_flipConsole);
-
   m_previewUpdateTimer.setSingleShot(true);
 
   ret = ret && connect(parentWidget(), SIGNAL(closeButtonPressed()), this,
