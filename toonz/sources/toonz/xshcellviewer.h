@@ -40,6 +40,7 @@ class RenameCellField final : public QLineEdit {
 
   int m_row;
   int m_col;
+  bool escapePressed = false;
   XsheetViewer *m_viewer;
 
 public:

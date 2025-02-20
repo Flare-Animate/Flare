@@ -993,7 +993,12 @@ void RenameCellField::onReturnPressed() {
 
 void RenameCellField::focusOutEvent(QFocusEvent *e) {
   hide();
-
+  
+  if (escapePressed) {
+    escapePressed = false;
+  } else {
+    renameCell();
+  }
   QLineEdit::focusOutEvent(e);
 }
 
@@ -1036,6 +1041,7 @@ bool RenameCellField::eventFilter(QObject *obj, QEvent *e) {
 
 void RenameCellField::keyPressEvent(QKeyEvent *event) {
   if (event->key() == Qt::Key_Escape) {
+    escapePressed = true;
     clearFocus();
     return;
   }
