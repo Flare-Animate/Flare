@@ -3766,6 +3766,20 @@ void CellArea::onControlPressed(bool pressed) {
 const bool CellArea::isControlPressed() { return isCtrlPressed; }
 
 //-----------------------------------------------------------------------------
+
+void CellArea::onNumberPressed(int number) {
+  TCellSelection *cellSelection = m_viewer->getCellSelection();
+  if (cellSelection->isEmpty()) return;
+  int r0, c0, r1, c1;
+  cellSelection->getSelectedCells(r0, c0, r1, c1);
+  TXsheet *xsh       = TApp::instance()->getCurrentXsheet()->getXsheet();
+  TXshColumnP column = xsh->getColumn(r0);
+  m_renameCell->showInRowCol(r0, c0);
+  m_renameCell->setText(QString::number(number));
+}
+
+//-----------------------------------------------------------------------------
+
 void CellArea::createCellMenu(QMenu &menu, bool isCellSelected, TXshCell cell,
                               int row, int col) {
   CommandManager *cmdManager = CommandManager::instance();

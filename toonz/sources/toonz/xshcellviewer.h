@@ -146,6 +146,9 @@ public:
   void onControlPressed(bool pressed);
   const bool isControlPressed();
 
+  // edit current cell's ID
+  void onNumberPressed(int number);
+
   //	void keyUpDownPressed(int newRow);
 
   void showRenameField(int row, int col, bool multiColumnSelected = false) {
