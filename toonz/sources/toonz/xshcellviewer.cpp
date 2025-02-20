@@ -3352,7 +3352,9 @@ void CellArea::mousePressEvent(QMouseEvent *event) {
     } else if ((!xsh->getCell(row, col).isEmpty()) &&
                o->rect(PredefinedRect::DRAG_AREA)
                    .adjusted(0, 0, -frameAdj.x(), -frameAdj.y())
-                   .contains(mouseInCell)) {
+                   .contains(mouseInCell) ||
+               // Or Control Pressed
+               event->modifiers() & Qt::ControlModifier) {
       TXshColumn *column = xsh->getColumn(col);
       if (column && !m_viewer->getCellSelection()->isCellSelected(row, col)) {
         int r0, r1;
