@@ -330,7 +330,7 @@ void ExportAllLevelsPopup::collectSelectedSimpleLevels() {
     if (col->isEmpty() || !col->isPreviewVisible()) continue;// Not empty and visible
     if (col->getColumnType()) continue;
     if (col->getRange(r0, r1)) sl = xsh->getCell(r0, index).getSimpleLevel();
-    assert(sl);
+    if (!sl) continue;
     int type = sl->getType();
     if
       (!(type == PLI_XSHLEVEL ||  // ToonzVector
