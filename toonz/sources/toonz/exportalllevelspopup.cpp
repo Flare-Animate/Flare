@@ -139,15 +139,10 @@ ExportAllLevelsPopup::ExportAllLevelsPopup(){
   m_skipButton->setDisabled(true);
 
   // Layout
-  QLayout *fileFormatLayout =
-      layout()
-          ->itemAt(2)
-          ->layout()
-          ->itemAt(2)
-          ->widget()
-          ->layout();
-  fileFormatLayout->addWidget(m_exportAll);
-  fileFormatLayout->addWidget(m_skipButton);
+  QHBoxLayout *bottomLay = layout()->findChild<QHBoxLayout *>("bottomLay");
+  int count              = bottomLay->count();
+  bottomLay->insertWidget(count - 1, m_exportAll);
+  bottomLay->insertWidget(count, m_skipButton);
 
   // Establish connections
   bool ret = true;

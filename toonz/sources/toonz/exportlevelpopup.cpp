@@ -299,6 +299,7 @@ ExportLevelPopup::ExportLevelPopup()
 
     //-------------- Buttons Toolbar ---------------------
     QHBoxLayout *bottomLay = new QHBoxLayout();
+    bottomLay->setObjectName("bottomLay");
     bottomLay->setMargin(5);
     bottomLay->setSpacing(3);
     {
