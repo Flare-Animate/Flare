@@ -970,7 +970,7 @@ TImageP TLevelReaderAvi::load(int frameIndex) {
 int TLevelReaderAvi::readFrameFromStream(void *bufferOut, DWORD &bufferSize,
                                          int frameIndex) const {
   assert(bufferOut && bufferSize > 0);
-  LONG bytesReaded   = 0;
+  LONG bytesReaded = 0;
   LONG samplesRead = 0;
 
   int rc = AVIStreamRead(m_videoStream, frameIndex, 1, bufferOut, bufferSize,
@@ -1112,7 +1112,7 @@ LRESULT safe_ICCompressQuery(hic_t const &hic, BITMAPINFO *lpbiInput,
 
 Tiio::AviWriterProperties::AviWriterProperties() : m_codec("Codec") {
   if (m_defaultCodec.getRange().empty()) {
-    char descr[2048], name[2048];
+    char descr[2048], name[2048], driver[2048];
     DWORD fccType = 0;
     ICINFO icinfo;
     BITMAPINFO inFmt;
@@ -1125,6 +1125,12 @@ Tiio::AviWriterProperties::AviWriterProperties() : m_codec("Codec") {
     inFmt.bmiHeader.biHeight      = 100;
     inFmt.bmiHeader.biPlanes      = 1;
     inFmt.bmiHeader.biCompression = BI_RGB;
+
+    // List of known problematic DLLs that should be skipped
+    const std::vector<std::string> blockedDlls = {"msvfw32.dll", "lvcod64.dll",
+                                                  "ff_vfw.dll", "tsccvid64.dll",
+                                                  "hapcodec.dll"};
+
     for (int bpp = 32; bpp >= 24; bpp -= 8) {
       inFmt.bmiHeader.biBitCount = bpp;
       for (int i = 0;; i++) {
@@ -1133,33 +1139,56 @@ Tiio::AviWriterProperties::AviWriterProperties() : m_codec("Codec") {
           break;
         }
 
+        WideChar2Char(icinfo.szDriver, driver, sizeof(driver));
+
+        // Convert driver name to lowercase for case-insensitive comparison
+        std::string driverStr(driver);
+        std::transform(driverStr.begin(), driverStr.end(), driverStr.begin(),
+                       ::tolower);
+
+        // Skip blacklisted DLLs
+        bool isBlocked =
+            std::any_of(blockedDlls.begin(), blockedDlls.end(),
+                        [&](const std::string &blocked) {
+                          return driverStr.find(blocked) != std::string::npos;
+                        });
+
+        if (isBlocked) {
+          continue;  // Skip this codec
+        }
+
         auto const hic =
             safe_ICOpen(icinfo.fccType, icinfo.fccHandler, ICMODE_QUERY);
         if (!hic) {
-          break;
+          continue;
         }
 
         // Find out the compressor name
         if (safe_ICGetInfo(hic, &icinfo, sizeof(ICINFO)) == 0) {
-          break;
+          continue;
         }
 
         WideChar2Char(icinfo.szDescription, descr, sizeof(descr));
         WideChar2Char(icinfo.szName, name, sizeof(name));
-        if ((strstr(name, "IYUV") != 0) ||
-            ((strstr(name, "IR32") != 0) && (bpp == 24))) {
+
+        // Skip certain codecs that are known to cause issues
+        if (strstr(name, "IYUV") != nullptr ||
+            (strstr(name, "IR32") != nullptr && bpp == 24)) {
           continue;
         }
+
         // Give up to load codecs once the blackmagic codec is found -
         // as it seems to cause crash for unknown reasons (issue #138)
-        if (strstr(descr, "Blackmagic") != 0) break;
+        if (strstr(descr, "Blackmagic") != nullptr) {
+          break;
+        }
 
-        std::string compressorName;
-        compressorName = std::string(name) + " '" + std::to_string(bpp) + "' " +
-                         std::string(descr);
+        std::string compressorName = std::string(name) + " '" +
+                                     std::to_string(bpp) + "' " +
+                                     std::string(descr);
 
-        // per il momento togliamo i codec indeo
-        if (std::string(compressorName).find("Indeo") != -1) {
+        // Skip Indeo codecs, as they are obsolete and unreliable
+        if (compressorName.find("Indeo") != std::string::npos) {
           continue;
         }
 
@@ -1168,12 +1197,13 @@ Tiio::AviWriterProperties::AviWriterProperties() : m_codec("Codec") {
         }
 
         m_defaultCodec.addValue(::to_wstring(compressorName));
-        if (compressorName.find("inepak") != -1) {
+        if (compressorName.find("inepak") != std::string::npos) {
           m_defaultCodec.setValue(::to_wstring(compressorName));
         }
       }
     }
   }
+
   m_codec = m_defaultCodec;
   bind(m_codec);
 }

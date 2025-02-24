@@ -18,6 +18,10 @@ class ColorModelViewer final : public FlipBook {
    * --*/
   TFilePath m_currentRefImgPath;
 
+  /*-- Set m_mode to 2 in changePickType after got m_mode if true && mode is AREA--*/
+  bool m_alwaysPickLineStyle;
+  QToolButton *pickLineStyles;
+
 public:
   ColorModelViewer(QWidget *parent = 0);
   ~ColorModelViewer();
@@ -59,7 +63,8 @@ protected slots:
   void updateViewer();
 
   /*-
-   * ツールのTypeに合わせてPickのタイプも変える。それにあわせカーソルも切り替える
+   * ツールのTypeとm_alwaysPickLineStyleに合わせてPickのタイプも変える。
+   * それにあわせカーソルも切り替える
    * -*/
   void changePickType();
 

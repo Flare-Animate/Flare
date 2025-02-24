@@ -504,7 +504,7 @@ endif()
 if(BUILD_ENV_MSVC)
     set(EXTRA_LIBS)
     if(CMAKE_CXX_FLAGS_DEBUG)
-    target_compile_options(OpenToonz PRIVATE /EHsc) #Enable C++ Exceptions in Debug Mode
+        target_compile_options(OpenToonz PRIVATE /EHsc) # Enable C++ Exceptions in Debug Mode.
     endif()
     if(PLATFORM EQUAL 64)
         set(EXTRA_LIBS ${EXTRA_LIBS} Qt5::SerialPort ${TURBOJPEG_LIB} ${OpenCV_LIBS})
@@ -515,7 +515,7 @@ if(BUILD_ENV_MSVC)
     target_link_libraries(OpenToonz
         Qt5::WinMain Qt5::Core Qt5::Gui Qt5::Network Qt5::OpenGL Qt5::Svg Qt5::Xml
         Qt5::Script Qt5::Widgets Qt5::PrintSupport Qt5::Multimedia Qt5::UiTools
-        ${GL_LIB} ${GLUT_LIB} 
+        ${GL_LIB} ${GLUT_LIB}
         ${EXTRA_LIBS} strmiids
         tnzcore tnzbase toonzlib colorfx tnzext image sound toonzqt tnztools tnzstdfx tfarm
     )
@@ -652,7 +652,7 @@ elseif(BUILD_ENV_UNIXLIKE AND BUILD_TARGET_WIN)
             "$<TARGET_FILE:tfarm>"
         DESTINATION bin
     )
-    
+
     install(
         DIRECTORY
             ${CMAKE_SOURCE_DIR}/../../stuff

@@ -2054,9 +2054,9 @@ void FileBrowser::onSelectedItems(const std::set<int> &indexes) {
 
 void FileBrowser::onClickedItem(int index) {
   if (0 <= index && index < (int)m_items.size()) {
-    // if the folder is clicked, then move the current folder
+    // if the parent folder is clicked, then move the current folder
     TFilePath fp = m_items[index].m_path;
-    if (m_items[index].m_isFolder) {
+    if (index == 0 && m_items[index].m_isFolder) {
       setFolder(fp, true);
       QModelIndex index = m_folderTreeView->currentIndex();
       if (index.isValid()) m_folderTreeView->scrollTo(index);
@@ -2069,8 +2069,8 @@ void FileBrowser::onClickedItem(int index) {
 
 void FileBrowser::onDoubleClickedItem(int index) {
   // TODO: Avoid duplicate code with onClickedItem().
-  if (0 <= index && index < (int)m_items.size()) {
-    // if the folder is clicked, then move the current folder
+  if (0 < index && index < (int)m_items.size()) {
+    // if the folder is doubleClicked, then move the current folder
     TFilePath fp = m_items[index].m_path;
     if (m_items[index].m_isFolder) {
       setFolder(fp, true);
@@ -2180,14 +2180,30 @@ void FileBrowser::newFolder() {
   int i                   = 1;
   while (TFileStatus(folderPath).doesExist())
     folderPath = parentFolder + (folderName + L" " + std::to_wstring(++i));
+  
+  if (Preferences::instance()->isWatchFileSystemEnabled()) {
+    MyFileSystemWatcher *watcher = MyFileSystemWatcher::instance();
+    // Remove parent folder from watcher
+    watcher->removePaths(QStringList() << parentFolder.getQString());
 
-  try {
-    TSystem::mkDir(folderPath);
-
-  } catch (...) {
-    DVGui::error(tr("It is not possible to create the %1 folder.")
-                     .arg(toQString(folderPath)));
-    return;
+    try {
+      TSystem::mkDir(folderPath);
+    } catch (...) {
+      DVGui::error(tr("It is not possible to create the %1 folder.")
+                       .arg(toQString(folderPath)));
+      watcher->addPaths(QStringList() << parentFolder.getQString());
+      return;
+    }
+    // Add the parent folder back
+    watcher->addPaths(QStringList() << parentFolder.getQString());
+  } else {
+    try {
+      TSystem::mkDir(folderPath);
+    } catch (...) {
+      DVGui::error(tr("It is not possible to create the %1 folder.")
+                       .arg(toQString(folderPath)));
+      return;
+    }
   }
 
   DvDirModel *model = DvDirModel::instance();

@@ -31,9 +31,20 @@ class QString;
 class DVAPI ToolHandle final : public QObject {
   Q_OBJECT
 
+  // Core tool state
   TTool *m_tool;
   QString m_toolName;
   int m_toolTargetType;
+
+  // Navigation state
+  struct NavigationState {
+    bool active = false;        // Whether navigation mode is active
+    QString originalTool;       // Tool to restore when exiting navigation
+    bool spacePressed = false;  // Space key state
+    bool shiftPressed = false;  // Shift key state
+    bool ctrlPressed  = false;  // Ctrl key state
+  } m_navState;
+
   QString m_storedToolName;
   QElapsedTimer m_storedToolTime;
   QString m_oldToolName;
@@ -45,11 +56,17 @@ public:
 
   TTool *getTool() const;
   void setTool(QString name);
-  void setTargetType(int targetType);
+  void setTargetType(int targetType);  // TODO: unused, remove?
 
-  const QString& getRequestedToolName() const
-    { return m_toolName; }
-  
+  const QString &getRequestedToolName() const { return m_toolName; }
+
+  // Navigation methods
+  void setSpacePressed(bool pressed);
+  void setShiftPressed(bool pressed);
+  void setCtrlPressed(bool pressed);
+  bool isSpacePressed() const { return m_navState.spacePressed; }
+  bool isNavigating() const { return m_navState.active; }
+
   // used to change tool for a short while (e.g. while keeping pressed a
   // short-key)
   void storeTool();
@@ -70,6 +87,11 @@ public:
   void notifyToolComboBoxListChanged(std::string id) {
     emit toolComboBoxListChanged(id);
   }
+
+private:
+  // Navigation methods
+  void updateNavigationTool();  // Select appropriate navigation tool
+  void exitNavigation();        // Clean exit from navigation mode
 
 signals:
   void toolComboBoxListChanged(std::string);

@@ -339,6 +339,7 @@ public:
 protected slots:
   void onExport();
   void onExportPNG();
+  void onExportCSV();
 
   void initTemplate();
   void setInfo();

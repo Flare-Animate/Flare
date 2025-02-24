@@ -190,7 +190,7 @@ protected:
 
 public:
   enum Flags { eDontKeepFilesOpened = 0x1 };
-
+   
   FlipBook(QWidget *parent = 0, QString viewerTitle = QString(),
            std::vector<int> flipConsoleButtonMask =
                {FlipConsole::eFilledRaster, FlipConsole::eDefineSubCamera,
