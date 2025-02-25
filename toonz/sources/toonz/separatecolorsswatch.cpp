@@ -411,7 +411,7 @@ void SeparateSwatch::setRaster(TRasterP orgRas, TRasterP mainRas,
 void SeparateSwatch::setRaster(TRasterP orgRas, TRasterP mainRas,
                                TRasterP sub1Ras, TRasterP sub2Ras,
                                TRasterP sub3Ras) {
-  // �o��
+  // TODO: Fix corrupted encoding (unknown characters)
   m_sub3Swatch->setVisible(true);
   m_sub3Label->setVisible(true);
 

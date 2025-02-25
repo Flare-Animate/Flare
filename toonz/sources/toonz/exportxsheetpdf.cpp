@@ -1552,8 +1552,8 @@ void XSheetPDFTemplate::initializePage(QPdfWriter& writer) {
   QPageLayout pageLayout;
   pageLayout.setUnits(QPageLayout::Millimeter);
   pageLayout.setPageSize(
-      QPageSize(m_p.documentPageSize));  // ���ʂ�B4��ISO B4(250x353mm)
-                                         // ���{��B4��JIS B4(257x364mm)
+      QPageSize(m_p.documentPageSize));  // ISO B4(250x353mm)
+                                         // JIS B4(257x364mm)
   pageLayout.setOrientation(QPageLayout::Portrait);
   pageLayout.setMargins(m_p.documentMargin);
   writer.setPageLayout(pageLayout);
@@ -2785,7 +2785,7 @@ void ExportXsheetPdfPopup::onExportCSV() {
       //add cell number
       if (cell.m_level)
           csvCol.append(QString::number(cell.m_frameId.getNumber()));
-      else//    add ��
+      else// TODO: Fix corrupted encoding (unknown characters)
           csvCol.append(QString::fromUtf8("\u00D7"));
       
       prevCell = cell;
