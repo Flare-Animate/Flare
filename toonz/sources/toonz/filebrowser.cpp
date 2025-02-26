@@ -2180,30 +2180,14 @@ void FileBrowser::newFolder() {
   int i                   = 1;
   while (TFileStatus(folderPath).doesExist())
     folderPath = parentFolder + (folderName + L" " + std::to_wstring(++i));
-  
-  if (Preferences::instance()->isWatchFileSystemEnabled()) {
-    MyFileSystemWatcher *watcher = MyFileSystemWatcher::instance();
-    // Remove parent folder from watcher
-    watcher->removePaths(QStringList() << parentFolder.getQString());
 
-    try {
-      TSystem::mkDir(folderPath);
-    } catch (...) {
-      DVGui::error(tr("It is not possible to create the %1 folder.")
-                       .arg(toQString(folderPath)));
-      watcher->addPaths(QStringList() << parentFolder.getQString());
-      return;
-    }
-    // Add the parent folder back
-    watcher->addPaths(QStringList() << parentFolder.getQString());
-  } else {
-    try {
-      TSystem::mkDir(folderPath);
-    } catch (...) {
-      DVGui::error(tr("It is not possible to create the %1 folder.")
-                       .arg(toQString(folderPath)));
-      return;
-    }
+  try {
+    TSystem::mkDir(folderPath);
+
+  } catch (...) {
+    DVGui::error(tr("It is not possible to create the %1 folder.")
+                     .arg(toQString(folderPath)));
+    return;
   }
 
   DvDirModel *model = DvDirModel::instance();
