@@ -1,5 +1,5 @@
 
-#include <Qdebug>
+
 #include "versioncontrolxmlreader.h"
 
 // TnzBase includes

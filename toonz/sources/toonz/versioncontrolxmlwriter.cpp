@@ -210,7 +210,7 @@ QString SVNConfigWriter::writeSvnUser(QString name) {
   QVBoxLayout* layout = new QVBoxLayout(&m_configUser);
   layout->addWidget(new QLabel("User Name:"));
   layout->addWidget(usernameEdit);
-  layout->addWidget(new QLabel("Pass Word:"));
+  layout->addWidget(new QLabel("Password:"));
   layout->addWidget(passwordEdit);
   layout->addWidget(userOkButton);
   m_configUser.setLayout(layout);
