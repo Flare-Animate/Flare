@@ -1785,7 +1785,7 @@ bool IoCmd::saveAll(int flags) {
     Label->setText("Save Failed");
     Label->setStyleSheet(
         "font-size: 20px;"
-        "background-color: black; color: green; "
+        "background-color: black; color: red; "
         "font-weight: bold; padding: 5px;");
   }
   Label->adjustSize();
