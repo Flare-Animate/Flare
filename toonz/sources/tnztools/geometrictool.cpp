@@ -2840,6 +2840,12 @@ void MultiArcPrimitive::leftButtonDrag(const TPointD &pos,
   TPointD newPos = calculateSnap(pos);
   newPos         = checkGuideSnapping(pos);
   double dist    = joinDistance * joinDistance;
+  static MultiArcPrimitiveUndo *undo;
+
+  if (m_clickNumber == 0) {
+    undo = new MultiArcPrimitiveUndo(this, m_stroke, m_strokeTemp, m_startPoint,
+                                     m_endPoint, m_centralPoint, m_clickNumber);
+  }
 
   switch (m_clickNumber) {
   case 0:
@@ -2850,7 +2856,7 @@ void MultiArcPrimitive::leftButtonDrag(const TPointD &pos,
     break;
 
   case 1:
-    if (m_undoCount == 0) {
+    if (m_undoCount == 1) {
     if (e.isShiftPressed())
       m_endPoint = rectify(m_startPoint, pos);
     else
@@ -2908,6 +2914,13 @@ void MultiArcPrimitive::leftButtonDrag(const TPointD &pos,
     m_tool->invalidate();
     }
     break;
+  }
+
+  if (m_undoCount == 0) {
+    undo->setRedoData(m_stroke, m_strokeTemp, m_startPoint, m_endPoint,
+                      m_centralPoint, m_clickNumber);
+    TUndoManager::manager()->add(undo);
+    ++m_undoCount;
   }
 }
 
