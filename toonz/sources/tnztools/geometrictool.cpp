@@ -2867,8 +2867,6 @@ void MultiArcPrimitive::leftButtonDrag(const TPointD &pos,
       if (tdistance2(m_endPoint, firstPoint) < dist * m_tool->getPixelSize())
         m_endPoint = firstPoint;
     }
-
-    resetSnap();
     m_tool->invalidate();
   }
     else {
