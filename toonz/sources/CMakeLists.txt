@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.11)
+cmake_minimum_required(VERSION 3.10)
 
 set(CMAKE_BUILD_TYPE_INIT Release)
 
@@ -191,10 +191,10 @@ elseif(BUILD_ENV_APPLE)
         -D__MACOS__
     )
     if(PLATFORM EQUAL 64)
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m64 -std=c++11 -stdlib=libc++ -fno-implicit-templates")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m64 -std=c++17 -stdlib=libc++ -fno-implicit-templates")
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -m64")
     elseif(PLATFORM EQUAL 32)
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m32 -std=c++11 -stdlib=libc++ -fno-implicit-templates -D HAS_QUICKDRAW")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m32 -std=c++17 -stdlib=libc++ -fno-implicit-templates -D HAS_QUICKDRAW")
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -m32")
         set(CMAKE_LINKER_FLAGS "${CMAKE_LINKER_FLAGS} -m32")
     else()
@@ -202,7 +202,7 @@ elseif(BUILD_ENV_APPLE)
     endif()
 elseif(BUILD_ENV_UNIXLIKE)
     # Needed for correct Qt detection
-    cmake_minimum_required(VERSION 2.8.12)
+    cmake_minimum_required(VERSION 3.10)
     set(PRELOAD_VARIABLE "LD_LIBRARY_PATH")
     if(CMAKE_SYSTEM_NAME MATCHES "Linux")
         add_definitions(-DLINUX)
@@ -218,11 +218,11 @@ elseif(BUILD_ENV_UNIXLIKE)
         message(WARNING "Support for generic Unix (Not Apple or Linux) isn't yet working!")
     endif()
 
-    set(CMAKE_CXX_STANDARD 11)
+    set(CMAKE_CXX_STANDARD 17)
 
     find_package(Qt5Widgets)
 
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
     if (NOT (CMAKE_CXX_COMPILER_ID STREQUAL "Clang"))
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lstdc++")
     endif()
