@@ -479,6 +479,33 @@ void StrokeSelection::removeEndpoints() {
 
 //=============================================================================
 //
+// sortWithPaletteOrder
+//
+//-----------------------------------------------------------------------------
+
+void StrokeSelection::sortWithPaletteOrder() {
+    //do nothing
+
+  if (!m_vi) return;
+  if (m_indexes.empty()) return;
+
+  if (!isEditable()) {
+    DVGui::error(
+        QObject::tr("The selection cannot be updated. It is not editable."));
+    return;
+  }
+
+  
+
+  TTool *tool = TTool::getApplication()->getCurrentTool()->getTool();
+
+  m_updateSelectionBBox = true;
+  tool->notifyImageChanged();
+  m_updateSelectionBBox = false;
+}
+
+//=============================================================================
+//
 // selectAll
 //
 //-----------------------------------------------------------------------------
@@ -674,6 +701,7 @@ void StrokeSelection::enableCommands() {
   enableCommand(m_groupCommand.get(), MI_ExitGroup, &TGroupCommand::exitGroup);
 
   enableCommand(this, MI_RemoveEndpoints, &StrokeSelection::removeEndpoints);
+  enableCommand(this, MI_SortWithPaletteOrder, &StrokeSelection::sortWithPaletteOrder);
   enableCommand(this, MI_SelectAll, &StrokeSelection::selectAll);
 }
 
