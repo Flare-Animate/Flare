@@ -1066,6 +1066,19 @@ bool TSystem::showDocument(const TFilePath &path) {
 #endif
 }
 
+bool TSystem::isDLLBlackListed(QString dllFile) {
+  QStringList dllBlackList = {"lvcod64.dll", "ff_vfw.dll", "tsccvid64.dll",
+                              "hapcodec.dll"};
+
+  for (int x = 0; x < dllBlackList.count(); x++) {
+    if (dllFile.contains(dllBlackList.at(x), Qt::CaseInsensitive)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 #else
 
 #include <windows.h>
