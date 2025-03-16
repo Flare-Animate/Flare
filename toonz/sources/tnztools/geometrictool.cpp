@@ -2837,6 +2837,18 @@ void MultiArcPrimitive::leftButtonDown(const TPointD &pos,
 
 void MultiArcPrimitive::leftButtonDrag(const TPointD &pos,
                                        const TMouseEvent &e) {
+  switch (m_clickNumber) {
+  case 0:
+    if ((tdistance2(m_startPoint, pos) < sq(7.0 * m_tool->getPixelSize())))
+      return;
+    break;
+  case 1:
+    if (m_undoCount != 1 &&
+        (tdistance2(m_endPoint, pos) < sq(7.0 * m_tool->getPixelSize())))
+      return;
+    break;
+  }
+  
   TPointD newPos = calculateSnap(pos);
   newPos         = checkGuideSnapping(pos);
   double dist    = joinDistance * joinDistance;
