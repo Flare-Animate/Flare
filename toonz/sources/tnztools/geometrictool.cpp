@@ -617,7 +617,7 @@ public:
        （thick = 0 になる）
        TODO: unify the unit of GeometricTool and RasterBrushTool
        ---*/
-      if (m_param->m_pencil.getValue()) thick -= 1.0;
+      if (m_param->m_pencil.getValue()) thick -= 0.5;
       return  thick;
     }
     else
