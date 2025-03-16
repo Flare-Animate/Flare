@@ -19,7 +19,9 @@ OpenToonz 是一个由[DWANGO](http://dwango.co.jp/english/)公开发布的二�
 
 ## 安装
 
-请下载download and install OpenToonz from the latest installer at <https://opentoonz.github.io/e/index.html>.
+最新的安装包可以从这里下载：
+
+<https://opentoonz.github.io/e/index.html>.
 
 旧版本以及夜间构建版可以从下面的链接下载: <https://github.com/opentoonz/opentoonz/releases>
 
