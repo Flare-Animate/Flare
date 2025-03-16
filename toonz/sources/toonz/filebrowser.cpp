@@ -1638,7 +1638,7 @@ RenameAsToonzPopup::RenameAsToonzPopup(const QString name, int frames)
 
   m_overwrite = new QCheckBox(tr("Delete Original Files"));
   m_overwrite->setFixedHeight(20);
-  // addWidget(m_overwrite, false);
+  //addWidget(m_overwrite, false);
 
   QFormLayout *formLayout = new QFormLayout;
 
@@ -1767,8 +1767,15 @@ void renameSingleFileOrToonzLevel(const QString &fullpath) {
 
   if (popup.doOverwrite())
     TSystem::renameFileOrLevel(fpin.withName(name), fpin, true);
-  else
-    TSystem::copyFileOrLevel(fpin.withName(name), fpin);
+  else {
+    if (TSystem::doesExistFileOrLevel(fpin.withName(name))) {
+      DVGui::error(QString(
+          QObject::tr("The specified name is already assigned to the %1 file.")
+              .arg(fpin.withName(name).getQString())));
+      return;
+    }
+    else TSystem::copyFileOrLevel(fpin.withName(name), fpin); 
+  }
 }
 
 //----------------------------------------------------------
