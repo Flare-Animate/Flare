@@ -32,11 +32,11 @@ OpenToonz 是一个由[DWANGO](http://dwango.co.jp/english/)公开发布的二�
 
 关于如何构建样式表，请参照[这里](./doc/how_to_stylesheet.md).
 
-不懂开发但仍想帮忙？你可以帮助我们测试拉取请求，详情请查阅[这里](./doc/how_to_test_prs.md).
+不懂开发但仍想帮忙？你可以帮助我们测试拉取请求，详情请查阅[这里](./doc/how_to_test_prs_chs.md)。
 
 ## 社区
 
-- 分享使用心得或进行问题排查，请加入 [谷歌OpenToonz用户论坛](https://groups.google.com/forum/#!forum/opentoonz_en)
+- 分享使用心得或进行问题排查，请加入 [谷歌OpenToonz用户论坛](https://groups.google.com/forum/#!forum/opentoonz_en)。
 - 如果你在问题排查后发现了bug，或者你是个开发者，可以在 [Github issues](https://github.com/opentoonz/opentoonz/issues) 页搜索或发布。
 
 ## 许可证
