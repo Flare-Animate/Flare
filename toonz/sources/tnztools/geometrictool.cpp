@@ -615,7 +615,6 @@ public:
       /*---
        Pencilの場合は、線幅を減らす。Thickness1の線を1ピクセルにするため。
        （thick = 0 になる）
-       TODO: unify the unit of GeometricTool and RasterBrushTool
        ---*/
       if (m_param->m_pencil.getValue()) thick -= 0.5;
       return  thick;
