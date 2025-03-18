@@ -1195,6 +1195,7 @@ void SceneViewer::hideEvent(QHideEvent *) {
     disconnect(m_stopMotion, SIGNAL(liveViewStopped()), this,
                SLOT(onStopMotionLiveViewStopped()));
   }
+  #endif
 }
 
 int SceneViewer::getVGuideCount() {

@@ -1685,9 +1685,6 @@ public:
     panel->setObjectName(getPanelType());
     panel->setWindowTitle(QObject::tr("Locator"));
     panel->allowMultipleInstances(false);
-    panel->getTitleBar()->showTitleBar(TApp::instance()->getShowTitleBars());
-    connect(TApp::instance(), SIGNAL(showTitleBars(bool)), panel->getTitleBar(),
-            SLOT(showTitleBar(bool)));
     return panel;
   }
 
