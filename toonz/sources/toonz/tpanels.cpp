@@ -545,8 +545,7 @@ void PaletteViewerPanel::reset() {
 //-----------------------------------------------------------------------------
 
 void PaletteViewerPanel::initializeTitleBar() {
-  m_freezeButton =
-      new TPanelTitleBarButton(getTitleBar(), getIconPath("pane_freeze"));
+  m_freezeButton = new TPanelTitleBarButton(getTitleBar(), "freeze");
   m_freezeButton->setToolTip(tr("Freeze"));
   getTitleBar()->add(QPoint(-54, 0), m_freezeButton);
   m_freezeButton->setPressed(m_isFrozen);
@@ -1127,7 +1126,7 @@ void FlipbookPanel::initializeTitleBar(TPanelTitleBar *titleBar) {
 
   // safe area button
   TPanelTitleBarButtonForSafeArea *safeAreaButton =
-      new TPanelTitleBarButtonForSafeArea(titleBar, getIconPath("pane_safe"));
+      new TPanelTitleBarButtonForSafeArea(titleBar, "safearea");
   safeAreaButton->setToolTip(tr("Safe Area (Right Click to Select)"));
   titleBar->add(QPoint(x, 0), safeAreaButton);
   ret = ret && connect(safeAreaButton, SIGNAL(toggled(bool)),
@@ -1142,8 +1141,7 @@ void FlipbookPanel::initializeTitleBar(TPanelTitleBar *titleBar) {
 
   x += 28 + iconWidth;
   // minimize button
-  m_button = new TPanelTitleBarButton(
-      titleBar, getIconPath("pane_minimize"));
+  m_button = new TPanelTitleBarButton(titleBar, "minimize");
   m_button->setToolTip(tr("Minimize"));
   m_button->setPressed(false);
 
@@ -1214,7 +1212,8 @@ class BrowserFactory final : public TPanelFactory {
 public:
   BrowserFactory() : TPanelFactory("Browser") {}
   void initialize(TPanel *panel) override {
-    FileBrowser *browser = new FileBrowser(panel, Qt::WindowFlags(), false, true);
+    FileBrowser *browser =
+        new FileBrowser(panel, Qt::WindowFlags(), false, true);
     panel->setWidget(browser);
     panel->setWindowTitle(QObject::tr("File Browser"));
     TFilePath currentProjectFolder =
@@ -1231,7 +1230,8 @@ class PreproductionBoardFactory final : public TPanelFactory {
 public:
   PreproductionBoardFactory() : TPanelFactory("PreproductionBoard") {}
   void initialize(TPanel *panel) override {
-    SceneBrowser *browser = new SceneBrowser(panel, Qt::WindowFlags(), false, true);
+    SceneBrowser *browser =
+        new SceneBrowser(panel, Qt::WindowFlags(), false, true);
     panel->setWidget(browser);
     panel->setWindowTitle(QObject::tr("Preproduction Board"));
     TFilePath scenesFolder =

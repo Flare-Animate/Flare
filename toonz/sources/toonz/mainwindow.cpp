@@ -1446,7 +1446,7 @@ QAction *MainWindow::createAction(const char *id, const char *name,
 #endif
     // do nothing for other platforms
   } else
-    action->setIcon(createQIcon(iconSVGName, false, true));
+    action->setIcon(createQIcon(iconSVGName, true));
   addAction(action);
 #ifdef MACOSX
   // To prevent the wrong menu items (due to MacOS menu naming conventions),
@@ -1638,7 +1638,7 @@ QAction *MainWindow::createToolOptionsAction(const char *id, const char *name,
                                              const char *iconSVGName) {
   QAction *action = new DVAction(tr(name), this);
   if (iconSVGName && *iconSVGName)
-    action->setIcon(createQIcon(iconSVGName, false, true));
+    action->setIcon(createQIcon(iconSVGName, true));
   addAction(action);
   CommandManager::instance()->define(id, ToolModifierCommandType,
                                      defaultShortcut.toStdString(), action,
@@ -2130,10 +2130,10 @@ void MainWindow::defineActions() {
                          QT_TR_NOOP("&Save Previewed Frames"), "",
                          "save_previewed_frames");
   createToggle(MI_ToggleViewerPreview, QT_TR_NOOP("Toggle Viewer Preview"), "",
-               false, MenuRenderCommandType, "pane_preview");
+               false, MenuRenderCommandType, "preview");
   createToggle(MI_ToggleViewerSubCameraPreview,
                QT_TR_NOOP("Toggle Viewer Sub-camera Preview"), "", false,
-               MenuRenderCommandType, "pane_subpreview");
+               MenuRenderCommandType, "subpreview");
 
   createRightClickMenuAction(MI_OpenPltGizmo, QT_TR_NOOP("&Palette Gizmo"), "",
                              "palettegizmo");
@@ -2213,7 +2213,7 @@ void MainWindow::defineActions() {
   createMenuWindowsAction(MI_OpenFileBrowser, QT_TR_NOOP("&File Browser"), "",
                           "filebrowser");
   createMenuWindowsAction(MI_OpenPreproductionBoard,
-                          QT_TR_NOOP("&Preproduction Board"), "", "");
+                          QT_TR_NOOP("&Preproduction Board"), "", "preproductionboard");
   createMenuWindowsAction(MI_OpenFileViewer, QT_TR_NOOP("&Flipbook"), "",
                           "flipbook");
   createMenuWindowsAction(MI_OpenFunctionEditor, QT_TR_NOOP("&Function Editor"),
@@ -2349,7 +2349,7 @@ void MainWindow::defineActions() {
   createRightClickMenuAction(MI_ToggleXsheetCameraColumn,
                              QT_TR_NOOP("Show/Hide Xsheet Camera Column"), "");
   createRightClickMenuAction(MI_SetKeyframes, QT_TR_NOOP("&Set Key"), "F6",
-                             "set_key");
+                             "set_keyframe");
   createRightClickMenuAction(MI_ShiftKeyframesDown,
                              QT_TR_NOOP("&Shift Keys Down"), "",
                              "shift_keys_down");
