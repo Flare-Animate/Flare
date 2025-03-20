@@ -215,12 +215,11 @@ void SceneViewer::onButtonPressed(FlipConsole::EGadget button) {
     break;
 
   // open locator. Create one for the first time
-  case FlipConsole::eLocator:
-    if (!m_locator) m_locator = new LocatorPopup(this);
-    m_locator->show();
-    m_locator->raise();
-    m_locator->activateWindow();
+  case FlipConsole::eLocator: {
+    QAction *action = CommandManager::instance()->getAction(MI_OpenLocator);
+    action->trigger();
     break;
+  }
 
   case FlipConsole::eZoomIn:
     zoomIn();
@@ -623,13 +622,13 @@ void SceneViewer::onMove(const TMouseEvent &event) {
     // grab screen picking for stop motion live view zoom
     if ((event.buttons() & Qt::LeftButton) &&
         StopMotion::instance()->m_canon->m_pickLiveViewZoom) {
-      StopMotion::instance()->m_canon->makeZoomPoint(pos);
-      return;
+        StopMotion::instance()->m_canon->makeZoomPoint(pos);
+        return;
     }
 #endif
-
-    if (m_locator) {
-      m_locator->onChangeViewAff(worldPos);
+    LocatorPopup *locator = TApp::instance()->getActiveLocator();
+    if (!m_isLocator && locator) {
+      locator->onChangeViewAff(worldPos);
     }
 
     TObjectHandle *objHandle = TApp::instance()->getCurrentObject();

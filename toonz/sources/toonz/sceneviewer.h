@@ -172,7 +172,6 @@ class SceneViewer final : public GLWidgetForHighDpi,
     TOP_3D,
   } m_current3DDevice;
 
-  LocatorPopup *m_locator;
   bool m_isLocator;
   bool m_isStyleShortcutSwitchable;
 
