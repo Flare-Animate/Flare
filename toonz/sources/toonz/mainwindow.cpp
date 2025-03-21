@@ -1715,12 +1715,12 @@ void MainWindow::defineActions() {
                        "new_scene");
   createMenuFileAction(MI_LoadScene, QT_TR_NOOP("&Load Scene..."), "Ctrl+L",
                        "load_scene");
-  createMenuFileAction(MI_SaveScene, QT_TR_NOOP("&Save Scene"), "Ctrl+Shift+S",
-                       "save_scene");
-  createMenuFileAction(MI_SaveSceneAs, QT_TR_NOOP("&Save Scene As..."), "",
-                       "save_scene_as");
   createMenuFileAction(MI_SaveAll, QT_TR_NOOP("&Save All"), "Ctrl+S",
                        "saveall");
+  createMenuFileAction(MI_SaveScene, QT_TR_NOOP("&Save Scene Only"),
+                       "Ctrl+Shift+S", "save_scene");
+  createMenuFileAction(MI_SaveSceneAs, QT_TR_NOOP("&Save Scene As..."), "",
+                       "save_scene_as");
   menuAct = createMenuFileAction(MI_RevertScene, QT_TR_NOOP("&Revert Scene"),
                                  "", "revert_scene");
   menuAct->setEnabled(false);
