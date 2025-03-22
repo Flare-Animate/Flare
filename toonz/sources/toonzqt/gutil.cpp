@@ -950,7 +950,6 @@ double ThemeManager::getCustomPropertyDouble(const QString &name,
   QString value = getCustomProperty(name);
   bool ok       = false;
   double result = value.toDouble(&ok);
-  qDebug() << "result" << value << result;
   return ok ? result : defaultValue;
 }
 
