@@ -360,10 +360,10 @@ QMenuBar *StackedMenuBar::createCleanupMenuBar() {
   addMenuItem(filesMenu, MI_OpenRecentLevel);
   filesMenu->addSeparator();
   addMenuItem(filesMenu, MI_LoadScene);
-  addMenuItem(filesMenu, MI_SaveScene);
-  addMenuItem(filesMenu, MI_SaveSceneAs);
   addMenuItem(filesMenu, MI_SaveAll);
   addMenuItem(filesMenu, MI_OpenRecentScene);
+  addMenuItem(filesMenu, MI_SaveScene);
+  addMenuItem(filesMenu, MI_SaveSceneAs);
   addMenuItem(filesMenu, MI_RevertScene);
   filesMenu->addSeparator();
   addMenuItem(filesMenu, MI_ConvertFileWithInput);
@@ -496,10 +496,10 @@ QMenuBar *StackedMenuBar::createPltEditMenuBar() {
   addMenuItem(filesMenu, MI_SavePaletteAs);
   filesMenu->addSeparator();
   addMenuItem(filesMenu, MI_LoadScene);
-  addMenuItem(filesMenu, MI_SaveScene);
-  addMenuItem(filesMenu, MI_SaveSceneAs);
   addMenuItem(filesMenu, MI_SaveAll);
   addMenuItem(filesMenu, MI_OpenRecentScene);
+  addMenuItem(filesMenu, MI_SaveScene);
+  addMenuItem(filesMenu, MI_SaveSceneAs);
   addMenuItem(filesMenu, MI_RevertScene);
   filesMenu->addSeparator();
   addMenuItem(filesMenu, MI_ConvertFileWithInput);
@@ -672,10 +672,10 @@ QMenuBar *StackedMenuBar::createInknPaintMenuBar() {
   addMenuItem(filesMenu, MI_MergeColumns);
   filesMenu->addSeparator();
   addMenuItem(filesMenu, MI_LoadScene);
-  addMenuItem(filesMenu, MI_SaveScene);
-  addMenuItem(filesMenu, MI_SaveSceneAs);
   addMenuItem(filesMenu, MI_SaveAll);
   addMenuItem(filesMenu, MI_OpenRecentScene);
+  addMenuItem(filesMenu, MI_SaveScene);
+  addMenuItem(filesMenu, MI_SaveSceneAs);
   filesMenu->addSeparator();
   addMenuItem(filesMenu, MI_NewScene);
   filesMenu->addSeparator();
@@ -826,10 +826,10 @@ QMenuBar *StackedMenuBar::createXsheetMenuBar() {
   //----Xsheet Menu
   QMenu *xsheetMenu = addMenu(tr("Xsheet"), xsheetMenuBar);
   addMenuItem(xsheetMenu, MI_LoadScene);
-  addMenuItem(xsheetMenu, MI_SaveScene);
-  addMenuItem(xsheetMenu, MI_SaveSceneAs);
   addMenuItem(xsheetMenu, MI_SaveAll);
   addMenuItem(xsheetMenu, MI_OpenRecentScene);
+  addMenuItem(xsheetMenu, MI_SaveScene);
+  addMenuItem(xsheetMenu, MI_SaveSceneAs);
   addMenuItem(xsheetMenu, MI_RevertScene);
   xsheetMenu->addSeparator();
   addMenuItem(xsheetMenu, MI_NewScene);
@@ -1084,9 +1084,9 @@ QMenuBar *StackedMenuBar::createFullMenuBar() {
   addMenuItem(fileMenu, MI_NewScene);
   addMenuItem(fileMenu, MI_LoadScene);
   addMenuItem(fileMenu, MI_SaveAll);
+  addMenuItem(fileMenu, MI_OpenRecentScene);
   addMenuItem(fileMenu, MI_SaveScene);
   addMenuItem(fileMenu, MI_SaveSceneAs);
-  addMenuItem(fileMenu, MI_OpenRecentScene);
   addMenuItem(fileMenu, MI_RevertScene);
   fileMenu->addSeparator();
   addMenuItem(fileMenu, MI_LoadFolder);
