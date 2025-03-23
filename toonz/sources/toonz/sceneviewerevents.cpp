@@ -1011,7 +1011,12 @@ void SceneViewer::wheelEvent(QWheelEvent *event) {
 
   }  // end switch
 
-  if (abs(delta) > 0) {
+  if (m_touchDevice == QTouchDevice::TouchPad) {
+    QPointF centerDelta = QPointF(event->angleDelta().x(), event->angleDelta().y());
+    panQt(centerDelta.toPoint());
+    m_panning = true;
+  }
+  else if (abs(delta) > 0) {
     // scrub with mouse wheel
     if ((event->modifiers() & Qt::AltModifier) &&
         (event->modifiers() & Qt::ShiftModifier) &&
@@ -1143,10 +1148,8 @@ void SceneViewer::touchEvent(QTouchEvent *e, int type) {
     // touchpads must have 2 finger panning for tools and navigation to be
     // functional
     // on other devices, 1 finger panning is preferred
-    if ((e->touchPoints().count() == 2 &&
-         m_touchDevice == QTouchDevice::TouchPad) ||
-        (e->touchPoints().count() == 1 &&
-         m_touchDevice == QTouchDevice::TouchScreen)) {
+    if (e->touchPoints().count() == 1 &&
+         m_touchDevice == QTouchDevice::TouchScreen) {
       QTouchEvent::TouchPoint panPoint = e->touchPoints().at(0);
       if (!m_panning) {
         QPointF deltaPoint = panPoint.pos() - m_firstPanPoint;
