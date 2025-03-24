@@ -1011,12 +1011,7 @@ void SceneViewer::wheelEvent(QWheelEvent *event) {
 
   }  // end switch
 
-  if (m_touchDevice == QTouchDevice::TouchPad) {
-    QPointF centerDelta = QPointF(event->angleDelta().x(), event->angleDelta().y());
-    panQt(centerDelta.toPoint());
-    m_panning = true;
-  }
-  else if (abs(delta) > 0) {
+  if (abs(delta) > 0 || m_touchDevice == QTouchDevice::TouchPad) {
     // scrub with mouse wheel
     if ((event->modifiers() & Qt::AltModifier) &&
         (event->modifiers() & Qt::ShiftModifier) &&
@@ -1040,6 +1035,10 @@ void SceneViewer::wheelEvent(QWheelEvent *event) {
       } else if (delta > 0) {
         CommandManager::instance()->execute("MI_PrevDrawing");
       }
+    } else if (m_touchDevice == QTouchDevice::TouchPad) {
+        QPointF centerDelta = QPointF(event->angleDelta().x(), event->angleDelta().y());
+        panQt(centerDelta.toPoint());
+        m_panning = true;
     }
     // Mouse wheel zoom interfered with touchpad panning (touch enabled)
     // Now if touch is enabled, touchpads ignore the mouse wheel zoom
