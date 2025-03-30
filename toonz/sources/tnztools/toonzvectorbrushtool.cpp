@@ -54,7 +54,7 @@ TEnv::IntVar V_VectorJoinStyle("InknpaintVectorJoinStyle", 1);
 TEnv::IntVar V_VectorMiterValue("InknpaintVectorMiterValue", 4);
 TEnv::DoubleVar V_BrushAccuracy("InknpaintBrushAccuracy", 20);
 TEnv::DoubleVar V_BrushSmooth("InknpaintBrushSmooth", 0);
-TEnv::IntVar V_BrushDrawOrder("InknpaintBrushDrawOrder", 0);
+TEnv::IntVar V_BrushDrawOrder("InknpaintVectorDrawOrder", 0);
 TEnv::IntVar V_BrushBreakSharpAngles("InknpaintBrushBreakSharpAngles", 0);
 TEnv::IntVar V_BrushPressureSensitivity("InknpaintBrushPressureSensitivity", 1);
 TEnv::IntVar V_VectorBrushFrameRange("VectorBrushFrameRange", 0);
@@ -338,8 +338,26 @@ static void findMaxCurvPoints(TStroke *stroke, const float &angoloLim,
   }
 }
 
+namespace {
+
+enum DrawOrder { OverAll = 0, UnderAll, PaletteOrder };
+
+void getAboveStyleIdSet(int styleId, TPaletteP palette,
+                        QSet<int> &aboveStyles) {
+  if (!palette) return;
+  for (int p = 0; p < palette->getPageCount(); p++) {
+    TPalette::Page *page = palette->getPage(p);
+    for (int s = 0; s < page->getStyleCount(); s++) {
+      int tmpId = page->getStyleId(s);
+      if (tmpId == styleId) return;
+      if (tmpId != 0) aboveStyles.insert(tmpId);
+    }
+  }
+}
+}  // namespace
+
 static void addStroke(TTool::Application *application, const TVectorImageP &vi,
-                      TStroke *stroke, bool breakAngles, bool autoGroup,
+                      TStroke *stroke, DrawOrder drawOrder, bool breakAngles, bool autoGroup,
                       bool autoFill, bool frameCreated, bool levelCreated,
                       TXshSimpleLevel *sLevel = NULL,
                       TFrameId fid            = TFrameId::NO_FRAME) {
@@ -383,8 +401,20 @@ static void addStroke(TTool::Application *application, const TVectorImageP &vi,
       ImageUtils::getFillingInformationOverlappingArea(vi, *fillInformation,
                                                        stroke->getBBox());
       TStroke *str = new TStroke(*strokes[i]);
-      vi->addStroke(str);
-      vi->moveStrokes(vi->getStrokeCount() - 1,1,0);
+      switch (drawOrder) { 
+      default:
+      case OverAll:
+        vi->addStroke(str, true, false);
+        break;
+      case UnderAll:
+        vi->addStroke(str, true, false);
+        break;
+      case PaletteOrder:
+        QSet<int> aboveStyles;
+        getAboveStyleIdSet(str->getStyle(), vi->getPalette(), aboveStyles);
+        vi->addStrokeBelow(str, aboveStyles);
+        break;
+      }
       TUndoManager::manager()->add(new UndoPencil(str, fillInformation, sl, id,
                                                   frameCreated, levelCreated,
                                                   autoGroup, autoFill));
@@ -396,8 +426,20 @@ static void addStroke(TTool::Application *application, const TVectorImageP &vi,
     ImageUtils::getFillingInformationOverlappingArea(vi, *fillInformation,
                                                      stroke->getBBox());
     TStroke *str = new TStroke(*stroke);
-    vi->addStroke(str);
-    vi->moveStrokes(vi->getStrokeCount() - 1, 1, 0);
+    switch (drawOrder) {
+    default:
+    case OverAll:
+      vi->addStroke(str, true, false);
+      break;
+    case UnderAll:
+      vi->addStroke(str, true, true);
+      break;
+    case PaletteOrder:
+      QSet<int> aboveStyles;
+      getAboveStyleIdSet(str->getStyle(), vi->getPalette(), aboveStyles);
+      vi->addStrokeBelow(str, aboveStyles);
+      break;
+    }
 
     TUndoManager::manager()->add(new UndoPencil(str, fillInformation, sl, id,
                                                 frameCreated, levelCreated,
@@ -449,32 +491,15 @@ namespace {
 //-------------------------------------------------------------------
 
 void addStrokeToImage(TTool::Application *application, const TVectorImageP &vi,
-                      TStroke *stroke, bool breakAngles, bool autoGroup,
-                      bool autoFill, bool frameCreated, bool levelCreated,
-                      TXshSimpleLevel *sLevel = NULL,
-                      TFrameId id             = TFrameId::NO_FRAME) {
+                      TStroke *stroke, DrawOrder drawOrder, bool breakAngles,
+                      bool autoGroup, bool autoFill, bool frameCreated,
+                      bool levelCreated, TXshSimpleLevel *sLevel = NULL,
+                      TFrameId id = TFrameId::NO_FRAME) {
   QMutexLocker lock(vi->getMutex());
-  addStroke(application, vi.getPointer(), stroke, breakAngles, autoGroup,
-            autoFill, frameCreated, levelCreated, sLevel, id);
+  addStroke(application, vi.getPointer(), stroke, drawOrder, breakAngles,
+            autoGroup, autoFill, frameCreated, levelCreated, sLevel, id);
   // la notifica viene gia fatta da addStroke!
   // getApplication()->getCurrentTool()->getTool()->notifyImageChanged();
-}
-
-//---------------------------------------------------------------------------------------------------------
-
-enum DrawOrder { OverAll = 0, UnderAll, PaletteOrder };
-
-void getAboveStyleIdSet(int styleId, TPaletteP palette,
-                        QSet<int> &aboveStyles) {
-  if (!palette) return;
-  for (int p = 0; p < palette->getPageCount(); p++) {
-    TPalette::Page *page = palette->getPage(p);
-    for (int s = 0; s < page->getStyleCount(); s++) {
-      int tmpId = page->getStyleId(s);
-      if (tmpId == styleId) return;
-      if (tmpId != 0) aboveStyles.insert(tmpId);
-    }
-  }
 }
 
 //=========================================================================================================
@@ -999,7 +1024,8 @@ void ToonzVectorBrushTool::inputSetBusy(bool busy) {
     TUndoManager::manager()->beginBlock();
     for(StrokeList::iterator i = strokes.begin(); i != strokes.end(); ++i) {
       TStroke *stroke = *i;
-      addStrokeToImage(app, vi, stroke, m_breakAngles.getValue(),
+      addStrokeToImage(app, vi, stroke, (DrawOrder)m_drawOrder.getIndex(),
+                       m_breakAngles.getValue(),
                       false, false, m_isFrameCreated, m_isLevelCreated);
 
       if ((Preferences::instance()->getGuidedDrawingType() == 1 ||
@@ -1275,12 +1301,14 @@ bool ToonzVectorBrushTool::doFrameRangeStrokes(
       if (!swapped && !drawFirstStroke) {
       } else
         addStrokeToImage(getApplication(), img, firstImage->getStroke(0),
+                         (DrawOrder)m_drawOrder.getIndex(),
                          breakAngles, autoGroup, autoFill, m_isFrameCreated,
                          m_isLevelCreated, sl, fid);
     } else if (t == 1) {
       if (swapped && !drawFirstStroke) {
       } else if (drawLastStroke)
         addStrokeToImage(getApplication(), img, lastImage->getStroke(0),
+                         (DrawOrder)m_drawOrder.getIndex(),
                          breakAngles, autoGroup, autoFill, m_isFrameCreated,
                          m_isLevelCreated, sl, fid);
     } else {
@@ -1288,7 +1316,8 @@ bool ToonzVectorBrushTool::doFrameRangeStrokes(
       assert(lastImage->getStrokeCount() == 1);
       TVectorImageP vi = TInbetween(firstImage, lastImage).tween(s);
       assert(vi->getStrokeCount() == 1);
-      addStrokeToImage(getApplication(), img, vi->getStroke(0), breakAngles,
+      addStrokeToImage(getApplication(), img, vi->getStroke(0),
+                       (DrawOrder)m_drawOrder.getIndex(), breakAngles,
                        autoGroup, autoFill, m_isFrameCreated, m_isLevelCreated,
                        sl, fid);
     }
