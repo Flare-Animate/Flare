@@ -48,8 +48,8 @@ using namespace ToolUtils;
 
 TEnv::DoubleVar RasterBrushMinSize("InknpaintRasterBrushMinSize", 1);
 TEnv::DoubleVar RasterBrushMaxSize("InknpaintRasterBrushMaxSize", 5);
-TEnv::DoubleVar BrushSmooth("InknpaintBrushSmooth", 0);
-TEnv::IntVar BrushDrawOrder("InknpaintBrushDrawOrder", 0);
+TEnv::DoubleVar BrushSmooth("InknpaintBrushSmooth", 0.5);
+TEnv::IntVar BrushDrawOrder("InknpaintBrushDrawOrder", 2);
 TEnv::IntVar RasterBrushPencilMode("InknpaintRasterBrushPencilMode", 0);
 TEnv::IntVar BrushPressureSensitivity("InknpaintBrushPressureSensitivity", 1);
 TEnv::DoubleVar RasterBrushHardness("RasterBrushHardness", 100);
@@ -750,6 +750,7 @@ ToonzRasterBrushTool::ToonzRasterBrushTool(std::string name, int targetType)
   bind(targetType);
 
   m_rasThickness.setNonLinearSlider();
+  m_smooth.setNonLinearSlider();
 
   m_prop[0].bind(m_rasThickness);
   m_prop[0].bind(m_hardness);

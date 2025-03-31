@@ -52,8 +52,8 @@ TEnv::DoubleVar V_VectorBrushMaxSize("InknpaintVectorBrushMaxSize", 5);
 TEnv::IntVar V_VectorCapStyle("InknpaintVectorCapStyle", 1);
 TEnv::IntVar V_VectorJoinStyle("InknpaintVectorJoinStyle", 1);
 TEnv::IntVar V_VectorMiterValue("InknpaintVectorMiterValue", 4);
-TEnv::DoubleVar V_BrushAccuracy("InknpaintBrushAccuracy", 20);
-TEnv::DoubleVar V_BrushSmooth("InknpaintBrushSmooth", 0);
+TEnv::DoubleVar V_BrushAccuracy("InknpaintBrushAccuracy", 100);
+TEnv::DoubleVar V_BrushSmooth("InknpaintBrushSmooth", 0.5);
 TEnv::IntVar V_BrushBreakSharpAngles("InknpaintBrushBreakSharpAngles", 0);
 TEnv::IntVar V_BrushPressureSensitivity("InknpaintBrushPressureSensitivity", 1);
 TEnv::IntVar V_VectorBrushFrameRange("VectorBrushFrameRange", 0);
@@ -496,7 +496,7 @@ double computeThickness(double pressure, const TDoublePairProperty &property,
 
 ToonzVectorBrushTool::ToonzVectorBrushTool(std::string name, int targetType)
     : TTool(name)
-    , m_thickness("Size", 0, 1000, 0, 5)
+    , m_thickness("Size", 0, 1000, 1, 5)
     , m_accuracy("Accuracy:", 1, 100, 20)
     , m_smooth("Smooth:", 0, 50, 0)
     , m_preset("Preset:")
@@ -531,6 +531,7 @@ ToonzVectorBrushTool::ToonzVectorBrushTool(std::string name, int targetType)
   bind(targetType);
 
   m_thickness.setNonLinearSlider();
+  m_smooth.setNonLinearSlider();
 
   m_prop[0].bind(m_thickness);
   m_prop[0].bind(m_accuracy);
