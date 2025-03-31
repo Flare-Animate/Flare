@@ -54,7 +54,7 @@ TEnv::IntVar V_VectorJoinStyle("InknpaintVectorJoinStyle", 1);
 TEnv::IntVar V_VectorMiterValue("InknpaintVectorMiterValue", 4);
 TEnv::DoubleVar V_BrushAccuracy("InknpaintBrushAccuracy", 20);
 TEnv::DoubleVar V_BrushSmooth("InknpaintBrushSmooth", 0);
-TEnv::IntVar V_BrushDrawOrder("InknpaintVectorDrawOrder", 0);
+TEnv::IntVar V_BrushDrawOrder("InknpaintVectorDrawOrder", 2);
 TEnv::IntVar V_BrushBreakSharpAngles("InknpaintBrushBreakSharpAngles", 0);
 TEnv::IntVar V_BrushPressureSensitivity("InknpaintBrushPressureSensitivity", 1);
 TEnv::IntVar V_VectorBrushFrameRange("VectorBrushFrameRange", 0);
