@@ -875,6 +875,7 @@ bool TSystem::renameImageSequence(const TFilePathSet &files,
       return false;
     }
   }
+  return true;
 }
 
 void TSystem::renameFileOrLevel_throw(const TFilePath &dst,
