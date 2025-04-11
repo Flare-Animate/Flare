@@ -158,7 +158,8 @@ public:
                                                                         r1, c1);
         else
           getViewer()->getCellSelection()->selectCells(r0, c0, r1, c1);
-      } else {
+      } // Shift
+      else {
         if (m_modifier & Qt::ControlModifier)
           getViewer()->getCellKeyframeSelection()->selectCellsKeyframes(
               row, col, row, col);

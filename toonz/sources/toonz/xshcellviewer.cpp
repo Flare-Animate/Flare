@@ -3362,7 +3362,12 @@ void CellArea::mousePressEvent(QMouseEvent *event) {
                // Or Control Pressed
                event->modifiers() & Qt::ControlModifier) {
       TXshColumn *column = xsh->getColumn(col);
+
+      // If draged cell out of the CellSelection , drag the level
+      // if (column && !m_viewer->getCellSelection()->isCellSelected(row, col)) {
+      // IF draged cell is not Frame cell, drag the level
       if (column && !m_viewer->getCellSelection()->isCellSelected(row, col)) {
+        if(xsh->getCell(cellPosition) == xsh->getCell(row-1, col)) {
         int r0, r1;
         column->getLevelRange(row, r0, r1);
         if (event->modifiers() & Qt::ControlModifier) {
@@ -3375,6 +3380,9 @@ void CellArea::mousePressEvent(QMouseEvent *event) {
           m_viewer->getCellSelection()->selectCells(r0, col, r1, col);
         }
         TApp::instance()->getCurrentSelection()->notifySelectionChanged();
+      }
+      else// switch to that FrameCell
+          m_viewer->getCellSelection()->selectCell(row,col);
       }
       TSelection *selection =
           TApp::instance()->getCurrentSelection()->getSelection();
