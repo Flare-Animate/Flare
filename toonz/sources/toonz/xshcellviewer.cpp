@@ -965,10 +965,23 @@ void RenameCellField::renameCell() {
     cellSelection->deleteCells(false);
     // revert cell selection
     cellSelection->selectCells(range.m_r0, range.m_c0, range.m_r1, range.m_c1);
-  } else if (cells.size() == 1)
+  }
+  else if (cells.size() == 1) {
+    TCellSelection::Range range = cellSelection->getSelectedCells();
+    if (range.m_r0 == range.m_r1 &&
+        xsheet->getCell(range.m_r0, range.m_c0).getFrameId() != TFrameId::EMPTY_FRAME) {
+        for(;
+            xsheet->getCell(range.m_r1,range.m_c0)==
+            xsheet->getCell(range.m_r1+1,range.m_c0);
+            ++range.m_r1);
+    cellSelection->selectCells(range.m_r0, range.m_c0, range.m_r1, range.m_c1);
+    }
     cellSelection->renameCells(cells[0]);
+  }
   else
     cellSelection->renameMultiCells(cells);
+  
+  cellSelection->fillEmptyCell();
 }
 
 //-----------------------------------------------------------------------------
