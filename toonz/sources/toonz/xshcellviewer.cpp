@@ -3368,32 +3368,34 @@ void CellArea::mousePressEvent(QMouseEvent *event) {
       m_viewer->getKeyframeSelection()->selectNone();
       setDragTool(
           XsheetGUI::DragTool::makeLevelExtenderTool(m_viewer, false, true));
-    } else if ((!xsh->getCell(row, col).isEmpty()) &&
-               o->rect(PredefinedRect::DRAG_AREA)
-                   .adjusted(0, 0, -frameAdj.x(), -frameAdj.y())
-                   .contains(mouseInCell)) {
+    } else if ((!xsh->getCell(row, col).isEmpty()) &&(
+        (Preferences::instance()->isAlwaysDragFrameCell() &&
+            xsh->getCell(row,col)!=xsh->getCell(row-1,col)) ||
+        o->rect(PredefinedRect::DRAG_AREA).adjusted(0, 0, -frameAdj.x(), -frameAdj.y()).contains(mouseInCell))) {
       TXshColumn *column = xsh->getColumn(col);
 
       // If draged cell out of the CellSelection , drag the level
       // if (column && !m_viewer->getCellSelection()->isCellSelected(row, col)) {
       // IF draged cell is not Frame cell, drag the level
       if (column && !m_viewer->getCellSelection()->isCellSelected(row, col)) {
-        if(xsh->getCell(cellPosition) == xsh->getCell(row-1, col)) {
-        int r0, r1;
-        column->getLevelRange(row, r0, r1);
-        if (event->modifiers() & Qt::ControlModifier) {
-          m_viewer->getCellKeyframeSelection()->makeCurrent();
-          m_viewer->getCellKeyframeSelection()->selectCellsKeyframes(r0, col,
-                                                                     r1, col);
-        } else {
-          m_viewer->getKeyframeSelection()->selectNone();
-          m_viewer->getCellSelection()->makeCurrent();
-          m_viewer->getCellSelection()->selectCells(r0, col, r1, col);
+        if(xsh->getCell(cellPosition) == xsh->getCell(row - 1, col)) {
+          int r0, r1;
+          column->getLevelRange(row, r0, r1);
+          if (event->modifiers() & Qt::ControlModifier) {
+            m_viewer->getCellKeyframeSelection()->makeCurrent();
+            m_viewer->getCellKeyframeSelection()->selectCellsKeyframes(r0, col,
+                                                                       r1, col);
+          } else {
+            m_viewer->getKeyframeSelection()->selectNone();
+            m_viewer->getCellSelection()->makeCurrent();
+            m_viewer->getCellSelection()->selectCells(r0, col, r1, col);
+          }
+          TApp::instance()->getCurrentSelection()->notifySelectionChanged();
+        } else {  // switch to that FrameCell
+          m_viewer->setCurrentRow(row);
+          m_viewer->setCurrentColumn(col);
+          m_viewer->getCellSelection()->selectCell(row, col);
         }
-        TApp::instance()->getCurrentSelection()->notifySelectionChanged();
-      }
-      else// switch to that FrameCell
-          m_viewer->getCellSelection()->selectCell(row,col);
       }
       TSelection *selection =
           TApp::instance()->getCurrentSelection()->getSelection();
