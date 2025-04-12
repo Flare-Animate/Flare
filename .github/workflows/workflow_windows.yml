@@ -38,7 +38,7 @@ jobs:
       - name: Install OpenCV and Boost
         run: |
           @echo on
-          choco install opencv --version=4.10.0 -y
+          choco install opencv --version=4.11.0 -y
           choco install boost-msvc-14.2 --version=1.74.0 -y
         shell: cmd
 
@@ -94,7 +94,7 @@ jobs:
           copy /Y ..\..\thirdparty\libmypaint\dist\64\libmypaint-1-4-0.dll Opentoonz
           
           REM Copy OpenCV DLL (IMPORTANT: Update path/filename when upgrading OpenCV version)
-          copy /Y "C:\tools\opencv\build\x64\vc16\bin\opencv_world4100.dll" Opentoonz
+          copy /Y "C:\tools\opencv\build\x64\vc16\bin\opencv_world4110.dll" Opentoonz
           
           REM Deploy Qt dependencies
           "%QT_PATH%\bin\windeployqt.exe" Opentoonz\Opentoonz.exe --opengl
