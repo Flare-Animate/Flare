@@ -674,7 +674,16 @@ public:
     m_colCount = c1 - c0 + 1;
     m_rowCount = r1 - r0 + 1;
     if (m_colCount <= 0 || m_rowCount <= 0) return;
-
+    // Allow the negative drag
+    if (m_colCount == m_rowCount == 1) {
+      TXsheet *xsh = getViewer()->getXsheet();
+      if (!xsh->getCell(m_r0, m_c0).isEmpty())
+        for (; xsh->getCell(m_r0 - 1, m_c0) == xsh->getCell(m_r0, m_c0);
+             ++m_rowCount, --m_r0, --r0);
+      getViewer()->setCurrentRow(m_r0);
+      getViewer()->getCellSelection()->selectCells(m_r0, m_c0, m_r1,
+                                                   m_c0 + m_colCount - 1);
+    }
     // if m_insert is false but there are no empty rows under the tab,
     // then switch m_insert to true so that the operation works anyway
     if (!m_insert && !m_invert) {
