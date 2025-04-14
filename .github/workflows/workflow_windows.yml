@@ -4,7 +4,15 @@ on:
   push:
     branches:
       - master  # Specify branches where the workflow should run
+    paths:
+      - '**/*'  # Include all files in the repository
+      - '!**/.github/workflows/workflow_linux.yml'  # Exclude Linux workflow file
+      - '!**/.github/workflows/workflow_macos.yml'  # Exclude macOS workflow file
   pull_request:  # Here no specific branches are listed to allow all pull requests to generate a workflow run
+    paths:
+      - '**/*'  # Include all files in the repository
+      - '!**/.github/workflows/workflow_linux.yml'  # Exclude Linux workflow file
+      - '!**/.github/workflows/workflow_macos.yml'  # Exclude macOS workflow file
 
 jobs:
   Windows:

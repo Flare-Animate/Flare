@@ -1,6 +1,16 @@
 name: Linux Build
 
-on: [push, pull_request]
+on:
+  push:
+    paths:
+      - '**/*'  # Include all files in the repository
+      - '!**/.github/workflows/workflow_windows.yml'  # Exclude Windows workflow file
+      - '!**/.github/workflows/workflow_macos.yml'    # Exclude macOS workflow file
+  pull_request:
+    paths:
+      - '**/*'  # Include all files in the repository
+      - '!**/.github/workflows/workflow_windows.yml'  # Exclude Windows workflow file
+      - '!**/.github/workflows/workflow_macos.yml'    # Exclude macOS workflow file
 
 jobs:
   Ubuntu:
