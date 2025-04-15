@@ -1,6 +1,16 @@
 name: MacOS Build
 
-on: [push, pull_request]
+on:
+  push:
+    paths:
+      - '**/*'  # Include all files in the repository
+      - '!**/.github/workflows/workflow_linux.yml'  # Exclude Linux workflow file
+      - '!**/.github/workflows/workflow_windows.yml'  # Exclude Windows workflow file
+  pull_request:
+    paths:
+      - '**/*'  # This also includes all files in the repository for pull requests
+      - '!**/.github/workflows/workflow_linux.yml'  # Exclude Linux workflow file
+      - '!**/.github/workflows/workflow_windows.yml'  # Exclude Windows workflow file
 
 jobs:
   macOS:
@@ -98,22 +108,23 @@ jobs:
       - name: Create Artifact
         run: |
           cd toonz/build/toonz
-          echo "Creating DMG..."    
-          for ATTEMPT in {1..10}; do
-            echo "Attempt $ATTEMPT to build DMG..."
-            /usr/local/opt/qt@5/bin/macdeployqt OpenToonz.app -dmg -verbose=0
-            
-            if [ -f OpenToonz.dmg ]; then
-              echo "DMG created successfully."
-              exit 0  # Exit if successful
+          echo "Creating DMG..."
+
+          ATTEMPT=1
+          until /usr/local/opt/qt@5/bin/macdeployqt OpenToonz.app -dmg -verbose=0 && [ -f OpenToonz.dmg ]; do
+            echo "Attempt $ATTEMPT failed to build DMG."
+
+            if [ $ATTEMPT -eq 10 ]; then
+              echo ">>> DMG file creation failed after 10 attempts. Aborting!"
+              exit 1
             fi
-            
-            echo "DMG creation failed. Retrying in 10 seconds..."  
-            sleep 10  
+
+            ATTEMPT=$((ATTEMPT + 1))
+            echo "Retrying in 5 seconds..."
+            sleep 5
           done
 
-          echo ">>> DMG file creation failed after 10 attempts. Aborting!"
-          exit 1  # Exit with failure status
+          echo "DMG created successfully."
 
       - uses: actions/upload-artifact@v4
         with:
