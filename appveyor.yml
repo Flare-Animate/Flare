@@ -12,7 +12,7 @@ cache:
   - C:\Tools\opencv
 install:
 - cmd: >-
-    if exist "C:\Tools\opencv\build" (echo OpenCV cached, skipping install) else (choco install opencv --version=4.10.0 --no-progress --yes --force)
+    if exist "C:\Tools\opencv\build\x64\vc16\bin\opencv_world4110.dll" (echo OpenCV cached, skipping install) else (choco install opencv --version=4.11.0 --no-progress --yes --force)
 
     cd thirdparty
 
@@ -40,7 +40,7 @@ after_build:
 
     copy /Y ..\..\thirdparty\glew\glew-1.9.0\bin\64bit\glew32.dll %CONFIGURATION%
 
-    copy /Y "C:\Tools\opencv\build\x64\vc16\bin\opencv_world4100.dll" %CONFIGURATION%
+    copy /Y "C:\Tools\opencv\build\x64\vc16\bin\opencv_world4110.dll" %CONFIGURATION%
 
     xcopy /Y /E ..\..\thirdparty\libmypaint\dist\64\*.dll %CONFIGURATION%
 
