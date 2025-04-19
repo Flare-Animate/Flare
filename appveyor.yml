@@ -1,4 +1,9 @@
 version: 1.7.1.{build}
+skip_commits:
+  files:
+    - 'doc/**'        # Skip everything inside doc/ (recursive)
+    - '.github/**'    # Skip everything inside .github/ (recursive)
+    - 'README.md'     # Skip changes only to README.md
 pull_requests:
   do_not_increment_build_number: true
 skip_tags: true
@@ -9,28 +14,8 @@ configuration:
 platform: x64
 clone_depth: 1
 
-before_build:
-- ps: |
-    $skipPattern = '^(doc(/|\\).*|\.github(/|\\).*|README\.md)$'
-    git fetch origin +refs/heads/$env:APPVEYOR_REPO_BRANCH --quiet
-    $changedFiles = git diff --name-only HEAD~1 HEAD
-    $hasRelevantChanges = $false
-    foreach ($file in $changedFiles) {
-      if ($file -notmatch $skipPattern) {
-        $hasRelevantChanges = $true
-        Write-Host "Relevant file detected: $file"
-        break
-      }
-    }
-    if (-not $hasRelevantChanges -and $changedFiles.Count -gt 0) {
-      Write-Host "Build skipped: Only changes in .github/, doc/, or README.md."
-      Exit 0
-    }
-    Write-Host "Build required: Relevant changes detected."
-
 cache:
 - C:\Tools\opencv
-
 install:
 - cmd: >-
     if exist "C:\Tools\opencv\build\x64\vc16\bin\opencv_world4110.dll" (echo OpenCV cached, skipping install) else (choco install opencv --version=4.11.0 --no-progress --yes --force)
@@ -41,12 +26,10 @@ install:
     cd ../toonz
     mkdir %PLATFORM% && cd %PLATFORM%
     cmake ..\sources -G "Visual Studio 17 2022" -Ax64 -DQT_PATH="C:\Qt\5.15.2\msvc2019_64" -DBOOST_ROOT="C:\Libraries\boost_1_86_0" -DOpenCV_DIR="C:\Tools\opencv\build"
-
 build:
   project: $(APPVEYOR_BUILD_FOLDER)\toonz\$(PLATFORM)\ALL_BUILD.vcxproj
   parallel: true
   verbosity: minimal
-
 after_build:
 - cmd: >-
     C:\Qt\5.15.2\msvc2019_64\bin\windeployqt.exe %CONFIGURATION%\OpenToonz.exe
@@ -56,7 +39,6 @@ after_build:
     xcopy /Y /E ..\..\thirdparty\libmypaint\dist\64\*.dll %CONFIGURATION%
     mkdir "%CONFIGURATION%\portablestuff"
     xcopy /Y /E ..\..\stuff "%CONFIGURATION%\portablestuff"
-
 artifacts:
 - path: toonz\$(PLATFORM)\$(CONFIGURATION)
   name: OpenToonz
