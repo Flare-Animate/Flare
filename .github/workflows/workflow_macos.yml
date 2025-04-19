@@ -3,14 +3,20 @@ name: MacOS Build
 on:
   push:
     paths:
-      - '**/*'  # Include all files in the repository
-      - '!**/.github/workflows/workflow_linux.yml'  # Exclude Linux workflow file
-      - '!**/.github/workflows/workflow_windows.yml'  # Exclude Windows workflow file
+      - '**/*'                   # Include all files in the repository
+      - '!appveyor.yml'          # Ignore changes in AppVeyor
+      - '!README.md'             # Exclude README
+      - '!doc/**'                # Exclude documentation
+      - '!**/.github/**'         # Exclude everything in .github folder
+      - '.github/workflows/workflow_macos.yml'  # Include MacOs workflow file
   pull_request:
     paths:
-      - '**/*'  # This also includes all files in the repository for pull requests
-      - '!**/.github/workflows/workflow_linux.yml'  # Exclude Linux workflow file
-      - '!**/.github/workflows/workflow_windows.yml'  # Exclude Windows workflow file
+      - '**/*'
+      - '!appveyor.yml'
+      - '!README.md'
+      - '!doc/**'
+      - '!**/.github/**'
+      - '.github/workflows/workflow_macos.yml'
 
 jobs:
   macOS:

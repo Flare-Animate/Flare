@@ -5,14 +5,20 @@ on:
     branches:
       - master  # Specify branches where the workflow should run
     paths:
-      - '**/*'  # Include all files in the repository
-      - '!**/.github/workflows/workflow_linux.yml'  # Exclude Linux workflow file
-      - '!**/.github/workflows/workflow_macos.yml'  # Exclude macOS workflow file
-  pull_request:  # Here no specific branches are listed to allow all pull requests to generate a workflow run
+      - '**/*'                   # Include all files in the repository
+      - '!appveyor.yml'          # Ignore changes in AppVeyor
+      - '!README.md'             # Exclude README
+      - '!doc/**'                # Exclude documentation
+      - '!**/.github/**'         # Exclude everything in .github folder
+      - '.github/workflows/workflow_windows.yml'  # Include Windows workflow file
+  pull_request:
     paths:
-      - '**/*'  # Include all files in the repository
-      - '!**/.github/workflows/workflow_linux.yml'  # Exclude Linux workflow file
-      - '!**/.github/workflows/workflow_macos.yml'  # Exclude macOS workflow file
+      - '**/*'
+      - '!appveyor.yml'
+      - '!README.md'
+      - '!doc/**'
+      - '!**/.github/**'
+      - '.github/workflows/workflow_windows.yml'
 
 jobs:
   Windows:
