@@ -173,6 +173,9 @@ public:
     m_multi.setId("FrameRange");
     m_ignoreAP.setId("IgnoreautoPaintInks");
     m_closeType.setId("Type");
+    ToonzCheck::instance()->setAutocloseSettings(
+        AutocloseDistance, AutocloseAngle, AutocloseOpacity,
+        AutocloseIgnoreAutoPaint);
   }
 
   //------------------------------------------------------------
@@ -571,6 +574,10 @@ public:
     else if (propertyName == m_ignoreAP.getName()) {
       AutocloseIgnoreAutoPaint = (int)(m_ignoreAP.getValue());
     }
+
+    ToonzCheck::instance()->setAutocloseSettings(
+        AutocloseDistance, AutocloseAngle, AutocloseOpacity,
+        AutocloseIgnoreAutoPaint);
 
     if (ToonzCheck::instance()->getChecks() & ToonzCheck::eAutoclose)
       notifyImageChanged();
