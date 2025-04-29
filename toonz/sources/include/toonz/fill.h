@@ -3,8 +3,6 @@
 #ifndef T_FILL_INCLUDED
 #define T_FILL_INCLUDED
 
-class TPalette;
-
 #undef DVAPI
 #undef DVVAR
 #ifdef TOONZLIB_EXPORTS
@@ -23,7 +21,8 @@ class TPalette;
 #include "tpixelcm.h"
 #include "traster.h"
 #include "trastercm.h"
-#include "tpalette.h"
+
+class TPalette;
 
 class FillParameters {
 public:
@@ -71,7 +70,8 @@ class TTileSaverFullColor;
 
 // returns true if the savebox is changed typically, if you fill the bg)
 DVAPI bool fill(const TRasterCM32P &r, const FillParameters &params,
-                TTileSaverCM32 *saver = 0);
+                TTileSaverCM32 *saver  = 0,
+                const TRaster32P &ref = TRaster32P());
 
 DVAPI void fill(const TRaster32P &ras, const TRaster32P &ref,
                 const FillParameters &params, TTileSaverFullColor *saver = 0);
@@ -106,13 +106,15 @@ void DVAPI fillHoles(const TRasterCM32P &ras, const int size,
 class DVAPI AreaFiller {
   typedef TPixelCM32 Pixel;
   TRasterCM32P m_ras;
+  TRaster32P m_refRas;
   TRect m_bounds;
   Pixel *m_pixels;
+  TPalette* m_palette;
   int m_wrap;
   int m_color;
-
+  
 public:
-  AreaFiller(const TRasterCM32P &ras);
+  AreaFiller(const TRasterCM32P &ras, const TRaster32P& ref = TRaster32P(), TPalette *palette = nullptr);
   ~AreaFiller();
   /*!
 Fill \b rect in raster with \b color.
