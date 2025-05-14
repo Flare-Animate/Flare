@@ -7,6 +7,7 @@
 #include "fileselection.h"
 #include "castselection.h"
 #include "cellselection.h"
+#include "columnselection.h"
 #include "overwritepopup.h"
 #include "vectorizerswatch.h"
 #include "filebrowserpopup.h"
@@ -120,6 +121,8 @@ bool getSelectedLevels(std::set<TXshLevel *> &levels, int &r0, int &c0, int &r1,
       dynamic_cast<CastSelection *>(TSelection::getCurrent());
   TCellSelection *cellSelection =
       dynamic_cast<TCellSelection *>(TSelection::getCurrent());
+  TColumnSelection* columnSelection = 
+      dynamic_cast<TColumnSelection*>(TSelection::getCurrent());
 
   if (castSelection) {
     std::vector<TXshLevel *> selectedLevels;
@@ -129,7 +132,12 @@ bool getSelectedLevels(std::set<TXshLevel *> &levels, int &r0, int &c0, int &r1,
       levels.insert(selectedLevels[i]);
 
     return false;
-  } else if (cellSelection) {
+  }
+  else if (columnSelection) {
+      TColumnSelection::getLevelSetFromColumnIndices(columnSelection->getIndices(), levels);
+      return false;
+  }
+  else if (cellSelection) {
     cellSelection->getSelectedCells(r0, c0, r1, c1);
 
     for (int c = c0; c <= c1; ++c) {
@@ -143,7 +151,7 @@ bool getSelectedLevels(std::set<TXshLevel *> &levels, int &r0, int &c0, int &r1,
 
     return true;
   }
-
+  
   return false;
 }
 
@@ -343,7 +351,7 @@ int Vectorizer::doVectorize() {
 
   TXshSimpleLevel *sl = m_level.getPointer();
   if (!sl) return 0;
-
+  
   int rowCount = sl->getFrameCount();
   if (rowCount <= 0 || sl->isEmpty()) return 0;
 
