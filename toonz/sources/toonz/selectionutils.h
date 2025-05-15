@@ -6,6 +6,8 @@
 // TnzCore includes
 #include "tfilepath.h"
 
+#include "toonz/txshlevel.h"
+
 // STL includes
 #include <set>
 #include <map>

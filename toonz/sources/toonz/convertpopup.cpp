@@ -885,6 +885,10 @@ void ConvertPopup::setFiles(const std::vector<TFilePath> &fps) {
   // m_fileFormat->setCurrentIndex(areFullcolor?0:m_fileFormat->findText("tif"));
 }
 
+void ConvertPopup::setFormat(QString format){
+    m_fileFormat->setCurrentIndex(m_fileFormat->findText(format));
+}
+
 //-------------------------------------------------------------------
 
 Convert2Tlv *ConvertPopup::makeTlvConverter(const TFilePath &sourceFilePath) {

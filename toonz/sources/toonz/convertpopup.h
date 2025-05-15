@@ -61,6 +61,7 @@ public:
   ~ConvertPopup();
 
   void setFiles(const std::vector<TFilePath> &fps);
+  void setFormat(QString format);
   bool isConverting() const { return m_isConverting; }
 
   void convertToTlv(bool toPainted);

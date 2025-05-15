@@ -49,8 +49,20 @@ namespace SelectionUtils{
             return false;
         }
         else if (columnSelection) {
-            TColumnSelection::getLevelSetFromColumnIndices(columnSelection->getIndices(), levels);
-            return false;
+            std::set<int> indices = columnSelection->getIndices();
+            if (indices.empty())return false;
+            TColumnSelection::getLevelSetFromColumnIndices(indices, levels);
+            r0 = INT_MAX, r1 = -1;
+            c0 = INT_MAX, c1 = -1;
+            for (int col : indices) {
+                int a, b;
+                xsheet->getCellRange(col, a, b);
+                if (a < r0) r0 = a;
+                if (b > r1) r1 = b;
+                if (col < c0) c0 = col;
+                if (col > c1) c1 = col;
+            }
+            return true;
         }
         else if (cellSelection) {
             cellSelection->getSelectedCells(r0, c0, r1, c1);
@@ -71,7 +83,7 @@ namespace SelectionUtils{
     }
     bool getSelectedLevels(std::set<TXshLevel*>& levels) {
         int r0, c0, r1, c1;
-        getSelectedLevels(levels, r0, c0, r1, c1);
+        return getSelectedLevels(levels, r0, c0, r1, c1);
     }
 }
 
