@@ -41,6 +41,8 @@
 // TnzCore includes
 #include "filebrowsermodel.h"
 
+#include <QCoreApplication>
+
 using namespace DVGui;
 using namespace SelectionUtils;
 
@@ -201,14 +203,25 @@ namespace {
     bool convertRaster(TXshSimpleLevel* in, TXshSimpleLevel* out,
         std::set<TFrameId>& frameIdsSet)
     {
-        return false;
         ConvertPopup popup(false);
-        TFilePath path = TApp::instance()->getCurrentScene()->getScene()->decodeFilePath(in->getPath());
+        TFilePath path = 
+            TApp::instance()->getCurrentScene()->getScene()->decodeFilePath(in->getPath());
         if (!TSystem::doesExistFileOrLevel(path))return false;
         in->save();
         popup.setFiles({path});
         popup.setFormat("tlv");
         popup.show();
+        popup.adjustSize();
+        while (popup.isVisible() || popup.isConverting())
+            QCoreApplication::processEvents(QEventLoop::AllEvents |
+                QEventLoop::WaitForMoreEvents);
+        path = popup.getConvetedPath(path);
+        if (path.isEmpty()) return false;
+        out->setPath(path);
+        out->load();
+        std::vector<TFrameId> fids = out->getFids();
+        frameIdsSet = std::set<TFrameId>(fids.begin(), fids.end());
+        return true;
     }
 
 

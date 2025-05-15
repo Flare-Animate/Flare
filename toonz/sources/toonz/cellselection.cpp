@@ -1638,7 +1638,6 @@ bool TCellSelection::isEnabledCommand(
                                         MI_Redo,
                                         MI_PasteNumbers,
                                         MI_PasteCellContent,
-                                        MI_ConvertToToonzRaster,
                                         MI_ConvertVectorToVector,
                                         MI_CreateBlankDrawing,
                                         MI_FillEmptyCell};

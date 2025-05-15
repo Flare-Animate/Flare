@@ -54,7 +54,7 @@ class FrameTaskNotifier;
 */
 
 class ConvertPopup : public DVGui::Dialog {
-  Q_OBJECT
+    Q_OBJECT
 
 public:
   ConvertPopup(bool specifyInput = false);
@@ -65,7 +65,8 @@ public:
   bool isConverting() const { return m_isConverting; }
 
   void convertToTlv(bool toPainted);
-
+  TFilePath getConvetedPath(TFilePath path) 
+  {return m_convertedFileMap[path];};
   QString getDestinationType() const;
   QString getTlvMode() const;
   QString TlvMode_Unpainted;
@@ -128,6 +129,7 @@ private:
   DVGui::ProgressDialog *m_progressDialog;
 
   std::vector<TFilePath> m_srcFilePaths;
+  std::map<TFilePath, TFilePath> m_convertedFileMap;
   static QMap<std::string, TPropertyGroup *> m_formatProperties;
 
   bool m_isConverting;
