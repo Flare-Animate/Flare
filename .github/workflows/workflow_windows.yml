@@ -4,15 +4,36 @@ on:
   push:
     branches:
       - master  # Specify branches where the workflow should run
-  pull_request:  # Here no specific branches are listed to allow all pull requests to generate a workflow run
+    paths:
+      - '**/*'                   # Include all files in the repository
+      - '!appveyor.yml'          # Ignore changes in AppVeyor
+      - '!README.md'             # Exclude README
+      - '!doc/**'                # Exclude documentation
+      - '!**/.github/**'         # Exclude everything in .github folder
+      - '.github/workflows/workflow_windows.yml'  # Include Windows workflow file
+  pull_request:
+    paths:
+      - '**/*'
+      - '!appveyor.yml'
+      - '!README.md'
+      - '!doc/**'
+      - '!**/.github/**'
+      - '.github/workflows/workflow_windows.yml'
 
 jobs:
   Windows:
-    runs-on: windows-2019
+    runs-on: windows-2025
+    env:
+      QT_PATH: ${{ github.workspace }}\thirdparty\qt\5.15.2_wintab\msvc2019_64  # Path to custom Qt.
+      VCINSTALLDIR: 'C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC'  # Path to MSVC.
+      MSVCVERSION: "Visual Studio 17 2022"  # Visual Studio version.
+      BOOST_ROOT: C:\local\boost_1_87_0  # Boost library root.
+      OpenCV_DIR: C:\tools\opencv\build  # Path to OpenCV.
+
     steps:
       - uses: actions/checkout@v4
         with:
-          lfs: true
+          lfs: false
       - name: Install and Configure ccache
         run: |
           @echo on
@@ -31,10 +52,8 @@ jobs:
       - name: Install OpenCV and Boost
         run: |
           @echo on
-          REM  install opencv
-          choco install opencv --version=4.5.1
-          REM install boost
-          choco install boost-msvc-14.2 --version=1.74.0
+          choco install opencv --version=4.11.0 -y
+          choco install boost-msvc-14.3 --version=1.87.0 -y
         shell: cmd
 
       - name: Install custom Qt 5.15.2 with WinTab support
@@ -46,6 +65,13 @@ jobs:
           move Qt5.15.2_wintab\5.15.2_wintab thirdparty\qt
         shell: cmd
 
+      - name: Install third-party prebuilt libs (LFS workaround)
+        run: |
+          @echo on
+          curl -fsSL -o thirdparty-libs.zip https://github.com/andeon/opentoonz-thirdparty-libs/releases/download/prebuilt-libs-v1/thirdparty-libs.zip
+          7z x -y thirdparty-libs.zip
+        shell: cmd    
+
       - name: Add msbuild to PATH
         uses: microsoft/setup-msbuild@v2
 
@@ -53,94 +79,60 @@ jobs:
         run: |
           @echo on
           cd thirdparty
-          REM Copy headers
           copy /Y tiff-4.0.3\libtiff\tif_config.vc.h tiff-4.0.3\libtiff\tif_config.h
           copy /Y tiff-4.0.3\libtiff\tiffconf.vc.h tiff-4.0.3\libtiff\tiffconf.h
           copy /Y libpng-1.6.21\scripts\pnglibconf.h.prebuilt libpng-1.6.21\pnglibconf.h
 
           cd ../toonz
-
-          IF NOT EXIST build mkdir build
+          mkdir build
           cd build
 
-          REM Setup for local builds
-          set MSVCVERSION="Visual Studio 16 2019"
-          set BOOST_ROOT=C:\boost\boost_1_74_0
-          set OPENCV_DIR=C:\opencv\451\build
-          set QT_PATH=C:\Qt\5.15.2_wintab\msvc2019_64
-
-          REM These are effective when running from Actions
-          IF EXIST C:\local\boost_1_74_0 set BOOST_ROOT=C:\local\boost_1_74_0
-          IF EXIST C:\tools\opencv set OPENCV_DIR=C:\tools\opencv\build
-
-          set WITH_WINTAB=Y
-          IF EXIST D:\a\opentoonz\opentoonz\thirdparty\qt\5.15.2_wintab\msvc2019_64 (
-              set QT_PATH=D:\a\opentoonz\opentoonz\thirdparty\qt\5.15.2_wintab\msvc2019_64
-          )
-
-          cmake ..\sources -G %MSVCVERSION% -Ax64 -DQT_PATH=%QT_PATH% -DBOOST_ROOT=%BOOST_ROOT% -DOpenCV_DIR=%OPENCV_DIR% -DWITH_WINTAB=%WITH_WINTAB%
+          cmake ..\sources -G "%MSVCVERSION%" -Ax64 -DQT_PATH="%QT_PATH%" -DBOOST_ROOT="%BOOST_ROOT%" -DOpenCV_DIR="%OpenCV_DIR%" -DWITH_WINTAB=Y
         shell: cmd
 
       - name: Build Opentoonz
         run: |
           @echo on
-          cd toonz/build/
-          IF EXIST C:\ProgramData\chocolatey\bin\cl.exe (
-              msbuild /p:CLToolPath=C:\ProgramData\chocolatey\bin /p:UseMultiToolTask=true /p:Configuration=RelWithDebInfo /m /verbosity:minimal ALL_BUILD.vcxproj
-          ) ELSE (
-              msbuild /p:Configuration=RelWithDebInfo /m /verbosity:minimal ALL_BUILD.vcxproj
-          )
+          cd toonz\build
+          msbuild /p:Configuration=RelWithDebInfo /m /verbosity:minimal ALL_BUILD.vcxproj
         shell: cmd
 
       - name: Create Package
         run: |
           @echo on
           cd toonz\build
-
-          IF EXIST Opentoonz rmdir /S /Q Opentoonz
-          mkdir Opentoonz
           
-          Rem Copy and configure Opentoonz installation
-          copy /y RelWithDebInfo\*.* Opentoonz
+          REM Create Opentoonz directory and copy files from RelWithDebInfo
+          mkdir Opentoonz
+          copy /Y RelWithDebInfo\*.* Opentoonz\
 
+          REM Copy required DLLs for proper functionality
           copy /Y ..\..\thirdparty\glut\3.7.6\lib\glut64.dll Opentoonz
           copy /Y ..\..\thirdparty\glew\glew-1.9.0\bin\64bit\glew32.dll Opentoonz
           copy /Y ..\..\thirdparty\libmypaint\dist\64\libiconv-2.dll Opentoonz
           copy /Y ..\..\thirdparty\libmypaint\dist\64\libintl-8.dll Opentoonz
           copy /Y ..\..\thirdparty\libmypaint\dist\64\libjson-c-2.dll Opentoonz
           copy /Y ..\..\thirdparty\libmypaint\dist\64\libmypaint-1-4-0.dll Opentoonz
-
-          IF EXIST C:\tools\opencv (
-             copy /Y "C:\tools\opencv\build\x64\vc14\bin\opencv_world451.dll" Opentoonz
-          ) ELSE (
-             copy /Y "C:\opencv\451\build\x64\vc14\bin\opencv_world451.dll" Opentoonz
-          )
-
-          REM Configuring Opentoonz.exe for deployment
-          set QT_PATH=C:\Qt\5.15.2_wintab\msvc2019_64
-          IF EXIST D:\a\opentoonz\opentoonz\thirdparty\qt\5.15.2_wintab\msvc2019_64 set QT_PATH=D:\a\opentoonz\opentoonz\thirdparty\qt\5.15.2_wintab\msvc2019_64
-
-          set VCINSTALLDIR="C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC"
-          IF EXIST "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC" set VCINSTALLDIR="C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC"
-
-          REM Remove PDB files
-          del Opentoonz\*.pdb
           
-          %QT_PATH%\bin\windeployqt.exe Opentoonz\Opentoonz.exe --opengl
-
-          # REM Creating Opentoonz Windows Portable package
+          REM Copy OpenCV DLL (IMPORTANT: Update path/filename when upgrading OpenCV version)
+          copy /Y "C:\tools\opencv\build\x64\vc16\bin\opencv_world4110.dll" Opentoonz
           
-          REM Copy stuff files directly to OpenToonz stuff          
-          IF EXIST Opentoonz\"portablestuff" rmdir /S /Q Opentoonz\"portablestuff"
-          xcopy /Y /E /I ..\..\stuff .\Opentoonz\"portablestuff"
-
-          cd ..\..
+          REM Deploy Qt dependencies
+          "%QT_PATH%\bin\windeployqt.exe" Opentoonz\Opentoonz.exe --opengl
+          
+          del /Q Opentoonz\*.pdb  REM Remove .pdb files
+          del /Q Opentoonz\vc_redist.x64.exe REM Remove vc_redist.x64.exe file
+          
+          REM Create portablestuff directory and copy stuff folder
+          mkdir Opentoonz\portablestuff
+          xcopy /Y /E /I ..\..\stuff .\Opentoonz\portablestuff
         shell: cmd
 
       - name: Create Artifact
         run: |
           mkdir artifact
-          cp -r toonz\build\Opentoonz artifact
+          xcopy toonz\build\Opentoonz artifact\ /E /H /Y
+        shell: cmd
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4

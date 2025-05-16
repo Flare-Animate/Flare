@@ -127,7 +127,6 @@ private:
   void onPathAliasPriorityChanged();
   // Interface
   void onStyleSheetTypeChanged();
-  void onIconThemeChanged();
   void onPixelsOnlyChanged();
   void beforeUnitChanged();
   void onUnitChanged();
@@ -179,6 +178,7 @@ private slots:
   void onEditLevelFormat();
   void onLevelFormatEdited();
   void onImportPolicyExternallyChanged(int policy);
+  void onRenamePolicyExternallyChanged(int policy);
 };
 
 //**********************************************************************************

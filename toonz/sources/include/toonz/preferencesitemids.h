@@ -40,6 +40,7 @@ enum PreferencesItemId {
   colorCalibrationLutPaths,
   showIconsInMenu,
   displayIn30bit,
+  viewerIndicatorEnabled,
 
   //----------
   // Visualization
@@ -50,6 +51,7 @@ enum PreferencesItemId {
   //----------
   // Loading
   importPolicy,
+  renamePolicy,
   autoExposeEnabled,
   subsceneFolderEnabled,
   removeSceneNumberFromLoadedLevelName,

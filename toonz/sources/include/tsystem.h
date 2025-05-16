@@ -166,6 +166,9 @@ DVAPI void hideFile(const TFilePath &dst);
 DVAPI void moveFileToRecycleBin(const TFilePath &fp);
 
 DVAPI void copyFileOrLevel_throw(const TFilePath &dst, const TFilePath &src);
+DVAPI bool renameImageSequence(const TFilePathSet &files,
+                                     const TFilePath &levelName,
+                                     int prefixLength);
 DVAPI void renameFileOrLevel_throw(const TFilePath &dst, const TFilePath &src,
                                    bool renamePalette = false);
 DVAPI void removeFileOrLevel_throw(const TFilePath &fp);
@@ -269,6 +272,9 @@ DVAPI QString getUserName();
 DVAPI QString getSystemValue(const TFilePath &name);
 DVAPI TFilePath getUniqueFile(QString field = "");
 #endif
+
+DVAPI bool isDLLBlackListed(QString dllFile);
+
 }
 
 //
