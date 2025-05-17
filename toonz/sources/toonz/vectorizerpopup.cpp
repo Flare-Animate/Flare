@@ -874,7 +874,7 @@ bool VectorizerPopup::isLevelToConvert(TXshSimpleLevel *sl) {
 //-----------------------------------------------------------------------------
 
 bool VectorizerPopup::apply() {
-  std::set<TXshLevel *> levels;
+  std::vector<TXshLevel *> levels;
 
   ToonzScene *scene = m_sceneHandle->getScene();
   if (!scene) {

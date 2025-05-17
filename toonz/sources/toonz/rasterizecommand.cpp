@@ -237,13 +237,13 @@ namespace {
         ToonzScene* scene = app->getCurrentScene()->getScene();
         TXsheet* xsh = scene->getXsheet();
         int r0, c0, r1, c1;
-        std::set<TXshLevel*> levels;
+        std::vector<TXshLevel*> levels;
         bool isCellSelection = getSelectedLevels(levels, r0, c0, r1, c1);
         if (levels.empty()) return;
 
         int newIndexColumn = c1 + 1;
         TUndoManager::manager()->beginBlock();
-        for (TXshLevel* level : levels) {
+        for (TXshLevel* const level : levels) {
             int type = level->getType();
             if (type != TXshLevelType::PLI_XSHLEVEL &&
                 type != TXshLevelType::OVL_XSHLEVEL) continue;
@@ -263,16 +263,17 @@ namespace {
 
             // expose the new frames
             if (isCellSelection) {
-                TXsheet* xsheet = TApp::instance()->getCurrentXsheet()->getXsheet();
-                xsheet->insertColumn(newIndexColumn);
+                xsh->insertColumn(newIndexColumn);
 
                 int r, c;
-                for (c = c0; c <= c1; c++) {
+                bool foundColumn = false;
+                for (c = c0; c <= c1 && !foundColumn; c++) {
                     for (r = r0; r <= r1; r++) {
-                        TXshCell cell = xsheet->getCell(r, c);
+                        TXshCell cell = xsh->getCell(r, c);
                         TXshSimpleLevel* level =
                             (!cell.isEmpty()) ? cell.getSimpleLevel() : 0;
                         if (level != sourceSl) continue;
+                        foundColumn = true;
                         TFrameId curFid = cell.getFrameId();
                         for (auto const& fid : frameIdsSet) {
                             if (fid.getNumber() ==
@@ -280,7 +281,7 @@ namespace {
                                 (fid.getNumber() == 1 &&
                                     curFid.getNumber() ==
                                     -2))  // La vecchia cella non ha numero di frame
-                                xsheet->setCell(r, newIndexColumn, TXshCell(rsl, fid));
+                                xsh->setCell(r, newIndexColumn, TXshCell(rsl, fid));
                         }
                     }
                 }

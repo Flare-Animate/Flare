@@ -81,9 +81,39 @@ namespace SelectionUtils{
 
         return false;
     }
-    bool getSelectedLevels(std::set<TXshLevel*>& levels) {
+    bool getSelectedLevels(std::set<TXshLevel*>& levels){
         int r0, c0, r1, c1;
         return getSelectedLevels(levels, r0, c0, r1, c1);
+    }
+    bool getSelectedLevels(std::vector<TXshLevel*>& levels, int& r0, int& c0, int& r1,
+        int& c1) {
+        std::set<TXshLevel*> levelsSet;
+        bool isCellSelection = getSelectedLevels(levelsSet, r0, c0, r1, c1);
+        //Sort
+        TXsheet* xsheet = TApp::instance()->getCurrentXsheet()->getXsheet();
+        if (isCellSelection) {
+            std::set<TXshLevel*> pushedLevels;
+            for (int c = c0; c <= c1; c++) {
+                for (int r = r0; r <= r1; r++) {
+                    TXshCell cell = xsheet->getCell(r, c);
+                    TXshSimpleLevel* level =
+                        (!cell.isEmpty()) ? cell.getSimpleLevel() : 0;
+                    if (level &&
+                        pushedLevels.find(level) == pushedLevels.end()) {
+                        pushedLevels.insert(level);
+                        levels.push_back(level);
+                        break;
+                    }
+                }
+            }
+        }
+        else {
+            levels = std::vector<TXshLevel*>(levelsSet.begin(), levelsSet.end());
+            std::sort(levels.begin(), levels.end(), [](TXshLevel* a, TXshLevel* b) {
+                return a->getName() < b->getName();
+                });
+        }
+        return isCellSelection;
     }
 }
 
