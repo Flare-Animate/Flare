@@ -1273,6 +1273,8 @@ TFilePath ToonzScene::decodeFilePath(const TFilePath &path) const {
       if (project) {
         h           = ::to_string(head.substr(1));
         TFilePath f = project->getFolder(h);
+        if (isLonelyScene())
+            return m_scenePath.getParentDir() + f + tail;
         if (f != TFilePath()) s = f.getWideString();
       }
     }
