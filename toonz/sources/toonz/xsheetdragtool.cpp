@@ -155,11 +155,10 @@ public:
         }
         if (m_modifier & Qt::ControlModifier)
           getViewer()->getCellKeyframeSelection()->selectCellsKeyframes(r0, c0,
-                                                                        r1, c1);
+                                                           r1, c1);
         else
           getViewer()->getCellSelection()->selectCells(r0, c0, r1, c1);
-      } // Shift
-      else {
+      } else {
         if (m_modifier & Qt::ControlModifier)
           getViewer()->getCellKeyframeSelection()->selectCellsKeyframes(
               row, col, row, col);

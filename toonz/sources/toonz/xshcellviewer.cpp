@@ -3368,17 +3368,18 @@ void CellArea::mousePressEvent(QMouseEvent *event) {
       m_viewer->getKeyframeSelection()->selectNone();
       setDragTool(
           XsheetGUI::DragTool::makeLevelExtenderTool(m_viewer, false, true));
-    } 
+    }
     // Drag Event
-    else if (((Preferences::instance()->isAlwaysDragFrameCell() &&
-               (!xsh->getCell(row, col).isEmpty()) && xsh->getCell(row, col) != xsh->getCell(row - 1, col) &&
-               !event->modifiers().testFlag(Qt::ShiftModifier)) ||
-        o->rect(PredefinedRect::DRAG_AREA).adjusted(0, 0, -frameAdj.x(), -frameAdj.y()).contains(mouseInCell))) {
+    else if ((!xsh->getCell(row, col).isEmpty()) &&
+               o->rect(PredefinedRect::DRAG_AREA)
+                   .adjusted(0, 0, -frameAdj.x(), -frameAdj.y())
+                   .contains(mouseInCell) ||
+               // Or Control Pressed
+               event->modifiers() & Qt::ControlModifier ||
+        //Or Frame Cell Selected
+        (Preferences::instance()->isAlwaysDragFrameCell() &&
+            (!xsh->getCell(row, col).isEmpty()) && xsh->getCell(row, col) != xsh->getCell(row - 1, col))) {
       TXshColumn *column = xsh->getColumn(col);
-
-      // If draged cell out of the CellSelection , drag the level
-      // if (column && !m_viewer->getCellSelection()->isCellSelected(row, col)) {
-      // IF draged cell is not Frame cell, drag the level
       if (column && !m_viewer->getCellSelection()->isCellSelected(row, col)) {
         if(xsh->getCell(row,col) == xsh->getCell(row - 1, col)) {
           int r0, r1;
