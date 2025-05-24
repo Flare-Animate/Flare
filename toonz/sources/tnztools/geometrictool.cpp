@@ -36,6 +36,11 @@
 #include "toonz/mypaintbrushstyle.h"
 #include "toonz/ttilesaver.h"
 
+#include "toonz/tscenehandle.h"
+#include "toonz/toonzscene.h"
+#include "toonz/tcamera.h"
+#include "toonz/stage.h"
+
 // For Qt translation support
 #include <QCoreApplication>
 
@@ -620,7 +625,8 @@ public:
       return  thick;
     }
     else
-      return m_param->m_toolSize.getValue() * 0.5;
+      return m_param->m_toolSize.getValue() * 0.5 * Stage::inch / 
+        m_tool->getApplication()->getCurrentScene()->getScene()->getCurrentCamera()->getDpi().x;
   }
 
   void setIsPrompting(bool value) { m_isPrompting = value; }

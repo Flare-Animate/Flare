@@ -30,6 +30,9 @@
 #include "toonz/stage2.h"
 #include "toonz/preferences.h"
 #include "toonz/tonionskinmaskhandle.h"
+#include "toonz/tscenehandle.h"
+#include "toonz/toonzscene.h"
+#include "toonz/tcamera.h"
 
 // TnzCore includes
 #include "tstream.h"
@@ -507,12 +510,12 @@ void addStrokeToImage(TTool::Application *application, const TVectorImageP &vi,
 double computeThickness(double pressure, const TDoublePairProperty &property,
                         bool enablePressure, bool isPath ) {
   if (isPath) return 0.0;
-  if (!enablePressure) return property.getValue().second * 0.2;
+  if (!enablePressure) return property.getValue().second * 0.5;
   double t      = pressure * pressure * pressure;
   double thick0 = property.getValue().first;
   double thick1 = property.getValue().second;
   if (thick1 < 0.0001) thick0 = thick1 = 0.0;
-  return (thick0 + (thick1 - thick0) * t) * 0.2;  
+  return (thick0 + (thick1 - thick0) * t) * 0.5;  
 }
 
 }  // namespace
@@ -1069,7 +1072,7 @@ void ToonzVectorBrushTool::inputPaintTracks(const TTrackList &tracks) {
     while(track.pointsAdded) {
       const TTrackPoint &p = track.current();
       double t = computeThickness(p.pressure, m_thickness, m_pressure.getValue(), m_isPath);
-      gen.add(TThickPoint(p.position, t), 0);
+      gen.add(TThickPoint(p.position, t * Stage::inch / m_cameraDpi), 0);
       --track.pointsAdded;
     }
     
@@ -1101,6 +1104,7 @@ void ToonzVectorBrushTool::inputPaintTracks(const TTrackList &tracks) {
 
 void ToonzVectorBrushTool::updateModifiers() {
   m_pixelSize = getPixelSize();
+  m_cameraDpi = getApplication()->getCurrentScene()->getScene()->getCurrentCamera()->getDpi().x;
   int smoothRadius = (int)round(m_smooth.getValue());
   m_modifierAssistants->magnetism = m_assistants.getValue() ? 1 : 0;
   m_modifierSegmentation->setStep(TPointD(m_pixelSize, m_pixelSize));
@@ -1587,8 +1591,8 @@ void ToonzVectorBrushTool::draw() {
   else
     glColor3d(1.0, 0.0, 0.0);
 
-  tglDrawCircle(m_brushPos, 0.5 * m_minThick);
-  tglDrawCircle(m_brushPos, 0.5 * m_maxThick);
+  tglDrawCircle(m_brushPos, 0.5 * m_minThick * Stage::inch / m_cameraDpi);
+  tglDrawCircle(m_brushPos, 0.5 * m_maxThick * Stage::inch / m_cameraDpi);
 }
 
 //--------------------------------------------------------------------------------------------------------------
