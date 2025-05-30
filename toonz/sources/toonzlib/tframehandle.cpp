@@ -14,16 +14,16 @@
 
 namespace {
 
-/*#if 0
- int getCurrentSceneFrameCount()
+#if 0
+/* int getCurrentSceneFrameCount()
   {
     return 100; //
   TApp::instance()->getCurrentScene()->getScene()->getFrameCount();
   }*/
 
-/*void getCurrentScenePlayRange(int &r0, int &r1, int &step)
+/* void getCurrentScenePlayRange(int &r0, int &r1, int &step)
   {
-    /*
+
     ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
     scene->getProperties()->getPreviewProperties()->getRange(r0, r1, step);
     if(r0>r1)
@@ -31,11 +31,11 @@ namespace {
       r0 = 0;
       r1 = scene->getFrameCount()-1;
     }
-    */
-/*   r0 = 0;
+
+  r0 = 0;
     r1 = getCurrentSceneFrameCount()-1;
-  }
-#endif */
+  }*/
+#endif
 
 bool getCurrentLevelFids(std::vector<TFrameId> &fids) {
   /*
