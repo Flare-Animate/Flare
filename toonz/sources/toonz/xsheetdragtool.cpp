@@ -673,16 +673,6 @@ public:
     m_colCount = c1 - c0 + 1;
     m_rowCount = r1 - r0 + 1;
     if (m_colCount <= 0 || m_rowCount <= 0) return;
-    // Allow the negative drag
-    if (m_colCount == m_rowCount == 1) {
-      TXsheet *xsh = getViewer()->getXsheet();
-      if (!xsh->getCell(m_r0, m_c0).isEmpty())
-        for (; xsh->getCell(m_r0 - 1, m_c0) == xsh->getCell(m_r0, m_c0);
-             ++m_rowCount, --m_r0, --r0);
-      getViewer()->setCurrentRow(m_r0);
-      getViewer()->getCellSelection()->selectCells(m_r0, m_c0, m_r1,
-                                                   m_c0 + m_colCount - 1);
-    }
     // if m_insert is false but there are no empty rows under the tab,
     // then switch m_insert to true so that the operation works anyway
     if (!m_insert && !m_invert) {
@@ -707,8 +697,22 @@ public:
 
   void onDrag(const CellPosition &pos) override {
     int row = pos.frame(), col = pos.layer();
-    if (!m_invert)
-      onCellChange(row, col);
+    if (!m_invert){
+        // Allow the negative drag
+        if (row == m_r0 && m_colCount == m_rowCount == 1) {
+            int r0, c0, r1, c1;
+            getViewer()->getCellSelection()->getSelectedCells(r0, c0, r1, c1);
+            TXsheet* xsh = getViewer()->getXsheet();
+            if (!xsh->getCell(m_r0, m_c0).isEmpty())
+                for (; xsh->getCell(m_r0 - 1, m_c0) == xsh->getCell(m_r0, m_c0);
+                    ++m_rowCount, --m_r0, --r0);
+            getViewer()->setCurrentRow(m_r0);
+            m_columns.clear();
+            m_columns.push_back(CellBuilder(xsh, r0, c0, m_rowCount, m_invert));
+            m_undo->setCells(xsh, r0, c0, m_rowCount - 1, m_colCount);
+        }
+        onCellChange(row, col);
+    }
     else
       onCellChangeInvert(row, col);
     refreshCellsArea();
