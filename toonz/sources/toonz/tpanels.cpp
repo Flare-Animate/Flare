@@ -29,7 +29,9 @@
 
 #include "expressionreferencemanager.h"
 
+#if defined(x64)
 #include "stopmotioncontroller.h"
+#endif
 
 #include "tasksviewer.h"
 #include "batchserversviewer.h"
@@ -239,8 +241,10 @@ void SchematicScenePanel::onDeleteFxs(const FxSelection *selection) {
   TApp *app = TApp::instance();
   TFxCommand::deleteSelection(
       std::list<TFxP>(selection->getFxs().begin(), selection->getFxs().end()),
-      std::list<Link>(selection->getLinks().begin(), selection->getLinks().end()),
-      std::list<int>(selection->getColumnIndexes().begin(), selection->getColumnIndexes().end()),
+      std::list<Link>(selection->getLinks().begin(),
+                      selection->getLinks().end()),
+      std::list<int>(selection->getColumnIndexes().begin(),
+                     selection->getColumnIndexes().end()),
       app->getCurrentXsheet(), app->getCurrentFx());
 }
 
@@ -254,9 +258,12 @@ void SchematicScenePanel::onDeleteStageObjects(
 
   TApp *app = TApp::instance();
   TStageObjectCmd::deleteSelection(
-      std::vector<TStageObjectId>(selection->getObjects().toVector().begin(), selection->getObjects().toVector().end()),
-      std::list<QPair<TStageObjectId, TStageObjectId>>(selection->getLinks().begin(), selection->getLinks().end()),
-      std::list<int>(selection->getSplines().begin(), selection->getSplines().end()),
+      std::vector<TStageObjectId>(selection->getObjects().toVector().begin(),
+                                  selection->getObjects().toVector().end()),
+      std::list<QPair<TStageObjectId, TStageObjectId>>(
+          selection->getLinks().begin(), selection->getLinks().end()),
+      std::list<int>(selection->getSplines().begin(),
+                     selection->getSplines().end()),
       app->getCurrentXsheet(), app->getCurrentObject(), app->getCurrentFx());
 }
 
@@ -1656,7 +1663,7 @@ public:
 
 //=============================================================================
 OpenFloatingPanel openFxBrowserCommand(MI_InsertFx, "FxBrowser",
-                                        QObject::tr("Fx Browser"));
+                                       QObject::tr("Fx Browser"));
 
 //-----------------------------------------------------------------------------
 
@@ -1693,4 +1700,4 @@ public:
 
 //=============================================================================
 OpenFloatingPanel openLocatorCommand(MI_OpenLocator, "Locator",
-                                       QObject::tr("Locator"));
+                                     QObject::tr("Locator"));
