@@ -240,7 +240,7 @@ class VectorChangeThicknessTool final : public DragTool {
   TPointD m_curPos, m_firstPos;
   std::map<int, std::vector<double>> m_strokesThickness;
   double m_thicknessChange;
-
+  bool m_isIncrementalMode;// Or Fixed Mode
   std::unique_ptr<UndoChangeStrokes> m_undo;
 
 public:
