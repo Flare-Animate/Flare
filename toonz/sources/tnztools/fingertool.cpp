@@ -267,6 +267,8 @@ class FingerTool final : public TTool {
   TPropertyGroup m_prop;
   int m_cursor;
 
+  int m_oldStyle = 0;
+
   /*---	作業中のFrameIdをクリック時に保存し、マウスリリース時（Undoの登録時）
                   に別のフレームに移動している場合があるため ---*/
   TFrameId m_workingFrameId;
@@ -421,7 +423,7 @@ bool FingerTool::onPropertyChanged(std::string propertyName) {
 //-----------------------------------------------------------------------------
 
 void FingerTool::leftButtonDown(const TPointD &pos, const TMouseEvent &e) {
-  if(FingerPick)
+  if(m_pick.getValue())
       pick(pos);
 
   m_selecting = true;
@@ -479,6 +481,8 @@ void FingerTool::leftButtonUp(const TPointD &pos, const TMouseEvent &) {
   m_brushPos = TPointD(tround(pos.x - 0.5), tround(pos.y - 0.5));
 
   finishBrush();
+  if(m_pick.getValue())
+    getApplication()->setCurrentLevelStyleIndex(m_oldStyle);
 }
 
 //-----------------------------------------------------------------------------
@@ -577,6 +581,7 @@ void FingerTool::finishBrush() {
 }
 
 void FingerTool::pick(const TPointD &pos) {
+  m_oldStyle = getApplication()->getCurrentLevelStyleIndex();
   int modeValue;
   if (m_mode.getIndex() == INK)
     modeValue = 1;//LINES
