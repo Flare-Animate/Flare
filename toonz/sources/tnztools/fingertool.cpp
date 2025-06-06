@@ -603,7 +603,7 @@ void FingerTool::pick(const TPointD &pos) {
   
   if (styleId < 0) return;
 
-  if (modeValue == 0)  // LINES
+  if (modeValue == 1)  // LINES
   {
     // pickLineモードのとき、取得Styleが0の場合はカレントStyleを変えない。
     if (styleId == 0) return;

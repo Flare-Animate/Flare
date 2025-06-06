@@ -316,7 +316,7 @@ void RasterStrokeGenerator::placeOver(const TRasterCM32P &out,
 
           if (m_colorType == INK)
           *outPix = TPixelCM32(inkId, outPix->getPaint(), minTone);
-          if (m_colorType == PAINT)
+          else if (m_colorType == PAINT)
             *outPix = TPixelCM32(inkId, inPix->getInk(), minTone);
         }
         /*--- When Invert is ON: Operation to trim protrusion ---*/
