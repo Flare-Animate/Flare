@@ -402,8 +402,6 @@ bool FingerTool::onPropertyChanged(std::string propertyName) {
   // Mode
   else if (propertyName == m_mode.getName()) {
     FingerMode = (ColorType)(m_mode.getIndex());
-    if (FingerMode == PAINT)
-      m_invert.setValue(false);
   }
 
   // Pick
@@ -413,7 +411,6 @@ bool FingerTool::onPropertyChanged(std::string propertyName) {
 
   // Invert
   else if (propertyName == m_invert.getName()) {
-    if (FingerMode == PAINT) m_invert.setValue(false);
     FingerInvert = (int)(m_invert.getValue());
   }
 
@@ -439,7 +436,7 @@ void FingerTool::leftButtonDown(const TPointD &pos, const TMouseEvent &e) {
       m_rasterTrack         = new RasterStrokeGenerator(
           ras, FINGER, (ColorType)m_mode.getIndex(), styleId,
           TThickPoint(pos + convert(ras->getCenter()), thickness),
-          m_invert.getValue(), 0, false, false);
+          m_mode.getIndex() == 0 ? m_invert.getValue() : false, 0, false, false);
 
       /*-- 作業中Fidを現在のFIDにする --*/
       m_workingFrameId = getFrameId();
@@ -497,7 +494,6 @@ void FingerTool::mouseMove(const TPointD &pos, const TMouseEvent &e) {
 void FingerTool::onEnter() {
   if (m_firstTime) {
     m_invert.setValue(FingerInvert ? 1 : 0);
-    if (FingerMode == PAINT) m_invert.setValue(false);
     m_toolSize.setValue(FingerSize);
     m_mode.setIndex(FingerMode);
     m_pick.setValue(FingerPick ? 1 : 0);

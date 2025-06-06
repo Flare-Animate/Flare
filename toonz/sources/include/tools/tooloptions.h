@@ -302,7 +302,7 @@ protected slots:
 class DraggableIconView : public QWidget {
   Q_OBJECT
 public:
-  DraggableIconView(QWidget *parent = 0) : QWidget(parent){};
+  DraggableIconView(QWidget *parent = 0) : QWidget(parent) {};
 
 protected:
   // these are used for dragging on the icon to
@@ -595,6 +595,26 @@ public:
 protected slots:
   void onPencilModeToggled(bool);
   void onToolTypeChanged(int);
+  void onColorModeChanged(int);
+};
+
+//=============================================================================
+//
+// FingerToolOptionsBox
+//
+//=============================================================================
+
+class FingerToolOptionsBox final : public ToolOptionsBox {
+  Q_OBJECT
+
+  ToolOptionCombo *m_colorMode;
+  ToolOptionCheckbox *m_invertMode;
+
+public:
+  FingerToolOptionsBox(QWidget *parent, TTool *tool, TPaletteHandle *pltHandle,
+                       ToolHandle *toolHandle);
+
+protected slots:
   void onColorModeChanged(int);
 };
 
