@@ -53,8 +53,9 @@ ToolOptionControl::ToolOptionControl(TTool *tool, std::string propertyName,
 
 //-----------------------------------------------------------------------------
 
-void ToolOptionControl::notifyTool(bool addToUndo)
-  { m_tool->onPropertyChanged(m_propertyName, addToUndo); }
+void ToolOptionControl::notifyTool(bool addToUndo) {
+  m_tool->onPropertyChanged(m_propertyName, addToUndo);
+}
 
 //-----------------------------------------------------------------------------
 /*! return true if the control is belonging to the visible combo viewer. very
@@ -267,8 +268,7 @@ ToolOptionIntSlider::ToolOptionIntSlider(TTool *tool, TIntProperty *property,
                                          ToolHandle *toolHandle)
     : IntField(0, property->isMaxRangeLimited())
     , ToolOptionControl(tool, property->getName(), toolHandle)
-    , m_property(property)
-{
+    , m_property(property) {
   setLinearSlider(property->isLinearSlider());
   m_property->addListener(this);
   TIntProperty::Range range = property->getRange();
@@ -759,7 +759,7 @@ void MeasuredValueField::commit() {
     return;
   }
   if (!m_modified && !isReturnPressed()) return;
-  
+
   int err    = 1;
   bool isSet = m_value->setValue(text().toStdWString(), &err);
   m_modified = false;
@@ -869,7 +869,7 @@ void MeasuredValueField::mouseReleaseEvent(QMouseEvent *e) {
     setText(QString::fromStdWString(m_value->toWideString(m_precision)));
     emit measuredValueChanged(m_value, true);
     clearFocus();
-    m_mouseEdit= false;
+    m_mouseEdit = false;
   } else
     QLineEdit::mouseReleaseEvent(e);
 }
@@ -888,9 +888,7 @@ void MeasuredValueField::receiveMousePress(QMouseEvent *e) {
   mousePressEvent(e);
 }
 
-void MeasuredValueField::receiveMouseMove(QMouseEvent *e) {
-  mouseMoveEvent(e);
-}
+void MeasuredValueField::receiveMouseMove(QMouseEvent *e) { mouseMoveEvent(e); }
 
 void MeasuredValueField::receiveMouseRelease(QMouseEvent *e) {
   mouseReleaseEvent(e);
@@ -902,7 +900,8 @@ void MeasuredValueField::receiveMouseRelease(QMouseEvent *e) {
 namespace {
 // calculate maximum field size (once) with 10 pixels margin
 int getMaximumWidthForEditToolField(QWidget *widget) {
-  static int fieldMaxWidth = widget->fontMetrics().horizontalAdvance("-0000.00 field") + 10;
+  static int fieldMaxWidth =
+      widget->fontMetrics().horizontalAdvance("-0000.00 field") + 10;
   return fieldMaxWidth;
 }
 }  // namespace
@@ -1239,7 +1238,8 @@ void PropertyMenuButton::onActionTriggered(QAction *action) {
 namespace {
 // calculate maximum field size (once) with 10 pixels margin
 int getMaximumWidthForSelectionToolField(QWidget *widget) {
-  static int fieldMaxWidth = widget->fontMetrics().horizontalAdvance("-000.00 %") + 10;
+  static int fieldMaxWidth =
+      widget->fontMetrics().horizontalAdvance("-000.00 %") + 10;
   return fieldMaxWidth;
 }
 }  // namespace
@@ -1478,18 +1478,21 @@ void ThickChangeField::onChange(TMeasuredValue *fld, bool addToUndo) {
   if (!m_tool || (m_tool->isSelectionEmpty() && !m_tool->isLevelType())) return;
   if (!m_changeThickTool)
     m_changeThickTool.reset(new DragSelectionTool::VectorChangeThicknessTool(
-          (VectorSelectionTool *)m_tool));
+        (VectorSelectionTool *)m_tool));
 
   TVectorImageP vi = (TVectorImageP)m_tool->getImage(true);
-  double p            = 0.5 * getValue();
-  
+  double p         = 0.5 * getValue();
+
+  // The chageThickTool would deal the rest frames when adding undo
   if (isLabelClicked()) {
     m_changeThickTool->setStrokesThickness(*vi);
     double newThickness = p - m_tool->m_deformValues.m_maxSelectionThickness;
     m_changeThickTool->setThicknessChange(newThickness);
     m_changeThickTool->changeImageThickness(*vi, newThickness);
-  } else
-  m_changeThickTool->setImageThickness(*vi, p);
+  } else {
+    m_changeThickTool->setThicknessChange(p);
+    m_changeThickTool->setImageThickness(*vi, p);
+  }
 
   // DragSelectionTool::DeformValues deformValues = m_tool->m_deformValues;
   // // Like when I found it - it's a noop.
@@ -1502,7 +1505,7 @@ void ThickChangeField::onChange(TMeasuredValue *fld, bool addToUndo) {
   }
   m_tool->computeBBox();
   m_tool->invalidate();
-  m_tool->notifyImageChanged();//overided version of VectorSelectionTool
+  m_tool->notifyImageChanged();  // overided version of VectorSelectionTool
 }
 
 //-----------------------------------------------------------------------------
