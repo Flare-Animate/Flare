@@ -2190,18 +2190,22 @@ FingerToolOptionsBox::FingerToolOptionsBox(QWidget* parent, TTool* tool, TPalett
 
     m_colorMode = dynamic_cast<ToolOptionCombo*>(m_controls.value("Mode:"));
     m_invertMode = dynamic_cast<ToolOptionCheckbox*>(m_controls.value("Invert"));
+    m_selectiveMode = dynamic_cast<ToolOptionCheckbox*>(m_controls.value("Selective"));
 
     bool ret = true;
     if (m_colorMode) {
         ret = ret && connect(m_colorMode, SIGNAL(currentIndexChanged(int)), this,
             SLOT(onColorModeChanged(int)));
-        if (m_invertMode && m_colorMode->currentIndex() == 1)//Paint
-            m_invertMode->setEnabled(false);
+        if (m_invertMode)
+            m_invertMode->setEnabled(m_colorMode->currentIndex() == 0);//INK
+        if (m_selectiveMode)
+            m_selectiveMode->setEnabled(m_colorMode->currentIndex() == 1);//PAINT
     }
 }
 
 void FingerToolOptionsBox::onColorModeChanged(int i) {
     if (m_invertMode) m_invertMode->setEnabled(i == 0);
+    if (m_selectiveMode) m_selectiveMode->setEnabled(i == 1);
 }
 //=============================================================================
 //

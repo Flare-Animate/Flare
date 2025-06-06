@@ -609,6 +609,7 @@ class FingerToolOptionsBox final : public ToolOptionsBox {
 
   ToolOptionCombo *m_colorMode;
   ToolOptionCheckbox *m_invertMode;
+  ToolOptionCheckbox *m_selectiveMode;
 
 public:
   FingerToolOptionsBox(QWidget *parent, TTool *tool, TPaletteHandle *pltHandle,

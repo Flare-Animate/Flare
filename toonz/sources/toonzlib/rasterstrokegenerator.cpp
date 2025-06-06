@@ -283,7 +283,9 @@ void RasterStrokeGenerator::placeOver(const TRasterCM32P &out,
       else if (m_task == FINGER) {
         /*-- Boundary Conditions --*/
         if (outPix == rOut->pixels(y) || outPix == outEnd - 1) continue;
-
+        if (m_selective) {
+            if (outPix->getPaint() != 0) continue;
+        }
         int inStyle = inPix->getInk();
         if (inStyle == 0) continue;
 
@@ -296,7 +298,7 @@ void RasterStrokeGenerator::placeOver(const TRasterCM32P &out,
         int tone           = outPix->getTone();
 
         /*--- When Invert is off: Fill hole operation ---*/
-        if (!m_selective) {
+        if (!m_selectedStyle) {
           /*-- For 4 neighborhood pixels --*/
           int minTone = tone;
           for (int p = 0; p < 4; p++) {

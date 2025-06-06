@@ -50,6 +50,7 @@ TEnv::IntVar FingerInvert("InknpaintFingerInvert", 0);
 TEnv::DoubleVar FingerSize("InknpaintFingerSize", 10);
 TEnv::IntVar FingerMode("InknpaintFingerMode", 0);  
 TEnv::IntVar FingerPick("InknpaintFingerPick", 1);
+TEnv::IntVar FingerSelective("InknpaintFingerSelective", 1);
 
 //-----------------------------------------------------------------------------
 
@@ -263,6 +264,7 @@ class FingerTool final : public TTool {
   TEnumProperty m_mode;
   TBoolProperty m_pick;
   TBoolProperty m_invert;
+  TBoolProperty m_selective;
 
   TPropertyGroup m_prop;
   int m_cursor;
@@ -325,6 +327,7 @@ FingerTool::FingerTool()
     , m_mode("Mode:")
     , m_pick("Pick", true)
     , m_invert("Invert", false)
+    , m_selective("Selective", true)
     , m_firstTime(true)
     , m_workingFrameId(TFrameId()) {
   bind(TTool::ToonzImage);
@@ -337,6 +340,7 @@ FingerTool::FingerTool()
   m_prop.bind(m_mode);
   m_prop.bind(m_pick);
   m_prop.bind(m_invert);
+  m_prop.bind(m_selective);
 
   m_invert.setId("Invert");
 }
@@ -348,6 +352,7 @@ void FingerTool::updateTranslation() {
   m_mode.setQStringName(tr("Mode:"));
   m_pick.setQStringName(tr("Pick"));
   m_invert.setQStringName(tr("Invert", NULL));
+  m_selective.setQStringName(tr("Selective", NULL));
 }
 
 //-----------------------------------------------------------------------------
@@ -414,6 +419,10 @@ bool FingerTool::onPropertyChanged(std::string propertyName) {
     FingerInvert = (int)(m_invert.getValue());
   }
 
+  else if (propertyName == m_selective.getName()) {
+    FingerSelective = (int)(m_selective.getValue());
+  }
+
   return true;
 }
 
@@ -436,7 +445,9 @@ void FingerTool::leftButtonDown(const TPointD &pos, const TMouseEvent &e) {
       m_rasterTrack         = new RasterStrokeGenerator(
           ras, FINGER, (ColorType)m_mode.getIndex(), styleId,
           TThickPoint(pos + convert(ras->getCenter()), thickness),
-          m_mode.getIndex() == 0 ? m_invert.getValue() : false, 0, false, false);
+          m_mode.getIndex() == 1 ? m_selective.getValue() : false,
+          m_mode.getIndex() == 0 ? m_invert.getValue() : false,
+          false, false);
 
       /*-- 作業中Fidを現在のFIDにする --*/
       m_workingFrameId = getFrameId();
@@ -497,6 +508,7 @@ void FingerTool::onEnter() {
     m_toolSize.setValue(FingerSize);
     m_mode.setIndex(FingerMode);
     m_pick.setValue(FingerPick ? 1 : 0);
+    m_selective.setValue(FingerSelective ? 1 : 0);
     m_firstTime = false;
   }
   double x = m_toolSize.getValue();
