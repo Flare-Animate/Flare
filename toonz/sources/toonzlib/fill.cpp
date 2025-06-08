@@ -359,6 +359,92 @@ bool floodCheck(const TPixel32 &clickColor, const TPixel32 *targetPix,
   return !doesStemFill(clickColor, targetPix, fillDepth2);
 }
 
+bool scanTransparentRegion(TRasterCM32P ras, int x, int y,
+                           std::vector<TPoint> &points, bool *visited,
+                           const int maxSize) {
+  if (!ras) return false;
+  int lx = ras->getLx(), ly = ras->getLy();
+  if (x < 0 || y < 0 || x >= lx || y >= ly) return true;
+  if (visited[y * lx + x]) return true;
+
+  TPixelCM32 *pix = ras->pixels(y) + x;
+  if (pix->getPaint() != 0 || pix->isPureInk()) return true;
+  if (points.size() + 1 > maxSize) return false;
+
+  visited[y * lx + x] = true;
+  points.push_back(TPoint(x, y));
+
+  bool ret = scanTransparentRegion(ras, x + 1, y, points, visited, maxSize) &&
+             scanTransparentRegion(ras, x - 1, y, points, visited, maxSize) &&
+             scanTransparentRegion(ras, x, y + 1, points, visited, maxSize) &&
+             scanTransparentRegion(ras, x, y - 1, points, visited, maxSize);
+  ret = ret && points.size() <= maxSize;
+  if (!ret) visited[y * lx + x] = false;
+  return ret;
+}
+
+int getMostFrequentNeighborStyleId(TRasterCM32P ras,
+                                   const std::vector<TPoint> &points,
+                                   const bool *visited) {
+  if (!ras) return -1;
+
+  int lx = ras->getLx();
+  int ly = ras->getLy();
+
+  std::map<int, int> styleCount;
+
+  const std::vector<TPoint> directions = {TPoint(1, -1), TPoint(1, 1),
+                                          TPoint(-1, 1), TPoint(1, 1)};
+
+  for (const TPoint &p : points) {
+    for (const TPoint &d : directions) {
+      int nx = p.x + d.x;
+      int ny = p.y + d.y;
+      if (nx < 0 || ny < 0 || nx >= lx || ny >= ly) continue;
+      if (visited[ny * lx + nx]) continue;
+
+      TPixelCM32 *pix = ras->pixels(ny) + nx;
+      if (pix->isPureInk()) continue;
+      int styleId = pix->getPaint();
+      styleCount[styleId]++;
+    }
+  }
+
+  int maxStyleId = 0;
+  int maxCount   = 0;
+  for (const auto &entry : styleCount) {
+    if (entry.second > maxCount) {
+      maxCount   = entry.second;
+      maxStyleId = entry.first;
+    }
+  }
+  if (maxStyleId) return maxStyleId;
+
+  const std::vector<TPoint> directions2 = {TPoint(0, -1), TPoint(0, 1),
+                                           TPoint(-1, 0), TPoint(1, 0)};
+
+  for (const TPoint &p : points) {
+    for (const TPoint &d : directions2) {
+      int nx = p.x + d.x;
+      int ny = p.y + d.y;
+      if (nx < 0 || ny < 0 || nx >= lx || ny >= ly) continue;
+      if (visited[ny * lx + nx]) continue;
+
+      TPixelCM32 *pix = ras->pixels(ny) + nx;
+      int styleId     = pix->getInk();
+      styleCount[styleId]++;
+    }
+  }
+
+  for (const auto &entry : styleCount) {
+    if (entry.second > maxCount) {
+      maxCount   = entry.second;
+      maxStyleId = entry.first;
+    }
+  }
+  return maxStyleId;
+}
+
 //-----------------------------------------------------------------------------
 }  // namespace
 //-----------------------------------------------------------------------------
@@ -803,4 +889,44 @@ void fullColorFill(const TRaster32P &ras, const FillParameters &params,
       }
     }
   }
+}
+
+void fillHoles(const TRasterCM32P &ras, const int maxSize,
+               TTileSaverCM32 *saver) {
+  int lx        = ras->getLx();
+  int ly        = ras->getLy();
+  bool *visited = new bool[lx * ly]{false};
+
+  auto isEmpty = [&](int x, int y) -> bool {
+    TPixelCM32 *pix = ras->pixels(y) + x;
+    return !pix->getPaint() && !pix->isPureInk() && !visited[y * lx + x];
+  };
+
+  for (int y = 0; y < ly; y++) {
+    int emptyCount = 0;
+    for (int x = 0; x < lx; x++) {
+      if (isEmpty(x, y)) {
+        emptyCount++;
+        continue;
+      } else if (emptyCount && emptyCount <= maxSize) {
+        std::vector<TPoint> points;
+        int startX = x - emptyCount;
+        if (scanTransparentRegion(ras, startX, y, points, visited, maxSize)) {
+          int paint = getMostFrequentNeighborStyleId(ras, points, visited);
+          if (paint)
+            for (const TPoint &p : points) {
+              if (saver) saver->save(p);
+              if (paint == 1) {
+                ras->pixels(p.y)[p.x].setInk(paint);
+                ras->pixels(p.y)[p.x].setTone(0);
+              } else
+                ras->pixels(p.y)[p.x].setPaint(paint);
+            }
+        }
+      }
+      emptyCount = 0;
+    }
+  }
+
+  delete[] visited;
 }
