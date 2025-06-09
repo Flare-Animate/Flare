@@ -385,19 +385,21 @@ bool scanTransparentRegion(TRasterCM32P ras, int x, int y,
 
 int getMostFrequentNeighborStyleId(TRasterCM32P ras,
                                    const std::vector<TPoint> &points,
-                                   const bool *visited) {
-  if (!ras) return -1;
+                                   const bool *visited, bool &fillInk) {
+  if (!ras) return 0;
 
   int lx = ras->getLx();
   int ly = ras->getLy();
 
   std::map<int, int> styleCount;
+  int maxStyleId = 0;
+  int maxCount   = 0;
 
-  const std::vector<TPoint> directions = {TPoint(1, -1), TPoint(1, 1),
-                                          TPoint(-1, 1), TPoint(1, 1)};
+  const std::vector<TPoint> diagonal = {TPoint(1, -1), TPoint(1, 1),
+                                        TPoint(-1, 1), TPoint(1, 1)};
 
   for (const TPoint &p : points) {
-    for (const TPoint &d : directions) {
+    for (const TPoint &d : diagonal) {
       int nx = p.x + d.x;
       int ny = p.y + d.y;
       if (nx < 0 || ny < 0 || nx >= lx || ny >= ly) continue;
@@ -406,12 +408,13 @@ int getMostFrequentNeighborStyleId(TRasterCM32P ras,
       TPixelCM32 *pix = ras->pixels(ny) + nx;
       if (pix->isPureInk()) continue;
       int styleId = pix->getPaint();
-      styleCount[styleId]+=2; // give more weight
+      if (styleId) {
+        styleCount[styleId] += 256;  // Diagonal Paint weights 256
+        fillInk = false;
+      }
     }
   }
 
-  int maxStyleId = 0;
-  int maxCount   = 0;
   for (const auto &entry : styleCount) {
     if (entry.second > maxCount) {
       maxCount   = entry.second;
@@ -419,19 +422,27 @@ int getMostFrequentNeighborStyleId(TRasterCM32P ras,
     }
   }
 
-  const std::vector<TPoint> directions2 = {TPoint(0, -1), TPoint(0, 1),
-                                           TPoint(-1, 0), TPoint(1, 0)};
+  // Some corner Pixels woule be count in for 2/3 times, as the weight of
+  // Diagonal is large enough ignore them
+  const std::vector<TPoint> horizontal = {TPoint(0, -1), TPoint(0, 1),
+                                          TPoint(-1, 0), TPoint(1, 0)};
 
   for (const TPoint &p : points) {
-    for (const TPoint &d : directions2) {
+    for (const TPoint &d : horizontal) {
       int nx = p.x + d.x;
       int ny = p.y + d.y;
       if (nx < 0 || ny < 0 || nx >= lx || ny >= ly) continue;
       if (visited[ny * lx + nx]) continue;
 
       TPixelCM32 *pix = ras->pixels(ny) + nx;
-      int styleId     = pix->getInk();
-      styleCount[styleId]++;  // give less weight
+      if (!pix->isPureInk()) continue;
+      int styleId = pix->getInk();
+      styleCount[styleId]++;  // Horizontal Ink weights 1
+      styleId = pix->getPaint();
+      if (styleId) {
+        styleCount[styleId] += 1;  // Horizontal Paint weights 1
+        fillInk = false;
+      }
     }
   }
 
@@ -441,6 +452,8 @@ int getMostFrequentNeighborStyleId(TRasterCM32P ras,
       maxStyleId = entry.first;
     }
   }
+
+  assert(maxStyleId);
   return maxStyleId;
 }
 
@@ -911,16 +924,17 @@ void fillHoles(const TRasterCM32P &ras, const int maxSize,
         std::vector<TPoint> points;
         int startX = x - emptyCount;
         if (scanTransparentRegion(ras, startX, y, points, visited, maxSize)) {
-          int paint = getMostFrequentNeighborStyleId(ras, points, visited);
-          if (paint)
-            for (const TPoint &p : points) {
-              if (saver) saver->save(p);
-              if (paint == 1) {
-                ras->pixels(p.y)[p.x].setInk(paint);
-                ras->pixels(p.y)[p.x].setTone(0);
-              } else
-                ras->pixels(p.y)[p.x].setPaint(paint);
-            }
+          bool fillInk = false;
+          int style =
+              getMostFrequentNeighborStyleId(ras, points, visited, fillInk);
+          for (const TPoint &p : points) {
+            if (saver) saver->save(p);
+            if (fillInk) {
+              ras->pixels(p.y)[p.x].setInk(style);
+              ras->pixels(p.y)[p.x].setTone(0);
+            } else
+              ras->pixels(p.y)[p.x].setPaint(style);
+          }
         }
       }
       emptyCount = 0;

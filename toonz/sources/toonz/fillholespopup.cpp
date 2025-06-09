@@ -52,8 +52,8 @@ FillHolesDialog::FillHolesDialog() : Dialog(0, true, true, "Fill Small Holes") {
 
   beginVLayout();
   m_size = new IntField(this);
-  m_size->setRange(1, 10);
-  m_size->setValue(3);
+  m_size->setRange(1, 25);
+  m_size->setValue(5);
   addWidget(tr("Size"), m_size);
   endVLayout();
 
