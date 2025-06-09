@@ -406,7 +406,7 @@ int getMostFrequentNeighborStyleId(TRasterCM32P ras,
       TPixelCM32 *pix = ras->pixels(ny) + nx;
       if (pix->isPureInk()) continue;
       int styleId = pix->getPaint();
-      styleCount[styleId]++;
+      styleCount[styleId]+=2; // give more weight
     }
   }
 
@@ -418,7 +418,6 @@ int getMostFrequentNeighborStyleId(TRasterCM32P ras,
       maxStyleId = entry.first;
     }
   }
-  if (maxStyleId) return maxStyleId;
 
   const std::vector<TPoint> directions2 = {TPoint(0, -1), TPoint(0, 1),
                                            TPoint(-1, 0), TPoint(1, 0)};
@@ -432,7 +431,7 @@ int getMostFrequentNeighborStyleId(TRasterCM32P ras,
 
       TPixelCM32 *pix = ras->pixels(ny) + nx;
       int styleId     = pix->getInk();
-      styleCount[styleId]++;
+      styleCount[styleId]++;  // give less weight
     }
   }
 
