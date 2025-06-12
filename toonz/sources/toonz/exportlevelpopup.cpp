@@ -43,6 +43,7 @@
 #include "tiio.h"
 #include "tproperty.h"
 #include <tsystem.h>
+#include "tpixelutils.h"
 
 // Qt includes
 #include <QDir>
@@ -123,7 +124,7 @@ void ExportLevelPopup::Swatch::showEvent(QShowEvent *se) {
   // Set current scene's chessboard color
   TPixel32 pix1, pix2;
   Preferences::instance()->getChessboardColors(pix1, pix2);
-  
+
   setBgColor(pix1, pix2);
 }
 
@@ -147,6 +148,7 @@ void ExportLevelPopup::Swatch::paintGL() {
   // image is supposedly premultiplied - and it works because the
   // viewer's background is opaque.
   // See tpixelutils.h's overPixT function for comparison.
+  // The background color must be premultiplied before draw to m_img
 
   pushGLWorldCoordinates();
   {
@@ -239,7 +241,7 @@ ExportLevelPopup::ExportLevelPopup()
           << "bmp"
           << "tif"
           << "tga";
-  //formats.sort();
+  // formats.sort();
   m_format->addItems(formats);
   onformatChanged(m_format->currentText());
 
@@ -329,24 +331,24 @@ ExportLevelPopup::ExportLevelPopup()
   }
   setLayout(mainLayout);
 
-    bool ret = true;
-    ret      = connect(tabBar, SIGNAL(currentChanged(int)), stackedWidget,
-                  SLOT(setCurrentIndex(int)));
-    ret      = connect(m_format, SIGNAL(currentIndexChanged(const QString &)),
-                  SLOT(onformatChanged(const QString &))) &&
-          ret;
-    ret = connect(m_retas, SIGNAL(stateChanged(int)), SLOT(onRetas(int))) && ret;
-    ret = connect(m_formatOptions, SIGNAL(clicked()), SLOT(onOptionsClicked())) &&
+  bool ret = true;
+  ret      = connect(tabBar, SIGNAL(currentChanged(int)), stackedWidget,
+                     SLOT(setCurrentIndex(int)));
+  ret      = connect(m_format, SIGNAL(currentIndexChanged(const QString &)),
+                     SLOT(onformatChanged(const QString &))) &&
         ret;
-    ret = connect(&m_levelFrameIndexHandle, SIGNAL(frameSwitched()),
-                  SLOT(updatePreview())) &&
-          ret;
-    ret = connect(m_exportOptions, SIGNAL(optionsChanged()),
-                  SLOT(updatePreview())) &&
-          ret;
-    assert(ret);
+  ret = connect(m_retas, SIGNAL(stateChanged(int)), SLOT(onRetas(int))) && ret;
+  ret = connect(m_formatOptions, SIGNAL(clicked()), SLOT(onOptionsClicked())) &&
+        ret;
+  ret = connect(&m_levelFrameIndexHandle, SIGNAL(frameSwitched()),
+                SLOT(updatePreview())) &&
+        ret;
+  ret = connect(m_exportOptions, SIGNAL(optionsChanged()),
+                SLOT(updatePreview())) &&
+        ret;
+  assert(ret);
 
-    initFolder();
+  initFolder();
 }
 
 //-----------------------------------------------------------------------------
@@ -363,40 +365,39 @@ ExportLevelPopup::~ExportLevelPopup() {
 void ExportLevelPopup::collectSelectedSimpleLevels() {
   outputLevels.clear();
 
-  std::set<TXshLevel*> levels;
+  std::set<TXshLevel *> levels;
   getSelectedLevels(levels);
-  for (TXshLevel* level : levels) {
-      TXshSimpleLevel* sl = level->getSimpleLevel();
-      if (!sl)continue;
-      int type = sl->getType();
-      if (type == PLI_XSHLEVEL ||  // ToonzVector
-          type == TZP_XSHLEVEL ||  // ToonzRaster
-          type == OVL_XSHLEVEL)   // Raster
-          outputLevels.push_back(sl);
+  for (TXshLevel *level : levels) {
+    TXshSimpleLevel *sl = level->getSimpleLevel();
+    if (!sl) continue;
+    int type = sl->getType();
+    if (type == PLI_XSHLEVEL ||  // ToonzVector
+        type == TZP_XSHLEVEL ||  // ToonzRaster
+        type == OVL_XSHLEVEL)    // Raster
+      outputLevels.push_back(sl);
   }
 }
 //-----------------------------------------------------------------------------
 
 void ExportLevelPopup::showEvent(QShowEvent *se) {
-    if (Preferences::instance()->getPixelsOnly()) {
-        m_exportOptions->m_widthFld->hide();
-        m_exportOptions->m_heightFld->hide();
-        m_exportOptions->m_widthLabel->hide();
-        m_exportOptions->m_heightLabel->hide();
-        m_exportOptions->m_dpiLabel->hide();
-    }
-    else {
-        m_exportOptions->m_widthFld->show();
-        m_exportOptions->m_heightFld->show();
-        m_exportOptions->m_widthLabel->show();
-        m_exportOptions->m_heightLabel->show();
-        m_exportOptions->m_dpiLabel->show();
-    }
+  if (Preferences::instance()->getPixelsOnly()) {
+    m_exportOptions->m_widthFld->hide();
+    m_exportOptions->m_heightFld->hide();
+    m_exportOptions->m_widthLabel->hide();
+    m_exportOptions->m_heightLabel->hide();
+    m_exportOptions->m_dpiLabel->hide();
+  } else {
+    m_exportOptions->m_widthFld->show();
+    m_exportOptions->m_heightFld->show();
+    m_exportOptions->m_widthLabel->show();
+    m_exportOptions->m_heightLabel->show();
+    m_exportOptions->m_dpiLabel->show();
+  }
 
   // WARNING: What happens it the restored selection is NO MORE VALID ?
-  // 
+  //
   // This Problem is caused because the global selection of dvitemview
-  // is on for default browserpopup , which whould cause the global 
+  // is on for default browserpopup , which whould cause the global
   // selection to be cleared
   //          Consider that this popup is NOT MODAL !!
   //
@@ -434,7 +435,7 @@ void ExportLevelPopup::hideEvent(QHideEvent *he) {
 
   TApp *app = TApp::instance();
 
-  m_levelExportedCount=0; 
+  m_levelExportedCount = 0;
   app->getCurrentSelection()->disconnect(this);
   app->getCurrentLevel()->disconnect(this);
 
@@ -553,18 +554,17 @@ void ExportLevelPopup::updateOnSelection() {
         QString::fromStdWString(outputLevels.back()->getName()));
     break;
   default:
-    setWindowTitle(tr("Export Level: %1 Level Selected")
-        .arg(outputLevels.size()));
+    setWindowTitle(
+        tr("Export Level: %1 Level Selected").arg(outputLevels.size()));
     m_nameField->clear();
     m_nameField->setEnabled(false);
   }
 
   // Enable tlv output in case all inputs are pli
-  int tlvIdx = m_format->findText("tlv");
+  int tlvIdx  = m_format->findText("tlv");
   bool allPli = true;
   for (auto sl : outputLevels) {
-    allPli = (sl && (sl->getType() == PLI_XSHLEVEL)) &&
-                 allPli;
+    allPli = (sl && (sl->getType() == PLI_XSHLEVEL)) && allPli;
   }
   if (allPli) {
     if (tlvIdx < 0) m_format->addItem("tlv");
@@ -646,9 +646,11 @@ bool ExportLevelPopup::execute() {
         FilePath = TFilePath(FilePath.getWideString() + L"\\" + sl->getName());
       }
       ret = ret && IoCmd::exportLevel(FilePath.withType(ext).withFrame(tmplFId),
-                                        sl, opts, &overwriteCB, &progressCB);
-      if (ret) ++m_levelExportedCount; 
-      else return false;
+                                      sl, opts, &overwriteCB, &progressCB);
+      if (ret)
+        ++m_levelExportedCount;
+      else
+        return false;
     }
   } else {
     // ONE LEVEL
@@ -676,7 +678,7 @@ bool ExportLevelPopup::execute() {
     }
 
     ret = IoCmd::exportLevel(FilePath.withType(ext).withFrame(tmplFId),
-                           *outputLevels.begin(), opts, 0, 0);
+                             *outputLevels.begin(), opts, 0, 0);
     m_levelExportedCount = 1;
   }
 
@@ -705,7 +707,7 @@ bool ExportLevelPopup::execute() {
 void ExportLevelPopup::initFolder() {
   TFilePath fp;
 
-  auto project = TProjectManager::instance()->getCurrentProject();
+  auto project      = TProjectManager::instance()->getCurrentProject();
   ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
 
   if (scene) fp = scene->decodeFilePath(TFilePath("+drawings"));
@@ -754,7 +756,7 @@ ExportLevelPopup::ExportOptions::ExportOptions(QWidget *parent)
 
     m_createlevelfolder = new QCheckBox(tr("Create Folder(equal file name)"));
     layout->addWidget(m_createlevelfolder, row++, 2, Qt::AlignLeft);
-    
+
     //-------------- Vector Options ---------------------
 
     m_pliOptions = new QWidget;
@@ -961,7 +963,8 @@ void ExportLevelPopup::ExportOptions::showEvent(QShowEvent *se) {
 IoCmd::ExportLevelOptions ExportLevelPopup::ExportOptions::getOptions() const {
   IoCmd::ExportLevelOptions opts;
 
-  opts.m_bgColor     = m_bgColorField->getColor();
+  opts.m_bgColor = premultiply(m_bgColorField->getColor());
+
   opts.m_noAntialias = m_noAntialias->isChecked();
 
   opts.m_camera.setSize(
@@ -1071,7 +1074,6 @@ void ExportLevelPopup::ExportOptions::onThicknessTransformModeChanged() {
   m_fromThicknessDisplacement->setVisible(!scaleMode);
   m_toThicknessDisplacement->setVisible(!scaleMode);
 }
-
 
 //********************************************************************************
 //    Export Level Command  instantiation
