@@ -20,7 +20,7 @@ public:
   UINT m_aut_spot_samples;
 
   int m_closingDistance;
-  double m_spotAngle;
+  double m_spotAngle;  // Half Value
   int m_inkIndex;
   int m_opacity;
   TRasterP m_raster;
@@ -540,18 +540,24 @@ void TAutocloser::Imp::findMeetingPoints(
   m_aut_spot_samples = (UINT)m_spotAngle;
 
   m_spotAngle *= (M_PI / 180.0);
-  alfa  = m_spotAngle / m_aut_spot_samples;
-  m_csp = cos(m_spotAngle);
-  m_snp = sin(m_spotAngle);
-  m_csm = cos(-m_spotAngle);
-  m_snm = sin(-m_spotAngle);
+  
+  // spotResearchTwoPoints
+  // Angle Range: 0бу~36бу
+  double limitedAngle = m_spotAngle / 10;
+  m_csp = cos(limitedAngle);
+  m_snp = sin(limitedAngle);
+  m_csm = cos(-limitedAngle);
+  m_snm = sin(-limitedAngle);
+
+  // spotResearchOnePoints
+  alfa = m_spotAngle / m_aut_spot_samples;
   m_csa = cos(alfa);
   m_sna = sin(alfa);
   m_csb = cos(-alfa);
   m_snb = sin(-alfa);
 
   std::vector<Segment> orientedEndpoints(endpoints.size());
-  for (i                       = 0; i < (int)endpoints.size(); i++)
+  for (i = 0; i < (int)endpoints.size(); i++)
     orientedEndpoints[i].first = endpoints[i];
 
   int size = -1;
@@ -592,7 +598,7 @@ bool TAutocloser::Imp::spotResearchTwoPoints(
   while (current < (int)endpoints.size() - 1) {
     found = 0;
     for (i = current + 1; i < (int)marks.size(); i++) marks[i] = false;
-    distance                                                   = 0;
+    distance = 0;
 
     while (!found && (distance <= sqrDistance) && !allMarked(marks, current)) {
       closerIndex = closerPoint(endpoints, marks, current);
