@@ -13,6 +13,7 @@
 #define DVVAR DV_IMPORT_VAR
 #endif
 
+
 #include <set>
 #include "ttilesaver.h"
 #include "timage.h"
@@ -21,6 +22,10 @@
 #include "tpixelcm.h"
 #include "traster.h"
 #include "trastercm.h"
+
+#include "preferences.h"
+#define DEF_REGION_WITH_PAINT                                                  \
+  Preferences::instance()->getBoolValue(PreferencesItemId::DefRegionWithPaint)
 
 class TPalette;
 
@@ -122,7 +127,7 @@ Fill \b rect in raster with \b color.
 else if \b fillInks is false fill only paint delimited by ink;
 else fill ink and paint in rect.
 */
-  bool rectFill(const TRect &rect, int color, bool onlyUnfilled,
+  bool rectFill(const TRect &rect, const TRect &saveBox, int color, bool onlyUnfilled,
                 bool fillPaints, bool fillInks);
 
   /*!
@@ -131,7 +136,7 @@ Fill the raster region contained in spline \b s with \b color.
 else if \b fillInks is false fill only paint delimited by ink;
 else fill ink and paint in region contained in spline.
 */
-  void strokeFill(TStroke *s, int color, bool onlyUnfilled, bool fillPaints,
+  void strokeFill(const TRect& rect, TStroke *s, int color, bool onlyUnfilled, bool fillPaints,
                   bool fillInks);
 };
 
