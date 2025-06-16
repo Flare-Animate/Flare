@@ -379,7 +379,6 @@ bool scanTransparentRegion(TRasterCM32P ras, int x, int y,
              scanTransparentRegion(ras, x, y + 1, points, visited, maxSize) &&
              scanTransparentRegion(ras, x, y - 1, points, visited, maxSize);
   ret = ret && points.size() <= maxSize;
-  if (!ret) visited[y * lx + x] = false;
   return ret;
 }
 
@@ -935,7 +934,10 @@ void fillHoles(const TRasterCM32P &ras, const int maxSize,
             } else
               ras->pixels(p.y)[p.x].setPaint(style);
           }
-        }
+        } else
+          for (const TPoint &p : points) {
+            visited[p.y * lx + p.x] = false;
+          }
       }
       emptyCount = 0;
     }
