@@ -349,6 +349,9 @@ public:
   bool isUseStrokeEndCursor() const {
       return getBoolValue(useStrokeEndCursor);
   }
+  bool isClickTwiceToCreateArcs() {
+      return getBoolValue(clickTwiceToCreateArcs);
+  }
   int getLevelBasedToolsDisplay() const {
     return getIntValue(levelBasedToolsDisplay);
   }
