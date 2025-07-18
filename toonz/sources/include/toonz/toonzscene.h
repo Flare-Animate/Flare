@@ -72,6 +72,7 @@ public:
             once a proper path is specified by the user.                      */
 
   void setUntitled();  //!< Marks the scene as explicitly untitled.
+  void setTitled(); //Marks scene as titled after being saved
   bool isUntitled()
       const;  //!< Returns whether the scene path is empty, or the scene
               //!  is explicitly untitled.  \sa  Member function setUntitled().

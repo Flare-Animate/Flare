@@ -492,11 +492,20 @@ void SceneResources::getResources() {
 
   for (it = levels.begin(); it != levels.end(); ++it) {
     TXshSimpleLevel *sl = (*it)->getSimpleLevel();
-    if (sl) m_resources.push_back(new SceneLevel(scene, sl));
+    if (sl) {
+        m_resources.push_back(new SceneLevel(scene, sl));
+        continue;
+    }
     TXshPaletteLevel *pl = (*it)->getPaletteLevel();
-    if (pl) m_resources.push_back(new ScenePalette(scene, pl));
+    if (pl) { 
+        m_resources.push_back(new ScenePalette(scene, pl));
+        continue; 
+    }
     TXshSoundLevel *sdl = (*it)->getSoundLevel();
-    if (sdl) m_resources.push_back(new SceneSound(scene, sdl));
+    if (sdl) {
+        m_resources.push_back(new SceneSound(scene, sdl));
+        continue;
+    }
   }
 }
 
