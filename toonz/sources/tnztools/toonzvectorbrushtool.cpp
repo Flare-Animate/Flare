@@ -839,7 +839,7 @@ void ToonzVectorBrushTool::inputSetBusy(bool busy) {
     if ( app->getCurrentColumn()->getColumnIndex() < 0
       && !app->getCurrentFrame()->isEditingLevel() )
       return;
-    if (!getImage(true) || !touchImage())
+    if (!getImage(true))// Image is touched in preLeftButtonDown
       return;
     if (!app->getCurrentLevel()->getLevel())
       return;
