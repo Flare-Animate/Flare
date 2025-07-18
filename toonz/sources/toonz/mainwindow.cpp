@@ -85,7 +85,7 @@ TEnv::IntVar EditShiftToggleAction("EditShiftToggleAction", 0);
 TEnv::IntVar ShowShiftOriginToggleAction("ShowShiftOriginToggleAction", 0);
 TEnv::IntVar NoShiftToggleAction("NoShiftToggleAction", 0);
 TEnv::IntVar TouchGestureControl("TouchGestureControl", 0);
-TEnv::IntVar ShowBuildDateInTitle("ShowBuildDateInTitle", 0);
+TEnv::IntVar ShowBuildDateInTitle("ShowBuildDateInTitle", 1);
 
 //=============================================================================
 namespace {
