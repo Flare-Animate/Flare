@@ -1317,7 +1317,7 @@ QString PreferencesPopup::getUIString(PreferencesItemId id) {
       {cursorOutlineEnabled, tr("Show Cursor Size Outlines")},
       {levelBasedToolsDisplay, tr("Toolbar Display Behaviour:")},
       {useCtrlAltToResizeBrush, tr("Use %1 to Resize Brush").arg(CtrlAltStr())},
-      {useStrokeEndCursor, tr("Use Inverted Cursor at Stroke End")},
+      {useStrokeEndCursor, tr("Draw Cursor at End of Stroke")},
       {clickTwiceToCreateArcs, tr("Click Twice to Create Arcs") },
       {tempToolSwitchTimer,
        tr("Switch Tool Temporarily Keypress Length (ms):")},
