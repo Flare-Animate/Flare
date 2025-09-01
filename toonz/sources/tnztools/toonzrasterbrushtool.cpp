@@ -765,7 +765,7 @@ ToonzRasterBrushTool::ToonzRasterBrushTool(std::string name, int targetType)
   m_drawOrder.addValue(L"Under All");
   m_drawOrder.addValue(L"Palette Order");
   m_drawOrder.setId("DrawOrder");
-
+  
   m_prop[0].bind(m_pressure);
 
   m_prop[0].bind(m_preset);
@@ -773,6 +773,7 @@ ToonzRasterBrushTool::ToonzRasterBrushTool(std::string name, int targetType)
   m_preset.addValue(CUSTOM_WSTR);
   m_pressure.setId("PressureSensitivity");
   m_modifierLockAlpha.setId("LockAlpha");
+  m_smooth.setId("Smooth");
 
   m_inputmanager.setHandler(this);
   m_modifierLine               = new TModifierLine();
