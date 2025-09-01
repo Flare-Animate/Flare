@@ -765,7 +765,7 @@ ToonzRasterBrushTool::ToonzRasterBrushTool(std::string name, int targetType)
   m_drawOrder.addValue(L"Under All");
   m_drawOrder.addValue(L"Palette Order");
   m_drawOrder.setId("DrawOrder");
-  
+
   m_prop[0].bind(m_pressure);
 
   m_prop[0].bind(m_preset);
@@ -1350,8 +1350,8 @@ void ToonzRasterBrushTool::inputPaintTrackPoint(const TTrackPoint &point,
 
     // Pencilモードでなく、Hardness=100 の場合のブラシサイズを1段階下げる
     double thickness = computeThickness(pressure, m_rasThickness);
-    //if (!m_painting.pencil.realPencil && !m_modifierLine->getManager())
-    //  thickness -= 1.0;
+    // if (!m_painting.pencil.realPencil && !m_modifierLine->getManager())
+    //   thickness -= 1.0;
     TThickPoint thickPoint(fixedPosition + rasCenter, thickness);
 
     // init brush
@@ -1411,10 +1411,10 @@ void ToonzRasterBrushTool::inputPaintTrackPoint(const TTrackPoint &point,
     // paint stroke
     double thickness = computeThickness(pressure, m_rasThickness);
     TThickPoint thickPoint(fixedPosition + rasCenter, thickness);
-    TRect strokeRect( tfloor(thickPoint.x - maxThick - 0.999),
-                      tfloor(thickPoint.y - maxThick - 0.999),
-                      tceil(thickPoint.x + maxThick + 0.999),
-                      tceil(thickPoint.y + maxThick + 0.999) );
+    TRect strokeRect(tfloor(thickPoint.x - maxThick - 0.999),
+                     tfloor(thickPoint.y - maxThick - 0.999),
+                     tceil(thickPoint.x + maxThick + 0.999),
+                     tceil(thickPoint.y + maxThick + 0.999));
     strokeRect *= ras->getBounds();
     m_painting.affectedRect += strokeRect;
     updateWorkAndBackupRasters(m_painting.affectedRect);
@@ -1522,23 +1522,24 @@ void ToonzRasterBrushTool::draw() {
 
   TImageP img = getImage(false, 1);
 
+  // If is Spline Object, no need to draw
   if (getApplication()->getCurrentObject()->isSpline()) return;
+
+  // Whether to draw cursor at stroke end
   if (Preferences::instance()->isUseStrokeEndCursor())
-      ToolUtils::drawCursor(m_viewer, this, m_brushPos, ToolCursor::PenCursor);
+    ToolUtils::drawCursor(m_viewer, this, m_brushPos, ToolCursor::PenCursor);
 
   // If toggled off, don't draw brush outline
-  if (!Preferences::instance()->isCursorOutlineEnabled())
-    return;
+  if (!Preferences::instance()->isCursorOutlineEnabled()) return;
 
-  // Draw the brush outline - change color when the Ink / Paint check is
-  // activated
-  if ((ToonzCheck::instance()->getChecks() & ToonzCheck::eInk) ||
-      (ToonzCheck::instance()->getChecks() & ToonzCheck::ePaint) ||
-      (ToonzCheck::instance()->getChecks() & ToonzCheck::eInk1))
-    glColor3d(0.5, 0.8, 0.8);
-  // normally draw in red
-  else
-    glColor3d(1.0, 0.0, 0.0);
+  // If in Ink / Paint mode, draw in cyan
+  int checks = ToonzCheck::instance()->getChecks();
+  if ((checks & ToonzCheck::eInk) || (checks & ToonzCheck::ePaint) ||
+      (checks & ToonzCheck::eInk1)) {
+    glColor3d(0.5, 0.8, 0.8);  // Cyan
+  } else {
+    glColor3d(1.0, 0.0, 0.0);  // Red
+  }
 
   if (m_isMyPaintStyleSelected) {
     tglDrawCircle(m_brushPos, (m_minCursorThick + 1) * 0.5);
