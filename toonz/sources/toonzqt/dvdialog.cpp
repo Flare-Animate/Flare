@@ -1470,7 +1470,7 @@ int DVGui::eraseStylesInDemand(TPalette *palette, std::vector<int> styleIds,
   QApplication::restoreOverrideCursor();
 
   assert(ret == 2 || ret == 3);
-  return ret == 2;  // return 2 ?     :D
+  return ret == 2;  // return true if need to delete Styles     :D
 }
 
 //-----------------------------------------------------------------------------
