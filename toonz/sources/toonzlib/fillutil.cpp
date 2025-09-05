@@ -441,7 +441,7 @@ void FullColorAreaFiller::rectFill(const TRect &rect,
 //=============================================================================
 // InkSegmenter
 
-const int damInk = 3;
+const int damInk = TPixelCM32::getMaxInk() - 1;
 
 //-----------------------------------------------------------------------------
 
