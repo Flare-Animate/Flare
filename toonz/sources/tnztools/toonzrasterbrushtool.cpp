@@ -752,10 +752,11 @@ ToonzRasterBrushTool::ToonzRasterBrushTool(std::string name, int targetType)
   m_smooth.setNonLinearSlider();
 
   m_prop[0].bind(m_rasThickness);
+  m_prop[0].bind(m_modifierSize);
+
   m_prop[0].bind(m_hardness);
   m_prop[0].bind(m_smooth);
   m_prop[0].bind(m_drawOrder);
-  m_prop[0].bind(m_modifierSize);
   m_prop[0].bind(m_modifierLockAlpha);
   m_prop[0].bind(m_pencil);
   m_prop[0].bind(m_assistants);
