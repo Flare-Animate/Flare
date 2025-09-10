@@ -111,6 +111,7 @@ enum PreferencesItemId {
   // dropdownShortcutsCycleOptions, // removed
   FillOnlysavebox,
   DefRegionWithPaint,
+  ReferFillPrevailing,
   multiLayerStylePickerEnabled,
   cursorBrushType,
   cursorBrushStyle,

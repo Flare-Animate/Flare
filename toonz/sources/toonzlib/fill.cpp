@@ -91,6 +91,10 @@ void fillRow(const TRasterCM32P &r, const TPoint &p, int &xa, int &xb,
     tmp_limit = pix + 10;  // edge stop fill == 10 per default
     if (limit > tmp_limit) limit = tmp_limit;
     for (; pix <= limit; pix++) {
+      if (refImagePut && !USE_PREVAILING_REFER_FILL &&
+          pix->getInk() == TPixelCM32::getMaxInk() &&
+          limit - pix <= (DEF_REGION_WITH_PAINT ? 10 : 9))
+        break;
       if (DEF_REGION_WITH_PAINT && pix->getPaint() != paintAtClickPos) break;
       if (pix->getPaint() == paint) break;
       if (pix->getTone() != 0) break;
@@ -143,6 +147,10 @@ void fillRow(const TRasterCM32P &r, const TPoint &p, int &xa, int &xb,
     tmp_limit = pix - 10;
     if (limit < tmp_limit) limit = tmp_limit;
     for (; pix >= limit; pix--) {
+      if (refImagePut && !USE_PREVAILING_REFER_FILL &&
+          pix->getInk() == TPixelCM32::getMaxInk() &&
+          pix - limit <= (DEF_REGION_WITH_PAINT ? 10 : 9))
+        break;
       if (DEF_REGION_WITH_PAINT && pix->getPaint() != paintAtClickPos) break;
       if (pix->getPaint() == paint) break;
       if (pix->getTone() != 0) break;
@@ -320,7 +328,7 @@ void fullColorFindSegment(const TRaster32P &r, const TPoint &p, int &xa,
 //-----------------------------------------------------------------------------
 
 class FillSeed {
- public:
+public:
   int m_xa, m_xb;
   int m_y, m_dy;
   FillSeed(int xa, int xb, int y, int dy)
@@ -534,14 +542,14 @@ bool fill(const TRasterCM32P &r, const FillParameters &params,
   assert(fillDepth >= 0 && fillDepth < 16);
 
   switch (TPixelCM32::getMaxTone()) {
-    case 15:
-      fillDepth = (15 - fillDepth);
-      break;
-    case 255:
-      fillDepth = ((15 - fillDepth) << 4) | (15 - fillDepth);
-      break;
-    default:
-      assert(false);
+  case 15:
+    fillDepth = (15 - fillDepth);
+    break;
+  case 255:
+    fillDepth = ((15 - fillDepth) << 4) | (15 - fillDepth);
+    break;
+  default:
+    assert(false);
   }
   /*--Look at the colors in the four corners and update the saveBox if any of
    * the colors change. --*/
