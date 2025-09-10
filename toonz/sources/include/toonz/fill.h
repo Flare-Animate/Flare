@@ -26,6 +26,8 @@
 #include "preferences.h"
 #define DEF_REGION_WITH_PAINT                                                  \
   Preferences::instance()->getBoolValue(PreferencesItemId::DefRegionWithPaint)
+#define USE_PREVAILING_REFER_FILL                                               \
+  Preferences::instance()->getBoolValue(PreferencesItemId::ReferFillPrevailing)
 
 class TPalette;
 

@@ -545,6 +545,7 @@ void Preferences::definePreferenceItems() {
   //       int)
   define(FillOnlysavebox, "FillOnlysavebox", QMetaType::Bool, false);
   define(DefRegionWithPaint, "FillDefRegionWithPaint", QMetaType::Bool, true);
+  define(ReferFillPrevailing, "ReferFillPrevailing", QMetaType::Bool, false);
   define(multiLayerStylePickerEnabled, "multiLayerStylePickerEnabled",
          QMetaType::Bool, false);
   define(cursorBrushType, "cursorBrushType", QMetaType::QString, "Small");
