@@ -1146,7 +1146,9 @@ void FullColorEraserTool::leftButtonUp(const TPointD &pos,
 
 void FullColorEraserTool::leftButtonDoubleClick(const TPointD &pos,
                                                 const TMouseEvent &e) {
-  if (m_eraseType.getValue() == RECTERASE) return;
+  std::wstring type = m_eraseType.getValue();
+  if (type == NORMALERASE || type == RECTERASE || type == FREEHANDERASE) return;
+
   TRasterImageP ri(getImage(true));
   if (!ri) return;
   TStroke *stroke;
