@@ -15,6 +15,10 @@
 // Qt includes
 #include <QDialog>
 
+// TnzQt includes
+#include "toonzqt/dvdialog.h"
+#include "toonzqt/imageutils.h"
+
 // boost includes
 #include <boost/optional.hpp>
 
@@ -33,10 +37,8 @@ class TCamera;
 class TPropertyGroup;
 class TXsheet;
 
-namespace DVGui {
-class ProgressDialog;
-}
-
+using namespace DVGui;
+using namespace ImageUtils;
 //====================================================
 
 /*! \file       iocommand.h
@@ -105,16 +107,20 @@ struct LoadResourceArguments {
   };
 
   enum class RenamePolicy {
-      ASK_USER,
-      RENAME,
-      NEVER,
+    ASK_USER,
+    RENAME,
+    NEVER,
   };
+
+  enum class ConvertPolicy {
+    ASK_USER,
+    CONVERT,
+    NEVER,
+  };
+
 public:
   std::vector<ResourceData>
       resourceDatas;  //!< [\p In/Out]  Data identifying a single resource.
-
-  // reuse TFrameIds retrieved by FileBrowser
-  std::vector<std::vector<TFrameId>> frameIdsSet;
 
   TFilePath castFolder;  //!< [\p In]      Cast panel folder where the resources
                          //! will be inserted.
@@ -130,7 +136,9 @@ public:
 
   ImportPolicy importPolicy;  //!< [\p In]      Policy adopted for resources
                               //! external to current scene.
-  RenamePolicy renamePolicy;  
+  RenamePolicy renamePolicy;
+  ConvertPolicy convertPolicy;  // Convert Raster to TLV
+
   bool expose;  //!< [\p In]      Whether resources must be exposed in the
                 //! xsheet.
 
@@ -162,6 +170,8 @@ public:
             Preferences::instance()->getDefaultImportPolicy()))
       , renamePolicy(static_cast<RenamePolicy>(
             Preferences::instance()->getDefaultRenamePolicy()))
+      , convertPolicy(static_cast<ConvertPolicy>(
+            Preferences::instance()->getDefaultConvertPolicy()))
       , expose(Preferences::instance()->isAutoExposeEnabled())
       , xFrom(-1)
       , xTo(-1)
@@ -177,10 +187,46 @@ public:
 
 //------------------------------------------------------------------------
 
-class ConvertingPopup final : public QDialog {
+class ConvertingPopup final : public ProgressDialog {
+private:
+  FrameTaskNotifier *m_notifier = nullptr;
+  TFilePath m_path;
+
 public:
-  ConvertingPopup(QWidget *parent, QString fileName);
-  ~ConvertingPopup();
+  ConvertingPopup(QWidget *parent, TFilePath fp)
+      : ProgressDialog(QString(QObject::tr("Converting %1 to tlv format...")
+                                   .arg(fp.getQString())),
+                       "Cancel", 0, 1, parent)
+      , m_path(fp) {};
+  ConvertingPopup(QWidget *parent, QString str)
+      : ProgressDialog(str, "Cancel", 0, 1, parent) {}
+  ~ConvertingPopup() {
+    if (m_notifier) delete m_notifier;
+  };
+  void setPath(TFilePath filePath) {
+    ProgressDialog::setLabelText(QObject::tr("Converting %1 to tlv format...")
+                                     .arg(filePath.getQString()));
+  };
+  FrameTaskNotifier *getNotifier() {
+    if (m_notifier) delete m_notifier;
+    m_notifier = new FrameTaskNotifier();
+    m_notifier->setParent(this);
+
+    connect(m_notifier, &FrameTaskNotifier::frameCompleted, this,
+            [this](int f) { setValue(f); });
+
+    connect(m_notifier, &FrameTaskNotifier::levelCompleted, this,
+            [this](const TFilePath &fp) {
+              m_path = fp;
+            });
+
+    connect(m_notifier, &FrameTaskNotifier::error, this,
+            [this]() { setLabelText(tr("Error occurred.")); });
+
+    return m_notifier;
+  }
+
+  TFilePath getResultPath() { return m_path; };
 };
 
 //------------------------------------------------------------------------
@@ -205,9 +251,8 @@ enum SaveSceneFlags {
 // se fp esiste gia': se (flags&SILENTLY_OVERWRITE) != 0 sovrascrive
 // silenziosamente, altrimenti
 // chiede il permesso all'utente
-// se l'xsheet corrente non e' l'xsheet principale: se (flags&SAVE_SUBXSHEET) ==
-// 0 salva comunque
-// tutta la scena, altrimenti solo il sottoxsheet
+// se l'xsheet corrente non e' l'xsheet principale: se (flags&SAVE_SUBXSHEET)
+// == 0 salva comunque tutta la scena, altrimenti solo il sottoxsheet
 bool saveScene(const TFilePath &fp, int flags);
 bool saveScene(int flags = 0);
 
@@ -246,8 +291,13 @@ int loadResourceFolders(
 );         //!< Loads the specified folders in current xsheet.
            //!  \return  The actually loaded levels count.
 
-void renameResources(std::vector<LoadResourceArguments::ResourceData>& rds, 
-    bool askUser = true);
+void renameResources(std::vector<LoadResourceArguments::ResourceData> &rds,
+                     bool askUser = true);
+
+void convertNAARaster2TLV(std::vector<LoadResourceArguments::ResourceData> &rds,
+                          bool askUser = true, double dpi = 0,
+                          bool appendPalette = true);
+
 bool exposeLevel(TXshSimpleLevel *sl, int row, int col, bool insert = false,
                  bool overWrite = false);
 bool exposeLevel(TXshSimpleLevel *sl, int row, int col,
@@ -256,8 +306,8 @@ bool exposeLevel(TXshSimpleLevel *sl, int row, int col,
 
 // se e' necessario salvare la scena chiede il permesso all'utente
 // (save,discard,cancel).
-// Ritorna false se l'utente ha risposto Cancel o se il salvataggio della scena
-// e' fallito per qualche motivo
+// Ritorna false se l'utente ha risposto Cancel o se il salvataggio della
+// scena e' fallito per qualche motivo
 bool saveSceneIfNeeded(QString msg);
 
 //! Create and expose column with comment in \b commentList.
