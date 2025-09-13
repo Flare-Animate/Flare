@@ -393,7 +393,8 @@ public:
     TRasterUndo::undo();
     TToonzImageP image = getImage();
     if (!image) return;
-    image->setSavebox(m_savebox);
+    if(m_saveboxOnly && !m_savebox.isEmpty())
+        image->setSavebox(m_savebox);
   }
   void redo() const override {
     TToonzImageP image = getImage();
@@ -1058,7 +1059,6 @@ void doRefFill(const TImageP &img, const TRaster32P &refImg, const TPointD &pos,
 
     // !autoPaintLines will temporary disable autopaint line feature
     if (plt && hasAutoInks(plt) && autopaintLines) params.m_palette = plt;
-    TRaster32P refRas;
     if (params.m_fillType == ALL || params.m_fillType == AREAS) {
       recomputeSavebox = fill(ras, params, &tileSaver, refImg);
     }
@@ -1079,7 +1079,7 @@ void doRefFill(const TImageP &img, const TRaster32P &refImg, const TPointD &pos,
         }
       TUndoManager::manager()->add(new RasterFillUndo(
           tileSet, params, sl, fid,
-          Preferences::instance()->getFillOnlySavebox(), std::move(refRas)));
+          Preferences::instance()->getFillOnlySavebox(), std::move(refImg)));
     }
 
     // al posto di updateFrame:
