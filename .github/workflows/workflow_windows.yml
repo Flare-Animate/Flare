@@ -31,7 +31,7 @@ jobs:
       OpenCV_DIR: C:\tools\opencv\build  # Path to OpenCV.
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           lfs: false
       - name: Install and Configure ccache

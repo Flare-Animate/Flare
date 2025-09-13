@@ -24,7 +24,7 @@ jobs:
     # Stick with macOS 13 to avoid arm64 headaches on macOS 15
     runs-on: macos-13
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Clean Python symlinks
         run: |
