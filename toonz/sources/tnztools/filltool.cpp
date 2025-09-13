@@ -2071,6 +2071,7 @@ void FillTool::computeRefImgsIfNeeded(const FillParameters &params) {
     if (!ti) continue;
 
     auto raux             = ti->getRaster();
+    raux->lock();
     auto imgId            = sl->getImageId(fid, 0);
     TPointD saveboxOffset = TPointD(0, 0);
     if (fillOnlySavebox) {
@@ -2090,6 +2091,8 @@ void FillTool::computeRefImgsIfNeeded(const FillParameters &params) {
       drawReferImage(ras, xsh, m_beginCell.col, slFidToRow[{sl, fid}],
                      saveboxOffset);
     if (closeGap) gapClose(ras, raux, sl, referFill);
+    
+    raux->unlock();
   }
 }
 
