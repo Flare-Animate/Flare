@@ -361,7 +361,8 @@ class RasterFillUndo final : public TRasterUndo {
   FillParameters m_params;
   bool m_saveboxOnly;
   TRect m_savebox;
-  TRaster32P m_refImg;
+  bool m_refGapFill;
+  TTileSetCM32 *m_tileSet = nullptr;
 
 public:
   /*RasterFillUndo(TTileSetCM32 *tileSet, TPoint fillPoint,
@@ -373,33 +374,37 @@ public:
      isShiftFill,
                                                            TXshSimpleLevel* sl,
      const TFrameId& fid)*/
+  ~RasterFillUndo() {
+    if (m_tileSet) delete m_tileSet;
+  }
   RasterFillUndo(TTileSetCM32 *tileSet, const FillParameters &params,
                  TXshSimpleLevel *sl, const TFrameId &fid, bool saveboxOnly,
-                 TRaster32P ref)
+                 bool refGapFill)
       : TRasterUndo(tileSet, sl, fid, false, false, 0)
       , m_params(params)
       , m_saveboxOnly(saveboxOnly)
-      , m_refImg(ref) {
-    if (saveboxOnly) {
-      m_savebox          = TRect();
-      TToonzImageP image = getImage();
-      if (!image)
-        m_savebox = sl->getProperties()->getImageRes();
-      else
-        m_savebox = convert(getImage()->getBBox());
+      , m_refGapFill(refGapFill) {
+    m_savebox          = TRect();
+    TToonzImageP image = getImage();
+    if (!image)
+      m_savebox = sl->getProperties()->getImageRes();
+    else
+      m_savebox = convert(image->getBBox());
+
+    if (refGapFill) {
+      m_tileSet = new TTileSetCM32(image->getRaster()->getSize());
+      m_tileSet->add(image->getRaster(), TRasterUndo::m_tiles->getBBox());
     }
   }
   void undo() const override {
     TRasterUndo::undo();
     TToonzImageP image = getImage();
     if (!image) return;
-    if(m_saveboxOnly && !m_savebox.isEmpty())
-        image->setSavebox(m_savebox);
+    if (m_saveboxOnly && !m_savebox.isEmpty()) image->setSavebox(m_savebox);
   }
   void redo() const override {
     TToonzImageP image = getImage();
     if (!image) return;
-    bool recomputeSavebox = false;
     TRasterCM32P r;
     if (m_saveboxOnly) {
       TRectD temp = image->getBBox();
@@ -407,11 +412,18 @@ public:
       r           = image->getRaster()->extract(ttemp);
     } else
       r = image->getRaster();
+
+    bool recomputeSavebox = false;
     if (m_params.m_fillType == ALL || m_params.m_fillType == AREAS) {
-      TTileSaverCM32 saver = TTileSaverCM32(r, TRasterUndo::m_tiles);
-      fill(r, m_params, &saver);
-      recomputeSavebox =
-          !getImage()->getSavebox().contains(TRasterUndo::m_tiles->getBBox());
+      if (!m_refGapFill) {
+        TTileSaverCM32 saver = TTileSaverCM32(r, TRasterUndo::m_tiles);
+        fill(r, m_params, &saver);
+        recomputeSavebox =
+            !image->getSavebox().contains(TRasterUndo::m_tiles->getBBox());
+      } else if (m_tileSet) {
+        ToonzImageUtils::paste(image, m_tileSet);
+        recomputeSavebox = !image->getSavebox().contains(m_tileSet->getBBox());
+      }
     }
     if (m_params.m_fillType == ALL || m_params.m_fillType == LINES) {
       if (m_params.m_segment)
@@ -430,12 +442,8 @@ public:
   }
 
   int getSize() const override {
-    int refImgSize =
-        m_refImg.getPointer()
-            ? m_refImg->getWrap() * m_refImg->getLy() * m_refImg->getPixelSize()
-            : 0;
-    return sizeof(*this) + TRasterUndo::getSize() + refImgSize;
-    ;
+    return sizeof(*this) + TRasterUndo::getSize() +
+           (m_tileSet ? m_tileSet->getMemorySize() : 0);
   }
 
   QString getToolName() override {
@@ -1096,7 +1104,7 @@ void doRefFill(const TImageP &img, const TRaster32P &refImg, const TPointD &pos,
         }
       TUndoManager::manager()->add(new RasterFillUndo(
           tileSet, params, sl, fid,
-          Preferences::instance()->getFillOnlySavebox(), std::move(refImg)));
+          Preferences::instance()->getFillOnlySavebox(), refImg.getPointer()));
     }
 
     // al posto di updateFrame:
