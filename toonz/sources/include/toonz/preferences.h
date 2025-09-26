@@ -248,6 +248,8 @@ public:
 
   // Loading  tab
   int getDefaultImportPolicy() { return getIntValue(importPolicy); }
+  int getDefaultRenamePolicy() { return getIntValue(renamePolicy); }
+  int getDefaultConvertPolicy() { return getIntValue(convertPolicy); }
   bool isAutoExposeEnabled() const { return getBoolValue(autoExposeEnabled); }
   bool isSubsceneFolderEnabled() const {
     return getBoolValue(subsceneFolderEnabled);
