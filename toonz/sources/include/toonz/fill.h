@@ -132,6 +132,9 @@ else fill ink and paint in rect.
   bool rectFill(const TRect &rect, int color, bool onlyUnfilled,
                 bool fillPaints, bool fillInks);
 
+  // Only for Fill Check
+  bool rectFastFill(const TRect& rect, int color);
+
   /*!
 Fill the raster region contained in spline \b s with \b color.
 \n If  \b fillPaints is false fill only ink in region contained in spline;

@@ -284,6 +284,70 @@ bool AreaFiller::rectFill(const TRect &rect, int color, bool onlyUnfilled,
   return true;
 }
 
+// The rectFill must be fast enough for Fill Check
+bool AreaFiller::rectFastFill(const TRect &rect, int color) {
+  // Viene trattato il caso fillInks
+  /*- In case of FillInk only -*/
+  m_ras->lock();
+  TRect r = m_bounds * rect;
+
+  int dx = r.x1 - r.x0;
+  int dy = (r.y1 - r.y0) * m_wrap;
+  if (dx < 2 || dy < 2)  // rect degenere(area contenuta nulla), skippo.
+    return false;
+
+  TRasterCM32P ras = m_ras->extract(rect.x0, rect.y0, rect.x1, rect.y1);
+
+  int ly = ras->getLy();
+  int lx = ras->getLx();
+
+  // Get the bound seed
+  struct BoundSeed {
+    int x, y, paint;
+  };
+  std::vector<BoundSeed> boundSeeds;
+  boundSeeds.reserve(2 * (lx + ly));
+
+  // Top & Bottom edges' seed
+  for (int x = 0; x < lx; ++x) {
+    boundSeeds.push_back({x, 0, ras->pixels(0)[x].getPaint()});  // top
+    boundSeeds.push_back(
+        {x, ly - 1, ras->pixels(ly - 1)[x].getPaint()});  // bottom
+  }
+
+  // Left & Right edges' seed
+  for (int y = 1; y < ly - 1; ++y) {
+    boundSeeds.push_back({0, y, ras->pixels(y)[0].getPaint()});  // left
+    boundSeeds.push_back(
+        {lx - 1, y, ras->pixels(y)[lx - 1].getPaint()});  // right
+  }
+
+  // Fill with paint
+  for (int y = 0; y < ly; ++y) {
+    TPixelCM32 *pix = ras->pixels(y);
+    for (int x = 0; x < lx; ++x, ++pix) {
+      // do not paint if not empty pixel
+      if (pix->getPaint() != 0) continue;
+      pix->setPaint(color);
+    }
+  }
+
+  // Restore paints from seeds
+  FillParameters params;
+  params.m_prevailing = false;
+  for (const auto &b : boundSeeds) {
+    // no need to paint painted region
+    if (ras->pixels(b.y)[b.x].getPaint() != color) continue;
+
+    params.m_p       = TPoint(b.x, b.y);
+    params.m_styleId = b.paint;
+    fill(ras, params);
+  }
+
+  m_ras->unlock();
+  return true;
+}
+
 //-----------------------------------------------------------------------------
 
 void AreaFiller::strokeFill(const TRect &rect, TStroke *stroke, int color,
