@@ -4,6 +4,7 @@
 
 #include "toonz/fill.h"
 #include "toonz/ttilesaver.h"
+#include "toonz/ttileset.h"
 #include "tpalette.h"
 #include "tpixelutils.h"
 #include "trastercm.h"
@@ -539,7 +540,7 @@ int getMostFrequentNeighborStyleId(TRasterCM32P ras,
 //-----------------------------------------------------------------------------
 }  // namespace
 //-----------------------------------------------------------------------------
-/*-- The return value is whether the saveBox has been updated or not. --*/
+/*-- Return true if fill processed --*/
 bool fill(const TRasterCM32P &r, const FillParameters &params,
           TTileSaverCM32 *saver, const TRaster32P &Ref) {
   TPixelCM32 *pix, *limit, *pix0, *oldpix;
@@ -588,23 +589,6 @@ bool fill(const TRasterCM32P &r, const FillParameters &params,
 
   fillDepth = adjustFillDepth(fillDepth);
   
-  /*--Look at the colors in the four corners and update the saveBox if any of
-   * the colors change. --*/
-  TPixelCM32 borderIndex[4];
-  TPixelCM32 *borderPix[4];
-  pix            = r->pixels(0);
-  borderPix[0]   = pix;
-  borderIndex[0] = *pix;
-  pix += r->getLx() - 1;
-  borderPix[1]   = pix;
-  borderIndex[1] = *pix;
-  pix            = r->pixels(r->getLy() - 1);
-  borderPix[2]   = pix;
-  borderIndex[2] = *pix;
-  pix += r->getLx() - 1;
-  borderPix[3]   = pix;
-  borderIndex[3] = *pix;
-
   std::stack<FillSeed> seeds;
 
   fillRow(r, p, xa, xb, paint, params.m_palette, saver, params.m_prevailing,
@@ -661,14 +645,7 @@ bool fill(const TRasterCM32P &r, const FillParameters &params,
 
   if (refImagePut) TRop::eraseRefInks(r);
 
-  bool saveBoxChanged = false;
-  for (int i = 0; i < 4; i++) {
-    if (!((*borderPix[i]) == borderIndex[i])) {
-      saveBoxChanged = true;
-      break;
-    }
-  }
-  return saveBoxChanged;
+  return true;
 }
 
 //-----------------------------------------------------------------------------

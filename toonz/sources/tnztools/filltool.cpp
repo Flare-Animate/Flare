@@ -408,7 +408,10 @@ public:
     } else
       r = image->getRaster();
     if (m_params.m_fillType == ALL || m_params.m_fillType == AREAS) {
-      recomputeSavebox = fill(r, m_params, 0, m_refImg);
+      TTileSaverCM32 saver = TTileSaverCM32(r, TRasterUndo::m_tiles);
+      fill(r, m_params, &saver);
+      recomputeSavebox =
+          !getImage()->getSavebox().contains(TRasterUndo::m_tiles->getBBox());
     }
     if (m_params.m_fillType == ALL || m_params.m_fillType == LINES) {
       if (m_params.m_segment)
@@ -1072,7 +1075,9 @@ void doRefFill(const TImageP &img, const TRaster32P &refImg, const TPointD &pos,
     // !autoPaintLines will temporary disable autopaint line feature
     if (plt && hasAutoInks(plt) && autopaintLines) params.m_palette = plt;
     if (params.m_fillType == ALL || params.m_fillType == AREAS) {
-      recomputeSavebox = fill(ras, params, &tileSaver, refImg);
+      fill(ras, params, &tileSaver, refImg);
+      recomputeSavebox =
+          !ti->getSavebox().contains(tileSaver.getTileSet()->getBBox());
     }
     if (params.m_fillType == ALL || params.m_fillType == LINES) {
       if (params.m_segment)
