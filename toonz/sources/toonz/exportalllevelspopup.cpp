@@ -345,6 +345,11 @@ void ExportAllLevelsPopup::collectSelectedSimpleLevels() {
     level_to_foldername[sl->getName()] = backFolderName(colname, levelname);
   }
 
+  // Remove the duplicate levels
+  std::sort(outputLevels.begin(), outputLevels.end());
+  outputLevels.erase(std::unique(outputLevels.begin(), outputLevels.end()),
+                     outputLevels.end());
+
   // sort
   auto *p = &level_to_foldername;
   std::sort(outputLevels.begin(), outputLevels.end(),
