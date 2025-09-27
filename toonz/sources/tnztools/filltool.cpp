@@ -399,6 +399,7 @@ public:
   void undo() const override {
     TRasterUndo::undo();
     TToonzImageP image = getImage();
+    if(m_refGapFill) TRop::eraseRefInks(image->getRaster());
     if (!image) return;
     if (m_saveboxOnly && !m_savebox.isEmpty()) image->setSavebox(m_savebox);
   }

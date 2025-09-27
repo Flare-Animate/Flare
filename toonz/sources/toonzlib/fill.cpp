@@ -583,7 +583,9 @@ bool fill(const TRasterCM32P &r, const FillParameters &params,
   bool refImagePut = Ref.getPointer();
   if (refImagePut) {
     if (*(Ref->pixels(p.y) + p.x) != TPixel32(0, 0, 0, 0)) return false;
-    if (saver) saver->save(Ref->getBounds());
+    // !!!! To Save Undo Memory saved refer pixel would be cleared
+    // in rasterFillUndo::undo !!!!
+    // if (saver) saver->save(Ref->getBounds());
     TRop::putRefImage(r, Ref);
   }
 
@@ -642,7 +644,7 @@ bool fill(const TRasterCM32P &r, const FillParameters &params,
     }
     if (oldxd > 0) seeds.push(FillSeed(oldxc, oldxd, y, dy));
   }
-
+  
   if (refImagePut) TRop::eraseRefInks(r);
 
   return true;
