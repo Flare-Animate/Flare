@@ -11,6 +11,8 @@
 #include "tools/toolhandle.h"
 #include "tools/toolutils.h"
 #include "toonz/tonionskinmaskhandle.h"
+#include "toonz/toonzscene.h"
+#include "toonz/tcamera.h"
 #include "timagecache.h"
 #include "tundo.h"
 #include "tpalette.h"
@@ -399,7 +401,7 @@ public:
   void undo() const override {
     TRasterUndo::undo();
     TToonzImageP image = getImage();
-    if(m_refGapFill) TRop::eraseRefInks(image->getRaster());
+    if (m_refGapFill) TRop::eraseRefInks(image->getRaster());
     if (!image) return;
     if (m_saveboxOnly && !m_savebox.isEmpty()) image->setSavebox(m_savebox);
   }
@@ -995,12 +997,12 @@ void drawReferImage(TRaster32P &ras, TXsheet *xsh, int col, int row,
     TStageObject *pegbar =
         xsh->getStageObject(TStageObjectId::ColumnId(colIndex));
     TAffine aff = pegbar->getPlacement(row);
+    // Dpi scale (dpi = 0 if vector)
     TPointD dpi = sl->getDpi();
-    // From stageInch to pixel
     aff.a13 *= dpi.x / Stage::inch;
     aff.a23 *= dpi.y / Stage::inch;
 
-    if (sl->getType() & (TZP_XSHLEVEL | OVL_XSHLEVEL)) {
+    if (sl->getType() & (TZP_XSHLEVEL | OVL_XSHLEVEL | PLI_XSHLEVEL)) {
       TImageP img      = sl->getFrame(cell.m_frameId, false);
       TToonzImageP ti  = img;
       TRasterImageP ri = img;
@@ -1009,10 +1011,17 @@ void drawReferImage(TRaster32P &ras, TXsheet *xsh, int col, int row,
         r = ti->getRaster();
       else if (ri)
         r = ri->getRaster();
+      else {
+        ri = sl->getFrameRasterized(
+            cell.m_frameId, TPointD(Stage::standardDpi, Stage::standardDpi));
+        if (!ri) continue;
+        r = ri->getRaster();
+      }
       if (!r.getPointer()) continue;
       TPointD offset = ras->getCenterD() - r->getCenterD() + saveboxoffset;
       r32->clear();
-      if (ri) TRop::quickPut(r32, r, TTranslation(offset));
+      if (ri)
+        TRop::quickPut(r32, r, TTranslation(offset + convert(ri->getOffset())));
       if (ti) {
         TRop::CmappedQuickputSettings st;
         st.m_inksOnly = true;
@@ -1022,8 +1031,6 @@ void drawReferImage(TRaster32P &ras, TXsheet *xsh, int col, int row,
             TTranslation(-ras->getCenterD());
       assert(r32->getSize() == ras->getSize());
       TRop::quickPut(ras, r32, aff);
-    } else if (sl->getType() == PLI_XSHLEVEL) {
-      // TODO: ToonzVector?
     }
   }
 };
@@ -2078,6 +2085,8 @@ void FillTool::computeRefImgsIfNeeded(const FillParameters &params) {
 
   // Caculate every refImg
   bool fillOnlySavebox = Preferences::instance()->getFillOnlySavebox();
+  TPointD cameraDpi =
+      app->getCurrentScene()->getScene()->getCurrentCamera()->getDpi();
   for (auto [sl, fid] : m_slFidsPairs) {
     if (sl->getType() != TXshLevelType::TZP_XSHLEVEL) continue;
 

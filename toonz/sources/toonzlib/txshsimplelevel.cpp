@@ -698,6 +698,24 @@ TImageP TXshSimpleLevel::getFullsampledFrame(const TFrameId &fid,
 
 //-----------------------------------------------------------------------------
 
+TRasterImageP TXshSimpleLevel::getFrameRasterized(const TFrameId &fid,
+                                                  TPointD dpi) const {
+  assert(m_type == PLI_XSHLEVEL);
+
+  FramesSet::const_iterator it = m_frames.find(fid);
+  if (it == m_frames.end()) return TRasterImageP();
+
+  std::string imageId = getImageId(fid);
+  imageId             = rasterized(imageId);
+  ImageLoader::BuildExtData extData(this, fid, 1);
+  extData.m_cameraDPI = dpi;
+  TImageP img =
+      ImageManager::instance()->getImage(imageId, ImageManager::none, &extData);
+  return img;
+}
+
+//-----------------------------------------------------------------------------
+
 std::string TXshSimpleLevel::getIconId(const TFrameId &fid,
                                        int frameStatus) const {
   return "icon:" + getImageId(fid, frameStatus);
@@ -1972,7 +1990,7 @@ void TXshSimpleLevel::initializePalette() {
 
   TFilePath fullPath;
   TPalette *palette = new TPalette();
-  int type = getType();
+  int type          = getType();
   switch (type) {
   case TZP_XSHLEVEL:
     fullPath =
@@ -2014,11 +2032,10 @@ void TXshSimpleLevel::initializePalette() {
     break;
   }
 
-  
   if (palette && type != OVL_XSHLEVEL) {
     palette->setPaletteName(getName());
   }
-  
+
   palette->setDirtyFlag(true);
   setPalette(palette);
 }
