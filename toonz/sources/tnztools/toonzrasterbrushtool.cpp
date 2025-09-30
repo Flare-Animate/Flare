@@ -731,7 +731,7 @@ static void Smooth(std::vector<TThickPoint> &points, const int radius,
 ToonzRasterBrushTool::ToonzRasterBrushTool(std::string name, int targetType)
     : TTool(name)
     , m_rasThickness("Size", 1, 1000, 1, 5)
-    , m_smooth("Smooth:", 0, 50, 0)
+    , m_smooth("Smooth:", 0, 500, 0)
     , m_hardness("Hardness:", 0, 100, 100)
     , m_preset("Preset:")
     , m_drawOrder("Draw Order:")
@@ -1054,7 +1054,7 @@ bool ToonzRasterBrushTool::askWrite(const TRect &rect) {
 //---------------------------------------------------------------------------------------------------
 
 void ToonzRasterBrushTool::updateModifiers() {
-  int smoothRadius                = (int)round(m_smooth.getValue());
+  int smoothRadius                = m_smooth.getValue();
   m_modifierAssistants->magnetism = m_assistants.getValue() ? 1 : 0;
   m_inputmanager.drawPreview      = false;  //! m_modifierAssistants->drawOnly;
 
