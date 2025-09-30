@@ -1528,7 +1528,8 @@ void ToonzRasterBrushTool::draw() {
 
   // Whether to draw cursor at stroke end
   if (Preferences::instance()->isUseStrokeEndCursor())
-    ToolUtils::drawCursor(m_viewer, this, m_brushPos, ToolCursor::PenCursor);
+    ToolUtils::drawCursor(m_viewer, this, m_brushPos, ToolCursor::PenCursor,
+                          true);
 
   // If toggled off, don't draw brush outline
   if (!Preferences::instance()->isCursorOutlineEnabled()) return;
