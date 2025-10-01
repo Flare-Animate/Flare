@@ -973,18 +973,26 @@ void fillAreaWithUndo(const TImageP &img, const TRaster32P &ref,
       delete fUndo;
   }
 }
+inline void applyDpiTransform(TAffine &aff, TPointD srcDpi, TPointD dstDpi) {
+  const double sx = dstDpi.x / srcDpi.x;
+  const double sy = dstDpi.y / srcDpi.y;
+  aff             = TScale(sx, sy) * aff;
+}
+inline void applyStageToPixel(TAffine &aff, const TPointD &dpi) {
+  aff.a13 *= dpi.x / Stage::inch;
+  aff.a23 *= dpi.y / Stage::inch;
+}
 
 void drawReferImage(TRaster32P &ras, TXsheet *xsh, int col, int row,
                     TPointD saveboxoffset) {
   assert(col >= 0);
-  TXshColumn *column   = xsh->getColumn(col);
-  TStageObject *pegbar = xsh->getStageObject(TStageObjectId::ColumnId(col));
-  TAffine cAff         = pegbar->getPlacement(row);
-  TXshCell cell        = xsh->getCell(row, col);
-  TPointD dpi          = cell.getSimpleLevel()->getDpi();
-  cAff.a13 *= dpi.x / Stage::inch;
-  cAff.a23 *= dpi.y / Stage::inch;
-  TRaster32P r32(ras->getSize());
+
+  TStageObject *curPegbar = xsh->getStageObject(TStageObjectId::ColumnId(col));
+  TAffine curAff          = curPegbar->getPlacement(row);
+  TXshCell curCell        = xsh->getCell(row, col);
+  TPointD curDpi          = curCell.getSimpleLevel()->getDpi();
+  // Convert from stage units (stageInches) to pixel units
+  applyStageToPixel(curAff, curDpi);
 
   for (int colIndex = 0; colIndex < xsh->getColumnCount(); ++colIndex) {
     if (colIndex == col) continue;
@@ -997,10 +1005,12 @@ void drawReferImage(TRaster32P &ras, TXsheet *xsh, int col, int row,
     TStageObject *pegbar =
         xsh->getStageObject(TStageObjectId::ColumnId(colIndex));
     TAffine aff = pegbar->getPlacement(row);
-    // Dpi scale (dpi = 0 if vector)
-    TPointD dpi = sl->getDpi();
-    aff.a13 *= dpi.x / Stage::inch;
-    aff.a23 *= dpi.y / Stage::inch;
+
+    // The dpi might not be stored in vector level
+    // And the dpi of vector level should always be standardDpi
+    TPointD dpi = sl->getType() == PLI_XSHLEVEL
+                      ? TPointD(Stage::standardDpi, Stage::standardDpi)
+                      : sl->getDpi();
 
     if (sl->getType() & (TZP_XSHLEVEL | OVL_XSHLEVEL | PLI_XSHLEVEL)) {
       TImageP img      = sl->getFrame(cell.m_frameId, false);
@@ -1018,19 +1028,31 @@ void drawReferImage(TRaster32P &ras, TXsheet *xsh, int col, int row,
         r = ri->getRaster();
       }
       if (!r.getPointer()) continue;
-      TPointD offset = ras->getCenterD() - r->getCenterD() + saveboxoffset;
-      r32->clear();
-      if (ri)
-        TRop::quickPut(r32, r, TTranslation(offset + convert(ri->getOffset())));
+
+      // Compute offset to align refer image center to fill image center
+      TPointD offset = ras->getCenterD() - r->getCenterD();
+      if (ri) offset += convert(ri->getOffset());
+      TTranslation centerAlignment = TTranslation(offset);
+
+      // Convert from stage units (stageInches) to pixel units
+      applyStageToPixel(aff, dpi);
+
+      // Scale to current level dpi
+      applyDpiTransform(aff, dpi, curDpi);
+
+      // Combine all transformations
+      TAffine finalAff = TTranslation(saveboxoffset) *
+                         TTranslation(ras->getCenterD()) * curAff.inv() * aff *
+                             TTranslation(-ras->getCenterD()) * centerAlignment;
+
+      // Put refer Image
       if (ti) {
         TRop::CmappedQuickputSettings st;
         st.m_inksOnly = true;
-        TRop::quickPut(r32, r, sl->getPalette(), TTranslation(offset), st);
+        TRop::quickPut(ras, r, sl->getPalette(), finalAff, st);
+      } else {
+        TRop::quickPut(ras, r, finalAff);
       }
-      aff = TTranslation(ras->getCenterD()) * cAff.inv() * aff *
-            TTranslation(-ras->getCenterD());
-      assert(r32->getSize() == ras->getSize());
-      TRop::quickPut(ras, r32, aff);
     }
   }
 };
