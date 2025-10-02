@@ -119,7 +119,9 @@ class FillTool final : public QObject, public TTool {
   TBoolProperty m_autopaintLines;
 
   SlFidsPairs m_slFidsPairs;
-  RefImgTable m_refImgTable;// imageId
+  RefImgTable m_refImgTable;  // imageId
+
+  bool m_isAltPressed = false;
 
 public:
   FillTool(int targetType);
