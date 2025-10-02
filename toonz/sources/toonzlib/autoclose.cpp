@@ -1,4 +1,4 @@
-
+ï»¿
 
 // #define AUTOCLOSE_DEBUG
 
@@ -8,6 +8,8 @@
 #include "skeletonlut.h"
 #include "toonz/fill.h"
 #include <set>
+#include <queue>
+#include <unordered_set>
 
 // #define AUT_SPOT_SAMPLES 40
 using namespace SkeletonLut;
@@ -200,92 +202,188 @@ TRasterGR8P fillByteRaster(const TRasterCM32P &r, TRasterGR8P &bRaster) {
 #define SET_INK                                                                \
   if (buf->getTone() == buf->getMaxTone())                                     \
     *buf = TPixelCM32(inkIndex, buf->getPaint(), 255 - opacity);
-// Check if a segment needs to be closed
-// Return true ¡ú needs closure; false ¡ú no closure needed
-bool needCloseSegment(const TRasterCM32P &r, const TAutocloser::Segment &s) {
+
+const bool isSmallEnclosedRegion(const TRasterCM32P &ras, int x, int y,
+                                 int maxSize) {
+  if (!ras || x < 0 || y < 0 || x >= ras->getLx() || y >= ras->getLy())
+    return false;
+
+  TPixelCM32 *startRow = ras->pixels(y);
+  if (!startRow[x].isPurePaint()) return false;
+
+  int paint = startRow[x].getPaint();
+
+  static std::queue<TPoint> queue;
+  static std::unordered_set<int> visited;
+
+  queue = std::queue<TPoint>();
+  visited.clear();
+  visited.reserve(maxSize + 1);
+  visited.insert(y * ras->getLx() + x);
+  queue.push(TPoint(x, y));
+
+  while (!queue.empty() && visited.size() <= maxSize) {
+    TPoint p = queue.front();
+    queue.pop();
+
+    const int directions[4][2] = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+
+    for (int i = 0; i < 4; i++) {
+      int nx = p.x + directions[i][0];
+      int ny = p.y + directions[i][1];
+
+      if (nx < 0 || ny < 0 || nx >= ras->getLx() || ny >= ras->getLy()) {
+        return false;
+      }
+
+      int key = ny * ras->getLx() + nx;
+      if (visited.find(key) != visited.end()) continue;
+
+      TPixelCM32 *row = ras->pixels(ny);
+      if (row[nx].getPaint() == paint && row[nx].isPurePaint()) {
+        visited.insert(key);
+        queue.push(TPoint(nx, ny));
+        if (visited.size() > maxSize) return false;
+      }
+    }
+  }
+
+  return visited.size() <= maxSize;
+}
+// For Paint defined Region
+void closeSegment(const TRasterCM32P &r, const TAutocloser::Segment &s,
+                  const USHORT ink, const USHORT opacity) {
   int x1 = s.first.x, y1 = s.first.y;
   int x2 = s.second.x, y2 = s.second.y;
 
-  int dx  = std::abs(x2 - x1);
-  int dy  = std::abs(y2 - y1);
-  int sx  = (x2 > x1) ? 1 : -1;
-  int sy  = (y2 > y1) ? 1 : -1;
-  int err = dx - dy;
+  if (x1 > x2) {
+    std::swap(x1, x2);
+    std::swap(y1, y2);
+  }
+
+  int dx = x2 - x1;
+  int dy = y2 - y1;
+
+  int nx = 0, ny = 0;
+
+  if (dy >= 0) {
+    if (dy <= dx) {
+      nx = 0;
+      ny = 1;
+    } else {
+      nx = 1;
+      ny = 0;
+    }
+  } else {
+    int abs_dy = -dy;
+    if (abs_dy <= dx) {
+      nx = 0;
+      ny = -1;
+    } else {
+      nx = 1;
+      ny = 0;
+    }
+  }
+
+  int abs_dx = std::abs(dx);
+  int abs_dy = std::abs(dy);
+  int sx     = (dx > 0) ? 1 : -1;
+  int sy     = (dy > 0) ? 1 : -1;
+  int err    = abs_dx - abs_dy;
 
   int x = x1;
   int y = y1;
-
-  int side1_count   = 0;
-  int side2_count   = 0;
-  int line_count    = 0;
-  int total_checked = 0;
+  std::vector<TPoint> points;
 
   while (true) {
+    TPixelCM32 *pix = r->pixels(y) + x;
     // Only check side pixels if current line pixel is purePaint
-    if (r->pixels(y)[x].isPurePaint()) {
-      total_checked++;
+    if (pix->isPurePaint()) {
+      pix->setInk(ink);
+      pix->setTone(255 - opacity);
+      bool shouldKeep = true;
+      int linePaint        = pix->getPaint();
 
-      // Calculate perpendicular offsets for this pixel
-      int nx = (dy <= dx) ? 0 : 1;  // mostly horizontal ¡ú vertical neighbors
-      int ny = (dy <= dx) ? 1 : 0;  // mostly vertical ¡ú horizontal neighbors
-
-      // Line
-      if (r->pixels(y)[x].getPaint()) line_count++;
-
-      // Side 1 (+offset)
-      int sx1 = x + nx;
-      int sy1 = y + ny;
-      if (sx1 >= 0 && sy1 >= 0 && sx1 < r->getLx() && sy1 < r->getLy()) {
-        if (r->pixels(sy1)[sx1].getPaint()) side1_count++;
+      int sx1        = x + nx;
+      int sy1        = y + ny;
+      int side1Paint = -1;
+      if (sx1 >= 0 && sx1 < r->getLx() && sy1 >= 0 && sy1 < r->getLy()) {
+        side1Paint = r->pixels(sy1)[sx1].getPaint();
       }
 
-      // Side 2 (-offset)
-      int sx2 = x - nx;
-      int sy2 = y - ny;
-      if (sx2 >= 0 && sy2 >= 0 && sx2 < r->getLx() && sy2 < r->getLy()) {
-        if (r->pixels(sy2)[sx2].getPaint()) side2_count++;
+      int sx2        = x - nx;
+      int sy2        = y - ny;
+      int side2Paint = -1;
+      if (sx2 >= 0 && sx2 < r->getLx() && sy2 >= 0 && sy2 < r->getLy()) {
+        side2Paint = r->pixels(sy2)[sx2].getPaint();
       }
+
+      bool notEdge = (side1Paint == side2Paint && linePaint == side1Paint);
+      if (notEdge) {
+        bool side1Small = isSmallEnclosedRegion(r, sx1, sy1, 4);
+        bool side2Small = isSmallEnclosedRegion(r, sx2, sy2, 4);
+        if (side1Small || side2Small) {
+          pix->setTone(TPixelCM32::getMaxTone());
+          pix->setInk(0);
+          shouldKeep = false;
+        }
+      } else if (!((x == x1 && y == y1) || (x == x2 && y == y2))) {
+        pix->setTone(TPixelCM32::getMaxTone());
+        pix->setInk(0);
+        shouldKeep = false;
+      }
+      if (shouldKeep) points.push_back(TPoint(x, y));
     }
 
     if (x == x2 && y == y2) break;
 
     int e2 = 2 * err;
-    if (e2 > -dy) {
-      err -= dy;
+    if (e2 > -abs_dy) {
+      err -= abs_dy;
       x += sx;
     }
-    if (e2 < dx) {
-      err += dx;
+    if (e2 < abs_dx) {
+      err += abs_dx;
       y += sy;
     }
   }
 
-  if (total_checked == 0) {
-    return false;
+  // Clear lonely pixels (Intersection Point)
+  // Mostly an endpoint of one gap
+  // It's also one point on the other gap close line
+  if (points.size() == 1 && points.front() != s.first &&
+      points.front() != s.second)
+    return;
+  for (auto [x, y] : points) {
+    TPixelCM32 *pix = r->pixels(y) + x;
+    bool lonely     = true;
+    int paint       = r->pixels(y)[x].getPaint();
+    const int dx[8] = {-1, 0, 1, -1, 1, -1, 0, 1};
+    const int dy[8] = {-1, -1, -1, 0, 0, 1, 1, 1};
+
+    for (int i = 0; i < 8; ++i) {
+      int nx          = x + dx[i];
+      int ny          = y + dy[i];
+      TPixelCM32 *pix = r->pixels(ny) + nx;
+      if (nx >= 0 && nx < r->getLx() && ny >= 0 && ny < r->getLy()) {
+        if (pix->getInk() == ink && pix->getPaint() == paint) {
+          lonely = false;
+          break;
+        }
+      }
+    }
+
+    if (lonely) {
+      pix->setTone(TPixelCM32::getMaxTone());
+      pix->setInk(0);
+    }
   }
 
-  double line_ratio  = static_cast<double>(line_count) / total_checked;
-  double side1_ratio = static_cast<double>(side1_count) / total_checked;
-  double side2_ratio = static_cast<double>(side2_count) / total_checked;
-
-  const double THRESHOLD = 0.8;
-  bool line_ok       = (line_ratio >= THRESHOLD);
-  bool side1_ok          = (side1_ratio >= THRESHOLD);
-  bool side2_ok          = (side2_ratio >= THRESHOLD);
-
-  // Only one side with sufficient paint coverage is enough to skip closure
-  if (side1_ok || side2_ok || line_ok) {
-    return false;
-  }
-
-  return true;  // both sides not sufficiently painted ¡ú needs closure
+  return;
 }
 
 void drawSegment(TRasterCM32P &r, const TAutocloser::Segment &s,
                  USHORT inkIndex, USHORT opacity) {
-  // Check if this segment actually needs closing
-  if (DEF_REGION_WITH_PAINT && !needCloseSegment(r, s)) return;
-
   int wrap        = r->getWrap();
   TPixelCM32 *buf = r->pixels();
   /*
@@ -317,6 +415,7 @@ return;
   dy = y2 - y1;
 
   x = y = 0;
+  SET_INK;
 
   if (dy >= 0) {
     if (dy <= dx)
@@ -330,6 +429,8 @@ return;
     else
       DRAW_SEGMENT(y, x, dy, dx, (buf -= wrap), (buf -= (wrap - 1)), SET_INK)
   }
+
+  SET_INK;
 }
 
 /*------------------------------------------------------------------------*/
@@ -395,8 +496,12 @@ void TAutocloser::Imp::draw(const std::vector<Segment> &closingSegmentArray) {
   if (m_raster->getLx() == 0 || m_raster->getLy() == 0)
     throw TException("Autoclose error: bad image size");
 
-  for (int i = 0; i < (int)closingSegmentArray.size(); i++)
-    drawSegment(raux, closingSegmentArray[i], m_inkIndex, m_opacity);
+  if (DEF_REGION_WITH_PAINT)
+    for (int i = 0; i < (int)closingSegmentArray.size(); i++)
+      closeSegment(raux, closingSegmentArray[i], m_inkIndex, m_opacity);
+  else
+    for (int i = 0; i < (int)closingSegmentArray.size(); i++)
+      drawSegment(raux, closingSegmentArray[i], m_inkIndex, m_opacity);
 }
 
 /*------------------------------------------------------------------------*/
@@ -627,7 +732,7 @@ void TAutocloser::Imp::findMeetingPoints(
   m_spotAngle *= (M_PI / 180.0);
 
   // spotResearchTwoPoints
-  // Angle Range: 0¡ã~36¡ã
+  // Angle Range: 0Â°~36Â°
   double limitedAngle = m_spotAngle / 10;
   m_csp               = cos(limitedAngle);
   m_snp               = sin(limitedAngle);
