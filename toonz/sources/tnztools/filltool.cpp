@@ -1043,7 +1043,7 @@ void drawReferImage(TRaster32P &ras, TXsheet *xsh, int col, int row,
       // Combine all transformations
       TAffine finalAff = TTranslation(saveboxoffset) *
                          TTranslation(ras->getCenterD()) * curAff.inv() * aff *
-                             TTranslation(-ras->getCenterD()) * centerAlignment;
+                         TTranslation(-ras->getCenterD()) * centerAlignment;
 
       // Put refer Image
       if (ti) {
@@ -2190,6 +2190,11 @@ FillParameters FillTool::getFillParameters() const {
 //-----------------------------------------------------------------------------
 
 void FillTool::leftButtonDown(const TPointD &pos, const TMouseEvent &e) {
+  m_isAltPressed = e.isAltPressed();
+  if (m_isAltPressed)
+    Preferences::instance()->setValue(PreferencesItemId::DefRegionWithPaint,
+                                      !DEF_REGION_WITH_PAINT);
+
   m_clickPoint = pos;
   // Area mode
   if (m_fillType.getValue() != NORMALFILL) {
@@ -2317,17 +2322,15 @@ void FillTool::leftButtonUp(const TPointD &pos, const TMouseEvent &e) {
   if (m_fillType.getValue() != NORMALFILL) {
     buildFillInfo(params);  // Frame range, refFill and so on
     m_areaFillTool->leftButtonUp(pos, e);
-    return;
   }
 
   // Line mode
-  if ((m_colorType.getValue() == LINES) && m_targetType == TTool::ToonzImage) {
+  else if ((m_colorType.getValue() == LINES) && m_targetType == TTool::ToonzImage) {
     m_normalLineFillTool->leftButtonUp(pos, e, getImage(true), params);
-    return;
   }
 
   // Normal Fill
-  if (m_onion.getValue() && m_onionStyleId > 0) {
+  else if (m_onion.getValue() && m_onionStyleId > 0) {
     buildFillInfo(params);  // Frame range, refFill and so on
     doRefFill(getImage(true),
               m_refImgTable[m_level->getImageId(getCurrentFid(), false)], pos,
@@ -2336,6 +2339,10 @@ void FillTool::leftButtonUp(const TPointD &pos, const TMouseEvent &e) {
     m_onionStyleId = 0;
     invalidate();
   }
+
+  if (m_isAltPressed)
+      Preferences::instance()->setValue(PreferencesItemId::DefRegionWithPaint,
+          (!DEF_REGION_WITH_PAINT));
 }
 
 //-----------------------------------------------------------------------------
