@@ -17,6 +17,7 @@
 #include "toonz/fill.h"
 
 #include <QObject>
+#include <qevent.h>
 
 #define LINES L"Lines"
 #define AREAS L"Areas"
@@ -89,7 +90,7 @@ class FillTool final : public QObject, public TTool {
   bool m_frameSwitched             = false;
   double m_changedGapOriginalValue = -1.0;
   TXshSimpleLevelP m_level;
-  TFrameId m_firstFrameId, m_veryFirstFrameId;
+  TFrameId m_firstFrameId;
   int m_onionStyleId;
   TEnumProperty m_colorType;  // Line, Area
   TEnumProperty m_fillType;   // Rect, Polyline etc.
@@ -105,7 +106,7 @@ class FillTool final : public QObject, public TTool {
   NormalLineFillTool *m_normalLineFillTool;
 
   TPropertyGroup m_prop;
-  struct cellPos {
+  struct CellPos {
     int col, row;
   } m_beginCell;
 
@@ -137,10 +138,10 @@ public:
   void leftButtonDown(const TPointD &pos, const TMouseEvent &e) override;
   void leftButtonDrag(const TPointD &pos, const TMouseEvent &e) override;
   void leftButtonUp(const TPointD &pos, const TMouseEvent &e) override;
-  bool keyDown(QKeyEvent* e) override;
+  bool keyDown(QKeyEvent *e) override;
   void mouseMove(const TPointD &pos, const TMouseEvent &e) override;
   void leftButtonDoubleClick(const TPointD &pos, const TMouseEvent &e) override;
-  void resetMulti();
+  void resetMulti(bool resetAreaFiller = false);
 
   bool onPropertyChanged(std::string propertyName, bool addToUndo) override;
   void onImageChanged() override;

@@ -117,30 +117,17 @@ public:
       , m_newColorStyle(newColorStyle)
       , m_oldColorStyle(oldColorStyle)
       , m_point(clickPoint)
-      , m_type(fillType) {
-    TTool::Application *app = TTool::getApplication();
-    if (app) {
-      m_row    = app->getCurrentFrame()->getFrame();
-      m_column = app->getCurrentColumn()->getColumnIndex();
-    }
-  }
+      , m_type(fillType) {}
 
   void undo() const override {
-    TTool::Application *app = TTool::getApplication();
-    if (!app) return;
-
-    app->getCurrentLevel()->setLevel(m_level.getPointer());
     TVectorImageP img = m_level->getFrame(m_frameId, true);
-    if (app->getCurrentFrame()->isEditingScene()) {
-      app->getCurrentFrame()->setFrame(m_row);
-      app->getCurrentColumn()->setColumnIndex(m_column);
-    } else
-      app->getCurrentFrame()->setFid(m_frameId);
     assert(img);
     if (!img) return;
     QMutexLocker lock(img->getMutex());
 
     vectorFill(img, m_type, m_point, m_oldColorStyle);
+    TTool::Application *app = TTool::getApplication();
+    if (!app) return;
 
     app->getCurrentXsheet()->notifyXsheetChanged();
     notifyImageChanged();
@@ -150,13 +137,7 @@ public:
     TTool::Application *app = TTool::getApplication();
     if (!app) return;
 
-    app->getCurrentLevel()->setLevel(m_level.getPointer());
     TVectorImageP img = m_level->getFrame(m_frameId, true);
-    if (app->getCurrentFrame()->isEditingScene()) {
-      app->getCurrentFrame()->setFrame(m_row);
-      app->getCurrentColumn()->setColumnIndex(m_column);
-    } else
-      app->getCurrentFrame()->setFid(m_frameId);
     assert(img);
     if (!img) return;
     QMutexLocker lock(img->getMutex());
@@ -365,6 +346,7 @@ class RasterFillUndo final : public TRasterUndo {
   TRect m_savebox;
   bool m_refGapFill;
   TTileSetCM32 *m_tileSet = nullptr;
+  int m_column, m_row;
 
 public:
   /*RasterFillUndo(TTileSetCM32 *tileSet, TPoint fillPoint,
@@ -1159,8 +1141,7 @@ void doRefFill(const TImageP &img, const TRaster32P &refImg, const TPointD &pos,
 
     TXshSimpleLevel *sl = xl->getSimpleLevel();
     sl->getProperties()->setDirtyFlag(true);
-    if (recomputeSavebox)
-      ToolUtils::updateSaveBox(sl, fid);
+    if (recomputeSavebox) ToolUtils::updateSaveBox(sl, fid);
 
     ras->unlock();
   } else if (TVectorImageP vi = TImageP(img)) {
@@ -1185,23 +1166,61 @@ void doFill(const TImageP &img, const TPointD &pos, FillParameters &params,
   doRefFill(img, TRaster32P(), pos, params, isShiftFill, sl, fid,
             autopaintLines);
 }
+
+//---------------------------------------------------
+
+class FillToolSelectionUndo final : public TToolUndo {
+public:
+  FillToolSelectionUndo(int row, int col, TXshSimpleLevel *sl, TFrameId fid)
+      : TToolUndo(sl, fid) {
+    TToolUndo::m_row = row;
+    TToolUndo::m_col = col;
+  }
+  void undo() const override {
+    TTool::Application *app = TTool::getApplication();
+    if (!app) return;
+
+    app->getCurrentLevel()->setLevel(m_level.getPointer());
+    if (app->getCurrentFrame()->isEditingScene()) {
+      app->getCurrentFrame()->setFrame(m_row);
+      app->getCurrentColumn()->setColumnIndex(m_col);
+    } else
+      app->getCurrentFrame()->setFid(m_frameId);
+
+    bool isVectorLevel = m_level->getType() == TXshLevelType::PLI_XSHLEVEL;
+    TTool *tool        = TTool::getTool(
+        "T_Fill", isVectorLevel ? TTool::ToolTargetType::VectorImage
+                                       : TTool::ToolTargetType::ToonzImage);
+    if (tool) {
+      FillTool *fillTool = dynamic_cast<FillTool *>(tool);
+      if (fillTool) fillTool->resetMulti(true);
+    }
+  }
+  void redo() const override {}
+  int getSize() const override { return sizeof(*this); }
+};
+
 //=============================================================================
 // SequencePainter
 // da spostare in toolutils?
 //-----------------------------------------------------------------------------
 
 class SequencePainter {
+  FillToolSelectionUndo *m_selectionUndo = nullptr;
+
 public:
   virtual void process(TImageP img /*, TImageLocation &imgloc*/, double t,
                        TXshSimpleLevel *sl, const TFrameId &fid) = 0;
   void processSequence(const SlFidsPairs &SlFidsPairs);
   virtual ~SequencePainter() {}
+  void setSelectionUndo(FillToolSelectionUndo *undo) { m_selectionUndo = undo; }
 };
 
 //-----------------------------------------------------------------------------
 
 void SequencePainter::processSequence(const SlFidsPairs &slFidsPairs) {
   TUndoManager::manager()->beginBlock();
+  if (m_selectionUndo) TUndoManager::manager()->add(m_selectionUndo);
   int m = slFidsPairs.size();
   int i = 0;
   for (auto &[sl, fid] : slFidsPairs) {
@@ -1565,9 +1584,12 @@ void AreaFillTool::leftButtonDoubleClick(const TPointD &pos,
   int styleIndex = app->getCurrentLevelStyleIndex();
   if (m_frameRange)  // stroke multi
   {
-    if (m_firstFrameSelected) {
+    if (m_firstFrameSelected && !slFidsPairs.empty()) {
       MultiAreaFiller filler(refImgTable, m_firstStroke, stroke, m_onlyUnfilled,
                              m_colorType, styleIndex, m_autopaintLines);
+      filler.setSelectionUndo(new FillToolSelectionUndo(
+          m_currCell.second, m_currCell.first, slFidsPairs[0].first,
+          slFidsPairs[0].second));
       filler.processSequence(slFidsPairs);
 
       m_parent->invalidate(m_selectingRect.enlarge(2));
@@ -1651,10 +1673,13 @@ void AreaFillTool::leftButtonUp(const TPointD &pos, const TMouseEvent &e) {
       std::swap(m_selectingRect.y0, m_selectingRect.y1);
 
     if (m_frameRange) {
-      if (m_firstFrameSelected) {
+      if (m_firstFrameSelected && !slFidsPairs.empty()) {
         MultiAreaFiller filler(refImgTable, m_firstRect, m_selectingRect,
                                m_onlyUnfilled, m_colorType, styleIndex,
                                m_autopaintLines);
+        filler.setSelectionUndo(new FillToolSelectionUndo(
+            m_currCell.second, m_currCell.first, slFidsPairs[0].first,
+            slFidsPairs[0].second));
         filler.processSequence(slFidsPairs);
         m_parent->invalidate(m_selectingRect.enlarge(2));
         if (e.isShiftPressed()) {
@@ -1717,6 +1742,9 @@ void AreaFillTool::leftButtonUp(const TPointD &pos, const TMouseEvent &e) {
         MultiAreaFiller filler(refImgTable, m_firstStroke, stroke,
                                m_onlyUnfilled, m_colorType, styleIndex,
                                m_autopaintLines);
+        filler.setSelectionUndo(new FillToolSelectionUndo(
+            m_currCell.second, m_currCell.first, slFidsPairs[0].first,
+            slFidsPairs[0].second));
         filler.processSequence(slFidsPairs);
         m_parent->invalidate(m_selectingRect.enlarge(2));
         if (e.isShiftPressed()) {
@@ -2031,12 +2059,11 @@ void FillTool::buildFillInfo(const FillParameters &params) {
   if (!m_firstFrameSelected) {
     if (m_fillType.getValue() != NORMALFILL) m_firstFrameSelected = true;
 
-    TXshLevel *xl   = app->getCurrentLevel()->getLevel();
-    m_level         = xl ? xl->getSimpleLevel() : 0;
-    m_beginCell.col = getColumnIndex();
-    m_beginCell.row = getFrame();
-    m_firstFrameId = m_veryFirstFrameId = getCurrentFid();
-    m_firstPoint                        = m_mousePos;
+    TXshLevel *xl  = app->getCurrentLevel()->getLevel();
+    m_level        = xl ? xl->getSimpleLevel() : 0;
+    m_beginCell    = {getColumnIndex(), getFrame()};
+    m_firstFrameId = getCurrentFid();
+    m_firstPoint   = m_mousePos;
     invalidate();
     if (m_frameRange.getValue()) return;
   }
@@ -2049,9 +2076,10 @@ void FillTool::buildFillInfo(const FillParameters &params) {
       int endRow = getFrame();
       auto xsh   = app->getCurrentXsheet()->getXsheet();
       TXshCell cell, oldCell;
-      int step = m_beginCell.row <= endRow ? +1 : -1;
-      for (int row = m_beginCell.row; row != endRow + step; row += step) {
-        cell = xsh->getCell(row, m_beginCell.col);
+      CellPos firstPos = m_beginCell;
+      int step         = firstPos.row <= endRow ? +1 : -1;
+      for (int row = firstPos.row; row != endRow + step; row += step) {
+        cell = xsh->getCell(row, firstPos.col);
         if (!cell.isEmpty() && cell != oldCell) {
           if (std::find(
                   m_slFidsPairs.begin(), m_slFidsPairs.end(),
@@ -2227,7 +2255,7 @@ void FillTool::leftButtonDown(const TPointD &pos, const TMouseEvent &e) {
     invalidate();
   } else if (!m_firstFrameSelected)
     m_firstFrameSelected = true;
-  else {  // Multi
+  else if (!m_slFidsPairs.empty()) {  // Multi
     // When using tablet on windows, the mouse press event may be called AFTER
     // tablet release. It causes unwanted another "first click" just after
     // frame-range-filling. Calling processEvents() here to make sure to
@@ -2236,17 +2264,21 @@ void FillTool::leftButtonDown(const TPointD &pos, const TMouseEvent &e) {
     // SECONDO CLICK
     MultiFiller filler(m_refImgTable, m_firstPoint, pos, params,
                        m_autopaintLines.getValue());
+    filler.setSelectionUndo(new FillToolSelectionUndo(
+        m_beginCell.row, m_beginCell.col, m_slFidsPairs[0].first,
+        m_slFidsPairs[0].second));
     filler.processSequence(m_slFidsPairs);
 
     if (e.isShiftPressed()) {
       m_firstPoint   = pos;
       m_firstFrameId = getCurrentFid();
+      m_beginCell    = {getColumnIndex(), getFrame()};
     } else {
       if (app->getCurrentFrame()->isEditingScene()) {
         app->getCurrentColumn()->setColumnIndex(m_beginCell.col);
         app->getCurrentFrame()->setFrame(m_beginCell.row);
       } else
-        app->getCurrentFrame()->setFid(m_veryFirstFrameId);
+        app->getCurrentFrame()->setFid(m_firstFrameId);
       resetMulti();
     }
     TTool *t = app->getCurrentTool()->getTool();
@@ -2325,7 +2357,8 @@ void FillTool::leftButtonUp(const TPointD &pos, const TMouseEvent &e) {
   }
 
   // Line mode
-  else if ((m_colorType.getValue() == LINES) && m_targetType == TTool::ToonzImage) {
+  else if ((m_colorType.getValue() == LINES) &&
+           m_targetType == TTool::ToonzImage) {
     m_normalLineFillTool->leftButtonUp(pos, e, getImage(true), params);
   }
 
@@ -2341,8 +2374,8 @@ void FillTool::leftButtonUp(const TPointD &pos, const TMouseEvent &e) {
   }
 
   if (m_isAltPressed)
-      Preferences::instance()->setValue(PreferencesItemId::DefRegionWithPaint,
-          (!DEF_REGION_WITH_PAINT));
+    Preferences::instance()->setValue(PreferencesItemId::DefRegionWithPaint,
+                                      (!DEF_REGION_WITH_PAINT));
 }
 
 //-----------------------------------------------------------------------------
@@ -2360,7 +2393,8 @@ bool FillTool::keyDown(QKeyEvent *e) {
   return false;
 }
 
-void FillTool::resetMulti() {
+void FillTool::resetMulti(bool resetAreaFiller) {
+  if (resetAreaFiller) m_areaFillTool->resetMulti();
   m_firstFrameSelected = false;
   m_firstFrameId       = -1;
   m_firstPoint         = TPointD();
@@ -2549,6 +2583,7 @@ void FillTool::draw() {
     tglColor(TPixel::Red);
     invalidate();
     drawCross(m_firstPoint, 6);
+    // double distance = tdistance(m_firstPoint, m_mousePos);
     drawLine(m_firstPoint, m_mousePos);
   }
 }
@@ -2743,4 +2778,4 @@ void FillTool::onDeactivate() {
 //-----------------------------------------------------------------------------
 
 FillTool FillVectorTool(TTool::VectorImage);
-FillTool FiilRasterTool(TTool::ToonzImage);
+FillTool FillRasterTool(TTool::ToonzImage);
