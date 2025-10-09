@@ -2347,6 +2347,19 @@ void FillTool::leftButtonUp(const TPointD &pos, const TMouseEvent &e) {
 
 //-----------------------------------------------------------------------------
 
+bool FillTool::keyDown(QKeyEvent *e) {
+  if (e && e->key() == Qt::Key_Escape) {
+    if (m_fillType.getValue() != NORMALFILL)
+      m_areaFillTool->resetMulti();
+    else
+      resetMulti();
+    // accepted
+    return true;
+  }
+  //Not accepted
+  return false;
+}
+
 void FillTool::resetMulti() {
   m_firstFrameSelected = false;
   m_firstFrameId       = -1;
