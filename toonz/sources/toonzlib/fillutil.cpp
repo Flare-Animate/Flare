@@ -328,7 +328,7 @@ bool AreaFiller::rectFastFill(const TRect &rect, int color) {
   if (dx < 2 || dy < 2)  // rect degenere(area contenuta nulla), skippo.
     return false;
 
-  TRasterCM32P ras = m_ras->extract(rect.x0, rect.y0, rect.x1, rect.y1);
+  TRasterCM32P ras = m_ras->extract(r.x0, r.y0, r.x1, r.y1);
 
   int ly = ras->getLy();
   int lx = ras->getLx();
@@ -338,20 +338,45 @@ bool AreaFiller::rectFastFill(const TRect &rect, int color) {
     int x, y, paint;
   };
   std::vector<BoundSeed> boundSeeds;
-  boundSeeds.reserve(2 * (lx + ly));
+  bool fillTop     = r.y0 != m_bounds.y0;
+  bool fillBot     = r.y1 != m_bounds.y1;
+  bool fillLft     = r.x0 != m_bounds.x0;
+  bool fillRgt     = r.x1 != m_bounds.x1;
+  int expectedSize = 0;
+  if (fillTop) expectedSize += lx;
+  if (fillBot) expectedSize += lx;
+  if (fillLft) expectedSize += std::max(0, ly - 2);
+  if (fillRgt) expectedSize += std::max(0, ly - 2);
+  boundSeeds.reserve(expectedSize);
 
-  // Top & Bottom edges' seed
-  for (int x = 0; x < lx; ++x) {
-    boundSeeds.push_back({x, 0, ras->pixels(0)[x].getPaint()});  // top
-    boundSeeds.push_back(
-        {x, ly - 1, ras->pixels(ly - 1)[x].getPaint()});  // bottom
+  // Top edge seed
+  if (fillTop) {
+    TPixelCM32 *topLine = ras->pixels(0);
+    for (int x = 0; x < lx; ++x)
+      boundSeeds.push_back({x, 0, topLine[x].getPaint()});
   }
 
-  // Left & Right edges' seed
-  for (int y = 1; y < ly - 1; ++y) {
-    boundSeeds.push_back({0, y, ras->pixels(y)[0].getPaint()});  // left
-    boundSeeds.push_back(
-        {lx - 1, y, ras->pixels(y)[lx - 1].getPaint()});  // right
+  // Bottom edge seed
+  if (fillBot) {
+    TPixelCM32 *botLine = ras->pixels(ly - 1);
+    for (int x = 0; x < lx; ++x)
+      boundSeeds.push_back({x, ly - 1, botLine[x].getPaint()});
+  }
+
+  // Left edge seed
+  if (fillLft) {
+    for (int y = 1; y < ly - 1; ++y) {
+      TPixelCM32 *line = ras->pixels(y);
+      boundSeeds.push_back({0, y, line[0].getPaint()});
+    }
+  }
+
+  // Right edge seed
+  if (fillRgt) {
+    for (int y = 1; y < ly - 1; ++y) {
+      TPixelCM32 *line = ras->pixels(y);
+      boundSeeds.push_back({lx - 1, y, line[lx - 1].getPaint()});
+    }
   }
 
   // Fill with paint
