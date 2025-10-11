@@ -42,6 +42,8 @@ public:
   TPoint m_p;
   TPalette *m_palette;  // Whether to fill autoPaint Ink
   bool m_prevailing;
+  bool m_defRegionWithPaint;
+  bool m_usePrevailingReferFill;
 
   FillParameters()
       : m_styleId(0)
@@ -53,7 +55,12 @@ public:
       , m_p()
       , m_shiftFill(false)
       , m_palette(0)
-      , m_prevailing(true) {}
+      , m_prevailing(true)
+      , m_defRegionWithPaint(true)
+      , m_usePrevailingReferFill(false) {
+    m_defRegionWithPaint     = DEF_REGION_WITH_PAINT;
+    m_usePrevailingReferFill = USE_PREVAILING_REFER_FILL;
+  }
   FillParameters(const FillParameters &params)
       : m_styleId(params.m_styleId)
       , m_fillType(params.m_fillType)
@@ -64,7 +71,9 @@ public:
       , m_p(params.m_p)
       , m_shiftFill(params.m_shiftFill)
       , m_palette(params.m_palette)
-      , m_prevailing(params.m_prevailing) {}
+      , m_prevailing(params.m_prevailing)
+      , m_defRegionWithPaint(params.m_defRegionWithPaint)
+      , m_usePrevailingReferFill(params.m_usePrevailingReferFill) {}
 };
 
 //=============================================================================
@@ -134,7 +143,7 @@ else fill ink and paint in rect.
                 bool fillPaints, bool fillInks);
 
   // Only for Fill Check
-  bool rectFastFill(const TRect& rect, int color);
+  bool rectFastFill(const TRect &rect, int color);
 
   /*!
 Fill the raster region contained in spline \b s with \b color.
@@ -148,7 +157,8 @@ else fill ink and paint in region contained in spline.
 private:
   const void processPixel(TPixelCM32 &pix, const TPixelCM32 &bak, bool invert,
                           int color, bool onlyUnfilled, bool fillPaints,
-                          bool fillInks);
+                          bool fillInks, bool defRegionWithPaint,
+                          bool usePrevailingReferFill);
 };
 
 class DVAPI FullColorAreaFiller {
@@ -172,21 +182,20 @@ else fill ink and paint in rect.
 };
 
 class RefImageGuard {
-    const TRasterCM32P& m_r;
-    bool m_refPlaced;
+  const TRasterCM32P &m_r;
+  bool m_refPlaced;
 
 public:
-    RefImageGuard(const TRasterCM32P& raster, const TRaster32P& Ref)
-        : m_r(raster), m_refPlaced(Ref.getPointer() != nullptr) {
-        m_r->lock();
-        if (m_refPlaced) TRop::putRefImage(const_cast<TRasterCM32P&>(m_r), Ref);
-    }
+  RefImageGuard(const TRasterCM32P &raster, const TRaster32P &Ref)
+      : m_r(raster), m_refPlaced(Ref.getPointer() != nullptr) {
+    m_r->lock();
+    if (m_refPlaced) TRop::putRefImage(const_cast<TRasterCM32P &>(m_r), Ref);
+  }
 
-    ~RefImageGuard() {
-        m_r->unlock();
-        if (m_refPlaced) TRop::eraseRefInks(const_cast<TRasterCM32P&>(m_r));
-    }
+  ~RefImageGuard() {
+    m_r->unlock();
+    if (m_refPlaced) TRop::eraseRefInks(const_cast<TRasterCM32P &>(m_r));
+  }
 };
-
 
 #endif

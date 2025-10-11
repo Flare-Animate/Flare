@@ -1808,7 +1808,6 @@ void FillToolOptionsBox::updateStatus() {
 void FillToolOptionsBox::onColorModeChanged(int index) {
   const TEnumProperty::Range &range = m_colorMode->getProperty()->getRange();
   bool enabled                      = range[index] != L"Lines";
-  m_multiFrameMode->setEnabled(enabled);
   m_selectiveMode->setEnabled(enabled);
   if (m_autopaintMode) m_autopaintMode->setEnabled(enabled);
   if (m_fillDepthLabel && m_fillDepthField) {
