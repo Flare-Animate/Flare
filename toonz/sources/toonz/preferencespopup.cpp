@@ -1615,6 +1615,10 @@ PreferencesPopup::PreferencesPopup()
   }
   setLayout(mainLayout);
 
+#ifdef MACOSX
+  setWindowFlags(Qt::Tool);
+#endif
+
   bool ret = connect(categoryList, SIGNAL(currentRowChanged(int)),
                      stackedWidget, SLOT(setCurrentIndex(int)));
 
