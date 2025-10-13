@@ -159,6 +159,7 @@ private:
                           int color, bool onlyUnfilled, bool fillPaints,
                           bool fillInks, bool defRegionWithPaint,
                           bool usePrevailingReferFill);
+  const void removeUnneedReferLines(const TRasterCM32P &ras);
 };
 
 class DVAPI FullColorAreaFiller {
