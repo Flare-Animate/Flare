@@ -505,7 +505,7 @@ void MainWindow::changeWindowTitle() {
                  QString::fromStdString(TEnv::getApplicationFullName());
 
   if (ShowBuildDateInTitle) {
-      name += " (built " __DATE__ " " __TIME__ ")";
+    name += " (built " __DATE__ " " __TIME__ ")";
   }
   setWindowTitle(name);
 }
@@ -1970,7 +1970,7 @@ void MainWindow::defineActions() {
                         "Replace Vectors with Simplified Vectors"),
       "");
   createMenuLevelAction(MI_FillHoles, QT_TR_NOOP("&Fill Holes..."), "",
-      "Fill small holes in Toonz Raster Level");
+                        "Fill small holes in Toonz Raster Level");
   createMenuLevelAction(MI_Tracking, QT_TR_NOOP("Tracking..."), "", "focus");
 
   // Menu - Xsheet
@@ -2548,6 +2548,11 @@ void MainWindow::defineActions() {
   createToolAction(T_Finger, "finger", QT_TR_NOOP("Finger Tool"), "");
   createToolAction(T_EditAssistants, "assistant", QT_TR_NOOP("Edit Assistants"),
                    "");
+  // Viewer Navigation tools (available only during the shortcut key is pressed)
+  createToolAction(T_ZoomView, "zoom", QT_TR_NOOP("Zoom View"), "Shift+Space");
+  createToolAction(T_RotateView, "rotate", QT_TR_NOOP("Rotate View"),
+                   "Ctrl+Space");
+  createToolAction(T_HandView, "hand", QT_TR_NOOP("Pan View"), "Space");
 
   /*-- Animate tool + mode switching shortcuts --*/
   createAction(MI_EditNextMode, QT_TR_NOOP("Animate Tool - Next Mode"), "",

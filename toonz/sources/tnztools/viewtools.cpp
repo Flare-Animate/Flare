@@ -21,7 +21,8 @@ class ZoomTool final : public TTool {
   double m_factor;
 
 public:
-  ZoomTool() : TTool("T_Zoom"), m_dragging(false), m_oldX(0), m_factor(1) {
+  ZoomTool(std::string name)
+      : TTool(name), m_dragging(false), m_oldX(0), m_factor(1) {
     bind(TTool::AllTargets);
   }
 
@@ -31,10 +32,10 @@ public:
 
   void leftButtonDown(const TPointD &pos, const TMouseEvent &e) override {
     if (!m_viewer) return;
-    m_dragging              = true;
-    int v                   = 1;
+    m_dragging = true;
+    int v      = 1;
     if (e.isAltPressed()) v = -1;
-    m_oldX                  = e.m_pos.x;
+    m_oldX = e.m_pos.x;
     // m_center = getViewer()->winToWorld(e.m_pos);
     m_center = TPointD(e.m_pos.x, e.m_pos.y);
     m_factor = 1;
@@ -81,7 +82,7 @@ public:
 
   int getCursorId() const override { return ToolCursor::ZoomCursor; }
 
-} zoomTool;
+} zoomTool("T_Zoom"), zoomViewTool("T_ZoomView");
 
 //=============================================================================
 // Hand Tool
@@ -92,7 +93,7 @@ class HandTool final : public TTool {
   TPointD m_oldPos;
 
 public:
-  HandTool() : TTool("T_Hand") { bind(TTool::AllTargets); }
+  HandTool(std::string name) : TTool(name) { bind(TTool::AllTargets); }
 
   ToolType getToolType() const override { return TTool::GenericTool; }
 
@@ -122,7 +123,7 @@ public:
 
   int getCursorId() const override { return ToolCursor::PanCursor; }
 
-} handTool;
+} handTool("T_Hand"), handViewTool("T_HandView");
 
 }  // namespace
 
@@ -130,8 +131,8 @@ public:
 // Rotate Tool
 //-----------------------------------------------------------------------------
 
-RotateTool::RotateTool()
-    : TTool("T_Rotate")
+RotateTool::RotateTool(std::string name)
+    : TTool(name)
     , m_dragging(false)
     , m_cameraCentered("Rotate On Camera Center", false)
     , m_angle(0) {
@@ -190,11 +191,11 @@ void RotateTool::draw() {
   if (m_cameraCentered.getValue())
     m_center = TPointD(0, 0);
   else {
-    TAffine aff                        = m_viewer->getViewMatrix().inv();
+    TAffine aff = m_viewer->getViewMatrix().inv();
     if (m_viewer->getIsFlippedX()) aff = aff * TScale(-1, 1);
     if (m_viewer->getIsFlippedY()) aff = aff * TScale(1, -1);
-    u                                  = u * sqrt(aff.det());
-    m_center                           = aff * TPointD(0, 0);
+    u        = u * sqrt(aff.det());
+    m_center = aff * TPointD(0, 0);
   }
   tglDrawSegment(TPointD(-u + m_center.x, m_center.y),
                  TPointD(u + m_center.x, m_center.y));
@@ -204,4 +205,4 @@ void RotateTool::draw() {
 
 int RotateTool::getCursorId() const { return ToolCursor::RotateCursor; }
 
-RotateTool rotateTool;
+RotateTool rotateTool("T_Rotate"), rotateViewTool("T_RotateView");

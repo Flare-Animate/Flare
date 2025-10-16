@@ -1681,12 +1681,12 @@ PaintbrushToolOptionsBox::PaintbrushToolOptionsBox(QWidget *parent, TTool *tool,
   m_selectiveMode =
       dynamic_cast<ToolOptionCheckbox *>(m_controls.value("Selective"));
   m_emptyOnlyMode =
-      dynamic_cast<ToolOptionCheckbox*>(m_controls.value("Empty Only"));
+      dynamic_cast<ToolOptionCheckbox *>(m_controls.value("Empty Only"));
 
   m_lockAlphaMode =
       dynamic_cast<ToolOptionCheckbox *>(m_controls.value("Lock Alpha"));
   m_FillingMode =
-      dynamic_cast<ToolOptionCheckbox*>(m_controls.value("Paint by Filling"));
+      dynamic_cast<ToolOptionCheckbox *>(m_controls.value("Paint by Filling"));
 
   if (m_colorMode->getProperty()->getValue() == L"Lines") {
     m_selectiveMode->setVisible(false);
@@ -2946,7 +2946,7 @@ void ToolOptions::onToolSwitched() {
   TTool *tool             = currTool->getTool();
 
   // Skip panel updates if we're in navigation mode
-  if (currTool && currTool->isSpacePressed()) {
+  if (currTool && currTool->isViewerNavigationToolSelected()) {
     return;
   }
 
