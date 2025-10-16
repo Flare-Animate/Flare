@@ -24,7 +24,7 @@ class RotateTool final : public QObject, public TTool {
   TPropertyGroup m_prop;
 
 public:
-  RotateTool();
+  RotateTool(std::string name);
 
   ToolType getToolType() const override { return TTool::GenericTool; }
   void updateMatrix() override { return setMatrix(TAffine()); }
