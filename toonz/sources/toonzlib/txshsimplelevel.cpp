@@ -1201,6 +1201,16 @@ void TXshSimpleLevel::load() {
     assert(lr);
 
     TLevelP level = lr->loadInfo();
+    if (level->isPartialLoad()) {
+      QString msg =
+          QString(
+              "File '%1' partially loaded. Not all frames were found. Possible "
+              "file corruption. Loaded what could be found.\nRecommend "
+              "replacing any bad frames in Level Strip and saving.")
+              .arg(QString::fromStdWString(m_path.getWideString()));
+      QMessageBox::warning(0, "File load warning", msg);
+      setDirtyFlag(true);
+    }
     if (level->getFrameCount() > 0) {
       const TImageInfo *info = lr->getImageInfo(level->begin()->first);
 
