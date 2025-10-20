@@ -82,7 +82,9 @@ public:
                    QString("/Contents/Resources/SystemVar.ini");
 #else
 #ifdef HAIKU
-    settingsPath = QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation) + "/SystemVar.ini";
+    settingsPath =
+        QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation) +
+        "/SystemVar.ini";
 #else /* Generic Unix */
     // TODO: use QStandardPaths::ConfigLocation when we drop Qt4
     settingsPath = QDir::homePath();
@@ -179,16 +181,13 @@ public:
       m_applicationFullName += " " + m_version.getAppNote();
 
     m_moduleName  = m_version.getAppName();
-    // m_rootVarName value is usually inited by SetRootVarName(), but sometimes
-    // init would be called before SetRootVarName(), so init it here one time
-    m_rootVarName = "TOONZROOT";
-    //m_rootVarName = toUpper(m_version.getAppName()) + "ROOT";
+    m_rootVarName = m_version.getSystemVarPrefix() + "ROOT";
 #ifdef _WIN32
     // from v1.3, registry root is moved to SOFTWARE\\OpenToonz\\OpenToonz
     m_registryRoot =
         TFilePath("SOFTWARE\\OpenToonz\\") + m_version.getAppName();
 #endif
-    m_systemVarPrefix = m_version.getAppName();
+    m_systemVarPrefix = m_version.getSystemVarPrefix();
     updateEnvFile();
   }
 
@@ -217,12 +216,14 @@ public:
   std::string getModuleName() { return m_moduleName; }
 
   void setRootVarName(std::string varName) {
+    if (m_rootVarName == varName) return;
     m_rootVarName = varName;
     updateEnvFile();
   }
   std::string getRootVarName() { return m_rootVarName; }
 
   void setSystemVarPrefix(std::string prefix) {
+    if (m_systemVarPrefix == prefix) return;
     m_systemVarPrefix = prefix;
     updateEnvFile();
   }
@@ -599,11 +600,11 @@ std::string TEnv::getSystemVarPrefix() {
 }
 
 TFilePath TEnv::getStuffDir() {
-  //#ifdef MACOSX
-  // return TFilePath("/Applications/Toonz 5.0/Toonz 5.0 stuff");
-  //#else
+  // #ifdef MACOSX
+  //  return TFilePath("/Applications/Toonz 5.0/Toonz 5.0 stuff");
+  // #else
   return EnvGlobals::instance()->getStuffDir();
-  //#endif
+  // #endif
 }
 
 bool TEnv::getIsPortable() { return EnvGlobals::instance()->getIsPortable(); }

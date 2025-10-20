@@ -173,9 +173,6 @@ public:
     m_multi.setId("FrameRange");
     m_ignoreAP.setId("IgnoreautoPaintInks");
     m_closeType.setId("Type");
-    ToonzCheck::instance()->setAutocloseSettings(
-        AutocloseDistance, AutocloseAngle, AutocloseOpacity,
-        AutocloseIgnoreAutoPaint);
   }
 
   //------------------------------------------------------------
@@ -263,7 +260,7 @@ public:
           selArea = stroke->getBBox();
         }
 
-        myRect = ToonzImageUtils::convertWorldToRaster(selArea, ti);
+        myRect             = ToonzImageUtils::convertWorldToRaster(selArea, ti);
         TRect enlargedRect = myRect.enlarge(params.m_closingDistance);
         ras                = raux->extract(enlargedRect);
         delta              = enlargedRect.getP00();
@@ -288,7 +285,7 @@ public:
     } else if ((closeType == FREEHAND_CLOSE || closeType == POLYLINE_CLOSE) &&
                stroke) {
       checkSegments(segments, stroke, raux, delta);
-    };//Normal
+    };  // Normal
 
     std::vector<TAutocloser::Segment> segments2(segments);
 
@@ -324,7 +321,7 @@ public:
   }
 
   //============================================================
-  
+
   void multiApplyAutoclose(TFrameId firstFid, TFrameId lastFid,
                            TRectD firstRect, TRectD lastRect,
                            TStroke *firstStroke = 0, TStroke *lastStroke = 0) {
@@ -388,7 +385,7 @@ public:
     if (firstFrameId > lastFrameId) {
       std::swap(firstFrameId, lastFrameId);
     }
-    if(firstFrameId > lastFrameId) return;
+    if (firstFrameId > lastFrameId) return;
 
     std::vector<TFrameId> allFids;
     m_level->getFids(allFids);
@@ -526,24 +523,23 @@ public:
     } else if (m_multi.getValue() && m_firstFrameSelected)
       drawCross(m_firstPoint, 5);
 
-    //if (ToonzCheck::instance()->getChecks() & ToonzCheck::eAutoclose) {
-    //  auto fid = getCurrentFid();
-    //    auto Id =
-    //      getApplication()->getCurrentLevel()->getSimpleLevel()->getImageId(
-    //          fid, 0);
-    //  if (TAutocloser::hasSegmentCache(Id)) {
-    //    auto ti        = (TToonzImageP)m_level->getFrame(fid, false);
-    //    if (!ti) return;
-    //    TPointD center = ti->getRaster()->getCenterD();
-    //      tglColor(TPixel32::Red);
-    //    for (auto seg : TAutocloser::getSegmentCache(Id)) {
-    //      TPointD centerPos = convert((seg.first + seg.second) / 2) - center;
-    //      double radius     = std::sqrt(norm2(seg.first - seg.second)) / 2.0;
-    //      tglDrawCircle(centerPos, radius);
-    //    }
-    //  }
-    //}
-
+    // if (ToonzCheck::instance()->getChecks() & ToonzCheck::eAutoclose) {
+    //   auto fid = getCurrentFid();
+    //     auto Id =
+    //       getApplication()->getCurrentLevel()->getSimpleLevel()->getImageId(
+    //           fid, 0);
+    //   if (TAutocloser::hasSegmentCache(Id)) {
+    //     auto ti        = (TToonzImageP)m_level->getFrame(fid, false);
+    //     if (!ti) return;
+    //     TPointD center = ti->getRaster()->getCenterD();
+    //       tglColor(TPixel32::Red);
+    //     for (auto seg : TAutocloser::getSegmentCache(Id)) {
+    //       TPointD centerPos = convert((seg.first + seg.second) / 2) - center;
+    //       double radius     = std::sqrt(norm2(seg.first - seg.second)) / 2.0;
+    //       tglDrawCircle(centerPos, radius);
+    //     }
+    //   }
+    // }
   }
 
   //------------------------------------------------------------
@@ -594,8 +590,8 @@ public:
     m_selectingRect.empty();
     TTool::Application *app = TTool::getApplication();
     m_level                 = app->getCurrentLevel()->getLevel()
-                  ? app->getCurrentLevel()->getSimpleLevel()
-                  : 0;
+                                  ? app->getCurrentLevel()->getSimpleLevel()
+                                  : 0;
     m_firstFrameId = m_veryFirstFrameId = getFrameId();
     m_firstStroke                       = 0;
   }
@@ -736,6 +732,9 @@ public:
       m_opacity.setValue(AutocloseOpacity);
       m_multi.setValue(AutocloseRange ? 1 : 0);
       m_ignoreAP.setValue(AutocloseIgnoreAutoPaint ? 1 : 0);
+      ToonzCheck::instance()->setAutocloseSettings(
+          AutocloseDistance, AutocloseAngle, AutocloseOpacity,
+          AutocloseIgnoreAutoPaint);
       m_firstTime = false;
     }
     //			getApplication()->editImage();
@@ -831,7 +830,7 @@ public:
     vi.addStroke(app);
     vi.findRegions();
     std::vector<TAutocloser::Segment>::iterator it = segments.begin();
-    while(it != segments.end()) {
+    while (it != segments.end()) {
       int i;
       bool isContained = false;
       for (i = 0; i < (int)vi.getRegionCount(); i++) {
@@ -843,7 +842,8 @@ public:
       }
       if (!isContained)
         it = segments.erase(it);
-      else ++it;
+      else
+        ++it;
     }
   }
 
@@ -854,7 +854,7 @@ public:
       int i;
       bool isContained = false;
       if (rect.contains(convert(it->first + delta)) &&
-          rect.contains(convert(it->second+ delta))) {
+          rect.contains(convert(it->second + delta))) {
         isContained = true;
       }
       if (!isContained)
