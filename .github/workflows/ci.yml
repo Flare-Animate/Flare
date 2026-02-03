@@ -19,11 +19,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup CMake
-        uses: jetbrains/setup-cmake@v4
-        with:
-          cmake-version: '3.27'
-
       - name: Configure
         run: |
           cmake -S . -B build -DCMAKE_BUILD_TYPE=${{ matrix.config }}
