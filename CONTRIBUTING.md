@@ -11,7 +11,7 @@ We will first review the request, then we will accept it, add comments for rewor
 ### Workflow
 
 0. `fork` Flare to your GitHub account from `Flare/Flare`.
-  - (use the `fork` button at the https://github.com/Flare/Flare)
+  - (use the `fork` button at the https://github.com/Flare-Animate/Flare)
 0. `clone` the repository.
   - `git clone git@github.com:your-github-account/Flare.git`
   - `git remote add upstream https://github.com/Flare/Flare.git`, additionally.
@@ -32,7 +32,7 @@ We will first review the request, then we will accept it, add comments for rewor
 
 ## Bugs
 
-If you find bugs, please report details about them using [issues](https://github.com/Flare/Flare/issues).
+If you find bugs, please report details about them using [issues](https://github.com/Flare-Animate/Flare/issues).
 Please include information needed to reproduce the bug, including the operating system 
 and information directly relating to the issue. Links to screen captures of what is 
 observed on screen or video of specific steps to produce the problem are very helpful.  
