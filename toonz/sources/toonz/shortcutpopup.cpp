@@ -755,8 +755,8 @@ void ShortcutPopup::buildPresets() {
   m_presetChoiceCB->addItem("OpenToonz", QString("defopentoonz"));
   // m_presetChoiceCB->addItem("RETAS PaintMan", QString("otretas"));
   m_presetChoiceCB->addItem("Toon Boom Harmony", QString("otharmony"));
-  m_presetChoiceCB->addItem("Adobe Animate", QString("otanimate"));
-  m_presetChoiceCB->addItem("Adobe Animate (Legacy)", QString("otadobe"));
+  m_presetChoiceCB->addItem("Animate", QString("otanimate"));
+  m_presetChoiceCB->addItem("Animate (Legacy)", QString("otadobe"));
 
   TFilePath presetDir =
       ToonzFolder::getMyModuleDir() + TFilePath("shortcutpresets");
