@@ -18,7 +18,7 @@ inspired by Animate and introduces native import support for SWF files
 (when FFmpeg is available) and experimental helpers for FLA projects.
 
 For the original Flare project and its history, see the Flare website:
-https://Flare.github.io/e/index.html
+[https://Flare.github.io/e/index.html](https://flare-animate.github.io/index.html/)
 
 ## Program Requirements
 
