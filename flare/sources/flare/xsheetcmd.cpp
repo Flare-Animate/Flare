@@ -61,10 +61,12 @@
 #include "columncommand.h"
 #include "xshcellviewer.h"  // SetCellMarkUndo
 #include "navtageditorpopup.h"
+#include "castselection.h"
 
 // Qt includes
 #include <QClipboard>
 #include <QInputDialog>
+#include <functional>
 
 // tcg includes
 #include "tcg/boost/range_utility.h"
@@ -694,7 +696,6 @@ private:
   int m_count;
   bool m_selected;
   TCellSelection::Range m_range;
-  std::vector<std::pair<int, int>> emptyCells;
   std::vector<std::pair<int, int>> emptyCells;
   typedef std::map<std::pair<int, int>, int> FramesMap;
   FramesMap m_frameRanges;
@@ -1958,6 +1959,7 @@ void XsheetWriter::cell(ostream &os, int r, int c) {
     TXshLevel *level = cell.m_level.getPointer();
     std::string type = "levelcell";
     if (level->getChildLevel())
+
       type = "subxsheetcell";
     else if (level->getZeraryFxLevel())
       type = "fxcell";
@@ -2298,3 +2300,121 @@ public:
     TApp::instance()->getCurrentXsheetViewer()->update();
   }
 } ClearTags;
+
+// Increment Instances Undo/Command
+struct IncInstItem {
+  TXsheet *m_xsh;
+  int m_r;
+  int m_c;
+  TXshCell m_oldCell;
+  TXshCell m_newCell;
+};
+
+class IncrementInstancesUndo final : public TUndo {
+  std::vector<IncInstItem> m_items;
+  QString m_symbolName;
+
+public:
+  IncrementInstancesUndo(const std::vector<IncInstItem> &items,
+                          const QString &symbolName)
+      : m_items(items), m_symbolName(symbolName) {}
+
+  void undo() const override {
+    for (const IncInstItem &it : m_items) it.m_xsh->setCell(it.m_r, it.m_c, it.m_oldCell);
+    TApp::instance()->getCurrentXsheet()->notifyXsheetChanged();
+  }
+
+  void redo() const override {
+    for (const IncInstItem &it : m_items) it.m_xsh->setCell(it.m_r, it.m_c, it.m_newCell);
+    TApp::instance()->getCurrentXsheet()->notifyXsheetChanged();
+  }
+
+  int getSize() const override { return sizeof(*this); }
+
+  QString getHistoryString() override {
+    return QObject::tr("Increment Instances : %1").arg(m_symbolName);
+  }
+  int getHistoryType() override { return HistoryType::Xsheet; }
+};
+
+class IncrementInstancesCommand final : public MenuItemHandler {
+public:
+  IncrementInstancesCommand() : MenuItemHandler(MI_IncrementInstances) {}
+  void execute() override {
+    TSelection *selection = TSelection::getCurrent();
+    CastSelection *castSelection = dynamic_cast<CastSelection *>(selection);
+    if (!castSelection) {
+      DVGui::error(QObject::tr("Select a symbol in the Library first."));
+      return;
+    }
+
+    std::vector<TXshLevel *> levels;
+    castSelection->getSelectedLevels(levels);
+    std::vector<TXshChildLevel *> childLevels;
+    for (TXshLevel *lvl : levels) {
+      if (TXshChildLevel *cl = lvl->getChildLevel()) childLevels.push_back(cl);
+    }
+    if (childLevels.empty()) {
+      DVGui::error(QObject::tr("No symbol selected."));
+      return;
+    }
+
+    bool ok = false;
+    QWidget *parent = TApp::instance()->getMainWindow();
+    int startFrame = QInputDialog::getInt(parent, QObject::tr("Increment Instances"),
+                                         QObject::tr("Start frame (>=)"), 1, -1000000, 1000000, 1, &ok);
+    if (!ok) return;
+    int shift = QInputDialog::getInt(parent, QObject::tr("Increment Instances"),
+                                     QObject::tr("Shift amount (+/-)"), 1, -1000000, 1000000, 1, &ok);
+    if (!ok) return;
+
+    TXsheet *topXsh = TApp::instance()->getCurrentScene()->getScene()->getTopXsheet();
+    std::vector<IncInstItem> items;
+    std::set<TXsheet *> visited;
+    std::function<void(TXsheet *)> traverse = [&](TXsheet *xsh) {
+      if (!xsh || visited.count(xsh)) return;
+      visited.insert(xsh);
+      for (int c = 0; c < xsh->getColumnCount(); ++c) {
+        int r0, r1;
+        int n = xsh->getCellRange(c, r0, r1);
+        if (n <= 0) continue;
+        for (int r = r0; r <= r1; ++r) {
+          TXshCell cell = xsh->getCell(r, c);
+          if (cell.isEmpty()) continue;
+          if (cell.m_level && cell.m_level->getChildLevel()) {
+            TXshChildLevel *cl = cell.m_level->getChildLevel();
+            for (TXshChildLevel *selectedCl : childLevels) {
+              if (cl == selectedCl) {
+                TFrameId fid = cell.getFrameId();
+                if (fid.getNumber() >= startFrame) {
+                  TXshCell newCell = cell;
+                  newCell.m_frameId = TFrameId(fid.getNumber() + shift, fid.getLetter(), fid.getZeroPadding(), fid.getStartSeqInd());
+                  IncInstItem it{ xsh, r, c, cell, newCell };
+                  items.push_back(it);
+                }
+                break;
+              }
+            }
+            // traverse into sub xsheet
+            TXsheet *childXsh = cl->getXsheet();
+            if (childXsh) traverse(childXsh);
+          }
+        }
+      }
+    };
+
+    traverse(topXsh);
+
+    if (items.empty()) {
+      DVGui::info(QObject::tr("No instances found to modify."));
+      return;
+    }
+
+    QString symbolName = QString::fromStdWString(childLevels[0]->getName());
+    IncrementInstancesUndo *undo = new IncrementInstancesUndo(items, symbolName);
+    undo->redo();
+    TUndoManager::manager()->add(undo);
+
+    TApp::instance()->getCurrentScene()->setDirtyFlag(true);
+  }
+} incrementInstancesCommand;
