@@ -2,9 +2,9 @@ name: CI - Build
 
 on:
   push:
-    branches: [ main, master, rebrand-to-flare-mass, restore-flash-9e73b8 ]
+    branches: [ main, master, rebrand-to-flare-mass, restore-flash-9e73b8, rename-to-flare-full ]
   pull_request:
-    branches: [ main, master ]
+    branches: [ main, master, rename-to-flare-full ]
 
 jobs:
   build:
@@ -12,8 +12,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest]
-        config: [Release]
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        config: [Release, Debug]
 
     steps:
       - name: Checkout
@@ -31,6 +31,20 @@ jobs:
       - name: Build
         run: |
           cmake --build build --config ${{ matrix.config }} --parallel
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install Python test deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest
+
+      - name: Run Python tests
+        run: |
+          pytest tools/flash/tests -q
 
       - name: Archive build logs
         if: failure()
