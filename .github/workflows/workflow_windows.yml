@@ -95,7 +95,7 @@ jobs:
           copy /Y tiff-4.0.3\libtiff\tiffconf.vc.h tiff-4.0.3\libtiff\tiffconf.h
           copy /Y libpng-1.6.21\scripts\pnglibconf.h.prebuilt libpng-1.6.21\pnglibconf.h
 
-          cd ../toonz
+          cd ../flare
           rmdir /S /Q build
           mkdir build
           cd build
@@ -107,7 +107,7 @@ jobs:
       - name: Build Opentoonz
         run: |
           @echo on
-          cd toonz\build
+          cd flare\build
           msbuild /p:Configuration=RelWithDebInfo /m /verbosity:minimal ALL_BUILD.vcxproj
         shell: cmd
 
@@ -115,7 +115,7 @@ jobs:
       - name: Create Package
         run: |
           @echo on
-          cd toonz\build
+          cd flare\build
           
           REM Create Opentoonz directory and copy files from RelWithDebInfo
           mkdir Opentoonz
@@ -146,7 +146,7 @@ jobs:
       - name: Create Artifact
         run: |
           mkdir artifact
-          xcopy toonz\build\Opentoonz artifact\ /E /H /Y
+          xcopy flare\build\Opentoonz artifact\ /E /H /Y
         shell: cmd
 
       # Upload the generated artifact
