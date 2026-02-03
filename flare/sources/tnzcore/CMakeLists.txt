@@ -37,6 +37,7 @@ set(HEADERS ${MOC_HEADERS}
     ../common/flash/FSound.h
     ../common/flash/FSWFStream.h
     ../common/flash/Macromedia.h
+    ../common/flash/XFLReader.h
     ../common/psdlib/psd.h
     ../common/psdlib/psdutils.h
     ../common/trop/runsmap.h
@@ -231,6 +232,7 @@ set(SOURCES
     ../common/flash/FPrimitive.cpp
     ../common/flash/FSWFStream.cpp
     ../common/flash/FSound.cpp
+    ../common/flash/XFLReader.cpp
     ../common/psdlib/psd.cpp
     ../common/psdlib/psdutils.cpp
     ../common/trop/bbox.cpp
