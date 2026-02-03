@@ -1,5 +1,3 @@
-
-
 // TnzCore includes
 #include "tundo.h"
 #include "trandom.h"
@@ -66,6 +64,7 @@
 
 // Qt includes
 #include <QClipboard>
+#include <QInputDialog>
 
 // tcg includes
 #include "tcg/boost/range_utility.h"
@@ -695,6 +694,7 @@ private:
   int m_count;
   bool m_selected;
   TCellSelection::Range m_range;
+  std::vector<std::pair<int, int>> emptyCells;
   std::vector<std::pair<int, int>> emptyCells;
   typedef std::map<std::pair<int, int>, int> FramesMap;
   FramesMap m_frameRanges;

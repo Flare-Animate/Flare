@@ -966,6 +966,7 @@ QMenuBar *StackedMenuBar::createXsheetMenuBar() {
   addMenuItem(renderMenu, MI_OutputSettings);
   addMenuItem(renderMenu, MI_Render);
   renderMenu->addSeparator();
+  addMenuItem(renderMenu, MI_Link);
 
   //----Windows Menu
   QMenu *windowsMenu = addMenu(tr("Windows"), xsheetMenuBar);
