@@ -869,6 +869,7 @@ QMenuBar *StackedMenuBar::createXsheetMenuBar() {
   addMenuItem(subxsheetMenu, MI_Collapse);
   addMenuItem(subxsheetMenu, MI_ToggleEditInPlace);
   addMenuItem(subxsheetMenu, MI_Resequence);
+  addMenuItem(subxsheetMenu, MI_IncrementInstances);
   addMenuItem(subxsheetMenu, MI_SaveSubxsheetAs);
   addMenuItem(subxsheetMenu, MI_LoadSubSceneFile);
   addMenuItem(subxsheetMenu, MI_CloneChild);
@@ -965,7 +966,6 @@ QMenuBar *StackedMenuBar::createXsheetMenuBar() {
   addMenuItem(renderMenu, MI_OutputSettings);
   addMenuItem(renderMenu, MI_Render);
   renderMenu->addSeparator();
-  addMenuItem(renderMenu, MI_Link);
 
   //----Windows Menu
   QMenu *windowsMenu = addMenu(tr("Windows"), xsheetMenuBar);
