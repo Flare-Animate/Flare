@@ -1,8 +1,0 @@
-[Desktop Entry]
-Type=Application
-Name=Flare
-Comment=2D animation
-Icon=io.github.Flare
-Exec=opentoonz
-Categories=Graphics;
-Terminal=false
