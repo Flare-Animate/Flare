@@ -2,7 +2,7 @@
 
 ## Required software
 
-Building OpenToonz from source requires the following dependencies:
+Building Flare from source requires the following dependencies:
 - Git
 - GCC or Clang
 - CMake (3.10 or newer)
@@ -93,7 +93,7 @@ $ cd ..
 ### Cloning the GIT Tree
 
 ```
-$ git clone https://github.com/opentoonz/opentoonz
+$ git clone https://github.com/Flare/Flare
 ```
 
 ### Copying the 'stuff' Directory
@@ -102,16 +102,16 @@ TODO: some parts should really be installed in $prefix/ instead... and some othe
 cf. https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
 Until then we just follow the Win32/OSX layout.
 
-The `~/.config/OpenToonz/` directory contains your settings, work and other files.
+The `~/.config/Flare/` directory contains your settings, work and other files.
 
 Initialize this path with the following commands:
 
 ```
-$ mkdir -p $HOME/.config/OpenToonz
-$ cp -r opentoonz/stuff $HOME/.config/OpenToonz/
+$ mkdir -p $HOME/.config/Flare
+$ cp -r flare/stuff $HOME/.config/Flare/
 ```
 
-*Currently this is required to run OpenToonz.*
+*Currently this is required to run Flare.*
 
 ### Building LibTIFF
 
@@ -119,16 +119,16 @@ TODO: make sure we can use the system libtiff instead and remove this section.
 Features from the modified libtiff are needed currently, so this isn't a simple switch.
 
 ```
-$ cd opentoonz/thirdparty/tiff-4.0.3
+$ cd Flare/thirdparty/tiff-4.0.3
 $ ./configure --with-pic --disable-jbig
 $ make -j$(nproc)
 $ cd ../../
 ```
 
-### Building OpenToonz
+### Building Flare
 
 ```
-$ cd toonz
+$ cd flare
 $ mkdir build
 $ cd build
 $ cmake ../sources
@@ -155,27 +155,27 @@ $ LANG=C make VERBOSE=1
 If you need to debug the application, you should be able to use `cmake -DCMAKE_BUILD_TYPE=Debug`.
 
 
-### Running OpenToonz
+### Running Flare
 
 You can now run the application:
 
 ```
-$ LD_LIBRARY_PATH=./lib/opentoonz:$LD_LIBRARY_PATH
-$ ./bin/OpenToonz
+$ LD_LIBRARY_PATH=./lib/flare:$LD_LIBRARY_PATH
+$ ./bin/Flare
 ```
 
 ### Performing a System Installation
 
-The steps above show how to run OpenToonz from the build directory,
-however you may wish to install OpenToonz onto your system.
+The steps above show how to run Flare from the build directory,
+however you may wish to install Flare onto your system.
 
-OpenToonz will install to `/opt/opentoonz` by default, to do this run:
+Flare will install to `/opt/flare` by default, to do this run:
 
 ```
 $ sudo make install
 ```
 
-Then you can launch OpenToonz by running `/opt/opentoonz/bin/opentoonz`.
+Then you can launch Flare by running `/opt/flare/bin/flare`.
 
 You can change the installation path by modifying the `CMAKE_INSTALL_PREFIX` CMake variable.
 
@@ -186,8 +186,9 @@ You can change the installation path by modifying the `CMAKE_INSTALL_PREFIX` CMa
 It may be helpful to use existing packages as a reference when creating a package for your own distribution.
 
 - ArchLinux (AUR):
-  https://aur.archlinux.org/packages/opentoonz-git/
+  https://aur.archlinux.org/packages/Flare-git/
 
 - App-Image (Portable):
   https://github.com/morevnaproject/morevna-builds
+
 
