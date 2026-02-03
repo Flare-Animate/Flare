@@ -21,7 +21,7 @@ jobs:
 
       - name: Configure
         run: |
-          cmake -S . -B build -DCMAKE_BUILD_TYPE=${{ matrix.config }}
+          cmake -S flare/sources -B build -DCMAKE_BUILD_TYPE=${{ matrix.config }}
 
       - name: Build
         run: |

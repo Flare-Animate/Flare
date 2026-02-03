@@ -139,11 +139,11 @@ message("PLATFORM:" ${PLATFORM})
 #-----------------------------------------------------------------------------
 # Third Party & System Libs
 
-include(${CMAKE_SOURCE_DIR}/../cmake/util_compiler.cmake)
+include(${CMAKE_CURRENT_SOURCE_DIR}/../cmake/util_compiler.cmake)
 
 get_filename_component(SDKROOT ../../thirdparty/ ABSOLUTE)
 message(STATUS "SDK Root:" ${SDKROOT})
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../cmake")
 if(BUILD_ENV_APPLE)
     set(THIRDPARTY_LIBS_HINTS "/usr/local/Cellar/" "/opt/include" ${SDKROOT})
 elseif(BUILD_ENV_MSVC OR BUILD_ENV_UNIXLIKE)
