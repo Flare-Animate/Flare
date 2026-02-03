@@ -64,6 +64,7 @@ jobs:
             # Skip binary files
             if file "$file" | grep -q "text"; then
               # Replace OpenToonz with Flare (in text, UI, comments, etc.)
+              # Do this BEFORE the lowercase replacement to avoid conflicts
               sed -i 's/OpenToonz/Flare/g' "$file"
               
               # Replace opentoonz with flare (lowercase, in URLs, paths, etc.)
@@ -102,6 +103,13 @@ jobs:
           chmod +x /tmp/rebrand.sh
           /tmp/rebrand.sh
 
+      - name: Capture upstream commit hash
+        if: env.MERGE_CONFLICT != 'true'
+        run: |
+          UPSTREAM_COMMIT=$(git rev-parse upstream/master)
+          echo "UPSTREAM_COMMIT=$UPSTREAM_COMMIT" >> $GITHUB_ENV
+          echo "Upstream commit: $UPSTREAM_COMMIT"
+
       - name: Restore README files
         if: env.MERGE_CONFLICT != 'true'
         run: |
@@ -122,14 +130,9 @@ jobs:
           This automated sync merges changes from the OpenToonz upstream repository
           and applies Flare branding. README files are preserved from the Flare fork.
           
-          Upstream commit: $(git rev-parse upstream/master)"
+          Upstream commit: ${{ env.UPSTREAM_COMMIT }}"
             echo "HAS_CHANGES=true" >> $GITHUB_ENV
           fi
-
-      - name: Push branch
-        if: env.MERGE_CONFLICT != 'true' && env.HAS_CHANGES == 'true'
-        run: |
-          git push origin ${{ env.BRANCH_NAME }}
 
       - name: Create Pull Request
         if: env.MERGE_CONFLICT != 'true' && env.HAS_CHANGES == 'true'
@@ -154,7 +157,7 @@ jobs:
             - Verify that core functionality remains intact
             - Test the build after merging
 
-            **Upstream commit:** `$(git rev-parse upstream/master)`
+            **Upstream commit:** `${{ env.UPSTREAM_COMMIT }}`
 
             ---
             *This PR was automatically created by the sync-upstream workflow*
