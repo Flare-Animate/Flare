@@ -1,6 +1,6 @@
 [Desktop Entry]
 Name=Flare
-Comment=2D animation software inspired by Adobe Animate
+Comment=2D animation software inspired by Animate
 Exec=flare
 Icon=io.github.Flare
 Terminal=false

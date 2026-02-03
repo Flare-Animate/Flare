@@ -293,7 +293,7 @@ Preferences::Preferences() {
   }
 
   if (!m_styleSheetList.contains(getStringValue(CurrentStyleSheetName)))
-    setValue(CurrentStyleSheetName, "AdobeAnimate");
+    setValue(CurrentStyleSheetName, "Animate");
 
   if (!m_languageList.contains(getStringValue(CurrentLanguageName)))
     setValue(CurrentLanguageName, "English");
@@ -395,7 +395,7 @@ void Preferences::definePreferenceItems() {
 
   // Interface
   define(CurrentStyleSheetName, "CurrentStyleSheetName", QMetaType::QString,
-         "AdobeAnimate");
+         "Animate");
 
   // Qt has a bug in recent versions that Menu item does not show correctly
   // (QTBUG-90242). The current OT handles this issue by applying an extra
@@ -411,7 +411,7 @@ void Preferences::definePreferenceItems() {
   define(oldCameraUnits, "oldCameraUnits", QMetaType::QString, "inch");
   define(linearUnits, "linearUnits", QMetaType::QString, "mm");
   define(cameraUnits, "cameraUnits", QMetaType::QString, "inch");
-  define(CurrentRoomChoice, "CurrentRoomChoice", QMetaType::QString, "AdobeAnimate");
+  define(CurrentRoomChoice, "CurrentRoomChoice", QMetaType::QString, "Animate");
   define(functionEditorToggle, "functionEditorToggle", QMetaType::Int,
          static_cast<int>(ShowGraphEditorInPopup));
   define(moveCurrentFrameByClickCellArea, "moveCurrentFrameByClickCellArea",
