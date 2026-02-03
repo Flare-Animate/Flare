@@ -66,6 +66,7 @@
 // Qt includes
 #include <QClipboard>
 #include <QInputDialog>
+#include <functional>
 
 // tcg includes
 #include "tcg/boost/range_utility.h"
@@ -812,6 +813,7 @@ bool DrawingSubtitutionUndo::changeDrawing(int delta, int row, int col) {
     usePrevCell = true;
   } else if (!cell.m_level || !(cell.m_level->getSimpleLevel() ||
                                 cell.m_level->getChildLevel() ||
+                                cell.m_level->getSoundTextLevel()))
     return false;
   TXshLevel *level = cell.m_level->getSimpleLevel();
   if (!level) level = cell.m_level->getChildLevel();
@@ -1957,6 +1959,7 @@ void XsheetWriter::cell(ostream &os, int r, int c) {
     TXshLevel *level = cell.m_level.getPointer();
     std::string type = "levelcell";
     if (level->getChildLevel())
+
       type = "subxsheetcell";
     else if (level->getZeraryFxLevel())
       type = "fxcell";
