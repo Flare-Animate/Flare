@@ -1,5 +1,8 @@
 # Flare
 
+<img width="663" height="400" alt="FlareBanner" src="https://github.com/user-attachments/assets/73e4050f-f248-419e-8e61-fe8814ab984d" />
+
+
 A fork of Flare rebranded as Flare — focused on providing an Adobe Animate-like
 user experience and improving interoperability with Flash assets (.swf/.fla).
 
