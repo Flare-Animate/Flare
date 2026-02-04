@@ -26,7 +26,8 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools \
             libqt5svg5-dev libqt5opengl5-dev libqt5multimedia5 libqt5multimedia5-plugins \
-            libqt5multimediawidgets5 qtmultimedia5-dev qtscript5-dev libboost-all-dev libopencv-dev
+            libqt5multimediawidgets5 qtmultimedia5-dev qtscript5-dev qttools5-dev-tools \
+            libboost-all-dev libopencv-dev
 
       # Install Qt5 on macOS
       - name: Install Qt5 (macOS)
