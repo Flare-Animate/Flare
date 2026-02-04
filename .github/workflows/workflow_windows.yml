@@ -25,7 +25,7 @@ jobs:
     runs-on: windows-2025
     env:
       # QT related variable
-      QT_PATH: ${{ github.workspace }}\thirdparty\qt\5.15.2_wintab\msvc2019_64  # Path to custom Qt
+      QT_PATH: ${{ github.workspace }}/thirdparty/qt/5.15.2_wintab/msvc2019_64  # Path to custom Qt (forward slashes for CMake)
 
       # Visual Studio related variables
       MSVCVERSION: "Visual Studio 17 2022"  # Visual Studio version
