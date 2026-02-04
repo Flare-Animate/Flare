@@ -85,15 +85,17 @@ jobs:
         shell: bash
         run: |
           mkdir -p build || true
+          set +e
           cmake -S flare/sources -B build -DCMAKE_BUILD_TYPE=${{ matrix.config }} > build/cmake_configure.log 2>&1
           rc=$?
-          echo "--- Begin CMake configure log ---"
-          if [ -f build/cmake_configure.log ]; then cat build/cmake_configure.log; fi
-          echo "--- End CMake configure log ---"
-          if [ $rc -ne 0 ]; then
-            echo "CMake configure failed with exit code $rc"
-            exit $rc
-          fi
+          set -e
+           echo "--- Begin CMake configure log ---"
+           if [ -f build/cmake_configure.log ]; then cat build/cmake_configure.log; fi
+           echo "--- End CMake configure log ---"
+           if [ $rc -ne 0 ]; then
+             echo "CMake configure failed with exit code $rc"
+             exit $rc
+           fi
 
       - name: Configure (Windows)
         if: matrix.os == 'windows-latest'
