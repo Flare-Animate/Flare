@@ -2214,7 +2214,7 @@ void TFlash::Imp::addPause()
 	FColor black = FColor(0, 0, 0);
 
 	U32 blackfillID = clipRectangle->AddSolidFillStyle(new FColor(black));
-	clipRectangle->FinishStyleArrays();
+	clipRectangle->FinishShapeArrays();
 	addShape(clipRectangle, false, true, true, false, true, 0, 0, blackfillID, 0);
 
 	addEdgeStraightToShape(clipRectangle, 0, m_ly * m_tw);
@@ -2253,11 +2253,9 @@ void TFlash::Imp::addUrlLink(const std::string _url)
 {
 	//addActionStop();
 
-	std::string url;
-	if (url.find("http") == -1)
-		url = "http://" + _url;
-	else
-		url = _url;
+	std::string url = _url;
+	if (url.find("http") == std::string::npos)
+		url = "http://" + url;
 
 	FRect *clipRectBounds = new FRect(0, 0, m_lx * m_tw, m_ly * m_tw); //coordinate values are in TWIPS
 
