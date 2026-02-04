@@ -82,7 +82,11 @@ jobs:
 
       - name: Configure
         run: |
-          cmake -S flare/sources -B build -DCMAKE_BUILD_TYPE=${{ matrix.config }}
+          mkdir -p build || true
+          cmake -S flare/sources -B build -DCMAKE_BUILD_TYPE=${{ matrix.config }} > build/cmake_configure.log 2>&1 || true
+          echo "--- Begin CMake configure log ---"
+          (if [ -f build/cmake_configure.log ]; then cat build/cmake_configure.log; fi)
+          echo "--- End CMake configure log ---"
 
       - name: Build
         run: |
