@@ -223,12 +223,12 @@ public:
 
 	TAffine m_affine;
 	std::vector<TAffine> m_matrixStack;
-	map<const TImage *, USHORT> m_imagesMap;
-	map<const TImage *, double> m_imagesScaleMap;
-	map<TEdge, FlashPolyline *> m_edgeMap;
-	map<const void *, USHORT> m_texturesMap;
-	map<biPoint, FlashPolyline *> m_autocloseMap;
-	map<const TStroke *, std::set<wChunk>> m_strokeMap;
+	std::map<const TImage *, USHORT> m_imagesMap;
+	std::map<const TImage *, double> m_imagesScaleMap;
+	std::map<TEdge, FlashPolyline *> m_edgeMap;
+	std::map<const void *, USHORT> m_texturesMap;
+	std::map<biPoint, FlashPolyline *> m_autocloseMap;
+	std::map<const TStroke *, std::set<wChunk>> m_strokeMap;
 
 	std::vector<TStroke *> m_outlines;
 	TPixel m_currStrokeColor;
@@ -1962,7 +1962,7 @@ void TFlash::Imp::writeFrame(TFlash *tf, bool isLast, int frameCountLoader, bool
 			addSkipLoader(frameCountLoader + 1);
 
 		if (m_properties.m_url.getValue().length() > 0)
-			addUrlLink(toString(m_properties.m_url.getValue()));
+			addUrlLink(m_properties.m_url.getValueAsString());
 	}
 
 	if (m_currFrameIndex > m_soundOffset)
@@ -2766,7 +2766,7 @@ void TFlash::draw(const TImageP img, const TColorFunction *cf)
 
 //-------------------------------------------------------------------
 
-wstring TFlash::getLineQuality()
+std::wstring TFlash::getLineQuality()
 {
 	return m_imp->m_properties.m_lineQuality.getValue();
 }
