@@ -42,7 +42,7 @@ jobs:
       - name: Install custom Qt 5.15.2
         run: |
           mkdir thirdparty\qt
-          curl -fsSL -o Qt5.15.2_wintab.zip https://github.com
+          curl -fsSL -o Qt5.15.2_wintab.zip https://github.com/shun-iwasawa/qt5/releases/download/v5.15.2_wintab/Qt5.15.2_wintab.zip
           7z x Qt5.15.2_wintab.zip
           move Qt5.15.2_wintab\5.15.2_wintab thirdparty\qt
         shell: cmd
