@@ -111,8 +111,6 @@ public:
   void initialize();
 };
 
-} //class
-
 void TiioTable::initialize() {}
 
 Tiio::Reader *Tiio::makeReader(std::string ext) {
