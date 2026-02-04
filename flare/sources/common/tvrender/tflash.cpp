@@ -1268,7 +1268,7 @@ void TFlash::Imp::addCameraClip(int index)
 	FColor black = FColor(0, 0, 0);
 
 	U32 blackfillID = clipRectangle->AddSolidFillStyle(new FColor(black));
-	clipRectangle->FinishShapeArrays();
+	clipRectangle->FinishStyleArrays();
 	addShape(clipRectangle, false, true, true, false, true, 0, 0, blackfillID, 0);
 
 	addEdgeStraightToShape(clipRectangle, 0, m_ly * m_tw);
@@ -2005,7 +2005,7 @@ void TFlash::Imp::addPause()
 	FColor black = FColor(0, 0, 0);
 
 	U32 blackfillID = clipRectangle->AddSolidFillStyle(new FColor(black));
-	clipRectangle->FinishShapeArrays();
+	clipRectangle->FinishStyleArrays();
 	addShape(clipRectangle, false, true, true, false, true, 0, 0, blackfillID, 0);
 
 	addEdgeStraightToShape(clipRectangle, 0, m_ly * m_tw);
@@ -2055,7 +2055,7 @@ void TFlash::Imp::addUrlLink(const std::string _url)
 	FColor black = FColor(0, 0, 0, 0);
 
 	U32 blackfillID = clipRectangle->AddSolidFillStyle(new FColor(black));
-	clipRectangle->FinishShapeArrays();
+	clipRectangle->FinishStyleArrays();
 	addShape(clipRectangle, false, true, true, false, true, 0, 0, blackfillID, 0);
 
 	addEdgeStraightToShape(clipRectangle, 0, m_ly * m_tw);
