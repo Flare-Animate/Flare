@@ -1,4 +1,4 @@
-name: CI - Tests
+name: CI - Build
 
 on:
   push:
@@ -7,16 +7,55 @@ on:
     branches: [ main, master, rename-to-flare-full ]
 
 jobs:
-  test:
+  build:
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
+        config: [Release, Debug]
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      # Install Qt5 on Ubuntu
+      - name: Install Qt5 (Ubuntu)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools \
+            libqt5svg5-dev libqt5opengl5-dev libqt5multimedia5 libqt5multimedia5-plugins \
+            libqt5multimediawidgets5 qtmultimedia5-dev libboost-all-dev
+
+      # Install Qt5 on macOS
+      - name: Install Qt5 (macOS)
+        if: matrix.os == 'macos-latest'
+        run: |
+          brew install qt@5
+
+      # Install Qt5 on Windows using aqtinstall
+      - name: Install Qt5 (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          python -m pip install aqtinstall
+          python -m aqt install-qt windows desktop 5.15.2 win64_msvc2019_64 -O C:\Qt
+        shell: pwsh
+        
+      - name: Set Qt5 Path (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          echo "Qt5_DIR=C:\Qt\5.15.2\msvc2019_64\lib\cmake\Qt5" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          echo "CMAKE_PREFIX_PATH=C:\Qt\5.15.2\msvc2019_64" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+        shell: pwsh
+
+      - name: Configure
+        run: |
+          cmake -S flare/sources -B build -DCMAKE_BUILD_TYPE=${{ matrix.config }}
+
+      - name: Build
+        run: |
+          cmake --build build --config ${{ matrix.config }} --parallel
 
       - name: Setup Python
         uses: actions/setup-python@v4
@@ -31,3 +70,10 @@ jobs:
       - name: Run Python tests
         run: |
           pytest tools/flash/tests -q
+
+      - name: Archive build logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs-${{ matrix.os }}-${{ matrix.config }}
+          path: build/
