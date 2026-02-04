@@ -3,7 +3,7 @@
 <img width="663" height="400" alt="FlareBanner" src="https://github.com/user-attachments/assets/73e4050f-f248-419e-8e61-fe8814ab984d" />
 
 
-A fork of OpenToonz rebranded as Flare — focused on providing an Animate-like
+A fork of OpenToonz rebranded as Flare — focused on providing an Adobe Animate-like
 user experience and improving interoperability with Flash assets (.swf/.fla).
 
 This repository is a fork of OpenToonz and retains the original licensing and
@@ -14,11 +14,11 @@ attribution. See the Licensing section below for details.
 ## What is Flare?
 
 Flare is a community-driven fork of OpenToonz that ships a revamped UI layout
-inspired by Animate and introduces native import support for SWF files
+inspired by Adobe Animate and introduces native import support for SWF files
 (when FFmpeg is available) and experimental helpers for FLA projects.
 
 For the original Flare project and its history, see the Flare website:
-[https://Flare.github.io/e/index.html](https://flare-animate.github.io/index.html/)
+https://Flare.github.io/e/index.html
 
 ## Program Requirements
 
@@ -51,11 +51,11 @@ directories are based on the Modified BSD License.
 Third-party components retain their original licenses. See the relevant
 documentation in `thirdparty/` and `stuff/library/mypaint brushes/Licenses.txt`.
 
-### Animate-style Workspace & Theme
+### Adobe Animate-style Workspace & Theme
 
-Flare includes an "Animate" workspace and an Animate-like color theme by
-default. To switch to the Animate workspace, open the Room (Workspace)
-menu and choose "Animate".
+Flare includes an "Adobe Animate" workspace and an Adobe-like color theme by
+default. To switch to the Adobe Animate workspace, open the Room (Workspace)
+menu and choose "Adobe Animate".
 
 ### Importing SWF files
 
