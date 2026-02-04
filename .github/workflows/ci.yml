@@ -80,13 +80,32 @@ jobs:
           echo "BOOST_ROOT=C:\local\boost_1_87_0" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
         shell: pwsh
 
-      - name: Configure
+      - name: Configure (Unix/macOS)
+        if: matrix.os != 'windows-latest'
+        shell: bash
         run: |
           mkdir -p build || true
-          cmake -S flare/sources -B build -DCMAKE_BUILD_TYPE=${{ matrix.config }} > build/cmake_configure.log 2>&1 || true
+          cmake -S flare/sources -B build -DCMAKE_BUILD_TYPE=${{ matrix.config }} > build/cmake_configure.log 2>&1
+          rc=$?
           echo "--- Begin CMake configure log ---"
-          (if [ -f build/cmake_configure.log ]; then cat build/cmake_configure.log; fi)
+          if [ -f build/cmake_configure.log ]; then cat build/cmake_configure.log; fi
           echo "--- End CMake configure log ---"
+          if [ $rc -ne 0 ]; then
+            echo "CMake configure failed with exit code $rc"
+            exit $rc
+          fi
+
+      - name: Configure (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: |
+          if (-not (Test-Path build)) { New-Item -ItemType Directory -Path build | Out-Null }
+          cmake -S flare/sources -B build -DCMAKE_BUILD_TYPE=${{ matrix.config }} 2>&1 | Tee-Object -FilePath build/cmake_configure.log
+          $rc = $LASTEXITCODE
+          Write-Output "--- Begin CMake configure log ---"
+          Get-Content build/cmake_configure.log
+          Write-Output "--- End CMake configure log ---"
+          if ($rc -ne 0) { Write-Error "CMake configure failed with exit code $rc"; exit $rc }
 
       - name: Build
         run: |
