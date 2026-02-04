@@ -42,7 +42,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
-          lfs: false
+          lfs: true
 
       # Cache OpenCV and Boost libraries
       - name: Cache OpenCV and Boost
