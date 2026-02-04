@@ -170,7 +170,7 @@ public:
 	virtual void WriteToSWFStream(FSWFStream *_SWFStream);
 	U32 IsPlaceObject();
 	int GetPlacedId();
-	std::string GetName() { return name ? name->GetString() : string(); }
+	std::string GetName() { return name ? name->GetString() : std::string(); }
 	void SetId(U16 id);
 	void ChangePlacedId(U16 id);
 

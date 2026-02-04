@@ -83,7 +83,7 @@ jobs:
           rm -rf build  
           mkdir -p build
           cd build
-          cmake ./sources -G Ninja \
+          cmake -S ../sources -B . -G Ninja \
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DQT_PATH=$(brew --prefix qt@5)/lib \
             -DQt5_DIR=$(brew --prefix qt@5)/lib/cmake/Qt5 \

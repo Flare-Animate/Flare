@@ -61,7 +61,7 @@ jobs:
         export CCACHE_DIR=/home/runner/.ccache
         export CC="ccache ${{ matrix.cc }}"
         export CXX="ccache ${{ matrix.cxx }}"
-        cd toonz
+        cd flare
         mkdir build
         cd build
         cmake ../sources -G Ninja -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER=${{ matrix.cxx }} -DCMAKE_C_COMPILER=${{ matrix.cc }} -DWITH_TRANSLATION=OFF
@@ -69,7 +69,7 @@ jobs:
 
     - name: Create Artifact
       run: |
-        cd toonz/build
+        cd flare/build
         sudo ninja install
 
         mkdir -p appdir/usr
@@ -111,4 +111,4 @@ jobs:
     - uses: actions/upload-artifact@v6
       with:
         name: Opentoonz-${{ runner.os }}-${{ matrix.compiler }}-${{ github.sha }}
-        path: toonz/build/Opentoonz-${{ runner.os }}-${{ matrix.compiler }}-${{ github.sha }}.tar.gz
+        path: flare/build/Opentoonz-${{ runner.os }}-${{ matrix.compiler }}-${{ github.sha }}.tar.gz
