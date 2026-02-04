@@ -26,13 +26,13 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools \
             libqt5svg5-dev libqt5opengl5-dev libqt5multimedia5 libqt5multimedia5-plugins \
-            libqt5multimediawidgets5 qtmultimedia5-dev libboost-all-dev
+            libqt5multimediawidgets5 qtmultimedia5-dev libboost-all-dev libopencv-dev
 
       # Install Qt5 on macOS
       - name: Install Qt5 (macOS)
         if: matrix.os == 'macos-latest'
         run: |
-          brew install qt@5
+          brew install qt@5 opencv
 
       # Install Qt5 on Windows using aqtinstall
       - name: Install Qt5 (Windows)
@@ -47,6 +47,19 @@ jobs:
         run: |
           echo "Qt5_DIR=C:\Qt\5.15.2\msvc2019_64\lib\cmake\Qt5" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           echo "CMAKE_PREFIX_PATH=C:\Qt\5.15.2\msvc2019_64" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+        shell: pwsh
+
+      # Install OpenCV on Windows
+      - name: Install OpenCV (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          choco install opencv -y
+        shell: pwsh
+        
+      - name: Set OpenCV Path (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          echo "OpenCV_DIR=C:\tools\opencv\build" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
         shell: pwsh
 
       - name: Configure
