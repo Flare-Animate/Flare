@@ -49,9 +49,9 @@ bool areTwEqual(TPointD p0, TPointD p1)
 }
 //-------------------------------------------------------------------
 
-const wstring TFlash::ConstantLines = L"Low: Constant Thickness";
-const wstring TFlash::MixedLines = L"Medium: Mixed Thickness";
-const wstring TFlash::VariableLines = L"High: Variable Thickness";
+const std::wstring TFlash::ConstantLines = L"Low: Constant Thickness";
+const std::wstring TFlash::MixedLines = L"Medium: Mixed Thickness";
+const std::wstring TFlash::VariableLines = L"High: Variable Thickness";
 
 Tiio::SwfWriterProperties::SwfWriterProperties()
 	: m_lineQuality("Curve Quality"), m_isCompressed("File Compression", true), m_autoplay("Autoplay", true), m_looping("Looping", true), m_jpgQuality("Jpg Quality", 0, 100, 90), m_url("URL", wstring()), m_preloader("Insert Preloader", false)
