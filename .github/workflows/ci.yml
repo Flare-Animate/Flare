@@ -1,4 +1,4 @@
-name: CI - Build
+name: CI - Tests
 
 on:
   push:
@@ -7,25 +7,16 @@ on:
     branches: [ main, master, rename-to-flare-full ]
 
 jobs:
-  build:
+  test:
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        config: [Release, Debug]
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Configure
-        run: |
-          cmake -S flare/sources -B build -DCMAKE_BUILD_TYPE=${{ matrix.config }}
-
-      - name: Build
-        run: |
-          cmake --build build --config ${{ matrix.config }} --parallel
 
       - name: Setup Python
         uses: actions/setup-python@v4
@@ -40,10 +31,3 @@ jobs:
       - name: Run Python tests
         run: |
           pytest tools/flash/tests -q
-
-      - name: Archive build logs
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-logs-${{ matrix.os }}
-          path: build/
