@@ -31,6 +31,8 @@ jobs:
     runs-on: macos-15-intel
     steps:
       - uses: actions/checkout@v6
+        with:
+          lfs: true
 
       - name: Clean Python symlinks
         run: |
@@ -66,6 +68,7 @@ jobs:
           mkdir -p /Users/runner/.ccache
       - uses: actions/cache@v5
         with:
+          lfs: true
           path: /Users/runner/.ccache
           key: ${{ runner.os }}-${{ github.sha }}
           restore-keys: ${{ runner.os }}-
