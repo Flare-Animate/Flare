@@ -32,7 +32,7 @@ jobs:
       - name: Install Qt5 (macOS)
         if: matrix.os == 'macos-latest'
         run: |
-          brew install qt@5 opencv
+          brew install qt@5 opencv libmypaint
 
       # Build libtiff on macOS
       - name: Build libtiff (macOS)
