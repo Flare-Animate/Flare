@@ -111,9 +111,7 @@ public:
   void initialize();
 };
 
-}  // namespace
-
-//=========================================================
+} //class
 
 void TiioTable::initialize() {}
 
@@ -272,4 +270,7 @@ bool Tiio::useQuicktime(bool enable) {
   return state;
 }
 
+} // namespace
+
+//=========================================================
 //-----------------------------------------------------
