@@ -11,6 +11,7 @@
 #include "tsound.h"
 #include "traster.h"
 #include "tproperty.h"
+#include "tvectorrenderdata.h"
 
 #undef DVAPI
 #undef DVVAR
@@ -295,6 +296,9 @@ public:
 		Sets a global scale factor.
 	*/
 	void setGlobalScale(const TAffine &aff);
+
+	// conversion to TVectorRenderData for draw(...) calls
+	operator TVectorRenderData() const;
 
 private:
 	// not implemented
