@@ -34,6 +34,15 @@ jobs:
         run: |
           brew install qt@5 opencv
 
+      # Build libtiff on macOS
+      - name: Build libtiff (macOS)
+        if: matrix.os == 'macos-latest'
+        run: |
+          cd thirdparty/tiff-4.0.3
+          CFLAGS='-fPIC' CXXFLAGS='-fPIC' ./configure --disable-lzma
+          make -j $(sysctl -n hw.ncpu)
+          sudo make install
+
       # Install Qt5 on Windows using aqtinstall
       - name: Install Qt5 (Windows)
         if: matrix.os == 'windows-latest'
@@ -56,10 +65,18 @@ jobs:
           choco install opencv -y
         shell: pwsh
         
-      - name: Set OpenCV Path (Windows)
+      # Install Boost on Windows
+      - name: Install Boost (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          choco install boost-msvc-14.3 -y
+        shell: pwsh
+        
+      - name: Set OpenCV and Boost Paths (Windows)
         if: matrix.os == 'windows-latest'
         run: |
           echo "OpenCV_DIR=C:\tools\opencv\build" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          echo "BOOST_ROOT=C:\local\boost_1_87_0" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
         shell: pwsh
 
       - name: Configure
