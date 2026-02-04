@@ -1,0 +1,174 @@
+name: Sync from OpenToonz Upstream
+
+on:
+  # Run manually
+  workflow_dispatch:
+  # Run every Monday at 00:00 UTC
+  schedule:
+    - cron: '0 0 * * 1'
+
+jobs:
+  sync-upstream:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch full history for proper syncing
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Add OpenToonz upstream remote
+        run: |
+          git remote add upstream https://github.com/opentoonz/opentoonz.git || true
+          git fetch upstream
+
+      - name: Create sync branch
+        run: |
+          BRANCH_NAME="sync-upstream-$(date +%Y%m%d-%H%M%S)"
+          echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
+          git checkout -b $BRANCH_NAME
+
+      - name: Merge upstream changes
+        id: merge
+        continue-on-error: true
+        run: |
+          # Try to merge upstream/master
+          git merge upstream/master --no-commit --no-ff || echo "MERGE_CONFLICT=true" >> $GITHUB_ENV
+
+      - name: Apply Flare rebranding
+        if: env.MERGE_CONFLICT != 'true'
+        run: |
+          # Create a script to perform the rebranding
+          cat > /tmp/rebrand.sh << 'EOF'
+          #!/bin/bash
+          set -e
+          
+          echo "Applying Flare rebranding..."
+          
+          # Function to rebrand files (case-sensitive replacements)
+          rebrand_file() {
+            local file="$1"
+            # Skip README files
+            if [[ "$file" == *"README"* ]] || [[ "$file" == */doc/* ]]; then
+              return
+            fi
+            
+            # Skip binary files
+            if file "$file" | grep -q "text"; then
+              # Replace OpenToonz with Flare (in text, UI, comments, etc.)
+              # Do this BEFORE the lowercase replacement to avoid conflicts
+              sed -i 's/OpenToonz/Flare/g' "$file"
+              
+              # Replace opentoonz with flare (lowercase, in URLs, paths, etc.)
+              sed -i 's/opentoonz/flare/g' "$file"
+              
+              # Update directory references from toonz to flare
+              # But preserve code namespaces and class names
+              sed -i 's|/toonz/|/flare/|g' "$file"
+              sed -i 's|\\toonz\\|\\flare\\|g' "$file"
+              
+              # Update application name in UI strings and metadata
+              # Be selective to avoid breaking code
+              sed -i 's/"Toonz"/"Flare"/g' "$file"
+              sed -i "s/'Toonz'/'Flare'/g" "$file"
+              
+              # Update window titles and display names
+              sed -i 's/Toonz Production/Flare/g' "$file"
+            fi
+          }
+          
+          # Find and rebrand specific file types
+          find . -type f \( \
+               -name "*.qrc" -o -name "*.ui" -o -name "*.desktop" \
+               -o -name "*.plist" -o -name "*.rc" -o -name "*.xml" \) \
+               ! -path "*/thirdparty/*" \
+               ! -path "*/.git/*" \
+               ! -path "*/doc/*" \
+               ! -name "README*" \
+               -print0 | while IFS= read -r -d '' file; do
+            rebrand_file "$file"
+          done
+          
+          echo "Rebranding complete."
+          EOF
+          
+          chmod +x /tmp/rebrand.sh
+          /tmp/rebrand.sh
+
+      - name: Capture upstream commit hash
+        if: env.MERGE_CONFLICT != 'true'
+        run: |
+          UPSTREAM_COMMIT=$(git rev-parse upstream/master)
+          echo "UPSTREAM_COMMIT=$UPSTREAM_COMMIT" >> $GITHUB_ENV
+          echo "Upstream commit: $UPSTREAM_COMMIT"
+
+      - name: Restore README files
+        if: env.MERGE_CONFLICT != 'true'
+        run: |
+          # Restore README files to our version (ignore upstream changes)
+          git checkout HEAD -- README.md || true
+          git checkout HEAD -- doc/ || true
+
+      - name: Commit changes
+        if: env.MERGE_CONFLICT != 'true'
+        run: |
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            echo "HAS_CHANGES=false" >> $GITHUB_ENV
+          else
+            git commit -m "Sync from OpenToonz upstream with Flare rebranding
+
+          This automated sync merges changes from the OpenToonz upstream repository
+          and applies Flare branding. README files are preserved from the Flare fork.
+          
+          Upstream commit: ${{ env.UPSTREAM_COMMIT }}"
+            echo "HAS_CHANGES=true" >> $GITHUB_ENV
+          fi
+
+      - name: Create Pull Request
+        if: env.MERGE_CONFLICT != 'true' && env.HAS_CHANGES == 'true'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ env.BRANCH_NAME }}
+          title: "🔄 Sync from OpenToonz upstream"
+          body: |
+            ## Upstream Sync
+
+            This PR syncs changes from the [OpenToonz upstream repository](https://github.com/opentoonz/opentoonz) and applies Flare rebranding.
+
+            ### Changes Applied:
+            - ✅ Merged upstream changes
+            - ✅ Applied Flare rebranding (OpenToonz → Flare)
+            - ✅ Preserved Flare README files
+
+            ### Review Notes:
+            - Please review the changes carefully
+            - Check for any branding that may have been missed
+            - Verify that core functionality remains intact
+            - Test the build after merging
+
+            **Upstream commit:** `${{ env.UPSTREAM_COMMIT }}`
+
+            ---
+            *This PR was automatically created by the sync-upstream workflow*
+          labels: |
+            upstream-sync
+            automated
+
+      - name: Handle merge conflicts
+        if: env.MERGE_CONFLICT == 'true'
+        run: |
+          echo "::error::Merge conflicts detected during upstream sync"
+          echo "Please manually resolve conflicts and create a PR"
+          git merge --abort || true
+          exit 1

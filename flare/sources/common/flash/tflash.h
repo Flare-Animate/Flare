@@ -1,6 +1,10 @@
 #ifndef TFLASH_INCLUDED
 #define TFLASH_INCLUDED
 
+#include <string>
+#include <vector>
+#include <list>
+
 //#include "tpixel.h"
 //#include "tgeometry.h"
 #include "timage.h"
@@ -62,9 +66,9 @@ class DVAPI TFlash
 	Imp *m_imp;
 
 public:
-	static const wstring ConstantLines;
-	static const wstring MixedLines;
-	static const wstring VariableLines;
+	static const std::wstring ConstantLines;
+	static const std::wstring MixedLines;
+	static const std::wstring VariableLines;
 
 	//enum LineQuality{_ConstantLines=0, _MixedLines, _VariableLines};
 
@@ -176,7 +180,7 @@ public:
 	/*!
 		Draws a polygon given the vertices.
 	*/
-	void drawPolygon(vector<vector<TQuadratic *>> &quads, int clippedShapes = 0); //first polyline outside, other are holes
+	void drawPolygon(std::vector<std::vector<TQuadratic *>> &quads, int clippedShapes = 0); //first polyline outside, other are holes
 	/*!
 		Draws a raster image.
 	*/
@@ -196,11 +200,11 @@ public:
 	/*!
 		Draws the vector of segment lines \p segmentArray.
 	*/
-	void drawSegments(const vector<TSegment> segmentArray, bool isGradientColor);
+	void drawSegments(const std::vector<TSegment> segmentArray, bool isGradientColor);
 	/*!
 		Draws an array of boxes.
 	*/
-	void drawquads(const vector<TQuadratic> quadsArray);
+	void drawquads(const std::vector<TQuadratic> quadsArray);
 	/*this function puts objects in an image in current sprite;
 	useful for image patterns 
 	*/
@@ -224,7 +228,7 @@ public:
 	/*!
 		Draws a polyline.
 	*/
-	int drawPolyline(vector<TPointD> &poly);
+	int drawPolyline(std::vector<TPointD> &poly);
 	/*!
 		Draws an ellipse.
 	*/
@@ -256,12 +260,12 @@ public:
 	*/
 	void writeMovie(FILE *fp);
 
-	void drawPolygon(const list<TQuadratic *> &poly, bool isOutline); // tolgo????
+	void drawPolygon(const std::list<TQuadratic *> &poly, bool isOutline); // tolgo????
 			  /*!
 			Returns the quality of the line, i.e. 
 			"Low: Constant Thickness", "Medium: Mixed Thickness", "High: Variable Thickness".
 	*/
-	wstring getLineQuality();
+	std::wstring getLineQuality();
 	//void addPauseAtStart();
 	/*!
 		Clears the tables of images used in the drawing.

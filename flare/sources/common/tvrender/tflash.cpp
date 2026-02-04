@@ -27,6 +27,12 @@
 #include "tsystem.h"
 #include <stack>
 #include <fstream>
+#include <algorithm>
+
+// Macros for switch-case syntax
+#define CASE case
+#define __OR : case
+#define DEFAULT default
 
 #if !defined(TNZ_LITTLE_ENDIAN)
 TNZ_LITTLE_ENDIAN undefined !!
@@ -49,12 +55,12 @@ bool areTwEqual(TPointD p0, TPointD p1)
 }
 //-------------------------------------------------------------------
 
-const wstring TFlash::ConstantLines = L"Low: Constant Thickness";
-const wstring TFlash::MixedLines = L"Medium: Mixed Thickness";
-const wstring TFlash::VariableLines = L"High: Variable Thickness";
+const std::wstring TFlash::ConstantLines = L"Low: Constant Thickness";
+const std::wstring TFlash::MixedLines = L"Medium: Mixed Thickness";
+const std::wstring TFlash::VariableLines = L"High: Variable Thickness";
 
 Tiio::SwfWriterProperties::SwfWriterProperties()
-	: m_lineQuality("Curve Quality"), m_isCompressed("File Compression", true), m_autoplay("Autoplay", true), m_looping("Looping", true), m_jpgQuality("Jpg Quality", 0, 100, 90), m_url("URL", wstring()), m_preloader("Insert Preloader", false)
+	: m_lineQuality("Curve Quality"), m_isCompressed("File Compression", true), m_autoplay("Autoplay", true), m_looping("Looping", true), m_jpgQuality("Jpg Quality", 0, 100, 90), m_url("URL", std::wstring()), m_preloader("Insert Preloader", false)
 {
 	m_lineQuality.addValue(TFlash::MixedLines);
 	m_lineQuality.addValue(TFlash::ConstantLines);
@@ -104,7 +110,7 @@ public:
 	bool m_skip;
 	bool m_toBeDeleted;
 	bool m_isPoint;
-	vector<TQuadratic *> m_quads;
+	std::vector<TQuadratic *> m_quads;
 	PolyStyle m_fillStyle1;
 	PolyStyle m_fillStyle2;
 	PolyStyle m_lineStyle;
@@ -130,7 +136,7 @@ public:
 
 		return (p0.x == aux.p0.x) ? ((p0.y == aux.p0.y) ? ((p1.x == aux.p1.x) ? (p1.y < aux.p1.y) : (p1.x < aux.p1.x)) : (p0.y < aux.p0.y)) : p0.x < aux.p0.x;
 	}
-	void revert() { tswap(p0, p1); }
+	void revert() { std::swap(p0, p1); }
 };
 
 class wChunk
@@ -186,7 +192,7 @@ public:
 	bool m_loaderAdded;
 	TAffine m_globalScale;
 	//typedef triple FlashImageData;
-	typedef vector<FlashImageData> FrameData;
+	typedef std::vector<FlashImageData> FrameData;
 	FObjCollection m_tags;
 	FDTSprite *m_currSprite;
 	int m_currDepth;
@@ -210,7 +216,7 @@ public:
 	double m_thickness;
 
 	PolyStyle m_polyData;
-	//vector<PolyStyle> m_currentBgStyle;
+	//std::vector<PolyStyle> m_currentBgStyle;
 	int m_regionDepth;
 	int m_strokeCount;
 	/*TPixel32 m_fillColor;
@@ -221,36 +227,36 @@ public:
 	//std::ofstream m_of;
 
 	TAffine m_affine;
-	vector<TAffine> m_matrixStack;
-	map<const TImage *, USHORT> m_imagesMap;
-	map<const TImage *, double> m_imagesScaleMap;
-	map<TEdge, FlashPolyline *> m_edgeMap;
-	map<const void *, USHORT> m_texturesMap;
-	map<biPoint, FlashPolyline *> m_autocloseMap;
-	map<const TStroke *, std::set<wChunk>> m_strokeMap;
+	std::vector<TAffine> m_matrixStack;
+	std::map<const TImage *, USHORT> m_imagesMap;
+	std::map<const TImage *, double> m_imagesScaleMap;
+	std::map<TEdge, FlashPolyline *> m_edgeMap;
+	std::map<const void *, USHORT> m_texturesMap;
+	std::map<biPoint, FlashPolyline *> m_autocloseMap;
+	std::map<const TStroke *, std::set<wChunk>> m_strokeMap;
 
-	vector<TStroke *> m_outlines;
+	std::vector<TStroke *> m_outlines;
 	TPixel m_currStrokeColor;
 	//std::set<TPixel> m_outlineColors;
 
 	FrameData *m_frameData;
 	FrameData *m_oldFrameData;
 	//bool m_notClipped;
-	vector<TSoundTrackP> m_sound;
+	std::vector<TSoundTrackP> m_sound;
 	int m_soundSize;
-	vector<UCHAR *> m_soundBuffer;
+	std::vector<UCHAR *> m_soundBuffer;
 	int m_soundOffset;
 	TVectorImageP m_currMask;
 
-	vector<vector<UCHAR> *> m_toBeDeleted;
-	vector<TQuadratic *> m_quadsToBeDeleted;
-	vector<TStroke *> m_strokesToBeDeleted;
-	void drawPolygon(const vector<TQuadratic *> &poly, bool isOutline);
+	std::vector<std::vector<UCHAR> *> m_toBeDeleted;
+	std::vector<TQuadratic *> m_quadsToBeDeleted;
+	std::vector<TStroke *> m_strokesToBeDeleted;
+	void drawPolygon(const std::vector<TQuadratic *> &poly, bool isOutline);
 	int setFill(FDTDefineShape3 *shape);
 	inline FMatrix *affine2Matrix(const TAffine &aff);
 	void drawHangedObjects();
-	void setStyles(const list<FlashPolyline> &polylines,
-				   vector<U32> &lineStyleID, vector<U32> &fillStyle1ID, vector<U32> &fillStyle2ID,
+	void setStyles(const std::list<FlashPolyline> &polylines,
+				   std::vector<U32> &lineStyleID, std::vector<U32> &fillStyle1ID, std::vector<U32> &fillStyle2ID,
 				   FDTDefineShape3 *polygon);
 
 	U32 findStyle(const PolyStyle &p, std::map<PolyStyle, U32> &idMap, FDTDefineShape3 *polygon);
@@ -301,7 +307,7 @@ public:
 			m_properties.setProperties(properties);
 		//m_currentBgStyle.push_back(PolyStyle());
 
-		m_tw = 16384 / tmax(m_lx, m_ly);
+		m_tw = 16384 / std::max(m_lx, m_ly);
 		if (m_tw > 20)
 			m_tw = 20;
 		Tw = m_tw;
@@ -312,11 +318,11 @@ public:
 	}
 
 	void drawSubregions(TFlash *tf, const TRegion *r, const TPalette *palette);
-	void doDrawPolygon(list<FlashPolyline> &polylines, int clippedShapes = 0);
-	int drawSegments(const vector<TSegment> segmentArray, bool isGradientColor);
-	int drawquads(const vector<TQuadratic> quadsArray);
+	void doDrawPolygon(std::list<FlashPolyline> &polylines, int clippedShapes = 0);
+	int drawSegments(const std::vector<TSegment> segmentArray, bool isGradientColor);
+	int drawquads(const std::vector<TQuadratic> quadsArray);
 	int drawRectangle(const TRectD &rect);
-	int drawPolyline(vector<TPointD> &poly);
+	int drawPolyline(std::vector<TPointD> &poly);
 	int drawEllipse(const TPointD &center, double radiusX, double radiusY);
 	void drawDot(const TPointD &center, double radius);
 
@@ -335,7 +341,7 @@ public:
 	void addPause();
 	void beginMask();
 	void endMask();
-	void addUrlLink(string url);
+	void addUrlLink(std::string url);
 	USHORT buildImage(const TImageP vi, TFlash *tf, double &scaleFactor, bool isMask);
 	USHORT buildVectorImage(const TVectorImageP &img, TFlash *tf, double &scaleFactor, bool isMask);
 	USHORT buildRasterImage(const TImageP rimg, TFlash *tf);
@@ -438,7 +444,7 @@ inline FMatrix *TFlash::Imp::affine2Matrix(const TAffine &aff)
 
 //-------------------------------------------------------------------
 
-int TFlash::Imp::drawSegments(const vector<TSegment> segmentArray, bool isGradientColor)
+int TFlash::Imp::drawSegments(const std::vector<TSegment> segmentArray, bool isGradientColor)
 {
 	int i;
 	assert(m_currSprite);
@@ -504,7 +510,7 @@ int TFlash::Imp::drawSegments(const vector<TSegment> segmentArray, bool isGradie
 
 //-------------------------------------------------------------------
 
-int TFlash::Imp::drawquads(const vector<TQuadratic> quadsArray)
+int TFlash::Imp::drawquads(const std::vector<TQuadratic> quadsArray)
 {
 	int i;
 	assert(m_currSprite);
@@ -561,7 +567,7 @@ int TFlash::Imp::drawquads(const vector<TQuadratic> quadsArray)
 
 //-------------------------------------------------------------------
 
-void putquads(const TStroke *s, double w0, double w1, vector<TQuadratic *> &quads)
+void putquads(const TStroke *s, double w0, double w1, std::vector<TQuadratic *> &quads)
 {
 	int chunkIndex0, chunkIndex1, i;
 	double dummy;
@@ -579,18 +585,18 @@ void putquads(const TStroke *s, double w0, double w1, vector<TQuadratic *> &quad
 
 //-------------------------------------------------------------------
 
-void computeOutlineBoundary(vector<TStroke *> &outlines, list<FlashPolyline> &polylinesArray, const TPixel &color)
+void computeOutlineBoundary(std::vector<TStroke *> &outlines, std::list<FlashPolyline> &polylinesArray, const TPixel &color)
 {
 	UINT size = polylinesArray.size();
 
-	vector<vector<TQuadratic *>> quads;
+	std::vector<std::vector<TQuadratic *>> quads;
 	computeSweepBoundary(outlines, quads);
 
 	outlines.clear();
 	std::list<FlashPolyline>::iterator it = polylinesArray.begin();
 	std::advance(it, size);
 	for (int i = 0; i < (int)quads.size(); i++) {
-		vector<TQuadratic *> &q = quads[i];
+		std::vector<TQuadratic *> &q = quads[i];
 
 		polylinesArray.push_back(FlashPolyline());
 		polylinesArray.back().m_quads = quads[i];
@@ -630,7 +636,7 @@ void TFlash::Imp::drawHangedObjects()
 
 //-------------------------------------------------------------------
 
-int TFlash::Imp::drawPolyline(vector<TPointD> &poly)
+int TFlash::Imp::drawPolyline(std::vector<TPointD> &poly)
 {
 	TRect box(1000, 1000, -1000, -1000);
 
@@ -982,8 +988,8 @@ U32 TFlash::Imp::findStyle(const PolyStyle &p, std::map<PolyStyle, U32> &idMap,
 
 //-------------------------------------------------------------------
 
-void TFlash::Imp::setStyles(const list<FlashPolyline> &polylines,
-							vector<U32> &lineStyleID, vector<U32> &fillStyle1ID, vector<U32> &fillStyle2ID, FDTDefineShape3 *polygon)
+void TFlash::Imp::setStyles(const std::list<FlashPolyline> &polylines,
+							std::vector<U32> &lineStyleID, std::vector<U32> &fillStyle1ID, std::vector<U32> &fillStyle2ID, FDTDefineShape3 *polygon)
 {
 	int i;
 	std::list<FlashPolyline>::const_iterator it, itOld;
@@ -1075,7 +1081,7 @@ inline void updateBBox(TRect &box, const TPoint &p)
 		box.y0 = p.y;
 }
 
-void TFlash::Imp::doDrawPolygon(list<FlashPolyline> &polylines, int clippedShapes)
+void TFlash::Imp::doDrawPolygon(std::list<FlashPolyline> &polylines, int clippedShapes)
 {
 	assert(m_currSprite);
 	assert(!polylines.empty());
@@ -1092,9 +1098,9 @@ if (isOutline || isRegion)
 
 	std::map<double, std::map<TPixel32, U32>> idMap;
 
-	vector<U32> fillStyle1ID(polylines.size());
-	vector<U32> fillStyle2ID(polylines.size());
-	vector<U32> lineStyleID(polylines.size());
+	std::vector<U32> fillStyle1ID(polylines.size());
+	std::vector<U32> fillStyle2ID(polylines.size());
+	std::vector<U32> lineStyleID(polylines.size());
 
 	int i, j;
 	setStyles(polylines, lineStyleID, fillStyle1ID, fillStyle2ID, polygon);
@@ -1106,7 +1112,7 @@ if (isOutline || isRegion)
 		if (fillStyle2ID[i] != 0 && fillStyle1ID[i] == 0) {
 			fillStyle1ID[i] = fillStyle2ID[i];
 			fillStyle2ID[i] = 0;
-			vector<TQuadratic *> &v = (*it).m_quads;
+			std::vector<TQuadratic *> &v = (*it).m_quads;
 			std::reverse(v.begin(), v.end());
 			for (j = 0; j < (int)v.size(); j++) {
 				v[j] = new TQuadratic(v[j]->getP2(), v[j]->getP1(), v[j]->getP0());
@@ -1150,7 +1156,7 @@ if (isOutline || isRegion)
 		if (it->m_skip) //m_of << "  SKIPPOOOOO! " <<std::endl;
 			continue;
 
-		const vector<TQuadratic *> &poly = it->m_quads;
+		const std::vector<TQuadratic *> &poly = it->m_quads;
 		firstPoint = toTwips(poly[0]->getP0());
 		lastPoint = toTwips(poly.back()->getP2());
 		/* m_of << "  POLYLINE # da ( " 
@@ -1282,7 +1288,7 @@ void TFlash::Imp::addCameraClip(int index)
 //-------------------------------------------------------------------
 
 void computeQuadChain(const TEdge &e,
-					  vector<TQuadratic *> &quadArray, vector<TQuadratic *> &toBeDeleted)
+					  std::vector<TQuadratic *> &quadArray, std::vector<TQuadratic *> &toBeDeleted)
 {
 	int chunk_b, chunk_e, chunk = -1;
 	double t_b, t_e, w0, w1;
@@ -1461,7 +1467,7 @@ void TFlash::Imp::addEdge(const TEdge &e, TPointD &pBegin, TPointD &pEnd)
 	TPointD auxP = pEnd;
 
 	TEdge aux = e;
-	tswap(aux.m_w0, aux.m_w1);
+	std::swap(aux.m_w0, aux.m_w1);
 	std::map<TEdge, FlashPolyline *>::iterator it;
 	//PolyStyle style = m_polyData;
 	std::stack<PolyStyle> auxs;
@@ -1496,14 +1502,14 @@ void TFlash::Imp::addEdge(const TEdge &e, TPointD &pBegin, TPointD &pEnd)
 		it = m_strokeMap.find(e.m_s);
 		if (it != m_strokeMap.end()) {
 			std::set<wChunk>::iterator it1;
-			wChunk wc(tmin(e.m_w0, e.m_w1), tmax(e.m_w0, e.m_w1));
+			wChunk wc(std::min(e.m_w0, e.m_w1), std::max(e.m_w0, e.m_w1));
 
 			it1 = it->second.find(wc);
 			if (it1 == it->second.end())
 				it->second.insert(wc);
 		} else {
 			std::set<wChunk> chunkSet;
-			chunkSet.insert(wChunk(tmin(e.m_w0, e.m_w1), tmax(e.m_w0, e.m_w1)));
+			chunkSet.insert(wChunk(std::min(e.m_w0, e.m_w1), std::max(e.m_w0, e.m_w1)));
 			m_strokeMap[e.m_s] = chunkSet;
 		}
 	}
@@ -1623,11 +1629,11 @@ USHORT TFlash::Imp::buildVectorImage(const TVectorImageP &_vi, TFlash *tf, doubl
 		strokes.push_back(i);
 
 	_vi->enableMinimizeEdges(false);
-	_vi->notifyChangedStrokes(strokes, vector<TStroke *>());
+	_vi->notifyChangedStrokes(strokes, std::vector<TStroke *>());
 	_vi->enableMinimizeEdges(true);
 
 	TRectD box = _vi->getBBox();
-	int dim = tmax(convert(box).getLx(), convert(box).getLy());
+	int dim = std::max(convert(box).getLx(), convert(box).getLy());
 
 	TVectorImageP vi;
 	if (dim * m_tw > 32767.0) {
@@ -1961,7 +1967,7 @@ void TFlash::Imp::writeFrame(TFlash *tf, bool isLast, int frameCountLoader, bool
 			addSkipLoader(frameCountLoader + 1);
 
 		if (m_properties.m_url.getValue().length() > 0)
-			addUrlLink(toString(m_properties.m_url.getValue()));
+			addUrlLink(m_properties.m_url.getValueAsString());
 	}
 
 	if (m_currFrameIndex > m_soundOffset)
@@ -1975,7 +1981,7 @@ void TFlash::Imp::writeFrame(TFlash *tf, bool isLast, int frameCountLoader, bool
 	int currMaskDepth;
 	bool animatedPalette = false;
 
-	for (depth = 0; depth < tmax((int)m_frameData->size(), oldSize); depth++) {
+	for (depth = 0; depth < std::max((int)m_frameData->size(), oldSize); depth++) {
 
 		FCXFormWAlpha *form = 0;
 
@@ -2159,7 +2165,7 @@ void TFlash::Imp::addActionStop()
 //-------------------------------------------------------------------
 void TFlash::Imp::addLoader()
 {
-	string target = "";
+	std::string target = "";
 	//construct an empty CTDoAction tag object
 	FCTDoAction *doAction = new FCTDoAction();
 
@@ -2174,7 +2180,7 @@ void TFlash::Imp::addLoader()
 
 void TFlash::Imp::addSkipLoader(int jumpToFrame)
 {
-	string target = "";
+	std::string target = "";
 	//construct an empty CTDoAction tag object
 	FCTDoAction *doAction = new FCTDoAction();
 
@@ -2245,11 +2251,11 @@ void TFlash::Imp::addPause()
 
 //-------------------------------------------------------------------
 
-void TFlash::Imp::addUrlLink(const string _url)
+void TFlash::Imp::addUrlLink(const std::string _url)
 {
 	//addActionStop();
 
-	string url;
+	std::string url;
 	if (url.find("http") == -1)
 		url = "http://" + _url;
 	else
@@ -2401,14 +2407,14 @@ void TFlash::setFillStyleMatrix(const TAffine &aff)
 
 //-------------------------------------------------------------------
 
-void TFlash::drawSegments(const vector<TSegment> segmentArray, bool isGradientColor)
+void TFlash::drawSegments(const std::vector<TSegment> segmentArray, bool isGradientColor)
 {
 	m_imp->drawSegments(segmentArray, isGradientColor);
 }
 
 //-------------------------------------------------------------------
 
-void TFlash::drawquads(const vector<TQuadratic> quadArray)
+void TFlash::drawquads(const std::vector<TQuadratic> quadArray)
 {
 	m_imp->drawquads(quadArray);
 }
@@ -2426,7 +2432,7 @@ void TFlash::cleanCachedImages()
 
 void TFlash::drawCenterline(const TStroke *s, bool drawAll)
 {
-	//vector<TQuadratic*> quads;
+	//std::vector<TQuadratic*> quads;
 	int i;
 	double thickness;
 
@@ -2499,7 +2505,7 @@ int TFlash::drawRectangle(const TRectD &rect)
 {
 	m_imp->drawHangedObjects();
 
-	vector<TPointD> v;
+	std::vector<TPointD> v;
 
 	v.push_back(rect.getP00());
 	v.push_back(rect.getP01());
@@ -2511,7 +2517,7 @@ int TFlash::drawRectangle(const TRectD &rect)
 
 //-------------------------------------------------------------------
 
-int TFlash::drawPolyline(vector<TPointD> &poly)
+int TFlash::drawPolyline(std::vector<TPointD> &poly)
 {
 	m_imp->drawHangedObjects();
 
@@ -2520,12 +2526,12 @@ int TFlash::drawPolyline(vector<TPointD> &poly)
 
 //-------------------------------------------------------------------
 
-void TFlash::drawPolygon(vector<vector<TQuadratic *>> &quads, int clippedShapes)
+void TFlash::drawPolygon(std::vector<std::vector<TQuadratic *>> &quads, int clippedShapes)
 {
 	m_imp->drawHangedObjects();
 
 	//std::list<Polyline>::iterator it = polylines.begin(), it_e = polylines.end();
-	list<FlashPolyline> polylines;
+	std::list<FlashPolyline> polylines;
 
 	for (int i = 0; i < (int)quads.size(); i++) {
 		polylines.push_back(FlashPolyline());
@@ -2642,7 +2648,7 @@ void TFlash::writeMovie(FILE *fp)
 void TFlash::drawRegion(const TRegion &r, int clippedShapes)
 {
 	int i;
-	vector<FlashPolyline> polylines;
+	std::vector<FlashPolyline> polylines;
 	TPointD firstPoint, lastPoint;
 
 	if (clippedShapes > 0 || m_imp->m_isMask) {
@@ -2667,9 +2673,9 @@ void TFlash::drawRegion(const TRegion &r, int clippedShapes)
 		pEnd = rr.getEdge(0)->m_s->getPoint(rr.getEdge(0)->m_w0);
 		for (int j = rr.getEdgeCount() - 1; j >= 0; j--) {
 			TEdge *e = rr.getEdge(j);
-			tswap(e->m_w0, e->m_w1);
+			std::swap(e->m_w0, e->m_w1);
 			m_imp->addEdge(*e, pBegin, pEnd);
-			tswap(e->m_w0, e->m_w1);
+			std::swap(e->m_w0, e->m_w1);
 		}
 	}
 
@@ -2765,7 +2771,7 @@ void TFlash::draw(const TImageP img, const TColorFunction *cf)
 
 //-------------------------------------------------------------------
 
-wstring TFlash::getLineQuality()
+std::wstring TFlash::getLineQuality()
 {
 	return m_imp->m_properties.m_lineQuality.getValue();
 }
