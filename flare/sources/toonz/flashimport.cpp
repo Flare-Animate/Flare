@@ -5,15 +5,11 @@
 #include "toonz/preferences.h"
 #include "toonz/tapp.h"
 #include "toonz/toonzfolders.h"
-#include "tsystem.h"
 
 #include "toonzqt/gutil.h"
 #include "toonzqt/dvdialog.h"
 #include "toonzqt/filebrowserpopup.h"
 #include "toonzqt/gutil.h"
-
-// Flash library includes
-#include "flash/XFLReader.h"
 
 #include <QProcess>
 #include <QDesktopServices>
@@ -21,79 +17,8 @@
 #include <QFile>
 #include <QDir>
 #include <QDateTime>
-#include <QMessageBox>
 
 using namespace DVGui;
-
-//-----------------------------------------------------------------------------
-// Helper function to check if we can handle file internally
-//-----------------------------------------------------------------------------
-
-static bool canHandleInternally(const TFilePath &fp) {
-  std::string ext = fp.getType();
-  
-  // XFL directories can be handled internally
-  if (ext.empty() && XFL::isXFLDirectory(fp)) {
-    return true;
-  }
-  
-  // Modern FLA files that are ZIP-based could be extracted and read
-  if (ext == "fla" && XFL::isFLAZipBased(fp)) {
-    // For now, we still use external tools for ZIP extraction
-    // Future: implement internal ZIP handling
-    return false;
-  }
-  
-  // XFL files need extraction first
-  if (ext == "xfl") {
-    return false;
-  }
-  
-  return false;
-}
-
-//-----------------------------------------------------------------------------
-// Import XFL directory internally
-//-----------------------------------------------------------------------------
-
-static bool importXFLDirectory(const TFilePath &xflPath) {
-  XFL::Reader reader(xflPath);
-  
-  if (!reader.read()) {
-    QString err = QObject::tr("Failed to read XFL: %1")
-                    .arg(QString::fromStdString(reader.getError()));
-    DVGui::warning(err);
-    return false;
-  }
-  
-  const XFL::Document &doc = reader.getDocument();
-  
-  // Show information about the imported XFL
-  QString info = QObject::tr(
-    "XFL Project Information:\n"
-    "Size: %1 x %2\n"
-    "Frame Rate: %3 fps\n"
-    "Background: %4\n"
-    "Symbols: %5\n\n"
-    "XFL structure has been parsed. To import assets, please:\n"
-    "1. Navigate to the LIBRARY folder\n"
-    "2. Import individual images/SVG files\n"
-    "3. Use File → Load Level for sequences")
-    .arg(doc.width)
-    .arg(doc.height)
-    .arg(doc.frameRate)
-    .arg(QString::fromStdString(doc.backgroundColor))
-    .arg(doc.symbols.size());
-  
-  std::vector<QString> buttons = {QObject::tr("Open XFL Folder"), QObject::tr("OK")};
-  int ret = DVGui::MsgBox(DVGui::INFORMATION, info, buttons);
-  
-  if (ret == 1) {
-    QDesktopServices::openUrl(QUrl::fromLocalFile(xflPath.getQString()));
-  }
-  
-  return true;
-}
 
 class ImportFlashVectorCommand final : public MenuItemHandler {
 public:
@@ -106,10 +31,9 @@ void ImportFlashVectorCommand::execute() {
   static GenericLoadFilePopup *loadPopup = 0;
   if (!loadPopup) {
     loadPopup = new GenericLoadFilePopup(
-        QObject::tr("Import Flash/XFL Content"));
+        QObject::tr("Import Flash (Vector via External Decompiler)"));
     loadPopup->addFilterType("swf");
     loadPopup->addFilterType("fla");
-    loadPopup->addFilterType("xfl");
   }
   if (!scene->isUntitled())
     loadPopup->setFolder(scene->getScenePath().getParentDir());
@@ -119,32 +43,8 @@ void ImportFlashVectorCommand::execute() {
 
   TFilePath fp = loadPopup->getPath();
   if (fp.isEmpty()) {
-    DVGui::info(QObject::tr("Flash import cancelled: empty filepath."));
+    DVGui::info(QObject::tr("Flash import cancelled : empty filepath."));
     return;
-  }
-
-  // Try internal handling first
-  if (canHandleInternally(fp)) {
-    importXFLDirectory(fp);
-    return;
-  }
-
-  // Fall back to external decompiler for SWF and ZIP-based FLA
-  QString msg = QObject::tr(
-      "This file requires external decompiler support.\n\n"
-      "For best results:\n"
-      "1. Install JPEXS Free Flash Decompiler (ffdec)\n"
-      "2. Set the path in Preferences → Import/Export\n"
-      "3. JPEXS will extract vector content to SVG\n\n"
-      "For XFL/FLA: Extract or export to XFL format first,\n"
-      "then import the extracted XFL directory.\n\n"
-      "Continue with external decompiler?");
-  
-  std::vector<QString> buttons = {QObject::tr("Continue"), QObject::tr("Cancel")};
-  int ret = DVGui::MsgBox(DVGui::QUESTION, msg, buttons);
-  
-  if (ret == 2) {
-    return;  // User cancelled
   }
 
   // Create temporary output directory
@@ -156,77 +56,82 @@ void ImportFlashVectorCommand::execute() {
     return;
   }
 
-  // Try to invoke external decompiler directly
-  QString decompilerPath = Preferences::instance()->getFlashDecompilerPath();
-  
-  if (decompilerPath.isEmpty()) {
-    // Try common locations
-    QStringList tryPaths = {"ffdec", "jpexs", 
-                            "/usr/bin/ffdec", "/usr/local/bin/ffdec",
-                            "C:\\Program Files\\FFDec\\ffdec.exe"};
-    for (const QString &path : tryPaths) {
-      QProcess testProc;
-      testProc.start(path, QStringList() << "-help");
-      if (testProc.waitForStarted(1000)) {
-        testProc.kill();
-        testProc.waitForFinished();
-        decompilerPath = path;
-        break;
-      }
+  // Locate helper script in common development locations
+  QStringList candidates;
+  // Relative to application dir
+  candidates << QDir(QCoreApplication::applicationDirPath())
+                    .absoluteFilePath("../../tools/flash/decompile_flash.py");
+  candidates << QDir(QCoreApplication::applicationDirPath())
+                    .absoluteFilePath("tools/flash/decompile_flash.py");
+  // Relative to source module dir
+  QString moduleDir = ToonzFolder::getMyModuleDir().getQString();
+  candidates << QDir(moduleDir).absoluteFilePath("../../../../tools/flash/decompile_flash.py");
+
+  QString scriptPath;
+  for (const QString &c : candidates) {
+    if (QFile::exists(c)) {
+      scriptPath = c;
+      break;
     }
   }
 
-  if (decompilerPath.isEmpty()) {
-    QString err = QObject::tr(
-        "Flash decompiler not found.\n\n"
-        "Please install JPEXS Free Flash Decompiler:\n"
-        "https://github.com/jindrapetrik/jpexs-decompiler\n\n"
-        "Then set the path in:\n"
-        "File → Preferences → Import/Export → Flash Decompiler Path");
-    DVGui::warning(err);
+  if (scriptPath.isEmpty()) {
+    QString msg = QObject::tr(
+        "Flash vector import requires the helper script "
+        "'decompile_flash.py' and a compatible Flash decompiler (e.g., "
+        "JPEXS). Install the tools and place the script in the 'tools/flash' "
+        "directory of the source tree, or see the documentation for more "
+        "information.");
+    DVGui::warning(msg);
+    QDesktopServices::openUrl(QUrl::fromLocalFile(
+        QDir(QCoreApplication::applicationDirPath()).absoluteFilePath("../..")));
     return;
   }
 
-  // Run decompiler to export FLA/XFL
+  // Run the helper script using the system python
+  QString python = "python";
   QStringList args;
-  args << "-export" << "fla" << outDir.getQString() << fp.getQString();
-  
+  args << scriptPath;
+  args << "--input" << fp.getQString();
+  args << "--output" << outDir.getQString();
+
+  // If the user configured a specific decompiler path in Preferences, pass it on
+  QString prefDecompilerPath = Preferences::instance()->getFlashDecompilerPath();
+  if (!prefDecompilerPath.isEmpty()) args << "--decompiler" << prefDecompilerPath;
+
   QProcess proc;
-  proc.setProgram(decompilerPath);
+  proc.setProgram(python);
   proc.setArguments(args);
   proc.start();
-  
   bool started = proc.waitForStarted(10000);
   if (!started) {
-    QString err = QObject::tr("Unable to start Flash decompiler: %1").arg(decompilerPath);
+    QString err = QObject::tr("Unable to start Python. Please ensure Python is installed and on your PATH.");
     DVGui::warning(err);
     return;
   }
 
-  // Wait for completion
+  // Wait for completion and capture output
   proc.waitForFinished(-1);
   int exitCode = proc.exitCode();
+  QString stdErr = proc.readAllStandardError();
+  QString stdOut = proc.readAllStandardOutput();
 
   if (exitCode != 0) {
-    QString stdErr = proc.readAllStandardError();
-    QString err = QObject::tr("Flash decompilation failed:\n%1").arg(stdErr);
+    QString err = QObject::tr("Flash decompilation failed: %1").arg(stdErr);
     DVGui::warning(err);
     return;
   }
 
-  QString successMsg = QObject::tr(
-      "Flash content has been extracted to:\n%1\n\n"
-      "You can now import the extracted assets:\n"
-      "- SVG files for vector content\n"
-      "- Image sequences for animations\n"
-      "- XFL structure if exported\n\n"
-      "Open containing folder?")
-      .arg(outDir.getQString());
-  
-  std::vector<QString> resultButtons = {QObject::tr("Open Folder"), QObject::tr("OK")};
-  int result = DVGui::MsgBox(DVGui::INFORMATION, successMsg, resultButtons);
+  QString successMsg = QObject::tr("Flash content has been exported to:\n%1\n\nOpen containing folder to review and import files.")
+                           .arg(outDir.getQString());
+  std::vector<QString> buttons = {QObject::tr("Open containing folder"),
+                                  QObject::tr("OK")};
+  int ret = DVGui::MsgBox(DVGui::INFORMATION, successMsg, buttons);
 
-  if (result == 1) {
-    QDesktopServices::openUrl(QUrl::fromLocalFile(outDir.getQString()));
+  if (ret == 1) {
+    if (TSystem::isUNC(outDir))
+      QDesktopServices::openUrl(QUrl(outDir.getQString()));
+    else
+      QDesktopServices::openUrl(QUrl::fromLocalFile(outDir.getQString()));
   }
 }
