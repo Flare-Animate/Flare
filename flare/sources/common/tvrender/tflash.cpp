@@ -2266,7 +2266,7 @@ void TFlash::Imp::addUrlLink(const std::string _url)
 	FColor black = FColor(0, 0, 0, 0);
 
 	U32 blackfillID = clipRectangle->AddSolidFillStyle(new FColor(black));
-	clipRectangle->FinishStyleArrays();
+	clipRectangle->FinishShapeArrays();
 	addShape(clipRectangle, false, true, true, false, true, 0, 0, blackfillID, 0);
 
 	addEdgeStraightToShape(clipRectangle, 0, m_ly * m_tw);
@@ -2691,119 +2691,10 @@ void TFlash::drawRegion(const TRegion &r, int clippedShapes)
 
 //-------------------------------------------------------------------
 
-USHORT TFlash::buildImage(const TImageP img, bool isMask)
+TVectorRenderData TFlash::operator TVectorRenderData() const
 {
-	double scalefactor;
-	return m_imp->buildImage(img, this, scalefactor, isMask);
-	assert(scalefactor == 1.0);
+    // Construct a TVectorRenderData using current affine and palette
+    TAffine aff = m_imp->m_affine;
+    const TPalette *palette = m_imp->m_currPalette;
+    return TVectorRenderData(TVectorRenderData::ViewerSettings(), aff, TRect(), palette, nullptr);
 }
-
-void TFlash::beginFrame(int frameIndex)
-{
-	m_imp->m_frameData = new TFlash::Imp::FrameData;
-	m_imp->m_currFrameIndex = frameIndex;
-	assert(m_imp->m_matrixStack.empty());
-	m_imp->m_affine = TAffine();
-}
-
-//-------------------------------------------------------------------
-int TFlash::endFrame(bool isLast, int frameCountLoader, bool lastScene)
-{
-	m_imp->writeFrame(this, isLast, frameCountLoader, lastScene);
-	if (m_imp->m_oldFrameData)
-		delete m_imp->m_oldFrameData;
-	m_imp->m_oldFrameData = m_imp->m_frameData;
-	m_imp->m_frameData = 0;
-
-	//QString msg = "mem: " + QString::number(m_imp->m_totMem/1024.0)+"\n";
-	//TSystem::outputDebug(msg.toStdString());
-	return m_imp->m_currFrameIndex;
-}
-
-//-------------------------------------------------------------------
-
-//void TFlash::addPauseAtStart()
-//{
-//  m_imp->addPauseAtStart();
-//}
-
-//-------------------------------------------------------------------
-
-void TFlash::enableMask()
-{
-	m_imp->m_maskEnabled = true;
-}
-
-//-------------------------------------------------------------------
-
-void TFlash::disableMask()
-{
-	m_imp->m_maskEnabled = false;
-}
-
-//-------------------------------------------------------------------
-
-void TFlash::beginMask()
-{
-	m_imp->beginMask();
-}
-
-//-------------------------------------------------------------------
-
-void TFlash::endMask()
-{
-	m_imp->endMask();
-}
-
-//-------------------------------------------------------------------
-void TFlash::draw(const TImageP img, const TColorFunction *cf)
-{
-	//std::map<const TVectorImage *, USHORT>::iterator it;
-
-	if (m_imp->m_currMask) {
-		if (img->getType() == TImage::VECTOR)
-			m_imp->m_currMask->mergeImage((TVectorImageP)img, m_imp->m_affine);
-	} else if (img)
-		m_imp->m_frameData->push_back(FlashImageData(m_imp->m_affine, img, cf ? cf->clone() : 0, false, m_imp->m_maskEnabled));
-}
-
-//-------------------------------------------------------------------
-
-std::wstring TFlash::getLineQuality()
-{
-	return m_imp->m_properties.m_lineQuality.getValue();
-}
-
-//-------------------------------------------------------------------
-
-bool TFlash::drawOutline(TStroke *s)
-{
-	assert(m_imp->m_polyData.m_type == Solid);
-
-	m_imp->drawHangedObjects();
-
-	TThickPoint p0 = s->getThickPoint(0.0), p1 = s->getThickPoint(1.0);
-
-	if (tdistance(p0, p1) < (p0.thick + p1.thick)) //pezza infame!nelle curve che si autochiudono, lo sweepboundary fa casini.
-												   //le splitto in due pezzi, e per poter metterli nello steso poligono senza vedere le sovrapposizioni cambio leggermente il colore al secondo....eh eh eh
-	{
-		TStroke *s0 = new TStroke(), *s1 = new TStroke();
-
-		s->split(0.5, *s0, *s1);
-		m_imp->drawOutline(s0, true);
-		int aux = m_imp->m_polyData.m_color1.b;
-		m_imp->m_polyData.m_color1.b = (m_imp->m_polyData.m_color1.b == 255) ? 254 : m_imp->m_polyData.m_color1.b + 1;
-
-		//m_imp->drawHangedObjects();
-		m_imp->drawOutline(s1, false);
-		m_imp->m_polyData.m_color1.b = aux;
-		//m_imp->drawHangedObjects();
-		m_imp->m_strokesToBeDeleted.push_back(s0);
-		m_imp->m_strokesToBeDeleted.push_back(s1);
-		return true;
-	}
-
-	return m_imp->drawOutline(s, true);
-}
-
-//-------------------------------------------------------------
