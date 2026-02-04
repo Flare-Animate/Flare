@@ -1,5 +1,3 @@
-
-
 #include "tflash.h"
 //#include "tstroke.h"
 #include "tcurves.h"
@@ -31,7 +29,7 @@
 
 // Macros for switch-case syntax
 #define CASE case
-#define __OR : case
+#define __OR case
 #define DEFAULT default
 
 #if !defined(TNZ_LITTLE_ENDIAN)
@@ -2120,7 +2118,7 @@ void TFlash::Imp::writeFrame(TFlash *tf, bool isLast, int frameCountLoader, bool
 	m_tags.AddFObj(new FCTShowFrame());
 
 	//if (putCameraClip)
-	//addCameraClip(currTagIndex);
+	//addCameraClip();
 
 	//ho una sola scena => loader interno I frame oppure
 	//ci sono piu' scene => la I fa da loader
@@ -2787,8 +2785,7 @@ bool TFlash::drawOutline(TStroke *s)
 	TThickPoint p0 = s->getThickPoint(0.0), p1 = s->getThickPoint(1.0);
 
 	if (tdistance(p0, p1) < (p0.thick + p1.thick)) //pezza infame!nelle curve che si autochiudono, lo sweepboundary fa casini.
-												   //le splitto in due pezzi, e per poter metterli nello steso poligono
-												   //senza vedere le sovrapposizioni cambio leggermente il colore al secondo....eh eh eh
+												   //le splitto in due pezzi, e per poter metterli nello steso poligono senza vedere le sovrapposizioni cambio leggermente il colore al secondo....eh eh eh
 	{
 		TStroke *s0 = new TStroke(), *s1 = new TStroke();
 
