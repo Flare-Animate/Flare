@@ -29,6 +29,11 @@
 #include <fstream>
 #include <algorithm>
 
+// Macros for switch-case syntax
+#define CASE case
+#define __OR : case
+#define DEFAULT default
+
 #if !defined(TNZ_LITTLE_ENDIAN)
 TNZ_LITTLE_ENDIAN undefined !!
 #endif
@@ -55,7 +60,7 @@ const std::wstring TFlash::MixedLines = L"Medium: Mixed Thickness";
 const std::wstring TFlash::VariableLines = L"High: Variable Thickness";
 
 Tiio::SwfWriterProperties::SwfWriterProperties()
-	: m_lineQuality("Curve Quality"), m_isCompressed("File Compression", true), m_autoplay("Autoplay", true), m_looping("Looping", true), m_jpgQuality("Jpg Quality", 0, 100, 90), m_url("URL", wstring()), m_preloader("Insert Preloader", false)
+	: m_lineQuality("Curve Quality"), m_isCompressed("File Compression", true), m_autoplay("Autoplay", true), m_looping("Looping", true), m_jpgQuality("Jpg Quality", 0, 100, 90), m_url("URL", std::wstring()), m_preloader("Insert Preloader", false)
 {
 	m_lineQuality.addValue(TFlash::MixedLines);
 	m_lineQuality.addValue(TFlash::ConstantLines);
