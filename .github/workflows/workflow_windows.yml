@@ -8,7 +8,7 @@ on:
 
 jobs:
   Windows:
-    runs-on: windows-2022 
+    runs-on: windows-2022  # Se usa 2022 por estabilidad con Qt 5.15 y MSVC 2022
     env:
       QT_PATH: ${{ github.workspace }}/thirdparty/qt/5.15.2_wintab/msvc2019_64
       MSVCVERSION: "Visual Studio 17 2022"
@@ -21,16 +21,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          lfs: true
+          lfs: true  # <--- Crucial para evitar el error LNK1107 (0x82)
 
       - name: Cache OpenCV and Boost
         id: cache-deps
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             C:\tools\opencv
             ${{ env.BOOST_ROOT }}
           key: ${{ runner.os }}-opencv-boost-${{ env.OPENCV_VERSION }}-${{ env.BOOST_VERSION }}
+          restore-keys: |
+            ${{ runner.os }}-opencv-boost-${{ env.OPENCV_VERSION }}-${{ env.BOOST_VERSION }}
 
       - name: Install OpenCV and Boost
         if: steps.cache-deps.outputs.cache-hit != 'true'
@@ -41,11 +43,15 @@ jobs:
 
       - name: Install custom Qt 5.15.2
         run: |
-          mkdir thirdparty\qt
-          curl -fsSL -o Qt5.15.2_wintab.zip https://github.com/shun-iwasawa/qt5/releases/download/v5.15.2_wintab/Qt5.15.2_wintab.zip
-          7z x Qt5.15.2_wintab.zip
-          move Qt5.15.2_wintab\5.15.2_wintab thirdparty\qt
+          @echo on
+          if not exist thirdparty\qt mkdir thirdparty\qt
+          curl -fL -o Qt5.15.2_wintab.zip https://github.com/shun-iwasawa/qt5/releases/download/v5.15.2_wintab/Qt5.15.2_wintab.zip
+          7z x Qt5.15.2_wintab.zip -y
+          move 5.15.2_wintab thirdparty\qt
         shell: cmd
+
+      # Eliminado el paso de descarga externa de thirdparty-libs.zip
+      # porque causaba el error de archivo corrupto (0x82/LNK1107)
 
       - name: Add msbuild to PATH
         uses: microsoft/setup-msbuild@v2
@@ -53,7 +59,7 @@ jobs:
       - name: CMake configuration
         run: |
           @echo on
-          # Preparar cabeceras en thirdparty local
+          # Preparamos las cabeceras locales antes de CMake
           copy /Y thirdparty\tiff-4.0.3\libtiff\tif_config.vc.h thirdparty\tiff-4.0.3\libtiff\tif_config.h
           copy /Y thirdparty\tiff-4.0.3\libtiff\tiffconf.vc.h thirdparty\tiff-4.0.3\libtiff\tiffconf.h
           copy /Y thirdparty\libpng-1.6.21\scripts\pnglibconf.h.prebuilt thirdparty\libpng-1.6.21\pnglibconf.h
@@ -64,11 +70,13 @@ jobs:
           cd build
 
           # -DTHIRDPARTY_DIR apunta a la carpeta real descargada con LFS
+          # /I añade la carpeta include a las rutas de búsqueda de headers (soluciona C1083)
           cmake .. -G "%MSVCVERSION%" -Ax64 ^
             -DQT_PATH="%QT_PATH%" ^
             -DBOOST_ROOT="%BOOST_ROOT%" ^
             -DOpenCV_DIR="%OpenCV_DIR%" ^
             -DTHIRDPARTY_DIR="${{ github.workspace }}/thirdparty" ^
+            -DCMAKE_CXX_FLAGS="/I${{ github.workspace }}/flare/sources/include" ^
             -DWITH_WINTAB=Y
         shell: cmd
 
@@ -85,37 +93,27 @@ jobs:
           cd build
           mkdir Flare-App
           
-          # Copiamos todo lo generado
+          # El Wrapper pone los archivos compilados en sources\RelWithDebInfo
           copy /Y sources\RelWithDebInfo\*.* Flare-App\
           
-          # INTENTA ESTO: Si existe Flare.exe úsalo, si no, usa Opentoonz.exe
-          if exist Flare-App\Flare.exe (
-            set "EXE_NAME=Flare.exe"
-          ) else (
-            set "EXE_NAME=Opentoonz.exe"
-          )
-          
-          echo Usando ejecutable: %EXE_NAME%
-          
-          # Ejecutar windeployqt con el nombre detectado
-          "%QT_PATH%\bin\windeployqt.exe" Flare-App\%EXE_NAME% --opengl
-          
-          # Copiar DLLs y Stuff
+          # Copiar DLLs desde la carpeta thirdparty local (un nivel arriba de build)
           copy /Y ..\thirdparty\glut\3.7.6\lib\glut64.dll Flare-App\
           copy /Y ..\thirdparty\glew\glew-1.9.0\bin\64bit\glew32.dll Flare-App\
+          if exist ..\thirdparty\libmypaint\dist\64 copy /Y ..\thirdparty\libmypaint\dist\64\*.dll Flare-App\
+          
+          # Detección del nombre del EXE y Deploy de Qt
+          if exist Flare-App\Flare.exe (set "APP_NAME=Flare.exe") else (set "APP_NAME=Opentoonz.exe")
+          "%QT_PATH%\bin\windeployqt.exe" Flare-App\%APP_NAME% --opengl
+          
+          del /Q Flare-App\*.pdb
+          
+          # Crear carpeta portable y copiar 'stuff'
           mkdir Flare-App\portablestuff
           xcopy /Y /E /I ..\stuff Flare-App\portablestuff
-        shell: cmd
-
-      - name: Create Artifact
-        run: |
-          mkdir artifact
-          xcopy build\Flare-Output artifact\ /E /H /Y
         shell: cmd
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: Flare-Windows-${{ github.sha }}
-          path: artifact
-
+          path: build\Flare-App
