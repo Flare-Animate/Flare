@@ -45,10 +45,17 @@ jobs:
         run: |
           @echo on
           if not exist thirdparty\qt mkdir thirdparty\qt
+          
+          :: Descargamos el zip
           curl -fL -o Qt5.15.2_wintab.zip https://github.com/shun-iwasawa/qt5/releases/download/v5.15.2_wintab/Qt5.15.2_wintab.zip
-          7z x Qt5.15.2_wintab.zip -y
-          move 5.15.2_wintab thirdparty\qt
+          
+          :: EXTRAER: Importante usar -othirdparty\qt (SIN ESPACIO)
+          7z x Qt5.15.2_wintab.zip -othirdparty\qt -y
+          
+          :: Borrar el zip original
+          del /Q Qt5.15.2_wintab.zip
         shell: cmd
+
 
       # Eliminado el paso de descarga externa de thirdparty-libs.zip
       # porque causaba el error de archivo corrupto (0x82/LNK1107)
