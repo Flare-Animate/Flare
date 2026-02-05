@@ -3,6 +3,7 @@
 #ifndef XSHEETVIEWER_H
 #define XSHEETVIEWER_H
 
+#include <QMainWindow>
 #include <QFrame>
 #include <QScrollArea>
 #include <QKeyEvent>
