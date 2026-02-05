@@ -15,10 +15,12 @@
 #include "../include/historytypes.h"
 
 #include <QWidget>
+#include <QMainWindow>
 #include <QListWidget>
 #include <QLineEdit>
 #include <QPoint>
 #include <QColor>
+#include <Qmain
 
 // forward declaration
 class XsheetViewer;
