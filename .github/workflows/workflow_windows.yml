@@ -63,15 +63,30 @@ jobs:
           if not exist thirdparty\qt mkdir thirdparty\qt
           curl -fsSL -o Qt5.15.2_wintab.zip https://github.com/shun-iwasawa/qt5/releases/download/v5.15.2_wintab/Qt5.15.2_wintab.zip
           
-          :: Extraer directamente dentro de thirdparty\qt
+          :: Extraer el contenido
           7z x -y Qt5.15.2_wintab.zip -othirdparty\qt
           
-          :: Debug: Ver qué carpetas se crearon realmente
-          dir thirdparty\qt /s /b | findstr "qmake.exe"
+          :: --- AUTODETECCIÓN DE RUTA ---
+          :: Buscamos qmake.exe y subimos dos niveles para encontrar la raíz de Qt
+          set "DETECTED_QT="
+          for /f "delims=" %%i in ('dir /b /s "thirdparty\qt\qmake.exe"') do (
+              set "QMAKE_PATH=%%~dpi"
+          )
           
-          :: Definir la variable (Asegúrate de que la ruta coincida con lo que imprimió el 'dir')
-          echo QT_PATH=%GITHUB_WORKSPACE%\thirdparty\qt\5.15.2_wintab\msvc2019_64>> %GITHUB_ENV%
+          :: Quitar la carpeta \bin\ de la ruta para tener la raíz de Qt
+          if defined QMAKE_PATH (
+              set "DETECTED_QT=%QMAKE_PATH:\bin\=%"
+              echo Found Qt at: %DETECTED_QT%
+          ) else (
+              echo ERROR: qmake.exe not found!
+              dir thirdparty\qt /s
+              exit /b 1
+          )
+
+          :: Guardar en GITHUB_ENV sin espacios al final
+          echo QT_PATH=%DETECTED_QT%>> %GITHUB_ENV%
         shell: cmd
+
 
       # 4. Gestión de Cachés (Separados para que ccache SIEMPRE guarde cambios)
       - name: Cache System Dependencies (OpenCV/Boost)
