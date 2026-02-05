@@ -63,12 +63,22 @@ jobs:
           del /Q Qt5.15.2_wintab.zip
         shell: cmd
 
+      - name: Force LFS Pull
+        run: |
+          git lfs install
+          git lfs pull --force
+          dir thirdparty\glut\3.7.6\lib\glut64.lib
+        shell: cmd
+
+      
       - name: Add msbuild to PATH
         uses: microsoft/setup-msbuild@v2
 
       - name: CMake configuration
         run: |
           @echo on
+          :: 1. Estamos en la raíz: D:\a\Flare\Flare
+          :: Preparamos cabeceras usando rutas relativas directas
           copy /Y thirdparty\tiff-4.0.3\libtiff\tif_config.vc.h thirdparty\tiff-4.0.3\libtiff\tif_config.h
           copy /Y thirdparty\tiff-4.0.3\libtiff\tiffconf.vc.h thirdparty\tiff-4.0.3\libtiff\tiffconf.h
           copy /Y thirdparty\libpng-1.6.21\scripts\pnglibconf.h.prebuilt thirdparty\libpng-1.6.21\pnglibconf.h
@@ -77,15 +87,18 @@ jobs:
           mkdir build
           cd build
 
-          :: Configuración para el repo Flare-Animate/Flare
+          :: 2. Configuración de CMake
+          :: THIRDPARTY_DIR es ${{ github.workspace }}\thirdparty
+          :: El include está en ${{ github.workspace }}\flare\sources\include
           cmake .. -G "%MSVCVERSION%" -Ax64 ^
             -DQT_PATH="%QT_PATH%" ^
             -DBOOST_ROOT="%BOOST_ROOT%" ^
             -DOpenCV_DIR="%OpenCV_DIR%" ^
             -DTHIRDPARTY_DIR="${{ github.workspace }}\thirdparty" ^
-            -DCMAKE_CXX_FLAGS="/I${{ github.workspace }}\Flare\flare\sources\include" ^
+            -DCMAKE_CXX_FLAGS="/I${{ github.workspace }}\flare\sources\include" ^
             -DWITH_WINTAB=Y
         shell: cmd
+
 
       - name: Build Flare
         run: |
