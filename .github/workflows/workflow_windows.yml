@@ -8,9 +8,9 @@ on:
 
 jobs:
   Windows:
-    runs-on: windows-2025
+    runs-on: windows-2022
     env:
-      QT_PATH: ${{ github.workspace }}/thirdparty/qt/5.15.2_wintab/msvc2019_64
+      QT_PATH: ${{ github.workspace }}\thirdparty\qt\5.15.2_wintab\msvc2019_64
       MSVCVERSION: "Visual Studio 17 2022"
       BOOST_TOOLSET: "14.3"
       BOOST_VERSION: "1.87.0"
@@ -22,6 +22,16 @@ jobs:
       - uses: actions/checkout@v4
         with:
           lfs: true
+          fetch-depth: 0
+
+      # SOLUCIÓN PARA ARCHIVOS CORRUPTOS (LFS)
+      - name: Force LFS Pull
+        run: |
+          git lfs install
+          git lfs pull
+          :: Verificación: si el archivo mide menos de 1KB, sigue corrupto
+          dir thirdparty\glut\3.7.6\lib\glut64.dll
+        shell: cmd
 
       - name: Cache OpenCV and Boost
         id: cache-deps
@@ -31,8 +41,6 @@ jobs:
             C:\tools\opencv
             ${{ env.BOOST_ROOT }}
           key: ${{ runner.os }}-opencv-boost-${{ env.OPENCV_VERSION }}-${{ env.BOOST_VERSION }}
-          restore-keys: |
-            ${{ runner.os }}-opencv-boost-${{ env.OPENCV_VERSION }}-${{ env.BOOST_VERSION }}
 
       - name: Install OpenCV and Boost
         if: steps.cache-deps.outputs.cache-hit != 'true'
@@ -46,8 +54,10 @@ jobs:
           @echo on
           if not exist thirdparty\qt mkdir thirdparty\qt
           
+          :: URL INTACTA SEGÚN TU SOLICITUD
           curl -fL -o Qt5.15.2_wintab.zip https://github.com/shun-iwasawa/qt5/releases/download/v5.15.2_wintab/Qt5.15.2_wintab.zip
           
+          :: EXTRACCIÓN: Importante usar -othirdparty\qt (SIN ESPACIO)
           7z x Qt5.15.2_wintab.zip -othirdparty\qt -y
           
           del /Q Qt5.15.2_wintab.zip
@@ -67,13 +77,13 @@ jobs:
           mkdir build
           cd build
 
-          # /I añade la carpeta include a las rutas de búsqueda de headers (soluciona C1083)
+          :: Configuración para el repo Flare-Animate/Flare
           cmake .. -G "%MSVCVERSION%" -Ax64 ^
             -DQT_PATH="%QT_PATH%" ^
             -DBOOST_ROOT="%BOOST_ROOT%" ^
             -DOpenCV_DIR="%OpenCV_DIR%" ^
-            -DTHIRDPARTY_DIR="${{ github.workspace }}/thirdparty" ^
-            -DCMAKE_CXX_FLAGS="/I${{ github.workspace }}/flare/sources/include" ^
+            -DTHIRDPARTY_DIR="${{ github.workspace }}\thirdparty" ^
+            -DCMAKE_CXX_FLAGS="/I${{ github.workspace }}\Flare\flare\sources\include" ^
             -DWITH_WINTAB=Y
         shell: cmd
 
@@ -88,7 +98,7 @@ jobs:
         run: |
           @echo on
           cd build
-          mkdir Flare-App
+          if not exist Flare-App mkdir Flare-App
           
           copy /Y sources\RelWithDebInfo\*.* Flare-App\
           
@@ -101,7 +111,6 @@ jobs:
           
           del /Q Flare-App\*.pdb
           
-          # Crear carpeta portable y copiar 'stuff'
           mkdir Flare-App\portablestuff
           xcopy /Y /E /I ..\stuff Flare-App\portablestuff
         shell: cmd
