@@ -49,18 +49,72 @@ jobs:
           choco install boost-msvc-${{ env.BOOST_TOOLSET }} --version=${{ env.BOOST_VERSION }} -y
         shell: cmd
 
-      - name: Install custom Qt 5.15.2
+      - name: Install custom Qt 5.15.2 with WinTab support
         run: |
           @echo on
-          if not exist thirdparty\qt mkdir thirdparty\qt
-          
-          :: URL INTACTA SEGÚN TU SOLICITUD
-          curl -fL -o Qt5.15.2_wintab.zip https://github.com/shun-iwasawa/qt5/releases/download/v5.15.2_wintab/Qt5.15.2_wintab.zip
-          
-          :: EXTRACCIÓN: Importante usar -othirdparty\qt (SIN ESPACIO)
-          7z x Qt5.15.2_wintab.zip -othirdparty\qt -y
-          
-          del /Q Qt5.15.2_wintab.zip
+          mkdir thirdparty\qt
+          curl -fsSL -o Qt5.15.2_wintab.zip https://github.com/shun-iwasawa/qt5/releases/download/v5.15.2_wintab/Qt5.15.2_wintab.zip
+          7z x Qt5.15.2_wintab.zip
+
+          REM Move extracted content into thirdparty\qt (handle possible nested folder names)
+          REM If archive has a nested folder like Qt5.15.2_wintab\5.15.2_wintab we move the inner folder
+          if exist Qt5.15.2_wintab\5.15.2_wintab (
+            move /Y Qt5.15.2_wintab\5.15.2_wintab thirdparty\qt || (echo Move failed & exit /b 1)
+          ) else (
+            move /Y Qt5.15.2_wintab\* thirdparty\qt || (echo Move failed & exit /b 1)
+          )
+
+          echo Contents of thirdparty\qt after extraction:
+          dir thirdparty\qt /s
+
+          REM If the exact expected path does not exist try to auto-detect msvc folder
+          if not exist "%QT_PATH%\bin\qmake.exe" (
+            echo Expected QT_PATH "%QT_PATH%" not found. Attempting auto-detect...
+            for /f "delims=" %%D in ('dir /b /ad thirdparty\qt') do (
+              if exist "thirdparty\qt\%%D\msvc2019_64\bin\qmake.exe" (
+                set "DETECTED_QT=thirdparty\qt\%%D\msvc2019_64"
+                echo Auto-detected Qt at %DETECTED_QT%
+              )
+            )
+            if defined DETECTED_QT (
+              setx QT_PATH "%GITHUB_WORKSPACE%\%DETECTED_QT%" /M
+              echo Updated QT_PATH to %GITHUB_WORKSPACE%\%DETECTED_QT%
+            ) else (
+              echo QT not found under thirdparty\qt - failing with directory listing
+              dir thirdparty\qt /s
+              exit /b 1
+            )
+          ) else (
+            echo Found Qt at %QT_PATH%
+          )
+        shell: cmd
+
+      # Configure third-party libraries (unchanged)
+      - name: Configure third-party libraries
+        run: |
+          @echo on
+          cd thirdparty
+          copy /Y tiff-4.0.3\libtiff\tif_config.vc.h tiff-4.0.3\libtiff\tif_config.h
+          copy /Y tiff-4.0.3\libtiff\tiffconf.vc.h tiff-4.0.3\libtiff\tiffconf.h
+          copy /Y libpng-1.6.21\scripts\pnglibconf.h.prebuilt libpng-1.6.21\pnglibconf.h
+          cd ..\
+          echo Configured third-party libraries
+        shell: cmd
+
+  # Configure CMake
+      - name: Configure CMake
+        run: |
+          @echo on
+          if not exist "%QT_PATH%\bin\qmake.exe" (
+            echo QT_PATH does not exist or is invalid: %QT_PATH%
+            dir "%GITHUB_WORKSPACE%\thirdparty\qt" /s
+            exit /b 1
+          )
+          if not exist "%BOOST_ROOT%" (echo Boost not found && exit /b 1)
+          cd toonz
+          mkdir %PLATFORM% && cd %PLATFORM%
+          cmake ..\sources -G "%MSVCVERSION%" -Ax64 -DQT_PATH="%QT_PATH%" -DBOOST_ROOT="%BOOST_ROOT%" -DOpenCV_DIR="%OpenCV_DIR%" -DWITH_WINTAB=ON || exit /b 1
+          echo CMake configuration completed
         shell: cmd
 
       - name: Force LFS Pull
@@ -70,62 +124,141 @@ jobs:
           dir thirdparty\glut\3.7.6\lib\glut64.lib
         shell: cmd
 
-      
-      - name: Add msbuild to PATH
-        uses: microsoft/setup-msbuild@v2
-
-      - name: CMake configuration
+      - name: Build Opentoonz (msbuild)
         run: |
           @echo on
-          :: 1. Estamos en la raíz: D:\a\Flare\Flare
-          :: Preparamos cabeceras usando rutas relativas directas
-          copy /Y thirdparty\tiff-4.0.3\libtiff\tif_config.vc.h thirdparty\tiff-4.0.3\libtiff\tif_config.h
-          copy /Y thirdparty\tiff-4.0.3\libtiff\tiffconf.vc.h thirdparty\tiff-4.0.3\libtiff\tiffconf.h
-          copy /Y thirdparty\libpng-1.6.21\scripts\pnglibconf.h.prebuilt thirdparty\libpng-1.6.21\pnglibconf.h
-          
-          if exist build rmdir /S /Q build
-          mkdir build
-          cd build
+          cd flare\build
 
-          :: 2. Configuración de CMake
-          :: THIRDPARTY_DIR es ${{ github.workspace }}\thirdparty
-          :: El include está en ${{ github.workspace }}\flare\sources\include
-          cmake .. -G "%MSVCVERSION%" -Ax64 ^
-            -DQT_PATH="%QT_PATH%" ^
-            -DBOOST_ROOT="%BOOST_ROOT%" ^
-            -DOpenCV_DIR="%OpenCV_DIR%" ^
-            -DTHIRDPARTY_DIR="${{ github.workspace }}\thirdparty" ^
-            -DCMAKE_CXX_FLAGS="/I${{ github.workspace }}\flare\sources\include" ^
-            -DWITH_WINTAB=Y
-        shell: cmd
+          REM Ensure we are in the expected build folder
+          echo Current directory: %CD%
+          dir . /b
 
+          REM Prefer ALL_BUILD.vcxproj (cmake generated); fall back to solution if necessary
+          if not exist "ALL_BUILD.vcxproj" (
+            if exist "ALL_BUILD.sln" (
+              echo Found ALL_BUILD.sln, will build solution
+              set "BUILD_TARGET=ALL_BUILD.sln"
+            ) else (
+              echo ERROR: No ALL_BUILD.vcxproj or ALL_BUILD.sln found in %CD%
+              dir "%CD%" /s
+              exit /b 1
+            )
+          ) else (
+            set "BUILD_TARGET=ALL_BUILD.vcxproj"
+          )
 
-      - name: Build Flare
-        run: |
-          @echo on
-          cd build
-          msbuild /p:Configuration=RelWithDebInfo /m /verbosity:minimal ALL_BUILD.vcxproj
+          REM Show msbuild availability
+          where msbuild || echo msbuild not found in PATH (may still work via vsdevcmd)
+
+          REM Try to initialize VS env if vswhere is available to ensure MSBuild tools are on PATH
+          if exist "%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe" (
+            for /f "usebackq tokens=*" %%I in (`"%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe" -latest -products * -requires Microsoft.Component.MSBuild -property installationPath`) do set "VSINSTALL=%%I"
+            if defined VSINSTALL (
+              echo Using VS at %VSINSTALL% - calling vcvarsall.bat
+              call "%VSINSTALL%\VC\Auxiliary\Build\vcvarsall.bat" x64
+            ) else (
+              echo vswhere did not return installationPath; continuing (msbuild may already be available)
+            )
+          ) else (
+            echo vswhere.exe not found; continuing
+          )
+
+          REM Run msbuild
+          echo Building %BUILD_TARGET%
+          msbuild "%BUILD_TARGET%" /p:Configuration=RelWithDebInfo /m /verbosity:minimal || (
+            echo msbuild failed; printing dir for diagnostics
+            dir "%CD%" /s
+            exit /b 1
+          )
+
+          echo Build completed successfully
         shell: cmd
 
       - name: Create Package
         run: |
-          @echo on
-          cd build
-          if not exist Flare-App mkdir Flare-App
+          @echo on cd flare\build
+                REM Set expected configuration (must match msbuild step)
+                set "CONFIGURATION=RelWithDebInfo"
           
-          copy /Y sources\RelWithDebInfo\*.* Flare-App\
+                REM Diagnostics: show what was built
+                echo Current build dir: %CD%
+                dir "%CD%" /s
           
-          copy /Y ..\thirdparty\glut\3.7.6\lib\glut64.dll Flare-App\
-          copy /Y ..\thirdparty\glew\glew-1.9.0\bin\64bit\glew32.dll Flare-App\
-          if exist ..\thirdparty\libmypaint\dist\64 copy /Y ..\thirdparty\libmypaint\dist\64\*.dll Flare-App\
+                REM Ensure build output exists before packaging
+                if not exist "%CONFIGURATION%\Opentoonz.exe" (
+                  echo ERROR: Expected executable not found: %CD%\%CONFIGURATION%\Opentoonz.exe
+                  echo Trying to locate exe under build tree...
+                  for /f "delims=" %%F in ('dir /b /s *.exe') do (
+                    echo Found exe: %%F
+                  )
+                  exit /b 1
+                )
           
-          if exist Flare-App\Flare.exe (set "APP_NAME=Flare.exe") else (set "APP_NAME=Opentoonz.exe")
-          "%QT_PATH%\bin\windeployqt.exe" Flare-App\%APP_NAME% --opengl
+                REM Prepare packaging directory
+                if exist Opentoonz rmdir /S /Q Opentoonz
+                mkdir Opentoonz
           
-          del /Q Flare-App\*.pdb
+                REM Copy build outputs
+                echo Copying built files to Opentoonz\
+                copy /Y "%CONFIGURATION%\*.*" Opentoonz\ || (echo Copy failed & exit /b 1)
           
-          mkdir Flare-App\portablestuff
-          xcopy /Y /E /I ..\stuff Flare-App\portablestuff
+                REM Copy required thirdparty DLLs only if present
+                if exist "..\..\thirdparty\glut\3.7.6\lib\glut64.dll" (
+                  copy /Y ..\..\thirdparty\glut\3.7.6\lib\glut64.dll Opentoonz\
+                ) else (
+                  echo Warning: glut64.dll not found
+                )
+          
+                if exist "..\..\thirdparty\glew\glew-1.9.0\bin\64bit\glew32.dll" (
+                  copy /Y ..\..\thirdparty\glew\glew-1.9.0\bin\64bit\glew32.dll Opentoonz\
+                ) else (
+                  echo Warning: glew32.dll not found
+                )
+          
+                REM libmypaint DLLs (copy only if present)
+                if exist "..\..\thirdparty\libmypaint\dist\64\*.dll" (
+                  xcopy /Y /E ..\..\thirdparty\libmypaint\dist\64\*.dll Opentoonz\ || (echo Copy libmypaint dlls failed & exit /b 1)
+                ) else (
+                  echo Warning: libmypaint DLLs not found
+                )
+          
+                REM Copy OpenCV DLL if available (update path/version as needed)
+                set "OPENCV_DLL=C:\tools\opencv\build\x64\vc16\bin\opencv_world4110.dll"
+                if exist "%OPENCV_DLL%" (
+                  copy /Y "%OPENCV_DLL%" Opentoonz\ || (echo Copy OpenCV dll failed & exit /b 1)
+                ) else (
+                  echo Warning: OpenCV DLL not found at %OPENCV_DLL%
+                )
+          
+                REM Deploy Qt dependencies only if windeployqt and exe exist
+                if exist "%QT_PATH%\bin\windeployqt.exe" (
+                  if exist "Opentoonz\Opentoonz.exe" (
+                    echo Running windeployqt to gather Qt runtime files...
+                    "%QT_PATH%\bin\windeployqt.exe" Opentoonz\Opentoonz.exe --opengl || (echo windeployqt failed & exit /b 1)
+                  ) else (
+                    echo ERROR: Opentoonz executable not found for windeployqt
+                    exit /b 1
+                  )
+                ) else (
+                  echo Warning: windeployqt not found at %QT_PATH%\bin\windeployqt.exe - skipping Qt deployment
+                  dir "%QT_PATH%\bin" /s
+                )
+          
+                REM Remove unnecessary files if they exist (do not fail if absent)
+                if exist "Opentoonz\*.pdb" del /Q Opentoonz\*.pdb
+                if exist "Opentoonz\vc_redist.x64.exe" del /Q Opentoonz\vc_redist.x64.exe
+          
+                REM Copy portable resources/stuff if present
+                if exist "..\..\stuff" (
+                  mkdir "Opentoonz\portablestuff"
+                  xcopy /Y /E /I ..\..\stuff "Opentoonz\portablestuff" || (echo Copy stuff failed & exit /b 1)
+                ) else (
+                  echo Warning: stuff folder not found - skipping
+                )
+          
+                REM Final diagnostics
+                echo Package contents:
+                dir Opentoonz /s
         shell: cmd
 
       - name: Upload Artifact
