@@ -1,5 +1,3 @@
-
-
 #include "tiio.h"
 
 #include "tiio_jpg.h"
@@ -110,7 +108,10 @@ public:
 
   void initialize();
 };
-}
+
+}  // namespace
+
+//=========================================================
 
 void TiioTable::initialize() {}
 
@@ -269,6 +270,4 @@ bool Tiio::useQuicktime(bool enable) {
   return state;
 }
 
-
-//=========================================================
 //-----------------------------------------------------
