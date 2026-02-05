@@ -8,7 +8,7 @@ on:
 
 jobs:
   Windows:
-    runs-on: windows-2022  # Se usa 2022 por estabilidad con Qt 5.15 y MSVC 2022
+    runs-on: windows-2025
     env:
       QT_PATH: ${{ github.workspace }}/thirdparty/qt/5.15.2_wintab/msvc2019_64
       MSVCVERSION: "Visual Studio 17 2022"
@@ -21,7 +21,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          lfs: true  # <--- Crucial para evitar el error LNK1107 (0x82)
+          lfs: true
 
       - name: Cache OpenCV and Boost
         id: cache-deps
@@ -46,19 +46,12 @@ jobs:
           @echo on
           if not exist thirdparty\qt mkdir thirdparty\qt
           
-          :: Descargamos el zip
           curl -fL -o Qt5.15.2_wintab.zip https://github.com/shun-iwasawa/qt5/releases/download/v5.15.2_wintab/Qt5.15.2_wintab.zip
           
-          :: EXTRAER: Importante usar -othirdparty\qt (SIN ESPACIO)
           7z x Qt5.15.2_wintab.zip -othirdparty\qt -y
           
-          :: Borrar el zip original
           del /Q Qt5.15.2_wintab.zip
         shell: cmd
-
-
-      # Eliminado el paso de descarga externa de thirdparty-libs.zip
-      # porque causaba el error de archivo corrupto (0x82/LNK1107)
 
       - name: Add msbuild to PATH
         uses: microsoft/setup-msbuild@v2
@@ -66,17 +59,14 @@ jobs:
       - name: CMake configuration
         run: |
           @echo on
-          # Preparamos las cabeceras locales antes de CMake
           copy /Y thirdparty\tiff-4.0.3\libtiff\tif_config.vc.h thirdparty\tiff-4.0.3\libtiff\tif_config.h
           copy /Y thirdparty\tiff-4.0.3\libtiff\tiffconf.vc.h thirdparty\tiff-4.0.3\libtiff\tiffconf.h
           copy /Y thirdparty\libpng-1.6.21\scripts\pnglibconf.h.prebuilt thirdparty\libpng-1.6.21\pnglibconf.h
-
-          # Crear build en la raíz para usar el Wrapper
+          
           if exist build rmdir /S /Q build
           mkdir build
           cd build
 
-          # -DTHIRDPARTY_DIR apunta a la carpeta real descargada con LFS
           # /I añade la carpeta include a las rutas de búsqueda de headers (soluciona C1083)
           cmake .. -G "%MSVCVERSION%" -Ax64 ^
             -DQT_PATH="%QT_PATH%" ^
@@ -100,15 +90,12 @@ jobs:
           cd build
           mkdir Flare-App
           
-          # El Wrapper pone los archivos compilados en sources\RelWithDebInfo
           copy /Y sources\RelWithDebInfo\*.* Flare-App\
           
-          # Copiar DLLs desde la carpeta thirdparty local (un nivel arriba de build)
           copy /Y ..\thirdparty\glut\3.7.6\lib\glut64.dll Flare-App\
           copy /Y ..\thirdparty\glew\glew-1.9.0\bin\64bit\glew32.dll Flare-App\
           if exist ..\thirdparty\libmypaint\dist\64 copy /Y ..\thirdparty\libmypaint\dist\64\*.dll Flare-App\
           
-          # Detección del nombre del EXE y Deploy de Qt
           if exist Flare-App\Flare.exe (set "APP_NAME=Flare.exe") else (set "APP_NAME=Opentoonz.exe")
           "%QT_PATH%\bin\windeployqt.exe" Flare-App\%APP_NAME% --opengl
           
