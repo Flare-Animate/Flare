@@ -61,7 +61,7 @@ jobs:
         run: |
           @echo on
           if not exist thirdparty\qt mkdir thirdparty\qt
-          curl -fsSL -o Qt5.15.2_wintab.zip https://github.com
+          curl -fsSL -o Qt5.15.2_wintab.zip https://github.com/shun-iwasawa/qt5/releases/download/v5.15.2_wintab/Qt5.15.2_wintab.zip
           
           :: Extraer directamente dentro de thirdparty\qt
           7z x -y Qt5.15.2_wintab.zip -othirdparty\qt
