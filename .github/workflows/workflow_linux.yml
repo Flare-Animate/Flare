@@ -10,6 +10,13 @@ on:
       - '!.github/**' # Simplificado
       - '.github/workflows/workflow_linux.yml'
   pull_request:
+    paths:
+      - '**/*'
+      - '!appveyor.yml'
+      - '!README.md'
+      - '!doc/**'
+      - '!.github/**' # Simplificado
+      - '.github/workflows/workflow_linux.yml'
 
 jobs:
   Ubuntu:
