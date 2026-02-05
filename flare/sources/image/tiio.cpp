@@ -294,5 +294,4 @@ Tiio::defineWriterProperties("pict", new Tiio::PctWriterProperties());
 
 #endif    // _WIN32 && 32-bit
 */
-  }
 }
