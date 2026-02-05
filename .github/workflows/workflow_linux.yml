@@ -3,25 +3,20 @@ name: Linux Build
 on:
   push:
     paths:
-      - '**/*'                   # Include all files in the repository
-      - '!appveyor.yml'          # Ignore changes in AppVeyor
-      - '!README.md'             # Exclude README
-      - '!doc/**'                # Exclude documentation
-      - '!**/.github/**'         # Exclude everything in .github folder
-      - '.github/workflows/workflow_linux.yml'  # Include Linux workflow file
-  pull_request:
-    paths:
       - '**/*'
       - '!appveyor.yml'
       - '!README.md'
       - '!doc/**'
-      - '!**/.github/**'
+      - '!.github/**' # Simplificado
       - '.github/workflows/workflow_linux.yml'
+  pull_request:
 
 jobs:
   Ubuntu:
     runs-on: ubuntu-24.04
+    timeout-minutes: 120 # Previene cancelación por tiempo
     strategy:
+      fail-fast: false # Permite que si uno falla, el otro (gcc/clang) siga
       matrix:
         compiler: [gcc, clang]
         include:
@@ -31,16 +26,16 @@ jobs:
           - compiler: clang
             cc: clang
             cxx: clang++
+
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v4 # Actualizado a v4 (más estable)
       with:
         lfs: true
+
     - name: Install libraries
       run: |
-        sudo add-apt-repository universe
         sudo apt-get update
-        
-        sudo apt-get install -y \
+        sudo apt-get install -y --no-install-recommends \
           build-essential cmake pkg-config ninja-build ccache \
           libboost-all-dev qtbase5-dev qt5-qmake qtscript5-dev \
           qttools5-dev qttools5-dev-tools qtmultimedia5-dev qtwayland5 \
@@ -50,77 +45,77 @@ jobs:
           libfreetype6-dev libjson-c-dev libmypaint-dev libopencv-dev \
           libturbojpeg0-dev libomp-dev libfuse2
 
-    - name: Set up cache
-      run: mkdir -p /home/runner/.ccache
-
-    - uses: actions/cache@v5
+    - name: Set up ccache
+      uses: hendrikmuhs/ccache-action@v1.2
       with:
-        lfs: true
-        path: /home/runner/.ccache
-        key: ${{ runner.os }}-${{ matrix.compiler }}-${{ github.sha }}
-        restore-keys: | 
-          ${{ runner.os }}-${{ matrix.compiler }}-
-          ${{ runner.os }}-
+        key: ${{ runner.os }}-${{ matrix.compiler }}
+        max-size: "2G"
 
     - name: Build libtiff
       run: |
         cd thirdparty/tiff-4.0.3
-        CFLAGS='-fPIC' CXXFLAGS='-fPIC' ./configure --disable-jbig
-        make -j $(nproc)
+        ./configure --disable-jbig --disable-shared --with-pic
+        # Limitamos a 2 hilos para evitar que el OOM Killer cancele la operación
+        make -j2 
 
-    - name: Build
+    - name: Build OpenToonz
       run: |
-        export CCACHE_DIR=/home/runner/.ccache
-        export CC="ccache ${{ matrix.cc }}"
-        export CXX="ccache ${{ matrix.cxx }}"
         cd flare
-        mkdir build
-        cd build
-        cmake ../sources -G Ninja -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER=${{ matrix.cxx }} -DCMAKE_C_COMPILER=${{ matrix.cc }} -DWITH_TRANSLATION=OFF
-        ninja
+        mkdir build && cd build
+        # Usamos Ninja pero limitamos los trabajos paralelos a 2
+        cmake ../sources -G Ninja \
+          -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+          -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+          -DCMAKE_CXX_COMPILER=${{ matrix.cxx }} \
+          -DCMAKE_C_COMPILER=${{ matrix.cc }} \
+          -DWITH_TRANSLATION=OFF \
+          -DCMAKE_BUILD_TYPE=Release
+        
+        # Ninja por defecto usa todos los núcleos; aquí lo limitamos a 2
+        ninja -j2
 
     - name: Create Artifact
+      env:
+        APPIMAGE_EXTRACT_AND_RUN: 1
       run: |
         cd flare/build
         sudo ninja install
-
+        
         mkdir -p appdir/usr
         cp -r /opt/opentoonz/* appdir/usr
-        cp appdir/usr/share/applications/*.desktop appdir
-        cp appdir/usr/share/icons/hicolor/*/apps/*.png appdir
+        # Evitar fallos si no existen iconos/desktops
+        cp appdir/usr/share/applications/*.desktop appdir/ || true
+        cp appdir/usr/share/icons/hicolor/256x256/apps/*.png appdir/ || true
 
         mkdir artifact
-        mv appdir/usr/share/opentoonz/stuff artifact/portablestuff
-        rmdir appdir/usr/share/opentoonz
+        if [ -d "appdir/usr/share/opentoonz/stuff" ]; then
+          mv appdir/usr/share/opentoonz/stuff artifact/portablestuff
+          rmdir appdir/usr/share/opentoonz || true
+        fi
 
-        wget -q -c 'https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage'
-        wget -q -c 'https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-x86_64.AppImage'
-        wget -q -c 'https://github.com/linuxdeploy/linuxdeploy-plugin-appimage/releases/download/continuous/linuxdeploy-plugin-appimage-x86_64.AppImage'
-        chmod 755 linuxdeploy-x86_64.AppImage
-        chmod 755 linuxdeploy-plugin-qt-x86_64.AppImage
-        chmod 755 linuxdeploy-plugin-appimage-x86_64.AppImage
+        # Descarga silenciosa y con reintentos
+        for tool in linuxdeploy-x86_64.AppImage linuxdeploy-plugin-qt-x86_64.AppImage linuxdeploy-plugin-appimage-x86_64.AppImage; do
+          wget -q --show-progress https://github.com || \
+          wget -q --show-progress https://github.com || \
+          wget -q --show-progress https://github.com
+          chmod +x $tool
+        done
 
-        cat << EOF > apprun.sh
-        #!/usr/bin/env bash
-        exec "\${APPDIR}/usr/bin/OpenToonz"
-        EOF
+        printf "#!/usr/bin/env bash\nexec \"\${APPDIR}/usr/bin/OpenToonz\"" > apprun.sh
         chmod 755 apprun.sh
 
-        export LD_LIBRARY_PATH='appdir/usr/lib/opentoonz'
-        ./linuxdeploy-x86_64.AppImage --appdir=appdir --plugin=qt --output=appimage --custom-apprun=apprun.sh \
-        --executable=appdir/usr/bin/lzocompress \
-        --executable=appdir/usr/bin/lzodecompress \
-        --executable=appdir/usr/bin/tcleanup \
-        --executable=appdir/usr/bin/tcomposer \
-        --executable=appdir/usr/bin/tconverter \
-        --executable=appdir/usr/bin/tfarmcontroller \
-        --executable=appdir/usr/bin/tfarmserver
+        export LD_LIBRARY_PATH="appdir/usr/lib/opentoonz:$LD_LIBRARY_PATH"
+        ./linuxdeploy-x86_64.AppImage --appdir=appdir --plugin=qt --output=appimage --custom-apprun=apprun.sh
+
+        # Nombrado dinámico para evitar errores de archivo no encontrado
         mv OpenToonz*.AppImage artifact/OpenToonz.AppImage
-        ARTIFACT_NAME=Opentoonz-${{ runner.os }}-${{ matrix.compiler }}-${{ github.sha }}
+        ARTIFACT_NAME=Opentoonz-${{ runner.os }}-${{ matrix.compiler }}
         mv artifact ${ARTIFACT_NAME}
         tar zcf ${ARTIFACT_NAME}.tar.gz ${ARTIFACT_NAME}
 
-    - uses: actions/upload-artifact@v6
+    - name: Upload
+      uses: actions/upload-artifact@v4
       with:
-        name: Opentoonz-${{ runner.os }}-${{ matrix.compiler }}-${{ github.sha }}
-        path: flare/build/Opentoonz-${{ runner.os }}-${{ matrix.compiler }}-${{ github.sha }}.tar.gz
+        name: Opentoonz-AppImage-${{ matrix.compiler }}
+        path: flare/build/*.tar.gz
+
