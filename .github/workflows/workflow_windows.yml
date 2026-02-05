@@ -57,14 +57,19 @@ jobs:
         shell: cmd
 
 
-      # 3. Qt Custom
       - name: Install custom Qt 5.15.2
         run: |
           @echo on
           if not exist thirdparty\qt mkdir thirdparty\qt
-          :: RECUERDA poner tu URL completa aquí:
-          curl -fsSL -o Qt5.15.2_wintab.zip https://github.com/shun-iwasawa/qt5/releases/download/v5.15.2_wintab/Qt5.15.2_wintab.zip
+          curl -fsSL -o Qt5.15.2_wintab.zip https://github.com
+          
+          :: Extraer directamente dentro de thirdparty\qt
           7z x -y Qt5.15.2_wintab.zip -othirdparty\qt
+          
+          :: Debug: Ver qué carpetas se crearon realmente
+          dir thirdparty\qt /s /b | findstr "qmake.exe"
+          
+          :: Definir la variable (Asegúrate de que la ruta coincida con lo que imprimió el 'dir')
           echo QT_PATH=%GITHUB_WORKSPACE%\thirdparty\qt\5.15.2_wintab\msvc2019_64>> %GITHUB_ENV%
         shell: cmd
 
@@ -92,7 +97,7 @@ jobs:
           choco install opencv --version=${{ env.OPENCV_VERSION }} -y
           choco install boost-msvc-14.3 --version=${{ env.BOOST_VERSION }} -y
         shell: cmd
-
+        
       - name: Configure CMake
         run: |
           @echo on
@@ -110,22 +115,6 @@ jobs:
             -DCMAKE_C_COMPILER_LAUNCHER=ccache ^
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
         shell: cmd
-
-
-      # 6. Compilación
-      - name: Build Opentoonz
-        run: |
-          @echo on
-          :: Entramos a la carpeta que creamos en el paso anterior
-          cd build
-          
-          :: Ejecutamos msbuild sobre el proyecto generado por CMake
-          msbuild "ALL_BUILD.vcxproj" /p:Configuration=RelWithDebInfo /m /verbosity:minimal
-          
-          :: Mostramos estadísticas de ccache para ver los "hits"
-          ccache -s
-        shell: cmd
-
       # 7. Empaquetado
       - name: Create Package
         run: |
