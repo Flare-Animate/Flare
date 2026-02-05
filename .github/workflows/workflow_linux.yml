@@ -94,11 +94,12 @@ jobs:
         fi
 
         # Descarga silenciosa y con reintentos
+        base_url="https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous"
         for tool in linuxdeploy-x86_64.AppImage linuxdeploy-plugin-qt-x86_64.AppImage linuxdeploy-plugin-appimage-x86_64.AppImage; do
-          wget -q --show-progress https://github.com || \
-          wget -q --show-progress https://github.com || \
-          wget -q --show-progress https://github.com
-          chmod +x $tool
+          wget -q --show-progress "${base_url}/${tool}" || \
+          wget -q --show-progress "${base_url}/${tool}" || \
+          wget -q --show-progress "${base_url}/${tool}"
+          chmod +x "${tool}"
         done
 
         printf "#!/usr/bin/env bash\nexec \"\${APPDIR}/usr/bin/OpenToonz\"" > apprun.sh
