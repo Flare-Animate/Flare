@@ -4,12 +4,12 @@
 #include "flare/projectmanager.h"
 #include "flare/preferences.h"
 #include "flare/tapp.h"
-#include "toonz/toonzfolders.h" 
+#include "../toonz/toonzfolders.h" 
 
-#include "toonzqt/gutil.h"
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/filebrowserpopup.h"
-#include "toonzqt/gutil.h"
+#include "../toonzqt/gutil.h"
+#include "../toonzqt/dvdialog.h"
+#include "../toonzqt/filebrowserpopup.h"
+#include "../toonzqt/gutil.h"
 
 #include <QProcess>
 #include <QDesktopServices>
