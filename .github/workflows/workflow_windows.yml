@@ -176,7 +176,8 @@ jobs:
 
       - name: Create Package
         run: |
-          @echo on cd flare\build
+          @echo on
+          cd flare\build
                 REM Set expected configuration (must match msbuild step)
                 set "CONFIGURATION=RelWithDebInfo"
           
