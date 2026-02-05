@@ -236,6 +236,7 @@ void initImageIo(bool lightVersion) {
     } else {
       TFileType::declare("fla", TFileType::RASTER_LEVEL);
     }
+  }
 #endif
   // end ffmpeg
 
