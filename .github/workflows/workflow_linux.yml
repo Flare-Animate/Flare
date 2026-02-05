@@ -7,7 +7,7 @@ on:
       - '!appveyor.yml'
       - '!README.md'
       - '!doc/**'
-      - '!.github/**' # Simplificado
+      - '!**/.github/**' # Simplificado
       - '.github/workflows/workflow_linux.yml'
   pull_request:
     paths:
