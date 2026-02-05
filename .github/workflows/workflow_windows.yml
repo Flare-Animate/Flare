@@ -63,7 +63,7 @@ jobs:
           @echo on
           if not exist thirdparty\qt mkdir thirdparty\qt
           :: RECUERDA poner tu URL completa aquí:
-          curl -fsSL -o Qt5.15.2_wintab.zip https://github.com
+          curl -fsSL -o Qt5.15.2_wintab.zip https://github.com/shun-iwasawa/qt5/releases/download/v5.15.2_wintab/Qt5.15.2_wintab.zip
           7z x -y Qt5.15.2_wintab.zip -othirdparty\qt
           echo QT_PATH=%GITHUB_WORKSPACE%\thirdparty\qt\5.15.2_wintab\msvc2019_64 >> %GITHUB_ENV%
         shell: cmd
