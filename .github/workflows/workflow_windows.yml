@@ -131,52 +131,62 @@ jobs:
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
         shell: cmd
       # 7. Empaquetado
-      - name: Create Package
+      - name: Create Package and Final Artifact
+        
         run: |
           @echo on
-          :: 1. Entramos a la carpeta build que está en la raíz
-          cd build
-          set "CONF=RelWithDebInfo"
-          
-          :: 2. Limpiar y crear carpeta del paquete
-          if exist Opentoonz rmdir /S /Q Opentoonz
-          mkdir Opentoonz
-          
-          :: 3. Copiar el ejecutable y archivos base
-          copy /Y "%CONF%\*.*" Opentoonz\
-          
-          :: 4. Copiar DLLs de thirdparty
-          :: NOTA: Al estar en /build, las librerías están en ../thirdparty
-          echo Copying thirdparty DLLs...
-          if exist "..\thirdparty\glut\3.7.6\lib\glut64.dll" copy /Y "..\thirdparty\glut\3.7.6\lib\glut64.dll" Opentoonz\
-          if exist "..\thirdparty\glew\glew-1.9.0\bin\64bit\glew32.dll" copy /Y "..\thirdparty\glew\glew-1.9.0\bin\64bit\glew32.dll" Opentoonz\
-          if exist "..\thirdparty\libmypaint\dist\64" xcopy /Y /E "..\thirdparty\libmypaint\dist\64\*.dll" Opentoonz\
-          
-          :: 5. Copiar OpenCV
-          copy /Y "C:\tools\opencv\build\x64\vc16\bin\opencv_world4110.dll" Opentoonz\
-          
-          :: 6. Desplegar Qt (windeployqt)
-          :: Usamos la variable %QT_PATH% que definimos al inicio
-          "%QT_PATH%\bin\windeployqt.exe" Opentoonz\Opentoonz.exe --opengl
-          
-          :: 7. Copiar recursos 'stuff'
-          if exist "..\stuff" (
-            mkdir "Opentoonz\portablestuff"
-            xcopy /Y /E /I "..\stuff" "Opentoonz\portablestuff"
+          :: 1. Preparar carpeta de salida
+          if exist FlarePortable rmdir /S /Q FlarePortable
+          mkdir FlarePortable
+
+          :: 2. Copiar EXE con nombre fijo y DLLs internas
+          echo Copiando binarios del build...
+          :: Buscamos cualquier .exe generado y lo renombramos a Opentoonz.exe en el destino
+          for /f "delims=" %%i in ('dir /b /s "build\RelWithDebInfo\*.exe"') do (
+              copy /Y "%%i" FlarePortable\Opentoonz.exe
           )
+          :: Copiar DLLs internas (motores tnz...)
+          for /f "delims=" %%d in ('dir /b /s "build\RelWithDebInfo\*.dll"') do copy /Y "%%d" FlarePortable\
+
+          :: 3. BARRIDO TOTAL DE DLLS EXTERNAS (Thirdparty y OpenCV)
+          echo Extrayendo todas las DLLs de thirdparty recursivamente...
+          for /f "delims=" %%l in ('dir /b /s "thirdparty\*.dll"') do copy /Y "%%l" FlarePortable\
           
-          :: 8. Limpiar archivos de depuración
-          del /Q Opentoonz\*.pdb
+          echo Buscando OpenCV en C:...
+          :: Busca cualquier archivo que empiece con opencv_world y termine en .dll en todo C:\tools
+          for /f "delims=" %%j in ('dir /b /s "C:\tools\opencv\opencv_world*.dll" 2^>nul') do (
+              copy /Y "%%j" FlarePortable\
+          )
+
+
+          :: 4. Desplegar Qt (windeployqt) sobre el nombre fijo
+          if exist "%QT_PATH%\bin\windeployqt.exe" (
+              "%QT_PATH%\bin\windeployqt.exe" "FlarePortable\Opentoonz.exe" --opengl
+          )
+
+          :: 5. COPIAR CARPETA STUFF
+          if exist "stuff" (
+              echo Copiando carpeta stuff original...
+              mkdir "FlarePortable\stuff"
+              xcopy /Y /E /I "stuff" "FlarePortable\stuff"
+          )
+
+          :: 6. LIMPIEZA DE ARCHIVOS PESADOS (.PDB)
+          :: Borramos los simbolos para que el artifact sea ligero
+          echo Limpiando simbolos de depuracion...
+          del /S /Q FlarePortable\*.pdb 2>nul
+          del /S /Q FlarePortable\*.lib 2>nul
+          del /S /Q FlarePortable\*.exp 2>nul
           
-          echo Package structure:
-          dir Opentoonz /s
+          echo --- CONTENIDO DEL PAQUETE ---
+          dir FlarePortable
         shell: cmd
-
-
-      - name: Upload Artifact
+        
+      - name: Upload Flare Portable
         uses: actions/upload-artifact@v4
         with:
-          name: Opentoonz-Win-Portable
-          path: build/Opentoonz/
+          name: Flare-Windows-Portable
+          path: FlarePortable/
+          if-no-files-found: error
 
 
