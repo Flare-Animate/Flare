@@ -132,61 +132,44 @@ jobs:
         shell: cmd
       # 7. Empaquetado
       - name: Create Package and Final Artifact
-        
         run: |
           @echo on
-          :: 1. Preparar carpeta de salida
+          :: 1. Crear carpeta del Portable
           if exist FlarePortable rmdir /S /Q FlarePortable
           mkdir FlarePortable
 
-          :: 2. Copiar EXE con nombre fijo y DLLs internas
-          echo Copiando binarios del build...
-          :: Buscamos cualquier .exe generado y lo renombramos a Opentoonz.exe en el destino
-          for /f "delims=" %%i in ('dir /b /s "build\RelWithDebInfo\*.exe"') do (
-              copy /Y "%%i" FlarePortable\Opentoonz.exe
-          )
-          :: Copiar DLLs internas (motores tnz...)
+          :: 2. Copiar EXE y DLLs internas desde el build de 64 bits
+          
+          for /f "delims=" %%i in ('dir /b /s "build\RelWithDebInfo\*.exe"') do copy /Y "%%i" FlarePortable\Flare.exe
           for /f "delims=" %%d in ('dir /b /s "build\RelWithDebInfo\*.dll"') do copy /Y "%%d" FlarePortable\
 
-          :: 3. BARRIDO TOTAL DE DLLS EXTERNAS (Thirdparty y OpenCV)
-          echo Extrayendo todas las DLLs de thirdparty recursivamente...
-          for /f "delims=" %%l in ('dir /b /s "thirdparty\*.dll"') do copy /Y "%%l" FlarePortable\
+          :: 3. BARRIDO DE DLLS EXTERNAS (Solo 64 bits)
+          echo Copiando dependencias x64...
+          for /f "delims=" %%l in ('dir /b /s "thirdparty\*.dll" ^| findstr /i "64 x64"') do copy /Y "%%l" FlarePortable\
           
-          echo Buscando OpenCV en C:...
-          :: Busca cualquier archivo que empiece con opencv_world y termine en .dll en todo C:\tools
-          for /f "delims=" %%j in ('dir /b /s "C:\tools\opencv\opencv_world*.dll" 2^>nul') do (
-              copy /Y "%%j" FlarePortable\
-          )
+          echo Buscando OpenCV x64...
+          for /f "delims=" %%j in ('dir /b /s "C:\tools\opencv\*x64*\bin\opencv_world*.dll" 2^>nul') do copy /Y "%%j" FlarePortable\
 
+          :: 4. Desplegar Qt (windeployqt usará las DLLs x64 de Qt automáticamente)
+          "%QT_PATH%\bin\windeployqt.exe" "FlarePortable\Flare.exe" --opengl
 
-          :: 4. Desplegar Qt (windeployqt) sobre el nombre fijo
-          if exist "%QT_PATH%\bin\windeployqt.exe" (
-              "%QT_PATH%\bin\windeployqt.exe" "FlarePortable\Opentoonz.exe" --opengl
-          )
-
-          :: 5. COPIAR CARPETA STUFF
+          :: 5. MODO PORTABLE (Fundamental para Flare/OpenToonz)
           if exist "stuff" (
-              echo Copiando carpeta stuff original...
-              mkdir "FlarePortable\stuff"
-              xcopy /Y /E /I "stuff" "FlarePortable\stuff"
+              mkdir "FlarePortable\portablestuff"
+              xcopy /Y /E /I "stuff" "FlarePortable\portablestuff"
           )
 
-          :: 6. LIMPIEZA DE ARCHIVOS PESADOS (.PDB)
-          :: Borramos los simbolos para que el artifact sea ligero
-          echo Limpiando simbolos de depuracion...
+          :: 6. Limpieza de archivos de depuración
           del /S /Q FlarePortable\*.pdb 2>nul
-          del /S /Q FlarePortable\*.lib 2>nul
-          del /S /Q FlarePortable\*.exp 2>nul
-          
-          echo --- CONTENIDO DEL PAQUETE ---
-          dir FlarePortable
         shell: cmd
-        
+
+
       - name: Upload Flare Portable
         uses: actions/upload-artifact@v4
         with:
           name: Flare-Windows-Portable
           path: FlarePortable/
           if-no-files-found: error
+
 
 
