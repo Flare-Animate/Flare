@@ -112,11 +112,12 @@ jobs:
           choco install opencv --version=${{ env.OPENCV_VERSION }} -y
           choco install boost-msvc-14.3 --version=${{ env.BOOST_VERSION }} -y
         shell: cmd
-        
+
       - name: Configure CMake
         run: |
           @echo on
-          :: Usamos -B para definir la carpeta de salida sin movernos de directorio
+          if exist build rmdir /S /Q build
+          :: Aquí se "siembran" todas las configuraciones
           cmake -B build -G "%MSVCVERSION%" -A x64 ^
             -DQT_PATH="%QT_PATH%" ^
             -DBOOST_ROOT="%BOOST_ROOT%" ^
