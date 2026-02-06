@@ -134,36 +134,60 @@ jobs:
       - name: Create Package and Final Artifact
         run: |
           @echo on
-          :: 1. Crear carpeta del Portable
+          :: 1. Preparar carpeta de salida limpia
           if exist FlarePortable rmdir /S /Q FlarePortable
           mkdir FlarePortable
 
-          :: 2. Copiar EXE y DLLs internas desde el build de 64 bits
+          :: 2. BÚSQUEDA RECURSIVA DEL EXE (Busca en todo 'build')
+          echo Buscando Flare.exe...
+          for /f "delims=" %%i in ('dir /b /s "build\Flare.exe"') do (
+              echo EXE encontrado en: %%i
+              copy /Y "%%i" FlarePortable\Flare.exe
+          )
+
+          :: 3. BÚSQUEDA RECURSIVA DE DLLS INTERNAS (Filtrando por tu config de build)
+          echo Copiando librerias internas...
+          for /f "delims=" %%d in ('dir /b /s "build\*.dll" ^| findstr /i "RelWithDebInfo"') do (
+              copy /Y "%%d" FlarePortable\
+          )
+
+          :: 4. VALIDACIÓN DE SEGURIDAD
+          if not exist "FlarePortable\Flare.exe" (
+              echo ERROR: No se encontro el ejecutable. Estructura de build:
+              dir /s build
+              exit /b 1
+          )
+
+          :: 5. BARRIDO DE DLLS EXTERNAS (Solo x64 para tu build Ax64)
+          echo Copiando dependencias x64 de thirdparty...
+          for /f "delims=" %%l in ('dir /b /s "thirdparty\*.dll" ^| findstr /i "64 x64"') do (
+              copy /Y "%%l" FlarePortable\
+          )
           
-          for /f "delims=" %%i in ('dir /b /s "build\RelWithDebInfo\*.exe"') do copy /Y "%%i" FlarePortable\Flare.exe
-          for /f "delims=" %%d in ('dir /b /s "build\RelWithDebInfo\*.dll"') do copy /Y "%%d" FlarePortable\
+          echo Buscando OpenCV x64 en el sistema...
+          for /f "delims=" %%j in ('dir /b /s "C:\tools\opencv\*x64*\bin\opencv_world*.dll" 2^>nul') do (
+              copy /Y "%%j" FlarePortable\
+          )
 
-          :: 3. BARRIDO DE DLLS EXTERNAS (Solo 64 bits)
-          echo Copiando dependencias x64...
-          for /f "delims=" %%l in ('dir /b /s "thirdparty\*.dll" ^| findstr /i "64 x64"') do copy /Y "%%l" FlarePortable\
-          
-          echo Buscando OpenCV x64...
-          for /f "delims=" %%j in ('dir /b /s "C:\tools\opencv\*x64*\bin\opencv_world*.dll" 2^>nul') do copy /Y "%%j" FlarePortable\
+          :: 6. DESPLEGAR QT + RUNTIME DE COMPILADOR (MSVC)
+          :: --compiler-runtime copia msvcp140.dll, vcruntime140.dll, etc.
+          echo Ejecutando windeployqt con Runtime...
+          "%QT_PATH%\bin\windeployqt.exe" "FlarePortable\Flare.exe" --opengl --compiler-runtime
 
-          :: 4. Desplegar Qt (windeployqt usará las DLLs x64 de Qt automáticamente)
-          "%QT_PATH%\bin\windeployqt.exe" "FlarePortable\Flare.exe" --opengl
-
-          :: 5. MODO PORTABLE (Fundamental para Flare/OpenToonz)
+          :: 7. MODO PORTABLE (Configuracion .ini interna)
           if exist "stuff" (
+              echo Configurando carpeta portablestuff...
               mkdir "FlarePortable\portablestuff"
               xcopy /Y /E /I "stuff" "FlarePortable\portablestuff"
           )
 
-          :: 6. Limpieza de archivos de depuración
+          :: 8. LIMPIEZA FINAL DE ARCHIVOS DE DEPURACIÓN
           del /S /Q FlarePortable\*.pdb 2>nul
+          
+          echo --- CONTENIDO FINAL DEL PAQUETE ---
+          dir FlarePortable
         shell: cmd
-
-
+        
       - name: Upload Flare Portable
         uses: actions/upload-artifact@v4
         with:
