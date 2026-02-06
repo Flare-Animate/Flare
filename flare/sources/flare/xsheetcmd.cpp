@@ -1,4 +1,5 @@
 // TnzCore includes
+#include <QMainWindow>
 #include "tundo.h"
 #include "trandom.h"
 #include "tvectorimage.h"

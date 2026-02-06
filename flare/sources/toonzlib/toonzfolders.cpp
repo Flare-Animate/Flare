@@ -1,5 +1,3 @@
-
-
 #include "toonz/toonzfolders.h"
 #include "tsystem.h"
 #include "tenv.h"
