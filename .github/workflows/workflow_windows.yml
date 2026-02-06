@@ -134,27 +134,28 @@ jobs:
       - name: Create Package and Final Artifact
         run: |
           @echo on
-          :: 1. Preparar carpeta de salida limpia
+          :: 1. Preparar carpeta
           if exist FlarePortable rmdir /S /Q FlarePortable
           mkdir FlarePortable
 
-          :: 2. BÚSQUEDA RECURSIVA DEL EXE (Busca en todo 'build')
-          echo Buscando Flare.exe...
-          for /f "delims=" %%i in ('dir /b /s "build\Flare.exe"') do (
-              echo EXE encontrado en: %%i
+          :: 2. BÚSQUEDA RECURSIVA EN SOURCES
+          echo Buscando Flare.exe dentro de build\sources...
+          for /f "delims=" %%i in ('dir /b /s "build\sources\Flare.exe" ^| findstr /i "RelWithDebInfo"') do (
+              echo ENCONTRADO EXE EN: %%i
               copy /Y "%%i" FlarePortable\Flare.exe
           )
 
-          :: 3. BÚSQUEDA RECURSIVA DE DLLS INTERNAS (Filtrando por tu config de build)
-          echo Copiando librerias internas...
-          for /f "delims=" %%d in ('dir /b /s "build\*.dll" ^| findstr /i "RelWithDebInfo"') do (
+          echo Buscando DLLs internas dentro de build\sources...
+          :: Esto entrará en tnzcore, tnzbase, etc., y sacará solo las DLLs de RelWithDebInfo
+          for /f "delims=" %%d in ('dir /b /s "build\sources\*.dll" ^| findstr /i "RelWithDebInfo"') do (
+              echo Copiando DLL: %%d
               copy /Y "%%d" FlarePortable\
           )
 
-          :: 4. VALIDACIÓN DE SEGURIDAD
+          :: 3. VALIDACIÓN
           if not exist "FlarePortable\Flare.exe" (
-              echo ERROR: No se encontro el ejecutable. Estructura de build:
-              dir /s build
+              echo ERROR: No se encontro el EXE. Listando carpetas en sources:
+              dir /s /b build\sources | findstr ".exe .dll"
               exit /b 1
           )
 
