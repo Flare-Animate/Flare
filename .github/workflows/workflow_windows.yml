@@ -37,25 +37,28 @@ jobs:
       - name: Download and Force Third-Party Libs
         run: |
           @echo on
-          :: 1. Descarga
+          :: 1. Descarga (Mantenemos tu URL exacta)
           curl -fsSL -o libs.zip https://github.com/andeon/opentoonz-thirdparty-libs/releases/download/prebuilt-libs-v1/thirdparty-libs.zip
           
-          :: 2. Extraer pisando lo que haya en la carpeta thirdparty del repo
-          :: El flag -aoa de 7z sobreescribe todos los archivos existentes sin preguntar
-          7z x -y libs.zip -othirdparty -aoa
+          :: 2. BORRADO PREVIO (Para eliminar los punteros corruptos de LFS)
+          if exist thirdparty rmdir /S /Q thirdparty
           
-          :: 3. Configurar headers
+          :: 3. Extraer (Ahora no hay nada que pisar, los archivos serán reales)
+          7z x -y libs.zip -othirdparty
+          
+          :: 4. Configurar headers
           cd thirdparty
+          
           copy /Y tiff-4.0.3\libtiff\tif_config.vc.h tiff-4.0.3\libtiff\tif_config.h
           copy /Y tiff-4.0.3\libtiff\tiffconf.vc.h tiff-4.0.3\libtiff\tiffconf.h
           copy /Y libpng-1.6.21\scripts\pnglibconf.h.prebuilt libpng-1.6.21\pnglibconf.h
+          
           cd ..
           
-          :: 4. Definir variable de entorno para los siguientes pasos
+          :: 5. Definir variable de entorno
           echo THIRDPARTY_DIR=%GITHUB_WORKSPACE%\thirdparty>> %GITHUB_ENV%
           del /Q libs.zip
         shell: cmd
-
 
       - name: Install custom Qt 5.15.2
         run: |
