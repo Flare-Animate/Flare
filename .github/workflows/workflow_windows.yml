@@ -134,61 +134,53 @@ jobs:
       - name: Create Package and Final Artifact
         run: |
           @echo on
-          :: 1. Preparar carpeta
+          :: 1. Crear carpeta limpia
           if exist FlarePortable rmdir /S /Q FlarePortable
           mkdir FlarePortable
 
-          :: 2. BÚSQUEDA RECURSIVA EN SOURCES
-          echo Buscando Flare.exe dentro de build\sources...
-          for /f "delims=" %%i in ('dir /b /s "build\sources\Flare.exe" ^| findstr /i "RelWithDebInfo"') do (
-              echo ENCONTRADO EXE EN: %%i
+          :: 2. BÚSQUEDA AGRESIVA DEL EXE
+          :: Buscamos Flare.exe en todo 'build' ignorando carpetas temporales de CMake
+          echo Buscando Flare.exe real...
+          for /f "delims=" %%i in ('dir /b /s "build\Flare.exe" ^| findstr /v /i "CMakeFiles"') do (
+              echo EXE REAL ENCONTRADO EN: %%i
               copy /Y "%%i" FlarePortable\Flare.exe
           )
 
-          echo Buscando DLLs internas dentro de build\sources...
-          :: Esto entrará en tnzcore, tnzbase, etc., y sacará solo las DLLs de RelWithDebInfo
-          for /f "delims=" %%d in ('dir /b /s "build\sources\*.dll" ^| findstr /i "RelWithDebInfo"') do (
+          :: 3. BÚSQUEDA DE DLLS INTERNAS
+          :: Buscamos DLLs que pertenezcan a la configuracion RelWithDebInfo
+          echo Recolectando DLLs internas...
+          for /f "delims=" %%d in ('dir /b /s "build\*.dll" ^| findstr /i "RelWithDebInfo" ^| findstr /v /i "CMakeFiles"') do (
               echo Copiando DLL: %%d
               copy /Y "%%d" FlarePortable\
           )
 
-          :: 3. VALIDACIÓN
+          :: 4. VALIDACIÓN DE SEGURIDAD (Si falla, el build de CMake no genero archivos)
           if not exist "FlarePortable\Flare.exe" (
-              echo ERROR: No se encontro el EXE. Listando carpetas en sources:
-              dir /s /b build\sources | findstr ".exe .dll"
+              echo ERROR: No se encontro Flare.exe. Mostrando arbol de archivos:
+              dir /s /b build | findstr /i ".exe"
               exit /b 1
           )
 
-          :: 5. BARRIDO DE DLLS EXTERNAS (Solo x64 para tu build Ax64)
-          echo Copiando dependencias x64 de thirdparty...
-          for /f "delims=" %%l in ('dir /b /s "thirdparty\*.dll" ^| findstr /i "64 x64"') do (
-              copy /Y "%%l" FlarePortable\
-          )
+          :: 5. DEPENDENCIAS EXTERNAS (thirdparty y OpenCV)
+          echo Copiando dependencias x64...
+          for /f "delims=" %%l in ('dir /b /s "thirdparty\*.dll" ^| findstr /i "64 x64"') do copy /Y "%%l" FlarePortable\
           
-          echo Buscando OpenCV x64 en el sistema...
-          for /f "delims=" %%j in ('dir /b /s "C:\tools\opencv\*x64*\bin\opencv_world*.dll" 2^>nul') do (
-              copy /Y "%%j" FlarePortable\
-          )
+          for /f "delims=" %%j in ('dir /b /s "C:\tools\opencv\*x64*\bin\opencv_world*.dll" 2^>nul') do copy /Y "%%j" FlarePortable\
 
-          :: 6. DESPLEGAR QT + RUNTIME DE COMPILADOR (MSVC)
-          :: --compiler-runtime copia msvcp140.dll, vcruntime140.dll, etc.
-          echo Ejecutando windeployqt con Runtime...
+          :: 6. DESPLEGAR QT + RUNTIME MSVC (msvcp140.dll, etc.)
+          echo Ejecutando windeployqt...
           "%QT_PATH%\bin\windeployqt.exe" "FlarePortable\Flare.exe" --opengl --compiler-runtime
 
-          :: 7. MODO PORTABLE (Configuracion .ini interna)
+          :: 7. MODO PORTABLE (stuff -> portablestuff para los .ini)
           if exist "stuff" (
-              echo Configurando carpeta portablestuff...
               mkdir "FlarePortable\portablestuff"
               xcopy /Y /E /I "stuff" "FlarePortable\portablestuff"
           )
 
-          :: 8. LIMPIEZA FINAL DE ARCHIVOS DE DEPURACIÓN
+          :: 8. LIMPIEZA FINAL
           del /S /Q FlarePortable\*.pdb 2>nul
-          
-          echo --- CONTENIDO FINAL DEL PAQUETE ---
-          dir FlarePortable
         shell: cmd
-        
+
       - name: Upload Flare Portable
         uses: actions/upload-artifact@v4
         with:
