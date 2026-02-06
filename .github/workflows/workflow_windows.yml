@@ -116,20 +116,21 @@ jobs:
       - name: Configure CMake
         run: |
           @echo on
-          :: 1. Creamos la carpeta build en la raíz
-          if not exist build mkdir build
-          cd build
-          
-          :: 2. Ejecutamos CMake apuntando a la raíz (..)
-          cmake .. -G "%MSVCVERSION%" -Ax64 ^
+          :: Usamos -B para definir la carpeta de salida sin movernos de directorio
+          cmake -B build -G "%MSVCVERSION%" -A x64 ^
             -DQT_PATH="%QT_PATH%" ^
             -DBOOST_ROOT="%BOOST_ROOT%" ^
             -DOpenCV_DIR="%OpenCV_DIR%" ^
             -DTHIRDPARTY_DIR="%THIRDPARTY_DIR%" ^
             -DWITH_WINTAB=ON ^
             -DCMAKE_C_COMPILER_LAUNCHER=ccache ^
-            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache ^
+            -DCMAKE_BUILD_TYPE=RelWithDebInfo
         shell: cmd
+
+      - name: Build Flare
+        run: cmake --build build --config RelWithDebInfo --parallel 4
+
       # 7. Empaquetado
       - name: Create Package and Final Artifact
         run: |
@@ -138,23 +139,13 @@ jobs:
           if exist FlarePortable rmdir /S /Q FlarePortable
           mkdir FlarePortable
 
-          :: 2. BÚSQUEDA AGRESIVA DEL EXE
-          :: Buscamos Flare.exe en todo 'build' ignorando carpetas temporales de CMake
-          echo Buscando Flare.exe real...
-          for /f "delims=" %%i in ('dir /b /s "build\Flare.exe" ^| findstr /v /i "CMakeFiles"') do (
-              echo EXE REAL ENCONTRADO EN: %%i
-              copy /Y "%%i" FlarePortable\Flare.exe
-          )
+          :: 2. COPIAR EXE (Búsqueda global en build sin basura de CMake)
+          for /f "delims=" %%i in ('dir /b /s "build\Flare.exe" ^| findstr /v "CMakeFiles"') do copy /Y "%%i" FlarePortable\Flare.exe
+          
+          :: 3. COPIAR DLLS (Corregido con la barra final FlarePortable\)
+          for /f "delims=" %%d in ('dir /b /s "build\*.dll" ^| findstr /i "RelWithDebInfo" ^| findstr /v "CMakeFiles"') do copy /Y "%%d" FlarePortable\
 
-          :: 3. BÚSQUEDA DE DLLS INTERNAS
-          :: Buscamos DLLs que pertenezcan a la configuracion RelWithDebInfo
-          echo Recolectando DLLs internas...
-          for /f "delims=" %%d in ('dir /b /s "build\*.dll" ^| findstr /i "RelWithDebInfo" ^| findstr /v /i "CMakeFiles"') do (
-              echo Copiando DLL: %%d
-              copy /Y "%%d" FlarePortable\
-          )
-
-          :: 4. VALIDACIÓN DE SEGURIDAD (Si falla, el build de CMake no genero archivos)
+          :: 4. VALIDACIÓN DE SEGURIDAD
           if not exist "FlarePortable\Flare.exe" (
               echo ERROR: No se encontro Flare.exe. Mostrando arbol de archivos:
               dir /s /b build | findstr /i ".exe"
@@ -187,6 +178,4 @@ jobs:
           name: Flare-Windows-Portable
           path: FlarePortable/
           if-no-files-found: error
-
-
-
+          
