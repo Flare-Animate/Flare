@@ -116,6 +116,16 @@ jobs:
           choco install boost-msvc-14.3 --version=${{ env.BOOST_VERSION }} -y
         shell: cmd
 
+      - name: Install vcpkg and LZO
+        run: |
+          @echo on
+          if not exist vcpkg git clone https://github.com/microsoft/vcpkg.git vcpkg
+          cd vcpkg
+          .\bootstrap-vcpkg.bat
+          .\vcpkg.exe install lzo:x64-windows
+          echo VCPKG_ROOT=%CD%>> %GITHUB_ENV%
+        shell: cmd
+
       - name: Configure CMake
         run: |
           @echo on
@@ -128,6 +138,7 @@ jobs:
             -DTHIRDPARTY_DIR="%THIRDPARTY_DIR%" ^
             -DWITH_WINTAB=ON ^
             -DWITH_LZODRIVER=OFF ^
+            -DCMAKE_TOOLCHAIN_FILE="%VCPKG_ROOT%\\scripts\\buildsystems\\vcpkg.cmake" ^
             -DCMAKE_C_COMPILER_LAUNCHER=ccache ^
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache ^
             -DCMAKE_BUILD_TYPE=RelWithDebInfo > build\cmake_configure.log 2>&1
