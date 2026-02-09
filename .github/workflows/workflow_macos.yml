@@ -102,14 +102,14 @@ jobs:
             exit $rc
           fi
           ninja -j $(sysctl -n hw.ncpu) 2>&1 | tee build/build.log
-      - name: Archive build logs
-        if: failure()
+      - name: Upload build logs
         uses: actions/upload-artifact@v6
         with:
           name: build-logs-macos
           path: |
             build/cmake_configure.log
             build/build.log
+          if-no-files-found: ignore
       - name: Introduce Libraries and Stuff
         run: |
           cd flare/build/toonz

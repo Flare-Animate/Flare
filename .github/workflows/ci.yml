@@ -121,15 +121,17 @@ jobs:
       - name: Install Python test deps
         run: |
           python -m pip install --upgrade pip
-          pip install pytest
+          pip install pytest esprima
 
       - name: Run Python tests
         run: |
           pytest tools/flash/tests -q
 
-      - name: Archive build logs
-        if: failure()
+      - name: Upload build logs
         uses: actions/upload-artifact@v4
         with:
           name: build-logs-${{ matrix.os }}-${{ matrix.config }}
-          path: build/
+          path: |
+            build/cmake_configure.log
+            build/build.log
+          if-no-files-found: ignore
