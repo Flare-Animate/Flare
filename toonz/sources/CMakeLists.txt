@@ -91,12 +91,15 @@ option_defaults_init(
 if(BUILD_ENV_MSVC)
     set(_init_SYSTEM_LZO                     OFF)
     set(_init_SYSTEM_SUPERLU                 OFF)
+    # Avoid building lzodriver by default on MSVC because prebuilt LZO libs may be invalid
+    set(WITH_LZODRIVER OFF)
 elseif(BUILD_ENV_APPLE)
     set(_init_SYSTEM_LZO                     OFF)
     set(_init_SYSTEM_SUPERLU                 OFF)
 elseif(BUILD_ENV_UNIXLIKE)
     set(_init_SYSTEM_LZO                     ON)
     set(_init_SYSTEM_SUPERLU                 ON)
+    set(WITH_LZODRIVER ON)
 endif()
 
 
@@ -108,6 +111,8 @@ option(WITH_SYSTEM_SUPERLU "Use the system SuperLU library instead of 'thirdpart
 option(WITH_CANON "Build with Canon DSLR support - Requires Canon SDK" OFF)
 option(WITH_TRANSLATION "Generate translation projects as well" ON)
 option(WITH_WINTAB "(Windows only) Build with customized Qt with WinTab support. https://github.com/shun-iwasawa/qt5/releases/tag/v5.15.2_wintab" OFF)
+# Allow disabling the lzodriver (prebuilt LZO libraries on Windows may be corrupt)
+option(WITH_LZODRIVER "Build the LZO driver for LZF compression support" ON)
 
 # avoid using again
 option_defaults_clear()
@@ -776,7 +781,11 @@ add_subdirectory(image)
 add_subdirectory(toonzqt)
 add_subdirectory(tnztools)
 
-add_subdirectory(${SDKROOT}/lzo/driver lzodriver)
+if(WITH_LZODRIVER)
+    add_subdirectory(${SDKROOT}/lzo/driver lzodriver)
+else()
+    message(STATUS "Skipping lzodriver build (WITH_LZODRIVER=OFF)")
+endif()
 
 add_subdirectory(toonz)
 add_subdirectory(tcleanupper)
