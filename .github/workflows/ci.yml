@@ -127,6 +127,17 @@ jobs:
         run: |
           pytest tools/flash/tests -q
 
+      - name: Lint repository scripts
+        run: |
+          python tools/flash/lint_repo_scripts.py
+
+      - name: Upload script problems
+        uses: actions/upload-artifact@v4
+        with:
+          name: repo-script-problems
+          path: repo_script_problems.json
+          if-no-files-found: ignore
+
       - name: Upload build logs
         uses: actions/upload-artifact@v4
         with:
