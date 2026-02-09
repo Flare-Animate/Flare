@@ -137,6 +137,13 @@ jobs:
           )
         shell: cmd
 
+      - name: Archive build logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs-windows
+          path: build\cmake_configure.log
+
       - name: Build Flare
         run: cmake --build build --config RelWithDebInfo --parallel 4
 
