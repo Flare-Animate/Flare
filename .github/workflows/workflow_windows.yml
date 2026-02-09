@@ -127,6 +127,7 @@ jobs:
             -DOpenCV_DIR="%OpenCV_DIR%" ^
             -DTHIRDPARTY_DIR="%THIRDPARTY_DIR%" ^
             -DWITH_WINTAB=ON ^
+            -DWITH_LZODRIVER=OFF ^
             -DCMAKE_C_COMPILER_LAUNCHER=ccache ^
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache ^
             -DCMAKE_BUILD_TYPE=RelWithDebInfo
@@ -182,4 +183,4 @@ jobs:
           name: Flare-Windows-Portable
           path: FlarePortable/
           if-no-files-found: error
-          
+
