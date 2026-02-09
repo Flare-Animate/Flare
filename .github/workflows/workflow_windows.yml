@@ -116,6 +116,16 @@ jobs:
           choco install boost-msvc-14.3 --version=${{ env.BOOST_VERSION }} -y
         shell: cmd
 
+      - name: Install vcpkg and LZO
+        run: |
+          @echo on
+          if not exist vcpkg git clone https://github.com/microsoft/vcpkg.git vcpkg
+          cd vcpkg
+          .\bootstrap-vcpkg.bat
+          .\vcpkg.exe install lzo:x64-windows
+          echo VCPKG_ROOT=%CD%>> %GITHUB_ENV%
+        shell: cmd
+
       - name: Configure CMake
         run: |
           @echo on
@@ -127,13 +137,35 @@ jobs:
             -DOpenCV_DIR="%OpenCV_DIR%" ^
             -DTHIRDPARTY_DIR="%THIRDPARTY_DIR%" ^
             -DWITH_WINTAB=ON ^
+            -DWITH_SYSTEM_LZO=ON ^
+            -DWITH_LZODRIVER=OFF ^
+            -DCMAKE_TOOLCHAIN_FILE="%VCPKG_ROOT%\\scripts\\buildsystems\\vcpkg.cmake" ^
             -DCMAKE_C_COMPILER_LAUNCHER=ccache ^
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache ^
-            -DCMAKE_BUILD_TYPE=RelWithDebInfo
+            -DCMAKE_BUILD_TYPE=RelWithDebInfo > build\cmake_configure.log 2>&1
+          if %ERRORLEVEL% NEQ 0 (
+            type build\cmake_configure.log
+            exit /b %ERRORLEVEL%
+          )
         shell: cmd
 
+      - name: Archive build logs
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs-windows
+          path: |
+            build\cmake_configure.log
+            build\build.log
+          if-no-files-found: ignore
+
       - name: Build Flare
-        run: cmake --build build --config RelWithDebInfo --parallel 4
+        run: |
+          cmake --build build --config RelWithDebInfo --parallel 4 > build\build.log 2>&1
+          if %ERRORLEVEL% NEQ 0 (
+            type build\cmake_configure.log
+            type build\build.log
+            exit /b %ERRORLEVEL%
+          )
 
       # 7. Empaquetado
       - name: Create Package and Final Artifact
@@ -182,4 +214,4 @@ jobs:
           name: Flare-Windows-Portable
           path: FlarePortable/
           if-no-files-found: error
-          
+

@@ -57,3 +57,48 @@ def test_import_swc_with_as():
         assert has_as
     finally:
         shutil.rmtree(td)
+
+
+def test_import_jsfl_file_and_lint_ok():
+    td = tempfile.mkdtemp(prefix="flare_test_jsfl_ok_")
+    try:
+        js_file = os.path.join(td, "good.jsfl")
+        with open(js_file, "w", encoding="utf-8") as f:
+            f.write('function hello(){\n  fl.trace("hello");\n}\n')
+
+        out = os.path.join(td, "out_jsfl_ok")
+        proc = run_script(["--input", js_file, "--output", out])
+        assert proc.returncode == 0, proc.stderr.decode("utf-8")
+        mf = os.path.join(out, "manifest.json")
+        assert os.path.exists(mf)
+        with open(mf, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        assert "good.jsfl" in data["files"]
+        # no problems expected
+        assert data.get("problems", {}) == {}
+    finally:
+        shutil.rmtree(td)
+
+
+def test_import_jsfl_file_and_lint_bad():
+    td = tempfile.mkdtemp(prefix="flare_test_jsfl_bad_")
+    try:
+        js_file = os.path.join(td, "bad.jsfl")
+        # invalid JS
+        with open(js_file, "w", encoding="utf-8") as f:
+            f.write('function () {\n')
+
+        out = os.path.join(td, "out_jsfl_bad")
+        proc = run_script(["--input", js_file, "--output", out])
+        assert proc.returncode == 0, proc.stderr.decode("utf-8")
+        mf = os.path.join(out, "manifest.json")
+        assert os.path.exists(mf)
+        with open(mf, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        assert "bad.jsfl" in data["files"]
+        # should have lint problems
+        probs = data.get("problems", {})
+        assert "bad.jsfl" in probs
+        assert len(probs["bad.jsfl"]) >= 1
+    finally:
+        shutil.rmtree(td)
