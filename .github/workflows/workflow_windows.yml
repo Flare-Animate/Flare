@@ -145,7 +145,13 @@ jobs:
           path: build\cmake_configure.log
 
       - name: Build Flare
-        run: cmake --build build --config RelWithDebInfo --parallel 4
+        run: |
+          cmake --build build --config RelWithDebInfo --parallel 4 > build\build.log 2>&1
+          if %ERRORLEVEL% NEQ 0 (
+            type build\cmake_configure.log
+            type build\build.log
+            exit /b %ERRORLEVEL%
+          )
 
       # 7. Empaquetado
       - name: Create Package and Final Artifact
