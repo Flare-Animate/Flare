@@ -398,3 +398,52 @@ inline void TFlash::Imp::addEdgeStraightToShape(FDTDefineShape3 *shape, int x, i
 	} else
 		shape->AddShapeRec(new FShapeRecEdgeStraight(x, y));
 }
+
+inline void TFlash::Imp::addEdgeStraightToShape(FDTDefineShape3 *shape, const TPoint &p)
+{
+	addEdgeStraightToShape(shape, p.x, p.y);
+}
+
+//-------------------------------------------------------------------
+
+double computeAverageThickness(const TStroke *s)
+{
+	int count = s->getControlPointCount();
+	double resThick = 0;
+	int i;
+
+	for (i = 0; i < s->getControlPointCount(); i++) {
+		double thick = s->getControlPoint(i).thick;
+		if (i >= 2 && i < s->getControlPointCount() - 2)
+			resThick += thick;
+	}
+	if (count < 6)
+		return s->getControlPoint(count / 2 + 1).thick;
+
+	return resThick / (s->getControlPointCount() - 4);
+}
+
+//-------------------------------------------------------------------
+
+inline FMatrix *TFlash::Imp::affine2Matrix(const TAffine &aff)
+{
+	if (aff != TAffine()) {
+		bool hasA11OrA22, hasA12OrA21;
+
+		hasA11OrA22 = hasA12OrA21 = (aff.a12 != 0 || aff.a21 != 0);
+		if (!hasA12OrA21)
+			hasA11OrA22 = !areAlmostEqual(aff.det(), 1.0, 1e-3);
+		return new FMatrix(hasA11OrA22, FloatToFixed(aff.a11), FloatToFixed(aff.a22),
+					   hasA12OrA21, FloatToFixed(-aff.a21), FloatToFixed(-aff.a12),
+					   (TINT32)tround(aff.a13 * m_tw), -(TINT32)tround(aff.a23 * m_tw));
+	} else
+		return 0;
+}
+
+TFlash::operator TVectorRenderData() const
+{
+    // Construct a TVectorRenderData using current affine and palette
+    TAffine aff = m_imp->m_affine;
+    const TPalette *palette = m_imp->m_currPalette;
+    return TVectorRenderData(TVectorRenderData::ViewerSettings(), aff, TRect(), palette, nullptr);
+}
