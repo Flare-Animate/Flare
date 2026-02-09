@@ -68,18 +68,31 @@ jobs:
     - name: Build OpenToonz
       run: |
         cd flare
-        mkdir build && cd build
-        # Usamos Ninja pero limitamos los trabajos paralelos a 2
+        mkdir -p build && cd build
+        set +e
         cmake ../sources -G Ninja \
           -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
           -DCMAKE_C_COMPILER_LAUNCHER=ccache \
           -DCMAKE_CXX_COMPILER=${{ matrix.cxx }} \
           -DCMAKE_C_COMPILER=${{ matrix.cc }} \
           -DWITH_TRANSLATION=OFF \
-          -DCMAKE_BUILD_TYPE=Release
-        
+          -DCMAKE_BUILD_TYPE=Release > build/cmake_configure.log 2>&1
+        rc=$?
+        set -e
+        echo "--- Begin CMake configure log ---"
+        if [ -f build/cmake_configure.log ]; then cat build/cmake_configure.log; fi
+        echo "--- End CMake configure log ---"
+        if [ $rc -ne 0 ]; then echo "CMake configure failed with exit code $rc"; exit $rc; fi
+
         # Ninja por defecto usa todos los núcleos; aquí lo limitamos a 2
         ninja -j2
+
+    - name: Archive build logs
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-logs-${{ matrix.compiler }}
+        path: flare/build/cmake_configure.log
 
     - name: Create Artifact
       env:

@@ -82,15 +82,25 @@ jobs:
         run: |
           export PKG_CONFIG_PATH="/usr/local/opt/jpeg-turbo/lib/pkgconfig:$PKG_CONFIG_PATH"
           cd flare
-          rm -rf build  
+          rm -rf build
           mkdir -p build
           cd build
+          set +e
           cmake -S ../sources -B . -G Ninja \
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DQT_PATH=$(brew --prefix qt@5)/lib \
             -DQt5_DIR=$(brew --prefix qt@5)/lib/cmake/Qt5 \
             -DCMAKE_PREFIX_PATH=$(brew --prefix qt@5)/lib/cmake/Qt5 \
-            -DWITH_TRANSLATION=OFF
+            -DWITH_TRANSLATION=OFF > build/cmake_configure.log 2>&1
+          rc=$?
+          set -e
+          echo "--- Begin CMake configure log ---"
+          if [ -f build/cmake_configure.log ]; then cat build/cmake_configure.log; fi
+          echo "--- End CMake configure log ---"
+          if [ $rc -ne 0 ]; then
+            echo "CMake configure failed with exit code $rc"
+            exit $rc
+          fi
           ninja -j $(sysctl -n hw.ncpu)
       - name: Introduce Libraries and Stuff
         run: |

@@ -130,7 +130,11 @@ jobs:
             -DWITH_LZODRIVER=OFF ^
             -DCMAKE_C_COMPILER_LAUNCHER=ccache ^
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache ^
-            -DCMAKE_BUILD_TYPE=RelWithDebInfo
+            -DCMAKE_BUILD_TYPE=RelWithDebInfo > build\cmake_configure.log 2>&1
+          if %ERRORLEVEL% NEQ 0 (
+            type build\cmake_configure.log
+            exit /b %ERRORLEVEL%
+          )
         shell: cmd
 
       - name: Build Flare
