@@ -85,14 +85,16 @@ jobs:
         if [ $rc -ne 0 ]; then echo "CMake configure failed with exit code $rc"; exit $rc; fi
 
         # Ninja por defecto usa todos los núcleos; aquí lo limitamos a 2
-        ninja -j2
+        ninja -j2 2>&1 | tee build/build.log
 
     - name: Archive build logs
       if: failure()
       uses: actions/upload-artifact@v4
       with:
         name: build-logs-${{ matrix.compiler }}
-        path: flare/build/cmake_configure.log
+        path: |
+          flare/build/cmake_configure.log
+          flare/build/build.log
 
     - name: Create Artifact
       env:
