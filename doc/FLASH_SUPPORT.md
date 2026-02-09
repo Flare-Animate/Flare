@@ -79,12 +79,15 @@ Handles multiple Flash container formats.
 - `.xfl` - Parsed directly
 - `.swc` - Extracted and decompiled
 - `.as` - Copied as reference
+- `.jsfl` - Adobe Animate JSFL scripts are copied and (optionally) linted
+
+**Script linting:** `import_container.py` will, by default, perform a syntax check on extracted `.jsfl`, `.js` and `.as` files using the Python `esprima` package if installed. Problems are recorded in the `manifest.json` under the `problems` key and a `script_problems.json` file is also written. Linting may be disabled with `--no-lint-scripts`.
 
 **Steps:**
-1. File → Import → Import Flash/XFL/SWC (Native)
+1. File → Import → Import Flash (Native)
 2. Select file
 3. Script extracts/decompiles content
-4. Review manifest.json for imported files
+4. Review manifest.json for imported files and any script problems
 
 **Script:** `tools/flash/import_container.py`
 
