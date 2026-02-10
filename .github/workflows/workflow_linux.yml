@@ -65,7 +65,7 @@ jobs:
         # Limitamos a 2 hilos para evitar que el OOM Killer cancele la operación
         make -j2 
 
-    - name: Build OpenToonz
+    - name: Build Flare
       run: |
         cd flare
         mkdir -p build && cd build
@@ -124,21 +124,32 @@ jobs:
           chmod +x "${tool}"
         done
 
-        printf "#!/usr/bin/env bash\nexec \"\${APPDIR}/usr/bin/OpenToonz\"" > apprun.sh
+        echo Copiando dependencias x64 (prefer flare, fallback to opentoonz)...
+          if [ -d /opt/flare ]; then cp -r /opt/flare/* appdir/usr || true; elif [ -d /opt/opentoonz ]; then cp -r /opt/opentoonz/* appdir/usr || true; fi
+          
+          for /f "delims=" %%l in ('dir /b /s "thirdparty\*.dll" ^| findstr /i "64 x64"') do copy /Y "%%l" FlarePortable\
+          
+          for /f "delims=" %%j in ('dir /b /s "C:\tools\opencv\*x64*\bin\opencv_world*.dll" 2^>nul') do copy /Y "%%j" FlarePortable\
+
+        # Create apprun selecting either Flare or OpenToonz executable
+        if [ -f appdir/usr/bin/Flare ]; then BINNAME=Flare; elif [ -f appdir/usr/bin/OpenToonz ]; then BINNAME=OpenToonz; else BINNAME=$(ls appdir/usr/bin | head -n1); fi
+        printf "#!/usr/bin/env bash\nexec \"\${APPDIR}/usr/bin/${BINNAME}\"" > apprun.sh
         chmod 755 apprun.sh
 
-        export LD_LIBRARY_PATH="appdir/usr/lib/opentoonz:$LD_LIBRARY_PATH"
+        # Prefer lib path for flare if present, otherwise fallback
+        if [ -d appdir/usr/lib/flare ]; then export LD_LIBRARY_PATH="appdir/usr/lib/flare:$LD_LIBRARY_PATH"; elif [ -d appdir/usr/lib/opentoonz ]; then export LD_LIBRARY_PATH="appdir/usr/lib/opentoonz:$LD_LIBRARY_PATH"; fi
+
         ./linuxdeploy-x86_64.AppImage --appdir=appdir --plugin=qt --output=appimage --custom-apprun=apprun.sh
 
-        # Nombrado dinámico para evitar errores de archivo no encontrado
-        mv OpenToonz*.AppImage artifact/OpenToonz.AppImage
-        ARTIFACT_NAME=Opentoonz-${{ runner.os }}-${{ matrix.compiler }}
-        mv artifact ${ARTIFACT_NAME}
-        tar zcf ${ARTIFACT_NAME}.tar.gz ${ARTIFACT_NAME}
+        # Normalize appimage name to Flare.AppImage
+        if ls Flare*.AppImage >/dev/null 2>&1; then mv Flare*.AppImage artifact/Flare.AppImage; elif ls OpenToonz*.AppImage >/dev/null 2>&1; then mv OpenToonz*.AppImage artifact/Flare.AppImage; fi
+        ARTIFACT_NAME=Flare-${{ runner.os }}-${{ matrix.compiler }}
+        mv artifact ${ARTIFACT_NAME} || true
+        tar zcf ${ARTIFACT_NAME}.tar.gz ${ARTIFACT_NAME} || true
 
     - name: Upload
       uses: actions/upload-artifact@v4
       with:
-        name: Opentoonz-AppImage-${{ matrix.compiler }}
+        name: Flare-AppImage-${{ matrix.compiler }}
         path: flare/build/*.tar.gz
 
