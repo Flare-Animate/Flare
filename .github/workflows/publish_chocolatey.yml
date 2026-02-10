@@ -1,0 +1,44 @@
+name: Publish Chocolatey Package
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  publish-choco:
+    if: ${{ secrets.CHOCO_API_KEY }}
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          lfs: false
+
+      - name: Download Flare Windows zip from Release
+        shell: pwsh
+        run: |
+          $tag = "${{ github.event.release.tag_name }}"
+          $url = "https://github.com/Flare-Animate/Flare/releases/download/$tag/Flare-Windows-$tag.zip"
+          Write-Host "Downloading $url"
+          Invoke-WebRequest -Uri $url -OutFile Flare-Windows-$tag.zip -UseBasicParsing
+
+      - name: Prepare Chocolatey package
+        shell: pwsh
+        run: |
+          choco install chocolatey -y || true
+          # Set package version
+          (Get-Content packaging\chocolatey\flare.nuspec) -replace '<version>0.0.0</version>', "<version>${{ github.event.release.tag_name }}</version>" | Set-Content packaging\chocolatey\flare.nuspec
+          # Place binary in tools
+          New-Item -ItemType Directory -Path packaging\chocolatey\tools -Force | Out-Null
+          Expand-Archive -Path Flare-Windows-${{ github.event.release.tag_name }}.zip -DestinationPath packaging\chocolatey\tools -Force
+          choco pack packaging\chocolatey -y
+
+      - name: Push to Chocolatey
+        shell: pwsh
+        env:
+          CHOCO_API_KEY: ${{ secrets.CHOCO_API_KEY }}
+        run: |
+          $pkg = Get-ChildItem -Path . -Recurse -Filter "flare.*.nupkg" | Select-Object -First 1
+          if (-not $pkg) { Write-Error 'No nupkg found'; exit 1 }
+          choco push $pkg.FullName --source https://push.chocolatey.org/ --api-key $env:CHOCO_API_KEY
