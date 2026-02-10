@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""Replace 'OpenToonz' -> 'Flare' in .ts translation files (user-visible strings).
-This script only replaces the exact capitalization 'OpenToonz' to avoid touching URLs or other lowercase occurrences.
+"""Replace 'Flare' -> 'Flare' in .ts translation files (user-visible strings).
+This script only replaces the exact capitalization 'Flare' to avoid touching URLs or other lowercase occurrences.
 Run locally to update translation files before committing.
 """
 from __future__ import annotations
@@ -11,7 +11,7 @@ import sys
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 TS_DIR = os.path.join(ROOT, "flare", "sources", "translations")
 
-replacements = [("OpenToonz", "Flare")]
+replacements = [("Flare", "Flare")]
 
 changed_files = []
 for dirpath, dirnames, filenames in os.walk(TS_DIR):

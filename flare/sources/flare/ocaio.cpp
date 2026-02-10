@@ -70,7 +70,7 @@ void OCAData::write(QJsonObject &json) const {
   json["layers"] = m_layers;
 
   // Versions
-  json["originApp"] = "OpenToonz";
+  json["originApp"] = "Flare";
   json["originAppVersion"] =
       QString::fromStdString(TEnv::getApplicationVersion());
   json["ocaVersion"] = "1.1.0";
