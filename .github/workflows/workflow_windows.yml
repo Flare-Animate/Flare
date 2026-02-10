@@ -17,6 +17,7 @@ jobs:
       OPENCV_VERSION: "4.11.0"
       OpenCV_DIR: C:\tools\opencv\build
       CCACHE_DIR: ${{ github.workspace }}\.ccache
+      GIT_LFS_SKIP_SMUDGE: '1'
 
     steps:
       - uses: actions/checkout@v4
@@ -223,4 +224,27 @@ jobs:
           name: Flare-Windows-Portable
           path: FlarePortable/
           if-no-files-found: error
+
+      - name: Post build logs to PR
+        if: ${{ github.event_name == 'pull_request' && always() }}
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const pr = context.payload.pull_request ? context.payload.pull_request.number : undefined;
+            if (!pr) { core.info('Not a pull_request event; skipping PR log posting.'); return; }
+            function readTrunc(path) {
+              try {
+                if (!fs.existsSync(path)) return '(missing)';
+                const content = fs.readFileSync(path, 'utf8');
+                if (content.length > 12000) return content.slice(0, 6000) + '\n\n... (truncated) ...\n\n' + content.slice(-6000);
+                return content;
+              } catch (e) { return `(error reading ${path}): ${e.message}`; }
+            }
+            const cmake = readTrunc('build/cmake_configure.log');
+            const build = readTrunc('build/build.log');
+            const body = `**Automated build logs (truncated)**\n\n--- CMake configure log ---\n${cmake}\n\n--- Build log ---\n${build}`;
+            await github.rest.issues.createComment({ owner, repo, issue_number: pr, body });
 
