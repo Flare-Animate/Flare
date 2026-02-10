@@ -2081,7 +2081,7 @@ void TCellSelection::pasteCells() {
     }
   }
   // Raster Time
-  // See if an image was copied from outside OpenToonz
+  // See if an image was copied from outside Flare
   QImage clipImage = clipboard->image();
   // See if the clipboard contains rasterData
   const RasterImageData *rasterImageData =
@@ -2131,7 +2131,7 @@ void TCellSelection::pasteCells() {
       TRasterImageP ri(img);
 
       if (clipImage.height() > 0) {
-        // This stuff is only if we have a pasted image from outside OpenToonz
+        // This stuff is only if we have a pasted image from outside Flare
         bool cancel = false;
 
         if (sl && sl->getType() == OVL_XSHLEVEL) {
@@ -2198,7 +2198,7 @@ void TCellSelection::pasteCells() {
         qimageData->setData(ras, p, 120.0, 120.0, dim, rects, strokes,
                             originalStrokes, aff);
         rasterImageData = qimageData;
-        // end of pasted from outside OpenToonz stuff
+        // end of pasted from outside Flare stuff
         // rasterImageData holds all the info either way now.
       }
 

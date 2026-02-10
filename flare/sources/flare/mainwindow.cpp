@@ -1160,10 +1160,10 @@ void MainWindow::resetRoomsLayout() {
   }*/
 
   DVGui::info(
-      QObject::tr("The rooms will be reset the next time you run OpenToonz."));
+      QObject::tr("The rooms will be reset the next time you run Flare."));
 
   ret = QMessageBox::question(
-      this, tr("Reset Rooms"), tr("You must restart OpenToonz, close it now?"),
+      this, tr("Reset Rooms"), tr("You must restart Flare, close it now?"),
       QMessageBox::StandardButtons(QMessageBox::Yes | QMessageBox::No));
 
   if (ret == QMessageBox::Yes) close();
@@ -2362,7 +2362,7 @@ void MainWindow::defineActions() {
                           "Alt+`", "toggle_seethroughwin_on");
   createMenuHelpAction(MI_About, QT_TR_NOOP("&About Flare..."), "", "info");
   createMenuWindowsAction(MI_StartupPopup, QT_TR_NOOP("&Startup Popup..."),
-                          "Alt+S", "opentoonz");
+                          "Alt+S", "flare");
   createMenuWindowsAction(MI_OpenGuidedDrawingControls,
                           QT_TR_NOOP("Guided Drawing Controls"), "",
                           "guided_drawing");
@@ -3243,7 +3243,7 @@ void MainWindow::clearCacheFolder() {
 
   message +=
       tr("\nAre you sure?\n\nN.B. Make sure you are not running another "
-         "process of OpenToonz,\nor you may delete necessary files for it.");
+         "process of Flare,\nor you may delete necessary files for it.");
 
   QMessageBox::StandardButton ret = QMessageBox::question(
       this, tr("Clear Cache Folder"), message,

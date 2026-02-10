@@ -54,15 +54,15 @@ TFilePathSet ToonzFolder::getProjectsFolders() {
                     TEnv::getSystemPathMap().at("PROJECTS"));
   }
   if (documents) {
-    fps.push_back(getMyDocumentsPath() + "OpenToonz");
-    if (!TSystem::doesExistFileOrLevel(getMyDocumentsPath() + "OpenToonz")) {
-      TSystem::mkDir(getMyDocumentsPath() + "OpenToonz");
+    fps.push_back(getMyDocumentsPath() + "Flare");
+    if (!TSystem::doesExistFileOrLevel(getMyDocumentsPath() + "Flare")) {
+      TSystem::mkDir(getMyDocumentsPath() + "Flare");
     }
   }
   if (desktop) {
-    fps.push_back(getDesktopPath() + "OpenToonz");
-    if (!TSystem::doesExistFileOrLevel(getDesktopPath() + "OpenToonz")) {
-      TSystem::mkDir(getDesktopPath() + "OpenToonz");
+    fps.push_back(getDesktopPath() + "Flare");
+    if (!TSystem::doesExistFileOrLevel(getDesktopPath() + "Flare")) {
+      TSystem::mkDir(getDesktopPath() + "Flare");
     }
   }
   if (custom) {

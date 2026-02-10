@@ -1170,7 +1170,7 @@ void PreferencesPopup::insertDualUIs(
 
 void PreferencesPopup::insertFootNote(QGridLayout* layout) {
   QLabel* note = new QLabel(
-      tr("* Changes will take effect the next time you run OpenToonz"));
+      tr("* Changes will take effect the next time you run Flare"));
   note->setStyleSheet("font-size: 10px; font: italic;");
   layout->addWidget(note, layout->rowCount(), 0, 1, 3,
                     Qt::AlignLeft | Qt::AlignVCenter);
@@ -1193,7 +1193,7 @@ QString PreferencesPopup::getUIString(PreferencesItemId id) {
       {autosavePeriod, tr("Interval (Minutes):")},
       {autosaveSceneEnabled, tr("Automatically Save the Scene File")},
       {autosaveOtherFilesEnabled, tr("Automatically Save Non-Scene Files")},
-      {startupPopupEnabled, tr("Show Startup Window when OpenToonz Starts")},
+      {startupPopupEnabled, tr("Show Startup Window when Flare Starts")},
       {undoMemorySize, tr("Undo Memory Size (MB):")},
       {taskchunksize, tr("Render Task Chunk Size:")},
       {replaceAfterSaveLevelAs,
@@ -1340,7 +1340,7 @@ QString PreferencesPopup::getUIString(PreferencesItemId id) {
        tr("Use Arrow Key to Shift Cell Selection")},
       {cellInputMethod, tr("Cell Input Method:")},
       {shortcutCommandsWhileRenamingCellEnabled,
-       tr("Enable OpenToonz Commands' Shortcut Keys While Renaming Cell")},
+       tr("Enable Flare Commands' Shortcut Keys While Renaming Cell")},
       {showXSheetToolbar, tr("Show Toolbar in the Xsheet")},
       {showXsheetBreadcrumbs, tr("Show Sub-Xsheet Navigation Bar")},
       {expandFunctionHeader,
@@ -1409,7 +1409,7 @@ QString PreferencesPopup::getUIString(PreferencesItemId id) {
       {automaticSVNFolderRefreshEnabled,
        tr("Automatically Refresh Folder Contents")},
       {latestVersionCheckEnabled,
-       tr("Check for the Latest Version of OpenToonz on Launch")},
+       tr("Check for the Latest Version of Flare on Launch")},
 
       // Touch / Tablet Settings
       // Touch Gesture is a checkable command and not in preferences.ini
@@ -1633,8 +1633,8 @@ PreferencesPopup::PreferencesPopup()
 //-----------------------------------------------------------------------------
 
 QWidget* PreferencesPopup::createGeneralPage() {
-  m_projectRootDocuments = new CheckBox(tr("My Documents/OpenToonz*"), this);
-  m_projectRootDesktop   = new CheckBox(tr("Desktop/OpenToonz*"), this);
+  m_projectRootDocuments = new CheckBox(tr("My Documents/Flare*"), this);
+  m_projectRootDesktop   = new CheckBox(tr("Desktop/Flare*"), this);
   m_projectRootCustom    = new CheckBox(tr("Custom*"), this);
   QWidget* customField   = new QWidget(this);
   QGridLayout* customLay = new QGridLayout();
@@ -1959,8 +1959,8 @@ QWidget* PreferencesPopup::createCodecPage() {
   QGridLayout* lay = new QGridLayout();
   setupLayout(lay);
 
-  putLabel(tr("OpenToonz can use FFmpeg for additional file formats.\n") +
-               tr("FFmpeg is not bundled with OpenToonz.\n") +
+  putLabel(tr("Flare can use FFmpeg for additional file formats.\n") +
+               tr("FFmpeg is not bundled with Flare.\n") +
                tr("Please provide the path where FFmpeg is located on your "
                   "computer."),
            lay);
@@ -2001,8 +2001,8 @@ QWidget* PreferencesPopup::createAutoLipSyncPage() {
   QGridLayout* lay = new QGridLayout();
   setupLayout(lay);
 
-  putLabel(tr("OpenToonz can use Rhubarb for auto lip-syncing.\n") +
-               tr("Rhubarb is not bundled with OpenToonz.\n") +
+  putLabel(tr("Flare can use Rhubarb for auto lip-syncing.\n") +
+               tr("Rhubarb is not bundled with Flare.\n") +
                tr("Please provide the path where Rhubarb is located on your "
                   "computer."),
            lay);

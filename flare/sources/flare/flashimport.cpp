@@ -4,7 +4,7 @@
 #include "flare/projectmanager.h"
 #include "flare/preferences.h"
 #include "flare/tapp.h"
-#include "../toonz/toonzfolders.h" 
+#include "../flare/toonzfolders.h" 
 
 #include "../toonzqt/gutil.h"
 #include "../toonzqt/dvdialog.h"
