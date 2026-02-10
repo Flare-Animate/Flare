@@ -5,7 +5,8 @@ body:
     attributes:
       value: |
         ⚠️ **Before you start:**
-        - Check for [existing issues](https://github.com/opentoonz/opentoonz/issues?q=is%3Aopen+is%3Aissue) to avoid duplicates.
+        - Check for [existing issues](https://github.com/Flare-Animate/Flare/issues?q=is%3Aopen+is%3Aissue) to avoid duplicates.
+        - (Optional) Also check upstream [OpenToonz issues](https://github.com/opentoonz/opentoonz/issues?q=is%3Aopen+is%3Aissue) for related reports.
         - Try the latest [nightly build](https://github.com/opentoonz/opentoonz_nightlies/releases) — many bugs are fixed there.
         - Update your GPU and tablet drivers if you're seeing visual or input issues.
 
