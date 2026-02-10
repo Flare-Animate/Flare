@@ -167,6 +167,15 @@ jobs:
             exit /b %ERRORLEVEL%
           )
 
+      - name: Upload build logs (always)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs-windows-final
+          path: |
+            build\cmake_configure.log
+            build\build.log
+          if-no-files-found: ignore
       # 7. Empaquetado
       - name: Create Package and Final Artifact
         run: |
