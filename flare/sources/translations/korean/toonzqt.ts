@@ -460,14 +460,14 @@ Possibly the preset file has been corrupted</source>
 <context>
     <name>DVGui::ProgressDialog</name>
     <message>
-        <source>OpenToonz</source>
+        <source>Flare</source>
         <translation>오픈툰즈</translation>
     </message>
 </context>
 <context>
     <name>DVGui::RadioButtonDialog</name>
     <message>
-        <source>OpenToonz</source>
+        <source>Flare</source>
         <translation>오픈툰즈</translation>
     </message>
 </context>
@@ -1843,7 +1843,7 @@ and tone may be slightly discretized.</source>
 <context>
     <name>ProgressDialog</name>
     <message>
-        <source>OpenToonz</source>
+        <source>Flare</source>
         <translation>오픈툰즈</translation>
     </message>
 </context>
@@ -2239,7 +2239,7 @@ Are you sure?</source>
         <translation>파일 이름은 비어 있거나 다음 문자중 하나를 포함할 수 없음: (새 줄) ) \ / : * ? : ㅣ</translation>
     </message>
     <message>
-        <source>OpenToonz 1.3</source>
+        <source>Flare 1.3</source>
         <translation>오픈툰즈 1.3</translation>
     </message>
     <message>
@@ -2432,7 +2432,7 @@ The second line should be &quot;Mesh [Input bit depth] [Output bit depth]&quot;<
 <context>
     <name>RadioButtonDialog</name>
     <message>
-        <source>OpenToonz</source>
+        <source>Flare</source>
         <translation>오픈툰즈</translation>
     </message>
 </context>

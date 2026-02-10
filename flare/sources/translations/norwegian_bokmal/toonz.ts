@@ -4216,7 +4216,7 @@ Please use the frame numbers for reference.</source>
     </message>
     <message>
         <location filename="../../toonz/mainwindow.cpp" line="1087"/>
-        <source>About OpenToonz</source>
+        <source>About Flare</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -4241,7 +4241,7 @@ Please use the frame numbers for reference.</source>
     </message>
     <message>
         <location filename="../../toonz/mainwindow.cpp" line="1127"/>
-        <source>To report a bug, click on the button below to open a web browser window for OpenToonz&apos;s Issues page on https://github.com.  Click on the &apos;New issue&apos; button and fill out the form.</source>
+        <source>To report a bug, click on the button below to open a web browser window for Flare&apos;s Issues page on https://github.com.  Click on the &apos;New issue&apos; button and fill out the form.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -5547,12 +5547,12 @@ Please use the frame numbers for reference.</source>
     </message>
     <message>
         <location filename="../../toonz/mainwindow.cpp" line="2314"/>
-        <source>&amp;About OpenToonz...</source>
+        <source>&amp;About Flare...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../../toonz/mainwindow.cpp" line="2315"/>
-        <source>About OpenToonz...</source>
+        <source>About Flare...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -6978,7 +6978,7 @@ Please use the frame numbers for reference.</source>
         <source>
 Are you sure?
 
-N.B. Make sure you are not running another process of OpenToonz,
+N.B. Make sure you are not running another process of Flare,
 or you may delete necessary files for it.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -8523,7 +8523,7 @@ Is it OK to release these shortcuts?</source>
     </message>
     <message>
         <location filename="../../toonz/preferencespopup.cpp" line="910"/>
-        <source>* Changes will take effect the next time you run OpenToonz</source>
+        <source>* Changes will take effect the next time you run Flare</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -8558,7 +8558,7 @@ Is it OK to release these shortcuts?</source>
     </message>
     <message>
         <location filename="../../toonz/preferencespopup.cpp" line="927"/>
-        <source>Show Startup Window when OpenToonz Starts</source>
+        <source>Show Startup Window when Flare Starts</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -8958,7 +8958,7 @@ Is it OK to release these shortcuts?</source>
     </message>
     <message>
         <location filename="../../toonz/preferencespopup.cpp" line="1050"/>
-        <source>Enable OpenToonz Commands&apos; Shortcut Keys While Renaming Cell</source>
+        <source>Enable Flare Commands&apos; Shortcut Keys While Renaming Cell</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -9128,7 +9128,7 @@ Is it OK to release these shortcuts?</source>
     </message>
     <message>
         <location filename="../../toonz/preferencespopup.cpp" line="1100"/>
-        <source>Check for the Latest Version of OpenToonz on Launch</source>
+        <source>Check for the Latest Version of Flare on Launch</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -9480,12 +9480,12 @@ Is it OK to release these shortcuts?</source>
     </message>
     <message>
         <location filename="../../toonz/preferencespopup.cpp" line="1267"/>
-        <source>My Documents/OpenToonz*</source>
+        <source>My Documents/Flare*</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../../toonz/preferencespopup.cpp" line="1268"/>
-        <source>Desktop/OpenToonz*</source>
+        <source>Desktop/Flare*</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -9543,13 +9543,13 @@ in non alpha-enabled image format.</source>
     </message>
     <message>
         <location filename="../../toonz/preferencespopup.cpp" line="1556"/>
-        <source>OpenToonz can use FFmpeg for additional file formats.
+        <source>Flare can use FFmpeg for additional file formats.
 </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../../toonz/preferencespopup.cpp" line="1557"/>
-        <source>FFmpeg is not bundled with OpenToonz.
+        <source>FFmpeg is not bundled with Flare.
 </source>
         <translation type="unfinished"></translation>
     </message>
@@ -11296,7 +11296,7 @@ Some levels have not been loaded because their version is not supported</source>
     </message>
     <message>
         <location filename="../../toonz/iocommand.cpp" line="1965"/>
-        <source>This scene is incompatible with pixels only mode of the current OpenToonz version.
+        <source>This scene is incompatible with pixels only mode of the current Flare version.
 What would you like to do?</source>
         <translation type="unfinished"></translation>
     </message>
@@ -14642,7 +14642,7 @@ Please commit or revert changes first.</source>
     </message>
     <message>
         <location filename="../../toonz/shortcutpopup.cpp" line="578"/>
-        <source>OpenToonz - Setting Shortcuts</source>
+        <source>Flare - Setting Shortcuts</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -15102,7 +15102,7 @@ Assign to &apos;%3&apos;?</source>
     <name>StartupPopup</name>
     <message>
         <location filename="../../toonz/startuppopup.cpp" line="96"/>
-        <source>OpenToonz Startup</source>
+        <source>Flare Startup</source>
         <translation type="unfinished"></translation>
     </message>
     <message>

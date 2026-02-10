@@ -544,22 +544,22 @@ Possibly the preset file has been corrupted</source>
     <name>DVGui::ProgressDialog</name>
     <message>
         <source>Toonz</source>
-        <translation type="vanished">OpenToonz</translation>
+        <translation type="vanished">Flare</translation>
     </message>
     <message>
-        <source>OpenToonz</source>
-        <translation>OpenToonz</translation>
+        <source>Flare</source>
+        <translation>Flare</translation>
     </message>
 </context>
 <context>
     <name>DVGui::RadioButtonDialog</name>
     <message>
         <source>Toonz</source>
-        <translation type="vanished">OpenToonz</translation>
+        <translation type="vanished">Flare</translation>
     </message>
     <message>
-        <source>OpenToonz</source>
-        <translation>OpenToonz</translation>
+        <source>Flare</source>
+        <translation>Flare</translation>
     </message>
 </context>
 <context>
@@ -2018,11 +2018,11 @@ and tone may be slightly discretized.</source>
     <name>ProgressDialog</name>
     <message>
         <source>Toonz</source>
-        <translation type="vanished">OpenToonz</translation>
+        <translation type="vanished">Flare</translation>
     </message>
     <message>
-        <source>OpenToonz</source>
-        <translation type="vanished">OpenToonz</translation>
+        <source>Flare</source>
+        <translation type="vanished">Flare</translation>
     </message>
 </context>
 <context>
@@ -2323,7 +2323,7 @@ and tone may be slightly discretized.</source>
     </message>
     <message>
         <source>Toonz 7.1</source>
-        <translation type="vanished">OpenToonz</translation>
+        <translation type="vanished">Flare</translation>
     </message>
     <message>
         <source>The file name cannot be empty or contain any of the following characters: (new line) \ / : * ? &quot; |</source>
@@ -2490,8 +2490,8 @@ Are you sure?</source>
         <translation>设置</translation>
     </message>
     <message>
-        <source>OpenToonz 1.1</source>
-        <translation type="vanished">OpenToonz 1.1</translation>
+        <source>Flare 1.1</source>
+        <translation type="vanished">Flare 1.1</translation>
     </message>
     <message>
         <source>Remove Reference  in Palette : %1</source>
@@ -2557,8 +2557,8 @@ The second line should be &quot;Mesh [Input bit depth] [Output bit depth]&quot;<
         <translation>加载 3DLUT 文件失败。</translation>
     </message>
     <message>
-        <source>OpenToonz 1.2</source>
-        <translation type="vanished">OpenToonz 1.2</translation>
+        <source>Flare 1.2</source>
+        <translation type="vanished">Flare 1.2</translation>
     </message>
     <message>
         <source>Custom Texture</source>
@@ -2574,8 +2574,8 @@ The second line should be &quot;Mesh [Input bit depth] [Output bit depth]&quot;<
         <translation>文件历史</translation>
     </message>
     <message>
-        <source>OpenToonz 1.3</source>
-        <translation type="vanished">OpenToonz 1.3</translation>
+        <source>Flare 1.3</source>
+        <translation type="vanished">Flare 1.3</translation>
     </message>
     <message>
         <source>Plain color</source>
@@ -2648,8 +2648,8 @@ The second line should be &quot;Mesh [Input bit depth] [Output bit depth]&quot;<
         <translation type="vanished">Toonz</translation>
     </message>
     <message>
-        <source>OpenToonz</source>
-        <translation type="vanished">OpenToonz</translation>
+        <source>Flare</source>
+        <translation type="vanished">Flare</translation>
     </message>
 </context>
 <context>
