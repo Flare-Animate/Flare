@@ -46,7 +46,7 @@ body:
 
   - type: dropdown
     attributes:
-      label: OpenToonz Version
+      label: Flare Version
       description: Found in Help > About.
       multiple: false
       options:
