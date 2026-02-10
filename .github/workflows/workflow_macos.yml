@@ -91,7 +91,9 @@ jobs:
             -DQT_PATH=$(brew --prefix qt@5)/lib \
             -DQt5_DIR=$(brew --prefix qt@5)/lib/cmake/Qt5 \
             -DCMAKE_PREFIX_PATH=$(brew --prefix qt@5)/lib/cmake/Qt5 \
-            -DWITH_TRANSLATION=OFF > build/cmake_configure.log 2>&1
+            -DWITH_TRANSLATION=OFF \
+            -DWITH_SYSTEM_LZO=ON \
+            -DWITH_LZODRIVER=OFF > build/cmake_configure.log 2>&1
           rc=$?
           set -e
           echo "--- Begin CMake configure log ---"
@@ -101,8 +103,13 @@ jobs:
             echo "CMake configure failed with exit code $rc"
             exit $rc
           fi
-          ninja -j $(sysctl -n hw.ncpu) 2>&1 | tee build/build.log
+          if ! (ninja -j $(sysctl -n hw.ncpu) 2>&1 | tee build/build.log); then
+            echo "Build failed; dumping build log..."
+            if [ -f build/build.log ]; then cat build/build.log; fi
+            exit 1
+          fi
       - name: Upload build logs
+        if: always()
         uses: actions/upload-artifact@v6
         with:
           name: build-logs-macos

@@ -76,6 +76,8 @@ jobs:
           -DCMAKE_CXX_COMPILER=${{ matrix.cxx }} \
           -DCMAKE_C_COMPILER=${{ matrix.cc }} \
           -DWITH_TRANSLATION=OFF \
+          -DWITH_SYSTEM_LZO=ON \
+          -DWITH_LZODRIVER=OFF \
           -DCMAKE_BUILD_TYPE=Release > build/cmake_configure.log 2>&1
         rc=$?
         set -e
@@ -85,9 +87,14 @@ jobs:
         if [ $rc -ne 0 ]; then echo "CMake configure failed with exit code $rc"; exit $rc; fi
 
         # Ninja por defecto usa todos los núcleos; aquí lo limitamos a 2
-        ninja -j2 2>&1 | tee build/build.log
+        if ! (ninja -j2 2>&1 | tee build/build.log); then
+          echo "Build failed; dumping build log..."
+          if [ -f build/build.log ]; then cat build/build.log; fi
+          exit 1
+        fi
 
     - name: Upload build logs
+      if: always()
       uses: actions/upload-artifact@v4
       with:
         name: build-logs-${{ matrix.compiler }}
@@ -148,6 +155,7 @@ jobs:
         tar zcf ${ARTIFACT_NAME}.tar.gz ${ARTIFACT_NAME} || true
 
     - name: Upload
+      if: always()
       uses: actions/upload-artifact@v4
       with:
         name: Flare-AppImage-${{ matrix.compiler }}
