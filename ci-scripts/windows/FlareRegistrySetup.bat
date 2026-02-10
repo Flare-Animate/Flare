@@ -1,7 +1,7 @@
 @echo off
 setlocal enabledelayedexpansion
 
-REM This bat file should be placed in the "OpenToonz stuff" folder!
+REM This bat file should be placed in the "Flare stuff" folder!
 
 REM Check if running with admin privileges
 net session >nul 2>&1
@@ -15,12 +15,12 @@ if %ERRORLEVEL% NEQ 0 (
 
 REM Get current directory and build path
 set "CURRENT_PATH=%cd%"
-set "STUFF_PATH=%CURRENT_PATH%\OpenToonz stuff"
+set "STUFF_PATH=%CURRENT_PATH%\Flare stuff"
 
-REM Check if OpenToonz stuff folder exists
+REM Check if Flare stuff folder exists
 if not exist "%STUFF_PATH%" (
     color 0C
-    echo [ERROR] OpenToonz stuff folder not found at:
+    echo [ERROR] Flare stuff folder not found at:
     echo %STUFF_PATH%
     echo Please ensure this script is in the correct location.
     pause
@@ -28,14 +28,14 @@ if not exist "%STUFF_PATH%" (
 )
 
 echo ========================================
-echo         OpenToonz Registry Setup
+echo         Flare Registry Setup
 echo ========================================
 
-REM Check if the registry key exists
-reg query "HKEY_LOCAL_MACHINE\SOFTWARE\OpenToonz\OpenToonz" /v TOONZROOT >nul 2>&1
+REM Check if the registry key exists (we store TOONZROOT value for compatibility)
+reg query "HKEY_LOCAL_MACHINE\SOFTWARE\Flare\Flare" /v TOONZROOT >nul 2>&1
 if %ERRORLEVEL% EQU 0 (
     REM Key exists, check if it's different
-    for /f "tokens=2*" %%A in ('reg query "HKEY_LOCAL_MACHINE\SOFTWARE\OpenToonz\OpenToonz" /v TOONZROOT') do set "EXISTING_PATH=%%B"
+    for /f "tokens=2*" %%A in ('reg query "HKEY_LOCAL_MACHINE\SOFTWARE\Flare\Flare" /v TOONZROOT') do set "EXISTING_PATH=%%B"
     if "!EXISTING_PATH!" == "%STUFF_PATH%" (
         color 0E
         echo [WARNING] Registry key already exists with the same path.
@@ -72,7 +72,7 @@ exit /b
 
 :CreateRegFile
 REM Check if we can write to TEMP
-set "REG_FILE=%TEMP%\OpenToonzSetup.reg"
+set "REG_FILE=%TEMP%\FlareSetup.reg"
 echo. 2>"%REG_FILE%" >nul
 if %ERRORLEVEL% NEQ 0 (
     echo [ERROR] Cannot write to temporary directory: %TEMP%
@@ -80,12 +80,12 @@ if %ERRORLEVEL% NEQ 0 (
 )
 del "%REG_FILE%" >nul 2>&1
 
-REM Create the registry file
+REM Create the registry file (store value named TOONZROOT for compatibility)
 set "STUFF_PATH_ESCAPED=%STUFF_PATH:\=\\%"
 (
     echo Windows Registry Editor Version 5.00
     echo.
-    echo [HKEY_LOCAL_MACHINE\SOFTWARE\OpenToonz\OpenToonz]
+    echo [HKEY_LOCAL_MACHINE\SOFTWARE\Flare\Flare]
     echo "TOONZROOT"="%STUFF_PATH_ESCAPED%"
 ) > "%REG_FILE%" || (
     echo [ERROR] Failed to create registry file
