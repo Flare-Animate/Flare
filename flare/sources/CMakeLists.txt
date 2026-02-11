@@ -288,7 +288,6 @@ find_package(Qt5 REQUIRED
     OpenGL
     Svg
     Xml
-    Script
     Widgets
     PrintSupport
     LinguistTools
@@ -297,6 +296,14 @@ find_package(Qt5 REQUIRED
     SerialPort
     UiTools
 )
+
+# Qt5Script is optional - some Qt distributions don't include it
+find_package(Qt5Script QUIET)
+if(Qt5Script_FOUND)
+  message(STATUS "Qt5Script found: enabling Qt Script support")
+else()
+  message(WARNING "Qt5Script not found; building without Qt Script support")
+endif()
 
 if(NOT Qt5Core_FOUND)
   message(FATAL_ERROR "Qt5Core not found check paths")
