@@ -3,7 +3,7 @@
 #---------------------------------------------------------------------------
 # Project related configuration options
 #---------------------------------------------------------------------------
-PROJECT_NAME           = toonzext
+PROJECT_NAME           = flareext
 PROJECT_NUMBER         = 0.0
 OUTPUT_DIRECTORY       = ../../doc/tnzext
 CREATE_SUBDIRS         = NO
@@ -256,3 +256,4 @@ DOT_CLEANUP            = YES
 # Configuration::additions related to the search engine   
 #---------------------------------------------------------------------------
 SEARCHENGINE           = NO
+

@@ -1,22 +1,22 @@
 
 
-// Toonz includes
+// flare includes
 #include "tpixelutils.h"
 #include "tpalette.h"
 #include "tcolorstyles.h"
 #include "timage_io.h"
 #include "tropcm.h"
 #include "ttile.h"
-#include "toonz/toonzscene.h"
-#include "toonz/tcamera.h"
+#include "flare/flarescene.h"
+#include "flare/tcamera.h"
 #include "autoadjust.h"
 #include "autopos.h"
 #include "cleanuppalette.h"
 #include "cleanupcommon.h"
 #include "tmsgcore.h"
-#include "toonz/cleanupparameters.h"
+#include "flare/cleanupparameters.h"
 
-#include "toonz/tcleanupper.h"
+#include "flare/tcleanupper.h"
 
 using namespace CleanupTypes;
 
@@ -121,7 +121,7 @@ inline double affMV2(const TAffine &aff, double v1, double v2) {
 
 //=========================================================================
 
-//! Auxiliary class for HSV (toonz 4.x style)
+//! Auxiliary class for HSV (flare 4.x style)
 struct HSVColor {
   double m_h;
   double m_s;
@@ -330,23 +330,23 @@ void TCleanupper::setParameters(CleanupParameters *parameters) {
 
 //------------------------------------------------------------------------------------
 
-TPalette *TCleanupper::createToonzPaletteFromCleanupPalette() {
+TPalette *TCleanupper::createflarePaletteFromCleanupPalette() {
   TPalette *cleanupPalette = m_parameters->m_cleanupPalette.getPointer();
-  return createToonzPalette(cleanupPalette, 1);
+  return createflarePalette(cleanupPalette, 1);
 }
 
 //**************************************************************************************
 //    CleanupProcessedImage implementation
 //**************************************************************************************
 
-TToonzImageP CleanupPreprocessedImage::getImg() const {
-  return (TToonzImageP)(TImageCache::instance()->get(m_imgId, true));
+TflareImageP CleanupPreprocessedImage::getImg() const {
+  return (TflareImageP)(TImageCache::instance()->get(m_imgId, true));
 }
 
 //-----------------------------------------------------------------------------------
 
 CleanupPreprocessedImage::CleanupPreprocessedImage(
-    CleanupParameters *parameters, TToonzImageP processed, bool fromGr8)
+    CleanupParameters *parameters, TflareImageP processed, bool fromGr8)
     : m_wasFromGR8(fromGr8)
     , m_autocentered(false)
     , m_size(processed->getSize()) {
@@ -556,7 +556,7 @@ TRasterP TCleanupper::processColors(const TRasterP &rin) {
 
   // outImg->setDpi(outDpi.x, outDpi.y);
   CleanupPreprocessedImage cpi(m_parameters,
-                               TToonzImageP(rcm, rcm->getBounds()), toGr8);
+                               TflareImageP(rcm, rcm->getBounds()), toGr8);
   cpi.m_autocentered = true;
 
   TRaster32P rout = TRaster32P(rin->getSize());
@@ -768,8 +768,8 @@ CleanupPreprocessedImage *TCleanupper::process(
     preprocessColors(finalRas, tmp_ras, m_parameters->m_colors);
   }
 
-  TToonzImageP final;
-  final = TToonzImageP(finalRas, finalRas->getBounds());
+  TflareImageP final;
+  final = TflareImageP(finalRas, finalRas->getBounds());
   final->setDpi(outDpi.x, outDpi.y);
 
   CleanupPreprocessedImage *cpi =
@@ -1155,7 +1155,7 @@ void TCleanupper::finalize(const TRaster32P &outRas,
 
 //-----------------------------------------------------------------------------------------
 
-TToonzImageP TCleanupper::finalize(CleanupPreprocessedImage *src,
+TflareImageP TCleanupper::finalize(CleanupPreprocessedImage *src,
                                    bool isCleanupper) {
   if (src->m_wasFromGR8)
     return doPostProcessingGR8(src);
@@ -1167,7 +1167,7 @@ TToonzImageP TCleanupper::finalize(CleanupPreprocessedImage *src,
 
 void TCleanupper::doPostProcessingGR8(const TRaster32P &outRas,
                                       CleanupPreprocessedImage *srcImg) {
-  TToonzImageP image   = srcImg->getImg();
+  TflareImageP image   = srcImg->getImg();
   TRasterCM32P rasCM32 = image->getRaster();
 
   rasCM32->lock();
@@ -1202,16 +1202,16 @@ void TCleanupper::doPostProcessingGR8(const TRaster32P &outRas,
     transparencyCheck(cmout, outRas);
   else
     // TRop::convert(outRas, cmout, m_parameters->m_cleanupPalette);
-    TRop::convert(outRas, cmout, createToonzPaletteFromCleanupPalette());
+    TRop::convert(outRas, cmout, createflarePaletteFromCleanupPalette());
 
   outRas->unlock();
 }
 
 //-----------------------------------------------------------------------------------------
 
-TToonzImageP TCleanupper::doPostProcessingGR8(
+TflareImageP TCleanupper::doPostProcessingGR8(
     const CleanupPreprocessedImage *img) {
-  TToonzImageP image = img->getImg();
+  TflareImageP image = img->getImg();
 
   TRasterCM32P rasCM32 = image->getRaster();
   TRasterCM32P cmout(rasCM32->clone());
@@ -1242,7 +1242,7 @@ TToonzImageP TCleanupper::doPostProcessingGR8(
   TRop::computeBBox(cmout, bbox);
 
   // Copy the dpi
-  TToonzImageP outImg(cmout, bbox);
+  TflareImageP outImg(cmout, bbox);
   double dpix, dpiy;
   image->getDpi(dpix, dpiy);
   outImg->setDpi(dpix, dpiy);
@@ -1257,7 +1257,7 @@ void TCleanupper::doPostProcessingColor(const TRaster32P &outRas,
   assert(srcImg);
   assert(outRas->getSize() == srcImg->getSize());
 
-  TToonzImageP imgToProcess = srcImg->getImg();
+  TflareImageP imgToProcess = srcImg->getImg();
   TRasterCM32P rasCM32      = imgToProcess->getRaster();
 
   rasCM32->lock();
@@ -1292,21 +1292,21 @@ void TCleanupper::doPostProcessingColor(const TRaster32P &outRas,
     transparencyCheck(cmout, outRas);
   else
     // TRop::convert(outRas, cmout, m_parameters->m_cleanupPalette);
-    TRop::convert(outRas, cmout, createToonzPaletteFromCleanupPalette());
+    TRop::convert(outRas, cmout, createflarePaletteFromCleanupPalette());
 
   outRas->unlock();
 }
 
 //------------------------------------------------------------------------------
 
-TToonzImageP TCleanupper::doPostProcessingColor(
-    const TToonzImageP &imgToProcess, bool isCleanupper) {
+TflareImageP TCleanupper::doPostProcessingColor(
+    const TflareImageP &imgToProcess, bool isCleanupper) {
   //(Build and) Copy imgToProcess to output image
-  TToonzImageP outImage;
+  TflareImageP outImage;
   if (isCleanupper)
     outImage = imgToProcess;
   else
-    outImage = TToonzImageP(imgToProcess->cloneImage());
+    outImage = TflareImageP(imgToProcess->cloneImage());
 
   assert(outImage);
   assert(m_parameters->m_colors.getColorCount() < 9);
@@ -1340,3 +1340,4 @@ TToonzImageP TCleanupper::doPostProcessingColor(
   outRasCM32->unlock();
   return outImage;
 }
+

@@ -3,9 +3,9 @@
 #ifndef SCRIPTBINDING_IMAGE_BUILDER_H
 #define SCRIPTBINDING_IMAGE_BUILDER_H
 
-#include "toonz/scriptbinding.h"
+#include "flare/scriptbinding.h"
 
-class ToonzScene;
+class flareScene;
 class TXshSimpleLevel;
 
 namespace TScriptBinding {
@@ -61,3 +61,4 @@ Q_DECLARE_METATYPE(TScriptBinding::Transform *)
 Q_DECLARE_METATYPE(TScriptBinding::ImageBuilder *)
 
 #endif
+

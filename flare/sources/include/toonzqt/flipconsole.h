@@ -15,15 +15,15 @@
 
 #include "tcommon.h"
 #include "tpixel.h"
-#include "toonzqt/intfield.h"
-#include "toonz/imagepainter.h"
+#include "flareqt/intfield.h"
+#include "flare/imagepainter.h"
 #include "tstopwatch.h"
 #include <QThread>
 #include <QElapsedTimer>
 
 #undef DVAPI
 #undef DVVAR
-#ifdef TOONZQT_EXPORTS
+#ifdef flareQT_EXPORTS
 #define DVAPI DV_EXPORT_API
 #define DVVAR DV_EXPORT_VAR
 #else
@@ -439,3 +439,4 @@ private:
 };
 
 #endif
+

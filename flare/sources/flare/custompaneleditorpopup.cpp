@@ -10,12 +10,12 @@
 #include "commandbarpopup.h"
 
 // TnzQt includes
-#include "toonzqt/gutil.h"
+#include "flareqt/gutil.h"
 
-// ToonzLib
-#include "toonz/toonzfolders.h"
+// flareLib
+#include "flare/flarefolders.h"
 
-// ToonzCore
+// flareCore
 #include "tsystem.h"
 
 // Qt includes
@@ -42,13 +42,13 @@ namespace {
 const TFilePath CustomPanelTemplateFolderName("custom panel templates");
 
 TFilePath customPaneTemplateFolderPath() {
-  return ToonzFolder::getLibraryFolder() + CustomPanelTemplateFolderName;
+  return flareFolder::getLibraryFolder() + CustomPanelTemplateFolderName;
 }
 
 const TFilePath CustomPanelFolderName("custompanels");
 
 TFilePath customPaneFolderPath() {
-  return ToonzFolder::getMyModuleDir() + CustomPanelFolderName;
+  return flareFolder::getMyModuleDir() + CustomPanelFolderName;
 }
 
 QPoint relativePos(QWidget* child, QWidget* refParent) {
@@ -881,3 +881,4 @@ void CustomPanelEditorPopup::onSearchTextChanged(const QString& text) {
 
 OpenPopupCommandHandler<CustomPanelEditorPopup> openCustomPanelEditorPopup(
     MI_CustomPanelEditor);
+

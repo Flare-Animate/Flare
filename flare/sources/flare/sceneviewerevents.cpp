@@ -22,35 +22,35 @@
 #endif
 
 // TnzQt includes
-#include "toonzqt/tselectionhandle.h"
-#include "toonzqt/styleselection.h"
+#include "flareqt/tselectionhandle.h"
+#include "flareqt/styleselection.h"
 
 // TnzTools includes
 #include "tools/cursors.h"
 #include "tools/toolhandle.h"
 #include "tools/cursormanager.h"
 #include "tools/toolcommandids.h"
-#include "toonzqt/viewcommandids.h"
+#include "flareqt/viewcommandids.h"
 
 // TnzLib includes
-#include "toonz/toonzscene.h"
-#include "toonz/tcamera.h"
-#include "toonz/palettecontroller.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/tframehandle.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/tobjecthandle.h"
-#include "toonz/tpalettehandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/tonionskinmaskhandle.h"
-#include "toonz/dpiscale.h"
-#include "toonz/tstageobjecttree.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonzqt/selection.h"
-#include "toonzqt/imageutils.h"
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/gutil.h"
+#include "flare/flarescene.h"
+#include "flare/tcamera.h"
+#include "flare/palettecontroller.h"
+#include "flare/tscenehandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/tframehandle.h"
+#include "flare/tcolumnhandle.h"
+#include "flare/tobjecthandle.h"
+#include "flare/tpalettehandle.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/tonionskinmaskhandle.h"
+#include "flare/dpiscale.h"
+#include "flare/tstageobjecttree.h"
+#include "flare/txshsimplelevel.h"
+#include "flareqt/selection.h"
+#include "flareqt/imageutils.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/gutil.h"
 #include "subcameramanager.h"
 
 // TnzCore includes
@@ -74,40 +74,40 @@ extern QString updateToolEnableStatus(TTool *tool);
 namespace {
 //-----------------------------------------------------------------------------
 
-void initToonzEvent(TMouseEvent &toonzEvent, QMouseEvent *event,
+void initflareEvent(TMouseEvent &flareEvent, QMouseEvent *event,
                     int widgetHeight, double pressure, int devPixRatio) {
-  toonzEvent.m_pos      = TPointD(event->pos().x() * devPixRatio,
+  flareEvent.m_pos      = TPointD(event->pos().x() * devPixRatio,
                                   widgetHeight - 1 - event->pos().y() * devPixRatio);
-  toonzEvent.m_mousePos = event->pos();
-  toonzEvent.m_pressure = 1.0;
+  flareEvent.m_mousePos = event->pos();
+  flareEvent.m_pressure = 1.0;
 
-  toonzEvent.setModifiers(event->modifiers() & Qt::ShiftModifier,
+  flareEvent.setModifiers(event->modifiers() & Qt::ShiftModifier,
                           event->modifiers() & Qt::AltModifier,
                           event->modifiers() & Qt::ControlModifier);
 
-  toonzEvent.m_buttons  = event->buttons();
-  toonzEvent.m_button   = event->button();
-  toonzEvent.m_isTablet = false;
+  flareEvent.m_buttons  = event->buttons();
+  flareEvent.m_button   = event->button();
+  flareEvent.m_isTablet = false;
 }
 
 //-----------------------------------------------------------------------------
 
-void initToonzEvent(TMouseEvent &toonzEvent, QTabletEvent *event,
+void initflareEvent(TMouseEvent &flareEvent, QTabletEvent *event,
                     int widgetHeight, double pressure, int devPixRatio,
                     bool isHighFrequent = false) {
-  toonzEvent.m_pos = TPointD(
+  flareEvent.m_pos = TPointD(
       event->posF().x() * (float)devPixRatio,
       (float)widgetHeight - 1.0f - event->posF().y() * (float)devPixRatio);
-  toonzEvent.m_mousePos = event->posF();
-  toonzEvent.m_pressure = pressure;
+  flareEvent.m_mousePos = event->posF();
+  flareEvent.m_pressure = pressure;
 
-  toonzEvent.setModifiers(event->modifiers() & Qt::ShiftModifier,
+  flareEvent.setModifiers(event->modifiers() & Qt::ShiftModifier,
                           event->modifiers() & Qt::AltModifier,
                           event->modifiers() & Qt::ControlModifier);
-  toonzEvent.m_buttons        = event->buttons();
-  toonzEvent.m_button         = event->button();
-  toonzEvent.m_isTablet       = true;
-  toonzEvent.m_isHighFrequent = isHighFrequent;
+  flareEvent.m_buttons        = event->buttons();
+  flareEvent.m_button         = event->button();
+  flareEvent.m_isTablet       = true;
+  flareEvent.m_isHighFrequent = isHighFrequent;
   // this delays autosave during stylus button press until after the next
   // brush stroke - this minimizes problems from interruptions to tablet input
   TApp::instance()->getCurrentTool()->setToolBusy(true);
@@ -115,17 +115,17 @@ void initToonzEvent(TMouseEvent &toonzEvent, QTabletEvent *event,
 
 //-----------------------------------------------------------------------------
 
-void initToonzEvent(TMouseEvent &toonzEvent, QKeyEvent *event) {
-  toonzEvent.m_pos      = TPointD();
-  toonzEvent.m_mousePos = QPointF();
-  toonzEvent.m_pressure = 0;
+void initflareEvent(TMouseEvent &flareEvent, QKeyEvent *event) {
+  flareEvent.m_pos      = TPointD();
+  flareEvent.m_mousePos = QPointF();
+  flareEvent.m_pressure = 0;
 
-  toonzEvent.setModifiers(event->modifiers() & Qt::ShiftModifier,
+  flareEvent.setModifiers(event->modifiers() & Qt::ShiftModifier,
                           event->modifiers() & Qt::AltModifier,
                           event->modifiers() & Qt::ControlModifier);
-  toonzEvent.m_buttons  = Qt::NoButton;
-  toonzEvent.m_button   = Qt::NoButton;
-  toonzEvent.m_isTablet = false;
+  flareEvent.m_buttons  = Qt::NoButton;
+  flareEvent.m_button   = Qt::NoButton;
+  flareEvent.m_isTablet = false;
 }
 
 //-----------------------------------------------------------------------------
@@ -286,7 +286,7 @@ void SceneViewer::tabletEvent(QTabletEvent *e) {
     // So call onPress here in order to enable processing.
     if (e->button() == Qt::LeftButton) m_tabletState = Touched;
     TMouseEvent mouseEvent;
-    initToonzEvent(mouseEvent, e, height(), m_pressure, getDevPixRatio());
+    initflareEvent(mouseEvent, e, height(), m_pressure, getDevPixRatio());
     onPress(mouseEvent);
 
     // create context menu on right click here
@@ -307,7 +307,7 @@ void SceneViewer::tabletEvent(QTabletEvent *e) {
       // mousePressEvent gets ignored
       if (m_tabletState == Released || m_tabletState == None) {
         TMouseEvent mouseEvent;
-        initToonzEvent(mouseEvent, e, height(), m_pressure, getDevPixRatio());
+        initflareEvent(mouseEvent, e, height(), m_pressure, getDevPixRatio());
         m_tabletState = Touched;
         onPress(mouseEvent);
       } else if (m_tabletState == Touched) {
@@ -333,7 +333,7 @@ void SceneViewer::tabletEvent(QTabletEvent *e) {
       m_tabletState = Released;
 
     TMouseEvent mouseEvent;
-    initToonzEvent(mouseEvent, e, height(), m_pressure, getDevPixRatio());
+    initflareEvent(mouseEvent, e, height(), m_pressure, getDevPixRatio());
     onRelease(mouseEvent);
 
     if (TApp::instance()->getCurrentTool()->isToolBusy())
@@ -342,7 +342,7 @@ void SceneViewer::tabletEvent(QTabletEvent *e) {
     if (m_tabletState == StartStroke || m_tabletState == OnStroke) {
       m_tabletState = Released;
       TMouseEvent mouseEvent;
-      initToonzEvent(mouseEvent, e, height(), m_pressure, getDevPixRatio());
+      initflareEvent(mouseEvent, e, height(), m_pressure, getDevPixRatio());
       onRelease(mouseEvent);
     } else
       m_tabletEvent = false;
@@ -374,7 +374,7 @@ void SceneViewer::tabletEvent(QTabletEvent *e) {
     // 20msec. (See RasterSelectionTool::leftButtonDrag())
     if (curPos != m_lastMousePos) {
       TMouseEvent mouseEvent;
-      initToonzEvent(mouseEvent, e, height(), m_pressure, getDevPixRatio(),
+      initflareEvent(mouseEvent, e, height(), m_pressure, getDevPixRatio(),
                      m_isBusyOnTabletMove);
       if (!m_isBusyOnTabletMove) {
         m_isBusyOnTabletMove = true;
@@ -387,7 +387,7 @@ void SceneViewer::tabletEvent(QTabletEvent *e) {
     if (curPos != m_lastMousePos && !m_isBusyOnTabletMove) {
       m_isBusyOnTabletMove = true;
       TMouseEvent mouseEvent;
-      initToonzEvent(mouseEvent, e, height(), m_pressure, getDevPixRatio());
+      initflareEvent(mouseEvent, e, height(), m_pressure, getDevPixRatio());
       QTimer::singleShot(20, this, SLOT(releaseBusyOnTabletMove()));
 #endif
 
@@ -433,7 +433,7 @@ void SceneViewer::onLeave() {
 
   // force reset the flipping of shift & trace
   if (CommandManager::instance()->getAction(MI_ShiftTrace)->isChecked())
-    TTool::getTool("T_ShiftTrace", TTool::ToonzImage)->onLeave();
+    TTool::getTool("T_ShiftTrace", TTool::flareImage)->onLeave();
 
   update();
 }
@@ -510,7 +510,7 @@ void SceneViewer::mouseMoveEvent(QMouseEvent *event) {
   // setTabletTracking(true).
 
   TMouseEvent mouseEvent;
-  initToonzEvent(mouseEvent, event, height(), 1.0, getDevPixRatio());
+  initflareEvent(mouseEvent, event, height(), 1.0, getDevPixRatio());
   onMove(mouseEvent);
 }
 
@@ -723,7 +723,7 @@ void SceneViewer::mousePressEvent(QMouseEvent *event) {
 
   TMouseEvent mouseEvent;
   m_mouseState = Touched;
-  initToonzEvent(mouseEvent, event, height(), 1.0, getDevPixRatio());
+  initflareEvent(mouseEvent, event, height(), 1.0, getDevPixRatio());
   onPress(mouseEvent);
 }
 
@@ -872,7 +872,7 @@ void SceneViewer::mouseReleaseEvent(QMouseEvent *event) {
 
   TMouseEvent mouseEvent;
   if (m_mouseState != None) m_mouseState = Released;
-  initToonzEvent(mouseEvent, event, height(), 1.0, getDevPixRatio());
+  initflareEvent(mouseEvent, event, height(), 1.0, getDevPixRatio());
   onRelease(mouseEvent);
 }
 //-----------------------------------------------------------------------------
@@ -1284,7 +1284,7 @@ bool SceneViewer::event(QEvent *e) {
     else if (CommandManager::instance()
                  ->getAction(MI_ShiftTrace)
                  ->isChecked() &&
-             TTool::getTool("T_ShiftTrace", TTool::ToonzImage)
+             TTool::getTool("T_ShiftTrace", TTool::flareImage)
                  ->isEventAcceptable(e)) {
       e->accept();
     }
@@ -1532,9 +1532,9 @@ void SceneViewer::keyPressEvent(QKeyEvent *event) {
     // Handle modifier keys that require immediate cursor updates
     if (key == Qt::Key_Shift || key == Qt::Key_Control || key == Qt::Key_Alt ||
         key == Qt::Key_AltGr) {
-      TMouseEvent toonzEvent;
-      initToonzEvent(toonzEvent, event);
-      toonzEvent.m_pos = TPointD(m_lastMousePos.x(),
+      TMouseEvent flareEvent;
+      initflareEvent(flareEvent, event);
+      flareEvent.m_pos = TPointD(m_lastMousePos.x(),
                                  (double)(height() - 1) - m_lastMousePos.y());
 
       TPointD pos = tool->getMatrix().inv() * winToWorld(m_lastMousePos);
@@ -1545,7 +1545,7 @@ void SceneViewer::keyPressEvent(QKeyEvent *event) {
         pos.y /= m_dpiScale.y;
       }
 
-      tool->mouseMove(pos, toonzEvent);
+      tool->mouseMove(pos, flareEvent);
       setToolCursor(this, tool->getCursorId());
     }
 
@@ -1621,9 +1621,9 @@ void SceneViewer::keyReleaseEvent(QKeyEvent *event) {
   // update their cursor immediately without waiting for the next mouse move
   if (key == Qt::Key_Shift || key == Qt::Key_Control || key == Qt::Key_Alt ||
       key == Qt::Key_AltGr) {
-    TMouseEvent toonzEvent;
-    initToonzEvent(toonzEvent, event);
-    toonzEvent.m_pos = TPointD(m_lastMousePos.x(),
+    TMouseEvent flareEvent;
+    initflareEvent(flareEvent, event);
+    flareEvent.m_pos = TPointD(m_lastMousePos.x(),
                                (double)(height() - 1) - m_lastMousePos.y());
 
     TPointD pos = tool->getMatrix().inv() * winToWorld(m_lastMousePos);
@@ -1634,7 +1634,7 @@ void SceneViewer::keyReleaseEvent(QKeyEvent *event) {
       pos.y /= m_dpiScale.y;
     }
 
-    tool->mouseMove(pos, toonzEvent);
+    tool->mouseMove(pos, flareEvent);
     setToolCursor(this, tool->getCursorId());
   }
 
@@ -1670,8 +1670,8 @@ void SceneViewer::mouseDoubleClickEvent(QMouseEvent *event) {
 
   TTool *tool = TApp::instance()->getCurrentTool()->getTool();
   if (!tool || !tool->isEnabled()) return;
-  TMouseEvent toonzEvent;
-  initToonzEvent(toonzEvent, event, height(), 1.0, getDevPixRatio());
+  TMouseEvent flareEvent;
+  initflareEvent(flareEvent, event, height(), 1.0, getDevPixRatio());
   TPointD pos =
       tool->getMatrix().inv() * winToWorld(event->pos() * getDevPixRatio());
   TObjectHandle *objHandle = TApp::instance()->getCurrentObject();
@@ -1681,7 +1681,7 @@ void SceneViewer::mouseDoubleClickEvent(QMouseEvent *event) {
   }
 
   if (event->button() == Qt::LeftButton)
-    tool->leftButtonDoubleClick(pos, toonzEvent);
+    tool->leftButtonDoubleClick(pos, flareEvent);
 }
 
 //-----------------------------------------------------------------------------
@@ -1816,3 +1816,4 @@ void SceneViewer::onToolSwitched() {
   onLevelChanged();
   update();
 }
+

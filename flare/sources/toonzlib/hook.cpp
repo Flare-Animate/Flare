@@ -1,12 +1,12 @@
 
 
-#include "toonz/hook.h"
+#include "flare/hook.h"
 #include "tstream.h"
 #include "tfilepath.h"
 
 #include "tconvert.h"
-#include "toonz/txsheet.h"
-#include "toonz/txshcell.h"
+#include "flare/txsheet.h"
+#include "flare/txshcell.h"
 
 //---------------------------------------------------------
 
@@ -463,3 +463,4 @@ std::string getHookName(int code) {
   else
     return "H" + std::to_string(code);
 }
+

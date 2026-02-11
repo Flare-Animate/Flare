@@ -11,37 +11,37 @@
 #include "tparamset.h"
 
 // TnzLib includes
-#include "toonz/tframehandle.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/tobjecthandle.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/txshcell.h"
-#include "toonz/txsheet.h"
-#include "toonz/toonzscene.h"
-#include "toonz/childstack.h"
-#include "toonz/txshleveltypes.h"
-#include "toonz/txshchildlevel.h"
-#include "toonz/tstageobject.h"
-#include "toonz/tcolumnfx.h"
-#include "toonz/fxcommand.h"
-#include "toonz/tcolumnfxset.h"
-#include "toonz/fxdag.h"
-#include "toonz/tstageobjecttree.h"
-#include "toonz/tstageobjectspline.h"
-#include "toonz/tcamera.h"
-#include "toonz/expressionreferencemonitor.h"
+#include "flare/tframehandle.h"
+#include "flare/tcolumnhandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/tobjecthandle.h"
+#include "flare/tscenehandle.h"
+#include "flare/txshcell.h"
+#include "flare/txsheet.h"
+#include "flare/flarescene.h"
+#include "flare/childstack.h"
+#include "flare/txshleveltypes.h"
+#include "flare/txshchildlevel.h"
+#include "flare/tstageobject.h"
+#include "flare/tcolumnfx.h"
+#include "flare/fxcommand.h"
+#include "flare/tcolumnfxset.h"
+#include "flare/fxdag.h"
+#include "flare/tstageobjecttree.h"
+#include "flare/tstageobjectspline.h"
+#include "flare/tcamera.h"
+#include "flare/expressionreferencemonitor.h"
 
 // TnzQt includes
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/icongenerator.h"
-#include "toonzqt/tselectionhandle.h"
-#include "toonzqt/selection.h"
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/stageobjectsdata.h"
+#include "flareqt/menubarcommand.h"
+#include "flareqt/icongenerator.h"
+#include "flareqt/tselectionhandle.h"
+#include "flareqt/selection.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/stageobjectsdata.h"
 #include "historytypes.h"
 
-// Toonz includes
+// flare includes
 #include "columncommand.h"
 #include "menubarcommandids.h"
 #include "celldata.h"
@@ -284,7 +284,7 @@ void getFxConnections(QMap<TFx *, FxConnections> &fxConnetcions,
 //-----------------------------------------------------------------------------
 
 void changeSaveSubXsheetAsCommand() {
-  ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
+  flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
   bool isSubxsheet  = scene->getChildStack()->getAncestorCount() > 0;
   CommandManager::instance()->enable(MI_SaveSubxsheetAs, isSubxsheet);
 }
@@ -1005,7 +1005,7 @@ public:
 
   void undo() const override {
     TApp *app         = TApp::instance();
-    ToonzScene *scene = app->getCurrentScene()->getScene();
+    flareScene *scene = app->getCurrentScene()->getScene();
     int row, col;
     scene->getChildStack()->closeChild(row, col);
     app->getCurrentXsheet()->setXsheet(scene->getXsheet());
@@ -1014,7 +1014,7 @@ public:
 
   void redo() const override {
     TApp *app         = TApp::instance();
-    ToonzScene *scene = app->getCurrentScene()->getScene();
+    flareScene *scene = app->getCurrentScene()->getScene();
     scene->getChildStack()->openChild(m_row, m_col);
     app->getCurrentXsheet()->setXsheet(scene->getXsheet());
     changeSaveSubXsheetAsCommand();
@@ -1036,7 +1036,7 @@ public:
 
   void undo() const override {
     TApp *app         = TApp::instance();
-    ToonzScene *scene = app->getCurrentScene()->getScene();
+    flareScene *scene = app->getCurrentScene()->getScene();
     for (int i = m_cells.size() - 1; i >= 0; i--) {
       std::pair<int, int> rowCol = m_cells[i];
       scene->getChildStack()->openChild(rowCol.first, rowCol.second);
@@ -1047,7 +1047,7 @@ public:
 
   void redo() const override {
     TApp *app         = TApp::instance();
-    ToonzScene *scene = app->getCurrentScene()->getScene();
+    flareScene *scene = app->getCurrentScene()->getScene();
     for (int i = 0; i < (int)m_cells.size(); i++) {
       int row, col;
       scene->getChildStack()->closeChild(row, col);
@@ -1073,7 +1073,7 @@ void openSubXsheet() {
       dynamic_cast<TColumnSelection *>(TSelection::getCurrent());
 
   bool ret               = false;
-  ToonzScene *scene      = app->getCurrentScene()->getScene();
+  flareScene *scene      = app->getCurrentScene()->getScene();
   int row                = app->getCurrentFrame()->getFrame();
   int col                = app->getCurrentColumn()->getColumnIndex();
   TXsheet *currentXsheet = app->getCurrentXsheet()->getXsheet();
@@ -1161,7 +1161,7 @@ void closeSubXsheet(int dlevel) {
   TSelection *selection =
       TApp::instance()->getCurrentSelection()->getSelection();
   if (selection) selection->selectNone();
-  ToonzScene *scene = app->getCurrentScene()->getScene();
+  flareScene *scene = app->getCurrentScene()->getScene();
   int ancestorCount = scene->getChildStack()->getAncestorCount();
   if (ancestorCount == 0) return;
   if (dlevel > ancestorCount) dlevel = ancestorCount;
@@ -1302,7 +1302,7 @@ void collapseColumns(std::set<int> indices, bool columnsOnly) {
 
   // ExpressionReferenceMonitor *monitor = xsh->getExpRefMonitor()->clone();
 
-  ToonzScene *scene = app->getCurrentScene()->getScene();
+  flareScene *scene = app->getCurrentScene()->getScene();
   TXshLevel *xl     = scene->createNewLevel(CHILD_XSHLEVEL);
   assert(xl);
 
@@ -1414,7 +1414,7 @@ void collapseColumns(std::set<int> indices,
 
   // ExpressionReferenceMonitor *monitor = xsh->getExpRefMonitor()->clone();
 
-  ToonzScene *scene = app->getCurrentScene()->getScene();
+  flareScene *scene = app->getCurrentScene()->getScene();
   TXshLevel *xl     = scene->createNewLevel(CHILD_XSHLEVEL);
   assert(xl);
 
@@ -1479,7 +1479,7 @@ void collapseColumns(std::set<int> indices, const std::set<TFx *> &fxs,
 
   // ExpressionReferenceMonitor *monitor = xsh->getExpRefMonitor()->clone();
 
-  ToonzScene *scene = app->getCurrentScene()->getScene();
+  flareScene *scene = app->getCurrentScene()->getScene();
   TXshLevel *xl     = scene->createNewLevel(CHILD_XSHLEVEL);
   assert(xl);
   TXshChildLevel *childLevel = xl->getChildLevel();
@@ -2643,3 +2643,4 @@ void SubsceneCmd::explode(int index) {
 
   app->getCurrentXsheet()->notifyXsheetChanged();
 }
+

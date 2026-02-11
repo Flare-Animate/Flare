@@ -1,11 +1,11 @@
 
 
-#include "toonzqt/fxsettings.h"
-#include "toonzqt/gutil.h"
-#include "toonzqt/keyframenavigator.h"
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/fxhistogramrender.h"
-#include "toonzqt/histogram.h"
+#include "flareqt/fxsettings.h"
+#include "flareqt/gutil.h"
+#include "flareqt/keyframenavigator.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/fxhistogramrender.h"
+#include "flareqt/histogram.h"
 
 #include "tmacrofx.h"
 #include "tstream.h"
@@ -18,16 +18,16 @@
 #include "tsystem.h"
 #include "docklayout.h"
 
-#include "toonz/tcamera.h"
-#include "toonz/toonzfolders.h"
-#include "toonz/tcolumnfx.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/tobjecthandle.h"
-#include "toonz/scenefx.h"
-#include "toonz/toonzscene.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/preferences.h"
+#include "flare/tcamera.h"
+#include "flare/flarefolders.h"
+#include "flare/tcolumnfx.h"
+#include "flare/tscenehandle.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/tobjecthandle.h"
+#include "flare/scenefx.h"
+#include "flare/flarescene.h"
+#include "flare/sceneproperties.h"
+#include "flare/preferences.h"
 #include "tw/stringtable.h"
 
 #include <QVBoxLayout>
@@ -509,7 +509,7 @@ void ParamsPage::addWidget(QWidget *field, bool isVertical) {
   }
 }
 
-#define TOONZ_DEFINE_NEW_COMPONENT(NAME, MAKE)                                 \
+#define flare_DEFINE_NEW_COMPONENT(NAME, MAKE)                                 \
   QWidget *ParamsPage::NAME(TFx *fx, const char *name) {                       \
     TParamP param = fx->getParams()->getParam(name);                           \
     if (!param) return NULL;                                                   \
@@ -527,15 +527,15 @@ void ParamsPage::addWidget(QWidget *field, bool isVertical) {
     return field;                                                              \
   }
 
-TOONZ_DEFINE_NEW_COMPONENT(newParamField, ParamField::create);
-TOONZ_DEFINE_NEW_COMPONENT(newLineEdit, make_lineedit);
-TOONZ_DEFINE_NEW_COMPONENT(newSlider, make_slider);
-TOONZ_DEFINE_NEW_COMPONENT(newSpinBox, make_spinbox);
-TOONZ_DEFINE_NEW_COMPONENT(newCheckBox, make_checkbox);
-TOONZ_DEFINE_NEW_COMPONENT(newRadioButton, make_radiobutton);
-TOONZ_DEFINE_NEW_COMPONENT(newComboBox, make_combobox);
+flare_DEFINE_NEW_COMPONENT(newParamField, ParamField::create);
+flare_DEFINE_NEW_COMPONENT(newLineEdit, make_lineedit);
+flare_DEFINE_NEW_COMPONENT(newSlider, make_slider);
+flare_DEFINE_NEW_COMPONENT(newSpinBox, make_spinbox);
+flare_DEFINE_NEW_COMPONENT(newCheckBox, make_checkbox);
+flare_DEFINE_NEW_COMPONENT(newRadioButton, make_radiobutton);
+flare_DEFINE_NEW_COMPONENT(newComboBox, make_combobox);
 
-#undef TOONZ_DEFINE_NEW_COMPONENT
+#undef flare_DEFINE_NEW_COMPONENT
 
 //-----------------------------------------------------------------------------
 
@@ -808,7 +808,7 @@ void ParamsPageSet::updatePage(int frame, bool onlyParam) {
 
 //-----------------------------------------------------------------------------
 
-void ParamsPageSet::setScene(ToonzScene *scene) {
+void ParamsPageSet::setScene(flareScene *scene) {
   if (!m_pagesList) return;
   int i;
   for (i = 0; i < m_pagesList->count(); i++) {
@@ -873,7 +873,7 @@ void ParamsPageSet::createControls(const TFxP &fx, int index) {
     return;
   }
 
-  TFilePath fp = ToonzFolder::getProfileFolder() + "layouts" + "fxs" +
+  TFilePath fp = flareFolder::getProfileFolder() + "layouts" + "fxs" +
                  (fx->getFxType() + ".xml");
 
   TIStream is(fp);
@@ -1107,7 +1107,7 @@ ParamViewer::~ParamViewer() {}
 //-----------------------------------------------------------------------------
 
 void ParamViewer::setFx(const TFxP &currentFx, const TFxP &actualFx, int frame,
-                        ToonzScene *scene) {
+                        flareScene *scene) {
   if (!actualFx) {
     m_tablePageSet->setCurrentIndex(0);
     return;
@@ -1151,7 +1151,7 @@ void ParamViewer::setFx(const TFxP &currentFx, const TFxP &actualFx, int frame,
 
 //-----------------------------------------------------------------------------
 
-void ParamViewer::setScene(ToonzScene *scene) {
+void ParamViewer::setScene(flareScene *scene) {
   ParamsPageSet *paramsPageSet = getCurrentPageSet();
   if (!paramsPageSet) return;
   paramsPageSet->setScene(scene);
@@ -1406,7 +1406,7 @@ void FxSettings::setFx(const TFxP &currentFx, const TFxP &actualFx) {
     TFxUtil::setKeyframe(currentFxWithoutCamera, m_frameHandle->getFrameIndex(),
                          actualFx, m_frameHandle->getFrameIndex());
 
-  ToonzScene *scene = 0;
+  flareScene *scene = 0;
   if (m_sceneHandle) scene = m_sceneHandle->getScene();
 
   // check if the current render settings are float
@@ -1484,7 +1484,7 @@ void FxSettings::setCurrentFx() {
   else
     hasEmptyInput = hasEmptyInputPort(fx);
   int frame         = m_frameHandle->getFrame();
-  ToonzScene *scene = m_sceneHandle->getScene();
+  flareScene *scene = m_sceneHandle->getScene();
   actualFx          = fx;
   bool isEnabled    = actualFx->getAttributes()->isEnabled();
   actualFx->getAttributes()->enable(true);
@@ -1515,7 +1515,7 @@ void FxSettings::setCurrentFx() {
 //-----------------------------------------------------------------------------
 
 void FxSettings::setCurrentScene() {
-  ToonzScene *scene = m_sceneHandle->getScene();
+  flareScene *scene = m_sceneHandle->getScene();
   m_paramViewer->setScene(scene);
 }
 
@@ -1713,3 +1713,4 @@ void FxSettings::onShowSwatchButtonToggled(bool on) {
 }
 
 //-----------------------------------------------------------------------------
+

@@ -15,7 +15,7 @@
 #include "layerfooterpanel.h"
 #include "cellkeyframeselection.h"
 #include "saveloadqsettings.h"
-#include "toonzqt/spreadsheetviewer.h"
+#include "flareqt/spreadsheetviewer.h"
 #include "orientation.h"
 #include "xshbreadcrumbs.h"
 #include <boost/optional.hpp>
@@ -1452,3 +1452,4 @@ public slots:
 };
 
 #endif  // XSHEETVIEWER_H
+

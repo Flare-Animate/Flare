@@ -2,15 +2,15 @@
 
 #include "keyframedata.h"
 #include "tapp.h"
-#include "toonzqt/tselectionhandle.h"
+#include "flareqt/tselectionhandle.h"
 #include "keyframeselection.h"
 #include "xsheetviewer.h"
 
-#include "toonz/txsheet.h"
-#include "toonz/tstageobjecttree.h"
-#include "toonz/tstageobjectkeyframe.h"
-#include "toonz/txshcolumn.h"
-#include "toonz/preferences.h"
+#include "flare/txsheet.h"
+#include "flare/tstageobjecttree.h"
+#include "flare/tstageobjectkeyframe.h"
+#include "flare/txshcolumn.h"
+#include "flare/preferences.h"
 
 #include <assert.h>
 
@@ -219,3 +219,4 @@ void TKeyframeData::getKeyframes(std::set<Position> &positions) const {
 void TKeyframeData::setKeyframesOffset(int row, int col) {
   m_offset = std::make_pair(row, col);
 }
+

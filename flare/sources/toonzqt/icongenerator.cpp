@@ -19,30 +19,30 @@
 #include "tpalette.h"
 #include "trasterimage.h"
 #include "tvectorimage.h"
-#include "ttoonzimage.h"
+#include "tflareimage.h"
 #include "tmeshimage.h"
 
 // TnzExt includes
 #include "ext/meshutils.h"
 
 // TnzLib includes
-#include "toonz/toonzscene.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/txsheet.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/txshlevel.h"
-#include "toonz/txshleveltypes.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/txshchildlevel.h"
-#include "toonz/tstageobjectspline.h"
-#include "toonz/preferences.h"
-#include "toonz/sceneresources.h"
-#include "toonz/stage2.h"
+#include "flare/flarescene.h"
+#include "flare/sceneproperties.h"
+#include "flare/txsheet.h"
+#include "flare/tscenehandle.h"
+#include "flare/txshlevel.h"
+#include "flare/txshleveltypes.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/txshchildlevel.h"
+#include "flare/tstageobjectspline.h"
+#include "flare/preferences.h"
+#include "flare/sceneresources.h"
+#include "flare/stage2.h"
 
 // TnzQt includes
-#include "toonzqt/gutil.h"
+#include "flareqt/gutil.h"
 
-#include "toonzqt/icongenerator.h"
+#include "flareqt/icongenerator.h"
 
 //=============================================================================
 
@@ -71,7 +71,7 @@ bool getIcon(const std::string &iconName, QPixmap &pix,
 
   if (it != iconsMap.end()) {
     TImageP im         = TImageCache::instance()->get(iconName, false);
-    TToonzImage *timgp = dynamic_cast<TToonzImage *>(im.getPointer());
+    TflareImage *timgp = dynamic_cast<TflareImage *>(im.getPointer());
 
     if (simpleLevel && timgp) {
       IconGenerator::Settings settings =
@@ -133,13 +133,13 @@ void setIcon(const std::string &iconName, const TRaster32P &icon) {
 }
 
 //-----------------------------------------------------------------------------
-/*! Cache icon data in TToonzImage format if ToonzImageIconRenderer generates
+/*! Cache icon data in TflareImage format if flareImageIconRenderer generates
  * them
  */
 void setIcon_TnzImg(const std::string &iconName, const TRasterCM32P &icon) {
   if (iconsMap.find(iconName) != iconsMap.end())
     TImageCache::instance()->add(
-        iconName, TToonzImageP(icon, TRect(icon->getSize())), true);
+        iconName, TflareImageP(icon, TRect(icon->getSize())), true);
 }
 
 //-----------------------------------------------------------------------------
@@ -266,7 +266,7 @@ TRaster32P convertToIcon(TVectorImageP vimage, int frame,
 
 //-------------------------------------------------------------------------
 
-TRaster32P convertToIcon(TToonzImageP timage, int frame,
+TRaster32P convertToIcon(TflareImageP timage, int frame,
                          const TDimension &iconSize,
                          const IconGenerator::Settings &settings) {
   if (!timage) return TRaster32P();
@@ -419,7 +419,7 @@ TRaster32P convertToIcon(TImageP image, int frame, const TDimension &iconSize,
   TRasterImageP ri(image);
   if (ri) return convertToIcon(ri, iconSize);
 
-  TToonzImageP ti(image);
+  TflareImageP ti(image);
   if (ti) return convertToIcon(ti, frame, iconSize, settings);
 
   TVectorImageP vi(image);
@@ -687,10 +687,10 @@ void RasterImageIconRenderer::run() {
 //=============================================================================
 
 //======================================
-//    ToonzImageIconRenderer class
+//    flareImageIconRenderer class
 //--------------------------------------
 
-class ToonzImageIconRenderer final : public IconRenderer {
+class flareImageIconRenderer final : public IconRenderer {
   TXshSimpleLevelP m_sl;
   TFrameId m_fid;
   IconGenerator::Settings m_settings;
@@ -698,7 +698,7 @@ class ToonzImageIconRenderer final : public IconRenderer {
   TRasterCM32P m_tnzImgIcon;
 
 public:
-  ToonzImageIconRenderer(const std::string &id, const TDimension &iconSize,
+  flareImageIconRenderer(const std::string &id, const TDimension &iconSize,
                          TXshSimpleLevelP sl, const TFrameId &fid,
                          const IconGenerator::Settings &settings)
       : IconRenderer(id, iconSize)
@@ -715,7 +715,7 @@ public:
 
 //-----------------------------------------------------------------------------
 
-void ToonzImageIconRenderer::run() {
+void flareImageIconRenderer::run() {
   if (!m_sl->isFid(m_fid)) return;
 
   TImageP image = m_sl->getFrameIcon(m_fid);
@@ -729,7 +729,7 @@ void ToonzImageIconRenderer::run() {
     return;
   }
 
-  TToonzImageP timage = (TToonzImageP)image;
+  TflareImageP timage = (TflareImageP)image;
 
   TDimension iconSize(getIconSize());
   if (!timage) {
@@ -759,7 +759,7 @@ void ToonzImageIconRenderer::run() {
                            0);  // 0 uses the level properties' subsampling
     if (!image) return;
 
-    timage = (TToonzImageP)image;
+    timage = (TflareImageP)image;
     if (!timage) {
       TRaster32P p(iconSize.lx, iconSize.ly);
       p->fill(TPixelRGBM32::Yellow);
@@ -897,7 +897,7 @@ public:
 
 TRaster32P XsheetIconRenderer::generateRaster(
     const TDimension &iconSize) const {
-  ToonzScene *scene = m_xsheet->getScene();
+  flareScene *scene = m_xsheet->getScene();
 
   TRaster32P ras(iconSize);
 
@@ -1052,7 +1052,7 @@ TRaster32P IconGenerator::generateRasterFileIcon(const TFilePath &path,
         ras32 = raux;
       }
     }
-  } else if (TToonzImageP ti = img) {
+  } else if (TflareImageP ti = img) {
     TRasterCM32P auxRaster = ti->getRaster();
     TRaster32P dstRaster(auxRaster->getSize());
 
@@ -1159,7 +1159,7 @@ TRaster32P IconGenerator::generateSceneFileIcon(const TFilePath &path,
     return generateRasterFileIcon(iconPath, iconSize, TFrameId::NO_FRAME);
   } else {
     // obsolete
-    ToonzScene scene;
+    flareScene scene;
     scene.load(path);
     XsheetIconRenderer ir("", iconSize, scene.getXsheet(), row);
     return ir.generateRaster(iconSize);
@@ -1274,11 +1274,11 @@ void FileIconRenderer::run() {
 //--------------------------------
 
 class SceneIconRenderer final : public IconRenderer {
-  ToonzScene *m_toonzScene;
+  flareScene *m_flareScene;
 
 public:
-  SceneIconRenderer(const TDimension &iconSize, ToonzScene *scene)
-      : IconRenderer(getId(), iconSize), m_toonzScene(scene) {}
+  SceneIconRenderer(const TDimension &iconSize, flareScene *scene)
+      : IconRenderer(getId(), iconSize), m_flareScene(scene) {}
 
   static std::string getId() { return "currentScene"; }
 
@@ -1291,11 +1291,11 @@ public:
 TRaster32P SceneIconRenderer::generateIcon(const TDimension &iconSize) const {
   TRaster32P ras(iconSize);
 
-  TPixel32 bgColor = m_toonzScene->getProperties()->getBgColor();
+  TPixel32 bgColor = m_flareScene->getProperties()->getBgColor();
   bgColor.m        = 255;
   ras->fill(bgColor);
 
-  m_toonzScene->renderFrame(ras, 0, 0, false);
+  m_flareScene->renderFrame(ras, 0, 0, false);
 
   return ras;
 }
@@ -1426,7 +1426,7 @@ QPixmap IconGenerator::getIcon(TXshLevel *xl, const TFrameId &fid,
         addTask(id, new RasterImageIconRenderer(id, iconSize, sl, fid));
       else
         addTask(id,
-                new ToonzImageIconRenderer(id, iconSize, sl, fid, m_settings));
+                new flareImageIconRenderer(id, iconSize, sl, fid, m_settings));
       break;
     case MESH_XSHLEVEL:
       addTask(id, new MeshImageIconRenderer(id, iconSize, sl, fid, m_settings));
@@ -1514,7 +1514,7 @@ QPixmap IconGenerator::getSizedIcon(TXshLevel *xl, const TFrameId &fid,
         addTask(id, new RasterImageIconRenderer(id, iconSize, sl, fid));
       else
         addTask(id,
-                new ToonzImageIconRenderer(id, iconSize, sl, fid, m_settings));
+                new flareImageIconRenderer(id, iconSize, sl, fid, m_settings));
       break;
     case MESH_XSHLEVEL:
       addTask(id, new MeshImageIconRenderer(id, iconSize, sl, fid, m_settings));
@@ -1555,7 +1555,7 @@ void IconGenerator::invalidate(TXshLevel *xl, const TFrameId &fid,
       if (sl->getFrameStatus(fid) == TXshSimpleLevel::Scanned)
         addTask(id, new RasterImageIconRenderer(id, getIconSize(), sl, fid));
       else
-        addTask(id, new ToonzImageIconRenderer(id, getIconSize(), sl, fid,
+        addTask(id, new flareImageIconRenderer(id, getIconSize(), sl, fid,
                                                m_settings));
       break;
     case MESH_XSHLEVEL:
@@ -1593,7 +1593,7 @@ void IconGenerator::invalidate(TXshLevel *xl, const TFrameId &fid,
         addTask(id,
                 new RasterImageIconRenderer(id, TDimension(80, 60), sl, fid));
       else
-        addTask(id, new ToonzImageIconRenderer(id, TDimension(80, 60), sl, fid,
+        addTask(id, new flareImageIconRenderer(id, TDimension(80, 60), sl, fid,
                                                m_settings));
       break;
     case MESH_XSHLEVEL:
@@ -1698,7 +1698,7 @@ void IconGenerator::remove(const TFilePath &path, const TFrameId &fid) {
 
 //-----------------------------------------------------------------------------
 
-QPixmap IconGenerator::getSceneIcon(ToonzScene *scene) {
+QPixmap IconGenerator::getSceneIcon(flareScene *scene) {
   std::string id(SceneIconRenderer::getId());
 
   QPixmap pix;
@@ -1774,8 +1774,8 @@ void IconGenerator::onCanceled(TThread::RunnableP iconRenderer) {
 void IconGenerator::onFinished(TThread::RunnableP iconRenderer) {
   IconRenderer *ir = static_cast<IconRenderer *>(iconRenderer.getPointer());
 
-  // if the icon was generated in TToonzImage format, cache it instead
-  ToonzImageIconRenderer *tir = dynamic_cast<ToonzImageIconRenderer *>(ir);
+  // if the icon was generated in TflareImage format, cache it instead
+  flareImageIconRenderer *tir = dynamic_cast<flareImageIconRenderer *>(ir);
   if (tir) {
     TRasterCM32P timgp = tir->getIcon_TnzImg();
     if (timgp) {
@@ -1811,3 +1811,4 @@ void IconGenerator::onTerminated(TThread::RunnableP iconRenderer) {
   ir->wasTerminated() = true;
   m_iconsTerminationLoop.exec();
 }
+

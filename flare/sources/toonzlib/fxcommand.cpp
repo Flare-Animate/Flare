@@ -1,21 +1,21 @@
 
 
-#include "toonz/fxcommand.h"
+#include "flare/fxcommand.h"
 
 // TnzLib includes
-#include "toonz/txsheet.h"
-#include "toonz/tcolumnfx.h"
-#include "toonz/fxdag.h"
-#include "toonz/tcolumnfxset.h"
-#include "toonz/txshzeraryfxcolumn.h"
-#include "toonz/tstageobjecttree.h"
-#include "toonz/txshlevelcolumn.h"
-#include "toonz/txshpalettecolumn.h"
-#include "toonz/toonzscene.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/tfxhandle.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/tscenehandle.h"
+#include "flare/txsheet.h"
+#include "flare/tcolumnfx.h"
+#include "flare/fxdag.h"
+#include "flare/tcolumnfxset.h"
+#include "flare/txshzeraryfxcolumn.h"
+#include "flare/tstageobjecttree.h"
+#include "flare/txshlevelcolumn.h"
+#include "flare/txshpalettecolumn.h"
+#include "flare/flarescene.h"
+#include "flare/txsheethandle.h"
+#include "flare/tfxhandle.h"
+#include "flare/tcolumnhandle.h"
+#include "flare/tscenehandle.h"
 #include "historytypes.h"
 
 // TnzBase includes
@@ -39,7 +39,7 @@
 #include <memory>
 
 /*
-  Toonz currently has THREE different APIs to deal with scene objects commands:
+  flare currently has THREE different APIs to deal with scene objects commands:
 
     1. From the xsheet, see columncommand.cpp
     2. From the stage schematic
@@ -3864,3 +3864,4 @@ void TFxCommand::renameGroup(const std::list<TFxP> &fxs,
     TUndoManager::manager()->add(undo.release());
   }
 }
+

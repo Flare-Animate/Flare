@@ -6,7 +6,7 @@
 #include "trop.h"
 #include "tconvert.h"
 #include "tvectorimage.h"
-#include "ttoonzimage.h"
+#include "tflareimage.h"
 #include "tproperty.h"
 #include "trasterimage.h"
 #include "tiio.h"
@@ -402,7 +402,7 @@ TImageP TImageReader::load0() {
         saveBox.y1 = saveBox.y1 / m_shrink;
       }
 
-      TToonzImageP ti(ras, ras->getBounds() * saveBox);
+      TflareImageP ti(ras, ras->getBounds() * saveBox);
       ti->setDpi(info.m_dpix, info.m_dpiy);
 
       return ti;
@@ -620,7 +620,7 @@ void TImageWriter::save(const TImageP &img) {
                  4, 0, 4, 4, 4};  // 0s are for pixel sizes which are normally
                                   // unsupported
     int bps[] = {1,  8, 16, 8,  8, 0,
-                 16, 0, 16, 32, 32};  // by image formats, let alone by Toonz
+                 16, 0, 16, 32, 32};  // by image formats, let alone by flare
                                       // raster ones.
     // The 24 and 48 cases get automatically promoted to 32 and 64.
     int bypp    = bpp / 8;
@@ -632,7 +632,7 @@ void TImageWriter::save(const TImageP &img) {
 
     if (rasGr) {
       if (bypp < 2)   // Seems 16 bit greymaps are not handled... why?
-        ras = rasGr;  // we do have a Toonz raster for those...    >:|
+        ras = rasGr;  // we do have a flare raster for those...    >:|
       else
         convertForWriting(ras, rasGr, bpp);
     } else if (ras32) {
@@ -889,3 +889,4 @@ TImageVersionException::TImageVersionException(const TFilePath &fp, int major,
     , m_fp(fp)
     , m_major(major)
     , m_minor(minor) {}
+

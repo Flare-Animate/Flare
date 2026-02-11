@@ -7,11 +7,11 @@
 #include "tlevel_io.h"
 
 // TnzLib includes
-#include "toonz/txshsimplelevel.h"
+#include "flare/txshsimplelevel.h"
 
 #undef DVAPI
 #undef DVVAR
-#ifdef TOONZLIB_EXPORTS
+#ifdef flareLIB_EXPORTS
 #define DVAPI DV_EXPORT_API
 #define DVVAR DV_EXPORT_VAR
 #else
@@ -33,9 +33,9 @@ class TPropertyGroup;
 //*****************************************************************************************
 
 //! LevelUpdater is the preferential interface for dealing with \a conservative
-//! levels I/O in Toonz.
+//! levels I/O in flare.
 /*!
-    The Toonz Image library already provides the basic TLevelWriter interface
+    The flare Image library already provides the basic TLevelWriter interface
 that can be
     used to save image levels on hard disk. This is usually sufficient to
 satisfy most needs,
@@ -192,3 +192,4 @@ private:
 };
 
 #endif  // LEVELUPDATER_H
+

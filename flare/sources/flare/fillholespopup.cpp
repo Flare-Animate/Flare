@@ -1,20 +1,20 @@
 #include "fillholespopup.h"
-#include "toonz/fill.h"
+#include "flare/fill.h"
 
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/intfield.h"
-#include "toonzqt/menubarcommand.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/intfield.h"
+#include "flareqt/menubarcommand.h"
 #include "menubarcommandids.h"
 #include "selectionutils.h"
-#include "toonz/txshlevel.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/txshleveltypes.h"
-#include "ttoonzimage.h"
+#include "flare/txshlevel.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/txshleveltypes.h"
+#include "tflareimage.h"
 #include "tools/toolutils.h"
 #include "tundo.h"
-#include "toonz/ttileset.h"
-#include "toonz/ttilesaver.h"
-#include "toonz/txsheethandle.h"
+#include "flare/ttileset.h"
+#include "flare/ttilesaver.h"
+#include "flare/txsheethandle.h"
 
 #include <QPushButton>
 #include <QProgressBar>
@@ -31,7 +31,7 @@ public:
       : TRasterUndo(tileSet, sl, fid, false, false, 0), m_size(size) {};
 
   void redo() const override {
-    TToonzImageP image = getImage();
+    TflareImageP image = getImage();
     if (!image) return;
     TTool::Application* app = TTool::getApplication();
     if (!app) return;
@@ -81,7 +81,7 @@ void FillHolesDialog::apply() {
   }
   int size = Frames.size();
   if (size == 0) {
-    DVGui::warning(tr("No Toonz Raster Level Selected"));
+    DVGui::warning(tr("No flare Raster Level Selected"));
     return;
   } else {
     m_progressDialog =
@@ -96,7 +96,7 @@ void FillHolesDialog::apply() {
     TFrameId fid        = frame.second;
 
     TImageP img           = sl->getFrame(fid, true);
-    TToonzImageP ti       = TToonzImageP(img);
+    TflareImageP ti       = TflareImageP(img);
     TRasterCM32P ras      = ti->getRaster();
     TTileSetCM32* tileSet = new TTileSetCM32(ras->getSize());
     TTileSaverCM32* saver = new TTileSaverCM32(ras, tileSet);

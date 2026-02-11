@@ -17,23 +17,23 @@
 #include "batches.h"
 
 // TnzQt includes
-#include "toonzqt/imageutils.h"
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/infoviewer.h"
-#include "toonzqt/icongenerator.h"
-#include "toonzqt/gutil.h"
+#include "flareqt/imageutils.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/infoviewer.h"
+#include "flareqt/icongenerator.h"
+#include "flareqt/gutil.h"
 #include "historytypes.h"
-#include "toonzqt/menubarcommand.h"
+#include "flareqt/menubarcommand.h"
 
 // TnzLib includes
-#include "toonz/tproject.h"
-#include "toonz/toonzscene.h"
-#include "toonz/sceneresources.h"
-#include "toonz/preferences.h"
-#include "toonz/studiopalette.h"
-#include "toonz/palettecontroller.h"
-#include "toonz/tpalettehandle.h"
-#include "toonz/tscenehandle.h"
+#include "flare/tproject.h"
+#include "flare/flarescene.h"
+#include "flare/sceneresources.h"
+#include "flare/preferences.h"
+#include "flare/studiopalette.h"
+#include "flare/palettecontroller.h"
+#include "flare/tpalettehandle.h"
+#include "flare/tscenehandle.h"
 
 // TnzCore includes
 #include "tfiletype.h"
@@ -481,7 +481,7 @@ void FileSelection::duplicateFiles() {
 
 static int collectAssets(TFilePath scenePath) {
   // bool dirtyFlag = TNotifier::instance()->getDirtyFlag();
-  ToonzScene scene;
+  flareScene scene;
   scene.load(scenePath);
   ResourceCollector collector(&scene);
   SceneResources resources(&scene, scene.getXsheet());
@@ -553,7 +553,7 @@ void FileSelection::separateFilesByColors() {
 
 static int importScene(TFilePath scenePath) {
   // bool dirtyFlag = TNotifier::instance()->getDirtyFlag();
-  ToonzScene scene;
+  flareScene scene;
   try {
     IoCmd::loadScene(scene, scenePath, true);
   } catch (TException &e) {
@@ -669,7 +669,7 @@ public:
     TApp *app                 = TApp::instance();
     TSceneHandle *sceneHandle = app->getCurrentScene();
     if (!sceneHandle) return;
-    ToonzScene *scene = sceneHandle->getScene();
+    flareScene *scene = sceneHandle->getScene();
     if (!scene) return;
     TFilePath fp = scene->getScenePath();
 
@@ -683,3 +683,4 @@ public:
     fs->exportScene(fp);
   }
 } ExportCurrentSceneCommandHandler;
+

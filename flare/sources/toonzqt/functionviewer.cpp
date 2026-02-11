@@ -1,31 +1,31 @@
 
 
-#include "toonzqt/functionviewer.h"
+#include "flareqt/functionviewer.h"
 
 // TnzQt includes
-#include "toonzqt/functionselection.h"
-#include "toonzqt/functionpanel.h"
-#include "toonzqt/functiontreeviewer.h"
-#include "toonzqt/functionsheet.h"
-#include "toonzqt/functionsegmentviewer.h"
-#include "toonzqt/functiontoolbar.h"
-#include "toonzqt/swatchviewer.h"
-#include "toonzqt/dvscrollwidget.h"
+#include "flareqt/functionselection.h"
+#include "flareqt/functionpanel.h"
+#include "flareqt/functiontreeviewer.h"
+#include "flareqt/functionsheet.h"
+#include "flareqt/functionsegmentviewer.h"
+#include "flareqt/functiontoolbar.h"
+#include "flareqt/swatchviewer.h"
+#include "flareqt/dvscrollwidget.h"
 
 // TnzLib includes
-#include "toonz/tstageobjecttree.h"
-#include "toonz/txsheet.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/tobjecthandle.h"
-#include "toonz/tfxhandle.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/fxdag.h"
-#include "toonz/txshzeraryfxcolumn.h"
-#include "toonz/tcolumnfx.h"
-#include "toonz/toonzscene.h"
-#include "toonz/tproject.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/sceneproperties.h"
+#include "flare/tstageobjecttree.h"
+#include "flare/txsheet.h"
+#include "flare/txsheethandle.h"
+#include "flare/tobjecthandle.h"
+#include "flare/tfxhandle.h"
+#include "flare/tcolumnhandle.h"
+#include "flare/fxdag.h"
+#include "flare/txshzeraryfxcolumn.h"
+#include "flare/tcolumnfx.h"
+#include "flare/flarescene.h"
+#include "flare/tproject.h"
+#include "flare/tscenehandle.h"
+#include "flare/sceneproperties.h"
 
 // TnzBase includes
 #include "tparamcontainer.h"
@@ -361,7 +361,7 @@ void FunctionViewer::refreshModel() {
     m_numericalColumns->setRowCount(rowCount);
     m_numericalColumns->updateAll();
 
-    ToonzScene *scene = xsh->getScene();
+    flareScene *scene = xsh->getScene();
     if (!scene)  // This seems wrong. It should rather be
       return;    // asserted - though I'm not touching it now...
 

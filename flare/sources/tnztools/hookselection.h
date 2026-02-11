@@ -3,10 +3,10 @@
 #ifndef HOOK_SELECTION
 #define HOOK_SELECTION
 
-#include "toonzqt/selection.h"
-#include "toonzqt/dvmimedata.h"
-#include "toonz/txshlevel.h"
-#include "toonz/hook.h"
+#include "flareqt/selection.h"
+#include "flareqt/dvmimedata.h"
+#include "flare/txshlevel.h"
+#include "flare/hook.h"
 #include "tundo.h"
 
 #include <set>
@@ -94,3 +94,4 @@ public:
 };
 
 #endif  // HOOK_SELECTION
+

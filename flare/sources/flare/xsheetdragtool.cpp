@@ -22,35 +22,35 @@
 #include "tools/cursormanager.h"
 
 // TnzQt includes
-#include "toonzqt/tselectionhandle.h"
+#include "flareqt/tselectionhandle.h"
 #include "historytypes.h"
 
 // TnzLib includes
-#include "toonz/tscenehandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/tframehandle.h"
-#include "toonz/tonionskinmaskhandle.h"
-#include "toonz/tobjecthandle.h"
-#include "toonz/toonzscene.h"
-#include "toonz/txsheet.h"
-#include "toonz/txshcolumn.h"
-#include "toonz/txshlevelcolumn.h"
-#include "toonz/tcolumnfxset.h"
-#include "toonz/txshcell.h"
-#include "toonz/fxdag.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/tstageobjecttree.h"
-#include "toonz/tstageobjectkeyframe.h"
-#include "toonz/onionskinmask.h"
-#include "toonz/txshsoundcolumn.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/txshnoteset.h"
+#include "flare/tscenehandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/tcolumnhandle.h"
+#include "flare/tframehandle.h"
+#include "flare/tonionskinmaskhandle.h"
+#include "flare/tobjecthandle.h"
+#include "flare/flarescene.h"
+#include "flare/txsheet.h"
+#include "flare/txshcolumn.h"
+#include "flare/txshlevelcolumn.h"
+#include "flare/tcolumnfxset.h"
+#include "flare/txshcell.h"
+#include "flare/fxdag.h"
+#include "flare/sceneproperties.h"
+#include "flare/tstageobjecttree.h"
+#include "flare/tstageobjectkeyframe.h"
+#include "flare/onionskinmask.h"
+#include "flare/txshsoundcolumn.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/txshnoteset.h"
 #include "toutputproperties.h"
-#include "toonz/preferences.h"
-#include "toonz/columnfan.h"
-#include "toonz/navigationtags.h"
+#include "flare/preferences.h"
+#include "flare/columnfan.h"
+#include "flare/navigationtags.h"
 
 // TnzBase includes
 #include "tfx.h"
@@ -270,7 +270,7 @@ void XsheetGUI::setPlayRange(int r0, int r1, int step, bool withUndo) {
         oldR0, r0, oldR1, r1, oldStep, step, true, true));
     TApp::instance()->getCurrentScene()->setDirtyFlag(true);
   }
-  ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
+  flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
   scene->getProperties()->getPreviewProperties()->setRange(r0, r1, step);
   TApp::instance()->getCurrentScene()->notifySceneChanged();
 }
@@ -278,7 +278,7 @@ void XsheetGUI::setPlayRange(int r0, int r1, int step, bool withUndo) {
 //-----------------------------------------------------------------------------
 
 bool XsheetGUI::getPlayRange(int &r0, int &r1, int &step) {
-  ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
+  flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
   scene->getProperties()->getPreviewProperties()->getRange(r0, r1, step);
   if (r0 > r1) {
     r0 = -1;
@@ -2017,7 +2017,7 @@ public:
     int r1 = std::max(pos.frame(), m_startRow);
     assert(m_soundColumn);
     TApp *app         = TApp::instance();
-    ToonzScene *scene = app->getCurrentScene()->getScene();
+    flareScene *scene = app->getCurrentScene()->getScene();
     double fps = scene->getProperties()->getOutputProperties()->getFrameRate();
     app->getCurrentFrame()->scrubColumn(r0, r1, m_soundColumn, fps);
   }
@@ -2127,7 +2127,7 @@ public:
         sl->getFids(fids);
         m_data->addSimpleLevel(std::make_pair(sl, fids));
       }
-    } else if (e->mimeData()->hasFormat("application/vnd.toonz.drawings")) {
+    } else if (e->mimeData()->hasFormat("application/vnd.flare.drawings")) {
       TFilmstripSelection *s =
           dynamic_cast<TFilmstripSelection *>(TSelection::getCurrent());
       if (!s) return;
@@ -2294,3 +2294,4 @@ XsheetGUI::DragTool *XsheetGUI::DragTool::makeNavigationTagDragTool(
     XsheetViewer *viewer) {
   return new NavigationTagDragTool(viewer);
 }
+

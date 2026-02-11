@@ -7,13 +7,13 @@
 #include "tsystem.h"
 
 // TnzQt includes
-#include "toonzqt/checkbox.h"
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/lineedit.h"
-#include "toonzqt/gutil.h"
+#include "flareqt/checkbox.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/lineedit.h"
+#include "flareqt/gutil.h"
 
 // TnzLib includes
-#include "toonz/toonzscene.h"
+#include "flare/flarescene.h"
 
 // TnzCore includes
 #include "tfilepath.h"
@@ -227,7 +227,7 @@ OverwriteDialog::Resolution OverwriteDialog::execute(TFilePath &filePath,
 
 //----------------------------------------------------------------------------------
 
-std::wstring OverwriteDialog::execute(ToonzScene *scene,
+std::wstring OverwriteDialog::execute(flareScene *scene,
                                       const TFilePath &srcLevelPath,
                                       bool multiload) {
   TFilePath levelPath       = srcLevelPath;
@@ -289,3 +289,4 @@ std::wstring OverwriteDialog::execute(ToonzScene *scene,
 
   return levelPath.getWideName();
 }
+

@@ -8,9 +8,9 @@
 
 #include "tlevel.h"
 
-#include "toonzqt/dvdialog.h"
+#include "flareqt/dvdialog.h"
 
-#include "toonz/txshsimplelevel.h"
+#include "flare/txshsimplelevel.h"
 
 // per il tracker
 #include "dummyprocessor.h"
@@ -145,3 +145,4 @@ private:
 };
 
 #endif  // TRACKERPOPUP_H
+

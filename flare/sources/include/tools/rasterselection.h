@@ -6,17 +6,17 @@
 // TnzCore includes
 #include "tcommon.h"
 #include "tpalette.h"
-#include "ttoonzimage.h"
+#include "tflareimage.h"
 #include "trasterimage.h"
 #include "tstroke.h"
 #include "tdata.h"
 
 // TnzLib includes
-#include "toonz/ttileset.h"
-#include "toonz/txshcell.h"
+#include "flare/ttileset.h"
+#include "flare/txshcell.h"
 
 // TnzQt includes
-#include "toonzqt/selection.h"
+#include "flareqt/selection.h"
 
 #undef DVAPI
 #undef DVVAR
@@ -35,7 +35,7 @@ class RasterImageData;
 
 //=============================================================================
 // RasterSelection
-//! Selection of TToonzImage and TRasterImage.
+//! Selection of TflareImage and TRasterImage.
 //-----------------------------------------------------------------------------
 
 class DVAPI RasterSelection final : public TSelection {
@@ -156,3 +156,4 @@ Can be different from getSelectionBound() after a free deform transformation. */
 };
 
 #endif  // RASTER_SELECTION_H
+

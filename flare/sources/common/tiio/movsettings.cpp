@@ -339,7 +339,7 @@ void openMovSettingsPopup(TPropertyGroup *props, bool macBringToFront) {
 // settings dialog
 // On MACOSX we need to change the dialog appearance in order to pop-up in front
 // of the
-// toonz main window.
+// flare main window.
 /*
 gProcStruct.filterProc = NewSCModalFilterUPP(QTCmpr_FilterProc);
 // I don't install any hook
@@ -388,7 +388,7 @@ bool Tiio::isQuicktimeInstalled() {
 //    64-bit proxied version
 //*******************************************************************************
 
-// Toonz includes
+// flare includes
 #include "tfilepath.h"
 #include "tstream.h"
 
@@ -465,7 +465,7 @@ void openMovSettingsPopup(TPropertyGroup *props, bool unused) {
 bool Tiio::isQuicktimeInstalled() {
   // NOTE: This is *NOT* the same function as IsQuickTimeInstalled(), which is
   // implemented locally in the image lib and used there. This function here is
-  // actually NEVER USED throughout Toonz, so we're placing a dummy
+  // actually NEVER USED throughout flare, so we're placing a dummy
   // implementation here.
 
   assert(false);
@@ -473,3 +473,4 @@ bool Tiio::isQuicktimeInstalled() {
 }
 
 #endif  // else
+

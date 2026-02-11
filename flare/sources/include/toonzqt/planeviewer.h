@@ -9,7 +9,7 @@
 #include "timage.h"
 
 // TnzQt includes
-#include "toonzqt/glwidget_for_highdpi.h"
+#include "flareqt/glwidget_for_highdpi.h"
 
 // Qt includes
 #include <QOpenGLWidget>
@@ -17,7 +17,7 @@
 
 #undef DVAPI
 #undef DVVAR
-#ifdef TOONZQT_EXPORTS
+#ifdef flareQT_EXPORTS
 #define DVAPI DV_EXPORT_API
 #define DVVAR DV_EXPORT_VAR
 #else
@@ -29,7 +29,7 @@
 
 //  Forward declarations
 class TRasterImageP;
-class TToonzImageP;
+class TflareImageP;
 class TVectorImageP;
 class QTouchEvent;
 class QGestureEvent;
@@ -39,7 +39,7 @@ class QGestureEvent;
 /*!
   \brief    The PlaneViewer class implements a basic OpenGL widget showing a
   plane in a
-            standard top-down view, and supports image drawing from the Toonz
+            standard top-down view, and supports image drawing from the flare
   images API.
 
   \details  A PlaneViewer instance is designed to view bidimensional objects
@@ -54,7 +54,7 @@ class QGestureEvent;
   standard
             OpenGL drawing, conversions between world and widget coordinates,
   and
-            efficient image-drawing functions for all Toonz image types.
+            efficient image-drawing functions for all flare image types.
 */
 
 /*
@@ -88,7 +88,7 @@ public:
   // Image drawing functions
   void draw(TRasterP ras, double dpiX, double dpiY, TPalette *palette = 0);
   void draw(TRasterImageP ri);
-  void draw(TToonzImageP ti);
+  void draw(TflareImageP ti);
   void draw(TVectorImageP vi);
   void draw(TImageP img);
 
@@ -184,3 +184,4 @@ private:
 };
 
 #endif  // PLANE_VIEWER_H
+

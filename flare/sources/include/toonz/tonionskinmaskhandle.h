@@ -4,13 +4,13 @@
 #define TONIONSKINMASKHANDLE_H
 
 #include <QObject>
-#include "toonz/onionskinmask.h"
+#include "flare/onionskinmask.h"
 
 #include "tcommon.h"
 
 #undef DVAPI
 #undef DVVAR
-#ifdef TOONZLIB_EXPORTS
+#ifdef flareLIB_EXPORTS
 #define DVAPI DV_EXPORT_API
 #define DVVAR DV_EXPORT_VAR
 #else
@@ -46,3 +46,4 @@ signals:
 };
 
 #endif  // TONIONSKINMASKHANDLE_H
+

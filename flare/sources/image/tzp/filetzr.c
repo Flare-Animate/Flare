@@ -10,7 +10,7 @@
 #include <unistd.h>
 #endif
 
-#include "toonz.h"
+#include "flare.h"
 #include "tmsg.h"
 #include "file.h"
 #include "img.h"
@@ -295,7 +295,7 @@ check_colpen_on_out0:
   if (incol__) incol__ = 0x10;
   if (incol__ == lastcol__) goto check_tone_on_out0;
   lastcol__ = incol__;
-  if (!remain) goto end_toonz1_encoding_on_out0;
+  if (!remain) goto end_flare1_encoding_on_out0;
 
   outval = (0xF << 4) | 0x8;
   PUT_OUTVAL
@@ -386,7 +386,7 @@ check_colpen_on_out1:
   if (incol__) incol__ = 0x10;
   if (incol__ == lastcol__) goto check_tone_on_out1;
   lastcol__ = incol__;
-  if (!remain) goto end_toonz1_encoding_on_out1;
+  if (!remain) goto end_flare1_encoding_on_out1;
 
   outval |= 0xF;
   PUT_OUTVAL
@@ -468,7 +468,7 @@ check_tone_on_out1:
     goto check_colpen_on_out0;
   }
 
-end_toonz1_encoding_on_out0:
+end_flare1_encoding_on_out0:
   if ((save & colmask) != (in[-2] & colmask)) {
     outval = 0xF8;
     PUT_OUTVAL
@@ -480,7 +480,7 @@ end_toonz1_encoding_on_out0:
   buf_in[buf_in_len - 1] = save;
   return out - buf_out;
 
-end_toonz1_encoding_on_out1:
+end_flare1_encoding_on_out1:
   if ((save & colmask) != (in[-2] & colmask)) {
     outval |= 0xF;
     PUT_OUTVAL
@@ -552,7 +552,7 @@ check_colpen_on_out0:
   if (incol__) incol__ = 0x100;
   if (incol__ == lastcol__) goto check_tone_on_out0;
   lastcol__ = incol__;
-  if (!remain) goto end_toonz1_encoding_and_save_on_out0;
+  if (!remain) goto end_flare1_encoding_and_save_on_out0;
 
   outval = 0xFF;
   PUT_OUTVAL
@@ -655,7 +655,7 @@ check_colpen_on_out1:
   if (incol__) incol__ = 0x100;
   if (incol__ == lastcol__) goto check_tone_on_out1;
   lastcol__ = incol__;
-  if (!remain) goto end_toonz1_encoding_and_save_on_out1;
+  if (!remain) goto end_flare1_encoding_and_save_on_out1;
 
   outval |= 0xF;
   PUT_OUTVAL
@@ -751,15 +751,15 @@ check_tone_on_out1:
     goto check_colpen_on_out1;
   }
 
-end_toonz1_encoding_and_save_on_out0:
+end_flare1_encoding_and_save_on_out0:
   if ((save & colmask) != (in[-2] & colmask)) {
     outval = 0xFF;
     PUT_OUTVAL
     outval = 0x8 << 4;
-    goto end_toonz1_encoding_on_out1;
+    goto end_flare1_encoding_on_out1;
   }
 
-end_toonz1_encoding_on_out0:
+end_flare1_encoding_on_out0:
 
   outval = 0xFF;
   PUT_OUTVAL
@@ -771,15 +771,15 @@ end_toonz1_encoding_on_out0:
   buf_in[buf_in_len - 1] = save;
   return out - buf_out;
 
-end_toonz1_encoding_and_save_on_out1:
+end_flare1_encoding_and_save_on_out1:
   if ((save & colmask) != (in[-2] & colmask)) {
     outval |= 0xF;
     PUT_OUTVAL
     outval = (0xF << 4) | 0x80;
     PUT_OUTVAL
-    goto end_toonz1_encoding_on_out0;
+    goto end_flare1_encoding_on_out0;
   }
-end_toonz1_encoding_on_out1:
+end_flare1_encoding_on_out1:
 
   outval |= 0xF;
   PUT_OUTVAL
@@ -1879,3 +1879,4 @@ error:
   if (file) fclose(file);
   return NIL;
 }
+

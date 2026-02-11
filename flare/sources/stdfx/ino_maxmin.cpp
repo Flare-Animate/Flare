@@ -26,7 +26,7 @@ public:
       , m_radius(1.0)
       /*	1mmにしたければ 1.0 * 640. / 12. / 25.4 とする
             0.35    = mm = ユーザ指定の初期値
-            640/12  = 53.33333 = toonz独自の係数 =tunit.cpp参照
+            640/12  = 53.33333 = flare独自の係数 =tunit.cpp参照
             25.4    = mm/inch
     */
       , m_polygon_number(2.0)
@@ -177,7 +177,7 @@ void ino_maxmin::doCompute(TTile &tile, double frame,
   const int refer_mode = this->m_ref_mode->getValue();
 
   /* 	tcomposer(RenderManager)でRenderingするときはthreadは1つ、
-          toonz(Desktop)でPreview,Outputするなら-1を指定
+          flare(Desktop)でPreview,Outputするなら-1を指定
           -1は自動でthread数を決めCPUを最大に使い高速化 */
   const int nthread = -1;
 
@@ -324,3 +324,4 @@ void ino_maxmin::doCompute(TTile &tile, double frame,
     throw;
   }
 }
+

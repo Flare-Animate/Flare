@@ -3,13 +3,13 @@
 #ifndef SCRIPTBINDING_SCENE_H
 #define SCRIPTBINDING_SCENE_H
 
-#include "toonz/scriptbinding.h"
+#include "flare/scriptbinding.h"
 
 namespace TScriptBinding {
 
 class DVAPI Scene final : public Wrapper {
   Q_OBJECT
-  ToonzScene *m_scene;
+  flareScene *m_scene;
 
 public:
   Scene();
@@ -43,7 +43,7 @@ public:
   Q_INVOKABLE QScriptValue loadLevel(const QString &name,
                                      const QScriptValue &path) const;
 
-  ToonzScene *getToonzScene() const { return m_scene; }
+  flareScene *getflareScene() const { return m_scene; }
 };
 
 }  // namespace TScriptBinding
@@ -51,3 +51,4 @@ public:
 Q_DECLARE_METATYPE(TScriptBinding::Scene *)
 
 #endif
+

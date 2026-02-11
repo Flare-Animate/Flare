@@ -10,7 +10,7 @@
 #include <QUrl>
 #include <QPainter>
 
-#include "toonz/toonzimageutils.h"
+#include "flare/flareimageutils.h"
 #include "tsystem.h"
 #include "timagecache.h"
 /*
@@ -22,10 +22,10 @@
 #include "tframe.h"
 #include "tsound.h"
 #include "tsop.h"
-#include "toonz/application.h"
-#include "toonz/sceneproperties.h"
+#include "flare/application.h"
+#include "flare/sceneproperties.h"
 #include "toutputproperties.h"
-#include "toonz/tabscene.h"
+#include "flare/tabscene.h"
 class TSoundTrack;
 using namespace TwConsts;*/
 
@@ -84,7 +84,7 @@ void FileViewer::setPath(const TFilePath &fp, int from, int to, int step,
       m_palette = level->getPalette();
       if (!m_palette && (fp.getType() == "tzp" || fp.getType() == "tzu"))
         m_palette =
-            ToonzImageUtils::loadTzPalette(fp.withType("plt").withNoFrame());
+            flareImageUtils::loadTzPalette(fp.withType("plt").withNoFrame());
 
       for (TLevel::Iterator it = level->begin(); it != level->end(); ++it)
         m_fids.push_back(it->first);
@@ -282,7 +282,7 @@ TSoundTrack*snd)
        m_palette = level->getPalette();
        if (!m_palette && (fp.getType()=="tzp" || fp.getType()=="tzu"))
          m_palette =
-ToonzImageUtils::loadTzPalette(fp.withType("plt").withNoFrame());
+flareImageUtils::loadTzPalette(fp.withType("plt").withNoFrame());
 
        for(TLevel::Iterator it = level->begin(); it != level->end(); ++it)
            m_fids.push_back(it->first);
@@ -530,7 +530,7 @@ public:
     int ly = size.ly;
     int y = ly-1-m_topBarHeight;
     TRect r(1,y+1,lx-2,ly-1);
-    setColor(ToonzBgColor);
+    setColor(flareBgColor);
     fillRect(r);
     drawTitle();
     r.y0=1;r.y1=m_botBarHeight;
@@ -699,3 +699,4 @@ FileViewerPopup::FileViewerPopup(QWidget *parent, Qt::WindowFlags flags)
 //-----------------------------------------------------------------------------
 
 OpenPopupCommandHandler<FileViewerPopup> openPltGizmoPopup(MI_OpenFileViewer);
+

@@ -14,25 +14,25 @@
 #include "reframepopup.h"
 
 // TnzQt includes
-#include "toonzqt/tselectionhandle.h"
-#include "toonzqt/gutil.h"
+#include "flareqt/tselectionhandle.h"
+#include "flareqt/gutil.h"
 #include "historytypes.h"
 
 // TnzLib includes
-#include "toonz/txshcell.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/levelset.h"
-#include "toonz/tstageobject.h"
-#include "toonz/toonzscene.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/tobjecthandle.h"
-#include "toonz/stageobjectutil.h"
-#include "toonz/hook.h"
-#include "toonz/levelproperties.h"
-#include "toonz/childstack.h"
-#include "toonz/tframehandle.h"
-#include "toonz/tcolumnhandle.h"
+#include "flare/txshcell.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/levelset.h"
+#include "flare/tstageobject.h"
+#include "flare/flarescene.h"
+#include "flare/txsheethandle.h"
+#include "flare/tscenehandle.h"
+#include "flare/tobjecthandle.h"
+#include "flare/stageobjectutil.h"
+#include "flare/hook.h"
+#include "flare/levelproperties.h"
+#include "flare/childstack.h"
+#include "flare/tframehandle.h"
+#include "flare/tcolumnhandle.h"
 
 // TnzCore includes
 #include "tsystem.h"
@@ -1436,10 +1436,10 @@ private:
 //-----------------------------------------------------------------------------
 
 struct CloneLevelUndo::ExistsFunc final : public OverwriteDialog::ExistsFunc {
-  ToonzScene *m_scene;
+  flareScene *m_scene;
 
 public:
-  ExistsFunc(ToonzScene *scene) : m_scene(scene) {}
+  ExistsFunc(flareScene *scene) : m_scene(scene) {}
 
   QString conflictString(const TFilePath &fp) const override {
     return OverwriteDialog::tr(
@@ -1497,7 +1497,7 @@ public:
 TXshSimpleLevel *CloneLevelUndo::cloneLevel(
     const TXshSimpleLevel *srcSl, const TFilePath &dstPath,
     const std::set<TFrameId> &frames) const {
-  ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
+  flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
 
   int levelType = srcSl->getType();
   assert(levelType > 0);
@@ -1561,7 +1561,7 @@ bool CloneLevelUndo::chooseLevelName(TFilePath &fp) const {
 bool CloneLevelUndo::chooseOverwrite(OverwriteDialog *dialog,
                                      TFilePath &dstPath,
                                      TXshSimpleLevel *&dstSl) const {
-  ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
+  flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
   ExistsFunc exists(scene);
 
   OverwriteDialog::Resolution acceptedRes = OverwriteDialog::ALL_RESOLUTIONS;
@@ -1600,7 +1600,7 @@ bool CloneLevelUndo::chooseOverwrite(OverwriteDialog *dialog,
 
 void CloneLevelUndo::cloneLevels() const {
   TApp *app         = TApp::instance();
-  ToonzScene *scene = app->getCurrentScene()->getScene();
+  flareScene *scene = app->getCurrentScene()->getScene();
   TXsheet *xsh      = app->getCurrentXsheet()->getXsheet();
 
   // Retrieve the simple levels and associated frames in the specified range
@@ -1656,7 +1656,7 @@ void CloneLevelUndo::cloneLevels() const {
 //-----------------------------------------------------------------------------
 
 void CloneLevelUndo::insertLevels() const {
-  ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
+  flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
 
   InsertedLevelsMap::iterator lt, lEnd = m_insertedLevels.end();
   for (lt = m_insertedLevels.begin(); lt != lEnd; ++lt)
@@ -1729,7 +1729,7 @@ void CloneLevelUndo::undo() const {
   assert(!m_insertedLevels.empty());
 
   TApp *app         = TApp::instance();
-  ToonzScene *scene = app->getCurrentScene()->getScene();
+  flareScene *scene = app->getCurrentScene()->getScene();
 
   TXsheet *xsh    = scene->getXsheet();
   TXsheet *topXsh = scene->getChildStack()->getTopXsheet();
@@ -1811,3 +1811,4 @@ void TCellSelection::shiftKeyframes(int direction) {
 
   delete cellKeyframeSelection;
 }
+

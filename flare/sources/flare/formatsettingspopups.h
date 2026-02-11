@@ -4,7 +4,7 @@
 #define FORMATSETTINGSPOPUPS_H
 
 // TnzQt includes
-#include "toonzqt/dvdialog.h"
+#include "flareqt/dvdialog.h"
 
 // TnzCore includes
 #include "tfilepath.h"
@@ -85,7 +85,7 @@ private Q_SLOTS:
 //**********************************************************************************
 
 /*!
-  \details    The openFormatSettingsPopup() opens a Toonz dialog with the
+  \details    The openFormatSettingsPopup() opens a flare dialog with the
   specified
               properties for a given format, <I>or alternatively opens a
   suitable
@@ -124,3 +124,4 @@ bool openFormatSettingsPopup(
                      //!  for an input level format.
 
 #endif  // FORMATSETTINGSPOPUPS_H
+

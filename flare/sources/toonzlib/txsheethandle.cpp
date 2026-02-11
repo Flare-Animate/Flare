@@ -1,9 +1,9 @@
 
 
 // TnzLib includes
-#include "toonz/textureutils.h"
+#include "flare/textureutils.h"
 
-#include "toonz/txsheethandle.h"
+#include "flare/txsheethandle.h"
 
 //=============================================================================
 // TXsheeHandle
@@ -33,3 +33,4 @@ void TXsheetHandle::setXsheet(TXsheet *xsheet) {
     emit xsheetSwitched();
   }
 }
+

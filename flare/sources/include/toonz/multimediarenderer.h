@@ -4,11 +4,11 @@
 #define MULTIMEDIARENDERER_INCLUDED
 
 #include <QObject>
-#include "toonz/movierenderer.h"
+#include "flare/movierenderer.h"
 
 #undef DVAPI
 #undef DVVAR
-#ifdef TOONZLIB_EXPORTS
+#ifdef flareLIB_EXPORTS
 #define DVAPI DV_EXPORT_API
 #define DVVAR DV_EXPORT_VAR
 #else
@@ -20,7 +20,7 @@
 
 //  Forward declarations
 class TFilePath;
-class ToonzScene;
+class flareScene;
 
 //=========================================================
 //
@@ -44,7 +44,7 @@ class ToonzScene;
    \sa MovieRenderer class.
 */
 
-class ToonzScene;
+class flareScene;
 
 class DVAPI MultimediaRenderer final : public QObject {
   Q_OBJECT
@@ -66,7 +66,7 @@ public:
 
   //----------------------------------------------------------------
 
-  MultimediaRenderer(ToonzScene *scene, const TFilePath &moviePath,
+  MultimediaRenderer(flareScene *scene, const TFilePath &moviePath,
                      int multimediaMode, int threadCount = 1,
                      bool cacheResults = true);
 
@@ -109,3 +109,4 @@ private:
 };
 
 #endif
+

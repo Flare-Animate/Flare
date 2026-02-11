@@ -9,25 +9,25 @@
 #include "filebrowser.h"
 
 // TnzQt includes
-#include "toonzqt/gutil.h"
-#include "toonzqt/imageutils.h"
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/filefield.h"
-#include "toonzqt/intfield.h"
-#include "toonzqt/colorfield.h"
-#include "toonzqt/checkbox.h"
-#include "toonzqt/icongenerator.h"
-#include "toonzqt/doublefield.h"
+#include "flareqt/gutil.h"
+#include "flareqt/imageutils.h"
+#include "flareqt/menubarcommand.h"
+#include "flareqt/filefield.h"
+#include "flareqt/intfield.h"
+#include "flareqt/colorfield.h"
+#include "flareqt/checkbox.h"
+#include "flareqt/icongenerator.h"
+#include "flareqt/doublefield.h"
 
 // TnzLib includes
-#include "toonz/tscenehandle.h"
-#include "toonz/toonzscene.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/tproject.h"
+#include "flare/tscenehandle.h"
+#include "flare/flarescene.h"
+#include "flare/sceneproperties.h"
+#include "flare/tproject.h"
 #include "toutputproperties.h"
 #include "convert2tlv.h"
-#include "toonz/preferences.h"
-#include "toonz/tcamera.h"
+#include "flare/preferences.h"
+#include "flare/tcamera.h"
 
 // TnzCore includes
 #include "tsystem.h"
@@ -108,7 +108,7 @@ public:
 };
 
 void ConvertPopup::Converter::run() {
-  ToonzScene *sc = TApp::instance()->getCurrentScene()->getScene();
+  flareScene *sc = TApp::instance()->getCurrentScene()->getScene();
   DVGui::ProgressDialog *progressDialog = m_parent->m_progressDialog;
   int levelCount                        = m_parent->m_srcFilePaths.size();
   TFilePath dstFolder(m_parent->m_saveInFileFld->getPath());
@@ -174,7 +174,7 @@ void ConvertPopup::Converter::run() {
 
 void ConvertPopup::Converter::convertLevel(
     const TFilePath &sourceFileFullPath) {
-  ToonzScene *sc      = TApp::instance()->getCurrentScene()->getScene();
+  flareScene *sc      = TApp::instance()->getCurrentScene()->getScene();
   ConvertPopup *popup = m_parent;
 
   QString levelName = QString::fromStdString(sourceFileFullPath.getLevelName());
@@ -606,7 +606,7 @@ QFrame *ConvertPopup::createTlvSettings() {
 
   m_appendDefaultPalette->setToolTip(
       tr("When activated, styles of the default "
-         "palette\n($TOONZSTUDIOPALETTE\\Global Palettes\\Default Palettes\\Cleanup_Palette.tpl) will \nbe "
+         "palette\n($flareSTUDIOPALETTE\\Global Palettes\\Default Palettes\\Cleanup_Palette.tpl) will \nbe "
          "appended to the palette after conversion in \norder to save the "
          "effort of creating styles \nbefore color designing."));
 
@@ -713,7 +713,7 @@ void ConvertPopup::onFileInChanged() {
   assert(m_convertFileFld);
   std::vector<TFilePath> fps;
   auto project = TProjectManager::instance()->getCurrentProject();
-  ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
+  flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
   fps.push_back(scene->decodeFilePath(
       TFilePath(m_convertFileFld->getPath().toStdString())));
 
@@ -895,7 +895,7 @@ void ConvertPopup::setFormat(QString format){
 //-------------------------------------------------------------------
 
 Convert2Tlv *ConvertPopup::makeTlvConverter(const TFilePath &sourceFilePath) {
-  ToonzScene *sc = TApp::instance()->getCurrentScene()->getScene();
+  flareScene *sc = TApp::instance()->getCurrentScene()->getScene();
   TFilePath unpaintedfilePath;
   if (m_tlvMode->currentText() == TlvMode_PaintedFromTwoImages) {
     QString suffixString = m_unpaintedSuffix->text();
@@ -940,7 +940,7 @@ Convert2Tlv *ConvertPopup::makeTlvConverter(const TFilePath &sourceFilePath) {
 
 void ConvertPopup::convertToTlv(bool toPainted) {
 #ifdef CICCIO
-  ToonzScene *sc   = TApp::instance()->getCurrentScene()->getScene();
+  flareScene *sc   = TApp::instance()->getCurrentScene()->getScene();
   bool doAutoclose = false;
 
   QApplication::setOverrideCursor(Qt::WaitCursor);
@@ -1054,7 +1054,7 @@ TFilePath ConvertPopup::getDestinationFilePath(
     const TFilePath &sourceFilePath) {
   // Build the DECODED output folder path
   TFilePath destFolder = sourceFilePath.getParentDir();
-  ToonzScene *scene    = TApp::instance()->getCurrentScene()->getScene();
+  flareScene *scene    = TApp::instance()->getCurrentScene()->getScene();
 
   if (!m_saveInFileFld->getPath().isEmpty()) {
     TFilePath dir(m_saveInFileFld->getPath().toStdWString());
@@ -1090,7 +1090,7 @@ TPalette *ConvertPopup::readUserProvidedPalette() const {
       m_fileFormat->currentText() != TlvExtension)
     return 0;
 
-  ToonzScene *sc = TApp::instance()->getCurrentScene()->getScene();
+  flareScene *sc = TApp::instance()->getCurrentScene()->getScene();
   TFilePath palettePath =
       sc->decodeFilePath(TFilePath(m_palettePath->getPath().toStdString()));
   TPalette *palette = 0;
@@ -1285,7 +1285,7 @@ void ConvertPopup::onOptionsClicked() {
   TPropertyGroup *props = getFormatProperties(ext);
 
   // use output settings' frame format.
-  ToonzScene *scene       = TApp::instance()->getCurrentScene()->getScene();
+  flareScene *scene       = TApp::instance()->getCurrentScene()->getScene();
   TOutputProperties *prop = scene->getProperties()->getOutputProperties();
 
   openFormatSettingsPopup(
@@ -1354,3 +1354,4 @@ void ConvertPopup::onDpiModeSelected(int index) {
 //-----------------------------------------------------------------------------
 
 OpenPopupCommandHandler<ConvertPopup> openConvertPopup(MI_ConvertFiles);
+

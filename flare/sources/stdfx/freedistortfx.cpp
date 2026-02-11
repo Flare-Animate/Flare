@@ -13,7 +13,7 @@
 
 #include "timage_io.h"
 
-#include "toonz/tdistort.h"
+#include "flare/tdistort.h"
 
 //==============================================================================
 
@@ -813,3 +813,4 @@ FX_PLUGIN_IDENTIFIER(FreeDistortFx, "freeDistortFx");
 FX_PLUGIN_IDENTIFIER(CastShadowFx, "castShadowFx");
 
 /*----------------------------------------------------------------------------*/
+

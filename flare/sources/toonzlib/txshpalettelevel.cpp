@@ -1,8 +1,8 @@
 
 
-#include "toonz/txshpalettelevel.h"
-#include "toonz/txshleveltypes.h"
-#include "toonz/toonzscene.h"
+#include "flare/txshpalettelevel.h"
+#include "flare/txshleveltypes.h"
+#include "flare/flarescene.h"
 #include "tconvert.h"
 #include "tstream.h"
 #include "tfilepath_io.h"
@@ -114,3 +114,4 @@ void TXshPaletteLevel::save() {
 //-----------------------------------------------------------------------------
 
 int TXshPaletteLevel::getFrameCount() const { return 0; }
+

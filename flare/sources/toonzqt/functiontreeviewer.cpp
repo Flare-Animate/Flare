@@ -17,20 +17,20 @@
 #include "ext/plasticskeleton.h"
 
 // TnzLib includes
-#include "toonz/tstageobjecttree.h"
-#include "toonz/txsheet.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/fxdag.h"
-#include "toonz/txshzeraryfxcolumn.h"
-#include "toonz/tcolumnfx.h"
-#include "toonz/tfxhandle.h"
-#include "toonz/tobjecthandle.h"
+#include "flare/tstageobjecttree.h"
+#include "flare/txsheet.h"
+#include "flare/txsheethandle.h"
+#include "flare/fxdag.h"
+#include "flare/txshzeraryfxcolumn.h"
+#include "flare/tcolumnfx.h"
+#include "flare/tfxhandle.h"
+#include "flare/tobjecthandle.h"
 
 // TnzQt includes
-#include "toonzqt/functionviewer.h"
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/gutil.h"
-#include "toonzqt/plasticvertexselection.h"
+#include "flareqt/functionviewer.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/gutil.h"
+#include "flareqt/plasticvertexselection.h"
 #include "tw/stringtable.h"
 
 // Qt includes
@@ -44,7 +44,7 @@
 #include <QDrag>
 #include <QMimeData>
 
-#include "toonzqt/functiontreeviewer.h"
+#include "flareqt/functiontreeviewer.h"
 
 //*************************************************************************************
 //    ChannelGroup specialization  definition
@@ -1663,3 +1663,4 @@ void FunctionTreeModel::ChannelGroup::displayAnimatedChannels() {
     channel->setIsActive(channel->getParam()->hasKeyframes());
   }
 }
+

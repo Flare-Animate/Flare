@@ -1,8 +1,8 @@
 
 
-#include "toonz/txshlevel.h"
-#include "toonz/txshleveltypes.h"
-#include "toonz/hook.h"
+#include "flare/txshlevel.h"
+#include "flare/txshleveltypes.h"
+#include "flare/hook.h"
 
 //-----------------------------------------------------------------------------
 
@@ -21,7 +21,7 @@ TXshLevel::~TXshLevel() { delete m_hookSet; }
 
 //-----------------------------------------------------------------------------
 
-void TXshLevel::setScene(ToonzScene *scene) { m_scene = scene; }
+void TXshLevel::setScene(flareScene *scene) { m_scene = scene; }
 
 //-----------------------------------------------------------------------------
 
@@ -38,3 +38,4 @@ void TXshLevel::updateShortName() {
   else
     m_shortName = m_name.substr(0, 4) + L"~";
 }
+

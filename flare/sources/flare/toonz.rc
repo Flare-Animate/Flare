@@ -1,5 +1,6 @@
 // Icon
 #if defined(APSTUDIO_INVOKED)
-ICON "toonz.ico"
+ICON "flare.ico"
 #endif
-IDI_ICON1 ICON "toonz.ico"
+IDI_ICON1 ICON "flare.ico"
+

@@ -1,24 +1,24 @@
 
 
-#include "toonzqt/styleeditor.h"
+#include "flareqt/styleeditor.h"
 
 // TnzQt includes
-#include "toonzqt/gutil.h"
-#include "toonzqt/filefield.h"
+#include "flareqt/gutil.h"
+#include "flareqt/filefield.h"
 #include "historytypes.h"
-#include "toonzqt/lutcalibrator.h"
+#include "flareqt/lutcalibrator.h"
 
 // TnzLib includes
-#include "toonz/txshlevel.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/toonzfolders.h"
-#include "toonz/cleanupcolorstyles.h"
-#include "toonz/palettecontroller.h"
-#include "toonz/imagestyles.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/levelproperties.h"
-#include "toonz/mypaintbrushstyle.h"
-#include "toonz/preferences.h"
+#include "flare/txshlevel.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/flarefolders.h"
+#include "flare/cleanupcolorstyles.h"
+#include "flare/palettecontroller.h"
+#include "flare/imagestyles.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/levelproperties.h"
+#include "flare/mypaintbrushstyle.h"
+#include "flare/preferences.h"
 
 // TnzCore includes
 #include "tconvert.h"
@@ -2883,7 +2883,7 @@ StyleEditor::StyleEditor(PaletteController *paletteController, QWidget *parent)
     , m_editedStyle(0) {
   setFocusPolicy(Qt::NoFocus);
   // Remove
-  TFilePath libraryPath = ToonzFolder::getLibraryFolder();
+  TFilePath libraryPath = flareFolder::getLibraryFolder();
   setRootPath(libraryPath);
 
   m_styleBar = new DVGui::TabBar(this);
@@ -4100,3 +4100,4 @@ void StyleEditor::onPopupMenuAboutToShow() {
       action->setChecked(true);
   }
 }
+

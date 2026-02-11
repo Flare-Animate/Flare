@@ -24,12 +24,12 @@
 #include "tspectrumparam.h"
 #include "ttonecurveparam.h"
 #include "tdoubleparam.h"
-#include "toonz/tfxhandle.h"
+#include "flare/tfxhandle.h"
 #include "historytypes.h"
 
 #undef DVAPI
 #undef DVVAR
-#ifdef TOONZQT_EXPORTS
+#ifdef flareQT_EXPORTS
 #define DVAPI DV_EXPORT_API
 #define DVVAR DV_EXPORT_VAR
 #else
@@ -913,18 +913,19 @@ protected slots:
 extern "C" {
 #endif
 
-#define TOONZ_DECLARE_MAKE_WIDGET(NAME)                                        \
+#define flare_DECLARE_MAKE_WIDGET(NAME)                                        \
   ParamField *NAME(QWidget *parent, QString name, TParamP const &param)
 
-TOONZ_DECLARE_MAKE_WIDGET(make_lineedit);
-TOONZ_DECLARE_MAKE_WIDGET(make_slider);
-TOONZ_DECLARE_MAKE_WIDGET(make_spinbox);
-TOONZ_DECLARE_MAKE_WIDGET(make_checkbox);
-TOONZ_DECLARE_MAKE_WIDGET(make_radiobutton);
-TOONZ_DECLARE_MAKE_WIDGET(make_combobox);
+flare_DECLARE_MAKE_WIDGET(make_lineedit);
+flare_DECLARE_MAKE_WIDGET(make_slider);
+flare_DECLARE_MAKE_WIDGET(make_spinbox);
+flare_DECLARE_MAKE_WIDGET(make_checkbox);
+flare_DECLARE_MAKE_WIDGET(make_radiobutton);
+flare_DECLARE_MAKE_WIDGET(make_combobox);
 
 #ifdef __cplusplus
 }
 #endif
 
 #endif  // PARAMFIELD_H
+

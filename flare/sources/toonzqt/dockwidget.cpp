@@ -1,7 +1,7 @@
 
 
 // TnzQt includes
-#include "toonzqt/menubarcommand.h"
+#include "flareqt/menubarcommand.h"
 #include "docklayout.h"
 
 // Qt includes
@@ -119,7 +119,7 @@ DockWidget::DockWidget(QWidget *parent, Qt::WindowFlags flags)
   // setAutoFillBackground(true);
   // setBackgroundRole(QPalette::Background);
 
-  // setAttribute(Qt::WA_DeleteOnClose);   //Since Toonz just hides panels...
+  // setAttribute(Qt::WA_DeleteOnClose);   //Since flare just hides panels...
   setAttribute(Qt::WA_Hover);
 
   // Set default minimum and maximum sizes.
@@ -982,3 +982,4 @@ void getClosestAvailableMousePosition(QPoint &globalPos) {
 }
 
 }  // namespace
+

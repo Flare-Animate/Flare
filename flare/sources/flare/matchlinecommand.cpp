@@ -6,20 +6,20 @@
 #include "tpalette.h"
 
 // TnzLib includes
-#include "toonz/txsheet.h"
-#include "toonz/toonzscene.h"
-#include "toonz/txshcell.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/levelset.h"
-#include "toonz/hook.h"
-#include "toonz/levelproperties.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/txshleveltypes.h"
+#include "flare/txsheet.h"
+#include "flare/flarescene.h"
+#include "flare/txshcell.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/levelset.h"
+#include "flare/hook.h"
+#include "flare/levelproperties.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/tscenehandle.h"
+#include "flare/txshleveltypes.h"
 
 // TnzQt includes
-#include "toonzqt/menubarcommand.h"
+#include "flareqt/menubarcommand.h"
 
 // Tnz6 includes
 #include "tapp.h"
@@ -215,7 +215,7 @@ bool checkColumnValidity(int column) {
 
     if (cell[i].getSimpleLevel()->getType() != TZP_XSHLEVEL) {
       DVGui::warning(QObject::tr(
-          "Match lines can be applied to Toonz raster levels only."));
+          "Match lines can be applied to flare raster levels only."));
       return false;
     }
     if (level != cell[i].getSimpleLevel()) {
@@ -264,7 +264,7 @@ public:
 
   void undo() const override {
     TApp *app         = TApp::instance();
-    ToonzScene *scene = app->getCurrentScene()->getScene();
+    flareScene *scene = app->getCurrentScene()->getScene();
     TXsheet *xsh      = scene->getXsheet();
     int i;
     for (i = m_range.getColCount(); i > 0; i--) {
@@ -304,7 +304,7 @@ void doCloneLevelNoSave(const TCellSelection::Range &range,
 
   TApp *app         = TApp::instance();
   TXsheet *xsh      = app->getCurrentXsheet()->getXsheet();
-  ToonzScene *scene = app->getCurrentScene()->getScene();
+  flareScene *scene = app->getCurrentScene()->getScene();
 
   // Build indices of inserted columns
   std::set<int> insertedColumnIndices;
@@ -582,7 +582,7 @@ void doDeleteCommand(bool isMatchline) {
     }
     if (cell.m_level->getType() != TZP_XSHLEVEL) {
       DVGui::warning(QObject::tr(
-          "Match lines can be deleted from Toonz raster levels only"));
+          "Match lines can be deleted from flare raster levels only"));
       return;
     }
   }
@@ -623,3 +623,4 @@ public:
   void execute() override { doDeleteCommand(true); }
 
 } DeleteMatchlinesCommand;
+

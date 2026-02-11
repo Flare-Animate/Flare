@@ -1,30 +1,30 @@
 
 
-#include "toonz/scriptbinding.h"
+#include "flare/scriptbinding.h"
 
 // TnzLib includes
-#include "toonz/scriptbinding_scene.h"
-#include "toonz/scriptbinding_image.h"
-#include "toonz/scriptbinding_level.h"
-#include "toonz/scriptbinding_files.h"
-#include "toonz/scriptbinding_renderer.h"
-#include "toonz/scriptbinding_outline_vectorizer.h"
-#include "toonz/scriptbinding_centerline_vectorizer.h"
-#include "toonz/scriptbinding_rasterizer.h"
-#include "toonz/scriptbinding_toonz_raster_converter.h"
-#include "toonz/scriptbinding_image_builder.h"
-#include "toonz/tcenterlinevectorizer.h"
-#include "toonz/tcamera.h"
-#include "toonz/stage.h"
-#include "toonz/txshleveltypes.h"
-#include "toonz/levelproperties.h"
-#include "toonz/toonzscene.h"
+#include "flare/scriptbinding_scene.h"
+#include "flare/scriptbinding_image.h"
+#include "flare/scriptbinding_level.h"
+#include "flare/scriptbinding_files.h"
+#include "flare/scriptbinding_renderer.h"
+#include "flare/scriptbinding_outline_vectorizer.h"
+#include "flare/scriptbinding_centerline_vectorizer.h"
+#include "flare/scriptbinding_rasterizer.h"
+#include "flare/scriptbinding_flare_raster_converter.h"
+#include "flare/scriptbinding_image_builder.h"
+#include "flare/tcenterlinevectorizer.h"
+#include "flare/tcamera.h"
+#include "flare/stage.h"
+#include "flare/txshleveltypes.h"
+#include "flare/levelproperties.h"
+#include "flare/flarescene.h"
 
 // TnzBase includes
 #include "tlevel.h"
 #include "trop.h"
 #include "trasterimage.h"
-#include "ttoonzimage.h"
+#include "tflareimage.h"
 #include "tvectorimage.h"
 #include "tpalette.h"
 #include "tvectorrenderdata.h"
@@ -152,12 +152,12 @@ public:
 
 static void setupStaticMethods(QScriptEngine &engine) {
   // Setup static methods for classes if needed
-  // Example: ToonzRasterConverter::convert
+  // Example: flareRasterConverter::convert
   QScriptValue convertFunc = engine.newFunction(
-      StaticMethodWrapper<ToonzRasterConverter,
-                          &ToonzRasterConverter::convert>::wrap);
+      StaticMethodWrapper<flareRasterConverter,
+                          &flareRasterConverter::convert>::wrap);
   engine.globalObject()
-      .property("ToonzRasterConverter")
+      .property("flareRasterConverter")
       .setProperty("convert", convertFunc);
 }
 
@@ -171,7 +171,7 @@ void bindAll(QScriptEngine &engine) {
   bindClass<OutlineVectorizer>(engine, "OutlineVectorizer");
   bindClass<CenterlineVectorizer>(engine, "CenterlineVectorizer");
   bindClass<Rasterizer>(engine, "Rasterizer");
-  bindClass<ToonzRasterConverter>(engine, "ToonzRasterConverter");
+  bindClass<flareRasterConverter>(engine, "flareRasterConverter");
   bindClass<FilePath>(engine, "FilePath");
   bindClass<Renderer>(engine, "Renderer");
 
@@ -182,10 +182,10 @@ void bindAll(QScriptEngine &engine) {
   qScriptRegisterQObjectMetaType<TScriptBinding::Image *>(&engine);
 
   // Set version information in the script environment
-  engine.evaluate("ToonzVersion='7.1'");
+  engine.evaluate("flareVersion='7.1'");
 
   // Additional global script setup could go here
-  // Example: engine.evaluate("toonz={version:'7.0'}; script={version:'1.0'};");
+  // Example: engine.evaluate("flare={version:'7.0'}; script={version:'1.0'};");
   // engine.globalObject().setProperty("dir","C:\\Users\\gmt\\GMT to
   // vectorize\\");
   // QScriptValue test = engine.evaluate("function() { print('ok');
@@ -194,3 +194,4 @@ void bindAll(QScriptEngine &engine) {
 }
 
 }  // namespace TScriptBinding
+

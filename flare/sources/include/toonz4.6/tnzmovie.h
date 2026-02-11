@@ -13,7 +13,7 @@ and IRIX(movieplayer, moviemaker) platform.
 The .mov created are cross-platform
 **************************************************************/
 
-#include "toonz4.6/toonz.h"
+#include "flare4.6/flare.h"
 #include "tsound.h"
 
 #undef TNZAPI
@@ -145,3 +145,4 @@ TNZAPI TBOOL tm_add_audio_track(TNZMOVIE movie, char *audiofullpathname,
 TNZAPI TBOOL tm_close(TNZMOVIE movie);
 
 #endif
+

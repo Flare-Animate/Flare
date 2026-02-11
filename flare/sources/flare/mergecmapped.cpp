@@ -1,26 +1,26 @@
 #include "tapp.h"
 #include "tpalette.h"
-#include "toonz/txsheet.h"
-#include "toonz/toonzscene.h"
-#include "toonz/levelset.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/txshlevelcolumn.h"
-#include "toonz/txshcell.h"
+#include "flare/txsheet.h"
+#include "flare/flarescene.h"
+#include "flare/levelset.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/txshlevelcolumn.h"
+#include "flare/txshcell.h"
 // #include "tw/action.h"
 #include "tropcm.h"
-#include "ttoonzimage.h"
+#include "tflareimage.h"
 #include "matchline.h"
-#include "toonz/scenefx.h"
-#include "toonz/dpiscale.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/palettecontroller.h"
-#include "toonz/tpalettehandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/txshleveltypes.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/tframehandle.h"
-#include "toonz/preferences.h"
-#include "toonzqt/icongenerator.h"
+#include "flare/scenefx.h"
+#include "flare/dpiscale.h"
+#include "flare/txsheethandle.h"
+#include "flare/palettecontroller.h"
+#include "flare/tpalettehandle.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/txshleveltypes.h"
+#include "flare/tscenehandle.h"
+#include "flare/tframehandle.h"
+#include "flare/preferences.h"
+#include "flareqt/icongenerator.h"
 #include <map>
 #include <QRadioButton>
 #include <QPushButton>
@@ -29,9 +29,9 @@
 #include "tools/toolutils.h"
 #include "timagecache.h"
 #include "tcolorstyles.h"
-#include "toonz/levelproperties.h"
-#include "toonz/childstack.h"
-#include "toonz/toonzimageutils.h"
+#include "flare/levelproperties.h"
+#include "flare/childstack.h"
+#include "flare/flareimageutils.h"
 #include "tpaletteutil.h"
 
 #include <algorithm>
@@ -67,17 +67,17 @@ void mergeCmapped(const std::vector<MergeCmappedPair> &matchingLevels) {
 
   int i = 0;
   for (i = 0; i < (int)matchingLevels.size(); i++) {
-    TToonzImageP img = (TToonzImageP)matchingLevels[i].m_cell->getImage(true);
-    TToonzImageP match =
-        (TToonzImageP)matchingLevels[i].m_mcell->getImage(false);
+    TflareImageP img = (TflareImageP)matchingLevels[i].m_cell->getImage(true);
+    TflareImageP match =
+        (TflareImageP)matchingLevels[i].m_mcell->getImage(false);
     if (!img || !match)
       throw TRopException("Can merge only cmapped raster images!");
 
     std::set<int> usedStyles;
-    ToonzImageUtils::getUsedStyles(usedStyles, match);
+    flareImageUtils::getUsedStyles(usedStyles, match);
     std::map<int, int> indexTable;
     mergePalette(palette, indexTable, matchPalette, usedStyles);
-    ToonzImageUtils::scrambleStyles(match, indexTable);
+    flareImageUtils::scrambleStyles(match, indexTable);
     match->setPalette(palette);
     matchPalette = palette;
 
@@ -197,7 +197,7 @@ void applyDeleteMatchline(TXshSimpleLevel *sl,
 
   for (i = 0; i < (int)fids.size(); i++) {
     // level[i]->lock();
-    TToonzImageP image = sl->getFrame(fids[i], true);
+    TflareImageP image = sl->getFrame(fids[i], true);
     assert(image);
     TRasterCM32P ras = image->getRaster();  // level[i]->getCMapped(false);
     ras->lock();
@@ -249,7 +249,7 @@ public:
     for (i = 0; i < fids.size(); i++) {
       QString id = "DeleteMatchlineUndo" + QString::number((uintptr_t)this) +
                    "-" + QString::number(i);
-      TToonzImageP image = sl->getFrame(fids[i], false);
+      TflareImageP image = sl->getFrame(fids[i], false);
       assert(image);
       TImageCache::instance()->add(id, image->clone());
     }
@@ -310,13 +310,13 @@ public:
   DeleteLevelUndo(TXshLevel *xl) : m_xl(xl) {}
 
   void undo() const {
-                ToonzScene *scene =
+                flareScene *scene =
 TApp::instance()->getCurrentScene()->getScene();
     scene->getLevelSet()->insertLevel(m_xl.getPointer());
                 TApp::instance()->getCurrentScene()->notifyCastChange();
   }
   void redo() const {
-                ToonzScene *scene =
+                flareScene *scene =
 TApp::instance()->getCurrentScene()->getScene();
     scene->getLevelSet()->removeLevel(m_xl.getPointer());
     TApp::instance()->getCurrentScene()->notifyCastChange();
@@ -332,7 +332,7 @@ TApp::instance()->getCurrentScene()->getScene();
 
 static bool removeLevel(TXshLevel *level) {
   TApp *app         = TApp::instance();
-  ToonzScene *scene = app->getCurrentScene()->getScene();
+  flareScene *scene = app->getCurrentScene()->getScene();
   // if(scene->getChildStack()->getTopXsheet()->isLevelUsed(level))
   //	DVGui::error(QObject::tr("It is not possible to delete the used level
   //%1.").arg(QString::fromStdWString(level->getName())));//"E_CantDeleteUsedLevel_%1"
@@ -479,7 +479,7 @@ void mergeCmapped(int column, int mColumn, const QString &fullpath,
   double dpix = 0, dpiy = 0;
   for (int i = 0; i < (int)cell.size(); i++) {
     if (!cell[i].isEmpty() && dpix == 0)
-      ((TToonzImageP)(cell[i].getImage(false)))->getDpi(dpix, dpiy);
+      ((TflareImageP)(cell[i].getImage(false)))->getDpi(dpix, dpiy);
 
     if (!level) {
       level = cell[i].getSimpleLevel();
@@ -531,13 +531,13 @@ void mergeCmapped(int column, int mColumn, const QString &fullpath,
 
     TFrameId newFid(++count);  // level->getLastFid().getNumber()+1);
     TDimension dim = level->getResolution();
-    TToonzImageP newImage;
+    TflareImageP newImage;
     if (cell[i].isEmpty()) {
       newImage =
-          TToonzImageP(TRasterCM32P(dim), TRect(0, 0, dim.lx - 1, dim.ly - 1));
+          TflareImageP(TRasterCM32P(dim), TRect(0, 0, dim.lx - 1, dim.ly - 1));
       newImage->setDpi(dpix, dpiy);
     } else
-      newImage = (TToonzImageP)(cell[i].getImage(false)->cloneImage());
+      newImage = (TflareImageP)(cell[i].getImage(false)->cloneImage());
 
     newImage->setPalette(level->getPalette());
 
@@ -555,8 +555,8 @@ void mergeCmapped(int column, int mColumn, const QString &fullpath,
 
     if (!img || !match) continue;
 
-    TToonzImageP timg   = (TToonzImageP)img;
-    TToonzImageP tmatch = (TToonzImageP)match;
+    TflareImageP timg   = (TflareImageP)img;
+    TflareImageP tmatch = (TflareImageP)match;
 
     QString id = "MergeCmappedUndo" + QString::number(MergeCmappedSessionId) +
                  "-" + QString::number(fid.getNumber());
@@ -684,3 +684,4 @@ std::vector<int> string2Indexes(const QString &values) {
 }  // namespace
 
 //-----------------------------------------------------------------------------
+

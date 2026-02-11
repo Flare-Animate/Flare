@@ -6,10 +6,10 @@
 // tnzcore includes
 #include "traster.h"
 
-// toonzQt includes
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/planeviewer.h"
-#include "toonzqt/marksbar.h"
+// flareQt includes
+#include "flareqt/dvdialog.h"
+#include "flareqt/planeviewer.h"
+#include "flareqt/marksbar.h"
 
 class Histogram;
 namespace DVGui {
@@ -102,3 +102,4 @@ protected slots:
 };
 
 #endif  // ADJUST_LEVELS_POPUP_H
+

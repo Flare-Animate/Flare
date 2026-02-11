@@ -9,25 +9,25 @@
 #include "bluredbrush.h"
 
 // TnzQt includes
-#include "toonzqt/icongenerator.h"
+#include "flareqt/icongenerator.h"
 
 // TnzLib includes
-#include "toonz/strokegenerator.h"
-#include "toonz/ttilesaver.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/observer.h"
-#include "toonz/toonzimageutils.h"
-#include "toonz/levelproperties.h"
-#include "toonz/stage2.h"
-#include "toonz/ttileset.h"
-#include "toonz/rasterstrokegenerator.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/tframehandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/tpalettehandle.h"
-#include "toonz/tobjecthandle.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/preferences.h"
+#include "flare/strokegenerator.h"
+#include "flare/ttilesaver.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/observer.h"
+#include "flare/flareimageutils.h"
+#include "flare/levelproperties.h"
+#include "flare/stage2.h"
+#include "flare/ttileset.h"
+#include "flare/rasterstrokegenerator.h"
+#include "flare/txsheethandle.h"
+#include "flare/tframehandle.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/tpalettehandle.h"
+#include "flare/tobjecthandle.h"
+#include "flare/tcolumnhandle.h"
+#include "flare/preferences.h"
 
 // TnzBase includes
 #include "tenv.h"
@@ -39,7 +39,7 @@
 #include "tcolorstyles.h"
 #include "tundo.h"
 #include "tvectorimage.h"
-#include "ttoonzimage.h"
+#include "tflareimage.h"
 #include "tproperty.h"
 #include "tgl.h"
 #include "trop.h"
@@ -110,12 +110,12 @@ public:
   }
 
   void redo() const override {
-    TToonzImageP ti = getImage();
+    TflareImageP ti = getImage();
     if (!ti) return;
     bool eraseInk   = m_colorType == LINES || m_colorType == ALL;
     bool erasePaint = m_colorType == AREAS || m_colorType == ALL;
     if (m_eraseType == RECTERASE) {
-      TRect rect = ToonzImageUtils::eraseRect(ti, m_modifyArea, m_styleId,
+      TRect rect = flareImageUtils::eraseRect(ti, m_modifyArea, m_styleId,
                                               eraseInk, erasePaint);
       if (!rect.isEmpty()) ToolUtils::updateSaveBox(m_level, m_frameId);
 
@@ -125,7 +125,7 @@ public:
         TRaster32P ras = convertStrokeToImage(
             m_stroke, ti->getRaster()->getBounds(), pos, m_pencilMode);
         if (!ras) return;
-        ToonzImageUtils::eraseImage(ti, ras, pos, m_invert, eraseInk,
+        flareImageUtils::eraseImage(ti, ras, pos, m_invert, eraseInk,
                                     erasePaint, m_selective, m_styleId);
         ToolUtils::updateSaveBox(m_level, m_frameId);
       }
@@ -175,7 +175,7 @@ public:
       , m_isPencil(isPencil) {}
 
   void redo() const override {
-    TToonzImageP image = m_level->getFrame(m_frameId, true);
+    TflareImageP image = m_level->getFrame(m_frameId, true);
     TRasterCM32P ras   = image->getRaster();
     RasterStrokeGenerator m_rasterTrack(ras, ERASE, m_colorType, 0, m_points[0],
                                         m_selective, m_colorSelected, false,
@@ -223,7 +223,7 @@ public:
 
   void redo() const override {
     if (m_points.size() == 0) return;
-    TToonzImageP image     = getImage();
+    TflareImageP image     = getImage();
     TRasterCM32P ras       = image->getRaster();
     TRasterCM32P backupRas = ras->clone();
     TRaster32P workRaster(ras->getSize());
@@ -268,7 +268,7 @@ public:
   int getHistoryType() override { return HistoryType::EraserTool; }
 };
 
-void eraseStroke(const TToonzImageP &ti, TStroke *stroke,
+void eraseStroke(const TflareImageP &ti, TStroke *stroke,
                  std::wstring eraseType, std::wstring colorType, bool invert,
                  bool selective, bool pencil, int styleId,
                  const TXshSimpleLevelP &level, const TFrameId &frameId) {
@@ -292,7 +292,7 @@ void eraseStroke(const TToonzImageP &ti, TStroke *stroke,
       colorType, level.getPointer(), selective, invert, pencil, frameId));
   bool eraseInk   = colorType == LINES || colorType == ALL;
   bool erasePaint = colorType == AREAS || colorType == ALL;
-  ToonzImageUtils::eraseImage(ti, image, pos, invert, eraseInk, erasePaint,
+  flareImageUtils::eraseImage(ti, image, pos, invert, eraseInk, erasePaint,
                               selective, styleId);
 }
 
@@ -460,9 +460,9 @@ public:
 
   void draw() override;
 
-  void update(const TToonzImageP &ti, const TPointD &pos);
+  void update(const TflareImageP &ti, const TPointD &pos);
   void saveUndo();
-  void update(const TToonzImageP &ti, TRectD selArea,
+  void update(const TflareImageP &ti, TRectD selArea,
               const TXshSimpleLevelP &level, bool multi = false,
               const TFrameId &frameId = -1);
 
@@ -595,7 +595,7 @@ EraserTool::EraserTool(std::string name)
     , m_firstTime(true)
     , m_workingFrameId(TFrameId())
     , m_isLeftButtonPressed(false) {
-  bind(TTool::ToonzImage);
+  bind(TTool::flareImage);
 
   m_toolSize.setNonLinearSlider();
 
@@ -702,16 +702,16 @@ void EraserTool::draw() {
     // If toggled off, don't draw brush outline
     if (!Preferences::instance()->isCursorOutlineEnabled()) return;
 
-    TToonzImageP image(img);
+    TflareImageP image(img);
     TRasterP ras = image->getRaster();
     int lx       = ras->getLx();
     int ly       = ras->getLy();
 
     /*-- InkCheck, PaintCheck, Ink#1CheckがONのときは、BrushTipの描画色を変える
      * --*/
-    if ((ToonzCheck::instance()->getChecks() & ToonzCheck::eInk) ||
-        (ToonzCheck::instance()->getChecks() & ToonzCheck::ePaint) ||
-        (ToonzCheck::instance()->getChecks() & ToonzCheck::eInk1))
+    if ((flareCheck::instance()->getChecks() & flareCheck::eInk) ||
+        (flareCheck::instance()->getChecks() & flareCheck::ePaint) ||
+        (flareCheck::instance()->getChecks() & flareCheck::eInk1))
       glColor3d(0.5, 0.8, 0.8);
     else
       glColor3d(1.0, 0.0, 0.0);
@@ -735,7 +735,7 @@ void EraserTool::draw() {
     tglVertex(m_mousePos);
     glEnd();
   } else if (m_eraseType.getValue() == FREEHANDERASE && !m_track.isEmpty()) {
-    TPixel color = ToonzCheck::instance()->getChecks() & ToonzCheck::eBlackBg
+    TPixel color = flareCheck::instance()->getChecks() & flareCheck::eBlackBg
                        ? TPixel32::White
                        : TPixel32::Black;
     tglColor(color);
@@ -767,7 +767,7 @@ int EraserTool::getCursorId() const {
   else if (m_colorType.getValue() == AREAS)
     ret = ret | ToolCursor::Ex_Area;
 
-  if (ToonzCheck::instance()->getChecks() & ToonzCheck::eBlackBg)
+  if (flareCheck::instance()->getChecks() & flareCheck::eBlackBg)
     ret = ret | ToolCursor::Ex_Negate;
   return ret;
 }
@@ -822,7 +822,7 @@ void EraserTool::multiUpdate(const TXshSimpleLevelP &level, TFrameId firstFid,
   for (int i = 0; i < m; ++i) {
     TFrameId fid = fids[i];
     assert(firstFid <= fid && fid <= lastFid);
-    TToonzImageP ti = level->getFrame(fid, true);
+    TflareImageP ti = level->getFrame(fid, true);
     if (!ti) continue;
     /*--補間の係数を取得 --*/
     double t = m > 1 ? (double)i / (double)(m - 1) : 0.5;
@@ -858,7 +858,7 @@ void EraserTool::multiUpdate(const TXshSimpleLevelP &level, TFrameId firstFid,
 
 //----------------------------------------------------------------------
 
-void EraserTool::update(const TToonzImageP &ti, TRectD selArea,
+void EraserTool::update(const TflareImageP &ti, TRectD selArea,
                         const TXshSimpleLevelP &level, bool multi,
                         const TFrameId &frameId) {
   if (m_selectingRect.x0 > m_selectingRect.x1) {
@@ -875,7 +875,7 @@ void EraserTool::update(const TToonzImageP &ti, TRectD selArea,
 
   TRasterCM32P raster   = ti->getRaster();
   TTileSetCM32 *tileSet = new TTileSetCM32(raster->getSize());
-  tileSet->add(raster, ToonzImageUtils::convertWorldToRaster(selArea, ti));
+  tileSet->add(raster, flareImageUtils::convertWorldToRaster(selArea, ti));
   TUndo *undo;
 
   std::wstring inkPaint = m_colorType.getValue();
@@ -884,7 +884,7 @@ void EraserTool::update(const TToonzImageP &ti, TRectD selArea,
       m_eraseType.getValue(), inkPaint, level.getPointer(), selective,
       m_invertOption.getValue(), m_pencil.getValue(), frameId);
 
-  ToonzImageUtils::eraseRect(ti, selArea, selective ? styleId : -1,
+  flareImageUtils::eraseRect(ti, selArea, selective ? styleId : -1,
                              inkPaint == LINES || inkPaint == ALL,
                              inkPaint == AREAS || inkPaint == ALL);
 
@@ -898,7 +898,7 @@ void EraserTool::leftButtonDown(const TPointD &pos, const TMouseEvent &e) {
   TImageP image(getImage(true));
 
   TRectD invalidateRect;
-  if (TToonzImageP ti = image) {
+  if (TflareImageP ti = image) {
     if (m_eraseType.getValue() == RECTERASE) {
       if (m_multi.getValue() && m_firstRect.isEmpty()) {
         invalidateRect = m_selectingRect;
@@ -1013,7 +1013,7 @@ void EraserTool::leftButtonDrag(const TPointD &pos, const TMouseEvent &e) {
 
   TImageP image(getImage(true));
 
-  if (TToonzImageP ti = image) {
+  if (TflareImageP ti = image) {
     TRectD invalidateRect;
     TPointD rasCenter = ti->getRaster()->getCenterD();
     if (m_eraseType.getValue() == RECTERASE) {
@@ -1149,7 +1149,7 @@ void EraserTool::leftButtonUp(const TPointD &pos, const TMouseEvent &e) {
 
   if (!m_selecting) return;
   TImageP image(getImage(true));
-  if (TToonzImageP ti = image) {
+  if (TflareImageP ti = image) {
     if (m_eraseType.getValue() == RECTERASE) {
       if (m_selectingRect.x0 > m_selectingRect.x1)
         std::swap(m_selectingRect.x1, m_selectingRect.x0);
@@ -1185,9 +1185,9 @@ void EraserTool::leftButtonUp(const TPointD &pos, const TMouseEvent &e) {
         if (m_invertOption.getValue()) {
           TUndoManager::manager()->beginBlock();
           TRectD rect      = m_selectingRect;
-          TRectD worldBBox = ToonzImageUtils::convertRasterToWorld(
+          TRectD worldBBox = flareImageUtils::convertRasterToWorld(
               ti->getRaster()->getBounds(), ti);
-          rect *= ToonzImageUtils::convertRasterToWorld(ti->getSavebox(), ti);
+          rect *= flareImageUtils::convertRasterToWorld(ti->getSavebox(), ti);
 
           TRectD rect01 =
               TRectD(worldBBox.getP00(), TPointD(rect.x0, worldBBox.y1));
@@ -1412,7 +1412,7 @@ void EraserTool::leftButtonDoubleClick(const TPointD &pos,
     TXshLevel *level          = app->getCurrentLevel()->getLevel();
     TXshSimpleLevelP simLevel = level->getSimpleLevel();
     TFrameId frameId          = getFrameId();
-    TToonzImageP ti           = (TToonzImageP)getImage(true);
+    TflareImageP ti           = (TflareImageP)getImage(true);
     eraseStroke(ti, stroke, m_eraseType.getValue(), m_colorType.getValue(),
                 m_invertOption.getValue(), m_currentStyle.getValue(),
                 m_pencil.getValue(), styleId, simLevel, frameId);
@@ -1532,7 +1532,7 @@ void EraserTool::mouseMove(const TPointD &pos, const TMouseEvent &e) {
 //----------------------------------------------------------------------
 
 void EraserTool::onEnter() {
-  TToonzImageP ti(getImage(false));
+  TflareImageP ti(getImage(false));
   if (!ti) return;
   if (m_firstTime) {
     m_toolSize.setValue(EraseSize);
@@ -1737,3 +1737,4 @@ bool EraserTool::isPencilModeActive() {
 }
 
 }  // namespace
+

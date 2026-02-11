@@ -1,34 +1,34 @@
 
 
-#include "toonzqt/fxschematicscene.h"
+#include "flareqt/fxschematicscene.h"
 
 // TnzQt includes
-#include "toonzqt/fxtypes.h"
-#include "toonzqt/fxschematicnode.h"
-#include "toonzqt/gutil.h"
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/fxselection.h"
-#include "toonzqt/schematicgroupeditor.h"
-#include "toonzqt/swatchviewer.h"
-#include "toonzqt/tselectionhandle.h"
+#include "flareqt/fxtypes.h"
+#include "flareqt/fxschematicnode.h"
+#include "flareqt/gutil.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/fxselection.h"
+#include "flareqt/schematicgroupeditor.h"
+#include "flareqt/swatchviewer.h"
+#include "flareqt/tselectionhandle.h"
 
 // TnzLib includes
-#include "toonz/txsheet.h"
-#include "toonz/toonzscene.h"
-#include "toonz/tcolumnfxset.h"
-#include "toonz/fxdag.h"
-#include "toonz/txshlevelcolumn.h"
-#include "toonz/tcolumnfx.h"
-#include "toonz/txshpalettecolumn.h"
-#include "toonz/txshzeraryfxcolumn.h"
-#include "toonz/fxcommand.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/tfxhandle.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/tframehandle.h"
-#include "toonz/tobjecthandle.h"
-#include "toonz/childstack.h"
+#include "flare/txsheet.h"
+#include "flare/flarescene.h"
+#include "flare/tcolumnfxset.h"
+#include "flare/fxdag.h"
+#include "flare/txshlevelcolumn.h"
+#include "flare/tcolumnfx.h"
+#include "flare/txshpalettecolumn.h"
+#include "flare/txshzeraryfxcolumn.h"
+#include "flare/fxcommand.h"
+#include "flare/txsheethandle.h"
+#include "flare/tfxhandle.h"
+#include "flare/tscenehandle.h"
+#include "flare/tcolumnhandle.h"
+#include "flare/tframehandle.h"
+#include "flare/tobjecthandle.h"
+#include "flare/childstack.h"
 
 // TnzBase includes
 #include "tmacrofx.h"
@@ -1008,7 +1008,7 @@ void FxSchematicScene::contextMenuEvent(QGraphicsSceneContextMenuEvent *cme) {
   if (addOutputFx) menu.addAction(addOutputFx);
 
   // Close sub xsheet and move to parent sheet
-  ToonzScene *scene      = getXsheet()->getScene();
+  flareScene *scene      = getXsheet()->getScene();
   ChildStack *childStack = scene->getChildStack();
   if (childStack && childStack->getAncestorCount() > 0) {
     menu.addSeparator();

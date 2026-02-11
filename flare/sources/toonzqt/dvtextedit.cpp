@@ -1,7 +1,7 @@
 
 
-#include "toonzqt/dvtextedit.h"
-#include "toonzqt/gutil.h"
+#include "flareqt/dvtextedit.h"
+#include "flareqt/gutil.h"
 
 #include <QLabel>
 #include <QLineEdit>
@@ -16,7 +16,7 @@
 #include <QComboBox>
 #include <QFontDatabase>
 
-#include "toonzqt/colorfield.h"
+#include "flareqt/colorfield.h"
 
 namespace {
 
@@ -454,3 +454,4 @@ void DvTextEdit::onSelectionChanged() {
 }
 
 //-----------------------------------------------------------------------------
+

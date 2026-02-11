@@ -1,9 +1,9 @@
 
 
-#include "toonzqt/dvscrollwidget.h"
+#include "flareqt/dvscrollwidget.h"
 
 // TnzQt includes
-#include "toonzqt/freelayout.h"
+#include "flareqt/freelayout.h"
 
 // Qt includes
 #include <QLayout>
@@ -420,3 +420,4 @@ void DvScrollWidget::scrollForward() {
 
   m_heldClick = false;
 }
+

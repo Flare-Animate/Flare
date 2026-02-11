@@ -3,7 +3,7 @@
 #ifndef SCREEN_PICKER_H
 #define SCREEN_PICKER_H
 
-#include "toonzqt/screenboard.h"
+#include "flareqt/screenboard.h"
 
 #include <QWidget>
 
@@ -38,3 +38,4 @@ public slots:
 };
 
 #endif  // SCREEN_PICKER_H
+

@@ -3,11 +3,11 @@
 #ifndef SCRIPTBINDING_LEVEL_H
 #define SCRIPTBINDING_LEVEL_H
 
-#include "toonz/scriptbinding.h"
-#include "toonz/scriptbinding_image.h"
+#include "flare/scriptbinding.h"
+#include "flare/scriptbinding_image.h"
 
 // Forward declarations
-class ToonzScene;
+class flareScene;
 class TXshSimpleLevel;
 class TFrameId;
 
@@ -17,7 +17,7 @@ class DVAPI Level final : public Wrapper {
   Q_OBJECT
 
   TXshSimpleLevel *m_sl;
-  ToonzScene *m_scene;
+  flareScene *m_scene;
   bool m_sceneOwner;
   int m_type;
 
@@ -76,3 +76,4 @@ private:
 Q_DECLARE_METATYPE(TScriptBinding::Level *)
 
 #endif  // SCRIPTBINDING_LEVEL_H
+

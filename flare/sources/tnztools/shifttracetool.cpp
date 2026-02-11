@@ -1,28 +1,28 @@
 
 
 #include "shifttracetool.h"
-#include "toonz/onionskinmask.h"
-#include "toonz/tonionskinmaskhandle.h"
+#include "flare/onionskinmask.h"
+#include "flare/tonionskinmaskhandle.h"
 #include "tools/cursors.h"
 #include "timage.h"
 #include "trasterimage.h"
-#include "ttoonzimage.h"
+#include "tflareimage.h"
 #include "tvectorimage.h"
-#include "toonz/txsheet.h"
-#include "toonz/txshcell.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/tframehandle.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/txshlevelhandle.h"
+#include "flare/txsheet.h"
+#include "flare/txshcell.h"
+#include "flare/txsheethandle.h"
+#include "flare/tframehandle.h"
+#include "flare/tcolumnhandle.h"
+#include "flare/txshlevelhandle.h"
 #include "tools/toolhandle.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/dpiscale.h"
-#include "toonz/stage.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/dpiscale.h"
+#include "flare/stage.h"
 #include "tpixel.h"
-#include "toonzqt/menubarcommand.h"
+#include "flareqt/menubarcommand.h"
 
-#include "toonz/preferences.h"
-#include "toonzqt/gutil.h"
+#include "flare/preferences.h"
+#include "flareqt/gutil.h"
 
 #include "tgl.h"
 #include <math.h>
@@ -108,7 +108,7 @@ void ShiftTraceTool::updateBox() {
       TRasterP ras = ri->getRaster();
       m_box        = (convert(ras->getBounds()) - ras->getCenterD()) *
               ri->getSubsampling();
-    } else if (TToonzImageP ti = img) {
+    } else if (TflareImageP ti = img) {
       TRasterP ras = ti->getRaster();
       m_box        = (convert(ras->getBounds()) - ras->getCenterD()) *
               ti->getSubsampling();
@@ -617,3 +617,4 @@ void ShiftTraceTool::setCurrentGhostIndex(int index) {
 }
 
 ShiftTraceTool shiftTraceTool;
+

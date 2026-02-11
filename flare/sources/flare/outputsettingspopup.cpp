@@ -11,22 +11,22 @@
 #include "boardsettingspopup.h"
 
 // TnzQt includes
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/gutil.h"
-#include "toonzqt/filefield.h"
-#include "toonzqt/doublefield.h"
-#include "toonzqt/checkbox.h"
+#include "flareqt/menubarcommand.h"
+#include "flareqt/gutil.h"
+#include "flareqt/filefield.h"
+#include "flareqt/doublefield.h"
+#include "flareqt/checkbox.h"
 
 // TnzLib includes
-#include "toonz/tscenehandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/toonzscene.h"
-#include "toonz/txsheet.h"
-#include "toonz/tstageobjecttree.h"
-#include "toonz/preferences.h"
+#include "flare/tscenehandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/flarescene.h"
+#include "flare/txsheet.h"
+#include "flare/tstageobjecttree.h"
+#include "flare/preferences.h"
 #include "toutputproperties.h"
-#include "toonz/tcamera.h"
-#include "toonz/boardsettings.h"
+#include "flare/tcamera.h"
+#include "flare/boardsettings.h"
 
 // TnzBase includes
 #include "trasterfx.h"
@@ -824,10 +824,10 @@ QFrame *OutputSettingsPopup::createMoreSettingsBox() {
 }
 
 //-----------------------------------------------------------------------------
-/*! Return current \b ToonzScene scene.
+/*! Return current \b flareScene scene.
  */
-ToonzScene *OutputSettingsPopup::getCurrentScene() const {
-  ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
+flareScene *OutputSettingsPopup::getCurrentScene() const {
+  flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
   return scene;
 }
 
@@ -836,7 +836,7 @@ ToonzScene *OutputSettingsPopup::getCurrentScene() const {
                 current scene is not empty.
 */
 TOutputProperties *OutputSettingsPopup::getProperties() const {
-  ToonzScene *scene = getCurrentScene();
+  flareScene *scene = getCurrentScene();
   if (!scene) return 0;
 
   return m_isPreviewSettings ? scene->getProperties()->getPreviewProperties()
@@ -910,7 +910,7 @@ void OutputSettingsPopup::onRenderClicked() {
 /*!	Update all field value take care current scene output properties.
  */
 void OutputSettingsPopup::updateField() {
-  ToonzScene *scene       = getCurrentScene();
+  flareScene *scene       = getCurrentScene();
   TOutputProperties *prop = getProperties();
   if (!prop) {
     if (!m_isPreviewSettings) {
@@ -1113,7 +1113,7 @@ void OutputSettingsPopup::onPathChanged() {
 /*! Set current scene output name to new name modified in popup field.
  */
 void OutputSettingsPopup::onNameChanged() {
-  ToonzScene *scene = getCurrentScene();
+  flareScene *scene = getCurrentScene();
   if (!scene) return;
 
   QString name = m_fileNameFld->text();
@@ -1240,7 +1240,7 @@ void OutputSettingsPopup::openSettingsPopup() {
 /*! Set current scene output camera to camera set in popup field.
  */
 void OutputSettingsPopup::onCameraChanged(const QString &str) {
-  ToonzScene *scene = getCurrentScene();
+  flareScene *scene = getCurrentScene();
   if (!scene) return;
   TStageObjectTree *tree = scene->getXsheet()->getStageObjectTree();
   int cameraCount        = tree->getCameraCount();
@@ -1329,7 +1329,7 @@ void OutputSettingsPopup::onSyncColorSettingsChecked(int state) {
 //----------------------------------------------
 
 void OutputSettingsPopup::onFrameFldEditFinished() {
-  ToonzScene *scene = getCurrentScene();
+  flareScene *scene = getCurrentScene();
   if (!scene) return;
   TOutputProperties *prop = getProperties();
 
@@ -2035,3 +2035,4 @@ OpenPopupCommandHandler<OutputSettingsPopup> openOutputSettingsPopup(
     MI_OutputSettings);
 OpenPopupCommandHandler<PreviewSettingsPopup> openPreviewSettingsPopup(
     MI_PreviewSettings);
+

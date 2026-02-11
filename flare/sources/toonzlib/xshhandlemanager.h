@@ -3,14 +3,14 @@
 #ifndef XSHHANDLEMANAGER_INCLUDED
 #define XSHHANDLEMANAGER_INCLUDED
 
-#include "toonz/tstageobjecttree.h"
+#include "flare/tstageobjecttree.h"
 
 //===============================================================
 
 //    Forward declarations
 
 class TXsheet;
-class ToonzScene;
+class flareScene;
 
 //===============================================================
 
@@ -29,3 +29,4 @@ public:
 };
 
 #endif
+

@@ -1,29 +1,29 @@
 
 
-#include "toonz/palettecmd.h"
+#include "flare/palettecmd.h"
 
 // TnzLib includes
-#include "toonz/tpalettehandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/studiopalette.h"
-#include "toonz/txsheet.h"
-#include "toonz/txshcolumn.h"
-#include "toonz/txshcell.h"
-#include "toonz/txshlevelcolumn.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/cleanupcolorstyles.h"
-#include "toonz/txshlevel.h"
-#include "toonz/toonzscene.h"
-#include "toonz/toonzimageutils.h"
-#include "toonz/preferences.h"
+#include "flare/tpalettehandle.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/studiopalette.h"
+#include "flare/txsheet.h"
+#include "flare/txshcolumn.h"
+#include "flare/txshcell.h"
+#include "flare/txshlevelcolumn.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/cleanupcolorstyles.h"
+#include "flare/txshlevel.h"
+#include "flare/flarescene.h"
+#include "flare/flareimageutils.h"
+#include "flare/preferences.h"
 
 // TnzCore includes
 #include "tpalette.h"
 #include "tcolorstyles.h"
 #include "tundo.h"
 #include "tvectorimage.h"
-#include "ttoonzimage.h"
+#include "tflareimage.h"
 #include "trasterimage.h"
 #include "tconvert.h"
 #include "tcolorutils.h"
@@ -97,7 +97,7 @@ bool isStyleUsed(const TVectorImageP vi, int styleId) {
 
 //-------------------------------------------------------------------
 
-bool isStyleUsed(const TToonzImageP vi, int styleId) {
+bool isStyleUsed(const TflareImageP vi, int styleId) {
   TRasterCM32P ras = vi->getRaster();
   for (int y = 0; y < ras->getLy(); y++) {
     TPixelCM32 *pix = ras->pixels(y), *endPix = pix + ras->getLx();
@@ -126,7 +126,7 @@ bool areStylesUsed(const TImageP image, const std::vector<int> styleIds) {
 
 bool isStyleUsed(const TImageP image, int styleId) {
   TVectorImageP vi = image;
-  TToonzImageP ti  = image;
+  TflareImageP ti  = image;
   if (vi) return isStyleUsed(vi, styleId);
   if (ti) return isStyleUsed(ti, styleId);
   return false;
@@ -505,7 +505,7 @@ void eraseStylesInLevels(const std::set<TXshSimpleLevel *> &levels,
     for (i = 0; i < (int)fids.size(); i++) {
       TImageP image    = level->getFrame(fids[i], true);
       TVectorImageP vi = image;
-      TToonzImageP ti  = image;
+      TflareImageP ti  = image;
       if (vi)
         vi->eraseStyleIds(styleIds);
       else if (ti)
@@ -804,7 +804,7 @@ public:
 int loadRefImage(TPaletteHandle *paletteHandle,
                  const PaletteCmd::ColorModelLoadingConfiguration &config,
                  TPaletteP levelPalette, const TFilePath &_fp,
-                 ToonzScene *scene, const std::vector<int> &frames) {
+                 flareScene *scene, const std::vector<int> &frames) {
   TFilePath fp = scene->decodeFilePath(_fp);
 
   // enable to store multiple frames in the level
@@ -854,7 +854,7 @@ int loadRefImage(TPaletteHandle *paletteHandle,
             if (level->getPalette() != 0)
               img->setPalette(level->getPalette());
             else if ((fp.getType() == "tzp" || fp.getType() == "tzu"))
-              img->setPalette(ToonzImageUtils::loadTzPalette(
+              img->setPalette(flareImageUtils::loadTzPalette(
                   fp.withType("plt").withNoFrame()));
           }
           imgs.push_back(img);
@@ -987,7 +987,7 @@ int loadRefImage(TPaletteHandle *paletteHandle,
 
 int PaletteCmd::loadReferenceImage(TPaletteHandle *paletteHandle,
                                    const ColorModelLoadingConfiguration &config,
-                                   const TFilePath &_fp, ToonzScene *scene,
+                                   const TFilePath &_fp, flareScene *scene,
                                    const std::vector<int> &frames) {
   TPaletteP levelPalette = paletteHandle->getPalette();
   if (!levelPalette) return 2;

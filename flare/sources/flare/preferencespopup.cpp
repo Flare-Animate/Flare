@@ -12,25 +12,25 @@
 #include "columncommand.h"
 
 // TnzQt includes
-#include "toonzqt/tabbar.h"
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/checkbox.h"
-#include "toonzqt/gutil.h"
-#include "toonzqt/doublefield.h"
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/filefield.h"
-#include "toonzqt/lutcalibrator.h"
+#include "flareqt/tabbar.h"
+#include "flareqt/menubarcommand.h"
+#include "flareqt/checkbox.h"
+#include "flareqt/gutil.h"
+#include "flareqt/doublefield.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/filefield.h"
+#include "flareqt/lutcalibrator.h"
 
 // TnzLib includes
-#include "toonz/txsheethandle.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/txshleveltypes.h"
-#include "toonz/toonzscene.h"
-#include "toonz/tcamera.h"
-#include "toonz/levelproperties.h"
-#include "toonz/tonionskinmaskhandle.h"
-#include "toonz/stage.h"
+#include "flare/txsheethandle.h"
+#include "flare/tscenehandle.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/txshleveltypes.h"
+#include "flare/flarescene.h"
+#include "flare/tcamera.h"
+#include "flare/levelproperties.h"
+#include "flare/tonionskinmaskhandle.h"
+#include "flare/stage.h"
 
 // TnzCore includes
 #include "tsystem.h"
@@ -1197,7 +1197,7 @@ QString PreferencesPopup::getUIString(PreferencesItemId id) {
       {undoMemorySize, tr("Undo Memory Size (MB):")},
       {taskchunksize, tr("Render Task Chunk Size:")},
       {replaceAfterSaveLevelAs,
-       tr("Replace Toonz Level after SaveLevelAs command")},
+       tr("Replace flare Level after SaveLevelAs command")},
       {backupEnabled, tr("Backup Scene and Animation Levels when Saving")},
       {backupKeepCount, tr("# of backups to keep:")},
       {sceneNumberingEnabled, tr("Add Info water mark in Rendered Frames")},
@@ -1293,7 +1293,7 @@ QString PreferencesPopup::getUIString(PreferencesItemId id) {
       {saveUnpaintedInCleanup,
        tr("Keep Original Cleaned Up Drawings As Backup")},
       {minimizeSaveboxAfterEditing,
-       tr("Minimize Savebox after Editing (Toonz Raster Level)")},
+       tr("Minimize Savebox after Editing (flare Raster Level)")},
       {useNumpadForSwitchingStyles,
        tr("Use Numpad and Tab keys for Switching Styles")},
       {downArrowInLevelStripCreatesNewFrame,
@@ -1474,8 +1474,8 @@ QList<ComboBoxItem> PreferencesPopup::getComboItemList(
       {DefRasterFormat, {{"tif", "tif"}, {"png", "png"}}},
       //{scanLevelType, {{"tif", "tif"}, {"png", "png"}}},
       {DefLevelType,
-       {{tr("Toonz Vector Level"), PLI_XSHLEVEL},
-        {tr("Toonz Raster Level"), TZP_XSHLEVEL},
+       {{tr("flare Vector Level"), PLI_XSHLEVEL},
+        {tr("flare Raster Level"), TZP_XSHLEVEL},
         {tr("Raster Level"), OVL_XSHLEVEL}}},
       {DefLevelSizePolicy,
        {{tr("Custom"), 0},
@@ -2079,7 +2079,7 @@ QWidget* PreferencesPopup::createToolsPage() {
   insertUI(levelBasedToolsDisplay, lay,
            getComboItemList(levelBasedToolsDisplay));
   QGridLayout* fillToolOptionsLay =
-      insertGroupBox(tr("Fill Tool Options (Toonz Raster Level)"), lay);
+      insertGroupBox(tr("Fill Tool Options (flare Raster Level)"), lay);
   {
     insertUI(DefRegionWithPaint, fillToolOptionsLay);
     insertUI(ReferFillPrevailing, fillToolOptionsLay);
@@ -2535,3 +2535,4 @@ void PreferencesPopup::onColorFieldChanged(const TPixel32& color,
 //-----------------------------------------------------------------------------
 
 OpenPopupCommandHandler<PreferencesPopup> openPreferencesPopup(MI_Preferences);
+

@@ -8,18 +8,18 @@
 #include "filebrowserpopup.h"
 
 // TnzQt includes
-#include "toonzqt/gutil.h"
-#include "toonzqt/imageutils.h"
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/filefield.h"
-#include "toonzqt/checkbox.h"
-#include "toonzqt/icongenerator.h"
+#include "flareqt/gutil.h"
+#include "flareqt/imageutils.h"
+#include "flareqt/menubarcommand.h"
+#include "flareqt/filefield.h"
+#include "flareqt/checkbox.h"
+#include "flareqt/icongenerator.h"
 
 // TnzLib includes
-#include "toonz/tscenehandle.h"
-#include "toonz/toonzscene.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/tproject.h"
+#include "flare/tscenehandle.h"
+#include "flare/flarescene.h"
+#include "flare/sceneproperties.h"
+#include "flare/tproject.h"
 
 // TnzCore includes
 #include "tsystem.h"
@@ -58,7 +58,7 @@ public:
 };
 
 void ConvertFolderPopup::Converter::run() {
-  ToonzScene* sc = TApp::instance()->getCurrentScene()->getScene();
+  flareScene* sc = TApp::instance()->getCurrentScene()->getScene();
   DVGui::ProgressDialog* progressDialog = m_parent->m_progressDialog;
   int levelCount                        = m_parent->m_srcFilePaths.size();
 
@@ -104,7 +104,7 @@ void ConvertFolderPopup::Converter::run() {
 
 void ConvertFolderPopup::Converter::convertLevel(
     const TFilePath& sourceFileFullPath) {
-  ToonzScene* sc            = TApp::instance()->getCurrentScene()->getScene();
+  flareScene* sc            = TApp::instance()->getCurrentScene()->getScene();
   ConvertFolderPopup* popup = m_parent;
 
   QString levelName = QString::fromStdString(sourceFileFullPath.getLevelName());
@@ -161,7 +161,7 @@ public:
       if (ret == 2) return false;
     }
 
-    ToonzScene* sc = TApp::instance()->getCurrentScene()->getScene();
+    flareScene* sc = TApp::instance()->getCurrentScene()->getScene();
     savePath       = sc->decodeFilePath(savePath);
 
     QFile file(savePath.getQString());
@@ -328,7 +328,7 @@ void ConvertFolderPopup::setFiles() {
     m_srcFileList->clear();
     return;
   }
-  ToonzScene* scene       = TApp::instance()->getCurrentScene()->getScene();
+  flareScene* scene       = TApp::instance()->getCurrentScene()->getScene();
   TFilePath srcFolderPath = scene->decodeFilePath(
       TFilePath(m_convertFolderFld->getPath().toStdString()));
 
@@ -477,7 +477,7 @@ void ConvertFolderPopup::onSubfolderChanged() { setFiles(); }
 TFilePath ConvertFolderPopup::getDestinationFilePath(
     const TFilePath& sourceFilePath) {
   TFilePath destFolder = sourceFilePath.getParentDir();
-  ToonzScene* scene    = TApp::instance()->getCurrentScene()->getScene();
+  flareScene* scene    = TApp::instance()->getCurrentScene()->getScene();
 
   // Build the output level name
   const std::string& ext   = "tlv";
@@ -513,3 +513,4 @@ void ConvertFolderPopup::getFrameRange(const TFilePath& sourceFilePath,
 
 OpenPopupCommandHandler<ConvertFolderPopup> openConvertTZPInFolderPopup(
     MI_ConvertTZPInFolder);
+

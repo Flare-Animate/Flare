@@ -9,15 +9,15 @@
 #include "menubarcommandids.h"
 
 // TnzQt includes
-#include "toonzqt/tselectionhandle.h"
+#include "flareqt/tselectionhandle.h"
 #include "historytypes.h"
 
 // TnzLib includes
-#include "toonz/tscenehandle.h"
-#include "toonz/txsheet.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/txshcell.h"
-#include "toonz/txshcolumn.h"
+#include "flare/tscenehandle.h"
+#include "flare/txsheet.h"
+#include "flare/txsheethandle.h"
+#include "flare/txshcell.h"
+#include "flare/txshcolumn.h"
 
 // TnzCore includes
 #include "tundo.h"
@@ -314,3 +314,4 @@ void TimeStretchPopup::stretch() {
   timeStretch(m_newRangeFld->text().toInt(), m_currentStretchType);
   accept();
 }
+

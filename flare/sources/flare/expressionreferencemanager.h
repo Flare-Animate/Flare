@@ -4,11 +4,11 @@
 #define EXPRESSIONREFERENCEMANAGER_H
 
 #include "tparamchange.h"
-#include "toonzqt/treemodel.h"
-#include "toonzqt/functiontreeviewer.h"
-#include "toonz/txsheetcolumnchange.h"
-#include "toonz/tstageobjectid.h"
-#include "toonz/expressionreferencemonitor.h"
+#include "flareqt/treemodel.h"
+#include "flareqt/functiontreeviewer.h"
+#include "flare/txsheetcolumnchange.h"
+#include "flare/tstageobjectid.h"
+#include "flare/expressionreferencemonitor.h"
 #include <QObject>
 #include <QMap>
 #include <QSet>

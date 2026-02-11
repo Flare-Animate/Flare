@@ -75,7 +75,7 @@ void CPatternMapParam::null() {
 }
 
 void CPatternMapParam::testValue() {
-  strcpy(m_patternFn, "d:\\toonz_fx\\test\\artcontour\\e.ttt");
+  strcpy(m_patternFn, "d:\\flare_fx\\test\\artcontour\\e.ttt");
 
   m_ink.m_nb    = 1;
   m_ink.m_ci[0] = 0;
@@ -97,3 +97,4 @@ void CPatternMapParam::testValue() {
 }
 
 bool CPatternMapParam::isOK() { return true; }
+

@@ -2,9 +2,9 @@
 #include "igs_color_blend.h"
 /* --------------------
 2010-10-4
-                        Toonz6.1sp1 FXino(This library) ------+
+                        flare6.1sp1 FXino(This library) ------+
         PDF Blend Modes: Addendum January 23, 2006		|
-toonz6.1sp1 FX layer blending --+		|		|
+flare6.1sp1 FX layer blending --+		|		|
 photoshop調整レイヤ合成モード	|		|		|
                 |		|		|		|
                 V		V		V		V
@@ -818,3 +818,4 @@ void igs::color::divide(double &dn_r, double &dn_g, double &dn_b, double &dn_a,
   else
     dn_a = clamp_ch_(dn_a);
 }
+

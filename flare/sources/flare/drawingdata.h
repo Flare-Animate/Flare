@@ -3,9 +3,9 @@
 #ifndef DRAWINGDATA_INCLUDED
 #define DRAWINGDATA_INCLUDED
 
-#include "toonz/txshsimplelevel.h"
-#include "toonz/hook.h"
-#include "toonzqt/dvmimedata.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/hook.h"
+#include "flareqt/dvmimedata.h"
 
 #include <set>
 #include "timage.h"
@@ -69,3 +69,4 @@ protected:
 };
 
 #endif  // DRAWINGDATA_INCLUDED
+

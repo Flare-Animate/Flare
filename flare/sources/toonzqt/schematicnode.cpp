@@ -1,8 +1,8 @@
 
 
-#include "toonzqt/schematicnode.h"
-#include "toonzqt/stageschematicscene.h"
-#include "toonzqt/fxschematicscene.h"
+#include "flareqt/schematicnode.h"
+#include "flareqt/stageschematicscene.h"
+#include "flareqt/fxschematicscene.h"
 
 #include <QGraphicsSceneMouseEvent>
 #include <QStyleOptionGraphicsItem>
@@ -18,8 +18,8 @@
 #include <QClipboard>
 #include <QRegularExpression>
 #include "tundo.h"
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/gutil.h"
+#include "flareqt/menubarcommand.h"
+#include "flareqt/gutil.h"
 
 #define ACCEL_KEY(k)                                                           \
   (!QCoreApplication::testAttribute(Qt::AA_DontShowShortcutsInContextMenus)    \
@@ -1035,7 +1035,7 @@ QPointF SchematicPort::getLinkEndPoint() const { return scenePos() + m_hook; }
 //
 //========================================================
 
-/*! \class SchematicNode schematicnode.h <toonzqt/schematicnode.h>
+/*! \class SchematicNode schematicnode.h <flareqt/schematicnode.h>
         \brief The class provides methods to draw and handle a node item in the
    SchematicScene.
 */
@@ -1287,3 +1287,4 @@ void SnapTargetItem::paint(QPainter *painter,
   painter->setRenderHint(QPainter::Antialiasing, true);
   painter->drawPath(path);
 }
+

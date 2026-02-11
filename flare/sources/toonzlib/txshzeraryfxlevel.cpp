@@ -1,8 +1,8 @@
 
 
-#include "toonz/txshzeraryfxlevel.h"
-#include "toonz/txshleveltypes.h"
-#include "toonz/txshzeraryfxcolumn.h"
+#include "flare/txshzeraryfxlevel.h"
+#include "flare/txshleveltypes.h"
+#include "flare/txshzeraryfxcolumn.h"
 
 //-----------------------------------------------------------------------------
 
@@ -45,3 +45,4 @@ void TXshZeraryFxLevel::load() {}
 //-----------------------------------------------------------------------------
 
 void TXshZeraryFxLevel::save() {}
+

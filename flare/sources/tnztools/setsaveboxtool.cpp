@@ -4,12 +4,12 @@
 #include "tgl.h"
 #include "tundo.h"
 #include "trop.h"
-#include "toonz/toonzimageutils.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/ttileset.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/preferences.h"
+#include "flare/flareimageutils.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/ttileset.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/preferences.h"
 #include "tools/toolutils.h"
 #include "tools/cursors.h"
 
@@ -32,7 +32,7 @@ public:
       , m_originalSavebox(originalSavebox) {}
 
   void redo() const override {
-    TToonzImageP ti = getImage();
+    TflareImageP ti = getImage();
     if (!ti) return;
     TTool::getApplication()->getCurrentXsheet()->notifyXsheetChanged();
     ti->getRaster()->clearOutside(m_modifiedSavebox);
@@ -42,7 +42,7 @@ public:
 
   void undo() const override {
     TRasterUndo::undo();
-    TToonzImageP ti = getImage();
+    TflareImageP ti = getImage();
     if (!ti) return;
     ti->setSavebox(m_originalSavebox);
   }
@@ -79,10 +79,10 @@ SetSaveboxTool::SetSaveboxTool(TTool *tool)
 
 //-----------------------------------------------------------------------------
 
-TToonzImage *SetSaveboxTool::getImage() {
+TflareImage *SetSaveboxTool::getImage() {
   TImageP image = m_tool->getImage(true);
   if (!image) return 0;
-  TToonzImageP ti = TToonzImageP(image);
+  TflareImageP ti = TflareImageP(image);
   if (!ti) return 0;
   return ti.getPointer();
 }
@@ -90,10 +90,10 @@ TToonzImage *SetSaveboxTool::getImage() {
 //-----------------------------------------------------------------------------
 
 int SetSaveboxTool::getDragType(const TPointD &pos) {
-  TToonzImageP image = getImage();
+  TflareImageP image = getImage();
   if (!image) return eNone;
   TRectD bbox =
-      ToonzImageUtils::convertRasterToWorld(convert(image->getBBox()), image);
+      flareImageUtils::convertRasterToWorld(convert(image->getBBox()), image);
 
   int ret = 0;
   int dx  = std::min(fabs(bbox.x0 - pos.x), fabs(bbox.x1 - pos.x));
@@ -152,10 +152,10 @@ int SetSaveboxTool::getCursorId(const TPointD &pos) {
 //-----------------------------------------------------------------------------
 
 void SetSaveboxTool::leftButtonDown(const TPointD &pos) {
-  TToonzImageP image = getImage();
+  TflareImageP image = getImage();
   if (!image) return;
   m_modifiedRect =
-      ToonzImageUtils::convertRasterToWorld(convert(image->getBBox()), image);
+      flareImageUtils::convertRasterToWorld(convert(image->getBBox()), image);
   m_pos          = pos;
   m_movementType = (SetSaveboxTool::Moviment)getDragType(pos);
 }
@@ -163,7 +163,7 @@ void SetSaveboxTool::leftButtonDown(const TPointD &pos) {
 //-----------------------------------------------------------------------------
 
 void SetSaveboxTool::leftButtonDrag(const TPointD &pos) {
-  TToonzImageP image = getImage();
+  TflareImageP image = getImage();
   if (!image) return;
 
   if (m_movementType == eNone) return;
@@ -181,11 +181,11 @@ void SetSaveboxTool::leftButtonDrag(const TPointD &pos) {
 //-----------------------------------------------------------------------------
 
 void SetSaveboxTool::leftButtonUp(const TPointD &pos) {
-  TToonzImageP image = getImage();
+  TflareImageP image = getImage();
   if (!image) return;
   m_pos                  = TPointD();
   TRectD originalSavebox = image->getBBox();
-  TRect savebox = ToonzImageUtils::convertWorldToRaster(m_modifiedRect, image);
+  TRect savebox = flareImageUtils::convertWorldToRaster(m_modifiedRect, image);
   if (savebox.isEmpty()) {
     m_modifiedRect = TRectD();
     return;
@@ -211,13 +211,13 @@ void SetSaveboxTool::leftButtonUp(const TPointD &pos) {
 //-----------------------------------------------------------------------------
 
 void SetSaveboxTool::draw() {
-  TToonzImageP image = getImage();
+  TflareImageP image = getImage();
   if (!image) return;
 
   TRectD bbox;
   if (m_modifiedRect == TRectD())
     bbox =
-        ToonzImageUtils::convertRasterToWorld(convert(image->getBBox()), image);
+        flareImageUtils::convertRasterToWorld(convert(image->getBBox()), image);
   else
     bbox = m_modifiedRect;
 
@@ -243,3 +243,4 @@ void SetSaveboxTool::draw() {
   tglDrawRect(TRectD(p00_01 - size, p00_01 + size));
   tglDrawRect(TRectD(p00_10 - size, p00_10 + size));
 }
+

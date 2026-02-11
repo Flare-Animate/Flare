@@ -1,15 +1,15 @@
-#include "toonz/menubarcommandids.h"
-#include "toonz/menubar.h"
-#include "toonz/ocaio.h"
-#include "toonz/projectmanager.h"
-#include "toonz/preferences.h"
-#include "toonz/tapp.h"
-#include "toonz/toonzfolders.h"
+#include "flare/menubarcommandids.h"
+#include "flare/menubar.h"
+#include "flare/ocaio.h"
+#include "flare/projectmanager.h"
+#include "flare/preferences.h"
+#include "flare/tapp.h"
+#include "flare/flarefolders.h"
 
-#include "toonzqt/gutil.h"
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/filebrowserpopup.h"
-#include "toonzqt/gutil.h"
+#include "flareqt/gutil.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/filebrowserpopup.h"
+#include "flareqt/gutil.h"
 
 #include <QProcess>
 #include <QDesktopServices>
@@ -27,7 +27,7 @@ public:
 } ImportFlashVectorCommand;
 
 void ImportFlashVectorCommand::execute() {
-  ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
+  flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
   static GenericLoadFilePopup *loadPopup = 0;
   if (!loadPopup) {
     loadPopup = new GenericLoadFilePopup(
@@ -64,7 +64,7 @@ void ImportFlashVectorCommand::execute() {
   candidates << QDir(QCoreApplication::applicationDirPath())
                     .absoluteFilePath("tools/flash/decompile_flash.py");
   // Relative to source module dir
-  QString moduleDir = ToonzFolder::getMyModuleDir().getQString();
+  QString moduleDir = flareFolder::getMyModuleDir().getQString();
   candidates << QDir(moduleDir).absoluteFilePath("../../../../tools/flash/decompile_flash.py");
 
   QString scriptPath;
@@ -135,3 +135,4 @@ void ImportFlashVectorCommand::execute() {
       QDesktopServices::openUrl(QUrl::fromLocalFile(outDir.getQString()));
   }
 }
+

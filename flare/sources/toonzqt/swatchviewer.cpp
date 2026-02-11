@@ -1,9 +1,9 @@
 
 
-#include "toonzqt/swatchviewer.h"
-#include "toonzqt/gutil.h"
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/viewcommandids.h"
+#include "flareqt/swatchviewer.h"
+#include "flareqt/gutil.h"
+#include "flareqt/menubarcommand.h"
+#include "flareqt/viewcommandids.h"
 
 #include "../flare/menubarcommandids.h"
 
@@ -13,7 +13,7 @@
 #include <QResizeEvent>
 
 #include "trasterfx.h"
-#include "toonz/tcolumnfx.h"
+#include "flare/tcolumnfx.h"
 #include "tparamcontainer.h"
 #include "tfxutil.h"
 
@@ -186,7 +186,7 @@ TRaster32P createArrowShape(int len) {
 }
 
 //-----------------------------------------------------------------------------
-// Preso da sceneViewer.cpp quando si spostera' lo SceneViewer in toonzqt
+// Preso da sceneViewer.cpp quando si spostera' lo SceneViewer in flareqt
 // mettere
 // il codice in comune!
 
@@ -1261,4 +1261,5 @@ void SwatchCacheManager::getResource(TCacheResourceP &resource,
     }
   }
 }
+
 

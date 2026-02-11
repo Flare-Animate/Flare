@@ -1,9 +1,9 @@
 
 
-// Toonz core includes
+// flare core includes
 #include "timagecache.h"
 #include "trasterimage.h"
-#include "ttoonzimage.h"
+#include "tflareimage.h"
 #include "tmeshimage.h"
 #include "timage_io.h"
 
@@ -14,12 +14,12 @@
 #include <QReadLocker>
 #include <QWriteLocker>
 
-#include "toonz/imagemanager.h"
-#include "toonz/txshsimplelevel.h"
+#include "flare/imagemanager.h"
+#include "flare/txshsimplelevel.h"
 
 /* EXPLANATION (by Daniele):
 
-  Images / Image Infos retrieval is quite a frequent task throughout Toonz - in
+  Images / Image Infos retrieval is quite a frequent task throughout flare - in
   particular,
   as Render operations tend to be multithreaded, it is important to ensure that
   the
@@ -121,7 +121,7 @@ bool ImageBuilder::setImageInfo(TImageInfo &info, TImage *img) {
     info.m_y0     = savebox.y0;
     info.m_x1     = savebox.x1;
     info.m_y1     = savebox.y1;
-  } else if (TToonzImageP ti = TToonzImageP(img)) {
+  } else if (TflareImageP ti = TflareImageP(img)) {
     TRasterP ras = ti->getRaster();
     info.m_lx    = ras->getLx();
     info.m_ly    = ras->getLy();
@@ -494,3 +494,4 @@ bool ImageManager::isModified(const std::string &id) {
       m_imp->m_builders.find(id);
   return (it == m_imp->m_builders.end()) ? false : it->second->m_modified;
 }
+

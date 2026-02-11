@@ -9,16 +9,16 @@ release: DEFINES += NDEBUG
 INCLUDEPATH += ./GeneratedFiles \
     ./GeneratedFiles/Debug \
     $(SOURCEROOT)/include \
-    $(SOURCEROOT)/toonz \
+    $(SOURCEROOT)/flare \
     /depot/sdk/boost/boost_1_33_1/ \
     /depot/sdk/cryptopp/cryptopp5.5.1 \
     /Developer/Headers/FlatCarbon 
 LIBS += -L"$(BINROOT)/bin" \
-    -ltoonzlib \
+    -lflarelib \
     -ltnzbase \
     -ltnzcore \
     -ltnzext \
-    -L/depot/sdk/boost/boost_1_33_1/lib_toonz/darwin/$(processor)/ \
+    -L/depot/sdk/boost/boost_1_33_1/lib_flare/darwin/$(processor)/ \
     -lboost_thread-1_33_1 \
     -framework GLUT \
     -framework Quicktime \
@@ -33,3 +33,4 @@ RCC_DIR += ./GeneratedFiles
 ICON = tab30student.icns
 
 include(tab30qt.pri)
+

@@ -1,7 +1,8 @@
 #!/bin/tcsh
-cp $SCRIPTROOT/toonzdef.$1  $HOME/toonzdef  
+cp $SCRIPTROOT/flaredef.$1  $HOME/flaredef  
 source $HOME/.cshrc
 source $HOME/.login
 ./copy_plugin.sh
 ./installName.sh
+
 

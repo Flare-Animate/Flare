@@ -7,11 +7,11 @@
 #include "tlevel_io.h"
 #include "tpalette.h"
 #include "trasterimage.h"
-#include "ttoonzimage.h"
+#include "tflareimage.h"
 
 #undef DVAPI
 #undef DVVAR
-#ifdef TOONZLIB_EXPORTS
+#ifdef flareLIB_EXPORTS
 #define DVAPI DV_EXPORT_API
 #define DVVAR DV_EXPORT_VAR
 #else
@@ -41,7 +41,7 @@ private:
 
   double m_dpi;
 
-  void buildToonzRaster(TRasterCM32P &rout, const TRasterP &rin1,
+  void buildflareRaster(TRasterCM32P &rout, const TRasterP &rin1,
                         const TRasterP &rin2);
   void doFill(TRasterCM32P &rout, const TRaster32P &rin);
   void buildInksFromGrayTones(TRasterCM32P &rout, const TRasterP &rin);
@@ -76,20 +76,20 @@ public:
   bool convertNext(std::string &errorMessage);
 };
 
-// gmt, 3/1/2013; making raster>toonzraster conversion available to scripts
+// gmt, 3/1/2013; making raster>flareraster conversion available to scripts
 // it seems too complex to modify Convert2Tlv, that refer to file levels instead
 // of memory levels.
-// RasterToToonzRasterConverter uses the same algorithms (more or less)
+// RasterToflareRasterConverter uses the same algorithms (more or less)
 // TODO: refactor the two classes
 // NOTE: you don't need to specify a palette (with
-// RasterToToonzRasterConverter::setPalette()): in that case a suitable palette
+// RasterToflareRasterConverter::setPalette()): in that case a suitable palette
 // is generated
-class DVAPI RasterToToonzRasterConverter {
+class DVAPI RasterToflareRasterConverter {
   TPaletteP m_palette;
 
 public:
-  RasterToToonzRasterConverter();
-  ~RasterToToonzRasterConverter();
+  RasterToflareRasterConverter();
+  ~RasterToflareRasterConverter();
 
   void setPalette(const TPaletteP &palette);
   const TPaletteP &getPalette() const { return m_palette; }
@@ -98,7 +98,8 @@ public:
   TRasterCM32P convert(const TRasterP &inksInputRaster,
                        const TRasterP &paintInputRaster);
 
-  TToonzImageP convert(const TRasterImageP &ri);
+  TflareImageP convert(const TRasterImageP &ri);
 };
 
 #endif
+

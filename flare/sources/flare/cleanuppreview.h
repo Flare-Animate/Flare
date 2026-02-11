@@ -6,11 +6,11 @@
 // STL includes
 #include <vector>
 
-// ToonzLib includes
-#include "toonz/txshsimplelevel.h"
+// flareLib includes
+#include "flare/txshsimplelevel.h"
 
-// ToonzQt includes
-#include "toonzqt/menubarcommand.h"
+// flareQt includes
+#include "flareqt/menubarcommand.h"
 
 // Qt includes
 #include <QTimer>
@@ -90,3 +90,4 @@ protected slots:
 };
 
 #endif  // CLEANUPPREVIEW_H
+

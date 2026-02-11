@@ -7,14 +7,14 @@
 #include "tgeometry.h"
 #include "timage.h"
 #include "tpixel.h"
-#include "ttoonzimage.h"
+#include "tflareimage.h"
 
 // TnzExt includes
 #include "ext/plasticvisualsettings.h"
 
 #undef DVAPI
 #undef DVVAR
-#ifdef TOONZLIB_EXPORTS
+#ifdef flareLIB_EXPORTS
 #define DVAPI DV_EXPORT_API
 #define DVVAR DV_EXPORT_VAR
 #else
@@ -37,7 +37,7 @@ namespace ImagePainter {
 //    ImagePainter::VisualSettings  declaration
 //*************************************************************************************************
 
-//! Stores generic settings used by Toonz painters to draw images
+//! Stores generic settings used by flare painters to draw images
 class DVAPI VisualSettings {
 public:
   int m_colorMask;  //!< Combination of TRop::rChan, gChan, bChan or mChan.
@@ -114,3 +114,4 @@ DVAPI void paintImage(const TImageP &image, const TDimension &imageSize,
 }  // namespace ImagePainter
 
 #endif  // IMAGEPAINTER_H
+

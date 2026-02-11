@@ -5,10 +5,10 @@
 #include "tstream.h"
 
 // TnzLib includes
-#include "toonz/txshsimplelevel.h"
-#include "toonz/toonzscene.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/flarescene.h"
 
-#include "toonz/levelset.h"
+#include "flare/levelset.h"
 
 //=============================================================================
 
@@ -97,7 +97,7 @@ TXshLevel *TLevelSet::getLevel(const std::wstring &levelName) const {
 
 //-----------------------------------------------------------------------------
 
-TXshLevel *TLevelSet::getLevel(const ToonzScene &scene,
+TXshLevel *TLevelSet::getLevel(const flareScene &scene,
                                const TFilePath &levelPath) const {
   const TFilePath &decodedPath = scene.decodeFilePath(levelPath);
 
@@ -122,7 +122,7 @@ bool TLevelSet::hasLevel(const std::wstring &levelName) const {
 
 //-----------------------------------------------------------------------------
 
-bool TLevelSet::hasLevel(const ToonzScene &scene,
+bool TLevelSet::hasLevel(const flareScene &scene,
                          const TFilePath &levelPath) const {
   return getLevel(scene, levelPath);
 }
@@ -356,3 +356,4 @@ void TLevelSet::saveData(TOStream &os) {
   assert(!folders.empty());
   for (i = 0; i < (int)folders.size(); i++) saveFolder(os, folders[i]);
 }
+

@@ -344,7 +344,7 @@ get_target_property(QtCore_location Qt5::Core LOCATION)
 get_target_property(QtWidget_location Qt5::Widgets LOCATION)
 message(STATUS "Qt Core Location:" ${QtCore_location})
 
-macro(_find_toonz_library OUT_LIB_LIST IN_LIB_LIST)
+macro(_find_flare_library OUT_LIB_LIST IN_LIB_LIST)
     set(OUTLIST "")
     foreach(arg ${IN_LIB_LIST})
         unset(COREPATH CACHE)
@@ -615,7 +615,7 @@ if(PLATFORM EQUAL 64)
 endif()
 
 if(BUILD_ENV_MSVC)
-    # place Toonz.exe and dlls in the same directory
+    # place flare.exe and dlls in the same directory
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
     # use secure functions by defaualt
@@ -703,7 +703,7 @@ if(WITH_TRANSLATION)
 
     # List of all modules that have translations
     set(TRANSLATION_MODULES
-        toonz tnzcore toonzlib tnztools toonzqt image colorfx
+        flare tnzcore flarelib tnztools flareqt image colorfx
     )
 
     foreach(mod ${TRANSLATION_MODULES})
@@ -717,11 +717,11 @@ if(WITH_TRANSLATION)
 
     add_custom_target(rename_translation_folders ALL
         DEPENDS
-            translate_toonz
+            translate_flare
             translate_tnzcore
-            translate_toonzlib
+            translate_flarelib
             translate_tnztools
-            translate_toonzqt
+            translate_flareqt
             translate_image
             translate_colorfx
         COMMENT "Renaming language folders to native display names"
@@ -767,13 +767,13 @@ set(CMAKE_CXX_FLAGS "${CXX_WARNINGS} ${CMAKE_CXX_FLAGS}")
 add_subdirectory(tnzcore)
 add_subdirectory(tnzbase)
 add_subdirectory(tnzext)
-add_subdirectory(toonzlib)
-add_subdirectory(toonzfarm/tfarm)
+add_subdirectory(flarelib)
+add_subdirectory(flarefarm/tfarm)
 add_subdirectory(stdfx)
 add_subdirectory(sound)
 add_subdirectory(colorfx)
 add_subdirectory(image)
-add_subdirectory(toonzqt)
+add_subdirectory(flareqt)
 add_subdirectory(tnztools)
 
 add_subdirectory(${SDKROOT}/lzo/driver lzodriver)
@@ -782,7 +782,7 @@ add_subdirectory(flare)
 add_subdirectory(tcleanupper)
 add_subdirectory(tcomposer)
 add_subdirectory(tconverter)
-add_subdirectory(toonzfarm)
+add_subdirectory(flarefarm)
 
 if(BUILD_ENV_APPLE)
     add_subdirectory(mousedragfilter)
