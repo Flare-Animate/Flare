@@ -7,7 +7,7 @@
 #include "tcommon.h"
 
 // TnzQt includes
-#include "flareqt/intfield.h"
+#include "toonzqt/intfield.h"
 
 // Qt includes
 #include <QWidget>
@@ -15,7 +15,7 @@
 
 #undef DVAPI
 #undef DVVAR
-#ifdef flareQT_EXPORTS
+#ifdef TOONZQT_EXPORTS
 #define DVAPI DV_EXPORT_API
 #define DVVAR DV_EXPORT_VAR
 #else
@@ -101,4 +101,3 @@ current frame value.
 };
 
 #endif  // FRAMENVIGATORTOOLBAR_H
-

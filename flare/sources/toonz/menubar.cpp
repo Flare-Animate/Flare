@@ -8,19 +8,19 @@
 #include "menubarpopup.h"
 
 // TnzQt includes
-#include "flareqt/tselectionhandle.h"
-#include "flareqt/dvdialog.h"
-#include "flareqt/menubarcommand.h"
-#include "flareqt/gutil.h"
+#include "toonzqt/tselectionhandle.h"
+#include "toonzqt/dvdialog.h"
+#include "toonzqt/menubarcommand.h"
+#include "toonzqt/gutil.h"
 
 // TnzLib includes
-#include "flare/flarescene.h"
-#include "flare/childstack.h"
-#include "flare/tscenehandle.h"
-#include "flare/txsheethandle.h"
-#include "flare/tframehandle.h"
-#include "flare/tcolumnhandle.h"
-#include "flare/flarefolders.h"
+#include "toonz/toonzscene.h"
+#include "toonz/childstack.h"
+#include "toonz/tscenehandle.h"
+#include "toonz/txsheethandle.h"
+#include "toonz/tframehandle.h"
+#include "toonz/tcolumnhandle.h"
+#include "toonz/toonzfolders.h"
 
 // TnzTools includes
 #include "tools/toolcommandids.h"
@@ -46,7 +46,7 @@
 
 void UrlOpener::open() { QDesktopServices::openUrl(m_url); }
 
-UrlOpener dvHome(QUrl("http://www.flare.com/"));
+UrlOpener dvHome(QUrl("http://www.toonz.com/"));
 UrlOpener manual(QUrl("file:///C:/gmt/butta/M&C in EU.pdf"));
 
 TEnv::IntVar LockRoomTabToggle("LockRoomTabToggle", 0);
@@ -897,7 +897,7 @@ QMenuBar *StackedMenuBar::createXsheetMenuBar() {
   addMenuItem(levelsMenu, MI_Renumber);
   addMenuItem(levelsMenu, MI_RevertToCleanedUp);
   addMenuItem(levelsMenu, MI_ConvertToVectors);
-  addMenuItem(levelsMenu, MI_ConvertToflareRaster);
+  addMenuItem(levelsMenu, MI_ConvertToToonzRaster);
   addMenuItem(levelsMenu, MI_ConvertFileWithInput);
   addMenuItem(levelsMenu, MI_Tracking);
   addMenuItem(levelsMenu, MI_ExposeResource);
@@ -1225,7 +1225,7 @@ QMenuBar *StackedMenuBar::createFullMenuBar() {
   {
     addMenuItem(newMenu, MI_NewLevel);
     newMenu->addSeparator();
-    addMenuItem(newMenu, MI_NewflareRasterLevel);
+    addMenuItem(newMenu, MI_NewToonzRasterLevel);
     addMenuItem(newMenu, MI_NewVectorLevel);
     addMenuItem(newMenu, MI_NewRasterLevel);
     addMenuItem(newMenu, MI_NewNoteLevel);
@@ -1263,7 +1263,7 @@ QMenuBar *StackedMenuBar::createFullMenuBar() {
   QMenu *convertMenu = levelMenu->addMenu(tr("Convert"));
   {
     addMenuItem(convertMenu, MI_ConvertToVectors);
-    addMenuItem(convertMenu, MI_ConvertToflareRaster);
+    addMenuItem(convertMenu, MI_ConvertToToonzRaster);
   }
   levelMenu->addSeparator();
   addMenuItem(levelMenu, MI_ExposeResource);
@@ -1550,7 +1550,7 @@ void StackedMenuBar::doCustomizeMenuBar(int index) {
     /*- OKが押され、roomname_menubar.xmlが更新された状態 -*/
     /*- xmlファイルからメニューバーを作り直して格納 -*/
     std::string mbFileName = room->getPath().getName() + "_menubar.xml";
-    TFilePath mbPath       = flareFolder::getMyRoomsDir() + mbFileName;
+    TFilePath mbPath       = ToonzFolder::getMyRoomsDir() + mbFileName;
     if (!TFileStatus(mbPath).isReadable()) {
       DVGui::warning(tr("Cannot open menubar settings file %1")
                          .arg(QString::fromStdString(mbFileName)));
@@ -1630,4 +1630,3 @@ TopBar::TopBar(QWidget *parent) : QToolBar(parent) {
                        SLOT(setIsLocked(bool)));
   assert(ret);
 }
-

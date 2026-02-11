@@ -6,14 +6,14 @@
 #include "tenv.h"
 #include "tsystem.h"
 
-#include "flare/flarefolders.h"
+#include "toonz/toonzfolders.h"
 // TnzQt includes
-#include "flareqt/gutil.h"
-#include "flareqt/menubarcommand.h"
-#include "flareqt/dvdialog.h"
+#include "toonzqt/gutil.h"
+#include "toonzqt/menubarcommand.h"
+#include "toonzqt/dvdialog.h"
 
 // TnzLib includes
-#include "flare/preferences.h"
+#include "toonz/preferences.h"
 
 // Qt includes
 #include <QTreeWidgetItem>
@@ -675,7 +675,7 @@ void ShortcutPopup::onDeletePreset() {
     return;
   }
   TFilePath presetDir =
-      flareFolder::getMyModuleDir() + TFilePath("shortcutpresets");
+      ToonzFolder::getMyModuleDir() + TFilePath("shortcutpresets");
   QString presetName = m_presetChoiceCB->currentData().toString();
   if (TSystem::doesExistFileOrLevel(presetDir +
                                     TFilePath(presetName + ".ini"))) {
@@ -701,7 +701,7 @@ void ShortcutPopup::importPreset() {
   if (!showConfirmDialog()) return;
 
   TFilePath presetDir =
-      flareFolder::getMyModuleDir() + TFilePath("shortcutpresets");
+      ToonzFolder::getMyModuleDir() + TFilePath("shortcutpresets");
   if (!TSystem::doesExistFileOrLevel(presetDir)) {
     TSystem::mkDir(presetDir);
   }
@@ -724,9 +724,9 @@ void ShortcutPopup::onLoadPreset() {
   TFilePath presetDir;
   if (m_presetChoiceCB->currentIndex() <= 4)
     presetDir =
-        flareFolder::getProfileFolder() + TFilePath("layouts/shortcuts");
+        ToonzFolder::getProfileFolder() + TFilePath("layouts/shortcuts");
   else
-    presetDir = flareFolder::getMyModuleDir() + TFilePath("shortcutpresets");
+    presetDir = ToonzFolder::getMyModuleDir() + TFilePath("shortcutpresets");
 
   if (preset.isEmpty()) return;
   if (preset == QString("LoadFromFile")) {
@@ -759,7 +759,7 @@ void ShortcutPopup::buildPresets() {
   m_presetChoiceCB->addItem("Animate (Legacy)", QString("otadobe"));
 
   TFilePath presetDir =
-      flareFolder::getMyModuleDir() + TFilePath("shortcutpresets");
+      ToonzFolder::getMyModuleDir() + TFilePath("shortcutpresets");
   if (TSystem::doesExistFileOrLevel(presetDir)) {
     TFilePathSet fps = TSystem::readDirectory(presetDir, true, true, false);
     QStringList customPresets;
@@ -783,7 +783,7 @@ void ShortcutPopup::onSavePreset() {
       DVGui::getText(tr("Enter Preset Name"), tr("Preset Name:"), "");
   if (presetName == "") return;
   TFilePath presetDir =
-      flareFolder::getMyModuleDir() + TFilePath("shortcutpresets");
+      ToonzFolder::getMyModuleDir() + TFilePath("shortcutpresets");
   if (!TSystem::doesExistFileOrLevel(presetDir)) {
     TSystem::mkDir(presetDir);
   }
@@ -819,4 +819,3 @@ void ShortcutPopup::getCurrentPresetPref() {
 }
 
 OpenPopupCommandHandler<ShortcutPopup> openShortcutPopup(MI_ShortcutPopup);
-

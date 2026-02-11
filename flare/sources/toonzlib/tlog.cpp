@@ -1,6 +1,6 @@
 
 
-#include "flare/tlog.h"
+#include "toonz/tlog.h"
 //#include "tfilepath.h"
 #include "tfilepath_io.h"
 
@@ -222,4 +222,3 @@ void TUserLogAppend::info(const std::string &msg) {
   fullMsg += "\n";
   m_imp->write(fullMsg);
 }
-

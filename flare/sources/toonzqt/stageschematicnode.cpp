@@ -9,34 +9,34 @@
 #include "tconst.h"
 
 // TnzLib includes
-#include "flare/tstageobjectid.h"
-#include "flare/tstageobject.h"
-#include "flare/tstageobjectspline.h"
-#include "flare/txsheet.h"
-#include "flare/txshcell.h"
-#include "flare/txshcolumn.h"
-#include "flare/flarescene.h"
-#include "flare/sceneproperties.h"
-#include "flare/tstageobjectcmd.h"
-#include "flare/fxcommand.h"
-#include "flare/txshzeraryfxcolumn.h"
-#include "flare/tcolumnfx.h"
-#include "flare/tstageobjecttree.h"
-#include "flare/tframehandle.h"
-#include "flare/txshchildlevel.h"
-#include "flare/txshlevelcolumn.h"
-#include "flare/txshleveltypes.h"
-#include "flare/tcolumnhandle.h"
-#include "flare/hook.h"
-#include "flare/preferences.h"
-#include "flare/txshsimplelevel.h"
-#include "flare/txsheethandle.h"
+#include "toonz/tstageobjectid.h"
+#include "toonz/tstageobject.h"
+#include "toonz/tstageobjectspline.h"
+#include "toonz/txsheet.h"
+#include "toonz/txshcell.h"
+#include "toonz/txshcolumn.h"
+#include "toonz/toonzscene.h"
+#include "toonz/sceneproperties.h"
+#include "toonz/tstageobjectcmd.h"
+#include "toonz/fxcommand.h"
+#include "toonz/txshzeraryfxcolumn.h"
+#include "toonz/tcolumnfx.h"
+#include "toonz/tstageobjecttree.h"
+#include "toonz/tframehandle.h"
+#include "toonz/txshchildlevel.h"
+#include "toonz/txshlevelcolumn.h"
+#include "toonz/txshleveltypes.h"
+#include "toonz/tcolumnhandle.h"
+#include "toonz/hook.h"
+#include "toonz/preferences.h"
+#include "toonz/txshsimplelevel.h"
+#include "toonz/txsheethandle.h"
 
 // TnzQt includes
-#include "flareqt/gutil.h"
-#include "flareqt/icongenerator.h"
-#include "flareqt/stageschematicscene.h"
-#include "flareqt/menubarcommand.h"
+#include "toonzqt/gutil.h"
+#include "toonzqt/icongenerator.h"
+#include "toonzqt/stageschematicscene.h"
+#include "toonzqt/menubarcommand.h"
 
 // Qt includes
 #include <QPixmap>
@@ -47,7 +47,7 @@
 #include <QTextCursor>
 #include <QSet>
 
-#include "flareqt/stageschematicnode.h"
+#include "toonzqt/stageschematicnode.h"
 
 namespace {
 void drawCamera(QPainter *painter, const QColor &color, const QPen &pen,
@@ -2498,4 +2498,3 @@ void StageSchematicGroupNode::updatePortsPosition() {
 //--------------------------------------------------------
 
 void StageSchematicGroupNode::resize(bool maximized) {}
-

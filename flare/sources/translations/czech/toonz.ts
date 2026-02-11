@@ -616,10 +616,10 @@ Please create this folder before using the render farm.</source>
         <translation>Celkový kořen statku neexistuje. Vytvořte, prosím, tuto složku, předtím než zpracovatelský statek použijete.</translation>
     </message>
     <message>
-        <source>Unable to connect to the flareFarm Controller
+        <source>Unable to connect to the ToonzFarm Controller
    The Controller should run on %1 at port %2
-   Please start the Controller before using the flareFarm</source>
-        <translation>Nelze se spojit s ovladačem flareFarm. Ovladač by měl běžet na %1 na přípojce (port) %2. Spusťte, prosím, ovladač, předtím než flareFarm použijete</translation>
+   Please start the Controller before using the ToonzFarm</source>
+        <translation>Nelze se spojit s ovladačem ToonzFarm. Ovladač by měl běžet na %1 na přípojce (port) %2. Spusťte, prosím, ovladač, předtím než ToonzFarm použijete</translation>
     </message>
 </context>
 <context>
@@ -2064,12 +2064,12 @@ Co chcete dělat?</translation>
     </message>
     <message>
         <source>When activated, styles of the default palette
-($flareSTUDIOPALETTE\cleanup_default.tpl) will 
+($TOONZSTUDIOPALETTE\cleanup_default.tpl) will 
 be appended to the palette after conversion in 
 order to save the effort of creating styles 
 before color designing.</source>
         <translation>Když je zapnuta, styly výchozí palety
-($flareSTUDIOPALETTE\cleanup_default.tpl) budou
+($TOONZSTUDIOPALETTE\cleanup_default.tpl) budou
 po převodu připojeny k paletě,
 aby se šetřilo úsilím při vytváření stylů
 před barevným návrhem.</translation>
@@ -3645,8 +3645,8 @@ Podržte klávesu F3 v prohlížeči pro ukázání pouze tohoto snímku</transl
         <translation type="vanished">Nejsou žádné zpracované obrázky k uložení.</translation>
     </message>
     <message>
-        <source>It is not possible to take or compare snapshots for flare vector levels.</source>
-        <translation type="vanished">Není možné vytvořit nebo porovnat ukázky vektorových úrovní flare.</translation>
+        <source>It is not possible to take or compare snapshots for Toonz vector levels.</source>
+        <translation type="vanished">Není možné vytvořit nebo porovnat ukázky vektorových úrovní Toonz.</translation>
     </message>
     <message>
         <source>File %1 already exists.
@@ -3688,8 +3688,8 @@ Chcete jej přepsat?</translation>
         <translation>Nejsou žádné zpracované obrázky k uložení.</translation>
     </message>
     <message>
-        <source>It is not possible to take or compare snapshots for flare vector levels.</source>
-        <translation>Není možné vytvořit nebo porovnat ukázky vektorových úrovní flare.</translation>
+        <source>It is not possible to take or compare snapshots for Toonz vector levels.</source>
+        <translation>Není možné vytvořit nebo porovnat ukázky vektorových úrovní Toonz.</translation>
     </message>
     <message>
         <source>Rendered Frames  ::  From %1 To %2  ::  Step %3</source>
@@ -3866,8 +3866,8 @@ Chcete jej přepsat?</translation>
         <translation>%1 neexistuje.</translation>
     </message>
     <message>
-        <source>Import flare Lip Sync File</source>
-        <translation>Zavést soubor synchronizace okraje flare</translation>
+        <source>Import Toonz Lip Sync File</source>
+        <translation>Zavést soubor synchronizace okraje Toonz</translation>
     </message>
 </context>
 <context>
@@ -4161,12 +4161,12 @@ Chcete ji vytvořit?</translation>
         <translation>OK</translation>
     </message>
     <message>
-        <source>flare Vector Level</source>
-        <translation>Vektorová úroveň flare</translation>
+        <source>Toonz Vector Level</source>
+        <translation>Vektorová úroveň Toonz</translation>
     </message>
     <message>
-        <source>flare Raster Level</source>
-        <translation>Rastrová úroveň flare</translation>
+        <source>Toonz Raster Level</source>
+        <translation>Rastrová úroveň Toonz</translation>
     </message>
     <message>
         <source>Raster Level</source>
@@ -4312,12 +4312,12 @@ Chcete ji vytvořit?</translation>
         <translation>Sloupec zvuku</translation>
     </message>
     <message>
-        <source>flare Vector level</source>
-        <translation>Vektorová úroveň flare</translation>
+        <source>Toonz Vector level</source>
+        <translation>Vektorová úroveň Toonz</translation>
     </message>
     <message>
-        <source>flare Raster level</source>
-        <translation>Rastrová úroveň flare</translation>
+        <source>Toonz Raster level</source>
+        <translation>Rastrová úroveň Toonz</translation>
     </message>
     <message>
         <source>[Various]</source>
@@ -4906,8 +4906,8 @@ Pro odkaz, prosím, použijte čísla snímků.</translation>
         <translation>Cesta k souboru je neznámá.</translation>
     </message>
     <message>
-        <source>Import flare Lip Sync File</source>
-        <translation>Zavést soubor synchronizace okraje flare</translation>
+        <source>Import Toonz Lip Sync File</source>
+        <translation>Zavést soubor synchronizace okraje Toonz</translation>
     </message>
     <message>
         <source>To: </source>
@@ -6665,12 +6665,12 @@ Pro odkaz, prosím, použijte čísla snímků.</translation>
         <translation type="vanished">Nová vektorová úroveň</translation>
     </message>
     <message>
-        <source>&amp;New flare Raster Level</source>
-        <translation>&amp;Nová rastrová úroveň flare</translation>
+        <source>&amp;New Toonz Raster Level</source>
+        <translation>&amp;Nová rastrová úroveň Toonz</translation>
     </message>
     <message>
-        <source>New flare Raster Level</source>
-        <translation type="vanished">Nová rastrová úroveň flare</translation>
+        <source>New Toonz Raster Level</source>
+        <translation type="vanished">Nová rastrová úroveň Toonz</translation>
     </message>
     <message>
         <source>&amp;New Raster Level</source>
@@ -6733,8 +6733,8 @@ Pro odkaz, prosím, použijte čísla snímků.</translation>
         <translation>Přepnout ukazatel nynějšího času</translation>
     </message>
     <message>
-        <source>Vectors to flare Raster</source>
-        <translation>Vektory na rastr flare</translation>
+        <source>Vectors to Toonz Raster</source>
+        <translation>Vektory na rastr Toonz</translation>
     </message>
     <message>
         <source>Replace Vectors with Simplified Vectors</source>
@@ -6869,12 +6869,12 @@ Pro odkaz, prosím, použijte čísla snímků.</translation>
         <translation>Nástroj štětec - zamknout alfu</translation>
     </message>
     <message>
-        <source>http://flare.readthedocs.io</source>
-        <translation>http://flare.readthedocs.io</translation>
+        <source>http://opentoonz.readthedocs.io</source>
+        <translation>http://opentoonz.readthedocs.io</translation>
     </message>
     <message>
-        <source>&amp;Import flare Lip Sync File...</source>
-        <translation>&amp;Zavést soubor synchronizace okraje flare...</translation>
+        <source>&amp;Import Toonz Lip Sync File...</source>
+        <translation>&amp;Zavést soubor synchronizace okraje Toonz...</translation>
     </message>
     <message>
         <source>Export Exchange Digital Time Sheet (XDTS)</source>
@@ -7021,12 +7021,12 @@ protože jinak můžete smazat pro něj nezbytné soubory.</translation>
         <translation>Nelze smazat %1 : </translation>
     </message>
     <message>
-        <source>https://github.com/flare/flare/releases/latest</source>
-        <translation>https://github.com/flare/flare/releases/latest</translation>
+        <source>https://github.com/opentoonz/opentoonz/releases/latest</source>
+        <translation>https://github.com/opentoonz/opentoonz/releases/latest</translation>
     </message>
     <message>
-        <source>https://groups.google.com/forum/#!forum/flare_en</source>
-        <translation>https://groups.google.com/forum/#!forum/flare_en</translation>
+        <source>https://groups.google.com/forum/#!forum/opentoonz_en</source>
+        <translation>https://groups.google.com/forum/#!forum/opentoonz_en</translation>
     </message>
     <message>
         <source>To report a bug, click on the button below to open a web browser window for Flare&apos;s Issues page on https://github.com.  Click on the &apos;New issue&apos; button and fill out the form.</source>
@@ -9382,12 +9382,12 @@ Nastavit cestu k výstupní složce také na podsložku.</translation>
         <translation>Výchozí formát úrovní:</translation>
     </message>
     <message>
-        <source>flare Vector Level</source>
-        <translation>Vektorová úroveň flare</translation>
+        <source>Toonz Vector Level</source>
+        <translation>Vektorová úroveň Toonz</translation>
     </message>
     <message>
-        <source>flare Raster Level</source>
-        <translation>Rastrová úroveň flare</translation>
+        <source>Toonz Raster Level</source>
+        <translation>Rastrová úroveň Toonz</translation>
     </message>
     <message>
         <source>Raster Level</source>
@@ -9626,8 +9626,8 @@ Nastavit cestu k výstupní složce také na podsložku.</translation>
         <translation>Použít záběr jako list animace</translation>
     </message>
     <message>
-        <source>Replace flare Level after SaveLevelAs command</source>
-        <translation>Nahradit úroveň flare po příkazu Uložit úroveň jako</translation>
+        <source>Replace Toonz Level after SaveLevelAs command</source>
+        <translation>Nahradit úroveň Toonz po příkazu Uložit úroveň jako</translation>
     </message>
     <message>
         <source>Open Flipbook after Rendering</source>
@@ -11245,14 +11245,14 @@ Co chcete dělat?</translation>
         <translation>Nelze smazat žádný řádek, protože nebyl vybrán žádný sloupec, buňka nebo snímek proužku úrovně.</translation>
     </message>
     <message>
-        <source>The rooms will be reset the next time you run flare.</source>
-        <translation type="vanished">Pracovní plochy budou obnoveny ve výchozím stavu při příštím spuštění flare.</translation>
+        <source>The rooms will be reset the next time you run Toonz.</source>
+        <translation type="vanished">Pracovní plochy budou obnoveny ve výchozím stavu při příštím spuštění Toonz.</translation>
     </message>
     <message>
         <source>The license validation process was not able to confirm the right to use this software on this computer.
- Please contact [ support@flare.com ] for assistance.</source>
+ Please contact [ support@toonz.com ] for assistance.</source>
         <translation type="vanished">Licenční schvalovací postup nebyl schopen potvrdit oprávnění k používání software na tomto počítači.
-Spojte se, prosím, kvůli podpoře s support@flare.com.</translation>
+Spojte se, prosím, kvůli podpoře s support@toonz.com.</translation>
     </message>
     <message>
         <source>Saving previewed frames....</source>
@@ -11355,8 +11355,8 @@ Do you want to overwrite it?</source>
 Chcete jej přepsat?</translation>
     </message>
     <message>
-        <source>File %1 doesn&apos;t loOk like a flare Scene</source>
-        <translation type="vanished">Soubor %1 nevypadá jako záběr flare</translation>
+        <source>File %1 doesn&apos;t loOk like a TOONZ Scene</source>
+        <translation type="vanished">Soubor %1 nevypadá jako záběr Toonz</translation>
     </message>
     <message>
         <source>It is not possible to load the scene %1 because it does not belong to any project.</source>
@@ -11407,8 +11407,8 @@ Některé úrovně nebyly nahrány, protože jejich verze není podporována</tr
         <translation>Vybrané buňky musí být ve stejném sloupci.</translation>
     </message>
     <message>
-        <source>Match lines can be deleted from flare raster levels only</source>
-        <translation>Dělicí čáry lze smazat jen z rastrových úrovní flare</translation>
+        <source>Match lines can be deleted from Toonz raster levels only</source>
+        <translation>Dělicí čáry lze smazat jen z rastrových úrovní Toonz</translation>
     </message>
     <message>
         <source>Partially Edited</source>
@@ -11475,8 +11475,8 @@ Některé úrovně nebyly nahrány, protože jejich verze není podporována</tr
         <translation>Dělicí čáry nelze použít na sloupec s více než jednou úrovní.</translation>
     </message>
     <message>
-        <source>Match lines can be applied to flare raster levels only.</source>
-        <translation>Dělicí čáry lze použít jen na rastrové úrovně flare.</translation>
+        <source>Match lines can be applied to Toonz raster levels only.</source>
+        <translation>Dělicí čáry lze použít jen na rastrové úrovně Toonz.</translation>
     </message>
     <message>
         <source>The style index you specified is not available in the palette of the destination level.</source>
@@ -11507,8 +11507,8 @@ Některé úrovně nebyly nahrány, protože jejich verze není podporována</tr
         <translation>Jen vektorové úrovně lze sloučit do jedné vektorové úrovně.</translation>
     </message>
     <message>
-        <source>It is possible to merge only flare vector levels or standard raster levels.</source>
-        <translation>Je možné sloučit jen vektorové úrovně flare nebo standardní rastrové úrovně.</translation>
+        <source>It is possible to merge only Toonz vector levels or standard raster levels.</source>
+        <translation>Je možné sloučit jen vektorové úrovně Toonz nebo standardní rastrové úrovně.</translation>
     </message>
     <message>
         <source>It is not possible to display the file %1: no player associated with its format</source>
@@ -11645,8 +11645,8 @@ Chcete uložit změny?</translation>
         <translation>Nastavení vyčištění</translation>
     </message>
     <message>
-        <source>The scene %1 was created with flare and cannot be loaded in LineTest.</source>
-        <translation type="vanished">Záběr %1 byl vytvořen s flare a nelze jej nahrát do čárové zkoušky.</translation>
+        <source>The scene %1 was created with Toonz and cannot be loaded in LineTest.</source>
+        <translation type="vanished">Záběr %1 byl vytvořen s Toonz a nelze jej nahrát do čárové zkoušky.</translation>
     </message>
     <message>
         <source>File %1 already exists.
@@ -11813,7 +11813,7 @@ Jste si jistý </translation>
         <translation>Žádná nynější úroveň</translation>
     </message>
     <message>
-        <source>flare cannot Save this Level</source>
+        <source>Toonz cannot Save this Level</source>
         <translation type="vanished">Tuto úroveň nelze uložit</translation>
     </message>
     <message>
@@ -12111,8 +12111,8 @@ Ve schránce nejsou žádná data k vložení</translation>
         <translation>OK</translation>
     </message>
     <message>
-        <source>File %1 doesn&apos;t look like a flare Scene</source>
-        <translation>Soubor %1 nevypadá jako výjev flare</translation>
+        <source>File %1 doesn&apos;t look like a TOONZ Scene</source>
+        <translation>Soubor %1 nevypadá jako výjev Toonz</translation>
     </message>
     <message>
         <source>Inbetween  : Level %1,  </source>
@@ -12165,16 +12165,16 @@ Neurčená chyba.</translation>
         <translation type="vanished">[Táhnout a upustit] pro kopírování příkazu do pruhu s nabídkou</translation>
     </message>
     <message>
-        <source>Cannot open menubar settings template file. Re-installing flare will solve this problem.</source>
-        <translation>Nelze otevřít soubor předlohy s nastavením pruhu s nabídkou. Tuto potíž vyřeší přeinstalování flare.</translation>
+        <source>Cannot open menubar settings template file. Re-installing Toonz will solve this problem.</source>
+        <translation>Nelze otevřít soubor předlohy s nastavením pruhu s nabídkou. Tuto potíž vyřeší přeinstalování Toonz.</translation>
     </message>
     <message>
         <source>Visit Web Site</source>
         <translation>Navštívit internetovou stránku</translation>
     </message>
     <message>
-        <source>https://flare.github.io/e/</source>
-        <translation>https://flare.github.io/e/</translation>
+        <source>https://opentoonz.github.io/e/</source>
+        <translation>https://opentoonz.github.io/e/</translation>
     </message>
     <message>
         <source>Change current drawing %1</source>
@@ -13378,7 +13378,7 @@ which may not be displayed correctly or may cause errors in applications other t
     </message>
 </context>
 <context>
-    <name>RenameAsflarePopup</name>
+    <name>RenameAsToonzPopup</name>
     <message>
         <source>Delete Original Files</source>
         <translation>Smazat původní soubor</translation>
@@ -17758,4 +17758,3 @@ Podržte klávesu F3 v prohlížeči pro ukázání pouze tohoto snímku</transl
     </message>
 </context>
 </TS>
-

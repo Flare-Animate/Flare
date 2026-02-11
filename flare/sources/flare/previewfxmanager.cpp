@@ -5,21 +5,21 @@
 #include "timagecache.h"
 #include "tw/stringtable.h"
 
-// flare scene-stage structures
-#include "flare/flarescene.h"
-#include "flare/tscenehandle.h"
-#include "flare/sceneproperties.h"
-#include "flare/tframehandle.h"
-#include "flare/tfxhandle.h"
-#include "flare/tpalettehandle.h"
-#include "flare/txshlevel.h"
-#include "flare/txshlevelhandle.h"
-#include "flare/txsheethandle.h"
-#include "flare/tobjecthandle.h"
-#include "flare/tstageobjecttree.h"
-#include "flare/tcamera.h"
-#include "flare/palettecontroller.h"
-#include "tapp.h"  //flare current objects
+// Toonz scene-stage structures
+#include "toonz/toonzscene.h"
+#include "toonz/tscenehandle.h"
+#include "toonz/sceneproperties.h"
+#include "toonz/tframehandle.h"
+#include "toonz/tfxhandle.h"
+#include "toonz/tpalettehandle.h"
+#include "toonz/txshlevel.h"
+#include "toonz/txshlevelhandle.h"
+#include "toonz/txsheethandle.h"
+#include "toonz/tobjecthandle.h"
+#include "toonz/tstageobjecttree.h"
+#include "toonz/tcamera.h"
+#include "toonz/palettecontroller.h"
+#include "tapp.h"  //Toonz current objects
 
 // Images stuff
 #include "trasterimage.h"
@@ -28,23 +28,23 @@
 // Fxs stuff
 #include "toutputproperties.h"
 #include "trasterfx.h"
-#include "flare/scenefx.h"  //Fxs tree build-up
-#include "flare/tcolumnfx.h"
+#include "toonz/scenefx.h"  //Fxs tree build-up
+#include "toonz/tcolumnfx.h"
 
 // Cache management
 #include "tpassivecachemanager.h"
 
 // Flipbook
 #include "flipbook.h"
-#include "flareqt/flipconsole.h"
+#include "toonzqt/flipconsole.h"
 
 // Qt stuff
 #include <QMetaType>
 #include <QRegion>
-#include "flareqt/gutil.h"  //For conversions between TRects and QRects
+#include "toonzqt/gutil.h"  //For conversions between TRects and QRects
 
 // Preferences
-#include "flare/preferences.h"
+#include "toonz/preferences.h"
 
 #include "previewfxmanager.h"
 
@@ -256,7 +256,7 @@ private:
   TFxP buildSceneFx(int frame);
 
   void addRenderData(std::vector<TRenderer::RenderData> &datas,
-                     flareScene *scene, int frame, bool rebuild);
+                     ToonzScene *scene, int frame, bool rebuild);
   void startRender(bool rebuild = false);
 };
 
@@ -281,7 +281,7 @@ inline void PreviewFxInstance::cropAndStep(int &frame) {
 
 inline TFxP PreviewFxInstance::buildSceneFx(int frame) {
   TApp *app         = TApp::instance();
-  flareScene *scene = app->getCurrentScene()->getScene();
+  ToonzScene *scene = app->getCurrentScene()->getScene();
 
   if (isFullPreview())
     return ::buildSceneFx(scene, m_xsheet.getPointer(), frame,
@@ -294,7 +294,7 @@ inline TFxP PreviewFxInstance::buildSceneFx(int frame) {
 //------------------------------------------------------------------
 
 void PreviewFxInstance::addRenderData(std::vector<TRenderer::RenderData> &datas,
-                                      flareScene *scene, int frame,
+                                      ToonzScene *scene, int frame,
                                       bool rebuild) {
   // Seek the image associated to the render data in the cache.
   std::map<int, FrameInfo>::iterator it;
@@ -305,7 +305,7 @@ void PreviewFxInstance::addRenderData(std::vector<TRenderer::RenderData> &datas,
   TRasterFxP builtFxA, builtFxB;
 
   if (m_renderSettings.m_stereoscopic) {
-    flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
+    ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
     scene->shiftCameraX(-m_renderSettings.m_stereoscopicShift / 2);
     builtFxA = buildSceneFx(frame);
     scene->shiftCameraX(m_renderSettings.m_stereoscopicShift);
@@ -417,7 +417,7 @@ void PreviewFxInstance::reset() {
 
 void PreviewFxInstance::addFlipbook(FlipBook *&flipbook) {
   TApp *app         = TApp::instance();
-  flareScene *scene = app->getCurrentScene()->getScene();
+  ToonzScene *scene = app->getCurrentScene()->getScene();
   TOutputProperties *properties =
       scene->getProperties()->getPreviewProperties();
 
@@ -546,7 +546,7 @@ void PreviewFxInstance::updateFlipbooks() {
 
 void PreviewFxInstance::updateFrameRange() {
   TApp *app         = TApp::instance();
-  flareScene *scene = app->getCurrentScene()->getScene();
+  ToonzScene *scene = app->getCurrentScene()->getScene();
   TOutputProperties *properties =
       scene->getProperties()->getPreviewProperties();
 
@@ -707,7 +707,7 @@ void PreviewFxInstance::updateProgressBarStatus() {
 
 void PreviewFxInstance::updateRenderSettings() {
   TApp *app         = TApp::instance();
-  flareScene *scene = app->getCurrentScene()->getScene();
+  ToonzScene *scene = app->getCurrentScene()->getScene();
   TOutputProperties *properties =
       scene->getProperties()->getPreviewProperties();
 
@@ -937,7 +937,7 @@ void PreviewFxInstance::startRender(bool rebuild) {
 
   m_renderFailed = false;
 
-  flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
+  ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
 
   // Fill the production-specific infos (threads count and tile size)
   TOutputProperties *properties =
@@ -1700,4 +1700,3 @@ void PreviewFxManager::suspendRendering(bool suspend) {
     }
   }
 }
-

@@ -1,8 +1,8 @@
 
 
-#include "flare/tcolumnhandle.h"
+#include "toonz/tcolumnhandle.h"
 
-#include "flare/txshcolumn.h"
+#include "toonz/txshcolumn.h"
 
 //=============================================================================
 // TColumnHandle
@@ -32,4 +32,3 @@ void TColumnHandle::setColumnIndex(int index) {
   m_columnIndex = index;
   emit columnIndexSwitched();
 }
-

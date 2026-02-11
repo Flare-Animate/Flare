@@ -5,7 +5,7 @@
 
 #include "tcommon.h"
 #include "traster.h"
-#include "tflareimage.h"
+#include "ttoonzimage.h"
 #include "tpalette.h"
 
 #include <QWidget>
@@ -13,7 +13,7 @@
 
 #undef DVAPI
 #undef DVVAR
-#ifdef flareQT_EXPORTS
+#ifdef TOONZQT_EXPORTS
 #define DVAPI DV_EXPORT_API
 #define DVVAR DV_EXPORT_VAR
 #else
@@ -230,4 +230,3 @@ protected slots:
 };
 
 #endif
-

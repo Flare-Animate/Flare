@@ -1,25 +1,25 @@
 
 
-#include "flare/scriptbinding_flare_raster_converter.h"
-#include "flare/scriptbinding_level.h"
+#include "toonz/scriptbinding_toonz_raster_converter.h"
+#include "toonz/scriptbinding_level.h"
 #include "tropcm.h"
 #include "convert2tlv.h"
 
 namespace TScriptBinding {
 
-flareRasterConverter::flareRasterConverter() : m_flatSource(false) {}
+ToonzRasterConverter::ToonzRasterConverter() : m_flatSource(false) {}
 
-flareRasterConverter::~flareRasterConverter() {}
+ToonzRasterConverter::~ToonzRasterConverter() {}
 
-QScriptValue flareRasterConverter::ctor(QScriptContext *context,
+QScriptValue ToonzRasterConverter::ctor(QScriptContext *context,
                                         QScriptEngine *engine) {
-  return engine->newQObject(new flareRasterConverter(),
+  return engine->newQObject(new ToonzRasterConverter(),
                             QScriptEngine::AutoOwnership);
 }
 
-QScriptValue flareRasterConverter::toString() { return "flareRasterConverter"; }
+QScriptValue ToonzRasterConverter::toString() { return "ToonzRasterConverter"; }
 
-QScriptValue flareRasterConverter::convert(QScriptContext *context,
+QScriptValue ToonzRasterConverter::convert(QScriptContext *context,
                                            QScriptEngine *engine) {
   if (context->argumentCount() != 1)
     return context->throwError(
@@ -43,10 +43,10 @@ QScriptValue flareRasterConverter::convert(QScriptContext *context,
         tr("Bad argument (%1): should be a raster Level or a raster Image")
             .arg(arg.toString()));
   }
-  RasterToflareRasterConverter converter;
+  RasterToToonzRasterConverter converter;
   if (img) {
     TRasterImageP ri = img->getImg();
-    TflareImageP ti  = converter.convert(ri);
+    TToonzImageP ti  = converter.convert(ri);
     ti->setPalette(converter.getPalette().getPointer());
     return create(engine, new Image(ti));
   } else
@@ -54,4 +54,3 @@ QScriptValue flareRasterConverter::convert(QScriptContext *context,
 }
 
 }  // namespace TScriptBinding
-

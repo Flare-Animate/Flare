@@ -1,26 +1,26 @@
 
 
-#include "flareqt/studiopaletteviewer.h"
+#include "toonzqt/studiopaletteviewer.h"
 
 // TnzQt includes
-#include "flareqt/menubarcommand.h"
-#include "flareqt/paletteviewer.h"
-#include "flareqt/trepetitionguard.h"
-#include "flareqt/gutil.h"
-#include "flareqt/icongenerator.h"
-#include "flareqt/intfield.h"
+#include "toonzqt/menubarcommand.h"
+#include "toonzqt/paletteviewer.h"
+#include "toonzqt/trepetitionguard.h"
+#include "toonzqt/gutil.h"
+#include "toonzqt/icongenerator.h"
+#include "toonzqt/intfield.h"
 #include "palettesscanpopup.h"
 #include "palettedata.h"
 
 // TnzLib includes
-#include "flare/studiopalettecmd.h"
-#include "flare/tpalettehandle.h"
-#include "flare/txshsimplelevel.h"
-#include "flare/flarescene.h"
-#include "flare/sceneproperties.h"
-#include "flare/txsheethandle.h"
-#include "flare/txshlevelhandle.h"
-#include "flare/preferences.h"
+#include "toonz/studiopalettecmd.h"
+#include "toonz/tpalettehandle.h"
+#include "toonz/txshsimplelevel.h"
+#include "toonz/toonzscene.h"
+#include "toonz/sceneproperties.h"
+#include "toonz/txsheethandle.h"
+#include "toonz/txshlevelhandle.h"
+#include "toonz/preferences.h"
 
 // TnzCore includes
 #include "saveloadqsettings.h"
@@ -394,7 +394,7 @@ void StudioPaletteTreeViewer::resetProjectPaletteFolder() {
     delete projectPaletteItem;
     // clear the item list to search the folder from scratch
     m_openedItems.clear();
-    // flare Palette is not changed, so resurrect the flarePaletteRoot
+    // Toonz Palette is not changed, so resurrect the ToonzPaletteRoot
     m_openedItems.insert(topLevelItem(0));
   }
   if (!TSystem::doesExistFileOrLevel(projectPalettePath)) return;
@@ -677,8 +677,8 @@ void StudioPaletteTreeViewer::setAsDefault() {
 
   QString label = QObject::tr("Set As...");
   QStringList radioButtons;
-  radioButtons.append(QString("Default flare Raster Palette"));
-  radioButtons.append(QString("Default flare Vector Palette"));
+  radioButtons.append(QString("Default Toonz Raster Palette"));
+  radioButtons.append(QString("Default Toonz Vector Palette"));
   radioButtons.append(QString("Default Raster Drawing Palette"));
   radioButtons.append(QString("Default Cleanup Palette"));
 
@@ -687,10 +687,10 @@ void StudioPaletteTreeViewer::setAsDefault() {
 
   switch (type) {
   case 1:
-    fileName = "flare_Raster_Palette.tpl";
+    fileName = "Toonz_Raster_Palette.tpl";
     break;
   case 2:
-    fileName = "flare_Vector_Palette.tpl";
+    fileName = "Toonz_Vector_Palette.tpl";
     break;
   case 3:
     fileName = "Raster_Drawing_Palette.tpl";
@@ -806,8 +806,8 @@ void StudioPaletteTreeViewer::loadInCurrentPaletteAndAdaptLevel() {
 
   if (apd.exec() != QDialog::Accepted) return;
 
-  /* awful patch: since in StudioPaletteCmd(defined in flarelib) I cannot use
-the invalidateIcons(defined in flareqt)
+  /* awful patch: since in StudioPaletteCmd(defined in toonzlib) I cannot use
+the invalidateIcons(defined in toonzqt)
 i do invalidate icons from here using a "fake TUndo", named InvalidateIconsUndo.
 And, since I need to refresh icons at the end of the processing, i have to put
 that fake undo twice, one before and one after.
@@ -1360,4 +1360,3 @@ void StudioPaletteViewer::save(QSettings &settings) const {
 void StudioPaletteViewer::load(QSettings &settings) {
   m_studioPaletteViewer->load(settings);
 }
-

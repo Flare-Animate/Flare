@@ -351,7 +351,7 @@ get_target_property(QtCore_location Qt5::Core LOCATION)
 get_target_property(QtWidget_location Qt5::Widgets LOCATION)
 message(STATUS "Qt Core Location:" ${QtCore_location})
 
-macro(_find_flare_library OUT_LIB_LIST IN_LIB_LIST)
+macro(_find_toonz_library OUT_LIB_LIST IN_LIB_LIST)
     set(OUTLIST "")
     foreach(arg ${IN_LIB_LIST})
         unset(COREPATH CACHE)
@@ -622,7 +622,7 @@ if(PLATFORM EQUAL 64)
 endif()
 
 if(BUILD_ENV_MSVC)
-    # place flare.exe and dlls in the same directory
+    # place Toonz.exe and dlls in the same directory
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
     # use secure functions by defaualt
@@ -710,7 +710,7 @@ if(WITH_TRANSLATION)
 
     # List of all modules that have translations
     set(TRANSLATION_MODULES
-        flare tnzcore flarelib tnztools flareqt image colorfx
+        toonz tnzcore toonzlib tnztools toonzqt image colorfx
     )
 
     foreach(mod ${TRANSLATION_MODULES})
@@ -724,11 +724,11 @@ if(WITH_TRANSLATION)
 
     add_custom_target(rename_translation_folders ALL
         DEPENDS
-            translate_flare
+            translate_toonz
             translate_tnzcore
-            translate_flarelib
+            translate_toonzlib
             translate_tnztools
-            translate_flareqt
+            translate_toonzqt
             translate_image
             translate_colorfx
         COMMENT "Renaming language folders to native display names"

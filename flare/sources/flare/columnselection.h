@@ -3,10 +3,10 @@
 #ifndef TCOLUMNSELECTION_H
 #define TCOLUMNSELECTION_H
 
-#include "flareqt/selection.h"
+#include "toonzqt/selection.h"
 #include "tgeometry.h"
 #include <set>
-#include "flare/txshlevel.h"
+#include "toonz/txshlevel.h"
 
 class ReframePopup;
 
@@ -60,4 +60,3 @@ public:
 };
 
 #endif  // TCELLSELECTION_H
-

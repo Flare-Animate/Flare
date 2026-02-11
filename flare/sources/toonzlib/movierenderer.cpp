@@ -14,15 +14,15 @@
 #include "tiio.h"
 
 // TnzLib includes
-#include "flare/flarescene.h"
-#include "flare/sceneproperties.h"
-#include "flare/txsheet.h"
-#include "flare/tcamera.h"
-#include "flare/preferences.h"
-#include "flare/trasterimageutils.h"
-#include "flare/levelupdater.h"
+#include "toonz/toonzscene.h"
+#include "toonz/sceneproperties.h"
+#include "toonz/txsheet.h"
+#include "toonz/tcamera.h"
+#include "toonz/preferences.h"
+#include "toonz/trasterimageutils.h"
+#include "toonz/levelupdater.h"
 #include "toutputproperties.h"
-#include "flare/boardsettings.h"
+#include "toonz/boardsettings.h"
 
 // tcg includes
 #include "tcg/tcg_macros.h"
@@ -31,7 +31,7 @@
 #include <QCoreApplication>
 #include <QTimer>
 
-#include "flare/movierenderer.h"
+#include "toonz/movierenderer.h"
 
 //**************************************************************************
 //    Local Namespace  stuff
@@ -62,7 +62,7 @@ void addMark(const TRasterP &mark, TRasterImageP img) {
 
 //---------------------------------------------------------
 
-void getRange(flareScene *scene, bool isPreview, int &from, int &to) {
+void getRange(ToonzScene *scene, bool isPreview, int &from, int &to) {
   TSceneProperties *sprop = scene->getProperties();
 
   int step;
@@ -106,7 +106,7 @@ QString getPreviewName(unsigned long renderSessionId) {
 
 class MovieRenderer::Imp final : public TRenderPort, public TSmartObject {
 public:
-  flareScene *m_scene;
+  ToonzScene *m_scene;
   TRenderer m_renderer;
   TFilePath m_fp;
 
@@ -142,7 +142,7 @@ public:
   bool m_waitAfterFinish;
 
 public:
-  Imp(flareScene *scene, const TFilePath &moviePath, int threadCount,
+  Imp(ToonzScene *scene, const TFilePath &moviePath, int threadCount,
       bool cacheResults);
   ~Imp();
 
@@ -187,7 +187,7 @@ public:
 
 //---------------------------------------------------------
 
-MovieRenderer::Imp::Imp(flareScene *scene, const TFilePath &moviePath,
+MovieRenderer::Imp::Imp(ToonzScene *scene, const TFilePath &moviePath,
                         int threadCount, bool cacheResults)
     : m_scene(scene)
     , m_renderer(threadCount)
@@ -661,7 +661,7 @@ void MovieRenderer::Imp::doRenderRasterCompleted(const RenderData &renderData) {
       {
         int from, to;
         getRange(m_scene, false, from,
-                 to);  // It's ok since cancels can only happen from flare...
+                 to);  // It's ok since cancels can only happen from Toonz...
 
         for (int i = from; i < to; i++)
           TImageCache::instance()->remove(m_renderCacheId +
@@ -930,7 +930,7 @@ void MovieRenderer::Imp::saveBoardFrame() {
 //    MovieRenderer
 //----------------------
 
-MovieRenderer::MovieRenderer(flareScene *scene, const TFilePath &moviePath,
+MovieRenderer::MovieRenderer(ToonzScene *scene, const TFilePath &moviePath,
                              int threadCount, bool cacheResults)
     : m_imp(new Imp(scene, moviePath, threadCount, cacheResults)) {
   m_imp->addRef();  // See MovieRenderer::start(). Can't just delete it in the
@@ -1022,4 +1022,3 @@ TRenderer *MovieRenderer::getTRenderer() {
   // interface.
   return &m_imp->m_renderer;
 }
-

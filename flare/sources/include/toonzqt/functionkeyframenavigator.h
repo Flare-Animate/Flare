@@ -3,7 +3,7 @@
 #ifndef FUNCTION_KEYFRAME_NAVIGATOR_INCLUDED
 #define FUNCTION_KEYFRAME_NAVIGATOR_INCLUDED
 
-#include "flareqt/keyframenavigator.h"
+#include "toonzqt/keyframenavigator.h"
 #include "tdoubleparam.h"
 
 #include <QToolBar>
@@ -38,4 +38,3 @@ public slots:
 };
 
 #endif
-

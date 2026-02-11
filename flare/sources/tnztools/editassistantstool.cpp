@@ -9,15 +9,15 @@
 #include <tools/inputmanager.h>
 
 // TnzLib includes
-#include <flare/tapplication.h>
-#include <flare/txshlevelhandle.h>
-#include <flare/txsheethandle.h>
-#include <flare/tscenehandle.h>
-#include <flare/tcolumnhandle.h>
-#include <flare/tframehandle.h>
-#include <flare/dpiscale.h>
-#include <flare/flarescene.h>
-#include <flare/sceneproperties.h>
+#include <toonz/tapplication.h>
+#include <toonz/txshlevelhandle.h>
+#include <toonz/txsheethandle.h>
+#include <toonz/tscenehandle.h>
+#include <toonz/tcolumnhandle.h>
+#include <toonz/tframehandle.h>
+#include <toonz/dpiscale.h>
+#include <toonz/toonzscene.h>
+#include <toonz/sceneproperties.h>
 
 // TnzCore includes
 #include <tgl.h>
@@ -25,9 +25,9 @@
 #include <tmetaimage.h>
 #include <tpixelutils.h>
 
-#include <flareqt/selection.h>
-#include <flareqt/selectioncommandids.h>
-#include <flareqt/tselectionhandle.h>
+#include <toonzqt/selection.h>
+#include <toonzqt/selectioncommandids.h>
+#include <toonzqt/tselectionhandle.h>
 
 // For Qt translation support
 #include <QCoreApplication>
@@ -794,7 +794,7 @@ public:
     {
       if (int filterId = column->getColorFilterId())
       if (TSceneHandle *sceneHandle = app->getCurrentScene())
-      if (flareScene *scene = sceneHandle->getScene())
+      if (ToonzScene *scene = sceneHandle->getScene())
       if (TSceneProperties *props = scene->getProperties())
         color = toPixelD(props->getColorFilterColor( filterId ));
       color.m *= column->getOpacity()/255.0;
@@ -869,4 +869,3 @@ public:
 //-------------------------------------------------------------------
 
 EditAssistantsTool editAssistantsTool;
-

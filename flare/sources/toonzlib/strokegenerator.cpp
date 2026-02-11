@@ -1,11 +1,11 @@
 
 
 #include "tgl.h"
-#include "flare/strokegenerator.h"
+#include "toonz/strokegenerator.h"
 //#include "tofflinegl.h"
 
 #include "tstroke.h"
-#include "flare/preferences.h"
+#include "toonz/preferences.h"
 
 using namespace std;
 
@@ -375,4 +375,3 @@ TStroke *StrokeGenerator::makeStroke(double error, UINT onlyLastPoints, bool use
 }
 
 //-------------------------------------------------------------------
-

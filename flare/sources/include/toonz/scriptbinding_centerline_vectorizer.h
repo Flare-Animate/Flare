@@ -3,9 +3,9 @@
 #ifndef SCRIPTBINDING_CENTERLINE_VECTORIZER_H
 #define SCRIPTBINDING_CENTERLINE_VECTORIZER_H
 
-#include "flare/scriptbinding.h"
+#include "toonz/scriptbinding.h"
 
-class flareScene;
+class ToonzScene;
 class TXshSimpleLevel;
 
 namespace TScriptBinding {
@@ -66,4 +66,3 @@ private:
 Q_DECLARE_METATYPE(TScriptBinding::CenterlineVectorizer *)
 
 #endif
-

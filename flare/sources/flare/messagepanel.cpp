@@ -1,11 +1,11 @@
 
 
 #include "messagepanel.h"
-#include "flareqt/menubarcommand.h"
+#include "toonzqt/menubarcommand.h"
 #include "menubarcommandids.h"
 
 #include "tapp.h"
-#include "flare/tscenehandle.h"
+#include "toonz/tscenehandle.h"
 #include "mainwindow.h"
 
 #include <QTextEdit>
@@ -179,4 +179,3 @@ public:
     }
   }
 } openFloatingLogPanelCommand;
-

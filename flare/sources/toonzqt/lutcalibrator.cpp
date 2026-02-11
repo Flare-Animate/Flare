@@ -1,7 +1,7 @@
-#include "flareqt/lutcalibrator.h"
+﻿#include "toonzqt/lutcalibrator.h"
 
 // Tnzlib includes
-#include "flare/preferences.h"
+#include "toonz/preferences.h"
 
 // TnzCore includes
 #include "tmsgcore.h"
@@ -670,4 +670,3 @@ void LutManager::update() {
   // update textures for all calibrators
   for (auto calibrator : m_calibrators) calibrator->update(textureChanged);
 }
-

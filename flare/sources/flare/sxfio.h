@@ -6,7 +6,7 @@
 #include <QStringList>
 #include <QList>
 #include <array>
-#include "flare/txsheet.h"
+#include "toonz/txsheet.h"
 #include "tenv.h"
 #include "xsheetviewer.h"
 
@@ -158,8 +158,7 @@ struct SxfData {
 SxfData loadSxf(const QString& sxfFilePath);
 void saveSxf(const QString& sxfFilePath, SxfData& data);
 
-bool loadSxfScene(flareScene* scene, const TFilePath& scenePath);
+bool loadSxfScene(ToonzScene* scene, const TFilePath& scenePath);
 }  // namespace SxfIo
 
 #endif
-

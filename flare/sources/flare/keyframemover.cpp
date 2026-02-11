@@ -10,10 +10,10 @@
 #include "historytypes.h"
 
 // TnzLib includes
-#include "flare/txsheethandle.h"
-#include "flare/tscenehandle.h"
-#include "flare/txsheet.h"
-#include "flare/preferences.h"
+#include "toonz/txsheethandle.h"
+#include "toonz/tscenehandle.h"
+#include "toonz/txsheet.h"
+#include "toonz/preferences.h"
 
 // TnzCore includes
 #include "tundo.h"
@@ -498,4 +498,3 @@ void KeyframeMoverTool::drawCellsArea(QPainter &p) {
   double endRectPosY = m_curPos.y - m_startPos.y;
   p.drawRect(m_startPos.x, m_startPos.y, endRectPosX, endRectPosY);
 }
-

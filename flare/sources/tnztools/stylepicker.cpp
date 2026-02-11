@@ -6,12 +6,12 @@
 #include "tofflinegl.h"
 #include "tvectorrenderdata.h"
 #include "tvectorimage.h"
-#include "tflareimage.h"
+#include "ttoonzimage.h"
 #include "trasterimage.h"
-#include "flare/dpiscale.h"
+#include "toonz/dpiscale.h"
 #include "tpixelutils.h"
 #include "tregion.h"
-#include "flareqt/gutil.h"
+#include "toonzqt/gutil.h"
 
 #include <QRect>
 
@@ -29,7 +29,7 @@ StylePicker::StylePicker(const QWidget *parent, const TImageP &image,
 //---------------------------------------------------------
 
 TPoint StylePicker::getRasterPoint(const TPointD &p) const {
-  if (TflareImageP ti = m_image) {
+  if (TToonzImageP ti = m_image) {
     // DpiScale dpiScale(ti);
     TDimension size = ti->getSize();
     return TPoint(tround(0.5 * size.lx + p.x),   /// dpiScale.getSx()),
@@ -49,7 +49,7 @@ TPoint StylePicker::getRasterPoint(const TPointD &p) const {
 int StylePicker::pickStyleId(const TPointD &pos, double radius, double scale2,
                              int mode) const {
   int styleId = 0;
-  if (TflareImageP ti = m_image) {
+  if (TToonzImageP ti = m_image) {
     TRasterCM32P ras = ti->getRaster();
     TPoint point     = getRasterPoint(pos);
     if (!ras->getBounds().contains(point)) return -1;
@@ -106,9 +106,9 @@ int StylePicker::pickStyleId(const TPointD &pos, double radius, double scale2,
 }
 
 //---------------------------------------------------------
-/*--- flare Raster LevelのToneを拾う。 ---*/
+/*--- Toonz Raster LevelのToneを拾う。 ---*/
 int StylePicker::pickTone(const TPointD &pos) const {
-  if (TflareImageP ti = m_image) {
+  if (TToonzImageP ti = m_image) {
     TRasterCM32P ras = ti->getRaster();
     if (!ras) return -1;
     TPoint point = getRasterPoint(pos);
@@ -124,7 +124,7 @@ int StylePicker::pickTone(const TPointD &pos) const {
 
 TPixel32 StylePicker::pickColor(const TPointD &pos, double radius,
                                 double scale2) const {
-  TflareImageP ti  = m_image;
+  TToonzImageP ti  = m_image;
   TRasterImageP ri = m_image;
   TVectorImageP vi = m_image;
   if (!!ri)  // !!ti || !!ri)
@@ -175,7 +175,7 @@ TPixel32 StylePicker::pickColor(const TPointD &pos, double radius,
 
 TPixel64 StylePicker::pickColor16(const TPointD &pos, double radius,
                                   double scale2) const {
-  TflareImageP ti  = m_image;
+  TToonzImageP ti  = m_image;
   TRasterImageP ri = m_image;
   TVectorImageP vi = m_image;
   assert(ri && !ti && !vi);
@@ -193,7 +193,7 @@ TPixel64 StylePicker::pickColor16(const TPointD &pos, double radius,
 
 TPixelF StylePicker::pickColor32F(const TPointD &pos, double radius,
                                   double scale2) const {
-  TflareImageP ti  = m_image;
+  TToonzImageP ti  = m_image;
   TRasterImageP ri = m_image;
   TVectorImageP vi = m_image;
   assert(ri && !ti && !vi);
@@ -439,4 +439,3 @@ TPixel32 StylePicker::pickColor(TStroke *stroke) const {
 }
 
 //---------------------------------------------------------
-

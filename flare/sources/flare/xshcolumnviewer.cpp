@@ -13,43 +13,43 @@
 #include "tools/toolcommandids.h"
 
 // TnzQt includes
-#include "flareqt/tselectionhandle.h"
-#include "flareqt/gutil.h"
-#include "flareqt/icongenerator.h"
-#include "flareqt/intfield.h"
-#include "flareqt/fxiconmanager.h"
+#include "toonzqt/tselectionhandle.h"
+#include "toonzqt/gutil.h"
+#include "toonzqt/icongenerator.h"
+#include "toonzqt/intfield.h"
+#include "toonzqt/fxiconmanager.h"
 
 // TnzLib includes
-#include "flare/txshcolumn.h"
-#include "flare/tscenehandle.h"
-#include "flare/txsheethandle.h"
-#include "flare/txshlevelhandle.h"
-#include "flare/tobjecthandle.h"
-#include "flare/stage2.h"
-#include "flare/txshpalettecolumn.h"
-#include "flare/txsheet.h"
-#include "flare/flarescene.h"
-#include "flare/txshcell.h"
-#include "flare/tstageobject.h"
-#include "flare/tstageobjecttree.h"
-#include "flare/sceneproperties.h"
-#include "flare/txshzeraryfxcolumn.h"
-#include "flare/tcolumnfx.h"
-#include "flare/txshsoundcolumn.h"
-#include "flare/txshsimplelevel.h"
-#include "flare/columnfan.h"
-#include "flare/tstageobjectcmd.h"
-#include "flare/fxcommand.h"
-#include "flare/txshleveltypes.h"
-#include "flare/levelproperties.h"
-#include "flare/preferences.h"
-#include "flare/childstack.h"
-#include "flare/txshlevelcolumn.h"
-#include "flare/txshmeshcolumn.h"
-#include "flare/tfxhandle.h"
-#include "flare/tcamera.h"
-#include "flare/tcolumnhandle.h"
-#include "flare/levelset.h"
+#include "toonz/txshcolumn.h"
+#include "toonz/tscenehandle.h"
+#include "toonz/txsheethandle.h"
+#include "toonz/txshlevelhandle.h"
+#include "toonz/tobjecthandle.h"
+#include "toonz/stage2.h"
+#include "toonz/txshpalettecolumn.h"
+#include "toonz/txsheet.h"
+#include "toonz/toonzscene.h"
+#include "toonz/txshcell.h"
+#include "toonz/tstageobject.h"
+#include "toonz/tstageobjecttree.h"
+#include "toonz/sceneproperties.h"
+#include "toonz/txshzeraryfxcolumn.h"
+#include "toonz/tcolumnfx.h"
+#include "toonz/txshsoundcolumn.h"
+#include "toonz/txshsimplelevel.h"
+#include "toonz/columnfan.h"
+#include "toonz/tstageobjectcmd.h"
+#include "toonz/fxcommand.h"
+#include "toonz/txshleveltypes.h"
+#include "toonz/levelproperties.h"
+#include "toonz/preferences.h"
+#include "toonz/childstack.h"
+#include "toonz/txshlevelcolumn.h"
+#include "toonz/txshmeshcolumn.h"
+#include "toonz/tfxhandle.h"
+#include "toonz/tcamera.h"
+#include "toonz/tcolumnhandle.h"
+#include "toonz/levelset.h"
 
 // TnzCore includes
 #include "tconvert.h"
@@ -766,7 +766,7 @@ ColumnArea::DrawHeader::DrawHeader(ColumnArea *nArea, QPainter &nP, int nCol)
     std::string columnName = m_viewer->getXsheet()
                                  ->getStageObject(TStageObjectId::ColumnId(col))
                                  ->getName();
-    flareScene *scene   = TApp::instance()->getCurrentScene()->getScene();
+    ToonzScene *scene   = TApp::instance()->getCurrentScene()->getScene();
     TLevelSet *levelSet = scene->getLevelSet();
     reservedLevel       = levelSet->getLevel(to_wstring(columnName));
   }
@@ -3015,7 +3015,7 @@ void ColumnArea::contextMenuEvent(QContextMenuEvent *event) {
         menu.addAction(cmdManager->getAction(MI_OpenChild));
 
       // Close sub xsheet and move to parent sheet
-      flareScene *scene      = TApp::instance()->getCurrentScene()->getScene();
+      ToonzScene *scene      = TApp::instance()->getCurrentScene()->getScene();
       ChildStack *childStack = scene->getChildStack();
       if (childStack && childStack->getAncestorCount() > 0) {
         menu.addAction(cmdManager->getAction(MI_CloseChild));
@@ -3187,4 +3187,3 @@ void ColumnArea::onSubSampling(QAction *action) {
   TApp::instance()->getCurrentScene()->notifySceneChanged();
 }
 }  // namespace XsheetGUI
-

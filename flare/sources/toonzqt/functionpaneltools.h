@@ -3,9 +3,9 @@
 #ifndef FUNCTIONPANELTOOLS_H
 #define FUNCTIONPANELTOOLS_H
 
-#include "flareqt/functionpanel.h"
+#include "toonzqt/functionpanel.h"
 #include "tdoublekeyframe.h"
-#include "flare/doubleparamcmd.h"
+#include "toonz/doubleparamcmd.h"
 
 #include <QList>
 // class QMouseEvent;
@@ -180,4 +180,3 @@ public:
   void release(QMouseEvent *e) override;
 };
 #endif
-

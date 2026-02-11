@@ -5,12 +5,12 @@
 
 #include <QObject>
 
-#include "flare/tstageobjectid.h"
+#include "toonz/tstageobjectid.h"
 #include "tcommon.h"
 
 #undef DVAPI
 #undef DVVAR
-#ifdef flareLIB_EXPORTS
+#ifdef TOONZLIB_EXPORTS
 #define DVAPI DV_EXPORT_API
 #define DVVAR DV_EXPORT_VAR
 #else
@@ -68,4 +68,3 @@ public slots:
 };
 
 #endif  // TOBJECTHANDLE_H
-

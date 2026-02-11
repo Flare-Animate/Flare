@@ -1,9 +1,9 @@
-#pragma once
+﻿#pragma once
 
-#if !defined(flare_PLUGIN_PARAM_TRAITS_H__)
-#define flare_PLUGIN_PARAM_TRAITS_H__
+#if !defined(TOONZ_PLUGIN_PARAM_TRAITS_H__)
+#define TOONZ_PLUGIN_PARAM_TRAITS_H__
 
-#include <flare_params.h>
+#include <toonz_params.h>
 #include <functional>
 
 template <typename First, typename Second>
@@ -17,21 +17,21 @@ struct param_bind_t {
   static const size_t valuesize = sizeof(typename First::valuetype);
 };
 
-typedef param_bind_t<flare_param_traits_double_t, TDoubleParam> tpbind_dbl_t;
-typedef param_bind_t<flare_param_traits_range_t, TRangeParam> tpbind_rng_t;
-typedef param_bind_t<flare_param_traits_color_t, TPixelParam> tpbind_col_t;
-typedef param_bind_t<flare_param_traits_point_t, TPointParam> tpbind_pnt_t;
-typedef param_bind_t<flare_param_traits_enum_t, TIntEnumParam> tpbind_enm_t;
-typedef param_bind_t<flare_param_traits_int_t, TIntParam> tpbind_int_t;
-typedef param_bind_t<flare_param_traits_bool_t, TBoolParam> tpbind_bool_t;
-typedef param_bind_t<flare_param_traits_spectrum_t, TSpectrumParam>
+typedef param_bind_t<toonz_param_traits_double_t, TDoubleParam> tpbind_dbl_t;
+typedef param_bind_t<toonz_param_traits_range_t, TRangeParam> tpbind_rng_t;
+typedef param_bind_t<toonz_param_traits_color_t, TPixelParam> tpbind_col_t;
+typedef param_bind_t<toonz_param_traits_point_t, TPointParam> tpbind_pnt_t;
+typedef param_bind_t<toonz_param_traits_enum_t, TIntEnumParam> tpbind_enm_t;
+typedef param_bind_t<toonz_param_traits_int_t, TIntParam> tpbind_int_t;
+typedef param_bind_t<toonz_param_traits_bool_t, TBoolParam> tpbind_bool_t;
+typedef param_bind_t<toonz_param_traits_spectrum_t, TSpectrumParam>
     tpbind_spc_t;
-typedef param_bind_t<flare_param_traits_string_t, TStringParam> tpbind_str_t;
-typedef param_bind_t<flare_param_traits_tonecurve_t, TToneCurveParam>
+typedef param_bind_t<toonz_param_traits_string_t, TStringParam> tpbind_str_t;
+typedef param_bind_t<toonz_param_traits_tonecurve_t, TToneCurveParam>
     tpbind_tcv_t;
 
 template <typename T>
-inline bool is_type_of(const flare_param_desc_t *desc) {
+inline bool is_type_of(const toonz_param_desc_t *desc) {
   if (desc->traits_tag == T::E) return true;
   return false;
 }
@@ -93,20 +93,20 @@ template <typename T, typename V>
 inline V get_2nd_value(const T &) {}
 
 template <>
-inline double get_1st_value(const flare_param_traits_range_t::valuetype &r) {
+inline double get_1st_value(const toonz_param_traits_range_t::valuetype &r) {
   return r.a;
 }
 template <>
-inline double get_2nd_value(const flare_param_traits_range_t::valuetype &r) {
+inline double get_2nd_value(const toonz_param_traits_range_t::valuetype &r) {
   return r.b;
 }
 
 template <>
-inline double get_1st_value(const flare_param_traits_point_t::valuetype &p) {
+inline double get_1st_value(const toonz_param_traits_point_t::valuetype &p) {
   return p.x;
 }
 template <>
-inline double get_2nd_value(const flare_param_traits_point_t::valuetype &p) {
+inline double get_2nd_value(const toonz_param_traits_point_t::valuetype &p) {
   return p.y;
 }
 
@@ -116,7 +116,7 @@ template <typename Bind,
           int Ranged = Bind::RANGED>
 // template < int Ranged, typename Comp, typename Bind >
 struct set_param_range_t {
-  static bool set_param_range(Param *param, const flare_param_desc_t *desc) {
+  static bool set_param_range(Param *param, const toonz_param_desc_t *desc) {
     /* 範囲を持たない(Ranged == std::false_type)なら何もすることはない */
     printf("(none)set_param_range: p:%p type:%s (Comp:%s Ranged:%d)\n", param,
            typeid(Bind).name(), typeid(Comp).name(), Ranged);
@@ -129,7 +129,7 @@ struct set_param_range_t {
 /* ranged complextype */
 template <typename Bind>
 struct set_param_range_t<Bind, std::true_type, 1> {
-  static bool set_param_range(Param *param, const flare_param_desc_t *desc) {
+  static bool set_param_range(Param *param, const toonz_param_desc_t *desc) {
     auto smartptr = param->param();
     typename Bind::realtype *p =
         reinterpret_cast<typename Bind::realtype *>(smartptr.getPointer());
@@ -159,7 +159,7 @@ struct set_param_range_t<Bind, std::true_type, 1> {
    このため range に対しても特殊版を用意するハメになった. */
 template <>
 struct set_param_range_t<tpbind_rng_t, std::true_type, 1> {
-  static bool set_param_range(Param *param, const flare_param_desc_t *desc) {
+  static bool set_param_range(Param *param, const toonz_param_desc_t *desc) {
     auto smartptr = param->param();
     tpbind_rng_t::realtype *p =
         reinterpret_cast<tpbind_rng_t::realtype *>(smartptr.getPointer());
@@ -179,7 +179,7 @@ struct set_param_range_t<tpbind_rng_t, std::true_type, 1> {
 /*
 template <>
 struct set_param_range_t< tpbind_pnt_t, std::true_type, 1 >  {
-        static bool set_param_range(Param* param, const flare_param_desc_t*
+        static bool set_param_range(Param* param, const toonz_param_desc_t*
 desc)
         {
                 auto smartptr = param->param();
@@ -215,7 +215,7 @@ b_maxval);
 /* ranged primitive: */
 template <typename Bind>
 struct set_param_range_t<Bind, std::false_type, 1> {
-  static bool set_param_range(Param *param, const flare_param_desc_t *desc) {
+  static bool set_param_range(Param *param, const toonz_param_desc_t *desc) {
     if (!is_type_of<typename Bind::traittype>(desc)) return false;
     auto smartptr = param->param();
     typename Bind::realtype *p =
@@ -232,7 +232,7 @@ struct set_param_range_t<Bind, std::false_type, 1> {
 };
 
 template <typename Bind>
-bool set_param_range(Param *param, const flare_param_desc_t *desc) {
+bool set_param_range(Param *param, const toonz_param_desc_t *desc) {
   if (!is_type_of<typename Bind::traittype>(desc)) return false;
   return set_param_range_t<Bind>::set_param_range(param, desc);
 }
@@ -241,7 +241,7 @@ template <typename Bind,
           typename Comp =
               typename std::is_compound<typename Bind::valuetype>::type>
 struct set_param_default_t {
-  static bool set_param_default(Param *param, const flare_param_desc_t *desc) {
+  static bool set_param_default(Param *param, const toonz_param_desc_t *desc) {
     return false;
   }
 };
@@ -250,7 +250,7 @@ struct set_param_default_t {
 /* Point/Range */
 template <typename Bind>
 struct set_param_default_t<Bind, std::true_type> {
-  static bool set_param_default(Param *param, const flare_param_desc_t *desc) {
+  static bool set_param_default(Param *param, const toonz_param_desc_t *desc) {
     auto smartptr = param->param();
     typename Bind::realtype *p =
         reinterpret_cast<typename Bind::realtype *>(smartptr.getPointer());
@@ -272,7 +272,7 @@ struct set_param_default_t<Bind, std::true_type> {
 /* Default Color */
 template <>
 struct set_param_default_t<tpbind_col_t, std::true_type> {
-  static bool set_param_default(Param *param, const flare_param_desc_t *desc) {
+  static bool set_param_default(Param *param, const toonz_param_desc_t *desc) {
     auto smartptr = param->param();
     tpbind_col_t::realtype *p =
         reinterpret_cast<tpbind_col_t::realtype *>(smartptr.getPointer());
@@ -288,7 +288,7 @@ struct set_param_default_t<tpbind_col_t, std::true_type> {
 /* Default String */
 template <>
 struct set_param_default_t<tpbind_str_t, std::true_type> {
-  static bool set_param_default(Param *param, const flare_param_desc_t *desc) {
+  static bool set_param_default(Param *param, const toonz_param_desc_t *desc) {
     auto smartptr = param->param();
     tpbind_str_t::realtype *p =
         reinterpret_cast<tpbind_str_t::realtype *>(smartptr.getPointer());
@@ -307,7 +307,7 @@ struct set_param_default_t<tpbind_str_t, std::true_type> {
 /* Default Spectrum */
 template <>
 struct set_param_default_t<tpbind_spc_t, std::true_type> {
-  static bool set_param_default(Param *param, const flare_param_desc_t *desc) {
+  static bool set_param_default(Param *param, const toonz_param_desc_t *desc) {
     /* unfortunately, TSpectrumParam's default values must be set within the
      constructor, for now.
      see param_factory_< TSpectrumParam >() */
@@ -318,7 +318,7 @@ struct set_param_default_t<tpbind_spc_t, std::true_type> {
 /* Default ToneCurve */
 template <>
 struct set_param_default_t<tpbind_tcv_t, std::true_type> {
-  static bool set_param_default(Param *param, const flare_param_desc_t *desc) {
+  static bool set_param_default(Param *param, const toonz_param_desc_t *desc) {
     /*
     auto smartptr = param->param();
     tpbind_tcv_t::realtype* p = reinterpret_cast< tpbind_tcv_t::realtype*
@@ -341,7 +341,7 @@ struct set_param_default_t<tpbind_tcv_t, std::true_type> {
 /* primitive: TDoubleParam */
 template <>
 struct set_param_default_t<tpbind_dbl_t, std::false_type> {
-  static bool set_param_default(Param *param, const flare_param_desc_t *desc) {
+  static bool set_param_default(Param *param, const toonz_param_desc_t *desc) {
     auto smartptr = param->param();
     tpbind_dbl_t::realtype *p =
         reinterpret_cast<tpbind_dbl_t::realtype *>(smartptr.getPointer());
@@ -359,7 +359,7 @@ struct set_param_default_t<tpbind_dbl_t, std::false_type> {
 /* primitive: TNotAnimatableParam */
 template <typename Bind>
 struct set_param_default_t<Bind, std::false_type> {
-  static bool set_param_default(Param *param, const flare_param_desc_t *desc) {
+  static bool set_param_default(Param *param, const toonz_param_desc_t *desc) {
     auto smartptr = param->param();
     typename Bind::realtype *p =
         reinterpret_cast<typename Bind::realtype *>(smartptr.getPointer());
@@ -378,7 +378,7 @@ struct set_param_default_t<Bind, std::false_type> {
 /* Default Enum */
 template <>
 struct set_param_default_t<tpbind_enm_t, std::false_type> {
-  static bool set_param_default(Param *param, const flare_param_desc_t *desc) {
+  static bool set_param_default(Param *param, const toonz_param_desc_t *desc) {
     auto smartptr = param->param();
     tpbind_enm_t::realtype *p =
         reinterpret_cast<tpbind_enm_t::realtype *>(smartptr.getPointer());
@@ -395,24 +395,24 @@ struct set_param_default_t<tpbind_enm_t, std::false_type> {
 };
 
 template <typename Bind>
-bool set_param_default(Param *param, const flare_param_desc_t *desc) {
+bool set_param_default(Param *param, const toonz_param_desc_t *desc) {
   if (!is_type_of<typename Bind::traittype>(desc)) return false;
   return set_param_default_t<Bind>::set_param_default(param, desc);
 }
 
 template <typename T>
-inline T *param_factory_(const flare_param_desc_t *desc) {
+inline T *param_factory_(const toonz_param_desc_t *desc) {
   return new T;
 }
 
 template <>
-inline TPointParam *param_factory_(const flare_param_desc_t *desc) {
+inline TPointParam *param_factory_(const toonz_param_desc_t *desc) {
   return new TPointParam(TPointD(), true /* instantiate from plugin */);
 }
 
 template <>
-inline TSpectrumParam *param_factory_(const flare_param_desc_t *desc) {
-  const flare_param_traits_spectrum_t &t = desc->traits.g;
+inline TSpectrumParam *param_factory_(const toonz_param_desc_t *desc) {
+  const toonz_param_traits_spectrum_t &t = desc->traits.g;
   if (t.points) {
     std::vector<TSpectrum::ColorKey> keys(t.points);
     for (int i = 0; i < t.points; i++) {
@@ -427,27 +427,27 @@ inline TSpectrumParam *param_factory_(const flare_param_desc_t *desc) {
   }
 }
 
-inline TParam *parameter_factory(const flare_param_desc_t *desc) {
+inline TParam *parameter_factory(const toonz_param_desc_t *desc) {
   switch (desc->traits_tag) {
-  case flare_PARAM_TYPE_DOUBLE:
+  case TOONZ_PARAM_TYPE_DOUBLE:
     return param_factory_<TDoubleParam>(desc);
-  case flare_PARAM_TYPE_RANGE:
+  case TOONZ_PARAM_TYPE_RANGE:
     return param_factory_<TRangeParam>(desc);
-  case flare_PARAM_TYPE_PIXEL:
+  case TOONZ_PARAM_TYPE_PIXEL:
     return param_factory_<TPixelParam>(desc);
-  case flare_PARAM_TYPE_POINT:
+  case TOONZ_PARAM_TYPE_POINT:
     return param_factory_<TPointParam>(desc);
-  case flare_PARAM_TYPE_ENUM:
+  case TOONZ_PARAM_TYPE_ENUM:
     return param_factory_<TIntEnumParam>(desc);
-  case flare_PARAM_TYPE_INT:
+  case TOONZ_PARAM_TYPE_INT:
     return param_factory_<TIntParam>(desc);
-  case flare_PARAM_TYPE_BOOL:
+  case TOONZ_PARAM_TYPE_BOOL:
     return param_factory_<TBoolParam>(desc);
-  case flare_PARAM_TYPE_SPECTRUM:
+  case TOONZ_PARAM_TYPE_SPECTRUM:
     return param_factory_<TSpectrumParam>(desc);
-  case flare_PARAM_TYPE_STRING:
+  case TOONZ_PARAM_TYPE_STRING:
     return param_factory_<TStringParam>(desc);
-  case flare_PARAM_TYPE_TONECURVE:
+  case TOONZ_PARAM_TYPE_TONECURVE:
     return param_factory_<TToneCurveParam>(desc);
   default:
     break;
@@ -457,121 +457,121 @@ inline TParam *parameter_factory(const flare_param_desc_t *desc) {
 
 template <typename T>
 inline int check_pollution_(const T &t) {
-  if (t.reserved_) return flare_PARAM_ERROR_POLLUTED;
+  if (t.reserved_) return TOONZ_PARAM_ERROR_POLLUTED;
   return 0;
 }
 
 template <typename T>
-inline int check_traits_sanity_(const flare_param_desc_t *desc) {
+inline int check_traits_sanity_(const toonz_param_desc_t *desc) {
   const T &t = reinterpret_cast<const T &>(desc->traits.d);
   return check_pollution_<T>(t);
 }
 
 template <>
-inline int check_traits_sanity_<flare_param_traits_double_t>(
-    const flare_param_desc_t *desc) {
+inline int check_traits_sanity_<toonz_param_traits_double_t>(
+    const toonz_param_desc_t *desc) {
   int err                              = 0;
-  const flare_param_traits_double_t &t = desc->traits.d;
+  const toonz_param_traits_double_t &t = desc->traits.d;
   err |= check_pollution_(t);
-  if (t.min > t.max) err |= flare_PARAM_ERROR_MIN_MAX;
+  if (t.min > t.max) err |= TOONZ_PARAM_ERROR_MIN_MAX;
   return 0;
 }
 
 template <>
-inline int check_traits_sanity_<flare_param_traits_range_t>(
-    const flare_param_desc_t *desc) {
+inline int check_traits_sanity_<toonz_param_traits_range_t>(
+    const toonz_param_desc_t *desc) {
   int err                             = 0;
-  const flare_param_traits_range_t &t = desc->traits.rd;
+  const toonz_param_traits_range_t &t = desc->traits.rd;
   err |= check_pollution_(t);
   if (t.minmax.a == 0 && t.minmax.b == 0)
     return err; /* range に興味がない場合の 0,0 を許す */
-  if (t.minmax.a > t.minmax.b) err |= flare_PARAM_ERROR_MIN_MAX;
+  if (t.minmax.a > t.minmax.b) err |= TOONZ_PARAM_ERROR_MIN_MAX;
   return err;
 }
 
 template <>
-inline int check_traits_sanity_<flare_param_traits_enum_t>(
-    const flare_param_desc_t *desc) {
+inline int check_traits_sanity_<toonz_param_traits_enum_t>(
+    const toonz_param_desc_t *desc) {
   int err                            = 0;
-  const flare_param_traits_enum_t &t = desc->traits.e;
+  const toonz_param_traits_enum_t &t = desc->traits.e;
   err |= check_pollution_(t);
   if (t.enums == 0) return err;
-  if (t.enums < 0) err |= flare_PARAM_ERROR_ARRAY_NUM;
-  if (t.array == NULL) err |= flare_PARAM_ERROR_ARRAY;
+  if (t.enums < 0) err |= TOONZ_PARAM_ERROR_ARRAY_NUM;
+  if (t.array == NULL) err |= TOONZ_PARAM_ERROR_ARRAY;
   return err;
 }
 
 template <>
-inline int check_traits_sanity_<flare_param_traits_spectrum_t>(
-    const flare_param_desc_t *desc) {
+inline int check_traits_sanity_<toonz_param_traits_spectrum_t>(
+    const toonz_param_desc_t *desc) {
   int err                                = 0;
-  const flare_param_traits_spectrum_t &t = desc->traits.g;
+  const toonz_param_traits_spectrum_t &t = desc->traits.g;
   err |= check_pollution_(t);
   if (t.points == 0) return err;
-  if (t.points < 0) err |= flare_PARAM_ERROR_ARRAY_NUM;
-  if (t.array == NULL) err |= flare_PARAM_ERROR_ARRAY;
+  if (t.points < 0) err |= TOONZ_PARAM_ERROR_ARRAY_NUM;
+  if (t.array == NULL) err |= TOONZ_PARAM_ERROR_ARRAY;
   return err;
 }
 
 /*
-template <> int check_traits_sanity_< flare_param_traits_tonecurve_t >(const
-flare_param_desc_t* desc)
+template <> int check_traits_sanity_< toonz_param_traits_tonecurve_t >(const
+toonz_param_desc_t* desc)
 {
         int err = 0;
-        const flare_param_traits_tonecurve_t& t = desc->traits.tcv;
+        const toonz_param_traits_tonecurve_t& t = desc->traits.tcv;
         err |= check_pollution_(t);
         if (t.points == 0)
                 return err;
         if (t.points < 0)
-                err |= flare_PARAM_ERROR_ARRAY_NUM;
+                err |= TOONZ_PARAM_ERROR_ARRAY_NUM;
         if (t.array == NULL)
-                err |= flare_PARAM_ERROR_ARRAY;
+                err |= TOONZ_PARAM_ERROR_ARRAY;
         return err;
 }
 */
 
-inline int check_traits_sanity(const flare_param_desc_t *desc) {
+inline int check_traits_sanity(const toonz_param_desc_t *desc) {
   int err = 0;
   switch (desc->traits_tag) {
-  case flare_PARAM_TYPE_DOUBLE:
-    err = check_traits_sanity_<flare_param_traits_double_t>(desc);
+  case TOONZ_PARAM_TYPE_DOUBLE:
+    err = check_traits_sanity_<toonz_param_traits_double_t>(desc);
     break;
-  case flare_PARAM_TYPE_RANGE:
-    err = check_traits_sanity_<flare_param_traits_range_t>(desc);
+  case TOONZ_PARAM_TYPE_RANGE:
+    err = check_traits_sanity_<toonz_param_traits_range_t>(desc);
     break;
-  case flare_PARAM_TYPE_PIXEL:
-    err = check_traits_sanity_<flare_param_traits_color_t>(desc);
+  case TOONZ_PARAM_TYPE_PIXEL:
+    err = check_traits_sanity_<toonz_param_traits_color_t>(desc);
     break;
-  case flare_PARAM_TYPE_POINT:
-    err = check_traits_sanity_<flare_param_traits_point_t>(desc);
+  case TOONZ_PARAM_TYPE_POINT:
+    err = check_traits_sanity_<toonz_param_traits_point_t>(desc);
     break;
-  case flare_PARAM_TYPE_ENUM:
-    err = check_traits_sanity_<flare_param_traits_enum_t>(desc);
+  case TOONZ_PARAM_TYPE_ENUM:
+    err = check_traits_sanity_<toonz_param_traits_enum_t>(desc);
     break;
-  case flare_PARAM_TYPE_INT:
-    err = check_traits_sanity_<flare_param_traits_int_t>(desc);
+  case TOONZ_PARAM_TYPE_INT:
+    err = check_traits_sanity_<toonz_param_traits_int_t>(desc);
     break;
-  case flare_PARAM_TYPE_BOOL:
-    err = check_traits_sanity_<flare_param_traits_bool_t>(desc);
+  case TOONZ_PARAM_TYPE_BOOL:
+    err = check_traits_sanity_<toonz_param_traits_bool_t>(desc);
     break;
-  case flare_PARAM_TYPE_SPECTRUM:
-    err = check_traits_sanity_<flare_param_traits_spectrum_t>(desc);
+  case TOONZ_PARAM_TYPE_SPECTRUM:
+    err = check_traits_sanity_<toonz_param_traits_spectrum_t>(desc);
     break;
-  case flare_PARAM_TYPE_STRING:
-    err = check_traits_sanity_<flare_param_traits_string_t>(desc);
+  case TOONZ_PARAM_TYPE_STRING:
+    err = check_traits_sanity_<toonz_param_traits_string_t>(desc);
     break;
-  case flare_PARAM_TYPE_TONECURVE:
-    err = check_traits_sanity_<flare_param_traits_tonecurve_t>(desc);
+  case TOONZ_PARAM_TYPE_TONECURVE:
+    err = check_traits_sanity_<toonz_param_traits_tonecurve_t>(desc);
     break;
   default:
-    err = flare_PARAM_ERROR_TRAITS;
+    err = TOONZ_PARAM_ERROR_TRAITS;
     break;
   }
   return err;
 }
 
 template <typename T>
-inline bool param_type_check_(TParam *p, const flare_param_desc_t *desc,
+inline bool param_type_check_(TParam *p, const toonz_param_desc_t *desc,
                               size_t &vsz) {
   if (typename T::realtype *d = dynamic_cast<typename T::realtype *>(p)) {
     if (is_type_of<typename T::traittype>(desc)) {
@@ -582,28 +582,28 @@ inline bool param_type_check_(TParam *p, const flare_param_desc_t *desc,
   return false;
 }
 
-inline bool parameter_type_check(TParam *p, const flare_param_desc_t *desc,
+inline bool parameter_type_check(TParam *p, const toonz_param_desc_t *desc,
                                  size_t &vsz) {
   switch (desc->traits_tag) {
-  case flare_PARAM_TYPE_DOUBLE:
+  case TOONZ_PARAM_TYPE_DOUBLE:
     return param_type_check_<tpbind_dbl_t>(p, desc, vsz);
-  case flare_PARAM_TYPE_RANGE:
+  case TOONZ_PARAM_TYPE_RANGE:
     return param_type_check_<tpbind_rng_t>(p, desc, vsz);
-  case flare_PARAM_TYPE_PIXEL:
+  case TOONZ_PARAM_TYPE_PIXEL:
     return param_type_check_<tpbind_col_t>(p, desc, vsz);
-  case flare_PARAM_TYPE_POINT:
+  case TOONZ_PARAM_TYPE_POINT:
     return param_type_check_<tpbind_pnt_t>(p, desc, vsz);
-  case flare_PARAM_TYPE_ENUM:
+  case TOONZ_PARAM_TYPE_ENUM:
     return param_type_check_<tpbind_enm_t>(p, desc, vsz);
-  case flare_PARAM_TYPE_INT:
+  case TOONZ_PARAM_TYPE_INT:
     return param_type_check_<tpbind_int_t>(p, desc, vsz);
-  case flare_PARAM_TYPE_BOOL:
+  case TOONZ_PARAM_TYPE_BOOL:
     return param_type_check_<tpbind_bool_t>(p, desc, vsz);
-  case flare_PARAM_TYPE_SPECTRUM:
+  case TOONZ_PARAM_TYPE_SPECTRUM:
     return param_type_check_<tpbind_spc_t>(p, desc, vsz);
-  case flare_PARAM_TYPE_STRING:
+  case TOONZ_PARAM_TYPE_STRING:
     return param_type_check_<tpbind_str_t>(p, desc, vsz);
-  case flare_PARAM_TYPE_TONECURVE:
+  case TOONZ_PARAM_TYPE_TONECURVE:
     return param_type_check_<tpbind_tcv_t>(p, desc, vsz);
   default:
     break;
@@ -612,7 +612,7 @@ inline bool parameter_type_check(TParam *p, const flare_param_desc_t *desc,
 }
 
 template <typename T>
-inline bool param_read_value_(TParam *p, const flare_param_desc_t *desc,
+inline bool param_read_value_(TParam *p, const toonz_param_desc_t *desc,
                               void *ptr, double frame, size_t isize,
                               size_t &osize) {
   /* isize は iovaluetype の size でなく count になったのでサイズチェックは無効
@@ -630,7 +630,7 @@ inline bool param_read_value_(TParam *p, const flare_param_desc_t *desc,
 
 template <>
 inline bool param_read_value_<tpbind_dbl_t>(TParam *p,
-                                            const flare_param_desc_t *desc,
+                                            const toonz_param_desc_t *desc,
                                             void *ptr, double frame,
                                             size_t isize, size_t &osize) {
   // TODO: Consider reintroducing input validation for safety.
@@ -646,7 +646,7 @@ inline bool param_read_value_<tpbind_dbl_t>(TParam *p,
 
 template <>
 inline bool param_read_value_<tpbind_str_t>(TParam *p,
-                                            const flare_param_desc_t *desc,
+                                            const toonz_param_desc_t *desc,
                                             void *ptr, double frame,
                                             size_t isize, size_t &osize) {
   auto r                = reinterpret_cast<tpbind_str_t::realtype *>(p);
@@ -669,7 +669,7 @@ inline bool param_read_value_<tpbind_str_t>(TParam *p,
 
 template <>
 inline bool param_read_value_<tpbind_rng_t>(TParam *p,
-                                            const flare_param_desc_t *desc,
+                                            const toonz_param_desc_t *desc,
                                             void *ptr, double frame,
                                             size_t isize, size_t &osize) {
   // if (isize == sizeof(tpbind_rng_t::traittype::iovaluetype)) {
@@ -686,7 +686,7 @@ inline bool param_read_value_<tpbind_rng_t>(TParam *p,
 
 template <>
 inline bool param_read_value_<tpbind_col_t>(TParam *p,
-                                            const flare_param_desc_t *desc,
+                                            const toonz_param_desc_t *desc,
                                             void *ptr, double frame,
                                             size_t isize, size_t &osize) {
   // if (isize == sizeof(tpbind_col_t::traittype::iovaluetype)) {
@@ -707,7 +707,7 @@ inline bool param_read_value_<tpbind_col_t>(TParam *p,
 
 template <>
 inline bool param_read_value_<tpbind_pnt_t>(TParam *p,
-                                            const flare_param_desc_t *desc,
+                                            const toonz_param_desc_t *desc,
                                             void *ptr, double frame,
                                             size_t isize, size_t &osize) {
   // if (isize == sizeof(tpbind_pnt_t::traittype::iovaluetype)) {
@@ -724,7 +724,7 @@ inline bool param_read_value_<tpbind_pnt_t>(TParam *p,
 
 template <>
 inline bool param_read_value_<tpbind_spc_t>(TParam *p,
-                                            const flare_param_desc_t *desc,
+                                            const toonz_param_desc_t *desc,
                                             void *ptr, double frame,
                                             size_t isize, size_t &osize) {
   // if (isize == sizeof(tpbind_spc_t::traittype::iovaluetype)) {
@@ -744,7 +744,7 @@ inline bool param_read_value_<tpbind_spc_t>(TParam *p,
 
 template <>
 inline bool param_read_value_<tpbind_tcv_t>(TParam *p,
-                                            const flare_param_desc_t *desc,
+                                            const toonz_param_desc_t *desc,
                                             void *ptr, double frame,
                                             size_t isize, size_t &osize) {
   auto r                = reinterpret_cast<tpbind_tcv_t::realtype *>(p);
@@ -768,7 +768,7 @@ inline bool param_read_value_<tpbind_tcv_t>(TParam *p,
   return false;
 }
 
-inline bool parameter_read_value(TParam *p, const flare_param_desc_t *desc,
+inline bool parameter_read_value(TParam *p, const toonz_param_desc_t *desc,
                                  void *ptr, double frame, size_t isize,
                                  size_t &osize) {
   size_t sz = 0;
@@ -777,25 +777,25 @@ inline bool parameter_read_value(TParam *p, const flare_param_desc_t *desc,
   }
 
   switch (desc->traits_tag) {
-  case flare_PARAM_TYPE_DOUBLE:
+  case TOONZ_PARAM_TYPE_DOUBLE:
     return param_read_value_<tpbind_dbl_t>(p, desc, ptr, frame, isize, osize);
-  case flare_PARAM_TYPE_RANGE:
+  case TOONZ_PARAM_TYPE_RANGE:
     return param_read_value_<tpbind_rng_t>(p, desc, ptr, frame, isize, osize);
-  case flare_PARAM_TYPE_PIXEL:
+  case TOONZ_PARAM_TYPE_PIXEL:
     return param_read_value_<tpbind_col_t>(p, desc, ptr, frame, isize, osize);
-  case flare_PARAM_TYPE_POINT:
+  case TOONZ_PARAM_TYPE_POINT:
     return param_read_value_<tpbind_pnt_t>(p, desc, ptr, frame, isize, osize);
-  case flare_PARAM_TYPE_ENUM:
+  case TOONZ_PARAM_TYPE_ENUM:
     return param_read_value_<tpbind_enm_t>(p, desc, ptr, frame, isize, osize);
-  case flare_PARAM_TYPE_INT:
+  case TOONZ_PARAM_TYPE_INT:
     return param_read_value_<tpbind_int_t>(p, desc, ptr, frame, isize, osize);
-  case flare_PARAM_TYPE_BOOL:
+  case TOONZ_PARAM_TYPE_BOOL:
     return param_read_value_<tpbind_bool_t>(p, desc, ptr, frame, isize, osize);
-  case flare_PARAM_TYPE_SPECTRUM:
+  case TOONZ_PARAM_TYPE_SPECTRUM:
     return param_read_value_<tpbind_spc_t>(p, desc, ptr, frame, isize, osize);
-  case flare_PARAM_TYPE_STRING:
+  case TOONZ_PARAM_TYPE_STRING:
     return param_read_value_<tpbind_str_t>(p, desc, ptr, frame, isize, osize);
-  case flare_PARAM_TYPE_TONECURVE:
+  case TOONZ_PARAM_TYPE_TONECURVE:
     return param_read_value_<tpbind_tcv_t>(p, desc, ptr, frame, isize, osize);
   default:
     break;
@@ -804,4 +804,3 @@ inline bool parameter_read_value(TParam *p, const flare_param_desc_t *desc,
 }
 
 #endif
-

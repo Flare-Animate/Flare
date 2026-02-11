@@ -1,6 +1,6 @@
 
 
-#include "flare/targetcolors.h"
+#include "toonz/targetcolors.h"
 #include <vector>
 
 /*----------------------------------------------------------------------------*/
@@ -24,4 +24,3 @@ const TargetColor &TargetColors::getColor(int i) const {
 }
 
 /*----------------------------------------------------------------------------*/
-

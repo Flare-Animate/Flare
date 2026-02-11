@@ -1,10 +1,10 @@
 
 
-#include "flare/scriptbinding_outline_vectorizer.h"
-#include "flare/scriptbinding_level.h"
-#include "flare/tcenterlinevectorizer.h"
-#include "flare/stage.h"
-#include "tflareimage.h"
+#include "toonz/scriptbinding_outline_vectorizer.h"
+#include "toonz/scriptbinding_level.h"
+#include "toonz/tcenterlinevectorizer.h"
+#include "toonz/stage.h"
+#include "ttoonzimage.h"
 #include "tpalette.h"
 
 namespace TScriptBinding {
@@ -34,7 +34,7 @@ static QScriptValue vectorizeImage(QScriptContext *context,
   if (TRasterImageP ri = src) {
     ri->getDpi(dpix, dpiy);
     center = ri->getRaster()->getCenterD();
-  } else if (TflareImageP ti = src) {
+  } else if (TToonzImageP ti = src) {
     ti->getDpi(dpix, dpiy);
     center = ti->getRaster()->getCenterD();
   } else {
@@ -58,7 +58,7 @@ QScriptValue OutlineVectorizer::vectorize(QScriptValue arg) {
   TPalette *palette = 0;
   if (level) {
     type = level->getType();
-    if (type != "Raster" && type != "flareRaster")
+    if (type != "Raster" && type != "ToonzRaster")
       return context()->throwError(tr("Can't vectorize a %1 level").arg(type));
     if (level->getFrameCount() <= 0)
       return context()->throwError(
@@ -66,9 +66,9 @@ QScriptValue OutlineVectorizer::vectorize(QScriptValue arg) {
     palette = level->getSimpleLevel()->getPalette();
   } else if (img) {
     type = img->getType();
-    if (type != "Raster" && type != "flareRaster")
+    if (type != "Raster" && type != "ToonzRaster")
       return context()->throwError(tr("Can't vectorize a %1 image").arg(type));
-    if (TflareImageP ti = img->getImg()) {
+    if (TToonzImageP ti = img->getImg()) {
       palette = ti->getPalette();
     }
   } else {
@@ -87,7 +87,7 @@ QScriptValue OutlineVectorizer::vectorize(QScriptValue arg) {
     for (const TFrameId &fid : fids) {
       TImageP srcImg = level->getImg(fid);
       if (srcImg && (srcImg->getType() == TImage::RASTER ||
-                     srcImg->getType() == TImage::flare_RASTER)) {
+                     srcImg->getType() == TImage::TOONZ_RASTER)) {
         QScriptValue newFrame =
             vectorizeImage(context(), engine(), srcImg, palette, m_parameters);
         if (newFrame.isError()) {
@@ -183,4 +183,3 @@ int OutlineVectorizer::getToneThreshold() const {
 void OutlineVectorizer::setToneThreshold(int v) { m_parameters->m_toneTol = v; }
 
 }  // namespace TScriptBinding
-

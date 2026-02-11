@@ -1,6 +1,6 @@
 
 
-#include "flare/ikjacobian.h"
+#include "toonz/ikjacobian.h"
 
 #include <stdlib.h>
 #include <math.h>
@@ -1620,4 +1620,3 @@ void Jacobian::UpdatedSClampValue() {
     }
   }
 }
-

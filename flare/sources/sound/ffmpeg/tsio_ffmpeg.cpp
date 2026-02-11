@@ -5,8 +5,8 @@
 #include "tsystem.h"
 #include "tfilepath_io.h"
 #include "tsound_t.h"
-#include "flare/preferences.h"
-#include "flare/flarefolders.h"
+#include "toonz/preferences.h"
+#include "toonz/toonzfolders.h"
 #include "thirdparty.h"
 
 #include <QDir>
@@ -33,4 +33,3 @@ TSoundTrackP TSoundTrackReaderFFmpeg::load() {
   memcpy((char *)track->getRawData(), rawAudio.constData(), sampleCount * 4);
   return track;
 }
-

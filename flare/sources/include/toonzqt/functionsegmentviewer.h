@@ -9,11 +9,11 @@
 
 #include "tdoubleparam.h"
 #include "tdoublekeyframe.h"
-#include "flareqt/lineedit.h"
+#include "toonzqt/lineedit.h"
 
 #undef DVAPI
 #undef DVVAR
-#ifdef flareQT_EXPORTS
+#ifdef TOONZQT_EXPORTS
 #define DVAPI DV_EXPORT_API
 #define DVVAR DV_EXPORT_VAR
 #else
@@ -244,4 +244,3 @@ public:
 };
 
 #endif
-

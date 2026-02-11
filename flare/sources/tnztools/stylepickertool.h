@@ -6,16 +6,16 @@
 #include "tools/tool.h"
 #include "tproperty.h"
 
-#include "flare/flareimageutils.h"
-#include "flare/ttilesaver.h"
-#include "flare/ttileset.h"
+#include "toonz/toonzimageutils.h"
+#include "toonz/ttilesaver.h"
+#include "toonz/ttileset.h"
 
-#include "flare/tpalettehandle.h"
-#include "flare/txshlevelhandle.h"
+#include "toonz/tpalettehandle.h"
+#include "toonz/txshlevelhandle.h"
 #include "tstroke.h"
-#include "flare/txshsimplelevel.h"
+#include "toonz/txshsimplelevel.h"
 
-#include "flareqt/icongenerator.h"
+#include "toonzqt/icongenerator.h"
 
 class StylePickerTool final : public TTool, public QObject {
   Q_DECLARE_TR_FUNCTIONS(StylePickerTool)
@@ -184,7 +184,7 @@ public:
     if (!m_levelType) return;
     if (m_levelType == 1)
       for (const TFrameId &fid : fids) {
-        TflareImageP ti = m_level->getFrame(fid, true);
+        TToonzImageP ti = m_level->getFrame(fid, true);
         if (!ti) continue;
 
         TRasterCM32P ras = ti->getRaster();
@@ -234,7 +234,7 @@ public:
         auto it = m_tileSets.find(fid);
         if (it == m_tileSets.end()) continue;
 
-        TflareImageP img = m_level->getFrame(fid, true);
+        TToonzImageP img = m_level->getFrame(fid, true);
         if (!img) continue;
 
         TRasterCM32P ras = img->getRaster();
@@ -260,9 +260,9 @@ public:
 
     if (m_levelType == 1)
       for (auto const [fid, tileSet] : m_tileSets) {
-        TflareImageP img = m_level->getFrame(fid, true);
+        TToonzImageP img = m_level->getFrame(fid, true);
         if (img && tileSet) {
-          flareImageUtils::paste(img, tileSet);
+          ToonzImageUtils::paste(img, tileSet);
           m_level->setFrame(fid, img);
         }
       }
@@ -330,4 +330,3 @@ static void replaceLevelStyle(TXshLevelHandle *levelHandle,
   TUndoManager::manager()->add(undo);
 }
 #endif
-

@@ -7,37 +7,37 @@
 #include "tapp.h"
 #include "levelcommand.h"
 #include "formatsettingspopups.h"
-#include "flare/stage.h"
+#include "toonz/stage.h"
 
 // TnzTools includes
 #include "tools/toolhandle.h"
 
 // TnzQt includes
-#include "flareqt/menubarcommand.h"
-#include "flareqt/gutil.h"
-#include "flareqt/doublefield.h"
+#include "toonzqt/menubarcommand.h"
+#include "toonzqt/gutil.h"
+#include "toonzqt/doublefield.h"
 #include "historytypes.h"
 
 // TnzLib includes
-#include "flare/flarescene.h"
-#include "flare/txsheet.h"
-#include "flare/txshcell.h"
-#include "flare/txshsimplelevel.h"
-#include "flare/txshleveltypes.h"
-#include "flare/levelset.h"
-#include "flare/levelproperties.h"
-#include "flare/sceneproperties.h"
-#include "flare/tcamera.h"
-#include "flare/tframehandle.h"
-#include "flare/tcolumnhandle.h"
-#include "flare/tscenehandle.h"
-#include "flare/txsheethandle.h"
-#include "flare/tpalettehandle.h"
-#include "flare/preferences.h"
-#include "flare/palettecontroller.h"
-#include "flare/tproject.h"
-#include "flare/namebuilder.h"
-#include "flare/childstack.h"
+#include "toonz/toonzscene.h"
+#include "toonz/txsheet.h"
+#include "toonz/txshcell.h"
+#include "toonz/txshsimplelevel.h"
+#include "toonz/txshleveltypes.h"
+#include "toonz/levelset.h"
+#include "toonz/levelproperties.h"
+#include "toonz/sceneproperties.h"
+#include "toonz/tcamera.h"
+#include "toonz/tframehandle.h"
+#include "toonz/tcolumnhandle.h"
+#include "toonz/tscenehandle.h"
+#include "toonz/txsheethandle.h"
+#include "toonz/tpalettehandle.h"
+#include "toonz/preferences.h"
+#include "toonz/palettecontroller.h"
+#include "toonz/tproject.h"
+#include "toonz/namebuilder.h"
+#include "toonz/childstack.h"
 #include "toutputproperties.h"
 
 // TnzCore includes
@@ -45,7 +45,7 @@
 #include "tpalette.h"
 #include "tvectorimage.h"
 #include "trasterimage.h"
-#include "tflareimage.h"
+#include "ttoonzimage.h"
 #include "tmetaimage.h"
 #include "timagecache.h"
 #include "tundo.h"
@@ -88,7 +88,7 @@ public:
       , m_sl(0)
       , m_areColumnsShifted(areColumnsShifted) {
     TApp *app         = TApp::instance();
-    flareScene *scene = app->getCurrentScene()->getScene();
+    ToonzScene *scene = app->getCurrentScene()->getScene();
     m_oldLevelCount   = scene->getLevelSet()->getLevelCount();
   }
   ~CreateLevelUndo() { m_sl = 0; }
@@ -97,7 +97,7 @@ public:
 
   void undo() const override {
     TApp *app         = TApp::instance();
-    flareScene *scene = app->getCurrentScene()->getScene();
+    ToonzScene *scene = app->getCurrentScene()->getScene();
     TXsheet *xsh      = scene->getXsheet();
     if (m_areColumnsShifted)
       xsh->removeColumn(m_columnIndex);
@@ -121,7 +121,7 @@ public:
   void redo() const override {
     if (!m_sl.getPointer()) return;
     TApp *app         = TApp::instance();
-    flareScene *scene = app->getCurrentScene()->getScene();
+    ToonzScene *scene = app->getCurrentScene()->getScene();
     scene->getLevelSet()->insertLevel(m_sl.getPointer());
     TXsheet *xsh = scene->getXsheet();
     if (m_areColumnsShifted) xsh->insertColumn(m_columnIndex);
@@ -191,12 +191,12 @@ LevelCreatePopup::LevelCreatePopup()
   QPushButton *applyBtn  = new QPushButton(tr("Apply"), this);
 
   // Exclude all character which cannot fit in a filepath (Win).
-  // Dots are also prohibited since they are internally managed by flare.
+  // Dots are also prohibited since they are internally managed by Toonz.
   QRegExp rx("[^\\\\/:?*.\"<>|]+");
   m_nameFld->setValidator(new QRegExpValidator(rx, this));
 
-  m_levelTypeOm->addItem(tr("flare Vector Level"), (int)PLI_XSHLEVEL);
-  m_levelTypeOm->addItem(tr("flare Raster Level"), (int)TZP_XSHLEVEL);
+  m_levelTypeOm->addItem(tr("Toonz Vector Level"), (int)PLI_XSHLEVEL);
+  m_levelTypeOm->addItem(tr("Toonz Raster Level"), (int)TZP_XSHLEVEL);
   m_levelTypeOm->addItem(tr("Raster Level"), (int)OVL_XSHLEVEL);
   m_levelTypeOm->addItem(tr("Scan Level"), (int)TZI_XSHLEVEL);
   m_levelTypeOm->addItem(tr("Assistants Level"), (int)META_XSHLEVEL);
@@ -313,7 +313,7 @@ LevelCreatePopup::LevelCreatePopup()
 //-----------------------------------------------------------------------------
 
 void LevelCreatePopup::updatePath() {
-  flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
+  ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
   TFilePath defaultPath;
   defaultPath = scene->getDefaultLevelPath(getLevelType()).getParentDir();
   m_pathFld->setPath(toQString(defaultPath));
@@ -345,7 +345,7 @@ void LevelCreatePopup::nextName() {
 bool LevelCreatePopup::levelExists(std::wstring levelName) {
   TFilePath fp;
   TFilePath actualFp;
-  flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
+  ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
   TLevelSet *levelSet =
       TApp::instance()->getCurrentScene()->getScene()->getLevelSet();
 
@@ -458,7 +458,7 @@ void LevelCreatePopup::onApplyButton() {
 
 void LevelCreatePopup::onFrameFormatButton() {
   // Tentatively use the preview output settings
-  flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
+  ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
   if (!scene) return;
   std::string ext = m_rasterFormatOm->currentData().toString().toStdString();
   openFormatSettingsPopup(this, ext, nullptr,
@@ -473,7 +473,7 @@ bool LevelCreatePopup::apply() {
   int col   = app->getCurrentColumn()->getColumnIndex();
   int i, j;
 
-  flareScene *scene = app->getCurrentScene()->getScene();
+  ToonzScene *scene = app->getCurrentScene()->getScene();
   TXsheet *xsh      = scene->getXsheet();
 
   bool validColumn = true;
@@ -640,7 +640,7 @@ bool LevelCreatePopup::apply() {
     else if (lType == TZP_XSHLEVEL) {
       TRasterCM32P raster(xres, yres);
       raster->fill(TPixelCM32());
-      TflareImageP ti(raster, TRect());
+      TToonzImageP ti(raster, TRect());
       ti->setDpi(dpi, dpi);
       sl->setFrame(fid, ti);
       ti->setSavebox(TRect(0, 0, xres - 1, yres - 1));
@@ -740,4 +740,3 @@ void LevelCreatePopup::update() {
 //-----------------------------------------------------------------------------
 
 OpenPopupCommandHandler<LevelCreatePopup> openLevelCreatePopup(MI_NewLevel);
-

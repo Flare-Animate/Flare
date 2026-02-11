@@ -1,18 +1,18 @@
 
-#include "flare/scriptbinding_level.h"
+#include "toonz/scriptbinding_level.h"
 
-// flare script bindings
-#include "flare/scriptbinding_files.h"
+// Toonz script bindings
+#include "toonz/scriptbinding_files.h"
 
 // TnzLib includes
-#include "flare/tcenterlinevectorizer.h"
-#include "flare/tcamera.h"
-#include "flare/stage.h"
-#include "flare/txshleveltypes.h"
-#include "flare/levelproperties.h"
-#include "flare/flarescene.h"
-#include "flare/txshsimplelevel.h"
-#include "flare/levelset.h"
+#include "toonz/tcenterlinevectorizer.h"
+#include "toonz/tcamera.h"
+#include "toonz/stage.h"
+#include "toonz/txshleveltypes.h"
+#include "toonz/levelproperties.h"
+#include "toonz/toonzscene.h"
+#include "toonz/txshsimplelevel.h"
+#include "toonz/levelset.h"
 
 // TnzCore / TnzBase includes
 #include "tlevel_io.h"
@@ -20,7 +20,7 @@
 #include "timage_io.h"
 #include "trop.h"
 #include "trasterimage.h"
-#include "tflareimage.h"
+#include "ttoonzimage.h"
 #include "tvectorimage.h"
 #include "tpalette.h"
 #include "tofflinegl.h"
@@ -39,7 +39,7 @@ namespace TScriptBinding {
 Level::Level()
     : m_sl(nullptr)
     , m_type(NO_XSHLEVEL)
-    , m_scene(new flareScene())
+    , m_scene(new ToonzScene())
     , m_sceneOwner(true) {}
 
 Level::Level(TXshSimpleLevel *sl)
@@ -90,7 +90,7 @@ QScriptValue Level::toString() {
   case PLI_XSHLEVEL:
     return QString("Vector level %1").arg(info);
   case TZP_XSHLEVEL:
-    return QString("flare level %1").arg(info);
+    return QString("Toonz level %1").arg(info);
   case NO_XSHLEVEL:
     return QString("Empty level");
   case OVL_XSHLEVEL:
@@ -107,7 +107,7 @@ QString Level::getType() const {
   case PLI_XSHLEVEL:
     return "Vector";
   case TZP_XSHLEVEL:
-    return "flareRaster";
+    return "ToonzRaster";
   case OVL_XSHLEVEL:
     return "Raster";
   default:
@@ -145,7 +145,7 @@ void Level::setPath(const QScriptValue &pathArg) {
   FilePath *filePath = qscriptvalue_cast<FilePath *>(pathArg);
 
   if (filePath) {
-    fp = filePath->getflareFilePath();
+    fp = filePath->getToonzFilePath();
   } else if (pathArg.isString()) {
     fp = TFilePath(pathArg.toString().toStdString());
   } else {
@@ -353,7 +353,7 @@ QScriptValue Level::setFrame(const QScriptValue &fidArg,
   QString imgType = img->getType();
   int levelType   = NO_XSHLEVEL;
 
-  if (imgType == "flareRaster") {
+  if (imgType == "ToonzRaster") {
     levelType = TZP_XSHLEVEL;
   } else if (imgType == "Raster") {
     levelType = OVL_XSHLEVEL;
@@ -428,7 +428,7 @@ int Level::setFrame(const TFrameId &fid, const TImageP &img) {
   TImage::Type imgType = img->getType();
   int levelType        = NO_XSHLEVEL;
 
-  if (imgType == TImage::flare_RASTER) {
+  if (imgType == TImage::TOONZ_RASTER) {
     levelType = TZP_XSHLEVEL;
   } else if (imgType == TImage::RASTER) {
     levelType = OVL_XSHLEVEL;
@@ -460,7 +460,7 @@ int Level::setFrame(const TFrameId &fid, const TImageP &img) {
           yres            = size.ly;
           ri->getDpi(dpix, dpiy);
         }
-      } else if (TflareImageP ti = img) {
+      } else if (TToonzImageP ti = img) {
         if (ti->getRaster()) {
           TDimension size = ti->getRaster()->getSize();
           xres            = size.lx;
@@ -487,4 +487,3 @@ int Level::setFrame(const TFrameId &fid, const TImageP &img) {
 }
 
 }  // namespace TScriptBinding
-

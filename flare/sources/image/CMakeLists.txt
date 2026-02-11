@@ -68,13 +68,13 @@ if(NOT BUILD_TARGET_BSD)
         tif/tiio_tif.h
         tzp/tiio_plt.h
         tzp/tiio_tzp.h
-        tzp/flaretags.h
+        tzp/toonztags.h
     )
     set(SOURCES ${SOURCES}
         tif/tiio_tif.cpp
         tzp/tiio_plt.cpp
         tzp/tiio_tzp.cpp
-        tzp/flarerle.cpp
+        tzp/toonzrle.cpp
         tzp/avl.c
     )
 endif()
@@ -124,7 +124,7 @@ add_definitions(
 
 if(BUILD_ENV_APPLE)
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-install_name,@executable_path/libimage.dylib")
-    add_dependencies(image tnzcore tnzbase flarelib)
+    add_dependencies(image tnzcore tnzbase toonzlib)
 endif()
 
 message("subdir: image")
@@ -160,7 +160,7 @@ include_directories(
 )
 
 
-_find_flare_library(TNZLIBS "tnzcore;tnzbase;flarelib")
+_find_toonz_library(TNZLIBS "tnzcore;tnzbase;toonzlib")
 
 
 if(BUILD_ENV_MSVC)
@@ -201,4 +201,3 @@ elseif(BUILD_ENV_UNIXLIKE)
 endif()
 
 target_link_libraries(image Qt5::Core Qt5::Gui Qt5::Network ${Z_LIB} ${GLUT_LIB} ${GL_LIB} ${JPEG_LIB} ${TIFF_LIB} ${PNG_LIB} ${EXTRA_LIBS})
-

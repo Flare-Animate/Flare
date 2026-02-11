@@ -3,7 +3,7 @@
 // Qt includes
 #include <QMenu>
 
-#include "flareqt/popupbutton.h"
+#include "toonzqt/popupbutton.h"
 
 //********************************************************************************
 //    PopupButton class implementation
@@ -89,4 +89,3 @@ void PopupButton::onIndexChange() {
 
   emit activated(i);
 }
-

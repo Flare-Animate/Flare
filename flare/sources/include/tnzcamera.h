@@ -7,7 +7,7 @@
 #include "timage.h"
 #include "tiio.h"
 #include "tthread.h"
-#include "flare/flarescene.h"
+#include "toonz/toonzscene.h"
 
 //#define WRITE_LOG_FILE
 //#define CHECK_VIDEO_FRAME_INTERVAL
@@ -86,7 +86,7 @@ class DVAPI TnzCamera : public QObject {
   bool m_acquireFrame;
   bool m_acquireWhiteImage;
 
-  flareScene *m_scene;
+  ToonzScene *m_scene;
 
   TDimension m_deviceResolution;
 
@@ -125,7 +125,7 @@ public:
   bool isFreezed() const { return m_freeze; }
   void freeze(bool freeze) { m_freeze = freeze; }
 
-  void setScene(flareScene *scene);
+  void setScene(ToonzScene *scene);
   TDimension getDeviceResolution() const { return m_deviceResolution; }
   CaptureParameters *getCaptureParameters() const;
 
@@ -221,4 +221,3 @@ public:
 #endif
 
 #endif  // TNZCAMERA_H
-

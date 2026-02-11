@@ -8,7 +8,7 @@
 #include <QComboBox>
 #include <QKeySequenceEdit>
 #include "filebrowserpopup.h"
-#include "flareqt/dvdialog.h"
+#include "toonzqt/dvdialog.h"
 
 // forward declaration
 class QPushButton;
@@ -131,4 +131,3 @@ protected slots:
 };
 
 #endif  //  SHORTCUTPOPUP_H
-

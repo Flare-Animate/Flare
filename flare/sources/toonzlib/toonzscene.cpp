@@ -1,34 +1,34 @@
 
 
-#include "flare/flarescene.h"
+#include "toonz/toonzscene.h"
 
 // TnzLib includes
-#include "flare/txsheet.h"
-#include "flare/txshcell.h"
-#include "flare/txshsimplelevel.h"
-#include "flare/txshchildlevel.h"
-#include "flare/txshleveltypes.h"
-#include "flare/txshlevelcolumn.h"
-#include "flare/txshsoundcolumn.h"
-#include "flare/txshsoundlevel.h"
-#include "flare/sceneproperties.h"
-#include "flare/stage.h"
-#include "flare/stagevisitor.h"
-#include "flare/levelset.h"
-#include "flare/tstageobjecttree.h"
-#include "flare/observer.h"
-#include "flare/namebuilder.h"
-#include "flare/tproject.h"
-#include "flare/flareimageutils.h"
-#include "flare/childstack.h"
-#include "flare/levelproperties.h"
-#include "flare/tcamera.h"
-#include "flare/sceneresources.h"
-#include "flare/preferences.h"
-#include "flare/fullcolorpalette.h"
-#include "flare/txshpalettecolumn.h"
-#include "flare/txshpalettelevel.h"
-#include "flare/flarefolders.h"
+#include "toonz/txsheet.h"
+#include "toonz/txshcell.h"
+#include "toonz/txshsimplelevel.h"
+#include "toonz/txshchildlevel.h"
+#include "toonz/txshleveltypes.h"
+#include "toonz/txshlevelcolumn.h"
+#include "toonz/txshsoundcolumn.h"
+#include "toonz/txshsoundlevel.h"
+#include "toonz/sceneproperties.h"
+#include "toonz/stage.h"
+#include "toonz/stagevisitor.h"
+#include "toonz/levelset.h"
+#include "toonz/tstageobjecttree.h"
+#include "toonz/observer.h"
+#include "toonz/namebuilder.h"
+#include "toonz/tproject.h"
+#include "toonz/toonzimageutils.h"
+#include "toonz/childstack.h"
+#include "toonz/levelproperties.h"
+#include "toonz/tcamera.h"
+#include "toonz/sceneresources.h"
+#include "toonz/preferences.h"
+#include "toonz/fullcolorpalette.h"
+#include "toonz/txshpalettecolumn.h"
+#include "toonz/txshpalettelevel.h"
+#include "toonz/toonzfolders.h"
 
 // TnzCore includes
 #include "timagecache.h"
@@ -39,7 +39,7 @@
 #include "tsystem.h"
 #include "tfiletype.h"
 #include "tlevel_io.h"
-#include "tflareimage.h"
+#include "ttoonzimage.h"
 #include "tlogger.h"
 #include "tvectorimage.h"
 #include "tcontenthistory.h"
@@ -110,7 +110,7 @@ TFilePath adjustTypeAndFrame(int levelType, TFilePath fp)
 //-----------------------------------------------------------------------------
 
 TFilePath getUntitledScenesDir() {
-  return flareFolder::getCacheRootFolder() + "temp";
+  return ToonzFolder::getCacheRootFolder() + "temp";
 }
 
 //-----------------------------------------------------------------------------
@@ -131,7 +131,7 @@ bool checkTail(TFilePath path, TFilePath tail, TFilePath &head) {
 
 //-----------------------------------------------------------------------------
 
-void makeSceneIcon(flareScene *scene) {
+void makeSceneIcon(ToonzScene *scene) {
   TDimension cameraSize = scene->getCurrentCamera()->getRes();
 
   int maxSize               = 128;
@@ -205,7 +205,7 @@ static void saveBackup(TFilePath path) {
 // serve per correggere un problema verificatosi da Bianco (con la beta3)
 // vengono create coppie di livelli con lo stesso nome e in genere path diverso
 
-void fixBiancoProblem(flareScene *scene, TXsheet *xsh) {
+void fixBiancoProblem(ToonzScene *scene, TXsheet *xsh) {
   TLevelSet *levelSet = scene->getLevelSet();
   std::set<TXsheet *> visited, tovisit;
   tovisit.insert(xsh);
@@ -274,9 +274,9 @@ static void deleteAllUntitledScenes() {
 }
 
 //=============================================================================
-// flareScene
+// ToonzScene
 
-flareScene::flareScene()
+ToonzScene::ToonzScene()
     : m_contentHistory(0), m_isUntitled(true), m_isLoading(false) {
   m_childStack = new ChildStack(this);
   m_properties = new TSceneProperties();
@@ -286,7 +286,7 @@ flareScene::flareScene()
 
 //-----------------------------------------------------------------------------
 
-flareScene::~flareScene() {
+ToonzScene::~ToonzScene() {
   delete m_properties;
   delete m_levelSet;
   delete m_childStack;
@@ -295,13 +295,13 @@ flareScene::~flareScene() {
 
 //-----------------------------------------------------------------------------
 
-void flareScene::setSceneName(std::wstring name) {
+void ToonzScene::setSceneName(std::wstring name) {
   m_scenePath = m_scenePath.withName(name);
 }
 
 //-----------------------------------------------------------------------------
 
-void flareScene::clear() {
+void ToonzScene::clear() {
   if (isUntitled()) deleteUntitledScene(getScenePath().getParentDir());
 
   m_childStack->clear();
@@ -315,31 +315,31 @@ void flareScene::clear() {
 
 //-----------------------------------------------------------------------------
 
-void flareScene::setProject(std::shared_ptr<TProject> project) {
+void ToonzScene::setProject(std::shared_ptr<TProject> project) {
   assert(project);
   m_project = project;
 }
 
 //-----------------------------------------------------------------------------
 
-std::shared_ptr<TProject> flareScene::getProject() const { return m_project; }
+std::shared_ptr<TProject> ToonzScene::getProject() const { return m_project; }
 
 //-----------------------------------------------------------------------------
 
-void flareScene::setScenePath(const TFilePath &fp, bool changeToTitled) {
+void ToonzScene::setScenePath(const TFilePath &fp, bool changeToTitled) {
   m_scenePath = fp;
   if (changeToTitled) m_isUntitled = false;
 }
 
 //-----------------------------------------------------------------------------
 
-bool flareScene::isUntitled() const {
+bool ToonzScene::isUntitled() const {
   return m_scenePath == TFilePath() || m_isUntitled;
 }
 
 //-----------------------------------------------------------------------------
 
-void flareScene::load(const TFilePath &path, bool withProgressDialog) {
+void ToonzScene::load(const TFilePath &path, bool withProgressDialog) {
   setIsLoading(true);
   try {
     loadNoResources(path);
@@ -354,8 +354,8 @@ void flareScene::load(const TFilePath &path, bool withProgressDialog) {
 //-----------------------------------------------------------------------------
 
 // Funzioncina veloce per trovare il numero di frame di una scena senza caricare
-// nulla. (implementato per flare 6.0 beta 1)
-int flareScene::loadFrameCount(const TFilePath &fp) {
+// nulla. (implementato per Toonz 6.0 beta 1)
+int ToonzScene::loadFrameCount(const TFilePath &fp) {
   TIStream is(fp);
   if (!is) throw TException(fp.getWideString() + L": Can't open file");
   try {
@@ -382,7 +382,7 @@ int flareScene::loadFrameCount(const TFilePath &fp) {
 
 //-----------------------------------------------------------------------------
 
-void flareScene::loadNoResources(const TFilePath &fp) {
+void ToonzScene::loadNoResources(const TFilePath &fp) {
   clear();
 
   TProjectManager *pm  = TProjectManager::instance();
@@ -399,7 +399,7 @@ void flareScene::loadNoResources(const TFilePath &fp) {
 /*--
  * プログレスダイアログをGUIからの実行時でのみ表示させる。tcomposerから実行の場合は表示させない
  * --*/
-void flareScene::loadResources(bool withProgressDialog) {
+void ToonzScene::loadResources(bool withProgressDialog) {
   /*--- m_levelSet->getLevelCount()が10個以上のとき表示させる　---*/
   QProgressDialog *progressDialog = 0;
   if (withProgressDialog && m_levelSet->getLevelCount() >= 10) {
@@ -431,7 +431,7 @@ void flareScene::loadResources(bool withProgressDialog) {
 
 //-----------------------------------------------------------------------------
 
-void flareScene::loadTnzFile(const TFilePath &fp) {
+void ToonzScene::loadTnzFile(const TFilePath &fp) {
   bool reading22 = false;
   TIStream is(fp);
   if (!is) throw TException(fp.getWideString() + L": Can't open file");
@@ -526,7 +526,7 @@ void flareScene::loadTnzFile(const TFilePath &fp) {
 // serve principalmente come lock per evitare che vengano create due scene
 // con lo stesso nome.
 
-void flareScene::setUntitled() {
+void ToonzScene::setUntitled() {
   m_isUntitled               = true;
   const std::string baseName = "untitled";
   TFilePath tempDir          = getUntitledScenesDir();
@@ -553,18 +553,18 @@ void flareScene::setUntitled() {
   m_scenePath = fp;
 }
 
-void flareScene::setTitled() { m_isUntitled = false; }
+void ToonzScene::setTitled() { m_isUntitled = false; }
 
 //-----------------------------------------------------------------------------
 
 // When saving as sub-xsheet, the sub becomes top. So, its cameras must be
 // associated to the scene properties.
 class CameraRedirection {
-  flareScene *m_scene;
+  ToonzScene *m_scene;
   TXsheet *m_xsh;
 
 public:
-  CameraRedirection(flareScene *scene, TXsheet *xsh)
+  CameraRedirection(ToonzScene *scene, TXsheet *xsh)
       : m_scene(scene), m_xsh(xsh) {
     if (!xsh) xsh = m_scene->getTopXsheet();
 
@@ -580,7 +580,7 @@ public:
 
 //-----------------------------------------------------------------------------
 
-void flareScene::save(const TFilePath &fp, TXsheet *subxsh) {
+void ToonzScene::save(const TFilePath &fp, TXsheet *subxsh) {
   TFilePath oldScenePath = getScenePath();
   TFilePath newScenePath = fp;
 
@@ -632,7 +632,7 @@ void flareScene::save(const TFilePath &fp, TXsheet *subxsh) {
                l_currentVersion.second))  // the signature "MAJOR.MINOR", where:
             .toStdString();               //
     attr["framecount"] =
-        QString::number(  //    MAJOR = flare version number * 10 (eg 7.0 => 70)
+        QString::number(  //    MAJOR = Toonz version number * 10 (eg 7.0 => 70)
             xsh->getFrameCount())
             .toStdString();  //    MINOR = Reset to 0 after each major
                              //    increment,
@@ -697,14 +697,14 @@ void flareScene::save(const TFilePath &fp, TXsheet *subxsh) {
 
 //-----------------------------------------------------------------------------
 
-int flareScene::getFrameCount() const {
+int ToonzScene::getFrameCount() const {
   TXsheet *xsh = getXsheet();
   return xsh ? xsh->getFrameCount() : 0;
 }
 
 //-----------------------------------------------------------------------------
 
-void flareScene::renderFrame(const TRaster32P &ras, int row, const TXsheet *xsh,
+void ToonzScene::renderFrame(const TRaster32P &ras, int row, const TXsheet *xsh,
                              bool checkFlags) const {
   if (xsh == 0) xsh = getXsheet();
 
@@ -738,7 +738,7 @@ void flareScene::renderFrame(const TRaster32P &ras, int row, const TXsheet *xsh,
 
     Stage::RasterPainter painter(ras->getSize(), viewAff, clipRect, vs,
                                  checkFlags);
-    Stage::visit(painter, const_cast<flareScene *>(this),
+    Stage::visit(painter, const_cast<ToonzScene *>(this),
                  const_cast<TXsheet *>(xsh), row);
 
     painter.flushRasterImages();
@@ -758,7 +758,7 @@ void flareScene::renderFrame(const TRaster32P &ras, int row, const TXsheet *xsh,
 //! with known world/placed reference change - and returns the result in a
 //! 32-bit raster.
 
-void flareScene::renderFrame(const TRaster32P &ras, int row, const TXsheet *xsh,
+void ToonzScene::renderFrame(const TRaster32P &ras, int row, const TXsheet *xsh,
                              const TRectD &placedRect,
                              const TAffine &worldToPlacedAff) const {
   // Build reference change affines
@@ -820,7 +820,7 @@ void flareScene::renderFrame(const TRaster32P &ras, int row, const TXsheet *xsh,
 
     Stage::RasterPainter painter(ras->getSize(), worldToOglRefAff, clipRect, vs,
                                  false);
-    Stage::visit(painter, const_cast<flareScene *>(this),
+    Stage::visit(painter, const_cast<ToonzScene *>(this),
                  const_cast<TXsheet *>(xsh), row);
 
     painter.flushRasterImages();
@@ -857,13 +857,13 @@ void flareScene::renderFrame(const TRaster32P &ras, int row, const TXsheet *xsh,
 
 //-----------------------------------------------------------------------------
 
-TXshLevel *flareScene::createNewLevel(int type, std::wstring levelName,
+TXshLevel *ToonzScene::createNewLevel(int type, std::wstring levelName,
                                       const TDimension &dim, double dpi,
                                       TFilePath fp) {
   TLevelSet *levelSet = getLevelSet();
 
   if (type == TZI_XSHLEVEL)  // TZI type corresponds to the 'Scan Level'
-    type = OVL_XSHLEVEL;     // default option. See flare Preferences class.
+    type = OVL_XSHLEVEL;     // default option. See Toonz Preferences class.
 
   if (type == CHILD_XSHLEVEL && levelName == L"") levelName = L"sub";
 
@@ -950,11 +950,11 @@ TXshLevel *flareScene::createNewLevel(int type, std::wstring levelName,
 
 //-----------------------------------------------------------------------------
 
-TXsheet *flareScene::getXsheet() const { return m_childStack->getXsheet(); }
+TXsheet *ToonzScene::getXsheet() const { return m_childStack->getXsheet(); }
 
 //-----------------------------------------------------------------------------
 
-TXsheet *flareScene::getTopXsheet() const {
+TXsheet *ToonzScene::getTopXsheet() const {
   return m_childStack->getTopXsheet();
 }
 
@@ -1029,7 +1029,7 @@ static LevelType getLevelType(const TFilePath &fp) {
 
 //-----------------------------------------------------------------------------
 
-TFilePath flareScene::getImportedLevelPath(const TFilePath path) const {
+TFilePath ToonzScene::getImportedLevelPath(const TFilePath path) const {
   if (TFileType::getInfo(path) == TFileType::AUDIO_LEVEL)
     return path.withParentDir(TFilePath("+extras"));
   else if (TFileType::getInfo(path) == TFileType::PALETTE_LEVEL)
@@ -1058,7 +1058,7 @@ TFilePath flareScene::getImportedLevelPath(const TFilePath path) const {
 //-----------------------------------------------------------------------------
 
 /* tzp,tzu->tlv, svg->pli */
-bool flareScene::convertLevelIfNeeded(TFilePath &levelPath) {
+bool ToonzScene::convertLevelIfNeeded(TFilePath &levelPath) {
   LevelType ltype = getLevelType(levelPath);
   TFilePath fp    = levelPath;
   if (ltype.m_vectorNotPli) {
@@ -1077,7 +1077,7 @@ bool flareScene::convertLevelIfNeeded(TFilePath &levelPath) {
     }
   } else if (ltype.m_oldLevelFlag) {
     TLevelP outLevel;
-    // livello flare 4.6
+    // livello Toonz 4.6
     levelPath = TFilePath(levelPath.getParentDir().getWideString() + L"\\" +
                           levelPath.getWideName() + L".tlv");
     if (TSystem::doesExistFileOrLevel(levelPath))
@@ -1090,7 +1090,7 @@ bool flareScene::convertLevelIfNeeded(TFilePath &levelPath) {
     TLevelWriterP lw(levelPath);
     lw->setIconSize(Preferences::instance()->getIconSize());
     TPaletteP palette =
-        flareImageUtils::loadTzPalette(fp.withType("plt").withNoFrame());
+        ToonzImageUtils::loadTzPalette(fp.withType("plt").withNoFrame());
     TLevelReaderP lr(fp);
     if (!lr) return false;
     TLevelP inLevel = lr->loadInfo();
@@ -1098,7 +1098,7 @@ bool flareScene::convertLevelIfNeeded(TFilePath &levelPath) {
     outLevel->setPalette(palette.getPointer());
     try {
       for (TLevel::Iterator it = inLevel->begin(); it != inLevel->end(); ++it) {
-        TflareImageP img = lr->getFrameReader(it->first)->load();
+        TToonzImageP img = lr->getFrameReader(it->first)->load();
         if (!img) continue;
         img->setPalette(palette.getPointer());
         lw->getFrameWriter(it->first)->save(img);
@@ -1122,7 +1122,7 @@ bool flareScene::convertLevelIfNeeded(TFilePath &levelPath) {
 
 //-----------------------------------------------------------------------------
 
-TXshLevel *flareScene::loadLevel(const TFilePath &actualPath,
+TXshLevel *ToonzScene::loadLevel(const TFilePath &actualPath,
                                  const LevelOptions *levelOptions,
                                  std::wstring levelName,
                                  const std::vector<TFrameId> &fIds) {
@@ -1245,7 +1245,7 @@ TXshLevel *flareScene::loadLevel(const TFilePath &actualPath,
 
 //-----------------------------------------------------------------------------
 
-TFilePath flareScene::decodeFilePath(const TFilePath &path) const {
+TFilePath ToonzScene::decodeFilePath(const TFilePath &path) const {
   auto project        = getProject();
   bool projectIsEmpty = project->getFolderCount() ? false : true;
   TFilePath fp        = path;
@@ -1342,7 +1342,7 @@ TFilePath flareScene::decodeFilePath(const TFilePath &path) const {
 
 //-----------------------------------------------------------------------------
 
-TFilePath flareScene::codeFilePath(const TFilePath &path) const {
+TFilePath ToonzScene::codeFilePath(const TFilePath &path) const {
   TFilePath fp(path);
   auto project = getProject();
 
@@ -1372,7 +1372,7 @@ TFilePath flareScene::codeFilePath(const TFilePath &path) const {
 
 //-----------------------------------------------------------------------------
 // if the path is codable with $scenefolder alias, replace it and return true
-bool flareScene::codeFilePathWithSceneFolder(TFilePath &path) const {
+bool ToonzScene::codeFilePathWithSceneFolder(TFilePath &path) const {
   // if the scene is untitled, then do nothing and return false
   if (isUntitled()) return false;
   TFilePath sceneFolderPath = m_scenePath.getParentDir();
@@ -1385,7 +1385,7 @@ bool flareScene::codeFilePathWithSceneFolder(TFilePath &path) const {
 
 //-----------------------------------------------------------------------------
 
-TFilePath flareScene::getDefaultLevelPath(int levelType,
+TFilePath ToonzScene::getDefaultLevelPath(int levelType,
                                           std::wstring levelName) const {
   auto project = getProject();
   assert(project);
@@ -1431,7 +1431,7 @@ const std::wstring savePathString(L"$savepath");
 
 //-----------------------------------------------------------------------------
 
-TFilePath flareScene::codeSavePath(TFilePath path) const {
+TFilePath ToonzScene::codeSavePath(TFilePath path) const {
   if (path == TFilePath()) return path;
   TFilePath savePath = getSavePath();
   if (savePath == TFilePath()) return path;  // non dovrebbe succedere mai
@@ -1458,7 +1458,7 @@ TFilePath flareScene::codeSavePath(TFilePath path) const {
 
 //-----------------------------------------------------------------------------
 
-TFilePath flareScene::decodeSavePath(TFilePath path) const {
+TFilePath ToonzScene::decodeSavePath(TFilePath path) const {
   std::wstring s = path.getWideString();
   int i          = s.find(savePathString);
   if (i != (int)std::wstring::npos) {
@@ -1476,7 +1476,7 @@ TFilePath flareScene::decodeSavePath(TFilePath path) const {
 
 //-----------------------------------------------------------------------------
 
-bool flareScene::isExternPath(const TFilePath &fp) const {
+bool ToonzScene::isExternPath(const TFilePath &fp) const {
   auto project = m_project;
   assert(project);
   for (int i = 0; i < project->getFolderCount(); i++) {
@@ -1491,19 +1491,19 @@ bool flareScene::isExternPath(const TFilePath &fp) const {
 
 //-----------------------------------------------------------------------------
 
-TCamera *flareScene::getCurrentCamera() {
+TCamera *ToonzScene::getCurrentCamera() {
   return getXsheet()->getStageObjectTree()->getCurrentCamera();
 }
 
 //-----------------------------------------------------------------------------
 
-TCamera *flareScene::getCurrentPreviewCamera() {
+TCamera *ToonzScene::getCurrentPreviewCamera() {
   return getXsheet()->getStageObjectTree()->getCurrentPreviewCamera();
 }
 
 //-----------------------------------------------------------------------------
 
-TContentHistory *flareScene::getContentHistory(bool createIfNeeded) {
+TContentHistory *ToonzScene::getContentHistory(bool createIfNeeded) {
   if (!m_contentHistory && createIfNeeded)
     m_contentHistory = new TContentHistory(false);
   return m_contentHistory;
@@ -1511,8 +1511,8 @@ TContentHistory *flareScene::getContentHistory(bool createIfNeeded) {
 
 //-----------------------------------------------------------------------------
 
-void flareScene::getSoundColumns(std::vector<TXshSoundColumn *> &columns) {
-  flareScene *scene = this;
+void ToonzScene::getSoundColumns(std::vector<TXshSoundColumn *> &columns) {
+  ToonzScene *scene = this;
   std::set<TXsheet *> visited, toVisit;
   TXsheet *xsh = scene->getChildStack()->getTopXsheet();
   visited.insert(xsh);
@@ -1547,7 +1547,7 @@ void flareScene::getSoundColumns(std::vector<TXshSoundColumn *> &columns) {
 
 //-----------------------------------------------------------------------------
 
-void flareScene::updateSoundColumnFrameRate() {
+void ToonzScene::updateSoundColumnFrameRate() {
   std::vector<TXshSoundColumn *> soundColumns;
   getSoundColumns(soundColumns);
 
@@ -1566,7 +1566,7 @@ void flareScene::updateSoundColumnFrameRate() {
 
 //-----------------------------------------------------------------------------
 
-TFilePath flareScene::getIconPath(const TFilePath &scenePath) {
+TFilePath ToonzScene::getIconPath(const TFilePath &scenePath) {
   return scenePath.getParentDir() + "sceneIcons" +
          (scenePath.getWideName() + L" .png");
 }
@@ -1577,7 +1577,7 @@ TFilePath flareScene::getIconPath(const TFilePath &scenePath) {
 // se la scena sta in +scenes/pluto/pippo.tnz => pluto/pippo
 // se la scena e' untitledxxx.tnz => untitledxxx
 
-TFilePath flareScene::getSavePath() const {
+TFilePath ToonzScene::getSavePath() const {
   std::string sceneName = getScenePath().getName();
   if (isUntitled()) return TFilePath(sceneName);
   TFilePath sceneRoot = decodeFilePath(TFilePath("+" + TProject::Scenes));
@@ -1589,7 +1589,7 @@ TFilePath flareScene::getSavePath() const {
 
 //---------------------------------------------------------------------------
 
-double flareScene::shiftCameraX(double val) {
+double ToonzScene::shiftCameraX(double val) {
   TStageObjectTree *tree = getXsheet()->getStageObjectTree();
 
   TStageObject *stageObject = tree->getStageObject(tree->getCurrentCameraId());
@@ -1602,7 +1602,7 @@ double flareScene::shiftCameraX(double val) {
 // if the option is set in the preferences,
 // remove the scene numbers("c####_") from the file name
 
-std::wstring flareScene::getLevelNameWithoutSceneNumber(std::wstring orgName) {
+std::wstring ToonzScene::getLevelNameWithoutSceneNumber(std::wstring orgName) {
   if (!Preferences::instance()->isRemoveSceneNumberFromLoadedLevelNameEnabled())
     return orgName;
 
@@ -1624,4 +1624,3 @@ std::wstring flareScene::getLevelNameWithoutSceneNumber(std::wstring orgName) {
   return orgNameQstr.right(orgNameQstr.size() - orgNameQstr.indexOf("_") - 1)
       .toStdWString();
 }
-

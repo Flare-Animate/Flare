@@ -3,19 +3,19 @@
 #include "versioncontrol.h"
 #include "versioncontrolgui.h"
 
-#include "flareqt/gutil.h"
-#include "flareqt/dvdialog.h"
-#include "flareqt/icongenerator.h"
-#include "flare/sceneresources.h"
-#include "flare/flarescene.h"
-#include "flare/levelset.h"
-#include "flare/txshsimplelevel.h"
-#include "flare/txshlevelhandle.h"
-#include "flare/txshleveltypes.h"
-#include "flare/palettecontroller.h"
-#include "flare/tpalettehandle.h"
-#include "flare/tscenehandle.h"
-#include "flare/tproject.h"
+#include "toonzqt/gutil.h"
+#include "toonzqt/dvdialog.h"
+#include "toonzqt/icongenerator.h"
+#include "toonz/sceneresources.h"
+#include "toonz/toonzscene.h"
+#include "toonz/levelset.h"
+#include "toonz/txshsimplelevel.h"
+#include "toonz/txshlevelhandle.h"
+#include "toonz/txshleveltypes.h"
+#include "toonz/palettecontroller.h"
+#include "toonz/tpalettehandle.h"
+#include "toonz/tscenehandle.h"
+#include "toonz/tproject.h"
 #include "tsystem.h"
 #include "tenv.h"
 #include "tapp.h"
@@ -870,7 +870,7 @@ QStringList VersionControl::getSceneContents(const QString &wokingDir,
       TFilePath(wokingDir.toStdWString()) + sceneFileName.toStdWString();
   if (!TFileStatus(scenePath).doesExist()) return sceneContents;
 
-  flareScene scene;
+  ToonzScene scene;
   try {
     scene.load(scenePath);
   } catch (...) {
@@ -913,7 +913,7 @@ QStringList VersionControl::getSceneContents(const QString &wokingDir,
 
 QStringList VersionControl::getCurrentSceneContents() const {
   QStringList contents;
-  flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
+  ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
   if (!scene) return QStringList();
 
   std::vector<TXshLevel *> levels;
@@ -932,4 +932,3 @@ QStringList VersionControl::getCurrentSceneContents() const {
   }
   return contents;
 }
-

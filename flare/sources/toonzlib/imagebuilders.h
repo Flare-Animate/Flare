@@ -5,11 +5,11 @@
 
 #include "tfilepath.h"
 
-#include "flare/imagemanager.h"
-#include "flare/tcamera.h"
+#include "toonz/imagemanager.h"
+#include "toonz/tcamera.h"
 
-// flareLib includes
-#include "flare/stage.h"
+// ToonzLib includes
+#include "toonz/stage.h"
 
 //======================================================
 
@@ -127,4 +127,3 @@ protected:
 };
 
 #endif  // IMAGE_BUILDERS_H
-

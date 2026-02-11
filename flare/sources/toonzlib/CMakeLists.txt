@@ -14,7 +14,7 @@ set(MOC_HEADERS
     ../include/flare/scriptbinding_rasterizer.h
     ../include/flare/scriptbinding_renderer.h
     ../include/flare/scriptbinding_scene.h
-    ../include/flare/scriptbinding_flare_raster_converter.h
+    ../include/flare/scriptbinding_toonz_raster_converter.h
     ../include/flare/scriptengine.h
     ../include/flare/stylemanager.h
     ../include/flare/tcenterlinevectorizer.h
@@ -63,7 +63,7 @@ set(HEADERS
     sandor_fxs/blend.h
     sandor_fxs/calligraph.h
     sandor_fxs/patternmap.h
-    sandor_fxs/flare4_6staff.h
+    sandor_fxs/toonz4_6staff.h
     ../include/convert2tlv.h
     ../include/thirdparty.h
     ../include/orientation.h
@@ -127,9 +127,9 @@ set(HEADERS
     ../include/flare/tdistort.h
     ../include/flare/textureutils.h
     ../include/flare/tlog.h
-    ../include/flare/flarefolders.h
-    ../include/flare/flareimageutils.h
-    ../include/flare/flarescene.h
+    ../include/flare/toonzfolders.h
+    ../include/flare/toonzimageutils.h
+    ../include/flare/toonzscene.h
     ../include/flare/tpinnedrangeset.h
     ../include/flare/tproject.h
     ../include/flare/trasterimageutils.h
@@ -223,7 +223,7 @@ set(SOURCES
     scriptbinding_rasterizer.cpp
     scriptbinding_renderer.cpp
     scriptbinding_scene.cpp
-    scriptbinding_flare_raster_converter.cpp
+    scriptbinding_toonz_raster_converter.cpp
     scriptengine.cpp
     skeleton.cpp
     skeletonlut.cpp
@@ -251,9 +251,9 @@ set(SOURCES
     thirdparty.cpp
     tlog.cpp
     tnewoutlinevectorize.cpp
-    flarefolders.cpp
-    flareimageutils.cpp
-    flarescene.cpp
+    toonzfolders.cpp
+    toonzimageutils.cpp
+    toonzscene.cpp
     toutlinevectorizer.cpp
     tpinnedrangeset.cpp
     tproject.cpp
@@ -303,7 +303,7 @@ set(SOURCES
     sandor_fxs/YOMBParam.cpp
     sandor_fxs/calligraph.cpp
     sandor_fxs/patternmap.cpp
-    sandor_fxs/flare4_6staff.cpp
+    sandor_fxs/toonz4_6staff.cpp
     tcolumnhandle.cpp
     tframehandle.cpp
     tfxhandle.cpp
@@ -335,22 +335,22 @@ if(BUILD_TARGET_WIN)
 endif()
 
 if(WITH_TRANSLATION)
-    add_translation(flarelib ${HEADERS} ${SOURCES})
+    add_translation(toonzlib ${HEADERS} ${SOURCES})
 endif()
 
 qt5_wrap_cpp(SOURCES ${MOC_HEADERS})
 
-add_library(flarelib SHARED ${HEADERS} ${SOURCES})
+add_library(toonzlib SHARED ${HEADERS} ${SOURCES})
 if(BUILD_ENV_APPLE)
-    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-install_name,@executable_path/libflarelib.dylib")
-    add_dependencies(flarelib tnzcore tnzbase tnzext)
+    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-install_name,@executable_path/libtoonzlib.dylib")
+    add_dependencies(toonzlib tnzcore tnzbase tnzext)
 endif()
 
 add_definitions(
-    -DflareLIB_EXPORTS
+    -DTOONZLIB_EXPORTS
 )
 
-message("subdir: flarelib")
+message("subdir: toonzlib")
 message("Bin: " ${CMAKE_CURRENT_BINARY_DIR})
 
 if(GLEW_FOUND)
@@ -364,11 +364,11 @@ include_directories(
     ${SDKROOT}/libusb/libusb-1.0.9/include
 )
 include_directories(
-    ../flarefarm/include
+    ../toonzfarm/include
 )
 
 if(BUILD_ENV_MSVC)
-    target_link_libraries(flarelib
+    target_link_libraries(toonzlib
         Qt5::Core Qt5::Gui Qt5::OpenGL Qt5::Script Qt5::Multimedia
         ${GLUT_LIB} ${GL_LIB} ${MYPAINT_LIB_LDFLAGS} ${GLEW_LIB} vfw32.lib
         tnzcore tnzbase tnzext
@@ -382,15 +382,14 @@ elseif(BUILD_ENV_APPLE)
         ${MYPAINT_LIB_LDFLAGS}
     )
 
-    target_link_libraries(flarelib Qt5::Core Qt5::Gui Qt5::OpenGL Qt5::Script Qt5::Multimedia ${GLUT_LIB} ${GL_LIB} ${GLEW_LIB} ${EXTRA_LIBS})
+    target_link_libraries(toonzlib Qt5::Core Qt5::Gui Qt5::OpenGL Qt5::Script Qt5::Multimedia ${GLUT_LIB} ${GL_LIB} ${GLEW_LIB} ${EXTRA_LIBS})
 elseif(BUILD_ENV_UNIXLIKE)
-    _find_flare_library(EXTRA_LIBS "tnzcore;tnzbase;tnzext")
+    _find_toonz_library(EXTRA_LIBS "tnzcore;tnzbase;tnzext")
 
     if(BUILD_TARGET_WIN)
         set(EXTRA_LIBS ${EXTRA_LIBS} -lvfw32)
     endif()
 
-    target_link_libraries(flarelib Qt5::Core Qt5::Gui Qt5::OpenGL Qt5::Script Qt5::Multimedia ${GLUT_LIB} ${GL_LIB} ${GLEW_LIB} ${EXTRA_LIBS} ${MYPAINT_LIB_LDFLAGS})
+    target_link_libraries(toonzlib Qt5::Core Qt5::Gui Qt5::OpenGL Qt5::Script Qt5::Multimedia ${GLUT_LIB} ${GL_LIB} ${GLEW_LIB} ${EXTRA_LIBS} ${MYPAINT_LIB_LDFLAGS})
 endif()
-
 

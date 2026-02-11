@@ -4,12 +4,12 @@
 #define STAGE2_INCLUDED
 
 // TnzLib includes
-#include "flare/stage.h"
-#include "flare/autoclose.h"
+#include "toonz/stage.h"
+#include "toonz/autoclose.h"
 
 #undef DVAPI
 #undef DVVAR
-#ifdef flareLIB_EXPORTS
+#ifdef TOONZLIB_EXPORTS
 #define DVAPI DV_EXPORT_API
 #define DVVAR DV_EXPORT_VAR
 #else
@@ -30,7 +30,7 @@ DVVAR extern const double bigBoxSize[];
 //=========================================================
 
 //*****************************************************************************
-//    flareCheck  declaration
+//    ToonzCheck  declaration
 //*****************************************************************************
 
 /*!
@@ -38,7 +38,7 @@ DVVAR extern const double bigBoxSize[];
             level viewing modes.
 */
 
-class DVAPI flareCheck {
+class DVAPI ToonzCheck {
 public:
   enum Type {
     eTransparency = 0x1,   //!< Transparency check.
@@ -53,7 +53,7 @@ public:
   AutocloseSettings autoCloseSettings;
 
 public:
-  static flareCheck *instance();
+  static ToonzCheck *instance();
 
   int getChecks() const { return m_mask; }
   void toggleCheck(int checkType) {
@@ -89,7 +89,7 @@ public:
   int m_colorIndex;
 
 private:
-  flareCheck() : m_mask(0), m_colorIndex(-1) {}
+  ToonzCheck() : m_mask(0), m_colorIndex(-1) {}
 };
 
 //*****************************************************************************
@@ -149,4 +149,3 @@ private:
 };
 
 #endif
-

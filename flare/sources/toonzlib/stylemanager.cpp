@@ -1,6 +1,6 @@
 
 
-// flare includes
+// Toonz includes
 #include "tvectorimage.h"
 #include "trasterimage.h"
 #include "tlevel_io.h"
@@ -16,8 +16,8 @@
 #include "tvectorbrushstyle.h"
 
 // TnzLib includes
-#include "flare/imagestyles.h"
-#include "flare/flarefolders.h"
+#include "toonz/imagestyles.h"
+#include "toonz/toonzfolders.h"
 
 // Qt includes
 #include <QDir>
@@ -28,7 +28,7 @@
 #include <QOpenGLContext>
 #include <QOpenGLFramebufferObject>
 
-#include "flare/stylemanager.h"
+#include "toonz/stylemanager.h"
 
 #include <QVector>
 
@@ -85,7 +85,7 @@ QImage rasterToQImage(const TRasterP &ras, bool premultiplied = true,
 //********************************************************************************
 
 FavoritesManager::FavoritesManager() {
-  m_fpPinsToTop = flareFolder::getMyModuleDir() + "pintotopbrushes.txt";
+  m_fpPinsToTop = ToonzFolder::getMyModuleDir() + "pintotopbrushes.txt";
   m_xxPinsToTop = false;
   loadPinsToTop();
 }
@@ -665,4 +665,3 @@ void SpecialStyleManager::loadItems() {
 
   m_loaded = true;
 }
-

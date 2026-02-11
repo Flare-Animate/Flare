@@ -4,8 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define _flare_PROTOTYPES_
-#include "flare.h"
+#define _TOONZ_PROTOTYPES_
+#include "toonz.h"
 #include "file.h"
 #include "version.h"
 #include "security.h"
@@ -17,7 +17,7 @@ void main(int argc, char *argv[]) {
   struct cmap_color *cmap;
   struct gl_color *gl_buffer;
 
-  flare_init(DUMMY_KEY_SLOT, (int *)&argc, argv);
+  toonz_init(DUMMY_KEY_SLOT, (int *)&argc, argv);
   InibisciDongle();
   unprotect_lib();
 
@@ -130,4 +130,3 @@ force_to_rgb(newimg, NIL);
 
   printf(">> Riprovami e non te ne pentirai!! <<\n");
 }
-

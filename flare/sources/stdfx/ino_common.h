@@ -31,7 +31,7 @@ void ras_to_ref_float_arr(const TRasterP in_ras, float* out_arr,
         が存在するとtrueを返す */
 bool log_enable_sw(void);
 
-/* flare6.0.x専用の固定値を返すinline(埋め込み)関数 */
+/* toonz6.0.x専用の固定値を返すinline(埋め込み)関数 */
 inline double param_range(void) { return 1.0; }  // 1 or 100%
 inline int channels(void) { return 4; }          // RGBM is 4 channels
 inline int bits(const TRasterP ras) {
@@ -149,4 +149,3 @@ void TBlendForeBackRasterFx::premultiToUnpremulti<TPixelF, float>(
     TRasterFP dn_ras, const TRasterFP& up_ras, const double colorSpaceGamma);
 
 #endif /* !ino_common_h */
-

@@ -13,28 +13,28 @@
 #include "comboviewerpane.h"
 
 // TnzQt includes
-#include "flareqt/icongenerator.h"
-#include "flareqt/trepetitionguard.h"
-#include "flareqt/gutil.h"
-#include "flareqt/tselectionhandle.h"
+#include "toonzqt/icongenerator.h"
+#include "toonzqt/trepetitionguard.h"
+#include "toonzqt/gutil.h"
+#include "toonzqt/tselectionhandle.h"
 
 // TnzLib includes
-#include "flare/txshlevelhandle.h"
-#include "flare/tcolumnhandle.h"
-#include "flare/txsheethandle.h"
-#include "flare/tframehandle.h"
-#include "flare/tonionskinmaskhandle.h"
-#include "flare/tobjecthandle.h"
-#include "flare/txshleveltypes.h"
-#include "flare/txshsimplelevel.h"
-#include "flare/stage2.h"
-#include "flare/levelproperties.h"
-#include "flare/palettecontroller.h"
-#include "flare/tpalettehandle.h"
-#include "flare/tscenehandle.h"
-#include "flare/flarescene.h"
-#include "flare/levelset.h"
-#include "flare/preferences.h"
+#include "toonz/txshlevelhandle.h"
+#include "toonz/tcolumnhandle.h"
+#include "toonz/txsheethandle.h"
+#include "toonz/tframehandle.h"
+#include "toonz/tonionskinmaskhandle.h"
+#include "toonz/tobjecthandle.h"
+#include "toonz/txshleveltypes.h"
+#include "toonz/txshsimplelevel.h"
+#include "toonz/stage2.h"
+#include "toonz/levelproperties.h"
+#include "toonz/palettecontroller.h"
+#include "toonz/tpalettehandle.h"
+#include "toonz/tscenehandle.h"
+#include "toonz/toonzscene.h"
+#include "toonz/levelset.h"
+#include "toonz/preferences.h"
 
 // TnzCore includes
 #include "tpalette.h"
@@ -885,7 +885,7 @@ void FilmstripFrames::mousePressEvent(QMouseEvent *event) {
   if (event->button() == Qt::LeftButton ||
       event->button() == Qt::MiddleButton) {
     // navigator pan
-    // make sure the viewer is visible and that a flare raster or raster level
+    // make sure the viewer is visible and that a toonz raster or raster level
     // is current
     if (fid.getNumber() >= 0 && fid == getCurrentFrameId() &&
         (sl->getType() == TZP_XSHLEVEL || sl->getType() == OVL_XSHLEVEL) &&
@@ -1308,7 +1308,7 @@ void FilmstripFrames::contextMenuEvent(QContextMenuEvent *event) {
 //-----------------------------------------------------------------------------
 
 void FilmstripFrames::createSelectLevelMenu(QMenu *menu) {
-  flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
+  ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
   if (scene) {
     std::vector<TXshLevel *> levels;
     scene->getLevelSet()->listLevels(levels);
@@ -1458,7 +1458,7 @@ void FilmstripFrames::startDragDrop() {
   QByteArray byteArray;
 
   QMimeData *mimeData = new QMimeData;
-  mimeData->setData("application/vnd.flare.drawings", byteArray);
+  mimeData->setData("application/vnd.toonz.drawings", byteArray);
   QDrag *drag           = new QDrag(this);
   QPixmap dropThumbnail = IconGenerator::instance()->getIcon(sl, *fids.begin());
   if (!dropThumbnail.isNull()) drag->setPixmap(dropThumbnail);
@@ -1623,7 +1623,7 @@ void Filmstrip::updateChooseLevelComboItems() {
   std::map<TXshSimpleLevel *, TFrameId> new_workingFrames;
 
   // correct and register items
-  flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
+  ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
   if (scene) {
     std::vector<TXshLevel *> levels;
     scene->getLevelSet()->listLevels(levels);
@@ -1847,8 +1847,8 @@ void Filmstrip::updateWindowTitle() {
 void Filmstrip::onLevelSwitched(TXshLevel *oldLevel) {
   updateWindowTitle();
 
-  int tc = flareCheck::instance()->getChecks();
-  if (tc & (flareCheck::eInk | flareCheck::ePaint)) {
+  int tc = ToonzCheck::instance()->getChecks();
+  if (tc & (ToonzCheck::eInk | ToonzCheck::ePaint)) {
     TXshLevel *sl = TApp::instance()->getCurrentLevel()->getLevel();
     if (!sl) return;
     std::vector<TFrameId> fids;
@@ -2027,4 +2027,3 @@ int InbetweenDialog::getIndex(const QString &text) {
 
 OpenFloatingPanel openFilmstripCommand(MI_OpenFilmStrip, "FilmStrip",
                                        QObject::tr("Level: "));
-

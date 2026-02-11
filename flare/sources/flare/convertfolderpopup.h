@@ -4,7 +4,7 @@
 #define CONVERTFOLDERPOPUP_H
 
 // TnzQt includes
-#include "flareqt/dvdialog.h"
+#include "toonzqt/dvdialog.h"
 
 // TnzCore includes
 #include "tfilepath.h"
@@ -20,7 +20,7 @@
 
 class TPalette;
 class TPropertyGroup;
-class flareScene;
+class ToonzScene;
 
 class QCheckBox;
 class QLabel;
@@ -105,4 +105,3 @@ protected slots:
 };
 
 #endif  // CONVERTPOPUP_H
-

@@ -1,6 +1,6 @@
 
 
-#include "flare/logger.h"
+#include "toonz/logger.h"
 
 Logger::Logger() {}
 
@@ -36,4 +36,3 @@ void Logger::removeListener(Listener *listener) {
       std::remove(m_listeners.begin(), m_listeners.end(), listener),
       m_listeners.end());
 }
-

@@ -6,8 +6,8 @@
 #include <gl/gl.h>
 #include <gl/device.h>
 
-#define _flare_PROTOTYPES_
-#include "flare.h"
+#define _TOONZ_PROTOTYPES_
+#include "toonz.h"
 #include "file.h"
 #include "tim.h"
 #include "version.h"
@@ -21,7 +21,7 @@ void main(int argc, char *argv[]) {
   struct cmap_color *cmap;
   struct gl_color *gl_buffer;
 
-  flare_init(DUMMY_KEY_SLOT, (int *)&argc, argv);
+  toonz_init(DUMMY_KEY_SLOT, (int *)&argc, argv);
   InibisciDongle();
   unprotect_lib();
 
@@ -78,4 +78,3 @@ void main(int argc, char *argv[]) {
 }
 
 /* ---------------------- */
-

@@ -8,10 +8,10 @@
 #include "penciltestpopup.h"
 
 // TnzQt includes
-#include "flareqt/tabbar.h"
-#include "flareqt/gutil.h"
-#include "flareqt/colorfield.h"
-#include "flareqt/doublefield.h"
+#include "toonzqt/tabbar.h"
+#include "toonzqt/gutil.h"
+#include "toonzqt/colorfield.h"
+#include "toonzqt/doublefield.h"
 
 // Qt includes
 #include <QWidget>
@@ -23,7 +23,7 @@
 
 #undef DVAPI
 #undef DVVAR
-#ifdef flareQT_EXPORTS
+#ifdef TOONZQT_EXPORTS
 #define DVAPI DV_EXPORT_API
 #define DVVAR DV_EXPORT_VAR
 #else
@@ -279,4 +279,3 @@ public slots:
 };
 
 #endif  // STOPMOTIONCONTROLLER_H
-

@@ -4,7 +4,7 @@
 #define EXPORTCAMERATRACKPOPUP_H
 
 // Tnz6 includes
-#include "flareqt/dvdialog.h"
+#include "toonzqt/dvdialog.h"
 
 // Qt includes
 #include <QScrollArea>
@@ -149,4 +149,3 @@ private slots:
 };
 
 #endif  // EXPORTCAMERATRACKPOPUP_H
-

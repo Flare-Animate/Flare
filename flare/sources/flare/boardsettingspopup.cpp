@@ -5,19 +5,19 @@
 #include "filebrowser.h"
 
 // TnzQt includes
-#include "flareqt/gutil.h"
-#include "flareqt/filefield.h"
-#include "flareqt/colorfield.h"
-#include "flareqt/intfield.h"
+#include "toonzqt/gutil.h"
+#include "toonzqt/filefield.h"
+#include "toonzqt/colorfield.h"
+#include "toonzqt/intfield.h"
 
 // TnzLib includes
 #include "toutputproperties.h"
-#include "flare/tscenehandle.h"
-#include "flare/flarescene.h"
-#include "flare/sceneproperties.h"
-#include "flare/tcamera.h"
-#include "flare/boardsettings.h"
-#include "flare/flarefolders.h"
+#include "toonz/tscenehandle.h"
+#include "toonz/toonzscene.h"
+#include "toonz/sceneproperties.h"
+#include "toonz/tcamera.h"
+#include "toonz/boardsettings.h"
+#include "toonz/toonzfolders.h"
 
 // Image
 #include "tiio.h"
@@ -66,7 +66,7 @@ void editListWidgetItem(QListWidgetItem* listItem, BoardItem* item) {
   listItem->setText(itemText);
 
   if (item->getType() == BoardItem::Image) {
-    flareScene* scene        = TApp::instance()->getCurrentScene()->getScene();
+    ToonzScene* scene        = TApp::instance()->getCurrentScene()->getScene();
     TFilePath decodedImgPath = scene->decodeFilePath(item->getImgPath());
     QPixmap iconPm           = QPixmap::fromImage(
         QImage(decodedImgPath.getQString()).scaled(QSize(20, 20)));
@@ -104,7 +104,7 @@ BoardView::BoardView(QWidget* parent) : QWidget(parent) {
 }
 
 void BoardView::paintEvent(QPaintEvent* event) {
-  flareScene* scene = TApp::instance()->getCurrentScene()->getScene();
+  ToonzScene* scene = TApp::instance()->getCurrentScene()->getScene();
   if (!scene) return;
   TOutputProperties* outProp   = scene->getProperties()->getOutputProperties();
   BoardSettings* boardSettings = outProp->getBoardSettings();
@@ -164,7 +164,7 @@ void BoardView::resizeEvent(QResizeEvent* event) {
   if (m_valid) {
     boardRes = m_boardImg.size();
   } else {
-    flareScene* scene = TApp::instance()->getCurrentScene()->getScene();
+    ToonzScene* scene = TApp::instance()->getCurrentScene()->getScene();
     TOutputProperties* outProp = scene->getProperties()->getOutputProperties();
     int shrinkX                = outProp->getRenderSettings().m_shrinkX,
         shrinkY                = outProp->getRenderSettings().m_shrinkY;
@@ -500,7 +500,7 @@ void ItemInfoView::setCurrentItem(int index) {
 
   setCurrentIndex(0);  // set to normal page.
 
-  flareScene* scene = TApp::instance()->getCurrentScene()->getScene();
+  ToonzScene* scene = TApp::instance()->getCurrentScene()->getScene();
   if (!scene) return;
   TOutputProperties* outProp   = scene->getProperties()->getOutputProperties();
   BoardSettings* boardSettings = outProp->getBoardSettings();
@@ -617,7 +617,7 @@ void ItemInfoView::onImgPathChanged() {
   assert(currentBoardItem());
   TFilePath fp(m_imgPathField->getPath());
   if (fp.isLevelName()) {
-    flareScene* scene = TApp::instance()->getCurrentScene()->getScene();
+    ToonzScene* scene = TApp::instance()->getCurrentScene()->getScene();
     TLevelReaderP lr(scene->decodeFilePath(fp));
     TLevelP level;
     if (lr) level = lr->loadInfo();
@@ -735,7 +735,7 @@ ItemListView::ItemListView(QWidget* parent) : QWidget(parent) {
 }
 
 void ItemListView::initialize() {
-  flareScene* scene = TApp::instance()->getCurrentScene()->getScene();
+  ToonzScene* scene = TApp::instance()->getCurrentScene()->getScene();
   if (!scene) return;
   TOutputProperties* outProp   = scene->getProperties()->getOutputProperties();
   BoardSettings* boardSettings = outProp->getBoardSettings();
@@ -758,7 +758,7 @@ void ItemListView::initialize() {
 
 // called when the infoView is edited
 void ItemListView::updateCurrentItem() {
-  flareScene* scene = TApp::instance()->getCurrentScene()->getScene();
+  ToonzScene* scene = TApp::instance()->getCurrentScene()->getScene();
   if (!scene) return;
   TOutputProperties* outProp   = scene->getProperties()->getOutputProperties();
   BoardSettings* boardSettings = outProp->getBoardSettings();
@@ -784,7 +784,7 @@ void ItemListView::onCurrentItemSwitched(int currentRow) {
 }
 
 void ItemListView::onNewItemButtonClicked() {
-  flareScene* scene = TApp::instance()->getCurrentScene()->getScene();
+  ToonzScene* scene = TApp::instance()->getCurrentScene()->getScene();
   if (!scene) return;
   TOutputProperties* outProp   = scene->getProperties()->getOutputProperties();
   BoardSettings* boardSettings = outProp->getBoardSettings();
@@ -805,7 +805,7 @@ void ItemListView::onNewItemButtonClicked() {
 }
 
 void ItemListView::onDeleteItemButtonClicked() {
-  flareScene* scene = TApp::instance()->getCurrentScene()->getScene();
+  ToonzScene* scene = TApp::instance()->getCurrentScene()->getScene();
   if (!scene) return;
   TOutputProperties* outProp   = scene->getProperties()->getOutputProperties();
   BoardSettings* boardSettings = outProp->getBoardSettings();
@@ -829,7 +829,7 @@ void ItemListView::onDeleteItemButtonClicked() {
 }
 
 void ItemListView::onMoveUpButtonClicked() {
-  flareScene* scene = TApp::instance()->getCurrentScene()->getScene();
+  ToonzScene* scene = TApp::instance()->getCurrentScene()->getScene();
   if (!scene) return;
   TOutputProperties* outProp   = scene->getProperties()->getOutputProperties();
   BoardSettings* boardSettings = outProp->getBoardSettings();
@@ -846,7 +846,7 @@ void ItemListView::onMoveUpButtonClicked() {
 }
 
 void ItemListView::onMoveDownButtonClicked() {
-  flareScene* scene = TApp::instance()->getCurrentScene()->getScene();
+  ToonzScene* scene = TApp::instance()->getCurrentScene()->getScene();
   if (!scene) return;
   TOutputProperties* outProp   = scene->getProperties()->getOutputProperties();
   BoardSettings* boardSettings = outProp->getBoardSettings();
@@ -959,7 +959,7 @@ BoardSettingsPopup::BoardSettingsPopup(QWidget* parent)
 }
 
 void BoardSettingsPopup::initialize() {
-  flareScene* scene = TApp::instance()->getCurrentScene()->getScene();
+  ToonzScene* scene = TApp::instance()->getCurrentScene()->getScene();
   if (!scene) return;
   TOutputProperties* outProp   = scene->getProperties()->getOutputProperties();
   BoardSettings* boardSettings = outProp->getBoardSettings();
@@ -1026,7 +1026,7 @@ void BoardSettingsPopup::onItemPropertyChanged(bool updateListView) {
 }
 
 void BoardSettingsPopup::onDurationEdited() {
-  flareScene* scene = TApp::instance()->getCurrentScene()->getScene();
+  ToonzScene* scene = TApp::instance()->getCurrentScene()->getScene();
   if (!scene) return;
   TOutputProperties* outProp   = scene->getProperties()->getOutputProperties();
   BoardSettings* boardSettings = outProp->getBoardSettings();
@@ -1037,7 +1037,7 @@ void BoardSettingsPopup::onDurationEdited() {
 }
 
 void BoardSettingsPopup::onFileNameSuffixEdited() {
-  flareScene* scene = TApp::instance()->getCurrentScene()->getScene();
+  ToonzScene* scene = TApp::instance()->getCurrentScene()->getScene();
   if (!scene) return;
   TOutputProperties* outProp   = scene->getProperties()->getOutputProperties();
   BoardSettings* boardSettings = outProp->getBoardSettings();
@@ -1067,7 +1067,7 @@ void BoardSettingsPopup::onLoadPreset() {
     std::string tagName = "";
     if (!is.matchTag(tagName)) throw TException("Bad file format");
     if (tagName == "clapperboardSettingsPreset") {
-      flareScene* scene = TApp::instance()->getCurrentScene()->getScene();
+      ToonzScene* scene = TApp::instance()->getCurrentScene()->getScene();
       if (!scene) return;
       TOutputProperties* outProp =
           scene->getProperties()->getOutputProperties();
@@ -1101,7 +1101,7 @@ void BoardSettingsPopup::onSavePreset() {
     TOStream os(fp, false);
     if (!os.checkStatus()) throw TException("Could not open file");
 
-    flareScene* scene = TApp::instance()->getCurrentScene()->getScene();
+    ToonzScene* scene = TApp::instance()->getCurrentScene()->getScene();
     if (!scene) return;
     TOutputProperties* outProp = scene->getProperties()->getOutputProperties();
     BoardSettings* boardSettings = outProp->getBoardSettings();
@@ -1169,7 +1169,7 @@ void BoardSettingsPopup::onExportBoardImage() {
   TLevelWriter::getSupportedFormats(formats, true);
   Tiio::Writer::getSupportedFormats(formats, true);
 
-  flareScene* scene = TApp::instance()->getCurrentScene()->getScene();
+  ToonzScene* scene = TApp::instance()->getCurrentScene()->getScene();
   TOutputProperties* outputSettings =
       scene->getProperties()->getOutputProperties();
 
@@ -1241,7 +1241,7 @@ SaveBoardPresetFilePopup::SaveBoardPresetFilePopup()
 
 void SaveBoardPresetFilePopup::showEvent(QShowEvent* e) {
   FileBrowserPopup::showEvent(e);
-  setFolder(flareFolder::getLibraryFolder() + "clapperboards");
+  setFolder(ToonzFolder::getLibraryFolder() + "clapperboards");
 }
 
 //=============================================================================
@@ -1254,7 +1254,7 @@ LoadBoardPresetFilePopup::LoadBoardPresetFilePopup()
 
 void LoadBoardPresetFilePopup::showEvent(QShowEvent* e) {
   FileBrowserPopup::showEvent(e);
-  setFolder(flareFolder::getLibraryFolder() + "clapperboards");
+  setFolder(ToonzFolder::getLibraryFolder() + "clapperboards");
 }
 
 //=============================================================================
@@ -1266,4 +1266,3 @@ SaveBoardImagePopup::SaveBoardImagePopup()
   Tiio::Writer::getSupportedFormats(formats, true);
   setFilterTypes(formats);
 }
-

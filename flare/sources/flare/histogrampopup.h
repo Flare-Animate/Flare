@@ -3,7 +3,7 @@
 #ifndef HISTOGRAMPOPUP_H
 #define HISTOGRAMPOPUP_H
 
-#include "flareqt/dvdialog.h"
+#include "toonzqt/dvdialog.h"
 #include "timage.h"
 #include "tpixel.h"
 
@@ -56,4 +56,3 @@ protected slots:
 };
 
 #endif  // HISTOGRAMSPOPUP_H
-

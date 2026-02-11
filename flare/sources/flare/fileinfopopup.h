@@ -3,7 +3,7 @@
 #ifndef FILEINFOPOPUP_H
 #define FILEINFOPOPUP_H
 
-#include "flareqt/dvdialog.h"
+#include "toonzqt/dvdialog.h"
 #include "tgeometry.h"
 
 // forward declaration
@@ -48,4 +48,3 @@ public:
 };
 
 #endif  // FILEINFOPOPUP_H
-

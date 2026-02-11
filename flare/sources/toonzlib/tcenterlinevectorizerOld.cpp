@@ -1,6 +1,6 @@
 
 
-#include "flare/tcenterlinevectorizer.h"
+#include "toonz/tcenterlinevectorizer.h"
 #include "tsystem.h"
 #include "tstopwatch.h"
 #include "tpalette.h"
@@ -8,7 +8,7 @@
 //#include "tstrokeutil.h"
 //#include "tspecialstyleid.h"
 #include "trastercm.h"
-#include "tflareimage.h"
+#include "ttoonzimage.h"
 //#include "dpiscale.h"
 #include "tregion.h"
 #include "tstroke.h"
@@ -2493,7 +2493,7 @@ TVectorImageP centerlineVectorize(const TImageP &image,
   CenterLineVectorizer vectorizer(c, palette);
 
   TRasterImageP ri = image;
-  TflareImageP vi  = image;
+  TToonzImageP vi  = image;
   if (ri)
     vectorizer.makeDataRaster(ri->getRaster());
   else
@@ -2656,7 +2656,7 @@ TVectorImageP outlineVectorize(const TImageP &image,
   OutlineVectorizer vectorizer(configuration, palette);
 
   TRasterImageP ri = image;
-  TflareImageP vi  = image;
+  TToonzImageP vi  = image;
   if (ri)
     vectorizer.makeDataRaster(ri->getRaster());
   else
@@ -2730,7 +2730,7 @@ void applyFillColors(TRegion *r, const TRasterP &ras, TPalette *palette,
 
 void applyFillColors(TVectorImageP vi, const TImageP &img, TPalette *palette,
                      bool leaveUnpainted) {
-  TflareImageP ti  = (TflareImageP)img;
+  TToonzImageP ti  = (TToonzImageP)img;
   TRasterImageP ri = (TRasterImageP)img;
   TRectD vb        = vi->getBBox();
   TRectD tb        = img->getBBox();
@@ -2763,7 +2763,7 @@ TVectorImageP vectorize(const TImageP &img, const VectorizerConfiguration &c,
   //  vi->autoFill(c.m_strokeStyleId);
 
   TPointD center;
-  if (TflareImageP ti = img)
+  if (TToonzImageP ti = img)
     center = ti->getRaster()->getCenterD();
   else if (TRasterImageP ri = img)
     center = ri->getRaster()->getCenterD();
@@ -2775,4 +2775,3 @@ TVectorImageP vectorize(const TImageP &img, const VectorizerConfiguration &c,
 }
 
 //---------------------------------------------------------
-

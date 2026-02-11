@@ -10,24 +10,24 @@
 #include "tools/tooloptions.h"
 #include "tools/replicator.h"
 
-#include "mypaintflarebrush.h"
+#include "mypainttoonzbrush.h"
 
 // TnzQt includes
-#include "flareqt/dvdialog.h"
+#include "toonzqt/dvdialog.h"
 
 // TnzLib includes
-#include "flare/tpalettehandle.h"
-#include "flare/txsheethandle.h"
-#include "flare/txshlevelhandle.h"
-#include "flare/tobjecthandle.h"
-#include "flare/tframehandle.h"
-#include "flare/ttileset.h"
-#include "flare/ttilesaver.h"
-#include "flare/strokegenerator.h"
-#include "flare/tstageobject.h"
-#include "flare/palettecontroller.h"
-#include "flare/mypaintbrushstyle.h"
-#include "flare/preferences.h"
+#include "toonz/tpalettehandle.h"
+#include "toonz/txsheethandle.h"
+#include "toonz/txshlevelhandle.h"
+#include "toonz/tobjecthandle.h"
+#include "toonz/tframehandle.h"
+#include "toonz/ttileset.h"
+#include "toonz/ttilesaver.h"
+#include "toonz/strokegenerator.h"
+#include "toonz/tstageobject.h"
+#include "toonz/palettecontroller.h"
+#include "toonz/mypaintbrushstyle.h"
+#include "toonz/preferences.h"
 
 // TnzCore includes
 #include "tgl.h"
@@ -550,7 +550,7 @@ void FullColorBrushTool::inputPaintTrackPoint(const TTrackPoint &point,
   TrackHandler *handler;
   if (track.size() == track.pointsAdded && !track.handler && m_workRaster) {
     mypaint::Brush mypaintBrush;
-    applyflareBrushSettings(mypaintBrush);
+    applyToonzBrushSettings(mypaintBrush);
     handler = new TrackHandler(m_workRaster, *this, mypaintBrush);
     handler->brush.beginStroke();
     track.handler = handler;
@@ -880,7 +880,7 @@ TMyPaintBrushStyle *FullColorBrushTool::getBrushStyle() {
 
 //------------------------------------------------------------------
 
-void FullColorBrushTool::applyClassicflareBrushSettings(
+void FullColorBrushTool::applyClassicToonzBrushSettings(
     mypaint::Brush &mypaintBrush) {
   const double precision       = 1e-5;
   const double hardnessOpacity = 0.1;
@@ -966,7 +966,7 @@ void FullColorBrushTool::applyClassicflareBrushSettings(
   }
 }
 
-void FullColorBrushTool::applyflareBrushSettings(mypaint::Brush &mypaintBrush) {
+void FullColorBrushTool::applyToonzBrushSettings(mypaint::Brush &mypaintBrush) {
   TMyPaintBrushStyle *mypaintStyle = getBrushStyle();
 
   if (mypaintStyle) {
@@ -1005,7 +1005,7 @@ void FullColorBrushTool::applyflareBrushSettings(mypaint::Brush &mypaintBrush) {
       mypaintBrush.setBaseValue(MYPAINT_BRUSH_SETTING_LOCK_ALPHA, 1.0);
     }
   } else {
-    applyClassicflareBrushSettings(mypaintBrush);
+    applyClassicToonzBrushSettings(mypaintBrush);
   }
 }
 
@@ -1059,4 +1059,3 @@ void FullColorBrushToolNotifier::onDeactivate() {
 //==========================================================================================================
 
 FullColorBrushTool fullColorPencil("T_Brush");
-
