@@ -19,14 +19,14 @@
 #include "tabbar.h"
 #include "gutil.h"
 
-#include "toonzqt/framenavigator.h"
-#include "toonzqt/paramfield.h"
-#include "toonzqt/swatchviewer.h"
-#include "toonzqt/fxhistogramrender.h"
+#include "flareqt/framenavigator.h"
+#include "flareqt/paramfield.h"
+#include "flareqt/swatchviewer.h"
+#include "flareqt/fxhistogramrender.h"
 
 #undef DVAPI
 #undef DVVAR
-#ifdef TOONZQT_EXPORTS
+#ifdef flareQT_EXPORTS
 #define DVAPI DV_EXPORT_API
 #define DVVAR DV_EXPORT_VAR
 #else
@@ -49,7 +49,7 @@ class TXsheetHandle;
 class TSceneHandle;
 class TXshLevelHandle;
 class TObjectHandle;
-class ToonzScene;
+class flareScene;
 
 //=============================================================================
 /*! \brief ParamsPage. View a page with fx params.
@@ -109,18 +109,18 @@ public:
 
   void addWidget(QWidget *, bool isVertical = true);
 
-#define TOONZ_DECLARE_NEW_COMPONENT(NAME)                                      \
+#define flare_DECLARE_NEW_COMPONENT(NAME)                                      \
   QWidget *NAME(TFx *fx, const char *name)
 
-  TOONZ_DECLARE_NEW_COMPONENT(newParamField);
-  TOONZ_DECLARE_NEW_COMPONENT(newLineEdit);
-  TOONZ_DECLARE_NEW_COMPONENT(newSlider);
-  TOONZ_DECLARE_NEW_COMPONENT(newSpinBox);
-  TOONZ_DECLARE_NEW_COMPONENT(newCheckBox);
-  TOONZ_DECLARE_NEW_COMPONENT(newRadioButton);
-  TOONZ_DECLARE_NEW_COMPONENT(newComboBox);
+  flare_DECLARE_NEW_COMPONENT(newParamField);
+  flare_DECLARE_NEW_COMPONENT(newLineEdit);
+  flare_DECLARE_NEW_COMPONENT(newSlider);
+  flare_DECLARE_NEW_COMPONENT(newSpinBox);
+  flare_DECLARE_NEW_COMPONENT(newCheckBox);
+  flare_DECLARE_NEW_COMPONENT(newRadioButton);
+  flare_DECLARE_NEW_COMPONENT(newComboBox);
 
-#undef TOONZ_DECLARE_NEW_COMPONENT
+#undef flare_DECLARE_NEW_COMPONENT
 
   // make ParamsPageSet to re-compute preferred size.
   // currently emitted only from ToneCurveParamField
@@ -163,7 +163,7 @@ public:
   ~ParamsPageSet();
 
   void setFx(const TFxP &currentFx, const TFxP &actualFx, int frame);
-  void setScene(ToonzScene *scene);
+  void setScene(flareScene *scene);
   void setIsCameraViewMode(bool isCameraViewMode);
 
   void updatePage(int frame, bool onlyParam);
@@ -210,8 +210,8 @@ public:
   ~ParamViewer();
 
   void setFx(const TFxP &currentFx, const TFxP &actualFx, int frame,
-             ToonzScene *scene);
-  void setScene(ToonzScene *scene);
+             flareScene *scene);
+  void setScene(flareScene *scene);
   void setIsCameraViewMode(bool isCameraViewMode);
   /*! If onlyParam is true don't invalidate raster of associated histogram. */
   void update(int frame, bool onlyParam);
@@ -320,3 +320,4 @@ protected slots:
 };
 
 #endif  // FXSETTINGS_H
+

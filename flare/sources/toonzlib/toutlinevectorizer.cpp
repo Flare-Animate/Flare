@@ -1,13 +1,13 @@
 
 
-#include "toonz/tcenterlinevectorizer.h"
+#include "flare/tcenterlinevectorizer.h"
 
 // TnzCore includes
 #include "tsystem.h"
 #include "tstopwatch.h"
 #include "tpalette.h"
 #include "trastercm.h"
-#include "ttoonzimage.h"
+#include "tflareimage.h"
 #include "tregion.h"
 #include "tstroke.h"
 #include "trasterimage.h"
@@ -799,7 +799,7 @@ TVectorImageP VectorizerCore::outlineVectorize(
   OutlineVectorizer vectorizer(configuration, palette);
 
   TRasterImageP ri = image;
-  TToonzImageP vi  = image;
+  TflareImageP vi  = image;
   if (ri)
     vectorizer.makeDataRaster(ri->getRaster());
   else
@@ -1411,7 +1411,7 @@ void VectorizerCore::applyFillColors(TRegion *r, const TRasterP &ras,
       int styleId = 0;
 
       if (rt) {
-        // Toonz colormap case
+        // flare colormap case
         TPixelCM32 col =
             rt->pixels(p.y)[p.x];  // In the outline vectorization case, color
         int tone = col.getTone();  // can be either ink or paint
@@ -1488,7 +1488,7 @@ void VectorizerCore::applyFillColors(TVectorImageP vi, const TImageP &img,
   // if (c.m_leaveUnpainted && (!c.m_outline || outConf.m_ignoreInkColors))
   // return;
 
-  TToonzImageP ti  = img;
+  TflareImageP ti  = img;
   TRasterImageP ri = img;
 
   assert(ti || ri);
@@ -1662,3 +1662,4 @@ void VectorizerCore::emitPartialDone(int current)
   emit partialDone(current, m_totalPartials);
 }
 */
+

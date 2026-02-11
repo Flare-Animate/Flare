@@ -4,12 +4,12 @@
 #include "tools/toolutils.h"
 #include "tools/cursors.h"
 
-#include "toonz/tframehandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/tscenehandle.h"
-#include "toonzqt/selectioncommandids.h"
+#include "flare/tframehandle.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/tscenehandle.h"
+#include "flareqt/selectioncommandids.h"
 
-#include "toonzqt/selection.h"
+#include "flareqt/selection.h"
 #include "tproperty.h"
 #include "tdata.h"
 #include "tconvert.h"
@@ -17,16 +17,16 @@
 #include "tstroke.h"
 #include "tvectorimage.h"
 
-#include "toonz/hook.h"
-#include "toonz/txshlevel.h"
-#include "toonz/toonzscene.h"
-#include "toonz/txsheet.h"
-#include "toonz/txshcell.h"
-#include "toonz/txshcolumn.h"
-#include "toonz/tstageobjecttree.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/levelproperties.h"
-#include "toonz/txsheethandle.h"
+#include "flare/hook.h"
+#include "flare/txshlevel.h"
+#include "flare/flarescene.h"
+#include "flare/txsheet.h"
+#include "flare/txshcell.h"
+#include "flare/txshcolumn.h"
+#include "flare/tstageobjecttree.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/levelproperties.h"
+#include "flare/txsheethandle.h"
 
 #include <QMessageBox>
 #include <math.h>
@@ -909,3 +909,4 @@ void TrackerRegionSelection::convertToRegion() {
     }
   }
 }
+

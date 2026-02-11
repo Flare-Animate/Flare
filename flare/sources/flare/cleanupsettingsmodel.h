@@ -6,8 +6,8 @@
 // TnzCore includes
 #include "trasterimage.h"
 
-// ToonzLib includes
-#include "toonz/cleanupparameters.h"
+// flareLib includes
+#include "flare/cleanupparameters.h"
 
 // Qt includes
 #include <QObject>
@@ -27,10 +27,10 @@ class CleanupSettingsPopup;
 //********************************************************************
 
 //! The CleanupSettingsModel is the class responsible for concrete management of
-//! cleanup settings in Toonz.
+//! cleanup settings in flare.
 
 /*!
-  In Toonz, the interface to cleanup settings follows the model/view
+  In flare, the interface to cleanup settings follows the model/view
 architecture,
   where each Cleanup Settings panel is a view to a singleton model of this
 class.
@@ -229,3 +229,4 @@ private slots:
 };
 
 #endif  // CLEANUPSETTINGSMODEL_H
+

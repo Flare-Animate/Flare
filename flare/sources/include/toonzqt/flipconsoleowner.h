@@ -9,7 +9,7 @@
    FlipConsole.
 */
 
-#include "toonzqt/flipconsole.h"
+#include "flareqt/flipconsole.h"
 
 class FlipConsole;
 

@@ -14,10 +14,10 @@
 #include "turbojpeg.h"
 #endif
 
-// Toonz Includes
+// flare Includes
 #include "traster.h"
-#include "toonzqt/gutil.h"
-#include "toonzqt/dvdialog.h"
+#include "flareqt/gutil.h"
+#include "flareqt/dvdialog.h"
 
 #include "webcam.h"
 #include "jpgconverter.h"
@@ -25,7 +25,7 @@
 #include "stopmotionserial.h"
 #include "stopmotionlight.h"
 
-#include "toonz/txshsimplelevel.h"
+#include "flare/txshsimplelevel.h"
 
 #include <QObject>
 #include <QThread>

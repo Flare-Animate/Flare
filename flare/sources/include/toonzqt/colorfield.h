@@ -9,7 +9,7 @@
 
 #include "tcommon.h"
 #include "traster.h"
-#include "toonzqt/intfield.h"
+#include "flareqt/intfield.h"
 #include "tspectrum.h"
 #include "tcolorstyles.h"
 
@@ -17,7 +17,7 @@
 
 #undef DVAPI
 #undef DVVAR
-#ifdef TOONZQT_EXPORTS
+#ifdef flareQT_EXPORTS
 #define DVAPI DV_EXPORT_API
 #define DVVAR DV_EXPORT_VAR
 #else
@@ -317,3 +317,4 @@ signals:
 //-----------------------------------------------------------------------------
 
 #endif  // COLORFIELD_H
+

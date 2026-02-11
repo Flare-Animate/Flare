@@ -3,7 +3,7 @@
 #ifndef VECTORGUIDEDDRAWINGPANE_H
 #define VECTORGUIDEDDRAWINGPANE_H
 
-#include "toonzqt/dvdialog.h"
+#include "flareqt/dvdialog.h"
 
 #include <QToolBar>
 
@@ -38,3 +38,4 @@ protected slots:
 };
 
 #endif  // VECTORGUIDEDDRAWINGPANE_H
+

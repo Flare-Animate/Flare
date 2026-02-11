@@ -92,7 +92,7 @@ public:
   bool canHandle(const TRenderSettings &info, double frame) override {
     // return true;
     /* trueだと素材がスライドして現れるときノイズパターンが
-    変わってしまう 2013-4-5からtoonz上で変更した */
+    変わってしまう 2013-4-5からflare上で変更した */
     /* でなく、
     ここでの指定にかかわらず、
     素材をカメラ範囲で切り取ってるため、
@@ -300,3 +300,4 @@ void ino_hsv_noise::doCompute(TTile &tile, double frame,
     throw;
   }
 }
+

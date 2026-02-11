@@ -1,15 +1,15 @@
 
 
-#include "toonzqt/styleeditor.h"
-#include "toonzqt/colorfield.h"
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/gutil.h"
-#include "toonzqt/menubarcommand.h"
-#include "toonz/cleanupcolorstyles.h"
+#include "flareqt/styleeditor.h"
+#include "flareqt/colorfield.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/gutil.h"
+#include "flareqt/menubarcommand.h"
+#include "flare/cleanupcolorstyles.h"
 #include "tconvert.h"
 #include "tcolorstyles.h"
 #include "trop.h"
-#include "toonzqt/lutcalibrator.h"
+#include "flareqt/lutcalibrator.h"
 #include "styledata.h"
 
 // Qt includes
@@ -1002,3 +1002,4 @@ void CleanupColorField::setContrastEnabled(bool enable) {
   m_contrastChannel->setEnabled(enable);
   m_cleanupStyle->enableContrast(enable);
 }
+

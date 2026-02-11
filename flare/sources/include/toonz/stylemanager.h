@@ -7,7 +7,7 @@
 #include "tthread.h"
 
 #include "traster.h"
-#include "toonz/mypaintbrushstyle.h"
+#include "flare/mypaintbrushstyle.h"
 
 #include <QSize>
 #include <QVector>
@@ -18,7 +18,7 @@
 
 #undef DVAPI
 #undef DVVAR
-#ifdef TOONZLIB_EXPORTS
+#ifdef flareLIB_EXPORTS
 #define DVAPI DV_EXPORT_API
 #define DVVAR DV_EXPORT_VAR
 #else
@@ -225,3 +225,4 @@ public:
 };
 
 #endif  // STYLEMANAGER_H
+

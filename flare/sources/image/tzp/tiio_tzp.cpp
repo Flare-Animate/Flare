@@ -3,7 +3,7 @@
 #include "tiio_tzp.h"
 // #include "tiio.h"
 #include "trastercm.h"
-#include "toonztags.h"
+#include "flaretags.h"
 #include "texception.h"
 
 #include "tiffio.h"
@@ -113,7 +113,7 @@ void TzpReader::open(FILE *file) {
   m_lx        = w;
   m_ly        = h;
 
-  if (TIFFGetField(m_tiff, TIFFTAG_TOONZWINDOW, &risCount, &risArray)) {
+  if (TIFFGetField(m_tiff, TIFFTAG_flareWINDOW, &risCount, &risArray)) {
     m_info.m_x0 = m_x = risArray[0];
     m_info.m_y0 = m_y = risArray[1];
     m_info.m_lx       = risArray[2];
@@ -143,7 +143,7 @@ void TzpReader::open(FILE *file) {
   uint32 paletteCount;
   USHORT *palette;
 
-  TIFFGetField(m_tiff, TIFFTAG_TOONZPALETTE, &paletteCount, &palette);
+  TIFFGetField(m_tiff, TIFFTAG_flarePALETTE, &paletteCount, &palette);
 
   m_nColor  = palette[10];
   m_nPencil = palette[11];
@@ -160,7 +160,7 @@ void TzpReader::open(FILE *file) {
 
   char *data;
   uint32 count;
-  TIFFGetField(m_tiff, TIFFTAG_TOONZHISTORY, &count, &data);
+  TIFFGetField(m_tiff, TIFFTAG_flareHISTORY, &count, &data);
   std::string history(data);
 
   uint16 planarconfig;
@@ -295,3 +295,4 @@ Tiio::Writer *Tiio::makeTzpWriter() {
 }
 
 //------------------------------------------------------------
+

@@ -8,12 +8,12 @@
 #include "tapp.h"
 
 // TnzQt includes
-#include "toonzqt/menubarcommand.h"
+#include "flareqt/menubarcommand.h"
 
 // TnzLib includes
-#include "toonz/tfxhandle.h"
-#include "toonz/tcolumnfx.h"
-#include "toonz/toonzfolders.h"
+#include "flare/tfxhandle.h"
+#include "flare/tcolumnfx.h"
+#include "flare/flarefolders.h"
 
 // TnzBase includes
 #include "tfx.h"
@@ -64,7 +64,7 @@ bool SavePresetPopup::apply() {
   bool isMacro      = macroFx != 0;
   std::wstring name = m_nameFld->text().toStdWString();
   if (name.empty()) return 0;
-  TFilePath fp = ToonzFolder::getFxPresetFolder() + "presets" +
+  TFilePath fp = flareFolder::getFxPresetFolder() + "presets" +
                  fx->getFxType() + (name + (isMacro ? L".macrofx" : L".fx"));
   if (!TFileStatus(fp.getParentDir()).doesExist()) {
     try {
@@ -106,3 +106,4 @@ void SavePresetPopup::onOkBtn() {
 //-----------------------------------------------------------------------------
 
 OpenPopupCommandHandler<SavePresetPopup> openSavePresetPopup(MI_SavePreset);
+

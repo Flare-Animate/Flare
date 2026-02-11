@@ -1,4 +1,4 @@
-﻿
+
 
 #include "commandbar.h"
 
@@ -9,14 +9,14 @@
 #include "commandbarpopup.h"
 
 // TnzQt includes
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/gutil.h"
+#include "flareqt/menubarcommand.h"
+#include "flareqt/gutil.h"
 
 // TnzLib includes
-#include "toonz/tscenehandle.h"
-#include "toonz/toonzscene.h"
-#include "toonz/childstack.h"
-#include "toonz/toonzfolders.h"
+#include "flare/tscenehandle.h"
+#include "flare/flarescene.h"
+#include "flare/childstack.h"
+#include "flare/flarefolders.h"
 // Qt includes
 #include <QWidgetAction>
 #include <QXmlStreamReader>
@@ -44,17 +44,17 @@ void CommandBar::fillToolbar(CommandBar *toolbar, bool isXsheetToolbar) {
   TFilePath personalPath;
   if (isXsheetToolbar) {
     personalPath =
-        ToonzFolder::getMyModuleDir() + TFilePath("xsheettoolbar.xml");
+        flareFolder::getMyModuleDir() + TFilePath("xsheettoolbar.xml");
   } else {
-    personalPath = ToonzFolder::getMyModuleDir() + TFilePath("commandbar.xml");
+    personalPath = flareFolder::getMyModuleDir() + TFilePath("commandbar.xml");
   }
   if (!TSystem::doesExistFileOrLevel(personalPath)) {
     if (isXsheetToolbar) {
       personalPath =
-          ToonzFolder::getTemplateModuleDir() + TFilePath("xsheettoolbar.xml");
+          flareFolder::getTemplateModuleDir() + TFilePath("xsheettoolbar.xml");
     } else {
       personalPath =
-          ToonzFolder::getTemplateModuleDir() + TFilePath("commandbar.xml");
+          flareFolder::getTemplateModuleDir() + TFilePath("commandbar.xml");
     }
   }
   QFile file(toQString(personalPath));
@@ -102,9 +102,9 @@ void CommandBar::buildDefaultToolbar(CommandBar *toolbar) {
     QAction *newVectorLevel =
         CommandManager::instance()->getAction("MI_NewVectorLevel");
     toolbar->addAction(newVectorLevel);
-    QAction *newToonzRasterLevel =
-        CommandManager::instance()->getAction("MI_NewToonzRasterLevel");
-    toolbar->addAction(newToonzRasterLevel);
+    QAction *newflareRasterLevel =
+        CommandManager::instance()->getAction("MI_NewflareRasterLevel");
+    toolbar->addAction(newflareRasterLevel);
     QAction *newRasterLevel =
         CommandManager::instance()->getAction("MI_NewRasterLevel");
     toolbar->addAction(newRasterLevel);

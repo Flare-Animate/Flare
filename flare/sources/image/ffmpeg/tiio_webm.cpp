@@ -4,7 +4,7 @@
 #include "trasterimage.h"
 #include "tsound.h"
 #include "timageinfo.h"
-#include "toonz/stage.h"
+#include "flare/stage.h"
 #include <QStringList>
 #include <QDebug>
 

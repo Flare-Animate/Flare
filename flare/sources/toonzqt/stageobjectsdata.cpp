@@ -12,16 +12,16 @@
 #include "tparamset.h"
 
 // TnzLib includes
-#include "toonz/tstageobject.h"
-#include "toonz/txsheet.h"
-#include "toonz/tstageobjecttree.h"
-#include "toonz/tcolumnfxset.h"
-#include "toonz/fxdag.h"
-#include "toonz/txshzeraryfxcolumn.h"
-#include "toonz/tcolumnfx.h"
-#include "toonz/tstageobjectspline.h"
+#include "flare/tstageobject.h"
+#include "flare/txsheet.h"
+#include "flare/tstageobjecttree.h"
+#include "flare/tcolumnfxset.h"
+#include "flare/fxdag.h"
+#include "flare/txshzeraryfxcolumn.h"
+#include "flare/tcolumnfx.h"
+#include "flare/tstageobjectspline.h"
 
-#include "toonzqt/stageobjectsdata.h"
+#include "flareqt/stageobjectsdata.h"
 
 // TODO: Method StageObjectsData::storeFxs() has no well-defined behaviour in
 // cases
@@ -1227,3 +1227,4 @@ std::vector<TStageObjectId> StageObjectsData::restoreObjects(
 
   return restoredIds;
 }
+

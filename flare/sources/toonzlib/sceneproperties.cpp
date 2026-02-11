@@ -1,17 +1,17 @@
 
 
-#include "toonz/sceneproperties.h"
+#include "flare/sceneproperties.h"
 
 // TnzLib includes
-#include "toonz/cleanupparameters.h"
-#include "toonz/tcenterlinevectorizer.h"
-#include "toonz/captureparameters.h"
-#include "toonz/tcamera.h"
-#include "toonz/tstageobjecttree.h"
-#include "toonz/txshleveltypes.h"
-#include "toonz/preferences.h"
+#include "flare/cleanupparameters.h"
+#include "flare/tcenterlinevectorizer.h"
+#include "flare/captureparameters.h"
+#include "flare/tcamera.h"
+#include "flare/tstageobjecttree.h"
+#include "flare/txshleveltypes.h"
+#include "flare/preferences.h"
 #include "cleanuppalette.h"
-#include "toonz/boardsettings.h"
+#include "flare/boardsettings.h"
 
 // TnzBase includes
 #include "toutputproperties.h"

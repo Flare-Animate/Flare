@@ -8,14 +8,14 @@
 #include "tcontenthistory.h"
 
 // TnzLib includes
-#include "toonz/txshleveltypes.h"
-#include "toonz/imagemanager.h"
-#include "toonz/toonzscene.h"
-#include "toonz/levelproperties.h"
-#include "toonz/preferences.h"
-#include "toonz/sceneproperties.h"
+#include "flare/txshleveltypes.h"
+#include "flare/imagemanager.h"
+#include "flare/flarescene.h"
+#include "flare/levelproperties.h"
+#include "flare/preferences.h"
+#include "flare/sceneproperties.h"
 
-#include "toonz/levelupdater.h"
+#include "flare/levelupdater.h"
 
 //*****************************************************************************************
 //    Local namespace stuff
@@ -448,7 +448,7 @@ void LevelUpdater::close() {
         // NOTE: releasing m_lr and m_lw should not throw anything. As stated
         // before, throwing
         //       in destructors is bad. I'm not sure this is actually guaranteed
-        //       in Toonz, however :(
+        //       in flare, however :(
         m_lr = TLevelReaderP(), m_lw = TLevelWriterP();
 
         // A temp file didn't get created. What happened?  Force failure!
@@ -534,3 +534,4 @@ void LevelUpdater::resume() {
     throw;
   }
 }
+

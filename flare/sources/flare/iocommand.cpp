@@ -3,7 +3,7 @@
 
 #include "iocommand.h"
 
-// Toonz includes
+// flare includes
 #include "menubarcommandids.h"
 #include "filebrowserpopup.h"
 #include "tapp.h"
@@ -30,46 +30,46 @@
 // TnzTools includes
 #include "tools/toolhandle.h"
 
-// ToonzQt includes
-#include "toonzqt/gutil.h"
-#include "toonzqt/icongenerator.h"
-#include "toonzqt/swatchviewer.h"
-#include "toonzqt/tselectionhandle.h"
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/imageutils.h"
+// flareQt includes
+#include "flareqt/gutil.h"
+#include "flareqt/icongenerator.h"
+#include "flareqt/swatchviewer.h"
+#include "flareqt/tselectionhandle.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/imageutils.h"
 
-// ToonzLib includes
-#include "toonz/palettecontroller.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/tobjecthandle.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/tframehandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/tpalettehandle.h"
-#include "toonz/toonzscene.h"
-#include "toonz/tproject.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/txshchildlevel.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/levelproperties.h"
-#include "toonz/stage2.h"
-#include "toonz/imagemanager.h"
-#include "toonz/sceneresources.h"
-#include "toonz/txshsoundlevel.h"
-#include "toonz/txshpalettecolumn.h"
-#include "toonz/txshpalettelevel.h"
-#include "toonz/txshleveltypes.h"
-#include "toonz/txshsoundtextcolumn.h"
-#include "toonz/tstageobjecttree.h"
-#include "toonz/levelset.h"
-#include "toonz/namebuilder.h"
-#include "toonz/fullcolorpalette.h"
-#include "toonz/palettecmd.h"
-#include "toonz/toonzimageutils.h"
-#include "toonz/imagestyles.h"
+// flareLib includes
+#include "flare/palettecontroller.h"
+#include "flare/tscenehandle.h"
+#include "flare/tobjecthandle.h"
+#include "flare/tcolumnhandle.h"
+#include "flare/tframehandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/tpalettehandle.h"
+#include "flare/flarescene.h"
+#include "flare/tproject.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/txshchildlevel.h"
+#include "flare/sceneproperties.h"
+#include "flare/levelproperties.h"
+#include "flare/stage2.h"
+#include "flare/imagemanager.h"
+#include "flare/sceneresources.h"
+#include "flare/txshsoundlevel.h"
+#include "flare/txshpalettecolumn.h"
+#include "flare/txshpalettelevel.h"
+#include "flare/txshleveltypes.h"
+#include "flare/txshsoundtextcolumn.h"
+#include "flare/tstageobjecttree.h"
+#include "flare/levelset.h"
+#include "flare/namebuilder.h"
+#include "flare/fullcolorpalette.h"
+#include "flare/palettecmd.h"
+#include "flare/flareimageutils.h"
+#include "flare/imagestyles.h"
 #include "toutputproperties.h"
-#include "toonz/studiopalette.h"
+#include "flare/studiopalette.h"
 #include "convert2tlv.h"
 
 // TnzCore includes
@@ -102,7 +102,7 @@ using namespace ImageUtils;
 namespace {
 //-----------------------------------------------------------------------------
 
-TXshLevel *getLevelByPath(ToonzScene *scene, const TFilePath &actualPath);
+TXshLevel *getLevelByPath(flareScene *scene, const TFilePath &actualPath);
 
 // forward declaration
 class RenderingSuspender;
@@ -198,7 +198,7 @@ public:
   // scrPath can be a coded path (related to srcScene); srcScene can be 0
   // the method returns the processed codedPath (related to scene)
   //
-  TFilePath process(ToonzScene *scene, ToonzScene *srcScene,
+  TFilePath process(flareScene *scene, flareScene *srcScene,
                     TFilePath srcPath) override {
     TFilePath actualSrcPath = srcPath;
     if (srcScene) actualSrcPath = srcScene->decodeFilePath(srcPath);
@@ -297,7 +297,7 @@ public:
 // getLevelByPath(scene, actualPath)
 //---------------------------------------------------------------------------
 
-TXshLevel *getLevelByPath(ToonzScene *scene, const TFilePath &actualPath) {
+TXshLevel *getLevelByPath(flareScene *scene, const TFilePath &actualPath) {
   TLevelSet *levelSet = scene->getLevelSet();
   for (int i = 0; i < levelSet->getLevelCount(); i++) {
     TXshLevel *xl = levelSet->getLevel(i);
@@ -312,7 +312,7 @@ TXshLevel *getLevelByPath(ToonzScene *scene, const TFilePath &actualPath) {
 // getSimpleLevelByPath(scene, actualPath)
 //---------------------------------------------------------------------------
 
-TXshSimpleLevel *getSimpleLevelByPath(ToonzScene *scene,
+TXshSimpleLevel *getSimpleLevelByPath(flareScene *scene,
                                       const TFilePath &actualPath) {
   TXshLevel *xl = getLevelByPath(scene, actualPath);
   if (!xl) return 0;
@@ -370,7 +370,7 @@ int getLevelType(const TFilePath &actualPath) {
 // removeSameNamedUnusedLevel(scene, actualPath, levelName);
 //---------------------------------------------------------------------------
 
-void removeSameNamedUnusedLevel(ToonzScene *scene, const TFilePath actualPath,
+void removeSameNamedUnusedLevel(flareScene *scene, const TFilePath actualPath,
                                 std::wstring levelName) {
   if (QString::fromStdWString(levelName).isEmpty()) {
     // if the option is set in the preferences,
@@ -569,7 +569,7 @@ public:
 // loadPalette(scene, actualPath, row, col)
 //---------------------------------------------------------------------------
 
-TXshLevel *loadPalette(ToonzScene *scene, TFilePath actualPath,
+TXshLevel *loadPalette(flareScene *scene, TFilePath actualPath,
                        TFilePath castFolder, int row, int &col) {
   TFilePath palettePath     = actualPath;
   TXsheet *xsh              = scene->getXsheet();
@@ -634,14 +634,14 @@ void substituteLevel(TXsheet *xsh, TXshLevel *srcLevel, TXshLevel *dstLevel) {
 //---------------------------------------------------------------------------
 
 class ChildLevelResourceImporter final : public ResourceProcessor {
-  ToonzScene *m_parentScene;
-  ToonzScene *m_childScene;
+  flareScene *m_parentScene;
+  flareScene *m_childScene;
 
   ResourceImportStrategy &m_importStrategy;
   TFilePath m_levelSetFolder;
 
 public:
-  ChildLevelResourceImporter(ToonzScene *parentScene, ToonzScene *childScene,
+  ChildLevelResourceImporter(flareScene *parentScene, flareScene *childScene,
                              ResourceImportStrategy &importStrategy);
 
   void setLevelSetFolder(const TFilePath &levelSetFolder) {
@@ -657,7 +657,7 @@ public:
 //---------------------------------------------------------------------------
 
 ChildLevelResourceImporter::ChildLevelResourceImporter(
-    ToonzScene *parentScene, ToonzScene *childScene,
+    flareScene *parentScene, flareScene *childScene,
     ResourceImportStrategy &importStrategy)
     : m_parentScene(parentScene)
     , m_childScene(childScene)
@@ -789,7 +789,7 @@ void ChildLevelResourceImporter::process(TXshSoundLevel *sl) {
 // loadChildLevel(parentScene, actualPath, row, col, importStrategy)
 //---------------------------------------------------------------------------
 
-TXshLevel *loadChildLevel(ToonzScene *parentScene, TFilePath actualPath,
+TXshLevel *loadChildLevel(flareScene *parentScene, TFilePath actualPath,
                           int row, int &col,
                           ResourceImportDialog &importStrategy) {
   auto project = TProjectManager::instance()->loadSceneProject(actualPath);
@@ -799,7 +799,7 @@ TXshLevel *loadChildLevel(ToonzScene *parentScene, TFilePath actualPath,
   if (!project && !TProjectManager::instance()->isTabModeEnabled()) return 0;
 
   // load the subxsheet
-  ToonzScene scene;
+  flareScene scene;
   scene.loadTnzFile(actualPath);
   scene.setProject(project);
   std::wstring subSceneName = actualPath.getWideName();
@@ -896,7 +896,7 @@ TXshLevel *loadChildLevel(ToonzScene *parentScene, TFilePath actualPath,
 // for loading the all types of level other than scene/palette/sound
 //---------------------------------------------------------------------------
 
-TXshLevel *loadLevel(ToonzScene *scene,
+TXshLevel *loadLevel(flareScene *scene,
                      const IoCmd::LoadResourceArguments::ResourceData &rd,
                      const TFilePath &castFolder, int row0, int &col0, int row1,
                      int &col1, bool expose, std::vector<TFrameId> &fIds,
@@ -1032,7 +1032,7 @@ TXshLevel *loadLevel(ToonzScene *scene,
 // loadResource(scene, path, castFolder, row, col, expose)
 //---------------------------------------------------------------------------
 
-TXshLevel *loadResource(ToonzScene *scene,
+TXshLevel *loadResource(flareScene *scene,
                         const IoCmd::LoadResourceArguments::ResourceData &rd,
                         const TFilePath &castFolder, int row0, int &col0,
                         int row1, int &col1, bool expose,
@@ -1241,7 +1241,7 @@ bool IoCmd::saveSceneIfNeeded(QString msg) {
     }
   }
 
-  ToonzScene *scene = app->getCurrentScene()->getScene();
+  flareScene *scene = app->getCurrentScene()->getScene();
   if (scene) {
     QStringList dirtyResources;
     {
@@ -1324,7 +1324,7 @@ void IoCmd::newScene() {
       1);  // 0 would be after this session
 #endif
 
-  ToonzScene *scene = new ToonzScene();
+  flareScene *scene = new flareScene();
   TImageStyle::setCurrentScene(scene);
 
   TCamera *camera = scene->getCurrentCamera();
@@ -1434,7 +1434,7 @@ bool IoCmd::saveScene(const TFilePath &path, int flags) {
     if (ret == 2 || ret == 0) return false;
   }
 
-  ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
+  flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
 
   TXsheet *xsheet = 0;
   if (saveSubxsheet) xsheet = TApp::instance()->getCurrentXsheet()->getXsheet();
@@ -1495,7 +1495,7 @@ bool IoCmd::saveScene(const TFilePath &path, int flags) {
     // Open the new cache resources HD pool
     TCacheResourcePool::instance()->setPath(
         QString::fromStdWString(
-            ToonzFolder::getCacheRootFolder().getWideString()),
+            flareFolder::getCacheRootFolder().getWideString()),
         QString::fromStdWString(scene->getProject()->getName().getWideName()),
         QString::fromStdWString(scene->getSceneName()));
 #endif
@@ -1563,7 +1563,7 @@ bool IoCmd::saveScene(const TFilePath &path, int flags) {
 bool IoCmd::saveScene(int flags) {
   TSelection *oldSelection =
       TApp::instance()->getCurrentSelection()->getSelection();
-  ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
+  flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
   if (scene->isUntitled()) {
     static SaveSceneAsPopup *popup = 0;
     if (!popup) popup = new SaveSceneAsPopup();
@@ -1773,7 +1773,7 @@ void IoCmd::saveNonSceneFiles() {
   // try to save non scene files
 
   TApp *app         = TApp::instance();
-  ToonzScene *scene = app->getCurrentScene()->getScene();
+  flareScene *scene = app->getCurrentScene()->getScene();
   SceneResources resources(scene, 0);
   // Must wait for current save to finish, just in case
   while (TApp::instance()->isSaveInProgress());
@@ -1828,7 +1828,7 @@ bool IoCmd::saveSound(TXshSoundLevel *sl) {
 // IoCmd::loadScene(scene, scenePath, import)
 //---------------------------------------------------------------------------
 
-bool IoCmd::loadScene(ToonzScene &scene, const TFilePath &scenePath,
+bool IoCmd::loadScene(flareScene &scene, const TFilePath &scenePath,
                       bool import) {
   if (!TSystem::doesExistFileOrLevel(scenePath)) return false;
   scene.load(scenePath);
@@ -1868,7 +1868,7 @@ bool IoCmd::loadScene(const TFilePath &path, bool updateRecentFile,
   if (scenePath.getType() == "") scenePath = scenePath.withType("tnz");
   if (scenePath.getType() != "tnz" && !isXdts && !isSxf) {
     QString msg;
-    msg = QObject::tr("File %1 doesn't look like a TOONZ Scene")
+    msg = QObject::tr("File %1 doesn't look like a flare Scene")
               .arg(QString::fromStdWString(scenePath.getWideString()));
     DVGui::error(msg);
     return false;
@@ -1956,7 +1956,7 @@ bool IoCmd::loadScene(const TFilePath &path, bool updateRecentFile,
       1);  // 0 would be after this session
 #endif
 
-  ToonzScene *scene = new ToonzScene();
+  flareScene *scene = new flareScene();
   TImageStyle::setCurrentScene(scene);
   printf("%s:%s Progressing:\n", __FILE__, __FUNCTION__);
   try {
@@ -2026,7 +2026,7 @@ bool IoCmd::loadScene(const TFilePath &path, bool updateRecentFile,
 #ifdef USE_SQLITE_HDPOOL
   TCacheResourcePool::instance()->setPath(
       QString::fromStdWString(
-          ToonzFolder::getCacheRootFolder().getWideString()),
+          flareFolder::getCacheRootFolder().getWideString()),
       QString::fromStdWString(project->getName().getWideName()),
       QString::fromStdWString(scene->getSceneName()));
 #endif
@@ -2239,7 +2239,7 @@ static int createSubXSheetFromPSDFolder(IoCmd::LoadResourceArguments &args,
   int &row1 = args.row1, &col1 = args.col1;
 
   TApp *app         = TApp::instance();
-  ToonzScene *scene = app->getCurrentScene()->getScene();
+  flareScene *scene = app->getCurrentScene()->getScene();
 
   TXshLevel *cl = scene->createNewLevel(CHILD_XSHLEVEL);
   assert(cl);
@@ -2296,7 +2296,7 @@ static int loadPSDResource(IoCmd::LoadResourceArguments &args,
 
   int count         = 0;
   TApp *app         = TApp::instance();
-  ToonzScene *scene = app->getCurrentScene()->getScene();
+  flareScene *scene = app->getCurrentScene()->getScene();
   TXsheet *xsh      = scene->getXsheet();
   if (row0 == -1) row0 = app->getCurrentFrame()->getFrameIndex();
   if (col0 == -1) col0 = app->getCurrentColumn()->getColumnIndex();
@@ -2431,7 +2431,7 @@ int IoCmd::loadResources(LoadResourceArguments &args, bool updateRecentFile,
 
   // Setup local variables
   TApp *app         = TApp::instance();
-  ToonzScene *scene = app->getCurrentScene()->getScene();
+  flareScene *scene = app->getCurrentScene()->getScene();
   TXsheet *xsh      = scene->getXsheet();
   // use current frame/column if row/col is not set
   if (row0 == -1) row0 = app->getCurrentFrame()->getFrameIndex();
@@ -2525,7 +2525,7 @@ int IoCmd::loadResources(LoadResourceArguments &args, bool updateRecentFile,
     bool isLastResource = (r == rCount - 1);
     importDialog.setIsLastResource(isLastResource);
 
-    bool isScene = (TFileType::getInfo(path) == TFileType::TOONZSCENE);
+    bool isScene = (TFileType::getInfo(path) == TFileType::flareSCENE);
 
     if (scene->isExternPath(path) || isScene) {
       // extern resource: import or link?
@@ -2844,7 +2844,7 @@ void IoCmd::convertNAARaster2TLV(
 
   static const QStringList rasterExts = {"png", "jpg", "jpeg", "bmp", "tga"};
   TApp *app                           = TApp::instance();
-  ToonzScene *scene                   = app->getCurrentScene()->getScene();
+  flareScene *scene                   = app->getCurrentScene()->getScene();
   for (auto &rd : rds) {
     TFilePath &path = rd.m_path;
     if (path.getDots() == ".." &&
@@ -3000,7 +3000,7 @@ void IoCmd::renameResources(
   };  // locals
 
   TApp *app         = TApp::instance();
-  ToonzScene *scene = app->getCurrentScene()->getScene();
+  flareScene *scene = app->getCurrentScene()->getScene();
   for (auto rd = rds.begin(); rd != rds.end(); ++rd) {
     TFilePath &path = rd->m_path;
     if (!locals::matchSequencePattern(path)) continue;
@@ -3058,7 +3058,7 @@ void IoCmd::renameResources(
 // open a warning popup notifying that such level will lose link.
 // return false if cancelled.
 bool IoCmd::takeCareSceneFolderItemsOnSaveSceneAs(
-    ToonzScene *scene, const TFilePath &newPath, TXsheet *subxsh,
+    flareScene *scene, const TFilePath &newPath, TXsheet *subxsh,
     QHash<TXshLevel *, TFilePath> &orgLevelPaths) {
   auto setPathToLevel = [&](TXshLevel *level, TFilePath fp) {
     // in case of saving subxsheet, the current scene will not be switched to
@@ -3221,7 +3221,7 @@ public:
       DVGui::warning(QObject::tr("No Current Level"));
       return;
     }
-    ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
+    flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
     if (!scene) {
       DVGui::warning(QObject::tr("No Current Scene"));
       return;  // non dovrebbe succedere mai
@@ -3254,7 +3254,7 @@ public:
     int ret =
         DVGui::MsgBox(question, QObject::tr("Save"), QObject::tr("Cancel"), 0);
     if (ret == 2 || ret == 0) return;
-    ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
+    flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
     try {
       TProjectManager::instance()->saveTemplate(scene);
     } catch (TSystemException se) {
@@ -3335,7 +3335,7 @@ public:
   RevertScene() : MenuItemHandler(MI_RevertScene) {}
   void execute() override {
     TSceneHandle *sceneHandle = TApp::instance()->getCurrentScene();
-    ToonzScene *scene         = sceneHandle->getScene();
+    flareScene *scene         = sceneHandle->getScene();
     assert(scene);
     TFilePath path       = scene->getScenePath();
     TFilePath decodePath = scene->decodeFilePath(scene->getScenePath());
@@ -3422,7 +3422,7 @@ public:
     }
     if (ret == 2 || ret == 0) return;
 
-    ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
+    flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
     if (!palettePath.isAbsolute() && scene) {
       palettePath = scene->decodeFilePath(palettePath);
     }
@@ -3466,3 +3466,4 @@ public:
   SaveAllLevelsCommandHandler() : MenuItemHandler(MI_SaveAllLevels) {}
   void execute() { IoCmd::saveNonSceneFiles(); }
 } saveAllLevelsCommandHandler;
+

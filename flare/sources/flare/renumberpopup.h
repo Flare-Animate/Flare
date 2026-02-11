@@ -4,8 +4,8 @@
 #define RENUMBERPOPUP_H
 
 #include "tgeometry.h"
-#include "toonzqt/intfield.h"
-#include "toonzqt/dvdialog.h"
+#include "flareqt/intfield.h"
+#include "flareqt/dvdialog.h"
 
 // forward declaration
 class QPushButton;
@@ -29,3 +29,4 @@ public:
 };
 
 #endif  // RENUMBERPOPUP_H
+

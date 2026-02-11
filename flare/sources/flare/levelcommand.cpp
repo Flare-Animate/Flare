@@ -1,37 +1,37 @@
 
 #include "levelcommand.h"
-#include "toonzqt/menubarcommand.h"
+#include "flareqt/menubarcommand.h"
 #include "menubarcommandids.h"
 #include "tapp.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/tframehandle.h"
-#include "toonz/txsheethandle.h"
+#include "flare/tscenehandle.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/tframehandle.h"
+#include "flare/txsheethandle.h"
 #include "filmstripselection.h"
 #include "castselection.h"
 #include "cellselection.h"
 #include "timagecache.h"
 
-#include "toonz/txshsimplelevel.h"
-#include "toonz/toonzscene.h"
-#include "toonz/txsheet.h"
-#include "toonz/txshleveltypes.h"
-#include "toonz/levelset.h"
-#include "toonz/txshcell.h"
-#include "toonz/childstack.h"
-#include "toonz/txshchildlevel.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/flarescene.h"
+#include "flare/txsheet.h"
+#include "flare/txshleveltypes.h"
+#include "flare/levelset.h"
+#include "flare/txshcell.h"
+#include "flare/childstack.h"
+#include "flare/txshchildlevel.h"
 
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/icongenerator.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/icongenerator.h"
 
 #include "tundo.h"
 #include "tconvert.h"
 #include "tlevel_io.h"
-#include "ttoonzimage.h"
+#include "tflareimage.h"
 #include "tsystem.h"
 
-#include "toonzqt/gutil.h"
-#include "toonz/namebuilder.h"
+#include "flareqt/gutil.h"
+#include "flare/namebuilder.h"
 
 #include <QProgressDialog>
 #include <QMainWindow>
@@ -46,12 +46,12 @@ public:
   DeleteLevelUndo(TXshLevel *xl) : m_xl(xl) {}
 
   void undo() const override {
-    ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
+    flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
     scene->getLevelSet()->insertLevel(m_xl.getPointer());
     TApp::instance()->getCurrentScene()->notifyCastChange();
   }
   void redo() const override {
-    ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
+    flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
     scene->getLevelSet()->removeLevel(m_xl.getPointer());
     TApp::instance()->getCurrentScene()->notifyCastChange();
   }
@@ -70,7 +70,7 @@ public:
 
 bool LevelCmd::removeUnusedLevelsFromCast(bool showMessage) {
   TApp *app         = TApp::instance();
-  ToonzScene *scene = app->getCurrentScene()->getScene();
+  flareScene *scene = app->getCurrentScene()->getScene();
 
   TLevelSet *levelSet = scene->getLevelSet();
 
@@ -104,7 +104,7 @@ bool LevelCmd::removeUnusedLevelsFromCast(bool showMessage) {
   return true;
 }
 
-bool LevelCmd::removeLevelFromCast(TXshLevel *level, ToonzScene *scene,
+bool LevelCmd::removeLevelFromCast(TXshLevel *level, flareScene *scene,
                                    bool showMessage) {
   if (!scene) scene = TApp::instance()->getCurrentScene()->getScene();
   if (scene->getChildStack()->getTopXsheet()->isLevelUsed(level)) {
@@ -125,7 +125,7 @@ bool LevelCmd::removeLevelFromCast(TXshLevel *level, ToonzScene *scene,
 
 void LevelCmd::loadAllUsedRasterLevelsAndPutInCache(bool cacheImagesAsWell) {
   TApp *app         = TApp::instance();
-  ToonzScene *scene = app->getCurrentScene()->getScene();
+  flareScene *scene = app->getCurrentScene()->getScene();
 
   TLevelSet *levelSet = scene->getLevelSet();
 
@@ -221,7 +221,7 @@ namespace {
 //-----------------------------------------------------------------------------
 
 TFilePath getUnpaintedLevelPath(TXshSimpleLevel *simpleLevel) {
-  ToonzScene *scene   = simpleLevel->getScene();
+  flareScene *scene   = simpleLevel->getScene();
   TFilePath levelPath = scene->decodeFilePath(simpleLevel->getPath());
   if (levelPath.isEmpty()) return TFilePath();
   std::string name = levelPath.getName() + "_np." + levelPath.getType();

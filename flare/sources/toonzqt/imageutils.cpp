@@ -1,24 +1,24 @@
 
 
 // TnzQt includes
-#include "toonzqt/seethroughwindow.h"
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/viewcommandids.h"
-#include "toonzqt/imageutils.h"
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/gutil.h"
+#include "flareqt/seethroughwindow.h"
+#include "flareqt/menubarcommand.h"
+#include "flareqt/viewcommandids.h"
+#include "flareqt/imageutils.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/gutil.h"
 
 // Qt Includes:
 #include <QScreen>
 #include <QWindow>
 
 // TnzLib includes
-#include "toonz/preferences.h"
-#include "toonz/namebuilder.h"
-#include "toonz/toonzscene.h"
-#include "toonz/tproject.h"
-#include "toonz/Naa2TlvConverter.h"
-#include "toonz/toonzimageutils.h"
+#include "flare/preferences.h"
+#include "flare/namebuilder.h"
+#include "flare/flarescene.h"
+#include "flare/tproject.h"
+#include "flare/Naa2TlvConverter.h"
+#include "flare/flareimageutils.h"
 
 #ifdef _WIN32
 #include "avicodecrestrictions.h"
@@ -40,7 +40,7 @@
 #include "timageinfo.h"
 #include "tfiletype.h"
 #include "tfilepath.h"
-#include "ttoonzimage.h"
+#include "tflareimage.h"
 #include "tvectorimage.h"
 #include "tstroke.h"
 
@@ -130,9 +130,9 @@ static void copyScene(const TFilePath &dst, const TFilePath &src) {
   TSystem::copyFile(dst, src);
   if (TProjectManager::instance()->isTabModeEnabled())
     TSystem::copyDir(getResourceFolder(dst), getResourceFolder(src));
-  TFilePath srcIcon = ToonzScene::getIconPath(src);
+  TFilePath srcIcon = flareScene::getIconPath(src);
   if (TFileStatus(srcIcon).doesExist()) {
-    TFilePath dstIcon = ToonzScene::getIconPath(dst);
+    TFilePath dstIcon = flareScene::getIconPath(dst);
     TSystem::copyFile(dstIcon, srcIcon);
   }
 }
@@ -356,12 +356,12 @@ static void convertFromCM(
     try {
       TImageReaderP ir = lr->getFrameReader(frames[i]);
       TImageP img      = ir->load();
-      TToonzImageP toonzImage(img);
+      TflareImageP flareImage(img);
       double xdpi, ydpi;
-      toonzImage->getDpi(xdpi, ydpi);
-      assert(toonzImage);
-      if (toonzImage) {
-        TRasterCM32P rasCMImage = toonzImage->getRaster();
+      flareImage->getDpi(xdpi, ydpi);
+      assert(flareImage);
+      if (flareImage) {
+        TRasterCM32P rasCMImage = flareImage->getRaster();
         TRaster32P ras(
             convert(aff * convert(rasCMImage->getBounds())).getSize());
         if (!aff.isIdentity())
@@ -745,7 +745,7 @@ void convertNaa2Tlv(const TFilePath &source, const TFilePath &dest,
 
       converter.process(raster);
 
-      if (TToonzImageP dstImg = converter.makeTlv(
+      if (TflareImageP dstImg = converter.makeTlv(
               false, usedStyleIds, dpi))  // Opaque synthetic inks
       {
         if (converter.getPalette() == 0)
@@ -783,7 +783,7 @@ void convertOldLevel2Tlv(const TFilePath &source, const TFilePath &dest,
   TLevelWriterP lw(dest);
   lw->setIconSize(Preferences::instance()->getIconSize());
   TPaletteP palette =
-      ToonzImageUtils::loadTzPalette(source.withType("plt").withNoFrame());
+      flareImageUtils::loadTzPalette(source.withType("plt").withNoFrame());
   TLevelReaderP lr(source);
   if (!lr) {
     DVGui::warning(QObject::tr(
@@ -809,7 +809,7 @@ void convertOldLevel2Tlv(const TFilePath &source, const TFilePath &dest,
     int f, fCount = int(frames.size());
     for (f = 0; f != fCount; ++f) {
       if (frameNotifier->abortTask()) break;
-      TToonzImageP img = lr->getFrameReader(frames[f])->load();
+      TflareImageP img = lr->getFrameReader(frames[f])->load();
       if (!img) continue;
       img->setPalette(palette.getPointer());
       lw->getFrameWriter(frames[f])->save(img);
@@ -1128,3 +1128,4 @@ void FullScreenWidget::opacityChanged(int value, bool &hideMain) {
 }
 
 }  // namespace ImageUtils
+

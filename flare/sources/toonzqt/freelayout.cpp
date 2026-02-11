@@ -1,6 +1,6 @@
 
 
-#include "toonzqt/freelayout.h"
+#include "flareqt/freelayout.h"
 
 #include <memory>
 
@@ -50,3 +50,4 @@ void FreeLayout::setGeometry(const QRect &r) {
       item->setGeometry(QRect(geom.topLeft(), sizeHint));
   }
 }
+

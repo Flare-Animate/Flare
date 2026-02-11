@@ -3,7 +3,7 @@
 #ifndef T_CENTERLINE_VECTORIZER
 #define T_CENTERLINE_VECTORIZER
 
-#include "toonz/vectorizerparameters.h"
+#include "flare/vectorizerparameters.h"
 #include "tvectorimage.h"
 #include <deque>
 #include <list>
@@ -12,7 +12,7 @@
 
 #undef DVAPI
 #undef DVVAR
-#ifdef TOONZLIB_EXPORTS
+#ifdef flareLIB_EXPORTS
 #define DVAPI DV_EXPORT_API
 #define DVVAR DV_EXPORT_VAR
 #else
@@ -70,7 +70,7 @@ private:
 configuration.
 Returns image converted.
 Note: if true==configuration.m_naaSource then it change the image, transforming
-it to a ToonzImage */
+it to a flareImage */
   TVectorImageP centerlineVectorize(
       TImageP &image, const CenterlineConfiguration &configuration,
       TPalette *palette);
@@ -119,3 +119,4 @@ protected slots:
 };
 
 #endif  // T_CENTERLINE_VECTORIZER
+

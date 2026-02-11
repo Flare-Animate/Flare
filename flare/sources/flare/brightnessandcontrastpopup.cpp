@@ -9,19 +9,19 @@
 #include "filmstripselection.h"
 
 // TnzQt includes
-#include "toonzqt/intfield.h"
-#include "toonzqt/planeviewer.h"
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/tselectionhandle.h"
-#include "toonzqt/icongenerator.h"
+#include "flareqt/intfield.h"
+#include "flareqt/planeviewer.h"
+#include "flareqt/menubarcommand.h"
+#include "flareqt/tselectionhandle.h"
+#include "flareqt/icongenerator.h"
 
 // TnzLib includes
-#include "toonz/txshcell.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/tframehandle.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/txshleveltypes.h"
+#include "flare/txshcell.h"
+#include "flare/txsheethandle.h"
+#include "flare/tframehandle.h"
+#include "flare/tcolumnhandle.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/txshleveltypes.h"
 
 // TnzCore includes
 #include "timagecache.h"
@@ -552,3 +552,4 @@ void BrightnessAndContrastPopup::onValuesChanged(bool dragging) {
 
 OpenPopupCommandHandler<BrightnessAndContrastPopup>
     openBrightnessAndContrastPopup(MI_BrightnessAndContrast);
+

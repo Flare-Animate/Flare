@@ -9,10 +9,10 @@
 #include "tsystem.h"
 
 // TnzQt includes
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/gutil.h"
-#include "toonzqt/dvscrollwidget.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/menubarcommand.h"
+#include "flareqt/gutil.h"
+#include "flareqt/dvscrollwidget.h"
 
 // TnzCore includes
 #include "tconvert.h"
@@ -1361,3 +1361,4 @@ TaskTreeModel::Item::Item(TFarmTask *task)
     : TreeModel::Item(), m_name(), m_task(task) {
   assert(m_task);
 }
+

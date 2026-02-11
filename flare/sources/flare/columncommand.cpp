@@ -9,36 +9,36 @@
 #include "expressionreferencemanager.h"
 
 // TnzQt includes
-#include "toonzqt/tselectionhandle.h"
-#include "toonzqt/stageobjectsdata.h"
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/dvdialog.h"
+#include "flareqt/tselectionhandle.h"
+#include "flareqt/stageobjectsdata.h"
+#include "flareqt/menubarcommand.h"
+#include "flareqt/dvdialog.h"
 #include "historytypes.h"
 
 // TnzLib includes
-#include "toonz/txsheethandle.h"
-#include "toonz/tfxhandle.h"
-#include "toonz/tobjecthandle.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/txsheet.h"
-#include "toonz/txshcolumn.h"
-#include "toonz/tstageobject.h"
-#include "toonz/fxdag.h"
-#include "toonz/tcolumnfxset.h"
-#include "toonz/tcolumnfx.h"
-#include "toonz/tstageobjecttree.h"
-#include "toonz/txshzeraryfxcolumn.h"
-#include "toonz/txshlevelcolumn.h"
-#include "toonz/txshchildlevel.h"
-#include "toonz/txshcell.h"
-#include "toonz/childstack.h"
-#include "toonz/toonzscene.h"
-#include "toonz/tcamera.h"
-#include "toonz/tstageobjectspline.h"
-#include "toonz/fxcommand.h"
-#include "toonz/preferences.h"
-#include "toonz/tstageobjectid.h"
+#include "flare/txsheethandle.h"
+#include "flare/tfxhandle.h"
+#include "flare/tobjecthandle.h"
+#include "flare/tscenehandle.h"
+#include "flare/tcolumnhandle.h"
+#include "flare/txsheet.h"
+#include "flare/txshcolumn.h"
+#include "flare/tstageobject.h"
+#include "flare/fxdag.h"
+#include "flare/tcolumnfxset.h"
+#include "flare/tcolumnfx.h"
+#include "flare/tstageobjecttree.h"
+#include "flare/txshzeraryfxcolumn.h"
+#include "flare/txshlevelcolumn.h"
+#include "flare/txshchildlevel.h"
+#include "flare/txshcell.h"
+#include "flare/childstack.h"
+#include "flare/flarescene.h"
+#include "flare/tcamera.h"
+#include "flare/tstageobjectspline.h"
+#include "flare/fxcommand.h"
+#include "flare/preferences.h"
+#include "flare/tstageobjectid.h"
 
 // TnzBase includes
 #include "tfx.h"
@@ -815,7 +815,7 @@ void ColumnCmd::insertEmptyColumns(const std::set<int> &indices,
                                    bool insertAfter) {
   if (indices.empty()) return;
   // Filter out all less than 0 indices (in particular, the 'camera' column
-  // in the Toonz derivative product "Tab")
+  // in the flare derivative product "Tab")
   std::vector<int> positiveIndices(indices.begin(), indices.end());
   if (positiveIndices[0] < 0) {
     if (!insertAfter) return;
@@ -1137,7 +1137,7 @@ void ColumnCmd::cloneChild(int index) {
   xsh->insertColumn(newColumnIndex);
 
   // create a subxsheet (newChildLevel, newChildXsh)
-  ToonzScene *scene      = TApp::instance()->getCurrentScene()->getScene();
+  flareScene *scene      = TApp::instance()->getCurrentScene()->getScene();
   ChildStack *childStack = scene->getChildStack();
   TXshChildLevel *newChildLevel = childStack->createChild(0, newColumnIndex);
   TXsheet *newChildXsh          = newChildLevel->getXsheet();
@@ -1442,7 +1442,7 @@ bool ColumnCmd::checkExpressionReferences(
 // "unify visibility toggles" option is enabled
 void ColumnCmd::unifyColumnVisibilityToggles() {
   TApp *app         = TApp::instance();
-  ToonzScene *scene = app->getCurrentScene()->getScene();
+  flareScene *scene = app->getCurrentScene()->getScene();
   QStringList modifiedColumnNames;
   QList<TXsheet *> doneList;
   QStringList parentStack;
@@ -1638,3 +1638,4 @@ public:
 void ColumnCmd::addConvertToVectorUndo(std::set<int> &newColumnIndices) {
   TUndoManager::manager()->add(new ConvertToVectorUndo(newColumnIndices));
 }
+

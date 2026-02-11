@@ -4,12 +4,12 @@
 #define STUDIOPALETTE_INCLUDED
 
 #include "tpalette.h"
-#include "toonz/tproject.h"
+#include "flare/tproject.h"
 // #include "tfilepath.h"
 
 #undef DVAPI
 #undef DVVAR
-#ifdef TOONZLIB_EXPORTS
+#ifdef flareLIB_EXPORTS
 #define DVAPI DV_EXPORT_API
 #define DVVAR DV_EXPORT_VAR
 #else
@@ -129,3 +129,4 @@ private:
 };
 
 #endif
+

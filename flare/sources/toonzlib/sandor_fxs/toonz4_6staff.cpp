@@ -1,9 +1,9 @@
 
 
-#include "toonz4_6staff.h"
+#include "flare4_6staff.h"
 #include "trop.h"
 #include "tconvert.h"
-#include "toonz4.6/toonz.h"
+#include "flare4.6/flare.h"
 
 #ifdef _MSC_VER
 #pragma warning(disable : 4996)
@@ -47,3 +47,4 @@ void convertParam(double param[], const char *cParam[], int cParamLen) {
 }
 
 //-----------------------------------------------------------------------
+

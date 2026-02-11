@@ -50,7 +50,7 @@ typedef enum {
   RAS_CM8S8,    // cmapped,  8 bits, standard SGI 256-color colormap
   RAS_CM16S4,   // cmapped, 16 bits, standard SGI  16-color colormap
   RAS_CM16S8,   // cmapped, 16 bits, standard SGI 256-color colormap
-  RAS_CM16S12,  // cmapped, 16 bits, standard SGI+Toonz 4096-color colormap
+  RAS_CM16S12,  // cmapped, 16 bits, standard SGI+flare 4096-color colormap
   // RAS_CM24, // cmapped, 8+8+8 bits (ink, paint, ramp), +8 bits extra (MSB)
   RAS_CM16,  // color-mapped, 16 bits
   RAS_CM32,  // cmapped, 12+12+8 bits (ink, paint, ramp)
@@ -61,7 +61,7 @@ typedef enum {
 typedef struct {
   LPIXEL *buffer; /* colormap buffer for <= 16 bits or for 32 bits (otherwise
                      NIL) */
-  TCM_INFO info;  /* toonz colormap info, see tcm.h */
+  TCM_INFO info;  /* flare colormap info, see tcm.h */
 } RAS_CMAP;
 
 typedef struct _RASTER {
@@ -598,3 +598,4 @@ TNZAPI void rop_mirror(RASTER *rin, RASTER *rout, TBOOL is_vertical);
 #endif
 
 #endif
+

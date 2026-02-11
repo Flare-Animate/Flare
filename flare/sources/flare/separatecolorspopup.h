@@ -8,7 +8,7 @@
 #include "tfilepath.h"
 #include "tpixel.h"
 #include "traster.h"
-#include "toonzqt/dvdialog.h"
+#include "flareqt/dvdialog.h"
 
 #include <QVector>
 #include <QPair>

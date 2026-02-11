@@ -15,17 +15,17 @@
 #include <functional>
 
 // #include "tfxparam.h"
-#include <toonzqt/addfxcontextmenu.h>  // as receiver
-#include <toonzqt/fxsettings.h>
-#include <toonzqt/pluginloader.h>
+#include <flareqt/addfxcontextmenu.h>  // as receiver
+#include <flareqt/fxsettings.h>
+#include <flareqt/pluginloader.h>
 
 #include "tenv.h"
-#include "toonz/tcolumnfx.h"
+#include "flare/tcolumnfx.h"
 
 #include "pluginhost.h"
-#include "toonz_plugin.h"
-#include "toonz_hostif.h"
-#include "toonz_params.h"
+#include "flare_plugin.h"
+#include "flare_hostif.h"
+#include "flare_params.h"
 #include "plugin_tile_interface.h"
 #include "plugin_port_interface.h"
 #include "plugin_fxnode_interface.h"
@@ -42,7 +42,7 @@
 
 #include "plugin_param_traits.h"
 
-using namespace toonz;  // plugin namespace
+using namespace flare;  // plugin namespace
 
 extern std::map<std::string, PluginInformation *> plugin_dict_;
 
@@ -98,7 +98,7 @@ std::map<std::string, QTreeWidgetItem *> PluginLoader::create_menu_items(
   return vendors;
 }
 
-static bool copy_rendering_setting(toonz_rendering_setting_t *dst,
+static bool copy_rendering_setting(flare_rendering_setting_t *dst,
                                    const TRenderSettings &src);
 
 class PluginSetupMessage final : public TThread::Message {
@@ -157,121 +157,121 @@ RasterFxPluginHost::RasterFxPluginHost(PluginInformation *pinfo)
   pi_->add_ref();
 }
 
-static int create_param_view(toonz_node_handle_t node,
-                             toonz_param_view_handle_t *view) {
+static int create_param_view(flare_node_handle_t node,
+                             flare_param_view_handle_t *view) {
   ParamView *p = NULL;
   try {
     RasterFxPluginHost *fx = reinterpret_cast<RasterFxPluginHost *>(node);
     if (!fx) {
-      printf("create_param_view: invalid toonz_node_handle_t\n");
-      return TOONZ_ERROR_INVALID_HANDLE;
+      printf("create_param_view: invalid flare_node_handle_t\n");
+      return flare_ERROR_INVALID_HANDLE;
     }
 
     if ((p = fx->createParamView())) {
       *view = p;
     } else {
       printf("create_param_view: invalid param name");
-      return TOONZ_ERROR_FAILED_TO_CREATE;
+      return flare_ERROR_FAILED_TO_CREATE;
     }
   } catch (const std::exception &e) {
     printf("create_param_view: exception: %s\n", e.what());
     delete p;
-    return TOONZ_ERROR_UNKNOWN;
+    return flare_ERROR_UNKNOWN;
   }
-  return TOONZ_OK;
+  return flare_OK;
 }
 
-static int setup_input_port(toonz_node_handle_t node, const char *name,
+static int setup_input_port(flare_node_handle_t node, const char *name,
                             int type) {
   try {
     RasterFxPluginHost *fx = reinterpret_cast<RasterFxPluginHost *>(node);
-    if (!fx) return TOONZ_ERROR_INVALID_HANDLE;
+    if (!fx) return flare_ERROR_INVALID_HANDLE;
     if (!fx->addPortDesc({true, name, type})) {
       printf("add_input_port: failed to add: already have\n");
-      return TOONZ_ERROR_BUSY;
+      return flare_ERROR_BUSY;
     }
   } catch (const std::exception &e) {
     printf("setup_putput_port: exception: %s\n", e.what());
-    return TOONZ_ERROR_UNKNOWN;
+    return flare_ERROR_UNKNOWN;
   }
-  return TOONZ_OK;
+  return flare_OK;
 }
 
-static int setup_output_port(toonz_node_handle_t node, const char *name,
+static int setup_output_port(flare_node_handle_t node, const char *name,
                              int type) {
   try {
     RasterFxPluginHost *fx = reinterpret_cast<RasterFxPluginHost *>(node);
-    if (!fx) return TOONZ_ERROR_INVALID_HANDLE;
+    if (!fx) return flare_ERROR_INVALID_HANDLE;
     if (!fx->addPortDesc({false, name, type})) {
       printf("add_input_port: failed to add: already have\n");
-      return TOONZ_ERROR_BUSY;
+      return flare_ERROR_BUSY;
     }
   } catch (const std::exception &e) {
     printf("setup_putput_port: exception: %s\n", e.what());
-    return TOONZ_ERROR_UNKNOWN;
+    return flare_ERROR_UNKNOWN;
   }
-  return TOONZ_OK;
+  return flare_OK;
 }
 
-static int add_input_port(toonz_node_handle_t node, const char *name, int type,
-                          toonz_port_handle_t *port) {
+static int add_input_port(flare_node_handle_t node, const char *name, int type,
+                          flare_port_handle_t *port) {
   try {
     RasterFxPluginHost *fx = reinterpret_cast<RasterFxPluginHost *>(node);
-    if (!fx) return TOONZ_ERROR_INVALID_HANDLE;
+    if (!fx) return flare_ERROR_INVALID_HANDLE;
     auto p = std::make_shared<TRasterFxPort>();
     /* TRasterFxPort は non-copyable なスマートポインタなのでポインタで引き回す
      */
     if (!fx->addInputPort(name, p)) {  // overloaded version
       printf("add_input_port: failed to add: already have\n");
-      return TOONZ_ERROR_BUSY;
+      return flare_ERROR_BUSY;
     }
     *port = p.get();
   } catch (const std::exception &e) {
     printf("add_input_port: exception: %s\n", e.what());
-    return TOONZ_ERROR_UNKNOWN;
+    return flare_ERROR_UNKNOWN;
   }
-  return TOONZ_OK;
+  return flare_OK;
 }
 
-static int get_input_port(toonz_node_handle_t node, const char *name,
-                          toonz_port_handle_t *port) {
+static int get_input_port(flare_node_handle_t node, const char *name,
+                          flare_port_handle_t *port) {
   if (!(node && port)) {
-    return TOONZ_ERROR_NULL;
+    return flare_ERROR_NULL;
   }
 
   RasterFxPluginHost *fx = reinterpret_cast<RasterFxPluginHost *>(node);
   std::string portName(name);
   TFxPort *tfxport = fx->getInputPort(portName);
   if (!tfxport) {
-    return TOONZ_ERROR_NOT_FOUND;
+    return flare_ERROR_NOT_FOUND;
   }
   *port = tfxport;
 
-  return TOONZ_OK;
+  return flare_OK;
 }
 
-static int add_output_port(toonz_node_handle_t node, const char *name, int type,
-                           toonz_port_handle_t *port) {
+static int add_output_port(flare_node_handle_t node, const char *name, int type,
+                           flare_port_handle_t *port) {
   TRasterFxPort *p = NULL;
   try {
     RasterFxPluginHost *fx = reinterpret_cast<RasterFxPluginHost *>(node);
-    if (!fx) return TOONZ_ERROR_INVALID_HANDLE;
+    if (!fx) return flare_ERROR_INVALID_HANDLE;
     p = new TRasterFxPort();
     /* TRasterFxPort は non-copyable なスマートポインタなのでポインタで引き回す
      */
     if (fx->addOutputPort(name, p)) {  // overloaded version
       delete p;
-      return TOONZ_ERROR_BUSY;
+      return flare_ERROR_BUSY;
     }
     *port = p;
   } catch (const std::exception &) {
     delete p;
-    return TOONZ_ERROR_UNKNOWN;
+    return flare_ERROR_UNKNOWN;
   }
-  return TOONZ_OK;
+  return flare_OK;
 }
 
-static int get_rect(toonz_rect_t *rect, double *x0, double *y0, double *x1,
+static int get_rect(flare_rect_t *rect, double *x0, double *y0, double *x1,
                     double *y1) {
   if (!(rect && x0 && y0 && x1 && y1)) {
     return -2;
@@ -283,7 +283,7 @@ static int get_rect(toonz_rect_t *rect, double *x0, double *y0, double *x1,
   return 0;
 }
 
-static int set_rect(toonz_rect_t *rect, double x0, double y0, double x1,
+static int set_rect(flare_rect_t *rect, double x0, double y0, double x1,
                     double y1) {
   if (!rect) {
     return -2;
@@ -295,90 +295,90 @@ static int set_rect(toonz_rect_t *rect, double x0, double y0, double x1,
   return 0;
 }
 
-static int add_preference(toonz_node_handle_t node, const char *name,
-                          toonz_ui_page_handle_t *ui) {
+static int add_preference(flare_node_handle_t node, const char *name,
+                          flare_ui_page_handle_t *ui) {
   UIPage *p = NULL;
   try {
     RasterFxPluginHost *fx = reinterpret_cast<RasterFxPluginHost *>(node);
     if (!fx) {
-      printf("add_preference: invalid toonz_node_handle_t\n");
-      return TOONZ_ERROR_INVALID_HANDLE;
+      printf("add_preference: invalid flare_node_handle_t\n");
+      return flare_ERROR_INVALID_HANDLE;
     }
 
     if ((p = fx->createUIPage(name))) {
       *ui = p;
     } else {
       printf("add_preference: failed to get UIPage\n");
-      return TOONZ_ERROR_FAILED_TO_CREATE;
+      return flare_ERROR_FAILED_TO_CREATE;
     }
   } catch (const std::exception &e) {
     printf("add_preference: exception: %s\n", e.what());
     delete p;
-    return TOONZ_ERROR_UNKNOWN;
+    return flare_ERROR_UNKNOWN;
   }
-  return TOONZ_OK;
+  return flare_OK;
 }
 
-static int add_param(toonz_node_handle_t node, const char *name, int type,
-                     toonz_param_handle_t *param) {
+static int add_param(flare_node_handle_t node, const char *name, int type,
+                     flare_param_handle_t *param) {
   Param *p = NULL;
   try {
     RasterFxPluginHost *fx = reinterpret_cast<RasterFxPluginHost *>(node);
     if (!fx) {
-      printf("add_param: invalid toonz_node_handle_t\n");
-      return TOONZ_ERROR_INVALID_HANDLE;
+      printf("add_param: invalid flare_node_handle_t\n");
+      return flare_ERROR_INVALID_HANDLE;
     }
 
-    if ((p = fx->createParam(name, toonz_param_type_enum(type)))) {
+    if ((p = fx->createParam(name, flare_param_type_enum(type)))) {
       *param = p;
     } else {
       printf("add_param: invalid type");
-      return TOONZ_ERROR_FAILED_TO_CREATE;
+      return flare_ERROR_FAILED_TO_CREATE;
     }
   } catch (const std::exception &e) {
     printf("add_param: exception: %s\n", e.what());
     delete p;
-    return TOONZ_ERROR_UNKNOWN;
+    return flare_ERROR_UNKNOWN;
   }
-  return TOONZ_OK;
+  return flare_OK;
 }
 
-static int get_param(toonz_node_handle_t node, const char *name,
-                     toonz_param_handle_t *param) {
+static int get_param(flare_node_handle_t node, const char *name,
+                     flare_param_handle_t *param) {
   try {
     RasterFxPluginHost *fx = reinterpret_cast<RasterFxPluginHost *>(node);
     if (!fx) {
-      printf("get_param: invalid toonz_node_handle_t\n");
-      return TOONZ_ERROR_INVALID_HANDLE;
+      printf("get_param: invalid flare_node_handle_t\n");
+      return flare_ERROR_INVALID_HANDLE;
     }
 
     if (Param *p = fx->getParam(name)) {
       *param = p;
     } else {
       printf("get_param: invalid type");
-      return TOONZ_ERROR_NOT_FOUND;
+      return flare_ERROR_NOT_FOUND;
     }
   } catch (const std::exception &) {
   }
-  return TOONZ_OK;
+  return flare_OK;
 }
 
-static int set_user_data(toonz_node_handle_t node, void *user_data) {
+static int set_user_data(flare_node_handle_t node, void *user_data) {
   if (!node) {
-    return TOONZ_ERROR_NULL;
+    return flare_ERROR_NULL;
   }
   RasterFxPluginHost *fx = reinterpret_cast<RasterFxPluginHost *>(node);
   fx->setUserData(user_data);
-  return TOONZ_OK;
+  return flare_OK;
 }
 
-static int get_user_data(toonz_node_handle_t node, void **user_data) {
+static int get_user_data(flare_node_handle_t node, void **user_data) {
   if (!node || !user_data) {
-    return TOONZ_ERROR_NULL;
+    return flare_ERROR_NULL;
   }
   RasterFxPluginHost *fx = reinterpret_cast<RasterFxPluginHost *>(node);
   *user_data             = fx->getUserData();
-  return TOONZ_OK;
+  return flare_OK;
 }
 
 bool RasterFxPluginHost::addPortDesc(port_description_t &&desc) {
@@ -559,7 +559,7 @@ void RasterFxPluginHost::callEndRenderHandler() {
 
 void RasterFxPluginHost::callStartRenderFrameHandler(const TRenderSettings *rs,
                                                      double frame) {
-  toonz_rendering_setting_t trs;
+  flare_rendering_setting_t trs;
   copy_rendering_setting(&trs, *rs);
   if (pi_ && pi_->handler_ && pi_->handler_->on_new_frame) {
     pi_->handler_->on_new_frame(this, &trs, frame);
@@ -568,7 +568,7 @@ void RasterFxPluginHost::callStartRenderFrameHandler(const TRenderSettings *rs,
 
 void RasterFxPluginHost::callEndRenderFrameHandler(const TRenderSettings *rs,
                                                    double frame) {
-  toonz_rendering_setting_t trs;
+  flare_rendering_setting_t trs;
   copy_rendering_setting(&trs, *rs);
   if (pi_ && pi_->handler_ && pi_->handler_->on_end_frame) {
     pi_->handler_->on_end_frame(this, &trs, frame);
@@ -585,16 +585,16 @@ UIPage *RasterFxPluginHost::createUIPage(const char *name) {
 
 // deprecated. for migration.
 Param *RasterFxPluginHost::createParam(const char *name,
-                                       toonz_param_type_enum e) {
-  toonz_param_desc_t *desc = new toonz_param_desc_t;
-  memset(desc, 0, sizeof(toonz_param_desc_t));
+                                       flare_param_type_enum e) {
+  flare_param_desc_t *desc = new flare_param_desc_t;
+  memset(desc, 0, sizeof(flare_param_desc_t));
   desc->base.ver   = {1, 0};
   desc->key        = name;
   desc->traits_tag = e;
   return createParam(desc);
 }
 
-Param *RasterFxPluginHost::createParam(const toonz_param_desc_t *desc) {
+Param *RasterFxPluginHost::createParam(const flare_param_desc_t *desc) {
   TParamP p = parameter_factory(desc);
   if (!p) return nullptr;
 
@@ -604,7 +604,7 @@ Param *RasterFxPluginHost::createParam(const toonz_param_desc_t *desc) {
   bindPluginParam(this, desc->key, p);
 
   params_.push_back(std::make_shared<Param>(
-      this, desc->key, toonz_param_type_enum(desc->traits_tag), desc));
+      this, desc->key, flare_param_type_enum(desc->traits_tag), desc));
   return params_.back().get();
 }
 
@@ -664,40 +664,40 @@ static inline bool is_compatible(const T &d) {
 }
 
 template <uint32_t compat_maj, uint32_t compat_min>
-static inline bool is_compatible(const toonz_if_version_t &v) {
+static inline bool is_compatible(const flare_if_version_t &v) {
   return v.major == compat_maj && v.minor == compat_min;
 }
 
-static int check_base_sanity(const toonz_param_page_t *p) {
+static int check_base_sanity(const flare_param_page_t *p) {
   int err = 0;
-  if (!is_compatible<toonz_param_base_t_, 1, 0>(p->base))
-    err |= TOONZ_PARAM_ERROR_VERSION;
-  if (p->base.label == NULL) err |= TOONZ_PARAM_ERROR_LABEL;
-  if (p->base.type != TOONZ_PARAM_DESC_TYPE_PAGE) err |= TOONZ_PARAM_ERROR_TYPE;
+  if (!is_compatible<flare_param_base_t_, 1, 0>(p->base))
+    err |= flare_PARAM_ERROR_VERSION;
+  if (p->base.label == NULL) err |= flare_PARAM_ERROR_LABEL;
+  if (p->base.type != flare_PARAM_DESC_TYPE_PAGE) err |= flare_PARAM_ERROR_TYPE;
   return err;
 }
 
-static int check_base_sanity(const toonz_param_group_t *p) {
+static int check_base_sanity(const flare_param_group_t *p) {
   int err = 0;
-  if (!is_compatible<toonz_param_base_t_, 1, 0>(p->base))
-    err |= TOONZ_PARAM_ERROR_VERSION;
-  if (p->base.label == NULL) err |= TOONZ_PARAM_ERROR_LABEL;
-  if (p->base.type != TOONZ_PARAM_DESC_TYPE_GROUP)
-    err |= TOONZ_PARAM_ERROR_TYPE;
+  if (!is_compatible<flare_param_base_t_, 1, 0>(p->base))
+    err |= flare_PARAM_ERROR_VERSION;
+  if (p->base.label == NULL) err |= flare_PARAM_ERROR_LABEL;
+  if (p->base.type != flare_PARAM_DESC_TYPE_GROUP)
+    err |= flare_PARAM_ERROR_TYPE;
   return err;
 }
 
-static int check_base_sanity(const toonz_param_desc_t *p) {
+static int check_base_sanity(const flare_param_desc_t *p) {
   int err = 0;
-  if (!is_compatible<toonz_param_base_t_, 1, 0>(p->base))
-    err |= TOONZ_PARAM_ERROR_VERSION;
-  if (p->base.label == NULL) err |= TOONZ_PARAM_ERROR_LABEL;
-  if (p->base.type != TOONZ_PARAM_DESC_TYPE_PARAM)
-    err |= TOONZ_PARAM_ERROR_TYPE;
+  if (!is_compatible<flare_param_base_t_, 1, 0>(p->base))
+    err |= flare_PARAM_ERROR_VERSION;
+  if (p->base.label == NULL) err |= flare_PARAM_ERROR_LABEL;
+  if (p->base.type != flare_PARAM_DESC_TYPE_PARAM)
+    err |= flare_PARAM_ERROR_TYPE;
   return err;
 }
 
-bool RasterFxPluginHost::setParamStructure(int n, toonz_param_page_t *p,
+bool RasterFxPluginHost::setParamStructure(int n, flare_param_page_t *p,
                                            int &err, void *&pos) {
   /* 適当に現実的な最大値: あまりに大きい場合は領域の破壊を疑う */
   static const int max_pages_  = 31;
@@ -710,53 +710,53 @@ bool RasterFxPluginHost::setParamStructure(int n, toonz_param_page_t *p,
       /* parameter が null
        * でないことは上位でチェックされているはずで、ここで返せるエラーは定義していない.
        */
-      if (p == NULL) err |= TOONZ_PARAM_ERROR_UNKNOWN;
-      err |= TOONZ_PARAM_ERROR_PAGE_NUM;
+      if (p == NULL) err |= flare_PARAM_ERROR_UNKNOWN;
+      err |= flare_PARAM_ERROR_PAGE_NUM;
       return false;
     }
 
     /* SAN 値チェック */
     for (int k = 0; k < n; k++) {
-      toonz_param_page_t *pg = &p[k];
+      flare_param_page_t *pg = &p[k];
       pos                    = pg;
       if (int e = check_base_sanity(pg)) {
         err = e;
         return false;
       }
       if (pg->num > max_groups_) {
-        err |= TOONZ_PARAM_ERROR_GROUP_NUM;
+        err |= flare_PARAM_ERROR_GROUP_NUM;
         return false;
       }
 
       for (int l = 0; l < pg->num; l++) {
-        toonz_param_group_t *grp = &pg->array[l];
+        flare_param_group_t *grp = &pg->array[l];
         pos                      = grp;
         if (int e = check_base_sanity(grp)) {
           err = e;
           return false;
         }
         if (grp->num > max_params_) {
-          err |= TOONZ_PARAM_ERROR_GROUP_NUM;
+          err |= flare_PARAM_ERROR_GROUP_NUM;
           return false;
         }
         for (int i = 0; i < grp->num; i++) {
-          toonz_param_desc_t *desc = &grp->array[i];
+          flare_param_desc_t *desc = &grp->array[i];
           pos                      = desc;
           if (int e = check_base_sanity(desc)) err |= e;
           if (desc->key == NULL)
-            err |= TOONZ_PARAM_ERROR_NO_KEY;
+            err |= flare_PARAM_ERROR_NO_KEY;
           else {
-            if (!validateKeyName(desc->key)) err |= TOONZ_PARAM_ERROR_KEY_NAME;
+            if (!validateKeyName(desc->key)) err |= flare_PARAM_ERROR_KEY_NAME;
             for (auto it : params_) {
               if (it->name() == desc->key) {
-                err |= TOONZ_PARAM_ERROR_KEY_DUP;
+                err |= flare_PARAM_ERROR_KEY_DUP;
                 break;
               }
             }
           }
           if (desc->reserved_[0] ||
               desc->reserved_[1])  // reserved fields must be zero
-            err |= TOONZ_PARAM_ERROR_POLLUTED;
+            err |= flare_PARAM_ERROR_POLLUTED;
           err |= check_traits_sanity(desc);
 
           if (err) return false;
@@ -776,8 +776,8 @@ bool RasterFxPluginHost::setParamStructure(int n, toonz_param_page_t *p,
       return strtbl.back()->c_str();
     };
 
-    auto deep_copy_base = [&](toonz_param_base_t_ &dst,
-                              const toonz_param_base_t_ &src) {
+    auto deep_copy_base = [&](flare_param_base_t_ &dst,
+                              const flare_param_base_t_ &src) {
       dst.ver   = src.ver;
       dst.type  = src.type;
       dst.label = patch_string(src.label);
@@ -785,28 +785,28 @@ bool RasterFxPluginHost::setParamStructure(int n, toonz_param_page_t *p,
 
     param_resources.clear();
 
-    std::unique_ptr<toonz_param_page_t[]> origin_pages(
-        new toonz_param_page_t[n]);
+    std::unique_ptr<flare_param_page_t[]> origin_pages(
+        new flare_param_page_t[n]);
     for (int i = 0; i < n; i++) {
-      toonz_param_page_t &dst_page       = origin_pages[i];
-      const toonz_param_page_t &src_page = p[i];
+      flare_param_page_t &dst_page       = origin_pages[i];
+      const flare_param_page_t &src_page = p[i];
 
       deep_copy_base(dst_page.base, src_page.base);
 
       const int group_num = dst_page.num = src_page.num;
-      dst_page.array                     = new toonz_param_group_t[group_num];
+      dst_page.array                     = new flare_param_group_t[group_num];
 
       for (int j = 0; j < group_num; j++) {
-        toonz_param_group_t &dst_group       = dst_page.array[j];
-        const toonz_param_group_t &src_group = src_page.array[j];
+        flare_param_group_t &dst_group       = dst_page.array[j];
+        const flare_param_group_t &src_group = src_page.array[j];
 
         deep_copy_base(dst_group.base, src_group.base);
 
         const int desc_num = dst_group.num = src_group.num;
-        dst_group.array                    = new toonz_param_desc_t[desc_num];
+        dst_group.array                    = new flare_param_desc_t[desc_num];
         for (int k = 0; k < desc_num; k++) {
-          toonz_param_desc_t &dst_desc       = dst_group.array[k];
-          const toonz_param_desc_t &src_desc = src_group.array[k];
+          flare_param_desc_t &dst_desc       = dst_group.array[k];
+          const flare_param_desc_t &src_desc = src_group.array[k];
 
           deep_copy_base(dst_desc.base, src_desc.base);  // base
 
@@ -817,7 +817,7 @@ bool RasterFxPluginHost::setParamStructure(int n, toonz_param_page_t *p,
           dst_desc.traits_tag = src_desc.traits_tag;  // tag
 
           // traits
-          if (dst_desc.traits_tag == TOONZ_PARAM_TYPE_ENUM) {
+          if (dst_desc.traits_tag == flare_PARAM_TYPE_ENUM) {
             dst_desc.traits.e.def = src_desc.traits.e.def;
             int enums = dst_desc.traits.e.enums = src_desc.traits.e.enums;
             auto a = std::shared_ptr<void>(new char *[enums]);
@@ -826,21 +826,21 @@ bool RasterFxPluginHost::setParamStructure(int n, toonz_param_page_t *p,
             for (int i = 0; i < enums; i++)
               dst_desc.traits.e.array[i] =
                   patch_string(src_desc.traits.e.array[i]);
-          } else if (dst_desc.traits_tag == TOONZ_PARAM_TYPE_SPECTRUM) {
+          } else if (dst_desc.traits_tag == flare_PARAM_TYPE_SPECTRUM) {
             int points = dst_desc.traits.g.points = src_desc.traits.g.points;
             auto ptr                              = std::shared_ptr<void>(
-                new toonz_param_traits_spectrum_t::valuetype[points]);
+                new flare_param_traits_spectrum_t::valuetype[points]);
             param_resources.push_back(ptr);
             dst_desc.traits.g.array =
-                static_cast<toonz_param_traits_spectrum_t::valuetype *>(
+                static_cast<flare_param_traits_spectrum_t::valuetype *>(
                     ptr.get());
 
             for (int i = 0; i < dst_desc.traits.g.points; i++)
               memcpy(&dst_desc.traits.g.array[i], &src_desc.traits.g.array[i],
-                     sizeof(toonz_param_traits_spectrum_t::valuetype));
-          } else if (dst_desc.traits_tag == TOONZ_PARAM_TYPE_STRING) {
+                     sizeof(flare_param_traits_spectrum_t::valuetype));
+          } else if (dst_desc.traits_tag == flare_PARAM_TYPE_STRING) {
             dst_desc.traits.s.def = patch_string(src_desc.traits.s.def);
-          } else if (dst_desc.traits_tag == TOONZ_PARAM_TYPE_TONECURVE) {
+          } else if (dst_desc.traits_tag == flare_PARAM_TYPE_TONECURVE) {
             /* has no default values */
           } else {
             memcpy(&dst_desc.traits, &src_desc.traits, sizeof(src_desc.traits));
@@ -860,7 +860,7 @@ void RasterFxPluginHost::createParamsByDesc() {
   printf("RasterFxPluginHost::createParamsByDesc: num:%d\n",
          pi_->param_page_num_);
   for (int k = 0; k < pi_->param_page_num_; k++) {
-    toonz_param_page_t *pg = &pi_->param_pages_[k];
+    flare_param_page_t *pg = &pi_->param_pages_[k];
     void *page             = NULL;
     int r                  = add_preference(this, pg->base.label, &page);
     printf(
@@ -869,11 +869,11 @@ void RasterFxPluginHost::createParamsByDesc() {
         r, page);
 
     for (int l = 0; l < pg->num; l++) {
-      toonz_param_group_t *grp = &pg->array[l];
+      flare_param_group_t *grp = &pg->array[l];
       begin_group(page, grp->base.label);
 
       for (int i = 0; i < grp->num; i++) {
-        toonz_param_desc_t *desc = &grp->array[i];
+        flare_param_desc_t *desc = &grp->array[i];
         Param *p                 = createParam(desc);
         printf("RasterFxPluginHost::createParam: p:%p key:%s tag:%d\n", p,
                desc->key, desc->traits_tag);
@@ -944,7 +944,7 @@ bool RasterFxPluginHost::validateKeyName(const char *name) {
 static inline bool check(const plugin_probe_t *begin,
                          const plugin_probe_t *end) {
   /*
-  printf("dump toonz_plugin_probe_t: ver:(%d, %d) (%s, %s, %s, %s) resv:[%p, %p,
+  printf("dump flare_plugin_probe_t: ver:(%d, %d) (%s, %s, %s, %s) resv:[%p, %p,
   %p, %p, %p] clss:0x%x resv:[%d, %d, %d, %d, %d]\n",
              x->ver.major, x->ver.minor,
              x->name, x->id, x->note, x->url,
@@ -963,15 +963,15 @@ static inline bool check(const plugin_probe_t *begin,
     return false;
   }
 
-  toonz_if_version_t v = begin->ver;
+  flare_if_version_t v = begin->ver;
   for (auto x = begin; x < end; x++, idx++) {
     /* 異なるバージョンの構造体の混在はエラーとする.
-       しかし toonz_plugin_probe_t は reservation filed
+       しかし flare_plugin_probe_t は reservation filed
        を持っており、サイズが変わらない限りは混在も対応可能だが、まずは sanity
        check で落とす.
 
        For now we permit mixed versions. Not that we never support it since size
-       of toonz_plugin_probe_t is constant.
+       of flare_plugin_probe_t is constant.
     */
     if (!(x->ver.major == v.major && x->ver.minor == v.minor)) {
 #if defined(VERBOSE)
@@ -989,15 +989,15 @@ static inline bool check(const plugin_probe_t *begin,
 #endif
       return false;
     } else {
-      uint32_t m = x->clss & TOONZ_PLUGIN_CLASS_MODIFIER_MASK;
-      uint32_t c = x->clss & ~TOONZ_PLUGIN_CLASS_MODIFIER_MASK;
-      if (!(m == 0 || m == TOONZ_PLUGIN_CLASS_MODIFIER_GEOMETRIC)) {
+      uint32_t m = x->clss & flare_PLUGIN_CLASS_MODIFIER_MASK;
+      uint32_t c = x->clss & ~flare_PLUGIN_CLASS_MODIFIER_MASK;
+      if (!(m == 0 || m == flare_PLUGIN_CLASS_MODIFIER_GEOMETRIC)) {
 #if defined(VERBOSE)
         printf("sanity check(): plugin[%d] unknown modifier: 0x%x\n", idx, m);
 #endif
         return false;  // we don't know the modifier
       }
-      if (!(c == TOONZ_PLUGIN_CLASS_POSTPROCESS_SLAB)) {
+      if (!(c == flare_PLUGIN_CLASS_POSTPROCESS_SLAB)) {
 #if defined(VERBOSE)
         printf("sanity check(): plugin[%d] unknown class: 0x%x\n", idx, c);
 #endif
@@ -1112,10 +1112,10 @@ struct interface_t {
 };
 
 extern "C" {
-int set_parameter_pages(toonz_node_handle_t, int num,
-                        toonz_param_page_t *params);
-int set_parameter_pages_with_error(toonz_node_handle_t, int num,
-                                   toonz_param_page_t *params, int *, void **);
+int set_parameter_pages(flare_node_handle_t, int num,
+                        flare_param_page_t *params);
+int set_parameter_pages_with_error(flare_node_handle_t, int num,
+                                   flare_param_page_t *params, int *, void **);
 }
 
 template <uint32_t major, uint32_t minor>
@@ -1203,10 +1203,10 @@ struct interface_t<node_interface_t, major, minor> {
 };
 
 template <uint32_t major, uint32_t minor>
-struct interface_t<toonz_tile_interface_t, major, minor> {
-  static toonz_tile_interface_t *factory() {
-    toonz_tile_interface_t *t =
-        base_interface_factory<toonz_tile_interface_t, major, minor>();
+struct interface_t<flare_tile_interface_t, major, minor> {
+  static flare_tile_interface_t *factory() {
+    flare_tile_interface_t *t =
+        base_interface_factory<flare_tile_interface_t, major, minor>();
     t->get_raw_address_unsafe = tile_interface_get_raw_address_unsafe;
     t->get_raw_stride         = tile_interface_get_raw_stride;
     t->get_element_type       = tile_interface_get_element_type;
@@ -1248,12 +1248,12 @@ struct interface_t<fxnode_interface_t, major, minor> {
 /*
 template <>
 template < uint32_t major, uint32_t minor >
-struct interface_t< toonz_nodal_rasterfx_interface_t >::i_< major, minor > {
-        static toonz_nodal_rasterfx_interface_t* factory()
+struct interface_t< flare_nodal_rasterfx_interface_t >::i_< major, minor > {
+        static flare_nodal_rasterfx_interface_t* factory()
         {
-                printf("toonz_nodal_rasterfx_interface_t::factory\n");
-                toonz_nodal_rasterfx_interface_t* t = base_interface_factory<
-toonz_nodal_rasterfx_interface_t, major, minor >();
+                printf("flare_nodal_rasterfx_interface_t::factory\n");
+                flare_nodal_rasterfx_interface_t* t = base_interface_factory<
+flare_nodal_rasterfx_interface_t, major, minor >();
                 return t;
         }
 };
@@ -1276,7 +1276,7 @@ static int query_interface(const UUID *uuid, void **interf) {
       uuid_dict_t(&uuid_param_, 7), uuid_dict_t(&uuid_setup_, 8),
       uuid_dict_t(&uuid_null_, 0)};
 
-  if (!(uuid && interf)) return TOONZ_ERROR_NULL;
+  if (!(uuid && interf)) return flare_ERROR_NULL;
 
   try {
     const uuid_dict_t *it = &dict[0];
@@ -1284,44 +1284,44 @@ static int query_interface(const UUID *uuid, void **interf) {
       if (uuid_matches(it->first, uuid)) {
         switch (it->second) {
         case 1:
-          *interf = interface_factory<toonz_node_interface_t, 1, 0>();
+          *interf = interface_factory<flare_node_interface_t, 1, 0>();
           break;
         case 2:
-          *interf = interface_factory<toonz_port_interface_t, 1, 0>();
+          *interf = interface_factory<flare_port_interface_t, 1, 0>();
           break;
         case 3:
-          *interf = interface_factory<toonz_tile_interface_t, 1, 0>();
+          *interf = interface_factory<flare_tile_interface_t, 1, 0>();
           break;
         // case 4:
-        //	*interf = interface_factory< toonz_ui_page_interface_t, 1, 0
+        //	*interf = interface_factory< flare_ui_page_interface_t, 1, 0
         //>();
         //	break;
         case 5:
-          *interf = interface_factory<toonz_fxnode_interface_t, 1, 0>();
+          *interf = interface_factory<flare_fxnode_interface_t, 1, 0>();
           break;
         // case 6:
-        //*interf = interface_factory< toonz_param_view_interface_t, 1, 0 >();
+        //*interf = interface_factory< flare_param_view_interface_t, 1, 0 >();
         // break;
         case 7:
-          *interf = interface_factory<toonz_param_interface_t, 1, 0>();
+          *interf = interface_factory<flare_param_interface_t, 1, 0>();
           break;
         case 8:
-          *interf = interface_factory<toonz_setup_interface_t, 1, 0>();
+          *interf = interface_factory<flare_setup_interface_t, 1, 0>();
           break;
         default:
-          return TOONZ_ERROR_NOT_IMPLEMENTED;
+          return flare_ERROR_NOT_IMPLEMENTED;
           break;
         }
       }
       it++;
     }
   } catch (const std::bad_alloc &) {
-    return TOONZ_ERROR_OUT_OF_MEMORY;
+    return flare_ERROR_OUT_OF_MEMORY;
   } catch (const std::exception &) {
-    return TOONZ_ERROR_UNKNOWN;
+    return flare_ERROR_UNKNOWN;
   }
 
-  return TOONZ_OK;
+  return flare_OK;
 }
 
 static void release_interface(void *interf) {
@@ -1376,22 +1376,22 @@ void Loader::doLoad(const QString &file) {
 probe に使う plugin 情報を探す.
 テーブルを export
                                                     したほうが楽だが、開発者はデバッグしにくいので関数フォームも提供する.
-toonz_plugin_info で検索し、なければ toonz_plugin_probe() を呼び出す.
+flare_plugin_info で検索し、なければ flare_plugin_probe() を呼び出す.
 */
 #if defined(_WIN32) || defined(_CYGWIN_)
     auto ini = (int (*)(host_interface_t *))GetProcAddress(handle,
-                                                           "toonz_plugin_init");
+                                                           "flare_plugin_init");
     auto fin = (void (*)(void))GetProcAddress(handle,
-                                              "toonz_plugin_exit");  // optional
+                                              "flare_plugin_exit");  // optional
     const plugin_probe_list_t *problist =
         reinterpret_cast<const plugin_probe_list_t *>(
-            GetProcAddress(handle, "toonz_plugin_info_list"));
+            GetProcAddress(handle, "flare_plugin_info_list"));
 #else
-    auto ini = (int (*)(host_interface_t *))dlsym(handle, "toonz_plugin_init");
-    auto fin = (void (*)(void))dlsym(handle, "toonz_plugin_exit");  // optional
+    auto ini = (int (*)(host_interface_t *))dlsym(handle, "flare_plugin_init");
+    auto fin = (void (*)(void))dlsym(handle, "flare_plugin_exit");  // optional
     const plugin_probe_list_t *problist =
         reinterpret_cast<const plugin_probe_list_t *>(
-            dlsym(handle, "toonz_plugin_info_list"));
+            dlsym(handle, "flare_plugin_info_list"));
 #endif
     pi->ini_ = ini;
     pi->fin_ = fin;
@@ -1402,18 +1402,18 @@ toonz_plugin_info で検索し、なければ toonz_plugin_probe() を呼び出�
       if (problist) {
         if (!is_compatible<plugin_probe_list_t, 1, 0>(*problist))
           throw std::domain_error(
-              "invalid toonz_plugin_info_list: version unmatched");
+              "invalid flare_plugin_info_list: version unmatched");
         probinfo_begin = problist->begin;
         probinfo_end   = problist->end;
       }
 
       if (!probinfo_begin || !probinfo_end) {
-        printf("use function-formed prober:toonz_plugin_probe\n");
+        printf("use function-formed prober:flare_plugin_probe\n");
 // look at function-formed
 #if defined(_WIN32) || defined(_CYGWIN_)
-        void *probe = GetProcAddress(handle, "toonz_plugin_probe");
+        void *probe = GetProcAddress(handle, "flare_plugin_probe");
 #else
-        void *probe = dlsym(handle, "toonz_plugin_probe");
+        void *probe = dlsym(handle, "flare_plugin_probe");
 #endif
         if (probe) {
           printf("function-formed prober found\n");
@@ -1436,7 +1436,7 @@ toonz_plugin_info で検索し、なければ toonz_plugin_probe() を呼び出�
           probinfo_end   = end;
         } else {
           throw std::domain_error(
-              "found toonz_plugin_probe nor toonz_plugin_info");
+              "found flare_plugin_probe nor flare_plugin_info");
         }
       } else {
       }
@@ -1444,7 +1444,7 @@ toonz_plugin_info で検索し、なければ toonz_plugin_probe() を呼び出�
       printf("plugin count:%d begin:%p end:%p\n", plugin_num, probinfo_begin,
              probinfo_end);
 
-      /* sanity check に失敗した場合は予期せぬアドレスを参照して toonz
+      /* sanity check に失敗した場合は予期せぬアドレスを参照して flare
          本体ごと落ちる可能性があるので
          致命的エラー扱いで早期に抜ける. */
       if (!probinfo_begin || !probinfo_end ||
@@ -1458,9 +1458,9 @@ toonz_plugin_info で検索し、なければ toonz_plugin_probe() を呼び出�
         /* probinfo は sanity check 通過済みなのでチェック不要. handler は null
          * でないことのみが確認されている */
         if (is_compatible<nodal_rasterfx_handler_t, 1, 0>(*nodal)) {
-          uint32_t c = probinfo->clss & ~(TOONZ_PLUGIN_CLASS_MODIFIER_MASK);
-          uint32_t m = probinfo->clss & (TOONZ_PLUGIN_CLASS_MODIFIER_MASK);
-          if (c == TOONZ_PLUGIN_CLASS_POSTPROCESS_SLAB) {
+          uint32_t c = probinfo->clss & ~(flare_PLUGIN_CLASS_MODIFIER_MASK);
+          uint32_t m = probinfo->clss & (flare_PLUGIN_CLASS_MODIFIER_MASK);
+          if (c == flare_PLUGIN_CLASS_POSTPROCESS_SLAB) {
             pi->handler_ = new nodal_rasterfx_handler_t;
             if (!check_and_copy(pi->handler_, nodal))
               throw std::domain_error("ill-formed nodal interface");
@@ -1488,7 +1488,7 @@ toonz_plugin_info で検索し、なければ toonz_plugin_probe() を呼び出�
               if (ret) {
                 delete host;
                 std::domain_error(
-                    "failed initialized: error on _toonz_plugin_init");
+                    "failed initialized: error on _flare_plugin_init");
               }
               pi->host_ = host;
               pi->decl_ = new PluginDeclaration(pi);
@@ -1496,7 +1496,7 @@ toonz_plugin_info で検索し、なければ toonz_plugin_probe() を呼び出�
               /* もっと早期にエラーを出して終了することもできるが
                  センシティブすぎると見通しが立てにくいのである程度我慢してから出す
                  */
-              throw std::domain_error("not found _toonz_plugin_init");
+              throw std::domain_error("not found _flare_plugin_init");
             }
           } catch (const std::exception &e) {
             printf("Exception occurred after plugin loading: %s\n", e.what());
@@ -1598,7 +1598,7 @@ void PluginLoadController::result(PluginInformation *pi) {
   }
 }
 
-static bool copy_rendering_setting(toonz_rendering_setting_t *dst,
+static bool copy_rendering_setting(flare_rendering_setting_t *dst,
                                    const TRenderSettings &src) {
   plugin::utils::copy_affine(&dst->affine, src.m_affine);
   dst->gamma                  = src.m_gamma;
@@ -1620,3 +1620,4 @@ static bool copy_rendering_setting(toonz_rendering_setting_t *dst,
 }
 
 // #include "pluginhost.moc"
+

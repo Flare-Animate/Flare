@@ -2,9 +2,9 @@
 
 #include "tcommon.h"
 
-#include "toonzqt/pickrgbutils.h"
-#include "toonzqt/screenboard.h"
-#include "toonzqt/menubarcommand.h"
+#include "flareqt/pickrgbutils.h"
+#include "flareqt/screenboard.h"
+#include "flareqt/menubarcommand.h"
 
 #include "tools/RGBpicker.h"
 #include "tools/cursors.h"
@@ -156,3 +156,4 @@ public:
     picker->startGrab();
   }
 } pickScreenCHInstance("A_ToolOption_PickScreen");
+

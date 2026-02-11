@@ -7,7 +7,7 @@
 #include <QTreeWidgetItem>
 #include <QAction>
 
-#include "toonzqt/dvdialog.h"
+#include "flareqt/dvdialog.h"
 #include "tfilepath.h"
 
 class Room;

@@ -201,7 +201,7 @@ private:
                               TPSDLayerInfo *li);
 };
 
-// converts psd layers structure into toonz level structure	according to
+// converts psd layers structure into flare level structure	according to
 // path
 class DVAPI TPSDParser {
   class Level {
@@ -295,3 +295,4 @@ private:
 };
 
 #endif  // TIIO_PSD_H
+

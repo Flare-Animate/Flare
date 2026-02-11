@@ -7,4 +7,5 @@ Terminal=false
 Type=Application
 Categories=Graphics;RasterGraphics;2DGraphics;Animation;
 StartupWMClass=Flare
-MimeType=application/x-toonz-tnz;application/x-shockwave-flash;application/x-xfl;
+MimeType=application/x-flare-tnz;application/x-shockwave-flash;application/x-xfl;
+

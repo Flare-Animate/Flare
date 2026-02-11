@@ -7,11 +7,11 @@
 #include "versioncontrolwidget.h"
 
 // TnzQt includes
-#include "toonzqt/gutil.h"
+#include "flareqt/gutil.h"
 
 // TnzLib includes
-#include "toonz/txshsimplelevel.h"
-#include "toonz/toonzscene.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/flarescene.h"
 
 // Qt includes
 #include <QWidget>
@@ -229,7 +229,7 @@ void SVNUpdateDialog::checkFiles() {
            (s.m_item == "none" && s.m_repoStatus == "added"))) {
         TFilePath scenePath =
             TFilePath(m_workingDir.toStdWString()) + s.m_path.toStdWString();
-        TFilePath iconPath = ToonzScene::getIconPath(scenePath);
+        TFilePath iconPath = flareScene::getIconPath(scenePath);
         QDir dir(m_workingDir);
 #ifdef MACOSX
         m_filesToUpdate.append(dir.relativeFilePath(toQString(iconPath)));
@@ -450,3 +450,4 @@ void SVNUpdateDialog::onUpdateSceneContentsToggled(bool checked) {
                              .arg(m_filesToUpdate.size() +
                                   m_sceneResources.size() - m_sceneIconsCount));
 }
+

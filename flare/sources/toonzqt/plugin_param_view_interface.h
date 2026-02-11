@@ -4,9 +4,9 @@
 #define PLUGIN_PARAM_VIEW_INTERFACE
 
 #include "tfx.h"
-#include "toonz_hostif.h"
+#include "flare_hostif.h"
 
-#include <toonzqt/fxsettings.h>
+#include <flareqt/fxsettings.h>
 
 #include <QWidget>
 
@@ -14,7 +14,7 @@
 #include <memory>
 
 /* 公開ヘッダからは引っ込められた都合上ここで宣言(内部ではまだ使っているので) */
-typedef void *toonz_param_view_handle_t;
+typedef void *flare_param_view_handle_t;
 
 /* あるパラメータの表示形式 */
 class ParamView {
@@ -25,7 +25,7 @@ public:
                                  const char *name) const = 0;
   };
 
-#define TOONZ_DEFINE_COMPONENT(NAME)                                           \
+#define flare_DEFINE_COMPONENT(NAME)                                           \
   struct NAME : public Component {                                             \
     QWidget *make_widget(TFx *fx, ParamsPage *page,                            \
                          const char *name) const final override {              \
@@ -33,15 +33,15 @@ public:
     }                                                                          \
   }
 
-  TOONZ_DEFINE_COMPONENT(ParamField);
-  TOONZ_DEFINE_COMPONENT(LineEdit);
-  TOONZ_DEFINE_COMPONENT(Slider);
-  TOONZ_DEFINE_COMPONENT(SpinBox);
-  TOONZ_DEFINE_COMPONENT(CheckBox);
-  TOONZ_DEFINE_COMPONENT(RadioButton);
-  TOONZ_DEFINE_COMPONENT(ComboBox);
+  flare_DEFINE_COMPONENT(ParamField);
+  flare_DEFINE_COMPONENT(LineEdit);
+  flare_DEFINE_COMPONENT(Slider);
+  flare_DEFINE_COMPONENT(SpinBox);
+  flare_DEFINE_COMPONENT(CheckBox);
+  flare_DEFINE_COMPONENT(RadioButton);
+  flare_DEFINE_COMPONENT(ComboBox);
 
-#undef TOONZ_DEFINE_COMPONENT
+#undef flare_DEFINE_COMPONENT
 
 public:
   ParamView() {}
@@ -64,28 +64,29 @@ private:
   std::vector<std::shared_ptr<Component>> components_;
 };
 
-typedef void *toonz_param_field_handle_t;
-typedef void *toonz_lineedit_handle_t;
-typedef void *toonz_slider_handle_t;
-typedef void *toonz_spinbox_handle_t;
-typedef void *toonz_checkbox_handle_t;
-typedef void *toonz_radiobutton_handle_t;
-typedef void *toonz_combobox_handle_t;
+typedef void *flare_param_field_handle_t;
+typedef void *flare_lineedit_handle_t;
+typedef void *flare_slider_handle_t;
+typedef void *flare_spinbox_handle_t;
+typedef void *flare_checkbox_handle_t;
+typedef void *flare_radiobutton_handle_t;
+typedef void *flare_combobox_handle_t;
 
-int add_param_field(toonz_param_view_handle_t view,
-                    toonz_param_field_handle_t *ParamField);
-int add_lineedit(toonz_param_view_handle_t view,
-                 toonz_lineedit_handle_t *LineEdit);
-int add_slider(toonz_param_view_handle_t view, toonz_slider_handle_t *Slider);
-int add_spinbox(toonz_param_view_handle_t view,
-                toonz_spinbox_handle_t *CheckBox);
-int add_checkbox(toonz_param_view_handle_t view,
-                 toonz_checkbox_handle_t *CheckBox);
-int add_radiobutton(toonz_param_view_handle_t view,
-                    toonz_radiobutton_handle_t *RadioButton);
-int add_combobox(toonz_param_view_handle_t view,
-                 toonz_combobox_handle_t *Combobox);
+int add_param_field(flare_param_view_handle_t view,
+                    flare_param_field_handle_t *ParamField);
+int add_lineedit(flare_param_view_handle_t view,
+                 flare_lineedit_handle_t *LineEdit);
+int add_slider(flare_param_view_handle_t view, flare_slider_handle_t *Slider);
+int add_spinbox(flare_param_view_handle_t view,
+                flare_spinbox_handle_t *CheckBox);
+int add_checkbox(flare_param_view_handle_t view,
+                 flare_checkbox_handle_t *CheckBox);
+int add_radiobutton(flare_param_view_handle_t view,
+                    flare_radiobutton_handle_t *RadioButton);
+int add_combobox(flare_param_view_handle_t view,
+                 flare_combobox_handle_t *Combobox);
 
-#undef TOONZ_DEFINE_ADD_COMPONENT
+#undef flare_DEFINE_ADD_COMPONENT
 
 #endif
+

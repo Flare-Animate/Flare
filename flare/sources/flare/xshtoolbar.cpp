@@ -7,10 +7,10 @@
 #include "commandbarpopup.h"
 
 // TnzLib includes
-#include "toonz/preferences.h"
-#include "toonz/toonzscene.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/childstack.h"
+#include "flare/preferences.h"
+#include "flare/flarescene.h"
+#include "flare/tscenehandle.h"
+#include "flare/childstack.h"
 
 // Qt includes
 #include <QWidgetAction>
@@ -90,3 +90,4 @@ public:
 //============================================================
 
 }  // namespace XsheetGUI
+

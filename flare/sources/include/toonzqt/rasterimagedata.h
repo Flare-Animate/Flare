@@ -1,20 +1,20 @@
 #pragma once
 
-#ifndef TOONZIMAGE_DATA_H
-#define TOONZIMAGE_DATA_H
+#ifndef flareIMAGE_DATA_H
+#define flareIMAGE_DATA_H
 
 #include "tcommon.h"
-#include "toonz/ttileset.h"
+#include "flare/ttileset.h"
 #include "tpalette.h"
 #include "tstroke.h"
-#include "toonzqt/dvmimedata.h"
-#include "ttoonzimage.h"
+#include "flareqt/dvmimedata.h"
+#include "tflareimage.h"
 
 #include <set>
 
 #undef DVAPI
 #undef DVVAR
-#ifdef TOONZQT_EXPORTS
+#ifdef flareQT_EXPORTS
 #define DVAPI DV_EXPORT_API
 #define DVVAR DV_EXPORT_VAR
 #else
@@ -24,7 +24,7 @@
 
 class TTileSetCM32;
 class StrokesData;
-class ToonzScene;
+class flareScene;
 
 //===================================================================
 // RasterImageData
@@ -57,7 +57,7 @@ public:
                        TAffine &transformation,
                        TPalette *targetPalette) const = 0;
 
-  virtual StrokesData *toStrokesData(ToonzScene *scene) const = 0;
+  virtual StrokesData *toStrokesData(flareScene *scene) const = 0;
   virtual TPointD getDpi() const                              = 0;
   TDimension getDim() const { return m_dim; }
 
@@ -68,19 +68,19 @@ public:
 };
 
 //===================================================================
-// ToonzImageData
+// flareImageData
 //-------------------------------------------------------------------
 /*-- SelectionToolで選択した画像のデータ --*/
-class DVAPI ToonzImageData final : public RasterImageData {
+class DVAPI flareImageData final : public RasterImageData {
   TRasterCM32P m_copiedRaster;
   TPaletteP m_palette;
 
   std::set<int> m_usedStyles;
 
 public:
-  ToonzImageData();
-  ToonzImageData(const ToonzImageData &);
-  ~ToonzImageData();
+  flareImageData();
+  flareImageData(const flareImageData &);
+  ~flareImageData();
   // data <- floating ti;
   void setData(const TRasterP &copiedRaster, const TPaletteP &palette,
                double dpiX, double dpiY, const TDimension &dim,
@@ -95,10 +95,10 @@ public:
                std::vector<TStroke> &originalStrokes, TAffine &transformation,
                TPalette *targetPalette) const override;
 
-  StrokesData *toStrokesData(ToonzScene *scene) const override;
+  StrokesData *toStrokesData(flareScene *scene) const override;
   TPointD getDpi() const override { return TPointD(m_dpiX, m_dpiY); }
 
-  ToonzImageData *clone() const override { return new ToonzImageData(*this); }
+  flareImageData *clone() const override { return new flareImageData(*this); }
   int getMemorySize() const override;
 };
 
@@ -129,7 +129,7 @@ public:
                std::vector<TStroke> &originalStrokes, TAffine &transformation,
                TPalette *targetPalette) const override;
 
-  StrokesData *toStrokesData(ToonzScene *scene) const override;
+  StrokesData *toStrokesData(flareScene *scene) const override;
   TPointD getDpi() const override { return TPointD(m_dpiX, m_dpiY); }
 
   FullColorImageData *clone() const override {
@@ -139,3 +139,4 @@ public:
 };
 
 #endif
+

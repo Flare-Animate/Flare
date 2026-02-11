@@ -5,9 +5,9 @@
 
 #include "opencv2/opencv.hpp"
 
-// Toonz Includes
+// flare Includes
 #include "traster.h"
-#include "toonzqt/gutil.h"
+#include "flareqt/gutil.h"
 
 #include <QObject>
 

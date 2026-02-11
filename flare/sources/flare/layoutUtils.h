@@ -3,12 +3,12 @@
 
 #include <tgeometry.h>
 #include <tfilepath.h>
-#include <toonz/txshsimplelevel.h>
+#include <flare/txshsimplelevel.h>
 #include "tfiletype.h"
-#include "toonz/toonzscene.h"
+#include "flare/flarescene.h"
 #include "tapp.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/levelset.h"
+#include "flare/tscenehandle.h"
+#include "flare/levelset.h"
 
 #include "qvariant.h"
 #include <QString>
@@ -142,7 +142,7 @@ private:
 
           switch (baseType) {
           case TFileType::CMAPPED_IMAGE:
-            return TXshLevelType::TZP_XSHLEVEL;  // Toonz Raster
+            return TXshLevelType::TZP_XSHLEVEL;  // flare Raster
           case TFileType::RASTER_IMAGE:
             return TXshLevelType::OVL_XSHLEVEL;  // Raster
           case TFileType::VECTOR_IMAGE:
@@ -154,7 +154,7 @@ private:
 
         int levelType = convertToXshLevelType(type);
         if (levelType != TXshLevelType::UNKNOWN_XSHLEVEL) {
-          ToonzScene* currentScene =
+          flareScene* currentScene =
               TApp::instance()->getCurrentScene()->getScene();
           QString name =
               QString("%1 (%2,%3)").arg(this->name).arg(offset.x).arg(offset.y);

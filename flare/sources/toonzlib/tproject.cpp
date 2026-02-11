@@ -1,15 +1,15 @@
 
 
-#include "toonz/tproject.h"
+#include "flare/tproject.h"
 
 // TnzLib includes
-#include "toonz/sceneproperties.h"
-#include "toonz/toonzscene.h"
-#include "toonz/txsheet.h"
-#include "toonz/observer.h"
-#include "toonz/toonzfolders.h"
-#include "toonz/cleanupparameters.h"
-#include "toonz/filepathproperties.h"
+#include "flare/sceneproperties.h"
+#include "flare/flarescene.h"
+#include "flare/txsheet.h"
+#include "flare/observer.h"
+#include "flare/flarefolders.h"
+#include "flare/cleanupparameters.h"
+#include "flare/filepathproperties.h"
 
 // TnzBase includes
 #include "tenv.h"
@@ -218,9 +218,9 @@ void hideOlderProjectFiles(const TFilePath &folderPath) {
 //-------------------------------------------------------------------
 
 /*! \class TProject tproject.h
-        \brief Define and handle a toonz project.
+        \brief Define and handle a flare project.
 
-    A toonz project is identified by a project name that matches a folder with
+    A flare project is identified by a project name that matches a folder with
    the same name in the project root.\n
         The project folder can contains saveral other folders.
         By default, five folders are created: Inputs, Drawings, Scenes, Extras
@@ -247,7 +247,7 @@ void hideOlderProjectFiles(const TFilePath &folderPath) {
         Drawings folder path: "...\\prodA\\episode1\\SceneA\\drawings"
         \endcode
         \n\n
-        By default, from the toonz installation, exist always a toonz project
+        By default, from the flare installation, exist always a flare project
    called "sandbox".
         \see TProjectManager, TSceneProperties.
 */
@@ -559,7 +559,7 @@ bool TProject::save(const TFilePath &projectPath) {
   os.openChild("project");
   os.openChild("version");
   os << 70 << 1;    // Standard version signature:
-  os.closeChild();  //   <Major Toonz version number * 10>.<Major version
+  os.closeChild();  //   <Major flare version number * 10>.<Major version
                     //   advancement>
   os.openChild("folders");
   int i = 0;
@@ -625,8 +625,8 @@ bool TProject::save(const TFilePath &projectPath) {
   }
 
   // The project has been successfully saved. In case there are other
-  // project files from older Toonz project versions, those files are
-  // renamed so that older Toonz versions can no longer 'see' it.
+  // project files from older flare project versions, those files are
+  // renamed so that older flare versions can no longer 'see' it.
   if (!isFolderUnderVersionControl(projectFolder))
     hideOlderProjectFiles(projectFolder);
 
@@ -703,7 +703,7 @@ void TProject::load(const TFilePath &projectPath) {
    name of the
         parent root with either one of the version-dependent suffixes "_prj*".\n
         \code
-        e.g. "C:\\Toonz 5.2 stuff\\projects\\prodA\\episode1\\episode1_prj.xml"
+        e.g. "C:\\flare 5.2 stuff\\projects\\prodA\\episode1\\episode1_prj.xml"
    is a project path.
         \endcode
 */
@@ -738,14 +738,14 @@ public:
 //-------------------------------------------------------------------
 
 /*! \class TProjectManager tproject.h
-        \brief Manages all toonz projects. The class provides all needed method
+        \brief Manages all flare projects. The class provides all needed method
    to retrieve projects paths, names
         and folders.
 
         It is possible to handle more than one project root.
         The class maintains a container this purpose. All the projects roots
    must be set by hand in the windows registry. By default, only one project
-   root is created when toonz is installed.\n The project root container can be
+   root is created when flare is installed.\n The project root container can be
    updated using addProjectsRoot(const TFilePath &root),
    addDefaultProjectsRoot() methods.
 
@@ -938,7 +938,7 @@ TFilePath TProjectManager::getProjectPathByProjectFolder(
 
 void TProjectManager::getFolderNames(std::vector<std::string> &names) {
   names.clear();
-  TFilePath fp = ToonzFolder::getProfileFolder() + "project_folders.txt";
+  TFilePath fp = flareFolder::getProfileFolder() + "project_folders.txt";
   try {
     Tifstream is(fp);
     if (is)
@@ -988,7 +988,7 @@ TFilePath TProjectManager::getCurrentProjectPath() {
   if (fp == TFilePath())
     fp = projectNameToProjectPath(TProject::SandboxProjectName);
   if (!TProject::isAProjectPath(fp)) {
-    // in Toonz 5.1 e precedenti era un project name
+    // in flare 5.1 e precedenti era un project name
     if (!fp.isAbsolute()) fp = getProjectPathByName(fp);
   }
   fp = searchProjectPath(fp.getParentDir());
@@ -1076,7 +1076,7 @@ std::shared_ptr<TProject> TProjectManager::loadSceneProject(const TFilePath &sce
     projectPath = getSandboxProjectPath();
 
   if (!TProject::isAProjectPath(projectPath)) {
-    // in Toonz 5.1 e precedenti era un project name
+    // in flare 5.1 e precedenti era un project name
     if (!projectPath.isAbsolute())
       projectPath = getProjectPathByName(projectPath);
     else
@@ -1122,7 +1122,7 @@ void TProjectManager::removeListener(Listener *listener) {
    project.\n
         \see TSceneProperties
 */
-void TProjectManager::initializeScene(ToonzScene *scene) {
+void TProjectManager::initializeScene(flareScene *scene) {
   auto project = scene->getProject();
   TSceneProperties *sprop = scene->getProperties();
 
@@ -1142,7 +1142,7 @@ void TProjectManager::initializeScene(ToonzScene *scene) {
 
 //-------------------------------------------------------------------
 /*! Saves the TSceneProperties of the specified scene in the current project.*/
-void TProjectManager::saveTemplate(ToonzScene *scene) {
+void TProjectManager::saveTemplate(flareScene *scene) {
   TSceneProperties props;
   props.assign(scene->getProperties());
   props.cloneCamerasFrom(scene->getXsheet()->getStageObjectTree());
@@ -1196,3 +1196,4 @@ bool TProjectManager::isProject(const TFilePath &projectFolder) {
   TFilePath projectPath = projectFolderToProjectPath(projectFolder);
   return TFileStatus(projectPath).doesExist();
 }
+

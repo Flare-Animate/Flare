@@ -18,27 +18,27 @@
 #include "tregion.h"
 
 // TnzLib includes
-#include "toonz/stage2.h"
-#include "toonz/stageplayer.h"
-#include "toonz/stagevisitor.h"
-#include "toonz/txsheet.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/txshchildlevel.h"
-#include "toonz/txshcolumn.h"
-#include "toonz/txshcell.h"
-#include "toonz/onionskinmask.h"
-#include "toonz/dpiscale.h"
-#include "toonz/imagemanager.h"
-#include "toonz/tstageobjecttree.h"
-#include "toonz/preferences.h"
-#include "toonz/fill.h"
-#include "toonz/levelproperties.h"
-#include "toonz/autoclose.h"
-#include "toonz/txshleveltypes.h"
+#include "flare/stage2.h"
+#include "flare/stageplayer.h"
+#include "flare/stagevisitor.h"
+#include "flare/txsheet.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/txshchildlevel.h"
+#include "flare/txshcolumn.h"
+#include "flare/txshcell.h"
+#include "flare/onionskinmask.h"
+#include "flare/dpiscale.h"
+#include "flare/imagemanager.h"
+#include "flare/tstageobjecttree.h"
+#include "flare/preferences.h"
+#include "flare/fill.h"
+#include "flare/levelproperties.h"
+#include "flare/autoclose.h"
+#include "flare/txshleveltypes.h"
 #include "imagebuilders.h"
-#include "toonz/toonzscene.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/tcamera.h"
+#include "flare/flarescene.h"
+#include "flare/sceneproperties.h"
+#include "flare/tcamera.h"
 
 // Qt includes
 #include <QImage>
@@ -47,7 +47,7 @@
 #include <QThreadStorage>
 #include <QMatrix>
 
-#include "toonz/stage.h"
+#include "flare/stage.h"
 
 // #define  NUOVO_ONION
 
@@ -167,7 +167,7 @@ public:
 \n	The class contains a \b PlayerSet, a vector of player, of all
 necessary information.
 */
-// Tutto cio che riguarda una "colonna maschera" non e' utilizzato in TOONZ ma
+// Tutto cio che riguarda una "colonna maschera" non e' utilizzato in flare ma
 // in TAB Pro.
 //=============================================================================
 
@@ -236,7 +236,7 @@ public:
   level,
                   \b TXshChildLevel, recall \b addFrame().
   */
-  void addCell(PlayerSet &players, ToonzScene *scene, TXsheet *xsh, int row,
+  void addCell(PlayerSet &players, flareScene *scene, TXsheet *xsh, int row,
                int col, int level, int subSheetColIndex = -1);
 
   /*! Verify if onion-skin is active and recall \b addCell().
@@ -246,7 +246,7 @@ public:
   recall \b addCell()
                   with argument current cell.
   */
-  void addCellWithOnionSkin(PlayerSet &players, ToonzScene *scene, TXsheet *xsh,
+  void addCellWithOnionSkin(PlayerSet &players, flareScene *scene, TXsheet *xsh,
                             int row, int col, int level,
                             int subSheetColIndex = -1);
 
@@ -255,7 +255,7 @@ public:
   // subxsheet images and it indicates the column index in the current (parent)
   // xsheet. Checking options (like Fill Check etc.) will then valuate this
   // index to identify if the column is current.
-  void addFrame(PlayerSet &players, ToonzScene *scene, TXsheet *xsh, int row,
+  void addFrame(PlayerSet &players, flareScene *scene, TXsheet *xsh, int row,
                 int level, bool includeUnvisible, bool checkPreviewVisibility,
                 int subSheetColIndex = -1);
 
@@ -334,7 +334,7 @@ void StageBuilder::dumpAll(std::ostream &out) {
 
 //-----------------------------------------------------------------------------
 
-void StageBuilder::addCell(PlayerSet &players, ToonzScene *scene, TXsheet *xsh,
+void StageBuilder::addCell(PlayerSet &players, flareScene *scene, TXsheet *xsh,
                            int row, int col, int level, int subSheetColIndex) {
   // Local functions
   struct locals {
@@ -580,7 +580,7 @@ static bool alreadyAdded(TXsheet *xsh, int row, int index,
 
 //-----------------------------------------------------------------------------
 
-void StageBuilder::addCellWithOnionSkin(PlayerSet &players, ToonzScene *scene,
+void StageBuilder::addCellWithOnionSkin(PlayerSet &players, flareScene *scene,
                                         TXsheet *xsh, int row, int col,
                                         int level, int subSheetColIndex) {
   struct locals {
@@ -685,7 +685,7 @@ void StageBuilder::addCellWithOnionSkin(PlayerSet &players, ToonzScene *scene,
 
 //-----------------------------------------------------------------------------
 
-void StageBuilder::addFrame(PlayerSet &players, ToonzScene *scene, TXsheet *xsh,
+void StageBuilder::addFrame(PlayerSet &players, flareScene *scene, TXsheet *xsh,
                             int row, int level, bool includeUnvisible,
                             bool checkPreviewVisibility, int subSheetColIndex) {
   int columnCount        = xsh->getColumnCount();
@@ -935,7 +935,7 @@ void StageBuilder::visit(PlayerSet &players, Visitor &visitor, bool isPlaying) {
 //=============================================================================
 
 void Stage::visit(Visitor &visitor, const VisitArgs &args) {
-  ToonzScene *scene        = args.m_scene;
+  flareScene *scene        = args.m_scene;
   TXsheet *xsh             = args.m_xsh;
   int row                  = args.m_row;
   int col                  = args.m_col;
@@ -985,7 +985,7 @@ void Stage::visit(Visitor &visitor, const VisitArgs &args) {
 
 //-----------------------------------------------------------------------------
 
-void Stage::visit(Visitor &visitor, ToonzScene *scene, TXsheet *xsh, int row) {
+void Stage::visit(Visitor &visitor, flareScene *scene, TXsheet *xsh, int row) {
   Stage::VisitArgs args;
   args.m_scene = scene;
   args.m_xsh   = xsh;
@@ -1034,3 +1034,4 @@ void Stage::visit(Visitor &visitor, TXshLevel *level, const TFrameId &fid,
     visit(visitor, level->getSimpleLevel(), fid, osm, isPlaying,
           (int)isGuidedDrawingEnabled, guidedBackStroke, guidedFrontStroke);
 }
+

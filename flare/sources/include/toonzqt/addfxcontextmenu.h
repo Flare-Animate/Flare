@@ -23,7 +23,7 @@ class PluginInformation;
 //! Create Insert - Add - Replace menus for the context menu of a
 //! FxSchematicScene and its items!
 //! This method is used to create and keep updated the three menus.
-//! Each menus contains all toonz special effect and effect presets.
+//! Each menus contains all flare special effect and effect presets.
 class AddFxContextMenu final : public QObject {
   Q_OBJECT
 
@@ -80,3 +80,4 @@ public slots:
 };
 
 #endif  // ADDFXCONTEXTMENU_H
+

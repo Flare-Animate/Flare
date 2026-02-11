@@ -1,23 +1,23 @@
 
 
-#include "toonz/scriptbinding_scene.h"
-#include "toonz/scriptbinding_level.h"
-#include "toonz/scriptbinding_files.h"
-#include "toonz/txshleveltypes.h"
+#include "flare/scriptbinding_scene.h"
+#include "flare/scriptbinding_level.h"
+#include "flare/scriptbinding_files.h"
+#include "flare/txshleveltypes.h"
 
 #include "tsystem.h"
 #include "tfiletype.h"
 
-#include "toonz/tproject.h"
-#include "toonz/toonzscene.h"
-#include "toonz/txsheet.h"
-#include "toonz/txshcell.h"
-#include "toonz/levelset.h"
+#include "flare/tproject.h"
+#include "flare/flarescene.h"
+#include "flare/txsheet.h"
+#include "flare/txshcell.h"
+#include "flare/levelset.h"
 
 namespace TScriptBinding {
 
 Scene::Scene() {
-  m_scene = new ToonzScene();
+  m_scene = new flareScene();
   TProjectManager::instance()->initializeScene(m_scene);
 }
 
@@ -104,13 +104,13 @@ QScriptValue Scene::newLevel(const QString &levelTypeStr,
   int levelType = NO_XSHLEVEL;
   if (levelTypeStr == "Vector")
     levelType = PLI_XSHLEVEL;
-  else if (levelTypeStr == "ToonzRaster")
+  else if (levelTypeStr == "flareRaster")
     levelType = TZP_XSHLEVEL;
   else if (levelTypeStr == "Raster")
     levelType = OVL_XSHLEVEL;
   if (levelType == NO_XSHLEVEL)
     return context()->throwError(
-        tr("Bad level type (%1): must be Vector,Raster or ToonzRaster")
+        tr("Bad level type (%1): must be Vector,Raster or flareRaster")
             .arg(levelTypeStr));
 
   if (m_scene->getLevelSet()->hasLevel(levelName.toStdWString()))
@@ -230,3 +230,4 @@ QScriptValue Scene::deleteColumn(int col) {
 }
 
 }  // namespace TScriptBinding
+

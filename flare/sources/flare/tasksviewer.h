@@ -6,10 +6,10 @@
 #include <QSplitter>
 #include <QScrollArea>
 
-#include "toonzqt/treemodel.h"
-#include "toonzqt/lineedit.h"
-#include "toonzqt/checkbox.h"
-#include "toonz/observer.h"
+#include "flareqt/treemodel.h"
+#include "flareqt/lineedit.h"
+#include "flareqt/checkbox.h"
+#include "flare/observer.h"
 #include "batches.h"
 
 class TFarmTask;
@@ -196,3 +196,4 @@ protected:
 //=============================================================================
 
 #endif  // TASKSVIEWER_H
+

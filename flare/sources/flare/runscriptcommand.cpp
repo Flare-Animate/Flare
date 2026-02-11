@@ -1,14 +1,14 @@
 
 
 #include "columncommand.h"
-#include "toonzqt/menubarcommand.h"
+#include "flareqt/menubarcommand.h"
 #include "tmsgcore.h"
 #include "tfilepath.h"
 #include "tapp.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/tproject.h"
-#include "toonz/toonzscene.h"
-#include "toonz/toonzfolders.h"
+#include "flare/tscenehandle.h"
+#include "flare/tproject.h"
+#include "flare/flarescene.h"
+#include "flare/flarefolders.h"
 #include "filebrowserpopup.h"
 #include "floatingpanelcommand.h"
 #include "scriptconsolepanel.h"
@@ -26,16 +26,16 @@ void RunScriptCommand::execute() {
   static GenericLoadFilePopup *popup = 0;
   if (popup == 0) {
     popup        = new GenericLoadFilePopup(QObject::tr("Run script"));
-    TFilePath fp = ToonzFolder::getLibraryFolder() + "scripts";
+    TFilePath fp = flareFolder::getLibraryFolder() + "scripts";
     TFileStatus fpStatus(fp);
     if (!fpStatus.doesExist() || !fpStatus.isDirectory())
-      fp = ToonzFolder::getLibraryFolder();
+      fp = flareFolder::getLibraryFolder();
 
     QStringList types;
     types << "qs"
           << "js"
           << "txt"
-          << "toonzscript";
+          << "flarescript";
     popup->setFilterTypes(types);
 
     popup->setFolder(fp);
@@ -69,3 +69,4 @@ TFilePath fp(fileNameStr.toStdWString());
 if(fp.getType()=="") fp = fp.withType("mpath");
 */
 }
+

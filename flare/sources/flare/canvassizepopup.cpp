@@ -7,21 +7,21 @@
 #include "tapp.h"
 
 // TnzQt includes
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/doublefield.h"
-#include "toonzqt/checkbox.h"
-#include "toonzqt/icongenerator.h"
+#include "flareqt/menubarcommand.h"
+#include "flareqt/doublefield.h"
+#include "flareqt/checkbox.h"
+#include "flareqt/icongenerator.h"
 
 // TnzLib includes
-#include "toonz/txshlevelhandle.h"
-#include "toonz/levelproperties.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/levelproperties.h"
 
 // TnzBase includes
 #include "tunit.h"
 
 // TnzCore includes
 #include "trasterimage.h"
-#include "ttoonzimage.h"
+#include "tflareimage.h"
 #include "trop.h"
 #include "tundo.h"
 #include "tconvert.h"
@@ -63,11 +63,11 @@ public:
     TImageCache::instance()->add(m_newImageId, newImage);
 
     TRasterP oldRaster, newRaster;
-    TToonzImageP ti(oldImage);
+    TflareImageP ti(oldImage);
     TRasterImageP ri(oldImage);
     if (ti) {
       oldRaster = ti->getRaster();
-      ti        = TToonzImageP(newImage);
+      ti        = TflareImageP(newImage);
       newRaster = ti->getRaster();
     } else if (ri) {
       oldRaster = ri->getRaster();
@@ -723,7 +723,7 @@ void CanvasSizePopup::onOkBtn() {
   for (i = 0; i < (int)fids.size(); i++) {
     TImageP img = m_sl->getFrame(fids[i], true);
     TRasterImageP ri(img);
-    TToonzImageP ti(img);
+    TflareImageP ti(img);
 
     if (ri) {
       TRasterP ras    = ri->getRaster();
@@ -749,7 +749,7 @@ void CanvasSizePopup::onOkBtn() {
       newRas->copy(ras, pos);
       TRect box;
       TRop::computeBBox(newRas, box);
-      TToonzImageP newImg(newRas, box);
+      TflareImageP newImg(newRas, box);
       double xdpi, ydpi;
       ti->getDpi(xdpi, ydpi);
       newImg->setDpi(xdpi, ydpi);
@@ -771,3 +771,4 @@ void CanvasSizePopup::onOkBtn() {
 //=============================================================================
 
 OpenPopupCommandHandler<CanvasSizePopup> openCanvasSizePopup(MI_CanvasSize);
+

@@ -11,14 +11,14 @@
 #include "tools/cursors.h"
 #include "tools/toolhandle.h"
 
-#include "toonz/tframehandle.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/strokegenerator.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/tobjecthandle.h"
-#include "toonz/stage2.h"
-#include "toonz/tstageobject.h"
+#include "flare/tframehandle.h"
+#include "flare/tcolumnhandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/strokegenerator.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/tobjecthandle.h"
+#include "flare/stage2.h"
+#include "flare/tstageobject.h"
 
 #include <QKeyEvent>
 
@@ -371,7 +371,7 @@ void ControlPointEditorTool::draw() {
         Black;  // TransparencyCheck::instance()->isEnabled()?TPixel32::White:TPixel32::Black;
     drawRect(m_selectingRect, color1, 0x3F33, true);
   } else if (m_action == FREEHAND_SELECTION && !m_track.isEmpty()) {
-    TPixel color = ToonzCheck::instance()->getChecks() & ToonzCheck::eBlackBg
+    TPixel color = flareCheck::instance()->getChecks() & flareCheck::eBlackBg
                        ? TPixel32::White
                        : TPixel32::Black;
     tglColor(color);

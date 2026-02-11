@@ -9,27 +9,27 @@
 #include "tools/toolutils.h"
 
 // TnzQt includes
-#include "toonzqt/selectioncommandids.h"
-#include "toonzqt/imageutils.h"
-#include "toonzqt/tselectionhandle.h"
-#include "toonzqt/strokesdata.h"
-#include "toonzqt/rasterimagedata.h"
-#include "toonzqt/dvdialog.h"
+#include "flareqt/selectioncommandids.h"
+#include "flareqt/imageutils.h"
+#include "flareqt/tselectionhandle.h"
+#include "flareqt/strokesdata.h"
+#include "flareqt/rasterimagedata.h"
+#include "flareqt/dvdialog.h"
 
 // TnzLib includes
-#include "toonz/tpalettehandle.h"
-#include "toonz/palettecontroller.h"
-#include "toonz/tobjecthandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/txsheethandle.h"
+#include "flare/tpalettehandle.h"
+#include "flare/palettecontroller.h"
+#include "flare/tobjecthandle.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/tscenehandle.h"
+#include "flare/txsheethandle.h"
 
-#include "toonz/tcenterlinevectorizer.h"
-#include "toonz/stage.h"
-#include "toonz/tstageobject.h"
-#include "toonz/toonzscene.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/tframehandle.h"
+#include "flare/tcenterlinevectorizer.h"
+#include "flare/stage.h"
+#include "flare/tstageobject.h"
+#include "flare/flarescene.h"
+#include "flare/sceneproperties.h"
+#include "flare/tframehandle.h"
 
 // TnzCore includes
 #include "tthreadmessage.h"
@@ -46,8 +46,8 @@
 //=============================================================================
 namespace {
 
-void vectorizeToonzImageData(const TVectorImageP &image,
-                             const ToonzImageData *tiData,
+void vectorizeflareImageData(const TVectorImageP &image,
+                             const flareImageData *tiData,
                              std::set<int> &indexes, TPalette *palette,
                              const VectorizerConfiguration &config) {
   if (!tiData) return;
@@ -61,7 +61,7 @@ void vectorizeToonzImageData(const TVectorImageP &image,
   tiData->getData(ras, dpiX, dpiY, rects, strokes, originalStrokes, affine,
                   image->getPalette());
   TRasterCM32P rasCM = ras;
-  TToonzImageP ti(rasCM, rasCM->getBounds());
+  TflareImageP ti(rasCM, rasCM->getBounds());
   VectorizerCore vc;
   TVectorImageP vi = vc.vectorize(ti, config, palette);
   assert(vi);
@@ -105,15 +105,15 @@ bool pasteStrokesWithoutUndo(TVectorImageP image, std::set<int> &outIndexes,
   QClipboard *clipboard = QApplication::clipboard();
   const StrokesData *stData =
       dynamic_cast<const StrokesData *>(clipboard->mimeData());
-  const ToonzImageData *tiData =
-      dynamic_cast<const ToonzImageData *>(clipboard->mimeData());
+  const flareImageData *tiData =
+      dynamic_cast<const flareImageData *>(clipboard->mimeData());
   const FullColorImageData *fciData =
       dynamic_cast<const FullColorImageData *>(clipboard->mimeData());
   std::set<int> indexes = outIndexes;
   if (stData)
     stData->getImage(image, indexes, insert);
   else if (tiData) {
-    ToonzScene *scene = sceneHandle->getScene();
+    flareScene *scene = sceneHandle->getScene();
     assert(scene);
 
     const VectorizerParameters *vParams =
@@ -122,7 +122,7 @@ bool pasteStrokesWithoutUndo(TVectorImageP image, std::set<int> &outIndexes,
 
     std::unique_ptr<VectorizerConfiguration> config(
         vParams->getCurrentConfiguration(0.0));
-    vectorizeToonzImageData(image, tiData, indexes, image->getPalette(),
+    vectorizeflareImageData(image, tiData, indexes, image->getPalette(),
                             *config);
   } else if (fciData) {
     DVGui::error(QObject::tr(
@@ -924,3 +924,4 @@ bool StrokeSelection::isEditable() {
 
   return true;
 }
+

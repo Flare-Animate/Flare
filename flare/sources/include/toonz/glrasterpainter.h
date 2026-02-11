@@ -2,11 +2,11 @@
 
 #include "tgeometry.h"
 #include "trasterimage.h"
-#include "ttoonzimage.h"
+#include "tflareimage.h"
 
 #undef DVAPI
 #undef DVVAR
-#ifdef TOONZLIB_EXPORTS
+#ifdef flareLIB_EXPORTS
 #define DVAPI DV_EXPORT_API
 #define DVVAR DV_EXPORT_VAR
 #else
@@ -18,10 +18,11 @@ namespace GLRasterPainter {
 
 DVAPI void drawRaster(const TAffine &aff, const TRasterImageP &ri,
                       bool premultiplies = false);
-DVAPI void drawRaster(const TAffine &aff, const TToonzImageP &ti,
+DVAPI void drawRaster(const TAffine &aff, const TflareImageP &ti,
                       bool showSavebox);
 DVAPI void drawRaster(const TAffine &aff, UCHAR *buffer, int wrap, int bpp,
                       const TDimension &rasSize, bool premultiplied);
 DVAPI void drawRaster(const TImageP &image, const TDimension &viewerSize,
                       const TAffine &aff, bool showSavebox, bool premultiplied);
 }
+

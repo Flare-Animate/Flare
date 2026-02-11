@@ -3,8 +3,8 @@
 #ifndef AUTOINPUTCELLNUMBERPOPUP_H
 #define AUTOINPUTCELLNUMBERPOPUP_H
 
-#include "toonzqt/dvdialog.h"
-#include "toonz/txshlevel.h"
+#include "flareqt/dvdialog.h"
+#include "flare/txshlevel.h"
 
 class TSelection;
 class QPushButton;

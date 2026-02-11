@@ -1,11 +1,11 @@
 // Glew include
 #include <GL/glew.h>
 
-#include "toonz/imagepainter.h"
+#include "flare/imagepainter.h"
 // Include shared flipbook background toggle settings (e.g., for m_bg) from
-// toonz/
-#include "toonz/flipbooksettings.h"
-#include "toonz/glrasterpainter.h"
+// flare/
+#include "flare/flipbooksettings.h"
+#include "flare/glrasterpainter.h"
 #include "trastercm.h"
 #include "tropcm.h"
 #include "tpalette.h"
@@ -17,10 +17,10 @@
 #include "tvectorgl.h"
 #include "trasterimage.h"
 #include "timagecache.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/stage2.h"
-#include "toonz/preferences.h"
-#include "toonz/fill.h"
+#include "flare/sceneproperties.h"
+#include "flare/stage2.h"
+#include "flare/preferences.h"
+#include "flare/fill.h"
 
 using namespace ImagePainter;
 
@@ -73,27 +73,27 @@ inline void quickput(const TRasterP &rout, const TRasterP &rin,
     if (useChecks) {
       bool inksOnly       = false;
       TPixel32 colorscale = TPixel32(0, 0, 0, 255);
-      int tc              = ToonzCheck::instance()->getChecks();
-      int index           = ToonzCheck::instance()->getColorIndex();
+      int tc              = flareCheck::instance()->getChecks();
+      int index           = flareCheck::instance()->getColorIndex();
 
-      if (tc & ToonzCheck::eGap) {
+      if (tc & flareCheck::eGap) {
         srcCM32 = srcCM32->clone();
         AreaFiller(srcCM32).rectFill(srcCM32->getBounds(), 1, true, true,
                                      false);
       }
 
-      if (tc == 0 || tc == ToonzCheck::eBlackBg)
+      if (tc == 0 || tc == flareCheck::eBlackBg)
         TRop::quickPut(rout, srcCM32, palette, aff, colorscale, inksOnly);
       else {
         TRop::CmappedQuickputSettings settings;
         settings.m_globalColorScale = colorscale;
         settings.m_inksOnly         = inksOnly;
         settings.m_transparencyCheck =
-            tc & (ToonzCheck::eTransparency | ToonzCheck::eGap);
-        settings.m_blackBgCheck = tc & ToonzCheck::eBlackBg;
+            tc & (flareCheck::eTransparency | flareCheck::eGap);
+        settings.m_blackBgCheck = tc & flareCheck::eBlackBg;
         settings.m_inkIndex =
-            tc & ToonzCheck::eInk ? index : (tc & ToonzCheck::eInk1 ? 1 : -1);
-        settings.m_paintIndex = tc & ToonzCheck::ePaint ? index : -1;
+            tc & flareCheck::eInk ? index : (tc & flareCheck::eInk1 ? 1 : -1);
+        settings.m_paintIndex = tc & flareCheck::ePaint ? index : -1;
         Preferences::instance()->getTranspCheckData(
             settings.m_transpCheckBg, settings.m_transpCheckInk,
             settings.m_transpCheckPaint);
@@ -185,7 +185,7 @@ public:
                            const TPointD &offs = TPointD());
   void onVectorImage(TVectorImage *vi);
   void onRasterImage(TRasterImage *ri);
-  void onToonzImage(TToonzImage *ti);
+  void onflareImage(TflareImage *ti);
   void drawBlank();
   TRasterP buildCheckboard(int bg, const TDimension &dim,
                            TRasterP templateRas = TRaster32P());
@@ -281,11 +281,11 @@ void Painter::flushRasterImages(const TRect &loadbox, double compareX,
 
     TImageP refimg =
         TImageCache::instance()->get(QString("TnzCompareImg"), false);
-    if ((TToonzImageP)refimg || (TRasterImageP)refimg) {
+    if ((TflareImageP)refimg || (TRasterImageP)refimg) {
       // draw left/up part of the screen...
       TRasterP raux, rref;
-      if ((TToonzImageP)refimg) {
-        rref      = ((TToonzImageP)refimg)->getCMapped();
+      if ((TflareImageP)refimg) {
+        rref      = ((TflareImageP)refimg)->getCMapped();
         m_palette = refimg->getPalette();
       } else
         rref = ((TRasterImageP)refimg)->getRaster();
@@ -543,10 +543,10 @@ void Painter::onVectorImage(TVectorImage *vi) {
                        true  // alfa enabled
   );
   if (m_vSettings.m_useChecks) {
-    ToonzCheck *tc         = ToonzCheck::instance();
-    int checks             = tc->getChecks();  // &ToonzCheck::eBlackBg
-    rd.m_inkCheckEnabled   = checks & ToonzCheck::eInk;
-    rd.m_paintCheckEnabled = checks & ToonzCheck::ePaint;
+    flareCheck *tc         = flareCheck::instance();
+    int checks             = tc->getChecks();  // &flareCheck::eBlackBg
+    rd.m_inkCheckEnabled   = checks & flareCheck::eInk;
+    rd.m_paintCheckEnabled = checks & flareCheck::ePaint;
     rd.m_colorCheckIndex   = tc->getColorIndex();
   }
   tglDraw(rd, vi);
@@ -574,7 +574,7 @@ void Painter::onRasterImage(TRasterImage *ri) {
 
 //-----------------------------------------------------------------------------
 
-void Painter::onToonzImage(TToonzImage *ti) {
+void Painter::onflareImage(TflareImage *ti) {
   TDimension imageSize =
       (m_imageSize.lx == 0 ? ti->getRaster()->getSize() : m_imageSize);
 
@@ -672,7 +672,7 @@ void ImagePainter::paintImage(const TImageP &image, const TDimension &imageSize,
 
   TRasterImageP rimg = (TRasterImageP)image;
   TVectorImageP vimg = (TVectorImageP)image;
-  TToonzImageP timg  = (TToonzImageP)image;
+  TflareImageP timg  = (TflareImageP)image;
 
   TRect clipRect(viewerSize);
   clipRect -= TPoint(viewerSize.lx * 0.5, viewerSize.ly * 0.5);
@@ -684,7 +684,7 @@ void ImagePainter::paintImage(const TImageP &image, const TDimension &imageSize,
   else if (vimg)
     painter.onVectorImage(vimg.getPointer());
   else if (timg)
-    painter.onToonzImage(timg.getPointer());
+    painter.onflareImage(timg.getPointer());
 
   if (visualSettings.m_blankColor != TPixel::Transparent) {
     painter.drawBlank();
@@ -708,3 +708,4 @@ void ImagePainter::paintImage(const TImageP &image, const TDimension &imageSize,
     drawCompareLines(viewerSize, compareSettings.m_compareX,
                      compareSettings.m_compareY);
 }
+

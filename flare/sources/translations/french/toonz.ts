@@ -290,12 +290,12 @@ Please create this folder before using the render farm.</source>
 S&apos;il vous plaît créer ce dossier avant d&apos;utiliser la ferme de rendu.</translation>
     </message>
     <message>
-        <source>Unable to connect to the ToonzFarm Controller
+        <source>Unable to connect to the flareFarm Controller
    The Controller should run on %1 at port %2
-   Please start the Controller before using the ToonzFarm</source>
-        <translation>Impossible de se connecter au contrôleur ToonzFarm
+   Please start the Controller before using the flareFarm</source>
+        <translation>Impossible de se connecter au contrôleur flareFarm
 Le contrôleur devrait fonctionner sur % 1 sur le port %2
-S&apos;il vous plaît lancer le contrôleur avant d&apos;utiliser le ToonzFarm</translation>
+S&apos;il vous plaît lancer le contrôleur avant d&apos;utiliser le flareFarm</translation>
     </message>
 </context>
 <context>
@@ -1542,7 +1542,7 @@ Que voulez-vous faire?</translation>
     </message>
     <message>
         <source>When activated, styles of the default palette
-($TOONZSTUDIOPALETTE\cleanup_default.tpl) will 
+($flareSTUDIOPALETTE\cleanup_default.tpl) will 
 be appended to the palette after conversion in 
 order to save the effort of creating styles 
 before color designing.</source>
@@ -2396,8 +2396,8 @@ Do you want to overwrite it?</translation>
         <translation>Il n&apos;y a pas d&apos;images rendus à sauver.</translation>
     </message>
     <message>
-        <source>It is not possible to take or compare snapshots for Toonz vector levels.</source>
-        <translation>Il n&apos;est pas possible de prendre des instantanés ou comparer les niveaux vecteurs de Toonz.</translation>
+        <source>It is not possible to take or compare snapshots for flare vector levels.</source>
+        <translation>Il n&apos;est pas possible de prendre des instantanés ou comparer les niveaux vecteurs de flare.</translation>
     </message>
 </context>
 <context>
@@ -2530,7 +2530,7 @@ Do you want to overwrite it?</translation>
         <translation>%1 n&apos; existe pas.</translation>
     </message>
     <message>
-        <source>Import Toonz Lip Sync File</source>
+        <source>Import flare Lip Sync File</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -2809,11 +2809,11 @@ Voulez-vous le créer?</translation>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Toonz Vector Level</source>
+        <source>flare Vector Level</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Toonz Raster Level</source>
+        <source>flare Raster Level</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -2944,11 +2944,11 @@ Voulez-vous le créer?</translation>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Toonz Vector level</source>
+        <source>flare Vector level</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Toonz Raster level</source>
+        <source>flare Raster level</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -3517,7 +3517,7 @@ Please use the frame numbers for reference.</source>
         <translation>Le chemin du fichier manque.</translation>
     </message>
     <message>
-        <source>Import Toonz Lip Sync File</source>
+        <source>Import flare Lip Sync File</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -5252,11 +5252,11 @@ Please use the frame numbers for reference.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>&amp;New Toonz Raster Level</source>
+        <source>&amp;New flare Raster Level</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>New Toonz Raster Level</source>
+        <source>New flare Raster Level</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -5320,7 +5320,7 @@ Please use the frame numbers for reference.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Vectors to Toonz Raster</source>
+        <source>Vectors to flare Raster</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -5456,11 +5456,11 @@ Please use the frame numbers for reference.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>http://opentoonz.readthedocs.io</source>
+        <source>http://flare.readthedocs.io</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>&amp;Import Toonz Lip Sync File...</source>
+        <source>&amp;Import flare Lip Sync File...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -5602,11 +5602,11 @@ or you may delete necessary files for it.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>https://github.com/opentoonz/opentoonz/releases/latest</source>
+        <source>https://github.com/flare/flare/releases/latest</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>https://groups.google.com/forum/#!forum/opentoonz_en</source>
+        <source>https://groups.google.com/forum/#!forum/flare_en</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -7019,11 +7019,11 @@ Set the output folder path to the subfolder as well.</source>
         <translation>Type de Niveau par défaut:</translation>
     </message>
     <message>
-        <source>Toonz Vector Level</source>
+        <source>flare Vector Level</source>
         <translation></translation>
     </message>
     <message>
-        <source>Toonz Raster Level</source>
+        <source>flare Raster Level</source>
         <translation></translation>
     </message>
     <message>
@@ -7215,7 +7215,7 @@ Set the output folder path to the subfolder as well.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Replace Toonz Level after SaveLevelAs command</source>
+        <source>Replace flare Level after SaveLevelAs command</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -8496,8 +8496,8 @@ Are you sure you want to revert to previous version?</source>
         <translation>Êtes-vous sûr de vouloir supprimer la couleur de nettoyage sélectionné?</translation>
     </message>
     <message>
-        <source>The rooms will be reset the next time you run Toonz.</source>
-        <translation>L&apos;espace de travail sera remis lors de la prochaine exécution de Toonz.</translation>
+        <source>The rooms will be reset the next time you run flare.</source>
+        <translation>L&apos;espace de travail sera remis lors de la prochaine exécution de flare.</translation>
     </message>
     <message>
         <source>Saving previewed frames....</source>
@@ -8608,8 +8608,8 @@ Do you want to overwrite it?</source>
 Voulez-vous le remplacer?</translation>
     </message>
     <message>
-        <source>File %1 doesn&apos;t look like a TOONZ Scene</source>
-        <translation>Le fichier %1 ne semble pas un plan de Toonz.</translation>
+        <source>File %1 doesn&apos;t look like a flare Scene</source>
+        <translation>Le fichier %1 ne semble pas un plan de flare.</translation>
     </message>
     <message>
         <source>It is not possible to load the scene %1 because it does not belong to any project.</source>
@@ -8661,8 +8661,8 @@ Certains niveaux n&apos;ont pas été chargés, car leur version n&apos;est pas 
         <translation>Les cellules sélectionnées doivent être dans la même colonne.</translation>
     </message>
     <message>
-        <source>Match lines can be deleted from Toonz raster levels only</source>
-        <translation>Les match lines peuvent être supprimées seulement des niveaux Toonz raster.</translation>
+        <source>Match lines can be deleted from flare raster levels only</source>
+        <translation>Les match lines peuvent être supprimées seulement des niveaux flare raster.</translation>
     </message>
     <message>
         <source>Partially Edited</source>
@@ -8729,8 +8729,8 @@ Certains niveaux n&apos;ont pas été chargés, car leur version n&apos;est pas 
         <translation>Il n&apos;est pas possible d&apos;appliquer des lignes de match à une colonne contenant plus d&apos;un niveau.</translation>
     </message>
     <message>
-        <source>Match lines can be applied to Toonz raster levels only.</source>
-        <translation>Les lignes de match peut être appliquée seulement à des niveaux Toonz Raster.</translation>
+        <source>Match lines can be applied to flare raster levels only.</source>
+        <translation>Les lignes de match peut être appliquée seulement à des niveaux flare Raster.</translation>
     </message>
     <message>
         <source>The style index you specified is not available in the palette of the destination level.</source>
@@ -8765,8 +8765,8 @@ Certains niveaux n&apos;ont pas été chargés, car leur version n&apos;est pas 
         <translation>Seulement les niveaux vecteur peuvent être fusionnées à un niveau vecteur.</translation>
     </message>
     <message>
-        <source>It is possible to merge only Toonz vector levels or standard raster levels.</source>
-        <translation>Il est possible de fusionner uniquement les niveaux de vecteurs ou les niveaux Toonz raster.</translation>
+        <source>It is possible to merge only flare vector levels or standard raster levels.</source>
+        <translation>Il est possible de fusionner uniquement les niveaux de vecteurs ou les niveaux flare raster.</translation>
     </message>
     <message>
         <source>It is not possible to display the file %1: no player associated with its format</source>
@@ -8887,8 +8887,8 @@ Voulez-vous enregistrer vos modifications?</translation>
         <translation>Paramètres de Nettoyage</translation>
     </message>
     <message>
-        <source>The scene %1 was created with Toonz and cannot be loaded in LineTest.</source>
-        <translation type="vanished">La scène %1 a été créé avec Toonz et ne peut pas être chargé dans LineTest.</translation>
+        <source>The scene %1 was created with flare and cannot be loaded in LineTest.</source>
+        <translation type="vanished">La scène %1 a été créé avec flare et ne peut pas être chargé dans LineTest.</translation>
     </message>
     <message>
         <source>File %1 already exists.
@@ -9351,7 +9351,7 @@ Are you sure ?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Cannot open menubar settings template file. Re-installing Toonz will solve this problem.</source>
+        <source>Cannot open menubar settings template file. Re-installing flare will solve this problem.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -9359,7 +9359,7 @@ Are you sure ?</source>
         <translation type="unfinished">Visiter le Site Web</translation>
     </message>
     <message>
-        <source>https://opentoonz.github.io/e/</source>
+        <source>https://flare.github.io/e/</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -10053,7 +10053,7 @@ Do you want to create it?</source>
     </message>
 </context>
 <context>
-    <name>RenameAsToonzPopup</name>
+    <name>RenameAsflarePopup</name>
     <message>
         <source>Rename</source>
         <translation>Renommer</translation>
@@ -13723,3 +13723,4 @@ Hold F3 Key on the Viewer to Show This Frame Only</source>
     </message>
 </context>
 </TS>
+

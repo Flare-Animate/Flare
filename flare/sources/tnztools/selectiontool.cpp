@@ -8,8 +8,8 @@
 #include "drawutil.h"
 #include "tools/toolhandle.h"
 #include "tools/cursors.h"
-#include "toonz/stage2.h"
-#include "toonz/tobjecthandle.h"
+#include "flare/stage2.h"
+#include "flare/tobjecthandle.h"
 
 #include <QKeyEvent>
 
@@ -932,7 +932,7 @@ void SelectionTool::updateTranslation() {
 
 void SelectionTool::updateAction(TPointD pos, const TMouseEvent &e) {
   TImageP image    = getImage(false);
-  TToonzImageP ti  = image;
+  TflareImageP ti  = image;
   TRasterImageP ri = image;
   TVectorImageP vi = image;
 
@@ -1158,7 +1158,7 @@ bool SelectionTool::keyDown(QKeyEvent *event) {
 
   TImageP image = getImage(true);
 
-  TToonzImageP ti  = (TToonzImageP)image;
+  TflareImageP ti  = (TflareImageP)image;
   TRasterImageP ri = (TRasterImageP)image;
   TVectorImageP vi = (TVectorImageP)image;
 
@@ -1180,7 +1180,7 @@ bool SelectionTool::keyDown(QKeyEvent *event) {
 
 int SelectionTool::getCursorId() const {
   TImageP image    = getImage(false);
-  TToonzImageP ti  = (TToonzImageP)image;
+  TflareImageP ti  = (TflareImageP)image;
   TRasterImageP ri = (TRasterImageP)image;
   TVectorImageP vi = (TVectorImageP)image;
 
@@ -1193,7 +1193,7 @@ int SelectionTool::getCursorId() const {
 
 void SelectionTool::drawPolylineSelection() {
   if (m_polyline.empty()) return;
-  TPixel color = ToonzCheck::instance()->getChecks() & ToonzCheck::eBlackBg
+  TPixel color = flareCheck::instance()->getChecks() & flareCheck::eBlackBg
                      ? TPixel32::White
                      : TPixel32::Black;
   tglColor(color);
@@ -1208,7 +1208,7 @@ void SelectionTool::drawPolylineSelection() {
 
 void SelectionTool::drawFreehandSelection() {
   if (m_track.isEmpty()) return;
-  TPixel color = ToonzCheck::instance()->getChecks() & ToonzCheck::eBlackBg
+  TPixel color = flareCheck::instance()->getChecks() & flareCheck::eBlackBg
                      ? TPixel32::White
                      : TPixel32::Black;
   tglColor(color);
@@ -1407,3 +1407,4 @@ bool SelectionTool::isEventAcceptable(QEvent *e) {
   return (key == Qt::Key_Up || key == Qt::Key_Down || key == Qt::Key_Left ||
           key == Qt::Key_Right);
 }
+

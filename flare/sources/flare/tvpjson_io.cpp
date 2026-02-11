@@ -1,24 +1,24 @@
 #include "tvpjson_io.h"
 
 #include "tsystem.h"
-#include "toonz/toonzscene.h"
-#include "toonz/tproject.h"
-#include "toonz/levelset.h"
-#include "toonz/txsheet.h"
-#include "toonz/txshcell.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/txshchildlevel.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/preferences.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/tstageobject.h"
+#include "flare/flarescene.h"
+#include "flare/tproject.h"
+#include "flare/levelset.h"
+#include "flare/txsheet.h"
+#include "flare/txshcell.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/txshchildlevel.h"
+#include "flare/txsheethandle.h"
+#include "flare/tscenehandle.h"
+#include "flare/preferences.h"
+#include "flare/sceneproperties.h"
+#include "flare/tstageobject.h"
 #include "toutputproperties.h"
-#include "toonz/tstageobjecttree.h"
-#include "toonz/tcamera.h"
+#include "flare/tstageobjecttree.h"
+#include "flare/tcamera.h"
 
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/gutil.h"
+#include "flareqt/menubarcommand.h"
+#include "flareqt/gutil.h"
 
 #include "tapp.h"
 #include "menubarcommandids.h"
@@ -159,7 +159,7 @@ void TvpJsonLayer::write(QJsonObject& json) const {
   json["link"] = linkArray;
 }
 
-void TvpJsonLayer::build(int index, ToonzScene* scene, TXshCellColumn* column) {
+void TvpJsonLayer::build(int index, flareScene* scene, TXshCellColumn* column) {
   m_position = index;
   column->getRange(m_start, m_end);
 
@@ -168,7 +168,7 @@ void TvpJsonLayer::build(int index, ToonzScene* scene, TXshCellColumn* column) {
   TFilePath sceneFolder =
       scene->decodeFilePath(scene->getScenePath().getParentDir());
 
-  // JSON‚É‹L“ü‰Â”\‚©‚Ç‚¤‚©ƒ`ƒFƒbƒNÏ‚İ‚ÌƒŒƒxƒ‹
+  // JSONï¿½É‹Lï¿½ï¿½ï¿½Â”\ï¿½ï¿½ï¿½Ç‚ï¿½ï¿½ï¿½ï¿½`ï¿½Fï¿½bï¿½Nï¿½Ï‚İ‚Ìƒï¿½ï¿½xï¿½ï¿½
   QMap<TXshLevel*, TFilePath> checkedLevels;
   // register the firstly-found level
   TXshLevel* firstFoundLevel = nullptr;
@@ -236,7 +236,7 @@ void TvpJsonLayer::build(int index, ToonzScene* scene, TXshCellColumn* column) {
 
     QString instance_name;
     QString file;
-    if (cell.isEmpty()) {  // ‹óƒRƒ}‚Ìê‡
+    if (cell.isEmpty()) {  // ï¿½ï¿½Rï¿½}ï¿½Ìê‡
       instance_name = QString::number(0);
       TFrameId zeroFid(0, 0, frameFormats[firstFoundLevel].first,
                        frameFormats[firstFoundLevel].second);
@@ -327,7 +327,7 @@ void TvpJsonClip::write(QJsonObject& json) const {
   json["layers"] = layersArray;
 }
 
-void TvpJsonClip::build(ToonzScene* scene, TXsheet* xsheet) {
+void TvpJsonClip::build(flareScene* scene, TXsheet* xsheet) {
   TFilePath fp = scene->getScenePath();
   m_name       = QString::fromStdString(fp.getName());
 
@@ -392,7 +392,7 @@ void TvpJsonProject::write(QJsonObject& json) const {
   json["clip"] = clipObject;
 }
 
-void TvpJsonProject::build(ToonzScene* scene, TXsheet* xsheet) {
+void TvpJsonProject::build(flareScene* scene, TXsheet* xsheet) {
   TOutputProperties* outputProperties =
       scene->getProperties()->getOutputProperties();
   m_formatExtension =
@@ -436,7 +436,7 @@ void TvpJsonData::write(QJsonObject& json) const {
   json["project"] = projectObject;
 }
 
-void TvpJsonData::build(ToonzScene* scene, TXsheet* xsheet) {
+void TvpJsonData::build(flareScene* scene, TXsheet* xsheet) {
   // currently this i/o is based on version 5.1 files
   m_version.setVersion(5, 1);
   m_project.build(scene, xsheet);
@@ -451,7 +451,7 @@ public:
 } exportTvpJsonCommand;
 
 void ExportTvpJsonCommand::execute() {
-  ToonzScene* scene = TApp::instance()->getCurrentScene()->getScene();
+  flareScene* scene = TApp::instance()->getCurrentScene()->getScene();
   if (scene->isUntitled()) {
     DVGui::error(
         QObject::tr("TVPaint JSON file cannot be exported from untitled scene. "
@@ -515,3 +515,4 @@ void ExportTvpJsonCommand::execute() {
       QDesktopServices::openUrl(QUrl::fromLocalFile(folderPath.getQString()));
   }
 }
+

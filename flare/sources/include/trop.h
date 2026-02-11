@@ -47,7 +47,7 @@ public:
 //    TRop  namespace
 //********************************************************************************
 
-//! The TRop namespace provides various algorithms to operate with Toonz's
+//! The TRop namespace provides various algorithms to operate with flare's
 //! raster types
 namespace TRop {
 
@@ -386,25 +386,25 @@ DVAPI void swapRBChannels(const TRaster32P &r);
 #endif
 
 ///////////////////////////////////////
-//  Utilities for Toonz 4.6 porting  //
+//  Utilities for flare 4.6 porting  //
 ///////////////////////////////////////
 
-//! Convert TRasterP in an old toonz raster!
+//! Convert TRasterP in an old flare raster!
 /*! Use the same buffer, not creates a new raster (the palette is new instead!)
  */
 DVAPI _RASTER *convertRaster50to46(const TRasterP &inRas,
                                    const TPaletteP &inPalette);
 
-//! Release the old toonz raster.
+//! Release the old flare raster.
 /*! If the \b doReleaseBuffer is true, the buffer is released
     (the palette is always deleted!)
   */
 DVAPI void releaseRaster46(_RASTER *&r, bool doReleaseBuffer = false);
 
-//! Read an image in the path \b filename and put it in an old toonz raster
+//! Read an image in the path \b filename and put it in an old flare raster
 DVAPI _RASTER *readRaster46(const char *filename);
 
-//! Retrieves the input raster from Toonz internal cache. Need to call it before
+//! Retrieves the input raster from flare internal cache. Need to call it before
 //! using the raster.
 DVAPI void lockRaster(_RASTER *raster);
 
@@ -421,3 +421,4 @@ DVAPI void tosRGB(TRasterP raster, double gamma,
 DVAPI void adjustGain(TRasterP raster, int gainStep, double gamma);
 
 }  // namespace TRop
+

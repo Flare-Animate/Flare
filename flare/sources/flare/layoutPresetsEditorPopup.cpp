@@ -12,22 +12,22 @@
 #include <QListWidgetItem>
 #include <qpointer.h>
 
-#include "toonzqt/filefield.h"
-#include "toonzqt/doublefield.h"
+#include "flareqt/filefield.h"
+#include "flareqt/doublefield.h"
 #include "tenv.h"
 #include "layoutUtils.h"
 #include "tapp.h"
 #include "tsystem.h"
 #include <QtGlobal>
 #include <algorithm>
-#include "toonzqt/colorfield.h"
+#include "flareqt/colorfield.h"
 #include "tpixel.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/toonzscene.h"
-#include "toonz/sceneproperties.h"
+#include "flare/tscenehandle.h"
+#include "flare/flarescene.h"
+#include "flare/sceneproperties.h"
 #include "viewerdraw.h"
-#include "toonz/toonzfolders.h"
-#include <toonzqt/dvdialog.h>
+#include "flare/flarefolders.h"
+#include <flareqt/dvdialog.h>
 
 //=============================================================================
 LayoutPresetsEditorPopup* LayoutPresetsEditorPopup::s_instance = nullptr;
@@ -346,7 +346,7 @@ void LayoutPresetsEditorPopup::updateEditorWidgets() {
   m_nameEdit->setText(preset.m_name);
   if (preset.m_layoutPath.isEmpty()) {
     const QString loPath =
-        (ToonzFolder::getLibraryFolder() + TFilePath("layouts")).getQString();
+        (flareFolder::getLibraryFolder() + TFilePath("layouts")).getQString();
     m_layoutField->setPath(loPath);
     m_layoutField->getField()->clear();
   } else
@@ -665,7 +665,7 @@ void LayoutPresetsEditorPopup::onLayoutPathChanged() {
   int idx = m_presetList->currentRow();
   if (idx < 0 || idx >= m_presets.size()) return;
   const TFilePath loPath =
-      ToonzFolder::getLibraryFolder() + TFilePath("layouts");
+      flareFolder::getLibraryFolder() + TFilePath("layouts");
   const TFilePath curPath(m_layoutField->getPath());
   if (curPath.getParentDir() == loPath) {
     QString path                = curPath.withoutParentDir().getQString();

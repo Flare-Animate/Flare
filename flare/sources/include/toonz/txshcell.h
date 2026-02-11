@@ -3,12 +3,12 @@
 #ifndef TXSHCELL_INCLUDED
 #define TXSHCELL_INCLUDED
 
-#include "toonz/txshlevel.h"
+#include "flare/txshlevel.h"
 #include "timage.h"
 
 #undef DVAPI
 #undef DVVAR
-#ifdef TOONZLIB_EXPORTS
+#ifdef flareLIB_EXPORTS
 #define DVAPI DV_EXPORT_API
 #define DVVAR DV_EXPORT_VAR
 #else
@@ -126,3 +126,4 @@ Returns the TPalette associated with current cell, if any.
 };
 
 #endif
+

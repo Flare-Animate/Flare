@@ -8,15 +8,15 @@
 #include "tools/cursors.h"
 
 // TnzQt includes
-#include "toonzqt/selectioncommandids.h"
-#include "toonzqt/tselectionhandle.h"
-#include "toonzqt/imageutils.h"
+#include "flareqt/selectioncommandids.h"
+#include "flareqt/tselectionhandle.h"
+#include "flareqt/imageutils.h"
 
 // TnzLib includes
-#include "toonz/txsheethandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/tobjecthandle.h"
-#include "toonz/tstageobject.h"
+#include "flare/txsheethandle.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/tobjecthandle.h"
+#include "flare/tstageobject.h"
 
 // TnzBase includes
 #include "tenv.h"
@@ -2490,3 +2490,4 @@ void VectorSelectionTool::AttachedLevelSelection::sortWithPaletteOrder() {
 
   tool->notifyImageChanged();
 }
+
