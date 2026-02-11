@@ -4,6 +4,7 @@ add_executable(tconverter
 
 target_link_libraries(tconverter
     Qt5::Core
-    toonzlib
+    flarelib
     image
 )
+

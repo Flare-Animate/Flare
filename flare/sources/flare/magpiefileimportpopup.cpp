@@ -6,11 +6,11 @@
 #include "tsystem.h"
 #include "iocommand.h"
 #include "flipbook.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/toonzscene.h"
-#include "toonzqt/filefield.h"
-#include "toonzqt/intfield.h"
-#include "toonzqt/gutil.h"
+#include "flare/tscenehandle.h"
+#include "flare/flarescene.h"
+#include "flareqt/filefield.h"
+#include "flareqt/intfield.h"
+#include "flareqt/gutil.h"
 
 #include <QLabel>
 #include <QPushButton>
@@ -30,7 +30,7 @@ MagpieInfo::MagpieInfo(TFilePath path)
   do {
     line = textStream.readLine();
     // E' la prima riga
-    if (line == QString("Toonz")) continue;
+    if (line == QString("flare")) continue;
     if (!line.contains(L'|')) {
       if (!line.isEmpty()) m_actsIdentifier.append(line);
       continue;
@@ -53,7 +53,7 @@ MagpieFileImportPopup::MagpieFileImportPopup()
     , m_toField(0)
     , m_flipbook(0)
     , m_levelPath() {
-  setWindowTitle(tr("Import Toonz Lip Sync File"));
+  setWindowTitle(tr("Import flare Lip Sync File"));
 
   beginVLayout();
 
@@ -151,7 +151,7 @@ MagpieFileImportPopup::MagpieFileImportPopup()
                                  FlipConsole::eFlipHorizontal,
                                  FlipConsole::eFlipVertical,
                                  FlipConsole::eResetView};
-  m_flipbook = new FlipBook(this, tr("Import Toonz Lip Sync File"), buttonMask);
+  m_flipbook = new FlipBook(this, tr("Import flare Lip Sync File"), buttonMask);
   m_flipbook->setFixedHeight(250);
   frameLayout->addWidget(m_flipbook);
   frame->setLayout(frameLayout);
@@ -216,7 +216,7 @@ void MagpieFileImportPopup::hideEvent(QHideEvent *) {
 //-----------------------------------------------------------------------------
 
 void MagpieFileImportPopup::onLevelPathChanged() {
-  ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
+  flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
   TFilePath levelPath(m_levelField->getPath().toStdWString());
   levelPath = scene->decodeFilePath(levelPath);
   if (levelPath.isEmpty() || levelPath.getUndottedType().empty() ||
@@ -283,3 +283,4 @@ void MagpieFileImportPopup::onOkPressed() {
   if (!ret) return;
   accept();
 }
+

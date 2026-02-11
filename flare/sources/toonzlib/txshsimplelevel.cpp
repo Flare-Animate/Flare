@@ -1,23 +1,23 @@
 
 
-#include "toonz/txshsimplelevel.h"
+#include "flare/txshsimplelevel.h"
 #include "imagebuilders.h"
 
 // TnzLib includes
-#include "toonz/txshleveltypes.h"
-#include "toonz/imagemanager.h"
-#include "toonz/studiopalette.h"
-#include "toonz/hook.h"
-#include "toonz/toonzscene.h"
-#include "toonz/levelproperties.h"
-#include "toonz/levelupdater.h"
-#include "toonz/fullcolorpalette.h"
-#include "toonz/preferences.h"
-#include "toonz/stage.h"
-#include "toonz/textureutils.h"
-#include "toonz/levelset.h"
-#include "toonz/tcamera.h"
-#include "toonz/sceneproperties.h"
+#include "flare/txshleveltypes.h"
+#include "flare/imagemanager.h"
+#include "flare/studiopalette.h"
+#include "flare/hook.h"
+#include "flare/flarescene.h"
+#include "flare/levelproperties.h"
+#include "flare/levelupdater.h"
+#include "flare/fullcolorpalette.h"
+#include "flare/preferences.h"
+#include "flare/stage.h"
+#include "flare/textureutils.h"
+#include "flare/levelset.h"
+#include "flare/tcamera.h"
+#include "flare/sceneproperties.h"
 
 // TnzBase includes
 #include "tenv.h"
@@ -47,7 +47,7 @@
 #include <QtCore>
 
 #include "../common/psdlib/psd.h"
-#include "toonz/toonzfolders.h"
+#include "flare/flarefolders.h"
 
 //******************************************************************************************
 //    Global stuff
@@ -601,7 +601,7 @@ TImageP TXshSimpleLevel::getFrameIcon(const TFrameId& fid) const {
   TImageP img              = ImageManager::instance()->getImage(
       imgId, ImageManager::dontPutInCache, &extData);
 
-  if (TToonzImageP timg = img) {
+  if (TflareImageP timg = img) {
     if (m_palette) timg->setPalette(m_palette);
   }
 
@@ -739,7 +739,7 @@ TImageP buildIcon(const TImageP& img, const TDimension& size) {
     glContext->clear(TPixel32::White);
     glContext->draw(vi, rd);
     raster->copy(glContext->getRaster());
-  } else if (TToonzImageP ti = img) {
+  } else if (TflareImageP ti = img) {
     raster->fill(TPixel32(255, 255, 255, 255));
     TRasterCM32P rasCM32 = ti->getRaster();
     TRect bbox           = ti->getSavebox();
@@ -1678,7 +1678,7 @@ void TXshSimpleLevel::saveSimpleLevel(const TFilePath& decodedFp,
           if (!img) continue;
 
           int subs = 1;
-          if (TToonzImageP ti = img)
+          if (TflareImageP ti = img)
             subs = ti->getSubsampling();
           else if (TRasterImageP ri = img)
             subs = ri->getSubsampling();
@@ -1686,7 +1686,7 @@ void TXshSimpleLevel::saveSimpleLevel(const TFilePath& decodedFp,
           assert(subs == 1);
           if (subs != 1) continue;
 
-          if (TToonzImageP ti = img) {
+          if (TflareImageP ti = img) {
             TRect saveBox;
             TRop::computeBBox(ti->getRaster(), saveBox);
             ti->setSavebox(saveBox);
@@ -1737,7 +1737,7 @@ void TXshSimpleLevel::saveSimpleLevel(const TFilePath& decodedFp,
           if (!img) continue;
 
           int subs = 1;
-          if (TToonzImageP ti = img)
+          if (TflareImageP ti = img)
             subs = ti->getSubsampling();
           else if (TRasterImageP ri = img)
             subs = ri->getSubsampling();
@@ -1879,7 +1879,7 @@ void TXshSimpleLevel::invalidateFrame(const TFrameId& fid) {
 //-----------------------------------------------------------------------------
 
 void TXshSimpleLevel::initializePalette() {
-  ToonzScene* scene = getScene();
+  flareScene* scene = getScene();
   assert(scene);
 
   TFilePath fullPath;
@@ -1888,15 +1888,15 @@ void TXshSimpleLevel::initializePalette() {
   switch (type) {
   case TZP_XSHLEVEL:
     fullPath =
-        scene->decodeFilePath(TFilePath("+palettes\\Toonz_Raster_Palette.tpl"));
+        scene->decodeFilePath(TFilePath("+palettes\\flare_Raster_Palette.tpl"));
     if (TSystem::doesExistFileOrLevel(fullPath)) {
       TIStream is(fullPath);
       is >> palette;
     } else {
       TFilePath globalPath(
-          ToonzFolder::getStudioPaletteFolder().getQString().append(
+          flareFolder::getStudioPaletteFolder().getQString().append(
               "\\Global Palettes\\Default "
-              "Palettes\\Toonz_Raster_Palette.tpl"));
+              "Palettes\\flare_Raster_Palette.tpl"));
       if (TSystem::doesExistFileOrLevel(globalPath)) {
         TIStream is(globalPath);
         is >> palette;
@@ -1906,15 +1906,15 @@ void TXshSimpleLevel::initializePalette() {
     break;
   case PLI_XSHLEVEL:
     fullPath =
-        scene->decodeFilePath(TFilePath("+palettes\\Toonz_Vector_Palette.tpl"));
+        scene->decodeFilePath(TFilePath("+palettes\\flare_Vector_Palette.tpl"));
     if (TSystem::doesExistFileOrLevel(fullPath)) {
       TIStream is(fullPath);
       is >> palette;
     } else {
       TFilePath globalPath(
-          ToonzFolder::getStudioPaletteFolder().getQString().append(
+          flareFolder::getStudioPaletteFolder().getQString().append(
               "\\Global Palettes\\Default "
-              "Palettes\\Toonz_Vector_Palette.tpl"));
+              "Palettes\\flare_Vector_Palette.tpl"));
       if (TSystem::doesExistFileOrLevel(globalPath)) {
         TIStream is(globalPath);
         is >> palette;
@@ -2051,7 +2051,7 @@ TImageP TXshSimpleLevel::createEmptyFrame() {
     if (m_type == TZP_XSHLEVEL) {
       TRasterCM32P raster(res);
       raster->fill(TPixelCM32());
-      TToonzImageP ti(raster, TRect());
+      TflareImageP ti(raster, TRect());
       ti->setDpi(dpi.x, dpi.y);
       ti->setSavebox(TRect(0, 0, res.lx - 1, res.ly - 1));
       result = ti;
@@ -2100,7 +2100,7 @@ int TXshSimpleLevel::getImageSubsampling(const TFrameId& fid) const {
   TImageP img = TImageCache::instance()->get(getImageId(fid), false);
   if (!img) return 1;
   if (TRasterImageP ri = img) return ri->getSubsampling();
-  if (TToonzImageP ti = img) return ti->getSubsampling();
+  if (TflareImageP ti = img) return ti->getSubsampling();
   return 1;
 }
 
@@ -2425,3 +2425,4 @@ bool TXshSimpleLevel::isFrameReadOnly(TFrameId fid) {
 
   return m_isReadOnly;
 }
+

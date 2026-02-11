@@ -7,7 +7,7 @@
 #include <QLineEdit>
 #include "orientation.h"
 
-#include "toonz/txshcell.h"
+#include "flare/txshcell.h"
 #include "tundo.h"
 
 // forward declaration
@@ -196,3 +196,4 @@ protected slots:
 }  // namespace XsheetGUI
 
 #endif  // XSHCELLVIEWER_H
+

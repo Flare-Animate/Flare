@@ -1,6 +1,6 @@
 #include "orientation.h"
-#include "toonz/columnfan.h"
-#include "toonz/preferences.h"
+#include "flare/columnfan.h"
+#include "flare/preferences.h"
 
 #include <QPainterPath>
 #include <QBoxLayout>
@@ -1546,3 +1546,4 @@ CellPosition LeftToRightOrientation::arrowShift(int direction) const {
     return CellPosition(0, 0);
   }
 }
+

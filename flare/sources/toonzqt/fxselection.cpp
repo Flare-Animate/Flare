@@ -8,26 +8,26 @@
 #include "tfxattributes.h"
 
 // TnzLib includes
-#include "toonz/tcolumnfx.h"
-#include "toonz/fxcommand.h"
-#include "toonz/fxdag.h"
-#include "toonz/txsheet.h"
-#include "toonz/tfxhandle.h"
-#include "toonz/tcolumnfxset.h"
-#include "toonz/txsheethandle.h"
-#include "toonzqt/fxschematicscene.h"
+#include "flare/tcolumnfx.h"
+#include "flare/fxcommand.h"
+#include "flare/fxdag.h"
+#include "flare/txsheet.h"
+#include "flare/tfxhandle.h"
+#include "flare/tcolumnfxset.h"
+#include "flare/txsheethandle.h"
+#include "flareqt/fxschematicscene.h"
 
 // TnzQt includes
-#include "toonzqt/schematicnode.h"
-#include "toonzqt/fxschematicnode.h"
-#include "toonzqt/selectioncommandids.h"
+#include "flareqt/schematicnode.h"
+#include "flareqt/fxschematicnode.h"
+#include "flareqt/selectioncommandids.h"
 #include "fxdata.h"
 
 // Qt includes
 #include <QApplication>
 #include <QClipboard>
 
-#include "toonzqt/fxselection.h"
+#include "flareqt/fxselection.h"
 
 namespace {
 bool canGroup(TFx *fx) {
@@ -615,3 +615,4 @@ bool FxSelection::areLinked(TFx *outFx, TFx *inFx) {
   }
   return false;
 }
+

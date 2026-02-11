@@ -7,7 +7,7 @@
 #include "tproperty.h"
 #include "tools/tool.h"
 #include "tools/cursors.h"
-#include "mypainttoonzbrush.h"
+#include "mypaintflarebrush.h"
 #include "trasterimage.h"
 #include <QObject>
 
@@ -122,7 +122,7 @@ public:
   TPropertyGroup* getProperties(int idx) override;
   bool onPropertyChanged(std::string propertyName) override;
   void addStroke();
-  void addRasterMyPaintStroke(const TToonzImageP& ti, TStroke* stroke,
+  void addRasterMyPaintStroke(const TflareImageP& ti, TStroke* stroke,
                               TXshSimpleLevel* sl, const TFrameId& id);
   void addFullColorMyPaintStroke(const TRasterImageP& ri, TStroke* stroke,
                                  TXshSimpleLevel* sl, const TFrameId& id);

@@ -67,7 +67,7 @@ m_buffer = BigMemoryManager.getMemoryChunk(lx*ly*pixelSize, this);
 m_totalMemory += ((lx*ly*pixelSize)>>10);
 #ifdef _WIN32
 MessageBox( NULL, "Run out of contiguous physical memory: please save all and
-restart toonz!", "Warning", MB_OK);
+restart flare!", "Warning", MB_OK);
 #endif
 }*/
 }
@@ -467,3 +467,4 @@ void TRaster::clearOutside(const TRect &rect) {
     extract(bounds)->clear();
   }
 }
+

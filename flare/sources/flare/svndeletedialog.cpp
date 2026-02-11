@@ -10,11 +10,11 @@
 #include "fileselection.h"
 
 // TnzQt includes
-#include "toonzqt/tselectionhandle.h"
-#include "toonzqt/gutil.h"
+#include "flareqt/tselectionhandle.h"
+#include "flareqt/gutil.h"
 
 // TnzLib includes
-#include "toonz/txshsimplelevel.h"
+#include "flare/txshsimplelevel.h"
 
 // Qt includes
 #include <QWidget>
@@ -416,3 +416,4 @@ void SVNDeleteDialog::onDeleteSceneContentsToggled(bool checked) {
       tr("Delete %1 items.")
           .arg(m_files.size() - m_sceneIconAdded + m_sceneResources.size()));
 }
+

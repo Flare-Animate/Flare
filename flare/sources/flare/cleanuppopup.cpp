@@ -2,7 +2,7 @@
 
 #include "cleanuppopup.h"
 
-// Toonz includes
+// flare includes
 #include "tapp.h"
 #include "imageviewer.h"
 #include "cleanupsettingsmodel.h"
@@ -10,29 +10,29 @@
 #include "columnselection.h"
 #include "mainwindow.h"
 
-// ToonzQt includes
-#include "toonzqt/gutil.h"
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/lineedit.h"
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/icongenerator.h"
+// flareQt includes
+#include "flareqt/gutil.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/lineedit.h"
+#include "flareqt/menubarcommand.h"
+#include "flareqt/icongenerator.h"
 
-// ToonzLib includes
-#include "toonz/toonzscene.h"
-#include "toonz/txshcell.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/txshleveltypes.h"
-#include "toonz/levelproperties.h"
-#include "toonz/imagemanager.h"
-#include "toonz/levelupdater.h"
-#include "toonz/tcleanupper.h"
-#include "toonz/preferences.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/palettecontroller.h"
-#include "toonz/tpalettehandle.h"
-#include "toonz/toonzfolders.h"
+// flareLib includes
+#include "flare/flarescene.h"
+#include "flare/txshcell.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/txshleveltypes.h"
+#include "flare/levelproperties.h"
+#include "flare/imagemanager.h"
+#include "flare/levelupdater.h"
+#include "flare/tcleanupper.h"
+#include "flare/preferences.h"
+#include "flare/tscenehandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/palettecontroller.h"
+#include "flare/tpalettehandle.h"
+#include "flare/flarefolders.h"
 
 // TnzCore includes
 #include "tsystem.h"
@@ -174,7 +174,7 @@ void saveUnpaintedLevel(const TFilePath &levelPath, TXshSimpleLevel *sl,
     for (i = 0; i < fidsCount; ++i) {
       const TFrameId &fid = fids[i];
 
-      TToonzImageP ti = sl->getFrame(fid, false);
+      TflareImageP ti = sl->getFrame(fid, false);
       if (!ti) continue;
 
       lw->getFrameWriter(fid)->save(ti);
@@ -192,7 +192,7 @@ Cleanup後にデフォルトPaletteの内容を追加する仕様、Preferences�
 void addCleanupDefaultPalette(TXshSimpleLevelP sl) {
   /*--- CleanupデフォルトパレットはStudioPaletteフォルダ内に入れる ---*/
   TFilePath palettePath =
-      ToonzFolder::getStudioPaletteFolder() + "Global Palettes\\Default Palettes\\Cleanup_Palette.tpl";
+      flareFolder::getStudioPaletteFolder() + "Global Palettes\\Default Palettes\\Cleanup_Palette.tpl";
   TFileStatus pfs(palettePath);
 
   if (!pfs.doesExist() || !pfs.isReadable()) {
@@ -508,7 +508,7 @@ void CleanupPopup::buildCleanupList() {
 //-----------------------------------------------------------------------------
 
 bool CleanupPopup::analyzeCleanupList() {
-  ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
+  flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
 
   bool shownOverwriteDialog = false, shownWritingOnSourceFile = false;
 
@@ -881,7 +881,7 @@ QString CleanupPopup::setupLevel() {
   assert(isValidPosition(m_idx));
 
   TApp *app         = TApp::instance();
-  ToonzScene *scene = app->getCurrentScene()->getScene();
+  flareScene *scene = app->getCurrentScene()->getScene();
 
   /*--- これからCleanupするLevel ---*/
   CleanupLevel &cl    = m_cleanupLevels[m_idx.first];
@@ -1011,7 +1011,7 @@ QString CleanupPopup::setupLevel() {
     /*-- Cleanup用のパレットを作る --*/
     // Update the level palette
     TPaletteP palette =
-        TCleanupper::instance()->createToonzPaletteFromCleanupPalette();
+        TCleanupper::instance()->createflarePaletteFromCleanupPalette();
 
     sl->setPalette(palette.getPointer());
 
@@ -1077,7 +1077,7 @@ QString CleanupPopup::resetLevel() {
   TXshSimpleLevel *sl = cl.m_sl;
   assert(sl);
 
-  ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
+  flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
 
   /*--- Cleanup後のTLVファイルパスを得る。すなわちこれから消すファイル ---*/
   // Ensure outputPath != inputPath
@@ -1174,7 +1174,7 @@ void CleanupPopup::closeLevel() {
   {
     const TFilePath &outputPath = cl.m_outputPath;
 
-    ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
+    flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
     TFilePath decodedPath(scene->decodeFilePath(outputPath));
 
     if (outputPath.getLevelNameW().find(L"-np.") == std::wstring::npos &&
@@ -1257,7 +1257,7 @@ void CleanupPopup::cleanupFrame() {
       if (!cpi) return;
 
       // Perform post-processing
-      TToonzImageP ti(cl->finalize(cpi));
+      TflareImageP ti(cl->finalize(cpi));
 
       /*--- Cleanup Default Paletteを作成、適用 ---*/
       if (m_firstLevelFrame) {
@@ -1306,7 +1306,7 @@ void CleanupPopup::cleanupFrame() {
   }
 
   // this enables to view the level during cleanup by another user. this
-  // behavior may abort Toonz.
+  // behavior may abort flare.
   /*
 try { m_updater->flush(); }                                           // Release
 the opened level from writing
@@ -1628,3 +1628,4 @@ public:
   }
 
 } CleanupCommand;
+

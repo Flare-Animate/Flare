@@ -3,7 +3,7 @@
 #ifndef BOARDSETTINGSPOPUP_H
 #define BOARDSETTINGSPOPUP_H
 
-#include "toonzqt/dvdialog.h"
+#include "flareqt/dvdialog.h"
 #include "tpixel.h"
 #include "filebrowserpopup.h"
 #include <QWidget>
@@ -188,3 +188,4 @@ public:
   SaveBoardImagePopup();
 };
 #endif
+

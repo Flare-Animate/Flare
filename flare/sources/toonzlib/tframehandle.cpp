@@ -1,14 +1,14 @@
 
 
-#include "toonz/tframehandle.h"
-#include "toonz/toonzscene.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/txsheet.h"
-#include "toonz/txshcell.h"
-#include "toonz/sceneproperties.h"
+#include "flare/tframehandle.h"
+#include "flare/flarescene.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/txsheet.h"
+#include "flare/txshcell.h"
+#include "flare/sceneproperties.h"
 #include "toutputproperties.h"
 
-#include "toonz/txsheethandle.h"
+#include "flare/txsheethandle.h"
 
 //=============================================================================
 
@@ -24,7 +24,7 @@ namespace {
 /* void getCurrentScenePlayRange(int &r0, int &r1, int &step)
   {
 
-    ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
+    flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
     scene->getProperties()->getPreviewProperties()->getRange(r0, r1, step);
     if(r0>r1)
     {
@@ -365,3 +365,4 @@ void TFrameHandle::stopScrubbing() {
   m_fps                            = 0;
   emit scrubStopped();
 }
+

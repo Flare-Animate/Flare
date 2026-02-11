@@ -6,12 +6,12 @@
 // TnzCore includes
 #include "tpalette.h"
 
-// Toonz includes
+// flare includes
 #include "tthread.h"
 #include "timage.h"
 
-#include "toonz/tcenterlinevectorizer.h"
-#include "toonzqt/planeviewer.h"
+#include "flare/tcenterlinevectorizer.h"
+#include "flareqt/planeviewer.h"
 
 // Qt includes
 #include <QFrame>
@@ -119,3 +119,4 @@ private:
 };
 
 #endif  // VECTORIZER_SWATCH_H
+

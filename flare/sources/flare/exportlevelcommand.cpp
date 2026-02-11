@@ -11,27 +11,27 @@
 #include "tvectorrenderdata.h"
 #include "tstroke.h"
 
-// ToonzLib includes
-#include "toonz/txshsimplelevel.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/txshleveltypes.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/toonzscene.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/imagemanager.h"
-#include "toonz/tcamera.h"
-#include "toonz/toonzimageutils.h"
-#include "toonz/levelupdater.h"
-#include "toonz/preferences.h"
+// flareLib includes
+#include "flare/txshsimplelevel.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/txshleveltypes.h"
+#include "flare/tscenehandle.h"
+#include "flare/flarescene.h"
+#include "flare/sceneproperties.h"
+#include "flare/imagemanager.h"
+#include "flare/tcamera.h"
+#include "flare/flareimageutils.h"
+#include "flare/levelupdater.h"
+#include "flare/preferences.h"
 
 #include "toutputproperties.h"
 #include "ttile.h"
 
-// ToonzQt includes
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/gutil.h"
+// flareQt includes
+#include "flareqt/dvdialog.h"
+#include "flareqt/gutil.h"
 
-// Toonz includes
+// flare includes
 #include "tapp.h"
 
 // STD includes
@@ -228,9 +228,9 @@ private:
   void adjust0Dpi(const TRasterImageP &ri);
 
   TRasterImageP exportedImage(TRasterImageP ri);
-  TRasterImageP exportedImage(TToonzImageP ti);
+  TRasterImageP exportedImage(TflareImageP ti);
   TRasterImageP exportedRasterImage(TVectorImageP vi);
-  TToonzImageP exportedToonzImage(TVectorImageP vi);
+  TflareImageP exportedflareImage(TVectorImageP vi);
 };
 
 //===========================================================================
@@ -262,7 +262,7 @@ TRasterImageP ImageExporter::exportedImage(TRasterImageP ri) {
 
 //---------------------------------------------------------------------------
 
-TRasterImageP ImageExporter::exportedImage(TToonzImageP ti) {
+TRasterImageP ImageExporter::exportedImage(TflareImageP ti) {
   // Allocate a suitable fullcolor raster if not already done
   if (!m_rout || m_rout->getSize() != ti->getRaster()->getSize())
     m_rout = TRaster32P(ti->getRaster()->getSize());
@@ -323,7 +323,7 @@ TRasterImageP ImageExporter::exportedRasterImage(TVectorImageP vi) {
 
 //---------------------------------------------------------------------------
 
-TToonzImageP ImageExporter::exportedToonzImage(TVectorImageP vi) {
+TflareImageP ImageExporter::exportedflareImage(TVectorImageP vi) {
   // Prepare rendering data
   TPalette *plt = vi->getPalette();
 
@@ -334,8 +334,8 @@ TToonzImageP ImageExporter::exportedToonzImage(TVectorImageP vi) {
 
   //const TPointD pos(-0.5 * size.lx, -0.5 * size.ly);
 
-  // Render to toonz image keep the same with the converter in drawingdata.cpp
-  TToonzImageP ti = ToonzImageUtils::vectorToToonzImage(vi, aff, plt, 
+  // Render to flare image keep the same with the converter in drawingdata.cpp
+  TflareImageP ti = flareImageUtils::vectorToflareImage(vi, aff, plt, 
       TPointD(), res, 0 ,true);
   ti->setPalette(plt);
 
@@ -360,7 +360,7 @@ TImageP ImageExporter::exportedImage(const TFrameId &fid,
     img = exportedImage(TRasterImageP(img));
     break;
   case TZP_XSHLEVEL:
-    img = exportedImage(TToonzImageP(img));
+    img = exportedImage(TflareImageP(img));
     break;
   case PLI_XSHLEVEL: {
     TVectorImageP vi(img);
@@ -373,7 +373,7 @@ TImageP ImageExporter::exportedImage(const TFrameId &fid,
     VectorThicknessTransformer transformer(vi, m_opts.m_thicknessTransform,
                                            param);
 
-    img = (outImgType == TZP_TYPE) ? TImageP(exportedToonzImage(vi))
+    img = (outImgType == TZP_TYPE) ? TImageP(exportedflareImage(vi))
                                    : TImageP(exportedRasterImage(vi));
     break;
   }
@@ -533,7 +533,7 @@ bool IoCmd::exportLevel(const TFilePath &path, TXshSimpleLevel *sl,
 
   // Output properties
   if (!opts.m_props) {
-    ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
+    flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
     opts.m_props =
         scene->getProperties()->getOutputProperties()->getFileFormatProperties(
             path.getType());
@@ -565,3 +565,4 @@ bool IoCmd::exportLevel(const TFilePath &path, TXshSimpleLevel *sl,
     return false;
   }
 }
+

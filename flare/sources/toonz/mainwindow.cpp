@@ -19,21 +19,21 @@
 #include "tools/toolhandle.h"
 
 // TnzQt includes
-#include "toonzqt/gutil.h"
-#include "toonzqt/icongenerator.h"
-#include "toonzqt/viewcommandids.h"
-#include "toonzqt/updatechecker.h"
-#include "toonzqt/paletteviewer.h"
-#include "toonzqt/seethroughwindow.h"
+#include "flareqt/gutil.h"
+#include "flareqt/icongenerator.h"
+#include "flareqt/viewcommandids.h"
+#include "flareqt/updatechecker.h"
+#include "flareqt/paletteviewer.h"
+#include "flareqt/seethroughwindow.h"
 
 // TnzLib includes
-#include "toonz/toonzfolders.h"
-#include "toonz/stage2.h"
-#include "toonz/stylemanager.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/toonzscene.h"
-#include "toonz/txshleveltypes.h"
-#include "toonz/tproject.h"
+#include "flare/flarefolders.h"
+#include "flare/stage2.h"
+#include "flare/stylemanager.h"
+#include "flare/tscenehandle.h"
+#include "flare/flarescene.h"
+#include "flare/txshleveltypes.h"
+#include "flare/tproject.h"
 
 // TnzBase includes
 #include "tenv.h"
@@ -104,18 +104,18 @@ bool readRoomList(std::vector<TFilePath> &roomPaths,
   TFilePath fp;
   /*-レイアウトファイルが指定されている場合--*/
   if (!argumentLayoutFileName.isEmpty()) {
-    fp = ToonzFolder::getRoomsFile(argumentLayoutFileName.toStdString());
+    fp = flareFolder::getRoomsFile(argumentLayoutFileName.toStdString());
     if (!TFileStatus(fp).doesExist()) {
       DVGui::warning("Room layout file " + argumentLayoutFileName +
                      " not found!");
-      fp = ToonzFolder::getRoomsFile(layoutsFileName);
+      fp = flareFolder::getRoomsFile(layoutsFileName);
       if (!TFileStatus(fp).doesExist()) return false;
     } else {
       argumentLayoutFileLoaded = true;
       layoutsFileName          = argumentLayoutFileName.toStdString();
     }
   } else {
-    fp = ToonzFolder::getRoomsFile(layoutsFileName);
+    fp = flareFolder::getRoomsFile(layoutsFileName);
     if (!TFileStatus(fp).doesExist()) return false;
   }
 
@@ -141,7 +141,7 @@ bool readRoomList(std::vector<TFilePath> &roomPaths,
 //-----------------------------------------------------------------------------
 
 void writeRoomList(std::vector<TFilePath> &roomPaths) {
-  TFilePath fp = ToonzFolder::getMyRoomsDir() + layoutsFileName;
+  TFilePath fp = flareFolder::getMyRoomsDir() + layoutsFileName;
   TSystem::touchParentDir(fp);
   Tofstream os(fp);
   if (!os) return;
@@ -164,7 +164,7 @@ void writeRoomList(std::vector<Room *> &rooms) {
 //-----------------------------------------------------------------------------
 
 void makePrivate(Room *room) {
-  TFilePath layoutDir       = ToonzFolder::getMyRoomsDir();
+  TFilePath layoutDir       = flareFolder::getMyRoomsDir();
   TFilePath roomPath        = room->getPath();
   std::string mbSrcFileName = roomPath.getName() + "_menubar.xml";
   if (roomPath == TFilePath() || roomPath.getParentDir() != layoutDir) {
@@ -182,18 +182,18 @@ void makePrivate(Room *room) {
   TFilePath myMBPath        = layoutDir + mbDstFileName;
   if (!TFileStatus(myMBPath).isReadable()) {
     TFilePath templateRoomMBPath =
-        ToonzFolder::getTemplateRoomsDir() + mbSrcFileName;
+        flareFolder::getTemplateRoomsDir() + mbSrcFileName;
     if (TFileStatus(templateRoomMBPath).doesExist())
       TSystem::copyFile(myMBPath, templateRoomMBPath);
     else {
       TFilePath templateFullMBPath =
-          ToonzFolder::getTemplateRoomsDir() + "menubar_template.xml";
+          flareFolder::getTemplateRoomsDir() + "menubar_template.xml";
       if (TFileStatus(templateFullMBPath).doesExist())
         TSystem::copyFile(myMBPath, templateFullMBPath);
       else
         DVGui::warning(
             QObject::tr("Cannot open menubar settings template file. "
-                        "Re-installing Toonz will solve this problem."));
+                        "Re-installing flare will solve this problem."));
     }
   }
 }
@@ -507,8 +507,8 @@ centralWidget->setLayout(centralWidgetLayout);*/
   setCommandHandler(MI_SeeThroughWindow, this, &MainWindow::seeThroughWindow);
   setCommandHandler("MI_NewVectorLevel", this,
                     &MainWindow::onNewVectorLevelButtonPressed);
-  setCommandHandler("MI_NewToonzRasterLevel", this,
-                    &MainWindow::onNewToonzRasterLevelButtonPressed);
+  setCommandHandler("MI_NewflareRasterLevel", this,
+                    &MainWindow::onNewflareRasterLevelButtonPressed);
   setCommandHandler("MI_NewRasterLevel", this,
                     &MainWindow::onNewRasterLevelButtonPressed);
   setCommandHandler(MI_ClearCacheFolder, this, &MainWindow::clearCacheFolder);
@@ -516,7 +516,7 @@ centralWidget->setLayout(centralWidgetLayout);*/
                     &MainWindow::onNewMetaLevelButtonPressed);
   // remove ffmpegCache if still exists from crashed exit
   QString ffmpegCachePath =
-      ToonzFolder::getCacheRootFolder().getQString() + "//ffmpeg";
+      flareFolder::getCacheRootFolder().getQString() + "//ffmpeg";
   if (TSystem::doesExistFileOrLevel(TFilePath(ffmpegCachePath))) {
     TSystem::rmDirTree(TFilePath(ffmpegCachePath));
   }
@@ -531,7 +531,7 @@ MainWindow::~MainWindow() {
   TEnv::saveAllEnvVariables();
   // cleanup ffmpeg cache
   QString ffmpegCachePath =
-      ToonzFolder::getCacheRootFolder().getQString() + "//ffmpeg";
+      flareFolder::getCacheRootFolder().getQString() + "//ffmpeg";
   if (TSystem::doesExistFileOrLevel(TFilePath(ffmpegCachePath))) {
     TSystem::rmDirTree(TFilePath(ffmpegCachePath));
   }
@@ -541,7 +541,7 @@ MainWindow::~MainWindow() {
 
 void MainWindow::changeWindowTitle() {
   TApp *app         = TApp::instance();
-  ToonzScene *scene = app->getCurrentScene()->getScene();
+  flareScene *scene = app->getCurrentScene()->getScene();
   if (!scene) return;
 
   auto project        = scene->getProject();
@@ -634,7 +634,7 @@ void MainWindow::readSettings(const QString &argumentLayoutFileName) {
   }
 
   // Get Current Room
-  TFilePath fp = ToonzFolder::getRoomsFile(currentRoomFileName);
+  TFilePath fp = flareFolder::getRoomsFile(currentRoomFileName);
   Tifstream is(fp);
   std::string name;
   is >> name;
@@ -654,7 +654,7 @@ void MainWindow::readSettings(const QString &argumentLayoutFileName) {
 
       /*- ここでMenuBarファイルをロードする -*/
       std::string mbFileName = roomPath.getName() + "_menubar.xml";
-      stackedMenuBar->loadAndAddMenubar(ToonzFolder::getRoomsFile(mbFileName));
+      stackedMenuBar->loadAndAddMenubar(flareFolder::getRoomsFile(mbFileName));
 
       // room->setDockOptions(QMainWindow::DockOptions(
       //  (QMainWindow::AnimatedDocks | QMainWindow::AllowNestedDocks) &
@@ -664,7 +664,7 @@ void MainWindow::readSettings(const QString &argumentLayoutFileName) {
   }
 
   // Read the flipbook history
-  FlipBookPool::instance()->load(ToonzFolder::getMyModuleDir() +
+  FlipBookPool::instance()->load(flareFolder::getMyModuleDir() +
                                  TFilePath("fliphistory.ini"));
 
   /*- レイアウト設定ファイルが見つからなかった場合、初期Roomの生成 -*/
@@ -763,11 +763,11 @@ void MainWindow::writeSettings() {
   }
 
   // Current room settings
-  Tofstream os(ToonzFolder::getMyRoomsDir() + currentRoomFileName);
+  Tofstream os(flareFolder::getMyRoomsDir() + currentRoomFileName);
   os << getCurrentRoom()->getName().toStdString();
 
   // Main window settings
-  TFilePath fp = ToonzFolder::getMyModuleDir() + TFilePath("mainwindow.ini");
+  TFilePath fp = flareFolder::getMyModuleDir() + TFilePath("mainwindow.ini");
   QSettings settings(toQString(fp), QSettings::IniFormat);
 
   settings.setValue("MainWindowGeometry", saveGeometry());
@@ -1084,21 +1084,21 @@ void MainWindow::onAbout() {
 //-----------------------------------------------------------------------------
 
 void MainWindow::onOpenOnlineManual() {
-  QDesktopServices::openUrl(QUrl(tr("http://opentoonz.readthedocs.io")));
+  QDesktopServices::openUrl(QUrl(tr("http://flare.readthedocs.io")));
 }
 
 //-----------------------------------------------------------------------------
 
 void MainWindow::onOpenWhatsNew() {
   QDesktopServices::openUrl(
-      QUrl(tr("https://github.com/opentoonz/opentoonz/releases/latest")));
+      QUrl(tr("https://github.com/flare/flare/releases/latest")));
 }
 
 //-----------------------------------------------------------------------------
 
 void MainWindow::onOpenCommunityForum() {
   QDesktopServices::openUrl(
-      QUrl(tr("https://groups.google.com/forum/#!forum/opentoonz_en")));
+      QUrl(tr("https://groups.google.com/forum/#!forum/flare_en")));
 }
 
 //-----------------------------------------------------------------------------
@@ -1106,7 +1106,7 @@ void MainWindow::onOpenCommunityForum() {
 void MainWindow::onOpenReportABug() {
   QString str = QString(
       tr("To report a bug, click on the button below to open a web browser "
-         "window for OpenToonz's Issues page on https://github.com.  Click on "
+         "window for flare's Issues page on https://github.com.  Click on "
          "the 'New issue' button and fill out the form."));
 
   std::vector<QString> buttons = {QObject::tr("Report a Bug"),
@@ -1114,7 +1114,7 @@ void MainWindow::onOpenReportABug() {
   int ret = DVGui::MsgBox(DVGui::INFORMATION, str, buttons, 1);
   if (ret == 1)
     QDesktopServices::openUrl(
-        QUrl("https://github.com/opentoonz/opentoonz/issues"));
+        QUrl("https://github.com/flare/flare/issues"));
 }
 //-----------------------------------------------------------------------------
 
@@ -1139,7 +1139,7 @@ void MainWindow::resetRoomsLayout() {
 
   m_saveSettingsOnQuit = false;
 
-  TFilePath layoutDir = ToonzFolder::getMyRoomsDir();
+  TFilePath layoutDir = flareFolder::getMyRoomsDir();
   if (layoutDir != TFilePath()) {
     // TSystem::deleteFile(layoutDir);
     TSystem::rmDirTree(layoutDir);
@@ -1373,9 +1373,9 @@ extern const char *applicationName;
 extern const char *applicationVersion;
 //-----------------------------------------------------------------------------
 void MainWindow::checkForUpdates() {
-  // Since there is only a single version of Opentoonz, we can do a simple check
+  // Since there is only a single version of flare, we can do a simple check
   // against a string
-  QString updateUrl("http://opentoonz.github.io/opentoonz-version.txt");
+  QString updateUrl("http://flare.github.io/flare-version.txt");
 
   m_updateChecker = new UpdateChecker(updateUrl);
       connect(m_updateChecker, SIGNAL(done(bool)), this,
@@ -1409,7 +1409,7 @@ void MainWindow::onUpdateCheckerDone(bool error) {
     dialog->deleteLater();
     if (ret == 1) {
       // Write the new last date to file
-      QDesktopServices::openUrl(QObject::tr("https://opentoonz.github.io/e/"));
+      QDesktopServices::openUrl(QObject::tr("https://flare.github.io/e/"));
     }
   }
 
@@ -1820,7 +1820,7 @@ void MainWindow::defineActions() {
   createMenuFileAction(MI_LoadColorModel, QT_TR_NOOP("&Load Color Model..."),
                        "", "load_colormodel");
   createMenuFileAction(MI_ImportMagpieFile,
-                       QT_TR_NOOP("&Import Toonz Lip Sync File..."), "",
+                       QT_TR_NOOP("&Import flare Lip Sync File..."), "",
                        "dialogue_import");
   createMenuFileAction(MI_ImportFlashVector,
                        QT_TR_NOOP("&Import Flash (Vector via External Decompiler)..."), "",
@@ -1961,9 +1961,9 @@ void MainWindow::defineActions() {
                         "new_level");
   createMenuLevelAction(MI_NewVectorLevel, QT_TR_NOOP("&New Vector Level"), "",
                         "new_vector_level");
-  createMenuLevelAction(MI_NewToonzRasterLevel,
-                        QT_TR_NOOP("&New Toonz Raster Level"), "",
-                        "new_toonz_raster_level");
+  createMenuLevelAction(MI_NewflareRasterLevel,
+                        QT_TR_NOOP("&New flare Raster Level"), "",
+                        "new_flare_raster_level");
   createMenuLevelAction(MI_NewRasterLevel, QT_TR_NOOP("&New Raster Level"), "",
                         "new_raster_level");
   createMenuFileAction(MI_NewMetaLevel, QT_TR_NOOP("&New Assistant Level"),
@@ -2030,15 +2030,15 @@ void MainWindow::defineActions() {
                         "new_note_level");
   createMenuLevelAction(MI_ConvertToVectors,
                         QT_TR_NOOP("Convert to Vectors..."), "", "convert");
-  createMenuLevelAction(MI_ConvertToToonzRaster,
-                        QT_TR_NOOP("Convert to Toonz Raster..."), "");
+  createMenuLevelAction(MI_ConvertToflareRaster,
+                        QT_TR_NOOP("Convert to flare Raster..."), "");
   createMenuLevelAction(
       MI_ConvertVectorToVector,
       QT_TRANSLATE_NOOP("MainWindow",
                         "Replace Vectors with Simplified Vectors"),
       "");
   createMenuLevelAction(MI_FillHoles, QT_TR_NOOP("&Fill Holes..."), "",
-                        "Fill small holes in Toonz Raster Level");
+                        "Fill small holes in flare Raster Level");
   createMenuLevelAction(MI_Tracking, QT_TR_NOOP("Tracking..."), "", "focus");
 
   // Menu - Xsheet
@@ -3164,7 +3164,7 @@ void MainWindow::onNewVectorLevelButtonPressed() {
 
 //-----------------------------------------------------------------------------
 
-void MainWindow::onNewToonzRasterLevelButtonPressed() {
+void MainWindow::onNewflareRasterLevelButtonPressed() {
   int defaultLevelType = Preferences::instance()->getDefLevelType();
   Preferences::instance()->setValue(DefLevelType, TZP_XSHLEVEL);
   CommandManager::instance()->execute("MI_NewLevel");
@@ -3196,7 +3196,7 @@ void MainWindow::clearCacheFolder() {
   // 1. $CACHE/[Current ProcessID]
   // 2. $CACHE/temp/[Current scene folder] if the current scene is untitled
 
-  TFilePath cacheRoot = ToonzFolder::getCacheRootFolder();
+  TFilePath cacheRoot = flareFolder::getCacheRootFolder();
   if (cacheRoot.isEmpty()) cacheRoot = TEnv::getStuffDir() + "cache";
 
   TFilePathSet filesToBeRemoved;
@@ -3407,7 +3407,7 @@ void RecentFiles::clearRecentFilesList(FileType fileType) {
 //-----------------------------------------------------------------------------
 
 void RecentFiles::loadRecentFiles() {
-  TFilePath fp = ToonzFolder::getMyModuleDir() + TFilePath("RecentFiles.ini");
+  TFilePath fp = flareFolder::getMyModuleDir() + TFilePath("RecentFiles.ini");
   QSettings settings(toQString(fp), QSettings::IniFormat);
   int i;
 
@@ -3469,7 +3469,7 @@ void RecentFiles::loadRecentFiles() {
 //-----------------------------------------------------------------------------
 
 void RecentFiles::saveRecentFiles() {
-  TFilePath fp = ToonzFolder::getMyModuleDir() + TFilePath("RecentFiles.ini");
+  TFilePath fp = flareFolder::getMyModuleDir() + TFilePath("RecentFiles.ini");
   QSettings settings(toQString(fp), QSettings::IniFormat);
   settings.setValue(QString("Scenes"), QVariant(m_recentScenes));
   settings.setValue(QString("SceneProjects"), QVariant(m_recentSceneProjects));
@@ -3520,3 +3520,4 @@ void RecentFiles::refreshRecentFilesMenu(FileType fileType) {
     if (!menu->isEnabled()) menu->setEnabled(true);
   }
 }
+

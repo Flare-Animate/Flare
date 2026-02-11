@@ -1,16 +1,16 @@
-#include "toonzqt/dvdialog.h"
+#include "flareqt/dvdialog.h"
 
 // TnzQt includes
-#include "toonzqt/checkbox.h"
-#include "toonzqt/lineedit.h"
-#include "toonzqt/fxsettings.h"
+#include "flareqt/checkbox.h"
+#include "flareqt/lineedit.h"
+#include "flareqt/fxsettings.h"
 
 // TnzLib includes
-#include "toonz/txsheethandle.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/palettecmd.h"
-#include "toonz/preferences.h"
-#include "toonz/toonzfolders.h"
+#include "flare/txsheethandle.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/palettecmd.h"
+#include "flare/preferences.h"
+#include "flare/flarefolders.h"
 
 // TnzCore includes
 #include "tversion.h"
@@ -69,7 +69,7 @@ QPixmap getMsgBoxPixmap(MsgType type) {
 //-----------------------------------------------------------------------------
 
 QString getMsgBoxTitle(MsgType type) {
-  TVER::ToonzVersion tver;
+  TVER::flareVersion tver;
   QString title = QString::fromStdString(tver.getAppName() + " " +
                                          tver.getAppVersionString() + " - ");
 
@@ -281,7 +281,7 @@ Dialog::Dialog(QWidget *parent, bool hasButton, bool hasFixedSize,
 
   if (settingsPath.isEmpty()) {
     TFilePath savePath =
-        ToonzFolder::getMyModuleDir() + TFilePath("popups.ini");
+        flareFolder::getMyModuleDir() + TFilePath("popups.ini");
     settingsPath = QString::fromStdWString(savePath.getWideString());
   }
 
@@ -1472,3 +1472,4 @@ int DVGui::eraseStylesInDemand(TPalette *palette, std::vector<int> styleIds,
 }
 
 //-----------------------------------------------------------------------------
+

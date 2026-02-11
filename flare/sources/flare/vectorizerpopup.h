@@ -9,11 +9,11 @@
 #include "tvectorimage.h"
 
 // TnzLib includes
-#include "toonz/txshsimplelevel.h"
-#include "toonz/tcenterlinevectorizer.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/tcenterlinevectorizer.h"
 
 // TnzQt includes
-#include "toonzqt/dvdialog.h"
+#include "flareqt/dvdialog.h"
 
 // Qt includes
 #include <QWidget>
@@ -341,3 +341,4 @@ private:
 };
 
 #endif  // VECTORIZERPOPUP_H
+

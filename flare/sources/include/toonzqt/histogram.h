@@ -5,7 +5,7 @@
 
 #include "tcommon.h"
 #include "traster.h"
-#include "ttoonzimage.h"
+#include "tflareimage.h"
 #include "tpalette.h"
 
 #include <QWidget>
@@ -13,7 +13,7 @@
 
 #undef DVAPI
 #undef DVVAR
-#ifdef TOONZQT_EXPORTS
+#ifdef flareQT_EXPORTS
 #define DVAPI DV_EXPORT_API
 #define DVVAR DV_EXPORT_VAR
 #else
@@ -206,3 +206,4 @@ private:
 };
 
 #endif  // HISTOGRAM_H
+

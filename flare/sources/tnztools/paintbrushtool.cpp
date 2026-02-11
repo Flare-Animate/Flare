@@ -9,18 +9,18 @@
 #include "tcolorstyles.h"
 #include "tundo.h"
 #include "tvectorimage.h"
-#include "ttoonzimage.h"
+#include "tflareimage.h"
 #include "tproperty.h"
-#include "toonz/strokegenerator.h"
-#include "toonz/ttilesaver.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/observer.h"
-#include "toonz/toonzimageutils.h"
-#include "toonz/levelproperties.h"
-#include "toonz/stage2.h"
-#include "toonz/ttileset.h"
-#include "toonz/rasterstrokegenerator.h"
-#include "toonz/preferences.h"
+#include "flare/strokegenerator.h"
+#include "flare/ttilesaver.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/observer.h"
+#include "flare/flareimageutils.h"
+#include "flare/levelproperties.h"
+#include "flare/stage2.h"
+#include "flare/ttileset.h"
+#include "flare/rasterstrokegenerator.h"
+#include "flare/preferences.h"
 #include "tgl.h"
 #include "tenv.h"
 
@@ -29,10 +29,10 @@
 #include "tinbetween.h"
 #include "ttile.h"
 
-#include "toonz/tpalettehandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/tframehandle.h"
+#include "flare/tpalettehandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/tframehandle.h"
 #include "tools/toolhandle.h"
 
 // For Qt translation support
@@ -87,7 +87,7 @@ public:
       m_fillMode(fillMode){}
 
   void redo() const override {
-    TToonzImageP image = m_level->getFrame(m_frameId, true);
+    TflareImageP image = m_level->getFrame(m_frameId, true);
     TRasterCM32P ras   = image->getRaster();
     RasterStrokeGenerator m_rasterTrack(ras, PAINTBRUSH, m_colorType, m_styleId,
                                         m_points[0], m_selective, m_pickStyleId,
@@ -294,7 +294,7 @@ public:
   ToolType getToolType() const override { return TTool::LevelWriteTool; }
 
   void draw() override;
-  void update(TToonzImageP ti, TRectD area);
+  void update(TflareImageP ti, TRectD area);
 
   void updateTranslation() override;
 
@@ -359,7 +359,7 @@ PaintBrushTool::PaintBrushTool()
   m_colorType.addValue(AREAS);
   m_colorType.addValue(ALL);
 
-  bind(TTool::ToonzImage);
+  bind(TTool::flareImage);
 
   m_prop.bind(m_toolSize);
   m_prop.bind(m_colorType);
@@ -432,15 +432,15 @@ void PaintBrushTool::draw() {
   // If toggled off, don't draw brush outline
   if (!Preferences::instance()->isCursorOutlineEnabled()) return;
 
-  TToonzImageP ti = (TToonzImageP)getImage(false);
+  TflareImageP ti = (TflareImageP)getImage(false);
   if (!ti) return;
   TRasterP ras = ti->getRaster();
   int lx       = ras->getLx();
   int ly       = ras->getLy();
 
-  if ((ToonzCheck::instance()->getChecks() & ToonzCheck::eInk) ||
-      (ToonzCheck::instance()->getChecks() & ToonzCheck::ePaint) ||
-      (ToonzCheck::instance()->getChecks() & ToonzCheck::eInk1))
+  if ((flareCheck::instance()->getChecks() & flareCheck::eInk) ||
+      (flareCheck::instance()->getChecks() & flareCheck::ePaint) ||
+      (flareCheck::instance()->getChecks() & flareCheck::eInk1))
     glColor3d(0.5, 0.8, 0.8);
   else
     glColor3d(1.0, 0.0, 0.0);
@@ -548,7 +548,7 @@ void PaintBrushTool::leftButtonDown(const TPointD &pos, const TMouseEvent &e) {
   if (m_colorType.getValue() == AREAS) m_colorTypeBrush = PAINT;
   if (m_colorType.getValue() == ALL) m_colorTypeBrush = INKNPAINT;
 
-  if (TToonzImageP ti = image) {
+  if (TflareImageP ti = image) {
     TRasterCM32P ras = ti->getRaster();
     if (ras) {
       int pickedStyle = 0;
@@ -587,7 +587,7 @@ void PaintBrushTool::leftButtonDrag(const TPointD &pos, const TMouseEvent &e) {
   if (!m_selecting) return;
 
   fixMousePos(pos);
-  if (TToonzImageP ri = TImageP(getImage(true))) {
+  if (TflareImageP ri = TImageP(getImage(true))) {
     /*--- マウスを動かしながらショートカットでこのツールに切り替わった場合、
             いきなりleftButtonDragから呼ばれることがあり、m_rasterTrackが無い可能性がある
 　---*/
@@ -648,7 +648,7 @@ void PaintBrushTool::onEnter() {
   m_pointSize =
       (x - minRange) / (maxRange - minRange) * (maxSize - minSize) + minSize;
 
-  if ((TToonzImageP)getImage(false))
+  if ((TflareImageP)getImage(false))
     m_cursor = ToolCursor::PenCursor;
   else
     m_cursor = ToolCursor::CURSOR_NO;
@@ -674,7 +674,7 @@ void PaintBrushTool::onDeactivate() {
  * 描画中にツールが切り替わった場合に備え、onDeactivateでもMouseReleaseと同じ終了処理を行う
  */
 void PaintBrushTool::finishBrush() {
-  if (TToonzImageP ti = (TToonzImageP)getImage(true)) {
+  if (TflareImageP ti = (TflareImageP)getImage(true)) {
     if (m_rasterTrack) {
       int thickness = m_toolSize.getValue();
       m_rasterTrack->add(TThickPoint(
@@ -720,7 +720,7 @@ void PaintBrushTool::finishBrush() {
 
 int PaintBrushTool::pick(const TImageP &image, const TPointD &pos,
                          const int frame) {
-  TToonzImageP ti = image;
+  TflareImageP ti = image;
   if (!ti) return 0;
 
   StylePicker picker(getViewer()->viewerWidget(), image);
@@ -739,3 +739,4 @@ int PaintBrushTool::pick(const TImageP &image, const TPointD &pos,
   // thin stroke can be picked with 10 pixel range
   return picker.pickStyleId(pickPos, 10.0, scale2);
 }
+

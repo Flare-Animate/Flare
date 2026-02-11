@@ -2,7 +2,7 @@
 
 #include "tfxattributes.h"
 
-#include "toonz/tstageobject.h"
+#include "flare/tstageobject.h"
 
 #include "trop.h"
 
@@ -148,3 +148,4 @@ std::string Iwa_MotionFlowFx::getAlias(double frame,
          "]";
 }
 FX_PLUGIN_IDENTIFIER(Iwa_MotionFlowFx, "iwa_MotionFlowFx")
+

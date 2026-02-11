@@ -1,16 +1,16 @@
 
 
-#include "toonz/scriptbinding_renderer.h"
-#include "toonz/scriptbinding_scene.h"
-#include "toonz/scriptbinding_level.h"
-#include "toonz/txsheet.h"
-#include "toonz/txshsimplelevel.h"
+#include "flare/scriptbinding_renderer.h"
+#include "flare/scriptbinding_scene.h"
+#include "flare/scriptbinding_level.h"
+#include "flare/txsheet.h"
+#include "flare/txshsimplelevel.h"
 
-#include "toonz/toonzscene.h"
+#include "flare/flarescene.h"
 #include "trenderer.h"
-#include "toonz/scenefx.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/tcamera.h"
+#include "flare/scenefx.h"
+#include "flare/sceneproperties.h"
+#include "flare/tcamera.h"
 #include "toutputproperties.h"
 #include <QEventLoop>
 #include <QWaitCondition>
@@ -28,7 +28,7 @@ static QScriptValue getScene(QScriptContext *context,
     return context->throwError(
         QObject::tr("First argument must be a scene : %1")
             .arg(sceneArg.toString()));
-  if (scene->getToonzScene() == 0)
+  if (scene->getflareScene() == 0)
     return context->throwError(QObject::tr("Can't render empty scene"));
   return QScriptValue();
 }
@@ -64,7 +64,7 @@ public:
 
   ~Imp() {}
 
-  void setRenderArea(ToonzScene *scene) {
+  void setRenderArea(flareScene *scene) {
     TDimension cameraRes = scene->getCurrentCamera()->getRes();
     double rx = cameraRes.lx * 0.5, ry = cameraRes.ly * 0.5;
     TRectD renderArea(-rx, -ry, rx, ry);
@@ -72,7 +72,7 @@ public:
     m_cameraDpi = scene->getCurrentCamera()->getDpi();
   }
 
-  void enableColumns(ToonzScene *scene, QList<bool> &oldStatus) {
+  void enableColumns(flareScene *scene, QList<bool> &oldStatus) {
     if (m_columnList.empty()) return;
     QList<bool> newStatus;
     TXsheet *xsh = scene->getXsheet();
@@ -88,7 +88,7 @@ public:
     }
   }
 
-  void restoreColumns(ToonzScene *scene, const QList<bool> &oldStatus) {
+  void restoreColumns(flareScene *scene, const QList<bool> &oldStatus) {
     TXsheet *xsh = scene->getXsheet();
     for (int i = 0; i < oldStatus.length(); i++) {
       xsh->getColumn(i)->setPreviewVisible(oldStatus[i]);
@@ -96,7 +96,7 @@ public:
   }
 
   std::vector<TRenderer::RenderData> *makeRenderData(
-      ToonzScene *scene, const std::vector<int> &rows) {
+      flareScene *scene, const std::vector<int> &rows) {
     TRenderSettings settings =
         scene->getProperties()->getOutputProperties()->getRenderSettings();
 
@@ -132,7 +132,7 @@ public:
     mutex.unlock();
   }
 
-  void renderFrame(ToonzScene *scene, int row, Image *outputImage) {
+  void renderFrame(flareScene *scene, int row, Image *outputImage) {
     setRenderArea(scene);
     std::vector<int> rows;
     rows.push_back(row);
@@ -141,7 +141,7 @@ public:
     render(makeRenderData(scene, rows));
   }
 
-  void renderScene(ToonzScene *scene, Level *outputLevel) {
+  void renderScene(flareScene *scene, Level *outputLevel) {
     setRenderArea(scene);
     std::vector<int> rows;
     if (m_frameList.empty()) {
@@ -207,10 +207,10 @@ QScriptValue Renderer::renderScene(const QScriptValue &sceneArg) {
 
   Level *outputLevel = new Level();
   // engine()->collectGarbage();
-  m_imp->renderScene(scene->getToonzScene(), outputLevel);
+  m_imp->renderScene(scene->getflareScene(), outputLevel);
   return create(engine(), outputLevel);
   /*
-for(int row=0;row<scene->getToonzScene()->getFrameCount();row++)
+for(int row=0;row<scene->getflareScene()->getFrameCount();row++)
 {
 engine()->collectGarbage();
 TImageP img = renderEngine.renderFrame(row);
@@ -240,7 +240,7 @@ Q_INVOKABLE QScriptValue Renderer::renderFrame(const QScriptValue &sceneArg,
 
   Image *outputImage = new Image();
   engine()->collectGarbage();
-  m_imp->renderFrame(scene->getToonzScene(), frame, outputImage);
+  m_imp->renderFrame(scene->getflareScene(), frame, outputImage);
   return create(engine(), outputImage);
 
   /*
@@ -253,7 +253,7 @@ if(err.isError()) return err;
 
 engine()->collectGarbage();
 
-RenderEngine renderEngine(scene->getToonzScene());
+RenderEngine renderEngine(scene->getflareScene());
 TImageP img = renderEngine.renderFrame(frame);
 
 for(int i=0;i<oldStatus.length();i++)
@@ -280,7 +280,7 @@ return context()->throwError(tr("Render failed"));
 
     QList<bool> oldStatus;
     QList<bool> newStatus;
-    TXsheet *xsh = scene->getToonzScene()->getXsheet();
+    TXsheet *xsh = scene->getflareScene()->getXsheet();
     for(int i=0;i<xsh->getColumnCount();i++)
     {
       oldStatus.append(xsh->getColumn(i)->isPreviewVisible());
@@ -309,8 +309,8 @@ return context()->throwError(tr("Render failed"));
 
     err = QScriptValue();
     QScriptValue newLevel = create(new Level());
-    RenderEngine renderEngine(scene->getToonzScene());
-    for(int row=0;row<scene->getToonzScene()->getFrameCount();row++)
+    RenderEngine renderEngine(scene->getflareScene());
+    for(int row=0;row<scene->getflareScene()->getFrameCount();row++)
     {
       engine()->collectGarbage();
       TImageP img = renderEngine.renderFrame(row);
@@ -339,3 +339,4 @@ void Renderer::dumpCache() {
 }
 
 }  // namespace TScriptBinding
+

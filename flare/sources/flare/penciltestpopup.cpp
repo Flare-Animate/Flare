@@ -18,34 +18,34 @@
 #include "formatsettingspopups.h"
 #include "filebrowsermodel.h"
 #include "cellselection.h"
-#include "toonzqt/tselectionhandle.h"
+#include "flareqt/tselectionhandle.h"
 #include "cameracapturelevelcontrol.h"
 #include "iocommand.h"
 #include "filebrowser.h"
 
 // TnzQt includes
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/filefield.h"
-#include "toonzqt/intfield.h"
-#include "toonzqt/gutil.h"
+#include "flareqt/menubarcommand.h"
+#include "flareqt/filefield.h"
+#include "flareqt/intfield.h"
+#include "flareqt/gutil.h"
 
 // Tnzlib includes
-#include "toonz/tproject.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/toonzscene.h"
+#include "flare/tproject.h"
+#include "flare/tscenehandle.h"
+#include "flare/flarescene.h"
 #include "toutputproperties.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/levelset.h"
-#include "toonz/txshleveltypes.h"
-#include "toonz/toonzfolders.h"
-#include "toonz/tframehandle.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/levelproperties.h"
-#include "toonz/tcamera.h"
-#include "toonz/preferences.h"
-#include "toonz/filepathproperties.h"
+#include "flare/sceneproperties.h"
+#include "flare/levelset.h"
+#include "flare/txshleveltypes.h"
+#include "flare/flarefolders.h"
+#include "flare/tframehandle.h"
+#include "flare/tcolumnhandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/levelproperties.h"
+#include "flare/tcamera.h"
+#include "flare/preferences.h"
+#include "flare/filepathproperties.h"
 
 // TnzCore includes
 #include "tsystem.h"
@@ -878,7 +878,7 @@ void FrameNumberLineEdit::focusOutEvent(QFocusEvent* e) {
 LevelNameLineEdit::LevelNameLineEdit(QWidget* parent)
     : QLineEdit(parent), m_textOnFocusIn("") {
   // Exclude all character which cannot fit in a filepath (Win).
-  // Dots are also prohibited since they are internally managed by Toonz.
+  // Dots are also prohibited since they are internally managed by flare.
   QRegExp rx("[^\\\\/:?*.\"<>|]+");
   setValidator(new QRegExpValidator(rx, this));
   setObjectName("LargeSizedText");
@@ -1126,7 +1126,7 @@ QString PencilTestSaveInFolderPopup::getPath() {
   // re-code filepath
   TFilePath path(m_parentFolderField->getPath() + "\\" +
                  m_subFolderNameField->text());
-  ToonzScene* scene = TApp::instance()->getCurrentScene()->getScene();
+  flareScene* scene = TApp::instance()->getCurrentScene()->getScene();
   if (scene) {
     path = scene->decodeFilePath(path);
     path = scene->codeFilePath(path);
@@ -1295,7 +1295,7 @@ void PencilTestSaveInFolderPopup::createSceneInFolder() {
   if (!m_subFolderCB->isChecked()) return;
 
   // set the output folder
-  ToonzScene* scene = TApp::instance()->getCurrentScene()->getScene();
+  flareScene* scene = TApp::instance()->getCurrentScene()->getScene();
   if (!scene) return;
 
   TFilePath fp(getPath().toStdWString());
@@ -1319,7 +1319,7 @@ void PencilTestSaveInFolderPopup::createSceneInFolder() {
 
 void PencilTestSaveInFolderPopup::updateParentFolder() {
   // If the parent folder is saved in the scene, use it
-  ToonzScene* scene = TApp::instance()->getCurrentScene()->getScene();
+  flareScene* scene = TApp::instance()->getCurrentScene()->getScene();
   QString parentFolder =
       scene->getProperties()->cameraCaptureSaveInPath().getQString();
   if (parentFolder.isEmpty()) {
@@ -1367,11 +1367,11 @@ SubCameraButton::SubCameraButton(const QString& text, QWidget* parent)
   setCheckable(true);
 
   // load preference file
-  TFilePath layoutDir = ToonzFolder::getMyModuleDir();
+  TFilePath layoutDir = flareFolder::getMyModuleDir();
   TFilePath prefPath  = layoutDir + TFilePath("camera_capture_subcamera.ini");
   // In case the personal settings is not exist (for new users)
   if (!TFileStatus(prefPath).doesExist()) {
-    TFilePath templatePath = ToonzFolder::getTemplateModuleDir() +
+    TFilePath templatePath = flareFolder::getTemplateModuleDir() +
                              TFilePath("camera_capture_subcamera.ini");
     // If there is the template, copy it to the personal one
     if (TFileStatus(templatePath).doesExist())
@@ -2291,7 +2291,7 @@ void PencilTestPopup::onResolutionComboActivated() {
 
 void PencilTestPopup::onFileFormatOptionButtonPressed() {
   // Tentatively use the preview output settings
-  ToonzScene* scene = TApp::instance()->getCurrentScene()->getScene();
+  flareScene* scene = TApp::instance()->getCurrentScene()->getScene();
   if (!scene) return;
   TOutputProperties* prop = scene->getProperties()->getPreviewProperties();
   std::string ext         = m_fileTypeCombo->currentText().toStdString();
@@ -2357,7 +2357,7 @@ void PencilTestPopup::setToNextNewLevel() {
 
   TLevelSet* levelSet =
       TApp::instance()->getCurrentScene()->getScene()->getLevelSet();
-  ToonzScene* scene      = TApp::instance()->getCurrentScene()->getScene();
+  flareScene* scene      = TApp::instance()->getCurrentScene()->getScene();
   std::wstring levelName = L"";
 
   // Select a different unique level name in case it already exists (either in
@@ -2973,7 +2973,7 @@ void PencilTestPopup::onCountDown() {
  */
 bool PencilTestPopup::importImage(QImage image) {
   TApp* app         = TApp::instance();
-  ToonzScene* scene = app->getCurrentScene()->getScene();
+  flareScene* scene = app->getCurrentScene()->getScene();
   TXsheet* xsh      = scene->getXsheet();
 
   std::wstring levelName = m_levelNameEdit->text().toStdWString();
@@ -3269,7 +3269,7 @@ void PencilTestPopup::refreshFrameInfo() {
 
   static QColor infoColors[4] = {Qt::cyan, Qt::green, Qt::yellow, Qt::red};
 
-  ToonzScene* currentScene = TApp::instance()->getCurrentScene()->getScene();
+  flareScene* currentScene = TApp::instance()->getCurrentScene()->getScene();
   TLevelSet* levelSet      = currentScene->getLevelSet();
 
   std::wstring levelName = m_levelNameEdit->text().toStdWString();
@@ -3524,7 +3524,7 @@ void PencilTestPopup::refreshFrameInfo() {
 //-----------------------------------------------------------------------------
 
 void PencilTestPopup::onSaveInPathEdited() {
-  ToonzScene* scene = TApp::instance()->getCurrentScene()->getScene();
+  flareScene* scene = TApp::instance()->getCurrentScene()->getScene();
   TFilePath saveInPath(m_saveInFileFld->getPath().toStdWString());
   scene->getProperties()->setCameraCaptureSaveInPath(saveInPath);
   refreshFrameInfo();
@@ -3695,7 +3695,7 @@ QString PencilTestPopup::getCameraConfigurationPath(const QString& folderName,
   if (cameraName.isEmpty()) return QString();
   QString resolution   = m_resolutionCombo->currentText();
   QString hostName     = QHostInfo::localHostName();
-  TFilePath folderPath = ToonzFolder::getLibraryFolder();
+  TFilePath folderPath = flareFolder::getLibraryFolder();
   return folderPath.getQString() + "\\" + folderName + "\\" + hostName + "_" +
          cameraName + "_" + resolution + "." + ext;
 }
@@ -3791,7 +3791,7 @@ void PencilTestPopup::onCalibExportBtnClicked() {
 
 void PencilTestPopup::onCalibReadme() {
   TFilePath readmeFp =
-      ToonzFolder::getLibraryFolder() + "camera calibration" + "readme.txt";
+      flareFolder::getLibraryFolder() + "camera calibration" + "readme.txt";
   if (!TFileStatus(readmeFp).doesExist()) return;
   if (TSystem::isUNC(readmeFp))
     QDesktopServices::openUrl(QUrl(readmeFp.getQString()));
@@ -3981,7 +3981,7 @@ ExportCalibrationFilePopup::ExportCalibrationFilePopup(QWidget* parent)
 
 void ExportCalibrationFilePopup::showEvent(QShowEvent* e) {
   FileBrowserPopup::showEvent(e);
-  setFolder(ToonzFolder::getLibraryFolder() + "camera calibration");
+  setFolder(flareFolder::getLibraryFolder() + "camera calibration");
 }
 
 //=============================================================================
@@ -3997,5 +3997,5 @@ LoadCalibrationFilePopup::LoadCalibrationFilePopup(QWidget* parent)
 
 void LoadCalibrationFilePopup::showEvent(QShowEvent* e) {
   FileBrowserPopup::showEvent(e);
-  setFolder(ToonzFolder::getLibraryFolder() + "camera calibration");
+  setFolder(flareFolder::getLibraryFolder() + "camera calibration");
 }

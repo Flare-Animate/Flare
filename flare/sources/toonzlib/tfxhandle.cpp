@@ -1,6 +1,6 @@
 
 
-#include "toonz/tfxhandle.h"
+#include "flare/tfxhandle.h"
 #include "tfx.h"
 
 TFxHandle::TFxHandle() : m_fx(0), m_previousActionString() {}
@@ -21,3 +21,4 @@ void TFxHandle::setFx(TFx *fx, bool doSwitchFxSettings) {
 }
 
 void TFxHandle::onColumnChanged() {}
+

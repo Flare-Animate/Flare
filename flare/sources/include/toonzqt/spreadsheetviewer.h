@@ -5,7 +5,7 @@
 
 #include "tcommon.h"
 #include "cellposition.h"
-#include "toonz/cellpositionratio.h"
+#include "flare/cellpositionratio.h"
 // #include "orientation.h"
 
 #include <QDialog>
@@ -13,7 +13,7 @@
 
 #undef DVAPI
 #undef DVVAR
-#ifdef TOONZQT_EXPORTS
+#ifdef flareQT_EXPORTS
 #define DVAPI DV_EXPORT_API
 #define DVVAR DV_EXPORT_VAR
 #else
@@ -545,3 +545,4 @@ void updateCellRowAree();
 };
 
 #endif
+

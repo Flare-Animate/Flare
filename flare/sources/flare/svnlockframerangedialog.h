@@ -3,8 +3,8 @@
 #ifndef SVN_LOCK_FRAME_RANGE_DIALOG_H
 #define SVN_LOCK_FRAME_RANGE_DIALOG_H
 
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/intfield.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/intfield.h"
 #include "versioncontrol.h"
 
 #include <QList>
@@ -259,3 +259,4 @@ protected slots:
 };
 
 #endif  // SVN_LOCK_FRAME_RANGE_DIALOG_H
+

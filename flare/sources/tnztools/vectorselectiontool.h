@@ -15,7 +15,7 @@
 #include "tregion.h"
 
 // TnzQt includes
-#include "toonzqt/selectioncommandids.h"
+#include "flareqt/selectioncommandids.h"
 
 // Qt includes
 #include <QSet>
@@ -271,7 +271,7 @@ public:
 //-----------------------------------------------------------------------------
 
 /*!
-  \brief    Selection tool for Toonz's vector images.
+  \brief    Selection tool for flare's vector images.
 */
 
 class VectorSelectionTool final : public SelectionTool {
@@ -422,3 +422,4 @@ private:
 };
 
 #endif  // VECTORSELECTIONTOOL_H
+

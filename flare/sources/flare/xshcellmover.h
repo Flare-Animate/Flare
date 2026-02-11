@@ -4,8 +4,8 @@
 #define XSHCELLMOVER_H
 
 #include "tgeometry.h"
-#include "toonz/txshcell.h"
-#include "toonz/txshcolumn.h"
+#include "flare/txshcell.h"
+#include "flare/txshcolumn.h"
 #include "tundo.h"
 #include <QMap>
 #include "xsheetdragtool.h"
@@ -127,3 +127,4 @@ public:
 };
 
 #endif
+

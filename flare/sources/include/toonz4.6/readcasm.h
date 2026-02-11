@@ -3,7 +3,7 @@
 #ifndef _READCASM_H_
 #define _READCASM_H_
 
-#include "toonzproc.h"
+#include "flareproc.h"
 #include "casm_node.h"
 
 #undef TNZAPI
@@ -156,3 +156,4 @@ TNZVAR int Is_casm;
 TNZVAR int Always_scale_opt;
 
 #endif
+

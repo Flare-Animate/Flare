@@ -3,7 +3,7 @@
 #if defined(x64) || defined(__LP64__) || defined(LINUX) || defined(FREEBSD) || \
     defined(HAIKU) || (defined(_WIN32) && defined(__GNUC__))
 
-// Toonz includes
+// flare includes
 #include "tfilepath.h"
 #include "trasterimage.h"
 #include "tstream.h"
@@ -22,7 +22,7 @@
 #include <QDataStream>
 
 #include "tiio_mov_proxy.h"
-#include <toonz/preferences.h>
+#include <flare/preferences.h>
 
 /*
   For a list of supported commands through the 32-bit background server,
@@ -39,7 +39,7 @@ bool IsQuickTimeInstalled() {
   // There actually are 2 distinct functions with essentially the same name, one
   // in tnzcore lib, the other in image. The core version is currently NEVER
   // USED
-  // throughout Toonz, even if it's EXPORT-defined.
+  // throughout flare, even if it's EXPORT-defined.
   if (!Preferences::instance()->isUseQuickTimeBackend()) return false;
   QLocalSocket socket;
   if (!tipc::startSlaveConnection(&socket, t32bitsrv::srvName(), 3000,
@@ -522,3 +522,4 @@ void TLevelReaderMov::load(const TRasterP &ras, int frameIndex,
 }
 
 #endif  // x64
+

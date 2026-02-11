@@ -128,7 +128,7 @@ public:
     this->get_render_enlarge(frame, infoOnOutput.m_affine, rectOnInput);
   }
   bool canHandle(const TRenderSettings &info, double frame) override {
-    // return false; // toonz has geometry control
+    // return false; // flare has geometry control
     // return true;
     /* 2012-11-14:
      * trueのとき、Fx処理がジオメトリ変換の最後にまとめられてしまう。 */
@@ -345,3 +345,4 @@ void ino_spin_blur::doCompute(TTile &tile, double frame,
     throw;
   }
 }
+

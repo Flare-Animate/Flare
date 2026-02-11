@@ -3,7 +3,7 @@
 #ifndef CONTROLPOINT_SELECTION_INCLUDED
 #define CONTROLPOINT_SELECTION_INCLUDED
 
-#include "toonzqt/selection.h"
+#include "flareqt/selection.h"
 #include "tools/tool.h"
 #include "tstroke.h"
 #include "tvectorimage.h"
@@ -167,3 +167,4 @@ protected slots:
 };
 
 #endif  // CONTROLPOINT_SELECTION_INCLUDED
+

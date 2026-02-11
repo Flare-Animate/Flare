@@ -4,7 +4,7 @@
 #define _PIXEL_H_
 
 #include "machine.h"
-//#include "toonz.h"
+//#include "flare.h"
 
 #include "tnztypes.h"
 
@@ -146,7 +146,7 @@ typedef enum {
   PIX_CM8S8,    /* cmapped,  8 bits, standard SGI 256-color colormap */
   PIX_CM16S4,   /* cmapped, 16 bits, standard SGI  16-color colormap */
   PIX_CM16S8,   /* cmapped, 16 bits, standard SGI 256-color colormap */
-  PIX_CM16S12,  /* cmapped, 16 bits, standard SGI+Toonz 4096-color colormap */
+  PIX_CM16S12,  /* cmapped, 16 bits, standard SGI+flare 4096-color colormap */
   PIX_CM24, /* color-mapped, 8+8+8 bits (pen, col, tone) + 8 msb bits extra*/
   PIX_HOW_MANY
 } PIX_TYPE;
@@ -317,3 +317,4 @@ the macro PIX_INIT_DITHER_RGBM64_TO_RGBM
 /*---------------------------------------------------------------------------*/
 
 #endif
+

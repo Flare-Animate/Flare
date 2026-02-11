@@ -4,7 +4,7 @@
 #define MULTIPLESELECTION_H
 
 // TnzQt includes
-#include "toonzqt/selection.h"
+#include "flareqt/selection.h"
 
 // STD includes
 #include <algorithm>
@@ -63,3 +63,4 @@ protected:
 };
 
 #endif  // MULTIPLESELECTION_H
+

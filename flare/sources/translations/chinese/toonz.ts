@@ -32,7 +32,7 @@
     <name>AdjustLevelsPopup</name>
     <message>
         <source>Adjust Levels</source>
-        <translatorcomment>level 多数是专有名词，但此处为颜色阶调，非Toonz的专有名词</translatorcomment>
+        <translatorcomment>level 多数是专有名词，但此处为颜色阶调，非flare的专有名词</translatorcomment>
         <translation>调整色阶</translation>
     </message>
     <message>
@@ -622,21 +622,21 @@ Please choose a valid lip sync data file to continue.</source>
     </message>
     <message>
         <source>In order to use the render farm you have to define the Farm Global Root first.</source>
-        <translation>要使用 Toonz 渲染农场，你要指定渲染农场的全局根路径。</translation>
+        <translation>要使用 flare 渲染农场，你要指定渲染农场的全局根路径。</translation>
     </message>
     <message>
         <source>The Farm Global Root folder doesn&apos;t exist
 Please create this folder before using the render farm.</source>
-        <translation>Toonz 渲染农场的全局根文件夹不存在。
-请在使用 Toonz 渲染农场之前创建该文件夹。</translation>
+        <translation>flare 渲染农场的全局根文件夹不存在。
+请在使用 flare 渲染农场之前创建该文件夹。</translation>
     </message>
     <message>
-        <source>Unable to connect to the ToonzFarm Controller
+        <source>Unable to connect to the flareFarm Controller
    The Controller should run on %1 at port %2
-   Please start the Controller before using the ToonzFarm</source>
-        <translation>无法连接到ToonzFarm控制器
+   Please start the Controller before using the flareFarm</source>
+        <translation>无法连接到flareFarm控制器
    控制器应该在 %1 的端口 %2 上运行。
-   在使用ToonzFarm之前，请启动控制器。</translation>
+   在使用flareFarm之前，请启动控制器。</translation>
     </message>
 </context>
 <context>
@@ -2077,12 +2077,12 @@ What do you want to do? </source>
     </message>
     <message>
         <source>When activated, styles of the default palette
-($TOONZSTUDIOPALETTE\cleanup_default.tpl) will
+($flareSTUDIOPALETTE\cleanup_default.tpl) will
 be appended to the palette after conversion in
 order to save the effort of creating styles
 before color designing.</source>
         <translation type="vanished">启用该选项时，会在转换完成后附加默认调色板
-($TOONZSTUDIOPALETTE\cleanup_default.tpl)的样式到调色板中。
+($flareSTUDIOPALETTE\cleanup_default.tpl)的样式到调色板中。
 这样可以在创建色板的时候，省去新建样式的功夫。</translation>
     </message>
     <message>
@@ -2115,12 +2115,12 @@ contain the dpi information, then the current camera dpi will be used.
     </message>
     <message>
         <source>When activated, styles of the default palette
-($TOONZSTUDIOPALETTE\cleanup_default.tpl) will 
+($flareSTUDIOPALETTE\cleanup_default.tpl) will 
 be appended to the palette after conversion in 
 order to save the effort of creating styles 
 before color designing.</source>
         <translation>当启用时，默认调色板的样式
-($TOONZSTUDIOPALETTE\cleanup_default.tpl)
+($flareSTUDIOPALETTE\cleanup_default.tpl)
 将在转换后被打包到调色板中，
 以便在开始颜色设计前保存样式调整效果。</translation>
     </message>
@@ -3656,8 +3656,8 @@ Hold F3 Key on the Viewer to Show This Frame Only</source>
         <translation>没有已渲染的图像需要保存。</translation>
     </message>
     <message>
-        <source>It is not possible to take or compare snapshots for Toonz vector levels.</source>
-        <translation>无法对 Toonz 矢量层级进行快照的提取或比较。</translation>
+        <source>It is not possible to take or compare snapshots for flare vector levels.</source>
+        <translation>无法对 flare 矢量层级进行快照的提取或比较。</translation>
     </message>
     <message>
         <source>File %1 already exists.
@@ -3828,8 +3828,8 @@ Do you want to overwrite it?</source>
         <translation>%1 不存在。</translation>
     </message>
     <message>
-        <source>Import Toonz Lip Sync File</source>
-        <translation>导入 Toonz 口型同步文件</translation>
+        <source>Import flare Lip Sync File</source>
+        <translation>导入 flare 口型同步文件</translation>
     </message>
 </context>
 <context>
@@ -4119,12 +4119,12 @@ Do you want to create it?</source>
         <translation>保存位置:</translation>
     </message>
     <message>
-        <source>Toonz Vector Level</source>
-        <translation>Toonz 矢量层级</translation>
+        <source>flare Vector Level</source>
+        <translation>flare 矢量层级</translation>
     </message>
     <message>
-        <source>Toonz Raster Level</source>
-        <translation>Toonz 光栅层级</translation>
+        <source>flare Raster Level</source>
+        <translation>flare 光栅层级</translation>
     </message>
     <message>
         <source>Raster Level</source>
@@ -4270,12 +4270,12 @@ Do you want to create it?</source>
         <translation>声音列</translation>
     </message>
     <message>
-        <source>Toonz Vector level</source>
-        <translation>Toonz 矢量层级</translation>
+        <source>flare Vector level</source>
+        <translation>flare 矢量层级</translation>
     </message>
     <message>
-        <source>Toonz Raster level</source>
-        <translation>Toonz 光栅层级</translation>
+        <source>flare Raster level</source>
+        <translation>flare 光栅层级</translation>
     </message>
     <message>
         <source>[Various]</source>
@@ -4871,8 +4871,8 @@ Please use the frame numbers for reference.</source>
         <translation>文件路径丢失。</translation>
     </message>
     <message>
-        <source>Import Toonz Lip Sync File</source>
-        <translation>导入 Toonz 口型同步文件</translation>
+        <source>Import flare Lip Sync File</source>
+        <translation>导入 flare 口型同步文件</translation>
     </message>
     <message>
         <source>To: </source>
@@ -6634,12 +6634,12 @@ Please use the frame numbers for reference.</source>
         <translation type="vanished">新矢量层级</translation>
     </message>
     <message>
-        <source>&amp;New Toonz Raster Level</source>
-        <translation>新建 Toonz 光栅层级(&amp;N)</translation>
+        <source>&amp;New flare Raster Level</source>
+        <translation>新建 flare 光栅层级(&amp;N)</translation>
     </message>
     <message>
-        <source>New Toonz Raster Level</source>
-        <translation type="vanished">新 Toonz 光栅层级</translation>
+        <source>New flare Raster Level</source>
+        <translation type="vanished">新 flare 光栅层级</translation>
     </message>
     <message>
         <source>&amp;New Raster Level</source>
@@ -6690,8 +6690,8 @@ Please use the frame numbers for reference.</source>
         <translation>显示/隐藏当前时间指示器</translation>
     </message>
     <message>
-        <source>Vectors to Toonz Raster</source>
-        <translation>转换矢量为 Toonz 光栅</translation>
+        <source>Vectors to flare Raster</source>
+        <translation>转换矢量为 flare 光栅</translation>
     </message>
     <message>
         <source>Replace Vectors with Simplified Vectors</source>
@@ -6822,12 +6822,12 @@ Please use the frame numbers for reference.</source>
         <translation>画笔 - 锁定透明度</translation>
     </message>
     <message>
-        <source>http://opentoonz.readthedocs.io</source>
-        <translation>http://opentoonz.readthedocs.io</translation>
+        <source>http://flare.readthedocs.io</source>
+        <translation>http://flare.readthedocs.io</translation>
     </message>
     <message>
-        <source>&amp;Import Toonz Lip Sync File...</source>
-        <translation>导入 Toonz 口型同步文件(&amp;I)...</translation>
+        <source>&amp;Import flare Lip Sync File...</source>
+        <translation>导入 flare 口型同步文件(&amp;I)...</translation>
     </message>
     <message>
         <source>Export Exchange Digital Time Sheet (XDTS)</source>
@@ -6974,12 +6974,12 @@ N.B. 确保你没有在运行其他 Flare 进程、
         <translation>无法删除 %1 : </translation>
     </message>
     <message>
-        <source>https://github.com/opentoonz/opentoonz/releases/latest</source>
-        <translation>https://github.com/opentoonz/opentoonz/releases/latest</translation>
+        <source>https://github.com/flare/flare/releases/latest</source>
+        <translation>https://github.com/flare/flare/releases/latest</translation>
     </message>
     <message>
-        <source>https://groups.google.com/forum/#!forum/opentoonz_en</source>
-        <translation>https://groups.google.com/forum/#!forum/opentoonz_en</translation>
+        <source>https://groups.google.com/forum/#!forum/flare_en</source>
+        <translation>https://groups.google.com/forum/#!forum/flare_en</translation>
     </message>
     <message>
         <source>To report a bug, click on the button below to open a web browser window for Flare&apos;s Issues page on https://github.com.  Click on the &apos;New issue&apos; button and fill out the form.</source>
@@ -9366,12 +9366,12 @@ Set the output folder path to the subfolder as well.</source>
         <translation>默认层级类型:</translation>
     </message>
     <message>
-        <source>Toonz Vector Level</source>
-        <translation>Toonz 矢量层级</translation>
+        <source>flare Vector Level</source>
+        <translation>flare 矢量层级</translation>
     </message>
     <message>
-        <source>Toonz Raster Level</source>
-        <translation>Toonz 光栅层级</translation>
+        <source>flare Raster Level</source>
+        <translation>flare 光栅层级</translation>
     </message>
     <message>
         <source>Raster Level</source>
@@ -9626,8 +9626,8 @@ Set the output folder path to the subfolder as well.</source>
         <translation>使用摄影表作为动画表</translation>
     </message>
     <message>
-        <source>Replace Toonz Level after SaveLevelAs command</source>
-        <translation>执行另存层级命令后替换 Toonz 层级</translation>
+        <source>Replace flare Level after SaveLevelAs command</source>
+        <translation>执行另存层级命令后替换 flare 层级</translation>
     </message>
     <message>
         <source>Show Keyframes on Cell Area</source>
@@ -11251,7 +11251,7 @@ What do you want to do?</source>
         <translation>无法删除线，因为没有选择任何列、帧格或层级条帧。</translation>
     </message>
     <message>
-        <source>The rooms will be reset the next time you run Toonz.</source>
+        <source>The rooms will be reset the next time you run flare.</source>
         <translation type="vanished">将在下次启动 Flare 时重置工作区。</translation>
     </message>
     <message>
@@ -11355,8 +11355,8 @@ Do you want to overwrite it?</source>
 确定要覆盖吗？</translation>
     </message>
     <message>
-        <source>File %1 doesn&apos;t look like a TOONZ Scene</source>
-        <translation>文件 %1 不像是 TOONZ 场景</translation>
+        <source>File %1 doesn&apos;t look like a flare Scene</source>
+        <translation>文件 %1 不像是 flare 场景</translation>
     </message>
     <message>
         <source>It is not possible to load the scene %1 because it does not belong to any project.</source>
@@ -11407,8 +11407,8 @@ Some levels have not been loaded because their version is not supported</source>
         <translation>所选的帧格必须在同一个列中。</translation>
     </message>
     <message>
-        <source>Match lines can be deleted from Toonz raster levels only</source>
-        <translation>适配线只能在 Toonz 光栅层级中删除</translation>
+        <source>Match lines can be deleted from flare raster levels only</source>
+        <translation>适配线只能在 flare 光栅层级中删除</translation>
     </message>
     <message>
         <source>Partially Edited</source>
@@ -11475,8 +11475,8 @@ Some levels have not been loaded because their version is not supported</source>
         <translation>无法在包含多个层级的列中使用适配线。</translation>
     </message>
     <message>
-        <source>Match lines can be applied to Toonz raster levels only.</source>
-        <translation>适配线仅能应用到 Toonz 光栅层级。</translation>
+        <source>Match lines can be applied to flare raster levels only.</source>
+        <translation>适配线仅能应用到 flare 光栅层级。</translation>
     </message>
     <message>
         <source>The style index you specified is not available in the palette of the destination level.</source>
@@ -11507,8 +11507,8 @@ Some levels have not been loaded because their version is not supported</source>
         <translation>只有矢量层级能被合并到矢量层级。</translation>
     </message>
     <message>
-        <source>It is possible to merge only Toonz vector levels or standard raster levels.</source>
-        <translation>只能合并 Toonz 矢量层级或标准光栅层级。</translation>
+        <source>It is possible to merge only flare vector levels or standard raster levels.</source>
+        <translation>只能合并 flare 矢量层级或标准光栅层级。</translation>
     </message>
     <message>
         <source>It is not possible to display the file %1: no player associated with its format</source>
@@ -11645,8 +11645,8 @@ Do you want to save your changes?</source>
         <translation>清稿设置</translation>
     </message>
     <message>
-        <source>The scene %1 was created with Toonz and cannot be loaded in LineTest.</source>
-        <translation type="vanished">场景 %1 是用 Toonz 创建的，不能加载到 LineTest 中。</translation>
+        <source>The scene %1 was created with flare and cannot be loaded in LineTest.</source>
+        <translation type="vanished">场景 %1 是用 flare 创建的，不能加载到 LineTest 中。</translation>
     </message>
     <message>
         <source>File %1 already exists.
@@ -11817,8 +11817,8 @@ Are you sure to </source>
         <translation>当前没有层级</translation>
     </message>
     <message>
-        <source>Toonz cannot Save this Level</source>
-        <translation type="vanished">Toonz 不能保存该层级</translation>
+        <source>flare cannot Save this Level</source>
+        <translation type="vanished">flare 不能保存该层级</translation>
     </message>
     <message>
         <source>No Current Scene</source>
@@ -12139,16 +12139,16 @@ Are you sure to </source>
         <translation type="vanished">[拖放]以拷贝命令到菜单栏&amp;D</translation>
     </message>
     <message>
-        <source>Cannot open menubar settings template file. Re-installing Toonz will solve this problem.</source>
-        <translation>无法打开菜单栏设置模板文件。重新安装 Toonz 可以解决这个问题。</translation>
+        <source>Cannot open menubar settings template file. Re-installing flare will solve this problem.</source>
+        <translation>无法打开菜单栏设置模板文件。重新安装 flare 可以解决这个问题。</translation>
     </message>
     <message>
         <source>Visit Web Site</source>
         <translation>访问网站</translation>
     </message>
     <message>
-        <source>https://opentoonz.github.io/e/</source>
-        <translation>https://opentoonz.github.io/e/</translation>
+        <source>https://flare.github.io/e/</source>
+        <translation>https://flare.github.io/e/</translation>
     </message>
     <message>
         <source>Add color model&apos;s palette to the destination palette.</source>
@@ -13389,7 +13389,7 @@ which may not be displayed correctly or may cause errors in applications other t
     </message>
 </context>
 <context>
-    <name>RenameAsToonzPopup</name>
+    <name>RenameAsflarePopup</name>
     <message>
         <source>Delete Original Files</source>
         <translation>删除原文件</translation>
@@ -17855,8 +17855,8 @@ Hold F3 Key on the Viewer to Show This Frame Only</source>
         <translation type="vanished">新矢量层级</translation>
     </message>
     <message>
-        <source>New Toonz Raster Level</source>
-        <translation type="vanished">新Toonz光栅层级</translation>
+        <source>New flare Raster Level</source>
+        <translation type="vanished">新flare光栅层级</translation>
     </message>
     <message>
         <source>New Raster Level</source>
@@ -17929,3 +17929,4 @@ Hold F3 Key on the Viewer to Show This Frame Only</source>
     </message>
 </context>
 </TS>
+

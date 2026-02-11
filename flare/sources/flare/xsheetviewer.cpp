@@ -5,39 +5,39 @@
 #include "tapp.h"
 #include "floatingpanelcommand.h"
 #include "menubarcommandids.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/tfxhandle.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/tframehandle.h"
-#include "toonz/tobjecthandle.h"
-#include "toonz/txshpalettelevel.h"
-#include "toonz/preferences.h"
-#include "toonz/sceneproperties.h"
+#include "flare/tcolumnhandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/tfxhandle.h"
+#include "flare/tscenehandle.h"
+#include "flare/tframehandle.h"
+#include "flare/tobjecthandle.h"
+#include "flare/txshpalettelevel.h"
+#include "flare/preferences.h"
+#include "flare/sceneproperties.h"
 #include "toutputproperties.h"
-#include "toonzqt/tselectionhandle.h"
-#include "toonzqt/icongenerator.h"
+#include "flareqt/tselectionhandle.h"
+#include "flareqt/icongenerator.h"
 #include "cellselection.h"
 #include "keyframeselection.h"
 #include "cellkeyframeselection.h"
 #include "columnselection.h"
 #include "xsheetdragtool.h"
-#include "toonzqt/gutil.h"
+#include "flareqt/gutil.h"
 
-#include "toonz/txsheet.h"
-#include "toonz/txshcell.h"
-#include "toonz/txshleveltypes.h"
-#include "toonz/txshzeraryfxcolumn.h"
-#include "toonz/toonzscene.h"
-#include "toonz/columnfan.h"
-#include "toonz/txshnoteset.h"
-#include "toonz/childstack.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/tproject.h"
+#include "flare/txsheet.h"
+#include "flare/txshcell.h"
+#include "flare/txshleveltypes.h"
+#include "flare/txshzeraryfxcolumn.h"
+#include "flare/flarescene.h"
+#include "flare/columnfan.h"
+#include "flare/txshnoteset.h"
+#include "flare/childstack.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/tproject.h"
 #include "tconvert.h"
-#include "toonz/navigationtags.h"
-#include "toonz/txshlevelcolumn.h"
-#include "toonz/txshpalettecolumn.h"
+#include "flare/navigationtags.h"
+#include "flare/txshlevelcolumn.h"
+#include "flare/txshpalettecolumn.h"
 
 #include "tenv.h"
 
@@ -1780,7 +1780,7 @@ void XsheetViewer::clearNoteWidgets() {
 
 void XsheetViewer::changeWindowTitle() {
   TApp *app         = TApp::instance();
-  ToonzScene *scene = app->getCurrentScene()->getScene();
+  flareScene *scene = app->getCurrentScene()->getScene();
   if (!scene || !app->getCurrentFrame()->isEditingScene()) return;
   auto project      = scene->getProject();
   QString sceneName = QString::fromStdWString(scene->getSceneName());
@@ -2034,3 +2034,4 @@ OpenFloatingPanel openXsheetViewerCommand(MI_OpenXshView, "Xsheet",
 
 OpenFloatingPanel openTimelineViewerCommand(MI_OpenTimelineView, "Timeline",
                                             QObject::tr("Timeline"));
+

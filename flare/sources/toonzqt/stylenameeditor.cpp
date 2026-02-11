@@ -1,12 +1,12 @@
-#include "toonzqt/stylenameeditor.h"
+#include "flareqt/stylenameeditor.h"
 
 // TnzQt includes
-#include "toonzqt/gutil.h"
+#include "flareqt/gutil.h"
 
 // TnzLib includes
-#include "toonz/toonzfolders.h"
-#include "toonz/palettecmd.h"
-#include "toonz/tpalettehandle.h"
+#include "flare/flarefolders.h"
+#include "flare/palettecmd.h"
+#include "flare/tpalettehandle.h"
 
 // TnzCore includes
 #include "tsystem.h"
@@ -130,7 +130,7 @@ void AddWordButton::onClicked() { emit clicked(m_column); }
 // load word list from user's settings
 
 void EasyInputArea::loadList() {
-  TFilePath fp(ToonzFolder::getMyModuleDir() +
+  TFilePath fp(flareFolder::getMyModuleDir() +
                TFilePath(styleNameEasyInputWordsFileName));
   if (!TFileStatus(fp).doesExist()) return;
   QSettings wordsSettings(toQString(fp), QSettings::IniFormat);
@@ -149,7 +149,7 @@ void EasyInputArea::loadList() {
 // save word list to user's settings
 
 void EasyInputArea::saveList() {
-  TFilePath fp(ToonzFolder::getMyModuleDir() +
+  TFilePath fp(flareFolder::getMyModuleDir() +
                TFilePath(styleNameEasyInputWordsFileName));
   QSettings wordsSettings(toQString(fp), QSettings::IniFormat);
   wordsSettings.clear();

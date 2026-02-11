@@ -3,13 +3,13 @@
 #ifndef LEVELCOMMAND_H
 #define LEVELCOMMAND_H
 
-#include "toonz/txshcolumn.h"
+#include "flare/txshcolumn.h"
 
 #include <set>
 #include <QList>
 
 class TXshLevel;
-class ToonzScene;
+class flareScene;
 
 namespace LevelCmd {
 void addMissingLevelsToCast(const QList<TXshColumnP>& columns);
@@ -24,7 +24,7 @@ bool removeUnusedLevelsFromCast(bool showMessage = true);
 // Return true if the level is unused and removed.
 // When the level is used, an show error message if showMessage==true and
 // returns false.
-bool removeLevelFromCast(TXshLevel* level, ToonzScene* scene = nullptr,
+bool removeLevelFromCast(TXshLevel* level, flareScene* scene = nullptr,
                          bool showMessage = true);
 
 void loadAllUsedRasterLevelsAndPutInCache(bool cacheImagesAsWell);

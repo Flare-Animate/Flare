@@ -4,7 +4,7 @@
 #include "tregion.h"
 #include "tgeometry.h"
 #include "tstroke.h"
-#include "toonz4.6/tmacro.h"
+#include "flare4.6/tmacro.h"
 #include <QMap>
 #include <QPair>
 #include <QList>
@@ -484,3 +484,4 @@ bool stroke_autofill_apply(const TVectorImageP &imgToApply, TStroke *stroke,
   }
   return filledRegions;
 }
+

@@ -10,26 +10,26 @@
 #include "tmathutil.h"
 #include "tproperty.h"
 #include "tenv.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/tframehandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/tframehandle.h"
 #include "tvectorimage.h"
-#include "ttoonzimage.h"
-#include "toonz/toonzimageutils.h"
+#include "tflareimage.h"
+#include "flare/flareimageutils.h"
 #include "tools/cursors.h"
 #include "tundo.h"
 #include "tvectorgl.h"
 #include "tgl.h"
 #include "tregion.h"
 #include "tvectorrenderdata.h"
-#include "toonz/tpalettehandle.h"
+#include "flare/tpalettehandle.h"
 
-#include "toonzqt/selection.h"
-#include "toonzqt/imageutils.h"
+#include "flareqt/selection.h"
+#include "flareqt/imageutils.h"
 #include "trop.h"
-#include "toonz/ttileset.h"
-#include "toonz/glrasterpainter.h"
-#include "toonz/stage.h"
+#include "flare/ttileset.h"
+#include "flare/glrasterpainter.h"
+#include "flare/stage.h"
 
 #include "tfont.h"
 
@@ -209,10 +209,10 @@ public:
 
   void redo() const override {
     insertLevelAndFrameIfNeeded();
-    TToonzImageP image = getImage();
+    TflareImageP image = getImage();
     if (!image) return;
     if (m_afterTiles) {
-      ToonzImageUtils::paste(image, m_afterTiles);
+      flareImageUtils::paste(image, m_afterTiles);
       ToolUtils::updateSaveBox();
     }
 
@@ -276,7 +276,7 @@ public:
         // m_char->transform(scale);
         m_offset = (scale * TPointD((double)(adv.x), (double)(adv.y))).x;
 
-        m_char = new TToonzImage(newRasterCM, newRasterCM->getBounds());
+        m_char = new TflareImage(newRasterCM, newRasterCM->getBounds());
       }
     }
   }
@@ -380,7 +380,7 @@ public:
   void addTextToImage();
   void addTextToVectorImage(const TVectorImageP &currentImage,
                             std::vector<const TVectorImage *> &images);
-  void addTextToToonzImage(const TToonzImageP &currentImage);
+  void addTextToflareImage(const TflareImageP &currentImage);
   void stopEditing();
 
   void reset() override;
@@ -430,7 +430,7 @@ TypeTool::TypeTool()
     , m_vertical("Vertical Orientation", false)  // W_ToolOptions_Vertical
     , m_size("Size:")                            // W_ToolOptions_Size
     , m_undo(0) {
-  bind(TTool::VectorImage | TTool::ToonzImage | TTool::EmptyTarget);
+  bind(TTool::VectorImage | TTool::flareImage | TTool::EmptyTarget);
   m_prop[0].bind(m_fontFamilyMenu);
   // Su mac non e' visibile il menu dello style perche' e' stato inserito nel
   // nome
@@ -613,7 +613,7 @@ void TypeTool::setSize(std::wstring strSize) {
   double dimension = std::stod(strSize);
 
   TImageP img      = getImage(true);
-  TToonzImageP ti  = img;
+  TflareImageP ti  = img;
   TVectorImageP vi = img;
   // for vector levels, adjust size according to the ratio between
   // the viewer dpi and the vector level's dpi
@@ -919,7 +919,7 @@ glPushMatrix();
       const TVectorRenderData rd(transl, TRect(), vPalette, 0, false);
       tglDraw(rd, vi.getPointer());
       charWidth = vi->getBBox().getLx();
-    } else if (TToonzImageP ti = m_string[j].m_char) {
+    } else if (TflareImageP ti = m_string[j].m_char) {
       TDimension dim = ti->getSize();
       ti->setPalette(vPalette);
 
@@ -1009,7 +1009,7 @@ void TypeTool::addTextToVectorImage(const TVectorImageP &currentImage,
 }
 //---------------------------------------------------------
 
-void TypeTool::addTextToToonzImage(const TToonzImageP &currentImage) {
+void TypeTool::addTextToflareImage(const TflareImageP &currentImage) {
   UINT size = m_string.size();
   if (size == 0) return;
 
@@ -1023,12 +1023,12 @@ void TypeTool::addTextToToonzImage(const TToonzImageP &currentImage) {
   for (j = 0; j < size; j++) {
     if (m_string[j].isReturn()) continue;
 
-    if (TToonzImageP ti = m_string[j].m_char) {
+    if (TflareImageP ti = m_string[j].m_char) {
       TRectD srcBBox  = ti->getBBox() + m_string[j].m_charPosition;
       TDimensionD dim = srcBBox.getSize();
       TDimensionD enlargeAmount(dim.lx * (m_scale.a11 - 1.0),
                                 dim.ly * (m_scale.a22 - 1.0));
-      changedArea += ToonzImageUtils::convertWorldToRaster(
+      changedArea += flareImageUtils::convertWorldToRaster(
           srcBBox.enlarge(enlargeAmount), currentImage);
       /*
 if( instance->hasVertical() && m_isVertical)
@@ -1044,7 +1044,7 @@ vi->transform( TRotation(m_startPoint,-90) );
     for (j = 0; j < size; j++) {
       if (m_string[j].isReturn()) continue;
 
-      if (TToonzImageP srcTi = m_string[j].m_char) {
+      if (TflareImageP srcTi = m_string[j].m_char) {
         TRasterCM32P srcRaster = srcTi->getRaster();
         TTranslation transl2(m_string[j].m_charPosition +
                              convert(targetRaster->getCenter()));
@@ -1081,7 +1081,7 @@ void TypeTool::addTextToImage() {
 
   TImageP img      = getImage(true);
   TVectorImageP vi = img;
-  TToonzImageP ti  = img;
+  TflareImageP ti  = img;
 
   if (!vi && !ti) return;
 
@@ -1104,7 +1104,7 @@ void TypeTool::addTextToImage() {
     }
     addTextToVectorImage(vi, images);
   } else if (ti)
-    addTextToToonzImage(ti);
+    addTextToflareImage(ti);
 
   notifyImageChanged();
   //  getApplication()->notifyImageChanges();
@@ -1223,7 +1223,7 @@ void TypeTool::leftButtonDown(const TPointD &pos, const TMouseEvent &) {
 
   TImageP img      = getImage(true);
   TVectorImageP vi = img;
-  TToonzImageP ti  = img;
+  TflareImageP ti  = img;
 
   if (!vi && !ti) return;
 
@@ -1299,7 +1299,7 @@ void TypeTool::replaceText(std::wstring text, int from, int to) {
   int styleId            = TTool::getApplication()->getCurrentLevelStyleIndex();
 
   TImageP img      = getImage(true);
-  TToonzImageP ti  = img;
+  TflareImageP ti  = img;
   TVectorImageP vi = img;
 
   TPoint adv;
@@ -1353,8 +1353,8 @@ void TypeTool::replaceText(std::wstring text, int from, int to) {
 
       d_adv = m_scale * TPointD((double)(adv.x), (double)(adv.y));
 
-      TToonzImageP newTImage(
-          new TToonzImage(newRasterCM, newRasterCM->getBounds()));
+      TflareImageP newTImage(
+          new TflareImage(newRasterCM, newRasterCM->getBounds()));
 
       TPalette *vPalette = img->getPalette();
       assert(vPalette);
@@ -1399,7 +1399,7 @@ void TypeTool::addBaseChar(std::wstring text) {
   TFontManager *instance = TFontManager::instance();
 
   TImageP img      = getImage(true);
-  TToonzImageP ti  = img;
+  TflareImageP ti  = img;
   TVectorImageP vi = img;
 
   int styleId = TTool::getApplication()->getCurrentLevelStyleIndex();
@@ -1447,8 +1447,8 @@ void TypeTool::addBaseChar(std::wstring text) {
 
     d_adv = m_scale * TPointD((double)(adv.x), (double)(adv.y));
 
-    TToonzImageP newTImage(
-        new TToonzImage(newRasterCM, newRasterCM->getBounds()));
+    TflareImageP newTImage(
+        new TflareImage(newRasterCM, newRasterCM->getBounds()));
 
     TPalette *vPalette = img->getPalette();
     assert(vPalette);
@@ -1737,3 +1737,4 @@ TypeTool*tt = dynamic_cast<TypeTool*>(tool);
   if (tt)
     tt->stopEditing();
 }*/
+

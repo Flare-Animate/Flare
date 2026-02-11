@@ -5,8 +5,8 @@
 
 #include <memory>
 
-#include "toonz/txsheet.h"
-#include "toonzqt/keyframenavigator.h"
+#include "flare/txsheet.h"
+#include "flareqt/keyframenavigator.h"
 
 #include <QToolBar>
 
@@ -41,3 +41,4 @@ protected slots:
 };
 
 #endif  // COMMANDBAR_H
+

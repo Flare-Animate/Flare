@@ -7,13 +7,13 @@
 #include "tapp.h"
 
 // TnzQt includes
-#include "toonzqt/gutil.h"
+#include "flareqt/gutil.h"
 
 // TnzLib includes
-#include "toonz/toonzscene.h"
-#include "toonz/txshnoteset.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/txsheethandle.h"
+#include "flare/flarescene.h"
+#include "flare/txshnoteset.h"
+#include "flare/sceneproperties.h"
+#include "flare/txsheethandle.h"
 #include "orientation.h"
 
 // Qt includes
@@ -706,3 +706,4 @@ void NoteArea::onClickHamburger() {
 }
 
 }  // namespace XsheetGUI
+

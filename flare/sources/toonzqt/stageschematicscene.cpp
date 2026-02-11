@@ -1,30 +1,30 @@
 
 
-#include "toonzqt/stageschematicscene.h"
+#include "flareqt/stageschematicscene.h"
 
 // TnzQt includes
-#include "toonzqt/stageschematicnode.h"
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/gutil.h"
-#include "toonzqt/schematicgroupeditor.h"
+#include "flareqt/stageschematicnode.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/gutil.h"
+#include "flareqt/schematicgroupeditor.h"
 #include "stageobjectselection.h"
-#include "toonzqt/icongenerator.h"
+#include "flareqt/icongenerator.h"
 
 // TnzLib includes
-#include "toonz/txsheet.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/tobjecthandle.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/tframehandle.h"
-#include "toonz/txshcolumn.h"
-#include "toonz/toonzscene.h"
-#include "toonz/tstageobjecttree.h"
-#include "toonz/tstageobjectspline.h"
-#include "toonz/tcamera.h"
-#include "toonz/tstageobjectcmd.h"
-#include "toonz/tproject.h"
-#include "toonz/childstack.h"
+#include "flare/txsheet.h"
+#include "flare/txsheethandle.h"
+#include "flare/tobjecthandle.h"
+#include "flare/tcolumnhandle.h"
+#include "flare/tscenehandle.h"
+#include "flare/tframehandle.h"
+#include "flare/txshcolumn.h"
+#include "flare/flarescene.h"
+#include "flare/tstageobjecttree.h"
+#include "flare/tstageobjectspline.h"
+#include "flare/tcamera.h"
+#include "flare/tstageobjectcmd.h"
+#include "flare/tproject.h"
+#include "flare/childstack.h"
 
 // TnzCore includes
 #include "tconst.h"
@@ -1147,7 +1147,7 @@ void StageSchematicScene::contextMenuEvent(
   menu.addAction(addSpline);
 
   // Close sub xsheet and move to parent sheet
-  ToonzScene *scene      = m_sceneHandle->getScene();
+  flareScene *scene      = m_sceneHandle->getScene();
   ChildStack *childStack = scene->getChildStack();
   if (childStack && childStack->getAncestorCount() > 0) {
     menu.addSeparator();

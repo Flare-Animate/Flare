@@ -10,17 +10,17 @@
 #include "historytypes.h"
 
 // TnzLib includes
-#include "toonz/txsheethandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/tframehandle.h"
-#include "toonz/ttileset.h"
-#include "toonz/ttilesaver.h"
-#include "toonz/trasterimageutils.h"
-#include "toonz/stage2.h"
-#include "toonz/levelproperties.h"
-#include "toonz/strokegenerator.h"
-#include "toonz/preferences.h"
+#include "flare/txsheethandle.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/tcolumnhandle.h"
+#include "flare/tframehandle.h"
+#include "flare/ttileset.h"
+#include "flare/ttilesaver.h"
+#include "flare/trasterimageutils.h"
+#include "flare/stage2.h"
+#include "flare/levelproperties.h"
+#include "flare/strokegenerator.h"
+#include "flare/preferences.h"
 
 // TnzBase includes
 #include "tenv.h"
@@ -351,7 +351,7 @@ const double joinDistance = 5.0;
 
 void MultiArcPrimitive::draw() {
   double pixelSize = m_tool->getPixelSize();
-  m_color          = ToonzCheck::instance()->getChecks() & ToonzCheck::eBlackBg
+  m_color          = flareCheck::instance()->getChecks() & flareCheck::eBlackBg
                          ? TPixel32::White
                          : TPixel32::Red;
   switch (m_clickNumber) {
@@ -372,7 +372,7 @@ void MultiArcPrimitive::draw() {
     break;
 
   case 2:
-    tglColor(ToonzCheck::instance()->getChecks() & ToonzCheck::eBlackBg
+    tglColor(flareCheck::instance()->getChecks() & flareCheck::eBlackBg
                  ? TPixel32::White
                  : TPixel32::Black);
 
@@ -1281,7 +1281,7 @@ void FullColorEraserTool::draw() {
     glColor3d(1.0, 0.0, 0.0);
     tglDrawCircle(m_brushPos, (m_size.getValue() + 1) * 0.5);
   } else if (m_eraseType.getValue() == RECTERASE) {
-    TPixel color = ToonzCheck::instance()->getChecks() & ToonzCheck::eBlackBg
+    TPixel color = flareCheck::instance()->getChecks() & flareCheck::eBlackBg
                        ? TPixel32::White
                        : TPixel32::Black;
     if (m_multi.getValue() && m_firstFrameSelected)
@@ -1293,14 +1293,14 @@ void FullColorEraserTool::draw() {
   if ((m_eraseType.getValue() == FREEHANDERASE ||
        m_eraseType.getValue() == POLYLINEERASE) &&
       m_multi.getValue()) {
-    TPixel color = ToonzCheck::instance()->getChecks() & ToonzCheck::eBlackBg
+    TPixel color = flareCheck::instance()->getChecks() & flareCheck::eBlackBg
                        ? TPixel32::White
                        : TPixel32::Black;
     tglColor(color);
     if (m_firstStroke) drawStrokeCenterline(*m_firstStroke, 1);
   }
   if (m_eraseType.getValue() == POLYLINEERASE && !m_polyline.empty()) {
-    TPixel color = ToonzCheck::instance()->getChecks() & ToonzCheck::eBlackBg
+    TPixel color = flareCheck::instance()->getChecks() & flareCheck::eBlackBg
                        ? TPixel32::White
                        : TPixel32::Black;
     tglColor(color);
@@ -1310,7 +1310,7 @@ void FullColorEraserTool::draw() {
     tglVertex(m_mousePos);
     glEnd();
   } else if (m_eraseType.getValue() == FREEHANDERASE && !m_track.isEmpty()) {
-    TPixel color = ToonzCheck::instance()->getChecks() & ToonzCheck::eBlackBg
+    TPixel color = flareCheck::instance()->getChecks() & flareCheck::eBlackBg
                        ? TPixel32::White
                        : TPixel32::Black;
     tglColor(color);

@@ -1,6 +1,6 @@
 
 
-#include "toonz/tstageobjectspline.h"
+#include "flare/tstageobjectspline.h"
 #include "tconst.h"
 #include "tstroke.h"
 #include "tstream.h"
@@ -318,3 +318,4 @@ void TStageObjectSpline::removeParam(TDoubleParam *param) {
   (*it)->release();
   m_posPathParams.erase(it);
 }
+

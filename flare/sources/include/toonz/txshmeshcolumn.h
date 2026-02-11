@@ -3,11 +3,11 @@
 #ifndef TXSHMESHCOLUMN_H
 #define TXSHMESHCOLUMN_H
 
-#include "toonz/txshcolumn.h"
+#include "flare/txshcolumn.h"
 
 #undef DVAPI
 #undef DVVAR
-#ifdef TOONZLIB_EXPORTS
+#ifdef flareLIB_EXPORTS
 #define DVAPI DV_EXPORT_API
 #define DVVAR DV_EXPORT_VAR
 #else
@@ -67,3 +67,4 @@ template class DVAPI TSmartPointerT<TXshMeshColumn>;
 typedef TSmartPointerT<TXshMeshColumn> TXshMeshColumnP;
 
 #endif  // TXSHMESHCOLUMN_H
+

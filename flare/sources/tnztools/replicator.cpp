@@ -3,15 +3,15 @@
 
 #include <tools/tool.h>
 
-#include <toonz/tapplication.h>
-#include <toonz/txsheet.h>
-#include <toonz/txsheethandle.h>
-#include <toonz/txshlevelhandle.h>
-#include <toonz/tframehandle.h>
-#include <toonz/tobjecthandle.h>
-#include <toonz/dpiscale.h>
-#include <toonz/toonzscene.h>
-#include <toonz/sceneproperties.h>
+#include <flare/tapplication.h>
+#include <flare/txsheet.h>
+#include <flare/txsheethandle.h>
+#include <flare/txshlevelhandle.h>
+#include <flare/tframehandle.h>
+#include <flare/tobjecthandle.h>
+#include <flare/dpiscale.h>
+#include <flare/flarescene.h>
+#include <flare/sceneproperties.h>
 
 #include <tgl.h>
 #include <tpixelutils.h>
@@ -141,7 +141,7 @@ TReplicator::scanReplicators(
   if (TXsheetHandle *XsheetHandle = application->getCurrentXsheet())
   if (TXsheet *Xsheet = XsheetHandle->getXsheet())
   {
-    ToonzScene *scene = Xsheet->getScene();
+    flareScene *scene = Xsheet->getScene();
     TSceneProperties *props = scene ? scene->getProperties() : nullptr;
     TPointD dpiScale = getCurrentDpiScale(simpleLevel, tool->getCurrentFid());
     int frame = frameHandle->getFrame();
@@ -221,4 +221,5 @@ TReplicator::scanReplicators(
   
   return (int)multiplier;
 }
+
 

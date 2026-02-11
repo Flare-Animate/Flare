@@ -13,25 +13,25 @@
 #include "floatingpanelcommand.h"
 
 // TnzQt includes
-#include "toonzqt/gutil.h"
-#include "toonzqt/tabbar.h"
-#include "toonzqt/checkbox.h"
-#include "toonzqt/doublefield.h"
-#include "toonzqt/filefield.h"
-#include "toonzqt/cleanupcamerasettingswidget.h"
+#include "flareqt/gutil.h"
+#include "flareqt/tabbar.h"
+#include "flareqt/checkbox.h"
+#include "flareqt/doublefield.h"
+#include "flareqt/filefield.h"
+#include "flareqt/cleanupcamerasettingswidget.h"
 
 // TnzLib includes
-#include "toonz/toonzfolders.h"
-#include "toonz/palettecontroller.h"
-#include "toonz/tpalettehandle.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/tframehandle.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/toonzscene.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/txshsimplelevel.h"
+#include "flare/flarefolders.h"
+#include "flare/palettecontroller.h"
+#include "flare/tpalettehandle.h"
+#include "flare/tscenehandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/tframehandle.h"
+#include "flare/tcolumnhandle.h"
+#include "flare/flarescene.h"
+#include "flare/sceneproperties.h"
+#include "flare/txshsimplelevel.h"
 
 // Qt includes
 #include <QSplitter>
@@ -481,7 +481,7 @@ void CameraTab::updateImageInfo() {
   TFrameId fid;
   model->getCleanupFrame(sl, fid);
 
-  ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
+  flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
   TFilePath outputPath(
       sl ? scene->decodeFilePath(model->getOutputPath(sl, params))
          : TFilePath());
@@ -585,7 +585,7 @@ CleanupSettings::CleanupSettings(QWidget *parent)
   m_cameraTab = new CameraTab;
   scrollArea->setWidget(m_cameraTab);
 
-  m_cameraTab->setCameraPresetListFile(ToonzFolder::getReslistPath(true));
+  m_cameraTab->setCameraPresetListFile(flareFolder::getReslistPath(true));
 
   //  Swatch
 
@@ -870,3 +870,4 @@ public:
 
 OpenFloatingPanel cleanupSettingsCommand(MI_CleanupSettings, "CleanupSettings",
                                          QObject::tr("Cleanup Settings"));
+

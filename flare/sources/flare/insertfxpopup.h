@@ -4,7 +4,7 @@
 #define INSERTFXPOPUP_H
 
 #include <QTreeWidget>
-#include "toonzqt/dvdialog.h"
+#include "flareqt/dvdialog.h"
 #include "tfilepath.h"
 #include "tstream.h"
 
@@ -79,3 +79,4 @@ protected slots:
 };
 
 #endif  // INSERTFXPOPUP_H
+

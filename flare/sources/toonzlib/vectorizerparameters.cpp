@@ -5,7 +5,7 @@
 #include "tstream.h"
 #include "texception.h"
 
-#include "toonz/vectorizerparameters.h"
+#include "flare/vectorizerparameters.h"
 
 //**************************************************************************
 //    Local namespace  strings
@@ -399,3 +399,4 @@ void VectorizerParameters::loadData(TIStream &is) {
       is.skipCurrentTag();
   }
 }
+

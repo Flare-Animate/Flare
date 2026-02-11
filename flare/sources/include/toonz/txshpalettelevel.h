@@ -3,14 +3,14 @@
 #ifndef TXshPaletteLevel_INCLUDED
 #define TXshPaletteLevel_INCLUDED
 
-#include "toonz/txshlevel.h"
+#include "flare/txshlevel.h"
 #include "tpalette.h"
 #include <map>
 #include <set>
 
 #undef DVAPI
 #undef DVVAR
-#ifdef TOONZLIB_EXPORTS
+#ifdef flareLIB_EXPORTS
 #define DVAPI DV_EXPORT_API
 #define DVVAR DV_EXPORT_VAR
 #else
@@ -111,3 +111,4 @@ template class DV_EXPORT_API TSmartPointerT<TXshPaletteLevel>;
 typedef TSmartPointerT<TXshPaletteLevel> TXshPaletteLevelP;
 
 #endif
+

@@ -6,12 +6,12 @@
 #include "tapp.h"
 
 // TnzQt includes
-#include "toonzqt/gutil.h"
+#include "flareqt/gutil.h"
 
 // TnzLib includes
-#include "toonz/toonzscene.h"
-#include "toonz/txshlevel.h"
-#include "toonz/txshsimplelevel.h"
+#include "flare/flarescene.h"
+#include "flare/txshlevel.h"
+#include "flare/txshsimplelevel.h"
 
 // TnzCore includes
 #include "tfilepath.h"
@@ -1015,7 +1015,7 @@ void SVNCommitFrameRangeDialog::onCommitDone() {
 
 void SVNCommitFrameRangeDialog::onUpdateDone() {
   // Load Level
-  m_scene = new ToonzScene();
+  m_scene = new flareScene();
   TFilePath levelPath =
       TFilePath(m_workingDir.toStdWString()) + m_file.toStdWString();
   m_level = m_scene->loadLevel(levelPath);
@@ -1362,3 +1362,4 @@ void SVNCommitFrameRangeDialog::switchToCloseButton() {
 }
 
 //-----------------------------------------------------------------------------
+

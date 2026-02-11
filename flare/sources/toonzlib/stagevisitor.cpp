@@ -16,7 +16,7 @@
 #include "tcolorstyles.h"
 #include "timage_io.h"
 #include "tregion.h"
-#include "toonz/toonzscene.h"
+#include "flare/flarescene.h"
 
 // TnzBase includes
 #include "tenv.h"
@@ -28,28 +28,28 @@
 #include "ext/plasticdeformerstorage.h"
 
 // TnzLib includes
-#include "toonz/stageplayer.h"
-#include "toonz/stage.h"
-#include "toonz/stage2.h"
-#include "toonz/tcolumnfx.h"
-#include "toonz/txsheet.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/txshchildlevel.h"
-#include "toonz/txshcolumn.h"
-#include "toonz/txshcell.h"
-#include "toonz/onionskinmask.h"
-#include "toonz/dpiscale.h"
-#include "toonz/imagemanager.h"
-#include "toonz/tstageobjecttree.h"
-#include "toonz/glrasterpainter.h"
-#include "toonz/preferences.h"
-#include "toonz/fill.h"
-#include "toonz/levelproperties.h"
-#include "toonz/autoclose.h"
-#include "toonz/txshleveltypes.h"
+#include "flare/stageplayer.h"
+#include "flare/stage.h"
+#include "flare/stage2.h"
+#include "flare/tcolumnfx.h"
+#include "flare/txsheet.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/txshchildlevel.h"
+#include "flare/txshcolumn.h"
+#include "flare/txshcell.h"
+#include "flare/onionskinmask.h"
+#include "flare/dpiscale.h"
+#include "flare/imagemanager.h"
+#include "flare/tstageobjecttree.h"
+#include "flare/glrasterpainter.h"
+#include "flare/preferences.h"
+#include "flare/fill.h"
+#include "flare/levelproperties.h"
+#include "flare/autoclose.h"
+#include "flare/txshleveltypes.h"
 #include "imagebuilders.h"
-#include "toonz/tframehandle.h"
-#include "toonz/preferences.h"
+#include "flare/tframehandle.h"
+#include "flare/preferences.h"
 
 // Qt includes
 #include <QImage>
@@ -60,7 +60,7 @@
 #include <QThread>
 #include <QGuiApplication>
 
-#include "toonz/stagevisitor.h"
+#include "flare/stagevisitor.h"
 
 //**********************************************************************************************
 //    Stage namespace
@@ -192,7 +192,7 @@ void draw3DShadow(const TRectD &bbox, double z, double phi) {
 
 /*!
   Returns from the specified player the stage object to be plastic
-  deformed - or 0 if current Toonz rules prevent it from being deformed.
+  deformed - or 0 if current flare rules prevent it from being deformed.
 */
 TStageObject *plasticDeformedObj(const Stage::Player &player,
                                  const PlasticVisualSettings &pvs);
@@ -312,7 +312,7 @@ void Picker::onImage(const Stage::Player &player) {
     }
 
     ras->unlock();
-  } else if (TToonzImageP ti = img) {
+  } else if (TflareImageP ti = img) {
     TRasterCM32P ras = ti->getRaster();
     if (!ras) return;
 
@@ -525,8 +525,8 @@ void RasterPainter::flushRasterImages() {
   int current = -1;
 
   // Retrieve preferences-related data
-  int tc    = m_checkFlags ? ToonzCheck::instance()->getChecks() : 0;
-  int index = ToonzCheck::instance()->getColorIndex();
+  int tc    = m_checkFlags ? flareCheck::instance()->getChecks() : 0;
+  int index = flareCheck::instance()->getColorIndex();
 
   TPixel32 frontOnionColor, backOnionColor;
   bool onionInksOnly;
@@ -564,7 +564,7 @@ void RasterPainter::flushRasterImages() {
                                                     (int)m_nodes[i].m_alpha /
                                                     TPixel32::maxChannelValue);
       }
-      inksOnly = tc & ToonzCheck::eInksOnly;
+      inksOnly = tc & flareCheck::eInksOnly;
     }
 
     if (TRaster32P src32 = m_nodes[i].m_raster)
@@ -580,7 +580,7 @@ void RasterPainter::flushRasterImages() {
 
       TPaletteP plt;
       int gapCheckIndex = -1;
-      if ((tc & ToonzCheck::eGap || tc & ToonzCheck::eAutoclose) &&
+      if ((tc & flareCheck::eGap || tc & flareCheck::eAutoclose) &&
           m_nodes[i].m_isCurrentColumn) {
         TRasterCM32P aux = srcCm->clone();
         srcCm            = Preferences::instance()->getFillOnlySavebox()
@@ -588,11 +588,11 @@ void RasterPainter::flushRasterImages() {
                                : aux;
         plt              = m_nodes[i].m_palette->clone();
         gapCheckIndex    = plt->addStyle(TPixel::Magenta);
-        if (tc & ToonzCheck::eGap)
+        if (tc & flareCheck::eGap)
           AreaFiller(srcCm).rectFastFill(m_nodes[i].m_savebox, 1);
-        if (tc & ToonzCheck::eAutoclose &&
+        if (tc & flareCheck::eAutoclose &&
             m_nodes[i].m_onionMode == Node::eOnionSkinNone) {
-          auto settings = ToonzCheck::instance()->getAutocloseSettings();
+          auto settings = flareCheck::instance()->getAutocloseSettings();
           std::set<int> autoPaints;
           if (settings.m_ignoreAPInks) {
             for (int i = 0; i < plt->getStyleCount(); i++)
@@ -603,7 +603,7 @@ void RasterPainter::flushRasterImages() {
             ac.draw(ac.getSegmentCache(m_currentImageId));
           else
             ac.exec(m_currentImageId);
-          if (tc & ToonzCheck::eGap) {
+          if (tc & flareCheck::eGap) {
             int gapFillIndex =
                 plt->addStyle(TPixelRGBM32(244, 186, 148, 0xff));  // orange
             plt->getStyle(gapFillIndex)->setFlags(1);
@@ -614,7 +614,7 @@ void RasterPainter::flushRasterImages() {
       } else
         plt = m_nodes[i].m_palette;
 
-      if (tc == 0 || tc == ToonzCheck::eBlackBg ||
+      if (tc == 0 || tc == flareCheck::eBlackBg ||
           !m_nodes[i].m_isCurrentColumn)
         TRop::quickPut(viewedRaster, srcCm, plt, aff, colorscale, inksOnly);
       else {
@@ -624,18 +624,18 @@ void RasterPainter::flushRasterImages() {
         settings.m_globalColorScale = colorscale;
         settings.m_inksOnly         = inksOnly;
         settings.m_transparencyCheck =
-            tc & (ToonzCheck::eTransparency | ToonzCheck::eGap);
-        settings.m_blackBgCheck = tc & ToonzCheck::eBlackBg;
+            tc & (flareCheck::eTransparency | flareCheck::eGap);
+        settings.m_blackBgCheck = tc & flareCheck::eBlackBg;
 
         // Highlight specific ink/paint only for current column
         settings.m_inkIndex =
             m_nodes[i].m_isCurrentColumn
-                ? (tc & ToonzCheck::eInk ? index
-                                         : (tc & ToonzCheck::eInk1 ? 1 : -1))
+                ? (tc & flareCheck::eInk ? index
+                                         : (tc & flareCheck::eInk1 ? 1 : -1))
                 : -1;
 
         settings.m_paintIndex = m_nodes[i].m_isCurrentColumn
-                                    ? (tc & ToonzCheck::ePaint ? index : -1)
+                                    ? (tc & flareCheck::ePaint ? index : -1)
                                     : -1;
 
         Preferences::instance()->getTranspCheckData(
@@ -830,8 +830,8 @@ static void drawAutocloses(TVectorImage *vi, TVectorRenderData &rd) {
 /*! Take image from \b Stage::Player \b data and recall the right method for
                 this kind of image, for vector image recall \b onVectorImage(),
    for raster
-                image recall \b onRasterImage() for toonz image recall \b
-   onToonzImage().
+                image recall \b onRasterImage() for flare image recall \b
+   onflareImage().
 */
 void RasterPainter::onImage(const Stage::Player &player) {
   if (m_singleColumnEnabled && !player.m_isCurrentColumn) return;
@@ -857,8 +857,8 @@ void RasterPainter::onImage(const Stage::Player &player) {
       onVectorImage(vi.getPointer(), player);
     else if (TRasterImageP ri = img)
       onRasterImage(ri.getPointer(), player);
-    else if (TToonzImageP ti = img)
-      onToonzImage(ti.getPointer(), player);
+    else if (TflareImageP ti = img)
+      onflareImage(ti.getPointer(), player);
     else if (TMeshImageP mi = img) {
       flushRasterImages();
       ::onMeshImage(mi.getPointer(), player, m_vs, m_viewAff);
@@ -897,9 +897,9 @@ void RasterPainter::onVectorImage(TVectorImage *vi,
   TPixel32 bgColor   = TPixel32::White;
 
   int tc        = (m_checkFlags && player.m_isCurrentColumn)
-                      ? ToonzCheck::instance()->getChecks()
+                      ? flareCheck::instance()->getChecks()
                       : 0;
-  bool inksOnly = tc & ToonzCheck::eInksOnly;
+  bool inksOnly = tc & flareCheck::eInksOnly;
 
   int oldFrame = vPalette->getFrame();
   vPalette->setFrame(player.m_frame);
@@ -939,11 +939,11 @@ void RasterPainter::onVectorImage(TVectorImage *vi,
   );
 
   rd.m_drawRegions           = !inksOnly;
-  rd.m_inkCheckEnabled       = tc & ToonzCheck::eInk;
-  rd.m_ink1CheckEnabled      = tc & ToonzCheck::eInk1;
-  rd.m_paintCheckEnabled     = tc & ToonzCheck::ePaint;
-  rd.m_blackBgEnabled        = tc & ToonzCheck::eBlackBg;
-  rd.m_colorCheckIndex       = ToonzCheck::instance()->getColorIndex();
+  rd.m_inkCheckEnabled       = tc & flareCheck::eInk;
+  rd.m_ink1CheckEnabled      = tc & flareCheck::eInk1;
+  rd.m_paintCheckEnabled     = tc & flareCheck::ePaint;
+  rd.m_blackBgEnabled        = tc & flareCheck::eBlackBg;
+  rd.m_colorCheckIndex       = flareCheck::instance()->getColorIndex();
   rd.m_show0ThickStrokes     = prefs.getShow0ThickLines();
   rd.m_regionAntialias       = prefs.getRegionAntialias();
   rd.m_animatedGuidedDrawing = prefs.getAnimatedGuidedDrawing();
@@ -1000,7 +1000,7 @@ void RasterPainter::onVectorImage(TVectorImage *vi,
     }
   }
 
-  if (tc & (ToonzCheck::eTransparency | ToonzCheck::eGap)) {
+  if (tc & (flareCheck::eTransparency | flareCheck::eGap)) {
     TPixel dummy;
     rd.m_tcheckEnabled = true;
 
@@ -1016,7 +1016,7 @@ void RasterPainter::onVectorImage(TVectorImage *vi,
                 (m_vs.m_colorMask & TRop::BChan) ? GL_TRUE : GL_FALSE, GL_TRUE);
   }
   TVectorImageP viDelete;
-  if (tc & ToonzCheck::eGap) {
+  if (tc & flareCheck::eGap) {
     viDelete = vi->clone();
     vi       = viDelete.getPointer();
     vi->selectFill(vi->getBBox(), 0, 1, true, true, false);
@@ -1028,7 +1028,7 @@ void RasterPainter::onVectorImage(TVectorImage *vi,
   else
     tglDraw(rd, vi, &guidedStroke);
 
-  if (tc & ToonzCheck::eAutoclose) drawAutocloses(vi, rd);
+  if (tc & flareCheck::eAutoclose) drawAutocloses(vi, rd);
 
   glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
   vPalette->setFrame(oldFrame);
@@ -1109,7 +1109,7 @@ void RasterPainter::onRasterImage(TRasterImage *ri,
 //-----------------------------------------------------------------------------
 /*! Create a \b Node and put it in \b m_nodes.
  */
-void RasterPainter::onToonzImage(TToonzImage *ti, const Stage::Player &player) {
+void RasterPainter::onflareImage(TflareImage *ti, const Stage::Player &player) {
   TRasterCM32P r = ti->getRaster();
   if (!ti->getPalette()) return;
 
@@ -1194,8 +1194,8 @@ void OpenGlPainter::onImage(const Stage::Player &player) {
       onVectorImage(vi.getPointer(), player);
     else if (TRasterImageP ri = image)
       onRasterImage(ri.getPointer(), player);
-    else if (TToonzImageP ti = image)
-      onToonzImage(ti.getPointer(), player);
+    else if (TflareImageP ti = image)
+      onflareImage(ti.getPointer(), player);
     else if (TMeshImageP mi = image)
       onMeshImage(mi.getPointer(), player, m_vs, m_viewAff);
   }
@@ -1325,7 +1325,7 @@ void OpenGlPainter::onRasterImage(TRasterImage *ri,
 
 //-----------------------------------------------------------------------------
 
-void OpenGlPainter::onToonzImage(TToonzImage *ti, const Stage::Player &player) {
+void OpenGlPainter::onflareImage(TflareImage *ti, const Stage::Player &player) {
   if (m_camera3d && (player.m_onionSkinDistance == c_noOnionSkin ||
                      player.m_onionSkinDistance == 0)) {
     TRectD bbox(ti->getBBox());
@@ -1672,3 +1672,4 @@ void onPlasticDeformedImage(TStageObject *playerObj,
 }
 
 }  // namespace
+

@@ -9,7 +9,7 @@
 #include "tstrokeprop.h"
 #include "tgl.h"
 
-#include "toonz/imagestyles.h"
+#include "flare/imagestyles.h"
 
 #include <QImage>
 class TVectorRendeData;
@@ -37,12 +37,12 @@ class FlowLineStrokeStyle final : public TSimpleStrokeStyle {
     ParamCount
   };
 
-  // thin line's density ×ü‚Ì–§“x
+  // thin line's density ï¿½×ï¿½ï¿½Ì–ï¿½ï¿½x
   double m_density;
-  // extend the edges ’[•”‚ÌL‚Î‚·—Ê
+  // extend the edges ï¿½[ï¿½ï¿½ï¿½ÌLï¿½Î‚ï¿½ï¿½ï¿½
   double m_extension;
   // extend the widths
-  // •‚ÌŠg‘åBŒ³‚Ìü‚Ì•‚ğ‘‚â‚·‚Æregion‚ÌŒvZ‚É–c‘å‚ÈŠÔ‚ª‚©‚©‚é
+  // ï¿½ï¿½ï¿½ÌŠgï¿½ï¿½Bï¿½ï¿½ï¿½Ìï¿½ï¿½Ì•ï¿½ï¿½ğ‘‚â‚·ï¿½ï¿½regionï¿½ÌŒvï¿½Zï¿½É–cï¿½ï¿½Èï¿½ï¿½Ô‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
   double m_widthScale;
 
   bool m_straightenEnds;
@@ -96,3 +96,4 @@ public:
 };
 
 #endif  // FLOWLINESTROKESTYLE_H
+

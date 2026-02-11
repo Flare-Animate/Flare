@@ -3,9 +3,9 @@
 #ifndef EXPORTSCENEPOPUP_H
 #define EXPORTSCENEPOPUP_H
 
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/lineedit.h"
-#include "toonzqt/filefield.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/lineedit.h"
+#include "flareqt/filefield.h"
 #include "tfilepath.h"
 #include "filebrowsermodel.h"
 #include "dvdirtreeview.h"
@@ -196,3 +196,4 @@ protected:
 };
 
 #endif  // EXPORTSCENEPOPUP_H
+

@@ -3,10 +3,10 @@
 #include "functionpaneltools.h"
 
 // TnzQt includes
-#include "toonzqt/functionselection.h"
+#include "flareqt/functionselection.h"
 
 // TnzLib includes
-#include "toonz/tframehandle.h"
+#include "flare/tframehandle.h"
 
 // TnzCore includes
 #include "tundo.h"
@@ -776,3 +776,4 @@ void StretchPointDragTool::release(QMouseEvent *e) {
   for (int i = 0; i < (int)m_keys.size(); i++) delete m_keys[i].setter;
   m_keys.clear();
 }
+

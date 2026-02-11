@@ -5,8 +5,8 @@
 
 #include "tgeometry.h"
 
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/intfield.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/intfield.h"
 
 // forward declaration
 class QPushButton;
@@ -52,3 +52,4 @@ protected slots:
 };
 
 #endif  // TIMESTRETCHPOPUP_H
+

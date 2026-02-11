@@ -1,13 +1,13 @@
 
 
-#include "toonz/scriptbinding_centerline_vectorizer.h"
-#include "toonz/scriptbinding_level.h"
+#include "flare/scriptbinding_centerline_vectorizer.h"
+#include "flare/scriptbinding_level.h"
 #include <QScriptEngine>
-#include "toonz/tcenterlinevectorizer.h"
-#include "toonz/stage.h"
-#include "toonz/Naa2TlvConverter.h"
+#include "flare/tcenterlinevectorizer.h"
+#include "flare/stage.h"
+#include "flare/Naa2TlvConverter.h"
 #include "tpalette.h"
-#include "ttoonzimage.h"
+#include "tflareimage.h"
 
 namespace TScriptBinding {
 
@@ -36,7 +36,7 @@ QScriptValue CenterlineVectorizer::vectorizeImage(const TImageP &src,
   if (TRasterImageP ri = src) {
     ri->getDpi(dpix, dpiy);
     center = ri->getRaster()->getCenterD();
-  } else if (TToonzImageP ti = src) {
+  } else if (TflareImageP ti = src) {
     ti->getDpi(dpix, dpiy);
     center = ti->getRaster()->getCenterD();
   } else {
@@ -65,7 +65,7 @@ QScriptValue CenterlineVectorizer::vectorize(QScriptValue arg) {
   TPalette *palette = 0;
   if (level) {
     type = level->getType();
-    if (type != "Raster" && type != "ToonzRaster")
+    if (type != "Raster" && type != "flareRaster")
       return context()->throwError(tr("Can't vectorize a %1 level").arg(type));
     if (level->getFrameCount() <= 0)
       return context()->throwError(
@@ -73,9 +73,9 @@ QScriptValue CenterlineVectorizer::vectorize(QScriptValue arg) {
     palette = level->getSimpleLevel()->getPalette();
   } else if (img) {
     type = img->getType();
-    if (type != "Raster" && type != "ToonzRaster")
+    if (type != "Raster" && type != "flareRaster")
       return context()->throwError(tr("Can't vectorize a %1 image").arg(type));
-    if (TToonzImageP ti = img->getImg()) {
+    if (TflareImageP ti = img->getImg()) {
       palette = ti->getPalette();
     }
   } else {
@@ -93,7 +93,7 @@ QScriptValue CenterlineVectorizer::vectorize(QScriptValue arg) {
     for (const TFrameId &fid : fids) {
       TImageP srcImg = level->getImg(fid);
       if (srcImg && (srcImg->getType() == TImage::RASTER ||
-                     srcImg->getType() == TImage::TOONZ_RASTER)) {
+                     srcImg->getType() == TImage::flare_RASTER)) {
         QScriptValue newFrame = vectorizeImage(srcImg, palette);
         if (newFrame.isError()) {
           return newFrame;
@@ -171,3 +171,4 @@ bool CenterlineVectorizer::getEir() const { return m_parameters->m_naaSource; }
 void CenterlineVectorizer::setEir(bool v) { m_parameters->m_naaSource = v; }
 
 }  // namespace TScriptBinding
+

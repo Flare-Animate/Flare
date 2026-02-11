@@ -4,8 +4,8 @@
 #define SCHEMATICVIEWER_H
 
 // TnzLib includes
-#include "toonz/tstageobjectid.h"
-#include "toonz/txshcolumn.h"
+#include "flare/tstageobjectid.h"
+#include "flare/txshcolumn.h"
 
 // TnzBase includes
 #include "tfx.h"
@@ -22,7 +22,7 @@
 
 #undef DVAPI
 #undef DVVAR
-#ifdef TOONZQT_EXPORTS
+#ifdef flareQT_EXPORTS
 #define DVAPI DV_EXPORT_API
 #define DVVAR DV_EXPORT_VAR
 #else
@@ -37,7 +37,7 @@
 class SchematicNode;
 class SchematicPort;
 class SchematicLink;
-class ToonzScene;
+class flareScene;
 class StageSchematicScene;
 class FxSchematicScene;
 class TXsheetHandle;
@@ -654,3 +654,4 @@ private:
 };
 
 #endif  // SCHEMATICVIEWER_H
+

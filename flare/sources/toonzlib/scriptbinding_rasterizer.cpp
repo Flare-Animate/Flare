@@ -1,14 +1,14 @@
 
 
-#include "toonz/scriptbinding_rasterizer.h"
-#include "toonz/scriptbinding_image.h"
-#include "toonz/scriptbinding_level.h"
-#include "toonz/tcamera.h"
-#include "toonz/stage.h"
+#include "flare/scriptbinding_rasterizer.h"
+#include "flare/scriptbinding_image.h"
+#include "flare/scriptbinding_level.h"
+#include "flare/tcamera.h"
+#include "flare/stage.h"
 #include "tofflinegl.h"
 #include "tvectorrenderdata.h"
-#include "ttoonzimage.h"
-#include "toonz/toonzimageutils.h"
+#include "tflareimage.h"
+#include "flare/flareimageutils.h"
 
 namespace TScriptBinding {
 
@@ -27,7 +27,7 @@ QScriptValue Rasterizer::ctor(QScriptContext *context, QScriptEngine *engine) {
   return create(engine, new Rasterizer());
 }
 
-static TToonzImageP vectorToToonzRaster(const TVectorImageP &vi,
+static TflareImageP vectorToflareRaster(const TVectorImageP &vi,
                                         const TDimension &size,
                                         const TAffine &aff,
                                         const TPointD &dpi) {
@@ -42,7 +42,7 @@ TDimension size(bbox.getLx(), bbox.getLy());
 
 */
 
-  TToonzImageP ti = ToonzImageUtils::vectorToToonzImage(
+  TflareImageP ti = flareImageUtils::vectorToflareImage(
       vi, aff, vi->getPalette(), TPointD(0, 0), size, 0, true);
   ti->setPalette(vi->getPalette());  // e' necessario?
   return ti;
@@ -107,15 +107,15 @@ Q_INVOKABLE QScriptValue Rasterizer::rasterize(QScriptValue arg) {
   }
 
   if (m_colorMapped) {
-    // vector -> toonz image
+    // vector -> flare image
     if (img) {
-      TImageP outImg = vectorToToonzRaster(img->getImg(), res, aff, dpi);
+      TImageP outImg = vectorToflareRaster(img->getImg(), res, aff, dpi);
       result         = create(engine(), new Image(outImg));
     } else {
       for (int i = 0; i < n; i++) {
         TFrameId fid    = sl->index2fid(i);
         TImageP drawing = sl->getFrame(fid, false);
-        TImageP outImg  = vectorToToonzRaster(drawing, res, aff, dpi);
+        TImageP outImg  = vectorToflareRaster(drawing, res, aff, dpi);
         setFrame(engine(), result, fid, outImg);
       }
     }
@@ -167,3 +167,4 @@ double Rasterizer::getDpi() const { return m_dpi; }
 void Rasterizer::setDpi(double v) { m_dpi = v; }
 
 }  // namespace TScriptBinding
+

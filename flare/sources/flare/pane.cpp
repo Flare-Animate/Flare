@@ -9,13 +9,13 @@
 #include "saveloadqsettings.h"
 #include "custompanelmanager.h"
 #include "layoutUtils.h"
-#include "toonzqt/gutil.h"
+#include "flareqt/gutil.h"
 
 // TnzLib includes
-#include "toonz/toonzfolders.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/toonzscene.h"
-#include "toonz/sceneproperties.h"
+#include "flare/flarefolders.h"
+#include "flare/tscenehandle.h"
+#include "flare/flarescene.h"
+#include "flare/sceneproperties.h"
 #include "layoutPresetsEditorPopup.h"
 
 // TnzCore includes
@@ -63,7 +63,7 @@ TPanel::~TPanel() {
   // restore them when opening the floating panel next time
   if (isFloating()) {
     TFilePath savePath =
-        ToonzFolder::getMyModuleDir() + TFilePath("popups.ini");
+        flareFolder::getMyModuleDir() + TFilePath("popups.ini");
     QSettings settings(QString::fromStdWString(savePath.getWideString()),
                        QSettings::IniFormat);
     settings.beginGroup("Panels");
@@ -97,7 +97,7 @@ void TPanel::paintEvent(QPaintEvent *e) {
 void TPanel::onCloseButtonPressed() {
   emit closeButtonPressed();
 
-  // Currently, Toonz panels that get closed indeed just remain hidden -
+  // Currently, flare panels that get closed indeed just remain hidden -
   // ready to reappair if they are needed again. However, the user expects
   // a new panel to be created - so we just reset the panel here.
   // reset();    //Moved to panel invocation in floatingpanelcommand.cpp
@@ -110,7 +110,7 @@ void TPanel::onCloseButtonPressed() {
 /*! activate the panel and set focus specified widget when mouse enters
  */
 void TPanel::enterEvent(QEvent *event) {
-  // Only when Toonz application is active
+  // Only when flare application is active
   QWidget *w = qApp->activeWindow();
   if (w) {
     // grab the focus, unless a line-edit is focused currently
@@ -151,7 +151,7 @@ void TPanel::leaveEvent(QEvent *event) {
     in floatingpanelcommand.cpp
 */
 void TPanel::restoreFloatingPanelState() {
-  TFilePath savePath = ToonzFolder::getMyModuleDir() + TFilePath("popups.ini");
+  TFilePath savePath = flareFolder::getMyModuleDir() + TFilePath("popups.ini");
   QSettings settings(QString::fromStdWString(savePath.getWideString()),
                      QSettings::IniFormat);
   settings.beginGroup("Panels");
@@ -881,3 +881,4 @@ TPanel *TPanelFactory::createPanel(QWidget *parent) {
 }
 
 //-----------------------------------------------------------------------------
+

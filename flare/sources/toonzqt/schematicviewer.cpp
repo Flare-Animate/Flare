@@ -1,35 +1,35 @@
 
-#include "toonzqt/schematicviewer.h"
+#include "flareqt/schematicviewer.h"
 
 // TnzQt includes
-#include "toonzqt/fxtypes.h"
-#include "toonzqt/schematicnode.h"
-#include "toonzqt/fxschematicnode.h"
-#include "toonzqt/schematicgroupeditor.h"
-#include "toonzqt/stageschematicscene.h"
-#include "toonzqt/fxschematicscene.h"
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/tselectionhandle.h"
-#include "toonzqt/gutil.h"
-#include "toonzqt/imageutils.h"
-#include "toonzqt/dvscrollwidget.h"
-#include "toonzqt/fxselection.h"
+#include "flareqt/fxtypes.h"
+#include "flareqt/schematicnode.h"
+#include "flareqt/fxschematicnode.h"
+#include "flareqt/schematicgroupeditor.h"
+#include "flareqt/stageschematicscene.h"
+#include "flareqt/fxschematicscene.h"
+#include "flareqt/menubarcommand.h"
+#include "flareqt/tselectionhandle.h"
+#include "flareqt/gutil.h"
+#include "flareqt/imageutils.h"
+#include "flareqt/dvscrollwidget.h"
+#include "flareqt/fxselection.h"
 #include "stageobjectselection.h"
 
 // TnzLib includes
-#include "toonz/txsheethandle.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/tobjecthandle.h"
-#include "toonz/tfxhandle.h"
-#include "toonz/txsheet.h"
-#include "toonz/txshlevelcolumn.h"
-#include "toonz/tcolumnfx.h"
-#include "toonz/txshzeraryfxcolumn.h"
-#include "toonz/preferences.h"
-#include "toonz/fxdag.h"
-#include "toonz/tapplication.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/txshleveltypes.h"
+#include "flare/txsheethandle.h"
+#include "flare/tcolumnhandle.h"
+#include "flare/tobjecthandle.h"
+#include "flare/tfxhandle.h"
+#include "flare/txsheet.h"
+#include "flare/txshlevelcolumn.h"
+#include "flare/tcolumnfx.h"
+#include "flare/txshzeraryfxcolumn.h"
+#include "flare/preferences.h"
+#include "flare/fxdag.h"
+#include "flare/tapplication.h"
+#include "flare/tscenehandle.h"
+#include "flare/txshleveltypes.h"
 
 #include "../flare/menubarcommandids.h"
 
@@ -1323,4 +1323,5 @@ void SchematicViewer::deleteFxs() {
 void SchematicViewer::deleteStageObjects() {
   emit doDeleteStageObjects(m_stageScene->getStageSelection());
 }
+
 

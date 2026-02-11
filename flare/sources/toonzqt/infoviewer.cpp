@@ -1,7 +1,7 @@
 
 
-#include "toonzqt/infoviewer.h"
-#include "toonzqt/intfield.h"
+#include "flareqt/infoviewer.h"
+#include "flareqt/intfield.h"
 #include "tsystem.h"
 #include "tlevel.h"
 #include "tpalette.h"
@@ -9,16 +9,16 @@
 #include "tsound_io.h"
 #include "tiio.h"
 #include "tstream.h"
-#include "ttoonzimage.h"
+#include "tflareimage.h"
 #include "trasterimage.h"
 #include "tvectorimage.h"
-#include "toonz/toonzscene.h"
-#include "toonzqt/gutil.h"
-#include "toonzqt/dvdialog.h"
+#include "flare/flarescene.h"
+#include "flareqt/gutil.h"
+#include "flareqt/dvdialog.h"
 #include "toutputproperties.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/tcamera.h"
-#include "toonz/levelset.h"
+#include "flare/sceneproperties.h"
+#include "flare/tcamera.h"
+#include "flare/levelset.h"
 #include "tcontenthistory.h"
 #include "tfiletype.h"
 #include <QSlider>
@@ -90,7 +90,7 @@ public:
   void setSoundInfo();
   // void cleanFileInfo();
   void cleanLevelInfo();
-  void setToonzSceneInfo();
+  void setflareSceneInfo();
   void setPaletteInfo();
   void setGeneralFileInfo(const TFilePath &path);
   QString getTypeString();
@@ -266,24 +266,24 @@ QString InfoViewerImp::getTypeString() {
   QString ext = QString::fromStdString(m_path.getType());
 
   if (ext == "tlv" || ext == "tzp" || ext == "tzu")
-    return "Toonz Cmapped Raster Level";
+    return "flare Cmapped Raster Level";
   else if (ext == "pli" || ext == "svg")
-    return "Toonz Vector Level";
+    return "flare Vector Level";
   else if (ext == "mov" || ext == "avi" || ext == "3gp")
     return "Movie File";
   else if (ext == "tnz")
-    return "Toonz Scene";
+    return "flare Scene";
   else if (ext == "tab")
     return "Tab Scene";
   else if (ext == "plt")
-    return "Toonz Palette";
+    return "flare Palette";
   else if (ext == "wav" || ext == "aiff" || ext == "aif" || ext == "raw" ||
            ext == "mp3" || ext == "ogg" || ext == "flac")
     return "Audio File";
   else if (ext == "mesh")
-    return "Toonz Mesh Level";
+    return "flare Mesh Level";
   else if (ext == "tzm")
-    return "Toonz Meta Level";
+    return "flare Meta Level";
   else if (ext == "pic")
     return "Pic File";
   else if (Tiio::makeReader(ext.toStdString()))
@@ -387,7 +387,7 @@ void InfoViewerImp::setImageInfo() {
   }
 
   TImageP img        = m_level->frame(m_fids[m_currentIndex]);
-  TToonzImageP timg  = (TToonzImageP)img;
+  TflareImageP timg  = (TflareImageP)img;
   TRasterImageP rimg = (TRasterImageP)img;
   TVectorImageP vimg = (TVectorImageP)img;
 
@@ -487,8 +487,8 @@ void InfoViewer::setItem(const TLevelP &level, TPalette *palette,
 
 //----------------------------------------------------------------
 
-void InfoViewerImp::setToonzSceneInfo() {
-  ToonzScene scene;
+void InfoViewerImp::setflareSceneInfo() {
+  flareScene scene;
   try {
     scene.loadNoResources(m_path);
   } catch (...) {
@@ -579,7 +579,7 @@ bool InfoViewerImp::setItem(const TLevelP &level, TPalette *palette,
       assert(!m_level && !m_palette);
       loadPalette(m_path);
     } else if (ext == "tnz")
-      setToonzSceneInfo();
+      setflareSceneInfo();
   } else if (TFileType::getInfo(m_path) == TFileType::AUDIO_LEVEL) {
     setSoundInfo();
   } else {
@@ -647,3 +647,4 @@ bool InfoViewerImp::setItem(const TLevelP &level, TPalette *palette,
 
   return true;
 }
+

@@ -16,22 +16,22 @@
 #include "tapp.h"
 
 // TnzQt includes
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/icongenerator.h"
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/gutil.h"
-#include "toonzqt/trepetitionguard.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/icongenerator.h"
+#include "flareqt/menubarcommand.h"
+#include "flareqt/gutil.h"
+#include "flareqt/trepetitionguard.h"
 
 // TnzLib includes
-#include "toonz/tscenehandle.h"
-#include "toonz/toonzscene.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/txshsoundlevel.h"
-#include "toonz/tproject.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/namebuilder.h"
-#include "toonz/toonzimageutils.h"
-#include "toonz/preferences.h"
+#include "flare/tscenehandle.h"
+#include "flare/flarescene.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/txshsoundlevel.h"
+#include "flare/tproject.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/namebuilder.h"
+#include "flare/flareimageutils.h"
+#include "flare/preferences.h"
 
 // TnzBase includes
 #include "tenv.h"
@@ -529,7 +529,7 @@ void SceneBrowser::refreshCurrentFolderItems() {
     }
     TFilePathSet::iterator it;
     for (it = files.begin(); it != files.end(); ++it) {
-      // skip the plt file (Palette file for TOONZ 4.6 and earlier)
+      // skip the plt file (Palette file for flare 4.6 and earlier)
       if (it->getType() == "plt") continue;
 
       // filter the file
@@ -677,7 +677,7 @@ void SceneBrowser::setUnregisteredFolder(const TFilePath &fp) {
     }
 
     for (it = files.begin(); it != files.end(); ++it) {
-      // skip the plt file (Palette file for TOONZ 4.6 and earlier)
+      // skip the plt file (Palette file for flare 4.6 and earlier)
       if (it->getType() == "plt") continue;
 
       // filtering
@@ -769,7 +769,7 @@ void SceneBrowser::readInfo(Item &item) {
     item.m_fileType     = info.suffix();
     item.m_fileSize     = info.size();
     if (fp.getType() == "tnz") {
-      ToonzScene scene;
+      flareScene scene;
       try {
         item.m_frameCount = scene.loadFrameCount(fp);
       } catch (...) {
@@ -1011,8 +1011,8 @@ bool SceneBrowser::renameFile(TFilePath &fp, QString newName) {
 TFilePath newFolder = newFp.getParentDir() + (newFp.getName() + "_files");
 TSystem::renameFile(newFolder, folder);
 */
-      TFilePath sceneIconFp    = ToonzScene::getIconPath(fp);
-      TFilePath sceneIconNewFp = ToonzScene::getIconPath(newFp);
+      TFilePath sceneIconFp    = flareScene::getIconPath(fp);
+      TFilePath sceneIconNewFp = flareScene::getIconPath(newFp);
       if (TFileStatus(sceneIconFp).doesExist()) {
         if (TFileStatus(sceneIconNewFp).doesExist())
           TSystem::deleteFile(sceneIconNewFp);
@@ -1141,7 +1141,7 @@ QMenu *SceneBrowser::getContextMenu(QWidget *parent, int index) {
   if (files.size() == 1 && files[0].getType() != "tnz") {
     QAction *action = new QAction(tr("Rename"), menu);
     ret             = ret && connect(action, SIGNAL(triggered()), this,
-                                     SLOT(renameAsToonzLevel()));
+                                     SLOT(renameAsflareLevel()));
     menu->addAction(action);
   }
 #ifdef LEVO
@@ -1431,9 +1431,9 @@ bool SceneBrowser::acceptDrop(const QMimeData *data) const {
   // nessun drop
   if (getFolder() == TFilePath()) return false;
 
-  if (data->hasFormat("application/vnd.toonz.levels") ||
-      data->hasFormat("application/vnd.toonz.currentscene") ||
-      data->hasFormat("application/vnd.toonz.drawings") ||
+  if (data->hasFormat("application/vnd.flare.levels") ||
+      data->hasFormat("application/vnd.flare.currentscene") ||
+      data->hasFormat("application/vnd.flare.drawings") ||
       acceptResourceDrop(data->urls()))
     return true;
 
@@ -1465,9 +1465,9 @@ bool SceneBrowser::drop(const QMimeData *mimeData) {
     }
     refreshFolder(getFolder());
     return true;
-  } else if (mimeData->hasFormat("application/vnd.toonz.currentscene")) {
+  } else if (mimeData->hasFormat("application/vnd.flare.currentscene")) {
     TFilePath scenePath;
-    ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
+    flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
     if (scene->isUntitled()) {
       bool ok;
       QString sceneName =
@@ -1478,7 +1478,7 @@ bool SceneBrowser::drop(const QMimeData *mimeData) {
     } else
       scenePath = folderPath + scene->getSceneName();
     return IoCmd::saveScene(scenePath, false);
-  } else if (mimeData->hasFormat("application/vnd.toonz.drawings")) {
+  } else if (mimeData->hasFormat("application/vnd.flare.drawings")) {
     TFilmstripSelection *s =
         dynamic_cast<TFilmstripSelection *>(TSelection::getCurrent());
     if (!s) return false;
@@ -1641,10 +1641,10 @@ QString getFrame(const QString &filename) {
 
 //-----------------------------------------------------------
 
-void renameSingleFileOrToonzLevel(const QString &fullpath) {
+void renameSingleFileOrflareLevel(const QString &fullpath) {
   TFilePath fpin(fullpath.toStdString());
 
-  RenameAsToonzPopup popup(
+  RenameAsflarePopup popup(
       QString::fromStdWString(fpin.withoutParentDir().getWideString()));
   if (popup.exec() != QDialog::Accepted) return;
 
@@ -1665,11 +1665,11 @@ void renameSingleFileOrToonzLevel(const QString &fullpath) {
 
 //----------------------------------------------------------
 
-void doRenameAsToonzLevel(const QString &fullpath) {
+void doRenameAsflareLevel(const QString &fullpath) {
   QString parentPath, name, format;
 
   if (!parsePathName(fullpath, parentPath, name, format)) {
-    renameSingleFileOrToonzLevel(fullpath);
+    renameSingleFileOrflareLevel(fullpath);
     return;
   }
 
@@ -1682,7 +1682,7 @@ void doRenameAsToonzLevel(const QString &fullpath) {
   while (name.endsWith('_') || name.endsWith('.') || name.endsWith(' '))
     name.chop(1);
 
-  RenameAsToonzPopup popup(name, pathIn.size());
+  RenameAsflarePopup popup(name, pathIn.size());
   if (popup.exec() != QDialog::Accepted) return;
 
   name = popup.getName();
@@ -1728,7 +1728,7 @@ void doRenameAsToonzLevel(const QString &fullpath) {
 
 //-------------------------------------------------------------------------------
 
-void SceneBrowser::renameAsToonzLevel() {
+void SceneBrowser::renameAsflareLevel() {
   std::vector<TFilePath> filePaths;
   FileSelection *fs =
       dynamic_cast<FileSelection *>(m_itemViewer->getPanel()->getSelection());
@@ -1736,7 +1736,7 @@ void SceneBrowser::renameAsToonzLevel() {
   fs->getSelectedFiles(filePaths);
   if (filePaths.size() != 1) return;
 
-  doRenameAsToonzLevel(QString::fromStdWString(filePaths[0].getWideString()));
+  doRenameAsflareLevel(QString::fromStdWString(filePaths[0].getWideString()));
 
   QApplication::restoreOverrideCursor();
 
@@ -1921,7 +1921,7 @@ void SceneBrowser::convertToPaintedTlv() {
 //-----------------------------------------------------------------------------
 
 void SceneBrowser::onSceneSwitched() {
-  ToonzScene *scene      = TApp::instance()->getCurrentScene()->getScene();
+  flareScene *scene      = TApp::instance()->getCurrentScene()->getScene();
   TFilePath scenesFolder = scene->getScenePath().getParentDir();
   // TFilePath scenesFolder =
   // TProjectManager::instance()->getCurrentProject()->getScenesPath();
@@ -2064,7 +2064,7 @@ void SceneBrowser::newScene() {
   TFilePath parentFolder = getFolder();
   QString sceneName;
   TFilePath scenePath;
-  ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
+  flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
   if (scene->isUntitled()) {
     bool ok;
     sceneName = QInputDialog::getText(this, tr("Save Scene"), tr("Scene name:"),
@@ -2203,3 +2203,4 @@ void SceneBrowser::tryToOpenScene(const TFilePath &filePath) {
 OpenFloatingPanel openPreproductionBoardPane(
     MI_OpenPreproductionBoard, "PreproductionBoard",
     QObject::tr("Preproduction Board"));
+

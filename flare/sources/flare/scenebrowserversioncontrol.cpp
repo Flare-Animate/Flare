@@ -9,12 +9,12 @@
 #include "tsystem.h"
 #include "tapp.h"
 
-#include "toonz/tscenehandle.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/toonzscene.h"
-#include "toonz/levelset.h"
-#include "toonzqt/gutil.h"
-#include "toonzqt/icongenerator.h"
+#include "flare/tscenehandle.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/flarescene.h"
+#include "flare/levelset.h"
+#include "flareqt/gutil.h"
+#include "flareqt/icongenerator.h"
 
 namespace {
 //---------------------------------------------------------------------------
@@ -115,7 +115,7 @@ void SceneBrowser::setupVersionControlCommand(QStringList &files, QString &path,
     }
     // Add sceneIcon (only for scene files)
     else if (fp.getType() == "tnz") {
-      TFilePath iconPath = ToonzScene::getIconPath(fp);
+      TFilePath iconPath = flareScene::getIconPath(fp);
       if (TFileStatus(iconPath).doesExist()) {
         QDir dir(toQString(fp.getParentDir()));
 
@@ -338,7 +338,7 @@ void SceneBrowser::updateAndEditVersionControl() {
   }
   // Add sceneIcon (only for scene files)
   else if (fp.getType() == "tnz") {
-    TFilePath iconPath = ToonzScene::getIconPath(fp);
+    TFilePath iconPath = flareScene::getIconPath(fp);
     if (TFileStatus(iconPath).doesExist()) {
       QDir dir(toQString(fp.getParentDir()));
 
@@ -508,7 +508,7 @@ void SceneBrowser::onVersionControlCommandDone(const QStringList &files) {
   m_folderTreeView->refreshVersionControl(node);
 
   // Get the current scene
-  ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
+  flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
   std::vector<TXshLevel *> levels;
   scene->getLevelSet()->listLevels(levels);
   QMap<TFilePath, TXshLevel *> sceneLevelPaths;
@@ -592,3 +592,4 @@ void SceneBrowser::showFrameRangeLockInfo() {
 }
 
 //-----------------------------------------------------------------------------
+

@@ -1,17 +1,17 @@
 
 
-#include "toonz/txshsoundcolumn.h"
-#include "toonz/levelset.h"
-#include "toonz/txsheet.h"
-#include "toonz/toonzscene.h"
-#include "toonz/tproject.h"
-#include "toonz/sceneproperties.h"
+#include "flare/txshsoundcolumn.h"
+#include "flare/levelset.h"
+#include "flare/txsheet.h"
+#include "flare/flarescene.h"
+#include "flare/tproject.h"
+#include "flare/sceneproperties.h"
 
 #include "tstream.h"
 #include "toutputproperties.h"
 #include "tsop.h"
 #include "tconvert.h"
-#include "toonz/preferences.h"
+#include "flare/preferences.h"
 
 #include <QAudioFormat>
 #include <QAudioDeviceInfo>
@@ -704,7 +704,7 @@ bool TXshSoundColumn::getLevelRangeWithoutOffset(int row, int &r0,
 
 void TXshSoundColumn::setXsheet(TXsheet *xsheet) {
   TXshColumn::setXsheet(xsheet);
-  ToonzScene *scene = xsheet->getScene();
+  flareScene *scene = xsheet->getScene();
   if (!scene || m_levels.empty()) return;
 
   if (m_isOldVersion) {
@@ -1146,3 +1146,4 @@ TSoundTrackP TXshSoundColumn::mixingTogether(
 }
 
 PERSIST_IDENTIFIER(TXshSoundColumn, "soundColumn")
+

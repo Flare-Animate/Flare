@@ -1,10 +1,10 @@
-#include "toonzqt/seethroughwindow.h"
+#include "flareqt/seethroughwindow.h"
 
 // Tnz6 includes
 #include "tenv.h"
 
 // TnzQt includes
-#include "toonzqt/gutil.h"
+#include "flareqt/gutil.h"
 
 #include <QApplication>
 #include <QMainWindow>
@@ -190,3 +190,4 @@ void SeeThroughWindowMode::refreshOpacity() {
       m_dialog->changeOpacity(100);
   }
 }
+

@@ -1,8 +1,8 @@
 
 
-#include "toonz/scriptbinding_image_builder.h"
-#include "toonz/scriptbinding_image.h"
-#include "ttoonzimage.h"
+#include "flare/scriptbinding_image_builder.h"
+#include "flare/scriptbinding_image.h"
+#include "tflareimage.h"
 #include "trop.h"
 #include <cmath>
 
@@ -96,9 +96,9 @@ QScriptValue ImageBuilder::ctor(QScriptContext *context,
     if (context->argumentCount() == 3) {
       if (context->argument(2).isString())
         type = context->argument(2).toString();
-      if (type != "Raster" && type != "ToonzRaster")
+      if (type != "Raster" && type != "flareRaster")
         return context->throwError(
-            tr("Bad argument (%1): should be 'Raster' or ToonzRaster'")
+            tr("Bad argument (%1): should be 'Raster' or flareRaster'")
                 .arg(context->argument(2).toString()));
     }
     imageBuilder           = new ImageBuilder();
@@ -106,8 +106,8 @@ QScriptValue ImageBuilder::ctor(QScriptContext *context,
     imageBuilder->m_height = height;
     if (type == "Raster")
       imageBuilder->m_img = new TRasterImage(TRaster32P(width, height));
-    else if (type == "ToonzRaster") {
-      imageBuilder->m_img = new TToonzImage(TRasterCM32P(width, height),
+    else if (type == "flareRaster") {
+      imageBuilder->m_img = new TflareImage(TRasterCM32P(width, height),
                                             TRect(0, 0, width, height));
     }
   } else {
@@ -128,8 +128,8 @@ QScriptValue ImageBuilder::toString() {
   if (m_img) {
     if (m_img->getType() == TImage::RASTER)
       type = "Raster";
-    else if (m_img->getType() == TImage::TOONZ_RASTER)
-      type = "ToonzRaster";
+    else if (m_img->getType() == TImage::flare_RASTER)
+      type = "flareRaster";
     else if (m_img->getType() == TImage::VECTOR)
       type = "Vector";
     else
@@ -172,8 +172,8 @@ QString ImageBuilder::add(const TImageP &img, const TAffine &aff) {
     TRasterP ras = img->raster()->create(m_width, m_height);
     if (img->getType() == TImage::RASTER)
       m_img = TRasterImageP(ras);
-    else if (img->getType() == TImage::TOONZ_RASTER) {
-      m_img = TToonzImageP(ras, ras->getBounds());
+    else if (img->getType() == TImage::flare_RASTER) {
+      m_img = TflareImageP(ras, ras->getBounds());
       m_img->setPalette(img->getPalette());
     } else
       return "Bad image type";
@@ -195,7 +195,7 @@ QString ImageBuilder::add(const TImageP &img, const TAffine &aff) {
       dn->mergeImage(up, aff);
     }
   } else {
-    if (img->getType() != TImage::TOONZ_RASTER &&
+    if (img->getType() != TImage::flare_RASTER &&
         img->getType() != TImage::RASTER) {
       // this should not ever happen
       return "Bad image type";
@@ -205,9 +205,9 @@ QString ImageBuilder::add(const TImageP &img, const TAffine &aff) {
       // create an empty bg
       TRasterP ras = up->create();
       ras->clear();
-      if (img->getType() == TImage::TOONZ_RASTER) {
+      if (img->getType() == TImage::flare_RASTER) {
         TRasterCM32P rasCm = ras;
-        m_img              = TToonzImageP(rasCm,
+        m_img              = TflareImageP(rasCm,
                              TRect(0, 0, ras->getLx() - 1, ras->getLy() - 1));
         m_img->setPalette(img->getPalette());
       } else {
@@ -233,7 +233,7 @@ QString ImageBuilder::add(const TImageP &img, const TAffine &aff) {
 /*
   TImageP srcImg = img->getImg();
   if(srcImg->getType()==TImage::RASTER ||
-  srcImg->getType()==TImage::TOONZ_RASTER)
+  srcImg->getType()==TImage::flare_RASTER)
   {
     TRasterP in = srcImg->raster();
     TRasterP out = in->create();
@@ -288,3 +288,4 @@ QScriptValue ImageBuilder::add(QScriptValue imgArg,
 }
 
 }  // namespace TScriptBinding
+

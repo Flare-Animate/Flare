@@ -8,10 +8,10 @@
 #include "commandbarpopup.h"
 
 // TnzQt includes
-#include "toonzqt/gutil.h"
+#include "flareqt/gutil.h"
 
 // TnzLib includes
-#include "toonz/toonzfolders.h"
+#include "flare/flarefolders.h"
 
 // TnzCore includes
 #include "tsystem.h"
@@ -82,9 +82,9 @@ MenuBarTree::MenuBarTree(TFilePath& path, QWidget* parent)
   if (TFileStatus(path).isWritable())
     fp = m_path;
   else {
-    fp = m_path.withParentDir(ToonzFolder::getTemplateRoomsDir());
+    fp = m_path.withParentDir(flareFolder::getTemplateRoomsDir());
     if (!TFileStatus(path).isReadable())
-      fp = ToonzFolder::getTemplateRoomsDir() + "menubar_template.xml";
+      fp = flareFolder::getTemplateRoomsDir() + "menubar_template.xml";
   }
 
   loadMenuTree(fp);
@@ -319,7 +319,7 @@ MenuBarPopup::MenuBarPopup(Room* room)
 
   /*- get menubar setting file path -*/
   std::string mbFileName = room->getPath().getName() + "_menubar.xml";
-  TFilePath mbPath       = ToonzFolder::getMyRoomsDir() + mbFileName;
+  TFilePath mbPath       = flareFolder::getMyRoomsDir() + mbFileName;
 
   QLabel* menuBarLabel =
       new QLabel(tr("%1 Menu Bar").arg(room->getName()), this);

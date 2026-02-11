@@ -12,22 +12,22 @@
 #include "flipbook.h"
 
 // TnzLib includes
-#include "toonz/tscenehandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/levelset.h"
-#include "toonz/toonzscene.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/txshpalettelevel.h"
-#include "toonz/txshsoundlevel.h"
-#include "toonz/txshleveltypes.h"
+#include "flare/tscenehandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/levelset.h"
+#include "flare/flarescene.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/txshpalettelevel.h"
+#include "flare/txshsoundlevel.h"
+#include "flare/txshleveltypes.h"
 
 // TnzQt includes
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/gutil.h"
-#include "toonzqt/trepetitionguard.h"
-#include "toonzqt/icongenerator.h"
-#include "toonzqt/infoviewer.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/gutil.h"
+#include "flareqt/trepetitionguard.h"
+#include "flareqt/icongenerator.h"
+#include "flareqt/infoviewer.h"
 #include "historytypes.h"
 
 // TnzCore includes
@@ -57,10 +57,10 @@ using namespace DVGui;
 
 namespace {
 
-// Se il widget del cast viewer viene spostato in toonzqt (e quindi fatto
+// Se il widget del cast viewer viene spostato in flareqt (e quindi fatto
 // dipendere dallo sceneHandle)
 // questo undo puo' essere spostato in un nuovo file levelsetcommand in
-// toonzlib.
+// flarelib.
 class MoveLevelToFolderUndo final : public TUndo {
   TLevelSet *m_levelSet;
   std::wstring m_levelName;
@@ -200,7 +200,7 @@ void CastTreeViewer::populateFolder(QTreeWidgetItem *folder) {
 void CastTreeViewer::onSceneNameChanged() {
   QTreeWidgetItem *root = topLevelItem(0);
   if (!root) return;
-  ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
+  flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
   QString rootName  = QString("Root");
   if (scene) {
     std::wstring name =
@@ -229,7 +229,7 @@ void CastTreeViewer::onCastFolderAdded(const TFilePath &path) {
 
 void CastTreeViewer::rebuildCastTree() {
   clear();
-  ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
+  flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
   QString rootName  = QString("Root");
   if (scene) {
     std::wstring name =
@@ -273,7 +273,7 @@ void CastTreeViewer::dragEnterEvent(QDragEnterEvent *e) {
     else
       return;
   }
-  if (!e->mimeData()->hasFormat("application/vnd.toonz.levels") &&
+  if (!e->mimeData()->hasFormat("application/vnd.flare.levels") &&
       m_dropFilePath == TFilePath())
     return;
   m_dropTargetItem = itemAt(e->pos());
@@ -288,12 +288,12 @@ void CastTreeViewer::dragEnterEvent(QDragEnterEvent *e) {
 //-----------------------------------------------------------------------------
 
 void CastTreeViewer::dragMoveEvent(QDragMoveEvent *event) {
-  if (!event->mimeData()->hasFormat("application/vnd.toonz.levels") ||
+  if (!event->mimeData()->hasFormat("application/vnd.flare.levels") ||
       m_dropFilePath != TFilePath())
     return;
 
   m_dropTargetItem  = itemAt(event->pos());
-  ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
+  flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
   QString rootName  = QString("Root");
   if (scene) {
     std::wstring name =
@@ -326,7 +326,7 @@ void CastTreeViewer::dropEvent(QDropEvent *event) {
     return;
   }
 
-  if (!event->mimeData()->hasFormat("application/vnd.toonz.levels")) return;
+  if (!event->mimeData()->hasFormat("application/vnd.flare.levels")) return;
   m_dropTargetItem = itemAt(event->pos());
   if (!m_dropTargetItem) return;
   TFilePath folderPath(
@@ -632,7 +632,7 @@ QVariant CastBrowser::getItemData(int index, DataType dataType,
   else if (dataType == FrameCount)
     return item->getFrameCount();
   else if (dataType == FullPath) {
-    ToonzScene *scene   = TApp::instance()->getCurrentScene()->getScene();
+    flareScene *scene   = TApp::instance()->getCurrentScene()->getScene();
     TXshSimpleLevel *sl = item->getSimpleLevel();
     if (sl) return scene->decodeFilePath(sl->getPath()).getQString();
     TXshPaletteLevel *pl = item->getPaletteLevel();
@@ -732,7 +732,7 @@ QMenu *CastBrowser::getContextMenu(QWidget *parent, int index) {
   bool paletteSelected     = false;
   bool vectorLevelSelected = false;
   bool meshLevelSelected   = false;
-  bool toonzRasterLevelSelected = false;
+  bool flareRasterLevelSelected = false;
   bool otherFileSelected   = false;
   int levelSelectedCount   = 0;
   for (it = indices.begin(); it != indices.end(); ++it) {
@@ -753,7 +753,7 @@ QMenu *CastBrowser::getContextMenu(QWidget *parent, int index) {
     else if (sl->getType() == MESH_XSHLEVEL)
         meshLevelSelected = true;
     else if (sl->getType() == TZP_XSHLEVEL)
-        toonzRasterLevelSelected = true;
+        flareRasterLevelSelected = true;
     else
       otherFileSelected = true;
   }
@@ -777,8 +777,8 @@ QMenu *CastBrowser::getContextMenu(QWidget *parent, int index) {
   // MI_ConvertToVectors if only non-vector layers were selected
   if (!audioSelected && !paletteSelected && !vectorLevelSelected)
     menu->addAction(cm->getAction(MI_ConvertToVectors));
-  if (!audioSelected && !paletteSelected && !toonzRasterLevelSelected)
-      menu->addAction(cm->getAction(MI_ConvertToToonzRaster));
+  if (!audioSelected && !paletteSelected && !flareRasterLevelSelected)
+      menu->addAction(cm->getAction(MI_ConvertToflareRaster));
   menu->addSeparator();
   menu->addAction(cm->getAction(MI_RemoveLevel));
   menu->addAction(cm->getAction(MI_RemoveUnused));
@@ -838,7 +838,7 @@ void CastBrowser::showFolderContents() {
   if (!castSelection) return;
   std::vector<TXshLevel *> levels;
   castSelection->getSelectedLevels(levels);
-  ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
+  flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
   TFilePath folderPath, filePath;
   for (i = 0; i < levels.size(); i++) {
     folderPath = levels[i]->getPath().getParentDir();
@@ -869,7 +869,7 @@ void CastBrowser::viewFile() {
   if (!castSelection) return;
   std::vector<TXshLevel *> levels;
   castSelection->getSelectedLevels(levels);
-  ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
+  flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
   TFilePath filePath;
   if (levels.empty()) return;
   int i = 0;
@@ -902,7 +902,7 @@ void CastBrowser::viewFileInfo() {
   if (!castSelection) return;
   std::vector<TXshLevel *> levels;
   castSelection->getSelectedLevels(levels);
-  ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
+  flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
   int i             = 0;
 
   if (levels.empty()) {
@@ -929,3 +929,4 @@ void CastBrowser::viewFileInfo() {
 
 OpenFloatingPanel openCastPane(MI_OpenFileBrowser2, "SceneCast",
                                QObject::tr("Scene Cast"));
+

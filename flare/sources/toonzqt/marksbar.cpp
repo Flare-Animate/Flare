@@ -4,7 +4,7 @@
 #include <QPaintEvent>
 #include <QPainter>
 
-#include "toonzqt/marksbar.h"
+#include "flareqt/marksbar.h"
 
 //*****************************************************************************
 //    Local namespace stuff
@@ -179,3 +179,4 @@ void MarksBar::paintEvent(QPaintEvent *pe) {
   int i, size = m_values.size();
   for (i = 0; i < size; ++i) drawMark(p, valToPos(m_values[i]), m_colors[i]);
 }
+

@@ -6,22 +6,22 @@
 #include "convertpopup.h"
 
 // TnzQt includes
-#include "toonzqt/gutil.h"
+#include "flareqt/gutil.h"
 
 // TnzLib includes
-#include "toonz/txshsimplelevel.h"
-#include "toonz/txshleveltypes.h"
-#include "toonz/txsheet.h"
-#include "toonz/txshcell.h"
-#include "toonz/toonzscene.h"
-#include "toonz/levelset.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/tcamera.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/txshleveltypes.h"
+#include "flare/txsheet.h"
+#include "flare/txshcell.h"
+#include "flare/flarescene.h"
+#include "flare/levelset.h"
+#include "flare/tscenehandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/tcamera.h"
 
 // TnzCore includes
 #include "tsystem.h"
-#include "ttoonzimage.h"
+#include "tflareimage.h"
 
 // Tnz6 includes
 #include "drawingdata.h"
@@ -31,12 +31,12 @@
 #include "tools/toolhandle.h"
 
 // TnzQt includes
-#include "toonzqt/icongenerator.h"
-#include "toonzqt/menubarcommand.h"
+#include "flareqt/icongenerator.h"
+#include "flareqt/menubarcommand.h"
 
 // TnzLib includes
-#include "toonz/preferences.h"
-#include "toonz/tcolumnhandle.h"
+#include "flare/preferences.h"
+#include "flare/tcolumnhandle.h"
 
 // TnzCore includes
 #include "filebrowsermodel.h"
@@ -46,7 +46,7 @@
 using namespace DVGui;
 using namespace SelectionUtils;
 
-// Convert to ToonzRaster From Raster or Vector
+// Convert to flareRaster From Raster or Vector
 
 namespace {
         
@@ -72,7 +72,7 @@ namespace {
             , m_keepLevel(keepLevel)
             , m_areColumnsShifted(areColumnsShifted) {
             TApp* app = TApp::instance();
-            ToonzScene* scene = app->getCurrentScene()->getScene();
+            flareScene* scene = app->getCurrentScene()->getScene();
             m_oldLevelCount = scene->getLevelSet()->getLevelCount();
         }
         ~CreateLevelUndo() { m_sl = 0; }
@@ -81,7 +81,7 @@ namespace {
 
         void undo() const override {
             TApp* app = TApp::instance();
-            ToonzScene* scene = app->getCurrentScene()->getScene();
+            flareScene* scene = app->getCurrentScene()->getScene();
             TXsheet* xsh = scene->getXsheet();
             if (m_areColumnsShifted)
                 xsh->removeColumn(m_columnIndex);
@@ -106,7 +106,7 @@ namespace {
         void redo() const override {
             if (!m_sl.getPointer()) return;
             TApp* app = TApp::instance();
-            ToonzScene* scene = app->getCurrentScene()->getScene();
+            flareScene* scene = app->getCurrentScene()->getScene();
             scene->getLevelSet()->insertLevel(m_sl.getPointer());
             TXsheet* xsh = scene->getXsheet();
             if (m_areColumnsShifted) xsh->insertColumn(m_columnIndex);
@@ -135,9 +135,9 @@ namespace {
         }
     };
 
-    static TXshSimpleLevel* getNewToonzRasterLevel(
+    static TXshSimpleLevel* getNewflareRasterLevel(
         TXshSimpleLevel* sourceSl) {
-        ToonzScene* scene = TApp::instance()->getCurrentScene()->getScene();
+        flareScene* scene = TApp::instance()->getCurrentScene()->getScene();
         TFilePath sourcePath = sourceSl->getPath();
         std::wstring sourceName = sourcePath.getWideName();
         TFilePath parentDir = sourceSl->getPath().getParentDir();
@@ -187,7 +187,7 @@ namespace {
         for (auto id : frameIdsSet) {
             TRasterCM32P raster(xres, yres);
             raster->fill(TPixelCM32());
-            TToonzImageP firstImage(raster, TRect());
+            TflareImageP firstImage(raster, TRect());
             firstImage->setDpi(dpi, dpi);
             out->setFrame(id, firstImage);
             firstImage->setSavebox(TRect(0, 0, xres - 1, yres - 1));
@@ -226,7 +226,7 @@ namespace {
 
 
     //-----------------------------------------------------------------------------
-    // Convert from Vector/Raster to ToonzRaster
+    // Convert from Vector/Raster to flareRaster
     void exec() {
         // set up basics
         TApp* app = TApp::instance();
@@ -234,7 +234,7 @@ namespace {
         int col = app->getCurrentColumn()->getColumnIndex();
         int i;
 
-        ToonzScene* scene = app->getCurrentScene()->getScene();
+        flareScene* scene = app->getCurrentScene()->getScene();
         TXsheet* xsh = scene->getXsheet();
         int r0, c0, r1, c1;
         std::vector<TXshLevel*> levels;
@@ -249,7 +249,7 @@ namespace {
                 type != TXshLevelType::OVL_XSHLEVEL) continue;
 
             TXshSimpleLevel* sourceSl = level->getSimpleLevel();
-            TXshSimpleLevel* rsl = getNewToonzRasterLevel(sourceSl);
+            TXshSimpleLevel* rsl = getNewflareRasterLevel(sourceSl);
             assert(rsl);
 
             std::set<TFrameId> frameIdsSet;
@@ -321,6 +321,6 @@ namespace {
 
 class RasterizerCommandHandler final : public MenuItemHandler {
 public:
-    RasterizerCommandHandler() : MenuItemHandler(MI_ConvertToToonzRaster) {};
+    RasterizerCommandHandler() : MenuItemHandler(MI_ConvertToflareRaster) {};
     void execute() override { ::exec(); };
 } rasterizerCommandHandler;

@@ -5,7 +5,7 @@
 
 #include "tcommon.h"
 #include "tpixel.h"
-#include "ttoonzimage.h"
+#include "tflareimage.h"
 #include "tvectorimage.h"
 
 #include <QPoint>
@@ -16,7 +16,7 @@
 
 #undef DVAPI
 #undef DVVAR
-#ifdef TOONZLIB_EXPORTS
+#ifdef flareLIB_EXPORTS
 #define DVAPI DV_EXPORT_API
 #define DVVAR DV_EXPORT_VAR
 #else
@@ -146,10 +146,10 @@ public:
       return -1;
   }
 
-  TToonzImageP makeTlv(bool transparentSyntheticInks, QList<int> &usedStyleIds,
+  TflareImageP makeTlv(bool transparentSyntheticInks, QList<int> &usedStyleIds,
                        double dpi = 0.0);
 
-  TVectorImageP vectorize(const TToonzImageP &ti);
+  TVectorImageP vectorize(const TflareImageP &ti);
   TVectorImageP vectorize(const TRaster32P &ras);
   TVectorImageP vectorize();
 
@@ -157,3 +157,4 @@ public:
 };
 
 #endif
+

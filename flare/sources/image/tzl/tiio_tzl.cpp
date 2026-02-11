@@ -3,7 +3,7 @@
 #include "tiio_tzl.h"
 #include "tmachine.h"
 #include "tsystem.h"
-#include "ttoonzimage.h"
+#include "tflareimage.h"
 #include "tstream.h"
 #include "tfilepath_io.h"
 #include "tpixelcm.h"
@@ -914,7 +914,7 @@ void TLevelWriterTzl::saveImage(const TImageP &img, const TFrameId &_fid,
   if (!m_updatedIconsSize && m_exists)
     m_updatedIconsSize = checkIconSize(getIconSize());
 
-  TToonzImageP ti = img;
+  TflareImageP ti = img;
   if (!ti) return;
 
   if (!m_palette) {
@@ -1154,7 +1154,7 @@ void TLevelWriterTzl::renumberFids(
 
 void TLevelWriterTzl::createIcon(const TImageP &imgIn, TImageP &imgOut) {
   // Creo iconcina e poi la salvo
-  TToonzImageP ti = imgIn;
+  TflareImageP ti = imgIn;
   if (!ti) return;
   TRect sb    = ti->getSavebox();
   TINT32 sbx0 = sb.x0, sby0 = sb.y0, sblx = sb.getLx(), sbly = sb.getLy();
@@ -1206,7 +1206,7 @@ void TLevelWriterTzl::createIcon(const TImageP &imgIn, TImageP &imgOut) {
     // so, this 'if' is a patch. vinz
     savebox = savebox * TRect(m_iconSize);
   thumbnailRas->clearOutside(savebox);
-  TToonzImageP ticon(thumbnailRas, savebox);
+  TflareImageP ticon(thumbnailRas, savebox);
   double xdpi = 1, ydpi = 1;
   ti->getDpi(xdpi, ydpi);
   ticon->setDpi(xdpi, ydpi);
@@ -1414,7 +1414,7 @@ bool TLevelWriterTzl::optimize() {
   if (!level || level->getFrameCount() == 0) return false;
   TLevel::Iterator levelIt = level->begin();
   for (; levelIt != level->end(); ++levelIt) {
-    TToonzImageP img = lr->getFrameReader(levelIt->first)->load();
+    TflareImageP img = lr->getFrameReader(levelIt->first)->load();
     assert(img);
     lw->getFrameWriter(levelIt->first)->save(img);
   }
@@ -1696,9 +1696,9 @@ m_lrp->m_frameIndex = m_frameIndex;*/
   // codec.decompress(m_compressedBuffer, m_compressedBufferSize, ras);
 
   // assert(0);
-  // TToonzImageP ti; //  = new
-  // TToonzImage(m_lx,m_ly,savebox,imgBuff,actualBuffSize);
-  TToonzImageP ti(ras, savebox);
+  // TflareImageP ti; //  = new
+  // TflareImage(m_lx,m_ly,savebox,imgBuff,actualBuffSize);
+  TflareImageP ti(ras, savebox);
   // if(dpiflag)
   ti->setDpi(xdpi, ydpi);
   // m_lrp->m_level->setFrame(TFrameId(m_frameIndex+1), ti);
@@ -1707,7 +1707,7 @@ m_lrp->m_frameIndex = m_frameIndex;*/
   // imgBuff = 0;
   return ti;
 
-  // ToonzImageUtils::updateRas32(ti);
+  // flareImageUtils::updateRas32(ti);
 }
 
 //-------------------------------------------------------------------
@@ -1818,9 +1818,9 @@ m_lrp->m_frameIndex = m_frameIndex;*/
   // codec.decompress(m_compressedBuffer, m_compressedBufferSize, ras);
 
   // assert(0);
-  // TToonzImageP ti; //  = new
-  // TToonzImage(m_lx,m_ly,savebox,imgBuff,actualBuffSize);
-  TToonzImageP ti(ras, savebox);
+  // TflareImageP ti; //  = new
+  // TflareImage(m_lx,m_ly,savebox,imgBuff,actualBuffSize);
+  TflareImageP ti(ras, savebox);
   // if(dpiflag)
   ti->setDpi(xdpi, ydpi);
   // m_lrp->m_level->setFrame(TFrameId(m_frameIndex+1), ti);
@@ -1829,7 +1829,7 @@ m_lrp->m_frameIndex = m_frameIndex;*/
   // imgBuff = 0;
   return ti;
 
-  // ToonzImageUtils::updateRas32(ti);
+  // flareImageUtils::updateRas32(ti);
 }
 
 //-------------------------------------------------------------------
@@ -1950,7 +1950,7 @@ TImageP TImageReaderTzl::load13() {
       ras = fullRas;
     }
 
-    TToonzImageP ti(ras, savebox);
+    TflareImageP ti(ras, savebox);
     ti->setDpi(xdpi, ydpi);
     ti->setPalette(m_lrp->m_level->getPalette());
     return ti;
@@ -2020,9 +2020,9 @@ TImageP TImageReaderTzl::load13() {
   // codec.decompress(m_compressedBuffer, m_compressedBufferSize, ras);
 
   // assert(0);
-  // TToonzImageP ti; //  = new
-  // TToonzImage(m_lx,m_ly,savebox,imgBuff,actualBuffSize);
-  TToonzImageP ti(ras, savebox);
+  // TflareImageP ti; //  = new
+  // TflareImage(m_lx,m_ly,savebox,imgBuff,actualBuffSize);
+  TflareImageP ti(ras, savebox);
   // if(dpiflag)
   ti->setDpi(xdpi, ydpi);
   // m_lrp->m_level->setFrame(TFrameId(m_frameIndex+1), ti);
@@ -2031,7 +2031,7 @@ TImageP TImageReaderTzl::load13() {
   // imgBuff = 0;
   return ti;
 
-  // ToonzImageUtils::updateRas32(ti);
+  // flareImageUtils::updateRas32(ti);
 }
 
 // Restituisce la regione del raster shrinkata e la relativa savebox.
@@ -2215,7 +2215,7 @@ TImageP TImageReaderTzl::load14() {
       ras = fullRas;
     }
 
-    TToonzImageP ti(ras, savebox);
+    TflareImageP ti(ras, savebox);
     ti->setDpi(xdpi, ydpi);
     ti->setPalette(m_lrp->m_level->getPalette());
     return ti;
@@ -2292,7 +2292,7 @@ TImageP TImageReaderTzl::load14() {
     ras = fullRas;
   }
 
-  TToonzImageP ti(ras, savebox);
+  TflareImageP ti(ras, savebox);
   // if(dpiflag)
   ti->setDpi(xdpi, ydpi);
   // m_lrp->m_level->setFrame(TFrameId(m_frameIndex+1), ti);
@@ -2301,7 +2301,7 @@ TImageP TImageReaderTzl::load14() {
   // imgBuff = 0;
   return ti;
 
-  // ToonzImageUtils::updateRas32(ti);
+  // flareImageUtils::updateRas32(ti);
 }
 
 //-------------------------------------------------------------------
@@ -2334,7 +2334,7 @@ TImageP TImageReaderTzl::load() {
   if (image == TImageP()) return TImageP();
 
   if (!m_isIcon) {
-    TToonzImageP ti = image;
+    TflareImageP ti = image;
     if (!ti) return TImageP();
     TRasterP ras  = ti->getRaster();
     TRect savebox = ti->getSavebox();
@@ -2514,3 +2514,4 @@ TDimension TImageReaderTzl::getSize() const { return TDimension(m_lx, m_ly); }
 //-------------------------------------------------------------------
 
 TRect TImageReaderTzl::getBBox() const { return TRect(getSize()); }
+
