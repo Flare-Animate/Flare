@@ -3,8 +3,8 @@
 #ifndef STYLESELECTION_INCLUDED
 #define STYLESELECTION_INCLUDED
 
-#include "flareqt/selection.h"
-#include "flare/tpalettehandle.h"
+#include "toonzqt/selection.h"
+#include "toonz/tpalettehandle.h"
 #include "tpalette.h"
 #include <set>
 #include <QString>
@@ -13,7 +13,7 @@ class QByteArray;
 
 #undef DVAPI
 #undef DVVAR
-#ifdef flareQT_EXPORTS
+#ifdef TOONZQT_EXPORTS
 #define DVAPI DV_EXPORT_API
 #define DVVAR DV_EXPORT_VAR
 #else
@@ -105,4 +105,3 @@ public:
 };
 
 #endif  // STYLESELECTION_INCLUDED
-

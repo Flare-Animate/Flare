@@ -1,27 +1,27 @@
 
 
-// flare app and handles
+// Toonz app and handles
 #include "tapp.h"
-#include "flare/tpalettehandle.h"
-#include "flare/palettecontroller.h"
-#include "flare/tobjecthandle.h"
-#include "flare/tscenehandle.h"
-#include "flare/tframehandle.h"
-#include "flare/txshlevelhandle.h"
-#include "flare/txsheethandle.h"
-#include "flare/tfxhandle.h"
+#include "toonz/tpalettehandle.h"
+#include "toonz/palettecontroller.h"
+#include "toonz/tobjecthandle.h"
+#include "toonz/tscenehandle.h"
+#include "toonz/tframehandle.h"
+#include "toonz/txshlevelhandle.h"
+#include "toonz/txsheethandle.h"
+#include "toonz/tfxhandle.h"
 
-// flare scene
-#include "flare/flarescene.h"
+// Toonz scene
+#include "toonz/toonzscene.h"
 
-// flare schematic includes
-#include "flare/fxdag.h"
-#include "flare/tcolumnfxset.h"
-#include "flare/tcolumnfx.h"
-#include "flare/txshlevelcolumn.h"
-#include "flare/levelset.h"
-#include "flare/txshchildlevel.h"
-#include "flare/txshzeraryfxcolumn.h"
+// Toonz schematic includes
+#include "toonz/fxdag.h"
+#include "toonz/tcolumnfxset.h"
+#include "toonz/tcolumnfx.h"
+#include "toonz/txshlevelcolumn.h"
+#include "toonz/levelset.h"
+#include "toonz/txshchildlevel.h"
+#include "toonz/txshzeraryfxcolumn.h"
 
 // Render cache includes
 #include "tpassivecachemanager.h"
@@ -316,7 +316,7 @@ if(childXsh)
 
 //---------------------------------------------------------------------------------
 
-//! Builds a description of a \b schematic fx tree which is unique in a flare
+//! Builds a description of a \b schematic fx tree which is unique in a Toonz
 //! scene session.
 //! The returned description is made of fx ids in the form of numbers separated
 //! by semicolons -
@@ -338,7 +338,7 @@ void buildTreeDescription(std::string &desc, const TFxP &root) {
   TFxPort *xsheetPort = root->getXsheetPort();
   if (xsheetPort && !xsheetPort->getFx()) {
     // Retrieve the xsheet containing the fx
-    flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
+    ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
     TXsheet *xsh = 0, *topXsh = scene->getTopXsheet();
     searchXsheetContainingInternalFx(xsh, topXsh, root);
 
@@ -357,4 +357,3 @@ void buildTreeDescription(std::string &desc, const TFxP &root) {
 
   buildNodeTreeDescription(desc, root);
 }
-

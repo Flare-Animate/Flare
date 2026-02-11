@@ -5,14 +5,14 @@
 
 #include "saveloadqsettings.h"
 #include "paletteviewergui.h"
-#include "flare/tpalettehandle.h"
-#include "flare/preferences.h"
+#include "toonz/tpalettehandle.h"
+#include "toonz/preferences.h"
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 
 #undef DVAPI
 #undef DVVAR
-#ifdef flareQT_EXPORTS
+#ifdef TOONZQT_EXPORTS
 #define DVAPI DV_EXPORT_API
 #define DVVAR DV_EXPORT_VAR
 #else
@@ -214,4 +214,3 @@ protected slots:
 };
 
 #endif  // PALETTEVIEWER_H
-

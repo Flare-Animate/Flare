@@ -23,7 +23,7 @@
 
 #undef DVAPI
 #undef DVVAR
-#ifdef flareQT_EXPORTS
+#ifdef TOONZQT_EXPORTS
 #define DVAPI DV_EXPORT_API
 #define DVVAR DV_EXPORT_VAR
 #else
@@ -38,7 +38,7 @@
 class TFilePath;
 class TXshLevel;
 class TStageObjectSpline;
-class flareScene;
+class ToonzScene;
 class TOfflineGL;
 
 //==============================================================
@@ -48,7 +48,7 @@ class TOfflineGL;
 //**********************************************************************************
 
 /*!
-  \brief    The class responsible for icons management in flare.
+  \brief    The class responsible for icons management in Toonz.
 
   \details  It's a singleton class - in particular, rendered icons are stored in
             a shared map container for fast retrieval upon repeated icon
@@ -102,7 +102,7 @@ public:
   void invalidate(TStageObjectSpline *spline);
   void remove(TStageObjectSpline *spline);
 
-  // icons from flare levels
+  // icons from toonz levels
   QPixmap getIcon(TXshLevel *sl, const TFrameId &fid, bool filmStrip = true,
                   bool onDemand = false);
   QPixmap getSizedIcon(TXshLevel *sl, const TFrameId &fid, std::string newId,
@@ -118,7 +118,7 @@ public:
                   const TFrameId &fid = TFrameId::NO_FRAME);
   void remove(const TFilePath &path, const TFrameId &fid = TFrameId::NO_FRAME);
 
-  QPixmap getSceneIcon(flareScene *scene);  // Unused in flare
+  QPixmap getSceneIcon(ToonzScene *scene);  // Unused in Toonz
   void invalidateSceneIcon();
 
   void remap(const std::string &newIconId, const std::string &oldIconId);
@@ -140,7 +140,7 @@ public:
                                          const TDimension &iconSize,
                                          const TFrameId &fid);
 
-  // This function is called when only colors of styles are changed in flare
+  // This function is called when only colors of styles are changed in toonz
   // raster levels. In such case it doesn't need to re-compute icons but needs
   // to let panels to update. See TApp::onLevelColorStyleChanged() for details.
   void notifyIconGenerated() { emit iconGenerated(); }
@@ -207,4 +207,3 @@ inline void removeIcons(TXshLevel *sl, const C &fids,
 }
 
 #endif  // ICON_GENERATOR_H
-

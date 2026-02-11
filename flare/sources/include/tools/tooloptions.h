@@ -4,10 +4,10 @@
 #define TOOLOPTIONS_H
 
 // TnzQt includes
-#include "flareqt/checkbox.h"
+#include "toonzqt/checkbox.h"
 
 // TnzLib includes
-#include "flare/tstageobject.h"
+#include "toonz/tstageobject.h"
 
 // TnzCore includes
 #include "tcommon.h"
@@ -830,4 +830,3 @@ signals:
 };
 
 #endif  // PANE_H
-

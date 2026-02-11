@@ -6,7 +6,7 @@
 // TnzCore includes
 #include "tfilepath.h"
 
-#include "flare/txshlevel.h"
+#include "toonz/txshlevel.h"
 
 // STL includes
 #include <set>
@@ -49,4 +49,3 @@ void getSelectedFrames(
     std::map<LevelType *, std::set<TFrameId>> &framesByLevel);
 
 #endif  // SELECTIONUTILS_H
-

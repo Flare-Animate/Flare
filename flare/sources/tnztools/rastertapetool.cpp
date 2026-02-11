@@ -4,28 +4,28 @@
 #include "tundo.h"
 #include "tproperty.h"
 #include "tools/cursors.h"
-#include "flare/autoclose.h"
-#include "tflareimage.h"
-#include "flare/flareimageutils.h"
+#include "toonz/autoclose.h"
+#include "ttoonzimage.h"
+#include "toonz/toonzimageutils.h"
 #include "tenv.h"
 #include "tools/toolutils.h"
-#include "flare/txshsimplelevel.h"
+#include "toonz/txshsimplelevel.h"
 
-#include "flare/ttileset.h"
-#include "flare/levelproperties.h"
-#include "flare/stage2.h"
+#include "toonz/ttileset.h"
+#include "toonz/levelproperties.h"
+#include "toonz/stage2.h"
 
 #include "tvectorimage.h"
-#include "flare/strokegenerator.h"
+#include "toonz/strokegenerator.h"
 #include "tstroke.h"
 #include "drawutil.h"
 #include "tinbetween.h"
 
-#include "flare/txsheethandle.h"
-#include "flare/tframehandle.h"
-#include "flare/tcolumnhandle.h"
-#include "flare/tpalettehandle.h"
-#include "flare/txshlevelhandle.h"
+#include "toonz/txsheethandle.h"
+#include "toonz/tframehandle.h"
+#include "toonz/tcolumnhandle.h"
+#include "toonz/tpalettehandle.h"
+#include "toonz/txshlevelhandle.h"
 #include "tools/toolhandle.h"
 
 // For Qt translation support
@@ -75,7 +75,7 @@ public:
   //-------------------------------------------------------------------
 
   void redo() const override {
-    TflareImageP image = getImage();
+    TToonzImageP image = getImage();
     if (!image) return;
     TAutocloser ac(image->getRaster(), m_params.m_closingDistance,
                    m_params.m_spotAngle, m_params.m_inkIndex,
@@ -158,7 +158,7 @@ public:
       , m_stroke(0)
       , m_firstStroke(0)
       , m_firstTime(true) {
-    bind(TTool::flareImage);
+    bind(TTool::ToonzImage);
     m_prop.bind(m_closeType);
     m_closeType.addValue(NORMAL_CLOSE);
     m_closeType.addValue(RECT_CLOSE);
@@ -213,7 +213,7 @@ public:
 
   //------------------------------------------------------------
   /*-- AutoClose Returns true if executed, false otherwise --*/
-  bool applyAutoclose(const TflareImageP &ti, const TFrameId fid,
+  bool applyAutoclose(const TToonzImageP &ti, const TFrameId fid,
                       const TRectD &selRect = TRectD(), TStroke *stroke = 0) {
     if (!ti || !ti->getRaster()) return false;
 
@@ -255,7 +255,7 @@ public:
       TRectD orderedRect(
           std::min(selRect.x0, selRect.x1), std::min(selRect.y0, selRect.y1),
           std::max(selRect.x0, selRect.x1), std::max(selRect.y0, selRect.y1));
-      TRect rasterRect = flareImageUtils::convertWorldToRaster(orderedRect, ti);
+      TRect rasterRect = ToonzImageUtils::convertWorldToRaster(orderedRect, ti);
       checkSegments(filteredSegments, convert(rasterRect), delta);
     } else if ((closeType == FREEHAND_CLOSE || closeType == POLYLINE_CLOSE) &&
                stroke) {
@@ -340,7 +340,7 @@ public:
     TUndoManager::manager()->beginBlock();
     for (int i = 0; i < m; ++i) {
       TFrameId fid     = fids[i];
-      TflareImageP img = (TflareImageP)m_level->getFrame(fid, true);
+      TToonzImageP img = (TToonzImageP)m_level->getFrame(fid, true);
       if (!img) continue;
       double t = m > 1 ? (double)i / (double)(m - 1) : 0.5;
       if (m_closeType.getValue() == RECT_CLOSE)
@@ -395,7 +395,7 @@ public:
   //----------------------------------------------------------------------
 
   void leftButtonUp(const TPointD &pos, const TMouseEvent &e) override {
-    TflareImageP ti = TflareImageP(getImage(true));
+    TToonzImageP ti = TToonzImageP(getImage(true));
     if (!ti) return;
 
     /*-- Normalize Rect coordinates --*/
@@ -465,7 +465,7 @@ public:
     double pixelSize2 = getPixelSize() * getPixelSize();
     m_thick           = sqrt(pixelSize2) / 2.0;
     if (m_closeType.getValue() == RECT_CLOSE) {
-      TPixel color = flareCheck::instance()->getChecks() & flareCheck::eBlackBg
+      TPixel color = ToonzCheck::instance()->getChecks() & ToonzCheck::eBlackBg
                          ? TPixel32::White
                          : TPixel32::Black;
       if (m_multi.getValue() && m_firstFrameSelected)
@@ -477,14 +477,14 @@ public:
     if ((m_closeType.getValue() == FREEHAND_CLOSE ||
          m_closeType.getValue() == POLYLINE_CLOSE) &&
         m_multi.getValue() && m_firstStroke) {
-      TPixel color = flareCheck::instance()->getChecks() & flareCheck::eBlackBg
+      TPixel color = ToonzCheck::instance()->getChecks() & ToonzCheck::eBlackBg
                          ? TPixel32::White
                          : TPixel32::Black;
       tglColor(color);
       drawStrokeCenterline(*m_firstStroke, 1);
     }
     if (m_closeType.getValue() == POLYLINE_CLOSE && !m_polyline.empty()) {
-      TPixel color = flareCheck::instance()->getChecks() & flareCheck::eBlackBg
+      TPixel color = ToonzCheck::instance()->getChecks() & ToonzCheck::eBlackBg
                          ? TPixel32::White
                          : TPixel32::Black;
       tglColor(color);
@@ -494,7 +494,7 @@ public:
       tglVertex(m_mousePosition);
       glEnd();
     } else if (m_closeType.getValue() == FREEHAND_CLOSE && !m_track.isEmpty()) {
-      TPixel color = flareCheck::instance()->getChecks() & flareCheck::eBlackBg
+      TPixel color = ToonzCheck::instance()->getChecks() & ToonzCheck::eBlackBg
                          ? TPixel32::White
                          : TPixel32::Black;
       tglColor(color);
@@ -502,13 +502,13 @@ public:
     } else if (m_multi.getValue() && m_firstFrameSelected)
       drawCross(m_firstPoint, 5);
 
-    // if (flareCheck::instance()->getChecks() & flareCheck::eAutoclose) {
+    // if (ToonzCheck::instance()->getChecks() & ToonzCheck::eAutoclose) {
     //   auto fid = getCurrentFid();
     //     auto Id =
     //       getApplication()->getCurrentLevel()->getSimpleLevel()->getImageId(
     //           fid, 0);
     //   if (TAutocloser::hasSegmentCache(Id)) {
-    //     auto ti        = (TflareImageP)m_level->getFrame(fid, false);
+    //     auto ti        = (TToonzImageP)m_level->getFrame(fid, false);
     //     if (!ti) return;
     //     TPointD center = ti->getRaster()->getCenterD();
     //       tglColor(TPixel32::Red);
@@ -542,11 +542,11 @@ public:
       AutocloseIgnoreAutoPaint = (int)(m_ignoreAP.getValue());
     }
 
-    flareCheck::instance()->setAutocloseSettings(
+    ToonzCheck::instance()->setAutocloseSettings(
         AutocloseDistance, AutocloseAngle, AutocloseOpacity,
         AutocloseIgnoreAutoPaint);
 
-    if (flareCheck::instance()->getChecks() & flareCheck::eAutoclose)
+    if (ToonzCheck::instance()->getChecks() & ToonzCheck::eAutoclose)
       notifyImageChanged();
 
     return true;
@@ -597,7 +597,7 @@ public:
   //----------------------------------------------------------------------
 
   void leftButtonDown(const TPointD &pos, const TMouseEvent &) override {
-    TflareImageP ti = TflareImageP(getImage(true));
+    TToonzImageP ti = TToonzImageP(getImage(true));
     if (!ti) return;
 
     if (m_closeType.getValue() == RECT_CLOSE) {
@@ -651,7 +651,7 @@ public:
 
   void leftButtonDoubleClick(const TPointD &pos,
                              const TMouseEvent &e) override {
-    TflareImageP ti = TflareImageP(getImage(true));
+    TToonzImageP ti = TToonzImageP(getImage(true));
     if (m_closeType.getValue() == POLYLINE_CLOSE && ti) {
       closePolyline(pos);
 
@@ -706,7 +706,7 @@ public:
       m_opacity.setValue(AutocloseOpacity);
       m_multi.setValue(AutocloseRange ? 1 : 0);
       m_ignoreAP.setValue(AutocloseIgnoreAutoPaint ? 1 : 0);
-      flareCheck::instance()->setAutocloseSettings(
+      ToonzCheck::instance()->setAutocloseSettings(
           AutocloseDistance, AutocloseAngle, AutocloseOpacity,
           AutocloseIgnoreAutoPaint);
       m_firstTime = false;
@@ -732,7 +732,7 @@ public:
     else if (m_closeType.getValue() == RECT_CLOSE)
       ret = ret | ToolCursor::Ex_Rectangle;
 
-    if (flareCheck::instance()->getChecks() & flareCheck::eBlackBg)
+    if (ToonzCheck::instance()->getChecks() & ToonzCheck::eBlackBg)
       ret = ret | ToolCursor::Ex_Negate;
 
     return ret;
@@ -886,4 +886,3 @@ public:
 
   //-------------------------------------------------------------------
 } rasterTapeTool;
-

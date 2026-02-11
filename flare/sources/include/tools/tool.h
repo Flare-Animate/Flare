@@ -4,10 +4,10 @@
 #define TOOL_INCLUDED
 
 // TnzLib includes
-#include "flare/tstageobjectid.h"
-#include "flare/txsheet.h"
-#include "flare/imagepainter.h"
-#include "flare/tapplication.h"
+#include "toonz/tstageobjectid.h"
+#include "toonz/txsheet.h"
+#include "toonz/imagepainter.h"
+#include "toonz/tapplication.h"
 #include "tools/cursors.h"
 
 // TnzCore includes
@@ -19,8 +19,8 @@
 #include <QString>
 #include <QPoint>
 
-#include "flareqt/glwidget_for_highdpi.h"
-#include "flareqt/imageutils.h"
+#include "toonzqt/glwidget_for_highdpi.h"
+#include "toonzqt/imageutils.h"
 
 #undef DVAPI
 #undef DVVAR
@@ -138,20 +138,20 @@ public:
 //*****************************************************************************************
 
 /*!
-  \brief    TTool is the abstract base class defining the interface for flare
+  \brief    TTool is the abstract base class defining the interface for Toonz
 tools - the ones
             accessible from the Toolbar panel that users can activate to edit
 the scene contents
             interactively.
 
-  \details  flare implements a number of interactive tools, like the <I>Brush
+  \details  Toonz implements a number of interactive tools, like the <I>Brush
 Tool</I>, <I>Fill
             Tool</I>, <I>Zoom Tool</I> and others. They all inherit from this
 class, which provides
             the necessary interface and framework to implement a generic
-interactive tool in flare.
+interactive tool in Toonz.
 
-            A flare Tool should re-implement the following key functionalities:
+            A Toonz Tool should re-implement the following key functionalities:
  <UL>
               <LI> The abstract getToolType() method, which classifies the tool,
 and
@@ -165,7 +165,7 @@ define and track
 right-click menus</LI>
  </UL>
               \par Tool classification
-            flare enforces a strict classification of its tools that is used to
+            Toonz enforces a strict classification of its tools that is used to
 enable or disable them
             in the appropriate contexts:
 <UL>
@@ -246,11 +246,11 @@ required parameters.
  \n\n
             Every TProperty instance in group 0 is automatically added to the
 Tool Options panel
-            in flare's GUI. Further groups or special toolbar options must be
+            in Toonz's GUI. Further groups or special toolbar options must be
 currently hard-coded
             elsewhere. Tool Options panel construction will probably be
 redirected to the tool in
-            future flare versions.
+            future Toonz versions.
 
               \par Context Menu Items
             The addContextMenuItems() is used to insert context menu actions \a
@@ -281,7 +281,7 @@ public:
   enum ToolTargetType  //!  Object types the tool can operate on.
   { NoTarget    = 0x0,
     VectorImage = 0x1,   //!< Will work on vector images
-    flareImage  = 0x2,   //!< Will work on colormap (tlv) images
+    ToonzImage  = 0x2,   //!< Will work on colormap (tlv) images
     RasterImage = 0x4,   //!< Will work on fullcolor images
     MeshImage   = 0x8,   //!< Will work on mesh images
     Splines     = 0x10,  //!< Will work on motion paths
@@ -293,7 +293,7 @@ public:
 
     MetaImage   = 0x100, //!< Will work on meta images
 
-    CommonImages = VectorImage | flareImage | RasterImage,
+    CommonImages = VectorImage | ToonzImage | RasterImage,
     AllImages    = CommonImages | MeshImage | MetaImage,
     Vectors      = VectorImage | Splines,
 
@@ -347,7 +347,7 @@ public:
 
   /*! \details      This function is necessary since tools are created before
 the main
-              application (TAB or flare) starts, and hence tr() calls have no
+              application (TAB or Toonz) starts, and hence tr() calls have no
 effect
               (the translation is not yet installed - to install one you need at
 least
@@ -760,4 +760,3 @@ public:
 };
 
 #endif
-

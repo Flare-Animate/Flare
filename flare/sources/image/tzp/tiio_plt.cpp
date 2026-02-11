@@ -3,7 +3,7 @@
 #include "tiio_plt.h"
 // #include "tiio.h"
 #include "trastercm.h"
-#include "flaretags.h"
+#include "toonztags.h"
 
 #include "tiffio.h"
 
@@ -175,7 +175,7 @@ void PltReader::open(FILE *file) {
   assert(h == 1);
   m_ly = m_info.m_ly = 2;  // per l'infoRow
 
-  if (TIFFGetField(m_tiff, TIFFTAG_flareWINDOW, &risCount, &risArray)) {
+  if (TIFFGetField(m_tiff, TIFFTAG_TOONZWINDOW, &risCount, &risArray)) {
     m_info.m_x0 = m_x = risArray[0];
     m_info.m_y0 = m_y = risArray[1];
     m_info.m_lx       = risArray[2];
@@ -205,7 +205,7 @@ void PltReader::open(FILE *file) {
   uint32 paletteCount;
   USHORT *palette;
 
-  TIFFGetField(m_tiff, TIFFTAG_flarePALETTE, &paletteCount, &palette);
+  TIFFGetField(m_tiff, TIFFTAG_TOONZPALETTE, &paletteCount, &palette);
   assert(paletteCount);
 
   m_pltType = palette[0];
@@ -219,7 +219,7 @@ void PltReader::open(FILE *file) {
   }
 
   std::string colorNames;
-  if (TIFFGetField(m_tiff, TIFFTAG_flareCOLORNAMES, &count, &data))
+  if (TIFFGetField(m_tiff, TIFFTAG_TOONZCOLORNAMES, &count, &data))
     colorNames = data;
 
   TREE *names = cdb_decode_all(data, Tcm_24_default_info);
@@ -241,7 +241,7 @@ void PltReader::open(FILE *file) {
     if (sisterIndex == -1 || i < m_nColor) m_infoRow[i].r = 255;
     if (i < m_nColor) m_infoRow[i].g = 255;
 
-    while (isdigit(item->name[0]))  // in flare colors cannot begin with digits
+    while (isdigit(item->name[0]))  // in toonz colors cannot begin with digits
       item->name++;
 
     std::map<int, std::pair<std::string, std::string>>::iterator it;
@@ -272,7 +272,7 @@ void PltReader::open(FILE *file) {
     }
   }
 
-  if (TIFFGetField(m_tiff, TIFFTAG_flareHISTORY, &count, &data))
+  if (TIFFGetField(m_tiff, TIFFTAG_TOONZHISTORY, &count, &data))
     m_history = data;
 
   uint16 photometric, planarconfig;
@@ -358,4 +358,3 @@ Tiio::Writer *Tiio::makePltWriter() {
 }
 
 //------------------------------------------------------------
-

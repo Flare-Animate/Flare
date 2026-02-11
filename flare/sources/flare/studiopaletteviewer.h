@@ -3,7 +3,7 @@
 #ifndef STUDIOPALETTEVIEWER_H
 #define STUDIOPALETTEVIEWER_H
 
-#include "flare/studiopalette.h"
+#include "toonz/studiopalette.h"
 
 #include <QTreeWidget>
 #include <QFrame>
@@ -119,4 +119,3 @@ public:
 };
 
 #endif  // STUDIOPALETTEVIEWER_H
-

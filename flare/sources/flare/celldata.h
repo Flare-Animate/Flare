@@ -3,9 +3,9 @@
 #ifndef CELLDATA_INCLUDED
 #define CELLDATA_INCLUDED
 
-#include "flareqt/dvmimedata.h"
+#include "toonzqt/dvmimedata.h"
 
-#include "flare/txshcell.h"
+#include "toonz/txshcell.h"
 #include "tsound.h"
 
 //=============================================================================
@@ -64,4 +64,3 @@ protected:
 };
 
 #endif
-

@@ -11,9 +11,9 @@
 #include "tsound.h"
 
 // TnzLib includes
-#include "flare/txshcolumn.h"
-#include "flare/txshlevel.h"
-#include "flare/txsheetcolumnchange.h"
+#include "toonz/txshcolumn.h"
+#include "toonz/txshlevel.h"
+#include "toonz/txsheetcolumnchange.h"
 
 #include "cellposition.h"
 
@@ -22,7 +22,7 @@
 
 #undef DVAPI
 #undef DVVAR
-#ifdef flareLIB_EXPORTS
+#ifdef TOONZLIB_EXPORTS
 #define DVAPI DV_EXPORT_API
 #define DVVAR DV_EXPORT_VAR
 #else
@@ -46,7 +46,7 @@ class FxDag;
 class TControlPointObserver;
 class TOfflineGL;
 class ColumnFan;
-class flareScene;
+class ToonzScene;
 class TXshSoundColumn;
 class TXshNoteSet;
 class TFrameId;
@@ -73,7 +73,7 @@ xsheet elements
         are: a \b column \b set \b TColumnSetT, a \b pegbar \b tree \b
 TStageObjectTree, a \b fx
         \b dag \b FxDag, a \b sound \b track \b TSoundTrack and a \b scene \b
-flareScene.
+ToonzScene.
 
                 For purposes of this class, a Column is a graphics layer, and a
 row is a frame number.
@@ -125,7 +125,7 @@ insertColumn(), if necessary,
 using makeSound(),
         of all \b TXshSoundColumn present in xsheet.
 
-        It's possible take and know the \b scene \b flareScene to which the
+        It's possible take and know the \b scene \b ToonzScene to which the
 xsheet refers using
         getScene() and setScene().
 */
@@ -353,7 +353,7 @@ public:
      related to pegbar
           linked to camera.
           \note Used only in tab code, "the Tab" has just one camera while
-     "flare 5.2 Harlequin"
+     "Toonz 5.2 Harlequin"
           manages several camera.
   */
   TAffine getCameraAff(int frame) const;
@@ -532,17 +532,17 @@ in TXsheetImp.
           TXsheet maintains one column fan per each orientation.
   */
   ColumnFan *getColumnFan(const Orientation *o) const;
-  /*! Returns a pointer to \b flareScene contained in \b TXsheetImp, that is the
+  /*! Returns a pointer to \b ToonzScene contained in \b TXsheetImp, that is the
      scene to
           which the xsheet refers.
           \sa setScene()
   */
-  flareScene *getScene() const;
-  /*! Set scene \b flareScene contained in \b TXsheetImp to \b scene, change the
+  ToonzScene *getScene() const;
+  /*! Set scene \b ToonzScene contained in \b TXsheetImp to \b scene, change the
           scene to which the xsheet refers.
           \sa setScene()
   */
-  void setScene(flareScene *scene);
+  void setScene(ToonzScene *scene);
 
   TXshNoteSet *getNotes() const { return m_notes; }
 
@@ -609,4 +609,3 @@ template class DVAPI TSmartPointerT<TXsheet>;
 typedef TSmartPointerT<TXsheet> TXsheetP;
 
 #endif  // XSHEET_INCLUDED
-

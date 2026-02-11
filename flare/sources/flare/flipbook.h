@@ -3,7 +3,7 @@
 #ifndef FLIPBOOK_H
 #define FLIPBOOK_H
 
-#include "flareqt/flipconsole.h"
+#include "toonzqt/flipconsole.h"
 #include "imageviewer.h"
 
 #include "tlevel_io.h"
@@ -12,11 +12,11 @@
 #include "filebrowserpopup.h"
 
 #include "tfx.h"
-#include "flare/txsheet.h"
+#include "toonz/txsheet.h"
 
 #include <QTimer>
 
-#include "flareqt/flipconsoleowner.h"
+#include "toonzqt/flipconsoleowner.h"
 
 class QPoint;
 class TPalette;
@@ -202,7 +202,7 @@ public:
   ~FlipBook();
   void setLevel(const TFilePath &path, TPalette *palette = 0, int from = -1,
                 int to = -1, int step = 1, int shrink = 1, TSoundTrack *snd = 0,
-                bool append = false, bool isflareOutput = false);
+                bool append = false, bool isToonzOutput = false);
   void setLevel(TFx *previewedFx, TXsheet *xsh, TLevel *level,
                 TPalette *palette = 0, int from = -1, int to = -1, int step = 1,
                 int currentFrame = 1, TSoundTrack *snd = 0);
@@ -324,7 +324,6 @@ public slots:
 FlipBook *viewFile(const TFilePath &fp, int from = -1, int to = -1,
                    int step = -1, int shrink = -1, TSoundTrack *snd = 0,
                    FlipBook *flipbook = 0, bool append = false,
-                   bool isflareOutput = false);
+                   bool isToonzOutput = false);
 
 #endif  // FLIPBOOK_H
-

@@ -1,6 +1,6 @@
 
 
-#include "flare/rasterbrush.h"
+#include "toonz/rasterbrush.h"
 
 #include <vector>
 #include <tcurves.h>
@@ -491,4 +491,3 @@ void rasterBrush(const TRasterCM32P &rasBuffer,
                      Disk(points[i + 2], doAntialias), styleId, doAntialias);
   }
 }
-

@@ -54,7 +54,7 @@ namespace {
 
 //--------------------------------------------------------------------
 TFilePath getGlobalRoot() {
-  TVER::flareVersion tver;
+  TVER::ToonzVersion tver;
   TFilePath rootDir;
 
 #ifdef _WIN32
@@ -98,7 +98,7 @@ TFilePath getGlobalRoot() {
 //--------------------------------------------------------------------
 
 TFilePath getLocalRoot() {
-  TVER::flareVersion tver;
+  TVER::ToonzVersion tver;
   TFilePath lroot;
 
 #ifdef _WIN32
@@ -107,7 +107,7 @@ TFilePath getLocalRoot() {
       tver.getAppVersionString() + "\\FARMROOT");
   TFilePath name(regpath);
   lroot = TFilePath(TSystem::getSystemValue(name).toStdString()) +
-          TFilePath("flarefarm");
+          TFilePath("toonzfarm");
 #else
 #ifdef MACOSX
   // If MACOSX, change to MACOSX path
@@ -194,7 +194,7 @@ inline bool isBlank(char c) { return c == ' ' || c == '\t' || c == '\n'; }
 class FarmServerService final : public TService {
 public:
   FarmServerService(std::ostream &os)
-      : TService("flareFarm Server", "flareFarm Server")
+      : TService("ToonzFarm Server", "ToonzFarm Server")
       , m_os(os)
       , m_userLog(0) {}
 
@@ -378,7 +378,7 @@ static QString getExeName(bool isComposer) {
 #ifdef _WIN32
   return name + ".exe ";
 #elif defined(MACOSX)
-  TVER::flareVersion tver;
+  TVER::ToonzVersion tver;
   return "\"./" + QString::fromStdString(tver.getAppName()) +
          ".app/Contents/MacOS/" + name + "\" ";
 #else
@@ -487,7 +487,7 @@ void Task::run() {
   int errorCode = process.error();
   bool ret      = (errorCode != QProcess::UnknownError) || exitCode;
 
-  // int ret=QProcess::execute(/*"C:\\depot\\vincenzo\\flare\\main\\x86_debug\\"
+  // int ret=QProcess::execute(/*"C:\\depot\\vincenzo\\toonz\\main\\x86_debug\\"
   // +*/cmdline);
 
   if (ret != 0) {
@@ -773,7 +773,7 @@ static bool loadServerData(const QString &hostname, QString &addr, int &port) {
 void FarmServerService::onStart(int argc, char *argv[]) {
   // Initialize thread components
   TThread::init();
-  TVER::flareVersion tver;
+  TVER::ToonzVersion tver;
 
 #ifdef _WIN32
 //  DebugBreak();
@@ -936,7 +936,7 @@ void FarmServerService::onStart(int argc, char *argv[]) {
 #endif
 
   if (rc != 0) {
-    std::string msg("An error occurred starting the flareFarm Server");
+    std::string msg("An error occurred starting the ToonzFarm Server");
     msg += "\n";
 
 #ifdef _WIN32
@@ -1103,7 +1103,7 @@ int main(int argc, char **argv) {
 
   if (argc > 1) {
     std::string serviceName(
-        "flareFarmServer");  // Must be the same of the installer's
+        "ToonzFarmServer");  // Must be the same of the installer's
     std::string serviceDisplayName = serviceName;
 
     TCli::SimpleQualifier consoleQualifier("-console", "Run as console app");
@@ -1149,4 +1149,3 @@ int main(int argc, char **argv) {
 
   return 0;
 }
-

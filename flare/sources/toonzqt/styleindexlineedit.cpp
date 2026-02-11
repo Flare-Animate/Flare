@@ -1,8 +1,8 @@
 
 
-#include "flareqt/styleindexlineedit.h"
-#include "flareqt/gutil.h"
-#include "flare/tpalettehandle.h"
+#include "toonzqt/styleindexlineedit.h"
+#include "toonzqt/gutil.h"
+#include "toonz/tpalettehandle.h"
 #include "tcolorstyles.h"
 #include "tpalette.h"
 
@@ -51,4 +51,3 @@ void StyleIndexLineEdit::paintEvent(QPaintEvent *pe) {
     p.drawRect(chipRect);
   }
 }
-

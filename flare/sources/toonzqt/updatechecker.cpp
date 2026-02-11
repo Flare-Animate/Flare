@@ -1,4 +1,4 @@
-#include "./flareqt/updatechecker.h"
+#include "./toonzqt/updatechecker.h"
 #include <QNetworkReply>
 
 UpdateChecker::UpdateChecker(QUrl const& updateUrl)
@@ -34,4 +34,3 @@ void UpdateChecker::httpRequestFinished(QNetworkReply* pReply) {
   m_latestVersion = candidateVersion;
   emit done(false);
 }
-

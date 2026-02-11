@@ -6,7 +6,7 @@
 #include <memory>
 
 // TnzQt includes
-#include "flareqt/selection.h"
+#include "toonzqt/selection.h"
 
 // TnzCore includes
 #include "tcommon.h"
@@ -109,4 +109,3 @@ N.B. after call tool->notifyImageChanged() set m_updateSelectionBBox to false.*/
 };
 
 #endif  // STROKE_SELECTION_H
-

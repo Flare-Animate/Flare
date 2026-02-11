@@ -4,7 +4,7 @@
 #define LOADFOLDERPOPUP_H
 
 // TnzQt includes
-#include "flareqt/dvdialog.h"
+#include "toonzqt/dvdialog.h"
 
 //==============================================================
 
@@ -46,4 +46,3 @@ private slots:
 };
 
 #endif  // LOADFOLDERPOPUP_H
-

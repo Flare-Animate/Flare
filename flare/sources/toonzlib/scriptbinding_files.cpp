@@ -1,6 +1,6 @@
 
 
-#include "flare/scriptbinding_files.h"
+#include "toonz/scriptbinding_files.h"
 #include <QScriptEngine>
 #include <QFile>
 #include <QFileInfo>
@@ -29,26 +29,26 @@ QScriptValue FilePath::ctor(QScriptContext *context, QScriptEngine *engine) {
 QScriptValue FilePath::toString() const { return tr("\"%1\"").arg(m_filePath); }
 
 QString FilePath::getExtension() const {
-  return QString::fromStdString(getflareFilePath().getType());
+  return QString::fromStdString(getToonzFilePath().getType());
 }
 
 QScriptValue FilePath::setExtension(const QString &extension) {
-  TFilePath fp = getflareFilePath().withType(extension.toStdString());
+  TFilePath fp = getToonzFilePath().withType(extension.toStdString());
   m_filePath   = QString::fromStdWString(fp.getWideString());
   return context()->thisObject();
 }
 
 QString FilePath::getName() const {
-  return QString::fromStdString(getflareFilePath().getName());
+  return QString::fromStdString(getToonzFilePath().getName());
 }
 
 void FilePath::setName(const QString &name) {
-  TFilePath fp = getflareFilePath().withName(name.toStdString());
+  TFilePath fp = getToonzFilePath().withName(name.toStdString());
   m_filePath   = QString::fromStdWString(fp.getWideString());
 }
 
 QScriptValue FilePath::getParentDirectory() const {
-  FilePath *result = new FilePath(getflareFilePath().getParentDir());
+  FilePath *result = new FilePath(getToonzFilePath().getParentDir());
   return create(engine(), result);
 }
 
@@ -57,17 +57,17 @@ void FilePath::setParentDirectory(const QScriptValue &folder) {
   QScriptValue err = checkFilePath(context(), folder, fp);
   if (!err.isError()) {
     m_filePath = QString::fromStdWString(
-        getflareFilePath().withParentDir(fp).getWideString());
+        getToonzFilePath().withParentDir(fp).getWideString());
   }
 }
 
 QScriptValue FilePath::withExtension(const QString &extension) {
-  TFilePath fp = getflareFilePath().withType(extension.toStdString());
+  TFilePath fp = getToonzFilePath().withType(extension.toStdString());
   return create(engine(), new FilePath(fp));
 }
 
 QScriptValue FilePath::withName(const QString &extension) {
-  TFilePath fp = getflareFilePath().withName(extension.toStdString());
+  TFilePath fp = getToonzFilePath().withName(extension.toStdString());
   return create(engine(), new FilePath(fp));
 }
 
@@ -81,7 +81,7 @@ QScriptValue FilePath::withParentDirectory(
   else
     return create(
         engine(),
-        new FilePath(getflareFilePath().withParentDir(parentDirectory)));
+        new FilePath(getToonzFilePath().withParentDir(parentDirectory)));
 }
 
 bool FilePath::exists() const { return QFile(m_filePath).exists(); }
@@ -90,7 +90,7 @@ QDateTime FilePath::lastModified() const {
   return QFileInfo(m_filePath).lastModified();
 }
 
-TFilePath FilePath::getflareFilePath() const {
+TFilePath FilePath::getToonzFilePath() const {
   return TFilePath(m_filePath.toStdWString());
 }
 
@@ -105,7 +105,7 @@ QScriptValue FilePath::concat(const QScriptValue &value) const {
   if (fp.isAbsolute())
     return context()->throwError(
         tr("can't concatenate an absolute path : %1").arg(value.toString()));
-  fp = getflareFilePath() + fp;
+  fp = getToonzFilePath() + fp;
   return create(engine(), new FilePath(fp));
 }
 
@@ -116,7 +116,7 @@ QScriptValue FilePath::files() const {
   }
   TFilePathSet fpset;
   try {
-    TSystem::readDirectory(fpset, getflareFilePath());
+    TSystem::readDirectory(fpset, getToonzFilePath());
     QScriptValue result = engine()->newArray();
     quint32 index       = 0;
     for (TFilePathSet::iterator it = fpset.begin(); it != fpset.end(); ++it) {
@@ -134,7 +134,7 @@ QScriptValue checkFilePath(QScriptContext *context, const QScriptValue &value,
                            TFilePath &fp) {
   FilePath *filePath = qscriptvalue_cast<FilePath *>(value);
   if (filePath) {
-    fp = filePath->getflareFilePath();
+    fp = filePath->getToonzFilePath();
   } else if (value.isString()) {
     fp = TFilePath(value.toString().toStdWString());
   } else {
@@ -146,4 +146,3 @@ QScriptValue checkFilePath(QScriptContext *context, const QScriptValue &value,
 }
 
 }  // namespace TScriptBinding
-

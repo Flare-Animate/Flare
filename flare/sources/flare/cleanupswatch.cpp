@@ -2,7 +2,7 @@
 
 #include "cleanupswatch.h"
 #include "trop.h"
-#include "flareqt/gutil.h"
+#include "toonzqt/gutil.h"
 #include <QHBoxLayout>
 #include <QBrush>
 #include <QPainter>
@@ -11,8 +11,8 @@
 #include <QPushButton>
 #include <QActionGroup>
 #include <QToolBar>
-#include "flare/tcleanupper.h"
-#include "flareqt/dvdialog.h"
+#include "toonz/tcleanupper.h"
+#include "toonzqt/dvdialog.h"
 CleanupSwatch::CleanupSwatch(QWidget *parent, int lx, int ly)
     : QWidget(parent)
     , m_lx(lx)
@@ -344,4 +344,3 @@ void CleanupSwatch::setRaster(TRasterP rasLeft, const TAffine &aff,
 //--------------------------------------------------------------------
 
 void CleanupSwatch::updateCleanupped() { m_rightSwatch->updateRaster(); }
-

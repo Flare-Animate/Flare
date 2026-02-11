@@ -3,7 +3,7 @@
 #include "tundo.h"
 #include "trandom.h"
 #include "tvectorimage.h"
-#include "tflareimage.h"
+#include "ttoonzimage.h"
 #include "trasterimage.h"
 #include "tpalette.h"
 #include "tsystem.h"
@@ -15,39 +15,39 @@
 #include "tunit.h"
 
 // TnzLib includes
-#include "flare/txsheethandle.h"
-#include "flare/tscenehandle.h"
-#include "flare/tcolumnhandle.h"
-#include "flare/tobjecthandle.h"
-#include "flare/tframehandle.h"
-#include "flare/txshlevelhandle.h"
-#include "flare/txsheet.h"
-#include "flare/txshcell.h"
-#include "flare/txshcolumn.h"
-#include "flare/flarescene.h"
-#include "flare/levelset.h"
-#include "flare/txshsimplelevel.h"
-#include "flare/txshleveltypes.h"
-#include "flare/txshsoundtextcolumn.h"
-#include "flare/txshsoundtextlevel.h"
-#include "flare/tstageobjecttree.h"
-#include "flare/tstageobjectkeyframe.h"
-#include "flare/stageobjectutil.h"
-#include "flare/flarefolders.h"
-#include "flare/txshchildlevel.h"
-#include "flare/childstack.h"
-#include "flare/tproject.h"
-#include "flare/fxcommand.h"
-#include "flare/tfxhandle.h"
-#include "flare/scenefx.h"
-#include "flare/preferences.h"
-#include "flare/navigationtags.h"
+#include "toonz/txsheethandle.h"
+#include "toonz/tscenehandle.h"
+#include "toonz/tcolumnhandle.h"
+#include "toonz/tobjecthandle.h"
+#include "toonz/tframehandle.h"
+#include "toonz/txshlevelhandle.h"
+#include "toonz/txsheet.h"
+#include "toonz/txshcell.h"
+#include "toonz/txshcolumn.h"
+#include "toonz/toonzscene.h"
+#include "toonz/levelset.h"
+#include "toonz/txshsimplelevel.h"
+#include "toonz/txshleveltypes.h"
+#include "toonz/txshsoundtextcolumn.h"
+#include "toonz/txshsoundtextlevel.h"
+#include "toonz/tstageobjecttree.h"
+#include "toonz/tstageobjectkeyframe.h"
+#include "toonz/stageobjectutil.h"
+#include "toonz/toonzfolders.h"
+#include "toonz/txshchildlevel.h"
+#include "toonz/childstack.h"
+#include "toonz/tproject.h"
+#include "toonz/fxcommand.h"
+#include "toonz/tfxhandle.h"
+#include "toonz/scenefx.h"
+#include "toonz/preferences.h"
+#include "toonz/navigationtags.h"
 
 // TnzQt includes
-#include "flareqt/tselectionhandle.h"
-#include "flareqt/gutil.h"
-#include "flareqt/menubarcommand.h"
-#include "flareqt/stageobjectsdata.h"
+#include "toonzqt/tselectionhandle.h"
+#include "toonzqt/gutil.h"
+#include "toonzqt/menubarcommand.h"
+#include "toonzqt/stageobjectsdata.h"
 #include "historytypes.h"
 #include "xsheetviewer.h"
 
@@ -1099,7 +1099,7 @@ public:
     int row = app->getCurrentFrame()->getFrame();
 
     selection->selectNone();
-    flareScene *scene = app->getCurrentScene()->getScene();
+    ToonzScene *scene = app->getCurrentScene()->getScene();
     TXsheet *xsh      = scene->getXsheet();
     int col;
     for (col = -1; col < xsh->getColumnCount(); col++) {
@@ -1124,7 +1124,7 @@ public:
 
   void execute() override {
     TApp *app                     = TApp::instance();
-    flareScene *scene             = app->getCurrentScene()->getScene();
+    ToonzScene *scene             = app->getCurrentScene()->getScene();
     TXsheet *xsh                  = scene->getXsheet();
     TKeyframeSelection *selection = dynamic_cast<TKeyframeSelection *>(
         app->getCurrentSelection()->getSelection());
@@ -1161,7 +1161,7 @@ public:
     if (!selection) return;
 
     selection->selectNone();
-    flareScene *scene = app->getCurrentScene()->getScene();
+    ToonzScene *scene = app->getCurrentScene()->getScene();
     TXsheet *xsh      = scene->getXsheet();
     int col;
     for (col = -1; col < xsh->getColumnCount(); col++) {
@@ -1199,7 +1199,7 @@ public:
     int currentRow = app->getCurrentFrame()->getFrame();
 
     selection->selectNone();
-    flareScene *scene = app->getCurrentScene()->getScene();
+    ToonzScene *scene = app->getCurrentScene()->getScene();
     TXsheet *xsh      = scene->getXsheet();
     for (int col = -1; col < xsh->getColumnCount(); col++) {
       TStageObjectId objectId;
@@ -1237,7 +1237,7 @@ public:
     int currentRow = app->getCurrentFrame()->getFrame();
 
     selection->selectNone();
-    flareScene *scene = app->getCurrentScene()->getScene();
+    ToonzScene *scene = app->getCurrentScene()->getScene();
     TXsheet *xsh      = scene->getXsheet();
     int col;
     for (col = -1; col < xsh->getColumnCount(); col++) {
@@ -1277,7 +1277,7 @@ public:
     int currentColumn = app->getCurrentColumn()->getColumnIndex();
 
     selection->selectNone();
-    flareScene *scene = app->getCurrentScene()->getScene();
+    ToonzScene *scene = app->getCurrentScene()->getScene();
     TXsheet *xsh      = scene->getXsheet();
 
     TStageObjectId objectId =
@@ -1315,7 +1315,7 @@ public:
     int currentColumn = app->getCurrentColumn()->getColumnIndex();
 
     selection->selectNone();
-    flareScene *scene = app->getCurrentScene()->getScene();
+    ToonzScene *scene = app->getCurrentScene()->getScene();
     TXsheet *xsh      = scene->getXsheet();
     TStageObjectId objectId =
         TApp::instance()->getCurrentObject()->getObjectId();
@@ -1352,7 +1352,7 @@ public:
     int currentColumn = app->getCurrentColumn()->getColumnIndex();
 
     selection->selectNone();
-    flareScene *scene = app->getCurrentScene()->getScene();
+    ToonzScene *scene = app->getCurrentScene()->getScene();
     TXsheet *xsh      = scene->getXsheet();
     int col;
     for (col = -1; col <= currentColumn; col++) {
@@ -1392,7 +1392,7 @@ public:
     int currentRow    = app->getCurrentFrame()->getFrame();
     int currentColumn = app->getCurrentColumn()->getColumnIndex();
 
-    flareScene *scene = app->getCurrentScene()->getScene();
+    ToonzScene *scene = app->getCurrentScene()->getScene();
     TXsheet *xsh      = scene->getXsheet();
 
     TStageObjectId objectId =
@@ -1437,7 +1437,7 @@ public:
         app->getCurrentSelection()->getSelection());
     if (!selection) return;
 
-    flareScene *scene = app->getCurrentScene()->getScene();
+    ToonzScene *scene = app->getCurrentScene()->getScene();
     TXsheet *xsh      = scene->getXsheet();
     int col;
     for (col = -1; col < xsh->getColumnCount(); col++) {
@@ -1785,7 +1785,7 @@ std::vector<std::pair<std::string, string>> infos;
 void readParameters() {
   infos.clear();
   const std::string name("xsheet_html.xml");
-  TFilePath fp = flareFolder::getModuleFile(name);
+  TFilePath fp = ToonzFolder::getModuleFile(name);
   if (!TFileStatus(fp).doesExist()) return;
   try {
     TIStream is(fp);
@@ -1814,7 +1814,7 @@ void copyCss(TFilePath fp) {
   const std::string name("xsheet.css");
   TFilePath cssFp = fp.getParentDir() + name;
   if (TFileStatus(cssFp).doesExist()) return;
-  TFilePath src = flareFolder::getModuleFile(name);
+  TFilePath src = ToonzFolder::getModuleFile(name);
   if (TFileStatus(src).doesExist()) {
     try {
       TSystem::copyFile(cssFp, src);
@@ -1824,7 +1824,7 @@ void copyCss(TFilePath fp) {
 }
 
 void getAllChildLevels(std::vector<TXshChildLevel *> &levels,
-                       flareScene *scene) {
+                       ToonzScene *scene) {
   std::set<TXsheet *> visited, toVisit;
   TXsheet *xsh = scene->getChildStack()->getTopXsheet();
   visited.insert(xsh);
@@ -1871,14 +1871,14 @@ class XsheetWriter {
   std::vector<NumericColumn> m_numericColumns;
 
 public:
-  XsheetWriter(flareScene *scene);
+  XsheetWriter(ToonzScene *scene);
 
   void setXsheet(TXsheet *xsh);
   void getSubXsheets(std::vector<TXsheet *> &xsheets);
   int getChildLevelIndex(TXshChildLevel *);
 
   void buildNumericColumns();
-  void buildChildTable(flareScene *scene);
+  void buildChildTable(ToonzScene *scene);
 
   void tableCaption(ostream &os);
 
@@ -1890,7 +1890,7 @@ public:
   void write(ostream &os);
 };
 
-XsheetWriter::XsheetWriter(flareScene *scene) : m_xsh(0) {
+XsheetWriter::XsheetWriter(ToonzScene *scene) : m_xsh(0) {
   buildChildTable(scene);
   setXsheet(scene->getXsheet());
 }
@@ -1926,7 +1926,7 @@ void XsheetWriter::buildNumericColumns() {
   }
 }
 
-void XsheetWriter::buildChildTable(flareScene *scene) {
+void XsheetWriter::buildChildTable(ToonzScene *scene) {
   std::vector<TXshChildLevel *> levels;
   getAllChildLevels(levels, scene);
   int i, k = 0;
@@ -2057,7 +2057,7 @@ void XsheetWriter::write(ostream &os) {
 
 static void makeHtml(TFilePath fp) {
   TApp *app         = TApp::instance();
-  flareScene *scene = app->getCurrentScene()->getScene();
+  ToonzScene *scene = app->getCurrentScene()->getScene();
 
   std::string sceneName   = scene->getScenePath().getName();
   std::string projectName = ::to_string(scene->getProject()->getName());
@@ -2071,7 +2071,7 @@ static void makeHtml(TFilePath fp) {
   os << "<meta http-equiv=\"content-type\" content=\"text/html;charset=utf-8\">"
      << endl;
   os << "<meta http-equiv=\"Content-Style-Type\" content=\"text/css\">" << endl;
-  os << "<meta name=\"Generator\" content=\"flare 5.2\">" << endl;
+  os << "<meta name=\"Generator\" content=\"Toonz 5.2\">" << endl;
   os << "<link rel=\"stylesheet\" type=\"text/css\" href=\"xsheet.css\">"
      << endl;
   os << "</head><body>" << endl;
@@ -2126,7 +2126,7 @@ public:
 } printXsheetCommand;
 
 void PrintXsheetCommand::execute() {
-  flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
+  ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
   TFilePath fp      = scene->getScenePath().withType("html");
   readParameters();
   makeHtml(fp);
@@ -2419,4 +2419,3 @@ public:
     TApp::instance()->getCurrentScene()->setDirtyFlag(true);
   }
 } incrementInstancesCommand;
-

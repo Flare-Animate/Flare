@@ -7,7 +7,7 @@
 #include "tcommon.h"
 #include "tundo.h"
 #include "tvectorimage.h"
-#include "tflareimage.h"
+#include "ttoonzimage.h"
 #include "trasterimage.h"
 #include "tregion.h"
 #include "tcurves.h"
@@ -16,7 +16,7 @@
 #include "tpalette.h"
 
 // TnzLib includes
-#include "flare/txshsimplelevel.h"
+#include "toonz/txshsimplelevel.h"
 
 // TnzTools includes
 #include "tools/tool.h"
@@ -201,7 +201,7 @@ class DVAPI TRasterUndo : public TToolUndo {
 protected:
   TTileSetCM32 *m_tiles;
   bool m_updateSaveBox;
-  TflareImageP getImage() const;
+  TToonzImageP getImage() const;
 
 public:
   TRasterUndo(TTileSetCM32 *tiles, TXshSimpleLevel *level,
@@ -529,4 +529,3 @@ bool DVAPI renumberForInsertFId(TXshSimpleLevel *sl, const TFrameId &fid,
 }  // namespace ToolUtils
 
 #endif  // TOOLSUTILS_H
-

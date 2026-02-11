@@ -19,22 +19,22 @@
 #include "tools/stylepicker.h"
 
 // TnzQt includes
-#include "flareqt/menubarcommand.h"
-#include "flareqt/viewcommandids.h"
-#include "flareqt/imageutils.h"
-#include "flareqt/lutcalibrator.h"
-#include "flareqt/camerasettingswidget.h"
+#include "toonzqt/menubarcommand.h"
+#include "toonzqt/viewcommandids.h"
+#include "toonzqt/imageutils.h"
+#include "toonzqt/lutcalibrator.h"
+#include "toonzqt/camerasettingswidget.h"
 
 // TnzLib includes
-#include "flare/tscenehandle.h"
-#include "flare/flarescene.h"
-#include "flare/sceneproperties.h"
-#include "flare/palettecontroller.h"
-#include "flare/tpalettehandle.h"
-#include "flare/preferences.h"
-#include "flare/tcamera.h"
-#include "flare/stage.h"
-#include "flare/stagevisitor.h"
+#include "toonz/tscenehandle.h"
+#include "toonz/toonzscene.h"
+#include "toonz/sceneproperties.h"
+#include "toonz/palettecontroller.h"
+#include "toonz/tpalettehandle.h"
+#include "toonz/preferences.h"
+#include "toonz/tcamera.h"
+#include "toonz/stage.h"
+#include "toonz/stagevisitor.h"
 
 // TnzCore includes
 #include "tgl.h"
@@ -70,7 +70,7 @@ TPointD getCameraDpi() {
 inline TRect getImageBounds(const TImageP &img) {
   if (TRasterImageP ri = img)
     return ri->getRaster()->getBounds();
-  else if (TflareImageP ti = img)
+  else if (TToonzImageP ti = img)
     return ti->getRaster()->getBounds();
   else {
     TVectorImageP vi = img;
@@ -83,7 +83,7 @@ inline TRect getImageBounds(const TImageP &img) {
 inline TRectD getImageBoundsD(const TImageP &img) {
   if (TRasterImageP ri = img)
     return TRectD(0, 0, ri->getRaster()->getLx(), ri->getRaster()->getLy());
-  else if (TflareImageP ti = img)
+  else if (TToonzImageP ti = img)
     return TRectD(0, 0, ti->getSize().lx, ti->getSize().ly);
   else {
     TVectorImageP vi = img;
@@ -557,7 +557,7 @@ void ImageViewer::paintGL() {
   if (layoutGuideToggle.getStatus() && !m_isColorModel) {
     TRasterImageP rimg = (TRasterImageP)m_image;
     TVectorImageP vimg = (TVectorImageP)m_image;
-    TflareImageP timg  = (TflareImageP)m_image;
+    TToonzImageP timg  = (TToonzImageP)m_image;
     TRect bbox;
 
     TPointD centerD;
@@ -704,7 +704,7 @@ void ImageViewer::panQt(const QPoint &delta) {
   // stop panning when the image is at the edge of window
   QPoint delta_(delta.x(), delta.y());
 
-  TflareImageP timg  = (TflareImageP)m_image;
+  TToonzImageP timg  = (TToonzImageP)m_image;
   TRasterImageP rimg = (TRasterImageP)m_image;
   if (timg || rimg) {
     bool isXPlus = delta.x() > 0;
@@ -1725,4 +1725,3 @@ public:
     RecentFiles::instance()->clearRecentFilesList(RecentFiles::Flip);
   }
 } clearRecentFlipbookImagesCommandHandler;
-

@@ -6,7 +6,7 @@
 #include "traster.h"
 #include "trastercm.h"
 
-#include "tflareimage.h"
+#include "ttoonzimage.h"
 
 //------------------------------------------------------------------------------------------
 
@@ -22,8 +22,7 @@ struct BlendParam {
 //------------------------------------------------------------------------------------------
 
 template <typename PIXEL>
-void blend(TflareImageP ti, TRasterPT<PIXEL> rasOut,
+void blend(TToonzImageP ti, TRasterPT<PIXEL> rasOut,
            const std::vector<BlendParam> &params);
 
 #endif  // BLEND_INCLUDE
-

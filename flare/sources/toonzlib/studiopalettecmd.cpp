@@ -1,25 +1,25 @@
 
 
-#include "flare/studiopalettecmd.h"
-#include "flare/tpalettehandle.h"
-#include "flare/txsheethandle.h"
-#include "flare/txshlevelhandle.h"
+#include "toonz/studiopalettecmd.h"
+#include "toonz/tpalettehandle.h"
+#include "toonz/txsheethandle.h"
+#include "toonz/txshlevelhandle.h"
 #include "tundo.h"
 #include "tcolorstyles.h"
 #include "tsystem.h"
 #include "tconvert.h"
-#include "tflareimage.h"
+#include "ttoonzimage.h"
 #include "timagecache.h"
 #include "tmsgcore.h"
 
-#include "flare/studiopalette.h"
-#include "flare/flarescene.h"
-#include "flare/levelset.h"
-#include "flare/txshsimplelevel.h"
-#include "flare/txshleveltypes.h"
-#include "flare/sceneproperties.h"
-#include "flare/flarefolders.h"
-#include "flare/txsheet.h"
+#include "toonz/studiopalette.h"
+#include "toonz/toonzscene.h"
+#include "toonz/levelset.h"
+#include "toonz/txshsimplelevel.h"
+#include "toonz/txshleveltypes.h"
+#include "toonz/sceneproperties.h"
+#include "toonz/toonzfolders.h"
+#include "toonz/txsheet.h"
 #include <QApplication>
 
 #include "historytypes.h"
@@ -336,9 +336,9 @@ public:
 
     TImageCache::instance()->add(m_oldImageId, (const TImageP)oldImage);
 
-    m_undoSize = ((TflareImageP)oldImage)->getRaster()->getLx() *
-                 ((TflareImageP)oldImage)->getRaster()->getLy() *
-                 ((TflareImageP)oldImage)->getRaster()->getPixelSize();
+    m_undoSize = ((TToonzImageP)oldImage)->getRaster()->getLx() *
+                 ((TToonzImageP)oldImage)->getRaster()->getLy() *
+                 ((TToonzImageP)oldImage)->getRaster()->getPixelSize();
   }
 
   ~AdjustIntoCurrentPaletteUndo() {
@@ -440,7 +440,7 @@ int getIndex(const TPixel &color, std::map<TPixel, int> &colorMap,
 
 //-------------------------------------------
 
-void adaptIndexes(TflareImageP timg, std::map<TPixel, int> &colorMap,
+void adaptIndexes(TToonzImageP timg, std::map<TPixel, int> &colorMap,
                   TPalette *plt, int tolerance) {
   TPalette *origPlt  = timg->getPalette();
   TRasterCM32P r     = timg->getRaster();
@@ -493,7 +493,7 @@ void adaptLevelToPalette(TXshLevelHandle *currentLevelHandle,
 
   sl->getFids(fids);
   for (int i = 0; i < (int)fids.size(); i++) {
-    TflareImageP timg = (TflareImageP)sl->getFrame(fids[i], true);
+    TToonzImageP timg = (TToonzImageP)sl->getFrame(fids[i], true);
     if (!timg) continue;
     if (!noUndo)
       TUndoManager::manager()->add(new AdjustIntoCurrentPaletteUndo(
@@ -639,7 +639,7 @@ void StudioPaletteCmd::updateAllLinkedStyles(TPaletteHandle *paletteHandle,
   if (!xsheetHandle) return;
   TXsheet *xsheet = xsheetHandle->getXsheet();
   if (!xsheet) return;
-  flareScene *scene = xsheet->getScene();
+  ToonzScene *scene = xsheet->getScene();
   if (!scene) return;
 
   // emit signal only if something changed
@@ -747,4 +747,3 @@ void StudioPaletteCmd::scanPalettes(const TFilePath &folder,
                                     const TFilePath &sourcePath) {
   //  error("uh oh");
 }
-

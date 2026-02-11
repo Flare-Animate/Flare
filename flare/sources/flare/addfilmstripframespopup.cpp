@@ -8,7 +8,7 @@
 #include "tapp.h"
 
 // TnzQt includes
-#include "flareqt/menubarcommand.h"
+#include "toonzqt/menubarcommand.h"
 
 // Qt includes
 #include <QPushButton>
@@ -98,4 +98,3 @@ void AddFilmstripFramesPopup::getParameters(int &startFrame, int &endFrame,
   endFrame   = m_endFld->text().toInt();
   stepFrame  = m_stepFld->text().toInt();
 }
-

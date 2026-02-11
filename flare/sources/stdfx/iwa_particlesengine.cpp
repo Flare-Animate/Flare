@@ -17,7 +17,7 @@
 #include "timage_io.h"
 
 #include "tcolorfunctions.h"
-#include "flare/tcolumnfx.h"
+#include "toonz/tcolumnfx.h"
 
 #include "iwa_particlesmanager.h"
 
@@ -1559,4 +1559,3 @@ void Iwa_Particles_Engine::renderBackground(
   TRop::ropin(resizedBGRas, tileRas, tileRas);
 
 }
-

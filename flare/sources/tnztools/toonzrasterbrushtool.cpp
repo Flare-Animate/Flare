@@ -1,6 +1,6 @@
 
 
-#include "flarerasterbrushtool.h"
+#include "toonzrasterbrushtool.h"
 
 // TnzTools includes
 #include "tools/toolhandle.h"
@@ -10,26 +10,26 @@
 #include "tools/cursors.h"
 
 // TnzQt includes
-#include "flareqt/dvdialog.h"
-#include "flareqt/imageutils.h"
+#include "toonzqt/dvdialog.h"
+#include "toonzqt/imageutils.h"
 
 // TnzLib includes
-#include "flare/tobjecthandle.h"
-#include "flare/txsheethandle.h"
-#include "flare/txshlevelhandle.h"
-#include "flare/tframehandle.h"
-#include "flare/tcolumnhandle.h"
-#include "flare/txsheet.h"
-#include "flare/tstageobject.h"
-#include "flare/tstageobjectspline.h"
-#include "flare/ttileset.h"
-#include "flare/txshsimplelevel.h"
-#include "flare/flareimageutils.h"
-#include "flare/palettecontroller.h"
-#include "flare/stage2.h"
-#include "flare/preferences.h"
-#include "flare/tpalettehandle.h"
-#include "flare/mypaintbrushstyle.h"
+#include "toonz/tobjecthandle.h"
+#include "toonz/txsheethandle.h"
+#include "toonz/txshlevelhandle.h"
+#include "toonz/tframehandle.h"
+#include "toonz/tcolumnhandle.h"
+#include "toonz/txsheet.h"
+#include "toonz/tstageobject.h"
+#include "toonz/tstageobjectspline.h"
+#include "toonz/ttileset.h"
+#include "toonz/txshsimplelevel.h"
+#include "toonz/toonzimageutils.h"
+#include "toonz/palettecontroller.h"
+#include "toonz/stage2.h"
+#include "toonz/preferences.h"
+#include "toonz/tpalettehandle.h"
+#include "toonz/mypaintbrushstyle.h"
 
 // TnzCore includes
 #include "tstream.h"
@@ -445,7 +445,7 @@ public:
 
   void redo() const override {
     insertLevelAndFrameIfNeeded();
-    TflareImageP image = getImage();
+    TToonzImageP image = getImage();
     TRasterCM32P ras   = image->getRaster();
     RasterStrokeGenerator rasterTrack(ras, BRUSH, NONE, m_styleId, m_points[0],
                                       m_selective, 0, m_modifierLockAlpha,
@@ -501,7 +501,7 @@ public:
   void redo() const override {
     if (m_points.size() == 0) return;
     insertLevelAndFrameIfNeeded();
-    TflareImageP image     = getImage();
+    TToonzImageP image     = getImage();
     TRasterCM32P ras       = image->getRaster();
     TRasterCM32P backupRas = ras->clone();
     TRaster32P workRaster(ras->getSize());
@@ -580,7 +580,7 @@ public:
     static int counter = 0;
     m_id = QString("MyPaintBrushUndo") + QString::number(counter++);
     TImageCache::instance()->add(m_id.toStdString(),
-                                 TflareImageP(ras, TRect(ras->getSize())));
+                                 TToonzImageP(ras, TRect(ras->getSize())));
   }
 
   ~MyPaintBrushUndo() { TImageCache::instance()->remove(m_id); }
@@ -588,12 +588,12 @@ public:
   void redo() const override {
     insertLevelAndFrameIfNeeded();
 
-    TflareImageP image = getImage();
+    TToonzImageP image = getImage();
     TRasterCM32P ras   = image->getRaster();
 
     TImageP srcImg =
         TImageCache::instance()->get(m_id.toStdString(), false)->cloneImage();
-    TflareImageP tSrcImg = srcImg;
+    TToonzImageP tSrcImg = srcImg;
     assert(tSrcImg);
     ras->copy(tSrcImg->getRaster(), m_offset);
     ToolUtils::updateSaveBox();
@@ -724,11 +724,11 @@ static void Smooth(std::vector<TThickPoint> &points, const int radius,
 
 //===================================================================
 //
-// flareRasterBrushTool
+// ToonzRasterBrushTool
 //
 //-----------------------------------------------------------------------------
 
-flareRasterBrushTool::flareRasterBrushTool(std::string name, int targetType)
+ToonzRasterBrushTool::ToonzRasterBrushTool(std::string name, int targetType)
     : TTool(name)
     , m_rasThickness("Size", 1, 1000, 1, 5)
     , m_smooth("Smooth:", 0, 500, 0)
@@ -793,7 +793,7 @@ flareRasterBrushTool::flareRasterBrushTool(std::string name, int targetType)
 
 //-------------------------------------------------------------------------------------------------------
 
-unsigned int flareRasterBrushTool::getToolHints() const {
+unsigned int ToonzRasterBrushTool::getToolHints() const {
   unsigned int h = TTool::getToolHints() & ~HintAssistantsAll;
   if (m_assistants.getValue()) {
     h |= HintReplicators;
@@ -805,7 +805,7 @@ unsigned int flareRasterBrushTool::getToolHints() const {
 
 //-------------------------------------------------------------------------------------------------------
 
-ToolOptionsBox *flareRasterBrushTool::createOptionsBox() {
+ToolOptionsBox *ToonzRasterBrushTool::createOptionsBox() {
   TPaletteHandle *currPalette =
       TTool::getApplication()->getPaletteController()->getCurrentLevelPalette();
   ToolHandle *currTool = TTool::getApplication()->getCurrentTool();
@@ -814,7 +814,7 @@ ToolOptionsBox *flareRasterBrushTool::createOptionsBox() {
 
 //-------------------------------------------------------------------------------------------------------
 
-void flareRasterBrushTool::drawLine(const TPointD &point, const TPointD &centre,
+void ToonzRasterBrushTool::drawLine(const TPointD &point, const TPointD &centre,
                                     bool horizontal, bool isDecimal) {
   if (!isDecimal) {
     if (horizontal) {
@@ -928,7 +928,7 @@ void flareRasterBrushTool::drawLine(const TPointD &point, const TPointD &centre,
 
 //-------------------------------------------------------------------------------------------------------
 
-void flareRasterBrushTool::drawEmptyCircle(TPointD pos, int thick,
+void ToonzRasterBrushTool::drawEmptyCircle(TPointD pos, int thick,
                                            bool isLxEven, bool isLyEven,
                                            bool isPencil) {
   if (isLxEven) pos.x += 0.5;
@@ -958,7 +958,7 @@ void flareRasterBrushTool::drawEmptyCircle(TPointD pos, int thick,
 
 //-------------------------------------------------------------------------------------------------------
 
-TPointD flareRasterBrushTool::getCenteredCursorPos(
+TPointD ToonzRasterBrushTool::getCenteredCursorPos(
     const TPointD &originalCursorPos) {
   if (m_isMyPaintStyleSelected) return originalCursorPos;
   TXshLevelHandle *levelHandle = m_application->getCurrentLevel();
@@ -979,7 +979,7 @@ TPointD flareRasterBrushTool::getCenteredCursorPos(
 
 //-------------------------------------------------------------------------------------------------------
 
-void flareRasterBrushTool::updateTranslation() {
+void ToonzRasterBrushTool::updateTranslation() {
   m_rasThickness.setQStringName(tr("Size"));
   m_hardness.setQStringName(tr("Hardness:"));
   m_smooth.setQStringName(tr("Smooth:"));
@@ -1000,8 +1000,8 @@ void flareRasterBrushTool::updateTranslation() {
 
 //---------------------------------------------------------------------------------------------------
 
-void flareRasterBrushTool::onActivate() {
-  if (!m_notifier) m_notifier = new flareRasterBrushToolNotifier(this);
+void ToonzRasterBrushTool::onActivate() {
+  if (!m_notifier) m_notifier = new ToonzRasterBrushToolNotifier(this);
 
   if (m_firstTime) {
     m_firstTime = false;
@@ -1028,7 +1028,7 @@ void flareRasterBrushTool::onActivate() {
 
 //--------------------------------------------------------------------------------------------------
 
-void flareRasterBrushTool::onDeactivate() {
+void ToonzRasterBrushTool::onDeactivate() {
   m_inputmanager.finishTracks();
   m_enabled   = false;
   m_workRas   = TRaster32P();
@@ -1037,11 +1037,11 @@ void flareRasterBrushTool::onDeactivate() {
 
 //--------------------------------------------------------------------------------------------------
 
-bool flareRasterBrushTool::askRead(const TRect &rect) { return askWrite(rect); }
+bool ToonzRasterBrushTool::askRead(const TRect &rect) { return askWrite(rect); }
 
 //--------------------------------------------------------------------------------------------------
 
-bool flareRasterBrushTool::askWrite(const TRect &rect) {
+bool ToonzRasterBrushTool::askWrite(const TRect &rect) {
   if (rect.isEmpty()) return true;
   m_painting.myPaint.strokeSegmentRect += rect;
   updateWorkAndBackupRasters(rect);
@@ -1051,7 +1051,7 @@ bool flareRasterBrushTool::askWrite(const TRect &rect) {
 
 //---------------------------------------------------------------------------------------------------
 
-void flareRasterBrushTool::updateModifiers() {
+void ToonzRasterBrushTool::updateModifiers() {
   int smoothRadius                = m_smooth.getValue();
   m_modifierAssistants->magnetism = m_assistants.getValue() ? 1 : 0;
   m_inputmanager.drawPreview      = false;  //! m_modifierAssistants->drawOnly;
@@ -1084,7 +1084,7 @@ void flareRasterBrushTool::updateModifiers() {
 
 //--------------------------------------------------------------------------------------------------
 
-bool flareRasterBrushTool::preLeftButtonDown() {
+bool ToonzRasterBrushTool::preLeftButtonDown() {
   updateModifiers();
   touchImage();
   if (m_isFrameCreated) {
@@ -1099,7 +1099,7 @@ bool flareRasterBrushTool::preLeftButtonDown() {
 
 //---------------------------------------------------------------------------------------------------
 
-void flareRasterBrushTool::handleMouseEvent(MouseEventType type,
+void ToonzRasterBrushTool::handleMouseEvent(MouseEventType type,
                                             const TPointD &pos,
                                             const TMouseEvent &e) {
   TTimerTicks t    = TToolTimer::ticks();
@@ -1148,25 +1148,25 @@ void flareRasterBrushTool::handleMouseEvent(MouseEventType type,
 
 //---------------------------------------------------------------------------------------------------
 
-void flareRasterBrushTool::leftButtonDown(const TPointD &pos,
+void ToonzRasterBrushTool::leftButtonDown(const TPointD &pos,
                                           const TMouseEvent &e) {
   handleMouseEvent(ME_DOWN, pos, e);
 }
-void flareRasterBrushTool::leftButtonDrag(const TPointD &pos,
+void ToonzRasterBrushTool::leftButtonDrag(const TPointD &pos,
                                           const TMouseEvent &e) {
   handleMouseEvent(ME_DRAG, pos, e);
 }
-void flareRasterBrushTool::leftButtonUp(const TPointD &pos,
+void ToonzRasterBrushTool::leftButtonUp(const TPointD &pos,
                                         const TMouseEvent &e) {
   handleMouseEvent(ME_UP, pos, e);
 }
-void flareRasterBrushTool::mouseMove(const TPointD &pos, const TMouseEvent &e) {
+void ToonzRasterBrushTool::mouseMove(const TPointD &pos, const TMouseEvent &e) {
   handleMouseEvent(ME_MOVE, pos, e);
 }
 
 //--------------------------------------------------------------------------------------------------
 
-void flareRasterBrushTool::inputSetBusy(bool busy) {
+void ToonzRasterBrushTool::inputSetBusy(bool busy) {
   if (m_painting.active == busy) return;
 
   if (busy) {
@@ -1201,7 +1201,7 @@ void flareRasterBrushTool::inputSetBusy(bool busy) {
     m_painting.frameId = getFrameId();
 
     TImageP img = getImage(true);
-    TflareImageP ri(img);
+    TToonzImageP ri(img);
     TRasterCM32P ras = ri->getRaster();
     if (!ras) {
       m_painting.active = false;
@@ -1261,7 +1261,7 @@ void flareRasterBrushTool::inputSetBusy(bool busy) {
       TTool::Application *app   = TTool::getApplication();
       TXshLevel *level          = app->getCurrentLevel()->getLevel();
       TXshSimpleLevelP simLevel = level->getSimpleLevel();
-      TRasterCM32P ras          = TflareImageP(getImage(true))->getRaster();
+      TRasterCM32P ras          = TToonzImageP(getImage(true))->getRaster();
       TRasterCM32P subras = ras->extract(m_painting.affectedRect)->clone();
       TUndoManager::manager()->add(new MyPaintBrushUndo(
           m_painting.tileSet, simLevel.getPointer(), frameId, m_isFrameCreated,
@@ -1274,8 +1274,8 @@ void flareRasterBrushTool::inputSetBusy(bool busy) {
     m_painting.tileSet = nullptr;
 
     // Restore gap/autoclose Fill Check
-    int tc = flareCheck::instance()->getChecks();
-    if (tc & flareCheck::eGap || tc & flareCheck::eAutoclose) invalidate();
+    int tc = ToonzCheck::instance()->getChecks();
+    if (tc & ToonzCheck::eGap || tc & ToonzCheck::eAutoclose) invalidate();
 
     /*-- 作業中のフレームをリセット --*/
     m_painting.frameId = TFrameId();
@@ -1294,13 +1294,13 @@ void flareRasterBrushTool::inputSetBusy(bool busy) {
 
 //--------------------------------------------------------------------------------------------------
 
-void flareRasterBrushTool::inputPaintTrackPoint(const TTrackPoint &point,
+void ToonzRasterBrushTool::inputPaintTrackPoint(const TTrackPoint &point,
                                                 const TTrack &track,
                                                 bool firstTrack, bool preview) {
   if (!m_painting.active || preview) return;
 
   TImageP img = getImage(true);
-  TflareImageP ri(img);
+  TToonzImageP ri(img);
   TRasterCM32P ras = ri->getRaster();
   if (!ras) return;
   TPointD rasCenter     = convert(ras->getCenter());
@@ -1450,10 +1450,10 @@ void flareRasterBrushTool::inputPaintTrackPoint(const TTrackPoint &point,
 //---------------------------------------------------------------------------------------------------------------
 
 // 明日はここをMyPaintのときにカーソルを消せるように修正する！！！！！！
-void flareRasterBrushTool::inputMouseMove(const TPointD &position,
+void ToonzRasterBrushTool::inputMouseMove(const TPointD &position,
                                           const TInputState &state) {
   struct Locals {
-    flareRasterBrushTool *m_this;
+    ToonzRasterBrushTool *m_this;
 
     void setValue(TDoublePairProperty &prop,
                   const TDoublePairProperty::Value &value) {
@@ -1513,7 +1513,7 @@ void flareRasterBrushTool::inputMouseMove(const TPointD &position,
 
 //-------------------------------------------------------------------------------------------------------------
 
-void flareRasterBrushTool::draw() {
+void ToonzRasterBrushTool::draw() {
   m_inputmanager.draw();
 
   /*--ショートカットでのツール切り替え時に赤点が描かれるのを防止する--*/
@@ -1535,9 +1535,9 @@ void flareRasterBrushTool::draw() {
   if (!Preferences::instance()->isCursorOutlineEnabled()) return;
 
   // If in Ink / Paint mode, draw in cyan
-  int checks = flareCheck::instance()->getChecks();
-  if ((checks & flareCheck::eInk) || (checks & flareCheck::ePaint) ||
-      (checks & flareCheck::eInk1)) {
+  int checks = ToonzCheck::instance()->getChecks();
+  if ((checks & ToonzCheck::eInk) || (checks & ToonzCheck::ePaint) ||
+      (checks & ToonzCheck::eInk1)) {
     glColor3d(0.5, 0.8, 0.8);  // Cyan
   } else {
     glColor3d(1.0, 0.0, 0.0);  // Red
@@ -1549,7 +1549,7 @@ void flareRasterBrushTool::draw() {
     return;
   }
 
-  if (TflareImageP ti = img) {
+  if (TToonzImageP ti = img) {
     TRasterP ras = ti->getRaster();
     int lx       = ras->getLx();
     int ly       = ras->getLy();
@@ -1567,7 +1567,7 @@ void flareRasterBrushTool::draw() {
 
 //--------------------------------------------------------------------------------------------------------------
 
-void flareRasterBrushTool::onEnter() {
+void ToonzRasterBrushTool::onEnter() {
   m_minThick = m_rasThickness.getValue().first;
   m_maxThick = m_rasThickness.getValue().second;
   updateCurrentStyle();
@@ -1575,7 +1575,7 @@ void flareRasterBrushTool::onEnter() {
 
 //----------------------------------------------------------------------------------------------------------
 
-void flareRasterBrushTool::onLeave() {
+void ToonzRasterBrushTool::onLeave() {
   m_minThick       = 0;
   m_maxThick       = 0;
   m_minCursorThick = 0;
@@ -1584,7 +1584,7 @@ void flareRasterBrushTool::onLeave() {
 
 //----------------------------------------------------------------------------------------------------------
 
-TPropertyGroup *flareRasterBrushTool::getProperties(int idx) {
+TPropertyGroup *ToonzRasterBrushTool::getProperties(int idx) {
   if (!m_presetsLoaded) initPresets();
 
   return &m_prop[idx];
@@ -1592,15 +1592,15 @@ TPropertyGroup *flareRasterBrushTool::getProperties(int idx) {
 
 //----------------------------------------------------------------------------------------------------------
 
-void flareRasterBrushTool::onImageChanged() {
+void ToonzRasterBrushTool::onImageChanged() {
   if (!isEnabled()) return;
   setWorkAndBackupImages();
 }
 
 //----------------------------------------------------------------------------------------------------------
 
-void flareRasterBrushTool::setWorkAndBackupImages() {
-  TflareImageP ti = (TflareImageP)getImage(false, 1);
+void ToonzRasterBrushTool::setWorkAndBackupImages() {
+  TToonzImageP ti = (TToonzImageP)getImage(false, 1);
   if (!ti) return;
   TRasterP ras   = ti->getRaster();
   TDimension dim = ras->getSize();
@@ -1616,8 +1616,8 @@ void flareRasterBrushTool::setWorkAndBackupImages() {
 
 //---------------------------------------------------------------------------------------------------
 
-void flareRasterBrushTool::updateWorkAndBackupRasters(const TRect &rect) {
-  TflareImageP ti = TImageP(getImage(false, 1));
+void ToonzRasterBrushTool::updateWorkAndBackupRasters(const TRect &rect) {
+  TToonzImageP ti = TImageP(getImage(false, 1));
   if (!ti) return;
   TRasterCM32P ras = ti->getRaster();
 
@@ -1662,7 +1662,7 @@ void flareRasterBrushTool::updateWorkAndBackupRasters(const TRect &rect) {
 
 //------------------------------------------------------------------
 
-bool flareRasterBrushTool::onPropertyChanged(std::string propertyName) {
+bool ToonzRasterBrushTool::onPropertyChanged(std::string propertyName) {
   if (m_propertyUpdating) return true;
 
   if (propertyName == m_preset.getName()) {
@@ -1717,11 +1717,11 @@ bool flareRasterBrushTool::onPropertyChanged(std::string propertyName) {
 
 //------------------------------------------------------------------
 
-void flareRasterBrushTool::initPresets() {
+void ToonzRasterBrushTool::initPresets() {
   if (!m_presetsLoaded) {
     // If necessary, load the presets from file
     m_presetsLoaded = true;
-    m_presetsManager.load(TEnv::getConfigDir() + "brush_flareraster.txt");
+    m_presetsManager.load(TEnv::getConfigDir() + "brush_toonzraster.txt");
   }
 
   // Rebuild the presets property entries
@@ -1737,7 +1737,7 @@ void flareRasterBrushTool::initPresets() {
 
 //----------------------------------------------------------------------------------------------------------
 
-void flareRasterBrushTool::loadPreset() {
+void ToonzRasterBrushTool::loadPreset() {
   const std::set<BrushData> &presets = m_presetsManager.presets();
   std::set<BrushData>::const_iterator it;
 
@@ -1770,7 +1770,7 @@ void flareRasterBrushTool::loadPreset() {
 
 //------------------------------------------------------------------
 
-void flareRasterBrushTool::addPreset(QString name) {
+void ToonzRasterBrushTool::addPreset(QString name) {
   // Build the preset
   BrushData preset(name.toStdWString());
 
@@ -1799,7 +1799,7 @@ void flareRasterBrushTool::addPreset(QString name) {
 
 //------------------------------------------------------------------
 
-void flareRasterBrushTool::removePreset() {
+void ToonzRasterBrushTool::removePreset() {
   std::wstring name(m_preset.getValue());
   if (name == CUSTOM_WSTR) return;
 
@@ -1813,7 +1813,7 @@ void flareRasterBrushTool::removePreset() {
 
 //------------------------------------------------------------------
 
-void flareRasterBrushTool::loadLastBrush() {
+void ToonzRasterBrushTool::loadLastBrush() {
   m_rasThickness.setValue(
       TDoublePairProperty::Value(RasterBrushMinSize, RasterBrushMaxSize));
   m_drawOrder.setIndex(BrushDrawOrder);
@@ -1836,13 +1836,13 @@ void flareRasterBrushTool::loadLastBrush() {
 //------------------------------------------------------------------
 /*!	Brush、PaintBrush、EraserToolがPencilModeのときにTrueを返す
  */
-bool flareRasterBrushTool::isPencilModeActive() {
-  return getTargetType() == TTool::flareImage && m_pencil.getValue();
+bool ToonzRasterBrushTool::isPencilModeActive() {
+  return getTargetType() == TTool::ToonzImage && m_pencil.getValue();
 }
 
 //------------------------------------------------------------------
 
-void flareRasterBrushTool::onColorStyleChanged() {
+void ToonzRasterBrushTool::onColorStyleChanged() {
   m_inputmanager.finishTracks();
   m_enabled = false;
 
@@ -1855,7 +1855,7 @@ void flareRasterBrushTool::onColorStyleChanged() {
 
 //------------------------------------------------------------------
 
-double flareRasterBrushTool::restartBrushTimer() {
+double ToonzRasterBrushTool::restartBrushTimer() {
   double dtime = m_brushTimer.nsecsElapsed() * 1e-9;
   m_brushTimer.restart();
   return dtime;
@@ -1863,7 +1863,7 @@ double flareRasterBrushTool::restartBrushTimer() {
 
 //------------------------------------------------------------------
 
-void flareRasterBrushTool::updateCurrentStyle() {
+void ToonzRasterBrushTool::updateCurrentStyle() {
   if (m_isMyPaintStyleSelected) {
     TTool::Application *app = TTool::getApplication();
     TMyPaintBrushStyle *brushStyle =
@@ -1882,8 +1882,8 @@ void flareRasterBrushTool::updateCurrentStyle() {
 }
 //==========================================================================================================
 
-flareRasterBrushToolNotifier::flareRasterBrushToolNotifier(
-    flareRasterBrushTool *tool)
+ToonzRasterBrushToolNotifier::ToonzRasterBrushToolNotifier(
+    ToonzRasterBrushTool *tool)
     : m_tool(tool) {
   if (TTool::Application *app = m_tool->getApplication()) {
     if (TPaletteHandle *paletteHandle = app->getCurrentPalette()) {
@@ -1904,8 +1904,8 @@ flareRasterBrushToolNotifier::flareRasterBrushToolNotifier(
 
 // Tools instantiation
 
-flareRasterBrushTool flarePencil("T_Brush",
-                                 TTool::flareImage | TTool::EmptyTarget);
+ToonzRasterBrushTool toonzPencil("T_Brush",
+                                 TTool::ToonzImage | TTool::EmptyTarget);
 
 //*******************************************************************************
 //    Brush Data implementation
@@ -2106,4 +2106,3 @@ void BrushPresetManager::removePreset(const std::wstring &name) {
   m_presets.erase(BrushData(name));
   save();
 }
-

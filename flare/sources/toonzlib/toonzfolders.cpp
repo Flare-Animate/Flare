@@ -1,8 +1,8 @@
-#include "flare/flarefolders.h"
+#include "toonz/toonzfolders.h"
 #include "tsystem.h"
 #include "tenv.h"
 #include "tconvert.h"
-#include "flare/preferences.h"
+#include "toonz/preferences.h"
 #include <QStandardPaths>
 #include <QDir>
 
@@ -25,11 +25,11 @@ TFilePath getDesktopPath() {
 }  // namespace
 //-------------------------------------------------------------------
 
-TFilePath flareFolder::getModulesDir() {
+TFilePath ToonzFolder::getModulesDir() {
   return getProfileFolder() + "layouts";
 }
 
-TFilePathSet flareFolder::getProjectsFolders() {
+TFilePathSet ToonzFolder::getProjectsFolders() {
   int location = Preferences::instance()->getProjectRoot();
   QString path = Preferences::instance()->getCustomProjectRoot();
   TFilePathSet fps;
@@ -76,7 +76,7 @@ TFilePathSet flareFolder::getProjectsFolders() {
   return fps;
 }
 
-TFilePath flareFolder::getFirstProjectsFolder() {
+TFilePath ToonzFolder::getFirstProjectsFolder() {
   TFilePathSet fps = getProjectsFolders();
   if (fps.empty())
     return TFilePath();
@@ -84,28 +84,28 @@ TFilePath flareFolder::getFirstProjectsFolder() {
     return *fps.begin();
 }
 
-TFilePath flareFolder::getLibraryFolder() {
+TFilePath ToonzFolder::getLibraryFolder() {
   TFilePath fp = getSystemVarPathValue(getSystemVarPrefix() + "LIBRARY");
   if (fp == TFilePath())
     fp = getStuffDir() + TEnv::getSystemPathMap().at("LIBRARY");
   return fp;
 }
 
-TFilePath flareFolder::getStudioPaletteFolder() {
+TFilePath ToonzFolder::getStudioPaletteFolder() {
   TFilePath fp = getSystemVarPathValue(getSystemVarPrefix() + "STUDIOPALETTE");
   if (fp == TFilePath())
     fp = getStuffDir() + TEnv::getSystemPathMap().at("STUDIOPALETTE");
   return fp;
 }
 
-TFilePath flareFolder::getFxPresetFolder() {
+TFilePath ToonzFolder::getFxPresetFolder() {
   TFilePath fp = getSystemVarPathValue(getSystemVarPrefix() + "FXPRESETS");
   if (fp == TFilePath())
     fp = getStuffDir() + TEnv::getSystemPathMap().at("FXPRESETS");
   return fp;
 }
 
-TFilePath flareFolder::getCacheRootFolder() {
+TFilePath ToonzFolder::getCacheRootFolder() {
   static enum STATE { FIRSTTIME, OK, NG } state = FIRSTTIME;
   QString cacheDir =
       QStandardPaths::writableLocation(QStandardPaths::CacheLocation);
@@ -118,7 +118,7 @@ TFilePath flareFolder::getCacheRootFolder() {
   return (state == OK) ? TFilePath(cacheDir) : TFilePath();
 }
 
-TFilePath flareFolder::getCrashReportFolder() {
+TFilePath ToonzFolder::getCrashReportFolder() {
   static enum STATE { FIRSTTIME, OK, NG } state = FIRSTTIME;
   QString crashDir =
       QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation) +
@@ -132,52 +132,52 @@ TFilePath flareFolder::getCrashReportFolder() {
   return (state == OK) ? TFilePath(crashDir) : TFilePath();
 }
 
-TFilePath flareFolder::getProfileFolder() {
+TFilePath ToonzFolder::getProfileFolder() {
   TFilePath fp = getSystemVarPathValue(getSystemVarPrefix() + "PROFILES");
   if (fp == TFilePath())
     fp = getStuffDir() + TEnv::getSystemPathMap().at("PROFILES");
   return fp;
 }
 
-TFilePath flareFolder::getReslistPath(bool forCleanup) {
+TFilePath ToonzFolder::getReslistPath(bool forCleanup) {
   return getConfigDir() + (forCleanup ? "cleanupreslist.txt" : "reslist.txt");
 }
 
-TFilePath flareFolder::getTemplateModuleDir() {
+TFilePath ToonzFolder::getTemplateModuleDir() {
   // return getModulesDir() + getModuleName();
   return getModulesDir() + "settings";
 }
 
-TFilePath flareFolder::getMyModuleDir() {
+TFilePath ToonzFolder::getMyModuleDir() {
   TFilePath fp(getTemplateModuleDir());
   return fp.withName(fp.getWideName() + L"." +
                      TSystem::getUserName().toStdWString());
 }
 
-TFilePath flareFolder::getModuleFile(TFilePath filename) {
+TFilePath ToonzFolder::getModuleFile(TFilePath filename) {
   TFilePath fp = getMyModuleDir() + filename;
   if (TFileStatus(fp).doesExist()) return fp;
   fp = getTemplateModuleDir() + filename;
   return fp;
 }
 
-TFilePath flareFolder::getModuleFile(std::string fn) {
-  return flareFolder::getModuleFile(TFilePath(fn));
+TFilePath ToonzFolder::getModuleFile(std::string fn) {
+  return ToonzFolder::getModuleFile(TFilePath(fn));
 }
 
 // turtle
-TFilePath flareFolder::getRoomsDir() {
+TFilePath ToonzFolder::getRoomsDir() {
   return getProfileFolder() + "layouts/rooms";
 }
 
-TFilePath flareFolder::getTemplateRoomsDir() {
+TFilePath ToonzFolder::getTemplateRoomsDir() {
   return getRoomsDir() +
          Preferences::instance()->getCurrentRoomChoice().toStdWString();
   // TFilePath fp(getMyModuleDir() + TFilePath(mySettingsFileName));
   // return getRoomsDir() + getModuleName();
 }
 
-TFilePath flareFolder::getMyRoomsDir() {
+TFilePath ToonzFolder::getMyRoomsDir() {
   // TFilePath fp(getTemplateRoomsDir());
   TFilePath fp(getProfileFolder());
   return fp.withName(
@@ -186,15 +186,15 @@ TFilePath flareFolder::getMyRoomsDir() {
       TSystem::getUserName().toStdWString());
 }
 
-TFilePath flareFolder::getRoomsFile(TFilePath filename) {
+TFilePath ToonzFolder::getRoomsFile(TFilePath filename) {
   TFilePath fp = getMyRoomsDir() + filename;
   if (TFileStatus(fp).doesExist()) return fp;
   fp = getTemplateRoomsDir() + filename;
   return fp;
 }
 
-TFilePath flareFolder::getRoomsFile(std::string fn) {
-  return flareFolder::getRoomsFile(TFilePath(fn));
+TFilePath ToonzFolder::getRoomsFile(std::string fn) {
+  return ToonzFolder::getRoomsFile(TFilePath(fn));
 }
 
 //===================================================================
@@ -231,4 +231,3 @@ void FolderListenerManager::addListener(Listener *listener) {
 void FolderListenerManager::removeListener(Listener *listener) {
   m_listeners.erase(listener);
 }
-

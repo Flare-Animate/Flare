@@ -7,7 +7,7 @@
 #include "timagecache.h"
 #include "ttile.h"
 #include "trasterimage.h"
-#include "tflareimage.h"
+#include "ttoonzimage.h"
 #endif
 #include "tpixelutils.h"
 
@@ -431,7 +431,7 @@ void TTile::addInCache(const TRasterP &raster) {
 
   if ((TRasterCM32P)rin)
     TImageCache::instance()->add(m_rasterId,
-                                 TflareImageP(rin, rin->getBounds()));
+                                 TToonzImageP(rin, rin->getBounds()));
   else if ((TRaster32P)rin || (TRaster64P)rin)
     TImageCache::instance()->add(m_rasterId, TRasterImageP(rin));
   else if ((TRasterGR8P)rin || (TRasterGR16P)rin)

@@ -1,4 +1,4 @@
-#include "flareqt/fxiconmanager.h"
+#include "toonzqt/fxiconmanager.h"
 
 #include <QPixmap>
 
@@ -30,4 +30,3 @@ const QPixmap &FxIconPixmapManager::getFxIconPm(std::string type) {
   it = m_pms.insert(std::make_pair(type, unidentifiedFxPixmap)).first;
   return it->second;
 }
-

@@ -12,25 +12,25 @@
 #include "tfxutil.h"
 
 // TnzQt includes
-#include "flareqt/menubarcommand.h"
-#include "flareqt/dvdialog.h"
-#include "flareqt/gutil.h"
+#include "toonzqt/menubarcommand.h"
+#include "toonzqt/dvdialog.h"
+#include "toonzqt/gutil.h"
 
 // TnzLib includes
-#include "flare/preferences.h"
-#include "flare/flarescene.h"
-#include "flare/tscenehandle.h"
-#include "flare/txsheet.h"
-#include "flare/txsheethandle.h"
-#include "flare/fxdag.h"
-#include "flare/tcolumnhandle.h"
-#include "flare/tcamera.h"
-#include "flare/sceneproperties.h"
-#include "flare/onionskinmask.h"
-#include "flare/observer.h"
-#include "flare/scenefx.h"
-#include "flare/movierenderer.h"
-#include "flare/multimediarenderer.h"
+#include "toonz/preferences.h"
+#include "toonz/toonzscene.h"
+#include "toonz/tscenehandle.h"
+#include "toonz/txsheet.h"
+#include "toonz/txsheethandle.h"
+#include "toonz/fxdag.h"
+#include "toonz/tcolumnhandle.h"
+#include "toonz/tcamera.h"
+#include "toonz/sceneproperties.h"
+#include "toonz/onionskinmask.h"
+#include "toonz/observer.h"
+#include "toonz/scenefx.h"
+#include "toonz/movierenderer.h"
+#include "toonz/multimediarenderer.h"
 #include "toutputproperties.h"
 
 #ifdef _WIN32
@@ -151,7 +151,7 @@ public:
       else {
         int r0, r1, step;
         TApp *app         = TApp::instance();
-        flareScene *scene = app->getCurrentScene()->getScene();
+        ToonzScene *scene = app->getCurrentScene()->getScene();
         TOutputProperties &outputSettings =
             isPreview ? *scene->getProperties()->getPreviewProperties()
                       : *scene->getProperties()->getOutputProperties();
@@ -235,7 +235,7 @@ RenderCommand renderCommand;
 //---------------------------------------------------------
 
 bool RenderCommand::init(bool isPreview) {
-  flareScene *scene       = TApp::instance()->getCurrentScene()->getScene();
+  ToonzScene *scene       = TApp::instance()->getCurrentScene()->getScene();
   TSceneProperties *sprop = scene->getProperties();
   /*-- Preview/Renderに応じてそれぞれのSettingを取得 --*/
   TOutputProperties &outputSettings = isPreview ? *sprop->getPreviewProperties()
@@ -448,7 +448,7 @@ public:
 //---------------------------------------------------------
 
 void RenderCommand::rasterRender(bool isPreview) {
-  flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
+  ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
 
   if (isPreview) {
     // Let the PreviewFxManager own the rest. Just pass him the current output
@@ -603,7 +603,7 @@ void RenderCommand::rasterRender(bool isPreview) {
 TPixel32 RenderCommand::m_priorBgColor;
 
 void RenderCommand::resetBgColor() {
-  flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
+  ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
   scene->getProperties()->setBgColor(m_priorBgColor);
 
   // revert background color settings
@@ -735,7 +735,7 @@ public:
 
 //! Specialized render invocation for multimedia rendering.
 void RenderCommand::multimediaRender() {
-  flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
+  ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
   std::string ext   = m_fp.getType();
 
 #ifdef _WIN32
@@ -875,7 +875,7 @@ void RenderCommand::doRender(bool isPreview) {
     return;
   }
 
-  flareScene *scene = 0;
+  ToonzScene *scene = 0;
   TCamera *camera   = 0;
 
   try {
@@ -898,4 +898,3 @@ void RenderCommand::doRender(bool isPreview) {
 }
 
 //===================================================================
-

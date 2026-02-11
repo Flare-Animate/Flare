@@ -1,6 +1,6 @@
 #pragma once
 
-#include "flareqt/dvdialog.h"
+#include "toonzqt/dvdialog.h"
 
 #include <QLabel>
 #include <QSlider>
@@ -9,7 +9,7 @@
 
 #undef DVAPI
 #undef DVVAR
-#ifdef flareQT_EXPORTS
+#ifdef TOONZQT_EXPORTS
 #define DVAPI DV_EXPORT_API
 #define DVVAR DV_EXPORT_VAR
 #else
@@ -81,4 +81,3 @@ private:
 
   void toggleMode_m(QWidget *mainWindow);
 };
-

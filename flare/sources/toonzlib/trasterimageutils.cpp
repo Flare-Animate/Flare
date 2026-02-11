@@ -1,7 +1,7 @@
 
 
-#include "flare/trasterimageutils.h"
-#include "flare/ttileset.h"
+#include "toonz/trasterimageutils.h"
+#include "toonz/ttileset.h"
 #include "tstroke.h"
 #include "tofflinegl.h"
 #include "tpalette.h"
@@ -238,7 +238,7 @@ TRasterImageP TRasterImageUtils::vectorToFullColorImage(
   TVectorImageP vi = vimage->clone();
   vi->transform(aff, transformThickness);
 
-  // Allocate the output flareImage
+  // Allocate the output ToonzImage
   TRaster32P raster(outputSize.lx, outputSize.ly);
   raster->clear();
   TRasterImageP ri(raster);
@@ -433,4 +433,3 @@ void TRasterImageUtils::addGlobalNumbering(const TRasterImageP &ri,
   p.drawText(2 * offset, ly - 2 * offset, globalNumberingString);
   p.end();
 }
-

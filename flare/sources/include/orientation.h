@@ -5,7 +5,7 @@
 
 #undef DVAPI
 #undef DVVAR
-#ifdef flareLIB_EXPORTS
+#ifdef TOONZLIB_EXPORTS
 #define DVAPI DV_EXPORT_API
 #define DVVAR DV_EXPORT_VAR
 #else
@@ -15,7 +15,7 @@
 
 #include "tcommon.h"
 #include "cellposition.h"
-#include "flare/cellpositionratio.h"
+#include "toonz/cellpositionratio.h"
 #include <QPoint>
 #include <QLine>
 #include <QRect>
@@ -315,4 +315,3 @@ public:
 };
 
 #endif
-

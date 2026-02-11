@@ -1,21 +1,21 @@
 
 
-#include "flareqt/fxhistogramrender.h"
-#include "flareqt/histogram.h"
+#include "toonzqt/fxhistogramrender.h"
+#include "toonzqt/histogram.h"
 #include "tsystem.h"
 #include "timagecache.h"
 #include "trasterfx.h"
 #include "trasterimage.h"
 #include "toutputproperties.h"
-#include "flare/txsheethandle.h"
-#include "flare/tfxhandle.h"
-#include "flare/tscenehandle.h"
-#include "flare/txshlevelhandle.h"
-#include "flare/flarescene.h"
-#include "flare/sceneproperties.h"
-#include "flare/scenefx.h"
-#include "flare/tcamera.h"
-#include "flare/txshlevel.h"
+#include "toonz/txsheethandle.h"
+#include "toonz/tfxhandle.h"
+#include "toonz/tscenehandle.h"
+#include "toonz/txshlevelhandle.h"
+#include "toonz/toonzscene.h"
+#include "toonz/sceneproperties.h"
+#include "toonz/scenefx.h"
+#include "toonz/tcamera.h"
+#include "toonz/txshlevel.h"
 
 #include <QMetaType>
 
@@ -69,7 +69,7 @@ FxHistogramRender::~FxHistogramRender() {
 
 //-----------------------------------------------------------------------------
 
-void FxHistogramRender::setScene(flareScene *scene) { m_scene = scene; }
+void FxHistogramRender::setScene(ToonzScene *scene) { m_scene = scene; }
 
 //-----------------------------------------------------------------------------
 
@@ -203,4 +203,3 @@ void FxHistogramRender::onRenderCompleted(const TRasterP &raster,
 
   m_histograms->setRaster(raster);
 }
-

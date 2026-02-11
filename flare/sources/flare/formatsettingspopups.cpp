@@ -7,10 +7,10 @@
 #include "dvwidgets.h"
 
 // TnzLib includes
-#include "flare/tscenehandle.h"
-#include "flare/sceneproperties.h"
-#include "flare/flarescene.h"
-#include "flare/tcamera.h"
+#include "toonz/tscenehandle.h"
+#include "toonz/sceneproperties.h"
+#include "toonz/toonzscene.h"
+#include "toonz/tcamera.h"
 #include "toutputproperties.h"
 
 #ifdef _WIN32
@@ -344,7 +344,7 @@ void FormatSettingsPopup::showEvent(QShowEvent *se) {
     assert(m_codecComboBox);
     m_codecComboBox->blockSignals(true);
     m_codecComboBox->clear();
-    flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
+    ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
     TEnumProperty *eProps =
         dynamic_cast<TEnumProperty *>(m_props->getProperty(0));
     assert(eProps);
@@ -438,4 +438,3 @@ bool openFormatSettingsPopup(QWidget *parent, const std::string &format,
 
   return true;
 }
-

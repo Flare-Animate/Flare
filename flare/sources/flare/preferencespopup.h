@@ -4,15 +4,15 @@
 #define PREFERENCESPOPUP_H
 
 // TnzQt includes
-#include "flareqt/dvdialog.h"
-#include "flareqt/intfield.h"
-#include "flareqt/doublefield.h"
-#include "flareqt/colorfield.h"
-#include "flareqt/checkbox.h"
-#include "flareqt/filefield.h"
+#include "toonzqt/dvdialog.h"
+#include "toonzqt/intfield.h"
+#include "toonzqt/doublefield.h"
+#include "toonzqt/colorfield.h"
+#include "toonzqt/checkbox.h"
+#include "toonzqt/filefield.h"
 
 // TnzLib includes
-#include "flare/preferences.h"
+#include "toonz/preferences.h"
 
 // Qt includes
 #include <QComboBox>
@@ -267,4 +267,3 @@ protected:
 };
 
 #endif  // PREFERENCESPOPUP_H
-

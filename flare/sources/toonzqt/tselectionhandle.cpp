@@ -1,7 +1,7 @@
 
 
-#include "flareqt/tselectionhandle.h"
-#include "flareqt/selection.h"
+#include "toonzqt/tselectionhandle.h"
+#include "toonzqt/selection.h"
 
 //=============================================================================
 // TSelectionHandle
@@ -95,4 +95,3 @@ TSelectionHandle *TSelectionHandle::getCurrent() {
   static TSelectionHandle _currentSelection;
   return &_currentSelection;
 }
-

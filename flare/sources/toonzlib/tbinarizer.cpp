@@ -1,6 +1,6 @@
 
 
-#include "flare/tbinarizer.h"
+#include "toonz/tbinarizer.h"
 #include "tpixelutils.h"
 
 namespace {
@@ -304,4 +304,3 @@ void TBinarizer::process(const TRaster32P &ras) {
     }
   }
 }
-

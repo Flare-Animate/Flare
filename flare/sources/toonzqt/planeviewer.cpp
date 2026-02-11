@@ -1,20 +1,20 @@
 
 
-#include "flareqt/planeviewer.h"
+#include "toonzqt/planeviewer.h"
 
 // TnzQt includes
-#include "flareqt/imageutils.h"
-#include "flareqt/menubarcommand.h"
-#include "flareqt/viewcommandids.h"
+#include "toonzqt/imageutils.h"
+#include "toonzqt/menubarcommand.h"
+#include "toonzqt/viewcommandids.h"
 
 #include "../flare/menubarcommandids.h"
 
 // TnzLib includes
-#include "flare/stage.h"
+#include "toonz/stage.h"
 
 // TnzCore includes
 #include "trasterimage.h"
-#include "tflareimage.h"
+#include "ttoonzimage.h"
 #include "tvectorimage.h"
 #include "trop.h"
 #include "tvectorrenderdata.h"
@@ -658,7 +658,7 @@ void PlaneViewer::draw(TRasterImageP ri) {
 
 //------------------------------------------------------
 
-void PlaneViewer::draw(TflareImageP ti) {
+void PlaneViewer::draw(TToonzImageP ti) {
   double dpiX, dpiY;
   ti->getDpi(dpiX, dpiY);
 
@@ -697,7 +697,7 @@ void PlaneViewer::draw(TImageP img) {
     }
   }
   {
-    TflareImageP ti(img);
+    TToonzImageP ti(img);
     if (ti) {
       draw(ti);
       return;
@@ -711,5 +711,4 @@ void PlaneViewer::draw(TImageP img) {
     }
   }
 }
-
 

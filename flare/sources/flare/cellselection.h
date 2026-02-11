@@ -3,7 +3,7 @@
 #ifndef TCELLSELECTION_H
 #define TCELLSELECTION_H
 
-#include "flareqt/selection.h"
+#include "toonzqt/selection.h"
 #include "tgeometry.h"
 #include <set>
 
@@ -74,7 +74,7 @@ public:
 
   bool areAllColSelectedLocked() const;
   bool areOnlyVectorCellsSelected();
-  TXshSimpleLevel *getNewflareRasterLevel(TXshSimpleLevel *sl);
+  TXshSimpleLevel *getNewToonzRasterLevel(TXshSimpleLevel *sl);
 
   // commands
   void reverseCells();
@@ -134,4 +134,3 @@ public:
 };
 
 #endif  // TCELLSELECTION_H
-

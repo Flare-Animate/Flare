@@ -1,24 +1,24 @@
 
 
-#include "flare/flareimageutils.h"
+#include "toonz/toonzimageutils.h"
 #include "tstroke.h"
 #include "tpalette.h"
 #include "tofflinegl.h"
 #include "tvectorrenderdata.h"
 #include "tvectorgl.h"
 #include "trop.h"
-#include "flare/ttileset.h"
-#include "flare/tcenterlinevectorizer.h"
+#include "toonz/ttileset.h"
+#include "toonz/tcenterlinevectorizer.h"
 #include "tregion.h"
 #include "trasterimage.h"
-#include "tflareimage.h"
+#include "ttoonzimage.h"
 #include "ttzpimagefx.h"
 #include "tlevel_io.h"
 #include "tsystem.h"
 #include "tstream.h"
 #include "tsimplecolorstyles.h"
 
-#include "flare/preferences.h"
+#include "toonz/preferences.h"
 
 //-------------------------------------------------------------------
 
@@ -70,7 +70,7 @@ TRect rasterizeStroke(TOfflineGL *&gl, TRect rasBounds, TStroke *stroke,
   else
     strokeBBox = offsetMatrix * strokeBBox;
 
-  TRect rect = flareImageUtils::convertWorldToRaster(strokeBBox, 0) * rasBounds;
+  TRect rect = ToonzImageUtils::convertWorldToRaster(strokeBBox, 0) * rasBounds;
   if (!rect.isEmpty()) {
     gl = new TOfflineGL(rect.getSize());
     gl->makeCurrent();
@@ -137,7 +137,7 @@ TRect rasterizeRegion(TOfflineGL *&gl, TRect rasBounds, TRegion *region,
 
 //-------------------------------------------------------------------
 
-void fastAddPaintRegion(const TflareImageP &ti, TRegion *region, int newPaintId,
+void fastAddPaintRegion(const TToonzImageP &ti, TRegion *region, int newPaintId,
                         int maxStyleId, TRectD clip = TRectD()) {
   TRasterCM32P ras = ti->getRaster();
   TOfflineGL *gl;
@@ -177,8 +177,8 @@ void fastAddPaintRegion(const TflareImageP &ti, TRegion *region, int newPaintId,
 
 //-------------------------------------------------------------------
 
-TRect flareImageUtils::convertWorldToRaster(const TRectD area,
-                                            const TflareImageP ti) {
+TRect ToonzImageUtils::convertWorldToRaster(const TRectD area,
+                                            const TToonzImageP ti) {
   if (area.isEmpty()) return TRect();
   if (!ti || !ti->getRaster())
     return TRect(tfloor(area.x0), tfloor(area.y0), tfloor(area.x1) - 1,
@@ -191,8 +191,8 @@ TRect flareImageUtils::convertWorldToRaster(const TRectD area,
 
 //-------------------------------------------------------------------
 
-TRectD flareImageUtils::convertRasterToWorld(const TRect area,
-                                             const TflareImageP ti) {
+TRectD ToonzImageUtils::convertRasterToWorld(const TRect area,
+                                             const TToonzImageP ti) {
   if (area.isEmpty()) return TRectD();
 
   TRectD rect(area.x0, area.y0, area.x1 + 1, area.y1 + 1);
@@ -207,7 +207,7 @@ TRectD flareImageUtils::convertRasterToWorld(const TRect area,
 // overlaying inks, blend inks always "lose" on normal inks
 
 static TRect fastAddInkStroke(
-    const TflareImageP &ti, TStroke *stroke, int inkId, bool selective,
+    const TToonzImageP &ti, TStroke *stroke, int inkId, bool selective,
     bool filled, TRectD clip, bool doAntialiasing = true,
     const std::set<int> &blendInks = std::set<int>()) {
   TRasterCM32P ras = ti->getRaster();
@@ -269,7 +269,7 @@ static TRect fastAddInkStroke(
 }
 
 // clip in coordinate world (cioe' della stroke)
-TRect flareImageUtils::addInkStroke(const TflareImageP &ti, TStroke *stroke,
+TRect ToonzImageUtils::addInkStroke(const TToonzImageP &ti, TStroke *stroke,
                                     int inkId, bool selective, bool filled,
                                     TRectD clip, bool doAntialiasing) {
   TStroke *s      = new TStroke(*stroke);
@@ -283,8 +283,8 @@ TRect flareImageUtils::addInkStroke(const TflareImageP &ti, TStroke *stroke,
 
 //-------------------------------------------------------------------
 
-TRect flareImageUtils::changeColorStroke(
-    const TflareImageP &ti, const ChangeColorStrokeSettings &settings) {
+TRect ToonzImageUtils::changeColorStroke(
+    const TToonzImageP &ti, const ChangeColorStrokeSettings &settings) {
   if (!settings.changeInk && !settings.changePaint) return TRect();
 
   TRasterCM32P ras = ti->getRaster();
@@ -319,7 +319,7 @@ TRect flareImageUtils::changeColorStroke(
 
 //-------------------------------------------------------------------
 
-TRect flareImageUtils::eraseRect(const TflareImageP &ti, const TRectD &area,
+TRect ToonzImageUtils::eraseRect(const TToonzImageP &ti, const TRectD &area,
                                  int maskId, bool onInk, bool onPaint) {
   assert(onInk || onPaint);
   TRasterCM32P ras = ti->getRaster();
@@ -345,7 +345,7 @@ TRect flareImageUtils::eraseRect(const TflareImageP &ti, const TRectD &area,
 
 //-------------------------------------------------------------------
 
-std::vector<TRect> flareImageUtils::paste(const TflareImageP &ti,
+std::vector<TRect> ToonzImageUtils::paste(const TToonzImageP &ti,
                                           const TTileSetCM32 *tileSet) {
   std::vector<TRect> rects;
   TRasterCM32P raster = ti->getRaster();
@@ -366,9 +366,9 @@ std::vector<TRect> flareImageUtils::paste(const TflareImageP &ti,
 // DA RIFARE
 // e' lenta da far schifo
 
-//! Converts a TVectorImage into a TflareImage. The input vector image
+//! Converts a TVectorImage into a TToonzImage. The input vector image
 //! is transformed through the passed affine \b aff, and put into a
-//! TflareImage strictly covering the bounding box of the transformed
+//! TToonzImage strictly covering the bounding box of the transformed
 //! vector image. The output image has its lower-left position in the
 //! world reference specified by the \b pos parameter, which is granted to
 //! be an integer displacement of the passed value. Additional parameters
@@ -376,7 +376,7 @@ std::vector<TRect> flareImageUtils::paste(const TflareImageP &ti,
 //! respect to the transformed image's bbox, and the bool \b transformThickness
 //! to specify whether the transformation should involve strokes' thickensses
 //! or not.
-TflareImageP flareImageUtils::vectorToflareImage(
+TToonzImageP ToonzImageUtils::vectorToToonzImage(
     const TVectorImageP &vimage, const TAffine &aff, TPalette *palette,
     const TPointD &outputPos, const TDimension &outputSize,
     const std::vector<TRasterFxRenderDataP> *fxs, bool transformThickness) {
@@ -386,10 +386,10 @@ TflareImageP flareImageUtils::vectorToflareImage(
   TVectorImageP vi = vimage->clone();
   vi->transform(aff, transformThickness);
 
-  // Allocate the output flareImage
+  // Allocate the output ToonzImage
   TRasterCM32P raster(outputSize.lx, outputSize.ly);
   raster->clear();
-  TflareImageP ti(raster, raster->getBounds());
+  TToonzImageP ti(raster, raster->getBounds());
   ti->setPalette(palette->clone());
 
   // Shift outputPos to the origin
@@ -476,7 +476,7 @@ TflareImageP flareImageUtils::vectorToflareImage(
 
 //-------------------------------------------------------------------
 
-TPalette *flareImageUtils::loadTzPalette(const TFilePath &pltFile) {
+TPalette *ToonzImageUtils::loadTzPalette(const TFilePath &pltFile) {
   TImageP pltImg;
   TImageReader loader(pltFile);
   pltImg = loader.load();
@@ -550,8 +550,8 @@ TPalette *flareImageUtils::loadTzPalette(const TFilePath &pltFile) {
 
 //-------------------------------------------------------------------
 
-void flareImageUtils::getUsedStyles(std::set<int> &styles,
-                                    const TflareImageP &ti) {
+void ToonzImageUtils::getUsedStyles(std::set<int> &styles,
+                                    const TToonzImageP &ti) {
   TRasterCM32P ras = ti->getRaster();
   if (!ras) return;
   int lx = ras->getLx();
@@ -569,7 +569,7 @@ void flareImageUtils::getUsedStyles(std::set<int> &styles,
   ras->unlock();
 }
 
-void flareImageUtils::scrambleStyles(const TflareImageP &ti,
+void ToonzImageUtils::scrambleStyles(const TToonzImageP &ti,
                                      std::map<int, int> styleTable) {
   TRasterCM32P ras = ti->getRaster();
   if (!ras) return;
@@ -612,7 +612,7 @@ void flareImageUtils::scrambleStyles(const TflareImageP &ti,
 
 #ifdef LEVO
 
-bool flareImageUtils::convertToTlv(const TFilePath &levelPathIn) {
+bool ToonzImageUtils::convertToTlv(const TFilePath &levelPathIn) {
   try {
     TFilePath levelPathOut = levelPathIn.getParentDir() +
                              TFilePath(levelPathIn.getWideName() + L".tlv");
@@ -637,7 +637,7 @@ bool flareImageUtils::convertToTlv(const TFilePath &levelPathIn) {
         TRop::convert(raster, img->getRaster());
 
         TImageWriterP iw = lw->getFrameWriter(it->first);
-        TflareImageP outimg(raster, raster->getBounds());
+        TToonzImageP outimg(raster, raster->getBounds());
         outimg->setDpi(dpix, dpiy);
         outimg->setPalette(plt);
         iw->save(outimg);
@@ -672,7 +672,7 @@ bool flareImageUtils::convertToTlv(const TFilePath &levelPathIn) {
 
 //----------------------------------------------------------------------------------
 
-void flareImageUtils::eraseImage(const TflareImageP &ti,
+void ToonzImageUtils::eraseImage(const TToonzImageP &ti,
                                  const TRaster32P &image, const TPoint &pos,
                                  bool invert, bool eraseInk, bool erasePaint,
                                  bool selective, int styleId) {
@@ -695,29 +695,29 @@ void flareImageUtils::eraseImage(const TflareImageP &ti,
     /*- ①の部分を消す -*/
     if (rasBounds.y0 != imageBounds.y0) {
       rect = TRect(imageBounds.x0, rasBounds.y0, rasBounds.x1, imageBounds.y0);
-      flareImageUtils::eraseRect(
-          ti, flareImageUtils::convertRasterToWorld(rect, ti),
+      ToonzImageUtils::eraseRect(
+          ti, ToonzImageUtils::convertRasterToWorld(rect, ti),
           selective ? styleId : -1, eraseInk, erasePaint);
     }
     /*- ②の部分を消す -*/
     if (imageBounds.x1 != rasBounds.x1) {
       rect = TRect(imageBounds.x1, imageBounds.y0, rasBounds.x1, rasBounds.y1);
-      flareImageUtils::eraseRect(
-          ti, flareImageUtils::convertRasterToWorld(rect, ti),
+      ToonzImageUtils::eraseRect(
+          ti, ToonzImageUtils::convertRasterToWorld(rect, ti),
           selective ? styleId : -1, eraseInk, erasePaint);
     }
     /*- ③の部分を消す -*/
     if (imageBounds.y1 != rasBounds.y1) {
       rect = TRect(rasBounds.x0, imageBounds.y1, imageBounds.x1, rasBounds.y1);
-      flareImageUtils::eraseRect(
-          ti, flareImageUtils::convertRasterToWorld(rect, ti),
+      ToonzImageUtils::eraseRect(
+          ti, ToonzImageUtils::convertRasterToWorld(rect, ti),
           selective ? styleId : -1, eraseInk, erasePaint);
     }
     /*- ④の部分を消す -*/
     if (rasBounds.x0 != imageBounds.x0) {
       rect = TRect(rasBounds.x0, rasBounds.y0, imageBounds.x0, imageBounds.y1);
-      flareImageUtils::eraseRect(
-          ti, flareImageUtils::convertRasterToWorld(rect, ti),
+      ToonzImageUtils::eraseRect(
+          ti, ToonzImageUtils::convertRasterToWorld(rect, ti),
           selective ? styleId : -1, eraseInk, erasePaint);
     }
   }
@@ -758,7 +758,7 @@ void flareImageUtils::eraseImage(const TflareImageP &ti,
 
 //-----------------------------------------------------------------------
 
-std::string flareImageUtils::premultiply(const TFilePath &levelPath) {
+std::string ToonzImageUtils::premultiply(const TFilePath &levelPath) {
   assert(0);
   /*
 if (levelPath==TFilePath())
@@ -858,4 +858,3 @@ delete prop;
 
   return "";
 }
-

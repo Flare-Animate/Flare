@@ -8,7 +8,7 @@
 #include "tfx.h"
 #include "tparam.h"
 #include "tpalette.h"
-#include "tflareimage.h"
+#include "ttoonzimage.h"
 #include "trasterimage.h"
 #include "tstroke.h"
 #include "tcolorstyles.h"
@@ -200,7 +200,7 @@ TFilePath getTestFile(string name) {
 #endif
   if (name == "verify_tnzcore")
     testFile = relativePath + TFilePath(name).withType("txt");
-  else if (name == "verify_flarelib")
+  else if (name == "verify_toonzlib")
     testFile = relativePath + TFilePath(name).withType("txt");
   else if (name == "verify_image")
     testFile = relativePath + TFilePath(name).withType("txt");
@@ -468,8 +468,8 @@ int areEqual(TImageP a, TImageP b, double err) {
   if ((!ra && rb) || (ra && !rb)) return false;
   if (ra && rb) return areEqual(ra->getRaster(), rb->getRaster(), err);
 
-  TflareImageP ta(a);
-  TflareImageP tb(b);
+  TToonzImageP ta(a);
+  TToonzImageP tb(b);
   if ((!ta && tb) || (ta && !tb)) return false;
   if (ta && tb) return areEqual(ta->getRaster(), tb->getRaster(), err);
 
@@ -515,4 +515,3 @@ bool areEqual(TLevelP la, TLevelP lb) {
   }
   return true;
 }
-

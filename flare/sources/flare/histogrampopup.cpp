@@ -9,16 +9,16 @@
 #include "sceneviewer.h"
 
 // TnzQt includes
-#include "flareqt/menubarcommand.h"
-#include "flareqt/combohistogram.h"
+#include "toonzqt/menubarcommand.h"
+#include "toonzqt/combohistogram.h"
 
 // TnzLib includes
-#include "flare/tframehandle.h"
+#include "toonz/tframehandle.h"
 
 // TnzCore includes
 #include "trasterimage.h"
 #include "tvectorimage.h"
-#include "tflareimage.h"
+#include "ttoonzimage.h"
 
 // Qt includes
 #include <QTimer>
@@ -62,7 +62,7 @@ void HistogramPopup::setTitle(QString title) { setWindowTitle(title); }
 void HistogramPopup::setImage(TImageP image) {
   TRasterImageP rimg = (TRasterImageP)image;
   TVectorImageP vimg = (TVectorImageP)image;
-  TflareImageP timg  = (TflareImageP)image;
+  TToonzImageP timg  = (TToonzImageP)image;
 
   TPaletteP palette;
 
@@ -202,4 +202,3 @@ void ViewerHistogramPopup::setCurrentRaster() {
 
 OpenPopupCommandHandler<ViewerHistogramPopup> openHistogramPopup(
     MI_ViewerHistogram);
-

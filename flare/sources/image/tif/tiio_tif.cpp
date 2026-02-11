@@ -14,7 +14,7 @@
 #include "tiio.h"
 #include "tpixel.h"
 #include "tsystem.h"
-#include "../tzp/flaretags.h"
+#include "../tzp/toonztags.h"
 #include "tconvert.h"
 #include "tpixelutils.h"
 #include "traster.h"
@@ -382,7 +382,7 @@ if(stripSize>0)
     USHORT risCount  = 0;
     USHORT *risArray = 0;
 
-    if (TIFFGetField(m_tiff, TIFFTAG_flareWINDOW, &risCount, &risArray)) {
+    if (TIFFGetField(m_tiff, TIFFTAG_TOONZWINDOW, &risCount, &risArray)) {
       if (m_info.m_lx == risArray[2] &&
           m_info.m_ly ==
               risArray[3])  // se sono diverse, la lettura tif crasha....
@@ -393,7 +393,7 @@ if(stripSize>0)
         m_info.m_y0 = risArray[1];
       }
       //      USHORT extraMask = risArray[4];
-      // bool isEduFile = risArray[flareWINDOW_COUNT - 1] & 1;
+      // bool isEduFile = risArray[TOONZWINDOW_COUNT - 1] & 1;
     } else {
       m_info.m_x0 = 0;
       m_info.m_y0 = 0;
@@ -1111,4 +1111,3 @@ Tiio::Writer *Tiio::makeTifWriter() {
 
   return new TifWriter();
 }
-

@@ -9,8 +9,8 @@ echo '   Copy tnzbase to Frameworks...'
 cp -RH $BINROOT/bin/libtnzbase.1.dylib $BINROOT/bin/Flare\ 7.1.app/Contents/Frameworks
 echo '   Copy tnzext to Frameworks...'
 cp -RH $BINROOT/bin/libtnzext.1.dylib $BINROOT/bin/Flare\ 7.1.app/Contents/Frameworks
-echo '   Copy flarelib to Frameworks...'
-cp -RH $BINROOT/bin/libflarelib.1.dylib $BINROOT/bin/Flare\ 7.1.app/Contents/Frameworks
+echo '   Copy toonzlib to Frameworks...'
+cp -RH $BINROOT/bin/libtoonzlib.1.dylib $BINROOT/bin/Flare\ 7.1.app/Contents/Frameworks
 echo '   Copy image to Frameworks...'
 cp -RH $BINROOT/bin/libimage.1.dylib $BINROOT/bin/Flare\ 7.1.app/Contents/Frameworks
 echo '   Copy sound to Frameworks...'
@@ -23,8 +23,8 @@ echo '   Copy tfarm to Frameworks...'
 cp -RH $BINROOT/bin/libtfarm.1.dylib $BINROOT/bin/Flare\ 7.1.app/Contents/Frameworks
 echo '   Copy tnztools to Frameworks...'
 cp -RH $BINROOT/bin/libtnztools.1.dylib $BINROOT/bin/Flare\ 7.1.app/Contents/Frameworks
-echo '   Copy flareqt to Frameworks...'
-cp -RH $BINROOT/bin/libflareqt.1.dylib $BINROOT/bin/Flare\ 7.1.app/Contents/Frameworks
+echo '   Copy toonzqt to Frameworks...'
+cp -RH $BINROOT/bin/libtoonzqt.1.dylib $BINROOT/bin/Flare\ 7.1.app/Contents/Frameworks
 
 echo '   Copy composer...'
 cp -RH $BINROOT/bin/tcomposer.app/Contents/MacOS/tcomposer $BINROOT/bin/Flare\ 7.1.app/Contents/MacOS/
@@ -84,4 +84,3 @@ cp ./configfarmroot.txt $BINROOT/bin/Flare\ 7.1.app/Contents/Resources/
 chmod 777 $BINROOT/bin/Flare\ 7.1.app/Contents/Resources/configfarmroot.txt
 echo '   Copy qt_menu.nib...'
 cp -R /Library/Frameworks/QtGui.framework/Versions/Current/Resources/qt_menu.nib $BINROOT/bin/Flare\ 7.1.app/Contents/Resources/
-

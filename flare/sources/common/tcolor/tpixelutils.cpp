@@ -2,7 +2,7 @@
 
 #include "tpixelutils.h"
 
-// /*!This method is used to produce current palette colors for cm24 flare
+// /*!This method is used to produce current palette colors for cm24 Toonz
 // images.*/
 //  static inline TPixelRGBM32 combine(const TPixelRGBM32 &a, const TPixelRGBM32
 //  &b) {
@@ -454,7 +454,7 @@ TPixelGR8 toLinear(const TPixelGR8 &pix, const double gamma) {
 #ifdef CICCIO
 
 //-----------------------------------------------------------------------------
-/*!flare color-map, 16 bits 7+5+4 bits (paint, ink, tone)*/
+/*!toonz color-map, 16 bits 7+5+4 bits (paint, ink, tone)*/
 class DVAPI TPixelCM16 {  // 754
   static const int maxChannelValue;
 
@@ -489,7 +489,7 @@ public:
 };
 
 //-----------------------------------------------------------------------------
-/*cmapped, 16 bits, standard SGI+flare 4096-color colormap */
+/*cmapped, 16 bits, standard SGI+Toonz 4096-color colormap */
 class DVAPI TPixelCM16S12 {
   static const int maxChannelValue;
 
@@ -499,7 +499,7 @@ public:
 };
 
 //-----------------------------------------------------------------------------
-/*!flare color-map, 8+8+8 bits (col, pen, tone) + 8 msb bits extra*/
+/*!Toonz color-map, 8+8+8 bits (col, pen, tone) + 8 msb bits extra*/
 class DVAPI TPixelCM24 {
   static const int maxChannelValue;
 
@@ -533,7 +533,7 @@ public:
 };
 //-----------------------------------------------------------------------------
 
-//! flare5.0 color-map, 12+12+8 bits (ink,paint,tone)
+//! Toonz5.0 color-map, 12+12+8 bits (ink,paint,tone)
 class DVAPI TPixelCM32 {
 public:
   TUINT32 m_value;
@@ -723,4 +723,3 @@ byteFromUshort(m));
 
 //-----------------------------------------------------------------------------
 #endif
-

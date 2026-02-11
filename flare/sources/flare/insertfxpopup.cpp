@@ -7,29 +7,29 @@
 #include "tapp.h"
 
 // TnzQt includes
-#include "flareqt/menubarcommand.h"
-#include "flareqt/gutil.h"
-#include "flareqt/fxselection.h"
-#include "flareqt/tselectionhandle.h"
-#include "flareqt/pluginloader.h"  // inter-module plugin loader accessor
+#include "toonzqt/menubarcommand.h"
+#include "toonzqt/gutil.h"
+#include "toonzqt/fxselection.h"
+#include "toonzqt/tselectionhandle.h"
+#include "toonzqt/pluginloader.h"  // inter-module plugin loader accessor
 
 // TnzLib includes
-#include "flare/tscenehandle.h"
-#include "flare/txsheethandle.h"
-#include "flare/tframehandle.h"
-#include "flare/tcolumnhandle.h"
-#include "flare/tfxhandle.h"
-#include "flare/flarescene.h"
-#include "flare/txsheet.h"
-#include "flare/fxdag.h"
-#include "flare/tcolumnfx.h"
-#include "flare/txshlevelcolumn.h"
-#include "flare/tcolumnfxset.h"
-#include "flare/tstageobjecttree.h"
-#include "flare/txshzeraryfxcolumn.h"
-#include "flare/flarefolders.h"
-#include "flare/scenefx.h"
-#include "flare/fxcommand.h"
+#include "toonz/tscenehandle.h"
+#include "toonz/txsheethandle.h"
+#include "toonz/tframehandle.h"
+#include "toonz/tcolumnhandle.h"
+#include "toonz/tfxhandle.h"
+#include "toonz/toonzscene.h"
+#include "toonz/txsheet.h"
+#include "toonz/fxdag.h"
+#include "toonz/tcolumnfx.h"
+#include "toonz/txshlevelcolumn.h"
+#include "toonz/tcolumnfxset.h"
+#include "toonz/tstageobjecttree.h"
+#include "toonz/txshzeraryfxcolumn.h"
+#include "toonz/toonzfolders.h"
+#include "toonz/scenefx.h"
+#include "toonz/fxcommand.h"
 
 #include "tw/stringtable.h"
 
@@ -244,9 +244,9 @@ InsertFxPopup::InsertFxPopup()
 
   QList<QTreeWidgetItem *> fxItems;
 
-  TFilePath path = TFilePath(flareFolder::getProfileFolder() + "layouts" +
+  TFilePath path = TFilePath(ToonzFolder::getProfileFolder() + "layouts" +
                              "fxs" + "fxs.lst");
-  m_presetFolder = TFilePath(flareFolder::getFxPresetFolder() + "presets");
+  m_presetFolder = TFilePath(ToonzFolder::getFxPresetFolder() + "presets");
   loadFx(path);
   loadMacro();
 
@@ -496,7 +496,7 @@ void InsertFxPopup::onReplace() {
 
 TFx *InsertFxPopup::createFx() {
   TApp *app         = TApp::instance();
-  flareScene *scene = app->getCurrentScene()->getScene();
+  ToonzScene *scene = app->getCurrentScene()->getScene();
   TXsheet *xsh      = scene->getXsheet();
 
   QTreeWidgetItem *item = m_fxTree->currentItem();
@@ -635,4 +635,3 @@ void InsertFxPopup::removePreset() {
 //=============================================================================
 
 OpenPopupCommandHandler<InsertFxPopup> openInsertFxPopup(MI_InsertFx);
-

@@ -434,25 +434,25 @@ else()
 endif()
 
 if(WITH_TRANSLATION)
-    add_translation(flare ${HEADERS} ${SOURCES})
+    add_translation(toonz ${HEADERS} ${SOURCES})
 endif()
 
 set(OBJCSOURCES filebrowsermodel.cpp)
 
 # Resource file(s)
-set(RESOURCES flare.qrc)
+set(RESOURCES toonz.qrc)
 
 if(BUILD_ENV_MSVC)
-    set(RC_FILE flare.rc)
+    set(RC_FILE toonz.rc)
 
-    # Generate a fallback 'flare.ico' in-source by copying the existing flare.ico
+    # Generate a fallback 'flare.ico' in-source by copying the existing toonz.ico
     # when a packager hasn't yet supplied a Flare icon. This prevents breakage
     # when the sources reference 'flare.ico' in packaging scripts.
-    if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/flare.ico" AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/flare.ico")
+    if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/flare.ico" AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/toonz.ico")
         add_custom_command(
             OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/flare.ico"
-            COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/flare.ico" "${CMAKE_CURRENT_SOURCE_DIR}/flare.ico"
-            COMMENT "Generating fallback flare.ico from flare.ico"
+            COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/toonz.ico" "${CMAKE_CURRENT_SOURCE_DIR}/flare.ico"
+            COMMENT "Generating fallback flare.ico from toonz.ico"
             VERBATIM
         )
         add_custom_target(gen_flare_icon ALL DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/flare.ico")
@@ -474,7 +474,7 @@ elseif(BUILD_ENV_APPLE)
     set(MACOSX_BUNDLE_ICON_FILE "Flare.icns")
     set_source_files_properties(Flare.icns PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
     add_executable(Flare MACOSX_BUNDLE Flare.icns ${HEADERS} ${SOURCES} ${OBJCSOURCES} ${RESOURCES})
-    add_dependencies(Flare tnzcore tnzbase flarelib colorfx tnzext image sound flareqt tnztools tnzstdfx tfarm)
+    add_dependencies(Flare tnzcore tnzbase toonzlib colorfx tnzext image sound toonzqt tnztools tnzstdfx tfarm)
     #add_definitions(
     #    -DTNZBASE_EXPORTS
     #    -DTPARAM_EXPORTS
@@ -486,7 +486,7 @@ elseif(BUILD_ENV_APPLE)
 else()
     # Linux/UNIXLIKE
     add_executable(Flare ${HEADERS} ${SOURCES} ${OBJCSOURCES} ${RESOURCES})
-    add_dependencies(Flare tnzcore tnzbase flarelib colorfx tnzext image sound flareqt tnztools tnzstdfx tfarm)
+    add_dependencies(Flare tnzcore tnzbase toonzlib colorfx tnzext image sound toonzqt tnztools tnzstdfx tfarm)
 endif()
 
 if(BUILD_TARGET_WIN)
@@ -496,15 +496,15 @@ if(BUILD_TARGET_WIN)
     )
 endif()
 
-message("subdir: flare")
+message("subdir: toonz")
 message("Bin: " ${CMAKE_CURRENT_BINARY_DIR})
 #message("Lib: " ${LIBRARY_OUTPUT_PATH})
 #message("Exe: " ${EXECUTABLE_OUTPUT_PATH})
 #message("Sources:" ${SOURCES})
 
 include_directories(
-    ../../sources/flarefarm/include
-    ../../sources/flareqt
+    ../../sources/toonzfarm/include
+    ../../sources/toonzqt
     ../../sources/stopmotion
 )
 
@@ -548,12 +548,12 @@ if(BUILD_ENV_MSVC)
         Qt5::Script Qt5::Widgets Qt5::PrintSupport Qt5::Multimedia Qt5::UiTools
         ${GL_LIB} ${GLUT_LIB}
         ${EXTRA_LIBS} strmiids
-        tnzcore tnzbase flarelib colorfx tnzext image sound flareqt tnztools tnzstdfx tfarm
+        tnzcore tnzbase toonzlib colorfx tnzext image sound toonzqt tnztools tnzstdfx tfarm
     )
 elseif(BUILD_ENV_APPLE)
     find_library(COCOA_LIB Cocoa)
 
-    _find_flare_library(EXTRA_LIBS "tnzcore;tnzbase;flarelib;colorfx;tnzext;image;sound;flareqt;tnztools")
+    _find_toonz_library(EXTRA_LIBS "tnzcore;tnzbase;toonzlib;colorfx;tnzext;image;sound;toonzqt;tnztools")
 
     # 変なところにライブラリ生成するカスども
     set(EXTRA_LIBS ${EXTRA_LIBS} "$<TARGET_FILE:tnzstdfx>" "$<TARGET_FILE:tfarm>")
@@ -573,7 +573,7 @@ elseif(BUILD_ENV_APPLE)
     )
 
     # ADDED/UPDATED: Expanded dependencies for all libs and utilities (ensures build order)
-    add_dependencies(Flare tnzcore tnzbase flarelib colorfx tnzext image sound flareqt tnztools tnzstdfx tfarm tcomposer tcleanup tconverter tfarmcontroller tfarmserver)
+    add_dependencies(Flare tnzcore tnzbase toonzlib colorfx tnzext image sound toonzqt tnztools tnzstdfx tfarm tcomposer tcleanup tconverter tfarmcontroller tfarmserver)
 
     # ADDED/UPDATED: Configure Info.plist for bundle (retina support etc.)
     set_target_properties(Flare PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${CMAKE_SOURCE_DIR}/../cmake/BundleInfo.plist.in)
@@ -586,7 +586,7 @@ elseif(BUILD_ENV_APPLE)
     )
 
 elseif(BUILD_ENV_UNIXLIKE)
-    _find_flare_library(EXTRA_LIBS "tnzcore;tnzbase;flarelib;colorfx;tnzext;image;sound;flareqt;tnztools")
+    _find_toonz_library(EXTRA_LIBS "tnzcore;tnzbase;toonzlib;colorfx;tnzext;image;sound;toonzqt;tnztools")
 
     # 変なところにライブラリ生成するカスども
     set(EXTRA_LIBS ${EXTRA_LIBS} "$<TARGET_FILE:tnzstdfx>" "$<TARGET_FILE:tfarm>")
@@ -713,12 +713,12 @@ if(BUILD_ENV_UNIXLIKE AND BUILD_TARGET_WIN)
         FILES
             "$<TARGET_FILE:tnzcore>"
             "$<TARGET_FILE:tnzbase>"
-            "$<TARGET_FILE:flarelib>"
+            "$<TARGET_FILE:toonzlib>"
             "$<TARGET_FILE:colorfx>"
             "$<TARGET_FILE:tnzext>"
             "$<TARGET_FILE:image>"
             "$<TARGET_FILE:sound>"
-            "$<TARGET_FILE:flareqt>"
+            "$<TARGET_FILE:toonzqt>"
             "$<TARGET_FILE:tnztools>"
             "$<TARGET_FILE:tnzstdfx>"
             "$<TARGET_FILE:tfarm>"
@@ -771,14 +771,14 @@ if [ ! -e \$HOME/.config/Flare/SystemVar.ini ]; then
 [General]
 FLAREROOT=\"\$HOME/.config/Flare/stuff\"
 FlarePROFILES=\"\$HOME/.config/Flare/stuff/profiles\"
-flareCACHEROOT=\"\$HOME/.config/Flare/stuff/cache\"
-flareCONFIG=\"\$HOME/.config/Flare/stuff/config\"
-flareFXPRESETS=\"\$HOME/.config/Flare/stuff/fxs\"
-flareLIBRARY=\"\$HOME/.config/Flare/stuff/library\"
-flarePROFILES=\"\$HOME/.config/Flare/stuff/profiles\"
-flarePROJECTS=\"\$HOME/.config/Flare/stuff/projects\"
-flareROOT=\"\$HOME/.config/Flare/stuff\"
-flareSTUDIOPALETTE=\"\$HOME/.config/Flare/stuff/studiopalette\"
+TOONZCACHEROOT=\"\$HOME/.config/Flare/stuff/cache\"
+TOONZCONFIG=\"\$HOME/.config/Flare/stuff/config\"
+TOONZFXPRESETS=\"\$HOME/.config/Flare/stuff/fxs\"
+TOONZLIBRARY=\"\$HOME/.config/Flare/stuff/library\"
+TOONZPROFILES=\"\$HOME/.config/Flare/stuff/profiles\"
+TOONZPROJECTS=\"\$HOME/.config/Flare/stuff/projects\"
+TOONZROOT=\"\$HOME/.config/Flare/stuff\"
+TOONZSTUDIOPALETTE=\"\$HOME/.config/Flare/stuff/studiopalette\"
 EOF
 fi
 
@@ -813,12 +813,12 @@ exec \$FLARE_BASE/bin/Flare \"\$@\"
         FILES
             "$<TARGET_FILE:tnzcore>"
             "$<TARGET_FILE:tnzbase>"
-            "$<TARGET_FILE:flarelib>"
+            "$<TARGET_FILE:toonzlib>"
             "$<TARGET_FILE:colorfx>"
             "$<TARGET_FILE:tnzext>"
             "$<TARGET_FILE:image>"
             "$<TARGET_FILE:sound>"
-            "$<TARGET_FILE:flareqt>"
+            "$<TARGET_FILE:toonzqt>"
             "$<TARGET_FILE:tnztools>"
             "$<TARGET_FILE:tnzstdfx>"
             "$<TARGET_FILE:tfarm>"

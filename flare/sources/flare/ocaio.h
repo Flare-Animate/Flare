@@ -2,10 +2,10 @@
 #ifndef OCAIO_H
 #define OCAIO_H
 
-#include "flareqt/dvdialog.h"
+#include "toonzqt/dvdialog.h"
 #include "tfilepath.h"
-#include "flare/txshlevelhandle.h"
-#include "flareqt/menubarcommand.h"
+#include "toonz/txshlevelhandle.h"
+#include "toonzqt/menubarcommand.h"
 
 #include <QString>
 #include <QList>
@@ -15,7 +15,7 @@
 #include <QJsonObject>
 #include <QJsonArray>
 
-class flareScene;
+class ToonzScene;
 class TXshCellColumn;
 class TXsheet;
 class TXshSimpleLevel;
@@ -63,7 +63,7 @@ public:
                   TXshCellColumn *column);
 
   void setProgressDialog(DVGui::ProgressDialog *dialog);
-  void build(flareScene *scene, TXsheet *xsheet, QString name, QString path,
+  void build(ToonzScene *scene, TXsheet *xsheet, QString name, QString path,
              bool useEXR, bool vectorAsSVG, bool exportReferences);
   bool isEmpty() { return m_layers.isEmpty(); }
 };
@@ -74,8 +74,8 @@ class OCAInputData : public OCAData {
   QString m_originApp;
   QString m_originAppVersion;
   QString m_ocaVersion;
-  // flare objects
-  flareScene *m_scene;
+  // toonz objects
+  ToonzScene *m_scene;
   TXsheet *m_xsheet;
   TOutputProperties *m_oprop;
   TFilePath m_parentDir;
@@ -106,4 +106,3 @@ public:
 };
 
 #endif
-

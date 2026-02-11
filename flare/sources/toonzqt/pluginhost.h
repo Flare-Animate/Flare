@@ -1,7 +1,7 @@
 #pragma once
 
-#ifndef flare_STDFX_PLUGIN_HOST_H__
-#define flare_STDFX_PLUGIN_HOST_H__
+#ifndef TOONZ_STDFX_PLUGIN_HOST_H__
+#define TOONZ_STDFX_PLUGIN_HOST_H__
 #include <QThread>
 #include <string>
 #include <memory>
@@ -9,11 +9,11 @@
 #if defined(_WIN32) || defined(_CYGWIN_)
 #include <windows.h>
 #endif
-#include "flare_plugin.h"
-#include "flare_hostif.h"
+#include "toonz_plugin.h"
+#include "toonz_hostif.h"
 
 /*
-namespace flare {
+namespace toonz {
         struct nodal_rasterfx_handler_t;
         struct host_interface_t;
         struct plugin_probe_t;
@@ -30,15 +30,15 @@ public:
   std::string url_;
   std::string fullname_;
   int clss_;
-  flare_plugin_version_t plugin_ver_;
+  toonz_plugin_version_t plugin_ver_;
 
 public:
-  PluginDescription(const flare::plugin_probe_t *const probe);
+  PluginDescription(const toonz::plugin_probe_t *const probe);
 
-  /* 'geometric' is known as 'Zerary' on flare. we avoid using the word because
+  /* 'geometric' is known as 'Zerary' on toonz. we avoid using the word because
    * nobody did not understand a meaning of the word */
   bool is_geometric() const {
-    return clss_ & flare_PLUGIN_CLASS_MODIFIER_GEOMETRIC;
+    return clss_ & TOONZ_PLUGIN_CLASS_MODIFIER_GEOMETRIC;
   }
 };
 
@@ -82,13 +82,13 @@ public:
 
   library_t library_;
 
-  flare::nodal_rasterfx_handler_t *handler_;
-  flare::host_interface_t *host_;
-  int (*ini_)(flare::host_interface_t *);
+  toonz::nodal_rasterfx_handler_t *handler_;
+  toonz::host_interface_t *host_;
+  int (*ini_)(toonz::host_interface_t *);
   void (*fin_)(void);
   int ref_count_;
   int param_page_num_;
-  std::unique_ptr<flare_param_page_t[]> param_pages_;
+  std::unique_ptr<toonz_param_page_t[]> param_pages_;
 
   std::vector<UIPage *> ui_pages_;
   std::vector<ParamView *> param_views_;
@@ -188,12 +188,12 @@ public:
   std::string getUrl() const;
 
   // setup
-  bool setParamStructure(int n, flare_param_page_t *descs, int &err,
+  bool setParamStructure(int n, toonz_param_page_t *descs, int &err,
                          void *&pos);
   bool addPortDesc(port_description_t &&);
 
-  Param *createParam(const flare_param_desc_t *);
-  Param *createParam(const char *name, flare_param_type_enum e);
+  Param *createParam(const toonz_param_desc_t *);
+  Param *createParam(const char *name, toonz_param_type_enum e);
   Param *getParam(const char *name) const;
   ParamView *createParamView();
 
@@ -215,4 +215,3 @@ public:
 };
 
 #endif
-

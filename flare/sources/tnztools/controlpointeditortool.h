@@ -3,13 +3,13 @@
 #ifndef CONTROLPOINTEDITORTOOL_H
 #define CONTROLPOINTEDITORTOOL_H
 
-#include "flareqt/selection.h"
+#include "toonzqt/selection.h"
 #include "tool.h"
 #include "tstroke.h"
 #include "tcurves.h"
 #include "tproperty.h"
 #include "controlpointselection.h"
-#include "flare/strokegenerator.h"
+#include "toonz/strokegenerator.h"
 
 // For Qt translation support
 #include <QCoreApplication>
@@ -139,4 +139,3 @@ public:
 };
 
 #endif  // CONTROLPOINTEDITORTOOL_H
-

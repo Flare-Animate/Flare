@@ -19,7 +19,7 @@
 #include "tiio_jpg_util.h"
 #include "zlib.h"
 //#include "trop.h"
-#include "tflareimage.h"
+#include "ttoonzimage.h"
 #include "tconvert.h"
 #include "timage_io.h"
 #include "tsystem.h"
