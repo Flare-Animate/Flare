@@ -1,13 +1,13 @@
 
 
 #include "geometrictool.h"
-#include "toonz/tpalettehandle.h"
+#include "flare/tpalettehandle.h"
 #include "tools/toolhandle.h"
 #include "tools/toolcommandids.h"
-#include "toonz/tobjecthandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/tframehandle.h"
+#include "flare/tobjecthandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/tframehandle.h"
 #include "tools/tool.h"
 #include "tcolorstyles.h"
 #include "tpalette.h"
@@ -16,30 +16,30 @@
 #include "tmathutil.h"
 #include "tools/cursors.h"
 #include "tproperty.h"
-#include "ttoonzimage.h"
+#include "tflareimage.h"
 #include "drawutil.h"
 #include "tvectorimage.h"
 #include "tenv.h"
 #include "bluredbrush.h"
-#include "toonz/ttileset.h"
-#include "toonz/toonzimageutils.h"
-#include "toonz/tstageobject.h"
-#include "toonz/tstageobjectspline.h"
-#include "toonzqt/imageutils.h"
-#include "toonzqt/dvdialog.h"
-#include "toonz/trasterimageutils.h"
-#include "toonz/preferences.h"
+#include "flare/ttileset.h"
+#include "flare/flareimageutils.h"
+#include "flare/tstageobject.h"
+#include "flare/tstageobjectspline.h"
+#include "flareqt/imageutils.h"
+#include "flareqt/dvdialog.h"
+#include "flare/trasterimageutils.h"
+#include "flare/preferences.h"
 #include "historytypes.h"
-#include "toonzvectorbrushtool.h"
+#include "flarevectorbrushtool.h"
 #include "tcurveutil.h"
 #include "tpixelutils.h"
-#include "toonz/mypaintbrushstyle.h"
-#include "toonz/ttilesaver.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/toonzscene.h"
-#include "toonz/tcamera.h"
-#include "toonz/stage.h"
-#include "toonz/tlog.h"
+#include "flare/mypaintbrushstyle.h"
+#include "flare/ttilesaver.h"
+#include "flare/tscenehandle.h"
+#include "flare/flarescene.h"
+#include "flare/tcamera.h"
+#include "flare/stage.h"
+#include "flare/tlog.h"
 // For Qt translation support
 #include <QCoreApplication>
 #include <QKeyEvent>
@@ -151,7 +151,7 @@ public:
     static int counter = 0;
     m_id = QString("CMappedMyPaintGeometryUndo") + QString::number(counter++);
     TImageCache::instance()->add(m_id.toStdString(),
-                                 TToonzImageP(ras, TRect(ras->getSize())));
+                                 TflareImageP(ras, TRect(ras->getSize())));
   }
 
   ~CMappedMyPaintGeometryUndo() { TImageCache::instance()->remove(m_id); }
@@ -159,12 +159,12 @@ public:
   void redo() const override {
     insertLevelAndFrameIfNeeded();
 
-    TToonzImageP image = getImage();
+    TflareImageP image = getImage();
     TRasterCM32P ras   = image->getRaster();
 
     TImageP srcImg =
         TImageCache::instance()->get(m_id.toStdString(), false)->cloneImage();
-    TToonzImageP tSrcImg = srcImg;
+    TflareImageP tSrcImg = srcImg;
     assert(tSrcImg);
     ras->copy(tSrcImg->getRaster(), m_offset);
     ToolUtils::updateSaveBox();
@@ -256,7 +256,7 @@ static TRect drawBluredBrush(const TRasterImageP &ri, TStroke *stroke,
 
 //-----------------------------------------------------------------------------
 
-static TRect drawBluredBrush(const TToonzImageP &ti, TStroke *stroke, int thick,
+static TRect drawBluredBrush(const TflareImageP &ti, TStroke *stroke, int thick,
                              double hardness, bool selective) {
   TStroke *s       = new TStroke(*stroke);
   TPointD riCenter = ti->getRaster()->getCenterD();
@@ -461,7 +461,7 @@ public:
 
   void redo() const override {
     insertLevelAndFrameIfNeeded();
-    TToonzImageP ti = getImage();
+    TflareImageP ti = getImage();
     if (!ti) return;
     drawBluredBrush(ti, m_stroke, m_thickness, m_hardness, m_selective);
     TTool::getApplication()->getCurrentXsheet()->notifyXsheetChanged();
@@ -498,7 +498,7 @@ PrimitiveParam::PrimitiveParam(int targetType)
     , m_modifierOpacity("ModifierOpacity", 0, 100, 100, true)
     , m_targetType(targetType) {
   if (targetType & TTool::Vectors) m_prop[0].bind(m_toolSize);
-  if (targetType & TTool::ToonzImage || targetType & TTool::RasterImage) {
+  if (targetType & TTool::flareImage || targetType & TTool::RasterImage) {
     m_prop[0].bind(m_rasterToolSize);
     m_prop[0].bind(m_hardness);
     m_prop[0].bind(m_modifierSize);
@@ -522,7 +522,7 @@ PrimitiveParam::PrimitiveParam(int targetType)
     m_snapSensitivity.addValue(HIGH_WSTR);
     m_snapSensitivity.setId("SnapSensitivity");
   }
-  if (targetType & TTool::ToonzImage) {
+  if (targetType & TTool::flareImage) {
     m_prop[0].bind(m_emptyOnly);
     m_prop[0].bind(m_pencil);
     m_pencil.setId("PencilMode");
@@ -1075,7 +1075,7 @@ GeometricTool::GeometricTool(int targetType)
     , m_tileSaver(nullptr)
     , m_tileSaverCM(nullptr) {
   bind(targetType);
-  if ((targetType & TTool::RasterImage) || (targetType & TTool::ToonzImage)) {
+  if ((targetType & TTool::RasterImage) || (targetType & TTool::flareImage)) {
     addPrimitive(new RectanglePrimitive(&m_param, this, true));
     addPrimitive(new CirclePrimitive(&m_param, this, true));
     addPrimitive(new EllipsePrimitive(&m_param, this, true));
@@ -1199,7 +1199,7 @@ void GeometricTool::onImageChanged() {
 
 //--------------------------------------------------------------------------------------------------
 void GeometricTool::onColorStyleChanged() {
-  if (m_param.m_targetType & TTool::ToonzImage ||
+  if (m_param.m_targetType & TTool::flareImage ||
       m_param.m_targetType & TTool::RasterImage)
     getApplication()->getCurrentTool()->notifyToolChanged();
 }
@@ -1313,7 +1313,7 @@ void GeometricTool::onActivate() {
       }
     }
 
-    if (m_param.m_targetType & TTool::ToonzImage ||
+    if (m_param.m_targetType & TTool::flareImage ||
         m_param.m_targetType & TTool::RasterImage)
       m_notifier = new FullColorGeometricToolNotifier(this);
   }
@@ -1371,7 +1371,7 @@ bool GeometricTool::onPropertyChanged(std::string propertyName) {
           distinguish by whether the image being handled is raster or not ---*/
   if (propertyName == m_param.m_toolSize.getName()) {
     TImageP img = getImage(false);
-    TToonzImageP ri(img); /*-- Judgment of whether it is raster or not --*/
+    TflareImageP ri(img); /*-- Judgment of whether it is raster or not --*/
     if (ri)
       GeometricRasterSize = m_param.m_rasterToolSize.getValue();
     else
@@ -1446,7 +1446,7 @@ bool GeometricTool::onPropertyChanged(std::string propertyName) {
 }
 
 //--------------------------------------------------------------------------------------------------
-void GeometricTool::addRasterMyPaintStroke(const TToonzImageP &ti,
+void GeometricTool::addRasterMyPaintStroke(const TflareImageP &ti,
                                            TStroke *stroke, TXshSimpleLevel *sl,
                                            const TFrameId &id) {
   if (!stroke || stroke->getChunkCount() == 0) {
@@ -1495,25 +1495,25 @@ void GeometricTool::addRasterMyPaintStroke(const TToonzImageP &ti,
   // Draw
   m_workRaster = TRaster32P(dim);
   m_workRaster->lock();
-  MyPaintToonzBrush toonz_brush(m_workRaster, *this, mypaintBrush, true);
+  MyPaintflareBrush flare_brush(m_workRaster, *this, mypaintBrush, true);
   m_lastRect.empty();
   m_strokeRect.empty();
-  toonz_brush.beginStroke();
+  flare_brush.beginStroke();
 
   for (int i = 0; i < stroke->getChunkCount(); i++) {
     const TThickQuadratic *q = stroke->getChunk(i);
     double step              = computeStep(*q, getPixelSize());
     for (double t = 0; t < 1; t += step)
-      toonz_brush.strokeTo(q->getPoint(t), 0.5, TPointD(), 1.0);
-    toonz_brush.strokeTo(q->getP2(), 0.5, TPointD(), 1.0);
+      flare_brush.strokeTo(q->getPoint(t), 0.5, TPointD(), 1.0);
+    flare_brush.strokeTo(q->getP2(), 0.5, TPointD(), 1.0);
   }
 
-  toonz_brush.endStroke();
+  flare_brush.endStroke();
 
   if (!m_strokeRect.isEmpty()) {
     TRasterCM32P bkupRas(dim);
     bkupRas->extract(m_strokeRect)->copy(ras->extract(m_strokeRect));
-    toonz_brush.updateDrawing(ras, bkupRas, m_strokeRect, stroke->getStyle(),
+    flare_brush.updateDrawing(ras, bkupRas, m_strokeRect, stroke->getStyle(),
                               false);
   }
 
@@ -1588,20 +1588,20 @@ void GeometricTool::addFullColorMyPaintStroke(const TRasterImageP &ri,
   // Draw
   m_workRaster = TRaster32P(dim);
   m_workRaster->lock();
-  MyPaintToonzBrush toonz_brush(m_workRaster, *this, mypaintBrush, true);
+  MyPaintflareBrush flare_brush(m_workRaster, *this, mypaintBrush, true);
   m_lastRect.empty();
   m_strokeRect.empty();
-  toonz_brush.beginStroke();
+  flare_brush.beginStroke();
 
   for (int i = 0; i < stroke->getChunkCount(); i++) {
     const TThickQuadratic *q = stroke->getChunk(i);
     double step              = computeStep(*q, getPixelSize());
     for (double t = 0; t < 1; t += step)
-      toonz_brush.strokeTo(q->getPoint(t), 0.5, TPointD(), 1.0);
-    toonz_brush.strokeTo(q->getP2(), 0.5, TPointD(), 1.0);
+      flare_brush.strokeTo(q->getPoint(t), 0.5, TPointD(), 1.0);
+    flare_brush.strokeTo(q->getP2(), 0.5, TPointD(), 1.0);
   }
 
-  toonz_brush.endStroke();
+  flare_brush.endStroke();
 
   if (!m_strokeRect.isEmpty()) {
     ras->extract(m_strokeRect)->copy(m_workRaster->extract(m_strokeRect));
@@ -1671,13 +1671,13 @@ void GeometricTool::addStroke() {
   options.m_miterUpper             = m_param.m_miterJoinLimit.getValue();
 
   TImage *image = getImage(true);
-  TToonzImageP ti(image);
+  TflareImageP ti(image);
   TVectorImageP vi(image);
   TRasterImageP ri(image);
   TXshSimpleLevel *sl =
       TTool::getApplication()->getCurrentLevel()->getSimpleLevel();
   TFrameId id = getCurrentFid();
-  /*-- ToonzImage case --*/
+  /*-- flareImage case --*/
   if (ti) {
     int styleId    = TTool::getApplication()->getCurrentLevelStyleIndex();
     bool selective = m_param.m_emptyOnly.getValue();
@@ -1695,7 +1695,7 @@ void GeometricTool::addStroke() {
         TUndoManager::manager()->add(new UndoRasterPencil(
             sl, id, stroke, selective, filled, !m_param.m_pencil.getValue(),
             m_isFrameCreated, m_isLevelCreated, m_primitive->getName()));
-        savebox = ToonzImageUtils::addInkStroke(ti, stroke, styleId, selective,
+        savebox = flareImageUtils::addInkStroke(ti, stroke, styleId, selective,
                                                 filled, TConsts::infiniteRectD,
                                                 !m_param.m_pencil.getValue());
       } else {
@@ -1747,7 +1747,7 @@ void GeometricTool::addStroke() {
           Preferences::instance()->getGuidedAutoInbetween()) {
         TTool *tool =
             TTool::getTool(T_Brush, TTool::ToolTargetType::VectorImage);
-        ToonzVectorBrushTool *vbTool = (ToonzVectorBrushTool *)tool;
+        flareVectorBrushTool *vbTool = (flareVectorBrushTool *)tool;
         if (vbTool) {
           vbTool->setViewer(m_viewer);
           vbTool->doGuidedAutoInbetween(id, vi, stroke, false,
@@ -1861,7 +1861,7 @@ bool GeometricTool::askWrite(const TRect &rect) {
 
 //====================================================================================================
 GeometricTool GeometricVectorTool(TTool::Vectors | TTool::EmptyTarget);
-GeometricTool GeometricRasterTool(TTool::ToonzImage | TTool::EmptyTarget);
+GeometricTool GeometricRasterTool(TTool::flareImage | TTool::EmptyTarget);
 GeometricTool GeometricRasterFullColorTool(TTool::RasterImage |
                                            TTool::EmptyTarget);
 
@@ -1994,7 +1994,7 @@ void RectanglePrimitive::leftButtonDown(const TPointD &pos,
   if (!m_isEditing) return;
   TPointD newPos = getSnap(pos);
   if (m_param->m_pencil.getValue() &&
-      (m_param->m_targetType & TTool::ToonzImage ||
+      (m_param->m_targetType & TTool::flareImage ||
        m_param->m_targetType & TTool::RasterImage)) {
     if (m_param->m_rasterToolSize.getValue() % 2 != 0)
       m_startPoint = TPointD((int)pos.x, (int)pos.y);
@@ -2027,7 +2027,7 @@ void RectanglePrimitive::leftButtonDrag(const TPointD &realPos,
   }
 
   if (m_param->m_pencil.getValue() &&
-      (m_param->m_targetType & TTool::ToonzImage ||
+      (m_param->m_targetType & TTool::flareImage ||
        m_param->m_targetType & TTool::RasterImage)) {
     if (m_param->m_rasterToolSize.getValue() % 2 != 0)
       pos = TPointD((int)pos.x, (int)pos.y);
@@ -2089,7 +2089,7 @@ TStroke *RectanglePrimitive::makeStroke() const {
     points[14] = 0.5 * (points[13] + points[15]);
 
     stroke = new TStroke(points);
-  } else if (m_param->m_targetType & TTool::ToonzImage ||
+  } else if (m_param->m_targetType & TTool::flareImage ||
              m_param->m_targetType & TTool::RasterImage) {
     std::vector<TThickPoint> points(9);
     double middleX = (selArea.x0 + selArea.x1) * 0.5;
@@ -2631,7 +2631,7 @@ void LinePrimitive::leftButtonDown(const TPointD &pos, const TMouseEvent &e) {
   TPointD _pos = newPos;
 
   if (m_param->m_pencil.getValue() &&
-      (m_param->m_targetType & TTool::ToonzImage ||
+      (m_param->m_targetType & TTool::flareImage ||
        m_param->m_targetType & TTool::RasterImage)) {
     if (m_param->m_rasterToolSize.getValue() % 2 != 0)
       _pos = TPointD((int)newPos.x, (int)newPos.y);
@@ -3277,7 +3277,7 @@ TStroke *PolygonPrimitive::makeStroke() const {
       points[i + 3]            = TThickPoint(speedInNextPoint, thick);
     }
     stroke = new TStroke(points);
-  } else if (m_param->m_targetType & TTool::ToonzImage ||
+  } else if (m_param->m_targetType & TTool::flareImage ||
              m_param->m_targetType & TTool::RasterImage) {
     std::vector<TThickPoint> points(edgeCount + edgeCount + 1);
     points[0] = TThickPoint(
@@ -3330,3 +3330,4 @@ FullColorGeometricToolNotifier::FullColorGeometricToolNotifier(
     }
   }
 }
+

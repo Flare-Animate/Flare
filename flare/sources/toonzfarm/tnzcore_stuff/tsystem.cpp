@@ -582,9 +582,9 @@ TFilePath TSystem::getTempDir() {
 
 TFilePath TSystem::getTestDir() {
 #ifdef WIN32
-  return TFilePath("\\\\sirio\\toonz5.0\\TNZCORE_TEST");
+  return TFilePath("\\\\sirio\\flare5.0\\TNZCORE_TEST");
 #else
-  return TFilePath("/ULTRA/toonz5.0/TNZCORE_TEST");
+  return TFilePath("/ULTRA/flare5.0/TNZCORE_TEST");
 #endif
 }
 
@@ -1489,3 +1489,4 @@ void TSystem::outputDebug(string s) {
   cerr << s << endl;
 #endif
 }
+

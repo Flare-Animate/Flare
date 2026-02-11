@@ -4,17 +4,17 @@
 #include "timagecache.h"
 #include "tcurveutil.h"
 
-// ToonzLib
-#include "toonz/stage2.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/tcleanupper.h"
-#include "toonz/palettecontroller.h"
-#include "toonz/tpalettehandle.h"
-#include "toonz/observer.h"
-#include "toonz/imagemanager.h"
+// flareLib
+#include "flare/stage2.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/tcleanupper.h"
+#include "flare/palettecontroller.h"
+#include "flare/tpalettehandle.h"
+#include "flare/observer.h"
+#include "flare/imagemanager.h"
 
-#include "toonz/tscenehandle.h"
+#include "flare/tscenehandle.h"
 
 // TnzTools includes
 #include "tools/toolutils.h"
@@ -23,10 +23,10 @@
 #include "tools/toolcommandids.h"
 
 // TnzQt includes
-#include "toonzqt/icongenerator.h"
+#include "flareqt/icongenerator.h"
 #include "historytypes.h"
 
-// Toonz includes
+// flare includes
 #include "tapp.h"
 #include "cleanupsettingsmodel.h"
 
@@ -884,3 +884,4 @@ public:
     params->setDirtyFlag(dirty);
   }
 } OpacityCheckToggle;
+

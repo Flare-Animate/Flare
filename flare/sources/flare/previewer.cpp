@@ -21,35 +21,35 @@
 // Cache management includes
 #include "tpassivecachemanager.h"
 
-// Toonz app (currents)
+// flare app (currents)
 #include "tapp.h"
 #include "toutputproperties.h"
 
-// Toonz stage structures
-#include "toonz/tobjecthandle.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/tframehandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/tfxhandle.h"
-#include "toonz/tpalettehandle.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/scenefx.h"
-#include "toonz/toonzscene.h"
-#include "toonz/txshlevel.h"
-#include "toonz/txsheet.h"
-#include "toonz/tcamera.h"
-#include "toonz/palettecontroller.h"
+// flare stage structures
+#include "flare/tobjecthandle.h"
+#include "flare/tscenehandle.h"
+#include "flare/tframehandle.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/tfxhandle.h"
+#include "flare/tpalettehandle.h"
+#include "flare/sceneproperties.h"
+#include "flare/scenefx.h"
+#include "flare/flarescene.h"
+#include "flare/txshlevel.h"
+#include "flare/txsheet.h"
+#include "flare/tcamera.h"
+#include "flare/palettecontroller.h"
 
-// Toonz-qt stuff
-#include "toonzqt/gutil.h"
-#include "toonzqt/menubarcommand.h"
+// flare-qt stuff
+#include "flareqt/gutil.h"
+#include "flareqt/menubarcommand.h"
 #include "menubarcommandids.h"
 #include "filebrowserpopup.h"
 #include "filebrowsermodel.h"
 
-// Toonz 6 FlipConsole's slider
-#include "toonzqt/flipconsole.h"
+// flare 6 FlipConsole's slider
+#include "flareqt/flipconsole.h"
 
 // Qt stuff
 #include <QTimer>
@@ -63,9 +63,9 @@
 /*! \class Previewer
 The Previewer class is a singleton which deals with Preview renders of isolated
 frames.
-The main purpose of this class, as of Toonz 6.x, is that of managing preview
+The main purpose of this class, as of flare 6.x, is that of managing preview
 requests coming
-from Toonz's Scene Viewers; however, it is designed to support requests from a
+from flare's Scene Viewers; however, it is designed to support requests from a
 generic
 \b Previewer::Listener class.
 The Previewer is a singleton, meaning that it centralizes requests from many
@@ -274,7 +274,7 @@ TFxPair Previewer::Imp::buildSceneFx(int frame) {
   TFxPair fxPair;
 
   TApp *app         = TApp::instance();
-  ToonzScene *scene = app->getCurrentScene()->getScene();
+  flareScene *scene = app->getCurrentScene()->getScene();
   TXsheet *xsh      = scene->getXsheet();
   if (m_renderSettings.m_stereoscopic) {
     scene->shiftCameraX(-m_renderSettings.m_stereoscopicShift / 2.0);
@@ -346,7 +346,7 @@ void Previewer::Imp::updateCamera() {
 //-----------------------------------------------------------------------------
 
 void Previewer::Imp::updateRenderSettings() {
-  ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
+  flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
   TRenderSettings renderSettings =
       scene->getProperties()->getPreviewProperties()->getRenderSettings();
 
@@ -857,7 +857,7 @@ bool Previewer::doSaveRenderedFrames(TFilePath fp) {
 using namespace DVGui;
 
 bool Previewer::Imp::doSaveRenderedFrames(TFilePath fp) {
-  ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
+  flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
   TOutputProperties *outputSettings =
       scene->getProperties()->getOutputProperties();
 
@@ -1501,3 +1501,4 @@ void Previewer::suspendRendering(bool suspend) {
   if (suspend && previewerInstanceSC)
     previewerInstanceSC->m_imp->m_renderer.stopRendering(true);
 }
+

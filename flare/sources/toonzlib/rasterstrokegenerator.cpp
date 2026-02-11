@@ -1,8 +1,8 @@
 
 
-#include "toonz/rasterstrokegenerator.h"
+#include "flare/rasterstrokegenerator.h"
 #include "trastercm.h"
-#include "toonz/rasterbrush.h"
+#include "flare/rasterbrush.h"
 #include "trop.h"
 
 #include <stack>
@@ -466,3 +466,4 @@ TRect RasterStrokeGenerator::getLastRect(bool isStraight) const {
   }
   return getBBox(points);
 }
+

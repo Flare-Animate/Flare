@@ -5,7 +5,7 @@
 
 #include "tools/tool.h"
 #include "tproperty.h"
-#include "toonz/strokegenerator.h"
+#include "flare/strokegenerator.h"
 #include "tools/tooloptions.h"
 
 #include <QCoreApplication>

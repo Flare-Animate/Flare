@@ -12,7 +12,7 @@
 #include <array>
 
 #include "STColSelPic.h"
-#include "toonz4.6/raster.h"
+#include "flare4.6/raster.h"
 #include "SDef.h"
 
 #define MAXNB_NEIGHBOURS 1500
@@ -62,3 +62,4 @@ public:
 };
 
 #endif  // !defined(AFX_ERASECONTOUR_H__53513372_34D4_11D6_B9E7_0040F674BE6A__INCLUDED_)
+

@@ -1,7 +1,7 @@
 
 
-#include "toonzqt/gutil.h"
-#include "toonzqt/treemodel.h"
+#include "flareqt/gutil.h"
+#include "flareqt/treemodel.h"
 
 #include <QStringList>
 #include <QTreeView>
@@ -452,3 +452,4 @@ bool TreeView::Delegate::editorEvent(QEvent *e, QAbstractItemModel
   return true;
 }
 */
+

@@ -1,22 +1,22 @@
 
 
-#include "toonzqt/addfxcontextmenu.h"
+#include "flareqt/addfxcontextmenu.h"
 
 // TnzQt includes
-#include "toonzqt/fxselection.h"
+#include "flareqt/fxselection.h"
 
 // TnzLib includes
-#include "toonz/toonzfolders.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/tframehandle.h"
-#include "toonz/tfxhandle.h"
-#include "toonz/fxcommand.h"
-#include "toonz/txsheet.h"
-#include "toonz/fxdag.h"
-#include "toonz/tapplication.h"
-#include "toonz/txshzeraryfxcolumn.h"
-#include "toonz/tcolumnfx.h"
+#include "flare/flarefolders.h"
+#include "flare/txsheethandle.h"
+#include "flare/tcolumnhandle.h"
+#include "flare/tframehandle.h"
+#include "flare/tfxhandle.h"
+#include "flare/fxcommand.h"
+#include "flare/txsheet.h"
+#include "flare/fxdag.h"
+#include "flare/tapplication.h"
+#include "flare/txshzeraryfxcolumn.h"
+#include "flare/tcolumnfx.h"
 #include "tw/stringtable.h"
 
 // TnzBase includes
@@ -155,9 +155,9 @@ TFx *createFx(QAction *action, TXsheetHandle *xshHandle) {
 
 AddFxContextMenu::AddFxContextMenu()
     : QObject(), m_app(0), m_currentCursorScenePos(0, 0), m_againCommand(0) {
-  m_fxListPath = TFilePath(ToonzFolder::getProfileFolder() + "layouts" + "fxs" +
+  m_fxListPath = TFilePath(flareFolder::getProfileFolder() + "layouts" + "fxs" +
                            "fxs.lst");
-  m_presetPath = TFilePath(ToonzFolder::getFxPresetFolder() + "presets");
+  m_presetPath = TFilePath(flareFolder::getFxPresetFolder() + "presets");
 
   m_insertMenu         = new QMenu(tr("Insert FX"), 0);
   m_insertActionGroup  = new QActionGroup(m_insertMenu);
@@ -667,3 +667,4 @@ void AddFxContextMenu::onAgainCommand() {
     onReplaceFx(m_againCommand);
   }
 }
+

@@ -4,7 +4,7 @@
 #define _UDIT_H
 
 #include "pixel.h"
-#include "toonz.h"
+#include "flare.h"
 
 /*------------------------------------------------------------------------*/
 
@@ -190,3 +190,4 @@ typedef struct UDIT_DATA_V44U1 {
 #define UD44_RECT UD44_USR_IMAGE
 
 #endif
+

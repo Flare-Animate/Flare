@@ -7,7 +7,7 @@
 #include "casm.h"
 #include "tmacro.h"
 #include "affine.h"
-#include "toonzproc.h"
+#include "flareproc.h"
 
 #define CASM_NODE_HD                                                           \
   struct CASM_NODEPROC *proc;                                                  \
@@ -332,3 +332,4 @@ typedef struct CASM_NODE_N_ARY { CASM_N_ARY_NODE_HD } CASM_NODE_N_ARY;
 /*----------------------------------------------------------------------------*/
 
 #endif
+

@@ -14,9 +14,9 @@
 #include <tools/modifiers/modifierassistants.h>
 #include <tools/modifiers/modifiersegmentation.h>
 
-#include "toonzrasterbrushtool.h"
-#include "mypainttoonzbrush.h"
-#include "toonz/mypaintbrushstyle.h"
+#include "flarerasterbrushtool.h"
+#include "mypaintflarebrush.h"
+#include "flare/mypaintbrushstyle.h"
 #include <QElapsedTimer>
 
 //==============================================================
@@ -25,7 +25,7 @@
 
 class TTileSetFullColor;
 class TTileSaverFullColor;
-class MyPaintToonzBrush;
+class MyPaintflareBrush;
 class FullColorBrushToolNotifier;
 namespace mypaint {
 class Brush;
@@ -44,7 +44,7 @@ class FullColorBrushTool final : public TTool,
 public:
   class TrackHandler : public TTrackHandler {
   public:
-    MyPaintToonzBrush brush;
+    MyPaintflareBrush brush;
 
     TrackHandler(const TRaster32P &ras, RasterController &controller,
                  const mypaint::Brush &brush)
@@ -53,8 +53,8 @@ public:
 
 private:
   void updateCurrentStyle();
-  void applyClassicToonzBrushSettings(mypaint::Brush &mypaintBrush);
-  void applyToonzBrushSettings(mypaint::Brush &mypaintBrush);
+  void applyClassicflareBrushSettings(mypaint::Brush &mypaintBrush);
+  void applyflareBrushSettings(mypaint::Brush &mypaintBrush);
 
 public:
   FullColorBrushTool(std::string name);
@@ -189,3 +189,4 @@ protected slots:
 };
 
 #endif  // FULLCOLORBRUSHTOOL_H
+

@@ -4,20 +4,20 @@
 #include "filmstripcommand.h"
 #include "timagecache.h"
 #include "tpaletteutil.h"
-#include "ttoonzimage.h"
+#include "tflareimage.h"
 #include "tvectorimage.h"
 #include "trasterimage.h"
 #include "trop.h"
 #include "tstroke.h"
-#include "toonzqt/icongenerator.h"
-#include "toonzqt/dvdialog.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/toonzimageutils.h"
-#include "toonz/txshleveltypes.h"
-#include "toonz/stage.h"
-#include "toonz/tcenterlinevectorizer.h"
-#include "toonz/toonzscene.h"
-#include "toonz/sceneproperties.h"
+#include "flareqt/icongenerator.h"
+#include "flareqt/dvdialog.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/flareimageutils.h"
+#include "flare/txshleveltypes.h"
+#include "flare/stage.h"
+#include "flare/tcenterlinevectorizer.h"
+#include "flare/flarescene.h"
+#include "flare/sceneproperties.h"
 #include "vectorizerpopup.h"
 
 #include <QApplication>
@@ -107,7 +107,7 @@ void getFrameIdToInsert(std::set<TFrameId> &frames, TXshSimpleLevel *sl,
 
 //-----------------------------------------------------------------------------
 
-void rasterize(TToonzImageP &target, const TVectorImageP &source,
+void rasterize(TflareImageP &target, const TVectorImageP &source,
                const std::map<int, int> &styleTable) {
   double dpix, dpiy;
   target->getDpi(dpix, dpiy);
@@ -120,17 +120,17 @@ void rasterize(TToonzImageP &target, const TVectorImageP &source,
   bbox.x1     = tceil(bbox.x1);
   bbox.y1     = tceil(bbox.y1);
   TDimension size(bbox.getLx(), bbox.getLy());
-  TToonzImageP app = ToonzImageUtils::vectorToToonzImage(
+  TflareImageP app = flareImageUtils::vectorToflareImage(
       source, sc, source->getPalette(), bbox.getP00(), size, 0, true);
-  TRect rBbox = ToonzImageUtils::convertWorldToRaster(bbox, target);
+  TRect rBbox = flareImageUtils::convertWorldToRaster(bbox, target);
   target->getCMapped()->copy(app->getCMapped(), rBbox.getP00());
 
-  ToonzImageUtils::scrambleStyles(target, styleTable);
+  flareImageUtils::scrambleStyles(target, styleTable);
 }
 
 //-----------------------------------------------------------------------------
 
-void vectorize(TVectorImageP &target, const TToonzImageP &source,
+void vectorize(TVectorImageP &target, const TflareImageP &source,
                const std::map<int, int> &styleTable,
                const VectorizerConfiguration &config) {
   VectorizerCore vc;
@@ -144,7 +144,7 @@ void vectorize(TVectorImageP &target, const TToonzImageP &source,
 
   TScale sc(dpiX / Stage::inch, dpiY / Stage::inch);
   TRect rBox   = source->getCMapped()->getBounds();
-  TRectD wBbox = ToonzImageUtils::convertRasterToWorld(rBox, source);
+  TRectD wBbox = flareImageUtils::convertRasterToWorld(rBox, source);
   TTranslation tr(wBbox.getP00());
 
   int i;
@@ -361,16 +361,16 @@ TImageP DrawingData::getImage(QString imageId, TXshSimpleLevel *sl,
                               bool keepVectorFills) const {
   TImageP img = TImageCache::instance()->get(imageId, false);
   int slType  = m_level->getType();
-  if (TToonzImageP ti = img) {
+  if (TflareImageP ti = img) {
     assert(slType == PLI_XSHLEVEL || slType == TZP_XSHLEVEL);
     TImageP slImg = sl->createEmptyFrame();
     slImg->setPalette(sl->getPalette());
     // raster -> raster
     if (sl->getType() == TZP_XSHLEVEL) {
-      TToonzImageP slTi = slImg;
+      TflareImageP slTi = slImg;
       // Immagine di appoggio per effettuare lo scramble
-      TToonzImageP newImg = ti->clone();
-      ToonzImageUtils::scrambleStyles(newImg, styleTable);
+      TflareImageP newImg = ti->clone();
+      flareImageUtils::scrambleStyles(newImg, styleTable);
       TRasterCM32P slRaster  = slTi->getRaster();
       TRasterCM32P imgRaster = newImg->getRaster();
       TRop::over(slRaster, imgRaster, TTranslation(slRaster->getCenterD() -
@@ -384,7 +384,7 @@ TImageP DrawingData::getImage(QString imageId, TXshSimpleLevel *sl,
     else if (sl->getType() == PLI_XSHLEVEL) {
       TVectorImageP slVi = slImg;
 
-      ToonzScene *scene = sl->getScene();
+      flareScene *scene = sl->getScene();
       assert(scene);
 
       std::unique_ptr<VectorizerConfiguration> config(
@@ -409,7 +409,7 @@ TImageP DrawingData::getImage(QString imageId, TXshSimpleLevel *sl,
     }
     // vector -> raster
     else if (sl->getType() == TZP_XSHLEVEL) {
-      TToonzImageP slTi = slImg;
+      TflareImageP slTi = slImg;
       rasterize(slTi, vi, styleTable);
       TRect savebox;
       TRop::computeBBox(slTi->getRaster(), savebox);
@@ -458,3 +458,4 @@ void DrawingData::releaseData() {
   // for(i=0; i<m_imageSet.size(); i++)
   //  TImageCache::instance()->remove(m_imageSet[i]);
 }
+

@@ -1,7 +1,7 @@
 
 
-#include "toonzqt/lineedit.h"
-#include "toonzqt/dvdialog.h"
+#include "flareqt/lineedit.h"
+#include "flareqt/dvdialog.h"
 #include <QKeyEvent>
 
 using namespace DVGui;
@@ -70,3 +70,4 @@ void LineEdit::mouseMoveEvent(QMouseEvent *event) {
   emit(mouseMoved(event));
   QLineEdit::mouseMoveEvent(event);
 }
+

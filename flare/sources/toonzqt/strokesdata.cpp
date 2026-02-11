@@ -1,13 +1,13 @@
 
 
-#include "toonzqt/strokesdata.h"
+#include "flareqt/strokesdata.h"
 #include "tthreadmessage.h"
 #include "tstroke.h"
 #include "tpalette.h"
-#include "toonzqt/rasterimagedata.h"
-#include "toonz/toonzimageutils.h"
-#include "toonz/trasterimageutils.h"
-#include "toonz/stage.h"
+#include "flareqt/rasterimagedata.h"
+#include "flare/flareimageutils.h"
+#include "flare/trasterimageutils.h"
+#include "flare/stage.h"
 
 using namespace std;
 
@@ -129,8 +129,8 @@ void StrokesData::getImage(TVectorImageP image, std::set<int> &indices,
 
 //-----------------------------------------------------------------------------
 
-ToonzImageData *StrokesData::toToonzImageData(
-    const TToonzImageP &imageToPaste) const {
+flareImageData *StrokesData::toflareImageData(
+    const TflareImageP &imageToPaste) const {
   double dpix, dpiy;
   imageToPaste->getDpi(dpix, dpiy);
   assert(dpix != 0 && dpiy != 0);
@@ -142,14 +142,14 @@ ToonzImageData *StrokesData::toToonzImageData(
   bbox.x1     = tceil(bbox.x1);
   bbox.y1     = tceil(bbox.y1);
   TDimension size(bbox.getLx(), bbox.getLy());
-  TToonzImageP app = ToonzImageUtils::vectorToToonzImage(
+  TflareImageP app = flareImageUtils::vectorToflareImage(
       m_image, sc, m_image->getPalette(), bbox.getP00(), size, 0, true);
 
   vector<TRectD> rects;
   vector<TStroke> strokes;
   TStroke stroke = getStrokeByRect(bbox);
   strokes.push_back(stroke);
-  ToonzImageData *data = new ToonzImageData();
+  flareImageData *data = new flareImageData();
   data->setData(app->getRaster(), m_image->getPalette(), dpix, dpiy,
                 TDimension(), rects, strokes, strokes, TAffine());
   return data;
@@ -182,3 +182,4 @@ FullColorImageData *StrokesData::toFullColorImageData(
                 TDimension(), rects, strokes, strokes, TAffine());
   return data;
 }
+

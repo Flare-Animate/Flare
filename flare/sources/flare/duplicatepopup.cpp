@@ -8,13 +8,13 @@
 #include "tapp.h"
 
 // TnzQt includes
-#include "toonzqt/tselectionhandle.h"
+#include "flareqt/tselectionhandle.h"
 
 #include "menubarcommandids.h"
 #include "tundo.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/toonzscene.h"
+#include "flare/tscenehandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/flarescene.h"
 #include "historytypes.h"
 
 // Qt includes
@@ -161,7 +161,7 @@ void DuplicatePopup::onApplyPressed() {
     TUndo *undo = new DuplicateUndo(r0, c0, r1, c1, (int)upTo - 1);
     TUndoManager::manager()->add(undo);
     TApp *app         = TApp::instance();
-    ToonzScene *scene = app->getCurrentScene()->getScene();
+    flareScene *scene = app->getCurrentScene()->getScene();
     TXsheet *xsh      = scene->getXsheet();
     xsh->duplicateCells(r0, c0, r1, c1, (int)upTo - 1);
     TApp::instance()->getCurrentScene()->setDirtyFlag(true);
@@ -249,3 +249,4 @@ void DuplicatePopup::getValues(int &count, int &upTo) {
 }
 
 OpenPopupCommandHandler<DuplicatePopup> openDuplicatePopup(MI_Dup);
+

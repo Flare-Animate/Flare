@@ -3,7 +3,7 @@
 #ifndef SCRIPTBINDING_IMAGE_H
 #define SCRIPTBINDING_IMAGE_H
 
-#include "toonz/scriptbinding.h"
+#include "flare/scriptbinding.h"
 
 namespace TScriptBinding {
 
@@ -46,3 +46,4 @@ QScriptValue checkImage(QScriptContext *context, const QScriptValue &value,
 Q_DECLARE_METATYPE(TScriptBinding::Image *)
 
 #endif
+

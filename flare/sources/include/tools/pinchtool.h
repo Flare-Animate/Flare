@@ -5,7 +5,7 @@
 
 #include "tools/tool.h"
 #include "tproperty.h"
-#include "toonz/observer.h"
+#include "flare/observer.h"
 #include "ext/ContextStatus.h"
 #include "ext/Selector.h"
 
@@ -14,7 +14,7 @@
 
 class TUndo;
 
-namespace ToonzExt {
+namespace flareExt {
 class StrokeDeformation;
 }
 
@@ -38,9 +38,9 @@ class DVAPI PinchTool : public TTool {
   Q_DECLARE_TR_FUNCTIONS(PinchTool)
 
   TMouseEvent m_lastMouseEvent;
-  ToonzExt::StrokeDeformation *m_deformation;
-  ToonzExt::ContextStatus m_status;
-  ToonzExt::Selector m_selector;
+  flareExt::StrokeDeformation *m_deformation;
+  flareExt::ContextStatus m_status;
+  flareExt::Selector m_selector;
   TUndo *m_undo;
   bool m_draw, m_active, m_cursorEnabled;
   TThickPoint m_cursor;
@@ -101,3 +101,4 @@ public:
 };
 
 #endif  // PINCHTOOL_H
+

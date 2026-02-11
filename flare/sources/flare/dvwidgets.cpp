@@ -1,8 +1,8 @@
 
 
 #include "dvwidgets.h"
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/checkbox.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/checkbox.h"
 
 #include <QLayout>
 #include <QLabel>
@@ -138,3 +138,4 @@ void PropertyDoubleField::onPropertyChanged() {
   TDoubleProperty *prop = dynamic_cast<TDoubleProperty *>(m_property);
   if (prop) this->setValue(prop->getValue());
 }
+

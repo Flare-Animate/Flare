@@ -3,9 +3,9 @@
 #ifndef CUSTOMPANELEDITORPOPUP_H
 #define CUSTOMPANELEDITORPOPUP_H
 
-#include "toonzqt/dvdialog.h"
-// ToonzQt
-#include "toonzqt/menubarcommand.h"
+#include "flareqt/dvdialog.h"
+// flareQt
+#include "flareqt/menubarcommand.h"
 
 #include <QTreeWidget>
 #include <QTreeWidgetItem>
@@ -158,3 +158,4 @@ private slots:
 };
 
 #endif  // CUSTOMPANELEDITORPOPUP_H
+

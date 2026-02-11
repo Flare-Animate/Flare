@@ -1,15 +1,15 @@
 
 
 // TnzLib includes
-#include "toonz/tframehandle.h"
+#include "flare/tframehandle.h"
 
 // TnzQt includes
-#include "toonzqt/gutil.h"
+#include "flareqt/gutil.h"
 
 // Qt includes
 #include <QAction>
 
-#include "toonzqt/framenavigator.h"
+#include "flareqt/framenavigator.h"
 
 using namespace DVGui;
 
@@ -111,3 +111,4 @@ void FrameNavigator::hideEvent(QHideEvent *) {
     disconnect(m_frameHandle, SIGNAL(frameSwitched()), this,
                SLOT(onFrameSwitched()));
 }
+

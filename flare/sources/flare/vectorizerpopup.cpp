@@ -15,36 +15,36 @@
 #include "selectionutils.h"
 
 // TnzQt includes
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/intfield.h"
-#include "toonzqt/colorfield.h"
-#include "toonzqt/checkbox.h"
-#include "toonzqt/gutil.h"
+#include "flareqt/menubarcommand.h"
+#include "flareqt/intfield.h"
+#include "flareqt/colorfield.h"
+#include "flareqt/checkbox.h"
+#include "flareqt/gutil.h"
 
 // TnzLib includes
-#include "toonz/namebuilder.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/txshleveltypes.h"
-#include "toonz/txsheet.h"
-#include "toonz/txshcell.h"
-#include "toonz/toonzscene.h"
-#include "toonz/tcenterlinevectorizer.h"
-#include "toonz/dpiscale.h"
-#include "toonz/txshchildlevel.h"
-#include "toonz/levelset.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/imagemanager.h"
-#include "toonz/Naa2TlvConverter.h"
+#include "flare/namebuilder.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/txshleveltypes.h"
+#include "flare/txsheet.h"
+#include "flare/txshcell.h"
+#include "flare/flarescene.h"
+#include "flare/tcenterlinevectorizer.h"
+#include "flare/dpiscale.h"
+#include "flare/txshchildlevel.h"
+#include "flare/levelset.h"
+#include "flare/tscenehandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/sceneproperties.h"
+#include "flare/imagemanager.h"
+#include "flare/Naa2TlvConverter.h"
 
 // TnzCore includes
 #include "tsystem.h"
 #include "tconvert.h"
 #include "tpalette.h"
 #include "trasterimage.h"
-#include "ttoonzimage.h"
+#include "tflareimage.h"
 #include "tcolorstyles.h"
 #include "tstroke.h"
 #include "tpersistset.h"
@@ -157,7 +157,7 @@ void getSelectedFids(std::vector<TFrameId> &fids, TXshSimpleLevel *level,
   for (fst = fidsSet.begin(); fst != fsEnd; ++fst) fids.push_back(*fst);
 }
 
-// Toonz Raster Level may have palette including MyPaint styles,
+// flare Raster Level may have palette including MyPaint styles,
 // which cannot be rendered in vector levels.
 // In such case replace MyPaint styles by solid color styles.
 void replaceMyPaintBrushStyles(TPalette *palette) {
@@ -189,7 +189,7 @@ Vectorizer::~Vectorizer() {
 
 TVectorImageP Vectorizer::doVectorize(TImageP img, TPalette *palette,
                                       const VectorizerConfiguration &conf) {
-  TToonzImageP ti  = img;
+  TflareImageP ti  = img;
   TRasterImageP ri = img;
 
   if (!ti && !ri) return TVectorImageP();
@@ -216,7 +216,7 @@ void Vectorizer::setLevel(const TXshSimpleLevelP &level) {
   if (rowCount <= 0 || sl->isEmpty()) return;
 
   TXshLevel *xl;
-  ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
+  flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
 
   // Build the new level name
   std::wstring levelName = sl->getName() + L"v";
@@ -328,12 +328,12 @@ int Vectorizer::doVectorize() {
 
     if (!img) continue;
 
-    // Build image-toonz coordinate transformation
+    // Build image-flare coordinate transformation
     TAffine dpiAff = getDpiAffine(sl, *ft, true);
     double factor  = norm(dpiAff * TPointD(1, 0));
 
     TPointD center;
-    if (TToonzImageP ti = img)
+    if (TflareImageP ti = img)
       center = ti->getRaster()->getCenterD();
     else if (TRasterImageP ri = img)
       center = ri->getRaster()->getCenterD();
@@ -849,7 +849,7 @@ paramsLayout->addWidget(m_cThicknessRatio, row++, 1);*/
 VectorizerParameters *VectorizerPopup::getParameters() const {
   assert(m_sceneHandle);
 
-  ToonzScene *scene = m_sceneHandle->getScene();
+  flareScene *scene = m_sceneHandle->getScene();
   assert(scene);
 
   TSceneProperties *sceneProp = scene->getProperties();
@@ -876,7 +876,7 @@ bool VectorizerPopup::isLevelToConvert(TXshSimpleLevel *sl) {
 bool VectorizerPopup::apply() {
   std::vector<TXshLevel *> levels;
 
-  ToonzScene *scene = m_sceneHandle->getScene();
+  flareScene *scene = m_sceneHandle->getScene();
   if (!scene) {
     assert(scene);
     return false;
@@ -1181,7 +1181,7 @@ void VectorizerPopup::updateVisibility() {
 //-----------------------------------------------------------------------------
 
 void VectorizerPopup::onTypeChange(int indexType) {
-  ToonzScene *scene = m_sceneHandle->getScene();
+  flareScene *scene = m_sceneHandle->getScene();
   if (!scene) return;
   TSceneProperties *sceneProp = scene->getProperties();
   if (!sceneProp) return;
@@ -1270,7 +1270,7 @@ void VectorizerPopup::setType(bool outline) {
 void VectorizerPopup::loadConfiguration(bool isOutline) {
   disconnect(SIGNAL(valuesChanged()));  // Avoid notifications for value changes
 
-  ToonzScene *scene = m_sceneHandle->getScene();
+  flareScene *scene = m_sceneHandle->getScene();
   assert(scene);
 
   TSceneProperties *sceneProp = scene->getProperties();
@@ -1549,3 +1549,4 @@ void VectorizerPopup::resetParameters() {
 
 OpenPopupCommandHandler<VectorizerPopup> openVectorizerPopup(
     MI_ConvertToVectors);
+

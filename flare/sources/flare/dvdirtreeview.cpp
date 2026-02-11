@@ -6,20 +6,20 @@
 #include "filebrowser.h"
 #include "menubarcommandids.h"
 #include "tapp.h"
-#include "toonz/tscenehandle.h"
+#include "flare/tscenehandle.h"
 
 // TnzQt includes
-#include "toonzqt/icongenerator.h"
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/gutil.h"
+#include "flareqt/icongenerator.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/gutil.h"
 
-// ToonzLib
+// flareLib
 #include "tconvert.h"
-#include "toonz/toonzscene.h"
-#include "toonz/namebuilder.h"
-#include "toonz/tproject.h"
-#include "toonz/preferences.h"
-#include "toonz/txshsimplelevel.h"
+#include "flare/flarescene.h"
+#include "flare/namebuilder.h"
+#include "flare/tproject.h"
+#include "flare/preferences.h"
+#include "flare/txshsimplelevel.h"
 #include "tsystem.h"
 
 // Qt includes
@@ -1106,7 +1106,7 @@ void DvDirTreeView::editCurrentVersionControlNode() {
 
     int sceneIconsCount = 0;
 
-    TFilePath iconPath = ToonzScene::getIconPath(path);
+    TFilePath iconPath = flareScene::getIconPath(path);
     if (TFileStatus(iconPath).doesExist()) {
       QDir dir(toQString(path.getParentDir()));
 
@@ -1162,7 +1162,7 @@ void DvDirTreeView::unlockCurrentVersionControlNode() {
 
     int sceneIconsCount = 0;
 
-    TFilePath iconPath = ToonzScene::getIconPath(path);
+    TFilePath iconPath = flareScene::getIconPath(path);
     if (TFileStatus(iconPath).doesExist()) {
       QDir dir(toQString(path.getParentDir()));
 
@@ -1218,7 +1218,7 @@ void DvDirTreeView::revertCurrentVersionControlNode() {
 
     int sceneIconsCount = 0;
 
-    TFilePath iconPath = ToonzScene::getIconPath(path);
+    TFilePath iconPath = flareScene::getIconPath(path);
     if (TFileStatus(iconPath).doesExist()) {
       QDir dir(toQString(path.getParentDir()));
 
@@ -1846,3 +1846,4 @@ void NodeEditor::focusInEvent(QFocusEvent *) {
 //-----------------------------------------------------------------------------
 
 void NodeEditor::emitFinished() { emit editingFinished(); }
+

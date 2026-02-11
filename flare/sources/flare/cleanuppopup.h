@@ -6,7 +6,7 @@
 #include <memory>
 
 // TnzQt includes
-#include "toonzqt/validatedchoicedialog.h"
+#include "flareqt/validatedchoicedialog.h"
 
 // TnzCore includes
 #include "tfilepath.h"
@@ -160,3 +160,4 @@ private slots:
 };
 
 #endif  // CLEANUPPOPUP_H
+

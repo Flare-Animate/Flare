@@ -3,13 +3,13 @@
 #ifndef TXSHCHILDLEVEL_INCLUDED
 #define TXSHCHILDLEVEL_INCLUDED
 
-#include "toonz/txshlevel.h"
+#include "flare/txshlevel.h"
 
 #include "traster.h"
 
 #undef DVAPI
 #undef DVVAR
-#ifdef TOONZLIB_EXPORTS
+#ifdef flareLIB_EXPORTS
 #define DVAPI DV_EXPORT_API
 #define DVVAR DV_EXPORT_VAR
 #else
@@ -78,7 +78,7 @@ Set the level \b TXsheet to \b xsheet.
   /*!
 Override. Set level scene to \b scene.
 */
-  void setScene(ToonzScene *scene) override;
+  void setScene(flareScene *scene) override;
   /*!
 Return the frame count.
 */
@@ -100,3 +100,4 @@ template class DV_EXPORT_API TSmartPointerT<TXshChildLevel>;
 typedef TSmartPointerT<TXshChildLevel> TXshChildLevelP;
 
 #endif
+

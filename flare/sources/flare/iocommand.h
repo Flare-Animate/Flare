@@ -6,7 +6,7 @@
 #include <memory>
 
 // TnzLib includes
-#include "toonz/preferences.h"
+#include "flare/preferences.h"
 
 // TnzCore includes
 #include "tfilepath.h"
@@ -16,8 +16,8 @@
 #include <QDialog>
 
 // TnzQt includes
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/imageutils.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/imageutils.h"
 
 // boost includes
 #include <boost/optional.hpp>
@@ -32,7 +32,7 @@
 class TXshLevel;
 class TXshSimpleLevel;
 class TXshSoundLevel;
-class ToonzScene;
+class flareScene;
 class TCamera;
 class TPropertyGroup;
 class TXsheet;
@@ -42,18 +42,18 @@ using namespace ImageUtils;
 //====================================================
 
 /*! \file       iocommand.h
-    \brief      Contains command functions related to Toonz I/O.          */
+    \brief      Contains command functions related to flare I/O.          */
 
-/*! \brief      Contains command functions related to Toonz I/O.          */
+/*! \brief      Contains command functions related to flare I/O.          */
 
 namespace IoCmd {
 
 /*!
-  \brief    Composite data used describing a group of Toonz resources
+  \brief    Composite data used describing a group of flare resources
             to be loaded.
 
-  \details  A Toonz resource can refer to either a level, audio
-            file, or Toonz scene to be loaded as sub-xsheet.
+  \details  A flare resource can refer to either a level, audio
+            file, or flare scene to be loaded as sub-xsheet.
 
   \sa       The loadResources() function.
 */
@@ -69,7 +69,7 @@ struct LoadResourceArguments {
 
   public:
     ScopedBlock();
-    ~ScopedBlock();  //!< Invokes all necessary Toonz updates before control is
+    ~ScopedBlock();  //!< Invokes all necessary flare updates before control is
                      //! returned,
     //!  included posting of the embedded undo block.
     DVGui::ProgressDialog &progressDialog()
@@ -233,7 +233,7 @@ public:
 
 void newScene();
 
-bool loadScene(ToonzScene &scene, const TFilePath &scenePath, bool import);
+bool loadScene(flareScene &scene, const TFilePath &scenePath, bool import);
 bool loadScene(const TFilePath &scenePath, bool updateRecentFile = true,
                bool checkSaveOldScene = true);
 bool loadScene();
@@ -275,7 +275,7 @@ bool saveSound(TXshSoundLevel *sc);
 int loadResources(
     LoadResourceArguments &args,  //!< Resources to be loaded.
     bool updateRecentFiles =
-        true,  //!< Whether Toonz's <I>Recent Files</I> list must be updated.
+        true,  //!< Whether flare's <I>Recent Files</I> list must be updated.
     LoadResourceArguments::ScopedBlock *sb =
         0  //!< Load block. May be nonzero in order to extend block data
            //!  access and finalization.
@@ -322,9 +322,10 @@ bool importLipSync(TFilePath levelPath, QList<TFrameId> frameList,
 // if the cast contains the level specified with $scenefolder alias,
 // open a warning popup notifying that such level will lose link.
 bool takeCareSceneFolderItemsOnSaveSceneAs(
-    ToonzScene *scene, const TFilePath &newPath, TXsheet *subxsh,
+    flareScene *scene, const TFilePath &newPath, TXsheet *subxsh,
     QHash<TXshLevel *, TFilePath> &orgLevelPaths);
 
 }  // namespace IoCmd
 
 #endif  // IOCOMMAND_H
+

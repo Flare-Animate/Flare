@@ -3,22 +3,22 @@
 #include "xdtsio.h"
 
 #include "tsystem.h"
-#include "toonz/toonzscene.h"
-#include "toonz/tproject.h"
-#include "toonz/levelset.h"
-#include "toonz/txsheet.h"
-#include "toonz/txshcell.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/txshchildlevel.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/preferences.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/tstageobject.h"
+#include "flare/flarescene.h"
+#include "flare/tproject.h"
+#include "flare/levelset.h"
+#include "flare/txsheet.h"
+#include "flare/txshcell.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/txshchildlevel.h"
+#include "flare/txsheethandle.h"
+#include "flare/tscenehandle.h"
+#include "flare/preferences.h"
+#include "flare/sceneproperties.h"
+#include "flare/tstageobject.h"
 #include "toutputproperties.h"
 
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/gutil.h"
+#include "flareqt/menubarcommand.h"
+#include "flareqt/gutil.h"
 
 #include "tapp.h"
 #include "menubarcommandids.h"
@@ -540,7 +540,7 @@ void XdtsData::build(TXsheet *xsheet, QString name, int duration) {
 
 //-----------------------------------------------------------------------------
 
-bool XdtsIo::loadXdtsScene(ToonzScene *scene, const TFilePath &scenePath) {
+bool XdtsIo::loadXdtsScene(flareScene *scene, const TFilePath &scenePath) {
   QApplication::restoreOverrideCursor();
   // read the Json file
   QFile loadFile(scenePath.getQString());
@@ -692,7 +692,7 @@ public:
 } exportXDTSCommand;
 
 void ExportXDTSCommand::execute() {
-  ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
+  flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
   TXsheet *xsheet   = TApp::instance()->getCurrentXsheet()->getXsheet();
   TFilePath fp      = scene->getScenePath().withType("xdts");
 
@@ -887,3 +887,4 @@ void ExportXDTSCommand::execute() {
       QDesktopServices::openUrl(QUrl::fromLocalFile(folderPath.getQString()));
   }
 }
+

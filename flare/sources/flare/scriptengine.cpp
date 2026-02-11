@@ -7,20 +7,20 @@
 #include <QTextStream>
 #include <QFile>
 
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/dvdialog.h"
+#include "flareqt/menubarcommand.h"
+#include "flareqt/dvdialog.h"
 #include "filebrowserpopup.h"
 #include "tapp.h"
 
-#include "toonz/txsheethandle.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/toonzscene.h"
-#include "toonz/levelset.h"
-#include "toonz/txsheet.h"
-#include "toonz/txshcell.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/txshleveltypes.h"
-#include "toonz/toonzfolders.h"
+#include "flare/txsheethandle.h"
+#include "flare/tscenehandle.h"
+#include "flare/flarescene.h"
+#include "flare/levelset.h"
+#include "flare/txsheet.h"
+#include "flare/txshcell.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/txshleveltypes.h"
+#include "flare/flarefolders.h"
 
 namespace ScriptWrapper {
 
@@ -30,7 +30,7 @@ Level::Level(TXshSimpleLevel *level)
 Level::~Level() {}
 
 TXshSimpleLevel *Level::getLevel() const {
-  ToonzScene *scene   = TApp::instance()->getCurrentScene()->getScene();
+  flareScene *scene   = TApp::instance()->getCurrentScene()->getScene();
   TXshLevel *level    = scene->getLevelSet()->getLevel(m_name.toStdWString());
   TXshSimpleLevel *sl = dynamic_cast<TXshSimpleLevel *>(level);
   return sl;
@@ -41,7 +41,7 @@ TXshSimpleLevel *Level::getLevel() const {
 QScriptValue getLevel(QScriptContext *ctx, QScriptEngine *eng) {
   QString levelName = ctx->argument(0).toString();
 
-  ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
+  flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
   TXshLevel *level  = scene->getLevelSet()->getLevel(levelName.toStdWString());
   if (!level) {
     level     = scene->createNewLevel(PLI_XSHLEVEL, levelName.toStdWString());
@@ -68,7 +68,7 @@ QScriptValue foo(QScriptContext *ctx, QScriptEngine *eng) {
     TFrameId fid(1);
     if (!sl->isFid(fid)) sl->setFrame(fid, sl->createEmptyFrame());
 
-    ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
+    flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
     scene->getXsheet()->setCell(r, c, TXshCell(sl, fid));
     TApp::instance()->getCurrentXsheet()->notifyXsheetChanged();
   }
@@ -85,7 +85,7 @@ public:
   }
   ~LoadScriptPopup() {}
   void initFolder() {
-    setFolder(ToonzFolder::getLibraryFolder());
+    setFolder(flareFolder::getLibraryFolder());
     // setFolder("");
   }
   bool execute() {
@@ -124,3 +124,4 @@ activateWindow();
 };
 
 OpenPopupCommandHandler<LoadScriptPopup> loadScriptPopupHandler("MI_RunScript");
+

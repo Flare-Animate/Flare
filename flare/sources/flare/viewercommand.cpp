@@ -1,22 +1,22 @@
 
-#include "toonzqt/menubarcommand.h"
+#include "flareqt/menubarcommand.h"
 #include "menubarcommandids.h"
 #include "tapp.h"
 #include "filmstripcommand.h"
 
 // TnzLib includes
-#include "toonz/tscenehandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/tframehandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/toonzscene.h"
-#include "toonz/txsheet.h"
-#include "toonz/txshcell.h"
+#include "flare/tscenehandle.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/tframehandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/tcolumnhandle.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/flarescene.h"
+#include "flare/txsheet.h"
+#include "flare/txshcell.h"
 
 // TnzQt includes
-#include "toonzqt/dvdialog.h"
+#include "flareqt/dvdialog.h"
 
 #include <set>
 
@@ -79,4 +79,5 @@ public:
     app->getCurrentXsheet()->notifyXsheetChanged();
   }
 } clearViewerContentCommand;
+
 

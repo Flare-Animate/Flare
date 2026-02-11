@@ -9,26 +9,26 @@
 #include "tools/toolutils.h"
 
 // TnzQt includes
-#include "toonzqt/icongenerator.h"
+#include "flareqt/icongenerator.h"
 #include "historytypes.h"
 
 // TnzLib includes
-#include "toonz/txsheet.h"
-#include "toonz/toonzscene.h"
-#include "toonz/levelset.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/txshlevelcolumn.h"
-#include "toonz/txshcell.h"
-#include "toonz/scenefx.h"
-#include "toonz/dpiscale.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/palettecontroller.h"
-#include "toonz/tpalettehandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/txshleveltypes.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/tframehandle.h"
-#include "toonz/preferences.h"
+#include "flare/txsheet.h"
+#include "flare/flarescene.h"
+#include "flare/levelset.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/txshlevelcolumn.h"
+#include "flare/txshcell.h"
+#include "flare/scenefx.h"
+#include "flare/dpiscale.h"
+#include "flare/txsheethandle.h"
+#include "flare/palettecontroller.h"
+#include "flare/tpalettehandle.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/txshleveltypes.h"
+#include "flare/tscenehandle.h"
+#include "flare/tframehandle.h"
+#include "flare/preferences.h"
 
 // TnzCore includes
 #include "tpalette.h"
@@ -36,7 +36,7 @@
 #include "tcolorstyles.h"
 #include "tundo.h"
 #include "tropcm.h"
-#include "ttoonzimage.h"
+#include "tflareimage.h"
 #include "tenv.h"
 
 // Qt includes
@@ -90,9 +90,9 @@ void doMatchlines(const std::vector<MergeCmappedPair> &matchingLevels,
 
   int i = 0;
   for (i = 0; i < (int)matchingLevels.size(); i++) {
-    TToonzImageP img = (TToonzImageP)matchingLevels[i].m_cell->getImage(true);
-    TToonzImageP match =
-        (TToonzImageP)matchingLevels[i].m_mcell->getImage(false);
+    TflareImageP img = (TflareImageP)matchingLevels[i].m_cell->getImage(true);
+    TflareImageP match =
+        (TflareImageP)matchingLevels[i].m_mcell->getImage(false);
     if (!img || !match)
       throw TRopException("Can do matchlines only on cmapped raster images!");
     // img->lock();
@@ -220,7 +220,7 @@ void applyDeleteMatchline(TXshSimpleLevel *sl,
   }
 
   for (i = 0; i < (int)fids.size(); i++) {
-    TToonzImageP image = sl->getFrame(fids[i], true);
+    TflareImageP image = sl->getFrame(fids[i], true);
     assert(image);
     TRasterCM32P ras = image->getRaster();  // level[i]->getCMapped(false);
     ras->lock();
@@ -535,7 +535,7 @@ public:
     for (i = 0; i < fids.size(); i++) {
       QString id = "DeleteMatchlineUndo" + QString::number((uintptr_t)this) +
                    "-" + QString::number(i);
-      TToonzImageP image = sl->getFrame(fids[i], false);
+      TflareImageP image = sl->getFrame(fids[i], false);
       assert(image);
       TImageCache::instance()->add(id, image->clone());
     }
@@ -771,14 +771,14 @@ void doMatchlines(int column, int mColumn, int index, int inkPrevalence,
     if (!img || !match) continue;
 
     if ((it = table.find(fid)) == table.end()) {
-      TToonzImageP timg   = (TToonzImageP)img;
-      TToonzImageP tmatch = (TToonzImageP)match;
+      TflareImageP timg   = (TflareImageP)img;
+      TflareImageP tmatch = (TflareImageP)match;
 
       //ラスタLevelじゃないとき、エラーを返す
       if (!timg || !tmatch) {
         getImageProgressBar->close();
         DVGui::warning(QObject::tr(
-            "Match lines can be applied to Toonz raster levels only."));
+            "Match lines can be applied to flare raster levels only."));
         /*-- 前に遡ってキャッシュを消去 --*/
         i--;
         for (; i >= 0; i--) {
@@ -810,7 +810,7 @@ void doMatchlines(int column, int mColumn, int index, int inkPrevalence,
 
   if (matchingLevels.empty()) {
     DVGui::warning(
-        QObject::tr("Match lines can be applied to Toonz raster levels only."));
+        QObject::tr("Match lines can be applied to flare raster levels only."));
     return;
   }
 
@@ -1032,7 +1032,7 @@ void DeleteInkDialog::setRange(const QString &str) { m_frames->setText(str); }
 static void doDeleteMatchlines(TXshSimpleLevel *sl,
                                const std::set<TFrameId> &fids, bool chooseInk) {
   std::vector<int> indexes;
-  // vector<TToonzImageP> images;
+  // vector<TflareImageP> images;
   std::vector<TFrameId> frames;
   std::vector<TFrameId> fidsToProcess;
   int i;
@@ -1119,3 +1119,4 @@ void deleteInk(TXshSimpleLevel *sl, const std::set<TFrameId> &fids) {
 }
 
 //-----------------------------------------------------------------------------
+

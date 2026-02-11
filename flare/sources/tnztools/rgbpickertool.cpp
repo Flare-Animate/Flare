@@ -3,26 +3,26 @@
 #include "rgbpickertool.h"
 
 #include "tvectorimage.h"
-#include "ttoonzimage.h"
+#include "tflareimage.h"
 #include "tools/cursors.h"
 #include "tcolorstyles.h"
-#include "toonz/cleanupcolorstyles.h"
+#include "flare/cleanupcolorstyles.h"
 #include "trasterimage.h"
 #include "tgl.h"
 #include "tenv.h"
 #include "tstroke.h"
 
-#include "toonz/palettecontroller.h"
-#include "toonz/tpalettehandle.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/stage2.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/preferences.h"
+#include "flare/palettecontroller.h"
+#include "flare/tpalettehandle.h"
+#include "flare/tscenehandle.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/stage2.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/preferences.h"
 
-#include "toonzqt/icongenerator.h"
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/lutcalibrator.h"
+#include "flareqt/icongenerator.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/lutcalibrator.h"
 
 #include "tools/toolhandle.h"
 #include "tools/stylepicker.h"
@@ -292,13 +292,13 @@ void RGBPickerTool::draw() {
     passivePick();
   }
   if (m_pickType.getValue() == RECT_PICK && !m_makePick) {
-    TPixel color = ToonzCheck::instance()->getChecks() & ToonzCheck::eBlackBg
+    TPixel color = flareCheck::instance()->getChecks() & flareCheck::eBlackBg
                        ? TPixel32::White
                        : TPixel32::Red;
     ToolUtils::drawRect(m_drawingRect, color, 0x3F33, true);
   } else if (m_pickType.getValue() == POLYLINE_PICK &&
              !m_drawingPolyline.empty()) {
-    TPixel color = ToonzCheck::instance()->getChecks() & ToonzCheck::eBlackBg
+    TPixel color = flareCheck::instance()->getChecks() & flareCheck::eBlackBg
                        ? TPixel32::White
                        : TPixel32::Black;
     tglColor(color);
@@ -310,7 +310,7 @@ void RGBPickerTool::draw() {
     glEnd();
   } else if (m_pickType.getValue() == FREEHAND_PICK &&
              !m_drawingTrack.isEmpty()) {
-    TPixel color = ToonzCheck::instance()->getChecks() & ToonzCheck::eBlackBg
+    TPixel color = flareCheck::instance()->getChecks() & flareCheck::eBlackBg
                        ? TPixel32::White
                        : TPixel32::Black;
     tglColor(color);
@@ -559,7 +559,7 @@ int RGBPickerTool::getCursorId() const {
                            ->getCurrentPalette()
                            ->getStyleIndex();
   if (currentStyleId == 0) return ToolCursor::ForbiddenCursor;
-  if (ToonzCheck::instance()->getChecks() & ToonzCheck::eBlackBg)
+  if (flareCheck::instance()->getChecks() & flareCheck::eBlackBg)
     return ToolCursor::PickerRGBWhite;
   else
     return ToolCursor::PickerRGB;
@@ -672,3 +672,4 @@ void RGBPickerTool::showFlipPickedColor(const TPixel32 &pix) {
 RGBPickerTool RGBpicktool;
 
 // TTool *getPickRGBMTool() {return &pickRBGMTool;}
+

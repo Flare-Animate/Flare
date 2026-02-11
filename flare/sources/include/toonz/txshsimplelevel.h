@@ -10,9 +10,9 @@
 #include <map>
 
 // TnzLib includes
-#include "toonz/txshlevel.h"
-#include "toonz/txshleveltypes.h"
-#include "toonz/imagemanager.h"
+#include "flare/txshlevel.h"
+#include "flare/txshleveltypes.h"
+#include "flare/imagemanager.h"
 
 // TnzCore includes
 #include "traster.h"
@@ -28,7 +28,7 @@
 
 #undef DVAPI
 #undef DVVAR
-#ifdef TOONZLIB_EXPORTS
+#ifdef flareLIB_EXPORTS
 #define DVAPI DV_EXPORT_API
 #define DVVAR DV_EXPORT_VAR
 #else
@@ -236,7 +236,7 @@ public:
                  int frameStatus     = -1);
 
   /*! \brief Returns the bbox for the level's fid, specified in standard
-          \a inch coordinates (which are \a different from Toonz's
+          \a inch coordinates (which are \a different from flare's
           standard world coordinates, by a \p Stage::inch factor). */
   TRectD getBBox(const TFrameId &fid) const;
 
@@ -317,7 +317,7 @@ public:
     decodedLevelPath.getParentDir().
 
     \note A level may have multiple hook files if the hook set was edited
-          with older Toonz versions. Use this function if you need to access all
+          with older flare versions. Use this function if you need to access all
           of them. Only the latest file format is considered when loading a
     level.
   */
@@ -328,7 +328,7 @@ public:
     the specified \b decoded level path - or an empty path if none was found.
 
     \note In case there are more than one hook file (ie files from older
-          Toonz version), the latest file version is used.
+          flare version), the latest file version is used.
   */
   static TFilePath getExistingHookFile(const TFilePath &decodedLevelPath);
 
@@ -393,3 +393,4 @@ DVAPI void setLoadingLevelRange(const TFrameId &fromFid, const TFrameId &toFid);
 DVAPI void getLoadingLevelRange(TFrameId &fromFid, TFrameId &toFid);
 
 #endif  // TXSHSIMPLELEVEL_INCLUDED
+

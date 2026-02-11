@@ -3,12 +3,12 @@
 #ifndef SOUNDTRACKEXPORT_H
 #define SOUNDTRACKEXPORT_H
 
-#include "toonzqt/dvdialog.h"
-#include "toonz/sceneproperties.h"
+#include "flareqt/dvdialog.h"
+#include "flare/sceneproperties.h"
 #include "tsound.h"
 
 // forward declaration
-class ToonzScene;
+class flareScene;
 
 //=============================================================================
 // SoundtrackExport
@@ -27,8 +27,9 @@ protected:
   bool m_hasSoundtrack;
   TSoundTrackP m_st;
   TSoundTrack *m_sound;
-  ToonzScene *m_scene;
+  flareScene *m_scene;
   TFilePath m_fp;
 };
 
 #endif  // SOUNDTRACKEXPORT_H
+

@@ -129,7 +129,7 @@ set(HEADERS ${MOC_HEADERS}
     ../include/tiio_jpg_util.h
     ../include/tiio_jpg_exif.h
     ../include/tiio_std.h
-    ../include/ttoonzimage.h
+    ../include/tflareimage.h
     ../include/tipc.h
     ../include/tipcmsg.h
     ../include/t32bitsrv_wrap.h
@@ -267,7 +267,7 @@ set(SOURCES
     ../common/tiio/compatibility/tfile_io.c
     ../common/tiio/bmp/filebmp.c
     ../common/trop/tfracmove.cpp
-    ../common/ttoonzimage/ttonzimage.cpp
+    ../common/tflareimage/ttonzimage.cpp
     ../common/tsystem/uncpath.cpp
     ../common/tvectorimage/tl2lautocloser.cpp
     ../common/tvectorimage/outlineApproximation.cpp
@@ -404,3 +404,4 @@ target_link_libraries(tnzcore
     ${GL_LIB} ${GLUT_LIB} ${QT_LIB} ${Z_LIB} ${JPEG_LIB} ${LZ4_LIB}
     ${EXTRA_LIBS}
 )
+

@@ -19,7 +19,7 @@ public:
       : m_radius(0.35 * 640. / 12. / 25.4)
       /*	= 0.73490813648293963254
             0.35	= mm = ユーザ指定の初期値
-            640/12	= 53.33333 = toonz独自の係数 =tunit.cpp参照
+            640/12	= 53.33333 = flare独自の係数 =tunit.cpp参照
             25.4	= mm/inch
     */
       , m_channel(new TIntEnumParam())
@@ -290,3 +290,4 @@ void ino_median::doCompute(TTile &tile, double frame,
     throw;
   }
 }
+

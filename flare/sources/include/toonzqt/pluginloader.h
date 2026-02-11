@@ -1,7 +1,7 @@
 #pragma once
 
-#if !defined(TOONZ_PLUGIN_LOADER_H__)
-#define TOONZ_PLUGIN_LOADER_H__
+#if !defined(flare_PLUGIN_LOADER_H__)
+#define flare_PLUGIN_LOADER_H__
 
 #include <functional>
 #include <string>
@@ -9,7 +9,7 @@
 
 #undef DVAPI
 #undef DVVAR
-#ifdef TOONZQT_EXPORTS
+#ifdef flareQT_EXPORTS
 #define DVAPI DV_EXPORT_API
 #define DVVAR DV_EXPORT_VAR
 #else
@@ -18,8 +18,8 @@
 #endif
 
 /* Plugin Loader の inter-module interfaces:
-   toonzqt 以下のモジュールからアクセスするのに必要 (see:
-   toonz/insertfxpopup.cpp)
+   flareqt 以下のモジュールからアクセスするのに必要 (see:
+   flare/insertfxpopup.cpp)
    implements in pluginhost.cpp */
 class TFx;
 
@@ -33,3 +33,4 @@ public:
 };
 
 #endif
+

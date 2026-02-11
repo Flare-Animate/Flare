@@ -9,7 +9,7 @@
 
 #undef DVAPI
 #undef DVVAR
-#ifdef TOONZLIB_EXPORTS
+#ifdef flareLIB_EXPORTS
 #define DVAPI DV_EXPORT_API
 #define DVVAR DV_EXPORT_VAR
 #else
@@ -120,7 +120,7 @@ advantage of it to identify close-to-boundary regions.*/
 
   /*!Assume that the source input is a full-color non-antialiased image (e.g.
 painted level made with Retas).
-This kind of image must be pre-processed and transformed to toonz-image */
+This kind of image must be pre-processed and transformed to flare-image */
   bool m_naaSource;
 
 public:
@@ -287,3 +287,4 @@ public:
 };
 
 #endif  // VECTORIZERPARAMETERS_H
+

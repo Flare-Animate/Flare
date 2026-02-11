@@ -159,7 +159,7 @@ public:
                              pivot_radius);
   }
   bool canHandle(const TRenderSettings &info, double frame) override {
-    // return false; // toonz has geometry control
+    // return false; // flare has geometry control
     // return true;
     /* 2012-11-14:
      * trueのとき、Fx処理がジオメトリ変換の最後にまとめられてしまう。 */
@@ -388,3 +388,4 @@ void ino_radial_blur::doCompute(TTile &tile, double frame,
     throw;
   }
 }
+

@@ -17,23 +17,23 @@
 #include "formatsettingspopups.h"
 #include "tsystem.h"
 
-#include "toonz/toonzscene.h"
-#include "toonz/txsheet.h"
-#include "toonz/txshcolumn.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/onionskinmask.h"
-#include "toonz/tstageobject.h"
-#include "toonz/dpiscale.h"
-#include "toonz/stage.h"
-#include "toonz/stage2.h"
-#include "toonz/stagevisitor.h"
-#include "toonz/stageplayer.h"
-#include "toonz/tcamera.h"
-#include "toonz/preferences.h"
-#include "toonz/trasterimageutils.h"
+#include "flare/flarescene.h"
+#include "flare/txsheet.h"
+#include "flare/txshcolumn.h"
+#include "flare/sceneproperties.h"
+#include "flare/onionskinmask.h"
+#include "flare/tstageobject.h"
+#include "flare/dpiscale.h"
+#include "flare/stage.h"
+#include "flare/stage2.h"
+#include "flare/stagevisitor.h"
+#include "flare/stageplayer.h"
+#include "flare/tcamera.h"
+#include "flare/preferences.h"
+#include "flare/trasterimageutils.h"
 
 #include "tapp.h"
-#include "toonz/tframehandle.h"
+#include "flare/tframehandle.h"
 
 #ifdef MACOSX
 namespace {
@@ -89,10 +89,10 @@ public:
       , m_osMask() {}
   virtual ~Imp() {}
 
-  virtual void startScene(const ToonzScene &scene, int r) = 0;
-  virtual void addSoundtrack(const ToonzScene &scene, int frameOffset,
+  virtual void startScene(const flareScene &scene, int r) = 0;
+  virtual void addSoundtrack(const flareScene &scene, int frameOffset,
                              int sceneFrameCount) = 0;
-  virtual bool addFrame(ToonzScene &scene, int r, bool isLast) = 0;
+  virtual bool addFrame(flareScene &scene, int r, bool isLast) = 0;
   virtual void close() = 0;
 };
 
@@ -163,7 +163,7 @@ public:
     m_fileOptions   = properties.getFileFormatProperties(ext);
   }
 
-  void start(const ToonzScene &scene) {
+  void start(const flareScene &scene) {
     m_status      = 3;
     m_alphaNeeded = scene.getProperties()->getBgColor().m < 255;
     assert(m_started == false);
@@ -179,7 +179,7 @@ public:
     if (m_st) m_lw->saveSoundTrack(m_st.getPointer());
   }
 
-  bool addFrame(ToonzScene &scene, int row, bool isLast) override {
+  bool addFrame(flareScene &scene, int row, bool isLast) override {
     assert(m_status == 3);
     if (!m_started) start(scene);
 
@@ -261,7 +261,7 @@ false,0);
     return true;
   }
 
-  void addSoundtrack(const ToonzScene &scene, int frameOffset,
+  void addSoundtrack(const flareScene &scene, int frameOffset,
                      int sceneFrameCount) override {
     assert(m_status <= 2);
     m_status                       = 2;
@@ -288,7 +288,7 @@ false,0);
     m_whiteSample = 0;
   }
 
-  void startScene(const ToonzScene &scene, int r) override {
+  void startScene(const flareScene &scene, int r) override {
     if (!m_started) start(scene);
   }
 
@@ -332,7 +332,7 @@ void MovieGenerator::setSceneCount(int sceneCount) {
 
 //-------------------------------------------------------------------
 
-bool MovieGenerator::addSoundtrack(const ToonzScene &scene, int frameOffset,
+bool MovieGenerator::addSoundtrack(const flareScene &scene, int frameOffset,
                                    int sceneFrameCount) {
   m_imp->addSoundtrack(scene, frameOffset, sceneFrameCount);
   return true;
@@ -340,7 +340,7 @@ bool MovieGenerator::addSoundtrack(const ToonzScene &scene, int frameOffset,
 
 //-------------------------------------------------------------------
 
-bool MovieGenerator::addScene(ToonzScene &scene, int r0, int r1) {
+bool MovieGenerator::addScene(flareScene &scene, int r0, int r1) {
   TApp *app                 = TApp::instance();
   RasterMovieGenerator *imp = dynamic_cast<RasterMovieGenerator *>(m_imp.get());
   if (imp) imp->m_alphaEnabled = true;
@@ -387,3 +387,4 @@ void MovieGenerator::setOnionSkin(int columnIndex, const OnionSkinMask &mask) {
 }
 
 //-------------------------------------------------------------------
+

@@ -22,10 +22,10 @@
 #include "tconvert.h"
 #include "texception.h"
 #include "tfilepath_io.h"
-#include "toonz/toonzfolders.h"
-#include "toonz/tproject.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/toonzscene.h"
+#include "flare/flarefolders.h"
+#include "flare/tproject.h"
+#include "flare/tscenehandle.h"
+#include "flare/flarescene.h"
 
 #include <QOperatingSystemVersion>
 #include <QDesktopServices>
@@ -488,13 +488,13 @@ void CrashHandler::copyClipboard() {
 //-----------------------------------------------------------------------------
 
 void CrashHandler::openWebpage() {
-  QDesktopServices::openUrl(QUrl("https://github.com/opentoonz/opentoonz/issues"));
+  QDesktopServices::openUrl(QUrl("https://github.com/flare/flare/issues"));
 }  
 
 //-----------------------------------------------------------------------------
 
 void CrashHandler::openFolder() {
-  TFilePath fp = ToonzFolder::getCrashReportFolder();
+  TFilePath fp = flareFolder::getCrashReportFolder();
   QDesktopServices::openUrl(QUrl("file:///" + fp.getQString()));
 }
 
@@ -545,8 +545,8 @@ bool CrashHandler::trigger(const QString reason, bool showDialog) {
   strftime(dateName, 128, "%Y-%m-%d %H:%M:%S", tm);
   strftime(fileName, 128, "Crash-%Y%m%d-%H%M%S.log", tm);
   strftime(dumpName, 128, "Crash-%Y%m%d-%H%M%S.dmp", tm);
-  TFilePath fpCrsh = ToonzFolder::getCrashReportFolder() + fileName;
-  TFilePath fpDump = ToonzFolder::getCrashReportFolder() + dumpName;
+  TFilePath fpCrsh = flareFolder::getCrashReportFolder() + fileName;
+  TFilePath fpDump = flareFolder::getCrashReportFolder() + dumpName;
 
   // Generate minidump
   bool minidump = generateMinidump(fpDump);
@@ -579,7 +579,7 @@ bool CrashHandler::trigger(const QString reason, bool showDialog) {
       auto currentProject = TProjectManager::instance()->getCurrentProject();
       TFilePath projectPath    = currentProject->getProjectPath();
 
-      ToonzScene *currentScene = TApp::instance()->getCurrentScene()->getScene();
+      flareScene *currentScene = TApp::instance()->getCurrentScene()->getScene();
       std::wstring sceneName   = currentScene->getSceneName();
 
       out.append("\nApplication Dir: ");
@@ -633,3 +633,4 @@ bool CrashHandler::trigger(const QString reason, bool showDialog) {
 }
 
 //-----------------------------------------------------------------------------
+

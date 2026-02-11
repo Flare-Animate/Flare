@@ -1,8 +1,8 @@
 
 
-#include "toonz/txshsoundtextcolumn.h"
-#include "toonz/txshsoundtextlevel.h"
-#include "toonz/txshleveltypes.h"
+#include "flare/txshsoundtextcolumn.h"
+#include "flare/txshsoundtextlevel.h"
+#include "flare/txshleveltypes.h"
 #include "tstream.h"
 
 //=============================================================================

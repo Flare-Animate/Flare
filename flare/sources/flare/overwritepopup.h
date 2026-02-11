@@ -4,13 +4,13 @@
 #define OVERWRITEPOPUP_H
 
 // TnzQt includes
-#include "toonzqt/dvdialog.h"
+#include "flareqt/dvdialog.h"
 
 //===========================================================
 
 //    Forward declarations
 
-class ToonzScene;
+class flareScene;
 class TFilePath;
 
 namespace DVGui {
@@ -60,8 +60,8 @@ public:
   };
 
   struct DecodeFileExistsFunc final : public ExistsFunc {
-    ToonzScene *m_scene;
-    DecodeFileExistsFunc(ToonzScene *scene) : m_scene(scene) {}
+    flareScene *m_scene;
+    DecodeFileExistsFunc(flareScene *scene) : m_scene(scene) {}
 
     QString conflictString(const TFilePath &fp) const override;
     bool operator()(const TFilePath &fp) const override;
@@ -95,7 +95,7 @@ public:
 necessary, it opens a popup.
 put parameter multiLoad to true only if you are importing more then one level
 (so that the button 'apply to all' appears in the dialog)*/
-  std::wstring execute(ToonzScene *scene, const TFilePath &levelPath,
+  std::wstring execute(flareScene *scene, const TFilePath &levelPath,
                        bool multiLoad);
 
 protected slots:
@@ -122,3 +122,4 @@ private:
 };
 
 #endif  // OVERWRITEPOPUP_H
+

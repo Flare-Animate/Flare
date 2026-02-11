@@ -1,19 +1,19 @@
 
 
-#include "toonzqt/flipconsole.h"
-// Include shared flipbook settings (e.g., FlipBookWhiteBgToggle) from toonz/
-#include "toonz/flipbooksettings.h"
+#include "flareqt/flipconsole.h"
+// Include shared flipbook settings (e.g., FlipBookWhiteBgToggle) from flare/
+#include "flare/flipbooksettings.h"
 
 // TnzQt includes
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/dvscrollwidget.h"
-#include "toonzqt/gutil.h"
-#include "toonzqt/flipconsoleowner.h"
+#include "flareqt/menubarcommand.h"
+#include "flareqt/dvscrollwidget.h"
+#include "flareqt/gutil.h"
+#include "flareqt/flipconsoleowner.h"
 
 // TnzLib includes
-#include "toonz/preferences.h"
-#include "toonz/tframehandle.h"
-#include "toonz/toonzfolders.h"
+#include "flare/preferences.h"
+#include "flare/tframehandle.h"
+#include "flare/flarefolders.h"
 
 // TnzBase includes
 #include "tenv.h"
@@ -75,7 +75,7 @@ QColor PBStartedColor    = QColor(220, 160, 160);
 QColor PBFinishedColor   = QColor(235, 235, 235);
 
 QString getFlipSettingsPath() {
-  return toQString(ToonzFolder::getMyModuleDir() +
+  return toQString(flareFolder::getMyModuleDir() +
                    TFilePath("fliphistory.ini"));
 }
 
@@ -2166,3 +2166,4 @@ createToggleAction(parent, "A_Flip_Loop",  "Loop",  FlipConsole::eLoop);*/
 } flipConsoleActionsCreator;
 
 //--------------------------------------------------------------------
+

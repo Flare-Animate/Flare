@@ -8,11 +8,11 @@
 #include "tpixel.h"
 
 // TnzQt includes
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/filefield.h"
-#include "toonzqt/lineedit.h"
-#include "toonzqt/checkbox.h"
-#include "toonzqt/doublefield.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/filefield.h"
+#include "flareqt/lineedit.h"
+#include "flareqt/checkbox.h"
+#include "flareqt/doublefield.h"
 
 // Tnz6 includes
 #include "cellselection.h"
@@ -163,7 +163,7 @@ public:
 //    FileBrowserPopup Heirs  declarations
 //********************************************************************************
 
-//! The GenericLoadFilePopup is a simple, standard Toonz popup that
+//! The GenericLoadFilePopup is a simple, standard flare popup that
 //! asks the user for \a single file to be loaded from disk.
 class GenericLoadFilePopup : public FileBrowserPopup {
 public:
@@ -182,7 +182,7 @@ protected:
 
 //-----------------------------------------------------------------------------
 
-//! The GenericSaveFilePopup is a simple, standard Toonz popup that
+//! The GenericSaveFilePopup is a simple, standard flare popup that
 //! asks the user for a \a single file path to save something to.
 class GenericSaveFilePopup : public FileBrowserPopup {
 public:
@@ -473,3 +473,4 @@ public:
 };
 
 #endif  // FILEBROWSERPOPUP_H
+

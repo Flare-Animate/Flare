@@ -10,18 +10,18 @@
 #include "tcolorstyles.h"
 #include "tundo.h"
 #include "tvectorimage.h"
-#include "ttoonzimage.h"
+#include "tflareimage.h"
 #include "tproperty.h"
-#include "toonz/strokegenerator.h"
-#include "toonz/ttilesaver.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/observer.h"
-#include "toonz/toonzimageutils.h"
-#include "toonz/levelproperties.h"
-#include "toonz/stage2.h"
-#include "toonz/ttileset.h"
-#include "toonz/rasterstrokegenerator.h"
-#include "toonz/preferences.h"
+#include "flare/strokegenerator.h"
+#include "flare/ttilesaver.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/observer.h"
+#include "flare/flareimageutils.h"
+#include "flare/levelproperties.h"
+#include "flare/stage2.h"
+#include "flare/ttileset.h"
+#include "flare/rasterstrokegenerator.h"
+#include "flare/preferences.h"
 #include "tgl.h"
 #include "tenv.h"
 
@@ -30,18 +30,18 @@
 #include "tinbetween.h"
 #include "ttile.h"
 
-#include "toonz/tpalettehandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/tframehandle.h"
+#include "flare/tpalettehandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/tframehandle.h"
 #include "tools/toolhandle.h"
 
 // For Qt translation support
 #include <QCoreApplication>
 
 #include "tools/stylepicker.h"
-#include "toonzqt/tselectionhandle.h"
-#include "toonzqt/styleselection.h"
+#include "flareqt/tselectionhandle.h"
+#include "flareqt/styleselection.h"
 #include "historytypes.h"
 
 using namespace ToolUtils;
@@ -76,7 +76,7 @@ public:
       , m_invert(invert) {}
 
   void redo() const override {
-    TToonzImageP image = m_level->getFrame(m_frameId, true);
+    TflareImageP image = m_level->getFrame(m_frameId, true);
     TRasterCM32P ras   = image->getRaster();
     RasterStrokeGenerator m_rasterTrack(ras, FINGER, m_colorType, m_styleId,
                                         m_points[0], m_invert, 0, false, false);
@@ -282,7 +282,7 @@ public:
   FingerTool();
 
   void draw() override;
-  void update(TToonzImageP ti, TRectD area);
+  void update(TflareImageP ti, TRectD area);
 
   void updateTranslation() override;
 
@@ -330,7 +330,7 @@ FingerTool::FingerTool()
     , m_emptyOnly("Empty Only", true)
     , m_firstTime(true)
     , m_workingFrameId(TFrameId()) {
-  bind(TTool::ToonzImage);
+  bind(TTool::flareImage);
 
   m_toolSize.setNonLinearSlider();
   //ColorType
@@ -366,14 +366,14 @@ void FingerTool::draw() {
   // If toggled off, don't draw brush outline
   if (!Preferences::instance()->isCursorOutlineEnabled()) return;
 
-  TToonzImageP ti = (TToonzImageP)getImage(false);
+  TflareImageP ti = (TflareImageP)getImage(false);
   if (!ti) return;
   TRasterP ras = ti->getRaster();
   int lx       = ras->getLx();
   int ly       = ras->getLy();
 
-  if ((ToonzCheck::instance()->getChecks() & ToonzCheck::eInk) ||
-      (ToonzCheck::instance()->getChecks() & ToonzCheck::ePaint))
+  if ((flareCheck::instance()->getChecks() & flareCheck::eInk) ||
+      (flareCheck::instance()->getChecks() & flareCheck::ePaint))
     glColor3d(0.5, 0.8, 0.8);
   else
     glColor3d(1.0, 0.0, 0.0);
@@ -436,7 +436,7 @@ void FingerTool::leftButtonDown(const TPointD &pos, const TMouseEvent &e) {
   m_selecting = true;
   TImageP image(getImage(true));
 
-  if (TToonzImageP ti = image) {
+  if (TflareImageP ti = image) {
     TRasterCM32P ras = ti->getRaster();
     if (ras) {
       int thickness = m_toolSize.getValue();
@@ -467,7 +467,7 @@ void FingerTool::leftButtonDrag(const TPointD &pos, const TMouseEvent &e) {
 
   m_brushPos = TPointD(tround(pos.x - 0.5), tround(pos.y - 0.5));
 
-  if (TToonzImageP ri = TImageP(getImage(true))) {
+  if (TflareImageP ri = TImageP(getImage(true))) {
     /*---	マウスを動かしながらショートカットで切り替わった場合、
                     いきなりleftButtonDragから呼ばれることがあり、
                     m_rasterTrackが無くて落ちることがある。 ---*/
@@ -523,7 +523,7 @@ void FingerTool::onEnter() {
   m_pointSize =
       (x - minRange) / (maxRange - minRange) * (maxSize - minSize) + minSize;
 
-  if ((TToonzImageP)getImage(false))
+  if ((TflareImageP)getImage(false))
     m_cursor = ToolCursor::PenCursor;
   else
     m_cursor = ToolCursor::CURSOR_NO;
@@ -551,7 +551,7 @@ void FingerTool::onDeactivate() {
  * ドラッグ中にツールが切り替わった場合に備え、onDeactivateにもMouseReleaseと同じ処理を行う
  */
 void FingerTool::finishBrush() {
-  if (TToonzImageP ti = (TToonzImageP)getImage(true)) {
+  if (TflareImageP ti = (TflareImageP)getImage(true)) {
     if (m_rasterTrack) {
       int thickness = m_toolSize.getValue();
       m_rasterTrack->add(TThickPoint(
@@ -598,7 +598,7 @@ void FingerTool::pick(const TPointD &pos) {
     modeValue = 0;//AREAS
 
   TImageP image    = getImage(false);
-  TToonzImageP ti  = image;
+  TflareImageP ti  = image;
   TVectorImageP vi = image;
   TXshSimpleLevel *level =
       getApplication()->getCurrentLevel()->getSimpleLevel();
@@ -641,3 +641,4 @@ void FingerTool::pick(const TPointD &pos) {
 
   getApplication()->setCurrentLevelStyleIndex(styleId);
 }
+

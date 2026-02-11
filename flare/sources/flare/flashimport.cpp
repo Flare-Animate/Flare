@@ -4,12 +4,12 @@
 #include "flare/projectmanager.h"
 #include "flare/preferences.h"
 #include "flare/tapp.h"
-#include "../flare/toonzfolders.h" 
+#include "../flare/flarefolders.h" 
 
-#include "../toonzqt/gutil.h"
-#include "../toonzqt/dvdialog.h"
-#include "../toonzqt/filebrowserpopup.h"
-#include "../toonzqt/gutil.h"
+#include "../flareqt/gutil.h"
+#include "../flareqt/dvdialog.h"
+#include "../flareqt/filebrowserpopup.h"
+#include "../flareqt/gutil.h"
 
 #include <QProcess>
 #include <QDesktopServices>
@@ -31,7 +31,7 @@ public:
 } ImportFlashVectorCommand;
 
 void ImportFlashVectorCommand::execute() {
-  ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
+  flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
   static GenericLoadFilePopup *loadPopup = 0;
   if (!loadPopup) {
     loadPopup = new GenericLoadFilePopup(
@@ -68,7 +68,7 @@ void ImportFlashVectorCommand::execute() {
   candidates << QDir(QCoreApplication::applicationDirPath())
                     .absoluteFilePath("tools/flash/decompile_flash.py");
   // Relative to source module dir
-  QString moduleDir = ToonzFolder::getMyModuleDir().getQString();
+  QString moduleDir = flareFolder::getMyModuleDir().getQString();
   candidates << QDir(moduleDir).absoluteFilePath("../../../../tools/flash/decompile_flash.py");
 
   QString scriptPath;
@@ -147,7 +147,7 @@ public:
 } ImportFlashContainerCommand;
 
 void ImportFlashContainerCommand::execute() {
-  ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
+  flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
   static GenericLoadFilePopup *loadPopup = 0;
   if (!loadPopup) {
     loadPopup = new GenericLoadFilePopup(QObject::tr("Import Flash/XFL/SWC (Native)"));
@@ -181,7 +181,7 @@ void ImportFlashContainerCommand::execute() {
   QStringList candidates;
   candidates << QDir(QCoreApplication::applicationDirPath()).absoluteFilePath("../../tools/flash/import_container.py");
   candidates << QDir(QCoreApplication::applicationDirPath()).absoluteFilePath("tools/flash/import_container.py");
-  QString moduleDir = ToonzFolder::getMyModuleDir().getQString();
+  QString moduleDir = flareFolder::getMyModuleDir().getQString();
   candidates << QDir(moduleDir).absoluteFilePath("../../../../tools/flash/import_container.py");
 
   QString scriptPath;
@@ -287,3 +287,4 @@ void ImportFlashContainerCommand::execute() {
       QDesktopServices::openUrl(QUrl::fromLocalFile(outDir.getQString()));
   }
 }
+

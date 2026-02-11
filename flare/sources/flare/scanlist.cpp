@@ -2,25 +2,25 @@
 
 #include "scanlist.h"
 #include "tapp.h"
-#include "toonz/txsheet.h"
-#include "toonz/txshcell.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/txshleveltypes.h"
-#include "toonz/levelproperties.h"
-#include "toonz/toonzscene.h"
-#include "toonz/fullcolorpalette.h"
-#include "toonz/palettecontroller.h"
-#include "toonz/tpalettehandle.h"
+#include "flare/txsheet.h"
+#include "flare/txshcell.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/txshleveltypes.h"
+#include "flare/levelproperties.h"
+#include "flare/flarescene.h"
+#include "flare/fullcolorpalette.h"
+#include "flare/palettecontroller.h"
+#include "flare/tpalettehandle.h"
 #include "cellselection.h"
-#include "toonz/observer.h"
+#include "flare/observer.h"
 #include "trasterimage.h"
 #include "tsystem.h"
 #include "tlevel_io.h"
 #include "tiio.h"
 #include "tconvert.h"
 #include "timagecache.h"
-#include "toonz/tscenehandle.h"
-#include "toonzqt/icongenerator.h"
+#include "flare/tscenehandle.h"
+#include "flareqt/icongenerator.h"
 //---------------------------------------------------------
 
 ScanListFrame::ScanListFrame() : m_xl(0) {}
@@ -87,7 +87,7 @@ void ScanListFrame::setRasterImage(const TRasterImageP &ras, bool isBW) const {
     lprop->setBpp(isBW ? 1 : 8 * ras->getRaster()->getPixelSize());
   }
 
-  ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
+  flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
   TFilePath path    = m_xl->getPath();
   if (m_xl->getScannedPath() != TFilePath()) path = m_xl->getScannedPath();
   path                                            = scene->decodeFilePath(path);
@@ -184,7 +184,7 @@ typedef std::vector<TXshSimpleLevel *> Levels;
 
 void getCells(Cells &cells, Levels &levels, bool includeScannedFrames) {
   TApp *app         = TApp::instance();
-  ToonzScene *scene = app->getCurrentScene()->getScene();
+  flareScene *scene = app->getCurrentScene()->getScene();
   TXsheet *xsh      = scene->getXsheet();
   TCellSelection *selection =
       dynamic_cast<TCellSelection *>(TSelection::getCurrent());
@@ -250,3 +250,4 @@ void ScanList::update(bool includeScannedFrames) {
 }
 
 //---------------------------------------------------------
+

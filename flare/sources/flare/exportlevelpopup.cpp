@@ -13,30 +13,30 @@
 #include "selectionutils.h"
 
 // TnzQt includes
-#include "toonzqt/checkbox.h"
-#include "toonzqt/doublefield.h"
-#include "toonzqt/colorfield.h"
-#include "toonzqt/tselectionhandle.h"
-#include "toonzqt/gutil.h"
-#include "toonzqt/planeviewer.h"
-#include "toonzqt/framenavigator.h"
-#include "toonzqt/imageutils.h"
+#include "flareqt/checkbox.h"
+#include "flareqt/doublefield.h"
+#include "flareqt/colorfield.h"
+#include "flareqt/tselectionhandle.h"
+#include "flareqt/gutil.h"
+#include "flareqt/planeviewer.h"
+#include "flareqt/framenavigator.h"
+#include "flareqt/imageutils.h"
 
 // TnzLib includes
-#include "toonz/txsheet.h"
-#include "toonz/tcamera.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/txshcell.h"
-#include "toonz/tstageobjecttree.h"
-#include "toonz/toonzscene.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/tproject.h"
-#include "toonz/stage.h"
-#include "toonz/preferences.h"
+#include "flare/txsheet.h"
+#include "flare/tcamera.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/txshcell.h"
+#include "flare/tstageobjecttree.h"
+#include "flare/flarescene.h"
+#include "flare/sceneproperties.h"
+#include "flare/tproject.h"
+#include "flare/stage.h"
+#include "flare/preferences.h"
 
-#include "toonz/txshlevelhandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/tscenehandle.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/tscenehandle.h"
 #include "toutputproperties.h"
 
 // TnzCore includes
@@ -166,7 +166,7 @@ void ExportLevelPopup::Swatch::setActualPixelSize() {
   double dpix, dpiy;
   if (TRasterImageP ri = image())
     ri->getDpi(dpix, dpiy);
-  else if (TToonzImageP ti = image())
+  else if (TflareImageP ti = image())
     ti->getDpi(dpix, dpiy);
   else
     assert(false);
@@ -371,8 +371,8 @@ void ExportLevelPopup::collectSelectedSimpleLevels() {
     TXshSimpleLevel *sl = level->getSimpleLevel();
     if (!sl) continue;
     int type = sl->getType();
-    if (type == PLI_XSHLEVEL ||  // ToonzVector
-        type == TZP_XSHLEVEL ||  // ToonzRaster
+    if (type == PLI_XSHLEVEL ||  // flareVector
+        type == TZP_XSHLEVEL ||  // flareRaster
         type == OVL_XSHLEVEL)    // Raster
       outputLevels.push_back(sl);
   }
@@ -462,7 +462,7 @@ IoCmd::ExportLevelOptions ExportLevelPopup::getOptions(const std::string &ext) {
   opts.m_props    = getFormatProperties(ext);
   opts.m_forRetas = (m_retas->checkState() == Qt::Checked);
 
-  ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
+  flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
   opts.m_formatTemplateFId =
       scene->getProperties()->formatTemplateFIdForInput();
 
@@ -515,7 +515,7 @@ void ExportLevelPopup::onOptionsClicked() {
   // hide options when the Retas option is enabled.
   TFrameId *tmplFId = nullptr;
   if (!m_retas->isChecked()) {
-    ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
+    flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
     tmplFId           = &scene->getProperties()->formatTemplateFIdForInput();
   }
 
@@ -620,7 +620,7 @@ bool ExportLevelPopup::execute() {
 
   TApp *app = TApp::instance();
 
-  ToonzScene *scene = app->getCurrentScene()->getScene();
+  flareScene *scene = app->getCurrentScene()->getScene();
   TFrameId tmplFId  = scene->getProperties()->formatTemplateFIdForInput();
 
   // Whether need to create folder
@@ -708,7 +708,7 @@ void ExportLevelPopup::initFolder() {
   TFilePath fp;
 
   auto project      = TProjectManager::instance()->getCurrentProject();
-  ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
+  flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
 
   if (scene) fp = scene->decodeFilePath(TFilePath("+drawings"));
 
@@ -1081,3 +1081,4 @@ void ExportLevelPopup::ExportOptions::onThicknessTransformModeChanged() {
 
 OpenPopupCommandHandler<ExportLevelPopup> exportLevelPopupCommand(
     MI_ExportLevel);
+

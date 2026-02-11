@@ -8,34 +8,34 @@
 #include "tparamcontainer.h"
 
 // TnzLib includes
-#include "toonz/txsheet.h"
-#include "toonz/tstageobjecttree.h"
-#include "toonz/tcolumnfx.h"
-#include "toonz/tcolumnfxset.h"
-#include "toonz/fxdag.h"
-#include "toonz/txshchildlevel.h"
-#include "toonz/txshcell.h"
-#include "toonz/txshleveltypes.h"
-#include "toonz/txshlevelcolumn.h"
-#include "toonz/txshpalettecolumn.h"
-#include "toonz/txshzeraryfxcolumn.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/dpiscale.h"
-#include "toonz/tcamera.h"
-#include "toonz/toonzscene.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/plasticdeformerfx.h"
-#include "toonz/stage.h"
-#include "toonz/preferences.h"
+#include "flare/txsheet.h"
+#include "flare/tstageobjecttree.h"
+#include "flare/tcolumnfx.h"
+#include "flare/tcolumnfxset.h"
+#include "flare/fxdag.h"
+#include "flare/txshchildlevel.h"
+#include "flare/txshcell.h"
+#include "flare/txshleveltypes.h"
+#include "flare/txshlevelcolumn.h"
+#include "flare/txshpalettecolumn.h"
+#include "flare/txshzeraryfxcolumn.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/dpiscale.h"
+#include "flare/tcamera.h"
+#include "flare/flarescene.h"
+#include "flare/sceneproperties.h"
+#include "flare/plasticdeformerfx.h"
+#include "flare/stage.h"
+#include "flare/preferences.h"
 #include "ttzpimagefx.h"
-#include "toonz/txshsoundtextcolumn.h"
-#include "toonz/txshsoundtextlevel.h"
+#include "flare/txshsoundtextcolumn.h"
+#include "flare/txshsoundtextlevel.h"
 
 #include "../stdfx/motionawarebasefx.h"
 #include "../stdfx/textawarebasefx.h"
 #include "../stdfx/globalcontrollablefx.h"
 
-#include "toonz/scenefx.h"
+#include "flare/scenefx.h"
 
 #include <QList>
 
@@ -594,7 +594,7 @@ QString getNoteText(TXsheet *xsh, double row, int col, int noteColumnIndex,
 
 class FxBuilder {
 public:
-  ToonzScene *m_scene;
+  flareScene *m_scene;
   TXsheet *m_xsh;
   TAffine m_cameraAff;
   double m_cameraZ;
@@ -616,7 +616,7 @@ public:
   QMap<std::wstring, QPair<TFxP, bool>> m_globalControlledFx;
 
 public:
-  FxBuilder(ToonzScene *scene, TXsheet *xsh, double frame, int whichLevels,
+  FxBuilder(flareScene *scene, TXsheet *xsh, double frame, int whichLevels,
             bool isPreview = false, bool expandXSheet = true);
 
   TFxP buildFx();
@@ -637,7 +637,7 @@ public:
 
 //===================================================================
 
-FxBuilder::FxBuilder(ToonzScene *scene, TXsheet *xsh, double frame,
+FxBuilder::FxBuilder(flareScene *scene, TXsheet *xsh, double frame,
                      int whichLevels, bool isPreview, bool expandXSheet)
     : m_scene(scene)
     , m_xsh(xsh)
@@ -834,7 +834,7 @@ PlacedFx FxBuilder::makePF(TXsheetFx *fx) {
   Fxs under a ParticlesFx node seem to have special treatment - that is,
   empty column cells are still attached to a not-empty PlacedFx.
 
-  This must be a remnant of old Toonz code, that should no longer remain here -
+  This must be a remnant of old flare code, that should no longer remain here -
   in fact, well, you can only extract an empty render from an empty column!
   So why bother?
 */
@@ -865,7 +865,7 @@ PlacedFx FxBuilder::makePF(TLevelColumnFx *lcfx) {
     // 'backgrounds' - that is,
     // fullcolor levels...
 
-    // Still, I wonder if this is still used in Toonz. I don't remember seeing
+    // Still, I wonder if this is still used in flare. I don't remember seeing
     // it anywhere :\ ?
 
     TXshLevel *xl = cell.m_level.getPointer();
@@ -1316,7 +1316,7 @@ PlacedFx FxBuilder::makePFfromGenericFx(TFx *fx) {
 //    Exported  Render-Tree building  functions
 //***************************************************************************************************
 
-TFxP buildSceneFx(ToonzScene *scene, TXsheet *xsh, double row, int whichLevels,
+TFxP buildSceneFx(flareScene *scene, TXsheet *xsh, double row, int whichLevels,
                   int shrink, bool isPreview) {
   FxBuilder builder(scene, xsh, row, whichLevels, isPreview);
   TFxP fx = builder.buildFx();
@@ -1347,7 +1347,7 @@ TFxP buildSceneFx(ToonzScene *scene, TXsheet *xsh, double row, int whichLevels,
 
 //===================================================================
 
-TFxP buildSceneFx(ToonzScene *scene, TXsheet *xsh, double row, int shrink,
+TFxP buildSceneFx(flareScene *scene, TXsheet *xsh, double row, int shrink,
                   bool isPreview) {
   int whichLevels =
       scene->getProperties()->getOutputProperties()->getWhichLevels();
@@ -1356,13 +1356,13 @@ TFxP buildSceneFx(ToonzScene *scene, TXsheet *xsh, double row, int shrink,
 
 //===================================================================
 
-TFxP buildSceneFx(ToonzScene *scene, double row, int shrink, bool isPreview) {
+TFxP buildSceneFx(flareScene *scene, double row, int shrink, bool isPreview) {
   return buildSceneFx(scene, scene->getXsheet(), row, shrink, isPreview);
 }
 
 //===================================================================
 
-TFxP buildSceneFx(ToonzScene *scene, TXsheet *xsh, double row, const TFxP &root,
+TFxP buildSceneFx(flareScene *scene, TXsheet *xsh, double row, const TFxP &root,
                   bool isPreview) {
   int whichLevels =
       scene->getProperties()->getOutputProperties()->getWhichLevels();
@@ -1372,17 +1372,17 @@ TFxP buildSceneFx(ToonzScene *scene, TXsheet *xsh, double row, const TFxP &root,
 
 //===================================================================
 
-TFxP buildSceneFx(ToonzScene *scene, double row, const TFxP &root,
+TFxP buildSceneFx(flareScene *scene, double row, const TFxP &root,
                   bool isPreview) {
   return buildSceneFx(scene, scene->getXsheet(), row, root, isPreview);
 }
 
 //===================================================================
 
-//! Similar to buildSceneFx(ToonzScene *scene, double row, const TFxP &root,
+//! Similar to buildSceneFx(flareScene *scene, double row, const TFxP &root,
 //! bool isPreview) method, build the sceneFx
 //! adding also camera transformations. Used for Preview Fx function.
-DVAPI TFxP buildPartialSceneFx(ToonzScene *scene, double row, const TFxP &root,
+DVAPI TFxP buildPartialSceneFx(flareScene *scene, double row, const TFxP &root,
                                int shrink, bool isPreview) {
   int whichLevels =
       scene->getProperties()->getOutputProperties()->getWhichLevels();
@@ -1415,7 +1415,7 @@ DVAPI TFxP buildPartialSceneFx(ToonzScene *scene, double row, const TFxP &root,
 
 //===================================================================
 
-DVAPI TFxP buildPartialSceneFx(ToonzScene *scene, TXsheet *xsheet, double row,
+DVAPI TFxP buildPartialSceneFx(flareScene *scene, TXsheet *xsheet, double row,
                                const TFxP &root, int shrink, bool isPreview) {
   int whichLevels =
       scene->getProperties()->getOutputProperties()->getWhichLevels();
@@ -1457,7 +1457,7 @@ DVAPI TFxP buildPartialSceneFx(ToonzScene *scene, TXsheet *xsheet, double row,
   contribute to scene compositing. When encountered, the xsheet node is \a not
   xpanded - it must be replaced manually.
 */
-DVAPI TFxP buildPostSceneFx(ToonzScene *scene, double frame, int shrink,
+DVAPI TFxP buildPostSceneFx(flareScene *scene, double frame, int shrink,
                             bool isPreview) {
   // NOTE: Should whichLevels access output AND PREVIEW settings?
   int whichLevels =
@@ -1496,7 +1496,7 @@ DVAPI TFxP buildPostSceneFx(ToonzScene *scene, double frame, int shrink,
 
 //===================================================================
 
-DVAPI TFxP buildSceneFx(ToonzScene *scene, double frame, TXsheet *xsh,
+DVAPI TFxP buildSceneFx(flareScene *scene, double frame, TXsheet *xsh,
                         const TFxP &root, BSFX_Transforms_Enum transforms,
                         bool isPreview, int whichLevels, int shrink) {
   // NOTE: Should whichLevels access output AND PREVIEW settings?
@@ -1533,3 +1533,4 @@ DVAPI TFxP buildSceneFx(ToonzScene *scene, double frame, TXsheet *xsh,
 
   return fx;
 }
+

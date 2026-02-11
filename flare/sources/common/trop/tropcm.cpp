@@ -15,12 +15,12 @@
 #include "tsimplecolorstyles.h"
 
 //#include "tlevel.h"
-//#include "ttoonzimage.h"
+//#include "tflareimage.h"
 //#include "tgeometry.h"
 //#include "timage_io.h"
 
 extern "C" {
-#include "toonz4.6/raster.h"
+#include "flare4.6/raster.h"
 }
 
 #if defined(_WIN32) && defined(x64)
@@ -873,7 +873,7 @@ void TRop::applyMatchLines(TRasterCM32P rasOut, const TRasterCM32P &rasUp,
 
 /*------------------------------------------------------------------------*/
 
-void TRop::eraseStyleIds(TToonzImage *image, const std::vector<int> styleIds) {
+void TRop::eraseStyleIds(TflareImage *image, const std::vector<int> styleIds) {
   assert(image);
   TRasterCM32P ras = image->getRaster();
 
@@ -1007,7 +1007,7 @@ for (int tone = 0; tone < cmap.info.n_tones; tone++)
 
 /*---------------------------------------------------------------------------*/
 
-// \b NOTE: Starting from Toonz 6.1, some important improvements are introduced:
+// \b NOTE: Starting from flare 6.1, some important improvements are introduced:
 // a) The passed raster is now referenced by the returned _RASTER*, just the
 // same way
 //    smartpointer to rasters do.
@@ -1066,7 +1066,7 @@ _RASTER *TRop::convertRaster50to46(const TRasterP &inRas,
   {
     TImageP img;
     if (rcm)
-      img = TToonzImageP(rcm, rcm->getBounds());  // saveBox is not considered
+      img = TflareImageP(rcm, rcm->getBounds());  // saveBox is not considered
                                                   // in RASTER struct anyway
     else
       img = TRasterImageP(inRas);
@@ -1148,7 +1148,7 @@ void TRop::lockRaster(RASTER *raster) {
       std::string(raster->cacheId, raster->cacheIdLength), true));
   TRasterP cacheRas;
   if (raster->type == RAS_CM32)
-    cacheRas = TToonzImageP(img)->getRaster();
+    cacheRas = TflareImageP(img)->getRaster();
   else
     cacheRas = TRasterImageP(img)->getRaster();
   cacheRas->addRef();
@@ -1165,7 +1165,7 @@ void TRop::unlockRaster(RASTER *raster) {
       std::string(raster->cacheId, raster->cacheIdLength), true));
   TRasterP cacheRas;
   if (raster->type == RAS_CM32)
-    cacheRas = TToonzImageP(img)->getRaster();
+    cacheRas = TflareImageP(img)->getRaster();
   else
     cacheRas = TRasterImageP(img)->getRaster();
   cacheRas->release();
@@ -1176,13 +1176,13 @@ void TRop::unlockRaster(RASTER *raster) {
 /*------------------------------------------------------------------------*/
 
 _RASTER *TRop::readRaster46(const char *filename) {
-  // No more called in Toonz...
+  // No more called in flare...
 
   TImageP img;
 
   TImageReader::load(TFilePath(filename), img);
 
-  if ((TToonzImageP)img) return 0;
+  if ((TflareImageP)img) return 0;
 
   TRasterImageP rimg = (TRasterImageP)img;
 
@@ -1508,3 +1508,4 @@ void TRop::eraseRefInks(const TRasterCM32P &r) {
   delete id;
 }
 /*-----------------------------------------------------------------------------*/
+

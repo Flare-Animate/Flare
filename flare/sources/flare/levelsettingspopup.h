@@ -3,12 +3,12 @@
 #ifndef LEVELSETTINGSPOPUP_H
 #define LEVELSETTINGSPOPUP_H
 
-#include "toonzqt/dvdialog.h"
+#include "flareqt/dvdialog.h"
 
-#include "toonz/txshsimplelevel.h"
-#include "toonz/txshpalettelevel.h"
-#include "toonz/txshchildlevel.h"
-#include "toonz/txshsoundlevel.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/txshpalettelevel.h"
+#include "flare/txshchildlevel.h"
+#include "flare/txshsoundlevel.h"
 
 #include <QSet>
 
@@ -31,10 +31,10 @@ class CheckBox;
 
 enum SelectedLevelType {
   None            = 0x0,
-  ToonzRaster     = 0x1,
+  flareRaster     = 0x1,
   NonLinearRaster = 0x2,
   Mesh            = 0x4,
-  ToonzVector     = 0x8,
+  flareVector     = 0x8,
   Palette         = 0x10,
   SubXsheet       = 0x20,
   Sound           = 0x40,
@@ -46,8 +46,8 @@ enum SelectedLevelType {
   NoSelection     = 0x4000,
 
   Raster      = NonLinearRaster | LinearRaster,
-  SimpleLevel = ToonzRaster | Raster | Mesh | ToonzVector,
-  HasDPILevel = ToonzRaster | Raster | Mesh,
+  SimpleLevel = flareRaster | Raster | Mesh | flareVector,
+  HasDPILevel = flareRaster | Raster | Mesh,
   AllTypes    = SimpleLevel | Palette | SubXsheet | Sound
 };
 
@@ -130,3 +130,4 @@ protected slots:
 };
 
 #endif  // LEVELSETTINGSPOPUP_H
+

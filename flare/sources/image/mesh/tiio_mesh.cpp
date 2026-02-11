@@ -7,7 +7,7 @@
 
 #include "tiio_mesh.h"
 
-// TODO: Eccezioni. Vedi come funziona in toonzscene.cpp
+// TODO: Eccezioni. Vedi come funziona in flarescene.cpp
 
 //********************************************************************************
 //    TImageWriterMesh  definition
@@ -210,3 +210,4 @@ TLevelReaderMesh::~TLevelReaderMesh() {}
 TImageReaderP TLevelReaderMesh::getFrameReader(TFrameId fid) {
   return new TImageReaderMesh(this->m_path, fid);
 }
+

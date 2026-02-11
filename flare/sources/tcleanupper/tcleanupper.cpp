@@ -4,25 +4,25 @@
 #include "tfarmcontroller.h"
 
 // TnzLib includes
-#include "toonz/txshleveltypes.h"
-#include "toonz/tpalettehandle.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/levelproperties.h"
-#include "toonz/levelupdater.h"
-#include "toonz/preferences.h"
-#include "toonz/toonzfolders.h"
-#include "toonz/toonzscene.h"
-#include "toonz/txshchildlevel.h"
-#include "toonz/tproject.h"
-#include "toonz/tcleanupper.h"
-#include "toonz/txsheet.h"
-#include "toonz/txshcell.h"
-#include "toonz/txshcolumn.h"
-#include "toonz/tlog.h"
-#include "toonz/imagestyles.h"
-#include "toonz/filepathproperties.h"
+#include "flare/txshleveltypes.h"
+#include "flare/tpalettehandle.h"
+#include "flare/tscenehandle.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/sceneproperties.h"
+#include "flare/levelproperties.h"
+#include "flare/levelupdater.h"
+#include "flare/preferences.h"
+#include "flare/flarefolders.h"
+#include "flare/flarescene.h"
+#include "flare/txshchildlevel.h"
+#include "flare/tproject.h"
+#include "flare/tcleanupper.h"
+#include "flare/txsheet.h"
+#include "flare/txshcell.h"
+#include "flare/txshcolumn.h"
+#include "flare/tlog.h"
+#include "flare/imagestyles.h"
+#include "flare/filepathproperties.h"
 
 // TnzBase includes
 #include "tcli.h"
@@ -63,8 +63,8 @@ inline ostream &operator<<(ostream &out, const TFilePath &fp) {
 //------------------------------------------------------------------------
 namespace {
 
-const char *rootVarName     = "TOONZROOT";
-const char *systemVarPrefix = "TOONZ";
+const char *rootVarName     = "flareROOT";
+const char *systemVarPrefix = "flare";
 
 namespace {
 
@@ -137,23 +137,23 @@ void fatalError(string msg) {
 inline bool isBlank(char c) { return c == ' ' || c == '\t' || c == '\n'; }
 
 //========================================================================
-// setToonzFolder
+// setflareFolder
 //------------------------------------------------------------------------
 
 // Ritorna il path della variabile passata come secondo argomento
 // entrambe vengono lette da un file di testo (filename).
 
-TFilePath setToonzFolder(const TFilePath &filename, std::string toonzVar) {
+TFilePath setflareFolder(const TFilePath &filename, std::string flareVar) {
   Tifstream is(filename);
   if (!is) return TFilePath();
 
   char buffer[1024];
 
   while (is.getline(buffer, sizeof(buffer))) {
-    // le righe dentro toonzenv.txt sono del tipo
-    // export set TOONZPROJECT="....."
+    // le righe dentro flareenv.txt sono del tipo
+    // export set flarePROJECT="....."
 
-    // devo trovare la linea che contiene toonzVar
+    // devo trovare la linea che contiene flareVar
     char *s = buffer;
     while (isBlank(*s)) s++;
     // Se la riga  vuota, o inizia per # o ! salto alla prossima
@@ -169,10 +169,10 @@ TFilePath setToonzFolder(const TFilePath &filename, std::string toonzVar) {
     if (q == s)
       continue;  // non dovrebbe mai succedere: prima di '=' tutti blanks
 
-    string toonzVarString(q, t);
+    string flareVarString(q, t);
 
-    // Confronto la stringa trovata con toonzVar, se   lei vado avanti.
-    if (toonzVar != toonzVarString) continue;  // errore: stringhe diverse
+    // Confronto la stringa trovata con flareVar, se   lei vado avanti.
+    if (flareVar != flareVarString) continue;  // errore: stringhe diverse
     s = t + 1;
     // Salto gli spazi
     while (isBlank(*s)) s++;
@@ -309,7 +309,7 @@ static void searchLevelsToCleanup(
 static void addCleanupDefaultPalette(TXshSimpleLevel *sl) {
   /*- 元となるパレットはStudioPaletteフォルダに置く -*/
   TFilePath palettePath =
-      ToonzFolder::getStudioPaletteFolder() +
+      flareFolder::getStudioPaletteFolder() +
       "Global Palettes\\Default Palettes\\Cleanup_Palette.tpl ";
   TFileStatus pfs(palettePath);
 
@@ -384,7 +384,7 @@ static void addCleanupDefaultPalette(TXshSimpleLevel *sl) {
 //------------------------------------------------------------------------
 
 static void cleanupLevel(TXshSimpleLevel *xl, std::set<TFrameId> fidsInXsheet,
-                         ToonzScene *scene, bool overwrite,
+                         flareScene *scene, bool overwrite,
                          TUserLogAppend &m_userLog) {
   prepareToCleanup(xl, scene->getProperties()
                            ->getCleanupParameters()
@@ -461,7 +461,7 @@ static void cleanupLevel(TXshSimpleLevel *xl, std::set<TFrameId> fidsInXsheet,
       cpi = cl->process(original, firstImage, resampledImage);
     }
 
-    TToonzImageP timage = cl->finalize(cpi, true);
+    TflareImageP timage = cl->finalize(cpi, true);
     TPointD dpi(0, 0);
     timage->getDpi(dpi.x, dpi.y);
     if (dpi.x != 0 && dpi.y != 0) xl->getProperties()->setDpi(dpi);
@@ -525,21 +525,21 @@ int main(int argc, char *argv[]) {
     fatalError(string("Directory \"") + ::to_string(fproot) +
                "\" not found or not readable");
 
-  TFilePath lRootDir    = TEnv::getStuffDir() + "toonzfarm";
+  TFilePath lRootDir    = TEnv::getStuffDir() + "flarefarm";
   TFilePath logFilePath = lRootDir + "tcleanup.log";
   TUserLogAppend m_userLog(logFilePath);
 
-  TFilePathSet fps = ToonzFolder::getProjectsFolders();
+  TFilePathSet fps = flareFolder::getProjectsFolders();
   TFilePathSet::iterator fpIt;
   for (fpIt = fps.begin(); fpIt != fps.end(); ++fpIt)
     TProjectManager::instance()->addProjectsRoot(*fpIt);
 
-  TFilePath libraryFolder = ToonzFolder::getLibraryFolder();
+  TFilePath libraryFolder = flareFolder::getLibraryFolder();
   TRasterImagePatternStrokeStyle::setRootDir(libraryFolder);
   TVectorImagePatternStrokeStyle::setRootDir(libraryFolder);
   TPalette::setRootDir(libraryFolder);
   TImageStyle::setLibraryDir(libraryFolder);
-  TFilePath cacheRoot = ToonzFolder::getCacheRootFolder();
+  TFilePath cacheRoot = flareFolder::getCacheRootFolder();
   if (cacheRoot.isEmpty()) cacheRoot = TEnv::getStuffDir() + "cache";
   TImageCache::instance()->setRootDir(cacheRoot);
 
@@ -610,7 +610,7 @@ int main(int argc, char *argv[]) {
 
   bool selectedOnly = selectedOnlyOption;
 
-  ToonzScene *scene = new ToonzScene();
+  flareScene *scene = new flareScene();
 
   TImageStyle::setCurrentScene(scene);
 
@@ -762,7 +762,7 @@ int main(int argc, char *argv[]) {
       }
 
       xl->setPalette(
-          TCleanupper::instance()->createToonzPaletteFromCleanupPalette());
+          TCleanupper::instance()->createflarePaletteFromCleanupPalette());
     } else if (!params->getPath(scene).isEmpty()) {
       xl->setScannedPath(xl->getPath());
       xl->setPath(scene->codeFilePath(targetPath), false);
@@ -854,3 +854,4 @@ int main(int argc, char *argv[]) {
   return 0;
 }
 //------------------------------------------------------------------------
+

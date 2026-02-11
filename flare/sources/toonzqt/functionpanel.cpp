@@ -1,19 +1,19 @@
 
 
-#include "toonzqt/functionpanel.h"
+#include "flareqt/functionpanel.h"
 
 // TnzQt includes
-#include "toonzqt/functionselection.h"
-#include "toonzqt/functionsegmentviewer.h"
-#include "toonzqt/imageutils.h"
+#include "flareqt/functionselection.h"
+#include "flareqt/functionsegmentviewer.h"
+#include "flareqt/imageutils.h"
 #include "functionpaneltools.h"
-#include "toonzqt/gutil.h"
+#include "flareqt/gutil.h"
 
 // TnzLib includes
-#include "toonz/tframehandle.h"
-#include "toonz/doubleparamcmd.h"
-#include "toonz/toonzfolders.h"
-#include "toonz/preferences.h"
+#include "flare/tframehandle.h"
+#include "flare/doubleparamcmd.h"
+#include "flare/flarefolders.h"
+#include "flare/preferences.h"
 // TnzBase includes
 #include "tdoubleparam.h"
 #include "tdoublekeyframe.h"
@@ -265,7 +265,7 @@ FunctionPanel::FunctionPanel(QWidget *parent, bool isFloating)
 
   if (m_isFloating) {
     // load the dialog size
-    TFilePath fp(ToonzFolder::getMyModuleDir() + TFilePath("popups.ini"));
+    TFilePath fp(flareFolder::getMyModuleDir() + TFilePath("popups.ini"));
     QSettings settings(toQString(fp), QSettings::IniFormat);
 
     setGeometry(
@@ -278,7 +278,7 @@ FunctionPanel::FunctionPanel(QWidget *parent, bool isFloating)
 FunctionPanel::~FunctionPanel() {
   if (m_isFloating) {
     // save the dialog size
-    TFilePath fp(ToonzFolder::getMyModuleDir() + TFilePath("popups.ini"));
+    TFilePath fp(flareFolder::getMyModuleDir() + TFilePath("popups.ini"));
     QSettings settings(toQString(fp), QSettings::IniFormat);
 
     settings.setValue("FunctionCurves", geometry());
@@ -1771,3 +1771,4 @@ void FunctionPanel::hideEvent(QHideEvent *) {
 //-----------------------------------------------------------------------------
 
 void FunctionPanel::onFrameSwitched() { update(); }
+

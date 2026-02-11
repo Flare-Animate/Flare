@@ -3,7 +3,7 @@
 #ifndef SCANPOPUP_H
 #define SCANPOPUP_H
 
-#include "toonzqt/dvdialog.h"
+#include "flareqt/dvdialog.h"
 #include "tscanner.h"
 #include "scanlist.h"
 
@@ -118,3 +118,4 @@ protected slots:
 };
 #endif  // LINETEST
 #endif  // SCANPOPUP_H
+

@@ -40,18 +40,18 @@ include_directories(
 
 if(BUILD_ENV_MSVC)
     set(EXTRA_LIBS
-        tnzcore tnzbase toonzlib
+        tnzcore tnzbase flarelib
         ws2_32.lib
     )
 elseif(BUILD_ENV_APPLE)
     set(EXTRA_LIBS
 	    "$<TARGET_FILE:tnzcore>"
 	    "$<TARGET_FILE:tnzbase>"
-	    "$<TARGET_FILE:toonzlib>"
+	    "$<TARGET_FILE:flarelib>"
     )
-    add_dependencies(tfarm tnzcore tnzbase toonzlib tnzext)
+    add_dependencies(tfarm tnzcore tnzbase flarelib tnzext)
 elseif(BUILD_ENV_UNIXLIKE)
-    _find_toonz_library(EXTRA_LIBS "tnzcore;tnzbase;toonzlib;tnzext")
+    _find_flare_library(EXTRA_LIBS "tnzcore;tnzbase;flarelib;tnzext")
     if(BUILD_TARGET_WIN)
         set(EXTRA_LIBS ${EXTRA_LIBS} -lws2_32)
     endif()
@@ -60,3 +60,4 @@ target_link_libraries(tfarm
     Qt5::Core Qt5::Gui Qt5::OpenGL Qt5::Network
     ${GLUT_LIB} ${GL_LIB} ${EXTRA_LIBS}
 )
+

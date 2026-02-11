@@ -5,10 +5,10 @@
 
 #include <memory>
 
-#include "toonz/txsheet.h"
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/dvtextedit.h"
-#include "toonzqt/colorfield.h"
+#include "flare/txsheet.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/dvtextedit.h"
+#include "flareqt/colorfield.h"
 
 #include <QFrame>
 #include <QScrollArea>
@@ -159,3 +159,4 @@ protected:
 }  // namespace XsheetGUI
 
 #endif  // XSHNOTEVIEWER_H
+

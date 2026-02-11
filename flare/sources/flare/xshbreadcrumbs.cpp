@@ -6,14 +6,14 @@
 #include "menubarcommandids.h"
 
 // TnzLib includes
-#include "toonz/preferences.h"
-#include "toonz/toonzscene.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/childstack.h"
+#include "flare/preferences.h"
+#include "flare/flarescene.h"
+#include "flare/tscenehandle.h"
+#include "flare/childstack.h"
 
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/tselectionhandle.h"
-#include "toonzqt/dvscrollwidget.h"
+#include "flareqt/menubarcommand.h"
+#include "flareqt/tselectionhandle.h"
+#include "flareqt/dvscrollwidget.h"
 
 // Qt includes
 #include <QWidgetAction>
@@ -62,7 +62,7 @@ Breadcrumb::Breadcrumb(CrumbType crumbType, QString crumbName,
 
 void Breadcrumb::onButtonClicked() {
   TApp *app              = TApp::instance();
-  ToonzScene *scene      = app->getCurrentScene()->getScene();
+  flareScene *scene      = app->getCurrentScene()->getScene();
   ChildStack *childStack = scene->getChildStack();
 
   if (m_crumbType == CrumbType::CHILD) {
@@ -104,7 +104,7 @@ void Breadcrumb::onComboBoxIndexChanged(int index) {
   if (m_crumbType != CrumbType::CHILD || !index) return;
 
   TApp *app              = TApp::instance();
-  ToonzScene *scene      = app->getCurrentScene()->getScene();
+  flareScene *scene      = app->getCurrentScene()->getScene();
   ChildStack *childStack = scene->getChildStack();
   TXsheet *xsh           = childStack->getXsheet();
 
@@ -207,7 +207,7 @@ void BreadcrumbArea::updateBreadcrumbs() {
   // Rebuild the breadcrumb widget list
   TApp *app = TApp::instance();
 
-  ToonzScene *scene      = app->getCurrentScene()->getScene();
+  flareScene *scene      = app->getCurrentScene()->getScene();
   ChildStack *childStack = scene->getChildStack();
   TXsheet *xsh           = childStack->getXsheet();
   int ancestorCount      = childStack->getAncestorCount();
@@ -345,3 +345,4 @@ public:
 } ToggleXsheetBreadcrumbsCommand;
 
 }  // namespace XsheetGUI
+

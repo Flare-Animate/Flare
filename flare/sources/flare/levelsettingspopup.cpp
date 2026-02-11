@@ -13,36 +13,36 @@
 #include "levelcommand.h"
 
 // TnzQt includes
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/gutil.h"
-#include "toonzqt/infoviewer.h"
-#include "toonzqt/filefield.h"
-#include "toonzqt/doublefield.h"
-#include "toonzqt/intfield.h"
-#include "toonzqt/checkbox.h"
-#include "toonzqt/tselectionhandle.h"
-#include "toonzqt/icongenerator.h"
-#include "toonzqt/fxselection.h"
+#include "flareqt/menubarcommand.h"
+#include "flareqt/gutil.h"
+#include "flareqt/infoviewer.h"
+#include "flareqt/filefield.h"
+#include "flareqt/doublefield.h"
+#include "flareqt/intfield.h"
+#include "flareqt/checkbox.h"
+#include "flareqt/tselectionhandle.h"
+#include "flareqt/icongenerator.h"
+#include "flareqt/fxselection.h"
 
 // TnzLib includes
-#include "toonz/tscenehandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/toonzscene.h"
-#include "toonz/txshleveltypes.h"
-#include "toonz/levelproperties.h"
-#include "toonz/tcamera.h"
-#include "toonz/levelset.h"
-#include "toonz/tpalettehandle.h"
-#include "toonz/preferences.h"
-#include "toonz/tstageobjecttree.h"
-#include "toonz/palettecontroller.h"
-#include "toonz/txshcell.h"
-#include "toonz/txsheet.h"
-#include "toonz/childstack.h"
-#include "toonz/tcolumnfx.h"
-#include "toonz/tframehandle.h"
+#include "flare/tscenehandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/tcolumnhandle.h"
+#include "flare/flarescene.h"
+#include "flare/txshleveltypes.h"
+#include "flare/levelproperties.h"
+#include "flare/tcamera.h"
+#include "flare/levelset.h"
+#include "flare/tpalettehandle.h"
+#include "flare/preferences.h"
+#include "flare/tstageobjecttree.h"
+#include "flare/palettecontroller.h"
+#include "flare/txshcell.h"
+#include "flare/txsheet.h"
+#include "flare/childstack.h"
+#include "flare/tcolumnfx.h"
+#include "flare/tframehandle.h"
 
 // TnzCore includes
 #include "tconvert.h"
@@ -413,8 +413,8 @@ LevelSettingsPopup::LevelSettingsPopup()
   // register activation flags
   m_activateFlags[m_nameFld]     = AllTypes;
   m_activateFlags[m_pathFld]     = SimpleLevel | Palette | Sound;
-  m_activateFlags[m_scanPathFld] = ToonzRaster;
-  m_activateFlags[scanPathLabel] = ToonzRaster | MultiSelection;
+  m_activateFlags[m_scanPathFld] = flareRaster;
+  m_activateFlags[scanPathLabel] = flareRaster | MultiSelection;
   // m_activateFlags[m_typeLabel]   = AllTypes | MultiSelection;
 
   unsigned int dpiWidgetsFlag  = HasDPILevel | HideOnPixelMode | MultiSelection;
@@ -423,7 +423,7 @@ LevelSettingsPopup::LevelSettingsPopup()
   m_activateFlags[m_dpiFld]    = dpiWidgetsFlag;
   m_activateFlags[m_squarePixCB] = dpiWidgetsFlag;
 
-  unsigned int rasterWidgetsFlag     = ToonzRaster | Raster | MultiSelection;
+  unsigned int rasterWidgetsFlag     = flareRaster | Raster | MultiSelection;
   m_activateFlags[widthLabel]        = rasterWidgetsFlag;
   m_activateFlags[m_widthFld]        = rasterWidgetsFlag;
   m_activateFlags[heightLabel]       = rasterWidgetsFlag;
@@ -672,7 +672,7 @@ SelectedLevelType LevelSettingsPopup::getType(TXshLevelP level_p) {
   if (!level_p) return None;
   switch (level_p->getType()) {
   case TZP_XSHLEVEL:
-    return ToonzRaster;
+    return flareRaster;
   case OVL_XSHLEVEL: {
     if (level_p->getPath().getType() == "exr")
       return LinearRaster;
@@ -682,7 +682,7 @@ SelectedLevelType LevelSettingsPopup::getType(TXshLevelP level_p) {
   case MESH_XSHLEVEL:
     return Mesh;
   case PLI_XSHLEVEL:
-    return ToonzVector;
+    return flareVector;
   case PLT_XSHLEVEL:
     return Palette;
   case CHILD_XSHLEVEL:
@@ -715,8 +715,8 @@ LevelSettingsValues LevelSettingsPopup::getValues(TXshLevelP level) {
 
   // leveltype
   switch (levelType) {
-  case ToonzRaster:
-    values.typeStr = tr("Toonz Raster level");
+  case flareRaster:
+    values.typeStr = tr("flare Raster level");
     break;
   case NonLinearRaster:
   case LinearRaster:
@@ -725,8 +725,8 @@ LevelSettingsValues LevelSettingsPopup::getValues(TXshLevelP level) {
   case Mesh:
     values.typeStr = tr("Mesh level");
     break;
-  case ToonzVector:
-    values.typeStr = tr("Toonz Vector level");
+  case flareVector:
+    values.typeStr = tr("flare Vector level");
     break;
   case Palette:
     values.typeStr = tr("Palette level");
@@ -754,7 +754,7 @@ LevelSettingsValues LevelSettingsPopup::getValues(TXshLevelP level) {
     // image dpi
     values.imageDpi = dpiToString(sl->getImageDpi());
 
-    if (levelType == ToonzRaster || levelType & Raster) {
+    if (levelType == flareRaster || levelType & Raster) {
       // size field
       TDimensionD size(0, 0);
       TDimension res = sl->getResolution();
@@ -1788,3 +1788,4 @@ public:
   }
 
 } ViewLevelHandler(MI_ViewFile);
+

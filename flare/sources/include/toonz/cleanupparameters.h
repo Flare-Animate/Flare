@@ -6,15 +6,15 @@
 // Qt includes
 #include <QString>
 
-// Toonz includes
+// flare includes
 #include "tfilepath.h"
-#include "toonz/targetcolors.h"
+#include "flare/targetcolors.h"
 #include "tcamera.h"
 #include "tpalette.h"
 
 #undef DVAPI
 #undef DVVAR
-#ifdef TOONZLIB_EXPORTS
+#ifdef flareLIB_EXPORTS
 #define DVAPI DV_EXPORT_API
 #define DVVAR DV_EXPORT_VAR
 #else
@@ -28,7 +28,7 @@
 
 class TIStream;
 class TOStream;
-class ToonzScene;
+class flareScene;
 
 //---------------------------------------------------------------
 
@@ -191,8 +191,8 @@ public:
   // nota: setPath() accetta un path "espanso"
   // (es. "+drawings/scene1") e lo trasforma
   // nella forma compressa (es. "")
-  TFilePath getPath(ToonzScene *scene) const;
-  void setPath(ToonzScene *scene, TFilePath fp);
+  TFilePath getPath(flareScene *scene) const;
+  void setPath(flareScene *scene, TFilePath fp);
 
   static void getFdgNames(std::vector<std::string> &names);
 
@@ -209,3 +209,4 @@ public:
 };
 
 #endif
+

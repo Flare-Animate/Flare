@@ -311,7 +311,7 @@ add_definitions(
 
 if(BUILD_ENV_APPLE)
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-install_name,@executable_path/libtnzstdfx.dylib")
-    add_dependencies(tnzstdfx tnzcore tnzbase toonzlib)
+    add_dependencies(tnzstdfx tnzcore tnzbase flarelib)
 endif()
 
 message("subdir: tnzstdfx")
@@ -333,10 +333,11 @@ include_directories(
     ${SDKROOT}/kiss_fft
 )
 
-_find_toonz_library(TNZLIBS "tnzcore;tnzbase;toonzlib")
+_find_flare_library(TNZLIBS "tnzcore;tnzbase;flarelib")
 
 target_link_libraries(tnzstdfx Qt5::Core Qt5::Gui Qt5::OpenGL ${GL_LIB} ${GLEW_LIB} ${TNZLIBS} ${PTHREAD_LIBRARY})
 
 if(OpenCV_FOUND)
     target_link_libraries(tnzstdfx ${OpenCV_LIBS})
 endif()
+

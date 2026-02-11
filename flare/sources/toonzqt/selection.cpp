@@ -1,7 +1,7 @@
 
 
-#include "toonzqt/selection.h"
-#include "toonzqt/tselectionhandle.h"
+#include "flareqt/selection.h"
+#include "flareqt/tselectionhandle.h"
 #include "assert.h"
 
 //#include "menubar.h"
@@ -58,3 +58,4 @@ void TSelection::addMenuAction(QMenu *menu, CommandId cmdId) {
 void TSelection::notifyView() {
   if (m_view) m_view->onSelectionChanged();
 }
+

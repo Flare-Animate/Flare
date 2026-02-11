@@ -7,9 +7,9 @@
 #include "cellkeyframedata.h"
 
 // TnzLib includes
-#include "toonz/txsheethandle.h"
-#include "toonz/txsheet.h"
-#include "toonz/tstageobject.h"
+#include "flare/txsheethandle.h"
+#include "flare/txsheet.h"
+#include "flare/tstageobject.h"
 
 // TnzCore includes
 #include "tundo.h"
@@ -151,3 +151,4 @@ void TCellKeyframeSelection::selectNone() {
   m_cellSelection->selectNone();
   m_keyframeSelection->selectNone();
 }
+

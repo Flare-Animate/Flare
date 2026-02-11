@@ -3,7 +3,7 @@
 #include "toutputproperties.h"
 
 // TnzLib includes
-#include "toonz/boardsettings.h"
+#include "flare/boardsettings.h"
 
 // TnzBase includes
 #include "trasterfx.h"
@@ -231,3 +231,4 @@ void TOutputProperties::setRenderSettings(
 
   *m_renderSettings = renderSettings;
 }
+

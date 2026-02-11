@@ -1,7 +1,7 @@
 #pragma once
 
-#ifndef _TOONZ_H_
-#define _TOONZ_H_
+#ifndef _flare_H_
+#define _flare_H_
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -35,32 +35,32 @@ TNZAPI void init_check_memory(void);
 /*---------------------------------------------------------------------------*/
 
 typedef enum {
-  TOONZ_ROOT,
-  TOONZ_BIN,
-  TOONZ_CONFIG,
-  TOONZ_XRESOURCES,
-  TOONZ_MISC,
-  TOONZ_SCRIPTS,
-  TOONZ_PIXMAP,
-  TOONZ_SHELL_BUTTON,
-  TOONZ_FLIP_BUTTON,
-  TOONZ_WORK,
-  TOONZ_ADM,
-  TOONZ_TUTORIAL,
-  TOONZ_SETUP_FILE,
-  TOONZ_TMP,
-  TOONZ_VARTMP,
-  TOONZ_LINETEST_DATABASE,
+  flare_ROOT,
+  flare_BIN,
+  flare_CONFIG,
+  flare_XRESOURCES,
+  flare_MISC,
+  flare_SCRIPTS,
+  flare_PIXMAP,
+  flare_SHELL_BUTTON,
+  flare_FLIP_BUTTON,
+  flare_WORK,
+  flare_ADM,
+  flare_TUTORIAL,
+  flare_SETUP_FILE,
+  flare_TMP,
+  flare_VARTMP,
+  flare_LINETEST_DATABASE,
 
-  TOONZ_DIR_HOW_MANY
-} TOONZ_DIRECTORY;
+  flare_DIR_HOW_MANY
+} flare_DIRECTORY;
 /*
   NON FARE 'free' del puntatore ritornato
   CONTROLLARE sempre la validita' del puntatore ritornato (!=NIL)
 
-  TOONZ_TMP e TOONZ_VARTMP possono coincidere
-  tipicamente valgono c:\temp\tmp_toonz su NT
-  e rispettivamente /tmp/tmp_toonz e /var/tmp/tmp_toonz su Irix
+  flare_TMP e flare_VARTMP possono coincidere
+  tipicamente valgono c:\temp\tmp_flare su NT
+  e rispettivamente /tmp/tmp_flare e /var/tmp/tmp_flare su Irix
 */
 
 /* Introduciamo tnz_access per differenziarla sui vari systems
@@ -130,7 +130,7 @@ TNZAPI char *tnz_get_user_name(void);
 TNZAPI char *tnz_get_group_name(void);
 TNZAPI char *tnz_get_host_name(void);
 
-TNZAPI char *tnzdir_get(TOONZ_DIRECTORY dir);
+TNZAPI char *tnzdir_get(flare_DIRECTORY dir);
 
 TNZAPI int tnz_access(char *filename, int mode);
 TNZAPI int tnz_stat(const char *name, struct stat *info);
@@ -172,7 +172,7 @@ TNZAPI TBOOL IsWin2000(void);
 #endif
 
 /*temporaneo*/
-TNZAPI char *tnzdir_get_toonz_linetest_database(void);
+TNZAPI char *tnzdir_get_flare_linetest_database(void);
 
 /*---------------------------------------------------------------------------*/
 /* Prototipi delle funzioni contenute nella libreria security.a */
@@ -180,3 +180,4 @@ TNZAPI char *tnzdir_get_toonz_linetest_database(void);
 int GetLibProtection(void);
 
 #endif
+

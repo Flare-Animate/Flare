@@ -16,25 +16,25 @@
 #include "fileviewerpopup.h"
 
 // TnzQt includes
-#include "toonzqt/icongenerator.h"
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/gutil.h"
-#include "toonzqt/dvdialog.h"
+#include "flareqt/icongenerator.h"
+#include "flareqt/menubarcommand.h"
+#include "flareqt/gutil.h"
+#include "flareqt/dvdialog.h"
 
 // TnzLib includes
-#include "toonz/tscenehandle.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/txshlevelcolumn.h"
-#include "toonz/txshchildlevel.h"
-#include "toonz/txshcell.h"
-#include "toonz/toonzscene.h"
-#include "toonz/tcamera.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/onionskinmask.h"
-#include "toonz/preferences.h"
+#include "flare/tscenehandle.h"
+#include "flare/tcolumnhandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/txshlevelcolumn.h"
+#include "flare/txshchildlevel.h"
+#include "flare/txshcell.h"
+#include "flare/flarescene.h"
+#include "flare/tcamera.h"
+#include "flare/sceneproperties.h"
+#include "flare/onionskinmask.h"
+#include "flare/preferences.h"
 #include "toutputproperties.h"
-#include "toonz/txshleveltypes.h"
+#include "flare/txshleveltypes.h"
 
 // TnzBase includes
 #include "trasterfx.h"
@@ -150,7 +150,7 @@ void RenderController::setMovieExt(string ext) { m_movieExt = ext; }
 
 //-----------------------------------------------------------------------------
 
-bool RenderController::addScene(MovieGenerator &g, ToonzScene *scene) {
+bool RenderController::addScene(MovieGenerator &g, flareScene *scene) {
   bool hasMesh = false;
   std::vector<TXshChildLevel *> childLevels;
   hasMesh      = checkForMeshColumns(scene->getXsheet(), childLevels);
@@ -196,7 +196,7 @@ int RenderController::computeClipFrameCount(const TFilePath &clipPath,
                                             bool useMarkers, int *frameOffset) {
   if (frameOffset) *frameOffset = 0;
 
-  ToonzScene scene;
+  flareScene scene;
   scene.load(clipPath);
   if (useMarkers) {
     int r0, r1, step;
@@ -334,7 +334,7 @@ you want to do?";*/
       int frameOffset;
       int sceneFrames = computeClipFrameCount(fp, m_useMarkers, &frameOffset);
       if (sceneFrames == 0) continue;
-      ToonzScene scene;
+      flareScene scene;
       scene.load(fp);
       try {
         movieGenerator.addSoundtrack(scene, frameOffset, sceneFrames);
@@ -353,7 +353,7 @@ you want to do?";*/
       TFilePath fp    = m_clipList[sceneIndex];
       int sceneFrames = computeClipFrameCount(fp, m_useMarkers);
       if (sceneFrames == 0) continue;
-      ToonzScene scene;
+      flareScene scene;
       scene.load(fp);
       std::vector<TXshChildLevel *> childLevels;
       if (checkForMeshColumns(scene.getXsheet(), childLevels)) {
@@ -416,7 +416,7 @@ you want to do?";*/
 void RenderController::getMovieProperties(const TFilePath &scenePath,
                                           TDimension &resolution) {
   if (scenePath == TFilePath()) return;
-  ToonzScene scene;
+  flareScene scene;
   scene.loadNoResources(scenePath);
   resolution = scene.getCurrentCamera()->getRes();
 }
@@ -477,7 +477,7 @@ ClipListViewer::ClipListViewer(QWidget *parent)
 
 //-----------------------------------------------------------------------------
 
-const char *ClipListViewer::m_mimeFormat = "application/vnd.toonz.cliplist";
+const char *ClipListViewer::m_mimeFormat = "application/vnd.flare.cliplist";
 
 //-----------------------------------------------------------------------------
 
@@ -591,7 +591,7 @@ QVariant ClipListViewer::getItemData(int index, DataType dataType,
                                      bool isSelected) {
   if (index < 0 || index >= getController()->getClipCount()) return QVariant();
   TFilePath fp      = getController()->getClipPath(index);
-  ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
+  flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
 
   if (dataType == Name)
     return QString::fromStdString(fp.getName());
@@ -627,7 +627,7 @@ QMenu *ClipListViewer::getContextMenu(QWidget *parent, int index) {
 //-----------------------------------------------------------------------------
 
 void ClipListViewer::addCurrentScene() {
-  ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
+  flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
   std::vector<TXshChildLevel *> childLevels;
   if (checkForMeshColumns(scene->getXsheet(), childLevels)) return;
   if (!scene->isUntitled()) {
@@ -757,7 +757,7 @@ void ClipListViewer::loadScene() {
   // Nella clip list assegno un path esplicito all'eventuale scena corrente
   // (se la scena corrente non e' stata salvata dall'utente elimino il
   // riferimento)
-  ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
+  flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
   TFilePath scenePath;
   if (!scene->isUntitled()) scenePath = scene->getScenePath();
   // carico la scena corrente
@@ -810,7 +810,7 @@ ExportPanel::ExportPanel(QWidget *parent, Qt::WindowFlags flags)
   settingsLayout->setSpacing(5);
   settingsLayout->setAlignment(Qt::AlignTop);
 
-  ToonzScene *scene      = TApp::instance()->getCurrentScene()->getScene();
+  flareScene *scene      = TApp::instance()->getCurrentScene()->getScene();
   std::wstring sceneName = scene->getSceneName();
   TFilePath scenePath =
       scene->getProperties()->getOutputProperties()->getPath().getParentDir();
@@ -978,7 +978,7 @@ void ExportPanel::saveExportSettings() {
 //-----------------------------------------------------------------------------
 
 void ExportPanel::generateMovie() {
-  ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
+  flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
   std::string ext   = RenderController::instance()->getMovieExt();
   QString path      = m_saveInFileFld->getPath();
   TFilePath outPath(path.toStdWString());
@@ -1009,7 +1009,7 @@ void ExportPanel::onSceneSwitched() {
     m_clipListViewer->resetList();
     m_clipListViewer->update();
   }
-  ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
+  flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
   m_fileNameFld->setText(QString::fromStdWString(scene->getSceneName()));
 }
 
@@ -1022,7 +1022,7 @@ void ExportPanel::onFormatChanged(const QString &format) {
 //-----------------------------------------------------------------------------
 
 void ExportPanel::openSettingsPopup() {
-  ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
+  flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
   if (!scene) return;
   std::string ext = RenderController::instance()->getMovieExt();
 
@@ -1038,3 +1038,4 @@ void ExportPanel::openSettingsPopup() {
   TPropertyGroup *props = outProps->getFileFormatProperties(ext);
   openFormatSettingsPopup(this, ext, props);
 }
+

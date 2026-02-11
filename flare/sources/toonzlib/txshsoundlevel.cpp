@@ -1,10 +1,10 @@
 
 
-#include "toonz/txshsoundlevel.h"
+#include "flare/txshsoundlevel.h"
 #include "tsound_io.h"
-#include "toonz/toonzscene.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/txshleveltypes.h"
+#include "flare/flarescene.h"
+#include "flare/sceneproperties.h"
+#include "flare/txshleveltypes.h"
 
 #include "tstream.h"
 #include "toutputproperties.h"
@@ -47,7 +47,7 @@ TXshSoundLevel *TXshSoundLevel::clone() const {
 
 //-----------------------------------------------------------------------------
 
-void TXshSoundLevel::setScene(ToonzScene *scene) {
+void TXshSoundLevel::setScene(flareScene *scene) {
   assert(scene);
   TXshLevel::setScene(scene);
   TOutputProperties *properties = scene->getProperties()->getOutputProperties();
@@ -247,3 +247,4 @@ void TXshSoundLevel::getFids(std::vector<TFrameId> &fids) const {
   int i;
   for (i = 0; i < getFrameCount(); i++) fids.push_back(TFrameId(i));
 }
+

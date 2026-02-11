@@ -1,23 +1,23 @@
 
 
-#include "toonzqt/functionsegmentviewer.h"
+#include "flareqt/functionsegmentviewer.h"
 
 // TnzQt includes
-#include "toonzqt/intfield.h"
-#include "toonzqt/filefield.h"
-#include "toonzqt/doublefield.h"
-#include "toonzqt/expressionfield.h"
-#include "toonzqt/dvdialog.h"
+#include "flareqt/intfield.h"
+#include "flareqt/filefield.h"
+#include "flareqt/doublefield.h"
+#include "flareqt/expressionfield.h"
+#include "flareqt/dvdialog.h"
 #include "tw/stringtable.h"
-#include "toonzqt/functionsheet.h"
-#include "toonzqt/functionpanel.h"
-#include "toonzqt/gutil.h"
+#include "flareqt/functionsheet.h"
+#include "flareqt/functionpanel.h"
+#include "flareqt/gutil.h"
 
 // TnzLib includes
-#include "toonz/doubleparamcmd.h"
-#include "toonz/txsheetexpr.h"
-#include "toonz/txsheet.h"
-#include "toonz/txsheethandle.h"
+#include "flare/doubleparamcmd.h"
+#include "flare/txsheetexpr.h"
+#include "flare/txsheet.h"
+#include "flare/txsheethandle.h"
 
 // TnzBase includes
 #include "tdoubleparam.h"
@@ -1534,3 +1534,4 @@ bool FunctionSegmentViewer::anyWidgetHasFocus() {
 bool FunctionSegmentViewer::isExpressionPageActive() {
   return (m_typeCombo->currentIndex() == 5);
 }
+

@@ -4,12 +4,12 @@
 #define TCLEANUPPER_H
 
 #include "trasterimage.h"
-#include "ttoonzimage.h"
-#include "toonz/cleanupparameters.h"
+#include "tflareimage.h"
+#include "flare/cleanupparameters.h"
 
 #undef DVAPI
 #undef DVVAR
-#ifdef TOONZLIB_EXPORTS
+#ifdef flareLIB_EXPORTS
 #define DVAPI DV_EXPORT_API
 #define DVVAR DV_EXPORT_VAR
 #else
@@ -43,11 +43,11 @@ public:
 
 public:
   CleanupPreprocessedImage(CleanupParameters *parameters,
-                           TToonzImageP processed, bool fromGr8);
+                           TflareImageP processed, bool fromGr8);
   ~CleanupPreprocessedImage();
 
   TDimension getSize() const { return m_size; }
-  TToonzImageP getImg() const;
+  TflareImageP getImg() const;
   TRasterImageP getPreviewImage() const;
 };
 
@@ -70,7 +70,7 @@ public:
   void setParameters(CleanupParameters *parameters);
   const CleanupParameters *getParameters() const { return m_parameters; }
 
-  TPalette *createToonzPaletteFromCleanupPalette();
+  TPalette *createflarePaletteFromCleanupPalette();
 
   /*---
    * 拡大／縮小をしていない場合（DPIが変わらない場合）、NearestNeighborでリサンプリングする。
@@ -96,7 +96,7 @@ time, to unlock a possibly useful memory block.
                                     TRasterP templateForResampled = 0);
 
   void finalize(const TRaster32P &dst, CleanupPreprocessedImage *src);
-  TToonzImageP finalize(CleanupPreprocessedImage *src,
+  TflareImageP finalize(CleanupPreprocessedImage *src,
                         bool isCleanupper = false);
 
   TRasterImageP autocenterOnly(const TRasterImageP &image, bool isCameraTest,
@@ -117,14 +117,15 @@ private:
   void removeSinglePoint(const TRasterCM32P &outRas);
 
   // post-processing phase
-  TToonzImageP doPostProcessingGR8(const CleanupPreprocessedImage *img);
+  TflareImageP doPostProcessingGR8(const CleanupPreprocessedImage *img);
   void doPostProcessingGR8(const TRaster32P &outRas,
                            CleanupPreprocessedImage *srcImg);
 
-  TToonzImageP doPostProcessingColor(const TToonzImageP &imgToProcess,
+  TflareImageP doPostProcessingColor(const TflareImageP &imgToProcess,
                                      bool isCleanupper);
   void doPostProcessingColor(const TRaster32P &outRas,
                              CleanupPreprocessedImage *srcImg);
 };
 
 #endif
+

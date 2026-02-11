@@ -3,13 +3,13 @@
 #ifndef OUTPUTSETTINGSPOPUP_H
 #define OUTPUTSETTINGSPOPUP_H
 
-#include "toonzqt/dvdialog.h"
+#include "flareqt/dvdialog.h"
 
-#include "toonz/sceneproperties.h"
+#include "flare/sceneproperties.h"
 
 #include <QLabel>
 // forward declaration
-class ToonzScene;
+class flareScene;
 class QComboBox;
 class QScrollArea;
 class QListWidgetItem;
@@ -103,7 +103,7 @@ public:
   OutputSettingsPopup(bool isPreview = false);
 
 protected:
-  ToonzScene *getCurrentScene() const;
+  flareScene *getCurrentScene() const;
   TOutputProperties *getProperties() const;
   void showEvent(QShowEvent *) override;
   void hideEvent(QHideEvent *) override;
@@ -158,3 +158,4 @@ public:
 };
 
 #endif  // OUTPUTSETTINGSPOPUP_H
+

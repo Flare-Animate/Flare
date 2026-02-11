@@ -1,10 +1,10 @@
-#include "toonz/boardsettings.h"
+#include "flare/boardsettings.h"
 
 // TnzLib includes
-#include "toonz/toonzscene.h"
-#include "toonz/tproject.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/toonzfolders.h"
+#include "flare/flarescene.h"
+#include "flare/tproject.h"
+#include "flare/sceneproperties.h"
+#include "flare/flarefolders.h"
 #include "toutputproperties.h"
 #include "tsystem.h"
 
@@ -46,7 +46,7 @@ BoardItem::BoardItem() {
   m_color           = Qt::black;
 }
 
-QString BoardItem::getContentText(ToonzScene *scene) {
+QString BoardItem::getContentText(flareScene *scene) {
   auto getDuration = [&]() {
     TOutputProperties *oprop = scene->getProperties()->getOutputProperties();
     int from, to, step;
@@ -132,7 +132,7 @@ QRectF BoardItem::getItemRect(QSize imgSize) {
 }
 
 void BoardItem::drawItem(QPainter &p, QSize imgSize, int shrink,
-                         ToonzScene *scene) {
+                         flareScene *scene) {
   QRectF itemRect = getItemRect(imgSize);
 
   if (m_type == Image) {
@@ -218,7 +218,7 @@ void BoardItem::saveData(TOStream &os) {
 
   if (m_type == Image) {
     // if the path is in library folder, then save the relative path
-    TFilePath libFp = ToonzFolder::getLibraryFolder();
+    TFilePath libFp = flareFolder::getLibraryFolder();
     if (libFp.isAncestorOf(m_imgPath))
       os.child("imgPath") << 1 << m_imgPath - libFp;
     else
@@ -255,7 +255,7 @@ void BoardItem::loadData(TIStream &is) {
       TFilePath fp;
       is >> isInLibrary >> fp;
       if (isInLibrary == 1)
-        m_imgPath = ToonzFolder::getLibraryFolder() + fp;
+        m_imgPath = flareFolder::getLibraryFolder() + fp;
       else
         m_imgPath = fp;
     } else if (tagName == "imgARMode") {
@@ -293,7 +293,7 @@ BoardSettings::BoardSettings() : m_fileNameSuffix("board") {
 }
 
 QImage BoardSettings::getBoardImage(TDimension &dim, int shrink,
-                                    ToonzScene *scene) {
+                                    flareScene *scene) {
   QImage img(dim.lx, dim.ly, QImage::Format_ARGB32);
 
   QPainter painter(&img);
@@ -310,7 +310,7 @@ QImage BoardSettings::getBoardImage(TDimension &dim, int shrink,
 }
 
 TRaster32P BoardSettings::getBoardRaster(TDimension &dim, int shrink,
-                                         ToonzScene *scene) {
+                                         flareScene *scene) {
   QImage img = getBoardImage(dim, shrink, scene);
 
   // convert QImage to TRaster

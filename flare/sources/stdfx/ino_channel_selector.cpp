@@ -1,5 +1,5 @@
 #include <sstream> /* std::ostringstream */
-/* Not use boost at toonz-6.1 */
+/* Not use boost at flare-6.1 */
 // #include <boost/shared_array.hpp> /* boost::shared_array<> */
 #include "tfxparam.h"
 #include "stdfx.h"
@@ -186,7 +186,7 @@ void ino_channel_selector::doCompute(TTile &tile, double frame,
   // int   *source_sw    = new int[this->getInputPortCount()];
   // TRasterP *ras_a     = new TRasterP[this->getInputPortCount()];
 
-  /* Not use boost at toonz-6.1 */
+  /* Not use boost at flare-6.1 */
   /******
   boost::shared_array<TTile>
           source_tiles(new TTile[this->getInputPortCount()]);
@@ -333,3 +333,4 @@ void ino_channel_selector::doCompute(TTile &tile, double frame,
   }
   // delete [] ras_a;
 }
+

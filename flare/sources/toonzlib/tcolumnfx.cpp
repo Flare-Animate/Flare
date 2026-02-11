@@ -8,7 +8,7 @@
 #include "tstopwatch.h"
 #include "tlevel_io.h"
 #include "trasterimage.h"
-#include "ttoonzimage.h"
+#include "tflareimage.h"
 #include "tvectorimage.h"
 #include "timagecache.h"
 #include "timageinfo.h"
@@ -24,41 +24,41 @@
 #include "tfxcachemanager.h"
 
 // TnzLib includes
-#include "toonz/toonzscene.h"
-#include "toonz/txsheet.h"
-#include "toonz/txshlevelcolumn.h"
-#include "toonz/txshpalettecolumn.h"
-#include "toonz/txshzeraryfxcolumn.h"
-#include "toonz/txshlevel.h"
-#include "toonz/txshcell.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/txshpalettelevel.h"
-#include "toonz/txshleveltypes.h"
-#include "toonz/levelset.h"
-#include "toonz/txshchildlevel.h"
-#include "toonz/fxdag.h"
-#include "toonz/tcolumnfxset.h"
-#include "toonz/stage.h"
-#include "toonz/fill.h"
-#include "toonz/tstageobjectid.h"
-#include "toonz/tstageobject.h"
-#include "toonz/levelproperties.h"
-#include "toonz/imagemanager.h"
-#include "toonz/toonzimageutils.h"
-#include "toonz/tvectorimageutils.h"
-#include "toonz/preferences.h"
-#include "toonz/dpiscale.h"
+#include "flare/flarescene.h"
+#include "flare/txsheet.h"
+#include "flare/txshlevelcolumn.h"
+#include "flare/txshpalettecolumn.h"
+#include "flare/txshzeraryfxcolumn.h"
+#include "flare/txshlevel.h"
+#include "flare/txshcell.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/txshpalettelevel.h"
+#include "flare/txshleveltypes.h"
+#include "flare/levelset.h"
+#include "flare/txshchildlevel.h"
+#include "flare/fxdag.h"
+#include "flare/tcolumnfxset.h"
+#include "flare/stage.h"
+#include "flare/fill.h"
+#include "flare/tstageobjectid.h"
+#include "flare/tstageobject.h"
+#include "flare/levelproperties.h"
+#include "flare/imagemanager.h"
+#include "flare/flareimageutils.h"
+#include "flare/tvectorimageutils.h"
+#include "flare/preferences.h"
+#include "flare/dpiscale.h"
 #include "imagebuilders.h"
 
 // 4.6 compatibility - sandor fxs
-#include "toonz4.6/raster.h"
+#include "flare4.6/raster.h"
 #include "sandor_fxs/blend.h"
 extern "C" {
 #include "sandor_fxs/calligraph.h"
 #include "sandor_fxs/patternmap.h"
 }
 
-#include "toonz/tcolumnfx.h"
+#include "flare/tcolumnfx.h"
 
 //****************************************************************************************
 //    Preliminaries
@@ -71,13 +71,13 @@ template class DV_EXPORT_API TFxDeclarationT<TXsheetFx>;
 template class DV_EXPORT_API TFxDeclarationT<TOutputFx>;
 #endif
 
-TFxDeclarationT<TLevelColumnFx> columnFxInfo(TFxInfo("Toonz_columnFx", true));
+TFxDeclarationT<TLevelColumnFx> columnFxInfo(TFxInfo("flare_columnFx", true));
 TFxDeclarationT<TPaletteColumnFx> paletteColumnFxInfo(
-    TFxInfo("Toonz_paletteColumnFx", true));
+    TFxInfo("flare_paletteColumnFx", true));
 TFxDeclarationT<TZeraryColumnFx> zeraryColumnFxInfo(
-    TFxInfo("Toonz_zeraryColumnFx", true));
-TFxDeclarationT<TXsheetFx> infoTXsheetFx(TFxInfo("Toonz_xsheetFx", true));
-TFxDeclarationT<TOutputFx> infoTOutputFx(TFxInfo("Toonz_outputFx", true));
+    TFxInfo("flare_zeraryColumnFx", true));
+TFxDeclarationT<TXsheetFx> infoTXsheetFx(TFxInfo("flare_xsheetFx", true));
+TFxDeclarationT<TOutputFx> infoTOutputFx(TFxInfo("flare_outputFx", true));
 
 //****************************************************************************************
 //    Local namespace  -  misc functions
@@ -378,7 +378,7 @@ static std::vector<int> getAllBut(std::vector<int> &colorIds) {
 
 //-------------------------------------------------------------------
 
-//! \b IMPORTANT \b NOTE: This function is now written so that the passed Toonz
+//! \b IMPORTANT \b NOTE: This function is now written so that the passed flare
 //! Image
 //! will be destroyed at the most appropriate time. You should definitely *COPY*
 //! all
@@ -386,7 +386,7 @@ static std::vector<int> getAllBut(std::vector<int> &colorIds) {
 //! that of
 //! optimizing memory usage, please avoid copying the entire image buffer...
 
-static TImageP applyCmappedFx(TToonzImageP &ti,
+static TImageP applyCmappedFx(TflareImageP &ti,
                               const std::vector<TRasterFxRenderDataP> &fxs,
                               int frame, double scale) {
   TImageP result = ti;
@@ -436,7 +436,7 @@ static TImageP applyCmappedFx(TToonzImageP &ti,
 
   if (filteredPalette) {
     // result= ti = ti->clone();   //Is copying truly necessary??
-    result = ti = TToonzImageP(ti->getRaster(), ti->getSavebox());
+    result = ti = TflareImageP(ti->getRaster(), ti->getSavebox());
     filteredPalette->setFrame(frame);
     ti->setPalette(filteredPalette.getPointer());
   }
@@ -498,7 +498,7 @@ static TImageP applyCmappedFx(TToonzImageP &ti,
 
   if (copyRas) {
     cmRas  = copyRas;
-    result = TToonzImageP(cmRas, tiSaveBox);
+    result = TflareImageP(cmRas, tiSaveBox);
     result->setPalette(tiPalette.getPointer());
   }
 
@@ -550,7 +550,7 @@ static TImageP applyCmappedFx(TToonzImageP &ti,
 
       if (!firstSandorFx) {
         // Retrieve the colormap from cache
-        cmRas = TToonzImageP(TImageCache::instance()->get(cmRasCacheId, true))
+        cmRas = TflareImageP(TImageCache::instance()->get(cmRasCacheId, true))
                     ->getRaster();
 
         // Apply a palette filter in order to keep only the colors specified in
@@ -570,7 +570,7 @@ static TImageP applyCmappedFx(TToonzImageP &ti,
         // final result
         cmRasCacheId = TImageCache::instance()->getUniqueId();
         TImageCache::instance()->add(cmRasCacheId,
-                                     TToonzImageP(cmRas, tiSaveBox));
+                                     TflareImageP(cmRas, tiSaveBox));
         result = 0;
       }
 
@@ -591,10 +591,10 @@ static TImageP applyCmappedFx(TToonzImageP &ti,
         if (blendParams.empty()) continue;
 
         // Retrieve the colormap from cache
-        cmRas = TToonzImageP(TImageCache::instance()->get(cmRasCacheId, true))
+        cmRas = TflareImageP(TImageCache::instance()->get(cmRasCacheId, true))
                     ->getRaster();
 
-        TToonzImageP ti(cmRas, tiSaveBox);
+        TflareImageP ti(cmRas, tiSaveBox);
         ti->setPalette(filteredPalette ? filteredPalette.getPointer()
                                        : tiPalette.getPointer());
 
@@ -763,7 +763,7 @@ public:
     if (!img) return;
 
     TRasterImageP rimg(img);
-    TToonzImageP timg(img);
+    TflareImageP timg(img);
 
     m_loadedRas = rimg   ? (TRasterP)rimg->getRaster()
                   : timg ? (TRasterP)timg->getRaster()
@@ -803,7 +803,7 @@ public:
 
     TRasterCM32P cm(m_loadedRas);
 
-    TImageP result(cm ? TImageP(TToonzImageP(cm, cm->getBounds()))
+    TImageP result(cm ? TImageP(TflareImageP(cm, cm->getBounds()))
                       : TImageP(TRasterImageP(m_loadedRas)));
     if (m_palette) result->setPalette(m_palette.getPointer());
 
@@ -1093,7 +1093,7 @@ void TLevelColumnFx::doCompute(TTile &tile, double frame,
     TAffine aff;
 
     TRasterImageP ri = img;
-    TToonzImageP ti  = img;
+    TflareImageP ti  = img;
     img              = 0;
 
     if (ri) {
@@ -1267,7 +1267,7 @@ void TLevelColumnFx::doCompute(TTile &tile, double frame,
 
 //-------------------------------------------------------------------
 
-TImageP TLevelColumnFx::applyTzpFxs(TToonzImageP &ti, double frame,
+TImageP TLevelColumnFx::applyTzpFxs(TflareImageP &ti, double frame,
                                     const TRenderSettings &info) {
   double scale = sqrt(fabs(info.m_affine.det()));
 
@@ -1332,12 +1332,12 @@ void TLevelColumnFx::applyTzpFxsOnVector(const TVectorImageP &vi, TTile &tile,
     TPoint groupRelativePosToTile(groupBBox.x0 - tile.m_pos.x,
                                   groupBBox.y0 - tile.m_pos.y);
 
-    // Convert the group to a strictly sufficient Toonz image
-    TToonzImageP groupTi = ToonzImageUtils::vectorToToonzImage(
+    // Convert the group to a strictly sufficient flare image
+    TflareImageP groupTi = flareImageUtils::vectorToflareImage(
         groupVi, info.m_affine, groupVi->getPalette(), groupBBox.getP00(),
         TDimension(groupBBox.getLx(), groupBBox.getLy()), &info.m_data, true);
 
-    // Apply the tzp fxs to the converted Toonz image
+    // Apply the tzp fxs to the converted flare image
     TImageP groupResult = applyTzpFxs(groupTi, frame, info);
 
     // If necessary, convert the result to fullcolor
@@ -1476,7 +1476,7 @@ const TPersistDeclaration *TLevelColumnFx::getDeclaration() const {
 
 //-------------------------------------------------------------------
 
-std::string TLevelColumnFx::getPluginId() const { return "Toonz_"; }
+std::string TLevelColumnFx::getPluginId() const { return "flare_"; }
 
 //-------------------------------------------------------------------
 
@@ -1684,7 +1684,7 @@ const TPersistDeclaration *TPaletteColumnFx::getDeclaration() const {
 
 //-------------------------------------------------------------------
 
-std::string TPaletteColumnFx::getPluginId() const { return "Toonz_"; }
+std::string TPaletteColumnFx::getPluginId() const { return "flare_"; }
 
 //-------------------------------------------------------------------
 
@@ -1774,7 +1774,7 @@ const TPersistDeclaration *TZeraryColumnFx::getDeclaration() const {
 
 //-------------------------------------------------------------------
 
-std::string TZeraryColumnFx::getPluginId() const { return "Toonz_"; }
+std::string TZeraryColumnFx::getPluginId() const { return "flare_"; }
 
 //-------------------------------------------------------------------
 
@@ -1892,7 +1892,7 @@ bool TXsheetFx::doGetBBox(double frame, TRectD &bBox,
 
 //-------------------------------------------------------------------
 
-std::string TXsheetFx::getPluginId() const { return "Toonz_"; }
+std::string TXsheetFx::getPluginId() const { return "flare_"; }
 
 //-------------------------------------------------------------------
 
@@ -1945,4 +1945,5 @@ bool TOutputFx::doGetBBox(double frame, TRectD &bBox,
 
 //-------------------------------------------------------------------
 
-std::string TOutputFx::getPluginId() const { return "Toonz_"; }
+std::string TOutputFx::getPluginId() const { return "flare_"; }
+

@@ -4,7 +4,7 @@
 #include <QMenu>
 #include "xsheetviewer.h"
 #include "xshcolumnviewer.h"
-#include "toonzqt/gutil.h"
+#include "flareqt/gutil.h"
 
 //-----------------------------------------------------------------------------
 
@@ -201,3 +201,4 @@ void LayerFooterPanel::onControlPressed(bool pressed) {
 //-----------------------------------------------------------------------------
 
 bool LayerFooterPanel::isControlPressed() const { return isCtrlPressed; }
+

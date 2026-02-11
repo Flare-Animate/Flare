@@ -3,7 +3,7 @@
 #ifndef SVN_COMMIT_DIALOG_H
 #define SVN_COMMIT_DIALOG_H
 
-#include "toonzqt/dvdialog.h"
+#include "flareqt/dvdialog.h"
 #include "versioncontrol.h"
 
 #include <QList>
@@ -17,7 +17,7 @@ class QCheckBox;
 class QPlainTextEdit;
 class QTreeWidgetItem;
 class QFile;
-class ToonzScene;
+class flareScene;
 class TXshLevel;
 
 //-----------------------------------------------------------------------------
@@ -141,7 +141,7 @@ class SVNCommitFrameRangeDialog final : public DVGui::Dialog {
   QList<SVNPartialLockInfo> m_lockInfos;
   SVNPartialLockInfo m_myInfo;
 
-  ToonzScene *m_scene;
+  flareScene *m_scene;
   TXshLevel *m_level;
 
   QString m_hookFileName;
@@ -176,3 +176,4 @@ signals:
 };
 
 #endif  // SVN_COMMIT_DIALOG_H
+

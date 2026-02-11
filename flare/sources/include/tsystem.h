@@ -24,7 +24,7 @@
 #include "tfilepath.h"
 
 // all info returned by stat and access
-// plus 'toonz-like' info: what is it: directory, level, image, text, etc.
+// plus 'flare-like' info: what is it: directory, level, image, text, etc.
 
 #ifndef TNZCORE_LIGHT
 
@@ -286,3 +286,4 @@ DVAPI bool isDLLBlackListed(QString dllFile);
 //
 
 #endif
+

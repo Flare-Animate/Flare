@@ -13,17 +13,17 @@
 #endif
 
 // TnzQt includes
-#include "toonzqt/intfield.h"
-#include "toonzqt/tselectionhandle.h"
-#include "toonzqt/selection.h"
-#include "toonzqt/dvdialog.h"
+#include "flareqt/intfield.h"
+#include "flareqt/tselectionhandle.h"
+#include "flareqt/selection.h"
+#include "flareqt/dvdialog.h"
 
 // TnzLib includes
-#include "toonz/txsheethandle.h"
-#include "toonz/txshcell.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/txshchildlevel.h"
-#include "toonz/preferences.h"
+#include "flare/txsheethandle.h"
+#include "flare/txshcell.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/txshchildlevel.h"
+#include "flare/preferences.h"
 
 #include "tundo.h"
 #include "historytypes.h"
@@ -482,3 +482,4 @@ bool AutoInputCellNumberPopup::getTarget(std::vector<int> &columnIndices,
 
 OpenPopupCommandHandler<AutoInputCellNumberPopup> openAutoInputCellNumberPopup(
     MI_AutoInputCellNumber);
+

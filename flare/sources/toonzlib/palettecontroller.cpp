@@ -1,16 +1,16 @@
 
 
 // TnzLib includes
-#include "toonz/stage2.h"
-#include "toonz/tpalettehandle.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/txshlevel.h"
+#include "flare/stage2.h"
+#include "flare/tpalettehandle.h"
+#include "flare/tscenehandle.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/txshlevel.h"
 
 // TnzBase includes
 #include "tenv.h"
 
-#include "toonz/palettecontroller.h"
+#include "flare/palettecontroller.h"
 
 TEnv::IntVar PaletteControllerAutoApplyState("PaletteControllerAutoApplyState",
                                              1);
@@ -118,3 +118,4 @@ void PaletteController::setColorSample(const TPixel32 &color) {
     emit colorSampleChanged(m_colorSample);
   }
 }
+

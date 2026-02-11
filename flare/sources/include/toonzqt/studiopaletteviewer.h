@@ -3,9 +3,9 @@
 #ifndef STUDIOPALETTEVIEWER_H
 #define STUDIOPALETTEVIEWER_H
 
-#include "toonz/studiopalette.h"
-#include "toonz/tproject.h"
-#include "toonzqt/dvdialog.h"
+#include "flare/studiopalette.h"
+#include "flare/tproject.h"
+#include "flareqt/dvdialog.h"
 #include "saveloadqsettings.h"
 
 #include <QTreeWidget>
@@ -13,7 +13,7 @@
 
 #undef DVAPI
 #undef DVVAR
-#ifdef TOONZQT_EXPORTS
+#ifdef flareQT_EXPORTS
 #define DVAPI DV_EXPORT_API
 #define DVVAR DV_EXPORT_VAR
 #else

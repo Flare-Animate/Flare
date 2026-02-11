@@ -8,11 +8,11 @@
 #include "saveloadqsettings.h"
 
 // TnzLib includes
-#include "toonz/tframehandle.h"
-#include "toonz/preferences.h"
+#include "flare/tframehandle.h"
+#include "flare/preferences.h"
 
 // TnzQt includes
-#include "toonzqt/treemodel.h"
+#include "flareqt/treemodel.h"
 
 // Qt includes
 #include <QSplitter>
@@ -20,7 +20,7 @@
 
 #undef DVAPI
 #undef DVVAR
-#ifdef TOONZQT_EXPORTS
+#ifdef flareQT_EXPORTS
 #define DVAPI DV_EXPORT_API
 #define DVVAR DV_EXPORT_VAR
 #else
@@ -204,3 +204,4 @@ private slots:
 };
 
 #endif  // FUNCTIONEDITORVIEWER_H
+

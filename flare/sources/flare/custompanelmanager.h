@@ -2,8 +2,8 @@
 #ifndef CUSTOM_PANEL_MANAGER_H
 #define CUSTOM_PANEL_MANAGER_H
 
-// ToonzQt
-#include "toonzqt/menubarcommand.h"
+// flareQt
+#include "flareqt/menubarcommand.h"
 
 #include <QString>
 #include <QWidget>
@@ -57,3 +57,4 @@ public:
 };
 
 #endif
+

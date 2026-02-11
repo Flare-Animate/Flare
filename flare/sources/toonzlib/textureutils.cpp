@@ -1,24 +1,24 @@
 
 
-#include "toonz/textureutils.h"
+#include "flare/textureutils.h"
 
 // TnzLib includes
-#include "toonz/txshleveltypes.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/txshchildlevel.h"
-#include "toonz/txsheet.h"
-#include "toonz/tstageobjecttree.h"
-#include "toonz/txshcell.h"
-#include "toonz/tstageobject.h"
-#include "toonz/stage.h"
-#include "toonz/toonzscene.h"
-#include "toonz/imagemanager.h"
+#include "flare/txshleveltypes.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/txshchildlevel.h"
+#include "flare/txsheet.h"
+#include "flare/tstageobjecttree.h"
+#include "flare/txshcell.h"
+#include "flare/tstageobject.h"
+#include "flare/stage.h"
+#include "flare/flarescene.h"
+#include "flare/imagemanager.h"
 #include "imagebuilders.h"
 
 // TnzCore includes
 #include "tpalette.h"
 #include "tconvert.h"
-#include "ttoonzimage.h"
+#include "tflareimage.h"
 #include "trop.h"
 #include "tropcm.h"
 #include "tgl.h"
@@ -63,7 +63,7 @@ TRasterImageP convert32(const TImageP &img) {
     return locals::depremultiplied(ri32);
   }
 
-  if (TToonzImageP ti = img) {
+  if (TflareImageP ti = img) {
     TRasterCM32P rasCM32(ti->getRaster());
 
     TRaster32P ras32(rasCM32->getSize());
@@ -223,3 +223,4 @@ void texture_utils::invalidateTextures(const TXsheet *xsh) {
   int f, fCount = xsh->getFrameCount();
   for (f = 0; f != fCount; ++f) invalidateTexture(xsh, f);
 }
+
