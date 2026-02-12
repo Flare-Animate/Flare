@@ -1,10 +1,10 @@
 
 
-#include "flare/fxdag.h"
+#include "toonz/fxdag.h"
 
 // TnzLib includes
-#include "flare/tcolumnfxset.h"
-#include "flare/tcolumnfx.h"
+#include "toonz/tcolumnfxset.h"
+#include "toonz/tcolumnfx.h"
 #include "tw/stringtable.h"
 
 // TnzBase includes
@@ -336,4 +336,3 @@ void FxDag::loadData(TIStream &is) {
     is.closeChild();
   }
 }
-

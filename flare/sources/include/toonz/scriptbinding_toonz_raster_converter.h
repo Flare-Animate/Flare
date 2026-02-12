@@ -1,25 +1,25 @@
 #pragma once
 
-#ifndef SCRIPTBINDING_flare_RASTER_CONVERTER_H
-#define SCRIPTBINDING_flare_RASTER_CONVERTER_H
+#ifndef SCRIPTBINDING_TOONZ_RASTER_CONVERTER_H
+#define SCRIPTBINDING_TOONZ_RASTER_CONVERTER_H
 
-#include "flare/scriptbinding.h"
+#include "toonz/scriptbinding.h"
 
-class flareScene;
+class ToonzScene;
 class TXshSimpleLevel;
 
 namespace TScriptBinding {
 
-class DVAPI flareRasterConverter final : public Wrapper {
+class DVAPI ToonzRasterConverter final : public Wrapper {
   Q_OBJECT
   bool m_flatSource;
 
 public:
-  flareRasterConverter();
-  ~flareRasterConverter();
+  ToonzRasterConverter();
+  ~ToonzRasterConverter();
 
   Q_INVOKABLE QScriptValue toString();
-  WRAPPER_STD_METHODS(flareRasterConverter)
+  WRAPPER_STD_METHODS(ToonzRasterConverter)
 
   Q_PROPERTY(bool flatSource READ getFlatSource WRITE setFlatSource)
   bool getFlatSource() const { return m_flatSource; }
@@ -33,7 +33,6 @@ public:
 
 }  // namespace TScriptBinding
 
-Q_DECLARE_METATYPE(TScriptBinding::flareRasterConverter *)
+Q_DECLARE_METATYPE(TScriptBinding::ToonzRasterConverter *)
 
 #endif
-

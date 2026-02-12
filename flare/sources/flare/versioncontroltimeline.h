@@ -3,7 +3,7 @@
 #ifndef VERSION_CONTROL_TIMELINE_H
 #define VERSION_CONTROL_TIMELINE_H
 
-#include "flareqt/dvdialog.h"
+#include "toonzqt/dvdialog.h"
 #include "versioncontrol.h"
 
 #include <QString>
@@ -98,4 +98,3 @@ signals:
 };
 
 #endif  // VERSION_CONTROL_TIMELINE_H
-

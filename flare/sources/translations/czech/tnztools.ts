@@ -1256,13 +1256,13 @@ Chcete pokračovat?</translation>
 <context>
     <name>QObject</name>
     <message>
-        <location filename="../../tnztools/flarevectorbrushtool.cpp" line="885"/>
+        <location filename="../../tnztools/toonzvectorbrushtool.cpp" line="885"/>
         <location filename="../../tnztools/geometrictool.cpp" line="1432"/>
         <source>Yes</source>
         <translation>Ano</translation>
     </message>
     <message>
-        <location filename="../../tnztools/flarevectorbrushtool.cpp" line="885"/>
+        <location filename="../../tnztools/toonzvectorbrushtool.cpp" line="885"/>
         <location filename="../../tnztools/geometrictool.cpp" line="1432"/>
         <source>No</source>
         <translation>Ne</translation>
@@ -1452,8 +1452,8 @@ Chcete pokračovat?</translation>
     </message>
     <message>
         <location filename="../../tnztools/tool.cpp" line="1018"/>
-        <source>The current tool cannot be used on a flare Level.</source>
-        <translation>Nynější nástroj nelze použít na úroveň flare.</translation>
+        <source>The current tool cannot be used on a Toonz Level.</source>
+        <translation>Nynější nástroj nelze použít na úroveň Toonz.</translation>
     </message>
     <message>
         <location filename="../../tnztools/tool.cpp" line="1023"/>
@@ -1887,200 +1887,200 @@ přesunut na konec první strany palety.</translation>
     </message>
 </context>
 <context>
-    <name>flareRasterBrushTool</name>
+    <name>ToonzRasterBrushTool</name>
     <message>
-        <location filename="../../tnztools/flarerasterbrushtool.cpp" line="1097"/>
-        <location filename="../../tnztools/flarerasterbrushtool.cpp" line="1104"/>
+        <location filename="../../tnztools/toonzrasterbrushtool.cpp" line="1097"/>
+        <location filename="../../tnztools/toonzrasterbrushtool.cpp" line="1104"/>
         <source>Size</source>
         <translation>Velikost</translation>
     </message>
     <message>
-        <location filename="../../tnztools/flarerasterbrushtool.cpp" line="1098"/>
+        <location filename="../../tnztools/toonzrasterbrushtool.cpp" line="1098"/>
         <source>Hardness:</source>
         <translation>Tvrdost:</translation>
     </message>
     <message>
-        <location filename="../../tnztools/flarerasterbrushtool.cpp" line="1099"/>
+        <location filename="../../tnztools/toonzrasterbrushtool.cpp" line="1099"/>
         <source>Smooth:</source>
         <translation>Vyhlazení:</translation>
     </message>
     <message>
-        <location filename="../../tnztools/flarerasterbrushtool.cpp" line="1100"/>
+        <location filename="../../tnztools/toonzrasterbrushtool.cpp" line="1100"/>
         <source>Draw Order:</source>
         <translation>Pořadí kresby:</translation>
     </message>
     <message>
-        <location filename="../../tnztools/flarerasterbrushtool.cpp" line="1101"/>
+        <location filename="../../tnztools/toonzrasterbrushtool.cpp" line="1101"/>
         <source>Over All</source>
         <translation>Nad vše</translation>
     </message>
     <message>
-        <location filename="../../tnztools/flarerasterbrushtool.cpp" line="1102"/>
+        <location filename="../../tnztools/toonzrasterbrushtool.cpp" line="1102"/>
         <source>Under All</source>
         <translation>Pod vše</translation>
     </message>
     <message>
-        <location filename="../../tnztools/flarerasterbrushtool.cpp" line="1103"/>
+        <location filename="../../tnztools/toonzrasterbrushtool.cpp" line="1103"/>
         <source>Palette Order</source>
         <translation>Pořadí palety</translation>
     </message>
     <message>
-        <location filename="../../tnztools/flarerasterbrushtool.cpp" line="1107"/>
+        <location filename="../../tnztools/toonzrasterbrushtool.cpp" line="1107"/>
         <source>Preset:</source>
         <translation>Přednastavení:</translation>
     </message>
     <message>
-        <location filename="../../tnztools/flarerasterbrushtool.cpp" line="1108"/>
-        <location filename="../../tnztools/flarerasterbrushtool.cpp" line="2177"/>
+        <location filename="../../tnztools/toonzrasterbrushtool.cpp" line="1108"/>
+        <location filename="../../tnztools/toonzrasterbrushtool.cpp" line="2177"/>
         <source>&lt;custom&gt;</source>
         <translation>&lt;vlastní&gt;</translation>
     </message>
     <message>
-        <location filename="../../tnztools/flarerasterbrushtool.cpp" line="1109"/>
+        <location filename="../../tnztools/toonzrasterbrushtool.cpp" line="1109"/>
         <source>Pencil</source>
         <translation>Tužka</translation>
     </message>
     <message>
-        <location filename="../../tnztools/flarerasterbrushtool.cpp" line="1110"/>
+        <location filename="../../tnztools/toonzrasterbrushtool.cpp" line="1110"/>
         <source>Pressure</source>
         <translation>Tlak</translation>
     </message>
     <message>
-        <location filename="../../tnztools/flarerasterbrushtool.cpp" line="1111"/>
+        <location filename="../../tnztools/toonzrasterbrushtool.cpp" line="1111"/>
         <source>Lock Alpha</source>
         <translation type="unfinished">Zamknout alfu</translation>
     </message>
 </context>
 <context>
-    <name>flareVectorBrushTool</name>
+    <name>ToonzVectorBrushTool</name>
     <message>
-        <location filename="../../tnztools/flarevectorbrushtool.cpp" line="583"/>
+        <location filename="../../tnztools/toonzvectorbrushtool.cpp" line="583"/>
         <source>Size</source>
         <translation>Velikost</translation>
     </message>
     <message>
-        <location filename="../../tnztools/flarevectorbrushtool.cpp" line="584"/>
+        <location filename="../../tnztools/toonzvectorbrushtool.cpp" line="584"/>
         <source>Accuracy:</source>
         <translation>Přesnost:</translation>
     </message>
     <message>
-        <location filename="../../tnztools/flarevectorbrushtool.cpp" line="585"/>
+        <location filename="../../tnztools/toonzvectorbrushtool.cpp" line="585"/>
         <source>Smooth:</source>
         <translation>Vyhlazení:</translation>
     </message>
     <message>
-        <location filename="../../tnztools/flarevectorbrushtool.cpp" line="586"/>
+        <location filename="../../tnztools/toonzvectorbrushtool.cpp" line="586"/>
         <source>Preset:</source>
         <translation>Přednastavení:</translation>
     </message>
     <message>
-        <location filename="../../tnztools/flarevectorbrushtool.cpp" line="587"/>
-        <location filename="../../tnztools/flarevectorbrushtool.cpp" line="1734"/>
+        <location filename="../../tnztools/toonzvectorbrushtool.cpp" line="587"/>
+        <location filename="../../tnztools/toonzvectorbrushtool.cpp" line="1734"/>
         <source>&lt;custom&gt;</source>
         <translation>&lt;vlastní&gt;</translation>
     </message>
     <message>
-        <location filename="../../tnztools/flarevectorbrushtool.cpp" line="588"/>
+        <location filename="../../tnztools/toonzvectorbrushtool.cpp" line="588"/>
         <source>Break</source>
         <translation>Zlomit ostré úhly</translation>
     </message>
     <message>
-        <location filename="../../tnztools/flarevectorbrushtool.cpp" line="589"/>
+        <location filename="../../tnztools/toonzvectorbrushtool.cpp" line="589"/>
         <source>Pressure</source>
         <translation>Tlak</translation>
     </message>
     <message>
-        <location filename="../../tnztools/flarevectorbrushtool.cpp" line="590"/>
+        <location filename="../../tnztools/toonzvectorbrushtool.cpp" line="590"/>
         <source>Cap</source>
         <translation>Čepice</translation>
     </message>
     <message>
-        <location filename="../../tnztools/flarevectorbrushtool.cpp" line="591"/>
+        <location filename="../../tnztools/toonzvectorbrushtool.cpp" line="591"/>
         <source>Join</source>
         <translation>Spojit</translation>
     </message>
     <message>
-        <location filename="../../tnztools/flarevectorbrushtool.cpp" line="592"/>
+        <location filename="../../tnztools/toonzvectorbrushtool.cpp" line="592"/>
         <source>Miter:</source>
         <translation>Zkosení:</translation>
     </message>
     <message>
-        <location filename="../../tnztools/flarevectorbrushtool.cpp" line="593"/>
+        <location filename="../../tnztools/toonzvectorbrushtool.cpp" line="593"/>
         <source>Range:</source>
         <translation>Rozsah:</translation>
     </message>
     <message>
-        <location filename="../../tnztools/flarevectorbrushtool.cpp" line="594"/>
+        <location filename="../../tnztools/toonzvectorbrushtool.cpp" line="594"/>
         <source>Snap</source>
         <translation>Přichytávání</translation>
     </message>
     <message>
-        <location filename="../../tnztools/flarevectorbrushtool.cpp" line="596"/>
+        <location filename="../../tnztools/toonzvectorbrushtool.cpp" line="596"/>
         <source>Off</source>
         <translation>Vypnuto</translation>
     </message>
     <message>
-        <location filename="../../tnztools/flarevectorbrushtool.cpp" line="597"/>
+        <location filename="../../tnztools/toonzvectorbrushtool.cpp" line="597"/>
         <source>Linear</source>
         <translation>Lineární</translation>
     </message>
     <message>
-        <location filename="../../tnztools/flarevectorbrushtool.cpp" line="598"/>
+        <location filename="../../tnztools/toonzvectorbrushtool.cpp" line="598"/>
         <source>In</source>
         <translation>Zpomalení na začátku</translation>
     </message>
     <message>
-        <location filename="../../tnztools/flarevectorbrushtool.cpp" line="599"/>
+        <location filename="../../tnztools/toonzvectorbrushtool.cpp" line="599"/>
         <source>Out</source>
         <translation>Zpomalení na konci</translation>
     </message>
     <message>
-        <location filename="../../tnztools/flarevectorbrushtool.cpp" line="600"/>
+        <location filename="../../tnztools/toonzvectorbrushtool.cpp" line="600"/>
         <source>In&amp;Out</source>
         <translation>Začátek a konec</translation>
     </message>
     <message>
-        <location filename="../../tnztools/flarevectorbrushtool.cpp" line="601"/>
+        <location filename="../../tnztools/toonzvectorbrushtool.cpp" line="601"/>
         <source>Low</source>
         <translation>Nízký</translation>
     </message>
     <message>
-        <location filename="../../tnztools/flarevectorbrushtool.cpp" line="602"/>
+        <location filename="../../tnztools/toonzvectorbrushtool.cpp" line="602"/>
         <source>Med</source>
         <translation>Střední</translation>
     </message>
     <message>
-        <location filename="../../tnztools/flarevectorbrushtool.cpp" line="603"/>
+        <location filename="../../tnztools/toonzvectorbrushtool.cpp" line="603"/>
         <source>High</source>
         <translation>Vysoký</translation>
     </message>
     <message>
-        <location filename="../../tnztools/flarevectorbrushtool.cpp" line="604"/>
+        <location filename="../../tnztools/toonzvectorbrushtool.cpp" line="604"/>
         <source>Butt cap</source>
         <translation>Odřezek</translation>
     </message>
     <message>
-        <location filename="../../tnztools/flarevectorbrushtool.cpp" line="605"/>
+        <location filename="../../tnztools/toonzvectorbrushtool.cpp" line="605"/>
         <source>Round cap</source>
         <translation>Zakulacený</translation>
     </message>
     <message>
-        <location filename="../../tnztools/flarevectorbrushtool.cpp" line="606"/>
+        <location filename="../../tnztools/toonzvectorbrushtool.cpp" line="606"/>
         <source>Projecting cap</source>
         <translation>Rovný klobouček</translation>
     </message>
     <message>
-        <location filename="../../tnztools/flarevectorbrushtool.cpp" line="607"/>
+        <location filename="../../tnztools/toonzvectorbrushtool.cpp" line="607"/>
         <source>Miter join</source>
         <translation>Ostrý ohyb</translation>
     </message>
     <message>
-        <location filename="../../tnztools/flarevectorbrushtool.cpp" line="608"/>
+        <location filename="../../tnztools/toonzvectorbrushtool.cpp" line="608"/>
         <source>Round join</source>
         <translation>Kulatý ohyb</translation>
     </message>
     <message>
-        <location filename="../../tnztools/flarevectorbrushtool.cpp" line="609"/>
+        <location filename="../../tnztools/toonzvectorbrushtool.cpp" line="609"/>
         <source>Bevel join</source>
         <translation>Zkosený ohyb</translation>
     </message>
@@ -2301,4 +2301,3 @@ přesunut na konec první strany palety.</translation>
     </message>
 </context>
 </TS>
-

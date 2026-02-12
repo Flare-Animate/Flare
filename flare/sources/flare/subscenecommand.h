@@ -3,7 +3,7 @@
 #ifndef SUBSCENECOMMAND_H
 #define SUBSCENECOMMAND_H
 
-#include "flare/tstageobjectid.h"
+#include "toonz/tstageobjectid.h"
 #include "tfx.h"
 #include <set>
 #include <QList>
@@ -17,4 +17,3 @@ void explode(int index);
 }
 
 #endif
-

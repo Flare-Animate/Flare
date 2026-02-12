@@ -11,32 +11,32 @@
 #include "tfxattributes.h"
 
 // TnzLib includes
-#include "flare/fxdag.h"
-#include "flare/txshchildlevel.h"
-#include "flare/txshcell.h"
-#include "flare/observer.h"
-#include "flare/controlpointobserver.h"
-#include "flare/tcolumnfx.h"
-#include "flare/tcolumnfxset.h"
-#include "flare/txshlevelcolumn.h"
-#include "flare/txshpalettecolumn.h"
-#include "flare/txshzeraryfxcolumn.h"
-#include "flare/txshsoundcolumn.h"
-#include "flare/sceneproperties.h"
-#include "flare/flarescene.h"
-#include "flare/columnfan.h"
-#include "flare/txshleveltypes.h"
-#include "flare/txshnoteset.h"
-#include "flare/txshsimplelevel.h"
-#include "flare/stage.h"
-#include "flare/textureutils.h"
+#include "toonz/fxdag.h"
+#include "toonz/txshchildlevel.h"
+#include "toonz/txshcell.h"
+#include "toonz/observer.h"
+#include "toonz/controlpointobserver.h"
+#include "toonz/tcolumnfx.h"
+#include "toonz/tcolumnfxset.h"
+#include "toonz/txshlevelcolumn.h"
+#include "toonz/txshpalettecolumn.h"
+#include "toonz/txshzeraryfxcolumn.h"
+#include "toonz/txshsoundcolumn.h"
+#include "toonz/sceneproperties.h"
+#include "toonz/toonzscene.h"
+#include "toonz/columnfan.h"
+#include "toonz/txshleveltypes.h"
+#include "toonz/txshnoteset.h"
+#include "toonz/txshsimplelevel.h"
+#include "toonz/stage.h"
+#include "toonz/textureutils.h"
 #include "xshhandlemanager.h"
 #include "orientation.h"
-#include "flare/expressionreferencemonitor.h"
-#include "flare/navigationtags.h"
+#include "toonz/expressionreferencemonitor.h"
+#include "toonz/navigationtags.h"
 
-#include "flare/txsheet.h"
-#include "flare/preferences.h"
+#include "toonz/txsheet.h"
+#include "toonz/preferences.h"
 
 // STD includes
 #include <set>
@@ -101,7 +101,7 @@ struct TXsheet::TXsheetImp {
   TSoundTrackP m_mixedSound;
   ColumnFan m_columnFans[Orientations::COUNT];
   XshHandleManager *m_handleManager;
-  flareScene *m_scene;
+  ToonzScene *m_scene;
 
   ExpressionReferenceMonitor *m_expRefMonitor;
 
@@ -1601,11 +1601,11 @@ ColumnFan *TXsheet::getColumnFan(const Orientation *o) const {
 
 //-----------------------------------------------------------------------------
 
-flareScene *TXsheet::getScene() const { return m_imp->m_scene; }
+ToonzScene *TXsheet::getScene() const { return m_imp->m_scene; }
 
 //-----------------------------------------------------------------------------
 
-void TXsheet::setScene(flareScene *scene) { m_imp->m_scene = scene; }
+void TXsheet::setScene(ToonzScene *scene) { m_imp->m_scene = scene; }
 
 //-----------------------------------------------------------------------------
 

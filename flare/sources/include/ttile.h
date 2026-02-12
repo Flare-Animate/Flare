@@ -5,7 +5,7 @@
 
 #include "traster.h"
 #include "trasterimage.h"
-#include "tflareimage.h"
+#include "ttoonzimage.h"
 #include "timagecache.h"
 #undef DVAPI
 #undef DVVAR
@@ -45,7 +45,7 @@ public:
                                           m_subRect.x1, m_subRect.y1);
     }
 
-    TflareImageP timg = (TflareImageP)img;
+    TToonzImageP timg = (TToonzImageP)img;
     if (timg) {
       if (m_subRect == timg->getRaster()->getBounds())
         return timg->getRaster();
@@ -59,4 +59,3 @@ public:
 };
 
 #endif
-

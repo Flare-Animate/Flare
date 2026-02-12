@@ -1,17 +1,17 @@
 
 
-#include "flare/sceneresources.h"
-#include "flare/flarescene.h"
-#include "flare/tproject.h"
-#include "flare/levelset.h"
-#include "flare/txshsimplelevel.h"
-#include "flare/txshpalettelevel.h"
-#include "flare/levelproperties.h"
-#include "flare/txshsoundlevel.h"
-#include "flare/namebuilder.h"
-#include "flare/childstack.h"
-#include "flare/txsheet.h"
-#include "flare/preferences.h"
+#include "toonz/sceneresources.h"
+#include "toonz/toonzscene.h"
+#include "toonz/tproject.h"
+#include "toonz/levelset.h"
+#include "toonz/txshsimplelevel.h"
+#include "toonz/txshpalettelevel.h"
+#include "toonz/levelproperties.h"
+#include "toonz/txshsoundlevel.h"
+#include "toonz/namebuilder.h"
+#include "toonz/childstack.h"
+#include "toonz/txsheet.h"
+#include "toonz/preferences.h"
 #include "tpalette.h"
 
 #include "tmsgcore.h"
@@ -54,7 +54,7 @@ TFilePath restorePsdPath(const TFilePath &fp) {
 
 //-----------------------------------------------------------------------------
 
-bool makePathUnique(flareScene *scene, TFilePath &path) {
+bool makePathUnique(ToonzScene *scene, TFilePath &path) {
   std::wstring name = path.getWideName();
   int id            = 2;
   int i             = name.length() - 1;
@@ -80,7 +80,7 @@ bool makePathUnique(flareScene *scene, TFilePath &path) {
 
 //-----------------------------------------------------------------------------
 
-bool getCollectedPath(flareScene *scene, TFilePath &path) {
+bool getCollectedPath(ToonzScene *scene, TFilePath &path) {
   if (!path.isAbsolute() || path.getWideString()[0] == L'+') return false;
 
   TFilePath collectedPath = scene->getImportedLevelPath(path);
@@ -110,8 +110,8 @@ ResourceImportStrategy::ResourceImportStrategy(int strategy)
 
 //-----------------------------------------------------------------------------
 
-TFilePath ResourceImportStrategy::process(flareScene *scene,
-                                          flareScene *srcScene,
+TFilePath ResourceImportStrategy::process(ToonzScene *scene,
+                                          ToonzScene *srcScene,
                                           TFilePath srcPath) {
   TFilePath srcActualPath = srcScene->decodeFilePath(srcPath);
   if (!scene->isExternPath(srcActualPath) || m_strategy == DONT_IMPORT)
@@ -165,7 +165,7 @@ TFilePath ResourceImportStrategy::process(flareScene *scene,
 //
 //-----------------------------------------------------------------------------
 
-SceneResource::SceneResource(flareScene *scene)
+SceneResource::SceneResource(ToonzScene *scene)
     : m_scene(scene)
     , m_untitledScene(scene->isUntitled())
     , m_oldSavePath(scene->getSavePath()) {}
@@ -187,7 +187,7 @@ void SceneResource::updatePath(TFilePath &fp) {
 //
 //-----------------------------------------------------------------------------
 
-SceneLevel::SceneLevel(flareScene *scene, TXshSimpleLevel *sl)
+SceneLevel::SceneLevel(ToonzScene *scene, TXshSimpleLevel *sl)
     : SceneResource(scene)
     , m_sl(sl)
     , m_oldPath(sl->getPath())
@@ -368,7 +368,7 @@ QStringList SceneLevel::getResourceName() {
 //
 //-----------------------------------------------------------------------------
 
-ScenePalette::ScenePalette(flareScene *scene, TXshPaletteLevel *pl)
+ScenePalette::ScenePalette(ToonzScene *scene, TXshPaletteLevel *pl)
     : SceneResource(scene)
     , m_pl(pl)
     , m_oldPath(pl->getPath())
@@ -423,7 +423,7 @@ QStringList ScenePalette::getResourceName() {
 //
 //-----------------------------------------------------------------------------
 
-SceneSound::SceneSound(flareScene *scene, TXshSoundLevel *sl)
+SceneSound::SceneSound(ToonzScene *scene, TXshSoundLevel *sl)
     : SceneResource(scene)
     , m_sl(sl)
     , m_oldPath(sl->getPath())
@@ -467,7 +467,7 @@ void SceneSound::rollbackPath() { m_sl->setPath(m_oldPath); }
 //
 //-----------------------------------------------------------------------------
 
-SceneResources::SceneResources(flareScene *scene, TXsheet *subXsheet)
+SceneResources::SceneResources(ToonzScene *scene, TXsheet *subXsheet)
     : m_scene(scene)
     , m_commitDone(false)
     , m_wasUntitled(scene->isUntitled())
@@ -485,7 +485,7 @@ SceneResources::~SceneResources() {
 //-----------------------------------------------------------------------------
 
 void SceneResources::getResources() {
-  flareScene *scene = m_scene;
+  ToonzScene *scene = m_scene;
   std::vector<TXshLevel *> levels;
   scene->getLevelSet()->listLevels(levels);
   std::vector<TXshLevel *>::iterator it;
@@ -576,11 +576,11 @@ void SceneResources::getDirtyResources(QStringList &dirtyResources) {
 //
 //-----------------------------------------------------------------------------
 
-ResourceImporter::ResourceImporter(flareScene *scene, std::shared_ptr<TProject> dstProject,
+ResourceImporter::ResourceImporter(ToonzScene *scene, std::shared_ptr<TProject> dstProject,
                                    ResourceImportStrategy &importStrategy)
     : m_scene(scene)
     , m_dstProject(dstProject)
-    , m_dstScene(new flareScene())
+    , m_dstScene(new ToonzScene())
     , m_importStrategy(importStrategy) {
   m_dstScene->setProject(dstProject);
   // scene file may not be in the "+scenes" path for the sandbox project.
@@ -687,7 +687,7 @@ void ResourceImporter::process(TXshSoundLevel *sl) {
 //
 //-----------------------------------------------------------------------------
 
-ResourceCollector::ResourceCollector(flareScene *scene)
+ResourceCollector::ResourceCollector(ToonzScene *scene)
     : m_scene(scene), m_count(0) {}
 
 //-----------------------------------------------------------------------------
@@ -788,4 +788,3 @@ void ResourceCollector::process(TXshPaletteLevel *pl) {
   pl->setPath(collectedPath);
   m_count++;
 }
-

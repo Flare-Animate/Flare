@@ -13,12 +13,12 @@
 #include "ext/plasticvisualsettings.h"
 
 // TnzLib includes
-#include "flare/imagepainter.h"
+#include "toonz/imagepainter.h"
 #include "stageplayer.h"
 
 #undef DVAPI
 #undef DVVAR
-#ifdef flareLIB_EXPORTS
+#ifdef TOONZLIB_EXPORTS
 #define DVAPI DV_EXPORT_API
 #define DVVAR DV_EXPORT_VAR
 #else
@@ -30,7 +30,7 @@
 
 //    Forward declarations
 
-class flareScene;
+class ToonzScene;
 class TXsheet;
 class TXshSimpleLevel;
 class TXshLevel;
@@ -40,7 +40,7 @@ class TFx;
 class TXshColumn;
 class TVectorImage;
 class TRasterImage;
-class TflareImage;
+class TToonzImage;
 class TMeshImage;
 class QPainter;
 class QPolygon;
@@ -64,10 +64,10 @@ DVVAR extern const double inch;
 //! <\I>.
 /*!
   Iterating a scene to perform some task on its content is a typical task in
-flare.
+Toonz.
   Scene visiting is here intended as an implementation of the <I>
 visitor-visitable <\I>
-  pattern applied to flare scenes, where the \a visitable objects are of type
+  pattern applied to Toonz scenes, where the \a visitable objects are of type
 Stage::Player,
   and visitors are reimplemented from the Stage::Visitor class.
 \n\n
@@ -103,8 +103,8 @@ public:
   virtual void onRasterImage(TRasterImage *ri, const Stage::Player &data) = 0;
 
   // I've not checked the actual meaning of the methods below. They are unused
-  // in flare, but *are*
-  // used in flare derivative works such as Tab or LineTest. They deal with
+  // in Toonz, but *are*
+  // used in Toonz derivative works such as Tab or LineTest. They deal with
   // OpenGL stencil buffer.
 
   virtual void enableMask()  = 0;
@@ -122,7 +122,7 @@ public:
 // visit() option.
 
 struct DVAPI VisitArgs {
-  flareScene *m_scene;
+  ToonzScene *m_scene;
   TXsheet *m_xsh;
   int m_row;
   int m_col;
@@ -169,7 +169,7 @@ DVAPI void visit(Visitor &visitor, const VisitArgs &args);
 
 //-----------------------------------------------------------------------------
 
-DVAPI void visit(Visitor &visitor, flareScene *scene, TXsheet *xsh, int row);
+DVAPI void visit(Visitor &visitor, ToonzScene *scene, TXsheet *xsh, int row);
 
 //-----------------------------------------------------------------------------
 
@@ -187,10 +187,10 @@ DVAPI void visit(Visitor &visitor, TXshLevel *level, const TFrameId &fid,
 
 //! Stage::RasterPainter is the object responsible for drawing scene contents on
 //! a standard
-//! flare SceneViewer panel.
+//! Toonz SceneViewer panel.
 /*!
   This class performs standard <I> camera-stand <\I> scene renderization.
-  It renders every supported flare image type (including Plastic's texturized
+  It renders every supported Toonz image type (including Plastic's texturized
   mesh-based
   image deformation), deals with onion-skin, and other stuff.
 
@@ -276,7 +276,7 @@ public:
   void onImage(const Stage::Player &data) override;
   void onVectorImage(TVectorImage *vi, const Stage::Player &data);
   void onRasterImage(TRasterImage *ri, const Stage::Player &data) override;
-  void onflareImage(TflareImage *ri, const Stage::Player &data);
+  void onToonzImage(TToonzImage *ri, const Stage::Player &data);
 
   void beginMask() override;
   void endMask() override;
@@ -358,7 +358,7 @@ public:
   void onImage(const Stage::Player &data) override;
   void onVectorImage(TVectorImage *vi, const Stage::Player &data);
   void onRasterImage(TRasterImage *ri, const Stage::Player &data) override;
-  void onflareImage(TflareImage *ti, const Stage::Player &data);
+  void onToonzImage(TToonzImage *ti, const Stage::Player &data);
 
   void beginMask() override;
   void endMask() override;
@@ -371,4 +371,3 @@ public:
 }  // namespace Stage
 
 #endif  // STAGEVISITOR_H
-

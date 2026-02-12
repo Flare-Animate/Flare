@@ -4,7 +4,7 @@
 #include "tfxparam.h"
 #include "tparamset.h"
 
-#include "flare/tdistort.h"
+#include "toonz/tdistort.h"
 
 //****************************************************************************
 //    Local namespace stuff
@@ -294,4 +294,3 @@ int KaleidoFx::getMemoryRequirement(const TRectD &rect, double frame,
 //------------------------------------------------------------------
 
 FX_PLUGIN_IDENTIFIER(KaleidoFx, "kaleidoFx");
-

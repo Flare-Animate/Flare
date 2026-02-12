@@ -1,6 +1,6 @@
 
 
-#include "flareqt/checkbox.h"
+#include "toonzqt/checkbox.h"
 
 #include <QTabletEvent>
 
@@ -31,4 +31,3 @@ void CheckBox::mouseReleaseEvent(QMouseEvent *e) { e->accept(); }
 //-----------------------------------------------------------------------------
 
 void CheckBox::mouseMoveEvent(QMouseEvent *e) { e->accept(); }
-

@@ -4,7 +4,7 @@
 #define RULER_INCLUDED
 
 #include <QWidget>
-#include "flare/sceneproperties.h"
+#include "toonz/sceneproperties.h"
 
 // forward declaration
 class SceneViewer;
@@ -84,4 +84,3 @@ public:
 };
 
 #endif
-

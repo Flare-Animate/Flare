@@ -14,41 +14,41 @@
 #include "tools/toolcommandids.h"
 
 // TnzQt includes
-#include "flareqt/tselectionhandle.h"
-#include "flareqt/icongenerator.h"
-#include "flareqt/dvdialog.h"
-#include "flareqt/gutil.h"
+#include "toonzqt/tselectionhandle.h"
+#include "toonzqt/icongenerator.h"
+#include "toonzqt/dvdialog.h"
+#include "toonzqt/gutil.h"
 
 // TnzLib includes
-#include "flare/tframehandle.h"
-#include "flare/tcolumnhandle.h"
-#include "flare/tscenehandle.h"
-#include "flare/txsheethandle.h"
-#include "flare/txshlevelhandle.h"
-#include "flare/tstageobject.h"
-#include "flare/tobjecthandle.h"
-#include "flare/tonionskinmaskhandle.h"
-#include "flare/tfxhandle.h"
-#include "flare/tpalettehandle.h"
-#include "flare/sceneproperties.h"
-#include "flare/cleanupparameters.h"
-#include "flare/stage2.h"
+#include "toonz/tframehandle.h"
+#include "toonz/tcolumnhandle.h"
+#include "toonz/tscenehandle.h"
+#include "toonz/txsheethandle.h"
+#include "toonz/txshlevelhandle.h"
+#include "toonz/tstageobject.h"
+#include "toonz/tobjecthandle.h"
+#include "toonz/tonionskinmaskhandle.h"
+#include "toonz/tfxhandle.h"
+#include "toonz/tpalettehandle.h"
+#include "toonz/sceneproperties.h"
+#include "toonz/cleanupparameters.h"
+#include "toonz/stage2.h"
 #include "toutputproperties.h"
-#include "flare/palettecontroller.h"
-#include "flare/levelset.h"
-#include "flare/flarescene.h"
-#include "flare/txshlevel.h"
-#include "flare/txshcell.h"
-#include "flare/txshsimplelevel.h"
-#include "flare/txshpalettelevel.h"
-#include "flare/txshleveltypes.h"
-#include "flare/tcamera.h"
-#include "flare/preferences.h"
-#include "flare/txshsoundcolumn.h"
+#include "toonz/palettecontroller.h"
+#include "toonz/levelset.h"
+#include "toonz/toonzscene.h"
+#include "toonz/txshlevel.h"
+#include "toonz/txshcell.h"
+#include "toonz/txshsimplelevel.h"
+#include "toonz/txshpalettelevel.h"
+#include "toonz/txshleveltypes.h"
+#include "toonz/tcamera.h"
+#include "toonz/preferences.h"
+#include "toonz/txshsoundcolumn.h"
 
 // TnzCore includes
 #include "tbigmemorymanager.h"
-#include "tflareimage.h"
+#include "ttoonzimage.h"
 #include "trasterimage.h"
 #include "tunit.h"
 #include "tsystem.h"
@@ -293,7 +293,7 @@ int TApp::getCurrentImageType() {
                  ? TImage::VECTOR
                  :  // RASTER image type includes both TZI_XSHLEVEL
                  (levelType == TZP_XSHLEVEL)
-                     ? TImage::flare_RASTER
+                     ? TImage::TOONZ_RASTER
                      : TImage::RASTER;  // and OVL_XSHLEVEL level types
     }
 
@@ -314,7 +314,7 @@ int TApp::getCurrentImageType() {
         int levelType = Preferences::instance()->getDefLevelType();
         return (levelType == PLI_XSHLEVEL)
                    ? TImage::VECTOR
-                   : (levelType == TZP_XSHLEVEL) ? TImage::flare_RASTER
+                   : (levelType == TZP_XSHLEVEL) ? TImage::TOONZ_RASTER
                                                  : TImage::RASTER;
         */
       }
@@ -327,7 +327,7 @@ int TApp::getCurrentImageType() {
   if (sl) {
     switch (sl->getType()) {
     case TZP_XSHLEVEL:
-      return TImage::flare_RASTER;
+      return TImage::TOONZ_RASTER;
     case OVL_XSHLEVEL:
       return TImage::RASTER;
     case META_XSHLEVEL:
@@ -408,7 +408,7 @@ void TApp::updateXshLevel() {
 //-----------------------------------------------------------------------------
 
 void TApp::updateCurrentFrame() {
-  flareScene *scene = m_currentScene->getScene();
+  ToonzScene *scene = m_currentScene->getScene();
   m_currentFrame->setSceneFrameSize(scene->getFrameCount());
   int f0, f1, step;
   scene->getProperties()->getPreviewProperties()->getRange(f0, f1, step);
@@ -614,17 +614,17 @@ void TApp::onLevelColorStyleSwitched() {
   TPaletteHandle *ph = m_paletteController->getCurrentLevelPalette();
   assert(ph);
 
-  if (flareCheck::instance()->setColorIndex(ph->getStyleIndex())) {
-    flareCheck *tc = flareCheck::instance();
+  if (ToonzCheck::instance()->setColorIndex(ph->getStyleIndex())) {
+    ToonzCheck *tc = ToonzCheck::instance();
     int mask       = tc->getChecks();
 
-    if (mask & flareCheck::eInk || mask & flareCheck::ePaint) {
+    if (mask & ToonzCheck::eInk || mask & ToonzCheck::ePaint) {
       IconGenerator::Settings s;
-      s.m_blackBgCheck      = mask & flareCheck::eBlackBg;
-      s.m_transparencyCheck = mask & flareCheck::eTransparency;
-      s.m_inksOnly          = mask & flareCheck::eInksOnly;
-      s.m_inkIndex   = mask & flareCheck::eInk ? tc->getColorIndex() : -1;
-      s.m_paintIndex = mask & flareCheck::ePaint ? tc->getColorIndex() : -1;
+      s.m_blackBgCheck      = mask & ToonzCheck::eBlackBg;
+      s.m_transparencyCheck = mask & ToonzCheck::eTransparency;
+      s.m_inksOnly          = mask & ToonzCheck::eInksOnly;
+      s.m_inkIndex   = mask & ToonzCheck::eInk ? tc->getColorIndex() : -1;
+      s.m_paintIndex = mask & ToonzCheck::ePaint ? tc->getColorIndex() : -1;
 
       IconGenerator::instance()->setSettings(s);
 
@@ -647,19 +647,19 @@ void TApp::onLevelColorStyleSwitched() {
 
 static void notifyPaletteChanged(TXshSimpleLevel *simpleLevel) {
   simpleLevel->onPaletteChanged();
-  // palette change can update icons only for flareVector / flareRaster types
+  // palette change can update icons only for ToonzVector / ToonzRaster types
   if (simpleLevel->getType() != TZP_XSHLEVEL &&
       simpleLevel->getType() != PLI_XSHLEVEL)
     return;
   std::vector<TFrameId> fids;
   simpleLevel->getFids(fids);
-  // flareRaster level does not need to re-generate icons along with palette
+  // ToonzRaster level does not need to re-generate icons along with palette
   // changes since the icons are cached as color mapped images and the current
   // palette is applied just before using it. So here we just emit the signal to
   // update related panels.
   if (simpleLevel->getType() == TZP_XSHLEVEL)
     IconGenerator::instance()->notifyIconGenerated();
-  else {  // flareVecor needs to re-generate icons since it includes colors in
+  else {  // ToonzVecor needs to re-generate icons since it includes colors in
           // the cache.
     for (int i = 0; i < (int)fids.size(); i++)
       IconGenerator::instance()->invalidate(simpleLevel, fids[i]);
@@ -692,7 +692,7 @@ void TApp::onLevelColorStyleChanged() {
 //-----------------------------------------------------------------------------
 
 void TApp::autosave() {
-  flareScene *scene = getCurrentScene()->getScene();
+  ToonzScene *scene = getCurrentScene()->getScene();
 
   if (!getCurrentScene()->getDirtyFlag()) return;
 
@@ -767,4 +767,3 @@ QString TApp::getCurrentRoomName() const {
 
   return currentRoom->getName();
 }
-

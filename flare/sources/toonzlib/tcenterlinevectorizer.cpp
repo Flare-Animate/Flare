@@ -5,14 +5,14 @@
 #include "tcenterlinevectP.h"
 
 // TnzLib includes
-#include "flare/tcenterlinevectorizer.h"
-#include "flare/Naa2TlvConverter.h"
+#include "toonz/tcenterlinevectorizer.h"
+#include "toonz/Naa2TlvConverter.h"
 
 // TnzCore includes
 #include "tpalette.h"
 #include "tcolorstyles.h"
 #include "trastercm.h"
-#include "tflareimage.h"
+#include "ttoonzimage.h"
 #include "trasterimage.h"
 #include "tvectorimage.h"
 #include "tgeometry.h"
@@ -159,7 +159,7 @@ TVectorImageP VectorizerCore::centerlineVectorize(
     TImageP &image, const CenterlineConfiguration &configuration,
     TPalette *palette) {
   TRasterImageP ri = image;
-  TflareImageP ti  = image;
+  TToonzImageP ti  = image;
 
   TRasterP ras;
   if (ri)
@@ -232,4 +232,3 @@ TVectorImageP VectorizerCore::centerlineVectorize(
 
   return result;
 }
-

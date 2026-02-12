@@ -5,7 +5,7 @@
 
 #include "tmacro.h"
 #include "avl.h"
-/* TCM = flare color map/mapping/mapped/manager */
+/* TCM = toonz color map/mapping/mapped/manager */
 
 typedef struct {
   /*UCHAR    tone_offs; sempre 0 */
@@ -77,4 +77,3 @@ typedef struct {
 } CDB_TREE_ITEM;
 
 #endif
-

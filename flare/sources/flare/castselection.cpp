@@ -3,21 +3,21 @@
 #include "castselection.h"
 #include "castviewer.h"
 #include "menubarcommandids.h"
-#include "flareqt/icongenerator.h"
-#include "flareqt/gutil.h"
+#include "toonzqt/icongenerator.h"
+#include "toonzqt/gutil.h"
 
-#include "flare/flarescene.h"
-#include "flare/txshlevel.h"
-#include "flare/txshsimplelevel.h"
-#include "flare/txshpalettelevel.h"
-#include "flare/txshlevelhandle.h"
-#include "flare/tscenehandle.h"
-#include "flare/sceneproperties.h"
+#include "toonz/toonzscene.h"
+#include "toonz/txshlevel.h"
+#include "toonz/txshsimplelevel.h"
+#include "toonz/txshpalettelevel.h"
+#include "toonz/txshlevelhandle.h"
+#include "toonz/tscenehandle.h"
+#include "toonz/sceneproperties.h"
 #include "tapp.h"
-#include "flare/stage2.h"
+#include "toonz/stage2.h"
 #include "tsystem.h"
-#include "flare/txshsoundlevel.h"
-#include "flare/preferences.h"
+#include "toonz/txshsoundlevel.h"
+#include "toonz/preferences.h"
 
 //=============================================================================
 //
@@ -87,7 +87,7 @@ int LevelCastItem::getFrameCount() const { return m_level->getFrameCount(); }
 QPixmap LevelCastItem::getPixmap(bool isSelected) const {
   TXshSimpleLevel *sl = m_level->getSimpleLevel();
   if (!sl) return QPixmap();
-  flareScene *scene = sl->getScene();
+  ToonzScene *scene = sl->getScene();
   assert(scene);
   if (!scene) return QPixmap();
   bool onDemand = false;
@@ -102,7 +102,7 @@ QPixmap LevelCastItem::getPixmap(bool isSelected) const {
 //-----------------------------------------------------------------------------
 
 bool LevelCastItem::exists() const {
-  flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
+  ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
   return TSystem::doesExistFileOrLevel(
              scene->decodeFilePath(m_level->getPath())) ||
          !getPixmap(false).isNull();
@@ -147,7 +147,7 @@ QPixmap SoundCastItem::getPixmap(bool isSelected) const {
 //-----------------------------------------------------------------------------
 
 bool SoundCastItem::exists() const {
-  flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
+  ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
   return TSystem::doesExistFileOrLevel(
       scene->decodeFilePath(m_soundLevel->getPath()));
 }
@@ -181,7 +181,7 @@ QPixmap PaletteCastItem::getPixmap(bool isSelected) const {
 }
 
 bool PaletteCastItem::exists() const {
-  flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
+  ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
   return TSystem::doesExistFileOrLevel(
       scene->decodeFilePath(m_paletteLevel->getPath()));
 }
@@ -221,12 +221,12 @@ bool CastItems::hasFormat(const QString &mimeType) const {
 
 //-----------------------------------------------------------------------------
 
-QString CastItems::getMimeFormat() { return "application/vnd.flare.levels"; }
+QString CastItems::getMimeFormat() { return "application/vnd.toonz.levels"; }
 
 //-----------------------------------------------------------------------------
 
 QStringList CastItems::formats() const {
-  return QStringList(QString("application/vnd.flare.levels"));
+  return QStringList(QString("application/vnd.toonz.levels"));
 }
 
 //-----------------------------------------------------------------------------
@@ -241,4 +241,3 @@ CastItems *CastItems::getSelectedItems(const std::set<int> &indices) const {
   }
   return c;
 }
-

@@ -10,7 +10,7 @@
 #include <memory>
 #include "STColSelPic.h"
 #include "SDef.h"
-#include "flare4.6/pixel.h"
+#include "toonz4.6/pixel.h"
 
 class CPattern {
   int m_lX, m_lY;
@@ -173,4 +173,3 @@ public:
 };
 
 #endif  // !defined(AFX_PATTERN_H__8E417023_35C0_11D6_B9EA_0040F674BE6A__INCLUDED_)
-

@@ -4,10 +4,10 @@
 #define ADJUST_THICKNESS_POPUP_H
 
 // TnzQt includes
-#include "flareqt/dvdialog.h"
+#include "toonzqt/dvdialog.h"
 
 // TnzLib includes
-#include "flare/txshsimplelevel.h"
+#include "toonz/txshsimplelevel.h"
 
 // TnzCore includes
 #include "tvectorimage.h"
@@ -158,4 +158,3 @@ private slots:
 };
 
 #endif  // ADJUST_THICKNESS_POPUP_H
-

@@ -5,12 +5,12 @@
 
 #include <memory>
 
-#include "flare/tstageobject.h"
-#include "flare/txsheet.h"
+#include "toonz/tstageobject.h"
+#include "toonz/txsheet.h"
 
 #undef DVAPI
 #undef DVVAR
-#ifdef flareLIB_EXPORTS
+#ifdef TOONZLIB_EXPORTS
 #define DVAPI DV_EXPORT_API
 #define DVVAR DV_EXPORT_VAR
 #else
@@ -245,7 +245,7 @@ Inserts in the stage object tree the spline \b \e spline.
 */
   void insertSpline(TStageObjectSpline *);  // get ownership
 
-  // void setflareBuilder(const TDoubleParamP &param);
+  // void setToonzBuilder(const TDoubleParamP &param);
   void createGrammar(TXsheet *xsh);
   void setGrammar(const TDoubleParamP &param);
   TSyntax::Grammar *getGrammar() const;
@@ -289,4 +289,3 @@ private:
 };
 
 #endif
-

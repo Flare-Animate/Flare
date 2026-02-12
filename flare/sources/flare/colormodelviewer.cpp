@@ -16,30 +16,30 @@
 #include "tools/toolhandle.h"
 #include "../tnztools/stylepickertool.h"
 // TnzQt includes
-#include "flareqt/menubarcommand.h"
-#include "flareqt/viewcommandids.h"
-#include "flareqt/dvdialog.h"
-#include "flareqt/icongenerator.h"
-#include "flareqt/gutil.h"
-#include "flareqt/tselectionhandle.h"
-#include "flareqt/styleselection.h"
+#include "toonzqt/menubarcommand.h"
+#include "toonzqt/viewcommandids.h"
+#include "toonzqt/dvdialog.h"
+#include "toonzqt/icongenerator.h"
+#include "toonzqt/gutil.h"
+#include "toonzqt/tselectionhandle.h"
+#include "toonzqt/styleselection.h"
 // TnzLib includes
-#include "flare/palettecmd.h"
-#include "flare/txshlevelhandle.h"
-#include "flare/tpalettehandle.h"
-#include "flare/tframehandle.h"
-#include "flare/tscenehandle.h"
-#include "flare/txsheethandle.h"
-#include "flare/tcolumnhandle.h"
-#include "flare/flarescene.h"
-#include "flare/txsheet.h"
-#include "flare/palettecontroller.h"
-#include "flare/txshlevel.h"
-#include "flare/txshsimplelevel.h"
-#include "flare/txshcell.h"
+#include "toonz/palettecmd.h"
+#include "toonz/txshlevelhandle.h"
+#include "toonz/tpalettehandle.h"
+#include "toonz/tframehandle.h"
+#include "toonz/tscenehandle.h"
+#include "toonz/txsheethandle.h"
+#include "toonz/tcolumnhandle.h"
+#include "toonz/toonzscene.h"
+#include "toonz/txsheet.h"
+#include "toonz/palettecontroller.h"
+#include "toonz/txshlevel.h"
+#include "toonz/txshsimplelevel.h"
+#include "toonz/txshcell.h"
 // TnzCore includes
 #include "tsystem.h"
-#include "tflareimage.h"
+#include "ttoonzimage.h"
 // Qt includes
 #include <QMimeData>
 #include <QMouseEvent>
@@ -174,7 +174,7 @@ void ColorModelViewer::loadImage(const TFilePath &fp) {
     if (ret == QDialog::Rejected) return;
     popup.getLoadingConfiguration(config);
   }
-  flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
+  ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
   int isLoaded =
       PaletteCmd::loadReferenceImage(paletteHandle, config, fp, scene);
   if (0 != isLoaded) {
@@ -284,7 +284,7 @@ void ColorModelViewer::pick(const QPoint &p) {
    * or if clicking on a pure paint area, do not change current style --*/
   if (m_mode == 1) {
     if (styleIndex == 0) return;
-    TflareImageP ti = img;
+    TToonzImageP ti = img;
     if (ti && picker.pickTone(pos) == 255) return;
   }
   /*- If a color not in the palette is picked, return -*/
@@ -456,7 +456,7 @@ void ColorModelViewer::showCurrentImage() {
   }
   /*- Below: normal case where ColorModel is loaded -*/
   resetImageViewer();
-  flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
+  ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
   TFilePath fp      = scene->decodeFilePath(palette->getRefImgPath());
   if (TSystem::doesExistFileOrLevel(fp)) {
     setLevel(fp, palette);
@@ -581,4 +581,3 @@ void ColorModelViewer::repickFromColorModel() {
 //=============================================================================
 OpenFloatingPanel openColorModelCommand(MI_OpenColorModel, "ColorModel",
                                         QObject::tr("Color Model"));
-

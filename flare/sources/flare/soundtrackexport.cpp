@@ -6,14 +6,14 @@
 #include "tsop.h"
 
 // TnzQt includes
-#include "flareqt/menubarcommand.h"
+#include "toonzqt/menubarcommand.h"
 
 // TnzLib includes
-#include "flare/tscenehandle.h"
-#include "flare/txsheethandle.h"
-#include "flare/flarescene.h"
-#include "flare/txsheet.h"
-#include "flare/tstageobjecttree.h"
+#include "toonz/tscenehandle.h"
+#include "toonz/txsheethandle.h"
+#include "toonz/toonzscene.h"
+#include "toonz/txsheet.h"
+#include "toonz/tstageobjecttree.h"
 
 // TnzCore includes
 #include "tsystem.h"
@@ -119,4 +119,3 @@ public:
     }
   }
 } ExportSoundtrackCommandHandler;
-

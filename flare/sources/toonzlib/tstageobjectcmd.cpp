@@ -1,18 +1,18 @@
 
 
 // TnzLib includes
-#include "flare/tstageobjectcmd.h"
-#include "flare/txsheethandle.h"
-#include "flare/tobjecthandle.h"
-#include "flare/tcolumnhandle.h"
-#include "flare/tfxhandle.h"
-#include "flare/txsheet.h"
-#include "flare/flarescene.h"
-#include "flare/tstageobjectspline.h"
-#include "flare/tstageobjecttree.h"
-#include "flare/tcamera.h"
-#include "flare/tcolumnfxset.h"
-#include "flare/fxdag.h"
+#include "toonz/tstageobjectcmd.h"
+#include "toonz/txsheethandle.h"
+#include "toonz/tobjecthandle.h"
+#include "toonz/tcolumnhandle.h"
+#include "toonz/tfxhandle.h"
+#include "toonz/txsheet.h"
+#include "toonz/toonzscene.h"
+#include "toonz/tstageobjectspline.h"
+#include "toonz/tstageobjecttree.h"
+#include "toonz/tcamera.h"
+#include "toonz/tcolumnfxset.h"
+#include "toonz/fxdag.h"
 
 // TnzBase includes
 #include "tdoublekeyframe.h"
@@ -1664,4 +1664,3 @@ void TStageObjectCmd::enableSplineUppk(TStageObject *obj, bool toggled,
   obj->enableUppk(toggled);
   TUndoManager::manager()->add(undo);
 }
-

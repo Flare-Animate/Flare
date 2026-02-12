@@ -6,21 +6,21 @@
 
 #include "tlevel.h"
 #include "trasterimage.h"
-#include "tflareimage.h"
+#include "ttoonzimage.h"
 #include "trastercm.h"
 #include "tnzimage.h"
 #include "tsystem.h"
 #include "trop.h"
-#include "flare/fill.h"
-#include "flare/autoclose.h"
+#include "toonz/fill.h"
+#include "toonz/autoclose.h"
 #include "tenv.h"
 #include "convert2tlv.h"
 #include "tstream.h"
-#include "flare/stage2.h"
+#include "toonz/stage2.h"
 
 #include <map>
 
-#include "flare/flarefolders.h"
+#include "toonz/toonzfolders.h"
 
 // gmt, 14/11/2013 removed a commented out blocks of code (void buildInks1(),
 // void buildPalette() )
@@ -457,7 +457,7 @@ void Convert2Tlv::doFill(TRasterCM32P &rout, const TRaster32P &rin) {
 
 //----------------------------------------------
 
-void Convert2Tlv::buildflareRaster(TRasterCM32P &rout, const TRasterP &rin1,
+void Convert2Tlv::buildToonzRaster(TRasterCM32P &rout, const TRasterP &rin1,
                                    const TRasterP &rin2) {
   if (rin2) assert(rin1->getSize() == rin2->getSize());
 
@@ -516,7 +516,7 @@ void Convert2Tlv::buildflareRaster(TRasterCM32P &rout, const TRasterP &rin1,
   }
 
   if (m_autoclose) {
-    auto st = flareCheck::instance()->getAutocloseSettings();
+    auto st = ToonzCheck::instance()->getAutocloseSettings();
     TAutocloser(r, st.m_closingDistance, st.m_spotAngle, 1, st.m_opacity)
         .exec();
   }
@@ -586,7 +586,7 @@ TPalette *Convert2Tlv::buildPalette() {
   /*-- Adding styles in the default palette to the result palette, starts here
    * --*/
   TFilePath palettePath =
-      flareFolder::getStudioPaletteFolder() +
+      ToonzFolder::getStudioPaletteFolder() +
       "Global Palettes\\Default Palettes\\Cleanup_Palette.tpl";
   TFileStatus pfs(palettePath);
 
@@ -881,12 +881,12 @@ bool Convert2Tlv::convertNext(std::string &errorMessage) {
   }
 
   TRasterCM32P rout(m_size);
-  buildflareRaster(rout, rin1, rin2);
+  buildToonzRaster(rout, rin1, rin2);
 
   std::cout << "      saving frame in level \'" << m_levelOut.getLevelName()
             << "\'...\n\n";
   TImageWriterP iw  = m_lw->getFrameWriter(m_it->first);
-  TflareImageP timg = TflareImageP(rout, rout->getBounds());
+  TToonzImageP timg = TToonzImageP(rout, rout->getBounds());
 
   TRect bbox;
   TRop::computeBBox(rout, bbox);
@@ -933,21 +933,21 @@ bool Convert2Tlv::abort() {
 
 //==============================================================================================
 //
-// RasterToflareRasterConverter
+// RasterToToonzRasterConverter
 //
 //----------------------------------------------------------------------------------------------
 
-RasterToflareRasterConverter::RasterToflareRasterConverter() {
+RasterToToonzRasterConverter::RasterToToonzRasterConverter() {
   m_palette = new TPalette();
 }
 
-RasterToflareRasterConverter::~RasterToflareRasterConverter() {}
+RasterToToonzRasterConverter::~RasterToToonzRasterConverter() {}
 
-void RasterToflareRasterConverter::setPalette(const TPaletteP &palette) {
+void RasterToToonzRasterConverter::setPalette(const TPaletteP &palette) {
   m_palette = palette;
 }
 
-TRasterCM32P RasterToflareRasterConverter::convert(
+TRasterCM32P RasterToToonzRasterConverter::convert(
     const TRasterP &inputRaster) {
   int lx = inputRaster->getLx();
   int ly = inputRaster->getLy();
@@ -973,16 +973,15 @@ TRasterP rU, rP;
   return rout;
 }
 
-TRasterCM32P RasterToflareRasterConverter::convert(
+TRasterCM32P RasterToToonzRasterConverter::convert(
     const TRasterP &inksInputRaster, const TRasterP &paintInputRaster) {
   return TRasterCM32P();
 }
 
-TflareImageP RasterToflareRasterConverter::convert(const TRasterImageP &ri) {
+TToonzImageP RasterToToonzRasterConverter::convert(const TRasterImageP &ri) {
   TRasterCM32P ras = convert(ri->getRaster());
   if (ras)
-    return TflareImageP(ras, TRect(ras->getBounds()));
+    return TToonzImageP(ras, TRect(ras->getBounds()));
   else
-    return TflareImageP();
+    return TToonzImageP();
 }
-

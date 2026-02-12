@@ -10,15 +10,15 @@
 #include "tfx.h"
 
 // TnzLib includes
-#include "flare/tapplication.h"
-#include "flare/txshcolumn.h"
+#include "toonz/tapplication.h"
+#include "toonz/txshcolumn.h"
 
 // Qt includes
 #include <QPair>
 
 #undef DVAPI
 #undef DVVAR
-#ifdef flareLIB_EXPORTS
+#ifdef TOONZLIB_EXPORTS
 #define DVAPI DV_EXPORT_API
 #define DVVAR DV_EXPORT_VAR
 #else
@@ -114,4 +114,3 @@ DVAPI void renameGroup(const std::list<TFxP> &fxs, const std::wstring &name,
 }  // namespace TFxCommand
 
 #endif  // FXCOMMAND_INCLUDED
-

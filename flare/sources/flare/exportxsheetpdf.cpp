@@ -8,24 +8,24 @@
 #include "orientation.h"
 
 // TnzQt includes
-#include "flareqt/menubarcommand.h"
-#include "flareqt/gutil.h"
-#include "flareqt/filefield.h"
-#include "flareqt/colorfield.h"
-#include "flareqt/intfield.h"
+#include "toonzqt/menubarcommand.h"
+#include "toonzqt/gutil.h"
+#include "toonzqt/filefield.h"
+#include "toonzqt/colorfield.h"
+#include "toonzqt/intfield.h"
 
 // TnzLib includes
-#include "flare/tscenehandle.h"
-#include "flare/txsheethandle.h"
-#include "flare/flarescene.h"
-#include "flare/sceneproperties.h"
-#include "flare/txshlevelcolumn.h"
-#include "flare/txshsoundcolumn.h"
-#include "flare/tstageobject.h"
-#include "flare/preferences.h"
-#include "flare/flarefolders.h"
-#include "flare/txshsoundtextcolumn.h"
-#include "flare/txshsoundtextlevel.h"
+#include "toonz/tscenehandle.h"
+#include "toonz/txsheethandle.h"
+#include "toonz/toonzscene.h"
+#include "toonz/sceneproperties.h"
+#include "toonz/txshlevelcolumn.h"
+#include "toonz/txshsoundcolumn.h"
+#include "toonz/tstageobject.h"
+#include "toonz/preferences.h"
+#include "toonz/toonzfolders.h"
+#include "toonz/txshsoundtextcolumn.h"
+#include "toonz/txshsoundtextlevel.h"
 
 // TnzCore includes
 #include "tsystem.h"
@@ -2224,7 +2224,7 @@ ExportXsheetPdfPopup::~ExportXsheetPdfPopup() {
 void ExportXsheetPdfPopup::loadPresetItems() {
   // check in the preset folder
   TFilePath presetFolderPath =
-      flareFolder::getLibraryFolder() + "xsheetpdfpresets";
+      ToonzFolder::getLibraryFolder() + "xsheetpdfpresets";
   QDir presetFolder(presetFolderPath.getQString());
   QStringList filters;
   filters << "*.ini";
@@ -2251,7 +2251,7 @@ void ExportXsheetPdfPopup::loadPresetItems() {
 }
 
 void ExportXsheetPdfPopup::initialize() {
-  flareScene* scene = TApp::instance()->getCurrentScene()->getScene();
+  ToonzScene* scene = TApp::instance()->getCurrentScene()->getScene();
 
   // default save destination
   QString initialPath, initialFileName;
@@ -2467,7 +2467,7 @@ void ExportXsheetPdfPopup::setInfo() {
       (m_addDateTimeCB->isChecked())
           ? QLocale::system().toString(QDateTime::currentDateTime())
           : "";
-  flareScene* scene = TApp::instance()->getCurrentScene()->getScene();
+  ToonzScene* scene = TApp::instance()->getCurrentScene()->getScene();
   info.scenePathText =
       (m_addScenePathCB->isEnabled() && m_addScenePathCB->isChecked())
           ? scene->getScenePath().getQString()
@@ -2571,7 +2571,7 @@ void ExportXsheetPdfPopup::updatePreview() {
 }
 
 void ExportXsheetPdfPopup::onExport() {
-  flareScene* scene = TApp::instance()->getCurrentScene()->getScene();
+  ToonzScene* scene = TApp::instance()->getCurrentScene()->getScene();
 
   if (m_fileNameFld->text().isEmpty()) {
     DVGui::MsgBoxInPopup(DVGui::WARNING, tr("Please specify the file name."));
@@ -2641,7 +2641,7 @@ void ExportXsheetPdfPopup::onExport() {
 }
 
 void ExportXsheetPdfPopup::onExportPNG() {
-  flareScene* scene = TApp::instance()->getCurrentScene()->getScene();
+  ToonzScene* scene = TApp::instance()->getCurrentScene()->getScene();
 
   if (m_fileNameFld->text().isEmpty()) {
     DVGui::MsgBoxInPopup(DVGui::WARNING, tr("Please specify the file name."));
@@ -2707,7 +2707,7 @@ void ExportXsheetPdfPopup::onExportPNG() {
 }
 
 void ExportXsheetPdfPopup::onExportCSV() {
-  flareScene* scene = TApp::instance()->getCurrentScene()->getScene();
+  ToonzScene* scene = TApp::instance()->getCurrentScene()->getScene();
 
   if (m_fileNameFld->text().isEmpty()) {
     DVGui::MsgBoxInPopup(DVGui::WARNING, tr("Please specify the file name."));
@@ -2856,7 +2856,7 @@ void ExportXsheetPdfPopup::onLogoModeToggled() {
 void ExportXsheetPdfPopup::onLogoImgPathChanged() {
   TFilePath fp(m_logoImgPathField->getPath());
   if (fp.isLevelName()) {
-    flareScene* scene = TApp::instance()->getCurrentScene()->getScene();
+    ToonzScene* scene = TApp::instance()->getCurrentScene()->getScene();
     TLevelReaderP lr(scene->decodeFilePath(fp));
     TLevelP level;
     if (lr) level = lr->loadInfo();

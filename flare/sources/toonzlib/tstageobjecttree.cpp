@@ -1,19 +1,19 @@
 
 
-#include "flare/tstageobjecttree.h"
-#include "flare/tstageobjectspline.h"
-#include "flare/tstageobject.h"
+#include "toonz/tstageobjecttree.h"
+#include "toonz/tstageobjectspline.h"
+#include "toonz/tstageobject.h"
 #include "tgrammar.h"
 #include "ttokenizer.h"
 #include "tconvert.h"
 #include "tunit.h"
 #include "tstream.h"
 
-#include "flare/txsheet.h"
-#include "flare/txshcell.h"
+#include "toonz/txsheet.h"
+#include "toonz/txshcell.h"
 
-#include "flare/txsheetexpr.h"
-#include "flare/columnfan.h"
+#include "toonz/txsheetexpr.h"
+#include "toonz/columnfan.h"
 #include "../include/orientation.h"
 
 using namespace TSyntax;
@@ -662,9 +662,9 @@ TSyntax::Grammar *TStageObjectTree::getGrammar() const {
 
 //-----------------------------------------------------------------------------
 /*
-void TStageObjectTree::setflareBuilder(const TDoubleParamP &param)
+void TStageObjectTree::setToonzBuilder(const TDoubleParamP &param)
 {
-//  param->setBuilder(new flareCalcNodeBuilder(this));
+//  param->setBuilder(new ToonzCalcNodeBuilder(this));
 }
 */
 
@@ -692,4 +692,3 @@ int TStageObjectTree::getDagGridDimension() const {
 //-----------------------------------------------------------------------------
 
 PERSIST_IDENTIFIER(TStageObjectTree, "PegbarTree");
-

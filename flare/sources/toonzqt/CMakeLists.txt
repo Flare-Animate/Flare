@@ -3,74 +3,74 @@ set(MOC_HEADERS
     pluginhost.h
     stageobjectselection.h
     tdockwindows.h
-    ../include/flareqt/addfxcontextmenu.h
-    ../include/flareqt/camerasettingswidget.h
-    ../include/flareqt/checkbox.h
-    ../include/flareqt/cleanupcamerasettingswidget.h
-    ../include/flareqt/colorfield.h
-    ../include/flareqt/combohistogram.h
-    ../include/flareqt/doublefield.h
-    ../include/flareqt/doublepairfield.h
-    ../include/flareqt/dvdialog.h
-    ../include/flareqt/dvscrollwidget.h
-    ../include/flareqt/dvtextedit.h
-    ../include/flareqt/expressionfield.h
-    ../include/flareqt/filefield.h
-    ../include/flareqt/flipconsole.h
-    ../include/flareqt/framenavigator.h
-    ../include/flareqt/functionkeyframenavigator.h
-    ../include/flareqt/functionpanel.h
-    ../include/flareqt/functionsegmentviewer.h
-    ../include/flareqt/functionselection.h
-    ../include/flareqt/functionsheet.h
-    ../include/flareqt/functiontoolbar.h
-    ../include/flareqt/functiontreeviewer.h
-    ../include/flareqt/functionviewer.h
-    ../include/flareqt/fxhistogramrender.h
-    ../include/flareqt/fxiconmanager.h
-    ../include/flareqt/fxschematicnode.h
-    ../include/flareqt/fxschematicscene.h
-    ../include/flareqt/fxselection.h
-    ../include/flareqt/fxsettings.h
-    ../include/flareqt/gutil.h
-    ../include/flareqt/hexcolornames.h
-    ../include/flareqt/histogram.h
-    ../include/flareqt/icongenerator.h
-    ../include/flareqt/imageutils.h
-    ../include/flareqt/infoviewer.h
-    ../include/flareqt/intfield.h
-    ../include/flareqt/intpairfield.h
-    ../include/flareqt/keyframenavigator.h
-    ../include/flareqt/lineedit.h
-    ../include/flareqt/marksbar.h
-    ../include/flareqt/menubarcommand.h
-    ../include/flareqt/paletteviewer.h
-    ../include/flareqt/paletteviewergui.h
-    ../include/flareqt/paramfield.h
-    ../include/flareqt/planeviewer.h
-    ../include/flareqt/popupbutton.h
-    ../include/flareqt/schematicgroupeditor.h
-    ../include/flareqt/schematicnode.h
-    ../include/flareqt/schematicviewer.h
-    ../include/flareqt/screenboard.h
-    ../include/flareqt/scriptconsole.h
-    ../include/flareqt/seethroughwindow.h
-    ../include/flareqt/spectrumfield.h
-    ../include/flareqt/spreadsheetviewer.h
-    ../include/flareqt/stageschematicnode.h
-    ../include/flareqt/stageschematicscene.h
-    ../include/flareqt/studiopaletteviewer.h
-    ../include/flareqt/styleeditor.h
-    ../include/flareqt/styleindexlineedit.h
-    ../include/flareqt/stylenameeditor.h
-    ../include/flareqt/swatchviewer.h
-    ../include/flareqt/tabbar.h
-    ../include/flareqt/tmessageviewer.h
-    ../include/flareqt/tonecurvefield.h
-    ../include/flareqt/treemodel.h
-    ../include/flareqt/tselectionhandle.h
-    ../include/flareqt/updatechecker.h
-    ../include/flareqt/validatedchoicedialog.h
+    ../include/toonzqt/addfxcontextmenu.h
+    ../include/toonzqt/camerasettingswidget.h
+    ../include/toonzqt/checkbox.h
+    ../include/toonzqt/cleanupcamerasettingswidget.h
+    ../include/toonzqt/colorfield.h
+    ../include/toonzqt/combohistogram.h
+    ../include/toonzqt/doublefield.h
+    ../include/toonzqt/doublepairfield.h
+    ../include/toonzqt/dvdialog.h
+    ../include/toonzqt/dvscrollwidget.h
+    ../include/toonzqt/dvtextedit.h
+    ../include/toonzqt/expressionfield.h
+    ../include/toonzqt/filefield.h
+    ../include/toonzqt/flipconsole.h
+    ../include/toonzqt/framenavigator.h
+    ../include/toonzqt/functionkeyframenavigator.h
+    ../include/toonzqt/functionpanel.h
+    ../include/toonzqt/functionsegmentviewer.h
+    ../include/toonzqt/functionselection.h
+    ../include/toonzqt/functionsheet.h
+    ../include/toonzqt/functiontoolbar.h
+    ../include/toonzqt/functiontreeviewer.h
+    ../include/toonzqt/functionviewer.h
+    ../include/toonzqt/fxhistogramrender.h
+    ../include/toonzqt/fxiconmanager.h
+    ../include/toonzqt/fxschematicnode.h
+    ../include/toonzqt/fxschematicscene.h
+    ../include/toonzqt/fxselection.h
+    ../include/toonzqt/fxsettings.h
+    ../include/toonzqt/gutil.h
+    ../include/toonzqt/hexcolornames.h
+    ../include/toonzqt/histogram.h
+    ../include/toonzqt/icongenerator.h
+    ../include/toonzqt/imageutils.h
+    ../include/toonzqt/infoviewer.h
+    ../include/toonzqt/intfield.h
+    ../include/toonzqt/intpairfield.h
+    ../include/toonzqt/keyframenavigator.h
+    ../include/toonzqt/lineedit.h
+    ../include/toonzqt/marksbar.h
+    ../include/toonzqt/menubarcommand.h
+    ../include/toonzqt/paletteviewer.h
+    ../include/toonzqt/paletteviewergui.h
+    ../include/toonzqt/paramfield.h
+    ../include/toonzqt/planeviewer.h
+    ../include/toonzqt/popupbutton.h
+    ../include/toonzqt/schematicgroupeditor.h
+    ../include/toonzqt/schematicnode.h
+    ../include/toonzqt/schematicviewer.h
+    ../include/toonzqt/screenboard.h
+    ../include/toonzqt/scriptconsole.h
+    ../include/toonzqt/seethroughwindow.h
+    ../include/toonzqt/spectrumfield.h
+    ../include/toonzqt/spreadsheetviewer.h
+    ../include/toonzqt/stageschematicnode.h
+    ../include/toonzqt/stageschematicscene.h
+    ../include/toonzqt/studiopaletteviewer.h
+    ../include/toonzqt/styleeditor.h
+    ../include/toonzqt/styleindexlineedit.h
+    ../include/toonzqt/stylenameeditor.h
+    ../include/toonzqt/swatchviewer.h
+    ../include/toonzqt/tabbar.h
+    ../include/toonzqt/tmessageviewer.h
+    ../include/toonzqt/tonecurvefield.h
+    ../include/toonzqt/treemodel.h
+    ../include/toonzqt/tselectionhandle.h
+    ../include/toonzqt/updatechecker.h
+    ../include/toonzqt/validatedchoicedialog.h
 )
 
 set(HEADERS
@@ -84,25 +84,25 @@ set(HEADERS
     plugin_port_interface.h
     plugin_tile_interface.h
     styledata.h
-    flare_hostif.h
-    flare_plugin.h
+    toonz_hostif.h
+    toonz_plugin.h
     ../include/historytypes.h
-    ../include/flareqt/dvmimedata.h
-    ../include/flareqt/flipconsoleowner.h
-    ../include/flareqt/freelayout.h
-    ../include/flareqt/fxtypes.h
-    ../include/flareqt/glwidget_for_highdpi.h
-    ../include/flareqt/lutcalibrator.h
-    ../include/flareqt/multipleselection.h
-    ../include/flareqt/pickrgbutils.h
-    ../include/flareqt/rasterimagedata.h
-    ../include/flareqt/selection.h
-    ../include/flareqt/selectioncommandids.h
-    ../include/flareqt/stageobjectsdata.h
-    ../include/flareqt/strokesdata.h
-    ../include/flareqt/styleselection.h
-    ../include/flareqt/trepetitionguard.h
-    ../include/flareqt/viewcommandids.h
+    ../include/toonzqt/dvmimedata.h
+    ../include/toonzqt/flipconsoleowner.h
+    ../include/toonzqt/freelayout.h
+    ../include/toonzqt/fxtypes.h
+    ../include/toonzqt/glwidget_for_highdpi.h
+    ../include/toonzqt/lutcalibrator.h
+    ../include/toonzqt/multipleselection.h
+    ../include/toonzqt/pickrgbutils.h
+    ../include/toonzqt/rasterimagedata.h
+    ../include/toonzqt/selection.h
+    ../include/toonzqt/selectioncommandids.h
+    ../include/toonzqt/stageobjectsdata.h
+    ../include/toonzqt/strokesdata.h
+    ../include/toonzqt/styleselection.h
+    ../include/toonzqt/trepetitionguard.h
+    ../include/toonzqt/viewcommandids.h
 )
 
 set(SOURCES
@@ -200,14 +200,14 @@ set(SOURCES
     plugin_param_interface.cpp
     plugin_param_view_interface.cpp
     plugin_ui_page_interface.cpp
-    flare_params.cpp
+    toonz_params.cpp
 	lutcalibrator.cpp
 )
 
-set(RESOURCES flareqt.qrc)
+set(RESOURCES toonzqt.qrc)
 
 if(WITH_TRANSLATION)
-    add_translation(flareqt ${HEADERS} ${SOURCES})
+    add_translation(toonzqt ${HEADERS} ${SOURCES})
 endif()
 
 get_target_property(QW_LOC Qt5::Widgets INTERFACE_INCLUDE_DIRECTORIES)
@@ -223,22 +223,22 @@ qt5_add_resources(SOURCES ${RESOURCES})
 
 qt5_wrap_cpp(SOURCES ${MOC_HEADERS} OPTIONS ${incs})
 
-add_library(flareqt SHARED ${HEADERS} ${SOURCES} ${RESOURCES})
+add_library(toonzqt SHARED ${HEADERS} ${SOURCES} ${RESOURCES})
 if(BUILD_ENV_APPLE)
-    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-install_name,@executable_path/libflareqt.dylib")
-    add_dependencies(flareqt tnzcore tnzbase tnzext flarelib sound)
+    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-install_name,@executable_path/libtoonzqt.dylib")
+    add_dependencies(toonzqt tnzcore tnzbase tnzext toonzlib sound)
 endif()
 
 add_definitions(
     -DQT_WIDGETS_LIB
-    -DflareQT_EXPORTS
+    -DTOONZQT_EXPORTS
 )
 
-message("subdir: flareqt")
+message("subdir: toonzqt")
 message("type:" ${CMAKE_SHARED_LIBRARY_SUFFIX})
 message("Bin: " ${CMAKE_CURRENT_BINARY_DIR})
 
-_find_flare_library(EXTRA_LIBS "tnzcore;tnzbase;tnzext;flarelib;sound")
+_find_toonz_library(EXTRA_LIBS "tnzcore;tnzbase;tnzext;toonzlib;sound")
 
 if(BUILD_ENV_MSVC)
     set(EXTRA_LIBS ${EXTRA_LIBS}
@@ -252,5 +252,4 @@ elseif(BUILD_ENV_UNIXLIKE)
     endif()
 endif()
 
-target_link_libraries(flareqt Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Network Qt5::OpenGL Qt5::Svg ${EXTRA_LIBS} ${GL_LIB})
-
+target_link_libraries(toonzqt Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Network Qt5::OpenGL Qt5::Svg ${EXTRA_LIBS} ${GL_LIB})

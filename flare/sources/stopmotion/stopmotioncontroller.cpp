@@ -2,19 +2,19 @@
 #include "webcam.h"
 
 // TnzLib includes
-#include "flare/levelset.h"
-#include "flare/preferences.h"
-#include "flare/sceneproperties.h"
-#include "flare/flarescene.h"
-#include "flare/tcamera.h"
-#include "flare/tcolumnhandle.h"
-#include "flare/tframehandle.h"
-#include "flare/tscenehandle.h"
-#include "flare/txshcell.h"
-#include "flare/txsheethandle.h"
-#include "flare/txshlevelhandle.h"
-#include "flare/txshsimplelevel.h"
-#include "flare/tstageobjecttree.h"
+#include "toonz/levelset.h"
+#include "toonz/preferences.h"
+#include "toonz/sceneproperties.h"
+#include "toonz/toonzscene.h"
+#include "toonz/tcamera.h"
+#include "toonz/tcolumnhandle.h"
+#include "toonz/tframehandle.h"
+#include "toonz/tscenehandle.h"
+#include "toonz/txshcell.h"
+#include "toonz/txsheethandle.h"
+#include "toonz/txshlevelhandle.h"
+#include "toonz/txshsimplelevel.h"
+#include "toonz/tstageobjecttree.h"
 
 // TnzCore includes
 #include "filebrowsermodel.h"
@@ -26,10 +26,10 @@
 #include "tsystem.h"
 
 // TnzQt includes
-#include "flareqt/filefield.h"
-#include "flareqt/intfield.h"
-#include "flareqt/doublefield.h"
-#include "flareqt/menubarcommand.h"
+#include "toonzqt/filefield.h"
+#include "toonzqt/intfield.h"
+#include "toonzqt/doublefield.h"
+#include "toonzqt/menubarcommand.h"
 
 // Qt includes
 #include <QAction>
@@ -2106,7 +2106,7 @@ void StopMotionController::onCaptureFilterSettingsBtnPressed() {
 void StopMotionController::onFileFormatOptionButtonPressed() {
   if (m_fileTypeCombo->currentIndex() == 0) return;
   // Tentatively use the preview output settings
-  flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
+  ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
   if (!scene) return;
   TOutputProperties *prop = scene->getProperties()->getPreviewProperties();
   std::string ext         = m_fileTypeCombo->currentText().toStdString();
@@ -2789,4 +2789,3 @@ void StopMotionController::serialPortChanged(int index) {
 //-----------------------------------------------------------------------------
 
 void StopMotionController::updateStopMotion() {}
-

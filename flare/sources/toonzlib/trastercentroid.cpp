@@ -10,7 +10,7 @@
 /*
 #include "img.h"
 #include "file.h"
-#include "flare.h"
+#include "toonz.h"
 #include "raster.h"
 #include "tmsg.h"
 #include "copP.h"*/
@@ -340,4 +340,3 @@ TPoint computeCentroid(const TRaster32P &r) {
   ret.y--; /* per il bordo aggiunto */
   return ret;
 }
-

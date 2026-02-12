@@ -22,43 +22,43 @@
 #include "tools/toolcommandids.h"
 
 // TnzQt includes
-#include "flareqt/strokesdata.h"
-#include "flareqt/rasterimagedata.h"
-#include "flareqt/icongenerator.h"
-#include "flareqt/tselectionhandle.h"
-#include "flareqt/menubarcommand.h"
-#include "flareqt/dvdialog.h"
-#include "flareqt/gutil.h"
+#include "toonzqt/strokesdata.h"
+#include "toonzqt/rasterimagedata.h"
+#include "toonzqt/icongenerator.h"
+#include "toonzqt/tselectionhandle.h"
+#include "toonzqt/menubarcommand.h"
+#include "toonzqt/dvdialog.h"
+#include "toonzqt/gutil.h"
 #include "historytypes.h"
 
 // TnzLib includes
-#include "flare/palettecontroller.h"
-#include "flare/preferences.h"
-#include "flare/tpalettehandle.h"
-#include "flare/txsheethandle.h"
-#include "flare/txshlevelhandle.h"
-#include "flare/tcolumnhandle.h"
-#include "flare/tscenehandle.h"
-#include "flare/tframehandle.h"
-#include "flare/tobjecthandle.h"
-#include "flare/txsheet.h"
-#include "flare/txshsimplelevel.h"
-#include "flare/txshchildlevel.h"
-#include "flare/flarescene.h"
-#include "flare/txshleveltypes.h"
-#include "flare/tcamera.h"
-#include "flare/levelproperties.h"
-#include "flare/flareimageutils.h"
-#include "flare/trasterimageutils.h"
-#include "flare/levelset.h"
-#include "flare/tstageobjecttree.h"
-#include "flare/stage.h"
+#include "toonz/palettecontroller.h"
+#include "toonz/preferences.h"
+#include "toonz/tpalettehandle.h"
+#include "toonz/txsheethandle.h"
+#include "toonz/txshlevelhandle.h"
+#include "toonz/tcolumnhandle.h"
+#include "toonz/tscenehandle.h"
+#include "toonz/tframehandle.h"
+#include "toonz/tobjecthandle.h"
+#include "toonz/txsheet.h"
+#include "toonz/txshsimplelevel.h"
+#include "toonz/txshchildlevel.h"
+#include "toonz/toonzscene.h"
+#include "toonz/txshleveltypes.h"
+#include "toonz/tcamera.h"
+#include "toonz/levelproperties.h"
+#include "toonz/toonzimageutils.h"
+#include "toonz/trasterimageutils.h"
+#include "toonz/levelset.h"
+#include "toonz/tstageobjecttree.h"
+#include "toonz/stage.h"
 #include "vectorizerpopup.h"
 #include "tools/rasterselection.h"
 #include "tools/strokeselection.h"
-#include "flare/sceneproperties.h"
+#include "toonz/sceneproperties.h"
 #include "toutputproperties.h"
-#include "flare/tstageobjectcmd.h"
+#include "toonz/tstageobjectcmd.h"
 
 // TnzCore includes
 #include "timagecache.h"
@@ -527,7 +527,7 @@ bool pasteStrokesInCellWithoutUndo(
     if (row > 0) cell = xsh->getCell(row - 1, col);
     sl = cell.getSimpleLevel();
     if (!sl || sl->getType() != PLI_XSHLEVEL) {
-      flareScene *scene = app->getCurrentScene()->getScene();
+      ToonzScene *scene = app->getCurrentScene()->getScene();
       TXshLevel *xl     = scene->createNewLevel(PLI_XSHLEVEL);
       if (!xl) return false;
       sl = xl->getSimpleLevel();
@@ -686,7 +686,7 @@ bool pasteRasterImageInCellWithoutUndo(int row, int col,
   TImageP img;
   TXshSimpleLevel *sl = 0;
   TFrameId fid(1);
-  flareScene *scene = app->getCurrentScene()->getScene();
+  ToonzScene *scene = app->getCurrentScene()->getScene();
   TFrameId tmplFId  = scene->getProperties()->formatTemplateFIdForInput();
 
   TCamera *camera = scene->getCurrentCamera();
@@ -696,7 +696,7 @@ bool pasteRasterImageInCellWithoutUndo(int row, int col,
     if (!sl || (sl->getType() == OVL_XSHLEVEL &&
                 sl->getPath().getFrame() == TFrameId::NO_FRAME)) {
       int levelType;
-      if (dynamic_cast<const flareImageData *>(rasterImageData))
+      if (dynamic_cast<const ToonzImageData *>(rasterImageData))
         levelType = TZP_XSHLEVEL;
       else if (dynamic_cast<const FullColorImageData *>(rasterImageData))
         levelType = OVL_XSHLEVEL;
@@ -766,7 +766,7 @@ bool pasteRasterImageInCellWithoutUndo(int row, int col,
     TRasterP ras;
     TRasterP outRas;
     double imgDpiX, imgDpiY;
-    if (TflareImageP ti = (TflareImageP)(img)) {
+    if (TToonzImageP ti = (TToonzImageP)(img)) {
       outRas = ti->getRaster();
       ti->getDpi(imgDpiX, imgDpiY);
     }
@@ -802,7 +802,7 @@ bool pasteRasterImageInCellWithoutUndo(int row, int col,
     boxD = affine * boxD;
     TPoint pos;
     if (sl->getType() == TZP_XSHLEVEL) {
-      TRect box = flareImageUtils::convertWorldToRaster(boxD, img);
+      TRect box = ToonzImageUtils::convertWorldToRaster(boxD, img);
       pos       = box.getP00();
       *tiles    = new TTileSetCM32(outRas->getSize());
       (*tiles)->add(outRas, ras->getBounds() + pos);
@@ -831,14 +831,14 @@ bool pasteRasterImageInCellWithoutUndo(int row, int col,
 }
 
 //=============================================================================
-//  PasteflareImageInCellsUndo
+//  PasteToonzImageInCellsUndo
 //-----------------------------------------------------------------------------
 
-class PasteflareImageInCellsUndo final : public ToolUtils::TRasterUndo {
+class PasteToonzImageInCellsUndo final : public ToolUtils::TRasterUndo {
   RasterImageData *m_rasterImageData;
 
 public:
-  PasteflareImageInCellsUndo(int row, int col, const RasterImageData *data,
+  PasteToonzImageInCellsUndo(int row, int col, const RasterImageData *data,
                              TTileSetCM32 *tiles, TXshSimpleLevel *level,
                              const TFrameId &id, TPaletteP oldPalette,
                              bool createdFrame, bool isLevelCreated)
@@ -846,7 +846,7 @@ public:
                                oldPalette)
       , m_rasterImageData(data->clone()) {}
 
-  ~PasteflareImageInCellsUndo() { delete m_rasterImageData; }
+  ~PasteToonzImageInCellsUndo() { delete m_rasterImageData; }
 
   void redo() const override {
     insertLevelAndFrameIfNeeded();
@@ -1825,7 +1825,7 @@ static void pasteRasterImageInCell(int row, int col,
   TTileSetCM32 *cm32Tiles           = dynamic_cast<TTileSetCM32 *>(tiles);
   TTileSetFullColor *fullColorTiles = dynamic_cast<TTileSetFullColor *>(tiles);
   if (cm32Tiles) {
-    TUndoManager::manager()->add(new PasteflareImageInCellsUndo(
+    TUndoManager::manager()->add(new PasteToonzImageInCellsUndo(
         row, col, rasterImageData, cm32Tiles, cell.getSimpleLevel(),
         cell.getFrameId(), oldPalette, createdFrame, isLevelCreated));
   } else if (fullColorTiles) {
@@ -2038,8 +2038,8 @@ void TCellSelection::pasteCells() {
       TUndoManager::manager()->beginBlock();
     }
     RasterImageData *rasterImageData = 0;
-    if (TflareImageP ti = img) {
-      rasterImageData = strokesData->toflareImageData(ti);
+    if (TToonzImageP ti = img) {
+      rasterImageData = strokesData->toToonzImageData(ti);
       pasteRasterImageInCell(r0, c0, rasterImageData);
     } else if (TRasterImageP ri = img) {
       double dpix, dpiy;
@@ -2102,7 +2102,7 @@ void TCellSelection::pasteCells() {
     }
     const FullColorImageData *fullColData =
         dynamic_cast<const FullColorImageData *>(rasterImageData);
-    TflareImageP ti(img);
+    TToonzImageP ti(img);
     TVectorImageP vi(img);
     if (fullColData && (vi || ti)) {
       // Bail out if the level is Smart Raster or Vector with normal raster
@@ -3206,7 +3206,7 @@ static int getLevelType(const TImageP &img) {
     return OVL_XSHLEVEL;
   else if (img->getType() == TImage::VECTOR)
     return PLI_XSHLEVEL;
-  else if (img->getType() == TImage::flare_RASTER)
+  else if (img->getType() == TImage::TOONZ_RASTER)
     return TZP_XSHLEVEL;
   else
     return NO_XSHLEVEL;
@@ -3346,7 +3346,7 @@ void TCellSelection::dPasteCells() {
     }
   } else if (DYNAMIC_CAST(StrokesData, strokesData, mimeData)) {
     createNewDrawing(xsh, r0, c0, PLI_XSHLEVEL);
-  } else if (DYNAMIC_CAST(flareImageData, flareImageData, mimeData)) {
+  } else if (DYNAMIC_CAST(ToonzImageData, toonzImageData, mimeData)) {
     createNewDrawing(xsh, r0, c0, TZP_XSHLEVEL);
   } else if (DYNAMIC_CAST(FullColorImageData, fullColorImageData, mimeData)) {
     createNewDrawing(xsh, r0, c0, OVL_XSHLEVEL);
@@ -3587,14 +3587,14 @@ void TCellSelection::renameMultiCells(QList<TXshCell> &cells) {
 }
 
 //-----------------------------------------------------------------------------
-// Convert selected vector cells to flareRaster
+// Convert selected vector cells to ToonzRaster
 
 bool TCellSelection::areOnlyVectorCellsSelected() {
   // set up basics
   int r0, c0, r1, c1;
   getSelectedCells(r0, c0, r1, c1);
   int i;
-  flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
+  ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
   TXsheet *xsh      = scene->getXsheet();
 
   TXshCell firstCell = xsh->getCell(r0, c0);
@@ -3626,10 +3626,10 @@ bool TCellSelection::areOnlyVectorCellsSelected() {
   return true;
 }
 
-// Get new flareRaster level
-TXshSimpleLevel *TCellSelection::getNewflareRasterLevel(
+// Get new ToonzRaster level
+TXshSimpleLevel *TCellSelection::getNewToonzRasterLevel(
     TXshSimpleLevel *sourceSl) {
-  flareScene *scene       = TApp::instance()->getCurrentScene()->getScene();
+  ToonzScene *scene       = TApp::instance()->getCurrentScene()->getScene();
   TFilePath sourcePath    = sourceSl->getPath();
   std::wstring sourceName = sourcePath.getWideName();
   TFilePath parentDir     = sourceSl->getPath().getParentDir();
@@ -3717,7 +3717,7 @@ public:
 };
 
 //-----------------------------------------------------------------------------
-// Convert selected vector cells to flareRaster and back to vector
+// Convert selected vector cells to ToonzRaster and back to vector
 
 void TCellSelection::convertVectortoVector() {
   // set up basics
@@ -3729,7 +3729,7 @@ void TCellSelection::convertVectortoVector() {
   int col   = app->getCurrentColumn()->getColumnIndex();
   int i;
 
-  flareScene *scene = app->getCurrentScene()->getScene();
+  ToonzScene *scene = app->getCurrentScene()->getScene();
   TXsheet *xsh      = scene->getXsheet();
 
   TXshCell firstCell        = xsh->getCell(r0, c0);
@@ -3737,7 +3737,7 @@ void TCellSelection::convertVectortoVector() {
   if (!areOnlyVectorCellsSelected()) return;
 
   // set up new level name
-  TXshSimpleLevel *sl = getNewflareRasterLevel(sourceSl);
+  TXshSimpleLevel *sl = getNewToonzRasterLevel(sourceSl);
   assert(sl);
 
   // get camera settings
@@ -3791,7 +3791,7 @@ void TCellSelection::convertVectortoVector() {
   for (i = 0; i < totalImages; i++) {
     TRasterCM32P raster(xres, yres);
     raster->fill(TPixelCM32());
-    TflareImageP firstImage(raster, TRect());
+    TToonzImageP firstImage(raster, TRect());
     firstImage->setDpi(dpi, dpi);
     TFrameId newFrameId = TFrameId(i + 1);
     sl->setFrame(newFrameId, firstImage);
@@ -3800,7 +3800,7 @@ void TCellSelection::convertVectortoVector() {
   }
 
   // This is where the copying actually happens
-  // copy old frames to flare Raster
+  // copy old frames to Toonz Raster
   bool keepOriginalPalette;
   bool success = data->getLevelFrames(
       sl, newFrameIds, DrawingData::OVER_SELECTION, true, keepOriginalPalette,
@@ -3810,7 +3810,7 @@ void TCellSelection::convertVectortoVector() {
   std::vector<TFrameId> newFids;
   sl->getFids(newFids);
 
-  // copy the flare Raster frames onto the old level
+  // copy the Toonz Raster frames onto the old level
   data->clear();
   data->setLevelFrames(sl, newFrameIds);
   if (Preferences::instance()->getKeepFillOnVectorSimplify())
@@ -3834,7 +3834,7 @@ void TCellSelection::convertVectortoVector() {
 
   invalidateIcons(sourceSl, frameIdsSet);
 
-  // remove the flare raster level
+  // remove the toonz raster level
   sl->clearFrames();
   app->getCurrentScene()->getScene()->getLevelSet()->removeLevel(sl, true);
 
@@ -3907,4 +3907,3 @@ void TCellSelection::fillEmptyCell() {
 
   TApp::instance()->getCurrentXsheet()->notifyXsheetChanged();
 }
-

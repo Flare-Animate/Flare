@@ -4,9 +4,9 @@
 #define SELECTIONTOOL_INCLUDED
 
 #include "tproperty.h"
-#include "flareqt/selection.h"
+#include "toonzqt/selection.h"
 #include "tools/toolutils.h"
-#include "flare/strokegenerator.h"
+#include "toonz/strokegenerator.h"
 
 // For Qt translation support
 #include <QCoreApplication>
@@ -476,4 +476,3 @@ signals:
 };
 
 #endif  // SELECTIONTOOL_INCLUDED
-

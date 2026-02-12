@@ -79,7 +79,7 @@ HEADERS += ../../sources/tab30qt/actioncommand.h \
     ../../sources/tab30qt/tooloptions.h \
     ../../sources/tab30qt/tooloptionscontrols.h \
     ../../sources/tab30qt/toolutils.h \
-    ../../sources/tab30qt/flareimagedata.h \
+    ../../sources/tab30qt/toonzimagedata.h \
     ../../sources/tab30qt/tpalettehandle.h \
     ../../sources/tab30qt/tscenehandle.h \
     ../../sources/tab30qt/tselectionhandle.h \
@@ -122,7 +122,7 @@ SOURCES += ../../sources/tab30qt/browsermodel.cpp \
     ../../sources/tab30qt/tooloptions.cpp \
     ../../sources/tab30qt/tooloptionscontrols.cpp \
     ../../sources/tab30qt/toolutils.cpp \
-    ../../sources/tab30qt/flareimagedata.cpp \
+    ../../sources/tab30qt/toonzimagedata.cpp \
     ../../sources/tab30qt/arrowtool.cpp \
     ../../sources/tab30qt/bendertool.cpp \
     ../../sources/tab30qt/cutstroketool.cpp \
@@ -210,4 +210,3 @@ SOURCES += ../../sources/tab30qt/browsermodel.cpp \
 
 #Resource file(s)
 RESOURCES += ../../projects/tab30qt//tab30qt.qrc
-

@@ -1,6 +1,6 @@
 
 
-#include "flareqt/validatedchoicedialog.h"
+#include "toonzqt/validatedchoicedialog.h"
 
 // Qt includes
 #include <QLabel>
@@ -112,4 +112,3 @@ void DVGui::ValidatedChoiceDialog::onApplyToAll() {
 
   accept();
 }
-

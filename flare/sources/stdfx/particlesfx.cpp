@@ -15,7 +15,7 @@
 #include "tparamuiconcept.h"
 
 // TnzLib includes
-#include "flare/flareimageutils.h"
+#include "toonz/toonzimageutils.h"
 
 // TnzStdfx includes
 #include "particlesengine.h"
@@ -524,4 +524,3 @@ void ParticlesFx::compatibilityTranslatePort(int major, int minor,
 //==============================================================================
 
 FX_PLUGIN_IDENTIFIER(ParticlesFx, "particlesFx");
-

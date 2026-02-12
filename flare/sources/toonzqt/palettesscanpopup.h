@@ -3,14 +3,14 @@
 #ifndef PALETTESCANPOPUP_H
 #define PALETTESCANPOPUP_H
 
-#include "flareqt/dvdialog.h"
-#include "flareqt/filefield.h"
+#include "toonzqt/dvdialog.h"
+#include "toonzqt/filefield.h"
 
-#include "flare/studiopalette.h"
+#include "toonz/studiopalette.h"
 
 #undef DVAPI
 #undef DVVAR
-#ifdef flareQT_EXPORTS
+#ifdef TOONZQT_EXPORTS
 #define DVAPI DV_EXPORT_API
 #define DVVAR DV_EXPORT_VAR
 #else
@@ -59,4 +59,3 @@ protected:
 };
 
 #endif  // PALETTESCANPOPUP_H
-

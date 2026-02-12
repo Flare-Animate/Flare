@@ -1,22 +1,22 @@
-#include "sxfio.h"
+﻿#include "sxfio.h"
 
 #include "tapp.h"
 #include "tsystem.h"
-#include "flare/tproject.h"
-#include "flare/tscenehandle.h"
-#include "flare/txsheethandle.h"
-#include "flare/flarescene.h"
-#include "flare/sceneproperties.h"
+#include "toonz/tproject.h"
+#include "toonz/tscenehandle.h"
+#include "toonz/txsheethandle.h"
+#include "toonz/toonzscene.h"
+#include "toonz/sceneproperties.h"
 #include "toutputproperties.h"
 
 #include "xdtsimportpopup.h"
 #include "filebrowserpopup.h"
-#include "flare/txshcell.h"
-#include "flare/txshleveltypes.h"
-#include "flare/txshsimplelevel.h"
-#include "flare/preferences.h"
+#include "toonz/txshcell.h"
+#include "toonz/txshleveltypes.h"
+#include "toonz/txshsimplelevel.h"
+#include "toonz/preferences.h"
 
-#include "flareqt/menubarcommand.h"
+#include "toonzqt/menubarcommand.h"
 #include "menubarcommandids.h"
 
 #include <QFile>
@@ -443,7 +443,7 @@ void SxfData::build(TXsheet* xsh) {
   if (!xsh) return;
 
   int maxCol        = xsh->getFirstFreeColumnIndex();
-  flareScene* scene = xsh->getScene();
+  ToonzScene* scene = xsh->getScene();
   if (!scene) return;
   TSceneProperties* tprop = scene->getProperties();
   auto cellMarks          = tprop->getCellMarks();  // QList<CellMark>
@@ -640,7 +640,7 @@ void saveSxf(const QString& sxfFilePath, SxfData& data) {
   file.close();
 }
 
-bool loadSxfScene(flareScene* scene, const TFilePath& scenePath) {
+bool loadSxfScene(ToonzScene* scene, const TFilePath& scenePath) {
   QApplication::restoreOverrideCursor();
   SxfData sxfData;
   try {
@@ -825,7 +825,7 @@ public:
 void ExportXDTSCommand::execute() {
   SxfData sxfData;
 
-  flareScene* scene = TApp::instance()->getCurrentScene()->getScene();
+  ToonzScene* scene = TApp::instance()->getCurrentScene()->getScene();
   TXsheet* xsh      = TApp::instance()->getCurrentXsheet()->getXsheet();
   TFilePath fp      = scene->getScenePath().withType("sxf");
 

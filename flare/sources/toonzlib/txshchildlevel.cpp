@@ -1,11 +1,11 @@
 
 
-#include "flare/txshchildlevel.h"
-#include "flare/txshleveltypes.h"
-#include "flare/txsheet.h"
-#include "flare/imagemanager.h"
-#include "flare/flarescene.h"
-#include "flare/txshcolumn.h"
+#include "toonz/txshchildlevel.h"
+#include "toonz/txshleveltypes.h"
+#include "toonz/txsheet.h"
+#include "toonz/imagemanager.h"
+#include "toonz/toonzscene.h"
+#include "toonz/txshcolumn.h"
 #include "tconvert.h"
 #include "trasterimage.h"
 #include "timagecache.h"
@@ -71,7 +71,7 @@ void TXshChildLevel::setXsheet(TXsheet *xsheet) {
 
 //-----------------------------------------------------------------------------
 
-void TXshChildLevel::setScene(flareScene *scene) {
+void TXshChildLevel::setScene(ToonzScene *scene) {
   TXshLevel::setScene(scene);
   assert(m_xsheet);
   if (!m_xsheet) return;
@@ -96,4 +96,3 @@ void TXshChildLevel::getFids(std::vector<TFrameId> &fids) const {
   int i;
   for (i = 1; i <= getFrameCount(); i++) fids.push_back(TFrameId(i));
 }
-

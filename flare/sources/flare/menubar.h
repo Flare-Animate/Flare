@@ -9,7 +9,7 @@
 #include <QFrame>
 #include <map>
 
-#include "flareqt/lineedit.h"
+#include "toonzqt/lineedit.h"
 
 #include <QUrl>
 #include <QStackedWidget>
@@ -192,4 +192,3 @@ protected:
 };
 
 #endif  // MENUBAR_H
-

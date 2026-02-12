@@ -3,11 +3,11 @@
 #ifndef TXSHLEVELCOLUMN_INCLUDED
 #define TXSHLEVELCOLUMN_INCLUDED
 
-#include "flare/txshcolumn.h"
+#include "toonz/txshcolumn.h"
 
 #undef DVAPI
 #undef DVVAR
-#ifdef flareLIB_EXPORTS
+#ifdef TOONZLIB_EXPORTS
 #define DVAPI DV_EXPORT_API
 #define DVVAR DV_EXPORT_VAR
 #else
@@ -96,4 +96,3 @@ template class DV_EXPORT_API TSmartPointerT<TXshLevelColumn>;
 typedef TSmartPointerT<TXshLevelColumn> TXshLevelColumnP;
 
 #endif  // TXSHLEVELCOLUMN_INCLUDED
-

@@ -1,9 +1,9 @@
 
 
-#include "flare/fullcolorpalette.h"
-#include "flare/tscenehandle.h"
-#include "flare/flarescene.h"
-#include "flare/flarefolders.h"
+#include "toonz/fullcolorpalette.h"
+#include "toonz/tscenehandle.h"
+#include "toonz/toonzscene.h"
+#include "toonz/toonzfolders.h"
 #include "tsystem.h"
 #include "tstream.h"
 #include "tpalette.h"
@@ -38,7 +38,7 @@ void FullColorPalette::clear() {
 
 //----------------------------------------------------
 
-TPalette *FullColorPalette::getPalette(flareScene *scene) {
+TPalette *FullColorPalette::getPalette(ToonzScene *scene) {
   if (m_palette) return m_palette;
   m_palette = new TPalette();
   m_palette->addRef();
@@ -50,7 +50,7 @@ TPalette *FullColorPalette::getPalette(flareScene *scene) {
     fullPath = scene->decodeFilePath(app);
   }
   if (!TSystem::doesExistFileOrLevel(fullPath)) {
-    fullPath = flareFolder::getStudioPaletteFolder() +
+    fullPath = ToonzFolder::getStudioPaletteFolder() +
                "Global Palettes\\Default Palettes\\Raster_Drawing_Palette.tpl";
   }
   if (TSystem::doesExistFileOrLevel(fullPath)) {
@@ -67,7 +67,7 @@ TPalette *FullColorPalette::getPalette(flareScene *scene) {
 
 //----------------------------------------------------
 
-void FullColorPalette::savePalette(flareScene *scene) {
+void FullColorPalette::savePalette(ToonzScene *scene) {
   if (!m_palette || !m_palette->getDirtyFlag()) return;
 
   TFilePath fullPath = scene->decodeFilePath(m_fullcolorPalettePath);
@@ -79,4 +79,3 @@ void FullColorPalette::savePalette(flareScene *scene) {
     m_palette->setDirtyFlag(false);
   }
 }
-

@@ -17,7 +17,7 @@
 #include "ext/plasticvisualsettings.h"
 
 // TnzQt includes
-#include "flareqt/plasticvertexselection.h"
+#include "toonzqt/plasticvertexselection.h"
 
 // TnzTools includes
 #include "tools/tool.h"
@@ -499,4 +499,3 @@ std::pair<double, PlasticTool::MeshIndex> closestEdge(const TMeshImage &mi,
 }  // namespace PlasticToolLocals
 
 #endif  // PLASTICTOOL_H
-

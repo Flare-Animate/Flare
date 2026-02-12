@@ -4,8 +4,8 @@
 #define DV_ITEM_VIEW_INCLUDED
 
 // TnzQt includes
-#include "flareqt/selection.h"
-#include "flareqt/lineedit.h"
+#include "toonzqt/selection.h"
+#include "toonzqt/lineedit.h"
 
 // TnzCore includes
 #include "tfilepath.h"
@@ -506,4 +506,3 @@ signals:
 };
 
 #endif  // DV_ITEM_VIEW_INCLUDED
-

@@ -9,9 +9,9 @@
 #include <math.h>
 
 #include "tools/toolhandle.h"
-#include "flare/txshlevelhandle.h"
-#include "flare/tframehandle.h"
-#include "flare/txshsimplelevel.h"
+#include "toonz/txshlevelhandle.h"
+#include "toonz/tframehandle.h"
+#include "toonz/txshsimplelevel.h"
 
 #include <QKeyEvent>
 
@@ -230,4 +230,3 @@ bool MorphTool::keyDown(QKeyEvent *event) {
     return false;
   return true;
 }
-

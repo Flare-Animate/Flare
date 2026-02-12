@@ -3,7 +3,7 @@
 #ifndef TKEYFRAMESELECTION_H
 #define TKEYFRAMESELECTION_H
 
-#include "flareqt/selection.h"
+#include "toonzqt/selection.h"
 #include <set>
 
 //=============================================================================
@@ -79,4 +79,3 @@ public:
 };
 
 #endif  // TKEYFRAMESELECTION_H
-

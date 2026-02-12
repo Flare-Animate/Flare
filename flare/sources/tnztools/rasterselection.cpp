@@ -10,25 +10,25 @@
 #include "tconvert.h"
 #include "timagecache.h"
 #include "tpixelutils.h"
-#include "flareqt/rasterimagedata.h"
-#include "flareqt/strokesdata.h"
-#include "flareqt/selectioncommandids.h"
-#include "flareqt/tselectionhandle.h"
-#include "flareqt/dvdialog.h"
-#include "flare/stage.h"
-#include "flare/flareimageutils.h"
-#include "flare/txshlevelhandle.h"
-#include "flare/txshsimplelevel.h"
-#include "flare/tpalettehandle.h"
-#include "flare/palettecontroller.h"
-#include "flare/flarescene.h"
-#include "flare/tcamera.h"
-#include "flare/trasterimageutils.h"
-#include "flare/tcolumnhandle.h"
-#include "flare/tframehandle.h"
-#include "flare/txsheethandle.h"
-#include "flare/tstageobject.h"
-#include "flareqt/gutil.h"
+#include "toonzqt/rasterimagedata.h"
+#include "toonzqt/strokesdata.h"
+#include "toonzqt/selectioncommandids.h"
+#include "toonzqt/tselectionhandle.h"
+#include "toonzqt/dvdialog.h"
+#include "toonz/stage.h"
+#include "toonz/toonzimageutils.h"
+#include "toonz/txshlevelhandle.h"
+#include "toonz/txshsimplelevel.h"
+#include "toonz/tpalettehandle.h"
+#include "toonz/palettecontroller.h"
+#include "toonz/toonzscene.h"
+#include "toonz/tcamera.h"
+#include "toonz/trasterimageutils.h"
+#include "toonz/tcolumnhandle.h"
+#include "toonz/tframehandle.h"
+#include "toonz/txsheethandle.h"
+#include "toonz/tstageobject.h"
+#include "toonzqt/gutil.h"
 
 #include <QApplication>
 #include <QClipboard>
@@ -41,7 +41,7 @@ namespace {
 //-----------------------------------------------------------------------------
 
 TRasterP getRaster(const TImageP image) {
-  if (TflareImageP ti = (TflareImageP)(image)) return ti->getRaster();
+  if (TToonzImageP ti = (TToonzImageP)(image)) return ti->getRaster();
   if (TRasterImageP ri = (TRasterImageP)(image)) return ri->getRaster();
   return (TRasterP)(0);
 }
@@ -62,9 +62,9 @@ TRect convertWorldToRaster(const TRectD area, const TRasterP ras) {
 
 TRect convertWorldToRaster(const TRectD area, const TImageP image) {
   TRasterImageP ri(image);
-  TflareImageP ti(image);
+  TToonzImageP ti(image);
 
-  // Watch out! TflareImage::getRaster() returns a TRasterCM32P, while
+  // Watch out! TToonzImage::getRaster() returns a TRasterCM32P, while
   // TRasterImage::getRaster() returns a TRasterP!
   TRasterP ras = (ri) ? ri->getRaster() : (TRasterP)ti->getRaster();
   return convertWorldToRaster(area, ras);
@@ -73,17 +73,17 @@ TRect convertWorldToRaster(const TRectD area, const TImageP image) {
 //-----------------------------------------------------------------------------
 
 TRectD convertRasterToWorld(const TRect area, const TImageP image) {
-  TflareImageP ti(image);
-  if (ti) return flareImageUtils::convertRasterToWorld(area, image);
+  TToonzImageP ti(image);
+  if (ti) return ToonzImageUtils::convertRasterToWorld(area, image);
   return TRasterImageUtils::convertRasterToWorld(area, image);
 }
 
 //-----------------------------------------------------------------------------
 
 TRectD intersection(const TRectD &area, const TImageP image) {
-  TflareImageP ti(image);
+  TToonzImageP ti(image);
   if (ti)
-    return area * flareImageUtils::convertRasterToWorld(
+    return area * ToonzImageUtils::convertRasterToWorld(
                       ti->getRaster()->getBounds(), image);
 
   TRasterImageP ri(image);
@@ -202,8 +202,8 @@ TRasterPT<PIXEL1> getImageFromSelection(TRasterPT<PIXEL2> &ras,
 
 TRasterP getImageFromSelection(const TImageP &image,
                                RasterSelection &selection) {
-  if (TflareImageP flareImage = (TflareImageP)image) {
-    TRasterPT<TPixelCM32> ras = flareImage->getRaster();
+  if (TToonzImageP toonzImage = (TToonzImageP)image) {
+    TRasterPT<TPixelCM32> ras = toonzImage->getRaster();
     return getImageFromSelection<TPixelCM32, TPixelCM32>(ras, selection);
   }
   if (TRasterImageP rasterImage = (TRasterImageP)image) {
@@ -270,8 +270,8 @@ void deleteSelectionWithoutUndo(TRasterPT<PIXEL> &ras,
 
 void deleteSelectionWithoutUndo(const TImageP &image,
                                 const std::vector<TStroke> &strokes) {
-  if (TflareImageP flareImage = (TflareImageP)image) {
-    TRasterPT<TPixelCM32> ras = flareImage->getRaster();
+  if (TToonzImageP toonzImage = (TToonzImageP)image) {
+    TRasterPT<TPixelCM32> ras = toonzImage->getRaster();
     deleteSelectionWithoutUndo<TPixelCM32>(ras, strokes, TPixelCM32());
   }
   if (TRasterImageP rasterImage = (TRasterImageP)image) {
@@ -292,7 +292,7 @@ void pasteFloatingSelectionWithoutUndo(const TImageP &image,
                                        const TRectD &wSelectionBound,
                                        bool noAntialiasing) {
   TRasterImageP ri = (TRasterImageP)image;
-  TflareImageP ti  = (TflareImageP)image;
+  TToonzImageP ti  = (TToonzImageP)image;
 
   TRasterP targetRaster = (ri) ? ri->getRaster() : (TRasterP)ti->getRaster();
   if (!targetRaster || !floatingSelection) return;
@@ -331,8 +331,8 @@ public:
     else
       erasedRas = TRasterP(selection->getOriginalFloatingSelection());
     TImageP erasedImage;
-    if (TRasterCM32P flareRas = (TRasterCM32P)(erasedRas))
-      erasedImage = TflareImageP(flareRas, flareRas->getBounds());
+    if (TRasterCM32P toonzRas = (TRasterCM32P)(erasedRas))
+      erasedImage = TToonzImageP(toonzRas, toonzRas->getBounds());
     else if (TRaster32P fullColorRas = (TRaster32P)(erasedRas))
       erasedImage = TRasterImageP(fullColorRas);
     TImageCache::instance()->add(m_erasedImageId, erasedImage, false);
@@ -470,8 +470,8 @@ public:
         "UndoPasteFloatingSelection_floating_" + std::to_string(m_id);
     TRasterP floatingRas = currentSelection->getFloatingSelection();
     TImageP floatingImage;
-    if (TRasterCM32P flareRas = (TRasterCM32P)(floatingRas))
-      floatingImage = TflareImageP(flareRas, flareRas->getBounds());
+    if (TRasterCM32P toonzRas = (TRasterCM32P)(floatingRas))
+      floatingImage = TToonzImageP(toonzRas, toonzRas->getBounds());
     else if (TRaster32P fullColorRas = (TRaster32P)(floatingRas))
       floatingImage = TRasterImageP(fullColorRas);
     else if (TRasterGR8P grRas = (TRasterGR8P)(floatingRas))
@@ -482,8 +482,8 @@ public:
         "UndoPasteFloatingSelection_oldFloating_" + std::to_string(m_id);
     TRasterP oldFloatingRas = currentSelection->getOriginalFloatingSelection();
     TImageP olfFloatingImage;
-    if (TRasterCM32P flareRas = (TRasterCM32P)(oldFloatingRas))
-      olfFloatingImage = TflareImageP(flareRas, flareRas->getBounds());
+    if (TRasterCM32P toonzRas = (TRasterCM32P)(oldFloatingRas))
+      olfFloatingImage = TToonzImageP(toonzRas, toonzRas->getBounds());
     else if (TRaster32P fullColorRas = (TRaster32P)(oldFloatingRas))
       olfFloatingImage = TRasterImageP(fullColorRas);
     else if (TRasterGR8P grRas = (TRasterGR8P)(oldFloatingRas))
@@ -500,8 +500,8 @@ public:
       m_undoImageId = "UndoPasteFloatingSelection_undo" + std::to_string(m_id);
       TRasterP undoRas = rasImage->extract(rRect)->clone();
       TImageP undoImage;
-      if (TRasterCM32P flareRas = (TRasterCM32P)(undoRas))
-        undoImage = TflareImageP(flareRas, flareRas->getBounds());
+      if (TRasterCM32P toonzRas = (TRasterCM32P)(undoRas))
+        undoImage = TToonzImageP(toonzRas, toonzRas->getBounds());
       else if (TRaster32P fullColorRas = (TRaster32P)(undoRas))
         undoImage = TRasterImageP(fullColorRas);
       else if (TRasterGR8P grRas = (TRasterGR8P)(undoRas))
@@ -824,7 +824,7 @@ TStroke getIntersectedStroke(TStroke &stroke, TRectD bbox) {
 
       // exactly match the position with the edge of bbox
       // or the pasted raster may offset by 1pixel due to truncation in
-      // flareImageUtils::convertWorldToRaster()
+      // ToonzImageUtils::convertWorldToRaster()
       if (areAlmostEqual(p.x, bbox.getP00().x, 1e-6))
         p.x = bbox.getP00().x;
       else if (areAlmostEqual(p.x, bbox.getP11().x, 1e-6))
@@ -1149,8 +1149,8 @@ void RasterSelection::copySelection() {
 
   double dpix, dpiy;
   std::vector<TRectD> rect;
-  if (TflareImageP ti = (TflareImageP)(m_currentImage)) {
-    flareImageData *data = new flareImageData();
+  if (TToonzImageP ti = (TToonzImageP)(m_currentImage)) {
+    ToonzImageData *data = new ToonzImageData();
     ti->getDpi(dpix, dpiy);
     data->setData(ras, ti->getPalette(), dpix, dpiy, ti->getSize(), rect,
                   m_strokes, m_originalStrokes, m_affine);
@@ -1177,11 +1177,11 @@ bool RasterSelection::pasteSelection(const RasterImageData *riData) {
   std::vector<TRectD> rect;
   double currentDpiX, currentDpiY;
   double dpiX, dpiY;
-  const flareImageData *flareImageData =
-      dynamic_cast<const flareImageData *>(riData);
+  const ToonzImageData *toonzImageData =
+      dynamic_cast<const ToonzImageData *>(riData);
   const FullColorImageData *fullColorData =
       dynamic_cast<const FullColorImageData *>(riData);
-  if (TflareImageP ti = (TflareImageP)m_currentImage) {
+  if (TToonzImageP ti = (TToonzImageP)m_currentImage) {
     ti->getDpi(currentDpiX, currentDpiY);
     TRasterP cmRas;
     if (fullColorData) {
@@ -1258,7 +1258,7 @@ void RasterSelection::pasteSelection() {
     TImageP image =
         imageCell.getImage(false, 1);  // => See the onImageChanged() warning !
 
-    TflareImageP ti  = (TflareImageP)image;
+    TToonzImageP ti  = (TToonzImageP)image;
     TRasterImageP ri = (TRasterImageP)image;
     if (!ti && !ri) return;
 
@@ -1268,8 +1268,8 @@ void RasterSelection::pasteSelection() {
   if (m_currentImage->getPalette())
     m_oldPalette = m_currentImage->getPalette()->clone();
   if (stData) {
-    if (TflareImageP ti = m_currentImage)
-      riData = stData->toflareImageData(ti);
+    if (TToonzImageP ti = m_currentImage)
+      riData = stData->toToonzImageData(ti);
     else {
       TRasterImageP ri = m_currentImage;
       assert(ri);
@@ -1413,4 +1413,3 @@ TRectD RasterSelection::getSelectionBbox() const {
 void RasterSelection::setSelectionBbox(const TRectD &rect) {
   m_selectionBbox = rect;
 }
-

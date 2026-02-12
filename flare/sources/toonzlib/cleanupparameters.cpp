@@ -1,12 +1,12 @@
 
 
-#include "flare/cleanupparameters.h"
+#include "toonz/cleanupparameters.h"
 #include "tstream.h"
 #include "texception.h"
-#include "flare/flarescene.h"
-#include "flare/sceneproperties.h"
-#include "flare/txshleveltypes.h"
-#include "flare/cleanupcolorstyles.h"
+#include "toonz/toonzscene.h"
+#include "toonz/sceneproperties.h"
+#include "toonz/txshleveltypes.h"
+#include "toonz/cleanupcolorstyles.h"
 #include "tsystem.h"
 #include "tenv.h"
 #include "tconvert.h"
@@ -220,7 +220,7 @@ void CleanupParameters::getFdgNames(std::vector<std::string> &names) {
 
 //---------------------------------------------------------
 
-TFilePath CleanupParameters::getPath(flareScene *scene) const {
+TFilePath CleanupParameters::getPath(ToonzScene *scene) const {
   if (m_path == TFilePath()) {
     int levelType =
         (m_lineProcessingMode != lpNone) ? TZP_XSHLEVEL : OVL_XSHLEVEL;
@@ -232,7 +232,7 @@ TFilePath CleanupParameters::getPath(flareScene *scene) const {
 
 //---------------------------------------------------------
 
-void CleanupParameters::setPath(flareScene *scene, TFilePath fp) {
+void CleanupParameters::setPath(ToonzScene *scene, TFilePath fp) {
   if (fp == scene->getDefaultLevelPath(TZP_XSHLEVEL).getParentDir())
     m_path = TFilePath();
   else
@@ -298,8 +298,8 @@ void CleanupParameters::assign(const CleanupParameters *param,
   m_despeckling              = param->m_despeckling;
   m_aaValue                  = param->m_aaValue;
 
-  // In modern flare scenes, there always is a cleanup palette.
-  // In older flare scenes, it may be missing. In this case, leave the current
+  // In modern Toonz scenes, there always is a cleanup palette.
+  // In older Toonz scenes, it may be missing. In this case, leave the current
   // one.
   if (clonePalette && param->m_cleanupPalette)
     m_cleanupPalette = param->m_cleanupPalette->clone();
@@ -483,4 +483,3 @@ const CleanupTypes::FDG_INFO &CleanupParameters::getFdgInfo() {
   }
   return m_fdgInfo;
 }
-

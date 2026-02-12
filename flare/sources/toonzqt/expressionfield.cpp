@@ -1,6 +1,6 @@
 
 
-#include "flareqt/expressionfield.h"
+#include "toonzqt/expressionfield.h"
 
 #include "texpression.h"
 #include "tparser.h"
@@ -420,4 +420,3 @@ void ExpressionField::setGrammar(const Grammar *grammar) {
   m_grammar = grammar;
   m_syntaxHighlighter->setGrammar(grammar);
 };
-

@@ -9,8 +9,8 @@
 #include <QStringList>
 #include <QPainter>
 #include <QTextStream>
-#include "flare/preferences.h"
-#include "flare/flarefolders.h"
+#include "toonz/preferences.h"
+#include "toonz/toonzfolders.h"
 
 #include "trasterimage.h"
 #include "timageinfo.h"
@@ -324,4 +324,3 @@ void Tiio::SpriteWriterProperties::updateTranslation() {
 
 // Tiio::Reader* Tiio::makeSpriteReader(){ return nullptr; }
 // Tiio::Writer* Tiio::makeSpriteWriter(){ return nullptr; }
-

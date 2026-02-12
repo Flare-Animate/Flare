@@ -1,6 +1,6 @@
 
 
-#include "flare/tpalettehandle.h"
+#include "toonz/tpalettehandle.h"
 
 #include "tundo.h"
 #include "historytypes.h"
@@ -149,7 +149,7 @@ void TPaletteHandle::setPalette(TPalette *palette, int styleIndex) {
     m_styleParamIndex = 0;
 
     emit paletteSwitched();
-    // to let flareCheck to update the current index
+    // to let ToonzCheck to update the current index
     emit broadcastColorStyleSwitched();
   }
 }
@@ -213,4 +213,3 @@ void TPaletteHandle::toggleAutopaint() {
     TUndoManager::manager()->add(new AutopaintToggleUndo(this, index));
   }
 }
-

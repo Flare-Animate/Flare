@@ -3,7 +3,7 @@
 #include "sceneviewer.h"
 #include "sceneviewercontextmenu.h"
 
-// flare includes
+// Toonz includes
 #include "tapp.h"
 #include "menubarcommandids.h"
 #include "onionskinmaskgui.h"
@@ -14,22 +14,22 @@
 #include "tools/strokeselection.h"
 
 // TnzQt includes
-#include "flareqt/menubarcommand.h"
-#include "flareqt/viewcommandids.h"
-#include "flareqt/selection.h"
-#include "flareqt/imageutils.h"
+#include "toonzqt/menubarcommand.h"
+#include "toonzqt/viewcommandids.h"
+#include "toonzqt/selection.h"
+#include "toonzqt/imageutils.h"
 
 // TnzLib includes
-#include "flare/txsheethandle.h"
-#include "flare/tcolumnhandle.h"
-#include "flare/tframehandle.h"
-#include "flare/tobjecthandle.h"
-#include "flare/tstageobjecttree.h"
-#include "flare/tscenehandle.h"
-#include "flare/txshcolumn.h"
-#include "flare/tstageobjectspline.h"
-#include "flare/tstageobjectid.h"
-#include "flare/preferences.h"
+#include "toonz/txsheethandle.h"
+#include "toonz/tcolumnhandle.h"
+#include "toonz/tframehandle.h"
+#include "toonz/tobjecthandle.h"
+#include "toonz/tstageobjecttree.h"
+#include "toonz/tscenehandle.h"
+#include "toonz/txshcolumn.h"
+#include "toonz/tstageobjectspline.h"
+#include "toonz/tstageobjectid.h"
+#include "toonz/preferences.h"
 
 // TnzCore includes
 #include "tvectorimage.h"
@@ -561,4 +561,3 @@ void ViewerIndicatorToggleGui::ViewerIndicatorToggleHandler::activate() {
 void ViewerIndicatorToggleGui::ViewerIndicatorToggleHandler::deactivate() {
   ViewerIndicatorToggle::enableViewerIndicator(false);
 }
-

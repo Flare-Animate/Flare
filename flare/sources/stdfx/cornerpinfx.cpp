@@ -7,7 +7,7 @@
 #include "trop.h"
 #include "trasterfx.h"
 #include "ttzpimagefx.h"
-#include "flare/tdistort.h"
+#include "toonz/tdistort.h"
 #include "texturefxP.h"
 #include "tparamuiconcept.h" 
 
@@ -708,4 +708,3 @@ void CornerPinFx::getParamUIs(TParamUIConcept *&concepts, int &length) {
 // ------------------------------------------------------------------------
 
 FX_PLUGIN_IDENTIFIER(CornerPinFx, "cornerPinFx");
-

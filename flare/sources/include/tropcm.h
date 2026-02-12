@@ -7,7 +7,7 @@
 //#include "trastercm.h"
 //#include "tpalette.h"
 //#include "ttile.h"
-#include "tflareimage.h"
+#include "ttoonzimage.h"
 #include <set>
 
 #undef DVAPI
@@ -22,7 +22,7 @@
 
 class TTile;
 class TLevelP;
-class TflareImageP;
+class TToonzImageP;
 
 namespace TRop {
 
@@ -51,7 +51,7 @@ DVAPI void overlayCmapped(TRasterCM32P rasOut, const TRasterCM32P &rasUp,
                           std::map<int, int> &usedColors);
 // DVAPI void applyMatchline(const vector<MatchlinePair>& matchingLevels, int
 // inkIndex, int matchlinePrevalence);
-// DVAPI void deleteMatchline(const vector<TflareImageP>& level, const
+// DVAPI void deleteMatchline(const vector<TToonzImageP>& level, const
 // vector<int>& inkIndexes);
 // DVAPI void eraseInks(TRasterCM32P ras, vector<int>& inkIds, bool
 // keepInks=false);
@@ -61,7 +61,7 @@ DVAPI void eraseColors(TRasterCM32P ras, std::vector<int> *colorIds,
                        bool noGap = false);  // colorsId==0 ->erase ALL
 // DVAPI void  eraseColors(TRasterCM32P ras, vector<int>& colorIds, bool
 // eraseInks, bool keepColor);
-DVAPI void eraseStyleIds(TflareImage *image, const std::vector<int> styleIds);
+DVAPI void eraseStyleIds(TToonzImage *image, const std::vector<int> styleIds);
 
 DVAPI void resample(const TRasterP &out, const TRasterCM32P &in,
                     const TPaletteP palette, const TAffine &aff,
@@ -101,4 +101,3 @@ DVAPI void eraseRefInks(const TRasterCM32P &r);
 }  // namespace TRop
 
 #endif
-

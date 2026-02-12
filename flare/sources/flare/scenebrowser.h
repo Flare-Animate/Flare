@@ -12,7 +12,7 @@
 #include <QModelIndex>
 #include "dvitemview.h"
 #include "tfilepath.h"
-#include "flareqt/dvdialog.h"
+#include "toonzqt/dvdialog.h"
 #include "versioncontrol.h"
 #include "filebrowser.h"
 
@@ -156,7 +156,7 @@ protected slots:
   void storeFolderHistory();
   void clearHistory();
 
-  void renameAsflareLevel();
+  void renameAsToonzLevel();
   void updateAndEditVersionControl();
   void editVersionControl();
   void unlockVersionControl();
@@ -258,4 +258,3 @@ private:
 //-----------------------------------------------------------
 
 #endif
-

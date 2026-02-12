@@ -8,16 +8,16 @@
 #include "filebrowser.h"
 
 // TnzQt includes
-#include "flareqt/icongenerator.h"
-#include "flareqt/menubarcommand.h"
-#include "flareqt/tselectionhandle.h"
-#include "flareqt/gutil.h"
+#include "toonzqt/icongenerator.h"
+#include "toonzqt/menubarcommand.h"
+#include "toonzqt/tselectionhandle.h"
+#include "toonzqt/gutil.h"
 
 // TnzLib includes
-#include "flare/flarescene.h"
-#include "flare/tproject.h"
-#include "flare/tscenehandle.h"
-#include "flare/preferences.h"
+#include "toonz/toonzscene.h"
+#include "toonz/tproject.h"
+#include "toonz/tscenehandle.h"
+#include "toonz/preferences.h"
 
 // TnzBase includes
 #include "tenv.h"
@@ -66,7 +66,7 @@ void getFileFids(TFilePath path, std::vector<TFrameId> &fids) {
   if (info.exists()) {
     if (path.getType() == "tnz") {
       try {
-        flareScene scene;
+        ToonzScene scene;
         scene.loadNoResources(path);
         int i;
         for (i = 0; i < scene.getFrameCount(); i++)
@@ -1416,7 +1416,7 @@ void DvItemViewerPanel::setThumbnailsView() {
 
 void DvItemViewerPanel::exportFileList() {
   auto project      = TProjectManager::instance()->getCurrentProject();
-  flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
+  ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
   TFilePath fp;
   if (scene) fp = scene->decodeFilePath(project->getFolder(TProject::Extras));
 
@@ -1945,4 +1945,3 @@ void DvItemViewerButtonBar::onPreferenceChanged(const QString &prefName) {
     addSeparator();
   }
 }
-

@@ -3,7 +3,7 @@
 #ifndef TXSHSOUNDLEVEL_INCLUDED
 #define TXSHSOUNDLEVEL_INCLUDED
 
-#include "flare/txshlevel.h"
+#include "toonz/txshlevel.h"
 #include "tsound.h"
 
 #include <QList>
@@ -13,7 +13,7 @@
 
 #undef DVAPI
 #undef DVVAR
-#ifdef flareLIB_EXPORTS
+#ifdef TOONZLIB_EXPORTS
 #define DVAPI DV_EXPORT_API
 #define DVVAR DV_EXPORT_VAR
 #else
@@ -47,7 +47,7 @@ public:
 
   TXshSoundLevel *clone() const;
 
-  void setScene(flareScene *scene) override;
+  void setScene(ToonzScene *scene) override;
 
   //! Overridden from TXshLevel
   TXshSoundLevel *getSoundLevel() override { return this; }
@@ -102,4 +102,3 @@ template class DV_EXPORT_API TSmartPointerT<TXshSoundLevel>;
 typedef TSmartPointerT<TXshSoundLevel> TXshSoundLevelP;
 
 #endif  // TXSHSOUNDLEVEL_INCLUDED
-

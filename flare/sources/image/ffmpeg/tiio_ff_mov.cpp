@@ -4,7 +4,7 @@
 #include "trasterimage.h"
 #include "timageinfo.h"
 #include "tsound.h"
-#include "flare/stage.h"
+#include "toonz/stage.h"
 #include <QStringList>
 
 //===========================================================
@@ -234,4 +234,3 @@ void Tiio::FFMovWriterProperties::updateTranslation() {
   m_vidQuality.setQStringName(tr("Quality"));
   m_scale.setQStringName(tr("Scale"));
 }
-

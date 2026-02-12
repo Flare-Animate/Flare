@@ -17,7 +17,7 @@
 #include "timage_io.h"
 
 #include "tcolorfunctions.h"
-#include "flare/tcolumnfx.h"
+#include "toonz/tcolumnfx.h"
 
 #include "particlesmanager.h"
 
@@ -1603,4 +1603,3 @@ void Particles_Engine::fill_regions_with_size_map(
   sizeRas->unlock();
   if (sourceRas) sourceRas->unlock();
 }
-

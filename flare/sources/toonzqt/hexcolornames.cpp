@@ -1,9 +1,9 @@
 
 
-#include "flareqt/hexcolornames.h"
+#include "toonzqt/hexcolornames.h"
 
 // TnzLib includes
-#include "flare/flarefolders.h"
+#include "toonz/toonzfolders.h"
 
 // TnzCore includes
 #include "tconvert.h"
@@ -202,14 +202,14 @@ bool HexColorNames::loadMainFile(bool reload) {
 //-----------------------------------------------------------------------------
 
 bool HexColorNames::hasUserFile() {
-  TFilePath userCTFp = flareFolder::getMyModuleDir() + COLORNAMES_FILE;
+  TFilePath userCTFp = ToonzFolder::getMyModuleDir() + COLORNAMES_FILE;
   return TFileStatus(userCTFp).doesExist();
 }
 
 //-----------------------------------------------------------------------------
 
 bool HexColorNames::loadUserFile(bool reload) {
-  TFilePath userCTFp = flareFolder::getMyModuleDir() + COLORNAMES_FILE;
+  TFilePath userCTFp = ToonzFolder::getMyModuleDir() + COLORNAMES_FILE;
   if (TFileStatus(userCTFp).doesExist()) {
     if (reload || s_usercolornames.isEmpty()) {
       return loadColorTableXML(s_usercolornames, userCTFp);
@@ -229,7 +229,7 @@ bool HexColorNames::loadTempFile(const TFilePath &fp) {
 //-----------------------------------------------------------------------------
 
 bool HexColorNames::saveUserFile() {
-  TFilePath userCTFp = flareFolder::getMyModuleDir() + COLORNAMES_FILE;
+  TFilePath userCTFp = ToonzFolder::getMyModuleDir() + COLORNAMES_FILE;
   return saveColorTableXML(s_usercolornames, userCTFp);
 }
 
@@ -1038,4 +1038,3 @@ void HexColorNamesEditor::onApply() {
     HexColorNames::instance()->emitAutoComplete(newAutoCompState);
   }
 }
-
