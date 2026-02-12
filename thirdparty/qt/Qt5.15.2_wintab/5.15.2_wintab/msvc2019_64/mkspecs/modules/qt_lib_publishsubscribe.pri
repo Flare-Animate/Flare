@@ -1,0 +1,15 @@
+QT.publishsubscribe.VERSION = 5.4.0
+QT.publishsubscribe.name = QtPublishSubscribe
+QT.publishsubscribe.module = Qt5PublishSubscribe
+QT.publishsubscribe.libs = $$QT_MODULE_LIB_BASE
+QT.publishsubscribe.includes = $$QT_MODULE_INCLUDE_BASE $$QT_MODULE_INCLUDE_BASE/QtPublishSubscribe
+QT.publishsubscribe.frameworks =
+QT.publishsubscribe.bins = $$QT_MODULE_BIN_BASE
+QT.publishsubscribe.depends = core
+QT.publishsubscribe.uses =
+QT.publishsubscribe.module_config = v2
+QT.publishsubscribe.DEFINES = QT_PUBLISHSUBSCRIBE_LIB
+QT.publishsubscribe.enabled_features =
+QT.publishsubscribe.disabled_features =
+QT_CONFIG +=
+QT_MODULES += publishsubscribe

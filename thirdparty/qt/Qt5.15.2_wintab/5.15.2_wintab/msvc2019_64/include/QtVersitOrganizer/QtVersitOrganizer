@@ -1,0 +1,10 @@
+#ifndef QT_QTVERSITORGANIZER_MODULE_H
+#define QT_QTVERSITORGANIZER_MODULE_H
+#include <QtVersitOrganizer/QtVersitOrganizerDepends>
+#include "qversitorganizerglobal.h"
+#include "qversitorganizerexporter.h"
+#include "qversitorganizerhandler.h"
+#include "qversitorganizerimporter.h"
+#include "qversittimezonehandler.h"
+#include "qtversitorganizerversion.h"
+#endif

@@ -1,0 +1,181 @@
+import QtQuick.tooling 1.1
+
+// This file describes the plugin-supplied types contained in the library.
+// It is used for QML tooling purposes only.
+//
+// This file was auto-generated with the command 'qmlplugindump -notrelocatable QtServiceFramework 5.0'.
+
+Module {
+    Component {
+        name: "QDeclarativeService"
+        prototype: "QObject"
+        exports: ["QtServiceFramework/Service 5.0"]
+        exportMetaObjectRevisions: [0]
+        Property { name: "interfaceName"; type: "string" }
+        Property { name: "serviceName"; type: "string" }
+        Property { name: "majorVersion"; type: "int" }
+        Property { name: "minorVersion"; type: "int" }
+        Property { name: "valid"; type: "bool"; isReadonly: true }
+        Property { name: "serviceObject"; type: "QObject"; isReadonly: true; isPointer: true }
+        Property { name: "error"; type: "string"; isReadonly: true }
+        Signal {
+            name: "error"
+            Parameter { name: "errorString"; type: "string" }
+        }
+    }
+    Component {
+        name: "QDeclarativeServiceDescriptor"
+        prototype: "QObject"
+        exports: ["QtServiceFramework/ServiceDescriptor 5.0"]
+        exportMetaObjectRevisions: [0]
+        Property { name: "serviceName"; type: "string"; isReadonly: true }
+        Property { name: "interfaceName"; type: "string"; isReadonly: true }
+        Property { name: "majorVersion"; type: "int"; isReadonly: true }
+        Property { name: "minorVersion"; type: "int"; isReadonly: true }
+        Property { name: "valid"; type: "bool"; isReadonly: true }
+    }
+    Component {
+        name: "QDeclarativeServiceFilter"
+        prototype: "QObject"
+        exports: ["QtServiceFramework/ServiceFilter 5.0"]
+        exportMetaObjectRevisions: [0]
+        Property { name: "serviceName"; type: "string" }
+        Property { name: "interfaceName"; type: "string" }
+        Property { name: "majorVersion"; type: "int" }
+        Property { name: "minorVersion"; type: "int" }
+        Property { name: "exactVersionMatching"; type: "bool" }
+        Property { name: "monitorServiceRegistrations"; type: "bool" }
+        Property {
+            name: "serviceDescriptions"
+            type: "QDeclarativeServiceDescriptor"
+            isList: true
+            isReadonly: true
+        }
+        Signal {
+            name: "serviceNameChanged"
+            Parameter { name: "arg"; type: "string" }
+        }
+        Signal {
+            name: "interfaceNameChanged"
+            Parameter { name: "arg"; type: "string" }
+        }
+        Signal {
+            name: "majorVersionChanged"
+            Parameter { name: "arg"; type: "int" }
+        }
+        Signal {
+            name: "minorVersionChanged"
+            Parameter { name: "arg"; type: "int" }
+        }
+        Signal {
+            name: "exactVersionMatchingChanged"
+            Parameter { name: "arg"; type: "bool" }
+        }
+        Signal {
+            name: "monitorServiceRegistrationsChanged"
+            Parameter { name: "arg"; type: "bool" }
+        }
+        Method {
+            name: "setServiceName"
+            Parameter { name: "arg"; type: "string" }
+        }
+        Method {
+            name: "setInterfaceName"
+            Parameter { name: "arg"; type: "string" }
+        }
+        Method {
+            name: "setMajorVersion"
+            Parameter { name: "arg"; type: "int" }
+        }
+        Method {
+            name: "setMinorVersion"
+            Parameter { name: "arg"; type: "int" }
+        }
+        Method {
+            name: "setExactVersionMatching"
+            Parameter { name: "arg"; type: "bool" }
+        }
+        Method {
+            name: "setMonitorServiceRegistrations"
+            Parameter { name: "updates"; type: "bool" }
+        }
+    }
+    Component {
+        name: "QDeclarativeServiceList"
+        prototype: "QObject"
+        exports: ["QtServiceFramework/ServiceList 5.0"]
+        exportMetaObjectRevisions: [0]
+        Enum {
+            name: "MatchRule"
+            values: {
+                "Minimum": 0,
+                "Exact": 1
+            }
+        }
+        Property { name: "serviceName"; type: "string" }
+        Property { name: "interfaceName"; type: "string" }
+        Property { name: "majorVersion"; type: "int" }
+        Property { name: "minorVersion"; type: "int" }
+        Property { name: "monitorServiceRegistrations"; type: "bool" }
+        Property { name: "services"; type: "QDeclarativeService"; isList: true; isReadonly: true }
+        Property { name: "versionMatch"; type: "MatchRule" }
+        Signal { name: "resultsChanged" }
+        Signal {
+            name: "servicesChanged"
+            Parameter { type: "QDeclarativeService"; isList: true }
+        }
+    }
+    Component {
+        name: "QDeclarativeServiceLoader"
+        prototype: "QObject"
+        exports: ["QtServiceFramework/ServiceLoader 5.0"]
+        exportMetaObjectRevisions: [0]
+        Enum {
+            name: "Status"
+            values: {
+                "Null": 0,
+                "Ready": 1,
+                "Loading": 2,
+                "Error": 3
+            }
+        }
+        Property { name: "interfaceName"; type: "string" }
+        Property { name: "serviceDescriptor"; type: "QDeclarativeServiceDescriptor"; isPointer: true }
+        Property { name: "status"; type: "Status"; isReadonly: true }
+        Property { name: "asynchronous"; type: "bool" }
+        Property { name: "serviceObject"; type: "QObject"; isReadonly: true; isPointer: true }
+        Signal {
+            name: "interfaceNameChanged"
+            Parameter { name: "arg"; type: "string" }
+        }
+        Signal {
+            name: "serviceDescriptorChanged"
+            Parameter { name: "arg"; type: "QServiceInterfaceDescriptor"; isPointer: true }
+        }
+        Signal {
+            name: "statusChanged"
+            Parameter { name: "arg"; type: "Status" }
+        }
+        Signal {
+            name: "asynchronousChanged"
+            Parameter { name: "arg"; type: "bool" }
+        }
+        Signal {
+            name: "serviceObjectChanged"
+            Parameter { name: "arg"; type: "QObject"; isPointer: true }
+        }
+        Method {
+            name: "setInterfaceName"
+            Parameter { name: "arg"; type: "string" }
+        }
+        Method {
+            name: "setServiceDescriptor"
+            Parameter { name: "arg"; type: "QDeclarativeServiceDescriptor"; isPointer: true }
+        }
+        Method {
+            name: "setAsynchronous"
+            Parameter { name: "arg"; type: "bool" }
+        }
+        Method { name: "errorString"; type: "string" }
+    }
+}

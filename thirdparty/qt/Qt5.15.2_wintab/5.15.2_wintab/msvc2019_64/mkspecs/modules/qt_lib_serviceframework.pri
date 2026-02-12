@@ -1,0 +1,16 @@
+QT.serviceframework.VERSION = 5.4.0
+QT.serviceframework.name = QtServiceFramework
+QT.serviceframework.module = Qt5ServiceFramework
+QT.serviceframework.libs = $$QT_MODULE_LIB_BASE
+QT.serviceframework.includes = $$QT_MODULE_INCLUDE_BASE $$QT_MODULE_INCLUDE_BASE/QtServiceFramework
+QT.serviceframework.frameworks =
+QT.serviceframework.bins = $$QT_MODULE_BIN_BASE
+QT.serviceframework.depends = core
+QT.serviceframework.run_depends = dbus network sql
+QT.serviceframework.uses =
+QT.serviceframework.module_config = v2
+QT.serviceframework.DEFINES = QT_SERVICEFRAMEWORK_LIB
+QT.serviceframework.enabled_features =
+QT.serviceframework.disabled_features =
+QT_CONFIG +=
+QT_MODULES += serviceframework

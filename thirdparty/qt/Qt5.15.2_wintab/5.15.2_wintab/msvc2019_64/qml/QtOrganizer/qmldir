@@ -1,0 +1,3 @@
+module QtOrganizer
+plugin declarative_organizer
+typeinfo plugins.qmltypes
