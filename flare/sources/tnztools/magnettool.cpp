@@ -12,9 +12,9 @@
 #include "drawutil.h"
 #include "tcurveutil.h"
 
-#include "flare/tobjecthandle.h"
-#include "flare/txshlevelhandle.h"
-#include "flare/tstageobject.h"
+#include "toonz/tobjecthandle.h"
+#include "toonz/txshlevelhandle.h"
+#include "toonz/tstageobject.h"
 
 using namespace ToolUtils;
 
@@ -460,4 +460,3 @@ lefrightButtonDown(p);
 } magnetTool;
 
 // TTool *getMagnetTool() {return &magnetTool;}
-

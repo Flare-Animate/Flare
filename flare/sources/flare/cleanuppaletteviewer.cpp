@@ -3,16 +3,16 @@
 // TnzCore includes
 #include "tpalette.h"
 
-// flareLib includes
-#include "flare/cleanupcolorstyles.h"
-#include "flare/tpalettehandle.h"
-#include "flare/palettecontroller.h"
+// ToonzLib includes
+#include "toonz/cleanupcolorstyles.h"
+#include "toonz/tpalettehandle.h"
+#include "toonz/palettecontroller.h"
 
-// flareQt includes
-#include "flareqt/colorfield.h"
-#include "flareqt/dvdialog.h"
+// ToonzQt includes
+#include "toonzqt/colorfield.h"
+#include "toonzqt/dvdialog.h"
 
-// flare includes
+// Toonz includes
 #include "tapp.h"
 
 // Qt includes
@@ -234,4 +234,3 @@ void CleanupPaletteViewer::setContrastEnabled(bool enable) {
   unsigned int i, size = m_colorFields.size();
   for (i = 0; i < size; ++i) m_colorFields[i]->setContrastEnabled(enable);
 }
-

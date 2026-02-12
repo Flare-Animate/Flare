@@ -3,12 +3,12 @@
 #ifndef CLEANUPSETTINGSPANE_H
 #define CLEANUPSETTINGSPANE_H
 
-// flareLib includes
-#include "flare/cleanupparameters.h"
+// ToonzLib includes
+#include "toonz/cleanupparameters.h"
 
-// flareQt includes
-#include "flareqt/cleanupcamerasettingswidget.h"
-#include "flareqt/filefield.h"
+// ToonzQt includes
+#include "toonzqt/cleanupcamerasettingswidget.h"
+#include "toonzqt/filefield.h"
 
 // Qt includes
 #include <QFrame>

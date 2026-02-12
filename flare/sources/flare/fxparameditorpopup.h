@@ -3,7 +3,7 @@
 #ifndef FXPARAMEDITORPOPUP_H
 #define FXPARAMEDITORPOPUP_H
 
-#include "flareqt/dvdialog.h"
+#include "toonzqt/dvdialog.h"
 
 //=============================================================================
 // FxParamEditorPopup
@@ -17,4 +17,3 @@ public:
 };
 
 #endif  // FXPARAMEDITORPOPUP_H
-

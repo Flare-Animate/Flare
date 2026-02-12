@@ -1,33 +1,33 @@
 
 #include "filltool.h"
 
-#include "flare/tframehandle.h"
-#include "flare/tcolumnhandle.h"
-#include "flare/tpalettehandle.h"
-#include "flare/preferences.h"
-#include "flare/txsheethandle.h"
-#include "flare/tobjecthandle.h"
-#include "flare/tscenehandle.h"
+#include "toonz/tframehandle.h"
+#include "toonz/tcolumnhandle.h"
+#include "toonz/tpalettehandle.h"
+#include "toonz/preferences.h"
+#include "toonz/txsheethandle.h"
+#include "toonz/tobjecthandle.h"
+#include "toonz/tscenehandle.h"
 #include "tools/toolhandle.h"
 #include "tools/toolutils.h"
-#include "flare/tonionskinmaskhandle.h"
-#include "flare/flarescene.h"
-#include "flare/tcamera.h"
+#include "toonz/tonionskinmaskhandle.h"
+#include "toonz/toonzscene.h"
+#include "toonz/tcamera.h"
 #include "timagecache.h"
 #include "tundo.h"
 #include "tpalette.h"
 #include "tcolorstyles.h"
 #include "tvectorimage.h"
 #include "tools/cursors.h"
-#include "tflareimage.h"
+#include "ttoonzimage.h"
 #include "tproperty.h"
 #include "tenv.h"
 #include "tools/stylepicker.h"
 
-#include "flare/tstageobject.h"
-#include "flare/dpiscale.h"
-#include "flare/stage2.h"
-#include "flare/stagevisitor.h"
+#include "toonz/tstageobject.h"
+#include "toonz/dpiscale.h"
+#include "toonz/stage2.h"
+#include "toonz/stagevisitor.h"
 #include "tstroke.h"
 #include "drawutil.h"
 #include "tsystem.h"
@@ -37,18 +37,18 @@
 #include "trop.h"
 #include "tropcm.h"
 
-#include "flare/onionskinmask.h"
-#include "flare/ttileset.h"
-#include "flare/ttilesaver.h"
-#include "flare/flareimageutils.h"
-#include "flare/levelproperties.h"
+#include "toonz/onionskinmask.h"
+#include "toonz/ttileset.h"
+#include "toonz/ttilesaver.h"
+#include "toonz/toonzimageutils.h"
+#include "toonz/levelproperties.h"
 
-#include "flare/imagemanager.h"
-#include "flare/txshcell.h"
-#include "flareqt/imageutils.h"
+#include "toonz/imagemanager.h"
+#include "toonz/txshcell.h"
+#include "toonzqt/imageutils.h"
 #include "autofill.h"
-#include "flare/fill.h"
-#include "flare/autoclose.h"
+#include "toonz/fill.h"
+#include "toonz/autoclose.h"
 
 #include "historytypes.h"
 
@@ -370,7 +370,7 @@ public:
       , m_saveboxOnly(saveboxOnly)
       , m_refGapFill(refGapFill) {
     m_savebox          = TRect();
-    TflareImageP image = getImage();
+    TToonzImageP image = getImage();
     if (!image)
       m_savebox = sl->getProperties()->getImageRes();
     else
@@ -383,13 +383,13 @@ public:
   }
   void undo() const override {
     TRasterUndo::undo();
-    TflareImageP image = getImage();
+    TToonzImageP image = getImage();
     if (m_refGapFill) TRop::eraseRefInks(image->getRaster());
     if (!image) return;
     if (m_saveboxOnly && !m_savebox.isEmpty()) image->setSavebox(m_savebox);
   }
   void redo() const override {
-    TflareImageP image = getImage();
+    TToonzImageP image = getImage();
     if (!image) return;
     TRasterCM32P r;
     if (m_saveboxOnly) {
@@ -407,7 +407,7 @@ public:
         recomputeSavebox =
             !image->getSavebox().contains(TRasterUndo::m_tiles->getBBox());
       } else if (m_tileSet) {
-        flareImageUtils::paste(image, m_tileSet);
+        ToonzImageUtils::paste(image, m_tileSet);
         recomputeSavebox = !image->getSavebox().contains(m_tileSet->getBBox());
       }
     }
@@ -474,7 +474,7 @@ public:
       , m_onlyUnfilled(onlyUnfilled)
       , m_palette(palette)
       , m_fillAllautoPaintLines(fillAllautoPaintLines) {
-    TflareImageP image = getImage();
+    TToonzImageP image = getImage();
 
     if (refImgPut) {
       m_tileSet = new TTileSetCM32(image->getRaster()->getSize());
@@ -484,7 +484,7 @@ public:
   }
 
   void redo() const override {
-    TflareImageP ti = getImage();
+    TToonzImageP ti = getImage();
     if (!ti) return;
     TRasterCM32P ras;
     TRect r = m_saveBox;
@@ -493,7 +493,7 @@ public:
     else
       ras = ti->getRaster()->extract(r);
     if (m_tileSet) {
-      flareImageUtils::paste(ti, m_tileSet);
+      ToonzImageUtils::paste(ti, m_tileSet);
     } else {
       AreaFiller filler(ras, TRaster32P(), m_palette);
       if (!m_s)
@@ -546,8 +546,8 @@ public:
       , m_fidToLearn(fidToLearn) {}
 
   void redo() const override {
-    TflareImageP image        = getImage();
-    TflareImageP imageToLearn = m_level->getFrame(m_fidToLearn, false);
+    TToonzImageP image        = getImage();
+    TToonzImageP imageToLearn = m_level->getFrame(m_fidToLearn, false);
     if (!image || !imageToLearn) return;
     rect_autofill_learn(imageToLearn, m_rectToFill.x0, m_rectToFill.y0,
                         m_rectToFill.x1, m_rectToFill.y1);
@@ -589,10 +589,10 @@ public:
   void setTileSet(TTileSetCM32 *tileSet) { m_tileSet = tileSet; }
 
   void redo() const override {
-    TflareImageP image = getImage();
+    TToonzImageP image = getImage();
     if (!image) return;
 
-    flareImageUtils::paste(image, m_tileSet);
+    ToonzImageUtils::paste(image, m_tileSet);
     ToolUtils::updateSaveBox(m_level, m_frameId);
 
     TTool::Application *app = TTool::getApplication();
@@ -696,7 +696,7 @@ public:
 void doRectAutofill(const TImageP &img, const TRectD selectingRect,
                     bool onlyUnfilled, const OnionSkinMask &osMask,
                     TXshSimpleLevel *sl, const TFrameId &currentFid) {
-  TflareImageP ti(img);
+  TToonzImageP ti(img);
   TVectorImageP vi(img);
   if (!img || !sl) return;
 
@@ -715,9 +715,9 @@ void doRectAutofill(const TImageP &img, const TRectD selectingRect,
   if (onionFid.isEmptyFrame() || onionFid == currentFid || !sl->isFid(onionFid))
     return;
   if (ti) {
-    TRect rect = flareImageUtils::convertWorldToRaster(selectingRect, ti);
+    TRect rect = ToonzImageUtils::convertWorldToRaster(selectingRect, ti);
 
-    TflareImageP onionImg(sl->getFrame(onionFid, false));
+    TToonzImageP onionImg(sl->getFrame(onionFid, false));
     if (!onionImg) return;
     TRect workRect = rect * ti->getRaster()->getBounds();
     if (workRect.isEmpty()) return;
@@ -755,7 +755,7 @@ void doRectAutofill(const TImageP &img, const TRectD selectingRect,
 void doStrokeAutofill(const TImageP &img, TStroke *selectingStroke,
                       bool onlyUnfilled, const OnionSkinMask &osMask,
                       TXshSimpleLevel *sl, const TFrameId &currentFid) {
-  TflareImageP ti(img);
+  TToonzImageP ti(img);
   TVectorImageP vi(img);
   if (!img || !sl) return;
 
@@ -774,7 +774,7 @@ void doStrokeAutofill(const TImageP &img, TStroke *selectingStroke,
   if (onionFid.isEmptyFrame() || onionFid == currentFid || !sl->isFid(onionFid))
     return;
   if (ti) {
-    TflareImageP onionImg(sl->getFrame(onionFid, false));
+    TToonzImageP onionImg(sl->getFrame(onionFid, false));
     if (!onionImg) return;
 
     TRasterCM32P ras = onionImg->getRaster();
@@ -790,12 +790,12 @@ void doStrokeAutofill(const TImageP &img, TStroke *selectingStroke,
     TRasterCM32P tiAppRas    = ti->getRaster()->extract(bbox)->clone();
 
     TRect workRect = onionAppRas->getBounds().enlarge(-1);
-    TflareImageP onionApp(onionAppRas, workRect);
-    TflareImageP tiApp(tiAppRas, workRect);
+    TToonzImageP onionApp(onionAppRas, workRect);
+    TToonzImageP tiApp(tiAppRas, workRect);
 
-    flareImageUtils::eraseImage(onionApp, image, TPoint(2, 2), true, true, true,
+    ToonzImageUtils::eraseImage(onionApp, image, TPoint(2, 2), true, true, true,
                                 false, 1);
-    flareImageUtils::eraseImage(tiApp, image, TPoint(2, 2), true, true, true,
+    ToonzImageUtils::eraseImage(tiApp, image, TPoint(2, 2), true, true, true,
                                 false, 1);
 
     rect_autofill_learn(onionApp, workRect.x0, workRect.y0, workRect.x1,
@@ -852,14 +852,14 @@ void fillAreaWithUndo(const TImageP &img, const TRaster32P &ref,
                       const TFrameId &fid, int cs, bool autopaintLines,
                       bool fillAllautoPaintLines) {
   TRectD selArea = stroke ? stroke->getBBox().enlarge(1) : area;
-  if (TflareImageP ti = img) {
+  if (TToonzImageP ti = img) {
     // allargo di 1 la savebox, perche cosi' il rectfill di tutta l'immagine fa
     // una sola fillata
     TRasterCM32P ras;
     ras = ti->getRaster();
 
     TRect rasBounds    = ras->getBounds();
-    TRect rasStrokeBox = flareImageUtils::convertWorldToRaster(selArea, ti);
+    TRect rasStrokeBox = ToonzImageUtils::convertWorldToRaster(selArea, ti);
     TRect rasFillArea  = rasStrokeBox * rasBounds;
     if (rasFillArea.isEmpty()) return;
 
@@ -995,7 +995,7 @@ void drawReferImage(TRaster32P &ras, TXsheet *xsh, int col, int row,
 
     if (sl->getType() & (TZP_XSHLEVEL | OVL_XSHLEVEL | PLI_XSHLEVEL)) {
       TImageP img      = sl->getFrame(cell.m_frameId, false);
-      TflareImageP ti  = img;
+      TToonzImageP ti  = img;
       TRasterImageP ri = img;
       TRasterP r;
       if (ti)
@@ -1041,7 +1041,7 @@ void drawReferImage(TRaster32P &ras, TXsheet *xsh, int col, int row,
 void gapClose(TRaster32P &ras, TRasterCM32P &raux, TXshSimpleLevel *sl,
               bool referFill) {
   AutocloseSettings closeStting =
-      flareCheck::instance()->getAutocloseSettings();
+      ToonzCheck::instance()->getAutocloseSettings();
   TRasterCM32P tnzRas = raux->clone();
   if (referFill) TRop::putRefImage(tnzRas, ras, 1);
 
@@ -1070,7 +1070,7 @@ void doRefFill(const TImageP &img, const TRaster32P &refImg, const TPointD &pos,
                const TFrameId &fid, bool autopaintLines) {
   TTool::Application *app = TTool::getApplication();
   if (!app) return;
-  if (TflareImageP ti = TflareImageP(img)) {
+  if (TToonzImageP ti = TToonzImageP(img)) {
     TPoint offs(0, 0);
     TRasterCM32P ras = ti->getRaster();
 
@@ -1193,7 +1193,7 @@ public:
     bool isVectorLevel = m_level->getType() == TXshLevelType::PLI_XSHLEVEL;
     TTool *tool        = TTool::getTool(
         "T_Fill", isVectorLevel ? TTool::ToolTargetType::VectorImage
-                                       : TTool::ToolTargetType::flareImage);
+                                       : TTool::ToolTargetType::ToonzImage);
     if (tool) {
       FillTool *fillTool = dynamic_cast<FillTool *>(tool);
       if (fillTool) fillTool->resetMulti(true);
@@ -1461,7 +1461,7 @@ void AreaFillTool::draw() {
 
 int AreaFillTool::pick(const TImageP &image, const TPointD &pos,
                        const int frame, int mode) {
-  TflareImageP ti  = image;
+  TToonzImageP ti  = image;
   TVectorImageP vi = image;
   if (!ti && !vi) return 0;
 
@@ -1506,7 +1506,7 @@ void AreaFillTool::resetMulti() {
 void AreaFillTool::leftButtonDown(const TPointD &pos, const TMouseEvent &e,
                                   TImage *img) {
   TVectorImageP vi = TImageP(img);
-  TflareImageP ti  = TflareImageP(img);
+  TToonzImageP ti  = TToonzImageP(img);
   m_paintAllAPs    = e.isCtrlPressed();
 
   if (!vi && !ti) {
@@ -1902,7 +1902,7 @@ public:
     TXshLevel *xl       = app->getCurrentLevel()->getLevel();
     TXshSimpleLevel *sl = xl ? xl->getSimpleLevel() : 0;
 
-    TflareImageP ti = TImageP(m_parent->getImage(true));
+    TToonzImageP ti = TImageP(m_parent->getImage(true));
     if (!ti) return;
     TRasterCM32P ras = ti->getRaster();
     if (!ras) return;
@@ -2019,7 +2019,7 @@ FillTool::FillTool(int targetType)
   m_colorType.addValue(ALL);
 
   m_prop.bind(m_emptyOnly);
-  if (targetType == TTool::flareImage) {
+  if (targetType == TTool::ToonzImage) {
     m_prop.bind(m_fillDepth);
     m_prop.bind(m_segment);
     m_prop.bind(m_closeGap);
@@ -2031,7 +2031,7 @@ FillTool::FillTool(int targetType)
     m_prop.bind(m_maxGapDistance);
     m_maxGapDistance.setId("MaxGapDistance");
   }
-  if (targetType == TTool::flareImage) {
+  if (targetType == TTool::ToonzImage) {
     m_prop.bind(m_autopaintLines);
     m_prop.bind(m_extendFill);
     m_prop.bind(m_gapCloseDistance);
@@ -2069,7 +2069,7 @@ int FillTool::getCursorId() const {
   if (m_fillType.getValue() == FREEPICKFILL)
     ret = ret | ToolCursor::Ex_FreePick;
 
-  if (flareCheck::instance()->getChecks() & flareCheck::eBlackBg)
+  if (ToonzCheck::instance()->getChecks() & ToonzCheck::eBlackBg)
     ret = ret | ToolCursor::Ex_Negate;
   return ret;
 }
@@ -2161,7 +2161,7 @@ void FillTool::computeRefImgsIfNeeded(const FillParameters &params) {
     if (sl->getType() != TXshLevelType::TZP_XSHLEVEL) continue;
 
     auto img        = sl->getFrame(fid, false);
-    TflareImageP ti = (TflareImageP)img;
+    TToonzImageP ti = (TToonzImageP)img;
     if (!ti) continue;
 
     auto raux = ti->getRaster();
@@ -2257,7 +2257,7 @@ void FillTool::leftButtonDown(const TPointD &pos, const TMouseEvent &e) {
     return;
   }
   // Line mode
-  if (m_colorType.getValue() == LINES && m_targetType == TTool::flareImage) {
+  if (m_colorType.getValue() == LINES && m_targetType == TTool::ToonzImage) {
     m_normalLineFillTool->leftButtonDown(pos, e);
     return;
   }
@@ -2333,7 +2333,7 @@ void FillTool::leftButtonDrag(const TPointD &pos, const TMouseEvent &e) {
     return;
   }
   // Line mode
-  if ((m_colorType.getValue() == LINES) && m_targetType == TTool::flareImage) {
+  if ((m_colorType.getValue() == LINES) && m_targetType == TTool::ToonzImage) {
     m_normalLineFillTool->leftButtonDrag(pos, e);
     return;
   }
@@ -2350,7 +2350,7 @@ void FillTool::leftButtonDrag(const TPointD &pos, const TMouseEvent &e) {
       doFill(img, pos, params, e.isShiftPressed(), m_level.getPointer(),
              getCurrentFid(), m_autopaintLines.getValue());
     }
-    if (TflareImageP ti = img) {
+    if (TToonzImageP ti = img) {
       TRasterCM32P ras = ti->getRaster();
       if (!ras) return;
       TPointD center = ras->getCenterD();
@@ -2386,7 +2386,7 @@ void FillTool::leftButtonUp(const TPointD &pos, const TMouseEvent &e) {
 
   // Line mode
   else if ((m_colorType.getValue() == LINES) &&
-           m_targetType == TTool::flareImage) {
+           m_targetType == TTool::ToonzImage) {
     m_normalLineFillTool->leftButtonUp(pos, e, getImage(true), params);
   }
 
@@ -2503,11 +2503,11 @@ bool FillTool::onPropertyChanged(std::string propertyName, bool addToUndo) {
   // Gap Close Distance
   else if (propertyName == m_gapCloseDistance.getName()) {
     AutocloseDistance = m_gapCloseDistance.getValue();
-    auto st           = flareCheck::instance()->getAutocloseSettings();
-    flareCheck::instance()->setAutocloseSettings(
+    auto st           = ToonzCheck::instance()->getAutocloseSettings();
+    ToonzCheck::instance()->setAutocloseSettings(
         AutocloseDistance, AutocloseAngle, AutocloseOpacity,
         AutocloseIgnoreAutoPaint);
-    if (flareCheck::instance()->getChecks() & flareCheck::eAutoclose)
+    if (ToonzCheck::instance()->getChecks() & ToonzCheck::eAutoclose)
       notifyImageChanged();
   }
   // Extend Fill
@@ -2615,10 +2615,10 @@ void FillTool::onFrameSwitched() {
 
 void FillTool::draw() {
   if (Preferences::instance()->getFillOnlySavebox()) {
-    TflareImageP ti = (TflareImageP)getImage(false);
+    TToonzImageP ti = (TToonzImageP)getImage(false);
     if (ti) {
       TRectD bbox =
-          flareImageUtils::convertRasterToWorld(convert(ti->getBBox()), ti);
+          ToonzImageUtils::convertRasterToWorld(convert(ti->getBBox()), ti);
       drawRect(bbox * ti->getSubsampling(), TPixel32::Black, 0x5555, true);
     }
   }
@@ -2626,7 +2626,7 @@ void FillTool::draw() {
     m_areaFillTool->draw();
     return;
   }
-  if (m_colorType.getValue() == LINES && m_targetType == TTool::flareImage)
+  if (m_colorType.getValue() == LINES && m_targetType == TTool::ToonzImage)
     m_normalLineFillTool->draw();
   else if (m_frameRange.getValue() && m_firstFrameSelected) {
     tglColor(TPixel::Red);
@@ -2640,7 +2640,7 @@ void FillTool::draw() {
 //-----------------------------------------------------------------------------
 
 int FillTool::pick(const TImageP &image, const TPointD &pos, const int frame) {
-  TflareImageP ti  = image;
+  TToonzImageP ti  = image;
   TVectorImageP vi = image;
   if (!ti && !vi) return 0;
 
@@ -2759,9 +2759,9 @@ void FillTool::onActivate() {
     m_referFill.setValue(FillReferFill ? 1 : 0);
     m_frameRange.setValue(FillRange ? 1 : 0);
     m_gapCloseDistance.setValue(AutocloseDistance);
-    auto st              = flareCheck::instance()->getAutocloseSettings();
+    auto st              = ToonzCheck::instance()->getAutocloseSettings();
     st.m_closingDistance = AutocloseDistance;
-    flareCheck::instance()->setAutocloseSettings(
+    ToonzCheck::instance()->setAutocloseSettings(
         AutocloseDistance, AutocloseAngle, AutocloseOpacity,
         AutocloseIgnoreAutoPaint);
     m_extendFill.setValue(FillExtend ? 1 : 0);
@@ -2834,5 +2834,4 @@ void FillTool::onDeactivate() {
 //-----------------------------------------------------------------------------
 
 FillTool FillVectorTool(TTool::VectorImage);
-FillTool FillRasterTool(TTool::flareImage);
-
+FillTool FillRasterTool(TTool::ToonzImage);

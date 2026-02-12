@@ -11,9 +11,9 @@
 #include "selectiontool.h"
 #include "vectorselectiontool.h"
 #include "rasterselectiontool.h"
-#include "flarerasterbrushtool.h"
+#include "toonzrasterbrushtool.h"
 #include "fullcolorbrushtool.h"
-#include "flarevectorbrushtool.h"
+#include "toonzvectorbrushtool.h"
 #include "tooloptionscontrols.h"
 
 // #include "rgbpickertool.h"
@@ -21,26 +21,26 @@
 #include "shifttracetool.h"
 
 // TnzQt includes
-#include "flareqt/dvdialog.h"
-#include "flareqt/menubarcommand.h"
-#include "flareqt/gutil.h"
-#include "flareqt/dvscrollwidget.h"
-#include "flareqt/lutcalibrator.h"
-#include "flareqt/viewcommandids.h"
+#include "toonzqt/dvdialog.h"
+#include "toonzqt/menubarcommand.h"
+#include "toonzqt/gutil.h"
+#include "toonzqt/dvscrollwidget.h"
+#include "toonzqt/lutcalibrator.h"
+#include "toonzqt/viewcommandids.h"
 
 // TnzLib includes
-#include "flare/tobjecthandle.h"
-#include "flare/tstageobject.h"
-#include "flare/txsheethandle.h"
-#include "flare/tstageobjectspline.h"
-#include "flare/tframehandle.h"
-#include "flare/tpalettehandle.h"
-#include "flare/palettecontroller.h"
-#include "flare/txshlevelhandle.h"
-#include "flare/preferences.h"
-#include "flare/tstageobjecttree.h"
-#include "flare/mypaintbrushstyle.h"
-#include "flare/tonionskinmaskhandle.h"
+#include "toonz/tobjecthandle.h"
+#include "toonz/tstageobject.h"
+#include "toonz/txsheethandle.h"
+#include "toonz/tstageobjectspline.h"
+#include "toonz/tframehandle.h"
+#include "toonz/tpalettehandle.h"
+#include "toonz/palettecontroller.h"
+#include "toonz/txshlevelhandle.h"
+#include "toonz/preferences.h"
+#include "toonz/tstageobjecttree.h"
+#include "toonz/mypaintbrushstyle.h"
+#include "toonz/tonionskinmaskhandle.h"
 
 // TnzCore includes
 #include "tproperty.h"
@@ -1531,7 +1531,7 @@ void GeometricToolOptionsBox::filterControls() {
 
   bool showModifiers = false;
   if (m_tool->getTargetType() & TTool::RasterImage ||
-      m_tool->getTargetType() & TTool::flareImage) {
+      m_tool->getTargetType() & TTool::ToonzImage) {
     TTool::Application *app = TTool::getApplication();
     TMyPaintBrushStyle *mpbs =
         dynamic_cast<TMyPaintBrushStyle *>(app->getCurrentLevelStyle());
@@ -1931,7 +1931,7 @@ BrushToolOptionsBox::BrushToolOptionsBox(QWidget *parent, TTool *tool,
   connect(m_removePresetButton, SIGNAL(clicked()), this,
           SLOT(onRemovePreset()));
 
-  if (tool->getTargetType() & TTool::flareImage) {
+  if (tool->getTargetType() & TTool::ToonzImage) {
     assert(m_pencilMode);
     bool ret = connect(m_pencilMode, SIGNAL(toggled(bool)), this,
                        SLOT(onPencilModeToggled(bool)));
@@ -1974,10 +1974,10 @@ void BrushToolOptionsBox::filterControls() {
     FullColorBrushTool *fullColorBrushTool =
         dynamic_cast<FullColorBrushTool *>(m_tool);
     showModifiers = fullColorBrushTool->getBrushStyle();
-  } else if (m_tool->getTargetType() & TTool::flareImage) {
-    flareRasterBrushTool *flareRasterBrushTool =
-        dynamic_cast<flareRasterBrushTool *>(m_tool);
-    showModifiers = flareRasterBrushTool->isMyPaintStyleSelected();
+  } else if (m_tool->getTargetType() & TTool::ToonzImage) {
+    ToonzRasterBrushTool *toonzRasterBrushTool =
+        dynamic_cast<ToonzRasterBrushTool *>(m_tool);
+    showModifiers = toonzRasterBrushTool->isMyPaintStyleSelected();
   } else {  // (m_tool->getTargetType() & TTool::Vectors)
     m_snapSensitivityCombo->setHidden(!m_snapCheckbox->isChecked());
     return;
@@ -2045,11 +2045,11 @@ void BrushToolOptionsBox::onAddPreset() {
 
   switch (m_tool->getTargetType() & TTool::CommonImages) {
   case TTool::VectorImage: {
-    static_cast<flareVectorBrushTool *>(m_tool)->addPreset(name);
+    static_cast<ToonzVectorBrushTool *>(m_tool)->addPreset(name);
     break;
   }
-  case TTool::flareImage: {
-    static_cast<flareRasterBrushTool *>(m_tool)->addPreset(name);
+  case TTool::ToonzImage: {
+    static_cast<ToonzRasterBrushTool *>(m_tool)->addPreset(name);
     break;
   }
 
@@ -2067,11 +2067,11 @@ void BrushToolOptionsBox::onAddPreset() {
 void BrushToolOptionsBox::onRemovePreset() {
   switch (m_tool->getTargetType() & TTool::CommonImages) {
   case TTool::VectorImage: {
-    static_cast<flareVectorBrushTool *>(m_tool)->removePreset();
+    static_cast<ToonzVectorBrushTool *>(m_tool)->removePreset();
     break;
   }
-  case TTool::flareImage: {
-    static_cast<flareRasterBrushTool *>(m_tool)->removePreset();
+  case TTool::ToonzImage: {
+    static_cast<ToonzRasterBrushTool *>(m_tool)->removePreset();
     break;
   }
 
@@ -3143,4 +3143,3 @@ public:
     }
   }
 } rotateRightCHInstance("A_ToolOption_RotateRight");
-

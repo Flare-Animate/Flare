@@ -5,9 +5,9 @@
 
 #include <memory>
 
-#include "flareqt/dvdialog.h"
-#include "flareqt/doublefield.h"
-#include "flareqt/lineedit.h"
+#include "toonzqt/dvdialog.h"
+#include "toonzqt/doublefield.h"
+#include "toonzqt/lineedit.h"
 
 #include <QFrame>
 #include <QListWidget>
@@ -71,4 +71,3 @@ private:
 };
 
 #endif  // BATCHSERVERSVIEWER_H
-

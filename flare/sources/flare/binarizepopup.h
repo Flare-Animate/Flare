@@ -3,8 +3,8 @@
 #ifndef BINARIZEPOPUP_H
 #define BINARIZEPOPUP_H
 
-#include "flareqt/dvdialog.h"
-#include "flare/txshsimplelevel.h"
+#include "toonzqt/dvdialog.h"
+#include "toonz/txshsimplelevel.h"
 #include "traster.h"
 
 class QSlider;
@@ -61,4 +61,3 @@ protected slots:
 };
 
 #endif  // BINARIZEPOPUP_H
-

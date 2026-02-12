@@ -1,10 +1,10 @@
 
 
-#include "flareqt/gutil.h"
-#include "flare/preferences.h"
+#include "toonzqt/gutil.h"
+#include "toonz/preferences.h"
 
 // TnzQt includes
-#include "flareqt/dvdialog.h"
+#include "toonzqt/dvdialog.h"
 
 // TnzCore includes
 #include "traster.h"
@@ -588,7 +588,7 @@ bool isResource(const QString &path) {
 
   return (TFileType::isViewable(type) || type & TFileType::MESH_IMAGE ||
           type == TFileType::AUDIO_LEVEL || type == TFileType::TABSCENE ||
-          type == TFileType::flareSCENE || fp.getType() == "tpl");
+          type == TFileType::TOONZSCENE || fp.getType() == "tpl");
 }
 
 //-----------------------------------------------------------------------------
@@ -900,11 +900,11 @@ bool ThemeManager::isColoredIcon(const QString &iconName) const {
 //-----------------------------------------------------------------------------
 
 // Parse custom properties from stylesheet to this format:
-// :flareCOLORS { -custom-property: black; }
+// :TOONZCOLORS { -custom-property: black; }
 // Then get with: getCustomProperty(QColor("custom-property"));
 void ThemeManager::parseCustomPropertiesFromStylesheet(
     const QString &styleSheet) {
-  QRegularExpression rootRegex(R"(:flareCOLORS\s*\{([^}]*)\})");
+  QRegularExpression rootRegex(R"(:TOONZCOLORS\s*\{([^}]*)\})");
   QRegularExpressionMatchIterator rootMatches =
       rootRegex.globalMatch(styleSheet);
 
@@ -1284,4 +1284,3 @@ QSize SvgIconEngine::getBestToolbarSizeByDpr(const QSize &requestedSize) {
 
   return bestSize;
 }
-

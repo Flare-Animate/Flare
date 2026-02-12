@@ -1,9 +1,9 @@
 
 
 // TnzLib includes
-#include "flare/flarescene.h"
-#include "flare/preferences.h"
-#include "flare/sceneproperties.h"
+#include "toonz/toonzscene.h"
+#include "toonz/preferences.h"
+#include "toonz/sceneproperties.h"
 #include "toutputproperties.h"
 
 // TnzBase includes
@@ -41,8 +41,8 @@ typedef QualifierT<TFilePath> FilePathQualifier;
 
 #define RENDER_LICENSE_NOT_FOUND 888
 
-const char *rootVarName     = "flareROOT";
-const char *systemVarPrefix = "flare";
+const char *rootVarName     = "TOONZROOT";
+const char *systemVarPrefix = "TOONZ";
 
 namespace {
 
@@ -120,12 +120,12 @@ void convertFromCM(const TLevelReaderP &lr, const TPaletteP &plt,
     try {
       TImageReaderP ir = lr->getFrameReader(frames[i]);
       TImageP img      = ir->load();
-      TflareImageP flareImage(img);
+      TToonzImageP toonzImage(img);
       double xdpi, ydpi;
-      flareImage->getDpi(xdpi, ydpi);
-      assert(flareImage);
-      if (flareImage) {
-        TRasterCM32P rasCMImage = flareImage->getRaster();
+      toonzImage->getDpi(xdpi, ydpi);
+      assert(toonzImage);
+      if (toonzImage) {
+        TRasterCM32P rasCMImage = toonzImage->getRaster();
         if (i == 0)
           dim = rasCMImage->getSize();
         else if (dim != rasCMImage->getSize()) {
@@ -256,7 +256,7 @@ void convertFromFullRasterToCm(const TLevelReaderP &lr, const TLevelWriterP &lw,
         TRop::convert(raster, img->getRaster());
 
       TImageWriterP iw = lw->getFrameWriter(frames[i]);
-      TflareImageP outimg(raster, raster->getBounds());
+      TToonzImageP outimg(raster, raster->getBounds());
       outimg->setDpi(dpix, dpiy);
       outimg->setPalette(plt);
       iw->save(outimg);
@@ -347,7 +347,7 @@ void convert(const TFilePath &source, const TFilePath &dest,
       convertFromFullRasterToCm(lr, lw, frames, aff, resType);
     else
       convertFromFullRaster(lr, lw, frames, aff, resType);
-  } else if (ext == "tlv")  // flareImage
+  } else if (ext == "tlv")  // ToonzImage
     convertFromCM(lr, level->getPalette(), lw, frames, aff, resType);
   else if (ext == "pli")  // VectorImage
     convertFromVI(lr, level->getPalette(), lw, frames, resType,
@@ -424,7 +424,7 @@ int main(int argc, char *argv[]) {
       }
 
       if (!TSystem::doesExistFileOrLevel(tnzFilePath)) return -1;
-      flareScene *scene = new flareScene();
+      ToonzScene *scene = new ToonzScene();
       try {
         scene->loadTnzFile(tnzFilePath);
       } catch (...) {
@@ -466,4 +466,3 @@ int main(int argc, char *argv[]) {
   cout << endl << msg << endl;
   return 0;
 }
-

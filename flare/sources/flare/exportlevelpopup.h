@@ -7,16 +7,16 @@
 #include "tpixel.h"
 
 // TnzLib includes
-#include "flare/tframehandle.h"
+#include "toonz/tframehandle.h"
 
 // Tnz6 includes
 #include "filebrowserpopup.h"
 #include "exportlevelcommand.h"
 #include "convertfolderpopup.h"
-#include "flareqt/imageutils.h"
+#include "toonzqt/imageutils.h"
 
 // TnzQt includes
-#include "flareqt/planeviewer.h"
+#include "toonzqt/planeviewer.h"
 
 // STD includes
 #include <map>
@@ -59,7 +59,7 @@ class QHideEvent;
 //*********************************************************************************
 
 /*!
-  \brief    The popup dealing with level exports in flare.
+  \brief    The popup dealing with level exports in Toonz.
 */
 class ExportLevelPopup : public FileBrowserPopup {
   Q_OBJECT
@@ -208,4 +208,3 @@ private:
   TImageP m_img;  //!< Image shown in the swatch.
 };
 #endif  // EXPORTLEVELPOPUP_H
-

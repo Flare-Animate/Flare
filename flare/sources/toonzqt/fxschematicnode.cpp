@@ -1,38 +1,38 @@
 
 
-#include "flareqt/fxschematicnode.h"
+#include "toonzqt/fxschematicnode.h"
 
 // TnzQt includes
-#include "flareqt/fxtypes.h"
-#include "flareqt/fxschematicscene.h"
-#include "flareqt/icongenerator.h"
-#include "flareqt/gutil.h"
-#include "flareqt/fxselection.h"
-#include "flareqt/menubarcommand.h"
-#include "flareqt/fxiconmanager.h"
+#include "toonzqt/fxtypes.h"
+#include "toonzqt/fxschematicscene.h"
+#include "toonzqt/icongenerator.h"
+#include "toonzqt/gutil.h"
+#include "toonzqt/fxselection.h"
+#include "toonzqt/menubarcommand.h"
+#include "toonzqt/fxiconmanager.h"
 
 // TnzLib includes
-#include "flare/tcolumnfx.h"
-#include "flare/tcolumnfxset.h"
-#include "flare/txshchildlevel.h"
-#include "flare/txsheet.h"
-#include "flare/fxdag.h"
-#include "flare/tstageobjectid.h"
-#include "flare/tstageobject.h"
-#include "flare/txshcell.h"
-#include "flare/txsheethandle.h"
-#include "flare/tframehandle.h"
-#include "flare/fxcommand.h"
-#include "flare/tstageobjectcmd.h"
-#include "flare/txshlevelcolumn.h"
-#include "flare/txshzeraryfxcolumn.h"
-#include "flare/txshcolumn.h"
-#include "flare/txshsimplelevel.h"
-#include "flare/txshleveltypes.h"
-#include "flare/flarescene.h"
-#include "flare/sceneproperties.h"
-#include "flare/tcolumnhandle.h"
-#include "flare/preferences.h"
+#include "toonz/tcolumnfx.h"
+#include "toonz/tcolumnfxset.h"
+#include "toonz/txshchildlevel.h"
+#include "toonz/txsheet.h"
+#include "toonz/fxdag.h"
+#include "toonz/tstageobjectid.h"
+#include "toonz/tstageobject.h"
+#include "toonz/txshcell.h"
+#include "toonz/txsheethandle.h"
+#include "toonz/tframehandle.h"
+#include "toonz/fxcommand.h"
+#include "toonz/tstageobjectcmd.h"
+#include "toonz/txshlevelcolumn.h"
+#include "toonz/txshzeraryfxcolumn.h"
+#include "toonz/txshcolumn.h"
+#include "toonz/txshsimplelevel.h"
+#include "toonz/txshleveltypes.h"
+#include "toonz/toonzscene.h"
+#include "toonz/sceneproperties.h"
+#include "toonz/tcolumnhandle.h"
+#include "toonz/preferences.h"
 
 #include "tw/stringtable.h"
 
@@ -4140,4 +4140,3 @@ void FxSchematicPassThroughNode::onNameChanged() {
   prepareGeometryChange();
   update();
 }
-

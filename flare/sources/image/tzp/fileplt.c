@@ -5,7 +5,7 @@
 #include <string.h>
 #include <assert.h>
 
-#include "flare.h"
+#include "toonz.h"
 #include "tmsg.h"
 #include "file.h"
 #include "tiff.h"
@@ -41,7 +41,7 @@ int img_write_plt(char *filename, IMAGE *image) {
   UCHAR *buffer;
   int i, j, scanline, width, rows_per_strip;
   LPIXEL *cmap, *color, *pencil;
-  USHORT palette[flarePALETTE_COUNT];
+  USHORT palette[TOONZPALETTE_COUNT];
   char *names, *history;
   int plt_type, cmap_size;
 
@@ -78,11 +78,11 @@ int img_write_plt(char *filename, IMAGE *image) {
   palette[10] = image->cmap.info.n_colors;
   palette[11] = image->cmap.info.n_pencils;
 
-  for (i = 12; i < flarePALETTE_COUNT - 1; i++) palette[i] = 0;
+  for (i = 12; i < TOONZPALETTE_COUNT - 1; i++) palette[i] = 0;
 
-  palette[flarePALETTE_COUNT - 1] = (Img_license_attr & TA_flare_EDU) != 0;
+  palette[TOONZPALETTE_COUNT - 1] = (Img_license_attr & TA_TOONZ_EDU) != 0;
 
-  TIFFSetField(tfp, TIFFTAG_flarePALETTE, palette);
+  TIFFSetField(tfp, TIFFTAG_TOONZPALETTE, palette);
 
   if (plt_type == 3) {
     assert(image->cmap.color && image->cmap.pencil);
@@ -115,7 +115,7 @@ int img_write_plt(char *filename, IMAGE *image) {
 
   names = cdb_encode_all(image->cmap.names);
 
-  TIFFSetField(tfp, TIFFTAG_flareCOLORNAMES, names);
+  TIFFSetField(tfp, TIFFTAG_TOONZCOLORNAMES, names);
 
   /* Aggiungo History */
   history = build_history();
@@ -132,7 +132,7 @@ int img_write_plt(char *filename, IMAGE *image) {
   } else
     image->history = history;
 
-  TIFFSetField(tfp, TIFFTAG_flareHISTORY, image->history);
+  TIFFSetField(tfp, TIFFTAG_TOONZHISTORY, image->history);
 
   scanline = TIFFScanlineSize(tfp);
 
@@ -219,7 +219,7 @@ IMAGE *img_read_plt(char *filename) {
   UCHAR *buffer = NIL;
   int i, j, scanline;
   LPIXEL *cmap;
-  USHORT *palette; /*  [flarePALETTE_COUNT] */
+  USHORT *palette; /*  [TOONZPALETTE_COUNT] */
   USHORT spp, bps, comp, plan_con, photom;
   int width, height;
   char *names;
@@ -237,8 +237,8 @@ IMAGE *img_read_plt(char *filename) {
   tfp = TIFFOpen(filename, "r");
   if (!tfp) return NIL;
 
-  TIFFGetField(tfp, TIFFTAG_flarePALETTE, &palette);
-  TIFFGetField(tfp, TIFFTAG_flareCOLORNAMES, &names);
+  TIFFGetField(tfp, TIFFTAG_TOONZPALETTE, &palette);
+  TIFFGetField(tfp, TIFFTAG_TOONZCOLORNAMES, &names);
 
   TIFFGetField(tfp, TIFFTAG_BITSPERSAMPLE, &bps);
   TIFFGetField(tfp, TIFFTAG_SAMPLESPERPIXEL, &spp);
@@ -250,8 +250,8 @@ IMAGE *img_read_plt(char *filename) {
 
   if (photom != PHOTOMETRIC_RGB || plan_con != PLANARCONFIG_CONTIG) goto bad;
 
-  edu_file = palette[flarePALETTE_COUNT - 1] & 1;
-  if (edu_file && !(Img_license_attr & TA_flare_EDU)) {
+  edu_file = palette[TOONZPALETTE_COUNT - 1] & 1;
+  if (edu_file && !(Img_license_attr & TA_TOONZ_EDU)) {
     char str[1024];
     BUILD_EDU_ERROR_STRING(str)
     tmsg_error(str);
@@ -265,7 +265,7 @@ IMAGE *img_read_plt(char *filename) {
   image->type = CMAP;
 
   /* Leggo history */
-  if (!TIFFGetField(tfp, TIFFTAG_flareHISTORY, &image->history))
+  if (!TIFFGetField(tfp, TIFFTAG_TOONZHISTORY, &image->history))
     image->history = "";
   image->history   = strsave(image->history);
 
@@ -451,7 +451,7 @@ bad:
 IMAGE *img_read_plt_info(char *filename) {
   IMAGE *image = NIL;
   TIFF *tfp;
-  USHORT *palette; /*  [flarePALETTE_COUNT] */
+  USHORT *palette; /*  [TOONZPALETTE_COUNT] */
   USHORT plan_con, photom;
   char *names;
   int max_n_colors, max_n_pencils;
@@ -462,15 +462,15 @@ IMAGE *img_read_plt_info(char *filename) {
   tfp = TIFFOpen(filename, "r");
   if (!tfp) return NIL;
 
-  TIFFGetField(tfp, TIFFTAG_flarePALETTE, &palette);
-  TIFFGetField(tfp, TIFFTAG_flareCOLORNAMES, &names);
+  TIFFGetField(tfp, TIFFTAG_TOONZPALETTE, &palette);
+  TIFFGetField(tfp, TIFFTAG_TOONZCOLORNAMES, &names);
   TIFFGetField(tfp, TIFFTAG_PLANARCONFIG, &plan_con);
   TIFFGetField(tfp, TIFFTAG_PHOTOMETRIC, &photom);
 
   if (photom != PHOTOMETRIC_RGB || plan_con != PLANARCONFIG_CONTIG) goto bad;
 
-  edu_file = palette[flarePALETTE_COUNT - 1] & 1;
-  if (edu_file && !(Img_license_attr & TA_flare_EDU)) {
+  edu_file = palette[TOONZPALETTE_COUNT - 1] & 1;
+  if (edu_file && !(Img_license_attr & TA_TOONZ_EDU)) {
     char str[1024];
     BUILD_EDU_ERROR_STRING(str)
     tmsg_warning(str);
@@ -503,7 +503,7 @@ IMAGE *img_read_plt_info(char *filename) {
       (image->cmap.info.n_tones - 1) | image->cmap.info.offset_mask;
 
   /* Leggo history */
-  if (!TIFFGetField(tfp, TIFFTAG_flareHISTORY, &image->history))
+  if (!TIFFGetField(tfp, TIFFTAG_TOONZHISTORY, &image->history))
     image->history = "";
   image->history   = strsave(image->history);
 
@@ -691,4 +691,3 @@ static void set_color_names(IMAGE *image, char *names) {
 }
 
 #endif
-

@@ -1,15 +1,15 @@
 #pragma once
 
-#ifndef flareVECTORBRUSHTOOL_H
-#define flareVECTORBRUSHTOOL_H
+#ifndef TOONZVECTORBRUSHTOOL_H
+#define TOONZVECTORBRUSHTOOL_H
 
 #include <tgeometry.h>
 #include <tproperty.h>
 #include <trasterimage.h>
-#include <tflareimage.h>
+#include <ttoonzimage.h>
 #include <tstroke.h>
-#include <flare/strokegenerator.h>
-#include "flare/preferences.h"
+#include <toonz/strokegenerator.h>
+#include "toonz/preferences.h"
 #include <tools/tool.h>
 #include <tools/cursors.h>
 
@@ -90,11 +90,11 @@ public:
 //    Brush Tool declaration
 //************************************************************************
 
-class flareVectorBrushTool final : public TTool, public TInputHandler {
-  Q_DECLARE_TR_FUNCTIONS(flareVectorBrushTool)
+class ToonzVectorBrushTool final : public TTool, public TInputHandler {
+  Q_DECLARE_TR_FUNCTIONS(ToonzVectorBrushTool)
 
 public:
-  flareVectorBrushTool(std::string name, int targetType);
+  ToonzVectorBrushTool(std::string name, int targetType);
 
   ToolType getToolType() const override { return TTool::LevelWriteTool; }
   unsigned int getToolHints() const override;
@@ -235,5 +235,4 @@ protected:
   double m_cameraDpi;
 };
 
-#endif  // flareVECTORBRUSHTOOL_H
-
+#endif  // TOONZVECTORBRUSHTOOL_H

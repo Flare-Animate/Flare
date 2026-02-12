@@ -7,8 +7,8 @@
 #include "tsystem.h"
 #include "tfilepath_io.h"
 #include "tsound_t.h"
-#include "flare/preferences.h"
-#include "flare/flarefolders.h"
+#include "toonz/preferences.h"
+#include "toonz/toonzfolders.h"
 #include "thirdparty.h"
 
 #include <QDir>
@@ -41,7 +41,7 @@ TSoundTrackP TSoundTrackReaderMp3::load() {
 }
 
 TFilePath FfmpegAudio::getFfmpegCache() {
-  QString cacheRoot = flareFolder::getCacheRootFolder().getQString();
+  QString cacheRoot = ToonzFolder::getCacheRootFolder().getQString();
   if (!TSystem::doesExistFileOrLevel(TFilePath(cacheRoot + "/ffmpeg"))) {
     TSystem::mkDir(TFilePath(cacheRoot + "/ffmpeg"));
   }
@@ -110,4 +110,3 @@ TFilePath FfmpegAudio::getRawAudio(TFilePath path) {
 
   return outPath;
 }
-

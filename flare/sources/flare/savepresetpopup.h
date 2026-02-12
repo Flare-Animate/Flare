@@ -3,8 +3,8 @@
 #ifndef SAVEPRESETPOPUP_H
 #define SAVEPRESETPOPUP_H
 
-#include "flareqt/dvdialog.h"
-#include "flareqt/lineedit.h"
+#include "toonzqt/dvdialog.h"
+#include "toonzqt/lineedit.h"
 
 //=============================================================================
 // SavePresetPopup
@@ -25,4 +25,3 @@ protected slots:
 };
 
 #endif  // SAVEPRESETPOPUP_H
-

@@ -3,7 +3,7 @@
 #ifndef REFRAMEPOPUP_H
 #define REFRAMEPOPUP_H
 
-#include "flareqt/dvdialog.h"
+#include "toonzqt/dvdialog.h"
 
 #include <QList>
 

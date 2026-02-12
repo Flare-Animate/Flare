@@ -1,21 +1,21 @@
 #include "layoutUtils.h"
 #include "tenv.h"
-#include "flare/flarefolders.h"
-#include "flare/cleanupparameters.h"
-#include "flare/sceneproperties.h"
-#include "flare/stage.h"
-#include "flare/stage2.h"
-#include "flare/tcamera.h"
-#include "flare/flarescene.h"
+#include "toonz/toonzfolders.h"
+#include "toonz/cleanupparameters.h"
+#include "toonz/sceneproperties.h"
+#include "toonz/stage.h"
+#include "toonz/stage2.h"
+#include "toonz/tcamera.h"
+#include "toonz/toonzscene.h"
 #include <tgeometry.h>
-#include <flare/txshsimplelevel.h>
+#include <toonz/txshsimplelevel.h>
 
 #include "tfxutil.h"
 #include "timage.h"
-#include "flare/tcolumnfx.h"
-#include "flare/txshcell.h"
-#include "flare/txshcolumn.h"
-#include "flare/txshlevelcolumn.h"
+#include "toonz/tcolumnfx.h"
+#include "toonz/txshcell.h"
+#include "toonz/txshcolumn.h"
+#include "toonz/txshlevelcolumn.h"
 #include <QSettings>
 
 #include "tsystem.h"
@@ -25,13 +25,13 @@
 #include <QString>
 #include <string>
 
-#include "flare/tstageobjecttree.h"
-#include "flare/txsheethandle.h"
+#include "toonz/tstageobjecttree.h"
+#include "toonz/txsheethandle.h"
 
-#include "flare/levelset.h"
-#include "flare/txshcell.h"
-#include "flare/txshcolumn.h"
-#include "flare/txsheethandle.h"
+#include "toonz/levelset.h"
+#include "toonz/txshcell.h"
+#include "toonz/txshcolumn.h"
+#include "toonz/txsheethandle.h"
 #include "tpalette.h"
 #include "tmsgcore.h"
 #include <QObject>
@@ -91,7 +91,7 @@ TFilePath layoutUtils::decodePath(const QString& path) {
   if (path.isEmpty()) return TFilePath();
   TFilePath fp(path);
   if (fp.getParentDir().isEmpty()) {
-    fp = flareFolder::getLibraryFolder() + TFilePath("layouts") + fp;
+    fp = ToonzFolder::getLibraryFolder() + TFilePath("layouts") + fp;
   }
   return fp;
 }
@@ -222,8 +222,8 @@ void layoutUtils::loadLayoutPreset(QString name, LayoutPreset& preset) {
 }
 
 void layoutUtils::updateCacheIfNeeded() {
-  static flareScene* scene = nullptr;
-  flareScene* currentScene = TApp::instance()->getCurrentScene()->getScene();
+  static ToonzScene* scene = nullptr;
+  ToonzScene* currentScene = TApp::instance()->getCurrentScene()->getScene();
   if (s_cache.isValid == false || currentScene != scene) {
     QString name = TApp::instance()
                        ->getCurrentScene()
@@ -309,7 +309,7 @@ TRasterFxP layoutUtils::getLayoutFx(int frames) {
   TXshSimpleLevelP sl = s_cache.sl;
   if (!sl) return layoutFx;
   TPointD offset    = s_cache.offset;
-  flareScene* scene = TApp::instance()->getCurrentScene()->getScene();
+  ToonzScene* scene = TApp::instance()->getCurrentScene()->getScene();
 
   if (sl) {
     TFrameId fid = sl->getFirstFid();
@@ -380,7 +380,7 @@ void layoutUtils::addLayoutToXsheet() {
     return;
   }
 
-  flareScene* scene = TApp::instance()->getCurrentScene()->getScene();
+  ToonzScene* scene = TApp::instance()->getCurrentScene()->getScene();
 
   int levelType = sl->getType();
   assert(levelType > 0);
@@ -441,4 +441,3 @@ void layoutUtils::addLayoutToXsheet() {
   app->getCurrentScene()->setDirtyFlag(true);
   app->getCurrentScene()->notifyCastChange();
 }
-

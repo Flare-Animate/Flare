@@ -7,7 +7,7 @@
 #include <QTreeWidgetItem>
 #include <QAction>
 
-#include "flareqt/dvdialog.h"
+#include "toonzqt/dvdialog.h"
 #include "tfilepath.h"
 
 class QXmlStreamReader;
@@ -111,4 +111,3 @@ private slots:
 };
 
 #endif  // COMMANDBARPOPUP_H
-

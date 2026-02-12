@@ -315,7 +315,7 @@
 		<file>icons/dark/actions/16x16/colored/new_raster_level.svg</file>
 		<file>icons/dark/actions/16x16/colored/new_note_level.svg</file>
 		<file>icons/dark/actions/16x16/colored/new_vector_level.svg</file>
-		<file>icons/dark/actions/16x16/colored/new_flare_raster_level.svg</file>
+		<file>icons/dark/actions/16x16/colored/new_toonz_raster_level.svg</file>
 		<file>icons/dark/actions/16x16/save_level.svg</file>
 		<file>icons/dark/actions/16x16/save_level_as.svg</file>
 		<file>icons/dark/actions/16x16/save_all_levels.svg</file>
@@ -717,4 +717,3 @@
 		<file>Resources/warning.svg</file>
 	</qresource>
 </RCC>
-

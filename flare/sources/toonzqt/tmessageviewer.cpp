@@ -1,7 +1,7 @@
 
 
-#include "flareqt/tmessageviewer.h"
-#include "flareqt/dvdialog.h"
+#include "toonzqt/tmessageviewer.h"
+#include "toonzqt/dvdialog.h"
 #include <QVBoxLayout>
 #include <QPushButton>
 #include <QListView>
@@ -194,4 +194,3 @@ TMessageViewer::TMessageViewer(QWidget *parent) : QFrame(parent) {
 
   assert(ret);
 }
-

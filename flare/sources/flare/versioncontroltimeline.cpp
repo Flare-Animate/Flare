@@ -6,12 +6,12 @@
 #include "tapp.h"
 
 // TnzQt includes
-#include "flareqt/icongenerator.h"
-#include "flareqt/gutil.h"
+#include "toonzqt/icongenerator.h"
+#include "toonzqt/gutil.h"
 
 // TnzLib includes
-#include "flare/txshsimplelevel.h"
-#include "flare/flarescene.h"
+#include "toonz/txshsimplelevel.h"
+#include "toonz/toonzscene.h"
 
 // TnzCore includes
 #include "tfiletype.h"
@@ -290,7 +290,7 @@ void SVNTimeline::onLogDone(const QString &xmlResponse) {
     }
     // Add sceneIcon (only for scene files)
     else if (fp.getType() == "tnz") {
-      TFilePath iconPath = flareScene::getIconPath(fp);
+      TFilePath iconPath = ToonzScene::getIconPath(fp);
       if (TFileStatus(iconPath).doesExist()) {
         QDir dir(toQString(fp.getParentDir()));
 
@@ -655,4 +655,3 @@ void SVNTimeline::onSceneContentsToggled(bool checked) {
     m_sceneResources.append(vc->getSceneContents(m_workingDir, m_fileName));
   }
 }
-

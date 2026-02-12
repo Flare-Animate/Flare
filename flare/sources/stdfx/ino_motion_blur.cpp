@@ -80,7 +80,7 @@ public:
 
     /*--- 回転と拡大縮小のGeometryを反映させる ---*/
     /*
-    flare/main/sources/stdfx/motionblurfx.cpp
+    toonz/main/sources/stdfx/motionblurfx.cpp
     750-768行を参照して書いた
     */
     TAffine aff(affine);
@@ -343,4 +343,3 @@ void ino_motion_blur::doCompute(TTile &tile, double frame,
     throw;
   }
 }
-

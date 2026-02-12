@@ -1,8 +1,8 @@
 
 
 #include "tpalette.h"
-#include "flare/cleanupcolorstyles.h"
-#include "flare/targetcolors.h"
+#include "toonz/cleanupcolorstyles.h"
+#include "toonz/targetcolors.h"
 #include "tgl.h"
 
 #include "cleanuppalette.h"
@@ -27,7 +27,7 @@ TPalette *createStandardCleanupPalette() {
 
 //-------------------------------------------------------------------
 
-TPalette *createflarePalette(TPalette *cleanupPalette) {
+TPalette *createToonzPalette(TPalette *cleanupPalette) {
   assert(cleanupPalette);
   assert(cleanupPalette->isCleanupPalette());
 
@@ -59,7 +59,7 @@ TPalette *createflarePalette(TPalette *cleanupPalette) {
 
 //-------------------------------------------------------------------
 
-TPalette *createflarePalette(TPalette *cleanupPalette, int colorParamIndex) {
+TPalette *createToonzPalette(TPalette *cleanupPalette, int colorParamIndex) {
   assert(cleanupPalette);
   assert(cleanupPalette->isCleanupPalette());
 
@@ -149,4 +149,3 @@ void convertToLevelPalette(TPalette *palette) {
   }
   palette->setIsCleanupPalette(false);
 }
-

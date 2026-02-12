@@ -4,9 +4,9 @@
 #include "tfxattributes.h"
 
 // TnzLib includes
-#include "flare/tcolumnfx.h"
-#include "flare/txsheet.h"
-#include "flare/txshzeraryfxcolumn.h"
+#include "toonz/tcolumnfx.h"
+#include "toonz/txsheet.h"
+#include "toonz/txshzeraryfxcolumn.h"
 
 #include "fxdata.h"
 
@@ -202,4 +202,3 @@ bool FxsData::areLinked(TFx *outFx, TFx *inFx) {
   }
   return false;
 }
-

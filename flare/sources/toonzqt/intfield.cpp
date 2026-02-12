@@ -1,8 +1,8 @@
 
 
-#include "flareqt/intfield.h"
-#include "flareqt/dvdialog.h"
-#include "flareqt/gutil.h"
+#include "toonzqt/intfield.h"
+#include "toonzqt/dvdialog.h"
+#include "toonzqt/gutil.h"
 
 #include <QIntValidator>
 #include <QSlider>
@@ -547,4 +547,3 @@ void IntField::onRollerValueChanged(bool isDragging) {
 
   emit valueChanged(isDragging);
 }
-

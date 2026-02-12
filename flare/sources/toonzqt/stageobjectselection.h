@@ -3,9 +3,9 @@
 #ifndef STAGEOBJECTSELECTION_H
 #define STAGEOBJECTSELECTION_H
 
-#include "flareqt/selection.h"
-#include "flare/tstageobjectid.h"
-#include "flare/txshcolumn.h"
+#include "toonzqt/selection.h"
+#include "toonz/tstageobjectid.h"
+#include "toonz/txshcolumn.h"
 #include "tgeometry.h"
 #include <QList>
 #include <QPair>
@@ -103,4 +103,3 @@ signals:
 };
 
 #endif
-

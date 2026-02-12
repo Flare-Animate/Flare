@@ -5,8 +5,8 @@
 #include "ino_common.h"
 //------------------------------------------------------------
 /*
-flare6.4sg ではTStandardRasterFx
-flare7.0   ではTStandardZeraryFx
+toonz6.4sg ではTStandardRasterFx
+toonz7.0   ではTStandardZeraryFx
 */
 class ino_pn_clouds final : public TStandardZeraryFx {
   FX_PLUGIN_DECLARATION(ino_pn_clouds)
@@ -162,4 +162,3 @@ void ino_pn_clouds::doCompute(TTile &tile, double frame,
     throw;
   }
 }
-

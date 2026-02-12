@@ -3,7 +3,7 @@
 #ifndef SCRIPTBINDING_RENDERER_H
 #define SCRIPTBINDING_RENDERER_H
 
-#include "flare/scriptbinding.h"
+#include "toonz/scriptbinding.h"
 
 namespace TScriptBinding {
 
@@ -30,4 +30,3 @@ public:
 Q_DECLARE_METATYPE(TScriptBinding::Renderer *)
 
 #endif
-

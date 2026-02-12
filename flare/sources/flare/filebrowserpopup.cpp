@@ -22,34 +22,34 @@
 #endif
 
 // TnzQt includes
-#include "flareqt/gutil.h"
-#include "flareqt/icongenerator.h"
-#include "flareqt/colorfield.h"
-#include "flareqt/tselectionhandle.h"
+#include "toonzqt/gutil.h"
+#include "toonzqt/icongenerator.h"
+#include "toonzqt/colorfield.h"
+#include "toonzqt/tselectionhandle.h"
 
 // TnzLib includes
-#include "flare/tscenehandle.h"
-#include "flare/tpalettehandle.h"
-#include "flare/txshlevelhandle.h"
-#include "flare/txsheethandle.h"
-#include "flare/palettecontroller.h"
-#include "flare/studiopalette.h"
-#include "flare/flarescene.h"
-#include "flare/tproject.h"
-#include "flare/txshcell.h"
-#include "flare/txshsimplelevel.h"
-#include "flare/tcamera.h"
-#include "flare/sceneproperties.h"
-#include "flare/tstageobjecttree.h"
-#include "flare/txshleveltypes.h"
+#include "toonz/tscenehandle.h"
+#include "toonz/tpalettehandle.h"
+#include "toonz/txshlevelhandle.h"
+#include "toonz/txsheethandle.h"
+#include "toonz/palettecontroller.h"
+#include "toonz/studiopalette.h"
+#include "toonz/toonzscene.h"
+#include "toonz/tproject.h"
+#include "toonz/txshcell.h"
+#include "toonz/txshsimplelevel.h"
+#include "toonz/tcamera.h"
+#include "toonz/sceneproperties.h"
+#include "toonz/tstageobjecttree.h"
+#include "toonz/txshleveltypes.h"
 // specify in the preference whether to replace the level after saveLevelAs
 // command
-#include "flare/preferences.h"
-#include "flare/tcolumnhandle.h"
-#include "flare/tframehandle.h"
-#include "flare/levelset.h"
-#include "flare/palettecmd.h"
-#include "flare/stage.h"
+#include "toonz/preferences.h"
+#include "toonz/tcolumnhandle.h"
+#include "toonz/tframehandle.h"
+#include "toonz/levelset.h"
+#include "toonz/palettecmd.h"
+#include "toonz/stage.h"
 
 // TnzCore includes
 #include "tsystem.h"
@@ -392,7 +392,7 @@ void FileBrowserPopup::showEvent(QShowEvent *) {
     // mode is set in user preferences
     if (Preferences::instance()->getPathAliasPriority() ==
         Preferences::SceneFolderAlias) {
-      flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
+      ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
       if (scene && !scene->isUntitled())
         setFolder(scene->getScenePath().getParentDir());
     }
@@ -628,7 +628,7 @@ bool SaveSceneAsPopup::execute() {
 }
 
 void SaveSceneAsPopup::initFolder() {
-  flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
+  ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
   if (!scene->isUntitled())
     setFolder(scene->getScenePath().getParentDir());
   else
@@ -653,7 +653,7 @@ bool SaveSubSceneAsPopup::execute() {
 }
 
 void SaveSubSceneAsPopup::initFolder() {
-  flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
+  ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
   if (!scene->isUntitled())
     setFolder(scene->getScenePath().getParentDir());
   else
@@ -1300,7 +1300,7 @@ void LoadLevelPopup::initFolder() {
   TFilePath fp;
 
   auto project      = TProjectManager::instance()->getCurrentProject();
-  flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
+  ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
 
   if (scene) fp = scene->decodeFilePath(project->getProjectFolder());
 
@@ -1374,7 +1374,7 @@ void LoadLevelPopup::updateBottomGUI() {
     m_arrangementFrame->setEnabled(false);
     m_levelPropertiesFrame->setEnabled(false);
   } else if (ext == "tnz") {
-    flareScene scene;
+    ToonzScene scene;
     scene.setScenePath(fp);
     int sceneLength = scene.getFrameCount();
     QString str;
@@ -1454,7 +1454,7 @@ QString LoadLevelPopup::getLevelNameWithoutSceneNumber(std::string orgName) {
   // do nothing if the level name has less than 7 letters
   if (levelOrgName.size() <= 6) return levelOrgName;
 
-  flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
+  ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
   if (!scene) return levelOrgName;
 
   QString sceneName = QString::fromStdWString(scene->getSceneName()).left(5);
@@ -1681,7 +1681,7 @@ bool SaveLevelAsPopup::execute() {
 
 void SaveLevelAsPopup::initFolder() {
   auto project      = TProjectManager::instance()->getCurrentProject();
-  flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
+  ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
   TFilePath fp;
   if (scene) fp = scene->decodeFilePath(project->getFolder(TProject::Drawings));
   setFolder(fp);
@@ -1706,7 +1706,7 @@ public:
       DVGui::warning(QObject::tr("No Current Level"));
       return;
     }
-    flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
+    ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
     if (!scene) {
       DVGui::warning(QObject::tr("No Current Scene"));
       return;
@@ -2024,7 +2024,7 @@ bool LoadColorModelPopup::execute() {
       std::cout << framesInput[i] << std::endl;
   }
 
-  flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
+  ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
 
   int isLoaded = PaletteCmd::loadReferenceImage(paletteHandle, config, fp,
                                                 scene, framesInput);
@@ -2232,7 +2232,7 @@ void ReplaceParentDirectoryPopup::initFolder() {
 // ImportMagpieFilePopup
 
 ImportMagpieFilePopup::ImportMagpieFilePopup()
-    : FileBrowserPopup(tr("Import flare Lip Sync File")) {
+    : FileBrowserPopup(tr("Import Toonz Lip Sync File")) {
   setOkText(tr("Load"));
   addFilterType("tls");
 }
@@ -2257,7 +2257,7 @@ bool ImportMagpieFilePopup::execute() {
 
 void ImportMagpieFilePopup::initFolder() {
   auto project      = TProjectManager::instance()->getCurrentProject();
-  flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
+  ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
   TFilePath fp;
   if (scene) fp = scene->decodeFilePath(project->getFolder(TProject::Drawings));
   setFolder(fp);
@@ -2297,13 +2297,13 @@ void BrowserPopup::initFolder(TFilePath path) {
   // if the path is empty
   if (path.isEmpty()) {
     auto project      = TProjectManager::instance()->getCurrentProject();
-    flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
+    ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
     if (scene)
       setFolder(scene->decodeFilePath(project->getFolder(TProject::Drawings)));
     return;
   }
   if (!TFileStatus(path).doesExist()) {
-    flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
+    ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
     if (scene) path = scene->decodeFilePath(path);
   }
 
@@ -2318,7 +2318,7 @@ void BrowserPopup::initFolder(TFilePath path) {
 /* N.B. Eliminare nel momento in cui la classe FileBrowserPopup, con tutte le
    classi annesse
                                 (FileBrowser, DvDirTreeView, ...), sara'
-   spostata nella libreria flareQt. */
+   spostata nella libreria toonzQt. */
 BrowserPopupController::BrowserPopupController() : m_browserPopup() {
   m_isExecute = false;
   DVGui::FileField::setBrowserPopupController(this);
@@ -2373,7 +2373,7 @@ void BrowserPopupController::openPopup(QStringList filters,
 QString BrowserPopupController::getPath(bool codePath) {
   m_isExecute = false;
   if (!m_browserPopup) return QString();
-  flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
+  ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
   TFilePath fp      = m_browserPopup->getPath();
   if (scene && codePath) fp = scene->codeFilePath(fp);
   std::cout << ::to_string(fp) << std::endl;
@@ -2405,4 +2405,3 @@ OpenReplaceFilePopupHandler<ReplaceLevelPopup> replaceLevelPopupCommand(
     MI_ReplaceLevel);
 OpenReplaceFilePopupHandler<ReplaceParentDirectoryPopup>
     replaceParentFolderPopupCommand(MI_ReplaceParentDirectory);
-

@@ -1,19 +1,19 @@
 
 
-#include "flareqt/functionsheet.h"
+#include "toonzqt/functionsheet.h"
 
 // TnzQt includes
-#include "flareqt/gutil.h"
-#include "flareqt/functionviewer.h"
+#include "toonzqt/gutil.h"
+#include "toonzqt/functionviewer.h"
 
 // TnzLib includes
-#include "flare/tframehandle.h"
-#include "flare/doubleparamcmd.h"
-#include "flare/preferences.h"
-#include "flare/flarefolders.h"
-#include "flare/tstageobject.h"
-#include "flare/txsheethandle.h"
-#include "flare/txsheet.h"
+#include "toonz/tframehandle.h"
+#include "toonz/doubleparamcmd.h"
+#include "toonz/preferences.h"
+#include "toonz/toonzfolders.h"
+#include "toonz/tstageobject.h"
+#include "toonz/txsheethandle.h"
+#include "toonz/txsheet.h"
 
 // TnzBase includes
 #include "tunit.h"
@@ -1192,7 +1192,7 @@ FunctionSheet::FunctionSheet(QWidget *parent, bool isFloating)
 
   if (m_isFloating) {
     // load the dialog size
-    TFilePath fp(flareFolder::getMyModuleDir() + TFilePath("popups.ini"));
+    TFilePath fp(ToonzFolder::getMyModuleDir() + TFilePath("popups.ini"));
     QSettings settings(toQString(fp), QSettings::IniFormat);
 
     setGeometry(settings.value("FunctionSpreadsheet", QRect(500, 500, 400, 300))
@@ -1208,7 +1208,7 @@ FunctionSheet::FunctionSheet(QWidget *parent, bool isFloating)
 
 FunctionSheet::~FunctionSheet() {
   if (m_isFloating) {
-    TFilePath fp(flareFolder::getMyModuleDir() + TFilePath("popups.ini"));
+    TFilePath fp(ToonzFolder::getMyModuleDir() + TFilePath("popups.ini"));
     QSettings settings(toQString(fp), QSettings::IniFormat);
 
     settings.setValue("FunctionSpreadsheet", geometry());
@@ -1446,4 +1446,3 @@ void FunctionSheet::onZoomScaleChanged() {
   scroll(xyNew - xyOrig);
   update();
 }
-

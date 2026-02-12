@@ -1,9 +1,9 @@
 
 
-#include "flare/ttileset.h"
+#include "toonz/ttileset.h"
 #include "tcodec.h"
 #include "timagecache.h"
-#include "tflareimage.h"
+#include "ttoonzimage.h"
 #include "trasterimage.h"
 //------------------------------------------------------------------------------------------
 
@@ -65,7 +65,7 @@ TTileSetCM32::Tile::Tile() : TTileSet::Tile() {}
 
 TTileSetCM32::Tile::Tile(const TRasterCM32P &ras, const TPoint &p)
     : TTileSet::Tile(TRasterP(ras), p) {
-  TImageCache::instance()->add(id(), TflareImageP(ras, ras->getBounds()));
+  TImageCache::instance()->add(id(), TToonzImageP(ras, ras->getBounds()));
 }
 
 //------------------------------------------------------------------------------------------
@@ -79,7 +79,7 @@ TTileSetCM32::~TTileSetCM32() {}
 //------------------------------------------------------------------------------------------
 
 void TTileSetCM32::Tile::getRaster(TRasterCM32P &ras) const {
-  TflareImageP timg = (TflareImageP)TImageCache::instance()->get(id(), true);
+  TToonzImageP timg = (TToonzImageP)TImageCache::instance()->get(id(), true);
   if (!timg) return;
   ras = timg->getRaster();
   assert(ras);
@@ -90,7 +90,7 @@ void TTileSetCM32::Tile::getRaster(TRasterCM32P &ras) const {
 TTileSetCM32::Tile *TTileSetCM32::Tile::clone() const {
   Tile *tile           = new Tile();
   tile->m_rasterBounds = m_rasterBounds;
-  TflareImageP timg    = (TflareImageP)TImageCache::instance()->get(id(), true);
+  TToonzImageP timg    = (TToonzImageP)TImageCache::instance()->get(id(), true);
   if (!timg) return tile;
   TImageCache::instance()->add(tile->id(), timg->clone());
   return tile;
@@ -213,4 +213,3 @@ TTileSetFullColor *TTileSetFullColor::clone() const {
   for (; it != m_tiles.end(); ++it) tileSet->m_tiles.push_back((*it)->clone());
   return tileSet;
 }
-

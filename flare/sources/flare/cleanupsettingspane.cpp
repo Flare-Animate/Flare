@@ -1,19 +1,19 @@
 
-// flareCore includes
+// ToonzCore includes
 #include "tmsgcore.h"
 
-// flareLib includes
-#include "flare/txshlevelhandle.h"
-#include "flare/tscenehandle.h"
-#include "flare/flarescene.h"
-#include "flare/flarefolders.h"
-#include "flare/cleanupcolorstyles.h"
+// ToonzLib includes
+#include "toonz/txshlevelhandle.h"
+#include "toonz/tscenehandle.h"
+#include "toonz/toonzscene.h"
+#include "toonz/toonzfolders.h"
+#include "toonz/cleanupcolorstyles.h"
 
-// flareQt includes
-#include "flareqt/gutil.h"
-#include "flareqt/doublefield.h"
+// ToonzQt includes
+#include "toonzqt/gutil.h"
+#include "toonzqt/doublefield.h"
 
-// flare includes
+// Toonz includes
 #include "tapp.h"
 #include "cleanupsettingsmodel.h"
 #include "cleanuppaletteviewer.h"
@@ -135,7 +135,7 @@ CleanupSettingsPane::CleanupSettingsPane(QWidget *parent)
   m_rotateOm->addItems(rotate);
   // Camera
   cameraFrame->setObjectName("CleanupSettingsFrame");
-  m_cameraWidget->setCameraPresetListFile(flareFolder::getReslistPath(true));
+  m_cameraWidget->setCameraPresetListFile(ToonzFolder::getReslistPath(true));
   // LineProcessing
   lineProcFrame->setObjectName("CleanupSettingsFrame");
   QStringList items;
@@ -449,7 +449,7 @@ void CleanupSettingsPane::updateImageInfo() {
   TFrameId fid;
   model->getCleanupFrame(sl, fid);
 
-  flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
+  ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
   TFilePath outputPath(
       sl ? scene->decodeFilePath(model->getOutputPath(sl, params))
          : TFilePath());
@@ -615,4 +615,3 @@ void CleanupSettingsPane::onSaveSettings() {
   }
   CleanupSettingsModel::instance()->promptSave();
 }
-

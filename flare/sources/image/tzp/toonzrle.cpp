@@ -2,7 +2,7 @@
 
 #include "tiffiop.h"
 #include <assert.h>
-#include "flaretags.h"
+#include "toonztags.h"
 #include "tnztypes.h"
 
 #ifndef UCHAR
@@ -18,29 +18,29 @@
 #endif
 
 extern "C" {
-static int tif_flare1_decode_cm24(UCHAR* buf_in, int* buf_in_len,
+static int tif_toonz1_decode_cm24(UCHAR* buf_in, int* buf_in_len,
                                   TUINT32* buf_out);
 
-static int tif_flare1_decode_cm16(UCHAR* buf_in, int* buf_in_len,
+static int tif_toonz1_decode_cm16(UCHAR* buf_in, int* buf_in_len,
                                   USHORT* buf_out, int tone_bits,
                                   int color_offs, int color_bits,
                                   int pencil_offs, int pencil_bits,
                                   USHORT offset_mask);
-static int flare1Decode(TIFF* tif, tidataval_t* buffer, tsize_t bytes,
+static int Toonz1Decode(TIFF* tif, tidataval_t* buffer, tsize_t bytes,
                         tsample_t s);
 
-static int TIFFInitflare1(TIFF* tif, int) {
-  tif->tif_decoderow   = flare1Decode;
+static int TIFFInitToonz1(TIFF* tif, int) {
+  tif->tif_decoderow   = Toonz1Decode;
   tif->tif_decodestrip = 0;
   tif->tif_decodetile  = 0;
-  tif->tif_encoderow   = 0;  // flare1Encode;
+  tif->tif_encoderow   = 0;  // Toonz1Encode;
   tif->tif_encodestrip = 0;
   tif->tif_encodetile  = 0;
   return 1;
 }
 //-------------------- DECODE
 
-static int flare1Decode(TIFF* tif, tidataval_t* buffer, tsize_t bytes,
+static int Toonz1Decode(TIFF* tif, tidataval_t* buffer, tsize_t bytes,
                         tsample_t s) {
   int enc, dec;
   short bitspersample;
@@ -54,7 +54,7 @@ static int flare1Decode(TIFF* tif, tidataval_t* buffer, tsize_t bytes,
   case 8:
     assert(!"Not Implemented");
     /*
-dec = tif_flare1_decode_extra ((UCHAR *)tif->tif_rawcp, &enc,
+dec = tif_toonz1_decode_extra ((UCHAR *)tif->tif_rawcp, &enc,
                        (UCHAR *)buffer);
 */
     break;
@@ -62,7 +62,7 @@ dec = tif_flare1_decode_extra ((UCHAR *)tif->tif_rawcp, &enc,
   case 16: {
     USHORT* palette;
     USHORT paletteCount;
-    if (TIFFGetField(tif, TIFFTAG_flarePALETTE, &paletteCount, &palette)) {
+    if (TIFFGetField(tif, TIFFTAG_TOONZPALETTE, &paletteCount, &palette)) {
       tone_bits   = palette[4];
       color_offs  = palette[5];
       color_bits  = palette[6];
@@ -77,14 +77,14 @@ dec = tif_flare1_decode_extra ((UCHAR *)tif->tif_rawcp, &enc,
       pencil_bits = 5;
       offset_mask = 0;
     }
-    dec = tif_flare1_decode_cm16((UCHAR*)tif->tif_rawcp, &enc, (USHORT*)buffer,
+    dec = tif_toonz1_decode_cm16((UCHAR*)tif->tif_rawcp, &enc, (USHORT*)buffer,
                                  tone_bits, color_offs, color_bits, pencil_offs,
                                  pencil_bits, offset_mask);
   } break;
 
   case 32:
     dec =
-        tif_flare1_decode_cm24((UCHAR*)tif->tif_rawcp, &enc, (TUINT32*)buffer);
+        tif_toonz1_decode_cm24((UCHAR*)tif->tif_rawcp, &enc, (TUINT32*)buffer);
     break;
 
   default:
@@ -100,7 +100,7 @@ dec = tif_flare1_decode_extra ((UCHAR *)tif->tif_rawcp, &enc,
 
 //-------------------- DECODE CM16 ----------------------------
 
-static int tif_flare1_decode_cm16(UCHAR* buf_in, int* buf_in_len,
+static int tif_toonz1_decode_cm16(UCHAR* buf_in, int* buf_in_len,
                                   USHORT* buf_out, int tone_bits,
                                   int color_offs, int color_bits,
                                   int pencil_offs, int pencil_bits,
@@ -398,7 +398,7 @@ rle_decoding_error:
 
 //-------------------- DECODE CM24 ----------------------------
 
-static int tif_flare1_decode_cm24(UCHAR* buf_in, int* buf_in_len,
+static int tif_toonz1_decode_cm24(UCHAR* buf_in, int* buf_in_len,
                                   TUINT32* buf_out) {
   UCHAR* in;
   TUINT32* out;
@@ -520,24 +520,24 @@ rle_decoding_error:
 
 namespace {
 
-class flareRleCodecRegisterer {
+class ToonzRleCodecRegisterer {
   static TIFFCodec* m_codec;
 
 public:
-  flareRleCodecRegisterer() {
+  ToonzRleCodecRegisterer() {
     uint16 scheme    = 32881;
-    const char* name = "flare4RLE";
-    m_codec          = TIFFRegisterCODEC(scheme, name, &TIFFInitflare1);
+    const char* name = "TOONZ4RLE";
+    m_codec          = TIFFRegisterCODEC(scheme, name, &TIFFInitToonz1);
   }
-  ~flareRleCodecRegisterer() {
+  ~ToonzRleCodecRegisterer() {
     TIFFUnRegisterCODEC(m_codec);
     m_codec = 0;
   }
 };
 
-TIFFCodec* flareRleCodecRegisterer::m_codec = 0;
+TIFFCodec* ToonzRleCodecRegisterer::m_codec = 0;
 
-flareRleCodecRegisterer registerer;
+ToonzRleCodecRegisterer registerer;
 }  // namespace
 
 //=============================================================================
@@ -564,7 +564,7 @@ extern "C" {
 
 /*---------------------------------------------------------------------------*/
 
-  int tif_flare1_safe_bytes_for_pixels(int n_pix, int pixbytes)
+  int tif_toonz1_safe_bytes_for_pixels(int n_pix, int pixbytes)
   {
     if (n_pix < 0)
       return 0;
@@ -579,7 +579,7 @@ extern "C" {
 
   /*---------------------------------------------------------------------------*/
 
-  static int tif_flare1_encode_cm16(USHORT* buf_in, int buf_in_len,
+  static int tif_toonz1_encode_cm16(USHORT* buf_in, int buf_in_len,
     UCHAR* buf_out,
     int tone_bits,
     int color_offs, int color_bits,
@@ -656,7 +656,7 @@ extern "C" {
       goto check_tone_on_out0;
     lastcolpen = incolpen;
     if (!remain)
-      goto end_flare1_encoding_on_out0;
+      goto end_toonz1_encoding_on_out0;
 
     /*check_col_on_out0:*/
     incol__ = inval & colmask;
@@ -826,7 +826,7 @@ extern "C" {
       goto check_tone_on_out1;
     lastcolpen = incolpen;
     if (!remain)
-      goto end_flare1_encoding_on_out1;
+      goto end_toonz1_encoding_on_out1;
 
     /*check_col_on_out1:*/
     incol__ = inval & colmask;
@@ -983,7 +983,7 @@ extern "C" {
         goto check_colpen_on_out0;
     }
 
-  end_flare1_encoding_on_out0:
+  end_toonz1_encoding_on_out0:
     if (save == (in[-2] | maxtone))
     {
       outval = 0xFE;
@@ -1003,7 +1003,7 @@ extern "C" {
     buf_in[buf_in_len - 1] = save;
     return out - buf_out;
 
-  end_flare1_encoding_on_out1:
+  end_toonz1_encoding_on_out1:
     if (save == (in[-2] | maxtone))
     {
       outval |= 0xF;
@@ -1028,7 +1028,7 @@ extern "C" {
 
   /*---------------------------------------------------------------------------*/
 
-  static int tif_flare1_encode_cm24(TUINT32* buf_in, int buf_in_len,
+  static int tif_toonz1_encode_cm24(TUINT32* buf_in, int buf_in_len,
     UCHAR* buf_out)
   {
     int   count, prevremain, remain;
@@ -1110,7 +1110,7 @@ extern "C" {
         {
           lastenot = inenot;
           if (!remain)
-            goto end_flare1_encoding;
+            goto end_toonz1_encoding;
 
           incol__ = inval & colmask;
           if (incol__ != lastcol__)
@@ -1225,7 +1225,7 @@ extern "C" {
         }
       }
 
-  end_flare1_encoding:
+  end_toonz1_encoding:
     if (save == (in[-2] | maxtone))
     {
       outval = 0xFE;
@@ -1254,7 +1254,7 @@ extern "C" {
 
   /*---------------------------------------------------------------------------*/
 
-  static int tif_flare1_encode_extra(UCHAR* buf_in, int buf_in_len,
+  static int tif_toonz1_encode_extra(UCHAR* buf_in, int buf_in_len,
     UCHAR* buf_out)
   {
     UCHAR* in, inval, lastval, save;
@@ -1321,7 +1321,7 @@ extern "C" {
   }
 
 
-  static int tif_flare1_decode_extra(UCHAR* buf_in, int* buf_in_len,
+  static int tif_toonz1_decode_extra(UCHAR* buf_in, int* buf_in_len,
     UCHAR* buf_out)
   {
     UCHAR* in, val;
@@ -1362,7 +1362,7 @@ extern "C" {
   /*---------------------------------------------------------------------------*/
 
   static int
-    DECLARE4(flare1Encode, TIFF*, tif, u_char*, buffer, u_long, bytes, u_int, s)
+    DECLARE4(Toonz1Encode, TIFF*, tif, u_char*, buffer, u_long, bytes, u_int, s)
   {
     int enc;
     short bitspersample;
@@ -1376,12 +1376,12 @@ extern "C" {
     switch (bitspersample)
     {
     case 8:
-      enc = tif_flare1_encode_extra((UCHAR*)buffer, (int)bytes,
+      enc = tif_toonz1_encode_extra((UCHAR*)buffer, (int)bytes,
         (UCHAR*)tif->tif_rawcp);
       break;
 
     case 16:
-      if (TIFFGetField(tif, TIFFTAG_flarePALETTE, &palette))
+      if (TIFFGetField(tif, TIFFTAG_TOONZPALETTE, &palette))
       {
         tone_bits = palette[4];
         color_offs = palette[5];  color_bits = palette[6];
@@ -1395,7 +1395,7 @@ extern "C" {
         pencil_offs = 11;  pencil_bits = 5;
         offset_mask = 0;
       }
-      enc = tif_flare1_encode_cm16((USHORT*)buffer, (int)(bytes >> 1),
+      enc = tif_toonz1_encode_cm16((USHORT*)buffer, (int)(bytes >> 1),
         (UCHAR*)tif->tif_rawcp,
         tone_bits,
         color_offs, color_bits,
@@ -1403,7 +1403,7 @@ extern "C" {
       break;
 
     case 32:
-      enc = tif_flare1_encode_cm24((TUINT32*)buffer, (int)(bytes >> 2),
+      enc = tif_toonz1_encode_cm24((TUINT32*)buffer, (int)(bytes >> 2),
         (UCHAR*)tif->tif_rawcp);
       break;
 

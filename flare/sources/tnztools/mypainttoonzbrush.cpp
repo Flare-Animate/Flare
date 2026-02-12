@@ -1,10 +1,10 @@
 
 #include <algorithm>
 
-#include "mypaintflarebrush.h"
+#include "mypainttoonzbrush.h"
 #include "tropcm.h"
 #include "tpixelutils.h"
-#include <flare/mypainthelpers.hpp>
+#include <toonz/mypainthelpers.hpp>
 
 #include <QColor>
 
@@ -105,11 +105,11 @@ void Raster32PMyPaintSurface::setAntialiasing(bool value) {
 
 //=======================================================
 //
-// MyPaintflareBrush
+// MyPaintToonzBrush
 //
 //=======================================================
 
-MyPaintflareBrush::MyPaintflareBrush(const TRaster32P &ras,
+MyPaintToonzBrush::MyPaintToonzBrush(const TRaster32P &ras,
                                      RasterController &controller,
                                      const mypaint::Brush &brush,
                                      bool interpolation)
@@ -129,13 +129,13 @@ MyPaintflareBrush::MyPaintflareBrush(const TRaster32P &ras,
                               (MyPaintBrushInput)i, 0);
 }
 
-void MyPaintflareBrush::beginStroke() {
+void MyPaintToonzBrush::beginStroke() {
   m_brush.reset();
   m_brush.newStroke();
   m_reset = true;
 }
 
-void MyPaintflareBrush::endStroke() {
+void MyPaintToonzBrush::endStroke() {
   if (!m_reset) {
     if (m_interpolation)
       strokeTo(TPointD(m_current.x, m_current.y), m_current.pressure,
@@ -144,7 +144,7 @@ void MyPaintflareBrush::endStroke() {
   }
 }
 
-void MyPaintflareBrush::strokeTo(const TPointD &position, double pressure,
+void MyPaintToonzBrush::strokeTo(const TPointD &position, double pressure,
                                  const TPointD &tilt, double dtime) {
   Params next(position.x, position.y, pressure, tilt.x, tilt.y, 0.0);
 
@@ -212,7 +212,7 @@ void MyPaintflareBrush::strokeTo(const TPointD &position, double pressure,
 
 //----------------------------------------------------------------------------------
 
-void MyPaintflareBrush::updateDrawing(const TRasterCM32P rasCM,
+void MyPaintToonzBrush::updateDrawing(const TRasterCM32P rasCM,
                                       const TRasterCM32P rasBackupCM,
                                       const TRect &bbox, int styleId,
                                       bool lockAlpha) const {
@@ -226,4 +226,3 @@ void MyPaintflareBrush::updateDrawing(const TRasterCM32P rasCM,
   putOnRasterCM(rasCM->extract(targetRect), m_ras->extract(targetRect), styleId,
                 lockAlpha);
 }
-

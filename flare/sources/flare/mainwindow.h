@@ -4,7 +4,7 @@
 #define TESTCUSTOMTAB_H
 
 #include "tfilepath.h"
-#include "flareqt/menubarcommand.h"
+#include "toonzqt/menubarcommand.h"
 
 #include <QtWidgets/QMainWindow>
 #include <map>
@@ -12,7 +12,7 @@
 #include <QString>
 #include <QSettings>
 
-#include "../flareqt/tdockwindows.h"
+#include "../toonzqt/tdockwindows.h"
 
 #include <memory>
 
@@ -119,7 +119,7 @@ public:
   void refreshWriteSettings();
 
   void onNewVectorLevelButtonPressed();
-  void onNewflareRasterLevelButtonPressed();
+  void onNewToonzRasterLevelButtonPressed();
   void onNewRasterLevelButtonPressed();
   void clearCacheFolder();
   void onNewMetaLevelButtonPressed();
@@ -276,4 +276,3 @@ protected:
 };
 
 #endif  // TESTCUSTOMTAB_H
-

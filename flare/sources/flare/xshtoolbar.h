@@ -5,9 +5,9 @@
 
 #include <memory>
 
-#include "flare/txsheet.h"
+#include "toonz/txsheet.h"
 #include "commandbar.h"
-#include "flareqt/keyframenavigator.h"
+#include "toonzqt/keyframenavigator.h"
 
 #include <QToolBar>
 
@@ -47,4 +47,3 @@ protected slots:
 }  // namespace XsheetGUI
 
 #endif  // XSHTOOLBAR_H
-

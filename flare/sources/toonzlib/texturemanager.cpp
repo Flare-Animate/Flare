@@ -2,7 +2,7 @@
 
 #include "texturemanager.h"
 #include "tsystem.h"
-#include "flare/preferences.h"
+#include "toonz/preferences.h"
 
 #include <sstream>
 
@@ -143,4 +143,3 @@ UCHAR *m_transpRow;  // comune a RGBM e GR8...
 TextureManager::TextureManager() : m_textureSize(0, 0), m_isRGBM(true) {}
 
 TextureManager *TextureManager::m_instance;
-

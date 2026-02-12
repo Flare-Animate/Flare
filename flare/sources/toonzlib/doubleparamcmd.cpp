@@ -1,8 +1,8 @@
 
 
-#include "flare/doubleparamcmd.h"
-#include "flare/preferences.h"
-#include "flare/tscenehandle.h"
+#include "toonz/doubleparamcmd.h"
+#include "toonz/preferences.h"
+#include "toonz/tscenehandle.h"
 #include "tdoubleparam.h"
 #include "tdoublekeyframe.h"
 #include "tundo.h"
@@ -865,4 +865,3 @@ void KeyframeSetter::enableCycle(TDoubleParam *curve, bool enabled,
   if (sceneHandle) sceneHandle->notifySceneChanged();
   TUndoManager::manager()->add(new EnableCycleUndo(curve, sceneHandle));
 }
-

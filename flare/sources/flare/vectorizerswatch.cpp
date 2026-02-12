@@ -2,20 +2,20 @@
 
 // TnzCore includes
 #include "trasterimage.h"
-#include "tflareimage.h"
+#include "ttoonzimage.h"
 #include "tvectorimage.h"
 #include "drawutil.h"
 
 // TnzLib includes
-#include "flare/flarescene.h"
-#include "flare/sceneproperties.h"
-#include "flare/tscenehandle.h"
-#include "flare/txshsimplelevel.h"
-#include "flare/txshlevelhandle.h"
-#include "flare/txsheethandle.h"
-#include "flare/tframehandle.h"
-#include "flare/tcolumnhandle.h"
-#include "flare/stage.h"
+#include "toonz/toonzscene.h"
+#include "toonz/sceneproperties.h"
+#include "toonz/tscenehandle.h"
+#include "toonz/txshsimplelevel.h"
+#include "toonz/txshlevelhandle.h"
+#include "toonz/txsheethandle.h"
+#include "toonz/tframehandle.h"
+#include "toonz/tcolumnhandle.h"
+#include "toonz/stage.h"
 
 // Tnz6 includes
 #include "tapp.h"
@@ -65,7 +65,7 @@ std::unique_ptr<VectorizerConfiguration> getCurrentVectorizerConfiguration(
   TApp *app    = TApp::instance();
   TXsheet *xsh = app->getCurrentXsheet()->getXsheet();
 
-  const flareScene *scene = app->getCurrentScene()->getScene();
+  const ToonzScene *scene = app->getCurrentScene()->getScene();
   assert(scene);
 
   const VectorizerParameters *vParams =
@@ -107,7 +107,7 @@ struct VectorizationBuilder final : public TThread::Executor {
 
   QList<VectorizerSwatchArea *> m_listeners;
 
-  // flare Raster Level may have palette including MyPaint styles,
+  // Toonz Raster Level may have palette including MyPaint styles,
   // which cannot be rendered in vector levels.
   // In such case prepare an alternative palette in which MyPaint styles
   // are converted to solid color styles.
@@ -202,7 +202,7 @@ void VectorizationBuilder::notifyDone(TImageP img) {
 
 void VectorizationBuilder::prepareSupstitutePaletteIfNeeded(int row, int col) {
   // Retrieve the image to be vectorized
-  TflareImageP ti(getXsheetImage(row, col));
+  TToonzImageP ti(getXsheetImage(row, col));
   if (!ti) return;
   m_substitutePalette = ti->getPalette()->clone();
   bool found          = false;
@@ -255,7 +255,7 @@ void VectorizationSwatchTask::run() {
   if (!m_image || !m_config.get()) return;
 
   // The task must be performed - retrieve and prepare configuration data
-  flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
+  ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
 
   VectorizerConfiguration *c = m_config.get();
 
@@ -263,7 +263,7 @@ void VectorizationSwatchTask::run() {
   TPaletteP palette;
   TPointD center, dpi;
 
-  if (TflareImageP ti = m_image) {
+  if (TToonzImageP ti = m_image) {
     palette = (m_substitutePalette) ? m_substitutePalette : ti->getPalette();
     center  = ti->getRaster()->getCenterD();
     ti->getDpi(dpi.x, dpi.y);
@@ -552,4 +552,3 @@ void VectorizerSwatchArea::hideEvent(QHideEvent *he) {
 
   if (isEnabled()) disconnectUpdates();
 }
-

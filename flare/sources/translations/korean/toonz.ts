@@ -615,12 +615,12 @@ Please create this folder before using the render farm.</source>
 렌더링 팜을 사용하기 전에 폴더를 생성하세요.</translation>
     </message>
     <message>
-        <source>Unable to connect to the flareFarm Controller
+        <source>Unable to connect to the ToonzFarm Controller
    The Controller should run on %1 at port %2
-   Please start the Controller before using the flareFarm</source>
+   Please start the Controller before using the ToonzFarm</source>
         <translation>Tooz팜 컨트롤러에 연결할 수 없음.
 컨트롤러는 %1에서 %2에서 실행하세요.
-flare 팜을 사용하기 전에 컨트롤러를 시작하세요</translation>
+Toonz 팜을 사용하기 전에 컨트롤러를 시작하세요</translation>
     </message>
 </context>
 <context>
@@ -1960,7 +1960,7 @@ What do you want to do? </source>
     </message>
     <message>
         <source>When activated, styles of the default palette
-($flareSTUDIOPALETTE\cleanup_default.tpl) will 
+($TOONZSTUDIOPALETTE\cleanup_default.tpl) will 
 be appended to the palette after conversion in 
 order to save the effort of creating styles 
 before color designing.</source>
@@ -3513,7 +3513,7 @@ Do you want to overwrite it?</source>
         <translation>저장할 렌더링된 이미지가 없음.</translation>
     </message>
     <message>
-        <source>It is not possible to take or compare snapshots for flare vector levels.</source>
+        <source>It is not possible to take or compare snapshots for Toonz vector levels.</source>
         <translation>툰즈 백터 레벨에 대한 스냅샷을 만들거나 비교할 수 없음.</translation>
     </message>
     <message>
@@ -3675,7 +3675,7 @@ Do you want to overwrite it?</source>
         <translation>%1이 존재하지 않음.</translation>
     </message>
     <message>
-        <source>Import flare Lip Sync File</source>
+        <source>Import Toonz Lip Sync File</source>
         <translation>립 싱크 파일 가져 오기</translation>
     </message>
 </context>
@@ -3900,11 +3900,11 @@ Do you want to overwrite it?</source>
         <translation>적용</translation>
     </message>
     <message>
-        <source>flare Vector Level</source>
+        <source>Toonz Vector Level</source>
         <translation>툰즈 벡터 레벨</translation>
     </message>
     <message>
-        <source>flare Raster Level</source>
+        <source>Toonz Raster Level</source>
         <translation>툰즈 래스터 레벨</translation>
     </message>
     <message>
@@ -4081,11 +4081,11 @@ Do you want to create it?</source>
         <translation type="vanished">스캔 레벨</translation>
     </message>
     <message>
-        <source>flare Vector level</source>
+        <source>Toonz Vector level</source>
         <translation>툰즈 백터 레벨</translation>
     </message>
     <message>
-        <source>flare Raster level</source>
+        <source>Toonz Raster level</source>
         <translation>툰즈 래스터 레벨</translation>
     </message>
     <message>
@@ -4685,7 +4685,7 @@ Please use the frame numbers for reference.</source>
         <translation>파일 경로가 없음.</translation>
     </message>
     <message>
-        <source>Import flare Lip Sync File</source>
+        <source>Import Toonz Lip Sync File</source>
         <translation>립 싱크 파일 가져 오기</translation>
     </message>
     <message>
@@ -4788,11 +4788,11 @@ Please use the frame numbers for reference.</source>
         <translation type="vanished">뉴 벡터 레벨</translation>
     </message>
     <message>
-        <source>&amp;New flare Raster Level</source>
+        <source>&amp;New Toonz Raster Level</source>
         <translation>뉴 툰즈 래스터 레벨(&amp;N)</translation>
     </message>
     <message>
-        <source>New flare Raster Level</source>
+        <source>New Toonz Raster Level</source>
         <translation type="vanished">뉴 툰즈 래스터 레벨</translation>
     </message>
     <message>
@@ -5784,7 +5784,7 @@ Please use the frame numbers for reference.</source>
         <translation>백터로 변환...</translation>
     </message>
     <message>
-        <source>Vectors to flare Raster</source>
+        <source>Vectors to Toonz Raster</source>
         <translation>툰즈 래스터로 백터</translation>
     </message>
     <message>
@@ -6392,7 +6392,7 @@ Please use the frame numbers for reference.</source>
         <translation>Fx/스테이지 도식 전환</translation>
     </message>
     <message>
-        <source>http://flare.readthedocs.io</source>
+        <source>http://opentoonz.readthedocs.io</source>
         <translation></translation>
     </message>
     <message>
@@ -6463,14 +6463,14 @@ or you may delete necessary files for it.</source>
         <translation>
 확실 합니까?
 
-N.B. Open flare 다른 프로세스를 실행하고 있지 않은지 확인하세요. 또는 필요한 파일을 삭제할 수도 있음.</translation>
+N.B. Open Toonz 다른 프로세스를 실행하고 있지 않은지 확인하세요. 또는 필요한 파일을 삭제할 수도 있음.</translation>
     </message>
     <message>
         <source>Can&apos;t delete %1 : </source>
         <translation>%1을 삭제 할 수 있음:</translation>
     </message>
     <message>
-        <source>&amp;Import flare Lip Sync File...</source>
+        <source>&amp;Import Toonz Lip Sync File...</source>
         <translation>립싱크 파일 가져오기(&amp;I)...</translation>
     </message>
     <message>
@@ -6566,11 +6566,11 @@ N.B. Open flare 다른 프로세스를 실행하고 있지 않은지 확인하�
         <translation>모션 삽입 프레임 정지로 이동</translation>
     </message>
     <message>
-        <source>https://github.com/flare/flare/releases/latest</source>
+        <source>https://github.com/opentoonz/opentoonz/releases/latest</source>
         <translation></translation>
     </message>
     <message>
-        <source>https://groups.google.com/forum/#!forum/flare_en</source>
+        <source>https://groups.google.com/forum/#!forum/opentoonz_en</source>
         <translation></translation>
     </message>
     <message>
@@ -8651,7 +8651,7 @@ Is it OK to release these shortcuts?</source>
         <translation>오픈 툰즈가 시작될 떄 시작 창 표시</translation>
     </message>
     <message>
-        <source>Replace flare Level after SaveLevelAs command</source>
+        <source>Replace Toonz Level after SaveLevelAs command</source>
         <translation>다른 이름으로 레벨 저장 후 툰즈 레벨 바꾸기 명령</translation>
     </message>
     <message>
@@ -9093,11 +9093,11 @@ if both are possible on coding file path.</source>
         <translation>항상 현재 위치에서 파일가져오기 하세요</translation>
     </message>
     <message>
-        <source>flare Vector Level</source>
+        <source>Toonz Vector Level</source>
         <translation>툰즈 백터 레벨</translation>
     </message>
     <message>
-        <source>flare Raster Level</source>
+        <source>Toonz Raster Level</source>
         <translation>툰즈 래스터 레벨</translation>
     </message>
     <message>
@@ -10589,7 +10589,7 @@ Do you want to overwrite it?</source>
         <translation>사운드 트랙 %1 이미 존재함. 덮어쓰겠습니까?</translation>
     </message>
     <message>
-        <source>File %1 doesn&apos;t look like a flare Scene</source>
+        <source>File %1 doesn&apos;t look like a TOONZ Scene</source>
         <translation>%1 파일이 툰즈 장면처럼 보이지 않음</translation>
     </message>
     <message>
@@ -11482,7 +11482,7 @@ X시트/ 타임에서 중복 명령을 사용하세요.</translation>
         <translation type="vanished">이미 존재함! 덮어쓰겠습니까?</translation>
     </message>
     <message>
-        <source>Match lines can be applied to flare raster levels only.</source>
+        <source>Match lines can be applied to Toonz raster levels only.</source>
         <translation>매치 라인은 툰즈 래스터 레벨에만 적용할 수 있음.</translation>
     </message>
     <message>
@@ -11506,7 +11506,7 @@ X시트/ 타임에서 중복 명령을 사용하세요.</translation>
         <translation>선택한 셀은 동일한 열에 있어야함.</translation>
     </message>
     <message>
-        <source>Match lines can be deleted from flare raster levels only</source>
+        <source>Match lines can be deleted from Toonz raster levels only</source>
         <translation>매치 라인은 툰즈 래스터 레벨에서만 삭제할 수 있음</translation>
     </message>
     <message>
@@ -11582,7 +11582,7 @@ X시트/ 타임에서 중복 명령을 사용하세요.</translation>
         <translation>백터 레벨만 백터 레벨로 병합 할 수 있음.</translation>
     </message>
     <message>
-        <source>It is possible to merge only flare vector levels or standard raster levels.</source>
+        <source>It is possible to merge only Toonz vector levels or standard raster levels.</source>
         <translation>툰즈 백터 레벨 또는 표준 래스터 레벨만 병합 할 수 있음.</translation>
     </message>
     <message>
@@ -11642,7 +11642,7 @@ X시트/ 타임에서 중복 명령을 사용하세요.</translation>
         <translation>지정한 프레임 범위에서 사용할 수 있는 도면이 없음.</translation>
     </message>
     <message>
-        <source>Cannot open menubar settings template file. Re-installing flare will solve this problem.</source>
+        <source>Cannot open menubar settings template file. Re-installing Toonz will solve this problem.</source>
         <translation>메뉴 모음 설정 템플릿 파일을 열수 없음. 툰즈를 다시 설치하면 이문제가 해결됨.</translation>
     </message>
     <message>
@@ -11654,7 +11654,7 @@ X시트/ 타임에서 중복 명령을 사용하세요.</translation>
         <translation>더 이상 재실행 작업이 없음.</translation>
     </message>
     <message>
-        <source>The rooms will be reset the next time you run flare.</source>
+        <source>The rooms will be reset the next time you run Toonz.</source>
         <translation type="vanished">다음에 툰즈를 실행하면 방이 재설정 됨.</translation>
     </message>
     <message>
@@ -11672,7 +11672,7 @@ Visit the Web site for more information.</source>
         <translation>출시 시 최신 버전을 확인하세요.</translation>
     </message>
     <message>
-        <source>https://flare.github.io/e/</source>
+        <source>https://opentoonz.github.io/e/</source>
         <translation></translation>
     </message>
     <message>
@@ -12589,7 +12589,7 @@ which may not be displayed correctly or may cause errors in applications other t
     </message>
 </context>
 <context>
-    <name>RenameAsflarePopup</name>
+    <name>RenameAsToonzPopup</name>
     <message>
         <source>The file name cannot be empty or contain any of the following characters:(new line)  \ / : * ? &quot;  |</source>
         <translation>파일 이름은 비워둘 수 없으며, 다음 문자를 포함 할 수 없음:(새 줄)  \ / : * ?  &quot; |</translation>
@@ -16885,4 +16885,3 @@ Hold F3 Key on the Viewer to Show This Frame Only</source>
     </message>
 </context>
 </TS>
-

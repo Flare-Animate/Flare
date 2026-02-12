@@ -9,8 +9,8 @@
 #include "filebrowsermodel.h"
 
 // TnzQt includes
-#include "flareqt/selection.h"
-#include "flareqt/lineedit.h"
+#include "toonzqt/selection.h"
+#include "toonzqt/lineedit.h"
 
 // TnzCore includes
 #include "tfilepath.h"
@@ -334,4 +334,3 @@ private:
 };
 
 #endif  // DVDIRTREEVIEW_H
-

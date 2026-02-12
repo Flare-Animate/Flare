@@ -1,9 +1,9 @@
 
 
-#include "flare/levelproperties.h"
+#include "toonz/levelproperties.h"
 
 // TnzLib includes
-#include "flare/stage.h"
+#include "toonz/stage.h"
 
 const double LevelOptions::DefaultColorSpaceGamma = 2.2;
 
@@ -116,4 +116,3 @@ void LevelProperties::setBpp(int bpp) { m_bpp = bpp; }
 //-----------------------------------------------------------------------------
 
 int LevelProperties::getBpp() const { return m_bpp; }
-

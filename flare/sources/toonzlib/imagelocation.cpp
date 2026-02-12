@@ -11,8 +11,8 @@
 //=========================================================
 #ifdef OBSOLETO
 
-#include "flare/imagelocation.h"
-#include "flare/txsheet.h"
+#include "toonz/imagelocation.h"
+#include "toonz/txsheet.h"
 #include "application_imp.h"
 
 TImageLocation::TImageLocation()
@@ -59,4 +59,3 @@ TImageLocation::TImageLocation(std::wstring levelName, const TFrameId &fid)
     , m_type(LevelStripImage) {}
 
 #endif
-

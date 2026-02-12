@@ -3,16 +3,16 @@
 
 #include <tools/tool.h>
 
-#include <flare/tapplication.h>
-#include <flare/txsheet.h>
-#include <flare/txsheethandle.h>
-#include <flare/txshlevelhandle.h>
-#include <flare/tframehandle.h>
-#include <flare/tobjecthandle.h>
-#include <flare/dpiscale.h>
-#include <flare/flarescene.h>
-#include <flare/sceneproperties.h>
-#include <flare/txshsimplelevel.h>
+#include <toonz/tapplication.h>
+#include <toonz/txsheet.h>
+#include <toonz/txsheethandle.h>
+#include <toonz/txshlevelhandle.h>
+#include <toonz/tframehandle.h>
+#include <toonz/tobjecthandle.h>
+#include <toonz/dpiscale.h>
+#include <toonz/toonzscene.h>
+#include <toonz/sceneproperties.h>
+#include <toonz/txshsimplelevel.h>
 
 #include <tgl.h>
 #include <tproperty.h>
@@ -847,7 +847,7 @@ TAssistant::scanAssistants(
   if (TXsheetHandle *XsheetHandle = application->getCurrentXsheet())
   if (TXsheet *Xsheet = XsheetHandle->getXsheet())
   {
-    flareScene *scene = Xsheet->getScene();
+    ToonzScene *scene = Xsheet->getScene();
     TSceneProperties *props = scene ? scene->getProperties() : nullptr;
     TPointD dpiScale = getCurrentDpiScale(simpleLevel, tool->getCurrentFid());
     int frame = frameHandle->getFrame();
@@ -914,4 +914,3 @@ TAssistant::scanAssistants(
   
   return found;
 }
-

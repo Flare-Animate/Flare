@@ -10,7 +10,7 @@
 #include <QApplication>
 #include <QScreen>
 
-#include "flareqt/pickrgbutils.h"
+#include "toonzqt/pickrgbutils.h"
 
 //*************************************************************************************
 //    Local namespace
@@ -107,4 +107,3 @@ QRgb pickRGB(QOpenGLWidget *widget, const QRect &rect) {
 
   return meanColor(img, img.rect());
 }
-

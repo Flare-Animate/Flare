@@ -3,7 +3,7 @@
 #ifndef SVN_CLEANUP_DIALOG_H
 #define SVN_CLEANUP_DIALOG_H
 
-#include "flareqt/dvdialog.h"
+#include "toonzqt/dvdialog.h"
 #include "versioncontrol.h"
 
 class QPushButton;
@@ -29,4 +29,3 @@ protected slots:
 };
 
 #endif  // SVN_CLEANUP_DIALOG_H
-
