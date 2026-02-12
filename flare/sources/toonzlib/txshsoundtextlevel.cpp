@@ -1,7 +1,7 @@
 
 
-#include "flare/txshsoundtextlevel.h"
-#include "flare/txshleveltypes.h"
+#include "toonz/txshsoundtextlevel.h"
+#include "toonz/txshleveltypes.h"
 #include "tstream.h"
 
 //-----------------------------------------------------------------------------
@@ -78,4 +78,3 @@ void TXshSoundTextLevel::saveData(TOStream &os) {
   }
   os.child("type") << L"textSound";
 }
-

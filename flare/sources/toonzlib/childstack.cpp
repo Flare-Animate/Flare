@@ -1,16 +1,16 @@
 
 
-#include "flare/childstack.h"
-#include "flare/flarescene.h"
-#include "flare/txsheet.h"
-#include "flare/txshcell.h"
-#include "flare/txshleveltypes.h"
-#include "flare/scenefx.h"
+#include "toonz/childstack.h"
+#include "toonz/toonzscene.h"
+#include "toonz/txsheet.h"
+#include "toonz/txshcell.h"
+#include "toonz/txshleveltypes.h"
+#include "toonz/scenefx.h"
 
 //=============================================================================
 // ChildStack
 
-ChildStack::ChildStack(flareScene *scene)
+ChildStack::ChildStack(ToonzScene *scene)
     : m_scene(scene), m_xsheet(new TXsheet()) {
   m_xsheet->setScene(m_scene);
   m_xsheet->addRef();

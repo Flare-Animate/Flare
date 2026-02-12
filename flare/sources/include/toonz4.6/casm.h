@@ -144,7 +144,7 @@ typedef struct CASM_WINDOW {
   "-hq               : sets the resample quality respectively to standard, "   \
   "improved\n"                                                                 \
   "                    or high quality for geometrical transformations\n"      \
-  "                    default: Resample type set in flaresetup module.\n"     \
+  "                    default: Resample type set in toonzsetup module.\n"     \
   "-logfile filename : writes a log file with all the errors and warnings.\n"  \
   "-ddr startframe   : direct output frames on a Digital Disc Recorder "       \
   "starting from specified position.\n"                                        \
@@ -167,4 +167,3 @@ typedef struct CASM_WINDOW {
   "                    full color input images\n" CASM_LINK_QUAL_STRING
 
 #endif
-

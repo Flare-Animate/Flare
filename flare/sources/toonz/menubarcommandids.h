@@ -4,7 +4,7 @@
 #define MENUBAR_COMMANDS_IDS_DEFINED
 
 // TnzQt includes
-#include "flareqt/selectioncommandids.h"
+#include "toonzqt/selectioncommandids.h"
 
 /*!
   \file     menubarcommandids.h
@@ -27,7 +27,7 @@
 #define MI_PrintXsheet "MI_PrintXsheet"
 #define MI_NewLevel "MI_NewLevel"
 #define MI_NewVectorLevel "MI_NewVectorLevel"
-#define MI_NewflareRasterLevel "MI_NewflareRasterLevel"
+#define MI_NewToonzRasterLevel "MI_NewToonzRasterLevel"
 #define MI_NewRasterLevel "MI_NewRasterLevel"
 #define MI_NewMetaLevel "MI_NewMetaLevel"
 #define MI_LoadLevel "MI_LoadLevel"
@@ -262,7 +262,7 @@
 #define MI_RevertToCleanedUp "MI_RevertToCleanedUp"
 #define MI_RevertToLastSaved "MI_RevertToLastSaved"
 #define MI_ConvertToVectors "MI_ConvertToVectors"
-#define MI_ConvertToflareRaster "MI_ConvertToflareRaster"
+#define MI_ConvertToToonzRaster "MI_ConvertToToonzRaster"
 #define MI_ConvertVectorToVector "MI_ConvertVectorToVector"
 #define MI_Tracking "MI_Tracking"
 #define MI_RemoveLevel "MI_RemoveLevel"
@@ -503,4 +503,3 @@
 
 #define MI_OpenLocator "MI_OpenLocator"
 #endif
-

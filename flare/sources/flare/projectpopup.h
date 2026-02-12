@@ -3,8 +3,8 @@
 #ifndef PROJECTPOPUP_H
 #define PROJECTPOPUP_H
 
-#include "flareqt/dvdialog.h"
-#include "flare/tproject.h"
+#include "toonzqt/dvdialog.h"
+#include "toonz/tproject.h"
 #include "filebrowsermodel.h"
 #include <QList>
 
@@ -176,4 +176,3 @@ protected:
 };
 
 #endif  // PROJECTPOPUP_H
-

@@ -1,18 +1,18 @@
 
 
-#include "flare/dpiscale.h"
-#include "flare/levelproperties.h"
-#include "flare/flarescene.h"
-#include "flare/txsheet.h"
-#include "flare/txshcell.h"
-#include "flare/txshsimplelevel.h"
-#include "flare/tcamera.h"
-#include "flare/txshleveltypes.h"
-#include "flare/stage.h"
+#include "toonz/dpiscale.h"
+#include "toonz/levelproperties.h"
+#include "toonz/toonzscene.h"
+#include "toonz/txsheet.h"
+#include "toonz/txshcell.h"
+#include "toonz/txshsimplelevel.h"
+#include "toonz/tcamera.h"
+#include "toonz/txshleveltypes.h"
+#include "toonz/stage.h"
 
 #include "timagecache.h"
 #include "trasterimage.h"
-#include "tflareimage.h"
+#include "ttoonzimage.h"
 
 //-----------------------------------------------------------------------------
 
@@ -71,7 +71,7 @@ TPointD getCurrentDpiScale(TXshSimpleLevel *sl, const TFrameId &fid) {
       sl->getProperties()->getSubsampling() > 1) {
     int subs    = sl->getProperties()->getSubsampling();
     TImageP img = TImageCache::instance()->get(sl->getImageId(fid), false);
-    TflareImageP ti(img);
+    TToonzImageP ti(img);
     TRasterImageP ri(img);
     if (ti)
       subs = ti->getSubsampling();
@@ -103,7 +103,7 @@ double getCurrentCameraStandDpi() {
     } else
       return defaultDpi;
   } else {
-    flareScene *scene = app->getCurrentScene();
+    ToonzScene *scene = app->getCurrentScene();
     TCamera *camera   = scene->getCurrentCamera();
 
     TDimensionD size = camera->getSize();
@@ -117,4 +117,3 @@ double getCurrentCameraStandDpi() {
 }
 
 #endif
-

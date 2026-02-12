@@ -25,9 +25,9 @@ m_ras - stores the pointer to the original RASTER picture
 
 ************************************************************/
 
-#include "flare4.6/udit.h"
-#include "flare4.6/raster.h"
-#include "flare4.6/pixel.h"
+#include "toonz4.6/udit.h"
+#include "toonz4.6/raster.h"
+#include "toonz4.6/pixel.h"
 #include "SDef.h"
 #include "SError.h"
 
@@ -44,11 +44,11 @@ typedef enum {
 
 //! Old 4.6 picture class template (sandor fxs). There is a significant
 //! modification
-//! to be considered starting from flare 6.1 - the allocated raster is now
+//! to be considered starting from Toonz 6.1 - the allocated raster is now
 //! managed
 //! by the image cache. Basically, when constructing one such object, the image
 //! is locked
-//! in the flare cache - and you must remember to unlock and relock it along
+//! in the Toonz cache - and you must remember to unlock and relock it along
 //! inactivity periods.
 template <class P>
 class CSTPic {
@@ -718,4 +718,3 @@ void hlsNoise(const double d)
   }
 };
 #endif  // !defined(AFX_STPIC_H__BABE9488_F054_11D5_B927_0040F674BE6A__INCLUDED_)
-

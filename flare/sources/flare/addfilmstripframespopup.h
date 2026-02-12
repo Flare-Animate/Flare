@@ -3,8 +3,8 @@
 #ifndef ADDFILMSTRIPFRAMESPOPUP_H
 #define ADDFILMSTRIPFRAMESPOPUP_H
 
-#include "flareqt/dvdialog.h"
-#include "flareqt/intfield.h"
+#include "toonzqt/dvdialog.h"
+#include "toonzqt/intfield.h"
 
 // forward declaration
 class QPushButton;
@@ -37,4 +37,3 @@ public:
 };
 
 #endif  // ADDFILMSTRIPFRAMESPOPUP_H
-

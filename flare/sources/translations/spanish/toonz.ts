@@ -669,12 +669,12 @@ Please create this folder before using the render farm.</source>
 Por favor crear esta carpeta antes de usar la granja de procesamiento.</translation>
     </message>
     <message>
-        <source>Unable to connect to the flareFarm Controller
+        <source>Unable to connect to the ToonzFarm Controller
    The Controller should run on %1 at port %2
-   Please start the Controller before using the flareFarm</source>
-        <translation>No es posible conectarse al controlador flareFarm.
+   Please start the Controller before using the ToonzFarm</source>
+        <translation>No es posible conectarse al controlador ToonzFarm.
    El controlador debe ejecutarse en %1 usando el puerto %2
-   Por favor iniciar el controlador antes de usar flareFarm</translation>
+   Por favor iniciar el controlador antes de usar ToonzFarm</translation>
     </message>
 </context>
 <context>
@@ -2105,12 +2105,12 @@ What do you want to do? </source>
     </message>
     <message>
         <source>When activated, styles of the default palette
-($flareSTUDIOPALETTE\cleanup_default.tpl) will 
+($TOONZSTUDIOPALETTE\cleanup_default.tpl) will 
 be appended to the palette after conversion in 
 order to save the effort of creating styles 
 before color designing.</source>
         <translation>Si esta activa, los estilos de la paleta predefinida
-($flareSTUDIOPALETTE\cleanup_default.tpl) serán 
+($TOONZSTUDIOPALETTE\cleanup_default.tpl) serán 
 anexados a la paleta, luego de la conversión para 
 ahorrar el esfuerzo de tener que crear estilos antes 
 de diseñar el color.</translation>
@@ -3663,7 +3663,7 @@ Do you want to overwrite it?</source>
         <translation>No existen imágenes procesadas que guardar.</translation>
     </message>
     <message>
-        <source>It is not possible to take or compare snapshots for flare vector levels.</source>
+        <source>It is not possible to take or compare snapshots for Toonz vector levels.</source>
         <translation>No es posible tomar o comparar capturas en niveles vectoriales de Flare.</translation>
     </message>
     <message>
@@ -3829,8 +3829,8 @@ Do you want to overwrite it?</source>
         <translation>%1 no existe.</translation>
     </message>
     <message>
-        <source>Import flare Lip Sync File</source>
-        <translation>Importar archivo de sincro labial de flare</translation>
+        <source>Import Toonz Lip Sync File</source>
+        <translation>Importar archivo de sincro labial de Toonz</translation>
     </message>
 </context>
 <context>
@@ -4120,12 +4120,12 @@ Do you want to create it?</source>
         <translation>Guardar en:</translation>
     </message>
     <message>
-        <source>flare Vector Level</source>
-        <translation>Vectorial de flare</translation>
+        <source>Toonz Vector Level</source>
+        <translation>Vectorial de Toonz</translation>
     </message>
     <message>
-        <source>flare Raster Level</source>
-        <translation>Imagen de flare</translation>
+        <source>Toonz Raster Level</source>
+        <translation>Imagen de Toonz</translation>
     </message>
     <message>
         <source>Raster Level</source>
@@ -4255,12 +4255,12 @@ Do you want to create it?</source>
         <translation type="vanished">Nivel de escaneo</translation>
     </message>
     <message>
-        <source>flare Vector level</source>
+        <source>Toonz Vector level</source>
         <translation>Nivel vectorial</translation>
     </message>
     <message>
-        <source>flare Raster level</source>
-        <translation>Nivel de imagen de flare</translation>
+        <source>Toonz Raster level</source>
+        <translation>Nivel de imagen de Toonz</translation>
     </message>
     <message>
         <source>Raster level</source>
@@ -4865,8 +4865,8 @@ Usar los números de fotograma como referencia.</translation>
         <translation>Falta la ruta al archivo.</translation>
     </message>
     <message>
-        <source>Import flare Lip Sync File</source>
-        <translation>Importar archivo de sincro labial de flare</translation>
+        <source>Import Toonz Lip Sync File</source>
+        <translation>Importar archivo de sincro labial de Toonz</translation>
     </message>
     <message>
         <source>To: </source>
@@ -6628,12 +6628,12 @@ Usar los números de fotograma como referencia.</translation>
         <translation type="vanished">Nuevo nivel vectorial</translation>
     </message>
     <message>
-        <source>&amp;New flare Raster Level</source>
-        <translation>&amp;Nuevo nivel de imagen de flare</translation>
+        <source>&amp;New Toonz Raster Level</source>
+        <translation>&amp;Nuevo nivel de imagen de Toonz</translation>
     </message>
     <message>
-        <source>New flare Raster Level</source>
-        <translation type="vanished">Nuevo nivel de imagen de flare</translation>
+        <source>New Toonz Raster Level</source>
+        <translation type="vanished">Nuevo nivel de imagen de Toonz</translation>
     </message>
     <message>
         <source>&amp;New Raster Level</source>
@@ -6684,8 +6684,8 @@ Usar los números de fotograma como referencia.</translation>
         <translation>Indicador de tiempo actual</translation>
     </message>
     <message>
-        <source>Vectors to flare Raster</source>
-        <translation>Vectorial a imagen de flare</translation>
+        <source>Vectors to Toonz Raster</source>
+        <translation>Vectorial a imagen de Toonz</translation>
     </message>
     <message>
         <source>Replace Vectors with Simplified Vectors</source>
@@ -6816,12 +6816,12 @@ Usar los números de fotograma como referencia.</translation>
         <translation>Pincel - Preservar alfa</translation>
     </message>
     <message>
-        <source>http://flare.readthedocs.io</source>
-        <translation>https://flare.readthedocs.io/es/latest/</translation>
+        <source>http://opentoonz.readthedocs.io</source>
+        <translation>https://opentoonz.readthedocs.io/es/latest/</translation>
     </message>
     <message>
-        <source>&amp;Import flare Lip Sync File...</source>
-        <translation>&amp;Importar sincro labial de flare...</translation>
+        <source>&amp;Import Toonz Lip Sync File...</source>
+        <translation>&amp;Importar sincro labial de Toonz...</translation>
     </message>
     <message>
         <source>Export Exchange Digital Time Sheet (XDTS)</source>
@@ -6968,12 +6968,12 @@ o es posible que se termine borrando algún archivo usado por ésta.</translatio
         <translation>No es posible borrar %1 : </translation>
     </message>
     <message>
-        <source>https://github.com/flare/flare/releases/latest</source>
-        <translation>https://flare.readthedocs.io/es/latest/whats_new.html#v1-4</translation>
+        <source>https://github.com/opentoonz/opentoonz/releases/latest</source>
+        <translation>https://opentoonz.readthedocs.io/es/latest/whats_new.html#v1-4</translation>
     </message>
     <message>
-        <source>https://groups.google.com/forum/#!forum/flare_en</source>
-        <translation>https://groups.google.com/forum/#!forum/open-flare--comunidad-en-espaol</translation>
+        <source>https://groups.google.com/forum/#!forum/opentoonz_en</source>
+        <translation>https://groups.google.com/forum/#!forum/open-toonz--comunidad-en-espaol</translation>
     </message>
     <message>
         <source>To report a bug, click on the button below to open a web browser window for Flare&apos;s Issues page on https://github.com.  Click on the &apos;New issue&apos; button and fill out the form.</source>
@@ -9339,12 +9339,12 @@ También establecer la ruta de salida a esa carpeta.</translation>
         <translation>Tipo de nivel predefinido:</translation>
     </message>
     <message>
-        <source>flare Vector Level</source>
-        <translation>Vectorial de flare</translation>
+        <source>Toonz Vector Level</source>
+        <translation>Vectorial de Toonz</translation>
     </message>
     <message>
-        <source>flare Raster Level</source>
-        <translation>Imagen de flare</translation>
+        <source>Toonz Raster Level</source>
+        <translation>Imagen de Toonz</translation>
     </message>
     <message>
         <source>Raster Level</source>
@@ -9551,8 +9551,8 @@ También establecer la ruta de salida a esa carpeta.</translation>
         <translation>Pintura:</translation>
     </message>
     <message>
-        <source>Replace flare Level after SaveLevelAs command</source>
-        <translation>Reemplazar nivel de flare luego del comando Guardar nivel como</translation>
+        <source>Replace Toonz Level after SaveLevelAs command</source>
+        <translation>Reemplazar nivel de Toonz luego del comando Guardar nivel como</translation>
     </message>
     <message>
         <source>Show Keyframes on Cell Area</source>
@@ -9806,7 +9806,7 @@ Is it OK to release these shortcuts?</source>
     </message>
     <message>
         <source>Default TLV Caching Behavior:</source>
-        <translation type="vanished">Comportamiento de caché de imágenes de flare (TLV):</translation>
+        <translation type="vanished">Comportamiento de caché de imágenes de Toonz (TLV):</translation>
     </message>
     <message>
         <source>Column Icon:</source>
@@ -11240,7 +11240,7 @@ Are you sure you want to revert to previous version?</source>
         <translation>¿Seguro borrar el color seleccionado de limpieza?</translation>
     </message>
     <message>
-        <source>The rooms will be reset the next time you run flare.</source>
+        <source>The rooms will be reset the next time you run Toonz.</source>
         <translation type="vanished">Los espacios de trabajo serán restablecidos la próxima vez que se ejecute Flare.</translation>
     </message>
     <message>
@@ -11352,7 +11352,7 @@ Do you want to overwrite it?</source>
 ¿Sobrescribirla?</translation>
     </message>
     <message>
-        <source>File %1 doesn&apos;t look like a flare Scene</source>
+        <source>File %1 doesn&apos;t look like a TOONZ Scene</source>
         <translation>El archivo %1 no parece ser una escena de Flare</translation>
     </message>
     <message>
@@ -11404,8 +11404,8 @@ Algunos niveles no han sido cargados porque su versión no es soportada.</transl
         <translation>Las celdas seleccionadas deben estar en la misma columna.</translation>
     </message>
     <message>
-        <source>Match lines can be deleted from flare raster levels only</source>
-        <translation>Sólo es posible borrar líneas de coincidencia de los niveles de imagen de flare</translation>
+        <source>Match lines can be deleted from Toonz raster levels only</source>
+        <translation>Sólo es posible borrar líneas de coincidencia de los niveles de imagen de Toonz</translation>
     </message>
     <message>
         <source>Partially Edited</source>
@@ -11460,8 +11460,8 @@ Algunos niveles no han sido cargados porque su versión no es soportada.</transl
         <translation>No es posible usar una columna con líneas de coincidencia si contiene más de un nivel.</translation>
     </message>
     <message>
-        <source>Match lines can be applied to flare raster levels only.</source>
-        <translation>Sólo es posible aplicar líneas de coincidencia a niveles de imagen de flare.</translation>
+        <source>Match lines can be applied to Toonz raster levels only.</source>
+        <translation>Sólo es posible aplicar líneas de coincidencia a niveles de imagen de Toonz.</translation>
     </message>
     <message>
         <source>The style index you specified is not available in the palette of the destination level.</source>
@@ -11496,8 +11496,8 @@ Algunos niveles no han sido cargados porque su versión no es soportada.</transl
         <translation>Sólo es posible fusionar niveles vectoriales a un nivel vectorial.</translation>
     </message>
     <message>
-        <source>It is possible to merge only flare vector levels or standard raster levels.</source>
-        <translation>Sólo es posible fusionar niveles vectoriales de flare o niveles de imagen estándar.</translation>
+        <source>It is possible to merge only Toonz vector levels or standard raster levels.</source>
+        <translation>Sólo es posible fusionar niveles vectoriales de Toonz o niveles de imagen estándar.</translation>
     </message>
     <message>
         <source>It is not possible to display the file %1: no player associated with its format</source>
@@ -11630,7 +11630,7 @@ Do you want to save your changes?</source>
         <translation>Opciones de limpieza</translation>
     </message>
     <message>
-        <source>The scene %1 was created with flare and cannot be loaded in LineTest.</source>
+        <source>The scene %1 was created with Toonz and cannot be loaded in LineTest.</source>
         <translation type="vanished">La escena %1 fue creada con Flare y no puede ser cargada en LineTest.</translation>
     </message>
     <message>
@@ -12116,7 +12116,7 @@ error no definido.</translation>
         <translation type="vanished">[Arrastrar y soltar] para copiar el comando a la barra de menúes</translation>
     </message>
     <message>
-        <source>Cannot open menubar settings template file. Re-installing flare will solve this problem.</source>
+        <source>Cannot open menubar settings template file. Re-installing Toonz will solve this problem.</source>
         <translation>No es posible abrir el archivo de plantilla de opciones de la barra de menúes. Reinstalar Flare resolverá este problema.</translation>
     </message>
     <message>
@@ -12124,8 +12124,8 @@ error no definido.</translation>
         <translation>Visitar el sitio web</translation>
     </message>
     <message>
-        <source>https://flare.github.io/e/</source>
-        <translation>https://flare.github.io/e/</translation>
+        <source>https://opentoonz.github.io/e/</source>
+        <translation>https://opentoonz.github.io/e/</translation>
     </message>
     <message>
         <source>Change current drawing %1</source>
@@ -12226,7 +12226,7 @@ Are you sure?</source>
         <translation type="vanished">Omitiendo fotograma.</translation>
     </message>
     <message>
-        <source>flare cannot Save this Level</source>
+        <source>Toonz cannot Save this Level</source>
         <translation type="vanished">Flare no puede guardar este nivel</translation>
     </message>
     <message>
@@ -13368,7 +13368,7 @@ which may not be displayed correctly or may cause errors in applications other t
     </message>
 </context>
 <context>
-    <name>RenameAsflarePopup</name>
+    <name>RenameAsToonzPopup</name>
     <message>
         <source>Rename</source>
         <translation>Renombrar</translation>
@@ -14751,7 +14751,7 @@ Por favor enviar o revertir los cambios antes.</translation>
     </message>
     <message>
         <source>TLV Subsampling:</source>
-        <translation>Submuestreo (imagen flare):</translation>
+        <translation>Submuestreo (imagen Toonz):</translation>
     </message>
     <message>
         <source>Start Frame:</source>
@@ -17039,7 +17039,7 @@ Clic en el botón con la flecha para crear una nueva sub-planilla</translation>
     </message>
     <message>
         <source>TLV Levels</source>
-        <translation>Niveles de imagen de flare</translation>
+        <translation>Niveles de imagen de Toonz</translation>
     </message>
     <message>
         <source>Convert</source>
@@ -17761,8 +17761,8 @@ Mantener presionada la tecla F3 para ver sólo este fotograma en el visor</trans
         <translation type="vanished">Nuevo nivel vectorial</translation>
     </message>
     <message>
-        <source>New flare Raster Level</source>
-        <translation type="vanished">Nuevo nivel de imagen de flare</translation>
+        <source>New Toonz Raster Level</source>
+        <translation type="vanished">Nuevo nivel de imagen de Toonz</translation>
     </message>
     <message>
         <source>New Raster Level</source>
@@ -17839,4 +17839,3 @@ Mantener presionada la tecla F3 para ver sólo este fotograma en el visor</trans
     </message>
 </context>
 </TS>
-

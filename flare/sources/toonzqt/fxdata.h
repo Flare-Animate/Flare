@@ -7,12 +7,12 @@
 #include "tfx.h"
 
 // TnzLib includes
-#include "flare/fxcommand.h"
-#include "flare/txshcolumn.h"
-#include "flare/tcolumnfx.h"
+#include "toonz/fxcommand.h"
+#include "toonz/txshcolumn.h"
+#include "toonz/tcolumnfx.h"
 
 // TnzQt includes
-#include "flareqt/dvmimedata.h"
+#include "toonzqt/dvmimedata.h"
 
 // Qt includes
 #include <QList>
@@ -54,4 +54,3 @@ private:
 };
 
 #endif  // FXDATA_H
-

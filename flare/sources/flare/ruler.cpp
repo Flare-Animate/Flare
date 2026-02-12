@@ -3,11 +3,11 @@
 #include "ruler.h"
 #include "sceneviewer.h"
 #include "tapp.h"
-#include "flare/tscenehandle.h"
-#include "flareqt/gutil.h"
+#include "toonz/tscenehandle.h"
+#include "toonzqt/gutil.h"
 
-#include "flare/flarescene.h"
-#include "flare/stage.h"
+#include "toonz/toonzscene.h"
+#include "toonz/stage.h"
 #include "tunit.h"
 
 #include <QPainter>
@@ -419,4 +419,3 @@ string Ruler::getContextHelpReference(const TPoint &pos)
   }
 }
 */
-

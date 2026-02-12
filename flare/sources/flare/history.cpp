@@ -5,7 +5,7 @@
 #include "tenv.h"
 // #include "tutil.h"
 #include "tfilepath_io.h"
-#include "flare/flarefolders.h"
+#include "toonz/toonzfolders.h"
 
 #include <QLocale>
 
@@ -141,4 +141,3 @@ void History::load() {
   for (it = table.begin(); it != table.end(); ++it)
     m_days.push_back(it->second);
 }
-

@@ -8,15 +8,15 @@
 #include "iocommand.h"
 
 // TnzQt includes
-#include "flareqt/gutil.h"
+#include "toonzqt/gutil.h"
 
 // TnzLib includes
-#include "flare/tproject.h"
-#include "flare/flarescene.h"
-#include "flare/levelset.h"
-#include "flare/sceneresources.h"
-#include "flare/txshlevel.h"
-#include "flare/txshsimplelevel.h"
+#include "toonz/tproject.h"
+#include "toonz/toonzscene.h"
+#include "toonz/levelset.h"
+#include "toonz/sceneresources.h"
+#include "toonz/txshlevel.h"
+#include "toonz/txshsimplelevel.h"
 
 // TnzCore includes
 #include "tsystem.h"
@@ -47,7 +47,7 @@ TFilePath getStdDocumentsPath() {
 namespace {
 //------------------------------------------------------------------------
 
-TFilePath loadSceneToProject(TFilePath scenePath, flareScene &scene) {
+TFilePath loadSceneToProject(TFilePath scenePath, ToonzScene &scene) {
   bool ret;
   try {
     ret = IoCmd::loadScene(scene, scenePath, true);
@@ -79,7 +79,7 @@ TFilePath loadSceneToProject(TFilePath scenePath, flareScene &scene) {
 
 //------------------------------------------------------------------------
 
-int collectAssets(flareScene &scene) {
+int collectAssets(ToonzScene &scene) {
   ResourceCollector collector(&scene);
   SceneResources resources(&scene, scene.getXsheet());
   resources.accept(&collector);
@@ -89,7 +89,7 @@ int collectAssets(flareScene &scene) {
 
 //------------------------------------------------------------------------
 
-void decodeLevelsPath(flareScene &scene) {
+void decodeLevelsPath(ToonzScene &scene) {
   std::vector<TXshLevel *> levels;
   scene.getLevelSet()->listLevels(levels);
   for (auto level : levels) {
@@ -697,7 +697,7 @@ void ExportScenePopup::onExport() {
   ProgressDialog progressBar(label, cancel, 0, m_scenes.size(), this);
   progressBar.show();
   for (i = 0; i < m_scenes.size(); i++) {
-    flareScene scene;
+    ToonzScene scene;
     TFilePath newScenePath = loadSceneToProject(m_scenes[i], scene);
     label =
         QString("Exporting ") + QString::fromStdString(newScenePath.getName());
@@ -809,4 +809,3 @@ progetto:"));
 tr(" scene nel seguente progetto:"));
 }
 */
-

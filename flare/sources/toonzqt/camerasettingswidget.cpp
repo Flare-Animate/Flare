@@ -1,28 +1,28 @@
 
 
-#include "flareqt/camerasettingswidget.h"
+#include "toonzqt/camerasettingswidget.h"
 
 // TnzQt includes
-#include "flareqt/doublefield.h"
-#include "flareqt/intfield.h"
-#include "flareqt/lineedit.h"
-#include "flareqt/checkbox.h"
-#include "flareqt/tselectionhandle.h"
-#include "flareqt/dvdialog.h"
-#include <flareqt/gutil.h>
+#include "toonzqt/doublefield.h"
+#include "toonzqt/intfield.h"
+#include "toonzqt/lineedit.h"
+#include "toonzqt/checkbox.h"
+#include "toonzqt/tselectionhandle.h"
+#include "toonzqt/dvdialog.h"
+#include <toonzqt/gutil.h>
 
 // TnzLib includes
-#include "flare/flarefolders.h"
-#include "flare/tcamera.h"
-#include "flare/tstageobjecttree.h"
-#include "flare/txshlevelhandle.h"
-#include "flare/txsheethandle.h"
-#include "flare/tscenehandle.h"
-#include "flare/txshlevel.h"
-#include "flare/txshsimplelevel.h"
-#include "flare/txshleveltypes.h"
-#include "flare/preferences.h"
-#include "flare/stage.h"
+#include "toonz/toonzfolders.h"
+#include "toonz/tcamera.h"
+#include "toonz/tstageobjecttree.h"
+#include "toonz/txshlevelhandle.h"
+#include "toonz/txsheethandle.h"
+#include "toonz/tscenehandle.h"
+#include "toonz/txshlevel.h"
+#include "toonz/txshsimplelevel.h"
+#include "toonz/txshleveltypes.h"
+#include "toonz/preferences.h"
+#include "toonz/stage.h"
 
 // TnzCore includes
 #include "tconvert.h"
@@ -1003,4 +1003,3 @@ QString CameraSettingsWidget::aspectRatioValueToString(double value, int width,
     return QString::number(static_cast<int>(iv));
   }
 }
-

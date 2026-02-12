@@ -3,8 +3,8 @@
 #ifndef __TENV_H__
 #define __TENV_H__
 
-#include "flare4.6\tmacro.h"
-#include "flare4.6\avl.h"
+#include "toonz4.6\tmacro.h"
+#include "toonz4.6\avl.h"
 
 #undef TNZAPI
 #ifdef TNZ_IS_COMMONLIB
@@ -90,7 +90,7 @@ int tenv_get_error_code(void);
 #define TENV_ERR_SETUP_NOT_FOUND 8
 #define TENV_ERR_SETUP_STAT_FAILED 9
 #define TENV_ERR_SETUP_OPEN_FAILED 10
-#define TENV_ERR_flareROOT_NOT_FOUND 11
+#define TENV_ERR_TOONZROOT_NOT_FOUND 11
 
 #define TENV_ERR_LIST_OPEN_FAILED 20
 #define TENV_ERR_LIST_ITEM_EXIST 21
@@ -281,7 +281,7 @@ static char *Tenv_top_bottom[]  = {"TOP", "BOTTOM"};
 static char *Tenv_autocenter[]  = {"using pegholes", "taped pegbar", "OFF"};
 static char *Tenv_adjust_mode[] = {"BLACK EQ", "HISTOGRAM", "HISTO-L", "NONE"};
 static char *Tenv_compr_mode[]  = {"compressed", "uncompressed"};
-static char *Tenv_tz_compr_mode[] = {"flare RLE", "LZW (flare 4.2 compatible)"};
+static char *Tenv_tz_compr_mode[] = {"Toonz RLE", "LZW (Toonz 4.2 compatible)"};
 static char *Tenv_matte_chan[]    = {"write", "do_not_write"};
 static char *Tenv_colorstyle[]    = {"gray scale", "full color"};
 static char *Tenv_tga_subtypes[] = {"gray scale", "color mapped", "full color"};
@@ -395,16 +395,16 @@ static char *Tenv_color_res[] = {"1 bit", "8 bit", "full color"};
 
     -- General --
 
-    flare_DATA_BASE
-    flare_DATA_BASE_STATUS
-    flare_STUDIO_PLT
-    flare_WORKING_RES
-    flare_CAMERA_PREVALENCE
-    flare_SCREEN_PIXEL       (solo per WINDOWS NT)
+    TOONZ_DATA_BASE
+    TOONZ_DATA_BASE_STATUS
+    TOONZ_STUDIO_PLT
+    TOONZ_WORKING_RES
+    TOONZ_CAMERA_PREVALENCE
+    TOONZ_SCREEN_PIXEL       (solo per WINDOWS NT)
     FULL_COLOR_TRANSPARENCY
     DDR_CONNECTION
-    flare_DEFAULT_PLT
-    flare_TZUP_COMPRESSION
+    TOONZ_DEFAULT_PLT
+    TOONZ_TZUP_COMPRESSION
 
 
     -- Input --
@@ -474,8 +474,8 @@ static char *Tenv_color_res[] = {"1 bit", "8 bit", "full color"};
 
     -- Eth rec --
 
-    flare_RECDEV_NET
-    flare_REMOTE_DDR_USER
+    TOONZ_RECDEV_NET
+    TOONZ_REMOTE_DDR_USER
 
 
     -- Flip --
@@ -512,7 +512,7 @@ static char *Tenv_color_res[] = {"1 bit", "8 bit", "full color"};
 
    -- General --
 
-   flare_FRAMERATE
+   TOONZ_FRAMERATE
 
    -- Input
 
@@ -525,8 +525,8 @@ static char *Tenv_color_res[] = {"1 bit", "8 bit", "full color"};
 
    -- Inknpaint --
 
-   flare_FILL_DEPTH
-   flare_SHIFT_FILL_DEPTH
+   TOONZ_FILL_DEPTH
+   TOONZ_SHIFT_FILL_DEPTH
    RECTACLOSE_DISTANCE
    RECTACLOSE_ANGLE
    RECTACLOSE_USED_INK
@@ -594,4 +594,3 @@ static char *Tenv_color_res[] = {"1 bit", "8 bit", "full color"};
 ---------------------------------------------------------------------------*/
 
 #endif /* __TENV_H__ */
-

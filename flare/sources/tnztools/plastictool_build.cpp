@@ -7,10 +7,10 @@
 #include "ext/plasticdeformerstorage.h"
 
 // TnzLib includes
-#include "flare/txshcell.h"
-#include "flare/txshsimplelevel.h"
-#include "flare/txsheethandle.h"
-#include "flare/stage.h"
+#include "toonz/txshcell.h"
+#include "toonz/txshsimplelevel.h"
+#include "toonz/txsheethandle.h"
+#include "toonz/stage.h"
 
 // tcg includes
 #include "tcg/tcg_point_ops.h"
@@ -936,4 +936,3 @@ void PlasticTool::draw_build() {
     drawSquare(m_pos, HANDLE_SIZE * pixelSize);
   }
 }
-

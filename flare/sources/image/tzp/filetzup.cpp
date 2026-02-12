@@ -11,7 +11,7 @@ extern "C" {
 #include "../tif/tifimage/tiffio.h"
 }
 
-//#include "flare.h"
+//#include "toonz.h"
 //#include "tmsg.h"
 //#include "file.h"
 //#include "img.h"
@@ -328,10 +328,10 @@ static UINT get_output_compression(void) {
 char *s;
 if ( !output_compression)
 {
-if (tenv_get_var_s("flare_TZUP_COMPRESSION", &s))
+if (tenv_get_var_s("TOONZ_TZUP_COMPRESSION", &s))
 {
 if (strstr (s, "rle") || strstr (s, "RLE"))
-output_compression = COMPRESSION_flare1;
+output_compression = COMPRESSION_TOONZ1;
 else
 output_compression = COMPRESSION_LZW;
 }
@@ -352,8 +352,8 @@ int img_write_tzup(unsigned short *filename, IMAGE *image) {
   int width, height, row, scanline, cmap_size, i;
   char str[200], *history;
   UCHAR *outbuf;
-  USHORT window[flareWINDOW_COUNT];
-  USHORT palette[flarePALETTE_COUNT];
+  USHORT window[TOONZWINDOW_COUNT];
+  USHORT palette[TOONZPALETTE_COUNT];
   TCM_INFO *tcm;
   UINT tif_compression;
 
@@ -417,11 +417,11 @@ height = image->pixmap.ysize;
   palette[10] = tcm->n_colors;
   palette[11] = tcm->n_pencils;
 
-  for (i = 12; i < flarePALETTE_COUNT; i++) palette[i] = 0;
+  for (i = 12; i < TOONZPALETTE_COUNT; i++) palette[i] = 0;
 
   tif_compression = get_output_compression();
 
-  TIFFSetField(tfp, TIFFTAG_flarePALETTE, palette);
+  TIFFSetField(tfp, TIFFTAG_TOONZPALETTE, palette);
   TIFFSetField(tfp, TIFFTAG_BITSPERSAMPLE, bits_per_sample);
   TIFFSetField(tfp, TIFFTAG_SAMPLESPERPIXEL, samples_per_pixel);
   TIFFSetField(tfp, TIFFTAG_IMAGEWIDTH, width);
@@ -454,7 +454,7 @@ height = image->pixmap.ysize;
                     tfp, TIFFTAG_XPOSITION,
                     image->pixmap.h_pos / image->pixmap.y_dpi + 8.0);
   }
-  /*snprintf(str, sizeof(str), "flare %s", versione_del_software);*/
+  /*snprintf(str, sizeof(str), "TOONZ %s", versione_del_software);*/
   TIFFSetField(tfp, TIFFTAG_SOFTWARE, str);
 
   /* Aggiungo le informazioni relative alla savebox a all'history */
@@ -465,12 +465,12 @@ height = image->pixmap.ysize;
   window[3] = image->pixmap.ysize;
   window[4] = image->pixmap.extra_mask;
 
-  for (i = 5; i < flareWINDOW_COUNT - 1; i++) window[i] = 0;
+  for (i = 5; i < TOONZWINDOW_COUNT - 1; i++) window[i] = 0;
 
-  window[flareWINDOW_COUNT - 1] = 0;
-  /*  (Img_license_attr & TA_flare_EDU) != 0;*/
+  window[TOONZWINDOW_COUNT - 1] = 0;
+  /*  (Img_license_attr & TA_TOONZ_EDU) != 0;*/
 
-  TIFFSetField(tfp, TIFFTAG_flareWINDOW, window);
+  TIFFSetField(tfp, TIFFTAG_TOONZWINDOW, window);
 
   history = build_history();
   /*
@@ -492,7 +492,7 @@ else
 */
   image->history = history;
 
-  TIFFSetField(tfp, TIFFTAG_flareHISTORY, image->history);
+  TIFFSetField(tfp, TIFFTAG_TOONZHISTORY, image->history);
 
   bytes_per_line = TIFFScanlineSize(tfp);
 
@@ -803,7 +803,7 @@ TImageP image(rasImage);
   TZUP_FIELDS tzup_f;
   // char pltname[1024];
   USHORT *window = NIL;
-  USHORT *palette; /*  [flarePALETTE_COUNT] */
+  USHORT *palette; /*  [TOONZPALETTE_COUNT] */
   // int max_n_colors, max_n_pencils;
 
   /*
@@ -819,7 +819,7 @@ SET_READ_WITH_EXTRA
   if (!get_tzup_fields(tfp, &tzup_f)) return TImageP();
 
   /*
-if (tzup_f.edu_file && !(Img_license_attr & TA_flare_EDU))
+if (tzup_f.edu_file && !(Img_license_attr & TA_TOONZ_EDU))
 {
 char str[1024];
 BUILD_EDU_ERROR_STRING(str)
@@ -832,7 +832,7 @@ goto bad;
   // if (!image)
   //  goto bad;
 
-  if (!TIFFGetField(tfp, TIFFTAG_flarePALETTE, &palette)) {
+  if (!TIFFGetField(tfp, TIFFTAG_TOONZPALETTE, &palette)) {
     // image->cmap.info = Tcm_old_default_info;
   } else {
     //// image->cmap.info.tone_offs   = palette[3]; sempre 0
@@ -999,8 +999,8 @@ Tiff_ignore_missing_internal_colormap = 0;
 
   assert(0);
   return 0;
-  // TflareImageP flareImage(raster);
-  // return TImageP(flareImage);
+  // TToonzImageP toonzImage(raster);
+  // return TImageP(toonzImage);
 
   /*
 bad:
@@ -1251,7 +1251,7 @@ IMAGE *img_read_region_tzup(unsigned short *filename, int x1, int y1, int x2,
   int xD_offset, yD_offset;
   int x1_reg, y1_reg, x2_reg, y2_reg;
   int box_x1, box_y1, box_x2, box_y2;
-  USHORT *palette; /*  [flarePALETTE_COUNT] */
+  USHORT *palette; /*  [TOONZPALETTE_COUNT] */
   int scanline_size;
   int ret;
   int max_n_colors, max_n_pencils;
@@ -1269,7 +1269,7 @@ SET_READ_WITH_EXTRA
   if (!get_tzup_fields(tfp, &tzup_f)) goto bad;
 
   /*
-if (tzup_f.edu_file && !(Img_license_attr & TA_flare_EDU))
+if (tzup_f.edu_file && !(Img_license_attr & TA_TOONZ_EDU))
 {
 char str[1024];
 BUILD_EDU_ERROR_STRING(str)
@@ -1290,7 +1290,7 @@ goto bad;
   image = new IMAGE;  // new_img();
   if (!image) goto bad;
 
-  if (!TIFFGetField(tfp, TIFFTAG_flarePALETTE, &palette)) {
+  if (!TIFFGetField(tfp, TIFFTAG_TOONZPALETTE, &palette)) {
     image->cmap.info = Tcm_old_default_info;
   } else {
     /*image->cmap.info.tone_offs   = palette[3]; */
@@ -1465,7 +1465,7 @@ IMAGE *img_read_tzup_info(unsigned short *filename) {
   TIFF *tfp;
   IMAGE *image = NIL;
   TZUP_FIELDS tzup_f;
-  USHORT *palette; /*  [flarePALETTE_COUNT] */
+  USHORT *palette; /*  [TOONZPALETTE_COUNT] */
   int max_n_colors, max_n_pencils;
 
   /* CHECK_IMAGEDLL_LICENSE_AND_GET_IMG_LICENSE_ATTR */
@@ -1478,7 +1478,7 @@ IMAGE *img_read_tzup_info(unsigned short *filename) {
 
   if (!get_tzup_fields(tfp, &tzup_f)) goto bad;
 
-  /*if (tzup_f.edu_file && !(Img_license_attr & TA_flare_EDU))
+  /*if (tzup_f.edu_file && !(Img_license_attr & TA_TOONZ_EDU))
 {
 char str[1024];
 BUILD_EDU_ERROR_STRING(str)
@@ -1489,7 +1489,7 @@ tmsg_warning (str);
   image = new IMAGE;  // new_img();
   if (!image) goto bad;
 
-  if (!TIFFGetField(tfp, TIFFTAG_flarePALETTE, &palette)) {
+  if (!TIFFGetField(tfp, TIFFTAG_TOONZPALETTE, &palette)) {
     image->cmap.info = Tcm_old_default_info;
   } else {
     /*image->cmap.info.tone_offs   = palette[3]; */
@@ -1568,7 +1568,7 @@ IMAGE *img_read_tzup_icon(char *filename) {
   IMAGE *image = NIL;
   TZUP_FIELDS tzup_f;
   char pltname[1024];
-  USHORT *palette; /*  [flarePALETTE_COUNT] */
+  USHORT *palette; /*  [TOONZPALETTE_COUNT] */
   int max_n_colors, max_n_pencils;
 
   Silent_tiff_print_error               = 1;
@@ -1592,7 +1592,7 @@ IMAGE *img_read_tzup_icon(char *filename) {
   get_plt_name(filename, pltname);
   image->cmap.name = strsave(pltname);
 
-  if (!TIFFGetField(tfp, TIFFTAG_flarePALETTE, &palette)) {
+  if (!TIFFGetField(tfp, TIFFTAG_TOONZPALETTE, &palette)) {
     image->cmap.info = Tcm_old_default_info;
   } else {
     /*image->cmap.info.tone_offs   = palette[3]; */
@@ -1718,7 +1718,7 @@ static void get_image_offsets_and_dimensions(TIFF *tfp, int xSBsize,
   float xposition, dpi;
   // int i;
 
-  if (!TIFFGetField(tfp, TIFFTAG_flareWINDOW, &window)) {
+  if (!TIFFGetField(tfp, TIFFTAG_TOONZWINDOW, &window)) {
     *x0         = 0;
     *y0         = 0;
     *xsize      = xSBsize;
@@ -1735,7 +1735,7 @@ static void get_image_offsets_and_dimensions(TIFF *tfp, int xSBsize,
     if (*ysize == 0) *ysize = ySBsize + *y0;
     *extra_mask             = Read_with_extra ? window[4] : 0;
 
-    *edu_file = window[flareWINDOW_COUNT - 1] & 1;
+    *edu_file = window[TOONZWINDOW_COUNT - 1] & 1;
   }
   if (!TIFFGetField(tfp, TIFFTAG_XPOSITION, &xposition)) xposition = 8.0;
   if (!TIFFGetField(tfp, TIFFTAG_ORIENTATION, &orientation))
@@ -1815,7 +1815,7 @@ static void get_planarconfig(TIFF *tif, USHORT *planarconfig) {
 /*---------------------------------------------------------------------------*/
 
 static int get_history(TIFF *tif, char **history) {
-  if (!TIFFGetField(tif, TIFFTAG_flareHISTORY, history)) return FALSE;
+  if (!TIFFGetField(tif, TIFFTAG_TOONZHISTORY, history)) return FALSE;
   //*history = strsave(*history);
   return TRUE;
 }
@@ -2146,4 +2146,3 @@ static void clear_extra_region(UCHAR *extra, int x0, int y0, int xsize,
     extra += wrap_x;
   }
 }
-

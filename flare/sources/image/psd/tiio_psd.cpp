@@ -2,7 +2,7 @@
 #include "trasterimage.h"
 #include "timageinfo.h"
 #if (defined(x64) || defined(__LP64__))
-#include "flare/preferences.h"
+#include "toonz/preferences.h"
 #include <QtCore>
 #endif
 
@@ -206,4 +206,3 @@ TImageWriterP TLevelWriterPsd::getFrameWriter(TFrameId fid) {
   TImageWriterPsd *iwm = new TImageWriterPsd(m_path, layerId, this);
   return TImageWriterP(iwm);
 }
-

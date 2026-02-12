@@ -3,7 +3,7 @@
 #ifndef SVN_LOCK_DIALOG_H
 #define SVN_LOCK_DIALOG_H
 
-#include "flareqt/dvdialog.h"
+#include "toonzqt/dvdialog.h"
 #include "versioncontrol.h"
 
 #include <QList>
@@ -85,4 +85,3 @@ public:
 };
 
 #endif  // SVN_LOCK_DIALOG_H
-

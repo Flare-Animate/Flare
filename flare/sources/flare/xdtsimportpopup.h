@@ -2,8 +2,8 @@
 #ifndef XDTSIMPORTPOPUP_H
 #define XDTSIMPORTPOPUP_H
 
-#include "flareqt/dvdialog.h"
-#include "flareqt/doublefield.h"
+#include "toonzqt/dvdialog.h"
+#include "toonzqt/doublefield.h"
 #include "tfilepath.h"
 
 #include <QMap>
@@ -12,14 +12,14 @@
 namespace DVGui {
 class FileField;
 }
-class flareScene;
+class ToonzScene;
 class QComboBox;
 
 class XDTSImportPopup : public DVGui::Dialog {
   Q_OBJECT
   QMap<QString, DVGui::FileField*> m_fields;
   QStringList m_pathSuggestedLevels;
-  flareScene* m_scene;
+  ToonzScene* m_scene;
 
   QComboBox *m_tick1Combo, *m_tick2Combo, *m_keyFrameCombo,
       *m_referenceFrameCombo;
@@ -40,7 +40,7 @@ class XDTSImportPopup : public DVGui::Dialog {
   void updateSuggestions(const TFilePath& path);
 
 public:
-  XDTSImportPopup(QStringList levelNames, flareScene* scene,
+  XDTSImportPopup(QStringList levelNames, ToonzScene* scene,
                   TFilePath scenePath, bool isUextVersion, bool isSXF = false);
   QString getLevelPath(QString levelName);
   void getMarkerIds(int& tick1Id, int& tick2Id, int& keyFrameId,

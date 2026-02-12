@@ -1,9 +1,9 @@
 
 
-#include "flare/Naa2TlvConverter.h"
+#include "toonz/Naa2TlvConverter.h"
 
-#include "flare/tcenterlinevectorizer.h"
-#include "flare/stage.h"
+#include "toonz/tcenterlinevectorizer.h"
+#include "toonz/stage.h"
 #include "tpixelutils.h"
 #include "tpalette.h"
 
@@ -1025,10 +1025,10 @@ int Naa2TlvConverter::measureThickness(int x0, int y0) {
 
 //-----------------------------------------------------------------------------
 
-TflareImageP Naa2TlvConverter::makeTlv(bool transparentSyntheticInks,
+TToonzImageP Naa2TlvConverter::makeTlv(bool transparentSyntheticInks,
                                        QList<int> &usedStyleIds, double dpi) {
   if (!m_valid || m_colors.empty() || m_regions.empty() || !m_regionRas)
-    return TflareImageP();
+    return TToonzImageP();
   int lx            = m_regionRas->getLx();
   int ly            = m_regionRas->getLy();
   TPalette *palette = m_palette;
@@ -1131,7 +1131,7 @@ TflareImageP Naa2TlvConverter::makeTlv(bool transparentSyntheticInks,
   }
   copiedRas->unlock();
 
-  TflareImageP ti = new TflareImage(ras, ras->getBounds());
+  TToonzImageP ti = new TToonzImage(ras, ras->getBounds());
   ti->setPalette(palette);
 
   if (dpi > 0.0)  // for now, accept only square pixel
@@ -1144,7 +1144,7 @@ TflareImageP Naa2TlvConverter::makeTlv(bool transparentSyntheticInks,
 
 //-----------------------------------------------------------------------------
 
-TVectorImageP Naa2TlvConverter::vectorize(const TflareImageP &ti) {
+TVectorImageP Naa2TlvConverter::vectorize(const TToonzImageP &ti) {
   CenterlineConfiguration conf;
   if (!ti) return TVectorImageP();
   TPalette *palette = ti->getPalette();
@@ -1191,4 +1191,3 @@ void Naa2TlvConverter::removeUnusedStyles(const QList<int> &styleIds) {
     if (page->getStyleCount() == 0) m_palette->erasePage(p);
   }
 }
-

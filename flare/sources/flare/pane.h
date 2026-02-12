@@ -6,7 +6,7 @@
 // TODO: cambiare il nome del file in tpanel.h
 
 // #include <QDockWidget>
-#include "../flareqt/tdockwindows.h"
+#include "../toonzqt/tdockwindows.h"
 
 class TPanelTitleBarButtonSet;
 class Room;
@@ -316,4 +316,3 @@ public:
 //-----------------------------------------------------------------------------
 
 #endif  // PANE_H
-

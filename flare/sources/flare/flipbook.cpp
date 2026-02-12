@@ -32,25 +32,25 @@
 #include "tvectorrenderdata.h"
 
 // Qt helpers
-#include "flareqt/gutil.h"
-#include "flareqt/imageutils.h"
+#include "toonzqt/gutil.h"
+#include "toonzqt/imageutils.h"
 
 // App-Stage includes
 #include "tapp.h"
 #include "toutputproperties.h"
-#include "flare/txsheethandle.h"
-#include "flare/txshsimplelevel.h"
-#include "flare/levelproperties.h"
-#include "flare/tscenehandle.h"
-#include "flare/flarescene.h"
-#include "flare/sceneproperties.h"
-#include "flare/txshlevelhandle.h"
-#include "flare/tcamera.h"
-#include "flare/preferences.h"
-#include "flare/tproject.h"
+#include "toonz/txsheethandle.h"
+#include "toonz/txshsimplelevel.h"
+#include "toonz/levelproperties.h"
+#include "toonz/tscenehandle.h"
+#include "toonz/toonzscene.h"
+#include "toonz/sceneproperties.h"
+#include "toonz/txshlevelhandle.h"
+#include "toonz/tcamera.h"
+#include "toonz/preferences.h"
+#include "toonz/tproject.h"
 
 // Image painting
-#include "flare/imagepainter.h"
+#include "toonz/imagepainter.h"
 
 // Preview
 #include "previewfxmanager.h"
@@ -62,8 +62,8 @@
 #include "mainwindow.h"
 
 // Other widgets
-#include "flareqt/flipconsole.h"
-#include "flareqt/dvdialog.h"
+#include "toonzqt/flipconsole.h"
+#include "toonzqt/dvdialog.h"
 #include "filmstripselection.h"
 #include "castselection.h"
 #include "histogrampopup.h"
@@ -114,7 +114,7 @@ namespace {
   {
     if(TRasterImageP ri= img)
       return ri->getRaster()->getBounds();
-    else if(TflareImageP ti= img)
+    else if(TToonzImageP ti= img)
       return ti->getRaster()->getBounds();
     else
     {
@@ -128,7 +128,7 @@ namespace {
 inline TRectD getImageBoundsD(const TImageP &img) {
   if (TRasterImageP ri = img)
     return TRectD(0, 0, ri->getRaster()->getLx(), ri->getRaster()->getLy());
-  else if (TflareImageP ti = img)
+  else if (TToonzImageP ti = img)
     return TRectD(0, 0, ti->getSize().lx, ti->getSize().ly);
   else {
     TVectorImageP vi = img;
@@ -597,7 +597,7 @@ bool FlipBook::doSaveImages(TFilePath fp) {
   TLevelWriter::getSupportedFormats(formats, true);
   Tiio::Writer::getSupportedFormats(formats, true);
 
-  flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
+  ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
   TOutputProperties *outputSettings =
       scene->getProperties()->getOutputProperties();
 
@@ -780,17 +780,17 @@ void FlipBook::onButtonPressed(FlipConsole::EGadget button) {
       return;
     } else if ((TVectorImageP)img) {
       DVGui::warning(
-          tr("It is not possible to take or compare snapshots for flare vector "
+          tr("It is not possible to take or compare snapshots for Toonz vector "
              "levels."));
       return;
     }
     TRasterImageP ri(img);
-    TflareImageP ti(img);
+    TToonzImageP ti(img);
     TImageP clonedImg;
     if (ri)
       clonedImg = TRasterImageP(ri->getRaster()->clone());
     else {
-      clonedImg = TflareImageP(ti->getRaster()->clone(), ti->getSavebox());
+      clonedImg = TToonzImageP(ti->getRaster()->clone(), ti->getSavebox());
       clonedImg->setPalette(ti->getPalette());
     }
     TImageCache::instance()->add(QString("TnzCompareImg"), clonedImg);
@@ -803,7 +803,7 @@ void FlipBook::onButtonPressed(FlipConsole::EGadget button) {
     if (m_flipConsole->isChecked(FlipConsole::eCompare) &&
         (TVectorImageP)getCurrentImage(m_flipConsole->getCurrentFrame())) {
       DVGui::warning(
-          tr("It is not possible to take or compare snapshots for flare vector "
+          tr("It is not possible to take or compare snapshots for Toonz vector "
              "levels."));
       // cancel the button pressing
       m_flipConsole->pressButton(FlipConsole::eCompare);
@@ -830,13 +830,13 @@ void FlipBook::onButtonPressed(FlipConsole::EGadget button) {
     Flipbooks are generally intended as temporary but friendly floating widgets,
     that gets displayed when a rendered scene or image needs to be shown.
     Since a user may require that the geometry of a flipbook is to be remembered
-    between rendering tasks - perhaps even between different flare sessions -
+    between rendering tasks - perhaps even between different Toonz sessions -
     flipbooks are always stored for later use in a \b FlipBookPool class.
 
     This class implements the basical features to \b pop a flipbook from the
    pool
     or \b push a used one; plus, it provides the \b save and \b load functions
-    for persistent storage between flare sessions.
+    for persistent storage between Toonz sessions.
 
     \sa FlipBook class.
 */
@@ -1021,7 +1021,7 @@ bool FlipBook::isSavable() const {
 */
 void FlipBook::setLevel(const TFilePath &fp, TPalette *palette, int from,
                         int to, int step, int shrink, TSoundTrack *snd,
-                        bool append, bool isflareOutput) {
+                        bool append, bool isToonzOutput) {
   try {
     if (!append) {
       clearCache();
@@ -1054,10 +1054,10 @@ void FlipBook::setLevel(const TFilePath &fp, TPalette *palette, int from,
 
       m_lr = TLevelReaderP(fp);
 
-      bool supportsRandomAccess = doesSupportRandomAccess(fp, isflareOutput);
-      if (supportsRandomAccess) m_lr->enableRandomAccessRead(isflareOutput);
+      bool supportsRandomAccess = doesSupportRandomAccess(fp, isToonzOutput);
+      if (supportsRandomAccess) m_lr->enableRandomAccessRead(isToonzOutput);
 
-      bool randomAccessRead    = supportsRandomAccess && isflareOutput;
+      bool randomAccessRead    = supportsRandomAccess && isToonzOutput;
       bool incrementalIndexing = m_isPreviewFx ? true : false;
 
       TLevelP level = m_lr->loadInfo();
@@ -1119,7 +1119,7 @@ void FlipBook::setLevel(const TFilePath &fp, TPalette *palette, int from,
         //  So, shift the requested interval from 1 and place step to 1.
         fromIndex = from;
         toIndex   = to;
-        if (isflareOutput && !supportsRandomAccess) {
+        if (isToonzOutput && !supportsRandomAccess) {
           fromIndex = 1;
           toIndex   = level->getFrameCount();
           step      = 1;
@@ -1616,7 +1616,7 @@ TImageP FlipBook::getCurrentImage(int frame) {
 
     if (img) {
       TRasterImageP ri = ((TRasterImageP)img);
-      TflareImageP ti  = ((TflareImageP)img);
+      TToonzImageP ti  = ((TToonzImageP)img);
       if (premultiply) {
         if (ri)
           TRop::premultiply(ri->getRaster());
@@ -1800,7 +1800,7 @@ void FlipBook::dragEnterEvent(QDragEnterEvent *e) {
   const QMimeData *mimeData = e->mimeData();
   bool isResourceDrop       = acceptResourceDrop(mimeData->urls());
   if (!isResourceDrop &&
-      !mimeData->hasFormat("application/vnd.flare.drawings") &&
+      !mimeData->hasFormat("application/vnd.toonz.drawings") &&
       !mimeData->hasFormat(CastItems::getMimeFormat()))
     return;
 
@@ -1851,7 +1851,7 @@ void FlipBook::dropEvent(QDropEvent *e) {
       return;
     }
   } else if (mimeData->hasFormat(
-                 "application/vnd.flare.drawings"))  // drag-drop from film
+                 "application/vnd.toonz.drawings"))  // drag-drop from film
                                                      // strip
   {
     TFilmstripSelection *s =
@@ -2216,7 +2216,7 @@ void FlipBook::loadAndCacheAllTlvImages(Level level, int fromFrame,
 
     if (!img) continue;
 
-    TflareImageP ti = ((TflareImageP)img);
+    TToonzImageP ti = ((TToonzImageP)img);
     if (!ti) continue;
 
     if (ti->getCMapped()->getWrap() > ti->getCMapped()->getLx())
@@ -2253,7 +2253,7 @@ void FlipBook::loadAndCacheAllTlvImages(Level level, int fromFrame,
 //! \li Whether the level must replace an existing one on the flipbook, or it
 //! must
 //! rather be appended at its end
-//! \li In case the file has a movie format and it is known to be a flare
+//! \li In case the file has a movie format and it is known to be a toonz
 //! output,
 //! some additional random access information may be retrieved (i.e. images may
 //! map
@@ -2261,7 +2261,7 @@ void FlipBook::loadAndCacheAllTlvImages(Level level, int fromFrame,
 // returns pointer to the opened flipbook to control modality.
 FlipBook *viewFile(const TFilePath &path, int from, int to, int step,
                    int shrink, TSoundTrack *snd, FlipBook *flipbook,
-                   bool append, bool isflareOutput) {
+                   bool append, bool isToonzOutput) {
   // In case the step and shrink information is invalid, load them from
   // preferences
   if (step == -1 || shrink == -1) {
@@ -2301,9 +2301,8 @@ FlipBook *viewFile(const TFilePath &path, int from, int to, int step,
 
   // Assign the passed level with associated infos
   flipbook->setLevel(path, 0, from, to, step, shrink, snd, append,
-                     isflareOutput);
+                     isToonzOutput);
   return flipbook;
 }
 
 //-----------------------------------------------------------------------------
-

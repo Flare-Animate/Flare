@@ -10,21 +10,21 @@
 #include "tunit.h"
 #include "tdoubleparamrelayproperty.h"
 
-// flareQt includes
-#include "flareqt/doublepairfield.h"
-#include "flareqt/intpairfield.h"
-#include "flareqt/intfield.h"
-#include "flareqt/styleindexlineedit.h"
-#include "flareqt/checkbox.h"
-#include "flareqt/doublefield.h"
-#include "flareqt/popupbutton.h"
+// ToonzQt includes
+#include "toonzqt/doublepairfield.h"
+#include "toonzqt/intpairfield.h"
+#include "toonzqt/intfield.h"
+#include "toonzqt/styleindexlineedit.h"
+#include "toonzqt/checkbox.h"
+#include "toonzqt/doublefield.h"
+#include "toonzqt/popupbutton.h"
 
 // TnzLib includes
-#include "flare/txsheet.h"
-#include "flare/tstageobject.h"
-#include "flare/stageobjectutil.h"
+#include "toonz/txsheet.h"
+#include "toonz/tstageobject.h"
+#include "toonz/stageobjectutil.h"
 
-// flareTools
+// ToonzTools
 #include "vectorselectiontool.h"
 
 // STD includes
@@ -599,4 +599,3 @@ signals:
 //-----------------------------------------------------------------------------
 
 #endif
-

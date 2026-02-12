@@ -4,7 +4,7 @@
 #define CONVERTPOPUP_H
 
 // TnzQt includes
-#include "flareqt/dvdialog.h"
+#include "toonzqt/dvdialog.h"
 
 // TnzCore includes
 #include "tfilepath.h"
@@ -20,7 +20,7 @@
 
 class TPalette;
 class TPropertyGroup;
-class flareScene;
+class ToonzScene;
 
 class Convert2Tlv;
 
@@ -148,4 +148,3 @@ public:
 };
 
 #endif  // CONVERTPOPUP_H
-

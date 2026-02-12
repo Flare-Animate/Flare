@@ -6,7 +6,7 @@
 #include <set>
 #include <QList>
 
-#include "flare/tstageobjectid.h"
+#include "toonz/tstageobjectid.h"
 
 class StageObjectsData;
 class TFx;
@@ -61,4 +61,3 @@ void unifyColumnVisibilityToggles();
 }  // namespace ColumnCmd
 
 #endif
-

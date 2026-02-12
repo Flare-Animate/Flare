@@ -1,10 +1,10 @@
 
 
-#include "flareqt/menubarcommand.h"
+#include "toonzqt/menubarcommand.h"
 // #include "menubarcommandids.h"
-#include "flareqt/dvdialog.h"
-#include "flareqt/gutil.h"
-#include "flare/flarefolders.h"
+#include "toonzqt/dvdialog.h"
+#include "toonzqt/gutil.h"
+#include "toonz/toonzfolders.h"
 #include "tsystem.h"
 #include <assert.h>
 #include <QObject>
@@ -101,7 +101,7 @@ void CommandManager::setShortcut(CommandId id, QAction *action,
     action->setShortcut(QKeySequence(QString::fromStdString(shortcutString)));
   else
     action->setShortcut(QKeySequence());
-  TFilePath fp = flareFolder::getMyModuleDir() + TFilePath("shortcuts.ini");
+  TFilePath fp = ToonzFolder::getMyModuleDir() + TFilePath("shortcuts.ini");
   QSettings settings(toQString(fp), QSettings::IniFormat);
   settings.beginGroup("shortcuts");
   settings.setValue(QString(id), QString::fromStdString(shortcutString));
@@ -303,7 +303,7 @@ void CommandManager::setShortcut(QAction *action, std::string shortcutString,
   m_shortcutTable[shortcutString] = node;
 
   // registro il tutto
-  TFilePath fp = flareFolder::getMyModuleDir() + TFilePath("shortcuts.ini");
+  TFilePath fp = ToonzFolder::getMyModuleDir() + TFilePath("shortcuts.ini");
   QSettings settings(toQString(fp), QSettings::IniFormat);
   settings.beginGroup("shortcuts");
   settings.setValue(QString::fromStdString(node->m_id),
@@ -419,11 +419,11 @@ void CommandManager::enlargeIcon(CommandId id, const QSize dstSize) {
 // In menubarcommand.cpp
 void CommandManager::loadShortcuts() {
   // Load shortcuts file
-  TFilePath fp = flareFolder::getMyModuleDir() + TFilePath("shortcuts.ini");
+  TFilePath fp = ToonzFolder::getMyModuleDir() + TFilePath("shortcuts.ini");
 
   if (!TFileStatus(fp).doesExist()) {
     TFilePath tmplFp =
-        flareFolder::getTemplateModuleDir() + TFilePath("shortcuts.ini");
+        ToonzFolder::getTemplateModuleDir() + TFilePath("shortcuts.ini");
     if (TFileStatus(tmplFp).doesExist()) {
       TSystem::copyFile(fp, tmplFp);
     } else {
@@ -613,4 +613,3 @@ void DVMenuAction::onTriggered(QAction *action) {
 }
 
 //-----------------------------------------------------------------------------
-

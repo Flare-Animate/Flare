@@ -2,7 +2,7 @@
 
 #include "tools/toolutils.h"
 #include "tools/toolhandle.h"
-#include "flareqt/imageutils.h"
+#include "toonzqt/imageutils.h"
 #include "trop.h"
 #include "tools/tool.h"
 #include "tstroke.h"
@@ -10,36 +10,36 @@
 #include "timagecache.h"
 #include "tgl.h"
 
-#include "flare/txsheethandle.h"
-#include "flare/tframehandle.h"
-#include "flare/txshlevelhandle.h"
-#include "flare/tscenehandle.h"
-#include "flare/txshleveltypes.h"
-#include "flare/tcolumnhandle.h"
-#include "flare/tpalettehandle.h"
-#include "flare/txshlevel.h"
-#include "flare/txshcell.h"
-#include "flare/txshsimplelevel.h"
-#include "flare/imagemanager.h"
-#include "flare/ttileset.h"
-#include "flare/flareimageutils.h"
-#include "flare/levelproperties.h"
-#include "flare/tstageobjectspline.h"
-#include "flare/tobjecthandle.h"
-#include "flare/tstageobject.h"
-#include "flare/trasterimageutils.h"
-#include "flare/levelset.h"
-#include "flare/flarescene.h"
-#include "flare/preferences.h"
-#include "flare/palettecontroller.h"
-#include "flare/txshchildlevel.h"
-#include "flare/stage2.h"
-#include "flare/autoclose.h"
+#include "toonz/txsheethandle.h"
+#include "toonz/tframehandle.h"
+#include "toonz/txshlevelhandle.h"
+#include "toonz/tscenehandle.h"
+#include "toonz/txshleveltypes.h"
+#include "toonz/tcolumnhandle.h"
+#include "toonz/tpalettehandle.h"
+#include "toonz/txshlevel.h"
+#include "toonz/txshcell.h"
+#include "toonz/txshsimplelevel.h"
+#include "toonz/imagemanager.h"
+#include "toonz/ttileset.h"
+#include "toonz/toonzimageutils.h"
+#include "toonz/levelproperties.h"
+#include "toonz/tstageobjectspline.h"
+#include "toonz/tobjecthandle.h"
+#include "toonz/tstageobject.h"
+#include "toonz/trasterimageutils.h"
+#include "toonz/levelset.h"
+#include "toonz/toonzscene.h"
+#include "toonz/preferences.h"
+#include "toonz/palettecontroller.h"
+#include "toonz/txshchildlevel.h"
+#include "toonz/stage2.h"
+#include "toonz/autoclose.h"
 
-#include "flareqt/tselectionhandle.h"
-#include "flareqt/icongenerator.h"
-#include "flareqt/selection.h"
-#include "flareqt/gutil.h"
+#include "toonzqt/tselectionhandle.h"
+#include "toonzqt/icongenerator.h"
+#include "toonzqt/selection.h"
+#include "toonzqt/gutil.h"
 
 #include "tools/cursormanager.h"
 #include "tools/cursors.h"
@@ -71,7 +71,7 @@ void mapToVector(const std::map<int, VIStroke *> &theMap,
 
 //------------------------------------------------------------
 
-void updateSaveBox(const TflareImageP &ti) {
+void updateSaveBox(const TToonzImageP &ti) {
   if (ti) {
     assert(ti->getRaster());            // Image should have a raster
     assert(ti->getSubsampling() == 1);  // Image should not be subsampled -
@@ -649,7 +649,7 @@ void ToolUtils::TToolUndo::notifyImageChanged() const {
     std::string id = m_level->getImageId(m_frameId) + "_rasterized";
     ImageManager::instance()->invalidate(id);
   }
-  if(flareCheck::instance()->getChecks() & flareCheck::eAutoclose)
+  if(ToonzCheck::instance()->getChecks() & ToonzCheck::eAutoclose)
     TAutocloser::invalidateSegmentCache(m_level->getImageId(m_frameId));
 }
 
@@ -687,9 +687,9 @@ ToolUtils::TRasterUndo::~TRasterUndo() {
 
 //------------------------------------------------------------------------------------------
 
-TflareImageP ToolUtils::TRasterUndo::getImage() const {
+TToonzImageP ToolUtils::TRasterUndo::getImage() const {
   if (m_level->isFid(m_frameId))
-    return (TflareImageP)m_level->getFrame(m_frameId, true);
+    return (TToonzImageP)m_level->getFrame(m_frameId, true);
   return 0;
 }
 
@@ -709,10 +709,10 @@ void ToolUtils::TRasterUndo::undo() const {
   if (!app) return;
 
   if (m_tiles && m_tiles->getTileCount() > 0) {
-    TflareImageP image = getImage();
+    TToonzImageP image = getImage();
     if (!image) return;
 
-    flareImageUtils::paste(image, m_tiles);
+    ToonzImageUtils::paste(image, m_tiles);
     if(m_updateSaveBox)
         ToolUtils::updateSaveBox(m_level, m_frameId);
   }
@@ -1237,10 +1237,10 @@ ToolUtils::UndoRasterPencil::~UndoRasterPencil() { delete m_stroke; }
 
 void ToolUtils::UndoRasterPencil::redo() const {
   insertLevelAndFrameIfNeeded();
-  TflareImageP image = getImage();
+  TToonzImageP image = getImage();
   if (!image) return;
 
-  flareImageUtils::addInkStroke(image, m_stroke, m_stroke->getStyle(),
+  ToonzImageUtils::addInkStroke(image, m_stroke, m_stroke->getStyle(),
                                 m_selective, m_filled, TConsts::infiniteRectD,
                                 m_doAntialias);
   ToolUtils::updateSaveBox();
@@ -1940,4 +1940,3 @@ bool ToolUtils::renumberForInsertFId(TXshSimpleLevel *sl, const TFrameId &fid,
 
   return true;
 }
-

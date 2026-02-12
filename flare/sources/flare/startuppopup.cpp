@@ -7,29 +7,29 @@
 #include "tapp.h"
 #include "iocommand.h"
 #include "toutputproperties.h"
-#include "flareqt/flipconsole.h"
+#include "toonzqt/flipconsole.h"
 #include "menubarcommandids.h"
 #include "tenv.h"
-#include "flare/stage.h"
+#include "toonz/stage.h"
 #include "layoutUtils.h"
 #include "layoutPresetsEditorPopup.h"
 
 // TnzQt includes
-#include "flareqt/menubarcommand.h"
-#include "flareqt/gutil.h"
-#include "flareqt/doublefield.h"
-#include "flareqt/icongenerator.h"
+#include "toonzqt/menubarcommand.h"
+#include "toonzqt/gutil.h"
+#include "toonzqt/doublefield.h"
+#include "toonzqt/icongenerator.h"
 
 // TnzLib includes
-#include "flare/flarescene.h"
-#include "flare/txsheet.h"
-#include "flare/levelproperties.h"
-#include "flare/sceneproperties.h"
-#include "flare/tcamera.h"
-#include "flare/tscenehandle.h"
-#include "flare/txsheethandle.h"
-#include "flare/preferences.h"
-#include "flare/tproject.h"
+#include "toonz/toonzscene.h"
+#include "toonz/txsheet.h"
+#include "toonz/levelproperties.h"
+#include "toonz/sceneproperties.h"
+#include "toonz/tcamera.h"
+#include "toonz/tscenehandle.h"
+#include "toonz/txsheethandle.h"
+#include "toonz/preferences.h"
+#include "toonz/tproject.h"
 
 // TnzCore includes
 #include "tsystem.h"
@@ -148,7 +148,7 @@ StartupPopup::StartupPopup()
   m_existingList = new StartupScenesList(this, QSize(96, 54));
 
   // Exclude all character which cannot fit in a filepath (Win).
-  // Dots are also prohibited since they are internally managed by flare.
+  // Dots are also prohibited since they are internally managed by Toonz.
   QRegExp rx("[^\\\\/:?*.\"<>|]+");
   m_nameFld->setValidator(new QRegExpValidator(rx, this));
 
@@ -749,7 +749,7 @@ void StartupPopup::setupProjectChange() {
 void StartupPopup::loadPresetList() {
   m_presetCombo->clear();
   m_presetCombo->addItem("...");
-  m_presetListFile = flareFolder::getReslistPath(false).getQString();
+  m_presetListFile = ToonzFolder::getReslistPath(false).getQString();
   QFile file(m_presetListFile);
   if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
     QTextStream in(&file);
@@ -1258,7 +1258,7 @@ StartupScenesList::~StartupScenesList() {}
 
 QPixmap StartupScenesList::createScenePreview(const QString &name,
                                               const TFilePath &fp) {
-  TFilePath iconPath = flareScene::getIconPath(fp);
+  TFilePath iconPath = ToonzScene::getIconPath(fp);
   if (TFileStatus(iconPath).doesExist()) {
     QPixmap scenePreview(iconPath.getQString());
     if (!scenePreview.isNull()) {
@@ -1350,4 +1350,3 @@ void StartupScenesList::onItemClicked(QListWidgetItem *item) {
 }
 
 OpenPopupCommandHandler<StartupPopup> openStartupPopup(MI_StartupPopup);
-

@@ -2,22 +2,22 @@
 
 #include "studiopalettecmd.h"
 #include "tapp.h"
-#include "flare/tpalettehandle.h"
-#include "flare/txshlevelhandle.h"
-#include "flare/tscenehandle.h"
+#include "toonz/tpalettehandle.h"
+#include "toonz/txshlevelhandle.h"
+#include "toonz/tscenehandle.h"
 #include "tundo.h"
 #include "tcolorstyles.h"
 #include "tsystem.h"
-#include "flareqt/icongenerator.h"
-#include "flareutil.h"
+#include "toonzqt/icongenerator.h"
+#include "toonzutil.h"
 #include "tconvert.h"
 
-#include "flare/studiopalette.h"
-#include "flare/flarescene.h"
-#include "flare/levelset.h"
-#include "flare/txshsimplelevel.h"
-#include "flare/txshleveltypes.h"
-#include "flare/sceneproperties.h"
+#include "toonz/studiopalette.h"
+#include "toonz/toonzscene.h"
+#include "toonz/levelset.h"
+#include "toonz/txshsimplelevel.h"
+#include "toonz/txshleveltypes.h"
+#include "toonz/sceneproperties.h"
 
 // DA FARE
 // Mi serve per effettuare il cambiamento della StudioPalette corrente
@@ -384,7 +384,7 @@ void StudioPaletteCmd::replaceWithCleanupPalette(const TFilePath &fp) {
 void StudioPaletteCmd::updateAllLinkedStyles() {
   StudioPalette *sp   = StudioPalette::instance();
   TApp *app           = TApp::instance();
-  flareScene *scene   = app->getCurrentScene()->getScene();
+  ToonzScene *scene   = app->getCurrentScene()->getScene();
   TLevelSet *levelSet = scene->getLevelSet();
   for (int i = 0; i < levelSet->getLevelCount(); i++) {
     TXshLevel *xl       = levelSet->getLevel(i);
@@ -508,4 +508,3 @@ void StudioPaletteCmd::scanPalettes(const TFilePath &folder,
                                     const TFilePath &sourcePath) {
   error("uh oh");
 }
-

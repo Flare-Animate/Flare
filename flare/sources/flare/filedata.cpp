@@ -4,9 +4,9 @@
 #include "tsystem.h"
 #include "tconvert.h"
 
-#include "flare/namebuilder.h"
-#include "flareqt/dvdialog.h"
-#include "flareqt/gutil.h"
+#include "toonz/namebuilder.h"
+#include "toonzqt/dvdialog.h"
+#include "toonzqt/gutil.h"
 
 using namespace DVGui;
 
@@ -65,4 +65,3 @@ void FileData::getFiles(TFilePath folder,
     }
   }
 }
-

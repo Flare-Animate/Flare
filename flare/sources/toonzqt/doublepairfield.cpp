@@ -1,7 +1,7 @@
 
 
-#include "flareqt/doublepairfield.h"
-#include "flareqt/dvdialog.h"
+#include "toonzqt/doublepairfield.h"
+#include "toonzqt/dvdialog.h"
 
 #include "tcommon.h"
 
@@ -396,4 +396,3 @@ void MeasuredDoublePairField::setPrecision(int precision) {
       dynamic_cast<MeasuredDoubleLineEdit *>(m_rightLineEdit);
   if (rightLineEdit) rightLineEdit->setDecimals(precision);
 }
-

@@ -7,7 +7,7 @@
 #include "timage_io.h"
 #include "tlevel_io.h"
 
-#include "tflareimage.h"
+#include "ttoonzimage.h"
 #include "tvectorimage.h"
 #include "trastercm.h"
 #include "tvectorrenderdata.h"
@@ -20,14 +20,14 @@
 #include "timagecache.h"
 
 // TnzLib includes
-#include "flare/txshleveltypes.h"
-#include "flare/levelproperties.h"
-#include "flare/txshsimplelevel.h"
-#include "flare/fill.h"
-#include "flare/dpiscale.h"
-#include "flare/stage.h"
-#include "flare/tcamera.h"
-#include "flare/preferences.h"
+#include "toonz/txshleveltypes.h"
+#include "toonz/levelproperties.h"
+#include "toonz/txshsimplelevel.h"
+#include "toonz/fill.h"
+#include "toonz/dpiscale.h"
+#include "toonz/stage.h"
+#include "toonz/tcamera.h"
+#include "toonz/preferences.h"
 
 // Qt includes
 #include <QImage>
@@ -147,7 +147,7 @@ TImageP ImageLoader::build(int imFlags, void *extData) {
       // Store the subsampling info in the image
       if (TRasterImageP ri = img)
         ri->setSubsampling(subsampling);
-      else if (TflareImageP ti = img)
+      else if (TToonzImageP ti = img)
         ti->setSubsampling(subsampling);
     }
 
@@ -464,4 +464,3 @@ TImageP ImageFiller::build(int imFlags, void *extData) {
 
   return TRasterImageP(ras);
 }
-

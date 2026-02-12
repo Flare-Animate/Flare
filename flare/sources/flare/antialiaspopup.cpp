@@ -8,25 +8,25 @@
 #include "cellselection.h"
 #include "filmstripselection.h"
 
-// flareQt includes
-#include "flareqt/intfield.h"
-#include "flareqt/planeviewer.h"
-#include "flareqt/menubarcommand.h"
-#include "flareqt/tselectionhandle.h"
-#include "flareqt/icongenerator.h"
+// ToonzQt includes
+#include "toonzqt/intfield.h"
+#include "toonzqt/planeviewer.h"
+#include "toonzqt/menubarcommand.h"
+#include "toonzqt/tselectionhandle.h"
+#include "toonzqt/icongenerator.h"
 
 // TnzLib includes
-#include "flare/txshcell.h"
-#include "flare/txsheethandle.h"
-#include "flare/tframehandle.h"
-#include "flare/tcolumnhandle.h"
-#include "flare/txshlevelhandle.h"
-#include "flare/txshleveltypes.h"
+#include "toonz/txshcell.h"
+#include "toonz/txsheethandle.h"
+#include "toonz/tframehandle.h"
+#include "toonz/tcolumnhandle.h"
+#include "toonz/txshlevelhandle.h"
+#include "toonz/txshleveltypes.h"
 
 // TnzCore includes
 #include "tpixelgr.h"
 #include "trasterimage.h"
-#include "tflareimage.h"
+#include "ttoonzimage.h"
 #include "tpixelutils.h"
 #include "tundo.h"
 #include "trop.h"
@@ -291,7 +291,7 @@ public:
     m_rasId = QString("AntialiasUndo_") + QString::number(uintptr_t(this));
     if ((TRasterCM32P)ras)
       TImageCache::instance()->add(m_rasId,
-                                   TflareImageP(ras, ras->getBounds()));
+                                   TToonzImageP(ras, ras->getBounds()));
     else
       TImageCache::instance()->add(m_rasId, TRasterImageP(ras));
   }
@@ -303,7 +303,7 @@ public:
     TXshCell cell      = xsheet->getCell(m_r, m_c);
     TImageP image      = cell.getImage(true);
     TRasterImageP rimg = (TRasterImageP)image;
-    TflareImageP timg  = (TflareImageP)image;
+    TToonzImageP timg  = (TToonzImageP)image;
     if (!rimg && !timg) return;
     if (rimg)
       rimg->setRaster(
@@ -312,7 +312,7 @@ public:
               ->clone());
     else
       timg->setCMapped(
-          ((TflareImageP)TImageCache::instance()->get(m_rasId, true))
+          ((TToonzImageP)TImageCache::instance()->get(m_rasId, true))
               ->getRaster()
               ->clone());
     TXshSimpleLevel *simpleLevel = cell.getSimpleLevel();
@@ -331,7 +331,7 @@ public:
     TXshCell cell      = xsheet->getCell(m_r, m_c);
     TImageP image      = cell.getImage(true);
     TRasterImageP rimg = (TRasterImageP)image;
-    TflareImageP timg  = (TflareImageP)image;
+    TToonzImageP timg  = (TToonzImageP)image;
     if (!rimg && !timg) return;
     TRasterP ras = image->raster();
     if (!ras) return;
@@ -435,4 +435,3 @@ void AntialiasPopup::onValuesChanged(bool dragging) {
 //-----------------------------------------------------------------------------
 
 OpenPopupCommandHandler<AntialiasPopup> openAntialiasPopup(MI_Antialias);
-

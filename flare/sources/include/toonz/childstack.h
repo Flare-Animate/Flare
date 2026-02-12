@@ -5,11 +5,11 @@
 
 #include "tcommon.h"
 
-#include "flare/txshchildlevel.h"
+#include "toonz/txshchildlevel.h"
 
 #undef DVAPI
 #undef DVVAR
-#ifdef flareLIB_EXPORTS
+#ifdef TOONZLIB_EXPORTS
 #define DVAPI DV_EXPORT_API
 #define DVVAR DV_EXPORT_VAR
 #else
@@ -20,7 +20,7 @@
 //=============================================================================
 // forward declarations
 class TXsheet;
-class flareScene;
+class ToonzScene;
 class TAffine;
 class TXshChildLevel;
 
@@ -28,7 +28,7 @@ class TXshChildLevel;
 //! The ChildStack class provides a stack of xsheet and allows its management.
 /*!The class has a vector of \b ChildStack::Node, a pointer to current \b
    TXsheet
-   getXsheet(), and a pointer to current \b flareScene \b m_scene.
+   getXsheet(), and a pointer to current \b ToonzScene \b m_scene.
    The \b ChildStack::Node vector is as a subxsheet vector.
 
    Through this class you can create, open openChild(), close closeChild() or
@@ -62,13 +62,13 @@ public:
 class DVAPI ChildStack {
   std::vector<AncestorNode *> m_stack;
   TXsheet *m_xsheet;
-  flareScene *m_scene;
+  ToonzScene *m_scene;
 
 public:
   /*!
 Constructs a ChildStack with default value and current \b scene.
 */
-  ChildStack(flareScene *scene);
+  ChildStack(ToonzScene *scene);
   /*!
 Destroys the ChildStack object.
 */
@@ -143,4 +143,3 @@ private:
 };
 
 #endif
-

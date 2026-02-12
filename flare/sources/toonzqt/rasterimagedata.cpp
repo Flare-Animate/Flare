@@ -1,16 +1,16 @@
 
 
-#include "flareqt/rasterimagedata.h"
-#include "flareqt/strokesdata.h"
+#include "toonzqt/rasterimagedata.h"
+#include "toonzqt/strokesdata.h"
 #include "tpaletteutil.h"
 #include "trasterimage.h"
-#include "flare/stage.h"
-#include "flare/tcenterlinevectorizer.h"
-#include "flare/ttileset.h"
-#include "flare/flareimageutils.h"
-#include "flare/flarescene.h"
-#include "flare/sceneproperties.h"
-#include "flare/fullcolorpalette.h"
+#include "toonz/stage.h"
+#include "toonz/tcenterlinevectorizer.h"
+#include "toonz/ttileset.h"
+#include "toonz/toonzimageutils.h"
+#include "toonz/toonzscene.h"
+#include "toonz/sceneproperties.h"
+#include "toonz/fullcolorpalette.h"
 
 #include <memory>
 
@@ -25,7 +25,7 @@ TVectorImageP vectorize(const TImageP &source, const TRectD &rect,
   vi->setPalette(source->getPalette());
 
   double dpiX, dpiY;
-  TflareImageP ti(source);
+  TToonzImageP ti(source);
   TRasterImageP ri(source);
   if (ti)
     ti->getDpi(dpiX, dpiY);
@@ -59,15 +59,15 @@ RasterImageData::RasterImageData()
 RasterImageData::~RasterImageData() {}
 
 //===================================================================
-// flareImageData
+// ToonzImageData
 //-------------------------------------------------------------------
 
-flareImageData::flareImageData()
+ToonzImageData::ToonzImageData()
     : RasterImageData(), m_copiedRaster(0), m_palette(new TPalette()) {}
 
 //-------------------------------------------------------------------
 
-flareImageData::flareImageData(const flareImageData &src)
+ToonzImageData::ToonzImageData(const ToonzImageData &src)
     : m_copiedRaster(src.m_copiedRaster)
     , m_palette(src.m_palette)
     , m_usedStyles(src.m_usedStyles) {
@@ -83,11 +83,11 @@ flareImageData::flareImageData(const flareImageData &src)
 
 //-------------------------------------------------------------------
 
-flareImageData::~flareImageData() {}
+ToonzImageData::~ToonzImageData() {}
 
 //-------------------------------------------------------------------
 
-void flareImageData::setData(const TRasterP &copiedRaster,
+void ToonzImageData::setData(const TRasterP &copiedRaster,
                              const TPaletteP &palette, double dpiX, double dpiY,
                              const TDimension &dim,
                              const std::vector<TRectD> &rects,
@@ -105,13 +105,13 @@ void flareImageData::setData(const TRasterP &copiedRaster,
   m_dim             = dim;
 
   /*-- 使用されているStyleの一覧を作る --*/
-  TflareImageP ti(m_copiedRaster, m_copiedRaster->getBounds());
-  flareImageUtils::getUsedStyles(m_usedStyles, ti);
+  TToonzImageP ti(m_copiedRaster, m_copiedRaster->getBounds());
+  ToonzImageUtils::getUsedStyles(m_usedStyles, ti);
 }
 
 //-------------------------------------------------------------------
 
-void flareImageData::getData(TRasterP &copiedRaster, double &dpiX, double &dpiY,
+void ToonzImageData::getData(TRasterP &copiedRaster, double &dpiX, double &dpiY,
                              std::vector<TRectD> &rects,
                              std::vector<TStroke> &strokes,
                              std::vector<TStroke> &originalStrokes,
@@ -135,17 +135,17 @@ void flareImageData::getData(TRasterP &copiedRaster, double &dpiX, double &dpiY,
 
   if (!cmRas) return;
   std::set<int> usedStyles(m_usedStyles);
-  TflareImageP ti(cmRas, cmRas->getBounds());
-  if (usedStyles.size() == 0) flareImageUtils::getUsedStyles(usedStyles, ti);
+  TToonzImageP ti(cmRas, cmRas->getBounds());
+  if (usedStyles.size() == 0) ToonzImageUtils::getUsedStyles(usedStyles, ti);
   std::map<int, int> indexTable;
   mergePalette(targetPalette, indexTable, m_palette, usedStyles);
-  flareImageUtils::scrambleStyles(ti, indexTable);
+  ToonzImageUtils::scrambleStyles(ti, indexTable);
   ti->setPalette(m_palette.getPointer());
 }
 
 //-------------------------------------------------------------------
 
-StrokesData *flareImageData::toStrokesData(flareScene *scene) const {
+StrokesData *ToonzImageData::toStrokesData(ToonzScene *scene) const {
   assert(scene);
   TRectD rect;
   if (!m_rects.empty())
@@ -155,7 +155,7 @@ StrokesData *flareImageData::toStrokesData(flareScene *scene) const {
   unsigned int i;
   for (i = 0; i < m_rects.size(); i++) rect += m_rects[i];
   for (i = 0; i < m_strokes.size(); i++) rect += m_strokes[i].getBBox();
-  TflareImageP image(m_copiedRaster, m_copiedRaster->getBounds());
+  TToonzImageP image(m_copiedRaster, m_copiedRaster->getBounds());
   image->setPalette(m_palette.getPointer());
   image->setDpi(m_dpiX, m_dpiY);
 
@@ -182,7 +182,7 @@ StrokesData *flareImageData::toStrokesData(flareScene *scene) const {
 
 //-------------------------------------------------------------------
 
-int flareImageData::getMemorySize() const {
+int ToonzImageData::getMemorySize() const {
   int i, size = 0;
   for (i = 0; i < (int)m_strokes.size(); i++)
     size += m_strokes[i].getControlPointCount() * sizeof(TThickPoint) + 100;
@@ -276,7 +276,7 @@ void FullColorImageData::getData(TRasterP &copiedRaster, double &dpiX,
 
 //-------------------------------------------------------------------
 
-StrokesData *FullColorImageData::toStrokesData(flareScene *scene) const {
+StrokesData *FullColorImageData::toStrokesData(ToonzScene *scene) const {
   assert(scene);
   TRectD rect;
   if (!m_rects.empty())
@@ -319,4 +319,3 @@ int FullColorImageData::getMemorySize() const {
   return size + sizeof(*(m_copiedRaster.getPointer())) +
          sizeof(*(m_palette.getPointer())) + sizeof(*this);
 }
-

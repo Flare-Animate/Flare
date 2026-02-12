@@ -1,16 +1,16 @@
 #pragma once
 
-#ifndef flareRASTERBRUSHTOOL_H
-#define flareRASTERBRUSHTOOL_H
+#ifndef TOONZRASTERBRUSHTOOL_H
+#define TOONZRASTERBRUSHTOOL_H
 
 #include <tgeometry.h>
 #include <tproperty.h>
 #include <trasterimage.h>
-#include <tflareimage.h>
+#include <ttoonzimage.h>
 #include <tstroke.h>
-#include <flare/strokegenerator.h>
-#include <flare/rasterstrokegenerator.h>
-#include "flare/preferences.h"
+#include <toonz/strokegenerator.h>
+#include <toonz/rasterstrokegenerator.h>
+#include "toonz/preferences.h"
 #include <tools/tool.h>
 #include <tools/cursors.h>
 
@@ -25,7 +25,7 @@
 #endif
 
 #include "bluredbrush.h"
-#include "mypaintflarebrush.h"
+#include "mypainttoonzbrush.h"
 
 #include <QCoreApplication>
 #include <QRadialGradient>
@@ -39,12 +39,12 @@ class TTileSetCM32;
 class TTileSaverCM32;
 class RasterStrokeGenerator;
 class BluredBrush;
-class flareRasterBrushToolNotifier;
+class ToonzRasterBrushToolNotifier;
 
 //--------------------------------------------------------------
 
 //************************************************************************
-//  flare Raster Brush Data declaration
+//  Toonz Raster Brush Data declaration
 //************************************************************************
 
 struct BrushData final : public TPersist {
@@ -71,7 +71,7 @@ struct BrushData final : public TPersist {
 };
 
 //************************************************************************
-//   flare Raster Brush Preset Manager declaration
+//   Toonz Raster Brush Preset Manager declaration
 //************************************************************************
 
 class BrushPresetManager {
@@ -92,19 +92,19 @@ public:
 };
 
 //************************************************************************
-//   flare Raster Brush Tool declaration
+//   Toonz Raster Brush Tool declaration
 //************************************************************************
 
-class flareRasterBrushTool final : public TTool,
+class ToonzRasterBrushTool final : public TTool,
                                    public RasterController,
                                    public TInputHandler {
-  Q_DECLARE_TR_FUNCTIONS(flareRasterBrushTool)
+  Q_DECLARE_TR_FUNCTIONS(ToonzRasterBrushTool)
 
   void updateCurrentStyle();
   double restartBrushTimer();
 
 public:
-  flareRasterBrushTool(std::string name, int targetType);
+  ToonzRasterBrushTool(std::string name, int targetType);
 
   ToolType getToolType() const override { return TTool::LevelWriteTool; }
   unsigned int getToolHints() const override;
@@ -187,7 +187,7 @@ protected:
 
   class MyPaintStroke : public TTrackHandler {
   public:
-    MyPaintflareBrush brush;
+    MyPaintToonzBrush brush;
 
     inline MyPaintStroke(const TRaster32P &ras, RasterController &controller,
                          const mypaint::Brush &brush,
@@ -280,7 +280,7 @@ protected:
                       //! substitution.
       m_firstTime, m_presetsLoaded;
 
-  flareRasterBrushToolNotifier *m_notifier;
+  ToonzRasterBrushToolNotifier *m_notifier;
   bool m_isMyPaintStyleSelected = false;
   QElapsedTimer m_brushTimer;
   int m_minCursorThick, m_maxCursorThick;
@@ -298,18 +298,17 @@ protected:
 
 //------------------------------------------------------------
 
-class flareRasterBrushToolNotifier final : public QObject {
+class ToonzRasterBrushToolNotifier final : public QObject {
   Q_OBJECT
 
-  flareRasterBrushTool *m_tool;
+  ToonzRasterBrushTool *m_tool;
 
 public:
-  flareRasterBrushToolNotifier(flareRasterBrushTool *tool);
+  ToonzRasterBrushToolNotifier(ToonzRasterBrushTool *tool);
 
 protected slots:
   // void onCanvasSizeChanged() { m_tool->onCanvasSizeChanged(); }
   void onColorStyleChanged() { m_tool->onColorStyleChanged(); }
 };
 
-#endif  // flareRASTERBRUSHTOOL_H
-
+#endif  // TOONZRASTERBRUSHTOOL_H

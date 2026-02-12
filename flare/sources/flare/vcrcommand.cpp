@@ -6,18 +6,18 @@
 #include "sceneviewer.h"
 
 // TnzQt includes
-#include "flareqt/menubarcommand.h"
-#include "flareqt/flipconsole.h"
+#include "toonzqt/menubarcommand.h"
+#include "toonzqt/flipconsole.h"
 
 // TnzLib includes
-#include "flare/txsheet.h"
-#include "flare/txshcell.h"
-#include "flare/txsheethandle.h"
-#include "flare/tframehandle.h"
-#include "flare/tcolumnhandle.h"
-#include "flare/preferences.h"
-#include "flare/txshsimplelevel.h"
-#include "flare/txshlevelhandle.h"
+#include "toonz/txsheet.h"
+#include "toonz/txshcell.h"
+#include "toonz/txsheethandle.h"
+#include "toonz/tframehandle.h"
+#include "toonz/tcolumnhandle.h"
+#include "toonz/preferences.h"
+#include "toonz/txshsimplelevel.h"
+#include "toonz/txshlevelhandle.h"
 
 #include <QApplication>
 
@@ -273,4 +273,3 @@ ShortPlayCommand shortPlayCommand;
 
 NextKeyframeCommand nextKeyframeCommand;
 PrevKeyframeCommand prevKeyframeCommand;
-

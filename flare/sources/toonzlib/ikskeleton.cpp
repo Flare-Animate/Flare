@@ -1,6 +1,6 @@
 
 
-#include "flare/ikskeleton.h"
+#include "toonz/ikskeleton.h"
 
 void IKSkeleton::computeSkeleton(IKNode *node) {
   for (int i = 0; i < (int)m_nodes.size(); i++) {
@@ -29,4 +29,3 @@ void IKSkeleton::setPurpose(int nodeIndex, IKNode::Purpose purpose) {
 }
 
 //========================================================================
-

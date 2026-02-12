@@ -7,12 +7,12 @@
 #include <string>
 #include <vector>
 
-#include "flareqt/menubarcommand.h"
+#include "toonzqt/menubarcommand.h"
 #include "tcommon.h"
 
 #undef DVAPI
 #undef DVVAR
-#ifdef flareQT_EXPORTS
+#ifdef TOONZQT_EXPORTS
 #define DVAPI DV_EXPORT_API
 #define DVVAR DV_EXPORT_VAR
 #else
@@ -57,4 +57,3 @@ signals:
 };
 
 #endif  // TSELECTIONHANDLE_H
-

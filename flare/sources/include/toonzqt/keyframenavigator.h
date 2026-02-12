@@ -6,19 +6,19 @@
 #include "tpalette.h"
 #include "tfxutil.h"
 
-#include "flare/tstageobject.h"
-#include "flare/tframehandle.h"
-#include "flare/tobjecthandle.h"
-#include "flare/txsheethandle.h"
-#include "flare/tpalettehandle.h"
-#include "flare/tfxhandle.h"
-#include "flare/tcolumnfx.h"
+#include "toonz/tstageobject.h"
+#include "toonz/tframehandle.h"
+#include "toonz/tobjecthandle.h"
+#include "toonz/txsheethandle.h"
+#include "toonz/tpalettehandle.h"
+#include "toonz/tfxhandle.h"
+#include "toonz/tcolumnfx.h"
 
 #include <QToolBar>
 
 #undef DVAPI
 #undef DVVAR
-#ifdef flareQT_EXPORTS
+#ifdef TOONZQT_EXPORTS
 #define DVAPI DV_EXPORT_API
 #define DVVAR DV_EXPORT_VAR
 #else
@@ -239,4 +239,3 @@ protected:
 };
 
 #endif
-

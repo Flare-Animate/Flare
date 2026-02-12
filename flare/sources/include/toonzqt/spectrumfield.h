@@ -4,13 +4,13 @@
 #define SPECTRUMFIELD_H
 
 #include <QWidget>
-#include "flareqt/colorfield.h"
+#include "toonzqt/colorfield.h"
 #include "tpixel.h"
 #include "tspectrum.h"
 
 #undef DVAPI
 #undef DVVAR
-#ifdef flareQT_EXPORTS
+#ifdef TOONZQT_EXPORTS
 #define DVAPI DV_EXPORT_API
 #define DVVAR DV_EXPORT_VAR
 #else
@@ -135,4 +135,3 @@ signals:
 //-----------------------------------------------------------------------------
 
 #endif  // SPECTRUMFIELD_H
-

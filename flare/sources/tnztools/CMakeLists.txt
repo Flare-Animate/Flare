@@ -7,7 +7,7 @@ set(MOC_HEADERS
     plastictool.h
     skeletonsubtools.h
     tooloptionscontrols.h
-    flarerasterbrushtool.h
+    toonzrasterbrushtool.h
     viewtools.h
     selectiontool.h
     edittool.h
@@ -24,14 +24,14 @@ set(HEADERS
     autofill.h
     bluredbrush.h
     hookselection.h
-    mypaintflarebrush.h
+    mypainttoonzbrush.h
     rasterselectiontool.h
     rgbpickertool.h
     rulertool.h
     setsaveboxtool.h
     shifttracetool.h
     stylepickertool.h
-    flarevectorbrushtool.h
+    toonzvectorbrushtool.h
     vectorselectiontool.h
     assistants/assistantellipse.h
     assistants/assistantline.h
@@ -123,10 +123,10 @@ set(SOURCES
     screenpicker.cpp
     fingertool.cpp
     rulertool.cpp
-    mypaintflarebrush.cpp
+    mypainttoonzbrush.cpp
     shifttracetool.cpp
-    flarerasterbrushtool.cpp
-    flarevectorbrushtool.cpp
+    toonzrasterbrushtool.cpp
+    toonzvectorbrushtool.cpp
     tooltimer.cpp
     inputstate.cpp
     track.cpp
@@ -174,7 +174,7 @@ add_definitions(
 
 if(BUILD_ENV_APPLE)
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-install_name,@executable_path/libtnztools.dylib")
-    add_dependencies(tnztools tnzcore tnzbase tnzext flarelib flareqt)
+    add_dependencies(tnztools tnzcore tnzbase tnzext toonzlib toonzqt)
 endif()
 
 message("subdir: tnztools")
@@ -188,7 +188,6 @@ include_directories(
     ../include/tools
 )
 
-_find_flare_library(EXTRA_LIBS "tnzcore;tnzbase;tnzext;flarelib;flareqt")
+_find_toonz_library(EXTRA_LIBS "tnzcore;tnzbase;tnzext;toonzlib;toonzqt")
 
 target_link_libraries(tnztools Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Network Qt5::OpenGL ${GLUT_LIB} ${EXTRA_LIBS} ${GL_LIB} ${MYPAINT_LIB_LDFLAGS})
-

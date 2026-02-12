@@ -1,11 +1,11 @@
-#include "flare/preferences.h"
+#include "toonz/preferences.h"
 
 // TnzLib includes
-#include "flare/tscenehandle.h"
-#include "flare/flarescene.h"
-#include "flare/flarefolders.h"
-#include "flare/tcamera.h"
-#include "flare/txshleveltypes.h"
+#include "toonz/tscenehandle.h"
+#include "toonz/toonzscene.h"
+#include "toonz/toonzfolders.h"
+#include "toonz/tcamera.h"
+#include "toonz/txshleveltypes.h"
 
 // TnzBase includes
 #include "tenv.h"
@@ -254,13 +254,13 @@ bool Preferences::LevelFormat::matches(const TFilePath &fp) const {
 
 Preferences::Preferences() {
   // Load preference file
-  TFilePath layoutDir = flareFolder::getMyModuleDir();
+  TFilePath layoutDir = ToonzFolder::getMyModuleDir();
   TFilePath prefPath  = layoutDir + TFilePath("preferences.ini");
 
   // In case the personal settings do not exist (for new users)
   if (!TFileStatus(prefPath).doesExist()) {
     TFilePath templatePath =
-        flareFolder::getTemplateModuleDir() + TFilePath("preferences.ini");
+        ToonzFolder::getTemplateModuleDir() + TFilePath("preferences.ini");
     // If there is a template, copy it to the personal one
     if (TFileStatus(templatePath).doesExist())
       TSystem::copyFile(prefPath, templatePath);
@@ -354,7 +354,7 @@ void Preferences::initializeOptions() {
   }
 
   // Load rooms or layouts
-  TFilePath room_path(flareFolder::getRoomsDir());
+  TFilePath room_path(ToonzFolder::getRoomsDir());
   TFilePathSet room_fpset;
   try {
     TSystem::readDirectory(room_fpset, room_path, true, false);
@@ -824,7 +824,7 @@ void Preferences::resolveCompatibility() {
     setValue(DefRasterFormat, m_settings->value("scanLevelType").toString());
   }
   // "initialLoadTlvCachingBehavior" is changed to "rasterLevelCachingBehavior"
-  // Now this setting also applies to raster levels (previously only flare
+  // Now this setting also applies to raster levels (previously only Toonz
   // raster levels). It also applies to any operation that loads a level, such
   // as loading scene or loading a recent level.
   if (m_settings->contains("initialLoadTlvCachingBehavior") &&
@@ -1156,4 +1156,3 @@ QString Preferences::getColorCalibrationLutPath(QString &monitorName) const {
 
   return lutPathMap.value(monitorName).toString();
 }
-

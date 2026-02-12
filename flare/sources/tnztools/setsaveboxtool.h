@@ -3,7 +3,7 @@
 #ifndef SETSAVEBOXTOOL_INCLUDED
 #define SETSAVEBOXTOOL_INCLUDED
 
-#include "tflareimage.h"
+#include "ttoonzimage.h"
 #include "tools/tool.h"
 
 //=============================================================================
@@ -24,7 +24,7 @@ class SetSaveboxTool {
     eMoveDown  = 0x20
   } m_movementType;
 
-  TflareImage *getImage();
+  TToonzImage *getImage();
   int getDragType(const TPointD &pos);
 
 public:
@@ -40,4 +40,3 @@ public:
 };
 
 #endif  // SETSAVEBOXTOOL_INCLUDED
-

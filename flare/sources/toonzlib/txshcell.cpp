@@ -1,7 +1,7 @@
 
 
-#include "flare/txshcell.h"
-#include "flare/txshsimplelevel.h"
+#include "toonz/txshcell.h"
+#include "toonz/txshsimplelevel.h"
 
 //=============================================================================
 
@@ -59,4 +59,3 @@ TPalette *TXshCell::getPalette() const {
   else
     return 0;
 }
-

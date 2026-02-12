@@ -7,18 +7,18 @@
 #include "tools/toolhandle.h"
 #include "tools/tool.h"
 #include "tools/toolcommandids.h"
-#include "flareqt/menubarcommand.h"
+#include "toonzqt/menubarcommand.h"
 #include "menubarcommandids.h"
 
-#include "flare/txshleveltypes.h"
-#include "flare/txshlevelhandle.h"
-#include "flare/tframehandle.h"
-#include "flare/txsheethandle.h"
-#include "flare/txshcell.h"
-#include "flare/txshsimplelevel.h"
-#include "flare/tcolumnhandle.h"
-#include "flare/preferences.h"
-#include "flare/tscenehandle.h"
+#include "toonz/txshleveltypes.h"
+#include "toonz/txshlevelhandle.h"
+#include "toonz/tframehandle.h"
+#include "toonz/txsheethandle.h"
+#include "toonz/txshcell.h"
+#include "toonz/txshsimplelevel.h"
+#include "toonz/tcolumnhandle.h"
+#include "toonz/preferences.h"
+#include "toonz/tscenehandle.h"
 
 // TnzBase includes
 #include "tenv.h"
@@ -144,7 +144,7 @@ void Toolbar::updateToolbar() {
     targetType = TTool::RasterImage;
     break;
   case TZP_XSHLEVEL:
-    targetType = TTool::flareImage;
+    targetType = TTool::ToonzImage;
     break;
   case PLI_XSHLEVEL:
   default:
@@ -302,4 +302,3 @@ void Toolbar::onPreferenceChanged(const QString &prefName) {
 //=============================================================================
 
 OpenFloatingPanel openToolbarPane(MI_OpenToolbar, "ToolBar", "");
-

@@ -1,22 +1,22 @@
 
 
 #include "fxparameditorpopup.h"
-#include "flareqt/menubarcommand.h"
+#include "toonzqt/menubarcommand.h"
 #include "menubarcommandids.h"
 #include "tapp.h"
-#include "flare/tfxhandle.h"
-#include "flare/tscenehandle.h"
-#include "flare/tframehandle.h"
-#include "flare/txsheethandle.h"
-#include "flare/txshlevelhandle.h"
+#include "toonz/tfxhandle.h"
+#include "toonz/tscenehandle.h"
+#include "toonz/tframehandle.h"
+#include "toonz/txsheethandle.h"
+#include "toonz/txshlevelhandle.h"
 
 #include "tfxattributes.h"
 
-#include "flareqt/fxsettings.h"
+#include "toonzqt/fxsettings.h"
 
-#include "flare/tcolumnfx.h"
-#include "flare/scenefx.h"
-#include "flare/preferences.h"
+#include "toonz/tcolumnfx.h"
+#include "toonz/scenefx.h"
+#include "toonz/preferences.h"
 
 #include <QMainWindow>
 

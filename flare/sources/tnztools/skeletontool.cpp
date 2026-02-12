@@ -8,28 +8,28 @@
 #include "tenv.h"
 
 // TnzLib includes
-#include "flare/tstageobjectcmd.h"
-#include "flare/flareimageutils.h"
-#include "flare/txshcolumn.h"
-#include "flare/txshsimplelevel.h"
-#include "flare/tstageobjecttree.h"
-#include "flare/tstageobjectspline.h"
-#include "flare/flarescene.h"
-#include "flare/stage.h"
-#include "flare/txshcell.h"
-#include "flare/dpiscale.h"
-#include "flare/skeleton.h"
-#include "flare/tscenehandle.h"
-#include "flare/tobjecthandle.h"
-#include "flare/tpinnedrangeset.h"
-#include "flare/tframehandle.h"
-#include "flare/tcolumnhandle.h"
-#include "flare/txsheethandle.h"
-#include "flare/stageobjectutil.h"
+#include "toonz/tstageobjectcmd.h"
+#include "toonz/toonzimageutils.h"
+#include "toonz/txshcolumn.h"
+#include "toonz/txshsimplelevel.h"
+#include "toonz/tstageobjecttree.h"
+#include "toonz/tstageobjectspline.h"
+#include "toonz/toonzscene.h"
+#include "toonz/stage.h"
+#include "toonz/txshcell.h"
+#include "toonz/dpiscale.h"
+#include "toonz/skeleton.h"
+#include "toonz/tscenehandle.h"
+#include "toonz/tobjecthandle.h"
+#include "toonz/tpinnedrangeset.h"
+#include "toonz/tframehandle.h"
+#include "toonz/tcolumnhandle.h"
+#include "toonz/txsheethandle.h"
+#include "toonz/stageobjectutil.h"
 
 // TnzQt includes
-#include "flareqt/selection.h"
-#include "flareqt/selectioncommandids.h"
+#include "toonzqt/selection.h"
+#include "toonzqt/selectioncommandids.h"
 
 // TnzTools includes
 #include "tools/tool.h"
@@ -825,7 +825,7 @@ void SkeletonTool::getImageBoundingBox(TRectD &bbox, TAffine &aff, int frame,
   // TAffine affine = getColumnMatrix(columnIndex);
   TXshCell cell    = getXsheet()->getCell(frame, columnIndex);
   TImageP image    = cell.getImage(false);
-  TflareImageP ti  = image;
+  TToonzImageP ti  = image;
   TVectorImageP vi = image;
   if (ti) {
     TAffine imageDpiAff;
@@ -833,7 +833,7 @@ void SkeletonTool::getImageBoundingBox(TRectD &bbox, TAffine &aff, int frame,
       imageDpiAff =
           getDpiAffine(cell.m_level->getSimpleLevel(), cell.m_frameId, true);
     aff  = columnAff * imageDpiAff;
-    bbox = flareImageUtils::convertRasterToWorld(convert(ti->getBBox()), ti) *
+    bbox = ToonzImageUtils::convertRasterToWorld(convert(ti->getBBox()), ti) *
            ti->getSubsampling();
     ToolUtils::drawRect(bbox * ti->getSubsampling(), TPixel32(200, 200, 200),
                         0x5555);
@@ -852,7 +852,7 @@ void SkeletonTool::drawLevelBoundingBox(int frame, int columnIndex) {
   TAffine affine   = getCurrentColumnMatrix();
   TXshCell cell    = getXsheet()->getCell(frame, columnIndex);
   TImageP image    = cell.getImage(false);
-  TflareImageP ti  = image;
+  TToonzImageP ti  = image;
   TVectorImageP vi = image;
   glPushMatrix();
   if (affine != getMatrix()) tglMultMatrix(getMatrix().inv() * affine);
@@ -860,7 +860,7 @@ void SkeletonTool::drawLevelBoundingBox(int frame, int columnIndex) {
     TPointD dpiScale = getViewer()->getDpiScale();
     glScaled(dpiScale.x, dpiScale.y, 1);
     TRectD bbox =
-        flareImageUtils::convertRasterToWorld(convert(ti->getBBox()), ti);
+        ToonzImageUtils::convertRasterToWorld(convert(ti->getBBox()), ti);
     ToolUtils::drawRect(bbox * ti->getSubsampling(), TPixel32(200, 200, 200),
                         0x5555);
   }
@@ -1624,4 +1624,3 @@ void SkeletonTool::buildSkeleton(Skeleton &skeleton, int columnIndex) {
   int frame = TTool::getApplication()->getCurrentFrame()->getFrame();
   skeleton.build(getXsheet(), frame, columnIndex, m_temporaryPinnedColumns);
 }
-

@@ -5,12 +5,12 @@
 #include "drawutil.h"
 #include "tenv.h"
 #include "tools/toolhandle.h"
-#include "flare/tdistort.h"
-#include "flare/glrasterpainter.h"
-#include "flare/flareimageutils.h"
-#include "flareqt/tselectionhandle.h"
-#include "flareqt/imageutils.h"
-#include "flare/txshlevelhandle.h"
+#include "toonz/tdistort.h"
+#include "toonz/glrasterpainter.h"
+#include "toonz/toonzimageutils.h"
+#include "toonzqt/tselectionhandle.h"
+#include "toonzqt/imageutils.h"
+#include "toonz/txshlevelhandle.h"
 
 using namespace ToolUtils;
 using namespace DragSelectionTool;
@@ -97,10 +97,10 @@ DragSelectionTool::UndoRasterDeform::UndoRasterDeform(RasterSelectionTool *tool)
       "UndoRasterDeform_old_floating_" + std::to_string(m_id++);
   TRasterP floatingRas = selection->getFloatingSelection();
   TImageP floatingImage;
-  if (TRasterCM32P flareRas = (TRasterCM32P)(floatingRas)) {
-    floatingImage = TflareImageP(flareRas, flareRas->getBounds());
-    m_dim         = flareRas->getSize();
-    m_pixelSize   = flareRas->getPixelSize();
+  if (TRasterCM32P toonzRas = (TRasterCM32P)(floatingRas)) {
+    floatingImage = TToonzImageP(toonzRas, toonzRas->getBounds());
+    m_dim         = toonzRas->getSize();
+    m_pixelSize   = toonzRas->getPixelSize();
   }
   if (TRaster32P fullColorRas = (TRaster32P)(floatingRas)) {
     floatingImage = TRasterImageP(fullColorRas);
@@ -133,8 +133,8 @@ void DragSelectionTool::UndoRasterDeform::registerRasterDeformation() {
       "UndoRasterDeform_new_floating_" + std::to_string(m_id);
   TRasterP floatingRas = selection->getFloatingSelection();
   TImageP floatingImage;
-  if (TRasterCM32P flareRas = (TRasterCM32P)(floatingRas))
-    floatingImage = TflareImageP(flareRas, flareRas->getBounds());
+  if (TRasterCM32P toonzRas = (TRasterCM32P)(floatingRas))
+    floatingImage = TToonzImageP(toonzRas, toonzRas->getBounds());
   if (TRaster32P fullColorRas = (TRaster32P)(floatingRas))
     floatingImage = TRasterImageP(fullColorRas);
   if (TRasterGR8P grRas = (TRasterGR8P)(floatingRas))
@@ -151,7 +151,7 @@ void DragSelectionTool::UndoRasterDeform::undo() const {
   if (!selection->isFloating()) return;
   TImageP img = TImageCache::instance()->get(m_oldFloatingImageId, false);
   TRasterP ras;
-  if (TflareImageP ti = (TflareImageP)(img)) ras = ti->getRaster();
+  if (TToonzImageP ti = (TToonzImageP)(img)) ras = ti->getRaster();
   if (TRasterImageP ri = (TRasterImageP)(img)) ras = ri->getRaster();
   selection->setFloatingSeletion(ras);
   selection->setStrokes(m_oldStrokes);
@@ -166,9 +166,9 @@ void DragSelectionTool::UndoRasterDeform::undo() const {
 void DragSelectionTool::UndoRasterDeform::redo() const {
   RasterSelection *selection = (RasterSelection *)m_tool->getSelection();
   if (!selection->isFloating()) return;
-  TflareImageP img = TImageCache::instance()->get(m_newFloatingImageId, false);
+  TToonzImageP img = TImageCache::instance()->get(m_newFloatingImageId, false);
   TRasterP ras;
-  if (TflareImageP ti = (TflareImageP)(img)) ras = ti->getRaster();
+  if (TToonzImageP ti = (TToonzImageP)(img)) ras = ti->getRaster();
   if (TRasterImageP ri = (TRasterImageP)(img)) ras = ri->getRaster();
   selection->setStrokes(m_newStrokes);
   m_tool->setBBox(m_newBBox);
@@ -475,7 +475,7 @@ RasterSelectionTool::RasterSelectionTool(int targetType)
     , m_setSaveboxTool(0) {
   m_prop.bind(m_noAntialiasing);
   m_rasterSelection.setView(this);
-  if (m_targetType & flareImage) {
+  if (m_targetType & ToonzImage) {
     m_setSaveboxTool = new SetSaveboxTool(this);
     m_modifySavebox.setId("ModifySavebox");
   }
@@ -500,7 +500,7 @@ void RasterSelectionTool::setNewFreeDeformer() {
 
   TImageP image = (TImageP)getImage(true);
 
-  TflareImageP ti  = (TflareImageP)image;
+  TToonzImageP ti  = (TToonzImageP)image;
   TRasterImageP ri = (TRasterImageP)image;
   if (!ti && !ri) return;
 
@@ -543,7 +543,7 @@ void RasterSelectionTool::modifySelectionOnClick(TImageP image,
                                                  const TMouseEvent &e) {
   const TXshCell &imageCell = TTool::getImageCell();
 
-  TflareImageP ti  = (TflareImageP)image;
+  TToonzImageP ti  = (TToonzImageP)image;
   TRasterImageP ri = (TRasterImageP)image;
   if (!ti && !ri) return;
   m_rasterSelection.makeCurrent();
@@ -636,7 +636,7 @@ void RasterSelectionTool::leftButtonDrag(const TPointD &pos,
   }
 
   TImageP image    = getImage(true);
-  TflareImageP ti  = (TflareImageP)image;
+  TToonzImageP ti  = (TToonzImageP)image;
   TRasterImageP ri = (TRasterImageP)image;
   if (!ti && !ri) return;
 
@@ -723,7 +723,7 @@ void RasterSelectionTool::leftButtonUp(const TPointD &pos,
   // Se stavo modificando la selezione la completo
 
   TImageP image    = getImage(true);
-  TflareImageP ti  = (TflareImageP)image;
+  TToonzImageP ti  = (TToonzImageP)image;
   TRasterImageP ri = (TRasterImageP)image;
   if (ti || ri) {
     if (m_strokeSelectionType.getValue() == RECT_SELECTION) {
@@ -752,7 +752,7 @@ void RasterSelectionTool::leftButtonUp(const TPointD &pos,
 void RasterSelectionTool::leftButtonDoubleClick(const TPointD &pos,
                                                 const TMouseEvent &e) {
   TImageP image    = getImage(true);
-  TflareImageP ti  = (TflareImageP)image;
+  TToonzImageP ti  = (TToonzImageP)image;
   TRasterImageP ri = (TRasterImageP)image;
   if (!ti && !ri) return;
   if (m_strokeSelectionType.getValue() == POLYLINE_SELECTION &&
@@ -786,8 +786,8 @@ void RasterSelectionTool::drawFloatingSelection() {
   if (isFloating()) {
     TRasterP floatingSelection = m_rasterSelection.getFloatingSelection();
     TImageP app;
-    if (TRasterCM32P flareRas = (TRasterCM32P)(floatingSelection))
-      app = TflareImageP(flareRas, flareRas->getBounds());
+    if (TRasterCM32P toonzRas = (TRasterCM32P)(floatingSelection))
+      app = TToonzImageP(toonzRas, toonzRas->getBounds());
     if (TRaster32P fullColorRas = (TRaster32P)(floatingSelection))
       app = TRasterImageP(fullColorRas);
     if (TRasterGR8P grRas = (TRasterGR8P)(floatingSelection))
@@ -796,7 +796,7 @@ void RasterSelectionTool::drawFloatingSelection() {
     FourPoints points = getBBox() * aff.inv();
     TRectD bbox       = points.getBox();
     TPointD center((bbox.getP00() + bbox.getP11()) * 0.5);
-    if (TflareImageP ti = (TflareImageP)app)
+    if (TToonzImageP ti = (TToonzImageP)app)
       GLRasterPainter::drawRaster(TTranslation(center), ti, false);
     if (TRasterImageP ri = (TRasterImageP)app)
       GLRasterPainter::drawRaster(TTranslation(center), ri, true);
@@ -820,7 +820,7 @@ void RasterSelectionTool::drawFloatingSelection() {
 
 void RasterSelectionTool::draw() {
   TImageP image    = getImage(false);
-  TflareImageP ti  = (TflareImageP)image;
+  TToonzImageP ti  = (TToonzImageP)image;
   TRasterImageP ri = (TRasterImageP)image;
   if (!ti && !ri) return;
 
@@ -853,7 +853,7 @@ void RasterSelectionTool::draw() {
   /*
 if(ti)
 {
-   TRectD saveBox = flareImageUtils::convertRasterToWorld(ti->getSavebox(), ti);
+   TRectD saveBox = ToonzImageUtils::convertRasterToWorld(ti->getSavebox(), ti);
 drawRect(saveBox.enlarge(0.5)*ti->getSubsampling(), TPixel32::Black, 0x5555,
 true);
 }
@@ -870,7 +870,7 @@ TSelection *RasterSelectionTool::getSelection() { return &m_rasterSelection; }
 
 bool RasterSelectionTool::isSelectionEmpty() {
   TImageP image    = getImage(false);
-  TflareImageP ti  = (TflareImageP)image;
+  TToonzImageP ti  = (TToonzImageP)image;
   TRasterImageP ri = (TRasterImageP)image;
 
   if (!ti && !ri) return true;
@@ -882,7 +882,7 @@ bool RasterSelectionTool::isSelectionEmpty() {
 
 void RasterSelectionTool::computeBBox() {
   TImageP image    = getImage(false);
-  TflareImageP ti  = (TflareImageP)image;
+  TToonzImageP ti  = (TToonzImageP)image;
   TRasterImageP ri = (TRasterImageP)image;
   if (!ti && !ri) return;
 
@@ -920,7 +920,7 @@ void RasterSelectionTool::doOnActivate() {
   TImageP image =
       imageCell.getImage(false, 1);  // => See the onImageChanged() warning !
 
-  TflareImageP ti  = (TflareImageP)image;
+  TToonzImageP ti  = (TToonzImageP)image;
   TRasterImageP ri = (TRasterImageP)image;
   if (!ti && !ri) return;
 
@@ -960,7 +960,7 @@ void RasterSelectionTool::onImageChanged() {
   //    the subs back to 1).
 
   TImageP image    = getImage(false, 1);
-  TflareImageP ti  = image;
+  TToonzImageP ti  = image;
   TRasterImageP ri = image;
 
   if ((!ti && !ri) || image != m_rasterSelection.getCurrentImage())
@@ -1006,7 +1006,7 @@ void RasterSelectionTool::decreaseTransformationCount() {
 
 void RasterSelectionTool::onActivate() {
   if (m_firstTime) {
-    if (m_targetType & flareImage)
+    if (m_targetType & ToonzImage)
       m_modifySavebox.setValue(ModifySavebox ? 1 : 0);
   }
 
@@ -1019,7 +1019,7 @@ bool RasterSelectionTool::onPropertyChanged(std::string propertyName) {
   if (!m_rasterSelection.isEditable()) return false;
 
   if (SelectionTool::onPropertyChanged(propertyName)) return true;
-  if (m_targetType & flareImage) {
+  if (m_targetType & ToonzImage) {
     ModifySavebox = (int)(m_modifySavebox.getValue());
     invalidate();
   }
@@ -1034,7 +1034,7 @@ bool RasterSelectionTool::onPropertyChanged(std::string propertyName) {
 //-----------------------------------------------------------------------------
 
 void RasterSelectionTool::updateTranslation() {
-  if (m_targetType & flareImage)
+  if (m_targetType & ToonzImage)
     m_modifySavebox.setQStringName(tr("Modify Savebox"));
 
   m_noAntialiasing.setQStringName(tr("No Antialiasing"));
@@ -1043,6 +1043,5 @@ void RasterSelectionTool::updateTranslation() {
 
 //=============================================================================
 
-RasterSelectionTool flareRasterSelectionTool(TTool::flareImage);
+RasterSelectionTool toonzRasterSelectionTool(TTool::ToonzImage);
 RasterSelectionTool fullColorRasterSelectionTool(TTool::RasterImage);
-

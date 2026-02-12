@@ -1,10 +1,10 @@
 
 
-#include "flare/scriptengine.h"
-#include "flare/scriptbinding.h"
-#include "flare/scriptbinding_files.h"
+#include "toonz/scriptengine.h"
+#include "toonz/scriptbinding.h"
+#include "toonz/scriptbinding_files.h"
 #include "trenderer.h"
-#include "flare/flarefolders.h"
+#include "toonz/toonzfolders.h"
 #include <QScriptEngine>
 #include <QScriptProgram>
 #include <QFile>
@@ -84,7 +84,7 @@ QScriptValue runFunction(QScriptContext *context, QScriptEngine *engine) {
       TScriptBinding::checkFilePath(context, context->argument(0), fp);
   if (err.isError()) return err;
   if (!fp.isAbsolute()) {
-    fp = flareFolder::getLibraryFolder() + "scripts" + fp;
+    fp = ToonzFolder::getLibraryFolder() + "scripts" + fp;
   }
 
   QString fpStr = QString::fromStdWString(fp.getWideString());
@@ -269,4 +269,3 @@ void ScriptEngine::onTerminated() {
   delete m_executor;
   m_executor = 0;
 }
-

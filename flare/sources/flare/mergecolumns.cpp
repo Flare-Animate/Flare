@@ -2,26 +2,26 @@
 
 #include "tapp.h"
 #include "tpalette.h"
-#include "flare/txsheet.h"
-#include "flare/flarescene.h"
-#include "flare/levelset.h"
-#include "flare/txshsimplelevel.h"
-#include "flare/txshlevelcolumn.h"
-#include "flare/txshcell.h"
+#include "toonz/txsheet.h"
+#include "toonz/toonzscene.h"
+#include "toonz/levelset.h"
+#include "toonz/txshsimplelevel.h"
+#include "toonz/txshlevelcolumn.h"
+#include "toonz/txshcell.h"
 //#include "tw/action.h"
 #include "tropcm.h"
-#include "tflareimage.h"
+#include "ttoonzimage.h"
 #include "matchline.h"
-#include "flare/scenefx.h"
-#include "flare/dpiscale.h"
-#include "flare/txsheethandle.h"
-#include "flare/palettecontroller.h"
-#include "flare/tpalettehandle.h"
-#include "flare/txshlevelhandle.h"
-#include "flare/txshleveltypes.h"
-#include "flare/tscenehandle.h"
-#include "flare/tframehandle.h"
-#include "flareqt/icongenerator.h"
+#include "toonz/scenefx.h"
+#include "toonz/dpiscale.h"
+#include "toonz/txsheethandle.h"
+#include "toonz/palettecontroller.h"
+#include "toonz/tpalettehandle.h"
+#include "toonz/txshlevelhandle.h"
+#include "toonz/txshleveltypes.h"
+#include "toonz/tscenehandle.h"
+#include "toonz/tframehandle.h"
+#include "toonzqt/icongenerator.h"
 #include <map>
 #include <QRadioButton>
 #include <QPushButton>
@@ -356,7 +356,7 @@ void mergeColumns(int column, int mColumn, bool isRedo, bool groupLevels) {
         }
       } else {
         DVGui::warning(
-            QObject::tr("It is possible to merge only flare vector levels or "
+            QObject::tr("It is possible to merge only Toonz vector levels or "
                         "standard raster levels."));
         return;
       }
@@ -382,7 +382,7 @@ void mergeColumns(int column, int mColumn, bool isRedo, bool groupLevels) {
 
   if (matchingLevels.empty()) {
     DVGui::warning(
-        QObject::tr("It is possible to merge only flare vector levels or "
+        QObject::tr("It is possible to merge only Toonz vector levels or "
                     "standard raster levels."));
     return;
   }
@@ -462,4 +462,3 @@ QString indexes2string(const std::set<TFrameId> fids) {
 }
 
 }  // namespace
-

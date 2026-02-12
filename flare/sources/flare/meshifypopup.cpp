@@ -2,41 +2,41 @@
 
 #include "meshifypopup.h"
 
-// flare includes
+// Toonz includes
 #include "tapp.h"
 #include "cellselection.h"
 #include "columnselection.h"
 #include "selectionutils.h"
 
 // TnzQt includes
-#include "flareqt/tselectionhandle.h"
-#include "flareqt/menubarcommand.h"
-#include "flareqt/doublefield.h"
-#include "flareqt/planeviewer.h"
-#include "flareqt/icongenerator.h"
-#include "flareqt/dvdialog.h"
+#include "toonzqt/tselectionhandle.h"
+#include "toonzqt/menubarcommand.h"
+#include "toonzqt/doublefield.h"
+#include "toonzqt/planeviewer.h"
+#include "toonzqt/icongenerator.h"
+#include "toonzqt/dvdialog.h"
 
 // TnzLib includes
-#include "flare/flarescene.h"
-#include "flare/txsheet.h"
-#include "flare/txshcell.h"
-#include "flare/levelproperties.h"
-#include "flare/txshleveltypes.h"
-#include "flare/txshsimplelevel.h"
-#include "flare/txshchildlevel.h"
-#include "flare/txshlevelcolumn.h"
-#include "flare/txshmeshcolumn.h"
-#include "flare/txshlevelhandle.h"
-#include "flare/tframehandle.h"
-#include "flare/tcolumnhandle.h"
-#include "flare/txsheethandle.h"
-#include "flare/tscenehandle.h"
-#include "flare/stage.h"
-#include "flare/namebuilder.h"
-#include "flare/levelset.h"
-#include "flare/tstageobject.h"
-#include "flare/tstageobjecttree.h"
-#include "flare/stagevisitor.h"
+#include "toonz/toonzscene.h"
+#include "toonz/txsheet.h"
+#include "toonz/txshcell.h"
+#include "toonz/levelproperties.h"
+#include "toonz/txshleveltypes.h"
+#include "toonz/txshsimplelevel.h"
+#include "toonz/txshchildlevel.h"
+#include "toonz/txshlevelcolumn.h"
+#include "toonz/txshmeshcolumn.h"
+#include "toonz/txshlevelhandle.h"
+#include "toonz/tframehandle.h"
+#include "toonz/tcolumnhandle.h"
+#include "toonz/txsheethandle.h"
+#include "toonz/tscenehandle.h"
+#include "toonz/stage.h"
+#include "toonz/namebuilder.h"
+#include "toonz/levelset.h"
+#include "toonz/tstageobject.h"
+#include "toonz/tstageobjecttree.h"
+#include "toonz/stagevisitor.h"
 
 // TnzExt includes
 #include "ext/meshbuilder.h"
@@ -44,7 +44,7 @@
 
 // TnzCore includes
 #include "trasterimage.h"
-#include "tflareimage.h"
+#include "ttoonzimage.h"
 #include "tvectorimage.h"
 #include "tofflinegl.h"
 #include "tvectorrenderdata.h"
@@ -170,7 +170,7 @@ TRaster32P render(const TXsheet *xsh, int row, double &rasDpi, int margin,
   // Draw the xsheet
   TRaster32P ras(tround(bbox.getLx()), tround(bbox.getLy()));
 
-  flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
+  ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
   scene->renderFrame(ras, row, xsh, bbox, TScale(scale));
 
   return ras;
@@ -221,7 +221,7 @@ TXshSimpleLevel *createMeshLevel(TXshLevel *texturesLevel) {
 
   TXshSimpleLevel *result = 0;
 
-  flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
+  ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
 
   // Build a suitable name (avoid duplicate names from the xsheet)
   std::wstring levelName = texturesLevel->getName() + L"_mesh";
@@ -465,7 +465,7 @@ void getRaster(const TImageP &img, TPointD &imgDpi, TRasterP &ras,
     rasDpi = imgDpi;
   }
 
-  TflareImageP ti(img);
+  TToonzImageP ti(img);
   if (ti) {
     ras = ti->getRaster();
 
@@ -561,7 +561,7 @@ public:
       Stage::RasterPainter painter(viewerSize, worldToCenteredWigetAff,
                                    TRect(viewerSize), vs, false);
 
-      flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
+      ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
       Stage::visit(painter, scene, m_xsh.getPointer(), m_row);
 
       painter.flushRasterImages();
@@ -867,7 +867,7 @@ TMeshImageP meshify(const TXshCell &cell, const MeshifyOptions &options) {
     slDpi = sl->getDpi();
     locals::checkEmptyDpi(slDpi);
 
-    // Due to a flare bug when loading a PLI, slDpi may actually acquire the
+    // Due to a Toonz bug when loading a PLI, slDpi may actually acquire the
     // camera dpi -
     // but it's always shown to be at the STANDARD world DPI, Stage::inch -
     // plus, the
@@ -1324,4 +1324,3 @@ public:
   }
 
 } meshifyCommand;
-

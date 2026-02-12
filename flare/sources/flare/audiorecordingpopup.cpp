@@ -5,23 +5,23 @@
 #include "menubarcommandids.h"
 
 // TnzQt includes
-#include "flareqt/menubarcommand.h"
-#include "flareqt/flipconsole.h"
-#include "flareqt/gutil.h"
+#include "toonzqt/menubarcommand.h"
+#include "toonzqt/flipconsole.h"
+#include "toonzqt/gutil.h"
 
 // Tnzlib includes
-#include "flare/tproject.h"
-#include "flare/tscenehandle.h"
-#include "flare/flarescene.h"
-#include "flare/sceneproperties.h"
-#include "flare/txshleveltypes.h"
-#include "flare/flarefolders.h"
-#include "flare/tframehandle.h"
-#include "flare/tcolumnhandle.h"
-#include "flare/txsheethandle.h"
-#include "flare/txshsimplelevel.h"
-#include "flare/levelproperties.h"
-#include "flare/preferences.h"
+#include "toonz/tproject.h"
+#include "toonz/tscenehandle.h"
+#include "toonz/toonzscene.h"
+#include "toonz/sceneproperties.h"
+#include "toonz/txshleveltypes.h"
+#include "toonz/toonzfolders.h"
+#include "toonz/tframehandle.h"
+#include "toonz/tcolumnhandle.h"
+#include "toonz/txsheethandle.h"
+#include "toonz/txshsimplelevel.h"
+#include "toonz/levelproperties.h"
+#include "toonz/preferences.h"
 
 // TnzCore includes
 #include "tsystem.h"
@@ -954,4 +954,3 @@ void AudioLevelsDisplay::paintEvent(QPaintEvent *event) {
 
 OpenPopupCommandHandler<AudioRecordingPopup> openAudioRecordingPopup(
     MI_AudioRecording);
-

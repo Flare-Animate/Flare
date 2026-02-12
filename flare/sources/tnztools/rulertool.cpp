@@ -1,22 +1,22 @@
 #include "rulertool.h"
 
 #include "tools/toolhandle.h"
-#include "flare/tscenehandle.h"
-#include "flare/txshlevelhandle.h"
+#include "toonz/tscenehandle.h"
+#include "toonz/txshlevelhandle.h"
 #include "tools/toolutils.h"
 
 #include "tvectorimage.h"
-#include "tflareimage.h"
+#include "ttoonzimage.h"
 #include "tools/cursors.h"
 #include "trasterimage.h"
 #include "tgl.h"
-#include "flare/stage2.h"
-#include "flare/txshsimplelevel.h"
-#include "flareqt/icongenerator.h"
+#include "toonz/stage2.h"
+#include "toonz/txshsimplelevel.h"
+#include "toonzqt/icongenerator.h"
 #include "tenv.h"
 
 #include "tconst.h"
-#include "flare/tframehandle.h"
+#include "toonz/tframehandle.h"
 
 //----------------------------------------------------------------------------------------------
 
@@ -202,7 +202,7 @@ void RulerTool::updateToolOption() {
 
         TPoint pix1, pix2;
 
-        TflareImageP ti  = image;
+        TToonzImageP ti  = image;
         TRasterImageP ri = image;
 
         if (ti || ri) {

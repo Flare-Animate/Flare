@@ -1,7 +1,7 @@
 
 
-#include "flare/columnfan.h"
-#include "flare/preferences.h"
+#include "toonz/columnfan.h"
+#include "toonz/preferences.h"
 
 // TnzCore includes
 #include "tstream.h"
@@ -231,4 +231,3 @@ void ColumnFan::rollRightFoldedState(int index, int count) {
 
   update();
 }
-

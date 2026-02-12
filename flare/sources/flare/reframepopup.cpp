@@ -4,9 +4,9 @@
 #include "tapp.h"
 #include "menubarcommandids.h"
 // TnzQt includes
-#include "flareqt/intfield.h"
-#include "flareqt/dvdialog.h"
-#include "flareqt/menubarcommand.h"
+#include "toonzqt/intfield.h"
+#include "toonzqt/dvdialog.h"
+#include "toonzqt/menubarcommand.h"
 
 #include <QMainWindow>
 #include <QLabel>

@@ -6,7 +6,7 @@
 #include <tiio.h>
 
 #include <tmetaimage.h>
-#include <flare/txshsimplelevel.h>
+#include <toonz/txshsimplelevel.h>
 
 #include "tiio_tzm.h"
 
@@ -189,4 +189,3 @@ namespace tzm {
 }
 
 //=============================================================================
-

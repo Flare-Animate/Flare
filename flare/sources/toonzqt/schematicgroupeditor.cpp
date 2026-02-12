@@ -1,15 +1,15 @@
 
 
-#include "flareqt/schematicgroupeditor.h"
-#include "flareqt/fxschematicnode.h"
-#include "flareqt/fxschematicscene.h"
-#include "flareqt/stageschematicnode.h"
-#include "flareqt/stageschematicscene.h"
-#include "flareqt/schematicnode.h"
-#include "flareqt/gutil.h"
-#include "flare/fxcommand.h"
-#include "flare/tstageobjectcmd.h"
-#include "flare/tstageobject.h"
+#include "toonzqt/schematicgroupeditor.h"
+#include "toonzqt/fxschematicnode.h"
+#include "toonzqt/fxschematicscene.h"
+#include "toonzqt/stageschematicnode.h"
+#include "toonzqt/stageschematicscene.h"
+#include "toonzqt/schematicnode.h"
+#include "toonzqt/gutil.h"
+#include "toonz/fxcommand.h"
+#include "toonz/tstageobjectcmd.h"
+#include "toonz/tstageobject.h"
 #include "tfxattributes.h"
 #include "tmacrofx.h"
 #include <QAction>
@@ -546,4 +546,3 @@ void StageSchematicGroupEditor::doResizeNodes(bool maximizeNodes) {
     node->getStageObject()->setIsOpened(maximizeNodes);
   }
 }
-

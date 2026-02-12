@@ -11,8 +11,8 @@
 #include <QColor>
 
 #include "timage.h"
-#include "flare/vectorizerparameters.h"
-#include "flare/txshsimplelevel.h"
+#include "toonz/vectorizerparameters.h"
+#include "toonz/txshsimplelevel.h"
 #include "tlevel.h"
 #include "tgeometry.h"
 
@@ -20,7 +20,7 @@
 
 #undef DVAPI
 #undef DVVAR
-#ifdef flareLIB_EXPORTS
+#ifdef TOONZLIB_EXPORTS
 #define DVAPI DV_EXPORT_API
 #define DVVAR DV_EXPORT_VAR
 #else
@@ -47,7 +47,7 @@
 // Forward declarations
 class TAffine;
 class TLevelReader;
-class flareScene;
+class ToonzScene;
 class TFilePath;
 
 namespace TScriptBinding {
@@ -116,4 +116,3 @@ QScriptValue checkColor(QScriptContext *context, const QString &colorName,
 Q_DECLARE_METATYPE(TScriptBinding::Void *)
 
 #endif  // SCRIPTBINDING_H
-

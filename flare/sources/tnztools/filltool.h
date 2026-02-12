@@ -7,14 +7,14 @@
 
 // TnzCore includes
 #include "tproperty.h"
-#include "flare/txshlevelhandle.h"
-#include "flare/txshsimplelevel.h"
-#include "flare/strokegenerator.h"
+#include "toonz/txshlevelhandle.h"
+#include "toonz/txshsimplelevel.h"
+#include "toonz/strokegenerator.h"
 // TnzTools includes
 #include "tools/tool.h"
 #include "tools/toolutils.h"
 #include "autofill.h"
-#include "flare/fill.h"
+#include "toonz/fill.h"
 
 #include <QObject>
 #include <qevent.h>
@@ -175,4 +175,3 @@ public slots:
 };
 
 #endif  // FILLTOOL_H
-

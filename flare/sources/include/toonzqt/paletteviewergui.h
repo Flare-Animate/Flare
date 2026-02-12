@@ -4,8 +4,8 @@
 #define PALETTEVIEWERGUI_H
 
 // TnzQt includes
-#include "flareqt/selection.h"
-#include "flareqt/lineedit.h"
+#include "toonzqt/selection.h"
+#include "toonzqt/lineedit.h"
 
 // TnzCore includes
 #include "tpalette.h"
@@ -17,7 +17,7 @@
 
 #undef DVAPI
 #undef DVVAR
-#ifdef flareQT_EXPORTS
+#ifdef TOONZQT_EXPORTS
 #define DVAPI DV_EXPORT_API
 #define DVVAR DV_EXPORT_VAR
 #else
@@ -45,7 +45,7 @@ class StyleNameEditor;
 //****************************************************************************
 
 /*!
-  \brief    Contains classes pertaining the GUI of a flare Palette Viewer.
+  \brief    Contains classes pertaining the GUI of a Toonz Palette Viewer.
   */
 
 namespace PaletteViewerGUI {
@@ -373,4 +373,3 @@ private:
 }  // namespace PaletteViewerGUI
 
 #endif  // PALETTEVIEWERGUI_H
-

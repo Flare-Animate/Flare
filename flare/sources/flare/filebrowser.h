@@ -12,7 +12,7 @@
 #include <QModelIndex>
 #include "dvitemview.h"
 #include "tfilepath.h"
-#include "flareqt/dvdialog.h"
+#include "toonzqt/dvdialog.h"
 #include "versioncontrol.h"
 
 #include "tthread.h"
@@ -171,7 +171,7 @@ protected slots:
   void storeFolderHistory();
   void clearHistory();
 
-  void renameAsflareLevel();
+  void renameAsToonzLevel();
   void renameFolder();
   void updateAndEditVersionControl();
   void editVersionControl();
@@ -271,14 +271,14 @@ private:
 };
 
 //--------------------------------------------------------------------
-class RenameAsflarePopup final : public DVGui::Dialog {
+class RenameAsToonzPopup final : public DVGui::Dialog {
   Q_OBJECT
   QPushButton *m_okBtn, *m_cancelBtn;
   DVGui::LineEdit *m_name;
   QCheckBox *m_overwrite;
 
 public:
-  RenameAsflarePopup(const QString name = "", int frames = -1,
+  RenameAsToonzPopup(const QString name = "", int frames = -1,
                      bool isFolder = false);
 
   bool doOverwrite() { return m_overwrite->isChecked(); }
@@ -297,4 +297,3 @@ public slots:
 //-----------------------------------------------------------
 
 #endif
-
