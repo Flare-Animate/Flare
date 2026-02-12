@@ -10,31 +10,31 @@
 #include "tools/toolutils.h"
 
 // TnzQt includes
-#include "flareqt/icongenerator.h"
+#include "toonzqt/icongenerator.h"
 
 // TnzLib includes
-#include "flareqt/menubarcommand.h"
-#include "flare/txshsimplelevel.h"
-#include "flare/txshleveltypes.h"
-#include "flare/levelproperties.h"
-#include "flare/flarescene.h"
-#include "flare/sceneproperties.h"
-#include "flare/preferences.h"
-#include "flare/tscenehandle.h"
-#include "flare/txsheethandle.h"
-#include "flare/tframehandle.h"
-#include "flare/tcolumnhandle.h"
-#include "flare/tobjecthandle.h"
-#include "flare/tpalettehandle.h"
-#include "flare/txshlevelhandle.h"
-#include "flare/txshcell.h"
-#include "flare/tstageobject.h"
-#include "flare/tstageobjectspline.h"
-#include "flare/tstageobjecttree.h"
-#include "flare/dpiscale.h"
-#include "flare/palettecontroller.h"
-#include "flare/tonionskinmaskhandle.h"
-#include "flare/autoclose.h"
+#include "toonzqt/menubarcommand.h"
+#include "toonz/txshsimplelevel.h"
+#include "toonz/txshleveltypes.h"
+#include "toonz/levelproperties.h"
+#include "toonz/toonzscene.h"
+#include "toonz/sceneproperties.h"
+#include "toonz/preferences.h"
+#include "toonz/tscenehandle.h"
+#include "toonz/txsheethandle.h"
+#include "toonz/tframehandle.h"
+#include "toonz/tcolumnhandle.h"
+#include "toonz/tobjecthandle.h"
+#include "toonz/tpalettehandle.h"
+#include "toonz/txshlevelhandle.h"
+#include "toonz/txshcell.h"
+#include "toonz/tstageobject.h"
+#include "toonz/tstageobjectspline.h"
+#include "toonz/tstageobjecttree.h"
+#include "toonz/dpiscale.h"
+#include "toonz/palettecontroller.h"
+#include "toonz/tonionskinmaskhandle.h"
+#include "toonz/autoclose.h"
 #include "toutputproperties.h"
 
 // TnzCore includes
@@ -42,12 +42,12 @@
 #include "timagecache.h"
 #include "tstroke.h"
 #include "tcolorstyles.h"
-#include "tflareimage.h"
+#include "ttoonzimage.h"
 #include "trasterimage.h"
 #include "strokeselection.h"
 #include "tundo.h"
 
-#include "flarevectorbrushtool.h"
+#include "toonzvectorbrushtool.h"
 
 //*****************************************************************************************
 //    Local namespace
@@ -190,7 +190,7 @@ TTool *TTool::getTool(std::string toolName, ToolTargetType targetType) {
   int defTarget = 0;
   switch(Preferences::instance()->getDefLevelType()) {
   case PLI_XSHLEVEL:  defTarget = VectorImage; break;
-  case TZP_XSHLEVEL:  defTarget = flareImage;  break;
+  case TZP_XSHLEVEL:  defTarget = ToonzImage;  break;
   case OVL_XSHLEVEL:  defTarget = RasterImage; break;
   case META_XSHLEVEL: defTarget = MetaImage;   break;
   default:            defTarget = 0;           break;
@@ -246,7 +246,7 @@ void TTool::bind(const std::string &name, int targetType) {
 
   ToolTargetType targets[] = {
     EmptyTarget,
-    flareImage,
+    ToonzImage,
     VectorImage,
     RasterImage,
     MeshImage,
@@ -398,7 +398,7 @@ TImage *TTool::touchImage() {
   if (m_application->getCurrentObject()->isSpline()) return 0;
 
   TSceneHandle *currentScene = m_application->getCurrentScene();
-  flareScene *scene          = currentScene->getScene();
+  ToonzScene *scene          = currentScene->getScene();
   int row                    = currentFrame->getFrame();
   int col = m_application->getCurrentColumn()->getColumnIndex();
   if (col < 0) return 0;
@@ -580,7 +580,7 @@ TImage *TTool::touchImage() {
     { toolLevelType = META_XSHLEVEL; found = found || toolLevelType == levelType; }
   if ( m_targetType & RasterImage )
     { toolLevelType = OVL_XSHLEVEL;  found = found || toolLevelType == levelType; }
-  if ( m_targetType & flareImage )
+  if ( m_targetType & ToonzImage )
     { toolLevelType = TZP_XSHLEVEL;  found = found || toolLevelType == levelType; }
   if ( m_targetType & VectorImage )
     { toolLevelType = PLI_XSHLEVEL;  found = found || toolLevelType == levelType; }
@@ -935,8 +935,8 @@ QString TTool::updateEnabled(int rowIndex, int columnIndex) {
     ToolTargetType targetType;
     const char *name;
   } types[] = {
-    { PLI_XSHLEVEL  , VectorImage , QT_TR_NOOP("flare Vector Level") },
-    { TZP_XSHLEVEL  , flareImage  , QT_TR_NOOP("flare Raster Level") },
+    { PLI_XSHLEVEL  , VectorImage , QT_TR_NOOP("Toonz Vector Level") },
+    { TZP_XSHLEVEL  , ToonzImage  , QT_TR_NOOP("Toonz Raster Level") },
     { OVL_XSHLEVEL  , RasterImage , QT_TR_NOOP("Raster Level")       },
     { MESH_XSHLEVEL , MeshImage   , QT_TR_NOOP("Mesh Level")         },
     { META_XSHLEVEL , MetaImage   , QT_TR_NOOP("Assistants Level")   },
@@ -1345,7 +1345,7 @@ void TToolViewer::doPickGuideStroke(const TPointD &pos) {
   } else if (pickerMode >= 2) {
     if (pickerMode >= 3 && index != -1) {
       TTool *tool = TTool::getTool(T_Brush, TTool::ToolTargetType::VectorImage);
-      flareVectorBrushTool *vbTool = (flareVectorBrushTool *)tool;
+      ToonzVectorBrushTool *vbTool = (ToonzVectorBrushTool *)tool;
       if (vbTool) {
         vbTool->setViewer(this);
         vbTool->doGuidedAutoInbetween(fid, fvi, strokeRef, false, false, false,
@@ -1424,7 +1424,7 @@ void TTool::tweenSelectedGuideStrokes() {
   if (!bStroke || !fStroke) return;
 
   TTool *tool = TTool::getTool(T_Brush, TTool::ToolTargetType::VectorImage);
-  flareVectorBrushTool *vbTool = (flareVectorBrushTool *)tool;
+  ToonzVectorBrushTool *vbTool = (ToonzVectorBrushTool *)tool;
   if (vbTool) {
     m_isFrameCreated = false;
     m_isLevelCreated = false;
@@ -1526,7 +1526,7 @@ void TTool::tweenGuideStrokeToSelected() {
   if (!bStroke && !fStroke) return;
 
   TTool *tool = TTool::getTool(T_Brush, TTool::ToolTargetType::VectorImage);
-  flareVectorBrushTool *vbTool = (flareVectorBrushTool *)tool;
+  ToonzVectorBrushTool *vbTool = (ToonzVectorBrushTool *)tool;
   if (vbTool) {
     m_isFrameCreated = false;
     m_isLevelCreated = false;
@@ -1614,4 +1614,3 @@ void TTool::flipGuideStrokeDirection(int mode) {
   getViewer()->invalidateAll();
   m_application->getCurrentLevel()->notifyLevelChange();
 }
-

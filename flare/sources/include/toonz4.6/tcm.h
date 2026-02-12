@@ -5,7 +5,7 @@
 
 #include "tmacro.h"
 
-/* TCM = flare color map/mapping/mapped/manager */
+/* TCM = toonz color map/mapping/mapped/manager */
 
 typedef struct {
   /*UCHAR    tone_offs; sempre 0 */
@@ -69,4 +69,3 @@ static const TCM_INFO Tcm_32_default_info = {
   (uint64_t(1) << ((TCM).pencil_bits + (TCM).tone_bits))
 
 #endif
-

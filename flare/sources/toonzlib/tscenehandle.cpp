@@ -1,9 +1,9 @@
 #include <QTimer>
 
-#include "flare/tscenehandle.h"
+#include "toonz/tscenehandle.h"
 
-#include "flare/flarescene.h"
-#include "flare/tproject.h"
+#include "toonz/toonzscene.h"
+#include "toonz/tproject.h"
 
 //=============================================================================
 // TSceneHandle
@@ -17,13 +17,13 @@ TSceneHandle::~TSceneHandle() {}
 
 //-----------------------------------------------------------------------------
 
-flareScene *TSceneHandle::getScene() const { return m_scene; }
+ToonzScene *TSceneHandle::getScene() const { return m_scene; }
 
 //-----------------------------------------------------------------------------
 
-void TSceneHandle::setScene(flareScene *scene) {
+void TSceneHandle::setScene(ToonzScene *scene) {
   if (m_scene == scene) return;
-  flareScene *oldscene = m_scene;
+  ToonzScene *oldscene = m_scene;
   m_scene = scene;
   if (m_scene) emit sceneSwitched();
 
@@ -42,4 +42,3 @@ void TSceneHandle::setScene(flareScene *scene) {
     delayedTimer->start(3000);  // 1 sec was enough, but... dunno about toasters
   }
 }
-

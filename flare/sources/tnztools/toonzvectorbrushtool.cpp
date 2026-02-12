@@ -1,6 +1,6 @@
 
 
-#include "flarevectorbrushtool.h"
+#include "toonzvectorbrushtool.h"
 
 // TnzTools includes
 #include "tools/toolhandle.h"
@@ -10,29 +10,29 @@
 #include "bluredbrush.h"
 
 // TnzQt includes
-#include "flareqt/dvdialog.h"
-#include "flareqt/imageutils.h"
+#include "toonzqt/dvdialog.h"
+#include "toonzqt/imageutils.h"
 
 // TnzLib includes
-#include "flare/tobjecthandle.h"
-#include "flare/txsheethandle.h"
-#include "flare/txshlevelhandle.h"
-#include "flare/tframehandle.h"
-#include "flare/tcolumnhandle.h"
-#include "flare/txsheet.h"
-#include "flare/tstageobject.h"
-#include "flare/tstageobjectspline.h"
-#include "flare/rasterstrokegenerator.h"
-#include "flare/ttileset.h"
-#include "flare/txshsimplelevel.h"
-#include "flare/flareimageutils.h"
-#include "flare/palettecontroller.h"
-#include "flare/stage2.h"
-#include "flare/preferences.h"
-#include "flare/tonionskinmaskhandle.h"
-#include "flare/tscenehandle.h"
-#include "flare/flarescene.h"
-#include "flare/tcamera.h"
+#include "toonz/tobjecthandle.h"
+#include "toonz/txsheethandle.h"
+#include "toonz/txshlevelhandle.h"
+#include "toonz/tframehandle.h"
+#include "toonz/tcolumnhandle.h"
+#include "toonz/txsheet.h"
+#include "toonz/tstageobject.h"
+#include "toonz/tstageobjectspline.h"
+#include "toonz/rasterstrokegenerator.h"
+#include "toonz/ttileset.h"
+#include "toonz/txshsimplelevel.h"
+#include "toonz/toonzimageutils.h"
+#include "toonz/palettecontroller.h"
+#include "toonz/stage2.h"
+#include "toonz/preferences.h"
+#include "toonz/tonionskinmaskhandle.h"
+#include "toonz/tscenehandle.h"
+#include "toonz/toonzscene.h"
+#include "toonz/tcamera.h"
 
 // TnzCore includes
 #include "tstream.h"
@@ -522,11 +522,11 @@ double computeThickness(double pressure, const TDoublePairProperty &property,
 
 //===================================================================
 //
-// flareVectorBrushTool
+// ToonzVectorBrushTool
 //
 //-----------------------------------------------------------------------------
 
-flareVectorBrushTool::flareVectorBrushTool(std::string name, int targetType)
+ToonzVectorBrushTool::ToonzVectorBrushTool(std::string name, int targetType)
     : TTool(name)
     , m_thickness("Size", 0, 1000, 1, 5)
     , m_accuracy("Accuracy:", 1, 100, 20)
@@ -640,7 +640,7 @@ flareVectorBrushTool::flareVectorBrushTool(std::string name, int targetType)
 
 //-------------------------------------------------------------------------------------------------------
 
-unsigned int flareVectorBrushTool::getToolHints() const {
+unsigned int ToonzVectorBrushTool::getToolHints() const {
   unsigned int h = TTool::getToolHints() & ~HintAssistantsAll;
   if (m_assistants.getValue()) {
     h |= HintReplicators;
@@ -652,7 +652,7 @@ unsigned int flareVectorBrushTool::getToolHints() const {
   
 //-------------------------------------------------------------------------------------------------------
 
-ToolOptionsBox *flareVectorBrushTool::createOptionsBox() {
+ToolOptionsBox *ToonzVectorBrushTool::createOptionsBox() {
   TPaletteHandle *currPalette =
       TTool::getApplication()->getPaletteController()->getCurrentLevelPalette();
   ToolHandle *currTool = TTool::getApplication()->getCurrentTool();
@@ -661,7 +661,7 @@ ToolOptionsBox *flareVectorBrushTool::createOptionsBox() {
 
 //-------------------------------------------------------------------------------------------------------
 
-void flareVectorBrushTool::updateTranslation() {
+void ToonzVectorBrushTool::updateTranslation() {
   m_thickness.setQStringName(tr("Size"));
   m_accuracy.setQStringName(tr("Accuracy:"));
   m_smooth.setQStringName(tr("Smooth:"));
@@ -698,7 +698,7 @@ void flareVectorBrushTool::updateTranslation() {
 
 //---------------------------------------------------------------------------------------------------
 
-void flareVectorBrushTool::onActivate() {
+void ToonzVectorBrushTool::onActivate() {
   if (m_firstTime) {
     m_firstTime = false;
 
@@ -720,7 +720,7 @@ void flareVectorBrushTool::onActivate() {
 
 //--------------------------------------------------------------------------------------------------
 
-void flareVectorBrushTool::onDeactivate() {
+void ToonzVectorBrushTool::onDeactivate() {
   /*---
    * ドラッグ中にツールが切り替わった場合に備え、onDeactivateにもMouseReleaseと同じ処理を行う
    * ---*/
@@ -732,11 +732,11 @@ void flareVectorBrushTool::onDeactivate() {
 
 //--------------------------------------------------------------------------------------------------
 
-void flareVectorBrushTool::inputMouseMove(
+void ToonzVectorBrushTool::inputMouseMove(
   const TPointD &position, const TInputState &state )
 {
   struct Locals {
-    flareVectorBrushTool *m_this;
+    ToonzVectorBrushTool *m_this;
 
     void setValue(TDoublePairProperty &prop,
                   const TDoublePairProperty::Value &value) {
@@ -797,7 +797,7 @@ void flareVectorBrushTool::inputMouseMove(
 
 //--------------------------------------------------------------------------------------------------
 
-void flareVectorBrushTool::deleteStrokes(StrokeList &strokes) {
+void ToonzVectorBrushTool::deleteStrokes(StrokeList &strokes) {
   for(StrokeList::iterator i = strokes.begin(); i != strokes.end(); ++i)
     delete *i;
   strokes.clear();
@@ -805,7 +805,7 @@ void flareVectorBrushTool::deleteStrokes(StrokeList &strokes) {
 
 //--------------------------------------------------------------------------------------------------
 
-void flareVectorBrushTool::copyStrokes(StrokeList &dst, const StrokeList &src) {
+void ToonzVectorBrushTool::copyStrokes(StrokeList &dst, const StrokeList &src) {
   deleteStrokes(dst);
   dst.reserve(src.size());
   for(StrokeList::const_iterator i = src.begin(); i != src.end(); ++i)
@@ -814,7 +814,7 @@ void flareVectorBrushTool::copyStrokes(StrokeList &dst, const StrokeList &src) {
 
 //--------------------------------------------------------------------------------------------------
 
-void flareVectorBrushTool::inputSetBusy(bool busy) {
+void ToonzVectorBrushTool::inputSetBusy(bool busy) {
   if (m_active == busy) return;
   
   if (busy) {
@@ -870,7 +870,7 @@ void flareVectorBrushTool::inputSetBusy(bool busy) {
   
   // clear tracks automatically when return from this function
   struct Cleanup {
-    flareVectorBrushTool &owner;
+    ToonzVectorBrushTool &owner;
     inline ~Cleanup() { owner.m_tracks.clear(); owner.invalidate(); }
   } cleanup = {*this};
 
@@ -1053,7 +1053,7 @@ void flareVectorBrushTool::inputSetBusy(bool busy) {
 
 //--------------------------------------------------------------------------------------------------
 
-void flareVectorBrushTool::inputPaintTracks(const TTrackList &tracks) {
+void ToonzVectorBrushTool::inputPaintTracks(const TTrackList &tracks) {
   if (tracks.empty()) return;
 
   TRectD invalidateRect;
@@ -1102,7 +1102,7 @@ void flareVectorBrushTool::inputPaintTracks(const TTrackList &tracks) {
 
 //--------------------------------------------------------------------------------------------------
 
-void flareVectorBrushTool::updateModifiers() {
+void ToonzVectorBrushTool::updateModifiers() {
   m_pixelSize = getPixelSize();
   m_cameraDpi = getApplication()->getCurrentScene()->getScene()->getCurrentCamera()->getDpi().x;
   int smoothRadius = (int)round(m_smooth.getValue());
@@ -1136,7 +1136,7 @@ void flareVectorBrushTool::updateModifiers() {
 
 //--------------------------------------------------------------------------------------------------
 
-bool flareVectorBrushTool::preLeftButtonDown() {
+bool ToonzVectorBrushTool::preLeftButtonDown() {
   if (getViewer() && getViewer()->getGuidedStrokePickerMode()) return false;
   updateModifiers();
   touchImage();
@@ -1151,7 +1151,7 @@ bool flareVectorBrushTool::preLeftButtonDown() {
 
 //--------------------------------------------------------------------------------------------------
 
-void flareVectorBrushTool::handleMouseEvent(MouseEventType type,
+void ToonzVectorBrushTool::handleMouseEvent(MouseEventType type,
                                           const TPointD &pos,
                                           const TMouseEvent &e)
 {
@@ -1208,25 +1208,25 @@ void flareVectorBrushTool::handleMouseEvent(MouseEventType type,
 
 //--------------------------------------------------------------------------------------------------
 
-void flareVectorBrushTool::leftButtonDown(const TPointD &pos,
+void ToonzVectorBrushTool::leftButtonDown(const TPointD &pos,
                                         const TMouseEvent &e) {
   handleMouseEvent(ME_DOWN, pos, e);
 }
-void flareVectorBrushTool::leftButtonDrag(const TPointD &pos,
+void ToonzVectorBrushTool::leftButtonDrag(const TPointD &pos,
                                         const TMouseEvent &e) {
   handleMouseEvent(ME_DRAG, pos, e);
 }
-void flareVectorBrushTool::leftButtonUp(const TPointD &pos,
+void ToonzVectorBrushTool::leftButtonUp(const TPointD &pos,
                                       const TMouseEvent &e) {
   handleMouseEvent(ME_UP, pos, e);
 }
-void flareVectorBrushTool::mouseMove(const TPointD &pos, const TMouseEvent &e) {
+void ToonzVectorBrushTool::mouseMove(const TPointD &pos, const TMouseEvent &e) {
   handleMouseEvent(ME_MOVE, pos, e);
 }
 
 //--------------------------------------------------------------------------------------------------
 
-bool flareVectorBrushTool::keyDown(QKeyEvent *event) {
+bool ToonzVectorBrushTool::keyDown(QKeyEvent *event) {
   if (event->key() == Qt::Key_Escape)
     resetFrameRange();
   return false;
@@ -1234,7 +1234,7 @@ bool flareVectorBrushTool::keyDown(QKeyEvent *event) {
 
 //--------------------------------------------------------------------------------------------------
 
-bool flareVectorBrushTool::doFrameRangeStrokes(
+bool ToonzVectorBrushTool::doFrameRangeStrokes(
     TFrameId firstFrameId, TStroke *firstStroke, TFrameId lastFrameId,
     TStroke *lastStroke, int interpolationType, bool breakAngles,
     bool autoGroup, bool autoFill, bool drawFirstStroke, bool drawLastStroke,
@@ -1338,7 +1338,7 @@ bool flareVectorBrushTool::doFrameRangeStrokes(
 }
 
 //--------------------------------------------------------------------------------------------------
-bool flareVectorBrushTool::doGuidedAutoInbetween(
+bool ToonzVectorBrushTool::doGuidedAutoInbetween(
     TFrameId cFid, const TVectorImageP &cvi, TStroke *cStroke, bool breakAngles,
     bool autoGroup, bool autoFill, bool drawStroke) {
   TApplication *app = TTool::getApplication();
@@ -1435,7 +1435,7 @@ bool flareVectorBrushTool::doGuidedAutoInbetween(
 
 //--------------------------------------------------------------------------------------------------
 
-void flareVectorBrushTool::snap(const TPointD &pos, bool snapEnabled, bool withSelfSnap) {
+void ToonzVectorBrushTool::snap(const TPointD &pos, bool snapEnabled, bool withSelfSnap) {
   bool oldSnapped      = m_snapped;
   bool oldSnappedSelf  = m_snappedSelf;
   TPointD oldPoint     = m_snapPoint;
@@ -1535,7 +1535,7 @@ void flareVectorBrushTool::snap(const TPointD &pos, bool snapEnabled, bool withS
 
 //-------------------------------------------------------------------------------------------------------------
 
-void flareVectorBrushTool::draw() {
+void ToonzVectorBrushTool::draw() {
   m_pixelSize = getPixelSize();
   m_inputmanager.draw();
   
@@ -1587,9 +1587,9 @@ void flareVectorBrushTool::draw() {
 
   // Draw the brush outline - change color when the Ink / Paint check is
   // activated
-  if ((flareCheck::instance()->getChecks() & flareCheck::eInk) ||
-      (flareCheck::instance()->getChecks() & flareCheck::ePaint) ||
-      (flareCheck::instance()->getChecks() & flareCheck::eInk1))
+  if ((ToonzCheck::instance()->getChecks() & ToonzCheck::eInk) ||
+      (ToonzCheck::instance()->getChecks() & ToonzCheck::ePaint) ||
+      (ToonzCheck::instance()->getChecks() & ToonzCheck::eInk1))
     glColor3d(0.5, 0.8, 0.8);
   // normally draw in red
   else
@@ -1601,28 +1601,28 @@ void flareVectorBrushTool::draw() {
 
 //--------------------------------------------------------------------------------------------------------------
 
-void flareVectorBrushTool::onEnter() {
+void ToonzVectorBrushTool::onEnter() {
   m_minThick = m_thickness.getValue().first;
   m_maxThick = m_thickness.getValue().second;
 }
 
 //----------------------------------------------------------------------------------------------------------
 
-void flareVectorBrushTool::onLeave() {
+void ToonzVectorBrushTool::onLeave() {
   m_minThick = 0;
   m_maxThick = 0;
 }
 
 //----------------------------------------------------------------------------------------------------------
 
-TPropertyGroup *flareVectorBrushTool::getProperties(int idx) {
+TPropertyGroup *ToonzVectorBrushTool::getProperties(int idx) {
   if (!m_presetsLoaded) initPresets();
   return &m_prop[idx];
 }
 
 //------------------------------------------------------------------
 
-void flareVectorBrushTool::resetFrameRange() {
+void ToonzVectorBrushTool::resetFrameRange() {
   m_rangeTracks.clear();
   m_firstFrameId = -1;
   deleteStrokes(m_firstStrokes);
@@ -1631,7 +1631,7 @@ void flareVectorBrushTool::resetFrameRange() {
 
 //------------------------------------------------------------------
 
-bool flareVectorBrushTool::onPropertyChanged(std::string propertyName) {
+bool ToonzVectorBrushTool::onPropertyChanged(std::string propertyName) {
   if (m_propertyUpdating) return true;
 
   // Set the following to true whenever a different piece of interface must
@@ -1720,7 +1720,7 @@ bool flareVectorBrushTool::onPropertyChanged(std::string propertyName) {
 
 //------------------------------------------------------------------
 
-void flareVectorBrushTool::initPresets() {
+void ToonzVectorBrushTool::initPresets() {
   if (!m_presetsLoaded) {
     // If necessary, load the presets from file
     m_presetsLoaded = true;
@@ -1740,7 +1740,7 @@ void flareVectorBrushTool::initPresets() {
 
 //----------------------------------------------------------------------------------------------------------
 
-void flareVectorBrushTool::loadPreset() {
+void ToonzVectorBrushTool::loadPreset() {
   const std::set<VectorBrushData> &presets = m_presetsManager.presets();
   std::set<VectorBrushData>::const_iterator it;
 
@@ -1771,7 +1771,7 @@ void flareVectorBrushTool::loadPreset() {
 
 //------------------------------------------------------------------
 
-void flareVectorBrushTool::addPreset(QString name) {
+void ToonzVectorBrushTool::addPreset(QString name) {
   // Build the preset
   VectorBrushData preset(name.toStdWString());
 
@@ -1800,7 +1800,7 @@ void flareVectorBrushTool::addPreset(QString name) {
 
 //------------------------------------------------------------------
 
-void flareVectorBrushTool::removePreset() {
+void ToonzVectorBrushTool::removePreset() {
   std::wstring name(m_preset.getValue());
   if (name == CUSTOM_WSTR) return;
 
@@ -1814,7 +1814,7 @@ void flareVectorBrushTool::removePreset() {
 
 //------------------------------------------------------------------
 
-void flareVectorBrushTool::loadLastBrush() {
+void ToonzVectorBrushTool::loadLastBrush() {
   // Properties tracked with preset
   m_thickness.setValue(
       TDoublePairProperty::Value(V_VectorBrushMinSize, V_VectorBrushMaxSize));
@@ -1853,13 +1853,13 @@ void flareVectorBrushTool::loadLastBrush() {
 //------------------------------------------------------------------
 /*!	Brush、PaintBrush、EraserToolがPencilModeのときにTrueを返す
  */
-bool flareVectorBrushTool::isPencilModeActive() { return false; }
+bool ToonzVectorBrushTool::isPencilModeActive() { return false; }
 
 //==========================================================================================================
 
 // Tools instantiation
 
-flareVectorBrushTool vectorPencil("T_Brush",
+ToonzVectorBrushTool vectorPencil("T_Brush",
                                   TTool::Vectors | TTool::EmptyTarget);
 
 //*******************************************************************************
@@ -2036,4 +2036,3 @@ void VectorBrushPresetManager::removePreset(const std::wstring &name) {
   m_presets.erase(VectorBrushData(name));
   save();
 }
-

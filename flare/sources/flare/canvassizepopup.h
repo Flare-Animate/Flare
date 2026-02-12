@@ -3,8 +3,8 @@
 #ifndef CANVASSIZEPOPUP_H
 #define CANVASSIZEPOPUP_H
 
-#include "flareqt/dvdialog.h"
-#include "flare/txshsimplelevel.h"
+#include "toonzqt/dvdialog.h"
+#include "toonz/txshsimplelevel.h"
 #include <QPixmap>
 
 // forward declaration
@@ -95,4 +95,3 @@ public slots:
 };
 
 #endif  // CANVASSIZEPOPUP_H
-

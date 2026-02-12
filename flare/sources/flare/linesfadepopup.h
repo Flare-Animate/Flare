@@ -3,8 +3,8 @@
 #ifndef LINESFADEPOPUP_H
 #define LINESFADEPOPUP_H
 
-#include "flareqt/dvdialog.h"
-#include "flare/txshsimplelevel.h"
+#include "toonzqt/dvdialog.h"
+#include "toonz/txshsimplelevel.h"
 #include "traster.h"
 
 class QSlider;
@@ -51,4 +51,3 @@ public slots:
 };
 
 #endif  // LINESFADEPOPUP_H
-

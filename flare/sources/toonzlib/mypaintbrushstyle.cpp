@@ -9,14 +9,14 @@
 #include "tsystem.h"
 #include "tvectorimage.h"
 #include "tpixelutils.h"
-#include "flare/flarescene.h"
+#include "toonz/toonzscene.h"
 
 #include "tstrokeprop.h"
 #include "tvectorrenderdata.h"
 #include "tgl.h"
 #include "tmathutil.h"
 
-#include "flare/mypaintbrushstyle.h"
+#include "toonz/mypaintbrushstyle.h"
 
 #include <QDebug>
 
@@ -484,4 +484,3 @@ double TMyPaintBrushStyle::getParamValue(double_tag, int index) const {
 namespace {
 TColorStyle::Declaration mypaintBrushStyle(new TMyPaintBrushStyle());
 }
-

@@ -6,13 +6,13 @@
 #include <QObject>
 #include <QElapsedTimer>
 #include "tfilepath.h"
-#include "flare/txshsoundcolumn.h"
+#include "toonz/txshsoundcolumn.h"
 
 #include "tcommon.h"
 
 #undef DVAPI
 #undef DVVAR
-#ifdef flareLIB_EXPORTS
+#ifdef TOONZLIB_EXPORTS
 #define DVAPI DV_EXPORT_API
 #define DVVAR DV_EXPORT_VAR
 #else
@@ -133,4 +133,3 @@ protected:
 };
 
 #endif  // TFRAMEHANDLE_H
-

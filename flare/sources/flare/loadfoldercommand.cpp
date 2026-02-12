@@ -8,15 +8,15 @@
 #include "loadfolderpopup.h"
 
 // TnzQt includes
-#include "flareqt/dvdialog.h"
-#include "flareqt/gutil.h"
-#include "flareqt/validatedchoicedialog.h"
-#include "flareqt/menubarcommand.h"
+#include "toonzqt/dvdialog.h"
+#include "toonzqt/gutil.h"
+#include "toonzqt/validatedchoicedialog.h"
+#include "toonzqt/menubarcommand.h"
 
 // TnzLib includes
-#include "flare/tscenehandle.h"
-#include "flare/flarescene.h"
-#include "flare/preferences.h"
+#include "toonz/tscenehandle.h"
+#include "toonz/toonzscene.h"
+#include "toonz/preferences.h"
 
 // TnzCore includes
 #include "tsystem.h"
@@ -351,7 +351,7 @@ TFilePath dstPath(const TFilePath &dstDir, const Resource::Component &comp) {
 //--------------------------------------------------------------
 
 struct import_Locals {
-  const flareScene &m_scene;
+  const ToonzScene &m_scene;
   std::unique_ptr<OverwriteDialog> m_overwriteDialog;
 
   void switchToDst(Resource::Path &path) {
@@ -406,7 +406,7 @@ struct import_Locals {
 
 };  // import_Locals
 
-void import(const flareScene &scene, std::vector<Resource> &resources,
+void import(const ToonzScene &scene, std::vector<Resource> &resources,
             IoCmd::LoadResourceArguments::ScopedBlock &sb) {
   import_Locals locals = {scene, std::unique_ptr<OverwriteDialog>()};
 
@@ -522,7 +522,7 @@ int IoCmd::loadResourceFolders(LoadResourceArguments &args,
       return rd;
     }
 
-    static bool isExternPath(const flareScene &scene,
+    static bool isExternPath(const ToonzScene &scene,
                              const LRArgs::ResourceData &rd) {
       return scene.isExternPath(rd.m_path);
     }
@@ -531,7 +531,7 @@ int IoCmd::loadResourceFolders(LoadResourceArguments &args,
   boost::optional<LRArgs::ScopedBlock> sb_;
   if (!sb) sb = (sb_ = boost::in_place()).get_ptr();
 
-  flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
+  ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
   assert(scene);
 
   // Loading options popup
@@ -597,4 +597,3 @@ int IoCmd::loadResourceFolders(LoadResourceArguments &args,
 //************************************************************************
 
 OpenPopupCommandHandler<LoadFolderPopup> loadFolderCommand(MI_LoadFolder);
-

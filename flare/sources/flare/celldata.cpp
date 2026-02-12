@@ -3,20 +3,20 @@
 #include "celldata.h"
 #include <assert.h>
 
-#include "flare/txsheet.h"
-#include "flare/txshcolumn.h"
-#include "flare/txshleveltypes.h"
-#include "flare/txshzeraryfxcolumn.h"
-#include "flare/txshzeraryfxlevel.h"
-#include "flare/tcolumnfx.h"
-#include "flare/fxdag.h"
-#include "flare/txshlevelcolumn.h"
-#include "flare/preferences.h"
-#include "flare/tstageobject.h"
+#include "toonz/txsheet.h"
+#include "toonz/txshcolumn.h"
+#include "toonz/txshleveltypes.h"
+#include "toonz/txshzeraryfxcolumn.h"
+#include "toonz/txshzeraryfxlevel.h"
+#include "toonz/tcolumnfx.h"
+#include "toonz/fxdag.h"
+#include "toonz/txshlevelcolumn.h"
+#include "toonz/preferences.h"
+#include "toonz/tstageobject.h"
 #include "tapp.h"
-#include "flare/tscenehandle.h"
-#include "flare/flarescene.h"
-#include "flare/levelset.h"
+#include "toonz/tscenehandle.h"
+#include "toonz/toonzscene.h"
+#include "toonz/levelset.h"
 
 //-----------------------------------------------------------------------------
 
@@ -128,7 +128,7 @@ bool TCellData::getNumbers(TXsheet *xsh, int r0, int c0, int &r1,
               ->hasSpecifiedName()) {
         std::string columnName =
             xsh->getStageObject(TStageObjectId::ColumnId(c))->getName();
-        flareScene *scene   = TApp::instance()->getCurrentScene()->getScene();
+        ToonzScene *scene   = TApp::instance()->getCurrentScene()->getScene();
         TLevelSet *levelSet = scene->getLevelSet();
         reservedLevel       = levelSet->getLevel(to_wstring(columnName));
         if (!reservedLevel) continue;
@@ -224,4 +224,3 @@ void TCellData::cloneZeraryFx(int index, std::vector<TXshCell> &cells) const {
       cells[r] = TXshCell(newFxLevel, m_cells[r].getFrameId());
   }
 }
-

@@ -1,13 +1,13 @@
 
 
-#include "tflareimage.h"
+#include "ttoonzimage.h"
 #include "tpalette.h"
 //#include "ttile.h"
 //#include "transparencyCheck.h"
 
 //---------------------------------------------------------
 
-TflareImage::TflareImage()
+TToonzImage::TToonzImage()
     : m_ras()
     , m_dpix(0)
     , m_dpiy(0)
@@ -20,7 +20,7 @@ TflareImage::TflareImage()
 
 //---------------------------------------------------------
 
-TflareImage::TflareImage(const TRasterCM32P &ras, const TRect &saveBox)
+TToonzImage::TToonzImage(const TRasterCM32P &ras, const TRect &saveBox)
     : m_ras(ras)
     , m_size(ras->getSize())
     , m_dpix(0)
@@ -35,7 +35,7 @@ TflareImage::TflareImage(const TRasterCM32P &ras, const TRect &saveBox)
 
 //---------------------------------------------------------
 
-TflareImage::TflareImage(const TflareImage &src)
+TToonzImage::TToonzImage(const TToonzImage &src)
     : m_ras(TRasterCM32P())
     , m_dpix(src.m_dpix)
     , m_dpiy(src.m_dpiy)
@@ -63,23 +63,23 @@ TflareImage::TflareImage(const TflareImage &src)
 
 //---------------------------------------------------------
 
-TflareImageP TflareImage::clone() const { return TflareImageP(cloneImage()); }
+TToonzImageP TToonzImage::clone() const { return TToonzImageP(cloneImage()); }
 
 //---------------------------------------------------------
 
-TflareImage::~TflareImage() {}
+TToonzImage::~TToonzImage() {}
 
 //---------------------------------------------------------
 
-TImage *TflareImage::cloneImage() const { return new TflareImage(*this); }
+TImage *TToonzImage::cloneImage() const { return new TToonzImage(*this); }
 
 //=========================================================
 
-void TflareImage::setSubsampling(int s) { m_subsampling = s; }
+void TToonzImage::setSubsampling(int s) { m_subsampling = s; }
 
 //---------------------------------------------------------
 
-void TflareImage::setSavebox(const TRect &rect) {
+void TToonzImage::setSavebox(const TRect &rect) {
   QMutexLocker sl(&m_mutex);
 
   // assert(m_lockCount>0);
@@ -165,7 +165,7 @@ transparencyCheck, false);
 
 //---------------------------------------------------------
 /*
-TRaster32P TflareImage::getRGBM(bool readOnly, bool computeFx)
+TRaster32P TToonzImage::getRGBM(bool readOnly, bool computeFx)
 {
 
   if (readOnly)
@@ -202,7 +202,7 @@ TRaster32P TflareImage::getRGBM(bool readOnly, bool computeFx)
 */
 //---------------------------------------------------------
 
-TRasterCM32P TflareImage::getCMapped(/*bool readOnly*/) const {
+TRasterCM32P TToonzImage::getCMapped(/*bool readOnly*/) const {
   /*
 if (readOnly)
 {
@@ -224,7 +224,7 @@ else
 
 //---------------------------------------------------------
 
-void TflareImage::setCMapped(const TRasterCM32P &ras) {
+void TToonzImage::setCMapped(const TRasterCM32P &ras) {
   QMutexLocker sl(&m_mutex);
   m_ras     = ras;
   m_size    = ras->getSize();
@@ -236,7 +236,7 @@ void TflareImage::setCMapped(const TRasterCM32P &ras) {
 
 //---------------------------------------------------------
 
-void TflareImage::getCMapped(const TRasterCM32P &ras) {
+void TToonzImage::getCMapped(const TRasterCM32P &ras) {
   assert(ras && ras->getSize() == m_size);
 
   QMutexLocker sl(&m_mutex);
@@ -246,4 +246,3 @@ else
 decompress(ras);
 */
 }
-

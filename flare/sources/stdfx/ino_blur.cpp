@@ -44,7 +44,7 @@ public:
     /* 単位変換(mm --> render_pixel) */
     /*--- 回転と拡大縮小のGeometryを反映させる ---*/
     /* 以下は、
-flare/main/sources/stdfx/motionblurfx.cpp
+toonz/main/sources/stdfx/motionblurfx.cpp
 586-592行を参照して書いた
 */
     TAffine aff(affine);
@@ -304,4 +304,3 @@ TTile &tile
     throw;
   }
 }
-

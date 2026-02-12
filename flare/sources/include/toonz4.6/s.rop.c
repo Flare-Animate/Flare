@@ -611,7 +611,7 @@ rop_copy funz.su RAS_BW, RAS_BW
 I 32
 #include <assert.h>
 E 32
-#include "flare.h"
+#include "toonz.h"
 I 51
 #include "tmsg.h"
 E 51
@@ -14202,4 +14202,3 @@ static void rop_mirror_v_cm24_rgbm(RASTER * rin, RASTER * rout) {
   E 98
 E 87
 E 84
-

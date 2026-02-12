@@ -615,21 +615,21 @@ Please choose a valid lip sync data file to continue.</source>
     </message>
     <message>
         <source>In order to use the render farm you have to define the Farm Global Root first.</source>
-        <translation>flareレンダリングファームルートパスはまだ指定されていません。flareレンダリングファームを使用する前に、ルートのパスを指定して下さい。</translation>
+        <translation>Toonzレンダリングファームルートパスはまだ指定されていません。Toonzレンダリングファームを使用する前に、ルートのパスを指定して下さい。</translation>
     </message>
     <message>
         <source>The Farm Global Root folder doesn&apos;t exist
 Please create this folder before using the render farm.</source>
-        <translation>flareレンダリングファームルートフォルダーが存在しません。
-flareレンダリングファームを使用する前に、作成して下さい。</translation>
+        <translation>Toonzレンダリングファームルートフォルダーが存在しません。
+Toonzレンダリングファームを使用する前に、作成して下さい。</translation>
     </message>
     <message>
-        <source>Unable to connect to the flareFarm Controller
+        <source>Unable to connect to the ToonzFarm Controller
    The Controller should run on %1 at port %2
-   Please start the Controller before using the flareFarm</source>
-        <translation>flareファームコントローラーに接続出来ません。
+   Please start the Controller before using the ToonzFarm</source>
+        <translation>Toonzファームコントローラーに接続出来ません。
 コントローラーはポート %2 で %1 の上で実行して下さい。
-flareファームを使用する前にコントローラーを起動して下さい</translation>
+Toonzファームを使用する前にコントローラーを起動して下さい</translation>
     </message>
 </context>
 <context>
@@ -2097,11 +2097,11 @@ What do you want to do? </source>
     </message>
     <message>
         <source>When activated, styles of the default palette
-($flareSTUDIOPALETTE\cleanup_default.tpl) will 
+($TOONZSTUDIOPALETTE\cleanup_default.tpl) will 
 be appended to the palette after conversion in 
 order to save the effort of creating styles 
 before color designing.</source>
-        <translation type="vanished">このオプションがONのとき、デフォルトパレット ($flareSTUDIOPALETTE\cleanup_default.tpl)
+        <translation type="vanished">このオプションがONのとき、デフォルトパレット ($TOONZSTUDIOPALETTE\cleanup_default.tpl)
 のスタイルが変換後のパレットに追加されます。色見本を作成する際に、スタイルを新規作成する
 手間を省くことができます。</translation>
     </message>
@@ -2140,7 +2140,7 @@ contain the dpi information, then the current camera dpi will be used.
     </message>
     <message>
         <source>When activated, styles of the default palette
-($flareSTUDIOPALETTE\Global Palettes\Default Palettes\Cleanup_Palette.tpl) will 
+($TOONZSTUDIOPALETTE\Global Palettes\Default Palettes\Cleanup_Palette.tpl) will 
 be appended to the palette after conversion in 
 order to save the effort of creating styles 
 before color designing.</source>
@@ -3743,8 +3743,8 @@ Hold F3 Key on the Viewer to Show This Frame Only</source>
         <translation>保存するレンダリングされた画像がありません。</translation>
     </message>
     <message>
-        <source>It is not possible to take or compare snapshots for flare vector levels.</source>
-        <translation>flareベクターレベルのスナップショットを撮る／比較することはできません。</translation>
+        <source>It is not possible to take or compare snapshots for Toonz vector levels.</source>
+        <translation>Toonzベクターレベルのスナップショットを撮る／比較することはできません。</translation>
     </message>
     <message>
         <source>File %1 already exists.
@@ -3915,8 +3915,8 @@ Do you want to overwrite it?</source>
         <translation>%1 は存在しません。</translation>
     </message>
     <message>
-        <source>Import flare Lip Sync File</source>
-        <translation>flareリップシンクファイルを読み込み</translation>
+        <source>Import Toonz Lip Sync File</source>
+        <translation>Toonzリップシンクファイルを読み込み</translation>
     </message>
 </context>
 <context>
@@ -4206,12 +4206,12 @@ Do you want to create it?</source>
         <translation>保存先フォルダ：</translation>
     </message>
     <message>
-        <source>flare Vector Level</source>
-        <translation>flareベクターレベル</translation>
+        <source>Toonz Vector Level</source>
+        <translation>Toonzベクターレベル</translation>
     </message>
     <message>
-        <source>flare Raster Level</source>
-        <translation>flareラスターレベル</translation>
+        <source>Toonz Raster Level</source>
+        <translation>Toonzラスターレベル</translation>
     </message>
     <message>
         <source>Raster Level</source>
@@ -4361,12 +4361,12 @@ Do you want to create it?</source>
         <translation>オーディオ</translation>
     </message>
     <message>
-        <source>flare Vector level</source>
-        <translation>flareベクターレベル</translation>
+        <source>Toonz Vector level</source>
+        <translation>Toonzベクターレベル</translation>
     </message>
     <message>
-        <source>flare Raster level</source>
-        <translation>flareラスターレベル</translation>
+        <source>Toonz Raster level</source>
+        <translation>Toonzラスターレベル</translation>
     </message>
     <message>
         <source>[Various]</source>
@@ -4951,8 +4951,8 @@ Please use the frame numbers for reference.</source>
         <translation>ファイルパスが不明です。</translation>
     </message>
     <message>
-        <source>Import flare Lip Sync File</source>
-        <translation>flareリップシンクファイルを読み込み</translation>
+        <source>Import Toonz Lip Sync File</source>
+        <translation>Toonzリップシンクファイルを読み込み</translation>
     </message>
     <message>
         <source>To: </source>
@@ -6714,12 +6714,12 @@ Please use the frame numbers for reference.</source>
         <translation type="vanished">新規ベクターレベル</translation>
     </message>
     <message>
-        <source>&amp;New flare Raster Level</source>
-        <translation>新規flareラスターレベル (&amp;N)</translation>
+        <source>&amp;New Toonz Raster Level</source>
+        <translation>新規Toonzラスターレベル (&amp;N)</translation>
     </message>
     <message>
-        <source>New flare Raster Level</source>
-        <translation type="vanished">新規flareラスターレベル</translation>
+        <source>New Toonz Raster Level</source>
+        <translation type="vanished">新規Toonzラスターレベル</translation>
     </message>
     <message>
         <source>&amp;New Raster Level</source>
@@ -6770,8 +6770,8 @@ Please use the frame numbers for reference.</source>
         <translation>フレームインジケータの表示/非表示</translation>
     </message>
     <message>
-        <source>Vectors to flare Raster</source>
-        <translation type="vanished">ベクターからflareラスターに変換</translation>
+        <source>Vectors to Toonz Raster</source>
+        <translation type="vanished">ベクターからToonzラスターに変換</translation>
     </message>
     <message>
         <source>Replace Vectors with Simplified Vectors</source>
@@ -6902,12 +6902,12 @@ Please use the frame numbers for reference.</source>
         <translation>ブラシツール（ラスターMyPaintブラシ） - 透明部分の保護</translation>
     </message>
     <message>
-        <source>http://flare.readthedocs.io</source>
-        <translation>https://flare.readthedocs.io/ja/latest/</translation>
+        <source>http://opentoonz.readthedocs.io</source>
+        <translation>https://opentoonz.readthedocs.io/ja/latest/</translation>
     </message>
     <message>
-        <source>&amp;Import flare Lip Sync File...</source>
-        <translation>flareリップシンクファイルを読み込み (&amp;I)...</translation>
+        <source>&amp;Import Toonz Lip Sync File...</source>
+        <translation>Toonzリップシンクファイルを読み込み (&amp;I)...</translation>
     </message>
     <message>
         <source>Export Exchange Digital Time Sheet (XDTS)</source>
@@ -7054,12 +7054,12 @@ or you may delete necessary files for it.</source>
         <translation>%1 を削除できません：</translation>
     </message>
     <message>
-        <source>https://github.com/flare/flare/releases/latest</source>
-        <translation>https://github.com/flare/flare/releases/latest</translation>
+        <source>https://github.com/opentoonz/opentoonz/releases/latest</source>
+        <translation>https://github.com/opentoonz/opentoonz/releases/latest</translation>
     </message>
     <message>
-        <source>https://groups.google.com/forum/#!forum/flare_en</source>
-        <translation>https://groups.google.com/forum/#!forum/flare</translation>
+        <source>https://groups.google.com/forum/#!forum/opentoonz_en</source>
+        <translation>https://groups.google.com/forum/#!forum/opentoonz</translation>
     </message>
     <message>
         <source>To report a bug, click on the button below to open a web browser window for Flare&apos;s Issues page on https://github.com.  Click on the &apos;New issue&apos; button and fill out the form.</source>
@@ -7724,7 +7724,7 @@ or you may delete necessary files for it.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Convert to flare Raster...</source>
+        <source>Convert to Toonz Raster...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -9479,12 +9479,12 @@ Set the output folder path to the subfolder as well.</source>
         <translation>既定のレベル形式：</translation>
     </message>
     <message>
-        <source>flare Vector Level</source>
-        <translation>flareベクターレベル</translation>
+        <source>Toonz Vector Level</source>
+        <translation>Toonzベクターレベル</translation>
     </message>
     <message>
-        <source>flare Raster Level</source>
-        <translation>flareラスターレベル</translation>
+        <source>Toonz Raster Level</source>
+        <translation>Toonzラスターレベル</translation>
     </message>
     <message>
         <source>Raster Level</source>
@@ -9731,8 +9731,8 @@ Set the output folder path to the subfolder as well.</source>
         <translation>タイムシートを動画シートとして用いる</translation>
     </message>
     <message>
-        <source>Replace flare Level after SaveLevelAs command</source>
-        <translation>flareレベルを別名で保存した後、レベルを置き換える</translation>
+        <source>Replace Toonz Level after SaveLevelAs command</source>
+        <translation>Toonzレベルを別名で保存した後、レベルを置き換える</translation>
     </message>
     <message>
         <source>Show Keyframes on Cell Area</source>
@@ -11399,8 +11399,8 @@ What do you want to do?</source>
         <translation>描線を削除することができません：列、コマ又はレベルビューアのフレームのいずれも選択されていません。</translation>
     </message>
     <message>
-        <source>The rooms will be reset the next time you run flare.</source>
-        <translation type="vanished">flareを次回起動するとき、ワークスペースが初期化されます。</translation>
+        <source>The rooms will be reset the next time you run Toonz.</source>
+        <translation type="vanished">Toonzを次回起動するとき、ワークスペースが初期化されます。</translation>
     </message>
     <message>
         <source>Saving previewed frames....</source>
@@ -11502,8 +11502,8 @@ Do you want to overwrite it?</source>
 上書きしてもよろしいですか？</translation>
     </message>
     <message>
-        <source>File %1 doesn&apos;t look like a flare Scene</source>
-        <translation>ファイル %1 はflareシーンファイルと認識されませんでした</translation>
+        <source>File %1 doesn&apos;t look like a TOONZ Scene</source>
+        <translation>ファイル %1 はToonzシーンファイルと認識されませんでした</translation>
     </message>
     <message>
         <source>It is not possible to load the scene %1 because it does not belong to any project.</source>
@@ -11554,8 +11554,8 @@ Some levels have not been loaded because their version is not supported</source>
         <translation>同じ列のコマを選択しなければなりません。</translation>
     </message>
     <message>
-        <source>Match lines can be deleted from flare raster levels only</source>
-        <translation>マッチラインの削除はflareラスターレベルのみ可能です。</translation>
+        <source>Match lines can be deleted from Toonz raster levels only</source>
+        <translation>マッチラインの削除はToonzラスターレベルのみ可能です。</translation>
     </message>
     <message>
         <source>Partially Edited</source>
@@ -11622,8 +11622,8 @@ Some levels have not been loaded because their version is not supported</source>
         <translation>複数のレベルを含む列をマッチライン列として使用することはできません。</translation>
     </message>
     <message>
-        <source>Match lines can be applied to flare raster levels only.</source>
-        <translation>マッチラインはflareラスターレベルだけに適用することができます。</translation>
+        <source>Match lines can be applied to Toonz raster levels only.</source>
+        <translation>マッチラインはToonzラスターレベルだけに適用することができます。</translation>
     </message>
     <message>
         <source>The style index you specified is not available in the palette of the destination level.</source>
@@ -11654,8 +11654,8 @@ Some levels have not been loaded because their version is not supported</source>
         <translation>ベクターレベルはベクターレベルにのみ結合できます。</translation>
     </message>
     <message>
-        <source>It is possible to merge only flare vector levels or standard raster levels.</source>
-        <translation>flareベクターレベルまたは汎用ラスターレベルのみ結合が可能です。</translation>
+        <source>It is possible to merge only Toonz vector levels or standard raster levels.</source>
+        <translation>Toonzベクターレベルまたは汎用ラスターレベルのみ結合が可能です。</translation>
     </message>
     <message>
         <source>It is not possible to display the file %1: no player associated with its format</source>
@@ -11791,8 +11791,8 @@ Do you want to save your changes?</source>
         <translation>トレース設定</translation>
     </message>
     <message>
-        <source>The scene %1 was created with flare and cannot be loaded in LineTest.</source>
-        <translation type="vanished">シーン %1 はflareで作成され、LINETESTに読み込みできません。</translation>
+        <source>The scene %1 was created with Toonz and cannot be loaded in LineTest.</source>
+        <translation type="vanished">シーン %1 はToonzで作成され、LINETESTに読み込みできません。</translation>
     </message>
     <message>
         <source>File %1 already exists.
@@ -11963,7 +11963,7 @@ Are you sure to </source>
         <translation>カレントレベルがありません</translation>
     </message>
     <message>
-        <source>flare cannot Save this Level</source>
+        <source>Toonz cannot Save this Level</source>
         <translation type="vanished">このレベルを保存できません</translation>
     </message>
     <message>
@@ -12285,7 +12285,7 @@ Are you sure to </source>
         <translation type="vanished">[ドラッグ &amp; ドロップ] コマンドをメニューバーにコピー (&amp;D)</translation>
     </message>
     <message>
-        <source>Cannot open menubar settings template file. Re-installing flare will solve this problem.</source>
+        <source>Cannot open menubar settings template file. Re-installing Toonz will solve this problem.</source>
         <translation>メニューバー設定テンプレートファイルが見つかりません： Flareを再インストールすると問題が解決します。</translation>
     </message>
     <message>
@@ -12293,8 +12293,8 @@ Are you sure to </source>
         <translation>ウェブサイトを開く</translation>
     </message>
     <message>
-        <source>https://flare.github.io/e/</source>
-        <translation>https://flare.github.io/</translation>
+        <source>https://opentoonz.github.io/e/</source>
+        <translation>https://opentoonz.github.io/</translation>
     </message>
     <message>
         <source>Add color model&apos;s palette to the destination palette.</source>
@@ -13563,7 +13563,7 @@ Would you like to add a separator to the image sequence?
     </message>
 </context>
 <context>
-    <name>RenameAsflarePopup</name>
+    <name>RenameAsToonzPopup</name>
     <message>
         <source>Delete Original Files</source>
         <translation>元のファイルを削除</translation>
@@ -18061,8 +18061,8 @@ Hold F3 Key on the Viewer to Show This Frame Only</source>
         <translation type="vanished">新規ベクターレベル</translation>
     </message>
     <message>
-        <source>New flare Raster Level</source>
-        <translation type="vanished">新規flareラスターレベル</translation>
+        <source>New Toonz Raster Level</source>
+        <translation type="vanished">新規Toonzラスターレベル</translation>
     </message>
     <message>
         <source>New Raster Level</source>
@@ -18139,4 +18139,3 @@ Hold F3 Key on the Viewer to Show This Frame Only</source>
     </message>
 </context>
 </TS>
-

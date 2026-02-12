@@ -1,34 +1,34 @@
 #include "viewerdraw.h"
 #include "tapp.h"
-#include "flare/txsheethandle.h"
-#include "flare/tscenehandle.h"
-#include "flare/tframehandle.h"
-#include "flare/tcolumnhandle.h"
-#include "flare/tobjecthandle.h"
-#include "flare/cleanupparameters.h"
+#include "toonz/txsheethandle.h"
+#include "toonz/tscenehandle.h"
+#include "toonz/tframehandle.h"
+#include "toonz/tcolumnhandle.h"
+#include "toonz/tobjecthandle.h"
+#include "toonz/cleanupparameters.h"
 #include "sceneviewer.h"
 #include "ruler.h"
 
 #include "tgl.h"
 #include "trop.h"
-#include "flare/txsheet.h"
-#include "flare/flarescene.h"
-#include "flare/sceneproperties.h"
-#include "flare/tstageobjectid.h"
-#include "flare/tstageobjecttree.h"
-#include "flare/stage2.h"
-#include "flare/tcamera.h"
-#include "flare/tproject.h"
-#include "flare/preferences.h"
-#include "flare/flarefolders.h"
-#include "flareqt/gutil.h"
+#include "toonz/txsheet.h"
+#include "toonz/toonzscene.h"
+#include "toonz/sceneproperties.h"
+#include "toonz/tstageobjectid.h"
+#include "toonz/tstageobjecttree.h"
+#include "toonz/stage2.h"
+#include "toonz/tcamera.h"
+#include "toonz/tproject.h"
+#include "toonz/preferences.h"
+#include "toonz/toonzfolders.h"
+#include "toonzqt/gutil.h"
 #include "tconvert.h"
 
 #include "tenv.h"
 #include "tsystem.h"
-#include "flare/txshsimplelevel.h"
-#include "flare/stagevisitor.h"
-#include "flare/imagepainter.h"
+#include "toonz/txshsimplelevel.h"
+#include "toonz/stagevisitor.h"
+#include "toonz/imagepainter.h"
 #include "tgeometry.h"
 
 #include "subcameramanager.h"
@@ -290,8 +290,8 @@ void ViewerDraw::drawGridAndGuides(SceneViewer *viewer, double sc, Ruler *vr,
 //-----------------------------------------------------------------------------
 
 void ViewerDraw::drawColorcard(UCHAR channel, TRectD rect) {
-  flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
-  TPixel color = (flareCheck::instance()->getChecks() & flareCheck::eBlackBg)
+  ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
+  TPixel color = (ToonzCheck::instance()->getChecks() & ToonzCheck::eBlackBg)
                      ? TPixel::Black
                      : scene->getProperties()->getBgColor();
   if (channel == 0)
@@ -333,7 +333,7 @@ void ViewerDraw::draw3DCamera(unsigned long flags, double zmin, double phi) {
 
   TApp *app               = TApp::instance();
   int frame               = app->getCurrentFrame()->getFrame();
-  flareScene *scene       = app->getCurrentScene()->getScene();
+  ToonzScene *scene       = app->getCurrentScene()->getScene();
   TXsheet *xsh            = scene->getXsheet();
   TStageObjectId cameraId = xsh->getStageObjectTree()->getCurrentCameraId();
   TAffine camAff          = xsh->getPlacement(cameraId, frame);
@@ -563,7 +563,7 @@ void ViewerDraw::drawCamera(unsigned long flags, double pixelSize) {
   bool subcamera = 0 != (flags & ViewerDraw::SUBCAMERA);
 
   TApp *app               = TApp::instance();
-  flareScene *scene       = app->getCurrentScene()->getScene();
+  ToonzScene *scene       = app->getCurrentScene()->getScene();
   TXsheet *xsh            = scene->getXsheet();
   TStageObjectId cameraId = xsh->getStageObjectTree()->getCurrentCameraId();
 
@@ -725,7 +725,7 @@ void ViewerDraw::drawDisk(int &tableDLId) {
 
   TPixel32 bgColor;
 
-  if ((flareCheck::instance()->getChecks() & flareCheck::eBlackBg))
+  if ((ToonzCheck::instance()->getChecks() & ToonzCheck::eBlackBg))
     bgColor = TPixel::Black;
   else
     bgColor = Preferences::instance()->getViewerBgColor();
@@ -769,7 +769,7 @@ unsigned int ViewerDraw::createDiskDisplayList() {
 
   TPixel32 bgColor;
 
-  if (flareCheck::instance()->getChecks() & flareCheck::eBlackBg)
+  if (ToonzCheck::instance()->getChecks() & ToonzCheck::eBlackBg)
     bgColor = TPixel::Black;
   else
     bgColor = Preferences::instance()->getViewerBgColor();
@@ -790,4 +790,3 @@ unsigned int ViewerDraw::createDiskDisplayList() {
   glEndList();
   return (id);
 }
-

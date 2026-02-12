@@ -51,39 +51,39 @@
 #include "tools/toolhandle.h"
 
 // TnzQt includes
-#include "flareqt/schematicviewer.h"
-#include "flareqt/paletteviewer.h"
-#include "flareqt/styleeditor.h"
-#include "flareqt/studiopaletteviewer.h"
-#include "flareqt/functionviewer.h"
-#include "flareqt/tselectionhandle.h"
-#include "flareqt/tmessageviewer.h"
-#include "flareqt/scriptconsole.h"
-#include "flareqt/fxsettings.h"
-#include "flareqt/fxselection.h"
+#include "toonzqt/schematicviewer.h"
+#include "toonzqt/paletteviewer.h"
+#include "toonzqt/styleeditor.h"
+#include "toonzqt/studiopaletteviewer.h"
+#include "toonzqt/functionviewer.h"
+#include "toonzqt/tselectionhandle.h"
+#include "toonzqt/tmessageviewer.h"
+#include "toonzqt/scriptconsole.h"
+#include "toonzqt/fxsettings.h"
+#include "toonzqt/fxselection.h"
 #include "stageobjectselection.h"
 
 // TnzLib includes
-#include "flare/palettecontroller.h"
-#include "flare/tscenehandle.h"
-#include "flare/txshlevelhandle.h"
-#include "flare/tcolumnhandle.h"
-#include "flare/flarescene.h"
-#include "flare/tobjecthandle.h"
-#include "flare/tpalettehandle.h"
-#include "flare/tframehandle.h"
-#include "flare/tcamera.h"
-#include "flare/scenefx.h"
-#include "flare/tproject.h"
-#include "flare/txshsimplelevel.h"
-#include "flare/txshcell.h"
-#include "flare/cleanupcolorstyles.h"
-#include "flare/palettecmd.h"
-#include "flare/preferences.h"
+#include "toonz/palettecontroller.h"
+#include "toonz/tscenehandle.h"
+#include "toonz/txshlevelhandle.h"
+#include "toonz/tcolumnhandle.h"
+#include "toonz/toonzscene.h"
+#include "toonz/tobjecthandle.h"
+#include "toonz/tpalettehandle.h"
+#include "toonz/tframehandle.h"
+#include "toonz/tcamera.h"
+#include "toonz/scenefx.h"
+#include "toonz/tproject.h"
+#include "toonz/txshsimplelevel.h"
+#include "toonz/txshcell.h"
+#include "toonz/cleanupcolorstyles.h"
+#include "toonz/palettecmd.h"
+#include "toonz/preferences.h"
 #include "tw/stringtable.h"
-#include "flare/flarefolders.h"
-#include "flare/fxcommand.h"
-#include "flare/tstageobjectcmd.h"
+#include "toonz/toonzfolders.h"
+#include "toonz/fxcommand.h"
+#include "toonz/tstageobjectcmd.h"
 
 #include "../../flare/locatorpopup.h"
 
@@ -255,7 +255,7 @@ void SchematicScenePanel::onDeleteStageObjects(
     return;
 
   TApp *app = TApp::instance();
-  // Safe conversion QList ï¿½ï¿½ std::vector (avoids std::length_error crash)
+  // Safe conversion QList ¡ú std::vector (avoids std::length_error crash)
   const QList<TStageObjectId> objList = selection->getObjects();
   std::vector<TStageObjectId> objects(objList.begin(), objList.end());
 
@@ -1562,7 +1562,7 @@ FxSettingsPanel::FxSettingsPanel(QWidget *parent) : TPanel(parent) {
 // FxSettings will adjust its size according to the current fx
 // so we only restore position of the panel.
 void FxSettingsPanel::restoreFloatingPanelState() {
-  TFilePath savePath = flareFolder::getMyModuleDir() + TFilePath("popups.ini");
+  TFilePath savePath = ToonzFolder::getMyModuleDir() + TFilePath("popups.ini");
   QSettings settings(QString::fromStdWString(savePath.getWideString()),
                      QSettings::IniFormat);
   settings.beginGroup("Panels");
@@ -1697,5 +1697,4 @@ public:
 //=============================================================================
 OpenFloatingPanel openLocatorCommand(MI_OpenLocator, "Locator",
                                      QObject::tr("Locator"));
-
 

@@ -62,7 +62,7 @@ public:
   Iterator begin() { return m_table->begin(); };
   Iterator end() { return m_table->end(); };
 
-  // uh - oh; serve a tinyflare/filmstrip.
+  // uh - oh; serve a tinytoonz/filmstrip.
   // PROVVISORIO !!
   Table *getTable() { return m_table; }
 
@@ -88,4 +88,3 @@ public:
 //-------------------------------------------------------------------
 
 #endif
-

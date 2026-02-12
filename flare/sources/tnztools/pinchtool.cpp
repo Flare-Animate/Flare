@@ -34,9 +34,9 @@
 #include "tthreadmessage.h"
 #include "tools/pinchtool.h"
 
-#include "flare/tobjecthandle.h"
-#include "flare/txshlevelhandle.h"
-#include "flare/tstageobject.h"
+#include "toonz/tobjecthandle.h"
+#include "toonz/txshlevelhandle.h"
+#include "toonz/tstageobject.h"
 
 #include "ext/StrokeDeformation.h"
 #include "ext/SmoothDeformation.h"
@@ -50,7 +50,7 @@
 #include <algorithm>
 
 using namespace ToolUtils;
-using namespace flareExt;
+using namespace ToonzExt;
 
 // viene usato??
 class TGlobalChange;
@@ -77,7 +77,7 @@ PinchTool::PinchTool()
     , m_toolCornerSize("Corner:", 1.0, 180.0,
                        160.0)          // W_ToolOptions_PinchCorner
     , m_autoOrManual("Manual", false)  // W_ToolOptions_PinchManual
-    , m_deformation(new flareExt::StrokeDeformation)
+    , m_deformation(new ToonzExt::StrokeDeformation)
     , m_selector(500, 10, 1000) {
   bind(TTool::Vectors);
 
@@ -144,7 +144,7 @@ void PinchTool::updateInterfaceStatus(const TMouseEvent &event) {
   if (event.isShiftPressed()) m_status.key_event_ = ContextStatus::SHIFT;
 
   // TODO:  **DEVE** essere fatto dentro la costruzione di TMouseEvent
-  // nel codice di flare/Tab/ecc. **NON** ci devono essere ifdef MACOSX se e'
+  // nel codice di Toonz/Tab/ecc. **NON** ci devono essere ifdef MACOSX se e'
   // possibile
   // evitarlo. Qua sotto ci deve essere solo if(event.isShiftPressed)
   /*#ifdef MACOSX
@@ -512,7 +512,7 @@ bool PinchTool::keyDown(QKeyEvent *event) {
     if(!vimage)
       return false;
     
-    char  fileName[] = {"c:\\flare_input.sdd"};
+    char  fileName[] = {"c:\\toonz_input.sdd"};
     ofstream  out_file(fileName);
     if(!out_file)
     {
@@ -596,4 +596,3 @@ void PinchTool::update(const TGlobalChange &) {
 //-----------------------------------------------------------------------------
 
 static PinchTool pinchTool;
-

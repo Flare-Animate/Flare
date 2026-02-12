@@ -3,7 +3,7 @@
 #ifndef SVN_PURGE_DIALOG_H
 #define SVN_PURGE_DIALOG_H
 
-#include "flareqt/dvdialog.h"
+#include "toonzqt/dvdialog.h"
 #include "versioncontrol.h"
 #include <QList>
 
@@ -47,4 +47,3 @@ signals:
 };
 
 #endif  // SVN_PURGE_DIALOG_H
-

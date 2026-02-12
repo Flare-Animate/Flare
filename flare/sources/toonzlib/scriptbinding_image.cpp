@@ -1,10 +1,10 @@
 
 
-#include "flare/scriptbinding_image.h"
-#include "flare/scriptbinding_level.h"
-#include "flare/scriptbinding_files.h"
+#include "toonz/scriptbinding_image.h"
+#include "toonz/scriptbinding_level.h"
+#include "toonz/scriptbinding_files.h"
 #include "tsystem.h"
-#include "tflareimage.h"
+#include "ttoonzimage.h"
 #include "tfiletype.h"
 #include "timage_io.h"
 #include "tlevel_io.h"
@@ -37,8 +37,8 @@ QScriptValue Image::toString() {
       return QString("Raster image ( %1 x %2 )")
           .arg(getWidth())
           .arg(getHeight());
-    else if (type == TImage::flare_RASTER)
-      return QString("flare raster image ( %1 x %2 )")
+    else if (type == TImage::TOONZ_RASTER)
+      return QString("Toonz raster image ( %1 x %2 )")
           .arg(getWidth())
           .arg(getHeight());
     else if (type == TImage::VECTOR)
@@ -63,7 +63,7 @@ double Image::getDpi() {
     double dpix = 0, dpiy = 0;
     ri->getDpi(dpix, dpiy);
     return dpix;
-  } else if (TflareImageP ti = m_img) {
+  } else if (TToonzImageP ti = m_img) {
     double dpix = 0, dpiy = 0;
     ti->getDpi(dpix, dpiy);
     return dpix;
@@ -76,8 +76,8 @@ QString Image::getType() const {
     TImage::Type type = m_img->getType();
     if (type == TImage::RASTER)
       return "Raster";
-    else if (type == TImage::flare_RASTER)
-      return "flareRaster";
+    else if (type == TImage::TOONZ_RASTER)
+      return "ToonzRaster";
     else if (type == TImage::VECTOR)
       return "Vector";
     else
@@ -166,7 +166,7 @@ QScriptValue Image::save(const QScriptValue &fpArg) {
   } else if (TFileType::isVector(fileType)) {
     if (m_img->getType() == TImage::VECTOR) isCompatible = true;
   } else if (fileType & TFileType::CMAPPED_IMAGE) {
-    if (m_img->getType() == TImage::flare_RASTER) isCompatible = true;
+    if (m_img->getType() == TImage::TOONZ_RASTER) isCompatible = true;
   } else {
     return context()->throwError(tr("Unrecognized file type :").arg(fpStr));
   }
@@ -209,4 +209,3 @@ QScriptValue checkImage(QScriptContext *context, const QScriptValue &value,
 }
 
 }  // namespace TScriptBinding
-

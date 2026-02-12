@@ -12,26 +12,26 @@
 #include "hookselection.h"
 #include "tools/toolhandle.h"
 
-#include "flareqt/selection.h"
+#include "toonzqt/selection.h"
 
-#include "flare/tframehandle.h"
-#include "flare/txshlevelhandle.h"
-#include "flare/tscenehandle.h"
-#include "flare/txsheethandle.h"
-#include "flare/tcolumnhandle.h"
-#include "flare/hook.h"
-#include "flare/txshlevel.h"
-#include "flare/flarescene.h"
-#include "flare/txsheet.h"
-#include "flare/txshcell.h"
-#include "flare/txshcolumn.h"
-#include "flare/tstageobjecttree.h"
-#include "flare/txshsimplelevel.h"
-#include "flare/levelproperties.h"
-#include "flare/flareimageutils.h"
-#include "flare/dpiscale.h"
-#include "flare/onionskinmask.h"
-#include "flare/tonionskinmaskhandle.h"
+#include "toonz/tframehandle.h"
+#include "toonz/txshlevelhandle.h"
+#include "toonz/tscenehandle.h"
+#include "toonz/txsheethandle.h"
+#include "toonz/tcolumnhandle.h"
+#include "toonz/hook.h"
+#include "toonz/txshlevel.h"
+#include "toonz/toonzscene.h"
+#include "toonz/txsheet.h"
+#include "toonz/txshcell.h"
+#include "toonz/txshcolumn.h"
+#include "toonz/tstageobjecttree.h"
+#include "toonz/txshsimplelevel.h"
+#include "toonz/levelproperties.h"
+#include "toonz/toonzimageutils.h"
+#include "toonz/dpiscale.h"
+#include "toonz/onionskinmask.h"
+#include "toonz/tonionskinmaskhandle.h"
 #include <math.h>
 
 // For Qt translation support
@@ -264,11 +264,11 @@ void HookTool::draw() {
   TImageP image     = getImage(false);
   if (!image) return;
 
-  TflareImageP ti  = image;
+  TToonzImageP ti  = image;
   TVectorImageP vi = image;
   if (ti) {
     TRectD bbox =
-        flareImageUtils::convertRasterToWorld(convert(ti->getBBox()), ti);
+        ToonzImageUtils::convertRasterToWorld(convert(ti->getBBox()), ti);
     ToolUtils::drawRect(bbox * ti->getSubsampling(), TPixel32(200, 200, 200),
                         0x5555);
   }
@@ -776,4 +776,3 @@ void HookTool::onDeactivate() {
 //-----------------------------------------------------------------------------
 
 void HookTool::onEnter() { m_selection.makeCurrent(); }
-

@@ -1,8 +1,8 @@
 #pragma once
 
-#include "flare4.6/img.h"
-#include "flare4.6/raster.h"
-//#include "flare4.6/flare.h"
+#include "toonz4.6/img.h"
+#include "toonz4.6/raster.h"
+//#include "toonz4.6/toonz.h"
 
 #define IS_SLASH(C) ((C) == '/' || (C) == '\\')
 #define SLASH_CHAR '/'
@@ -27,4 +27,3 @@ const char *strsave(const char *t);
 //---------------------------------------------------------------------
 
 void convertParam(double param[], const char *cParam[], int cParamLen);
-

@@ -1,11 +1,11 @@
 
 
-#include "flare/stage2.h"
-#include "flare/imagemanager.h"
-#include "flare/txshleveltypes.h"
-#include "flare/txshsimplelevel.h"
-#include "flare/flarefolders.h"
-#include "flare/glrasterpainter.h"
+#include "toonz/stage2.h"
+#include "toonz/imagemanager.h"
+#include "toonz/txshleveltypes.h"
+#include "toonz/txshsimplelevel.h"
+#include "toonz/toonzfolders.h"
+#include "toonz/glrasterpainter.h"
 #include "tpalette.h"
 #include "tropcm.h"
 #include "tcolorfunctions.h"
@@ -33,8 +33,8 @@ const double bigBoxSize[] = {500, 500, 1000};
 
 // for all the checks: transparency check, etc.
 
-flareCheck *flareCheck::instance() {
-  static flareCheck _instance;
+ToonzCheck *ToonzCheck::instance() {
+  static ToonzCheck _instance;
   return &_instance;
 }
 
@@ -151,4 +151,3 @@ void SetScanCropboxCheck::setIsEnabled(bool on) {
 void SetScanCropboxCheck::uncheck() {
   if (isEnabled()) m_toggle->trigger();
 }
-

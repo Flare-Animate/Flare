@@ -3,14 +3,14 @@
 #ifndef PLUGIN_UI_PAGE_INTERFACE
 #define PLUGIN_UI_PAGE_INTERFACE
 
-#include "flare_hostif.h"
+#include "toonz_hostif.h"
 #include "tfx.h"
 #include "plugin_param_interface.h"
 #include "plugin_param_view_interface.h"
 #include "pluginhost.h"
 
 /* 公開ヘッダからは引っ込められた都合上ここで宣言(内部ではまだ使っているので) */
-typedef void *flare_ui_page_handle_t;
+typedef void *toonz_ui_page_handle_t;
 
 /* あるエフェクトのパラメータ画面 */
 class UIPage {
@@ -56,25 +56,25 @@ public:
     groups_.push_back(NULL);
     groups_.back() = new Group(name);
 
-    return flare_OK;
+    return TOONZ_OK;
   }
 
   inline int end_group(const char *name) {
     if (groups_.back()->name() != name) {
-      return flare_ERROR_NOT_FOUND;
+      return TOONZ_ERROR_NOT_FOUND;
     }
 
-    return flare_OK;
+    return TOONZ_OK;
   }
 
   int bind_param(Param *param, ParamView *pt) {
     if (groups_.empty()) {
-      return flare_ERROR_PREREQUISITE;
+      return TOONZ_ERROR_PREREQUISITE;
     }
 
     groups_.back()->add_param(param->name(), pt);
 
-    return flare_OK;
+    return TOONZ_OK;
   }
 
   void build(RasterFxPluginHost *fx, ParamsPageSet *pages) const {
@@ -95,10 +95,9 @@ public:
   }
 };
 
-int begin_group(flare_ui_page_handle_t page, const char *name);
-int end_group(flare_ui_page_handle_t page, const char *name);
-int bind_param(flare_ui_page_handle_t page, flare_param_handle_t param,
-               flare_param_view_handle_t traits);
+int begin_group(toonz_ui_page_handle_t page, const char *name);
+int end_group(toonz_ui_page_handle_t page, const char *name);
+int bind_param(toonz_ui_page_handle_t page, toonz_param_handle_t param,
+               toonz_param_view_handle_t traits);
 
 #endif
-

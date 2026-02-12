@@ -2,45 +2,45 @@
 
 #include "filmstripcommand.h"
 #include "tapp.h"
-#include "flare/palettecontroller.h"
-#include "flare/txshlevelhandle.h"
-#include "flare/txsheethandle.h"
-#include "flare/tscenehandle.h"
-#include "flare/tpalettehandle.h"
-#include "flare/tframehandle.h"
+#include "toonz/palettecontroller.h"
+#include "toonz/txshlevelhandle.h"
+#include "toonz/txsheethandle.h"
+#include "toonz/tscenehandle.h"
+#include "toonz/tpalettehandle.h"
+#include "toonz/tframehandle.h"
 #include "tinbetween.h"
 #include "tvectorimage.h"
-#include "tflareimage.h"
-#include "flareqt/selection.h"
-#include "flareqt/dvdialog.h"
+#include "ttoonzimage.h"
+#include "toonzqt/selection.h"
+#include "toonzqt/dvdialog.h"
 #include "drawingdata.h"
-#include "flareqt/strokesdata.h"
-#include "flareqt/rasterimagedata.h"
+#include "toonzqt/strokesdata.h"
+#include "toonzqt/rasterimagedata.h"
 #include "timagecache.h"
 #include "tools/toolhandle.h"
 #include "tools/toolutils.h"
 #include "tools/rasterselection.h"
-#include "flareqt/icongenerator.h"
+#include "toonzqt/icongenerator.h"
 
 #include "tundo.h"
-#include "flare/txshsimplelevel.h"
-#include "flare/txshchildlevel.h"
-#include "flare/txshsoundlevel.h"
-#include "flare/txshpalettelevel.h"
-#include "flare/txshpalettecolumn.h"
-#include "flare/txshsoundcolumn.h"
-#include "flare/txsheet.h"
-#include "flare/txshcell.h"
-#include "flare/flarescene.h"
-#include "flare/levelset.h"
-#include "flare/txshleveltypes.h"
-#include "flare/flareimageutils.h"
-#include "flare/trasterimageutils.h"
-#include "flare/tcamera.h"
-#include "flare/preferences.h"
+#include "toonz/txshsimplelevel.h"
+#include "toonz/txshchildlevel.h"
+#include "toonz/txshsoundlevel.h"
+#include "toonz/txshpalettelevel.h"
+#include "toonz/txshpalettecolumn.h"
+#include "toonz/txshsoundcolumn.h"
+#include "toonz/txsheet.h"
+#include "toonz/txshcell.h"
+#include "toonz/toonzscene.h"
+#include "toonz/levelset.h"
+#include "toonz/txshleveltypes.h"
+#include "toonz/toonzimageutils.h"
+#include "toonz/trasterimageutils.h"
+#include "toonz/tcamera.h"
+#include "toonz/preferences.h"
 #include "trop.h"
 
-#include "flareqt/gutil.h"
+#include "toonzqt/gutil.h"
 
 #include "historytypes.h"
 
@@ -184,15 +184,15 @@ bool pasteAreasWithoutUndo(const QMimeData *data, TXshSimpleLevel *sl,
         sl->setFrame(*it, img);
       }
       TVectorImageP vi = img;
-      TflareImageP ti  = img;
+      TToonzImageP ti  = img;
       TRasterImageP ri = img;
       if (vi) {
         std::set<int> imageIndices;
         strokesData->getImage(vi, imageIndices, true);
         indices[*it] = imageIndices;
       } else if (ti) {
-        flareImageData *flareImageData = strokesData->toflareImageData(ti);
-        return pasteAreasWithoutUndo(flareImageData, sl, frames, tileSet,
+        ToonzImageData *toonzImageData = strokesData->toToonzImageData(ti);
+        return pasteAreasWithoutUndo(toonzImageData, sl, frames, tileSet,
                                      indices);
       } else if (ri) {
         double dpix, dpiy;
@@ -227,7 +227,7 @@ bool pasteAreasWithoutUndo(const QMimeData *data, TXshSimpleLevel *sl,
         img = sl->createEmptyFrame();
         sl->setFrame(*it, img);
       }
-      TflareImageP ti  = img;
+      TToonzImageP ti  = img;
       TRasterImageP ri = img;
       TVectorImageP vi = img;
       // pasting TLV
@@ -259,7 +259,7 @@ bool pasteAreasWithoutUndo(const QMimeData *data, TXshSimpleLevel *sl,
         for (i = 0; i < rects.size(); i++) boxD += rects[i];
         for (i = 0; i < strokes.size(); i++) boxD += strokes[i].getBBox();
         boxD       = affine * boxD;
-        TRect box  = flareImageUtils::convertWorldToRaster(boxD, ti);
+        TRect box  = ToonzImageUtils::convertWorldToRaster(boxD, ti);
         TPoint pos = box.getP00();
 
         if (pos.x < 0) pos.x = 0;
@@ -287,7 +287,7 @@ bool pasteAreasWithoutUndo(const QMimeData *data, TXshSimpleLevel *sl,
 
         TPointD cameraDpi;
 
-        flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
+        ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
         if (scene) {
           TCamera *camera = scene->getCurrentCamera();
           cameraDpi       = camera->getDpi();
@@ -548,7 +548,7 @@ public:
         TImageP image = m_level->getFrame(*it, true);
         if (!image) continue;
         TRasterImageP ri(image);
-        TflareImageP ti(image);
+        TToonzImageP ti(image);
         if (tileSetCM) {
           const TTileSetCM32::Tile *tile = tileSetCM->getTile(i);
           if (!tile) continue;
@@ -594,7 +594,7 @@ public:
     for (it = m_frames.begin(); it != m_frames.end(); it++) {
       TImageP image    = m_level->getFrame(*it, true);
       TRasterImageP ri = image;
-      TflareImageP ti  = image;
+      TToonzImageP ti  = image;
       if (ti) {
         TRasterP ras;
         double dpiX, dpiY;
@@ -616,7 +616,7 @@ public:
         for (i = 0; i < rects.size(); i++) boxD += rects[i];
         for (i = 0; i < strokes.size(); i++) boxD += strokes[i].getBBox();
         boxD             = affine * boxD;
-        TRect box        = flareImageUtils::convertWorldToRaster(boxD, ti);
+        TRect box        = ToonzImageUtils::convertWorldToRaster(boxD, ti);
         TPoint pos       = box.getP00();
         TRasterCM32P app = ras;
         TRop::over(ti->getRaster(), app, pos, affine);
@@ -632,7 +632,7 @@ public:
                         affine, ri->getPalette());
         double imgDpiX, imgDpiY;
         if (dpiX == 0 && dpiY == 0) {
-          flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
+          ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
           if (scene) {
             TCamera *camera = scene->getCurrentCamera();
             TPointD dpi     = camera->getDpi();
@@ -1671,11 +1671,11 @@ void FilmstripCmd::paste(TXshSimpleLevel *sl, std::set<TFrameId> &frames) {
     if (strokesData && tileSet) {
       TImageP img      = sl->getFrame(*frames.begin(), false);
       TRasterImageP ri = img;
-      TflareImageP ti  = img;
+      TToonzImageP ti  = img;
       assert(img);
       if (ti)
         undo = new PasteRasterAreasUndo(sl, frames, tileSet,
-                                        strokesData->toflareImageData(ti),
+                                        strokesData->toToonzImageData(ti),
                                         plt.getPointer(), isFrameToInsert);
       else if (ri) {
         double dpix, dpiy;
@@ -1874,7 +1874,7 @@ public:
     if (m_level->getType() == TZP_XSHLEVEL) {
       std::set<TFrameId>::iterator it;
       for (it = m_frames.begin(); it != m_frames.end(); it++) {
-        TflareImageP img = m_level->getFrame(*it, true);
+        TToonzImageP img = m_level->getFrame(*it, true);
         // TImageCache::instance()->add("UndoInsertEmptyFrames"+QString::number((UINT)this),
         // img);
         TImageCache::instance()->add(
@@ -1911,10 +1911,10 @@ public:
     else if (m_level->getType() == TZP_XSHLEVEL) {
       makeSpaceForFids(m_level.getPointer(), m_frames);
       std::set<TFrameId>::const_iterator it;
-      // TflareImageP image =
-      // (TflareImageP)TImageCache::instance()->get("UndoInsertEmptyFrames"+QString::number((UINT)this),
+      // TToonzImageP image =
+      // (TToonzImageP)TImageCache::instance()->get("UndoInsertEmptyFrames"+QString::number((UINT)this),
       // true);
-      TflareImageP image = (TflareImageP)TImageCache::instance()->get(
+      TToonzImageP image = (TToonzImageP)TImageCache::instance()->get(
           "UndoInsertEmptyFrames" + QString::number((uintptr_t)this), true);
       if (!image) return;
       for (it = m_frames.begin(); it != m_frames.end(); ++it)
@@ -2468,7 +2468,7 @@ public:
   void undo() const override {
     TApp *app         = TApp::instance();
     TXsheet *xsh      = app->getCurrentXsheet()->getXsheet();
-    flareScene *scene = app->getCurrentScene()->getScene();
+    ToonzScene *scene = app->getCurrentScene()->getScene();
     TXshLevel *xl     = scene->getLevelSet()->getLevel(m_levelName);
     if (xl->getPaletteLevel()) xsh->removeColumn(m_col);
     xsh->clearCells(0, m_col, m_fids.size());
@@ -2476,7 +2476,7 @@ public:
   }
   void redo() const override {
     TApp *app         = TApp::instance();
-    flareScene *scene = app->getCurrentScene()->getScene();
+    ToonzScene *scene = app->getCurrentScene()->getScene();
     TXshLevel *xl     = scene->getLevelSet()->getLevel(m_levelName);
     if (!xl) return;
     moveToSceneFrames(xl, m_fids);
@@ -2730,4 +2730,3 @@ void FilmstripCmd::renumberDrawing(TXshSimpleLevel *sl, const TFrameId &oldFid,
   TApp::instance()->getCurrentLevel()->notifyLevelChange();
   TApp::instance()->getCurrentScene()->setDirtyFlag(true);
 }
-

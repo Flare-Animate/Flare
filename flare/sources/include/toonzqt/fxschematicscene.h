@@ -3,7 +3,7 @@
 #ifndef FXSCHEMATIC_H
 #define FXSCHEMATIC_H
 
-#include "flareqt/addfxcontextmenu.h"
+#include "toonzqt/addfxcontextmenu.h"
 #include "schematicviewer.h"
 #include "tgeometry.h"
 #include <QMap>

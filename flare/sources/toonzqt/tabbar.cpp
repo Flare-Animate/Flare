@@ -1,7 +1,7 @@
 
 
-#include "flareqt/tabbar.h"
-#include "flareqt/dvdialog.h"
+#include "toonzqt/tabbar.h"
+#include "toonzqt/dvdialog.h"
 
 #include <QPainter>
 
@@ -67,4 +67,3 @@ void TabBar::clearTabBar() {
   for (i = 0; i < n; i++) removeTab(0);
   if (!m_pixmaps.empty()) m_pixmaps.clear();
 }
-

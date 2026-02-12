@@ -3,9 +3,9 @@
 #ifndef FXNODESELECTION_H
 #define FXNODESELECTION_H
 
-#include "flareqt/selection.h"
+#include "toonzqt/selection.h"
 #include "tfx.h"
-#include "flare/fxcommand.h"
+#include "toonz/fxcommand.h"
 #include <QList>
 #include <QPair>
 #include <QMap>
@@ -160,4 +160,3 @@ signals:
 };
 
 #endif
-

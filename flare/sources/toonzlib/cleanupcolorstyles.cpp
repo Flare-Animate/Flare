@@ -6,7 +6,7 @@
 
 #include <QApplication>
 
-#include "flare/cleanupcolorstyles.h"
+#include "toonz/cleanupcolorstyles.h"
 
 //-------------------------------------------------------------------
 
@@ -44,7 +44,7 @@ void TCleanupStyle::loadData(TInputStreamInterface &is) {
 
   VersionNumber version(is.versionNumber());
   if (version.first == 1 && version.second == 18) {
-    // flare 6.3 ML had removed the output color option
+    // Toonz 6.3 ML had removed the output color option
     TPixel32 dummy;
     is >> dummy >> m_brightness >> m_contrast;
     m_outColor = getMainColor();
@@ -377,4 +377,3 @@ namespace {
 TColorStyle::Declaration s0(new TBlackCleanupStyle());
 TColorStyle::Declaration s1(new TColorCleanupStyle());
 }
-

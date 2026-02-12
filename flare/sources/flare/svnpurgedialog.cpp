@@ -8,7 +8,7 @@
 #include "fileselection.h"
 
 // TnzQt includes
-#include "flareqt/tselectionhandle.h"
+#include "toonzqt/tselectionhandle.h"
 
 // TnzCore includes
 #include "tsystem.h"
@@ -153,4 +153,3 @@ void SVNPurgeDialog::updateFileBrowser() {
   // Refresh FileBrowser
   FileBrowser::refreshFolder(fp.getParentDir());
 }
-

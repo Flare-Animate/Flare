@@ -1,23 +1,23 @@
 
 
-#include "flareqt/styleselection.h"
+#include "toonzqt/styleselection.h"
 
 // TnzQt includes
-#include "flareqt/dvdialog.h"
-#include "flareqt/gutil.h"
-#include "flareqt/selectioncommandids.h"
+#include "toonzqt/dvdialog.h"
+#include "toonzqt/gutil.h"
+#include "toonzqt/selectioncommandids.h"
 #include "styledata.h"
 
 // TnzLib includes
-#include "flare/tpalettehandle.h"
-#include "flare/tscenehandle.h"
-#include "flare/txsheethandle.h"
-#include "flare/studiopalette.h"
-#include "flare/palettecmd.h"
-#include "flare/txshsimplelevel.h"
-#include "flare/cleanupcolorstyles.h"
-#include "flare/txshlevelhandle.h"
-#include "flare/levelproperties.h"
+#include "toonz/tpalettehandle.h"
+#include "toonz/tscenehandle.h"
+#include "toonz/txsheethandle.h"
+#include "toonz/studiopalette.h"
+#include "toonz/palettecmd.h"
+#include "toonz/txshsimplelevel.h"
+#include "toonz/cleanupcolorstyles.h"
+#include "toonz/txshlevelhandle.h"
+#include "toonz/levelproperties.h"
 
 // TnzCore includes
 #include "tcolorstyles.h"

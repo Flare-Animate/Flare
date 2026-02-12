@@ -1,6 +1,6 @@
 
 
-#include "flare/glrasterpainter.h"
+#include "toonz/glrasterpainter.h"
 #include "tgl.h"
 #include "texturemanager.h"
 #include "tpalette.h"
@@ -173,7 +173,7 @@ void GLRasterPainter::drawRaster(const TAffine &aff, const TRasterImageP &ri,
 
 //----------------------------------------------------------------------------
 
-void GLRasterPainter::drawRaster(const TAffine &aff, const TflareImageP &ti,
+void GLRasterPainter::drawRaster(const TAffine &aff, const TToonzImageP &ti,
                                  bool showSavebox) {
   TRect saveBox = ti->getSavebox();
   if (saveBox.isEmpty()) return;
@@ -193,4 +193,3 @@ void GLRasterPainter::drawRaster(const TAffine &aff, const TflareImageP &ti,
   doDrawRaster(aff, rasImg, saveBox, showSavebox, GL_NEAREST, GL_LINEAR,
                premultiplied);
 }
-

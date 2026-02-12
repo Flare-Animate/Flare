@@ -5,16 +5,16 @@
 
 #include "tcommon.h"
 #include "tvectorimage.h"
-#include "flareqt/dvmimedata.h"
-#include "tflareimage.h"
+#include "toonzqt/dvmimedata.h"
+#include "ttoonzimage.h"
 #include "trasterimage.h"
 
-class flareImageData;
+class ToonzImageData;
 class FullColorImageData;
 
 #undef DVAPI
 #undef DVVAR
-#ifdef flareQT_EXPORTS
+#ifdef TOONZQT_EXPORTS
 #define DVAPI DV_EXPORT_API
 #define DVVAR DV_EXPORT_VAR
 #else
@@ -50,10 +50,9 @@ public:
   // se insert==false rimpiazza le strokes indicati da indices[]
   void getImage(TVectorImageP image, std::set<int> &indices, bool insert) const;
 
-  flareImageData *toflareImageData(const TflareImageP &imageToPaste) const;
+  ToonzImageData *toToonzImageData(const TToonzImageP &imageToPaste) const;
   FullColorImageData *toFullColorImageData(
       const TRasterImageP &imageToPaste) const;
 };
 
 #endif  // STROKES_DATA_H
-

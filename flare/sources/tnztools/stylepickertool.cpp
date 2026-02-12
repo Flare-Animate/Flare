@@ -7,29 +7,29 @@
 #include "tools/toolhandle.h"
 
 // TnzQt includes
-#include "flareqt/tselectionhandle.h"
-#include "flareqt/styleselection.h"
-#include "flareqt/gutil.h"
-#include "flareqt/icongenerator.h"
+#include "toonzqt/tselectionhandle.h"
+#include "toonzqt/styleselection.h"
+#include "toonzqt/gutil.h"
+#include "toonzqt/icongenerator.h"
 
 // TnzLib includes
-#include "flare/txshsimplelevel.h"
-#include "flare/txshlevelhandle.h"
-#include "flare/tpalettehandle.h"
-#include "flare/stage2.h"
-#include "flare/tframehandle.h"
-#include "flare/txsheethandle.h"
-#include "flare/preferences.h"
-#include "flare/tcolumnhandle.h"
-#include "flare/dpiscale.h"
-#include "flare/palettecontroller.h"
-#include "flare/txshleveltypes.h"
-#include "flare/txshpalettelevel.h"
+#include "toonz/txshsimplelevel.h"
+#include "toonz/txshlevelhandle.h"
+#include "toonz/tpalettehandle.h"
+#include "toonz/stage2.h"
+#include "toonz/tframehandle.h"
+#include "toonz/txsheethandle.h"
+#include "toonz/preferences.h"
+#include "toonz/tcolumnhandle.h"
+#include "toonz/dpiscale.h"
+#include "toonz/palettecontroller.h"
+#include "toonz/txshleveltypes.h"
+#include "toonz/txshpalettelevel.h"
 
 // TnzCore includes
 #include "drawutil.h"
 #include "tvectorimage.h"
-#include "tflareimage.h"
+#include "ttoonzimage.h"
 #include "tundo.h"
 #include "tmsgcore.h"
 
@@ -119,7 +119,7 @@ void StylePickerTool::pick(const TPointD& pos, const TMouseEvent& e,
           getApplication()->getCurrentXsheet()->getXsheet()->getCell(
               currentFrame, superPickedColumnId);
       TImageP pickedImage           = pickedCell.getImage(false).getPointer();
-      TflareImageP picked_ti        = pickedImage;
+      TToonzImageP picked_ti        = pickedImage;
       TVectorImageP picked_vi       = pickedImage;
       TXshSimpleLevel* picked_level = pickedCell.getSimpleLevel();
       if ((picked_ti || picked_vi) && picked_level) {
@@ -165,7 +165,7 @@ void StylePickerTool::pick(const TPointD& pos, const TMouseEvent& e,
   /*-- MultiLayerStylePicker ここまで --*/
   //------------------------------------
   TImageP image    = getImage(false);
-  TflareImageP ti  = image;
+  TToonzImageP ti  = image;
   TVectorImageP vi = image;
   TXshSimpleLevel* level =
       getApplication()->getCurrentLevel()->getSimpleLevel();
@@ -220,7 +220,7 @@ void StylePickerTool::mouseMove(const TPointD& pos, const TMouseEvent& e) {
       TTool::getApplication()->getPaletteController();
 
   TImageP image    = getImage(false);
-  TflareImageP ti  = image;
+  TToonzImageP ti  = image;
   TVectorImageP vi = image;
   TXshSimpleLevel* level =
       getApplication()->getCurrentLevel()->getSimpleLevel();
@@ -246,7 +246,7 @@ int StylePickerTool::getCursorId() const {
   if (!Preferences::instance()->isMultiLayerStylePickerEnabled()) {
     TImageP img      = getImage(false);
     TVectorImageP vi = img;
-    TflareImageP ti  = img;
+    TToonzImageP ti  = img;
 
     if (!vi && !ti) return ToolCursor::CURSOR_NO;
   }
@@ -261,7 +261,7 @@ int StylePickerTool::getCursorId() const {
   else  // line&areas
     ret = ToolCursor::PickerCursor;
 
-  if (flareCheck::instance()->getChecks() & flareCheck::eBlackBg)
+  if (ToonzCheck::instance()->getChecks() & ToonzCheck::eBlackBg)
     ret = ret | ToolCursor::Ex_Negate;
   return ret;
 }
@@ -362,4 +362,3 @@ void StylePickerTool::updateTranslation() {
 //-------------------------------------------------------------------------------------------------------
 
 StylePickerTool stylePickerTool;
-

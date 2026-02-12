@@ -5,9 +5,9 @@
 #include <string.h>
 #include <unistd.h>
 
-#define _flare_PROTOTYPES_
+#define _TOONZ_PROTOTYPES_
 
-#include "flare.h"
+#include "toonz.h"
 #include "tiff.h"
 #include "tiffio.h"
 
@@ -29,4 +29,3 @@ void main(int argc, char *argv[]) {
   while (TIFFReadDirectory(tfp)) TIFFPrintDirectory(tfp, stderr, TRUE);
   TIFFClose(tfp);
 }
-

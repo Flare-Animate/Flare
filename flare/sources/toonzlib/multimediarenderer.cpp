@@ -1,19 +1,19 @@
 
 
 // Rendering components
-#include "flare/multimediarenderer.h"
-#include "flare/movierenderer.h"
+#include "toonz/multimediarenderer.h"
+#include "toonz/movierenderer.h"
 #include "trenderer.h"
 
 // Scene structures
-#include "flare/flarescene.h"
-#include "flare/txsheet.h"
-#include "flare/fxdag.h"
-#include "flare/tcolumnfxset.h"
+#include "toonz/toonzscene.h"
+#include "toonz/txsheet.h"
+#include "toonz/fxdag.h"
+#include "toonz/tcolumnfxset.h"
 
 // Fxs tree decomposition
-#include "flare/scenefx.h"
-#include "flare/tcolumnfx.h"
+#include "toonz/scenefx.h"
+#include "toonz/tcolumnfx.h"
 
 // Idle processing
 #include <QEventLoop>
@@ -44,7 +44,7 @@ std::wstring removeSpaces(const std::wstring &str) {
 class MultimediaRenderer::Imp final : public MovieRenderer::Listener,
                                       public TSmartObject {
 public:
-  flareScene *m_scene;
+  ToonzScene *m_scene;
   TFilePath m_fp;
   int m_threadCount;
   bool m_cacheResults;
@@ -70,7 +70,7 @@ public:
 
   int m_multimediaMode;
 
-  Imp(flareScene *scene, const TFilePath &moviePath, int multimediaMode,
+  Imp(ToonzScene *scene, const TFilePath &moviePath, int multimediaMode,
       int threadCount, bool cacheResults);
 
   ~Imp();
@@ -93,7 +93,7 @@ public:
 
 //---------------------------------------------------------
 
-MultimediaRenderer::Imp::Imp(flareScene *scene, const TFilePath &moviePath,
+MultimediaRenderer::Imp::Imp(ToonzScene *scene, const TFilePath &moviePath,
                              int multimediaMode, int threadCount,
                              bool cacheResults)
     : m_scene(scene)
@@ -382,7 +382,7 @@ void MultimediaRenderer::Imp::start() {
 
     movieRenderer.start();
 
-    // I don't recall flare currently supports different, simultaneous rendering
+    // I don't recall Toonz currently supports different, simultaneous rendering
     // processes.
     // However, one rendering process is supposed to be exhausting the machine's
     // resources
@@ -445,7 +445,7 @@ void MultimediaRenderer::Imp::onRenderCompleted() {
 //
 //---------------------------------------------
 
-MultimediaRenderer::MultimediaRenderer(flareScene *scene,
+MultimediaRenderer::MultimediaRenderer(ToonzScene *scene,
                                        const TFilePath &moviePath,
                                        int multimediaMode, int threadCount,
                                        bool cacheResults)
@@ -544,4 +544,3 @@ bool MultimediaRenderer::done() const
   return true;
 }
 */
-

@@ -12,21 +12,21 @@
 #include "filebrowserpopup.h"
 #include "tunit.h"
 
-#include "flare/namebuilder.h"
-#include "flare/preferences.h"
-#include "flare/tcamera.h"
-#include "flare/tcolumnhandle.h"
-#include "flare/tframehandle.h"
-#include "flare/levelset.h"
-#include "flare/sceneproperties.h"
-#include "flare/flarescene.h"
-#include "flare/tscenehandle.h"
-#include "flare/stage.h"
-#include "flare/txsheethandle.h"
-#include "flare/txshlevelhandle.h"
-#include "flare/levelproperties.h"
-#include "flare/tstageobjecttree.h"
-#include "flareqt/menubarcommand.h"
+#include "toonz/namebuilder.h"
+#include "toonz/preferences.h"
+#include "toonz/tcamera.h"
+#include "toonz/tcolumnhandle.h"
+#include "toonz/tframehandle.h"
+#include "toonz/levelset.h"
+#include "toonz/sceneproperties.h"
+#include "toonz/toonzscene.h"
+#include "toonz/tscenehandle.h"
+#include "toonz/stage.h"
+#include "toonz/txsheethandle.h"
+#include "toonz/txshlevelhandle.h"
+#include "toonz/levelproperties.h"
+#include "toonz/tstageobjecttree.h"
+#include "toonzqt/menubarcommand.h"
 
 #include <QApplication>
 #include <QCamera>
@@ -264,7 +264,7 @@ StopMotion::StopMotion() {
                        SLOT(onCanonCameraChanged(QString)));
   assert(ret);
 
-  flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
+  ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
 
   setToNextNewLevel();
   m_filePath = scene->getDefaultLevelPath(OVL_TYPE, m_levelName.toStdWString())
@@ -287,7 +287,7 @@ void StopMotion::onSceneSwitched() {
   disconnectAllCameras();
 
   TApp *app         = TApp::instance();
-  flareScene *scene = app->getCurrentScene()->getScene();
+  ToonzScene *scene = app->getCurrentScene()->getScene();
   TXsheet *xsh      = TApp::instance()->getCurrentXsheet()->getXsheet();
   setToNextNewLevel();
   m_filePath = scene->getDefaultLevelPath(OVL_TYPE, m_levelName.toStdWString())
@@ -336,7 +336,7 @@ void StopMotion::onSceneSwitched() {
 bool StopMotion::buildLiveViewMap(TXshSimpleLevel *sl) {
   m_liveViewImageMap.clear();
   TApp *app         = TApp::instance();
-  flareScene *scene = app->getCurrentScene()->getScene();
+  ToonzScene *scene = app->getCurrentScene()->getScene();
   TXsheet *xsh      = scene->getXsheet();
 
   std::wstring levelName = m_levelName.toStdWString();
@@ -417,7 +417,7 @@ void StopMotion::onPlaybackChanged() {
     return;
 
   int r0, r1, step;
-  flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
+  ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
   scene->getProperties()->getPreviewProperties()->getRange(r0, r1, step);
   if (r1 > -1) return;
 
@@ -499,7 +499,7 @@ void StopMotion::jumpToCameraFrame() {
 void StopMotion::removeStopMotionFrame() {
   if (m_xSheetFrameNumber == 1) return;
   TApp *app         = TApp::instance();
-  flareScene *scene = app->getCurrentScene()->getScene();
+  ToonzScene *scene = app->getCurrentScene()->getScene();
   TXsheet *xsh      = scene->getXsheet();
 
   int row = m_xSheetFrameNumber - 2;
@@ -1029,7 +1029,7 @@ bool StopMotion::loadLineUpImage() {
 
 bool StopMotion::loadLiveViewImage(int row, TRaster32P &image) {
   // first see if the level exists in the current level set
-  flareScene *currentScene = TApp::instance()->getCurrentScene()->getScene();
+  ToonzScene *currentScene = TApp::instance()->getCurrentScene()->getScene();
   TLevelSet *levelSet      = currentScene->getLevelSet();
 
   std::wstring levelName = m_levelName.toStdWString();
@@ -1220,7 +1220,7 @@ void StopMotion::setFileType(QString fileType) {
 void StopMotion::setFilePath(QString filePath) {
   m_filePath = filePath;
 
-  flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
+  ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
   TFilePath saveInPath(filePath.toStdWString());
   scene->getProperties()->setCameraCaptureSaveInPath(saveInPath);
   refreshFrameInfo();
@@ -1237,7 +1237,7 @@ void StopMotion::setSubsamplingValue(int subsampling) {
 //-----------------------------------------------------------------
 
 void StopMotion::getSubsampling() {
-  flareScene *currentScene = TApp::instance()->getCurrentScene()->getScene();
+  ToonzScene *currentScene = TApp::instance()->getCurrentScene()->getScene();
   TLevelSet *levelSet      = currentScene->getLevelSet();
 
   std::wstring levelName = m_levelName.toStdWString();
@@ -1282,7 +1282,7 @@ void StopMotion::update() { getSubsampling(); }
 //-----------------------------------------------------------------------------
 
 void StopMotion::setSubsampling() {
-  flareScene *currentScene = TApp::instance()->getCurrentScene()->getScene();
+  ToonzScene *currentScene = TApp::instance()->getCurrentScene()->getScene();
   TLevelSet *levelSet      = currentScene->getLevelSet();
 
   std::wstring levelName = m_levelName.toStdWString();
@@ -1456,7 +1456,7 @@ void StopMotion::onReviewTimeout() {
 
 bool StopMotion::importImage() {
   TApp *app         = TApp::instance();
-  flareScene *scene = app->getCurrentScene()->getScene();
+  ToonzScene *scene = app->getCurrentScene()->getScene();
   TXsheet *xsh      = scene->getXsheet();
 
   std::wstring levelName = m_levelName.toStdWString();
@@ -1860,7 +1860,7 @@ void StopMotion::captureDslrImage() {
   }
 
   TApp *app         = TApp::instance();
-  flareScene *scene = app->getCurrentScene()->getScene();
+  ToonzScene *scene = app->getCurrentScene()->getScene();
 
   int frameNumber        = m_frameNumber;
   std::wstring levelName = m_levelName.toStdWString();
@@ -1905,7 +1905,7 @@ void StopMotion::postImportProcess() {
 
 void StopMotion::saveXmlFile() {
   TApp *app         = TApp::instance();
-  flareScene *scene = app->getCurrentScene()->getScene();
+  ToonzScene *scene = app->getCurrentScene()->getScene();
   TXsheet *xsh      = scene->getXsheet();
 
   std::wstring levelName = m_levelName.toStdWString();
@@ -1971,7 +1971,7 @@ void StopMotion::saveXmlFile() {
 
 bool StopMotion::loadXmlFile() {
   TApp *app         = TApp::instance();
-  flareScene *scene = app->getCurrentScene()->getScene();
+  ToonzScene *scene = app->getCurrentScene()->getScene();
   TXsheet *xsh      = scene->getXsheet();
 
   bool webcam      = false;
@@ -2105,7 +2105,7 @@ bool StopMotion::loadXmlFile() {
 
 bool StopMotion::exportImageSequence() {
   TApp *app         = TApp::instance();
-  flareScene *scene = app->getCurrentScene()->getScene();
+  ToonzScene *scene = app->getCurrentScene()->getScene();
   TXsheet *xsh      = scene->getXsheet();
 
   std::wstring levelName = m_levelName.toStdWString();
@@ -2254,7 +2254,7 @@ void StopMotion::refreshFrameInfo() {
 
   static QColor infoColors[4] = {Qt::cyan, Qt::green, Qt::yellow, Qt::red};
 
-  flareScene *currentScene = TApp::instance()->getCurrentScene()->getScene();
+  ToonzScene *currentScene = TApp::instance()->getCurrentScene()->getScene();
   TLevelSet *levelSet      = currentScene->getLevelSet();
 
   std::wstring levelName = m_levelName.toStdWString();
@@ -2557,7 +2557,7 @@ void StopMotion::setToNextNewLevel() {
 
   TLevelSet *levelSet =
       TApp::instance()->getCurrentScene()->getScene()->getLevelSet();
-  flareScene *scene      = TApp::instance()->getCurrentScene()->getScene();
+  ToonzScene *scene      = TApp::instance()->getCurrentScene()->getScene();
   std::wstring levelName = L"";
 
   // Select a different unique level name in case it already exists (either in
@@ -3016,4 +3016,3 @@ public:
   }
 } StopMotionToggleZoomCommand;
 #endif
-

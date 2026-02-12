@@ -1,6 +1,6 @@
 
 
-#include "flare/studiopalette.h"
+#include "toonz/studiopalette.h"
 #include "tfiletype.h"
 #include "tstream.h"
 #include "tconvert.h"
@@ -9,9 +9,9 @@
 #include "traster.h"
 #include "tsystem.h"
 #include "tcolorstyles.h"
-#include "flare/flarefolders.h"
-#include "flare/tproject.h"
-#include "flare/flarescene.h"
+#include "toonz/toonzfolders.h"
+#include "toonz/tproject.h"
+#include "toonz/toonzscene.h"
 #include "tpalette.h"
 
 #include <time.h>
@@ -67,7 +67,7 @@ TPalette *loadTplPalette(const TFilePath &fp) {
 
 //-------------------------------------------------------------------
 
-TPalette *loadflare46Palette(const TFilePath &fp) {
+TPalette *loadToonz46Palette(const TFilePath &fp) {
   TImageP pltImg;
   TImageReader::load(fp, pltImg);
   if (!pltImg) return 0;
@@ -161,7 +161,7 @@ const std::string pathTableFileName = "palette_paths.ini";
 
 StudioPalette::StudioPalette() {
   try {
-    m_root = flareFolder::getStudioPaletteFolder();
+    m_root = ToonzFolder::getStudioPaletteFolder();
   } catch (...) {
     return;
   }
@@ -459,7 +459,7 @@ TFilePath StudioPalette::importPalette(const TFilePath &dstFolder,
   std::string ext = srcPath.getType();
   try {
     if (ext == "plt")
-      palette = loadflare46Palette(srcPath);
+      palette = loadToonz46Palette(srcPath);
     else if (ext == "pli")
       palette = loadPliPalette(srcPath);
     else if (ext == "tpl")

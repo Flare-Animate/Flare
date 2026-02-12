@@ -3,7 +3,7 @@
 #ifndef FILEDATA_H
 #define FILEDATA_H
 
-#include "flareqt/dvmimedata.h"
+#include "toonzqt/dvmimedata.h"
 #include "tfilepath.h"
 
 //=============================================================================
@@ -34,4 +34,3 @@ public:
 };
 
 #endif  // FILEDATA_H
-

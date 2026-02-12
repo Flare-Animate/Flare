@@ -7,12 +7,12 @@
 #include "tconst.h"
 
 // TnzLib includes
-#include "flare/tstageobjectid.h"
-#include "flare/txshcolumn.h"
-#include "flare/tcamera.h"
+#include "toonz/tstageobjectid.h"
+#include "toonz/txshcolumn.h"
+#include "toonz/tcamera.h"
 
 // TnzQt includes
-#include "flareqt/dvmimedata.h"
+#include "toonzqt/dvmimedata.h"
 
 // STL include
 #include <set>
@@ -23,7 +23,7 @@
 
 #undef DVAPI
 #undef DVVAR
-#ifdef flareQT_EXPORTS
+#ifdef TOONZQT_EXPORTS
 #define DVAPI DV_EXPORT_API
 #define DVVAR DV_EXPORT_VAR
 #else
@@ -138,4 +138,3 @@ public:
 };
 
 #endif  // STAGEOBJECT_DATA_H
-

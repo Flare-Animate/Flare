@@ -14,23 +14,23 @@
 #include "tools/cursormanager.h"
 
 // TnzQt includes
-#include "flareqt/tselectionhandle.h"
-#include "flareqt/selection.h"
-#include "flareqt/stageobjectsdata.h"
+#include "toonzqt/tselectionhandle.h"
+#include "toonzqt/selection.h"
+#include "toonzqt/stageobjectsdata.h"
 #include "historytypes.h"
 
 // TnzLib includes
-#include "flare/preferences.h"
-#include "flare/txsheet.h"
-#include "flare/tstageobjecttree.h"
-#include "flare/tscenehandle.h"
-#include "flare/tstageobject.h"
-#include "flare/tstageobjectkeyframe.h"
-#include "flare/txsheethandle.h"
-#include "flare/fxdag.h"
-#include "flare/tcolumnfxset.h"
-#include "flare/txshleveltypes.h"
-#include "flare/tcolumnhandle.h"
+#include "toonz/preferences.h"
+#include "toonz/txsheet.h"
+#include "toonz/tstageobjecttree.h"
+#include "toonz/tscenehandle.h"
+#include "toonz/tstageobject.h"
+#include "toonz/tstageobjectkeyframe.h"
+#include "toonz/txsheethandle.h"
+#include "toonz/fxdag.h"
+#include "toonz/tcolumnfxset.h"
+#include "toonz/txshleveltypes.h"
+#include "toonz/tcolumnhandle.h"
 
 // TnzBase includes
 #include "tfx.h"
@@ -789,4 +789,3 @@ void LevelMoverTool::drawCellsArea(QPainter &p) {
     p.drawRect(QRect(screen.topLeft() + QPoint(i, i),
                      screen.size() - QSize(2 * i, 2 * i)));
 }
-

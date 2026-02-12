@@ -4,8 +4,8 @@
 #define COLORMODELBEHAVIORPOPUP_H
 
 #include "tfilepath.h"
-#include "flareqt/dvdialog.h"
-#include "flare/palettecmd.h"
+#include "toonzqt/dvdialog.h"
+#include "toonz/palettecmd.h"
 
 class QButtonGroup;
 class QComboBox;
@@ -41,4 +41,3 @@ public slots:
 };
 
 #endif
-

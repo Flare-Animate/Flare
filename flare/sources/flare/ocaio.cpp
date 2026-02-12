@@ -3,25 +3,25 @@
 #include "tsystem.h"
 #include "tenv.h"
 
-#include "flare/tcamera.h"
+#include "toonz/tcamera.h"
 
-#include "flare/flarescene.h"
-#include "flare/tproject.h"
-#include "flare/levelset.h"
-#include "flare/txsheet.h"
-#include "flare/txshcell.h"
-#include "flare/txshsimplelevel.h"
-#include "flare/txshchildlevel.h"
-#include "flare/txsheethandle.h"
-#include "flare/tscenehandle.h"
-#include "flare/preferences.h"
-#include "flare/preferencesitemids.h"
-#include "flare/sceneproperties.h"
-#include "flare/tstageobject.h"
+#include "toonz/toonzscene.h"
+#include "toonz/tproject.h"
+#include "toonz/levelset.h"
+#include "toonz/txsheet.h"
+#include "toonz/txshcell.h"
+#include "toonz/txshsimplelevel.h"
+#include "toonz/txshchildlevel.h"
+#include "toonz/txsheethandle.h"
+#include "toonz/tscenehandle.h"
+#include "toonz/preferences.h"
+#include "toonz/preferencesitemids.h"
+#include "toonz/sceneproperties.h"
+#include "toonz/tstageobject.h"
 #include "toutputproperties.h"
-#include "flare/txshlevelcolumn.h"
+#include "toonz/txshlevelcolumn.h"
 
-#include "flareqt/gutil.h"
+#include "toonzqt/gutil.h"
 
 #include "tapp.h"
 #include "menubarcommandids.h"
@@ -319,7 +319,7 @@ void OCAData::setProgressDialog(DVGui::ProgressDialog *dialog) {
   m_progressDialog = dialog;
 }
 
-void OCAData::build(flareScene *scene, TXsheet *xsheet, QString name,
+void OCAData::build(ToonzScene *scene, TXsheet *xsheet, QString name,
                     QString path, bool useEXR, bool vectorAsSVG,
                     bool exportReferences) {
   m_name  = name;
@@ -382,7 +382,7 @@ void OCAData::build(flareScene *scene, TXsheet *xsheet, QString name,
 ExportOCACommand::ExportOCACommand() : MenuItemHandler(MI_ExportOCA) {}
 
 void ExportOCACommand::execute() {
-  flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
+  ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
   TXsheet *xsheet   = TApp::instance()->getCurrentXsheet()->getXsheet();
   TFilePath fp      = scene->getScenePath().withType("oca");
 
@@ -530,7 +530,7 @@ public:
 
 void ImportOCACommand::execute() {
   bool importEnabled = false;
-  flareScene *scene  = TApp::instance()->getCurrentScene()->getScene();
+  ToonzScene *scene  = TApp::instance()->getCurrentScene()->getScene();
   TXsheet *xsheet    = TApp::instance()->getCurrentXsheet()->getXsheet();
   TFilePath fp       = scene->getScenePath().withType("oca");
   static GenericLoadFilePopup *loadPopup = 0;

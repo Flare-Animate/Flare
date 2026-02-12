@@ -1,6 +1,6 @@
 
 
-#include "flare/captureparameters.h"
+#include "toonz/captureparameters.h"
 #include "tiio.h"
 #include "tstream.h"
 #include "tproperty.h"
@@ -163,4 +163,3 @@ void CaptureParameters::getFileFormatPropertiesExtensions(
   for (it = m_formatProperties.begin(); it != m_formatProperties.end(); ++it)
     v.push_back(it->first);
 }
-

@@ -1,4 +1,4 @@
-#include "flareqt/combohistogram.h"
+#include "toonzqt/combohistogram.h"
 #include "tcolorstyles.h"
 
 #include <QVBoxLayout>
@@ -9,9 +9,9 @@
 #include <QLabel>
 #include <QString>
 
-#include "flare/preferences.h"
-#include "flareqt/lutcalibrator.h"
-#include "flareqt/gutil.h"
+#include "toonz/preferences.h"
+#include "toonzqt/lutcalibrator.h"
+#include "toonzqt/gutil.h"
 #include "timagecache.h"
 #include "trasterimage.h"
 
@@ -823,7 +823,7 @@ void ComboHistogram::updateCompHistogram() {
   TImageP refimg =
       TImageCache::instance()->get(QString("TnzCompareImg"), false);
 
-  if (!(TflareImageP)refimg && !(TRasterImageP)refimg) return;
+  if (!(TToonzImageP)refimg && !(TRasterImageP)refimg) return;
 
   computeChannelsValue(&m_channelValueComp[0][0], sizeof m_channelValueComp,
                        refimg->raster(), refimg->getPalette());

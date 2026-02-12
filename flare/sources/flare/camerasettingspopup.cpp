@@ -11,29 +11,29 @@
 #include "tools/tooloptions.h"
 
 // TnzQt includes
-#include "flareqt/menubarcommand.h"
-#include "flareqt/doublefield.h"
-#include "flareqt/lineedit.h"
-#include "flareqt/checkbox.h"
-#include "flareqt/tselectionhandle.h"
-#include "flareqt/camerasettingswidget.h"
+#include "toonzqt/menubarcommand.h"
+#include "toonzqt/doublefield.h"
+#include "toonzqt/lineedit.h"
+#include "toonzqt/checkbox.h"
+#include "toonzqt/tselectionhandle.h"
+#include "toonzqt/camerasettingswidget.h"
 
 // TnzLib includes
-#include "flare/flarefolders.h"
-#include "flare/txsheet.h"
-#include "flare/tstageobjecttree.h"
-#include "flare/tcamera.h"
-#include "flare/txshlevelhandle.h"
-#include "flare/txsheethandle.h"
-#include "flare/tscenehandle.h"
-#include "flare/tobjecthandle.h"
-#include "flare/cleanupparameters.h"
-#include "flare/flarescene.h"
-#include "flare/sceneproperties.h"
-#include "flare/stage2.h"
-#include "flare/txshsimplelevel.h"
-#include "flare/txshleveltypes.h"
-#include "flare/preferences.h"
+#include "toonz/toonzfolders.h"
+#include "toonz/txsheet.h"
+#include "toonz/tstageobjecttree.h"
+#include "toonz/tcamera.h"
+#include "toonz/txshlevelhandle.h"
+#include "toonz/txsheethandle.h"
+#include "toonz/tscenehandle.h"
+#include "toonz/tobjecthandle.h"
+#include "toonz/cleanupparameters.h"
+#include "toonz/toonzscene.h"
+#include "toonz/sceneproperties.h"
+#include "toonz/stage2.h"
+#include "toonz/txshsimplelevel.h"
+#include "toonz/txshleveltypes.h"
+#include "toonz/preferences.h"
 
 // TnzCore includes
 #include "tconvert.h"
@@ -83,7 +83,7 @@ CameraSettingsPopup::CameraSettingsPopup()
   m_nameFld              = new LineEdit();
   m_cameraSettingsWidget = new CameraSettingsWidget();
 
-  m_cameraSettingsWidget->setPresetListFile(flareFolder::getReslistPath(false));
+  m_cameraSettingsWidget->setPresetListFile(ToonzFolder::getReslistPath(false));
 
   //---- layout
   QVBoxLayout *mainLay = new QVBoxLayout();
@@ -260,4 +260,3 @@ void CameraSettingsPopup::onLevelSwitched(TXshLevel *) {
 
 OpenPopupCommandHandler<CameraSettingsPopup> openCameraSettingsPopup(
     MI_CameraSettings);
-

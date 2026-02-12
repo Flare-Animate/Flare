@@ -1,13 +1,13 @@
 
 
-// flare includes
+// Toonz includes
 #include "tgeometry.h"
 #include "tpalette.h"
 #include "tstroke.h"
 #include "tregion.h"
 #include "tcolorutils.h"
 #include "trasterimage.h"
-#include "tflareimage.h"
+#include "ttoonzimage.h"
 #include "trop.h"
 #include "trop_borders.h"
 #include "tstrokeutil.h"
@@ -26,7 +26,7 @@
 #include "tcg/tcg_sequence_ops.h"
 #include "tcg/tcg_cyclic.h"
 
-// flare includes
+// Toonz includes
 #include "../common/trop/raster_edge_evaluator.hpp"
 
 #undef INCLUDE_HPP
@@ -34,7 +34,7 @@
 // STL includes
 #include <set>
 
-#include "flare/tcenterlinevectorizer.h"
+#include "toonz/tcenterlinevectorizer.h"
 
 //************************************************************************
 //    Local namespace stuff
@@ -779,7 +779,7 @@ void outlineVectorize(TVectorImageP &vi, const TRasterImageP &ri,
 
 //-------------------------------------------------------------------
 
-void outlineVectorize(TVectorImageP &vi, const TflareImageP &ti,
+void outlineVectorize(TVectorImageP &vi, const TToonzImageP &ti,
                       const NewOutlineConfiguration &conf, TPalette *palette) {
   TRasterCM32P ras(ti->getRaster());
   TRasterGR16P rasGR16(ras->getSize());
@@ -813,7 +813,7 @@ TVectorImageP VectorizerCore::newOutlineVectorize(
   output->setPalette(palette);
 
   TRasterImageP ri(image);
-  TflareImageP ti(image);
+  TToonzImageP ti(image);
 
   // Deal with palette (observe that if image is colormap, the input palette is
   // directly copied to output)
@@ -826,4 +826,3 @@ TVectorImageP VectorizerCore::newOutlineVectorize(
 
   return output;
 }
-

@@ -1,9 +1,9 @@
 #pragma once
 
-#ifndef MYPAINTflareBRUSH_H
-#define MYPAINTflareBRUSH_H
+#ifndef MYPAINTTOONZBRUSH_H
+#define MYPAINTTOONZBRUSH_H
 
-#include <flare/mypaint.h>
+#include <toonz/mypaint.h>
 #include "traster.h"
 #include "trastercm.h"
 #include "tcurves.h"
@@ -86,11 +86,11 @@ public:
 
 //=======================================================
 //
-// MyPaintflareBrush
+// MyPaintToonzBrush
 //
 //=======================================================
 
-class MyPaintflareBrush {
+class MyPaintToonzBrush {
 private:
   struct Params {
     union {
@@ -126,7 +126,7 @@ private:
   bool m_interpolation;
 
 public:
-  MyPaintflareBrush(const TRaster32P &ras, RasterController &controller,
+  MyPaintToonzBrush(const TRaster32P &ras, RasterController &controller,
                     const mypaint::Brush &brush, bool interpolation = false);
   void beginStroke();
   void strokeTo(const TPointD &position, double pressure, const TPointD &tilt,
@@ -145,4 +145,3 @@ public:
 };
 
 #endif  // T_BLUREDBRUSH
-

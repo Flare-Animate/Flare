@@ -18,11 +18,11 @@
 #include "tapp.h"
 #include "filebrowserpopup.h"
 #include "tmsgcore.h"
-#include "flare/flarescene.h"
-#include "flare/sceneproperties.h"
-#include "flare/preferences.h"
+#include "toonz/toonzscene.h"
+#include "toonz/sceneproperties.h"
+#include "toonz/preferences.h"
 
-#include "flareqt/gutil.h"
+#include "toonzqt/gutil.h"
 
 #include <QString>
 #include <QProcess>
@@ -333,7 +333,7 @@ void BatchesController::addComposerTask(const TFilePath &_taskFilePath) {
   } catch (TException &) {
   }
 
-  flareScene scene;
+  ToonzScene scene;
   try {
     scene.loadNoResources(taskFilePath);
   } catch (...) {
@@ -1230,4 +1230,3 @@ BatchesController *BatchesController::instance() {
   }
   return m_instance;
 }
-

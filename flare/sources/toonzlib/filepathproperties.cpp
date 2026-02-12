@@ -1,4 +1,4 @@
-#include "flare/filepathproperties.h"
+#include "toonz/filepathproperties.h"
 
 // TnzCore includes
 #include "tstream.h"

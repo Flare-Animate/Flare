@@ -9,7 +9,7 @@
 
 #undef DVAPI
 #undef DVVAR
-#ifdef flareLIB_EXPORTS
+#ifdef TOONZLIB_EXPORTS
 #define DVAPI DV_EXPORT_API
 #define DVVAR DV_EXPORT_VAR
 #else
@@ -23,7 +23,7 @@
 //=============================================================================
 // forward declarations
 class TProject;
-class flareScene;
+class ToonzScene;
 class TXshSimpleLevel;
 class TXshPaletteLevel;
 class TXsheet;
@@ -33,7 +33,7 @@ class TXsheet;
    load operation. It can be statically defined (i.e. DONT_IMPORT).
    Subclass it to provide dialog boxes.
    All the actual file copies are recorded (ImportLog).
-   \sa ResourceImportMap, ResourceImportDialog (defined in flare)
+   \sa ResourceImportMap, ResourceImportDialog (defined in toonz)
 */
 //=============================================================================
 
@@ -50,7 +50,7 @@ public:
   void setChildFolderEnabled(bool enabled) { m_childFolderEnabled = enabled; }
 
   // accepts and returns coded file (e.g. +drawings/folder/a.pli)
-  virtual TFilePath process(flareScene *dstScene, flareScene *srcScene,
+  virtual TFilePath process(ToonzScene *dstScene, ToonzScene *srcScene,
                             TFilePath srcFile) = 0;
 
   const ImportLog &getImportLog() const { return m_importLog; }
@@ -85,7 +85,7 @@ public:
 
 class DVAPI SceneResource {
 protected:
-  flareScene *m_scene;
+  ToonzScene *m_scene;
   bool m_untitledScene;
   TFilePath m_oldSavePath;
 
@@ -93,7 +93,7 @@ public:
   /*!
 Constructs SceneResource with default value and \b scene.
 */
-  SceneResource(flareScene *scene);
+  SceneResource(ToonzScene *scene);
   /*!
 Destroys the SceneResource object.
 */
@@ -138,9 +138,9 @@ class DVAPI ScenePalette final : public SceneResource {
 
 public:
   /*!
-Constructs SceneLevel with \b flareScene \b scene and \b TXshPaletteLevel \b pl.
+Constructs SceneLevel with \b ToonzScene \b scene and \b TXshPaletteLevel \b pl.
 */
-  ScenePalette(flareScene *scene, TXshPaletteLevel *pl);
+  ScenePalette(ToonzScene *scene, TXshPaletteLevel *pl);
   /*!
 Save simple level in right path.
 */
@@ -184,9 +184,9 @@ class DVAPI SceneLevel final : public SceneResource {
 
 public:
   /*!
-Constructs SceneLevel with \b flareScene \b scene and \b TXshSimpleLevel \b sl.
+Constructs SceneLevel with \b ToonzScene \b scene and \b TXshSimpleLevel \b sl.
 */
-  SceneLevel(flareScene *scene, TXshSimpleLevel *sl);
+  SceneLevel(ToonzScene *scene, TXshSimpleLevel *sl);
   /*!
 Save simple level in right path.
 */
@@ -226,10 +226,10 @@ class DVAPI SceneSound final : public SceneResource {
 
 public:
   /*!
-Constructs SceneSoundtrack with \b flareScene \b scene and \b TXshSoundLevel \b
+Constructs SceneSoundtrack with \b ToonzScene \b scene and \b TXshSoundLevel \b
 sl.
 */
-  SceneSound(flareScene *scene, TXshSoundLevel *sl);
+  SceneSound(ToonzScene *scene, TXshSoundLevel *sl);
 
   /*!
 Save sound column in right path.
@@ -268,7 +268,7 @@ Set sound track path to old path.
 
 class DVAPI SceneResources {
   std::vector<SceneResource *> m_resources;
-  flareScene *m_scene;
+  ToonzScene *m_scene;
   TXsheet *m_subXsheet;
   bool m_commitDone;
   bool m_wasUntitled;
@@ -281,10 +281,10 @@ Set the vector of pointer to \b SceneResource to scene resources.
 public:
   // n.b. se subXsheet != 0 salva solo le risorse utilizzate nel subxsheet
   /*!
-Constructs SceneResources with \b flareScene \b scene and
+Constructs SceneResources with \b ToonzScene \b scene and
 \b TXsheet \b subXsheet.
 */
-  SceneResources(flareScene *scene, TXsheet *subXsheet);
+  SceneResources(ToonzScene *scene, TXsheet *subXsheet);
   /*!
 Destroys the SceneResources object.
 */
@@ -330,7 +330,7 @@ private:
 
 class DVAPI ResourceImporter final : public ResourceProcessor {
 public:
-  ResourceImporter(flareScene *scene, std::shared_ptr<TProject> dstProject,
+  ResourceImporter(ToonzScene *scene, std::shared_ptr<TProject> dstProject,
                    ResourceImportStrategy &strategy);
   ~ResourceImporter();
 
@@ -354,9 +354,9 @@ public:
   static TFilePath buildPsd(const TFilePath &path, const std::string &suffix);
 
 private:
-  flareScene *m_scene;
+  ToonzScene *m_scene;
   std::shared_ptr<TProject> m_dstProject;
-  flareScene *m_dstScene;
+  ToonzScene *m_dstScene;
   ResourceImportStrategy &m_importStrategy;
 };
 
@@ -366,12 +366,12 @@ private:
 // vengono copiate dentro il progetto
 
 class DVAPI ResourceCollector final : public ResourceProcessor {
-  flareScene *m_scene;
+  ToonzScene *m_scene;
   int m_count;
   std::map<TFilePath, TFilePath> m_collectedFiles;
 
 public:
-  ResourceCollector(flareScene *scene);
+  ResourceCollector(ToonzScene *scene);
   ~ResourceCollector();
 
   // se serve modifica path. path non deve esistere su disco
@@ -387,4 +387,3 @@ public:
 };
 
 #endif
-

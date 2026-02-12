@@ -7,7 +7,7 @@
 #include <QLabel>
 #include <QHBoxLayout>
 
-#include "flare/txsheet.h"
+#include "toonz/txsheet.h"
 
 //-----------------------------------------------------------------------------
 
@@ -95,4 +95,3 @@ public slots:
 }  // namespace XsheetGUI
 
 #endif  // XSHBREADCRUMBS_H
-

@@ -1,6 +1,6 @@
 
 
-#include "flare/txshnoteset.h"
+#include "toonz/txshnoteset.h"
 #include "tstream.h"
 #include "texception.h"
 
@@ -164,4 +164,3 @@ void TXshNoteSet::saveData(TOStream &os) {
   }
   os.closeChild();
 }
-

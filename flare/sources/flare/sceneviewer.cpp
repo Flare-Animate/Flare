@@ -3,7 +3,7 @@
 #define GL_GLEXT_PROTOTYPES
 #endif
 
-// flare includes
+// Toonz includes
 #include "tapp.h"
 #include "viewerpane.h"
 #include "onionskinmaskgui.h"
@@ -27,43 +27,43 @@
 #include "tools/replicator.h"
 
 // TnzQt includes
-#include "flareqt/icongenerator.h"
-#include "flareqt/gutil.h"
-#include "flareqt/imageutils.h"
-#include "flareqt/lutcalibrator.h"
-#include "flareqt/viewcommandids.h"
+#include "toonzqt/icongenerator.h"
+#include "toonzqt/gutil.h"
+#include "toonzqt/imageutils.h"
+#include "toonzqt/lutcalibrator.h"
+#include "toonzqt/viewcommandids.h"
 
 // TnzLib includes
-#include "flare/tscenehandle.h"
-#include "flare/txsheethandle.h"
-#include "flare/tframehandle.h"
-#include "flare/tcolumnhandle.h"
-#include "flare/txshlevelhandle.h"
-#include "flare/sceneproperties.h"
-#include "flare/flarescene.h"
-#include "flare/levelset.h"
-#include "flare/txshsimplelevel.h"
-#include "flare/tcamera.h"
-#include "flare/stage2.h"
-#include "flare/stage.h"
-#include "flare/stageplayer.h"
-#include "flare/stagevisitor.h"
-#include "flare/txsheet.h"
-#include "flare/tstageobjecttree.h"
-#include "flare/tstageobjectspline.h"
-#include "flare/tobjecthandle.h"
-#include "flare/tonionskinmaskhandle.h"
-#include "flare/palettecontroller.h"
-#include "flare/tpalettehandle.h"
-#include "flare/childstack.h"
-#include "flare/dpiscale.h"
-#include "flare/txshlevel.h"
-#include "flare/txshlevelcolumn.h"
-#include "flare/preferences.h"
-#include "flare/glrasterpainter.h"
-#include "flare/cleanupparameters.h"
-#include "flare/flareimageutils.h"
-#include "flare/txshleveltypes.h"
+#include "toonz/tscenehandle.h"
+#include "toonz/txsheethandle.h"
+#include "toonz/tframehandle.h"
+#include "toonz/tcolumnhandle.h"
+#include "toonz/txshlevelhandle.h"
+#include "toonz/sceneproperties.h"
+#include "toonz/toonzscene.h"
+#include "toonz/levelset.h"
+#include "toonz/txshsimplelevel.h"
+#include "toonz/tcamera.h"
+#include "toonz/stage2.h"
+#include "toonz/stage.h"
+#include "toonz/stageplayer.h"
+#include "toonz/stagevisitor.h"
+#include "toonz/txsheet.h"
+#include "toonz/tstageobjecttree.h"
+#include "toonz/tstageobjectspline.h"
+#include "toonz/tobjecthandle.h"
+#include "toonz/tonionskinmaskhandle.h"
+#include "toonz/palettecontroller.h"
+#include "toonz/tpalettehandle.h"
+#include "toonz/childstack.h"
+#include "toonz/dpiscale.h"
+#include "toonz/txshlevel.h"
+#include "toonz/txshlevelcolumn.h"
+#include "toonz/preferences.h"
+#include "toonz/glrasterpainter.h"
+#include "toonz/cleanupparameters.h"
+#include "toonz/toonzimageutils.h"
+#include "toonz/txshleveltypes.h"
 #include "subcameramanager.h"
 #include "toutputproperties.h"
 
@@ -78,7 +78,7 @@
 #include "timagecache.h"
 #include "trasterimage.h"
 #include "tstroke.h"
-#include "tflareimage.h"
+#include "ttoonzimage.h"
 #include "tenv.h"
 
 // Qt includes
@@ -293,23 +293,23 @@ ToggleCommandHandler viewRulerToggle("MI_ViewRuler", false);
 //-----------------------------------------------------------------------------
 
 void invalidateIcons() {
-  flareCheck *tc = flareCheck::instance();
+  ToonzCheck *tc = ToonzCheck::instance();
   int mask       = tc->getChecks();
   IconGenerator::Settings s;
-  s.m_blackBgCheck      = mask & flareCheck::eBlackBg;
-  s.m_transparencyCheck = mask & flareCheck::eTransparency;
-  s.m_inksOnly          = mask & flareCheck::eInksOnly;
+  s.m_blackBgCheck      = mask & ToonzCheck::eBlackBg;
+  s.m_transparencyCheck = mask & ToonzCheck::eTransparency;
+  s.m_inksOnly          = mask & ToonzCheck::eInksOnly;
   // emphasize lines with style#1 regardless of the current style
-  if (mask & flareCheck::eInk1) s.m_inkIndex = 1;
+  if (mask & ToonzCheck::eInk1) s.m_inkIndex = 1;
   // emphasize lines with the current style
-  else if (mask & flareCheck::eInk)
+  else if (mask & ToonzCheck::eInk)
     s.m_inkIndex = tc->getColorIndex();
   else
     s.m_inkIndex = -1;
-  s.m_paintIndex = mask & flareCheck::ePaint ? tc->getColorIndex() : -1;
+  s.m_paintIndex = mask & ToonzCheck::ePaint ? tc->getColorIndex() : -1;
   IconGenerator::instance()->setSettings(s);
 
-  // Force icons to refresh for flare Vector levels
+  // Force icons to refresh for Toonz Vector levels
   TXshLevel *sl = TApp::instance()->getCurrentLevel()->getLevel();
   if (sl && sl->getType() == PLI_XSHLEVEL) {
     std::vector<TFrameId> fids;
@@ -330,7 +330,7 @@ void invalidateIcons() {
 //--------------------------------------------------------------
 
 static void executeCheck(int checkType) {
-  flareCheck::instance()->toggleCheck(checkType);
+  ToonzCheck::instance()->toggleCheck(checkType);
   invalidateIcons();
 }
 
@@ -339,7 +339,7 @@ static void executeCheck(int checkType) {
 class TCheckToggleCommand final : public MenuItemHandler {
 public:
   TCheckToggleCommand() : MenuItemHandler("MI_TCheck") {}
-  void execute() override { executeCheck(flareCheck::eTransparency); }
+  void execute() override { executeCheck(ToonzCheck::eTransparency); }
 } tcheckToggle;
 
 //-----------------------------------------------------------------------------
@@ -347,7 +347,7 @@ public:
 class ICheckToggleCommand final : public MenuItemHandler {
 public:
   ICheckToggleCommand() : MenuItemHandler("MI_ICheck") {}
-  void execute() override { executeCheck(flareCheck::eInk); }
+  void execute() override { executeCheck(ToonzCheck::eInk); }
 } icheckToggle;
 
 //-----------------------------------------------------------------------------
@@ -355,7 +355,7 @@ public:
 class PCheckToggleCommand final : public MenuItemHandler {
 public:
   PCheckToggleCommand() : MenuItemHandler("MI_PCheck") {}
-  void execute() override { executeCheck(flareCheck::ePaint); }
+  void execute() override { executeCheck(ToonzCheck::ePaint); }
 } pcheckToggle;
 
 //-----------------------------------------------------------------------------
@@ -363,7 +363,7 @@ public:
 class BCheckToggleCommand final : public MenuItemHandler {
 public:
   BCheckToggleCommand() : MenuItemHandler("MI_BCheck") {}
-  void execute() override { executeCheck(flareCheck::eBlackBg); }
+  void execute() override { executeCheck(ToonzCheck::eBlackBg); }
 } bcheckToggle;
 
 //-----------------------------------------------------------------------------
@@ -371,7 +371,7 @@ public:
 class TAutocloseToggleCommand final : public MenuItemHandler {
 public:
   TAutocloseToggleCommand() : MenuItemHandler("MI_ACheck") {}
-  void execute() override { executeCheck(flareCheck::eAutoclose); }
+  void execute() override { executeCheck(ToonzCheck::eAutoclose); }
 } tautocloseToggle;
 
 //-----------------------------------------------------------------------------
@@ -379,7 +379,7 @@ public:
 class TGapToggleCommand final : public MenuItemHandler {
 public:
   TGapToggleCommand() : MenuItemHandler("MI_GCheck") {}
-  void execute() override { executeCheck(flareCheck::eGap); }
+  void execute() override { executeCheck(ToonzCheck::eGap); }
 } tgapToggle;
 
 //-----------------------------------------------------------------------------
@@ -387,7 +387,7 @@ public:
 class TInksOnlyToggleCommand final : public MenuItemHandler {
 public:
   TInksOnlyToggleCommand() : MenuItemHandler("MI_IOnly") {}
-  void execute() override { executeCheck(flareCheck::eInksOnly); }
+  void execute() override { executeCheck(ToonzCheck::eInksOnly); }
 } tinksOnlyToggle;
 
 //-----------------------------------------------------------------------------
@@ -396,7 +396,7 @@ public:
 class Ink1CheckToggleCommand final : public MenuItemHandler {
 public:
   Ink1CheckToggleCommand() : MenuItemHandler("MI_Ink1Check") {}
-  void execute() override { executeCheck(flareCheck::eInk1); }
+  void execute() override { executeCheck(ToonzCheck::eInk1); }
 } ink1checkToggle;
 
 //=============================================================================
@@ -997,7 +997,7 @@ void SceneViewer::enablePreview(int previewMode) {
     // 2: selected cell, auto play once & stop
     if (EnvViewerPreviewBehavior == 1) {
       int r0, r1, step;
-      flareScene *scene = app->getCurrentScene()->getScene();
+      ToonzScene *scene = app->getCurrentScene()->getScene();
       scene->getProperties()->getPreviewProperties()->getRange(r0, r1, step);
       if (r0 > r1) {
         r0 = 0;
@@ -1440,7 +1440,7 @@ void SceneViewer::drawDisableScissor() {
 
 void SceneViewer::drawBackground() {
   TApp *app         = TApp::instance();
-  flareScene *scene = app->getCurrentScene()->getScene();
+  ToonzScene *scene = app->getCurrentScene()->getScene();
 
   if (m_visualSettings.m_colorMask == 0) {
     TPixel32 bgColor;
@@ -1577,16 +1577,16 @@ void SceneViewer::drawCameraStand() {
 
     TImageP image = tool->getImage(false);
 
-    TflareImageP ti  = image;
+    TToonzImageP ti  = image;
     TRasterImageP ri = image;
     TVectorImageP vi = image;
     if (ti) {
       TRect imgRect(0, 0, ti->getSize().lx - 1, ti->getSize().ly - 1);
-      TRectD bbox = flareImageUtils::convertRasterToWorld(imgRect, ti);
+      TRectD bbox = ToonzImageUtils::convertRasterToWorld(imgRect, ti);
 
       TPixel32 imgRectColor;
       // draw black rectangle instead, if the BlackBG check is ON
-      if (flareCheck::instance()->getChecks() & flareCheck::eBlackBg)
+      if (ToonzCheck::instance()->getChecks() & ToonzCheck::eBlackBg)
         imgRectColor = TPixel::Black;
       else
         imgRectColor = Preferences::instance()->getLevelEditorBoxColor();
@@ -1601,7 +1601,7 @@ void SceneViewer::drawCameraStand() {
 
         TPixel32 imgRectColor;
         // draw black rectangle instead, if the BlackBG check is ON
-        if (flareCheck::instance()->getChecks() & flareCheck::eBlackBg)
+        if (ToonzCheck::instance()->getChecks() & ToonzCheck::eBlackBg)
           imgRectColor = TPixel::Black;
         else
           imgRectColor = Preferences::instance()->getLevelEditorBoxColor();
@@ -1612,7 +1612,7 @@ void SceneViewer::drawCameraStand() {
 
       TPixel32 imgRectColor;
       // draw black rectangle instead, if the BlackBG check is ON
-      if (flareCheck::instance()->getChecks() & flareCheck::eBlackBg)
+      if (ToonzCheck::instance()->getChecks() & ToonzCheck::eBlackBg)
         imgRectColor = TPixel::Black;
       else
         imgRectColor = Preferences::instance()->getLevelEditorBoxColor();
@@ -1952,18 +1952,18 @@ void SceneViewer::drawViewerIndicators() {
     checkTexts.append(tr("Motion Path Selected"));
 
   // Check Indicators (disabled in Preview mode)
-  flareCheck *tc = flareCheck::instance();
+  ToonzCheck *tc = ToonzCheck::instance();
   int mask       = tc->getChecks();
   if (!m_previewMode && mask) {
-    if (mask & flareCheck::eTransparency)
+    if (mask & ToonzCheck::eTransparency)
       checkTexts.append(tr("Transparency Check"));
-    if (mask & flareCheck::eInk) checkTexts.append(tr("Ink Check"));
-    if (mask & flareCheck::eInk1) checkTexts.append(tr("Ink#1 Check"));
-    if (mask & flareCheck::ePaint) checkTexts.append(tr("Paint Check"));
-    if (mask & flareCheck::eInksOnly) checkTexts.append(tr("Inks Only Check"));
-    if (mask & flareCheck::eBlackBg) checkTexts.append(tr("Black BG Check"));
-    if (mask & flareCheck::eGap) checkTexts.append(tr("Fill Check"));
-    if (mask & flareCheck::eAutoclose) checkTexts.append(tr("Gap Check"));
+    if (mask & ToonzCheck::eInk) checkTexts.append(tr("Ink Check"));
+    if (mask & ToonzCheck::eInk1) checkTexts.append(tr("Ink#1 Check"));
+    if (mask & ToonzCheck::ePaint) checkTexts.append(tr("Paint Check"));
+    if (mask & ToonzCheck::eInksOnly) checkTexts.append(tr("Inks Only Check"));
+    if (mask & ToonzCheck::eBlackBg) checkTexts.append(tr("Black BG Check"));
+    if (mask & ToonzCheck::eGap) checkTexts.append(tr("Fill Check"));
+    if (mask & ToonzCheck::eAutoclose) checkTexts.append(tr("Gap Check"));
   }
 
   if (!checkTexts.size()) return;
@@ -2138,7 +2138,7 @@ void SceneViewer::paintGL() {
 
 void SceneViewer::drawScene() {
   TApp *app         = TApp::instance();
-  flareScene *scene = app->getCurrentScene()->getScene();
+  ToonzScene *scene = app->getCurrentScene()->getScene();
   int frame         = app->getCurrentFrame()->getFrame();
   TXsheet *xsh      = app->getCurrentXsheet()->getXsheet();
   TRect clipRect    = getActualClipRect(getViewMatrix());
@@ -2315,7 +2315,7 @@ void SceneViewer::drawScene() {
     }
 
     assert(glGetError() == 0);
-    if (flareCheck::instance()->getChecks() & flareCheck::eAutoclose) {
+    if (ToonzCheck::instance()->getChecks() & ToonzCheck::eAutoclose) {
       TXshSimpleLevel *sl = app->getCurrentLevel()->getSimpleLevel();
       if (sl && sl->getType() & TXshLevelType::RASTER_TYPE) {
         TFrameId fid = app->getCurrentTool()->getTool()->getCurrentFid();
@@ -3279,7 +3279,7 @@ void SceneViewer::posToColumnIndexes(const TPointD &p,
                                      bool includeInvisible) const {
   int oldRasterizePli    = TXshSimpleLevel::m_rasterizePli;
   TApp *app              = TApp::instance();
-  flareScene *scene      = app->getCurrentScene()->getScene();
+  ToonzScene *scene      = app->getCurrentScene()->getScene();
   TXsheet *xsh           = app->getCurrentXsheet()->getXsheet();
   int frame              = app->getCurrentFrame()->getFrame();
   int currentColumnIndex = app->getCurrentColumn()->getColumnIndex();
@@ -3335,7 +3335,7 @@ int SceneViewer::posToRow(const TPointD &p, double distance,
                  app->getCurrentFrame()->getFid(), osm,
                  app->getCurrentFrame()->isPlaying(), false);
   } else {
-    flareScene *scene      = app->getCurrentScene()->getScene();
+    ToonzScene *scene      = app->getCurrentScene()->getScene();
     TXsheet *xsh           = app->getCurrentXsheet()->getXsheet();
     int frame              = app->getCurrentFrame()->getFrame();
     int currentColumnIndex = app->getCurrentColumn()->getColumnIndex();
@@ -3610,4 +3610,3 @@ void SceneViewer::registerContext() {
   TGLDisplayListsManager::instance()->attachContext(displayListId, tglContext);
   l_contexts.insert(tglContext);
 }
-

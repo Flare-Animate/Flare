@@ -3,7 +3,7 @@
 #ifndef SVN_REVERT_DIALOG_H
 #define SVN_REVERT_DIALOG_H
 
-#include "flareqt/dvdialog.h"
+#include "toonzqt/dvdialog.h"
 #include "versioncontrol.h"
 
 #include <QList>
@@ -111,4 +111,3 @@ signals:
 };
 
 #endif  // SVN_REVERT_DIALOG_H
-

@@ -3,7 +3,7 @@
 #ifndef SCRIPTBINDING_FILES_H
 #define SCRIPTBINDING_FILES_H
 
-#include "flare/scriptbinding.h"
+#include "toonz/scriptbinding.h"
 #include "tfilepath.h"
 
 #include <QDateTime>
@@ -49,7 +49,7 @@ public:
   Q_INVOKABLE QScriptValue
   withParentDirectory(const QScriptValue &parentDirectory);
 
-  TFilePath getflareFilePath() const;
+  TFilePath getToonzFilePath() const;
 
   Q_INVOKABLE QScriptValue concat(const QScriptValue &value) const;
 
@@ -71,4 +71,3 @@ QScriptValue checkFilePath(QScriptContext *context, const QScriptValue &value,
 Q_DECLARE_METATYPE(TScriptBinding::FilePath *)
 
 #endif
-

@@ -8,12 +8,12 @@
 #endif
 
 #ifdef TNZCORE_LIGHT
-#ifdef _DEBUGflare
-#undef _DEBUGflare
+#ifdef _DEBUGTOONZ
+#undef _DEBUGTOONZ
 #endif
 #else
 #ifdef _DEBUG
-#define _DEBUGflare _DEBUG
+#define _DEBUGTOONZ _DEBUG
 #endif
 #endif
 
@@ -198,22 +198,22 @@ ImageInfo *RasterImageInfo::clone() { return new RasterImageInfo(*this); }
 #ifndef TNZCORE_LIGHT
 
 #include "tpalette.h"
-#include "tflareimage.h"
+#include "ttoonzimage.h"
 
-class flareImageInfo final : public ImageInfo {
+class ToonzImageInfo final : public ImageInfo {
 public:
-  flareImageInfo(const TflareImageP &ti);
-  ~flareImageInfo() {
+  ToonzImageInfo(const TToonzImageP &ti);
+  ~ToonzImageInfo() {
     if (m_palette) m_palette->release();
   }
 
   ImageInfo *clone() override {
-    flareImageInfo *ret = new flareImageInfo(*this);
+    ToonzImageInfo *ret = new ToonzImageInfo(*this);
     if (ret->m_palette) ret->m_palette->addRef();
     return ret;
   }
 
-  void setInfo(const TflareImageP &ti);
+  void setInfo(const TToonzImageP &ti);
 
   double m_dpix, m_dpiy;
   std::string m_name;
@@ -223,7 +223,7 @@ public:
   TPalette *m_palette;
 };
 
-flareImageInfo::flareImageInfo(const TflareImageP &ti)
+ToonzImageInfo::ToonzImageInfo(const TToonzImageP &ti)
     : ImageInfo(ti->getSize()) {
   m_palette = ti->getPalette();
   if (m_palette) m_palette->addRef();
@@ -234,7 +234,7 @@ flareImageInfo::flareImageInfo(const TflareImageP &ti)
   m_subs    = ti->getSubsampling();
 }
 
-void flareImageInfo::setInfo(const TflareImageP &ti) {
+void ToonzImageInfo::setInfo(const TToonzImageP &ti) {
   ti->setPalette(m_palette);
   ti->setDpi(m_dpix, m_dpiy);
   ti->setOffset(m_offset);
@@ -261,7 +261,7 @@ TImageP RasterImageBuilder::build(ImageInfo *info, const TRasterP &ras,
 
   int rcount       = ras->getRefCount();
   TRasterImageP ri = new TRasterImage();
-#ifdef _DEBUGflare
+#ifdef _DEBUGTOONZ
   ras->m_cashed = true;
 #endif
   ri->setRaster(ras);
@@ -275,17 +275,17 @@ TImageP RasterImageBuilder::build(ImageInfo *info, const TRasterP &ras,
 //------------------------------------------------------------------------------
 #ifndef TNZCORE_LIGHT
 
-class flareImageBuilder final : public ImageBuilder {
+class ToonzImageBuilder final : public ImageBuilder {
 public:
-  ImageBuilder *clone() override { return new flareImageBuilder(*this); }
+  ImageBuilder *clone() override { return new ToonzImageBuilder(*this); }
 
   TImageP build(ImageInfo *info, const TRasterP &ras,
                 TPalette *palette) override;
 };
 
-TImageP flareImageBuilder::build(ImageInfo *info, const TRasterP &ras,
+TImageP ToonzImageBuilder::build(ImageInfo *info, const TRasterP &ras,
                                  TPalette *palette) {
-  flareImageInfo *tiInfo = dynamic_cast<flareImageInfo *>(info);
+  ToonzImageInfo *tiInfo = dynamic_cast<ToonzImageInfo *>(info);
   assert(tiInfo);
 
   TRasterCM32P rasCM32 = ras;
@@ -308,7 +308,7 @@ TImageP flareImageBuilder::build(ImageInfo *info, const TRasterP &ras,
 #ifdef _DEBUG
   imgRasCM32->m_cashed = true;
 #endif
-  TflareImageP ti = new TflareImage(imgRasCM32, tiInfo->m_savebox);
+  TToonzImageP ti = new TToonzImage(imgRasCM32, tiInfo->m_savebox);
   ti->setPalette(palette);
   tiInfo->setInfo(ti);
   return ti;
@@ -325,9 +325,9 @@ public:
     if (ri) m_imageInfo = new RasterImageInfo(ri);
 #ifndef TNZCORE_LIGHT
     else {
-      TflareImageP ti = m_image;
+      TToonzImageP ti = m_image;
       if (ti)
-        m_imageInfo = new flareImageInfo(ti);
+        m_imageInfo = new ToonzImageInfo(ti);
       else
         m_imageInfo = 0;
     }
@@ -367,7 +367,7 @@ TUINT32 UncompressedOnMemoryCacheItem::getSize() const {
       return 0;
   } else {
 #ifndef TNZCORE_LIGHT
-    TflareImageP ti = m_image;
+    TToonzImageP ti = m_image;
     if (ti) {
       TDimension size = ti->getSize();
       return size.lx * size.ly * sizeof(TPixelCM32);
@@ -419,10 +419,10 @@ CompressedOnMemoryCacheItem::CompressedOnMemoryCacheItem(const TImageP &img)
   }
 #ifndef TNZCORE_LIGHT
   else {
-    TflareImageP ti = img;
+    TToonzImageP ti = img;
     if (ti) {
-      m_imageInfo          = new flareImageInfo(ti);
-      m_builder            = new flareImageBuilder();
+      m_imageInfo          = new ToonzImageInfo(ti);
+      m_builder            = new ToonzImageBuilder();
       TRasterCM32P rasCM32 = ti->getRaster();
       TINT32 buffSize      = 0;
       m_compressedRas = TheCodec::instance()->compress(rasCM32, 1, buffSize);
@@ -468,11 +468,11 @@ TImageP CompressedOnMemoryCacheItem::getImage() const {
   TRasterP ras;
 
   TheCodec::instance()->decompress(m_compressedRas, ras);
-#ifdef _DEBUGflare
+#ifdef _DEBUGTOONZ
   ras->m_cashed = true;
 #endif
 #ifndef TNZCORE_LIGHT
-  flareImageBuilder *tibuilder = dynamic_cast<flareImageBuilder *>(m_builder);
+  ToonzImageBuilder *tibuilder = dynamic_cast<ToonzImageBuilder *>(m_builder);
   if (tibuilder)
     return tibuilder->build(m_imageInfo, ras, m_palette);
   else
@@ -586,9 +586,9 @@ UncompressedOnDiskCacheItem::UncompressedOnDiskCacheItem(const TFilePath &fp,
   }
 #ifndef TNZCORE_LIGHT
   else {
-    TflareImageP ti = image;
+    TToonzImageP ti = image;
     if (ti) {
-      m_imageInfo = new flareImageInfo(ti);
+      m_imageInfo = new ToonzImageInfo(ti);
       ras         = ti->getRaster();
       m_palette   = palette;
     } else
@@ -661,7 +661,7 @@ TImageP UncompressedOnDiskCacheItem::getImage() const {
     char *data = (char *)ras->getRawData();
     is.read(data, dataSize);
     ras->unlock();
-#ifdef _DEBUGflare
+#ifdef _DEBUGTOONZ
     ras->m_cashed = true;
 #endif
 
@@ -669,7 +669,7 @@ TImageP UncompressedOnDiskCacheItem::getImage() const {
   }
 #ifndef TNZCORE_LIGHT
   else {
-    flareImageInfo *tii = dynamic_cast<flareImageInfo *>(m_imageInfo);
+    ToonzImageInfo *tii = dynamic_cast<ToonzImageInfo *>(m_imageInfo);
     if (tii) {
       ras = (TRasterP)(TRasterCM32P(tii->m_size));
       ras->lock();
@@ -680,7 +680,7 @@ TImageP UncompressedOnDiskCacheItem::getImage() const {
       ras->m_cashed = true;
 #endif
 
-      return flareImageBuilder().build(m_imageInfo, ras, m_palette);
+      return ToonzImageBuilder().build(m_imageInfo, ras, m_palette);
     } else {
       assert(false);
       return 0;
@@ -770,7 +770,7 @@ inline void *getPointer(const TImageP &img) {
   TRasterImageP rimg = img;
   if (rimg) return rimg->getRaster().getPointer();
 #ifndef TNZCORE_LIGHT
-  TflareImageP timg = img;
+  TToonzImageP timg = img;
   if (timg) return timg->getRaster().getPointer();
 #endif
 
@@ -778,7 +778,7 @@ inline void *getPointer(const TImageP &img) {
 }
 
 // Returns true or false whether the image or its eventual raster are
-// referenced by someone other than flare cache.
+// referenced by someone other than Toonz cache.
 inline TINT32 hasExternalReferences(const TImageP &img) {
   int refCount;
 
@@ -789,10 +789,10 @@ inline TINT32 hasExternalReferences(const TImageP &img) {
 
 #ifndef TNZCORE_LIGHT
   {
-    TflareImageP timg = img;
+    TToonzImageP timg = img;
     if (timg)
       refCount = timg->getRaster()->getRefCount() -
-                 1;  //!!! the TflareImage::getRaster method increments raster
+                 1;  //!!! the TToonzImage::getRaster method increments raster
                      //! refCount!(the TRasterImage::getRaster don't)
   }
 #endif
@@ -1205,9 +1205,9 @@ void TImageCache::Imp::add(const std::string &id, const TImageP &img,
   std::map<std::string, CacheItemP>::iterator itCompr =
       m_compressedItems.find(id);
 
-#ifdef _DEBUGflare
+#ifdef _DEBUGTOONZ
   TRasterImageP rimg = (TRasterImageP)img;
-  TflareImageP timg  = (TflareImageP)img;
+  TToonzImageP timg  = (TToonzImageP)img;
 #endif
 
   if (itUncompr != m_uncompressedItems.end() ||
@@ -1215,7 +1215,7 @@ void TImageCache::Imp::add(const std::string &id, const TImageP &img,
           m_compressedItems.end())  // already present in cache with same id...
   {
     if (overwrite) {
-#ifdef _DEBUGflare
+#ifdef _DEBUGTOONZ
       if (rimg)
         rimg->getRaster()->m_cashed = true;
       else if (timg)
@@ -1252,7 +1252,7 @@ void TImageCache::Imp::add(const std::string &id, const TImageP &img,
 
   CacheItemP item;
 
-#ifdef _DEBUGflare
+#ifdef _DEBUGTOONZ
   if (rimg)
     rimg->getRaster()->m_cashed = true;
   else if (timg)
@@ -1275,7 +1275,7 @@ void TImageCache::Imp::add(const std::string &id, const TImageP &img,
 
   doCompress();
 
-#ifdef _DEBUGflare
+#ifdef _DEBUGTOONZ
 // int itemCount =
 // m_imp->m_uncompressedItems.size()+m_imp->m_compressedItems.size();
 // m_imp->outputDebug();
@@ -1288,7 +1288,7 @@ void TImageCache::remove(const std::string &id) { m_imp->remove(id); }
 
 void TImageCache::Imp::remove(const std::string &id) {
   if (CacheInstance == 0)
-    return;  // the remove can be called when exiting from flare...after the
+    return;  // the remove can be called when exiting from toonz...after the
              // imagecache was already freed!
 
   assert(check == magic);
@@ -1325,11 +1325,11 @@ void TImageCache::Imp::remove(const std::string &id) {
     m_itemHistory.erase(it->second->m_historyCount);
     m_itemsByImagePointer.erase(getPointer(it->second->getImage()));
 
-#ifdef _DEBUGflare
+#ifdef _DEBUGTOONZ
     if ((TRasterImageP)it->second->getImage())
       ((TRasterImageP)it->second->getImage())->getRaster()->m_cashed = false;
-    else if ((TflareImageP)it->second->getImage())
-      ((TflareImageP)it->second->getImage())->getRaster()->m_cashed = false;
+    else if ((TToonzImageP)it->second->getImage())
+      ((TToonzImageP)it->second->getImage())->getRaster()->m_cashed = false;
 #endif
 
     m_uncompressedItems.erase(it);
@@ -1479,7 +1479,7 @@ bool TImageCache::getSize(const std::string &id, TDimension &size) const {
   if (it != m_imp->m_uncompressedItems.end()) {
     UncompressedOnMemoryCacheItemP uncompressed = it->second;
     assert(uncompressed);
-    TflareImageP ti = uncompressed->getImage();
+    TToonzImageP ti = uncompressed->getImage();
     if (ti) {
       size = ti->getSize();
       return true;
@@ -1504,8 +1504,8 @@ bool TImageCache::getSize(const std::string &id, TDimension &size) const {
       size = rimageInfo->m_size;
       return true;
     }
-    flareImageInfo *timageInfo =
-        dynamic_cast<flareImageInfo *>(cacheItem->m_imageInfo);
+    ToonzImageInfo *timageInfo =
+        dynamic_cast<ToonzImageInfo *>(cacheItem->m_imageInfo);
     if (timageInfo) {
       size = timageInfo->m_size;
       return true;
@@ -1526,7 +1526,7 @@ bool TImageCache::getSavebox(const std::string &id, TRect &savebox) const {
     UncompressedOnMemoryCacheItemP uncompressed = it->second;
     assert(uncompressed);
 
-    TflareImageP ti = uncompressed->getImage();
+    TToonzImageP ti = uncompressed->getImage();
     if (ti) {
       savebox = ti->getSavebox();
       return true;
@@ -1553,8 +1553,8 @@ bool TImageCache::getSavebox(const std::string &id, TRect &savebox) const {
     return true;
   }
 #ifndef TNZCORE_LIGHT
-  flareImageInfo *timageInfo =
-      dynamic_cast<flareImageInfo *>(cacheItem->m_imageInfo);
+  ToonzImageInfo *timageInfo =
+      dynamic_cast<ToonzImageInfo *>(cacheItem->m_imageInfo);
   if (timageInfo) {
     savebox = timageInfo->m_savebox;
     return true;
@@ -1574,7 +1574,7 @@ bool TImageCache::getDpi(const std::string &id, double &dpiX,
   if (it != m_imp->m_uncompressedItems.end()) {
     UncompressedOnMemoryCacheItemP uncompressed = it->second;
     assert(uncompressed);
-    TflareImageP ti = uncompressed->getImage();
+    TToonzImageP ti = uncompressed->getImage();
     if (ti) {
       ti->getDpi(dpiX, dpiY);
       return true;
@@ -1600,8 +1600,8 @@ bool TImageCache::getDpi(const std::string &id, double &dpiX,
     return true;
   }
 #ifndef TNZCORE_LIGHT
-  flareImageInfo *timageInfo =
-      dynamic_cast<flareImageInfo *>(cacheItem->m_imageInfo);
+  ToonzImageInfo *timageInfo =
+      dynamic_cast<ToonzImageInfo *>(cacheItem->m_imageInfo);
   if (timageInfo) {
     dpiX = timageInfo->m_dpix;
     dpiY = timageInfo->m_dpiy;
@@ -1631,7 +1631,7 @@ bool TImageCache::getSubsampling(const std::string &id, int &subs) const {
     UncompressedOnMemoryCacheItemP uncompressed = it->second;
     assert(uncompressed);
 #ifndef TNZCORE_LIGHT
-    if (TflareImageP ti = uncompressed->getImage()) {
+    if (TToonzImageP ti = uncompressed->getImage()) {
       subs = ti->getSubsampling();
       return true;
     }
@@ -1655,8 +1655,8 @@ bool TImageCache::getSubsampling(const std::string &id, int &subs) const {
     return true;
   }
 #ifndef TNZCORE_LIGHT
-  else if (flareImageInfo *timageInfo =
-               dynamic_cast<flareImageInfo *>(cacheItem->m_imageInfo)) {
+  else if (ToonzImageInfo *timageInfo =
+               dynamic_cast<ToonzImageInfo *>(cacheItem->m_imageInfo)) {
     subs = timageInfo->m_subs;
     return true;
   }
@@ -2023,4 +2023,3 @@ void TCachedImage::setImage(const TImageP &img, bool overwrite) {
 TImageP TCachedImage::image(bool toBeModified) {
   return TImageCache::instance()->get(m_ref, toBeModified);
 }
-

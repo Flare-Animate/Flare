@@ -4,16 +4,16 @@
 #include "timage_io.h"
 
 // TnzLib includes
-#include "flare/tscenehandle.h"
-#include "flare/tframehandle.h"
-#include "flare/tcamera.h"
-#include "flare/flarescene.h"
-#include "flare/txsheethandle.h"
-#include "flare/sceneproperties.h"
+#include "toonz/tscenehandle.h"
+#include "toonz/tframehandle.h"
+#include "toonz/tcamera.h"
+#include "toonz/toonzscene.h"
+#include "toonz/txsheethandle.h"
+#include "toonz/sceneproperties.h"
 
 // TnzQt includes
-#include "flareqt/menubarcommand.h"
-#include "flareqt/gutil.h"
+#include "toonzqt/menubarcommand.h"
+#include "toonzqt/gutil.h"
 
 // Tnz6 includes
 #include "menubarcommandids.h"
@@ -30,7 +30,7 @@ static void printCurrentFrame() {
   QPrintDialog dialog(&printer, 0);
   if (!dialog.exec()) return;
 
-  flareScene *scene = TApp::instance()->getCurrentScene()->getScene();
+  ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
   int frame         = TApp::instance()->getCurrentFrame()->getFrame();
   int lx            = TApp::instance()
                ->getCurrentScene()
@@ -76,4 +76,3 @@ public:
     qApp->restoreOverrideCursor();
   }
 } printCommand;
-

@@ -9,17 +9,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include "flare/flareimageutils.h"
+#include "toonz/toonzimageutils.h"
 #include "tw/tw.h"
-#include "flare/fill.h"
-#include "flare/ttilesaver.h"
-#include "flare4.6/tmacro.h"
+#include "toonz/fill.h"
+#include "toonz/ttilesaver.h"
+#include "toonz4.6/tmacro.h"
 /*
 #include "tropcm.h"
 #include "timage_io.h"
 #include "tlevel_io.h"
-#include "flare/txshsimplelevel.h"
-#include "flare/tscenehandle.h"
+#include "toonz/txshsimplelevel.h"
+#include "toonz/tscenehandle.h"
 #include "tools/tool.h"*/
 
 #ifndef _WIN32
@@ -96,7 +96,7 @@ static int somma_quadrati(int x, int y);
 /*---------------------------------------------------------------------------*/
 
 /*---------------------------------------------------------------------------*/
-void rect_autofill_learn(const TflareImageP &imgToLearn, int x1, int y1, int x2,
+void rect_autofill_learn(const TToonzImageP &imgToLearn, int x1, int y1, int x2,
                          int y2)
 /*---------------------------------------------------------------------------*/
 {
@@ -146,7 +146,7 @@ void rect_autofill_learn(const TflareImageP &imgToLearn, int x1, int y1, int x2,
 }
 
 /*----------------------------------------------------------------------------*/
-bool rect_autofill_apply(const TflareImageP &imgToApply, int x1, int y1, int x2,
+bool rect_autofill_apply(const TToonzImageP &imgToApply, int x1, int y1, int x2,
                          int y2, bool selective, TTileSetCM32 *tileSet)
 /*----------------------------------------------------------------------------*/
 {
@@ -292,7 +292,7 @@ bool rect_autofill_apply(const TflareImageP &imgToApply, int x1, int y1, int x2,
 /*---------------------------------------------------------------------------*/
 /* Versione del Learning delle aree di Fabrizio                              */
 /*...........................................................................*/
-void autofill_learn(const TflareImageP &imgToLearn)
+void autofill_learn(const TToonzImageP &imgToLearn)
 /*---------------------------------------------------------------------------*/
 {
   int i;
@@ -338,7 +338,7 @@ void autofill_learn(const TflareImageP &imgToLearn)
 /*---------------------------------------------------------------------------*/
 /* Versione del matching delle aree di Fabrizio                              */
 /*...........................................................................*/
-bool autofill_apply(const TflareImageP &imgToApply, bool selective,
+bool autofill_apply(const TToonzImageP &imgToApply, bool selective,
                     TTileSetCM32 *tileSet)
 /*---------------------------------------------------------------------------*/
 {
@@ -1220,4 +1220,3 @@ static int match(int prob[], int padre, int *fro, int *to)
   }
   return att_max;
 }
-

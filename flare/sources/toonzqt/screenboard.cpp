@@ -7,7 +7,7 @@
 #include <QCursor>
 #include <QPainter>
 
-#include "flareqt/screenboard.h"
+#include "toonzqt/screenboard.h"
 
 using namespace DVGui;
 
@@ -301,4 +301,3 @@ void ScreenBoard::trackCursor() {
         QEventLoop::WaitForMoreEvents);  // Process events (-> enterEv.)
   }
 }
-
