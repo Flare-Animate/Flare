@@ -4,7 +4,6 @@
 #define SCRIPTBINDING_H
 
 #include <QObject>
-#include <QScriptable>
 #include <QScriptValue>
 #include <QScriptEngine>
 #include <QMetaType>
@@ -58,7 +57,7 @@ public:
   WRAPPER_STD_METHODS(Void)
 };
 
-class DVAPI Wrapper : public QObject, protected QScriptable {
+class DVAPI Wrapper : public QObject {
   Q_OBJECT
 
   static int m_count;
@@ -89,6 +88,12 @@ public:
   }
 
 protected:
+  // Provide engine() fallback so we don't require <QScriptable> header here.
+  QScriptEngine *engine() const {
+    QScriptContext *ctx = QScriptContext::currentContext();
+    return ctx ? ctx->engine() : nullptr;
+  }
+
   template <class T>
   QScriptValue create(T *obj) {
     return create(engine(), obj);

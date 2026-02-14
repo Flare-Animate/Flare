@@ -3,21 +3,21 @@
 <img width="663" height="400" alt="FlareBanner" src="https://github.com/user-attachments/assets/73e4050f-f248-419e-8e61-fe8814ab984d" />
 
 
-A fork of OpenToonz rebranded as Flare — focused on providing an Adobe Animate-like
+Flare is a fork of OpenToonz — focused on providing an Adobe Animate-like
 user experience and improving interoperability with Flash assets (.swf/.fla).
 
-This repository is a fork of OpenToonz and retains the original licensing and
+As a fork of OpenToonz, it retains the original licensing and
 attribution. See the Licensing section below for details.
 
 [日本語](./doc/README_ja.md) [简体中文](./doc/README_chs.md)
 
 ## What is Flare?
 
-Flare is a community-driven fork of OpenToonz that ships a revamped UI layout
+Flare is a community-driven fork of OpenToonz/Tahoma that ships a revamped UI layout
 inspired by Adobe Animate and introduces native import support for SWF files
 (when FFmpeg is available) and experimental helpers for FLA projects.
 
-For the original Flare project and its history, see the Flare website:
+See the Flare website:
 https://Flare.github.io/e/index.html
 
 ## Program Requirements
