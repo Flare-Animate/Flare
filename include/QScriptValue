@@ -1,5 +1,0 @@
-#pragma once
-
-// Forward to the QScriptEngine-compatible stubs so includes of <QScriptValue>
-// and <QScriptEngine> work the same when QtScript is absent.
-#include "QScriptEngine"
