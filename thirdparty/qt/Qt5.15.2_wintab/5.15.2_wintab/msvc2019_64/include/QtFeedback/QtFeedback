@@ -1,0 +1,10 @@
+#ifndef QT_QTFEEDBACK_MODULE_H
+#define QT_QTFEEDBACK_MODULE_H
+#include <QtFeedback/QtFeedbackDepends>
+#include "qfeedbackglobal.h"
+#include "qfeedbackactuator.h"
+#include "qfeedbackeffect.h"
+#include "qfeedbackplugininterfaces.h"
+#include "qfeedbackpluginsearch.h"
+#include "qtfeedbackversion.h"
+#endif

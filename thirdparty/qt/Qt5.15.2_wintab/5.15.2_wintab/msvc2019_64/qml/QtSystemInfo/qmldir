@@ -1,0 +1,4 @@
+module QtSystemInfo
+plugin declarative_systeminfo
+typeinfo plugins.qmltypes
+classname QSystemInfoDeclarativeModule

@@ -1,0 +1,11 @@
+QT.contacts_private.VERSION = 0.0.0
+QT.contacts_private.name = QtContacts
+QT.contacts_private.module =
+QT.contacts_private.libs = $$QT_MODULE_LIB_BASE
+QT.contacts_private.includes = $$QT_MODULE_INCLUDE_BASE/QtContacts/0.0.0 $$QT_MODULE_INCLUDE_BASE/QtContacts/0.0.0/QtContacts
+QT.contacts_private.frameworks =
+QT.contacts_private.depends = core_private contacts
+QT.contacts_private.uses =
+QT.contacts_private.module_config = v2 internal_module
+QT.contacts_private.enabled_features =
+QT.contacts_private.disabled_features =

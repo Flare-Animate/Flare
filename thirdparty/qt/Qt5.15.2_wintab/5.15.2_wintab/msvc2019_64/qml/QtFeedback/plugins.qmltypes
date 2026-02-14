@@ -1,0 +1,141 @@
+import QtQuick.tooling 1.1
+
+// This file describes the plugin-supplied types contained in the library.
+// It is used for QML tooling purposes only.
+//
+// This file was auto-generated with the command 'qmlplugindump -notrelocatable QtFeedback 5.0'.
+
+Module {
+    Component {
+        name: "QDeclarativeFeedbackActuator"
+        prototype: "QObject"
+        exports: ["QtFeedback/Actuator 5.0"]
+        exportMetaObjectRevisions: [0]
+        Enum {
+            name: "Capability"
+            values: {
+                "Envelope": 0,
+                "Period": 1
+            }
+        }
+        Enum {
+            name: "State"
+            values: {
+                "Busy": 0,
+                "Ready": 1,
+                "Unknown": 2
+            }
+        }
+        Property { name: "actuatorId"; type: "int"; isReadonly: true }
+        Property { name: "name"; type: "string"; isReadonly: true }
+        Property { name: "state"; type: "State"; isReadonly: true }
+        Property { name: "valid"; type: "bool"; isReadonly: true }
+        Property { name: "enabled"; type: "bool" }
+        Method {
+            name: "isCapabilitySupported"
+            type: "bool"
+            Parameter { name: "capability"; type: "Capability" }
+        }
+    }
+    Component {
+        name: "QDeclarativeFeedbackEffect"
+        prototype: "QObject"
+        exports: ["QtFeedback/Feedback 5.0", "QtFeedback/FeedbackEffect 5.0"]
+        exportMetaObjectRevisions: [0, 0]
+        Enum {
+            name: "Duration"
+            values: {
+                "Infinite": -1
+            }
+        }
+        Enum {
+            name: "State"
+            values: {
+                "Stopped": 0,
+                "Paused": 1,
+                "Running": 2,
+                "Loading": 3
+            }
+        }
+        Enum {
+            name: "ErrorType"
+            values: {
+                "UnknownError": 0,
+                "DeviceBusy": 1
+            }
+        }
+        Property { name: "running"; type: "bool" }
+        Property { name: "paused"; type: "bool" }
+        Property { name: "duration"; type: "int" }
+        Property { name: "state"; type: "State" }
+        Property { name: "error"; type: "ErrorType"; isReadonly: true }
+        Method { name: "updateState" }
+        Method { name: "start" }
+        Method { name: "stop" }
+        Method { name: "pause" }
+    }
+    Component {
+        name: "QDeclarativeFileEffect"
+        prototype: "QDeclarativeFeedbackEffect"
+        exports: ["QtFeedback/FileEffect 5.0"]
+        exportMetaObjectRevisions: [0]
+        Property { name: "loaded"; type: "bool" }
+        Property { name: "source"; type: "QUrl" }
+        Property { name: "supportedMimeTypes"; type: "QStringList"; isReadonly: true }
+        Method { name: "load" }
+        Method { name: "unload" }
+    }
+    Component {
+        name: "QDeclarativeHapticsEffect"
+        prototype: "QDeclarativeFeedbackEffect"
+        exports: ["QtFeedback/HapticsEffect 5.0"]
+        exportMetaObjectRevisions: [0]
+        Property {
+            name: "availableActuators"
+            type: "QDeclarativeFeedbackActuator"
+            isList: true
+            isReadonly: true
+        }
+        Property { name: "intensity"; type: "double" }
+        Property { name: "attackTime"; type: "int" }
+        Property { name: "attackIntensity"; type: "double" }
+        Property { name: "fadeTime"; type: "int" }
+        Property { name: "fadeIntensity"; type: "double" }
+        Property { name: "period"; type: "int" }
+        Property { name: "actuator"; type: "QDeclarativeFeedbackActuator"; isPointer: true }
+    }
+    Component {
+        name: "QDeclarativeThemeEffect"
+        prototype: "QObject"
+        exports: ["QtFeedback/EffectPlayer 5.0", "QtFeedback/ThemeEffect 5.0"]
+        exportMetaObjectRevisions: [0, 0]
+        Enum {
+            name: "Effect"
+            values: {
+                "Undefined": -1,
+                "Press": 0,
+                "Release": 1,
+                "PressWeak": 2,
+                "ReleaseWeak": 3,
+                "PressStrong": 4,
+                "ReleaseStrong": 5,
+                "DragStart": 6,
+                "DragDropInZone": 7,
+                "DragDropOutOfZone": 8,
+                "DragCrossBoundary": 9,
+                "Appear": 10,
+                "Disappear": 11,
+                "Move": 12,
+                "NumberOfEffects": 13,
+                "UserEffect": 65535
+            }
+        }
+        Property { name: "supported"; type: "bool"; isReadonly: true }
+        Property { name: "effect"; type: "Effect" }
+        Method { name: "play" }
+        Method {
+            name: "play"
+            Parameter { name: "effect"; type: "Effect" }
+        }
+    }
+}

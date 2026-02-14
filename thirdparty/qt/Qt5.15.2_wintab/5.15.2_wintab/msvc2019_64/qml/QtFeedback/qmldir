@@ -1,0 +1,3 @@
+module QtFeedback
+plugin declarative_feedback
+typeinfo plugins.qmltypes

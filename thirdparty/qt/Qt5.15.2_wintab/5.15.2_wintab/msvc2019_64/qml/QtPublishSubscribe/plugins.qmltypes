@@ -1,0 +1,31 @@
+import QtQuick.tooling 1.1
+
+// This file describes the plugin-supplied types contained in the library.
+// It is used for QML tooling purposes only.
+//
+// This file was auto-generated with the command 'qmlplugindump -notrelocatable QtPublishSubscribe 5.0'.
+
+Module {
+    Component {
+        name: "QDeclarativeValueSpacePublisher"
+        prototype: "QObject"
+        exports: ["QtPublishSubscribe/ValueSpacePublisher 5.0"]
+        exportMetaObjectRevisions: [0]
+        Property { name: "hasSubscribers"; type: "bool"; isReadonly: true }
+        Property { name: "path"; type: "string" }
+        Property { name: "keys"; type: "QStringList" }
+        Property { name: "value"; type: "QVariant" }
+        Signal { name: "subscribersChanged" }
+    }
+    Component {
+        name: "QDeclarativeValueSpaceSubscriber"
+        prototype: "QObject"
+        exports: ["QtPublishSubscribe/ValueSpaceSubscriber 5.0"]
+        exportMetaObjectRevisions: [0]
+        Property { name: "connected"; type: "bool"; isReadonly: true }
+        Property { name: "path"; type: "string" }
+        Property { name: "subPaths"; type: "QStringList"; isReadonly: true }
+        Property { name: "value"; type: "QVariant"; isReadonly: true }
+        Signal { name: "contentsChanged" }
+    }
+}
