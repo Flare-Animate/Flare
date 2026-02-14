@@ -1,0 +1,167 @@
+Microsoft (R) COFF/PE Dumper Version 14.29.30159.0
+Copyright (C) Microsoft Corporation.  All rights reserved.
+
+
+Dump of file C:\Users\charl\Documents\Flare\thirdparty\libmypaint\dist\64\libmypaint-1-4-0.dll
+
+File Type: DLL
+
+  Section contains the following exports for libmypaint-1-4-0.dll
+
+    00000000 characteristics
+    5D79C60A time date stamp Thu Sep 12 05:14:02 2019
+        0.00 version
+           1 ordinal base
+         126 number of functions
+         126 number of names
+
+    ordinal hint RVA      name
+
+          1    0 000037F7 brush_free
+          2    1 00006995 count_dabs_to
+          3    2 0000A5E4 draw_dab
+          4    3 0000A0B6 draw_dab_internal
+          5    4 000018B9 draw_dab_pixels_BlendMode_Color
+          6    5 00001C3E draw_dab_pixels_BlendMode_LockAlpha
+          7    6 000014A0 draw_dab_pixels_BlendMode_Normal
+          8    7 00001AE1 draw_dab_pixels_BlendMode_Normal_and_Eraser
+          9    8 00003610 ensure_max_threads_not_exceeded
+         10    9 00003D9B exp_decay
+         11    A 00002002 fifo_free
+         12    B 00001FC0 fifo_new
+         13    C 00002140 fifo_peek_first
+         14    D 00002168 fifo_peek_last
+         15    E 000020C2 fifo_pop
+         16    F 00002051 fifo_push
+         17   10 0000BEF8 fix15_to_rgba8
+         18   11 0000AF23 free_fifo
+         19   12 00008669 free_simple_tiledsurf
+         20   13 0000A782 get_color
+         21   14 00001D7B get_color_pixels_accumulate
+         22   15 00002C75 hsl_to_rgb_float
+         23   16 000024FF hsv_to_rgb_float
+         24   17 0000C070 iterate_over_line_chunks
+         25   18 000086C0 memdup
+         26   19 00007F41 mypaint_brush_from_defaults
+         27   1A 00007EA1 mypaint_brush_from_string
+         28   1B 000039B4 mypaint_brush_get_base_value
+         29   1C 00003ADE mypaint_brush_get_inputs_used_n
+         30   1D 00003A5E mypaint_brush_get_mapping_n
+         31   1E 00003B9B mypaint_brush_get_mapping_point
+         32   1F 00003C04 mypaint_brush_get_state
+         33   20 000038E9 mypaint_brush_get_total_stroke_painting_time
+         34   21 000081CB mypaint_brush_input_from_cname
+         35   22 0000812F mypaint_brush_input_info
+         36   23 00008179 mypaint_brush_input_info_get_name
+         37   24 000081A2 mypaint_brush_input_info_get_tooltip
+         38   25 00003A92 mypaint_brush_is_constant
+         39   26 000036B9 mypaint_brush_new
+         40   27 0000392C mypaint_brush_new_stroke
+         41   28 000038C7 mypaint_brush_ref
+         42   29 00003913 mypaint_brush_reset
+         43   2A 00003951 mypaint_brush_set_base_value
+         44   2B 00003A00 mypaint_brush_set_mapping_n
+         45   2C 00003B2A mypaint_brush_set_mapping_point
+         46   2D 000038FC mypaint_brush_set_print_inputs
+         47   2E 00003C49 mypaint_brush_set_state
+         48   2F 000080DD mypaint_brush_setting_from_cname
+         49   30 00008040 mypaint_brush_setting_info
+         50   31 0000808B mypaint_brush_setting_info_get_name
+         51   32 000080B4 mypaint_brush_setting_info_get_tooltip
+         52   33 00006C63 mypaint_brush_stroke_to
+         53   34 00003886 mypaint_brush_unref
+         54   35 0000840B mypaint_fixed_tiled_surface_get_height
+         55   36 000083F7 mypaint_fixed_tiled_surface_get_width
+         56   37 000083E9 mypaint_fixed_tiled_surface_interface
+         57   38 0000841F mypaint_fixed_tiled_surface_new
+         58   39 00003617 mypaint_init
+         59   3A 000033ED mypaint_mapping_calculate
+         60   3B 000035BF mypaint_mapping_calculate_single_input
+         61   3C 00002F88 mypaint_mapping_free
+         62   3D 00002FB4 mypaint_mapping_get_base_value
+         63   3E 000033DC mypaint_mapping_get_inputs_used_n
+         64   3F 0000313B mypaint_mapping_get_n
+         65   40 000032D2 mypaint_mapping_get_point
+         66   41 000033C3 mypaint_mapping_is_constant
+         67   42 00002ED0 mypaint_mapping_new
+         68   43 00002FC6 mypaint_mapping_set_base_value
+         69   44 00002FE3 mypaint_mapping_set_n
+         70   45 000031AB mypaint_mapping_set_point
+         71   46 00008708 mypaint_rectangle_copy
+         72   47 00008728 mypaint_rectangle_expand_to_include_point
+         73   48 00008AE6 mypaint_surface_begin_atomic
+         74   49 00008830 mypaint_surface_draw_dab
+         75   4A 00008B14 mypaint_surface_end_atomic
+         76   4B 00008A27 mypaint_surface_get_alpha
+         77   4C 00008900 mypaint_surface_get_color
+         78   4D 00008992 mypaint_surface_init
+         79   4E 000089A8 mypaint_surface_ref
+         80   4F 00008A92 mypaint_surface_save_png
+         81   50 000089C4 mypaint_surface_unref
+         82   51 00008D9A mypaint_tile_request_init
+         83   52 00008BF4 mypaint_tiled_surface_begin_atomic
+         84   53 0000AED4 mypaint_tiled_surface_destroy
+         85   54 00008C2B mypaint_tiled_surface_end_atomic
+         86   55 0000ADF0 mypaint_tiled_surface_init
+         87   56 00008D6F mypaint_tiled_surface_set_symmetry_state
+         88   57 00008D20 mypaint_tiled_surface_tile_request_end
+         89   58 00008CD1 mypaint_tiled_surface_tile_request_start
+         90   59 0000AF00 operation_delete_func
+         91   5A 0000B2CD operation_queue_add
+         92   5B 0000B2B7 operation_queue_clear_dirty_tiles
+         93   5C 0000B12F operation_queue_free
+         94   5D 0000B268 operation_queue_get_dirty_tiles
+         95   5E 0000B0DC operation_queue_new
+         96   5F 0000B4D7 operation_queue_peek_first
+         97   60 0000B53F operation_queue_peek_last
+         98   61 0000B432 operation_queue_pop
+         99   62 0000AF58 operation_queue_resize
+        100   63 00005064 prepare_and_draw_dab
+        101   64 00009B38 process_op
+        102   65 00009E19 process_tile
+        103   66 000021A0 rand_gauss
+        104   67 00019C80 ranf_arr_dummy
+        105   68 00019C88 ranf_arr_started
+        106   69 0000B187 remove_duplicate_tiles
+        107   6A 0000942E render_dab_mask
+        108   6B 00008268 reset_null_tile
+        109   6C 0000282D rgb_to_hsl_float
+        110   6D 00002248 rgb_to_hsv_float
+        111   6E 0000BADD rng_double_cycle
+        112   6F 0000B7E4 rng_double_free
+        113   70 0000B5B0 rng_double_get_array
+        114   71 0000B7A0 rng_double_new
+        115   72 0000BB3D rng_double_next
+        116   73 0000B800 rng_double_set_seed
+        117   74 00003E04 settings_base_values_have_changed
+        118   75 0000B159 tile_equal
+        119   76 0000BE4C tile_map_contains
+        120   77 0000BD92 tile_map_copy_to
+        121   78 0000BC5C tile_map_free
+        122   79 0000BCE4 tile_map_get
+        123   7A 0000BBA0 tile_map_new
+        124   7B 00009F8C update_dirty_bbox
+        125   7C 00003F52 update_states_and_setting_values
+        126   7D 0000C36F write_ppm
+
+  Summary
+
+        1000 .CRT
+        2000 .bss
+        1000 .data
+        6000 .debug_abbrev
+        1000 .debug_aranges
+        2000 .debug_frame
+       62000 .debug_info
+        6000 .debug_line
+       13000 .debug_loc
+        2000 .debug_ranges
+        1000 .debug_str
+        2000 .edata
+        1000 .idata
+        1000 .pdata
+        6000 .rdata
+        1000 .reloc
+       14000 .text
+        1000 .tls
+        1000 .xdata
