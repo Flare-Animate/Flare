@@ -297,12 +297,11 @@ find_package(Qt5 REQUIRED
     UiTools
 )
 
-# Qt5Script is optional - some Qt distributions don't include it
-find_package(Qt5Script QUIET)
-if(Qt5Script_FOUND)
-  message(STATUS "Qt5Script found: enabling Qt Script support")
-else()
-  message(WARNING "Qt5Script not found; building without Qt Script support")
+# Qt5Script is required for scripting support
+find_package(Qt5Script REQUIRED)
+message(STATUS "Qt5Script found: enabling Qt Script support")
+if(NOT Qt5Script_FOUND)
+  message(FATAL_ERROR "Qt5Script not found. Install the 'Qt Script' component for your Qt 5.15.2 installation (use Qt Maintenance Tool).")
 endif()
 
 if(NOT Qt5Core_FOUND)
