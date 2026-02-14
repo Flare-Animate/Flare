@@ -1,0 +1,15 @@
+QT.docgallery.VERSION = 0.0.0
+QT.docgallery.name = QtDocGallery
+QT.docgallery.module = Qt5DocGallery
+QT.docgallery.libs = $$QT_MODULE_LIB_BASE
+QT.docgallery.includes = $$QT_MODULE_INCLUDE_BASE $$QT_MODULE_INCLUDE_BASE/QtDocGallery
+QT.docgallery.frameworks =
+QT.docgallery.bins = $$QT_MODULE_BIN_BASE
+QT.docgallery.depends = core
+QT.docgallery.uses =
+QT.docgallery.module_config = v2
+QT.docgallery.DEFINES = QT_DOCGALLERY_LIB
+QT.docgallery.enabled_features =
+QT.docgallery.disabled_features =
+QT_CONFIG +=
+QT_MODULES += docgallery

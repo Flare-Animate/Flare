@@ -1,0 +1,16 @@
+QT.organizer.VERSION = 0.0.0
+QT.organizer.name = QtOrganizer
+QT.organizer.module = Qt5Organizer
+QT.organizer.libs = $$QT_MODULE_LIB_BASE
+QT.organizer.includes = $$QT_MODULE_INCLUDE_BASE $$QT_MODULE_INCLUDE_BASE/QtOrganizer
+QT.organizer.frameworks =
+QT.organizer.bins = $$QT_MODULE_BIN_BASE
+QT.organizer.plugin_types = organizer
+QT.organizer.depends = core
+QT.organizer.uses =
+QT.organizer.module_config = v2
+QT.organizer.DEFINES = QT_ORGANIZER_LIB
+QT.organizer.enabled_features =
+QT.organizer.disabled_features =
+QT_CONFIG +=
+QT_MODULES += organizer

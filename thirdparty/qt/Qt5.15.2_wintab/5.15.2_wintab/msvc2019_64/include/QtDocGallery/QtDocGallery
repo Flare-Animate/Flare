@@ -1,0 +1,19 @@
+#ifndef QT_QTDOCGALLERY_MODULE_H
+#define QT_QTDOCGALLERY_MODULE_H
+#include <QtDocGallery/QtDocGalleryDepends>
+#include "qgalleryglobal.h"
+#include "qabstractgallery.h"
+#include "qdocumentgallery.h"
+#include "qgalleryabstractrequest.h"
+#include "qgalleryabstractresponse.h"
+#include "qgalleryfilter.h"
+#include "qgalleryitemrequest.h"
+#include "qgalleryproperty.h"
+#include "qgalleryquerymodel.h"
+#include "qgalleryqueryrequest.h"
+#include "qgalleryresource.h"
+#include "qgalleryresultset.h"
+#include "qgallerytype.h"
+#include "qgallerytyperequest.h"
+#include "qtdocgalleryversion.h"
+#endif

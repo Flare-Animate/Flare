@@ -1,0 +1,11 @@
+QT.systeminfo_private.VERSION = 5.4.0
+QT.systeminfo_private.name = QtSystemInfo
+QT.systeminfo_private.module =
+QT.systeminfo_private.libs = $$QT_MODULE_LIB_BASE
+QT.systeminfo_private.includes = $$QT_MODULE_INCLUDE_BASE/QtSystemInfo/5.4.0 $$QT_MODULE_INCLUDE_BASE/QtSystemInfo/5.4.0/QtSystemInfo
+QT.systeminfo_private.frameworks =
+QT.systeminfo_private.depends = systeminfo
+QT.systeminfo_private.uses =
+QT.systeminfo_private.module_config = v2 internal_module
+QT.systeminfo_private.enabled_features =
+QT.systeminfo_private.disabled_features =

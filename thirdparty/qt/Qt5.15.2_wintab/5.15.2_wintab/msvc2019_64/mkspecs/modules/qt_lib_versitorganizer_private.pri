@@ -1,0 +1,11 @@
+QT.versitorganizer_private.VERSION = 0.0.0
+QT.versitorganizer_private.name = QtVersitOrganizer
+QT.versitorganizer_private.module =
+QT.versitorganizer_private.libs = $$QT_MODULE_LIB_BASE
+QT.versitorganizer_private.includes = $$QT_MODULE_INCLUDE_BASE/QtVersitOrganizer/0.0.0 $$QT_MODULE_INCLUDE_BASE/QtVersitOrganizer/0.0.0/QtVersitOrganizer
+QT.versitorganizer_private.frameworks =
+QT.versitorganizer_private.depends = versit_private versitorganizer
+QT.versitorganizer_private.uses =
+QT.versitorganizer_private.module_config = v2 internal_module
+QT.versitorganizer_private.enabled_features =
+QT.versitorganizer_private.disabled_features =

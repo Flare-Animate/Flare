@@ -1,0 +1,9 @@
+#ifndef QT_QTPUBLISHSUBSCRIBE_MODULE_H
+#define QT_QTPUBLISHSUBSCRIBE_MODULE_H
+#include <QtPublishSubscribe/QtPublishSubscribeDepends>
+#include "qpublishsubscribeglobal.h"
+#include "qvaluespace.h"
+#include "qvaluespacepublisher.h"
+#include "qvaluespacesubscriber.h"
+#include "qtpublishsubscribeversion.h"
+#endif
