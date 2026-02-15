@@ -167,6 +167,7 @@ jobs:
             type build\build.log
             exit /b %ERRORLEVEL%
           )
+        shell: cmd
 
       - name: Upload build logs (always)
         if: always()
