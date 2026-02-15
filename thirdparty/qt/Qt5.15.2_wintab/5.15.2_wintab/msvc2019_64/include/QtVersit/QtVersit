@@ -1,0 +1,14 @@
+#ifndef QT_QTVERSIT_MODULE_H
+#define QT_QTVERSIT_MODULE_H
+#include <QtVersit/QtVersitDepends>
+#include "qversitglobal.h"
+#include "qversitcontactexporter.h"
+#include "qversitcontacthandler.h"
+#include "qversitcontactimporter.h"
+#include "qversitdocument.h"
+#include "qversitproperty.h"
+#include "qversitreader.h"
+#include "qversitresourcehandler.h"
+#include "qversitwriter.h"
+#include "qtversitversion.h"
+#endif

@@ -418,11 +418,11 @@ CrashHandler::CrashHandler(QWidget *parent, TFilePath crashFile, QString crashRe
   setWindowFlag(Qt::WindowContextHelpButtonHint, false);
 
   QStringList sl;
-  sl.append(tr("<b>OpenToonz crashed unexpectedly.</b>"));
+  sl.append(tr("<b>Flare crashed unexpectedly.</b>"));
   sl.append("");
   sl.append(tr("A crash report has been generated."));
   sl.append(
-      tr("To report, click 'Open Issue Webpage' to access OpenToonz's Issues "
+      tr("To report, click 'Open Issue Webpage' to access Flare's Issues "
          "page on GitHub."));
   sl.append(tr("Click on the 'New issue' button and fill out the form."));
   sl.append("");
@@ -460,7 +460,7 @@ CrashHandler::CrashHandler(QWidget *parent, TFilePath crashFile, QString crashRe
   ret = ret && connect(closeBtn, SIGNAL(clicked()), this, SLOT(accept()));
   if (!ret) throw TException();
 
-  setWindowTitle(tr("OpenToonz crashed!"));
+  setWindowTitle(tr("Flare crashed!"));
   setLayout(mainLayout);
 }
 

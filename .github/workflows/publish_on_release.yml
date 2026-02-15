@@ -1,0 +1,126 @@
+name: Publish on Release
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    env:
+      GIT_LFS_SKIP_SMUDGE: '1'
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          lfs: false
+          fetch-depth: 0
+
+      - name: Install build deps (Ubuntu)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake ninja-build ccache libboost-all-dev qtbase5-dev \
+            libqt5svg5-dev libqt5opengl5-dev liblzo2-dev liblz4-dev libjpeg-dev libpng-dev libglew-dev freeglut3-dev \
+            libfreetype6-dev libopencv-dev
+
+      - name: Install build deps (macOS)
+        if: matrix.os == 'macos-latest'
+        run: |
+          brew update
+          brew install qt@5 ccache ninja lz4 lzo libpng libjpeg
+
+      - name: Install build deps (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: |
+          python -m pip install aqtinstall
+          python -m aqt install-qt windows desktop 5.15.2 win64_msvc2019_64 -O C:\Qt -m qtscript
+          choco install ccache -y
+
+      - name: Build (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          mkdir -p flare/build && cd flare/build
+          cmake ../sources -G Ninja -DCMAKE_BUILD_TYPE=Release -DWITH_SYSTEM_LZO=ON -DWITH_LZODRIVER=OFF > build/cmake_configure.log 2>&1
+          ninja -j2 2>&1 | tee build/build.log
+
+      - name: Build (macOS)
+        if: matrix.os == 'macos-latest'
+        run: |
+          cd flare
+          rm -rf build
+          mkdir -p build && cd build
+          cmake -S ../sources -B . -G Ninja -DCMAKE_BUILD_TYPE=Release -DQt5_DIR=$(brew --prefix qt@5)/lib/cmake/Qt5 -DWITH_SYSTEM_LZO=ON -DWITH_LZODRIVER=OFF > build/cmake_configure.log 2>&1
+          ninja -j$(sysctl -n hw.ncpu) 2>&1 | tee build/build.log
+
+      - name: Build (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: |
+          if (-not (Test-Path build)) { New-Item -ItemType Directory -Path build | Out-Null }
+          cmake -S flare/sources -B build -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release -DWITH_SYSTEM_LZO=ON -DWITH_LZODRIVER=OFF 2>&1 | Tee-Object -FilePath build/cmake_configure.log
+          cmake --build build --config Release --parallel 4 > build/build.log 2>&1
+
+      - name: Package artifact (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          cd flare/build
+          sudo ninja install
+          mkdir -p appdir/usr
+          cp -r /opt/opentoonz/* appdir/usr || true
+          # Create AppImage (best-effort)
+          wget -q https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
+          chmod +x linuxdeploy-x86_64.AppImage
+          ./linuxdeploy-x86_64.AppImage --appdir=appdir --plugin=qt --output=appimage || true
+          if ls Flare*.AppImage >/dev/null 2>&1; then APPIMAGE=$(ls Flare*.AppImage | head -n1); else APPIMAGE=""; fi
+          echo "APPIMAGE=$APPIMAGE" >> $GITHUB_ENV
+
+      - name: Package artifact (macOS)
+        if: matrix.os == 'macos-latest'
+        run: |
+          cd flare/build/toonz
+          if [ -f Flare.dmg ]; then DMG=Flare.dmg; else DMG=""; fi
+          echo "DMG=$DMG" >> $GITHUB_ENV
+
+      - name: Package artifact (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: |
+          if (Test-Path FlarePortable) { Remove-Item -Recurse -Force FlarePortable }
+          New-Item -ItemType Directory -Path FlarePortable | Out-Null
+          for /f "delims=" %%i in ('dir /b /s "build\Flare.exe" ^| findstr /v "CMakeFiles"') do copy /Y "%%i" FlarePortable\Flare.exe
+          for /f "delims=" %%d in ('dir /b /s "build\*.dll" ^| findstr /i "Release" ^| findstr /v "CMakeFiles"') do copy /Y "%%d" FlarePortable\
+          Compress-Archive -Path FlarePortable\* -DestinationPath Flare-Windows-${{ github.event.release.tag_name }}.zip -Force
+          echo "ARTIFACT=Flare-Windows-${{ github.event.release.tag_name }}.zip" >> $env:GITHUB_ENV
+
+      - name: Upload to GitHub Release (Linux AppImage)
+        if: matrix.os == 'ubuntu-latest' && env.APPIMAGE != ''
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ${{ env.APPIMAGE }}
+          asset_name: Flare-Linux-${{ github.event.release.tag_name }}.AppImage
+          asset_content_type: application/octet-stream
+
+      - name: Upload to GitHub Release (macOS DMG)
+        if: matrix.os == 'macos-latest' && env.DMG != ''
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: flare/build/toonz/${{ env.DMG }}
+          asset_name: Flare-macOS-${{ github.event.release.tag_name }}.dmg
+          asset_content_type: application/x-apple-diskimage
+
+      - name: Upload to GitHub Release (Windows ZIP)
+        if: matrix.os == 'windows-latest' && env.ARTIFACT != ''
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ${{ env.ARTIFACT }}
+          asset_name: Flare-Windows-${{ github.event.release.tag_name }}.zip
+          asset_content_type: application/zip

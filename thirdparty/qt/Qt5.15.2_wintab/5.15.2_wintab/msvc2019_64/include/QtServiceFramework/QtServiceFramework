@@ -1,0 +1,14 @@
+#ifndef QT_QTSERVICEFRAMEWORK_MODULE_H
+#define QT_QTSERVICEFRAMEWORK_MODULE_H
+#include <QtServiceFramework/QtServiceFrameworkDepends>
+#include "qserviceframeworkglobal.h"
+#include "qremoteserviceregister.h"
+#include "qservice.h"
+#include "qserviceclientcredentials.h"
+#include "qservicefilter.h"
+#include "qserviceinterfacedescriptor.h"
+#include "qservicemanager.h"
+#include "qserviceplugininterface.h"
+#include "qservicereply.h"
+#include "qtserviceframeworkversion.h"
+#endif

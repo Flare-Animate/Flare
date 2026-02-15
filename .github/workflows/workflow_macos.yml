@@ -21,18 +21,19 @@ on:
 jobs:
   macOS:
     timeout-minutes: 180 # Stop job if it exceeds expected build time
+    env:
+      GIT_LFS_SKIP_SMUDGE: '1' # Avoid LFS fetch failures when quota exceeded
     # GHA are sunsetting support for macOS 13 (Intel & Apple Silicon/arm) & will be fully unsupported on (December 4th 2025),
     # See: https://github.blog/changelog/2025-09-19-github-actions-macos-13-runner-image-is-closing-down/ & https://github.com/actions/runner-images/issues/13046
     # (Septemer 19th 2025) - Replacing `macos-13` runner image with the new `macos-15-intel` runner image to maintain macOS (Intel x64) support.
     # See: https://github.com/actions/runner-images/issues/13045
     # GHA (x86_64) SUNSETTING SUPPORT DEADLINE WARNING!!! `macos-15-intel` runner image will be the last available x86_64 image from Actions, and after (August 2027) the x86_64 architecture will not be supported on GitHub Actions.
-    # Xref.: https://github.com/actions/runner-images/issues/13045
     # TODO: Change macOS GHA Runner Image to (Apple Silicon) based image on/prior to sunsetting of `macos-15-intel` (x86_64) runner image (August 2027)
     runs-on: macos-15-intel
     steps:
       - uses: actions/checkout@v6
         with:
-          lfs: true
+          lfs: false
 
       - name: Clean Python symlinks
         run: |
@@ -91,7 +92,9 @@ jobs:
             -DQT_PATH=$(brew --prefix qt@5)/lib \
             -DQt5_DIR=$(brew --prefix qt@5)/lib/cmake/Qt5 \
             -DCMAKE_PREFIX_PATH=$(brew --prefix qt@5)/lib/cmake/Qt5 \
-            -DWITH_TRANSLATION=OFF > build/cmake_configure.log 2>&1
+            -DWITH_TRANSLATION=OFF \
+            -DWITH_SYSTEM_LZO=ON \
+            -DWITH_LZODRIVER=OFF > build/cmake_configure.log 2>&1
           rc=$?
           set -e
           echo "--- Begin CMake configure log ---"
@@ -101,8 +104,13 @@ jobs:
             echo "CMake configure failed with exit code $rc"
             exit $rc
           fi
-          ninja -j $(sysctl -n hw.ncpu) 2>&1 | tee build/build.log
+          if ! (ninja -j $(sysctl -n hw.ncpu) 2>&1 | tee build/build.log); then
+            echo "Build failed; dumping build log..."
+            if [ -f build/build.log ]; then cat build/build.log; fi
+            exit 1
+          fi
       - name: Upload build logs
+        if: always()
         uses: actions/upload-artifact@v6
         with:
           name: build-logs-macos
@@ -153,3 +161,25 @@ jobs:
         with:
           name: Flare-${{ runner.os }}-${{ github.sha }}
           path: flare/build/toonz/Flare.dmg
+      - name: Post build logs to PR
+        if: ${{ github.event_name == 'pull_request' && always() }}
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const pr = context.payload.pull_request ? context.payload.pull_request.number : undefined;
+            if (!pr) { core.info('Not a pull_request event; skipping PR log posting.'); return; }
+            function readTrunc(path) {
+              try {
+                if (!fs.existsSync(path)) return '(missing)';
+                const content = fs.readFileSync(path, 'utf8');
+                if (content.length > 12000) return content.slice(0, 6000) + '\n\n... (truncated) ...\n\n' + content.slice(-6000);
+                return content;
+              } catch (e) { return `(error reading ${path}): ${e.message}`; }
+            }
+            const cmake = readTrunc('build/cmake_configure.log');
+            const build = readTrunc('build/build.log');
+            const body = `**Automated build logs (truncated)**\n\n--- CMake configure log ---\n${cmake}\n\n--- Build log ---\n${build}`;
+            await github.rest.issues.createComment({ owner, repo, issue_number: pr, body });

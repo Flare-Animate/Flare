@@ -288,7 +288,6 @@ find_package(Qt5 REQUIRED
     OpenGL
     Svg
     Xml
-    Script
     Widgets
     PrintSupport
     LinguistTools
@@ -297,6 +296,13 @@ find_package(Qt5 REQUIRED
     SerialPort
     UiTools
 )
+
+# Qt5Script is required for scripting support
+find_package(Qt5Script REQUIRED)
+message(STATUS "Qt5Script found: enabling Qt Script support")
+if(NOT Qt5Script_FOUND)
+  message(FATAL_ERROR "Qt5Script not found. Install the 'Qt Script' component for your Qt 5.15.2 installation (use Qt Maintenance Tool).")
+endif()
 
 if(NOT Qt5Core_FOUND)
   message(FATAL_ERROR "Qt5Core not found check paths")
@@ -367,15 +373,95 @@ set(QT_LIB)  # avoid warning
 if(BUILD_ENV_MSVC)
     set(MSVC_LIB_VERSION 2015)
 
-    set(GLUT_LIB ${SDKROOT}/glut/3.7.6/lib/glut${PLATFORM}.lib)
+    # Prefer SDK GLUT library if available and not an LFS pointer; otherwise allow find_library to locate freeglut
+    set(_SDK_GLUT_LIB ${SDKROOT}/glut/3.7.6/lib/glut${PLATFORM}.lib)
+    set(GLUT_LIB "")
+    if(EXISTS "${_SDK_GLUT_LIB}")
+        file(READ "${_SDK_GLUT_LIB}" _glut_check LIMIT 256)
+        string(FIND "${_glut_check}" "version https://git-lfs.github.com/spec/v1" _is_lfs)
+        if(_is_lfs EQUAL -1)
+            set(GLUT_LIB ${_SDK_GLUT_LIB})
+        else()
+            message(WARNING "SDK GLUT library ${_SDK_GLUT_LIB} appears to be an LFS pointer; ignoring. Will try to find system/freeglut instead.")
+        endif()
+    endif()
     set(GL_LIB opengl32.lib)
-    set(Z_LIB
-        optimized ${SDKROOT}/zlib-1.2.8/lib/zlib-1.2.8_${MSVC_LIB_VERSION}${PLATFORM2}.lib
-        debug ${SDKROOT}/zlib-1.2.8/lib/zlib-1.2.8_${MSVC_LIB_VERSION}${PLATFORM2}d.lib
-    )
-    #set(JPEG_LIB ${SDKROOT}/LibJPEG/jpeg-9/lib/LibJPEG-9_${MSVC_LIB_VERSION}${PLATFORM2}.lib)
-    set(JPEG_LIB ${SDKROOT}/libjpeg-turbo/lib/jpeg-static_${MSVC_LIB_VERSION}${PLATFORM2}.lib)
-    set(TURBOJPEG_LIB ${SDKROOT}/libjpeg-turbo/lib/turbojpeg-static_${MSVC_LIB_VERSION}${PLATFORM2}.lib)
+
+    if(GLUT_LIB STREQUAL "")
+        # Try to use FreeGLUT from vcpkg (provides FreeGLUT::freeglut)
+        find_package(OpenGL QUIET)
+        find_package(FreeGLUT QUIET)
+        if(TARGET FreeGLUT::freeglut)
+            set(GLUT_LIB FreeGLUT::freeglut)
+        else()
+            find_library(GLUT_LIB NAMES glut freeglut)
+        endif()
+    endif()
+    # Prefer vcpkg or system ZLIB if available
+    find_package(ZLIB QUIET)
+    if(TARGET ZLIB::ZLIB)
+        set(Z_LIB ZLIB::ZLIB)
+    elseif(ZLIB_FOUND)
+        set(Z_LIB ${ZLIB_LIBRARY})
+    else()
+        # Fallback to SDK path if the lib exists and is not an LFS pointer
+        set(_SDK_ZLIB_OPT ${SDKROOT}/zlib-1.2.8/lib/zlib-1.2.8_${MSVC_LIB_VERSION}${PLATFORM2}.lib)
+        set(_SDK_ZLIB_DBG ${SDKROOT}/zlib-1.2.8/lib/zlib-1.2.8_${MSVC_LIB_VERSION}${PLATFORM2}d.lib)
+        set(Z_LIB "")
+        if(EXISTS "${_SDK_ZLIB_OPT}")
+            file(READ "${_SDK_ZLIB_OPT}" _zlib_opt_check LIMIT 256)
+            string(FIND "${_zlib_opt_check}" "version https://git-lfs.github.com/spec/v1" _is_lfs_z)
+            if(_is_lfs_z EQUAL -1)
+                set(Z_LIB optimized ${_SDK_ZLIB_OPT} debug ${_SDK_ZLIB_DBG})
+            else()
+                message(WARNING "SDK ZLIB library ${_SDK_ZLIB_OPT} appears to be an LFS pointer; ignoring. Will try to use vcpkg/system ZLIB if available.")
+            endif()
+        endif()
+    endif()
+    # Prefer system/vcpkg JPEG if available
+    find_package(JPEG QUIET)
+    if(JPEG_FOUND AND JPEG_LIBRARY)
+        message(STATUS "JPEG_LIBRARY (from find_package): '${JPEG_LIBRARY}'")
+        set(JPEG_LIB ${JPEG_LIBRARY})
+        # If JPEG comes from vcpkg/system and turbojpeg wasn't set via SDK, try to pick turbojpeg from the same prefix
+        if(NOT DEFINED TURBOJPEG_LIB OR TURBOJPEG_LIB STREQUAL "")
+            message(STATUS "Attempting to deduce turbojpeg location from JPEG_LIBRARY")
+            # Prefer the RELEASE/optimized path when find_package() returns generator-style lists
+            if(DEFINED JPEG_LIBRARY_RELEASE)
+                set(_jpeg_lib_file ${JPEG_LIBRARY_RELEASE})
+            else()
+                list(LENGTH JPEG_LIBRARY _jpeg_lib_len)
+                if(_jpeg_lib_len GREATER 1)
+                    list(GET JPEG_LIBRARY 1 _jpeg_lib_file)
+                else()
+                    set(_jpeg_lib_file ${JPEG_LIBRARY})
+                endif()
+            endif()
+            message(STATUS "_jpeg_lib_file='${_jpeg_lib_file}'")
+            get_filename_component(_jpeg_lib_dir "${_jpeg_lib_file}" DIRECTORY)
+            message(STATUS "_jpeg_lib_dir='${_jpeg_lib_dir}'")
+            set(_candidate_turbo "${_jpeg_lib_dir}/turbojpeg.lib")
+            message(STATUS "_candidate_turbo='${_candidate_turbo}'")
+            if(EXISTS "${_candidate_turbo}")
+                set(TURBOJPEG_LIB ${_candidate_turbo})
+                message(STATUS "Auto-detected turbojpeg lib next to JPEG lib: ${TURBOJPEG_LIB}")
+            endif()
+        endif()
+    else()
+        # Fallback to SDK path if present and not an LFS pointer
+        set(_SDK_JPEG_LIB ${SDKROOT}/libjpeg-turbo/lib/jpeg-static_${MSVC_LIB_VERSION}${PLATFORM2}.lib)
+        set(_SDK_TURBOJPEG_LIB ${SDKROOT}/libjpeg-turbo/lib/turbojpeg-static_${MSVC_LIB_VERSION}${PLATFORM2}.lib)
+        if(EXISTS "${_SDK_JPEG_LIB}")
+            file(READ "${_SDK_JPEG_LIB}" _jpeg_check LIMIT 256)
+            string(FIND "${_jpeg_check}" "version https://git-lfs.github.com/spec/v1" _is_lfs_jpeg)
+            if(_is_lfs_jpeg EQUAL -1)
+                set(JPEG_LIB ${_SDK_JPEG_LIB})
+                set(TURBOJPEG_LIB ${_SDK_TURBOJPEG_LIB})
+            else()
+                message(WARNING "SDK JPEG library ${_SDK_JPEG_LIB} appears to be an LFS pointer; ignoring. Will try to use system/vcpkg JPEG if available.")
+            endif()
+        endif()
+    endif()
     set(TIFF_INCLUDE_DIR ${SDKROOT}/tiff-4.0.3/libtiff)
     set(TIFF_LIB
         optimized ${SDKROOT}/tiff-4.0.3/lib/LibTIFF-4.0.3_${MSVC_LIB_VERSION}${PLATFORM2}.lib
@@ -386,9 +472,70 @@ if(BUILD_ENV_MSVC)
         debug  ${SDKROOT}/libpng-1.6.21/lib/libpng16_${MSVC_LIB_VERSION}${PLATFORM2}d.lib
     )
     set(GLEW_LIB ${SDKROOT}/glew/glew-1.9.0/lib/glew${PLATFORM}.lib)
-    set(LZ4_LIB ${SDKROOT}/Lz4/Lz4_131/lz4_${PLATFORM}.lib)
-    set(SUPERLU_LIB ${SDKROOT}/superlu/SuperLU_${MSVC_LIB_VERSION}_${PLATFORM}.lib)
-    set(OPENBLAS_LIB ${SDKROOT}/openblas/libopenblas_${PLATFORM}.lib)
+    # Prefer vcpkg/system lz4 if available
+    find_package(lz4 QUIET)
+    if(TARGET lz4::lz4)
+        set(LZ4_LIB lz4::lz4)
+    else()
+        set(_SDK_LZ4_LIB ${SDKROOT}/Lz4/Lz4_131/lz4_${PLATFORM}.lib)
+        if(EXISTS "${_SDK_LZ4_LIB}")
+            file(READ "${_SDK_LZ4_LIB}" _lz4_check LIMIT 256)
+            string(FIND "${_lz4_check}" "version https://git-lfs.github.com/spec/v1" _is_lfs_lz4)
+            if(_is_lfs_lz4 EQUAL -1)
+                set(LZ4_LIB ${_SDK_LZ4_LIB})
+            else()
+                message(WARNING "SDK LZ4 library ${_SDK_LZ4_LIB} appears to be an LFS pointer; ignoring. Will try to use vcpkg/system lz4 if available.")
+            endif()
+        endif()
+    endif()
+    # Prefer vcpkg/system SuperLU if available
+    find_package(superlu QUIET CONFIG)
+    if(TARGET superlu::superlu)
+        set(SUPERLU_LIB superlu::superlu)
+    else()
+        set(_SDK_SUPERLU_LIB ${SDKROOT}/superlu/SuperLU_${MSVC_LIB_VERSION}_${PLATFORM}.lib)
+        if(EXISTS "${_SDK_SUPERLU_LIB}")
+            file(READ "${_SDK_SUPERLU_LIB}" _superlu_check LIMIT 256)
+            string(FIND "${_superlu_check}" "version https://git-lfs.github.com/spec/v1" _is_lfs_superlu)
+            if(_is_lfs_superlu EQUAL -1)
+                set(SUPERLU_LIB ${_SDK_SUPERLU_LIB})
+            else()
+                message(WARNING "SDK SuperLU library ${_SDK_SUPERLU_LIB} appears to be an LFS pointer; ignoring. Will try to use vcpkg/system SuperLU if available.")
+            endif()
+        endif()
+    endif()
+
+    # If metis is available via vcpkg, link it along with SuperLU to satisfy symbols like METIS_NodeND
+    find_package(metis QUIET CONFIG)
+    if(TARGET metis::metis)
+        set(_METIS_TARGET metis::metis)
+    elseif(TARGET metis)
+        set(_METIS_TARGET metis)
+    endif()
+    if(DEFINED _METIS_TARGET)
+        if(SUPERLU_LIB)
+            set(SUPERLU_LIB ${SUPERLU_LIB} ${_METIS_TARGET})
+        else()
+            set(SUPERLU_LIB ${_METIS_TARGET})
+        endif()
+    endif()
+
+    # Prefer vcpkg/system OpenBLAS if available
+    find_package(openblas QUIET CONFIG)
+    if(TARGET openblas::openblas)
+        set(OPENBLAS_LIB openblas::openblas)
+    else()
+        set(_SDK_OPENBLAS_LIB ${SDKROOT}/openblas/libopenblas_${PLATFORM}.lib)
+        if(EXISTS "${_SDK_OPENBLAS_LIB}")
+            file(READ "${_SDK_OPENBLAS_LIB}" _openblas_check LIMIT 256)
+            string(FIND "${_openblas_check}" "version https://git-lfs.github.com/spec/v1" _is_lfs_openblas)
+            if(_is_lfs_openblas EQUAL -1)
+                set(OPENBLAS_LIB ${_SDK_OPENBLAS_LIB})
+            else()
+                message(WARNING "SDK OpenBLAS library ${_SDK_OPENBLAS_LIB} appears to be an LFS pointer; ignoring. Will try to use vcpkg/system OpenBLAS if available.")
+            endif()
+        endif()
+    endif()
     set(USB_LIB)  # unused
 
     if(PLATFORM EQUAL 32)
@@ -493,7 +640,7 @@ elseif(BUILD_ENV_UNIXLIKE)
     # the libraries have .pc
     find_package(PkgConfig)
 
-    # This is not required for OpenToonz itself, but libtiff will pick it up if
+    # This is not required for Flare itself, but libtiff will pick it up if
     # present and libimage won't be aware causing linker to fail
     pkg_check_modules(LZMA liblzma)
     set(TIFF_LIB ${TIFF_LIBRARY} ${LZMA_LIBRARIES})

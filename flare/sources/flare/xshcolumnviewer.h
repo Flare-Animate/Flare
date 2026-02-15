@@ -20,7 +20,6 @@
 #include <QLineEdit>
 #include <QPoint>
 #include <QColor>
-#include <Qmain
 
 // forward declaration
 class XsheetViewer;

@@ -368,8 +368,14 @@ include_directories(
 )
 
 if(BUILD_ENV_MSVC)
+    if(TARGET Qt5::Script)
+        set(QT_SCRIPT_LIB Qt5::Script)
+    else()
+        set(QT_SCRIPT_LIB "")
+    endif()
+
     target_link_libraries(toonzlib
-        Qt5::Core Qt5::Gui Qt5::OpenGL Qt5::Script Qt5::Multimedia
+        Qt5::Core Qt5::Gui Qt5::OpenGL ${QT_SCRIPT_LIB} Qt5::Multimedia
         ${GLUT_LIB} ${GL_LIB} ${MYPAINT_LIB_LDFLAGS} ${GLEW_LIB} vfw32.lib
         tnzcore tnzbase tnzext
     )
@@ -382,7 +388,13 @@ elseif(BUILD_ENV_APPLE)
         ${MYPAINT_LIB_LDFLAGS}
     )
 
-    target_link_libraries(toonzlib Qt5::Core Qt5::Gui Qt5::OpenGL Qt5::Script Qt5::Multimedia ${GLUT_LIB} ${GL_LIB} ${GLEW_LIB} ${EXTRA_LIBS})
+    if(TARGET Qt5::Script)
+        set(QT_SCRIPT_LIB Qt5::Script)
+    else()
+        set(QT_SCRIPT_LIB "")
+    endif()
+
+    target_link_libraries(toonzlib Qt5::Core Qt5::Gui Qt5::OpenGL ${QT_SCRIPT_LIB} Qt5::Multimedia ${GLUT_LIB} ${GL_LIB} ${GLEW_LIB} ${EXTRA_LIBS})
 elseif(BUILD_ENV_UNIXLIKE)
     _find_toonz_library(EXTRA_LIBS "tnzcore;tnzbase;tnzext")
 

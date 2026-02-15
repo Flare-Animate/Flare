@@ -1,0 +1,11 @@
+QT.versit_private.VERSION = 0.0.0
+QT.versit_private.name = QtVersit
+QT.versit_private.module =
+QT.versit_private.libs = $$QT_MODULE_LIB_BASE
+QT.versit_private.includes = $$QT_MODULE_INCLUDE_BASE/QtVersit/0.0.0 $$QT_MODULE_INCLUDE_BASE/QtVersit/0.0.0/QtVersit
+QT.versit_private.frameworks =
+QT.versit_private.depends = versit
+QT.versit_private.uses =
+QT.versit_private.module_config = v2 internal_module
+QT.versit_private.enabled_features =
+QT.versit_private.disabled_features =

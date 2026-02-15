@@ -2072,7 +2072,7 @@ bool IoCmd::loadScene(const TFilePath &path, bool updateRecentFile,
         !areAlmostEqual(dpi.y, Stage::standardDpi, 0.1)) {
       QString question = QObject::tr(
           "This scene is incompatible with pixels only mode of the current "
-          "OpenToonz version.\nWhat would you like to do?");
+          "Flare version.\nWhat would you like to do?");
       QString turnOffPixelAnswer = QObject::tr("Turn off pixels only mode");
       QString resizeSceneAnswer =
           QObject::tr("Keep pixels only mode on and resize the scene");
@@ -2943,12 +2943,12 @@ void IoCmd::renameResources(
       QString label = QObject::tr(
                           "Image sequence detected, but the filenames are "
                           "missing a separator: \n"
-                          "OpenToonz requires a separator (such as an "
+                          "Flare requires a separator (such as an "
                           "underscore (_) or dot (.) \n"
                           "between the name and the frame number to recognize "
                           "sequences properly.\n"
                           "Example: A0001.png → A.0001.png\n"
-                          "\nWould you like OpenToonz to automatically add a "
+                          "\nWould you like Flare to automatically add a "
                           "dot to fix the sequence format?\n"
                           "\n%1 (and similar files)")
                           .arg(path.getQString());

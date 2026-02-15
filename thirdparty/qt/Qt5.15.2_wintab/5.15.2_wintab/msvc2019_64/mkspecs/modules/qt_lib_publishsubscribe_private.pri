@@ -1,0 +1,11 @@
+QT.publishsubscribe_private.VERSION = 5.4.0
+QT.publishsubscribe_private.name = QtPublishSubscribe
+QT.publishsubscribe_private.module =
+QT.publishsubscribe_private.libs = $$QT_MODULE_LIB_BASE
+QT.publishsubscribe_private.includes = $$QT_MODULE_INCLUDE_BASE/QtPublishSubscribe/5.4.0 $$QT_MODULE_INCLUDE_BASE/QtPublishSubscribe/5.4.0/QtPublishSubscribe
+QT.publishsubscribe_private.frameworks =
+QT.publishsubscribe_private.depends = core_private publishsubscribe
+QT.publishsubscribe_private.uses =
+QT.publishsubscribe_private.module_config = v2 internal_module
+QT.publishsubscribe_private.enabled_features =
+QT.publishsubscribe_private.disabled_features =

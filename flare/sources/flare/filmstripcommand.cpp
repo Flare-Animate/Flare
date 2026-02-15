@@ -1618,7 +1618,7 @@ void FilmstripCmd::paste(TXshSimpleLevel *sl, std::set<TFrameId> &frames) {
     }
 
     if (sl->getType() == OVL_XSHLEVEL && !clipImage.isNull()) {
-      // This stuff is only if we have a pasted image from outside OpenToonz
+      // This stuff is only if we have a pasted image from outside Flare
 
       if (sl->getResolution().lx < clipImage.width() ||
           sl->getResolution().ly < clipImage.height()) {
@@ -1643,7 +1643,7 @@ void FilmstripCmd::paste(TXshSimpleLevel *sl, std::set<TFrameId> &frames) {
       qimageData->setData(ras, plt, 120.0, 120.0, dim, rects, strokes,
                           originalStrokes, aff);
       data = qimageData;
-      // end of pasted from outside OpenToonz stuff
+      // end of pasted from outside Flare stuff
       // data holds all the info either way now.
     }
 

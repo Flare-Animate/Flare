@@ -100,7 +100,7 @@ QString removeZeros(QString srcStr) {
 
 StartupPopup::StartupPopup()
     : Dialog(TApp::instance()->getMainWindow(), true, true, "StartupPopup") {
-  setWindowTitle(tr("OpenToonz Startup"));
+  setWindowTitle(tr("Flare Startup"));
 
   m_projectBox = new QGroupBox(tr("Current Project"), this);
   m_scenesTab  = new QTabWidget();
@@ -173,7 +173,7 @@ StartupPopup::StartupPopup()
   m_removePresetBtn->setStyleSheet(
       "QPushButton { padding-left: 4px; padding-right: 4px;}");
   QLabel *label = new QLabel();
-  label->setPixmap(createQIcon("opentoonz_logo")
+  label->setPixmap(createQIcon("flare_logo")
                        .pixmap(QSize(315, 77), QIcon::Normal, QIcon::Off));
   m_projectBox->setObjectName("SolidLineFrame");
   m_scenesTab->setObjectName("SolidLineFrame");

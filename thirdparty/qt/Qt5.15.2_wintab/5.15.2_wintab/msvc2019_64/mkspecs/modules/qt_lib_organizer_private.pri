@@ -1,0 +1,11 @@
+QT.organizer_private.VERSION = 0.0.0
+QT.organizer_private.name = QtOrganizer
+QT.organizer_private.module =
+QT.organizer_private.libs = $$QT_MODULE_LIB_BASE
+QT.organizer_private.includes = $$QT_MODULE_INCLUDE_BASE/QtOrganizer/0.0.0 $$QT_MODULE_INCLUDE_BASE/QtOrganizer/0.0.0/QtOrganizer
+QT.organizer_private.frameworks =
+QT.organizer_private.depends = core_private organizer
+QT.organizer_private.uses =
+QT.organizer_private.module_config = v2 internal_module
+QT.organizer_private.enabled_features =
+QT.organizer_private.disabled_features =
