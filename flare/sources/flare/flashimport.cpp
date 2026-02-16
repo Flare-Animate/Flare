@@ -1,19 +1,15 @@
-#include "menubarcommandids.h"
-#include "menubar.h"
-#include "ocaio.h"
-#include "toonz/tproject.h"
-#include "toonz/preferences.h"
-#include "tapp.h"
-#include "toonz/toonzfolders.h" 
-#include "toonz/toonzscene.h"
-#include "toonz/tscenehandle.h"
-#include "tsystem.h"
-#include "tfilepath.h"
+#include "flare/menubarcommandids.h"
+#include "flare/menubar.h"
+#include "flare/ocaio.h"
+#include "flare/projectmanager.h"
+#include "flare/preferences.h"
+#include "flare/tapp.h"
+#include "../flare/toonzfolders.h" 
 
-#include "toonzqt/gutil.h"
-#include "toonzqt/dvdialog.h"
-#include "filebrowserpopup.h"
-#include "toonzqt/gutil.h"
+#include "../toonzqt/gutil.h"
+#include "../toonzqt/dvdialog.h"
+#include "../toonzqt/filebrowserpopup.h"
+#include "../toonzqt/gutil.h"
 
 #include <QProcess>
 #include <QDesktopServices>
@@ -59,12 +55,9 @@ void ImportFlashVectorCommand::execute() {
   QString tmpDirName = QString("flare_flash_import_%1")
                            .arg(QDateTime::currentMSecsSinceEpoch());
   TFilePath outDir = TSystem::getTempDir() + TFilePath(tmpDirName.toStdString());
-  QDir outDirQ(outDir.getQString());
-  if (!outDirQ.exists()) {
-    if (!outDirQ.mkpath(".")) {
-      DVGui::error(QObject::tr("Unable to create temporary directory for import."));
-      return;
-    }
+  if (!outDir.mkpath(".")) {
+    DVGui::error(QObject::tr("Unable to create temporary directory for import."));
+    return;
   }
 
   // Locate helper script in common development locations
@@ -179,12 +172,9 @@ void ImportFlashContainerCommand::execute() {
   // Create temporary output directory
   QString tmpDirName = QString("flare_flash_import_%1").arg(QDateTime::currentMSecsSinceEpoch());
   TFilePath outDir = TSystem::getTempDir() + TFilePath(tmpDirName.toStdString());
-  QDir outDirQ(outDir.getQString());
-  if (!outDirQ.exists()) {
-    if (!outDirQ.mkpath(".")) {
-      DVGui::error(QObject::tr("Unable to create temporary directory for import."));
-      return;
-    }
+  if (!outDir.mkpath(".")) {
+    DVGui::error(QObject::tr("Unable to create temporary directory for import."));
+    return;
   }
 
   // Locate helper script in common development locations
@@ -261,9 +251,9 @@ void ImportFlashContainerCommand::execute() {
           for (const QJsonValue &v : files) {
             QString rel = v.toString();
             if (rel.isEmpty()) continue;
-            TFilePath fp = outDir + TFilePath(rel.toStdWString());
+            TFilePath fp = outDir + TFilePath(rel.toStdString());
             // Only attempt to load common image/vector types
-            std::string ext = fp.getType();
+            QString ext = fp.getType();
             if (ext == "png" || ext == "jpg" || ext == "jpeg" || ext == "svg" || ext == "xml") {
               TXshLevel *xl = scene->loadLevel(fp);
               if (xl) imported++;

@@ -1,3 +1,0 @@
-module QtContacts
-plugin declarative_contacts
-typeinfo plugins.qmltypes

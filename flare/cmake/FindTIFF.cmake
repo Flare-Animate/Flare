@@ -19,11 +19,12 @@ endif()
 find_library(
     TIFF_LIBRARY
     NAMES
-        tiff libtiff libtiff-5 libtiff-4 libtiff
+        libtiff.a
     HINTS
         ${SDKROOT}
     PATH_SUFFIXES
         tiff-4.0.3/libtiff/.libs
+    NO_DEFAULT_PATH
 )
 
 message("***** libtiff Header path:" ${TIFF_INCLUDE_DIR})
