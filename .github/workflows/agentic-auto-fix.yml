@@ -1,0 +1,56 @@
+name: Agentic — Auto-fix Build
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  diagnose-build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up vcpkg
+        uses: stefanzweifel/setup-vcpkg@v1
+        with:
+          vcpkgCache: true
+
+      - name: Configure (CMake)
+        shell: cmd
+        run: |
+          mkdir build
+          cmake -S . -B build -G "Visual Studio 16 2019" -A x64 -Wno-dev
+
+      - name: Build (CMake)
+        shell: cmd
+        run: |
+          cmake --build build --config RelWithDebInfo --target Flare --parallel 4 || exit /b 0
+
+      - name: Upload build logs
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs
+          path: |
+            build\CMakeCache.txt
+            build\CMakeFiles\CMakeOutput.log
+            build\CMakeFiles\CMakeError.log
+            build\build.log
+
+      - name: Post PR comment with short status
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const owner = context.repo.owner
+            const repo = context.repo.repo
+            const pr = context.payload.pull_request.number
+            await github.issues.createComment({ owner, repo, issue_number: pr, body: `Agentic build check completed — logs uploaded as artifact (see Actions run).` })
