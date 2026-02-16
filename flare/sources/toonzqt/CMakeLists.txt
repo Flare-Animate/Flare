@@ -53,7 +53,7 @@ set(MOC_HEADERS
     ../include/toonzqt/schematicnode.h
     ../include/toonzqt/schematicviewer.h
     ../include/toonzqt/screenboard.h
-    ../include/toonzqt/scriptconsole.h
+
     ../include/toonzqt/seethroughwindow.h
     ../include/toonzqt/spectrumfield.h
     ../include/toonzqt/spreadsheetviewer.h
@@ -72,6 +72,13 @@ set(MOC_HEADERS
     ../include/toonzqt/updatechecker.h
     ../include/toonzqt/validatedchoicedialog.h
 )
+
+# Append scriptconsole only when QtScript is available
+if(WITH_QT_SCRIPT)
+    list(APPEND MOC_HEADERS
+        ../include/toonzqt/scriptconsole.h
+    )
+endif()
 
 set(HEADERS
     ${MOC_HEADERS}
@@ -104,6 +111,13 @@ set(HEADERS
     ../include/toonzqt/trepetitionguard.h
     ../include/toonzqt/viewcommandids.h
 )
+
+# Append scriptconsole source only when QtScript is available
+if(WITH_QT_SCRIPT)
+    list(APPEND SOURCES
+        scriptconsole.cpp
+    )
+endif()
 
 set(SOURCES
     ../tnztools/cursormanager.cpp
@@ -141,7 +155,7 @@ set(SOURCES
     planeviewer.cpp
     popupbutton.cpp
     rasterimagedata.cpp
-    scriptconsole.cpp
+
     seethroughwindow.cpp
     selection.cpp
     stageobjectsdata.cpp

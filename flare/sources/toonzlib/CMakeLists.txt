@@ -4,18 +4,7 @@ set(MOC_HEADERS
     ../include/toonz/multimediarenderer.h
     ../include/toonz/palettecontroller.h
     ../include/toonz/preferences.h
-    ../include/toonz/scriptbinding.h
-    ../include/toonz/scriptbinding_centerline_vectorizer.h
-    ../include/toonz/scriptbinding_files.h
-    ../include/toonz/scriptbinding_image.h
-    ../include/toonz/scriptbinding_image_builder.h
-    ../include/toonz/scriptbinding_level.h
-    ../include/toonz/scriptbinding_outline_vectorizer.h
-    ../include/toonz/scriptbinding_rasterizer.h
-    ../include/toonz/scriptbinding_renderer.h
-    ../include/toonz/scriptbinding_scene.h
-    ../include/toonz/scriptbinding_toonz_raster_converter.h
-    ../include/toonz/scriptengine.h
+
     ../include/toonz/stylemanager.h
     ../include/toonz/tcenterlinevectorizer.h
     ../include/toonz/tcolumnhandle.h
@@ -31,6 +20,24 @@ set(MOC_HEADERS
     ../include/toonz/txshsimplelevel.h
     ../include/toonz/txshsoundcolumn.h
 )
+
+# Append script-related headers only when QtScript is available
+if(WITH_QT_SCRIPT)
+    list(APPEND MOC_HEADERS
+        ../include/toonz/scriptbinding.h
+        ../include/toonz/scriptbinding_centerline_vectorizer.h
+        ../include/toonz/scriptbinding_files.h
+        ../include/toonz/scriptbinding_image.h
+        ../include/toonz/scriptbinding_image_builder.h
+        ../include/toonz/scriptbinding_level.h
+        ../include/toonz/scriptbinding_outline_vectorizer.h
+        ../include/toonz/scriptbinding_rasterizer.h
+        ../include/toonz/scriptbinding_renderer.h
+        ../include/toonz/scriptbinding_scene.h
+        ../include/toonz/scriptbinding_toonz_raster_converter.h
+        ../include/toonz/scriptengine.h
+    )
+endif()
 
 set(HEADERS
     ${MOC_HEADERS}
@@ -213,18 +220,7 @@ set(SOURCES
     scenefx.cpp
     sceneproperties.cpp
     sceneresources.cpp
-    scriptbinding.cpp
-    scriptbinding_centerline_vectorizer.cpp
-    scriptbinding_files.cpp
-    scriptbinding_image.cpp
-    scriptbinding_image_builder.cpp
-    scriptbinding_level.cpp
-    scriptbinding_outline_vectorizer.cpp
-    scriptbinding_rasterizer.cpp
-    scriptbinding_renderer.cpp
-    scriptbinding_scene.cpp
-    scriptbinding_toonz_raster_converter.cpp
-    scriptengine.cpp
+
     skeleton.cpp
     skeletonlut.cpp
     stage.cpp
@@ -328,6 +324,24 @@ set(SOURCES
     navigationtags.cpp
 )
 
+# Append script-related sources only when QtScript is available
+if(WITH_QT_SCRIPT)
+    list(APPEND SOURCES
+        scriptbinding.cpp
+        scriptbinding_centerline_vectorizer.cpp
+        scriptbinding_files.cpp
+        scriptbinding_image.cpp
+        scriptbinding_image_builder.cpp
+        scriptbinding_level.cpp
+        scriptbinding_outline_vectorizer.cpp
+        scriptbinding_rasterizer.cpp
+        scriptbinding_renderer.cpp
+        scriptbinding_scene.cpp
+        scriptbinding_toonz_raster_converter.cpp
+        scriptengine.cpp
+    )
+endif()
+
 if(BUILD_TARGET_WIN)
     set(SOURCES ${SOURCES}
         avicodecrestrictions.cpp
@@ -368,17 +382,14 @@ include_directories(
 )
 
 if(BUILD_ENV_MSVC)
-    if(TARGET Qt5::Script)
-        set(QT_SCRIPT_LIB Qt5::Script)
-    else()
-        set(QT_SCRIPT_LIB "")
-    endif()
-
     target_link_libraries(toonzlib
-        Qt5::Core Qt5::Gui Qt5::OpenGL ${QT_SCRIPT_LIB} Qt5::Multimedia
+        Qt5::Core Qt5::Gui Qt5::OpenGL Qt5::Multimedia
         ${GLUT_LIB} ${GL_LIB} ${MYPAINT_LIB_LDFLAGS} ${GLEW_LIB} vfw32.lib
         tnzcore tnzbase tnzext
     )
+    if(WITH_QT_SCRIPT)
+        target_link_libraries(toonzlib Qt5::Script)
+    endif()
 elseif(BUILD_ENV_APPLE)
     set(EXTRA_LIBS
         "$<TARGET_FILE:tnzcore>"
@@ -388,13 +399,7 @@ elseif(BUILD_ENV_APPLE)
         ${MYPAINT_LIB_LDFLAGS}
     )
 
-    if(TARGET Qt5::Script)
-        set(QT_SCRIPT_LIB Qt5::Script)
-    else()
-        set(QT_SCRIPT_LIB "")
-    endif()
-
-    target_link_libraries(toonzlib Qt5::Core Qt5::Gui Qt5::OpenGL ${QT_SCRIPT_LIB} Qt5::Multimedia ${GLUT_LIB} ${GL_LIB} ${GLEW_LIB} ${EXTRA_LIBS})
+    target_link_libraries(toonzlib Qt5::Core Qt5::Gui Qt5::OpenGL Qt5::Script Qt5::Multimedia ${GLUT_LIB} ${GL_LIB} ${GLEW_LIB} ${EXTRA_LIBS})
 elseif(BUILD_ENV_UNIXLIKE)
     _find_toonz_library(EXTRA_LIBS "tnzcore;tnzbase;tnzext")
 
