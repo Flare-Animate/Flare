@@ -9,8 +9,6 @@ on:
 jobs:
   build:
     runs-on: ${{ matrix.os }}
-    env:
-      GIT_LFS_SKIP_SMUDGE: '1'
     strategy:
       fail-fast: false
       matrix:
@@ -20,8 +18,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          lfs: false
 
       # Install Qt5 on Ubuntu
       - name: Install Qt5 (Ubuntu)
