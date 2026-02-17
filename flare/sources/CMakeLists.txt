@@ -188,11 +188,36 @@ if(BUILD_ENV_MSVC)
         endif()
         list(APPEND CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}" "${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}/share")
 
+        # Add vcpkg include dir so headers from vcpkg (e.g. OpenCV) are discoverable
+        # even when system find_package doesn't locate them. This is a safe fallback
+        # that prevents missing-header compile errors when vcpkg is present.
+        include_directories(SYSTEM "${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}/include")
+
+        # Also add the vcpkg lib directory to the linker search path so MSBuild
+        # can resolve import-libs when its vcpkg integration points at a different
+        # vcpkg root (prevents LNK1104: cannot open file 'freeglut.lib').
+        link_directories("${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}/lib")
+
         # Disable vcpkg applocal behavior - it can emit wildcard DLL entries
         # (e.g. libcrypto-*-x64.dll) which MSBuild treats as invalid paths (MSB3541).
         # We prefer to let developers manage runtime DLLs or use vcpkg's installed/bin
         # explicitly when packaging.
         set(VCPKG_APPLOCAL_DEPS OFF CACHE BOOL "Disable vcpkg applocal to avoid wildcard DLL paths" FORCE)
+
+        # As an extra safeguard, remove any wildcard entries from existing
+        # vcpkg.applocal.log files in the build tree (prevents MSBuild validation
+        # errors if a previous generation left wildcard DLL names behind).
+        if(EXISTS "${CMAKE_BINARY_DIR}")
+            file(GLOB_RECURSE _vcpkg_applocal_logs "${CMAKE_BINARY_DIR}/*/vcpkg.applocal.log")
+            foreach(_applog ${_vcpkg_applocal_logs})
+                file(READ ${_applog} _applog_contents)
+                # Remove any lines containing wildcard characters
+                string(REGEX REPLACE "^[^\\n]*\\*[^\\n]*\\n" "" _applog_sanitized "${_applog_contents}")
+                if(NOT _applog_sanitized STREQUAL _applog_contents)
+                    file(WRITE ${_applog} "${_applog_sanitized}")
+                endif()
+            endforeach()
+        endif()
     endif()
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /std:c++17 /wd4251")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++17 /wd4251")
@@ -361,7 +386,7 @@ if(PLATFORM EQUAL 64)
         # configure-time policy/dependency issues. Setting this allows building
         # without OpenCV support (optional features disabled).
         set(CMAKE_DISABLE_FIND_PACKAGE_OpenCV ON CACHE BOOL "Temporarily disable OpenCV find")
-        find_package(OpenCV 4.1 QUIET)
+        # find_package(OpenCV 4.1 QUIET)  # disabled (use vcpkg/manual fallback instead)
         if(NOT OpenCV_FOUND)
             # Look for a vcpkg installation either via VCPKG_ROOT env or a local ./vcpkg folder
             if(DEFINED ENV{VCPKG_ROOT} OR EXISTS "${CMAKE_SOURCE_DIR}/vcpkg")
@@ -377,18 +402,41 @@ if(PLATFORM EQUAL 64)
                 endif()
                 # Add vcpkg installed dirs to CMAKE_PREFIX_PATH so OpenCV and its dependencies are discoverable
                 list(APPEND CMAKE_PREFIX_PATH "${_vcpkg_root}/installed/${_vcpkg_triplet}" "${_vcpkg_root}/installed/${_vcpkg_triplet}/share")
+                # Also add the vcpkg lib directory to the linker search path so MSBuild can
+                # resolve import-libs when its vcpkg integration points at a different root.
+                link_directories("${_vcpkg_root}/installed/${_vcpkg_triplet}/lib")
                 # Proactively set Protobuf_DIR so OpenCV's find_dependency can locate protobuf from vcpkg
                 if(NOT DEFINED Protobuf_DIR)
                     set(Protobuf_DIR "${_vcpkg_root}/installed/${_vcpkg_triplet}/share/protobuf")
                 endif()
                 # Try OpenCV from vcpkg installed tree
-                find_package(OpenCV 4.1 CONFIG PATHS "${_vcpkg_root}/installed/${_vcpkg_triplet}/share/opencv4" QUIET)
+                # find_package(OpenCV 4.1 CONFIG PATHS "${_vcpkg_root}/installed/${_vcpkg_triplet}/share/opencv4" QUIET)
+                # (disabled) use manual vcpkg fallback below instead
             endif()
         endif()
         if(NOT OpenCV_FOUND)
-            message(WARNING "OpenCV not found — building without OpenCV support. Some features will be disabled.")
-            set(OpenCV_FOUND OFF)
-            set(OpenCV_LIBS "")
+            # Fallback: if vcpkg has OpenCV installed, use its include/lib paths
+            if(EXISTS "${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}/lib/opencv_core4.lib")
+                message(STATUS "Using vcpkg-installed OpenCV (fallback): ${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}")
+                set(OpenCV_FOUND ON)
+                set(OpenCV_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}/include/opencv4")
+                set(OpenCV_LIBS
+                    "${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}/lib/opencv_core4.lib"
+                    "${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}/lib/opencv_imgproc4.lib"
+                    "${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}/lib/opencv_imgcodecs4.lib"
+                    "${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}/lib/opencv_highgui4.lib"
+                    "${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}/lib/opencv_videoio4.lib"
+                    "${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}/lib/opencv_calib3d4.lib"
+                    "${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}/lib/opencv_features2d4.lib"
+                    "${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}/lib/opencv_flann4.lib"
+                    "${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}/lib/opencv_video4.lib"
+                    "${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}/lib/opencv_dnn4.lib"
+                )
+            else()
+                message(WARNING "OpenCV not found — building without OpenCV support. Some features will be disabled.")
+                set(OpenCV_FOUND OFF)
+                set(OpenCV_LIBS "")
+            endif()
         endif()
     endif()
     #include_directories(
@@ -399,6 +447,11 @@ if(PLATFORM EQUAL 64)
             ${SDKROOT}/canon/Header
         )
     endif()
+endif()
+
+if(OpenCV_FOUND)
+    include_directories(SYSTEM ${OpenCV_INCLUDE_DIRS})
+    message(STATUS "OpenCV include dirs: ${OpenCV_INCLUDE_DIRS}")
 endif()
 
 get_target_property(QtCore_location Qt5::Core LOCATION)
