@@ -187,6 +187,12 @@ if(BUILD_ENV_MSVC)
             set(_vcpkg_triplet "x86-windows")
         endif()
         list(APPEND CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}" "${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}/share")
+
+        # Disable vcpkg applocal behavior - it can emit wildcard DLL entries
+        # (e.g. libcrypto-*-x64.dll) which MSBuild treats as invalid paths (MSB3541).
+        # We prefer to let developers manage runtime DLLs or use vcpkg's installed/bin
+        # explicitly when packaging.
+        set(VCPKG_APPLOCAL_DEPS OFF CACHE BOOL "Disable vcpkg applocal to avoid wildcard DLL paths" FORCE)
     endif()
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /std:c++17 /wd4251")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++17 /wd4251")
@@ -471,11 +477,71 @@ if(BUILD_ENV_MSVC)
         optimized ${SDKROOT}/tiff-4.0.3/lib/LibTIFF-4.0.3_${MSVC_LIB_VERSION}${PLATFORM2}.lib
         debug  ${SDKROOT}/tiff-4.0.3/lib/LibTIFF-4.0.3_${MSVC_LIB_VERSION}${PLATFORM2}d.lib
     )
+    # Prefer vcpkg-installed libtiff when bundled import library/header are missing
+    if(EXISTS "${CMAKE_SOURCE_DIR}/vcpkg")
+        if(NOT DEFINED _vcpkg_triplet)
+            if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+                set(_vcpkg_triplet "x64-windows")
+            else()
+                set(_vcpkg_triplet "x86-windows")
+            endif()
+        endif()
+        find_file(_vcpkg_tiff_header NAMES tiffio.h PATHS "${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}/include" NO_DEFAULT_PATH)
+        find_file(_vcpkg_tiff_lib NAMES tiff.lib TIFF.lib PATHS "${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}/lib" NO_DEFAULT_PATH)
+        if(_vcpkg_tiff_header AND _vcpkg_tiff_lib)
+            # Prefer vcpkg libtiff only if it exposes the 64-bit RGBA helpers used by
+            # our TIFF reader. Some vcpkg builds omit TIFFReadRGBAStrip_64 /
+            # TIFFReadRGBATile_64 and that causes unresolved externals at link time;
+            # in that case fall back to the bundled thirdparty copy which provides
+            # the aliases.
+            file(READ "${_vcpkg_tiff_header}" _vcpkg_tiff_header_head LIMIT 8192)
+            string(FIND "${_vcpkg_tiff_header_head}" "TIFFReadRGBAStrip_64" _vcpkg_tiff_has_64)
+            if(NOT _vcpkg_tiff_has_64 EQUAL -1)
+                set(TIFF_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}/include")
+                set(TIFF_LIB "${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}/lib/tiff.lib")
+                message(STATUS "Using vcpkg-installed libtiff: ${TIFF_LIB}")
+            else()
+                message(WARNING "vcpkg-installed libtiff lacks TIFFReadRGBA 64-bit helpers; using bundled thirdparty libtiff instead.")
+            endif()
+        endif()
+    endif()
     set(PNG_LIB
         optimized ${SDKROOT}/libpng-1.6.21/lib/libpng16_${MSVC_LIB_VERSION}${PLATFORM2}.lib
         debug  ${SDKROOT}/libpng-1.6.21/lib/libpng16_${MSVC_LIB_VERSION}${PLATFORM2}d.lib
     )
+    # Prefer vcpkg-installed libpng when the bundled import lib/header are missing or invalid
+    if(EXISTS "${CMAKE_SOURCE_DIR}/vcpkg")
+        if(NOT DEFINED _vcpkg_triplet)
+            if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+                set(_vcpkg_triplet "x64-windows")
+            else()
+                set(_vcpkg_triplet "x86-windows")
+            endif()
+        endif()
+        find_file(_vcpkg_png_header NAMES png.h pngconf.h PATHS "${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}/include" NO_DEFAULT_PATH)
+        find_file(_vcpkg_png_lib NAMES libpng16.lib png16.lib PNG16.lib PATHS "${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}/lib" NO_DEFAULT_PATH)
+        if(_vcpkg_png_header AND _vcpkg_png_lib)
+            set(PNG_LIB "${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}/lib/libpng16.lib")
+            set(PNG_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}/include")
+            message(STATUS "Using vcpkg-installed libpng: ${PNG_LIB}")
+        endif()
+    endif()
     set(GLEW_LIB ${SDKROOT}/glew/glew-1.9.0/lib/glew${PLATFORM}.lib)
+    # Prefer vcpkg-installed GLEW when available (fixes missing/corrupt thirdparty import libs)
+    if(EXISTS "${CMAKE_SOURCE_DIR}/vcpkg")
+        if(NOT DEFINED _vcpkg_triplet)
+            if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+                set(_vcpkg_triplet "x64-windows")
+            else()
+                set(_vcpkg_triplet "x86-windows")
+            endif()
+        endif()
+        find_file(_vcpkg_glew_lib NAMES glew.lib glew32.lib glew64.lib glew64s.lib glew64mx.lib PATHS "${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}/lib" NO_DEFAULT_PATH)
+        if(_vcpkg_glew_lib)
+            set(GLEW_LIB "${_vcpkg_glew_lib}")
+            message(STATUS "Using vcpkg-installed GLEW: ${GLEW_LIB}")
+        endif()
+    endif()
     # Prefer vcpkg-installed lz4 when available, else use bundled thirdparty
     find_package(lz4 QUIET)
     if(TARGET lz4::lz4)
@@ -484,7 +550,69 @@ if(BUILD_ENV_MSVC)
         set(LZ4_LIB ${SDKROOT}/Lz4/Lz4_131/lz4_${PLATFORM}.lib)
     endif()
     set(SUPERLU_LIB ${SDKROOT}/superlu/SuperLU_${MSVC_LIB_VERSION}_${PLATFORM}.lib)
+    # If the bundled SuperLU import library is a Git-LFS pointer, prefer a vcpkg-provided
+    # SuperLU or add an ExternalProject to build SuperLU from source so builds don't
+    # fail when the repo contains LFS pointer placeholders.
+    if(EXISTS "${SUPERLU_LIB}")
+        file(READ "${SUPERLU_LIB}" _superlu_lib_head LIMIT 2048)
+        string(FIND "${_superlu_lib_head}" "version https://git-lfs.github.com/spec/v1" _is_lfs)
+        if(NOT _is_lfs EQUAL -1)
+            message(WARNING "Detected Git-LFS pointer for SuperLU import library; will try vcpkg or build from source.")
+            # try vcpkg-installed SuperLU first
+            if(EXISTS "${CMAKE_SOURCE_DIR}/vcpkg")
+                if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+                    set(_vcpkg_triplet "x64-windows")
+                else()
+                    set(_vcpkg_triplet "x86-windows")
+                endif()
+                find_file(_vcpkg_superlu_lib NAMES superlu.lib libsuperlu.lib PATHS "${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}/lib" NO_DEFAULT_PATH)
+                if(_vcpkg_superlu_lib)
+                    set(SUPERLU_LIB "${_vcpkg_superlu_lib}")
+                    message(STATUS "Using vcpkg-installed SuperLU: ${SUPERLU_LIB}")
+                    # If METIS is available in vcpkg, prefer it for SuperLU's ordering
+                    find_file(_vcpkg_metis_lib NAMES metis.lib libmetis.lib PATHS "${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}/lib" NO_DEFAULT_PATH)
+                    if(_vcpkg_metis_lib)
+                        set(METIS_LIB "${_vcpkg_metis_lib}")
+                        message(STATUS "Using vcpkg-installed METIS: ${METIS_LIB}")
+                    endif()
+                endif()
+            endif()
+            # If still not found, add an ExternalProject to build SuperLU from the bundled source
+            if(NOT _vcpkg_superlu_lib AND NOT IS_DIRECTORY "${SUPERLU_LIB}")
+                message(STATUS "Adding ExternalProject 'superlu_local' — building SuperLU from thirdparty source")
+                include(ExternalProject)
+                ExternalProject_Add(superlu_local
+                    SOURCE_DIR "${CMAKE_SOURCE_DIR}/thirdparty/superlu/SuperLU_4.1/prj/SuperLU"
+                    CONFIGURE_COMMAND ""
+                    BUILD_COMMAND ${CMAKE_BUILD_TOOL} "${CMAKE_SOURCE_DIR}/thirdparty/superlu/SuperLU_4.1/prj/SuperLU/SuperLU.sln" /p:Configuration=Release /m
+                    INSTALL_COMMAND ""
+                    BUILD_BYPRODUCTS "${CMAKE_SOURCE_DIR}/thirdparty/superlu/SuperLU_2015_64.lib"
+                )
+                set(SUPERLU_LIB "${CMAKE_SOURCE_DIR}/thirdparty/superlu/SuperLU_2015_64.lib")
+            endif()
+        endif()
+    endif()
+
     set(OPENBLAS_LIB ${SDKROOT}/openblas/libopenblas_${PLATFORM}.lib)
+    if(EXISTS "${OPENBLAS_LIB}")
+        file(READ "${OPENBLAS_LIB}" _openblas_head LIMIT 2048)
+        string(FIND "${_openblas_head}" "version https://git-lfs.github.com/spec/v1" _is_lfs_openblas)
+        if(NOT _is_lfs_openblas EQUAL -1)
+            message(WARNING "Detected Git-LFS pointer for OpenBLAS import library; will try vcpkg-installed OpenBLAS")
+            if(EXISTS "${CMAKE_SOURCE_DIR}/vcpkg")
+                if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+                    set(_vcpkg_triplet "x64-windows")
+                else()
+                    set(_vcpkg_triplet "x86-windows")
+                endif()
+                find_file(_vcpkg_openblas_lib NAMES libopenblas.lib openblas.lib PATHS "${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}/lib" NO_DEFAULT_PATH)
+                if(_vcpkg_openblas_lib)
+                    set(OPENBLAS_LIB "${_vcpkg_openblas_lib}")
+                    message(STATUS "Using vcpkg-installed OpenBLAS: ${OPENBLAS_LIB}")
+                endif()
+            endif()
+        endif()
+    endif()
     set(USB_LIB)  # unused
 
     if(PLATFORM EQUAL 32)
@@ -492,6 +620,32 @@ if(BUILD_ENV_MSVC)
     endif()
     set(MYPAINT_LIB_INCLUDE_DIRS ${SDKROOT}/libmypaint/dist/${PLATFORM}/include/libmypaint)
     set(MYPAINT_LIB_LDFLAGS ${SDKROOT}/libmypaint/dist/${PLATFORM}/libmypaint.lib)
+
+    # If bundled import library is missing or is a Git-LFS pointer, prefer vcpkg-installed libmypaint
+    if(NOT EXISTS "${MYPAINT_LIB_LDFLAGS}")
+        set(_is_lfs_mypaint 1)
+    else()
+        file(READ "${MYPAINT_LIB_LDFLAGS}" _mypaint_head LIMIT 2048)
+        string(FIND "${_mypaint_head}" "version https://git-lfs.github.com/spec/v1" _is_lfs_mypaint)
+    endif()
+
+    if(_is_lfs_mypaint GREATER -1)
+        if(EXISTS "${CMAKE_SOURCE_DIR}/vcpkg")
+            if(NOT DEFINED _vcpkg_triplet)
+                if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+                    set(_vcpkg_triplet "x64-windows")
+                else()
+                    set(_vcpkg_triplet "x86-windows")
+                endif()
+            endif()
+            find_file(_vcpkg_mypaint_lib NAMES libmypaint.lib mypaint.lib PATHS "${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}/lib" NO_DEFAULT_PATH)
+            if(_vcpkg_mypaint_lib)
+                set(MYPAINT_LIB_LDFLAGS "${_vcpkg_mypaint_lib}")
+                set(MYPAINT_LIB_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}/include")
+                message(STATUS "Using vcpkg-installed libmypaint: ${MYPAINT_LIB_LDFLAGS}")
+            endif()
+        endif()
+    endif()
 
     if(PLATFORM EQUAL 64)
         if (WITH_CANON)

@@ -112,9 +112,13 @@ endif()
 if(BUILD_ENV_MSVC)
     target_link_libraries(tnzext
         Qt5::Core Qt5::Gui Qt5::OpenGL Qt5::Network
-        ${GLUT_LIB} ${GL_LIB} ${SUPERLU_LIB} ${OPENBLAS_LIB} ${EXTRA_LIBS}
+        ${GLUT_LIB} ${GL_LIB} ${SUPERLU_LIB} ${METIS_LIB} ${OPENBLAS_LIB} ${EXTRA_LIBS}
         tnzcore tnzbase
     )
+    # If we added an ExternalProject to build SuperLU, ensure tnzext depends on it
+    if(TARGET superlu_local)
+        add_dependencies(tnzext superlu_local)
+    endif()
 elseif(BUILD_ENV_APPLE)
     set(EXTRA_LIBS
         "$<TARGET_FILE:tnzcore>"
