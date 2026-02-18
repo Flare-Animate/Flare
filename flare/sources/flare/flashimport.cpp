@@ -1,8 +1,8 @@
 #include "menubarcommandids.h"
 #include "menubar.h"
 #include "ocaio.h"
-#include "toonz/projectmanager.h"
-#include "preferences.h"
+#include "toonz/tproject.h"
+#include "toonz/preferences.h"
 #include "tapp.h"
 #include "../flare/toonzfolders.h" 
 
