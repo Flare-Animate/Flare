@@ -5,7 +5,10 @@
 #include "toonz/preferences.h"
 #include "tapp.h"
 #include "toonz/toonzfolders.h"
-
+#include "toonz/tscenehandle.h"
+#include "toonz/toonzscene.h"
+#include "tfilepath.h"
+#include "tsystem.h"
 #include "toonzqt/gutil.h"
 #include "toonzqt/dvdialog.h"
 #include "filebrowserpopup.h"
