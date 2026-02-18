@@ -302,7 +302,13 @@ set(SOURCES
     scenebrowserversioncontrol.cpp
     sceneviewercontextmenu.cpp
     scenesettingspopup.cpp
-    scriptconsolepanel.cpp
+if(WITH_QT_SCRIPT)
+    set(SCRIPT_CONSOLE_SRC scriptconsolepanel.cpp)
+else()
+    set(SCRIPT_CONSOLE_SRC scriptconsolepanel_stub.cpp)
+endif()
+
+    ${SCRIPT_CONSOLE_SRC}
     shortcutpopup.cpp
     soundtrackexport.cpp
     startuppopup.cpp
