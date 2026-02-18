@@ -4,7 +4,7 @@
 #include "toonz/tproject.h"
 #include "toonz/preferences.h"
 #include "tapp.h"
-#include "../flare/toonzfolders.h" 
+#include "toonz/toonzfolders.h" 
 
 #include "../toonzqt/gutil.h"
 #include "../toonzqt/dvdialog.h"
