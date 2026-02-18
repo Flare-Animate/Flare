@@ -18,6 +18,11 @@ on:
       - '!**/.github/**'
       - '.github/workflows/workflow_macos.yml'
 
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
 jobs:
   macOS:
     timeout-minutes: 180 # Stop job if it exceeds expected build time
@@ -162,7 +167,7 @@ jobs:
           name: Flare-${{ runner.os }}-${{ github.sha }}
           path: flare/build/toonz/Flare.dmg
       - name: Post build logs to PR
-        if: ${{ github.event_name == 'pull_request' && always() }}
+        if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && always() }}
         uses: actions/github-script@v6
         with:
           script: |

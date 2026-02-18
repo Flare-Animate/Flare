@@ -18,6 +18,11 @@ on:
       - '!.github/**' # Simplificado
       - '.github/workflows/workflow_linux.yml'
 
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
 jobs:
   Ubuntu:
     runs-on: ubuntu-24.04
@@ -164,7 +169,7 @@ jobs:
         path: flare/build/*.tar.gz
 
     - name: Post build logs to PR
-      if: ${{ github.event_name == 'pull_request' && always() }}
+      if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && always() }}
       uses: actions/github-script@v6
       with:
         script: |

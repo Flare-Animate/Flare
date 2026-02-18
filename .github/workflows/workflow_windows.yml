@@ -6,6 +6,11 @@ on:
   pull_request:
     branches: [ master ]
 
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
 jobs:
   Windows:
     runs-on: windows-2022
@@ -120,11 +125,23 @@ jobs:
       - name: Install vcpkg and LZO
         run: |
           @echo on
-          if not exist vcpkg git clone https://github.com/microsoft/vcpkg.git vcpkg
-          cd vcpkg
-          .\bootstrap-vcpkg.bat
-          .\vcpkg.exe install lzo:x64-windows
-          echo VCPKG_ROOT=%CD%>> %GITHUB_ENV%
+          if not exist vcpkg (
+            echo Cloning vcpkg...
+            git clone --depth 1 https://github.com/microsoft/vcpkg.git vcpkg || (echo ERROR: git clone vcpkg failed & exit /b 1)
+          ) else (
+            echo vcpkg directory already exists, skipping clone
+          )
+          dir vcpkg
+          if not exist vcpkg\bootstrap-vcpkg.bat (
+            echo ERROR: bootstrap-vcpkg.bat missing in vcpkg\ directory
+            dir vcpkg
+            exit /b 1
+          )
+          pushd vcpkg
+          call bootstrap-vcpkg.bat || (echo ERROR: bootstrap-vcpkg.bat failed & exit /b 1)
+          .\vcpkg.exe install lzo:x64-windows || (echo ERROR: vcpkg install lzo failed & exit /b 1)
+          popd
+          echo VCPKG_ROOT=%GITHUB_WORKSPACE%\vcpkg>> %GITHUB_ENV%
         shell: cmd
 
       - name: Configure CMake
@@ -226,7 +243,7 @@ jobs:
           if-no-files-found: error
 
       - name: Post build logs to PR
-        if: ${{ github.event_name == 'pull_request' && always() }}
+        if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && always() }}
         uses: actions/github-script@v6
         with:
           script: |
