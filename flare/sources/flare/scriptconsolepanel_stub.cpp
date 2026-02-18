@@ -1,5 +1,6 @@
 #include "scriptconsolepanel.h"
 #include "tapp.h"
+#include "toonzqt/tselectionhandle.h"
 #include <QLabel>
 
 ScriptConsolePanel::ScriptConsolePanel(QWidget *parent, Qt::WindowFlags flags)

@@ -1,7 +1,7 @@
 #include "menubarcommandids.h"
 #include "menubar.h"
 #include "ocaio.h"
-#include "projectmanager.h"
+#include "toonz/projectmanager.h"
 #include "preferences.h"
 #include "tapp.h"
 #include "../flare/toonzfolders.h" 
