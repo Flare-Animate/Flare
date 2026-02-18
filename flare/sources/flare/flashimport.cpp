@@ -8,7 +8,7 @@
 
 #include "toonzqt/gutil.h"
 #include "toonzqt/dvdialog.h"
-#include "toonzqt/filebrowserpopup.h"
+#include "filebrowserpopup.h"
 
 #include <QProcess>
 #include <QDesktopServices>
