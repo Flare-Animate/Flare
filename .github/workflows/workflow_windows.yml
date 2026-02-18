@@ -125,18 +125,32 @@ jobs:
       - name: Install vcpkg and LZO
         run: |
           @echo on
+          :: If the vcpkg directory does not exist, clone it. If it exists but
+          :: is missing the bootstrap script (partial/leftover), remove and
+          :: reclone to ensure a valid copy.
           if not exist vcpkg (
             echo Cloning vcpkg...
             git clone --depth 1 https://github.com/microsoft/vcpkg.git vcpkg || (echo ERROR: git clone vcpkg failed & exit /b 1)
           ) else (
-            echo vcpkg directory already exists, skipping clone
+            echo vcpkg directory already exists
+            if exist vcpkg\bootstrap-vcpkg.bat (
+              echo bootstrap-vcpkg.bat present, skipping clone
+            ) else (
+              echo WARNING: vcpkg folder exists but bootstrap-vcpkg.bat is missing - recloning
+              rmdir /S /Q vcpkg || (echo ERROR: failed to remove stale vcpkg folder & exit /b 1)
+              git clone --depth 1 https://github.com/microsoft/vcpkg.git vcpkg || (echo ERROR: git clone vcpkg failed & exit /b 1)
+            )
           )
-          dir vcpkg
+
+          :: Show contents for diagnostics (helps CI debugging when things go wrong)
+          dir vcpkg || echo (dir vcpkg failed)
+
           if not exist vcpkg\bootstrap-vcpkg.bat (
             echo ERROR: bootstrap-vcpkg.bat missing in vcpkg\ directory
-            dir vcpkg
+            dir vcpkg /s
             exit /b 1
           )
+
           pushd vcpkg
           call bootstrap-vcpkg.bat || (echo ERROR: bootstrap-vcpkg.bat failed & exit /b 1)
           .\vcpkg.exe install lzo:x64-windows || (echo ERROR: vcpkg install lzo failed & exit /b 1)
