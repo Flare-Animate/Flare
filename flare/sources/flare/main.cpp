@@ -674,6 +674,7 @@ if (QFileInfo(localSplashPath).exists() && QFileInfo(localSplashPath).isFile()) 
   CrashHandler::attachParentWindow(&w);
   CrashHandler::reportProjectInfo(true);
 
+#ifdef WITH_QT_SCRIPT
   if (isRunScript) {
     // load script
     if (TFileStatus(loadFilePath).doesExist()) {
@@ -713,6 +714,14 @@ if (QFileInfo(localSplashPath).exists() && QFileInfo(localSplashPath).isFile()) 
       return 1;
     }
   }
+#else
+  if (isRunScript) {
+    std::cerr << QObject::tr("QtScript is not available in this build; cannot run scripts.")
+                     .toStdString()
+              << std::endl;
+    return 1;
+  }
+#endif
 
 #ifdef _WIN32
   // http://doc.qt.io/qt-5/windows-issues.html#fullscreen-opengl-based-windows
