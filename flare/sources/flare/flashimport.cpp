@@ -4,12 +4,11 @@
 #include "toonz/tproject.h"
 #include "toonz/preferences.h"
 #include "tapp.h"
-#include "toonz/toonzfolders.h" 
+#include "toonz/toonzfolders.h"
 
-#include "../toonzqt/gutil.h"
-#include "../toonzqt/dvdialog.h"
-#include "../toonzqt/filebrowserpopup.h"
-#include "../toonzqt/gutil.h"
+#include "toonzqt/gutil.h"
+#include "toonzqt/dvdialog.h"
+#include "toonzqt/filebrowserpopup.h"
 
 #include <QProcess>
 #include <QDesktopServices>
