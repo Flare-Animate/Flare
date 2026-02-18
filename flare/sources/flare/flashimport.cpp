@@ -57,9 +57,12 @@ void ImportFlashVectorCommand::execute() {
   QString tmpDirName = QString("flare_flash_import_%1")
                            .arg(QDateTime::currentMSecsSinceEpoch());
   TFilePath outDir = TSystem::getTempDir() + TFilePath(tmpDirName.toStdString());
-  if (!outDir.mkpath(".")) {
-    DVGui::error(QObject::tr("Unable to create temporary directory for import."));
-    return;
+  QDir outQDir(outDir.getQString());
+  if (!outQDir.exists()) {
+    if (!outQDir.mkpath(".")) {
+      DVGui::error(QObject::tr("Unable to create temporary directory for import."));
+      return;
+    }
   }
 
   // Locate helper script in common development locations
@@ -174,9 +177,12 @@ void ImportFlashContainerCommand::execute() {
   // Create temporary output directory
   QString tmpDirName = QString("flare_flash_import_%1").arg(QDateTime::currentMSecsSinceEpoch());
   TFilePath outDir = TSystem::getTempDir() + TFilePath(tmpDirName.toStdString());
-  if (!outDir.mkpath(".")) {
-    DVGui::error(QObject::tr("Unable to create temporary directory for import."));
-    return;
+  QDir outQDir(outDir.getQString());
+  if (!outQDir.exists()) {
+    if (!outQDir.mkpath(".")) {
+      DVGui::error(QObject::tr("Unable to create temporary directory for import."));
+      return;
+    }
   }
 
   // Locate helper script in common development locations
@@ -255,7 +261,7 @@ void ImportFlashContainerCommand::execute() {
             if (rel.isEmpty()) continue;
             TFilePath fp = outDir + TFilePath(rel.toStdString());
             // Only attempt to load common image/vector types
-            QString ext = fp.getType();
+            QString ext = QString::fromStdString(fp.getType());
             if (ext == "png" || ext == "jpg" || ext == "jpeg" || ext == "svg" || ext == "xml") {
               TXshLevel *xl = scene->loadLevel(fp);
               if (xl) imported++;

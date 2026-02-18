@@ -302,13 +302,7 @@ set(SOURCES
     scenebrowserversioncontrol.cpp
     sceneviewercontextmenu.cpp
     scenesettingspopup.cpp
-if(WITH_QT_SCRIPT)
-    set(SCRIPT_CONSOLE_SRC scriptconsolepanel.cpp)
-else()
-    set(SCRIPT_CONSOLE_SRC scriptconsolepanel_stub.cpp)
-endif()
-
-    ${SCRIPT_CONSOLE_SRC}
+    scriptconsolepanel.cpp
     shortcutpopup.cpp
     soundtrackexport.cpp
     startuppopup.cpp
@@ -414,6 +408,12 @@ endif()
     predict3d.cpp
 )
 
+# If QtScript is not available, swap in the lightweight stub implementation
+if(NOT WITH_QT_SCRIPT)
+    list(REMOVE_ITEM SOURCES scriptconsolepanel.cpp)
+    list(APPEND SOURCES scriptconsolepanel_stub.cpp)
+endif()
+
 if(PLATFORM EQUAL 64)
     set(SOURCES
         ${SOURCES}
@@ -442,6 +442,8 @@ endif()
 if(WITH_TRANSLATION)
     add_translation(toonz ${HEADERS} ${SOURCES})
 endif()
+
+message(STATUS "FLARE_SOURCES=${SOURCES}")
 
 set(OBJCSOURCES filebrowsermodel.cpp)
 
