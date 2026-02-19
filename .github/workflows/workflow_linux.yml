@@ -85,11 +85,11 @@ jobs:
           -DWITH_TRANSLATION=OFF \
           -DWITH_SYSTEM_LZO=ON \
           -DWITH_LZODRIVER=OFF \
-          -DCMAKE_BUILD_TYPE=Release > build/cmake_configure.log 2>&1
+          -DCMAKE_BUILD_TYPE=Release > cmake_configure.log 2>&1
         rc=$?
         set -e
         echo "--- Begin CMake configure log ---"
-        if [ -f build/cmake_configure.log ]; then cat build/cmake_configure.log; fi
+        if [ -f cmake_configure.log ]; then cat cmake_configure.log; fi
         echo "--- End CMake configure log ---"
         if [ $rc -ne 0 ]; then echo "CMake configure failed with exit code $rc"; exit $rc; fi
 
