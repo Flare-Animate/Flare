@@ -2157,16 +2157,16 @@ contain the dpi information, then the current camera dpi will be used.
 <context>
     <name>CrashHandler</name>
     <message>
-        <source>&lt;b&gt;OpenToonz crashed unexpectedly.&lt;/b&gt;</source>
-        <translation>&lt;b&gt;OpenToonz 意外崩溃了。&lt;/b&gt;</translation>
+        <source>&lt;b&gt;Flare crashed unexpectedly.&lt;/b&gt;</source>
+        <translation>&lt;b&gt;Flare 意外崩溃了。&lt;/b&gt;</translation>
     </message>
     <message>
         <source>A crash report has been generated.</source>
         <translation>崩溃报告已经生成。</translation>
     </message>
     <message>
-        <source>To report, click &apos;Open Issue Webpage&apos; to access OpenToonz&apos;s Issues page on GitHub.</source>
-        <translation>要提交，点击「打开问题网页」以访问 OpenToonz 的 GitHub 问题页面。</translation>
+        <source>To report, click &apos;Open Issue Webpage&apos; to access Flare&apos;s Issues page on GitHub.</source>
+        <translation>要提交，点击「打开问题网页」以访问 Flare 的 GitHub 问题页面。</translation>
     </message>
     <message>
         <source>Click on the &apos;New issue&apos; button and fill out the form.</source>
@@ -2193,8 +2193,8 @@ contain the dpi information, then the current camera dpi will be used.
         <translation>选择应用程序</translation>
     </message>
     <message>
-        <source>OpenToonz crashed!</source>
-        <translation>OpenToonz 已经崩溃！</translation>
+        <source>Flare crashed!</source>
+        <translation>Flare 已经崩溃！</translation>
     </message>
     <message>
         <source>Application is in unstable state and must be restarted.</source>
@@ -6530,16 +6530,16 @@ Please use the frame numbers for reference.</source>
         <translation>类型 - 多边形</translation>
     </message>
     <message>
-        <source>About OpenToonz</source>
-        <translation>关于 OpenToonz</translation>
+        <source>About Flare</source>
+        <translation>关于 Flare</translation>
     </message>
     <message>
         <source>Close</source>
         <translation>关闭</translation>
     </message>
     <message>
-        <source>&amp;About OpenToonz...</source>
-        <translation>关于 OpenToonz(&amp;A)...</translation>
+        <source>&amp;About Flare...</source>
+        <translation>关于 Flare(&amp;A)...</translation>
     </message>
     <message>
         <source>&amp;ComboViewer</source>
@@ -6961,12 +6961,12 @@ Please use the frame numbers for reference.</source>
         <source>
 Are you sure?
 
-N.B. Make sure you are not running another process of OpenToonz,
+N.B. Make sure you are not running another process of Flare,
 or you may delete necessary files for it.</source>
         <translation>
 你确定吗？
 
-N.B. 确保你没有在运行其他 OpenToonz 进程、
+N.B. 确保你没有在运行其他 Flare 进程、
 或者你可能删除了它所必需的文件。</translation>
     </message>
     <message>
@@ -6982,8 +6982,8 @@ N.B. 确保你没有在运行其他 OpenToonz 进程、
         <translation>https://groups.google.com/forum/#!forum/opentoonz_en</translation>
     </message>
     <message>
-        <source>To report a bug, click on the button below to open a web browser window for OpenToonz&apos;s Issues page on https://github.com.  Click on the &apos;New issue&apos; button and fill out the form.</source>
-        <translation>要报告错误，请点击下面的按钮，将在网络浏览器窗口打开 https://github.com 上的 OpenToonz 的问题页面。点击「新问题」按钮并填写表格。</translation>
+        <source>To report a bug, click on the button below to open a web browser window for Flare&apos;s Issues page on https://github.com.  Click on the &apos;New issue&apos; button and fill out the form.</source>
+        <translation>要报告错误，请点击下面的按钮，将在网络浏览器窗口打开 https://github.com 上的 Flare 的问题页面。点击「新问题」按钮并填写表格。</translation>
     </message>
     <message>
         <source>Vector Guided Drawing</source>
@@ -7094,8 +7094,8 @@ N.B. 确保你没有在运行其他 OpenToonz 进程、
         <translation>前一关键帧</translation>
     </message>
     <message>
-        <source>About OpenToonz...</source>
-        <translation type="vanished">关于 OpenToonz...</translation>
+        <source>About Flare...</source>
+        <translation type="vanished">关于 Flare...</translation>
     </message>
     <message>
         <source>Online Manual...</source>
@@ -7494,8 +7494,8 @@ N.B. 确保你没有在运行其他 OpenToonz 进程、
         <translation>初始化工作区</translation>
     </message>
     <message>
-        <source>You must restart OpenToonz, close it now?</source>
-        <translation>你必须重启 OpenToonz，现在就关闭它吗？</translation>
+        <source>You must restart Flare, close it now?</source>
+        <translation>你必须重启 Flare，现在就关闭它吗？</translation>
     </message>
     <message>
         <source>&amp;Convert TZP Files In Folder...</source>
@@ -9458,8 +9458,8 @@ Set the output folder path to the subfolder as well.</source>
         <translation type="vanished">执行另存层级命令后替换层级</translation>
     </message>
     <message>
-        <source>* Changes will take effect the next time you run OpenToonz</source>
-        <translation>* 更改将在下次启动 OpenToonz 时生效</translation>
+        <source>* Changes will take effect the next time you run Flare</source>
+        <translation>* 更改将在下次启动 Flare 时生效</translation>
     </message>
     <message>
         <source>Move Current Frame by Clicking on Xsheet / Numerical Columns Cell Area</source>
@@ -9650,12 +9650,12 @@ Set the output folder path to the subfolder as well.</source>
         <translation>自动保存非场景文件</translation>
     </message>
     <message>
-        <source>My Documents/OpenToonz*</source>
-        <translation>我的文档/OpenToonz*</translation>
+        <source>My Documents/Flare*</source>
+        <translation>我的文档/Flare*</translation>
     </message>
     <message>
-        <source>Desktop/OpenToonz*</source>
-        <translation>桌面/OpenToonz*</translation>
+        <source>Desktop/Flare*</source>
+        <translation>桌面/Flare*</translation>
     </message>
     <message>
         <source>Stuff Folder*</source>
@@ -9702,12 +9702,12 @@ Set the output folder path to the subfolder as well.</source>
         <translation>工作区*:</translation>
     </message>
     <message>
-        <source>OpenToonz can use FFmpeg for additional file formats.</source>
-        <translation type="vanished">OpenToonz可以使用 FFmpeg 处理附加文件格式。</translation>
+        <source>Flare can use FFmpeg for additional file formats.</source>
+        <translation type="vanished">Flare可以使用 FFmpeg 处理附加文件格式。</translation>
     </message>
     <message>
-        <source>FFmpeg is not bundled with OpenToonz</source>
-        <translation type="vanished">FFmpeg 并没有和 OpenToonz 一起打包。</translation>
+        <source>FFmpeg is not bundled with Flare</source>
+        <translation type="vanished">FFmpeg 并没有和 Flare 一起打包。</translation>
     </message>
     <message>
         <source>NOTE: This is an experimental feature.</source>
@@ -9738,8 +9738,8 @@ Set the output folder path to the subfolder as well.</source>
         <translation>FFmpeg 超时:</translation>
     </message>
     <message>
-        <source>Show Startup Window when OpenToonz Starts</source>
-        <translation>当 OpenToonz 启动时显示启动窗口</translation>
+        <source>Show Startup Window when Flare Starts</source>
+        <translation>当 Flare 启动时显示启动窗口</translation>
     </message>
     <message>
         <source>Numpad keys are assigned to the following commands.
@@ -9844,8 +9844,8 @@ Is it OK to release these shortcuts?</source>
         <translation>新建层级默认到当前摄影机大小</translation>
     </message>
     <message>
-        <source>Enable OpenToonz Commands&apos; Shortcut Keys While Renaming Cell</source>
-        <translation>重命名帧格时启用 OpenToonz 命令快捷键</translation>
+        <source>Enable Flare Commands&apos; Shortcut Keys While Renaming Cell</source>
+        <translation>重命名帧格时启用 Flare 命令快捷键</translation>
     </message>
     <message>
         <source>Font*:</source>
@@ -9958,15 +9958,15 @@ if both are possible on coding file path.</source>
         <translation type="vanished">粗细 *:</translation>
     </message>
     <message>
-        <source>OpenToonz can use FFmpeg for additional file formats.
+        <source>Flare can use FFmpeg for additional file formats.
 </source>
-        <translation>OpenToonz 可以使用 FFmpeg 处理附加文件格式。
+        <translation>Flare 可以使用 FFmpeg 处理附加文件格式。
 </translation>
     </message>
     <message>
-        <source>FFmpeg is not bundled with OpenToonz.
+        <source>FFmpeg is not bundled with Flare.
 </source>
-        <translation>FFmpeg 并没有和 OpenToonz 一起打包。
+        <translation>FFmpeg 并没有和 Flare 一起打包。
 </translation>
     </message>
     <message>
@@ -9986,8 +9986,8 @@ if both are possible on coding file path.</source>
         <translation>显示光标大小轮廓线</translation>
     </message>
     <message>
-        <source>Check for the Latest Version of OpenToonz on Launch</source>
-        <translation>在 OpenToonz 启动时检查最新版本</translation>
+        <source>Check for the Latest Version of Flare on Launch</source>
+        <translation>在 Flare 启动时检查最新版本</translation>
     </message>
     <message>
         <source>Choosing this option will set initial location of all file browsers to $scenefolder.
@@ -10292,15 +10292,15 @@ but a random crash might occur, use at your own risk.</source>
 但可能会造成随机的崩溃，请自己承担风险。</translation>
     </message>
     <message>
-        <source>OpenToonz can use Rhubarb for auto lip-syncing.
+        <source>Flare can use Rhubarb for auto lip-syncing.
 </source>
-        <translation>OpenToonz 可以使用 Rhubarb 处理自动口型同步。
+        <translation>Flare 可以使用 Rhubarb 处理自动口型同步。
 </translation>
     </message>
     <message>
-        <source>Rhubarb is not bundled with OpenToonz.
+        <source>Rhubarb is not bundled with Flare.
 </source>
-        <translation>Rhubarb 并没有和 OpenToonz 一起打包。
+        <translation>Rhubarb 并没有和 Flare 一起打包。
 </translation>
     </message>
     <message>
@@ -11252,7 +11252,7 @@ What do you want to do?</source>
     </message>
     <message>
         <source>The rooms will be reset the next time you run Toonz.</source>
-        <translation type="vanished">将在下次启动 OpenToonz 时重置工作区。</translation>
+        <translation type="vanished">将在下次启动 Flare 时重置工作区。</translation>
     </message>
     <message>
         <source>Saving previewed frames....</source>
@@ -12199,9 +12199,9 @@ What would you like to do? </source>
         <translation> 不管</translation>
     </message>
     <message>
-        <source>This scene is incompatible with pixels only mode of the current OpenToonz version.
+        <source>This scene is incompatible with pixels only mode of the current Flare version.
 What would you like to do?</source>
-        <translation>此场景与当前 OpenToonz 版本的「仅像素模式」不兼容。
+        <translation>此场景与当前 Flare 版本的「仅像素模式」不兼容。
 你要怎么做？</translation>
     </message>
     <message>
@@ -13234,8 +13234,8 @@ What do you want to do?</source>
         <translation>新建光栅层级</translation>
     </message>
     <message>
-        <source>The rooms will be reset the next time you run OpenToonz.</source>
-        <translation>将在下次启动 OpenToonz 时重置工作区。</translation>
+        <source>The rooms will be reset the next time you run Flare.</source>
+        <translation>将在下次启动 Flare 时重置工作区。</translation>
     </message>
     <message>
         <source>[Drag&amp;Drop] to copy separator to %1</source>
@@ -15251,8 +15251,8 @@ Please commit or revert changes first.</source>
         <translation> 已经存在你要要覆盖它吗？</translation>
     </message>
     <message>
-        <source>OpenToonz - Setting Shortcuts</source>
-        <translation>OpenToonz - 设置快捷键</translation>
+        <source>Flare - Setting Shortcuts</source>
+        <translation>Flare - 设置快捷键</translation>
     </message>
     <message>
         <source>Included presets cannot be deleted.</source>
@@ -15615,8 +15615,8 @@ Assign shortcut sequence anyway?</source>
 <context>
     <name>StartupPopup</name>
     <message>
-        <source>OpenToonz Startup</source>
-        <translation>OpenToonz 启动</translation>
+        <source>Flare Startup</source>
+        <translation>Flare 启动</translation>
     </message>
     <message>
         <source>Choose Project</source>

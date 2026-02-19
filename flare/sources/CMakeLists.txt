@@ -176,6 +176,49 @@ if(BUILD_ENV_MSVC)
     endif()
     set(QT_LIB_PATH ${QT_PATH})
     set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH};${QT_PATH}/lib/cmake/")
+
+    # If a local vcpkg is present, add its installed directories early so
+    # find_package and find_dependency (OpenCV -> Protobuf etc.) can resolve
+    # package configs during the initial configure step.
+    if(EXISTS "${CMAKE_SOURCE_DIR}/vcpkg")
+        if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+            set(_vcpkg_triplet "x64-windows")
+        else()
+            set(_vcpkg_triplet "x86-windows")
+        endif()
+        list(APPEND CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}" "${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}/share")
+
+        # Add vcpkg include dir so headers from vcpkg (e.g. OpenCV) are discoverable
+        # even when system find_package doesn't locate them. This is a safe fallback
+        # that prevents missing-header compile errors when vcpkg is present.
+        include_directories(SYSTEM "${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}/include")
+
+        # Also add the vcpkg lib directory to the linker search path so MSBuild
+        # can resolve import-libs when its vcpkg integration points at a different
+        # vcpkg root (prevents LNK1104: cannot open file 'freeglut.lib').
+        link_directories("${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}/lib")
+
+        # Disable vcpkg applocal behavior - it can emit wildcard DLL entries
+        # (e.g. libcrypto-*-x64.dll) which MSBuild treats as invalid paths (MSB3541).
+        # We prefer to let developers manage runtime DLLs or use vcpkg's installed/bin
+        # explicitly when packaging.
+        set(VCPKG_APPLOCAL_DEPS OFF CACHE BOOL "Disable vcpkg applocal to avoid wildcard DLL paths" FORCE)
+
+        # As an extra safeguard, remove any wildcard entries from existing
+        # vcpkg.applocal.log files in the build tree (prevents MSBuild validation
+        # errors if a previous generation left wildcard DLL names behind).
+        if(EXISTS "${CMAKE_BINARY_DIR}")
+            file(GLOB_RECURSE _vcpkg_applocal_logs "${CMAKE_BINARY_DIR}/*/vcpkg.applocal.log")
+            foreach(_applog ${_vcpkg_applocal_logs})
+                file(READ ${_applog} _applog_contents)
+                # Remove any lines containing wildcard characters
+                string(REGEX REPLACE "^[^\\n]*\\*[^\\n]*\\n" "" _applog_sanitized "${_applog_contents}")
+                if(NOT _applog_sanitized STREQUAL _applog_contents)
+                    file(WRITE ${_applog} "${_applog_sanitized}")
+                endif()
+            endforeach()
+        endif()
+    endif()
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /std:c++17 /wd4251")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++17 /wd4251")
     add_definitions(
@@ -288,7 +331,6 @@ find_package(Qt5 REQUIRED
     OpenGL
     Svg
     Xml
-    Script
     Widgets
     PrintSupport
     LinguistTools
@@ -297,6 +339,17 @@ find_package(Qt5 REQUIRED
     SerialPort
     UiTools
 )
+
+# QtScript is optional; detect separately so builds can proceed without it
+find_package(Qt5Script QUIET)
+if(Qt5Script_FOUND)
+    set(WITH_QT_SCRIPT ON)
+    add_definitions(-DWITH_QT_SCRIPT)
+    message(STATUS "Qt5Script found - enabling script features")
+else()
+    set(WITH_QT_SCRIPT OFF)
+    message(WARNING "Qt5Script not found - building without script support")
+endif()
 
 if(NOT Qt5Core_FOUND)
   message(FATAL_ERROR "Qt5Core not found check paths")
@@ -328,7 +381,63 @@ if(PLATFORM EQUAL 64)
     if(BUILD_ENV_UNIXLIKE)
         find_package(OpenCV REQUIRED)
     else() # Windows and MacOS case
-        find_package(OpenCV 4.1 REQUIRED)
+        # Try usual system/OpenCV first (quietly), then fallback to vcpkg-installed OpenCV when available
+        # Disable automatic OpenCV config-file discovery when vcpkg's OpenCV causes
+        # configure-time policy/dependency issues. Setting this allows building
+        # without OpenCV support (optional features disabled).
+        set(CMAKE_DISABLE_FIND_PACKAGE_OpenCV ON CACHE BOOL "Temporarily disable OpenCV find")
+        # find_package(OpenCV 4.1 QUIET)  # disabled (use vcpkg/manual fallback instead)
+        if(NOT OpenCV_FOUND)
+            # Look for a vcpkg installation either via VCPKG_ROOT env or a local ./vcpkg folder
+            if(DEFINED ENV{VCPKG_ROOT} OR EXISTS "${CMAKE_SOURCE_DIR}/vcpkg")
+                if(DEFINED ENV{VCPKG_ROOT})
+                    set(_vcpkg_root $ENV{VCPKG_ROOT})
+                else()
+                    set(_vcpkg_root "${CMAKE_SOURCE_DIR}/vcpkg")
+                endif()
+                if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+                    set(_vcpkg_triplet "x64-windows")
+                else()
+                    set(_vcpkg_triplet "x86-windows")
+                endif()
+                # Add vcpkg installed dirs to CMAKE_PREFIX_PATH so OpenCV and its dependencies are discoverable
+                list(APPEND CMAKE_PREFIX_PATH "${_vcpkg_root}/installed/${_vcpkg_triplet}" "${_vcpkg_root}/installed/${_vcpkg_triplet}/share")
+                # Also add the vcpkg lib directory to the linker search path so MSBuild can
+                # resolve import-libs when its vcpkg integration points at a different root.
+                link_directories("${_vcpkg_root}/installed/${_vcpkg_triplet}/lib")
+                # Proactively set Protobuf_DIR so OpenCV's find_dependency can locate protobuf from vcpkg
+                if(NOT DEFINED Protobuf_DIR)
+                    set(Protobuf_DIR "${_vcpkg_root}/installed/${_vcpkg_triplet}/share/protobuf")
+                endif()
+                # Try OpenCV from vcpkg installed tree
+                # find_package(OpenCV 4.1 CONFIG PATHS "${_vcpkg_root}/installed/${_vcpkg_triplet}/share/opencv4" QUIET)
+                # (disabled) use manual vcpkg fallback below instead
+            endif()
+        endif()
+        if(NOT OpenCV_FOUND)
+            # Fallback: if vcpkg has OpenCV installed, use its include/lib paths
+            if(EXISTS "${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}/lib/opencv_core4.lib")
+                message(STATUS "Using vcpkg-installed OpenCV (fallback): ${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}")
+                set(OpenCV_FOUND ON)
+                set(OpenCV_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}/include/opencv4")
+                set(OpenCV_LIBS
+                    "${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}/lib/opencv_core4.lib"
+                    "${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}/lib/opencv_imgproc4.lib"
+                    "${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}/lib/opencv_imgcodecs4.lib"
+                    "${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}/lib/opencv_highgui4.lib"
+                    "${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}/lib/opencv_videoio4.lib"
+                    "${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}/lib/opencv_calib3d4.lib"
+                    "${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}/lib/opencv_features2d4.lib"
+                    "${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}/lib/opencv_flann4.lib"
+                    "${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}/lib/opencv_video4.lib"
+                    "${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}/lib/opencv_dnn4.lib"
+                )
+            else()
+                message(WARNING "OpenCV not found — building without OpenCV support. Some features will be disabled.")
+                set(OpenCV_FOUND OFF)
+                set(OpenCV_LIBS "")
+            endif()
+        endif()
     endif()
     #include_directories(
     #    ${SDKROOT}/libjpeg-turbo64/include
@@ -338,6 +447,11 @@ if(PLATFORM EQUAL 64)
             ${SDKROOT}/canon/Header
         )
     endif()
+endif()
+
+if(OpenCV_FOUND)
+    include_directories(SYSTEM ${OpenCV_INCLUDE_DIRS})
+    message(STATUS "OpenCV include dirs: ${OpenCV_INCLUDE_DIRS}")
 endif()
 
 get_target_property(QtCore_location Qt5::Core LOCATION)
@@ -367,28 +481,191 @@ set(QT_LIB)  # avoid warning
 if(BUILD_ENV_MSVC)
     set(MSVC_LIB_VERSION 2015)
 
-    set(GLUT_LIB ${SDKROOT}/glut/3.7.6/lib/glut${PLATFORM}.lib)
+    # Ensure OpenGL target is available for FreeGLUT
+    find_package(OpenGL REQUIRED)
+
+    # Prefer system or vcpkg-provided GLUT (freeglut) when available
+    find_package(FreeGLUT QUIET)
+    if(TARGET FreeGLUT::freeglut)
+        set(GLUT_LIB FreeGLUT::freeglut)
+    else()
+        find_package(GLUT QUIET)
+        if(TARGET GLUT::GLUT)
+            set(GLUT_LIB GLUT::GLUT)
+        else()
+            set(GLUT_LIB ${SDKROOT}/glut/3.7.6/lib/glut${PLATFORM}.lib)
+        endif()
+    endif()
     set(GL_LIB opengl32.lib)
-    set(Z_LIB
-        optimized ${SDKROOT}/zlib-1.2.8/lib/zlib-1.2.8_${MSVC_LIB_VERSION}${PLATFORM2}.lib
-        debug ${SDKROOT}/zlib-1.2.8/lib/zlib-1.2.8_${MSVC_LIB_VERSION}${PLATFORM2}d.lib
-    )
-    #set(JPEG_LIB ${SDKROOT}/LibJPEG/jpeg-9/lib/LibJPEG-9_${MSVC_LIB_VERSION}${PLATFORM2}.lib)
-    set(JPEG_LIB ${SDKROOT}/libjpeg-turbo/lib/jpeg-static_${MSVC_LIB_VERSION}${PLATFORM2}.lib)
-    set(TURBOJPEG_LIB ${SDKROOT}/libjpeg-turbo/lib/turbojpeg-static_${MSVC_LIB_VERSION}${PLATFORM2}.lib)
+    # Prefer vcpkg/system ZLIB when available, otherwise fall back to bundled thirdparty
+    find_package(ZLIB QUIET)
+    if(TARGET ZLIB::ZLIB)
+        set(Z_LIB ZLIB::ZLIB)
+    elseif(DEFINED ZLIB_LIBRARY AND DEFINED ZLIB_INCLUDE_DIR)
+        set(Z_LIB ${ZLIB_LIBRARY})
+    else()
+        set(Z_LIB
+            optimized ${SDKROOT}/zlib-1.2.8/lib/zlib-1.2.8_${MSVC_LIB_VERSION}${PLATFORM2}.lib
+            debug ${SDKROOT}/zlib-1.2.8/lib/zlib-1.2.8_${MSVC_LIB_VERSION}${PLATFORM2}d.lib
+        )
+    endif()
+    # Prefer system/vcpkg libjpeg; fall back to bundled thirdparty
+    find_package(JPEG QUIET)
+    if(TARGET JPEG::JPEG)
+        set(JPEG_LIB JPEG::JPEG)
+    elseif(DEFINED JPEG_LIBRARIES)
+        set(JPEG_LIB ${JPEG_LIBRARIES})
+    else()
+        set(JPEG_LIB ${SDKROOT}/libjpeg-turbo/lib/jpeg-static_${MSVC_LIB_VERSION}${PLATFORM2}.lib)
+    endif()
+    # TurboJPEG fallback
+    find_path(TURBOJPEG_INCLUDE_DIR turbojpeg.h PATHS ${CMAKE_SOURCE_DIR}/vcpkg/installed/x64-windows/include NO_DEFAULT_PATH)
+    if(TURBOJPEG_INCLUDE_DIR)
+        set(TURBOJPEG_LIB "${CMAKE_SOURCE_DIR}/vcpkg/installed/x64-windows/lib/turbojpeg.lib")
+    else()
+        set(TURBOJPEG_LIB ${SDKROOT}/libjpeg-turbo/lib/turbojpeg-static_${MSVC_LIB_VERSION}${PLATFORM2}.lib)
+    endif()
     set(TIFF_INCLUDE_DIR ${SDKROOT}/tiff-4.0.3/libtiff)
     set(TIFF_LIB
         optimized ${SDKROOT}/tiff-4.0.3/lib/LibTIFF-4.0.3_${MSVC_LIB_VERSION}${PLATFORM2}.lib
         debug  ${SDKROOT}/tiff-4.0.3/lib/LibTIFF-4.0.3_${MSVC_LIB_VERSION}${PLATFORM2}d.lib
     )
+    # Prefer vcpkg-installed libtiff when bundled import library/header are missing
+    if(EXISTS "${CMAKE_SOURCE_DIR}/vcpkg")
+        if(NOT DEFINED _vcpkg_triplet)
+            if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+                set(_vcpkg_triplet "x64-windows")
+            else()
+                set(_vcpkg_triplet "x86-windows")
+            endif()
+        endif()
+        find_file(_vcpkg_tiff_header NAMES tiffio.h PATHS "${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}/include" NO_DEFAULT_PATH)
+        find_file(_vcpkg_tiff_lib NAMES tiff.lib TIFF.lib PATHS "${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}/lib" NO_DEFAULT_PATH)
+        if(_vcpkg_tiff_header AND _vcpkg_tiff_lib)
+            # Prefer vcpkg libtiff only if it exposes the 64-bit RGBA helpers used by
+            # our TIFF reader. Some vcpkg builds omit TIFFReadRGBAStrip_64 /
+            # TIFFReadRGBATile_64 and that causes unresolved externals at link time;
+            # in that case fall back to the bundled thirdparty copy which provides
+            # the aliases.
+            file(READ "${_vcpkg_tiff_header}" _vcpkg_tiff_header_head LIMIT 8192)
+            string(FIND "${_vcpkg_tiff_header_head}" "TIFFReadRGBAStrip_64" _vcpkg_tiff_has_64)
+            if(NOT _vcpkg_tiff_has_64 EQUAL -1)
+                set(TIFF_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}/include")
+                set(TIFF_LIB "${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}/lib/tiff.lib")
+                message(STATUS "Using vcpkg-installed libtiff: ${TIFF_LIB}")
+            else()
+                message(WARNING "vcpkg-installed libtiff lacks TIFFReadRGBA 64-bit helpers; using bundled thirdparty libtiff instead.")
+            endif()
+        endif()
+    endif()
     set(PNG_LIB
         optimized ${SDKROOT}/libpng-1.6.21/lib/libpng16_${MSVC_LIB_VERSION}${PLATFORM2}.lib
         debug  ${SDKROOT}/libpng-1.6.21/lib/libpng16_${MSVC_LIB_VERSION}${PLATFORM2}d.lib
     )
+    # Prefer vcpkg-installed libpng when the bundled import lib/header are missing or invalid
+    if(EXISTS "${CMAKE_SOURCE_DIR}/vcpkg")
+        if(NOT DEFINED _vcpkg_triplet)
+            if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+                set(_vcpkg_triplet "x64-windows")
+            else()
+                set(_vcpkg_triplet "x86-windows")
+            endif()
+        endif()
+        find_file(_vcpkg_png_header NAMES png.h pngconf.h PATHS "${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}/include" NO_DEFAULT_PATH)
+        find_file(_vcpkg_png_lib NAMES libpng16.lib png16.lib PNG16.lib PATHS "${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}/lib" NO_DEFAULT_PATH)
+        if(_vcpkg_png_header AND _vcpkg_png_lib)
+            set(PNG_LIB "${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}/lib/libpng16.lib")
+            set(PNG_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}/include")
+            message(STATUS "Using vcpkg-installed libpng: ${PNG_LIB}")
+        endif()
+    endif()
     set(GLEW_LIB ${SDKROOT}/glew/glew-1.9.0/lib/glew${PLATFORM}.lib)
-    set(LZ4_LIB ${SDKROOT}/Lz4/Lz4_131/lz4_${PLATFORM}.lib)
+    # Prefer vcpkg-installed GLEW when available (fixes missing/corrupt thirdparty import libs)
+    if(EXISTS "${CMAKE_SOURCE_DIR}/vcpkg")
+        if(NOT DEFINED _vcpkg_triplet)
+            if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+                set(_vcpkg_triplet "x64-windows")
+            else()
+                set(_vcpkg_triplet "x86-windows")
+            endif()
+        endif()
+        find_file(_vcpkg_glew_lib NAMES glew.lib glew32.lib glew64.lib glew64s.lib glew64mx.lib PATHS "${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}/lib" NO_DEFAULT_PATH)
+        if(_vcpkg_glew_lib)
+            set(GLEW_LIB "${_vcpkg_glew_lib}")
+            message(STATUS "Using vcpkg-installed GLEW: ${GLEW_LIB}")
+        endif()
+    endif()
+    # Prefer vcpkg-installed lz4 when available, else use bundled thirdparty
+    find_package(lz4 QUIET)
+    if(TARGET lz4::lz4)
+        set(LZ4_LIB lz4::lz4)
+    else()
+        set(LZ4_LIB ${SDKROOT}/Lz4/Lz4_131/lz4_${PLATFORM}.lib)
+    endif()
     set(SUPERLU_LIB ${SDKROOT}/superlu/SuperLU_${MSVC_LIB_VERSION}_${PLATFORM}.lib)
+    # If the bundled SuperLU import library is a Git-LFS pointer, prefer a vcpkg-provided
+    # SuperLU or add an ExternalProject to build SuperLU from source so builds don't
+    # fail when the repo contains LFS pointer placeholders.
+    if(EXISTS "${SUPERLU_LIB}")
+        file(READ "${SUPERLU_LIB}" _superlu_lib_head LIMIT 2048)
+        string(FIND "${_superlu_lib_head}" "version https://git-lfs.github.com/spec/v1" _is_lfs)
+        if(NOT _is_lfs EQUAL -1)
+            message(WARNING "Detected Git-LFS pointer for SuperLU import library; will try vcpkg or build from source.")
+            # try vcpkg-installed SuperLU first
+            if(EXISTS "${CMAKE_SOURCE_DIR}/vcpkg")
+                if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+                    set(_vcpkg_triplet "x64-windows")
+                else()
+                    set(_vcpkg_triplet "x86-windows")
+                endif()
+                find_file(_vcpkg_superlu_lib NAMES superlu.lib libsuperlu.lib PATHS "${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}/lib" NO_DEFAULT_PATH)
+                if(_vcpkg_superlu_lib)
+                    set(SUPERLU_LIB "${_vcpkg_superlu_lib}")
+                    message(STATUS "Using vcpkg-installed SuperLU: ${SUPERLU_LIB}")
+                    # If METIS is available in vcpkg, prefer it for SuperLU's ordering
+                    find_file(_vcpkg_metis_lib NAMES metis.lib libmetis.lib PATHS "${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}/lib" NO_DEFAULT_PATH)
+                    if(_vcpkg_metis_lib)
+                        set(METIS_LIB "${_vcpkg_metis_lib}")
+                        message(STATUS "Using vcpkg-installed METIS: ${METIS_LIB}")
+                    endif()
+                endif()
+            endif()
+            # If still not found, add an ExternalProject to build SuperLU from the bundled source
+            if(NOT _vcpkg_superlu_lib AND NOT IS_DIRECTORY "${SUPERLU_LIB}")
+                message(STATUS "Adding ExternalProject 'superlu_local' — building SuperLU from thirdparty source")
+                include(ExternalProject)
+                ExternalProject_Add(superlu_local
+                    SOURCE_DIR "${CMAKE_SOURCE_DIR}/thirdparty/superlu/SuperLU_4.1/prj/SuperLU"
+                    CONFIGURE_COMMAND ""
+                    BUILD_COMMAND ${CMAKE_BUILD_TOOL} "${CMAKE_SOURCE_DIR}/thirdparty/superlu/SuperLU_4.1/prj/SuperLU/SuperLU.sln" /p:Configuration=Release /m
+                    INSTALL_COMMAND ""
+                    BUILD_BYPRODUCTS "${CMAKE_SOURCE_DIR}/thirdparty/superlu/SuperLU_2015_64.lib"
+                )
+                set(SUPERLU_LIB "${CMAKE_SOURCE_DIR}/thirdparty/superlu/SuperLU_2015_64.lib")
+            endif()
+        endif()
+    endif()
+
     set(OPENBLAS_LIB ${SDKROOT}/openblas/libopenblas_${PLATFORM}.lib)
+    if(EXISTS "${OPENBLAS_LIB}")
+        file(READ "${OPENBLAS_LIB}" _openblas_head LIMIT 2048)
+        string(FIND "${_openblas_head}" "version https://git-lfs.github.com/spec/v1" _is_lfs_openblas)
+        if(NOT _is_lfs_openblas EQUAL -1)
+            message(WARNING "Detected Git-LFS pointer for OpenBLAS import library; will try vcpkg-installed OpenBLAS")
+            if(EXISTS "${CMAKE_SOURCE_DIR}/vcpkg")
+                if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+                    set(_vcpkg_triplet "x64-windows")
+                else()
+                    set(_vcpkg_triplet "x86-windows")
+                endif()
+                find_file(_vcpkg_openblas_lib NAMES libopenblas.lib openblas.lib PATHS "${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}/lib" NO_DEFAULT_PATH)
+                if(_vcpkg_openblas_lib)
+                    set(OPENBLAS_LIB "${_vcpkg_openblas_lib}")
+                    message(STATUS "Using vcpkg-installed OpenBLAS: ${OPENBLAS_LIB}")
+                endif()
+            endif()
+        endif()
+    endif()
     set(USB_LIB)  # unused
 
     if(PLATFORM EQUAL 32)
@@ -396,6 +673,32 @@ if(BUILD_ENV_MSVC)
     endif()
     set(MYPAINT_LIB_INCLUDE_DIRS ${SDKROOT}/libmypaint/dist/${PLATFORM}/include/libmypaint)
     set(MYPAINT_LIB_LDFLAGS ${SDKROOT}/libmypaint/dist/${PLATFORM}/libmypaint.lib)
+
+    # If bundled import library is missing or is a Git-LFS pointer, prefer vcpkg-installed libmypaint
+    if(NOT EXISTS "${MYPAINT_LIB_LDFLAGS}")
+        set(_is_lfs_mypaint 1)
+    else()
+        file(READ "${MYPAINT_LIB_LDFLAGS}" _mypaint_head LIMIT 2048)
+        string(FIND "${_mypaint_head}" "version https://git-lfs.github.com/spec/v1" _is_lfs_mypaint)
+    endif()
+
+    if(_is_lfs_mypaint GREATER -1)
+        if(EXISTS "${CMAKE_SOURCE_DIR}/vcpkg")
+            if(NOT DEFINED _vcpkg_triplet)
+                if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+                    set(_vcpkg_triplet "x64-windows")
+                else()
+                    set(_vcpkg_triplet "x86-windows")
+                endif()
+            endif()
+            find_file(_vcpkg_mypaint_lib NAMES libmypaint.lib mypaint.lib PATHS "${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}/lib" NO_DEFAULT_PATH)
+            if(_vcpkg_mypaint_lib)
+                set(MYPAINT_LIB_LDFLAGS "${_vcpkg_mypaint_lib}")
+                set(MYPAINT_LIB_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}/include")
+                message(STATUS "Using vcpkg-installed libmypaint: ${MYPAINT_LIB_LDFLAGS}")
+            endif()
+        endif()
+    endif()
 
     if(PLATFORM EQUAL 64)
         if (WITH_CANON)
@@ -493,7 +796,7 @@ elseif(BUILD_ENV_UNIXLIKE)
     # the libraries have .pc
     find_package(PkgConfig)
 
-    # This is not required for OpenToonz itself, but libtiff will pick it up if
+    # This is not required for Flare itself, but libtiff will pick it up if
     # present and libimage won't be aware causing linker to fail
     pkg_check_modules(LZMA liblzma)
     set(TIFF_LIB ${TIFF_LIBRARY} ${LZMA_LIBRARIES})

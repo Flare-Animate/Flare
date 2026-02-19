@@ -23,6 +23,16 @@ extern "C" {
 #include "tiffio.h"
 }
 
+// Ensure 64-bit TIFF RGBA helpers are declared for headers that omit them
+#ifdef __cplusplus
+extern "C" {
+#endif
+extern int TIFFReadRGBAStrip_64(TIFF *tif, uint32 row, uint64 *raster);
+extern int TIFFReadRGBATile_64(TIFF *tif, uint32 x, uint32 y, uint64 *raster);
+#ifdef __cplusplus
+}
+#endif
+
 #include "tiio_tif.h"
 
 #ifdef _MSC_VER

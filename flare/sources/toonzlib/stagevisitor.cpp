@@ -659,7 +659,7 @@ void RasterPainter::flushRasterImages() {
           forceHighToneEmptyPixels(rasterToUse, threshold);
         }
 
-        // Final render using original OpenToonz quickPut behavior
+        // Final render using original Flare quickPut behavior
         TRop::quickPut(viewedRaster, rasterToUse, plt, aff, settings);
         // Temporary clone automatically destroyed when leaving scope
       }

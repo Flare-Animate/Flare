@@ -537,7 +537,7 @@ E&apos; possibile che il file sia corrotto.</translation>
         <translation type="obsolete">Toonz</translation>
     </message>
     <message>
-        <source>OpenToonz</source>
+        <source>Flare</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -548,7 +548,7 @@ E&apos; possibile che il file sia corrotto.</translation>
         <translation type="obsolete">Toonz</translation>
     </message>
     <message>
-        <source>OpenToonz</source>
+        <source>Flare</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

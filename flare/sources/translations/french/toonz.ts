@@ -5172,7 +5172,7 @@ Please use the frame numbers for reference.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>About OpenToonz</source>
+        <source>About Flare</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -5196,7 +5196,7 @@ Please use the frame numbers for reference.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>&amp;About OpenToonz...</source>
+        <source>&amp;About Flare...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -5593,7 +5593,7 @@ Please use the frame numbers for reference.</source>
         <source>
 Are you sure?
 
-N.B. Make sure you are not running another process of OpenToonz,
+N.B. Make sure you are not running another process of Flare,
 or you may delete necessary files for it.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -5610,7 +5610,7 @@ or you may delete necessary files for it.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>To report a bug, click on the button below to open a web browser window for OpenToonz&apos;s Issues page on https://github.com.  Click on the &apos;New issue&apos; button and fill out the form.</source>
+        <source>To report a bug, click on the button below to open a web browser window for Flare&apos;s Issues page on https://github.com.  Click on the &apos;New issue&apos; button and fill out the form.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -7123,8 +7123,8 @@ Set the output folder path to the subfolder as well.</source>
         <translation>Minimiser la Fragmentation de la Mémoire Raster*</translation>
     </message>
     <message>
-        <source>* Changes will take effect the next time you run OpenToonz</source>
-        <translation>* Les changements auront effet lors de la prochaine exécution de OpenToonz</translation>
+        <source>* Changes will take effect the next time you run Flare</source>
+        <translation>* Les changements auront effet lors de la prochaine exécution de Flare</translation>
     </message>
     <message>
         <source>Move Current Frame by Clicking on Xsheet / Numerical Columns Cell Area</source>
@@ -7263,11 +7263,11 @@ Set the output folder path to the subfolder as well.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>My Documents/OpenToonz*</source>
+        <source>My Documents/Flare*</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Desktop/OpenToonz*</source>
+        <source>Desktop/Flare*</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -7335,7 +7335,7 @@ Set the output folder path to the subfolder as well.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Show Startup Window when OpenToonz Starts</source>
+        <source>Show Startup Window when Flare Starts</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -7396,7 +7396,7 @@ Is it OK to release these shortcuts?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Enable OpenToonz Commands&apos; Shortcut Keys While Renaming Cell</source>
+        <source>Enable Flare Commands&apos; Shortcut Keys While Renaming Cell</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -7541,12 +7541,12 @@ if both are possible on coding file path.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>OpenToonz can use FFmpeg for additional file formats.
+        <source>Flare can use FFmpeg for additional file formats.
 </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>FFmpeg is not bundled with OpenToonz.
+        <source>FFmpeg is not bundled with Flare.
 </source>
         <translation type="unfinished"></translation>
     </message>
@@ -7563,7 +7563,7 @@ if both are possible on coding file path.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Check for the Latest Version of OpenToonz on Launch</source>
+        <source>Check for the Latest Version of Flare on Launch</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -9403,7 +9403,7 @@ What would you like to do? </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>This scene is incompatible with pixels only mode of the current OpenToonz version.
+        <source>This scene is incompatible with pixels only mode of the current Flare version.
 What would you like to do?</source>
         <translation type="unfinished"></translation>
     </message>
@@ -11657,7 +11657,7 @@ S&apos;il vous plaît commettre ou annuler les modifications avant.</translation
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>OpenToonz - Setting Shortcuts</source>
+        <source>Flare - Setting Shortcuts</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -11991,7 +11991,7 @@ Attribuer à  &apos;3%&apos;?</translation>
 <context>
     <name>StartupPopup</name>
     <message>
-        <source>OpenToonz Startup</source>
+        <source>Flare Startup</source>
         <translation type="unfinished"></translation>
     </message>
     <message>

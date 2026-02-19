@@ -408,6 +408,12 @@ set(SOURCES
     predict3d.cpp
 )
 
+# If QtScript is not available, swap in the lightweight stub implementation
+if(NOT WITH_QT_SCRIPT)
+    list(REMOVE_ITEM SOURCES scriptconsolepanel.cpp)
+    list(APPEND SOURCES scriptconsolepanel_stub.cpp)
+endif()
+
 if(PLATFORM EQUAL 64)
     set(SOURCES
         ${SOURCES}
@@ -436,6 +442,8 @@ endif()
 if(WITH_TRANSLATION)
     add_translation(toonz ${HEADERS} ${SOURCES})
 endif()
+
+message(STATUS "FLARE_SOURCES=${SOURCES}")
 
 set(OBJCSOURCES filebrowsermodel.cpp)
 
@@ -545,7 +553,7 @@ if(BUILD_ENV_MSVC)
     endif()
     target_link_libraries(Flare
         Qt5::WinMain Qt5::Core Qt5::Gui Qt5::Network Qt5::OpenGL Qt5::Svg Qt5::Xml
-        Qt5::Script Qt5::Widgets Qt5::PrintSupport Qt5::Multimedia Qt5::UiTools
+        Qt5::Widgets Qt5::PrintSupport Qt5::Multimedia Qt5::UiTools
         ${GL_LIB} ${GLUT_LIB}
         ${EXTRA_LIBS} strmiids
         tnzcore tnzbase toonzlib colorfx tnzext image sound toonzqt tnztools tnzstdfx tfarm
@@ -567,7 +575,7 @@ elseif(BUILD_ENV_APPLE)
 
     target_link_libraries(Flare
         Qt5::Core Qt5::Gui Qt5::Network Qt5::OpenGL Qt5::Svg Qt5::Xml
-        Qt5::Script Qt5::Widgets Qt5::PrintSupport Qt5::Multimedia Qt5::MultimediaWidgets Qt5::UiTools
+        Qt5::Widgets Qt5::PrintSupport Qt5::Multimedia Qt5::MultimediaWidgets Qt5::UiTools
         ${GL_LIB} ${GLUT_LIB}
         ${COCOA_LIB} ${EXTRA_LIBS} ${X64ONLY_LIBS} mousedragfilter
     )
@@ -602,16 +610,21 @@ elseif(BUILD_ENV_UNIXLIKE)
 
     target_link_libraries(
         Flare Qt5::Core Qt5::Gui Qt5::Network Qt5::OpenGL Qt5::Svg Qt5::Xml
-        Qt5::Script Qt5::Widgets Qt5::PrintSupport Qt5::Multimedia Qt5::UiTools
+        Qt5::Widgets Qt5::PrintSupport Qt5::Multimedia Qt5::UiTools
         ${GL_LIB} ${GLUT_LIB} ${GLU_LIB}
         ${EXTRA_LIBS}
     )
+
+# Link QtScript to Flare only if the module was found
+if(WITH_QT_SCRIPT)
+    target_link_libraries(Flare Qt5::Script)
+endif()
 endif()
 
 if(BUILD_ENV_APPLE)
     # CMAKE_RUNTIME_OUTPUT_DIRECTORY should be equivalent to usage on windows despite empty
     # OSX だと CMAKE_RUNTIME_OUTPUT_DIRECTORY が空だが Windows 版と同じ使い方ができるようにしておく
-    # Removed: get_target_property(bin OpenToonz LOCATION)
+    # Removed: get_target_property(bin Flare LOCATION)
     # Use generator expression for runtime directory
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "$<TARGET_FILE_DIR:Flare>")
     message("CMAKE_RUNTIME_OUTPUT_DIRECTORY:" ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
@@ -728,7 +741,7 @@ if(BUILD_ENV_UNIXLIKE AND BUILD_TARGET_WIN)
     install(
         DIRECTORY
             ${CMAKE_SOURCE_DIR}/../../stuff
-        DESTINATION share/opentoonz
+        DESTINATION share/flare
     )
 elseif(BUILD_ENV_UNIXLIKE AND NOT BUILD_TARGET_WIN)
     # Setup files on Linux/Unix platform.
@@ -736,7 +749,7 @@ elseif(BUILD_ENV_UNIXLIKE AND NOT BUILD_TARGET_WIN)
     # but useful for package managers.
     #
     # Note that its assumed the destination can be either
-    # - /opt/opentoonz
+    # - /opt/flare
     # - /usr
     install(
         TARGETS
@@ -822,13 +835,13 @@ exec \$FLARE_BASE/bin/Flare \"\$@\"
             "$<TARGET_FILE:tnztools>"
             "$<TARGET_FILE:tnzstdfx>"
             "$<TARGET_FILE:tfarm>"
-        DESTINATION lib/opentoonz
+        DESTINATION lib/flare
     )
 
     install(
         DIRECTORY
             ${CMAKE_SOURCE_DIR}/../../stuff
-        DESTINATION share/opentoonz
+        DESTINATION share/flare
     )
 
 endif()

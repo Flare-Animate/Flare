@@ -2091,7 +2091,7 @@ DPI 정보를 포함하면 현재 카메라 DPI가 적용됩니다. </translatio
 <context>
     <name>CrashHandler</name>
     <message>
-        <source>&lt;b&gt;OpenToonz crashed unexpectedly.&lt;/b&gt;</source>
+        <source>&lt;b&gt;Flare crashed unexpectedly.&lt;/b&gt;</source>
         <translation>&lt;b&gt;오픈툰즈가 예기치 않게 충돌했습니다.&lt;/b&gt;</translation>
     </message>
     <message>
@@ -2099,7 +2099,7 @@ DPI 정보를 포함하면 현재 카메라 DPI가 적용됩니다. </translatio
         <translation>충돌 보고서가 생성되었습니다.</translation>
     </message>
     <message>
-        <source>To report, click &apos;Open Issue Webpage&apos; to access OpenToonz&apos;s Issues page on GitHub.</source>
+        <source>To report, click &apos;Open Issue Webpage&apos; to access Flare&apos;s Issues page on GitHub.</source>
         <translation>신고하려면 &quot;문제 웹페이지 열기&quot;를 클릭해 GitHub 오픈툰즈 문제 페이지에 접속하세요.</translation>
     </message>
     <message>
@@ -2127,7 +2127,7 @@ DPI 정보를 포함하면 현재 카메라 DPI가 적용됩니다. </translatio
         <translation>신청 닫기</translation>
     </message>
     <message>
-        <source>OpenToonz crashed!</source>
+        <source>Flare crashed!</source>
         <translation>오픈툰즈에 충돌이 발생했습니다!</translation>
     </message>
     <message>
@@ -4716,7 +4716,7 @@ Please use the frame numbers for reference.</source>
         <translation>X-시트</translation>
     </message>
     <message>
-        <source>About OpenToonz</source>
+        <source>About Flare</source>
         <translation>오픈툰즈 소개</translation>
     </message>
     <message>
@@ -5728,7 +5728,7 @@ Please use the frame numbers for reference.</source>
         <translation>메인 창 전체 화면 모드 전환</translation>
     </message>
     <message>
-        <source>&amp;About OpenToonz...</source>
+        <source>&amp;About Flare...</source>
         <translation>오픈 툰즈에 대해(&amp;A)...</translation>
     </message>
     <message>
@@ -6458,7 +6458,7 @@ Please use the frame numbers for reference.</source>
         <source>
 Are you sure?
 
-N.B. Make sure you are not running another process of OpenToonz,
+N.B. Make sure you are not running another process of Flare,
 or you may delete necessary files for it.</source>
         <translation>
 확실 합니까?
@@ -6574,7 +6574,7 @@ N.B. Open Toonz 다른 프로세스를 실행하고 있지 않은지 확인하�
         <translation></translation>
     </message>
     <message>
-        <source>To report a bug, click on the button below to open a web browser window for OpenToonz&apos;s Issues page on https://github.com.  Click on the &apos;New issue&apos; button and fill out the form.</source>
+        <source>To report a bug, click on the button below to open a web browser window for Flare&apos;s Issues page on https://github.com.  Click on the &apos;New issue&apos; button and fill out the form.</source>
         <translation>버그를 보고하려면 아래 버튼을 클릭하여 오픈툰즈용 웹 브라우저 창을 여십시오.&apos;s문제페이지 https://github.com.  클릭하기&apos;새로운 문제&apos; 버튼을 누르고 양식을 작성한다.</translation>
     </message>
     <message>
@@ -7066,7 +7066,7 @@ N.B. Open Toonz 다른 프로세스를 실행하고 있지 않은지 확인하�
         <translation>방을 재설정</translation>
     </message>
     <message>
-        <source>You must restart OpenToonz, close it now?</source>
+        <source>You must restart Flare, close it now?</source>
         <translatorcomment>오픈툰즈를 다시 시작해야 하는데 지금 닫으시겠습니까?</translatorcomment>
         <translation></translation>
     </message>
@@ -8647,7 +8647,7 @@ Is it OK to release these shortcuts?</source>
         <translation>비-장면 파일 자동 저장</translation>
     </message>
     <message>
-        <source>Show Startup Window when OpenToonz Starts</source>
+        <source>Show Startup Window when Flare Starts</source>
         <translation>오픈 툰즈가 시작될 떄 시작 창 표시</translation>
     </message>
     <message>
@@ -8667,11 +8667,11 @@ Is it OK to release these shortcuts?</source>
         <translation>파일 시스템 보기 및 파일 브라우저 자동 업데이트</translation>
     </message>
     <message>
-        <source>My Documents/OpenToonz*</source>
+        <source>My Documents/Flare*</source>
         <translation>내문서/오픈툰즈*</translation>
     </message>
     <message>
-        <source>Desktop/OpenToonz*</source>
+        <source>Desktop/Flare*</source>
         <translation>데스크탑/오픈툰즈*</translation>
     </message>
     <message>
@@ -8691,7 +8691,7 @@ Is it OK to release these shortcuts?</source>
         <translation>고급:**(공백없음)으로 여러 경로를 구분할 수 있음</translation>
     </message>
     <message>
-        <source>* Changes will take effect the next time you run OpenToonz</source>
+        <source>* Changes will take effect the next time you run Flare</source>
         <translation>* 다음에 툰즈를 실행하면 변경 사항이 적용 됨</translation>
     </message>
     <message>
@@ -8839,7 +8839,7 @@ Is it OK to release these shortcuts?</source>
         <translation>두번 클릭하지 않고 셀 입력 가능</translation>
     </message>
     <message>
-        <source>Enable OpenToonz Commands&apos; Shortcut Keys While Renaming Cell</source>
+        <source>Enable Flare Commands&apos; Shortcut Keys While Renaming Cell</source>
         <translation>셀 이름을 바꾸는 동안 오픈툰즈 명령 단축키 사용 </translation>
     </message>
     <message>
@@ -8895,7 +8895,7 @@ Is it OK to release these shortcuts?</source>
         <translation>라인만 표시</translation>
     </message>
     <message>
-        <source>Check for the Latest Version of OpenToonz on Launch</source>
+        <source>Check for the Latest Version of Flare on Launch</source>
         <translation>출시 시 최신 오픈툰즈 버전 확인</translation>
     </message>
     <message>
@@ -8921,12 +8921,12 @@ Also the initial output destination for new scenes will be set to $scenefolder a
         <translation>테마:</translation>
     </message>
     <message>
-        <source>OpenToonz can use FFmpeg for additional file formats.
+        <source>Flare can use FFmpeg for additional file formats.
 </source>
         <translation>오픈 툰즈는 추가 파일 형식으로 FFmpeg 사용할 수 있음.</translation>
     </message>
     <message>
-        <source>FFmpeg is not bundled with OpenToonz.
+        <source>FFmpeg is not bundled with Flare.
 </source>
         <translation>FFmpeg는 오픈툰즈와 함께 제공 되지 않음.</translation>
     </message>
@@ -9607,12 +9607,12 @@ but a random crash might occur, use at your own risk.</source>
         <translation>멀티 스레드 렌더링을 활성화하면 훨씬 더 빠르게 렌더링됩니다. 그러나 임의의 충돌이 발생할 수 있으므로 본인이 위험을 무릎쓰고 사용하십시오.</translation>
     </message>
     <message>
-        <source>OpenToonz can use Rhubarb for auto lip-syncing.
+        <source>Flare can use Rhubarb for auto lip-syncing.
 </source>
         <translation>오픈툰즈는 자동 립싱크에 Raubarb를 사용할 수 있습니다.</translation>
     </message>
     <message>
-        <source>Rhubarb is not bundled with OpenToonz.
+        <source>Rhubarb is not bundled with Flare.
 </source>
         <translation>Rhubarb은 오픈툰즈와 함께 제공되지 않습니다.</translation>
     </message>
@@ -10638,7 +10638,7 @@ Some levels have not been loaded because their version is not supported</source>
 버전이 지원되지 않기 때문에 일부 레벨이 가져올수 없음</translation>
     </message>
     <message>
-        <source>This scene is incompatible with pixels only mode of the current OpenToonz version.
+        <source>This scene is incompatible with pixels only mode of the current Flare version.
 What would you like to do?</source>
         <translation>이 장면은 현재 오픈툰즈 버전의 픽셀 전용 모드와 호환되지 않음.
 무엇을 하고 싶습니까?</translation>
@@ -12434,7 +12434,7 @@ What do you want to do?</source>
         <translation>새로운 래스터 레벨</translation>
     </message>
     <message>
-        <source>The rooms will be reset the next time you run OpenToonz.</source>
+        <source>The rooms will be reset the next time you run Flare.</source>
         <translation>방은 다음에 오픈툰즈를 실행할 때 초기화됩니다.</translation>
     </message>
     <message>
@@ -14415,7 +14415,7 @@ Please commit or revert changes first.</source>
         <translation>이미 존재함. 교체하겠습니까?</translation>
     </message>
     <message>
-        <source>OpenToonz - Setting Shortcuts</source>
+        <source>Flare - Setting Shortcuts</source>
         <translation>오픈툰즈-단축키 설정</translation>
     </message>
     <message>
@@ -14755,7 +14755,7 @@ Assign shortcut sequence anyway?</source>
 <context>
     <name>StartupPopup</name>
     <message>
-        <source>OpenToonz Startup</source>
+        <source>Flare Startup</source>
         <translation>오픈툰즈 스타트업</translation>
     </message>
     <message>

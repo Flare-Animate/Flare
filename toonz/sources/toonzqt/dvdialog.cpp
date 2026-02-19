@@ -313,7 +313,7 @@ Dialog::Dialog(QWidget *parent, bool hasButton, bool hasFixedSize,
     // make sure that the window is visible on the screen
     // all popups will popup on the active window the first time
     // so popups moved to other monitors will be moved back
-    // when restarting OpenToonz.
+    // when restarting Flare.
 
     // This may be somewhat annoying if a user REALLY wants the popup
     // on another monitor by default, but this is better than

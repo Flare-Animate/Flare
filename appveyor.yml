@@ -99,9 +99,12 @@ build:
 after_build:
   # Deploy Qt dependencies
   - cmd: >-
-      if not exist "%CONFIGURATION%\OpenToonz.exe" (echo OpenToonz.exe not found & exit /b 1)
-
-      %QT_PATH%\bin\windeployqt.exe %CONFIGURATION%\OpenToonz.exe || exit /b 1
+      if exist "%CONFIGURATION%\Flare.exe" (
+        %QT_PATH%\bin\windeployqt.exe %CONFIGURATION%\Flare.exe || exit /b 1
+      ) else (
+        if not exist "%CONFIGURATION%\Flare.exe" (echo Neither Flare.exe nor Flare.exe found & exit /b 1)
+        %QT_PATH%\bin\windeployqt.exe %CONFIGURATION%\Flare.exe || exit /b 1
+      )
 
       echo Deployed Qt dependencies
 
@@ -127,4 +130,4 @@ after_build:
 
 artifacts:
   - path: toonz\$(PLATFORM)\$(CONFIGURATION)
-    name: OpenToonz
+    name: Flare

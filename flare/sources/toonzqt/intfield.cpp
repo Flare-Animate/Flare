@@ -310,7 +310,7 @@ IntField::IntField(QWidget *parent, bool isMaxRangeLimited, bool isRollerHide,
   if (isSpinnerHide) enableSpinner(false);
   
   // TODO:
-  // Commonly in OpenToonz spin-buttons has been placed in that order: [+][-]
+  // Commonly in Flare spin-buttons has been placed in that order: [+][-]
   // This seems unusual behavior.
   // And in this particular case buttons has been placed in another order: [-][+]
   // We need to know what is better

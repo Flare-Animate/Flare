@@ -10,6 +10,8 @@ on:
 jobs:
   sync-upstream:
     runs-on: ubuntu-latest
+    env:
+      GIT_LFS_SKIP_SMUDGE: '1'
     permissions:
       contents: write
       pull-requests: write
@@ -19,6 +21,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0  # Fetch full history for proper syncing
+          lfs: false
 
       - name: Configure Git
         run: |

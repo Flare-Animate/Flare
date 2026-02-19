@@ -498,7 +498,7 @@ int main(int argc, char *argv[]) {
   TEnv::setSystemVarPrefix(systemVarPrefix);
   TEnv::setApplicationFileName(argv[0]);
 
-  QCoreApplication::setOrganizationName("OpenToonz");
+  QCoreApplication::setOrganizationName("Flare");
   QCoreApplication::setOrganizationDomain("");
   QCoreApplication::setApplicationName(
       QString::fromStdString(TEnv::getApplicationName()));

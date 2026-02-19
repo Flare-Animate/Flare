@@ -72,6 +72,32 @@ def copy_tree(src: str, dst: str, patterns=None) -> list:
     return copied
 
 
+def lint_script_file(path: str) -> list:
+    """Return a list of problems found in a script file.
+
+    Uses the `esprima` package if available to parse JS/JSFL; falls back to
+    a naive bracket-counting check when esprima isn't installed.
+    """
+    problems = []
+    try:
+        import esprima  # type: ignore
+
+        with open(path, "r", encoding="utf-8") as f:
+            src = f.read()
+        try:
+            # esprima.parseScript raises a SyntaxError-like exception on problems
+            esprima.parseScript(src)
+        except Exception as e:
+            problems.append({"type": "syntax", "message": str(e)})
+    except Exception:
+        # esprima not installed; do a best-effort parity check
+        with open(path, "r", encoding="utf-8") as f:
+            src = f.read()
+        if src.count("{") != src.count("}") or src.count("(") != src.count(")") or src.count("[") != src.count("]"):
+            problems.append({"type": "syntax", "message": "Mismatched parentheses/braces/brackets (esprima not installed)"})
+    return problems
+
+
 def handle_swc(path: str, outdir: str, decompiler: str | None) -> list:
     exported = []
     with zipfile.ZipFile(path, "r") as z:
@@ -82,7 +108,7 @@ def handle_swc(path: str, outdir: str, decompiler: str | None) -> list:
         z.extractall(extract_dir)
 
     # Copy script files and resources
-    exported += copy_tree(extract_dir, outdir, patterns=(".as", ".png", ".jpg", ".jpeg", ".svg", ".xml", ".txt", ".mp3"))
+    exported += copy_tree(extract_dir, outdir, patterns=(".as", ".jsfl", ".js", ".png", ".jpg", ".jpeg", ".svg", ".xml", ".txt", ".mp3"))
 
     # Find embedded swf(s)
     for root, _, files in os.walk(extract_dir):
@@ -102,7 +128,7 @@ def handle_swc(path: str, outdir: str, decompiler: str | None) -> list:
 def handle_xfl_dir(path: str, outdir: str) -> list:
     # XFL is a directory-based project; copy a safe set of asset types
     exported = []
-    exported += copy_tree(path, outdir, patterns=(".svg", ".xml", ".png", ".jpg", ".jpeg", ".as", ".mp3", ".wav"))
+    exported += copy_tree(path, outdir, patterns=(".svg", ".xml", ".png", ".jpg", ".jpeg", ".as", ".jsfl", ".js", ".mp3", ".wav"))
     return exported
 
 
@@ -135,7 +161,8 @@ def handle_swf(path: str, outdir: str, decompiler: str | None) -> list:
     tmp = os.path.join(outdir, "swf_decomp")
     os.makedirs(tmp, exist_ok=True)
     exported += run_decompiler_on_swf(path, tmp, decompiler)
-    exported += copy_tree(tmp, outdir, patterns=(".svg", ".png", ".jpg", ".jpeg", ".xml"))
+    # include script files from decompiler output too
+    exported += copy_tree(tmp, outdir, patterns=(".svg", ".png", ".jpg", ".jpeg", ".xml", ".as", ".jsfl", ".js"))
     return exported
 
 
@@ -148,9 +175,11 @@ def handle_as(path: str, outdir: str) -> list:
 
 def main():
     parser = argparse.ArgumentParser(description="Import Flash container and extract assets to an output directory")
-    parser.add_argument("--input", "-i", required=True, help="Input file or folder (FLA/XFL/SWF/SWC/AS)")
+    parser.add_argument("--input", "-i", required=True, help="Input file or folder (FLA/XFL/SWF/SWC/AS/JSFL)")
     parser.add_argument("--output", "-o", required=True, help="Output directory (will be created)")
     parser.add_argument("--decompiler", "-d", help="Optional path to an external Flash decompiler (JPEXS/ffdec)")
+    parser.add_argument("--no-lint-scripts", dest="lint_scripts", action="store_false", help="Disable script linting (requires 'esprima' for best results)")
+    parser.set_defaults(lint_scripts=True)
 
     args = parser.parse_args()
 
@@ -193,9 +222,9 @@ def main():
                 else:
                     files += handle_fla(inp, outdir, decompiler)
                 container_type = "xfl"
-            elif ext == ".as":
+            elif ext == ".as" or ext == ".jsfl":
                 files += handle_as(inp, outdir)
-                container_type = "as"
+                container_type = ext.lstrip('.')
             else:
                 print(f"Unsupported file type: {ext}", file=sys.stderr)
                 sys.exit(3)
@@ -206,16 +235,36 @@ def main():
         print(f"Unexpected error: {e}", file=sys.stderr)
         sys.exit(5)
 
+    # Perform optional script linting for extracted script files
+    problems = {}
+    if args.lint_scripts:
+        for rel in list(files):
+            if rel.lower().endswith((".jsfl", ".js", ".as")):
+                full = os.path.join(outdir, rel)
+                if os.path.exists(full):
+                    probs = lint_script_file(full)
+                    if probs:
+                        problems[rel] = probs
+                        for p in probs:
+                            print(f"Script problem in {rel}: {p}", file=sys.stderr)
+
     # Write manifest
     manifest = {
         "input": os.path.abspath(inp),
         "output_dir": os.path.abspath(outdir),
         "files": files,
         "type": container_type,
+        "problems": problems,
     }
     mf = os.path.join(outdir, "manifest.json")
     with open(mf, "w", encoding="utf-8") as f:
         json.dump(manifest, f, indent=2)
+
+    # Also write problems file for easy consumption
+    if problems:
+        pf = os.path.join(outdir, "script_problems.json")
+        with open(pf, "w", encoding="utf-8") as f:
+            json.dump(problems, f, indent=2)
 
     print(f"Import complete. Exported {len(files)} files.")
     sys.exit(0)

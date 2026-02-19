@@ -3,3 +3,6 @@
 
 # Ensure .bat files use CRLF line endings
 *.bat text eol=crlf
+
+# Agentic workflow lock files should be treated as generated and merge-ours
+.github/workflows/*.lock.yml linguist-generated=true merge=ours

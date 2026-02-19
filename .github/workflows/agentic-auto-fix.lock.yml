@@ -1,0 +1,19 @@
+name: Agentic — Auto-fix Build (compiled placeholder)
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled]
+  workflow_dispatch: {}
+
+jobs:
+  placeholder:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Agentic workflow placeholder
+        run: |
+          echo "This is a placeholder lock.yml for the agentic workflow source (.md)."
+          echo "To enable automated agent runs compile the markdown with gh-aw: 'gh aw compile agentic-auto-fix'"
+          echo "After compiling, the compiled .lock.yml will be used by GitHub Actions to run the agent."

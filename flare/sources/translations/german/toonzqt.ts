@@ -541,10 +541,10 @@ Possibly the preset file has been corrupted</source>
     <name>DVGui::ProgressDialog</name>
     <message>
         <source>Toonz</source>
-        <translation type="vanished">OpenToonz</translation>
+        <translation type="vanished">Flare</translation>
     </message>
     <message>
-        <source>OpenToonz</source>
+        <source>Flare</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -552,10 +552,10 @@ Possibly the preset file has been corrupted</source>
     <name>DVGui::RadioButtonDialog</name>
     <message>
         <source>Toonz</source>
-        <translation type="vanished">OpenToonz</translation>
+        <translation type="vanished">Flare</translation>
     </message>
     <message>
-        <source>OpenToonz</source>
+        <source>Flare</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -2290,7 +2290,7 @@ Für mehr Informationen besuchen Sie die Seite %1:</translation>
     </message>
     <message>
         <source>Toonz 7.1</source>
-        <translation type="vanished">OpenToonz</translation>
+        <translation type="vanished">Flare</translation>
     </message>
     <message>
         <source>The file name cannot be empty or contain any of the following characters: (new line) \ / : * ? &quot; |</source>

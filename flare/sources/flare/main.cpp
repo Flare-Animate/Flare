@@ -161,7 +161,7 @@ static void initToonzEnv(QHash<QString, QString> &argPathValues) {
     ++i;
   }
 
-  QCoreApplication::setOrganizationName("OpenToonz");
+  QCoreApplication::setOrganizationName("Flare");
   QCoreApplication::setOrganizationDomain("");
   QCoreApplication::setApplicationName(
       QString::fromStdString(TEnv::getApplicationName()));
@@ -362,7 +362,7 @@ int main(int argc, char *argv[]) {
 #endif
 
 #ifdef Q_OS_WIN
-  //	Since currently OpenToonz does not work with OpenGL of software or
+  //	Since currently Flare does not work with OpenGL of software or
   // angle,	force Qt to use desktop OpenGL
   // FIXME: This options should be called before constructing the application.
   // Thus, ANGLE seems to be enabled as of now.
@@ -641,7 +641,7 @@ if (QFileInfo(localSplashPath).exists() && QFileInfo(localSplashPath).isFile()) 
 
   loadShaderInterfaces(ToonzFolder::getLibraryFolder() + TFilePath("shaders"));
 
-  splash.showMessage(offsetStr + "Initializing OpenToonz ...", Qt::AlignCenter,
+  splash.showMessage(offsetStr + "Initializing Flare ...", Qt::AlignCenter,
                      Qt::white);
   a.processEvents();
 
@@ -674,6 +674,7 @@ if (QFileInfo(localSplashPath).exists() && QFileInfo(localSplashPath).isFile()) 
   CrashHandler::attachParentWindow(&w);
   CrashHandler::reportProjectInfo(true);
 
+#ifdef WITH_QT_SCRIPT
   if (isRunScript) {
     // load script
     if (TFileStatus(loadFilePath).doesExist()) {
@@ -713,6 +714,14 @@ if (QFileInfo(localSplashPath).exists() && QFileInfo(localSplashPath).isFile()) 
       return 1;
     }
   }
+#else
+  if (isRunScript) {
+    std::cerr << QObject::tr("QtScript is not available in this build; cannot run scripts.")
+                     .toStdString()
+              << std::endl;
+    return 1;
+  }
+#endif
 
 #ifdef _WIN32
   // http://doc.qt.io/qt-5/windows-issues.html#fullscreen-opengl-based-windows
@@ -747,7 +756,7 @@ if (QFileInfo(localSplashPath).exists() && QFileInfo(localSplashPath).isFile()) 
   // w.setWindowTitle(QString::fromStdString(TEnv::getApplicationFullName()));
   w.changeWindowTitle();
   if (TEnv::getIsPortable()) {
-    splash.showMessage(offsetStr + "Starting OpenToonz Portable ...",
+    splash.showMessage(offsetStr + "Starting Flare Portable ...",
                        Qt::AlignCenter, Qt::white);
   } else {
     splash.showMessage(offsetStr + "Starting main window ...", Qt::AlignCenter,

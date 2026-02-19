@@ -618,8 +618,8 @@ Possibly the preset file has been corrupted</source>
     <name>DVGui::ProgressDialog</name>
     <message>
         <location filename="../../toonzqt/dvdialog.cpp" line="894"/>
-        <source>OpenToonz</source>
-        <translation>OpenToonz</translation>
+        <source>Flare</source>
+        <translation>Flare</translation>
     </message>
 </context>
 <context>
@@ -630,8 +630,8 @@ Possibly the preset file has been corrupted</source>
     </message>
     <message>
         <location filename="../../toonzqt/dvdialog.cpp" line="824"/>
-        <source>OpenToonz</source>
-        <translation>OpenToonz</translation>
+        <source>Flare</source>
+        <translation>Flare</translation>
     </message>
 </context>
 <context>
@@ -2338,8 +2338,8 @@ and tone may be slightly discretized.</source>
 <context>
     <name>ProgressDialog</name>
     <message>
-        <source>OpenToonz</source>
-        <translation type="vanished">OpenToonz</translation>
+        <source>Flare</source>
+        <translation type="vanished">Flare</translation>
     </message>
 </context>
 <context>
@@ -2923,16 +2923,16 @@ Are you sure?</source>
         <translation>Это зарезервированное имя файла, его нельзя использовать.</translation>
     </message>
     <message>
-        <source>OpenToonz 1.1</source>
-        <translation type="obsolete">OpenToonz 1.1</translation>
+        <source>Flare 1.1</source>
+        <translation type="obsolete">Flare 1.1</translation>
     </message>
     <message>
-        <source>OpenToonz 1.2</source>
-        <translation type="obsolete">OpenToonz 1.2</translation>
+        <source>Flare 1.2</source>
+        <translation type="obsolete">Flare 1.2</translation>
     </message>
     <message>
-        <source>OpenToonz 1.3</source>
-        <translation type="obsolete">OpenToonz 1.3</translation>
+        <source>Flare 1.3</source>
+        <translation type="obsolete">Flare 1.3</translation>
     </message>
     <message>
         <location filename="../../toonzqt/dvdialog.cpp" line="79"/>
@@ -3095,8 +3095,8 @@ The second line should be &quot;Mesh [Input bit depth] [Output bit depth]&quot;<
 <context>
     <name>RadioButtonDialog</name>
     <message>
-        <source>OpenToonz</source>
-        <translation type="vanished">OpenToonz</translation>
+        <source>Flare</source>
+        <translation type="vanished">Flare</translation>
     </message>
 </context>
 <context>

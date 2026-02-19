@@ -2058,7 +2058,7 @@ contain the dpi information, then the current camera dpi will be used.
 <context>
     <name>CrashHandler</name>
     <message>
-        <source>&lt;b&gt;OpenToonz crashed unexpectedly.&lt;/b&gt;</source>
+        <source>&lt;b&gt;Flare crashed unexpectedly.&lt;/b&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -2066,7 +2066,7 @@ contain the dpi information, then the current camera dpi will be used.
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>To report, click &apos;Open Issue Webpage&apos; to access OpenToonz&apos;s Issues page on GitHub.</source>
+        <source>To report, click &apos;Open Issue Webpage&apos; to access Flare&apos;s Issues page on GitHub.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -2094,7 +2094,7 @@ contain the dpi information, then the current camera dpi will be used.
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>OpenToonz crashed!</source>
+        <source>Flare crashed!</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -6464,16 +6464,16 @@ Please use the frame numbers for reference.</source>
         <translation>Typ - Polygon</translation>
     </message>
     <message>
-        <source>About OpenToonz</source>
-        <translation>Über OpenToonz</translation>
+        <source>About Flare</source>
+        <translation>Über Flare</translation>
     </message>
     <message>
         <source>Close</source>
         <translation>Schließen</translation>
     </message>
     <message>
-        <source>&amp;Abount OpenToonz...</source>
-        <translation type="vanished">Über OpenToonz (&amp;A)...</translation>
+        <source>&amp;Abount Flare...</source>
+        <translation type="vanished">Über Flare (&amp;A)...</translation>
     </message>
     <message>
         <source>&amp;ComboViewer</source>
@@ -6500,7 +6500,7 @@ Please use the frame numbers for reference.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>&amp;About OpenToonz...</source>
+        <source>&amp;About Flare...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -6881,7 +6881,7 @@ Please use the frame numbers for reference.</source>
         <source>
 Are you sure?
 
-N.B. Make sure you are not running another process of OpenToonz,
+N.B. Make sure you are not running another process of Flare,
 or you may delete necessary files for it.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -6898,7 +6898,7 @@ or you may delete necessary files for it.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>To report a bug, click on the button below to open a web browser window for OpenToonz&apos;s Issues page on https://github.com.  Click on the &apos;New issue&apos; button and fill out the form.</source>
+        <source>To report a bug, click on the button below to open a web browser window for Flare&apos;s Issues page on https://github.com.  Click on the &apos;New issue&apos; button and fill out the form.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -7386,7 +7386,7 @@ or you may delete necessary files for it.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>You must restart OpenToonz, close it now?</source>
+        <source>You must restart Flare, close it now?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -9260,8 +9260,8 @@ Set the output folder path to the subfolder as well.</source>
         <translation type="vanished">Ebene nach dem &quot;Speichern als&quot;-Befehl ersetzen</translation>
     </message>
     <message>
-        <source>* Changes will take effect the next time you run OpenToonz</source>
-        <translation>* Änderungen werden wirksam beim nächsten Start von OpenToonz</translation>
+        <source>* Changes will take effect the next time you run Flare</source>
+        <translation>* Änderungen werden wirksam beim nächsten Start von Flare</translation>
     </message>
     <message>
         <source>Move Current Frame by Clicking on Xsheet / Numerical Columns Cell Area</source>
@@ -9460,11 +9460,11 @@ Set the output folder path to the subfolder as well.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>My Documents/OpenToonz*</source>
+        <source>My Documents/Flare*</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Desktop/OpenToonz*</source>
+        <source>Desktop/Flare*</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -9528,7 +9528,7 @@ Set the output folder path to the subfolder as well.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Show Startup Window when OpenToonz Starts</source>
+        <source>Show Startup Window when Flare Starts</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -9589,7 +9589,7 @@ Is it OK to release these shortcuts?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Enable OpenToonz Commands&apos; Shortcut Keys While Renaming Cell</source>
+        <source>Enable Flare Commands&apos; Shortcut Keys While Renaming Cell</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -9710,12 +9710,12 @@ if both are possible on coding file path.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>OpenToonz can use FFmpeg for additional file formats.
+        <source>Flare can use FFmpeg for additional file formats.
 </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>FFmpeg is not bundled with OpenToonz.
+        <source>FFmpeg is not bundled with Flare.
 </source>
         <translation type="unfinished"></translation>
     </message>
@@ -9728,7 +9728,7 @@ if both are possible on coding file path.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Check for the Latest Version of OpenToonz on Launch</source>
+        <source>Check for the Latest Version of Flare on Launch</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -10018,12 +10018,12 @@ but a random crash might occur, use at your own risk.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>OpenToonz can use Rhubarb for auto lip-syncing.
+        <source>Flare can use Rhubarb for auto lip-syncing.
 </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Rhubarb is not bundled with OpenToonz.
+        <source>Rhubarb is not bundled with Flare.
 </source>
         <translation type="unfinished"></translation>
     </message>
@@ -11957,7 +11957,7 @@ What would you like to do? </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>This scene is incompatible with pixels only mode of the current OpenToonz version.
+        <source>This scene is incompatible with pixels only mode of the current Flare version.
 What would you like to do?</source>
         <translation type="unfinished"></translation>
     </message>
@@ -12909,7 +12909,7 @@ What do you want to do?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>The rooms will be reset the next time you run OpenToonz.</source>
+        <source>The rooms will be reset the next time you run Flare.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -14879,7 +14879,7 @@ Bitte tragen Sie die Änderungen ein oder setzen sie zurück.</translation>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>OpenToonz - Setting Shortcuts</source>
+        <source>Flare - Setting Shortcuts</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -15239,7 +15239,7 @@ Assign shortcut sequence anyway?</source>
 <context>
     <name>StartupPopup</name>
     <message>
-        <source>OpenToonz Startup</source>
+        <source>Flare Startup</source>
         <translation type="unfinished"></translation>
     </message>
     <message>

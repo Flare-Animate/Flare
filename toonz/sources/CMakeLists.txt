@@ -91,12 +91,15 @@ option_defaults_init(
 if(BUILD_ENV_MSVC)
     set(_init_SYSTEM_LZO                     OFF)
     set(_init_SYSTEM_SUPERLU                 OFF)
+    # Avoid building lzodriver by default on MSVC because prebuilt LZO libs may be invalid
+    set(WITH_LZODRIVER OFF)
 elseif(BUILD_ENV_APPLE)
     set(_init_SYSTEM_LZO                     OFF)
     set(_init_SYSTEM_SUPERLU                 OFF)
 elseif(BUILD_ENV_UNIXLIKE)
     set(_init_SYSTEM_LZO                     ON)
     set(_init_SYSTEM_SUPERLU                 ON)
+    set(WITH_LZODRIVER ON)
 endif()
 
 
@@ -108,6 +111,8 @@ option(WITH_SYSTEM_SUPERLU "Use the system SuperLU library instead of 'thirdpart
 option(WITH_CANON "Build with Canon DSLR support - Requires Canon SDK" OFF)
 option(WITH_TRANSLATION "Generate translation projects as well" ON)
 option(WITH_WINTAB "(Windows only) Build with customized Qt with WinTab support. https://github.com/shun-iwasawa/qt5/releases/tag/v5.15.2_wintab" OFF)
+# Allow disabling the lzodriver (prebuilt LZO libraries on Windows may be corrupt)
+option(WITH_LZODRIVER "Build the LZO driver for LZF compression support" ON)
 
 # avoid using again
 option_defaults_clear()
@@ -397,6 +402,29 @@ if(BUILD_ENV_MSVC)
     set(MYPAINT_LIB_INCLUDE_DIRS ${SDKROOT}/libmypaint/dist/${PLATFORM}/include/libmypaint)
     set(MYPAINT_LIB_LDFLAGS ${SDKROOT}/libmypaint/dist/${PLATFORM}/libmypaint.lib)
 
+    # Prefer vcpkg-provided libmypaint if the bundled import lib is missing or a Git-LFS pointer
+    if(NOT EXISTS "${MYPAINT_LIB_LDFLAGS}")
+        set(_is_lfs_mypaint 1)
+    else()
+        file(READ "${MYPAINT_LIB_LDFLAGS}" _mypaint_head LIMIT 2048)
+        string(FIND "${_mypaint_head}" "version https://git-lfs.github.com/spec/v1" _is_lfs_mypaint)
+    endif()
+    if(_is_lfs_mypaint GREATER -1)
+        if(EXISTS "${CMAKE_SOURCE_DIR}/vcpkg")
+            if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+                set(_vcpkg_triplet "x64-windows")
+            else()
+                set(_vcpkg_triplet "x86-windows")
+            endif()
+            find_file(_vcpkg_mypaint_lib NAMES libmypaint.lib mypaint.lib PATHS "${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}/lib" NO_DEFAULT_PATH)
+            if(_vcpkg_mypaint_lib)
+                set(MYPAINT_LIB_LDFLAGS "${_vcpkg_mypaint_lib}")
+                set(MYPAINT_LIB_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}/include")
+                message(STATUS "Using vcpkg-installed libmypaint: ${MYPAINT_LIB_LDFLAGS}")
+            endif()
+        endif()
+    endif()
+
     if(PLATFORM EQUAL 64)
         if (WITH_CANON)
             set(CANON_LIB ${SDKROOT}/canon/library/EDSDK.lib)
@@ -493,7 +521,7 @@ elseif(BUILD_ENV_UNIXLIKE)
     # the libraries have .pc
     find_package(PkgConfig)
 
-    # This is not required for OpenToonz itself, but libtiff will pick it up if
+    # This is not required for Flare itself, but libtiff will pick it up if
     # present and libimage won't be aware causing linker to fail
     pkg_check_modules(LZMA liblzma)
     set(TIFF_LIB ${TIFF_LIBRARY} ${LZMA_LIBRARIES})
@@ -776,7 +804,11 @@ add_subdirectory(image)
 add_subdirectory(toonzqt)
 add_subdirectory(tnztools)
 
-add_subdirectory(${SDKROOT}/lzo/driver lzodriver)
+if(WITH_LZODRIVER)
+    add_subdirectory(${SDKROOT}/lzo/driver lzodriver)
+else()
+    message(STATUS "Skipping lzodriver build (WITH_LZODRIVER=OFF)")
+endif()
 
 add_subdirectory(toonz)
 add_subdirectory(tcleanupper)

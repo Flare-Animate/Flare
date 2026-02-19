@@ -538,22 +538,22 @@ Es posible que el archivo de dicho ajuste se encuentre corrupto.</translation>
     <name>DVGui::ProgressDialog</name>
     <message>
         <source>Toonz</source>
-        <translation type="vanished">OpenToonz</translation>
+        <translation type="vanished">Flare</translation>
     </message>
     <message>
-        <source>OpenToonz</source>
-        <translation>OpenToonz</translation>
+        <source>Flare</source>
+        <translation>Flare</translation>
     </message>
 </context>
 <context>
     <name>DVGui::RadioButtonDialog</name>
     <message>
         <source>Toonz</source>
-        <translation type="vanished">OpenToonz</translation>
+        <translation type="vanished">Flare</translation>
     </message>
     <message>
-        <source>OpenToonz</source>
-        <translation>OpenToonz</translation>
+        <source>Flare</source>
+        <translation>Flare</translation>
     </message>
 </context>
 <context>
@@ -1985,7 +1985,7 @@ y su tono puede notarse ligeramente discretizado.</translation>
     <name>ProgressDialog</name>
     <message>
         <source>Toonz</source>
-        <translation type="vanished">OpenToonz</translation>
+        <translation type="vanished">Flare</translation>
     </message>
 </context>
 <context>
@@ -2452,8 +2452,8 @@ Are you sure?</source>
         <translation>Conjunto</translation>
     </message>
     <message>
-        <source>OpenToonz 1.1</source>
-        <translation type="vanished">OpenToonz 1.1</translation>
+        <source>Flare 1.1</source>
+        <translation type="vanished">Flare 1.1</translation>
     </message>
     <message>
         <source>Remove Reference  in Palette : %1</source>
@@ -2519,8 +2519,8 @@ La segunda línea debería tener la forma &quot;Mesh [profundidad de bits de ent
         <translation>Falla al cargar el archivo 3DLUT.</translation>
     </message>
     <message>
-        <source>OpenToonz 1.2</source>
-        <translation type="vanished">OpenToonz 1.2</translation>
+        <source>Flare 1.2</source>
+        <translation type="vanished">Flare 1.2</translation>
     </message>
     <message>
         <source>Custom Texture</source>
@@ -2536,8 +2536,8 @@ La segunda línea debería tener la forma &quot;Mesh [profundidad de bits de ent
         <translation>Historial del archivo</translation>
     </message>
     <message>
-        <source>OpenToonz 1.3</source>
-        <translation type="obsolete">OpenToonz 1.3</translation>
+        <source>Flare 1.3</source>
+        <translation type="obsolete">Flare 1.3</translation>
     </message>
     <message>
         <source>Plain color</source>
@@ -2607,7 +2607,7 @@ La segunda línea debería tener la forma &quot;Mesh [profundidad de bits de ent
     <name>RadioButtonDialog</name>
     <message>
         <source>Toonz</source>
-        <translation type="vanished">OpenToonz</translation>
+        <translation type="vanished">Flare</translation>
     </message>
 </context>
 <context>

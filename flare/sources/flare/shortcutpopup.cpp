@@ -609,7 +609,7 @@ void ShortcutPopup::showDialog(QString text) {
   if (m_dialog == NULL) {
     m_dialogLabel = new QLabel("", this);
     m_dialog      = new DVGui::Dialog(this, false, false);
-    m_dialog->setWindowTitle(tr("OpenToonz - Setting Shortcuts"));
+    m_dialog->setWindowTitle(tr("Flare - Setting Shortcuts"));
     m_dialog->setModal(false);
 
     m_dialog->setTopMargin(10);
@@ -752,7 +752,7 @@ void ShortcutPopup::buildPresets() {
   m_presetChoiceCB->clear();
 
   m_presetChoiceCB->addItem("", QString(""));
-  m_presetChoiceCB->addItem("OpenToonz", QString("defopentoonz"));
+  m_presetChoiceCB->addItem("Flare", QString("defflare"));
   // m_presetChoiceCB->addItem("RETAS PaintMan", QString("otretas"));
   m_presetChoiceCB->addItem("Toon Boom Harmony", QString("otharmony"));
   m_presetChoiceCB->addItem("Animate", QString("otanimate"));
