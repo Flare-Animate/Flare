@@ -18,10 +18,38 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Set up vcpkg
-        uses: stefanzweifel/setup-vcpkg@v1
-        with:
-          vcpkgCache: true
+      - name: Set up vcpkg (manual)
+        shell: cmd
+        run: |
+          @echo on
+          if exist vcpkg\bootstrap-vcpkg.bat (
+            echo vcpkg already present
+            goto :vcpkg_ready
+          )
+          if exist vcpkg (
+            echo Removing stale vcpkg\n            rmdir /S /Q vcpkg
+          )
+          set CLONE_ATTEMPTS=0
+    :clone_vcpkg
+          set /A CLONE_ATTEMPTS+=1
+          git clone --depth 1 https://github.com/microsoft/vcpkg.git vcpkg
+          if %ERRORLEVEL% EQU 0 goto :vcpkg_ready
+          echo clone failed with %ERRORLEVEL% attempt %CLONE_ATTEMPTS%
+          if %CLONE_ATTEMPTS% GEQ 3 (
+            echo fallback to zip
+            curl -fsSL -o vcpkg.zip https://github.com/microsoft/vcpkg/archive/refs/heads/master.zip
+            7z x -y vcpkg.zip -ovcpkg_tmp
+            move /Y vcpkg_tmp\vcpkg-master vcpkg
+            rmdir /S /Q vcpkg_tmp
+            del /Q vcpkg.zip
+            goto :vcpkg_ready
+          )
+          timeout /t 3 /nobreak
+          goto :clone_vcpkg
+    :vcpkg_ready
+          pushd vcpkg
+          call bootstrap-vcpkg.bat || (echo bootstrap failed & exit /b 1)
+          popd
 
       - name: Configure (CMake)
         shell: cmd
