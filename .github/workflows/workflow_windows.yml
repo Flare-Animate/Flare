@@ -34,7 +34,8 @@ jobs:
 
       # fallback if checkout step failed (git 128 errors sometimes occur on runners)
       - name: Fallback manual clone
-        if: steps.checkout.outcome == 'failure'
+        # continue-on-error makes outcome succeed even on failure; check conclusion instead
+        if: steps.checkout.conclusion == 'failure'
         run: |
           echo "checkout step failed, attempting manual clone"
           rd /s /q . || true
@@ -318,6 +319,7 @@ jobs:
             }
             const cmake = readTrunc('build/cmake_configure.log');
             const build = readTrunc('build/build.log');
-            const body = `**Automated build logs (truncated)**\n\n--- CMake configure log ---\n${cmake}\n\n--- Build log ---\n${build}`;
+            const note = (!fs.existsSync('build/cmake_configure.log') && !fs.existsSync('build/build.log')) ? '\n\n**Note:** log files missing – checkout or prior step may have failed.' : '';
+            const body = `**Automated build logs (truncated)**\n\n--- CMake configure log ---\n${cmake}\n\n--- Build log ---\n${build}${note}`;
             await github.rest.issues.createComment({ owner, repo, issue_number: pr, body });
 

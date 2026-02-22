@@ -50,7 +50,8 @@ jobs:
       continue-on-error: true
 
     - name: Fallback manual clone
-      if: steps.checkout.outcome == 'failure'
+      # continue-on-error makes outcome success; check conclusion instead
+      if: steps.checkout.conclusion == 'failure'
       run: |
         echo "checkout failed on Linux, manual clone"
         rm -rf * || true
@@ -201,6 +202,7 @@ jobs:
           }
           const cmake = readTrunc('flare/build/cmake_configure.log');
           const build = readTrunc('flare/build/build.log');
-          const body = `**Automated build logs (truncated)**\n\n--- CMake configure log ---\n${cmake}\n\n--- Build log ---\n${build}`;
+          const note = (!fs.existsSync('flare/build/cmake_configure.log') && !fs.existsSync('flare/build/build.log')) ? '\n\n**Note:** log files missing – checkout or prior step may have failed.' : '';
+          const body = `**Automated build logs (truncated)**\n\n--- CMake configure log ---\n${cmake}\n\n--- Build log ---\n${build}${note}`;
           await github.rest.issues.createComment({ owner, repo, issue_number: pr, body });
 
