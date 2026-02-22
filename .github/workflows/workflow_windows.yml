@@ -27,7 +27,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          lfs: false
+          lfs: true
+          fetch-depth: 0
 
       # 1. Herramientas
       - name: Install Build Tools
