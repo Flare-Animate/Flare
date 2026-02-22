@@ -26,9 +26,22 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        id: checkout
         with:
-          lfs: true
+          lfs: false
           fetch-depth: 0
+        continue-on-error: true
+
+      # fallback if checkout step failed (git 128 errors sometimes occur on runners)
+      - name: Fallback manual clone
+        if: steps.checkout.outcome == 'failure'
+        run: |
+          echo "checkout step failed, attempting manual clone"
+          rd /s /q . || true
+          git clone https://github.com/Flare-Animate/Flare.git . || exit /b 1
+          git lfs install || exit /b 1
+          git lfs pull || exit /b 1
+        shell: cmd
 
       # 1. Herramientas
       - name: Install Build Tools
