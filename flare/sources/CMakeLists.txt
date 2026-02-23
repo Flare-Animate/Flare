@@ -218,6 +218,16 @@ if(BUILD_ENV_MSVC)
                 endif()
             endforeach()
         endif()
+
+        # We also create a helper target so that any logs generated during the
+        # build (e.g. by Qt deploy scripts) are sanitized before MSBuild tries to
+        # use them.  The target is invoked early on every configuration build.
+        add_custom_target(sanitize_vcpkg_logs ALL
+            COMMAND ${CMAKE_COMMAND} -E echo "Sanitizing vcpkg.applocal.log files..."
+            COMMAND ${CMAKE_COMMAND} -P "${CMAKE_SOURCE_DIR}/cmake/SanitizeVcpkgLogs.cmake"
+            COMMENT "Removing wildcard DLL entries from applocal logs"
+        )
+
     endif()
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /std:c++17 /wd4251")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++17 /wd4251")
