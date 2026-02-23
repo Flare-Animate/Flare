@@ -1,0 +1,26 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "kill git process",
+			"type": "shell",
+			"command": "taskkill /IM git.exe /F",
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "git status",
+			"type": "shell",
+			"command": "git status",
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "show branch",
+			"type": "shell",
+			"command": "git branch",
+			"problemMatcher": [],
+			"group": "none"
+		}
+	]
+}
