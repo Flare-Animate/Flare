@@ -1,0 +1,44 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "kill git process",
+			"type": "shell",
+			"command": "taskkill /IM git.exe /F",
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "git status",
+			"type": "shell",
+			"command": "git status",
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "show branch",
+			"type": "shell",
+			"command": "git branch",
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "git-check",
+			"type": "shell",
+			"command": "git status -s",
+			"problemMatcher": []
+		},
+		{
+			"label": "commit-merge",
+			"type": "shell",
+			"command": "git add .gitignore; git add -u; git commit -m \"Merge rename-to-flare into B4uti4github-patch-1 and remove tracked Qt files\"",
+			"problemMatcher": []
+		},
+		{
+			"label": "cleanup-gitlock",
+			"type": "shell",
+			"command": "Remove-Item -Force .git\\index.lock; git commit -m \"Merge rename-to-flare into B4uti4github-patch-1 and remove tracked Qt files\"",
+			"problemMatcher": []
+		}
+	]
+}
