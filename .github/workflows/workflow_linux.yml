@@ -18,11 +18,6 @@ on:
       - '!.github/**' # Simplificado
       - '.github/workflows/workflow_linux.yml'
 
-permissions:
-  contents: read
-  issues: write
-  pull-requests: write
-
 jobs:
   Ubuntu:
     runs-on: ubuntu-24.04
@@ -43,22 +38,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4 # Actualizado a v4 (más estable)
-      id: checkout
       with:
         lfs: false
-        fetch-depth: 0
-      continue-on-error: true
-
-    - name: Fallback manual clone
-      # continue-on-error makes outcome success; check conclusion instead
-      if: steps.checkout.conclusion == 'failure'
-      run: |
-        echo "checkout failed on Linux, manual clone"
-        rm -rf * || true
-        git clone https://github.com/Flare-Animate/Flare.git . || exit 1
-        git lfs install || exit 1
-        git lfs pull || exit 1
-      shell: bash
 
     - name: Install libraries
       run: |
@@ -108,9 +89,9 @@ jobs:
         if [ $rc -ne 0 ]; then echo "CMake configure failed with exit code $rc"; exit $rc; fi
 
         # Ninja por defecto usa todos los núcleos; aquí lo limitamos a 2
-        if ! (ninja -j2 2>&1 | tee build/build.log); then
+        if ! (ninja -j2 2>&1 | tee build.log); then
           echo "Build failed; dumping build log..."
-          if [ -f build/build.log ]; then cat build/build.log; fi
+          if [ -f build.log ]; then cat build.log; fi
           exit 1
         fi
 
@@ -183,7 +164,7 @@ jobs:
         path: flare/build/*.tar.gz
 
     - name: Post build logs to PR
-      if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && always() }}
+      if: ${{ github.event_name == 'pull_request' && always() }}
       uses: actions/github-script@v6
       with:
         script: |
@@ -202,7 +183,6 @@ jobs:
           }
           const cmake = readTrunc('flare/build/cmake_configure.log');
           const build = readTrunc('flare/build/build.log');
-          const note = (!fs.existsSync('flare/build/cmake_configure.log') && !fs.existsSync('flare/build/build.log')) ? '\n\n**Note:** log files missing – checkout or prior step may have failed.' : '';
-          const body = `**Automated build logs (truncated)**\n\n--- CMake configure log ---\n${cmake}\n\n--- Build log ---\n${build}${note}`;
+          const body = `**Automated build logs (truncated)**\n\n--- CMake configure log ---\n${cmake}\n\n--- Build log ---\n${build}`;
           await github.rest.issues.createComment({ owner, repo, issue_number: pr, body });
 
