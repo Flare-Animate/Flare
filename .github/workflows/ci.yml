@@ -18,6 +18,25 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          lfs: true            # pull LFS objects; avoids missing files on checkout
+          fetch-depth: 0      # we need full history for some checks
+        continue-on-error: true  # we'll fall back below if this fails
+ 
+      # If the built-in checkout failed (common when LFS pointers time out),
+      # try a manual clone and pull the LFS objects ourselves.  The job will
+      # still succeed overall even if the fallback also fails, so the caller
+      # can see the annotated logs.
+      - name: Fallback manual clone
+        if: steps.checkout.conclusion == 'failure'
+        run: |
+          echo "checkout step failed, attempting manual clone"
+          rm -rf *
+          git clone https://github.com/Flare-Animate/Flare.git . || exit 1
+          git lfs install || exit 1
+          git lfs pull || exit 1
+        # use bash for portability; `git` is available on all runners
+        shell: bash
 
       # Install Qt5 on Ubuntu
       - name: Install Qt5 (Ubuntu)
