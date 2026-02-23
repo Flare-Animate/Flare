@@ -30,7 +30,7 @@ jobs:
             echo Removing stale vcpkg\n            rmdir /S /Q vcpkg
           )
           set CLONE_ATTEMPTS=0
-    :clone_vcpkg
+          :clone_vcpkg
           set /A CLONE_ATTEMPTS+=1
           git clone --depth 1 https://github.com/microsoft/vcpkg.git vcpkg
           if %ERRORLEVEL% EQU 0 goto :vcpkg_ready
