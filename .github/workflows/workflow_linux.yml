@@ -136,9 +136,12 @@ jobs:
         echo Copiando dependencias x64 (prefer flare, fallback to opentoonz)...
           if [ -d /opt/flare ]; then cp -r /opt/flare/* appdir/usr || true; elif [ -d /opt/opentoonz ]; then cp -r /opt/opentoonz/* appdir/usr || true; fi
           
-          for /f "delims=" %%l in ('dir /b /s "thirdparty\*.dll" ^| findstr /i "64 x64"') do copy /Y "%%l" FlarePortable\
-          
-          for /f "delims=" %%j in ('dir /b /s "C:\tools\opencv\*x64*\bin\opencv_world*.dll" 2^>nul') do copy /Y "%%j" FlarePortable\
+          # Windows-specific DLL loops removed; not needed on Linux. If you really
+          # need to copy any .dll files for compatibility, use a shell-friendly
+          # construct such as:
+          # find thirdparty -name "*.dll" -path "*64*" -exec cp {} FlarePortable/ \; || true
+          # and similar for OpenCV paths.
+
 
         # Create apprun selecting either Flare or OpenToonz executable
         if [ -f appdir/usr/bin/Flare ]; then BINNAME=Flare; elif [ -f appdir/usr/bin/OpenToonz ]; then BINNAME=OpenToonz; else BINNAME=$(ls appdir/usr/bin | head -n1); fi
