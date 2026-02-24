@@ -572,6 +572,7 @@ void TextureStyleManager::loadItems() {
   m_loaded = true;
 }
 
+#ifdef HAVE_MYPaint
 //********************************************************************************
 //    MyPaintBrushStyleManager  implementation
 //********************************************************************************
@@ -614,6 +615,7 @@ void MyPaintBrushStyleManager::loadItems() {
 
   m_loaded = true;
 }
+#endif // HAVE_MYPaint
 
 //********************************************************************************
 //    SpecialStyleManager  implementation

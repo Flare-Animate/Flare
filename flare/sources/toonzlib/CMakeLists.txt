@@ -189,6 +189,7 @@ list(APPEND SOURCES
 )
 
 set(SOURCES
+    stylemanager.cpp
     autoadjust.cpp
     autoclose.cpp
     autopos.cpp
