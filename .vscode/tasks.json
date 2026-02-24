@@ -39,6 +39,27 @@
 			"type": "shell",
 			"command": "Remove-Item -Force .git\\index.lock; git commit -m \"Merge rename-to-flare into B4uti4github-patch-1 and remove tracked Qt files\"",
 			"problemMatcher": []
+		},
+		{
+			"label": "watch logs",
+			"type": "shell",
+			"command": "python scripts/log_watcher.py",
+			"problemMatcher": [],
+			"isBackground": true
+		},
+		{
+			"label": "cmake configure",
+			"type": "shell",
+			"command": "cmake -S flare/sources -B build -G \"Ninja\" -DCMAKE_BUILD_TYPE=RelWithDebInfo",
+			"problemMatcher": ["$gcc"],
+			"group": { "kind": "build", "isDefault": false }
+		},
+		{
+			"label": "cmake build",
+			"type": "shell",
+			"command": "cmake --build build --config RelWithDebInfo --parallel 4",
+			"problemMatcher": ["$gcc"],
+			"group": "build"
 		}
 	]
 }

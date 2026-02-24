@@ -90,3 +90,16 @@ External Decompiler)... to run a helper script that exports SVG/image sequences
 from Flash files for importing into Flare. See `doc/how_to_import_swf.md` for
 details.
 
+## Development helper scripts
+
+To make it easier to follow build and test output you can run the included
+`log_watcher.py` script.  It watches `*.log` files underneath the build
+directory and prints the last few lines whenever they are modified.  This is
+also the script that the autonomous chat mode will launch automatically:
+
+```sh
+python scripts/log_watcher.py    # defaults to flare/build
+```
+
+You can run the same command via the "watch logs" task in VS Code (`Ctrl+Shift+B`).
+
