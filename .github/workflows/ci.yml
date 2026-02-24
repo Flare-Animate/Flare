@@ -107,6 +107,13 @@ jobs:
         if: matrix.os != 'windows-latest'
         shell: bash
         run: |
+          echo "pwd: $(pwd)"
+          echo "listing root contents:"; ls -al
+          echo "listing flare directory:"; ls -al flare || true
+          if [ ! -d flare/sources ]; then
+            echo "ERROR: flare/sources does not exist!"
+            exit 1
+          fi
           mkdir -p build || true
           set +e
           cmake -S flare/sources -B build -DCMAKE_BUILD_TYPE=${{ matrix.config }} > build/cmake_configure.log 2>&1
@@ -124,6 +131,10 @@ jobs:
         if: matrix.os == 'windows-latest'
         shell: pwsh
         run: |
+          Write-Output "pwd: $(pwd)"
+          Write-Output "listing root contents:"; Get-ChildItem -Force
+          Write-Output "listing flare directory:"; if (Test-Path flare) { Get-ChildItem flare -Force } else { Write-Output "<missing>" }
+          if (-not (Test-Path flare\sources)) { Write-Error "ERROR: flare\sources missing"; exit 1 }
           if (-not (Test-Path build)) { New-Item -ItemType Directory -Path build | Out-Null }
           cmake -S flare/sources -B build -DCMAKE_BUILD_TYPE=${{ matrix.config }} 2>&1 | Tee-Object -FilePath build/cmake_configure.log
           $rc = $LASTEXITCODE
