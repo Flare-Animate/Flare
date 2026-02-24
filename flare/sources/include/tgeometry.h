@@ -352,23 +352,26 @@ TThickPoint describe a thick point.
 class DVAPI TThickPoint final : public TPointD {
 public:
   double thick;
+  double opacity; // additional per-point metadata (e.g. pressure-based opacity)
 
-  TThickPoint() : TPointD(), thick(0) {}
+  TThickPoint() : TPointD(), thick(0), opacity(1.0) {}
 
-  TThickPoint(double _x, double _y, double _thick = 0)
-      : TPointD(_x, _y), thick(_thick) {}
+  // x, y, thickness, optional opacity (defaults to fully opaque)
+  TThickPoint(double _x, double _y, double _thick = 0, double _opacity = 1.0)
+      : TPointD(_x, _y), thick(_thick), opacity(_opacity) {}
 
-  TThickPoint(const TPointD &_p, double _thick = 0)
-      : TPointD(_p.x, _p.y), thick(_thick) {}
+  TThickPoint(const TPointD &_p, double _thick = 0, double _opacity = 1.0)
+      : TPointD(_p.x, _p.y), thick(_thick), opacity(_opacity) {}
 
   TThickPoint(const T3DPointD &_p) : TPointD(_p.x, _p.y), thick(_p.z) {}
 
-  TThickPoint(const TThickPoint &_p) : TPointD(_p.x, _p.y), thick(_p.thick) {}
+  TThickPoint(const TThickPoint &_p) : TPointD(_p.x, _p.y), thick(_p.thick), opacity(_p.opacity) {}
 
   inline TThickPoint &operator=(const TThickPoint &a) {
-    x     = a.x;
-    y     = a.y;
-    thick = a.thick;
+    x       = a.x;
+    y       = a.y;
+    thick   = a.thick;
+    opacity = a.opacity;
     return *this;
   }
 
@@ -376,6 +379,7 @@ public:
     x += a.x;
     y += a.y;
     thick += a.thick;
+    opacity += a.opacity;
     return *this;
   }
 
@@ -383,15 +387,16 @@ public:
     x -= a.x;
     y -= a.y;
     thick -= a.thick;
+    opacity -= a.opacity;
     return *this;
   }
 
   inline TThickPoint operator+(const TThickPoint &a) const {
-    return TThickPoint(x + a.x, y + a.y, thick + a.thick);
+    return TThickPoint(x + a.x, y + a.y, thick + a.thick, opacity + a.opacity);
   }
 
   inline TThickPoint operator-(const TThickPoint &a) const {
-    return TThickPoint(x - a.x, y - a.y, thick - a.thick);
+    return TThickPoint(x - a.x, y - a.y, thick - a.thick, opacity - a.opacity);
   }
 
   inline TThickPoint operator-() const { return TThickPoint(-x, -y, -thick); }
@@ -406,11 +411,12 @@ public:
 };
 
 inline double operator*(const TThickPoint &a, const TThickPoint &b) {
+  // we don't consider opacity in geometric dot product; metadata ignored
   return a.x * b.x + a.y * b.y + a.thick * b.thick;
 }
 
 inline TThickPoint operator*(double a, const TThickPoint &p) {
-  return TThickPoint(a * p.x, a * p.y, a * p.thick);
+  return TThickPoint(a * p.x, a * p.y, a * p.thick, a * p.opacity);
 }
 
 inline TThickPoint operator*(const TThickPoint &p, double a) {

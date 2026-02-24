@@ -5,7 +5,7 @@
     <version>0.0.0</version>
     <title>Flare</title>
     <authors>Flare-Animate</authors>
-    <description>Flare — Open-source animation tool (rebrand of OpenToonz). Use this package to install the official Flare binaries.</description>
+    <description>Flare — open-source animation tool. Use this package to install the official Flare binaries.</description>
     <summary>Flare animation app</summary>
     <tags>animation toonz flare</tags>
     <projectUrl>https://github.com/Flare-Animate/Flare</projectUrl>

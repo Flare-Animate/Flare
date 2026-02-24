@@ -7,7 +7,7 @@ body:
       value: |
         Please search existing issues before posting to avoid creating duplicates.
         
-        For general support please head over to the OpenToonz User Forum ([English](https://groups.google.com/g/opentoonz_en) | [日本語](https://groups.google.com/g/opentoonz)) or consult the [Manual](https://opentoonz.readthedocs.io/en/latest/).
+        For general support please head over to the Flare Community Forum or consult the [Manual](https://flare-animate.github.io/website/).
   - type: textarea
     attributes:
       label: Ask a question related to Flare

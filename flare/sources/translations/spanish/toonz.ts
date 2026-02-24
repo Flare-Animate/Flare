@@ -6816,7 +6816,7 @@ Usar los números de fotograma como referencia.</translation>
         <translation>Pincel - Preservar alfa</translation>
     </message>
     <message>
-        <source>http://opentoonz.readthedocs.io</source>
+        <source>https://flare-animate.github.io/website/</source>
         <translation>https://opentoonz.readthedocs.io/es/latest/</translation>
     </message>
     <message>
@@ -6968,11 +6968,11 @@ o es posible que se termine borrando algún archivo usado por ésta.</translatio
         <translation>No es posible borrar %1 : </translation>
     </message>
     <message>
-        <source>https://github.com/opentoonz/opentoonz/releases/latest</source>
-        <translation>https://opentoonz.readthedocs.io/es/latest/whats_new.html#v1-4</translation>
+        <source>https://github.com/Flare-Animate/Flare/releases/latest</source>
+        <translation>https://flare-animate.github.io/website/whats_new.html#v1-4</translation>
     </message>
     <message>
-        <source>https://groups.google.com/forum/#!forum/opentoonz_en</source>
+        <source>https://flare-animate.github.io/website/forum</source>
         <translation>https://groups.google.com/forum/#!forum/open-toonz--comunidad-en-espaol</translation>
     </message>
     <message>
@@ -12124,8 +12124,8 @@ error no definido.</translation>
         <translation>Visitar el sitio web</translation>
     </message>
     <message>
-        <source>https://opentoonz.github.io/e/</source>
-        <translation>https://opentoonz.github.io/e/</translation>
+        <source>https://flare-animate.github.io/website/e/</source>
+        <translation>https://flare-animate.github.io/website/e/</translation>
     </message>
     <message>
         <source>Change current drawing %1</source>
