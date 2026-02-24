@@ -13,7 +13,8 @@ file(GLOB_RECURSE _vcpkg_applocal_logs "${CMAKE_BINARY_DIR}/*/vcpkg.applocal.log
 foreach(_applog ${_vcpkg_applocal_logs})
     file(READ ${_applog} _applog_contents)
     # filter out lines containing '*' characters; escape asterisk properly
-    string(REGEX REPLACE "^[^\\n]*\\*[^^\\n]*\\n" "" _applog_sanitized "${_applog_contents}")
+    # use a robust pattern that removes any line with a '*' (handles CRLF)
+    string(REGEX REPLACE ".*\\*.*(\\r?\\n)?" "" _applog_sanitized "${_applog_contents}")
     if(NOT _applog_sanitized STREQUAL _applog_contents)
         file(WRITE ${_applog} "${_applog_sanitized}")
     endif()
