@@ -36,22 +36,15 @@ jobs:
     # TODO: Change macOS GHA Runner Image to (Apple Silicon) based image on/prior to sunsetting of `macos-15-intel` (x86_64) runner image (August 2027)
     runs-on: macos-15-intel
     steps:
-      - uses: actions/checkout@v6
-        id: checkout
-        with:
-          lfs: false
-          fetch-depth: 0
-        continue-on-error: true
-
-      - name: Fallback manual clone
-        # continue-on-error can mask failure; check conclusion instead
-        if: steps.checkout.conclusion == 'failure'
+      # sparse clone again, leaving out thirdparty and hence all LFS blobs
+      - name: Sparse clone repository
         run: |
-          echo "checkout failed on macOS, manual clone..."
-          rm -rf * 2>/dev/null || true
-          git clone https://github.com/Flare-Animate/Flare.git . || exit 1
-          git lfs install || exit 1
-          git lfs pull || exit 1
+          git init .
+          git remote add origin https://github.com/Flare-Animate/Flare.git
+          git config core.sparseCheckout true
+          echo "/*" > .git/info/sparse-checkout
+          echo "!/thirdparty/*" >> .git/info/sparse-checkout
+          git -c protocol.version=2 -c advice.detachedHead=false pull --depth=1 origin HEAD
         shell: bash
 
       - name: Clean Python symlinks

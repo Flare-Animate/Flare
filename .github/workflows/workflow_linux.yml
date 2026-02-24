@@ -37,9 +37,17 @@ jobs:
             cxx: clang++
 
     steps:
-    - uses: actions/checkout@v4 # Actualizado a v4 (más estable)
-      with:
-        lfs: false
+    # perform sparse checkout excluding thirdparty to keep LFS pointers out of
+    # the build container; thirdparty libs are downloaded separately anyway.
+    - name: Sparse clone repository
+      run: |
+        git init .
+        git remote add origin https://github.com/Flare-Animate/Flare.git
+        git config core.sparseCheckout true
+        echo "/*" > .git/info/sparse-checkout
+        echo "!/thirdparty/*" >> .git/info/sparse-checkout
+        git -c protocol.version=2 -c advice.detachedHead=false pull --depth=1 origin HEAD
+      shell: bash
 
     - name: Install libraries
       run: |
