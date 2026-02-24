@@ -112,13 +112,6 @@ set(HEADERS
     ../include/toonzqt/viewcommandids.h
 )
 
-# Append scriptconsole source only when QtScript is available
-if(WITH_QT_SCRIPT)
-    list(APPEND SOURCES
-        scriptconsole.cpp
-    )
-endif()
-
 set(SOURCES
     ../tnztools/cursormanager.cpp
     checkbox.cpp
@@ -217,6 +210,13 @@ set(SOURCES
     toonz_params.cpp
 	lutcalibrator.cpp
 )
+
+# Append scriptconsole source only when QtScript is available
+if(WITH_QT_SCRIPT)
+    list(APPEND SOURCES
+        scriptconsole.cpp
+    )
+endif()
 
 set(RESOURCES toonzqt.qrc)
 

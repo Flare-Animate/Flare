@@ -104,8 +104,29 @@ jobs:
         run: |
           if (Test-Path FlarePortable) { Remove-Item -Recurse -Force FlarePortable }
           New-Item -ItemType Directory -Path FlarePortable | Out-Null
-          for /f "delims=" %%i in ('dir /b /s "build\Flare.exe" ^| findstr /v "CMakeFiles"') do copy /Y "%%i" FlarePortable\Flare.exe
-          for /f "delims=" %%d in ('dir /b /s "build\*.dll" ^| findstr /i "Release" ^| findstr /v "CMakeFiles"') do copy /Y "%%d" FlarePortable\
+
+          # locate the executable; try both Flare.exe and legacy OpenToonz.exe
+          $exe = $null
+          $exe = Get-ChildItem -Path build -Filter Flare.exe -Recurse -ErrorAction SilentlyContinue |
+                 Where-Object { $_.FullName -notmatch 'CMakeFiles' } |
+                 Select-Object -First 1
+          if (-not $exe) {
+            $exe = Get-ChildItem -Path build -Filter OpenToonz.exe -Recurse -ErrorAction SilentlyContinue |
+                   Where-Object { $_.FullName -notmatch 'CMakeFiles' } |
+                   Select-Object -First 1
+          }
+          if (-not $exe) {
+            Write-Error "ERROR: no executable found under build; dumping tree"
+            Get-ChildItem -Path build -Recurse -Filter *.exe | ForEach-Object { Write-Output $_.FullName }
+            exit 1
+          }
+          Copy-Item -Path $exe.FullName -Destination FlarePortable\Flare.exe -Force
+
+          # copy DLLs from any configuration directory (Release, etc.)
+          Get-ChildItem -Path build -Recurse -Filter *.dll |
+            Where-Object { $_.FullName -match 'Release' -and $_.FullName -notmatch 'CMakeFiles' } |
+            ForEach-Object { Copy-Item $_.FullName -Destination FlarePortable\ -Force }
+
           Compress-Archive -Path FlarePortable\* -DestinationPath Flare-Windows-${{ github.event.release.tag_name }}.zip -Force
           echo "ARTIFACT=Flare-Windows-${{ github.event.release.tag_name }}.zip" >> $env:GITHUB_ENV
 
