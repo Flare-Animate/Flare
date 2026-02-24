@@ -164,22 +164,29 @@ jobs:
         run: |
           cd flare/build/toonz
           echo "Creating DMG..."
-          ATTEMPT=1
-          until /usr/local/opt/qt@5/bin/macdeployqt Flare.app -dmg -verbose=0 && [ -f Flare.dmg ]; do
+          # macdeployqt always puts the DMG in the current working directory; the
+          # build used to be configured such that the binary directory was
+          # flare/build/toonz, but after the rebrand it may just be flare/build.
+          # Search both places for the resulting DMG so the workflow remains
+          # resilient.
+          ATTEMPT=0
+          while [ $ATTEMPT -lt 10 ]; do
+            /usr/local/opt/qt@5/bin/macdeployqt Flare.app -dmg -verbose=0 && \
+            ([ -f Flare.dmg ] || [ -f toonz/Flare.dmg ]) && break
+            ATTEMPT=$((ATTEMPT+1))
             echo "Attempt $ATTEMPT failed to build DMG."
-            if [ $ATTEMPT -eq 10 ]; then
-              echo ">>> DMG file creation failed after 10 attempts. Aborting!"
-              exit 1
-            fi
-            ATTEMPT=$((ATTEMPT + 1))
-            echo "Retrying in 5 seconds..."
-            sleep 5
           done
-          echo "DMG created successfully."
+          if [ -f Flare.dmg ]; then
+            echo "DMG=Flare.dmg" >> $GITHUB_ENV
+          elif [ -f toonz/Flare.dmg ]; then
+            echo "DMG=toonz/Flare.dmg" >> $GITHUB_ENV
+          else
+            echo "DMG=" >> $GITHUB_ENV
+          fi
       - uses: actions/upload-artifact@v6
         with:
           name: Flare-${{ runner.os }}-${{ github.sha }}
-          path: flare/build/toonz/Flare.dmg
+          path: flare/build/${{ env.DMG }}
       - name: Post build logs to PR
         if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && always() }}
         uses: actions/github-script@v6

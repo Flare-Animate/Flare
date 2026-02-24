@@ -24,12 +24,32 @@ https://Flare.github.io/e/index.html
 
 To enable SWF import features, install FFmpeg and ensure it is available on your PATH.
 
+Flare uses CMake as its build system.  You must have CMake (version 3.10 or later)
+installed and available on your PATH before attempting to configure or build the
+project.  On Windows you can install CMake via the official installer or
+[Chocolatey](https://chocolatey.org/).  On macOS use Homebrew (`brew install cmake`),
+and on Linux use your distribution's package manager (`apt`, `dnf`, etc.).
+
 ## Installation
 
 Please see the `doc/` folder for platform-specific build and installation
 instructions.
 
 ## How to Build Locally
+
+You can configure a build directory from the repository root with a command such as:
+
+```sh
+cmake -S flare/sources -B build -G "Ninja" -DCMAKE_BUILD_TYPE=Release
+```
+
+and then build:
+
+```sh
+cmake --build build --parallel
+```
+
+For more detailed, platform‑specific guidance follow the links below:
 
 - [Windows](./doc/how_to_build_win.md)
 - [macOS](./doc/how_to_build_macosx.md)

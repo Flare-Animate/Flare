@@ -84,8 +84,16 @@ jobs:
       - name: Package artifact (macOS)
         if: matrix.os == 'macos-latest'
         run: |
-          cd flare/build/toonz
-          if [ -f Flare.dmg ]; then DMG=Flare.dmg; else DMG=""; fi
+          cd flare/build
+          # The build system historically placed outputs in a "toonz" subdirectory.
+          # After the rebrand it may be in the top-level build directory.  Look in
+          # both places so the workflow is tolerant of either layout.
+          DMG=""
+          if [ -f Flare.dmg ]; then
+            DMG=Flare.dmg
+          elif [ -f toonz/Flare.dmg ]; then
+            DMG=toonz/Flare.dmg
+          fi
           echo "DMG=$DMG" >> $GITHUB_ENV
 
       - name: Package artifact (Windows)
@@ -113,7 +121,7 @@ jobs:
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ github.event.release.upload_url }}
-          asset_path: flare/build/toonz/${{ env.DMG }}
+          asset_path: flare/build/${{ env.DMG }}
           asset_name: Flare-macOS-${{ github.event.release.tag_name }}.dmg
           asset_content_type: application/x-apple-diskimage
 

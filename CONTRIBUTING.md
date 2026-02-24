@@ -11,23 +11,23 @@ We will first review the request, then we will accept it, add comments for rewor
 ### Workflow
 
 0. `fork` Flare to your GitHub account from `Flare/Flare`.
-  - (use the `fork` button at the https://github.com/Flare-Animate/Flare)
+   - (use the `fork` button at the https://github.com/Flare-Animate/Flare)
 0. `clone` the repository.
-  - `git clone git@github.com:your-github-account/Flare.git`
-  - `git remote add upstream https://github.com/Flare/Flare.git`, additionally.
+   - `git clone git@github.com:your-github-account/Flare.git`
+   - `git remote add upstream https://github.com/Flare/Flare.git`, additionally.
 0. modify the codes.
-  - `git checkout -b your-branch-name`
-    - `your-branch-name` is a name of your modifications, for example,
-      `fix/fatal-bugs`, `feature/new-useful-gui` and so on.
-  - fix codes, then test them.
-  - `git commit` them with good commit messages.
+   - `git checkout -b your-branch-name`
+     - `your-branch-name` is a name of your modifications, for example,
+       `fix/fatal-bugs`, `feature/new-useful-gui` and so on.
+   - fix codes, then test them.
+   - `git commit` them with good commit messages.
 0. `pull` the latest changes form the `master` branch of the upstream.
-  - `git pull upstream master` or `git pull --rebase upstream master`.
-  - apply [clang-format](http://clang.llvm.org/docs/ClangFormat.html) with `toonz/sources/.clang-format`.
-    - `cd toonz/sources`
-    - `./beautification.sh` or `beautification.bat`.
-  - `git commit` them.
-  - `git push origin your-branch-name`.
+   - `git pull upstream master` or `git pull --rebase upstream master`.
+   - apply [clang-format](http://clang.llvm.org/docs/ClangFormat.html) with `flare/sources/.clang-format`.
+     - `cd flare/sources`
+     - `./beautification.sh` or `beautification.bat`.
+   - `git commit` them.
+   - `git push origin your-branch-name`.
 0. make a pull request.
 
 ## Bugs
@@ -51,7 +51,7 @@ to keep the issue tracker from becoming cluttered with unfulfilled feature reque
 
 ## Translations
 
-Translation source (`.ts`) files for Flare GUI are located in `toonz/sources/translations`.
+Translation source (`.ts`) files for Flare GUI are located in `flare/sources/translations`.
 If you create new `.ts` files for your language or update an existing one,
 please send us those modifications as pull-requests.
 [Qt Linguist](http://doc.qt.io/qt-5.6/linguist-translators.html) is useful for translating them.
