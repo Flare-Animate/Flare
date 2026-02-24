@@ -1445,6 +1445,7 @@ bool GeometricTool::onPropertyChanged(std::string propertyName) {
   return false;
 }
 
+#ifdef HAVE_MYPaint
 //--------------------------------------------------------------------------------------------------
 void GeometricTool::addRasterMyPaintStroke(const TToonzImageP &ti,
                                            TStroke *stroke, TXshSimpleLevel *sl,
@@ -1533,6 +1534,7 @@ void GeometricTool::addRasterMyPaintStroke(const TToonzImageP &ti,
   }
 }
 
+#ifdef HAVE_MYPaint
 //--------------------------------------------------------------------------------------------------
 void GeometricTool::addFullColorMyPaintStroke(const TRasterImageP &ri,
                                               TStroke *stroke,
@@ -1621,6 +1623,7 @@ void GeometricTool::addFullColorMyPaintStroke(const TRasterImageP &ri,
     delete tileSet;  // prevent leak
   }
 }
+#endif // HAVE_MYPaint
 
 //--------------------------------------------------------------------------------------------------
 void GeometricTool::addStroke() {

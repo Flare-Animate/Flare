@@ -135,6 +135,14 @@ if(ENABLE_MYPaint)
     endif()
 endif()
 
+# if the option has been disabled, make sure the helper macro is not defined
+if(NOT ENABLE_MYPaint)
+    remove_definitions(-DHAVE_MYPaint)
+    # clear any cached library paths so they aren't accidentally reused
+    set(MYPAINT_LIB_LDFLAGS "" CACHE STRING "" FORCE)
+    set(MYPAINT_LIB_INCLUDE_DIRS "" CACHE STRING "" FORCE)
+endif()
+
 # avoid using again
 option_defaults_clear()
 
@@ -238,7 +246,8 @@ if(BUILD_ENV_MSVC)
         # vcpkg.applocal.log files in the build tree (prevents MSBuild validation
         # errors if a previous generation left wildcard DLL names behind).
         if(EXISTS "${CMAKE_BINARY_DIR}")
-            file(GLOB_RECURSE _vcpkg_applocal_logs "${CMAKE_BINARY_DIR}/*/vcpkg.applocal.log")
+            # sanitize all logs (including those at root) to avoid stale wildcards
+            file(GLOB_RECURSE _vcpkg_applocal_logs "${CMAKE_BINARY_DIR}/**/vcpkg.applocal.log")
             foreach(_applog ${_vcpkg_applocal_logs})
                 file(READ ${_applog} _applog_contents)
                 # Remove any lines containing wildcard characters

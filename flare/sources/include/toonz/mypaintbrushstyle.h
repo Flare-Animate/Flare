@@ -3,6 +3,8 @@
 #ifndef MYPAINTBRUSHSTYLE_H
 #define MYPAINTBRUSHSTYLE_H
 
+#ifdef HAVE_MYPaint
+
 #include "mypaint.h"
 
 // TnzCore includes

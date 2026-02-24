@@ -134,7 +134,6 @@ set(SOURCES
     screenpicker.cpp
     fingertool.cpp
     rulertool.cpp
-    mypainttoonzbrush.cpp
     shifttracetool.cpp
     toonzrasterbrushtool.cpp
     toonzvectorbrushtool.cpp

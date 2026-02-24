@@ -7,7 +7,9 @@
 #include "tthread.h"
 
 #include "traster.h"
+#ifdef HAVE_MYPaint
 #include "toonz/mypaintbrushstyle.h"
+#endif
 
 #include <QSize>
 #include <QVector>
@@ -191,6 +193,7 @@ private:
   void loadTexture(const TFilePath &fp);
 };
 
+#ifdef HAVE_MYPaint
 //********************************************************************************
 //    MyPaintBrushStyleManager declaration
 //********************************************************************************
@@ -210,6 +213,7 @@ public:
 
   void loadItems() override;
 };
+#endif // HAVE_MYPaint
 
 //********************************************************************************
 //    SpecialStyleManager declaration

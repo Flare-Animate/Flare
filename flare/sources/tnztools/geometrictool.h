@@ -7,7 +7,9 @@
 #include "tproperty.h"
 #include "tools/tool.h"
 #include "tools/cursors.h"
+#ifdef HAVE_MYPaint
 #include "mypainttoonzbrush.h"
+#endif
 #include "trasterimage.h"
 #include <QObject>
 

@@ -6,8 +6,11 @@
 #include <cmath>
 #include <cassert>
 
+#ifdef HAVE_MYPaint
 #include "mypaint.h"
+#endif
 
+#ifdef HAVE_MYPaint
 namespace mypaint {
   namespace helpers {
     const float precision = 1e-4f;
@@ -597,5 +600,7 @@ namespace mypaint {
     }; // SurfaceCustom
   } // helpers
 } // mypaint
+
+#endif // HAVE_MYPaint
 
 #endif  // MYPAINTHELPERS_H

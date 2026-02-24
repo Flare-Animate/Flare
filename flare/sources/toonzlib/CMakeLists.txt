@@ -171,7 +171,7 @@ set(HEADERS
     ../include/toonz/navigationtags.h
 )
 
-# add mypaint headers/sources when enabled
+# add mypaint headers when enabled
 if(ENABLE_MYPaint)
     list(APPEND HEADERS
         ../include/toonz/mypaint.h
@@ -180,9 +180,13 @@ if(ENABLE_MYPaint)
     )
     list(APPEND SOURCES
         mypaintbrushstyle.cpp
-        stylemanager.cpp
     )
 endif()
+
+# stylemanager contains core functionality and must always be built
+list(APPEND SOURCES
+    stylemanager.cpp
+)
 
 set(SOURCES
     autoadjust.cpp
@@ -392,8 +396,9 @@ include_directories(
 if(BUILD_ENV_MSVC)
     target_link_libraries(toonzlib
         Qt5::Core Qt5::Gui Qt5::OpenGL Qt5::Multimedia
-        ${GLUT_LIB} ${GL_LIB} ${MYPAINT_LIB_LDFLAGS} ${GLEW_LIB} vfw32.lib
+        ${GLUT_LIB} ${GL_LIB} ${GLEW_LIB} vfw32.lib
         tnzcore tnzbase tnzext
+        $<$<BOOL:${ENABLE_MYPaint}>:${MYPAINT_LIB_LDFLAGS}>
     )
     if(WITH_QT_SCRIPT)
         target_link_libraries(toonzlib Qt5::Script)
@@ -401,10 +406,10 @@ if(BUILD_ENV_MSVC)
 elseif(BUILD_ENV_APPLE)
     set(EXTRA_LIBS
         "$<TARGET_FILE:tnzcore>"
-	    "$<TARGET_FILE:tnzbase>"
-	    "$<TARGET_FILE:tnzext>"
+        "$<TARGET_FILE:tnzbase>"
+        "$<TARGET_FILE:tnzext>"
         ${USB_LIB}
-        ${MYPAINT_LIB_LDFLAGS}
+        $<$<BOOL:${ENABLE_MYPaint}>:${MYPAINT_LIB_LDFLAGS}>
     )
 
     target_link_libraries(toonzlib Qt5::Core Qt5::Gui Qt5::OpenGL Qt5::Script Qt5::Multimedia ${GLUT_LIB} ${GL_LIB} ${GLEW_LIB} ${EXTRA_LIBS})
@@ -415,6 +420,6 @@ elseif(BUILD_ENV_UNIXLIKE)
         set(EXTRA_LIBS ${EXTRA_LIBS} -lvfw32)
     endif()
 
-    target_link_libraries(toonzlib Qt5::Core Qt5::Gui Qt5::OpenGL Qt5::Script Qt5::Multimedia ${GLUT_LIB} ${GL_LIB} ${GLEW_LIB} ${EXTRA_LIBS} ${MYPAINT_LIB_LDFLAGS})
+    target_link_libraries(toonzlib Qt5::Core Qt5::Gui Qt5::OpenGL Qt5::Script Qt5::Multimedia ${GLUT_LIB} ${GL_LIB} ${GLEW_LIB} ${EXTRA_LIBS} $<$<BOOL:${ENABLE_MYPaint}>:${MYPAINT_LIB_LDFLAGS}>)
 endif()
 
