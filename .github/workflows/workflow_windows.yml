@@ -29,9 +29,19 @@ jobs:
       - uses: actions/checkout@v4
         id: checkout
         with:
-          lfs: false
+          # check out full history and enable LFS handling; we'll explicitly avoid
+          # pulling any large objects later so the job never stalls on the LFS
+          # service (previously failed with exit code 2).
+          lfs: true
           fetch-depth: 0
         continue-on-error: true
+      # avoid downloading any LFS-tracked binaries; they are not needed for a
+      # build and often trigger network errors on the runner
+      - name: Disable LFS downloads
+        run: |
+          git lfs install --skip-smudge
+          git lfs pull --exclude="*"
+        shell: cmd
 
       # fallback if checkout step failed (git 128 errors sometimes occur on runners)
       - name: Fallback manual clone
@@ -41,8 +51,8 @@ jobs:
           echo "checkout step failed, attempting manual clone"
           rd /s /q . || true
           git clone https://github.com/Flare-Animate/Flare.git . || exit /b 1
-          git lfs install || exit /b 1
-          git lfs pull || exit /b 1
+          git lfs install --skip-smudge || exit /b 1
+          git lfs pull --exclude="*" || exit /b 1
         shell: cmd
 
       # 1. Herramientas
@@ -86,7 +96,11 @@ jobs:
         run: |
           @echo on
           if not exist thirdparty\qt mkdir thirdparty\qt
-          curl -fsSL -o Qt5.15.2_wintab.zip https://github.com/shun-iwasawa/qt5/releases/download/v5.15.2_wintab/Qt5.15.2_wintab.zip
+          set RETRY=0
+          :DL
+          curl -fsSL -o Qt5.15.2_wintab.zip https://github.com/shun-iwasawa/qt5/releases/download/v5.15.2_wintab/Qt5.15.2_wintab.zip || set /a RETRY+=1
+          if %ERRORLEVEL% NEQ 0 if %RETRY% LEQ 3 (echo download failed, retrying && goto DL)
+          if %ERRORLEVEL% NEQ 0 (echo Qt zip download failed after retries & exit /b 1)
           
           :: Extraer el contenido
           7z x -y Qt5.15.2_wintab.zip -othirdparty\qt
