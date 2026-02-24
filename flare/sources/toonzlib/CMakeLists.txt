@@ -103,9 +103,6 @@ set(HEADERS
     ../include/toonz/levelset.h
     ../include/toonz/levelupdater.h
     ../include/toonz/logger.h
-    ../include/toonz/mypaint.h
-    ../include/toonz/mypaintbrushstyle.h
-    ../include/toonz/mypainthelpers.hpp
     ../include/toonz/namebuilder.h
     ../include/toonz/observer.h
     ../include/toonz/onionskinmask.h
@@ -174,6 +171,19 @@ set(HEADERS
     ../include/toonz/navigationtags.h
 )
 
+# add mypaint headers/sources when enabled
+if(ENABLE_MYPaint)
+    list(APPEND HEADERS
+        ../include/toonz/mypaint.h
+        ../include/toonz/mypaintbrushstyle.h
+        ../include/toonz/mypainthelpers.hpp
+    )
+    list(APPEND SOURCES
+        mypaintbrushstyle.cpp
+        stylemanager.cpp
+    )
+endif()
+
 set(SOURCES
     autoadjust.cpp
     autoclose.cpp
@@ -207,7 +217,6 @@ set(SOURCES
     logger.cpp
     movierenderer.cpp
     multimediarenderer.cpp
-    mypaintbrushstyle.cpp
     namebuilder.cpp
     Naa2TlvConverter.cpp
     observer.cpp
@@ -230,7 +239,6 @@ set(SOURCES
     stagevisitor.cpp
     strokegenerator.cpp
     studiopalette.cpp
-    stylemanager.cpp
     targetcolors.cpp
     tcamera.cpp
     tcenterlineadjustments.cpp

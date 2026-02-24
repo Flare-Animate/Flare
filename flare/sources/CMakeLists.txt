@@ -109,6 +109,32 @@ option(WITH_CANON "Build with Canon DSLR support - Requires Canon SDK" OFF)
 option(WITH_TRANSLATION "Generate translation projects as well" ON)
 option(WITH_WINTAB "(Windows only) Build with customized Qt with WinTab support. https://github.com/shun-iwasawa/qt5/releases/tag/v5.15.2_wintab" OFF)
 
+# optionally enable MyPaint brush support; if the library or headers are unavailable we disable it
+option(ENABLE_MYPaint "Enable MyPaint brush support" ON)
+
+if(ENABLE_MYPaint)
+    find_package(PkgConfig QUIET)
+    if(PKG_CONFIG_FOUND)
+        pkg_search_module(MYPAINT_LIB QUIET libmypaint libmypaint-1.3>=1.3)
+    endif()
+    if(NOT MYPAINT_LIB_FOUND)
+        find_path(_mypaint_hdr NAMES mypaint-brush.h PATHS ${SDKROOT}/libmypaint/dist/${PLATFORM}/include/libmypaint)
+        find_library(_mypaint_lib NAMES mypaint libmypaint PATHS ${SDKROOT}/libmypaint/dist/${PLATFORM})
+        if(_mypaint_hdr AND _mypaint_lib)
+            set(MYPAINT_LIB_INCLUDE_DIRS ${_mypaint_hdr})
+            set(MYPAINT_LIB_LDFLAGS ${_mypaint_lib})
+            set(MYPAINT_LIB_FOUND TRUE)
+        endif()
+    endif()
+    if(MYPAINT_LIB_FOUND)
+        message(STATUS "libmypaint support enabled")
+        add_definitions(-DHAVE_MYPaint)
+    else()
+        message(WARNING "libmypaint not found; disabling MyPaint support")
+        set(ENABLE_MYPaint OFF CACHE BOOL "" FORCE)
+    endif()
+endif()
+
 # avoid using again
 option_defaults_clear()
 
@@ -176,6 +202,10 @@ if(BUILD_ENV_MSVC)
     endif()
     set(QT_LIB_PATH ${QT_PATH})
     set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH};${QT_PATH}/lib/cmake/")
+
+    # sanitize any existing vcpkg applocal logs right now before projects are generated
+    execute_process(COMMAND ${CMAKE_COMMAND} -E echo "Sanitizing vcpkg.applocal.log files (configure-time)...")
+    execute_process(COMMAND ${CMAKE_COMMAND} -P "${CMAKE_SOURCE_DIR}/cmake/SanitizeVcpkgLogs.cmake")
 
     # If a local vcpkg is present, add its installed directories early so
     # find_package and find_dependency (OpenCV -> Protobuf etc.) can resolve

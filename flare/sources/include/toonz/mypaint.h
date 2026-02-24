@@ -3,6 +3,7 @@
 #ifndef MYPAINT_HPP
 #define MYPAINT_HPP
 
+#ifdef HAVE_MYPaint
 #include <cmath>
 #include <algorithm>
 #include <string>
@@ -12,6 +13,15 @@ extern "C" {
   #include <mypaint-surface.h>
   #include <mypaint-brush-settings.h>
 }
+#else
+// Stubs for when MyPaint support is disabled
+#include <string>
+namespace mypaint {
+    struct Dab { float x,y,radius; /* minimal */ };
+    class Surface { public: virtual ~Surface() {} virtual bool getColor(float,float,float&,float&,float&,float&)=0; virtual bool drawDab(const Dab&)=0; };
+    class Brush { public: Brush(){} }; // minimal stub
+}
+#endif
 
 namespace mypaint {
   class Brush;

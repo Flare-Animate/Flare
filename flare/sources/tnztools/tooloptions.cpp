@@ -12,7 +12,9 @@
 #include "vectorselectiontool.h"
 #include "rasterselectiontool.h"
 #include "toonzrasterbrushtool.h"
+#ifdef HAVE_MYPaint
 #include "fullcolorbrushtool.h"
+#endif
 #include "toonzvectorbrushtool.h"
 #include "tooloptionscontrols.h"
 
@@ -39,7 +41,9 @@
 #include "toonz/txshlevelhandle.h"
 #include "toonz/preferences.h"
 #include "toonz/tstageobjecttree.h"
+#ifdef HAVE_MYPaint
 #include "toonz/mypaintbrushstyle.h"
+#endif
 #include "toonz/tonionskinmaskhandle.h"
 
 // TnzCore includes
@@ -1971,9 +1975,11 @@ void BrushToolOptionsBox::filterControls() {
 
   bool showModifiers = false;
   if (m_tool->getTargetType() & TTool::RasterImage) {
+#ifdef HAVE_MYPaint
     FullColorBrushTool *fullColorBrushTool =
         dynamic_cast<FullColorBrushTool *>(m_tool);
     showModifiers = fullColorBrushTool->getBrushStyle();
+#endif
   } else if (m_tool->getTargetType() & TTool::ToonzImage) {
     ToonzRasterBrushTool *toonzRasterBrushTool =
         dynamic_cast<ToonzRasterBrushTool *>(m_tool);
@@ -2054,7 +2060,9 @@ void BrushToolOptionsBox::onAddPreset() {
   }
 
   case TTool::RasterImage: {
+#ifdef HAVE_MYPaint
     static_cast<FullColorBrushTool *>(m_tool)->addPreset(name);
+#endif
     break;
   }
   }
@@ -2076,7 +2084,9 @@ void BrushToolOptionsBox::onRemovePreset() {
   }
 
   case TTool::RasterImage: {
+#ifdef HAVE_MYPaint
     static_cast<FullColorBrushTool *>(m_tool)->removePreset();
+#endif
     break;
   }
   }

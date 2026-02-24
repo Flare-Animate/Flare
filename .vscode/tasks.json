@@ -51,15 +51,63 @@
 			"label": "cmake configure",
 			"type": "shell",
 			"command": "cmake -S flare/sources -B build -G \"Ninja\" -DCMAKE_BUILD_TYPE=RelWithDebInfo",
-			"problemMatcher": ["$gcc"],
-			"group": { "kind": "build", "isDefault": false }
+			"problemMatcher": [
+				"$gcc"
+			],
+			"group": {
+				"kind": "build",
+				"isDefault": false
+			}
 		},
 		{
 			"label": "cmake build",
 			"type": "shell",
 			"command": "cmake --build build --config RelWithDebInfo --parallel 4",
-			"problemMatcher": ["$gcc"],
+			"problemMatcher": [
+				"$gcc"
+			],
 			"group": "build"
+		},
+		{
+			"label": "dir test",
+			"type": "shell",
+			"command": "dir thirdparty\\libmypaint",
+			"args": []
+		},
+		{
+			"label": "check libmypaint",
+			"type": "shell",
+			"command": "if (Test-Path thirdparty\\libmypaint) { echo exists } else { echo missing }"
+		},
+		{
+			"label": "cmake configure no-mypaint",
+			"type": "shell",
+			"command": "cmake -S . -B build -A x64 -DCMAKE_BUILD_TYPE=RelWithDebInfo -DENABLE_MYPaint=OFF"
+		},
+		{
+			"label": "cmake configure normal",
+			"type": "shell",
+			"command": "cmake -S . -B build -A x64 -DCMAKE_BUILD_TYPE=RelWithDebInfo"
+		},
+		{
+			"label": "cmake configure no-mypaint 2",
+			"type": "shell",
+			"command": "cmake -S . -B build -A x64 -DCMAKE_BUILD_TYPE=RelWithDebInfo -DENABLE_MYPaint=OFF"
+		},
+		{
+			"label": "cmake build no-mypaint",
+			"type": "shell",
+			"command": "cmake --build build --config RelWithDebInfo -- /m"
+		},
+		{
+			"label": "cmake configure no-mypaint 3",
+			"type": "shell",
+			"command": "cmake -S . -B build -A x64 -DCMAKE_BUILD_TYPE=RelWithDebInfo -DENABLE_MYPaint=OFF"
+		},
+		{
+			"label": "cmake build no-mypaint 2",
+			"type": "shell",
+			"command": "cmake --build build --config RelWithDebInfo -- /m"
 		}
 	]
 }
