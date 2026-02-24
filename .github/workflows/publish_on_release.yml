@@ -40,6 +40,8 @@ jobs:
         shell: pwsh
         run: |
           python -m pip install aqtinstall
+          # only qtscript is required here; additional modules can be specified
+          # with separate -m flags if needed (see ci.yml for an example).
           python -m aqt install-qt windows desktop 5.15.2 win64_msvc2019_64 -O C:\Qt -m qtscript
           choco install ccache -y
 
