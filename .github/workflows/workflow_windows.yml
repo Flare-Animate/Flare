@@ -128,6 +128,13 @@ jobs:
           )
           call ci-scripts\windows\setup-deps.cmd
 
+      - name: Dump environment
+        if: always()
+        shell: cmd
+        run: |
+          @echo Environment variables at this point:
+          set
+
       - name: Configure CMake
         run: |
           @echo on
@@ -152,6 +159,7 @@ jobs:
         shell: cmd
 
       - name: Archive build logs
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: build-logs-windows

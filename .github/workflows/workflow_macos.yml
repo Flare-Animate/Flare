@@ -125,7 +125,8 @@ jobs:
       - name: Introduce Libraries and Stuff
         run: |
           cd flare/build/toonz
-          cp -pr ../../../stuff Flare.app/portablestuff
+          # copy portable stuff if present
+          cp -pr ../../../stuff Flare.app/portablestuff 2>/dev/null || true
           /usr/local/opt/qt@5/bin/macdeployqt Flare.app -verbose=0 -always-overwrite \
             -executable=Flare.app/Contents/MacOS/lzocompress \
             -executable=Flare.app/Contents/MacOS/lzodecompress \

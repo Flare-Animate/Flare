@@ -119,7 +119,9 @@ jobs:
         sudo ninja install
         
         mkdir -p appdir/usr
-        cp -r /opt/opentoonz/* appdir/usr
+        # copy any preinstalled system files; ignore errors
+        cp -r /opt/flare/* appdir/usr 2>/dev/null || true
+        cp -r /opt/opentoonz/* appdir/usr 2>/dev/null || true
         cp appdir/usr/share/applications/*.desktop appdir/ || true
         cp appdir/usr/share/icons/hicolor/256x256/apps/*.png appdir/ || true
 
