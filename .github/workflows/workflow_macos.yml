@@ -3,12 +3,12 @@ name: MacOS Build
 on:
   push:
     paths:
-      - '**/*'                                  # Include all files in the repository
-      - '!appveyor.yml'                         # Ignore changes in AppVeyor
-      - '!README.md'                            # Exclude README
-      - '!doc/**'                               # Exclude documentation
-      - '!**/.github/**'                        # Exclude everything in .github folder
-      - '.github/workflows/workflow_macos.yml'  # Include MacOs workflow file
+      - '**/*'
+      - '!appveyor.yml'
+      - '!README.md'
+      - '!doc/**'
+      - '!**/.github/**'
+      - '.github/workflows/workflow_macos.yml'
   pull_request:
     paths:
       - '**/*'
@@ -25,41 +25,28 @@ permissions:
 
 jobs:
   macOS:
-    timeout-minutes: 180 # Stop job if it exceeds expected build time
+    timeout-minutes: 180
     env:
-      GIT_LFS_SKIP_SMUDGE: '1' # Avoid LFS fetch failures when quota exceeded
-    # GHA are sunsetting support for macOS 13 (Intel & Apple Silicon/arm) & will be fully unsupported on (December 4th 2025),
-    # See: https://github.blog/changelog/2025-09-19-github-actions-macos-13-runner-image-is-closing-down/ & https://github.com/actions/runner-images/issues/13046
-    # (Septemer 19th 2025) - Replacing `macos-13` runner image with the new `macos-15-intel` runner image to maintain macOS (Intel x64) support.
-    # See: https://github.com/actions/runner-images/issues/13045
-    # GHA (x86_64) SUNSETTING SUPPORT DEADLINE WARNING!!! `macos-15-intel` runner image will be the last available x86_64 image from Actions, and after (August 2027) the x86_64 architecture will not be supported on GitHub Actions.
-    # TODO: Change macOS GHA Runner Image to (Apple Silicon) based image on/prior to sunsetting of `macos-15-intel` (x86_64) runner image (August 2027)
+      GIT_LFS_SKIP_SMUDGE: '1'
     runs-on: macos-15-intel
     steps:
-      # sparse clone again, leaving out thirdparty and hence all LFS blobs
-      - name: Sparse clone repository
-        run: |
-          git init .
-          git remote add origin https://github.com/Flare-Animate/Flare.git
-          git config core.sparseCheckout true
-          echo "/*" > .git/info/sparse-checkout
-          echo "!/thirdparty/*" >> .git/info/sparse-checkout
-          git -c protocol.version=2 -c advice.detachedHead=false pull --depth=1 origin HEAD
-        shell: bash
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          lfs: false
+          fetch-depth: 1
 
       - name: Clean Python symlinks
         run: |
-          # Remove potentially conflicting Python symlinks
           find /usr/local/bin -type l \( -name "python*" -o -name "pip*" -o -name "2to3*" -o -name "idle*" -o -name "pydoc*" \) \
             -exec sh -c 'file -b {} | grep -q "symbolic link to .*Python.framework" && echo "Removing {}" && rm {}' \;
-          # Ensure Homebrew Python is properly linked
           for py_version in python@3.11 python@3.12 python@3.13 python@3.14; do
             if brew list --versions $py_version >/dev/null; then
               brew unlink $py_version || true
             fi
           done
           brew link --overwrite --force python@3.14 || true
-          
+
       - name: Install libraries
         run: |
           checkPkgAndInstall() {
@@ -75,6 +62,7 @@ jobs:
           brew update
 
           checkPkgAndInstall pkg-config glew lz4 libjpeg libpng lzo boost libusb libmypaint ccache jpeg-turbo ninja opencv openjph openexr qt@5
+
       - name: Set up cache
         run: |
           export PATH="/usr/local/opt/ccache/libexec:$PATH"
@@ -88,9 +76,11 @@ jobs:
       - name: Build libtiff
         run: |
           cd thirdparty/tiff-4.0.3
+          chmod +x configure
           CFLAGS='-fPIC' CXXFLAGS='-fPIC' ./configure --disable-lzma
           make -j $(sysctl -n hw.ncpu)
-          make install  # Ensures CMake finds the installed lib (avoid linking issues)
+          make install
+
       - name: Build
         run: |
           export PKG_CONFIG_PATH="/usr/local/opt/jpeg-turbo/lib/pkgconfig:$PKG_CONFIG_PATH"
@@ -116,20 +106,22 @@ jobs:
             echo "CMake configure failed with exit code $rc"
             exit $rc
           fi
-          if ! (ninja -j $(sysctl -n hw.ncpu) 2>&1 | tee build/build.log); then
+          if ! (ninja -j $(sysctl -n hw.ncpu) 2>&1 | tee build.log); then
             echo "Build failed; dumping build log..."
-            if [ -f build/build.log ]; then cat build/build.log; fi
+            if [ -f build.log ]; then cat build.log; fi
             exit 1
           fi
+
       - name: Upload build logs
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v4
         with:
           name: build-logs-macos
           path: |
-            build/cmake_configure.log
-            build/build.log
+            flare/build/cmake_configure.log
+            flare/build/build.log
           if-no-files-found: ignore
+
       - name: Introduce Libraries and Stuff
         run: |
           cd flare/build/toonz
@@ -142,6 +134,7 @@ jobs:
             -executable=Flare.app/Contents/MacOS/tconverter \
             -executable=Flare.app/Contents/MacOS/tfarmcontroller \
             -executable=Flare.app/Contents/MacOS/tfarmserver
+
       - name: Modify Library Paths
         run: |
           cd flare/build/toonz/Flare.app/Contents/Frameworks
@@ -153,15 +146,11 @@ jobs:
               fi
             done
           done
+
       - name: Create Artifact
         run: |
           cd flare/build/toonz
           echo "Creating DMG..."
-          # macdeployqt always puts the DMG in the current working directory; the
-          # build used to be configured such that the binary directory was
-          # flare/build/toonz, but after the rebrand it may just be flare/build.
-          # Search both places for the resulting DMG so the workflow remains
-          # resilient.
           ATTEMPT=0
           while [ $ATTEMPT -lt 10 ]; do
             /usr/local/opt/qt@5/bin/macdeployqt Flare.app -dmg -verbose=0 && \
@@ -176,10 +165,12 @@ jobs:
           else
             echo "DMG=" >> $GITHUB_ENV
           fi
-      - uses: actions/upload-artifact@v6
+
+      - uses: actions/upload-artifact@v4
         with:
           name: Flare-${{ runner.os }}-${{ github.sha }}
           path: flare/build/${{ env.DMG }}
+
       - name: Post build logs to PR
         if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && always() }}
         uses: actions/github-script@v6
@@ -198,8 +189,8 @@ jobs:
                 return content;
               } catch (e) { return `(error reading ${path}): ${e.message}`; }
             }
-            const cmake = readTrunc('build/cmake_configure.log');
-            const build = readTrunc('build/build.log');
-            const note = (!fs.existsSync('build/cmake_configure.log') && !fs.existsSync('build/build.log')) ? '\n\n**Note:** log files missing – checkout or prior step may have failed.' : '';
+            const cmake = readTrunc('flare/build/cmake_configure.log');
+            const build = readTrunc('flare/build/build.log');
+            const note = (!fs.existsSync('flare/build/cmake_configure.log') && !fs.existsSync('flare/build/build.log')) ? '\n\n**Note:** log files missing \u2013 checkout or prior step may have failed.' : '';
             const body = `**Automated build logs (truncated)**\n\n--- CMake configure log ---\n${cmake}\n\n--- Build log ---\n${build}${note}`;
             await github.rest.issues.createComment({ owner, repo, issue_number: pr, body });

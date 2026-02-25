@@ -1,5 +1,10 @@
 # yaml-language-server: $schema=https://json.schemastore.org/github-workflow
-name: CI - Build
+# CI - Tests & Lint
+#
+# C++ builds are handled by the platform-specific workflows:
+#   workflow_linux.yml, workflow_macos.yml, workflow_windows.yml
+# This workflow runs lightweight cross-platform checks (Python tests, lint).
+name: CI - Tests & Lint
 
 on:
   push:
@@ -8,142 +13,14 @@ on:
     branches: [ main, master, rename-to-flare-full ]
 
 jobs:
-  build:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-        config: [Release, Debug]
-
+  tests:
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          lfs: true            # pull LFS objects; avoids missing files on checkout
-          fetch-depth: 0      # we need full history for some checks
-        continue-on-error: true  # we'll fall back below if this fails
- 
-      # If the built-in checkout failed (common when LFS pointers time out),
-      # try a manual clone and pull the LFS objects ourselves.  The job will
-      # still succeed overall even if the fallback also fails, so the caller
-      # can see the annotated logs.
-      - name: Fallback manual clone
-        if: steps.checkout.conclusion == 'failure'
-        run: |
-          echo "checkout step failed, attempting manual clone"
-          rm -rf *
-          git clone https://github.com/Flare-Animate/Flare.git . || exit 1
-          git lfs install || exit 1
-          git lfs pull || exit 1
-        # use bash for portability; `git` is available on all runners
-        shell: bash
-
-      # Install Qt5 on Ubuntu
-      - name: Install Qt5 (Ubuntu)
-        if: matrix.os == 'ubuntu-latest'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools \
-            libqt5svg5-dev libqt5opengl5-dev libqt5multimedia5 libqt5multimedia5-plugins \
-            libqt5multimediawidgets5 qtmultimedia5-dev qtscript5-dev qttools5-dev-tools \
-            libboost-all-dev libopencv-dev
-
-      # Install Qt5 on macOS
-      - name: Install Qt5 (macOS)
-        if: matrix.os == 'macos-latest'
-        run: |
-          brew install qt@5 opencv libmypaint
-
-      # Build libtiff on macOS
-      - name: Build libtiff (macOS)
-        if: matrix.os == 'macos-latest'
-        run: |
-          cd thirdparty/tiff-4.0.3
-          CFLAGS='-fPIC' CXXFLAGS='-fPIC' ./configure --disable-lzma
-          make -j $(sysctl -n hw.ncpu)
-          sudo make install
-
-      # Install Qt5 on Windows using aqtinstall
-      - name: Install Qt5 (Windows)
-        if: matrix.os == 'windows-latest'
-        run: |
-          python -m pip install aqtinstall
-          python -m aqt install-qt windows desktop 5.15.2 win64_msvc2019_64 -O C:\Qt `
-            -m qtscript -m serialport
-        shell: pwsh
-        
-      - name: Set Qt5 Path (Windows)
-        if: matrix.os == 'windows-latest'
-        run: |
-          echo "Qt5_DIR=C:\Qt\5.15.2\msvc2019_64\lib\cmake\Qt5" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          echo "CMAKE_PREFIX_PATH=C:\Qt\5.15.2\msvc2019_64" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-        shell: pwsh
-
-      # Install OpenCV on Windows
-      - name: Install OpenCV (Windows)
-        if: matrix.os == 'windows-latest'
-        run: |
-          choco install opencv -y
-        shell: pwsh
-        
-      # Install Boost on Windows
-      - name: Install Boost (Windows)
-        if: matrix.os == 'windows-latest'
-        run: |
-          choco install boost-msvc-14.3 -y
-        shell: pwsh
-        
-      - name: Set OpenCV and Boost Paths (Windows)
-        if: matrix.os == 'windows-latest'
-        run: |
-          echo "OpenCV_DIR=C:\tools\opencv\build" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          echo "BOOST_ROOT=C:\local\boost_1_87_0" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-        shell: pwsh
-
-      - name: Configure (Unix/macOS)
-        if: matrix.os != 'windows-latest'
-        shell: bash
-        run: |
-          echo "pwd: $(pwd)"
-          echo "listing root contents:"; ls -al
-          echo "listing flare directory:"; ls -al flare || true
-          if [ ! -d flare/sources ]; then
-            echo "ERROR: flare/sources does not exist!"
-            exit 1
-          fi
-          mkdir -p build || true
-          set +e
-          cmake -S flare/sources -B build -DCMAKE_BUILD_TYPE=${{ matrix.config }} > build/cmake_configure.log 2>&1
-          rc=$?
-          set -e
-           echo "--- Begin CMake configure log ---"
-           if [ -f build/cmake_configure.log ]; then cat build/cmake_configure.log; fi
-           echo "--- End CMake configure log ---"
-           if [ $rc -ne 0 ]; then
-             echo "CMake configure failed with exit code $rc"
-             exit $rc
-           fi
-
-      - name: Configure (Windows)
-        if: matrix.os == 'windows-latest'
-        shell: pwsh
-        run: |
-          Write-Output "pwd: $(pwd)"
-          Write-Output "listing root contents:"; Get-ChildItem -Force
-          Write-Output "listing flare directory:"; if (Test-Path flare) { Get-ChildItem flare -Force } else { Write-Output "<missing>" }
-          if (-not (Test-Path flare\sources)) { Write-Error "ERROR: flare\sources missing"; exit 1 }
-          if (-not (Test-Path build)) { New-Item -ItemType Directory -Path build | Out-Null }
-          cmake -S flare/sources -B build -DCMAKE_BUILD_TYPE=${{ matrix.config }} 2>&1 | Tee-Object -FilePath build/cmake_configure.log
-          $rc = $LASTEXITCODE
-          Write-Output "--- Begin CMake configure log ---"
-          Get-Content build/cmake_configure.log
-          Write-Output "--- End CMake configure log ---"
-          if ($rc -ne 0) { Write-Error "CMake configure failed with exit code $rc"; exit $rc }
-
-      - name: Build
-        run: |
-          cmake --build build --config ${{ matrix.config }} --parallel
+          lfs: false
+          fetch-depth: 1
 
       - name: Setup Python
         uses: actions/setup-python@v4
@@ -168,13 +45,4 @@ jobs:
         with:
           name: repo-script-problems
           path: repo_script_problems.json
-          if-no-files-found: ignore
-
-      - name: Upload build logs
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-logs-${{ matrix.os }}-${{ matrix.config }}
-          path: |
-            build/cmake_configure.log
-            build/build.log
           if-no-files-found: ignore

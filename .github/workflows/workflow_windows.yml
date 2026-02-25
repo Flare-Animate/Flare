@@ -29,10 +29,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          lfs: false            # we handle thirdparty manually
-          fetch-depth: 0        # need full history for sparse operations elsewhere
+          lfs: false
+          fetch-depth: 0
 
-      # 1. Herramientas
       - name: Install Build Tools
         run: |
           choco install ccache -y
@@ -42,20 +41,19 @@ jobs:
       - name: Add msbuild to PATH
         uses: microsoft/setup-msbuild@v2
 
-      # 2. Librerías (Workaround LFS)
       - name: Download and Force Third-Party Libs
         run: |
           @echo on
-          :: 1. Descarga (Mantenemos tu URL exacta)
+          :: 1. Download thirdparty libs
           curl -fsSL -o libs.zip https://github.com/andeon/opentoonz-thirdparty-libs/releases/download/prebuilt-libs-v1/thirdparty-libs.zip
           
-          :: 2. BORRADO PREVIO (Para eliminar los punteros corruptos de LFS)
+          :: 2. Remove existing thirdparty to replace LFS pointers with real files
           if exist thirdparty rmdir /S /Q thirdparty
           
-          :: 3. Extraer (Ahora no hay nada que pisar, los archivos serán reales)
+          :: 3. Extract
           7z x -y libs.zip -othirdparty
           
-          :: 4. Configurar headers
+          :: 4. Configure headers
           cd thirdparty
           
           copy /Y tiff-4.0.3\libtiff\tif_config.vc.h tiff-4.0.3\libtiff\tif_config.h
@@ -64,7 +62,7 @@ jobs:
           
           cd ..
           
-          :: 5. Definir variable de entorno
+          :: 5. Set environment variable
           echo THIRDPARTY_DIR=%GITHUB_WORKSPACE%\thirdparty>> %GITHUB_ENV%
           del /Q libs.zip
         shell: cmd
@@ -79,17 +77,16 @@ jobs:
           if %ERRORLEVEL% NEQ 0 if %RETRY% LEQ 3 (echo download failed, retrying && goto DL)
           if %ERRORLEVEL% NEQ 0 (echo Qt zip download failed after retries & exit /b 1)
           
-          :: Extraer el contenido
+          :: Extract contents
           7z x -y Qt5.15.2_wintab.zip -othirdparty\qt
           
-          :: --- AUTODETECCIÓN DE RUTA ---
-          :: Buscamos qmake.exe y subimos dos niveles para encontrar la raíz de Qt
+          :: --- AUTO-DETECT QT PATH ---
           set "DETECTED_QT="
           for /f "delims=" %%i in ('dir /b /s "thirdparty\qt\qmake.exe"') do (
               set "QMAKE_PATH=%%~dpi"
           )
           
-          :: Quitar la carpeta \bin\ de la ruta para tener la raíz de Qt
+          :: Remove \bin\ from path to get Qt root
           if defined QMAKE_PATH (
               set "DETECTED_QT=%QMAKE_PATH:\bin\=%"
               echo Found Qt at: %DETECTED_QT%
@@ -99,12 +96,10 @@ jobs:
               exit /b 1
           )
 
-          :: Guardar en GITHUB_ENV sin espacios al final
+          :: Save to GITHUB_ENV
           echo QT_PATH=%DETECTED_QT%>> %GITHUB_ENV%
         shell: cmd
 
-
-      # 4. Gestión de Cachés (Separados para que ccache SIEMPRE guarde cambios)
       - name: Cache System Dependencies (OpenCV/Boost)
         id: build-cache
         uses: actions/cache@v4
@@ -137,7 +132,7 @@ jobs:
         run: |
           @echo on
           if exist build rmdir /S /Q build
-          :: Aquí se "siembran" todas las configuraciones
+          mkdir build
           cmake -S flare/sources -B build -G "%MSVCVERSION%" -A x64 ^
             -DQT_PATH="%QT_PATH%" ^
             -DBOOST_ROOT="%BOOST_ROOT%" ^
@@ -193,44 +188,44 @@ jobs:
             build\cmake_configure.log
             build\build.log
           if-no-files-found: ignore
-      # 7. Empaquetado
+
       - name: Create Package and Final Artifact
         run: |
           @echo on
-          :: 1. Crear carpeta limpia
+          :: 1. Create clean folder
           if exist FlarePortable rmdir /S /Q FlarePortable
           mkdir FlarePortable
 
-          :: 2. COPIAR EXE (Búsqueda global en build sin basura de CMake)
+          :: 2. Copy EXE
           for /f "delims=" %%i in ('dir /b /s "build\Flare.exe" ^| findstr /v "CMakeFiles"') do copy /Y "%%i" FlarePortable\Flare.exe
           
-          :: 3. COPIAR DLLS (Corregido con la barra final FlarePortable\)
+          :: 3. Copy DLLs
           for /f "delims=" %%d in ('dir /b /s "build\*.dll" ^| findstr /i "RelWithDebInfo" ^| findstr /v "CMakeFiles"') do copy /Y "%%d" FlarePortable\
 
-          :: 4. VALIDACIÓN DE SEGURIDAD
+          :: 4. Validation
           if not exist "FlarePortable\Flare.exe" (
-              echo ERROR: No se encontro Flare.exe. Mostrando arbol de archivos:
+              echo ERROR: Flare.exe not found. Listing exe files:
               dir /s /b build | findstr /i ".exe"
               exit /b 1
           )
 
-          :: 5. DEPENDENCIAS EXTERNAS (thirdparty y OpenCV)
-          echo Copiando dependencias x64...
+          :: 5. External dependencies (thirdparty and OpenCV)
+          echo Copying x64 dependencies...
           for /f "delims=" %%l in ('dir /b /s "thirdparty\*.dll" ^| findstr /i "64 x64"') do copy /Y "%%l" FlarePortable\
           
           for /f "delims=" %%j in ('dir /b /s "C:\tools\opencv\*x64*\bin\opencv_world*.dll" 2^>nul') do copy /Y "%%j" FlarePortable\
 
-          :: 6. DESPLEGAR QT + RUNTIME MSVC (msvcp140.dll, etc.)
-          echo Ejecutando windeployqt...
+          :: 6. Deploy Qt + MSVC runtime
+          echo Running windeployqt...
           "%QT_PATH%\bin\windeployqt.exe" "FlarePortable\Flare.exe" --opengl --compiler-runtime
 
-          :: 7. MODO PORTABLE (stuff -> portablestuff para los .ini)
+          :: 7. Portable mode (stuff -> portablestuff)
           if exist "stuff" (
               mkdir "FlarePortable\portablestuff"
               xcopy /Y /E /I "stuff" "FlarePortable\portablestuff"
           )
 
-          :: 8. LIMPIEZA FINAL
+          :: 8. Cleanup
           del /S /Q FlarePortable\*.pdb 2>nul
         shell: cmd
 
@@ -261,11 +256,6 @@ jobs:
             }
             const cmake = readTrunc('build/cmake_configure.log');
             const build = readTrunc('build/build.log');
-            const note = (!fs.existsSync('build/cmake_configure.log') && !fs.existsSync('build/build.log')) ? '\n\n**Note:** log files missing – checkout or prior step may have failed.' : '';
+            const note = (!fs.existsSync('build/cmake_configure.log') && !fs.existsSync('build/build.log')) ? '\n\n**Note:** log files missing \u2013 checkout or prior step may have failed.' : '';
             const body = `**Automated build logs (truncated)**\n\n--- CMake configure log ---\n${cmake}\n\n--- Build log ---\n${build}${note}`;
             await github.rest.issues.createComment({ owner, repo, issue_number: pr, body });
-
-
-
-
-

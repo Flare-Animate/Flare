@@ -7,7 +7,7 @@ on:
       - '!appveyor.yml'
       - '!README.md'
       - '!doc/**'
-      - '!**/.github/**' # Simplificado
+      - '!**/.github/**'
       - '.github/workflows/workflow_linux.yml'
   pull_request:
     paths:
@@ -15,17 +15,22 @@ on:
       - '!appveyor.yml'
       - '!README.md'
       - '!doc/**'
-      - '!.github/**' # Simplificado
+      - '!.github/**'
       - '.github/workflows/workflow_linux.yml'
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
 
 jobs:
   Ubuntu:
     runs-on: ubuntu-24.04
     env:
       GIT_LFS_SKIP_SMUDGE: '1'
-    timeout-minutes: 120 # Previene cancelación por tiempo
+    timeout-minutes: 120
     strategy:
-      fail-fast: false # Permite que si uno falla, el otro (gcc/clang) siga
+      fail-fast: false
       matrix:
         compiler: [gcc, clang]
         include:
@@ -37,17 +42,11 @@ jobs:
             cxx: clang++
 
     steps:
-    # perform sparse checkout excluding thirdparty to keep LFS pointers out of
-    # the build container; thirdparty libs are downloaded separately anyway.
-    - name: Sparse clone repository
-      run: |
-        git init .
-        git remote add origin https://github.com/Flare-Animate/Flare.git
-        git config core.sparseCheckout true
-        echo "/*" > .git/info/sparse-checkout
-        echo "!/thirdparty/*" >> .git/info/sparse-checkout
-        git -c protocol.version=2 -c advice.detachedHead=false pull --depth=1 origin HEAD
-      shell: bash
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        lfs: false
+        fetch-depth: 1
 
     - name: Install libraries
       run: |
@@ -71,9 +70,9 @@ jobs:
     - name: Build libtiff
       run: |
         cd thirdparty/tiff-4.0.3
+        chmod +x configure
         ./configure --disable-jbig --disable-shared --with-pic
-        # Limitamos a 2 hilos para evitar que el OOM Killer cancele la operación
-        make -j2 
+        make -j2
 
     - name: Build Flare
       run: |
@@ -96,7 +95,6 @@ jobs:
         echo "--- End CMake configure log ---"
         if [ $rc -ne 0 ]; then echo "CMake configure failed with exit code $rc"; exit $rc; fi
 
-        # Ninja por defecto usa todos los núcleos; aquí lo limitamos a 2
         if ! (ninja -j2 2>&1 | tee build.log); then
           echo "Build failed; dumping build log..."
           if [ -f build.log ]; then cat build.log; fi
@@ -122,7 +120,6 @@ jobs:
         
         mkdir -p appdir/usr
         cp -r /opt/opentoonz/* appdir/usr
-        # Evitar fallos si no existen iconos/desktops
         cp appdir/usr/share/applications/*.desktop appdir/ || true
         cp appdir/usr/share/icons/hicolor/256x256/apps/*.png appdir/ || true
 
@@ -132,7 +129,6 @@ jobs:
           rmdir appdir/usr/share/opentoonz || true
         fi
 
-        # Descarga silenciosa y con reintentos
         base_url="https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous"
         for tool in linuxdeploy-x86_64.AppImage linuxdeploy-plugin-qt-x86_64.AppImage linuxdeploy-plugin-appimage-x86_64.AppImage; do
           wget -q --show-progress "${base_url}/${tool}" || \
@@ -143,25 +139,15 @@ jobs:
 
         echo Copiando dependencias x64 (prefer flare, fallback to opentoonz)...
           if [ -d /opt/flare ]; then cp -r /opt/flare/* appdir/usr || true; elif [ -d /opt/opentoonz ]; then cp -r /opt/opentoonz/* appdir/usr || true; fi
-          
-          # Windows-specific DLL loops removed; not needed on Linux. If you really
-          # need to copy any .dll files for compatibility, use a shell-friendly
-          # construct such as:
-          # find thirdparty -name "*.dll" -path "*64*" -exec cp {} FlarePortable/ \; || true
-          # and similar for OpenCV paths.
 
-
-        # Create apprun selecting either Flare or OpenToonz executable
         if [ -f appdir/usr/bin/Flare ]; then BINNAME=Flare; elif [ -f appdir/usr/bin/OpenToonz ]; then BINNAME=OpenToonz; else BINNAME=$(ls appdir/usr/bin | head -n1); fi
         printf "#!/usr/bin/env bash\nexec \"\${APPDIR}/usr/bin/${BINNAME}\"" > apprun.sh
         chmod 755 apprun.sh
 
-        # Prefer lib path for flare if present, otherwise fallback
         if [ -d appdir/usr/lib/flare ]; then export LD_LIBRARY_PATH="appdir/usr/lib/flare:$LD_LIBRARY_PATH"; elif [ -d appdir/usr/lib/opentoonz ]; then export LD_LIBRARY_PATH="appdir/usr/lib/opentoonz:$LD_LIBRARY_PATH"; fi
 
         ./linuxdeploy-x86_64.AppImage --appdir=appdir --plugin=qt --output=appimage --custom-apprun=apprun.sh
 
-        # Normalize appimage name to Flare.AppImage
         if ls Flare*.AppImage >/dev/null 2>&1; then mv Flare*.AppImage artifact/Flare.AppImage; elif ls OpenToonz*.AppImage >/dev/null 2>&1; then mv OpenToonz*.AppImage artifact/Flare.AppImage; fi
         ARTIFACT_NAME=Flare-${{ runner.os }}-${{ matrix.compiler }}
         mv artifact ${ARTIFACT_NAME} || true
@@ -196,4 +182,3 @@ jobs:
           const build = readTrunc('flare/build/build.log');
           const body = `**Automated build logs (truncated)**\n\n--- CMake configure log ---\n${cmake}\n\n--- Build log ---\n${build}`;
           await github.rest.issues.createComment({ owner, repo, issue_number: pr, body });
-
