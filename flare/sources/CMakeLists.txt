@@ -110,7 +110,12 @@ option(WITH_TRANSLATION "Generate translation projects as well" ON)
 option(WITH_WINTAB "(Windows only) Build with customized Qt with WinTab support. https://github.com/shun-iwasawa/qt5/releases/tag/v5.15.2_wintab" OFF)
 
 # optionally enable MyPaint brush support; if the library or headers are unavailable we disable it
-option(ENABLE_MYPaint "Enable MyPaint brush support" ON)
+option(ENABLE_MYPaint "Enable MyPaint brush support" OFF)
+# NOTE: default OFF because CI environments often lack a full libmypaint tree and
+# the Windows build previously failed when header files were removed.  Users who
+# want MyPaint can still enable this option manually if they provide a working
+# thirdparty/libmypaint layout.
+
 
 if(ENABLE_MYPaint)
     find_package(PkgConfig QUIET)
@@ -187,14 +192,14 @@ endif()
 if(BUILD_ENV_MSVC)
     # configure the third party libs (only once) to avoid manual copies
     message(STATUS "configure the third party libs")
-    if(NOT EXISTS"${SDKROOT}/libpng-1.6.21")
+    if(EXISTS "${SDKROOT}/libpng-1.6.21/scripts/pnglibconf.h.prebuilt")
         file(COPY "${SDKROOT}/libpng-1.6.21/scripts/pnglibconf.h.prebuilt" DESTINATION "${SDKROOT}/libpng-1.6.21")
         file(RENAME "${SDKROOT}/libpng-1.6.21/pnglibconf.h.prebuilt" "${SDKROOT}/libpng-1.6.21/pnglibconf.h")
     endif()
-    if(NOT EXISTS "${SDKROOT}/tiff-4.0.3/libtiff/tif_config.h")
+    if(EXISTS "${SDKROOT}/tiff-4.0.3/libtiff/tif_config.vc.h")
         file(COPY_FILE "${SDKROOT}/tiff-4.0.3/libtiff/tif_config.vc.h" "${SDKROOT}/tiff-4.0.3/libtiff/tif_config.h")
     endif()
-    if(NOT EXISTS "${SDKROOT}/tiff-4.0.3/libtiff/tiffconf.h")
+    if(EXISTS "${SDKROOT}/tiff-4.0.3/libtiff/tiffconf.vc.h")
         file(COPY_FILE "${SDKROOT}/tiff-4.0.3/libtiff/tiffconf.vc.h" "${SDKROOT}/tiff-4.0.3/libtiff/tiffconf.h")
     endif()
 endif()
