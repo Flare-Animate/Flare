@@ -5,6 +5,8 @@
 
 #ifdef HAVE_MYPaint
 
+#include <map> // needed for std::map used later in this header
+
 #include "mypaint.h"
 
 // TnzCore includes
