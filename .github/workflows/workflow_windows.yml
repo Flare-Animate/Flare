@@ -138,7 +138,7 @@ jobs:
           @echo on
           if exist build rmdir /S /Q build
           :: Aquí se "siembran" todas las configuraciones
-          cmake -B build -G "%MSVCVERSION%" -A x64 ^
+          cmake -S flare/sources -B build -G "%MSVCVERSION%" -A x64 ^
             -DQT_PATH="%QT_PATH%" ^
             -DBOOST_ROOT="%BOOST_ROOT%" ^
             -DOpenCV_DIR="%OpenCV_DIR%" ^
@@ -146,7 +146,7 @@ jobs:
             -DWITH_WINTAB=ON ^
             -DWITH_SYSTEM_LZO=ON ^
             -DWITH_LZODRIVER=OFF ^
-            -DCMAKE_TOOLCHAIN_FILE="%VCPKG_ROOT%\\scripts\\buildsystems\\vcpkg.cmake" ^
+            -DCMAKE_TOOLCHAIN_FILE="%VCPKG_ROOT%\scripts\buildsystems\vcpkg.cmake" ^
             -DCMAKE_C_COMPILER_LAUNCHER=ccache ^
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache ^
             -DCMAKE_BUILD_TYPE=RelWithDebInfo > build\cmake_configure.log 2>&1
@@ -168,10 +168,19 @@ jobs:
       - name: Build Flare
         run: |
           cmake --build build --config RelWithDebInfo --parallel 4 > build\build.log 2>&1
-          if %ERRORLEVEL% NEQ 0 (
-            type build\cmake_configure.log
-            type build\build.log
-            exit /b %ERRORLEVEL%
+          set rc=%ERRORLEVEL%
+          echo --- CMake configure log ---
+          if exist build\cmake_configure.log type build\cmake_configure.log
+          echo --- Build log ---
+          if exist build\build.log type build\build.log
+          if %rc% NEQ 0 (
+            echo Build failed with exit code %rc%
+            exit /b %rc%
+          )
+          if not exist build\RelWithDebInfo\Flare.exe (
+            echo ERROR: Flare.exe not produced; listing contents of build\RelWithDebInfo
+            dir build\RelWithDebInfo /s /b
+            exit /b 1
           )
         shell: cmd
 
