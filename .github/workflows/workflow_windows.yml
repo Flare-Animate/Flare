@@ -26,17 +26,11 @@ jobs:
       GIT_LFS_SKIP_SMUDGE: '1'
 
     steps:
-      # manually perform a sparse clone excluding thirdparty to avoid any LFS
-      # pointers (the build later downloads its own thirdparty package).
-      - name: Sparse clone repository
-        run: |
-          git init .
-          git remote add origin https://github.com/Flare-Animate/Flare.git
-          git config core.sparseCheckout true
-          echo "/*" > .git/info/sparse-checkout
-          echo "!/thirdparty/*" >> .git/info/sparse-checkout
-          git -c protocol.version=2 -c advice.detachedHead=false pull --depth=1 origin HEAD
-        shell: cmd
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          lfs: false            # we handle thirdparty manually
+          fetch-depth: 0        # need full history for sparse operations elsewhere
 
       # 1. Herramientas
       - name: Install Build Tools
