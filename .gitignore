@@ -48,3 +48,4 @@ __pycache__/
 
 # ignore local scripts folder used during builds
 /.scripts
+/FlarePortable
