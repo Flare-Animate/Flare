@@ -129,8 +129,15 @@ jobs:
             ${{ runner.os }}-ccache-
 
       - name: Install Windows dependencies
-        run: .\ci-scripts\windows\setup-deps.cmd
         shell: cmd
+        run: |
+          @echo on
+          if not exist ci-scripts\windows\setup-deps.cmd (
+            echo ERROR: dependency script not found at ci-scripts\windows\setup-deps.cmd
+            dir ci-scripts\windows
+            exit /b 1
+          )
+          call ci-scripts\windows\setup-deps.cmd
 
       - name: Configure CMake
         run: |
