@@ -75,6 +75,8 @@ jobs:
           cd flare/build
           sudo ninja install
           mkdir -p appdir/usr
+          # prefer /opt/flare if it exists, otherwise legacy OpenToonz
+          cp -r /opt/flare/* appdir/usr 2>/dev/null || true
           cp -r /opt/opentoonz/* appdir/usr || true
           # Create AppImage (best-effort)
           wget -q https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage

@@ -120,6 +120,7 @@ jobs:
         
         mkdir -p appdir/usr
         # copy any preinstalled system files; ignore errors
+        # prefer Flare installation if present, fall back to legacy OpenToonz
         cp -r /opt/flare/* appdir/usr 2>/dev/null || true
         cp -r /opt/opentoonz/* appdir/usr 2>/dev/null || true
         cp appdir/usr/share/applications/*.desktop appdir/ || true

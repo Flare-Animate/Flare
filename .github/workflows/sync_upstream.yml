@@ -1,5 +1,6 @@
 # yaml-language-server: $schema=https://json.schemastore.org/github-workflow
-name: Sync from OpenToonz Upstream
+name: Sync from upstream (OpenToonz)
+# this job pulls from the OpenToonz repo and applies the Flare rebranding script
 
 on:
   # Run manually
