@@ -570,6 +570,13 @@ Possibly the preset file has been corrupted</source>
     </message>
 </context>
 <context>
+    <name>DVGui::StyleIndexLineEdit</name>
+    <message>
+        <source>current</source>
+        <translation>当前</translation>
+    </message>
+</context>
+<context>
     <name>DVGui::ToneCurveField</name>
     <message>
         <source>Channel:</source>
@@ -2023,6 +2030,10 @@ and tone may be slightly discretized.</source>
     <message>
         <source>Flare</source>
         <translation type="vanished">Flare</translation>
+    </message>
+    <message>
+        <source>OpenToonz</source>
+        <translation type="vanished">OpenToonz</translation>
     </message>
 </context>
 <context>

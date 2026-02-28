@@ -5645,6 +5645,452 @@ or you may delete necessary files for it.</source>
         <source>Flip Previous Guide Stroke Direction</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>&amp;Save All Levels</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Camera Capture...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Toggle Maximize Panel</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Toggle Main Window&apos;s Full Screen Mode</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Onion Skin Toggle</source>
+        <translation type="unfinished">Activer/Désactiver la Pelure d&apos;Oignon</translation>
+    </message>
+    <message>
+        <source>Zero Thick Lines</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Refresh Folder Tree</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Pressure Sensitivity</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Toggle Link to Studio Palette</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Remove Reference to Studio Palette</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Startup Popup...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;New Vector Level</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>New Vector Level</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;New Toonz Raster Level</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>New Toonz Raster Level</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;New Raster Level</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>New Raster Level</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Fast Render to MP4</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Reload</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Toggle Edit In Place</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>New Note Level</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Apply Lip Sync Data to Column</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Toggle XSheet Toolbar</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Reframe with Empty Inbetweens...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Auto Input Cell Number...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Paste Numbers</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Alpha Channel</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Command Bar</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Record Audio</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Toggle Current Time Indicator</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Vectors to Toonz Raster</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Replace Vectors with Simplified Vectors</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Flip Viewer Vertically</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Refresh</source>
+        <translation type="unfinished">Actualiser</translation>
+    </message>
+    <message>
+        <source>Snap Sensitivity</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Fill Tool - Autopaint Lines</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Export Soundtrack</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Touch Gesture Control</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Remove Empty Columns</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Animate Tool</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Paste Insert</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Paste Insert Above/After</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Insert Above/After</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Fill In Empty Cells</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Toggle Cursor Size Outline</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Brush Tool - Draw Order</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Active Axis - All</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Timeline</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Linear Interpolation</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Speed In / Speed Out Interpolation</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Ease In / Ease Out Interpolation</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Ease In / Ease Out (%) Interpolation</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Exponential Interpolation</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Expression Interpolation</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>File Interpolation</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Constant Interpolation</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Separate Colors...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Flip Viewer Horizontally</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Send to Back</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Reset Zoom</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Reset Rotation</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Reset Position</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Brush Tool - Eraser (Raster option)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Brush Tool - Lock Alpha</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>http://opentoonz.readthedocs.io</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Import Toonz Lip Sync File...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Export Exchange Digital Time Sheet (XDTS)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Clear Cache Folder</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Show/Hide Xsheet Camera Column</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Create Blank Drawing</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Shift Keys Down</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Shift Keys Up</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Next Key</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Prev Key</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;FX Editor</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Stop Motion Controls</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Online Manual...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Select Next Frame Guide Stroke</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Select Previous Frame Guide Stroke</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Select Prev &amp;&amp; Next Frame Guide Strokes</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Reset Guide Stroke Selections</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Tween Selected Guide Strokes</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Tween Guide Strokes to Selected</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Select Guide Strokes &amp;&amp; Tween Mode</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Capture Stop Motion Frame</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Raise Stop Motion Opacity</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Lower Stop Motion Opacity</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Toggle Stop Motion Live View</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Toggle Stop Motion Zoom</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Lower Stop Motion Level Subsampling</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Raise Stop Motion Level Subsampling</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Go to Stop Motion Insert Frame</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Clear Cache Folder</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>There are no unused items in the cache folder.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Deleting the following items:
+</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&lt;DIR&gt; </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>   ... and %1 more items
+</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>
+Are you sure?
+
+N.B. Make sure you are not running another process of OpenToonz,
+or you may delete necessary files for it.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Can&apos;t delete %1 : </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>https://github.com/opentoonz/opentoonz/releases/latest</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>https://groups.google.com/forum/#!forum/opentoonz_en</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>To report a bug, click on the button below to open a web browser window for OpenToonz&apos;s Issues page on https://github.com.  Click on the &apos;New issue&apos; button and fill out the form.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Vector Guided Drawing</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Short Play</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;What&apos;s New...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Community Forum...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Report a Bug...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Guided Drawing Controls</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Flip Next Guide Stroke Direction</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Flip Previous Guide Stroke Direction</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>MatchlinesDialog</name>

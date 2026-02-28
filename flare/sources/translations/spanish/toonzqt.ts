@@ -564,6 +564,13 @@ Es posible que el archivo de dicho ajuste se encuentre corrupto.</translation>
     </message>
 </context>
 <context>
+    <name>DVGui::StyleIndexLineEdit</name>
+    <message>
+        <source>current</source>
+        <translation>actual</translation>
+    </message>
+</context>
+<context>
     <name>DVGui::ToneCurveField</name>
     <message>
         <source>Channel:</source>
@@ -2608,6 +2615,40 @@ La segunda línea debería tener la forma &quot;Mesh [profundidad de bits de ent
     <message>
         <source>Toonz</source>
         <translation type="vanished">Flare</translation>
+    </message>
+</context>
+<context>
+    <name>RgbLinkButtons</name>
+    <message>
+        <source>Copy RGB : %1 &gt; %2</source>
+        <translation>Copiar RVA : %1 &gt; %2</translation>
+    </message>
+    <message>
+        <source>Swap %1 and %2</source>
+        <translation>Intercambiar %1 y %2</translation>
+    </message>
+</context>
+<context>
+    <name>SchematicName</name>
+    <message>
+        <source>Cu&amp;t</source>
+        <translation>Cor&amp;tar</translation>
+    </message>
+    <message>
+        <source>&amp;Copy</source>
+        <translation>&amp;Copiar</translation>
+    </message>
+    <message>
+        <source>&amp;Paste</source>
+        <translation>&amp;Pegar</translation>
+    </message>
+    <message>
+        <source>&amp;Delete</source>
+        <translation>&amp;Borrar</translation>
+    </message>
+    <message>
+        <source>Select &amp;All</source>
+        <translation>Seleccionar &amp;Todo</translation>
     </message>
 </context>
 <context>
