@@ -143,3 +143,5 @@ protected:
 };
 
 #endif
+
+#endif // MYPAINTBRUSHSTYLE_H
