@@ -9,11 +9,15 @@ if(NOT DEFINED CMAKE_BINARY_DIR)
     message(FATAL_ERROR "CMAKE_BINARY_DIR is not defined")
 endif()
 
-file(GLOB_RECURSE _vcpkg_applocal_logs "${CMAKE_BINARY_DIR}/*/vcpkg.applocal.log")
+# gather both vcpkg applocal logs and any generated tlog files
+# (the latter can inherit wildcard entries during build)
+file(GLOB_RECURSE _vcpkg_applocal_logs
+     "${CMAKE_BINARY_DIR}/*/vcpkg.applocal.log"
+     "${CMAKE_BINARY_DIR}/*/*.tlog")
 foreach(_applog ${_vcpkg_applocal_logs})
     file(READ ${_applog} _applog_contents)
-    # filter out lines containing '*' characters; escape asterisk properly
-    # use a robust pattern that removes any line with a '*' (handles CRLF)
+    # remove any lines containing wildcard characters ('*')
+    # previous regex was incorrect and failed to match some lines; use a simpler pattern
     string(REGEX REPLACE ".*\\*.*(\\r?\\n)?" "" _applog_sanitized "${_applog_contents}")
     if(NOT _applog_sanitized STREQUAL _applog_contents)
         file(WRITE ${_applog} "${_applog_sanitized}")
