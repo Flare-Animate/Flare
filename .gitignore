@@ -50,3 +50,4 @@ __pycache__/
 /.scripts
 /FlarePortable
 tmp.txt
+Qt5*.zip
