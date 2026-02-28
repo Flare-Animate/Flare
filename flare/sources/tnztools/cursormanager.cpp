@@ -7,11 +7,7 @@
 #ifdef TOONZQT_EXPORTS
 #include "toonz/preferences.h"
 #else
-<<<<<<< HEAD
 #include "toonz/preferences.h"
-=======
-#include "../flare/preferences.h"
->>>>>>> origin/master
 #endif
 
 #include <QWidget>

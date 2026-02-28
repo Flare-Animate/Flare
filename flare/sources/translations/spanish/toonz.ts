@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 // ...existing code...
         <source>&lt;b&gt;Flare crashed unexpectedly.&lt;/b&gt;</source>
         <translation>&lt;b&gt;Flare se ha cerrado de forma inesperada.&lt;/b&gt;</translation>
@@ -44,8 +43,6 @@ N.B. Make sure you are not running another process of Flare,
 // ...existing code...
         <source>You must restart Flare, close it now?</source>
         <translation>Es necesario reiniciar Flare, ¿hacerlo ahora?</translation>
-=======
->>>>>>> origin/master
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
 <TS version="2.1" language="es" sourcelanguage="en">
@@ -2171,26 +2168,16 @@ contuviera información de PPP, entonces se usarán los de la cámara actual.
 <context>
     <name>CrashHandler</name>
     <message>
-<<<<<<< HEAD
         <source>&lt;b&gt;Flare crashed unexpectedly.&lt;/b&gt;</source>
         <translation>&lt;b&gt;Flare se ha cerrado de forma inesperada.&lt;/b&gt;</translation>
-=======
-        <source>&lt;b&gt;OpenToonz crashed unexpectedly.&lt;/b&gt;</source>
-        <translation>&lt;b&gt;OpenToonz se ha cerrado de forma inesperada.&lt;/b&gt;</translation>
->>>>>>> origin/master
     </message>
     <message>
         <source>A crash report has been generated.</source>
         <translation>Se ha generado un reporte de la falla.</translation>
     </message>
     <message>
-<<<<<<< HEAD
         <source>To report, click &apos;Open Issue Webpage&apos; to access Flare&apos;s Issues page on GitHub.</source>
         <translation>Para reportarla, hacer clic en &apos;Abrir página de incidentes&apos; para acceder a la página de reporte de incidentes de Flare en GitHub.</translation>
-=======
-        <source>To report, click &apos;Open Issue Webpage&apos; to access OpenToonz&apos;s Issues page on GitHub.</source>
-        <translation>Para reportarla, hacer clic en &apos;Abrir página de incidentes&apos; para acceder a la página de reporte de incidentes de OpenToonz en GitHub.</translation>
->>>>>>> origin/master
     </message>
     <message>
         <source>Click on the &apos;New issue&apos; button and fill out the form.</source>
@@ -2217,13 +2204,8 @@ contuviera información de PPP, entonces se usarán los de la cámara actual.
         <translation>Cerrar aplicación</translation>
     </message>
     <message>
-<<<<<<< HEAD
         <source>Flare crashed!</source>
         <translation>¡Flare se ha cerrado!</translation>
-=======
-        <source>OpenToonz crashed!</source>
-        <translation>¡OpenToonz se ha cerrado!</translation>
->>>>>>> origin/master
     </message>
     <message>
         <source>Application is in unstable state and must be restarted.</source>
@@ -3682,11 +3664,7 @@ Do you want to overwrite it?</source>
     </message>
     <message>
         <source>It is not possible to take or compare snapshots for Toonz vector levels.</source>
-<<<<<<< HEAD
         <translation>No es posible tomar o comparar capturas en niveles vectoriales de Flare.</translation>
-=======
-        <translation>No es posible tomar o comparar capturas en niveles vectoriales de OpenToonz.</translation>
->>>>>>> origin/master
     </message>
     <message>
         <source>Gamma : %1</source>
@@ -6546,13 +6524,8 @@ Usar los números de fotograma como referencia.</translation>
         <translation>Tipo - Línea poligonal</translation>
     </message>
     <message>
-<<<<<<< HEAD
         <source>About Flare</source>
         <translation>Acerca de Flare</translation>
-=======
-        <source>About OpenToonz</source>
-        <translation>Acerca de OpenToonz</translation>
->>>>>>> origin/master
     </message>
     <message>
         <source>Close</source>
@@ -6575,13 +6548,8 @@ Usar los números de fotograma como referencia.</translation>
         <translation>&amp;Historia</translation>
     </message>
     <message>
-<<<<<<< HEAD
         <source>&amp;About Flare...</source>
         <translation>&amp;Acerca de Flare...</translation>
-=======
-        <source>&amp;About OpenToonz...</source>
-        <translation>&amp;Acerca de OpenToonz...</translation>
->>>>>>> origin/master
     </message>
     <message>
         <source>Refresh Folder Tree</source>
@@ -6848,11 +6816,7 @@ Usar los números de fotograma como referencia.</translation>
         <translation>Pincel - Preservar alfa</translation>
     </message>
     <message>
-<<<<<<< HEAD
         <source>https://flare-animate.github.io/website/</source>
-=======
-        <source>http://opentoonz.readthedocs.io</source>
->>>>>>> origin/master
         <translation>https://opentoonz.readthedocs.io/es/latest/</translation>
     </message>
     <message>
@@ -6991,20 +6955,12 @@ Usar los números de fotograma como referencia.</translation>
         <source>
 Are you sure?
 
-<<<<<<< HEAD
 N.B. Make sure you are not running another process of Flare,
-=======
-N.B. Make sure you are not running another process of OpenToonz,
->>>>>>> origin/master
 or you may delete necessary files for it.</source>
         <translation>
 ¿Seguro?
 
-<<<<<<< HEAD
 Nota: Asegurarse de no estar ejecutando otra instancia de Flare
-=======
-Nota: Asegurarse de no estar ejecutando otra instancia de OpenToonz
->>>>>>> origin/master
 o es posible que se termine borrando algún archivo usado por ésta.</translation>
     </message>
     <message>
@@ -7012,7 +6968,6 @@ o es posible que se termine borrando algún archivo usado por ésta.</translatio
         <translation>No es posible borrar %1 : </translation>
     </message>
     <message>
-<<<<<<< HEAD
         <source>https://github.com/Flare-Animate/Flare/releases/latest</source>
         <translation>https://flare-animate.github.io/website/whats_new.html#v1-4</translation>
     </message>
@@ -7023,18 +6978,6 @@ o es posible que se termine borrando algún archivo usado por ésta.</translatio
     <message>
         <source>To report a bug, click on the button below to open a web browser window for Flare&apos;s Issues page on https://github.com.  Click on the &apos;New issue&apos; button and fill out the form.</source>
         <translation>Para reportar un error: Hacer clic en el botón de abajo para abrir un navegador web e ir a la página de Incidentes de Flare en https://github.com.
-=======
-        <source>https://github.com/opentoonz/opentoonz/releases/latest</source>
-        <translation>https://opentoonz.readthedocs.io/es/latest/whats_new.html#v1-4</translation>
-    </message>
-    <message>
-        <source>https://groups.google.com/forum/#!forum/opentoonz_en</source>
-        <translation>https://groups.google.com/forum/#!forum/open-toonz--comunidad-en-espaol</translation>
-    </message>
-    <message>
-        <source>To report a bug, click on the button below to open a web browser window for OpenToonz&apos;s Issues page on https://github.com.  Click on the &apos;New issue&apos; button and fill out the form.</source>
-        <translation>Para reportar un error: Hacer clic en el botón de abajo para abrir un navegador web e ir a la página de Incidentes de OpenToonz en https://github.com.
->>>>>>> origin/master
 Allí, hacer clic en el botón &apos;New issue&apos; y rellenar el formulario con los datos del problema (en inglés).
 Por favor, sólo reportar errores confirmados y reproducibles, no utilizar ese sitio antes de aprender a usar correctamente el programa.</translation>
     </message>
@@ -7147,13 +7090,8 @@ Por favor, sólo reportar errores confirmados y reproducibles, no utilizar ese s
         <translation>Clave anterior</translation>
     </message>
     <message>
-<<<<<<< HEAD
         <source>About Flare...</source>
         <translation type="vanished">Acerca de Flare...</translation>
-=======
-        <source>About OpenToonz...</source>
-        <translation type="vanished">Acerca de OpenToonz...</translation>
->>>>>>> origin/master
     </message>
     <message>
         <source>Online Manual...</source>
@@ -7552,13 +7490,8 @@ Por favor, sólo reportar errores confirmados y reproducibles, no utilizar ese s
         <translation>Restablecer espacios de trabajo</translation>
     </message>
     <message>
-<<<<<<< HEAD
         <source>You must restart Flare, close it now?</source>
         <translation>Es necesario reiniciar Flare, ¿hacerlo ahora?</translation>
-=======
-        <source>You must restart OpenToonz, close it now?</source>
-        <translation>Es necesario reiniciar OpenToonz, ¿hacerlo ahora?</translation>
->>>>>>> origin/master
     </message>
     <message>
         <source>&amp;Convert TZP Files In Folder...</source>
@@ -9514,13 +9447,8 @@ También establecer la ruta de salida a esa carpeta.</translation>
         <translation>Minimizar fragmentación de imágenes en memoria*</translation>
     </message>
     <message>
-<<<<<<< HEAD
         <source>* Changes will take effect the next time you run Flare</source>
         <translation>* Los cambios entrarán en vigor la próxima vez que se ejecute Flare</translation>
-=======
-        <source>* Changes will take effect the next time you run OpenToonz</source>
-        <translation>* Los cambios entrarán en vigor la próxima vez que se ejecute OpenToonz</translation>
->>>>>>> origin/master
     </message>
     <message>
         <source>Move Current Frame by Clicking on Xsheet / Numerical Columns Cell Area</source>
@@ -9691,21 +9619,12 @@ También establecer la ruta de salida a esa carpeta.</translation>
         <translation>Otros archivos</translation>
     </message>
     <message>
-<<<<<<< HEAD
         <source>My Documents/Flare*</source>
         <translation>Mis Documentos/Flare*</translation>
     </message>
     <message>
         <source>Desktop/Flare*</source>
         <translation>Escritorio/Flare*</translation>
-=======
-        <source>My Documents/OpenToonz*</source>
-        <translation>Mis Documentos/OpenToonz*</translation>
-    </message>
-    <message>
-        <source>Desktop/OpenToonz*</source>
-        <translation>Escritorio/OpenToonz*</translation>
->>>>>>> origin/master
     </message>
     <message>
         <source>Stuff Folder*</source>
@@ -9756,21 +9675,12 @@ También establecer la ruta de salida a esa carpeta.</translation>
         <translation type="vanished">Espacios de trabajo *:</translation>
     </message>
     <message>
-<<<<<<< HEAD
         <source>Flare can use FFmpeg for additional file formats.</source>
         <translation type="vanished">Flare es capaz de usar FFmpeg para producir formatos de archivo adicionales.</translation>
     </message>
     <message>
         <source>FFmpeg is not bundled with Flare</source>
         <translation type="vanished">FFmpeg no se incluye con Flare</translation>
-=======
-        <source>OpenToonz can use FFmpeg for additional file formats.</source>
-        <translation type="vanished">OpenToonz es capaz de usar FFmpeg para producir formatos de archivo adicionales.</translation>
-    </message>
-    <message>
-        <source>FFmpeg is not bundled with OpenToonz</source>
-        <translation type="vanished">FFmpeg no se incluye con OpenToonz</translation>
->>>>>>> origin/master
     </message>
     <message>
         <source>NOTE: This is an experimental feature.</source>
@@ -9801,13 +9711,8 @@ También establecer la ruta de salida a esa carpeta.</translation>
         <translation>Tiempo de espera por FFmpeg:</translation>
     </message>
     <message>
-<<<<<<< HEAD
         <source>Show Startup Window when Flare Starts</source>
         <translation>Mostrar la ventana de inicio al abrir Flare</translation>
-=======
-        <source>Show Startup Window when OpenToonz Starts</source>
-        <translation>Mostrar la ventana de inicio al abrir OpenToonz</translation>
->>>>>>> origin/master
     </message>
     <message>
         <source>Numpad keys are assigned to the following commands.
@@ -9920,13 +9825,8 @@ Is it OK to release these shortcuts?</source>
         <translation>Los nuevos niveles usan el tamaño de la cámara actual</translation>
     </message>
     <message>
-<<<<<<< HEAD
         <source>Enable Flare Commands&apos; Shortcut Keys While Renaming Cell</source>
         <translation>Habilitar atajos de teclado de Flare mientras se está renombrando una celda</translation>
-=======
-        <source>Enable OpenToonz Commands&apos; Shortcut Keys While Renaming Cell</source>
-        <translation>Habilitar atajos de teclado de OpenToonz mientras se está renombrando una celda</translation>
->>>>>>> origin/master
     </message>
     <message>
         <source>Life is too short for Comic Sans</source>
@@ -10051,7 +9951,6 @@ la relatividad al resolver la ruta de un archvo.</translation>
         <translation type="vanished">Grosor *:</translation>
     </message>
     <message>
-<<<<<<< HEAD
         <source>Flare can use FFmpeg for additional file formats.
 </source>
         <translation>Flare puede usar FFmpeg para acceder a formatos de archivo adicionales.
@@ -10061,17 +9960,6 @@ la relatividad al resolver la ruta de un archvo.</translation>
         <source>FFmpeg is not bundled with Flare.
 </source>
         <translation>FFmpeg no viene incluido con Flare.
-=======
-        <source>OpenToonz can use FFmpeg for additional file formats.
-</source>
-        <translation>OpenToonz puede usar FFmpeg para acceder a formatos de archivo adicionales.
-</translation>
-    </message>
-    <message>
-        <source>FFmpeg is not bundled with OpenToonz.
-</source>
-        <translation>FFmpeg no viene incluido con OpenToonz.
->>>>>>> origin/master
 </translation>
     </message>
     <message>
@@ -10091,13 +9979,8 @@ la relatividad al resolver la ruta de un archvo.</translation>
         <translation>Mostrar contorno de tamaño en el puntero</translation>
     </message>
     <message>
-<<<<<<< HEAD
         <source>Check for the Latest Version of Flare on Launch</source>
         <translation>Comprobar actualizaciones de Flare al iniciar</translation>
-=======
-        <source>Check for the Latest Version of OpenToonz on Launch</source>
-        <translation>Comprobar actualizaciones de OpenToonz al iniciar</translation>
->>>>>>> origin/master
     </message>
     <message>
         <source>Choosing this option will set initial location of all file browsers to $scenefolder.
@@ -10404,7 +10287,6 @@ but a random crash might occur, use at your own risk.</source>
 pero es posible que se produzcan ocasionales cuelgues; usar a propio riesgo.</translation>
     </message>
     <message>
-<<<<<<< HEAD
         <source>Flare can use Rhubarb for auto lip-syncing.
 </source>
         <translation>Flare puede usar Rhubarb para generar una sincronización labial automática.
@@ -10414,17 +10296,6 @@ pero es posible que se produzcan ocasionales cuelgues; usar a propio riesgo.</tr
         <source>Rhubarb is not bundled with Flare.
 </source>
         <translation>Rhubarb no viene incluído con Flare.
-=======
-        <source>OpenToonz can use Rhubarb for auto lip-syncing.
-</source>
-        <translation>OpenToonz puede usar Rhubarb para generar una sincronización labial automática.
-</translation>
-    </message>
-    <message>
-        <source>Rhubarb is not bundled with OpenToonz.
-</source>
-        <translation>Rhubarb no viene incluído con OpenToonz.
->>>>>>> origin/master
 </translation>
     </message>
     <message>
@@ -11370,11 +11241,7 @@ Are you sure you want to revert to previous version?</source>
     </message>
     <message>
         <source>The rooms will be reset the next time you run Toonz.</source>
-<<<<<<< HEAD
         <translation type="vanished">Los espacios de trabajo serán restablecidos la próxima vez que se ejecute Flare.</translation>
-=======
-        <translation type="vanished">Los espacios de trabajo serán restablecidos la próxima vez que se ejecute OpenToonz.</translation>
->>>>>>> origin/master
     </message>
     <message>
         <source>Saving previewed frames....</source>
@@ -11486,11 +11353,7 @@ Do you want to overwrite it?</source>
     </message>
     <message>
         <source>File %1 doesn&apos;t look like a TOONZ Scene</source>
-<<<<<<< HEAD
         <translation>El archivo %1 no parece ser una escena de Flare</translation>
-=======
-        <translation>El archivo %1 no parece ser una escena de OpenToonz</translation>
->>>>>>> origin/master
     </message>
     <message>
         <source>It is not possible to load the scene %1 because it does not belong to any project.</source>
@@ -11768,11 +11631,7 @@ Do you want to save your changes?</source>
     </message>
     <message>
         <source>The scene %1 was created with Toonz and cannot be loaded in LineTest.</source>
-<<<<<<< HEAD
         <translation type="vanished">La escena %1 fue creada con Flare y no puede ser cargada en LineTest.</translation>
-=======
-        <translation type="vanished">La escena %1 fue creada con OpenToonz y no puede ser cargada en LineTest.</translation>
->>>>>>> origin/master
     </message>
     <message>
         <source>File %1 already exists.
@@ -12258,24 +12117,15 @@ error no definido.</translation>
     </message>
     <message>
         <source>Cannot open menubar settings template file. Re-installing Toonz will solve this problem.</source>
-<<<<<<< HEAD
         <translation>No es posible abrir el archivo de plantilla de opciones de la barra de menúes. Reinstalar Flare resolverá este problema.</translation>
-=======
-        <translation>No es posible abrir el archivo de plantilla de opciones de la barra de menúes. Reinstalar OpenToonz resolverá este problema.</translation>
->>>>>>> origin/master
     </message>
     <message>
         <source>Visit Web Site</source>
         <translation>Visitar el sitio web</translation>
     </message>
     <message>
-<<<<<<< HEAD
         <source>https://flare-animate.github.io/website/e/</source>
         <translation>https://flare-animate.github.io/website/e/</translation>
-=======
-        <source>https://opentoonz.github.io/e/</source>
-        <translation>https://opentoonz.github.io/e/</translation>
->>>>>>> origin/master
     </message>
     <message>
         <source>Change current drawing %1</source>
@@ -12330,15 +12180,9 @@ What would you like to do? </source>
         <translation> igual</translation>
     </message>
     <message>
-<<<<<<< HEAD
         <source>This scene is incompatible with pixels only mode of the current Flare version.
 What would you like to do?</source>
         <translation>Esta escena es incompatible con el modo de sólo píxeles de la versión actual de Flare.
-=======
-        <source>This scene is incompatible with pixels only mode of the current OpenToonz version.
-What would you like to do?</source>
-        <translation>Esta escena es incompatible con el modo de sólo píxeles de la versión actual de OpenToonz.
->>>>>>> origin/master
 ¿Qué hacer?</translation>
     </message>
     <message>
@@ -12383,11 +12227,7 @@ Are you sure?</source>
     </message>
     <message>
         <source>Toonz cannot Save this Level</source>
-<<<<<<< HEAD
         <translation type="vanished">Flare no puede guardar este nivel</translation>
-=======
-        <translation type="vanished">OpenToonz no puede guardar este nivel</translation>
->>>>>>> origin/master
     </message>
     <message>
         <source>Set Keyframe  : %1  at Frame %2</source>
@@ -13369,13 +13209,8 @@ What do you want to do?</source>
         <translation>Nuevo nivel de Imagen</translation>
     </message>
     <message>
-<<<<<<< HEAD
         <source>The rooms will be reset the next time you run Flare.</source>
         <translation>Los espacios de trabajo serán restablecidos la próxima vez que se ejecute Flare.</translation>
-=======
-        <source>The rooms will be reset the next time you run OpenToonz.</source>
-        <translation>Los espacios de trabajo serán restablecidos la próxima vez que se ejecute OpenToonz.</translation>
->>>>>>> origin/master
     </message>
     <message>
         <source>[Drag&amp;Drop] to copy separator to %1</source>
@@ -15394,13 +15229,8 @@ Por favor enviar o revertir los cambios antes.</translation>
         <translation> ¿Reemplazarlo?</translation>
     </message>
     <message>
-<<<<<<< HEAD
         <source>Flare - Setting Shortcuts</source>
         <translation>Flare - definición de atajos</translation>
-=======
-        <source>OpenToonz - Setting Shortcuts</source>
-        <translation>OpenToonz - definición de atajos</translation>
->>>>>>> origin/master
     </message>
     <message>
         <source>Included presets cannot be deleted.</source>
@@ -15763,13 +15593,8 @@ Assign shortcut sequence anyway?</source>
 <context>
     <name>StartupPopup</name>
     <message>
-<<<<<<< HEAD
         <source>Flare Startup</source>
         <translation>Inicio de Flare</translation>
-=======
-        <source>OpenToonz Startup</source>
-        <translation>Inicio de OpenToonz</translation>
->>>>>>> origin/master
     </message>
     <message>
         <source>Choose Project</source>

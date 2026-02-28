@@ -3,12 +3,9 @@
 #ifndef MYPAINT_HPP
 #define MYPAINT_HPP
 
-<<<<<<< HEAD
 #ifdef HAVE_MYPaint
 
 #ifdef HAVE_MYPaint
-=======
->>>>>>> origin/master
 #include <cmath>
 #include <algorithm>
 #include <string>
@@ -18,7 +15,6 @@ extern "C" {
   #include <mypaint-surface.h>
   #include <mypaint-brush-settings.h>
 }
-<<<<<<< HEAD
 #else
 // Stubs for when MyPaint support is disabled
 #include <string>
@@ -28,8 +24,6 @@ namespace mypaint {
     class Brush { public: Brush(){} }; // minimal stub
 }
 #endif
-=======
->>>>>>> origin/master
 
 namespace mypaint {
   class Brush;
@@ -367,7 +361,6 @@ namespace mypaint {
   };
 }
 
-<<<<<<< HEAD
 #else  // !HAVE_MYPaint
 
 // minimal stubs when MyPaint is disabled
@@ -379,6 +372,4 @@ namespace mypaint {
 
 #endif  // HAVE_MYPaint
 
-=======
->>>>>>> origin/master
 #endif  // MYPAINT_HPP

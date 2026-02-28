@@ -992,20 +992,12 @@ void Canon::calculateZoomPoint() {
     m_finalZoomPoint.x = m_calculatedZoomPoint.x - (m_zoomRectDimensions.x / 2);
     m_finalZoomPoint.y = m_calculatedZoomPoint.y - (m_zoomRectDimensions.y / 2);
   } else {
-<<<<<<< HEAD
     // get the image size in Flare dimensions
-=======
-    // get the image size in OpenToonz dimensions
->>>>>>> origin/master
     double maxFullWidth =
         (double)m_fullImageDimensions.lx / m_fullImageDpi.x * Stage::inch;
     double maxFullHeight =
         (double)m_fullImageDimensions.ly / m_fullImageDpi.y * Stage::inch;
-<<<<<<< HEAD
     // Flare coordinates are based on center at 0, 0
-=======
-    // OpenToonz coordinates are based on center at 0, 0
->>>>>>> origin/master
     // convert that to top left based coordinates
     double newX = m_liveViewZoomPickPoint.x + maxFullWidth / 2.0;
     double newY = -m_liveViewZoomPickPoint.y + maxFullHeight / 2.0;
@@ -1041,11 +1033,7 @@ void Canon::calculateZoomPoint() {
       // recenter the point in the rect
       tempCalculated.x = m_finalZoomPoint.x + (m_zoomRectDimensions.x / 2);
       tempCalculated.y = m_finalZoomPoint.y + (m_zoomRectDimensions.y / 2);
-<<<<<<< HEAD
       // convert to Flare Dimensions
-=======
-      // convert to OpenToonz Dimensions
->>>>>>> origin/master
       newX = tempCalculated.x / m_fullImageDpi.x * Stage::inch;
       newY = tempCalculated.y / m_fullImageDpi.y * Stage::inch;
       // get center based coordinates
@@ -1056,11 +1044,7 @@ void Canon::calculateZoomPoint() {
 
   // calculate the zoom rectangle position on screen
 
-<<<<<<< HEAD
   // get the image size in Flare dimensions
-=======
-  // get the image size in OpenToonz dimensions
->>>>>>> origin/master
   double maxFullWidth =
       (double)m_fullImageDimensions.lx / m_fullImageDpi.x * Stage::inch;
   double maxFullHeight =
@@ -1070,11 +1054,7 @@ void Canon::calculateZoomPoint() {
             m_finalZoomPoint.x + m_zoomRectDimensions.x, m_finalZoomPoint.y);
   TRect tempCalculated;
 
-<<<<<<< HEAD
   // convert to Flare Dimensions
-=======
-  // convert to OpenToonz Dimensions
->>>>>>> origin/master
   tempCalculated.x0 = m_zoomRect.x0 / m_fullImageDpi.x * Stage::inch;
   tempCalculated.y0 = m_zoomRect.y0 / m_fullImageDpi.y * Stage::inch;
   tempCalculated.x1 = m_zoomRect.x1 / m_fullImageDpi.x * Stage::inch;

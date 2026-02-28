@@ -115,13 +115,10 @@ if(BUILD_ENV_MSVC)
         ${GLUT_LIB} ${GL_LIB} ${SUPERLU_LIB} ${METIS_LIB} ${OPENBLAS_LIB} ${EXTRA_LIBS}
         tnzcore tnzbase
     )
-<<<<<<< HEAD
     # If we added an ExternalProject to build SuperLU, ensure tnzext depends on it
     if(TARGET superlu_local)
         add_dependencies(tnzext superlu_local)
     endif()
-=======
->>>>>>> origin/master
 elseif(BUILD_ENV_APPLE)
     set(EXTRA_LIBS
         "$<TARGET_FILE:tnzcore>"

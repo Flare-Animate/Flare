@@ -4,22 +4,7 @@ set(MOC_HEADERS
     ../include/toonz/multimediarenderer.h
     ../include/toonz/palettecontroller.h
     ../include/toonz/preferences.h
-<<<<<<< HEAD
 
-=======
-    ../include/toonz/scriptbinding.h
-    ../include/toonz/scriptbinding_centerline_vectorizer.h
-    ../include/toonz/scriptbinding_files.h
-    ../include/toonz/scriptbinding_image.h
-    ../include/toonz/scriptbinding_image_builder.h
-    ../include/toonz/scriptbinding_level.h
-    ../include/toonz/scriptbinding_outline_vectorizer.h
-    ../include/toonz/scriptbinding_rasterizer.h
-    ../include/toonz/scriptbinding_renderer.h
-    ../include/toonz/scriptbinding_scene.h
-    ../include/toonz/scriptbinding_toonz_raster_converter.h
-    ../include/toonz/scriptengine.h
->>>>>>> origin/master
     ../include/toonz/stylemanager.h
     ../include/toonz/tcenterlinevectorizer.h
     ../include/toonz/tcolumnhandle.h
@@ -36,7 +21,6 @@ set(MOC_HEADERS
     ../include/toonz/txshsoundcolumn.h
 )
 
-<<<<<<< HEAD
 # Append script-related headers only when QtScript is available
 if(WITH_QT_SCRIPT)
     list(APPEND MOC_HEADERS
@@ -55,8 +39,6 @@ if(WITH_QT_SCRIPT)
     )
 endif()
 
-=======
->>>>>>> origin/master
 set(HEADERS
     ${MOC_HEADERS}
     autoadjust.h
@@ -121,12 +103,6 @@ set(HEADERS
     ../include/toonz/levelset.h
     ../include/toonz/levelupdater.h
     ../include/toonz/logger.h
-<<<<<<< HEAD
-=======
-    ../include/toonz/mypaint.h
-    ../include/toonz/mypaintbrushstyle.h
-    ../include/toonz/mypainthelpers.hpp
->>>>>>> origin/master
     ../include/toonz/namebuilder.h
     ../include/toonz/observer.h
     ../include/toonz/onionskinmask.h
@@ -195,7 +171,6 @@ set(HEADERS
     ../include/toonz/navigationtags.h
 )
 
-<<<<<<< HEAD
 # add mypaint headers when enabled
 if(ENABLE_MYPaint)
     list(APPEND HEADERS
@@ -213,8 +188,6 @@ list(APPEND SOURCES
     stylemanager.cpp
 )
 
-=======
->>>>>>> origin/master
 set(SOURCES
     stylemanager.cpp
     autoadjust.cpp
@@ -249,7 +222,6 @@ set(SOURCES
     logger.cpp
     movierenderer.cpp
     multimediarenderer.cpp
-    mypaintbrushstyle.cpp
     namebuilder.cpp
     Naa2TlvConverter.cpp
     observer.cpp
@@ -262,22 +234,7 @@ set(SOURCES
     scenefx.cpp
     sceneproperties.cpp
     sceneresources.cpp
-<<<<<<< HEAD
 
-=======
-    scriptbinding.cpp
-    scriptbinding_centerline_vectorizer.cpp
-    scriptbinding_files.cpp
-    scriptbinding_image.cpp
-    scriptbinding_image_builder.cpp
-    scriptbinding_level.cpp
-    scriptbinding_outline_vectorizer.cpp
-    scriptbinding_rasterizer.cpp
-    scriptbinding_renderer.cpp
-    scriptbinding_scene.cpp
-    scriptbinding_toonz_raster_converter.cpp
-    scriptengine.cpp
->>>>>>> origin/master
     skeleton.cpp
     skeletonlut.cpp
     stage.cpp
@@ -380,7 +337,6 @@ set(SOURCES
     navigationtags.cpp
 )
 
-<<<<<<< HEAD
 # Append script-related sources only when QtScript is available
 if(WITH_QT_SCRIPT)
     list(APPEND SOURCES
@@ -399,8 +355,6 @@ if(WITH_QT_SCRIPT)
     )
 endif()
 
-=======
->>>>>>> origin/master
 if(BUILD_TARGET_WIN)
     set(SOURCES ${SOURCES}
         avicodecrestrictions.cpp
@@ -442,17 +396,11 @@ include_directories(
 
 if(BUILD_ENV_MSVC)
     target_link_libraries(toonzlib
-<<<<<<< HEAD
         Qt5::Core Qt5::Gui Qt5::OpenGL Qt5::Multimedia
         ${GLUT_LIB} ${GL_LIB} ${GLEW_LIB} vfw32.lib
-=======
-        Qt5::Core Qt5::Gui Qt5::OpenGL Qt5::Script Qt5::Multimedia
-        ${GLUT_LIB} ${GL_LIB} ${MYPAINT_LIB_LDFLAGS} ${GLEW_LIB} vfw32.lib
->>>>>>> origin/master
         tnzcore tnzbase tnzext
         $<$<BOOL:${ENABLE_MYPaint}>:${MYPAINT_LIB_LDFLAGS}>
     )
-<<<<<<< HEAD
     if(WITH_QT_SCRIPT)
         target_link_libraries(toonzlib Qt5::Script)
     endif()
@@ -463,15 +411,6 @@ elseif(BUILD_ENV_APPLE)
         "$<TARGET_FILE:tnzext>"
         ${USB_LIB}
         $<$<BOOL:${ENABLE_MYPaint}>:${MYPAINT_LIB_LDFLAGS}>
-=======
-elseif(BUILD_ENV_APPLE)
-    set(EXTRA_LIBS
-        "$<TARGET_FILE:tnzcore>"
-	    "$<TARGET_FILE:tnzbase>"
-	    "$<TARGET_FILE:tnzext>"
-        ${USB_LIB}
-        ${MYPAINT_LIB_LDFLAGS}
->>>>>>> origin/master
     )
 
     target_link_libraries(toonzlib Qt5::Core Qt5::Gui Qt5::OpenGL Qt5::Script Qt5::Multimedia ${GLUT_LIB} ${GL_LIB} ${GLEW_LIB} ${EXTRA_LIBS})
@@ -482,10 +421,6 @@ elseif(BUILD_ENV_UNIXLIKE)
         set(EXTRA_LIBS ${EXTRA_LIBS} -lvfw32)
     endif()
 
-<<<<<<< HEAD
     target_link_libraries(toonzlib Qt5::Core Qt5::Gui Qt5::OpenGL Qt5::Script Qt5::Multimedia ${GLUT_LIB} ${GL_LIB} ${GLEW_LIB} ${EXTRA_LIBS} $<$<BOOL:${ENABLE_MYPaint}>:${MYPAINT_LIB_LDFLAGS}>)
-=======
-    target_link_libraries(toonzlib Qt5::Core Qt5::Gui Qt5::OpenGL Qt5::Script Qt5::Multimedia ${GLUT_LIB} ${GL_LIB} ${GLEW_LIB} ${EXTRA_LIBS} ${MYPAINT_LIB_LDFLAGS})
->>>>>>> origin/master
 endif()
 

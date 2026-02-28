@@ -538,11 +538,7 @@
 		<file>icons/dark/actions/16x16/clapboard.svg</file>
 		<file>icons/dark/actions/16x16/tasks.svg</file>
 		<file>icons/dark/actions/16x16/batchservers.svg</file>
-<<<<<<< HEAD
 		<file>icons/dark/actions/16x16/flare.svg</file>
-=======
-		<file>icons/dark/actions/16x16/opentoonz.svg</file>
->>>>>>> origin/master
 		<file>icons/dark/actions/16x16/manual.svg</file>
 		<file>icons/dark/actions/16x16/filebrowser.svg</file>
 		<file>icons/dark/actions/16x16/scenecast.svg</file>

@@ -398,11 +398,7 @@ Possibly the preset file has been corrupted</source>
         <translation type="obsolete">Toonz</translation>
     </message>
     <message>
-<<<<<<< HEAD
         <source>Flare</source>
-=======
-        <source>OpenToonz</source>
->>>>>>> origin/master
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -413,11 +409,7 @@ Possibly the preset file has been corrupted</source>
         <translation type="obsolete">Toonz</translation>
     </message>
     <message>
-<<<<<<< HEAD
         <source>Flare</source>
-=======
-        <source>OpenToonz</source>
->>>>>>> origin/master
         <translation type="unfinished"></translation>
     </message>
 </context>

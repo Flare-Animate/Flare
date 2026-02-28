@@ -538,17 +538,10 @@ Possibly the preset file has been corrupted</source>
     <name>DVGui::ProgressDialog</name>
     <message>
         <source>Toonz</source>
-<<<<<<< HEAD
         <translation type="vanished">Flare</translation>
     </message>
     <message>
         <source>Flare</source>
-=======
-        <translation type="vanished">OpenToonz</translation>
-    </message>
-    <message>
-        <source>OpenToonz</source>
->>>>>>> origin/master
         <translation></translation>
     </message>
 </context>
@@ -556,17 +549,10 @@ Possibly the preset file has been corrupted</source>
     <name>DVGui::RadioButtonDialog</name>
     <message>
         <source>Toonz</source>
-<<<<<<< HEAD
         <translation type="vanished">Flare</translation>
     </message>
     <message>
         <source>Flare</source>
-=======
-        <translation type="vanished">OpenToonz</translation>
-    </message>
-    <message>
-        <source>OpenToonz</source>
->>>>>>> origin/master
         <translation></translation>
     </message>
 </context>

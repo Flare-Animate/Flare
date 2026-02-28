@@ -41,7 +41,6 @@ ipch/
 
 *.pyc
 __pycache__/
-<<<<<<< HEAD
 
 # ignore Qt thirdparty directory which is large and rebuilt externally
 /thirdparty/qt
@@ -52,5 +51,3 @@ __pycache__/
 /FlarePortable
 tmp.txt
 Qt5*.zip
-=======
->>>>>>> origin/master

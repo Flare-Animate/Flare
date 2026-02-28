@@ -72,7 +72,6 @@ def copy_tree(src: str, dst: str, patterns=None) -> list:
     return copied
 
 
-<<<<<<< HEAD
 def lint_script_file(path: str) -> list:
     """Return a list of problems found in a script file.
 
@@ -99,8 +98,6 @@ def lint_script_file(path: str) -> list:
     return problems
 
 
-=======
->>>>>>> origin/master
 def handle_swc(path: str, outdir: str, decompiler: str | None) -> list:
     exported = []
     with zipfile.ZipFile(path, "r") as z:
@@ -111,11 +108,7 @@ def handle_swc(path: str, outdir: str, decompiler: str | None) -> list:
         z.extractall(extract_dir)
 
     # Copy script files and resources
-<<<<<<< HEAD
     exported += copy_tree(extract_dir, outdir, patterns=(".as", ".jsfl", ".js", ".png", ".jpg", ".jpeg", ".svg", ".xml", ".txt", ".mp3"))
-=======
-    exported += copy_tree(extract_dir, outdir, patterns=(".as", ".png", ".jpg", ".jpeg", ".svg", ".xml", ".txt", ".mp3"))
->>>>>>> origin/master
 
     # Find embedded swf(s)
     for root, _, files in os.walk(extract_dir):
@@ -135,11 +128,7 @@ def handle_swc(path: str, outdir: str, decompiler: str | None) -> list:
 def handle_xfl_dir(path: str, outdir: str) -> list:
     # XFL is a directory-based project; copy a safe set of asset types
     exported = []
-<<<<<<< HEAD
     exported += copy_tree(path, outdir, patterns=(".svg", ".xml", ".png", ".jpg", ".jpeg", ".as", ".jsfl", ".js", ".mp3", ".wav"))
-=======
-    exported += copy_tree(path, outdir, patterns=(".svg", ".xml", ".png", ".jpg", ".jpeg", ".as", ".mp3", ".wav"))
->>>>>>> origin/master
     return exported
 
 
@@ -172,12 +161,8 @@ def handle_swf(path: str, outdir: str, decompiler: str | None) -> list:
     tmp = os.path.join(outdir, "swf_decomp")
     os.makedirs(tmp, exist_ok=True)
     exported += run_decompiler_on_swf(path, tmp, decompiler)
-<<<<<<< HEAD
     # include script files from decompiler output too
     exported += copy_tree(tmp, outdir, patterns=(".svg", ".png", ".jpg", ".jpeg", ".xml", ".as", ".jsfl", ".js"))
-=======
-    exported += copy_tree(tmp, outdir, patterns=(".svg", ".png", ".jpg", ".jpeg", ".xml"))
->>>>>>> origin/master
     return exported
 
 
@@ -190,17 +175,11 @@ def handle_as(path: str, outdir: str) -> list:
 
 def main():
     parser = argparse.ArgumentParser(description="Import Flash container and extract assets to an output directory")
-<<<<<<< HEAD
     parser.add_argument("--input", "-i", required=True, help="Input file or folder (FLA/XFL/SWF/SWC/AS/JSFL)")
     parser.add_argument("--output", "-o", required=True, help="Output directory (will be created)")
     parser.add_argument("--decompiler", "-d", help="Optional path to an external Flash decompiler (JPEXS/ffdec)")
     parser.add_argument("--no-lint-scripts", dest="lint_scripts", action="store_false", help="Disable script linting (requires 'esprima' for best results)")
     parser.set_defaults(lint_scripts=True)
-=======
-    parser.add_argument("--input", "-i", required=True, help="Input file or folder (FLA/XFL/SWF/SWC/AS)")
-    parser.add_argument("--output", "-o", required=True, help="Output directory (will be created)")
-    parser.add_argument("--decompiler", "-d", help="Optional path to an external Flash decompiler (JPEXS/ffdec)")
->>>>>>> origin/master
 
     args = parser.parse_args()
 
@@ -243,15 +222,9 @@ def main():
                 else:
                     files += handle_fla(inp, outdir, decompiler)
                 container_type = "xfl"
-<<<<<<< HEAD
             elif ext == ".as" or ext == ".jsfl":
                 files += handle_as(inp, outdir)
                 container_type = ext.lstrip('.')
-=======
-            elif ext == ".as":
-                files += handle_as(inp, outdir)
-                container_type = "as"
->>>>>>> origin/master
             else:
                 print(f"Unsupported file type: {ext}", file=sys.stderr)
                 sys.exit(3)
@@ -262,7 +235,6 @@ def main():
         print(f"Unexpected error: {e}", file=sys.stderr)
         sys.exit(5)
 
-<<<<<<< HEAD
     # Perform optional script linting for extracted script files
     problems = {}
     if args.lint_scripts:
@@ -276,32 +248,24 @@ def main():
                         for p in probs:
                             print(f"Script problem in {rel}: {p}", file=sys.stderr)
 
-=======
->>>>>>> origin/master
     # Write manifest
     manifest = {
         "input": os.path.abspath(inp),
         "output_dir": os.path.abspath(outdir),
         "files": files,
         "type": container_type,
-<<<<<<< HEAD
         "problems": problems,
-=======
->>>>>>> origin/master
     }
     mf = os.path.join(outdir, "manifest.json")
     with open(mf, "w", encoding="utf-8") as f:
         json.dump(manifest, f, indent=2)
 
-<<<<<<< HEAD
     # Also write problems file for easy consumption
     if problems:
         pf = os.path.join(outdir, "script_problems.json")
         with open(pf, "w", encoding="utf-8") as f:
             json.dump(problems, f, indent=2)
 
-=======
->>>>>>> origin/master
     print(f"Import complete. Exported {len(files)} files.")
     sys.exit(0)
 

@@ -1,9 +1,5 @@
 name: Ask a question
-<<<<<<< HEAD
 description: Questions relating to Flare only
-=======
-description: Questions relating to OpenToonz only
->>>>>>> origin/master
 labels: 'question'
 body:
   - type: markdown
@@ -11,18 +7,10 @@ body:
       value: |
         Please search existing issues before posting to avoid creating duplicates.
         
-<<<<<<< HEAD
         For general support please head over to the Flare Community Forum or consult the [Manual](https://flare-animate.github.io/website/).
   - type: textarea
     attributes:
       label: Ask a question related to Flare
       placeholder: Ex. I'm having trouble building Flare [...]. There's an undocumented feature, what does it do?
-=======
-        For general support please head over to the OpenToonz User Forum ([English](https://groups.google.com/g/opentoonz_en) | [日本語](https://groups.google.com/g/opentoonz)) or consult the [Manual](https://opentoonz.readthedocs.io/en/latest/).
-  - type: textarea
-    attributes:
-      label: Ask a question related to OpenToonz
-      placeholder: Ex. I'm having trouble building OpenToonz [...]. There's an undocumented feature, what does it do?
->>>>>>> origin/master
     validations:
       required: true

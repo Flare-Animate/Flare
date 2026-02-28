@@ -1850,11 +1850,7 @@ Select FX nodes and related links before copying or cutting the selection you wa
     <name>ProgressDialog</name>
     <message>
         <location filename="../../toonzqt/dvdialog.cpp" line="891"/>
-<<<<<<< HEAD
         <source>Flare</source>
-=======
-        <source>OpenToonz</source>
->>>>>>> origin/master
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -2544,11 +2540,7 @@ The second line should be &quot;Mesh [Input bit depth] [Output bit depth]&quot;<
     <name>RadioButtonDialog</name>
     <message>
         <location filename="../../toonzqt/dvdialog.cpp" line="821"/>
-<<<<<<< HEAD
         <source>Flare</source>
-=======
-        <source>OpenToonz</source>
->>>>>>> origin/master
         <translation type="unfinished"></translation>
     </message>
 </context>

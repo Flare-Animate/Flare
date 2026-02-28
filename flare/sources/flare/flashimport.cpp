@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 #include "flare/menubarcommandids.h"
 #include "flare/menubar.h"
 #include "flare/ocaio.h"
@@ -11,20 +10,6 @@
 #include "../toonzqt/dvdialog.h"
 #include "../toonzqt/filebrowserpopup.h"
 #include "../toonzqt/gutil.h"
-=======
-#include "toonz/menubarcommandids.h"
-#include "toonz/menubar.h"
-#include "toonz/ocaio.h"
-#include "toonz/projectmanager.h"
-#include "toonz/preferences.h"
-#include "toonz/tapp.h"
-#include "toonz/toonzfolders.h"
-
-#include "toonzqt/gutil.h"
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/filebrowserpopup.h"
-#include "toonzqt/gutil.h"
->>>>>>> origin/master
 
 #include <QProcess>
 #include <QDesktopServices>

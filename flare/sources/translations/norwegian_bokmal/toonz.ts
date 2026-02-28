@@ -4216,11 +4216,7 @@ Please use the frame numbers for reference.</source>
     </message>
     <message>
         <location filename="../../toonz/mainwindow.cpp" line="1087"/>
-<<<<<<< HEAD
         <source>About Flare</source>
-=======
-        <source>About OpenToonz</source>
->>>>>>> origin/master
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -4245,11 +4241,7 @@ Please use the frame numbers for reference.</source>
     </message>
     <message>
         <location filename="../../toonz/mainwindow.cpp" line="1127"/>
-<<<<<<< HEAD
         <source>To report a bug, click on the button below to open a web browser window for Flare&apos;s Issues page on https://github.com.  Click on the &apos;New issue&apos; button and fill out the form.</source>
-=======
-        <source>To report a bug, click on the button below to open a web browser window for OpenToonz&apos;s Issues page on https://github.com.  Click on the &apos;New issue&apos; button and fill out the form.</source>
->>>>>>> origin/master
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -5555,20 +5547,12 @@ Please use the frame numbers for reference.</source>
     </message>
     <message>
         <location filename="../../toonz/mainwindow.cpp" line="2314"/>
-<<<<<<< HEAD
         <source>&amp;About Flare...</source>
-=======
-        <source>&amp;About OpenToonz...</source>
->>>>>>> origin/master
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../../toonz/mainwindow.cpp" line="2315"/>
-<<<<<<< HEAD
         <source>About Flare...</source>
-=======
-        <source>About OpenToonz...</source>
->>>>>>> origin/master
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -6994,11 +6978,7 @@ Please use the frame numbers for reference.</source>
         <source>
 Are you sure?
 
-<<<<<<< HEAD
 N.B. Make sure you are not running another process of Flare,
-=======
-N.B. Make sure you are not running another process of OpenToonz,
->>>>>>> origin/master
 or you may delete necessary files for it.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -8543,11 +8523,7 @@ Is it OK to release these shortcuts?</source>
     </message>
     <message>
         <location filename="../../toonz/preferencespopup.cpp" line="910"/>
-<<<<<<< HEAD
         <source>* Changes will take effect the next time you run Flare</source>
-=======
-        <source>* Changes will take effect the next time you run OpenToonz</source>
->>>>>>> origin/master
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -8582,11 +8558,7 @@ Is it OK to release these shortcuts?</source>
     </message>
     <message>
         <location filename="../../toonz/preferencespopup.cpp" line="927"/>
-<<<<<<< HEAD
         <source>Show Startup Window when Flare Starts</source>
-=======
-        <source>Show Startup Window when OpenToonz Starts</source>
->>>>>>> origin/master
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -8986,11 +8958,7 @@ Is it OK to release these shortcuts?</source>
     </message>
     <message>
         <location filename="../../toonz/preferencespopup.cpp" line="1050"/>
-<<<<<<< HEAD
         <source>Enable Flare Commands&apos; Shortcut Keys While Renaming Cell</source>
-=======
-        <source>Enable OpenToonz Commands&apos; Shortcut Keys While Renaming Cell</source>
->>>>>>> origin/master
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -9160,11 +9128,7 @@ Is it OK to release these shortcuts?</source>
     </message>
     <message>
         <location filename="../../toonz/preferencespopup.cpp" line="1100"/>
-<<<<<<< HEAD
         <source>Check for the Latest Version of Flare on Launch</source>
-=======
-        <source>Check for the Latest Version of OpenToonz on Launch</source>
->>>>>>> origin/master
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -9516,20 +9480,12 @@ Is it OK to release these shortcuts?</source>
     </message>
     <message>
         <location filename="../../toonz/preferencespopup.cpp" line="1267"/>
-<<<<<<< HEAD
         <source>My Documents/Flare*</source>
-=======
-        <source>My Documents/OpenToonz*</source>
->>>>>>> origin/master
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../../toonz/preferencespopup.cpp" line="1268"/>
-<<<<<<< HEAD
         <source>Desktop/Flare*</source>
-=======
-        <source>Desktop/OpenToonz*</source>
->>>>>>> origin/master
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -9587,21 +9543,13 @@ in non alpha-enabled image format.</source>
     </message>
     <message>
         <location filename="../../toonz/preferencespopup.cpp" line="1556"/>
-<<<<<<< HEAD
         <source>Flare can use FFmpeg for additional file formats.
-=======
-        <source>OpenToonz can use FFmpeg for additional file formats.
->>>>>>> origin/master
 </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../../toonz/preferencespopup.cpp" line="1557"/>
-<<<<<<< HEAD
         <source>FFmpeg is not bundled with Flare.
-=======
-        <source>FFmpeg is not bundled with OpenToonz.
->>>>>>> origin/master
 </source>
         <translation type="unfinished"></translation>
     </message>
@@ -11348,11 +11296,7 @@ Some levels have not been loaded because their version is not supported</source>
     </message>
     <message>
         <location filename="../../toonz/iocommand.cpp" line="1965"/>
-<<<<<<< HEAD
         <source>This scene is incompatible with pixels only mode of the current Flare version.
-=======
-        <source>This scene is incompatible with pixels only mode of the current OpenToonz version.
->>>>>>> origin/master
 What would you like to do?</source>
         <translation type="unfinished"></translation>
     </message>
@@ -14698,11 +14642,7 @@ Please commit or revert changes first.</source>
     </message>
     <message>
         <location filename="../../toonz/shortcutpopup.cpp" line="578"/>
-<<<<<<< HEAD
         <source>Flare - Setting Shortcuts</source>
-=======
-        <source>OpenToonz - Setting Shortcuts</source>
->>>>>>> origin/master
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -15162,11 +15102,7 @@ Assign to &apos;%3&apos;?</source>
     <name>StartupPopup</name>
     <message>
         <location filename="../../toonz/startuppopup.cpp" line="96"/>
-<<<<<<< HEAD
         <source>Flare Startup</source>
-=======
-        <source>OpenToonz Startup</source>
->>>>>>> origin/master
         <translation type="unfinished"></translation>
     </message>
     <message>

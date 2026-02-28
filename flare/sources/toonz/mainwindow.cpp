@@ -1053,11 +1053,7 @@ void MainWindow::onAbout() {
   label->setPixmap(pixmap);
 
   DVGui::Dialog *dialog = new DVGui::Dialog(this, true);
-<<<<<<< HEAD
   dialog->setWindowTitle(tr("About Flare"));
-=======
-  dialog->setWindowTitle(tr("About OpenToonz"));
->>>>>>> origin/master
   dialog->setTopMargin(0);
   dialog->addWidget(label);
   QHBoxLayout *hLay = new QHBoxLayout();
@@ -1164,17 +1160,10 @@ void MainWindow::resetRoomsLayout() {
   }*/
 
   DVGui::info(
-<<<<<<< HEAD
       QObject::tr("The rooms will be reset the next time you run Flare."));
 
   ret = QMessageBox::question(
       this, tr("Reset Rooms"), tr("You must restart Flare, close it now?"),
-=======
-      QObject::tr("The rooms will be reset the next time you run OpenToonz."));
-
-  ret = QMessageBox::question(
-      this, tr("Reset Rooms"), tr("You must restart OpenToonz, close it now?"),
->>>>>>> origin/master
       QMessageBox::StandardButtons(QMessageBox::Yes | QMessageBox::No));
 
   if (ret == QMessageBox::Yes) close();
@@ -2371,15 +2360,9 @@ void MainWindow::defineActions() {
   createMenuWindowsAction(MI_SeeThroughWindow,
                           QT_TR_NOOP("Toggle Main Window's See Through Mode"),
                           "Alt+`", "toggle_seethroughwin_on");
-<<<<<<< HEAD
   createMenuHelpAction(MI_About, QT_TR_NOOP("&About Flare..."), "", "info");
   createMenuWindowsAction(MI_StartupPopup, QT_TR_NOOP("&Startup Popup..."),
                           "Alt+S", "flare");
-=======
-  createMenuHelpAction(MI_About, QT_TR_NOOP("&About OpenToonz..."), "", "info");
-  createMenuWindowsAction(MI_StartupPopup, QT_TR_NOOP("&Startup Popup..."),
-                          "Alt+S", "opentoonz");
->>>>>>> origin/master
   createMenuWindowsAction(MI_OpenGuidedDrawingControls,
                           QT_TR_NOOP("Guided Drawing Controls"), "",
                           "guided_drawing");
@@ -3260,11 +3243,7 @@ void MainWindow::clearCacheFolder() {
 
   message +=
       tr("\nAre you sure?\n\nN.B. Make sure you are not running another "
-<<<<<<< HEAD
          "process of Flare,\nor you may delete necessary files for it.");
-=======
-         "process of OpenToonz,\nor you may delete necessary files for it.");
->>>>>>> origin/master
 
   QMessageBox::StandardButton ret = QMessageBox::question(
       this, tr("Clear Cache Folder"), message,

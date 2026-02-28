@@ -51,18 +51,12 @@ void ImportFlashVectorCommand::execute() {
   QString tmpDirName = QString("flare_flash_import_%1")
                            .arg(QDateTime::currentMSecsSinceEpoch());
   TFilePath outDir = TSystem::getTempDir() + TFilePath(tmpDirName.toStdString());
-<<<<<<< HEAD
   QDir outQDir(outDir.getQString());
   if (!outQDir.exists()) {
     if (!outQDir.mkpath(".")) {
       DVGui::error(QObject::tr("Unable to create temporary directory for import."));
       return;
     }
-=======
-  if (!outDir.mkpath(".")) {
-    DVGui::error(QObject::tr("Unable to create temporary directory for import."));
-    return;
->>>>>>> origin/master
   }
 
   // Locate helper script in common development locations

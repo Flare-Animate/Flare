@@ -2127,11 +2127,7 @@ neobsahuje informace o DPI, použije se DPI aktuální kamery.
 <context>
     <name>CrashHandler</name>
     <message>
-<<<<<<< HEAD
         <source>&lt;b&gt;Flare crashed unexpectedly.&lt;/b&gt;</source>
-=======
-        <source>&lt;b&gt;OpenToonz crashed unexpectedly.&lt;/b&gt;</source>
->>>>>>> origin/master
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -2139,11 +2135,7 @@ neobsahuje informace o DPI, použije se DPI aktuální kamery.
         <translation type="unfinished"></translation>
     </message>
     <message>
-<<<<<<< HEAD
         <source>To report, click &apos;Open Issue Webpage&apos; to access Flare&apos;s Issues page on GitHub.</source>
-=======
-        <source>To report, click &apos;Open Issue Webpage&apos; to access OpenToonz&apos;s Issues page on GitHub.</source>
->>>>>>> origin/master
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -2171,11 +2163,7 @@ neobsahuje informace o DPI, použije se DPI aktuální kamery.
         <translation type="unfinished"></translation>
     </message>
     <message>
-<<<<<<< HEAD
         <source>Flare crashed!</source>
-=======
-        <source>OpenToonz crashed!</source>
->>>>>>> origin/master
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -6577,26 +6565,16 @@ Pro odkaz, prosím, použijte čísla snímků.</translation>
         <translation>Typ - lomená čára</translation>
     </message>
     <message>
-<<<<<<< HEAD
         <source>About Flare</source>
         <translation>O programu Flare</translation>
-=======
-        <source>About OpenToonz</source>
-        <translation>O programu OpenToonz</translation>
->>>>>>> origin/master
     </message>
     <message>
         <source>Close</source>
         <translation>Zavřít</translation>
     </message>
     <message>
-<<<<<<< HEAD
         <source>&amp;Abount Flare...</source>
         <translation type="vanished">&amp;O programu Flare...</translation>
-=======
-        <source>&amp;Abount OpenToonz...</source>
-        <translation type="vanished">&amp;O programu OpenToonz...</translation>
->>>>>>> origin/master
     </message>
     <message>
         <source>&amp;ComboViewer</source>
@@ -6627,13 +6605,8 @@ Pro odkaz, prosím, použijte čísla snímků.</translation>
         <translation>&amp;FlipboOk</translation>
     </message>
     <message>
-<<<<<<< HEAD
         <source>&amp;About Flare...</source>
         <translation>&amp;O programu Flare...</translation>
-=======
-        <source>&amp;About OpenToonz...</source>
-        <translation>&amp;O programu OpenToonz...</translation>
->>>>>>> origin/master
     </message>
     <message>
         <source>Hook Tool</source>
@@ -7035,20 +7008,12 @@ Pro odkaz, prosím, použijte čísla snímků.</translation>
         <source>
 Are you sure?
 
-<<<<<<< HEAD
 N.B. Make sure you are not running another process of Flare,
-=======
-N.B. Make sure you are not running another process of OpenToonz,
->>>>>>> origin/master
 or you may delete necessary files for it.</source>
         <translation>
 Jste si jistý?
 
-<<<<<<< HEAD
 Poznámka: Ujistěte se, že neběží další proces Flare,
-=======
-Poznámka: Ujistěte se, že neběží další proces OpenToonz,
->>>>>>> origin/master
 protože jinak můžete smazat pro něj nezbytné soubory.</translation>
     </message>
     <message>
@@ -7064,13 +7029,8 @@ protože jinak můžete smazat pro něj nezbytné soubory.</translation>
         <translation>https://groups.google.com/forum/#!forum/opentoonz_en</translation>
     </message>
     <message>
-<<<<<<< HEAD
         <source>To report a bug, click on the button below to open a web browser window for Flare&apos;s Issues page on https://github.com.  Click on the &apos;New issue&apos; button and fill out the form.</source>
         <translation>Chcete-li nahlásit chybu, klepnutím na tlačítko níže otevřete okno internetového prohlížeče pro stránku Problémy Flare na https://github.com. Klepněte na tlačítko „Nový problém“ (New issue) a vyplňte formulář.</translation>
-=======
-        <source>To report a bug, click on the button below to open a web browser window for OpenToonz&apos;s Issues page on https://github.com.  Click on the &apos;New issue&apos; button and fill out the form.</source>
-        <translation>Chcete-li nahlásit chybu, klepnutím na tlačítko níže otevřete okno internetového prohlížeče pro stránku Problémy OpenToonz na https://github.com. Klepněte na tlačítko „Nový problém“ (New issue) a vyplňte formulář.</translation>
->>>>>>> origin/master
     </message>
     <message>
         <source>Vector Guided Drawing</source>
@@ -7181,13 +7141,8 @@ protože jinak můžete smazat pro něj nezbytné soubory.</translation>
         <translation>Předchozí klíč</translation>
     </message>
     <message>
-<<<<<<< HEAD
         <source>About Flare...</source>
         <translation type="vanished">O programu Flare...</translation>
-=======
-        <source>About OpenToonz...</source>
-        <translation type="vanished">O programu OpenToonz...</translation>
->>>>>>> origin/master
     </message>
     <message>
         <source>Online Manual...</source>
@@ -7586,11 +7541,7 @@ protože jinak můžete smazat pro něj nezbytné soubory.</translation>
         <translation type="unfinished"></translation>
     </message>
     <message>
-<<<<<<< HEAD
         <source>You must restart Flare, close it now?</source>
-=======
-        <source>You must restart OpenToonz, close it now?</source>
->>>>>>> origin/master
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -9511,13 +9462,8 @@ Nastavit cestu k výstupní složce také na podsložku.</translation>
         <translation type="vanished">Nahradit úroveň po příkazu Uložit úroveň jako</translation>
     </message>
     <message>
-<<<<<<< HEAD
         <source>* Changes will take effect the next time you run Flare</source>
         <translation>* Změny se projeví při příštím spuštění Flare</translation>
-=======
-        <source>* Changes will take effect the next time you run OpenToonz</source>
-        <translation>* Změny se projeví při příštím spuštění OpenToonz</translation>
->>>>>>> origin/master
     </message>
     <message>
         <source>Move Current Frame by Clicking on Xsheet / Numerical Columns Cell Area</source>
@@ -9716,21 +9662,12 @@ Nastavit cestu k výstupní složce také na podsložku.</translation>
         <translation>Uložit automaticky nevýjevové soubory</translation>
     </message>
     <message>
-<<<<<<< HEAD
         <source>My Documents/Flare*</source>
         <translation>Moje dokumenty/Flare*</translation>
     </message>
     <message>
         <source>Desktop/Flare*</source>
         <translation>Plocha/Flare*</translation>
-=======
-        <source>My Documents/OpenToonz*</source>
-        <translation>Moje dokumenty/OpenToonz*</translation>
-    </message>
-    <message>
-        <source>Desktop/OpenToonz*</source>
-        <translation>Plocha/OpenToonz*</translation>
->>>>>>> origin/master
     </message>
     <message>
         <source>Custom*</source>
@@ -9793,13 +9730,8 @@ Nastavit cestu k výstupní složce také na podsložku.</translation>
         <translation>Doba vyčkávání pro FFmpeg:</translation>
     </message>
     <message>
-<<<<<<< HEAD
         <source>Show Startup Window when Flare Starts</source>
         <translation>Při spuštění Flare ukázat uvítací okno</translation>
-=======
-        <source>Show Startup Window when OpenToonz Starts</source>
-        <translation>Při spuštění OpenToonz ukázat uvítací okno</translation>
->>>>>>> origin/master
     </message>
     <message>
         <source>Life is too short for Comic Sans</source>
@@ -9860,13 +9792,8 @@ Je v pořádku tyto klávesové zkratky uvolnit?</translation>
         <translation>Povolit vkládání buněk bez dvojitého poklepání</translation>
     </message>
     <message>
-<<<<<<< HEAD
         <source>Enable Flare Commands&apos; Shortcut Keys While Renaming Cell</source>
         <translation>Povolit klávesové zkratky příkazů Flare při přejmenovávání buňky</translation>
-=======
-        <source>Enable OpenToonz Commands&apos; Shortcut Keys While Renaming Cell</source>
-        <translation>Povolit klávesové zkratky příkazů OpenToonz při přejmenovávání buňky</translation>
->>>>>>> origin/master
     </message>
     <message>
         <source>Show Toolbar in the Xsheet</source>
@@ -10011,7 +9938,6 @@ pokud jsou obě možné na cestě ke  kódování souboru.</translation>
         <translation>Vzhled:</translation>
     </message>
     <message>
-<<<<<<< HEAD
         <source>Flare can use FFmpeg for additional file formats.
 </source>
         <translation>Flare může používat FFmpeg pro dodatečné souborové formáty.
@@ -10021,17 +9947,6 @@ pokud jsou obě možné na cestě ke  kódování souboru.</translation>
         <source>FFmpeg is not bundled with Flare.
 </source>
         <translation>FFmpeg není zabalený v balíku s Flare.
-=======
-        <source>OpenToonz can use FFmpeg for additional file formats.
-</source>
-        <translation>OpenToonz může používat FFmpeg pro dodatečné souborové formáty.
-</translation>
-    </message>
-    <message>
-        <source>FFmpeg is not bundled with OpenToonz.
-</source>
-        <translation>FFmpeg není zabalený v balíku s OpenToonz.
->>>>>>> origin/master
 </translation>
     </message>
     <message>
@@ -10043,13 +9958,8 @@ pokud jsou obě možné na cestě ke  kódování souboru.</translation>
         <translation>Ukázat obrysy velikosti ukazovátka</translation>
     </message>
     <message>
-<<<<<<< HEAD
         <source>Check for the Latest Version of Flare on Launch</source>
         <translation>Při spištění se podívat po nejnovější verzi Flare</translation>
-=======
-        <source>Check for the Latest Version of OpenToonz on Launch</source>
-        <translation>Při spištění se podívat po nejnovější verzi OpenToonz</translation>
->>>>>>> origin/master
     </message>
     <message>
         <source>Choosing this option will set initial location of all file browsers to $scenefolder.
@@ -10354,20 +10264,12 @@ but a random crash might occur, use at your own risk.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-<<<<<<< HEAD
         <source>Flare can use Rhubarb for auto lip-syncing.
-=======
-        <source>OpenToonz can use Rhubarb for auto lip-syncing.
->>>>>>> origin/master
 </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-<<<<<<< HEAD
         <source>Rhubarb is not bundled with Flare.
-=======
-        <source>Rhubarb is not bundled with OpenToonz.
->>>>>>> origin/master
 </source>
         <translation type="unfinished"></translation>
     </message>
@@ -12319,15 +12221,9 @@ Co chcete dělat? </translation>
         <translation> Přesto</translation>
     </message>
     <message>
-<<<<<<< HEAD
         <source>This scene is incompatible with pixels only mode of the current Flare version.
 What would you like to do?</source>
         <translation>Tento výjev je neslučitelný s režimem jen obrazové body (pixely) nynější verze Flare.
-=======
-        <source>This scene is incompatible with pixels only mode of the current OpenToonz version.
-What would you like to do?</source>
-        <translation>Tento výjev je neslučitelný s režimem jen obrazové body (pixely) nynější verze OpenToonz.
->>>>>>> origin/master
 Co chcete dělat?</translation>
     </message>
     <message>
@@ -13323,11 +13219,7 @@ What do you want to do?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-<<<<<<< HEAD
         <source>The rooms will be reset the next time you run Flare.</source>
-=======
-        <source>The rooms will be reset the next time you run OpenToonz.</source>
->>>>>>> origin/master
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -15349,13 +15241,8 @@ Nejprve, prosím, změny odešlete, nebo je vraťte zpět.</translation>
 Chcete jej nahradit?</translation>
     </message>
     <message>
-<<<<<<< HEAD
         <source>Flare - Setting Shortcuts</source>
         <translation>Flare - nastavení klávesových zkratek</translation>
-=======
-        <source>OpenToonz - Setting Shortcuts</source>
-        <translation>OpenToonz - nastavení klávesových zkratek</translation>
->>>>>>> origin/master
     </message>
     <message>
         <source>Included presets cannot be deleted.</source>
@@ -15718,13 +15605,8 @@ Assign shortcut sequence anyway?</source>
 <context>
     <name>StartupPopup</name>
     <message>
-<<<<<<< HEAD
         <source>Flare Startup</source>
         <translation>Spuštění Flare</translation>
-=======
-        <source>OpenToonz Startup</source>
-        <translation>Spuštění OpenToonz</translation>
->>>>>>> origin/master
     </message>
     <message>
         <source>Choose Project</source>

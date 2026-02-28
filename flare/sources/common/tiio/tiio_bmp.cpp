@@ -599,11 +599,7 @@ public:
 
   void writeLine(char *buffer) override;
 
-<<<<<<< HEAD
   // for now flare does not support bmp format with alpha channel
-=======
-  // for now opentoonz does not support bmp format with alpha channel
->>>>>>> origin/master
   bool writeAlphaSupported() const override { return false; }
 };
 

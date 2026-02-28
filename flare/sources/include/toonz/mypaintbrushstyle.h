@@ -3,13 +3,10 @@
 #ifndef MYPAINTBRUSHSTYLE_H
 #define MYPAINTBRUSHSTYLE_H
 
-<<<<<<< HEAD
 #ifdef HAVE_MYPaint
 
 #include <map> // needed for std::map used later in this header
 
-=======
->>>>>>> origin/master
 #include "mypaint.h"
 
 // TnzCore includes

@@ -1,7 +1,4 @@
-<<<<<<< HEAD
 # yaml-language-server: $schema=https://json.schemastore.org/github-workflow
-=======
->>>>>>> origin/master
 name: Sync from OpenToonz Upstream
 
 on:
@@ -14,11 +11,8 @@ on:
 jobs:
   sync-upstream:
     runs-on: ubuntu-latest
-<<<<<<< HEAD
     env:
       GIT_LFS_SKIP_SMUDGE: '1'
-=======
->>>>>>> origin/master
     permissions:
       contents: write
       pull-requests: write
@@ -28,10 +22,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0  # Fetch full history for proper syncing
-<<<<<<< HEAD
           lfs: false
-=======
->>>>>>> origin/master
 
       - name: Configure Git
         run: |

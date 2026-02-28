@@ -2702,11 +2702,7 @@ void PencilTestPopup::captureCalibrationRefImage(cv::Mat& image) {
         return;
       }
       fs << "identifier"
-<<<<<<< HEAD
          << "FlareCameraCalibrationSettings";
-=======
-         << "OpenToonzCameraCalibrationSettings";
->>>>>>> origin/master
       fs << "resolution"
          << cv::Size(m_resolution.width(), m_resolution.height());
       fs << "instrinsic" << intrinsic;
@@ -3670,11 +3666,7 @@ void PencilTestPopup::resetCalibSettingsFromFile() {
       if (!fs.isOpened()) return;
       std::string identifierStr;
       fs["identifier"] >> identifierStr;
-<<<<<<< HEAD
       if (identifierStr != "FlareCameraCalibrationSettings") return;
-=======
-      if (identifierStr != "OpenToonzCameraCalibrationSettings") return;
->>>>>>> origin/master
       cv::Size resolution;
       fs["resolution"] >> resolution;
       if (m_resolution != QSize(resolution.width, resolution.height)) return;
@@ -3740,11 +3732,7 @@ void PencilTestPopup::onCalibLoadBtnClicked() {
 
     std::string identifierStr;
     fs["identifier"] >> identifierStr;
-<<<<<<< HEAD
     if (identifierStr != "FlareCameraCalibrationSettings")
-=======
-    if (identifierStr != "OpenToonzCameraCalibrationSettings")
->>>>>>> origin/master
       throw TException(fp.toStdWString() + L": Identifier does not match");
     cv::Size resolution;
     fs["resolution"] >> resolution;

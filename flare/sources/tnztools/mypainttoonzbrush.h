@@ -3,11 +3,8 @@
 #ifndef MYPAINTTOONZBRUSH_H
 #define MYPAINTTOONZBRUSH_H
 
-<<<<<<< HEAD
 #ifdef HAVE_MYPaint
 
-=======
->>>>>>> origin/master
 #include <toonz/mypaint.h>
 #include "traster.h"
 #include "trastercm.h"
@@ -149,9 +146,6 @@ public:
   const mypaint::Brush &getBrush() const { return m_brush; }
 };
 
-<<<<<<< HEAD
 #endif // HAVE_MYPaint
 
-=======
->>>>>>> origin/master
 #endif  // T_BLUREDBRUSH
