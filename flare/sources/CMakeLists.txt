@@ -272,6 +272,30 @@ if(BUILD_ENV_MSVC)
             COMMAND ${CMAKE_COMMAND} -P "${CMAKE_SOURCE_DIR}/cmake/SanitizeVcpkgLogs.cmake"
             COMMENT "Removing wildcard DLL entries from applocal logs"
         )
+        # Also ensure every target sanitizes logs immediately before building.  The
+        # single ALL target above only runs once per cmake --build invocation; some
+        # vcpkg ports create additional .tlog entries *during* the build which
+        # would not be cleaned in time, leading to MSB3541 errors.  By attaching a
+        # PRE_BUILD command to every target we execute the sanitizer before each
+        # project is evaluated, guaranteeing no wildcard paths ever reach MSBuild.
+        function(_add_prebuild_sanitizer _target)
+            # Avoid recursion on the sanitizer target itself
+            if(NOT _target STREQUAL "sanitize_vcpkg_logs")
+                add_custom_command(TARGET ${_target} PRE_BUILD
+                    COMMAND ${CMAKE_COMMAND} -P "${CMAKE_SOURCE_DIR}/cmake/SanitizeVcpkgLogs.cmake"
+                    COMMENT "Sanitizing vcpkg logs before building ${_target}"
+                )
+            endif()
+        endfunction()
+        # After all directories have been processed we will walk the list of
+        # targets that exist at that point and attach the sanitizer.  Ideally
+        # this should be invoked just before leaving the top-level CMakeLists.
+        macro(attach_sanitizer_to_all_targets)
+            get_property(_all_targets GLOBAL PROPERTY TARGETS)
+            foreach(_t IN LISTS _all_targets)
+                _add_prebuild_sanitizer(${_t})
+            endforeach()
+        endmacro()
 
     endif()
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /std:c++17 /wd4251")
@@ -1133,6 +1157,12 @@ add_subdirectory(colorfx)
 add_subdirectory(image)
 add_subdirectory(toonzqt)
 add_subdirectory(tnztools)
+
+# After all subdirectories have been added, attach the pre-build sanitizer to
+# every target defined so far.  This ensures the log-cleaning script is run
+# immediately before each project starts building, catching any wildcards that
+# were introduced earlier in the same build invocation.
+attach_sanitizer_to_all_targets()
 
 add_subdirectory(${SDKROOT}/lzo/driver lzodriver)
 
