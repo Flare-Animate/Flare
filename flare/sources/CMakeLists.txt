@@ -285,6 +285,10 @@ if(BUILD_ENV_MSVC)
                     COMMAND ${CMAKE_COMMAND} -P "${CMAKE_SOURCE_DIR}/cmake/SanitizeVcpkgLogs.cmake"
                     COMMENT "Sanitizing vcpkg logs before building ${_target}"
                 )
+                add_custom_command(TARGET ${_target} POST_BUILD
+                    COMMAND ${CMAKE_COMMAND} -P "${CMAKE_SOURCE_DIR}/cmake/SanitizeVcpkgLogs.cmake"
+                    COMMENT "Sanitizing vcpkg logs after building ${_target}"
+                )
             endif()
         endfunction()
         # After all directories have been processed we will walk the list of
