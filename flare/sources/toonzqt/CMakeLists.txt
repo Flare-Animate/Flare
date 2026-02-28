@@ -53,7 +53,11 @@ set(MOC_HEADERS
     ../include/toonzqt/schematicnode.h
     ../include/toonzqt/schematicviewer.h
     ../include/toonzqt/screenboard.h
+<<<<<<< HEAD
 
+=======
+    ../include/toonzqt/scriptconsole.h
+>>>>>>> origin/master
     ../include/toonzqt/seethroughwindow.h
     ../include/toonzqt/spectrumfield.h
     ../include/toonzqt/spreadsheetviewer.h
@@ -148,7 +152,11 @@ set(SOURCES
     planeviewer.cpp
     popupbutton.cpp
     rasterimagedata.cpp
+<<<<<<< HEAD
 
+=======
+    scriptconsole.cpp
+>>>>>>> origin/master
     seethroughwindow.cpp
     selection.cpp
     stageobjectsdata.cpp

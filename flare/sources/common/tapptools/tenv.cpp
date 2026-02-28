@@ -183,9 +183,15 @@ public:
     m_moduleName  = m_version.getAppName();
     m_rootVarName = m_version.getSystemVarPrefix() + "ROOT";
 #ifdef _WIN32
+<<<<<<< HEAD
     // from v1.3, registry root is moved to SOFTWARE\\Flare\\Flare
     m_registryRoot =
         TFilePath("SOFTWARE\\Flare\\") + m_version.getAppName();
+=======
+    // from v1.3, registry root is moved to SOFTWARE\\OpenToonz\\OpenToonz
+    m_registryRoot =
+        TFilePath("SOFTWARE\\OpenToonz\\") + m_version.getAppName();
+>>>>>>> origin/master
 #endif
     m_systemVarPrefix = m_version.getSystemVarPrefix();
     updateEnvFile();
@@ -245,7 +251,11 @@ public:
     // macOS 10.12 (Sierra) translocates applications before running them
     // depending on how it was installed. This separates the app from the
     // portablestuff folder and we don't know where it is so we stop treating it
+<<<<<<< HEAD
     // as a portable. Placing portablestuff inside Flare.app will keep
+=======
+    // as a portable. Placing portablestuff inside OpenToonz.app will keep
+>>>>>>> origin/master
     // everything together when it translocates.
     if (!m_isPortable) {
       portableCheck =

@@ -91,15 +91,21 @@ option_defaults_init(
 if(BUILD_ENV_MSVC)
     set(_init_SYSTEM_LZO                     OFF)
     set(_init_SYSTEM_SUPERLU                 OFF)
+<<<<<<< HEAD
     # Avoid building lzodriver by default on MSVC because prebuilt LZO libs may be invalid
     set(WITH_LZODRIVER OFF)
+=======
+>>>>>>> origin/master
 elseif(BUILD_ENV_APPLE)
     set(_init_SYSTEM_LZO                     OFF)
     set(_init_SYSTEM_SUPERLU                 OFF)
 elseif(BUILD_ENV_UNIXLIKE)
     set(_init_SYSTEM_LZO                     ON)
     set(_init_SYSTEM_SUPERLU                 ON)
+<<<<<<< HEAD
     set(WITH_LZODRIVER ON)
+=======
+>>>>>>> origin/master
 endif()
 
 
@@ -111,8 +117,11 @@ option(WITH_SYSTEM_SUPERLU "Use the system SuperLU library instead of 'thirdpart
 option(WITH_CANON "Build with Canon DSLR support - Requires Canon SDK" OFF)
 option(WITH_TRANSLATION "Generate translation projects as well" ON)
 option(WITH_WINTAB "(Windows only) Build with customized Qt with WinTab support. https://github.com/shun-iwasawa/qt5/releases/tag/v5.15.2_wintab" OFF)
+<<<<<<< HEAD
 # Allow disabling the lzodriver (prebuilt LZO libraries on Windows may be corrupt)
 option(WITH_LZODRIVER "Build the LZO driver for LZF compression support" ON)
+=======
+>>>>>>> origin/master
 
 # avoid using again
 option_defaults_clear()

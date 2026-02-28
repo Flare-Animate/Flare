@@ -151,6 +151,18 @@ static void initToonzEnv(QHash<QString, QString> &argPathValues) {
   StudioPalette::enable(true);
   TEnv::setRootVarName(rootVarName);
   TEnv::setSystemVarPrefix(systemVarPrefix);
+<<<<<<< HEAD
+=======
+
+  QHash<QString, QString>::const_iterator i = argPathValues.constBegin();
+  while (i != argPathValues.constEnd()) {
+    if (!TEnv::setArgPathValue(i.key().toStdString(), i.value().toStdString()))
+      DVGui::error(
+          QObject::tr("The qualifier %1 is not a valid key name. Skipping.")
+              .arg(i.key()));
+    ++i;
+  }
+>>>>>>> origin/master
 
   QHash<QString, QString>::const_iterator i = argPathValues.constBegin();
   while (i != argPathValues.constEnd()) {
@@ -362,7 +374,11 @@ int main(int argc, char *argv[]) {
 #endif
 
 #ifdef Q_OS_WIN
+<<<<<<< HEAD
   //	Since currently Flare does not work with OpenGL of software or
+=======
+  //	Since currently OpenToonz does not work with OpenGL of software or
+>>>>>>> origin/master
   // angle,	force Qt to use desktop OpenGL
   // FIXME: This options should be called before constructing the application.
   // Thus, ANGLE seems to be enabled as of now.
@@ -641,7 +657,11 @@ if (QFileInfo(localSplashPath).exists() && QFileInfo(localSplashPath).isFile()) 
 
   loadShaderInterfaces(ToonzFolder::getLibraryFolder() + TFilePath("shaders"));
 
+<<<<<<< HEAD
   splash.showMessage(offsetStr + "Initializing Flare ...", Qt::AlignCenter,
+=======
+  splash.showMessage(offsetStr + "Initializing OpenToonz ...", Qt::AlignCenter,
+>>>>>>> origin/master
                      Qt::white);
   a.processEvents();
 
@@ -674,7 +694,10 @@ if (QFileInfo(localSplashPath).exists() && QFileInfo(localSplashPath).isFile()) 
   CrashHandler::attachParentWindow(&w);
   CrashHandler::reportProjectInfo(true);
 
+<<<<<<< HEAD
 #ifdef WITH_QT_SCRIPT
+=======
+>>>>>>> origin/master
   if (isRunScript) {
     // load script
     if (TFileStatus(loadFilePath).doesExist()) {
@@ -714,6 +737,7 @@ if (QFileInfo(localSplashPath).exists() && QFileInfo(localSplashPath).isFile()) 
       return 1;
     }
   }
+<<<<<<< HEAD
 #else
   if (isRunScript) {
     std::cerr << QObject::tr("QtScript is not available in this build; cannot run scripts.")
@@ -722,6 +746,8 @@ if (QFileInfo(localSplashPath).exists() && QFileInfo(localSplashPath).isFile()) 
     return 1;
   }
 #endif
+=======
+>>>>>>> origin/master
 
 #ifdef _WIN32
   // http://doc.qt.io/qt-5/windows-issues.html#fullscreen-opengl-based-windows
@@ -756,7 +782,11 @@ if (QFileInfo(localSplashPath).exists() && QFileInfo(localSplashPath).isFile()) 
   // w.setWindowTitle(QString::fromStdString(TEnv::getApplicationFullName()));
   w.changeWindowTitle();
   if (TEnv::getIsPortable()) {
+<<<<<<< HEAD
     splash.showMessage(offsetStr + "Starting Flare Portable ...",
+=======
+    splash.showMessage(offsetStr + "Starting OpenToonz Portable ...",
+>>>>>>> origin/master
                        Qt::AlignCenter, Qt::white);
   } else {
     splash.showMessage(offsetStr + "Starting main window ...", Qt::AlignCenter,

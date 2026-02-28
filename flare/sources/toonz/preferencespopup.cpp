@@ -1170,7 +1170,11 @@ void PreferencesPopup::insertDualUIs(
 
 void PreferencesPopup::insertFootNote(QGridLayout* layout) {
   QLabel* note = new QLabel(
+<<<<<<< HEAD
       tr("* Changes will take effect the next time you run Flare"));
+=======
+      tr("* Changes will take effect the next time you run OpenToonz"));
+>>>>>>> origin/master
   note->setStyleSheet("font-size: 10px; font: italic;");
   layout->addWidget(note, layout->rowCount(), 0, 1, 3,
                     Qt::AlignLeft | Qt::AlignVCenter);
@@ -1193,7 +1197,11 @@ QString PreferencesPopup::getUIString(PreferencesItemId id) {
       {autosavePeriod, tr("Interval (Minutes):")},
       {autosaveSceneEnabled, tr("Automatically Save the Scene File")},
       {autosaveOtherFilesEnabled, tr("Automatically Save Non-Scene Files")},
+<<<<<<< HEAD
       {startupPopupEnabled, tr("Show Startup Window when Flare Starts")},
+=======
+      {startupPopupEnabled, tr("Show Startup Window when OpenToonz Starts")},
+>>>>>>> origin/master
       {undoMemorySize, tr("Undo Memory Size (MB):")},
       {taskchunksize, tr("Render Task Chunk Size:")},
       {replaceAfterSaveLevelAs,
@@ -1340,7 +1348,11 @@ QString PreferencesPopup::getUIString(PreferencesItemId id) {
        tr("Use Arrow Key to Shift Cell Selection")},
       {cellInputMethod, tr("Cell Input Method:")},
       {shortcutCommandsWhileRenamingCellEnabled,
+<<<<<<< HEAD
        tr("Enable Flare Commands' Shortcut Keys While Renaming Cell")},
+=======
+       tr("Enable OpenToonz Commands' Shortcut Keys While Renaming Cell")},
+>>>>>>> origin/master
       {showXSheetToolbar, tr("Show Toolbar in the Xsheet")},
       {showXsheetBreadcrumbs, tr("Show Sub-Xsheet Navigation Bar")},
       {expandFunctionHeader,
@@ -1409,7 +1421,11 @@ QString PreferencesPopup::getUIString(PreferencesItemId id) {
       {automaticSVNFolderRefreshEnabled,
        tr("Automatically Refresh Folder Contents")},
       {latestVersionCheckEnabled,
+<<<<<<< HEAD
        tr("Check for the Latest Version of Flare on Launch")},
+=======
+       tr("Check for the Latest Version of OpenToonz on Launch")},
+>>>>>>> origin/master
 
       // Touch / Tablet Settings
       // Touch Gesture is a checkable command and not in preferences.ini
@@ -1633,8 +1649,13 @@ PreferencesPopup::PreferencesPopup()
 //-----------------------------------------------------------------------------
 
 QWidget* PreferencesPopup::createGeneralPage() {
+<<<<<<< HEAD
   m_projectRootDocuments = new CheckBox(tr("My Documents/Flare*"), this);
   m_projectRootDesktop   = new CheckBox(tr("Desktop/Flare*"), this);
+=======
+  m_projectRootDocuments = new CheckBox(tr("My Documents/OpenToonz*"), this);
+  m_projectRootDesktop   = new CheckBox(tr("Desktop/OpenToonz*"), this);
+>>>>>>> origin/master
   m_projectRootCustom    = new CheckBox(tr("Custom*"), this);
   QWidget* customField   = new QWidget(this);
   QGridLayout* customLay = new QGridLayout();
@@ -1959,8 +1980,13 @@ QWidget* PreferencesPopup::createCodecPage() {
   QGridLayout* lay = new QGridLayout();
   setupLayout(lay);
 
+<<<<<<< HEAD
   putLabel(tr("Flare can use FFmpeg for additional file formats.\n") +
                tr("FFmpeg is not bundled with Flare.\n") +
+=======
+  putLabel(tr("OpenToonz can use FFmpeg for additional file formats.\n") +
+               tr("FFmpeg is not bundled with OpenToonz.\n") +
+>>>>>>> origin/master
                tr("Please provide the path where FFmpeg is located on your "
                   "computer."),
            lay);
@@ -2001,8 +2027,13 @@ QWidget* PreferencesPopup::createAutoLipSyncPage() {
   QGridLayout* lay = new QGridLayout();
   setupLayout(lay);
 
+<<<<<<< HEAD
   putLabel(tr("Flare can use Rhubarb for auto lip-syncing.\n") +
                tr("Rhubarb is not bundled with Flare.\n") +
+=======
+  putLabel(tr("OpenToonz can use Rhubarb for auto lip-syncing.\n") +
+               tr("Rhubarb is not bundled with OpenToonz.\n") +
+>>>>>>> origin/master
                tr("Please provide the path where Rhubarb is located on your "
                   "computer."),
            lay);

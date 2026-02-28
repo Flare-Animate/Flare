@@ -2787,8 +2787,13 @@ contain the dpi information, then the current camera dpi will be used.
     <name>CrashHandler</name>
     <message>
         <location filename="../../toonz/crashhandler.cpp" line="421"/>
+<<<<<<< HEAD
         <source>&lt;b&gt;Flare crashed unexpectedly.&lt;/b&gt;</source>
         <translation>&lt;b&gt;Flare неожиданно вышел из строя.&lt;/b&gt;</translation>
+=======
+        <source>&lt;b&gt;OpenToonz crashed unexpectedly.&lt;/b&gt;</source>
+        <translation>&lt;b&gt;OpenToonz неожиданно вышел из строя.&lt;/b&gt;</translation>
+>>>>>>> origin/master
     </message>
     <message>
         <location filename="../../toonz/crashhandler.cpp" line="423"/>
@@ -2797,8 +2802,13 @@ contain the dpi information, then the current camera dpi will be used.
     </message>
     <message>
         <location filename="../../toonz/crashhandler.cpp" line="425"/>
+<<<<<<< HEAD
         <source>To report, click &apos;Open Issue Webpage&apos; to access Flare&apos;s Issues page on GitHub.</source>
         <translation>Чтобы сообщить, нажмите &quot;Открыть веб-страницу проблемы&quot;, чтобы получить доступ к странице проблем Flare на GitHub.</translation>
+=======
+        <source>To report, click &apos;Open Issue Webpage&apos; to access OpenToonz&apos;s Issues page on GitHub.</source>
+        <translation>Чтобы сообщить, нажмите &quot;Открыть веб-страницу проблемы&quot;, чтобы получить доступ к странице проблем OpenToonz на GitHub.</translation>
+>>>>>>> origin/master
     </message>
     <message>
         <location filename="../../toonz/crashhandler.cpp" line="427"/>
@@ -2832,8 +2842,13 @@ contain the dpi information, then the current camera dpi will be used.
     </message>
     <message>
         <location filename="../../toonz/crashhandler.cpp" line="463"/>
+<<<<<<< HEAD
         <source>Flare crashed!</source>
         <translation>Flare разбился!</translation>
+=======
+        <source>OpenToonz crashed!</source>
+        <translation>OpenToonz разбился!</translation>
+>>>>>>> origin/master
     </message>
     <message>
         <location filename="../../toonz/crashhandler.cpp" line="469"/>
@@ -6023,7 +6038,11 @@ Please use the frame numbers for reference.</source>
     </message>
     <message>
         <location filename="../../toonz/mainwindow.cpp" line="992"/>
+<<<<<<< HEAD
         <source>About Flare</source>
+=======
+        <source>About OpenToonz</source>
+>>>>>>> origin/master
         <translation>О программе</translation>
     </message>
     <message>
@@ -6048,8 +6067,13 @@ Please use the frame numbers for reference.</source>
     </message>
     <message>
         <location filename="../../toonz/mainwindow.cpp" line="1032"/>
+<<<<<<< HEAD
         <source>To report a bug, click on the button below to open a web browser window for Flare&apos;s Issues page on https://github.com.  Click on the &apos;New issue&apos; button and fill out the form.</source>
         <translation>Для отправки отчёта об ошибке нажмите кнопку ниже, чтобы открыть страницу &quot;Flare issues&quot; на сайте https://github.com. Кликните &quot;New issue&quot; и заполните форму.</translation>
+=======
+        <source>To report a bug, click on the button below to open a web browser window for OpenToonz&apos;s Issues page on https://github.com.  Click on the &apos;New issue&apos; button and fill out the form.</source>
+        <translation>Для отправки отчёта об ошибке нажмите кнопку ниже, чтобы открыть страницу &quot;OpenToonz issues&quot; на сайте https://github.com. Кликните &quot;New issue&quot; и заполните форму.</translation>
+>>>>>>> origin/master
     </message>
     <message>
         <location filename="../../toonz/mainwindow.cpp" line="1190"/>
@@ -7355,12 +7379,20 @@ Please use the frame numbers for reference.</source>
         <source>
 Are you sure?
 
+<<<<<<< HEAD
 N.B. Make sure you are not running another process of Flare,
+=======
+N.B. Make sure you are not running another process of OpenToonz,
+>>>>>>> origin/master
 or you may delete necessary files for it.</source>
         <translation>
 Вы уверены?
 
+<<<<<<< HEAD
 Убедитесь что вы не запускаете другой процесс Flare,
+=======
+Убедитесь что вы не запускаете другой процесс OpenToonz,
+>>>>>>> origin/master
  в противном случае вы можете потерять необходимые для этого файлы.</translation>
     </message>
     <message>
@@ -7552,7 +7584,11 @@ or you may delete necessary files for it.</source>
     </message>
     <message>
         <location filename="../../toonz/mainwindow.cpp" line="2255"/>
+<<<<<<< HEAD
         <source>&amp;About Flare...</source>
+=======
+        <source>&amp;About OpenToonz...</source>
+>>>>>>> origin/master
         <translation>&amp;О программе...</translation>
     </message>
     <message>
@@ -7803,7 +7839,11 @@ or you may delete necessary files for it.</source>
         <translation>&amp;Панель команд</translation>
     </message>
     <message>
+<<<<<<< HEAD
         <source>About Flare...</source>
+=======
+        <source>About OpenToonz...</source>
+>>>>>>> origin/master
         <translation type="vanished">О программе...</translation>
     </message>
     <message>
@@ -8666,8 +8706,13 @@ or you may delete necessary files for it.</source>
     </message>
     <message>
         <location filename="../../toonz/mainwindow.cpp" line="1090"/>
+<<<<<<< HEAD
         <source>You must restart Flare, close it now?</source>
         <translation>Вы должны перезапустить Flare, закрыть его сейчас?</translation>
+=======
+        <source>You must restart OpenToonz, close it now?</source>
+        <translation>Вы должны перезапустить OpenToonz, закрыть его сейчас?</translation>
+>>>>>>> origin/master
     </message>
     <message>
         <location filename="../../toonz/mainwindow.cpp" line="1730"/>
@@ -11053,8 +11098,13 @@ Is it OK to release these shortcuts?</source>
     </message>
     <message>
         <location filename="../../toonz/preferencespopup.cpp" line="1160"/>
+<<<<<<< HEAD
         <source>Show Startup Window when Flare Starts</source>
         <translation>Показывать стартовое окно при запуске Flare</translation>
+=======
+        <source>Show Startup Window when OpenToonz Starts</source>
+        <translation>Показывать стартовое окно при запуске OpenToonz</translation>
+>>>>>>> origin/master
     </message>
     <message>
         <location filename="../../toonz/preferencespopup.cpp" line="1164"/>
@@ -11077,6 +11127,7 @@ Is it OK to release these shortcuts?</source>
     </message>
     <message>
         <location filename="../../toonz/preferencespopup.cpp" line="1554"/>
+<<<<<<< HEAD
         <source>My Documents/Flare*</source>
         <translation>Мои Документы/Flare*</translation>
     </message>
@@ -11084,6 +11135,15 @@ Is it OK to release these shortcuts?</source>
         <location filename="../../toonz/preferencespopup.cpp" line="1555"/>
         <source>Desktop/Flare*</source>
         <translation>Рабочий стол/Flare*</translation>
+=======
+        <source>My Documents/OpenToonz*</source>
+        <translation>Мои Документы/OpenToonz*</translation>
+    </message>
+    <message>
+        <location filename="../../toonz/preferencespopup.cpp" line="1555"/>
+        <source>Desktop/OpenToonz*</source>
+        <translation>Рабочий стол/OpenToonz*</translation>
+>>>>>>> origin/master
     </message>
     <message>
         <source>Stuff Folder*</source>
@@ -11107,8 +11167,13 @@ Is it OK to release these shortcuts?</source>
     </message>
     <message>
         <location filename="../../toonz/preferencespopup.cpp" line="1136"/>
+<<<<<<< HEAD
         <source>* Changes will take effect the next time you run Flare</source>
         <translation>* Изменения вступят в силу после перезапуска Flare</translation>
+=======
+        <source>* Changes will take effect the next time you run OpenToonz</source>
+        <translation>* Изменения вступят в силу после перезапуска OpenToonz</translation>
+>>>>>>> origin/master
     </message>
     <message>
         <location filename="../../toonz/preferencespopup.cpp" line="1502"/>
@@ -11354,8 +11419,13 @@ Is it OK to release these shortcuts?</source>
     </message>
     <message>
         <location filename="../../toonz/preferencespopup.cpp" line="1292"/>
+<<<<<<< HEAD
         <source>Enable Flare Commands&apos; Shortcut Keys While Renaming Cell</source>
         <translation>Разрешить хоткеи команд Flare при переименовании ячеек</translation>
+=======
+        <source>Enable OpenToonz Commands&apos; Shortcut Keys While Renaming Cell</source>
+        <translation>Разрешить хоткеи команд OpenToonz при переименовании ячеек</translation>
+>>>>>>> origin/master
     </message>
     <message>
         <location filename="../../toonz/preferencespopup.cpp" line="1293"/>
@@ -11465,8 +11535,13 @@ for Short Play:</source>
     </message>
     <message>
         <location filename="../../toonz/preferencespopup.cpp" line="1356"/>
+<<<<<<< HEAD
         <source>Check for the Latest Version of Flare on Launch</source>
         <translation>Проверять наличие последней версии Flare при запуске</translation>
+=======
+        <source>Check for the Latest Version of OpenToonz on Launch</source>
+        <translation>Проверять наличие последней версии OpenToonz при запуске</translation>
+>>>>>>> origin/master
     </message>
     <message>
         <source>Tablet Settings</source>
@@ -11533,16 +11608,28 @@ Also the initial output destination for new scenes will be set to $scenefolder a
     </message>
     <message>
         <location filename="../../toonz/preferencespopup.cpp" line="1863"/>
+<<<<<<< HEAD
         <source>Flare can use FFmpeg for additional file formats.
 </source>
         <translation>Flare может использовать FFmpeg для дополнительных форматов файлов.
+=======
+        <source>OpenToonz can use FFmpeg for additional file formats.
+</source>
+        <translation>OpenToonz может использовать FFmpeg для дополнительных форматов файлов.
+>>>>>>> origin/master
 </translation>
     </message>
     <message>
         <location filename="../../toonz/preferencespopup.cpp" line="1864"/>
+<<<<<<< HEAD
         <source>FFmpeg is not bundled with Flare.
 </source>
         <translation>FFmpeg не поставляется с Flare.
+=======
+        <source>FFmpeg is not bundled with OpenToonz.
+</source>
+        <translation>FFmpeg не поставляется с OpenToonz.
+>>>>>>> origin/master
 </translation>
     </message>
     <message>
@@ -11979,12 +12066,21 @@ in non alpha-enabled image format.</source>
         <translation type="obsolete">Тип палитры при загрузке растрового изображения в качестве цветовой модели</translation>
     </message>
     <message>
+<<<<<<< HEAD
         <source>Flare can use FFmpeg for additional file formats.</source>
         <translation type="obsolete">Flare может использовать FFmpeg для дополнительных форматов файлов.</translation>
     </message>
     <message>
         <source>FFmpeg is not bundled with Flare</source>
         <translation type="obsolete">FFmpeg не поставляется с Flare</translation>
+=======
+        <source>OpenToonz can use FFmpeg for additional file formats.</source>
+        <translation type="obsolete">OpenToonz может использовать FFmpeg для дополнительных форматов файлов.</translation>
+    </message>
+    <message>
+        <source>FFmpeg is not bundled with OpenToonz</source>
+        <translation type="obsolete">FFmpeg не поставляется с OpenToonz</translation>
+>>>>>>> origin/master
     </message>
     <message>
         <source>NOTE: This is an experimental feature.</source>
@@ -12438,16 +12534,28 @@ but a random crash might occur, use at your own risk.</source>
     </message>
     <message>
         <location filename="../../toonz/preferencespopup.cpp" line="1908"/>
+<<<<<<< HEAD
         <source>Flare can use Rhubarb for auto lip-syncing.
 </source>
         <translation>Flare может использовать Rhubarb для автоматической синхронизации по губам.
+=======
+        <source>OpenToonz can use Rhubarb for auto lip-syncing.
+</source>
+        <translation>OpenToonz может использовать Rhubarb для автоматической синхронизации по губам.
+>>>>>>> origin/master
 </translation>
     </message>
     <message>
         <location filename="../../toonz/preferencespopup.cpp" line="1909"/>
+<<<<<<< HEAD
         <source>Rhubarb is not bundled with Flare.
 </source>
         <translation>Ревень не входит в комплект поставки Flare.
+=======
+        <source>Rhubarb is not bundled with OpenToonz.
+</source>
+        <translation>Ревень не входит в комплект поставки OpenToonz.
+>>>>>>> origin/master
 </translation>
     </message>
     <message>
@@ -14327,9 +14435,15 @@ Some levels have not been loaded because their version is not supported</source>
     </message>
     <message>
         <location filename="../../toonz/iocommand.cpp" line="2059"/>
+<<<<<<< HEAD
         <source>This scene is incompatible with pixels only mode of the current Flare version.
 What would you like to do?</source>
         <translation>Эта сцена несовместима с режимом &quot;только пиксели&quot; текущей версии Flare.
+=======
+        <source>This scene is incompatible with pixels only mode of the current OpenToonz version.
+What would you like to do?</source>
+        <translation>Эта сцена несовместима с режимом &quot;только пиксели&quot; текущей версии OpenToonz.
+>>>>>>> origin/master
 Чтовы хотите делать?</translation>
     </message>
     <message>
@@ -16004,12 +16118,21 @@ to use the duplicate command in the xsheet / timeline.</source>
     </message>
     <message>
         <location filename="../../toonz/mainwindow.cpp" line="1087"/>
+<<<<<<< HEAD
         <source>The rooms will be reset the next time you run Flare.</source>
         <translation>Номера будут сброшены при следующем запуске Flare.</translation>
     </message>
     <message>
         <source>The rooms will be reset the next time you run Toonz.</source>
         <translation type="vanished">Вкладки будут восстановлены при следующем запуске Flare.</translation>
+=======
+        <source>The rooms will be reset the next time you run OpenToonz.</source>
+        <translation>Номера будут сброшены при следующем запуске OpenToonz.</translation>
+    </message>
+    <message>
+        <source>The rooms will be reset the next time you run Toonz.</source>
+        <translation type="vanished">Вкладки будут восстановлены при следующем запуске OpenToonz.</translation>
+>>>>>>> origin/master
     </message>
     <message>
         <location filename="../../toonz/mainwindow.cpp" line="1314"/>
@@ -18678,8 +18801,13 @@ Please commit or revert changes first.</source>
     </message>
     <message>
         <location filename="../../toonz/shortcutpopup.cpp" line="592"/>
+<<<<<<< HEAD
         <source>Flare - Setting Shortcuts</source>
         <translation>Flare - Настройка хоткеев</translation>
+=======
+        <source>OpenToonz - Setting Shortcuts</source>
+        <translation>OpenToonz - Настройка хоткеев</translation>
+>>>>>>> origin/master
     </message>
     <message>
         <location filename="../../toonz/shortcutpopup.cpp" line="615"/>
@@ -19166,7 +19294,11 @@ Assign shortcut sequence anyway?</source>
     <name>StartupPopup</name>
     <message>
         <location filename="../../toonz/startuppopup.cpp" line="101"/>
+<<<<<<< HEAD
         <source>Flare Startup</source>
+=======
+        <source>OpenToonz Startup</source>
+>>>>>>> origin/master
         <translation>Стартовое окно</translation>
     </message>
     <message>

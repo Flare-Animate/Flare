@@ -57,6 +57,7 @@ def test_import_swc_with_as():
         assert has_as
     finally:
         shutil.rmtree(td)
+<<<<<<< HEAD
 
 
 def test_import_jsfl_file_and_lint_ok():
@@ -102,3 +103,5 @@ def test_import_jsfl_file_and_lint_bad():
         assert len(probs["bad.jsfl"]) >= 1
     finally:
         shutil.rmtree(td)
+=======
+>>>>>>> origin/master

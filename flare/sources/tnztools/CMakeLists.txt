@@ -2,7 +2,11 @@ set(MOC_HEADERS
     controlpointselection.h
     edittoolgadgets.h
     filltool.h
+<<<<<<< HEAD
     # fullcolorbrushtool.h will be added conditionally below
+=======
+    fullcolorbrushtool.h
+>>>>>>> origin/master
     fullcolorfilltool.h
     plastictool.h
     skeletonsubtools.h
@@ -19,16 +23,23 @@ set(MOC_HEADERS
     ../include/tools/tooloptions.h
 )
 
+<<<<<<< HEAD
 # enable moc for fullcolorbrushtool only if MyPaint is enabled
 if(ENABLE_MYPaint)
     list(APPEND MOC_HEADERS fullcolorbrushtool.h)
 endif()
 
+=======
+>>>>>>> origin/master
 set(HEADERS
     ${MOC_HEADERS}
     autofill.h
     bluredbrush.h
     hookselection.h
+<<<<<<< HEAD
+=======
+    mypainttoonzbrush.h
+>>>>>>> origin/master
     rasterselectiontool.h
     rgbpickertool.h
     rulertool.h
@@ -70,6 +81,7 @@ set(HEADERS
     ../include/tools/assistants/guidelineellipse.h
 )
 
+<<<<<<< HEAD
 # add mypaint headers when enabled
 if(ENABLE_MYPaint)
     list(APPEND HEADERS
@@ -78,6 +90,8 @@ if(ENABLE_MYPaint)
     )
 endif()
 
+=======
+>>>>>>> origin/master
 set(SOURCES
     autofillpli.cpp
     autofilltlv.cpp
@@ -93,6 +107,10 @@ set(SOURCES
     edittool.cpp
     edittoolgadgets.cpp
     filltool.cpp
+<<<<<<< HEAD
+=======
+    fullcolorbrushtool.cpp
+>>>>>>> origin/master
     fullcolorerasertool.cpp
     fullcolorfilltool.cpp
     geometrictool.cpp
@@ -134,6 +152,10 @@ set(SOURCES
     screenpicker.cpp
     fingertool.cpp
     rulertool.cpp
+<<<<<<< HEAD
+=======
+    mypainttoonzbrush.cpp
+>>>>>>> origin/master
     shifttracetool.cpp
     toonzrasterbrushtool.cpp
     toonzvectorbrushtool.cpp
@@ -167,6 +189,7 @@ set(SOURCES
     editassistantstool.cpp
 )
 
+<<<<<<< HEAD
 # append mypaint sources if enabled
 if(ENABLE_MYPaint)
     list(APPEND SOURCES
@@ -175,6 +198,8 @@ if(ENABLE_MYPaint)
     )
 endif()
 
+=======
+>>>>>>> origin/master
 set(RESOURCES tnztools.qrc)
 
 qt5_add_resources(SOURCES ${RESOURCES})
@@ -208,5 +233,9 @@ include_directories(
 
 _find_toonz_library(EXTRA_LIBS "tnzcore;tnzbase;tnzext;toonzlib;toonzqt")
 
+<<<<<<< HEAD
 target_link_libraries(tnztools Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Network Qt5::OpenGL ${GLUT_LIB} ${EXTRA_LIBS} ${GL_LIB}
     $<$<BOOL:${ENABLE_MYPaint}>:${MYPAINT_LIB_LDFLAGS}>)
+=======
+target_link_libraries(tnztools Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Network Qt5::OpenGL ${GLUT_LIB} ${EXTRA_LIBS} ${GL_LIB} ${MYPAINT_LIB_LDFLAGS})
+>>>>>>> origin/master

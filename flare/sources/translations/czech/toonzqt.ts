@@ -560,16 +560,26 @@ Možná byl soubor s přednastavením poškozen</translation>
     <name>DVGui::ProgressDialog</name>
     <message>
         <location filename="../../toonzqt/dvdialog.cpp" line="894"/>
+<<<<<<< HEAD
         <source>Flare</source>
         <translation>Flare</translation>
+=======
+        <source>OpenToonz</source>
+        <translation>OpenToonz</translation>
+>>>>>>> origin/master
     </message>
 </context>
 <context>
     <name>DVGui::RadioButtonDialog</name>
     <message>
         <location filename="../../toonzqt/dvdialog.cpp" line="824"/>
+<<<<<<< HEAD
         <source>Flare</source>
         <translation>Flare</translation>
+=======
+        <source>OpenToonz</source>
+        <translation>OpenToonz</translation>
+>>>>>>> origin/master
     </message>
 </context>
 <context>
@@ -2849,8 +2859,13 @@ Jste si jistý?</translation>
         <translation>Toto je vyhrazený název souboru a nelze jej použít.</translation>
     </message>
     <message>
+<<<<<<< HEAD
         <source>Flare 1.3</source>
         <translation type="vanished">Flare 1.3</translation>
+=======
+        <source>OpenToonz 1.3</source>
+        <translation type="vanished">OpenToonz 1.3</translation>
+>>>>>>> origin/master
     </message>
     <message>
         <location filename="../../toonzqt/dvdialog.cpp" line="79"/>

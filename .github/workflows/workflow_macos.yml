@@ -3,12 +3,21 @@ name: MacOS Build
 on:
   push:
     paths:
+<<<<<<< HEAD
       - '**/*'
       - '!appveyor.yml'
       - '!README.md'
       - '!doc/**'
       - '!**/.github/**'
       - '.github/workflows/workflow_macos.yml'
+=======
+      - '**/*'                                  # Include all files in the repository
+      - '!appveyor.yml'                         # Ignore changes in AppVeyor
+      - '!README.md'                            # Exclude README
+      - '!doc/**'                               # Exclude documentation
+      - '!**/.github/**'                        # Exclude everything in .github folder
+      - '.github/workflows/workflow_macos.yml'  # Include MacOs workflow file
+>>>>>>> origin/master
   pull_request:
     paths:
       - '**/*'
@@ -18,6 +27,7 @@ on:
       - '!**/.github/**'
       - '.github/workflows/workflow_macos.yml'
 
+<<<<<<< HEAD
 permissions:
   contents: read
   issues: write
@@ -40,13 +50,39 @@ jobs:
         run: |
           find /usr/local/bin -type l \( -name "python*" -o -name "pip*" -o -name "2to3*" -o -name "idle*" -o -name "pydoc*" \) \
             -exec sh -c 'file -b {} | grep -q "symbolic link to .*Python.framework" && echo "Removing {}" && rm {}' \;
+=======
+jobs:
+  macOS:
+    timeout-minutes: 180 # Stop job if it exceeds expected build time
+    # GHA are sunsetting support for macOS 13 (Intel & Apple Silicon/arm) & will be fully unsupported on (December 4th 2025),
+    # See: https://github.blog/changelog/2025-09-19-github-actions-macos-13-runner-image-is-closing-down/ & https://github.com/actions/runner-images/issues/13046
+    # (Septemer 19th 2025) - Replacing `macos-13` runner image with the new `macos-15-intel` runner image to maintain macOS (Intel x64) support.
+    # See: https://github.com/actions/runner-images/issues/13045
+    # GHA (x86_64) SUNSETTING SUPPORT DEADLINE WARNING!!! `macos-15-intel` runner image will be the last available x86_64 image from Actions, and after (August 2027) the x86_64 architecture will not be supported on GitHub Actions.
+    # Xref.: https://github.com/actions/runner-images/issues/13045
+    # TODO: Change macOS GHA Runner Image to (Apple Silicon) based image on/prior to sunsetting of `macos-15-intel` (x86_64) runner image (August 2027)
+    runs-on: macos-15-intel
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Clean Python symlinks
+        run: |
+          # Remove potentially conflicting Python symlinks
+          find /usr/local/bin -type l \( -name "python*" -o -name "pip*" -o -name "2to3*" -o -name "idle*" -o -name "pydoc*" \) \
+            -exec sh -c 'file -b {} | grep -q "symbolic link to .*Python.framework" && echo "Removing {}" && rm {}' \;
+          # Ensure Homebrew Python is properly linked
+>>>>>>> origin/master
           for py_version in python@3.11 python@3.12 python@3.13 python@3.14; do
             if brew list --versions $py_version >/dev/null; then
               brew unlink $py_version || true
             fi
           done
           brew link --overwrite --force python@3.14 || true
+<<<<<<< HEAD
 
+=======
+          
+>>>>>>> origin/master
       - name: Install libraries
         run: |
           checkPkgAndInstall() {
@@ -62,7 +98,10 @@ jobs:
           brew update
 
           checkPkgAndInstall pkg-config glew lz4 libjpeg libpng lzo boost libusb libmypaint ccache jpeg-turbo ninja opencv openjph openexr qt@5
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/master
       - name: Set up cache
         run: |
           export PATH="/usr/local/opt/ccache/libexec:$PATH"
@@ -76,24 +115,37 @@ jobs:
       - name: Build libtiff
         run: |
           cd thirdparty/tiff-4.0.3
+<<<<<<< HEAD
           chmod +x configure
           CFLAGS='-fPIC' CXXFLAGS='-fPIC' ./configure --disable-lzma
           make -j $(sysctl -n hw.ncpu)
           make install
 
+=======
+          CFLAGS='-fPIC' CXXFLAGS='-fPIC' ./configure --disable-lzma
+          make -j $(sysctl -n hw.ncpu)
+          make install  # Ensures CMake finds the installed lib (avoid linking issues)
+>>>>>>> origin/master
       - name: Build
         run: |
           export PKG_CONFIG_PATH="/usr/local/opt/jpeg-turbo/lib/pkgconfig:$PKG_CONFIG_PATH"
           cd flare
+<<<<<<< HEAD
           rm -rf build
           mkdir -p build
           cd build
           set +e
+=======
+          rm -rf build  
+          mkdir -p build
+          cd build
+>>>>>>> origin/master
           cmake -S ../sources -B . -G Ninja \
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DQT_PATH=$(brew --prefix qt@5)/lib \
             -DQt5_DIR=$(brew --prefix qt@5)/lib/cmake/Qt5 \
             -DCMAKE_PREFIX_PATH=$(brew --prefix qt@5)/lib/cmake/Qt5 \
+<<<<<<< HEAD
             -DWITH_TRANSLATION=OFF \
             -DWITH_SYSTEM_LZO=ON \
             -DWITH_LZODRIVER=OFF > cmake_configure.log 2>&1
@@ -127,6 +179,14 @@ jobs:
           cd flare/build/toonz
           # copy portable stuff if present
           cp -pr ../../../stuff Flare.app/portablestuff 2>/dev/null || true
+=======
+            -DWITH_TRANSLATION=OFF
+          ninja -j $(sysctl -n hw.ncpu)
+      - name: Introduce Libraries and Stuff
+        run: |
+          cd flare/build/toonz
+          cp -pr ../../../stuff Flare.app/portablestuff
+>>>>>>> origin/master
           /usr/local/opt/qt@5/bin/macdeployqt Flare.app -verbose=0 -always-overwrite \
             -executable=Flare.app/Contents/MacOS/lzocompress \
             -executable=Flare.app/Contents/MacOS/lzodecompress \
@@ -135,7 +195,10 @@ jobs:
             -executable=Flare.app/Contents/MacOS/tconverter \
             -executable=Flare.app/Contents/MacOS/tfarmcontroller \
             -executable=Flare.app/Contents/MacOS/tfarmserver
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/master
       - name: Modify Library Paths
         run: |
           cd flare/build/toonz/Flare.app/Contents/Frameworks
@@ -147,11 +210,15 @@ jobs:
               fi
             done
           done
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/master
       - name: Create Artifact
         run: |
           cd flare/build/toonz
           echo "Creating DMG..."
+<<<<<<< HEAD
           ATTEMPT=0
           while [ $ATTEMPT -lt 10 ]; do
             /usr/local/opt/qt@5/bin/macdeployqt Flare.app -dmg -verbose=0 && \
@@ -195,3 +262,21 @@ jobs:
             const note = (!fs.existsSync('flare/build/cmake_configure.log') && !fs.existsSync('flare/build/build.log')) ? '\n\n**Note:** log files missing \u2013 checkout or prior step may have failed.' : '';
             const body = `**Automated build logs (truncated)**\n\n--- CMake configure log ---\n${cmake}\n\n--- Build log ---\n${build}${note}`;
             await github.rest.issues.createComment({ owner, repo, issue_number: pr, body });
+=======
+          ATTEMPT=1
+          until /usr/local/opt/qt@5/bin/macdeployqt Flare.app -dmg -verbose=0 && [ -f Flare.dmg ]; do
+            echo "Attempt $ATTEMPT failed to build DMG."
+            if [ $ATTEMPT -eq 10 ]; then
+              echo ">>> DMG file creation failed after 10 attempts. Aborting!"
+              exit 1
+            fi
+            ATTEMPT=$((ATTEMPT + 1))
+            echo "Retrying in 5 seconds..."
+            sleep 5
+          done
+          echo "DMG created successfully."
+      - uses: actions/upload-artifact@v6
+        with:
+          name: Flare-${{ runner.os }}-${{ github.sha }}
+          path: flare/build/toonz/Flare.dmg
+>>>>>>> origin/master

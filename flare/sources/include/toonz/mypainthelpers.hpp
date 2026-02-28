@@ -6,11 +6,16 @@
 #include <cmath>
 #include <cassert>
 
+<<<<<<< HEAD
 #ifdef HAVE_MYPaint
 #include "mypaint.h"
 #endif
 
 #ifdef HAVE_MYPaint
+=======
+#include "mypaint.h"
+
+>>>>>>> origin/master
 namespace mypaint {
   namespace helpers {
     const float precision = 1e-4f;
@@ -601,6 +606,9 @@ namespace mypaint {
   } // helpers
 } // mypaint
 
+<<<<<<< HEAD
 #endif // HAVE_MYPaint
 
+=======
+>>>>>>> origin/master
 #endif  // MYPAINTHELPERS_H

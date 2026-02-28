@@ -2169,16 +2169,26 @@ before color designing.</source>
 <context>
     <name>CrashHandler</name>
     <message>
+<<<<<<< HEAD
         <source>&lt;b&gt;Flare crashed unexpectedly.&lt;/b&gt;</source>
         <translation>&lt;b&gt;Flareは異常終了しました。&lt;/b&gt;</translation>
+=======
+        <source>&lt;b&gt;OpenToonz crashed unexpectedly.&lt;/b&gt;</source>
+        <translation>&lt;b&gt;OpenToonzは異常終了しました。&lt;/b&gt;</translation>
+>>>>>>> origin/master
     </message>
     <message>
         <source>A crash report has been generated.</source>
         <translation>クラッシュレポートが作成されました。</translation>
     </message>
     <message>
+<<<<<<< HEAD
         <source>To report, click &apos;Open Issue Webpage&apos; to access Flare&apos;s Issues page on GitHub.</source>
         <translation>問題を報告するには、「Webで問題を報告する」をクリックしてFlareのGitHubレポジトリのIssuesページにアクセスしてください。</translation>
+=======
+        <source>To report, click &apos;Open Issue Webpage&apos; to access OpenToonz&apos;s Issues page on GitHub.</source>
+        <translation>問題を報告するには、「Webで問題を報告する」をクリックしてOpenToonzのGitHubレポジトリのIssuesページにアクセスしてください。</translation>
+>>>>>>> origin/master
     </message>
     <message>
         <source>Click on the &apos;New issue&apos; button and fill out the form.</source>
@@ -2205,8 +2215,13 @@ before color designing.</source>
         <translation>アプリケーションを終了</translation>
     </message>
     <message>
+<<<<<<< HEAD
         <source>Flare crashed!</source>
         <translation>Flareがクラッシュしました！</translation>
+=======
+        <source>OpenToonz crashed!</source>
+        <translation>OpenToonzがクラッシュしました！</translation>
+>>>>>>> origin/master
     </message>
     <message>
         <source>Application is in unstable state and must be restarted.</source>
@@ -6610,16 +6625,26 @@ Please use the frame numbers for reference.</source>
         <translation>共通 - タイプ - 多角形</translation>
     </message>
     <message>
+<<<<<<< HEAD
         <source>About Flare</source>
         <translation>Flareについて</translation>
+=======
+        <source>About OpenToonz</source>
+        <translation>OpenToonzについて</translation>
+>>>>>>> origin/master
     </message>
     <message>
         <source>Close</source>
         <translation>閉じる</translation>
     </message>
     <message>
+<<<<<<< HEAD
         <source>&amp;About Flare...</source>
         <translation>Flareについて (&amp;A)...</translation>
+=======
+        <source>&amp;About OpenToonz...</source>
+        <translation>OpenToonzについて (&amp;A)...</translation>
+>>>>>>> origin/master
     </message>
     <message>
         <source>&amp;ComboViewer</source>
@@ -7041,12 +7066,20 @@ Please use the frame numbers for reference.</source>
         <source>
 Are you sure?
 
+<<<<<<< HEAD
 N.B. Make sure you are not running another process of Flare,
+=======
+N.B. Make sure you are not running another process of OpenToonz,
+>>>>>>> origin/master
 or you may delete necessary files for it.</source>
         <translation>
 よろしいですか？
 
+<<<<<<< HEAD
 注意：Flareを別プロセスで実行中でないことを確認してください。
+=======
+注意：OpenToonzを別プロセスで実行中でないことを確認してください。
+>>>>>>> origin/master
 必要なファイルを削除してしまう恐れがあります。</translation>
     </message>
     <message>
@@ -7062,8 +7095,13 @@ or you may delete necessary files for it.</source>
         <translation>https://groups.google.com/forum/#!forum/opentoonz</translation>
     </message>
     <message>
+<<<<<<< HEAD
         <source>To report a bug, click on the button below to open a web browser window for Flare&apos;s Issues page on https://github.com.  Click on the &apos;New issue&apos; button and fill out the form.</source>
         <translation>下のボタンをクリックすると、Flareの開発者向けページ（https://github.com）が開きます。
+=======
+        <source>To report a bug, click on the button below to open a web browser window for OpenToonz&apos;s Issues page on https://github.com.  Click on the &apos;New issue&apos; button and fill out the form.</source>
+        <translation>下のボタンをクリックすると、OpenToonzの開発者向けページ（https://github.com）が開きます。
+>>>>>>> origin/master
 「New issue」ボタンを押してフォームを入力してください。（※英語のページです。GitHubアカウントが必要です）
 ユーザーフォーラムの「不具合報告」から日本語でトピックを投稿していただくことも可能です。（Googleアカウントが必要です）</translation>
     </message>
@@ -7176,8 +7214,13 @@ or you may delete necessary files for it.</source>
         <translation>前のキー</translation>
     </message>
     <message>
+<<<<<<< HEAD
         <source>About Flare...</source>
         <translation type="vanished">Flareについて...</translation>
+=======
+        <source>About OpenToonz...</source>
+        <translation type="vanished">OpenToonzについて...</translation>
+>>>>>>> origin/master
     </message>
     <message>
         <source>Online Manual...</source>
@@ -7576,8 +7619,13 @@ or you may delete necessary files for it.</source>
         <translation>ワークスペースを初期化する</translation>
     </message>
     <message>
+<<<<<<< HEAD
         <source>You must restart Flare, close it now?</source>
         <translation>Flareの再起動が必要です。今すぐ閉じますか？</translation>
+=======
+        <source>You must restart OpenToonz, close it now?</source>
+        <translation>OpenToonzの再起動が必要です。今すぐ閉じますか？</translation>
+>>>>>>> origin/master
     </message>
     <message>
         <source>&amp;Convert TZP Files In Folder...</source>
@@ -9559,8 +9607,13 @@ Set the output folder path to the subfolder as well.</source>
         <translation type="vanished">レベルを別名で保存した後、レベルを置き換える</translation>
     </message>
     <message>
+<<<<<<< HEAD
         <source>* Changes will take effect the next time you run Flare</source>
         <translation>*印の項目は、次回Flare起動時に反映されます</translation>
+=======
+        <source>* Changes will take effect the next time you run OpenToonz</source>
+        <translation>*印の項目は、次回OpenToonz起動時に反映されます</translation>
+>>>>>>> origin/master
     </message>
     <message>
         <source>Move Current Frame by Clicking on Xsheet / Numerical Columns Cell Area</source>
@@ -9755,12 +9808,21 @@ Set the output folder path to the subfolder as well.</source>
         <translation>シーン以外のファイルを自動保存</translation>
     </message>
     <message>
+<<<<<<< HEAD
         <source>My Documents/Flare*</source>
         <translation>ドキュメント/Flare*</translation>
     </message>
     <message>
         <source>Desktop/Flare*</source>
         <translation>デスクトップ/Flare*</translation>
+=======
+        <source>My Documents/OpenToonz*</source>
+        <translation>ドキュメント/OpenToonz*</translation>
+    </message>
+    <message>
+        <source>Desktop/OpenToonz*</source>
+        <translation>デスクトップ/OpenToonz*</translation>
+>>>>>>> origin/master
     </message>
     <message>
         <source>Stuff Folder*</source>
@@ -9807,12 +9869,21 @@ Set the output folder path to the subfolder as well.</source>
         <translation>ワークスペースレイアウト *：</translation>
     </message>
     <message>
+<<<<<<< HEAD
         <source>Flare can use FFmpeg for additional file formats.</source>
         <translation type="vanished">Flareは、FFmpegを用いて入出力可能なファイル形式を追加することができます。</translation>
     </message>
     <message>
         <source>FFmpeg is not bundled with Flare</source>
         <translation type="vanished">FFmpegはFlareパッケージには含まれていません</translation>
+=======
+        <source>OpenToonz can use FFmpeg for additional file formats.</source>
+        <translation type="vanished">OpenToonzは、FFmpegを用いて入出力可能なファイル形式を追加することができます。</translation>
+    </message>
+    <message>
+        <source>FFmpeg is not bundled with OpenToonz</source>
+        <translation type="vanished">FFmpegはOpenToonzパッケージには含まれていません</translation>
+>>>>>>> origin/master
     </message>
     <message>
         <source>NOTE: This is an experimental feature.</source>
@@ -9843,8 +9914,13 @@ Set the output folder path to the subfolder as well.</source>
         <translation>FFmpegのタイムアウト時間：</translation>
     </message>
     <message>
+<<<<<<< HEAD
         <source>Show Startup Window when Flare Starts</source>
         <translation>Flareの起動時にスタートアップウィンドウを表示する</translation>
+=======
+        <source>Show Startup Window when OpenToonz Starts</source>
+        <translation>OpenToonzの起動時にスタートアップウィンドウを表示する</translation>
+>>>>>>> origin/master
     </message>
     <message>
         <source>Numpad keys are assigned to the following commands.
@@ -9949,8 +10025,13 @@ Is it OK to release these shortcuts?</source>
         <translation>新しく作るレベルのサイズ・DPIの既定値を現在のカメラに合わせる</translation>
     </message>
     <message>
+<<<<<<< HEAD
         <source>Enable Flare Commands&apos; Shortcut Keys While Renaming Cell</source>
         <translation>タイムシートのコマ入力時にFlareコマンドのショートカットキーを有効にする</translation>
+=======
+        <source>Enable OpenToonz Commands&apos; Shortcut Keys While Renaming Cell</source>
+        <translation>タイムシートのコマ入力時にOpenToonzコマンドのショートカットキーを有効にする</translation>
+>>>>>>> origin/master
     </message>
     <message>
         <source>Life is too short for Comic Sans</source>
@@ -10071,6 +10152,7 @@ if both are possible on coding file path.</source>
         <translation type="vanished">文字の太さ *：</translation>
     </message>
     <message>
+<<<<<<< HEAD
         <source>Flare can use FFmpeg for additional file formats.
 </source>
         <translation>Flareは、FFmpegを用いて入出力可能なファイル形式を追加することができます。
@@ -10080,6 +10162,17 @@ if both are possible on coding file path.</source>
         <source>FFmpeg is not bundled with Flare.
 </source>
         <translation>FFmpegはFlareパッケージには含まれていません。
+=======
+        <source>OpenToonz can use FFmpeg for additional file formats.
+</source>
+        <translation>OpenToonzは、FFmpegを用いて入出力可能なファイル形式を追加することができます。
+</translation>
+    </message>
+    <message>
+        <source>FFmpeg is not bundled with OpenToonz.
+</source>
+        <translation>FFmpegはOpenToonzパッケージには含まれていません。
+>>>>>>> origin/master
 </translation>
     </message>
     <message>
@@ -10099,8 +10192,13 @@ if both are possible on coding file path.</source>
         <translation>ブラシ形状を表示する</translation>
     </message>
     <message>
+<<<<<<< HEAD
         <source>Check for the Latest Version of Flare on Launch</source>
         <translation>起動時にFlareのアップデートを確認する</translation>
+=======
+        <source>Check for the Latest Version of OpenToonz on Launch</source>
+        <translation>起動時にOpenToonzのアップデートを確認する</translation>
+>>>>>>> origin/master
     </message>
     <message>
         <source>Choosing this option will set initial location of all file browsers to $scenefolder.
@@ -10405,6 +10503,7 @@ but a random crash might occur, use at your own risk.</source>
 不規則な異常終了が発生するかもしれません。自己責任でご使用ください。</translation>
     </message>
     <message>
+<<<<<<< HEAD
         <source>Flare can use Rhubarb for auto lip-syncing.
 </source>
         <translation>Flareは、Rhubarbを用いて自動リップシンクを行うことができます。</translation>
@@ -10413,6 +10512,16 @@ but a random crash might occur, use at your own risk.</source>
         <source>Rhubarb is not bundled with Flare.
 </source>
         <translation>RhubarbはFlareパッケージには含まれていません。
+=======
+        <source>OpenToonz can use Rhubarb for auto lip-syncing.
+</source>
+        <translation>OpenToonzは、Rhubarbを用いて自動リップシンクを行うことができます。</translation>
+    </message>
+    <message>
+        <source>Rhubarb is not bundled with OpenToonz.
+</source>
+        <translation>RhubarbはOpenToonzパッケージには含まれていません。
+>>>>>>> origin/master
 </translation>
     </message>
     <message>
@@ -12286,7 +12395,11 @@ Are you sure to </source>
     </message>
     <message>
         <source>Cannot open menubar settings template file. Re-installing Toonz will solve this problem.</source>
+<<<<<<< HEAD
         <translation>メニューバー設定テンプレートファイルが見つかりません： Flareを再インストールすると問題が解決します。</translation>
+=======
+        <translation>メニューバー設定テンプレートファイルが見つかりません： OpenToonzを再インストールすると問題が解決します。</translation>
+>>>>>>> origin/master
     </message>
     <message>
         <source>Visit Web Site</source>
@@ -12353,7 +12466,11 @@ What would you like to do? </source>
         <translation> </translation>
     </message>
     <message>
+<<<<<<< HEAD
         <source>This scene is incompatible with pixels only mode of the current Flare version.
+=======
+        <source>This scene is incompatible with pixels only mode of the current OpenToonz version.
+>>>>>>> origin/master
 What would you like to do?</source>
         <translation>現在のバージョンでは、このシーンはピクセル単位モードに対応していません。
 どうしますか？</translation>
@@ -12383,7 +12500,11 @@ Are you sure?</source>
     </message>
     <message>
         <source>FFmpeg not found, please set the location in the Preferences and restart.</source>
+<<<<<<< HEAD
         <translation>FFmpegが見つかりません。環境設定でパスを指定し、Flareを再起動してください。</translation>
+=======
+        <translation>FFmpegが見つかりません。環境設定でパスを指定し、OpenToonzを再起動してください。</translation>
+>>>>>>> origin/master
     </message>
     <message>
         <source>Skipping frame.</source>
@@ -13359,8 +13480,13 @@ What do you want to do?</source>
         <translation>新規ラスターレベル</translation>
     </message>
     <message>
+<<<<<<< HEAD
         <source>The rooms will be reset the next time you run Flare.</source>
         <translation>Flareを次回起動するとき、ワークスペースが初期化されます。</translation>
+=======
+        <source>The rooms will be reset the next time you run OpenToonz.</source>
+        <translation>OpenToonzを次回起動するとき、ワークスペースが初期化されます。</translation>
+>>>>>>> origin/master
     </message>
     <message>
         <source>Remove Frames  : Level %1 : Frame </source>
@@ -13488,7 +13614,11 @@ Please delete scenes.xml if this scene dones&apos;t belong to any project.</sour
         <translation type="unfinished"></translation>
     </message>
     <message>
+<<<<<<< HEAD
         <source>Flare uses an underscore (_) or dot (.) as a frame separator.
+=======
+        <source>OpenToonz uses an underscore (_) or dot (.) as a frame separator.
+>>>>>>> origin/master
 Would you like to add a separator to the image sequence?
 
 %1 (and similar files)</source>
@@ -15486,7 +15616,11 @@ Please commit or revert changes first.</source>
         <translation>は、既に存在します。置き換えてもよろしいですか？</translation>
     </message>
     <message>
+<<<<<<< HEAD
         <source>Flare - Setting Shortcuts</source>
+=======
+        <source>OpenToonz - Setting Shortcuts</source>
+>>>>>>> origin/master
         <translation>ショートカットの設定</translation>
     </message>
     <message>
@@ -15863,8 +15997,13 @@ Assign shortcut sequence anyway?</source>
 <context>
     <name>StartupPopup</name>
     <message>
+<<<<<<< HEAD
         <source>Flare Startup</source>
         <translation>Flare スタートアップ</translation>
+=======
+        <source>OpenToonz Startup</source>
+        <translation>OpenToonz スタートアップ</translation>
+>>>>>>> origin/master
     </message>
     <message>
         <source>Choose Project</source>

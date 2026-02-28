@@ -690,7 +690,11 @@ void Preferences::definePreferenceItems() {
 
   // Others (not appearing in the popup)
   // Shortcut popup settings
+<<<<<<< HEAD
   define(shortcutPreset, "shortcutPreset", QMetaType::QString, "defflare");
+=======
+  define(shortcutPreset, "shortcutPreset", QMetaType::QString, "defopentoonz");
+>>>>>>> origin/master
   // Viewer context menu
   define(guidedDrawingType, "guidedDrawingType", QMetaType::Int, 0);  // Off
   define(guidedAutoInbetween, "guidedAutoInbetween", QMetaType::Bool,

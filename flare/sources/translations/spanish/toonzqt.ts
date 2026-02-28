@@ -538,6 +538,26 @@ Es posible que el archivo de dicho ajuste se encuentre corrupto.</translation>
     <name>DVGui::ProgressDialog</name>
     <message>
         <source>Toonz</source>
+<<<<<<< HEAD
+        <translation type="vanished">Flare</translation>
+    </message>
+    <message>
+        <source>Flare</source>
+        <translation>Flare</translation>
+=======
+        <translation type="vanished">OpenToonz</translation>
+    </message>
+    <message>
+        <source>OpenToonz</source>
+        <translation>OpenToonz</translation>
+>>>>>>> origin/master
+    </message>
+</context>
+<context>
+    <name>DVGui::RadioButtonDialog</name>
+    <message>
+        <source>Toonz</source>
+<<<<<<< HEAD
         <translation type="vanished">Flare</translation>
     </message>
     <message>
@@ -546,14 +566,17 @@ Es posible que el archivo de dicho ajuste se encuentre corrupto.</translation>
     </message>
 </context>
 <context>
-    <name>DVGui::RadioButtonDialog</name>
+    <name>DVGui::StyleIndexLineEdit</name>
     <message>
-        <source>Toonz</source>
-        <translation type="vanished">Flare</translation>
+        <source>current</source>
+        <translation>actual</translation>
+=======
+        <translation type="vanished">OpenToonz</translation>
     </message>
     <message>
-        <source>Flare</source>
-        <translation>Flare</translation>
+        <source>OpenToonz</source>
+        <translation>OpenToonz</translation>
+>>>>>>> origin/master
     </message>
 </context>
 <context>
@@ -2452,8 +2475,13 @@ Are you sure?</source>
         <translation>Conjunto</translation>
     </message>
     <message>
+<<<<<<< HEAD
         <source>Flare 1.1</source>
         <translation type="vanished">Flare 1.1</translation>
+=======
+        <source>OpenToonz 1.1</source>
+        <translation type="vanished">OpenToonz 1.1</translation>
+>>>>>>> origin/master
     </message>
     <message>
         <source>Remove Reference  in Palette : %1</source>
@@ -2519,8 +2547,13 @@ La segunda línea debería tener la forma &quot;Mesh [profundidad de bits de ent
         <translation>Falla al cargar el archivo 3DLUT.</translation>
     </message>
     <message>
+<<<<<<< HEAD
         <source>Flare 1.2</source>
         <translation type="vanished">Flare 1.2</translation>
+=======
+        <source>OpenToonz 1.2</source>
+        <translation type="vanished">OpenToonz 1.2</translation>
+>>>>>>> origin/master
     </message>
     <message>
         <source>Custom Texture</source>
@@ -2536,8 +2569,13 @@ La segunda línea debería tener la forma &quot;Mesh [profundidad de bits de ent
         <translation>Historial del archivo</translation>
     </message>
     <message>
+<<<<<<< HEAD
         <source>Flare 1.3</source>
         <translation type="obsolete">Flare 1.3</translation>
+=======
+        <source>OpenToonz 1.3</source>
+        <translation type="obsolete">OpenToonz 1.3</translation>
+>>>>>>> origin/master
     </message>
     <message>
         <source>Plain color</source>
@@ -2608,6 +2646,40 @@ La segunda línea debería tener la forma &quot;Mesh [profundidad de bits de ent
     <message>
         <source>Toonz</source>
         <translation type="vanished">Flare</translation>
+    </message>
+</context>
+<context>
+    <name>RgbLinkButtons</name>
+    <message>
+        <source>Copy RGB : %1 &gt; %2</source>
+        <translation>Copiar RVA : %1 &gt; %2</translation>
+    </message>
+    <message>
+        <source>Swap %1 and %2</source>
+        <translation>Intercambiar %1 y %2</translation>
+    </message>
+</context>
+<context>
+    <name>SchematicName</name>
+    <message>
+        <source>Cu&amp;t</source>
+        <translation>Cor&amp;tar</translation>
+    </message>
+    <message>
+        <source>&amp;Copy</source>
+        <translation>&amp;Copiar</translation>
+    </message>
+    <message>
+        <source>&amp;Paste</source>
+        <translation>&amp;Pegar</translation>
+    </message>
+    <message>
+        <source>&amp;Delete</source>
+        <translation>&amp;Borrar</translation>
+    </message>
+    <message>
+        <source>Select &amp;All</source>
+        <translation>Seleccionar &amp;Todo</translation>
     </message>
 </context>
 <context>

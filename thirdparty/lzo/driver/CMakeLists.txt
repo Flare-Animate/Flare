@@ -1,6 +1,7 @@
 project(lzotools)
 
 if(MSVC)
+<<<<<<< HEAD
     # use pre-built 2.03 when available; prefer vcpkg-installed lzo; otherwise
     # fall back to building minilzo from source
     get_filename_component(LZO_PATH ${SDKROOT}/lzo/2.03 ABSOLUTE)
@@ -30,6 +31,14 @@ if(MSVC)
             set(_use_prebuilt_lzo FALSE)
         endif()
     endif()
+=======
+	# use pre-built 2.03
+	get_filename_component(LZO_PATH ${SDKROOT}/lzo/2.03 ABSOLUTE)
+	link_directories(${LZO_PATH}/LZO_lib/)
+	if (CMAKE_SIZEOF_VOID_P EQUAL 8) 
+		set(PREFIX _64)
+	endif (CMAKE_SIZEOF_VOID_P EQUAL 8)
+>>>>>>> origin/master
 else()
     set(LZO_PATH ${LZO_INCLUDE_DIR})
 endif()
@@ -38,6 +47,7 @@ include_directories(${LZO_PATH} ${LZO_PATH}/include)
 add_definitions(-DLZO_USE_ASM)
 add_executable(lzocompress  lzocompress.c)
 add_executable(lzodecompress lzodecompress.c)
+<<<<<<< HEAD
 
 # If prebuilt LZO import libs are not present (LFS placeholders), build a small
 # embedded minilzo static library and link against it so the driver can be
@@ -57,5 +67,13 @@ elseif(MSVC AND _use_prebuilt_lzo)
 else()
     target_link_libraries(lzocompress ${LZO_LIBRARY})
     target_link_libraries(lzodecompress ${LZO_LIBRARY})
+=======
+if(MSVC)
+	target_link_libraries(lzocompress lzo2${PREFIX} ${LZO_LIBRARY})
+	target_link_libraries(lzodecompress lzo2${PREFIX} ${LZO_LIBRARY})
+else()
+	target_link_libraries(lzocompress ${LZO_LIBRARY})
+	target_link_libraries(lzodecompress ${LZO_LIBRARY})
+>>>>>>> origin/master
 endif()
 set(LZODRIVER_FOUND true PARENT_SCOPE)

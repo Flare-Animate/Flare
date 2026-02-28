@@ -544,6 +544,26 @@ Possibly the preset file has been corrupted</source>
     <name>DVGui::ProgressDialog</name>
     <message>
         <source>Toonz</source>
+<<<<<<< HEAD
+        <translation type="vanished">Flare</translation>
+    </message>
+    <message>
+        <source>Flare</source>
+        <translation>Flare</translation>
+=======
+        <translation type="vanished">OpenToonz</translation>
+    </message>
+    <message>
+        <source>OpenToonz</source>
+        <translation>OpenToonz</translation>
+>>>>>>> origin/master
+    </message>
+</context>
+<context>
+    <name>DVGui::RadioButtonDialog</name>
+    <message>
+        <source>Toonz</source>
+<<<<<<< HEAD
         <translation type="vanished">Flare</translation>
     </message>
     <message>
@@ -552,14 +572,17 @@ Possibly the preset file has been corrupted</source>
     </message>
 </context>
 <context>
-    <name>DVGui::RadioButtonDialog</name>
+    <name>DVGui::StyleIndexLineEdit</name>
     <message>
-        <source>Toonz</source>
-        <translation type="vanished">Flare</translation>
+        <source>current</source>
+        <translation>当前</translation>
+=======
+        <translation type="vanished">OpenToonz</translation>
     </message>
     <message>
-        <source>Flare</source>
-        <translation>Flare</translation>
+        <source>OpenToonz</source>
+        <translation>OpenToonz</translation>
+>>>>>>> origin/master
     </message>
 </context>
 <context>
@@ -2024,6 +2047,10 @@ and tone may be slightly discretized.</source>
         <source>Flare</source>
         <translation type="vanished">Flare</translation>
     </message>
+    <message>
+        <source>OpenToonz</source>
+        <translation type="vanished">OpenToonz</translation>
+    </message>
 </context>
 <context>
     <name>QObject</name>
@@ -2490,8 +2517,13 @@ Are you sure?</source>
         <translation>设置</translation>
     </message>
     <message>
+<<<<<<< HEAD
         <source>Flare 1.1</source>
         <translation type="vanished">Flare 1.1</translation>
+=======
+        <source>OpenToonz 1.1</source>
+        <translation type="vanished">OpenToonz 1.1</translation>
+>>>>>>> origin/master
     </message>
     <message>
         <source>Remove Reference  in Palette : %1</source>
@@ -2557,8 +2589,13 @@ The second line should be &quot;Mesh [Input bit depth] [Output bit depth]&quot;<
         <translation>加载 3DLUT 文件失败。</translation>
     </message>
     <message>
+<<<<<<< HEAD
         <source>Flare 1.2</source>
         <translation type="vanished">Flare 1.2</translation>
+=======
+        <source>OpenToonz 1.2</source>
+        <translation type="vanished">OpenToonz 1.2</translation>
+>>>>>>> origin/master
     </message>
     <message>
         <source>Custom Texture</source>
@@ -2574,8 +2611,13 @@ The second line should be &quot;Mesh [Input bit depth] [Output bit depth]&quot;<
         <translation>文件历史</translation>
     </message>
     <message>
+<<<<<<< HEAD
         <source>Flare 1.3</source>
         <translation type="vanished">Flare 1.3</translation>
+=======
+        <source>OpenToonz 1.3</source>
+        <translation type="vanished">OpenToonz 1.3</translation>
+>>>>>>> origin/master
     </message>
     <message>
         <source>Plain color</source>
@@ -2648,8 +2690,13 @@ The second line should be &quot;Mesh [Input bit depth] [Output bit depth]&quot;<
         <translation type="vanished">Toonz</translation>
     </message>
     <message>
+<<<<<<< HEAD
         <source>Flare</source>
         <translation type="vanished">Flare</translation>
+=======
+        <source>OpenToonz</source>
+        <translation type="vanished">OpenToonz</translation>
+>>>>>>> origin/master
     </message>
 </context>
 <context>

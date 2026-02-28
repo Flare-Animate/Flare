@@ -4,7 +4,11 @@ For files in the "stuff/library/mypaint brushes" directory: Please see the licen
 
 - - - - - - - - - - - - - - - -
 
+<<<<<<< HEAD
 Flare
+=======
+OpenToonz
+>>>>>>> origin/master
 
 All contributions by DWANGO:
 Copyright (c) 2016 - 2026, DWANGO Co., Ltd.

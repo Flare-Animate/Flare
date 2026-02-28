@@ -9,13 +9,21 @@
   <summary>2D animation</summary>
   <description>
     <p>
+<<<<<<< HEAD
       Flare is a fork of Flare redesigned to provide an Animate-like
+=======
+      Flare is a fork of OpenToonz redesigned to provide an Animate-like
+>>>>>>> origin/master
       user interface and enhanced import support for SWF/FLA files.
     </p>
     <p>
       It is based on the software "Toonz", originally developed by Digital
       Video S.p.A. in Italy and customized by Studio Ghibli; this fork builds
+<<<<<<< HEAD
       on the Flare project and adds new features.
+=======
+      on the OpenToonz project and adds new features.
+>>>>>>> origin/master
     </p>
   </description>
   <url type="homepage">https://github.com/Flare-Animate/Flare</url>

@@ -752,7 +752,11 @@ void ShortcutPopup::buildPresets() {
   m_presetChoiceCB->clear();
 
   m_presetChoiceCB->addItem("", QString(""));
+<<<<<<< HEAD
   m_presetChoiceCB->addItem("Flare", QString("defflare"));
+=======
+  m_presetChoiceCB->addItem("Flare", QString("defopentoonz"));
+>>>>>>> origin/master
   // m_presetChoiceCB->addItem("RETAS PaintMan", QString("otretas"));
   m_presetChoiceCB->addItem("Toon Boom Harmony", QString("otharmony"));
   m_presetChoiceCB->addItem("Adobe Animate", QString("otanimate"));

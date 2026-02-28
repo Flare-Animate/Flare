@@ -15,7 +15,10 @@
 #include "../include/historytypes.h"
 
 #include <QWidget>
+<<<<<<< HEAD
 #include <QMainWindow>
+=======
+>>>>>>> origin/master
 #include <QListWidget>
 #include <QLineEdit>
 #include <QPoint>

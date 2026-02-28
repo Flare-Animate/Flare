@@ -3,12 +3,24 @@ name: Linux Build
 on:
   push:
     paths:
+<<<<<<< HEAD
+=======
+      - '**/*'                   # Include all files in the repository
+      - '!appveyor.yml'          # Ignore changes in AppVeyor
+      - '!README.md'             # Exclude README
+      - '!doc/**'                # Exclude documentation
+      - '!**/.github/**'         # Exclude everything in .github folder
+      - '.github/workflows/workflow_linux.yml'  # Include Linux workflow file
+  pull_request:
+    paths:
+>>>>>>> origin/master
       - '**/*'
       - '!appveyor.yml'
       - '!README.md'
       - '!doc/**'
       - '!**/.github/**'
       - '.github/workflows/workflow_linux.yml'
+<<<<<<< HEAD
   pull_request:
     paths:
       - '**/*'
@@ -22,15 +34,21 @@ permissions:
   contents: read
   issues: write
   pull-requests: write
+=======
+>>>>>>> origin/master
 
 jobs:
   Ubuntu:
     runs-on: ubuntu-24.04
+<<<<<<< HEAD
     env:
       GIT_LFS_SKIP_SMUDGE: '1'
     timeout-minutes: 120
     strategy:
       fail-fast: false
+=======
+    strategy:
+>>>>>>> origin/master
       matrix:
         compiler: [gcc, clang]
         include:
@@ -40,6 +58,7 @@ jobs:
           - compiler: clang
             cc: clang
             cxx: clang++
+<<<<<<< HEAD
 
     steps:
     - name: Checkout repository
@@ -47,10 +66,15 @@ jobs:
       with:
         lfs: false
         fetch-depth: 1
+=======
+    steps:
+    - uses: actions/checkout@v6
+>>>>>>> origin/master
 
     - name: Install libraries
       run: |
         sudo apt-get update
+<<<<<<< HEAD
         sudo apt-get install -y --no-install-recommends \
           build-essential cmake pkg-config ninja-build ccache \
           libboost-all-dev qtbase5-dev qt5-qmake qtscript5-dev \
@@ -66,10 +90,25 @@ jobs:
       with:
         key: ${{ runner.os }}-${{ matrix.compiler }}
         max-size: "2G"
+=======
+        sudo apt-get install -y build-essential cmake pkg-config ninja-build ccache libboost-all-dev qtbase5-dev qt5-qmake qtscript5-dev qttools5-dev qttools5-dev-tools qtmultimedia5-dev qtwayland5 libqt5svg5-dev libqt5opengl5-dev libqt5multimedia5-plugins libqt5serialport5-dev libsuperlu-dev liblz4-dev libusb-1.0-0-dev liblzo2-dev libpng-dev libjpeg-dev libglew-dev freeglut3-dev libfreetype6-dev libjson-c-dev libmypaint-dev libopencv-dev libturbojpeg-dev libomp-dev libfuse2
+
+    - name: Set up cache
+      run: mkdir -p /home/runner/.ccache
+
+    - uses: actions/cache@v5
+      with:
+        path: /home/runner/.ccache
+        key: ${{ runner.os }}-${{ matrix.compiler }}-${{ github.sha }}
+        restore-keys: | 
+          ${{ runner.os }}-${{ matrix.compiler }}-
+          ${{ runner.os }}-
+>>>>>>> origin/master
 
     - name: Build libtiff
       run: |
         cd thirdparty/tiff-4.0.3
+<<<<<<< HEAD
         chmod +x configure
         ./configure --disable-jbig --disable-shared --with-pic
         make -j2
@@ -184,3 +223,64 @@ jobs:
           const build = readTrunc('flare/build/build.log');
           const body = `**Automated build logs (truncated)**\n\n--- CMake configure log ---\n${cmake}\n\n--- Build log ---\n${build}`;
           await github.rest.issues.createComment({ owner, repo, issue_number: pr, body });
+=======
+        CFLAGS='-fPIC' CXXFLAGS='-fPIC' ./configure --disable-jbig
+        make -j $(nproc)
+
+    - name: Build
+      run: |
+        export CCACHE_DIR=/home/runner/.ccache
+        export CC="ccache ${{ matrix.cc }}"
+        export CXX="ccache ${{ matrix.cxx }}"
+        cd flare
+        mkdir build
+        cd build
+        cmake ../sources -G Ninja -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER=${{ matrix.cxx }} -DCMAKE_C_COMPILER=${{ matrix.cc }} -DWITH_TRANSLATION=OFF
+        ninja
+
+    - name: Create Artifact
+      run: |
+        cd flare/build
+        sudo ninja install
+
+        mkdir -p appdir/usr
+        cp -r /opt/opentoonz/* appdir/usr
+        cp appdir/usr/share/applications/*.desktop appdir
+        cp appdir/usr/share/icons/hicolor/*/apps/*.png appdir
+
+        mkdir artifact
+        mv appdir/usr/share/opentoonz/stuff artifact/portablestuff
+        rmdir appdir/usr/share/opentoonz
+
+        wget -q -c 'https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage'
+        wget -q -c 'https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-x86_64.AppImage'
+        wget -q -c 'https://github.com/linuxdeploy/linuxdeploy-plugin-appimage/releases/download/continuous/linuxdeploy-plugin-appimage-x86_64.AppImage'
+        chmod 755 linuxdeploy-x86_64.AppImage
+        chmod 755 linuxdeploy-plugin-qt-x86_64.AppImage
+        chmod 755 linuxdeploy-plugin-appimage-x86_64.AppImage
+
+        cat << EOF > apprun.sh
+        #!/usr/bin/env bash
+        exec "\${APPDIR}/usr/bin/OpenToonz"
+        EOF
+        chmod 755 apprun.sh
+
+        export LD_LIBRARY_PATH='appdir/usr/lib/opentoonz'
+        ./linuxdeploy-x86_64.AppImage --appdir=appdir --plugin=qt --output=appimage --custom-apprun=apprun.sh \
+        --executable=appdir/usr/bin/lzocompress \
+        --executable=appdir/usr/bin/lzodecompress \
+        --executable=appdir/usr/bin/tcleanup \
+        --executable=appdir/usr/bin/tcomposer \
+        --executable=appdir/usr/bin/tconverter \
+        --executable=appdir/usr/bin/tfarmcontroller \
+        --executable=appdir/usr/bin/tfarmserver
+        mv OpenToonz*.AppImage artifact/OpenToonz.AppImage
+        ARTIFACT_NAME=Opentoonz-${{ runner.os }}-${{ matrix.compiler }}-${{ github.sha }}
+        mv artifact ${ARTIFACT_NAME}
+        tar zcf ${ARTIFACT_NAME}.tar.gz ${ARTIFACT_NAME}
+
+    - uses: actions/upload-artifact@v6
+      with:
+        name: Opentoonz-${{ runner.os }}-${{ matrix.compiler }}-${{ github.sha }}
+        path: flare/build/Opentoonz-${{ runner.os }}-${{ matrix.compiler }}-${{ github.sha }}.tar.gz
+>>>>>>> origin/master

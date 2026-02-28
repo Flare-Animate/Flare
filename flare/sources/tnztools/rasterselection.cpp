@@ -1288,7 +1288,11 @@ void RasterSelection::pasteSelection() {
 
   if (clipImage.height() > 0 && (levelType == OVL_XSHLEVEL ||
                                  m_currentImage->getType() == OVL_XSHLEVEL)) {
+<<<<<<< HEAD
     // An image was pasted from outside Flare
+=======
+    // An image was pasted from outside OpenToonz
+>>>>>>> origin/master
 
     // Set up variables
     std::vector<TRectD> rects;

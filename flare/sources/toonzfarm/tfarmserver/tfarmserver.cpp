@@ -71,7 +71,11 @@ TFilePath getGlobalRoot() {
       "./" + tver.getAppName() + ".app/Contents/Resources/configfarmroot.txt";
 #else
   // set path to something suitable for most linux (Unix?) systems
+<<<<<<< HEAD
   std::string unixpath = "/etc/" + tver.getAppName() + "/flare.conf";
+=======
+  std::string unixpath = "/etc/" + tver.getAppName() + "/opentoonz.conf";
+>>>>>>> origin/master
 #endif
   TFilePath name(unixpath);
   Tifstream is(name);
@@ -117,9 +121,15 @@ TFilePath getLocalRoot() {
   // set path to something suitable for most linux (Unix?) systems
 #ifdef FREEBSD
   std::string unixpath =
+<<<<<<< HEAD
       "/usr/local/etc/" + tver.getAppName() + "/flare.conf";
 #else
   std::string unixpath = "/etc/" + tver.getAppName() + "/flare.conf";
+=======
+      "/usr/local/etc/" + tver.getAppName() + "/opentoonz.conf";
+#else
+  std::string unixpath = "/etc/" + tver.getAppName() + "/opentoonz.conf";
+>>>>>>> origin/master
 #endif
 #endif
   TFilePath name(unixpath);

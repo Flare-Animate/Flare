@@ -109,6 +109,7 @@ option(WITH_CANON "Build with Canon DSLR support - Requires Canon SDK" OFF)
 option(WITH_TRANSLATION "Generate translation projects as well" ON)
 option(WITH_WINTAB "(Windows only) Build with customized Qt with WinTab support. https://github.com/shun-iwasawa/qt5/releases/tag/v5.15.2_wintab" OFF)
 
+<<<<<<< HEAD
 # optionally enable MyPaint brush support; if the library or headers are unavailable we disable it
 option(ENABLE_MYPaint "Enable MyPaint brush support" OFF)
 # NOTE: default OFF because CI environments often lack a full libmypaint tree and
@@ -148,6 +149,8 @@ if(NOT ENABLE_MYPaint)
     set(MYPAINT_LIB_INCLUDE_DIRS "" CACHE STRING "" FORCE)
 endif()
 
+=======
+>>>>>>> origin/master
 # avoid using again
 option_defaults_clear()
 
@@ -192,6 +195,7 @@ endif()
 if(BUILD_ENV_MSVC)
     # configure the third party libs (only once) to avoid manual copies
     message(STATUS "configure the third party libs")
+<<<<<<< HEAD
     if(EXISTS "${SDKROOT}/libpng-1.6.21/scripts/pnglibconf.h.prebuilt")
         file(COPY "${SDKROOT}/libpng-1.6.21/scripts/pnglibconf.h.prebuilt" DESTINATION "${SDKROOT}/libpng-1.6.21")
         file(RENAME "${SDKROOT}/libpng-1.6.21/pnglibconf.h.prebuilt" "${SDKROOT}/libpng-1.6.21/pnglibconf.h")
@@ -200,6 +204,16 @@ if(BUILD_ENV_MSVC)
         file(COPY_FILE "${SDKROOT}/tiff-4.0.3/libtiff/tif_config.vc.h" "${SDKROOT}/tiff-4.0.3/libtiff/tif_config.h")
     endif()
     if(EXISTS "${SDKROOT}/tiff-4.0.3/libtiff/tiffconf.vc.h")
+=======
+    if(NOT EXISTS"${SDKROOT}/libpng-1.6.21")
+        file(COPY "${SDKROOT}/libpng-1.6.21/scripts/pnglibconf.h.prebuilt" DESTINATION "${SDKROOT}/libpng-1.6.21")
+        file(RENAME "${SDKROOT}/libpng-1.6.21/pnglibconf.h.prebuilt" "${SDKROOT}/libpng-1.6.21/pnglibconf.h")
+    endif()
+    if(NOT EXISTS "${SDKROOT}/tiff-4.0.3/libtiff/tif_config.h")
+        file(COPY_FILE "${SDKROOT}/tiff-4.0.3/libtiff/tif_config.vc.h" "${SDKROOT}/tiff-4.0.3/libtiff/tif_config.h")
+    endif()
+    if(NOT EXISTS "${SDKROOT}/tiff-4.0.3/libtiff/tiffconf.h")
+>>>>>>> origin/master
         file(COPY_FILE "${SDKROOT}/tiff-4.0.3/libtiff/tiffconf.vc.h" "${SDKROOT}/tiff-4.0.3/libtiff/tiffconf.h")
     endif()
 endif()
@@ -215,6 +229,7 @@ if(BUILD_ENV_MSVC)
     endif()
     set(QT_LIB_PATH ${QT_PATH})
     set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH};${QT_PATH}/lib/cmake/")
+<<<<<<< HEAD
 
     # sanitize any existing vcpkg applocal logs right now before projects are generated
     execute_process(COMMAND ${CMAKE_COMMAND} -E echo "Sanitizing vcpkg.applocal.log files (configure-time)...")
@@ -298,6 +313,8 @@ if(BUILD_ENV_MSVC)
         endmacro()
 
     endif()
+=======
+>>>>>>> origin/master
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /std:c++17 /wd4251")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++17 /wd4251")
     add_definitions(
@@ -410,6 +427,10 @@ find_package(Qt5 REQUIRED
     OpenGL
     Svg
     Xml
+<<<<<<< HEAD
+=======
+    Script
+>>>>>>> origin/master
     Widgets
     PrintSupport
     LinguistTools
@@ -419,6 +440,7 @@ find_package(Qt5 REQUIRED
     UiTools
 )
 
+<<<<<<< HEAD
 # QtScript is optional; detect separately so builds can proceed without it
 find_package(Qt5Script QUIET)
 if(Qt5Script_FOUND)
@@ -430,6 +452,8 @@ else()
     message(WARNING "Qt5Script not found - building without script support")
 endif()
 
+=======
+>>>>>>> origin/master
 if(NOT Qt5Core_FOUND)
   message(FATAL_ERROR "Qt5Core not found check paths")
 endif()
@@ -460,6 +484,7 @@ if(PLATFORM EQUAL 64)
     if(BUILD_ENV_UNIXLIKE)
         find_package(OpenCV REQUIRED)
     else() # Windows and MacOS case
+<<<<<<< HEAD
         # Try usual system/OpenCV first (quietly), then fallback to vcpkg-installed OpenCV when available
         # Disable automatic OpenCV config-file discovery when vcpkg's OpenCV causes
         # configure-time policy/dependency issues. Setting this allows building
@@ -517,6 +542,9 @@ if(PLATFORM EQUAL 64)
                 set(OpenCV_LIBS "")
             endif()
         endif()
+=======
+        find_package(OpenCV 4.1 REQUIRED)
+>>>>>>> origin/master
     endif()
     #include_directories(
     #    ${SDKROOT}/libjpeg-turbo64/include
@@ -528,11 +556,14 @@ if(PLATFORM EQUAL 64)
     endif()
 endif()
 
+<<<<<<< HEAD
 if(OpenCV_FOUND)
     include_directories(SYSTEM ${OpenCV_INCLUDE_DIRS})
     message(STATUS "OpenCV include dirs: ${OpenCV_INCLUDE_DIRS}")
 endif()
 
+=======
+>>>>>>> origin/master
 get_target_property(QtCore_location Qt5::Core LOCATION)
 get_target_property(QtWidget_location Qt5::Widgets LOCATION)
 message(STATUS "Qt Core Location:" ${QtCore_location})
@@ -560,6 +591,7 @@ set(QT_LIB)  # avoid warning
 if(BUILD_ENV_MSVC)
     set(MSVC_LIB_VERSION 2015)
 
+<<<<<<< HEAD
     # Ensure OpenGL target is available for FreeGLUT
     find_package(OpenGL REQUIRED)
 
@@ -604,11 +636,23 @@ if(BUILD_ENV_MSVC)
     else()
         set(TURBOJPEG_LIB ${SDKROOT}/libjpeg-turbo/lib/turbojpeg-static_${MSVC_LIB_VERSION}${PLATFORM2}.lib)
     endif()
+=======
+    set(GLUT_LIB ${SDKROOT}/glut/3.7.6/lib/glut${PLATFORM}.lib)
+    set(GL_LIB opengl32.lib)
+    set(Z_LIB
+        optimized ${SDKROOT}/zlib-1.2.8/lib/zlib-1.2.8_${MSVC_LIB_VERSION}${PLATFORM2}.lib
+        debug ${SDKROOT}/zlib-1.2.8/lib/zlib-1.2.8_${MSVC_LIB_VERSION}${PLATFORM2}d.lib
+    )
+    #set(JPEG_LIB ${SDKROOT}/LibJPEG/jpeg-9/lib/LibJPEG-9_${MSVC_LIB_VERSION}${PLATFORM2}.lib)
+    set(JPEG_LIB ${SDKROOT}/libjpeg-turbo/lib/jpeg-static_${MSVC_LIB_VERSION}${PLATFORM2}.lib)
+    set(TURBOJPEG_LIB ${SDKROOT}/libjpeg-turbo/lib/turbojpeg-static_${MSVC_LIB_VERSION}${PLATFORM2}.lib)
+>>>>>>> origin/master
     set(TIFF_INCLUDE_DIR ${SDKROOT}/tiff-4.0.3/libtiff)
     set(TIFF_LIB
         optimized ${SDKROOT}/tiff-4.0.3/lib/LibTIFF-4.0.3_${MSVC_LIB_VERSION}${PLATFORM2}.lib
         debug  ${SDKROOT}/tiff-4.0.3/lib/LibTIFF-4.0.3_${MSVC_LIB_VERSION}${PLATFORM2}d.lib
     )
+<<<<<<< HEAD
     # Prefer vcpkg-installed libtiff when bundled import library/header are missing
     if(EXISTS "${CMAKE_SOURCE_DIR}/vcpkg")
         if(NOT DEFINED _vcpkg_triplet)
@@ -637,10 +681,13 @@ if(BUILD_ENV_MSVC)
             endif()
         endif()
     endif()
+=======
+>>>>>>> origin/master
     set(PNG_LIB
         optimized ${SDKROOT}/libpng-1.6.21/lib/libpng16_${MSVC_LIB_VERSION}${PLATFORM2}.lib
         debug  ${SDKROOT}/libpng-1.6.21/lib/libpng16_${MSVC_LIB_VERSION}${PLATFORM2}d.lib
     )
+<<<<<<< HEAD
     # Prefer vcpkg-installed libpng when the bundled import lib/header are missing or invalid
     if(EXISTS "${CMAKE_SOURCE_DIR}/vcpkg")
         if(NOT DEFINED _vcpkg_triplet)
@@ -745,6 +792,12 @@ if(BUILD_ENV_MSVC)
             endif()
         endif()
     endif()
+=======
+    set(GLEW_LIB ${SDKROOT}/glew/glew-1.9.0/lib/glew${PLATFORM}.lib)
+    set(LZ4_LIB ${SDKROOT}/Lz4/Lz4_131/lz4_${PLATFORM}.lib)
+    set(SUPERLU_LIB ${SDKROOT}/superlu/SuperLU_${MSVC_LIB_VERSION}_${PLATFORM}.lib)
+    set(OPENBLAS_LIB ${SDKROOT}/openblas/libopenblas_${PLATFORM}.lib)
+>>>>>>> origin/master
     set(USB_LIB)  # unused
 
     if(PLATFORM EQUAL 32)
@@ -753,6 +806,7 @@ if(BUILD_ENV_MSVC)
     set(MYPAINT_LIB_INCLUDE_DIRS ${SDKROOT}/libmypaint/dist/${PLATFORM}/include/libmypaint)
     set(MYPAINT_LIB_LDFLAGS ${SDKROOT}/libmypaint/dist/${PLATFORM}/libmypaint.lib)
 
+<<<<<<< HEAD
     # If bundled import library is missing or is a Git-LFS pointer, prefer vcpkg-installed libmypaint
     if(NOT EXISTS "${MYPAINT_LIB_LDFLAGS}")
         set(_is_lfs_mypaint 1)
@@ -779,6 +833,8 @@ if(BUILD_ENV_MSVC)
         endif()
     endif()
 
+=======
+>>>>>>> origin/master
     if(PLATFORM EQUAL 64)
         if (WITH_CANON)
             set(CANON_LIB ${SDKROOT}/canon/library/EDSDK.lib)
@@ -875,7 +931,11 @@ elseif(BUILD_ENV_UNIXLIKE)
     # the libraries have .pc
     find_package(PkgConfig)
 
+<<<<<<< HEAD
     # This is not required for Flare itself, but libtiff will pick it up if
+=======
+    # This is not required for OpenToonz itself, but libtiff will pick it up if
+>>>>>>> origin/master
     # present and libimage won't be aware causing linker to fail
     pkg_check_modules(LZMA liblzma)
     set(TIFF_LIB ${TIFF_LIBRARY} ${LZMA_LIBRARIES})
@@ -1158,12 +1218,15 @@ add_subdirectory(image)
 add_subdirectory(toonzqt)
 add_subdirectory(tnztools)
 
+<<<<<<< HEAD
 # After all subdirectories have been added, attach the pre-build sanitizer to
 # every target defined so far.  This ensures the log-cleaning script is run
 # immediately before each project starts building, catching any wildcards that
 # were introduced earlier in the same build invocation.
 attach_sanitizer_to_all_targets()
 
+=======
+>>>>>>> origin/master
 add_subdirectory(${SDKROOT}/lzo/driver lzodriver)
 
 add_subdirectory(flare)
