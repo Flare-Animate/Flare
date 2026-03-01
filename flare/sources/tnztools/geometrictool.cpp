@@ -1534,7 +1534,6 @@ void GeometricTool::addRasterMyPaintStroke(const TToonzImageP &ti,
   }
 }
 
-#ifdef HAVE_MYPaint
 //--------------------------------------------------------------------------------------------------
 void GeometricTool::addFullColorMyPaintStroke(const TRasterImageP &ri,
                                               TStroke *stroke,
@@ -1689,9 +1688,12 @@ void GeometricTool::addStroke() {
 
     stroke->setStyle(styleId);
     // mypaint brush case
+#ifdef HAVE_MYPaint
     if (getApplication()->getCurrentLevelStyle()->getTagId() == 4001) {
       addRasterMyPaintStroke(ti, stroke, sl, id);
-    } else {
+    } else
+#endif
+    {
       double hardness = m_param.m_hardness.getValue() * 0.01;
       TRect savebox;
       if (hardness == 1 || m_param.m_pencil.getValue()) {
@@ -1780,9 +1782,12 @@ void GeometricTool::addStroke() {
     int styleId = TTool::getApplication()->getCurrentLevelStyleIndex();
     stroke->setStyle(styleId);
     // mypaint brush case
+#ifdef HAVE_MYPaint
     if (getApplication()->getCurrentLevelStyle()->getTagId() == 4001) {
       addFullColorMyPaintStroke(ri, stroke, sl, id);
-    } else {
+    } else
+#endif
+    {
       double opacity  = m_param.m_opacity.getValue() * 0.01;
       double hardness = m_param.m_hardness.getValue() * 0.01;
       TRect savebox;

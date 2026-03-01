@@ -1536,10 +1536,12 @@ void GeometricToolOptionsBox::filterControls() {
   bool showModifiers = false;
   if (m_tool->getTargetType() & TTool::RasterImage ||
       m_tool->getTargetType() & TTool::ToonzImage) {
+#ifdef HAVE_MYPaint
     TTool::Application *app = TTool::getApplication();
     TMyPaintBrushStyle *mpbs =
         dynamic_cast<TMyPaintBrushStyle *>(app->getCurrentLevelStyle());
     showModifiers = (mpbs) ? true : false;
+#endif
   }
 
   for (QMap<std::string, QLabel *>::iterator it = m_labels.begin();

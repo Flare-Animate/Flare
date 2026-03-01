@@ -3,6 +3,14 @@
 #ifndef MYPAINTTOONZBRUSH_H
 #define MYPAINTTOONZBRUSH_H
 
+// RasterController has no MyPaint dependencies, so keep it always available.
+class RasterController {
+public:
+  virtual ~RasterController() {}
+  virtual bool askRead(const TRect &rect) { return true; }
+  virtual bool askWrite(const TRect &rect) { return true; }
+};
+
 #ifdef HAVE_MYPaint
 
 #include <toonz/mypaint.h>
@@ -11,13 +19,6 @@
 #include "tcurves.h"
 #include <QPainter>
 #include <QImage>
-
-class RasterController {
-public:
-  virtual ~RasterController() {}
-  virtual bool askRead(const TRect &rect) { return true; }
-  virtual bool askWrite(const TRect &rect) { return true; }
-};
 
 //=======================================================
 //

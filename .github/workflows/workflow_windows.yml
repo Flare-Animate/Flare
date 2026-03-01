@@ -3,7 +3,7 @@ name: Windows Build
 
 on:
   push:
-    branches: [ master ]
+    branches: [ master, B4uti4github-patch-1 ]
   pull_request:
     branches: [ master ]
 

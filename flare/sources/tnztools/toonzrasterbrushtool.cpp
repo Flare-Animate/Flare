@@ -1214,6 +1214,7 @@ void ToonzRasterBrushTool::inputSetBusy(bool busy) {
     setWorkAndBackupImages();
 
     if (m_isMyPaintStyleSelected) {
+#ifdef HAVE_MYPaint
       // init myPaint drawing
 
       m_painting.myPaint.isActive = true;
@@ -1232,6 +1233,7 @@ void ToonzRasterBrushTool::inputSetBusy(bool busy) {
           MYPAINT_BRUSH_SETTING_RADIUS_LOGARITHMIC);
       m_painting.myPaint.baseBrush.setBaseValue(
           MYPAINT_BRUSH_SETTING_RADIUS_LOGARITHMIC, baseSize + modifierSize);
+#endif
     } else if (m_hardness.getValue() == 100 || m_pencil.getValue()) {
       // init pencil drawing
 
@@ -1319,6 +1321,7 @@ void ToonzRasterBrushTool::inputPaintTrackPoint(const TTrackPoint &point,
   double pressure    = m_pressure.getValue() ? point.pressure : defPressure;
 
   if (m_painting.myPaint.isActive) {
+#ifdef HAVE_MYPaint
     // mypaint case
 
     // init brush
@@ -1348,6 +1351,7 @@ void ToonzRasterBrushTool::inputPaintTrackPoint(const TTrackPoint &point,
 
     // determine invalidate rect
     invalidateRect += convert(m_painting.myPaint.strokeSegmentRect) - rasCenter;
+#endif
   } else if (m_painting.pencil.isActive) {
     // pencil case
 
@@ -1847,9 +1851,13 @@ void ToonzRasterBrushTool::onColorStyleChanged() {
   m_enabled = false;
 
   TTool::Application *app = getApplication();
+#ifdef HAVE_MYPaint
   TMyPaintBrushStyle *mpbs =
       dynamic_cast<TMyPaintBrushStyle *>(app->getCurrentLevelStyle());
   m_isMyPaintStyleSelected = (mpbs) ? true : false;
+#else
+  m_isMyPaintStyleSelected = false;
+#endif
   getApplication()->getCurrentTool()->notifyToolChanged();
 }
 
@@ -1864,6 +1872,7 @@ double ToonzRasterBrushTool::restartBrushTimer() {
 //------------------------------------------------------------------
 
 void ToonzRasterBrushTool::updateCurrentStyle() {
+#ifdef HAVE_MYPaint
   if (m_isMyPaintStyleSelected) {
     TTool::Application *app = TTool::getApplication();
     TMyPaintBrushStyle *brushStyle =
@@ -1879,6 +1888,7 @@ void ToonzRasterBrushTool::updateCurrentStyle() {
     double radius    = exp(radiusLog);
     m_minCursorThick = m_maxCursorThick = (int)std::round(2.0 * radius);
   }
+#endif
 }
 //==========================================================================================================
 

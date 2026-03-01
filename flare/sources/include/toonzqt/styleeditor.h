@@ -737,6 +737,7 @@ public:
   QString getChipDescription(int index) override;
 };
 
+#ifdef HAVE_MYPaint
 //*****************************************************************************
 //    MyPaintBrushStyleChooserPage  definition
 //*****************************************************************************
@@ -772,6 +773,7 @@ public:
 
   QString getChipDescription(int index) override;
 };
+#endif  // HAVE_MYPaint
 
 //*****************************************************************************
 //    SpecialStyleChooser  definition
@@ -897,11 +899,15 @@ class DVAPI StyleEditor final : public QWidget, public SaveLoadQSettings {
   StyleChooserPage *m_specialStylePage;
   StyleChooserPage *m_customStylePage;
   StyleChooserPage *m_vectorBrushesStylePage;
+#ifdef HAVE_MYPaint
   StyleChooserPage *m_mypaintBrushesStylePage;
+#endif
   SettingsPage *m_settingsPage;
   QScrollArea *m_textureArea;
   QScrollArea *m_vectorsArea;
+#ifdef HAVE_MYPaint
   QScrollArea *m_mypaintArea;
+#endif
   QAction *m_wheelAction;
   QAction *m_hsvAction;
   QAction *m_alphaAction;
@@ -913,13 +919,15 @@ class DVAPI StyleEditor final : public QWidget, public SaveLoadQSettings {
 
   QFrame *m_textureSearchFrame;
   QFrame *m_vectorsSearchFrame;
+#ifdef HAVE_MYPaint
   QFrame *m_mypaintSearchFrame;
+  QLineEdit *m_mypaintSearchText;
+  QPushButton *m_mypaintSearchClear;
+#endif
   QLineEdit *m_textureSearchText;
   QLineEdit *m_vectorsSearchText;
-  QLineEdit *m_mypaintSearchText;
   QPushButton *m_textureSearchClear;
   QPushButton *m_vectorsSearchClear;
-  QPushButton *m_mypaintSearchClear;
 
   TColorStyleP
       m_oldStyle;  //!< A copy of current style \a before the last change.
@@ -1042,14 +1050,18 @@ protected slots:
   void onVectorsSearch(const QString &);
   void onVectorsClearSearch();
 
+#ifdef HAVE_MYPaint
   void onMyPaintSearch(const QString &);
   void onMyPaintClearSearch();
+#endif
 
 private:
   QFrame *createBottomWidget();
   QFrame *createTexturePage();
   QFrame *createVectorPage();
+#ifdef HAVE_MYPaint
   QFrame *createMyPaintPage();
+#endif
   void updateTabBar();
 
   void copyEditedStyleToPalette(bool isDragging);

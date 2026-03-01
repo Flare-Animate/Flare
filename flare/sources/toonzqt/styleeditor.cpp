@@ -2296,6 +2296,7 @@ QString TextureStyleChooserPage::getChipDescription(int index) {
     return QObject::tr("Plain color", "TextureStyleChooserPage");
 }
 
+#ifdef HAVE_MYPaint
 //*****************************************************************************
 //    MyPaintBrushStyleChooserPage  implementation
 //*****************************************************************************
@@ -2344,6 +2345,7 @@ QString MyPaintBrushStyleChooserPage::getChipDescription(int index) {
   else
     return QObject::tr("Plain color", "MyPaintBrushStyleChooserPage");
 }
+#endif  // HAVE_MYPaint
 
 //*****************************************************************************
 //    SpecialStyleChooser  implementation
@@ -2902,7 +2904,9 @@ StyleEditor::StyleEditor(PaletteController *paletteController, QWidget *parent)
   m_specialStylePage        = new SpecialStyleChooserPage(this, 0);
   m_customStylePage         = new CustomStyleChooserPage(this, 0);
   m_vectorBrushesStylePage  = new VectorBrushStyleChooserPage(this, 0);
+#ifdef HAVE_MYPaint
   m_mypaintBrushesStylePage = new MyPaintBrushStyleChooserPage(this, 0);
+#endif
   m_settingsPage            = new SettingsPage(0);
 
   QWidget *emptyPage = new StyleEditorPage(0);
@@ -2913,20 +2917,26 @@ StyleEditor::StyleEditor(PaletteController *paletteController, QWidget *parent)
   QScrollArea *plainArea = makeChooserPageWithoutScrollBar(m_plainColorPage);
   QScrollArea *textureArea =
       makeChooserPageWithoutScrollBar(createTexturePage());
+#ifdef HAVE_MYPaint
   QScrollArea *mypaintBrushesArea =
       makeChooserPageWithoutScrollBar(createMyPaintPage());
+#endif
   QScrollArea *settingsArea = makeChooserPageWithoutScrollBar(m_settingsPage);
   QScrollArea *vectorOutsideArea =
       makeChooserPageWithoutScrollBar(createVectorPage());
   textureArea->setMinimumWidth(50);
   vectorOutsideArea->setMinimumWidth(50);
+#ifdef HAVE_MYPaint
   mypaintBrushesArea->setMinimumWidth(50);
+#endif
 
   m_styleChooser = new QStackedWidget(this);
   m_styleChooser->addWidget(plainArea);
   m_styleChooser->addWidget(textureArea);
   m_styleChooser->addWidget(vectorOutsideArea);
+#ifdef HAVE_MYPaint
   m_styleChooser->addWidget(mypaintBrushesArea);
+#endif
   m_styleChooser->addWidget(settingsArea);
   m_styleChooser->addWidget(makeChooserPageWithoutScrollBar(emptyPage));
   m_styleChooser->setFocusPolicy(Qt::NoFocus);
@@ -2975,9 +2985,11 @@ StyleEditor::StyleEditor(PaletteController *paletteController, QWidget *parent)
   ret = ret && connect(m_vectorBrushesStylePage,
                        SIGNAL(styleSelected(const TColorStyle &)), this,
                        SLOT(selectStyle(const TColorStyle &)));
+#ifdef HAVE_MYPaint
   ret = ret && connect(m_mypaintBrushesStylePage,
                        SIGNAL(styleSelected(const TColorStyle &)), this,
                        SLOT(selectStyle(const TColorStyle &)));
+#endif
   ret = ret && connect(m_settingsPage, SIGNAL(paramStyleChanged(bool)), this,
                        SLOT(onParamStyleChanged(bool)));
   ret = ret && connect(m_plainColorPage,
@@ -3327,6 +3339,7 @@ QFrame *StyleEditor::createVectorPage() {
   return vectorOutsideFrame;
 }
 
+#ifdef HAVE_MYPaint
 //-----------------------------------------------------------------------------
 
 QFrame *StyleEditor::createMyPaintPage() {
@@ -3382,6 +3395,7 @@ QFrame *StyleEditor::createMyPaintPage() {
   assert(ret);
   return outsideFrame;
 }
+#endif  // HAVE_MYPaint
 
 //-----------------------------------------------------------------------------
 
@@ -3417,6 +3431,7 @@ void StyleEditor::onVectorsClearSearch() {
   m_vectorsSearchText->setFocus();
 }
 
+#ifdef HAVE_MYPaint
 //-----------------------------------------------------------------------------
 
 void StyleEditor::onMyPaintSearch(const QString &search) {
@@ -3431,6 +3446,7 @@ void StyleEditor::onMyPaintClearSearch() {
   m_mypaintSearchText->setText("");
   m_mypaintSearchText->setFocus();
 }
+#endif  // HAVE_MYPaint
 
 //-----------------------------------------------------------------------------
 
@@ -3515,7 +3531,9 @@ void StyleEditor::updateStylePages() {
   m_specialStylePage->update();
   m_customStylePage->update();
   m_vectorBrushesStylePage->update();
+#ifdef HAVE_MYPaint
   m_mypaintBrushesStylePage->update();
+#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -3990,7 +4008,9 @@ void StyleEditor::onHexEditor() {
 void StyleEditor::onSearchVisible(bool on) {
   m_textureSearchFrame->setVisible(on);
   m_vectorsSearchFrame->setVisible(on);
+#ifdef HAVE_MYPaint
   m_mypaintSearchFrame->setVisible(on);
+#endif
 }
 
 //-----------------------------------------------------------------------------
