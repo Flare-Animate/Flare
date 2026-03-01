@@ -13,7 +13,7 @@
 #include "flare/tobjecthandle.h"
 
 #include "flare/preferences.h"
-#include "../include/toonzqt/gutil.h"
+#include "flareqt/gutil.h"
 
 using XsheetGUI::ColumnArea;
 

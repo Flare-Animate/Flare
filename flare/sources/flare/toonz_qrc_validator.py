@@ -8,7 +8,7 @@ from typing import List, Tuple, Dict
 from collections import defaultdict
 
 class QrcValidator:
-    DEFAULT_QRC_FILE = "toonz.qrc"
+    DEFAULT_QRC_FILE = "flare.qrc"
 
     def __init__(self):
         self.base_dir = os.getcwd()
@@ -22,7 +22,7 @@ class QrcValidator:
         try:
             if not os.path.isfile(self.qrc_path):
                 print(f"Error: QRC file not found at {self.qrc_path}")
-                print("Please run this script from the toonz directory containing toonz.qrc")
+                print("Please run this script from the flare directory containing flare.qrc")
                 return False
 
             tree = ET.parse(self.qrc_path)

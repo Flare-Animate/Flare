@@ -224,269 +224,6 @@ set(HEADERS
 )
 
 set(SOURCES
-    batches.cpp
-    tfarmstuff.cpp
-    cleanuppaletteviewer.cpp
-    cleanuppopup.cpp
-    cleanuppreview.cpp
-    cleanupsettingsmodel.cpp
-    cleanupsettingspopup.cpp
-    cleanupswatch.cpp
-    cellkeyframedata.cpp
-    cellkeyframeselection.cpp
-    keyframemover.cpp
-    cachefxcommand.cpp
-    exportlevelcommand.cpp
-    adjustlevelspopup.cpp
-    adjustthicknesspopup.cpp
-    binarizepopup.cpp
-    fillholespopup.cpp
-    brightnessandcontrastpopup.cpp
-    linesfadepopup.cpp
-    rendercommand.cpp
-    curveio.cpp
-    meshifypopup.cpp
-    selectionutils.cpp
-    antialiaspopup.cpp
-    mergecmapped.cpp
-    comboviewerpane.cpp
-    historypane.cpp
-    cleanupsettingspane.cpp
-    audiorecordingpopup.cpp
-    locatorpopup.cpp
-    reframepopup.cpp
-    autoinputcellnumberpopup.cpp
-    colormodelbehaviorpopup.cpp
-    boardsettingspopup.cpp
-    separatecolorsswatch.cpp
-    separatecolorspopup.cpp
-    xdtsio.cpp
-    sxfio.cpp
-    ocaio.cpp
-    xdtsimportpopup.cpp
-    expressionreferencemanager.cpp
-    tooloptionsshortcutinvoker.cpp
-    tvpjson_io.cpp
-    exportxsheetpdf.cpp
-    custompanelmanager.cpp
-    custompaneleditorpopup.cpp
-    convertfolderpopup.cpp
-    exportcameratrackpopup.cpp
-    layoutPresetsEditorPopup.cpp
-    layoutUtils.cpp
-    floatingpanelcommand.cpp
-    canvassizepopup.cpp
-    commandbar.cpp
-    commandbarpopup.cpp
-    history.cpp
-    loadfoldercommand.cpp
-    loadfolderpopup.cpp
-    main.cpp
-    mainwindow.cpp
-    matchline.cpp
-    menubar.cpp
-    menubarpopup.cpp
-    mergecolumns.cpp
-    moviegenerator.cpp
-    pane.cpp
-    previewer.cpp
-    previewfxmanager.cpp
-    ruler.cpp
-    scanlist.cpp
-    tapp.cpp
-    toolbar.cpp
-    batchserversviewer.cpp
-    castviewer.cpp
-    exportlevelpopup.cpp
-    exportalllevelspopup.cpp
-    exportscenepopup.cpp
-    colormodelviewer.cpp
-    exportpanel.cpp
-    filebrowser.cpp
-    filebrowserversioncontrol.cpp
-    filmstrip.cpp
-    versioncontrolwidget.cpp
-    versioncontroltimeline.cpp
-    matchlinecommand.cpp
-    messagepanel.cpp
-    tasksviewer.cpp
-    testpanel.cpp
-    tpanels.cpp
-    xshcellmover.cpp
-    xshcellviewer.cpp
-    xshcolumnviewer.cpp
-    xsheetdragtool.cpp
-    xsheetviewer.cpp
-    xshnoteviewer.cpp
-    xshrowviewer.cpp
-    xshtoolbar.cpp
-    sceneviewer.cpp
-    sceneviewerevents.cpp
-    viewerdraw.cpp
-    viewerpane.cpp
-    castselection.cpp
-    cellselection.cpp
-    columnselection.cpp
-    fileselection.cpp
-    filmstripselection.cpp
-    keyframeselection.cpp
-    addfilmstripframespopup.cpp
-    camerasettingspopup.cpp
-    convertpopup.cpp
-    crashhandler.cpp
-    duplicatepopup.cpp
-    dvdirtreeview.cpp
-    filebrowserpopup.cpp
-    formatsettingspopups.cpp
-    fxparameditorpopup.cpp
-    histogrampopup.cpp
-    insertfxpopup.cpp
-    layerfooterpanel.cpp
-    layerheaderpanel.cpp
-    levelcreatepopup.cpp
-    levelsettingspopup.cpp
-    lipsyncpopup.cpp
-    autolipsyncpopup.cpp
-    magpiefileimportpopup.cpp
-    outputsettingspopup.cpp
-    overwritepopup.cpp
-    pltgizmopopup.cpp
-    preferencespopup.cpp
-    projectpopup.cpp
-    psdsettingspopup.cpp
-    renumberpopup.cpp
-    runscriptcommand.cpp
-    savepresetpopup.cpp
-    scanpopup.cpp
-    scenebrowser.cpp
-    scenebrowserversioncontrol.cpp
-    sceneviewercontextmenu.cpp
-    scenesettingspopup.cpp
-    ${SCRIPT_CONSOLE_SRC}
-    shortcutpopup.cpp
-    soundtrackexport.cpp
-    startuppopup.cpp
-    styleshortcutswitchablepanel.cpp
-    svncleanupdialog.cpp
-    svncommitdialog.h
-    svndeletedialog.h
-    svnlockdialog.h
-    svnlockframerangedialog.h
-    svnpurgedialog.h
-    svnrevertdialog.h
-    svnupdateandlockdialog.h
-    svnupdatedialog.h
-    tapp.h
-    tasksviewer.h
-    testpanel.h
-    timestretchpopup.h
-    toolbar.h
-    tpanels.h
-    trackerpopup.h
-    vectorguideddrawingpane.h
-    vectorizerpopup.h
-    vectorizerswatch.h
-    versioncontrol.h
-    versioncontrolxmlwriter.h
-    versioncontroltimeline.h
-    versioncontrolwidget.h
-    viewerpane.h
-    xshcellviewer.h
-    xshcolumnviewer.h
-    xsheetviewer.h
-    xshnoteviewer.h
-    xshrowviewer.h
-    xshtoolbar.h
-    xdtsimportpopup.h
-    expressionreferencemanager.h
-    tooloptionsshortcutinvoker.h
-    exportxsheetpdf.h
-    custompanelmanager.h
-    custompaneleditorpopup.h
-    convertfolderpopup.h
-    exportcameratrackpopup.h
-    layoutPresetsEditorPopup.h
-    layoutUtils.h
-)
-
-if(PLATFORM EQUAL 64)
-    set(MOC_HEADERS
-        ${MOC_HEADERS}
-        ../stopmotion/stopmotion.h
-        ../stopmotion/stopmotioncontroller.h
-        ../stopmotion/webcam.h
-        ../stopmotion/jpgconverter.h
-        ../stopmotion/canon.h
-        ../stopmotion/stopmotionserial.h
-        ../stopmotion/stopmotionlight.h
-        cameracapturelevelcontrol.h
-        penciltestpopup.h
-        navtageditorpopup.h
-        xshbreadcrumbs.h
-    )
-else()
-    set(MOC_HEADERS
-        ${MOC_HEADERS}
-        cameracapturelevelcontrol_qt.h
-        penciltestpopup_qt.h
-        navtageditorpopup.h
-        xshbreadcrumbs.h
-    )
-endif()
-
-set(HEADERS
-    ${MOC_HEADERS}
-    celldata.h
-    cellkeyframedata.h
-    cellkeyframeselection.h
-    cellselection.h
-    columncommand.h
-    columnselection.h
-    curveio.h
-    drawingdata.h
-    exportlevelcommand.h
-    filedata.h
-    fileselection.h
-    filmstripcommand.h
-    filmstripselection.h
-    floatingpanelcommand.h
-    history.h
-    iocommand.h
-    keyframedata.h
-    keyframemover.h
-    keyframeselection.h
-    kis_tablet_support_win8.h
-    menubarcommandids.h
-    moviegenerator.h
-    scanlist.h
-    sceneviewerevents.h
-    selectionutils.h
-    subcameramanager.h
-    subscenecommand.h
-    tfarmstuff.h
-    versioncontrolgui.h
-    versioncontrolxmlreader.h
-    viewerdraw.h
-    viewerpopup.h
-    xshcellmover.h
-    xsheetdragtool.h
-    castselection.h
-    ../include/cellposition.h
-    ../include/orientation.h
-    ../include/saveloadqsettings.h
-    xdtsio.h
-    sxfio.h
-    levelcommand.h
-# Tracker file
-    ObjectTracker.h
-    dummyprocessor.h
-    metnum.h
-    processor.h
-    predict3d.h
-    tvpjson_io.h
-)
-
-set(SOURCES
     floatingpanelcommand.cpp
     canvassizepopup.cpp
     commandbar.cpp
@@ -1843,7 +1580,7 @@ set(SOURCES
     shortcutpopup.cpp
     soundtrackexport.cpp
     startuppopup.cpp
-    styleshortcutswitchablepanel.cpp
+    styleshortcutsswitchablepanel.cpp
     svncleanupdialog.cpp
     svncommitdialog.h
     svndeletedialog.h
@@ -2054,7 +1791,7 @@ set(SOURCES
     shortcutpopup.cpp
     soundtrackexport.cpp
     startuppopup.cpp
-    styleshortcutswitchablepanel.cpp
+    styleshortcutsswitchablepanel.cpp
     svncleanupdialog.cpp
     svncommitdialog.h
     svndeletedialog.h
@@ -2265,7 +2002,7 @@ set(SOURCES
     shortcutpopup.cpp
     soundtrackexport.cpp
     startuppopup.cpp
-    styleshortcutswitchablepanel.cpp
+    styleshortcutsswitchablepanel.cpp
     svncleanupdialog.cpp
     svncommitdialog.h
     svndeletedialog.h
@@ -2476,7 +2213,7 @@ set(SOURCES
     shortcutpopup.cpp
     soundtrackexport.cpp
     startuppopup.cpp
-    styleshortcutswitchablepanel.cpp
+    styleshortcutsswitchablepanel.cpp
     svncleanupdialog.cpp
     svncommitdialog.h
     svndeletedialog.h
@@ -2687,7 +2424,218 @@ set(SOURCES
     shortcutpopup.cpp
     soundtrackexport.cpp
     startuppopup.cpp
-    styleshortcutswitchablepanel.cpp
+    styleshortcutsswitchablepanel.cpp
+    svncleanupdialog.cpp
+    svncommitdialog.h
+    svndeletedialog.h
+    svnlockdialog.h
+    svnlockframerangedialog.h
+    svnpurgedialog.h
+    svnrevertdialog.h
+    svnupdateandlockdialog.h
+    svnupdatedialog.h
+    tapp.h
+    tasksviewer.h
+    testpanel.h
+    timestretchpopup.h
+    toolbar.h
+    tpanels.h
+    trackerpopup.h
+    vectorguideddrawingpane.h
+    vectorizerpopup.h
+    vectorizerswatch.h
+    versioncontrol.h
+    versioncontrolxmlwriter.h
+    versioncontroltimeline.h
+    versioncontrolwidget.h
+    viewerpane.h
+    xshcellviewer.h
+    xshcolumnviewer.h
+    xsheetviewer.h
+    xshnoteviewer.h
+    xshrowviewer.h
+    xshtoolbar.h
+    xdtsimportpopup.h
+    expressionreferencemanager.h
+    tooloptionsshortcutinvoker.h
+    exportxsheetpdf.h
+    custompanelmanager.h
+    custompaneleditorpopup.h
+    convertfolderpopup.h
+    exportcameratrackpopup.h
+    layoutPresetsEditorPopup.h
+    layoutUtils.h
+)
+
+if(PLATFORM EQUAL 64)
+    set(MOC_HEADERS
+        ${MOC_HEADERS}
+        ../stopmotion/stopmotion.h
+        ../stopmotion/stopmotioncontroller.h
+        ../stopmotion/webcam.h
+        ../stopmotion/jpgconverter.h
+        ../stopmotion/canon.h
+        ../stopmotion/stopmotionserial.h
+        ../stopmotion/stopmotionlight.h
+        cameracapturelevelcontrol.h
+        penciltestpopup.h
+        navtageditorpopup.h
+        xshbreadcrumbs.h
+    )
+else()
+    set(MOC_HEADERS
+        ${MOC_HEADERS}
+        cameracapturelevelcontrol_qt.h
+        penciltestpopup_qt.h
+        navtageditorpopup.h
+        xshbreadcrumbs.h
+    )
+endif()
+
+set(HEADERS
+    ${MOC_HEADERS}
+    celldata.h
+    cellkeyframedata.h
+    cellkeyframeselection.h
+    cellselection.h
+    columncommand.h
+    columnselection.h
+    curveio.h
+    drawingdata.h
+    exportlevelcommand.h
+    filedata.h
+    fileselection.h
+    filmstripcommand.h
+    filmstripselection.h
+    floatingpanelcommand.h
+    history.h
+    iocommand.h
+    keyframedata.h
+    keyframemover.h
+    keyframeselection.h
+    kis_tablet_support_win8.h
+    menubarcommandids.h
+    moviegenerator.h
+    scanlist.h
+    sceneviewerevents.h
+    selectionutils.h
+    subcameramanager.h
+    subscenecommand.h
+    tfarmstuff.h
+    versioncontrolgui.h
+    versioncontrolxmlreader.h
+    viewerdraw.h
+    viewerpopup.h
+    xshcellmover.h
+    xsheetdragtool.h
+    castselection.h
+    ../include/cellposition.h
+    ../include/orientation.h
+    ../include/saveloadqsettings.h
+    xdtsio.h
+    sxfio.h
+    levelcommand.h
+# Tracker file
+    ObjectTracker.h
+    dummyprocessor.h
+    metnum.h
+    processor.h
+    predict3d.h
+    tvpjson_io.h
+)
+
+set(SOURCES
+    floatingpanelcommand.cpp
+    canvassizepopup.cpp
+    commandbar.cpp
+    commandbarpopup.cpp
+    history.cpp
+    loadfoldercommand.cpp
+    loadfolderpopup.cpp
+    main.cpp
+    mainwindow.cpp
+    matchline.cpp
+    menubar.cpp
+    menubarpopup.cpp
+    mergecolumns.cpp
+    moviegenerator.cpp
+    pane.cpp
+    previewer.cpp
+    previewfxmanager.cpp
+    ruler.cpp
+    scanlist.cpp
+    tapp.cpp
+    toolbar.cpp
+    batchserversviewer.cpp
+    castviewer.cpp
+    exportlevelpopup.cpp
+    exportalllevelspopup.cpp
+    exportscenepopup.cpp
+    colormodelviewer.cpp
+    exportpanel.cpp
+    filebrowser.cpp
+    filebrowserversioncontrol.cpp
+    filmstrip.cpp
+    matchlinecommand.cpp
+    messagepanel.cpp
+    tasksviewer.cpp
+    testpanel.cpp
+    tpanels.cpp
+    xshcellmover.cpp
+    xshcellviewer.cpp
+    xshcolumnviewer.cpp
+    xsheetdragtool.cpp
+    xsheetviewer.cpp
+    xshnoteviewer.cpp
+    xshrowviewer.cpp
+    xshtoolbar.cpp
+    sceneviewer.cpp
+    sceneviewerevents.cpp
+    viewerdraw.cpp
+    viewerpane.cpp
+    castselection.cpp
+    cellselection.cpp
+    columnselection.cpp
+    fileselection.cpp
+    filmstripselection.cpp
+    keyframeselection.cpp
+    addfilmstripframespopup.cpp
+    camerasettingspopup.cpp
+    convertpopup.cpp
+    crashhandler.cpp
+    duplicatepopup.cpp
+    dvdirtreeview.cpp
+    filebrowserpopup.cpp
+    formatsettingspopups.cpp
+    fxparameditorpopup.cpp
+    histogrampopup.cpp
+    insertfxpopup.cpp
+    layerfooterpanel.cpp
+    layerheaderpanel.cpp
+    levelcreatepopup.cpp
+    levelsettingspopup.cpp
+    lipsyncpopup.cpp
+    autolipsyncpopup.cpp
+    magpiefileimportpopup.cpp
+    outputsettingspopup.cpp
+    overwritepopup.cpp
+    pltgizmopopup.cpp
+    preferencespopup.cpp
+    projectpopup.cpp
+    psdsettingspopup.cpp
+    renumberpopup.cpp
+    runscriptcommand.cpp
+    savepresetpopup.cpp
+    scanpopup.cpp
+    scenebrowser.cpp
+    scenebrowserversioncontrol.cpp
+    sceneviewercontextmenu.cpp
+    scenesettingspopup.cpp
+    ${SCRIPT_CONSOLE_SRC}
+    shortcutpopup.cpp
+    soundtrackexport.cpp
+    startuppopup.cpp
+    styleshortcutsswitchablepanel.cpp
     svncleanupdialog.cpp
     svncommitdialog.h
     svndeletedialog.h
@@ -2809,58 +2757,6 @@ set(HEADERS
 )
 
 set(SOURCES
-    batches.cpp
-    tfarmstuff.cpp
-    cleanuppaletteviewer.cpp
-    cleanuppopup.cpp
-    cleanuppreview.cpp
-    cleanupsettingsmodel.cpp
-    cleanupsettingspopup.cpp
-    cleanupswatch.cpp
-    cellkeyframedata.cpp
-    cellkeyframeselection.cpp
-    keyframemover.cpp
-    cachefxcommand.cpp
-    exportlevelcommand.cpp
-    adjustlevelspopup.cpp
-    adjustthicknesspopup.cpp
-    binarizepopup.cpp
-    fillholespopup.cpp
-    brightnessandcontrastpopup.cpp
-    linesfadepopup.cpp
-    rendercommand.cpp
-    curveio.cpp
-    meshifypopup.cpp
-    selectionutils.cpp
-    antialiaspopup.cpp
-    mergecmapped.cpp
-    comboviewerpane.cpp
-    historypane.cpp
-    cleanupsettingspane.cpp
-    audiorecordingpopup.cpp
-    locatorpopup.cpp
-    reframepopup.cpp
-    autoinputcellnumberpopup.cpp
-    colormodelbehaviorpopup.cpp
-    boardsettingspopup.cpp
-    separatecolorsswatch.cpp
-    separatecolorspopup.cpp
-    xdtsio.cpp
-    sxfio.cpp
-    ocaio.cpp
-    xdtsimportpopup.cpp
-    expressionreferencemanager.cpp
-    tooloptionsshortcutinvoker.cpp
-    tvpjson_io.cpp
-    exportxsheetpdf.cpp
-    custompanelmanager.cpp
-    custompaneleditorpopup.cpp
-    convertfolderpopup.cpp
-    exportcameratrackpopup.cpp
-    layoutPresetsEditorPopup.cpp
-    layoutUtils.cpp
-    versioncontrolwidget.cpp
-    versioncontroltimeline.cpp
     floatingpanelcommand.cpp
     canvassizepopup.cpp
     commandbar.cpp
@@ -2951,198 +2847,45 @@ set(SOURCES
     shortcutpopup.cpp
     soundtrackexport.cpp
     startuppopup.cpp
-    styleshortcutswitchablepanel.cpp
+    styleshortcutsswitchablepanel.cpp
     svncleanupdialog.cpp
-    svncommitdialog.cpp
-    svndeletedialog.cpp
-    svnlockdialog.cpp
-    svnlockframerangedialog.cpp
-    svnpurgedialog.cpp
-    svnrevertdialog.cpp
-    svnupdateandlockdialog.cpp
-    svnupdatedialog.cpp
-    flipbook.cpp
-    imageviewer.cpp
-    onionskinmaskgui.cpp
-    timestretchpopup.cpp
-    trackerpopup.cpp
-    vectorguideddrawingpane.cpp
-    vectorizerpopup.cpp
-    vectorizerswatch.cpp
-    versioncontrol.cpp
-    versioncontrolxmlwriter.cpp
-    versioncontrolxmlreader.cpp
-    iocommand.cpp
-    layoutUtils.cpp
-    celldata.cpp
-    drawingdata.cpp
-    columncommand.cpp
-    subscenecommand.cpp
-    levelcommand.cpp
-    filmstripcommand.cpp
-    dvitemview.cpp
-    dvwidgets.cpp
-    subcameramanager.cpp
-    dummyprocessor.cpp
-    predict3d.cpp
-    ObjectTracker.cpp
-    cellselectioncommand.cpp
-    keyframedata.cpp
-    kis_tablet_support_win8.cpp
-    frameheadgadget.cpp
-    filedata.cpp
-    metnum.cpp
-)# add stopmotion sources to SOURCES so Flare executable links correctly
-if(PLATFORM EQUAL 64)
-    set(SOURCES
-        ${SOURCES}
-        ../stopmotion/stopmotion.cpp
-        ../stopmotion/stopmotioncontroller.cpp
-        ../stopmotion/webcam.cpp
-        ../stopmotion/jpgconverter.cpp
-        ../stopmotion/canon.cpp
-        ../stopmotion/stopmotionserial.cpp
-        ../stopmotion/stopmotionlight.cpp
-        cameracapturelevelcontrol.cpp
-        penciltestpopup.cpp
-        navtageditorpopup.cpp
-        xshbreadcrumbs.cpp
-    )
-endif()
-
-# Application executable target (moved from flare_legacy)
-# -----------------------------------------------------------------------------
-
-if(WITH_TRANSLATION)
-    add_translation(flare ${HEADERS} ${SOURCES})
-endif()
-
-set(OBJCSOURCES filebrowsermodel.cpp)
-
-# Resource files are now named flare.qrc/flare.rc
-set(RESOURCES "${CMAKE_CURRENT_SOURCE_DIR}/flare.qrc")
-if(BUILD_ENV_MSVC)
-    set(RC_FILE "${CMAKE_CURRENT_SOURCE_DIR}/flare.rc")
-endif()
-
-qt5_add_resources(SOURCES ${RESOURCES})
-
-if(BUILD_ENV_APPLE)
-    set_source_files_properties(${OBJCSOURCES} PROPERTIES COMPILE_FLAGS "-x objective-c++")
-endif()
-
-qt5_wrap_cpp(SOURCES ${MOC_HEADERS})
-
-if(BUILD_ENV_MSVC)
-    add_executable(Flare WIN32 ${HEADERS} ${SOURCES} ${OBJCSOURCES} ${RESOURCES} ${RC_FILE})
-    add_dependencies(Flare tnzcore tnzbase flarelib colorfx tnzext image sound flareqt tnztools tnzstdfx tfarm)
-else()
-    set(MACOSX_BUNDLE_ICON_FILE "Flare.icns")
-    set_source_files_properties(Flare.icns PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
-    add_executable(Flare MACOSX_BUNDLE Flare.icns ${HEADERS} ${SOURCES} ${OBJCSOURCES} ${RESOURCES})
-    add_dependencies(Flare tnzcore tnzbase flarelib colorfx tnzext image sound flareqt tnztools tnzstdfx tfarm)
-endif()
-
-if(BUILD_TARGET_WIN)
-    add_definitions(
-        -DUNICODE
-        -D_UNICODE
-    )
-endif()
-
-include_directories(
-    ../flarefarm/include
-    ../flareqt
-    ../stopmotion
-    ..  # include source root so headers prefixed with "flare/" resolve
+    svncommitdialog.h
+    svndeletedialog.h
+    svnlockdialog.h
+    svnlockframerangedialog.h
+    svnpurgedialog.h
+    svnrevertdialog.h
+    svnupdateandlockdialog.h
+    svnupdatedialog.h
+    tapp.h
+    tasksviewer.h
+    testpanel.h
+    timestretchpopup.h
+    toolbar.h
+    tpanels.h
+    trackerpopup.h
+    vectorguideddrawingpane.h
+    vectorizerpopup.h
+    vectorizerswatch.h
+    versioncontrol.h
+    versioncontrolxmlwriter.h
+    versioncontroltimeline.h
+    versioncontrolwidget.h
+    viewerpane.h
+    xshcellviewer.h
+    xshcolumnviewer.h
+    xsheetviewer.h
+    xshnoteviewer.h
+    xshrowviewer.h
+    xshtoolbar.h
+    xdtsimportpopup.h
+    expressionreferencemanager.h
+    tooloptionsshortcutinvoker.h
+    exportxsheetpdf.h
+    custompanelmanager.h
+    custompaneleditorpopup.h
+    convertfolderpopup.h
+    exportcameratrackpopup.h
+    layoutPresetsEditorPopup.h
+    layoutUtils.h
 )
-
-if (WITH_CANON)
-    add_definitions(-DWITH_CANON)
-endif()
-
-if (WITH_WINTAB AND BUILD_TARGET_WIN AND (PLATFORM EQUAL 64))
-    add_definitions(-DWITH_WINTAB)
-endif()
-
-# -- Link libraries for the Flare executable, replicating legacy logic
-if(BUILD_ENV_MSVC)
-    set(EXTRA_LIBS)
-    if(CMAKE_CXX_FLAGS_DEBUG)
-        target_compile_options(Flare PRIVATE /EHsc) # Enable C++ Exceptions in Debug Mode.
-    endif()
-    if(PLATFORM EQUAL 64)
-        set(EXTRA_LIBS ${EXTRA_LIBS} Qt5::SerialPort ${TURBOJPEG_LIB} ${OpenCV_LIBS})
-        if(WITH_CANON)
-            set(EXTRA_LIBS ${EXTRA_LIBS} ${CANON_LIB})
-        endif()
-    endif()
-    target_link_libraries(Flare
-        Qt5::WinMain Qt5::Core Qt5::Gui Qt5::Network Qt5::OpenGL Qt5::Svg Qt5::Xml
-        Qt5::Widgets Qt5::PrintSupport Qt5::Multimedia Qt5::UiTools
-        ${GL_LIB} ${GLUT_LIB}
-        ${EXTRA_LIBS} strmiids
-        tnzcore tnzbase flarelib colorfx tnzext image sound flareqt tnztools tnzstdfx tfarm
-    )
-elseif(BUILD_ENV_APPLE)
-    find_library(COCOA_LIB Cocoa)
-
-    _find_flare_library(EXTRA_LIBS "tnzcore;tnzbase;flarelib;colorfx;tnzext;image;sound;flareqt;tnztools")
-
-    # 変なところにライブラリ生成するカスども
-    set(EXTRA_LIBS ${EXTRA_LIBS} "$<TARGET_FILE:tnzstdfx>" "$<TARGET_FILE:tfarm>")
-    set(X64ONLY_LIBS)
-    if(PLATFORM EQUAL 64)
-        set(X64ONLY_LIBS ${X64ONLY_LIBS} Qt5::SerialPort ${TURBOJPEG_LIB} ${OpenCV_LIBS})
-        if(WITH_CANON)
-            set(X64ONLY_LIBS ${X64ONLY_LIBS} ${CANON_LIB})
-        endif()
-    endif()
-
-    target_link_libraries(Flare
-        Qt5::Core Qt5::Gui Qt5::Network Qt5::OpenGL Qt5::Svg Qt5::Xml
-        Qt5::Widgets Qt5::PrintSupport Qt5::Multimedia Qt5::MultimediaWidgets Qt5::UiTools
-        ${GL_LIB} ${GLUT_LIB}
-        ${COCOA_LIB} ${EXTRA_LIBS} ${X64ONLY_LIBS} mousedragfilter
-    )
-
-    # ADDED/UPDATED: Expanded dependencies for all libs and utilities (ensures build order)
-    add_dependencies(Flare tnzcore tnzbase flarelib colorfx tnzext image sound flareqt tnztools tnzstdfx tfarm tcomposer tcleanup tconverter tfarmcontroller tfarmserver)
-
-    # ADDED/UPDATED: Configure Info.plist for bundle (retina support etc.)
-    set_target_properties(Flare PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${CMAKE_SOURCE_DIR}/../cmake/BundleInfo.plist.in)
-
-    # ADDED/UPDATED: Merged RPATH command (single one with both paths; || true for CI; COMMENT for logs)
-    add_custom_command(TARGET Flare POST_BUILD
-        COMMAND ${CMAKE_INSTALL_NAME_TOOL} -add_rpath @executable_path/. "$<TARGET_FILE:Flare>" || true
-        COMMAND ${CMAKE_INSTALL_NAME_TOOL} -add_rpath ${CMAKE_INSTALL_RPATH} "$<TARGET_FILE:Flare>" || true
-        COMMENT "Adding RPATHs to Flare executable"
-    )
-
-elseif(BUILD_ENV_UNIXLIKE)
-    _find_flare_library(EXTRA_LIBS "tnzcore;tnzbase;flarelib;colorfx;tnzext;image;sound;flareqt;tnztools")
-
-    # 変なところにライブラリ生成するカスども
-    set(EXTRA_LIBS ${EXTRA_LIBS} "$<TARGET_FILE:tnzstdfx>" "$<TARGET_FILE:tfarm>")
-
-    set(EXTRA_LIBS ${EXTRA_LIBS} ${Boost_LIBRARIES} ${OPENBLAS_LIB} ${EXECINFO_LIBRARY})
-    if(PLATFORM EQUAL 64)
-        set(EXTRA_LIBS ${EXTRA_LIBS} Qt5::SerialPort ${TURBOJPEG_LIB} ${OpenCV_LIBS})
-    endif()
-
-    if(BUILD_TARGET_WIN)
-        set(EXTRA_LIBS ${EXTRA_LIBS} Qt5::WinMain -lstrmiids -mwindows)
-    endif()
-
-    target_link_libraries(
-        Flare Qt5::Core Qt5::Gui Qt5::Network Qt5::OpenGL Qt5::Svg Qt5::Xml
-        Qt5::Widgets Qt5::PrintSupport Qt5::Multimedia Qt5::UiTools
-        ${GL_LIB} ${GLUT_LIB} ${GLU_LIB}
-        ${EXTRA_LIBS}
-    )
-endif()
-
-# Link QtScript to Flare only if the module was found
-if(WITH_QT_SCRIPT)
-    target_link_libraries(Flare Qt5::Script)
-endif()

@@ -12,7 +12,7 @@
 #include <QString>
 #include <QSettings>
 
-#include "../toonzqt/tdockwindows.h"
+#include "../flareqt/tdockwindows.h"
 
 #include <memory>
 

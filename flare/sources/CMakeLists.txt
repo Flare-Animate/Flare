@@ -1177,6 +1177,7 @@ else()
 endif()
 
 add_subdirectory(flare)
+# flare_legacy is no longer built; executable defined in flare/CMakeLists
 add_subdirectory(tcleanupper)
 add_subdirectory(tcomposer)
 add_subdirectory(tconverter)
