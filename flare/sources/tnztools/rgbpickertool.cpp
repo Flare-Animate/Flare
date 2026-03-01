@@ -6,23 +6,23 @@
 #include "ttoonzimage.h"
 #include "tools/cursors.h"
 #include "tcolorstyles.h"
-#include "toonz/cleanupcolorstyles.h"
+"flare/cleanupcolorstyles.h"
 #include "trasterimage.h"
 #include "tgl.h"
 #include "tenv.h"
 #include "tstroke.h"
 
-#include "toonz/palettecontroller.h"
-#include "toonz/tpalettehandle.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/stage2.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/preferences.h"
+"flare/palettecontroller.h"
+"flare/tpalettehandle.h"
+"flare/tscenehandle.h"
+"flare/txshlevelhandle.h"
+"flare/stage2.h"
+"flare/txshsimplelevel.h"
+"flare/preferences.h"
 
-#include "toonzqt/icongenerator.h"
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/lutcalibrator.h"
+"flareqt/icongenerator.h"
+"flareqt/dvdialog.h"
+"flareqt/lutcalibrator.h"
 
 #include "tools/toolhandle.h"
 #include "tools/stylepicker.h"
@@ -672,3 +672,4 @@ void RGBPickerTool::showFlipPickedColor(const TPixel32 &pix) {
 RGBPickerTool RGBpicktool;
 
 // TTool *getPickRGBMTool() {return &pickRBGMTool;}
+

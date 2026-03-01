@@ -8,34 +8,34 @@
 #include "tparamcontainer.h"
 
 // TnzLib includes
-#include "toonz/txsheet.h"
-#include "toonz/tstageobjecttree.h"
-#include "toonz/tcolumnfx.h"
-#include "toonz/tcolumnfxset.h"
-#include "toonz/fxdag.h"
-#include "toonz/txshchildlevel.h"
-#include "toonz/txshcell.h"
-#include "toonz/txshleveltypes.h"
-#include "toonz/txshlevelcolumn.h"
-#include "toonz/txshpalettecolumn.h"
-#include "toonz/txshzeraryfxcolumn.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/dpiscale.h"
-#include "toonz/tcamera.h"
-#include "toonz/toonzscene.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/plasticdeformerfx.h"
-#include "toonz/stage.h"
-#include "toonz/preferences.h"
+"flare/txsheet.h"
+"flare/tstageobjecttree.h"
+"flare/tcolumnfx.h"
+"flare/tcolumnfxset.h"
+"flare/fxdag.h"
+"flare/txshchildlevel.h"
+"flare/txshcell.h"
+"flare/txshleveltypes.h"
+"flare/txshlevelcolumn.h"
+"flare/txshpalettecolumn.h"
+"flare/txshzeraryfxcolumn.h"
+"flare/txshsimplelevel.h"
+"flare/dpiscale.h"
+"flare/tcamera.h"
+"flare/toonzscene.h"
+"flare/sceneproperties.h"
+"flare/plasticdeformerfx.h"
+"flare/stage.h"
+"flare/preferences.h"
 #include "ttzpimagefx.h"
-#include "toonz/txshsoundtextcolumn.h"
-#include "toonz/txshsoundtextlevel.h"
+"flare/txshsoundtextcolumn.h"
+"flare/txshsoundtextlevel.h"
 
 #include "../stdfx/motionawarebasefx.h"
 #include "../stdfx/textawarebasefx.h"
 #include "../stdfx/globalcontrollablefx.h"
 
-#include "toonz/scenefx.h"
+"flare/scenefx.h"
 
 #include <QList>
 
@@ -1533,3 +1533,4 @@ DVAPI TFxP buildSceneFx(ToonzScene *scene, double frame, TXsheet *xsh,
 
   return fx;
 }
+

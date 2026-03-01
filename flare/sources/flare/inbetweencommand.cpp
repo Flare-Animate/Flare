@@ -2,37 +2,37 @@
 
 #include "filmstripcommand.h"
 #include "tapp.h"
-#include "toonz/palettecontroller.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/tpalettehandle.h"
-#include "toonz/tframehandle.h"
+"flare/palettecontroller.h"
+"flare/txshlevelhandle.h"
+"flare/txsheethandle.h"
+"flare/tscenehandle.h"
+"flare/tpalettehandle.h"
+"flare/tframehandle.h"
 #include "tinbetween.h"
 #include "tvectorimage.h"
 #include "ttoonzimage.h"
-#include "toonzqt/selection.h"
-#include "toonzqt/dvdialog.h"
+"flareqt/selection.h"
+"flareqt/dvdialog.h"
 #include "drawingdata.h"
-#include "toonzqt/strokesdata.h"
-#include "toonzqt/toonzimagedata.h"
+"flareqt/strokesdata.h"
+"flareqt/toonzimagedata.h"
 #include "timageCache.h"
 #include "tools/toolutils.h"
-#include "toonzqt/icongenerator.h"
+"flareqt/icongenerator.h"
 
 #include "tundo.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/txshpalettelevel.h"
-#include "toonz/txshpalettecolumn.h"
-#include "toonz/txsheet.h"
-#include "toonz/txshcell.h"
-#include "toonz/toonzscene.h"
-#include "toonz/levelset.h"
-#include "toonz/txshleveltypes.h"
-#include "toonz/toonzimageutils.h"
+"flare/txshsimplelevel.h"
+"flare/txshpalettelevel.h"
+"flare/txshpalettecolumn.h"
+"flare/txsheet.h"
+"flare/txshcell.h"
+"flare/toonzscene.h"
+"flare/levelset.h"
+"flare/txshleveltypes.h"
+"flare/toonzimageutils.h"
 #include "trop.h"
 
-#include "toonzqt/gutil.h"
+"flareqt/gutil.h"
 
 #include <QApplication>
 #include <QClipboard>
@@ -238,3 +238,4 @@ void FilmstripCmd::inbetween(
   inbetweenWithoutUndo(sl, fid0, fid1, interpolation);
   TApp::instance()->getCurrentScene()->setDirtyFlag(true);
 }
+

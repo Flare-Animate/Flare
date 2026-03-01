@@ -1,11 +1,11 @@
 // Glew include
 #include <GL/glew.h>
 
-#include "toonz/imagepainter.h"
+"flare/imagepainter.h"
 // Include shared flipbook background toggle settings (e.g., for m_bg) from
 // toonz/
-#include "toonz/flipbooksettings.h"
-#include "toonz/glrasterpainter.h"
+"flare/flipbooksettings.h"
+"flare/glrasterpainter.h"
 #include "trastercm.h"
 #include "tropcm.h"
 #include "tpalette.h"
@@ -17,10 +17,10 @@
 #include "tvectorgl.h"
 #include "trasterimage.h"
 #include "timagecache.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/stage2.h"
-#include "toonz/preferences.h"
-#include "toonz/fill.h"
+"flare/sceneproperties.h"
+"flare/stage2.h"
+"flare/preferences.h"
+"flare/fill.h"
 
 using namespace ImagePainter;
 
@@ -708,3 +708,4 @@ void ImagePainter::paintImage(const TImageP &image, const TDimension &imageSize,
     drawCompareLines(viewerSize, compareSettings.m_compareX,
                      compareSettings.m_compareY);
 }
+

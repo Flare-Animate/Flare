@@ -3,7 +3,7 @@
 #ifndef TXSH_ZERARYFX_COLUMN_INCLUDED
 #define TXSH_ZERARYFX_COLUMN_INCLUDED
 
-#include "toonz/txshcolumn.h"
+"flare/txshcolumn.h"
 
 #undef DVAPI
 #undef DVVAR
@@ -99,3 +99,4 @@ template class DVAPI TSmartPointerT<TXshZeraryFxColumn>;
 typedef TSmartPointerT<TXshZeraryFxColumn> TXshZeraryFxColumnP;
 
 #endif
+

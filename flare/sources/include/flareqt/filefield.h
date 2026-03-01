@@ -7,7 +7,7 @@
 #include <QWidget>
 #include <QFileDialog>
 #include "tfilepath.h"
-#include "toonzqt/lineedit.h"
+"flareqt/lineedit.h"
 
 #undef DVAPI
 #undef DVVAR
@@ -115,3 +115,4 @@ signals:
 //-----------------------------------------------------------------------------
 
 #endif  // FILEFIELD_H
+

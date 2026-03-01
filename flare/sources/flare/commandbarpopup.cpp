@@ -8,10 +8,10 @@
 #include "shortcutpopup.h"
 
 // TnzQt includes
-#include "toonzqt/gutil.h"
+"flareqt/gutil.h"
 
 // TnzLib includes
-#include "toonz/toonzfolders.h"
+"flare/toonzfolders.h"
 
 // TnzCore includes
 #include "tsystem.h"
@@ -620,3 +620,4 @@ void CommandBarPopup::onSearchTextChanged(const QString& text) {
   m_commandListTree->searchItems(text);
   busy = false;
 }
+

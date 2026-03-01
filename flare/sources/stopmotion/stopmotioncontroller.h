@@ -8,10 +8,10 @@
 #include "penciltestpopup.h"
 
 // TnzQt includes
-#include "toonzqt/tabbar.h"
-#include "toonzqt/gutil.h"
-#include "toonzqt/colorfield.h"
-#include "toonzqt/doublefield.h"
+"flareqt/tabbar.h"
+"flareqt/gutil.h"
+"flareqt/colorfield.h"
+"flareqt/doublefield.h"
 
 // Qt includes
 #include <QWidget>
@@ -279,3 +279,4 @@ public slots:
 };
 
 #endif  // STOPMOTIONCONTROLLER_H
+

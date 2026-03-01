@@ -7,29 +7,29 @@
 #include "tapp.h"
 
 // TnzQt includes
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/gutil.h"
-#include "toonzqt/fxselection.h"
-#include "toonzqt/tselectionhandle.h"
-#include "toonzqt/pluginloader.h"  // inter-module plugin loader accessor
+"flareqt/menubarcommand.h"
+"flareqt/gutil.h"
+"flareqt/fxselection.h"
+"flareqt/tselectionhandle.h"
+"flareqt/pluginloader.h"  // inter-module plugin loader accessor
 
 // TnzLib includes
-#include "toonz/tscenehandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/tframehandle.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/tfxhandle.h"
-#include "toonz/toonzscene.h"
-#include "toonz/txsheet.h"
-#include "toonz/fxdag.h"
-#include "toonz/tcolumnfx.h"
-#include "toonz/txshlevelcolumn.h"
-#include "toonz/tcolumnfxset.h"
-#include "toonz/tstageobjecttree.h"
-#include "toonz/txshzeraryfxcolumn.h"
-#include "toonz/toonzfolders.h"
-#include "toonz/scenefx.h"
-#include "toonz/fxcommand.h"
+"flare/tscenehandle.h"
+"flare/txsheethandle.h"
+"flare/tframehandle.h"
+"flare/tcolumnhandle.h"
+"flare/tfxhandle.h"
+"flare/toonzscene.h"
+"flare/txsheet.h"
+"flare/fxdag.h"
+"flare/tcolumnfx.h"
+"flare/txshlevelcolumn.h"
+"flare/tcolumnfxset.h"
+"flare/tstageobjecttree.h"
+"flare/txshzeraryfxcolumn.h"
+"flare/toonzfolders.h"
+"flare/scenefx.h"
+"flare/fxcommand.h"
 
 #include "tw/stringtable.h"
 
@@ -635,3 +635,4 @@ void InsertFxPopup::removePreset() {
 //=============================================================================
 
 OpenPopupCommandHandler<InsertFxPopup> openInsertFxPopup(MI_InsertFx);
+

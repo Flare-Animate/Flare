@@ -8,8 +8,8 @@
 #include <trasterimage.h>
 #include <ttoonzimage.h>
 #include <tstroke.h>
-#include <toonz/strokegenerator.h>
-#include "toonz/preferences.h"
+<flare/strokegenerator.h>
+"flare/preferences.h"
 #include <tools/tool.h>
 #include <tools/cursors.h>
 
@@ -236,3 +236,4 @@ protected:
 };
 
 #endif  // TOONZVECTORBRUSHTOOL_H
+

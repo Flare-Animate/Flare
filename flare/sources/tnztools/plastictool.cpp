@@ -7,22 +7,22 @@
 #include "tools/toolcommandids.h"
 
 // TnzQt includes
-#include "toonzqt/selection.h"
-#include "toonzqt/tselectionhandle.h"
-#include "toonzqt/dvmimedata.h"
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/selectioncommandids.h"
+"flareqt/selection.h"
+"flareqt/tselectionhandle.h"
+"flareqt/dvmimedata.h"
+"flareqt/dvdialog.h"
+"flareqt/selectioncommandids.h"
 
 // TnzLib includes
-#include "toonz/tframehandle.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/tobjecthandle.h"
-#include "toonz/tonionskinmaskhandle.h"
-#include "toonz/tstageobject.h"
-#include "toonz/doubleparamcmd.h"
-#include "toonz/palettecontroller.h"
-#include "toonz/txshsimplelevel.h"
+"flare/tframehandle.h"
+"flare/tcolumnhandle.h"
+"flare/txsheethandle.h"
+"flare/tobjecthandle.h"
+"flare/tonionskinmaskhandle.h"
+"flare/tstageobject.h"
+"flare/doubleparamcmd.h"
+"flare/palettecontroller.h"
+"flare/txshsimplelevel.h"
 
 // TnzExt includes
 #include "ext/plasticskeleton.h"
@@ -2133,3 +2133,4 @@ void PlasticTool::draw() {
 
   glPopAttrib();
 }
+

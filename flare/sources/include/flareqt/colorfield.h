@@ -9,7 +9,7 @@
 
 #include "tcommon.h"
 #include "traster.h"
-#include "toonzqt/intfield.h"
+"flareqt/intfield.h"
 #include "tspectrum.h"
 #include "tcolorstyles.h"
 
@@ -317,3 +317,4 @@ signals:
 //-----------------------------------------------------------------------------
 
 #endif  // COLORFIELD_H
+

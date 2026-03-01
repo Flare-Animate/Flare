@@ -1,8 +1,8 @@
 #include "rulertool.h"
 
 #include "tools/toolhandle.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/txshlevelhandle.h"
+"flare/tscenehandle.h"
+"flare/txshlevelhandle.h"
 #include "tools/toolutils.h"
 
 #include "tvectorimage.h"
@@ -10,13 +10,13 @@
 #include "tools/cursors.h"
 #include "trasterimage.h"
 #include "tgl.h"
-#include "toonz/stage2.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonzqt/icongenerator.h"
+"flare/stage2.h"
+"flare/txshsimplelevel.h"
+"flareqt/icongenerator.h"
 #include "tenv.h"
 
 #include "tconst.h"
-#include "toonz/tframehandle.h"
+"flare/tframehandle.h"
 
 //----------------------------------------------------------------------------------------------
 

@@ -8,19 +8,19 @@
 #include "menubarpopup.h"
 
 // TnzQt includes
-#include "toonzqt/tselectionhandle.h"
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/gutil.h"
+"flareqt/tselectionhandle.h"
+"flareqt/dvdialog.h"
+"flareqt/menubarcommand.h"
+"flareqt/gutil.h"
 
 // TnzLib includes
-#include "toonz/toonzscene.h"
-#include "toonz/childstack.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/tframehandle.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/toonzfolders.h"
+"flare/toonzscene.h"
+"flare/childstack.h"
+"flare/tscenehandle.h"
+"flare/txsheethandle.h"
+"flare/tframehandle.h"
+"flare/tcolumnhandle.h"
+"flare/toonzfolders.h"
 
 // TnzTools includes
 #include "tools/toolcommandids.h"
@@ -1630,3 +1630,4 @@ TopBar::TopBar(QWidget *parent) : QToolBar(parent) {
                        SLOT(setIsLocked(bool)));
   assert(ret);
 }
+

@@ -1,10 +1,10 @@
 
 
-#include "toonzqt/gutil.h"
-#include "toonz/preferences.h"
+"flareqt/gutil.h"
+"flare/preferences.h"
 
 // TnzQt includes
-#include "toonzqt/dvdialog.h"
+"flareqt/dvdialog.h"
 
 // TnzCore includes
 #include "traster.h"
@@ -1284,3 +1284,4 @@ QSize SvgIconEngine::getBestToolbarSizeByDpr(const QSize &requestedSize) {
 
   return bestSize;
 }
+

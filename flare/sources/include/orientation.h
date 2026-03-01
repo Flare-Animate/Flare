@@ -15,7 +15,7 @@
 
 #include "tcommon.h"
 #include "cellposition.h"
-#include "toonz/cellpositionratio.h"
+"flare/cellpositionratio.h"
 #include <QPoint>
 #include <QLine>
 #include <QRect>
@@ -315,3 +315,4 @@ public:
 };
 
 #endif
+

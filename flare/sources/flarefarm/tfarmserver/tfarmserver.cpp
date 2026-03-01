@@ -107,7 +107,7 @@ TFilePath getLocalRoot() {
       tver.getAppVersionString() + "\\FARMROOT");
   TFilePath name(regpath);
   lroot = TFilePath(TSystem::getSystemValue(name).toStdString()) +
-          TFilePath("toonzfarm");
+          TFilePath("FlareFarm");
 #else
 #ifdef MACOSX
   // If MACOSX, change to MACOSX path
@@ -194,7 +194,7 @@ inline bool isBlank(char c) { return c == ' ' || c == '\t' || c == '\n'; }
 class FarmServerService final : public TService {
 public:
   FarmServerService(std::ostream &os)
-      : TService("ToonzFarm Server", "ToonzFarm Server")
+      : TService("FlareFarm Server", "FlareFarm Server")
       , m_os(os)
       , m_userLog(0) {}
 
@@ -936,7 +936,7 @@ void FarmServerService::onStart(int argc, char *argv[]) {
 #endif
 
   if (rc != 0) {
-    std::string msg("An error occurred starting the ToonzFarm Server");
+    std::string msg("An error occurred starting the FlareFarm Server");
     msg += "\n";
 
 #ifdef _WIN32
@@ -1103,7 +1103,7 @@ int main(int argc, char **argv) {
 
   if (argc > 1) {
     std::string serviceName(
-        "ToonzFarmServer");  // Must be the same of the installer's
+        "FlareFarmServer");  // Must be the same of the installer's
     std::string serviceDisplayName = serviceName;
 
     TCli::SimpleQualifier consoleQualifier("-console", "Run as console app");
@@ -1149,3 +1149,4 @@ int main(int argc, char **argv) {
 
   return 0;
 }
+

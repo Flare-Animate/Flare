@@ -1,16 +1,16 @@
 
 
-#include "toonz/plasticdeformerfx.h"
+"flare/plasticdeformerfx.h"
 
 // TnzLib includes
-#include "toonz/txsheet.h"
-#include "toonz/txshleveltypes.h"
-#include "toonz/txshcell.h"
-#include "toonz/tcolumnfx.h"
-#include "toonz/txshlevelcolumn.h"
-#include "toonz/dpiscale.h"
-#include "toonz/stage.h"
-#include "toonz/tlog.h"
+"flare/txsheet.h"
+"flare/txshleveltypes.h"
+"flare/txshcell.h"
+"flare/tcolumnfx.h"
+"flare/txshlevelcolumn.h"
+"flare/dpiscale.h"
+"flare/stage.h"
+"flare/tlog.h"
 
 // TnzExt includes
 #include "ext/plasticskeleton.h"
@@ -522,3 +522,4 @@ void PlasticDeformerFx::doDryCompute(TRectD &rect, double frame,
 
   m_port->dryCompute(bbox, frame, texInfo);
 }
+

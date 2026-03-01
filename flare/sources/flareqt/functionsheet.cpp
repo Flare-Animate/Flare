@@ -1,19 +1,19 @@
 
 
-#include "toonzqt/functionsheet.h"
+"flareqt/functionsheet.h"
 
 // TnzQt includes
-#include "toonzqt/gutil.h"
-#include "toonzqt/functionviewer.h"
+"flareqt/gutil.h"
+"flareqt/functionviewer.h"
 
 // TnzLib includes
-#include "toonz/tframehandle.h"
-#include "toonz/doubleparamcmd.h"
-#include "toonz/preferences.h"
-#include "toonz/toonzfolders.h"
-#include "toonz/tstageobject.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/txsheet.h"
+"flare/tframehandle.h"
+"flare/doubleparamcmd.h"
+"flare/preferences.h"
+"flare/toonzfolders.h"
+"flare/tstageobject.h"
+"flare/txsheethandle.h"
+"flare/txsheet.h"
 
 // TnzBase includes
 #include "tunit.h"
@@ -1446,3 +1446,4 @@ void FunctionSheet::onZoomScaleChanged() {
   scroll(xyNew - xyOrig);
   update();
 }
+

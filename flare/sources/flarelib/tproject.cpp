@@ -1,15 +1,15 @@
 
 
-#include "toonz/tproject.h"
+"flare/tproject.h"
 
 // TnzLib includes
-#include "toonz/sceneproperties.h"
-#include "toonz/toonzscene.h"
-#include "toonz/txsheet.h"
-#include "toonz/observer.h"
-#include "toonz/toonzfolders.h"
-#include "toonz/cleanupparameters.h"
-#include "toonz/filepathproperties.h"
+"flare/sceneproperties.h"
+"flare/toonzscene.h"
+"flare/txsheet.h"
+"flare/observer.h"
+"flare/toonzfolders.h"
+"flare/cleanupparameters.h"
+"flare/filepathproperties.h"
 
 // TnzBase includes
 #include "tenv.h"
@@ -1196,3 +1196,4 @@ bool TProjectManager::isProject(const TFilePath &projectFolder) {
   TFilePath projectPath = projectFolderToProjectPath(projectFolder);
   return TFileStatus(projectPath).doesExist();
 }
+

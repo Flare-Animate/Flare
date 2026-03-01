@@ -2,8 +2,8 @@
 
 #include "styleselection.h"
 #include "menubarcommandids.h"
-#include "toonz/tpalettehandle.h"
-#include "toonz/tscenehandle.h"
+"flare/tpalettehandle.h"
+"flare/tscenehandle.h"
 #include "tapp.h"
 #include "toonzutil.h"
 
@@ -12,12 +12,12 @@
 #include "styledata.h"
 
 #include "tundo.h"
-#include "toonzqt/gutil.h"
+"flareqt/gutil.h"
 #include "tconvert.h"
 
-#include "toonzqt/dvdialog.h"
+"flareqt/dvdialog.h"
 
-#include "toonz/studiopalette.h"
+"flare/studiopalette.h"
 
 #include <QApplication>
 #include <QClipboard>
@@ -720,3 +720,4 @@ QByteArray TStyleSelection::toByteArray() const {
 const char *TStyleSelection::getMimeType() {
   return "application/vnd.toonz.style";
 }
+

@@ -1,14 +1,14 @@
 
 
-#include "toonzqt/keyframenavigator.h"
-#include "toonzqt/styleselection.h"
+"flareqt/keyframenavigator.h"
+"flareqt/styleselection.h"
 
-#include "toonzqt/gutil.h"
-#include "toonz/txsheet.h"
-#include "toonz/txshcolumn.h"
-#include "toonz/tstageobjectkeyframe.h"
-#include "toonz/stageobjectutil.h"
-#include "toonz/tapplication.h"
+"flareqt/gutil.h"
+"flare/txsheet.h"
+"flare/txshcolumn.h"
+"flare/tstageobjectkeyframe.h"
+"flare/stageobjectutil.h"
+"flare/tapplication.h"
 
 #include "tpixelutils.h"
 #include "tfx.h"
@@ -673,3 +673,4 @@ void FxKeyframeNavigator::hideEvent(QHideEvent *e) {
   disconnect(m_fxHandle);
   KeyframeNavigator::hideEvent(e);
 }
+

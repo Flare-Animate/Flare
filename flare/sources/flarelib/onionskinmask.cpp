@@ -4,10 +4,10 @@
 #include "tfilepath.h"
 
 // TnzLib includes
-#include "toonz/txshsimplelevel.h"
-#include "toonz/preferences.h"
+"flare/txshsimplelevel.h"
+"flare/preferences.h"
 
-#include "toonz/onionskinmask.h"
+"flare/onionskinmask.h"
 
 //*****************************************************************************************
 //    Macros
@@ -274,3 +274,4 @@ void OnionSkinMaskModifier::release(int row) {
     }
   }
 }
+

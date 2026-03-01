@@ -7,10 +7,10 @@
 #include <QComboBox>
 
 #include "tproperty.h"
-#include "toonzqt/intfield.h"
-#include "toonzqt/doublefield.h"
-#include "toonzqt/lineedit.h"
-#include "toonzqt/checkbox.h"
+"flareqt/intfield.h"
+"flareqt/doublefield.h"
+"flareqt/lineedit.h"
+"flareqt/checkbox.h"
 
 class QLabel;
 
@@ -114,3 +114,4 @@ private:
 //-----------------------------------------------------------------------------
 
 #endif  // DVWIDGETS_H
+

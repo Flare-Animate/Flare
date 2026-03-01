@@ -2,26 +2,26 @@
 
 #include "tapp.h"
 #include "tpalette.h"
-#include "toonz/txsheet.h"
-#include "toonz/toonzscene.h"
-#include "toonz/levelset.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/txshlevelcolumn.h"
-#include "toonz/txshcell.h"
+"flare/txsheet.h"
+"flare/toonzscene.h"
+"flare/levelset.h"
+"flare/txshsimplelevel.h"
+"flare/txshlevelcolumn.h"
+"flare/txshcell.h"
 //#include "tw/action.h"
 #include "tropcm.h"
 #include "ttoonzimage.h"
 #include "matchline.h"
-#include "toonz/scenefx.h"
-#include "toonz/dpiscale.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/palettecontroller.h"
-#include "toonz/tpalettehandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/txshleveltypes.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/tframehandle.h"
-#include "toonzqt/icongenerator.h"
+"flare/scenefx.h"
+"flare/dpiscale.h"
+"flare/txsheethandle.h"
+"flare/palettecontroller.h"
+"flare/tpalettehandle.h"
+"flare/txshlevelhandle.h"
+"flare/txshleveltypes.h"
+"flare/tscenehandle.h"
+"flare/tframehandle.h"
+"flareqt/icongenerator.h"
 #include <map>
 #include <QRadioButton>
 #include <QPushButton>
@@ -462,3 +462,4 @@ QString indexes2string(const std::set<TFrameId> fids) {
 }
 
 }  // namespace
+

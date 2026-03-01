@@ -8,16 +8,16 @@
 #include "tapp.h"
 
 // TnzQt includes
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/gutil.h"
+"flareqt/menubarcommand.h"
+"flareqt/gutil.h"
 
 // TnzLib includes
-#include "toonz/txsheet.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/toonzscene.h"
-#include "toonz/preferences.h"
+"flare/txsheet.h"
+"flare/tscenehandle.h"
+"flare/txsheethandle.h"
+"flare/sceneproperties.h"
+"flare/toonzscene.h"
+"flare/preferences.h"
 #include "toutputproperties.h"
 
 // TnzBase includes
@@ -775,3 +775,4 @@ void SceneSettingsPopup::onEditCellMarksButtonClicked() {
 
 OpenPopupCommandHandler<SceneSettingsPopup> openSceneSettingsPopup(
     MI_SceneSettings);
+

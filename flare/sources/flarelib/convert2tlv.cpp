@@ -11,16 +11,16 @@
 #include "tnzimage.h"
 #include "tsystem.h"
 #include "trop.h"
-#include "toonz/fill.h"
-#include "toonz/autoclose.h"
+"flare/fill.h"
+"flare/autoclose.h"
 #include "tenv.h"
 #include "convert2tlv.h"
 #include "tstream.h"
-#include "toonz/stage2.h"
+"flare/stage2.h"
 
 #include <map>
 
-#include "toonz/toonzfolders.h"
+"flare/toonzfolders.h"
 
 // gmt, 14/11/2013 removed a commented out blocks of code (void buildInks1(),
 // void buildPalette() )
@@ -985,3 +985,4 @@ TToonzImageP RasterToToonzRasterConverter::convert(const TRasterImageP &ri) {
   else
     return TToonzImageP();
 }
+

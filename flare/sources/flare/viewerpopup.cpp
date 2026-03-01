@@ -5,7 +5,7 @@
 #include "menubarcommandids.h"
 #include "pane.h"
 
-#include "toonzqt/gutil.h"
+"flareqt/gutil.h"
 
 #include <QSet>
 #include <QMimeData>
@@ -76,3 +76,4 @@ TFilePath getFirstFullPath(const TFilePath &levelPath)
 
 OpenFloatingPanel openFileViewerCommand(MI_OpenFileViewer, "FlipBook",
                                         QObject::tr("FlipBook"));
+

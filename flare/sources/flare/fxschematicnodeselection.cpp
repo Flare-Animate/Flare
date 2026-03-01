@@ -3,16 +3,16 @@
 #include "fxschematicnodeselection.h"
 #include "fxschematicnode.h"
 #include "tapp.h"
-#include "toonz/tfxhandle.h"
+"flare/tfxhandle.h"
 #include "menubarcommandids.h"
-#include "toonz/tcolumnfx.h"
+"flare/tcolumnfx.h"
 #include "fxcommand.h"
 
 #include "tundo.h"
-#include "toonz/fxdag.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/txsheet.h"
-#include "toonz/tcolumnfxset.h"
+"flare/fxdag.h"
+"flare/txsheethandle.h"
+"flare/txsheet.h"
+"flare/tcolumnfxset.h"
 
 //=========================================================
 //
@@ -201,3 +201,4 @@ void FxSchematicNodeSelection::removeFxs(const QList<TFx *> &fxs) {
   for (int i = 0; i < (int)fxs.size(); i++) TFxCommand::removeFx(fxs[i]);
   TApp::instance()->getCurrentXsheet()->notifyXsheetChanged();
 }
+

@@ -6,14 +6,14 @@
 #include "menubarcommandids.h"
 
 // TnzLib includes
-#include "toonz/preferences.h"
-#include "toonz/toonzscene.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/childstack.h"
+"flare/preferences.h"
+"flare/toonzscene.h"
+"flare/tscenehandle.h"
+"flare/childstack.h"
 
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/tselectionhandle.h"
-#include "toonzqt/dvscrollwidget.h"
+"flareqt/menubarcommand.h"
+"flareqt/tselectionhandle.h"
+"flareqt/dvscrollwidget.h"
 
 // Qt includes
 #include <QWidgetAction>
@@ -345,3 +345,4 @@ public:
 } ToggleXsheetBreadcrumbsCommand;
 
 }  // namespace XsheetGUI
+

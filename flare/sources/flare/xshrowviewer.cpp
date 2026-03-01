@@ -3,32 +3,32 @@
 #include "xshrowviewer.h"
 #include "xsheetviewer.h"
 #include "tapp.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/tframehandle.h"
-#include "toonz/tonionskinmaskhandle.h"
+"flare/tscenehandle.h"
+"flare/tframehandle.h"
+"flare/tonionskinmaskhandle.h"
 #include "xsheetdragtool.h"
-#include "toonzqt/gutil.h"
+"flareqt/gutil.h"
 #include "onionskinmaskgui.h"
 #include "cellselection.h"
 #include "menubarcommandids.h"
-#include "toonzqt/menubarcommand.h"
+"flareqt/menubarcommand.h"
 #if defined(x64)
 #include "../stopmotion/stopmotion.h"
 #endif
 
-#include "toonz/toonzscene.h"
+"flare/toonzscene.h"
 #include "tconvert.h"
 
-#include "toonz/txsheet.h"
-#include "toonz/sceneproperties.h"
+"flare/txsheet.h"
+"flare/sceneproperties.h"
 #include "toutputproperties.h"
-#include "toonz/preferences.h"
+"flare/preferences.h"
 
 #include "tools/toolhandle.h"
 #include "tools/toolcommandids.h"
-#include "toonz/tstageobject.h"
-#include "toonz/tpinnedrangeset.h"
-#include "toonz/navigationtags.h"
+"flare/tstageobject.h"
+"flare/tpinnedrangeset.h"
+"flare/navigationtags.h"
 
 #include <QPainter>
 #include <QMouseEvent>
@@ -1572,3 +1572,4 @@ void RowArea::onJumpToTag() {
 }
 
 }  // namespace XsheetGUI
+

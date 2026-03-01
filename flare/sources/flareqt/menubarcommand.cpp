@@ -1,10 +1,10 @@
 
 
-#include "toonzqt/menubarcommand.h"
+"flareqt/menubarcommand.h"
 // #include "menubarcommandids.h"
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/gutil.h"
-#include "toonz/toonzfolders.h"
+"flareqt/dvdialog.h"
+"flareqt/gutil.h"
+"flare/toonzfolders.h"
 #include "tsystem.h"
 #include <assert.h>
 #include <QObject>
@@ -613,3 +613,4 @@ void DVMenuAction::onTriggered(QAction *action) {
 }
 
 //-----------------------------------------------------------------------------
+

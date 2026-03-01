@@ -13,7 +13,7 @@
 #include "ext/plasticvisualsettings.h"
 
 // TnzLib includes
-#include "toonz/imagepainter.h"
+"flare/imagepainter.h"
 #include "stageplayer.h"
 
 #undef DVAPI
@@ -371,3 +371,4 @@ public:
 }  // namespace Stage
 
 #endif  // STAGEVISITOR_H
+

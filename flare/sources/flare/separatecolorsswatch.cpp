@@ -2,13 +2,13 @@
 
 #include "tapp.h"
 
-#include "toonzqt/styleeditor.h"
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/viewcommandids.h"
-#include "toonzqt/gutil.h"
-#include "toonzqt/dvdialog.h"
+"flareqt/styleeditor.h"
+"flareqt/menubarcommand.h"
+"flareqt/viewcommandids.h"
+"flareqt/gutil.h"
+"flareqt/dvdialog.h"
 
-#include "toonz/tcleanupper.h"
+"flare/tcleanupper.h"
 
 #include "tools/stylepicker.h"
 #include "tools/toolcommandids.h"

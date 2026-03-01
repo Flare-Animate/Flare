@@ -4,7 +4,7 @@
 #define TONIONSKINMASKHANDLE_H
 
 #include <QObject>
-#include "toonz/onionskinmask.h"
+"flare/onionskinmask.h"
 
 #include "tcommon.h"
 
@@ -46,3 +46,4 @@ signals:
 };
 
 #endif  // TONIONSKINMASKHANDLE_H
+

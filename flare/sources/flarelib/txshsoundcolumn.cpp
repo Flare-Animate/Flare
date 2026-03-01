@@ -1,17 +1,17 @@
 
 
-#include "toonz/txshsoundcolumn.h"
-#include "toonz/levelset.h"
-#include "toonz/txsheet.h"
-#include "toonz/toonzscene.h"
-#include "toonz/tproject.h"
-#include "toonz/sceneproperties.h"
+"flare/txshsoundcolumn.h"
+"flare/levelset.h"
+"flare/txsheet.h"
+"flare/toonzscene.h"
+"flare/tproject.h"
+"flare/sceneproperties.h"
 
 #include "tstream.h"
 #include "toutputproperties.h"
 #include "tsop.h"
 #include "tconvert.h"
-#include "toonz/preferences.h"
+"flare/preferences.h"
 
 #include <QAudioFormat>
 #include <QAudioDeviceInfo>
@@ -1146,3 +1146,4 @@ TSoundTrackP TXshSoundColumn::mixingTogether(
 }
 
 PERSIST_IDENTIFIER(TXshSoundColumn, "soundColumn")
+

@@ -1,7 +1,7 @@
 
 
-#include "toonz/ikengine.h"
-#include "toonz/ikjacobian.h"
+"flare/ikengine.h"
+"flare/ikjacobian.h"
 
 enum Method { JACOB_TRANS, PURE_PSEUDO, DLS, SDLS, COMPARE };
 
@@ -124,3 +124,4 @@ void IKEngine::setSequenceJoints() {
     }
   }
 }
+

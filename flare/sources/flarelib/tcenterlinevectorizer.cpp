@@ -5,8 +5,8 @@
 #include "tcenterlinevectP.h"
 
 // TnzLib includes
-#include "toonz/tcenterlinevectorizer.h"
-#include "toonz/Naa2TlvConverter.h"
+"flare/tcenterlinevectorizer.h"
+"flare/Naa2TlvConverter.h"
 
 // TnzCore includes
 #include "tpalette.h"
@@ -232,3 +232,4 @@ TVectorImageP VectorizerCore::centerlineVectorize(
 
   return result;
 }
+

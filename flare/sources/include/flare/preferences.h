@@ -12,8 +12,8 @@
 #include "tfilepath.h"
 
 // TnzLib includes
-#include "toonz/levelproperties.h"
-#include "toonz/preferencesitemids.h"
+"flare/levelproperties.h"
+"flare/preferencesitemids.h"
 
 // Qt includes
 #include <QString>
@@ -587,3 +587,4 @@ private:
 };
 
 #endif  // PREFERENCES_H
+

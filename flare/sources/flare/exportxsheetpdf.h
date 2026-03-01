@@ -3,8 +3,8 @@
 #ifndef EXPORTXSHEETPDF_H
 #define EXPORTXSHEETPDF_H
 
-#include "toonzqt/dvdialog.h"
-#include "toonz/txshcell.h"
+"flareqt/dvdialog.h"
+"flare/txshcell.h"
 
 #include <QMarginsF>
 #include <QSize>

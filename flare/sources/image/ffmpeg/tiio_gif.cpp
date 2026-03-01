@@ -3,7 +3,7 @@
 #include "tiio_gif.h"
 #include "trasterimage.h"
 #include "timageinfo.h"
-#include "toonz/stage.h"
+"flare/stage.h"
 #include <QStringList>
 
 //===========================================================

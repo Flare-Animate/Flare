@@ -1,7 +1,7 @@
 
 
-#include "toonz/tcamera.h"
-#include "toonz/stage.h"
+"flare/tcamera.h"
+"flare/stage.h"
 #include "tstream.h"
 #include "texception.h"
 
@@ -171,3 +171,4 @@ void TCamera::loadData(TIStream &is) {
     is.matchEndTag();
   }
 }
+

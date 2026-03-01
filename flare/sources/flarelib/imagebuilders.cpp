@@ -20,14 +20,14 @@
 #include "timagecache.h"
 
 // TnzLib includes
-#include "toonz/txshleveltypes.h"
-#include "toonz/levelproperties.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/fill.h"
-#include "toonz/dpiscale.h"
-#include "toonz/stage.h"
-#include "toonz/tcamera.h"
-#include "toonz/preferences.h"
+"flare/txshleveltypes.h"
+"flare/levelproperties.h"
+"flare/txshsimplelevel.h"
+"flare/fill.h"
+"flare/dpiscale.h"
+"flare/stage.h"
+"flare/tcamera.h"
+"flare/preferences.h"
 
 // Qt includes
 #include <QImage>
@@ -464,3 +464,4 @@ TImageP ImageFiller::build(int imFlags, void *extData) {
 
   return TRasterImageP(ras);
 }
+

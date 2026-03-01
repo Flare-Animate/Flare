@@ -17,23 +17,23 @@
 #include "batches.h"
 
 // TnzQt includes
-#include "toonzqt/imageutils.h"
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/infoviewer.h"
-#include "toonzqt/icongenerator.h"
-#include "toonzqt/gutil.h"
+"flareqt/imageutils.h"
+"flareqt/dvdialog.h"
+"flareqt/infoviewer.h"
+"flareqt/icongenerator.h"
+"flareqt/gutil.h"
 #include "historytypes.h"
-#include "toonzqt/menubarcommand.h"
+"flareqt/menubarcommand.h"
 
 // TnzLib includes
-#include "toonz/tproject.h"
-#include "toonz/toonzscene.h"
-#include "toonz/sceneresources.h"
-#include "toonz/preferences.h"
-#include "toonz/studiopalette.h"
-#include "toonz/palettecontroller.h"
-#include "toonz/tpalettehandle.h"
-#include "toonz/tscenehandle.h"
+"flare/tproject.h"
+"flare/toonzscene.h"
+"flare/sceneresources.h"
+"flare/preferences.h"
+"flare/studiopalette.h"
+"flare/palettecontroller.h"
+"flare/tpalettehandle.h"
+"flare/tscenehandle.h"
 
 // TnzCore includes
 #include "tfiletype.h"
@@ -683,3 +683,4 @@ public:
     fs->exportScene(fp);
   }
 } ExportCurrentSceneCommandHandler;
+

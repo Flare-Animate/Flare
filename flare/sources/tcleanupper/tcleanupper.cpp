@@ -4,25 +4,25 @@
 #include "tfarmcontroller.h"
 
 // TnzLib includes
-#include "toonz/txshleveltypes.h"
-#include "toonz/tpalettehandle.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/levelproperties.h"
-#include "toonz/levelupdater.h"
-#include "toonz/preferences.h"
-#include "toonz/toonzfolders.h"
-#include "toonz/toonzscene.h"
-#include "toonz/txshchildlevel.h"
-#include "toonz/tproject.h"
-#include "toonz/tcleanupper.h"
-#include "toonz/txsheet.h"
-#include "toonz/txshcell.h"
-#include "toonz/txshcolumn.h"
-#include "toonz/tlog.h"
-#include "toonz/imagestyles.h"
-#include "toonz/filepathproperties.h"
+"flare/txshleveltypes.h"
+"flare/tpalettehandle.h"
+"flare/tscenehandle.h"
+"flare/txshlevelhandle.h"
+"flare/sceneproperties.h"
+"flare/levelproperties.h"
+"flare/levelupdater.h"
+"flare/preferences.h"
+"flare/toonzfolders.h"
+"flare/toonzscene.h"
+"flare/txshchildlevel.h"
+"flare/tproject.h"
+"flare/tcleanupper.h"
+"flare/txsheet.h"
+"flare/txshcell.h"
+"flare/txshcolumn.h"
+"flare/tlog.h"
+"flare/imagestyles.h"
+"flare/filepathproperties.h"
 
 // TnzBase includes
 #include "tcli.h"
@@ -525,7 +525,7 @@ int main(int argc, char *argv[]) {
     fatalError(string("Directory \"") + ::to_string(fproot) +
                "\" not found or not readable");
 
-  TFilePath lRootDir    = TEnv::getStuffDir() + "toonzfarm";
+  TFilePath lRootDir    = TEnv::getStuffDir() + "FlareFarm";
   TFilePath logFilePath = lRootDir + "tcleanup.log";
   TUserLogAppend m_userLog(logFilePath);
 
@@ -854,3 +854,5 @@ int main(int argc, char *argv[]) {
   return 0;
 }
 //------------------------------------------------------------------------
+
+

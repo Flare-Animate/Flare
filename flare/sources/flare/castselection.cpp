@@ -3,21 +3,21 @@
 #include "castselection.h"
 #include "castviewer.h"
 #include "menubarcommandids.h"
-#include "toonzqt/icongenerator.h"
-#include "toonzqt/gutil.h"
+"flareqt/icongenerator.h"
+"flareqt/gutil.h"
 
-#include "toonz/toonzscene.h"
-#include "toonz/txshlevel.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/txshpalettelevel.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/sceneproperties.h"
+"flare/toonzscene.h"
+"flare/txshlevel.h"
+"flare/txshsimplelevel.h"
+"flare/txshpalettelevel.h"
+"flare/txshlevelhandle.h"
+"flare/tscenehandle.h"
+"flare/sceneproperties.h"
 #include "tapp.h"
-#include "toonz/stage2.h"
+"flare/stage2.h"
 #include "tsystem.h"
-#include "toonz/txshsoundlevel.h"
-#include "toonz/preferences.h"
+"flare/txshsoundlevel.h"
+"flare/preferences.h"
 
 //=============================================================================
 //
@@ -241,3 +241,4 @@ CastItems *CastItems::getSelectedItems(const std::set<int> &indices) const {
   }
   return c;
 }
+

@@ -24,41 +24,41 @@
 #include "tfxcachemanager.h"
 
 // TnzLib includes
-#include "toonz/toonzscene.h"
-#include "toonz/txsheet.h"
-#include "toonz/txshlevelcolumn.h"
-#include "toonz/txshpalettecolumn.h"
-#include "toonz/txshzeraryfxcolumn.h"
-#include "toonz/txshlevel.h"
-#include "toonz/txshcell.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/txshpalettelevel.h"
-#include "toonz/txshleveltypes.h"
-#include "toonz/levelset.h"
-#include "toonz/txshchildlevel.h"
-#include "toonz/fxdag.h"
-#include "toonz/tcolumnfxset.h"
-#include "toonz/stage.h"
-#include "toonz/fill.h"
-#include "toonz/tstageobjectid.h"
-#include "toonz/tstageobject.h"
-#include "toonz/levelproperties.h"
-#include "toonz/imagemanager.h"
-#include "toonz/toonzimageutils.h"
-#include "toonz/tvectorimageutils.h"
-#include "toonz/preferences.h"
-#include "toonz/dpiscale.h"
+"flare/toonzscene.h"
+"flare/txsheet.h"
+"flare/txshlevelcolumn.h"
+"flare/txshpalettecolumn.h"
+"flare/txshzeraryfxcolumn.h"
+"flare/txshlevel.h"
+"flare/txshcell.h"
+"flare/txshsimplelevel.h"
+"flare/txshpalettelevel.h"
+"flare/txshleveltypes.h"
+"flare/levelset.h"
+"flare/txshchildlevel.h"
+"flare/fxdag.h"
+"flare/tcolumnfxset.h"
+"flare/stage.h"
+"flare/fill.h"
+"flare/tstageobjectid.h"
+"flare/tstageobject.h"
+"flare/levelproperties.h"
+"flare/imagemanager.h"
+"flare/toonzimageutils.h"
+"flare/tvectorimageutils.h"
+"flare/preferences.h"
+"flare/dpiscale.h"
 #include "imagebuilders.h"
 
 // 4.6 compatibility - sandor fxs
-#include "toonz4.6/raster.h"
+#include "flare4.6/raster.h"
 #include "sandor_fxs/blend.h"
 extern "C" {
 #include "sandor_fxs/calligraph.h"
 #include "sandor_fxs/patternmap.h"
 }
 
-#include "toonz/tcolumnfx.h"
+"flare/tcolumnfx.h"
 
 //****************************************************************************************
 //    Preliminaries
@@ -1946,3 +1946,4 @@ bool TOutputFx::doGetBBox(double frame, TRectD &bBox,
 //-------------------------------------------------------------------
 
 std::string TOutputFx::getPluginId() const { return "Toonz_"; }
+

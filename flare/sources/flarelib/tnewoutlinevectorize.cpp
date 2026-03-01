@@ -34,7 +34,7 @@
 // STL includes
 #include <set>
 
-#include "toonz/tcenterlinevectorizer.h"
+"flare/tcenterlinevectorizer.h"
 
 //************************************************************************
 //    Local namespace stuff
@@ -826,3 +826,4 @@ TVectorImageP VectorizerCore::newOutlineVectorize(
 
   return output;
 }
+

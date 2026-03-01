@@ -3,7 +3,7 @@
 #ifndef SCRIPTBINDING_RASTERIZER_H
 #define SCRIPTBINDING_RASTERIZER_H
 
-#include "toonz/scriptbinding.h"
+"flare/scriptbinding.h"
 
 class ToonzScene;
 class TXshSimpleLevel;
@@ -52,3 +52,4 @@ public:
 Q_DECLARE_METATYPE(TScriptBinding::Rasterizer *)
 
 #endif
+

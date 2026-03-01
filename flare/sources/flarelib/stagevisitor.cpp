@@ -16,7 +16,7 @@
 #include "tcolorstyles.h"
 #include "timage_io.h"
 #include "tregion.h"
-#include "toonz/toonzscene.h"
+"flare/toonzscene.h"
 
 // TnzBase includes
 #include "tenv.h"
@@ -28,28 +28,28 @@
 #include "ext/plasticdeformerstorage.h"
 
 // TnzLib includes
-#include "toonz/stageplayer.h"
-#include "toonz/stage.h"
-#include "toonz/stage2.h"
-#include "toonz/tcolumnfx.h"
-#include "toonz/txsheet.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/txshchildlevel.h"
-#include "toonz/txshcolumn.h"
-#include "toonz/txshcell.h"
-#include "toonz/onionskinmask.h"
-#include "toonz/dpiscale.h"
-#include "toonz/imagemanager.h"
-#include "toonz/tstageobjecttree.h"
-#include "toonz/glrasterpainter.h"
-#include "toonz/preferences.h"
-#include "toonz/fill.h"
-#include "toonz/levelproperties.h"
-#include "toonz/autoclose.h"
-#include "toonz/txshleveltypes.h"
+"flare/stageplayer.h"
+"flare/stage.h"
+"flare/stage2.h"
+"flare/tcolumnfx.h"
+"flare/txsheet.h"
+"flare/txshsimplelevel.h"
+"flare/txshchildlevel.h"
+"flare/txshcolumn.h"
+"flare/txshcell.h"
+"flare/onionskinmask.h"
+"flare/dpiscale.h"
+"flare/imagemanager.h"
+"flare/tstageobjecttree.h"
+"flare/glrasterpainter.h"
+"flare/preferences.h"
+"flare/fill.h"
+"flare/levelproperties.h"
+"flare/autoclose.h"
+"flare/txshleveltypes.h"
 #include "imagebuilders.h"
-#include "toonz/tframehandle.h"
-#include "toonz/preferences.h"
+"flare/tframehandle.h"
+"flare/preferences.h"
 
 // Qt includes
 #include <QImage>
@@ -60,7 +60,7 @@
 #include <QThread>
 #include <QGuiApplication>
 
-#include "toonz/stagevisitor.h"
+"flare/stagevisitor.h"
 
 //**********************************************************************************************
 //    Stage namespace
@@ -1672,3 +1672,4 @@ void onPlasticDeformedImage(TStageObject *playerObj,
 }
 
 }  // namespace
+

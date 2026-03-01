@@ -17,26 +17,26 @@
 #include "tools/toolcommandids.h"
 
 // TnzQt includes
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/tmessageviewer.h"
-#include "toonzqt/icongenerator.h"
-#include "toonzqt/gutil.h"
-#include "toonzqt/pluginloader.h"
+"flareqt/dvdialog.h"
+"flareqt/menubarcommand.h"
+"flareqt/tmessageviewer.h"
+"flareqt/icongenerator.h"
+"flareqt/gutil.h"
+"flareqt/pluginloader.h"
 
 // TnzStdfx includes
 #include "stdfx/shaderfx.h"
 
 // TnzLib includes
-#include "toonz/preferences.h"
-#include "toonz/toonzfolders.h"
-#include "toonz/tproject.h"
-#include "toonz/studiopalette.h"
-#include "toonz/stylemanager.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/tproject.h"
-#include "toonz/scriptengine.h"
+"flare/preferences.h"
+"flare/toonzfolders.h"
+"flare/tproject.h"
+"flare/studiopalette.h"
+"flare/stylemanager.h"
+"flare/tscenehandle.h"
+"flare/txshsimplelevel.h"
+"flare/tproject.h"
+"flare/scriptengine.h"
 
 // TnzSound includes
 #include "tnzsound.h"
@@ -60,7 +60,7 @@
 #include "tofflinegl.h"
 #include "tpluginmanager.h"
 #include "tsimplecolorstyles.h"
-#include "toonz/imagestyles.h"
+"flare/imagestyles.h"
 #include "tvectorbrushstyle.h"
 #include "tfont.h"
 
@@ -879,3 +879,4 @@ if (QFileInfo(localSplashPath).exists() && QFileInfo(localSplashPath).isFile()) 
 
   return ret;
 }
+

@@ -1,14 +1,14 @@
 
 
-#include "toonz/dpiscale.h"
-#include "toonz/levelproperties.h"
-#include "toonz/toonzscene.h"
-#include "toonz/txsheet.h"
-#include "toonz/txshcell.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/tcamera.h"
-#include "toonz/txshleveltypes.h"
-#include "toonz/stage.h"
+"flare/dpiscale.h"
+"flare/levelproperties.h"
+"flare/toonzscene.h"
+"flare/txsheet.h"
+"flare/txshcell.h"
+"flare/txshsimplelevel.h"
+"flare/tcamera.h"
+"flare/txshleveltypes.h"
+"flare/stage.h"
 
 #include "timagecache.h"
 #include "trasterimage.h"
@@ -117,3 +117,4 @@ double getCurrentCameraStandDpi() {
 }
 
 #endif
+

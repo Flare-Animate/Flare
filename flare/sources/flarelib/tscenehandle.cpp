@@ -1,9 +1,9 @@
 #include <QTimer>
 
-#include "toonz/tscenehandle.h"
+"flare/tscenehandle.h"
 
-#include "toonz/toonzscene.h"
-#include "toonz/tproject.h"
+"flare/toonzscene.h"
+"flare/tproject.h"
 
 //=============================================================================
 // TSceneHandle
@@ -42,3 +42,4 @@ void TSceneHandle::setScene(ToonzScene *scene) {
     delayedTimer->start(3000);  // 1 sec was enough, but... dunno about toasters
   }
 }
+

@@ -8,18 +8,18 @@
 #include "filebrowserpopup.h"
 
 // TnzQt includes
-#include "toonzqt/gutil.h"
-#include "toonzqt/imageutils.h"
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/filefield.h"
-#include "toonzqt/checkbox.h"
-#include "toonzqt/icongenerator.h"
+"flareqt/gutil.h"
+"flareqt/imageutils.h"
+"flareqt/menubarcommand.h"
+"flareqt/filefield.h"
+"flareqt/checkbox.h"
+"flareqt/icongenerator.h"
 
 // TnzLib includes
-#include "toonz/tscenehandle.h"
-#include "toonz/toonzscene.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/tproject.h"
+"flare/tscenehandle.h"
+"flare/toonzscene.h"
+"flare/sceneproperties.h"
+"flare/tproject.h"
 
 // TnzCore includes
 #include "tsystem.h"
@@ -513,3 +513,4 @@ void ConvertFolderPopup::getFrameRange(const TFilePath& sourceFilePath,
 
 OpenPopupCommandHandler<ConvertFolderPopup> openConvertTZPInFolderPopup(
     MI_ConvertTZPInFolder);
+

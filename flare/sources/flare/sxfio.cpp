@@ -1,22 +1,22 @@
-﻿#include "sxfio.h"
+#include "sxfio.h"
 
 #include "tapp.h"
 #include "tsystem.h"
-#include "toonz/tproject.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/toonzscene.h"
-#include "toonz/sceneproperties.h"
+"flare/tproject.h"
+"flare/tscenehandle.h"
+"flare/txsheethandle.h"
+"flare/toonzscene.h"
+"flare/sceneproperties.h"
 #include "toutputproperties.h"
 
 #include "xdtsimportpopup.h"
 #include "filebrowserpopup.h"
-#include "toonz/txshcell.h"
-#include "toonz/txshleveltypes.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/preferences.h"
+"flare/txshcell.h"
+"flare/txshleveltypes.h"
+"flare/txshsimplelevel.h"
+"flare/preferences.h"
 
-#include "toonzqt/menubarcommand.h"
+"flareqt/menubarcommand.h"
 #include "menubarcommandids.h"
 
 #include <QFile>

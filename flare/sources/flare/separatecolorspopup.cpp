@@ -10,17 +10,17 @@
 #include "filebrowser.h"
 #include "filebrowserpopup.h"
 
-#include "toonzqt/gutil.h"
-#include "toonzqt/imageutils.h"
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/filefield.h"
-#include "toonzqt/intfield.h"
-#include "toonzqt/colorfield.h"
-#include "toonzqt/checkbox.h"
-#include "toonzqt/doublefield.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/toonzscene.h"
-#include "toonz/sceneproperties.h"
+"flareqt/gutil.h"
+"flareqt/imageutils.h"
+"flareqt/menubarcommand.h"
+"flareqt/filefield.h"
+"flareqt/intfield.h"
+"flareqt/colorfield.h"
+"flareqt/checkbox.h"
+"flareqt/doublefield.h"
+"flare/tscenehandle.h"
+"flare/toonzscene.h"
+"flare/sceneproperties.h"
 #include "tsystem.h"
 #include "tenv.h"
 #include "tpixelutils.h"
@@ -1962,3 +1962,4 @@ void SeparateColorsPopup::onSaveInPathChanged() {
 
 OpenPopupCommandHandler<SeparateColorsPopup> openSeparateColorsPopup(
     MI_SeparateColors);
+

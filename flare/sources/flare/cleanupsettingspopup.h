@@ -4,11 +4,11 @@
 #define CLEANUPSETTINGSPOPUP__H
 
 // ToonzQt includes
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/cleanupcamerasettingswidget.h"
+"flareqt/dvdialog.h"
+"flareqt/cleanupcamerasettingswidget.h"
 
 // ToonzLib includes
-#include "toonz/cleanupparameters.h"
+"flare/cleanupparameters.h"
 
 // TnzCore includes
 #include "tfilepath.h"
@@ -175,3 +175,4 @@ private slots:
 };
 
 #endif  // CLEANUPSETTINGSPOPUP__H
+

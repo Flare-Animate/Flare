@@ -8,8 +8,8 @@
 #include "drawutil.h"
 #include "tools/toolhandle.h"
 #include "tools/cursors.h"
-#include "toonz/stage2.h"
-#include "toonz/tobjecthandle.h"
+"flare/stage2.h"
+"flare/tobjecthandle.h"
 
 #include <QKeyEvent>
 
@@ -1407,3 +1407,4 @@ bool SelectionTool::isEventAcceptable(QEvent *e) {
   return (key == Qt::Key_Up || key == Qt::Key_Down || key == Qt::Key_Left ||
           key == Qt::Key_Right);
 }
+

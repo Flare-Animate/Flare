@@ -25,9 +25,9 @@ m_ras - stores the pointer to the original RASTER picture
 
 ************************************************************/
 
-#include "toonz4.6/udit.h"
-#include "toonz4.6/raster.h"
-#include "toonz4.6/pixel.h"
+#include "flare4.6/udit.h"
+#include "flare4.6/raster.h"
+#include "flare4.6/pixel.h"
 #include "SDef.h"
 #include "SError.h"
 

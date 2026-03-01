@@ -1,15 +1,15 @@
 
 
-#include "toonzqt/paramfield.h"
-#include "toonzqt/gutil.h"
-#include "toonzqt/fxsettings.h"
-#include "toonzqt/intfield.h"
-#include "toonzqt/spectrumfield.h"
-#include "toonzqt/colorfield.h"
-#include "toonzqt/doublepairfield.h"
-#include "toonzqt/tonecurvefield.h"
-#include "toonzqt/checkbox.h"
-#include "toonzqt/menubarcommand.h"
+"flareqt/paramfield.h"
+"flareqt/gutil.h"
+"flareqt/fxsettings.h"
+"flareqt/intfield.h"
+"flareqt/spectrumfield.h"
+"flareqt/colorfield.h"
+"flareqt/doublepairfield.h"
+"flareqt/tonecurvefield.h"
+"flareqt/checkbox.h"
+"flareqt/menubarcommand.h"
 
 #include "tdoubleparam.h"
 #include "tnotanimatableparam.h"
@@ -2640,3 +2640,4 @@ ParamField *make_combobox(QWidget *parent, QString name, TParamP const &param) {
 
   return NULL;
 }
+

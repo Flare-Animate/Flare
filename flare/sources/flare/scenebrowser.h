@@ -12,7 +12,7 @@
 #include <QModelIndex>
 #include "dvitemview.h"
 #include "tfilepath.h"
-#include "toonzqt/dvdialog.h"
+"flareqt/dvdialog.h"
 #include "versioncontrol.h"
 #include "filebrowser.h"
 
@@ -258,3 +258,4 @@ private:
 //-----------------------------------------------------------
 
 #endif
+

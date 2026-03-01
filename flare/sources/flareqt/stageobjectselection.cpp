@@ -3,17 +3,17 @@
 #include "stageobjectselection.h"
 #include "tundo.h"
 #include "tconst.h"
-#include "toonzqt/schematicnode.h"
-#include "toonzqt/stageschematicnode.h"
-#include "toonzqt/stageobjectsdata.h"
-#include "toonz/tstageobject.h"
-#include "toonz/tstageobjectcmd.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/txsheet.h"
-#include "toonz/tstageobjecttree.h"
+"flareqt/schematicnode.h"
+"flareqt/stageschematicnode.h"
+"flareqt/stageobjectsdata.h"
+"flare/tstageobject.h"
+"flare/tstageobjectcmd.h"
+"flare/txsheethandle.h"
+"flare/tcolumnhandle.h"
+"flare/txsheet.h"
+"flare/tstageobjecttree.h"
 
-#include "toonzqt/selectioncommandids.h"
+"flareqt/selectioncommandids.h"
 #include "historytypes.h"
 
 #include <QSet>
@@ -402,3 +402,4 @@ void StageObjectSelection::cutSelection() {
   copySelection();
   deleteSelection();
 }
+

@@ -5,7 +5,7 @@
 
 #include "tcommon.h"
 
-#include "toonz/txshchildlevel.h"
+"flare/txshchildlevel.h"
 
 #undef DVAPI
 #undef DVVAR
@@ -143,3 +143,4 @@ private:
 };
 
 #endif
+

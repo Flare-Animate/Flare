@@ -3,7 +3,7 @@
 #ifndef TCELLSELECTION_H
 #define TCELLSELECTION_H
 
-#include "toonzqt/selection.h"
+"flareqt/selection.h"
 #include "tgeometry.h"
 #include <set>
 
@@ -134,3 +134,4 @@ public:
 };
 
 #endif  // TCELLSELECTION_H
+

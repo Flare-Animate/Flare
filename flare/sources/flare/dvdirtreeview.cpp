@@ -6,20 +6,20 @@
 #include "filebrowser.h"
 #include "menubarcommandids.h"
 #include "tapp.h"
-#include "toonz/tscenehandle.h"
+"flare/tscenehandle.h"
 
 // TnzQt includes
-#include "toonzqt/icongenerator.h"
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/gutil.h"
+"flareqt/icongenerator.h"
+"flareqt/dvdialog.h"
+"flareqt/gutil.h"
 
 // ToonzLib
 #include "tconvert.h"
-#include "toonz/toonzscene.h"
-#include "toonz/namebuilder.h"
-#include "toonz/tproject.h"
-#include "toonz/preferences.h"
-#include "toonz/txshsimplelevel.h"
+"flare/toonzscene.h"
+"flare/namebuilder.h"
+"flare/tproject.h"
+"flare/preferences.h"
+"flare/txshsimplelevel.h"
 #include "tsystem.h"
 
 // Qt includes
@@ -1846,3 +1846,4 @@ void NodeEditor::focusInEvent(QFocusEvent *) {
 //-----------------------------------------------------------------------------
 
 void NodeEditor::emitFinished() { emit editingFinished(); }
+

@@ -8,9 +8,9 @@
 #include "ext/plasticdeformerstorage.h"
 
 // TnzLib includes
-#include "toonz/txshcell.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/tframehandle.h"
+"flare/txshcell.h"
+"flare/txshsimplelevel.h"
+"flare/tframehandle.h"
 
 // tcg includes
 #include "tcg/tcg_point_ops.h"
@@ -277,3 +277,4 @@ void PlasticTool::draw_rigidity() {
   glColor3f(1.0f, 0.0f, 0.0f);  // Red
   tglDrawCircle(m_pos, m_thickness.getValue());
 }
+

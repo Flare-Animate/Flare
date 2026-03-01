@@ -7,37 +7,37 @@
 #include "tapp.h"
 #include "levelcommand.h"
 #include "formatsettingspopups.h"
-#include "toonz/stage.h"
+"flare/stage.h"
 
 // TnzTools includes
 #include "tools/toolhandle.h"
 
 // TnzQt includes
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/gutil.h"
-#include "toonzqt/doublefield.h"
+"flareqt/menubarcommand.h"
+"flareqt/gutil.h"
+"flareqt/doublefield.h"
 #include "historytypes.h"
 
 // TnzLib includes
-#include "toonz/toonzscene.h"
-#include "toonz/txsheet.h"
-#include "toonz/txshcell.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/txshleveltypes.h"
-#include "toonz/levelset.h"
-#include "toonz/levelproperties.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/tcamera.h"
-#include "toonz/tframehandle.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/tpalettehandle.h"
-#include "toonz/preferences.h"
-#include "toonz/palettecontroller.h"
-#include "toonz/tproject.h"
-#include "toonz/namebuilder.h"
-#include "toonz/childstack.h"
+"flare/toonzscene.h"
+"flare/txsheet.h"
+"flare/txshcell.h"
+"flare/txshsimplelevel.h"
+"flare/txshleveltypes.h"
+"flare/levelset.h"
+"flare/levelproperties.h"
+"flare/sceneproperties.h"
+"flare/tcamera.h"
+"flare/tframehandle.h"
+"flare/tcolumnhandle.h"
+"flare/tscenehandle.h"
+"flare/txsheethandle.h"
+"flare/tpalettehandle.h"
+"flare/preferences.h"
+"flare/palettecontroller.h"
+"flare/tproject.h"
+"flare/namebuilder.h"
+"flare/childstack.h"
 #include "toutputproperties.h"
 
 // TnzCore includes
@@ -740,3 +740,4 @@ void LevelCreatePopup::update() {
 //-----------------------------------------------------------------------------
 
 OpenPopupCommandHandler<LevelCreatePopup> openLevelCreatePopup(MI_NewLevel);
+

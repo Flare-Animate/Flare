@@ -26,23 +26,23 @@
 #include "ext/meshutils.h"
 
 // TnzLib includes
-#include "toonz/toonzscene.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/txsheet.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/txshlevel.h"
-#include "toonz/txshleveltypes.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/txshchildlevel.h"
-#include "toonz/tstageobjectspline.h"
-#include "toonz/preferences.h"
-#include "toonz/sceneresources.h"
-#include "toonz/stage2.h"
+"flare/toonzscene.h"
+"flare/sceneproperties.h"
+"flare/txsheet.h"
+"flare/tscenehandle.h"
+"flare/txshlevel.h"
+"flare/txshleveltypes.h"
+"flare/txshsimplelevel.h"
+"flare/txshchildlevel.h"
+"flare/tstageobjectspline.h"
+"flare/preferences.h"
+"flare/sceneresources.h"
+"flare/stage2.h"
 
 // TnzQt includes
-#include "toonzqt/gutil.h"
+"flareqt/gutil.h"
 
-#include "toonzqt/icongenerator.h"
+"flareqt/icongenerator.h"
 
 //=============================================================================
 
@@ -1811,3 +1811,4 @@ void IconGenerator::onTerminated(TThread::RunnableP iconRenderer) {
   ir->wasTerminated() = true;
   m_iconsTerminationLoop.exec();
 }
+

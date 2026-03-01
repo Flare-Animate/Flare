@@ -3,20 +3,20 @@
 #include "celldata.h"
 #include <assert.h>
 
-#include "toonz/txsheet.h"
-#include "toonz/txshcolumn.h"
-#include "toonz/txshleveltypes.h"
-#include "toonz/txshzeraryfxcolumn.h"
-#include "toonz/txshzeraryfxlevel.h"
-#include "toonz/tcolumnfx.h"
-#include "toonz/fxdag.h"
-#include "toonz/txshlevelcolumn.h"
-#include "toonz/preferences.h"
-#include "toonz/tstageobject.h"
+"flare/txsheet.h"
+"flare/txshcolumn.h"
+"flare/txshleveltypes.h"
+"flare/txshzeraryfxcolumn.h"
+"flare/txshzeraryfxlevel.h"
+"flare/tcolumnfx.h"
+"flare/fxdag.h"
+"flare/txshlevelcolumn.h"
+"flare/preferences.h"
+"flare/tstageobject.h"
 #include "tapp.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/toonzscene.h"
-#include "toonz/levelset.h"
+"flare/tscenehandle.h"
+"flare/toonzscene.h"
+"flare/levelset.h"
 
 //-----------------------------------------------------------------------------
 
@@ -224,3 +224,4 @@ void TCellData::cloneZeraryFx(int index, std::vector<TXshCell> &cells) const {
       cells[r] = TXshCell(newFxLevel, m_cells[r].getFrameId());
   }
 }
+

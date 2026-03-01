@@ -5,23 +5,23 @@
 #include "menubarcommandids.h"
 
 // TnzQt includes
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/flipconsole.h"
-#include "toonzqt/gutil.h"
+"flareqt/menubarcommand.h"
+"flareqt/flipconsole.h"
+"flareqt/gutil.h"
 
 // Tnzlib includes
-#include "toonz/tproject.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/toonzscene.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/txshleveltypes.h"
-#include "toonz/toonzfolders.h"
-#include "toonz/tframehandle.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/levelproperties.h"
-#include "toonz/preferences.h"
+"flare/tproject.h"
+"flare/tscenehandle.h"
+"flare/toonzscene.h"
+"flare/sceneproperties.h"
+"flare/txshleveltypes.h"
+"flare/toonzfolders.h"
+"flare/tframehandle.h"
+"flare/tcolumnhandle.h"
+"flare/txsheethandle.h"
+"flare/txshsimplelevel.h"
+"flare/levelproperties.h"
+"flare/preferences.h"
 
 // TnzCore includes
 #include "tsystem.h"
@@ -954,3 +954,4 @@ void AudioLevelsDisplay::paintEvent(QPaintEvent *event) {
 
 OpenPopupCommandHandler<AudioRecordingPopup> openAudioRecordingPopup(
     MI_AudioRecording);
+

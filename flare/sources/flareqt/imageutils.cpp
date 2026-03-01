@@ -1,24 +1,24 @@
 
 
 // TnzQt includes
-#include "toonzqt/seethroughwindow.h"
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/viewcommandids.h"
-#include "toonzqt/imageutils.h"
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/gutil.h"
+"flareqt/seethroughwindow.h"
+"flareqt/menubarcommand.h"
+"flareqt/viewcommandids.h"
+"flareqt/imageutils.h"
+"flareqt/dvdialog.h"
+"flareqt/gutil.h"
 
 // Qt Includes:
 #include <QScreen>
 #include <QWindow>
 
 // TnzLib includes
-#include "toonz/preferences.h"
-#include "toonz/namebuilder.h"
-#include "toonz/toonzscene.h"
-#include "toonz/tproject.h"
-#include "toonz/Naa2TlvConverter.h"
-#include "toonz/toonzimageutils.h"
+"flare/preferences.h"
+"flare/namebuilder.h"
+"flare/toonzscene.h"
+"flare/tproject.h"
+"flare/Naa2TlvConverter.h"
+"flare/toonzimageutils.h"
 
 #ifdef _WIN32
 #include "avicodecrestrictions.h"
@@ -1128,3 +1128,4 @@ void FullScreenWidget::opacityChanged(int value, bool &hideMain) {
 }
 
 }  // namespace ImageUtils
+

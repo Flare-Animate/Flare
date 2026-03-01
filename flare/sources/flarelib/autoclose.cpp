@@ -1,12 +1,12 @@
-﻿
+
 
 // #define AUTOCLOSE_DEBUG
 
 #include "texception.h"
-#include "toonz/autoclose.h"
+"flare/autoclose.h"
 #include "trastercm.h"
 #include "skeletonlut.h"
-#include "toonz/fill.h"
+"flare/fill.h"
 #include <set>
 #include <queue>
 #include <unordered_set>
@@ -1592,3 +1592,4 @@ void TAutocloser::compute(std::vector<Segment> &closingSegmentArray) {
 void TAutocloser::draw(const std::vector<Segment> &closingSegmentArray) {
   m_imp->draw(closingSegmentArray);
 }
+

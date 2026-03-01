@@ -7,7 +7,7 @@
 #include <QPixmap>
 #include <QMap>
 #include "tfilepath.h"
-#include "toonz/toonzfolders.h"
+"flare/toonzfolders.h"
 
 #include "versioncontrol.h"
 
@@ -399,3 +399,4 @@ protected slots:
 };
 
 #endif
+

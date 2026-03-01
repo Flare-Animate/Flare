@@ -10,18 +10,18 @@
 #include "levelcommand.h"
 
 // TnzLib includes
-#include "toonz/txsheethandle.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/txsheet.h"
-#include "toonz/columnfan.h"
-#include "toonz/txshleveltypes.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/txshcell.h"
-#include "toonz/levelproperties.h"
+"flare/txsheethandle.h"
+"flare/tscenehandle.h"
+"flare/txsheet.h"
+"flare/columnfan.h"
+"flare/txshleveltypes.h"
+"flare/txshsimplelevel.h"
+"flare/txshcell.h"
+"flare/levelproperties.h"
 #include "orientation.h"
-#include "toonz/preferences.h"
-#include "toonz/txshchildlevel.h"
-#include "toonz/tcolumnhandle.h"
+"flare/preferences.h"
+"flare/txshchildlevel.h"
+"flare/tcolumnhandle.h"
 
 // TnzCore includes
 #include "tvectorimage.h"
@@ -354,3 +354,4 @@ void TColumnSelection::getLevelSetFromColumnIndices(const std::set<int>& indices
         }
     }
 }
+

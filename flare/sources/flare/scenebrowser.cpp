@@ -16,22 +16,22 @@
 #include "tapp.h"
 
 // TnzQt includes
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/icongenerator.h"
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/gutil.h"
-#include "toonzqt/trepetitionguard.h"
+"flareqt/dvdialog.h"
+"flareqt/icongenerator.h"
+"flareqt/menubarcommand.h"
+"flareqt/gutil.h"
+"flareqt/trepetitionguard.h"
 
 // TnzLib includes
-#include "toonz/tscenehandle.h"
-#include "toonz/toonzscene.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/txshsoundlevel.h"
-#include "toonz/tproject.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/namebuilder.h"
-#include "toonz/toonzimageutils.h"
-#include "toonz/preferences.h"
+"flare/tscenehandle.h"
+"flare/toonzscene.h"
+"flare/txshsimplelevel.h"
+"flare/txshsoundlevel.h"
+"flare/tproject.h"
+"flare/txshlevelhandle.h"
+"flare/namebuilder.h"
+"flare/toonzimageutils.h"
+"flare/preferences.h"
 
 // TnzBase includes
 #include "tenv.h"
@@ -2203,3 +2203,4 @@ void SceneBrowser::tryToOpenScene(const TFilePath &filePath) {
 OpenFloatingPanel openPreproductionBoardPane(
     MI_OpenPreproductionBoard, "PreproductionBoard",
     QObject::tr("Preproduction Board"));
+

@@ -4,8 +4,8 @@
 #define FILMSTRIP_H
 
 // TnzQt includes
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/selection.h"
+"flareqt/dvdialog.h"
+"flareqt/selection.h"
 #include "saveloadqsettings.h"
 
 // Qt includes
@@ -296,3 +296,4 @@ public:
 };
 
 #endif  // FILMSTRIP_H
+

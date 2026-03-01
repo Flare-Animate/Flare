@@ -5,16 +5,16 @@
 #include "tsystem.h"
 #include "tconvert.h"
 #include "tenv.h"
-#include "toonz/tproject.h"
-#include "toonz/toonzscene.h"
-#include "toonzqt/gutil.h"
+"flare/tproject.h"
+"flare/toonzscene.h"
+"flareqt/gutil.h"
 
 #include "filebrowser.h"
 #include "history.h"
 #include "iocommand.h"
 
 #include "tapp.h"
-#include "toonz/tscenehandle.h"
+"flare/tscenehandle.h"
 
 #include <QFileInfo>
 #include <QDir>
@@ -1536,3 +1536,4 @@ void DvDirModel::onPreferenceChanged(const QString &prefName) {
     rootNode->updateSceneFolderNodeVisibility(priority ==
                                               Preferences::ProjectFolderOnly);
 }
+

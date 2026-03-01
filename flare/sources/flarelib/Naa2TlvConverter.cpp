@@ -1,9 +1,9 @@
 
 
-#include "toonz/Naa2TlvConverter.h"
+"flare/Naa2TlvConverter.h"
 
-#include "toonz/tcenterlinevectorizer.h"
-#include "toonz/stage.h"
+"flare/tcenterlinevectorizer.h"
+"flare/stage.h"
 #include "tpixelutils.h"
 #include "tpalette.h"
 
@@ -1191,3 +1191,4 @@ void Naa2TlvConverter::removeUnusedStyles(const QList<int> &styleIds) {
     if (page->getStyleCount() == 0) m_palette->erasePage(p);
   }
 }
+

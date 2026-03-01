@@ -11,29 +11,29 @@
 #include "tools/tooloptions.h"
 
 // TnzQt includes
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/doublefield.h"
-#include "toonzqt/lineedit.h"
-#include "toonzqt/checkbox.h"
-#include "toonzqt/tselectionhandle.h"
-#include "toonzqt/camerasettingswidget.h"
+"flareqt/menubarcommand.h"
+"flareqt/doublefield.h"
+"flareqt/lineedit.h"
+"flareqt/checkbox.h"
+"flareqt/tselectionhandle.h"
+"flareqt/camerasettingswidget.h"
 
 // TnzLib includes
-#include "toonz/toonzfolders.h"
-#include "toonz/txsheet.h"
-#include "toonz/tstageobjecttree.h"
-#include "toonz/tcamera.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/tobjecthandle.h"
-#include "toonz/cleanupparameters.h"
-#include "toonz/toonzscene.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/stage2.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/txshleveltypes.h"
-#include "toonz/preferences.h"
+"flare/toonzfolders.h"
+"flare/txsheet.h"
+"flare/tstageobjecttree.h"
+"flare/tcamera.h"
+"flare/txshlevelhandle.h"
+"flare/txsheethandle.h"
+"flare/tscenehandle.h"
+"flare/tobjecthandle.h"
+"flare/cleanupparameters.h"
+"flare/toonzscene.h"
+"flare/sceneproperties.h"
+"flare/stage2.h"
+"flare/txshsimplelevel.h"
+"flare/txshleveltypes.h"
+"flare/preferences.h"
 
 // TnzCore includes
 #include "tconvert.h"
@@ -260,3 +260,4 @@ void CameraSettingsPopup::onLevelSwitched(TXshLevel *) {
 
 OpenPopupCommandHandler<CameraSettingsPopup> openCameraSettingsPopup(
     MI_CameraSettings);
+

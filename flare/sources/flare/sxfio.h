@@ -6,7 +6,7 @@
 #include <QStringList>
 #include <QList>
 #include <array>
-#include "toonz/txsheet.h"
+"flare/txsheet.h"
 #include "tenv.h"
 #include "xsheetviewer.h"
 
@@ -162,3 +162,4 @@ bool loadSxfScene(ToonzScene* scene, const TFilePath& scenePath);
 }  // namespace SxfIo
 
 #endif
+

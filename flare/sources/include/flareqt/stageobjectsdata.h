@@ -7,12 +7,12 @@
 #include "tconst.h"
 
 // TnzLib includes
-#include "toonz/tstageobjectid.h"
-#include "toonz/txshcolumn.h"
-#include "toonz/tcamera.h"
+"flare/tstageobjectid.h"
+"flare/txshcolumn.h"
+"flare/tcamera.h"
 
 // TnzQt includes
-#include "toonzqt/dvmimedata.h"
+"flareqt/dvmimedata.h"
 
 // STL include
 #include <set>
@@ -138,3 +138,4 @@ public:
 };
 
 #endif  // STAGEOBJECT_DATA_H
+

@@ -4,7 +4,7 @@
 #include "mypainttoonzbrush.h"
 #include "tropcm.h"
 #include "tpixelutils.h"
-#include <toonz/mypainthelpers.hpp>
+<flare/mypainthelpers.hpp>
 
 #include <QColor>
 
@@ -226,3 +226,4 @@ void MyPaintToonzBrush::updateDrawing(const TRasterCM32P rasCM,
   putOnRasterCM(rasCM->extract(targetRect), m_ras->extract(targetRect), styleId,
                 lockAlpha);
 }
+

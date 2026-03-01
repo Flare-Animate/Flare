@@ -11,19 +11,19 @@
 #include "saveloadqsettings.h"
 
 // TnzLib includes
-#include "toonz/tpalettehandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/txshlevel.h"
-#include "toonz/stylemanager.h"
+"flare/tpalettehandle.h"
+"flare/txshlevelhandle.h"
+"flare/txshlevel.h"
+"flare/stylemanager.h"
 
 // TnzQt includes
-#include "toonzqt/checkbox.h"
-#include "toonzqt/intfield.h"
-#include "toonzqt/doublefield.h"
-#include "toonzqt/colorfield.h"
-#include "toonzqt/tabbar.h"
-#include "toonzqt/glwidget_for_highdpi.h"
-#include "toonzqt/hexcolornames.h"
+"flareqt/checkbox.h"
+"flareqt/intfield.h"
+"flareqt/doublefield.h"
+"flareqt/colorfield.h"
+"flareqt/tabbar.h"
+"flareqt/glwidget_for_highdpi.h"
+"flareqt/hexcolornames.h"
 
 // Qt includes
 #include <QWidget>
@@ -1068,3 +1068,4 @@ private:
 };
 
 #endif  // STYLEEDITOR_H
+

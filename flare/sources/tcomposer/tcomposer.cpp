@@ -10,27 +10,27 @@
 #include "stdfx/shaderfx.h"
 
 // TnzLib includes
-#include "toonz/toonzfolders.h"
-#include "toonz/tlog.h"
-#include "toonz/tstageobjecttree.h"
-#include "toonz/stage.h"
-#include "toonz/preferences.h"
-#include "toonz/tproject.h"
-#include "toonz/toonzscene.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/txshsoundlevel.h"
-#include "toonz/txshsoundcolumn.h"
-#include "toonz/tcamera.h"
-#include "toonz/scenefx.h"
-#include "toonz/movierenderer.h"
-#include "toonz/multimediarenderer.h"
+"flare/toonzfolders.h"
+"flare/tlog.h"
+"flare/tstageobjecttree.h"
+"flare/stage.h"
+"flare/preferences.h"
+"flare/tproject.h"
+"flare/toonzscene.h"
+"flare/sceneproperties.h"
+"flare/txshsoundlevel.h"
+"flare/txshsoundcolumn.h"
+"flare/tcamera.h"
+"flare/scenefx.h"
+"flare/movierenderer.h"
+"flare/multimediarenderer.h"
 #include "toutputproperties.h"
-#include "toonz/imagestyles.h"
+"flare/imagestyles.h"
 #include "tproperty.h"
-#include "toonz/levelset.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/levelproperties.h"
-#include "toonz/filepathproperties.h"
+"flare/levelset.h"
+"flare/txshsimplelevel.h"
+"flare/levelproperties.h"
+"flare/filepathproperties.h"
 
 // TnzSound includes
 #include "tnzsound.h"
@@ -68,7 +68,7 @@
 #include "tpalette.h"
 
 // TnzQt includes
-#include "toonzqt/pluginloader.h"
+"flareqt/pluginloader.h"
 
 // Qt includes
 #include <QApplication>
@@ -734,7 +734,7 @@ int main(int argc, char *argv[]) {
     fatalError(string("Directory \"") + ::to_string(fp) +
                "\" not found or not readable");
 
-  TFilePath lRootDir    = fp + "toonzfarm";
+  TFilePath lRootDir    = fp + "FlareFarm";
   TFilePath logFilePath = lRootDir + "tcomposer.log";
   m_userLog             = new TUserLogAppend(logFilePath);
   string msg;
@@ -1037,3 +1037,5 @@ int main(int argc, char *argv[]) {
   if (framePair.first != framePair.second) return -1;
   return 0;
 }
+
+

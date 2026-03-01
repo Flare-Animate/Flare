@@ -10,15 +10,15 @@
 #include "columnselection.h"
 
 // TnzQt includes
-#include "toonzqt/selection.h"
-#include "toonzqt/tselectionhandle.h"
+"flareqt/selection.h"
+"flareqt/tselectionhandle.h"
 
 // TnzLib includes
-#include "toonz/txsheet.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/txshcell.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/txshlevelhandle.h"
+"flare/txsheet.h"
+"flare/txshsimplelevel.h"
+"flare/txshcell.h"
+"flare/txsheethandle.h"
+"flare/txshlevelhandle.h"
 
 // tcg includes
 #include "tcg/boost/range_utility.h"
@@ -256,3 +256,4 @@ template void getSelectedFrames<TXshLevel>(
 // std::set<TFrameId> >&);
 // template void getSelectedFrames<TXshChildLevel>(std::map<TXshChildLevel*,
 // std::set<TFrameId> >&);
+

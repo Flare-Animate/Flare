@@ -16,8 +16,8 @@
 #include "tvectorbrushstyle.h"
 
 // TnzLib includes
-#include "toonz/imagestyles.h"
-#include "toonz/toonzfolders.h"
+"flare/imagestyles.h"
+"flare/toonzfolders.h"
 
 // Qt includes
 #include <QDir>
@@ -28,7 +28,7 @@
 #include <QOpenGLContext>
 #include <QOpenGLFramebufferObject>
 
-#include "toonz/stylemanager.h"
+"flare/stylemanager.h"
 
 #include <QVector>
 
@@ -667,3 +667,4 @@ void SpecialStyleManager::loadItems() {
 
   m_loaded = true;
 }
+

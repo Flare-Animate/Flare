@@ -19,21 +19,21 @@
 #include "tools/toolhandle.h"
 
 // TnzQt includes
-#include "toonzqt/gutil.h"
-#include "toonzqt/icongenerator.h"
-#include "toonzqt/viewcommandids.h"
-#include "toonzqt/updatechecker.h"
-#include "toonzqt/paletteviewer.h"
-#include "toonzqt/seethroughwindow.h"
+"flareqt/gutil.h"
+"flareqt/icongenerator.h"
+"flareqt/viewcommandids.h"
+"flareqt/updatechecker.h"
+"flareqt/paletteviewer.h"
+"flareqt/seethroughwindow.h"
 
 // TnzLib includes
-#include "toonz/toonzfolders.h"
-#include "toonz/stage2.h"
-#include "toonz/stylemanager.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/toonzscene.h"
-#include "toonz/txshleveltypes.h"
-#include "toonz/tproject.h"
+"flare/toonzfolders.h"
+"flare/stage2.h"
+"flare/stylemanager.h"
+"flare/tscenehandle.h"
+"flare/toonzscene.h"
+"flare/txshleveltypes.h"
+"flare/tproject.h"
 
 // TnzBase includes
 #include "tenv.h"
@@ -3520,3 +3520,4 @@ void RecentFiles::refreshRecentFilesMenu(FileType fileType) {
     if (!menu->isEnabled()) menu->setEnabled(true);
   }
 }
+

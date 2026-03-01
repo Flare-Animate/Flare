@@ -1,23 +1,23 @@
 
 
-#include "toonz/txshsimplelevel.h"
+"flare/txshsimplelevel.h"
 #include "imagebuilders.h"
 
 // TnzLib includes
-#include "toonz/txshleveltypes.h"
-#include "toonz/imagemanager.h"
-#include "toonz/studiopalette.h"
-#include "toonz/hook.h"
-#include "toonz/toonzscene.h"
-#include "toonz/levelproperties.h"
-#include "toonz/levelupdater.h"
-#include "toonz/fullcolorpalette.h"
-#include "toonz/preferences.h"
-#include "toonz/stage.h"
-#include "toonz/textureutils.h"
-#include "toonz/levelset.h"
-#include "toonz/tcamera.h"
-#include "toonz/sceneproperties.h"
+"flare/txshleveltypes.h"
+"flare/imagemanager.h"
+"flare/studiopalette.h"
+"flare/hook.h"
+"flare/toonzscene.h"
+"flare/levelproperties.h"
+"flare/levelupdater.h"
+"flare/fullcolorpalette.h"
+"flare/preferences.h"
+"flare/stage.h"
+"flare/textureutils.h"
+"flare/levelset.h"
+"flare/tcamera.h"
+"flare/sceneproperties.h"
 
 // TnzBase includes
 #include "tenv.h"
@@ -47,7 +47,7 @@
 #include <QtCore>
 
 #include "../common/psdlib/psd.h"
-#include "toonz/toonzfolders.h"
+"flare/toonzfolders.h"
 
 //******************************************************************************************
 //    Global stuff
@@ -2425,3 +2425,4 @@ bool TXshSimpleLevel::isFrameReadOnly(TFrameId fid) {
 
   return m_isReadOnly;
 }
+

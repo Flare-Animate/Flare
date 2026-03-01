@@ -6,7 +6,7 @@
 
 #include <QApplication>
 
-#include "toonz/cleanupcolorstyles.h"
+"flare/cleanupcolorstyles.h"
 
 //-------------------------------------------------------------------
 
@@ -377,3 +377,4 @@ namespace {
 TColorStyle::Declaration s0(new TBlackCleanupStyle());
 TColorStyle::Declaration s1(new TColorCleanupStyle());
 }
+

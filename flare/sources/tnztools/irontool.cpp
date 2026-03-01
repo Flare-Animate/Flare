@@ -9,9 +9,9 @@
 #include "tgl.h"
 #include "tstroke.h"
 
-#include "toonz/tobjecthandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/tstageobject.h"
+"flare/tobjecthandle.h"
+"flare/txshlevelhandle.h"
+"flare/tstageobject.h"
 
 #ifdef _DEBUG
 #include "tcolorstyles.h"
@@ -567,3 +567,4 @@ void drawControlPoints(const TStroke *&stroke, double pixelSize) {
 }  // namespace
 
 // TTool *getIronTool() {return &ironTool;}
+

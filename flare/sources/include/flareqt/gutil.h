@@ -9,7 +9,7 @@
 #include <QIconEngine>
 #include <QColor>
 #include "traster.h"
-#include "toonz/preferences.h"
+"flare/preferences.h"
 
 #undef DVAPI
 #undef DVVAR
@@ -409,3 +409,4 @@ private:
 //-----------------------------------------------------------------------------
 
 #endif  // GUTIL_H
+

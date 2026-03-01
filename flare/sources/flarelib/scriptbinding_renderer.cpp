@@ -1,16 +1,16 @@
 
 
-#include "toonz/scriptbinding_renderer.h"
-#include "toonz/scriptbinding_scene.h"
-#include "toonz/scriptbinding_level.h"
-#include "toonz/txsheet.h"
-#include "toonz/txshsimplelevel.h"
+"flare/scriptbinding_renderer.h"
+"flare/scriptbinding_scene.h"
+"flare/scriptbinding_level.h"
+"flare/txsheet.h"
+"flare/txshsimplelevel.h"
 
-#include "toonz/toonzscene.h"
+"flare/toonzscene.h"
 #include "trenderer.h"
-#include "toonz/scenefx.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/tcamera.h"
+"flare/scenefx.h"
+"flare/sceneproperties.h"
+"flare/tcamera.h"
 #include "toutputproperties.h"
 #include <QEventLoop>
 #include <QWaitCondition>
@@ -339,3 +339,4 @@ void Renderer::dumpCache() {
 }
 
 }  // namespace TScriptBinding
+

@@ -3,11 +3,11 @@
 #ifndef STARTUPPOPUP_H
 #define STARTUPPOPUP_H
 
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/doublefield.h"
-#include "toonzqt/intfield.h"
-#include "toonzqt/filefield.h"
-#include "toonzqt/camerasettingswidget.h"
+"flareqt/dvdialog.h"
+"flareqt/doublefield.h"
+"flareqt/intfield.h"
+"flareqt/filefield.h"
+"flareqt/camerasettingswidget.h"
 #include <QPushButton>
 #include <QLabel>
 #include <QCheckBox>
@@ -156,3 +156,4 @@ signals:
 };
 
 #endif  // STARTUPPOPUP_H
+

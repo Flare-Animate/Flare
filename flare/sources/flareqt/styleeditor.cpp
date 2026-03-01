@@ -1,24 +1,24 @@
 
 
-#include "toonzqt/styleeditor.h"
+"flareqt/styleeditor.h"
 
 // TnzQt includes
-#include "toonzqt/gutil.h"
-#include "toonzqt/filefield.h"
+"flareqt/gutil.h"
+"flareqt/filefield.h"
 #include "historytypes.h"
-#include "toonzqt/lutcalibrator.h"
+"flareqt/lutcalibrator.h"
 
 // TnzLib includes
-#include "toonz/txshlevel.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/toonzfolders.h"
-#include "toonz/cleanupcolorstyles.h"
-#include "toonz/palettecontroller.h"
-#include "toonz/imagestyles.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/levelproperties.h"
-#include "toonz/mypaintbrushstyle.h"
-#include "toonz/preferences.h"
+"flare/txshlevel.h"
+"flare/txshlevelhandle.h"
+"flare/toonzfolders.h"
+"flare/cleanupcolorstyles.h"
+"flare/palettecontroller.h"
+"flare/imagestyles.h"
+"flare/txshsimplelevel.h"
+"flare/levelproperties.h"
+"flare/mypaintbrushstyle.h"
+"flare/preferences.h"
 
 // TnzCore includes
 #include "tconvert.h"
@@ -4120,3 +4120,4 @@ void StyleEditor::onPopupMenuAboutToShow() {
       action->setChecked(true);
   }
 }
+

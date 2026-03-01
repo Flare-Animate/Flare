@@ -7,24 +7,24 @@
 #include "tools/toolhandle.h"
 
 // TnzQt includes
-#include "toonzqt/tselectionhandle.h"
-#include "toonzqt/styleselection.h"
-#include "toonzqt/gutil.h"
-#include "toonzqt/icongenerator.h"
+"flareqt/tselectionhandle.h"
+"flareqt/styleselection.h"
+"flareqt/gutil.h"
+"flareqt/icongenerator.h"
 
 // TnzLib includes
-#include "toonz/txshsimplelevel.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/tpalettehandle.h"
-#include "toonz/stage2.h"
-#include "toonz/tframehandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/preferences.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/dpiscale.h"
-#include "toonz/palettecontroller.h"
-#include "toonz/txshleveltypes.h"
-#include "toonz/txshpalettelevel.h"
+"flare/txshsimplelevel.h"
+"flare/txshlevelhandle.h"
+"flare/tpalettehandle.h"
+"flare/stage2.h"
+"flare/tframehandle.h"
+"flare/txsheethandle.h"
+"flare/preferences.h"
+"flare/tcolumnhandle.h"
+"flare/dpiscale.h"
+"flare/palettecontroller.h"
+"flare/txshleveltypes.h"
+"flare/txshpalettelevel.h"
 
 // TnzCore includes
 #include "drawutil.h"
@@ -362,3 +362,4 @@ void StylePickerTool::updateTranslation() {
 //-------------------------------------------------------------------------------------------------------
 
 StylePickerTool stylePickerTool;
+

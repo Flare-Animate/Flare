@@ -29,7 +29,7 @@ message("subdir: sound")
 message("type:" ${CMAKE_SHARED_LIBRARY_SUFFIX})
 message("Bin: " ${CMAKE_CURRENT_BINARY_DIR})
 
-_find_toonz_library(EXTRA_LIBS "tnzcore;tnzbase;toonzlib")
+_find_flare_library(EXTRA_LIBS "tnzcore;tnzbase;flarelib")
 message("ToonzCore: " ${EXTRA_LIBS})
 
 target_link_libraries(sound Qt5::Core ${EXTRA_LIBS})

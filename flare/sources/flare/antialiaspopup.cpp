@@ -9,19 +9,19 @@
 #include "filmstripselection.h"
 
 // ToonzQt includes
-#include "toonzqt/intfield.h"
-#include "toonzqt/planeviewer.h"
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/tselectionhandle.h"
-#include "toonzqt/icongenerator.h"
+"flareqt/intfield.h"
+"flareqt/planeviewer.h"
+"flareqt/menubarcommand.h"
+"flareqt/tselectionhandle.h"
+"flareqt/icongenerator.h"
 
 // TnzLib includes
-#include "toonz/txshcell.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/tframehandle.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/txshleveltypes.h"
+"flare/txshcell.h"
+"flare/txsheethandle.h"
+"flare/tframehandle.h"
+"flare/tcolumnhandle.h"
+"flare/txshlevelhandle.h"
+"flare/txshleveltypes.h"
 
 // TnzCore includes
 #include "tpixelgr.h"
@@ -435,3 +435,4 @@ void AntialiasPopup::onValuesChanged(bool dragging) {
 //-----------------------------------------------------------------------------
 
 OpenPopupCommandHandler<AntialiasPopup> openAntialiasPopup(MI_Antialias);
+

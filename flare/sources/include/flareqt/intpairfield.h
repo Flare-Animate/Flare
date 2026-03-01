@@ -3,7 +3,7 @@
 #ifndef INTPAIRFIELD_H
 #define INTPAIRFIELD_H
 
-#include "toonzqt/intfield.h"
+"flareqt/intfield.h"
 #include "tcommon.h"
 
 #undef DVAPI
@@ -215,3 +215,4 @@ signals:
 //-----------------------------------------------------------------------------
 
 #endif  // INTPAIRFIELD_H
+

@@ -12,21 +12,21 @@
 #include "filebrowserpopup.h"
 #include "tunit.h"
 
-#include "toonz/namebuilder.h"
-#include "toonz/preferences.h"
-#include "toonz/tcamera.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/tframehandle.h"
-#include "toonz/levelset.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/toonzscene.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/stage.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/levelproperties.h"
-#include "toonz/tstageobjecttree.h"
-#include "toonzqt/menubarcommand.h"
+"flare/namebuilder.h"
+"flare/preferences.h"
+"flare/tcamera.h"
+"flare/tcolumnhandle.h"
+"flare/tframehandle.h"
+"flare/levelset.h"
+"flare/sceneproperties.h"
+"flare/toonzscene.h"
+"flare/tscenehandle.h"
+"flare/stage.h"
+"flare/txsheethandle.h"
+"flare/txshlevelhandle.h"
+"flare/levelproperties.h"
+"flare/tstageobjecttree.h"
+"flareqt/menubarcommand.h"
 
 #include <QApplication>
 #include <QCamera>
@@ -3016,3 +3016,4 @@ public:
   }
 } StopMotionToggleZoomCommand;
 #endif
+

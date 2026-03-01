@@ -16,25 +16,25 @@
 #include "fileviewerpopup.h"
 
 // TnzQt includes
-#include "toonzqt/icongenerator.h"
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/gutil.h"
-#include "toonzqt/dvdialog.h"
+"flareqt/icongenerator.h"
+"flareqt/menubarcommand.h"
+"flareqt/gutil.h"
+"flareqt/dvdialog.h"
 
 // TnzLib includes
-#include "toonz/tscenehandle.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/txshlevelcolumn.h"
-#include "toonz/txshchildlevel.h"
-#include "toonz/txshcell.h"
-#include "toonz/toonzscene.h"
-#include "toonz/tcamera.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/onionskinmask.h"
-#include "toonz/preferences.h"
+"flare/tscenehandle.h"
+"flare/tcolumnhandle.h"
+"flare/txsheethandle.h"
+"flare/txshlevelcolumn.h"
+"flare/txshchildlevel.h"
+"flare/txshcell.h"
+"flare/toonzscene.h"
+"flare/tcamera.h"
+"flare/sceneproperties.h"
+"flare/onionskinmask.h"
+"flare/preferences.h"
 #include "toutputproperties.h"
-#include "toonz/txshleveltypes.h"
+"flare/txshleveltypes.h"
 
 // TnzBase includes
 #include "trasterfx.h"
@@ -1038,3 +1038,4 @@ void ExportPanel::openSettingsPopup() {
   TPropertyGroup *props = outProps->getFileFormatProperties(ext);
   openFormatSettingsPopup(this, ext, props);
 }
+

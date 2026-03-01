@@ -13,21 +13,21 @@
 #include "mypainttoonzbrush.h"
 
 // TnzQt includes
-#include "toonzqt/dvdialog.h"
+"flareqt/dvdialog.h"
 
 // TnzLib includes
-#include "toonz/tpalettehandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/tobjecthandle.h"
-#include "toonz/tframehandle.h"
-#include "toonz/ttileset.h"
-#include "toonz/ttilesaver.h"
-#include "toonz/strokegenerator.h"
-#include "toonz/tstageobject.h"
-#include "toonz/palettecontroller.h"
-#include "toonz/mypaintbrushstyle.h"
-#include "toonz/preferences.h"
+"flare/tpalettehandle.h"
+"flare/txsheethandle.h"
+"flare/txshlevelhandle.h"
+"flare/tobjecthandle.h"
+"flare/tframehandle.h"
+"flare/ttileset.h"
+"flare/ttilesaver.h"
+"flare/strokegenerator.h"
+"flare/tstageobject.h"
+"flare/palettecontroller.h"
+"flare/mypaintbrushstyle.h"
+"flare/preferences.h"
 
 // TnzCore includes
 #include "tgl.h"
@@ -1059,3 +1059,4 @@ void FullColorBrushToolNotifier::onDeactivate() {
 //==========================================================================================================
 
 FullColorBrushTool fullColorPencil("T_Brush");
+

@@ -4,12 +4,12 @@
 #include "tapp.h"
 
 // Toonz stage structures
-#include "toonz/tscenehandle.h"
-#include "toonz/toonzscene.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/txsheet.h"
-#include "toonz/tcamera.h"
-#include "toonz/tframehandle.h"
+"flare/tscenehandle.h"
+"flare/toonzscene.h"
+"flare/txsheethandle.h"
+"flare/txsheet.h"
+"flare/tcamera.h"
+"flare/tframehandle.h"
 
 // Scene viewer
 #include "sceneviewer.h"
@@ -393,3 +393,4 @@ void PreviewSubCameraManager::deleteSubCamera(SceneViewer *viewer) {
   // Refresh viewer
   viewer->update();
 }
+

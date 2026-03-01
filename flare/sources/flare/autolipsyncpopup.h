@@ -3,12 +3,12 @@
 #ifndef AUTOLIPSYNCPOPUP_H
 #define AUTOLIPSYNCPOPUP_H
 
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/filefield.h"
-#include "toonz/txshlevel.h"
-#include "toonzqt/intfield.h"
-#include "toonzqt/gutil.h"
-#include "toonz/txshsoundcolumn.h"
+"flareqt/dvdialog.h"
+"flareqt/filefield.h"
+"flare/txshlevel.h"
+"flareqt/intfield.h"
+"flareqt/gutil.h"
+"flare/txshsoundcolumn.h"
 
 #include <QProcess>
 #include <QPushButton>
@@ -148,3 +148,4 @@ private slots:
 };
 
 #endif  // AUTOLIPSYNCPOPUP_H
+

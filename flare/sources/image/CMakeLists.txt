@@ -160,7 +160,7 @@ include_directories(
 )
 
 
-_find_toonz_library(TNZLIBS "tnzcore;tnzbase;toonzlib")
+_find_flare_library(TNZLIBS "tnzcore;tnzbase;flarelib")
 
 
 if(BUILD_ENV_MSVC)

@@ -1,9 +1,9 @@
 
 
-#include "toonzqt/swatchviewer.h"
-#include "toonzqt/gutil.h"
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/viewcommandids.h"
+"flareqt/swatchviewer.h"
+"flareqt/gutil.h"
+"flareqt/menubarcommand.h"
+"flareqt/viewcommandids.h"
 
 #include "../flare/menubarcommandids.h"
 
@@ -13,7 +13,7 @@
 #include <QResizeEvent>
 
 #include "trasterfx.h"
-#include "toonz/tcolumnfx.h"
+"flare/tcolumnfx.h"
 #include "tparamcontainer.h"
 #include "tfxutil.h"
 
@@ -1261,4 +1261,5 @@ void SwatchCacheManager::getResource(TCacheResourceP &resource,
     }
   }
 }
+
 

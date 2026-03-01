@@ -1,11 +1,11 @@
 
 
-#include "toonz/txshchildlevel.h"
-#include "toonz/txshleveltypes.h"
-#include "toonz/txsheet.h"
-#include "toonz/imagemanager.h"
-#include "toonz/toonzscene.h"
-#include "toonz/txshcolumn.h"
+"flare/txshchildlevel.h"
+"flare/txshleveltypes.h"
+"flare/txsheet.h"
+"flare/imagemanager.h"
+"flare/toonzscene.h"
+"flare/txshcolumn.h"
 #include "tconvert.h"
 #include "trasterimage.h"
 #include "timagecache.h"
@@ -96,3 +96,4 @@ void TXshChildLevel::getFids(std::vector<TFrameId> &fids) const {
   int i;
   for (i = 1; i <= getFrameCount(); i++) fids.push_back(TFrameId(i));
 }
+

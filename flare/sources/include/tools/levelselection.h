@@ -4,7 +4,7 @@
 #define LEVELSELECTION_H
 
 // TnzQt includes
-#include "toonzqt/selection.h"
+"flareqt/selection.h"
 
 // TnzCore includes
 #include "tcommon.h"
@@ -132,3 +132,4 @@ DVAPI std::vector<int> getSelectedStrokes(
     );
 
 #endif  // LEVELSELECTION_H
+

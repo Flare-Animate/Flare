@@ -4,7 +4,7 @@
 #define INTFIELD_H
 
 #include "tcommon.h"
-#include "toonzqt/lineedit.h"
+"flareqt/lineedit.h"
 
 #include <QToolBar>
 
@@ -259,3 +259,4 @@ signals:
 //-----------------------------------------------------------------------------
 
 #endif  // INTFIELD_H
+

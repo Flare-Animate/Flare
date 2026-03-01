@@ -9,9 +9,9 @@
 #include "tools/cursors.h"
 #include "drawutil.h"
 
-#include "toonz/tobjecthandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/tstageobject.h"
+"flare/tobjecthandle.h"
+"flare/txshlevelhandle.h"
+"flare/tstageobject.h"
 
 using namespace ToolUtils;
 
@@ -774,3 +774,4 @@ void BenderTool::initBenderAction(TVectorImageP &vi, const TPointD &p) {
 //-----------------------------------------------------------------------------
 
 // TTool *getBenderTool() {return &BenderTool;}
+

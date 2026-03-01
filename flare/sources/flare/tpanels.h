@@ -11,9 +11,9 @@
 
 #include "tfx.h"
 
-#include "toonz/tstageobjectid.h"
-#include "toonzqt/colorfield.h"
-#include "toonzqt/functionviewer.h"
+"flare/tstageobjectid.h"
+"flareqt/colorfield.h"
+"flareqt/functionviewer.h"
 class PaletteViewer;
 class TPaletteHandle;
 class StyleEditor;
@@ -362,3 +362,4 @@ public:
 };
 
 #endif
+

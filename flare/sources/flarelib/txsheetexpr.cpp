@@ -17,14 +17,14 @@
 #include "tunit.h"
 
 // TnzLib includes
-#include "toonz/txsheet.h"
-#include "toonz/txshcell.h"
-#include "toonz/tstageobjectid.h"
-#include "toonz/tstageobject.h"
-#include "toonz/fxdag.h"
-#include "toonz/tstageobjecttree.h"
-#include "toonz/tcolumnfxset.h"
-#include "toonz/tcolumnfx.h"
+"flare/txsheet.h"
+"flare/txshcell.h"
+"flare/tstageobjectid.h"
+"flare/tstageobject.h"
+"flare/fxdag.h"
+"flare/tstageobjecttree.h"
+"flare/tcolumnfxset.h"
+"flare/tcolumnfx.h"
 
 // Boost includes
 #include "boost/noncopyable.hpp"
@@ -32,7 +32,7 @@
 // Qt includes
 #include <QString>
 
-#include "toonz/txsheetexpr.h"
+"flare/txsheetexpr.h"
 
 #include <memory>
 
@@ -739,3 +739,4 @@ void referenceParams(TExpression &expr, QSet<int> &columnIndices,
   columnIndices = prf.columnIndices();
   params        = prf.refParams();
 }
+

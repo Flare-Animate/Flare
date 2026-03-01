@@ -1,5 +1,5 @@
 project(multi_plugin)
-set(PLUGINSDK_ROOT ../../flare/sources/toonzqt)
+set(PLUGINSDK_ROOT ../../flare/sources/flareqt)
 set(PLUGINSDK_UTILS_PATH ../)
 
 set(HEADERS

@@ -9,15 +9,15 @@
 #include <tools/inputmanager.h>
 
 // TnzLib includes
-#include <toonz/tapplication.h>
-#include <toonz/txshlevelhandle.h>
-#include <toonz/txsheethandle.h>
-#include <toonz/tscenehandle.h>
-#include <toonz/tcolumnhandle.h>
-#include <toonz/tframehandle.h>
-#include <toonz/dpiscale.h>
-#include <toonz/toonzscene.h>
-#include <toonz/sceneproperties.h>
+<flare/tapplication.h>
+<flare/txshlevelhandle.h>
+<flare/txsheethandle.h>
+<flare/tscenehandle.h>
+<flare/tcolumnhandle.h>
+<flare/tframehandle.h>
+<flare/dpiscale.h>
+<flare/toonzscene.h>
+<flare/sceneproperties.h>
 
 // TnzCore includes
 #include <tgl.h>
@@ -25,9 +25,9 @@
 #include <tmetaimage.h>
 #include <tpixelutils.h>
 
-#include <toonzqt/selection.h>
-#include <toonzqt/selectioncommandids.h>
-#include <toonzqt/tselectionhandle.h>
+<flareqt/selection.h>
+<flareqt/selectioncommandids.h>
+<flareqt/tselectionhandle.h>
 
 // For Qt translation support
 #include <QCoreApplication>
@@ -869,3 +869,4 @@ public:
 //-------------------------------------------------------------------
 
 EditAssistantsTool editAssistantsTool;
+

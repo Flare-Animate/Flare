@@ -1,18 +1,18 @@
 
 
 // TnzLib includes
-#include "toonz/stage.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/txshchildlevel.h"
-#include "toonz/txshleveltypes.h"
-#include "toonz/txsheet.h"
-#include "toonz/txshcell.h"
-#include "toonz/textureutils.h"
-#include "toonz/imagemanager.h"
+"flare/stage.h"
+"flare/txshsimplelevel.h"
+"flare/txshchildlevel.h"
+"flare/txshleveltypes.h"
+"flare/txsheet.h"
+"flare/txshcell.h"
+"flare/textureutils.h"
+"flare/imagemanager.h"
 #include "imagebuilders.h"
 
-#include "toonz/stageplayer.h"
-#include "toonz/tstageobjecttree.h"
+"flare/stageplayer.h"
+"flare/tstageobjecttree.h"
 
 using namespace Stage;
 
@@ -94,3 +94,4 @@ DrawableTextureDataP Stage::Player::texture() const {
 
   return texture_utils::getTextureData(xsh, frame);
 }
+

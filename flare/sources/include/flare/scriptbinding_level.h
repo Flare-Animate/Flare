@@ -3,8 +3,8 @@
 #ifndef SCRIPTBINDING_LEVEL_H
 #define SCRIPTBINDING_LEVEL_H
 
-#include "toonz/scriptbinding.h"
-#include "toonz/scriptbinding_image.h"
+"flare/scriptbinding.h"
+"flare/scriptbinding_image.h"
 
 // Forward declarations
 class ToonzScene;
@@ -76,3 +76,4 @@ private:
 Q_DECLARE_METATYPE(TScriptBinding::Level *)
 
 #endif  // SCRIPTBINDING_LEVEL_H
+

@@ -6,11 +6,11 @@
 #include "tsystem.h"
 #include "iocommand.h"
 #include "flipbook.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/toonzscene.h"
-#include "toonzqt/filefield.h"
-#include "toonzqt/intfield.h"
-#include "toonzqt/gutil.h"
+"flare/tscenehandle.h"
+"flare/toonzscene.h"
+"flareqt/filefield.h"
+"flareqt/intfield.h"
+"flareqt/gutil.h"
 
 #include <QLabel>
 #include <QPushButton>
@@ -283,3 +283,4 @@ void MagpieFileImportPopup::onOkPressed() {
   if (!ret) return;
   accept();
 }
+

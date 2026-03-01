@@ -8,9 +8,9 @@
 #include <trasterimage.h>
 #include <ttoonzimage.h>
 #include <tstroke.h>
-#include <toonz/strokegenerator.h>
-#include <toonz/rasterstrokegenerator.h>
-#include "toonz/preferences.h"
+<flare/strokegenerator.h>
+<flare/rasterstrokegenerator.h>
+"flare/preferences.h"
 #include <tools/tool.h>
 #include <tools/cursors.h>
 
@@ -316,3 +316,4 @@ protected slots:
 };
 
 #endif  // TOONZRASTERBRUSHTOOL_H
+

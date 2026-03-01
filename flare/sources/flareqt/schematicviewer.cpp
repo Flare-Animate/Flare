@@ -1,35 +1,35 @@
 
-#include "toonzqt/schematicviewer.h"
+"flareqt/schematicviewer.h"
 
 // TnzQt includes
-#include "toonzqt/fxtypes.h"
-#include "toonzqt/schematicnode.h"
-#include "toonzqt/fxschematicnode.h"
-#include "toonzqt/schematicgroupeditor.h"
-#include "toonzqt/stageschematicscene.h"
-#include "toonzqt/fxschematicscene.h"
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/tselectionhandle.h"
-#include "toonzqt/gutil.h"
-#include "toonzqt/imageutils.h"
-#include "toonzqt/dvscrollwidget.h"
-#include "toonzqt/fxselection.h"
+"flareqt/fxtypes.h"
+"flareqt/schematicnode.h"
+"flareqt/fxschematicnode.h"
+"flareqt/schematicgroupeditor.h"
+"flareqt/stageschematicscene.h"
+"flareqt/fxschematicscene.h"
+"flareqt/menubarcommand.h"
+"flareqt/tselectionhandle.h"
+"flareqt/gutil.h"
+"flareqt/imageutils.h"
+"flareqt/dvscrollwidget.h"
+"flareqt/fxselection.h"
 #include "stageobjectselection.h"
 
 // TnzLib includes
-#include "toonz/txsheethandle.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/tobjecthandle.h"
-#include "toonz/tfxhandle.h"
-#include "toonz/txsheet.h"
-#include "toonz/txshlevelcolumn.h"
-#include "toonz/tcolumnfx.h"
-#include "toonz/txshzeraryfxcolumn.h"
-#include "toonz/preferences.h"
-#include "toonz/fxdag.h"
-#include "toonz/tapplication.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/txshleveltypes.h"
+"flare/txsheethandle.h"
+"flare/tcolumnhandle.h"
+"flare/tobjecthandle.h"
+"flare/tfxhandle.h"
+"flare/txsheet.h"
+"flare/txshlevelcolumn.h"
+"flare/tcolumnfx.h"
+"flare/txshzeraryfxcolumn.h"
+"flare/preferences.h"
+"flare/fxdag.h"
+"flare/tapplication.h"
+"flare/tscenehandle.h"
+"flare/txshleveltypes.h"
 
 #include "../flare/menubarcommandids.h"
 
@@ -1323,4 +1323,5 @@ void SchematicViewer::deleteFxs() {
 void SchematicViewer::deleteStageObjects() {
   emit doDeleteStageObjects(m_stageScene->getStageSelection());
 }
+
 

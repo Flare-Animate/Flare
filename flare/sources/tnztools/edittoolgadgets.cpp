@@ -2,26 +2,26 @@
 
 #include "edittoolgadgets.h"
 #include "tgl.h"
-#include "toonz/tfxhandle.h"
-#include "toonz/tobjecthandle.h"
-#include "toonz/tframehandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/stage.h"
+"flare/tfxhandle.h"
+"flare/tobjecthandle.h"
+"flare/tframehandle.h"
+"flare/txsheethandle.h"
+"flare/stage.h"
 #include "tools/tool.h"
 #include "tfx.h"
 #include "tparamcontainer.h"
-#include "toonz/tcolumnfx.h"
+"flare/tcolumnfx.h"
 #include "tdoubleparam.h"
 #include "tparamset.h"
 #include "tundo.h"
 #include "tparamuiconcept.h"
 
 #include "historytypes.h"
-#include "toonzqt/gutil.h"
+"flareqt/gutil.h"
 
-#include "toonz/tscenehandle.h"
-#include "toonz/toonzscene.h"
-#include "toonz/tcamera.h"
+"flare/tscenehandle.h"
+"flare/toonzscene.h"
+"flare/tcamera.h"
 
 #include <QApplication>
 #include <QDesktopWidget>
@@ -2307,7 +2307,7 @@ void EllipseFxGadget::leftButtonDrag(const TPointD &pos, const TMouseEvent &e) {
     setValue(m_xParam, pos.x);
     setValue(m_yParam, pos.y);
   } else if (m_handle == AngleAndAR) {
-    // âÒì]Ç∆êLèkÇ…ï™ÇØÇÈ
+    // ÔøΩÔøΩ]ÔøΩ∆êLÔøΩkÔøΩ…ïÔøΩÔøΩÔøΩÔøΩÔøΩ
     TPointD center = getCenter();
     TPointD old_v  = m_pos - center;
     TPointD new_v  = pos - center;
@@ -2532,9 +2532,9 @@ public:
       } else {
         TPointD p[2][2] = {{pc + vec_h * 0.5, pc + vec_h * 0.5 + vec_v},
                            {pc + vec_v * 0.5, pc + vec_v * 0.5 + vec_h}};
-        for (int k = 0; k < 2; k++) {  // ÇΩÇƒÇÊÇ±
+        for (int k = 0; k < 2; k++) {  // ÔøΩÔøΩÔøΩƒÇÊÇ±
           glBegin(GL_LINE_STRIP);
-          for (int i = 0; i <= 10; i++) {  // ï™äÑ
+          for (int i = 0; i <= 10; i++) {  // ÔøΩÔøΩÔøΩÔøΩ
             double t = (double)i * 0.1;
             tglVertex((1.0 - t) * (1.0 - t) * p[k][0] +
                       2.0 * (1.0 - t) * t * ppivot + t * t * p[k][1]);
@@ -2981,3 +2981,4 @@ TRectD FxGadgetController::getCameraRect() {
   return (m_tool->getViewer()) ? m_tool->getViewer()->getCameraRect()
                                : TRectD();
 }
+

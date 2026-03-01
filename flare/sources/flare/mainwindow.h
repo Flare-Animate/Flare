@@ -4,7 +4,7 @@
 #define TESTCUSTOMTAB_H
 
 #include "tfilepath.h"
-#include "toonzqt/menubarcommand.h"
+"flareqt/menubarcommand.h"
 
 #include <QtWidgets/QMainWindow>
 #include <map>
@@ -276,3 +276,4 @@ protected:
 };
 
 #endif  // TESTCUSTOMTAB_H
+

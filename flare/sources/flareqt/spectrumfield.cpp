@@ -1,10 +1,10 @@
 
 
-#include "toonzqt/spectrumfield.h"
-#include "toonzqt/styleeditor.h"
+"flareqt/spectrumfield.h"
+"flareqt/styleeditor.h"
 #include "tconvert.h"
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/gutil.h"
+"flareqt/dvdialog.h"
+"flareqt/gutil.h"
 
 #include "tcolorstyles.h"
 
@@ -401,3 +401,4 @@ void SpectrumField::paintEvent(QPaintEvent *e) {
 //-----------------------------------------------------------------------------
 
 SpectrumField::~SpectrumField() {}
+

@@ -1,8 +1,8 @@
 
 
 #include "tpalette.h"
-#include "toonz/cleanupcolorstyles.h"
-#include "toonz/targetcolors.h"
+"flare/cleanupcolorstyles.h"
+"flare/targetcolors.h"
 #include "tgl.h"
 
 #include "cleanuppalette.h"
@@ -149,3 +149,4 @@ void convertToLevelPalette(TPalette *palette) {
   }
   palette->setIsCleanupPalette(false);
 }
+

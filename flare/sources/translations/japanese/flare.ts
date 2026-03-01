@@ -624,9 +624,9 @@ Please create this folder before using the render farm.</source>
 Toonzレンダリングファームを使用する前に、作成して下さい。</translation>
     </message>
     <message>
-        <source>Unable to connect to the ToonzFarm Controller
+        <source>Unable to connect to the FlareFarm Controller
    The Controller should run on %1 at port %2
-   Please start the Controller before using the ToonzFarm</source>
+   Please start the Controller before using the FlareFarm</source>
         <translation>Toonzファームコントローラーに接続出来ません。
 コントローラーはポート %2 で %1 の上で実行して下さい。
 Toonzファームを使用する前にコントローラーを起動して下さい</translation>
@@ -18139,3 +18139,4 @@ Hold F3 Key on the Viewer to Show This Frame Only</source>
     </message>
 </context>
 </TS>
+

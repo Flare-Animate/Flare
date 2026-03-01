@@ -3,7 +3,7 @@
 #ifndef SCRIPTBINDING_SCENE_H
 #define SCRIPTBINDING_SCENE_H
 
-#include "toonz/scriptbinding.h"
+"flare/scriptbinding.h"
 
 namespace TScriptBinding {
 
@@ -51,3 +51,4 @@ public:
 Q_DECLARE_METATYPE(TScriptBinding::Scene *)
 
 #endif
+

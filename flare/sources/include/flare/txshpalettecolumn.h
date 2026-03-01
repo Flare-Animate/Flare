@@ -3,7 +3,7 @@
 #ifndef TXSHPALETTECOLUMN_INCLUDED
 #define TXSHPALETTECOLUMN_INCLUDED
 
-#include "toonz/txshcolumn.h"
+"flare/txshcolumn.h"
 
 #undef DVAPI
 #undef DVVAR
@@ -63,3 +63,4 @@ template class TSmartPointerT<TXshPaletteColumn>;
 typedef TSmartPointerT<TXshPaletteColumn> TXshPaletteColumnP;
 
 #endif
+

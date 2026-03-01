@@ -3,9 +3,9 @@
 #ifndef TXSHSOUNDCOLUMN_INCLUDED
 #define TXSHSOUNDCOLUMN_INCLUDED
 
-#include "toonz/txshcolumn.h"
-#include "toonz/txshcell.h"
-#include "toonz/txshsoundlevel.h"
+"flare/txshcolumn.h"
+"flare/txshcell.h"
+"flare/txshsoundlevel.h"
 #include "tsound.h"
 
 #include <QList>
@@ -227,3 +227,4 @@ template class DV_EXPORT_API TSmartPointerT<TXshSoundColumn>;
 typedef TSmartPointerT<TXshSoundColumn> TXshSoundColumnP;
 
 #endif
+

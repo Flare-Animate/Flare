@@ -16,7 +16,7 @@
 
 #include "toonzrasterbrushtool.h"
 #include "mypainttoonzbrush.h"
-#include "toonz/mypaintbrushstyle.h"
+"flare/mypaintbrushstyle.h"
 #include <QElapsedTimer>
 
 //==============================================================
@@ -189,3 +189,4 @@ protected slots:
 };
 
 #endif  // FULLCOLORBRUSHTOOL_H
+

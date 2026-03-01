@@ -1,12 +1,12 @@
 
 
-#include "toonz/cleanupparameters.h"
+"flare/cleanupparameters.h"
 #include "tstream.h"
 #include "texception.h"
-#include "toonz/toonzscene.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/txshleveltypes.h"
-#include "toonz/cleanupcolorstyles.h"
+"flare/toonzscene.h"
+"flare/sceneproperties.h"
+"flare/txshleveltypes.h"
+"flare/cleanupcolorstyles.h"
 #include "tsystem.h"
 #include "tenv.h"
 #include "tconvert.h"
@@ -483,3 +483,4 @@ const CleanupTypes::FDG_INFO &CleanupParameters::getFdgInfo() {
   }
   return m_fdgInfo;
 }
+

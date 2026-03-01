@@ -2,15 +2,15 @@
 
 #include "hookselection.h"
 
-#include "toonz/txshlevelhandle.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/tstageobjecttree.h"
+"flare/txshlevelhandle.h"
+"flare/txshsimplelevel.h"
+"flare/txsheethandle.h"
+"flare/tstageobjecttree.h"
 
 #include "tools/tool.h"
 #include "tools/toolhandle.h"
 
-#include "toonzqt/selectioncommandids.h"
+"flareqt/selectioncommandids.h"
 
 #include <QApplication>
 #include <QClipboard>
@@ -294,3 +294,4 @@ void HookSelection::pasteSelectedHooks() {
   TUndoManager::manager()->add(undo);
   TTool::getApplication()->getCurrentTool()->getTool()->invalidate();
 }
+

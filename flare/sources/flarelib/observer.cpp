@@ -1,6 +1,6 @@
 
 
-#include "toonz/observer.h"
+"flare/observer.h"
 // OBSOLETO??
 
 TNotifier *TNotifier::instance() {
@@ -41,3 +41,4 @@ void TNotifier::notify(const TGlobalChange &c) {
       m_newSceneNotifiedObs.insert(m_globalObs.m_observers[i]);
   }
 }
+

@@ -6,13 +6,13 @@
 #include "tpalette.h"
 #include "tfxutil.h"
 
-#include "toonz/tstageobject.h"
-#include "toonz/tframehandle.h"
-#include "toonz/tobjecthandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/tpalettehandle.h"
-#include "toonz/tfxhandle.h"
-#include "toonz/tcolumnfx.h"
+"flare/tstageobject.h"
+"flare/tframehandle.h"
+"flare/tobjecthandle.h"
+"flare/txsheethandle.h"
+"flare/tpalettehandle.h"
+"flare/tfxhandle.h"
+"flare/tcolumnfx.h"
 
 #include <QToolBar>
 
@@ -239,3 +239,4 @@ protected:
 };
 
 #endif
+

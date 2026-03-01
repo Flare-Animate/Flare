@@ -1,10 +1,10 @@
 
 
-#include "toonz/txshsoundlevel.h"
+"flare/txshsoundlevel.h"
 #include "tsound_io.h"
-#include "toonz/toonzscene.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/txshleveltypes.h"
+"flare/toonzscene.h"
+"flare/sceneproperties.h"
+"flare/txshleveltypes.h"
 
 #include "tstream.h"
 #include "toutputproperties.h"
@@ -247,3 +247,4 @@ void TXshSoundLevel::getFids(std::vector<TFrameId> &fids) const {
   int i;
   for (i = 0; i < getFrameCount(); i++) fids.push_back(TFrameId(i));
 }
+

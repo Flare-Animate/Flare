@@ -1,7 +1,7 @@
 #pragma once
 
-#include "toonzqt/dvdialog.h"
-#include "toonz/txshsimplelevel.h"
+"flareqt/dvdialog.h"
+"flare/txshsimplelevel.h"
 #include "traster.h"
 
 class QSlider;
@@ -44,3 +44,4 @@ public slots:
   void apply();
   void onValuesChanged(bool dragging);
 };
+

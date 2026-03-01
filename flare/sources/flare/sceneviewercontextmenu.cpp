@@ -14,22 +14,22 @@
 #include "tools/strokeselection.h"
 
 // TnzQt includes
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/viewcommandids.h"
-#include "toonzqt/selection.h"
-#include "toonzqt/imageutils.h"
+"flareqt/menubarcommand.h"
+"flareqt/viewcommandids.h"
+"flareqt/selection.h"
+"flareqt/imageutils.h"
 
 // TnzLib includes
-#include "toonz/txsheethandle.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/tframehandle.h"
-#include "toonz/tobjecthandle.h"
-#include "toonz/tstageobjecttree.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/txshcolumn.h"
-#include "toonz/tstageobjectspline.h"
-#include "toonz/tstageobjectid.h"
-#include "toonz/preferences.h"
+"flare/txsheethandle.h"
+"flare/tcolumnhandle.h"
+"flare/tframehandle.h"
+"flare/tobjecthandle.h"
+"flare/tstageobjecttree.h"
+"flare/tscenehandle.h"
+"flare/txshcolumn.h"
+"flare/tstageobjectspline.h"
+"flare/tstageobjectid.h"
+"flare/preferences.h"
 
 // TnzCore includes
 #include "tvectorimage.h"
@@ -561,3 +561,4 @@ void ViewerIndicatorToggleGui::ViewerIndicatorToggleHandler::activate() {
 void ViewerIndicatorToggleGui::ViewerIndicatorToggleHandler::deactivate() {
   ViewerIndicatorToggle::enableViewerIndicator(false);
 }
+

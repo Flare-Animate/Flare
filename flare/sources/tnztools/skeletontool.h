@@ -6,8 +6,8 @@
 #include "tools/tool.h"
 #include "tgeometry.h"
 #include "tproperty.h"
-#include "toonz/hook.h"
-#include "toonz/skeleton.h"
+"flare/hook.h"
+"flare/skeleton.h"
 
 #include <QCoreApplication>
 
@@ -150,3 +150,4 @@ public:
 };
 
 #endif
+

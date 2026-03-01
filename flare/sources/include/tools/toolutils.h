@@ -16,7 +16,7 @@
 #include "tpalette.h"
 
 // TnzLib includes
-#include "toonz/txshsimplelevel.h"
+"flare/txshsimplelevel.h"
 
 // TnzTools includes
 #include "tools/tool.h"
@@ -529,3 +529,4 @@ bool DVAPI renumberForInsertFId(TXshSimpleLevel *sl, const TFrameId &fid,
 }  // namespace ToolUtils
 
 #endif  // TOOLSUTILS_H
+

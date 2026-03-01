@@ -10,8 +10,8 @@
 #include "tthread.h"
 #include "timage.h"
 
-#include "toonz/tcenterlinevectorizer.h"
-#include "toonzqt/planeviewer.h"
+"flare/tcenterlinevectorizer.h"
+"flareqt/planeviewer.h"
 
 // Qt includes
 #include <QFrame>
@@ -119,3 +119,4 @@ private:
 };
 
 #endif  // VECTORIZER_SWATCH_H
+

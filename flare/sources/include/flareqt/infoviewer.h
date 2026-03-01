@@ -5,7 +5,7 @@
 
 #include <memory>
 
-#include "toonzqt/dvdialog.h"
+"flareqt/dvdialog.h"
 
 #undef DVAPI
 #undef DVVAR
@@ -39,3 +39,4 @@ public slots:
 };
 
 #endif
+

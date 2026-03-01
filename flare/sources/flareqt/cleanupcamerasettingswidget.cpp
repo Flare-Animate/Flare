@@ -1,10 +1,10 @@
 
 
-#include "toonzqt/cleanupcamerasettingswidget.h"
-#include "toonzqt/camerasettingswidget.h"
-#include "toonz/cleanupparameters.h"
-#include "toonz/preferences.h"
-#include "toonz/stage.h"
+"flareqt/cleanupcamerasettingswidget.h"
+"flareqt/camerasettingswidget.h"
+"flare/cleanupparameters.h"
+"flare/preferences.h"
+"flare/stage.h"
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <QGridLayout>
@@ -15,8 +15,8 @@
 #include <QCheckBox>
 #include "tfilepath.h"
 
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/doublefield.h"
+"flareqt/dvdialog.h"
+"flareqt/doublefield.h"
 
 using namespace std;
 using namespace DVGui;
@@ -123,3 +123,4 @@ void CleanupCameraSettingsWidget::setImageInfo(int w, int h, double dpix,
 void CleanupCameraSettingsWidget::setCurrentLevel(TXshLevel *level) {
   m_cameraWidget->setCurrentLevel(level);
 }
+

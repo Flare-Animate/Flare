@@ -1,6 +1,6 @@
 
 
-#include "toonz/tcenterlinevectorizer.h"
+"flare/tcenterlinevectorizer.h"
 
 // TnzCore includes
 #include "tsystem.h"
@@ -1662,3 +1662,4 @@ void VectorizerCore::emitPartialDone(int current)
   emit partialDone(current, m_totalPartials);
 }
 */
+

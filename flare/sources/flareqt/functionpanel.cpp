@@ -1,19 +1,19 @@
 
 
-#include "toonzqt/functionpanel.h"
+"flareqt/functionpanel.h"
 
 // TnzQt includes
-#include "toonzqt/functionselection.h"
-#include "toonzqt/functionsegmentviewer.h"
-#include "toonzqt/imageutils.h"
+"flareqt/functionselection.h"
+"flareqt/functionsegmentviewer.h"
+"flareqt/imageutils.h"
 #include "functionpaneltools.h"
-#include "toonzqt/gutil.h"
+"flareqt/gutil.h"
 
 // TnzLib includes
-#include "toonz/tframehandle.h"
-#include "toonz/doubleparamcmd.h"
-#include "toonz/toonzfolders.h"
-#include "toonz/preferences.h"
+"flare/tframehandle.h"
+"flare/doubleparamcmd.h"
+"flare/toonzfolders.h"
+"flare/preferences.h"
 // TnzBase includes
 #include "tdoubleparam.h"
 #include "tdoublekeyframe.h"
@@ -1771,3 +1771,4 @@ void FunctionPanel::hideEvent(QHideEvent *) {
 //-----------------------------------------------------------------------------
 
 void FunctionPanel::onFrameSwitched() { update(); }
+

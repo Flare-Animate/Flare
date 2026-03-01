@@ -14,15 +14,15 @@
 #include "tiio.h"
 
 // TnzLib includes
-#include "toonz/toonzscene.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/txsheet.h"
-#include "toonz/tcamera.h"
-#include "toonz/preferences.h"
-#include "toonz/trasterimageutils.h"
-#include "toonz/levelupdater.h"
+"flare/toonzscene.h"
+"flare/sceneproperties.h"
+"flare/txsheet.h"
+"flare/tcamera.h"
+"flare/preferences.h"
+"flare/trasterimageutils.h"
+"flare/levelupdater.h"
 #include "toutputproperties.h"
-#include "toonz/boardsettings.h"
+"flare/boardsettings.h"
 
 // tcg includes
 #include "tcg/tcg_macros.h"
@@ -31,7 +31,7 @@
 #include <QCoreApplication>
 #include <QTimer>
 
-#include "toonz/movierenderer.h"
+"flare/movierenderer.h"
 
 //**************************************************************************
 //    Local Namespace  stuff
@@ -1022,3 +1022,4 @@ TRenderer *MovieRenderer::getTRenderer() {
   // interface.
   return &m_imp->m_renderer;
 }
+

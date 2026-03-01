@@ -7,7 +7,7 @@
 #include "timage.h"
 #include "tiio.h"
 #include "tthread.h"
-#include "toonz/toonzscene.h"
+"flare/toonzscene.h"
 
 //#define WRITE_LOG_FILE
 //#define CHECK_VIDEO_FRAME_INTERVAL
@@ -221,3 +221,4 @@ public:
 #endif
 
 #endif  // TNZCAMERA_H
+

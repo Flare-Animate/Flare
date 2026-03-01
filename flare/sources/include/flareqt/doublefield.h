@@ -4,7 +4,7 @@
 #define DOUBLEFIELD_H
 
 #include "tcommon.h"
-#include "toonzqt/intfield.h"
+"flareqt/intfield.h"
 
 #undef DVAPI
 #undef DVVAR
@@ -306,3 +306,4 @@ public:
 //-----------------------------------------------------------------------------
 
 #endif  // DOUBLEFIELD_H
+

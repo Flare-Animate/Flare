@@ -3,8 +3,8 @@
 #ifndef STYLESELECTION_INCLUDED
 #define STYLESELECTION_INCLUDED
 
-#include "toonzqt/selection.h"
-#include "toonz/tpalettehandle.h"
+"flareqt/selection.h"
+"flare/tpalettehandle.h"
 #include "tpalette.h"
 #include <set>
 #include <QString>
@@ -105,3 +105,4 @@ public:
 };
 
 #endif  // STYLESELECTION_INCLUDED
+

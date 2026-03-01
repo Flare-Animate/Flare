@@ -5,8 +5,8 @@
 
 #include <memory>
 
-#include "toonz/tstageobject.h"
-#include "toonz/txsheet.h"
+"flare/tstageobject.h"
+"flare/txsheet.h"
 
 #undef DVAPI
 #undef DVVAR
@@ -289,3 +289,4 @@ private:
 };
 
 #endif
+

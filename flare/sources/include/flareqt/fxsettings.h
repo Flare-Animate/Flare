@@ -19,10 +19,10 @@
 #include "tabbar.h"
 #include "gutil.h"
 
-#include "toonzqt/framenavigator.h"
-#include "toonzqt/paramfield.h"
-#include "toonzqt/swatchviewer.h"
-#include "toonzqt/fxhistogramrender.h"
+"flareqt/framenavigator.h"
+"flareqt/paramfield.h"
+"flareqt/swatchviewer.h"
+"flareqt/fxhistogramrender.h"
 
 #undef DVAPI
 #undef DVVAR
@@ -320,3 +320,4 @@ protected slots:
 };
 
 #endif  // FXSETTINGS_H
+

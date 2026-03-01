@@ -7,10 +7,10 @@
 #include "dvwidgets.h"
 
 // TnzLib includes
-#include "toonz/tscenehandle.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/toonzscene.h"
-#include "toonz/tcamera.h"
+"flare/tscenehandle.h"
+"flare/sceneproperties.h"
+"flare/toonzscene.h"
+"flare/tcamera.h"
 #include "toutputproperties.h"
 
 #ifdef _WIN32
@@ -438,3 +438,4 @@ bool openFormatSettingsPopup(QWidget *parent, const std::string &format,
 
   return true;
 }
+

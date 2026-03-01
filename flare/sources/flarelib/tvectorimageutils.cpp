@@ -1,6 +1,6 @@
 
 
-#include "toonz/tvectorimageutils.h"
+"flare/tvectorimageutils.h"
 #include "tpalette.h"
 
 //-------------------------------------------------------------------------------------

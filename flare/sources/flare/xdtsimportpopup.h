@@ -2,8 +2,8 @@
 #ifndef XDTSIMPORTPOPUP_H
 #define XDTSIMPORTPOPUP_H
 
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/doublefield.h"
+"flareqt/dvdialog.h"
+"flareqt/doublefield.h"
 #include "tfilepath.h"
 
 #include <QMap>

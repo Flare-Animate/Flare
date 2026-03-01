@@ -32,25 +32,25 @@
 #include "tvectorrenderdata.h"
 
 // Qt helpers
-#include "toonzqt/gutil.h"
-#include "toonzqt/imageutils.h"
+"flareqt/gutil.h"
+"flareqt/imageutils.h"
 
 // App-Stage includes
 #include "tapp.h"
 #include "toutputproperties.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/levelproperties.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/toonzscene.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/tcamera.h"
-#include "toonz/preferences.h"
-#include "toonz/tproject.h"
+"flare/txsheethandle.h"
+"flare/txshsimplelevel.h"
+"flare/levelproperties.h"
+"flare/tscenehandle.h"
+"flare/toonzscene.h"
+"flare/sceneproperties.h"
+"flare/txshlevelhandle.h"
+"flare/tcamera.h"
+"flare/preferences.h"
+"flare/tproject.h"
 
 // Image painting
-#include "toonz/imagepainter.h"
+"flare/imagepainter.h"
 
 // Preview
 #include "previewfxmanager.h"
@@ -62,8 +62,8 @@
 #include "mainwindow.h"
 
 // Other widgets
-#include "toonzqt/flipconsole.h"
-#include "toonzqt/dvdialog.h"
+"flareqt/flipconsole.h"
+"flareqt/dvdialog.h"
 #include "filmstripselection.h"
 #include "castselection.h"
 #include "histogrampopup.h"
@@ -2306,3 +2306,4 @@ FlipBook *viewFile(const TFilePath &path, int from, int to, int step,
 }
 
 //-----------------------------------------------------------------------------
+

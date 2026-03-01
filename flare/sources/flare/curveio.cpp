@@ -5,7 +5,7 @@
 #include "tstream.h"
 #include "tdoubleparam.h"
 #include "tfilepath_io.h"
-#include "toonz/tproject.h"
+"flare/tproject.h"
 #include "tconvert.h"
 #include "filebrowserpopup.h"
 #include "filebrowser.h"
@@ -237,3 +237,4 @@ void exportCurve(TDoubleParam *curve, const std::string &name) {
   ExportCurvePopup popup(folderPath, curve, name);
   popup.exec();
 }
+

@@ -8,14 +8,14 @@
 #include "tcontenthistory.h"
 
 // TnzLib includes
-#include "toonz/txshleveltypes.h"
-#include "toonz/imagemanager.h"
-#include "toonz/toonzscene.h"
-#include "toonz/levelproperties.h"
-#include "toonz/preferences.h"
-#include "toonz/sceneproperties.h"
+"flare/txshleveltypes.h"
+"flare/imagemanager.h"
+"flare/toonzscene.h"
+"flare/levelproperties.h"
+"flare/preferences.h"
+"flare/sceneproperties.h"
 
-#include "toonz/levelupdater.h"
+"flare/levelupdater.h"
 
 //*****************************************************************************************
 //    Local namespace stuff
@@ -534,3 +534,4 @@ void LevelUpdater::resume() {
     throw;
   }
 }
+

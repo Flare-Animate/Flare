@@ -13,7 +13,7 @@ public:
 
 #ifdef HAVE_MYPaint
 
-#include <toonz/mypaint.h>
+<flare/mypaint.h>
 #include "traster.h"
 #include "trastercm.h"
 #include "tcurves.h"
@@ -150,3 +150,4 @@ public:
 #endif // HAVE_MYPaint
 
 #endif  // T_BLUREDBRUSH
+

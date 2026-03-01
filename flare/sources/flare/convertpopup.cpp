@@ -9,25 +9,25 @@
 #include "filebrowser.h"
 
 // TnzQt includes
-#include "toonzqt/gutil.h"
-#include "toonzqt/imageutils.h"
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/filefield.h"
-#include "toonzqt/intfield.h"
-#include "toonzqt/colorfield.h"
-#include "toonzqt/checkbox.h"
-#include "toonzqt/icongenerator.h"
-#include "toonzqt/doublefield.h"
+"flareqt/gutil.h"
+"flareqt/imageutils.h"
+"flareqt/menubarcommand.h"
+"flareqt/filefield.h"
+"flareqt/intfield.h"
+"flareqt/colorfield.h"
+"flareqt/checkbox.h"
+"flareqt/icongenerator.h"
+"flareqt/doublefield.h"
 
 // TnzLib includes
-#include "toonz/tscenehandle.h"
-#include "toonz/toonzscene.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/tproject.h"
+"flare/tscenehandle.h"
+"flare/toonzscene.h"
+"flare/sceneproperties.h"
+"flare/tproject.h"
 #include "toutputproperties.h"
 #include "convert2tlv.h"
-#include "toonz/preferences.h"
-#include "toonz/tcamera.h"
+"flare/preferences.h"
+"flare/tcamera.h"
 
 // TnzCore includes
 #include "tsystem.h"
@@ -1354,3 +1354,4 @@ void ConvertPopup::onDpiModeSelected(int index) {
 //-----------------------------------------------------------------------------
 
 OpenPopupCommandHandler<ConvertPopup> openConvertPopup(MI_ConvertFiles);
+

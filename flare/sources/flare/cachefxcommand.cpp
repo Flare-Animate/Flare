@@ -2,26 +2,26 @@
 
 // Toonz app and handles
 #include "tapp.h"
-#include "toonz/tpalettehandle.h"
-#include "toonz/palettecontroller.h"
-#include "toonz/tobjecthandle.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/tframehandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/tfxhandle.h"
+"flare/tpalettehandle.h"
+"flare/palettecontroller.h"
+"flare/tobjecthandle.h"
+"flare/tscenehandle.h"
+"flare/tframehandle.h"
+"flare/txshlevelhandle.h"
+"flare/txsheethandle.h"
+"flare/tfxhandle.h"
 
 // Toonz scene
-#include "toonz/toonzscene.h"
+"flare/toonzscene.h"
 
 // Toonz schematic includes
-#include "toonz/fxdag.h"
-#include "toonz/tcolumnfxset.h"
-#include "toonz/tcolumnfx.h"
-#include "toonz/txshlevelcolumn.h"
-#include "toonz/levelset.h"
-#include "toonz/txshchildlevel.h"
-#include "toonz/txshzeraryfxcolumn.h"
+"flare/fxdag.h"
+"flare/tcolumnfxset.h"
+"flare/tcolumnfx.h"
+"flare/txshlevelcolumn.h"
+"flare/levelset.h"
+"flare/txshchildlevel.h"
+"flare/txshzeraryfxcolumn.h"
 
 // Render cache includes
 #include "tpassivecachemanager.h"
@@ -357,3 +357,4 @@ void buildTreeDescription(std::string &desc, const TFxP &root) {
 
   buildNodeTreeDescription(desc, root);
 }
+

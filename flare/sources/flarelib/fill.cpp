@@ -1,9 +1,9 @@
 
 
 #include <stack>
-#include "toonz/fill.h"
-#include "toonz/ttilesaver.h"
-#include "toonz/ttileset.h"
+"flare/fill.h"
+"flare/ttilesaver.h"
+"flare/ttileset.h"
 #include "tpalette.h"
 #include "tpixelutils.h"
 #include "trastercm.h"
@@ -1457,3 +1457,4 @@ void fillHoles(const TRasterCM32P &ras, const int maxSize,
   }
   delete[] visited;
 }
+

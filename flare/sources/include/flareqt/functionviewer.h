@@ -8,11 +8,11 @@
 #include "saveloadqsettings.h"
 
 // TnzLib includes
-#include "toonz/tframehandle.h"
-#include "toonz/preferences.h"
+"flare/tframehandle.h"
+"flare/preferences.h"
 
 // TnzQt includes
-#include "toonzqt/treemodel.h"
+"flareqt/treemodel.h"
 
 // Qt includes
 #include <QSplitter>
@@ -204,3 +204,4 @@ private slots:
 };
 
 #endif  // FUNCTIONEDITORVIEWER_H
+

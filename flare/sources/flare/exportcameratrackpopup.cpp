@@ -9,23 +9,23 @@
 #include "menubarcommandids.h"
 
 // TnzQt includes
-#include "toonzqt/colorfield.h"
-#include "toonzqt/filefield.h"
-#include "toonzqt/doublefield.h"
+"flareqt/colorfield.h"
+"flareqt/filefield.h"
+"flareqt/doublefield.h"
 
 // TnzLib includes
-#include "toonz/txsheet.h"
-#include "toonz/tcamera.h"
-#include "toonz/txshlevel.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/txshcell.h"
-#include "toonz/tstageobjecttree.h"
-#include "toonz/toonzscene.h"
-#include "toonz/txshleveltypes.h"
-#include "toonz/dpiscale.h"
-#include "toonz/tproject.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/tscenehandle.h"
+"flare/txsheet.h"
+"flare/tcamera.h"
+"flare/txshlevel.h"
+"flare/txshsimplelevel.h"
+"flare/txshcell.h"
+"flare/tstageobjecttree.h"
+"flare/toonzscene.h"
+"flare/txshleveltypes.h"
+"flare/dpiscale.h"
+"flare/tproject.h"
+"flare/txsheethandle.h"
+"flare/tscenehandle.h"
 #include "filebrowserpopup.h"
 
 // TnzCore includes
@@ -1000,3 +1000,4 @@ void ExportCameraTrackPopup::closeEvent(QCloseEvent* event) {
   saveSettings();
   DVGui::Dialog::closeEvent(event);
 }
+

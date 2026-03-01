@@ -12,26 +12,26 @@
 #include "hookselection.h"
 #include "tools/toolhandle.h"
 
-#include "toonzqt/selection.h"
+"flareqt/selection.h"
 
-#include "toonz/tframehandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/hook.h"
-#include "toonz/txshlevel.h"
-#include "toonz/toonzscene.h"
-#include "toonz/txsheet.h"
-#include "toonz/txshcell.h"
-#include "toonz/txshcolumn.h"
-#include "toonz/tstageobjecttree.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/levelproperties.h"
-#include "toonz/toonzimageutils.h"
-#include "toonz/dpiscale.h"
-#include "toonz/onionskinmask.h"
-#include "toonz/tonionskinmaskhandle.h"
+"flare/tframehandle.h"
+"flare/txshlevelhandle.h"
+"flare/tscenehandle.h"
+"flare/txsheethandle.h"
+"flare/tcolumnhandle.h"
+"flare/hook.h"
+"flare/txshlevel.h"
+"flare/toonzscene.h"
+"flare/txsheet.h"
+"flare/txshcell.h"
+"flare/txshcolumn.h"
+"flare/tstageobjecttree.h"
+"flare/txshsimplelevel.h"
+"flare/levelproperties.h"
+"flare/toonzimageutils.h"
+"flare/dpiscale.h"
+"flare/onionskinmask.h"
+"flare/tonionskinmaskhandle.h"
 #include <math.h>
 
 // For Qt translation support
@@ -776,3 +776,4 @@ void HookTool::onDeactivate() {
 //-----------------------------------------------------------------------------
 
 void HookTool::onEnter() { m_selection.makeCurrent(); }
+

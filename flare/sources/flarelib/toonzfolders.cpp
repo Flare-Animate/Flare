@@ -1,8 +1,8 @@
-#include "toonz/toonzfolders.h"
+"flare/toonzfolders.h"
 #include "tsystem.h"
 #include "tenv.h"
 #include "tconvert.h"
-#include "toonz/preferences.h"
+"flare/preferences.h"
 #include <QStandardPaths>
 #include <QDir>
 
@@ -231,3 +231,4 @@ void FolderListenerManager::addListener(Listener *listener) {
 void FolderListenerManager::removeListener(Listener *listener) {
   m_listeners.erase(listener);
 }
+

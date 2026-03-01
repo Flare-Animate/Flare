@@ -1,13 +1,13 @@
 
 
-#include "toonzqt/functionselection.h"
+"flareqt/functionselection.h"
 
-#include "toonzqt/dvdialog.h"
+"flareqt/dvdialog.h"
 
 // TnzLib includes
-#include "toonz/doubleparamcmd.h"
-#include "toonz/tframehandle.h"
-#include "toonz/txsheetexpr.h"
+"flare/doubleparamcmd.h"
+"flare/tframehandle.h"
+"flare/txsheetexpr.h"
 
 // TnzBase includes
 #include "tdoubleparam.h"
@@ -806,3 +806,4 @@ bool FunctionKeyframesData::isCircularReferenceFree(int columnIndex,
   }
   return true;
 }
+

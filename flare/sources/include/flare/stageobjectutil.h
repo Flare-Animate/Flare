@@ -10,10 +10,10 @@
 #include "ext/plasticskeletondeformation.h"
 
 // TnzLib includes
-#include "toonz/txsheet.h"
-#include "toonz/tstageobjectid.h"
-#include "toonz/tstageobject.h"
-#include "toonz/tstageobjectkeyframe.h"
+"flare/txsheet.h"
+"flare/tstageobjectid.h"
+"flare/tstageobject.h"
+"flare/tstageobjectkeyframe.h"
 
 #include "historytypes.h"
 
@@ -284,3 +284,4 @@ void DVAPI insertFrame(TStageObject *obj, int frame);
 void DVAPI removeFrame(TStageObject *obj, int frame);
 
 #endif
+

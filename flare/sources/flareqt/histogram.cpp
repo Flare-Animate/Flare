@@ -9,8 +9,8 @@
 #include <QStackedWidget>
 #include <QPainter>
 
-#include "toonzqt/histogram.h"
-#include "toonzqt/gutil.h"
+"flareqt/histogram.h"
+"flareqt/gutil.h"
 
 const int HistogramGraph::drawMargin = 10;
 
@@ -587,3 +587,4 @@ void Histogram::setLogScale(bool onOff) {
   }
   update();
 }
+

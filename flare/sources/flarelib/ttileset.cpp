@@ -1,6 +1,6 @@
 
 
-#include "toonz/ttileset.h"
+"flare/ttileset.h"
 #include "tcodec.h"
 #include "timagecache.h"
 #include "ttoonzimage.h"
@@ -213,3 +213,4 @@ TTileSetFullColor *TTileSetFullColor::clone() const {
   for (; it != m_tiles.end(); ++it) tileSet->m_tiles.push_back((*it)->clone());
   return tileSet;
 }
+

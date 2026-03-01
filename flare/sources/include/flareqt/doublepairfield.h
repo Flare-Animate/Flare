@@ -3,7 +3,7 @@
 #ifndef DOUBLEPAIRFIELD_H
 #define DOUBLEPAIRFIELD_H
 
-#include "toonzqt/doublefield.h"
+"flareqt/doublefield.h"
 #include "tcommon.h"
 
 #undef DVAPI
@@ -264,3 +264,4 @@ public:
 //-----------------------------------------------------------------------------
 
 #endif  // DOUBLEPAIRFIELD_H
+

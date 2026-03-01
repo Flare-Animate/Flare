@@ -1,9 +1,9 @@
 
 
-#include "toonzqt/filefield.h"
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/gutil.h"
-#include "toonzqt/lineedit.h"
+"flareqt/filefield.h"
+"flareqt/dvdialog.h"
+"flareqt/gutil.h"
+"flareqt/lineedit.h"
 #include "tfilepath.h"
 
 #include <QHBoxLayout>
@@ -109,3 +109,4 @@ void FileField::browseDirectory() {
     return;
   }
 }
+

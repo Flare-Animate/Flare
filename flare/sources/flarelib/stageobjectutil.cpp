@@ -4,14 +4,14 @@
 #include "tdoubleparam.h"
 
 // TnzLib includes
-#include "toonz/tstageobject.h"
-#include "toonz/tobjecthandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/tframehandle.h"
-#include "toonz/doubleparamcmd.h"
-#include "toonz/tstageobjecttree.h"
+"flare/tstageobject.h"
+"flare/tobjecthandle.h"
+"flare/txsheethandle.h"
+"flare/tframehandle.h"
+"flare/doubleparamcmd.h"
+"flare/tstageobjecttree.h"
 
-#include "toonz/stageobjectutil.h"
+"flare/stageobjectutil.h"
 
 //=============================================================================
 // TStageObjectValues
@@ -463,3 +463,4 @@ void removeFrame(TStageObject *obj, int frame) {
     }
   }
 }
+

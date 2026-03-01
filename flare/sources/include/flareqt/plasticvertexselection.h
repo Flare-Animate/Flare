@@ -4,7 +4,7 @@
 #define PLASTICVERTEXSELECTION_H
 
 // TnzQt includes
-#include "toonzqt/multipleselection.h"
+"flareqt/multipleselection.h"
 
 #undef DVAPI
 #undef DVVAR
@@ -58,3 +58,4 @@ public:
 };
 
 #endif  // PLASTICVERTEXSELECTION_H
+

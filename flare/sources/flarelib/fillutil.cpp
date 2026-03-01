@@ -1,20 +1,20 @@
 
 
 #include "trastercm.h"
-#include "toonz/fill.h"
+"flare/fill.h"
 #include "tregion.h"
 #include "tstroke.h"
 #include "tvectorimage.h"
-#include "toonz/ttileset.h"
-#include "toonz/ttilesaver.h"
-#include "toonz/toonzimageutils.h"
+"flare/ttileset.h"
+"flare/ttilesaver.h"
+"flare/toonzimageutils.h"
 #include "skeletonlut.h"
 #include "tpixelutils.h"
 #include "tropcm.h"
 #include "tenv.h"
 #include <stack>
 
-#include "toonz/preferences.h"
+"flare/preferences.h"
 
 using namespace SkeletonLut;
 
@@ -1375,3 +1375,4 @@ bool inkSegment(const TRasterCM32P &r, const TPoint &p, int ink,
   r->unlock();
   return ret;
 }
+

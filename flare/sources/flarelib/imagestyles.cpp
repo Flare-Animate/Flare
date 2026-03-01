@@ -12,8 +12,8 @@
 #include "timage_io.h"
 #include "trandom.h"
 #include "tvectorimage.h"
-#include "toonz/toonzscene.h"
-#include "toonz/imagestyles.h"
+"flare/toonzscene.h"
+"flare/imagestyles.h"
 
 //*************************************************************************************
 //    TTextureStyle  implementation
@@ -1011,3 +1011,4 @@ TRaster32P makeSimpleRaster() {
 
 TColorStyle::Declaration s2(new TTextureStyle(makeSimpleRaster(), TFilePath()));
 }
+

@@ -1,11 +1,11 @@
-#include "toonz/preferences.h"
+"flare/preferences.h"
 
 // TnzLib includes
-#include "toonz/tscenehandle.h"
-#include "toonz/toonzscene.h"
-#include "toonz/toonzfolders.h"
-#include "toonz/tcamera.h"
-#include "toonz/txshleveltypes.h"
+"flare/tscenehandle.h"
+"flare/toonzscene.h"
+"flare/toonzfolders.h"
+"flare/tcamera.h"
+"flare/txshleveltypes.h"
 
 // TnzBase includes
 #include "tenv.h"
@@ -1156,3 +1156,4 @@ QString Preferences::getColorCalibrationLutPath(QString &monitorName) const {
 
   return lutPathMap.value(monitorName).toString();
 }
+

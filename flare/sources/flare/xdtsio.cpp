@@ -3,22 +3,22 @@
 #include "xdtsio.h"
 
 #include "tsystem.h"
-#include "toonz/toonzscene.h"
-#include "toonz/tproject.h"
-#include "toonz/levelset.h"
-#include "toonz/txsheet.h"
-#include "toonz/txshcell.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/txshchildlevel.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/preferences.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/tstageobject.h"
+"flare/toonzscene.h"
+"flare/tproject.h"
+"flare/levelset.h"
+"flare/txsheet.h"
+"flare/txshcell.h"
+"flare/txshsimplelevel.h"
+"flare/txshchildlevel.h"
+"flare/txsheethandle.h"
+"flare/tscenehandle.h"
+"flare/preferences.h"
+"flare/sceneproperties.h"
+"flare/tstageobject.h"
 #include "toutputproperties.h"
 
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/gutil.h"
+"flareqt/menubarcommand.h"
+"flareqt/gutil.h"
 
 #include "tapp.h"
 #include "menubarcommandids.h"
@@ -887,3 +887,4 @@ void ExportXDTSCommand::execute() {
       QDesktopServices::openUrl(QUrl::fromLocalFile(folderPath.getQString()));
   }
 }
+

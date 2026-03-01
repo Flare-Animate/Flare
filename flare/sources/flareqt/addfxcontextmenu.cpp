@@ -1,22 +1,22 @@
 
 
-#include "toonzqt/addfxcontextmenu.h"
+"flareqt/addfxcontextmenu.h"
 
 // TnzQt includes
-#include "toonzqt/fxselection.h"
+"flareqt/fxselection.h"
 
 // TnzLib includes
-#include "toonz/toonzfolders.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/tframehandle.h"
-#include "toonz/tfxhandle.h"
-#include "toonz/fxcommand.h"
-#include "toonz/txsheet.h"
-#include "toonz/fxdag.h"
-#include "toonz/tapplication.h"
-#include "toonz/txshzeraryfxcolumn.h"
-#include "toonz/tcolumnfx.h"
+"flare/toonzfolders.h"
+"flare/txsheethandle.h"
+"flare/tcolumnhandle.h"
+"flare/tframehandle.h"
+"flare/tfxhandle.h"
+"flare/fxcommand.h"
+"flare/txsheet.h"
+"flare/fxdag.h"
+"flare/tapplication.h"
+"flare/txshzeraryfxcolumn.h"
+"flare/tcolumnfx.h"
 #include "tw/stringtable.h"
 
 // TnzBase includes
@@ -667,3 +667,4 @@ void AddFxContextMenu::onAgainCommand() {
     onReplaceFx(m_againCommand);
   }
 }
+

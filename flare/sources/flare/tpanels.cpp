@@ -51,39 +51,39 @@
 #include "tools/toolhandle.h"
 
 // TnzQt includes
-#include "toonzqt/schematicviewer.h"
-#include "toonzqt/paletteviewer.h"
-#include "toonzqt/styleeditor.h"
-#include "toonzqt/studiopaletteviewer.h"
-#include "toonzqt/functionviewer.h"
-#include "toonzqt/tselectionhandle.h"
-#include "toonzqt/tmessageviewer.h"
-#include "toonzqt/scriptconsole.h"
-#include "toonzqt/fxsettings.h"
-#include "toonzqt/fxselection.h"
+"flareqt/schematicviewer.h"
+"flareqt/paletteviewer.h"
+"flareqt/styleeditor.h"
+"flareqt/studiopaletteviewer.h"
+"flareqt/functionviewer.h"
+"flareqt/tselectionhandle.h"
+"flareqt/tmessageviewer.h"
+"flareqt/scriptconsole.h"
+"flareqt/fxsettings.h"
+"flareqt/fxselection.h"
 #include "stageobjectselection.h"
 
 // TnzLib includes
-#include "toonz/palettecontroller.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/toonzscene.h"
-#include "toonz/tobjecthandle.h"
-#include "toonz/tpalettehandle.h"
-#include "toonz/tframehandle.h"
-#include "toonz/tcamera.h"
-#include "toonz/scenefx.h"
-#include "toonz/tproject.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/txshcell.h"
-#include "toonz/cleanupcolorstyles.h"
-#include "toonz/palettecmd.h"
-#include "toonz/preferences.h"
+"flare/palettecontroller.h"
+"flare/tscenehandle.h"
+"flare/txshlevelhandle.h"
+"flare/tcolumnhandle.h"
+"flare/toonzscene.h"
+"flare/tobjecthandle.h"
+"flare/tpalettehandle.h"
+"flare/tframehandle.h"
+"flare/tcamera.h"
+"flare/scenefx.h"
+"flare/tproject.h"
+"flare/txshsimplelevel.h"
+"flare/txshcell.h"
+"flare/cleanupcolorstyles.h"
+"flare/palettecmd.h"
+"flare/preferences.h"
 #include "tw/stringtable.h"
-#include "toonz/toonzfolders.h"
-#include "toonz/fxcommand.h"
-#include "toonz/tstageobjectcmd.h"
+"flare/toonzfolders.h"
+"flare/fxcommand.h"
+"flare/tstageobjectcmd.h"
 
 #include "../../flare/locatorpopup.h"
 
@@ -255,7 +255,7 @@ void SchematicScenePanel::onDeleteStageObjects(
     return;
 
   TApp *app = TApp::instance();
-  // Safe conversion QList ¡ú std::vector (avoids std::length_error crash)
+  // Safe conversion QList ï¿½ï¿½ std::vector (avoids std::length_error crash)
   const QList<TStageObjectId> objList = selection->getObjects();
   std::vector<TStageObjectId> objects(objList.begin(), objList.end());
 
@@ -1697,4 +1697,5 @@ public:
 //=============================================================================
 OpenFloatingPanel openLocatorCommand(MI_OpenLocator, "Locator",
                                      QObject::tr("Locator"));
+
 

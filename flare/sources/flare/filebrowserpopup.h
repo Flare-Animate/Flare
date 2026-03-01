@@ -8,11 +8,11 @@
 #include "tpixel.h"
 
 // TnzQt includes
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/filefield.h"
-#include "toonzqt/lineedit.h"
-#include "toonzqt/checkbox.h"
-#include "toonzqt/doublefield.h"
+"flareqt/dvdialog.h"
+"flareqt/filefield.h"
+"flareqt/lineedit.h"
+"flareqt/checkbox.h"
+"flareqt/doublefield.h"
 
 // Tnz6 includes
 #include "cellselection.h"
@@ -473,3 +473,4 @@ public:
 };
 
 #endif  // FILEBROWSERPOPUP_H
+

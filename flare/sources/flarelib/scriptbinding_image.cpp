@@ -1,8 +1,8 @@
 
 
-#include "toonz/scriptbinding_image.h"
-#include "toonz/scriptbinding_level.h"
-#include "toonz/scriptbinding_files.h"
+"flare/scriptbinding_image.h"
+"flare/scriptbinding_level.h"
+"flare/scriptbinding_files.h"
 #include "tsystem.h"
 #include "ttoonzimage.h"
 #include "tfiletype.h"
@@ -209,3 +209,4 @@ QScriptValue checkImage(QScriptContext *context, const QScriptValue &value,
 }
 
 }  // namespace TScriptBinding
+

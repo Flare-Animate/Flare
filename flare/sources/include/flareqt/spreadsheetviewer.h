@@ -5,7 +5,7 @@
 
 #include "tcommon.h"
 #include "cellposition.h"
-#include "toonz/cellpositionratio.h"
+"flare/cellpositionratio.h"
 // #include "orientation.h"
 
 #include <QDialog>
@@ -545,3 +545,4 @@ void updateCellRowAree();
 };
 
 #endif
+

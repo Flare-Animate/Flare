@@ -3,7 +3,7 @@
 #ifndef PALETTE_DATA_INCLUDED
 #define PALETTE_DATA_INCLUDED
 
-#include "toonzqt/dvmimedata.h"
+"flareqt/dvmimedata.h"
 #include "tpalette.h"
 #include <set>
 #include <vector>
@@ -44,3 +44,4 @@ public:
 };
 
 #endif
+

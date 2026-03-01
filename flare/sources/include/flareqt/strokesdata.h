@@ -5,7 +5,7 @@
 
 #include "tcommon.h"
 #include "tvectorimage.h"
-#include "toonzqt/dvmimedata.h"
+"flareqt/dvmimedata.h"
 #include "ttoonzimage.h"
 #include "trasterimage.h"
 
@@ -56,3 +56,4 @@ public:
 };
 
 #endif  // STROKES_DATA_H
+

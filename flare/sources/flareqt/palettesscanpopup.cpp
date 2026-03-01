@@ -1,7 +1,7 @@
 
 
 #include "palettesscanpopup.h"
-#include "toonzqt/gutil.h"
+"flareqt/gutil.h"
 #include "tsystem.h"
 
 #include <QPushButton>
@@ -196,3 +196,4 @@ void PalettesScanPopup::onPlt(const TFilePath &fp) {
                    tr("Failed to import palette."));
   }
 }
+

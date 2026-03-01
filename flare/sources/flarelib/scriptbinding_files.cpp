@@ -1,6 +1,6 @@
 
 
-#include "toonz/scriptbinding_files.h"
+"flare/scriptbinding_files.h"
 #include <QScriptEngine>
 #include <QFile>
 #include <QFileInfo>
@@ -146,3 +146,4 @@ QScriptValue checkFilePath(QScriptContext *context, const QScriptValue &value,
 }
 
 }  // namespace TScriptBinding
+

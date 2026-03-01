@@ -4,12 +4,12 @@
 #include "tgl.h"
 #include "tundo.h"
 #include "trop.h"
-#include "toonz/toonzimageutils.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/ttileset.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/preferences.h"
+"flare/toonzimageutils.h"
+"flare/txshlevelhandle.h"
+"flare/txsheethandle.h"
+"flare/ttileset.h"
+"flare/txshsimplelevel.h"
+"flare/preferences.h"
 #include "tools/toolutils.h"
 #include "tools/cursors.h"
 
@@ -243,3 +243,4 @@ void SetSaveboxTool::draw() {
   tglDrawRect(TRectD(p00_01 - size, p00_01 + size));
   tglDrawRect(TRectD(p00_10 - size, p00_10 + size));
 }
+

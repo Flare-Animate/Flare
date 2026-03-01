@@ -1,11 +1,11 @@
 
 
-#include "toonzqt/fxsettings.h"
-#include "toonzqt/gutil.h"
-#include "toonzqt/keyframenavigator.h"
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/fxhistogramrender.h"
-#include "toonzqt/histogram.h"
+"flareqt/fxsettings.h"
+"flareqt/gutil.h"
+"flareqt/keyframenavigator.h"
+"flareqt/dvdialog.h"
+"flareqt/fxhistogramrender.h"
+"flareqt/histogram.h"
 
 #include "tmacrofx.h"
 #include "tstream.h"
@@ -18,16 +18,16 @@
 #include "tsystem.h"
 #include "docklayout.h"
 
-#include "toonz/tcamera.h"
-#include "toonz/toonzfolders.h"
-#include "toonz/tcolumnfx.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/tobjecthandle.h"
-#include "toonz/scenefx.h"
-#include "toonz/toonzscene.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/preferences.h"
+"flare/tcamera.h"
+"flare/toonzfolders.h"
+"flare/tcolumnfx.h"
+"flare/tscenehandle.h"
+"flare/txshlevelhandle.h"
+"flare/tobjecthandle.h"
+"flare/scenefx.h"
+"flare/toonzscene.h"
+"flare/sceneproperties.h"
+"flare/preferences.h"
 #include "tw/stringtable.h"
 
 #include <QVBoxLayout>
@@ -1713,3 +1713,4 @@ void FxSettings::onShowSwatchButtonToggled(bool on) {
 }
 
 //-----------------------------------------------------------------------------
+

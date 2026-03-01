@@ -191,7 +191,7 @@ Flare 使用 QuickTime SDK 提供的 MOV 及相关文件格式。由于 QuickTim
     - tnzbase.dll
     - tnzcore.dll
     - tnzext.dll
-    - toonzlib.dll
+    - flarelib.dll
   - 32位版本的Qt：
     - 使用 `windeployqt.exe` 运行`t32bitsrv.exe`，自动复制相关文件。
     - 另外需要手动复制 Qt5Gui.dll

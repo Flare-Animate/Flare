@@ -10,26 +10,26 @@
 #include "tools/cursors.h"
 
 // TnzQt includes
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/imageutils.h"
+"flareqt/dvdialog.h"
+"flareqt/imageutils.h"
 
 // TnzLib includes
-#include "toonz/tobjecthandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/tframehandle.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/txsheet.h"
-#include "toonz/tstageobject.h"
-#include "toonz/tstageobjectspline.h"
-#include "toonz/ttileset.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/toonzimageutils.h"
-#include "toonz/palettecontroller.h"
-#include "toonz/stage2.h"
-#include "toonz/preferences.h"
-#include "toonz/tpalettehandle.h"
-#include "toonz/mypaintbrushstyle.h"
+"flare/tobjecthandle.h"
+"flare/txsheethandle.h"
+"flare/txshlevelhandle.h"
+"flare/tframehandle.h"
+"flare/tcolumnhandle.h"
+"flare/txsheet.h"
+"flare/tstageobject.h"
+"flare/tstageobjectspline.h"
+"flare/ttileset.h"
+"flare/txshsimplelevel.h"
+"flare/toonzimageutils.h"
+"flare/palettecontroller.h"
+"flare/stage2.h"
+"flare/preferences.h"
+"flare/tpalettehandle.h"
+"flare/mypaintbrushstyle.h"
 
 // TnzCore includes
 #include "tstream.h"
@@ -2116,3 +2116,4 @@ void BrushPresetManager::removePreset(const std::wstring &name) {
   m_presets.erase(BrushData(name));
   save();
 }
+

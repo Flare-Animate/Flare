@@ -109,7 +109,7 @@ TFilePath getLocalRoot() {
                         "\\FARMROOT";
   TFilePath name(regpath);
   lroot = TFilePath(TSystem::getSystemValue(name).toStdString()) +
-          TFilePath("toonzfarm");
+          TFilePath("FlareFarm");
 #else
 // Leggo la localRoot da File txt
 #ifdef MACOSX
@@ -2208,7 +2208,7 @@ void FarmController::activateReadyServers() {
 class ControllerService final : public TService {
 public:
   ControllerService()
-      : TService("ToonzFarmController", "ToonzFarm Controller")
+      : TService("FlareFarmController", "FlareFarm Controller")
       , m_controller(0) {}
 
   ~ControllerService() { delete m_controller; }
@@ -2305,7 +2305,7 @@ void ControllerService::onStart(int argc, char *argv[]) {
   m_controller = new FarmController(hostName, addr, port, m_userLog);
 
   // configurazione e inizializzazione dei server lato client
-  // (il controller e' un client dei ToonzFarm server)
+  // (il controller e' un client dei FlareFarm server)
   m_controller->loadServersData(globalRoot);
 
   TFilePath fp = getTasksDataFile();
@@ -2384,7 +2384,7 @@ int main(int argc, char **argv) {
 
   if (argc > 1) {
     string serviceName(
-        "ToonzFarmController");  // Must be the same of the installer's
+        "FlareFarmController");  // Must be the same of the installer's
     string serviceDisplayName = serviceName;
 
     TCli::SimpleQualifier consoleQualifier("-console", "Run as console app");
@@ -2432,3 +2432,4 @@ int main(int argc, char **argv) {
 }
 
 ControllerService Service;
+

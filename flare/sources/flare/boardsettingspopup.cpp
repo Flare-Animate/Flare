@@ -5,19 +5,19 @@
 #include "filebrowser.h"
 
 // TnzQt includes
-#include "toonzqt/gutil.h"
-#include "toonzqt/filefield.h"
-#include "toonzqt/colorfield.h"
-#include "toonzqt/intfield.h"
+"flareqt/gutil.h"
+"flareqt/filefield.h"
+"flareqt/colorfield.h"
+"flareqt/intfield.h"
 
 // TnzLib includes
 #include "toutputproperties.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/toonzscene.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/tcamera.h"
-#include "toonz/boardsettings.h"
-#include "toonz/toonzfolders.h"
+"flare/tscenehandle.h"
+"flare/toonzscene.h"
+"flare/sceneproperties.h"
+"flare/tcamera.h"
+"flare/boardsettings.h"
+"flare/toonzfolders.h"
 
 // Image
 #include "tiio.h"
@@ -1266,3 +1266,4 @@ SaveBoardImagePopup::SaveBoardImagePopup()
   Tiio::Writer::getSupportedFormats(formats, true);
   setFilterTypes(formats);
 }
+

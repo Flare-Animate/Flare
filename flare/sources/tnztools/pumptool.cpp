@@ -15,8 +15,8 @@
 #include "tmathutil.h"
 
 // Toonz includes
-#include "toonz/tobjecthandle.h"
-#include "toonz/txshlevelhandle.h"
+"flare/tobjecthandle.h"
+"flare/txshlevelhandle.h"
 
 // TnzTools includes
 #include "tools/tool.h"

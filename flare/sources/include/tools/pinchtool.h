@@ -5,7 +5,7 @@
 
 #include "tools/tool.h"
 #include "tproperty.h"
-#include "toonz/observer.h"
+"flare/observer.h"
 #include "ext/ContextStatus.h"
 #include "ext/Selector.h"
 
@@ -101,3 +101,4 @@ public:
 };
 
 #endif  // PINCHTOOL_H
+

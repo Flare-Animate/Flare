@@ -24,7 +24,7 @@
 #include "tspectrumparam.h"
 #include "ttonecurveparam.h"
 #include "tdoubleparam.h"
-#include "toonz/tfxhandle.h"
+"flare/tfxhandle.h"
 #include "historytypes.h"
 
 #undef DVAPI
@@ -928,3 +928,4 @@ TOONZ_DECLARE_MAKE_WIDGET(make_combobox);
 #endif
 
 #endif  // PARAMFIELD_H
+

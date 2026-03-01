@@ -9,7 +9,7 @@
 
 #include "tdoubleparam.h"
 #include "tdoublekeyframe.h"
-#include "toonzqt/lineedit.h"
+"flareqt/lineedit.h"
 
 #undef DVAPI
 #undef DVVAR
@@ -244,3 +244,4 @@ public:
 };
 
 #endif
+

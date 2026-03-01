@@ -1,13 +1,13 @@
 
 
-#include "toonzqt/strokesdata.h"
+"flareqt/strokesdata.h"
 #include "tthreadmessage.h"
 #include "tstroke.h"
 #include "tpalette.h"
-#include "toonzqt/rasterimagedata.h"
-#include "toonz/toonzimageutils.h"
-#include "toonz/trasterimageutils.h"
-#include "toonz/stage.h"
+"flareqt/rasterimagedata.h"
+"flare/toonzimageutils.h"
+"flare/trasterimageutils.h"
+"flare/stage.h"
 
 using namespace std;
 
@@ -182,3 +182,4 @@ FullColorImageData *StrokesData::toFullColorImageData(
                 TDimension(), rects, strokes, strokes, TAffine());
   return data;
 }
+

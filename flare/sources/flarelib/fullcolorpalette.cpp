@@ -1,9 +1,9 @@
 
 
-#include "toonz/fullcolorpalette.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/toonzscene.h"
-#include "toonz/toonzfolders.h"
+"flare/fullcolorpalette.h"
+"flare/tscenehandle.h"
+"flare/toonzscene.h"
+"flare/toonzfolders.h"
 #include "tsystem.h"
 #include "tstream.h"
 #include "tpalette.h"
@@ -79,3 +79,4 @@ void FullColorPalette::savePalette(ToonzScene *scene) {
     m_palette->setDirtyFlag(false);
   }
 }
+

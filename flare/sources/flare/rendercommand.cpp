@@ -12,25 +12,25 @@
 #include "tfxutil.h"
 
 // TnzQt includes
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/gutil.h"
+"flareqt/menubarcommand.h"
+"flareqt/dvdialog.h"
+"flareqt/gutil.h"
 
 // TnzLib includes
-#include "toonz/preferences.h"
-#include "toonz/toonzscene.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/txsheet.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/fxdag.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/tcamera.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/onionskinmask.h"
-#include "toonz/observer.h"
-#include "toonz/scenefx.h"
-#include "toonz/movierenderer.h"
-#include "toonz/multimediarenderer.h"
+"flare/preferences.h"
+"flare/toonzscene.h"
+"flare/tscenehandle.h"
+"flare/txsheet.h"
+"flare/txsheethandle.h"
+"flare/fxdag.h"
+"flare/tcolumnhandle.h"
+"flare/tcamera.h"
+"flare/sceneproperties.h"
+"flare/onionskinmask.h"
+"flare/observer.h"
+"flare/scenefx.h"
+"flare/movierenderer.h"
+"flare/multimediarenderer.h"
 #include "toutputproperties.h"
 
 #ifdef _WIN32
@@ -898,3 +898,4 @@ void RenderCommand::doRender(bool isPreview) {
 }
 
 //===================================================================
+

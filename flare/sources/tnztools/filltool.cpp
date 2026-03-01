@@ -1,18 +1,18 @@
 
 #include "filltool.h"
 
-#include "toonz/tframehandle.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/tpalettehandle.h"
-#include "toonz/preferences.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/tobjecthandle.h"
-#include "toonz/tscenehandle.h"
+"flare/tframehandle.h"
+"flare/tcolumnhandle.h"
+"flare/tpalettehandle.h"
+"flare/preferences.h"
+"flare/txsheethandle.h"
+"flare/tobjecthandle.h"
+"flare/tscenehandle.h"
 #include "tools/toolhandle.h"
 #include "tools/toolutils.h"
-#include "toonz/tonionskinmaskhandle.h"
-#include "toonz/toonzscene.h"
-#include "toonz/tcamera.h"
+"flare/tonionskinmaskhandle.h"
+"flare/toonzscene.h"
+"flare/tcamera.h"
 #include "timagecache.h"
 #include "tundo.h"
 #include "tpalette.h"
@@ -24,10 +24,10 @@
 #include "tenv.h"
 #include "tools/stylepicker.h"
 
-#include "toonz/tstageobject.h"
-#include "toonz/dpiscale.h"
-#include "toonz/stage2.h"
-#include "toonz/stagevisitor.h"
+"flare/tstageobject.h"
+"flare/dpiscale.h"
+"flare/stage2.h"
+"flare/stagevisitor.h"
 #include "tstroke.h"
 #include "drawutil.h"
 #include "tsystem.h"
@@ -37,18 +37,18 @@
 #include "trop.h"
 #include "tropcm.h"
 
-#include "toonz/onionskinmask.h"
-#include "toonz/ttileset.h"
-#include "toonz/ttilesaver.h"
-#include "toonz/toonzimageutils.h"
-#include "toonz/levelproperties.h"
+"flare/onionskinmask.h"
+"flare/ttileset.h"
+"flare/ttilesaver.h"
+"flare/toonzimageutils.h"
+"flare/levelproperties.h"
 
-#include "toonz/imagemanager.h"
-#include "toonz/txshcell.h"
-#include "toonzqt/imageutils.h"
+"flare/imagemanager.h"
+"flare/txshcell.h"
+"flareqt/imageutils.h"
 #include "autofill.h"
-#include "toonz/fill.h"
-#include "toonz/autoclose.h"
+"flare/fill.h"
+"flare/autoclose.h"
 
 #include "historytypes.h"
 
@@ -2835,3 +2835,4 @@ void FillTool::onDeactivate() {
 
 FillTool FillVectorTool(TTool::VectorImage);
 FillTool FillRasterTool(TTool::ToonzImage);
+

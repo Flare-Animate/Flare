@@ -6,18 +6,18 @@
 #include "convertpopup.h"
 
 // TnzQt includes
-#include "toonzqt/gutil.h"
+"flareqt/gutil.h"
 
 // TnzLib includes
-#include "toonz/txshsimplelevel.h"
-#include "toonz/txshleveltypes.h"
-#include "toonz/txsheet.h"
-#include "toonz/txshcell.h"
-#include "toonz/toonzscene.h"
-#include "toonz/levelset.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/tcamera.h"
+"flare/txshsimplelevel.h"
+"flare/txshleveltypes.h"
+"flare/txsheet.h"
+"flare/txshcell.h"
+"flare/toonzscene.h"
+"flare/levelset.h"
+"flare/tscenehandle.h"
+"flare/txsheethandle.h"
+"flare/tcamera.h"
 
 // TnzCore includes
 #include "tsystem.h"
@@ -31,12 +31,12 @@
 #include "tools/toolhandle.h"
 
 // TnzQt includes
-#include "toonzqt/icongenerator.h"
-#include "toonzqt/menubarcommand.h"
+"flareqt/icongenerator.h"
+"flareqt/menubarcommand.h"
 
 // TnzLib includes
-#include "toonz/preferences.h"
-#include "toonz/tcolumnhandle.h"
+"flare/preferences.h"
+"flare/tcolumnhandle.h"
 
 // TnzCore includes
 #include "filebrowsermodel.h"

@@ -1,8 +1,8 @@
 
 
-#include "toonz/txshlevel.h"
-#include "toonz/txshleveltypes.h"
-#include "toonz/hook.h"
+"flare/txshlevel.h"
+"flare/txshleveltypes.h"
+"flare/hook.h"
 
 //-----------------------------------------------------------------------------
 
@@ -38,3 +38,4 @@ void TXshLevel::updateShortName() {
   else
     m_shortName = m_name.substr(0, 4) + L"~";
 }
+

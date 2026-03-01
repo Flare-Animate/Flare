@@ -8,15 +8,15 @@
 #include "iocommand.h"
 
 // TnzQt includes
-#include "toonzqt/gutil.h"
+"flareqt/gutil.h"
 
 // TnzLib includes
-#include "toonz/tproject.h"
-#include "toonz/toonzscene.h"
-#include "toonz/levelset.h"
-#include "toonz/sceneresources.h"
-#include "toonz/txshlevel.h"
-#include "toonz/txshsimplelevel.h"
+"flare/tproject.h"
+"flare/toonzscene.h"
+"flare/levelset.h"
+"flare/sceneresources.h"
+"flare/txshlevel.h"
+"flare/txshsimplelevel.h"
 
 // TnzCore includes
 #include "tsystem.h"
@@ -809,3 +809,4 @@ progetto:"));
 tr(" scene nel seguente progetto:"));
 }
 */
+

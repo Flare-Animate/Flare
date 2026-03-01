@@ -1,7 +1,7 @@
 
 
-#include "toonz/trasterimageutils.h"
-#include "toonz/ttileset.h"
+"flare/trasterimageutils.h"
+"flare/ttileset.h"
 #include "tstroke.h"
 #include "tofflinegl.h"
 #include "tpalette.h"
@@ -433,3 +433,4 @@ void TRasterImageUtils::addGlobalNumbering(const TRasterImageP &ri,
   p.drawText(2 * offset, ly - 2 * offset, globalNumberingString);
   p.end();
 }
+

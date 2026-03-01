@@ -4,19 +4,19 @@
 #include "tfx.h"
 
 // TnzLib includes
-#include "toonz/txshcolumn.h"
-#include "toonz/txshlevelcolumn.h"
-#include "toonz/txshsoundcolumn.h"
-#include "toonz/txshpalettecolumn.h"
-#include "toonz/txshzeraryfxcolumn.h"
-#include "toonz/txshsoundtextcolumn.h"
-#include "toonz/txshmeshcolumn.h"
-#include "toonz/txshcell.h"
-#include "toonz/txsheet.h"
-#include "toonz/fxdag.h"
-#include "toonz/tcolumnfxset.h"
-#include "toonz/preferences.h"
-#include "toonz/txshleveltypes.h"
+"flare/txshcolumn.h"
+"flare/txshlevelcolumn.h"
+"flare/txshsoundcolumn.h"
+"flare/txshpalettecolumn.h"
+"flare/txshzeraryfxcolumn.h"
+"flare/txshsoundtextcolumn.h"
+"flare/txshmeshcolumn.h"
+"flare/txshcell.h"
+"flare/txsheet.h"
+"flare/fxdag.h"
+"flare/tcolumnfxset.h"
+"flare/preferences.h"
+"flare/txshleveltypes.h"
 
 #include <QMap>
 #include "tstream.h"
@@ -702,3 +702,4 @@ void TXshColumn::resetColumnProperties() {
   setColorTag(0);
   setColorFilterId(0);  // None
 }
+

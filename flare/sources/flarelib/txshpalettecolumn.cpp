@@ -1,8 +1,8 @@
 
 
-#include "toonz/txshpalettecolumn.h"
-#include "toonz/txshcell.h"
-#include "toonz/tcolumnfx.h"
+"flare/txshpalettecolumn.h"
+"flare/txshcell.h"
+"flare/tcolumnfx.h"
 #include "tstream.h"
 
 TXshPaletteColumn::TXshPaletteColumn()
@@ -115,3 +115,4 @@ void TXshPaletteColumn::saveData(TOStream &os) {
 }
 
 PERSIST_IDENTIFIER(TXshPaletteColumn, "paletteColumn")
+

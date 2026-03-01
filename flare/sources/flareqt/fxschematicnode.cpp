@@ -1,38 +1,38 @@
 
 
-#include "toonzqt/fxschematicnode.h"
+"flareqt/fxschematicnode.h"
 
 // TnzQt includes
-#include "toonzqt/fxtypes.h"
-#include "toonzqt/fxschematicscene.h"
-#include "toonzqt/icongenerator.h"
-#include "toonzqt/gutil.h"
-#include "toonzqt/fxselection.h"
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/fxiconmanager.h"
+"flareqt/fxtypes.h"
+"flareqt/fxschematicscene.h"
+"flareqt/icongenerator.h"
+"flareqt/gutil.h"
+"flareqt/fxselection.h"
+"flareqt/menubarcommand.h"
+"flareqt/fxiconmanager.h"
 
 // TnzLib includes
-#include "toonz/tcolumnfx.h"
-#include "toonz/tcolumnfxset.h"
-#include "toonz/txshchildlevel.h"
-#include "toonz/txsheet.h"
-#include "toonz/fxdag.h"
-#include "toonz/tstageobjectid.h"
-#include "toonz/tstageobject.h"
-#include "toonz/txshcell.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/tframehandle.h"
-#include "toonz/fxcommand.h"
-#include "toonz/tstageobjectcmd.h"
-#include "toonz/txshlevelcolumn.h"
-#include "toonz/txshzeraryfxcolumn.h"
-#include "toonz/txshcolumn.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/txshleveltypes.h"
-#include "toonz/toonzscene.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/preferences.h"
+"flare/tcolumnfx.h"
+"flare/tcolumnfxset.h"
+"flare/txshchildlevel.h"
+"flare/txsheet.h"
+"flare/fxdag.h"
+"flare/tstageobjectid.h"
+"flare/tstageobject.h"
+"flare/txshcell.h"
+"flare/txsheethandle.h"
+"flare/tframehandle.h"
+"flare/fxcommand.h"
+"flare/tstageobjectcmd.h"
+"flare/txshlevelcolumn.h"
+"flare/txshzeraryfxcolumn.h"
+"flare/txshcolumn.h"
+"flare/txshsimplelevel.h"
+"flare/txshleveltypes.h"
+"flare/toonzscene.h"
+"flare/sceneproperties.h"
+"flare/tcolumnhandle.h"
+"flare/preferences.h"
 
 #include "tw/stringtable.h"
 
@@ -4140,3 +4140,4 @@ void FxSchematicPassThroughNode::onNameChanged() {
   prepareGeometryChange();
   update();
 }
+

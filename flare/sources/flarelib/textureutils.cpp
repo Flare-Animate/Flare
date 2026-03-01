@@ -1,18 +1,18 @@
 
 
-#include "toonz/textureutils.h"
+"flare/textureutils.h"
 
 // TnzLib includes
-#include "toonz/txshleveltypes.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/txshchildlevel.h"
-#include "toonz/txsheet.h"
-#include "toonz/tstageobjecttree.h"
-#include "toonz/txshcell.h"
-#include "toonz/tstageobject.h"
-#include "toonz/stage.h"
-#include "toonz/toonzscene.h"
-#include "toonz/imagemanager.h"
+"flare/txshleveltypes.h"
+"flare/txshsimplelevel.h"
+"flare/txshchildlevel.h"
+"flare/txsheet.h"
+"flare/tstageobjecttree.h"
+"flare/txshcell.h"
+"flare/tstageobject.h"
+"flare/stage.h"
+"flare/toonzscene.h"
+"flare/imagemanager.h"
 #include "imagebuilders.h"
 
 // TnzCore includes
@@ -223,3 +223,4 @@ void texture_utils::invalidateTextures(const TXsheet *xsh) {
   int f, fCount = xsh->getFrameCount();
   for (f = 0; f != fCount; ++f) invalidateTexture(xsh, f);
 }
+

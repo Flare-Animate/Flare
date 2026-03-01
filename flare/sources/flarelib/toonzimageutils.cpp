@@ -1,14 +1,14 @@
 
 
-#include "toonz/toonzimageutils.h"
+"flare/toonzimageutils.h"
 #include "tstroke.h"
 #include "tpalette.h"
 #include "tofflinegl.h"
 #include "tvectorrenderdata.h"
 #include "tvectorgl.h"
 #include "trop.h"
-#include "toonz/ttileset.h"
-#include "toonz/tcenterlinevectorizer.h"
+"flare/ttileset.h"
+"flare/tcenterlinevectorizer.h"
 #include "tregion.h"
 #include "trasterimage.h"
 #include "ttoonzimage.h"
@@ -18,7 +18,7 @@
 #include "tstream.h"
 #include "tsimplecolorstyles.h"
 
-#include "toonz/preferences.h"
+"flare/preferences.h"
 
 //-------------------------------------------------------------------
 
@@ -858,3 +858,4 @@ delete prop;
 
   return "";
 }
+

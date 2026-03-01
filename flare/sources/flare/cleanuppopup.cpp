@@ -11,28 +11,28 @@
 #include "mainwindow.h"
 
 // ToonzQt includes
-#include "toonzqt/gutil.h"
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/lineedit.h"
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/icongenerator.h"
+"flareqt/gutil.h"
+"flareqt/dvdialog.h"
+"flareqt/lineedit.h"
+"flareqt/menubarcommand.h"
+"flareqt/icongenerator.h"
 
 // ToonzLib includes
-#include "toonz/toonzscene.h"
-#include "toonz/txshcell.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/txshleveltypes.h"
-#include "toonz/levelproperties.h"
-#include "toonz/imagemanager.h"
-#include "toonz/levelupdater.h"
-#include "toonz/tcleanupper.h"
-#include "toonz/preferences.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/palettecontroller.h"
-#include "toonz/tpalettehandle.h"
-#include "toonz/toonzfolders.h"
+"flare/toonzscene.h"
+"flare/txshcell.h"
+"flare/txshsimplelevel.h"
+"flare/txshleveltypes.h"
+"flare/levelproperties.h"
+"flare/imagemanager.h"
+"flare/levelupdater.h"
+"flare/tcleanupper.h"
+"flare/preferences.h"
+"flare/tscenehandle.h"
+"flare/txsheethandle.h"
+"flare/txshlevelhandle.h"
+"flare/palettecontroller.h"
+"flare/tpalettehandle.h"
+"flare/toonzfolders.h"
 
 // TnzCore includes
 #include "tsystem.h"
@@ -1628,3 +1628,4 @@ public:
   }
 
 } CleanupCommand;
+

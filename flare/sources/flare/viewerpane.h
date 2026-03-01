@@ -4,9 +4,9 @@
 #define VIEWER_PANE_INCLUDED
 
 #include "sceneviewer.h"
-#include "toonzqt/intfield.h"
-#include "toonzqt/keyframenavigator.h"
-#include "toonzqt/flipconsoleowner.h"
+"flareqt/intfield.h"
+"flareqt/keyframenavigator.h"
+"flareqt/flipconsoleowner.h"
 #include "saveloadqsettings.h"
 
 #include <QFrame>
@@ -142,3 +142,4 @@ protected:
 };
 
 #endif
+

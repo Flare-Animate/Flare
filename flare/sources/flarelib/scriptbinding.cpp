@@ -1,24 +1,24 @@
 
 
-#include "toonz/scriptbinding.h"
+"flare/scriptbinding.h"
 
 // TnzLib includes
-#include "toonz/scriptbinding_scene.h"
-#include "toonz/scriptbinding_image.h"
-#include "toonz/scriptbinding_level.h"
-#include "toonz/scriptbinding_files.h"
-#include "toonz/scriptbinding_renderer.h"
-#include "toonz/scriptbinding_outline_vectorizer.h"
-#include "toonz/scriptbinding_centerline_vectorizer.h"
-#include "toonz/scriptbinding_rasterizer.h"
-#include "toonz/scriptbinding_toonz_raster_converter.h"
-#include "toonz/scriptbinding_image_builder.h"
-#include "toonz/tcenterlinevectorizer.h"
-#include "toonz/tcamera.h"
-#include "toonz/stage.h"
-#include "toonz/txshleveltypes.h"
-#include "toonz/levelproperties.h"
-#include "toonz/toonzscene.h"
+"flare/scriptbinding_scene.h"
+"flare/scriptbinding_image.h"
+"flare/scriptbinding_level.h"
+"flare/scriptbinding_files.h"
+"flare/scriptbinding_renderer.h"
+"flare/scriptbinding_outline_vectorizer.h"
+"flare/scriptbinding_centerline_vectorizer.h"
+"flare/scriptbinding_rasterizer.h"
+"flare/scriptbinding_toonz_raster_converter.h"
+"flare/scriptbinding_image_builder.h"
+"flare/tcenterlinevectorizer.h"
+"flare/tcamera.h"
+"flare/stage.h"
+"flare/txshleveltypes.h"
+"flare/levelproperties.h"
+"flare/toonzscene.h"
 
 // TnzBase includes
 #include "tlevel.h"
@@ -194,3 +194,4 @@ void bindAll(QScriptEngine &engine) {
 }
 
 }  // namespace TScriptBinding
+

@@ -10,13 +10,13 @@
 #include "vectorselectiontool.h"
 
 // TnzQt includes
-#include "toonzqt/tselectionhandle.h"
-#include "toonzqt/selectioncommandids.h"
-#include "toonzqt/dvdialog.h"
+"flareqt/tselectionhandle.h"
+"flareqt/selectioncommandids.h"
+"flareqt/dvdialog.h"
 
 // TnzLib includes
-#include "toonz/tscenehandle.h"
-#include "toonz/txshlevelhandle.h"
+"flare/tscenehandle.h"
+"flare/txshlevelhandle.h"
 
 // TnzCore includes
 #include "tvectorimage.h"
@@ -809,3 +809,4 @@ void TGroupCommand::addMenuItems(QMenu *menu) {
   }
   menu->addSeparator();
 }
+

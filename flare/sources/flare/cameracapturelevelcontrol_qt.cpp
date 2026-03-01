@@ -1,7 +1,7 @@
 #include "cameracapturelevelcontrol_qt.h"
 
-#include "toonzqt/intfield.h"
-#include "toonzqt/doublefield.h"
+"flareqt/intfield.h"
+"flareqt/doublefield.h"
 
 #include <QPainter>
 #include <QMouseEvent>
@@ -367,3 +367,4 @@ void CameraCaptureLevelControl::setMode(bool color_grayscale) {
   m_thresholdFld->setVisible(!color_grayscale);
   update();
 }
+

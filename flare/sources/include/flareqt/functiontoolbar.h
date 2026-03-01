@@ -7,7 +7,7 @@
 #include "tdoubleparam.h"
 
 // TnzQt includes
-#include "toonzqt/lineedit.h"
+"flareqt/lineedit.h"
 
 // Qt includes
 #include <QToolBar>
@@ -107,3 +107,4 @@ private slots:
 };
 
 #endif  // FUNCTIONTOOLBAR_INCLUDED
+

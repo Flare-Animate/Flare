@@ -1,11 +1,11 @@
 
 
-#include "toonz/stage2.h"
-#include "toonz/imagemanager.h"
-#include "toonz/txshleveltypes.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/toonzfolders.h"
-#include "toonz/glrasterpainter.h"
+"flare/stage2.h"
+"flare/imagemanager.h"
+"flare/txshleveltypes.h"
+"flare/txshsimplelevel.h"
+"flare/toonzfolders.h"
+"flare/glrasterpainter.h"
 #include "tpalette.h"
 #include "tropcm.h"
 #include "tcolorfunctions.h"
@@ -151,3 +151,4 @@ void SetScanCropboxCheck::setIsEnabled(bool on) {
 void SetScanCropboxCheck::uncheck() {
   if (isEnabled()) m_toggle->trigger();
 }
+

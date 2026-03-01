@@ -1,8 +1,8 @@
 
 
-#include "toonzqt/intpairfield.h"
+"flareqt/intpairfield.h"
 
-#include "toonzqt/dvdialog.h"
+"flareqt/dvdialog.h"
 
 #include "tcommon.h"
 
@@ -337,3 +337,4 @@ void IntPairField::onRightEditingFinished() {
   emit valuesChanged(false);
   update();
 }
+

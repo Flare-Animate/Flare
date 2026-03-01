@@ -10,18 +10,18 @@
 #include "xsheetviewer.h"
 
 // TnzQt includes
-#include "toonzqt/menubarcommand.h"
+"flareqt/menubarcommand.h"
 
 // TnzLib includes
-#include "toonz/txsheethandle.h"
-#include "toonz/tframehandle.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/tobjecthandle.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/stageobjectutil.h"
-#include "toonz/txsheet.h"
-#include "toonz/tstageobjecttree.h"
-#include "toonz/txshcolumn.h"
+"flare/txsheethandle.h"
+"flare/tframehandle.h"
+"flare/tcolumnhandle.h"
+"flare/tobjecthandle.h"
+"flare/tscenehandle.h"
+"flare/stageobjectutil.h"
+"flare/txsheet.h"
+"flare/tstageobjecttree.h"
+"flare/txshcolumn.h"
 
 // TnzCore includes
 #include "tundo.h"
@@ -510,3 +510,4 @@ void TKeyframeSelection::shiftKeyframes(int r0, int r1, int c0, int c1,
   TApp::instance()->getCurrentScene()->setDirtyFlag(true);
   TApp::instance()->getCurrentXsheet()->notifyXsheetChanged();
 }
+

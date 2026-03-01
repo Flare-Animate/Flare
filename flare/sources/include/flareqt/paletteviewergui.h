@@ -4,8 +4,8 @@
 #define PALETTEVIEWERGUI_H
 
 // TnzQt includes
-#include "toonzqt/selection.h"
-#include "toonzqt/lineedit.h"
+"flareqt/selection.h"
+"flareqt/lineedit.h"
 
 // TnzCore includes
 #include "tpalette.h"
@@ -373,3 +373,4 @@ private:
 }  // namespace PaletteViewerGUI
 
 #endif  // PALETTEVIEWERGUI_H
+

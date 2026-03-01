@@ -6,7 +6,7 @@
 #include "tfx.h"
 #include "toonz_hostif.h"
 
-#include <toonzqt/fxsettings.h>
+<flareqt/fxsettings.h>
 
 #include <QWidget>
 
@@ -89,3 +89,4 @@ int add_combobox(toonz_param_view_handle_t view,
 #undef TOONZ_DEFINE_ADD_COMPONENT
 
 #endif
+

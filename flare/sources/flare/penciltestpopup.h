@@ -3,12 +3,12 @@
 #ifndef PENCILTESTPOPUP_H
 #define PENCILTESTPOPUP_H
 
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/lineedit.h"
-#include "toonz/namebuilder.h"
+"flareqt/dvdialog.h"
+"flareqt/lineedit.h"
+"flare/namebuilder.h"
 #include "opencv2/opencv.hpp"
 #include "tfilepath.h"
-#include "toonz/tproject.h"
+"flare/tproject.h"
 #include "filebrowserpopup.h"
 
 #include <QAbstractVideoSurface>
@@ -433,3 +433,4 @@ protected:
 };
 
 #endif
+

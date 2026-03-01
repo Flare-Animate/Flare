@@ -3,12 +3,12 @@
 #ifndef LEVELSETTINGSPOPUP_H
 #define LEVELSETTINGSPOPUP_H
 
-#include "toonzqt/dvdialog.h"
+"flareqt/dvdialog.h"
 
-#include "toonz/txshsimplelevel.h"
-#include "toonz/txshpalettelevel.h"
-#include "toonz/txshchildlevel.h"
-#include "toonz/txshsoundlevel.h"
+"flare/txshsimplelevel.h"
+"flare/txshpalettelevel.h"
+"flare/txshchildlevel.h"
+"flare/txshsoundlevel.h"
 
 #include <QSet>
 
@@ -130,3 +130,4 @@ protected slots:
 };
 
 #endif  // LEVELSETTINGSPOPUP_H
+

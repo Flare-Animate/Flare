@@ -9,15 +9,15 @@
 #include "trasterimage.h"
 #include "trop.h"
 #include "tstroke.h"
-#include "toonzqt/icongenerator.h"
-#include "toonzqt/dvdialog.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/toonzimageutils.h"
-#include "toonz/txshleveltypes.h"
-#include "toonz/stage.h"
-#include "toonz/tcenterlinevectorizer.h"
-#include "toonz/toonzscene.h"
-#include "toonz/sceneproperties.h"
+"flareqt/icongenerator.h"
+"flareqt/dvdialog.h"
+"flare/txshsimplelevel.h"
+"flare/toonzimageutils.h"
+"flare/txshleveltypes.h"
+"flare/stage.h"
+"flare/tcenterlinevectorizer.h"
+"flare/toonzscene.h"
+"flare/sceneproperties.h"
 #include "vectorizerpopup.h"
 
 #include <QApplication>
@@ -458,3 +458,4 @@ void DrawingData::releaseData() {
   // for(i=0; i<m_imageSet.size(); i++)
   //  TImageCache::instance()->remove(m_imageSet[i]);
 }
+

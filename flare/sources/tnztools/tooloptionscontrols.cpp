@@ -9,15 +9,15 @@
 #include "tproperty.h"
 
 // TnzLib includes
-#include "toonz/palettecontroller.h"
-#include "toonz/tpalettehandle.h"
-#include "toonz/tobjecthandle.h"
-#include "toonz/stage2.h"
-#include "toonz/doubleparamcmd.h"
-#include "toonz/preferences.h"
+"flare/palettecontroller.h"
+"flare/tpalettehandle.h"
+"flare/tobjecthandle.h"
+"flare/stage2.h"
+"flare/doubleparamcmd.h"
+"flare/preferences.h"
 
 // TnzQt includes
-#include "toonzqt/gutil.h"
+"flareqt/gutil.h"
 
 // TnzTools includes
 #include "tools/tool.h"
@@ -1551,3 +1551,4 @@ void ClickableLabel::mouseMoveEvent(QMouseEvent *event) {
 void ClickableLabel::mouseReleaseEvent(QMouseEvent *event) {
   emit onMouseRelease(event);
 }
+

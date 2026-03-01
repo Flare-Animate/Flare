@@ -1,28 +1,28 @@
 
 
 #include "shifttracetool.h"
-#include "toonz/onionskinmask.h"
-#include "toonz/tonionskinmaskhandle.h"
+"flare/onionskinmask.h"
+"flare/tonionskinmaskhandle.h"
 #include "tools/cursors.h"
 #include "timage.h"
 #include "trasterimage.h"
 #include "ttoonzimage.h"
 #include "tvectorimage.h"
-#include "toonz/txsheet.h"
-#include "toonz/txshcell.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/tframehandle.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/txshlevelhandle.h"
+"flare/txsheet.h"
+"flare/txshcell.h"
+"flare/txsheethandle.h"
+"flare/tframehandle.h"
+"flare/tcolumnhandle.h"
+"flare/txshlevelhandle.h"
 #include "tools/toolhandle.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/dpiscale.h"
-#include "toonz/stage.h"
+"flare/txshsimplelevel.h"
+"flare/dpiscale.h"
+"flare/stage.h"
 #include "tpixel.h"
-#include "toonzqt/menubarcommand.h"
+"flareqt/menubarcommand.h"
 
-#include "toonz/preferences.h"
-#include "toonzqt/gutil.h"
+"flare/preferences.h"
+"flareqt/gutil.h"
 
 #include "tgl.h"
 #include <math.h>
@@ -617,3 +617,4 @@ void ShiftTraceTool::setCurrentGhostIndex(int index) {
 }
 
 ShiftTraceTool shiftTraceTool;
+

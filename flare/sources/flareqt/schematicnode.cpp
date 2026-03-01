@@ -1,8 +1,8 @@
 
 
-#include "toonzqt/schematicnode.h"
-#include "toonzqt/stageschematicscene.h"
-#include "toonzqt/fxschematicscene.h"
+"flareqt/schematicnode.h"
+"flareqt/stageschematicscene.h"
+"flareqt/fxschematicscene.h"
 
 #include <QGraphicsSceneMouseEvent>
 #include <QStyleOptionGraphicsItem>
@@ -18,8 +18,8 @@
 #include <QClipboard>
 #include <QRegularExpression>
 #include "tundo.h"
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/gutil.h"
+"flareqt/menubarcommand.h"
+"flareqt/gutil.h"
 
 #define ACCEL_KEY(k)                                                           \
   (!QCoreApplication::testAttribute(Qt::AA_DontShowShortcutsInContextMenus)    \
@@ -1287,3 +1287,4 @@ void SnapTargetItem::paint(QPainter *painter,
   painter->setRenderHint(QPainter::Antialiasing, true);
   painter->drawPath(path);
 }
+

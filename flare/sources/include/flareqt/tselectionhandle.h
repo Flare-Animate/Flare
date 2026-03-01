@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 
-#include "toonzqt/menubarcommand.h"
+"flareqt/menubarcommand.h"
 #include "tcommon.h"
 
 #undef DVAPI
@@ -57,3 +57,4 @@ signals:
 };
 
 #endif  // TSELECTIONHANDLE_H
+

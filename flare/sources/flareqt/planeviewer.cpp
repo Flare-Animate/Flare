@@ -1,16 +1,16 @@
 
 
-#include "toonzqt/planeviewer.h"
+"flareqt/planeviewer.h"
 
 // TnzQt includes
-#include "toonzqt/imageutils.h"
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/viewcommandids.h"
+"flareqt/imageutils.h"
+"flareqt/menubarcommand.h"
+"flareqt/viewcommandids.h"
 
 #include "../flare/menubarcommandids.h"
 
 // TnzLib includes
-#include "toonz/stage.h"
+"flare/stage.h"
 
 // TnzCore includes
 #include "trasterimage.h"
@@ -711,4 +711,5 @@ void PlaneViewer::draw(TImageP img) {
     }
   }
 }
+
 

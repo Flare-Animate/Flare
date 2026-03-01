@@ -15,12 +15,12 @@
 #include <functional>
 
 // #include "tfxparam.h"
-#include <toonzqt/addfxcontextmenu.h>  // as receiver
-#include <toonzqt/fxsettings.h>
-#include <toonzqt/pluginloader.h>
+<flareqt/addfxcontextmenu.h>  // as receiver
+<flareqt/fxsettings.h>
+<flareqt/pluginloader.h>
 
 #include "tenv.h"
-#include "toonz/tcolumnfx.h"
+"flare/tcolumnfx.h"
 
 #include "pluginhost.h"
 #include "toonz_plugin.h"
@@ -1620,3 +1620,4 @@ static bool copy_rendering_setting(toonz_rendering_setting_t *dst,
 }
 
 // #include "pluginhost.moc"
+

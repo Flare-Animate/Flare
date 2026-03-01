@@ -1,0 +1,39 @@
+-- Selecting Windows SDK version 10.0.19041.0 to target Windows 10.0.26200.
+-- Building from repository root
+-- Main project sources are in: C:/Users/charl/Documents/Flare/flare/sources
+-- C++ standard: 17
+-- Target system is WIN
+-- Build environment is MSVC
+PLATFORM:64
+-- SDK Root:C:/Users/charl/Documents/Flare/thirdparty
+-- configure the third party libs
+-- Thirdparty Library Search path:C:/Users/charl/Documents/Flare/thirdparty
+Sanitizing vcpkg.applocal.log files (configure-time)...
+CMake Warning at flare/sources/CMakeLists.txt:434 (message):
+  Qt5Script not found - building without script support
+
+
+-- Qt5 Modules: 5.15.2
+-- Using vcpkg-installed OpenCV (fallback): C:/Users/charl/Documents/Flare/vcpkg/installed/x64-windows
+-- OpenCV include dirs: C:/Users/charl/Documents/Flare/vcpkg/installed/x64-windows/include/opencv4
+-- Qt Core Location:C:/Qt/5.15.2/msvc2019_64/bin/Qt5Core.dll
+CMake Warning at flare/sources/CMakeLists.txt:640 (message):
+  vcpkg-installed libtiff lacks TIFFReadRGBA 64-bit helpers; using bundled
+  thirdparty libtiff instead.
+
+
+-- Using vcpkg-installed libpng: C:/Users/charl/Documents/Flare/vcpkg/installed/x64-windows/lib/libpng16.lib
+-- Using vcpkg-installed GLEW: C:/Users/charl/Documents/Flare/vcpkg/installed/x64-windows/lib/glew32.lib
+subdir: tnzcore
+subdir: tnzbase
+Bin: C:/Users/charl/Documents/Flare/build/sources/tnzbase
+subdir: tnzext
+Bin: C:/Users/charl/Documents/Flare/build/sources/tnzext
+subdir: toonzlib
+Bin: C:/Users/charl/Documents/Flare/build/sources/flarelib
+CMake Error at flare/sources/flarelib/CMakeLists.txt:398 (target_link_libraries):
+  Cannot specify link libraries for target "toonzlib" which is not built by
+  this project.
+
+
+-- Configuring incomplete, errors occurred!

@@ -4,8 +4,8 @@
 #define TAGEDITORPOPUP_INCLUDED
 
 #include "tcommon.h"
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/lineedit.h"
+"flareqt/dvdialog.h"
+"flareqt/lineedit.h"
 
 #include <QString>
 #include <QColor>
@@ -54,3 +54,4 @@ protected slots:
 };
 
 #endif
+

@@ -3,7 +3,7 @@
 #ifndef TXSHCELL_INCLUDED
 #define TXSHCELL_INCLUDED
 
-#include "toonz/txshlevel.h"
+"flare/txshlevel.h"
 #include "timage.h"
 
 #undef DVAPI
@@ -126,3 +126,4 @@ Returns the TPalette associated with current cell, if any.
 };
 
 #endif
+

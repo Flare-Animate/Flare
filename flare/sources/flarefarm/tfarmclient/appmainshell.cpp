@@ -69,7 +69,7 @@ namespace {
 //========================================================================
 
 TEnv::RootSystemVar systemVar(
-    TFilePath("SOFTWARE\\Digital Video\\ToonzFarm\\1.0\\LOCALROOT"));
+    TFilePath("SOFTWARE\\Digital Video\\FlareFarm\\1.0\\LOCALROOT"));
 
 inline void errorMessage(const string &msg) { TMessage::error(msg); }
 
@@ -138,7 +138,7 @@ bool AppMainshell::beforeShow() {
     int port;
     Application::instance()->getControllerData(hostName, addr, port);
 
-    string msg("Unable to connect to the ToonzFarm Controller\n");
+    string msg("Unable to connect to the FlareFarm Controller\n");
     msg += "The Controller should run on " + hostName + " at port ";
     msg += toString(port) + "\n";
     msg += "Please start the Controller before running this application";
@@ -222,7 +222,7 @@ void AppMainshell::onTimer(int) {
       int port;
       Application::instance()->getControllerData(hostName, addr, port);
 
-      string msg("The connection to the ToonzFarm Controller has been lost\n");
+      string msg("The connection to the FlareFarm Controller has been lost\n");
       msg += "The Controller should run on " + hostName + " at port ";
       msg += toString(port) + "\n";
       msg += "Please check the Controller state";
@@ -232,7 +232,7 @@ void AppMainshell::onTimer(int) {
   } else {
     if (m_data->m_retryCount > 0) {
       m_data->m_retryCount = 0;
-      string msg("Reconnected to the ToonzFarm Controller\n");
+      string msg("Reconnected to the FlareFarm Controller\n");
       TMessage::error(msg);
 
       stopTimer();
@@ -249,3 +249,4 @@ void AppMainshell::onTimer(int) {
 //-------------------------------------------------------------------
 
 AppMainshell mainshell;
+

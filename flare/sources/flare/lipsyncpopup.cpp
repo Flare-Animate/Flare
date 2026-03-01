@@ -8,19 +8,19 @@
 #include "menubarcommandids.h"
 
 // TnzQt includes
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/icongenerator.h"
+"flareqt/menubarcommand.h"
+"flareqt/icongenerator.h"
 
 // TnzLib includes
-#include "toonz/toonzscene.h"
-#include "toonz/txsheet.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/tframehandle.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/txshcell.h"
+"flare/toonzscene.h"
+"flare/txsheet.h"
+"flare/tscenehandle.h"
+"flare/txsheethandle.h"
+"flare/tcolumnhandle.h"
+"flare/tframehandle.h"
+"flare/txshsimplelevel.h"
+"flare/txshlevelhandle.h"
+"flare/txshcell.h"
 
 // TnzCore includes
 #include "filebrowsermodel.h"
@@ -733,3 +733,4 @@ LipSyncPopup::~LipSyncPopup() {
 //-----------------------------------------------------------------------------
 
 OpenPopupCommandHandler<LipSyncPopup> openLipSyncPopup(MI_LipSyncPopup);
+

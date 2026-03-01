@@ -16,8 +16,8 @@
 
 // Toonz Includes
 #include "traster.h"
-#include "toonzqt/gutil.h"
-#include "toonzqt/dvdialog.h"
+"flareqt/gutil.h"
+"flareqt/dvdialog.h"
 
 #include "webcam.h"
 #include "jpgconverter.h"
@@ -25,7 +25,7 @@
 #include "stopmotionserial.h"
 #include "stopmotionlight.h"
 
-#include "toonz/txshsimplelevel.h"
+"flare/txshsimplelevel.h"
 
 #include <QObject>
 #include <QThread>

@@ -205,7 +205,7 @@ elseif(BUILD_ENV_APPLE)
         ${COCOA_LIB}
     )
 elseif(BUILD_ENV_UNIXLIKE)
-    _find_toonz_library(EXTRA_LIBS "tnzcore")
+    _find_flare_library(EXTRA_LIBS "tnzcore")
 endif()
 
 target_link_libraries(tnzbase Qt5::Core Qt5::Gui ${EXTRA_LIBS})

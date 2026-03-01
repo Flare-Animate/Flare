@@ -1,4 +1,4 @@
-#include "toonzqt/combohistogram.h"
+"flareqt/combohistogram.h"
 #include "tcolorstyles.h"
 
 #include <QVBoxLayout>
@@ -9,9 +9,9 @@
 #include <QLabel>
 #include <QString>
 
-#include "toonz/preferences.h"
-#include "toonzqt/lutcalibrator.h"
-#include "toonzqt/gutil.h"
+"flare/preferences.h"
+"flareqt/lutcalibrator.h"
+"flareqt/gutil.h"
 #include "timagecache.h"
 #include "trasterimage.h"
 

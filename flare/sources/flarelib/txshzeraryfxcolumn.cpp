@@ -1,12 +1,12 @@
 
 
-#include "toonz/txshzeraryfxcolumn.h"
-#include "toonz/tcolumnfx.h"
-#include "toonz/toonzscene.h"
-#include "toonz/txshcell.h"
-#include "toonz/txsheet.h"
-#include "toonz/fxdag.h"
-#include "toonz/txshzeraryfxlevel.h"
+"flare/txshzeraryfxcolumn.h"
+"flare/tcolumnfx.h"
+"flare/toonzscene.h"
+"flare/txshcell.h"
+"flare/txsheet.h"
+"flare/fxdag.h"
+"flare/txshzeraryfxlevel.h"
 
 #include "tstream.h"
 
@@ -195,3 +195,4 @@ void TXshZeraryFxColumn::saveData(TOStream &os) {
 //-----------------------------------------------------------------------------
 
 PERSIST_IDENTIFIER(TXshZeraryFxColumn, "zeraryFxColumn")
+

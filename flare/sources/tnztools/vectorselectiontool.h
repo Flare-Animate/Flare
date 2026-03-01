@@ -15,7 +15,7 @@
 #include "tregion.h"
 
 // TnzQt includes
-#include "toonzqt/selectioncommandids.h"
+"flareqt/selectioncommandids.h"
 
 // Qt includes
 #include <QSet>
@@ -422,3 +422,4 @@ private:
 };
 
 #endif  // VECTORSELECTIONTOOL_H
+

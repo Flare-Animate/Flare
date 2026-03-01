@@ -4,7 +4,7 @@
 #define LOCATORPOPUP_H
 
 #include "tgeometry.h"
-#include "toonzqt/dvdialog.h"
+"flareqt/dvdialog.h"
 
 #undef DVAPI
 #undef DVVAR

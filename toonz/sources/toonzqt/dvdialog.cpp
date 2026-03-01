@@ -1,16 +1,16 @@
-#include "toonzqt/dvdialog.h"
+"flareqt/dvdialog.h"
 
 // TnzQt includes
-#include "toonzqt/checkbox.h"
-#include "toonzqt/lineedit.h"
-#include "toonzqt/fxsettings.h"
+"flareqt/checkbox.h"
+"flareqt/lineedit.h"
+"flareqt/fxsettings.h"
 
 // TnzLib includes
-#include "toonz/txsheethandle.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/palettecmd.h"
-#include "toonz/preferences.h"
-#include "toonz/toonzfolders.h"
+"flare/txsheethandle.h"
+"flare/txshsimplelevel.h"
+"flare/palettecmd.h"
+"flare/preferences.h"
+"flare/toonzfolders.h"
 
 // TnzCore includes
 #include "tversion.h"
@@ -1472,3 +1472,4 @@ int DVGui::eraseStylesInDemand(TPalette *palette, std::vector<int> styleIds,
 }
 
 //-----------------------------------------------------------------------------
+

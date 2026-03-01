@@ -3,15 +3,15 @@
 #include "tmsgcore.h"
 
 // ToonzLib includes
-#include "toonz/txshlevelhandle.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/toonzscene.h"
-#include "toonz/toonzfolders.h"
-#include "toonz/cleanupcolorstyles.h"
+"flare/txshlevelhandle.h"
+"flare/tscenehandle.h"
+"flare/toonzscene.h"
+"flare/toonzfolders.h"
+"flare/cleanupcolorstyles.h"
 
 // ToonzQt includes
-#include "toonzqt/gutil.h"
-#include "toonzqt/doublefield.h"
+"flareqt/gutil.h"
+"flareqt/doublefield.h"
 
 // Toonz includes
 #include "tapp.h"
@@ -615,3 +615,4 @@ void CleanupSettingsPane::onSaveSettings() {
   }
   CleanupSettingsModel::instance()->promptSave();
 }
+

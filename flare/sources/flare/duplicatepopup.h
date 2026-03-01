@@ -5,8 +5,8 @@
 
 #include "tgeometry.h"
 
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/intfield.h"
+"flareqt/dvdialog.h"
+"flareqt/intfield.h"
 
 // forward declaration
 class QPushButton;
@@ -41,3 +41,4 @@ protected:
 };
 
 #endif  // DUPLICATEPOPUP_H
+

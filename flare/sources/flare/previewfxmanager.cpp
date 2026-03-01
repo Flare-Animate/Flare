@@ -6,19 +6,19 @@
 #include "tw/stringtable.h"
 
 // Toonz scene-stage structures
-#include "toonz/toonzscene.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/tframehandle.h"
-#include "toonz/tfxhandle.h"
-#include "toonz/tpalettehandle.h"
-#include "toonz/txshlevel.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/tobjecthandle.h"
-#include "toonz/tstageobjecttree.h"
-#include "toonz/tcamera.h"
-#include "toonz/palettecontroller.h"
+"flare/toonzscene.h"
+"flare/tscenehandle.h"
+"flare/sceneproperties.h"
+"flare/tframehandle.h"
+"flare/tfxhandle.h"
+"flare/tpalettehandle.h"
+"flare/txshlevel.h"
+"flare/txshlevelhandle.h"
+"flare/txsheethandle.h"
+"flare/tobjecthandle.h"
+"flare/tstageobjecttree.h"
+"flare/tcamera.h"
+"flare/palettecontroller.h"
 #include "tapp.h"  //Toonz current objects
 
 // Images stuff
@@ -28,23 +28,23 @@
 // Fxs stuff
 #include "toutputproperties.h"
 #include "trasterfx.h"
-#include "toonz/scenefx.h"  //Fxs tree build-up
-#include "toonz/tcolumnfx.h"
+"flare/scenefx.h"  //Fxs tree build-up
+"flare/tcolumnfx.h"
 
 // Cache management
 #include "tpassivecachemanager.h"
 
 // Flipbook
 #include "flipbook.h"
-#include "toonzqt/flipconsole.h"
+"flareqt/flipconsole.h"
 
 // Qt stuff
 #include <QMetaType>
 #include <QRegion>
-#include "toonzqt/gutil.h"  //For conversions between TRects and QRects
+"flareqt/gutil.h"  //For conversions between TRects and QRects
 
 // Preferences
-#include "toonz/preferences.h"
+"flare/preferences.h"
 
 #include "previewfxmanager.h"
 
@@ -1700,3 +1700,4 @@ void PreviewFxManager::suspendRendering(bool suspend) {
     }
   }
 }
+

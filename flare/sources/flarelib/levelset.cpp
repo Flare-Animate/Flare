@@ -5,10 +5,10 @@
 #include "tstream.h"
 
 // TnzLib includes
-#include "toonz/txshsimplelevel.h"
-#include "toonz/toonzscene.h"
+"flare/txshsimplelevel.h"
+"flare/toonzscene.h"
 
-#include "toonz/levelset.h"
+"flare/levelset.h"
 
 //=============================================================================
 
@@ -356,3 +356,4 @@ void TLevelSet::saveData(TOStream &os) {
   assert(!folders.empty());
   for (i = 0; i < (int)folders.size(); i++) saveFolder(os, folders[i]);
 }
+

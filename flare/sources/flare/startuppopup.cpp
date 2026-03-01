@@ -7,29 +7,29 @@
 #include "tapp.h"
 #include "iocommand.h"
 #include "toutputproperties.h"
-#include "toonzqt/flipconsole.h"
+"flareqt/flipconsole.h"
 #include "menubarcommandids.h"
 #include "tenv.h"
-#include "toonz/stage.h"
+"flare/stage.h"
 #include "layoutUtils.h"
 #include "layoutPresetsEditorPopup.h"
 
 // TnzQt includes
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/gutil.h"
-#include "toonzqt/doublefield.h"
-#include "toonzqt/icongenerator.h"
+"flareqt/menubarcommand.h"
+"flareqt/gutil.h"
+"flareqt/doublefield.h"
+"flareqt/icongenerator.h"
 
 // TnzLib includes
-#include "toonz/toonzscene.h"
-#include "toonz/txsheet.h"
-#include "toonz/levelproperties.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/tcamera.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/preferences.h"
-#include "toonz/tproject.h"
+"flare/toonzscene.h"
+"flare/txsheet.h"
+"flare/levelproperties.h"
+"flare/sceneproperties.h"
+"flare/tcamera.h"
+"flare/tscenehandle.h"
+"flare/txsheethandle.h"
+"flare/preferences.h"
+"flare/tproject.h"
 
 // TnzCore includes
 #include "tsystem.h"
@@ -1350,3 +1350,4 @@ void StartupScenesList::onItemClicked(QListWidgetItem *item) {
 }
 
 OpenPopupCommandHandler<StartupPopup> openStartupPopup(MI_StartupPopup);
+

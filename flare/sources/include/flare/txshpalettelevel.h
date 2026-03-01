@@ -3,7 +3,7 @@
 #ifndef TXshPaletteLevel_INCLUDED
 #define TXshPaletteLevel_INCLUDED
 
-#include "toonz/txshlevel.h"
+"flare/txshlevel.h"
 #include "tpalette.h"
 #include <map>
 #include <set>
@@ -111,3 +111,4 @@ template class DV_EXPORT_API TSmartPointerT<TXshPaletteLevel>;
 typedef TSmartPointerT<TXshPaletteLevel> TXshPaletteLevelP;
 
 #endif
+

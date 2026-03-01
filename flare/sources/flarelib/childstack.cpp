@@ -1,11 +1,11 @@
 
 
-#include "toonz/childstack.h"
-#include "toonz/toonzscene.h"
-#include "toonz/txsheet.h"
-#include "toonz/txshcell.h"
-#include "toonz/txshleveltypes.h"
-#include "toonz/scenefx.h"
+"flare/childstack.h"
+"flare/toonzscene.h"
+"flare/txsheet.h"
+"flare/txshcell.h"
+"flare/txshleveltypes.h"
+"flare/scenefx.h"
 
 //=============================================================================
 // ChildStack

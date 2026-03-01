@@ -1,19 +1,19 @@
 
 
-#include "toonzqt/flipconsole.h"
+"flareqt/flipconsole.h"
 // Include shared flipbook settings (e.g., FlipBookWhiteBgToggle) from toonz/
-#include "toonz/flipbooksettings.h"
+"flare/flipbooksettings.h"
 
 // TnzQt includes
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/dvscrollwidget.h"
-#include "toonzqt/gutil.h"
-#include "toonzqt/flipconsoleowner.h"
+"flareqt/menubarcommand.h"
+"flareqt/dvscrollwidget.h"
+"flareqt/gutil.h"
+"flareqt/flipconsoleowner.h"
 
 // TnzLib includes
-#include "toonz/preferences.h"
-#include "toonz/tframehandle.h"
-#include "toonz/toonzfolders.h"
+"flare/preferences.h"
+"flare/tframehandle.h"
+"flare/toonzfolders.h"
 
 // TnzBase includes
 #include "tenv.h"
@@ -2166,3 +2166,4 @@ createToggleAction(parent, "A_Flip_Loop",  "Loop",  FlipConsole::eLoop);*/
 } flipConsoleActionsCreator;
 
 //--------------------------------------------------------------------
+

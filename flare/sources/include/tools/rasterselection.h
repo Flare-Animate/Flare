@@ -12,11 +12,11 @@
 #include "tdata.h"
 
 // TnzLib includes
-#include "toonz/ttileset.h"
-#include "toonz/txshcell.h"
+"flare/ttileset.h"
+"flare/txshcell.h"
 
 // TnzQt includes
-#include "toonzqt/selection.h"
+"flareqt/selection.h"
 
 #undef DVAPI
 #undef DVVAR
@@ -156,3 +156,4 @@ Can be different from getSelectionBound() after a free deform transformation. */
 };
 
 #endif  // RASTER_SELECTION_H
+

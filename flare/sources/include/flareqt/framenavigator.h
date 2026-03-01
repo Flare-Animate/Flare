@@ -7,7 +7,7 @@
 #include "tcommon.h"
 
 // TnzQt includes
-#include "toonzqt/intfield.h"
+"flareqt/intfield.h"
 
 // Qt includes
 #include <QWidget>
@@ -101,3 +101,4 @@ current frame value.
 };
 
 #endif  // FRAMENVIGATORTOOLBAR_H
+

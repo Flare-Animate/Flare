@@ -1,6 +1,6 @@
 
 
-#include "toonz/tpalettehandle.h"
+"flare/tpalettehandle.h"
 
 #include "tundo.h"
 #include "historytypes.h"
@@ -213,3 +213,4 @@ void TPaletteHandle::toggleAutopaint() {
     TUndoManager::manager()->add(new AutopaintToggleUndo(this, index));
   }
 }
+

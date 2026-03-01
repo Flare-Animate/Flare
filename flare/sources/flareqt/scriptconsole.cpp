@@ -1,7 +1,7 @@
 
 
-#include "toonzqt/scriptconsole.h"
-#include "toonz/scriptengine.h"
+"flareqt/scriptconsole.h"
+"flare/scriptengine.h"
 #include <QKeyEvent>
 #include <QTextBlock>
 #include <QUrl>
@@ -181,3 +181,4 @@ void ScriptConsole::executeCommand(const QString &cmd) {
   moveCursor(QTextCursor::EndOfLine);
   onReturnKeyPress();
 }
+

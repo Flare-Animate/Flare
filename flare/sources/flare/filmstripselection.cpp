@@ -16,15 +16,15 @@
 #include "tools/tool.h"
 
 // TnzQt includes
-#include "toonzqt/strokesdata.h"
-#include "toonzqt/gutil.h"
+"flareqt/strokesdata.h"
+"flareqt/gutil.h"
 
 // TnzLib includes
-#include "toonz/txshlevelhandle.h"
-#include "toonz/tframehandle.h"
-#include "toonz/txshlevel.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/txshleveltypes.h"
+"flare/txshlevelhandle.h"
+"flare/tframehandle.h"
+"flare/txshlevel.h"
+"flare/txshsimplelevel.h"
+"flare/txshleveltypes.h"
 
 // TnzCore includes
 #include "tundo.h"
@@ -401,3 +401,4 @@ void TFilmstripSelection::renumberFrames() {
   FilmstripCmd::renumber(sl, m_selectedFrames, startFrame, stepFrame);
   updateInbetweenRange();
 }
+

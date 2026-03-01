@@ -1,14 +1,14 @@
 
 
-#include "toonz/tframehandle.h"
-#include "toonz/toonzscene.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/txsheet.h"
-#include "toonz/txshcell.h"
-#include "toonz/sceneproperties.h"
+"flare/tframehandle.h"
+"flare/toonzscene.h"
+"flare/txshsimplelevel.h"
+"flare/txsheet.h"
+"flare/txshcell.h"
+"flare/sceneproperties.h"
 #include "toutputproperties.h"
 
-#include "toonz/txsheethandle.h"
+"flare/txsheethandle.h"
 
 //=============================================================================
 
@@ -365,3 +365,4 @@ void TFrameHandle::stopScrubbing() {
   m_fps                            = 0;
   emit scrubStopped();
 }
+

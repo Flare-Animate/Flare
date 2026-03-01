@@ -5,8 +5,8 @@
 
 #include "saveloadqsettings.h"
 #include "paletteviewergui.h"
-#include "toonz/tpalettehandle.h"
-#include "toonz/preferences.h"
+"flare/tpalettehandle.h"
+"flare/preferences.h"
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 
@@ -214,3 +214,4 @@ protected slots:
 };
 
 #endif  // PALETTEVIEWER_H
+

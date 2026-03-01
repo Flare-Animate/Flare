@@ -13,27 +13,27 @@
 #include "trop.h"
 #include "tiio.h"
 
-#include "toonz/tscenehandle.h"
-#include "toonz/tframehandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/toonzscene.h"
-#include "toonz/observer.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/stage2.h"
-#include "toonz/glrasterpainter.h"
+"flare/tscenehandle.h"
+"flare/tframehandle.h"
+"flare/txshlevelhandle.h"
+"flare/toonzscene.h"
+"flare/observer.h"
+"flare/sceneproperties.h"
+"flare/txshsimplelevel.h"
+"flare/stage2.h"
+"flare/glrasterpainter.h"
 #include "tools/toolutils.h"
-#include "toonz/preferences.h"
-#include "toonz/cleanupparameters.h"
-#include "toonz/tcleanupper.h"
+"flare/preferences.h"
+"flare/cleanupparameters.h"
+"flare/tcleanupper.h"
 
 #include "tools/toolhandle.h"
 #include "tools/cursors.h"
 
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/doublefield.h"
-#include "toonzqt/checkbox.h"
-#include "toonzqt/gutil.h"
+"flareqt/menubarcommand.h"
+"flareqt/doublefield.h"
+"flareqt/checkbox.h"
+"flareqt/gutil.h"
 
 #include <QPushButton>
 #include <QComboBox>
@@ -1207,3 +1207,4 @@ private:
     return TRectD(-rectPix.y1, -rectPix.x1, -rectPix.y0, -rectPix.x0);
   }
 } setScanCropboxTool;
+

@@ -10,28 +10,28 @@
 #include "selectionutils.h"
 
 // TnzQt includes
-#include "toonzqt/intfield.h"
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/planeviewer.h"
-#include "toonzqt/tselectionhandle.h"
-#include "toonzqt/icongenerator.h"
-#include "toonzqt/checkbox.h"
+"flareqt/intfield.h"
+"flareqt/menubarcommand.h"
+"flareqt/planeviewer.h"
+"flareqt/tselectionhandle.h"
+"flareqt/icongenerator.h"
+"flareqt/checkbox.h"
 
 // TnzLib includes
-#include "toonz/txshcell.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/tframehandle.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/txshleveltypes.h"
-#include "toonz/levelset.h"
-#include "toonz/levelproperties.h"
-#include "toonz/toonzscene.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/txsheet.h"
-#include "toonz/tbinarizer.h"
-#include "toonz/preferences.h"
+"flare/txshcell.h"
+"flare/txsheethandle.h"
+"flare/tframehandle.h"
+"flare/tcolumnhandle.h"
+"flare/tscenehandle.h"
+"flare/txshlevelhandle.h"
+"flare/txshleveltypes.h"
+"flare/levelset.h"
+"flare/levelproperties.h"
+"flare/toonzscene.h"
+"flare/sceneproperties.h"
+"flare/txsheet.h"
+"flare/tbinarizer.h"
+"flare/preferences.h"
 
 // TnzCore includes
 #include "trasterimage.h"
@@ -462,3 +462,4 @@ void BinarizePopup::apply() {
 }
 
 OpenPopupCommandHandler<BinarizePopup> openBinarizePopup(MI_Binarize);
+

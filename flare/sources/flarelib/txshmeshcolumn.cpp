@@ -1,13 +1,13 @@
 
 
-#include "toonz/preferences.h"
+"flare/preferences.h"
 
 // TnzLib includes
-#include "toonz/tcolumnfx.h"
-#include "toonz/txshcell.h"
-#include "toonz/txshleveltypes.h"
-#include "toonz/txshmeshcolumn.h"
-#include "toonz/txshsimplelevel.h"
+"flare/tcolumnfx.h"
+"flare/txshcell.h"
+"flare/txshleveltypes.h"
+"flare/txshmeshcolumn.h"
+"flare/txshsimplelevel.h"
 
 // TnzCore includes
 #include "tstream.h"
@@ -204,3 +204,4 @@ void TXshMeshColumn::loadData(TIStream &is) {
     }
   }
 }
+

@@ -1,13 +1,13 @@
 
 
-#include "toonz/txshlevelcolumn.h"
+"flare/txshlevelcolumn.h"
 
 // TnzLib includes
-#include "toonz/txshsimplelevel.h"
-#include "toonz/txshcell.h"
-#include "toonz/tcolumnfxset.h"
-#include "toonz/tcolumnfx.h"
-#include "toonz/txshleveltypes.h"
+"flare/txshsimplelevel.h"
+"flare/txshcell.h"
+"flare/tcolumnfxset.h"
+"flare/tcolumnfx.h"
+"flare/txshleveltypes.h"
 
 // TnzCore includes
 #include "tstream.h"
@@ -373,3 +373,4 @@ bool TXshLevelColumn::setNumbers(int row, int rowCount, const TXshCell cells[],
 //-----------------------------------------------------------------------------
 
 PERSIST_IDENTIFIER(TXshLevelColumn, "levelColumn")
+

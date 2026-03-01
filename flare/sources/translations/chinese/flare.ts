@@ -631,12 +631,12 @@ Please create this folder before using the render farm.</source>
 请在使用 Toonz 渲染农场之前创建该文件夹。</translation>
     </message>
     <message>
-        <source>Unable to connect to the ToonzFarm Controller
+        <source>Unable to connect to the FlareFarm Controller
    The Controller should run on %1 at port %2
-   Please start the Controller before using the ToonzFarm</source>
-        <translation>无法连接到ToonzFarm控制器
+   Please start the Controller before using the FlareFarm</source>
+        <translation>无法连接到FlareFarm控制器
    控制器应该在 %1 的端口 %2 上运行。
-   在使用ToonzFarm之前，请启动控制器。</translation>
+   在使用FlareFarm之前，请启动控制器。</translation>
     </message>
 </context>
 <context>
@@ -17929,3 +17929,4 @@ Hold F3 Key on the Viewer to Show This Frame Only</source>
     </message>
 </context>
 </TS>
+

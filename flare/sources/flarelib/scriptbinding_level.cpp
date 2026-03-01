@@ -1,18 +1,18 @@
 
-#include "toonz/scriptbinding_level.h"
+"flare/scriptbinding_level.h"
 
 // Toonz script bindings
-#include "toonz/scriptbinding_files.h"
+"flare/scriptbinding_files.h"
 
 // TnzLib includes
-#include "toonz/tcenterlinevectorizer.h"
-#include "toonz/tcamera.h"
-#include "toonz/stage.h"
-#include "toonz/txshleveltypes.h"
-#include "toonz/levelproperties.h"
-#include "toonz/toonzscene.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/levelset.h"
+"flare/tcenterlinevectorizer.h"
+"flare/tcamera.h"
+"flare/stage.h"
+"flare/txshleveltypes.h"
+"flare/levelproperties.h"
+"flare/toonzscene.h"
+"flare/txshsimplelevel.h"
+"flare/levelset.h"
 
 // TnzCore / TnzBase includes
 #include "tlevel_io.h"
@@ -487,3 +487,4 @@ int Level::setFrame(const TFrameId &fid, const TImageP &img) {
 }
 
 }  // namespace TScriptBinding
+

@@ -22,10 +22,10 @@
 #include "tconvert.h"
 #include "texception.h"
 #include "tfilepath_io.h"
-#include "toonz/toonzfolders.h"
-#include "toonz/tproject.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/toonzscene.h"
+"flare/toonzfolders.h"
+"flare/tproject.h"
+"flare/tscenehandle.h"
+"flare/toonzscene.h"
 
 #include <QOperatingSystemVersion>
 #include <QDesktopServices>
@@ -633,3 +633,4 @@ bool CrashHandler::trigger(const QString reason, bool showDialog) {
 }
 
 //-----------------------------------------------------------------------------
+

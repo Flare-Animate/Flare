@@ -5,12 +5,12 @@
 #include "drawutil.h"
 #include "tenv.h"
 #include "tools/toolhandle.h"
-#include "toonz/tdistort.h"
-#include "toonz/glrasterpainter.h"
-#include "toonz/toonzimageutils.h"
-#include "toonzqt/tselectionhandle.h"
-#include "toonzqt/imageutils.h"
-#include "toonz/txshlevelhandle.h"
+"flare/tdistort.h"
+"flare/glrasterpainter.h"
+"flare/toonzimageutils.h"
+"flareqt/tselectionhandle.h"
+"flareqt/imageutils.h"
+"flare/txshlevelhandle.h"
 
 using namespace ToolUtils;
 using namespace DragSelectionTool;
@@ -1045,3 +1045,4 @@ void RasterSelectionTool::updateTranslation() {
 
 RasterSelectionTool toonzRasterSelectionTool(TTool::ToonzImage);
 RasterSelectionTool fullColorRasterSelectionTool(TTool::RasterImage);
+

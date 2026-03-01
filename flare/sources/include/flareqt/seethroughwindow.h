@@ -1,6 +1,6 @@
 #pragma once
 
-#include "toonzqt/dvdialog.h"
+"flareqt/dvdialog.h"
 
 #include <QLabel>
 #include <QSlider>
@@ -81,3 +81,4 @@ private:
 
   void toggleMode_m(QWidget *mainWindow);
 };
+

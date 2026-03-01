@@ -206,7 +206,7 @@ include_directories(
     ../include/tools
 )
 
-_find_toonz_library(EXTRA_LIBS "tnzcore;tnzbase;tnzext;toonzlib;toonzqt")
+_find_flare_library(EXTRA_LIBS "tnzcore;tnzbase;tnzext;flarelib;flareqt")
 
 target_link_libraries(tnztools Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Network Qt5::OpenGL ${GLUT_LIB} ${EXTRA_LIBS} ${GL_LIB}
     $<$<BOOL:${ENABLE_MYPaint}>:${MYPAINT_LIB_LDFLAGS}>)

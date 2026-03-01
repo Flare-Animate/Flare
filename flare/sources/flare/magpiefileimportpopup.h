@@ -3,7 +3,7 @@
 #ifndef MAGPIEFILEIMPORTPOPUP_H
 #define MAGPIEFILEIMPORTPOPUP_H
 
-#include "toonzqt/dvdialog.h"
+"flareqt/dvdialog.h"
 #include "tfilepath.h"
 
 class FlipBook;
@@ -68,3 +68,4 @@ signals:
 };
 
 #endif  // MAGPIEFILEIMPORTPOPUP_H
+

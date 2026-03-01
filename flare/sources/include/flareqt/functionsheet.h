@@ -7,7 +7,7 @@
 #include "functiontreeviewer.h"
 #include "spreadsheetviewer.h"
 #include "functionselection.h"
-#include "toonzqt/lineedit.h"
+"flareqt/lineedit.h"
 
 #include <QWidget>
 #include <set>
@@ -185,3 +185,4 @@ public slots:
 };
 
 #endif
+

@@ -3,9 +3,9 @@
 #ifndef STUDIOPALETTEVIEWER_H
 #define STUDIOPALETTEVIEWER_H
 
-#include "toonz/studiopalette.h"
-#include "toonz/tproject.h"
-#include "toonzqt/dvdialog.h"
+"flare/studiopalette.h"
+"flare/tproject.h"
+"flareqt/dvdialog.h"
 #include "saveloadqsettings.h"
 
 #include <QTreeWidget>

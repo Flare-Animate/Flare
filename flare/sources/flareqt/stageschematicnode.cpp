@@ -9,34 +9,34 @@
 #include "tconst.h"
 
 // TnzLib includes
-#include "toonz/tstageobjectid.h"
-#include "toonz/tstageobject.h"
-#include "toonz/tstageobjectspline.h"
-#include "toonz/txsheet.h"
-#include "toonz/txshcell.h"
-#include "toonz/txshcolumn.h"
-#include "toonz/toonzscene.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/tstageobjectcmd.h"
-#include "toonz/fxcommand.h"
-#include "toonz/txshzeraryfxcolumn.h"
-#include "toonz/tcolumnfx.h"
-#include "toonz/tstageobjecttree.h"
-#include "toonz/tframehandle.h"
-#include "toonz/txshchildlevel.h"
-#include "toonz/txshlevelcolumn.h"
-#include "toonz/txshleveltypes.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/hook.h"
-#include "toonz/preferences.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/txsheethandle.h"
+"flare/tstageobjectid.h"
+"flare/tstageobject.h"
+"flare/tstageobjectspline.h"
+"flare/txsheet.h"
+"flare/txshcell.h"
+"flare/txshcolumn.h"
+"flare/toonzscene.h"
+"flare/sceneproperties.h"
+"flare/tstageobjectcmd.h"
+"flare/fxcommand.h"
+"flare/txshzeraryfxcolumn.h"
+"flare/tcolumnfx.h"
+"flare/tstageobjecttree.h"
+"flare/tframehandle.h"
+"flare/txshchildlevel.h"
+"flare/txshlevelcolumn.h"
+"flare/txshleveltypes.h"
+"flare/tcolumnhandle.h"
+"flare/hook.h"
+"flare/preferences.h"
+"flare/txshsimplelevel.h"
+"flare/txsheethandle.h"
 
 // TnzQt includes
-#include "toonzqt/gutil.h"
-#include "toonzqt/icongenerator.h"
-#include "toonzqt/stageschematicscene.h"
-#include "toonzqt/menubarcommand.h"
+"flareqt/gutil.h"
+"flareqt/icongenerator.h"
+"flareqt/stageschematicscene.h"
+"flareqt/menubarcommand.h"
 
 // Qt includes
 #include <QPixmap>
@@ -47,7 +47,7 @@
 #include <QTextCursor>
 #include <QSet>
 
-#include "toonzqt/stageschematicnode.h"
+"flareqt/stageschematicnode.h"
 
 namespace {
 void drawCamera(QPainter *painter, const QColor &color, const QPen &pen,
@@ -2498,3 +2498,4 @@ void StageSchematicGroupNode::updatePortsPosition() {
 //--------------------------------------------------------
 
 void StageSchematicGroupNode::resize(bool maximized) {}
+

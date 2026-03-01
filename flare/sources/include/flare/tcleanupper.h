@@ -5,7 +5,7 @@
 
 #include "trasterimage.h"
 #include "ttoonzimage.h"
-#include "toonz/cleanupparameters.h"
+"flare/cleanupparameters.h"
 
 #undef DVAPI
 #undef DVVAR
@@ -128,3 +128,4 @@ private:
 };
 
 #endif
+

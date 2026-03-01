@@ -1,6 +1,6 @@
 
 
-#include "toonzqt/dvmimedata.h"
+"flareqt/dvmimedata.h"
 
 #include <QStringList>
 
@@ -35,3 +35,4 @@ QMimeData *cloneData(const QMimeData *data) {
 
   return newData;
 }
+

@@ -8,9 +8,9 @@
 #include "tools/toolhandle.h"
 #include "tools/toolutils.h"
 
-#include "toonz/tobjecthandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/tstageobject.h"
+"flare/tobjecthandle.h"
+"flare/txshlevelhandle.h"
+"flare/tstageobject.h"
 
 using namespace ToolUtils;
 
@@ -1147,3 +1147,4 @@ void ControlPointSelection::deleteControlPoints() {
 void ControlPointSelection::enableCommands() {
   enableCommand(this, "MI_Clear", &ControlPointSelection::deleteControlPoints);
 }
+

@@ -18,27 +18,27 @@
 #include "tregion.h"
 
 // TnzLib includes
-#include "toonz/stage2.h"
-#include "toonz/stageplayer.h"
-#include "toonz/stagevisitor.h"
-#include "toonz/txsheet.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/txshchildlevel.h"
-#include "toonz/txshcolumn.h"
-#include "toonz/txshcell.h"
-#include "toonz/onionskinmask.h"
-#include "toonz/dpiscale.h"
-#include "toonz/imagemanager.h"
-#include "toonz/tstageobjecttree.h"
-#include "toonz/preferences.h"
-#include "toonz/fill.h"
-#include "toonz/levelproperties.h"
-#include "toonz/autoclose.h"
-#include "toonz/txshleveltypes.h"
+"flare/stage2.h"
+"flare/stageplayer.h"
+"flare/stagevisitor.h"
+"flare/txsheet.h"
+"flare/txshsimplelevel.h"
+"flare/txshchildlevel.h"
+"flare/txshcolumn.h"
+"flare/txshcell.h"
+"flare/onionskinmask.h"
+"flare/dpiscale.h"
+"flare/imagemanager.h"
+"flare/tstageobjecttree.h"
+"flare/preferences.h"
+"flare/fill.h"
+"flare/levelproperties.h"
+"flare/autoclose.h"
+"flare/txshleveltypes.h"
 #include "imagebuilders.h"
-#include "toonz/toonzscene.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/tcamera.h"
+"flare/toonzscene.h"
+"flare/sceneproperties.h"
+"flare/tcamera.h"
 
 // Qt includes
 #include <QImage>
@@ -47,7 +47,7 @@
 #include <QThreadStorage>
 #include <QMatrix>
 
-#include "toonz/stage.h"
+"flare/stage.h"
 
 // #define  NUOVO_ONION
 
@@ -1034,3 +1034,4 @@ void Stage::visit(Visitor &visitor, TXshLevel *level, const TFrameId &fid,
     visit(visitor, level->getSimpleLevel(), fid, osm, isPlaying,
           (int)isGuidedDrawingEnabled, guidedBackStroke, guidedFrontStroke);
 }
+

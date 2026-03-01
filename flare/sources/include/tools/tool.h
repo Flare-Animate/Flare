@@ -4,10 +4,10 @@
 #define TOOL_INCLUDED
 
 // TnzLib includes
-#include "toonz/tstageobjectid.h"
-#include "toonz/txsheet.h"
-#include "toonz/imagepainter.h"
-#include "toonz/tapplication.h"
+"flare/tstageobjectid.h"
+"flare/txsheet.h"
+"flare/imagepainter.h"
+"flare/tapplication.h"
 #include "tools/cursors.h"
 
 // TnzCore includes
@@ -19,8 +19,8 @@
 #include <QString>
 #include <QPoint>
 
-#include "toonzqt/glwidget_for_highdpi.h"
-#include "toonzqt/imageutils.h"
+"flareqt/glwidget_for_highdpi.h"
+"flareqt/imageutils.h"
 
 #undef DVAPI
 #undef DVVAR
@@ -760,3 +760,4 @@ public:
 };
 
 #endif
+

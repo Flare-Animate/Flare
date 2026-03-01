@@ -11,22 +11,22 @@
 #include "boardsettingspopup.h"
 
 // TnzQt includes
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/gutil.h"
-#include "toonzqt/filefield.h"
-#include "toonzqt/doublefield.h"
-#include "toonzqt/checkbox.h"
+"flareqt/menubarcommand.h"
+"flareqt/gutil.h"
+"flareqt/filefield.h"
+"flareqt/doublefield.h"
+"flareqt/checkbox.h"
 
 // TnzLib includes
-#include "toonz/tscenehandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/toonzscene.h"
-#include "toonz/txsheet.h"
-#include "toonz/tstageobjecttree.h"
-#include "toonz/preferences.h"
+"flare/tscenehandle.h"
+"flare/txsheethandle.h"
+"flare/toonzscene.h"
+"flare/txsheet.h"
+"flare/tstageobjecttree.h"
+"flare/preferences.h"
 #include "toutputproperties.h"
-#include "toonz/tcamera.h"
-#include "toonz/boardsettings.h"
+"flare/tcamera.h"
+"flare/boardsettings.h"
 
 // TnzBase includes
 #include "trasterfx.h"
@@ -2035,3 +2035,4 @@ OpenPopupCommandHandler<OutputSettingsPopup> openOutputSettingsPopup(
     MI_OutputSettings);
 OpenPopupCommandHandler<PreviewSettingsPopup> openPreviewSettingsPopup(
     MI_PreviewSettings);
+

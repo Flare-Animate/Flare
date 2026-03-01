@@ -541,7 +541,7 @@ get_target_property(QtCore_location Qt5::Core LOCATION)
 get_target_property(QtWidget_location Qt5::Widgets LOCATION)
 message(STATUS "Qt Core Location:" ${QtCore_location})
 
-macro(_find_toonz_library OUT_LIB_LIST IN_LIB_LIST)
+macro(_find_flare_library OUT_LIB_LIST IN_LIB_LIST)
     set(OUTLIST "")
     foreach(arg ${IN_LIB_LIST})
         unset(COREPATH CACHE)
@@ -1089,7 +1089,7 @@ if(WITH_TRANSLATION)
 
     # List of all modules that have translations
     set(TRANSLATION_MODULES
-        toonz tnzcore toonzlib tnztools toonzqt image colorfx
+        flare tnzcore flarelib tnztools flareqt image colorfx
     )
 
     foreach(mod ${TRANSLATION_MODULES})
@@ -1153,13 +1153,13 @@ set(CMAKE_CXX_FLAGS "${CXX_WARNINGS} ${CMAKE_CXX_FLAGS}")
 add_subdirectory(tnzcore)
 add_subdirectory(tnzbase)
 add_subdirectory(tnzext)
-add_subdirectory(toonzlib)
-add_subdirectory(toonzfarm/tfarm)
+add_subdirectory(flarelib)
+add_subdirectory(flarefarm/tfarm)
 add_subdirectory(stdfx)
 add_subdirectory(sound)
 add_subdirectory(colorfx)
 add_subdirectory(image)
-add_subdirectory(toonzqt)
+add_subdirectory(flareqt)
 add_subdirectory(tnztools)
 
 # After all subdirectories have been added, attach the pre-build sanitizer to
@@ -1180,7 +1180,7 @@ add_subdirectory(flare)
 add_subdirectory(tcleanupper)
 add_subdirectory(tcomposer)
 add_subdirectory(tconverter)
-add_subdirectory(toonzfarm)
+add_subdirectory(flarefarm)
 
 if(BUILD_ENV_APPLE)
     add_subdirectory(mousedragfilter)

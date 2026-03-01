@@ -2,10 +2,10 @@
 #ifndef OCAIO_H
 #define OCAIO_H
 
-#include "toonzqt/dvdialog.h"
+"flareqt/dvdialog.h"
 #include "tfilepath.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonzqt/menubarcommand.h"
+"flare/txshlevelhandle.h"
+"flareqt/menubarcommand.h"
 
 #include <QString>
 #include <QList>
@@ -106,3 +106,4 @@ public:
 };
 
 #endif
+

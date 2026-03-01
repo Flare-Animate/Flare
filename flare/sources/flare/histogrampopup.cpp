@@ -9,11 +9,11 @@
 #include "sceneviewer.h"
 
 // TnzQt includes
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/combohistogram.h"
+"flareqt/menubarcommand.h"
+"flareqt/combohistogram.h"
 
 // TnzLib includes
-#include "toonz/tframehandle.h"
+"flare/tframehandle.h"
 
 // TnzCore includes
 #include "trasterimage.h"
@@ -202,3 +202,4 @@ void ViewerHistogramPopup::setCurrentRaster() {
 
 OpenPopupCommandHandler<ViewerHistogramPopup> openHistogramPopup(
     MI_ViewerHistogram);
+

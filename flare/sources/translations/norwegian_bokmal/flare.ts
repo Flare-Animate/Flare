@@ -344,9 +344,9 @@ Please create this folder before using the render farm.</source>
     </message>
     <message>
         <location filename="../../toonz/batchserversviewer.cpp" line="360"/>
-        <source>Unable to connect to the ToonzFarm Controller
+        <source>Unable to connect to the FlareFarm Controller
    The Controller should run on %1 at port %2
-   Please start the Controller before using the ToonzFarm</source>
+   Please start the Controller before using the FlareFarm</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -16296,3 +16296,4 @@ Please refer to the user guide for details.</source>
     </message>
 </context>
 </TS>
+

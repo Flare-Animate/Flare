@@ -1,9 +1,9 @@
 
 
-#include "toonz/tcolumnfxset.h"
+"flare/tcolumnfxset.h"
 
 // TnzLib includes
-#include "toonz/tcolumnfx.h"
+"flare/tcolumnfx.h"
 
 // TnzBase includes
 #include "tfx.h"
@@ -166,3 +166,4 @@ void updateFxLinks(const std::map<TFx *, TFx *> &table) {
     }
   }
 }
+

@@ -1,10 +1,10 @@
-#include "toonz/boardsettings.h"
+"flare/boardsettings.h"
 
 // TnzLib includes
-#include "toonz/toonzscene.h"
-#include "toonz/tproject.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/toonzfolders.h"
+"flare/toonzscene.h"
+"flare/tproject.h"
+"flare/sceneproperties.h"
+"flare/toonzfolders.h"
 #include "toutputproperties.h"
 #include "tsystem.h"
 

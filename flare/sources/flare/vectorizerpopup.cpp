@@ -15,29 +15,29 @@
 #include "selectionutils.h"
 
 // TnzQt includes
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/intfield.h"
-#include "toonzqt/colorfield.h"
-#include "toonzqt/checkbox.h"
-#include "toonzqt/gutil.h"
+"flareqt/menubarcommand.h"
+"flareqt/intfield.h"
+"flareqt/colorfield.h"
+"flareqt/checkbox.h"
+"flareqt/gutil.h"
 
 // TnzLib includes
-#include "toonz/namebuilder.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/txshleveltypes.h"
-#include "toonz/txsheet.h"
-#include "toonz/txshcell.h"
-#include "toonz/toonzscene.h"
-#include "toonz/tcenterlinevectorizer.h"
-#include "toonz/dpiscale.h"
-#include "toonz/txshchildlevel.h"
-#include "toonz/levelset.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/imagemanager.h"
-#include "toonz/Naa2TlvConverter.h"
+"flare/namebuilder.h"
+"flare/txshsimplelevel.h"
+"flare/txshleveltypes.h"
+"flare/txsheet.h"
+"flare/txshcell.h"
+"flare/toonzscene.h"
+"flare/tcenterlinevectorizer.h"
+"flare/dpiscale.h"
+"flare/txshchildlevel.h"
+"flare/levelset.h"
+"flare/tscenehandle.h"
+"flare/txsheethandle.h"
+"flare/txshlevelhandle.h"
+"flare/sceneproperties.h"
+"flare/imagemanager.h"
+"flare/Naa2TlvConverter.h"
 
 // TnzCore includes
 #include "tsystem.h"
@@ -1549,3 +1549,4 @@ void VectorizerPopup::resetParameters() {
 
 OpenPopupCommandHandler<VectorizerPopup> openVectorizerPopup(
     MI_ConvertToVectors);
+

@@ -9,25 +9,25 @@
 #include "bluredbrush.h"
 
 // TnzQt includes
-#include "toonzqt/icongenerator.h"
+"flareqt/icongenerator.h"
 
 // TnzLib includes
-#include "toonz/strokegenerator.h"
-#include "toonz/ttilesaver.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/observer.h"
-#include "toonz/toonzimageutils.h"
-#include "toonz/levelproperties.h"
-#include "toonz/stage2.h"
-#include "toonz/ttileset.h"
-#include "toonz/rasterstrokegenerator.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/tframehandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/tpalettehandle.h"
-#include "toonz/tobjecthandle.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/preferences.h"
+"flare/strokegenerator.h"
+"flare/ttilesaver.h"
+"flare/txshsimplelevel.h"
+"flare/observer.h"
+"flare/toonzimageutils.h"
+"flare/levelproperties.h"
+"flare/stage2.h"
+"flare/ttileset.h"
+"flare/rasterstrokegenerator.h"
+"flare/txsheethandle.h"
+"flare/tframehandle.h"
+"flare/txshlevelhandle.h"
+"flare/tpalettehandle.h"
+"flare/tobjecthandle.h"
+"flare/tcolumnhandle.h"
+"flare/preferences.h"
 
 // TnzBase includes
 #include "tenv.h"
@@ -1737,3 +1737,4 @@ bool EraserTool::isPencilModeActive() {
 }
 
 }  // namespace
+

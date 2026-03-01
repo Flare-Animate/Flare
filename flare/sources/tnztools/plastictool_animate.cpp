@@ -4,7 +4,7 @@
 #include "tundo.h"
 
 // TnzLib includes
-#include "toonz/tobjecthandle.h"
+"flare/tobjecthandle.h"
 
 #include "plastictool.h"
 
@@ -246,3 +246,4 @@ void PlasticTool::draw_animate() {
 
   drawHighlights(m_sd, &deformedSkeleton, pixelSize);
 }
+

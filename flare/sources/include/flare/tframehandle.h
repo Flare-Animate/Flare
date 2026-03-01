@@ -6,7 +6,7 @@
 #include <QObject>
 #include <QElapsedTimer>
 #include "tfilepath.h"
-#include "toonz/txshsoundcolumn.h"
+"flare/txshsoundcolumn.h"
 
 #include "tcommon.h"
 
@@ -133,3 +133,4 @@ protected:
 };
 
 #endif  // TFRAMEHANDLE_H
+

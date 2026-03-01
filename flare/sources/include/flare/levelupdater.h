@@ -7,7 +7,7 @@
 #include "tlevel_io.h"
 
 // TnzLib includes
-#include "toonz/txshsimplelevel.h"
+"flare/txshsimplelevel.h"
 
 #undef DVAPI
 #undef DVVAR
@@ -192,3 +192,4 @@ private:
 };
 
 #endif  // LEVELUPDATER_H
+

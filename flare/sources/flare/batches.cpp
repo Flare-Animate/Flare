@@ -18,11 +18,11 @@
 #include "tapp.h"
 #include "filebrowserpopup.h"
 #include "tmsgcore.h"
-#include "toonz/toonzscene.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/preferences.h"
+"flare/toonzscene.h"
+"flare/sceneproperties.h"
+"flare/preferences.h"
 
-#include "toonzqt/gutil.h"
+"flareqt/gutil.h"
 
 #include <QString>
 #include <QProcess>
@@ -1230,3 +1230,4 @@ BatchesController *BatchesController::instance() {
   }
   return m_instance;
 }
+

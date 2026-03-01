@@ -14,8 +14,8 @@
 #include <QReadLocker>
 #include <QWriteLocker>
 
-#include "toonz/imagemanager.h"
-#include "toonz/txshsimplelevel.h"
+"flare/imagemanager.h"
+"flare/txshsimplelevel.h"
 
 /* EXPLANATION (by Daniele):
 
@@ -494,3 +494,4 @@ bool ImageManager::isModified(const std::string &id) {
       m_imp->m_builders.find(id);
   return (it == m_imp->m_builders.end()) ? false : it->second->m_modified;
 }
+

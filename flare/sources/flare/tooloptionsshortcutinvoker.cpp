@@ -8,7 +8,7 @@
 #include "tools/toolcommandids.h"
 #include "tools/tool.h"
 
-#include "toonzqt/menubarcommand.h"
+"flareqt/menubarcommand.h"
 #include "menubarcommandids.h"
 
 using namespace ToolOptionsShortcutWorker;
@@ -1165,3 +1165,4 @@ void ToolOptionsShortcutInvoker::TogglePlasticAnimate() {
       ->getAction("A_ToolOption_SkeletonMode:Animate")
       ->trigger();
 }
+

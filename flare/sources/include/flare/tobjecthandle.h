@@ -5,7 +5,7 @@
 
 #include <QObject>
 
-#include "toonz/tstageobjectid.h"
+"flare/tstageobjectid.h"
 #include "tcommon.h"
 
 #undef DVAPI
@@ -68,3 +68,4 @@ public slots:
 };
 
 #endif  // TOBJECTHANDLE_H
+

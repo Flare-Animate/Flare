@@ -1,19 +1,19 @@
 
 
-#include "toonz/tstageobjecttree.h"
-#include "toonz/tstageobjectspline.h"
-#include "toonz/tstageobject.h"
+"flare/tstageobjecttree.h"
+"flare/tstageobjectspline.h"
+"flare/tstageobject.h"
 #include "tgrammar.h"
 #include "ttokenizer.h"
 #include "tconvert.h"
 #include "tunit.h"
 #include "tstream.h"
 
-#include "toonz/txsheet.h"
-#include "toonz/txshcell.h"
+"flare/txsheet.h"
+"flare/txshcell.h"
 
-#include "toonz/txsheetexpr.h"
-#include "toonz/columnfan.h"
+"flare/txsheetexpr.h"
+"flare/columnfan.h"
 #include "../include/orientation.h"
 
 using namespace TSyntax;
@@ -692,3 +692,4 @@ int TStageObjectTree::getDagGridDimension() const {
 //-----------------------------------------------------------------------------
 
 PERSIST_IDENTIFIER(TStageObjectTree, "PegbarTree");
+

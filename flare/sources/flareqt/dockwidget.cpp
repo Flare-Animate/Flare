@@ -1,7 +1,7 @@
 
 
 // TnzQt includes
-#include "toonzqt/menubarcommand.h"
+"flareqt/menubarcommand.h"
 #include "docklayout.h"
 
 // Qt includes
@@ -982,3 +982,4 @@ void getClosestAvailableMousePosition(QPoint &globalPos) {
 }
 
 }  // namespace
+

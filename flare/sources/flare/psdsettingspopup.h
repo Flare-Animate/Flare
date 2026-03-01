@@ -3,7 +3,7 @@
 #ifndef PSDSETTINGSPOPUP_H
 #define PSDSETTINGSPOPUP_H
 
-#include "toonzqt/dvdialog.h"
+"flareqt/dvdialog.h"
 #include "tfilepath.h"
 #include "../common/psdlib/psd.h"
 
@@ -84,3 +84,4 @@ protected slots:
 };
 
 #endif  // PsdSettingsPopup_H
+

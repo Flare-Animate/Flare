@@ -1,10 +1,10 @@
 
 
-#include "toonz/scriptengine.h"
-#include "toonz/scriptbinding.h"
-#include "toonz/scriptbinding_files.h"
+"flare/scriptengine.h"
+"flare/scriptbinding.h"
+"flare/scriptbinding_files.h"
 #include "trenderer.h"
-#include "toonz/toonzfolders.h"
+"flare/toonzfolders.h"
 #include <QScriptEngine>
 #include <QScriptProgram>
 #include <QFile>
@@ -269,3 +269,4 @@ void ScriptEngine::onTerminated() {
   delete m_executor;
   m_executor = 0;
 }
+

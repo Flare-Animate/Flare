@@ -669,12 +669,12 @@ Please create this folder before using the render farm.</source>
 Por favor crear esta carpeta antes de usar la granja de procesamiento.</translation>
     </message>
     <message>
-        <source>Unable to connect to the ToonzFarm Controller
+        <source>Unable to connect to the FlareFarm Controller
    The Controller should run on %1 at port %2
-   Please start the Controller before using the ToonzFarm</source>
-        <translation>No es posible conectarse al controlador ToonzFarm.
+   Please start the Controller before using the FlareFarm</source>
+        <translation>No es posible conectarse al controlador FlareFarm.
    El controlador debe ejecutarse en %1 usando el puerto %2
-   Por favor iniciar el controlador antes de usar ToonzFarm</translation>
+   Por favor iniciar el controlador antes de usar FlareFarm</translation>
     </message>
 </context>
 <context>
@@ -17839,3 +17839,4 @@ Mantener presionada la tecla F3 para ver sólo este fotograma en el visor</trans
     </message>
 </context>
 </TS>
+

@@ -768,12 +768,12 @@ Please create this folder before using the render farm.</source>
     </message>
     <message>
         <location filename="../../toonz/batchserversviewer.cpp" line="356"/>
-        <source>Unable to connect to the ToonzFarm Controller
+        <source>Unable to connect to the FlareFarm Controller
    The Controller should run on %1 at port %2
-   Please start the Controller before using the ToonzFarm</source>
-        <translation>Не удается подключиться к контроллеру ToonzFarm
+   Please start the Controller before using the FlareFarm</source>
+        <translation>Не удается подключиться к контроллеру FlareFarm
     Контроллер должен работать на %1 в порту %2
-    Перед использованием ToonzFarm запустите контроллер</translation>
+    Перед использованием FlareFarm запустите контроллер</translation>
     </message>
 </context>
 <context>
@@ -21901,3 +21901,4 @@ Hold F3 Key on the Viewer to Show This Frame Only</source>
     </message>
 </context>
 </TS>
+

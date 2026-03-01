@@ -4,8 +4,8 @@
 #include <array>
 #include <QtGlobal>
 
-#include "toonzqt/doublefield.h"
-#include "toonzqt/dvdialog.h"
+"flareqt/doublefield.h"
+"flareqt/dvdialog.h"
 #include "tunit.h"
 
 #include <QDoubleValidator>
@@ -712,3 +712,4 @@ void MeasuredDoubleField::setDecimals(int decimals) {
   if (isRollerEnabled())
     m_roller->setStep(std::pow(0.1, std::max(decimals - 1, 1)));
 }
+

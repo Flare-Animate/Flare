@@ -22,34 +22,34 @@
 #endif
 
 // TnzQt includes
-#include "toonzqt/gutil.h"
-#include "toonzqt/icongenerator.h"
-#include "toonzqt/colorfield.h"
-#include "toonzqt/tselectionhandle.h"
+"flareqt/gutil.h"
+"flareqt/icongenerator.h"
+"flareqt/colorfield.h"
+"flareqt/tselectionhandle.h"
 
 // TnzLib includes
-#include "toonz/tscenehandle.h"
-#include "toonz/tpalettehandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/palettecontroller.h"
-#include "toonz/studiopalette.h"
-#include "toonz/toonzscene.h"
-#include "toonz/tproject.h"
-#include "toonz/txshcell.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/tcamera.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/tstageobjecttree.h"
-#include "toonz/txshleveltypes.h"
+"flare/tscenehandle.h"
+"flare/tpalettehandle.h"
+"flare/txshlevelhandle.h"
+"flare/txsheethandle.h"
+"flare/palettecontroller.h"
+"flare/studiopalette.h"
+"flare/toonzscene.h"
+"flare/tproject.h"
+"flare/txshcell.h"
+"flare/txshsimplelevel.h"
+"flare/tcamera.h"
+"flare/sceneproperties.h"
+"flare/tstageobjecttree.h"
+"flare/txshleveltypes.h"
 // specify in the preference whether to replace the level after saveLevelAs
 // command
-#include "toonz/preferences.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/tframehandle.h"
-#include "toonz/levelset.h"
-#include "toonz/palettecmd.h"
-#include "toonz/stage.h"
+"flare/preferences.h"
+"flare/tcolumnhandle.h"
+"flare/tframehandle.h"
+"flare/levelset.h"
+"flare/palettecmd.h"
+"flare/stage.h"
 
 // TnzCore includes
 #include "tsystem.h"
@@ -2405,3 +2405,4 @@ OpenReplaceFilePopupHandler<ReplaceLevelPopup> replaceLevelPopupCommand(
     MI_ReplaceLevel);
 OpenReplaceFilePopupHandler<ReplaceParentDirectoryPopup>
     replaceParentFolderPopupCommand(MI_ReplaceParentDirectory);
+

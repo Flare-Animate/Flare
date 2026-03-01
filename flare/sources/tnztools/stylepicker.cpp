@@ -8,10 +8,10 @@
 #include "tvectorimage.h"
 #include "ttoonzimage.h"
 #include "trasterimage.h"
-#include "toonz/dpiscale.h"
+"flare/dpiscale.h"
 #include "tpixelutils.h"
 #include "tregion.h"
-#include "toonzqt/gutil.h"
+"flareqt/gutil.h"
 
 #include <QRect>
 
@@ -439,3 +439,4 @@ TPixel32 StylePicker::pickColor(TStroke *stroke) const {
 }
 
 //---------------------------------------------------------
+

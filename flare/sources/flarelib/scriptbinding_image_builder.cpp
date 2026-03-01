@@ -1,7 +1,7 @@
 
 
-#include "toonz/scriptbinding_image_builder.h"
-#include "toonz/scriptbinding_image.h"
+"flare/scriptbinding_image_builder.h"
+"flare/scriptbinding_image.h"
 #include "ttoonzimage.h"
 #include "trop.h"
 #include <cmath>
@@ -288,3 +288,4 @@ QScriptValue ImageBuilder::add(QScriptValue imgArg,
 }
 
 }  // namespace TScriptBinding
+

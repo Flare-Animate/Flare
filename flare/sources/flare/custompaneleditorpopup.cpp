@@ -10,10 +10,10 @@
 #include "commandbarpopup.h"
 
 // TnzQt includes
-#include "toonzqt/gutil.h"
+"flareqt/gutil.h"
 
 // ToonzLib
-#include "toonz/toonzfolders.h"
+"flare/toonzfolders.h"
 
 // ToonzCore
 #include "tsystem.h"
@@ -881,3 +881,4 @@ void CustomPanelEditorPopup::onSearchTextChanged(const QString& text) {
 
 OpenPopupCommandHandler<CustomPanelEditorPopup> openCustomPanelEditorPopup(
     MI_CustomPanelEditor);
+

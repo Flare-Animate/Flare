@@ -22,7 +22,7 @@ namespace {
 TFilePath getGlobalRoot() {
 #ifdef WIN32
   TFilePath groot(TSystem::getSystemValue(
-      TFilePath("SOFTWARE\\Digital Video\\ToonzFarm\\1.0\\GLOBALROOT")));
+      TFilePath("SOFTWARE\\Digital Video\\FlareFarm\\1.0\\GLOBALROOT")));
 
   return groot;
 #else
@@ -149,3 +149,4 @@ void Application::setCurrentFolder(const TFilePath &fp) {
 //------------------------------------------------------------------------------
 
 TFilePath Application::getCurrentFolder() { return m_imp->m_currentFolder; }
+

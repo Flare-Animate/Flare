@@ -1,6 +1,6 @@
 
 
-#include "toonz/namebuilder.h"
+"flare/namebuilder.h"
 #include "tconvert.h"
 
 //-------------------------------------------------------------------
@@ -66,3 +66,4 @@ std::wstring NameModifier::getNext() {
   else
     return m_nameBase + L"_" + std::to_wstring(index);
 }
+

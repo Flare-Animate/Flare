@@ -1,13 +1,13 @@
 
 
-#include "toonzqt/functionkeyframenavigator.h"
+"flareqt/functionkeyframenavigator.h"
 
 // TnzQt includes
-#include "toonzqt/framenavigator.h"
+"flareqt/framenavigator.h"
 
 // TnzLib includes
-#include "toonz/tframehandle.h"
-#include "toonz/doubleparamcmd.h"
+"flare/tframehandle.h"
+"flare/doubleparamcmd.h"
 
 // TnzBase includes
 #include "tdoubleparam.h"
@@ -78,3 +78,4 @@ void FunctionKeyframeNavigator::showEvent(QShowEvent *e) {
 void FunctionKeyframeNavigator::hideEvent(QHideEvent *e) {
   KeyframeNavigator::hideEvent(e);
 }
+

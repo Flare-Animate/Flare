@@ -1,5 +1,5 @@
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/intfield.h"
+"flareqt/dvdialog.h"
+"flareqt/intfield.h"
 #include <QProgressBar>
 
 class FillHolesDialog final : public DVGui::Dialog {

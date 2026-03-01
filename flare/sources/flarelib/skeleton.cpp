@@ -1,11 +1,11 @@
 
 
-#include "toonz/skeleton.h"
-#include "toonz/tstageobject.h"
-#include "toonz/tpinnedrangeset.h"
-#include "toonz/tstageobjectkeyframe.h"
-#include "toonz/txsheet.h"
-#include "toonz/stage.h"
+"flare/skeleton.h"
+"flare/tstageobject.h"
+"flare/tpinnedrangeset.h"
+"flare/tstageobjectkeyframe.h"
+"flare/txsheet.h"
+"flare/stage.h"
 
 namespace {
 
@@ -153,3 +153,4 @@ void Skeleton::clearAllPinnedRanges() {
     obj->invalidate();
   }
 }
+

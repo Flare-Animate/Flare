@@ -1,6 +1,6 @@
 
 
-#include "toonz/tcenterlinevectorizer.h"
+"flare/tcenterlinevectorizer.h"
 #include "tsystem.h"
 #include "tstopwatch.h"
 #include "tpalette.h"
@@ -2775,3 +2775,4 @@ TVectorImageP vectorize(const TImageP &img, const VectorizerConfiguration &c,
 }
 
 //---------------------------------------------------------
+

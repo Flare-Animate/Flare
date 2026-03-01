@@ -1,19 +1,19 @@
 
 
 // Rendering components
-#include "toonz/multimediarenderer.h"
-#include "toonz/movierenderer.h"
+"flare/multimediarenderer.h"
+"flare/movierenderer.h"
 #include "trenderer.h"
 
 // Scene structures
-#include "toonz/toonzscene.h"
-#include "toonz/txsheet.h"
-#include "toonz/fxdag.h"
-#include "toonz/tcolumnfxset.h"
+"flare/toonzscene.h"
+"flare/txsheet.h"
+"flare/fxdag.h"
+"flare/tcolumnfxset.h"
 
 // Fxs tree decomposition
-#include "toonz/scenefx.h"
-#include "toonz/tcolumnfx.h"
+"flare/scenefx.h"
+"flare/tcolumnfx.h"
 
 // Idle processing
 #include <QEventLoop>
@@ -544,3 +544,4 @@ bool MultimediaRenderer::done() const
   return true;
 }
 */
+

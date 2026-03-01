@@ -9,27 +9,27 @@
 #include "tools/toolutils.h"
 
 // TnzQt includes
-#include "toonzqt/selectioncommandids.h"
-#include "toonzqt/imageutils.h"
-#include "toonzqt/tselectionhandle.h"
-#include "toonzqt/strokesdata.h"
-#include "toonzqt/rasterimagedata.h"
-#include "toonzqt/dvdialog.h"
+"flareqt/selectioncommandids.h"
+"flareqt/imageutils.h"
+"flareqt/tselectionhandle.h"
+"flareqt/strokesdata.h"
+"flareqt/rasterimagedata.h"
+"flareqt/dvdialog.h"
 
 // TnzLib includes
-#include "toonz/tpalettehandle.h"
-#include "toonz/palettecontroller.h"
-#include "toonz/tobjecthandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/txsheethandle.h"
+"flare/tpalettehandle.h"
+"flare/palettecontroller.h"
+"flare/tobjecthandle.h"
+"flare/txshlevelhandle.h"
+"flare/tscenehandle.h"
+"flare/txsheethandle.h"
 
-#include "toonz/tcenterlinevectorizer.h"
-#include "toonz/stage.h"
-#include "toonz/tstageobject.h"
-#include "toonz/toonzscene.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/tframehandle.h"
+"flare/tcenterlinevectorizer.h"
+"flare/stage.h"
+"flare/tstageobject.h"
+"flare/toonzscene.h"
+"flare/sceneproperties.h"
+"flare/tframehandle.h"
 
 // TnzCore includes
 #include "tthreadmessage.h"
@@ -924,3 +924,4 @@ bool StrokeSelection::isEditable() {
 
   return true;
 }
+

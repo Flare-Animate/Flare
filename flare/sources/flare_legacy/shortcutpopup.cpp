@@ -6,14 +6,14 @@
 #include "tenv.h"
 #include "tsystem.h"
 
-#include "toonz/toonzfolders.h"
+"flare/toonzfolders.h"
 // TnzQt includes
-#include "toonzqt/gutil.h"
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/dvdialog.h"
+"flareqt/gutil.h"
+"flareqt/menubarcommand.h"
+"flareqt/dvdialog.h"
 
 // TnzLib includes
-#include "toonz/preferences.h"
+"flare/preferences.h"
 
 // Qt includes
 #include <QTreeWidgetItem>
@@ -819,3 +819,4 @@ void ShortcutPopup::getCurrentPresetPref() {
 }
 
 OpenPopupCommandHandler<ShortcutPopup> openShortcutPopup(MI_ShortcutPopup);
+

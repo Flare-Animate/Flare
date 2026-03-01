@@ -1,14 +1,14 @@
 #include "fullcolorfilltool.h"
 
-#include "toonz/stage2.h"
+"flare/stage2.h"
 #include "tools/cursors.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/trasterimageutils.h"
-#include "toonz/ttileset.h"
-#include "toonz/ttilesaver.h"
-#include "toonz/levelproperties.h"
-#include "toonz/preferences.h"
-#include "toonz/txsheethandle.h"
+"flare/txshlevelhandle.h"
+"flare/trasterimageutils.h"
+"flare/ttileset.h"
+"flare/ttilesaver.h"
+"flare/levelproperties.h"
+"flare/preferences.h"
+"flare/txsheethandle.h"
 
 #include "tools/toolhandle.h"
 #include "tools/toolutils.h"
@@ -92,7 +92,7 @@ void doFill(const TImageP &img, const TPointD &pos, FillParameters &params,
     TDimension imageSize = ras->getSize();
     TPointD p(imageSize.lx % 2 ? 0.0 : 0.5, imageSize.ly % 2 ? 0.0 : 0.5);
 
-    /*-- params.m_p = convert(pos-p)‚Å‚ÍAƒ}ƒCƒiƒXÀ•W‚Å‚¸‚ê‚ª¶‚¶‚é --*/
+    /*-- params.m_p = convert(pos-p)ï¿½Å‚ÍAï¿½}ï¿½Cï¿½iï¿½Xï¿½ï¿½ï¿½Wï¿½Å‚ï¿½ï¿½ê‚ªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ --*/
     TPointD tmp_p = pos - p;
     params.m_p = TPoint((int)floor(tmp_p.x + 0.5), (int)floor(tmp_p.y + 0.5));
 

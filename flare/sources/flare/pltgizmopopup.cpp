@@ -7,14 +7,14 @@
 #include "tapp.h"
 
 // TnzQt includes
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/styleselection.h"
-#include "toonzqt/tselectionhandle.h"
+"flareqt/menubarcommand.h"
+"flareqt/styleselection.h"
+"flareqt/tselectionhandle.h"
 #include "historytypes.h"
 
 // TnzLib includes
-#include "toonz/tpalettehandle.h"
-#include "toonz/palettecontroller.h"
+"flare/tpalettehandle.h"
+"flare/palettecontroller.h"
 
 // TnzCore includes
 #include "tundo.h"
@@ -747,3 +747,4 @@ void PltGizmoPopup::onFade(double p) {
 //-----------------------------------------------------------------------------
 
 OpenPopupCommandHandler<PltGizmoPopup> openPltGizmoPopup(MI_OpenPltGizmo);
+

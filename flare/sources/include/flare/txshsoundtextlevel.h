@@ -3,7 +3,7 @@
 #ifndef TXSHSOUNDTEXTLEVEL_INCLUDED
 #define TXSHSOUNDTEXTLEVEL_INCLUDED
 
-#include "toonz/txshlevel.h"
+"flare/txshlevel.h"
 #include "tsound.h"
 #include "tpersist.h"
 
@@ -60,3 +60,4 @@ template class DV_EXPORT_API TSmartPointerT<TXshSoundTextLevel>;
 typedef TSmartPointerT<TXshSoundTextLevel> TXshSoundTextLevelP;
 
 #endif  // TXSHSOUNDTEXTLEVEL_INCLUDED
+

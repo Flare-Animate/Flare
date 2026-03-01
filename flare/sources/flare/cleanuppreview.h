@@ -7,10 +7,10 @@
 #include <vector>
 
 // ToonzLib includes
-#include "toonz/txshsimplelevel.h"
+"flare/txshsimplelevel.h"
 
 // ToonzQt includes
-#include "toonzqt/menubarcommand.h"
+"flareqt/menubarcommand.h"
 
 // Qt includes
 #include <QTimer>
@@ -90,3 +90,4 @@ protected slots:
 };
 
 #endif  // CLEANUPPREVIEW_H
+

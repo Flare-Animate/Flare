@@ -7,7 +7,7 @@ Available to composite exposure value with background.
 #include "iwa_motionblurfx.h"
 #include "tfxattributes.h"
 
-#include "toonz/tstageobject.h"
+"flare/tstageobject.h"
 
 #include "trop.h"
 
@@ -1055,3 +1055,4 @@ bool Iwa_MotionBlurCompFx::toBeComputedInLinearColorSpace(
 }
 
 FX_PLUGIN_IDENTIFIER(Iwa_MotionBlurCompFx, "iwa_MotionBlurCompFx")
+

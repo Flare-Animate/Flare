@@ -8,7 +8,7 @@
 
 // Toonz includes
 #include "tfilepath.h"
-#include "toonz/targetcolors.h"
+"flare/targetcolors.h"
 #include "tcamera.h"
 #include "tpalette.h"
 
@@ -209,3 +209,4 @@ public:
 };
 
 #endif
+

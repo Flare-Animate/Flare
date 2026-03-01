@@ -1,17 +1,17 @@
 
 
-#include "toonz/sceneresources.h"
-#include "toonz/toonzscene.h"
-#include "toonz/tproject.h"
-#include "toonz/levelset.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/txshpalettelevel.h"
-#include "toonz/levelproperties.h"
-#include "toonz/txshsoundlevel.h"
-#include "toonz/namebuilder.h"
-#include "toonz/childstack.h"
-#include "toonz/txsheet.h"
-#include "toonz/preferences.h"
+"flare/sceneresources.h"
+"flare/toonzscene.h"
+"flare/tproject.h"
+"flare/levelset.h"
+"flare/txshsimplelevel.h"
+"flare/txshpalettelevel.h"
+"flare/levelproperties.h"
+"flare/txshsoundlevel.h"
+"flare/namebuilder.h"
+"flare/childstack.h"
+"flare/txsheet.h"
+"flare/preferences.h"
 #include "tpalette.h"
 
 #include "tmsgcore.h"
@@ -788,3 +788,4 @@ void ResourceCollector::process(TXshPaletteLevel *pl) {
   pl->setPath(collectedPath);
   m_count++;
 }
+

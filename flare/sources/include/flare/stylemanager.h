@@ -8,7 +8,7 @@
 
 #include "traster.h"
 #ifdef HAVE_MYPaint
-#include "toonz/mypaintbrushstyle.h"
+"flare/mypaintbrushstyle.h"
 #endif
 
 #include <QSize>
@@ -229,3 +229,4 @@ public:
 };
 
 #endif  // STYLEMANAGER_H
+

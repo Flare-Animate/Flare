@@ -10,16 +10,16 @@
 #include "tools/cursors.h"
 #include "tproperty.h"
 
-#include "toonzqt/imageutils.h"
+"flareqt/imageutils.h"
 
-#include "toonz/tframehandle.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/tobjecthandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/tstageobject.h"
+"flare/tframehandle.h"
+"flare/tcolumnhandle.h"
+"flare/txshlevelhandle.h"
+"flare/tobjecthandle.h"
+"flare/txsheethandle.h"
+"flare/tstageobject.h"
 #include "tools/toolhandle.h"
-#include "toonz/stage2.h"
+"flare/stage2.h"
 #include "tenv.h"
 // For Qt translation support
 #include <QCoreApplication>
@@ -758,3 +758,4 @@ public:
 } vectorTapeTool;
 
 // TTool *getAutocloseTool() {return &autocloseTool;}
+

@@ -10,31 +10,31 @@
 #include "tools/toolutils.h"
 
 // TnzQt includes
-#include "toonzqt/icongenerator.h"
+"flareqt/icongenerator.h"
 
 // TnzLib includes
-#include "toonzqt/menubarcommand.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/txshleveltypes.h"
-#include "toonz/levelproperties.h"
-#include "toonz/toonzscene.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/preferences.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/tframehandle.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/tobjecthandle.h"
-#include "toonz/tpalettehandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/txshcell.h"
-#include "toonz/tstageobject.h"
-#include "toonz/tstageobjectspline.h"
-#include "toonz/tstageobjecttree.h"
-#include "toonz/dpiscale.h"
-#include "toonz/palettecontroller.h"
-#include "toonz/tonionskinmaskhandle.h"
-#include "toonz/autoclose.h"
+"flareqt/menubarcommand.h"
+"flare/txshsimplelevel.h"
+"flare/txshleveltypes.h"
+"flare/levelproperties.h"
+"flare/toonzscene.h"
+"flare/sceneproperties.h"
+"flare/preferences.h"
+"flare/tscenehandle.h"
+"flare/txsheethandle.h"
+"flare/tframehandle.h"
+"flare/tcolumnhandle.h"
+"flare/tobjecthandle.h"
+"flare/tpalettehandle.h"
+"flare/txshlevelhandle.h"
+"flare/txshcell.h"
+"flare/tstageobject.h"
+"flare/tstageobjectspline.h"
+"flare/tstageobjecttree.h"
+"flare/dpiscale.h"
+"flare/palettecontroller.h"
+"flare/tonionskinmaskhandle.h"
+"flare/autoclose.h"
 #include "toutputproperties.h"
 
 // TnzCore includes
@@ -1614,3 +1614,4 @@ void TTool::flipGuideStrokeDirection(int mode) {
   getViewer()->invalidateAll();
   m_application->getCurrentLevel()->notifyLevelChange();
 }
+

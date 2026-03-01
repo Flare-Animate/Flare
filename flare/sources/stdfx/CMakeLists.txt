@@ -333,7 +333,7 @@ include_directories(
     ${SDKROOT}/kiss_fft
 )
 
-_find_toonz_library(TNZLIBS "tnzcore;tnzbase;toonzlib")
+_find_flare_library(TNZLIBS "tnzcore;tnzbase;flarelib")
 
 target_link_libraries(tnzstdfx Qt5::Core Qt5::Gui Qt5::OpenGL ${GL_LIB} ${GLEW_LIB} ${TNZLIBS} ${PTHREAD_LIBRARY})
 

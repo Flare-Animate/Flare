@@ -1,6 +1,6 @@
 
 #include <ttonecurveparam.h>
-#include <toonzqt/fxsettings.h>
+<flareqt/fxsettings.h>
 
 #include "plugin_param_interface.h"
 #include "plugin_utilities.h"
@@ -449,3 +449,4 @@ int set_value(toonz_param_handle_t param, double frame, int size_in_bytes,
 
   return TOONZ_OK;
 }
+

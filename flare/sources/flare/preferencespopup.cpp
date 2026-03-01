@@ -12,25 +12,25 @@
 #include "columncommand.h"
 
 // TnzQt includes
-#include "toonzqt/tabbar.h"
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/checkbox.h"
-#include "toonzqt/gutil.h"
-#include "toonzqt/doublefield.h"
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/filefield.h"
-#include "toonzqt/lutcalibrator.h"
+"flareqt/tabbar.h"
+"flareqt/menubarcommand.h"
+"flareqt/checkbox.h"
+"flareqt/gutil.h"
+"flareqt/doublefield.h"
+"flareqt/dvdialog.h"
+"flareqt/filefield.h"
+"flareqt/lutcalibrator.h"
 
 // TnzLib includes
-#include "toonz/txsheethandle.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/txshleveltypes.h"
-#include "toonz/toonzscene.h"
-#include "toonz/tcamera.h"
-#include "toonz/levelproperties.h"
-#include "toonz/tonionskinmaskhandle.h"
-#include "toonz/stage.h"
+"flare/txsheethandle.h"
+"flare/tscenehandle.h"
+"flare/txshlevelhandle.h"
+"flare/txshleveltypes.h"
+"flare/toonzscene.h"
+"flare/tcamera.h"
+"flare/levelproperties.h"
+"flare/tonionskinmaskhandle.h"
+"flare/stage.h"
 
 // TnzCore includes
 #include "tsystem.h"
@@ -2535,3 +2535,4 @@ void PreferencesPopup::onColorFieldChanged(const TPixel32& color,
 //-----------------------------------------------------------------------------
 
 OpenPopupCommandHandler<PreferencesPopup> openPreferencesPopup(MI_Preferences);
+

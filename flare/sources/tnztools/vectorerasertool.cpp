@@ -7,17 +7,17 @@
 #include "tools/cursors.h"
 
 // TnzQt includes
-#include "toonzqt/imageutils.h"
+"flareqt/imageutils.h"
 
 // TnzLib includes
-#include "toonz/txshlevelhandle.h"
-#include "toonz/tframehandle.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/strokegenerator.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/stage2.h"
-#include "toonz/preferences.h"
+"flare/txshlevelhandle.h"
+"flare/tframehandle.h"
+"flare/tcolumnhandle.h"
+"flare/txsheethandle.h"
+"flare/strokegenerator.h"
+"flare/txshsimplelevel.h"
+"flare/stage2.h"
+"flare/preferences.h"
 
 // TnzBase includes
 #include "tenv.h"
@@ -1691,3 +1691,4 @@ void EraserTool::onDeactivate() {
 }
 
 // TTool *getEraserTool() {return &eraserTool;}
+

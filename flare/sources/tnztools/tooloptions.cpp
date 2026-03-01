@@ -23,28 +23,28 @@
 #include "shifttracetool.h"
 
 // TnzQt includes
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/gutil.h"
-#include "toonzqt/dvscrollwidget.h"
-#include "toonzqt/lutcalibrator.h"
-#include "toonzqt/viewcommandids.h"
+"flareqt/dvdialog.h"
+"flareqt/menubarcommand.h"
+"flareqt/gutil.h"
+"flareqt/dvscrollwidget.h"
+"flareqt/lutcalibrator.h"
+"flareqt/viewcommandids.h"
 
 // TnzLib includes
-#include "toonz/tobjecthandle.h"
-#include "toonz/tstageobject.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/tstageobjectspline.h"
-#include "toonz/tframehandle.h"
-#include "toonz/tpalettehandle.h"
-#include "toonz/palettecontroller.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/preferences.h"
-#include "toonz/tstageobjecttree.h"
+"flare/tobjecthandle.h"
+"flare/tstageobject.h"
+"flare/txsheethandle.h"
+"flare/tstageobjectspline.h"
+"flare/tframehandle.h"
+"flare/tpalettehandle.h"
+"flare/palettecontroller.h"
+"flare/txshlevelhandle.h"
+"flare/preferences.h"
+"flare/tstageobjecttree.h"
 #ifdef HAVE_MYPaint
-#include "toonz/mypaintbrushstyle.h"
+"flare/mypaintbrushstyle.h"
 #endif
-#include "toonz/tonionskinmaskhandle.h"
+"flare/tonionskinmaskhandle.h"
 
 // TnzCore includes
 #include "tproperty.h"
@@ -3155,3 +3155,4 @@ public:
     }
   }
 } rotateRightCHInstance("A_ToolOption_RotateRight");
+

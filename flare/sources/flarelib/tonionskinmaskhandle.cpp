@@ -1,6 +1,6 @@
 
 
-#include "toonz/tonionskinmaskhandle.h"
+"flare/tonionskinmaskhandle.h"
 
 //=============================================================================
 // TColumnHandle
@@ -29,3 +29,4 @@ void TOnionSkinMaskHandle::setOnionSkinMask(
 //-----------------------------------------------------------------------------
 
 void TOnionSkinMaskHandle::clear() { m_onionSkinMask.clear(); }
+

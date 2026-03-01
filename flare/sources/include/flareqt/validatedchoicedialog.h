@@ -7,7 +7,7 @@
 #include "tcommon.h"
 
 // TnzQt includes
-#include "toonzqt/dvdialog.h"
+"flareqt/dvdialog.h"
 
 #undef DVAPI
 #undef DVVAR
@@ -140,3 +140,4 @@ private slots:
 }  // namespace DVGui
 
 #endif  // VALIDATEDCHOICEDIALOG_H
+

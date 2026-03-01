@@ -9,17 +9,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include "toonz/toonzimageutils.h"
+"flare/toonzimageutils.h"
 #include "tw/tw.h"
-#include "toonz/fill.h"
-#include "toonz/ttilesaver.h"
-#include "toonz4.6/tmacro.h"
+"flare/fill.h"
+"flare/ttilesaver.h"
+#include "flare4.6/tmacro.h"
 /*
 #include "tropcm.h"
 #include "timage_io.h"
 #include "tlevel_io.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/tscenehandle.h"
+"flare/txshsimplelevel.h"
+"flare/tscenehandle.h"
 #include "tools/tool.h"*/
 
 #ifndef _WIN32
@@ -1220,3 +1220,4 @@ static int match(int prob[], int padre, int *fro, int *to)
   }
   return att_max;
 }
+

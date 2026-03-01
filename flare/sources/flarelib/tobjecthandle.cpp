@@ -1,11 +1,11 @@
 
 
-#include "toonz/tobjecthandle.h"
+"flare/tobjecthandle.h"
 
-#include "toonz/tstageobjectid.h"
-#include "toonz/tstageobject.h"
-#include "toonz/tstageobjectspline.h"
-#include "toonz/txsheet.h"
+"flare/tstageobjectid.h"
+"flare/tstageobject.h"
+"flare/tstageobjectspline.h"
+"flare/txsheet.h"
 #include "tvectorimage.h"
 #include "tstroke.h"
 
@@ -97,3 +97,4 @@ void TObjectHandle::setSplineObject(TStageObjectSpline *splineObject) {
   if (m_isSpline && m_currentSpline)
     getSpline(m_splineImage, m_objectId, m_currentSpline);
 }
+

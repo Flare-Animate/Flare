@@ -1,20 +1,20 @@
 
 
 #include "scriptconsolepanel.h"
-#include "toonzqt/scriptconsole.h"
-#include "toonz/scriptengine.h"
-#include "toonz/scriptbinding.h"
-#include "toonz/scriptbinding_level.h"
+"flareqt/scriptconsole.h"
+"flare/scriptengine.h"
+"flare/scriptbinding.h"
+"flare/scriptbinding_level.h"
 #include "iocommand.h"
 #include "tapp.h"
-#include "toonz/toonzscene.h"
-#include "toonz/tproject.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/txshlevel.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonzqt/selection.h"
-#include "toonzqt/tselectionhandle.h"
+"flare/toonzscene.h"
+"flare/tproject.h"
+"flare/tscenehandle.h"
+"flare/txsheethandle.h"
+"flare/txshlevel.h"
+"flare/txshsimplelevel.h"
+"flareqt/selection.h"
+"flareqt/tselectionhandle.h"
 
 #include "flipbook.h"
 #include "tvectorimage.h"
@@ -180,3 +180,4 @@ void ScriptConsolePanel::executeCommand(const QString &cmd) {
 void ScriptConsolePanel::selectNone() {
   TApp::instance()->getCurrentSelection()->setSelection(0);
 }
+

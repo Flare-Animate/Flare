@@ -1,11 +1,11 @@
 
 
-#include "toonz/scriptbinding_centerline_vectorizer.h"
-#include "toonz/scriptbinding_level.h"
+"flare/scriptbinding_centerline_vectorizer.h"
+"flare/scriptbinding_level.h"
 #include <QScriptEngine>
-#include "toonz/tcenterlinevectorizer.h"
-#include "toonz/stage.h"
-#include "toonz/Naa2TlvConverter.h"
+"flare/tcenterlinevectorizer.h"
+"flare/stage.h"
+"flare/Naa2TlvConverter.h"
 #include "tpalette.h"
 #include "ttoonzimage.h"
 
@@ -171,3 +171,4 @@ bool CenterlineVectorizer::getEir() const { return m_parameters->m_naaSource; }
 void CenterlineVectorizer::setEir(bool v) { m_parameters->m_naaSource = v; }
 
 }  // namespace TScriptBinding
+

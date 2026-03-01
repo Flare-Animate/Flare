@@ -2,25 +2,25 @@
 
 #include "scanlist.h"
 #include "tapp.h"
-#include "toonz/txsheet.h"
-#include "toonz/txshcell.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/txshleveltypes.h"
-#include "toonz/levelproperties.h"
-#include "toonz/toonzscene.h"
-#include "toonz/fullcolorpalette.h"
-#include "toonz/palettecontroller.h"
-#include "toonz/tpalettehandle.h"
+"flare/txsheet.h"
+"flare/txshcell.h"
+"flare/txshsimplelevel.h"
+"flare/txshleveltypes.h"
+"flare/levelproperties.h"
+"flare/toonzscene.h"
+"flare/fullcolorpalette.h"
+"flare/palettecontroller.h"
+"flare/tpalettehandle.h"
 #include "cellselection.h"
-#include "toonz/observer.h"
+"flare/observer.h"
 #include "trasterimage.h"
 #include "tsystem.h"
 #include "tlevel_io.h"
 #include "tiio.h"
 #include "tconvert.h"
 #include "timagecache.h"
-#include "toonz/tscenehandle.h"
-#include "toonzqt/icongenerator.h"
+"flare/tscenehandle.h"
+"flareqt/icongenerator.h"
 //---------------------------------------------------------
 
 ScanListFrame::ScanListFrame() : m_xl(0) {}
@@ -250,3 +250,4 @@ void ScanList::update(bool includeScannedFrames) {
 }
 
 //---------------------------------------------------------
+

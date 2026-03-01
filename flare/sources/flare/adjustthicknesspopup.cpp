@@ -14,21 +14,21 @@
 #include "tools/levelselection.h"
 
 // TnzQt includes
-#include "toonzqt/tselectionhandle.h"
-#include "toonzqt/icongenerator.h"
-#include "toonzqt/planeviewer.h"
-#include "toonzqt/doublefield.h"
+"flareqt/tselectionhandle.h"
+"flareqt/icongenerator.h"
+"flareqt/planeviewer.h"
+"flareqt/doublefield.h"
 
 // TnzLib includes
-#include "toonz/txsheet.h"
-#include "toonz/txshcell.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/stage.h"
-#include "toonz/txshlevelcolumn.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/tframehandle.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/txshlevelhandle.h"
+"flare/txsheet.h"
+"flare/txshcell.h"
+"flare/txshsimplelevel.h"
+"flare/stage.h"
+"flare/txshlevelcolumn.h"
+"flare/txsheethandle.h"
+"flare/tframehandle.h"
+"flare/tcolumnhandle.h"
+"flare/txshlevelhandle.h"
 
 // TnzCore includes
 #include "tundo.h"
@@ -1103,3 +1103,4 @@ void AdjustThicknessPopup::apply() {
 
 OpenPopupCommandHandler<AdjustThicknessPopup> openAdjustThicknessPopup(
     MI_AdjustThickness);
+

@@ -1,6 +1,6 @@
 #include "scriptconsolepanel.h"
 #include "tapp.h"
-#include "toonzqt/tselectionhandle.h"
+"flareqt/tselectionhandle.h"
 #include <QLabel>
 
 ScriptConsolePanel::ScriptConsolePanel(QWidget *parent, Qt::WindowFlags flags)
@@ -28,3 +28,4 @@ void ScriptConsolePanel::executeCommand(const QString & /*cmd*/) {
 void ScriptConsolePanel::selectNone() {
   TApp::instance()->getCurrentSelection()->setSelection(0);
 }
+

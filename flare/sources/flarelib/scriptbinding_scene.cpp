@@ -1,18 +1,18 @@
 
 
-#include "toonz/scriptbinding_scene.h"
-#include "toonz/scriptbinding_level.h"
-#include "toonz/scriptbinding_files.h"
-#include "toonz/txshleveltypes.h"
+"flare/scriptbinding_scene.h"
+"flare/scriptbinding_level.h"
+"flare/scriptbinding_files.h"
+"flare/txshleveltypes.h"
 
 #include "tsystem.h"
 #include "tfiletype.h"
 
-#include "toonz/tproject.h"
-#include "toonz/toonzscene.h"
-#include "toonz/txsheet.h"
-#include "toonz/txshcell.h"
-#include "toonz/levelset.h"
+"flare/tproject.h"
+"flare/toonzscene.h"
+"flare/txsheet.h"
+"flare/txshcell.h"
+"flare/levelset.h"
 
 namespace TScriptBinding {
 
@@ -230,3 +230,4 @@ QScriptValue Scene::deleteColumn(int col) {
 }
 
 }  // namespace TScriptBinding
+

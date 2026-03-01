@@ -4,7 +4,7 @@
 #define STUDIOPALETTE_INCLUDED
 
 #include "tpalette.h"
-#include "toonz/tproject.h"
+"flare/tproject.h"
 // #include "tfilepath.h"
 
 #undef DVAPI
@@ -129,3 +129,4 @@ private:
 };
 
 #endif
+

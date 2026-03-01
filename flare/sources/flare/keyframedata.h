@@ -3,9 +3,9 @@
 #ifndef KEYFRAMEDATA_INCLUDED
 #define KEYFRAMEDATA_INCLUDED
 
-#include "toonzqt/dvmimedata.h"
+"flareqt/dvmimedata.h"
 
-#include "toonz/tstageobject.h"
+"flare/tstageobject.h"
 #include "keyframeselection.h"
 
 // forward declarations
@@ -62,3 +62,4 @@ public:
 };
 
 #endif  // KEYFRAMEDATA_INCLUDED
+

@@ -4,7 +4,7 @@
 #define SPECTRUMFIELD_H
 
 #include <QWidget>
-#include "toonzqt/colorfield.h"
+"flareqt/colorfield.h"
 #include "tpixel.h"
 #include "tspectrum.h"
 
@@ -135,3 +135,4 @@ signals:
 //-----------------------------------------------------------------------------
 
 #endif  // SPECTRUMFIELD_H
+

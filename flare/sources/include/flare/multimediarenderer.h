@@ -4,7 +4,7 @@
 #define MULTIMEDIARENDERER_INCLUDED
 
 #include <QObject>
-#include "toonz/movierenderer.h"
+"flare/movierenderer.h"
 
 #undef DVAPI
 #undef DVVAR
@@ -109,3 +109,4 @@ private:
 };
 
 #endif
+

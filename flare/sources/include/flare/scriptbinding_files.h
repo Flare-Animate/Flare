@@ -3,7 +3,7 @@
 #ifndef SCRIPTBINDING_FILES_H
 #define SCRIPTBINDING_FILES_H
 
-#include "toonz/scriptbinding.h"
+"flare/scriptbinding.h"
 #include "tfilepath.h"
 
 #include <QDateTime>
@@ -71,3 +71,4 @@ QScriptValue checkFilePath(QScriptContext *context, const QScriptValue &value,
 Q_DECLARE_METATYPE(TScriptBinding::FilePath *)
 
 #endif
+

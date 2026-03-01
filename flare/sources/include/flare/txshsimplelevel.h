@@ -10,9 +10,9 @@
 #include <map>
 
 // TnzLib includes
-#include "toonz/txshlevel.h"
-#include "toonz/txshleveltypes.h"
-#include "toonz/imagemanager.h"
+"flare/txshlevel.h"
+"flare/txshleveltypes.h"
+"flare/imagemanager.h"
 
 // TnzCore includes
 #include "traster.h"
@@ -393,3 +393,4 @@ DVAPI void setLoadingLevelRange(const TFrameId &fromFid, const TFrameId &toFid);
 DVAPI void getLoadingLevelRange(TFrameId &fromFid, TFrameId &toFid);
 
 #endif  // TXSHSIMPLELEVEL_INCLUDED
+

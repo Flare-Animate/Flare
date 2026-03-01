@@ -2,19 +2,19 @@
 #include "webcam.h"
 
 // TnzLib includes
-#include "toonz/levelset.h"
-#include "toonz/preferences.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/toonzscene.h"
-#include "toonz/tcamera.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/tframehandle.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/txshcell.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/tstageobjecttree.h"
+"flare/levelset.h"
+"flare/preferences.h"
+"flare/sceneproperties.h"
+"flare/toonzscene.h"
+"flare/tcamera.h"
+"flare/tcolumnhandle.h"
+"flare/tframehandle.h"
+"flare/tscenehandle.h"
+"flare/txshcell.h"
+"flare/txsheethandle.h"
+"flare/txshlevelhandle.h"
+"flare/txshsimplelevel.h"
+"flare/tstageobjecttree.h"
 
 // TnzCore includes
 #include "filebrowsermodel.h"
@@ -26,10 +26,10 @@
 #include "tsystem.h"
 
 // TnzQt includes
-#include "toonzqt/filefield.h"
-#include "toonzqt/intfield.h"
-#include "toonzqt/doublefield.h"
-#include "toonzqt/menubarcommand.h"
+"flareqt/filefield.h"
+"flareqt/intfield.h"
+"flareqt/doublefield.h"
+"flareqt/menubarcommand.h"
 
 // Qt includes
 #include <QAction>
@@ -2789,3 +2789,4 @@ void StopMotionController::serialPortChanged(int index) {
 //-----------------------------------------------------------------------------
 
 void StopMotionController::updateStopMotion() {}
+

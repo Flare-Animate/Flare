@@ -1,18 +1,18 @@
 #include "styleshortcutswitchablepanel.h"
 
 // TnzLib includes
-#include "toonz/tscenehandle.h"
-#include "toonz/preferences.h"
-#include "toonz/palettecontroller.h"
-#include "toonz/tpalettehandle.h"
+"flare/tscenehandle.h"
+"flare/preferences.h"
+"flare/palettecontroller.h"
+"flare/tpalettehandle.h"
 
 // TnzTools includes
 #include "tools/toolhandle.h"
 #include "tools/toolcommandids.h"
 
 // TnzQt includes
-#include "toonzqt/tselectionhandle.h"
-#include "toonzqt/styleselection.h"
+"flareqt/tselectionhandle.h"
+"flareqt/styleselection.h"
 
 // Tnz6 includes
 #include "tapp.h"

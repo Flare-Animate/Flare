@@ -7,18 +7,18 @@
 #include "tools/toolhandle.h"
 #include "tools/tool.h"
 #include "tools/toolcommandids.h"
-#include "toonzqt/menubarcommand.h"
+"flareqt/menubarcommand.h"
 #include "menubarcommandids.h"
 
-#include "toonz/txshleveltypes.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/tframehandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/txshcell.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/preferences.h"
-#include "toonz/tscenehandle.h"
+"flare/txshleveltypes.h"
+"flare/txshlevelhandle.h"
+"flare/tframehandle.h"
+"flare/txsheethandle.h"
+"flare/txshcell.h"
+"flare/txshsimplelevel.h"
+"flare/tcolumnhandle.h"
+"flare/preferences.h"
+"flare/tscenehandle.h"
 
 // TnzBase includes
 #include "tenv.h"
@@ -302,3 +302,4 @@ void Toolbar::onPreferenceChanged(const QString &prefName) {
 //=============================================================================
 
 OpenFloatingPanel openToolbarPane(MI_OpenToolbar, "ToolBar", "");
+

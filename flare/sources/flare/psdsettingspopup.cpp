@@ -6,11 +6,11 @@
 #include "tapp.h"
 
 // TnzQt includes
-#include "toonzqt/checkbox.h"
+"flareqt/checkbox.h"
 
 // TnzLib includes
-#include "toonz/toonzscene.h"
-#include "toonz/tscenehandle.h"
+"flare/toonzscene.h"
+"flare/tscenehandle.h"
 
 // TnzCore includes
 #include "tconvert.h"
@@ -424,3 +424,4 @@ int PsdSettingsPopup::getSubfolderLevelIndex(int psdLevelIndex,
 
 // OpenPopupCommandHandler<PsdSettingsPopup>
 // openPsdSettingsPopup(MI_SceneSettings);
+

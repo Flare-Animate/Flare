@@ -1,9 +1,9 @@
 
 
-#include "toonz/scriptbinding_outline_vectorizer.h"
-#include "toonz/scriptbinding_level.h"
-#include "toonz/tcenterlinevectorizer.h"
-#include "toonz/stage.h"
+"flare/scriptbinding_outline_vectorizer.h"
+"flare/scriptbinding_level.h"
+"flare/tcenterlinevectorizer.h"
+"flare/stage.h"
 #include "ttoonzimage.h"
 #include "tpalette.h"
 
@@ -183,3 +183,4 @@ int OutlineVectorizer::getToneThreshold() const {
 void OutlineVectorizer::setToneThreshold(int v) { m_parameters->m_toneTol = v; }
 
 }  // namespace TScriptBinding
+

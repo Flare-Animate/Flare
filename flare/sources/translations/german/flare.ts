@@ -603,10 +603,10 @@ Please create this folder before using the render farm.</source>
         <translation>Der Farm Global Root Ordner existiert nicht. Bitte erstellen Sie diesen Ordner bevor Sie die Render-Farm benutzen.</translation>
     </message>
     <message>
-        <source>Unable to connect to the ToonzFarm Controller
+        <source>Unable to connect to the FlareFarm Controller
    The Controller should run on %1 at port %2
-   Please start the Controller before using the ToonzFarm</source>
-        <translation>Es ist nicht möglich mit den ToonzFarm Kontroller zu verbinden. Der Kontroller sollte auf %1 an Port %2 laufen. Bitte starten Sie den Kontroller bevor Sie die ToonzFarm benutzen.</translation>
+   Please start the Controller before using the FlareFarm</source>
+        <translation>Es ist nicht möglich mit den FlareFarm Kontroller zu verbinden. Der Kontroller sollte auf %1 an Port %2 laufen. Bitte starten Sie den Kontroller bevor Sie die FlareFarm benutzen.</translation>
     </message>
 </context>
 <context>
@@ -17335,3 +17335,4 @@ Hold F3 Key on the Viewer to Show This Frame Only</source>
     </message>
 </context>
 </TS>
+

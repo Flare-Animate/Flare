@@ -4,8 +4,8 @@
 #define STAGE2_INCLUDED
 
 // TnzLib includes
-#include "toonz/stage.h"
-#include "toonz/autoclose.h"
+"flare/stage.h"
+"flare/autoclose.h"
 
 #undef DVAPI
 #undef DVVAR
@@ -149,3 +149,4 @@ private:
 };
 
 #endif
+

@@ -2,14 +2,14 @@
 
 #include "onionskinmaskgui.h"
 #include "tapp.h"
-#include "toonz/tonionskinmaskhandle.h"
-#include "toonz/tframehandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/txshsimplelevel.h"
+"flare/tonionskinmaskhandle.h"
+"flare/tframehandle.h"
+"flare/txshlevelhandle.h"
+"flare/txsheethandle.h"
+"flare/tcolumnhandle.h"
+"flare/txshsimplelevel.h"
 
-#include "toonz/onionskinmask.h"
+"flare/onionskinmask.h"
 
 #include <QMenu>
 
@@ -213,3 +213,4 @@ void OnioniSkinMaskGUI::resetShiftTraceFrameOffset() {
     setGhostOffset(firstOffset, secondOffset);
   }
 }
+

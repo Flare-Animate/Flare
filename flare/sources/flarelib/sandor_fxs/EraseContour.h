@@ -12,7 +12,7 @@
 #include <array>
 
 #include "STColSelPic.h"
-#include "toonz4.6/raster.h"
+#include "flare4.6/raster.h"
 #include "SDef.h"
 
 #define MAXNB_NEIGHBOURS 1500

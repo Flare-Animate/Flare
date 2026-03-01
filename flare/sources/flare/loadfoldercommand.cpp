@@ -8,15 +8,15 @@
 #include "loadfolderpopup.h"
 
 // TnzQt includes
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/gutil.h"
-#include "toonzqt/validatedchoicedialog.h"
-#include "toonzqt/menubarcommand.h"
+"flareqt/dvdialog.h"
+"flareqt/gutil.h"
+"flareqt/validatedchoicedialog.h"
+"flareqt/menubarcommand.h"
 
 // TnzLib includes
-#include "toonz/tscenehandle.h"
-#include "toonz/toonzscene.h"
-#include "toonz/preferences.h"
+"flare/tscenehandle.h"
+"flare/toonzscene.h"
+"flare/preferences.h"
 
 // TnzCore includes
 #include "tsystem.h"
@@ -597,3 +597,4 @@ int IoCmd::loadResourceFolders(LoadResourceArguments &args,
 //************************************************************************
 
 OpenPopupCommandHandler<LoadFolderPopup> loadFolderCommand(MI_LoadFolder);
+

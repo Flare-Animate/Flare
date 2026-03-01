@@ -3,10 +3,10 @@
 #ifndef PLTGIZMOPOPUP_H
 #define PLTGIZMOPOPUP_H
 
-#include "toonzqt/dvdialog.h"
+"flareqt/dvdialog.h"
 #include "tgeometry.h"
-#include "toonzqt/doublefield.h"
-#include "toonzqt/colorfield.h"
+"flareqt/doublefield.h"
+"flareqt/colorfield.h"
 
 //=============================================================================
 // ValueAdjuster
@@ -108,3 +108,4 @@ public slots:
 };
 
 #endif  // PLTGIZMOPOPUP_H
+

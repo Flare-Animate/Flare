@@ -4,7 +4,7 @@
 #include "trasterimage.h"
 #include "tsound.h"
 #include "timageinfo.h"
-#include "toonz/stage.h"
+"flare/stage.h"
 #include <QStringList>
 
 //===========================================================
@@ -226,3 +226,4 @@ void Tiio::APngWriterProperties::updateTranslation() {
   m_looping.setQStringName(tr("Looping"));
   m_extPng.setQStringName(tr("Write as .png"));
 }
+

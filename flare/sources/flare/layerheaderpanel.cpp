@@ -8,11 +8,11 @@
 #include "xshcolumnviewer.h"
 
 #include "tapp.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/tobjecthandle.h"
+"flare/tscenehandle.h"
+"flare/txsheethandle.h"
+"flare/tobjecthandle.h"
 
-#include "toonz/preferences.h"
+"flare/preferences.h"
 #include "../include/toonzqt/gutil.h"
 
 using XsheetGUI::ColumnArea;
@@ -126,3 +126,4 @@ void LayerHeaderPanel::showOrHide(const Orientation *o) {
   else
     show();
 }
+

@@ -1,10 +1,10 @@
 #include "locatorpopup.h"
 
 // TnzLib includes
-#include "toonz/txshlevelhandle.h"
-#include "toonz/tframehandle.h"
-#include "toonz/preferences.h"
-#include "toonz/stage2.h"
+"flare/txshlevelhandle.h"
+"flare/tframehandle.h"
+"flare/preferences.h"
+"flare/stage2.h"
 
 // Tnz6 includes
 #include "tapp.h"

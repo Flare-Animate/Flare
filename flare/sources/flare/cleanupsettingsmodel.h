@@ -7,7 +7,7 @@
 #include "trasterimage.h"
 
 // ToonzLib includes
-#include "toonz/cleanupparameters.h"
+"flare/cleanupparameters.h"
 
 // Qt includes
 #include <QObject>
@@ -229,3 +229,4 @@ private slots:
 };
 
 #endif  // CLEANUPSETTINGSMODEL_H
+

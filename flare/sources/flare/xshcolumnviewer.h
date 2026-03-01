@@ -5,11 +5,11 @@
 
 #include "tapp.h"
 
-#include "toonz/tstageobject.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/txsheet.h"
+"flare/tstageobject.h"
+"flare/txsheethandle.h"
+"flare/tscenehandle.h"
+"flare/tcolumnhandle.h"
+"flare/txsheet.h"
 
 #include "../include/tundo.h"
 #include "../include/historytypes.h"
@@ -409,3 +409,4 @@ protected slots:
 //-----------------------------------------------------------------------------
 
 #endif  // XSHCOLUMNVIEWER_H
+

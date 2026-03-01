@@ -1,14 +1,14 @@
 
 
-#include "toonz/scriptbinding_rasterizer.h"
-#include "toonz/scriptbinding_image.h"
-#include "toonz/scriptbinding_level.h"
-#include "toonz/tcamera.h"
-#include "toonz/stage.h"
+"flare/scriptbinding_rasterizer.h"
+"flare/scriptbinding_image.h"
+"flare/scriptbinding_level.h"
+"flare/tcamera.h"
+"flare/stage.h"
 #include "tofflinegl.h"
 #include "tvectorrenderdata.h"
 #include "ttoonzimage.h"
-#include "toonz/toonzimageutils.h"
+"flare/toonzimageutils.h"
 
 namespace TScriptBinding {
 
@@ -167,3 +167,4 @@ double Rasterizer::getDpi() const { return m_dpi; }
 void Rasterizer::setDpi(double v) { m_dpi = v; }
 
 }  // namespace TScriptBinding
+

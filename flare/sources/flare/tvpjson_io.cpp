@@ -1,24 +1,24 @@
 #include "tvpjson_io.h"
 
 #include "tsystem.h"
-#include "toonz/toonzscene.h"
-#include "toonz/tproject.h"
-#include "toonz/levelset.h"
-#include "toonz/txsheet.h"
-#include "toonz/txshcell.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/txshchildlevel.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/preferences.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/tstageobject.h"
+"flare/toonzscene.h"
+"flare/tproject.h"
+"flare/levelset.h"
+"flare/txsheet.h"
+"flare/txshcell.h"
+"flare/txshsimplelevel.h"
+"flare/txshchildlevel.h"
+"flare/txsheethandle.h"
+"flare/tscenehandle.h"
+"flare/preferences.h"
+"flare/sceneproperties.h"
+"flare/tstageobject.h"
 #include "toutputproperties.h"
-#include "toonz/tstageobjecttree.h"
-#include "toonz/tcamera.h"
+"flare/tstageobjecttree.h"
+"flare/tcamera.h"
 
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/gutil.h"
+"flareqt/menubarcommand.h"
+"flareqt/gutil.h"
 
 #include "tapp.h"
 #include "menubarcommandids.h"
@@ -168,7 +168,7 @@ void TvpJsonLayer::build(int index, ToonzScene* scene, TXshCellColumn* column) {
   TFilePath sceneFolder =
       scene->decodeFilePath(scene->getScenePath().getParentDir());
 
-  // JSON‚É‹L“ü‰Â”\‚©‚Ç‚¤‚©ƒ`ƒFƒbƒNÏ‚İ‚ÌƒŒƒxƒ‹
+  // JSONï¿½É‹Lï¿½ï¿½ï¿½Â”\ï¿½ï¿½ï¿½Ç‚ï¿½ï¿½ï¿½ï¿½`ï¿½Fï¿½bï¿½Nï¿½Ï‚İ‚Ìƒï¿½ï¿½xï¿½ï¿½
   QMap<TXshLevel*, TFilePath> checkedLevels;
   // register the firstly-found level
   TXshLevel* firstFoundLevel = nullptr;
@@ -236,7 +236,7 @@ void TvpJsonLayer::build(int index, ToonzScene* scene, TXshCellColumn* column) {
 
     QString instance_name;
     QString file;
-    if (cell.isEmpty()) {  // ‹óƒRƒ}‚Ìê‡
+    if (cell.isEmpty()) {  // ï¿½ï¿½Rï¿½}ï¿½Ìê‡
       instance_name = QString::number(0);
       TFrameId zeroFid(0, 0, frameFormats[firstFoundLevel].first,
                        frameFormats[firstFoundLevel].second);
@@ -515,3 +515,4 @@ void ExportTvpJsonCommand::execute() {
       QDesktopServices::openUrl(QUrl::fromLocalFile(folderPath.getQString()));
   }
 }
+

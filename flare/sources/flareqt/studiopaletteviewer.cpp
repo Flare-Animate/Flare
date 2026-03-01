@@ -1,26 +1,26 @@
 
 
-#include "toonzqt/studiopaletteviewer.h"
+"flareqt/studiopaletteviewer.h"
 
 // TnzQt includes
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/paletteviewer.h"
-#include "toonzqt/trepetitionguard.h"
-#include "toonzqt/gutil.h"
-#include "toonzqt/icongenerator.h"
-#include "toonzqt/intfield.h"
+"flareqt/menubarcommand.h"
+"flareqt/paletteviewer.h"
+"flareqt/trepetitionguard.h"
+"flareqt/gutil.h"
+"flareqt/icongenerator.h"
+"flareqt/intfield.h"
 #include "palettesscanpopup.h"
 #include "palettedata.h"
 
 // TnzLib includes
-#include "toonz/studiopalettecmd.h"
-#include "toonz/tpalettehandle.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/toonzscene.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/preferences.h"
+"flare/studiopalettecmd.h"
+"flare/tpalettehandle.h"
+"flare/txshsimplelevel.h"
+"flare/toonzscene.h"
+"flare/sceneproperties.h"
+"flare/txsheethandle.h"
+"flare/txshlevelhandle.h"
+"flare/preferences.h"
 
 // TnzCore includes
 #include "saveloadqsettings.h"
@@ -1360,3 +1360,4 @@ void StudioPaletteViewer::save(QSettings &settings) const {
 void StudioPaletteViewer::load(QSettings &settings) {
   m_studioPaletteViewer->load(settings);
 }
+

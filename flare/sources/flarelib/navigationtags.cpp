@@ -1,4 +1,4 @@
-#include "toonz/navigationtags.h"
+"flare/navigationtags.h"
 
 #include "tstream.h"
 #include "texception.h"
@@ -228,3 +228,4 @@ void NavigationTags::loadData(TIStream &is) {
       throw TException("expected tag");
   }
 }
+

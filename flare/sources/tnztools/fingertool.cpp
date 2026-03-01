@@ -12,16 +12,16 @@
 #include "tvectorimage.h"
 #include "ttoonzimage.h"
 #include "tproperty.h"
-#include "toonz/strokegenerator.h"
-#include "toonz/ttilesaver.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/observer.h"
-#include "toonz/toonzimageutils.h"
-#include "toonz/levelproperties.h"
-#include "toonz/stage2.h"
-#include "toonz/ttileset.h"
-#include "toonz/rasterstrokegenerator.h"
-#include "toonz/preferences.h"
+"flare/strokegenerator.h"
+"flare/ttilesaver.h"
+"flare/txshsimplelevel.h"
+"flare/observer.h"
+"flare/toonzimageutils.h"
+"flare/levelproperties.h"
+"flare/stage2.h"
+"flare/ttileset.h"
+"flare/rasterstrokegenerator.h"
+"flare/preferences.h"
 #include "tgl.h"
 #include "tenv.h"
 
@@ -30,18 +30,18 @@
 #include "tinbetween.h"
 #include "ttile.h"
 
-#include "toonz/tpalettehandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/tframehandle.h"
+"flare/tpalettehandle.h"
+"flare/txsheethandle.h"
+"flare/txshlevelhandle.h"
+"flare/tframehandle.h"
 #include "tools/toolhandle.h"
 
 // For Qt translation support
 #include <QCoreApplication>
 
 #include "tools/stylepicker.h"
-#include "toonzqt/tselectionhandle.h"
-#include "toonzqt/styleselection.h"
+"flareqt/tselectionhandle.h"
+"flareqt/styleselection.h"
 #include "historytypes.h"
 
 using namespace ToolUtils;
@@ -641,3 +641,4 @@ void FingerTool::pick(const TPointD &pos) {
 
   getApplication()->setCurrentLevelStyleIndex(styleId);
 }
+

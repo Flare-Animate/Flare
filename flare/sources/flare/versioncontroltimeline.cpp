@@ -6,12 +6,12 @@
 #include "tapp.h"
 
 // TnzQt includes
-#include "toonzqt/icongenerator.h"
-#include "toonzqt/gutil.h"
+"flareqt/icongenerator.h"
+"flareqt/gutil.h"
 
 // TnzLib includes
-#include "toonz/txshsimplelevel.h"
-#include "toonz/toonzscene.h"
+"flare/txshsimplelevel.h"
+"flare/toonzscene.h"
 
 // TnzCore includes
 #include "tfiletype.h"
@@ -655,3 +655,4 @@ void SVNTimeline::onSceneContentsToggled(bool checked) {
     m_sceneResources.append(vc->getSceneContents(m_workingDir, m_fileName));
   }
 }
+

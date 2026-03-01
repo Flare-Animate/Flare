@@ -3,7 +3,7 @@
 #ifndef T_CENTERLINE_VECTORIZER
 #define T_CENTERLINE_VECTORIZER
 
-#include "toonz/vectorizerparameters.h"
+"flare/vectorizerparameters.h"
 #include "tvectorimage.h"
 #include <deque>
 #include <list>
@@ -119,3 +119,4 @@ protected slots:
 };
 
 #endif  // T_CENTERLINE_VECTORIZER
+

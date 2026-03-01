@@ -1,15 +1,15 @@
-#include "toonz/menubarcommandids.h"
-#include "toonz/menubar.h"
-#include "toonz/ocaio.h"
-#include "toonz/projectmanager.h"
-#include "toonz/preferences.h"
-#include "toonz/tapp.h"
-#include "toonz/toonzfolders.h"
+"flare/menubarcommandids.h"
+"flare/menubar.h"
+"flare/ocaio.h"
+"flare/projectmanager.h"
+"flare/preferences.h"
+"flare/tapp.h"
+"flare/toonzfolders.h"
 
-#include "toonzqt/gutil.h"
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/filebrowserpopup.h"
-#include "toonzqt/gutil.h"
+"flareqt/gutil.h"
+"flareqt/dvdialog.h"
+"flareqt/filebrowserpopup.h"
+"flareqt/gutil.h"
 
 #include <QProcess>
 #include <QDesktopServices>
@@ -138,3 +138,4 @@ void ImportFlashVectorCommand::execute() {
       QDesktopServices::openUrl(QUrl::fromLocalFile(outDir.getQString()));
   }
 }
+

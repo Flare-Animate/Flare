@@ -5,7 +5,7 @@
 
 #include "tcommon.h"
 
-#include "toonzqt/lineedit.h"
+"flareqt/lineedit.h"
 
 #undef DVAPI
 #undef DVVAR
@@ -42,3 +42,4 @@ protected:
 }  // namespace
 
 #endif
+

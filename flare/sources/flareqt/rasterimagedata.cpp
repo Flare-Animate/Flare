@@ -1,16 +1,16 @@
 
 
-#include "toonzqt/rasterimagedata.h"
-#include "toonzqt/strokesdata.h"
+"flareqt/rasterimagedata.h"
+"flareqt/strokesdata.h"
 #include "tpaletteutil.h"
 #include "trasterimage.h"
-#include "toonz/stage.h"
-#include "toonz/tcenterlinevectorizer.h"
-#include "toonz/ttileset.h"
-#include "toonz/toonzimageutils.h"
-#include "toonz/toonzscene.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/fullcolorpalette.h"
+"flare/stage.h"
+"flare/tcenterlinevectorizer.h"
+"flare/ttileset.h"
+"flare/toonzimageutils.h"
+"flare/toonzscene.h"
+"flare/sceneproperties.h"
+"flare/fullcolorpalette.h"
 
 #include <memory>
 
@@ -319,3 +319,4 @@ int FullColorImageData::getMemorySize() const {
   return size + sizeof(*(m_copiedRaster.getPointer())) +
          sizeof(*(m_palette.getPointer())) + sizeof(*this);
 }
+

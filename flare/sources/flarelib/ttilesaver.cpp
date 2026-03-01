@@ -1,7 +1,7 @@
 
 
-#include "toonz/ttilesaver.h"
-#include "toonz/ttileset.h"
+"flare/ttilesaver.h"
+"flare/ttileset.h"
 
 #define TILE_BIT_SIZE 6
 #define TILE_SIZE_MINUS_1 63
@@ -113,3 +113,4 @@ void TTileSaverFullColor::save(TPoint point) {
 //------------------------------------------------------------------------
 
 TTileSetFullColor *TTileSaverFullColor::getTileSet() const { return m_tileSet; }
+

@@ -1,9 +1,9 @@
 
 
-#include "toonzqt/hexcolornames.h"
+"flareqt/hexcolornames.h"
 
 // TnzLib includes
-#include "toonz/toonzfolders.h"
+"flare/toonzfolders.h"
 
 // TnzCore includes
 #include "tconvert.h"
@@ -1038,3 +1038,4 @@ void HexColorNamesEditor::onApply() {
     HexColorNames::instance()->emitAutoComplete(newAutoCompState);
   }
 }
+

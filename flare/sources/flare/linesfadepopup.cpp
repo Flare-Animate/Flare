@@ -10,20 +10,20 @@
 #include "imageviewer.h"
 
 // TnzLib includes
-#include "toonz/txshcell.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/tframehandle.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/txshleveltypes.h"
+"flare/txshcell.h"
+"flare/txsheethandle.h"
+"flare/tframehandle.h"
+"flare/tcolumnhandle.h"
+"flare/txshlevelhandle.h"
+"flare/txshleveltypes.h"
 
 // TnzQt includes
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/planeviewer.h"
-#include "toonzqt/colorfield.h"
-#include "toonzqt/tselectionhandle.h"
-#include "toonzqt/icongenerator.h"
-#include "toonzqt/intfield.h"
+"flareqt/menubarcommand.h"
+"flareqt/planeviewer.h"
+"flareqt/colorfield.h"
+"flareqt/tselectionhandle.h"
+"flareqt/icongenerator.h"
+"flareqt/intfield.h"
 
 // TnzCore includes
 #include "tpixelgr.h"
@@ -455,3 +455,4 @@ void LinesFadePopup::onIntensityChanged(bool isDragging) {
 //-----------------------------------------------------------------------------
 
 OpenPopupCommandHandler<LinesFadePopup> openLinesFadePopup(MI_LinesFade);
+

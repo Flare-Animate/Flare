@@ -11,14 +11,14 @@
 #include "dvdirtreeview.h"
 
 // TnzQt includes
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/filefield.h"
-#include "toonzqt/lineedit.h"
-#include "toonzqt/checkbox.h"
-#include "toonzqt/gutil.h"
+"flareqt/menubarcommand.h"
+"flareqt/filefield.h"
+"flareqt/lineedit.h"
+"flareqt/checkbox.h"
+"flareqt/gutil.h"
 
 // TnzLib
-#include "toonz/filepathproperties.h"
+"flare/filepathproperties.h"
 
 // TnzCore includes
 #include "tsystem.h"
@@ -777,3 +777,4 @@ void ProjectCreatePopup::showEvent(QShowEvent *) {
 
 OpenPopupCommandHandler<ProjectCreatePopup> openProjectCreatePopup(
     MI_NewProject);
+

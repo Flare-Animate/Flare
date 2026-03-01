@@ -4,10 +4,10 @@
 #define SKELETON_SUBTOOLS_INCLUDED
 
 #include "tools/tool.h"
-#include "toonz/txsheet.h"
-#include "toonz/skeleton.h"
-#include "toonz/stageobjectutil.h"
-#include "toonz/ikengine.h"
+"flare/txsheet.h"
+"flare/skeleton.h"
+"flare/stageobjectutil.h"
+"flare/ikengine.h"
 
 #include <QObject>
 
@@ -248,3 +248,4 @@ public slots:
 }  // namespace SkeletonSubtools
 
 #endif
+

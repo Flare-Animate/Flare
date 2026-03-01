@@ -5,7 +5,7 @@
 
 //#include "cleanup.h"
 #include "trasterimage.h"
-#include "toonz/cleanupparameters.h"
+"flare/cleanupparameters.h"
 
 /*---------------------------------------------------------------------------*/
 
@@ -22,3 +22,4 @@ bool get_image_rotation_and_center(const TRasterP &img, int strip_width,
                                   CleanupTypes::DOT ref[], int ref_dot);
 
 #endif
+

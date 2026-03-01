@@ -5,10 +5,10 @@
 #include "tgeometry.h"
 
 // TnzQt includes
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/intfield.h"
-#include "toonzqt/styleindexlineedit.h"
-#include "toonzqt/filefield.h"
+"flareqt/dvdialog.h"
+"flareqt/intfield.h"
+"flareqt/styleindexlineedit.h"
+"flareqt/filefield.h"
 
 // STD includes
 #include <set>
@@ -104,3 +104,4 @@ void doMatchlines(int column, int mColumn, int index, int inkPrevalence,
 void mergeCmapped(int dstColumn, int srcColumn, const QString &fullpath,
                   bool isRedo);
 std::vector<int> string2Indexes(const QString &values);
+

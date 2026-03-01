@@ -1,12 +1,12 @@
 
 
 #include "testpanel.h"
-#include "toonzqt/menubarcommand.h"
+"flareqt/menubarcommand.h"
 #include "menubarcommandids.h"
-#include "toonzqt/doublepairfield.h"
-#include "toonzqt/intfield.h"
-#include "toonzqt/colorfield.h"
-#include "toonzqt/spectrumfield.h"
+"flareqt/doublepairfield.h"
+"flareqt/intfield.h"
+"flareqt/colorfield.h"
+"flareqt/spectrumfield.h"
 #include "tapp.h"
 #include "mainwindow.h"
 
@@ -134,3 +134,4 @@ public:
     }
   }
 } openFloatingTestPanelCommand;
+

@@ -15,8 +15,8 @@
 
 #include "tcommon.h"
 #include "tpixel.h"
-#include "toonzqt/intfield.h"
-#include "toonz/imagepainter.h"
+"flareqt/intfield.h"
+"flare/imagepainter.h"
 #include "tstopwatch.h"
 #include <QThread>
 #include <QElapsedTimer>
@@ -439,3 +439,4 @@ private:
 };
 
 #endif
+

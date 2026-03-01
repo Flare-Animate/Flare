@@ -1,21 +1,21 @@
 
 
-#include "toonz/fxcommand.h"
+"flare/fxcommand.h"
 
 // TnzLib includes
-#include "toonz/txsheet.h"
-#include "toonz/tcolumnfx.h"
-#include "toonz/fxdag.h"
-#include "toonz/tcolumnfxset.h"
-#include "toonz/txshzeraryfxcolumn.h"
-#include "toonz/tstageobjecttree.h"
-#include "toonz/txshlevelcolumn.h"
-#include "toonz/txshpalettecolumn.h"
-#include "toonz/toonzscene.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/tfxhandle.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/tscenehandle.h"
+"flare/txsheet.h"
+"flare/tcolumnfx.h"
+"flare/fxdag.h"
+"flare/tcolumnfxset.h"
+"flare/txshzeraryfxcolumn.h"
+"flare/tstageobjecttree.h"
+"flare/txshlevelcolumn.h"
+"flare/txshpalettecolumn.h"
+"flare/toonzscene.h"
+"flare/txsheethandle.h"
+"flare/tfxhandle.h"
+"flare/tcolumnhandle.h"
+"flare/tscenehandle.h"
 #include "historytypes.h"
 
 // TnzBase includes
@@ -3864,3 +3864,4 @@ void TFxCommand::renameGroup(const std::list<TFxP> &fxs,
     TUndoManager::manager()->add(undo.release());
   }
 }
+

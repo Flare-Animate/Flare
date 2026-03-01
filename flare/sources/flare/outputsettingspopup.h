@@ -3,9 +3,9 @@
 #ifndef OUTPUTSETTINGSPOPUP_H
 #define OUTPUTSETTINGSPOPUP_H
 
-#include "toonzqt/dvdialog.h"
+"flareqt/dvdialog.h"
 
-#include "toonz/sceneproperties.h"
+"flare/sceneproperties.h"
 
 #include <QLabel>
 // forward declaration
@@ -158,3 +158,4 @@ public:
 };
 
 #endif  // OUTPUTSETTINGSPOPUP_H
+

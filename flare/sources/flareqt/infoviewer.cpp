@@ -1,7 +1,7 @@
 
 
-#include "toonzqt/infoviewer.h"
-#include "toonzqt/intfield.h"
+"flareqt/infoviewer.h"
+"flareqt/intfield.h"
 #include "tsystem.h"
 #include "tlevel.h"
 #include "tpalette.h"
@@ -12,13 +12,13 @@
 #include "ttoonzimage.h"
 #include "trasterimage.h"
 #include "tvectorimage.h"
-#include "toonz/toonzscene.h"
-#include "toonzqt/gutil.h"
-#include "toonzqt/dvdialog.h"
+"flare/toonzscene.h"
+"flareqt/gutil.h"
+"flareqt/dvdialog.h"
 #include "toutputproperties.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/tcamera.h"
-#include "toonz/levelset.h"
+"flare/sceneproperties.h"
+"flare/tcamera.h"
+"flare/levelset.h"
 #include "tcontenthistory.h"
 #include "tfiletype.h"
 #include <QSlider>
@@ -647,3 +647,4 @@ bool InfoViewerImp::setItem(const TLevelP &level, TPalette *palette,
 
   return true;
 }
+

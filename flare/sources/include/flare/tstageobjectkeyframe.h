@@ -7,7 +7,7 @@
 #include "tdoublekeyframe.h"
 
 // TnzLib includes
-#include "toonz/tstageobject.h"
+"flare/tstageobject.h"
 
 //***********************************************************************************
 //    TStageObject::Keyframe  definition
@@ -26,3 +26,4 @@ struct TStageObject::Keyframe {
 };
 
 #endif  // T_STAGE_OBJECT_KEYFRAME_INCLUDED
+

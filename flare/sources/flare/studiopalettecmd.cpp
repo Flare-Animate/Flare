@@ -2,22 +2,22 @@
 
 #include "studiopalettecmd.h"
 #include "tapp.h"
-#include "toonz/tpalettehandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/tscenehandle.h"
+"flare/tpalettehandle.h"
+"flare/txshlevelhandle.h"
+"flare/tscenehandle.h"
 #include "tundo.h"
 #include "tcolorstyles.h"
 #include "tsystem.h"
-#include "toonzqt/icongenerator.h"
+"flareqt/icongenerator.h"
 #include "toonzutil.h"
 #include "tconvert.h"
 
-#include "toonz/studiopalette.h"
-#include "toonz/toonzscene.h"
-#include "toonz/levelset.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/txshleveltypes.h"
-#include "toonz/sceneproperties.h"
+"flare/studiopalette.h"
+"flare/toonzscene.h"
+"flare/levelset.h"
+"flare/txshsimplelevel.h"
+"flare/txshleveltypes.h"
+"flare/sceneproperties.h"
 
 // DA FARE
 // Mi serve per effettuare il cambiamento della StudioPalette corrente
@@ -508,3 +508,4 @@ void StudioPaletteCmd::scanPalettes(const TFilePath &folder,
                                     const TFilePath &sourcePath) {
   error("uh oh");
 }
+

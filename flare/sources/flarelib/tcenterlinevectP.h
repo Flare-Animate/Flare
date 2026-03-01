@@ -3,7 +3,7 @@
 #ifndef T_CENTERLINE_VECTORIZER_PRIVATE
 #define T_CENTERLINE_VECTORIZER_PRIVATE
 
-#include "toonz/tcenterlinevectorizer.h"
+"flare/tcenterlinevectorizer.h"
 
 // TnzCore includes
 #include "tpalette.h"
@@ -517,3 +517,4 @@ void applyStrokeColors(std::vector<TStroke *> &strokes, const TRasterP &ras,
                        TPalette *palette, VectorizerCoreGlobals &g);
 
 #endif  // T_CENTERLINE_VECTORIZER_PRIVATE
+

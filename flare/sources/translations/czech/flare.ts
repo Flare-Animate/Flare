@@ -616,10 +616,10 @@ Please create this folder before using the render farm.</source>
         <translation>Celkový kořen statku neexistuje. Vytvořte, prosím, tuto složku, předtím než zpracovatelský statek použijete.</translation>
     </message>
     <message>
-        <source>Unable to connect to the ToonzFarm Controller
+        <source>Unable to connect to the FlareFarm Controller
    The Controller should run on %1 at port %2
-   Please start the Controller before using the ToonzFarm</source>
-        <translation>Nelze se spojit s ovladačem ToonzFarm. Ovladač by měl běžet na %1 na přípojce (port) %2. Spusťte, prosím, ovladač, předtím než ToonzFarm použijete</translation>
+   Please start the Controller before using the FlareFarm</source>
+        <translation>Nelze se spojit s ovladačem FlareFarm. Ovladač by měl běžet na %1 na přípojce (port) %2. Spusťte, prosím, ovladač, předtím než FlareFarm použijete</translation>
     </message>
 </context>
 <context>
@@ -17758,3 +17758,4 @@ Podržte klávesu F3 v prohlížeči pro ukázání pouze tohoto snímku</transl
     </message>
 </context>
 </TS>
+

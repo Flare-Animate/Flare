@@ -7,8 +7,8 @@
 #include "tsystem.h"
 #include "tfilepath_io.h"
 #include "tsound_t.h"
-#include "toonz/preferences.h"
-#include "toonz/toonzfolders.h"
+"flare/preferences.h"
+"flare/toonzfolders.h"
 #include "thirdparty.h"
 
 #include <QDir>
@@ -110,3 +110,4 @@ TFilePath FfmpegAudio::getRawAudio(TFilePath path) {
 
   return outPath;
 }
+

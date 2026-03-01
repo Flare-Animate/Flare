@@ -7,15 +7,15 @@
 #include "drawutil.h"
 
 // TnzLib includes
-#include "toonz/toonzscene.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/tframehandle.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/stage.h"
+"flare/toonzscene.h"
+"flare/sceneproperties.h"
+"flare/tscenehandle.h"
+"flare/txshsimplelevel.h"
+"flare/txshlevelhandle.h"
+"flare/txsheethandle.h"
+"flare/tframehandle.h"
+"flare/tcolumnhandle.h"
+"flare/stage.h"
 
 // Tnz6 includes
 #include "tapp.h"
@@ -552,3 +552,4 @@ void VectorizerSwatchArea::hideEvent(QHideEvent *he) {
 
   if (isEnabled()) disconnectUpdates();
 }
+

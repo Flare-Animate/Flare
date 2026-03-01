@@ -1,7 +1,7 @@
 #include "thirdparty.h"
 
 // TnzLib includes
-#include "toonz/preferences.h"
+"flare/preferences.h"
 
 // TnzCore includes
 #include "tsystem.h"
@@ -354,3 +354,4 @@ int waitAsyncProcess(const QProcess &process, int timeout) {
 //-----------------------------------------------------------------------------
 
 }  // namespace ThirdParty
+

@@ -1,6 +1,6 @@
 
 
-#include "toonz/iknode.h"
+"flare/iknode.h"
 
 TPointD DVAPI rotatePoint(TPointD &point, double theta);
 
@@ -30,3 +30,4 @@ TPointD rotatePoint(TPointD &point, double theta) {
   point.x         = tempx;
   return point;
 }
+

@@ -3,7 +3,7 @@
 #ifndef TFILMSTRIPSELECTION_H
 #define TFILMSTRIPSELECTION_H
 
-#include "toonzqt/selection.h"
+"flareqt/selection.h"
 #include "tfilepath.h"
 #include <set>
 
@@ -62,3 +62,4 @@ public:
 };
 
 #endif  // TFILMSTRIPSELECTION_H
+

@@ -3,12 +3,12 @@
 #ifndef SCENESETTINGSPOPUP_H
 #define SCENESETTINGSPOPUP_H
 
-#include "toonzqt/dvdialog.h"
+"flareqt/dvdialog.h"
 #include "tpixel.h"
-#include "toonzqt/intfield.h"
-#include "toonzqt/doublefield.h"
-#include "toonzqt/colorfield.h"
-#include "toonzqt/checkbox.h"
+"flareqt/intfield.h"
+"flareqt/doublefield.h"
+"flareqt/colorfield.h"
+"flareqt/checkbox.h"
 
 // forward declaration
 class TSceneProperties;
@@ -108,3 +108,4 @@ public slots:
 };
 
 #endif  // SCENESETTINGSPOPUP_H
+

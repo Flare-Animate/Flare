@@ -4,7 +4,7 @@
 #define FLOATING_PANEL_COMMAND_INCLUDED
 
 // #include "pane.h"
-#include "toonzqt/menubarcommand.h"
+"flareqt/menubarcommand.h"
 
 class TPanel;
 
@@ -24,3 +24,4 @@ public:
 };
 
 #endif
+

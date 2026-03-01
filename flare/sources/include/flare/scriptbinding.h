@@ -11,8 +11,8 @@
 #include <QColor>
 
 #include "timage.h"
-#include "toonz/vectorizerparameters.h"
-#include "toonz/txshsimplelevel.h"
+"flare/vectorizerparameters.h"
+"flare/txshsimplelevel.h"
 #include "tlevel.h"
 #include "tgeometry.h"
 
@@ -116,3 +116,4 @@ QScriptValue checkColor(QScriptContext *context, const QString &colorName,
 Q_DECLARE_METATYPE(TScriptBinding::Void *)
 
 #endif  // SCRIPTBINDING_H
+

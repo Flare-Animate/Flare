@@ -1,26 +1,26 @@
 
 
-#include "toonzqt/paletteviewergui.h"
+"flareqt/paletteviewergui.h"
 
 // TnzQt includes
-#include "toonzqt/styleselection.h"
-#include "toonzqt/trepetitionguard.h"
-#include "toonzqt/gutil.h"
-#include "toonzqt/paletteviewer.h"
-#include "toonzqt/selectioncommandids.h"
-#include "toonzqt/stylenameeditor.h"
-#include "toonzqt/viewcommandids.h"
+"flareqt/styleselection.h"
+"flareqt/trepetitionguard.h"
+"flareqt/gutil.h"
+"flareqt/paletteviewer.h"
+"flareqt/selectioncommandids.h"
+"flareqt/stylenameeditor.h"
+"flareqt/viewcommandids.h"
 #include "palettedata.h"
-#include "toonzqt/lutcalibrator.h"
+"flareqt/lutcalibrator.h"
 
 // TnzLib includes
-#include "toonz/palettecmd.h"
-#include "toonz/txshlevel.h"
-#include "toonz/studiopalette.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/tframehandle.h"
-#include "toonz/imagestyles.h"
-#include "toonz/preferences.h"
+"flare/palettecmd.h"
+"flare/txshlevel.h"
+"flare/studiopalette.h"
+"flare/txsheethandle.h"
+"flare/tframehandle.h"
+"flare/imagestyles.h"
+"flare/preferences.h"
 
 // TnzCore includes
 #include "tcolorstyles.h"
@@ -1791,3 +1791,4 @@ void PageViewer::updateCommandLocks() {
   cmd->getAction("MI_EraseUnusedStyles")->setEnabled(!isLocked);
   update();
 }
+

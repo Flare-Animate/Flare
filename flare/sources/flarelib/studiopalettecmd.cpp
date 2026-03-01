@@ -1,9 +1,9 @@
 
 
-#include "toonz/studiopalettecmd.h"
-#include "toonz/tpalettehandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/txshlevelhandle.h"
+"flare/studiopalettecmd.h"
+"flare/tpalettehandle.h"
+"flare/txsheethandle.h"
+"flare/txshlevelhandle.h"
 #include "tundo.h"
 #include "tcolorstyles.h"
 #include "tsystem.h"
@@ -12,14 +12,14 @@
 #include "timagecache.h"
 #include "tmsgcore.h"
 
-#include "toonz/studiopalette.h"
-#include "toonz/toonzscene.h"
-#include "toonz/levelset.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/txshleveltypes.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/toonzfolders.h"
-#include "toonz/txsheet.h"
+"flare/studiopalette.h"
+"flare/toonzscene.h"
+"flare/levelset.h"
+"flare/txshsimplelevel.h"
+"flare/txshleveltypes.h"
+"flare/sceneproperties.h"
+"flare/toonzfolders.h"
+"flare/txsheet.h"
 #include <QApplication>
 
 #include "historytypes.h"
@@ -747,3 +747,4 @@ void StudioPaletteCmd::scanPalettes(const TFilePath &folder,
                                     const TFilePath &sourcePath) {
   //  error("uh oh");
 }
+

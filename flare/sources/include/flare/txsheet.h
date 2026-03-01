@@ -11,9 +11,9 @@
 #include "tsound.h"
 
 // TnzLib includes
-#include "toonz/txshcolumn.h"
-#include "toonz/txshlevel.h"
-#include "toonz/txsheetcolumnchange.h"
+"flare/txshcolumn.h"
+"flare/txshlevel.h"
+"flare/txsheetcolumnchange.h"
 
 #include "cellposition.h"
 
@@ -609,3 +609,4 @@ template class DVAPI TSmartPointerT<TXsheet>;
 typedef TSmartPointerT<TXsheet> TXsheetP;
 
 #endif  // XSHEET_INCLUDED
+

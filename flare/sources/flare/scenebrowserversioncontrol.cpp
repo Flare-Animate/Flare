@@ -9,12 +9,12 @@
 #include "tsystem.h"
 #include "tapp.h"
 
-#include "toonz/tscenehandle.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/toonzscene.h"
-#include "toonz/levelset.h"
-#include "toonzqt/gutil.h"
-#include "toonzqt/icongenerator.h"
+"flare/tscenehandle.h"
+"flare/txshsimplelevel.h"
+"flare/toonzscene.h"
+"flare/levelset.h"
+"flareqt/gutil.h"
+"flareqt/icongenerator.h"
 
 namespace {
 //---------------------------------------------------------------------------
@@ -592,3 +592,4 @@ void SceneBrowser::showFrameRangeLockInfo() {
 }
 
 //-----------------------------------------------------------------------------
+

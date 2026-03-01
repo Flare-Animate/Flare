@@ -8,11 +8,11 @@
 #include "tgl.h"
 
 // TnzLib includes
-#include "toonz/imagepainter.h"
+"flare/imagepainter.h"
 
 // TnzQt includes
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/flipconsole.h"
+"flareqt/menubarcommand.h"
+"flareqt/flipconsole.h"
 
 // TnzTools includes
 #include "tools/tool.h"
@@ -480,3 +480,4 @@ signals:
 void invalidateIcons();
 
 #endif  // SCENEVIEWER_H
+

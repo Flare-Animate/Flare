@@ -3,7 +3,7 @@
 #ifndef XSHHANDLEMANAGER_INCLUDED
 #define XSHHANDLEMANAGER_INCLUDED
 
-#include "toonz/tstageobjecttree.h"
+"flare/tstageobjecttree.h"
 
 //===============================================================
 
@@ -29,3 +29,4 @@ public:
 };
 
 #endif
+

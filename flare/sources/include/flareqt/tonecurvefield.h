@@ -5,7 +5,7 @@
 
 #include "tcommon.h"
 #include "tstroke.h"
-#include "toonzqt/histogram.h"
+"flareqt/histogram.h"
 #include <QWidget>
 
 #undef DVAPI
@@ -176,3 +176,4 @@ signals:
 }  // namespace DVGui
 
 #endif  // TONECURVEFIELD_H
+

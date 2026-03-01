@@ -4,24 +4,24 @@
 #include "skeletontool.h"
 #include "tools/toolhandle.h"
 #include "tools/toolutils.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/tobjecthandle.h"
-#include "toonz/tframehandle.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/txshlevelhandle.h"
+"flare/tscenehandle.h"
+"flare/tobjecthandle.h"
+"flare/tframehandle.h"
+"flare/tcolumnhandle.h"
+"flare/txsheethandle.h"
+"flare/txshlevelhandle.h"
 
-#include "toonz/toonzscene.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/tstageobjecttree.h"
-#include "toonz/tstageobjectcmd.h"
-#include "toonz/tpinnedrangeset.h"
-#include "toonz/stage.h"
-#include "toonz/hook.h"
-#include "toonz/txshcell.h"
-#include "toonz/skeleton.h"
+"flare/toonzscene.h"
+"flare/txshsimplelevel.h"
+"flare/tstageobjecttree.h"
+"flare/tstageobjectcmd.h"
+"flare/tpinnedrangeset.h"
+"flare/stage.h"
+"flare/hook.h"
+"flare/txshcell.h"
+"flare/skeleton.h"
 
-#include "toonz/stageobjectutil.h"
+"flare/stageobjectutil.h"
 #include "tgl.h"
 #include "tconvert.h"
 
@@ -1251,3 +1251,4 @@ void CommandHandler::clearPinnedRanges() {
   }
   if (m_tempPinnedSet) m_tempPinnedSet->clear();
 }
+

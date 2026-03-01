@@ -2,21 +2,21 @@
 
 #include "frameheadgadget.h"
 
-#include "toonzqt/menubarcommand.h"
+"flareqt/menubarcommand.h"
 #include "menubarcommandids.h"
 
-#include "toonzqt/gutil.h"
+"flareqt/gutil.h"
 #include "tapp.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/tonionskinmaskhandle.h"
+"flare/tscenehandle.h"
+"flare/tonionskinmaskhandle.h"
 #include "onionskinmaskgui.h"
 
 #include "filmstrip.h"
-#include "toonz/tframehandle.h"
+"flare/tframehandle.h"
 
-#include "toonz/toonzscene.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/preferences.h"
+"flare/toonzscene.h"
+"flare/txshsimplelevel.h"
+"flare/preferences.h"
 
 #include <QPainter>
 #include <QEvent>
@@ -957,3 +957,4 @@ public:
     enableOnionSkin(checked);
   }
 } onionSkinToggle;
+

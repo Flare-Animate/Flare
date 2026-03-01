@@ -134,7 +134,7 @@ Flare は QuickTime SDK を用いて mov 形式などへ対応しています。
     - tnzbase.dll
     - tnzcore.dll
     - tnzext.dll
-    - toonzlib.dll
+    - flarelib.dll
   - Qt の 32ビット版のインストール先から
     - `windeployqt.exe`を実行して必要なライブラリを入手
     - 追加で Qt5Gui.dll

@@ -7,16 +7,16 @@
 #include "timage_io.h"
 #include "tropcm.h"
 #include "ttile.h"
-#include "toonz/toonzscene.h"
-#include "toonz/tcamera.h"
+"flare/toonzscene.h"
+"flare/tcamera.h"
 #include "autoadjust.h"
 #include "autopos.h"
 #include "cleanuppalette.h"
 #include "cleanupcommon.h"
 #include "tmsgcore.h"
-#include "toonz/cleanupparameters.h"
+"flare/cleanupparameters.h"
 
-#include "toonz/tcleanupper.h"
+"flare/tcleanupper.h"
 
 using namespace CleanupTypes;
 
@@ -1340,3 +1340,4 @@ TToonzImageP TCleanupper::doPostProcessingColor(
   outRasCM32->unlock();
   return outImage;
 }
+

@@ -4,8 +4,8 @@
 #define SCHEMATICVIEWER_H
 
 // TnzLib includes
-#include "toonz/tstageobjectid.h"
-#include "toonz/txshcolumn.h"
+"flare/tstageobjectid.h"
+"flare/txshcolumn.h"
 
 // TnzBase includes
 #include "tfx.h"
@@ -654,3 +654,4 @@ private:
 };
 
 #endif  // SCHEMATICVIEWER_H
+

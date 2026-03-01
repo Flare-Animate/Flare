@@ -9,8 +9,8 @@
 #include "timage.h"
 
 // TnzLib includes
-#include "toonz/txshleveltypes.h"
-#include "toonz/tcamera.h"
+"flare/txshleveltypes.h"
+"flare/tcamera.h"
 
 //=============================================
 
@@ -151,3 +151,4 @@ bool exportLevel(
 }  // namespace IoCmd
 
 #endif  // EXPORT_LEVEL_COMMAND_H
+

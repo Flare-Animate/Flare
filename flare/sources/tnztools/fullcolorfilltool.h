@@ -8,8 +8,8 @@
 
 // TnzTools includes
 #include "tools/tool.h"
-#include "toonz/fill.h"
-#include "toonz/txshsimplelevel.h"
+"flare/fill.h"
+"flare/txshsimplelevel.h"
 
 #include <QCoreApplication>
 #include <QObject>

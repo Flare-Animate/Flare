@@ -1,11 +1,11 @@
 
 
-#include "toonz/txshlevelhandle.h"
+"flare/txshlevelhandle.h"
 
-#include "toonz/txshlevel.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/txsheet.h"
-#include "toonz/txshcell.h"
+"flare/txshlevel.h"
+"flare/txshsimplelevel.h"
+"flare/txsheet.h"
+"flare/txshcell.h"
 
 //=============================================================================
 // TXshLevelHandle
@@ -46,3 +46,4 @@ void TXshLevelHandle::setLevel(TXshLevel *level) {
 }
 
 //-----------------------------------------------------------------------------
+

@@ -5,8 +5,8 @@
 
 #include "tcommon.h"
 #include "functiontreeviewer.h"
-#include "toonzqt/selection.h"
-#include "toonzqt/dvmimedata.h"
+"flareqt/selection.h"
+"flareqt/dvmimedata.h"
 
 #include "tdoublekeyframe.h"
 
@@ -165,3 +165,4 @@ private:
 };
 
 #endif
+

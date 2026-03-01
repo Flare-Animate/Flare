@@ -1,7 +1,7 @@
 
 
-#include "toonz/scriptbinding_toonz_raster_converter.h"
-#include "toonz/scriptbinding_level.h"
+"flare/scriptbinding_toonz_raster_converter.h"
+"flare/scriptbinding_level.h"
 #include "tropcm.h"
 #include "convert2tlv.h"
 
@@ -54,3 +54,4 @@ QScriptValue ToonzRasterConverter::convert(QScriptContext *context,
 }
 
 }  // namespace TScriptBinding
+

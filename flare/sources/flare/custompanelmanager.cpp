@@ -5,7 +5,7 @@
 #include "pane.h"
 
 // ToonzLib
-#include "toonz/toonzfolders.h"
+"flare/toonzfolders.h"
 // ToonzCore
 #include "tsystem.h"
 
@@ -241,3 +241,4 @@ public:
                                               panelId.toStdString());
   }
 } openCustomPanelCommandHandler;
+

@@ -3,19 +3,19 @@
 #include "versioncontrol.h"
 #include "versioncontrolgui.h"
 
-#include "toonzqt/gutil.h"
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/icongenerator.h"
-#include "toonz/sceneresources.h"
-#include "toonz/toonzscene.h"
-#include "toonz/levelset.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/txshleveltypes.h"
-#include "toonz/palettecontroller.h"
-#include "toonz/tpalettehandle.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/tproject.h"
+"flareqt/gutil.h"
+"flareqt/dvdialog.h"
+"flareqt/icongenerator.h"
+"flare/sceneresources.h"
+"flare/toonzscene.h"
+"flare/levelset.h"
+"flare/txshsimplelevel.h"
+"flare/txshlevelhandle.h"
+"flare/txshleveltypes.h"
+"flare/palettecontroller.h"
+"flare/tpalettehandle.h"
+"flare/tscenehandle.h"
+"flare/tproject.h"
 #include "tsystem.h"
 #include "tenv.h"
 #include "tapp.h"
@@ -932,3 +932,4 @@ QStringList VersionControl::getCurrentSceneContents() const {
   }
   return contents;
 }
+

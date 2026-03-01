@@ -9,7 +9,7 @@
 #include "timage.h"
 
 // TnzQt includes
-#include "toonzqt/glwidget_for_highdpi.h"
+"flareqt/glwidget_for_highdpi.h"
 
 // Qt includes
 #include <QOpenGLWidget>
@@ -184,3 +184,4 @@ private:
 };
 
 #endif  // PLANE_VIEWER_H
+

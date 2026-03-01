@@ -12,11 +12,11 @@
 #include <fcntl.h>
 
 #include "Pattern.h"
-#include "toonz4.6/raster.h"
-//#include "toonz4.6/img.h"
-#include "toonz4.6/casm.h"
-//#include "toonz4.6/casm_msg.h"
-#include "toonz4.6/file.h"
+#include "flare4.6/raster.h"
+//#include "flare4.6/img.h"
+#include "flare4.6/casm.h"
+//#include "flare4.6/casm_msg.h"
+#include "flare4.6/file.h"
 #include "trop.h"
 #include "toonz4_6staff.h"
 

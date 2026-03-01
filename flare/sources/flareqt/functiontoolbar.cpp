@@ -1,18 +1,18 @@
 
 
-#include "toonzqt/functiontoolbar.h"
+"flareqt/functiontoolbar.h"
 
 // TnzQt includes
-#include "toonzqt/doublefield.h"
-#include "toonzqt/functionkeyframenavigator.h"
-#include "toonzqt/functionselection.h"
-#include "toonzqt/framenavigator.h"
-#include "toonzqt/gutil.h"
-#include "toonzqt/menubarcommand.h"
+"flareqt/doublefield.h"
+"flareqt/functionkeyframenavigator.h"
+"flareqt/functionselection.h"
+"flareqt/framenavigator.h"
+"flareqt/gutil.h"
+"flareqt/menubarcommand.h"
 
 // TnzLib includes
-#include "toonz/tframehandle.h"
-#include "toonz/doubleparamcmd.h"
+"flare/tframehandle.h"
+"flare/doubleparamcmd.h"
 
 // Qt includes
 #include <QLabel>
@@ -239,3 +239,4 @@ void FunctionToolbar::setSelection(FunctionSelection *selection) {
 void FunctionToolbar::onChange(const TParamChange &) {
   m_keyframeNavigator->update();
 }
+

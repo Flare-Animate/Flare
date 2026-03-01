@@ -3,7 +3,7 @@
 #ifndef SVN_DELETE_DIALOG_H
 #define SVN_DELETE_DIALOG_H
 
-#include "toonzqt/dvdialog.h"
+"flareqt/dvdialog.h"
 #include "versioncontrol.h"
 
 class QLabel;
@@ -80,3 +80,4 @@ signals:
 };
 
 #endif  // SVN_DELETE_DIALOG_H
+

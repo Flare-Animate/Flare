@@ -1,18 +1,18 @@
 
 
-#include "toonz/tstageobject.h"
+"flare/tstageobject.h"
 
 // TnzLib includes
-#include "toonz/tstageobjecttree.h"
-#include "toonz/tstageobjectspline.h"
-#include "toonz/txsheet.h"
-#include "toonz/observer.h"
-#include "toonz/txshlevelcolumn.h"
-#include "toonz/txshcell.h"
-#include "toonz/stage.h"
-#include "toonz/tcamera.h"
-#include "toonz/doubleparamcmd.h"
-#include "toonz/tpinnedrangeset.h"
+"flare/tstageobjecttree.h"
+"flare/tstageobjectspline.h"
+"flare/txsheet.h"
+"flare/observer.h"
+"flare/txshlevelcolumn.h"
+"flare/txshcell.h"
+"flare/stage.h"
+"flare/tcamera.h"
+"flare/doubleparamcmd.h"
+"flare/tpinnedrangeset.h"
 
 // TnzExt includes
 #include "ext/plasticskeleton.h"
@@ -2105,3 +2105,4 @@ wstring TStageObject::getEditingGroupName() {
   if (!isGrouped() || m_groupSelector + 1 >= m_groupName.size()) return L"";
   return m_groupName[m_groupSelector + 1];
 }
+

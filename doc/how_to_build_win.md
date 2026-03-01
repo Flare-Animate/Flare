@@ -193,7 +193,7 @@ Flare utilizes the QuickTime SDK's `mov` and associated file formats.  Since the
     - tnzbase.dll
     - tnzcore.dll
     - tnzext.dll
-    - toonzlib.dll
+    - flarelib.dll
   - From the 32-bit version of Qt
     - run `windeployqt` to obtain required libraries
     - additionally, Qt5Gui.dll

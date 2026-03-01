@@ -3,7 +3,7 @@
 #ifndef SCRIPTBINDING_TOONZ_RASTER_CONVERTER_H
 #define SCRIPTBINDING_TOONZ_RASTER_CONVERTER_H
 
-#include "toonz/scriptbinding.h"
+"flare/scriptbinding.h"
 
 class ToonzScene;
 class TXshSimpleLevel;
@@ -36,3 +36,4 @@ public:
 Q_DECLARE_METATYPE(TScriptBinding::ToonzRasterConverter *)
 
 #endif
+

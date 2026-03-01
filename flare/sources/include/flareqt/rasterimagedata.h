@@ -4,10 +4,10 @@
 #define TOONZIMAGE_DATA_H
 
 #include "tcommon.h"
-#include "toonz/ttileset.h"
+"flare/ttileset.h"
 #include "tpalette.h"
 #include "tstroke.h"
-#include "toonzqt/dvmimedata.h"
+"flareqt/dvmimedata.h"
 #include "ttoonzimage.h"
 
 #include <set>
@@ -139,3 +139,4 @@ public:
 };
 
 #endif
+

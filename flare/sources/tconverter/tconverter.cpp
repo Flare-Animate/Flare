@@ -1,9 +1,9 @@
 
 
 // TnzLib includes
-#include "toonz/toonzscene.h"
-#include "toonz/preferences.h"
-#include "toonz/sceneproperties.h"
+"flare/toonzscene.h"
+"flare/preferences.h"
+"flare/sceneproperties.h"
 #include "toutputproperties.h"
 
 // TnzBase includes
@@ -466,3 +466,4 @@ int main(int argc, char *argv[]) {
   cout << endl << msg << endl;
   return 0;
 }
+

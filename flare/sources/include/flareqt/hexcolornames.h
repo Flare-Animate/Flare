@@ -11,8 +11,8 @@
 #include "tenv.h"
 
 // TnzQt includes
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/colorfield.h"
+"flareqt/dvdialog.h"
+"flareqt/colorfield.h"
 
 // Qt includes
 #include <QString>
@@ -246,3 +246,4 @@ public:
 //-----------------------------------------------------------------------------
 
 #endif  // HEXCOLORNAMES_H
+

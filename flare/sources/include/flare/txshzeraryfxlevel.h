@@ -3,7 +3,7 @@
 #ifndef TXSHZERARYFXLEVEL_INCLUDED
 #define TXSHZERARYFXLEVEL_INCLUDED
 
-#include "toonz/txshlevel.h"
+"flare/txshlevel.h"
 
 #undef DVAPI
 #undef DVVAR
@@ -60,3 +60,4 @@ private:
 typedef TSmartPointerT<TXshZeraryFxLevel> TXshZeraryFxLevelP;
 
 #endif
+

@@ -3,8 +3,8 @@
 #ifndef IMAGEVIEWER_INCLUDE
 #define IMAGEVIEWER_INCLUDE
 
-#include "toonz/imagepainter.h"
-#include "toonzqt/glwidget_for_highdpi.h"
+"flare/imagepainter.h"
+"flareqt/glwidget_for_highdpi.h"
 
 #include <QTouchDevice>
 
@@ -184,3 +184,4 @@ private:
 };
 
 #endif  // IMAGEVIEWER_INCLUDE
+

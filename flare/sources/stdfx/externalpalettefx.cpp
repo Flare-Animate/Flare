@@ -3,11 +3,11 @@
 #include "stdfx.h"
 #include "ttzpimagefx.h"
 
-#include "toonz/tcolumnfx.h"
-#include "toonz/txshcolumn.h"
-#include "toonz/txshcell.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/txshpalettelevel.h"
+"flare/tcolumnfx.h"
+"flare/txshcolumn.h"
+"flare/txshcell.h"
+"flare/txshsimplelevel.h"
+"flare/txshpalettelevel.h"
 #include "globalcontrollablefx.h"
 
 //===================================================================
@@ -150,3 +150,4 @@ void ExternalPaletteFx::doCompute(TTile &tile, double frame,
 }
 
 FX_PLUGIN_IDENTIFIER(ExternalPaletteFx, "externalPaletteFx");
+

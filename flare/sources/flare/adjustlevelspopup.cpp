@@ -9,20 +9,20 @@
 #include "menubarcommandids.h"
 
 // TnzQt includes
-#include "toonzqt/histogram.h"
-#include "toonzqt/marksbar.h"
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/tselectionhandle.h"
-#include "toonzqt/intfield.h"
-#include "toonzqt/icongenerator.h"
+"flareqt/histogram.h"
+"flareqt/marksbar.h"
+"flareqt/menubarcommand.h"
+"flareqt/tselectionhandle.h"
+"flareqt/intfield.h"
+"flareqt/icongenerator.h"
 
 // TnzLib includes
-#include "toonz/txshcell.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/tframehandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/txsheethandle.h"
+"flare/txshcell.h"
+"flare/txshsimplelevel.h"
+"flare/tframehandle.h"
+"flare/txshlevelhandle.h"
+"flare/tcolumnhandle.h"
+"flare/txsheethandle.h"
 
 // TnzCore includes
 #include "trasterimage.h"
@@ -747,3 +747,4 @@ void AdjustLevelsPopup::apply() {
 
 OpenPopupCommandHandler<AdjustLevelsPopup> openAdjustLevelsPopup(
     MI_AdjustLevels);
+

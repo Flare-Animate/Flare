@@ -1,12 +1,12 @@
 
 
 // TnzLib includes
-#include "toonz/txsheet.h"
-#include "toonz/txshcell.h"
-#include "toonz/hook.h"
-#include "toonz/dpiscale.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/stage.h"
+"flare/txsheet.h"
+"flare/txshcell.h"
+"flare/hook.h"
+"flare/dpiscale.h"
+"flare/txshsimplelevel.h"
+"flare/stage.h"
 
 #include "xshhandlemanager.h"
 
@@ -151,3 +151,4 @@ TPointD XshHandleManager::getHandlePos(const TStageObjectId &id,
   else
     return TPointD();
 }
+

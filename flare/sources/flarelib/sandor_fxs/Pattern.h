@@ -10,7 +10,7 @@
 #include <memory>
 #include "STColSelPic.h"
 #include "SDef.h"
-#include "toonz4.6/pixel.h"
+#include "flare4.6/pixel.h"
 
 class CPattern {
   int m_lX, m_lY;

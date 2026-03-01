@@ -6,10 +6,10 @@
 #include "tapp.h"
 
 // TnzQt includes
-#include "toonzqt/gutil.h"
+"flareqt/gutil.h"
 
 // TnzLib includes
-#include "toonz/txshsimplelevel.h"
+"flare/txshsimplelevel.h"
 
 // TnzCore includes
 #include "tsystem.h"
@@ -492,3 +492,4 @@ SVNLockInfoDialog::SVNLockInfoDialog(QWidget *parent, const SVNStatus &status)
 
   addButtonBarWidget(closeButton);
 }
+

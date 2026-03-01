@@ -4,8 +4,8 @@
 #define CAMERASETTINGSPOPUP_H
 
 #include "tgeometry.h"
-#include "toonz/tstageobject.h"
-#include "toonzqt/dvdialog.h"
+"flare/tstageobject.h"
+"flareqt/dvdialog.h"
 
 // forward declaration
 class QLabel;
@@ -70,3 +70,4 @@ signals:
 };
 
 #endif  // CAMERASETTINGSPOPUP_H
+

@@ -4,7 +4,7 @@
 #define FORMATSETTINGSPOPUPS_H
 
 // TnzQt includes
-#include "toonzqt/dvdialog.h"
+"flareqt/dvdialog.h"
 
 // TnzCore includes
 #include "tfilepath.h"
@@ -124,3 +124,4 @@ bool openFormatSettingsPopup(
                      //!  for an input level format.
 
 #endif  // FORMATSETTINGSPOPUPS_H
+

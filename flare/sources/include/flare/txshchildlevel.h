@@ -3,7 +3,7 @@
 #ifndef TXSHCHILDLEVEL_INCLUDED
 #define TXSHCHILDLEVEL_INCLUDED
 
-#include "toonz/txshlevel.h"
+"flare/txshlevel.h"
 
 #include "traster.h"
 
@@ -100,3 +100,4 @@ template class DV_EXPORT_API TSmartPointerT<TXshChildLevel>;
 typedef TSmartPointerT<TXshChildLevel> TXshChildLevelP;
 
 #endif
+
