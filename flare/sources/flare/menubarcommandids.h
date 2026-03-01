@@ -4,7 +4,7 @@
 #define MENUBAR_COMMANDS_IDS_DEFINED
 
 // TnzQt includes
-#include "toonzqt/selectioncommandids.h"
+#include "flareqt/selectioncommandids.h"
 
 /*!
   \file     menubarcommandids.h
@@ -505,3 +505,4 @@
 
 #define MI_OpenLocator "MI_OpenLocator"
 #endif
+

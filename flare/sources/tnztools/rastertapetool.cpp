@@ -4,28 +4,28 @@
 #include "tundo.h"
 #include "tproperty.h"
 #include "tools/cursors.h"
-#include "toonz/autoclose.h"
+#include "flare/autoclose.h"
 #include "ttoonzimage.h"
-#include "toonz/toonzimageutils.h"
+#include "flare/toonzimageutils.h"
 #include "tenv.h"
 #include "tools/toolutils.h"
-#include "toonz/txshsimplelevel.h"
+#include "flare/txshsimplelevel.h"
 
-#include "toonz/ttileset.h"
-#include "toonz/levelproperties.h"
-#include "toonz/stage2.h"
+#include "flare/ttileset.h"
+#include "flare/levelproperties.h"
+#include "flare/stage2.h"
 
 #include "tvectorimage.h"
-#include "toonz/strokegenerator.h"
+#include "flare/strokegenerator.h"
 #include "tstroke.h"
 #include "drawutil.h"
 #include "tinbetween.h"
 
-#include "toonz/txsheethandle.h"
-#include "toonz/tframehandle.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/tpalettehandle.h"
-#include "toonz/txshlevelhandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/tframehandle.h"
+#include "flare/tcolumnhandle.h"
+#include "flare/tpalettehandle.h"
+#include "flare/txshlevelhandle.h"
 #include "tools/toolhandle.h"
 
 // For Qt translation support
@@ -886,3 +886,4 @@ public:
 
   //-------------------------------------------------------------------
 } rasterTapeTool;
+

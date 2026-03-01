@@ -41,3 +41,13 @@ ipch/
 
 *.pyc
 __pycache__/
+
+# ignore Qt thirdparty directory which is large and rebuilt externally
+/thirdparty/qt
+/thirdparty/qt/**
+
+# ignore local scripts folder used during builds
+/.scripts
+/FlarePortable
+tmp.txt
+Qt5*.zip

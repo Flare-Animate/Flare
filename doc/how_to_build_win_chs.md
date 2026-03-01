@@ -151,7 +151,7 @@ Visual Studio 2019构建的工程文件可以使用2022版本打开。
 
 ### 创建注册表
 1. 打开注册表编辑器，创建下列键名，并将键值设为`$Flare/stuff`的绝对路径。
-  - HKEY_LOCAL_MACHINE\SOFTWARE\Flare\Flare\TOONZROOT
+  - HKEY_LOCAL_MACHINE\SOFTWARE\Flare\Flare\FLAREROOT
 
 ### 运行
 `Flare.exe` 现在可以运行了。 
@@ -191,7 +191,7 @@ Flare 使用 QuickTime SDK 提供的 MOV 及相关文件格式。由于 QuickTim
     - tnzbase.dll
     - tnzcore.dll
     - tnzext.dll
-    - toonzlib.dll
+    - flarelib.dll
   - 32位版本的Qt：
     - 使用 `windeployqt.exe` 运行`t32bitsrv.exe`，自动复制相关文件。
     - 另外需要手动复制 Qt5Gui.dll

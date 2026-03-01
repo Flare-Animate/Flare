@@ -4,7 +4,7 @@
 #define OVERWRITEPOPUP_H
 
 // TnzQt includes
-#include "toonzqt/dvdialog.h"
+#include "flareqt/dvdialog.h"
 
 //===========================================================
 
@@ -122,3 +122,4 @@ private:
 };
 
 #endif  // OVERWRITEPOPUP_H
+

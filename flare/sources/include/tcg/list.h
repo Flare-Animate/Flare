@@ -720,7 +720,7 @@ classes, since
         it is intended to preserve the source's node indices in the process.
 
         This means that no value-to-value assignment can take place, and thus
-<TT>operator=</TT>'s
+#include "TT"operator=</TT>'s
         behavior is equivalent to first clearing it, and then copy-constructing
 each value.
 

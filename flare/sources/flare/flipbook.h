@@ -3,7 +3,7 @@
 #ifndef FLIPBOOK_H
 #define FLIPBOOK_H
 
-#include "toonzqt/flipconsole.h"
+#include "flareqt/flipconsole.h"
 #include "imageviewer.h"
 
 #include "tlevel_io.h"
@@ -12,11 +12,11 @@
 #include "filebrowserpopup.h"
 
 #include "tfx.h"
-#include "toonz/txsheet.h"
+#include "flare/txsheet.h"
 
 #include <QTimer>
 
-#include "toonzqt/flipconsoleowner.h"
+#include "flareqt/flipconsoleowner.h"
 
 class QPoint;
 class TPalette;
@@ -327,3 +327,4 @@ FlipBook *viewFile(const TFilePath &fp, int from = -1, int to = -1,
                    bool isToonzOutput = false);
 
 #endif  // FLIPBOOK_H
+

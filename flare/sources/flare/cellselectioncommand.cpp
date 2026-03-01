@@ -14,25 +14,25 @@
 #include "reframepopup.h"
 
 // TnzQt includes
-#include "toonzqt/tselectionhandle.h"
-#include "toonzqt/gutil.h"
+#include "flareqt/tselectionhandle.h"
+#include "flareqt/gutil.h"
 #include "historytypes.h"
 
 // TnzLib includes
-#include "toonz/txshcell.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/levelset.h"
-#include "toonz/tstageobject.h"
-#include "toonz/toonzscene.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/tobjecthandle.h"
-#include "toonz/stageobjectutil.h"
-#include "toonz/hook.h"
-#include "toonz/levelproperties.h"
-#include "toonz/childstack.h"
-#include "toonz/tframehandle.h"
-#include "toonz/tcolumnhandle.h"
+#include "flare/txshcell.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/levelset.h"
+#include "flare/tstageobject.h"
+#include "flare/toonzscene.h"
+#include "flare/txsheethandle.h"
+#include "flare/tscenehandle.h"
+#include "flare/tobjecthandle.h"
+#include "flare/stageobjectutil.h"
+#include "flare/hook.h"
+#include "flare/levelproperties.h"
+#include "flare/childstack.h"
+#include "flare/tframehandle.h"
+#include "flare/tcolumnhandle.h"
 
 // TnzCore includes
 #include "tsystem.h"
@@ -1811,3 +1811,4 @@ void TCellSelection::shiftKeyframes(int direction) {
 
   delete cellKeyframeSelection;
 }
+

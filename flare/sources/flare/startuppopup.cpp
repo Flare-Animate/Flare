@@ -7,29 +7,29 @@
 #include "tapp.h"
 #include "iocommand.h"
 #include "toutputproperties.h"
-#include "toonzqt/flipconsole.h"
+#include "flareqt/flipconsole.h"
 #include "menubarcommandids.h"
 #include "tenv.h"
-#include "toonz/stage.h"
+#include "flare/stage.h"
 #include "layoutUtils.h"
 #include "layoutPresetsEditorPopup.h"
 
 // TnzQt includes
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/gutil.h"
-#include "toonzqt/doublefield.h"
-#include "toonzqt/icongenerator.h"
+#include "flareqt/menubarcommand.h"
+#include "flareqt/gutil.h"
+#include "flareqt/doublefield.h"
+#include "flareqt/icongenerator.h"
 
 // TnzLib includes
-#include "toonz/toonzscene.h"
-#include "toonz/txsheet.h"
-#include "toonz/levelproperties.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/tcamera.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/preferences.h"
-#include "toonz/tproject.h"
+#include "flare/toonzscene.h"
+#include "flare/txsheet.h"
+#include "flare/levelproperties.h"
+#include "flare/sceneproperties.h"
+#include "flare/tcamera.h"
+#include "flare/tscenehandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/preferences.h"
+#include "flare/tproject.h"
 
 // TnzCore includes
 #include "tsystem.h"
@@ -100,7 +100,7 @@ QString removeZeros(QString srcStr) {
 
 StartupPopup::StartupPopup()
     : Dialog(TApp::instance()->getMainWindow(), true, true, "StartupPopup") {
-  setWindowTitle(tr("OpenToonz Startup"));
+  setWindowTitle(tr("Flare Startup"));
 
   m_projectBox = new QGroupBox(tr("Current Project"), this);
   m_scenesTab  = new QTabWidget();
@@ -173,7 +173,7 @@ StartupPopup::StartupPopup()
   m_removePresetBtn->setStyleSheet(
       "QPushButton { padding-left: 4px; padding-right: 4px;}");
   QLabel *label = new QLabel();
-  label->setPixmap(createQIcon("opentoonz_logo")
+  label->setPixmap(createQIcon("flare_logo")
                        .pixmap(QSize(315, 77), QIcon::Normal, QIcon::Off));
   m_projectBox->setObjectName("SolidLineFrame");
   m_scenesTab->setObjectName("SolidLineFrame");
@@ -1350,3 +1350,4 @@ void StartupScenesList::onItemClicked(QListWidgetItem *item) {
 }
 
 OpenPopupCommandHandler<StartupPopup> openStartupPopup(MI_StartupPopup);
+

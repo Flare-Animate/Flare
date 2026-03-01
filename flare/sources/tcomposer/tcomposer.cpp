@@ -10,27 +10,27 @@
 #include "stdfx/shaderfx.h"
 
 // TnzLib includes
-#include "toonz/toonzfolders.h"
-#include "toonz/tlog.h"
-#include "toonz/tstageobjecttree.h"
-#include "toonz/stage.h"
-#include "toonz/preferences.h"
-#include "toonz/tproject.h"
-#include "toonz/toonzscene.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/txshsoundlevel.h"
-#include "toonz/txshsoundcolumn.h"
-#include "toonz/tcamera.h"
-#include "toonz/scenefx.h"
-#include "toonz/movierenderer.h"
-#include "toonz/multimediarenderer.h"
+#include "flare/toonzfolders.h"
+#include "flare/tlog.h"
+#include "flare/tstageobjecttree.h"
+#include "flare/stage.h"
+#include "flare/preferences.h"
+#include "flare/tproject.h"
+#include "flare/toonzscene.h"
+#include "flare/sceneproperties.h"
+#include "flare/txshsoundlevel.h"
+#include "flare/txshsoundcolumn.h"
+#include "flare/tcamera.h"
+#include "flare/scenefx.h"
+#include "flare/movierenderer.h"
+#include "flare/multimediarenderer.h"
 #include "toutputproperties.h"
-#include "toonz/imagestyles.h"
+#include "flare/imagestyles.h"
 #include "tproperty.h"
-#include "toonz/levelset.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/levelproperties.h"
-#include "toonz/filepathproperties.h"
+#include "flare/levelset.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/levelproperties.h"
+#include "flare/filepathproperties.h"
 
 // TnzSound includes
 #include "tnzsound.h"
@@ -68,7 +68,7 @@
 #include "tpalette.h"
 
 // TnzQt includes
-#include "toonzqt/pluginloader.h"
+#include "flareqt/pluginloader.h"
 
 // Qt includes
 #include <QApplication>
@@ -110,7 +110,7 @@ namespace {
 //   (es <systemVarPrefix>PROJECTS etc.)
 //
 
-const char *rootVarName     = "TOONZROOT";
+const char *rootVarName     = "FLAREROOT";
 const char *systemVarPrefix = "TOONZ";
 
 // TODO: forse anche questo andrebbe in tnzbase
@@ -695,7 +695,7 @@ int main(int argc, char *argv[]) {
   TEnv::setSystemVarPrefix(systemVarPrefix);
   TEnv::setApplicationFileName(argv[0]);
 
-  QCoreApplication::setOrganizationName("OpenToonz");
+  QCoreApplication::setOrganizationName("Flare");
   QCoreApplication::setOrganizationDomain("");
   QCoreApplication::setApplicationName(
       QString::fromStdString(TEnv::getApplicationName()));
@@ -734,7 +734,7 @@ int main(int argc, char *argv[]) {
     fatalError(string("Directory \"") + ::to_string(fp) +
                "\" not found or not readable");
 
-  TFilePath lRootDir    = fp + "toonzfarm";
+  TFilePath lRootDir    = fp + "FlareFarm";
   TFilePath logFilePath = lRootDir + "tcomposer.log";
   m_userLog             = new TUserLogAppend(logFilePath);
   string msg;
@@ -1037,3 +1037,5 @@ int main(int argc, char *argv[]) {
   if (framePair.first != framePair.second) return -1;
   return 0;
 }
+
+

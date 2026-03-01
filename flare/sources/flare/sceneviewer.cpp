@@ -27,43 +27,43 @@
 #include "tools/replicator.h"
 
 // TnzQt includes
-#include "toonzqt/icongenerator.h"
-#include "toonzqt/gutil.h"
-#include "toonzqt/imageutils.h"
-#include "toonzqt/lutcalibrator.h"
-#include "toonzqt/viewcommandids.h"
+#include "flareqt/icongenerator.h"
+#include "flareqt/gutil.h"
+#include "flareqt/imageutils.h"
+#include "flareqt/lutcalibrator.h"
+#include "flareqt/viewcommandids.h"
 
 // TnzLib includes
-#include "toonz/tscenehandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/tframehandle.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/toonzscene.h"
-#include "toonz/levelset.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/tcamera.h"
-#include "toonz/stage2.h"
-#include "toonz/stage.h"
-#include "toonz/stageplayer.h"
-#include "toonz/stagevisitor.h"
-#include "toonz/txsheet.h"
-#include "toonz/tstageobjecttree.h"
-#include "toonz/tstageobjectspline.h"
-#include "toonz/tobjecthandle.h"
-#include "toonz/tonionskinmaskhandle.h"
-#include "toonz/palettecontroller.h"
-#include "toonz/tpalettehandle.h"
-#include "toonz/childstack.h"
-#include "toonz/dpiscale.h"
-#include "toonz/txshlevel.h"
-#include "toonz/txshlevelcolumn.h"
-#include "toonz/preferences.h"
-#include "toonz/glrasterpainter.h"
-#include "toonz/cleanupparameters.h"
-#include "toonz/toonzimageutils.h"
-#include "toonz/txshleveltypes.h"
+#include "flare/tscenehandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/tframehandle.h"
+#include "flare/tcolumnhandle.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/sceneproperties.h"
+#include "flare/toonzscene.h"
+#include "flare/levelset.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/tcamera.h"
+#include "flare/stage2.h"
+#include "flare/stage.h"
+#include "flare/stageplayer.h"
+#include "flare/stagevisitor.h"
+#include "flare/txsheet.h"
+#include "flare/tstageobjecttree.h"
+#include "flare/tstageobjectspline.h"
+#include "flare/tobjecthandle.h"
+#include "flare/tonionskinmaskhandle.h"
+#include "flare/palettecontroller.h"
+#include "flare/tpalettehandle.h"
+#include "flare/childstack.h"
+#include "flare/dpiscale.h"
+#include "flare/txshlevel.h"
+#include "flare/txshlevelcolumn.h"
+#include "flare/preferences.h"
+#include "flare/glrasterpainter.h"
+#include "flare/cleanupparameters.h"
+#include "flare/toonzimageutils.h"
+#include "flare/txshleveltypes.h"
 #include "subcameramanager.h"
 #include "toutputproperties.h"
 
@@ -309,7 +309,7 @@ void invalidateIcons() {
   s.m_paintIndex = mask & ToonzCheck::ePaint ? tc->getColorIndex() : -1;
   IconGenerator::instance()->setSettings(s);
 
-  // Force icons to refresh for Toonz Vector levels
+  // Force icons to refresh for Flare Vector levels
   TXshLevel *sl = TApp::instance()->getCurrentLevel()->getLevel();
   if (sl && sl->getType() == PLI_XSHLEVEL) {
     std::vector<TFrameId> fids;
@@ -3610,3 +3610,4 @@ void SceneViewer::registerContext() {
   TGLDisplayListsManager::instance()->attachContext(displayListId, tglContext);
   l_contexts.insert(tglContext);
 }
+

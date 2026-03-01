@@ -6,13 +6,13 @@
 #include <tools/tool.h>
 
 // TnzLib includes
-#include <toonz/tapplication.h>
-#include <toonz/txshlevelhandle.h>
-#include <toonz/txsheethandle.h>
-#include <toonz/txsheet.h>
-#include <toonz/tframehandle.h>
-#include <toonz/tobjecthandle.h>
-#include <toonz/dpiscale.h>
+#include "flare/tapplication.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/txsheet.h"
+#include "flare/tframehandle.h"
+#include "flare/tobjecthandle.h"
+#include "flare/dpiscale.h"
 
 // TnzCore includes
 #include <tgl.h>
@@ -187,3 +187,4 @@ TModifierAssistants::draw(const TTrackList &tracks, const THoverList &hovers) {
   // draw tracks
   TInputModifier::drawTracks(tracks);
 }
+

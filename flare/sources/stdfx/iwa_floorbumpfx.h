@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #ifndef IWA_FLOORBUMPFX_H
 #define IWA_FLOORBUMPFX_H

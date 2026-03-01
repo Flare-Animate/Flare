@@ -271,8 +271,6 @@ set(SOURCES
     iwa_noise1234.cpp
     iwa_pnperspectivefx.cpp
     iwa_soapbubblefx.cpp
-    ${SDKROOT}/kiss_fft/kiss_fft.c
-    ${SDKROOT}/kiss_fft/kiss_fftnd.c
     iwa_bokehfx.cpp
     iwa_timecodefx.cpp
     iwa_bokehreffx.cpp
@@ -303,6 +301,16 @@ endif()
 set(OBJCSOURCES
 )
 
+# append kiss_fft sources only if present
+if(EXISTS "${SDKROOT}/kiss_fft/kiss_fft.c" AND EXISTS "${SDKROOT}/kiss_fft/kiss_fftnd.c")
+    list(APPEND SOURCES
+        "${SDKROOT}/kiss_fft/kiss_fft.c"
+        "${SDKROOT}/kiss_fft/kiss_fftnd.c"
+    )
+else()
+    message(WARNING "kiss_fft source files not found under ${SDKROOT}/kiss_fft; skipping dsp routines")
+endif()
+
 add_library(tnzstdfx SHARED ${HEADERS} ${SOURCES} ${OBJCSOURCES})
 add_definitions(
     -D_USRDLL
@@ -311,7 +319,7 @@ add_definitions(
 
 if(BUILD_ENV_APPLE)
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-install_name,@executable_path/libtnzstdfx.dylib")
-    add_dependencies(tnzstdfx tnzcore tnzbase toonzlib)
+    add_dependencies(tnzstdfx tnzcore tnzbase flarelib)
 endif()
 
 message("subdir: tnzstdfx")
@@ -329,14 +337,19 @@ else()
     )
 endif()
 
-include_directories(
-    ${SDKROOT}/kiss_fft
-)
+if(EXISTS "${SDKROOT}/kiss_fft/kiss_fft.c")
+    include_directories(
+        ${SDKROOT}/kiss_fft
+    )
+else()
+    message(WARNING "kiss_fft directory missing; fft features disabled")
+endif()
 
-_find_toonz_library(TNZLIBS "tnzcore;tnzbase;toonzlib")
+_find_flare_library(TNZLIBS "tnzcore;tnzbase;flarelib")
 
 target_link_libraries(tnzstdfx Qt5::Core Qt5::Gui Qt5::OpenGL ${GL_LIB} ${GLEW_LIB} ${TNZLIBS} ${PTHREAD_LIBRARY})
 
 if(OpenCV_FOUND)
+    include_directories(SYSTEM ${OpenCV_INCLUDE_DIRS})
     target_link_libraries(tnzstdfx ${OpenCV_LIBS})
 endif()

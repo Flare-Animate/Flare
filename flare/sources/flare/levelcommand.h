@@ -3,7 +3,7 @@
 #ifndef LEVELCOMMAND_H
 #define LEVELCOMMAND_H
 
-#include "toonz/txshcolumn.h"
+#include "flare/txshcolumn.h"
 
 #include <set>
 #include <QList>

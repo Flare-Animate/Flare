@@ -6,33 +6,33 @@
 #include "formatsettingspopups.h"
 #include "filebrowsermodel.h"
 #include "cellselection.h"
-#include "toonzqt/tselectionhandle.h"
+#include "flareqt/tselectionhandle.h"
 #include "cameracapturelevelcontrol_qt.h"
 #include "iocommand.h"
 
 // TnzQt includes
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/filefield.h"
-#include "toonzqt/intfield.h"
-#include "toonzqt/gutil.h"
+#include "flareqt/menubarcommand.h"
+#include "flareqt/filefield.h"
+#include "flareqt/intfield.h"
+#include "flareqt/gutil.h"
 
 // Tnzlib includes
-#include "toonz/tproject.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/toonzscene.h"
+#include "flare/tproject.h"
+#include "flare/tscenehandle.h"
+#include "flare/toonzscene.h"
 #include "toutputproperties.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/levelset.h"
-#include "toonz/txshleveltypes.h"
-#include "toonz/toonzfolders.h"
-#include "toonz/tframehandle.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/levelproperties.h"
-#include "toonz/tcamera.h"
-#include "toonz/preferences.h"
-#include "toonz/filepathproperties.h"
+#include "flare/sceneproperties.h"
+#include "flare/levelset.h"
+#include "flare/txshleveltypes.h"
+#include "flare/toonzfolders.h"
+#include "flare/tframehandle.h"
+#include "flare/tcolumnhandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/levelproperties.h"
+#include "flare/tcamera.h"
+#include "flare/preferences.h"
+#include "flare/filepathproperties.h"
 
 // TnzCore includes
 #include "tsystem.h"
@@ -3117,3 +3117,4 @@ void OpenPopupCommandHandler<PencilTestPopup>::execute() {
   m_popup->activateWindow();
   if (CamCapOpenSaveInPopupOnLaunch != 0) m_popup->openSaveInFolderPopup();
 }
+

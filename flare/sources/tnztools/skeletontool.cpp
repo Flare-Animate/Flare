@@ -8,28 +8,28 @@
 #include "tenv.h"
 
 // TnzLib includes
-#include "toonz/tstageobjectcmd.h"
-#include "toonz/toonzimageutils.h"
-#include "toonz/txshcolumn.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/tstageobjecttree.h"
-#include "toonz/tstageobjectspline.h"
-#include "toonz/toonzscene.h"
-#include "toonz/stage.h"
-#include "toonz/txshcell.h"
-#include "toonz/dpiscale.h"
-#include "toonz/skeleton.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/tobjecthandle.h"
-#include "toonz/tpinnedrangeset.h"
-#include "toonz/tframehandle.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/stageobjectutil.h"
+#include "flare/tstageobjectcmd.h"
+#include "flare/toonzimageutils.h"
+#include "flare/txshcolumn.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/tstageobjecttree.h"
+#include "flare/tstageobjectspline.h"
+#include "flare/toonzscene.h"
+#include "flare/stage.h"
+#include "flare/txshcell.h"
+#include "flare/dpiscale.h"
+#include "flare/skeleton.h"
+#include "flare/tscenehandle.h"
+#include "flare/tobjecthandle.h"
+#include "flare/tpinnedrangeset.h"
+#include "flare/tframehandle.h"
+#include "flare/tcolumnhandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/stageobjectutil.h"
 
 // TnzQt includes
-#include "toonzqt/selection.h"
-#include "toonzqt/selectioncommandids.h"
+#include "flareqt/selection.h"
+#include "flareqt/selectioncommandids.h"
 
 // TnzTools includes
 #include "tools/tool.h"
@@ -1624,3 +1624,4 @@ void SkeletonTool::buildSkeleton(Skeleton &skeleton, int columnIndex) {
   int frame = TTool::getApplication()->getCurrentFrame()->getFrame();
   skeleton.build(getXsheet(), frame, columnIndex, m_temporaryPinnedColumns);
 }
+

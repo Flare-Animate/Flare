@@ -3,8 +3,8 @@
 #ifndef BRIGHTNESSANDCONTRASTPOPUP_H
 #define BRIGHTNESSANDCONTRASTPOPUP_H
 
-#include "toonzqt/dvdialog.h"
-#include "toonz/txshsimplelevel.h"
+#include "flareqt/dvdialog.h"
+#include "flare/txshsimplelevel.h"
 #include "traster.h"
 
 class QSlider;
@@ -49,3 +49,4 @@ public slots:
 };
 
 #endif  // BRIGHTNESSANDCONTRASTPOPUP_H
+

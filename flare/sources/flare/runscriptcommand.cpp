@@ -1,14 +1,14 @@
 
 
 #include "columncommand.h"
-#include "toonzqt/menubarcommand.h"
+#include "flareqt/menubarcommand.h"
 #include "tmsgcore.h"
 #include "tfilepath.h"
 #include "tapp.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/tproject.h"
-#include "toonz/toonzscene.h"
-#include "toonz/toonzfolders.h"
+#include "flare/tscenehandle.h"
+#include "flare/tproject.h"
+#include "flare/toonzscene.h"
+#include "flare/toonzfolders.h"
 #include "filebrowserpopup.h"
 #include "floatingpanelcommand.h"
 #include "scriptconsolepanel.h"
@@ -69,3 +69,4 @@ TFilePath fp(fileNameStr.toStdWString());
 if(fp.getType()=="") fp = fp.withType("mpath");
 */
 }
+

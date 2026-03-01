@@ -6,16 +6,16 @@
 #include "tools/tool.h"
 #include "tproperty.h"
 
-#include "toonz/toonzimageutils.h"
-#include "toonz/ttilesaver.h"
-#include "toonz/ttileset.h"
+#include "flare/toonzimageutils.h"
+#include "flare/ttilesaver.h"
+#include "flare/ttileset.h"
 
-#include "toonz/tpalettehandle.h"
-#include "toonz/txshlevelhandle.h"
+#include "flare/tpalettehandle.h"
+#include "flare/txshlevelhandle.h"
 #include "tstroke.h"
-#include "toonz/txshsimplelevel.h"
+#include "flare/txshsimplelevel.h"
 
-#include "toonzqt/icongenerator.h"
+#include "flareqt/icongenerator.h"
 
 class StylePickerTool final : public TTool, public QObject {
   Q_DECLARE_TR_FUNCTIONS(StylePickerTool)
@@ -330,3 +330,4 @@ static void replaceLevelStyle(TXshLevelHandle *levelHandle,
   TUndoManager::manager()->add(undo);
 }
 #endif
+

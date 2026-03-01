@@ -1054,7 +1054,7 @@ Procedere?</translation>
     </message>
     <message>
         <source>The current tool cannot be used on a Toonz Level.</source>
-        <translation>Lo strumento corrente non può essere utilizzato su un livello Toonz Raster.</translation>
+        <translation>Lo strumento corrente non può essere utilizzato su un livello Flare Raster.</translation>
     </message>
     <message>
         <source>The current tool cannot be used on a Raster Level.</source>

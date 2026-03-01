@@ -236,6 +236,7 @@ void initImageIo(bool lightVersion) {
     } else {
       TFileType::declare("fla", TFileType::RASTER_LEVEL);
     }
+  }
 #endif
   // end ffmpeg
 
@@ -294,5 +295,5 @@ Tiio::defineWriterProperties("pict", new Tiio::PctWriterProperties());
 
 #endif    // _WIN32 && 32-bit
 */
-  }
+}
 }

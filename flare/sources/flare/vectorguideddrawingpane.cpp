@@ -3,10 +3,10 @@
 #include "tapp.h"
 #include "sceneviewer.h"
 
-#include "toonz/preferences.h"
-#include "toonz/tscenehandle.h"
+#include "flare/preferences.h"
+#include "flare/tscenehandle.h"
 
-#include "toonzqt/menubarcommand.h"
+#include "flareqt/menubarcommand.h"
 
 #include <QComboBox>
 #include <QCheckBox>
@@ -238,3 +238,4 @@ void VectorGuidedDrawingPane::onPreferenceChanged(const QString &propertyName) {
 
   updateStatus();
 }
+

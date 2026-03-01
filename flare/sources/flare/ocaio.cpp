@@ -3,25 +3,25 @@
 #include "tsystem.h"
 #include "tenv.h"
 
-#include "toonz/tcamera.h"
+#include "flare/tcamera.h"
 
-#include "toonz/toonzscene.h"
-#include "toonz/tproject.h"
-#include "toonz/levelset.h"
-#include "toonz/txsheet.h"
-#include "toonz/txshcell.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/txshchildlevel.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/preferences.h"
-#include "toonz/preferencesitemids.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/tstageobject.h"
+#include "flare/toonzscene.h"
+#include "flare/tproject.h"
+#include "flare/levelset.h"
+#include "flare/txsheet.h"
+#include "flare/txshcell.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/txshchildlevel.h"
+#include "flare/txsheethandle.h"
+#include "flare/tscenehandle.h"
+#include "flare/preferences.h"
+#include "flare/preferencesitemids.h"
+#include "flare/sceneproperties.h"
+#include "flare/tstageobject.h"
 #include "toutputproperties.h"
-#include "toonz/txshlevelcolumn.h"
+#include "flare/txshlevelcolumn.h"
 
-#include "toonzqt/gutil.h"
+#include "flareqt/gutil.h"
 
 #include "tapp.h"
 #include "menubarcommandids.h"
@@ -70,7 +70,7 @@ void OCAData::write(QJsonObject &json) const {
   json["layers"] = m_layers;
 
   // Versions
-  json["originApp"] = "OpenToonz";
+  json["originApp"] = "Flare";
   json["originAppVersion"] =
       QString::fromStdString(TEnv::getApplicationVersion());
   json["ocaVersion"] = "1.1.0";

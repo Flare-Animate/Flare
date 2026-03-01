@@ -6,14 +6,14 @@
 #include "tenv.h"
 #include "tsystem.h"
 
-#include "toonz/toonzfolders.h"
+"flare/toonzfolders.h"
 // TnzQt includes
-#include "toonzqt/gutil.h"
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/dvdialog.h"
+"flareqt/gutil.h"
+"flareqt/menubarcommand.h"
+"flareqt/dvdialog.h"
 
 // TnzLib includes
-#include "toonz/preferences.h"
+"flare/preferences.h"
 
 // Qt includes
 #include <QTreeWidgetItem>
@@ -609,7 +609,7 @@ void ShortcutPopup::showDialog(QString text) {
   if (m_dialog == NULL) {
     m_dialogLabel = new QLabel("", this);
     m_dialog      = new DVGui::Dialog(this, false, false);
-    m_dialog->setWindowTitle(tr("OpenToonz - Setting Shortcuts"));
+    m_dialog->setWindowTitle(tr("Flare - Setting Shortcuts"));
     m_dialog->setModal(false);
 
     m_dialog->setTopMargin(10);
@@ -752,7 +752,7 @@ void ShortcutPopup::buildPresets() {
   m_presetChoiceCB->clear();
 
   m_presetChoiceCB->addItem("", QString(""));
-  m_presetChoiceCB->addItem("OpenToonz", QString("defopentoonz"));
+  m_presetChoiceCB->addItem("Flare", QString("defflare"));
   // m_presetChoiceCB->addItem("RETAS PaintMan", QString("otretas"));
   m_presetChoiceCB->addItem("Toon Boom Harmony", QString("otharmony"));
   m_presetChoiceCB->addItem("Animate", QString("otanimate"));
@@ -819,3 +819,4 @@ void ShortcutPopup::getCurrentPresetPref() {
 }
 
 OpenPopupCommandHandler<ShortcutPopup> openShortcutPopup(MI_ShortcutPopup);
+

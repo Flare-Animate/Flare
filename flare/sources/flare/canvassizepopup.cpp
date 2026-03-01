@@ -7,14 +7,14 @@
 #include "tapp.h"
 
 // TnzQt includes
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/doublefield.h"
-#include "toonzqt/checkbox.h"
-#include "toonzqt/icongenerator.h"
+#include "flareqt/menubarcommand.h"
+#include "flareqt/doublefield.h"
+#include "flareqt/checkbox.h"
+#include "flareqt/icongenerator.h"
 
 // TnzLib includes
-#include "toonz/txshlevelhandle.h"
-#include "toonz/levelproperties.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/levelproperties.h"
 
 // TnzBase includes
 #include "tunit.h"
@@ -771,3 +771,4 @@ void CanvasSizePopup::onOkBtn() {
 //=============================================================================
 
 OpenPopupCommandHandler<CanvasSizePopup> openCanvasSizePopup(MI_CanvasSize);
+

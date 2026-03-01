@@ -1,7 +1,7 @@
 
 
 #include "batchserversviewer.h"
-#include "toonzqt/menubarcommand.h"
+#include "flareqt/menubarcommand.h"
 #include "menubarcommandids.h"
 #include "floatingpanelcommand.h"
 #include "tfarmstuff.h"
@@ -353,9 +353,9 @@ void BatchServersViewer::onProcessWith(int index) {
     int port;
     TFarmStuff::getControllerData(hostName, addr, port);
 
-    QString msg(tr("Unable to connect to the ToonzFarm Controller\n \
+    QString msg(tr("Unable to connect to the FlareFarm Controller\n \
   The Controller should run on %1 at port %2\n \
-  Please start the Controller before using the ToonzFarm")
+  Please start the Controller before using the FlareFarm")
                     .arg(hostName)
                     .arg(QString::number(port)));
 
@@ -377,3 +377,5 @@ void BatchServersViewer::onProcessWith(int index) {
 
 OpenFloatingPanel openBatchServersCommand(MI_OpenBatchServers, "BatchServers",
                                           QObject::tr("Batch Servers"));
+
+

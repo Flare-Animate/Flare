@@ -3,8 +3,8 @@
 #ifndef SOUNDTRACKEXPORT_H
 #define SOUNDTRACKEXPORT_H
 
-#include "toonzqt/dvdialog.h"
-#include "toonz/sceneproperties.h"
+#include "flareqt/dvdialog.h"
+#include "flare/sceneproperties.h"
 #include "tsound.h"
 
 // forward declaration
@@ -32,3 +32,4 @@ protected:
 };
 
 #endif  // SOUNDTRACKEXPORT_H
+

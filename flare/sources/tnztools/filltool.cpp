@@ -1,18 +1,18 @@
 
 #include "filltool.h"
 
-#include "toonz/tframehandle.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/tpalettehandle.h"
-#include "toonz/preferences.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/tobjecthandle.h"
-#include "toonz/tscenehandle.h"
+#include "flare/tframehandle.h"
+#include "flare/tcolumnhandle.h"
+#include "flare/tpalettehandle.h"
+#include "flare/preferences.h"
+#include "flare/txsheethandle.h"
+#include "flare/tobjecthandle.h"
+#include "flare/tscenehandle.h"
 #include "tools/toolhandle.h"
 #include "tools/toolutils.h"
-#include "toonz/tonionskinmaskhandle.h"
-#include "toonz/toonzscene.h"
-#include "toonz/tcamera.h"
+#include "flare/tonionskinmaskhandle.h"
+#include "flare/toonzscene.h"
+#include "flare/tcamera.h"
 #include "timagecache.h"
 #include "tundo.h"
 #include "tpalette.h"
@@ -24,10 +24,10 @@
 #include "tenv.h"
 #include "tools/stylepicker.h"
 
-#include "toonz/tstageobject.h"
-#include "toonz/dpiscale.h"
-#include "toonz/stage2.h"
-#include "toonz/stagevisitor.h"
+#include "flare/tstageobject.h"
+#include "flare/dpiscale.h"
+#include "flare/stage2.h"
+#include "flare/stagevisitor.h"
 #include "tstroke.h"
 #include "drawutil.h"
 #include "tsystem.h"
@@ -37,18 +37,18 @@
 #include "trop.h"
 #include "tropcm.h"
 
-#include "toonz/onionskinmask.h"
-#include "toonz/ttileset.h"
-#include "toonz/ttilesaver.h"
-#include "toonz/toonzimageutils.h"
-#include "toonz/levelproperties.h"
+#include "flare/onionskinmask.h"
+#include "flare/ttileset.h"
+#include "flare/ttilesaver.h"
+#include "flare/toonzimageutils.h"
+#include "flare/levelproperties.h"
 
-#include "toonz/imagemanager.h"
-#include "toonz/txshcell.h"
-#include "toonzqt/imageutils.h"
+#include "flare/imagemanager.h"
+#include "flare/txshcell.h"
+#include "flareqt/imageutils.h"
 #include "autofill.h"
-#include "toonz/fill.h"
-#include "toonz/autoclose.h"
+#include "flare/fill.h"
+#include "flare/autoclose.h"
 
 #include "historytypes.h"
 
@@ -2835,3 +2835,4 @@ void FillTool::onDeactivate() {
 
 FillTool FillVectorTool(TTool::VectorImage);
 FillTool FillRasterTool(TTool::ToonzImage);
+

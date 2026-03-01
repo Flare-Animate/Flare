@@ -1,13 +1,13 @@
 
 
 #include "tools/toolhandle.h"
-#include "toonz/stage2.h"
+#include "flare/stage2.h"
 #include "tools/tool.h"
 #include "tools/toolcommandids.h"
 #include "timage.h"
 // #include "tapp.h"
-#include "toonzqt/menubarcommand.h"
-#include "toonz/preferences.h"
+#include "flareqt/menubarcommand.h"
+#include "flare/preferences.h"
 #include <QGuiApplication>
 #include <QAction>
 #include <QMap>
@@ -170,3 +170,4 @@ void ToolHandle::onImageChanged(TImage::Type imageType) {
 void ToolHandle::updateMatrix() {
   if (m_tool) m_tool->updateMatrix();
 }
+

@@ -6,11 +6,11 @@
 #include "tsystem.h"
 #include "iocommand.h"
 #include "flipbook.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/toonzscene.h"
-#include "toonzqt/filefield.h"
-#include "toonzqt/intfield.h"
-#include "toonzqt/gutil.h"
+#include "flare/tscenehandle.h"
+#include "flare/toonzscene.h"
+#include "flareqt/filefield.h"
+#include "flareqt/intfield.h"
+#include "flareqt/gutil.h"
 
 #include <QLabel>
 #include <QPushButton>
@@ -53,7 +53,7 @@ MagpieFileImportPopup::MagpieFileImportPopup()
     , m_toField(0)
     , m_flipbook(0)
     , m_levelPath() {
-  setWindowTitle(tr("Import Toonz Lip Sync File"));
+  setWindowTitle(tr("Import Flare Lip Sync File"));
 
   beginVLayout();
 
@@ -151,7 +151,7 @@ MagpieFileImportPopup::MagpieFileImportPopup()
                                  FlipConsole::eFlipHorizontal,
                                  FlipConsole::eFlipVertical,
                                  FlipConsole::eResetView};
-  m_flipbook = new FlipBook(this, tr("Import Toonz Lip Sync File"), buttonMask);
+  m_flipbook = new FlipBook(this, tr("Import Flare Lip Sync File"), buttonMask);
   m_flipbook->setFixedHeight(250);
   frameLayout->addWidget(m_flipbook);
   frame->setLayout(frameLayout);
@@ -283,3 +283,4 @@ void MagpieFileImportPopup::onOkPressed() {
   if (!ret) return;
   accept();
 }
+

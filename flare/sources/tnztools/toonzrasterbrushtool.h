@@ -8,9 +8,9 @@
 #include <trasterimage.h>
 #include <ttoonzimage.h>
 #include <tstroke.h>
-#include <toonz/strokegenerator.h>
-#include <toonz/rasterstrokegenerator.h>
-#include "toonz/preferences.h"
+#include "flare/strokegenerator.h"
+#include "flare/rasterstrokegenerator.h"
+#include "flare/preferences.h"
 #include <tools/tool.h>
 #include <tools/cursors.h>
 
@@ -44,7 +44,7 @@ class ToonzRasterBrushToolNotifier;
 //--------------------------------------------------------------
 
 //************************************************************************
-//  Toonz Raster Brush Data declaration
+//  Flare Raster Brush Data declaration
 //************************************************************************
 
 struct BrushData final : public TPersist {
@@ -71,7 +71,7 @@ struct BrushData final : public TPersist {
 };
 
 //************************************************************************
-//   Toonz Raster Brush Preset Manager declaration
+//   Flare Raster Brush Preset Manager declaration
 //************************************************************************
 
 class BrushPresetManager {
@@ -92,7 +92,7 @@ public:
 };
 
 //************************************************************************
-//   Toonz Raster Brush Tool declaration
+//   Flare Raster Brush Tool declaration
 //************************************************************************
 
 class ToonzRasterBrushTool final : public TTool,
@@ -185,6 +185,7 @@ protected:
 #endif
   TInputModifier::List m_modifierReplicate;
 
+#ifdef HAVE_MYPaint
   class MyPaintStroke : public TTrackHandler {
   public:
     MyPaintToonzBrush brush;
@@ -194,6 +195,7 @@ protected:
                          bool interpolation = false)
         : brush(ras, controller, brush, interpolation) {}
   };
+#endif
 
   class PencilStroke : public TTrackHandler {
   public:
@@ -241,7 +243,9 @@ protected:
 
     struct MyPaint {
       bool isActive = false;
+#ifdef HAVE_MYPaint
       mypaint::Brush baseBrush;
+#endif
       TRect strokeSegmentRect;
     } myPaint;
   } m_painting;
@@ -312,3 +316,4 @@ protected slots:
 };
 
 #endif  // TOONZRASTERBRUSHTOOL_H
+

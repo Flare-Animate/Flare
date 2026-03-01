@@ -7,37 +7,37 @@
 #include "tapp.h"
 #include "levelcommand.h"
 #include "formatsettingspopups.h"
-#include "toonz/stage.h"
+#include "flare/stage.h"
 
 // TnzTools includes
 #include "tools/toolhandle.h"
 
 // TnzQt includes
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/gutil.h"
-#include "toonzqt/doublefield.h"
+#include "flareqt/menubarcommand.h"
+#include "flareqt/gutil.h"
+#include "flareqt/doublefield.h"
 #include "historytypes.h"
 
 // TnzLib includes
-#include "toonz/toonzscene.h"
-#include "toonz/txsheet.h"
-#include "toonz/txshcell.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/txshleveltypes.h"
-#include "toonz/levelset.h"
-#include "toonz/levelproperties.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/tcamera.h"
-#include "toonz/tframehandle.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/tpalettehandle.h"
-#include "toonz/preferences.h"
-#include "toonz/palettecontroller.h"
-#include "toonz/tproject.h"
-#include "toonz/namebuilder.h"
-#include "toonz/childstack.h"
+#include "flare/toonzscene.h"
+#include "flare/txsheet.h"
+#include "flare/txshcell.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/txshleveltypes.h"
+#include "flare/levelset.h"
+#include "flare/levelproperties.h"
+#include "flare/sceneproperties.h"
+#include "flare/tcamera.h"
+#include "flare/tframehandle.h"
+#include "flare/tcolumnhandle.h"
+#include "flare/tscenehandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/tpalettehandle.h"
+#include "flare/preferences.h"
+#include "flare/palettecontroller.h"
+#include "flare/tproject.h"
+#include "flare/namebuilder.h"
+#include "flare/childstack.h"
 #include "toutputproperties.h"
 
 // TnzCore includes
@@ -195,8 +195,8 @@ LevelCreatePopup::LevelCreatePopup()
   QRegExp rx("[^\\\\/:?*.\"<>|]+");
   m_nameFld->setValidator(new QRegExpValidator(rx, this));
 
-  m_levelTypeOm->addItem(tr("Toonz Vector Level"), (int)PLI_XSHLEVEL);
-  m_levelTypeOm->addItem(tr("Toonz Raster Level"), (int)TZP_XSHLEVEL);
+  m_levelTypeOm->addItem(tr("Flare Vector Level"), (int)PLI_XSHLEVEL);
+  m_levelTypeOm->addItem(tr("Flare Raster Level"), (int)TZP_XSHLEVEL);
   m_levelTypeOm->addItem(tr("Raster Level"), (int)OVL_XSHLEVEL);
   m_levelTypeOm->addItem(tr("Scan Level"), (int)TZI_XSHLEVEL);
   m_levelTypeOm->addItem(tr("Assistants Level"), (int)META_XSHLEVEL);
@@ -740,3 +740,4 @@ void LevelCreatePopup::update() {
 //-----------------------------------------------------------------------------
 
 OpenPopupCommandHandler<LevelCreatePopup> openLevelCreatePopup(MI_NewLevel);
+

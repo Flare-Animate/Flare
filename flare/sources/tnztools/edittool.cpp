@@ -4,27 +4,27 @@
 #include "tools/tool.h"
 #include "tools/cursors.h"
 #include "tproperty.h"
-#include "toonz/stageobjectutil.h"
+#include "flare/stageobjectutil.h"
 #include "tstroke.h"
 #include "tgl.h"
 #include "tenv.h"
-#include "toonzqt/gutil.h"
+#include "flareqt/gutil.h"
 
-#include "toonz/tstageobjecttree.h"
-#include "toonz/tstageobjectspline.h"
-#include "toonz/toonzscene.h"
-#include "toonz/txshcolumn.h"
-#include "toonz/stage.h"
-#include "toonz/tcamera.h"
+#include "flare/tstageobjecttree.h"
+#include "flare/tstageobjectspline.h"
+#include "flare/toonzscene.h"
+#include "flare/txshcolumn.h"
+#include "flare/stage.h"
+#include "flare/tcamera.h"
 
 #include "tools/toolhandle.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/tframehandle.h"
-#include "toonz/tobjecthandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/tfxhandle.h"
-#include "toonz/tstageobjectcmd.h"
+#include "flare/tcolumnhandle.h"
+#include "flare/tframehandle.h"
+#include "flare/tobjecthandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/tscenehandle.h"
+#include "flare/tfxhandle.h"
+#include "flare/tstageobjectcmd.h"
 
 #include "edittoolgadgets.h"
 
@@ -1705,3 +1705,4 @@ QString EditTool::updateEnabled(int rowIndex, int columnIndex) {
 //=============================================================================
 
 EditTool arrowTool;
+

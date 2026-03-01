@@ -113,7 +113,7 @@ public:
 #else
     TFilePath systemVarPath = getSystemVarPath(varName);
     if (systemVarPath.isEmpty()) {
-      std::cout << "varName:" << varName << " TOONZROOT not set..."
+      std::cout << "varName:" << varName << " FLAREROOT not set..."
                 << std::endl;
       return "";
     }
@@ -123,13 +123,13 @@ public:
                         if (!value)
                                 {
                                 std::cout << varName << " not set, returning
-   TOONZROOT" << std::endl;
-        //value = getenv("TOONZROOT");
+   FLAREROOT" << std::endl;
+        //value = getenv("FLAREROOT");
                         value="";
                         std::cout << "!!!value= "<< value << std::endl;
                         if (!value)
                                         {
-                                        std::cout << varName << "TOONZROOT not
+                                        std::cout << varName << "FLAREROOT not
    set..." << std::endl;
                                         //exit(-1);
                                         return "";
@@ -183,9 +183,9 @@ public:
     m_moduleName  = m_version.getAppName();
     m_rootVarName = m_version.getSystemVarPrefix() + "ROOT";
 #ifdef _WIN32
-    // from v1.3, registry root is moved to SOFTWARE\\OpenToonz\\OpenToonz
+    // from v1.3, registry root is moved to SOFTWARE\\Flare\\Flare
     m_registryRoot =
-        TFilePath("SOFTWARE\\OpenToonz\\") + m_version.getAppName();
+        TFilePath("SOFTWARE\\Flare\\") + m_version.getAppName();
 #endif
     m_systemVarPrefix = m_version.getSystemVarPrefix();
     updateEnvFile();
@@ -245,7 +245,7 @@ public:
     // macOS 10.12 (Sierra) translocates applications before running them
     // depending on how it was installed. This separates the app from the
     // portablestuff folder and we don't know where it is so we stop treating it
-    // as a portable. Placing portablestuff inside OpenToonz.app will keep
+    // as a portable. Placing portablestuff inside Flare.app will keep
     // everything together when it translocates.
     if (!m_isPortable) {
       portableCheck =
@@ -630,7 +630,7 @@ void TEnv::saveAllEnvVariables() { VariableSet::instance()->save(); }
 
 bool TEnv::setArgPathValue(std::string key, std::string value) {
   EnvGlobals *eg = EnvGlobals::instance();
-  // in case of "-TOONZROOT" , set the all unregistered paths
+  // in case of "-FLAREROOT" , set the all unregistered paths
   if (key == getRootVarName()) {
     TFilePath rootPath(value);
     eg->setStuffDir(rootPath);

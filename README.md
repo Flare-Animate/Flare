@@ -24,12 +24,32 @@ https://Flare.github.io/e/index.html
 
 To enable SWF import features, install FFmpeg and ensure it is available on your PATH.
 
+Flare uses CMake as its build system.  You must have CMake (version 3.10 or later)
+installed and available on your PATH before attempting to configure or build the
+project.  On Windows you can install CMake via the official installer or
+[Chocolatey](https://chocolatey.org/).  On macOS use Homebrew (`brew install cmake`),
+and on Linux use your distribution's package manager (`apt`, `dnf`, etc.).
+
 ## Installation
 
 Please see the `doc/` folder for platform-specific build and installation
 instructions.
 
 ## How to Build Locally
+
+You can configure a build directory from the repository root with a command such as:
+
+```sh
+cmake -S flare/sources -B build -G "Ninja" -DCMAKE_BUILD_TYPE=Release
+```
+
+and then build:
+
+```sh
+cmake --build build --parallel
+```
+
+For more detailed, platform‑specific guidance follow the links below:
 
 - [Windows](./doc/how_to_build_win.md)
 - [macOS](./doc/how_to_build_macosx.md)
@@ -69,4 +89,17 @@ Flash decompilers (e.g., JPEXS). Use File → Import → Import Flash (Vector vi
 External Decompiler)... to run a helper script that exports SVG/image sequences
 from Flash files for importing into Flare. See `doc/how_to_import_swf.md` for
 details.
+
+## Development helper scripts
+
+To make it easier to follow build and test output you can run the included
+`log_watcher.py` script.  It watches `*.log` files underneath the build
+directory and prints the last few lines whenever they are modified.  This is
+also the script that the autonomous chat mode will launch automatically:
+
+```sh
+python scripts/log_watcher.py    # defaults to flare/build
+```
+
+You can run the same command via the "watch logs" task in VS Code (`Ctrl+Shift+B`).
 

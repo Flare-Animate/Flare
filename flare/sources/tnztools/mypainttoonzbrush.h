@@ -3,19 +3,22 @@
 #ifndef MYPAINTTOONZBRUSH_H
 #define MYPAINTTOONZBRUSH_H
 
-#include <toonz/mypaint.h>
-#include "traster.h"
-#include "trastercm.h"
-#include "tcurves.h"
-#include <QPainter>
-#include <QImage>
-
+// RasterController has no MyPaint dependencies, so keep it always available.
 class RasterController {
 public:
   virtual ~RasterController() {}
   virtual bool askRead(const TRect &rect) { return true; }
   virtual bool askWrite(const TRect &rect) { return true; }
 };
+
+#ifdef HAVE_MYPaint
+
+#include "flare/mypaint.h"
+#include "traster.h"
+#include "trastercm.h"
+#include "tcurves.h"
+#include <QPainter>
+#include <QImage>
 
 //=======================================================
 //
@@ -144,4 +147,7 @@ public:
   const mypaint::Brush &getBrush() const { return m_brush; }
 };
 
+#endif // HAVE_MYPaint
+
 #endif  // T_BLUREDBRUSH
+

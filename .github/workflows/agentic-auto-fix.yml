@@ -1,0 +1,84 @@
+name: Agentic — Auto-fix Build
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  diagnose-build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up vcpkg (manual)
+        shell: cmd
+        run: |
+          @echo on
+          if exist vcpkg\bootstrap-vcpkg.bat (
+            echo vcpkg already present
+            goto :vcpkg_ready
+          )
+          if exist vcpkg (
+            echo Removing stale vcpkg\n            rmdir /S /Q vcpkg
+          )
+          set CLONE_ATTEMPTS=0
+          :clone_vcpkg
+          set /A CLONE_ATTEMPTS+=1
+          git clone --depth 1 https://github.com/microsoft/vcpkg.git vcpkg
+          if %ERRORLEVEL% EQU 0 goto :vcpkg_ready
+          echo clone failed with %ERRORLEVEL% attempt %CLONE_ATTEMPTS%
+          if %CLONE_ATTEMPTS% GEQ 3 (
+            echo fallback to zip
+            curl -fsSL -o vcpkg.zip https://github.com/microsoft/vcpkg/archive/refs/heads/master.zip
+            7z x -y vcpkg.zip -ovcpkg_tmp
+            move /Y vcpkg_tmp\vcpkg-master vcpkg
+            rmdir /S /Q vcpkg_tmp
+            del /Q vcpkg.zip
+            goto :vcpkg_ready
+          )
+          timeout /t 3 /nobreak
+          goto :clone_vcpkg
+    :vcpkg_ready
+          pushd vcpkg
+          call bootstrap-vcpkg.bat || (echo bootstrap failed & exit /b 1)
+          popd
+
+      - name: Configure (CMake)
+        shell: cmd
+        run: |
+          mkdir build
+          cmake -S . -B build -G "Visual Studio 16 2019" -A x64 -Wno-dev
+
+      - name: Build (CMake)
+        shell: cmd
+        run: |
+          cmake --build build --config RelWithDebInfo --target Flare --parallel 4 || exit /b 0
+
+      - name: Upload build logs
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs
+          path: |
+            build\CMakeCache.txt
+            build\CMakeFiles\CMakeOutput.log
+            build\CMakeFiles\CMakeError.log
+            build\build.log
+
+      - name: Post PR comment with short status
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const owner = context.repo.owner
+            const repo = context.repo.repo
+            const pr = context.payload.pull_request.number
+            await github.issues.createComment({ owner, repo, issue_number: pr, body: `Agentic build check completed — logs uploaded as artifact (see Actions run).` })

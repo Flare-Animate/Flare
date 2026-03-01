@@ -64,7 +64,7 @@ class XdtsFrameDataItem {
   //  element, and the dialog's string in the second element.
   //  When the line lasts for multiple frames, specify the character
   //  string "SYMBOL_HYPHEN" up to the end frame.
-  //  (value element numbers: 1`2)
+  //  (value element numbers: 1ï¿½`2)
   // [Field name: Camerawork]
   //  In the camerawork's first frame, enter the camerawork instruction
   //  string When the camerawork lasts for multiple frames, specify the
@@ -73,9 +73,9 @@ class XdtsFrameDataItem {
 
   //(*4) Special instruction character strings
   // [Character string]  [Instruction]           [Valid field]
-  // SYMBOL_TICK_1       Inbetween symbol(›)     Cell
-  // SYMBOL_TICK_2       Reverse sheet symbol(œ) Cell
-  // SYMBOL_NULL_CELL    Empty cell symbol(~)    Cell
+  // SYMBOL_TICK_1       Inbetween symbol(ï¿½ï¿½)     Cell
+  // SYMBOL_TICK_2       Reverse sheet symbol(ï¿½ï¿½) Cell
+  // SYMBOL_NULL_CELL    Empty cell symbol(ï¿½~)    Cell
   // SYMBOL_HYPHEN       Continue previous       All fields
   //                     field instruction
 
@@ -83,8 +83,8 @@ class XdtsFrameDataItem {
   // new parameter introduced in PONOC customized version
   QList<QString> m_options;
   // [Character string]     [Instruction]                  [Valid field]
-  // OPTION_KEYFRAME        Œ´‰æƒtƒŒ[ƒ€i”Ô†‚ğZ‚ÅˆÍ‚Şj     ƒZƒ‹
-  // OPTION_REFERENCEFRAME  ì‰æQlƒtƒŒ[ƒ€i”Ô†‚ğ¢‚ÅˆÍ‚Şj ƒZƒ‹
+  // OPTION_KEYFRAME        ï¿½ï¿½ï¿½ï¿½tï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½iï¿½Ôï¿½ï¿½ï¿½ï¿½Zï¿½ÅˆÍ‚Şj     ï¿½Zï¿½ï¿½
+  // OPTION_REFERENCEFRAME  ï¿½ï¿½ï¿½Qï¿½lï¿½tï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½iï¿½Ôï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÅˆÍ‚Şj ï¿½Zï¿½ï¿½
   //------------------
 
   TFrameId str2Fid(const QString &) const;

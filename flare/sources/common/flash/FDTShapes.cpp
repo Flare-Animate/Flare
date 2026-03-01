@@ -581,7 +581,6 @@ void FDTDefineShape2::WriteToSWFStream(FSWFStream *_SWFStream)
 
 //////////////////////////////////////////////////////////////////////////////////////
 //  --------  FDTDefineShape3 --------------------------------------------------------
-
 FDTDefineShape3::FDTDefineShape3(FRect *_rect)
 {
 	characterID = FObjCollection::Increment();

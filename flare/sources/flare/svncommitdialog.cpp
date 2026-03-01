@@ -6,12 +6,12 @@
 #include "tapp.h"
 
 // TnzQt includes
-#include "toonzqt/gutil.h"
+#include "flareqt/gutil.h"
 
 // TnzLib includes
-#include "toonz/toonzscene.h"
-#include "toonz/txshlevel.h"
-#include "toonz/txshsimplelevel.h"
+#include "flare/toonzscene.h"
+#include "flare/txshlevel.h"
+#include "flare/txshsimplelevel.h"
 
 // TnzCore includes
 #include "tfilepath.h"
@@ -1362,3 +1362,4 @@ void SVNCommitFrameRangeDialog::switchToCloseButton() {
 }
 
 //-----------------------------------------------------------------------------
+

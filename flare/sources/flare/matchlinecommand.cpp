@@ -6,20 +6,20 @@
 #include "tpalette.h"
 
 // TnzLib includes
-#include "toonz/txsheet.h"
-#include "toonz/toonzscene.h"
-#include "toonz/txshcell.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/levelset.h"
-#include "toonz/hook.h"
-#include "toonz/levelproperties.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/txshleveltypes.h"
+#include "flare/txsheet.h"
+#include "flare/toonzscene.h"
+#include "flare/txshcell.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/levelset.h"
+#include "flare/hook.h"
+#include "flare/levelproperties.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/tscenehandle.h"
+#include "flare/txshleveltypes.h"
 
 // TnzQt includes
-#include "toonzqt/menubarcommand.h"
+#include "flareqt/menubarcommand.h"
 
 // Tnz6 includes
 #include "tapp.h"
@@ -623,3 +623,4 @@ public:
   void execute() override { doDeleteCommand(true); }
 
 } DeleteMatchlinesCommand;
+

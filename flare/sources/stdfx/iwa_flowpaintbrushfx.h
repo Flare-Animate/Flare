@@ -28,7 +28,7 @@ struct BrushStroke {
   int textureId;
   bool invert;
   double randomVal;
-  double stack;  // ®—ñ—p‚Ì’l
+  double stack;  // ï¿½ï¿½ï¿½ï¿½pï¿½Ì’l
 };
 
 struct BrushVertex {
@@ -95,46 +95,46 @@ private:
   TRasterFxPort m_area;
   TRasterFxPort m_color;
 
-  // –§“x
+  // ï¿½ï¿½ï¿½x
   TDoubleParamP m_h_density;
   TDoubleParamP m_v_density;
-  // ˆÊ’u‚Ìƒ‰ƒ“ƒ_ƒ€‚³i0FŠiqó 1Fˆê—l‚Éƒ‰ƒ“ƒ_ƒ€ <1: ‚Î‚ç‚Â‚«‘‰Áj
+  // ï¿½Ê’uï¿½Ìƒï¿½ï¿½ï¿½ï¿½_ï¿½ï¿½ï¿½ï¿½ï¿½i0ï¿½Fï¿½iï¿½qï¿½ï¿½ 1ï¿½Fï¿½ï¿½lï¿½Éƒï¿½ï¿½ï¿½ï¿½_ï¿½ï¿½ <1: ï¿½Î‚ï¿½Â‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½j
   TDoubleParamP m_pos_randomness;
   TDoubleParamP m_pos_wobble;
-  // ƒ^ƒbƒ`‚ÌƒTƒCƒYiArea‚Ì’l‚É‚æ‚Á‚Ä•Ï‰»j
+  // ï¿½^ï¿½bï¿½`ï¿½ÌƒTï¿½Cï¿½Yï¿½iAreaï¿½Ì’lï¿½É‚ï¿½ï¿½ï¿½Ä•Ï‰ï¿½ï¿½j
   TRangeParamP m_tip_width;
   TRangeParamP m_tip_length;
-  // ƒ^ƒbƒ`‚Ì•s“§–¾“x
+  // ï¿½^ï¿½bï¿½`ï¿½Ì•sï¿½ï¿½ï¿½ï¿½ï¿½x
   TRangeParamP m_tip_alpha;
   TIntParamP m_tip_joints;
   TBoolParamP m_bidirectional;
 
-  // ‚Î‚ç‚Â‚«
+  // ï¿½Î‚ï¿½Â‚ï¿½
   TDoubleParamP m_width_randomness;
   TDoubleParamP m_length_randomness;
-  TDoubleParamP m_angle_randomness;  // degree‚Å
+  TDoubleParamP m_angle_randomness;  // degreeï¿½ï¿½
 
   TDoubleParamP m_sustain_width_to_skew;
   TBoolParamP m_anti_jaggy;
 
-  // ¶¬”ÍˆÍ
+  // ï¿½ï¿½ï¿½ï¿½ï¿½Íˆï¿½
   TPointParamP m_origin_pos;
   TPointParamP m_horizontal_pos;
   TPointParamP m_vertical_pos;
   TPointParamP m_curve_point;
   TDoubleParamP m_fill_gap_size;
 
-  // Šî€ƒtƒŒ[ƒ€
+  // ï¿½î€ï¿½tï¿½ï¿½ï¿½[ï¿½ï¿½
   TDoubleParamP m_reference_frame;
-  // Šî€ƒtƒŒ[ƒ€‚ğg‚Á‚Ä¶¬‚·‚éƒ^ƒbƒ`‚ÌŠ„‡
+  // ï¿½î€ï¿½tï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½ï¿½ï¿½gï¿½ï¿½ï¿½Äï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½^ï¿½bï¿½`ï¿½ÌŠï¿½ï¿½ï¿½
   TDoubleParamP m_reference_prevalence;
 
-  // ƒ‰ƒ“ƒ_ƒ€ƒV[ƒh
+  // ï¿½ï¿½ï¿½ï¿½ï¿½_ï¿½ï¿½ï¿½Vï¿½[ï¿½h
   TIntParamP m_random_seed;
-  // •À‚×‘Ö‚¦
+  // ï¿½ï¿½ï¿½×‘Ö‚ï¿½
   TIntEnumParamP m_sortBy;
 
-  // ƒuƒ‰ƒVƒ^ƒbƒ`‚Ìƒ‰ƒXƒ^[ƒf[ƒ^‚ğæ“¾
+  // ï¿½uï¿½ï¿½ï¿½Vï¿½^ï¿½bï¿½`ï¿½Ìƒï¿½ï¿½Xï¿½^ï¿½[ï¿½fï¿½[ï¿½^ï¿½ï¿½ï¿½æ“¾
   void getBrushRasters(std::vector<TRasterP> &brushRasters, TDimension &b_size,
                        int &lastFrame, TTile &tile, const TRenderSettings &ri);
 
@@ -145,7 +145,7 @@ private:
   template <typename RASTER, typename PIXEL>
   void setColorTileToBuffer(const RASTER colorRas, colorRGBA *buf);
 
-  // ‚½‚ß‚µ‚É
+  // ï¿½ï¿½ï¿½ß‚ï¿½ï¿½ï¿½
   template <typename RASTER, typename PIXEL>
   void setOutRaster(const RASTER outRas, double *buf);
 

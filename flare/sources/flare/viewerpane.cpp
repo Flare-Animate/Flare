@@ -8,32 +8,32 @@
 #include "tstopwatch.h"
 
 // TnzLib includes
-#include "toonz/tscenehandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/tframehandle.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/toonzscene.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/txsheet.h"
-#include "toonz/stage.h"
-#include "toonz/stage2.h"
-#include "toonz/txshlevel.h"
-#include "toonz/txshcell.h"
-#include "toonz/tcamera.h"
-#include "toonz/tstageobjecttree.h"
-#include "toonz/tobjecthandle.h"
-#include "toonz/tpalettehandle.h"
-#include "toonz/tonionskinmaskhandle.h"
+#include "flare/tscenehandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/tframehandle.h"
+#include "flare/tcolumnhandle.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/toonzscene.h"
+#include "flare/sceneproperties.h"
+#include "flare/txsheet.h"
+#include "flare/stage.h"
+#include "flare/stage2.h"
+#include "flare/txshlevel.h"
+#include "flare/txshcell.h"
+#include "flare/tcamera.h"
+#include "flare/tstageobjecttree.h"
+#include "flare/tobjecthandle.h"
+#include "flare/tpalettehandle.h"
+#include "flare/tonionskinmaskhandle.h"
 #include "toutputproperties.h"
-#include "toonz/preferences.h"
-#include "toonz/tproject.h"
+#include "flare/preferences.h"
+#include "flare/tproject.h"
 
 // TnzQt includes
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/gutil.h"
-#include "toonzqt/imageutils.h"
+#include "flareqt/menubarcommand.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/gutil.h"
+#include "flareqt/imageutils.h"
 
 // TnzTools includes
 #include "tools/toolhandle.h"
@@ -1038,3 +1038,4 @@ void ViewerPreviewCommands::onSubCameraPreview() {
 }
 
 ViewerPreviewCommands viewerPreviewCommands;
+

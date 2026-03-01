@@ -1,0 +1,376 @@
+
+
+#include "flare/txshlevelcolumn.h"
+
+// TnzLib includes
+#include "flare/txshsimplelevel.h"
+#include "flare/txshcell.h"
+#include "flare/tcolumnfxset.h"
+#include "flare/tcolumnfx.h"
+#include "flare/txshleveltypes.h"
+
+// TnzCore includes
+#include "tstream.h"
+
+// Qt includes
+#include <QRegularExpression>
+
+//-----------------------------------------------------------------------------
+
+namespace {
+TFrameId qstringToFrameId(const QString &str) {
+  if (str.isEmpty() || str == "-1") {
+    return TFrameId::EMPTY_FRAME;
+  } else if (str == "-" || str == "-2") {
+    return TFrameId::NO_FRAME;
+  }
+
+  QString regExpStr = QString("^%1$").arg(TFilePath::fidRegExpStr());
+  QRegularExpression rx(regExpStr);
+  QRegularExpressionMatch match = rx.match(str);
+
+  if (!match.hasMatch()) {
+    return TFrameId();
+  }
+
+  if (match.captured(2).isEmpty()) {
+    return TFrameId(match.captured(1).toInt());
+  } else {
+    return TFrameId(match.captured(1).toInt(), match.captured(2));
+  }
+}
+}  // namespace
+
+//-----------------------------------------------------------------------------
+
+//=============================================================================
+// TXshLevelColumn
+
+TXshLevelColumn::TXshLevelColumn()
+    : m_fx(new TLevelColumnFx()), m_iconVisible(false) {
+  m_fx->addRef();
+  m_fx->setColumn(this);
+}
+
+//-----------------------------------------------------------------------------
+
+TXshLevelColumn::~TXshLevelColumn() {
+  m_fx->setColumn(nullptr);
+  m_fx->release();
+  m_fx = nullptr;
+}
+
+//-----------------------------------------------------------------------------
+
+TXshColumn::ColumnType TXshLevelColumn::getColumnType() const {
+  return ColumnType::eLevelType;
+}
+
+//----------------------------------------------------------------------------
+
+bool TXshLevelColumn::canSetCell(const TXshCell &cell) const {
+  if (cell.isEmpty()) {
+    return true;
+  }
+
+  TXshSimpleLevel *sl = cell.getSimpleLevel();
+  if (sl) {
+    return (sl->getType() & LEVELCOLUMN_XSHLEVEL) != 0;
+  }
+
+  return cell.getChildLevel() != nullptr;
+}
+
+//-----------------------------------------------------------------------------
+
+TLevelColumnFx *TXshLevelColumn::getLevelColumnFx() const { return m_fx; }
+
+//-----------------------------------------------------------------------------
+
+TFx *TXshLevelColumn::getFx() const { return m_fx; }
+
+//-----------------------------------------------------------------------------
+
+TXshColumn *TXshLevelColumn::clone() const {
+  TXshLevelColumn *column = new TXshLevelColumn;
+  column->setStatusWord(getStatusWord());
+  column->setOpacity(getOpacity());
+  column->m_cells = m_cells;
+  column->m_first = m_first;
+  column->setColorTag(getColorTag());
+  column->setColorFilterId(getColorFilterId());
+
+  return column;
+}
+
+//-----------------------------------------------------------------------------
+
+void TXshLevelColumn::loadData(TIStream &is) {
+  std::string tagName;
+  while (is.openChild(tagName)) {
+    if (tagName == "status") {
+      int status = 0;
+      is >> status;
+      setStatusWord(status);
+      if ((status & eCamstandTransparent43) != 0) {
+        setOpacity(128);
+        status = status & ~eCamstandTransparent43;
+      }
+    } else if (tagName == "camerastand_opacity") {
+      int opacity = 0;
+      is >> opacity;
+      setOpacity(static_cast<UCHAR>(opacity));
+    } else if (tagName == "filter_color_id") {
+      int id = 0;
+      is >> id;
+      setColorFilterId(id);
+    } else if (tagName == "cells") {
+      while (is.openChild(tagName)) {
+        if (tagName == "cell") {
+          TPersist *p = nullptr;
+          std::string str;
+          int row = 1, rowCount = 1, increment = 0;
+          TFilePath path;
+          is >> row >> rowCount >> p >> str >> increment;
+
+          TFrameId fid = qstringToFrameId(QString::fromStdString(str));
+          assert((fid.getLetter().isEmpty() && rowCount >= 0) ||
+                 (!fid.getLetter().isEmpty() && rowCount == 1));
+
+          TXshLevel *xshLevel = dynamic_cast<TXshLevel *>(p);
+          if (xshLevel) {
+            int fidNumber = fid.getNumber();
+            for (int i = 0; i < rowCount; i++) {
+              TXshCell cell(xshLevel, fid);
+              setCell(row++, cell);
+              // rowCount > 1 => fid has no letter.
+              fidNumber += increment;
+              fid = TFrameId(fidNumber);
+            }
+          }
+        } else {
+          throw TException("TXshLevelColumn, unknown tag(2): " + tagName);
+        }
+        is.closeChild();
+      }
+    } else if (tagName == "fx") {
+      TPersist *p = nullptr;
+      is >> p;
+      if (TLevelColumnFx *lcf = dynamic_cast<TLevelColumnFx *>(p)) {
+        lcf->addRef();
+        if (m_fx) {
+          m_fx->release();
+        }
+        m_fx = lcf;
+        lcf->setColumn(this);
+      }
+    } else if (tagName ==
+               "fxnodes") {  // For compatibility with 1.x and earlier
+      TFxSet fxSet;
+      fxSet.loadData(is);
+    } else if (loadCellMarks(tagName, is)) {
+      // Do nothing
+    } else {
+      throw TException("TXshLevelColumn, unknown tag: " + tagName);
+    }
+    is.closeChild();
+  }
+}
+
+//-----------------------------------------------------------------------------
+
+void TXshLevelColumn::saveData(TOStream &os) {
+  os.child("status") << getStatusWord();
+
+  if (getOpacity() < 255) {
+    os.child("camerastand_opacity") << static_cast<int>(getOpacity());
+  }
+
+  if (getColorFilterId() != 0) {
+    os.child("filter_color_id") << static_cast<int>(getColorFilterId());
+  }
+
+  int r0 = 0, r1 = 0;
+  if (getRange(r0, r1)) {
+    os.openChild("cells");
+    for (int r = r0; r <= r1; r++) {
+      TXshCell cell = getCell(r);
+      if (cell.isEmpty()) {
+        continue;
+      }
+
+      TFrameId fid = cell.m_frameId;
+      int n = 1, inc = 0, dr = fid.getNumber();
+
+      // If fid has no letter, save more than one cell and its increment;
+      // otherwise save one cell.
+      if (r < r1 && fid.getLetter().isEmpty()) {
+        TXshCell cell2 = getCell(r + 1);
+        TFrameId fid2  = cell2.m_frameId;
+        if (cell2.m_level.getPointer() == cell.m_level.getPointer() &&
+            fid2.getLetter().isEmpty()) {
+          inc = cell2.m_frameId.getNumber() - dr;
+          n++;
+          for (;;) {
+            if (r + n > r1) {
+              break;
+            }
+            cell2         = getCell(r + n);
+            TFrameId fid2 = cell2.m_frameId;
+            if (cell2.m_level.getPointer() != cell.m_level.getPointer() ||
+                !fid2.getLetter().isEmpty()) {
+              break;
+            }
+            if (fid2.getNumber() != dr + n * inc) {
+              break;
+            }
+            n++;
+          }
+        }
+      }
+
+      os.child("cell") << r << n << cell.m_level.getPointer() << fid.expand()
+                       << inc;
+      r += n - 1;
+    }
+    os.closeChild();
+  }
+
+  os.child("fx") << m_fx;
+
+  // Save cell marks
+  saveCellMarks(os);
+}
+
+//-----------------------------------------------------------------------------
+// Used in TCellData::getNumbers
+// reservedLevel can be nonzero if the preferences option
+// "LinkColumnNameWithLevel" is ON and the column name is the same as some level
+// in the scene cast.
+bool TXshLevelColumn::setNumbers(int row, int rowCount, const TXshCell cells[],
+                                 TXshLevel *reservedLevel) {
+  if (m_cells.empty() && !reservedLevel) {
+    return false;
+  }
+
+  // Check availability.
+  // - if source cells are all empty, do nothing
+  // - also, if source or target cells contain NO_FRAME, do nothing
+  bool isSrcAllEmpty = true;
+  for (int i = 0; i < rowCount; i++) {
+    // Checking target cells
+    int currentTgtIndex = row + i - m_first;
+    if (currentTgtIndex < static_cast<int>(m_cells.size())) {
+      TXshCell tgtCell = m_cells[currentTgtIndex];
+      if (!tgtCell.isEmpty() && tgtCell.m_frameId == TFrameId::NO_FRAME) {
+        return false;
+      }
+    }
+
+    // Checking source cells
+    TXshCell srcCell = cells[i];
+    if (!srcCell.isEmpty()) {
+      if (srcCell.m_frameId == TFrameId::NO_FRAME) {
+        return false;
+      }
+      isSrcAllEmpty = false;
+    }
+  }
+
+  if (isSrcAllEmpty) {
+    return false;
+  }
+
+  // Find a level to input.
+  // If the first target cell is empty, search the upper cells, and lower cells
+  // and use a level of first found occupied neighbor cell.
+  TXshLevelP currentLevel = reservedLevel;
+  int tmpIndex = std::min(row - m_first, static_cast<int>(m_cells.size()) - 1);
+
+  // Search upper cells
+  if (!currentLevel) {
+    while (tmpIndex >= 0) {
+      TXshCell tmpCell = m_cells[tmpIndex];
+      if (!tmpCell.isEmpty() && tmpCell.m_frameId != TFrameId::NO_FRAME) {
+        currentLevel = tmpCell.m_level;
+        break;
+      }
+      tmpIndex--;
+    }
+  }
+
+  // If not found any level in upper cells, then search the lower cells
+  if (!currentLevel) {
+    tmpIndex = std::max(row - m_first, 0);
+    while (tmpIndex < static_cast<int>(m_cells.size())) {
+      TXshCell tmpCell = m_cells[tmpIndex];
+      if (!tmpCell.isEmpty() && tmpCell.m_frameId != TFrameId::NO_FRAME) {
+        currentLevel = tmpCell.m_level;
+        break;
+      }
+      tmpIndex++;
+    }
+
+    // In the case any level for input could not be found
+    if (!currentLevel) {
+      return false;
+    }
+  }
+
+  // Resize the cell container
+  int ra   = row;
+  int rb   = row + rowCount - 1;
+  int c_rb = m_first + static_cast<int>(m_cells.size()) - 1;
+
+  if (row > c_rb) {
+    int newCellCount = row - m_first + rowCount;
+    m_cells.resize(newCellCount);
+  } else if (row < m_first) {
+    int delta = m_first - row;
+    m_cells.insert(m_cells.begin(), delta, TXshCell());
+    m_first = row;
+  }
+
+  if (rb > c_rb) {
+    for (int i = 0; i < rb - c_rb; ++i) {
+      m_cells.push_back(TXshCell());
+    }
+  }
+
+  // Paste numbers
+  for (int i = 0; i < rowCount; i++) {
+    int dstIndex     = row - m_first + i;
+    TXshCell dstCell = m_cells[dstIndex];
+    TXshCell srcCell = cells[i];
+
+    if (srcCell.isEmpty()) {
+      m_cells[dstIndex] = TXshCell();
+    } else {
+      if (!dstCell.isEmpty()) {
+        currentLevel = dstCell.m_level;
+      }
+      m_cells[dstIndex] = TXshCell(currentLevel, srcCell.m_frameId);
+    }
+  }
+
+  // Update the cell container
+  while (!m_cells.empty() && m_cells.back().isEmpty()) {
+    m_cells.pop_back();
+  }
+
+  while (!m_cells.empty() && m_cells.front().isEmpty()) {
+    m_cells.erase(m_cells.begin());
+    m_first++;
+  }
+
+  if (m_cells.empty()) {
+    m_first = 0;
+  }
+
+  return true;
+}
+
+//-----------------------------------------------------------------------------
+
+PERSIST_IDENTIFIER(TXshLevelColumn, "levelColumn")
+

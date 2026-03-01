@@ -1,0 +1,13 @@
+<Project>
+  <!--
+    Disable vcpkg's MSBuild AppLocalFromInstalled target.
+    The default (true) causes applocal.ps1 / qtdeploy.ps1 to deploy DLLs
+    and log wildcard patterns (e.g. libcrypto-*-x64.dll) into .tlog files.
+    MSBuild's RegisterOutput target then reads these and reports MSB3541
+    ("Files has invalid value … Illegal characters in path.").
+    Turning this off prevents the issue at source.
+  -->
+  <PropertyGroup>
+    <VcpkgApplocalDeps>false</VcpkgApplocalDeps>
+  </PropertyGroup>
+</Project>

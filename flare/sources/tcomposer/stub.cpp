@@ -1,17 +1,17 @@
 
 
 #include "toolmanager.h"
-#include "toonz/tsecurity.h"
+#include "flare/tsecurity.h"
 #include "drawingobserver.h"
 #include "tdata.h"
 #include "selection.h"
 #include "thumbnail.h"
 #include "movieoptions.h"
 #include "tpalette.h"
-#include "toonz/application.h"
+#include "flare/application.h"
 #include "dagviewer.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/imagemanager.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/imagemanager.h"
 #include "xshselection.h"
 #include "fxcontroller.h"
 #include "tthread.h"
@@ -190,3 +190,4 @@ void postThreadMsg(TThread::Msg *) { return; }
 DEFINE_CLASS_CODE(TData, 16)
 
 #endif
+

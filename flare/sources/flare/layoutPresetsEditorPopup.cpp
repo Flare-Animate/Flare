@@ -12,22 +12,22 @@
 #include <QListWidgetItem>
 #include <qpointer.h>
 
-#include "toonzqt/filefield.h"
-#include "toonzqt/doublefield.h"
+#include "flareqt/filefield.h"
+#include "flareqt/doublefield.h"
 #include "tenv.h"
 #include "layoutUtils.h"
 #include "tapp.h"
 #include "tsystem.h"
 #include <QtGlobal>
 #include <algorithm>
-#include "toonzqt/colorfield.h"
+#include "flareqt/colorfield.h"
 #include "tpixel.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/toonzscene.h"
-#include "toonz/sceneproperties.h"
+#include "flare/tscenehandle.h"
+#include "flare/toonzscene.h"
+#include "flare/sceneproperties.h"
 #include "viewerdraw.h"
-#include "toonz/toonzfolders.h"
-#include <toonzqt/dvdialog.h>
+#include "flare/toonzfolders.h"
+#include "flareqt/dvdialog.h"
 
 //=============================================================================
 LayoutPresetsEditorPopup* LayoutPresetsEditorPopup::s_instance = nullptr;

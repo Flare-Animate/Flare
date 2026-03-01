@@ -31,45 +31,45 @@
 #include "tools/toolhandle.h"
 
 // ToonzQt includes
-#include "toonzqt/gutil.h"
-#include "toonzqt/icongenerator.h"
-#include "toonzqt/swatchviewer.h"
-#include "toonzqt/tselectionhandle.h"
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/imageutils.h"
+#include "flareqt/gutil.h"
+#include "flareqt/icongenerator.h"
+#include "flareqt/swatchviewer.h"
+#include "flareqt/tselectionhandle.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/imageutils.h"
 
 // ToonzLib includes
-#include "toonz/palettecontroller.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/tobjecthandle.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/tframehandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/tpalettehandle.h"
-#include "toonz/toonzscene.h"
-#include "toonz/tproject.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/txshchildlevel.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/levelproperties.h"
-#include "toonz/stage2.h"
-#include "toonz/imagemanager.h"
-#include "toonz/sceneresources.h"
-#include "toonz/txshsoundlevel.h"
-#include "toonz/txshpalettecolumn.h"
-#include "toonz/txshpalettelevel.h"
-#include "toonz/txshleveltypes.h"
-#include "toonz/txshsoundtextcolumn.h"
-#include "toonz/tstageobjecttree.h"
-#include "toonz/levelset.h"
-#include "toonz/namebuilder.h"
-#include "toonz/fullcolorpalette.h"
-#include "toonz/palettecmd.h"
-#include "toonz/toonzimageutils.h"
-#include "toonz/imagestyles.h"
+#include "flare/palettecontroller.h"
+#include "flare/tscenehandle.h"
+#include "flare/tobjecthandle.h"
+#include "flare/tcolumnhandle.h"
+#include "flare/tframehandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/tpalettehandle.h"
+#include "flare/toonzscene.h"
+#include "flare/tproject.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/txshchildlevel.h"
+#include "flare/sceneproperties.h"
+#include "flare/levelproperties.h"
+#include "flare/stage2.h"
+#include "flare/imagemanager.h"
+#include "flare/sceneresources.h"
+#include "flare/txshsoundlevel.h"
+#include "flare/txshpalettecolumn.h"
+#include "flare/txshpalettelevel.h"
+#include "flare/txshleveltypes.h"
+#include "flare/txshsoundtextcolumn.h"
+#include "flare/tstageobjecttree.h"
+#include "flare/levelset.h"
+#include "flare/namebuilder.h"
+#include "flare/fullcolorpalette.h"
+#include "flare/palettecmd.h"
+#include "flare/toonzimageutils.h"
+#include "flare/imagestyles.h"
 #include "toutputproperties.h"
-#include "toonz/studiopalette.h"
+#include "flare/studiopalette.h"
 #include "convert2tlv.h"
 
 // TnzCore includes
@@ -2072,7 +2072,7 @@ bool IoCmd::loadScene(const TFilePath &path, bool updateRecentFile,
         !areAlmostEqual(dpi.y, Stage::standardDpi, 0.1)) {
       QString question = QObject::tr(
           "This scene is incompatible with pixels only mode of the current "
-          "OpenToonz version.\nWhat would you like to do?");
+          "Flare version.\nWhat would you like to do?");
       QString turnOffPixelAnswer = QObject::tr("Turn off pixels only mode");
       QString resizeSceneAnswer =
           QObject::tr("Keep pixels only mode on and resize the scene");
@@ -2943,12 +2943,12 @@ void IoCmd::renameResources(
       QString label = QObject::tr(
                           "Image sequence detected, but the filenames are "
                           "missing a separator: \n"
-                          "OpenToonz requires a separator (such as an "
+                          "Flare requires a separator (such as an "
                           "underscore (_) or dot (.) \n"
                           "between the name and the frame number to recognize "
                           "sequences properly.\n"
                           "Example: A0001.png → A.0001.png\n"
-                          "\nWould you like OpenToonz to automatically add a "
+                          "\nWould you like Flare to automatically add a "
                           "dot to fix the sequence format?\n"
                           "\n%1 (and similar files)")
                           .arg(path.getQString());
@@ -3466,3 +3466,4 @@ public:
   SaveAllLevelsCommandHandler() : MenuItemHandler(MI_SaveAllLevels) {}
   void execute() { IoCmd::saveNonSceneFiles(); }
 } saveAllLevelsCommandHandler;
+

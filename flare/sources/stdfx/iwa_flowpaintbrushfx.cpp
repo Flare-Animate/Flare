@@ -29,12 +29,12 @@ bool strokeStackGraterThan(const BrushStroke &stroke1,
 }  // namespace
 
 //------------------------------------------------------------
-// obtain raster data of brush tips ƒuƒ‰ƒVƒ^ƒbƒ`‚Ìƒ‰ƒXƒ^[ƒf[ƒ^‚ğæ“¾
+// obtain raster data of brush tips ï¿½uï¿½ï¿½ï¿½Vï¿½^ï¿½bï¿½`ï¿½Ìƒï¿½ï¿½Xï¿½^ï¿½[ï¿½fï¿½[ï¿½^ï¿½ï¿½ï¿½æ“¾
 void Iwa_FlowPaintBrushFx::getBrushRasters(std::vector<TRasterP> &brushRasters,
                                            TDimension &b_size, int &lastFrame,
                                            TTile &tile,
                                            const TRenderSettings &ri) {
-  // ƒuƒ‰ƒVƒeƒNƒXƒ`ƒƒî•ñ
+  // ï¿½uï¿½ï¿½ï¿½Vï¿½eï¿½Nï¿½Xï¿½`ï¿½ï¿½ï¿½ï¿½ï¿½
   TPointD b_offset;
   const TFxTimeRegion &tr = m_brush->getTimeRegion();
   lastFrame               = tr.getLastFrame() + 1;
@@ -382,7 +382,7 @@ void Iwa_FlowPaintBrushFx::fillGapByDilateAndErode(double *buf,
     }
   }
 
-  // Šï”‰ñ‚ÌƒtƒBƒ‹ƒ^ƒŠƒ“ƒO‚Ìê‡AŒvZŒ‹‰Ê‚Ítmp_buf‚É“ü‚Á‚Ä‚¢‚é‚Ì‚Åbuf‚ÉƒRƒs[‚·‚é
+  // ï¿½ï”ï¿½ï¿½Ìƒtï¿½Bï¿½ï¿½ï¿½^ï¿½ï¿½ï¿½ï¿½ï¿½Oï¿½Ìê‡ï¿½Aï¿½vï¿½Zï¿½ï¿½ï¿½Ê‚ï¿½tmp_bufï¿½É“ï¿½ï¿½ï¿½ï¿½Ä‚ï¿½ï¿½ï¿½Ì‚ï¿½bufï¿½ÉƒRï¿½sï¿½[ï¿½ï¿½ï¿½ï¿½
   if (fill_gap_size % 2 == 1) {
     memcpy(buf, tmp_buf, dim.lx * dim.ly * sizeof(double));
   }
@@ -395,14 +395,14 @@ void Iwa_FlowPaintBrushFx::computeBrushVertices(
     QVector<BrushVertex> &brushVertices, QList<BrushStroke> &brushStrokes,
     FlowPaintBrushFxParam &p, TTile &tile, double frame,
     const TRenderSettings &ri) {
-  // ŒÅ’è‚·‚éƒ^ƒbƒ`FŠî€ƒtƒŒ[ƒ€‚ÌAreaAColor‚ğ—p‚¢‚Ä¶¬AƒJƒŒƒ“ƒgƒtƒŒ[ƒ€‚ÌFlow‚ğ—p‚¢‚Ä—¬‚·
-  // “®‚©‚·ƒ^ƒbƒ`FAreaAColorAFlow‚·‚×‚ÄƒJƒŒƒ“ƒgƒtƒŒ[ƒ€‚ğ—p‚¢‚éB
+  // ï¿½Å’è‚·ï¿½ï¿½^ï¿½bï¿½`ï¿½Fï¿½î€ï¿½tï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½ï¿½Areaï¿½AColorï¿½ï¿½pï¿½ï¿½ï¿½Äï¿½ï¿½ï¿½ï¿½Aï¿½Jï¿½ï¿½ï¿½ï¿½ï¿½gï¿½tï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½ï¿½Flowï¿½ï¿½pï¿½ï¿½ï¿½Ä—ï¿½ï¿½ï¿½
+  // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½^ï¿½bï¿½`ï¿½FAreaï¿½AColorï¿½AFlowï¿½ï¿½ï¿½×‚ÄƒJï¿½ï¿½ï¿½ï¿½ï¿½gï¿½tï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½ï¿½pï¿½ï¿½ï¿½ï¿½B
   int referenceFrame = (int)std::round(m_reference_frame->getValue(frame)) - 1;
   double reference_prevalence = m_reference_prevalence->getValue(frame);
   bool bidirectional          = m_bidirectional->getValue();
 
   FlowPaintBrushFxParam pivP =
-      getParam(tile, referenceFrame, ri);  // TODO: ‚±‚±A“ñ“xèŠÔ–h‚°‚é
+      getParam(tile, referenceFrame, ri);  // TODO: ï¿½ï¿½ï¿½ï¿½ï¿½Aï¿½ï¿½xï¿½ï¿½Ô–hï¿½ï¿½ï¿½ï¿½
   pivP.lastFrame                  = p.lastFrame;
   FlowPaintBrushFxParam *param[2] = {&p, &pivP};
 
@@ -415,13 +415,13 @@ void Iwa_FlowPaintBrushFx::computeBrushVertices(
   TRaster32P ras32 = tile.getRaster();
   TRaster64P ras64 = tile.getRaster();
 
-  // ‚»‚ê‚¼‚ê‚ÌQÆ‰æ‘œ‚ğæ“¾
+  // ï¿½ï¿½ï¿½ê‚¼ï¿½ï¿½ÌQï¿½Æ‰æ‘œï¿½ï¿½ï¿½æ“¾
   for (int f = 0; f < 2; f++) {
-    // ReferenceƒtƒŒ[ƒ€‚ÍƒtƒŒ[ƒ€‚ª-1–”‚Íprevalence‚ª‚O‚Ìê‡ŒvZ‚µ‚È‚¢
+    // Referenceï¿½tï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½Íƒtï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½ï¿½-1ï¿½ï¿½ï¿½ï¿½prevalenceï¿½ï¿½ï¿½Oï¿½Ìê‡ï¿½vï¿½Zï¿½ï¿½ï¿½È‚ï¿½
     int tmp_f = ref_frame[f];
     if (f == 1 && (tmp_f < 0 || reference_prevalence == 0.0)) continue;
 
-    // ‚Ü‚¸AFlow‚ğŒvZ
+    // ï¿½Ü‚ï¿½ï¿½AFlowï¿½ï¿½ï¿½vï¿½Z
     if (m_flow.isConnected()) {
       // obtain Flow memory buffer (XY)
       TTile flowTile;
@@ -439,9 +439,9 @@ void Iwa_FlowPaintBrushFx::computeBrushVertices(
         setFlowTileToBuffer<TRaster64P, TPixel64>(flowTile.getRaster(),
                                                   flow_buf[f]);
     }
-    // ƒJƒŒƒ“ƒgƒtƒŒ[ƒ€‚Íprevalence‚ª‚P‚Ìê‡Flow‚Ì‚İŒvZ
+    // ï¿½Jï¿½ï¿½ï¿½ï¿½ï¿½gï¿½tï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½ï¿½prevalenceï¿½ï¿½ï¿½Pï¿½Ìê‡Flowï¿½Ì‚İŒvï¿½Z
     if (f == 0 && reference_prevalence == 1.0) continue;
-    // Area‚ÆColor‚ğŒvZ
+    // Areaï¿½ï¿½Colorï¿½ï¿½ï¿½vï¿½Z
     if (m_area.isConnected()) {
       TTile areaTile;
       m_area->allocateAndCompute(areaTile, param[f]->bbox.getP00(),
@@ -458,7 +458,7 @@ void Iwa_FlowPaintBrushFx::computeBrushVertices(
         setAreaTileToBuffer<TRaster64P, TPixel64>(areaTile.getRaster(),
                                                   area_buf[f]);
 
-      // ŠÔ‚ğ‚¤‚ß‚é
+      // ï¿½Ô‚ï¿½ï¿½ï¿½ï¿½ß‚ï¿½
       if (param[f]->fill_gap_size > 0)
         fillGapByDilateAndErode(area_buf[f], param[f]->dim,
                                 param[f]->fill_gap_size);
@@ -520,29 +520,29 @@ void Iwa_FlowPaintBrushFx::computeBrushVertices(
     return color_buf[fType][v * param[fType]->dim.lx + u];
   };
 
-  // ƒ‰ƒ“ƒ_ƒ€‚Ìİ’è
+  // ï¿½ï¿½ï¿½ï¿½ï¿½_ï¿½ï¿½ï¿½Ìİ’ï¿½
   std::mt19937_64 mt, mt_cur;  // , mt_ref;
   mt.seed(p.random_seed);
   mt_cur.seed(
       (unsigned int)(p.random_seed +
-                     (int)std::round(frame)));  // ƒtƒŒ[ƒ€–ˆ‚Éƒoƒ‰‚Â‚©‚¹‚é“®‚«
+                     (int)std::round(frame)));  // ï¿½tï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½ï¿½ï¿½Éƒoï¿½ï¿½ï¿½Â‚ï¿½ï¿½ï¿½ï¿½é“®ï¿½ï¿½
   std::uniform_real_distribution<> random01(0.0, 1.0);
   std::uniform_int_distribution<> random_textureId(0, p.lastFrame - 1);
   std::uniform_real_distribution<> random_plusminus1(-1.0, 1.0);
 
-  // ƒ^ƒbƒ`‚Ì’¸“_À•W‚ğ“o˜^‚µ‚Ä‚¢‚­
+  // ï¿½^ï¿½bï¿½`ï¿½Ì’ï¿½ï¿½_ï¿½ï¿½ï¿½Wï¿½ï¿½oï¿½^ï¿½ï¿½ï¿½Ä‚ï¿½ï¿½ï¿½
   double v_incr        = 1.0 / p.v_density;
   double h_incr        = 1.0 / p.h_density;
   double v_base_pos    = v_incr * 0.5;
   double segmentAmount = (double)p.reso * 2 - 1;
 
-  int id = 0;  // Map‚ÌƒL[‚É‚È‚é’Ê‚µ”Ô†
+  int id = 0;  // Mapï¿½ÌƒLï¿½[ï¿½É‚È‚ï¿½Ê‚ï¿½ï¿½Ôï¿½
   for (int v = 0; v < (int)p.v_density; v++, v_base_pos += v_incr) {
     double h_base_pos = h_incr * 0.5;
     for (int h = 0; h < (int)p.h_density; h++, h_base_pos += h_incr, id++) {
       BrushStroke brushStroke;
 
-      // reference‚©ƒJƒŒƒ“ƒg‚©
+      // referenceï¿½ï¿½ï¿½Jï¿½ï¿½ï¿½ï¿½ï¿½gï¿½ï¿½
       FRAMETYPE frameType =
           (referenceFrame >= 0 && random01(mt) <= reference_prevalence)
               ? REFERENCE
@@ -558,19 +558,19 @@ void Iwa_FlowPaintBrushFx::computeBrushVertices(
         pos_y += (random01(mt) - 0.5) * pivP.pos_randomness * v_incr;
       }
       if (pos_x < 0.0 || pos_x > 1.0 || pos_y < 0.0 || pos_y > 1.0) {
-        mt.discard(7);  // ‚±‚±A‚±‚ÌŒã‚Ìƒ‰ƒ“ƒ_ƒ€¶¬‰ñ”•ª‚ª“ü‚é
+        mt.discard(7);  // ï¿½ï¿½ï¿½ï¿½ï¿½Aï¿½ï¿½ï¿½ÌŒï¿½Ìƒï¿½ï¿½ï¿½ï¿½_ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ñ”•ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         mt_cur.discard(2);
         continue;
       }
 
-      //  Area’l‚ğE‚¤À•W
+      //  Areaï¿½lï¿½ï¿½ï¿½Eï¿½ï¿½ï¿½ï¿½ï¿½W
       TPointD areaSamplePos =
           param[frameType]->brushAff * TPointD(pos_x, pos_y);
-      // ¶¬”ÍˆÍ‚ÌQÆ‰æ‘œ‚Ì‹P“x‚ğæ“¾
+      // ï¿½ï¿½ï¿½ï¿½ï¿½ÍˆÍ‚ÌQï¿½Æ‰æ‘œï¿½Ì‹Pï¿½xï¿½ï¿½ï¿½æ“¾
       double areaVal = getArea(areaSamplePos, frameType);
-      // ”­¶‚·‚é‚©‚µ‚È‚¢‚©
+      // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½é‚©ï¿½ï¿½ï¿½È‚ï¿½ï¿½ï¿½
       if (random01(mt) > areaVal) {
-        mt.discard(6);  // ‚±‚±‚É‚àA‚±‚ÌŒã‚Ìƒ‰ƒ“ƒ_ƒ€¶¬‰ñ”•ª‚ª“ü‚é
+        mt.discard(6);  // ï¿½ï¿½ï¿½ï¿½ï¿½É‚ï¿½ï¿½Aï¿½ï¿½ï¿½ÌŒï¿½Ìƒï¿½ï¿½ï¿½ï¿½_ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ñ”•ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         mt_cur.discard(2);
         continue;
       }
@@ -578,12 +578,12 @@ void Iwa_FlowPaintBrushFx::computeBrushVertices(
       double2 wobble;
       wobble.x = (random01(mt_cur) - 0.5) * p.pos_wobble * h_incr;
       wobble.y = (random01(mt_cur) - 0.5) * p.pos_wobble * v_incr;
-      // Œ»İ‚ÌƒZƒOƒƒ“ƒg‚ÌƒŒƒ“ƒ_ƒŠƒ“ƒOÀ•W
+      // ï¿½ï¿½ï¿½İ‚ÌƒZï¿½Oï¿½ï¿½ï¿½ï¿½ï¿½gï¿½Ìƒï¿½ï¿½ï¿½ï¿½_ï¿½ï¿½ï¿½ï¿½ï¿½Oï¿½ï¿½ï¿½W
       brushStroke.originPos = TPointD(pos_x + wobble.x, pos_y + wobble.y);
 
       brushStroke.color = getColor(areaSamplePos, frameType);
       double alpha      = lerp(param[frameType]->tipAlpha, areaVal);
-      // premultiply ‚È‚Ì‚ÅRGB’l‚É‚à‚©‚¯‚é
+      // premultiply ï¿½È‚Ì‚ï¿½RGBï¿½lï¿½É‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
       brushStroke.color.r *= alpha;
       brushStroke.color.g *= alpha;
       brushStroke.color.b *= alpha;
@@ -608,41 +608,41 @@ void Iwa_FlowPaintBrushFx::computeBrushVertices(
       bool inv           = random01(mt) < 0.5;
       brushStroke.invert = (bidirectional) ? inv : false;
 
-      // ‚Ü‚¸Ac‚É‚È‚é•”•ª‚ÌÀ•W‚ğŒvZ‚·‚é
+      // ï¿½Ü‚ï¿½ï¿½Aï¿½cï¿½É‚È‚é•”ï¿½ï¿½ï¿½Ìï¿½ï¿½Wï¿½ï¿½ï¿½vï¿½Zï¿½ï¿½ï¿½ï¿½
       QVector<TPointD> centerPosHalf[2];
 
       double segLen =
           brushStroke.length /
-          segmentAmount;  // ƒZƒOƒƒ“ƒg‚Ğ‚Æ‚Â•ª‚Ì’·‚³Biƒuƒ‰ƒVÀ•WŒnj
+          segmentAmount;  // ï¿½Zï¿½Oï¿½ï¿½ï¿½ï¿½ï¿½gï¿½Ğ‚Æ‚Â•ï¿½ï¿½Ì’ï¿½ï¿½ï¿½ï¿½Bï¿½iï¿½uï¿½ï¿½ï¿½Vï¿½ï¿½ï¿½Wï¿½nï¿½j
 
       bool tooCurve[2] = {false, false};
       TPointD originFlow;
-      // ‘OŒã•ûŒü
+      // ï¿½Oï¿½ï¿½ï¿½ï¿½ï¿½
       for (int dir = 0; dir < 2; dir++) {
-        // curPos‚ğ‰ŠúˆÊ’u‚É
+        // curPosï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê’uï¿½ï¿½
         TPointD curPos(brushStroke.originPos);
         TPointD preFlowUV;
         TPointD startFlow;
         for (int s = 0; s < param[frameType]->reso; s++) {
-          // @Œ»İ‚ÌƒZƒOƒƒ“ƒg‚ÌƒŒƒ“ƒ_ƒŠƒ“ƒOÀ•W
+          // ï¿½@ï¿½ï¿½ï¿½İ‚ÌƒZï¿½Oï¿½ï¿½ï¿½ï¿½ï¿½gï¿½Ìƒï¿½ï¿½ï¿½ï¿½_ï¿½ï¿½ï¿½ï¿½ï¿½Oï¿½ï¿½ï¿½W
           TPointD samplePos = param[CURRENT]->brushAff * curPos;
 
-          // ƒŒƒ“ƒ_ƒŠƒ“ƒOÀ•W‚©‚ç—¬‚êƒxƒNƒgƒ‹ê‚ğæ“¾
+          // ï¿½ï¿½ï¿½ï¿½ï¿½_ï¿½ï¿½ï¿½ï¿½ï¿½Oï¿½ï¿½ï¿½Wï¿½ï¿½ï¿½ç—¬ï¿½ï¿½xï¿½Nï¿½gï¿½ï¿½ï¿½ï¿½ï¿½ï¿½æ“¾
           double2 tmp_flow = getFlow(samplePos, CURRENT);
 
-          // @—¬‚êƒxƒNƒgƒ‹ê‚ğƒuƒ‰ƒVÀ•WŒn‚É•ÏŠ·
+          // ï¿½@ï¿½ï¿½ï¿½ï¿½xï¿½Nï¿½gï¿½ï¿½ï¿½ï¿½ï¿½ï¿½uï¿½ï¿½ï¿½Vï¿½ï¿½ï¿½Wï¿½nï¿½É•ÏŠï¿½
           TPointD flow_uv =
               param[CURRENT]->brushAff.inv() * TPointD(tmp_flow.x, tmp_flow.y) -
               param[CURRENT]->brushAff.inv() * TPointD(0., 0.);
           if (s == 0 && dir == 0) originFlow = flow_uv;
 
-          // ƒxƒNƒgƒ‹‚ğ³‹K‰»
+          // ï¿½xï¿½Nï¿½gï¿½ï¿½ï¿½ğ³‹Kï¿½ï¿½
           flow_uv = normalize(flow_uv);
 
-          // –ß‚é•ûŒü‚Ì‚Æ‚«‚ÍƒxƒNƒgƒ‹‚ğ”½“]
+          // ï¿½ß‚ï¿½ï¿½ï¿½ï¿½ï¿½Ì‚Æ‚ï¿½ï¿½Íƒxï¿½Nï¿½gï¿½ï¿½ï¿½ğ”½“]
           if (dir == 1) flow_uv = -flow_uv;
 
-          // —¬‚ê‚Ì•ûŒü‚ğ‰ñ“]
+          // ï¿½ï¿½ï¿½ï¿½Ì•ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½]
           flow_uv = flow_rot * flow_uv;
 
           if (s != 0) {
@@ -660,24 +660,24 @@ void Iwa_FlowPaintBrushFx::computeBrushVertices(
 
           if (s == 0) startFlow = flow_uv;
 
-          // ƒxƒNƒgƒ‹‚ğƒZƒOƒƒ“ƒg’·•ª‚Ì‚Î‚µAŸ‚Ì“_‚Æ‚·‚éBÅ‰‚ÌƒZƒOƒƒ“ƒg‚Í”¼•ª‚Ì’·‚³B
+          // ï¿½xï¿½Nï¿½gï¿½ï¿½ï¿½ï¿½ï¿½Zï¿½Oï¿½ï¿½ï¿½ï¿½ï¿½gï¿½ï¿½ï¿½ï¿½ï¿½Ì‚Î‚ï¿½ï¿½Aï¿½ï¿½ï¿½Ì“_ï¿½Æ‚ï¿½ï¿½ï¿½Bï¿½Åï¿½ï¿½ÌƒZï¿½Oï¿½ï¿½ï¿½ï¿½ï¿½gï¿½Í”ï¿½ï¿½ï¿½ï¿½Ì’ï¿½ï¿½ï¿½ï¿½B
           TPointD nextPos = curPos + flow_uv * segLen * ((s == 0) ? 0.5 : 1.0);
 
-          // ’¸“_‚ğŠi”[
+          // ï¿½ï¿½ï¿½_ï¿½ï¿½ï¿½iï¿½[
           centerPosHalf[dir].push_back(nextPos);
 
-          // curPos‚ği‚ß‚é
+          // curPosï¿½ï¿½iï¿½ß‚ï¿½
           curPos = nextPos;
         }
       }
 
       if (tooCurve[0] && tooCurve[1]) continue;
-      // —¼•ûŠŠ‚ç‚©‚Èê‡
+      // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ç‚©ï¿½Èê‡
       if (!tooCurve[0] && !tooCurve[1]) {
         brushStroke.centerPos = centerPosHalf[1];
         for (auto pos : centerPosHalf[0]) brushStroke.centerPos.push_front(pos);
       }
-      // •Ğ•û‚¾‚¯‹}ƒJ[ƒu‚Ìê‡AŠŠ‚ç‚©‚È•û‚ÌƒJ[ƒu‚ğ”½‘Î‘¤‚É”½“]‚µ‚Ä‰„’·‚·‚é
+      // ï¿½Ğ•ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½}ï¿½Jï¿½[ï¿½uï¿½Ìê‡ï¿½Aï¿½ï¿½ï¿½ç‚©ï¿½È•ï¿½ï¿½ÌƒJï¿½[ï¿½uï¿½ğ”½‘Î‘ï¿½ï¿½É”ï¿½ï¿½]ï¿½ï¿½ï¿½Ä‰ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
       else {
         int OkId = (tooCurve[0]) ? 1 : 0;
         TPointD origin(pos_x, pos_y);
@@ -693,39 +693,39 @@ void Iwa_FlowPaintBrushFx::computeBrushVertices(
         }
       }
 
-      // ‚±‚±‚ÅAŠî€ƒtƒŒ[ƒ€‚Ì—¬‚ê‚ÌŒü‚«‚É]‚Á‚ÄƒeƒNƒXƒ`ƒƒ‚ÌŒü‚«‚ğ‚»‚ë‚¦‚Ä‚İ‚é
+      // ï¿½ï¿½ï¿½ï¿½ï¿½ÅAï¿½î€ï¿½tï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½Ì—ï¿½ï¿½ï¿½ÌŒï¿½ï¿½ï¿½ï¿½É]ï¿½ï¿½ï¿½Äƒeï¿½Nï¿½Xï¿½`ï¿½ï¿½ï¿½ÌŒï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ë‚¦ï¿½Ä‚İ‚ï¿½
       if (referenceFrame >= 0) {
         TPointD referenceSamplePos =
             param[REFERENCE]->brushAff * TPointD(pos_x, pos_y);
         double2 reference_flow = getFlow(referenceSamplePos, REFERENCE);
-        // @—¬‚êƒxƒNƒgƒ‹ê‚ğƒuƒ‰ƒVÀ•WŒn‚É•ÏŠ·
+        // ï¿½@ï¿½ï¿½ï¿½ï¿½xï¿½Nï¿½gï¿½ï¿½ï¿½ï¿½ï¿½ï¿½uï¿½ï¿½ï¿½Vï¿½ï¿½ï¿½Wï¿½nï¿½É•ÏŠï¿½
         TPointD reference_flow_uv =
             param[REFERENCE]->brushAff.inv() *
                 TPointD(reference_flow.x, reference_flow.y) -
             param[REFERENCE]->brushAff.inv() * TPointD(0., 0.);
-        // “àÏ‚ğæ‚èA”½“]‚·‚é‚©”»’f‚·‚é
+        // ï¿½ï¿½ï¿½Ï‚ï¿½ï¿½ï¿½ï¿½Aï¿½ï¿½ï¿½]ï¿½ï¿½ï¿½é‚©ï¿½ï¿½ï¿½fï¿½ï¿½ï¿½ï¿½
         double dot = originFlow.x * reference_flow_uv.x +
                      originFlow.y * reference_flow_uv.y;
         if (dot < 0.0) {
           brushStroke.invert = !brushStroke.invert;
         }
       }
-      // “o˜^
+      // ï¿½oï¿½^
       brushStrokes.append(brushStroke);
     }
   }
 
-  // ƒ‰ƒXƒ^[ƒƒ‚ƒŠ‰ğ•ú
+  // ï¿½ï¿½ï¿½Xï¿½^ï¿½[ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
   for (int f = 0; f < 2; f++) {
     if (flow_buf[f]) flow_buf_ras[f]->unlock();
     if (area_buf[f]) area_buf_ras[f]->unlock();
     if (color_buf[f]) color_buf_ras[f]->unlock();
   }
 
-  // ƒ\[ƒg
+  // ï¿½\ï¿½[ï¿½g
   StackMode stackMode = (StackMode)m_sortBy->getValue();
   if (stackMode != NoSort) {
-    // ‘å‚«‚¢•û‚ª”z—ñ‚Å‘OA‚·‚È‚í‚¿æi‰ºj‚É•`‚©‚ê‚é‚æ‚¤‚É‚·‚é
+    // ï¿½å‚«ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½zï¿½ï¿½Å‘Oï¿½Aï¿½ï¿½ï¿½È‚í‚¿ï¿½ï¿½iï¿½ï¿½ï¿½jï¿½É•`ï¿½ï¿½ï¿½ï¿½ï¿½æ‚¤ï¿½É‚ï¿½ï¿½ï¿½
     for (auto &stroke : brushStrokes) {
       switch (stackMode) {
       case Smaller:
@@ -751,14 +751,14 @@ void Iwa_FlowPaintBrushFx::computeBrushVertices(
     std::sort(brushStrokes.begin(), brushStrokes.end(), strokeStackGraterThan);
   }
 
-  // ƒ^ƒbƒ`‚ğ‚¹‚ñ’f‚É‘Î‚µ‚Ä‚±‚Á‚¿Œü‚¯‚Ä‘¾‚­‚·‚éŠ„‡
+  // ï¿½^ï¿½bï¿½`ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½fï¿½É‘Î‚ï¿½ï¿½Ä‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä‘ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½éŠ„ï¿½ï¿½
   double sustain_width_to_skew = m_sustain_width_to_skew->getValue(frame);
   TPointD curve_point          = m_curve_point->getValue(frame);
-  // ’¸“_À•W‚ğ“o˜^‚µ‚Ä‚¢‚­
+  // ï¿½ï¿½ï¿½_ï¿½ï¿½ï¿½Wï¿½ï¿½oï¿½^ï¿½ï¿½ï¿½Ä‚ï¿½ï¿½ï¿½
   for (auto stroke : brushStrokes) {
     int jointCount = stroke.centerPos.size();
 
-    // ’¸“_ˆÊ’u‚ğƒJ[ƒu‚³‚¹‚Ä‚ä‚ª‚ß‚éƒeƒXƒg
+    // ï¿½ï¿½ï¿½_ï¿½Ê’uï¿½ï¿½ï¿½Jï¿½[ï¿½uï¿½ï¿½ï¿½ï¿½ï¿½Ä‚ä‚ªï¿½ß‚ï¿½eï¿½Xï¿½g
     if (curve_point != TPointD()) {
       for (int s = 0; s < stroke.centerPos.size(); s++) {
         TPointD p = stroke.centerPos[s];
@@ -773,42 +773,42 @@ void Iwa_FlowPaintBrushFx::computeBrushVertices(
     }
 
     for (int s = 0; s < jointCount; s++) {
-      // ‘OŒã‚Ì“_
+      // ï¿½Oï¿½ï¿½Ì“_
       TPointD back = (s == 0) ? stroke.centerPos[0] : stroke.centerPos[s - 1];
       TPointD fore = (s == jointCount - 1) ? stroke.centerPos[jointCount - 1]
                                            : stroke.centerPos[s + 1];
       TPointD vec  = normalize(fore - back);
       TPointD n(-vec.y * stroke.widthHalf, vec.x * stroke.widthHalf);
 
-      // ‚±‚±‚ÅAƒeƒNƒXƒ`ƒƒ‚ğ‚±‚Á‚¿‚ÉŒü‚¯‚éˆ—‚ğ‚¢‚ê‚é
+      // ï¿½ï¿½ï¿½ï¿½ï¿½ÅAï¿½eï¿½Nï¿½Xï¿½`ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÉŒï¿½ï¿½ï¿½ï¿½éˆï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
       if (sustain_width_to_skew > 0.0) {
-        // ‰æ–ÊÀ•W‚É•ÏŠ·
+        // ï¿½ï¿½Êï¿½ï¿½Wï¿½É•ÏŠï¿½
         TPointD nr = param[CURRENT]->brushAff * n -
                      param[CURRENT]->brushAff * TPointD(0, 0);
         TPointD vr = param[CURRENT]->brushAff * vec -
                      param[CURRENT]->brushAff * TPointD(0, 0);
-        // nr ‚Æ vr‚ª‚’¼‚É‚¿‚©‚Ã‚­‚æ‚¤‚ÉAnr‚ğ‰ñ“]‚³‚¹‚é
+        // nr ï¿½ï¿½ vrï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É‚ï¿½ï¿½ï¿½ï¿½Ã‚ï¿½ï¿½æ‚¤ï¿½ÉAnrï¿½ï¿½ï¿½ï¿½]ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         double nr_len = norm(nr);
 
         nr = (1.0 / nr_len) * nr;
         vr = normalize(vr);
 
-        // “àÏ
+        // ï¿½ï¿½ï¿½ï¿½
         double theta     = std::acos(nr * vr);
         double new_theta = sustain_width_to_skew * M_PI * 0.5 +
                            (1.0 - sustain_width_to_skew) * theta;
-        // ŠOÏ‚Ì³•‰‚©‚çAnr‚ªvr‚Ì‚Ç‚Á‚¿‘¤‚É‚ ‚é‚©”»’f
+        // ï¿½Oï¿½Ï‚Ìï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Anrï¿½ï¿½vrï¿½Ì‚Ç‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É‚ï¿½ï¿½é‚©ï¿½ï¿½ï¿½f
         if (cross(vr, nr) < 0) new_theta = -new_theta;
         TPointD new_nr(vr.x * cos(new_theta) - vr.y * sin(new_theta),
                        vr.x * sin(new_theta) + vr.y * cos(new_theta));
         new_nr = nr_len * new_nr;
 
-        // ƒuƒ‰ƒVÀ•W‚É‚à‚Ç‚·
+        // ï¿½uï¿½ï¿½ï¿½Vï¿½ï¿½ï¿½Wï¿½É‚ï¿½ï¿½Ç‚ï¿½
         n = param[CURRENT]->brushAff.inv() *
             (new_nr + param[CURRENT]->brushAff * TPointD(0, 0));
       }
 
-      // ‚Í‚¶‚Á‚±
+      // ï¿½Í‚ï¿½ï¿½ï¿½ï¿½ï¿½
       if (p.anti_jaggy && s == 0) {
         TPointD edgePos = stroke.centerPos[0] * 2.0 - stroke.originPos;
         brushVertices.append(
@@ -827,7 +827,7 @@ void Iwa_FlowPaintBrushFx::computeBrushVertices(
       brushVertices.append(
           BrushVertex(stroke.centerPos[s] - n, 1.0, texCoord_v));
 
-      // ”½‘Î‚Ì‚Í‚¶‚Á‚±
+      // ï¿½ï¿½ï¿½Î‚Ì‚Í‚ï¿½ï¿½ï¿½ï¿½ï¿½
       if (p.anti_jaggy && s == jointCount - 1) {
         TPointD edgePos =
             stroke.centerPos[jointCount - 1] * 2.0 - stroke.originPos;
@@ -850,7 +850,7 @@ void Iwa_FlowPaintBrushFx::doCompute(TTile &tile, double frame,
   TDimension b_size(0, 0);
   int lastFrame = 0;
   std::vector<TRasterP> brushRasters;
-  // ƒuƒ‰ƒVƒ^ƒbƒ`‚Ìƒ‰ƒXƒ^[ƒf[ƒ^‚ğæ“¾
+  // ï¿½uï¿½ï¿½ï¿½Vï¿½^ï¿½bï¿½`ï¿½Ìƒï¿½ï¿½Xï¿½^ï¿½[ï¿½fï¿½[ï¿½^ï¿½ï¿½ï¿½æ“¾
   getBrushRasters(brushRasters, b_size, lastFrame, tile, ri);
 
   if (lastFrame == 0) {
@@ -858,12 +858,12 @@ void Iwa_FlowPaintBrushFx::doCompute(TTile &tile, double frame,
     return;
   }
 
-  // ƒpƒ‰ƒ[ƒ^æ“¾
+  // ï¿½pï¿½ï¿½ï¿½ï¿½ï¿½[ï¿½^ï¿½æ“¾
   FlowPaintBrushFxParam p = getParam(tile, frame, ri);
   p.lastFrame             = lastFrame;
 
   int vCount = p.reso * 4;
-  // ã‰º‚Éƒ}[ƒWƒ“—p‚Ì’¸“_‚ğ’Ç‰Á
+  // ï¿½ã‰ºï¿½Éƒ}ï¿½[ï¿½Wï¿½ï¿½ï¿½pï¿½Ì’ï¿½ï¿½_ï¿½ï¿½Ç‰ï¿½
   if (p.anti_jaggy) vCount += 4;
 
   QVector<BrushVertex> brushVertices;
@@ -894,12 +894,12 @@ void Iwa_FlowPaintBrushFx::doCompute(TTile &tile, double frame,
   context->create();
   context->makeCurrent(ri.m_offScreenSurface.get());
 
-  // ƒeƒNƒXƒ`ƒƒ‚ÌŠm•Û
+  // ï¿½eï¿½Nï¿½Xï¿½`ï¿½ï¿½ï¿½ÌŠmï¿½ï¿½
   std::vector<QOpenGLTexture *> brushTextures;
   for (auto texRas : brushRasters) {
     QImage texImg(texRas->getRawData(), b_size.lx, b_size.ly,
                   QImage::Format_RGBA8888);
-    // ‰¡•‚ğ3”{‚É‚·‚éi¶‰E‚Éx1‚Ìƒ}[ƒWƒ“j
+    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½3ï¿½{ï¿½É‚ï¿½ï¿½ï¿½iï¿½ï¿½ï¿½Eï¿½ï¿½x1ï¿½Ìƒ}ï¿½[ï¿½Wï¿½ï¿½ï¿½j
     if (p.anti_jaggy) {
       QImage resizedImage(texImg.width() * 3, texImg.height() * 2,
                           QImage::Format_RGBA8888);
@@ -920,7 +920,7 @@ void Iwa_FlowPaintBrushFx::doCompute(TTile &tile, double frame,
 
   TDimensionI outDim = tile.getRaster()->getSize();
 
-  // •`‰æ
+  // ï¿½`ï¿½ï¿½
   {
     std::unique_ptr<QOpenGLFramebufferObject> fb(
         new QOpenGLFramebufferObject(p.dim.lx, p.dim.ly));
@@ -971,7 +971,7 @@ void Iwa_FlowPaintBrushFx::doCompute(TTile &tile, double frame,
     QImage img =
         fb->toImage().scaled(QSize(p.dim.lx, p.dim.ly), Qt::IgnoreAspectRatio,
                              Qt::SmoothTransformation);
-    // yÀ•W‚Íã‰º”½“]‚µ‚Ä‚¢‚é‚±‚Æ‚É’ˆÓII
+    // yï¿½ï¿½ï¿½Wï¿½Íã‰ºï¿½ï¿½ï¿½]ï¿½ï¿½ï¿½Ä‚ï¿½ï¿½é‚±ï¿½Æ‚É’ï¿½ï¿½ÓIï¿½I
     QRect subRect(tile.m_pos.x - (int)std::round(p.bbox.getP00().x),
                   (int)std::round(p.bbox.getP01().y) - tile.m_pos.y - outDim.ly,
                   outDim.lx, outDim.ly);

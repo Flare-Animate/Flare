@@ -22,34 +22,34 @@
 #endif
 
 // TnzQt includes
-#include "toonzqt/gutil.h"
-#include "toonzqt/icongenerator.h"
-#include "toonzqt/colorfield.h"
-#include "toonzqt/tselectionhandle.h"
+#include "flareqt/gutil.h"
+#include "flareqt/icongenerator.h"
+#include "flareqt/colorfield.h"
+#include "flareqt/tselectionhandle.h"
 
 // TnzLib includes
-#include "toonz/tscenehandle.h"
-#include "toonz/tpalettehandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/palettecontroller.h"
-#include "toonz/studiopalette.h"
-#include "toonz/toonzscene.h"
-#include "toonz/tproject.h"
-#include "toonz/txshcell.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/tcamera.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/tstageobjecttree.h"
-#include "toonz/txshleveltypes.h"
+#include "flare/tscenehandle.h"
+#include "flare/tpalettehandle.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/palettecontroller.h"
+#include "flare/studiopalette.h"
+#include "flare/toonzscene.h"
+#include "flare/tproject.h"
+#include "flare/txshcell.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/tcamera.h"
+#include "flare/sceneproperties.h"
+#include "flare/tstageobjecttree.h"
+#include "flare/txshleveltypes.h"
 // specify in the preference whether to replace the level after saveLevelAs
 // command
-#include "toonz/preferences.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/tframehandle.h"
-#include "toonz/levelset.h"
-#include "toonz/palettecmd.h"
-#include "toonz/stage.h"
+#include "flare/preferences.h"
+#include "flare/tcolumnhandle.h"
+#include "flare/tframehandle.h"
+#include "flare/levelset.h"
+#include "flare/palettecmd.h"
+#include "flare/stage.h"
 
 // TnzCore includes
 #include "tsystem.h"
@@ -2232,7 +2232,7 @@ void ReplaceParentDirectoryPopup::initFolder() {
 // ImportMagpieFilePopup
 
 ImportMagpieFilePopup::ImportMagpieFilePopup()
-    : FileBrowserPopup(tr("Import Toonz Lip Sync File")) {
+    : FileBrowserPopup(tr("Import Flare Lip Sync File")) {
   setOkText(tr("Load"));
   addFilterType("tls");
 }
@@ -2405,3 +2405,4 @@ OpenReplaceFilePopupHandler<ReplaceLevelPopup> replaceLevelPopupCommand(
     MI_ReplaceLevel);
 OpenReplaceFilePopupHandler<ReplaceParentDirectoryPopup>
     replaceParentFolderPopupCommand(MI_ReplaceParentDirectory);
+

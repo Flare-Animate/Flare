@@ -1,20 +1,20 @@
 #include "fillholespopup.h"
-#include "toonz/fill.h"
+#include "flare/fill.h"
 
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/intfield.h"
-#include "toonzqt/menubarcommand.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/intfield.h"
+#include "flareqt/menubarcommand.h"
 #include "menubarcommandids.h"
 #include "selectionutils.h"
-#include "toonz/txshlevel.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/txshleveltypes.h"
+#include "flare/txshlevel.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/txshleveltypes.h"
 #include "ttoonzimage.h"
 #include "tools/toolutils.h"
 #include "tundo.h"
-#include "toonz/ttileset.h"
-#include "toonz/ttilesaver.h"
-#include "toonz/txsheethandle.h"
+#include "flare/ttileset.h"
+#include "flare/ttilesaver.h"
+#include "flare/txsheethandle.h"
 
 #include <QPushButton>
 #include <QProgressBar>
@@ -81,7 +81,7 @@ void FillHolesDialog::apply() {
   }
   int size = Frames.size();
   if (size == 0) {
-    DVGui::warning(tr("No Toonz Raster Level Selected"));
+    DVGui::warning(tr("No Flare Raster Level Selected"));
     return;
   } else {
     m_progressDialog =

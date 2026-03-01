@@ -1,4 +1,4 @@
-﻿/*------------------------------------
+/*------------------------------------
 Iwa_BarrelDistortFx
 Generates the barrel/pincushion distort.
 Based on an approximated model for radial distortion

@@ -12,25 +12,25 @@
 #include "tfxutil.h"
 
 // TnzQt includes
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/gutil.h"
+#include "flareqt/menubarcommand.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/gutil.h"
 
 // TnzLib includes
-#include "toonz/preferences.h"
-#include "toonz/toonzscene.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/txsheet.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/fxdag.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/tcamera.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/onionskinmask.h"
-#include "toonz/observer.h"
-#include "toonz/scenefx.h"
-#include "toonz/movierenderer.h"
-#include "toonz/multimediarenderer.h"
+#include "flare/preferences.h"
+#include "flare/toonzscene.h"
+#include "flare/tscenehandle.h"
+#include "flare/txsheet.h"
+#include "flare/txsheethandle.h"
+#include "flare/fxdag.h"
+#include "flare/tcolumnhandle.h"
+#include "flare/tcamera.h"
+#include "flare/sceneproperties.h"
+#include "flare/onionskinmask.h"
+#include "flare/observer.h"
+#include "flare/scenefx.h"
+#include "flare/movierenderer.h"
+#include "flare/multimediarenderer.h"
 #include "toutputproperties.h"
 
 #ifdef _WIN32
@@ -898,3 +898,4 @@ void RenderCommand::doRender(bool isPreview) {
 }
 
 //===================================================================
+

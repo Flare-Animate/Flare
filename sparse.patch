@@ -1,0 +1,59 @@
+From bee4a1566f3ad4b65e56057d66df3f80b887b304 Mon Sep 17 00:00:00 2001
+From: CharlieDoesStuff <charliephilp@outlook.com>
+Date: Tue, 24 Feb 2026 21:17:36 +0000
+Subject: [PATCH] Switch to sparse clone to avoid LFS file checkout failures
+
+---
+ .github/workflows/workflow_windows.yml | 35 +++++++-------------------
+ 1 file changed, 9 insertions(+), 26 deletions(-)
+
+diff --git a/.github/workflows/workflow_windows.yml b/.github/workflows/workflow_windows.yml
+index 4aa5dcc09..e50408a46 100644
+--- a/.github/workflows/workflow_windows.yml
++++ b/.github/workflows/workflow_windows.yml
+@@ -26,33 +26,16 @@ jobs:
+       GIT_LFS_SKIP_SMUDGE: '1'
+ 
+     steps:
+-      - uses: actions/checkout@v4
+-        id: checkout
+-        with:
+-          # check out full history and enable LFS handling; we'll explicitly avoid
+-          # pulling any large objects later so the job never stalls on the LFS
+-          # service (previously failed with exit code 2).
+-          lfs: true
+-          fetch-depth: 0
+-        continue-on-error: true
+-      # avoid downloading any LFS-tracked binaries; they are not needed for a
+-      # build and often trigger network errors on the runner
+-      - name: Disable LFS downloads
+-        run: |
+-          git lfs install --skip-smudge
+-          git lfs pull --exclude="*"
+-        shell: cmd
+-
+-      # fallback if checkout step failed (git 128 errors sometimes occur on runners)
+-      - name: Fallback manual clone
+-        # continue-on-error makes outcome succeed even on failure; check conclusion instead
+-        if: steps.checkout.conclusion == 'failure'
++      # manually perform a sparse clone excluding thirdparty to avoid any LFS
++      # pointers (the build later downloads its own thirdparty package).
++      - name: Sparse clone repository
+         run: |
+-          echo "checkout step failed, attempting manual clone"
+-          rd /s /q . || true
+-          git clone https://github.com/Flare-Animate/Flare.git . || exit /b 1
+-          git lfs install --skip-smudge || exit /b 1
+-          git lfs pull --exclude="*" || exit /b 1
++          git init .
++          git remote add origin https://github.com/Flare-Animate/Flare.git
++          git config core.sparseCheckout true
++          echo "/*" > .git/info/sparse-checkout
++          echo "!/thirdparty/*" >> .git/info/sparse-checkout
++          git -c protocol.version=2 -c advice.detachedHead=false pull --depth=1 origin HEAD
+         shell: cmd
+ 
+       # 1. Herramientas
+-- 
+2.52.0.windows.1
+

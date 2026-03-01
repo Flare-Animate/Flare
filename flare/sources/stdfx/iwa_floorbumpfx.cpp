@@ -1,4 +1,4 @@
-﻿#include "iwa_floorbumpfx.h"
+#include "iwa_floorbumpfx.h"
 
 #include "tparamuiconcept.h"
 #include "iwa_fresnel.h"

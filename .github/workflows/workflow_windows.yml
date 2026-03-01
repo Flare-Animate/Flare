@@ -1,157 +1,269 @@
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow
 name: Windows Build
 
 on:
   push:
-    branches:
-      - master  # Specify branches where the workflow should run
-    paths:
-      - '**/*'                                    # Include all files in the repository
-      - '!appveyor.yml'                           # Ignore changes in AppVeyor
-      - '!README.md'                              # Exclude README
-      - '!doc/**'                                 # Exclude documentation
-      - '!**/.github/**'                          # Exclude everything in .github folder
-      - '.github/workflows/workflow_windows.yml'  # Include Windows workflow file
+    branches: [ master, B4uti4github-patch-1 ]
   pull_request:
-    paths:
-      - '**/*'
-      - '!appveyor.yml'
-      - '!README.md'
-      - '!doc/**'
-      - '!**/.github/**'
-      - '.github/workflows/workflow_windows.yml'
+    branches: [ master ]
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
 
 jobs:
   Windows:
-    runs-on: windows-2025
+    runs-on: windows-2022
     env:
-      # QT related variable
-      QT_PATH: ${{ github.workspace }}/thirdparty/qt/5.15.2_wintab/msvc2019_64  # Path to custom Qt (forward slashes for CMake)
-
-      # Visual Studio related variables
-      MSVCVERSION: "Visual Studio 17 2022"  # Visual Studio version
-      
-      # Boost-related variables      
-      BOOST_TOOLSET: "14.3"                 # Boost MSVC Toolset version
-      BOOST_VERSION: "1.87.0"               # Boost version
-      BOOST_ROOT: C:\local\boost_1_87_0     # Path to Boost library root
-      
-      # OpenCV-related variables      
-      OPENCV_VERSION: "4.11.0"              # OpenCV version
-      OpenCV_DIR: C:\tools\opencv\build     # Path to OpenCV
+      MSVCVERSION: "Visual Studio 17 2022"
+      BOOST_TOOLSET: "14.3"
+      BOOST_VERSION: "1.87.0"
+      BOOST_ROOT: C:\local\boost_1_87_0
+      OPENCV_VERSION: "4.11.0"
+      OpenCV_DIR: C:\tools\opencv\build
+      CCACHE_DIR: ${{ github.workspace }}\.ccache
+      GIT_LFS_SKIP_SMUDGE: '1'
 
     steps:
-      - uses: actions/checkout@v6
+      - name: Checkout repository
+        uses: actions/checkout@v4
         with:
           lfs: false
+          fetch-depth: 0
 
-      # Cache OpenCV and Boost libraries
-      - name: Cache OpenCV and Boost
-        id: cache-deps
-        uses: actions/cache@v5
+      - name: Install Build Tools
+        run: |
+          choco install ccache -y
+          ccache -M 2G
+        shell: cmd
+
+      - name: Add msbuild to PATH
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Download and Force Third-Party Libs
+        run: |
+          @echo on
+          :: 1. Download thirdparty libs
+          curl -fsSL -o libs.zip https://github.com/andeon/opentoonz-thirdparty-libs/releases/download/prebuilt-libs-v1/thirdparty-libs.zip
+          
+          :: 2. Remove existing thirdparty to replace LFS pointers with real files
+          if exist thirdparty rmdir /S /Q thirdparty
+          
+          :: 3. Extract
+          7z x -y libs.zip -othirdparty
+          
+          :: 4. Configure headers
+          cd thirdparty
+          
+          copy /Y tiff-4.0.3\libtiff\tif_config.vc.h tiff-4.0.3\libtiff\tif_config.h
+          copy /Y tiff-4.0.3\libtiff\tiffconf.vc.h tiff-4.0.3\libtiff\tiffconf.h
+          copy /Y libpng-1.6.21\scripts\pnglibconf.h.prebuilt libpng-1.6.21\pnglibconf.h
+          
+          cd ..
+          
+          :: 5. Set environment variable
+          echo THIRDPARTY_DIR=%GITHUB_WORKSPACE%\thirdparty>> %GITHUB_ENV%
+          del /Q libs.zip
+        shell: cmd
+
+      - name: Install custom Qt 5.15.2
+        run: |
+          @echo on
+          if not exist thirdparty\qt mkdir thirdparty\qt
+          set RETRY=0
+          :DL
+          curl -fsSL -o Qt5.15.2_wintab.zip https://github.com/shun-iwasawa/qt5/releases/download/v5.15.2_wintab/Qt5.15.2_wintab.zip || set /a RETRY+=1
+          if %ERRORLEVEL% NEQ 0 if %RETRY% LEQ 3 (echo download failed, retrying && goto DL)
+          if %ERRORLEVEL% NEQ 0 (echo Qt zip download failed after retries & exit /b 1)
+          
+          :: Extract contents
+          7z x -y Qt5.15.2_wintab.zip -othirdparty\qt
+          
+          :: --- AUTO-DETECT QT PATH ---
+          set "DETECTED_QT="
+          for /f "delims=" %%i in ('dir /b /s "thirdparty\qt\qmake.exe"') do (
+              set "QMAKE_PATH=%%~dpi"
+          )
+          
+          :: Remove \bin\ from path to get Qt root
+          if defined QMAKE_PATH (
+              set "DETECTED_QT=%QMAKE_PATH:\bin\=%"
+              echo Found Qt at: %DETECTED_QT%
+          ) else (
+              echo ERROR: qmake.exe not found!
+              dir thirdparty\qt /s
+              exit /b 1
+          )
+
+          :: Save to GITHUB_ENV
+          echo QT_PATH=%DETECTED_QT%>> %GITHUB_ENV%
+        shell: cmd
+
+      - name: Cache System Dependencies (OpenCV/Boost)
+        id: build-cache
+        uses: actions/cache@v4
         with:
           path: |
             C:\tools\opencv
             ${{ env.BOOST_ROOT }}
-          key: ${{ runner.os }}-opencv-boost-${{ env.OPENCV_VERSION }}-boost-${{ env.BOOST_VERSION }}
-          restore-keys: |
-            ${{ runner.os }}-opencv-boost-${{ env.OPENCV_VERSION }}-boost-
+          key: ${{ runner.os }}-deps-${{ env.OPENCV_VERSION }}-${{ env.BOOST_VERSION }}
 
-      # Install OpenCV and Boost if the cache is missing
-      - name: Install OpenCV and Boost if cache is missing
-        if: steps.cache-deps.outputs.cache-hit != 'true'
-        run: |
-          @echo on
-          choco install opencv --version=${{ env.OPENCV_VERSION }} -y
-          choco install boost-msvc-${{ env.BOOST_TOOLSET }} --version=${{ env.BOOST_VERSION }} -y
-        shell: cmd
-
-      # Install custom Qt 5.15.2 with WinTab support
-      - name: Install custom Qt 5.15.2 with WinTab support
-        run: |
-          @echo on
-          mkdir thirdparty\qt
-          curl -fsSL -o Qt5.15.2_wintab.zip https://github.com/shun-iwasawa/qt5/releases/download/v5.15.2_wintab/Qt5.15.2_wintab.zip
-          7z x Qt5.15.2_wintab.zip
-          move Qt5.15.2_wintab\5.15.2_wintab thirdparty\qt
-        shell: cmd
-
-      - name: Install third-party prebuilt libs (LFS workaround)
-        run: |
-          @echo on
-          curl -fsSL -o thirdparty-libs.zip https://github.com/andeon/opentoonz-thirdparty-libs/releases/download/prebuilt-libs-v1/thirdparty-libs.zip
-          7z x -y thirdparty-libs.zip
-        shell: cmd    
-
-      # Add msbuild to PATH for build process
-      - name: Add msbuild to PATH
-        uses: microsoft/setup-msbuild@v2
-
-      # CMake configuration step
-      - name: CMake configuration
-        run: |
-          @echo on
-          cd thirdparty
-          copy /Y tiff-4.0.3\libtiff\tif_config.vc.h tiff-4.0.3\libtiff\tif_config.h
-          copy /Y tiff-4.0.3\libtiff\tiffconf.vc.h tiff-4.0.3\libtiff\tiffconf.h
-          copy /Y libpng-1.6.21\scripts\pnglibconf.h.prebuilt libpng-1.6.21\pnglibconf.h
-
-          cd ../flare
-          rmdir /S /Q build
-          mkdir build
-          cd build
-
-          cmake ..\sources -G "%MSVCVERSION%" -Ax64 -DQT_PATH="%QT_PATH%" -DBOOST_ROOT="%BOOST_ROOT%" -DOpenCV_DIR="%OpenCV_DIR%" -DWITH_WINTAB=Y
-        shell: cmd
-
-      # Build Opentoonz using MSBuild
-      - name: Build Opentoonz
-        run: |
-          @echo on
-          cd flare\build
-          msbuild /p:Configuration=RelWithDebInfo /m /verbosity:minimal ALL_BUILD.vcxproj
-        shell: cmd
-
-      # Create the package
-      - name: Create Package
-        run: |
-          @echo on
-          cd flare\build
-          
-          REM Create Opentoonz directory and copy files from RelWithDebInfo
-          mkdir Opentoonz
-          copy /Y RelWithDebInfo\*.* Opentoonz\
-          REM Copy required DLLs for proper functionality
-          copy /Y ..\..\thirdparty\glut\3.7.6\lib\glut64.dll Opentoonz
-          copy /Y ..\..\thirdparty\glew\glew-1.9.0\bin\64bit\glew32.dll Opentoonz
-          copy /Y ..\..\thirdparty\libmypaint\dist\64\libiconv-2.dll Opentoonz
-          copy /Y ..\..\thirdparty\libmypaint\dist\64\libintl-8.dll Opentoonz
-          copy /Y ..\..\thirdparty\libmypaint\dist\64\libjson-c-2.dll Opentoonz
-          copy /Y ..\..\thirdparty\libmypaint\dist\64\libmypaint-1-4-0.dll Opentoonz
-          
-          REM Copy OpenCV DLL (IMPORTANT: Update path/filename when upgrading OpenCV version)
-          copy /Y "C:\tools\opencv\build\x64\vc16\bin\opencv_world4110.dll" Opentoonz
-          
-          REM Deploy Qt dependencies
-          "%QT_PATH%\bin\windeployqt.exe" Opentoonz\Opentoonz.exe --opengl
-          
-          del /Q Opentoonz\*.pdb  REM Remove .pdb files
-          del /Q Opentoonz\vc_redist.x64.exe REM Remove vc_redist.x64.exe file
-          
-          REM Create portablestuff directory and copy stuff folder
-          mkdir Opentoonz\portablestuff
-          xcopy /Y /E /I ..\..\stuff .\Opentoonz\portablestuff
-        shell: cmd
-
-      # Create artifact from the build
-      - name: Create Artifact
-        run: |
-          mkdir artifact
-          xcopy flare\build\Opentoonz artifact\ /E /H /Y
-        shell: cmd
-
-      # Upload the generated artifact
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v6
+      - name: ccache storage
+        uses: actions/cache@v4
         with:
-          name: Opentoonz-${{ runner.os }}-${{ github.sha }}
-          path: artifact
+          path: ${{ env.CCACHE_DIR }}
+          key: ${{ runner.os }}-ccache-${{ github.run_id }}
+          restore-keys: |
+            ${{ runner.os }}-ccache-
+
+      - name: Install Windows dependencies
+        shell: cmd
+        run: |
+          @echo on
+          if not exist ci-scripts\windows\setup-deps.cmd (
+            echo ERROR: dependency script not found at ci-scripts\windows\setup-deps.cmd
+            dir ci-scripts\windows
+            exit /b 1
+          )
+          call ci-scripts\windows\setup-deps.cmd
+
+      - name: Dump environment
+        if: always()
+        shell: cmd
+        run: |
+          @echo Environment variables at this point:
+          set
+
+      - name: Configure CMake
+        run: |
+          @echo on
+          if exist build rmdir /S /Q build
+          mkdir build
+          cmake -S flare/sources -B build -G "%MSVCVERSION%" -A x64 ^
+            -DQT_PATH="%QT_PATH%" ^
+            -DBOOST_ROOT="%BOOST_ROOT%" ^
+            -DOpenCV_DIR="%OpenCV_DIR%" ^
+            -DTHIRDPARTY_DIR="%THIRDPARTY_DIR%" ^
+            -DWITH_WINTAB=ON ^
+            -DWITH_SYSTEM_LZO=ON ^
+            -DWITH_LZODRIVER=OFF ^
+            -DCMAKE_TOOLCHAIN_FILE="%VCPKG_ROOT%\scripts\buildsystems\vcpkg.cmake" ^
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache ^
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache ^
+            -DCMAKE_BUILD_TYPE=RelWithDebInfo > build\cmake_configure.log 2>&1
+          if %ERRORLEVEL% NEQ 0 (
+            type build\cmake_configure.log
+            exit /b %ERRORLEVEL%
+          )
+        shell: cmd
+
+      - name: Archive build logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs-windows
+          path: |
+            build\cmake_configure.log
+            build\build.log
+          if-no-files-found: ignore
+
+      - name: Build Flare
+        run: |
+          cmake --build build --config RelWithDebInfo --parallel 4 > build\build.log 2>&1
+          set rc=%ERRORLEVEL%
+          echo --- CMake configure log ---
+          if exist build\cmake_configure.log type build\cmake_configure.log
+          echo --- Build log ---
+          if exist build\build.log type build\build.log
+          if %rc% NEQ 0 (
+            echo Build failed with exit code %rc%
+            exit /b %rc%
+          )
+          if not exist build\RelWithDebInfo\Flare.exe (
+            echo ERROR: Flare.exe not produced; listing contents of build\RelWithDebInfo
+            dir build\RelWithDebInfo /s /b
+            exit /b 1
+          )
+        shell: cmd
+
+      - name: Upload build logs (always)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs-windows-final
+          path: |
+            build\cmake_configure.log
+            build\build.log
+          if-no-files-found: ignore
+
+      - name: Create Package and Final Artifact
+        run: |
+          @echo on
+          :: 1. Create clean folder
+          if exist FlarePortable rmdir /S /Q FlarePortable
+          mkdir FlarePortable
+
+          :: 2. Copy EXE
+          for /f "delims=" %%i in ('dir /b /s "build\Flare.exe" ^| findstr /v "CMakeFiles"') do copy /Y "%%i" FlarePortable\Flare.exe
+          
+          :: 3. Copy DLLs
+          for /f "delims=" %%d in ('dir /b /s "build\*.dll" ^| findstr /i "RelWithDebInfo" ^| findstr /v "CMakeFiles"') do copy /Y "%%d" FlarePortable\
+
+          :: 4. Validation
+          if not exist "FlarePortable\Flare.exe" (
+              echo ERROR: Flare.exe not found. Listing exe files:
+              dir /s /b build | findstr /i ".exe"
+              exit /b 1
+          )
+
+          :: 5. External dependencies (thirdparty and OpenCV)
+          echo Copying x64 dependencies...
+          for /f "delims=" %%l in ('dir /b /s "thirdparty\*.dll" ^| findstr /i "64 x64"') do copy /Y "%%l" FlarePortable\
+          
+          for /f "delims=" %%j in ('dir /b /s "C:\tools\opencv\*x64*\bin\opencv_world*.dll" 2^>nul') do copy /Y "%%j" FlarePortable\
+
+          :: 6. Deploy Qt + MSVC runtime
+          echo Running windeployqt...
+          "%QT_PATH%\bin\windeployqt.exe" "FlarePortable\Flare.exe" --opengl --compiler-runtime
+
+          :: 7. Portable mode (stuff -> portablestuff)
+          if exist "stuff" (
+              mkdir "FlarePortable\portablestuff"
+              xcopy /Y /E /I "stuff" "FlarePortable\portablestuff"
+          )
+
+          :: 8. Cleanup
+          del /S /Q FlarePortable\*.pdb 2>nul
+        shell: cmd
+
+      - name: Upload Flare Portable
+        uses: actions/upload-artifact@v4
+        with:
+          name: Flare-Windows-Portable
+          path: FlarePortable/
+          if-no-files-found: error
+
+      - name: Post build logs to PR
+        if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && always() }}
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const pr = context.payload.pull_request ? context.payload.pull_request.number : undefined;
+            if (!pr) { core.info('Not a pull_request event; skipping PR log posting.'); return; }
+            function readTrunc(path) {
+              try {
+                if (!fs.existsSync(path)) return '(missing)';
+                const content = fs.readFileSync(path, 'utf8');
+                if (content.length > 12000) return content.slice(0, 6000) + '\n\n... (truncated) ...\n\n' + content.slice(-6000);
+                return content;
+              } catch (e) { return `(error reading ${path}): ${e.message}`; }
+            }
+            const cmake = readTrunc('build/cmake_configure.log');
+            const build = readTrunc('build/build.log');
+            const note = (!fs.existsSync('build/cmake_configure.log') && !fs.existsSync('build/build.log')) ? '\n\n**Note:** log files missing \u2013 checkout or prior step may have failed.' : '';
+            const body = `**Automated build logs (truncated)**\n\n--- CMake configure log ---\n${cmake}\n\n--- Build log ---\n${build}${note}`;
+            await github.rest.issues.createComment({ owner, repo, issue_number: pr, body });

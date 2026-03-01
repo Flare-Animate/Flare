@@ -7,7 +7,7 @@ do
            ;;
         d) DIST=$OPTARG
            ;;
-        h) echo "-t opentoonz_repository_dir -d dist_dir"
+        h) echo "-t flare_repository_dir -d dist_dir"
            exit 1;
            ;;
         \?) exit 1
@@ -34,9 +34,9 @@ mkdir doc
 
 cp $TOONZREPO/LICENSE.txt ./
 # Source code has been moved into the 'flare' top-level folder; keep the original internal lib names
-cp $TOONZREPO/flare/sources/toonzqt/toonz_plugin.h core/
-cp $TOONZREPO/flare/sources/toonzqt/toonz_hostif.h core/
-cp $TOONZREPO/flare/sources/toonzqt/toonz_params.h core/
+cp $TOONZREPO/flare/sources/flareqt/flare_plugin.h core/
+cp $TOONZREPO/flare/sources/flareqt/flare_hostif.h core/
+cp $TOONZREPO/flare/sources/flareqt/flare_params.h core/
 
 cp $TOONZREPO/plugins/utils/affine.hpp utils/
 cp $TOONZREPO/plugins/utils/rect.hpp utils/

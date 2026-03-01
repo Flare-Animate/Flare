@@ -2,7 +2,7 @@ set(MOC_HEADERS
     controlpointselection.h
     edittoolgadgets.h
     filltool.h
-    fullcolorbrushtool.h
+    # fullcolorbrushtool.h will be added conditionally below
     fullcolorfilltool.h
     plastictool.h
     skeletonsubtools.h
@@ -19,12 +19,16 @@ set(MOC_HEADERS
     ../include/tools/tooloptions.h
 )
 
+# enable moc for fullcolorbrushtool only if MyPaint is enabled
+if(ENABLE_MYPaint)
+    list(APPEND MOC_HEADERS fullcolorbrushtool.h)
+endif()
+
 set(HEADERS
     ${MOC_HEADERS}
     autofill.h
     bluredbrush.h
     hookselection.h
-    mypainttoonzbrush.h
     rasterselectiontool.h
     rgbpickertool.h
     rulertool.h
@@ -66,6 +70,14 @@ set(HEADERS
     ../include/tools/assistants/guidelineellipse.h
 )
 
+# add mypaint headers when enabled
+if(ENABLE_MYPaint)
+    list(APPEND HEADERS
+        mypainttoonzbrush.h
+        fullcolorbrushtool.h
+    )
+endif()
+
 set(SOURCES
     autofillpli.cpp
     autofilltlv.cpp
@@ -81,7 +93,6 @@ set(SOURCES
     edittool.cpp
     edittoolgadgets.cpp
     filltool.cpp
-    fullcolorbrushtool.cpp
     fullcolorerasertool.cpp
     fullcolorfilltool.cpp
     geometrictool.cpp
@@ -123,7 +134,6 @@ set(SOURCES
     screenpicker.cpp
     fingertool.cpp
     rulertool.cpp
-    mypainttoonzbrush.cpp
     shifttracetool.cpp
     toonzrasterbrushtool.cpp
     toonzvectorbrushtool.cpp
@@ -157,6 +167,14 @@ set(SOURCES
     editassistantstool.cpp
 )
 
+# append mypaint sources if enabled
+if(ENABLE_MYPaint)
+    list(APPEND SOURCES
+        fullcolorbrushtool.cpp
+        mypainttoonzbrush.cpp
+    )
+endif()
+
 set(RESOURCES tnztools.qrc)
 
 qt5_add_resources(SOURCES ${RESOURCES})
@@ -174,7 +192,7 @@ add_definitions(
 
 if(BUILD_ENV_APPLE)
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-install_name,@executable_path/libtnztools.dylib")
-    add_dependencies(tnztools tnzcore tnzbase tnzext toonzlib toonzqt)
+    add_dependencies(tnztools tnzcore tnzbase tnzext flarelib flareqt)
 endif()
 
 message("subdir: tnztools")
@@ -188,6 +206,7 @@ include_directories(
     ../include/tools
 )
 
-_find_toonz_library(EXTRA_LIBS "tnzcore;tnzbase;tnzext;toonzlib;toonzqt")
+_find_flare_library(EXTRA_LIBS "tnzcore;tnzbase;tnzext;flarelib;flareqt")
 
-target_link_libraries(tnztools Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Network Qt5::OpenGL ${GLUT_LIB} ${EXTRA_LIBS} ${GL_LIB} ${MYPAINT_LIB_LDFLAGS})
+target_link_libraries(tnztools Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Network Qt5::OpenGL ${GLUT_LIB} ${EXTRA_LIBS} ${GL_LIB}
+    $<$<BOOL:${ENABLE_MYPaint}>:${MYPAINT_LIB_LDFLAGS}>)

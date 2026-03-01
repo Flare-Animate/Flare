@@ -1,14 +1,14 @@
 ## Notice about modified Qt
 
- If you are using Windows version of OpenToonz installed from the installer 
- provided from OpenToonz website (https://opentoonz.github.io/), Qt libraries 
+ If you are using Windows version of Flare installed from the installer 
+ provided from Flare website (https://flare-animate.github.io/), Qt libraries 
  distributed with the software may be our customized version. 
  The other OS versions (macOS, Linux) are not the case. 
 
 
 ### To check whether the Qt libraries are customized.
 
-  - Launch OpenToonz.
+  - Launch Flare.
   - Open Preferences.
   - Check if there is a checkbox "Use Qt's Native Windows Ink Support" in the 
     "Touch / Tablet Settings" category.
@@ -70,6 +70,6 @@
 
 ----------
 March 26, 2021
-Shun Iwasawa, OpenToonz team
+Shun Iwasawa, Flare team
 
 

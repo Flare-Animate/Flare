@@ -8,13 +8,13 @@
 #include "tapp.h"
 
 // TnzQt includes
-#include "toonzqt/tselectionhandle.h"
+#include "flareqt/tselectionhandle.h"
 
 #include "menubarcommandids.h"
 #include "tundo.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/toonzscene.h"
+#include "flare/tscenehandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/toonzscene.h"
 #include "historytypes.h"
 
 // Qt includes
@@ -249,3 +249,4 @@ void DuplicatePopup::getValues(int &count, int &upTo) {
 }
 
 OpenPopupCommandHandler<DuplicatePopup> openDuplicatePopup(MI_Dup);
+

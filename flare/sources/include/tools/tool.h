@@ -4,10 +4,10 @@
 #define TOOL_INCLUDED
 
 // TnzLib includes
-#include "toonz/tstageobjectid.h"
-#include "toonz/txsheet.h"
-#include "toonz/imagepainter.h"
-#include "toonz/tapplication.h"
+#include "flare/tstageobjectid.h"
+#include "flare/txsheet.h"
+#include "flare/imagepainter.h"
+#include "flare/tapplication.h"
 #include "tools/cursors.h"
 
 // TnzCore includes
@@ -19,8 +19,8 @@
 #include <QString>
 #include <QPoint>
 
-#include "toonzqt/glwidget_for_highdpi.h"
-#include "toonzqt/imageutils.h"
+#include "flareqt/glwidget_for_highdpi.h"
+#include "flareqt/imageutils.h"
 
 #undef DVAPI
 #undef DVVAR
@@ -168,7 +168,7 @@ right-click menus</LI>
             Toonz enforces a strict classification of its tools that is used to
 enable or disable them
             in the appropriate contexts:
-<UL>
+#include "UL"
               <LI> <B>Generic Tools:</B> the tool is always enabled, since it
 does not need to access
                     specific scene contents. Hidden tools typically prefer to
@@ -192,7 +192,7 @@ disabled. It is also disabled in
                     case the current level is of a type unsupported for write,
 \a or the level is read-only
                     on disk.</LI>
-</UL>
+#include "/UL"
             Furthermore, tools define a bitwise combination of <I>Target
 Types</I>, which are the category
             of level types it can work on (including every image type and the
@@ -760,3 +760,4 @@ public:
 };
 
 #endif
+

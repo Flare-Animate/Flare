@@ -19,22 +19,22 @@
 #include "tools/stylepicker.h"
 
 // TnzQt includes
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/viewcommandids.h"
-#include "toonzqt/imageutils.h"
-#include "toonzqt/lutcalibrator.h"
-#include "toonzqt/camerasettingswidget.h"
+#include "flareqt/menubarcommand.h"
+#include "flareqt/viewcommandids.h"
+#include "flareqt/imageutils.h"
+#include "flareqt/lutcalibrator.h"
+#include "flareqt/camerasettingswidget.h"
 
 // TnzLib includes
-#include "toonz/tscenehandle.h"
-#include "toonz/toonzscene.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/palettecontroller.h"
-#include "toonz/tpalettehandle.h"
-#include "toonz/preferences.h"
-#include "toonz/tcamera.h"
-#include "toonz/stage.h"
-#include "toonz/stagevisitor.h"
+#include "flare/tscenehandle.h"
+#include "flare/toonzscene.h"
+#include "flare/sceneproperties.h"
+#include "flare/palettecontroller.h"
+#include "flare/tpalettehandle.h"
+#include "flare/preferences.h"
+#include "flare/tcamera.h"
+#include "flare/stage.h"
+#include "flare/stagevisitor.h"
 
 // TnzCore includes
 #include "tgl.h"
@@ -1725,3 +1725,4 @@ public:
     RecentFiles::instance()->clearRecentFilesList(RecentFiles::Flip);
   }
 } clearRecentFlipbookImagesCommandHandler;
+

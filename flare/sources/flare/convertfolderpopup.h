@@ -4,7 +4,7 @@
 #define CONVERTFOLDERPOPUP_H
 
 // TnzQt includes
-#include "toonzqt/dvdialog.h"
+#include "flareqt/dvdialog.h"
 
 // TnzCore includes
 #include "tfilepath.h"
@@ -105,3 +105,4 @@ protected slots:
 };
 
 #endif  // CONVERTPOPUP_H
+

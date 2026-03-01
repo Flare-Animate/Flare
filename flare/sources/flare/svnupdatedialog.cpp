@@ -7,11 +7,11 @@
 #include "versioncontrolwidget.h"
 
 // TnzQt includes
-#include "toonzqt/gutil.h"
+#include "flareqt/gutil.h"
 
 // TnzLib includes
-#include "toonz/txshsimplelevel.h"
-#include "toonz/toonzscene.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/toonzscene.h"
 
 // Qt includes
 #include <QWidget>
@@ -450,3 +450,4 @@ void SVNUpdateDialog::onUpdateSceneContentsToggled(bool checked) {
                              .arg(m_filesToUpdate.size() +
                                   m_sceneResources.size() - m_sceneIconsCount));
 }
+

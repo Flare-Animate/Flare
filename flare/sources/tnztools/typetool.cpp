@@ -10,26 +10,26 @@
 #include "tmathutil.h"
 #include "tproperty.h"
 #include "tenv.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/tframehandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/tframehandle.h"
 #include "tvectorimage.h"
 #include "ttoonzimage.h"
-#include "toonz/toonzimageutils.h"
+#include "flare/toonzimageutils.h"
 #include "tools/cursors.h"
 #include "tundo.h"
 #include "tvectorgl.h"
 #include "tgl.h"
 #include "tregion.h"
 #include "tvectorrenderdata.h"
-#include "toonz/tpalettehandle.h"
+#include "flare/tpalettehandle.h"
 
-#include "toonzqt/selection.h"
-#include "toonzqt/imageutils.h"
+#include "flareqt/selection.h"
+#include "flareqt/imageutils.h"
 #include "trop.h"
-#include "toonz/ttileset.h"
-#include "toonz/glrasterpainter.h"
-#include "toonz/stage.h"
+#include "flare/ttileset.h"
+#include "flare/glrasterpainter.h"
+#include "flare/stage.h"
 
 #include "tfont.h"
 
@@ -1737,3 +1737,4 @@ TypeTool*tt = dynamic_cast<TypeTool*>(tool);
   if (tt)
     tt->stopEditing();
 }*/
+

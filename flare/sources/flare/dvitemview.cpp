@@ -8,16 +8,16 @@
 #include "filebrowser.h"
 
 // TnzQt includes
-#include "toonzqt/icongenerator.h"
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/tselectionhandle.h"
-#include "toonzqt/gutil.h"
+#include "flareqt/icongenerator.h"
+#include "flareqt/menubarcommand.h"
+#include "flareqt/tselectionhandle.h"
+#include "flareqt/gutil.h"
 
 // TnzLib includes
-#include "toonz/toonzscene.h"
-#include "toonz/tproject.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/preferences.h"
+#include "flare/toonzscene.h"
+#include "flare/tproject.h"
+#include "flare/tscenehandle.h"
+#include "flare/preferences.h"
 
 // TnzBase includes
 #include "tenv.h"
@@ -1945,3 +1945,4 @@ void DvItemViewerButtonBar::onPreferenceChanged(const QString &prefName) {
     addSeparator();
   }
 }
+

@@ -22,43 +22,43 @@
 #include "tools/toolcommandids.h"
 
 // TnzQt includes
-#include "toonzqt/strokesdata.h"
-#include "toonzqt/rasterimagedata.h"
-#include "toonzqt/icongenerator.h"
-#include "toonzqt/tselectionhandle.h"
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/gutil.h"
+#include "flareqt/strokesdata.h"
+#include "flareqt/rasterimagedata.h"
+#include "flareqt/icongenerator.h"
+#include "flareqt/tselectionhandle.h"
+#include "flareqt/menubarcommand.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/gutil.h"
 #include "historytypes.h"
 
 // TnzLib includes
-#include "toonz/palettecontroller.h"
-#include "toonz/preferences.h"
-#include "toonz/tpalettehandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/tframehandle.h"
-#include "toonz/tobjecthandle.h"
-#include "toonz/txsheet.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/txshchildlevel.h"
-#include "toonz/toonzscene.h"
-#include "toonz/txshleveltypes.h"
-#include "toonz/tcamera.h"
-#include "toonz/levelproperties.h"
-#include "toonz/toonzimageutils.h"
-#include "toonz/trasterimageutils.h"
-#include "toonz/levelset.h"
-#include "toonz/tstageobjecttree.h"
-#include "toonz/stage.h"
+#include "flare/palettecontroller.h"
+#include "flare/preferences.h"
+#include "flare/tpalettehandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/tcolumnhandle.h"
+#include "flare/tscenehandle.h"
+#include "flare/tframehandle.h"
+#include "flare/tobjecthandle.h"
+#include "flare/txsheet.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/txshchildlevel.h"
+#include "flare/toonzscene.h"
+#include "flare/txshleveltypes.h"
+#include "flare/tcamera.h"
+#include "flare/levelproperties.h"
+#include "flare/toonzimageutils.h"
+#include "flare/trasterimageutils.h"
+#include "flare/levelset.h"
+#include "flare/tstageobjecttree.h"
+#include "flare/stage.h"
 #include "vectorizerpopup.h"
 #include "tools/rasterselection.h"
 #include "tools/strokeselection.h"
-#include "toonz/sceneproperties.h"
+#include "flare/sceneproperties.h"
 #include "toutputproperties.h"
-#include "toonz/tstageobjectcmd.h"
+#include "flare/tstageobjectcmd.h"
 
 // TnzCore includes
 #include "timagecache.h"
@@ -2081,7 +2081,7 @@ void TCellSelection::pasteCells() {
     }
   }
   // Raster Time
-  // See if an image was copied from outside OpenToonz
+  // See if an image was copied from outside Flare
   QImage clipImage = clipboard->image();
   // See if the clipboard contains rasterData
   const RasterImageData *rasterImageData =
@@ -2131,7 +2131,7 @@ void TCellSelection::pasteCells() {
       TRasterImageP ri(img);
 
       if (clipImage.height() > 0) {
-        // This stuff is only if we have a pasted image from outside OpenToonz
+        // This stuff is only if we have a pasted image from outside Flare
         bool cancel = false;
 
         if (sl && sl->getType() == OVL_XSHLEVEL) {
@@ -2198,7 +2198,7 @@ void TCellSelection::pasteCells() {
         qimageData->setData(ras, p, 120.0, 120.0, dim, rects, strokes,
                             originalStrokes, aff);
         rasterImageData = qimageData;
-        // end of pasted from outside OpenToonz stuff
+        // end of pasted from outside Flare stuff
         // rasterImageData holds all the info either way now.
       }
 
@@ -3800,7 +3800,7 @@ void TCellSelection::convertVectortoVector() {
   }
 
   // This is where the copying actually happens
-  // copy old frames to Toonz Raster
+  // copy old frames to Flare Raster
   bool keepOriginalPalette;
   bool success = data->getLevelFrames(
       sl, newFrameIds, DrawingData::OVER_SELECTION, true, keepOriginalPalette,
@@ -3810,7 +3810,7 @@ void TCellSelection::convertVectortoVector() {
   std::vector<TFrameId> newFids;
   sl->getFids(newFids);
 
-  // copy the Toonz Raster frames onto the old level
+  // copy the Flare Raster frames onto the old level
   data->clear();
   data->setLevelFrames(sl, newFrameIds);
   if (Preferences::instance()->getKeepFillOnVectorSimplify())
@@ -3907,3 +3907,4 @@ void TCellSelection::fillEmptyCell() {
 
   TApp::instance()->getCurrentXsheet()->notifyXsheetChanged();
 }
+

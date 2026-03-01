@@ -7,13 +7,13 @@
 #include "tsystem.h"
 
 // TnzQt includes
-#include "toonzqt/checkbox.h"
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/lineedit.h"
-#include "toonzqt/gutil.h"
+#include "flareqt/checkbox.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/lineedit.h"
+#include "flareqt/gutil.h"
 
 // TnzLib includes
-#include "toonz/toonzscene.h"
+#include "flare/toonzscene.h"
 
 // TnzCore includes
 #include "tfilepath.h"
@@ -289,3 +289,4 @@ std::wstring OverwriteDialog::execute(ToonzScene *scene,
 
   return levelPath.getWideName();
 }
+

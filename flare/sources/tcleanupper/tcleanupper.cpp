@@ -4,25 +4,25 @@
 #include "tfarmcontroller.h"
 
 // TnzLib includes
-#include "toonz/txshleveltypes.h"
-#include "toonz/tpalettehandle.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/levelproperties.h"
-#include "toonz/levelupdater.h"
-#include "toonz/preferences.h"
-#include "toonz/toonzfolders.h"
-#include "toonz/toonzscene.h"
-#include "toonz/txshchildlevel.h"
-#include "toonz/tproject.h"
-#include "toonz/tcleanupper.h"
-#include "toonz/txsheet.h"
-#include "toonz/txshcell.h"
-#include "toonz/txshcolumn.h"
-#include "toonz/tlog.h"
-#include "toonz/imagestyles.h"
-#include "toonz/filepathproperties.h"
+#include "flare/txshleveltypes.h"
+#include "flare/tpalettehandle.h"
+#include "flare/tscenehandle.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/sceneproperties.h"
+#include "flare/levelproperties.h"
+#include "flare/levelupdater.h"
+#include "flare/preferences.h"
+#include "flare/toonzfolders.h"
+#include "flare/toonzscene.h"
+#include "flare/txshchildlevel.h"
+#include "flare/tproject.h"
+#include "flare/tcleanupper.h"
+#include "flare/txsheet.h"
+#include "flare/txshcell.h"
+#include "flare/txshcolumn.h"
+#include "flare/tlog.h"
+#include "flare/imagestyles.h"
+#include "flare/filepathproperties.h"
 
 // TnzBase includes
 #include "tcli.h"
@@ -63,7 +63,7 @@ inline ostream &operator<<(ostream &out, const TFilePath &fp) {
 //------------------------------------------------------------------------
 namespace {
 
-const char *rootVarName     = "TOONZROOT";
+const char *rootVarName     = "FLAREROOT";
 const char *systemVarPrefix = "TOONZ";
 
 namespace {
@@ -498,7 +498,7 @@ int main(int argc, char *argv[]) {
   TEnv::setSystemVarPrefix(systemVarPrefix);
   TEnv::setApplicationFileName(argv[0]);
 
-  QCoreApplication::setOrganizationName("OpenToonz");
+  QCoreApplication::setOrganizationName("Flare");
   QCoreApplication::setOrganizationDomain("");
   QCoreApplication::setApplicationName(
       QString::fromStdString(TEnv::getApplicationName()));
@@ -525,7 +525,7 @@ int main(int argc, char *argv[]) {
     fatalError(string("Directory \"") + ::to_string(fproot) +
                "\" not found or not readable");
 
-  TFilePath lRootDir    = TEnv::getStuffDir() + "toonzfarm";
+  TFilePath lRootDir    = TEnv::getStuffDir() + "FlareFarm";
   TFilePath logFilePath = lRootDir + "tcleanup.log";
   TUserLogAppend m_userLog(logFilePath);
 
@@ -854,3 +854,5 @@ int main(int argc, char *argv[]) {
   return 0;
 }
 //------------------------------------------------------------------------
+
+

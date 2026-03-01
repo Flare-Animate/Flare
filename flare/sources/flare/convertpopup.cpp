@@ -9,25 +9,25 @@
 #include "filebrowser.h"
 
 // TnzQt includes
-#include "toonzqt/gutil.h"
-#include "toonzqt/imageutils.h"
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/filefield.h"
-#include "toonzqt/intfield.h"
-#include "toonzqt/colorfield.h"
-#include "toonzqt/checkbox.h"
-#include "toonzqt/icongenerator.h"
-#include "toonzqt/doublefield.h"
+#include "flareqt/gutil.h"
+#include "flareqt/imageutils.h"
+#include "flareqt/menubarcommand.h"
+#include "flareqt/filefield.h"
+#include "flareqt/intfield.h"
+#include "flareqt/colorfield.h"
+#include "flareqt/checkbox.h"
+#include "flareqt/icongenerator.h"
+#include "flareqt/doublefield.h"
 
 // TnzLib includes
-#include "toonz/tscenehandle.h"
-#include "toonz/toonzscene.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/tproject.h"
+#include "flare/tscenehandle.h"
+#include "flare/toonzscene.h"
+#include "flare/sceneproperties.h"
+#include "flare/tproject.h"
 #include "toutputproperties.h"
 #include "convert2tlv.h"
-#include "toonz/preferences.h"
-#include "toonz/tcamera.h"
+#include "flare/preferences.h"
+#include "flare/tcamera.h"
 
 // TnzCore includes
 #include "tsystem.h"
@@ -606,7 +606,7 @@ QFrame *ConvertPopup::createTlvSettings() {
 
   m_appendDefaultPalette->setToolTip(
       tr("When activated, styles of the default "
-         "palette\n($TOONZSTUDIOPALETTE\\Global Palettes\\Default Palettes\\Cleanup_Palette.tpl) will \nbe "
+         "palette\n($FLARESTUDIOPALETTE\\Global Palettes\\Default Palettes\\Cleanup_Palette.tpl) will \nbe "
          "appended to the palette after conversion in \norder to save the "
          "effort of creating styles \nbefore color designing."));
 
@@ -1354,3 +1354,4 @@ void ConvertPopup::onDpiModeSelected(int index) {
 //-----------------------------------------------------------------------------
 
 OpenPopupCommandHandler<ConvertPopup> openConvertPopup(MI_ConvertFiles);
+

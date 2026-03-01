@@ -1,0 +1,426 @@
+set(MOC_HEADERS
+    ../include/flare/fullcolorpalette.h
+    ../include/flare/movierenderer.h
+    ../include/flare/multimediarenderer.h
+    ../include/flare/palettecontroller.h
+    ../include/flare/preferences.h
+
+    ../include/flare/stylemanager.h
+    ../include/flare/tcenterlinevectorizer.h
+    ../include/flare/tcolumnhandle.h
+    ../include/flare/tframehandle.h
+    ../include/flare/tfxhandle.h
+    ../include/flare/tobjecthandle.h
+    ../include/flare/tonionskinmaskhandle.h
+    ../include/flare/tpalettehandle.h
+    ../include/flare/tscenehandle.h
+    ../include/flare/txsheethandle.h
+    ../include/flare/txshlevel.h
+    ../include/flare/txshlevelhandle.h
+    ../include/flare/txshsimplelevel.h
+    ../include/flare/txshsoundcolumn.h
+)
+
+# Append script-related headers only when QtScript is available
+if(WITH_QT_SCRIPT)
+    list(APPEND MOC_HEADERS
+        ../include/flare/scriptbinding.h
+        ../include/flare/scriptbinding_centerline_vectorizer.h
+        ../include/flare/scriptbinding_files.h
+        ../include/flare/scriptbinding_image.h
+        ../include/flare/scriptbinding_image_builder.h
+        ../include/flare/scriptbinding_level.h
+        ../include/flare/scriptbinding_outline_vectorizer.h
+        ../include/flare/scriptbinding_rasterizer.h
+        ../include/flare/scriptbinding_renderer.h
+        ../include/flare/scriptbinding_scene.h
+        ../include/flare/scriptbinding_toonz_raster_converter.h
+        ../include/flare/scriptengine.h
+    )
+endif()
+
+set(HEADERS
+    ${MOC_HEADERS}
+    autoadjust.h
+    autopos.h
+    cleanupcommon.h
+    cleanuppalette.h
+    imagebuilders.h
+    skeletonlut.h
+    tcenterlinevectP.h
+    texturemanager.h
+    xshhandlemanager.h
+    sandor_fxs/BlurMatrix.h
+    sandor_fxs/CIL.h
+    sandor_fxs/CallCircle.h
+    sandor_fxs/CallParam.h
+    sandor_fxs/EraseContour.h
+    sandor_fxs/InputParam.h
+    sandor_fxs/Params.h
+    sandor_fxs/Pattern.h
+    sandor_fxs/PatternMapParam.h
+    sandor_fxs/PatternPosition.h
+    sandor_fxs/SDef.h
+    sandor_fxs/SDirection.h
+    sandor_fxs/SError.h
+    sandor_fxs/STColSelPic.h
+    sandor_fxs/STPic.h
+    sandor_fxs/YOMBInputParam.h
+    sandor_fxs/YOMBParam.h
+    sandor_fxs/blend.h
+    sandor_fxs/calligraph.h
+    sandor_fxs/patternmap.h
+    sandor_fxs/toonz4_6staff.h
+    ../include/convert2tlv.h
+    ../include/thirdparty.h
+    ../include/orientation.h
+    ../include/flare/Naa2TlvConverter.h
+    ../include/flare/autoclose.h
+    ../include/flare/boardsettings.h
+    ../include/flare/captureparameters.h
+    ../include/flare/childstack.h
+    ../include/flare/cleanupcolorstyles.h
+    ../include/flare/cleanupparameters.h
+    ../include/flare/columnfan.h
+    ../include/flare/controlpointobserver.h
+    ../include/flare/currentimage.h
+    ../include/flare/doubleparamcmd.h
+    ../include/flare/dpiscale.h
+    ../include/flare/fill.h
+    ../include/flare/fxcommand.h
+    ../include/flare/fxdag.h
+    ../include/flare/glrasterpainter.h
+    ../include/flare/hook.h
+    ../include/flare/ikengine.h
+    ../include/flare/ikjacobian.h
+    ../include/flare/iknode.h
+    ../include/flare/ikskeleton.h
+    ../include/flare/imagelocation.h
+    ../include/flare/imagemanager.h
+    ../include/flare/imagepainter.h
+    ../include/flare/imagestyles.h
+    ../include/flare/levelproperties.h
+    ../include/flare/levelset.h
+    ../include/flare/levelupdater.h
+    ../include/flare/logger.h
+    ../include/flare/namebuilder.h
+    ../include/flare/observer.h
+    ../include/flare/onionskinmask.h
+    ../include/flare/palettecmd.h
+    ../include/flare/plasticdeformerfx.h
+    ../include/flare/rasterbrush.h
+    ../include/flare/rasterstrokegenerator.h
+    ../include/flare/scenefx.h
+    ../include/flare/sceneproperties.h
+    ../include/flare/sceneresources.h
+    ../include/flare/skeleton.h
+    ../include/flare/stage.h
+    ../include/flare/stage2.h
+    ../include/flare/stageobjectutil.h
+    ../include/flare/stageplayer.h
+    ../include/flare/stagevisitor.h
+    ../include/flare/studiopalette.h
+    ../include/flare/studiopalettecmd.h
+    ../include/flare/tapplication.h
+    ../include/flare/targetcolors.h
+    ../include/flare/tbinarizer.h
+    ../include/flare/tcamera.h
+    ../include/flare/tcleanupper.h
+    ../include/flare/tcolumnfx.h
+    ../include/flare/tcolumnfxset.h
+    ../include/flare/tdistort.h
+    ../include/flare/textureutils.h
+    ../include/flare/tlog.h
+    ../include/flare/toonzfolders.h
+    ../include/flare/toonzimageutils.h
+    ../include/flare/toonzscene.h
+    ../include/flare/tpinnedrangeset.h
+    ../include/flare/tproject.h
+    ../include/flare/trasterimageutils.h
+    ../include/flare/tstageobject.h
+    ../include/flare/tstageobjectcmd.h
+    ../include/flare/tstageobjectid.h
+    ../include/flare/tstageobjectkeyframe.h
+    ../include/flare/tstageobjectspline.h
+    ../include/flare/tstageobjecttree.h
+    ../include/flare/ttilesaver.h
+    ../include/flare/ttileset.h
+    ../include/flare/tvectorimageutils.h
+    ../include/flare/txshcell.h
+    ../include/flare/txshchildlevel.h
+    ../include/flare/txshcolumn.h
+    ../include/flare/txsheet.h
+    ../include/flare/txsheetexpr.h
+    ../include/flare/txshlevelcolumn.h
+    ../include/flare/txshleveltypes.h
+    ../include/flare/txshmeshcolumn.h
+    ../include/flare/txshnoteset.h
+    ../include/flare/txshpalettecolumn.h
+    ../include/flare/txshpalettelevel.h
+    ../include/flare/txshsoundlevel.h
+    ../include/flare/txshsoundtextcolumn.h
+    ../include/flare/txshsoundtextlevel.h
+    ../include/flare/txshzeraryfxcolumn.h
+    ../include/flare/txshzeraryfxlevel.h
+    ../include/flare/vectorizerparameters.h
+    ../include/toutputproperties.h
+    ../include/flare/preferencesitemids.h
+    ../include/flare/txsheetcolumnchange.h
+    ../include/flare/expressionreferencemonitor.h
+    ../include/flare/filepathproperties.h
+    ../include/flare/navigationtags.h
+)
+
+# add mypaint headers when enabled
+if(ENABLE_MYPaint)
+    list(APPEND HEADERS
+        ../include/flare/mypaint.h
+        ../include/flare/mypaintbrushstyle.h
+        ../include/flare/mypainthelpers.hpp
+    )
+    list(APPEND SOURCES
+        mypaintbrushstyle.cpp
+    )
+endif()
+
+# stylemanager contains core functionality and must always be built
+list(APPEND SOURCES
+    stylemanager.cpp
+)
+
+set(SOURCES
+    stylemanager.cpp
+    autoadjust.cpp
+    autoclose.cpp
+    autopos.cpp
+    captureparameters.cpp
+    childstack.cpp
+    cleanupcolorstyles.cpp
+    cleanuppalette.cpp
+    cleanupparameters.cpp
+    columnfan.cpp
+    convert2tlv.cpp
+    dpiscale.cpp
+    fill.cpp
+    fillutil.cpp
+    fullcolorpalette.cpp
+    fxdag.cpp
+    glrasterpainter.cpp
+    hook.cpp
+    ikengine.cpp
+    ikjacobian.cpp
+    iknode.cpp
+    ikskeleton.cpp
+    imagebuilders.cpp
+    imagelocation.cpp
+    imagemanager.cpp
+    imagepainter.cpp
+    imagestyles.cpp
+    levelproperties.cpp
+    levelset.cpp
+    levelupdater.cpp
+    logger.cpp
+    movierenderer.cpp
+    multimediarenderer.cpp
+    namebuilder.cpp
+    Naa2TlvConverter.cpp
+    observer.cpp
+    onionskinmask.cpp
+	orientation.cpp
+    outputproperties.cpp
+    preferences.cpp
+    rasterbrush.cpp
+    rasterstrokegenerator.cpp
+    scenefx.cpp
+    sceneproperties.cpp
+    sceneresources.cpp
+
+    skeleton.cpp
+    skeletonlut.cpp
+    stage.cpp
+    stage2.cpp
+    stageobjectutil.cpp
+    stageplayer.cpp
+    stagevisitor.cpp
+    strokegenerator.cpp
+    studiopalette.cpp
+    targetcolors.cpp
+    tcamera.cpp
+    tcenterlineadjustments.cpp
+    tcenterlinecolors.cpp
+    tcenterlinepolygonizer.cpp
+    tcenterlineskeletonizer.cpp
+    tcenterlinetostrokes.cpp
+    tcenterlinevectorizer.cpp
+    tcleanupper.cpp
+    tcolumnfx.cpp
+    tcolumnfxset.cpp
+    tdistort.cpp
+    texturemanager.cpp
+    thirdparty.cpp
+    tlog.cpp
+    tnewoutlinevectorize.cpp
+    toonzfolders.cpp
+    toonzimageutils.cpp
+    toonzscene.cpp
+    toutlinevectorizer.cpp
+    tpinnedrangeset.cpp
+    tproject.cpp
+    trasterimageutils.cpp
+    trastercentroid.cpp
+    tstageobject.cpp
+    tstageobjectspline.cpp
+    tstageobjecttree.cpp
+    ttilesaver.cpp
+    ttileset.cpp
+    tvectorimageutils.cpp
+    txshcell.cpp
+    txshchildlevel.cpp
+    txshcolumn.cpp
+    txsheet.cpp
+    txsheetexpr.cpp
+    txshlevel.cpp
+    txshlevelcolumn.cpp
+    txshnoteset.cpp
+    txshpalettecolumn.cpp
+    txshpalettelevel.cpp
+    txshsimplelevel.cpp
+    txshsoundcolumn.cpp
+    txshsoundlevel.cpp
+    txshsoundtextcolumn.cpp
+    txshsoundtextlevel.cpp
+    txshzeraryfxcolumn.cpp
+    txshzeraryfxlevel.cpp
+    xshhandlemanager.cpp
+    vectorizerparameters.cpp
+    sandor_fxs/blend.cpp
+    sandor_fxs/BlurMatrix.cpp
+    sandor_fxs/CIL.cpp
+    sandor_fxs/CallCircle.cpp
+    sandor_fxs/CallParam.cpp
+    sandor_fxs/EraseContour.cpp
+    sandor_fxs/InputParam.cpp
+    sandor_fxs/Params.cpp
+    sandor_fxs/Pattern.cpp
+    sandor_fxs/PatternMapParam.cpp
+    sandor_fxs/PatternPosition.cpp
+    sandor_fxs/SDirection.cpp
+    sandor_fxs/SError.cpp
+    sandor_fxs/STColSelPic.cpp
+    sandor_fxs/STPic.cpp
+    sandor_fxs/YOMBInputParam.cpp
+    sandor_fxs/YOMBParam.cpp
+    sandor_fxs/calligraph.cpp
+    sandor_fxs/patternmap.cpp
+    sandor_fxs/toonz4_6staff.cpp
+    tcolumnhandle.cpp
+    tframehandle.cpp
+    tfxhandle.cpp
+    tobjecthandle.cpp
+    tonionskinmaskhandle.cpp
+    tpalettehandle.cpp
+    tscenehandle.cpp
+    txsheethandle.cpp
+    txshlevelhandle.cpp
+    doubleparamcmd.cpp
+    fxcommand.cpp
+    palettecmd.cpp
+    palettecontroller.cpp
+    studiopalettecmd.cpp
+    tstageobjectcmd.cpp
+    tbinarizer.cpp
+    plasticdeformerfx.cpp
+    txshmeshcolumn.cpp
+    textureutils.cpp
+    boardsettings.cpp
+    filepathproperties.cpp
+    navigationtags.cpp
+)
+
+# Append script-related sources only when QtScript is available
+if(WITH_QT_SCRIPT)
+    list(APPEND SOURCES
+        scriptbinding.cpp
+        scriptbinding_centerline_vectorizer.cpp
+        scriptbinding_files.cpp
+        scriptbinding_image.cpp
+        scriptbinding_image_builder.cpp
+        scriptbinding_level.cpp
+        scriptbinding_outline_vectorizer.cpp
+        scriptbinding_rasterizer.cpp
+        scriptbinding_renderer.cpp
+        scriptbinding_scene.cpp
+        scriptbinding_toonz_raster_converter.cpp
+        scriptengine.cpp
+    )
+endif()
+
+if(BUILD_TARGET_WIN)
+    set(SOURCES ${SOURCES}
+        avicodecrestrictions.cpp
+    )
+endif()
+
+if(WITH_TRANSLATION)
+    add_translation(flarelib ${HEADERS} ${SOURCES})
+endif()
+
+qt5_wrap_cpp(SOURCES ${MOC_HEADERS})
+
+add_library(flarelib SHARED ${HEADERS} ${SOURCES})
+if(BUILD_ENV_APPLE)
+    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-install_name,@executable_path/libflarelib.dylib")
+    add_dependencies(flarelib tnzcore tnzbase tnzext)
+endif()
+
+add_definitions(
+    -DFLARELIB_EXPORTS
+)
+
+message("subdir: flarelib")
+message("Bin: " ${CMAKE_CURRENT_BINARY_DIR})
+
+if(GLEW_FOUND)
+    include_directories(${GLEW_INCLUDE_DIRS})
+else()
+    include_directories(${SDKROOT}/glew/glew-1.9.0/include)
+endif()
+
+include_directories(
+    SYSTEM
+    ${SDKROOT}/libusb/libusb-1.0.9/include
+)
+include_directories(
+    ../flarefarm/include
+)
+
+if(BUILD_ENV_MSVC)
+    target_link_libraries(flarelib
+        Qt5::Core Qt5::Gui Qt5::OpenGL Qt5::Multimedia
+        ${GLUT_LIB} ${GL_LIB} ${GLEW_LIB} vfw32.lib
+        tnzcore tnzbase tnzext
+        $<$<BOOL:${ENABLE_MYPaint}>:${MYPAINT_LIB_LDFLAGS}>
+    )
+    if(WITH_QT_SCRIPT)
+        target_link_libraries(flarelib Qt5::Script)
+    endif()
+elseif(BUILD_ENV_APPLE)
+    set(EXTRA_LIBS
+        "$<TARGET_FILE:tnzcore>"
+        "$<TARGET_FILE:tnzbase>"
+        "$<TARGET_FILE:tnzext>"
+        ${USB_LIB}
+        $<$<BOOL:${ENABLE_MYPaint}>:${MYPAINT_LIB_LDFLAGS}>
+    )
+
+    target_link_libraries(flarelib Qt5::Core Qt5::Gui Qt5::OpenGL Qt5::Script Qt5::Multimedia ${GLUT_LIB} ${GL_LIB} ${GLEW_LIB} ${EXTRA_LIBS})
+elseif(BUILD_ENV_UNIXLIKE)
+    _find_flare_library(EXTRA_LIBS "tnzcore;tnzbase;tnzext")
+
+    if(BUILD_TARGET_WIN)
+        set(EXTRA_LIBS ${EXTRA_LIBS} -lvfw32)
+    endif()
+
+    target_link_libraries(flarelib Qt5::Core Qt5::Gui Qt5::OpenGL Qt5::Script Qt5::Multimedia ${GLUT_LIB} ${GL_LIB} ${GLEW_LIB} ${EXTRA_LIBS} $<$<BOOL:${ENABLE_MYPaint}>:${MYPAINT_LIB_LDFLAGS}>)
+endif()
+

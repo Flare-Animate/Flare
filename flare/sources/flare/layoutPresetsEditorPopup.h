@@ -2,7 +2,7 @@
 #ifndef LayoutPresetDIALOG_H
 #define LayoutPresetDIALOG_H
 
-#include "toonzqt/dvdialog.h"
+#include "flareqt/dvdialog.h"
 #include "tfilepath.h"
 #include <QList>
 #include <QStringList>

@@ -6,7 +6,7 @@
 #include <memory>
 
 // TnzLib includes
-#include "toonz/preferences.h"
+#include "flare/preferences.h"
 
 // TnzCore includes
 #include "tfilepath.h"
@@ -16,8 +16,8 @@
 #include <QDialog>
 
 // TnzQt includes
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/imageutils.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/imageutils.h"
 
 // boost includes
 #include <boost/optional.hpp>
@@ -328,3 +328,4 @@ bool takeCareSceneFolderItemsOnSaveSceneAs(
 }  // namespace IoCmd
 
 #endif  // IOCOMMAND_H
+

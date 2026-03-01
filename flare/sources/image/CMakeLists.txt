@@ -124,7 +124,7 @@ add_definitions(
 
 if(BUILD_ENV_APPLE)
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-install_name,@executable_path/libimage.dylib")
-    add_dependencies(image tnzcore tnzbase toonzlib)
+    add_dependencies(image tnzcore tnzbase flarelib)
 endif()
 
 message("subdir: image")
@@ -160,7 +160,7 @@ include_directories(
 )
 
 
-_find_toonz_library(TNZLIBS "tnzcore;tnzbase;toonzlib")
+_find_flare_library(TNZLIBS "tnzcore;tnzbase;flarelib")
 
 
 if(BUILD_ENV_MSVC)

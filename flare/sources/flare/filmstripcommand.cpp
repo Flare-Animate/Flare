@@ -2,45 +2,45 @@
 
 #include "filmstripcommand.h"
 #include "tapp.h"
-#include "toonz/palettecontroller.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/tpalettehandle.h"
-#include "toonz/tframehandle.h"
+#include "flare/palettecontroller.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/tscenehandle.h"
+#include "flare/tpalettehandle.h"
+#include "flare/tframehandle.h"
 #include "tinbetween.h"
 #include "tvectorimage.h"
 #include "ttoonzimage.h"
-#include "toonzqt/selection.h"
-#include "toonzqt/dvdialog.h"
+#include "flareqt/selection.h"
+#include "flareqt/dvdialog.h"
 #include "drawingdata.h"
-#include "toonzqt/strokesdata.h"
-#include "toonzqt/rasterimagedata.h"
+#include "flareqt/strokesdata.h"
+#include "flareqt/rasterimagedata.h"
 #include "timagecache.h"
 #include "tools/toolhandle.h"
 #include "tools/toolutils.h"
 #include "tools/rasterselection.h"
-#include "toonzqt/icongenerator.h"
+#include "flareqt/icongenerator.h"
 
 #include "tundo.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/txshchildlevel.h"
-#include "toonz/txshsoundlevel.h"
-#include "toonz/txshpalettelevel.h"
-#include "toonz/txshpalettecolumn.h"
-#include "toonz/txshsoundcolumn.h"
-#include "toonz/txsheet.h"
-#include "toonz/txshcell.h"
-#include "toonz/toonzscene.h"
-#include "toonz/levelset.h"
-#include "toonz/txshleveltypes.h"
-#include "toonz/toonzimageutils.h"
-#include "toonz/trasterimageutils.h"
-#include "toonz/tcamera.h"
-#include "toonz/preferences.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/txshchildlevel.h"
+#include "flare/txshsoundlevel.h"
+#include "flare/txshpalettelevel.h"
+#include "flare/txshpalettecolumn.h"
+#include "flare/txshsoundcolumn.h"
+#include "flare/txsheet.h"
+#include "flare/txshcell.h"
+#include "flare/toonzscene.h"
+#include "flare/levelset.h"
+#include "flare/txshleveltypes.h"
+#include "flare/toonzimageutils.h"
+#include "flare/trasterimageutils.h"
+#include "flare/tcamera.h"
+#include "flare/preferences.h"
 #include "trop.h"
 
-#include "toonzqt/gutil.h"
+#include "flareqt/gutil.h"
 
 #include "historytypes.h"
 
@@ -1618,7 +1618,7 @@ void FilmstripCmd::paste(TXshSimpleLevel *sl, std::set<TFrameId> &frames) {
     }
 
     if (sl->getType() == OVL_XSHLEVEL && !clipImage.isNull()) {
-      // This stuff is only if we have a pasted image from outside OpenToonz
+      // This stuff is only if we have a pasted image from outside Flare
 
       if (sl->getResolution().lx < clipImage.width() ||
           sl->getResolution().ly < clipImage.height()) {
@@ -1643,7 +1643,7 @@ void FilmstripCmd::paste(TXshSimpleLevel *sl, std::set<TFrameId> &frames) {
       qimageData->setData(ras, plt, 120.0, 120.0, dim, rects, strokes,
                           originalStrokes, aff);
       data = qimageData;
-      // end of pasted from outside OpenToonz stuff
+      // end of pasted from outside Flare stuff
       // data holds all the info either way now.
     }
 
@@ -2730,3 +2730,4 @@ void FilmstripCmd::renumberDrawing(TXshSimpleLevel *sl, const TFrameId &oldFid,
   TApp::instance()->getCurrentLevel()->notifyLevelChange();
   TApp::instance()->getCurrentScene()->setDirtyFlag(true);
 }
+

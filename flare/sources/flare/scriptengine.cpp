@@ -7,20 +7,20 @@
 #include <QTextStream>
 #include <QFile>
 
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/dvdialog.h"
+#include "flareqt/menubarcommand.h"
+#include "flareqt/dvdialog.h"
 #include "filebrowserpopup.h"
 #include "tapp.h"
 
-#include "toonz/txsheethandle.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/toonzscene.h"
-#include "toonz/levelset.h"
-#include "toonz/txsheet.h"
-#include "toonz/txshcell.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/txshleveltypes.h"
-#include "toonz/toonzfolders.h"
+#include "flare/txsheethandle.h"
+#include "flare/tscenehandle.h"
+#include "flare/toonzscene.h"
+#include "flare/levelset.h"
+#include "flare/txsheet.h"
+#include "flare/txshcell.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/txshleveltypes.h"
+#include "flare/toonzfolders.h"
 
 namespace ScriptWrapper {
 
@@ -124,3 +124,4 @@ activateWindow();
 };
 
 OpenPopupCommandHandler<LoadScriptPopup> loadScriptPopupHandler("MI_RunScript");
+

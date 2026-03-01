@@ -13,25 +13,25 @@
 #include "floatingpanelcommand.h"
 
 // TnzQt includes
-#include "toonzqt/gutil.h"
-#include "toonzqt/tabbar.h"
-#include "toonzqt/checkbox.h"
-#include "toonzqt/doublefield.h"
-#include "toonzqt/filefield.h"
-#include "toonzqt/cleanupcamerasettingswidget.h"
+#include "flareqt/gutil.h"
+#include "flareqt/tabbar.h"
+#include "flareqt/checkbox.h"
+#include "flareqt/doublefield.h"
+#include "flareqt/filefield.h"
+#include "flareqt/cleanupcamerasettingswidget.h"
 
 // TnzLib includes
-#include "toonz/toonzfolders.h"
-#include "toonz/palettecontroller.h"
-#include "toonz/tpalettehandle.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/tframehandle.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/toonzscene.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/txshsimplelevel.h"
+#include "flare/toonzfolders.h"
+#include "flare/palettecontroller.h"
+#include "flare/tpalettehandle.h"
+#include "flare/tscenehandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/tframehandle.h"
+#include "flare/tcolumnhandle.h"
+#include "flare/toonzscene.h"
+#include "flare/sceneproperties.h"
+#include "flare/txshsimplelevel.h"
 
 // Qt includes
 #include <QSplitter>
@@ -870,3 +870,4 @@ public:
 
 OpenFloatingPanel cleanupSettingsCommand(MI_CleanupSettings, "CleanupSettings",
                                          QObject::tr("Cleanup Settings"));
+

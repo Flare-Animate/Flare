@@ -22,7 +22,7 @@
 #include <QDataStream>
 
 #include "tiio_mov_proxy.h"
-#include <toonz/preferences.h>
+#include "flare/preferences.h"
 
 /*
   For a list of supported commands through the 32-bit background server,
@@ -522,3 +522,4 @@ void TLevelReaderMov::load(const TRasterP &ras, int frameIndex,
 }
 
 #endif  // x64
+

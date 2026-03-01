@@ -5,16 +5,17 @@
 
 #include "tapp.h"
 
-#include "toonz/tstageobject.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/txsheet.h"
+#include "flare/tstageobject.h"
+#include "flare/txsheethandle.h"
+#include "flare/tscenehandle.h"
+#include "flare/tcolumnhandle.h"
+#include "flare/txsheet.h"
 
 #include "../include/tundo.h"
 #include "../include/historytypes.h"
 
 #include <QWidget>
+#include <QMainWindow>
 #include <QListWidget>
 #include <QLineEdit>
 #include <QPoint>
@@ -408,3 +409,4 @@ protected slots:
 //-----------------------------------------------------------------------------
 
 #endif  // XSHCOLUMNVIEWER_H
+

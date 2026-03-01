@@ -12,7 +12,9 @@
 #include "vectorselectiontool.h"
 #include "rasterselectiontool.h"
 #include "toonzrasterbrushtool.h"
+#ifdef HAVE_MYPaint
 #include "fullcolorbrushtool.h"
+#endif
 #include "toonzvectorbrushtool.h"
 #include "tooloptionscontrols.h"
 
@@ -21,26 +23,28 @@
 #include "shifttracetool.h"
 
 // TnzQt includes
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/gutil.h"
-#include "toonzqt/dvscrollwidget.h"
-#include "toonzqt/lutcalibrator.h"
-#include "toonzqt/viewcommandids.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/menubarcommand.h"
+#include "flareqt/gutil.h"
+#include "flareqt/dvscrollwidget.h"
+#include "flareqt/lutcalibrator.h"
+#include "flareqt/viewcommandids.h"
 
 // TnzLib includes
-#include "toonz/tobjecthandle.h"
-#include "toonz/tstageobject.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/tstageobjectspline.h"
-#include "toonz/tframehandle.h"
-#include "toonz/tpalettehandle.h"
-#include "toonz/palettecontroller.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/preferences.h"
-#include "toonz/tstageobjecttree.h"
-#include "toonz/mypaintbrushstyle.h"
-#include "toonz/tonionskinmaskhandle.h"
+#include "flare/tobjecthandle.h"
+#include "flare/tstageobject.h"
+#include "flare/txsheethandle.h"
+#include "flare/tstageobjectspline.h"
+#include "flare/tframehandle.h"
+#include "flare/tpalettehandle.h"
+#include "flare/palettecontroller.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/preferences.h"
+#include "flare/tstageobjecttree.h"
+#ifdef HAVE_MYPaint
+#include "flare/mypaintbrushstyle.h"
+#endif
+#include "flare/tonionskinmaskhandle.h"
 
 // TnzCore includes
 #include "tproperty.h"
@@ -1532,10 +1536,12 @@ void GeometricToolOptionsBox::filterControls() {
   bool showModifiers = false;
   if (m_tool->getTargetType() & TTool::RasterImage ||
       m_tool->getTargetType() & TTool::ToonzImage) {
+#ifdef HAVE_MYPaint
     TTool::Application *app = TTool::getApplication();
     TMyPaintBrushStyle *mpbs =
         dynamic_cast<TMyPaintBrushStyle *>(app->getCurrentLevelStyle());
     showModifiers = (mpbs) ? true : false;
+#endif
   }
 
   for (QMap<std::string, QLabel *>::iterator it = m_labels.begin();
@@ -1971,9 +1977,11 @@ void BrushToolOptionsBox::filterControls() {
 
   bool showModifiers = false;
   if (m_tool->getTargetType() & TTool::RasterImage) {
+#ifdef HAVE_MYPaint
     FullColorBrushTool *fullColorBrushTool =
         dynamic_cast<FullColorBrushTool *>(m_tool);
     showModifiers = fullColorBrushTool->getBrushStyle();
+#endif
   } else if (m_tool->getTargetType() & TTool::ToonzImage) {
     ToonzRasterBrushTool *toonzRasterBrushTool =
         dynamic_cast<ToonzRasterBrushTool *>(m_tool);
@@ -2054,7 +2062,9 @@ void BrushToolOptionsBox::onAddPreset() {
   }
 
   case TTool::RasterImage: {
+#ifdef HAVE_MYPaint
     static_cast<FullColorBrushTool *>(m_tool)->addPreset(name);
+#endif
     break;
   }
   }
@@ -2076,7 +2086,9 @@ void BrushToolOptionsBox::onRemovePreset() {
   }
 
   case TTool::RasterImage: {
+#ifdef HAVE_MYPaint
     static_cast<FullColorBrushTool *>(m_tool)->removePreset();
+#endif
     break;
   }
   }
@@ -3143,3 +3155,4 @@ public:
     }
   }
 } rotateRightCHInstance("A_ToolOption_RotateRight");
+

@@ -13,36 +13,36 @@
 #include "levelcommand.h"
 
 // TnzQt includes
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/gutil.h"
-#include "toonzqt/infoviewer.h"
-#include "toonzqt/filefield.h"
-#include "toonzqt/doublefield.h"
-#include "toonzqt/intfield.h"
-#include "toonzqt/checkbox.h"
-#include "toonzqt/tselectionhandle.h"
-#include "toonzqt/icongenerator.h"
-#include "toonzqt/fxselection.h"
+#include "flareqt/menubarcommand.h"
+#include "flareqt/gutil.h"
+#include "flareqt/infoviewer.h"
+#include "flareqt/filefield.h"
+#include "flareqt/doublefield.h"
+#include "flareqt/intfield.h"
+#include "flareqt/checkbox.h"
+#include "flareqt/tselectionhandle.h"
+#include "flareqt/icongenerator.h"
+#include "flareqt/fxselection.h"
 
 // TnzLib includes
-#include "toonz/tscenehandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/toonzscene.h"
-#include "toonz/txshleveltypes.h"
-#include "toonz/levelproperties.h"
-#include "toonz/tcamera.h"
-#include "toonz/levelset.h"
-#include "toonz/tpalettehandle.h"
-#include "toonz/preferences.h"
-#include "toonz/tstageobjecttree.h"
-#include "toonz/palettecontroller.h"
-#include "toonz/txshcell.h"
-#include "toonz/txsheet.h"
-#include "toonz/childstack.h"
-#include "toonz/tcolumnfx.h"
-#include "toonz/tframehandle.h"
+#include "flare/tscenehandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/tcolumnhandle.h"
+#include "flare/toonzscene.h"
+#include "flare/txshleveltypes.h"
+#include "flare/levelproperties.h"
+#include "flare/tcamera.h"
+#include "flare/levelset.h"
+#include "flare/tpalettehandle.h"
+#include "flare/preferences.h"
+#include "flare/tstageobjecttree.h"
+#include "flare/palettecontroller.h"
+#include "flare/txshcell.h"
+#include "flare/txsheet.h"
+#include "flare/childstack.h"
+#include "flare/tcolumnfx.h"
+#include "flare/tframehandle.h"
 
 // TnzCore includes
 #include "tconvert.h"
@@ -716,7 +716,7 @@ LevelSettingsValues LevelSettingsPopup::getValues(TXshLevelP level) {
   // leveltype
   switch (levelType) {
   case ToonzRaster:
-    values.typeStr = tr("Toonz Raster level");
+    values.typeStr = tr("Flare Raster level");
     break;
   case NonLinearRaster:
   case LinearRaster:
@@ -726,7 +726,7 @@ LevelSettingsValues LevelSettingsPopup::getValues(TXshLevelP level) {
     values.typeStr = tr("Mesh level");
     break;
   case ToonzVector:
-    values.typeStr = tr("Toonz Vector level");
+    values.typeStr = tr("Flare Vector level");
     break;
   case Palette:
     values.typeStr = tr("Palette level");
@@ -1788,3 +1788,4 @@ public:
   }
 
 } ViewLevelHandler(MI_ViewFile);
+

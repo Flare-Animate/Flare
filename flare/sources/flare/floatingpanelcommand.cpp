@@ -7,12 +7,12 @@
 
 #include "pane.h"
 
-#include "toonzqt/styleeditor.h"
+#include "flareqt/styleeditor.h"
 
 #include <QMainWindow>
 #include <QDesktopWidget>
 #include <QApplication>
-#include <../toonzqt/tdockwindows.h>
+#include "tdockwindows.h"
 
 //=============================================================================
 
@@ -148,3 +148,4 @@ TPanel *OpenFloatingPanel::getOrOpenFloatingPanel(
 
   return panel;
 }
+

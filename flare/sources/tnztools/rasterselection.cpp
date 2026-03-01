@@ -10,25 +10,25 @@
 #include "tconvert.h"
 #include "timagecache.h"
 #include "tpixelutils.h"
-#include "toonzqt/rasterimagedata.h"
-#include "toonzqt/strokesdata.h"
-#include "toonzqt/selectioncommandids.h"
-#include "toonzqt/tselectionhandle.h"
-#include "toonzqt/dvdialog.h"
-#include "toonz/stage.h"
-#include "toonz/toonzimageutils.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/tpalettehandle.h"
-#include "toonz/palettecontroller.h"
-#include "toonz/toonzscene.h"
-#include "toonz/tcamera.h"
-#include "toonz/trasterimageutils.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/tframehandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/tstageobject.h"
-#include "toonzqt/gutil.h"
+#include "flareqt/rasterimagedata.h"
+#include "flareqt/strokesdata.h"
+#include "flareqt/selectioncommandids.h"
+#include "flareqt/tselectionhandle.h"
+#include "flareqt/dvdialog.h"
+#include "flare/stage.h"
+#include "flare/toonzimageutils.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/tpalettehandle.h"
+#include "flare/palettecontroller.h"
+#include "flare/toonzscene.h"
+#include "flare/tcamera.h"
+#include "flare/trasterimageutils.h"
+#include "flare/tcolumnhandle.h"
+#include "flare/tframehandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/tstageobject.h"
+#include "flareqt/gutil.h"
 
 #include <QApplication>
 #include <QClipboard>
@@ -1288,7 +1288,7 @@ void RasterSelection::pasteSelection() {
 
   if (clipImage.height() > 0 && (levelType == OVL_XSHLEVEL ||
                                  m_currentImage->getType() == OVL_XSHLEVEL)) {
-    // An image was pasted from outside OpenToonz
+    // An image was pasted from outside Flare
 
     // Set up variables
     std::vector<TRectD> rects;
@@ -1413,3 +1413,4 @@ TRectD RasterSelection::getSelectionBbox() const {
 void RasterSelection::setSelectionBbox(const TRectD &rect) {
   m_selectionBbox = rect;
 }
+

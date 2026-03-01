@@ -3,16 +3,16 @@
 
 #include <tools/tool.h>
 
-#include <toonz/tapplication.h>
-#include <toonz/txsheet.h>
-#include <toonz/txsheethandle.h>
-#include <toonz/txshlevelhandle.h>
-#include <toonz/tframehandle.h>
-#include <toonz/tobjecthandle.h>
-#include <toonz/dpiscale.h>
-#include <toonz/toonzscene.h>
-#include <toonz/sceneproperties.h>
-#include <toonz/txshsimplelevel.h>
+#include "flare/tapplication.h"
+#include "flare/txsheet.h"
+#include "flare/txsheethandle.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/tframehandle.h"
+#include "flare/tobjecthandle.h"
+#include "flare/dpiscale.h"
+#include "flare/toonzscene.h"
+#include "flare/sceneproperties.h"
+#include "flare/txshsimplelevel.h"
 
 #include <tgl.h>
 #include <tproperty.h>
@@ -914,3 +914,4 @@ TAssistant::scanAssistants(
   
   return found;
 }
+

@@ -4,16 +4,16 @@
 #include "timage_io.h"
 
 // TnzLib includes
-#include "toonz/tscenehandle.h"
-#include "toonz/tframehandle.h"
-#include "toonz/tcamera.h"
-#include "toonz/toonzscene.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/sceneproperties.h"
+#include "flare/tscenehandle.h"
+#include "flare/tframehandle.h"
+#include "flare/tcamera.h"
+#include "flare/toonzscene.h"
+#include "flare/txsheethandle.h"
+#include "flare/sceneproperties.h"
 
 // TnzQt includes
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/gutil.h"
+#include "flareqt/menubarcommand.h"
+#include "flareqt/gutil.h"
 
 // Tnz6 includes
 #include "menubarcommandids.h"
@@ -76,3 +76,4 @@ public:
     qApp->restoreOverrideCursor();
   }
 } printCommand;
+

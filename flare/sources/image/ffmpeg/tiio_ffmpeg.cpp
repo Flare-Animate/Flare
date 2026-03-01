@@ -1,13 +1,13 @@
 
 
-#include "toonz/preferences.h"
-#include "toonz/toonzfolders.h"
+#include "flare/preferences.h"
+#include "flare/toonzfolders.h"
 
 #include "tiio_ffmpeg.h"
 #include "tsystem.h"
 #include "tsound.h"
 #include "timageinfo.h"
-#include "toonz/stage.h"
+#include "flare/stage.h"
 #include "trop.h"
 
 #include <QImage>
@@ -800,3 +800,4 @@ TImageP TLevelReaderFFmpeg::load(int frameIndex) {
 
   return m_ffmpegReader->getImage(frameIndex);
 }
+

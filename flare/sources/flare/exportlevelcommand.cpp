@@ -12,24 +12,24 @@
 #include "tstroke.h"
 
 // ToonzLib includes
-#include "toonz/txshsimplelevel.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/txshleveltypes.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/toonzscene.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/imagemanager.h"
-#include "toonz/tcamera.h"
-#include "toonz/toonzimageutils.h"
-#include "toonz/levelupdater.h"
-#include "toonz/preferences.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/txshleveltypes.h"
+#include "flare/tscenehandle.h"
+#include "flare/toonzscene.h"
+#include "flare/sceneproperties.h"
+#include "flare/imagemanager.h"
+#include "flare/tcamera.h"
+#include "flare/toonzimageutils.h"
+#include "flare/levelupdater.h"
+#include "flare/preferences.h"
 
 #include "toutputproperties.h"
 #include "ttile.h"
 
 // ToonzQt includes
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/gutil.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/gutil.h"
 
 // Toonz includes
 #include "tapp.h"
@@ -565,3 +565,4 @@ bool IoCmd::exportLevel(const TFilePath &path, TXshSimpleLevel *sl,
     return false;
   }
 }
+

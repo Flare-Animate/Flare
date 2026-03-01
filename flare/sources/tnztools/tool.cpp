@@ -10,31 +10,31 @@
 #include "tools/toolutils.h"
 
 // TnzQt includes
-#include "toonzqt/icongenerator.h"
+#include "flareqt/icongenerator.h"
 
 // TnzLib includes
-#include "toonzqt/menubarcommand.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/txshleveltypes.h"
-#include "toonz/levelproperties.h"
-#include "toonz/toonzscene.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/preferences.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/tframehandle.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/tobjecthandle.h"
-#include "toonz/tpalettehandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/txshcell.h"
-#include "toonz/tstageobject.h"
-#include "toonz/tstageobjectspline.h"
-#include "toonz/tstageobjecttree.h"
-#include "toonz/dpiscale.h"
-#include "toonz/palettecontroller.h"
-#include "toonz/tonionskinmaskhandle.h"
-#include "toonz/autoclose.h"
+#include "flareqt/menubarcommand.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/txshleveltypes.h"
+#include "flare/levelproperties.h"
+#include "flare/toonzscene.h"
+#include "flare/sceneproperties.h"
+#include "flare/preferences.h"
+#include "flare/tscenehandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/tframehandle.h"
+#include "flare/tcolumnhandle.h"
+#include "flare/tobjecthandle.h"
+#include "flare/tpalettehandle.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/txshcell.h"
+#include "flare/tstageobject.h"
+#include "flare/tstageobjectspline.h"
+#include "flare/tstageobjecttree.h"
+#include "flare/dpiscale.h"
+#include "flare/palettecontroller.h"
+#include "flare/tonionskinmaskhandle.h"
+#include "flare/autoclose.h"
 #include "toutputproperties.h"
 
 // TnzCore includes
@@ -935,8 +935,8 @@ QString TTool::updateEnabled(int rowIndex, int columnIndex) {
     ToolTargetType targetType;
     const char *name;
   } types[] = {
-    { PLI_XSHLEVEL  , VectorImage , QT_TR_NOOP("Toonz Vector Level") },
-    { TZP_XSHLEVEL  , ToonzImage  , QT_TR_NOOP("Toonz Raster Level") },
+    { PLI_XSHLEVEL  , VectorImage , QT_TR_NOOP("Flare Vector Level") },
+    { TZP_XSHLEVEL  , ToonzImage  , QT_TR_NOOP("Flare Raster Level") },
     { OVL_XSHLEVEL  , RasterImage , QT_TR_NOOP("Raster Level")       },
     { MESH_XSHLEVEL , MeshImage   , QT_TR_NOOP("Mesh Level")         },
     { META_XSHLEVEL , MetaImage   , QT_TR_NOOP("Assistants Level")   },
@@ -1614,3 +1614,4 @@ void TTool::flipGuideStrokeDirection(int mode) {
   getViewer()->invalidateAll();
   m_application->getCurrentLevel()->notifyLevelChange();
 }
+

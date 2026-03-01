@@ -3,12 +3,12 @@
 
 #include <tgeometry.h>
 #include <tfilepath.h>
-#include <toonz/txshsimplelevel.h>
+#include "flare/txshsimplelevel.h"
 #include "tfiletype.h"
-#include "toonz/toonzscene.h"
+#include "flare/toonzscene.h"
 #include "tapp.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/levelset.h"
+#include "flare/tscenehandle.h"
+#include "flare/levelset.h"
 
 #include "qvariant.h"
 #include <QString>
@@ -142,7 +142,7 @@ private:
 
           switch (baseType) {
           case TFileType::CMAPPED_IMAGE:
-            return TXshLevelType::TZP_XSHLEVEL;  // Toonz Raster
+            return TXshLevelType::TZP_XSHLEVEL;  // Flare Raster
           case TFileType::RASTER_IMAGE:
             return TXshLevelType::OVL_XSHLEVEL;  // Raster
           case TFileType::VECTOR_IMAGE:

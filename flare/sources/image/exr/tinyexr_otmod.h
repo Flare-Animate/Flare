@@ -7,7 +7,7 @@
 
 /*
  * This source is based on TinyEXR code, enabling to use file handle
- * as an argument instead of file path in order to fit usage in OpenToonz.
+ * as an argument instead of file path in order to fit usage in Flare.
  * TinyEXR code is licensed under the following:
  */
 

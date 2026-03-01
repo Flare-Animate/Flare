@@ -3,25 +3,34 @@ name: Linux Build
 on:
   push:
     paths:
-      - '**/*'                   # Include all files in the repository
-      - '!appveyor.yml'          # Ignore changes in AppVeyor
-      - '!README.md'             # Exclude README
-      - '!doc/**'                # Exclude documentation
-      - '!**/.github/**'         # Exclude everything in .github folder
-      - '.github/workflows/workflow_linux.yml'  # Include Linux workflow file
-  pull_request:
-    paths:
       - '**/*'
       - '!appveyor.yml'
       - '!README.md'
       - '!doc/**'
       - '!**/.github/**'
       - '.github/workflows/workflow_linux.yml'
+  pull_request:
+    paths:
+      - '**/*'
+      - '!appveyor.yml'
+      - '!README.md'
+      - '!doc/**'
+      - '!.github/**'
+      - '.github/workflows/workflow_linux.yml'
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
 
 jobs:
   Ubuntu:
     runs-on: ubuntu-24.04
+    env:
+      GIT_LFS_SKIP_SMUDGE: '1'
+    timeout-minutes: 120
     strategy:
+      fail-fast: false
       matrix:
         compiler: [gcc, clang]
         include:
@@ -31,84 +40,151 @@ jobs:
           - compiler: clang
             cc: clang
             cxx: clang++
+
     steps:
-    - uses: actions/checkout@v6
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        lfs: false
+        fetch-depth: 1
 
     - name: Install libraries
       run: |
         sudo apt-get update
-        sudo apt-get install -y build-essential cmake pkg-config ninja-build ccache libboost-all-dev qtbase5-dev qt5-qmake qtscript5-dev qttools5-dev qttools5-dev-tools qtmultimedia5-dev qtwayland5 libqt5svg5-dev libqt5opengl5-dev libqt5multimedia5-plugins libqt5serialport5-dev libsuperlu-dev liblz4-dev libusb-1.0-0-dev liblzo2-dev libpng-dev libjpeg-dev libglew-dev freeglut3-dev libfreetype6-dev libjson-c-dev libmypaint-dev libopencv-dev libturbojpeg-dev libomp-dev libfuse2
+        sudo apt-get install -y --no-install-recommends \
+          build-essential cmake pkg-config ninja-build ccache \
+          libboost-all-dev qtbase5-dev qt5-qmake qtscript5-dev \
+          qttools5-dev qttools5-dev-tools qtmultimedia5-dev qtwayland5 \
+          libqt5svg5-dev libqt5opengl5-dev libqt5multimedia5-plugins \
+          libqt5serialport5-dev libsuperlu-dev liblz4-dev libusb-1.0-0-dev \
+          liblzo2-dev libpng-dev libjpeg-dev libglew-dev freeglut3-dev \
+          libfreetype6-dev libjson-c-dev libmypaint-dev libopencv-dev \
+          libturbojpeg0-dev libomp-dev libfuse2
 
-    - name: Set up cache
-      run: mkdir -p /home/runner/.ccache
-
-    - uses: actions/cache@v5
+    - name: Set up ccache
+      uses: hendrikmuhs/ccache-action@v1.2
       with:
-        path: /home/runner/.ccache
-        key: ${{ runner.os }}-${{ matrix.compiler }}-${{ github.sha }}
-        restore-keys: | 
-          ${{ runner.os }}-${{ matrix.compiler }}-
-          ${{ runner.os }}-
+        key: ${{ runner.os }}-${{ matrix.compiler }}
+        max-size: "2G"
 
     - name: Build libtiff
       run: |
         cd thirdparty/tiff-4.0.3
-        CFLAGS='-fPIC' CXXFLAGS='-fPIC' ./configure --disable-jbig
-        make -j $(nproc)
+        chmod +x configure
+        ./configure --disable-jbig --disable-shared --with-pic
+        make -j2
 
-    - name: Build
+    - name: Build Flare
       run: |
-        export CCACHE_DIR=/home/runner/.ccache
-        export CC="ccache ${{ matrix.cc }}"
-        export CXX="ccache ${{ matrix.cxx }}"
         cd flare
-        mkdir build
-        cd build
-        cmake ../sources -G Ninja -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER=${{ matrix.cxx }} -DCMAKE_C_COMPILER=${{ matrix.cc }} -DWITH_TRANSLATION=OFF
-        ninja
+        mkdir -p build && cd build
+        set +e
+        cmake ../sources -G Ninja \
+          -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+          -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+          -DCMAKE_CXX_COMPILER=${{ matrix.cxx }} \
+          -DCMAKE_C_COMPILER=${{ matrix.cc }} \
+          -DWITH_TRANSLATION=OFF \
+          -DWITH_SYSTEM_LZO=ON \
+          -DWITH_LZODRIVER=OFF \
+          -DCMAKE_BUILD_TYPE=Release > cmake_configure.log 2>&1
+        rc=$?
+        set -e
+        echo "--- Begin CMake configure log ---"
+        if [ -f cmake_configure.log ]; then cat cmake_configure.log; fi
+        echo "--- End CMake configure log ---"
+        if [ $rc -ne 0 ]; then echo "CMake configure failed with exit code $rc"; exit $rc; fi
+
+        if ! (ninja -j2 2>&1 | tee build.log); then
+          echo "Build failed; dumping build log..."
+          if [ -f build.log ]; then cat build.log; fi
+          exit 1
+        fi
+
+    - name: Upload build logs
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-logs-${{ matrix.compiler }}
+        path: |
+          flare/build/cmake_configure.log
+          flare/build/build.log
+        if-no-files-found: ignore
 
     - name: Create Artifact
+      env:
+        APPIMAGE_EXTRACT_AND_RUN: 1
       run: |
         cd flare/build
         sudo ninja install
-
+        
         mkdir -p appdir/usr
-        cp -r /opt/opentoonz/* appdir/usr
-        cp appdir/usr/share/applications/*.desktop appdir
-        cp appdir/usr/share/icons/hicolor/*/apps/*.png appdir
+        # copy any preinstalled system files; ignore errors
+        # prefer Flare installation if present, fall back to legacy Flare
+        cp -r /opt/flare/* appdir/usr 2>/dev/null || true
+        cp -r /opt/flare/* appdir/usr 2>/dev/null || true
+        cp appdir/usr/share/applications/*.desktop appdir/ || true
+        cp appdir/usr/share/icons/hicolor/256x256/apps/*.png appdir/ || true
 
         mkdir artifact
-        mv appdir/usr/share/opentoonz/stuff artifact/portablestuff
-        rmdir appdir/usr/share/opentoonz
+        if [ -d "appdir/usr/share/flare/stuff" ]; then
+          mv appdir/usr/share/flare/stuff artifact/portablestuff
+          rmdir appdir/usr/share/flare || true
+        elif [ -d "appdir/usr/share/opentoonz/stuff" ]; then
+          mv appdir/usr/share/opentoonz/stuff artifact/portablestuff
+          rmdir appdir/usr/share/opentoonz || true
+        fi
 
-        wget -q -c 'https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage'
-        wget -q -c 'https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-x86_64.AppImage'
-        wget -q -c 'https://github.com/linuxdeploy/linuxdeploy-plugin-appimage/releases/download/continuous/linuxdeploy-plugin-appimage-x86_64.AppImage'
-        chmod 755 linuxdeploy-x86_64.AppImage
-        chmod 755 linuxdeploy-plugin-qt-x86_64.AppImage
-        chmod 755 linuxdeploy-plugin-appimage-x86_64.AppImage
+        base_url="https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous"
+        for tool in linuxdeploy-x86_64.AppImage linuxdeploy-plugin-qt-x86_64.AppImage linuxdeploy-plugin-appimage-x86_64.AppImage; do
+          wget -q --show-progress "${base_url}/${tool}" || \
+          wget -q --show-progress "${base_url}/${tool}" || \
+          wget -q --show-progress "${base_url}/${tool}"
+          chmod +x "${tool}"
+        done
 
-        cat << EOF > apprun.sh
-        #!/usr/bin/env bash
-        exec "\${APPDIR}/usr/bin/OpenToonz"
-        EOF
+        echo Copying x64 dependencies (prefer flare, fallback to legacy paths)...
+          if [ -d /opt/flare ]; then cp -r /opt/flare/* appdir/usr || true; elif [ -d /opt/flare ]; then cp -r /opt/flare/* appdir/usr || true; fi
+
+        if [ -f appdir/usr/bin/Flare ]; then BINNAME=Flare; elif [ -f appdir/usr/bin/Flare ]; then BINNAME=Flare; else BINNAME=$(ls appdir/usr/bin | head -n1); fi
+        printf "#!/usr/bin/env bash\nexec \"\${APPDIR}/usr/bin/${BINNAME}\"" > apprun.sh
         chmod 755 apprun.sh
 
-        export LD_LIBRARY_PATH='appdir/usr/lib/opentoonz'
-        ./linuxdeploy-x86_64.AppImage --appdir=appdir --plugin=qt --output=appimage --custom-apprun=apprun.sh \
-        --executable=appdir/usr/bin/lzocompress \
-        --executable=appdir/usr/bin/lzodecompress \
-        --executable=appdir/usr/bin/tcleanup \
-        --executable=appdir/usr/bin/tcomposer \
-        --executable=appdir/usr/bin/tconverter \
-        --executable=appdir/usr/bin/tfarmcontroller \
-        --executable=appdir/usr/bin/tfarmserver
-        mv OpenToonz*.AppImage artifact/OpenToonz.AppImage
-        ARTIFACT_NAME=Opentoonz-${{ runner.os }}-${{ matrix.compiler }}-${{ github.sha }}
-        mv artifact ${ARTIFACT_NAME}
-        tar zcf ${ARTIFACT_NAME}.tar.gz ${ARTIFACT_NAME}
+        if [ -d appdir/usr/lib/flare ]; then export LD_LIBRARY_PATH="appdir/usr/lib/flare:$LD_LIBRARY_PATH"; elif [ -d appdir/usr/lib/flare ]; then export LD_LIBRARY_PATH="appdir/usr/lib/flare:$LD_LIBRARY_PATH"; fi
 
-    - uses: actions/upload-artifact@v6
+        ./linuxdeploy-x86_64.AppImage --appdir=appdir --plugin=qt --output=appimage --custom-apprun=apprun.sh
+
+        if ls Flare*.AppImage >/dev/null 2>&1; then mv Flare*.AppImage artifact/Flare.AppImage; elif ls Flare*.AppImage >/dev/null 2>&1; then mv Flare*.AppImage artifact/Flare.AppImage; fi
+        ARTIFACT_NAME=Flare-${{ runner.os }}-${{ matrix.compiler }}
+        mv artifact ${ARTIFACT_NAME} || true
+        tar zcf ${ARTIFACT_NAME}.tar.gz ${ARTIFACT_NAME} || true
+
+    - name: Upload
+      if: always()
+      uses: actions/upload-artifact@v4
       with:
-        name: Opentoonz-${{ runner.os }}-${{ matrix.compiler }}-${{ github.sha }}
-        path: flare/build/Opentoonz-${{ runner.os }}-${{ matrix.compiler }}-${{ github.sha }}.tar.gz
+        name: Flare-AppImage-${{ matrix.compiler }}
+        path: flare/build/*.tar.gz
+
+    - name: Post build logs to PR
+      if: ${{ github.event_name == 'pull_request' && always() }}
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const fs = require('fs');
+          const owner = context.repo.owner;
+          const repo = context.repo.repo;
+          const pr = context.payload.pull_request ? context.payload.pull_request.number : undefined;
+          if (!pr) { core.info('Not a pull_request event; skipping PR log posting.'); return; }
+          function readTrunc(path) {
+            try {
+              if (!fs.existsSync(path)) return '(missing)';
+              const content = fs.readFileSync(path, 'utf8');
+              if (content.length > 12000) return content.slice(0, 6000) + '\n\n... (truncated) ...\n\n' + content.slice(-6000);
+              return content;
+            } catch (e) { return `(error reading ${path}): ${e.message}`; }
+          }
+          const cmake = readTrunc('flare/build/cmake_configure.log');
+          const build = readTrunc('flare/build/build.log');
+          const body = `**Automated build logs (truncated)**\n\n--- CMake configure log ---\n${cmake}\n\n--- Build log ---\n${build}`;
+          await github.rest.issues.createComment({ owner, repo, issue_number: pr, body });

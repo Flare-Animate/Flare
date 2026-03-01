@@ -1,13 +1,13 @@
 
 
 #include "geometrictool.h"
-#include "toonz/tpalettehandle.h"
+#include "flare/tpalettehandle.h"
 #include "tools/toolhandle.h"
 #include "tools/toolcommandids.h"
-#include "toonz/tobjecthandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/tframehandle.h"
+#include "flare/tobjecthandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/tframehandle.h"
 #include "tools/tool.h"
 #include "tcolorstyles.h"
 #include "tpalette.h"
@@ -21,25 +21,25 @@
 #include "tvectorimage.h"
 #include "tenv.h"
 #include "bluredbrush.h"
-#include "toonz/ttileset.h"
-#include "toonz/toonzimageutils.h"
-#include "toonz/tstageobject.h"
-#include "toonz/tstageobjectspline.h"
-#include "toonzqt/imageutils.h"
-#include "toonzqt/dvdialog.h"
-#include "toonz/trasterimageutils.h"
-#include "toonz/preferences.h"
+#include "flare/ttileset.h"
+#include "flare/toonzimageutils.h"
+#include "flare/tstageobject.h"
+#include "flare/tstageobjectspline.h"
+#include "flareqt/imageutils.h"
+#include "flareqt/dvdialog.h"
+#include "flare/trasterimageutils.h"
+#include "flare/preferences.h"
 #include "historytypes.h"
 #include "toonzvectorbrushtool.h"
 #include "tcurveutil.h"
 #include "tpixelutils.h"
-#include "toonz/mypaintbrushstyle.h"
-#include "toonz/ttilesaver.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/toonzscene.h"
-#include "toonz/tcamera.h"
-#include "toonz/stage.h"
-#include "toonz/tlog.h"
+#include "flare/mypaintbrushstyle.h"
+#include "flare/ttilesaver.h"
+#include "flare/tscenehandle.h"
+#include "flare/toonzscene.h"
+#include "flare/tcamera.h"
+#include "flare/stage.h"
+#include "flare/tlog.h"
 // For Qt translation support
 #include <QCoreApplication>
 #include <QKeyEvent>
@@ -1445,6 +1445,7 @@ bool GeometricTool::onPropertyChanged(std::string propertyName) {
   return false;
 }
 
+#ifdef HAVE_MYPaint
 //--------------------------------------------------------------------------------------------------
 void GeometricTool::addRasterMyPaintStroke(const TToonzImageP &ti,
                                            TStroke *stroke, TXshSimpleLevel *sl,
@@ -1621,6 +1622,7 @@ void GeometricTool::addFullColorMyPaintStroke(const TRasterImageP &ri,
     delete tileSet;  // prevent leak
   }
 }
+#endif // HAVE_MYPaint
 
 //--------------------------------------------------------------------------------------------------
 void GeometricTool::addStroke() {
@@ -1686,9 +1688,12 @@ void GeometricTool::addStroke() {
 
     stroke->setStyle(styleId);
     // mypaint brush case
+#ifdef HAVE_MYPaint
     if (getApplication()->getCurrentLevelStyle()->getTagId() == 4001) {
       addRasterMyPaintStroke(ti, stroke, sl, id);
-    } else {
+    } else
+#endif
+    {
       double hardness = m_param.m_hardness.getValue() * 0.01;
       TRect savebox;
       if (hardness == 1 || m_param.m_pencil.getValue()) {
@@ -1777,9 +1782,12 @@ void GeometricTool::addStroke() {
     int styleId = TTool::getApplication()->getCurrentLevelStyleIndex();
     stroke->setStyle(styleId);
     // mypaint brush case
+#ifdef HAVE_MYPaint
     if (getApplication()->getCurrentLevelStyle()->getTagId() == 4001) {
       addFullColorMyPaintStroke(ri, stroke, sl, id);
-    } else {
+    } else
+#endif
+    {
       double opacity  = m_param.m_opacity.getValue() * 0.01;
       double hardness = m_param.m_hardness.getValue() * 0.01;
       TRect savebox;
@@ -3330,3 +3338,4 @@ FullColorGeometricToolNotifier::FullColorGeometricToolNotifier(
     }
   }
 }
+

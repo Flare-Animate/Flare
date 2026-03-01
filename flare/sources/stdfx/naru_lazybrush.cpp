@@ -124,10 +124,10 @@ private:
   };
 
   int mode = 0;       // 0:Mask+Line, 1:Mask, 2:LoG Filter, 3:Scribble Map
-  TPixelF maskColor;  // ƒ}ƒXƒN‚ÌF
+  TPixelF maskColor;  // ï¿½}ï¿½Xï¿½Nï¿½ÌF
 
-  const float LoG_draw_scale = 20.f;   // LoGƒtƒBƒ‹ƒ^‚Ì•`‰æƒXƒP[ƒ‹
-  float LoG_s                = 0.05f;  // LoGƒtƒBƒ‹ƒ^‚ÌƒXƒP[ƒ‹
+  const float LoG_draw_scale = 20.f;   // LoGï¿½tï¿½Bï¿½ï¿½ï¿½^ï¿½Ì•`ï¿½ï¿½Xï¿½Pï¿½[ï¿½ï¿½
+  float LoG_s                = 0.05f;  // LoGï¿½tï¿½Bï¿½ï¿½ï¿½^ï¿½ÌƒXï¿½Pï¿½[ï¿½ï¿½
 
   int idx(int x, int y, int w) { return y * w + x; }
 
@@ -217,7 +217,7 @@ void naru_lazybrush::doLoG(TRasterPT<PIXEL> ras, double frame,
   int width  = ras->getLx();
   int height = ras->getLy();
 
-  // ƒKƒEƒVƒAƒ“ƒtƒBƒ‹ƒ^
+  // ï¿½Kï¿½Eï¿½Vï¿½Aï¿½ï¿½ï¿½tï¿½Bï¿½ï¿½ï¿½^
   std::vector<float> blurred(width * height, 0.0f);
   for (int y = 1; y < height - 1; ++y) {
     for (int x = 1; x < width - 1; ++x) {
@@ -231,7 +231,7 @@ void naru_lazybrush::doLoG(TRasterPT<PIXEL> ras, double frame,
     }
   }
 
-  // ‹«ŠE’l‚ğİ’è
+  // ï¿½ï¿½ï¿½Eï¿½lï¿½ï¿½İ’ï¿½
   for (int x = 0; x < width; ++x) {
     blurred[idx(x, 0, width)]          = blurred[idx(x, 1, width)];
     blurred[idx(x, height - 1, width)] = blurred[idx(x, height - 2, width)];
@@ -241,7 +241,7 @@ void naru_lazybrush::doLoG(TRasterPT<PIXEL> ras, double frame,
     blurred[idx(width - 1, y, width)] = blurred[idx(width - 2, y, width)];
   }
 
-  // ƒ‰ƒvƒ‰ƒVƒAƒ“ƒtƒBƒ‹ƒ^
+  // ï¿½ï¿½ï¿½vï¿½ï¿½ï¿½Vï¿½Aï¿½ï¿½ï¿½tï¿½Bï¿½ï¿½ï¿½^
   for (int y = 1; y < height - 1; ++y) {
     for (int x = 1; x < width - 1; ++x) {
       float sum = 0.f;
@@ -318,7 +318,7 @@ void naru_lazybrush::doGraph(TRasterPT<PIXEL> ras, double frame,
   std::vector<float> scribbleB(rasSize, 0.0f);
   float lambda       = m_lambda->getValue(frame);
   float softCapacity = floorf(lambda * alpha);
-  int scribbleType = m_scrtype->getValue();  // ƒXƒNƒŠƒuƒ‹ƒ^ƒCƒv 0:Soft, 1:Hard
+  int scribbleType = m_scrtype->getValue();  // ï¿½Xï¿½Nï¿½ï¿½ï¿½uï¿½ï¿½ï¿½^ï¿½Cï¿½v 0:Soft, 1:Hard
   int tLinkCap     = scribbleType == 0 ? softCapacity : K;
   int sLinkCap     = scribbleType == 0 ? alpha - softCapacity : 0;
   // Exist Reference
@@ -426,7 +426,7 @@ void naru_lazybrush::doGraph(TRasterPT<PIXEL> ras, double frame,
     }
   }
 
-  // ‹«ŠE’l‚ğİ’è
+  // ï¿½ï¿½ï¿½Eï¿½lï¿½ï¿½İ’ï¿½
   int bdSize     = 2 * (width + height - 2);
   int initInds[] = {0,
                     width / 2,
@@ -604,11 +604,11 @@ void naru_lazybrush::doCompute(TTile& tile, double frame,
                                const TRenderSettings& ri) {
   if (!m_input.isConnected()) return;
 
-  // 1. Œ³‰æ‘œ‘Sˆæ‚ÌBBox‚ğæ“¾
+  // 1. ï¿½ï¿½ï¿½æ‘œï¿½Sï¿½ï¿½ï¿½BBoxï¿½ï¿½ï¿½æ“¾
   TRectD fullBBox;
   m_input->getBBox(frame, fullBBox, ri);
 
-  // 2. Œ³‰æ‘œ‘S‘Ìƒ‰ƒXƒ^‚ğŠm•Û
+  // 2. ï¿½ï¿½ï¿½æ‘œï¿½Sï¿½Ìƒï¿½ï¿½Xï¿½^ï¿½ï¿½ï¿½mï¿½ï¿½
   TDimension size(0, 0);
   size.lx = tceil(fullBBox.getLx());
   size.ly = tceil(fullBBox.getLy());
@@ -617,7 +617,7 @@ void naru_lazybrush::doCompute(TTile& tile, double frame,
                               tile.getRaster(), frame, ri);
   TRasterP fullRas = fullTile.getRaster();
 
-  // 3. ƒOƒ‰ƒtˆ—‚ğƒtƒ‹ƒ‰ƒXƒ^‚ÅÀs
+  // 3. ï¿½Oï¿½ï¿½ï¿½tï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½tï¿½ï¿½ï¿½ï¿½ï¿½Xï¿½^ï¿½Åï¿½ï¿½s
   TRasterP refRas;
   bool refer_sw = false;
   if (m_ref.isConnected()) {
@@ -637,7 +637,7 @@ void naru_lazybrush::doCompute(TTile& tile, double frame,
   else
     throw TException("unsupported Pixel Type");
 
-  // 4. tile ‚ÉŒ‹‰Ê‚ğƒRƒs[
+  // 4. tile ï¿½ÉŒï¿½ï¿½Ê‚ï¿½ï¿½Rï¿½sï¿½[
   TRasterP tileRas      = tile.getRaster();
   TPoint startTilingPos = convert(fullTile.m_pos - tile.m_pos);
   tileRas->copy(fullRas, startTilingPos);

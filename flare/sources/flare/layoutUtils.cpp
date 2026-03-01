@@ -1,21 +1,21 @@
 #include "layoutUtils.h"
 #include "tenv.h"
-#include "toonz/toonzfolders.h"
-#include "toonz/cleanupparameters.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/stage.h"
-#include "toonz/stage2.h"
-#include "toonz/tcamera.h"
-#include "toonz/toonzscene.h"
+#include "flare/toonzfolders.h"
+#include "flare/cleanupparameters.h"
+#include "flare/sceneproperties.h"
+#include "flare/stage.h"
+#include "flare/stage2.h"
+#include "flare/tcamera.h"
+#include "flare/toonzscene.h"
 #include <tgeometry.h>
-#include <toonz/txshsimplelevel.h>
+#include "flare/txshsimplelevel.h"
 
 #include "tfxutil.h"
 #include "timage.h"
-#include "toonz/tcolumnfx.h"
-#include "toonz/txshcell.h"
-#include "toonz/txshcolumn.h"
-#include "toonz/txshlevelcolumn.h"
+#include "flare/tcolumnfx.h"
+#include "flare/txshcell.h"
+#include "flare/txshcolumn.h"
+#include "flare/txshlevelcolumn.h"
 #include <QSettings>
 
 #include "tsystem.h"
@@ -25,13 +25,13 @@
 #include <QString>
 #include <string>
 
-#include "toonz/tstageobjecttree.h"
-#include "toonz/txsheethandle.h"
+#include "flare/tstageobjecttree.h"
+#include "flare/txsheethandle.h"
 
-#include "toonz/levelset.h"
-#include "toonz/txshcell.h"
-#include "toonz/txshcolumn.h"
-#include "toonz/txsheethandle.h"
+#include "flare/levelset.h"
+#include "flare/txshcell.h"
+#include "flare/txshcolumn.h"
+#include "flare/txsheethandle.h"
 #include "tpalette.h"
 #include "tmsgcore.h"
 #include <QObject>
@@ -441,3 +441,4 @@ void layoutUtils::addLayoutToXsheet() {
   app->getCurrentScene()->setDirtyFlag(true);
   app->getCurrentScene()->notifyCastChange();
 }
+

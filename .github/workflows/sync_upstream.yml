@@ -1,4 +1,6 @@
-name: Sync from OpenToonz Upstream
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow
+name: Sync from upstream (Flare)
+# this job pulls from the Flare repo and applies the Flare rebranding script
 
 on:
   # Run manually
@@ -10,6 +12,8 @@ on:
 jobs:
   sync-upstream:
     runs-on: ubuntu-latest
+    env:
+      GIT_LFS_SKIP_SMUDGE: '1'
     permissions:
       contents: write
       pull-requests: write
@@ -19,15 +23,16 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0  # Fetch full history for proper syncing
+          lfs: false
 
       - name: Configure Git
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Add OpenToonz upstream remote
+      - name: Add Flare upstream remote
         run: |
-          git remote add upstream https://github.com/opentoonz/opentoonz.git || true
+          git remote add upstream https://github.com/Flare-Animate/Flare.git || true
           git fetch upstream
 
       - name: Create sync branch
@@ -63,9 +68,9 @@ jobs:
             
             # Skip binary files
             if file "$file" | grep -q "text"; then
-              # Replace OpenToonz with Flare (in text, UI, comments, etc.)
+              # Replace Flare with Flare (in text, UI, comments, etc.)
               # Do this BEFORE the lowercase replacement to avoid conflicts
-              sed -i 's/OpenToonz/Flare/g' "$file"
+              sed -i 's/Flare/Flare/g' "$file"
               
               # Replace opentoonz with flare (lowercase, in URLs, paths, etc.)
               sed -i 's/opentoonz/flare/g' "$file"
@@ -125,9 +130,9 @@ jobs:
             echo "No changes to commit"
             echo "HAS_CHANGES=false" >> $GITHUB_ENV
           else
-            git commit -m "Sync from OpenToonz upstream with Flare rebranding
+            git commit -m "Sync from Flare upstream with Flare rebranding
 
-          This automated sync merges changes from the OpenToonz upstream repository
+          This automated sync merges changes from the Flare upstream repository
           and applies Flare branding. README files are preserved from the Flare fork.
           
           Upstream commit: ${{ env.UPSTREAM_COMMIT }}"
@@ -140,15 +145,15 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           branch: ${{ env.BRANCH_NAME }}
-          title: "🔄 Sync from OpenToonz upstream"
+          title: "🔄 Sync from Flare upstream"
           body: |
             ## Upstream Sync
 
-            This PR syncs changes from the [OpenToonz upstream repository](https://github.com/opentoonz/opentoonz) and applies Flare rebranding.
+            This PR syncs changes from the [Flare upstream repository](https://github.com/Flare-Animate/Flare) and applies Flare rebranding.
 
             ### Changes Applied:
             - ✅ Merged upstream changes
-            - ✅ Applied Flare rebranding (OpenToonz → Flare)
+            - ✅ Applied Flare rebranding (Flare → Flare)
             - ✅ Preserved Flare README files
 
             ### Review Notes:

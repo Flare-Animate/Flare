@@ -22,35 +22,35 @@
 #endif
 
 // TnzQt includes
-#include "toonzqt/tselectionhandle.h"
-#include "toonzqt/styleselection.h"
+#include "flareqt/tselectionhandle.h"
+#include "flareqt/styleselection.h"
 
 // TnzTools includes
 #include "tools/cursors.h"
 #include "tools/toolhandle.h"
 #include "tools/cursormanager.h"
 #include "tools/toolcommandids.h"
-#include "toonzqt/viewcommandids.h"
+#include "flareqt/viewcommandids.h"
 
 // TnzLib includes
-#include "toonz/toonzscene.h"
-#include "toonz/tcamera.h"
-#include "toonz/palettecontroller.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/tframehandle.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/tobjecthandle.h"
-#include "toonz/tpalettehandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/tonionskinmaskhandle.h"
-#include "toonz/dpiscale.h"
-#include "toonz/tstageobjecttree.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonzqt/selection.h"
-#include "toonzqt/imageutils.h"
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/gutil.h"
+#include "flare/toonzscene.h"
+#include "flare/tcamera.h"
+#include "flare/palettecontroller.h"
+#include "flare/tscenehandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/tframehandle.h"
+#include "flare/tcolumnhandle.h"
+#include "flare/tobjecthandle.h"
+#include "flare/tpalettehandle.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/tonionskinmaskhandle.h"
+#include "flare/dpiscale.h"
+#include "flare/tstageobjecttree.h"
+#include "flare/txshsimplelevel.h"
+#include "flareqt/selection.h"
+#include "flareqt/imageutils.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/gutil.h"
 #include "subcameramanager.h"
 
 // TnzCore includes
@@ -1816,3 +1816,4 @@ void SceneViewer::onToolSwitched() {
   onLevelChanged();
   update();
 }
+

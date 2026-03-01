@@ -13,22 +13,22 @@
 #include "tools/tool.h"
 
 // TnzQt includes
-#include "toonzqt/doublefield.h"
-#include "toonzqt/checkbox.h"
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/tselectionhandle.h"
+#include "flareqt/doublefield.h"
+#include "flareqt/checkbox.h"
+#include "flareqt/menubarcommand.h"
+#include "flareqt/tselectionhandle.h"
 
 // TnzLib includes
-#include "toonz/hook.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/txshcell.h"
-#include "toonz/toonzscene.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/tframehandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/tcamera.h"
+#include "flare/hook.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/txshcell.h"
+#include "flare/toonzscene.h"
+#include "flare/tscenehandle.h"
+#include "flare/tframehandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/tcolumnhandle.h"
+#include "flare/tcamera.h"
 
 // TnzCore includes
 #include "tlevel_io.h"
@@ -823,3 +823,4 @@ void MyThread::run() { m_tracker->trackCurrentFrame(); }
 //-----------------------------------------------------------------------------
 
 OpenPopupCommandHandler<TrackerPopup> openTrackerPopup(MI_Tracking);
+

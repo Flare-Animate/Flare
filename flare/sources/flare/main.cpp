@@ -17,26 +17,26 @@
 #include "tools/toolcommandids.h"
 
 // TnzQt includes
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/tmessageviewer.h"
-#include "toonzqt/icongenerator.h"
-#include "toonzqt/gutil.h"
-#include "toonzqt/pluginloader.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/menubarcommand.h"
+#include "flareqt/tmessageviewer.h"
+#include "flareqt/icongenerator.h"
+#include "flareqt/gutil.h"
+#include "flareqt/pluginloader.h"
 
 // TnzStdfx includes
 #include "stdfx/shaderfx.h"
 
 // TnzLib includes
-#include "toonz/preferences.h"
-#include "toonz/toonzfolders.h"
-#include "toonz/tproject.h"
-#include "toonz/studiopalette.h"
-#include "toonz/stylemanager.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/tproject.h"
-#include "toonz/scriptengine.h"
+#include "flare/preferences.h"
+#include "flare/toonzfolders.h"
+#include "flare/tproject.h"
+#include "flare/studiopalette.h"
+#include "flare/stylemanager.h"
+#include "flare/tscenehandle.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/tproject.h"
+#include "flare/scriptengine.h"
 
 // TnzSound includes
 #include "tnzsound.h"
@@ -60,7 +60,7 @@
 #include "tofflinegl.h"
 #include "tpluginmanager.h"
 #include "tsimplecolorstyles.h"
-#include "toonz/imagestyles.h"
+#include "flare/imagestyles.h"
 #include "tvectorbrushstyle.h"
 #include "tfont.h"
 
@@ -94,8 +94,8 @@ using namespace DVGui;
 TEnv::IntVar EnvSoftwareCurrentFontSize("SoftwareCurrentFontSize", 12);
 
 // These are the same as the default values. See tenv.cpp and tversion.h
-const char *rootVarName     = "TOONZROOT";
-const char *systemVarPrefix = "TOONZ";
+const char *rootVarName     = "FLAREROOT";
+const char *systemVarPrefix = "FLARE";
 
 #ifdef MACOSX
 #include "tthread.h"
@@ -103,7 +103,7 @@ void postThreadMsg(TThread::Message *) {}
 void qt_mac_set_menubar_merge(bool enable);
 #endif
 
-// Modifica per toonz (non servono questo tipo di licenze)
+// Modifica per flare (non servono questo tipo di licenze)
 #define NO_LICENSE
 //-----------------------------------------------------------------------------
 
@@ -123,11 +123,11 @@ static void lastWarningError(QString msg) {
 }
 //-----------------------------------------------------------------------------
 
-static void toonzRunOutOfContMemHandler(unsigned long size) {
+static void flareRunOutOfContMemHandler(unsigned long size) {
 #ifdef _WIN32
   static bool firstTime = true;
   if (firstTime) {
-    MessageBox(NULL, (LPCWSTR)L"Run out of contiguous physical memory: please save all and restart Toonz!",
+    MessageBox(NULL, (LPCWSTR)L"Run out of contiguous physical memory: please save all and restart Flare!",
 				   (LPCWSTR)L"Warning", MB_OK | MB_SYSTEMMODAL);
     firstTime = false;
   }
@@ -142,12 +142,12 @@ DV_IMPORT_API void initColorFx();
 
 //-----------------------------------------------------------------------------
 
-//! Inizializzaza l'Environment di Toonz
+//! Inizializzaza l'Environment di Flare
 /*! In particolare imposta la projectRoot e
     la stuffDir, controlla se la directory di outputs esiste (e provvede a
     crearla in caso contrario) verifica inoltre che stuffDir esista.
 */
-static void initToonzEnv(QHash<QString, QString> &argPathValues) {
+static void initFlareEnv(QHash<QString, QString> &argPathValues) {
   StudioPalette::enable(true);
   TEnv::setRootVarName(rootVarName);
   TEnv::setSystemVarPrefix(systemVarPrefix);
@@ -161,15 +161,15 @@ static void initToonzEnv(QHash<QString, QString> &argPathValues) {
     ++i;
   }
 
-  QCoreApplication::setOrganizationName("OpenToonz");
+  QCoreApplication::setOrganizationName("Flare");
   QCoreApplication::setOrganizationDomain("");
   QCoreApplication::setApplicationName(
       QString::fromStdString(TEnv::getApplicationName()));
 
-  /*-- TOONZROOTのPathの確認 --*/
+  /*-- FLAREROOTのPathの確認 --*/
   // controllo se la xxxroot e' definita e corrisponde ad un folder esistente
 
-  /*-- ENGLISH: Confirm TOONZROOT Path
+  /*-- ENGLISH: Confirm FLAREROOT Path
         Check if the xxxroot is defined and corresponds to an existing folder
   --*/
 
@@ -206,14 +206,14 @@ static void initToonzEnv(QHash<QString, QString> &argPathValues) {
   TProjectManager *projectManager = TProjectManager::instance();
 
   /*--
-   * TOONZPROJECTSのパスセットを取得する。（TOONZPROJECTSはセミコロンで区切って複数設定可能）
+   * FLAREPROJECTSのパスセットを取得する。（FLAREPROJECTSはセミコロンで区切って複数設定可能）
    * --*/
   TFilePathSet projectsRoots = ToonzFolder::getProjectsFolders();
   TFilePathSet::iterator it;
   for (it = projectsRoots.begin(); it != projectsRoots.end(); ++it)
     projectManager->addProjectsRoot(*it);
 
-  /*-- もしまだ無ければ、TOONZROOT/sandboxにsandboxプロジェクトを作る --*/
+  /*-- もしまだ無ければ、FLAREROOT/sandboxにsandboxプロジェクトを作る --*/
   projectManager->createSandboxIfNeeded();
 
   /*
@@ -226,7 +226,7 @@ project->setUseScenePath(TProject::Extras, false);
 */
   // Imposto la rootDir per ImageCache
 
-  /*-- TOONZCACHEROOTの設定  --*/
+  /*-- FLARECACHEROOTの設定  --*/
   TFilePath cacheDir = ToonzFolder::getCacheRootFolder();
   if (cacheDir.isEmpty()) cacheDir = TEnv::getStuffDir() + "cache";
   TImageCache::instance()->setRootDir(cacheDir);
@@ -272,7 +272,7 @@ int main(int argc, char *argv[]) {
     TCli::StringQualifier layoutFileQual(
         "-layout filename",
         "Custom layout file to be used, it should be saved in "
-        "$TOONZPROFILES\\layouts\\personal\\[CurrentLayoutName].[UserName]\\. "
+        "$FLAREPROFILES\\layouts\\personal\\[CurrentLayoutName].[UserName]\\. "
         "layouts.txt is used by default.");
     usageLine = usageLine + layoutFileQual;
 
@@ -362,7 +362,7 @@ int main(int argc, char *argv[]) {
 #endif
 
 #ifdef Q_OS_WIN
-  //	Since currently OpenToonz does not work with OpenGL of software or
+  //	Since currently Flare does not work with OpenGL of software or
   // angle,	force Qt to use desktop OpenGL
   // FIXME: This options should be called before constructing the application.
   // Thus, ANGLE seems to be enabled as of now.
@@ -492,19 +492,19 @@ if (QFileInfo(localSplashPath).exists() && QFileInfo(localSplashPath).isFile()) 
   glutInit(&argc, argv);
 #endif
 
-  splash.showMessage(offsetStr + "Initializing Toonz environment ...",
+  splash.showMessage(offsetStr + "Initializing Flare environment ...",
                      Qt::AlignCenter, Qt::white);
   a.processEvents();
 
   // Install run out of contiguous memory callback
   TBigMemoryManager::instance()->setRunOutOfContiguousMemoryHandler(
-      &toonzRunOutOfContMemHandler);
+      &flareRunOutOfContMemHandler);
 
   // Setup third party
   ThirdParty::initialize();
 
-  // Toonz environment
-  initToonzEnv(argumentPathValues);
+  // Flare environment
+  initFlareEnv(argumentPathValues);
 
   // prepare for 30bit display
   if (Preferences::instance()->is30bitDisplayEnabled()) {
@@ -577,14 +577,14 @@ if (QFileInfo(localSplashPath).exists() && QFileInfo(localSplashPath).isFile()) 
   languagePathString += "\\" + Preferences::instance()->getCurrentLanguage();
 #endif
   QTranslator translator;
-  translator.load("toonz", languagePathString);
+  translator.load("flare", languagePathString);
 
   // La installo
   a.installTranslator(&translator);
 
   // Carico la traduzione contenuta in toonzqt.qm (se e' presente)
   QTranslator translator2;
-  translator2.load("toonzqt", languagePathString);
+  translator2.load("flareqt", languagePathString);
   a.installTranslator(&translator2);
 
   // Carico la traduzione contenuta in tnzcore.qm (se e' presente)
@@ -592,10 +592,10 @@ if (QFileInfo(localSplashPath).exists() && QFileInfo(localSplashPath).isFile()) 
   tnzcoreTranslator.load("tnzcore", languagePathString);
   qApp->installTranslator(&tnzcoreTranslator);
 
-  // Carico la traduzione contenuta in toonzlib.qm (se e' presente)
-  QTranslator toonzlibTranslator;
-  toonzlibTranslator.load("toonzlib", languagePathString);
-  qApp->installTranslator(&toonzlibTranslator);
+  // Carico la traduzione contenuta in flarelib.qm (se e' presente)
+  QTranslator flarelibTranslator;
+  flarelibTranslator.load("flarelib", languagePathString);
+  qApp->installTranslator(&flarelibTranslator);
 
   // Carico la traduzione contenuta in colorfx.qm (se e' presente)
   QTranslator colorfxTranslator;
@@ -641,7 +641,7 @@ if (QFileInfo(localSplashPath).exists() && QFileInfo(localSplashPath).isFile()) 
 
   loadShaderInterfaces(ToonzFolder::getLibraryFolder() + TFilePath("shaders"));
 
-  splash.showMessage(offsetStr + "Initializing OpenToonz ...", Qt::AlignCenter,
+  splash.showMessage(offsetStr + "Initializing Flare ...", Qt::AlignCenter,
                      Qt::white);
   a.processEvents();
 
@@ -674,6 +674,7 @@ if (QFileInfo(localSplashPath).exists() && QFileInfo(localSplashPath).isFile()) 
   CrashHandler::attachParentWindow(&w);
   CrashHandler::reportProjectInfo(true);
 
+#ifdef WITH_QT_SCRIPT
   if (isRunScript) {
     // load script
     if (TFileStatus(loadFilePath).doesExist()) {
@@ -713,6 +714,14 @@ if (QFileInfo(localSplashPath).exists() && QFileInfo(localSplashPath).isFile()) 
       return 1;
     }
   }
+#else
+  if (isRunScript) {
+    std::cerr << QObject::tr("QtScript is not available in this build; cannot run scripts.")
+                     .toStdString()
+              << std::endl;
+    return 1;
+  }
+#endif
 
 #ifdef _WIN32
   // http://doc.qt.io/qt-5/windows-issues.html#fullscreen-opengl-based-windows
@@ -747,7 +756,7 @@ if (QFileInfo(localSplashPath).exists() && QFileInfo(localSplashPath).isFile()) 
   // w.setWindowTitle(QString::fromStdString(TEnv::getApplicationFullName()));
   w.changeWindowTitle();
   if (TEnv::getIsPortable()) {
-    splash.showMessage(offsetStr + "Starting OpenToonz Portable ...",
+    splash.showMessage(offsetStr + "Starting Flare Portable ...",
                        Qt::AlignCenter, Qt::white);
   } else {
     splash.showMessage(offsetStr + "Starting main window ...", Qt::AlignCenter,
@@ -870,3 +879,4 @@ if (QFileInfo(localSplashPath).exists() && QFileInfo(localSplashPath).isFile()) 
 
   return ret;
 }
+

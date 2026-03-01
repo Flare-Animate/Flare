@@ -1,4 +1,4 @@
-﻿
+
 
 #include "commandbar.h"
 
@@ -9,14 +9,14 @@
 #include "commandbarpopup.h"
 
 // TnzQt includes
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/gutil.h"
+#include "flareqt/menubarcommand.h"
+#include "flareqt/gutil.h"
 
 // TnzLib includes
-#include "toonz/tscenehandle.h"
-#include "toonz/toonzscene.h"
-#include "toonz/childstack.h"
-#include "toonz/toonzfolders.h"
+#include "flare/tscenehandle.h"
+#include "flare/toonzscene.h"
+#include "flare/childstack.h"
+#include "flare/toonzfolders.h"
 // Qt includes
 #include <QWidgetAction>
 #include <QXmlStreamReader>

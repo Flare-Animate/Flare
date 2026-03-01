@@ -5,27 +5,27 @@
 #include "tsystem.h"
 
 // ToonzLib includes
-#include "toonz/toonzscene.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/txshleveltypes.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/levelproperties.h"
-#include "toonz/cleanupparameters.h"
-#include "toonz/tcleanupper.h"
+#include "flare/toonzscene.h"
+#include "flare/sceneproperties.h"
+#include "flare/txshleveltypes.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/levelproperties.h"
+#include "flare/cleanupparameters.h"
+#include "flare/tcleanupper.h"
 
-#include "toonz/tscenehandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/tframehandle.h"
-#include "toonz/tpalettehandle.h"
-#include "toonz/palettecontroller.h"
-#include "toonz/tproject.h"
+#include "flare/tscenehandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/tcolumnhandle.h"
+#include "flare/tframehandle.h"
+#include "flare/tpalettehandle.h"
+#include "flare/palettecontroller.h"
+#include "flare/tproject.h"
 
 // ToonzQt includes
-#include "toonzqt/gutil.h"
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/tselectionhandle.h"
+#include "flareqt/gutil.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/tselectionhandle.h"
 
 // Toonz includes
 #include "tapp.h"
@@ -740,3 +740,4 @@ TFilePath CleanupSettingsModel::getOutputPath(TXshSimpleLevel *sl,
                         : (outDir + inPath.getLevelNameW())
                               .withType(params->m_lpNoneFormat);
 }
+

@@ -10,7 +10,7 @@
 #include <QUrl>
 #include <QPainter>
 
-#include "toonz/toonzimageutils.h"
+#include "flare/toonzimageutils.h"
 #include "tsystem.h"
 #include "timagecache.h"
 /*
@@ -22,10 +22,10 @@
 #include "tframe.h"
 #include "tsound.h"
 #include "tsop.h"
-#include "toonz/application.h"
-#include "toonz/sceneproperties.h"
+#include "flare/application.h"
+#include "flare/sceneproperties.h"
 #include "toutputproperties.h"
-#include "toonz/tabscene.h"
+#include "flare/tabscene.h"
 class TSoundTrack;
 using namespace TwConsts;*/
 
@@ -699,3 +699,4 @@ FileViewerPopup::FileViewerPopup(QWidget *parent, Qt::WindowFlags flags)
 //-----------------------------------------------------------------------------
 
 OpenPopupCommandHandler<FileViewerPopup> openPltGizmoPopup(MI_OpenFileViewer);
+

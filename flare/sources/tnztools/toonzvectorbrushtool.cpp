@@ -10,29 +10,29 @@
 #include "bluredbrush.h"
 
 // TnzQt includes
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/imageutils.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/imageutils.h"
 
 // TnzLib includes
-#include "toonz/tobjecthandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/tframehandle.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/txsheet.h"
-#include "toonz/tstageobject.h"
-#include "toonz/tstageobjectspline.h"
-#include "toonz/rasterstrokegenerator.h"
-#include "toonz/ttileset.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/toonzimageutils.h"
-#include "toonz/palettecontroller.h"
-#include "toonz/stage2.h"
-#include "toonz/preferences.h"
-#include "toonz/tonionskinmaskhandle.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/toonzscene.h"
-#include "toonz/tcamera.h"
+#include "flare/tobjecthandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/tframehandle.h"
+#include "flare/tcolumnhandle.h"
+#include "flare/txsheet.h"
+#include "flare/tstageobject.h"
+#include "flare/tstageobjectspline.h"
+#include "flare/rasterstrokegenerator.h"
+#include "flare/ttileset.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/toonzimageutils.h"
+#include "flare/palettecontroller.h"
+#include "flare/stage2.h"
+#include "flare/preferences.h"
+#include "flare/tonionskinmaskhandle.h"
+#include "flare/tscenehandle.h"
+#include "flare/toonzscene.h"
+#include "flare/tcamera.h"
 
 // TnzCore includes
 #include "tstream.h"
@@ -2036,3 +2036,4 @@ void VectorBrushPresetManager::removePreset(const std::wstring &name) {
   m_presets.erase(VectorBrushData(name));
   save();
 }
+

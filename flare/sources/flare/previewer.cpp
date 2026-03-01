@@ -26,30 +26,30 @@
 #include "toutputproperties.h"
 
 // Toonz stage structures
-#include "toonz/tobjecthandle.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/tframehandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/tfxhandle.h"
-#include "toonz/tpalettehandle.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/scenefx.h"
-#include "toonz/toonzscene.h"
-#include "toonz/txshlevel.h"
-#include "toonz/txsheet.h"
-#include "toonz/tcamera.h"
-#include "toonz/palettecontroller.h"
+#include "flare/tobjecthandle.h"
+#include "flare/tscenehandle.h"
+#include "flare/tframehandle.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/tfxhandle.h"
+#include "flare/tpalettehandle.h"
+#include "flare/sceneproperties.h"
+#include "flare/scenefx.h"
+#include "flare/toonzscene.h"
+#include "flare/txshlevel.h"
+#include "flare/txsheet.h"
+#include "flare/tcamera.h"
+#include "flare/palettecontroller.h"
 
 // Toonz-qt stuff
-#include "toonzqt/gutil.h"
-#include "toonzqt/menubarcommand.h"
+#include "flareqt/gutil.h"
+#include "flareqt/menubarcommand.h"
 #include "menubarcommandids.h"
 #include "filebrowserpopup.h"
 #include "filebrowsermodel.h"
 
 // Toonz 6 FlipConsole's slider
-#include "toonzqt/flipconsole.h"
+#include "flareqt/flipconsole.h"
 
 // Qt stuff
 #include <QTimer>
@@ -1501,3 +1501,4 @@ void Previewer::suspendRendering(bool suspend) {
   if (suspend && previewerInstanceSC)
     previewerInstanceSC->m_imp->m_renderer.stopRendering(true);
 }
+

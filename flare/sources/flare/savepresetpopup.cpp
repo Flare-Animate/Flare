@@ -8,12 +8,12 @@
 #include "tapp.h"
 
 // TnzQt includes
-#include "toonzqt/menubarcommand.h"
+#include "flareqt/menubarcommand.h"
 
 // TnzLib includes
-#include "toonz/tfxhandle.h"
-#include "toonz/tcolumnfx.h"
-#include "toonz/toonzfolders.h"
+#include "flare/tfxhandle.h"
+#include "flare/tcolumnfx.h"
+#include "flare/toonzfolders.h"
 
 // TnzBase includes
 #include "tfx.h"
@@ -106,3 +106,4 @@ void SavePresetPopup::onOkBtn() {
 //-----------------------------------------------------------------------------
 
 OpenPopupCommandHandler<SavePresetPopup> openSavePresetPopup(MI_SavePreset);
+

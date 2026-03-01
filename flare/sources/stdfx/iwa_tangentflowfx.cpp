@@ -1,4 +1,4 @@
-﻿#include "iwa_tangentflowfx.h"
+#include "iwa_tangentflowfx.h"
 
 #include <QThreadPool>
 

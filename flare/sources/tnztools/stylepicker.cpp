@@ -8,10 +8,10 @@
 #include "tvectorimage.h"
 #include "ttoonzimage.h"
 #include "trasterimage.h"
-#include "toonz/dpiscale.h"
+#include "flare/dpiscale.h"
 #include "tpixelutils.h"
 #include "tregion.h"
-#include "toonzqt/gutil.h"
+#include "flareqt/gutil.h"
 
 #include <QRect>
 
@@ -106,7 +106,7 @@ int StylePicker::pickStyleId(const TPointD &pos, double radius, double scale2,
 }
 
 //---------------------------------------------------------
-/*--- Toonz Raster LevelのToneを拾う。 ---*/
+/*--- Flare Raster LevelのToneを拾う。 ---*/
 int StylePicker::pickTone(const TPointD &pos) const {
   if (TToonzImageP ti = m_image) {
     TRasterCM32P ras = ti->getRaster();
@@ -439,3 +439,4 @@ TPixel32 StylePicker::pickColor(TStroke *stroke) const {
 }
 
 //---------------------------------------------------------
+

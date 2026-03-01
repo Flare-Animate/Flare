@@ -13,30 +13,30 @@
 #include "selectionutils.h"
 
 // TnzQt includes
-#include "toonzqt/checkbox.h"
-#include "toonzqt/doublefield.h"
-#include "toonzqt/colorfield.h"
-#include "toonzqt/tselectionhandle.h"
-#include "toonzqt/gutil.h"
-#include "toonzqt/planeviewer.h"
-#include "toonzqt/framenavigator.h"
-#include "toonzqt/imageutils.h"
+#include "flareqt/checkbox.h"
+#include "flareqt/doublefield.h"
+#include "flareqt/colorfield.h"
+#include "flareqt/tselectionhandle.h"
+#include "flareqt/gutil.h"
+#include "flareqt/planeviewer.h"
+#include "flareqt/framenavigator.h"
+#include "flareqt/imageutils.h"
 
 // TnzLib includes
-#include "toonz/txsheet.h"
-#include "toonz/tcamera.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/txshcell.h"
-#include "toonz/tstageobjecttree.h"
-#include "toonz/toonzscene.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/tproject.h"
-#include "toonz/stage.h"
-#include "toonz/preferences.h"
+#include "flare/txsheet.h"
+#include "flare/tcamera.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/txshcell.h"
+#include "flare/tstageobjecttree.h"
+#include "flare/toonzscene.h"
+#include "flare/sceneproperties.h"
+#include "flare/tproject.h"
+#include "flare/stage.h"
+#include "flare/preferences.h"
 
-#include "toonz/txshlevelhandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/tscenehandle.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/tscenehandle.h"
 #include "toutputproperties.h"
 
 // TnzCore includes
@@ -1081,3 +1081,4 @@ void ExportLevelPopup::ExportOptions::onThicknessTransformModeChanged() {
 
 OpenPopupCommandHandler<ExportLevelPopup> exportLevelPopupCommand(
     MI_ExportLevel);
+

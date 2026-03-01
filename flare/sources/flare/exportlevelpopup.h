@@ -7,16 +7,16 @@
 #include "tpixel.h"
 
 // TnzLib includes
-#include "toonz/tframehandle.h"
+#include "flare/tframehandle.h"
 
 // Tnz6 includes
 #include "filebrowserpopup.h"
 #include "exportlevelcommand.h"
 #include "convertfolderpopup.h"
-#include "toonzqt/imageutils.h"
+#include "flareqt/imageutils.h"
 
 // TnzQt includes
-#include "toonzqt/planeviewer.h"
+#include "flareqt/planeviewer.h"
 
 // STD includes
 #include <map>
@@ -208,3 +208,4 @@ private:
   TImageP m_img;  //!< Image shown in the swatch.
 };
 #endif  // EXPORTLEVELPOPUP_H
+

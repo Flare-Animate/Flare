@@ -3,11 +3,11 @@
 #ifndef PENCILTESTPOPUP_H
 #define PENCILTESTPOPUP_H
 
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/lineedit.h"
-#include "toonz/namebuilder.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/lineedit.h"
+#include "flare/namebuilder.h"
 #include "tfilepath.h"
-#include "toonz/tproject.h"
+#include "flare/tproject.h"
 
 #include <QAbstractVideoSurface>
 #include <QRunnable>

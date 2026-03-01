@@ -17,7 +17,7 @@
 #include "timage_io.h"
 
 #include "tcolorfunctions.h"
-#include "toonz/tcolumnfx.h"
+#include "flare/tcolumnfx.h"
 
 #include "particlesmanager.h"
 
@@ -766,7 +766,7 @@ void Particles_Engine::do_render(
     // size. This is especially for levels deformed by plastic mesh which must
     // have some finite bbox but return infinite bbox because "it's hard work to
     // calculate". (see PlasticDeformerFx::doGetBBox() and the issue
-    // opentoonz#1330) NOTE: No fx returns half-planes or similar (ie if any
+    // flare#1330) NOTE: No fx returns half-planes or similar (ie if any
     // coordinate is either (std::numeric_limits<double>::max)() or its
     // opposite, then the rect IS THE infiniteRectD)
     if (bbox.isEmpty())
@@ -1603,3 +1603,4 @@ void Particles_Engine::fill_regions_with_size_map(
   sizeRas->unlock();
   if (sourceRas) sourceRas->unlock();
 }
+

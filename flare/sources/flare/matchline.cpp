@@ -9,26 +9,26 @@
 #include "tools/toolutils.h"
 
 // TnzQt includes
-#include "toonzqt/icongenerator.h"
+#include "flareqt/icongenerator.h"
 #include "historytypes.h"
 
 // TnzLib includes
-#include "toonz/txsheet.h"
-#include "toonz/toonzscene.h"
-#include "toonz/levelset.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/txshlevelcolumn.h"
-#include "toonz/txshcell.h"
-#include "toonz/scenefx.h"
-#include "toonz/dpiscale.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/palettecontroller.h"
-#include "toonz/tpalettehandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/txshleveltypes.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/tframehandle.h"
-#include "toonz/preferences.h"
+#include "flare/txsheet.h"
+#include "flare/toonzscene.h"
+#include "flare/levelset.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/txshlevelcolumn.h"
+#include "flare/txshcell.h"
+#include "flare/scenefx.h"
+#include "flare/dpiscale.h"
+#include "flare/txsheethandle.h"
+#include "flare/palettecontroller.h"
+#include "flare/tpalettehandle.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/txshleveltypes.h"
+#include "flare/tscenehandle.h"
+#include "flare/tframehandle.h"
+#include "flare/preferences.h"
 
 // TnzCore includes
 #include "tpalette.h"
@@ -1119,3 +1119,4 @@ void deleteInk(TXshSimpleLevel *sl, const std::set<TFrameId> &fids) {
 }
 
 //-----------------------------------------------------------------------------
+

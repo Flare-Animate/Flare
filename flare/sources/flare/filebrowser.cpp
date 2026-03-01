@@ -15,22 +15,22 @@
 #include "tapp.h"
 
 // TnzQt includes
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/icongenerator.h"
-#include "toonzqt/menubarcommand.h"
-#include "toonzqt/gutil.h"
-#include "toonzqt/trepetitionguard.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/icongenerator.h"
+#include "flareqt/menubarcommand.h"
+#include "flareqt/gutil.h"
+#include "flareqt/trepetitionguard.h"
 
 // TnzLib includes
-#include "toonz/tscenehandle.h"
-#include "toonz/toonzscene.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/txshsoundlevel.h"
-#include "toonz/tproject.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/namebuilder.h"
-#include "toonz/toonzimageutils.h"
-#include "toonz/preferences.h"
+#include "flare/tscenehandle.h"
+#include "flare/toonzscene.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/txshsoundlevel.h"
+#include "flare/tproject.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/namebuilder.h"
+#include "flare/toonzimageutils.h"
+#include "flare/preferences.h"
 
 // TnzBase includes
 #include "tenv.h"
@@ -2484,3 +2484,4 @@ void FrameCountTask::onCanceled(TThread::RunnableP thisTask) {
 
 OpenFloatingPanel openBrowserPane(MI_OpenFileBrowser, "Browser",
                                   QObject::tr("File Browser"));
+

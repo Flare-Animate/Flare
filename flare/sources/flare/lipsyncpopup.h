@@ -3,10 +3,10 @@
 #ifndef LIPSYNCPOPUP_H
 #define LIPSYNCPOPUP_H
 
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/filefield.h"
-#include "toonz/txshlevel.h"
-#include "toonzqt/intfield.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/filefield.h"
+#include "flare/txshlevel.h"
+#include "flareqt/intfield.h"
 
 #include <QPushButton>
 #include <QLabel>

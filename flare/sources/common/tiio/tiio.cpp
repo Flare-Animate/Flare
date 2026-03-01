@@ -1,5 +1,3 @@
-
-
 #include "tiio.h"
 
 #include "tiio_jpg.h"

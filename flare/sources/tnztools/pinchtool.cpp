@@ -34,9 +34,9 @@
 #include "tthreadmessage.h"
 #include "tools/pinchtool.h"
 
-#include "toonz/tobjecthandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/tstageobject.h"
+#include "flare/tobjecthandle.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/tstageobject.h"
 
 #include "ext/StrokeDeformation.h"
 #include "ext/SmoothDeformation.h"
@@ -596,3 +596,4 @@ void PinchTool::update(const TGlobalChange &) {
 //-----------------------------------------------------------------------------
 
 static PinchTool pinchTool;
+

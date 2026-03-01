@@ -20,7 +20,7 @@
 //#include "timage_io.h"
 
 extern "C" {
-#include "toonz4.6/raster.h"
+#include "flare4.6/raster.h"
 }
 
 #if defined(_WIN32) && defined(x64)

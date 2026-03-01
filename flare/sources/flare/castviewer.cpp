@@ -12,22 +12,22 @@
 #include "flipbook.h"
 
 // TnzLib includes
-#include "toonz/tscenehandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/txshlevelhandle.h"
-#include "toonz/levelset.h"
-#include "toonz/toonzscene.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/txshpalettelevel.h"
-#include "toonz/txshsoundlevel.h"
-#include "toonz/txshleveltypes.h"
+#include "flare/tscenehandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/levelset.h"
+#include "flare/toonzscene.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/txshpalettelevel.h"
+#include "flare/txshsoundlevel.h"
+#include "flare/txshleveltypes.h"
 
 // TnzQt includes
-#include "toonzqt/dvdialog.h"
-#include "toonzqt/gutil.h"
-#include "toonzqt/trepetitionguard.h"
-#include "toonzqt/icongenerator.h"
-#include "toonzqt/infoviewer.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/gutil.h"
+#include "flareqt/trepetitionguard.h"
+#include "flareqt/icongenerator.h"
+#include "flareqt/infoviewer.h"
 #include "historytypes.h"
 
 // TnzCore includes
@@ -929,3 +929,4 @@ void CastBrowser::viewFileInfo() {
 
 OpenFloatingPanel openCastPane(MI_OpenFileBrowser2, "SceneCast",
                                QObject::tr("Scene Cast"));
+

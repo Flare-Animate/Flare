@@ -18,7 +18,7 @@
 #include "tparamuiconcept.h"
 
 // TnzLib includes
-#include "toonz/toonzimageutils.h"
+#include "flare/toonzimageutils.h"
 
 // TnzStdfx includes
 #include "iwa_particlesengine.h"
@@ -581,3 +581,4 @@ void Iwa_TiledParticlesFx::compatibilityTranslatePort(int major, int minor,
 //==============================================================================
 
 FX_PLUGIN_IDENTIFIER(Iwa_TiledParticlesFx, "iwa_TiledParticlesFx");
+

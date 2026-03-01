@@ -9,13 +9,13 @@
 #include "saveloadqsettings.h"
 #include "custompanelmanager.h"
 #include "layoutUtils.h"
-#include "toonzqt/gutil.h"
+#include "flareqt/gutil.h"
 
 // TnzLib includes
-#include "toonz/toonzfolders.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/toonzscene.h"
-#include "toonz/sceneproperties.h"
+#include "flare/toonzfolders.h"
+#include "flare/tscenehandle.h"
+#include "flare/toonzscene.h"
+#include "flare/sceneproperties.h"
 #include "layoutPresetsEditorPopup.h"
 
 // TnzCore includes
@@ -881,3 +881,4 @@ TPanel *TPanelFactory::createPanel(QWidget *parent) {
 }
 
 //-----------------------------------------------------------------------------
+

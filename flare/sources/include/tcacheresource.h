@@ -45,31 +45,31 @@ rect of the plane, the caching procedures in a render process require certain
 generalizations of the tile model that are fulfilled by the TCacheResource
 class:
 
-<li> A cache resource has a textual description of its content that we'll call
+#include "li" A cache resource has a textual description of its content that we'll call
 'name'.
 It is the associative key used to retrieve a resource among all the others
 stored
 in the cache. <\li>
-<li> The spatial domain of a cache resource is the entire plane, meaning that
+#include "li" The spatial domain of a cache resource is the entire plane, meaning that
 access
 methods are not bound to work on a specific rect.
 This is necessary since the image data accessed on non-consecutive renders could
 cover
 sparse regions of the plane. <\li>
-<li> For simplicity, the pixel geometry of a cache is coherent to the plane
+#include "li" For simplicity, the pixel geometry of a cache is coherent to the plane
 origin - that is,
 pixel corners always have integer coordinates. <\li>
-<li> Filled resources have a <b> raster type <\b>, specifying the type of
+#include "li" Filled resources have a <b> raster type <\b>, specifying the type of
 rasters that are
 currently storing. It is forbidden to upload rasters to resources when their
 raster type differs.
 Empty resources are compatible to all possible raster types. <\li>
-<li> Cache resources provide reference counters to either the entire resource
+#include "li" Cache resources provide reference counters to either the entire resource
 and each
 piece of its internal memory model, in order to perform automatic release of
 unnecessary
 data. <\li>
-<li> The resource provides an accessible resume of its currently filled areas,
+#include "li" The resource provides an accessible resume of its currently filled areas,
 in the form of
 a QRegion. <\li>
 

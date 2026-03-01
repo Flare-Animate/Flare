@@ -17,23 +17,23 @@
 #include "formatsettingspopups.h"
 #include "tsystem.h"
 
-#include "toonz/toonzscene.h"
-#include "toonz/txsheet.h"
-#include "toonz/txshcolumn.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/onionskinmask.h"
-#include "toonz/tstageobject.h"
-#include "toonz/dpiscale.h"
-#include "toonz/stage.h"
-#include "toonz/stage2.h"
-#include "toonz/stagevisitor.h"
-#include "toonz/stageplayer.h"
-#include "toonz/tcamera.h"
-#include "toonz/preferences.h"
-#include "toonz/trasterimageutils.h"
+#include "flare/toonzscene.h"
+#include "flare/txsheet.h"
+#include "flare/txshcolumn.h"
+#include "flare/sceneproperties.h"
+#include "flare/onionskinmask.h"
+#include "flare/tstageobject.h"
+#include "flare/dpiscale.h"
+#include "flare/stage.h"
+#include "flare/stage2.h"
+#include "flare/stagevisitor.h"
+#include "flare/stageplayer.h"
+#include "flare/tcamera.h"
+#include "flare/preferences.h"
+#include "flare/trasterimageutils.h"
 
 #include "tapp.h"
-#include "toonz/tframehandle.h"
+#include "flare/tframehandle.h"
 
 #ifdef MACOSX
 namespace {
@@ -387,3 +387,4 @@ void MovieGenerator::setOnionSkin(int columnIndex, const OnionSkinMask &mask) {
 }
 
 //-------------------------------------------------------------------
+

@@ -3,11 +3,11 @@
 #include "tapp.h"
 #include "tsystem.h"
 #include "iocommand.h"
-#include "toonzqt/filefield.h"
-#include "toonz/toonzscene.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/sceneproperties.h"
-#include "toonz/tcamera.h"
+#include "flareqt/filefield.h"
+#include "flare/toonzscene.h"
+#include "flare/tscenehandle.h"
+#include "flare/sceneproperties.h"
+#include "flare/tcamera.h"
 #include "convertpopup.h"
 #include "tfiletype.h"
 
@@ -120,7 +120,7 @@ XDTSImportPopup::XDTSImportPopup(QStringList levelNames, ToonzScene* scene,
   m_paletteCheckBox->setChecked(true);
   m_paletteCheckBox->setToolTip(
       tr("When activated, styles of the default "
-         "palette\n($TOONZSTUDIOPALETTE\\Global Palettes\\Default "
+         "palette\n($FLARESTUDIOPALETTE\\Global Palettes\\Default "
          "Palettes\\Cleanup_Palette.tpl) will \nbe "
          "appended to the palette after conversion"));
   QStringList dpiModes;
@@ -212,7 +212,7 @@ XDTSImportPopup::XDTSImportPopup(QStringList levelNames, ToonzScene* scene,
   fieldsArea->setWidget(fieldsWidget);
   m_topLayout->addWidget(fieldsArea, 1);
 
-  // —ˆT Œ´‰æ^’†Š„Ql‚ÌƒRƒ}ƒ}[ƒN‚ÌƒŒƒCƒAƒEƒg‚©‚çI
+  // ï¿½ï¿½ï¿½T ï¿½ï¿½ï¿½ï¿½^ï¿½ï¿½ï¿½ï¿½ï¿½Qï¿½lï¿½ÌƒRï¿½}ï¿½}ï¿½[ï¿½Nï¿½Ìƒï¿½ï¿½Cï¿½Aï¿½Eï¿½gï¿½ï¿½ï¿½ï¿½I
 
   // cell mark area
   QGroupBox* cellMarkGroupBox = new QGroupBox(
@@ -222,7 +222,7 @@ XDTSImportPopup::XDTSImportPopup(QStringList levelNames, ToonzScene* scene,
   markLay->setVerticalSpacing(10);
   markLay->setHorizontalSpacing(5);
   {
-    // 0x25CB = ¡ğ, 0x25CF = ¡ñ
+    // 0x25CB = ï¿½ï¿½, 0x25CF = ï¿½ï¿½
     QChar symbol1 = isSXF ? QChar(0x25CB) : QChar('0');
     QChar symbol2 = isSXF ? QChar(0x25CF) : QChar('*');
     markLay->addWidget(

@@ -13,28 +13,28 @@
 #include "comboviewerpane.h"
 
 // TnzQt includes
-#include "toonzqt/icongenerator.h"
-#include "toonzqt/trepetitionguard.h"
-#include "toonzqt/gutil.h"
-#include "toonzqt/tselectionhandle.h"
+#include "flareqt/icongenerator.h"
+#include "flareqt/trepetitionguard.h"
+#include "flareqt/gutil.h"
+#include "flareqt/tselectionhandle.h"
 
 // TnzLib includes
-#include "toonz/txshlevelhandle.h"
-#include "toonz/tcolumnhandle.h"
-#include "toonz/txsheethandle.h"
-#include "toonz/tframehandle.h"
-#include "toonz/tonionskinmaskhandle.h"
-#include "toonz/tobjecthandle.h"
-#include "toonz/txshleveltypes.h"
-#include "toonz/txshsimplelevel.h"
-#include "toonz/stage2.h"
-#include "toonz/levelproperties.h"
-#include "toonz/palettecontroller.h"
-#include "toonz/tpalettehandle.h"
-#include "toonz/tscenehandle.h"
-#include "toonz/toonzscene.h"
-#include "toonz/levelset.h"
-#include "toonz/preferences.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/tcolumnhandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/tframehandle.h"
+#include "flare/tonionskinmaskhandle.h"
+#include "flare/tobjecthandle.h"
+#include "flare/txshleveltypes.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/stage2.h"
+#include "flare/levelproperties.h"
+#include "flare/palettecontroller.h"
+#include "flare/tpalettehandle.h"
+#include "flare/tscenehandle.h"
+#include "flare/toonzscene.h"
+#include "flare/levelset.h"
+#include "flare/preferences.h"
 
 // TnzCore includes
 #include "tpalette.h"
@@ -2027,3 +2027,4 @@ int InbetweenDialog::getIndex(const QString &text) {
 
 OpenFloatingPanel openFilmstripCommand(MI_OpenFilmStrip, "FilmStrip",
                                        QObject::tr("Level: "));
+
