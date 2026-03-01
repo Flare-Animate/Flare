@@ -1,16 +1,16 @@
 
 
-"flareqt/rasterimagedata.h"
-"flareqt/strokesdata.h"
+#include "flareqt/rasterimagedata.h"
+#include "flareqt/strokesdata.h"
 #include "tpaletteutil.h"
 #include "trasterimage.h"
-"flare/stage.h"
-"flare/tcenterlinevectorizer.h"
-"flare/ttileset.h"
-"flare/toonzimageutils.h"
-"flare/toonzscene.h"
-"flare/sceneproperties.h"
-"flare/fullcolorpalette.h"
+#include "flare/stage.h"
+#include "flare/tcenterlinevectorizer.h"
+#include "flare/ttileset.h"
+#include "flare/toonzimageutils.h"
+#include "flare/toonzscene.h"
+#include "flare/sceneproperties.h"
+#include "flare/fullcolorpalette.h"
 
 #include <memory>
 

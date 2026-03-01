@@ -1,12 +1,12 @@
 
 
-"flare/hook.h"
+#include "flare/hook.h"
 #include "tstream.h"
 #include "tfilepath.h"
 
 #include "tconvert.h"
-"flare/txsheet.h"
-"flare/txshcell.h"
+#include "flare/txsheet.h"
+#include "flare/txshcell.h"
 
 //---------------------------------------------------------
 

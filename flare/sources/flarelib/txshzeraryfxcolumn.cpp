@@ -1,12 +1,12 @@
 
 
-"flare/txshzeraryfxcolumn.h"
-"flare/tcolumnfx.h"
-"flare/toonzscene.h"
-"flare/txshcell.h"
-"flare/txsheet.h"
-"flare/fxdag.h"
-"flare/txshzeraryfxlevel.h"
+#include "flare/txshzeraryfxcolumn.h"
+#include "flare/tcolumnfx.h"
+#include "flare/toonzscene.h"
+#include "flare/txshcell.h"
+#include "flare/txsheet.h"
+#include "flare/fxdag.h"
+#include "flare/txshzeraryfxlevel.h"
 
 #include "tstream.h"
 

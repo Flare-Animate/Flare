@@ -6,10 +6,10 @@
 #include <QSplitter>
 #include <QScrollArea>
 
-"flareqt/treemodel.h"
-"flareqt/lineedit.h"
-"flareqt/checkbox.h"
-"flare/observer.h"
+#include "flareqt/treemodel.h"
+#include "flareqt/lineedit.h"
+#include "flareqt/checkbox.h"
+#include "flare/observer.h"
 #include "batches.h"
 
 class TFarmTask;

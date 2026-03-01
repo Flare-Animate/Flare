@@ -5,9 +5,9 @@
 
 #include <memory>
 
-"flare/txsheet.h"
+#include "flare/txsheet.h"
 #include "commandbar.h"
-"flareqt/keyframenavigator.h"
+#include "flareqt/keyframenavigator.h"
 
 #include <QToolBar>
 

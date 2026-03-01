@@ -1,10 +1,10 @@
 
 
-"flareqt/spectrumfield.h"
-"flareqt/styleeditor.h"
+#include "flareqt/spectrumfield.h"
+#include "flareqt/styleeditor.h"
 #include "tconvert.h"
-"flareqt/dvdialog.h"
-"flareqt/gutil.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/gutil.h"
 
 #include "tcolorstyles.h"
 

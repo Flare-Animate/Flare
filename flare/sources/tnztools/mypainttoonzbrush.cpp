@@ -4,7 +4,7 @@
 #include "mypainttoonzbrush.h"
 #include "tropcm.h"
 #include "tpixelutils.h"
-<flare/mypainthelpers.hpp>
+#include "flare/mypainthelpers.hpp"
 
 #include <QColor>
 

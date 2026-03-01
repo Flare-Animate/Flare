@@ -5,9 +5,9 @@
 
 #include <memory>
 
-"flareqt/dvdialog.h"
-"flareqt/doublefield.h"
-"flareqt/lineedit.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/doublefield.h"
+#include "flareqt/lineedit.h"
 
 #include <QFrame>
 #include <QListWidget>

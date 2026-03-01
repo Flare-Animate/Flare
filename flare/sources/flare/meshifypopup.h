@@ -4,10 +4,10 @@
 #define MESHIFYPOPUP_H
 
 // TnzQt includes
-"flareqt/dvdialog.h"
+#include "flareqt/dvdialog.h"
 
 // TnzLib includes
-"flare/txshcell.h"
+#include "flare/txshcell.h"
 
 // TnzCore includes
 #include "timage.h"

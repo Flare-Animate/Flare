@@ -1,22 +1,22 @@
 
 
-"flareqt/addfxcontextmenu.h"
+#include "flareqt/addfxcontextmenu.h"
 
 // TnzQt includes
-"flareqt/fxselection.h"
+#include "flareqt/fxselection.h"
 
 // TnzLib includes
-"flare/toonzfolders.h"
-"flare/txsheethandle.h"
-"flare/tcolumnhandle.h"
-"flare/tframehandle.h"
-"flare/tfxhandle.h"
-"flare/fxcommand.h"
-"flare/txsheet.h"
-"flare/fxdag.h"
-"flare/tapplication.h"
-"flare/txshzeraryfxcolumn.h"
-"flare/tcolumnfx.h"
+#include "flare/toonzfolders.h"
+#include "flare/txsheethandle.h"
+#include "flare/tcolumnhandle.h"
+#include "flare/tframehandle.h"
+#include "flare/tfxhandle.h"
+#include "flare/fxcommand.h"
+#include "flare/txsheet.h"
+#include "flare/fxdag.h"
+#include "flare/tapplication.h"
+#include "flare/txshzeraryfxcolumn.h"
+#include "flare/tcolumnfx.h"
 #include "tw/stringtable.h"
 
 // TnzBase includes

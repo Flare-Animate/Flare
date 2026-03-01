@@ -1,6 +1,6 @@
 
 
-"flare/captureparameters.h"
+#include "flare/captureparameters.h"
 #include "tiio.h"
 #include "tstream.h"
 #include "tproperty.h"

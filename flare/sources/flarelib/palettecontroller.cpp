@@ -1,16 +1,16 @@
 
 
 // TnzLib includes
-"flare/stage2.h"
-"flare/tpalettehandle.h"
-"flare/tscenehandle.h"
-"flare/txshlevelhandle.h"
-"flare/txshlevel.h"
+#include "flare/stage2.h"
+#include "flare/tpalettehandle.h"
+#include "flare/tscenehandle.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/txshlevel.h"
 
 // TnzBase includes
 #include "tenv.h"
 
-"flare/palettecontroller.h"
+#include "flare/palettecontroller.h"
 
 TEnv::IntVar PaletteControllerAutoApplyState("PaletteControllerAutoApplyState",
                                              1);

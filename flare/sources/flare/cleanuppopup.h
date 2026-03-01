@@ -6,7 +6,7 @@
 #include <memory>
 
 // TnzQt includes
-"flareqt/validatedchoicedialog.h"
+#include "flareqt/validatedchoicedialog.h"
 
 // TnzCore includes
 #include "tfilepath.h"

@@ -1,19 +1,19 @@
 
 
-"flare/tstageobjecttree.h"
-"flare/tstageobjectspline.h"
-"flare/tstageobject.h"
+#include "flare/tstageobjecttree.h"
+#include "flare/tstageobjectspline.h"
+#include "flare/tstageobject.h"
 #include "tgrammar.h"
 #include "ttokenizer.h"
 #include "tconvert.h"
 #include "tunit.h"
 #include "tstream.h"
 
-"flare/txsheet.h"
-"flare/txshcell.h"
+#include "flare/txsheet.h"
+#include "flare/txshcell.h"
 
-"flare/txsheetexpr.h"
-"flare/columnfan.h"
+#include "flare/txsheetexpr.h"
+#include "flare/columnfan.h"
 #include "../include/orientation.h"
 
 using namespace TSyntax;

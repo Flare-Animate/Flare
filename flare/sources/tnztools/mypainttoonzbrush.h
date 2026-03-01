@@ -13,7 +13,7 @@ public:
 
 #ifdef HAVE_MYPaint
 
-<flare/mypaint.h>
+#include "flare/mypaint.h"
 #include "traster.h"
 #include "trastercm.h"
 #include "tcurves.h"

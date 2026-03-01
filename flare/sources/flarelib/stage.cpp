@@ -18,27 +18,27 @@
 #include "tregion.h"
 
 // TnzLib includes
-"flare/stage2.h"
-"flare/stageplayer.h"
-"flare/stagevisitor.h"
-"flare/txsheet.h"
-"flare/txshsimplelevel.h"
-"flare/txshchildlevel.h"
-"flare/txshcolumn.h"
-"flare/txshcell.h"
-"flare/onionskinmask.h"
-"flare/dpiscale.h"
-"flare/imagemanager.h"
-"flare/tstageobjecttree.h"
-"flare/preferences.h"
-"flare/fill.h"
-"flare/levelproperties.h"
-"flare/autoclose.h"
-"flare/txshleveltypes.h"
+#include "flare/stage2.h"
+#include "flare/stageplayer.h"
+#include "flare/stagevisitor.h"
+#include "flare/txsheet.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/txshchildlevel.h"
+#include "flare/txshcolumn.h"
+#include "flare/txshcell.h"
+#include "flare/onionskinmask.h"
+#include "flare/dpiscale.h"
+#include "flare/imagemanager.h"
+#include "flare/tstageobjecttree.h"
+#include "flare/preferences.h"
+#include "flare/fill.h"
+#include "flare/levelproperties.h"
+#include "flare/autoclose.h"
+#include "flare/txshleveltypes.h"
 #include "imagebuilders.h"
-"flare/toonzscene.h"
-"flare/sceneproperties.h"
-"flare/tcamera.h"
+#include "flare/toonzscene.h"
+#include "flare/sceneproperties.h"
+#include "flare/tcamera.h"
 
 // Qt includes
 #include <QImage>
@@ -47,7 +47,7 @@
 #include <QThreadStorage>
 #include <QMatrix>
 
-"flare/stage.h"
+#include "flare/stage.h"
 
 // #define  NUOVO_ONION
 

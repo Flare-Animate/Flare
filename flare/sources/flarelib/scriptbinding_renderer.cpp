@@ -1,16 +1,16 @@
 
 
-"flare/scriptbinding_renderer.h"
-"flare/scriptbinding_scene.h"
-"flare/scriptbinding_level.h"
-"flare/txsheet.h"
-"flare/txshsimplelevel.h"
+#include "flare/scriptbinding_renderer.h"
+#include "flare/scriptbinding_scene.h"
+#include "flare/scriptbinding_level.h"
+#include "flare/txsheet.h"
+#include "flare/txshsimplelevel.h"
 
-"flare/toonzscene.h"
+#include "flare/toonzscene.h"
 #include "trenderer.h"
-"flare/scenefx.h"
-"flare/sceneproperties.h"
-"flare/tcamera.h"
+#include "flare/scenefx.h"
+#include "flare/sceneproperties.h"
+#include "flare/tcamera.h"
 #include "toutputproperties.h"
 #include <QEventLoop>
 #include <QWaitCondition>

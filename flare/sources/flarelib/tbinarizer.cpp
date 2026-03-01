@@ -1,6 +1,6 @@
 
 
-"flare/tbinarizer.h"
+#include "flare/tbinarizer.h"
 #include "tpixelutils.h"
 
 namespace {

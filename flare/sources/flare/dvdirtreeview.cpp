@@ -6,20 +6,20 @@
 #include "filebrowser.h"
 #include "menubarcommandids.h"
 #include "tapp.h"
-"flare/tscenehandle.h"
+#include "flare/tscenehandle.h"
 
 // TnzQt includes
-"flareqt/icongenerator.h"
-"flareqt/dvdialog.h"
-"flareqt/gutil.h"
+#include "flareqt/icongenerator.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/gutil.h"
 
 // ToonzLib
 #include "tconvert.h"
-"flare/toonzscene.h"
-"flare/namebuilder.h"
-"flare/tproject.h"
-"flare/preferences.h"
-"flare/txshsimplelevel.h"
+#include "flare/toonzscene.h"
+#include "flare/namebuilder.h"
+#include "flare/tproject.h"
+#include "flare/preferences.h"
+#include "flare/txshsimplelevel.h"
 #include "tsystem.h"
 
 // Qt includes

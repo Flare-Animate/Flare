@@ -17,14 +17,14 @@
 #include "tunit.h"
 
 // TnzLib includes
-"flare/txsheet.h"
-"flare/txshcell.h"
-"flare/tstageobjectid.h"
-"flare/tstageobject.h"
-"flare/fxdag.h"
-"flare/tstageobjecttree.h"
-"flare/tcolumnfxset.h"
-"flare/tcolumnfx.h"
+#include "flare/txsheet.h"
+#include "flare/txshcell.h"
+#include "flare/tstageobjectid.h"
+#include "flare/tstageobject.h"
+#include "flare/fxdag.h"
+#include "flare/tstageobjecttree.h"
+#include "flare/tcolumnfxset.h"
+#include "flare/tcolumnfx.h"
 
 // Boost includes
 #include "boost/noncopyable.hpp"
@@ -32,7 +32,7 @@
 // Qt includes
 #include <QString>
 
-"flare/txsheetexpr.h"
+#include "flare/txsheetexpr.h"
 
 #include <memory>
 

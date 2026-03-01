@@ -6,13 +6,13 @@
 #include <tools/tool.h>
 
 // TnzLib includes
-<flare/tapplication.h>
-<flare/txshlevelhandle.h>
-<flare/txsheethandle.h>
-<flare/txsheet.h>
-<flare/tframehandle.h>
-<flare/tobjecthandle.h>
-<flare/dpiscale.h>
+#include "flare/tapplication.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/txsheet.h"
+#include "flare/tframehandle.h"
+#include "flare/tobjecthandle.h"
+#include "flare/dpiscale.h"
 
 // TnzCore includes
 #include <tgl.h>

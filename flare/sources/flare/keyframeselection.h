@@ -3,7 +3,7 @@
 #ifndef TKEYFRAMESELECTION_H
 #define TKEYFRAMESELECTION_H
 
-"flareqt/selection.h"
+#include "flareqt/selection.h"
 #include <set>
 
 //=============================================================================

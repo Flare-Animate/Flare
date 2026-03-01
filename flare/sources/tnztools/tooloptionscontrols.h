@@ -11,18 +11,18 @@
 #include "tdoubleparamrelayproperty.h"
 
 // ToonzQt includes
-"flareqt/doublepairfield.h"
-"flareqt/intpairfield.h"
-"flareqt/intfield.h"
-"flareqt/styleindexlineedit.h"
-"flareqt/checkbox.h"
-"flareqt/doublefield.h"
-"flareqt/popupbutton.h"
+#include "flareqt/doublepairfield.h"
+#include "flareqt/intpairfield.h"
+#include "flareqt/intfield.h"
+#include "flareqt/styleindexlineedit.h"
+#include "flareqt/checkbox.h"
+#include "flareqt/doublefield.h"
+#include "flareqt/popupbutton.h"
 
 // TnzLib includes
-"flare/txsheet.h"
-"flare/tstageobject.h"
-"flare/stageobjectutil.h"
+#include "flare/txsheet.h"
+#include "flare/tstageobject.h"
+#include "flare/stageobjectutil.h"
 
 // ToonzTools
 #include "vectorselectiontool.h"

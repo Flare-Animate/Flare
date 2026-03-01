@@ -8,16 +8,16 @@
 #include "tapp.h"
 
 // TnzQt includes
-"flareqt/menubarcommand.h"
-"flareqt/gutil.h"
+#include "flareqt/menubarcommand.h"
+#include "flareqt/gutil.h"
 
 // TnzLib includes
-"flare/txsheet.h"
-"flare/tscenehandle.h"
-"flare/txsheethandle.h"
-"flare/sceneproperties.h"
-"flare/toonzscene.h"
-"flare/preferences.h"
+#include "flare/txsheet.h"
+#include "flare/tscenehandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/sceneproperties.h"
+#include "flare/toonzscene.h"
+#include "flare/preferences.h"
 #include "toutputproperties.h"
 
 // TnzBase includes

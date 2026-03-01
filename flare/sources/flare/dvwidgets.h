@@ -7,10 +7,10 @@
 #include <QComboBox>
 
 #include "tproperty.h"
-"flareqt/intfield.h"
-"flareqt/doublefield.h"
-"flareqt/lineedit.h"
-"flareqt/checkbox.h"
+#include "flareqt/intfield.h"
+#include "flareqt/doublefield.h"
+#include "flareqt/lineedit.h"
+#include "flareqt/checkbox.h"
 
 class QLabel;
 

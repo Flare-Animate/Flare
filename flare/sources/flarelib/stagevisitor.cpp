@@ -16,7 +16,7 @@
 #include "tcolorstyles.h"
 #include "timage_io.h"
 #include "tregion.h"
-"flare/toonzscene.h"
+#include "flare/toonzscene.h"
 
 // TnzBase includes
 #include "tenv.h"
@@ -28,28 +28,28 @@
 #include "ext/plasticdeformerstorage.h"
 
 // TnzLib includes
-"flare/stageplayer.h"
-"flare/stage.h"
-"flare/stage2.h"
-"flare/tcolumnfx.h"
-"flare/txsheet.h"
-"flare/txshsimplelevel.h"
-"flare/txshchildlevel.h"
-"flare/txshcolumn.h"
-"flare/txshcell.h"
-"flare/onionskinmask.h"
-"flare/dpiscale.h"
-"flare/imagemanager.h"
-"flare/tstageobjecttree.h"
-"flare/glrasterpainter.h"
-"flare/preferences.h"
-"flare/fill.h"
-"flare/levelproperties.h"
-"flare/autoclose.h"
-"flare/txshleveltypes.h"
+#include "flare/stageplayer.h"
+#include "flare/stage.h"
+#include "flare/stage2.h"
+#include "flare/tcolumnfx.h"
+#include "flare/txsheet.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/txshchildlevel.h"
+#include "flare/txshcolumn.h"
+#include "flare/txshcell.h"
+#include "flare/onionskinmask.h"
+#include "flare/dpiscale.h"
+#include "flare/imagemanager.h"
+#include "flare/tstageobjecttree.h"
+#include "flare/glrasterpainter.h"
+#include "flare/preferences.h"
+#include "flare/fill.h"
+#include "flare/levelproperties.h"
+#include "flare/autoclose.h"
+#include "flare/txshleveltypes.h"
 #include "imagebuilders.h"
-"flare/tframehandle.h"
-"flare/preferences.h"
+#include "flare/tframehandle.h"
+#include "flare/preferences.h"
 
 // Qt includes
 #include <QImage>
@@ -60,7 +60,7 @@
 #include <QThread>
 #include <QGuiApplication>
 
-"flare/stagevisitor.h"
+#include "flare/stagevisitor.h"
 
 //**********************************************************************************************
 //    Stage namespace

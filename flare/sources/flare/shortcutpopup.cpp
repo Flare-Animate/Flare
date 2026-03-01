@@ -6,14 +6,14 @@
 #include "tenv.h"
 #include "tsystem.h"
 
-"flare/toonzfolders.h"
+#include "flare/toonzfolders.h"
 // TnzQt includes
-"flareqt/gutil.h"
-"flareqt/menubarcommand.h"
-"flareqt/dvdialog.h"
+#include "flareqt/gutil.h"
+#include "flareqt/menubarcommand.h"
+#include "flareqt/dvdialog.h"
 
 // TnzLib includes
-"flare/preferences.h"
+#include "flare/preferences.h"
 
 // Qt includes
 #include <QTreeWidgetItem>

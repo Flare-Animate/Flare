@@ -5,10 +5,10 @@
 #include "tgeometry.h"
 
 // TnzQt includes
-"flareqt/dvdialog.h"
-"flareqt/intfield.h"
-"flareqt/styleindexlineedit.h"
-"flareqt/filefield.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/intfield.h"
+#include "flareqt/styleindexlineedit.h"
+#include "flareqt/filefield.h"
 
 // STD includes
 #include <set>

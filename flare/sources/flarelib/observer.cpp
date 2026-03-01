@@ -1,6 +1,6 @@
 
 
-"flare/observer.h"
+#include "flare/observer.h"
 // OBSOLETO??
 
 TNotifier *TNotifier::instance() {

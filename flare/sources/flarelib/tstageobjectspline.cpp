@@ -1,6 +1,6 @@
 
 
-"flare/tstageobjectspline.h"
+#include "flare/tstageobjectspline.h"
 #include "tconst.h"
 #include "tstroke.h"
 #include "tstream.h"

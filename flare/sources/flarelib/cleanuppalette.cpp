@@ -1,8 +1,8 @@
 
 
 #include "tpalette.h"
-"flare/cleanupcolorstyles.h"
-"flare/targetcolors.h"
+#include "flare/cleanupcolorstyles.h"
+#include "flare/targetcolors.h"
 #include "tgl.h"
 
 #include "cleanuppalette.h"

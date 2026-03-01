@@ -3,12 +3,12 @@
 #ifndef SCENESETTINGSPOPUP_H
 #define SCENESETTINGSPOPUP_H
 
-"flareqt/dvdialog.h"
+#include "flareqt/dvdialog.h"
 #include "tpixel.h"
-"flareqt/intfield.h"
-"flareqt/doublefield.h"
-"flareqt/colorfield.h"
-"flareqt/checkbox.h"
+#include "flareqt/intfield.h"
+#include "flareqt/doublefield.h"
+#include "flareqt/colorfield.h"
+#include "flareqt/checkbox.h"
 
 // forward declaration
 class TSceneProperties;

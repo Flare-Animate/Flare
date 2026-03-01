@@ -9,7 +9,7 @@
 #include "timage.h"
 
 // TnzQt includes
-"flareqt/glwidget_for_highdpi.h"
+#include "flareqt/glwidget_for_highdpi.h"
 
 // Qt includes
 #include <QOpenGLWidget>
@@ -17,7 +17,7 @@
 
 #undef DVAPI
 #undef DVVAR
-#ifdef TOONZQT_EXPORTS
+#ifdef FLAREQT_EXPORTS
 #define DVAPI DV_EXPORT_API
 #define DVVAR DV_EXPORT_VAR
 #else

@@ -1,7 +1,7 @@
 
 
 #include "batchserversviewer.h"
-"flareqt/menubarcommand.h"
+#include "flareqt/menubarcommand.h"
 #include "menubarcommandids.h"
 #include "floatingpanelcommand.h"
 #include "tfarmstuff.h"

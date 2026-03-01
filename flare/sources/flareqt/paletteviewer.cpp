@@ -1,29 +1,29 @@
 
 
-"flareqt/paletteviewer.h"
+#include "flareqt/paletteviewer.h"
 
 // TnzQt includes
-"flareqt/gutil.h"
-"flareqt/keyframenavigator.h"
-"flareqt/trepetitionguard.h"
-"flareqt/dvdialog.h"
-"flareqt/dvscrollwidget.h"
-"flareqt/studiopaletteviewer.h"
-"flareqt/styleselection.h"
-"flareqt/stylenameeditor.h"
+#include "flareqt/gutil.h"
+#include "flareqt/keyframenavigator.h"
+#include "flareqt/trepetitionguard.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/dvscrollwidget.h"
+#include "flareqt/studiopaletteviewer.h"
+#include "flareqt/styleselection.h"
+#include "flareqt/stylenameeditor.h"
 #include "palettedata.h"
 #include "docklayout.h"
 
 // TnzLib includes
-"flare/palettecmd.h"
-"flare/studiopalettecmd.h"
-"flare/txshlevel.h"
-"flare/toonzscene.h"
-"flare/sceneproperties.h"
-"flare/studiopalette.h"
-"flare/tframehandle.h"
-"flare/fullcolorpalette.h"
-"flare/preferences.h"
+#include "flare/palettecmd.h"
+#include "flare/studiopalettecmd.h"
+#include "flare/txshlevel.h"
+#include "flare/toonzscene.h"
+#include "flare/sceneproperties.h"
+#include "flare/studiopalette.h"
+#include "flare/tframehandle.h"
+#include "flare/fullcolorpalette.h"
+#include "flare/preferences.h"
 
 // TnzCore includes
 #include "saveloadqsettings.h"

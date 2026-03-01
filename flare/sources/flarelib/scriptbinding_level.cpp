@@ -1,18 +1,18 @@
 
-"flare/scriptbinding_level.h"
+#include "flare/scriptbinding_level.h"
 
 // Toonz script bindings
-"flare/scriptbinding_files.h"
+#include "flare/scriptbinding_files.h"
 
 // TnzLib includes
-"flare/tcenterlinevectorizer.h"
-"flare/tcamera.h"
-"flare/stage.h"
-"flare/txshleveltypes.h"
-"flare/levelproperties.h"
-"flare/toonzscene.h"
-"flare/txshsimplelevel.h"
-"flare/levelset.h"
+#include "flare/tcenterlinevectorizer.h"
+#include "flare/tcamera.h"
+#include "flare/stage.h"
+#include "flare/txshleveltypes.h"
+#include "flare/levelproperties.h"
+#include "flare/toonzscene.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/levelset.h"
 
 // TnzCore / TnzBase includes
 #include "tlevel_io.h"

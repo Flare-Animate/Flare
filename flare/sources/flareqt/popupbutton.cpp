@@ -3,7 +3,7 @@
 // Qt includes
 #include <QMenu>
 
-"flareqt/popupbutton.h"
+#include "flareqt/popupbutton.h"
 
 //********************************************************************************
 //    PopupButton class implementation

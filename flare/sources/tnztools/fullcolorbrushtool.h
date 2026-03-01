@@ -16,7 +16,7 @@
 
 #include "toonzrasterbrushtool.h"
 #include "mypainttoonzbrush.h"
-"flare/mypaintbrushstyle.h"
+#include "flare/mypaintbrushstyle.h"
 #include <QElapsedTimer>
 
 //==============================================================

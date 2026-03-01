@@ -9,15 +9,15 @@
 #include "tproperty.h"
 
 // TnzLib includes
-"flare/palettecontroller.h"
-"flare/tpalettehandle.h"
-"flare/tobjecthandle.h"
-"flare/stage2.h"
-"flare/doubleparamcmd.h"
-"flare/preferences.h"
+#include "flare/palettecontroller.h"
+#include "flare/tpalettehandle.h"
+#include "flare/tobjecthandle.h"
+#include "flare/stage2.h"
+#include "flare/doubleparamcmd.h"
+#include "flare/preferences.h"
 
 // TnzQt includes
-"flareqt/gutil.h"
+#include "flareqt/gutil.h"
 
 // TnzTools includes
 #include "tools/tool.h"

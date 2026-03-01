@@ -1,8 +1,8 @@
 
 
-"flare/doubleparamcmd.h"
-"flare/preferences.h"
-"flare/tscenehandle.h"
+#include "flare/doubleparamcmd.h"
+#include "flare/preferences.h"
+#include "flare/tscenehandle.h"
 #include "tdoubleparam.h"
 #include "tdoublekeyframe.h"
 #include "tundo.h"

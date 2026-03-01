@@ -1,12 +1,12 @@
 
 
 #include "testpanel.h"
-"flareqt/menubarcommand.h"
+#include "flareqt/menubarcommand.h"
 #include "menubarcommandids.h"
-"flareqt/doublepairfield.h"
-"flareqt/intfield.h"
-"flareqt/colorfield.h"
-"flareqt/spectrumfield.h"
+#include "flareqt/doublepairfield.h"
+#include "flareqt/intfield.h"
+#include "flareqt/colorfield.h"
+#include "flareqt/spectrumfield.h"
 #include "tapp.h"
 #include "mainwindow.h"
 

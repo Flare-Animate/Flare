@@ -10,18 +10,18 @@
 #include "xsheetviewer.h"
 
 // TnzQt includes
-"flareqt/menubarcommand.h"
+#include "flareqt/menubarcommand.h"
 
 // TnzLib includes
-"flare/txsheethandle.h"
-"flare/tframehandle.h"
-"flare/tcolumnhandle.h"
-"flare/tobjecthandle.h"
-"flare/tscenehandle.h"
-"flare/stageobjectutil.h"
-"flare/txsheet.h"
-"flare/tstageobjecttree.h"
-"flare/txshcolumn.h"
+#include "flare/txsheethandle.h"
+#include "flare/tframehandle.h"
+#include "flare/tcolumnhandle.h"
+#include "flare/tobjecthandle.h"
+#include "flare/tscenehandle.h"
+#include "flare/stageobjectutil.h"
+#include "flare/txsheet.h"
+#include "flare/tstageobjecttree.h"
+#include "flare/txshcolumn.h"
 
 // TnzCore includes
 #include "tundo.h"

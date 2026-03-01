@@ -3,20 +3,20 @@
 #include "celldata.h"
 #include <assert.h>
 
-"flare/txsheet.h"
-"flare/txshcolumn.h"
-"flare/txshleveltypes.h"
-"flare/txshzeraryfxcolumn.h"
-"flare/txshzeraryfxlevel.h"
-"flare/tcolumnfx.h"
-"flare/fxdag.h"
-"flare/txshlevelcolumn.h"
-"flare/preferences.h"
-"flare/tstageobject.h"
+#include "flare/txsheet.h"
+#include "flare/txshcolumn.h"
+#include "flare/txshleveltypes.h"
+#include "flare/txshzeraryfxcolumn.h"
+#include "flare/txshzeraryfxlevel.h"
+#include "flare/tcolumnfx.h"
+#include "flare/fxdag.h"
+#include "flare/txshlevelcolumn.h"
+#include "flare/preferences.h"
+#include "flare/tstageobject.h"
 #include "tapp.h"
-"flare/tscenehandle.h"
-"flare/toonzscene.h"
-"flare/levelset.h"
+#include "flare/tscenehandle.h"
+#include "flare/toonzscene.h"
+#include "flare/levelset.h"
 
 //-----------------------------------------------------------------------------
 

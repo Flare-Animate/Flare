@@ -1,7 +1,7 @@
 
 
-"flareqt/tabbar.h"
-"flareqt/dvdialog.h"
+#include "flareqt/tabbar.h"
+#include "flareqt/dvdialog.h"
 
 #include <QPainter>
 

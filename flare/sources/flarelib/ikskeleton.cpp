@@ -1,6 +1,6 @@
 
 
-"flare/ikskeleton.h"
+#include "flare/ikskeleton.h"
 
 void IKSkeleton::computeSkeleton(IKNode *node) {
   for (int i = 0; i < (int)m_nodes.size(); i++) {

@@ -8,10 +8,10 @@
 #include "commandbarpopup.h"
 
 // TnzQt includes
-"flareqt/gutil.h"
+#include "flareqt/gutil.h"
 
 // TnzLib includes
-"flare/toonzfolders.h"
+#include "flare/toonzfolders.h"
 
 // TnzCore includes
 #include "tsystem.h"

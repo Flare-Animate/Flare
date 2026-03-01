@@ -3,9 +3,9 @@
 #ifndef OUTPUTSETTINGSPOPUP_H
 #define OUTPUTSETTINGSPOPUP_H
 
-"flareqt/dvdialog.h"
+#include "flareqt/dvdialog.h"
 
-"flare/sceneproperties.h"
+#include "flare/sceneproperties.h"
 
 #include <QLabel>
 // forward declaration

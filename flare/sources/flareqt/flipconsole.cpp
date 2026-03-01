@@ -1,19 +1,19 @@
 
 
-"flareqt/flipconsole.h"
+#include "flareqt/flipconsole.h"
 // Include shared flipbook settings (e.g., FlipBookWhiteBgToggle) from toonz/
-"flare/flipbooksettings.h"
+#include "flare/flipbooksettings.h"
 
 // TnzQt includes
-"flareqt/menubarcommand.h"
-"flareqt/dvscrollwidget.h"
-"flareqt/gutil.h"
-"flareqt/flipconsoleowner.h"
+#include "flareqt/menubarcommand.h"
+#include "flareqt/dvscrollwidget.h"
+#include "flareqt/gutil.h"
+#include "flareqt/flipconsoleowner.h"
 
 // TnzLib includes
-"flare/preferences.h"
-"flare/tframehandle.h"
-"flare/toonzfolders.h"
+#include "flare/preferences.h"
+#include "flare/tframehandle.h"
+#include "flare/toonzfolders.h"
 
 // TnzBase includes
 #include "tenv.h"

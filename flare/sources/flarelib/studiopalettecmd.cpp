@@ -1,9 +1,9 @@
 
 
-"flare/studiopalettecmd.h"
-"flare/tpalettehandle.h"
-"flare/txsheethandle.h"
-"flare/txshlevelhandle.h"
+#include "flare/studiopalettecmd.h"
+#include "flare/tpalettehandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/txshlevelhandle.h"
 #include "tundo.h"
 #include "tcolorstyles.h"
 #include "tsystem.h"
@@ -12,14 +12,14 @@
 #include "timagecache.h"
 #include "tmsgcore.h"
 
-"flare/studiopalette.h"
-"flare/toonzscene.h"
-"flare/levelset.h"
-"flare/txshsimplelevel.h"
-"flare/txshleveltypes.h"
-"flare/sceneproperties.h"
-"flare/toonzfolders.h"
-"flare/txsheet.h"
+#include "flare/studiopalette.h"
+#include "flare/toonzscene.h"
+#include "flare/levelset.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/txshleveltypes.h"
+#include "flare/sceneproperties.h"
+#include "flare/toonzfolders.h"
+#include "flare/txsheet.h"
 #include <QApplication>
 
 #include "historytypes.h"

@@ -5,10 +5,10 @@
 
 #include <memory>
 
-"flare/txsheet.h"
-"flareqt/dvdialog.h"
-"flareqt/dvtextedit.h"
-"flareqt/colorfield.h"
+#include "flare/txsheet.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/dvtextedit.h"
+#include "flareqt/colorfield.h"
 
 #include <QFrame>
 #include <QScrollArea>

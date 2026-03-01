@@ -1,11 +1,11 @@
-"flare/preferences.h"
+#include "flare/preferences.h"
 
 // TnzLib includes
-"flare/tscenehandle.h"
-"flare/toonzscene.h"
-"flare/toonzfolders.h"
-"flare/tcamera.h"
-"flare/txshleveltypes.h"
+#include "flare/tscenehandle.h"
+#include "flare/toonzscene.h"
+#include "flare/toonzfolders.h"
+#include "flare/tcamera.h"
+#include "flare/txshleveltypes.h"
 
 // TnzBase includes
 #include "tenv.h"

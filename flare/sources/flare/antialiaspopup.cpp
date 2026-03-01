@@ -9,19 +9,19 @@
 #include "filmstripselection.h"
 
 // ToonzQt includes
-"flareqt/intfield.h"
-"flareqt/planeviewer.h"
-"flareqt/menubarcommand.h"
-"flareqt/tselectionhandle.h"
-"flareqt/icongenerator.h"
+#include "flareqt/intfield.h"
+#include "flareqt/planeviewer.h"
+#include "flareqt/menubarcommand.h"
+#include "flareqt/tselectionhandle.h"
+#include "flareqt/icongenerator.h"
 
 // TnzLib includes
-"flare/txshcell.h"
-"flare/txsheethandle.h"
-"flare/tframehandle.h"
-"flare/tcolumnhandle.h"
-"flare/txshlevelhandle.h"
-"flare/txshleveltypes.h"
+#include "flare/txshcell.h"
+#include "flare/txsheethandle.h"
+#include "flare/tframehandle.h"
+#include "flare/tcolumnhandle.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/txshleveltypes.h"
 
 // TnzCore includes
 #include "tpixelgr.h"

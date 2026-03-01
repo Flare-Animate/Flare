@@ -4,7 +4,7 @@
 #define OVERWRITEPOPUP_H
 
 // TnzQt includes
-"flareqt/dvdialog.h"
+#include "flareqt/dvdialog.h"
 
 //===========================================================
 

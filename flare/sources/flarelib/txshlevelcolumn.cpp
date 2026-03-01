@@ -1,13 +1,13 @@
 
 
-"flare/txshlevelcolumn.h"
+#include "flare/txshlevelcolumn.h"
 
 // TnzLib includes
-"flare/txshsimplelevel.h"
-"flare/txshcell.h"
-"flare/tcolumnfxset.h"
-"flare/tcolumnfx.h"
-"flare/txshleveltypes.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/txshcell.h"
+#include "flare/tcolumnfxset.h"
+#include "flare/tcolumnfx.h"
+#include "flare/txshleveltypes.h"
 
 // TnzCore includes
 #include "tstream.h"

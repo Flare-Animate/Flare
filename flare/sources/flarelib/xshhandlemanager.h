@@ -3,7 +3,7 @@
 #ifndef XSHHANDLEMANAGER_INCLUDED
 #define XSHHANDLEMANAGER_INCLUDED
 
-"flare/tstageobjecttree.h"
+#include "flare/tstageobjecttree.h"
 
 //===============================================================
 

@@ -3,7 +3,7 @@
 #ifndef VERSION_CONTROL_TIMELINE_H
 #define VERSION_CONTROL_TIMELINE_H
 
-"flareqt/dvdialog.h"
+#include "flareqt/dvdialog.h"
 #include "versioncontrol.h"
 
 #include <QString>

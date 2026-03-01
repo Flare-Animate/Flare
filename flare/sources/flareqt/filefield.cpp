@@ -1,9 +1,9 @@
 
 
-"flareqt/filefield.h"
-"flareqt/dvdialog.h"
-"flareqt/gutil.h"
-"flareqt/lineedit.h"
+#include "flareqt/filefield.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/gutil.h"
+#include "flareqt/lineedit.h"
 #include "tfilepath.h"
 
 #include <QHBoxLayout>

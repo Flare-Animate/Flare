@@ -12,22 +12,22 @@
 #include "flipbook.h"
 
 // TnzLib includes
-"flare/tscenehandle.h"
-"flare/txsheethandle.h"
-"flare/txshlevelhandle.h"
-"flare/levelset.h"
-"flare/toonzscene.h"
-"flare/txshsimplelevel.h"
-"flare/txshpalettelevel.h"
-"flare/txshsoundlevel.h"
-"flare/txshleveltypes.h"
+#include "flare/tscenehandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/levelset.h"
+#include "flare/toonzscene.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/txshpalettelevel.h"
+#include "flare/txshsoundlevel.h"
+#include "flare/txshleveltypes.h"
 
 // TnzQt includes
-"flareqt/dvdialog.h"
-"flareqt/gutil.h"
-"flareqt/trepetitionguard.h"
-"flareqt/icongenerator.h"
-"flareqt/infoviewer.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/gutil.h"
+#include "flareqt/trepetitionguard.h"
+#include "flareqt/icongenerator.h"
+#include "flareqt/infoviewer.h"
 #include "historytypes.h"
 
 // TnzCore includes

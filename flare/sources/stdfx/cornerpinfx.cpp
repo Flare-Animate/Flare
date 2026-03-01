@@ -7,7 +7,7 @@
 #include "trop.h"
 #include "trasterfx.h"
 #include "ttzpimagefx.h"
-"flare/tdistort.h"
+#include "flare/tdistort.h"
 #include "texturefxP.h"
 #include "tparamuiconcept.h" 
 

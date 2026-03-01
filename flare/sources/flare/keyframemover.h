@@ -6,7 +6,7 @@
 #include "xsheetdragtool.h"
 #include "keyframeselection.h"
 #include "keyframedata.h"
-"flare/txshcell.h"
+#include "flare/txshcell.h"
 
 class TXsheet;
 

@@ -1,18 +1,18 @@
 
 
-"flare/tstageobject.h"
+#include "flare/tstageobject.h"
 
 // TnzLib includes
-"flare/tstageobjecttree.h"
-"flare/tstageobjectspline.h"
-"flare/txsheet.h"
-"flare/observer.h"
-"flare/txshlevelcolumn.h"
-"flare/txshcell.h"
-"flare/stage.h"
-"flare/tcamera.h"
-"flare/doubleparamcmd.h"
-"flare/tpinnedrangeset.h"
+#include "flare/tstageobjecttree.h"
+#include "flare/tstageobjectspline.h"
+#include "flare/txsheet.h"
+#include "flare/observer.h"
+#include "flare/txshlevelcolumn.h"
+#include "flare/txshcell.h"
+#include "flare/stage.h"
+#include "flare/tcamera.h"
+#include "flare/doubleparamcmd.h"
+#include "flare/tpinnedrangeset.h"
 
 // TnzExt includes
 #include "ext/plasticskeleton.h"

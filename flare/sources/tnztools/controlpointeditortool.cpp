@@ -11,14 +11,14 @@
 #include "tools/cursors.h"
 #include "tools/toolhandle.h"
 
-"flare/tframehandle.h"
-"flare/tcolumnhandle.h"
-"flare/txsheethandle.h"
-"flare/strokegenerator.h"
-"flare/txshlevelhandle.h"
-"flare/tobjecthandle.h"
-"flare/stage2.h"
-"flare/tstageobject.h"
+#include "flare/tframehandle.h"
+#include "flare/tcolumnhandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/strokegenerator.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/tobjecthandle.h"
+#include "flare/stage2.h"
+#include "flare/tstageobject.h"
 
 #include <QKeyEvent>
 

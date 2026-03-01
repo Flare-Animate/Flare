@@ -2,7 +2,7 @@
 
 #include "texturemanager.h"
 #include "tsystem.h"
-"flare/preferences.h"
+#include "flare/preferences.h"
 
 #include <sstream>
 

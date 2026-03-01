@@ -1,7 +1,7 @@
 
 
-"flare/txshcell.h"
-"flare/txshsimplelevel.h"
+#include "flare/txshcell.h"
+#include "flare/txshsimplelevel.h"
 
 //=============================================================================
 

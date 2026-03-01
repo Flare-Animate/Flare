@@ -10,27 +10,27 @@
 #include "stdfx/shaderfx.h"
 
 // TnzLib includes
-"flare/toonzfolders.h"
-"flare/tlog.h"
-"flare/tstageobjecttree.h"
-"flare/stage.h"
-"flare/preferences.h"
-"flare/tproject.h"
-"flare/toonzscene.h"
-"flare/sceneproperties.h"
-"flare/txshsoundlevel.h"
-"flare/txshsoundcolumn.h"
-"flare/tcamera.h"
-"flare/scenefx.h"
-"flare/movierenderer.h"
-"flare/multimediarenderer.h"
+#include "flare/toonzfolders.h"
+#include "flare/tlog.h"
+#include "flare/tstageobjecttree.h"
+#include "flare/stage.h"
+#include "flare/preferences.h"
+#include "flare/tproject.h"
+#include "flare/toonzscene.h"
+#include "flare/sceneproperties.h"
+#include "flare/txshsoundlevel.h"
+#include "flare/txshsoundcolumn.h"
+#include "flare/tcamera.h"
+#include "flare/scenefx.h"
+#include "flare/movierenderer.h"
+#include "flare/multimediarenderer.h"
 #include "toutputproperties.h"
-"flare/imagestyles.h"
+#include "flare/imagestyles.h"
 #include "tproperty.h"
-"flare/levelset.h"
-"flare/txshsimplelevel.h"
-"flare/levelproperties.h"
-"flare/filepathproperties.h"
+#include "flare/levelset.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/levelproperties.h"
+#include "flare/filepathproperties.h"
 
 // TnzSound includes
 #include "tnzsound.h"
@@ -68,7 +68,7 @@
 #include "tpalette.h"
 
 // TnzQt includes
-"flareqt/pluginloader.h"
+#include "flareqt/pluginloader.h"
 
 // Qt includes
 #include <QApplication>

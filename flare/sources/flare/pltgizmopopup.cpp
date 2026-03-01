@@ -7,14 +7,14 @@
 #include "tapp.h"
 
 // TnzQt includes
-"flareqt/menubarcommand.h"
-"flareqt/styleselection.h"
-"flareqt/tselectionhandle.h"
+#include "flareqt/menubarcommand.h"
+#include "flareqt/styleselection.h"
+#include "flareqt/tselectionhandle.h"
 #include "historytypes.h"
 
 // TnzLib includes
-"flare/tpalettehandle.h"
-"flare/palettecontroller.h"
+#include "flare/tpalettehandle.h"
+#include "flare/palettecontroller.h"
 
 // TnzCore includes
 #include "tundo.h"

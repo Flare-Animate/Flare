@@ -13,22 +13,22 @@
 #include "tools/tool.h"
 
 // TnzQt includes
-"flareqt/doublefield.h"
-"flareqt/checkbox.h"
-"flareqt/menubarcommand.h"
-"flareqt/tselectionhandle.h"
+#include "flareqt/doublefield.h"
+#include "flareqt/checkbox.h"
+#include "flareqt/menubarcommand.h"
+#include "flareqt/tselectionhandle.h"
 
 // TnzLib includes
-"flare/hook.h"
-"flare/txshsimplelevel.h"
-"flare/txshcell.h"
-"flare/toonzscene.h"
-"flare/tscenehandle.h"
-"flare/tframehandle.h"
-"flare/txsheethandle.h"
-"flare/txshlevelhandle.h"
-"flare/tcolumnhandle.h"
-"flare/tcamera.h"
+#include "flare/hook.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/txshcell.h"
+#include "flare/toonzscene.h"
+#include "flare/tscenehandle.h"
+#include "flare/tframehandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/tcolumnhandle.h"
+#include "flare/tcamera.h"
 
 // TnzCore includes
 #include "tlevel_io.h"

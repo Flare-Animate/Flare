@@ -9,11 +9,11 @@
 #include "tvectorimage.h"
 
 // TnzLib includes
-"flare/txshsimplelevel.h"
-"flare/tcenterlinevectorizer.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/tcenterlinevectorizer.h"
 
 // TnzQt includes
-"flareqt/dvdialog.h"
+#include "flareqt/dvdialog.h"
 
 // Qt includes
 #include <QWidget>

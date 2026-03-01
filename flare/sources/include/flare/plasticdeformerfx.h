@@ -4,8 +4,8 @@
 #define PLASTICDEFORMERFX_H
 
 // TnzLib includes
-"flare/txshsimplelevel.h"
-"flare/tstageobject.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/tstageobject.h"
 
 // TnzBase includes
 #include "trasterfx.h"

@@ -3,7 +3,7 @@
 #ifndef FUNCTION_KEYFRAME_NAVIGATOR_INCLUDED
 #define FUNCTION_KEYFRAME_NAVIGATOR_INCLUDED
 
-"flareqt/keyframenavigator.h"
+#include "flareqt/keyframenavigator.h"
 #include "tdoubleparam.h"
 
 #include <QToolBar>

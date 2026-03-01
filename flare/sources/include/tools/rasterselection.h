@@ -12,11 +12,11 @@
 #include "tdata.h"
 
 // TnzLib includes
-"flare/ttileset.h"
-"flare/txshcell.h"
+#include "flare/ttileset.h"
+#include "flare/txshcell.h"
 
 // TnzQt includes
-"flareqt/selection.h"
+#include "flareqt/selection.h"
 
 #undef DVAPI
 #undef DVVAR

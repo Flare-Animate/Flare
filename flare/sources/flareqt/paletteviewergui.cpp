@@ -1,26 +1,26 @@
 
 
-"flareqt/paletteviewergui.h"
+#include "flareqt/paletteviewergui.h"
 
 // TnzQt includes
-"flareqt/styleselection.h"
-"flareqt/trepetitionguard.h"
-"flareqt/gutil.h"
-"flareqt/paletteviewer.h"
-"flareqt/selectioncommandids.h"
-"flareqt/stylenameeditor.h"
-"flareqt/viewcommandids.h"
+#include "flareqt/styleselection.h"
+#include "flareqt/trepetitionguard.h"
+#include "flareqt/gutil.h"
+#include "flareqt/paletteviewer.h"
+#include "flareqt/selectioncommandids.h"
+#include "flareqt/stylenameeditor.h"
+#include "flareqt/viewcommandids.h"
 #include "palettedata.h"
-"flareqt/lutcalibrator.h"
+#include "flareqt/lutcalibrator.h"
 
 // TnzLib includes
-"flare/palettecmd.h"
-"flare/txshlevel.h"
-"flare/studiopalette.h"
-"flare/txsheethandle.h"
-"flare/tframehandle.h"
-"flare/imagestyles.h"
-"flare/preferences.h"
+#include "flare/palettecmd.h"
+#include "flare/txshlevel.h"
+#include "flare/studiopalette.h"
+#include "flare/txsheethandle.h"
+#include "flare/tframehandle.h"
+#include "flare/imagestyles.h"
+#include "flare/preferences.h"
 
 // TnzCore includes
 #include "tcolorstyles.h"

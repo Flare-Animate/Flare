@@ -3,7 +3,7 @@
 #include "toutputproperties.h"
 
 // TnzLib includes
-"flare/boardsettings.h"
+#include "flare/boardsettings.h"
 
 // TnzBase includes
 #include "trasterfx.h"

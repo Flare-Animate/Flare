@@ -9,23 +9,23 @@
 #include "menubarcommandids.h"
 
 // TnzQt includes
-"flareqt/colorfield.h"
-"flareqt/filefield.h"
-"flareqt/doublefield.h"
+#include "flareqt/colorfield.h"
+#include "flareqt/filefield.h"
+#include "flareqt/doublefield.h"
 
 // TnzLib includes
-"flare/txsheet.h"
-"flare/tcamera.h"
-"flare/txshlevel.h"
-"flare/txshsimplelevel.h"
-"flare/txshcell.h"
-"flare/tstageobjecttree.h"
-"flare/toonzscene.h"
-"flare/txshleveltypes.h"
-"flare/dpiscale.h"
-"flare/tproject.h"
-"flare/txsheethandle.h"
-"flare/tscenehandle.h"
+#include "flare/txsheet.h"
+#include "flare/tcamera.h"
+#include "flare/txshlevel.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/txshcell.h"
+#include "flare/tstageobjecttree.h"
+#include "flare/toonzscene.h"
+#include "flare/txshleveltypes.h"
+#include "flare/dpiscale.h"
+#include "flare/tproject.h"
+#include "flare/txsheethandle.h"
+#include "flare/tscenehandle.h"
 #include "filebrowserpopup.h"
 
 // TnzCore includes

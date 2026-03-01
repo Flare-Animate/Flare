@@ -1,8 +1,8 @@
 
 
-"flare/rasterstrokegenerator.h"
+#include "flare/rasterstrokegenerator.h"
 #include "trastercm.h"
-"flare/rasterbrush.h"
+#include "flare/rasterbrush.h"
 #include "trop.h"
 
 #include <stack>

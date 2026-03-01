@@ -4,7 +4,7 @@
 #include "tundo.h"
 
 // TnzLib includes
-"flare/tobjecthandle.h"
+#include "flare/tobjecthandle.h"
 
 #include "plastictool.h"
 

@@ -10,9 +10,9 @@
 #include <map>
 
 // TnzLib includes
-"flare/txshlevel.h"
-"flare/txshleveltypes.h"
-"flare/imagemanager.h"
+#include "flare/txshlevel.h"
+#include "flare/txshleveltypes.h"
+#include "flare/imagemanager.h"
 
 // TnzCore includes
 #include "traster.h"
@@ -28,7 +28,7 @@
 
 #undef DVAPI
 #undef DVVAR
-#ifdef TOONZLIB_EXPORTS
+#ifdef FLARELIB_EXPORTS
 #define DVAPI DV_EXPORT_API
 #define DVVAR DV_EXPORT_VAR
 #else

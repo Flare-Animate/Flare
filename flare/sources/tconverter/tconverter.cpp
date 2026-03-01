@@ -1,9 +1,9 @@
 
 
 // TnzLib includes
-"flare/toonzscene.h"
-"flare/preferences.h"
-"flare/sceneproperties.h"
+#include "flare/toonzscene.h"
+#include "flare/preferences.h"
+#include "flare/sceneproperties.h"
 #include "toutputproperties.h"
 
 // TnzBase includes

@@ -5,7 +5,7 @@
 
 //#include "cleanup.h"
 #include "trasterimage.h"
-"flare/cleanupparameters.h"
+#include "flare/cleanupparameters.h"
 
 /*---------------------------------------------------------------------------*/
 

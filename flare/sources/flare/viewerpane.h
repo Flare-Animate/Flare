@@ -4,9 +4,9 @@
 #define VIEWER_PANE_INCLUDED
 
 #include "sceneviewer.h"
-"flareqt/intfield.h"
-"flareqt/keyframenavigator.h"
-"flareqt/flipconsoleowner.h"
+#include "flareqt/intfield.h"
+#include "flareqt/keyframenavigator.h"
+#include "flareqt/flipconsoleowner.h"
 #include "saveloadqsettings.h"
 
 #include <QFrame>

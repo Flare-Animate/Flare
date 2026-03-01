@@ -3,7 +3,7 @@
 #ifndef AUDIORECORDINGPOPUPPOPUP_H
 #define AUDIORECORDINGPOPUP_H
 
-"flareqt/dvdialog.h"
+#include "flareqt/dvdialog.h"
 #include "tsystem.h"
 #include <QAudioInput>
 #include <QObject>

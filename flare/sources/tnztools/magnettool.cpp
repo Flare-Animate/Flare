@@ -12,9 +12,9 @@
 #include "drawutil.h"
 #include "tcurveutil.h"
 
-"flare/tobjecthandle.h"
-"flare/txshlevelhandle.h"
-"flare/tstageobject.h"
+#include "flare/tobjecthandle.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/tstageobject.h"
 
 using namespace ToolUtils;
 

@@ -4,8 +4,8 @@
 #define DV_ITEM_VIEW_INCLUDED
 
 // TnzQt includes
-"flareqt/selection.h"
-"flareqt/lineedit.h"
+#include "flareqt/selection.h"
+#include "flareqt/lineedit.h"
 
 // TnzCore includes
 #include "tfilepath.h"

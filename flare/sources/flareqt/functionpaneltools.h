@@ -3,9 +3,9 @@
 #ifndef FUNCTIONPANELTOOLS_H
 #define FUNCTIONPANELTOOLS_H
 
-"flareqt/functionpanel.h"
+#include "flareqt/functionpanel.h"
 #include "tdoublekeyframe.h"
-"flare/doubleparamcmd.h"
+#include "flare/doubleparamcmd.h"
 
 #include <QList>
 // class QMouseEvent;

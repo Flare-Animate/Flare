@@ -1,7 +1,7 @@
 
 
-"flare/ttilesaver.h"
-"flare/ttileset.h"
+#include "flare/ttilesaver.h"
+#include "flare/ttileset.h"
 
 #define TILE_BIT_SIZE 6
 #define TILE_SIZE_MINUS_1 63

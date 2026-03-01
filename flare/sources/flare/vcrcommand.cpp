@@ -6,18 +6,18 @@
 #include "sceneviewer.h"
 
 // TnzQt includes
-"flareqt/menubarcommand.h"
-"flareqt/flipconsole.h"
+#include "flareqt/menubarcommand.h"
+#include "flareqt/flipconsole.h"
 
 // TnzLib includes
-"flare/txsheet.h"
-"flare/txshcell.h"
-"flare/txsheethandle.h"
-"flare/tframehandle.h"
-"flare/tcolumnhandle.h"
-"flare/preferences.h"
-"flare/txshsimplelevel.h"
-"flare/txshlevelhandle.h"
+#include "flare/txsheet.h"
+#include "flare/txshcell.h"
+#include "flare/txsheethandle.h"
+#include "flare/tframehandle.h"
+#include "flare/tcolumnhandle.h"
+#include "flare/preferences.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/txshlevelhandle.h"
 
 #include <QApplication>
 

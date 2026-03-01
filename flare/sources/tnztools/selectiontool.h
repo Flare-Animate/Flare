@@ -4,9 +4,9 @@
 #define SELECTIONTOOL_INCLUDED
 
 #include "tproperty.h"
-"flareqt/selection.h"
+#include "flareqt/selection.h"
 #include "tools/toolutils.h"
-"flare/strokegenerator.h"
+#include "flare/strokegenerator.h"
 
 // For Qt translation support
 #include <QCoreApplication>

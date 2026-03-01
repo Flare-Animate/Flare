@@ -1,14 +1,14 @@
 
 
-"flare/tframehandle.h"
-"flare/toonzscene.h"
-"flare/txshsimplelevel.h"
-"flare/txsheet.h"
-"flare/txshcell.h"
-"flare/sceneproperties.h"
+#include "flare/tframehandle.h"
+#include "flare/toonzscene.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/txsheet.h"
+#include "flare/txshcell.h"
+#include "flare/sceneproperties.h"
 #include "toutputproperties.h"
 
-"flare/txsheethandle.h"
+#include "flare/txsheethandle.h"
 
 //=============================================================================
 

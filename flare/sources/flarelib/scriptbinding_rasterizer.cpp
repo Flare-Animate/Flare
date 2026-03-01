@@ -1,14 +1,14 @@
 
 
-"flare/scriptbinding_rasterizer.h"
-"flare/scriptbinding_image.h"
-"flare/scriptbinding_level.h"
-"flare/tcamera.h"
-"flare/stage.h"
+#include "flare/scriptbinding_rasterizer.h"
+#include "flare/scriptbinding_image.h"
+#include "flare/scriptbinding_level.h"
+#include "flare/tcamera.h"
+#include "flare/stage.h"
 #include "tofflinegl.h"
 #include "tvectorrenderdata.h"
 #include "ttoonzimage.h"
-"flare/toonzimageutils.h"
+#include "flare/toonzimageutils.h"
 
 namespace TScriptBinding {
 

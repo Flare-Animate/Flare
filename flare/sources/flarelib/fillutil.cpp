@@ -1,20 +1,20 @@
 
 
 #include "trastercm.h"
-"flare/fill.h"
+#include "flare/fill.h"
 #include "tregion.h"
 #include "tstroke.h"
 #include "tvectorimage.h"
-"flare/ttileset.h"
-"flare/ttilesaver.h"
-"flare/toonzimageutils.h"
+#include "flare/ttileset.h"
+#include "flare/ttilesaver.h"
+#include "flare/toonzimageutils.h"
 #include "skeletonlut.h"
 #include "tpixelutils.h"
 #include "tropcm.h"
 #include "tenv.h"
 #include <stack>
 
-"flare/preferences.h"
+#include "flare/preferences.h"
 
 using namespace SkeletonLut;
 

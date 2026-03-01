@@ -8,15 +8,15 @@
 #include "iocommand.h"
 
 // TnzQt includes
-"flareqt/gutil.h"
+#include "flareqt/gutil.h"
 
 // TnzLib includes
-"flare/tproject.h"
-"flare/toonzscene.h"
-"flare/levelset.h"
-"flare/sceneresources.h"
-"flare/txshlevel.h"
-"flare/txshsimplelevel.h"
+#include "flare/tproject.h"
+#include "flare/toonzscene.h"
+#include "flare/levelset.h"
+#include "flare/sceneresources.h"
+#include "flare/txshlevel.h"
+#include "flare/txshsimplelevel.h"
 
 // TnzCore includes
 #include "tsystem.h"

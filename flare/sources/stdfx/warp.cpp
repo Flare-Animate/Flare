@@ -1,7 +1,7 @@
 
 
 #include "warp.h"
-"flare/tdistort.h"
+#include "flare/tdistort.h"
 #include "timage_io.h"  //For debug use only
 
 //-------------------------------------------------------------------

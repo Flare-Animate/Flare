@@ -6,14 +6,14 @@
 #include "menubarcommandids.h"
 
 // TnzLib includes
-"flare/preferences.h"
-"flare/toonzscene.h"
-"flare/tscenehandle.h"
-"flare/childstack.h"
+#include "flare/preferences.h"
+#include "flare/toonzscene.h"
+#include "flare/tscenehandle.h"
+#include "flare/childstack.h"
 
-"flareqt/menubarcommand.h"
-"flareqt/tselectionhandle.h"
-"flareqt/dvscrollwidget.h"
+#include "flareqt/menubarcommand.h"
+#include "flareqt/tselectionhandle.h"
+#include "flareqt/dvscrollwidget.h"
 
 // Qt includes
 #include <QWidgetAction>

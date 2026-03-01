@@ -9,14 +9,14 @@
 #include "tsystem.h"
 #include "tvectorimage.h"
 #include "tpixelutils.h"
-"flare/toonzscene.h"
+#include "flare/toonzscene.h"
 
 #include "tstrokeprop.h"
 #include "tvectorrenderdata.h"
 #include "tgl.h"
 #include "tmathutil.h"
 
-"flare/mypaintbrushstyle.h"
+#include "flare/mypaintbrushstyle.h"
 
 #include <QDebug>
 

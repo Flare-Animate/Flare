@@ -9,8 +9,8 @@
 #include "timage.h"
 
 // TnzLib includes
-"flare/txshleveltypes.h"
-"flare/tcamera.h"
+#include "flare/txshleveltypes.h"
+#include "flare/tcamera.h"
 
 //=============================================
 

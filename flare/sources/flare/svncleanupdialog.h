@@ -3,7 +3,7 @@
 #ifndef SVN_CLEANUP_DIALOG_H
 #define SVN_CLEANUP_DIALOG_H
 
-"flareqt/dvdialog.h"
+#include "flareqt/dvdialog.h"
 #include "versioncontrol.h"
 
 class QPushButton;

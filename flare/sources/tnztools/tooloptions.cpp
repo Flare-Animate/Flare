@@ -23,28 +23,28 @@
 #include "shifttracetool.h"
 
 // TnzQt includes
-"flareqt/dvdialog.h"
-"flareqt/menubarcommand.h"
-"flareqt/gutil.h"
-"flareqt/dvscrollwidget.h"
-"flareqt/lutcalibrator.h"
-"flareqt/viewcommandids.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/menubarcommand.h"
+#include "flareqt/gutil.h"
+#include "flareqt/dvscrollwidget.h"
+#include "flareqt/lutcalibrator.h"
+#include "flareqt/viewcommandids.h"
 
 // TnzLib includes
-"flare/tobjecthandle.h"
-"flare/tstageobject.h"
-"flare/txsheethandle.h"
-"flare/tstageobjectspline.h"
-"flare/tframehandle.h"
-"flare/tpalettehandle.h"
-"flare/palettecontroller.h"
-"flare/txshlevelhandle.h"
-"flare/preferences.h"
-"flare/tstageobjecttree.h"
+#include "flare/tobjecthandle.h"
+#include "flare/tstageobject.h"
+#include "flare/txsheethandle.h"
+#include "flare/tstageobjectspline.h"
+#include "flare/tframehandle.h"
+#include "flare/tpalettehandle.h"
+#include "flare/palettecontroller.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/preferences.h"
+#include "flare/tstageobjecttree.h"
 #ifdef HAVE_MYPaint
-"flare/mypaintbrushstyle.h"
+#include "flare/mypaintbrushstyle.h"
 #endif
-"flare/tonionskinmaskhandle.h"
+#include "flare/tonionskinmaskhandle.h"
 
 // TnzCore includes
 #include "tproperty.h"

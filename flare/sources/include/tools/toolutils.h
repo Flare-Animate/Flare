@@ -16,7 +16,7 @@
 #include "tpalette.h"
 
 // TnzLib includes
-"flare/txshsimplelevel.h"
+#include "flare/txshsimplelevel.h"
 
 // TnzTools includes
 #include "tools/tool.h"

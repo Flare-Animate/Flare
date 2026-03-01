@@ -7,7 +7,7 @@
 #include <QLabel>
 #include <QHBoxLayout>
 
-"flare/txsheet.h"
+#include "flare/txsheet.h"
 
 //-----------------------------------------------------------------------------
 

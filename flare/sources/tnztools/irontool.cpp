@@ -9,9 +9,9 @@
 #include "tgl.h"
 #include "tstroke.h"
 
-"flare/tobjecthandle.h"
-"flare/txshlevelhandle.h"
-"flare/tstageobject.h"
+#include "flare/tobjecthandle.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/tstageobject.h"
 
 #ifdef _DEBUG
 #include "tcolorstyles.h"

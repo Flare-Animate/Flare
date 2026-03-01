@@ -3,12 +3,12 @@
 #ifndef DOUBLEPAIRFIELD_H
 #define DOUBLEPAIRFIELD_H
 
-"flareqt/doublefield.h"
+#include "flareqt/doublefield.h"
 #include "tcommon.h"
 
 #undef DVAPI
 #undef DVVAR
-#ifdef TOONZQT_EXPORTS
+#ifdef FLAREQT_EXPORTS
 #define DVAPI DV_EXPORT_API
 #define DVVAR DV_EXPORT_VAR
 #else

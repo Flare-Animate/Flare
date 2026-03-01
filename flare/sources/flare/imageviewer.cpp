@@ -19,22 +19,22 @@
 #include "tools/stylepicker.h"
 
 // TnzQt includes
-"flareqt/menubarcommand.h"
-"flareqt/viewcommandids.h"
-"flareqt/imageutils.h"
-"flareqt/lutcalibrator.h"
-"flareqt/camerasettingswidget.h"
+#include "flareqt/menubarcommand.h"
+#include "flareqt/viewcommandids.h"
+#include "flareqt/imageutils.h"
+#include "flareqt/lutcalibrator.h"
+#include "flareqt/camerasettingswidget.h"
 
 // TnzLib includes
-"flare/tscenehandle.h"
-"flare/toonzscene.h"
-"flare/sceneproperties.h"
-"flare/palettecontroller.h"
-"flare/tpalettehandle.h"
-"flare/preferences.h"
-"flare/tcamera.h"
-"flare/stage.h"
-"flare/stagevisitor.h"
+#include "flare/tscenehandle.h"
+#include "flare/toonzscene.h"
+#include "flare/sceneproperties.h"
+#include "flare/palettecontroller.h"
+#include "flare/tpalettehandle.h"
+#include "flare/preferences.h"
+#include "flare/tcamera.h"
+#include "flare/stage.h"
+#include "flare/stagevisitor.h"
 
 // TnzCore includes
 #include "tgl.h"

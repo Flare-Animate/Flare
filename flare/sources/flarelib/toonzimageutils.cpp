@@ -1,14 +1,14 @@
 
 
-"flare/toonzimageutils.h"
+#include "flare/toonzimageutils.h"
 #include "tstroke.h"
 #include "tpalette.h"
 #include "tofflinegl.h"
 #include "tvectorrenderdata.h"
 #include "tvectorgl.h"
 #include "trop.h"
-"flare/ttileset.h"
-"flare/tcenterlinevectorizer.h"
+#include "flare/ttileset.h"
+#include "flare/tcenterlinevectorizer.h"
 #include "tregion.h"
 #include "trasterimage.h"
 #include "ttoonzimage.h"
@@ -18,7 +18,7 @@
 #include "tstream.h"
 #include "tsimplecolorstyles.h"
 
-"flare/preferences.h"
+#include "flare/preferences.h"
 
 //-------------------------------------------------------------------
 

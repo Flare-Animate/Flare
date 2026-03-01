@@ -4,7 +4,7 @@
 #include "tfxparam.h"
 #include "tparamset.h"
 
-"flare/tdistort.h"
+#include "flare/tdistort.h"
 
 //****************************************************************************
 //    Local namespace stuff

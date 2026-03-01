@@ -1,8 +1,8 @@
 
 
 #include "dvwidgets.h"
-"flareqt/dvdialog.h"
-"flareqt/checkbox.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/checkbox.h"
 
 #include <QLayout>
 #include <QLabel>

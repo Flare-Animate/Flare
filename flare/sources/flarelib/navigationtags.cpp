@@ -1,4 +1,4 @@
-"flare/navigationtags.h"
+#include "flare/navigationtags.h"
 
 #include "tstream.h"
 #include "texception.h"

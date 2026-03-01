@@ -7,11 +7,11 @@
 #include "versioncontrolwidget.h"
 
 // TnzQt includes
-"flareqt/gutil.h"
+#include "flareqt/gutil.h"
 
 // TnzLib includes
-"flare/txshsimplelevel.h"
-"flare/toonzscene.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/toonzscene.h"
 
 // Qt includes
 #include <QWidget>

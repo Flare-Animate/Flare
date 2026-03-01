@@ -2,26 +2,26 @@
 
 // Toonz app and handles
 #include "tapp.h"
-"flare/tpalettehandle.h"
-"flare/palettecontroller.h"
-"flare/tobjecthandle.h"
-"flare/tscenehandle.h"
-"flare/tframehandle.h"
-"flare/txshlevelhandle.h"
-"flare/txsheethandle.h"
-"flare/tfxhandle.h"
+#include "flare/tpalettehandle.h"
+#include "flare/palettecontroller.h"
+#include "flare/tobjecthandle.h"
+#include "flare/tscenehandle.h"
+#include "flare/tframehandle.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/tfxhandle.h"
 
 // Toonz scene
-"flare/toonzscene.h"
+#include "flare/toonzscene.h"
 
 // Toonz schematic includes
-"flare/fxdag.h"
-"flare/tcolumnfxset.h"
-"flare/tcolumnfx.h"
-"flare/txshlevelcolumn.h"
-"flare/levelset.h"
-"flare/txshchildlevel.h"
-"flare/txshzeraryfxcolumn.h"
+#include "flare/fxdag.h"
+#include "flare/tcolumnfxset.h"
+#include "flare/tcolumnfx.h"
+#include "flare/txshlevelcolumn.h"
+#include "flare/levelset.h"
+#include "flare/txshchildlevel.h"
+#include "flare/txshzeraryfxcolumn.h"
 
 // Render cache includes
 #include "tpassivecachemanager.h"

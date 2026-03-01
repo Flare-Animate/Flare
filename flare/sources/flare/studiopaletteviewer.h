@@ -3,7 +3,7 @@
 #ifndef STUDIOPALETTEVIEWER_H
 #define STUDIOPALETTEVIEWER_H
 
-"flare/studiopalette.h"
+#include "flare/studiopalette.h"
 
 #include <QTreeWidget>
 #include <QFrame>

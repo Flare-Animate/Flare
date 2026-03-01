@@ -7,22 +7,22 @@
 #include "tools/toolcommandids.h"
 
 // TnzQt includes
-"flareqt/selection.h"
-"flareqt/tselectionhandle.h"
-"flareqt/dvmimedata.h"
-"flareqt/dvdialog.h"
-"flareqt/selectioncommandids.h"
+#include "flareqt/selection.h"
+#include "flareqt/tselectionhandle.h"
+#include "flareqt/dvmimedata.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/selectioncommandids.h"
 
 // TnzLib includes
-"flare/tframehandle.h"
-"flare/tcolumnhandle.h"
-"flare/txsheethandle.h"
-"flare/tobjecthandle.h"
-"flare/tonionskinmaskhandle.h"
-"flare/tstageobject.h"
-"flare/doubleparamcmd.h"
-"flare/palettecontroller.h"
-"flare/txshsimplelevel.h"
+#include "flare/tframehandle.h"
+#include "flare/tcolumnhandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/tobjecthandle.h"
+#include "flare/tonionskinmaskhandle.h"
+#include "flare/tstageobject.h"
+#include "flare/doubleparamcmd.h"
+#include "flare/palettecontroller.h"
+#include "flare/txshsimplelevel.h"
 
 // TnzExt includes
 #include "ext/plasticskeleton.h"

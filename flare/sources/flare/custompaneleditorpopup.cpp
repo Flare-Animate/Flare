@@ -10,10 +10,10 @@
 #include "commandbarpopup.h"
 
 // TnzQt includes
-"flareqt/gutil.h"
+#include "flareqt/gutil.h"
 
 // ToonzLib
-"flare/toonzfolders.h"
+#include "flare/toonzfolders.h"
 
 // ToonzCore
 #include "tsystem.h"

@@ -4,14 +4,14 @@
 #include "tdoubleparam.h"
 
 // TnzLib includes
-"flare/tstageobject.h"
-"flare/tobjecthandle.h"
-"flare/txsheethandle.h"
-"flare/tframehandle.h"
-"flare/doubleparamcmd.h"
-"flare/tstageobjecttree.h"
+#include "flare/tstageobject.h"
+#include "flare/tobjecthandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/tframehandle.h"
+#include "flare/doubleparamcmd.h"
+#include "flare/tstageobjecttree.h"
 
-"flare/stageobjectutil.h"
+#include "flare/stageobjectutil.h"
 
 //=============================================================================
 // TStageObjectValues

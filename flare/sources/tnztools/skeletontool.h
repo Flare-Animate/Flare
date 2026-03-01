@@ -6,8 +6,8 @@
 #include "tools/tool.h"
 #include "tgeometry.h"
 #include "tproperty.h"
-"flare/hook.h"
-"flare/skeleton.h"
+#include "flare/hook.h"
+#include "flare/skeleton.h"
 
 #include <QCoreApplication>
 

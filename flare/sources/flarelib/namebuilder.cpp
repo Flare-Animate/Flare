@@ -1,6 +1,6 @@
 
 
-"flare/namebuilder.h"
+#include "flare/namebuilder.h"
 #include "tconvert.h"
 
 //-------------------------------------------------------------------

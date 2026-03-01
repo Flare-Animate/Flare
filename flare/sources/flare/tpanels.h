@@ -11,9 +11,9 @@
 
 #include "tfx.h"
 
-"flare/tstageobjectid.h"
-"flareqt/colorfield.h"
-"flareqt/functionviewer.h"
+#include "flare/tstageobjectid.h"
+#include "flareqt/colorfield.h"
+#include "flareqt/functionviewer.h"
 class PaletteViewer;
 class TPaletteHandle;
 class StyleEditor;

@@ -1,11 +1,11 @@
 
 
-"flare/stage2.h"
-"flare/imagemanager.h"
-"flare/txshleveltypes.h"
-"flare/txshsimplelevel.h"
-"flare/toonzfolders.h"
-"flare/glrasterpainter.h"
+#include "flare/stage2.h"
+#include "flare/imagemanager.h"
+#include "flare/txshleveltypes.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/toonzfolders.h"
+#include "flare/glrasterpainter.h"
 #include "tpalette.h"
 #include "tropcm.h"
 #include "tcolorfunctions.h"

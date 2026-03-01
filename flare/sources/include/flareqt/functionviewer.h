@@ -8,11 +8,11 @@
 #include "saveloadqsettings.h"
 
 // TnzLib includes
-"flare/tframehandle.h"
-"flare/preferences.h"
+#include "flare/tframehandle.h"
+#include "flare/preferences.h"
 
 // TnzQt includes
-"flareqt/treemodel.h"
+#include "flareqt/treemodel.h"
 
 // Qt includes
 #include <QSplitter>
@@ -20,7 +20,7 @@
 
 #undef DVAPI
 #undef DVVAR
-#ifdef TOONZQT_EXPORTS
+#ifdef FLAREQT_EXPORTS
 #define DVAPI DV_EXPORT_API
 #define DVVAR DV_EXPORT_VAR
 #else

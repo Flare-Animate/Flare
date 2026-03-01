@@ -1,9 +1,9 @@
 
 
-"flare/scriptbinding_outline_vectorizer.h"
-"flare/scriptbinding_level.h"
-"flare/tcenterlinevectorizer.h"
-"flare/stage.h"
+#include "flare/scriptbinding_outline_vectorizer.h"
+#include "flare/scriptbinding_level.h"
+#include "flare/tcenterlinevectorizer.h"
+#include "flare/stage.h"
 #include "ttoonzimage.h"
 #include "tpalette.h"
 

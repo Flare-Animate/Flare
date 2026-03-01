@@ -11,22 +11,22 @@
 #include "boardsettingspopup.h"
 
 // TnzQt includes
-"flareqt/menubarcommand.h"
-"flareqt/gutil.h"
-"flareqt/filefield.h"
-"flareqt/doublefield.h"
-"flareqt/checkbox.h"
+#include "flareqt/menubarcommand.h"
+#include "flareqt/gutil.h"
+#include "flareqt/filefield.h"
+#include "flareqt/doublefield.h"
+#include "flareqt/checkbox.h"
 
 // TnzLib includes
-"flare/tscenehandle.h"
-"flare/txsheethandle.h"
-"flare/toonzscene.h"
-"flare/txsheet.h"
-"flare/tstageobjecttree.h"
-"flare/preferences.h"
+#include "flare/tscenehandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/toonzscene.h"
+#include "flare/txsheet.h"
+#include "flare/tstageobjecttree.h"
+#include "flare/preferences.h"
 #include "toutputproperties.h"
-"flare/tcamera.h"
-"flare/boardsettings.h"
+#include "flare/tcamera.h"
+#include "flare/boardsettings.h"
 
 // TnzBase includes
 #include "trasterfx.h"

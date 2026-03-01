@@ -1,7 +1,7 @@
 
 
-"flare/trasterimageutils.h"
-"flare/ttileset.h"
+#include "flare/trasterimageutils.h"
+#include "flare/ttileset.h"
 #include "tstroke.h"
 #include "tofflinegl.h"
 #include "tpalette.h"

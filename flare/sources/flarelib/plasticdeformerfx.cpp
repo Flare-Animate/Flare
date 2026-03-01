@@ -1,16 +1,16 @@
 
 
-"flare/plasticdeformerfx.h"
+#include "flare/plasticdeformerfx.h"
 
 // TnzLib includes
-"flare/txsheet.h"
-"flare/txshleveltypes.h"
-"flare/txshcell.h"
-"flare/tcolumnfx.h"
-"flare/txshlevelcolumn.h"
-"flare/dpiscale.h"
-"flare/stage.h"
-"flare/tlog.h"
+#include "flare/txsheet.h"
+#include "flare/txshleveltypes.h"
+#include "flare/txshcell.h"
+#include "flare/tcolumnfx.h"
+#include "flare/txshlevelcolumn.h"
+#include "flare/dpiscale.h"
+#include "flare/stage.h"
+#include "flare/tlog.h"
 
 // TnzExt includes
 #include "ext/plasticskeleton.h"

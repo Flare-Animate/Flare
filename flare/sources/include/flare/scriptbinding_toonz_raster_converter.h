@@ -3,7 +3,7 @@
 #ifndef SCRIPTBINDING_TOONZ_RASTER_CONVERTER_H
 #define SCRIPTBINDING_TOONZ_RASTER_CONVERTER_H
 
-"flare/scriptbinding.h"
+#include "flare/scriptbinding.h"
 
 class ToonzScene;
 class TXshSimpleLevel;

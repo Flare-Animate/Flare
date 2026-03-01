@@ -7,7 +7,7 @@
 #include "trasterimage.h"
 
 // ToonzLib includes
-"flare/cleanupparameters.h"
+#include "flare/cleanupparameters.h"
 
 // Qt includes
 #include <QObject>
@@ -53,7 +53,7 @@ thus
   Post-processing performs further local or pixel-per-pixel adjustments that are
 sufficiently
   fast to be carried out by single views on their preview area. This includes
-<I> colors recognition,
+#include "I" colors recognition,
   colors adjustment, despeckling <\I> and \a antialiasing-related effects.
 
 \note This class also acts as a wrapper to CleanupParameters' palette, attaching

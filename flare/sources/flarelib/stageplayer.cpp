@@ -1,18 +1,18 @@
 
 
 // TnzLib includes
-"flare/stage.h"
-"flare/txshsimplelevel.h"
-"flare/txshchildlevel.h"
-"flare/txshleveltypes.h"
-"flare/txsheet.h"
-"flare/txshcell.h"
-"flare/textureutils.h"
-"flare/imagemanager.h"
+#include "flare/stage.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/txshchildlevel.h"
+#include "flare/txshleveltypes.h"
+#include "flare/txsheet.h"
+#include "flare/txshcell.h"
+#include "flare/textureutils.h"
+#include "flare/imagemanager.h"
 #include "imagebuilders.h"
 
-"flare/stageplayer.h"
-"flare/tstageobjecttree.h"
+#include "flare/stageplayer.h"
+#include "flare/tstageobjecttree.h"
 
 using namespace Stage;
 

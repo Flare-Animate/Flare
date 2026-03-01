@@ -3,11 +3,11 @@
 #include "ruler.h"
 #include "sceneviewer.h"
 #include "tapp.h"
-"flare/tscenehandle.h"
-"flareqt/gutil.h"
+#include "flare/tscenehandle.h"
+#include "flareqt/gutil.h"
 
-"flare/toonzscene.h"
-"flare/stage.h"
+#include "flare/toonzscene.h"
+#include "flare/stage.h"
 #include "tunit.h"
 
 #include <QPainter>

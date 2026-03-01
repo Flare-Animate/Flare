@@ -1,9 +1,9 @@
 
 
-"flareqt/swatchviewer.h"
-"flareqt/gutil.h"
-"flareqt/menubarcommand.h"
-"flareqt/viewcommandids.h"
+#include "flareqt/swatchviewer.h"
+#include "flareqt/gutil.h"
+#include "flareqt/menubarcommand.h"
+#include "flareqt/viewcommandids.h"
 
 #include "../flare/menubarcommandids.h"
 
@@ -13,7 +13,7 @@
 #include <QResizeEvent>
 
 #include "trasterfx.h"
-"flare/tcolumnfx.h"
+#include "flare/tcolumnfx.h"
 #include "tparamcontainer.h"
 #include "tfxutil.h"
 

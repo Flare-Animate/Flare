@@ -1,7 +1,7 @@
 
 
 // TnzQt includes
-"flareqt/menubarcommand.h"
+#include "flareqt/menubarcommand.h"
 #include "docklayout.h"
 
 // Qt includes

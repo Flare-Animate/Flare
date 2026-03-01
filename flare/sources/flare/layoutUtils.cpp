@@ -1,21 +1,21 @@
 #include "layoutUtils.h"
 #include "tenv.h"
-"flare/toonzfolders.h"
-"flare/cleanupparameters.h"
-"flare/sceneproperties.h"
-"flare/stage.h"
-"flare/stage2.h"
-"flare/tcamera.h"
-"flare/toonzscene.h"
+#include "flare/toonzfolders.h"
+#include "flare/cleanupparameters.h"
+#include "flare/sceneproperties.h"
+#include "flare/stage.h"
+#include "flare/stage2.h"
+#include "flare/tcamera.h"
+#include "flare/toonzscene.h"
 #include <tgeometry.h>
-<flare/txshsimplelevel.h>
+#include "flare/txshsimplelevel.h"
 
 #include "tfxutil.h"
 #include "timage.h"
-"flare/tcolumnfx.h"
-"flare/txshcell.h"
-"flare/txshcolumn.h"
-"flare/txshlevelcolumn.h"
+#include "flare/tcolumnfx.h"
+#include "flare/txshcell.h"
+#include "flare/txshcolumn.h"
+#include "flare/txshlevelcolumn.h"
 #include <QSettings>
 
 #include "tsystem.h"
@@ -25,13 +25,13 @@
 #include <QString>
 #include <string>
 
-"flare/tstageobjecttree.h"
-"flare/txsheethandle.h"
+#include "flare/tstageobjecttree.h"
+#include "flare/txsheethandle.h"
 
-"flare/levelset.h"
-"flare/txshcell.h"
-"flare/txshcolumn.h"
-"flare/txsheethandle.h"
+#include "flare/levelset.h"
+#include "flare/txshcell.h"
+#include "flare/txshcolumn.h"
+#include "flare/txsheethandle.h"
 #include "tpalette.h"
 #include "tmsgcore.h"
 #include <QObject>

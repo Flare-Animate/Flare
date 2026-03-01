@@ -9,15 +9,15 @@
 #include <tools/inputmanager.h>
 
 // TnzLib includes
-<flare/tapplication.h>
-<flare/txshlevelhandle.h>
-<flare/txsheethandle.h>
-<flare/tscenehandle.h>
-<flare/tcolumnhandle.h>
-<flare/tframehandle.h>
-<flare/dpiscale.h>
-<flare/toonzscene.h>
-<flare/sceneproperties.h>
+#include "flare/tapplication.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/tscenehandle.h"
+#include "flare/tcolumnhandle.h"
+#include "flare/tframehandle.h"
+#include "flare/dpiscale.h"
+#include "flare/toonzscene.h"
+#include "flare/sceneproperties.h"
 
 // TnzCore includes
 #include <tgl.h>
@@ -25,9 +25,9 @@
 #include <tmetaimage.h>
 #include <tpixelutils.h>
 
-<flareqt/selection.h>
-<flareqt/selectioncommandids.h>
-<flareqt/tselectionhandle.h>
+#include "flareqt/selection.h"
+#include "flareqt/selectioncommandids.h"
+#include "flareqt/tselectionhandle.h"
 
 // For Qt translation support
 #include <QCoreApplication>

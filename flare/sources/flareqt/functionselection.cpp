@@ -1,13 +1,13 @@
 
 
-"flareqt/functionselection.h"
+#include "flareqt/functionselection.h"
 
-"flareqt/dvdialog.h"
+#include "flareqt/dvdialog.h"
 
 // TnzLib includes
-"flare/doubleparamcmd.h"
-"flare/tframehandle.h"
-"flare/txsheetexpr.h"
+#include "flare/doubleparamcmd.h"
+#include "flare/tframehandle.h"
+#include "flare/txsheetexpr.h"
 
 // TnzBase includes
 #include "tdoubleparam.h"

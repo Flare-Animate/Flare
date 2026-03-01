@@ -1,11 +1,11 @@
 
 
-"flare/skeleton.h"
-"flare/tstageobject.h"
-"flare/tpinnedrangeset.h"
-"flare/tstageobjectkeyframe.h"
-"flare/txsheet.h"
-"flare/stage.h"
+#include "flare/skeleton.h"
+#include "flare/tstageobject.h"
+#include "flare/tpinnedrangeset.h"
+#include "flare/tstageobjectkeyframe.h"
+#include "flare/txsheet.h"
+#include "flare/stage.h"
 
 namespace {
 

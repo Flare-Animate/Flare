@@ -1,7 +1,7 @@
 
 
-"flare/tcamera.h"
-"flare/stage.h"
+#include "flare/tcamera.h"
+#include "flare/stage.h"
 #include "tstream.h"
 #include "texception.h"
 

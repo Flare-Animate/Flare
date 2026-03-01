@@ -3,10 +3,10 @@
 #ifndef LEVELCREATEPOPUP_H
 #define LEVELCREATEPOPUP_H
 
-"flareqt/dvdialog.h"
-"flareqt/doublefield.h"
-"flareqt/intfield.h"
-"flareqt/filefield.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/doublefield.h"
+#include "flareqt/intfield.h"
+#include "flareqt/filefield.h"
 
 // forward declaration
 class QLabel;

@@ -1,4 +1,4 @@
-"flareqt/combohistogram.h"
+#include "flareqt/combohistogram.h"
 #include "tcolorstyles.h"
 
 #include <QVBoxLayout>
@@ -9,9 +9,9 @@
 #include <QLabel>
 #include <QString>
 
-"flare/preferences.h"
-"flareqt/lutcalibrator.h"
-"flareqt/gutil.h"
+#include "flare/preferences.h"
+#include "flareqt/lutcalibrator.h"
+#include "flareqt/gutil.h"
 #include "timagecache.h"
 #include "trasterimage.h"
 

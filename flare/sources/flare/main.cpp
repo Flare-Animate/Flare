@@ -17,26 +17,26 @@
 #include "tools/toolcommandids.h"
 
 // TnzQt includes
-"flareqt/dvdialog.h"
-"flareqt/menubarcommand.h"
-"flareqt/tmessageviewer.h"
-"flareqt/icongenerator.h"
-"flareqt/gutil.h"
-"flareqt/pluginloader.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/menubarcommand.h"
+#include "flareqt/tmessageviewer.h"
+#include "flareqt/icongenerator.h"
+#include "flareqt/gutil.h"
+#include "flareqt/pluginloader.h"
 
 // TnzStdfx includes
 #include "stdfx/shaderfx.h"
 
 // TnzLib includes
-"flare/preferences.h"
-"flare/toonzfolders.h"
-"flare/tproject.h"
-"flare/studiopalette.h"
-"flare/stylemanager.h"
-"flare/tscenehandle.h"
-"flare/txshsimplelevel.h"
-"flare/tproject.h"
-"flare/scriptengine.h"
+#include "flare/preferences.h"
+#include "flare/toonzfolders.h"
+#include "flare/tproject.h"
+#include "flare/studiopalette.h"
+#include "flare/stylemanager.h"
+#include "flare/tscenehandle.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/tproject.h"
+#include "flare/scriptengine.h"
 
 // TnzSound includes
 #include "tnzsound.h"
@@ -60,7 +60,7 @@
 #include "tofflinegl.h"
 #include "tpluginmanager.h"
 #include "tsimplecolorstyles.h"
-"flare/imagestyles.h"
+#include "flare/imagestyles.h"
 #include "tvectorbrushstyle.h"
 #include "tfont.h"
 

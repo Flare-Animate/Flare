@@ -3,7 +3,7 @@
 #ifndef SCREEN_PICKER_H
 #define SCREEN_PICKER_H
 
-"flareqt/screenboard.h"
+#include "flareqt/screenboard.h"
 
 #include <QWidget>
 

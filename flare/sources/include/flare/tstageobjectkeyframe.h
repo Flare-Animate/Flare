@@ -7,7 +7,7 @@
 #include "tdoublekeyframe.h"
 
 // TnzLib includes
-"flare/tstageobject.h"
+#include "flare/tstageobject.h"
 
 //***********************************************************************************
 //    TStageObject::Keyframe  definition

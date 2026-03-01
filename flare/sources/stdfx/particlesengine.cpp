@@ -17,7 +17,7 @@
 #include "timage_io.h"
 
 #include "tcolorfunctions.h"
-"flare/tcolumnfx.h"
+#include "flare/tcolumnfx.h"
 
 #include "particlesmanager.h"
 

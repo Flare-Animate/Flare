@@ -1,11 +1,11 @@
 
 
-"flare/scriptbinding_centerline_vectorizer.h"
-"flare/scriptbinding_level.h"
+#include "flare/scriptbinding_centerline_vectorizer.h"
+#include "flare/scriptbinding_level.h"
 #include <QScriptEngine>
-"flare/tcenterlinevectorizer.h"
-"flare/stage.h"
-"flare/Naa2TlvConverter.h"
+#include "flare/tcenterlinevectorizer.h"
+#include "flare/stage.h"
+#include "flare/Naa2TlvConverter.h"
 #include "tpalette.h"
 #include "ttoonzimage.h"
 

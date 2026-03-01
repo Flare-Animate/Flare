@@ -8,15 +8,15 @@
 #include "loadfolderpopup.h"
 
 // TnzQt includes
-"flareqt/dvdialog.h"
-"flareqt/gutil.h"
-"flareqt/validatedchoicedialog.h"
-"flareqt/menubarcommand.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/gutil.h"
+#include "flareqt/validatedchoicedialog.h"
+#include "flareqt/menubarcommand.h"
 
 // TnzLib includes
-"flare/tscenehandle.h"
-"flare/toonzscene.h"
-"flare/preferences.h"
+#include "flare/tscenehandle.h"
+#include "flare/toonzscene.h"
+#include "flare/preferences.h"
 
 // TnzCore includes
 #include "tsystem.h"

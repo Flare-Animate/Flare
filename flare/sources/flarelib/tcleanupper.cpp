@@ -7,16 +7,16 @@
 #include "timage_io.h"
 #include "tropcm.h"
 #include "ttile.h"
-"flare/toonzscene.h"
-"flare/tcamera.h"
+#include "flare/toonzscene.h"
+#include "flare/tcamera.h"
 #include "autoadjust.h"
 #include "autopos.h"
 #include "cleanuppalette.h"
 #include "cleanupcommon.h"
 #include "tmsgcore.h"
-"flare/cleanupparameters.h"
+#include "flare/cleanupparameters.h"
 
-"flare/tcleanupper.h"
+#include "flare/tcleanupper.h"
 
 using namespace CleanupTypes;
 

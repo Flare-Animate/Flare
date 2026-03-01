@@ -3,7 +3,7 @@
 #ifndef SCRIPTBINDING_IMAGE_BUILDER_H
 #define SCRIPTBINDING_IMAGE_BUILDER_H
 
-"flare/scriptbinding.h"
+#include "flare/scriptbinding.h"
 
 class ToonzScene;
 class TXshSimpleLevel;

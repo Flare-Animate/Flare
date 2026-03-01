@@ -8,19 +8,19 @@
 #include "menubarpopup.h"
 
 // TnzQt includes
-"flareqt/tselectionhandle.h"
-"flareqt/dvdialog.h"
-"flareqt/menubarcommand.h"
-"flareqt/gutil.h"
+#include "flareqt/tselectionhandle.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/menubarcommand.h"
+#include "flareqt/gutil.h"
 
 // TnzLib includes
-"flare/toonzscene.h"
-"flare/childstack.h"
-"flare/tscenehandle.h"
-"flare/txsheethandle.h"
-"flare/tframehandle.h"
-"flare/tcolumnhandle.h"
-"flare/toonzfolders.h"
+#include "flare/toonzscene.h"
+#include "flare/childstack.h"
+#include "flare/tscenehandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/tframehandle.h"
+#include "flare/tcolumnhandle.h"
+#include "flare/toonzfolders.h"
 
 // TnzTools includes
 #include "tools/toolcommandids.h"

@@ -1,22 +1,22 @@
 
-"flareqt/menubarcommand.h"
+#include "flareqt/menubarcommand.h"
 #include "menubarcommandids.h"
 #include "tapp.h"
 #include "filmstripcommand.h"
 
 // TnzLib includes
-"flare/tscenehandle.h"
-"flare/txshlevelhandle.h"
-"flare/tframehandle.h"
-"flare/txsheethandle.h"
-"flare/tcolumnhandle.h"
-"flare/txshsimplelevel.h"
-"flare/toonzscene.h"
-"flare/txsheet.h"
-"flare/txshcell.h"
+#include "flare/tscenehandle.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/tframehandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/tcolumnhandle.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/toonzscene.h"
+#include "flare/txsheet.h"
+#include "flare/txshcell.h"
 
 // TnzQt includes
-"flareqt/dvdialog.h"
+#include "flareqt/dvdialog.h"
 
 #include <set>
 

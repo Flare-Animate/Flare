@@ -3,8 +3,8 @@
 #ifndef PROJECTPOPUP_H
 #define PROJECTPOPUP_H
 
-"flareqt/dvdialog.h"
-"flare/tproject.h"
+#include "flareqt/dvdialog.h"
+#include "flare/tproject.h"
 #include "filebrowsermodel.h"
 #include <QList>
 

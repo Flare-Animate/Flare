@@ -1,6 +1,6 @@
 
 
-"flareqt/validatedchoicedialog.h"
+#include "flareqt/validatedchoicedialog.h"
 
 // Qt includes
 #include <QLabel>

@@ -9,12 +9,12 @@
 #include "tsystem.h"
 #include "tapp.h"
 
-"flare/tscenehandle.h"
-"flare/txshsimplelevel.h"
-"flare/toonzscene.h"
-"flare/levelset.h"
-"flareqt/gutil.h"
-"flareqt/icongenerator.h"
+#include "flare/tscenehandle.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/toonzscene.h"
+#include "flare/levelset.h"
+#include "flareqt/gutil.h"
+#include "flareqt/icongenerator.h"
 
 namespace {
 //---------------------------------------------------------------------------

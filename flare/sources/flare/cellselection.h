@@ -3,7 +3,7 @@
 #ifndef TCELLSELECTION_H
 #define TCELLSELECTION_H
 
-"flareqt/selection.h"
+#include "flareqt/selection.h"
 #include "tgeometry.h"
 #include <set>
 

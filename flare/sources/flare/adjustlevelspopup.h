@@ -7,9 +7,9 @@
 #include "traster.h"
 
 // toonzQt includes
-"flareqt/dvdialog.h"
-"flareqt/planeviewer.h"
-"flareqt/marksbar.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/planeviewer.h"
+#include "flareqt/marksbar.h"
 
 class Histogram;
 namespace DVGui {

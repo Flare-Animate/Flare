@@ -5,7 +5,7 @@
 #include "menubarcommandids.h"
 #include "pane.h"
 
-"flareqt/gutil.h"
+#include "flareqt/gutil.h"
 
 #include <QSet>
 #include <QMimeData>

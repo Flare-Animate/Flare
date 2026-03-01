@@ -7,10 +7,10 @@
 #include <vector>
 
 // ToonzLib includes
-"flare/txshsimplelevel.h"
+#include "flare/txshsimplelevel.h"
 
 // ToonzQt includes
-"flareqt/menubarcommand.h"
+#include "flareqt/menubarcommand.h"
 
 // Qt includes
 #include <QTimer>

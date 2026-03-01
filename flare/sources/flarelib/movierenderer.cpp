@@ -14,15 +14,15 @@
 #include "tiio.h"
 
 // TnzLib includes
-"flare/toonzscene.h"
-"flare/sceneproperties.h"
-"flare/txsheet.h"
-"flare/tcamera.h"
-"flare/preferences.h"
-"flare/trasterimageutils.h"
-"flare/levelupdater.h"
+#include "flare/toonzscene.h"
+#include "flare/sceneproperties.h"
+#include "flare/txsheet.h"
+#include "flare/tcamera.h"
+#include "flare/preferences.h"
+#include "flare/trasterimageutils.h"
+#include "flare/levelupdater.h"
 #include "toutputproperties.h"
-"flare/boardsettings.h"
+#include "flare/boardsettings.h"
 
 // tcg includes
 #include "tcg/tcg_macros.h"
@@ -31,7 +31,7 @@
 #include <QCoreApplication>
 #include <QTimer>
 
-"flare/movierenderer.h"
+#include "flare/movierenderer.h"
 
 //**************************************************************************
 //    Local Namespace  stuff

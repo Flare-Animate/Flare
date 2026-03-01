@@ -9,15 +9,15 @@
 #include "menubarcommandids.h"
 
 // TnzQt includes
-"flareqt/tselectionhandle.h"
+#include "flareqt/tselectionhandle.h"
 #include "historytypes.h"
 
 // TnzLib includes
-"flare/tscenehandle.h"
-"flare/txsheet.h"
-"flare/txsheethandle.h"
-"flare/txshcell.h"
-"flare/txshcolumn.h"
+#include "flare/tscenehandle.h"
+#include "flare/txsheet.h"
+#include "flare/txsheethandle.h"
+#include "flare/txshcell.h"
+#include "flare/txshcolumn.h"
 
 // TnzCore includes
 #include "tundo.h"

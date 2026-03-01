@@ -3,7 +3,7 @@
 #ifndef SCRIPTBINDING_RASTERIZER_H
 #define SCRIPTBINDING_RASTERIZER_H
 
-"flare/scriptbinding.h"
+#include "flare/scriptbinding.h"
 
 class ToonzScene;
 class TXshSimpleLevel;

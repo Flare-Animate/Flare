@@ -3,9 +3,9 @@
 #ifndef STAGEOBJECTSELECTION_H
 #define STAGEOBJECTSELECTION_H
 
-"flareqt/selection.h"
-"flare/tstageobjectid.h"
-"flare/txshcolumn.h"
+#include "flareqt/selection.h"
+#include "flare/tstageobjectid.h"
+#include "flare/txshcolumn.h"
 #include "tgeometry.h"
 #include <QList>
 #include <QPair>

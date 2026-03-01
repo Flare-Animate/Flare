@@ -9,10 +9,10 @@
 #include "tsystem.h"
 
 // TnzQt includes
-"flareqt/dvdialog.h"
-"flareqt/menubarcommand.h"
-"flareqt/gutil.h"
-"flareqt/dvscrollwidget.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/menubarcommand.h"
+#include "flareqt/gutil.h"
+#include "flareqt/dvscrollwidget.h"
 
 // TnzCore includes
 #include "tconvert.h"

@@ -47,9 +47,9 @@ to deal with cache management and predictability issues.
 \n \n
 It just requires the implementation of two essential functions:
 
-<li> The compute() method, which performs the effective calculation of the
+#include "li" The compute() method, which performs the effective calculation of the
 passed tile.
-<li> The simCompute() method, which is a dummy simulation of the above
+#include "li" The simCompute() method, which is a dummy simulation of the above
 compute(),
 used by the builder for predictive purposes.
 

@@ -3,10 +3,10 @@
 
 #include "tapp.h"
 #include "tenv.h"
-"flare/stage.h"
-"flare/tscenehandle.h"
-"flare/tcamera.h"
-"flare/toonzscene.h"
+#include "flare/stage.h"
+#include "flare/tscenehandle.h"
+#include "flare/tcamera.h"
+#include "flare/toonzscene.h"
 
 #include <QCoreApplication>
 #include <QFile>

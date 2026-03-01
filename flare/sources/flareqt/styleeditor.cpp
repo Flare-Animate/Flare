@@ -1,24 +1,24 @@
 
 
-"flareqt/styleeditor.h"
+#include "flareqt/styleeditor.h"
 
 // TnzQt includes
-"flareqt/gutil.h"
-"flareqt/filefield.h"
+#include "flareqt/gutil.h"
+#include "flareqt/filefield.h"
 #include "historytypes.h"
-"flareqt/lutcalibrator.h"
+#include "flareqt/lutcalibrator.h"
 
 // TnzLib includes
-"flare/txshlevel.h"
-"flare/txshlevelhandle.h"
-"flare/toonzfolders.h"
-"flare/cleanupcolorstyles.h"
-"flare/palettecontroller.h"
-"flare/imagestyles.h"
-"flare/txshsimplelevel.h"
-"flare/levelproperties.h"
-"flare/mypaintbrushstyle.h"
-"flare/preferences.h"
+#include "flare/txshlevel.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/toonzfolders.h"
+#include "flare/cleanupcolorstyles.h"
+#include "flare/palettecontroller.h"
+#include "flare/imagestyles.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/levelproperties.h"
+#include "flare/mypaintbrushstyle.h"
+#include "flare/preferences.h"
 
 // TnzCore includes
 #include "tconvert.h"

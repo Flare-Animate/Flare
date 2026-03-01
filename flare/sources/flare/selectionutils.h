@@ -6,7 +6,7 @@
 // TnzCore includes
 #include "tfilepath.h"
 
-"flare/txshlevel.h"
+#include "flare/txshlevel.h"
 
 // STL includes
 #include <set>

@@ -10,10 +10,10 @@
 #include "historytypes.h"
 
 // TnzLib includes
-"flare/txsheethandle.h"
-"flare/tscenehandle.h"
-"flare/txsheet.h"
-"flare/preferences.h"
+#include "flare/txsheethandle.h"
+#include "flare/tscenehandle.h"
+#include "flare/txsheet.h"
+#include "flare/preferences.h"
 
 // TnzCore includes
 #include "tundo.h"

@@ -1,6 +1,6 @@
 #include "orientation.h"
-"flare/columnfan.h"
-"flare/preferences.h"
+#include "flare/columnfan.h"
+#include "flare/preferences.h"
 
 #include <QPainterPath>
 #include <QBoxLayout>

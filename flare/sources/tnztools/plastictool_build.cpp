@@ -7,10 +7,10 @@
 #include "ext/plasticdeformerstorage.h"
 
 // TnzLib includes
-"flare/txshcell.h"
-"flare/txshsimplelevel.h"
-"flare/txsheethandle.h"
-"flare/stage.h"
+#include "flare/txshcell.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/txsheethandle.h"
+#include "flare/stage.h"
 
 // tcg includes
 #include "tcg/tcg_point_ops.h"

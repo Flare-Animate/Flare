@@ -1,8 +1,8 @@
 
 
-"flare/txshpalettelevel.h"
-"flare/txshleveltypes.h"
-"flare/toonzscene.h"
+#include "flare/txshpalettelevel.h"
+#include "flare/txshleveltypes.h"
+#include "flare/toonzscene.h"
 #include "tconvert.h"
 #include "tstream.h"
 #include "tfilepath_io.h"

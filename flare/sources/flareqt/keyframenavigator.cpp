@@ -1,14 +1,14 @@
 
 
-"flareqt/keyframenavigator.h"
-"flareqt/styleselection.h"
+#include "flareqt/keyframenavigator.h"
+#include "flareqt/styleselection.h"
 
-"flareqt/gutil.h"
-"flare/txsheet.h"
-"flare/txshcolumn.h"
-"flare/tstageobjectkeyframe.h"
-"flare/stageobjectutil.h"
-"flare/tapplication.h"
+#include "flareqt/gutil.h"
+#include "flare/txsheet.h"
+#include "flare/txshcolumn.h"
+#include "flare/tstageobjectkeyframe.h"
+#include "flare/stageobjectutil.h"
+#include "flare/tapplication.h"
 
 #include "tpixelutils.h"
 #include "tfx.h"

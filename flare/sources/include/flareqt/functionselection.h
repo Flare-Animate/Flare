@@ -5,8 +5,8 @@
 
 #include "tcommon.h"
 #include "functiontreeviewer.h"
-"flareqt/selection.h"
-"flareqt/dvmimedata.h"
+#include "flareqt/selection.h"
+#include "flareqt/dvmimedata.h"
 
 #include "tdoublekeyframe.h"
 
@@ -16,7 +16,7 @@
 
 #undef DVAPI
 #undef DVVAR
-#ifdef TOONZQT_EXPORTS
+#ifdef FLAREQT_EXPORTS
 #define DVAPI DV_EXPORT_API
 #define DVVAR DV_EXPORT_VAR
 #else

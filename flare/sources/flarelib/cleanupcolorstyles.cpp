@@ -6,7 +6,7 @@
 
 #include <QApplication>
 
-"flare/cleanupcolorstyles.h"
+#include "flare/cleanupcolorstyles.h"
 
 //-------------------------------------------------------------------
 

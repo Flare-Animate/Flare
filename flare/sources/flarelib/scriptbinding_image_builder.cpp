@@ -1,7 +1,7 @@
 
 
-"flare/scriptbinding_image_builder.h"
-"flare/scriptbinding_image.h"
+#include "flare/scriptbinding_image_builder.h"
+#include "flare/scriptbinding_image.h"
 #include "ttoonzimage.h"
 #include "trop.h"
 #include <cmath>

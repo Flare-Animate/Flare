@@ -1,7 +1,7 @@
 
 
-"flareqt/selection.h"
-"flareqt/tselectionhandle.h"
+#include "flareqt/selection.h"
+#include "flareqt/tselectionhandle.h"
 #include "assert.h"
 
 //#include "menubar.h"

@@ -8,26 +8,26 @@
 #include "tfxattributes.h"
 
 // TnzLib includes
-"flare/tcolumnfx.h"
-"flare/fxcommand.h"
-"flare/fxdag.h"
-"flare/txsheet.h"
-"flare/tfxhandle.h"
-"flare/tcolumnfxset.h"
-"flare/txsheethandle.h"
-"flareqt/fxschematicscene.h"
+#include "flare/tcolumnfx.h"
+#include "flare/fxcommand.h"
+#include "flare/fxdag.h"
+#include "flare/txsheet.h"
+#include "flare/tfxhandle.h"
+#include "flare/tcolumnfxset.h"
+#include "flare/txsheethandle.h"
+#include "flareqt/fxschematicscene.h"
 
 // TnzQt includes
-"flareqt/schematicnode.h"
-"flareqt/fxschematicnode.h"
-"flareqt/selectioncommandids.h"
+#include "flareqt/schematicnode.h"
+#include "flareqt/fxschematicnode.h"
+#include "flareqt/selectioncommandids.h"
 #include "fxdata.h"
 
 // Qt includes
 #include <QApplication>
 #include <QClipboard>
 
-"flareqt/fxselection.h"
+#include "flareqt/fxselection.h"
 
 namespace {
 bool canGroup(TFx *fx) {

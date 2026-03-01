@@ -6,16 +6,16 @@
 #include "tools/tool.h"
 #include "tproperty.h"
 
-"flare/toonzimageutils.h"
-"flare/ttilesaver.h"
-"flare/ttileset.h"
+#include "flare/toonzimageutils.h"
+#include "flare/ttilesaver.h"
+#include "flare/ttileset.h"
 
-"flare/tpalettehandle.h"
-"flare/txshlevelhandle.h"
+#include "flare/tpalettehandle.h"
+#include "flare/txshlevelhandle.h"
 #include "tstroke.h"
-"flare/txshsimplelevel.h"
+#include "flare/txshsimplelevel.h"
 
-"flareqt/icongenerator.h"
+#include "flareqt/icongenerator.h"
 
 class StylePickerTool final : public TTool, public QObject {
   Q_DECLARE_TR_FUNCTIONS(StylePickerTool)

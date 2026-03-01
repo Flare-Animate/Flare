@@ -5,12 +5,12 @@
 #include "drawutil.h"
 #include "tenv.h"
 #include "tools/toolhandle.h"
-"flare/tdistort.h"
-"flare/glrasterpainter.h"
-"flare/toonzimageutils.h"
-"flareqt/tselectionhandle.h"
-"flareqt/imageutils.h"
-"flare/txshlevelhandle.h"
+#include "flare/tdistort.h"
+#include "flare/glrasterpainter.h"
+#include "flare/toonzimageutils.h"
+#include "flareqt/tselectionhandle.h"
+#include "flareqt/imageutils.h"
+#include "flare/txshlevelhandle.h"
 
 using namespace ToolUtils;
 using namespace DragSelectionTool;

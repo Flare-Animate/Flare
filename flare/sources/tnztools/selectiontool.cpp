@@ -8,8 +8,8 @@
 #include "drawutil.h"
 #include "tools/toolhandle.h"
 #include "tools/cursors.h"
-"flare/stage2.h"
-"flare/tobjecthandle.h"
+#include "flare/stage2.h"
+#include "flare/tobjecthandle.h"
 
 #include <QKeyEvent>
 

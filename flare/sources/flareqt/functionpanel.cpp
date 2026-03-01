@@ -1,19 +1,19 @@
 
 
-"flareqt/functionpanel.h"
+#include "flareqt/functionpanel.h"
 
 // TnzQt includes
-"flareqt/functionselection.h"
-"flareqt/functionsegmentviewer.h"
-"flareqt/imageutils.h"
+#include "flareqt/functionselection.h"
+#include "flareqt/functionsegmentviewer.h"
+#include "flareqt/imageutils.h"
 #include "functionpaneltools.h"
-"flareqt/gutil.h"
+#include "flareqt/gutil.h"
 
 // TnzLib includes
-"flare/tframehandle.h"
-"flare/doubleparamcmd.h"
-"flare/toonzfolders.h"
-"flare/preferences.h"
+#include "flare/tframehandle.h"
+#include "flare/doubleparamcmd.h"
+#include "flare/toonzfolders.h"
+#include "flare/preferences.h"
 // TnzBase includes
 #include "tdoubleparam.h"
 #include "tdoublekeyframe.h"

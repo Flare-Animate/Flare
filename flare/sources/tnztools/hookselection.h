@@ -3,10 +3,10 @@
 #ifndef HOOK_SELECTION
 #define HOOK_SELECTION
 
-"flareqt/selection.h"
-"flareqt/dvmimedata.h"
-"flare/txshlevel.h"
-"flare/hook.h"
+#include "flareqt/selection.h"
+#include "flareqt/dvmimedata.h"
+#include "flare/txshlevel.h"
+#include "flare/hook.h"
 #include "tundo.h"
 
 #include <set>

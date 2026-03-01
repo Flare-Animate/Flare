@@ -5,7 +5,7 @@
 #include "tstream.h"
 #include "tdoubleparam.h"
 #include "tfilepath_io.h"
-"flare/tproject.h"
+#include "flare/tproject.h"
 #include "tconvert.h"
 #include "filebrowserpopup.h"
 #include "filebrowser.h"

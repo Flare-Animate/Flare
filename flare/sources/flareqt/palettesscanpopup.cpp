@@ -1,7 +1,7 @@
 
 
 #include "palettesscanpopup.h"
-"flareqt/gutil.h"
+#include "flareqt/gutil.h"
 #include "tsystem.h"
 
 #include <QPushButton>

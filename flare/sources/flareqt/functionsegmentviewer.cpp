@@ -1,23 +1,23 @@
 
 
-"flareqt/functionsegmentviewer.h"
+#include "flareqt/functionsegmentviewer.h"
 
 // TnzQt includes
-"flareqt/intfield.h"
-"flareqt/filefield.h"
-"flareqt/doublefield.h"
-"flareqt/expressionfield.h"
-"flareqt/dvdialog.h"
+#include "flareqt/intfield.h"
+#include "flareqt/filefield.h"
+#include "flareqt/doublefield.h"
+#include "flareqt/expressionfield.h"
+#include "flareqt/dvdialog.h"
 #include "tw/stringtable.h"
-"flareqt/functionsheet.h"
-"flareqt/functionpanel.h"
-"flareqt/gutil.h"
+#include "flareqt/functionsheet.h"
+#include "flareqt/functionpanel.h"
+#include "flareqt/gutil.h"
 
 // TnzLib includes
-"flare/doubleparamcmd.h"
-"flare/txsheetexpr.h"
-"flare/txsheet.h"
-"flare/txsheethandle.h"
+#include "flare/doubleparamcmd.h"
+#include "flare/txsheetexpr.h"
+#include "flare/txsheet.h"
+#include "flare/txsheethandle.h"
 
 // TnzBase includes
 #include "tdoubleparam.h"

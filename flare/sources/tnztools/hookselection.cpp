@@ -2,15 +2,15 @@
 
 #include "hookselection.h"
 
-"flare/txshlevelhandle.h"
-"flare/txshsimplelevel.h"
-"flare/txsheethandle.h"
-"flare/tstageobjecttree.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/txsheethandle.h"
+#include "flare/tstageobjecttree.h"
 
 #include "tools/tool.h"
 #include "tools/toolhandle.h"
 
-"flareqt/selectioncommandids.h"
+#include "flareqt/selectioncommandids.h"
 
 #include <QApplication>
 #include <QClipboard>

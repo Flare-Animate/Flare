@@ -17,20 +17,20 @@
 #include "ext/plasticskeleton.h"
 
 // TnzLib includes
-"flare/tstageobjecttree.h"
-"flare/txsheet.h"
-"flare/txsheethandle.h"
-"flare/fxdag.h"
-"flare/txshzeraryfxcolumn.h"
-"flare/tcolumnfx.h"
-"flare/tfxhandle.h"
-"flare/tobjecthandle.h"
+#include "flare/tstageobjecttree.h"
+#include "flare/txsheet.h"
+#include "flare/txsheethandle.h"
+#include "flare/fxdag.h"
+#include "flare/txshzeraryfxcolumn.h"
+#include "flare/tcolumnfx.h"
+#include "flare/tfxhandle.h"
+#include "flare/tobjecthandle.h"
 
 // TnzQt includes
-"flareqt/functionviewer.h"
-"flareqt/dvdialog.h"
-"flareqt/gutil.h"
-"flareqt/plasticvertexselection.h"
+#include "flareqt/functionviewer.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/gutil.h"
+#include "flareqt/plasticvertexselection.h"
 #include "tw/stringtable.h"
 
 // Qt includes
@@ -44,7 +44,7 @@
 #include <QDrag>
 #include <QMimeData>
 
-"flareqt/functiontreeviewer.h"
+#include "flareqt/functiontreeviewer.h"
 
 //*************************************************************************************
 //    ChannelGroup specialization  definition

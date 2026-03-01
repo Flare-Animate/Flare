@@ -5,7 +5,7 @@
 #include "pane.h"
 
 // ToonzLib
-"flare/toonzfolders.h"
+#include "flare/toonzfolders.h"
 // ToonzCore
 #include "tsystem.h"
 

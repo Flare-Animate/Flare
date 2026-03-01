@@ -7,10 +7,10 @@
 #include "dvwidgets.h"
 
 // TnzLib includes
-"flare/tscenehandle.h"
-"flare/sceneproperties.h"
-"flare/toonzscene.h"
-"flare/tcamera.h"
+#include "flare/tscenehandle.h"
+#include "flare/sceneproperties.h"
+#include "flare/toonzscene.h"
+#include "flare/tcamera.h"
 #include "toutputproperties.h"
 
 #ifdef _WIN32

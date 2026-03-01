@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #if !defined(TOONZ_PLUGIN_PARAM_TRAITS_H__)
 #define TOONZ_PLUGIN_PARAM_TRAITS_H__

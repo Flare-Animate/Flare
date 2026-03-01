@@ -7,7 +7,7 @@
 
 // Toonz Includes
 #include "traster.h"
-"flareqt/gutil.h"
+#include "flareqt/gutil.h"
 
 #include <QObject>
 

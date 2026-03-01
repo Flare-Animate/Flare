@@ -7,7 +7,7 @@
 #include "timage.h"
 #include "tiio.h"
 #include "tthread.h"
-"flare/toonzscene.h"
+#include "flare/toonzscene.h"
 
 //#define WRITE_LOG_FILE
 //#define CHECK_VIDEO_FRAME_INTERVAL

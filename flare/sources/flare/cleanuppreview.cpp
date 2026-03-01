@@ -5,16 +5,16 @@
 #include "tcurveutil.h"
 
 // ToonzLib
-"flare/stage2.h"
-"flare/txshsimplelevel.h"
-"flare/txshlevelhandle.h"
-"flare/tcleanupper.h"
-"flare/palettecontroller.h"
-"flare/tpalettehandle.h"
-"flare/observer.h"
-"flare/imagemanager.h"
+#include "flare/stage2.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/tcleanupper.h"
+#include "flare/palettecontroller.h"
+#include "flare/tpalettehandle.h"
+#include "flare/observer.h"
+#include "flare/imagemanager.h"
 
-"flare/tscenehandle.h"
+#include "flare/tscenehandle.h"
 
 // TnzTools includes
 #include "tools/toolutils.h"
@@ -23,7 +23,7 @@
 #include "tools/toolcommandids.h"
 
 // TnzQt includes
-"flareqt/icongenerator.h"
+#include "flareqt/icongenerator.h"
 #include "historytypes.h"
 
 // Toonz includes

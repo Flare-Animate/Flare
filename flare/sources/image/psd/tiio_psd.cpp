@@ -2,7 +2,7 @@
 #include "trasterimage.h"
 #include "timageinfo.h"
 #if (defined(x64) || defined(__LP64__))
-"flare/preferences.h"
+#include "flare/preferences.h"
 #include <QtCore>
 #endif
 

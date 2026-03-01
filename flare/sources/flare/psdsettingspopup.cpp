@@ -6,11 +6,11 @@
 #include "tapp.h"
 
 // TnzQt includes
-"flareqt/checkbox.h"
+#include "flareqt/checkbox.h"
 
 // TnzLib includes
-"flare/toonzscene.h"
-"flare/tscenehandle.h"
+#include "flare/toonzscene.h"
+#include "flare/tscenehandle.h"
 
 // TnzCore includes
 #include "tconvert.h"

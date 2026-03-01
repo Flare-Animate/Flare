@@ -1,10 +1,10 @@
 
 
-"flareqt/menubarcommand.h"
+#include "flareqt/menubarcommand.h"
 // #include "menubarcommandids.h"
-"flareqt/dvdialog.h"
-"flareqt/gutil.h"
-"flare/toonzfolders.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/gutil.h"
+#include "flare/toonzfolders.h"
 #include "tsystem.h"
 #include <assert.h>
 #include <QObject>

@@ -234,7 +234,7 @@ void ExrReader::readLine(float* buffer, int x0, int x1, int shrink) {
 
   int width =
       (x1 < x0) ? (m_info.m_lx - 1) / shrink + 1 : (x1 - x0) / shrink + 1;
-  // ‚¢‚Á‚½‚ñƒmƒ“ƒŠƒjƒA‚Å“Ç‚Ýž‚ÞBƒŠƒjƒAŒvŽZ‚Ì‚Æ‚«‚Í‚ ‚Æ‚ÅƒŠƒjƒA‚É–ß‚·
+  // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½mï¿½ï¿½ï¿½ï¿½ï¿½jï¿½Aï¿½Å“Ç‚Ýï¿½ï¿½ÞBï¿½ï¿½ï¿½jï¿½Aï¿½vï¿½Zï¿½Ì‚Æ‚ï¿½ï¿½Í‚ï¿½ï¿½Æ‚Åƒï¿½ï¿½jï¿½Aï¿½É–ß‚ï¿½
   for (int i = 0; i < width; i++) {
     pix->r = toNonlinear(v[0], m_colorSpaceGamma);
     pix->g = toNonlinear(v[1], m_colorSpaceGamma);

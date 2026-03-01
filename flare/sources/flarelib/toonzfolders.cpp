@@ -1,8 +1,8 @@
-"flare/toonzfolders.h"
+#include "flare/toonzfolders.h"
 #include "tsystem.h"
 #include "tenv.h"
 #include "tconvert.h"
-"flare/preferences.h"
+#include "flare/preferences.h"
 #include <QStandardPaths>
 #include <QDir>
 

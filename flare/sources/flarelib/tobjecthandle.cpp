@@ -1,11 +1,11 @@
 
 
-"flare/tobjecthandle.h"
+#include "flare/tobjecthandle.h"
 
-"flare/tstageobjectid.h"
-"flare/tstageobject.h"
-"flare/tstageobjectspline.h"
-"flare/txsheet.h"
+#include "flare/tstageobjectid.h"
+#include "flare/tstageobject.h"
+#include "flare/tstageobjectspline.h"
+#include "flare/txsheet.h"
 #include "tvectorimage.h"
 #include "tstroke.h"
 

@@ -22,7 +22,7 @@
 #include <QDataStream>
 
 #include "tiio_mov_proxy.h"
-<flare/preferences.h>
+#include "flare/preferences.h"
 
 /*
   For a list of supported commands through the 32-bit background server,

@@ -3,7 +3,7 @@
 #ifndef PSDSETTINGSPOPUP_H
 #define PSDSETTINGSPOPUP_H
 
-"flareqt/dvdialog.h"
+#include "flareqt/dvdialog.h"
 #include "tfilepath.h"
 #include "../common/psdlib/psd.h"
 

@@ -1,26 +1,26 @@
 
 
-"flareqt/studiopaletteviewer.h"
+#include "flareqt/studiopaletteviewer.h"
 
 // TnzQt includes
-"flareqt/menubarcommand.h"
-"flareqt/paletteviewer.h"
-"flareqt/trepetitionguard.h"
-"flareqt/gutil.h"
-"flareqt/icongenerator.h"
-"flareqt/intfield.h"
+#include "flareqt/menubarcommand.h"
+#include "flareqt/paletteviewer.h"
+#include "flareqt/trepetitionguard.h"
+#include "flareqt/gutil.h"
+#include "flareqt/icongenerator.h"
+#include "flareqt/intfield.h"
 #include "palettesscanpopup.h"
 #include "palettedata.h"
 
 // TnzLib includes
-"flare/studiopalettecmd.h"
-"flare/tpalettehandle.h"
-"flare/txshsimplelevel.h"
-"flare/toonzscene.h"
-"flare/sceneproperties.h"
-"flare/txsheethandle.h"
-"flare/txshlevelhandle.h"
-"flare/preferences.h"
+#include "flare/studiopalettecmd.h"
+#include "flare/tpalettehandle.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/toonzscene.h"
+#include "flare/sceneproperties.h"
+#include "flare/txsheethandle.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/preferences.h"
 
 // TnzCore includes
 #include "saveloadqsettings.h"

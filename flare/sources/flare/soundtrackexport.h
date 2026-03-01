@@ -3,8 +3,8 @@
 #ifndef SOUNDTRACKEXPORT_H
 #define SOUNDTRACKEXPORT_H
 
-"flareqt/dvdialog.h"
-"flare/sceneproperties.h"
+#include "flareqt/dvdialog.h"
+#include "flare/sceneproperties.h"
 #include "tsound.h"
 
 // forward declaration

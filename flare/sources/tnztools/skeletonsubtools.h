@@ -4,10 +4,10 @@
 #define SKELETON_SUBTOOLS_INCLUDED
 
 #include "tools/tool.h"
-"flare/txsheet.h"
-"flare/skeleton.h"
-"flare/stageobjectutil.h"
-"flare/ikengine.h"
+#include "flare/txsheet.h"
+#include "flare/skeleton.h"
+#include "flare/stageobjectutil.h"
+#include "flare/ikengine.h"
 
 #include <QObject>
 

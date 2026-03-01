@@ -11,14 +11,14 @@
 #include "dvdirtreeview.h"
 
 // TnzQt includes
-"flareqt/menubarcommand.h"
-"flareqt/filefield.h"
-"flareqt/lineedit.h"
-"flareqt/checkbox.h"
-"flareqt/gutil.h"
+#include "flareqt/menubarcommand.h"
+#include "flareqt/filefield.h"
+#include "flareqt/lineedit.h"
+#include "flareqt/checkbox.h"
+#include "flareqt/gutil.h"
 
 // TnzLib
-"flare/filepathproperties.h"
+#include "flare/filepathproperties.h"
 
 // TnzCore includes
 #include "tsystem.h"

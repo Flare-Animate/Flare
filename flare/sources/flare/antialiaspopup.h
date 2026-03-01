@@ -1,7 +1,7 @@
 #pragma once
 
-"flareqt/dvdialog.h"
-"flare/txshsimplelevel.h"
+#include "flareqt/dvdialog.h"
+#include "flare/txshsimplelevel.h"
 #include "traster.h"
 
 class QSlider;

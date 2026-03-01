@@ -4,12 +4,12 @@
 #include "tapp.h"
 
 // Toonz stage structures
-"flare/tscenehandle.h"
-"flare/toonzscene.h"
-"flare/txsheethandle.h"
-"flare/txsheet.h"
-"flare/tcamera.h"
-"flare/tframehandle.h"
+#include "flare/tscenehandle.h"
+#include "flare/toonzscene.h"
+#include "flare/txsheethandle.h"
+#include "flare/txsheet.h"
+#include "flare/tcamera.h"
+#include "flare/tframehandle.h"
 
 // Scene viewer
 #include "sceneviewer.h"

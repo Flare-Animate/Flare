@@ -1,23 +1,23 @@
 
 
-"flare/txshsimplelevel.h"
+#include "flare/txshsimplelevel.h"
 #include "imagebuilders.h"
 
 // TnzLib includes
-"flare/txshleveltypes.h"
-"flare/imagemanager.h"
-"flare/studiopalette.h"
-"flare/hook.h"
-"flare/toonzscene.h"
-"flare/levelproperties.h"
-"flare/levelupdater.h"
-"flare/fullcolorpalette.h"
-"flare/preferences.h"
-"flare/stage.h"
-"flare/textureutils.h"
-"flare/levelset.h"
-"flare/tcamera.h"
-"flare/sceneproperties.h"
+#include "flare/txshleveltypes.h"
+#include "flare/imagemanager.h"
+#include "flare/studiopalette.h"
+#include "flare/hook.h"
+#include "flare/toonzscene.h"
+#include "flare/levelproperties.h"
+#include "flare/levelupdater.h"
+#include "flare/fullcolorpalette.h"
+#include "flare/preferences.h"
+#include "flare/stage.h"
+#include "flare/textureutils.h"
+#include "flare/levelset.h"
+#include "flare/tcamera.h"
+#include "flare/sceneproperties.h"
 
 // TnzBase includes
 #include "tenv.h"
@@ -47,7 +47,7 @@
 #include <QtCore>
 
 #include "../common/psdlib/psd.h"
-"flare/toonzfolders.h"
+#include "flare/toonzfolders.h"
 
 //******************************************************************************************
 //    Global stuff

@@ -1,24 +1,24 @@
 
 
 // TnzQt includes
-"flareqt/seethroughwindow.h"
-"flareqt/menubarcommand.h"
-"flareqt/viewcommandids.h"
-"flareqt/imageutils.h"
-"flareqt/dvdialog.h"
-"flareqt/gutil.h"
+#include "flareqt/seethroughwindow.h"
+#include "flareqt/menubarcommand.h"
+#include "flareqt/viewcommandids.h"
+#include "flareqt/imageutils.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/gutil.h"
 
 // Qt Includes:
 #include <QScreen>
 #include <QWindow>
 
 // TnzLib includes
-"flare/preferences.h"
-"flare/namebuilder.h"
-"flare/toonzscene.h"
-"flare/tproject.h"
-"flare/Naa2TlvConverter.h"
-"flare/toonzimageutils.h"
+#include "flare/preferences.h"
+#include "flare/namebuilder.h"
+#include "flare/toonzscene.h"
+#include "flare/tproject.h"
+#include "flare/Naa2TlvConverter.h"
+#include "flare/toonzimageutils.h"
 
 #ifdef _WIN32
 #include "avicodecrestrictions.h"

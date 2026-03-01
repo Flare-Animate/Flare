@@ -7,15 +7,15 @@
 #include "drawutil.h"
 
 // TnzLib includes
-"flare/toonzscene.h"
-"flare/sceneproperties.h"
-"flare/tscenehandle.h"
-"flare/txshsimplelevel.h"
-"flare/txshlevelhandle.h"
-"flare/txsheethandle.h"
-"flare/tframehandle.h"
-"flare/tcolumnhandle.h"
-"flare/stage.h"
+#include "flare/toonzscene.h"
+#include "flare/sceneproperties.h"
+#include "flare/tscenehandle.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/tframehandle.h"
+#include "flare/tcolumnhandle.h"
+#include "flare/stage.h"
 
 // Tnz6 includes
 #include "tapp.h"

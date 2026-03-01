@@ -1,9 +1,9 @@
 
 
 #include <stack>
-"flare/fill.h"
-"flare/ttilesaver.h"
-"flare/ttileset.h"
+#include "flare/fill.h"
+#include "flare/ttilesaver.h"
+#include "flare/ttileset.h"
 #include "tpalette.h"
 #include "tpixelutils.h"
 #include "trastercm.h"

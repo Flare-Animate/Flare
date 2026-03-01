@@ -4,10 +4,10 @@
 #define ADJUST_THICKNESS_POPUP_H
 
 // TnzQt includes
-"flareqt/dvdialog.h"
+#include "flareqt/dvdialog.h"
 
 // TnzLib includes
-"flare/txshsimplelevel.h"
+#include "flare/txshsimplelevel.h"
 
 // TnzCore includes
 #include "tvectorimage.h"

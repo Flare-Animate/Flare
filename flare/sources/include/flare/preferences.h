@@ -12,8 +12,8 @@
 #include "tfilepath.h"
 
 // TnzLib includes
-"flare/levelproperties.h"
-"flare/preferencesitemids.h"
+#include "flare/levelproperties.h"
+#include "flare/preferencesitemids.h"
 
 // Qt includes
 #include <QString>
@@ -26,7 +26,7 @@
 
 #undef DVAPI
 #undef DVVAR
-#ifdef TOONZLIB_EXPORTS
+#ifdef FLARELIB_EXPORTS
 #define DVAPI DV_EXPORT_API
 #define DVVAR DV_EXPORT_VAR
 #else

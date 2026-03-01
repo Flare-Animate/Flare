@@ -1,10 +1,10 @@
 
 
-"flareqt/spreadsheetviewer.h"
-"flareqt/gutil.h"
-"flare/preferences.h"
-"flare/toonzfolders.h"
-"flare/tframehandle.h"
+#include "flareqt/spreadsheetviewer.h"
+#include "flareqt/gutil.h"
+#include "flare/preferences.h"
+#include "flare/toonzfolders.h"
+#include "flare/tframehandle.h"
 #include "orientation.h"
 
 #include <QKeyEvent>

@@ -1,10 +1,10 @@
-"flareqt/seethroughwindow.h"
+#include "flareqt/seethroughwindow.h"
 
 // Tnz6 includes
 #include "tenv.h"
 
 // TnzQt includes
-"flareqt/gutil.h"
+#include "flareqt/gutil.h"
 
 #include <QApplication>
 #include <QMainWindow>

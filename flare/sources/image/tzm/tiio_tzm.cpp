@@ -6,7 +6,7 @@
 #include <tiio.h>
 
 #include <tmetaimage.h>
-<flare/txshsimplelevel.h>
+#include "flare/txshsimplelevel.h"
 
 #include "tiio_tzm.h"
 

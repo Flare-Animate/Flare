@@ -3,11 +3,11 @@
 #ifndef STARTUPPOPUP_H
 #define STARTUPPOPUP_H
 
-"flareqt/dvdialog.h"
-"flareqt/doublefield.h"
-"flareqt/intfield.h"
-"flareqt/filefield.h"
-"flareqt/camerasettingswidget.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/doublefield.h"
+#include "flareqt/intfield.h"
+#include "flareqt/filefield.h"
+#include "flareqt/camerasettingswidget.h"
 #include <QPushButton>
 #include <QLabel>
 #include <QCheckBox>

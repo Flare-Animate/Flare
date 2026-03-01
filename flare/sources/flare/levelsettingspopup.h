@@ -3,12 +3,12 @@
 #ifndef LEVELSETTINGSPOPUP_H
 #define LEVELSETTINGSPOPUP_H
 
-"flareqt/dvdialog.h"
+#include "flareqt/dvdialog.h"
 
-"flare/txshsimplelevel.h"
-"flare/txshpalettelevel.h"
-"flare/txshchildlevel.h"
-"flare/txshsoundlevel.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/txshpalettelevel.h"
+#include "flare/txshchildlevel.h"
+#include "flare/txshsoundlevel.h"
 
 #include <QSet>
 

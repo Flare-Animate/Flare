@@ -4,13 +4,13 @@
 #include "tpalette.h"
 
 // ToonzLib includes
-"flare/cleanupcolorstyles.h"
-"flare/tpalettehandle.h"
-"flare/palettecontroller.h"
+#include "flare/cleanupcolorstyles.h"
+#include "flare/tpalettehandle.h"
+#include "flare/palettecontroller.h"
 
 // ToonzQt includes
-"flareqt/colorfield.h"
-"flareqt/dvdialog.h"
+#include "flareqt/colorfield.h"
+#include "flareqt/dvdialog.h"
 
 // Toonz includes
 #include "tapp.h"

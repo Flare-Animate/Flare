@@ -1,9 +1,9 @@
 
 
-"flare/levelproperties.h"
+#include "flare/levelproperties.h"
 
 // TnzLib includes
-"flare/stage.h"
+#include "flare/stage.h"
 
 const double LevelOptions::DefaultColorSpaceGamma = 2.2;
 

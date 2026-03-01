@@ -4,7 +4,7 @@
 #define EXPORTCAMERATRACKPOPUP_H
 
 // Tnz6 includes
-"flareqt/dvdialog.h"
+#include "flareqt/dvdialog.h"
 
 // Qt includes
 #include <QScrollArea>

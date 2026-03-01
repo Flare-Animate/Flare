@@ -1,7 +1,7 @@
 
 
-"flareqt/scriptconsole.h"
-"flare/scriptengine.h"
+#include "flareqt/scriptconsole.h"
+#include "flare/scriptengine.h"
 #include <QKeyEvent>
 #include <QTextBlock>
 #include <QUrl>

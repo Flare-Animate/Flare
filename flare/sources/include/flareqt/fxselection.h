@@ -3,9 +3,9 @@
 #ifndef FXNODESELECTION_H
 #define FXNODESELECTION_H
 
-"flareqt/selection.h"
+#include "flareqt/selection.h"
 #include "tfx.h"
-"flare/fxcommand.h"
+#include "flare/fxcommand.h"
 #include <QList>
 #include <QPair>
 #include <QMap>

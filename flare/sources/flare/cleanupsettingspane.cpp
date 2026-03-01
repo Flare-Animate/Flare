@@ -3,15 +3,15 @@
 #include "tmsgcore.h"
 
 // ToonzLib includes
-"flare/txshlevelhandle.h"
-"flare/tscenehandle.h"
-"flare/toonzscene.h"
-"flare/toonzfolders.h"
-"flare/cleanupcolorstyles.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/tscenehandle.h"
+#include "flare/toonzscene.h"
+#include "flare/toonzfolders.h"
+#include "flare/cleanupcolorstyles.h"
 
 // ToonzQt includes
-"flareqt/gutil.h"
-"flareqt/doublefield.h"
+#include "flareqt/gutil.h"
+#include "flareqt/doublefield.h"
 
 // Toonz includes
 #include "tapp.h"

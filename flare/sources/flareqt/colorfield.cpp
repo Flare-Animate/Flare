@@ -1,15 +1,15 @@
 
 
-"flareqt/styleeditor.h"
-"flareqt/colorfield.h"
-"flareqt/dvdialog.h"
-"flareqt/gutil.h"
-"flareqt/menubarcommand.h"
-"flare/cleanupcolorstyles.h"
+#include "flareqt/styleeditor.h"
+#include "flareqt/colorfield.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/gutil.h"
+#include "flareqt/menubarcommand.h"
+#include "flare/cleanupcolorstyles.h"
 #include "tconvert.h"
 #include "tcolorstyles.h"
 #include "trop.h"
-"flareqt/lutcalibrator.h"
+#include "flareqt/lutcalibrator.h"
 #include "styledata.h"
 
 // Qt includes

@@ -8,18 +8,18 @@
 #include "filebrowserpopup.h"
 
 // TnzQt includes
-"flareqt/gutil.h"
-"flareqt/imageutils.h"
-"flareqt/menubarcommand.h"
-"flareqt/filefield.h"
-"flareqt/checkbox.h"
-"flareqt/icongenerator.h"
+#include "flareqt/gutil.h"
+#include "flareqt/imageutils.h"
+#include "flareqt/menubarcommand.h"
+#include "flareqt/filefield.h"
+#include "flareqt/checkbox.h"
+#include "flareqt/icongenerator.h"
 
 // TnzLib includes
-"flare/tscenehandle.h"
-"flare/toonzscene.h"
-"flare/sceneproperties.h"
-"flare/tproject.h"
+#include "flare/tscenehandle.h"
+#include "flare/toonzscene.h"
+#include "flare/sceneproperties.h"
+#include "flare/tproject.h"
 
 // TnzCore includes
 #include "tsystem.h"

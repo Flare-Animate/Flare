@@ -1,21 +1,21 @@
 
 
-"flare/fxcommand.h"
+#include "flare/fxcommand.h"
 
 // TnzLib includes
-"flare/txsheet.h"
-"flare/tcolumnfx.h"
-"flare/fxdag.h"
-"flare/tcolumnfxset.h"
-"flare/txshzeraryfxcolumn.h"
-"flare/tstageobjecttree.h"
-"flare/txshlevelcolumn.h"
-"flare/txshpalettecolumn.h"
-"flare/toonzscene.h"
-"flare/txsheethandle.h"
-"flare/tfxhandle.h"
-"flare/tcolumnhandle.h"
-"flare/tscenehandle.h"
+#include "flare/txsheet.h"
+#include "flare/tcolumnfx.h"
+#include "flare/fxdag.h"
+#include "flare/tcolumnfxset.h"
+#include "flare/txshzeraryfxcolumn.h"
+#include "flare/tstageobjecttree.h"
+#include "flare/txshlevelcolumn.h"
+#include "flare/txshpalettecolumn.h"
+#include "flare/toonzscene.h"
+#include "flare/txsheethandle.h"
+#include "flare/tfxhandle.h"
+#include "flare/tcolumnhandle.h"
+#include "flare/tscenehandle.h"
 #include "historytypes.h"
 
 // TnzBase includes

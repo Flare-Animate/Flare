@@ -6,7 +6,7 @@
 #include <memory>
 
 // TnzLib includes
-"flare/preferences.h"
+#include "flare/preferences.h"
 
 // TnzCore includes
 #include "tfilepath.h"
@@ -16,8 +16,8 @@
 #include <QDialog>
 
 // TnzQt includes
-"flareqt/dvdialog.h"
-"flareqt/imageutils.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/imageutils.h"
 
 // boost includes
 #include <boost/optional.hpp>

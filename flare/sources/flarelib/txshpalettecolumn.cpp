@@ -1,8 +1,8 @@
 
 
-"flare/txshpalettecolumn.h"
-"flare/txshcell.h"
-"flare/tcolumnfx.h"
+#include "flare/txshpalettecolumn.h"
+#include "flare/txshcell.h"
+#include "flare/tcolumnfx.h"
 #include "tstream.h"
 
 TXshPaletteColumn::TXshPaletteColumn()

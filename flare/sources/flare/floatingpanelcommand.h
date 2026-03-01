@@ -4,7 +4,7 @@
 #define FLOATING_PANEL_COMMAND_INCLUDED
 
 // #include "pane.h"
-"flareqt/menubarcommand.h"
+#include "flareqt/menubarcommand.h"
 
 class TPanel;
 

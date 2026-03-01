@@ -7,7 +7,7 @@
 #include <QApplication>
 #include <QDesktopWidget>
 #include <QOpenGLFunctions>
-"flareqt/gutil.h"
+#include "flareqt/gutil.h"
 
 class GLWidgetForHighDpi : public QOpenGLWidget, protected QOpenGLFunctions {
 public:

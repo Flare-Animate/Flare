@@ -2,7 +2,7 @@
 
 #include "cleanupswatch.h"
 #include "trop.h"
-"flareqt/gutil.h"
+#include "flareqt/gutil.h"
 #include <QHBoxLayout>
 #include <QBrush>
 #include <QPainter>
@@ -11,8 +11,8 @@
 #include <QPushButton>
 #include <QActionGroup>
 #include <QToolBar>
-"flare/tcleanupper.h"
-"flareqt/dvdialog.h"
+#include "flare/tcleanupper.h"
+#include "flareqt/dvdialog.h"
 CleanupSwatch::CleanupSwatch(QWidget *parent, int lx, int ly)
     : QWidget(parent)
     , m_lx(lx)

@@ -1,7 +1,7 @@
 
 
-"flareqt/tselectionhandle.h"
-"flareqt/selection.h"
+#include "flareqt/tselectionhandle.h"
+#include "flareqt/selection.h"
 
 //=============================================================================
 // TSelectionHandle

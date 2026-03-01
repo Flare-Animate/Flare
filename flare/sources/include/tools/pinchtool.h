@@ -5,7 +5,7 @@
 
 #include "tools/tool.h"
 #include "tproperty.h"
-"flare/observer.h"
+#include "flare/observer.h"
 #include "ext/ContextStatus.h"
 #include "ext/Selector.h"
 

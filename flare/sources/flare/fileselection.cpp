@@ -17,23 +17,23 @@
 #include "batches.h"
 
 // TnzQt includes
-"flareqt/imageutils.h"
-"flareqt/dvdialog.h"
-"flareqt/infoviewer.h"
-"flareqt/icongenerator.h"
-"flareqt/gutil.h"
+#include "flareqt/imageutils.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/infoviewer.h"
+#include "flareqt/icongenerator.h"
+#include "flareqt/gutil.h"
 #include "historytypes.h"
-"flareqt/menubarcommand.h"
+#include "flareqt/menubarcommand.h"
 
 // TnzLib includes
-"flare/tproject.h"
-"flare/toonzscene.h"
-"flare/sceneresources.h"
-"flare/preferences.h"
-"flare/studiopalette.h"
-"flare/palettecontroller.h"
-"flare/tpalettehandle.h"
-"flare/tscenehandle.h"
+#include "flare/tproject.h"
+#include "flare/toonzscene.h"
+#include "flare/sceneresources.h"
+#include "flare/preferences.h"
+#include "flare/studiopalette.h"
+#include "flare/palettecontroller.h"
+#include "flare/tpalettehandle.h"
+#include "flare/tscenehandle.h"
 
 // TnzCore includes
 #include "tfiletype.h"

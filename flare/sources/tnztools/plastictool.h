@@ -17,7 +17,7 @@
 #include "ext/plasticvisualsettings.h"
 
 // TnzQt includes
-"flareqt/plasticvertexselection.h"
+#include "flareqt/plasticvertexselection.h"
 
 // TnzTools includes
 #include "tools/tool.h"

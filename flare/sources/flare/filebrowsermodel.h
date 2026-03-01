@@ -7,7 +7,7 @@
 #include <QPixmap>
 #include <QMap>
 #include "tfilepath.h"
-"flare/toonzfolders.h"
+#include "flare/toonzfolders.h"
 
 #include "versioncontrol.h"
 

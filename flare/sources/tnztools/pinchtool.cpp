@@ -34,9 +34,9 @@
 #include "tthreadmessage.h"
 #include "tools/pinchtool.h"
 
-"flare/tobjecthandle.h"
-"flare/txshlevelhandle.h"
-"flare/tstageobject.h"
+#include "flare/tobjecthandle.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/tstageobject.h"
 
 #include "ext/StrokeDeformation.h"
 #include "ext/SmoothDeformation.h"

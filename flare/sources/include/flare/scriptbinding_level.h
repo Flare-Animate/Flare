@@ -3,8 +3,8 @@
 #ifndef SCRIPTBINDING_LEVEL_H
 #define SCRIPTBINDING_LEVEL_H
 
-"flare/scriptbinding.h"
-"flare/scriptbinding_image.h"
+#include "flare/scriptbinding.h"
+#include "flare/scriptbinding_image.h"
 
 // Forward declarations
 class ToonzScene;

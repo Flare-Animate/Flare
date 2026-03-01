@@ -10,11 +10,11 @@
 #include "fileselection.h"
 
 // TnzQt includes
-"flareqt/tselectionhandle.h"
-"flareqt/gutil.h"
+#include "flareqt/tselectionhandle.h"
+#include "flareqt/gutil.h"
 
 // TnzLib includes
-"flare/txshsimplelevel.h"
+#include "flare/txshsimplelevel.h"
 
 // Qt includes
 #include <QWidget>

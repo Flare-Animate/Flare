@@ -9,9 +9,9 @@
 #include <math.h>
 
 #include "tools/toolhandle.h"
-"flare/txshlevelhandle.h"
-"flare/tframehandle.h"
-"flare/txshsimplelevel.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/tframehandle.h"
+#include "flare/txshsimplelevel.h"
 
 #include <QKeyEvent>
 

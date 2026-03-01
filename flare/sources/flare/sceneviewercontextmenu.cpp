@@ -14,22 +14,22 @@
 #include "tools/strokeselection.h"
 
 // TnzQt includes
-"flareqt/menubarcommand.h"
-"flareqt/viewcommandids.h"
-"flareqt/selection.h"
-"flareqt/imageutils.h"
+#include "flareqt/menubarcommand.h"
+#include "flareqt/viewcommandids.h"
+#include "flareqt/selection.h"
+#include "flareqt/imageutils.h"
 
 // TnzLib includes
-"flare/txsheethandle.h"
-"flare/tcolumnhandle.h"
-"flare/tframehandle.h"
-"flare/tobjecthandle.h"
-"flare/tstageobjecttree.h"
-"flare/tscenehandle.h"
-"flare/txshcolumn.h"
-"flare/tstageobjectspline.h"
-"flare/tstageobjectid.h"
-"flare/preferences.h"
+#include "flare/txsheethandle.h"
+#include "flare/tcolumnhandle.h"
+#include "flare/tframehandle.h"
+#include "flare/tobjecthandle.h"
+#include "flare/tstageobjecttree.h"
+#include "flare/tscenehandle.h"
+#include "flare/txshcolumn.h"
+#include "flare/tstageobjectspline.h"
+#include "flare/tstageobjectid.h"
+#include "flare/preferences.h"
 
 // TnzCore includes
 #include "tvectorimage.h"

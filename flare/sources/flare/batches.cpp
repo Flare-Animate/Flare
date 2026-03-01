@@ -18,11 +18,11 @@
 #include "tapp.h"
 #include "filebrowserpopup.h"
 #include "tmsgcore.h"
-"flare/toonzscene.h"
-"flare/sceneproperties.h"
-"flare/preferences.h"
+#include "flare/toonzscene.h"
+#include "flare/sceneproperties.h"
+#include "flare/preferences.h"
 
-"flareqt/gutil.h"
+#include "flareqt/gutil.h"
 
 #include <QString>
 #include <QProcess>

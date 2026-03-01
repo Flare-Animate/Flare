@@ -10,20 +10,20 @@
 #include "imageviewer.h"
 
 // TnzLib includes
-"flare/txshcell.h"
-"flare/txsheethandle.h"
-"flare/tframehandle.h"
-"flare/tcolumnhandle.h"
-"flare/txshlevelhandle.h"
-"flare/txshleveltypes.h"
+#include "flare/txshcell.h"
+#include "flare/txsheethandle.h"
+#include "flare/tframehandle.h"
+#include "flare/tcolumnhandle.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/txshleveltypes.h"
 
 // TnzQt includes
-"flareqt/menubarcommand.h"
-"flareqt/planeviewer.h"
-"flareqt/colorfield.h"
-"flareqt/tselectionhandle.h"
-"flareqt/icongenerator.h"
-"flareqt/intfield.h"
+#include "flareqt/menubarcommand.h"
+#include "flareqt/planeviewer.h"
+#include "flareqt/colorfield.h"
+#include "flareqt/tselectionhandle.h"
+#include "flareqt/icongenerator.h"
+#include "flareqt/intfield.h"
 
 // TnzCore includes
 #include "tpixelgr.h"

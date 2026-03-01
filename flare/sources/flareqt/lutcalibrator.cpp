@@ -1,7 +1,7 @@
-"flareqt/lutcalibrator.h"
+#include "flareqt/lutcalibrator.h"
 
 // Tnzlib includes
-"flare/preferences.h"
+#include "flare/preferences.h"
 
 // TnzCore includes
 #include "tmsgcore.h"

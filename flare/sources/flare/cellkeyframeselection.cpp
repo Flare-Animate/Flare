@@ -7,9 +7,9 @@
 #include "cellkeyframedata.h"
 
 // TnzLib includes
-"flare/txsheethandle.h"
-"flare/txsheet.h"
-"flare/tstageobject.h"
+#include "flare/txsheethandle.h"
+#include "flare/txsheet.h"
+#include "flare/tstageobject.h"
 
 // TnzCore includes
 #include "tundo.h"

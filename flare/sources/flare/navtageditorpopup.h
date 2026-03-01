@@ -4,8 +4,8 @@
 #define TAGEDITORPOPUP_INCLUDED
 
 #include "tcommon.h"
-"flareqt/dvdialog.h"
-"flareqt/lineedit.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/lineedit.h"
 
 #include <QString>
 #include <QColor>

@@ -11,8 +11,8 @@
 //=========================================================
 #ifdef OBSOLETO
 
-"flare/imagelocation.h"
-"flare/txsheet.h"
+#include "flare/imagelocation.h"
+#include "flare/txsheet.h"
 #include "application_imp.h"
 
 TImageLocation::TImageLocation()

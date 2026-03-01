@@ -7,17 +7,17 @@
 #include "tools/cursors.h"
 
 // TnzQt includes
-"flareqt/imageutils.h"
+#include "flareqt/imageutils.h"
 
 // TnzLib includes
-"flare/txshlevelhandle.h"
-"flare/tframehandle.h"
-"flare/tcolumnhandle.h"
-"flare/txsheethandle.h"
-"flare/strokegenerator.h"
-"flare/txshsimplelevel.h"
-"flare/stage2.h"
-"flare/preferences.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/tframehandle.h"
+#include "flare/tcolumnhandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/strokegenerator.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/stage2.h"
+#include "flare/preferences.h"
 
 // TnzBase includes
 #include "tenv.h"

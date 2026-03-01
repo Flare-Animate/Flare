@@ -8,9 +8,9 @@
 #include "tools/toolhandle.h"
 #include "tools/toolutils.h"
 
-"flare/tobjecthandle.h"
-"flare/txshlevelhandle.h"
-"flare/tstageobject.h"
+#include "flare/tobjecthandle.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/tstageobject.h"
 
 using namespace ToolUtils;
 

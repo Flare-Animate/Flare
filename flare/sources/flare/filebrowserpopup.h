@@ -8,11 +8,11 @@
 #include "tpixel.h"
 
 // TnzQt includes
-"flareqt/dvdialog.h"
-"flareqt/filefield.h"
-"flareqt/lineedit.h"
-"flareqt/checkbox.h"
-"flareqt/doublefield.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/filefield.h"
+#include "flareqt/lineedit.h"
+#include "flareqt/checkbox.h"
+#include "flareqt/doublefield.h"
 
 // Tnz6 includes
 #include "cellselection.h"

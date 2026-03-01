@@ -1,6 +1,6 @@
 
 
-"flareqt/dvmimedata.h"
+#include "flareqt/dvmimedata.h"
 
 #include <QStringList>
 

@@ -9,11 +9,11 @@
 #include "sceneviewer.h"
 
 // TnzQt includes
-"flareqt/menubarcommand.h"
-"flareqt/combohistogram.h"
+#include "flareqt/menubarcommand.h"
+#include "flareqt/combohistogram.h"
 
 // TnzLib includes
-"flare/tframehandle.h"
+#include "flare/tframehandle.h"
 
 // TnzCore includes
 #include "trasterimage.h"

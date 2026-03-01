@@ -3,7 +3,7 @@
 #ifndef T_CENTERLINE_VECTORIZER_PRIVATE
 #define T_CENTERLINE_VECTORIZER_PRIVATE
 
-"flare/tcenterlinevectorizer.h"
+#include "flare/tcenterlinevectorizer.h"
 
 // TnzCore includes
 #include "tpalette.h"

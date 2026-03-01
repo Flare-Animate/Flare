@@ -4,10 +4,10 @@
 #define TOOLOPTIONS_H
 
 // TnzQt includes
-"flareqt/checkbox.h"
+#include "flareqt/checkbox.h"
 
 // TnzLib includes
-"flare/tstageobject.h"
+#include "flare/tstageobject.h"
 
 // TnzCore includes
 #include "tcommon.h"

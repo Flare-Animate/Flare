@@ -3,7 +3,7 @@
 #ifndef FXPARAMEDITORPOPUP_H
 #define FXPARAMEDITORPOPUP_H
 
-"flareqt/dvdialog.h"
+#include "flareqt/dvdialog.h"
 
 //=============================================================================
 // FxParamEditorPopup

@@ -3,7 +3,7 @@
 #ifndef TCELLKEYFRAMESELECTION_H
 #define TCELLKEYFRAMESELECTION_H
 
-"flareqt/selection.h"
+#include "flareqt/selection.h"
 #include "cellselection.h"
 #include "keyframeselection.h"
 #include "tgeometry.h"

@@ -4,8 +4,8 @@
 #define COLORMODELBEHAVIORPOPUP_H
 
 #include "tfilepath.h"
-"flareqt/dvdialog.h"
-"flare/palettecmd.h"
+#include "flareqt/dvdialog.h"
+#include "flare/palettecmd.h"
 
 class QButtonGroup;
 class QComboBox;

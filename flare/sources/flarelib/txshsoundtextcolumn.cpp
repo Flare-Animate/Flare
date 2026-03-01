@@ -1,8 +1,8 @@
 
 
-"flare/txshsoundtextcolumn.h"
-"flare/txshsoundtextlevel.h"
-"flare/txshleveltypes.h"
+#include "flare/txshsoundtextcolumn.h"
+#include "flare/txshsoundtextlevel.h"
+#include "flare/txshleveltypes.h"
 #include "tstream.h"
 
 //=============================================================================

@@ -1,9 +1,9 @@
 #include <QTimer>
 
-"flare/tscenehandle.h"
+#include "flare/tscenehandle.h"
 
-"flare/toonzscene.h"
-"flare/tproject.h"
+#include "flare/toonzscene.h"
+#include "flare/tproject.h"
 
 //=============================================================================
 // TSceneHandle

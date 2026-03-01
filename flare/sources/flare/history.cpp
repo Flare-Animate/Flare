@@ -5,7 +5,7 @@
 #include "tenv.h"
 // #include "tutil.h"
 #include "tfilepath_io.h"
-"flare/toonzfolders.h"
+#include "flare/toonzfolders.h"
 
 #include <QLocale>
 

@@ -3,7 +3,7 @@
 #ifndef HISTOGRAMPOPUP_H
 #define HISTOGRAMPOPUP_H
 
-"flareqt/dvdialog.h"
+#include "flareqt/dvdialog.h"
 #include "timage.h"
 #include "tpixel.h"
 

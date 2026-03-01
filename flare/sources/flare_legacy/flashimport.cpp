@@ -1,15 +1,15 @@
-"flare/menubarcommandids.h"
-"flare/menubar.h"
-"flare/ocaio.h"
-"flare/projectmanager.h"
-"flare/preferences.h"
-"flare/tapp.h"
-"flare/toonzfolders.h"
+#include "flare/menubarcommandids.h"
+#include "flare/menubar.h"
+#include "flare/ocaio.h"
+#include "flare/projectmanager.h"
+#include "flare/preferences.h"
+#include "flare/tapp.h"
+#include "flare/toonzfolders.h"
 
-"flareqt/gutil.h"
-"flareqt/dvdialog.h"
-"flareqt/filebrowserpopup.h"
-"flareqt/gutil.h"
+#include "flareqt/gutil.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/filebrowserpopup.h"
+#include "flareqt/gutil.h"
 
 #include <QProcess>
 #include <QDesktopServices>

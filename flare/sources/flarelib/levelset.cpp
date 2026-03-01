@@ -5,10 +5,10 @@
 #include "tstream.h"
 
 // TnzLib includes
-"flare/txshsimplelevel.h"
-"flare/toonzscene.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/toonzscene.h"
 
-"flare/levelset.h"
+#include "flare/levelset.h"
 
 //=============================================================================
 

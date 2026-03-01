@@ -2,19 +2,19 @@
 #include "webcam.h"
 
 // TnzLib includes
-"flare/levelset.h"
-"flare/preferences.h"
-"flare/sceneproperties.h"
-"flare/toonzscene.h"
-"flare/tcamera.h"
-"flare/tcolumnhandle.h"
-"flare/tframehandle.h"
-"flare/tscenehandle.h"
-"flare/txshcell.h"
-"flare/txsheethandle.h"
-"flare/txshlevelhandle.h"
-"flare/txshsimplelevel.h"
-"flare/tstageobjecttree.h"
+#include "flare/levelset.h"
+#include "flare/preferences.h"
+#include "flare/sceneproperties.h"
+#include "flare/toonzscene.h"
+#include "flare/tcamera.h"
+#include "flare/tcolumnhandle.h"
+#include "flare/tframehandle.h"
+#include "flare/tscenehandle.h"
+#include "flare/txshcell.h"
+#include "flare/txsheethandle.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/tstageobjecttree.h"
 
 // TnzCore includes
 #include "filebrowsermodel.h"
@@ -26,10 +26,10 @@
 #include "tsystem.h"
 
 // TnzQt includes
-"flareqt/filefield.h"
-"flareqt/intfield.h"
-"flareqt/doublefield.h"
-"flareqt/menubarcommand.h"
+#include "flareqt/filefield.h"
+#include "flareqt/intfield.h"
+#include "flareqt/doublefield.h"
+#include "flareqt/menubarcommand.h"
 
 // Qt includes
 #include <QAction>

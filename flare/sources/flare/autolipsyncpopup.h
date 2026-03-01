@@ -3,12 +3,12 @@
 #ifndef AUTOLIPSYNCPOPUP_H
 #define AUTOLIPSYNCPOPUP_H
 
-"flareqt/dvdialog.h"
-"flareqt/filefield.h"
-"flare/txshlevel.h"
-"flareqt/intfield.h"
-"flareqt/gutil.h"
-"flare/txshsoundcolumn.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/filefield.h"
+#include "flare/txshlevel.h"
+#include "flareqt/intfield.h"
+#include "flareqt/gutil.h"
+#include "flare/txshsoundcolumn.h"
 
 #include <QProcess>
 #include <QPushButton>

@@ -1,7 +1,7 @@
 #include "thirdparty.h"
 
 // TnzLib includes
-"flare/preferences.h"
+#include "flare/preferences.h"
 
 // TnzCore includes
 #include "tsystem.h"

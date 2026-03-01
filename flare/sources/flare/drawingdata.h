@@ -3,9 +3,9 @@
 #ifndef DRAWINGDATA_INCLUDED
 #define DRAWINGDATA_INCLUDED
 
-"flare/txshsimplelevel.h"
-"flare/hook.h"
-"flareqt/dvmimedata.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/hook.h"
+#include "flareqt/dvmimedata.h"
 
 #include <set>
 #include "timage.h"

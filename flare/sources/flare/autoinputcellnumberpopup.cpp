@@ -13,17 +13,17 @@
 #endif
 
 // TnzQt includes
-"flareqt/intfield.h"
-"flareqt/tselectionhandle.h"
-"flareqt/selection.h"
-"flareqt/dvdialog.h"
+#include "flareqt/intfield.h"
+#include "flareqt/tselectionhandle.h"
+#include "flareqt/selection.h"
+#include "flareqt/dvdialog.h"
 
 // TnzLib includes
-"flare/txsheethandle.h"
-"flare/txshcell.h"
-"flare/txshsimplelevel.h"
-"flare/txshchildlevel.h"
-"flare/preferences.h"
+#include "flare/txsheethandle.h"
+#include "flare/txshcell.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/txshchildlevel.h"
+#include "flare/preferences.h"
 
 #include "tundo.h"
 #include "historytypes.h"

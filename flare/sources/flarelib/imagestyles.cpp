@@ -12,8 +12,8 @@
 #include "timage_io.h"
 #include "trandom.h"
 #include "tvectorimage.h"
-"flare/toonzscene.h"
-"flare/imagestyles.h"
+#include "flare/toonzscene.h"
+#include "flare/imagestyles.h"
 
 //*************************************************************************************
 //    TTextureStyle  implementation

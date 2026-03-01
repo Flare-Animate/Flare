@@ -1,8 +1,8 @@
 
 
-"flareqt/schematicnode.h"
-"flareqt/stageschematicscene.h"
-"flareqt/fxschematicscene.h"
+#include "flareqt/schematicnode.h"
+#include "flareqt/stageschematicscene.h"
+#include "flareqt/fxschematicscene.h"
 
 #include <QGraphicsSceneMouseEvent>
 #include <QStyleOptionGraphicsItem>
@@ -18,8 +18,8 @@
 #include <QClipboard>
 #include <QRegularExpression>
 #include "tundo.h"
-"flareqt/menubarcommand.h"
-"flareqt/gutil.h"
+#include "flareqt/menubarcommand.h"
+#include "flareqt/gutil.h"
 
 #define ACCEL_KEY(k)                                                           \
   (!QCoreApplication::testAttribute(Qt::AA_DontShowShortcutsInContextMenus)    \

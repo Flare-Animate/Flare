@@ -1,8 +1,8 @@
 
 
-"flareqt/intfield.h"
-"flareqt/dvdialog.h"
-"flareqt/gutil.h"
+#include "flareqt/intfield.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/gutil.h"
 
 #include <QIntValidator>
 #include <QSlider>

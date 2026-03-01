@@ -1,7 +1,7 @@
 #include "cameracapturelevelcontrol_qt.h"
 
-"flareqt/intfield.h"
-"flareqt/doublefield.h"
+#include "flareqt/intfield.h"
+#include "flareqt/doublefield.h"
 
 #include <QPainter>
 #include <QMouseEvent>

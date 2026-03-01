@@ -3,7 +3,7 @@
 #ifndef SCRIPTBINDING_OUTLINE_VECTORIZER_H
 #define SCRIPTBINDING_OUTLINE_VECTORIZER_H
 
-"flare/scriptbinding.h"
+#include "flare/scriptbinding.h"
 
 class ToonzScene;
 class TXshSimpleLevel;

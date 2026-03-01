@@ -175,7 +175,7 @@ it depends, and vice versa for end notifications. The same applies for
 constructors and destructors.
 \n \n
 The dependencies declarations list is a sequence of static \c
-<DependencyResourceManager>::deps()
+#include "DependencyResourceManager"::deps()
 calls separated by a comma.
 Here is an example:
 \code

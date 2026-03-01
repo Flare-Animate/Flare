@@ -5,8 +5,8 @@
 #include "tcenterlinevectP.h"
 
 // TnzLib includes
-"flare/tcenterlinevectorizer.h"
-"flare/Naa2TlvConverter.h"
+#include "flare/tcenterlinevectorizer.h"
+#include "flare/Naa2TlvConverter.h"
 
 // TnzCore includes
 #include "tpalette.h"

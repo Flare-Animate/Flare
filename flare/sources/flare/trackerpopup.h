@@ -8,9 +8,9 @@
 
 #include "tlevel.h"
 
-"flareqt/dvdialog.h"
+#include "flareqt/dvdialog.h"
 
-"flare/txshsimplelevel.h"
+#include "flare/txshsimplelevel.h"
 
 // per il tracker
 #include "dummyprocessor.h"

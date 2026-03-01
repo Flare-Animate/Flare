@@ -1,10 +1,10 @@
 
 
-"flareqt/tonecurvefield.h"
-"flareqt/fxhistogramrender.h"
-"flareqt/doublepairfield.h"
-"flareqt/checkbox.h"
-"flareqt/doublefield.h"
+#include "flareqt/tonecurvefield.h"
+#include "flareqt/fxhistogramrender.h"
+#include "flareqt/doublepairfield.h"
+#include "flareqt/checkbox.h"
+#include "flareqt/doublefield.h"
 #include <QPainter>
 #include <QPainterPath>
 #include <QStackedWidget>

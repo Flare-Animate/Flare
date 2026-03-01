@@ -12,16 +12,16 @@
 #include "tparamset.h"
 
 // TnzLib includes
-"flare/tstageobject.h"
-"flare/txsheet.h"
-"flare/tstageobjecttree.h"
-"flare/tcolumnfxset.h"
-"flare/fxdag.h"
-"flare/txshzeraryfxcolumn.h"
-"flare/tcolumnfx.h"
-"flare/tstageobjectspline.h"
+#include "flare/tstageobject.h"
+#include "flare/txsheet.h"
+#include "flare/tstageobjecttree.h"
+#include "flare/tcolumnfxset.h"
+#include "flare/fxdag.h"
+#include "flare/txshzeraryfxcolumn.h"
+#include "flare/tcolumnfx.h"
+#include "flare/tstageobjectspline.h"
 
-"flareqt/stageobjectsdata.h"
+#include "flareqt/stageobjectsdata.h"
 
 // TODO: Method StageObjectsData::storeFxs() has no well-defined behaviour in
 // cases

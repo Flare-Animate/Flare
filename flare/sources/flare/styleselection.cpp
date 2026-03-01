@@ -2,8 +2,8 @@
 
 #include "styleselection.h"
 #include "menubarcommandids.h"
-"flare/tpalettehandle.h"
-"flare/tscenehandle.h"
+#include "flare/tpalettehandle.h"
+#include "flare/tscenehandle.h"
 #include "tapp.h"
 #include "toonzutil.h"
 
@@ -12,12 +12,12 @@
 #include "styledata.h"
 
 #include "tundo.h"
-"flareqt/gutil.h"
+#include "flareqt/gutil.h"
 #include "tconvert.h"
 
-"flareqt/dvdialog.h"
+#include "flareqt/dvdialog.h"
 
-"flare/studiopalette.h"
+#include "flare/studiopalette.h"
 
 #include <QApplication>
 #include <QClipboard>

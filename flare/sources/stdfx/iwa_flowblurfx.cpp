@@ -174,7 +174,7 @@ void FlowBlurWorker::run() {
     return m_flow_buf[y * m_dim.lx + x];
   };
 
-  // ƒƒWƒXƒeƒBƒbƒN•ª•z‚ÌŠm—¦–§“xŠÖ”‚ğŠi”[‚·‚é(s = 1/3A0-1‚Ì”ÍˆÍ‚Å100•ªŠ„)
+  // ï¿½ï¿½ï¿½Wï¿½Xï¿½eï¿½Bï¿½bï¿½Nï¿½ï¿½ï¿½zï¿½ÌŠmï¿½ï¿½ï¿½ï¿½ï¿½xï¿½Öï¿½ï¿½ï¿½ï¿½iï¿½[ï¿½ï¿½ï¿½ï¿½(s = 1/3ï¿½A0-1ï¿½Ì”ÍˆÍ‚ï¿½100ï¿½ï¿½ï¿½ï¿½)
   double logDist[101];
   if (m_filterType == Gaussian) {
     double scale = 1.0 / 3.0;
@@ -183,7 +183,7 @@ void FlowBlurWorker::run() {
       logDist[i] = std::tanh(x / (2.0 * scale));
     }
   }
-  // 0-1‚É³‹K‰»‚µ‚½•Ï”‚Ì—İÏ’l‚ğ•Ô‚·
+  // 0-1ï¿½Éï¿½ï¿½Kï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ïï¿½ï¿½Ì—İÏ’lï¿½ï¿½Ô‚ï¿½
   auto getCumulative = [&](double pos) {
     if (pos > 1.0) return 1.0;
     if (m_filterType == Linear)

@@ -6,12 +6,12 @@
 #include "tapp.h"
 
 // TnzQt includes
-"flareqt/icongenerator.h"
-"flareqt/gutil.h"
+#include "flareqt/icongenerator.h"
+#include "flareqt/gutil.h"
 
 // TnzLib includes
-"flare/txshsimplelevel.h"
-"flare/toonzscene.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/toonzscene.h"
 
 // TnzCore includes
 #include "tfiletype.h"

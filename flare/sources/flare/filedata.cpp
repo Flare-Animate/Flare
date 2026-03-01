@@ -4,9 +4,9 @@
 #include "tsystem.h"
 #include "tconvert.h"
 
-"flare/namebuilder.h"
-"flareqt/dvdialog.h"
-"flareqt/gutil.h"
+#include "flare/namebuilder.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/gutil.h"
 
 using namespace DVGui;
 

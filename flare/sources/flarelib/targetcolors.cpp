@@ -1,6 +1,6 @@
 
 
-"flare/targetcolors.h"
+#include "flare/targetcolors.h"
 #include <vector>
 
 /*----------------------------------------------------------------------------*/

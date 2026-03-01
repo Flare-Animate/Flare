@@ -3,13 +3,13 @@
 #ifndef CONTROLPOINTEDITORTOOL_H
 #define CONTROLPOINTEDITORTOOL_H
 
-"flareqt/selection.h"
+#include "flareqt/selection.h"
 #include "tool.h"
 #include "tstroke.h"
 #include "tcurves.h"
 #include "tproperty.h"
 #include "controlpointselection.h"
-"flare/strokegenerator.h"
+#include "flare/strokegenerator.h"
 
 // For Qt translation support
 #include <QCoreApplication>

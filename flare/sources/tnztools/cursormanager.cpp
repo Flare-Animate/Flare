@@ -4,10 +4,10 @@
 #include "tools/tool.h"
 #include "tools/cursors.h"
 
-#ifdef TOONZQT_EXPORTS
-"flare/preferences.h"
+#ifdef FLAREQT_EXPORTS
+#include "flare/preferences.h"
 #else
-"flare/preferences.h"
+#include "flare/preferences.h"
 #endif
 
 #include <QWidget>

@@ -1036,11 +1036,11 @@ if(!is.matchEndTag()) throw TException(tagName + " : missing endtag");
 
 
 //if(!is.matchTag(tagName) || tagName != "default") throw TException("expected
-<default>");
+#include "default"");
 //is >> m_imp->m_defaultValue;
 //if(!is.matchEndTag()) throw TException(tagName + " : missing endtag");
 //if(!is.matchTag(tagName) || tagName != "default") throw TException("expected
-<default>");
+#include "default"");
 
 
 }

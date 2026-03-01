@@ -8,11 +8,11 @@
 #include "tgl.h"
 
 // TnzLib includes
-"flare/imagepainter.h"
+#include "flare/imagepainter.h"
 
 // TnzQt includes
-"flareqt/menubarcommand.h"
-"flareqt/flipconsole.h"
+#include "flareqt/menubarcommand.h"
+#include "flareqt/flipconsole.h"
 
 // TnzTools includes
 #include "tools/tool.h"

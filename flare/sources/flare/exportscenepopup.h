@@ -3,9 +3,9 @@
 #ifndef EXPORTSCENEPOPUP_H
 #define EXPORTSCENEPOPUP_H
 
-"flareqt/dvdialog.h"
-"flareqt/lineedit.h"
-"flareqt/filefield.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/lineedit.h"
+#include "flareqt/filefield.h"
 #include "tfilepath.h"
 #include "filebrowsermodel.h"
 #include "dvdirtreeview.h"

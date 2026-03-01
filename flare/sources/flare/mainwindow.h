@@ -4,7 +4,7 @@
 #define TESTCUSTOMTAB_H
 
 #include "tfilepath.h"
-"flareqt/menubarcommand.h"
+#include "flareqt/menubarcommand.h"
 
 #include <QtWidgets/QMainWindow>
 #include <map>

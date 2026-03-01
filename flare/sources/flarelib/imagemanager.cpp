@@ -14,8 +14,8 @@
 #include <QReadLocker>
 #include <QWriteLocker>
 
-"flare/imagemanager.h"
-"flare/txshsimplelevel.h"
+#include "flare/imagemanager.h"
+#include "flare/txshsimplelevel.h"
 
 /* EXPLANATION (by Daniele):
 

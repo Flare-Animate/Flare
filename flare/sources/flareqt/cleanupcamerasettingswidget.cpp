@@ -1,10 +1,10 @@
 
 
-"flareqt/cleanupcamerasettingswidget.h"
-"flareqt/camerasettingswidget.h"
-"flare/cleanupparameters.h"
-"flare/preferences.h"
-"flare/stage.h"
+#include "flareqt/cleanupcamerasettingswidget.h"
+#include "flareqt/camerasettingswidget.h"
+#include "flare/cleanupparameters.h"
+#include "flare/preferences.h"
+#include "flare/stage.h"
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <QGridLayout>
@@ -15,8 +15,8 @@
 #include <QCheckBox>
 #include "tfilepath.h"
 
-"flareqt/dvdialog.h"
-"flareqt/doublefield.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/doublefield.h"
 
 using namespace std;
 using namespace DVGui;

@@ -20,14 +20,14 @@
 #include "timagecache.h"
 
 // TnzLib includes
-"flare/txshleveltypes.h"
-"flare/levelproperties.h"
-"flare/txshsimplelevel.h"
-"flare/fill.h"
-"flare/dpiscale.h"
-"flare/stage.h"
-"flare/tcamera.h"
-"flare/preferences.h"
+#include "flare/txshleveltypes.h"
+#include "flare/levelproperties.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/fill.h"
+#include "flare/dpiscale.h"
+#include "flare/stage.h"
+#include "flare/tcamera.h"
+#include "flare/preferences.h"
 
 // Qt includes
 #include <QImage>

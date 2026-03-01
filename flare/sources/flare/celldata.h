@@ -3,9 +3,9 @@
 #ifndef CELLDATA_INCLUDED
 #define CELLDATA_INCLUDED
 
-"flareqt/dvmimedata.h"
+#include "flareqt/dvmimedata.h"
 
-"flare/txshcell.h"
+#include "flare/txshcell.h"
 #include "tsound.h"
 
 //=============================================================================

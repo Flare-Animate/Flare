@@ -1,13 +1,13 @@
 
 
-"flareqt/functionkeyframenavigator.h"
+#include "flareqt/functionkeyframenavigator.h"
 
 // TnzQt includes
-"flareqt/framenavigator.h"
+#include "flareqt/framenavigator.h"
 
 // TnzLib includes
-"flare/tframehandle.h"
-"flare/doubleparamcmd.h"
+#include "flare/tframehandle.h"
+#include "flare/doubleparamcmd.h"
 
 // TnzBase includes
 #include "tdoubleparam.h"

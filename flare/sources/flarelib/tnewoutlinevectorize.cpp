@@ -34,7 +34,7 @@
 // STL includes
 #include <set>
 
-"flare/tcenterlinevectorizer.h"
+#include "flare/tcenterlinevectorizer.h"
 
 //************************************************************************
 //    Local namespace stuff

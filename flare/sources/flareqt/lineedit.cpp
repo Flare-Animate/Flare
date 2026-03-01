@@ -1,7 +1,7 @@
 
 
-"flareqt/lineedit.h"
-"flareqt/dvdialog.h"
+#include "flareqt/lineedit.h"
+#include "flareqt/dvdialog.h"
 #include <QKeyEvent>
 
 using namespace DVGui;

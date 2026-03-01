@@ -1,8 +1,8 @@
 
 
-"flare/txshzeraryfxlevel.h"
-"flare/txshleveltypes.h"
-"flare/txshzeraryfxcolumn.h"
+#include "flare/txshzeraryfxlevel.h"
+#include "flare/txshleveltypes.h"
+#include "flare/txshzeraryfxcolumn.h"
 
 //-----------------------------------------------------------------------------
 

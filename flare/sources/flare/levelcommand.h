@@ -3,7 +3,7 @@
 #ifndef LEVELCOMMAND_H
 #define LEVELCOMMAND_H
 
-"flare/txshcolumn.h"
+#include "flare/txshcolumn.h"
 
 #include <set>
 #include <QList>

@@ -1,9 +1,9 @@
 
 
-"flareqt/dvscrollwidget.h"
+#include "flareqt/dvscrollwidget.h"
 
 // TnzQt includes
-"flareqt/freelayout.h"
+#include "flareqt/freelayout.h"
 
 // Qt includes
 #include <QLayout>

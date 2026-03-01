@@ -1,28 +1,28 @@
 
 
-"flareqt/camerasettingswidget.h"
+#include "flareqt/camerasettingswidget.h"
 
 // TnzQt includes
-"flareqt/doublefield.h"
-"flareqt/intfield.h"
-"flareqt/lineedit.h"
-"flareqt/checkbox.h"
-"flareqt/tselectionhandle.h"
-"flareqt/dvdialog.h"
-<flareqt/gutil.h>
+#include "flareqt/doublefield.h"
+#include "flareqt/intfield.h"
+#include "flareqt/lineedit.h"
+#include "flareqt/checkbox.h"
+#include "flareqt/tselectionhandle.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/gutil.h"
 
 // TnzLib includes
-"flare/toonzfolders.h"
-"flare/tcamera.h"
-"flare/tstageobjecttree.h"
-"flare/txshlevelhandle.h"
-"flare/txsheethandle.h"
-"flare/tscenehandle.h"
-"flare/txshlevel.h"
-"flare/txshsimplelevel.h"
-"flare/txshleveltypes.h"
-"flare/preferences.h"
-"flare/stage.h"
+#include "flare/toonzfolders.h"
+#include "flare/tcamera.h"
+#include "flare/tstageobjecttree.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/tscenehandle.h"
+#include "flare/txshlevel.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/txshleveltypes.h"
+#include "flare/preferences.h"
+#include "flare/stage.h"
 
 // TnzCore includes
 #include "tconvert.h"

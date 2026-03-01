@@ -8,9 +8,9 @@
 #include "ext/plasticdeformerstorage.h"
 
 // TnzLib includes
-"flare/txshcell.h"
-"flare/txshsimplelevel.h"
-"flare/tframehandle.h"
+#include "flare/txshcell.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/tframehandle.h"
 
 // tcg includes
 #include "tcg/tcg_point_ops.h"

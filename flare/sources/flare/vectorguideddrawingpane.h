@@ -3,7 +3,7 @@
 #ifndef VECTORGUIDEDDRAWINGPANE_H
 #define VECTORGUIDEDDRAWINGPANE_H
 
-"flareqt/dvdialog.h"
+#include "flareqt/dvdialog.h"
 
 #include <QToolBar>
 

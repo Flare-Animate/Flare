@@ -1,12 +1,12 @@
 
 
-"flare/cleanupparameters.h"
+#include "flare/cleanupparameters.h"
 #include "tstream.h"
 #include "texception.h"
-"flare/toonzscene.h"
-"flare/sceneproperties.h"
-"flare/txshleveltypes.h"
-"flare/cleanupcolorstyles.h"
+#include "flare/toonzscene.h"
+#include "flare/sceneproperties.h"
+#include "flare/txshleveltypes.h"
+#include "flare/cleanupcolorstyles.h"
 #include "tsystem.h"
 #include "tenv.h"
 #include "tconvert.h"

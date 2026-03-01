@@ -5,11 +5,11 @@
 
 #include "tapp.h"
 
-"flare/tstageobject.h"
-"flare/txsheethandle.h"
-"flare/tscenehandle.h"
-"flare/tcolumnhandle.h"
-"flare/txsheet.h"
+#include "flare/tstageobject.h"
+#include "flare/txsheethandle.h"
+#include "flare/tscenehandle.h"
+#include "flare/tcolumnhandle.h"
+#include "flare/txsheet.h"
 
 #include "../include/tundo.h"
 #include "../include/historytypes.h"

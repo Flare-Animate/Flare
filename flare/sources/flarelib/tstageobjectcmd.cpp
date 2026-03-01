@@ -1,18 +1,18 @@
 
 
 // TnzLib includes
-"flare/tstageobjectcmd.h"
-"flare/txsheethandle.h"
-"flare/tobjecthandle.h"
-"flare/tcolumnhandle.h"
-"flare/tfxhandle.h"
-"flare/txsheet.h"
-"flare/toonzscene.h"
-"flare/tstageobjectspline.h"
-"flare/tstageobjecttree.h"
-"flare/tcamera.h"
-"flare/tcolumnfxset.h"
-"flare/fxdag.h"
+#include "flare/tstageobjectcmd.h"
+#include "flare/txsheethandle.h"
+#include "flare/tobjecthandle.h"
+#include "flare/tcolumnhandle.h"
+#include "flare/tfxhandle.h"
+#include "flare/txsheet.h"
+#include "flare/toonzscene.h"
+#include "flare/tstageobjectspline.h"
+#include "flare/tstageobjecttree.h"
+#include "flare/tcamera.h"
+#include "flare/tcolumnfxset.h"
+#include "flare/fxdag.h"
 
 // TnzBase includes
 #include "tdoublekeyframe.h"

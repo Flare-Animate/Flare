@@ -8,15 +8,15 @@
 #include "tools/cursors.h"
 
 // TnzQt includes
-"flareqt/selectioncommandids.h"
-"flareqt/tselectionhandle.h"
-"flareqt/imageutils.h"
+#include "flareqt/selectioncommandids.h"
+#include "flareqt/tselectionhandle.h"
+#include "flareqt/imageutils.h"
 
 // TnzLib includes
-"flare/txsheethandle.h"
-"flare/txshlevelhandle.h"
-"flare/tobjecthandle.h"
-"flare/tstageobject.h"
+#include "flare/txsheethandle.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/tobjecthandle.h"
+#include "flare/tstageobject.h"
 
 // TnzBase includes
 #include "tenv.h"

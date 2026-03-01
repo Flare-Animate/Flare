@@ -1,6 +1,6 @@
 #pragma once
 
-"flareqt/dvdialog.h"
+#include "flareqt/dvdialog.h"
 
 #include <QLabel>
 #include <QSlider>
@@ -9,7 +9,7 @@
 
 #undef DVAPI
 #undef DVVAR
-#ifdef TOONZQT_EXPORTS
+#ifdef FLAREQT_EXPORTS
 #define DVAPI DV_EXPORT_API
 #define DVVAR DV_EXPORT_VAR
 #else

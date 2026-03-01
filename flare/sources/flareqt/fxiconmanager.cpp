@@ -1,4 +1,4 @@
-"flareqt/fxiconmanager.h"
+#include "flareqt/fxiconmanager.h"
 
 #include <QPixmap>
 

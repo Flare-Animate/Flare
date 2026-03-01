@@ -5,19 +5,19 @@
 #include "filebrowser.h"
 
 // TnzQt includes
-"flareqt/gutil.h"
-"flareqt/filefield.h"
-"flareqt/colorfield.h"
-"flareqt/intfield.h"
+#include "flareqt/gutil.h"
+#include "flareqt/filefield.h"
+#include "flareqt/colorfield.h"
+#include "flareqt/intfield.h"
 
 // TnzLib includes
 #include "toutputproperties.h"
-"flare/tscenehandle.h"
-"flare/toonzscene.h"
-"flare/sceneproperties.h"
-"flare/tcamera.h"
-"flare/boardsettings.h"
-"flare/toonzfolders.h"
+#include "flare/tscenehandle.h"
+#include "flare/toonzscene.h"
+#include "flare/sceneproperties.h"
+#include "flare/tcamera.h"
+#include "flare/boardsettings.h"
+#include "flare/toonzfolders.h"
 
 // Image
 #include "tiio.h"

@@ -2,13 +2,13 @@
 
 #include "tapp.h"
 
-"flareqt/styleeditor.h"
-"flareqt/menubarcommand.h"
-"flareqt/viewcommandids.h"
-"flareqt/gutil.h"
-"flareqt/dvdialog.h"
+#include "flareqt/styleeditor.h"
+#include "flareqt/menubarcommand.h"
+#include "flareqt/viewcommandids.h"
+#include "flareqt/gutil.h"
+#include "flareqt/dvdialog.h"
 
-"flare/tcleanupper.h"
+#include "flare/tcleanupper.h"
 
 #include "tools/stylepicker.h"
 #include "tools/toolcommandids.h"

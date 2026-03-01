@@ -3,8 +3,8 @@
 #ifndef LINESFADEPOPUP_H
 #define LINESFADEPOPUP_H
 
-"flareqt/dvdialog.h"
-"flare/txshsimplelevel.h"
+#include "flareqt/dvdialog.h"
+#include "flare/txshsimplelevel.h"
 #include "traster.h"
 
 class QSlider;

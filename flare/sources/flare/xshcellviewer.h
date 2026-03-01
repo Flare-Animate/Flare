@@ -7,7 +7,7 @@
 #include <QLineEdit>
 #include "orientation.h"
 
-"flare/txshcell.h"
+#include "flare/txshcell.h"
 #include "tundo.h"
 
 // forward declaration

@@ -4,16 +4,16 @@
 #include "timage_io.h"
 
 // TnzLib includes
-"flare/tscenehandle.h"
-"flare/tframehandle.h"
-"flare/tcamera.h"
-"flare/toonzscene.h"
-"flare/txsheethandle.h"
-"flare/sceneproperties.h"
+#include "flare/tscenehandle.h"
+#include "flare/tframehandle.h"
+#include "flare/tcamera.h"
+#include "flare/toonzscene.h"
+#include "flare/txsheethandle.h"
+#include "flare/sceneproperties.h"
 
 // TnzQt includes
-"flareqt/menubarcommand.h"
-"flareqt/gutil.h"
+#include "flareqt/menubarcommand.h"
+#include "flareqt/gutil.h"
 
 // Tnz6 includes
 #include "menubarcommandids.h"

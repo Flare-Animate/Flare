@@ -1,18 +1,18 @@
 
 
-"flare/textureutils.h"
+#include "flare/textureutils.h"
 
 // TnzLib includes
-"flare/txshleveltypes.h"
-"flare/txshsimplelevel.h"
-"flare/txshchildlevel.h"
-"flare/txsheet.h"
-"flare/tstageobjecttree.h"
-"flare/txshcell.h"
-"flare/tstageobject.h"
-"flare/stage.h"
-"flare/toonzscene.h"
-"flare/imagemanager.h"
+#include "flare/txshleveltypes.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/txshchildlevel.h"
+#include "flare/txsheet.h"
+#include "flare/tstageobjecttree.h"
+#include "flare/txshcell.h"
+#include "flare/tstageobject.h"
+#include "flare/stage.h"
+#include "flare/toonzscene.h"
+#include "flare/imagemanager.h"
 #include "imagebuilders.h"
 
 // TnzCore includes

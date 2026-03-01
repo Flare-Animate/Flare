@@ -2,15 +2,15 @@
 
 #include "keyframedata.h"
 #include "tapp.h"
-"flareqt/tselectionhandle.h"
+#include "flareqt/tselectionhandle.h"
 #include "keyframeselection.h"
 #include "xsheetviewer.h"
 
-"flare/txsheet.h"
-"flare/tstageobjecttree.h"
-"flare/tstageobjectkeyframe.h"
-"flare/txshcolumn.h"
-"flare/preferences.h"
+#include "flare/txsheet.h"
+#include "flare/tstageobjecttree.h"
+#include "flare/tstageobjectkeyframe.h"
+#include "flare/txshcolumn.h"
+#include "flare/preferences.h"
 
 #include <assert.h>
 

@@ -1,10 +1,10 @@
 
 
-"flare/scriptengine.h"
-"flare/scriptbinding.h"
-"flare/scriptbinding_files.h"
+#include "flare/scriptengine.h"
+#include "flare/scriptbinding.h"
+#include "flare/scriptbinding_files.h"
 #include "trenderer.h"
-"flare/toonzfolders.h"
+#include "flare/toonzfolders.h"
 #include <QScriptEngine>
 #include <QScriptProgram>
 #include <QFile>

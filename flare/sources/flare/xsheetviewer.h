@@ -15,7 +15,7 @@
 #include "layerfooterpanel.h"
 #include "cellkeyframeselection.h"
 #include "saveloadqsettings.h"
-"flareqt/spreadsheetviewer.h"
+#include "flareqt/spreadsheetviewer.h"
 #include "orientation.h"
 #include "xshbreadcrumbs.h"
 #include <boost/optional.hpp>

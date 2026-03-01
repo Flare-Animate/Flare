@@ -5,16 +5,16 @@
 #include "tsystem.h"
 #include "tconvert.h"
 #include "tenv.h"
-"flare/tproject.h"
-"flare/toonzscene.h"
-"flareqt/gutil.h"
+#include "flare/tproject.h"
+#include "flare/toonzscene.h"
+#include "flareqt/gutil.h"
 
 #include "filebrowser.h"
 #include "history.h"
 #include "iocommand.h"
 
 #include "tapp.h"
-"flare/tscenehandle.h"
+#include "flare/tscenehandle.h"
 
 #include <QFileInfo>
 #include <QDir>

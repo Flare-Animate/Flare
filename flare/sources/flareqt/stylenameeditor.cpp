@@ -1,12 +1,12 @@
-"flareqt/stylenameeditor.h"
+#include "flareqt/stylenameeditor.h"
 
 // TnzQt includes
-"flareqt/gutil.h"
+#include "flareqt/gutil.h"
 
 // TnzLib includes
-"flare/toonzfolders.h"
-"flare/palettecmd.h"
-"flare/tpalettehandle.h"
+#include "flare/toonzfolders.h"
+#include "flare/palettecmd.h"
+#include "flare/tpalettehandle.h"
 
 // TnzCore includes
 #include "tsystem.h"

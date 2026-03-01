@@ -3,10 +3,10 @@
 #include "tapp.h"
 #include "sceneviewer.h"
 
-"flare/preferences.h"
-"flare/tscenehandle.h"
+#include "flare/preferences.h"
+#include "flare/tscenehandle.h"
 
-"flareqt/menubarcommand.h"
+#include "flareqt/menubarcommand.h"
 
 #include <QComboBox>
 #include <QCheckBox>

@@ -1,13 +1,13 @@
 
 
-"flare/preferences.h"
-"flare/toonzfolders.h"
+#include "flare/preferences.h"
+#include "flare/toonzfolders.h"
 
 #include "tiio_ffmpeg.h"
 #include "tsystem.h"
 #include "tsound.h"
 #include "timageinfo.h"
-"flare/stage.h"
+#include "flare/stage.h"
 #include "trop.h"
 
 #include <QImage>

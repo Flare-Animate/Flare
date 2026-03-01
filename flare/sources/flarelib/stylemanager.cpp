@@ -16,8 +16,8 @@
 #include "tvectorbrushstyle.h"
 
 // TnzLib includes
-"flare/imagestyles.h"
-"flare/toonzfolders.h"
+#include "flare/imagestyles.h"
+#include "flare/toonzfolders.h"
 
 // Qt includes
 #include <QDir>
@@ -28,7 +28,7 @@
 #include <QOpenGLContext>
 #include <QOpenGLFramebufferObject>
 
-"flare/stylemanager.h"
+#include "flare/stylemanager.h"
 
 #include <QVector>
 

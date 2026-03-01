@@ -7,7 +7,7 @@
 
 #include "pane.h"
 
-"flareqt/styleeditor.h"
+#include "flareqt/styleeditor.h"
 
 #include <QMainWindow>
 #include <QDesktopWidget>

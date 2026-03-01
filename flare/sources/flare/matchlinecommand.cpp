@@ -6,20 +6,20 @@
 #include "tpalette.h"
 
 // TnzLib includes
-"flare/txsheet.h"
-"flare/toonzscene.h"
-"flare/txshcell.h"
-"flare/txshsimplelevel.h"
-"flare/levelset.h"
-"flare/hook.h"
-"flare/levelproperties.h"
-"flare/txshlevelhandle.h"
-"flare/txsheethandle.h"
-"flare/tscenehandle.h"
-"flare/txshleveltypes.h"
+#include "flare/txsheet.h"
+#include "flare/toonzscene.h"
+#include "flare/txshcell.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/levelset.h"
+#include "flare/hook.h"
+#include "flare/levelproperties.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/tscenehandle.h"
+#include "flare/txshleveltypes.h"
 
 // TnzQt includes
-"flareqt/menubarcommand.h"
+#include "flareqt/menubarcommand.h"
 
 // Tnz6 includes
 #include "tapp.h"

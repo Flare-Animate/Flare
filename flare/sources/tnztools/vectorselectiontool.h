@@ -15,7 +15,7 @@
 #include "tregion.h"
 
 // TnzQt includes
-"flareqt/selectioncommandids.h"
+#include "flareqt/selectioncommandids.h"
 
 // Qt includes
 #include <QSet>

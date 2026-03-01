@@ -1,7 +1,7 @@
 
 
-"flareqt/dvtextedit.h"
-"flareqt/gutil.h"
+#include "flareqt/dvtextedit.h"
+#include "flareqt/gutil.h"
 
 #include <QLabel>
 #include <QLineEdit>
@@ -16,7 +16,7 @@
 #include <QComboBox>
 #include <QFontDatabase>
 
-"flareqt/colorfield.h"
+#include "flareqt/colorfield.h"
 
 namespace {
 

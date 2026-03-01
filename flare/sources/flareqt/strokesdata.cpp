@@ -1,13 +1,13 @@
 
 
-"flareqt/strokesdata.h"
+#include "flareqt/strokesdata.h"
 #include "tthreadmessage.h"
 #include "tstroke.h"
 #include "tpalette.h"
-"flareqt/rasterimagedata.h"
-"flare/toonzimageutils.h"
-"flare/trasterimageutils.h"
-"flare/stage.h"
+#include "flareqt/rasterimagedata.h"
+#include "flare/toonzimageutils.h"
+#include "flare/trasterimageutils.h"
+#include "flare/stage.h"
 
 using namespace std;
 

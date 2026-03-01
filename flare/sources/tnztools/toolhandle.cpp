@@ -1,13 +1,13 @@
 
 
 #include "tools/toolhandle.h"
-"flare/stage2.h"
+#include "flare/stage2.h"
 #include "tools/tool.h"
 #include "tools/toolcommandids.h"
 #include "timage.h"
 // #include "tapp.h"
-"flareqt/menubarcommand.h"
-"flare/preferences.h"
+#include "flareqt/menubarcommand.h"
+#include "flare/preferences.h"
 #include <QGuiApplication>
 #include <QAction>
 #include <QMap>

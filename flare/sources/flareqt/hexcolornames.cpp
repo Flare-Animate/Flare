@@ -1,9 +1,9 @@
 
 
-"flareqt/hexcolornames.h"
+#include "flareqt/hexcolornames.h"
 
 // TnzLib includes
-"flare/toonzfolders.h"
+#include "flare/toonzfolders.h"
 
 // TnzCore includes
 #include "tconvert.h"

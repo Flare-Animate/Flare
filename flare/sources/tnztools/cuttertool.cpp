@@ -3,11 +3,11 @@
 
 #include "tools/tool.h"
 #include "tools/toolutils.h"
-"flare/txsheethandle.h"
+#include "flare/txsheethandle.h"
 #include "tools/toolhandle.h"
-"flare/tframehandle.h"
-"flare/tcolumnhandle.h"
-"flare/txshlevelhandle.h"
+#include "flare/tframehandle.h"
+#include "flare/tcolumnhandle.h"
+#include "flare/txshlevelhandle.h"
 #include "tools/strokeselection.h"
 
 #include "tmathutil.h"
@@ -17,8 +17,8 @@
 #include "tvectorimage.h"
 #include "tthreadmessage.h"
 
-"flareqt/imageutils.h"
-"flareqt/tselectionhandle.h"
+#include "flareqt/imageutils.h"
+#include "flareqt/tselectionhandle.h"
 
 #include "tgl.h"
 

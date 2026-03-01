@@ -1,8 +1,8 @@
 
 
-"flare/scriptbinding_image.h"
-"flare/scriptbinding_level.h"
-"flare/scriptbinding_files.h"
+#include "flare/scriptbinding_image.h"
+#include "flare/scriptbinding_level.h"
+#include "flare/scriptbinding_files.h"
 #include "tsystem.h"
 #include "ttoonzimage.h"
 #include "tfiletype.h"

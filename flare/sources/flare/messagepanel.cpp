@@ -1,11 +1,11 @@
 
 
 #include "messagepanel.h"
-"flareqt/menubarcommand.h"
+#include "flareqt/menubarcommand.h"
 #include "menubarcommandids.h"
 
 #include "tapp.h"
-"flare/tscenehandle.h"
+#include "flare/tscenehandle.h"
 #include "mainwindow.h"
 
 #include <QTextEdit>

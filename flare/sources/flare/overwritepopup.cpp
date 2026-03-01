@@ -7,13 +7,13 @@
 #include "tsystem.h"
 
 // TnzQt includes
-"flareqt/checkbox.h"
-"flareqt/dvdialog.h"
-"flareqt/lineedit.h"
-"flareqt/gutil.h"
+#include "flareqt/checkbox.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/lineedit.h"
+#include "flareqt/gutil.h"
 
 // TnzLib includes
-"flare/toonzscene.h"
+#include "flare/toonzscene.h"
 
 // TnzCore includes
 #include "tfilepath.h"

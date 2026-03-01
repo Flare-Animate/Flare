@@ -13,21 +13,21 @@
 #include "mypainttoonzbrush.h"
 
 // TnzQt includes
-"flareqt/dvdialog.h"
+#include "flareqt/dvdialog.h"
 
 // TnzLib includes
-"flare/tpalettehandle.h"
-"flare/txsheethandle.h"
-"flare/txshlevelhandle.h"
-"flare/tobjecthandle.h"
-"flare/tframehandle.h"
-"flare/ttileset.h"
-"flare/ttilesaver.h"
-"flare/strokegenerator.h"
-"flare/tstageobject.h"
-"flare/palettecontroller.h"
-"flare/mypaintbrushstyle.h"
-"flare/preferences.h"
+#include "flare/tpalettehandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/tobjecthandle.h"
+#include "flare/tframehandle.h"
+#include "flare/ttileset.h"
+#include "flare/ttilesaver.h"
+#include "flare/strokegenerator.h"
+#include "flare/tstageobject.h"
+#include "flare/palettecontroller.h"
+#include "flare/mypaintbrushstyle.h"
+#include "flare/preferences.h"
 
 // TnzCore includes
 #include "tgl.h"

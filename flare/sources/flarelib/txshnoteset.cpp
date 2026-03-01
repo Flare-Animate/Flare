@@ -1,6 +1,6 @@
 
 
-"flare/txshnoteset.h"
+#include "flare/txshnoteset.h"
 #include "tstream.h"
 #include "texception.h"
 

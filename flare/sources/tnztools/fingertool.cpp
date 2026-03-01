@@ -12,16 +12,16 @@
 #include "tvectorimage.h"
 #include "ttoonzimage.h"
 #include "tproperty.h"
-"flare/strokegenerator.h"
-"flare/ttilesaver.h"
-"flare/txshsimplelevel.h"
-"flare/observer.h"
-"flare/toonzimageutils.h"
-"flare/levelproperties.h"
-"flare/stage2.h"
-"flare/ttileset.h"
-"flare/rasterstrokegenerator.h"
-"flare/preferences.h"
+#include "flare/strokegenerator.h"
+#include "flare/ttilesaver.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/observer.h"
+#include "flare/toonzimageutils.h"
+#include "flare/levelproperties.h"
+#include "flare/stage2.h"
+#include "flare/ttileset.h"
+#include "flare/rasterstrokegenerator.h"
+#include "flare/preferences.h"
 #include "tgl.h"
 #include "tenv.h"
 
@@ -30,18 +30,18 @@
 #include "tinbetween.h"
 #include "ttile.h"
 
-"flare/tpalettehandle.h"
-"flare/txsheethandle.h"
-"flare/txshlevelhandle.h"
-"flare/tframehandle.h"
+#include "flare/tpalettehandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/tframehandle.h"
 #include "tools/toolhandle.h"
 
 // For Qt translation support
 #include <QCoreApplication>
 
 #include "tools/stylepicker.h"
-"flareqt/tselectionhandle.h"
-"flareqt/styleselection.h"
+#include "flareqt/tselectionhandle.h"
+#include "flareqt/styleselection.h"
 #include "historytypes.h"
 
 using namespace ToolUtils;

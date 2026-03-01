@@ -3,7 +3,7 @@
 #ifndef SCRIPTBINDING_FILES_H
 #define SCRIPTBINDING_FILES_H
 
-"flare/scriptbinding.h"
+#include "flare/scriptbinding.h"
 #include "tfilepath.h"
 
 #include <QDateTime>

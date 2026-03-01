@@ -9,13 +9,13 @@
 #include "saveloadqsettings.h"
 #include "custompanelmanager.h"
 #include "layoutUtils.h"
-"flareqt/gutil.h"
+#include "flareqt/gutil.h"
 
 // TnzLib includes
-"flare/toonzfolders.h"
-"flare/tscenehandle.h"
-"flare/toonzscene.h"
-"flare/sceneproperties.h"
+#include "flare/toonzfolders.h"
+#include "flare/tscenehandle.h"
+#include "flare/toonzscene.h"
+#include "flare/sceneproperties.h"
 #include "layoutPresetsEditorPopup.h"
 
 // TnzCore includes

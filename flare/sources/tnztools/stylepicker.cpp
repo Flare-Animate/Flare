@@ -8,10 +8,10 @@
 #include "tvectorimage.h"
 #include "ttoonzimage.h"
 #include "trasterimage.h"
-"flare/dpiscale.h"
+#include "flare/dpiscale.h"
 #include "tpixelutils.h"
 #include "tregion.h"
-"flareqt/gutil.h"
+#include "flareqt/gutil.h"
 
 #include <QRect>
 

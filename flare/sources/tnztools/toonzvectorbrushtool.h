@@ -8,8 +8,8 @@
 #include <trasterimage.h>
 #include <ttoonzimage.h>
 #include <tstroke.h>
-<flare/strokegenerator.h>
-"flare/preferences.h"
+#include "flare/strokegenerator.h"
+#include "flare/preferences.h"
 #include <tools/tool.h>
 #include <tools/cursors.h>
 

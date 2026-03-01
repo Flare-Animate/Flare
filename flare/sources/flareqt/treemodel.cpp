@@ -1,7 +1,7 @@
 
 
-"flareqt/gutil.h"
-"flareqt/treemodel.h"
+#include "flareqt/gutil.h"
+#include "flareqt/treemodel.h"
 
 #include <QStringList>
 #include <QTreeView>

@@ -4,7 +4,7 @@
 #include <QMenu>
 #include "xsheetviewer.h"
 #include "xshcolumnviewer.h"
-"flareqt/gutil.h"
+#include "flareqt/gutil.h"
 
 //-----------------------------------------------------------------------------
 

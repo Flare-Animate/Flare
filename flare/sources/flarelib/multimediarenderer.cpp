@@ -1,19 +1,19 @@
 
 
 // Rendering components
-"flare/multimediarenderer.h"
-"flare/movierenderer.h"
+#include "flare/multimediarenderer.h"
+#include "flare/movierenderer.h"
 #include "trenderer.h"
 
 // Scene structures
-"flare/toonzscene.h"
-"flare/txsheet.h"
-"flare/fxdag.h"
-"flare/tcolumnfxset.h"
+#include "flare/toonzscene.h"
+#include "flare/txsheet.h"
+#include "flare/fxdag.h"
+#include "flare/tcolumnfxset.h"
 
 // Fxs tree decomposition
-"flare/scenefx.h"
-"flare/tcolumnfx.h"
+#include "flare/scenefx.h"
+#include "flare/tcolumnfx.h"
 
 // Idle processing
 #include <QEventLoop>

@@ -7,7 +7,7 @@
 #include <QCursor>
 #include <QPainter>
 
-"flareqt/screenboard.h"
+#include "flareqt/screenboard.h"
 
 using namespace DVGui;
 

@@ -24,12 +24,12 @@
 #include "tspectrumparam.h"
 #include "ttonecurveparam.h"
 #include "tdoubleparam.h"
-"flare/tfxhandle.h"
+#include "flare/tfxhandle.h"
 #include "historytypes.h"
 
 #undef DVAPI
 #undef DVVAR
-#ifdef TOONZQT_EXPORTS
+#ifdef FLAREQT_EXPORTS
 #define DVAPI DV_EXPORT_API
 #define DVVAR DV_EXPORT_VAR
 #else

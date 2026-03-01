@@ -1,11 +1,11 @@
 
 
-"flare/txshchildlevel.h"
-"flare/txshleveltypes.h"
-"flare/txsheet.h"
-"flare/imagemanager.h"
-"flare/toonzscene.h"
-"flare/txshcolumn.h"
+#include "flare/txshchildlevel.h"
+#include "flare/txshleveltypes.h"
+#include "flare/txsheet.h"
+#include "flare/imagemanager.h"
+#include "flare/toonzscene.h"
+#include "flare/txshcolumn.h"
 #include "tconvert.h"
 #include "trasterimage.h"
 #include "timagecache.h"

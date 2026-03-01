@@ -1,8 +1,8 @@
 
 
-"flareqt/intpairfield.h"
+#include "flareqt/intpairfield.h"
 
-"flareqt/dvdialog.h"
+#include "flareqt/dvdialog.h"
 
 #include "tcommon.h"
 

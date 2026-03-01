@@ -1,10 +1,10 @@
 
 
-"flare/fxdag.h"
+#include "flare/fxdag.h"
 
 // TnzLib includes
-"flare/tcolumnfxset.h"
-"flare/tcolumnfx.h"
+#include "flare/tcolumnfxset.h"
+#include "flare/tcolumnfx.h"
 #include "tw/stringtable.h"
 
 // TnzBase includes

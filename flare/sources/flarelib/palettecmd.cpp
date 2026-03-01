@@ -1,22 +1,22 @@
 
 
-"flare/palettecmd.h"
+#include "flare/palettecmd.h"
 
 // TnzLib includes
-"flare/tpalettehandle.h"
-"flare/txshlevelhandle.h"
-"flare/txsheethandle.h"
-"flare/studiopalette.h"
-"flare/txsheet.h"
-"flare/txshcolumn.h"
-"flare/txshcell.h"
-"flare/txshlevelcolumn.h"
-"flare/txshsimplelevel.h"
-"flare/cleanupcolorstyles.h"
-"flare/txshlevel.h"
-"flare/toonzscene.h"
-"flare/toonzimageutils.h"
-"flare/preferences.h"
+#include "flare/tpalettehandle.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/studiopalette.h"
+#include "flare/txsheet.h"
+#include "flare/txshcolumn.h"
+#include "flare/txshcell.h"
+#include "flare/txshlevelcolumn.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/cleanupcolorstyles.h"
+#include "flare/txshlevel.h"
+#include "flare/toonzscene.h"
+#include "flare/toonzimageutils.h"
+#include "flare/preferences.h"
 
 // TnzCore includes
 #include "tpalette.h"

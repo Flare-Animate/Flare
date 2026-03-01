@@ -16,15 +16,15 @@
 #include "tools/tool.h"
 
 // TnzQt includes
-"flareqt/strokesdata.h"
-"flareqt/gutil.h"
+#include "flareqt/strokesdata.h"
+#include "flareqt/gutil.h"
 
 // TnzLib includes
-"flare/txshlevelhandle.h"
-"flare/tframehandle.h"
-"flare/txshlevel.h"
-"flare/txshsimplelevel.h"
-"flare/txshleveltypes.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/tframehandle.h"
+#include "flare/txshlevel.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/txshleveltypes.h"
 
 // TnzCore includes
 #include "tundo.h"

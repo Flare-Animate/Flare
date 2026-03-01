@@ -1,18 +1,18 @@
 
 
-"flareqt/functiontoolbar.h"
+#include "flareqt/functiontoolbar.h"
 
 // TnzQt includes
-"flareqt/doublefield.h"
-"flareqt/functionkeyframenavigator.h"
-"flareqt/functionselection.h"
-"flareqt/framenavigator.h"
-"flareqt/gutil.h"
-"flareqt/menubarcommand.h"
+#include "flareqt/doublefield.h"
+#include "flareqt/functionkeyframenavigator.h"
+#include "flareqt/functionselection.h"
+#include "flareqt/framenavigator.h"
+#include "flareqt/gutil.h"
+#include "flareqt/menubarcommand.h"
 
 // TnzLib includes
-"flare/tframehandle.h"
-"flare/doubleparamcmd.h"
+#include "flare/tframehandle.h"
+#include "flare/doubleparamcmd.h"
 
 // Qt includes
 #include <QLabel>

@@ -10,13 +10,13 @@
 #include "vectorselectiontool.h"
 
 // TnzQt includes
-"flareqt/tselectionhandle.h"
-"flareqt/selectioncommandids.h"
-"flareqt/dvdialog.h"
+#include "flareqt/tselectionhandle.h"
+#include "flareqt/selectioncommandids.h"
+#include "flareqt/dvdialog.h"
 
 // TnzLib includes
-"flare/tscenehandle.h"
-"flare/txshlevelhandle.h"
+#include "flare/tscenehandle.h"
+#include "flare/txshlevelhandle.h"
 
 // TnzCore includes
 #include "tvectorimage.h"

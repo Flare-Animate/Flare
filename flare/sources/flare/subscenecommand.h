@@ -3,7 +3,7 @@
 #ifndef SUBSCENECOMMAND_H
 #define SUBSCENECOMMAND_H
 
-"flare/tstageobjectid.h"
+#include "flare/tstageobjectid.h"
 #include "tfx.h"
 #include <set>
 #include <QList>

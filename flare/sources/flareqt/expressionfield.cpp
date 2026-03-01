@@ -1,6 +1,6 @@
 
 
-"flareqt/expressionfield.h"
+#include "flareqt/expressionfield.h"
 
 #include "texpression.h"
 #include "tparser.h"

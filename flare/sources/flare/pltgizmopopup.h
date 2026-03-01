@@ -3,10 +3,10 @@
 #ifndef PLTGIZMOPOPUP_H
 #define PLTGIZMOPOPUP_H
 
-"flareqt/dvdialog.h"
+#include "flareqt/dvdialog.h"
 #include "tgeometry.h"
-"flareqt/doublefield.h"
-"flareqt/colorfield.h"
+#include "flareqt/doublefield.h"
+#include "flareqt/colorfield.h"
 
 //=============================================================================
 // ValueAdjuster

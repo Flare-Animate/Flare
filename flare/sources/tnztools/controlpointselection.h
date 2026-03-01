@@ -3,7 +3,7 @@
 #ifndef CONTROLPOINT_SELECTION_INCLUDED
 #define CONTROLPOINT_SELECTION_INCLUDED
 
-"flareqt/selection.h"
+#include "flareqt/selection.h"
 #include "tools/tool.h"
 #include "tstroke.h"
 #include "tvectorimage.h"

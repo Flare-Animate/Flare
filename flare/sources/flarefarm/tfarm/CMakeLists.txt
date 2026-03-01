@@ -40,14 +40,14 @@ include_directories(
 
 if(BUILD_ENV_MSVC)
     set(EXTRA_LIBS
-        tnzcore tnzbase toonzlib
+        tnzcore tnzbase flarelib
         ws2_32.lib
     )
 elseif(BUILD_ENV_APPLE)
     set(EXTRA_LIBS
 	    "$<TARGET_FILE:tnzcore>"
 	    "$<TARGET_FILE:tnzbase>"
-	    "$<TARGET_FILE:toonzlib>"
+	    "$<TARGET_FILE:flarelib>"
     )
     add_dependencies(tfarm tnzcore tnzbase toonzlib tnzext)
 elseif(BUILD_ENV_UNIXLIKE)

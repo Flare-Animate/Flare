@@ -1,6 +1,6 @@
 
 
-"flare/tpalettehandle.h"
+#include "flare/tpalettehandle.h"
 
 #include "tundo.h"
 #include "historytypes.h"

@@ -15,12 +15,12 @@
 #include <functional>
 
 // #include "tfxparam.h"
-<flareqt/addfxcontextmenu.h>  // as receiver
-<flareqt/fxsettings.h>
-<flareqt/pluginloader.h>
+#include "flareqt/addfxcontextmenu.h"  // as receiver
+#include "flareqt/fxsettings.h"
+#include "flareqt/pluginloader.h"
 
 #include "tenv.h"
-"flare/tcolumnfx.h"
+#include "flare/tcolumnfx.h"
 
 #include "pluginhost.h"
 #include "toonz_plugin.h"

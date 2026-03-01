@@ -7,16 +7,16 @@
 #include "tpixel.h"
 
 // TnzLib includes
-"flare/tframehandle.h"
+#include "flare/tframehandle.h"
 
 // Tnz6 includes
 #include "filebrowserpopup.h"
 #include "exportlevelcommand.h"
 #include "convertfolderpopup.h"
-"flareqt/imageutils.h"
+#include "flareqt/imageutils.h"
 
 // TnzQt includes
-"flareqt/planeviewer.h"
+#include "flareqt/planeviewer.h"
 
 // STD includes
 #include <map>

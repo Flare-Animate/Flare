@@ -5,8 +5,8 @@
 #include "tsystem.h"
 #include "tfilepath_io.h"
 #include "tsound_t.h"
-"flare/preferences.h"
-"flare/toonzfolders.h"
+#include "flare/preferences.h"
+#include "flare/toonzfolders.h"
 #include "thirdparty.h"
 
 #include <QDir>

@@ -4,7 +4,7 @@
 #define CONVERTPOPUP_H
 
 // TnzQt includes
-"flareqt/dvdialog.h"
+#include "flareqt/dvdialog.h"
 
 // TnzCore includes
 #include "tfilepath.h"

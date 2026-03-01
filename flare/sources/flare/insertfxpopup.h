@@ -4,7 +4,7 @@
 #define INSERTFXPOPUP_H
 
 #include <QTreeWidget>
-"flareqt/dvdialog.h"
+#include "flareqt/dvdialog.h"
 #include "tfilepath.h"
 #include "tstream.h"
 

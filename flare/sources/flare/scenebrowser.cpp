@@ -16,22 +16,22 @@
 #include "tapp.h"
 
 // TnzQt includes
-"flareqt/dvdialog.h"
-"flareqt/icongenerator.h"
-"flareqt/menubarcommand.h"
-"flareqt/gutil.h"
-"flareqt/trepetitionguard.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/icongenerator.h"
+#include "flareqt/menubarcommand.h"
+#include "flareqt/gutil.h"
+#include "flareqt/trepetitionguard.h"
 
 // TnzLib includes
-"flare/tscenehandle.h"
-"flare/toonzscene.h"
-"flare/txshsimplelevel.h"
-"flare/txshsoundlevel.h"
-"flare/tproject.h"
-"flare/txshlevelhandle.h"
-"flare/namebuilder.h"
-"flare/toonzimageutils.h"
-"flare/preferences.h"
+#include "flare/tscenehandle.h"
+#include "flare/toonzscene.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/txshsoundlevel.h"
+#include "flare/tproject.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/namebuilder.h"
+#include "flare/toonzimageutils.h"
+#include "flare/preferences.h"
 
 // TnzBase includes
 #include "tenv.h"

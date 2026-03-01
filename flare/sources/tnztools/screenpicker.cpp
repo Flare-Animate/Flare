@@ -2,9 +2,9 @@
 
 #include "tcommon.h"
 
-"flareqt/pickrgbutils.h"
-"flareqt/screenboard.h"
-"flareqt/menubarcommand.h"
+#include "flareqt/pickrgbutils.h"
+#include "flareqt/screenboard.h"
+#include "flareqt/menubarcommand.h"
 
 #include "tools/RGBpicker.h"
 #include "tools/cursors.h"

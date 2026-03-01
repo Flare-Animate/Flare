@@ -3,16 +3,16 @@
 #include "fxschematicnodeselection.h"
 #include "fxschematicnode.h"
 #include "tapp.h"
-"flare/tfxhandle.h"
+#include "flare/tfxhandle.h"
 #include "menubarcommandids.h"
-"flare/tcolumnfx.h"
+#include "flare/tcolumnfx.h"
 #include "fxcommand.h"
 
 #include "tundo.h"
-"flare/fxdag.h"
-"flare/txsheethandle.h"
-"flare/txsheet.h"
-"flare/tcolumnfxset.h"
+#include "flare/fxdag.h"
+#include "flare/txsheethandle.h"
+#include "flare/txsheet.h"
+#include "flare/tcolumnfxset.h"
 
 //=========================================================
 //

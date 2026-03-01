@@ -1,6 +1,6 @@
 
 
-"flare/glrasterpainter.h"
+#include "flare/glrasterpainter.h"
 #include "tgl.h"
 #include "texturemanager.h"
 #include "tpalette.h"

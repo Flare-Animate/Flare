@@ -3,7 +3,7 @@
 #ifndef TFILMSTRIPSELECTION_H
 #define TFILMSTRIPSELECTION_H
 
-"flareqt/selection.h"
+#include "flareqt/selection.h"
 #include "tfilepath.h"
 #include <set>
 

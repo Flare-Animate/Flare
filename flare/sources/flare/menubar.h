@@ -9,7 +9,7 @@
 #include <QFrame>
 #include <map>
 
-"flareqt/lineedit.h"
+#include "flareqt/lineedit.h"
 
 #include <QUrl>
 #include <QStackedWidget>

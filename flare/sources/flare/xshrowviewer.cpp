@@ -3,32 +3,32 @@
 #include "xshrowviewer.h"
 #include "xsheetviewer.h"
 #include "tapp.h"
-"flare/tscenehandle.h"
-"flare/tframehandle.h"
-"flare/tonionskinmaskhandle.h"
+#include "flare/tscenehandle.h"
+#include "flare/tframehandle.h"
+#include "flare/tonionskinmaskhandle.h"
 #include "xsheetdragtool.h"
-"flareqt/gutil.h"
+#include "flareqt/gutil.h"
 #include "onionskinmaskgui.h"
 #include "cellselection.h"
 #include "menubarcommandids.h"
-"flareqt/menubarcommand.h"
+#include "flareqt/menubarcommand.h"
 #if defined(x64)
 #include "../stopmotion/stopmotion.h"
 #endif
 
-"flare/toonzscene.h"
+#include "flare/toonzscene.h"
 #include "tconvert.h"
 
-"flare/txsheet.h"
-"flare/sceneproperties.h"
+#include "flare/txsheet.h"
+#include "flare/sceneproperties.h"
 #include "toutputproperties.h"
-"flare/preferences.h"
+#include "flare/preferences.h"
 
 #include "tools/toolhandle.h"
 #include "tools/toolcommandids.h"
-"flare/tstageobject.h"
-"flare/tpinnedrangeset.h"
-"flare/navigationtags.h"
+#include "flare/tstageobject.h"
+#include "flare/tpinnedrangeset.h"
+#include "flare/navigationtags.h"
 
 #include <QPainter>
 #include <QMouseEvent>

@@ -2,26 +2,26 @@
 
 #include "edittoolgadgets.h"
 #include "tgl.h"
-"flare/tfxhandle.h"
-"flare/tobjecthandle.h"
-"flare/tframehandle.h"
-"flare/txsheethandle.h"
-"flare/stage.h"
+#include "flare/tfxhandle.h"
+#include "flare/tobjecthandle.h"
+#include "flare/tframehandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/stage.h"
 #include "tools/tool.h"
 #include "tfx.h"
 #include "tparamcontainer.h"
-"flare/tcolumnfx.h"
+#include "flare/tcolumnfx.h"
 #include "tdoubleparam.h"
 #include "tparamset.h"
 #include "tundo.h"
 #include "tparamuiconcept.h"
 
 #include "historytypes.h"
-"flareqt/gutil.h"
+#include "flareqt/gutil.h"
 
-"flare/tscenehandle.h"
-"flare/toonzscene.h"
-"flare/tcamera.h"
+#include "flare/tscenehandle.h"
+#include "flare/toonzscene.h"
+#include "flare/tcamera.h"
 
 #include <QApplication>
 #include <QDesktopWidget>

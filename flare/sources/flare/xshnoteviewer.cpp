@@ -7,13 +7,13 @@
 #include "tapp.h"
 
 // TnzQt includes
-"flareqt/gutil.h"
+#include "flareqt/gutil.h"
 
 // TnzLib includes
-"flare/toonzscene.h"
-"flare/txshnoteset.h"
-"flare/sceneproperties.h"
-"flare/txsheethandle.h"
+#include "flare/toonzscene.h"
+#include "flare/txshnoteset.h"
+#include "flare/sceneproperties.h"
+#include "flare/txsheethandle.h"
 #include "orientation.h"
 
 // Qt includes

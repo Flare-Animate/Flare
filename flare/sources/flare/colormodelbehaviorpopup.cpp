@@ -1,8 +1,8 @@
 #include "colormodelbehaviorpopup.h"
 
-"flareqt/colorfield.h"
-"flareqt/intfield.h"
-"flareqt/gutil.h"
+#include "flareqt/colorfield.h"
+#include "flareqt/intfield.h"
+#include "flareqt/gutil.h"
 
 #include "tenv.h"
 #include "tpixel.h"

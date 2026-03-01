@@ -1,6 +1,6 @@
 
 
-"flare/tcenterlinevectorizer.h"
+#include "flare/tcenterlinevectorizer.h"
 #include "tsystem.h"
 #include "tstopwatch.h"
 #include "tpalette.h"

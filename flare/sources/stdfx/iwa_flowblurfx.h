@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #ifndef IWA_FLOWBLURFX
 #define IWA_FLOWBLURFX

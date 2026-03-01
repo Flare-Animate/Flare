@@ -1,16 +1,16 @@
-"flareqt/dvdialog.h"
+#include "flareqt/dvdialog.h"
 
 // TnzQt includes
-"flareqt/checkbox.h"
-"flareqt/lineedit.h"
-"flareqt/fxsettings.h"
+#include "flareqt/checkbox.h"
+#include "flareqt/lineedit.h"
+#include "flareqt/fxsettings.h"
 
 // TnzLib includes
-"flare/txsheethandle.h"
-"flare/txshsimplelevel.h"
-"flare/palettecmd.h"
-"flare/preferences.h"
-"flare/toonzfolders.h"
+#include "flare/txsheethandle.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/palettecmd.h"
+#include "flare/preferences.h"
+#include "flare/toonzfolders.h"
 
 // TnzCore includes
 #include "tversion.h"

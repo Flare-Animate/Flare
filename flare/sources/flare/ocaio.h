@@ -2,10 +2,10 @@
 #ifndef OCAIO_H
 #define OCAIO_H
 
-"flareqt/dvdialog.h"
+#include "flareqt/dvdialog.h"
 #include "tfilepath.h"
-"flare/txshlevelhandle.h"
-"flareqt/menubarcommand.h"
+#include "flare/txshlevelhandle.h"
+#include "flareqt/menubarcommand.h"
 
 #include <QString>
 #include <QList>

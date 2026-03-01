@@ -5,7 +5,7 @@
 #include "tstream.h"
 #include "texception.h"
 
-"flare/vectorizerparameters.h"
+#include "flare/vectorizerparameters.h"
 
 //**************************************************************************
 //    Local namespace  strings

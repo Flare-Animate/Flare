@@ -1,7 +1,7 @@
 
 
-"flareqt/tmessageviewer.h"
-"flareqt/dvdialog.h"
+#include "flareqt/tmessageviewer.h"
+#include "flareqt/dvdialog.h"
 #include <QVBoxLayout>
 #include <QPushButton>
 #include <QListView>

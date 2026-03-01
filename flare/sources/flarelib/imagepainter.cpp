@@ -1,11 +1,11 @@
 // Glew include
 #include <GL/glew.h>
 
-"flare/imagepainter.h"
+#include "flare/imagepainter.h"
 // Include shared flipbook background toggle settings (e.g., for m_bg) from
 // toonz/
-"flare/flipbooksettings.h"
-"flare/glrasterpainter.h"
+#include "flare/flipbooksettings.h"
+#include "flare/glrasterpainter.h"
 #include "trastercm.h"
 #include "tropcm.h"
 #include "tpalette.h"
@@ -17,10 +17,10 @@
 #include "tvectorgl.h"
 #include "trasterimage.h"
 #include "timagecache.h"
-"flare/sceneproperties.h"
-"flare/stage2.h"
-"flare/preferences.h"
-"flare/fill.h"
+#include "flare/sceneproperties.h"
+#include "flare/stage2.h"
+#include "flare/preferences.h"
+#include "flare/fill.h"
 
 using namespace ImagePainter;
 

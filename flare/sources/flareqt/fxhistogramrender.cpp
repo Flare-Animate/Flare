@@ -1,21 +1,21 @@
 
 
-"flareqt/fxhistogramrender.h"
-"flareqt/histogram.h"
+#include "flareqt/fxhistogramrender.h"
+#include "flareqt/histogram.h"
 #include "tsystem.h"
 #include "timagecache.h"
 #include "trasterfx.h"
 #include "trasterimage.h"
 #include "toutputproperties.h"
-"flare/txsheethandle.h"
-"flare/tfxhandle.h"
-"flare/tscenehandle.h"
-"flare/txshlevelhandle.h"
-"flare/toonzscene.h"
-"flare/sceneproperties.h"
-"flare/scenefx.h"
-"flare/tcamera.h"
-"flare/txshlevel.h"
+#include "flare/txsheethandle.h"
+#include "flare/tfxhandle.h"
+#include "flare/tscenehandle.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/toonzscene.h"
+#include "flare/sceneproperties.h"
+#include "flare/scenefx.h"
+#include "flare/tcamera.h"
+#include "flare/txshlevel.h"
 
 #include <QMetaType>
 

@@ -1,5 +1,5 @@
 // TnzQt includes
-"flareqt/imageutils.h"
+#include "flareqt/imageutils.h"
 // TnzTools includes
 #include "tools/tooloptions.h"
 // Tnz6 includes

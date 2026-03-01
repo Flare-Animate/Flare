@@ -1,6 +1,6 @@
 
 
-"flare/ttileset.h"
+#include "flare/ttileset.h"
 #include "tcodec.h"
 #include "timagecache.h"
 #include "ttoonzimage.h"

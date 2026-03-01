@@ -4,11 +4,11 @@
 #define CLEANUPSETTINGSPOPUP__H
 
 // ToonzQt includes
-"flareqt/dvdialog.h"
-"flareqt/cleanupcamerasettingswidget.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/cleanupcamerasettingswidget.h"
 
 // ToonzLib includes
-"flare/cleanupparameters.h"
+#include "flare/cleanupparameters.h"
 
 // TnzCore includes
 #include "tfilepath.h"

@@ -26,23 +26,23 @@
 #include "ext/meshutils.h"
 
 // TnzLib includes
-"flare/toonzscene.h"
-"flare/sceneproperties.h"
-"flare/txsheet.h"
-"flare/tscenehandle.h"
-"flare/txshlevel.h"
-"flare/txshleveltypes.h"
-"flare/txshsimplelevel.h"
-"flare/txshchildlevel.h"
-"flare/tstageobjectspline.h"
-"flare/preferences.h"
-"flare/sceneresources.h"
-"flare/stage2.h"
+#include "flare/toonzscene.h"
+#include "flare/sceneproperties.h"
+#include "flare/txsheet.h"
+#include "flare/tscenehandle.h"
+#include "flare/txshlevel.h"
+#include "flare/txshleveltypes.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/txshchildlevel.h"
+#include "flare/tstageobjectspline.h"
+#include "flare/preferences.h"
+#include "flare/sceneresources.h"
+#include "flare/stage2.h"
 
 // TnzQt includes
-"flareqt/gutil.h"
+#include "flareqt/gutil.h"
 
-"flareqt/icongenerator.h"
+#include "flareqt/icongenerator.h"
 
 //=============================================================================
 

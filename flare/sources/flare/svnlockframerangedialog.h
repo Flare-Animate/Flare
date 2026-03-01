@@ -3,8 +3,8 @@
 #ifndef SVN_LOCK_FRAME_RANGE_DIALOG_H
 #define SVN_LOCK_FRAME_RANGE_DIALOG_H
 
-"flareqt/dvdialog.h"
-"flareqt/intfield.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/intfield.h"
 #include "versioncontrol.h"
 
 #include <QList>

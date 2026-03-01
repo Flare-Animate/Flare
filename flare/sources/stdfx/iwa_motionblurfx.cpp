@@ -7,7 +7,7 @@ Available to composite exposure value with background.
 #include "iwa_motionblurfx.h"
 #include "tfxattributes.h"
 
-"flare/tstageobject.h"
+#include "flare/tstageobject.h"
 
 #include "trop.h"
 

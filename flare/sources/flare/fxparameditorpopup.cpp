@@ -1,22 +1,22 @@
 
 
 #include "fxparameditorpopup.h"
-"flareqt/menubarcommand.h"
+#include "flareqt/menubarcommand.h"
 #include "menubarcommandids.h"
 #include "tapp.h"
-"flare/tfxhandle.h"
-"flare/tscenehandle.h"
-"flare/tframehandle.h"
-"flare/txsheethandle.h"
-"flare/txshlevelhandle.h"
+#include "flare/tfxhandle.h"
+#include "flare/tscenehandle.h"
+#include "flare/tframehandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/txshlevelhandle.h"
 
 #include "tfxattributes.h"
 
-"flareqt/fxsettings.h"
+#include "flareqt/fxsettings.h"
 
-"flare/tcolumnfx.h"
-"flare/scenefx.h"
-"flare/preferences.h"
+#include "flare/tcolumnfx.h"
+#include "flare/scenefx.h"
+#include "flare/preferences.h"
 
 #include <QMainWindow>
 

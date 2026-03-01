@@ -13,7 +13,7 @@
 
 #include "timage_io.h"
 
-"flare/tdistort.h"
+#include "flare/tdistort.h"
 
 //==============================================================================
 

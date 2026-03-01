@@ -6,7 +6,7 @@
 #include <memory>
 
 // TnzQt includes
-"flareqt/selection.h"
+#include "flareqt/selection.h"
 
 // TnzCore includes
 #include "tcommon.h"

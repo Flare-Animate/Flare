@@ -1,11 +1,11 @@
 
 
 #include "tgl.h"
-"flare/strokegenerator.h"
+#include "flare/strokegenerator.h"
 //#include "tofflinegl.h"
 
 #include "tstroke.h"
-"flare/preferences.h"
+#include "flare/preferences.h"
 
 using namespace std;
 

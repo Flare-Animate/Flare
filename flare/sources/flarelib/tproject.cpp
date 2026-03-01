@@ -1,15 +1,15 @@
 
 
-"flare/tproject.h"
+#include "flare/tproject.h"
 
 // TnzLib includes
-"flare/sceneproperties.h"
-"flare/toonzscene.h"
-"flare/txsheet.h"
-"flare/observer.h"
-"flare/toonzfolders.h"
-"flare/cleanupparameters.h"
-"flare/filepathproperties.h"
+#include "flare/sceneproperties.h"
+#include "flare/toonzscene.h"
+#include "flare/txsheet.h"
+#include "flare/observer.h"
+#include "flare/toonzfolders.h"
+#include "flare/cleanupparameters.h"
+#include "flare/filepathproperties.h"
 
 // TnzBase includes
 #include "tenv.h"

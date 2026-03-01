@@ -1,15 +1,15 @@
 
 
 // TnzLib includes
-"flare/tframehandle.h"
+#include "flare/tframehandle.h"
 
 // TnzQt includes
-"flareqt/gutil.h"
+#include "flareqt/gutil.h"
 
 // Qt includes
 #include <QAction>
 
-"flareqt/framenavigator.h"
+#include "flareqt/framenavigator.h"
 
 using namespace DVGui;
 

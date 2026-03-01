@@ -8,11 +8,11 @@
 #include "xshcolumnviewer.h"
 
 #include "tapp.h"
-"flare/tscenehandle.h"
-"flare/txsheethandle.h"
-"flare/tobjecthandle.h"
+#include "flare/tscenehandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/tobjecthandle.h"
 
-"flare/preferences.h"
+#include "flare/preferences.h"
 #include "../include/toonzqt/gutil.h"
 
 using XsheetGUI::ColumnArea;

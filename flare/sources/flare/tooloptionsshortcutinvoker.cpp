@@ -8,7 +8,7 @@
 #include "tools/toolcommandids.h"
 #include "tools/tool.h"
 
-"flareqt/menubarcommand.h"
+#include "flareqt/menubarcommand.h"
 #include "menubarcommandids.h"
 
 using namespace ToolOptionsShortcutWorker;

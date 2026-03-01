@@ -1,6 +1,6 @@
 
 #include <ttonecurveparam.h>
-<flareqt/fxsettings.h>
+#include "flareqt/fxsettings.h"
 
 #include "plugin_param_interface.h"
 #include "plugin_utilities.h"

@@ -1,9 +1,9 @@
 
 
 // TnzLib includes
-"flare/textureutils.h"
+#include "flare/textureutils.h"
 
-"flare/txsheethandle.h"
+#include "flare/txsheethandle.h"
 
 //=============================================================================
 // TXsheeHandle

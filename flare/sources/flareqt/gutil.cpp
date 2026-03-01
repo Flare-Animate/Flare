@@ -1,10 +1,10 @@
 
 
-"flareqt/gutil.h"
-"flare/preferences.h"
+#include "flareqt/gutil.h"
+#include "flare/preferences.h"
 
 // TnzQt includes
-"flareqt/dvdialog.h"
+#include "flareqt/dvdialog.h"
 
 // TnzCore includes
 #include "traster.h"

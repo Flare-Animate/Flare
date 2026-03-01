@@ -3,9 +3,9 @@
 #ifndef KEYFRAMEDATA_INCLUDED
 #define KEYFRAMEDATA_INCLUDED
 
-"flareqt/dvmimedata.h"
+#include "flareqt/dvmimedata.h"
 
-"flare/tstageobject.h"
+#include "flare/tstageobject.h"
 #include "keyframeselection.h"
 
 // forward declarations

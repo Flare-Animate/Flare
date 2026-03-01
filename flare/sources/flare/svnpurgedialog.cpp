@@ -8,7 +8,7 @@
 #include "fileselection.h"
 
 // TnzQt includes
-"flareqt/tselectionhandle.h"
+#include "flareqt/tselectionhandle.h"
 
 // TnzCore includes
 #include "tsystem.h"

@@ -2,17 +2,17 @@
 
 #include "studiopaletteviewer.h"
 #include "palettesscanpopup.h"
-"flare/studiopalettecmd.h"
-"flareqt/menubarcommand.h"
+#include "flare/studiopalettecmd.h"
+#include "flareqt/menubarcommand.h"
 #include "floatingpanelcommand.h"
-"flareqt/gutil.h"
-"flare/tpalettehandle.h"
-"flare/txshlevelhandle.h"
-"flareqt/paletteviewer.h"
+#include "flareqt/gutil.h"
+#include "flare/tpalettehandle.h"
+#include "flare/txshlevelhandle.h"
+#include "flareqt/paletteviewer.h"
 #include "toonzutil.h"
 #include "tconvert.h"
 
-"flare/txshsimplelevel.h"
+#include "flare/txshsimplelevel.h"
 
 #include <QHeaderView>
 #include <QContextMenuEvent>
@@ -23,9 +23,9 @@
 #include <QToolBar>
 #include <QSplitter>
 
-"flare/tscenehandle.h"
-"flare/toonzscene.h"
-"flare/sceneproperties.h"
+#include "flare/tscenehandle.h"
+#include "flare/toonzscene.h"
+#include "flare/sceneproperties.h"
 
 using namespace std;
 using namespace PaletteViewerGUI;

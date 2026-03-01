@@ -4,7 +4,7 @@
 #define MENUBAR_COMMANDS_IDS_DEFINED
 
 // TnzQt includes
-"flareqt/selectioncommandids.h"
+#include "flareqt/selectioncommandids.h"
 
 /*!
   \file     menubarcommandids.h

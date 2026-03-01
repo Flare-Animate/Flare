@@ -7,14 +7,14 @@
 #include "tapp.h"
 
 // TnzQt includes
-"flareqt/menubarcommand.h"
-"flareqt/doublefield.h"
-"flareqt/checkbox.h"
-"flareqt/icongenerator.h"
+#include "flareqt/menubarcommand.h"
+#include "flareqt/doublefield.h"
+#include "flareqt/checkbox.h"
+#include "flareqt/icongenerator.h"
 
 // TnzLib includes
-"flare/txshlevelhandle.h"
-"flare/levelproperties.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/levelproperties.h"
 
 // TnzBase includes
 #include "tunit.h"

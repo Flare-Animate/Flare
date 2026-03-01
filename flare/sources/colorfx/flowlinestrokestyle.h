@@ -9,7 +9,7 @@
 #include "tstrokeprop.h"
 #include "tgl.h"
 
-"flare/imagestyles.h"
+#include "flare/imagestyles.h"
 
 #include <QImage>
 class TVectorRendeData;

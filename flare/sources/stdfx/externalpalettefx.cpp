@@ -3,11 +3,11 @@
 #include "stdfx.h"
 #include "ttzpimagefx.h"
 
-"flare/tcolumnfx.h"
-"flare/txshcolumn.h"
-"flare/txshcell.h"
-"flare/txshsimplelevel.h"
-"flare/txshpalettelevel.h"
+#include "flare/tcolumnfx.h"
+#include "flare/txshcolumn.h"
+#include "flare/txshcell.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/txshpalettelevel.h"
 #include "globalcontrollablefx.h"
 
 //===================================================================

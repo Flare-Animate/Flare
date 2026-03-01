@@ -1,6 +1,6 @@
 
 
-"flare/tcenterlinevectorizer.h"
+#include "flare/tcenterlinevectorizer.h"
 
 // TnzCore includes
 #include "tsystem.h"

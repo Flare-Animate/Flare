@@ -3,8 +3,8 @@
 #ifndef SAVEPRESETPOPUP_H
 #define SAVEPRESETPOPUP_H
 
-"flareqt/dvdialog.h"
-"flareqt/lineedit.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/lineedit.h"
 
 //=============================================================================
 // SavePresetPopup

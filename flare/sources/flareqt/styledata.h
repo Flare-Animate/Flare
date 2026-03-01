@@ -3,7 +3,7 @@
 #ifndef STYLE_DATA_INCLUDED
 #define STYLE_DATA_INCLUDED
 
-"flareqt/dvmimedata.h"
+#include "flareqt/dvmimedata.h"
 #include "tpalette.h"
 #include <set>
 #include <vector>

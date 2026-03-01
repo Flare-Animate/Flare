@@ -6,14 +6,14 @@
 #include "tsop.h"
 
 // TnzQt includes
-"flareqt/menubarcommand.h"
+#include "flareqt/menubarcommand.h"
 
 // TnzLib includes
-"flare/tscenehandle.h"
-"flare/txsheethandle.h"
-"flare/toonzscene.h"
-"flare/txsheet.h"
-"flare/tstageobjecttree.h"
+#include "flare/tscenehandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/toonzscene.h"
+#include "flare/txsheet.h"
+#include "flare/tstageobjecttree.h"
 
 // TnzCore includes
 #include "tsystem.h"

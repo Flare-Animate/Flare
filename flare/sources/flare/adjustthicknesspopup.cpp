@@ -14,21 +14,21 @@
 #include "tools/levelselection.h"
 
 // TnzQt includes
-"flareqt/tselectionhandle.h"
-"flareqt/icongenerator.h"
-"flareqt/planeviewer.h"
-"flareqt/doublefield.h"
+#include "flareqt/tselectionhandle.h"
+#include "flareqt/icongenerator.h"
+#include "flareqt/planeviewer.h"
+#include "flareqt/doublefield.h"
 
 // TnzLib includes
-"flare/txsheet.h"
-"flare/txshcell.h"
-"flare/txshsimplelevel.h"
-"flare/stage.h"
-"flare/txshlevelcolumn.h"
-"flare/txsheethandle.h"
-"flare/tframehandle.h"
-"flare/tcolumnhandle.h"
-"flare/txshlevelhandle.h"
+#include "flare/txsheet.h"
+#include "flare/txshcell.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/stage.h"
+#include "flare/txshlevelcolumn.h"
+#include "flare/txsheethandle.h"
+#include "flare/tframehandle.h"
+#include "flare/tcolumnhandle.h"
+#include "flare/txshlevelhandle.h"
 
 // TnzCore includes
 #include "tundo.h"

@@ -1,8 +1,8 @@
 
 
-"flareqt/styleindexlineedit.h"
-"flareqt/gutil.h"
-"flare/tpalettehandle.h"
+#include "flareqt/styleindexlineedit.h"
+#include "flareqt/gutil.h"
+#include "flare/tpalettehandle.h"
 #include "tcolorstyles.h"
 #include "tpalette.h"
 

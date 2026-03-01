@@ -7,14 +7,14 @@
 
 // TnzCore includes
 #include "tproperty.h"
-"flare/txshlevelhandle.h"
-"flare/txshsimplelevel.h"
-"flare/strokegenerator.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/strokegenerator.h"
 // TnzTools includes
 #include "tools/tool.h"
 #include "tools/toolutils.h"
 #include "autofill.h"
-"flare/fill.h"
+#include "flare/fill.h"
 
 #include <QObject>
 #include <qevent.h>

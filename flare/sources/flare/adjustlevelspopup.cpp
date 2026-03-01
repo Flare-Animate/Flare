@@ -9,20 +9,20 @@
 #include "menubarcommandids.h"
 
 // TnzQt includes
-"flareqt/histogram.h"
-"flareqt/marksbar.h"
-"flareqt/menubarcommand.h"
-"flareqt/tselectionhandle.h"
-"flareqt/intfield.h"
-"flareqt/icongenerator.h"
+#include "flareqt/histogram.h"
+#include "flareqt/marksbar.h"
+#include "flareqt/menubarcommand.h"
+#include "flareqt/tselectionhandle.h"
+#include "flareqt/intfield.h"
+#include "flareqt/icongenerator.h"
 
 // TnzLib includes
-"flare/txshcell.h"
-"flare/txshsimplelevel.h"
-"flare/tframehandle.h"
-"flare/txshlevelhandle.h"
-"flare/tcolumnhandle.h"
-"flare/txsheethandle.h"
+#include "flare/txshcell.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/tframehandle.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/tcolumnhandle.h"
+#include "flare/txsheethandle.h"
 
 // TnzCore includes
 #include "trasterimage.h"

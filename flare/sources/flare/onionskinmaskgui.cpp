@@ -2,14 +2,14 @@
 
 #include "onionskinmaskgui.h"
 #include "tapp.h"
-"flare/tonionskinmaskhandle.h"
-"flare/tframehandle.h"
-"flare/txshlevelhandle.h"
-"flare/txsheethandle.h"
-"flare/tcolumnhandle.h"
-"flare/txshsimplelevel.h"
+#include "flare/tonionskinmaskhandle.h"
+#include "flare/tframehandle.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/tcolumnhandle.h"
+#include "flare/txshsimplelevel.h"
 
-"flare/onionskinmask.h"
+#include "flare/onionskinmask.h"
 
 #include <QMenu>
 

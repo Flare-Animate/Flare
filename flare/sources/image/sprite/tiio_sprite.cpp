@@ -9,8 +9,8 @@
 #include <QStringList>
 #include <QPainter>
 #include <QTextStream>
-"flare/preferences.h"
-"flare/toonzfolders.h"
+#include "flare/preferences.h"
+#include "flare/toonzfolders.h"
 
 #include "trasterimage.h"
 #include "timageinfo.h"

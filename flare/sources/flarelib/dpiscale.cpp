@@ -1,14 +1,14 @@
 
 
-"flare/dpiscale.h"
-"flare/levelproperties.h"
-"flare/toonzscene.h"
-"flare/txsheet.h"
-"flare/txshcell.h"
-"flare/txshsimplelevel.h"
-"flare/tcamera.h"
-"flare/txshleveltypes.h"
-"flare/stage.h"
+#include "flare/dpiscale.h"
+#include "flare/levelproperties.h"
+#include "flare/toonzscene.h"
+#include "flare/txsheet.h"
+#include "flare/txshcell.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/tcamera.h"
+#include "flare/txshleveltypes.h"
+#include "flare/stage.h"
 
 #include "timagecache.h"
 #include "trasterimage.h"

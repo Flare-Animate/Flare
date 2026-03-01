@@ -5,8 +5,8 @@
 
 #include "tgeometry.h"
 
-"flareqt/dvdialog.h"
-"flareqt/intfield.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/intfield.h"
 
 // forward declaration
 class QPushButton;

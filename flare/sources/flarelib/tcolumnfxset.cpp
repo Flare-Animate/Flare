@@ -1,9 +1,9 @@
 
 
-"flare/tcolumnfxset.h"
+#include "flare/tcolumnfxset.h"
 
 // TnzLib includes
-"flare/tcolumnfx.h"
+#include "flare/tcolumnfx.h"
 
 // TnzBase includes
 #include "tfx.h"

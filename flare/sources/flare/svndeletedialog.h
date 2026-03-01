@@ -3,7 +3,7 @@
 #ifndef SVN_DELETE_DIALOG_H
 #define SVN_DELETE_DIALOG_H
 
-"flareqt/dvdialog.h"
+#include "flareqt/dvdialog.h"
 #include "versioncontrol.h"
 
 class QLabel;

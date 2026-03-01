@@ -1,16 +1,16 @@
 
 
-"flareqt/planeviewer.h"
+#include "flareqt/planeviewer.h"
 
 // TnzQt includes
-"flareqt/imageutils.h"
-"flareqt/menubarcommand.h"
-"flareqt/viewcommandids.h"
+#include "flareqt/imageutils.h"
+#include "flareqt/menubarcommand.h"
+#include "flareqt/viewcommandids.h"
 
 #include "../flare/menubarcommandids.h"
 
 // TnzLib includes
-"flare/stage.h"
+#include "flare/stage.h"
 
 // TnzCore includes
 #include "trasterimage.h"

@@ -2,21 +2,21 @@
 
 #include "frameheadgadget.h"
 
-"flareqt/menubarcommand.h"
+#include "flareqt/menubarcommand.h"
 #include "menubarcommandids.h"
 
-"flareqt/gutil.h"
+#include "flareqt/gutil.h"
 #include "tapp.h"
-"flare/tscenehandle.h"
-"flare/tonionskinmaskhandle.h"
+#include "flare/tscenehandle.h"
+#include "flare/tonionskinmaskhandle.h"
 #include "onionskinmaskgui.h"
 
 #include "filmstrip.h"
-"flare/tframehandle.h"
+#include "flare/tframehandle.h"
 
-"flare/toonzscene.h"
-"flare/txshsimplelevel.h"
-"flare/preferences.h"
+#include "flare/toonzscene.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/preferences.h"
 
 #include <QPainter>
 #include <QEvent>

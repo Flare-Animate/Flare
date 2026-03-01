@@ -1,19 +1,19 @@
 
 
-"flareqt/functionsheet.h"
+#include "flareqt/functionsheet.h"
 
 // TnzQt includes
-"flareqt/gutil.h"
-"flareqt/functionviewer.h"
+#include "flareqt/gutil.h"
+#include "flareqt/functionviewer.h"
 
 // TnzLib includes
-"flare/tframehandle.h"
-"flare/doubleparamcmd.h"
-"flare/preferences.h"
-"flare/toonzfolders.h"
-"flare/tstageobject.h"
-"flare/txsheethandle.h"
-"flare/txsheet.h"
+#include "flare/tframehandle.h"
+#include "flare/doubleparamcmd.h"
+#include "flare/preferences.h"
+#include "flare/toonzfolders.h"
+#include "flare/tstageobject.h"
+#include "flare/txsheethandle.h"
+#include "flare/txsheet.h"
 
 // TnzBase includes
 #include "tunit.h"

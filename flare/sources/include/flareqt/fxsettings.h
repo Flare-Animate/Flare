@@ -19,14 +19,14 @@
 #include "tabbar.h"
 #include "gutil.h"
 
-"flareqt/framenavigator.h"
-"flareqt/paramfield.h"
-"flareqt/swatchviewer.h"
-"flareqt/fxhistogramrender.h"
+#include "flareqt/framenavigator.h"
+#include "flareqt/paramfield.h"
+#include "flareqt/swatchviewer.h"
+#include "flareqt/fxhistogramrender.h"
 
 #undef DVAPI
 #undef DVVAR
-#ifdef TOONZQT_EXPORTS
+#ifdef FLAREQT_EXPORTS
 #define DVAPI DV_EXPORT_API
 #define DVVAR DV_EXPORT_VAR
 #else

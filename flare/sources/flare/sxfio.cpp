@@ -2,21 +2,21 @@
 
 #include "tapp.h"
 #include "tsystem.h"
-"flare/tproject.h"
-"flare/tscenehandle.h"
-"flare/txsheethandle.h"
-"flare/toonzscene.h"
-"flare/sceneproperties.h"
+#include "flare/tproject.h"
+#include "flare/tscenehandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/toonzscene.h"
+#include "flare/sceneproperties.h"
 #include "toutputproperties.h"
 
 #include "xdtsimportpopup.h"
 #include "filebrowserpopup.h"
-"flare/txshcell.h"
-"flare/txshleveltypes.h"
-"flare/txshsimplelevel.h"
-"flare/preferences.h"
+#include "flare/txshcell.h"
+#include "flare/txshleveltypes.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/preferences.h"
 
-"flareqt/menubarcommand.h"
+#include "flareqt/menubarcommand.h"
 #include "menubarcommandids.h"
 
 #include <QFile>

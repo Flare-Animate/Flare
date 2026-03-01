@@ -3,9 +3,9 @@
 #ifndef CUSTOMPANELEDITORPOPUP_H
 #define CUSTOMPANELEDITORPOPUP_H
 
-"flareqt/dvdialog.h"
+#include "flareqt/dvdialog.h"
 // ToonzQt
-"flareqt/menubarcommand.h"
+#include "flareqt/menubarcommand.h"
 
 #include <QTreeWidget>
 #include <QTreeWidgetItem>

@@ -3,7 +3,7 @@
 #ifndef SCANPOPUP_H
 #define SCANPOPUP_H
 
-"flareqt/dvdialog.h"
+#include "flareqt/dvdialog.h"
 #include "tscanner.h"
 #include "scanlist.h"
 

@@ -4,8 +4,8 @@
 #define FILMSTRIP_H
 
 // TnzQt includes
-"flareqt/dvdialog.h"
-"flareqt/selection.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/selection.h"
 #include "saveloadqsettings.h"
 
 // Qt includes

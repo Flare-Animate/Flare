@@ -1,6 +1,6 @@
 
 
-"flareqt/checkbox.h"
+#include "flareqt/checkbox.h"
 
 #include <QTabletEvent>
 

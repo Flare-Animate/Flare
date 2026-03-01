@@ -2,7 +2,7 @@
 
 #include "tfxattributes.h"
 
-"flare/tstageobject.h"
+#include "flare/tstageobject.h"
 
 #include "trop.h"
 

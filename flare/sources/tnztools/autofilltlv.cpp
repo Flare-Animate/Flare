@@ -9,17 +9,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-"flare/toonzimageutils.h"
+#include "flare/toonzimageutils.h"
 #include "tw/tw.h"
-"flare/fill.h"
-"flare/ttilesaver.h"
+#include "flare/fill.h"
+#include "flare/ttilesaver.h"
 #include "flare4.6/tmacro.h"
 /*
 #include "tropcm.h"
 #include "timage_io.h"
 #include "tlevel_io.h"
-"flare/txshsimplelevel.h"
-"flare/tscenehandle.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/tscenehandle.h"
 #include "tools/tool.h"*/
 
 #ifndef _WIN32

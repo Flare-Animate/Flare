@@ -1,6 +1,6 @@
 #include "scriptconsolepanel.h"
 #include "tapp.h"
-"flareqt/tselectionhandle.h"
+#include "flareqt/tselectionhandle.h"
 #include <QLabel>
 
 ScriptConsolePanel::ScriptConsolePanel(QWidget *parent, Qt::WindowFlags flags)

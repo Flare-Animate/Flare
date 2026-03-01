@@ -4,10 +4,10 @@
 #include "tfilepath.h"
 
 // TnzLib includes
-"flare/txshsimplelevel.h"
-"flare/preferences.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/preferences.h"
 
-"flare/onionskinmask.h"
+#include "flare/onionskinmask.h"
 
 //*****************************************************************************************
 //    Macros

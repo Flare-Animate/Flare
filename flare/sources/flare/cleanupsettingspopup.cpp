@@ -13,25 +13,25 @@
 #include "floatingpanelcommand.h"
 
 // TnzQt includes
-"flareqt/gutil.h"
-"flareqt/tabbar.h"
-"flareqt/checkbox.h"
-"flareqt/doublefield.h"
-"flareqt/filefield.h"
-"flareqt/cleanupcamerasettingswidget.h"
+#include "flareqt/gutil.h"
+#include "flareqt/tabbar.h"
+#include "flareqt/checkbox.h"
+#include "flareqt/doublefield.h"
+#include "flareqt/filefield.h"
+#include "flareqt/cleanupcamerasettingswidget.h"
 
 // TnzLib includes
-"flare/toonzfolders.h"
-"flare/palettecontroller.h"
-"flare/tpalettehandle.h"
-"flare/tscenehandle.h"
-"flare/txsheethandle.h"
-"flare/txshlevelhandle.h"
-"flare/tframehandle.h"
-"flare/tcolumnhandle.h"
-"flare/toonzscene.h"
-"flare/sceneproperties.h"
-"flare/txshsimplelevel.h"
+#include "flare/toonzfolders.h"
+#include "flare/palettecontroller.h"
+#include "flare/tpalettehandle.h"
+#include "flare/tscenehandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/tframehandle.h"
+#include "flare/tcolumnhandle.h"
+#include "flare/toonzscene.h"
+#include "flare/sceneproperties.h"
+#include "flare/txshsimplelevel.h"
 
 // Qt includes
 #include <QSplitter>

@@ -3,13 +3,13 @@
 #ifndef TXSHCHILDLEVEL_INCLUDED
 #define TXSHCHILDLEVEL_INCLUDED
 
-"flare/txshlevel.h"
+#include "flare/txshlevel.h"
 
 #include "traster.h"
 
 #undef DVAPI
 #undef DVVAR
-#ifdef TOONZLIB_EXPORTS
+#ifdef FLARELIB_EXPORTS
 #define DVAPI DV_EXPORT_API
 #define DVVAR DV_EXPORT_VAR
 #else

@@ -8,7 +8,7 @@
 #include "tapp.h"
 
 // TnzQt includes
-"flareqt/menubarcommand.h"
+#include "flareqt/menubarcommand.h"
 
 // Qt includes
 #include <QPushButton>

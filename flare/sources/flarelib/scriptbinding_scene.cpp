@@ -1,18 +1,18 @@
 
 
-"flare/scriptbinding_scene.h"
-"flare/scriptbinding_level.h"
-"flare/scriptbinding_files.h"
-"flare/txshleveltypes.h"
+#include "flare/scriptbinding_scene.h"
+#include "flare/scriptbinding_level.h"
+#include "flare/scriptbinding_files.h"
+#include "flare/txshleveltypes.h"
 
 #include "tsystem.h"
 #include "tfiletype.h"
 
-"flare/tproject.h"
-"flare/toonzscene.h"
-"flare/txsheet.h"
-"flare/txshcell.h"
-"flare/levelset.h"
+#include "flare/tproject.h"
+#include "flare/toonzscene.h"
+#include "flare/txsheet.h"
+#include "flare/txshcell.h"
+#include "flare/levelset.h"
 
 namespace TScriptBinding {
 

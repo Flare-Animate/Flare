@@ -5,11 +5,11 @@
 
 #include "tfilepath.h"
 
-"flare/imagemanager.h"
-"flare/tcamera.h"
+#include "flare/imagemanager.h"
+#include "flare/tcamera.h"
 
 // ToonzLib includes
-"flare/stage.h"
+#include "flare/stage.h"
 
 //======================================================
 

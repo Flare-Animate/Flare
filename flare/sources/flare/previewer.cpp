@@ -26,30 +26,30 @@
 #include "toutputproperties.h"
 
 // Toonz stage structures
-"flare/tobjecthandle.h"
-"flare/tscenehandle.h"
-"flare/tframehandle.h"
-"flare/txshlevelhandle.h"
-"flare/txsheethandle.h"
-"flare/tfxhandle.h"
-"flare/tpalettehandle.h"
-"flare/sceneproperties.h"
-"flare/scenefx.h"
-"flare/toonzscene.h"
-"flare/txshlevel.h"
-"flare/txsheet.h"
-"flare/tcamera.h"
-"flare/palettecontroller.h"
+#include "flare/tobjecthandle.h"
+#include "flare/tscenehandle.h"
+#include "flare/tframehandle.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/tfxhandle.h"
+#include "flare/tpalettehandle.h"
+#include "flare/sceneproperties.h"
+#include "flare/scenefx.h"
+#include "flare/toonzscene.h"
+#include "flare/txshlevel.h"
+#include "flare/txsheet.h"
+#include "flare/tcamera.h"
+#include "flare/palettecontroller.h"
 
 // Toonz-qt stuff
-"flareqt/gutil.h"
-"flareqt/menubarcommand.h"
+#include "flareqt/gutil.h"
+#include "flareqt/menubarcommand.h"
 #include "menubarcommandids.h"
 #include "filebrowserpopup.h"
 #include "filebrowsermodel.h"
 
 // Toonz 6 FlipConsole's slider
-"flareqt/flipconsole.h"
+#include "flareqt/flipconsole.h"
 
 // Qt stuff
 #include <QTimer>

@@ -8,13 +8,13 @@
 #include "tapp.h"
 
 // TnzQt includes
-"flareqt/tselectionhandle.h"
+#include "flareqt/tselectionhandle.h"
 
 #include "menubarcommandids.h"
 #include "tundo.h"
-"flare/tscenehandle.h"
-"flare/txsheethandle.h"
-"flare/toonzscene.h"
+#include "flare/tscenehandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/toonzscene.h"
 #include "historytypes.h"
 
 // Qt includes

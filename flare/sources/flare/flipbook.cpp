@@ -32,25 +32,25 @@
 #include "tvectorrenderdata.h"
 
 // Qt helpers
-"flareqt/gutil.h"
-"flareqt/imageutils.h"
+#include "flareqt/gutil.h"
+#include "flareqt/imageutils.h"
 
 // App-Stage includes
 #include "tapp.h"
 #include "toutputproperties.h"
-"flare/txsheethandle.h"
-"flare/txshsimplelevel.h"
-"flare/levelproperties.h"
-"flare/tscenehandle.h"
-"flare/toonzscene.h"
-"flare/sceneproperties.h"
-"flare/txshlevelhandle.h"
-"flare/tcamera.h"
-"flare/preferences.h"
-"flare/tproject.h"
+#include "flare/txsheethandle.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/levelproperties.h"
+#include "flare/tscenehandle.h"
+#include "flare/toonzscene.h"
+#include "flare/sceneproperties.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/tcamera.h"
+#include "flare/preferences.h"
+#include "flare/tproject.h"
 
 // Image painting
-"flare/imagepainter.h"
+#include "flare/imagepainter.h"
 
 // Preview
 #include "previewfxmanager.h"
@@ -62,8 +62,8 @@
 #include "mainwindow.h"
 
 // Other widgets
-"flareqt/flipconsole.h"
-"flareqt/dvdialog.h"
+#include "flareqt/flipconsole.h"
+#include "flareqt/dvdialog.h"
 #include "filmstripselection.h"
 #include "castselection.h"
 #include "histogrampopup.h"

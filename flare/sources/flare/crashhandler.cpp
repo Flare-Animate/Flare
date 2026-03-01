@@ -22,10 +22,10 @@
 #include "tconvert.h"
 #include "texception.h"
 #include "tfilepath_io.h"
-"flare/toonzfolders.h"
-"flare/tproject.h"
-"flare/tscenehandle.h"
-"flare/toonzscene.h"
+#include "flare/toonzfolders.h"
+#include "flare/tproject.h"
+#include "flare/tscenehandle.h"
+#include "flare/toonzscene.h"
 
 #include <QOperatingSystemVersion>
 #include <QDesktopServices>

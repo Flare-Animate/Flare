@@ -9,8 +9,8 @@
 #include <QStackedWidget>
 #include <QPainter>
 
-"flareqt/histogram.h"
-"flareqt/gutil.h"
+#include "flareqt/histogram.h"
+#include "flareqt/gutil.h"
 
 const int HistogramGraph::drawMargin = 10;
 

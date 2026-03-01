@@ -6,11 +6,11 @@
 #include "tsystem.h"
 #include "iocommand.h"
 #include "flipbook.h"
-"flare/tscenehandle.h"
-"flare/toonzscene.h"
-"flareqt/filefield.h"
-"flareqt/intfield.h"
-"flareqt/gutil.h"
+#include "flare/tscenehandle.h"
+#include "flare/toonzscene.h"
+#include "flareqt/filefield.h"
+#include "flareqt/intfield.h"
+#include "flareqt/gutil.h"
 
 #include <QLabel>
 #include <QPushButton>

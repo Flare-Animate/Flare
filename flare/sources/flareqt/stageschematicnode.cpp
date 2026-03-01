@@ -9,34 +9,34 @@
 #include "tconst.h"
 
 // TnzLib includes
-"flare/tstageobjectid.h"
-"flare/tstageobject.h"
-"flare/tstageobjectspline.h"
-"flare/txsheet.h"
-"flare/txshcell.h"
-"flare/txshcolumn.h"
-"flare/toonzscene.h"
-"flare/sceneproperties.h"
-"flare/tstageobjectcmd.h"
-"flare/fxcommand.h"
-"flare/txshzeraryfxcolumn.h"
-"flare/tcolumnfx.h"
-"flare/tstageobjecttree.h"
-"flare/tframehandle.h"
-"flare/txshchildlevel.h"
-"flare/txshlevelcolumn.h"
-"flare/txshleveltypes.h"
-"flare/tcolumnhandle.h"
-"flare/hook.h"
-"flare/preferences.h"
-"flare/txshsimplelevel.h"
-"flare/txsheethandle.h"
+#include "flare/tstageobjectid.h"
+#include "flare/tstageobject.h"
+#include "flare/tstageobjectspline.h"
+#include "flare/txsheet.h"
+#include "flare/txshcell.h"
+#include "flare/txshcolumn.h"
+#include "flare/toonzscene.h"
+#include "flare/sceneproperties.h"
+#include "flare/tstageobjectcmd.h"
+#include "flare/fxcommand.h"
+#include "flare/txshzeraryfxcolumn.h"
+#include "flare/tcolumnfx.h"
+#include "flare/tstageobjecttree.h"
+#include "flare/tframehandle.h"
+#include "flare/txshchildlevel.h"
+#include "flare/txshlevelcolumn.h"
+#include "flare/txshleveltypes.h"
+#include "flare/tcolumnhandle.h"
+#include "flare/hook.h"
+#include "flare/preferences.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/txsheethandle.h"
 
 // TnzQt includes
-"flareqt/gutil.h"
-"flareqt/icongenerator.h"
-"flareqt/stageschematicscene.h"
-"flareqt/menubarcommand.h"
+#include "flareqt/gutil.h"
+#include "flareqt/icongenerator.h"
+#include "flareqt/stageschematicscene.h"
+#include "flareqt/menubarcommand.h"
 
 // Qt includes
 #include <QPixmap>
@@ -47,7 +47,7 @@
 #include <QTextCursor>
 #include <QSet>
 
-"flareqt/stageschematicnode.h"
+#include "flareqt/stageschematicnode.h"
 
 namespace {
 void drawCamera(QPainter *painter, const QColor &color, const QPen &pen,

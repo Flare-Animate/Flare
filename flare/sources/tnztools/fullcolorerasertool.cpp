@@ -10,17 +10,17 @@
 #include "historytypes.h"
 
 // TnzLib includes
-"flare/txsheethandle.h"
-"flare/txshlevelhandle.h"
-"flare/tcolumnhandle.h"
-"flare/tframehandle.h"
-"flare/ttileset.h"
-"flare/ttilesaver.h"
-"flare/trasterimageutils.h"
-"flare/stage2.h"
-"flare/levelproperties.h"
-"flare/strokegenerator.h"
-"flare/preferences.h"
+#include "flare/txsheethandle.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/tcolumnhandle.h"
+#include "flare/tframehandle.h"
+#include "flare/ttileset.h"
+#include "flare/ttilesaver.h"
+#include "flare/trasterimageutils.h"
+#include "flare/stage2.h"
+#include "flare/levelproperties.h"
+#include "flare/strokegenerator.h"
+#include "flare/preferences.h"
 
 // TnzBase includes
 #include "tenv.h"

@@ -5,7 +5,7 @@
 
 #include "tcommon.h"
 #include "tvectorimage.h"
-"flareqt/dvmimedata.h"
+#include "flareqt/dvmimedata.h"
 #include "ttoonzimage.h"
 #include "trasterimage.h"
 
@@ -14,7 +14,7 @@ class FullColorImageData;
 
 #undef DVAPI
 #undef DVVAR
-#ifdef TOONZQT_EXPORTS
+#ifdef FLAREQT_EXPORTS
 #define DVAPI DV_EXPORT_API
 #define DVVAR DV_EXPORT_VAR
 #else

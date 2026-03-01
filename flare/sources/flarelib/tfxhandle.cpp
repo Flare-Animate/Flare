@@ -1,6 +1,6 @@
 
 
-"flare/tfxhandle.h"
+#include "flare/tfxhandle.h"
 #include "tfx.h"
 
 TFxHandle::TFxHandle() : m_fx(0), m_previousActionString() {}

@@ -3,7 +3,7 @@
 #ifndef SCRIPTBINDING_IMAGE_H
 #define SCRIPTBINDING_IMAGE_H
 
-"flare/scriptbinding.h"
+#include "flare/scriptbinding.h"
 
 namespace TScriptBinding {
 

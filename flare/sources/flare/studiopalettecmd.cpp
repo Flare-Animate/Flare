@@ -2,22 +2,22 @@
 
 #include "studiopalettecmd.h"
 #include "tapp.h"
-"flare/tpalettehandle.h"
-"flare/txshlevelhandle.h"
-"flare/tscenehandle.h"
+#include "flare/tpalettehandle.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/tscenehandle.h"
 #include "tundo.h"
 #include "tcolorstyles.h"
 #include "tsystem.h"
-"flareqt/icongenerator.h"
+#include "flareqt/icongenerator.h"
 #include "toonzutil.h"
 #include "tconvert.h"
 
-"flare/studiopalette.h"
-"flare/toonzscene.h"
-"flare/levelset.h"
-"flare/txshsimplelevel.h"
-"flare/txshleveltypes.h"
-"flare/sceneproperties.h"
+#include "flare/studiopalette.h"
+#include "flare/toonzscene.h"
+#include "flare/levelset.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/txshleveltypes.h"
+#include "flare/sceneproperties.h"
 
 // DA FARE
 // Mi serve per effettuare il cambiamento della StudioPalette corrente

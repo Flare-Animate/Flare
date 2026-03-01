@@ -19,21 +19,21 @@
 #include "tools/toolhandle.h"
 
 // TnzQt includes
-"flareqt/gutil.h"
-"flareqt/icongenerator.h"
-"flareqt/viewcommandids.h"
-"flareqt/updatechecker.h"
-"flareqt/paletteviewer.h"
-"flareqt/seethroughwindow.h"
+#include "flareqt/gutil.h"
+#include "flareqt/icongenerator.h"
+#include "flareqt/viewcommandids.h"
+#include "flareqt/updatechecker.h"
+#include "flareqt/paletteviewer.h"
+#include "flareqt/seethroughwindow.h"
 
 // TnzLib includes
-"flare/toonzfolders.h"
-"flare/stage2.h"
-"flare/stylemanager.h"
-"flare/tscenehandle.h"
-"flare/toonzscene.h"
-"flare/txshleveltypes.h"
-"flare/tproject.h"
+#include "flare/toonzfolders.h"
+#include "flare/stage2.h"
+#include "flare/stylemanager.h"
+#include "flare/tscenehandle.h"
+#include "flare/toonzscene.h"
+#include "flare/txshleveltypes.h"
+#include "flare/tproject.h"
 
 // TnzBase includes
 #include "tenv.h"

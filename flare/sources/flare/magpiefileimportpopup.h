@@ -3,7 +3,7 @@
 #ifndef MAGPIEFILEIMPORTPOPUP_H
 #define MAGPIEFILEIMPORTPOPUP_H
 
-"flareqt/dvdialog.h"
+#include "flareqt/dvdialog.h"
 #include "tfilepath.h"
 
 class FlipBook;

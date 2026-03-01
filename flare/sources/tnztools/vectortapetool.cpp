@@ -10,16 +10,16 @@
 #include "tools/cursors.h"
 #include "tproperty.h"
 
-"flareqt/imageutils.h"
+#include "flareqt/imageutils.h"
 
-"flare/tframehandle.h"
-"flare/tcolumnhandle.h"
-"flare/txshlevelhandle.h"
-"flare/tobjecthandle.h"
-"flare/txsheethandle.h"
-"flare/tstageobject.h"
+#include "flare/tframehandle.h"
+#include "flare/tcolumnhandle.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/tobjecthandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/tstageobject.h"
 #include "tools/toolhandle.h"
-"flare/stage2.h"
+#include "flare/stage2.h"
 #include "tenv.h"
 // For Qt translation support
 #include <QCoreApplication>

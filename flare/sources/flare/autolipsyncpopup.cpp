@@ -8,23 +8,23 @@
 #include "menubarcommandids.h"
 
 // TnzQt includes
-"flareqt/menubarcommand.h"
-"flareqt/icongenerator.h"
+#include "flareqt/menubarcommand.h"
+#include "flareqt/icongenerator.h"
 
 // TnzLib includes
-"flare/toonzscene.h"
-"flare/txsheet.h"
-"flare/tscenehandle.h"
-"flare/txsheethandle.h"
-"flare/tcolumnhandle.h"
-"flare/tframehandle.h"
-"flare/txshsimplelevel.h"
-"flare/txshlevelhandle.h"
-"flare/txshcell.h"
-"flare/sceneproperties.h"
+#include "flare/toonzscene.h"
+#include "flare/txsheet.h"
+#include "flare/tscenehandle.h"
+#include "flare/txsheethandle.h"
+#include "flare/tcolumnhandle.h"
+#include "flare/tframehandle.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/txshcell.h"
+#include "flare/sceneproperties.h"
 #include "tsound_io.h"
 #include "toutputproperties.h"
-"flare/tproject.h"
+#include "flare/tproject.h"
 #include "thirdparty.h"
 
 // TnzCore includes

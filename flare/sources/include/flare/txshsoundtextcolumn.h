@@ -3,14 +3,14 @@
 #ifndef TXSHSOUNDTEXTCOLUMN_INCLUDED
 #define TXSHSOUNDTEXTCOLUMN_INCLUDED
 
-"flare/txshcolumn.h"
-"flare/txshcell.h"
+#include "flare/txshcolumn.h"
+#include "flare/txshcell.h"
 
 #include <QList>
 
 #undef DVAPI
 #undef DVVAR
-#ifdef TOONZLIB_EXPORTS
+#ifdef FLARELIB_EXPORTS
 #define DVAPI DV_EXPORT_API
 #define DVVAR DV_EXPORT_VAR
 #else

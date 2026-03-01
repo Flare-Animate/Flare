@@ -90,8 +90,8 @@ class TvpJsonLayer {
 
   // pre_behavior, post_behavior : Unknown. Put 0 for now.
 
-  // "description": "composite mode of the layers. "Color"ÅÅNormal,
-  // "Darken"ÅÅDarken"
+  // "description": "composite mode of the layers. "Color"ÔøΩÔøΩNormal,
+  // "Darken"ÔøΩÔøΩDarken"
   BlendMode m_blending_mode;
 
   // group/red,green,blue  "description": "Unknown. Put 0 for now"
@@ -119,8 +119,8 @@ class TvpJsonClip {
   double m_pixelaspectratio;
   // "image-count": "description": "scene frame length"
   int m_image_count;
-  // bg/red,green,blue  "description": "camera BG colorÅi0-255 for each
-  // channelÅj"
+  // bg/red,green,blue  "description": "camera BG colorÔøΩi0-255 for each
+  // channelÔøΩj"
   QColor m_bg;
 
   // camera : camera information. Ignore it for now.

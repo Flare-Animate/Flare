@@ -3,7 +3,7 @@
 #ifndef FILEDATA_H
 #define FILEDATA_H
 
-"flareqt/dvmimedata.h"
+#include "flareqt/dvmimedata.h"
 #include "tfilepath.h"
 
 //=============================================================================

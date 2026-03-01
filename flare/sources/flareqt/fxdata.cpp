@@ -4,9 +4,9 @@
 #include "tfxattributes.h"
 
 // TnzLib includes
-"flare/tcolumnfx.h"
-"flare/txsheet.h"
-"flare/txshzeraryfxcolumn.h"
+#include "flare/tcolumnfx.h"
+#include "flare/txsheet.h"
+#include "flare/txshzeraryfxcolumn.h"
 
 #include "fxdata.h"
 

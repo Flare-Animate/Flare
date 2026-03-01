@@ -10,7 +10,7 @@
 #include <QStringList>
 
 #undef DVAPI
-#ifdef TOONZLIB_EXPORTS
+#ifdef FLARELIB_EXPORTS
 #define DVAPI DV_EXPORT_API
 #else
 #define DVAPI DV_IMPORT_API

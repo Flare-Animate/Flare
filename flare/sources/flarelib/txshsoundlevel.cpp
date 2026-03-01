@@ -1,10 +1,10 @@
 
 
-"flare/txshsoundlevel.h"
+#include "flare/txshsoundlevel.h"
 #include "tsound_io.h"
-"flare/toonzscene.h"
-"flare/sceneproperties.h"
-"flare/txshleveltypes.h"
+#include "flare/toonzscene.h"
+#include "flare/sceneproperties.h"
+#include "flare/txshleveltypes.h"
 
 #include "tstream.h"
 #include "toutputproperties.h"

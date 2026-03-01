@@ -11,16 +11,16 @@
 #include "tnzimage.h"
 #include "tsystem.h"
 #include "trop.h"
-"flare/fill.h"
-"flare/autoclose.h"
+#include "flare/fill.h"
+#include "flare/autoclose.h"
 #include "tenv.h"
 #include "convert2tlv.h"
 #include "tstream.h"
-"flare/stage2.h"
+#include "flare/stage2.h"
 
 #include <map>
 
-"flare/toonzfolders.h"
+#include "flare/toonzfolders.h"
 
 // gmt, 14/11/2013 removed a commented out blocks of code (void buildInks1(),
 // void buildPalette() )

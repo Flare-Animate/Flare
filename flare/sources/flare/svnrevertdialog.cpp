@@ -6,10 +6,10 @@
 #include "tapp.h"
 
 // TnzQt includes
-"flareqt/gutil.h"
+#include "flareqt/gutil.h"
 
 // TnzLib includes
-"flare/txshsimplelevel.h"
+#include "flare/txshsimplelevel.h"
 
 // TnzCore includes
 #include "tfilepath.h"

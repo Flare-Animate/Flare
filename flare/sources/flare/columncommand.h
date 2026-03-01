@@ -6,7 +6,7 @@
 #include <set>
 #include <QList>
 
-"flare/tstageobjectid.h"
+#include "flare/tstageobjectid.h"
 
 class StageObjectsData;
 class TFx;

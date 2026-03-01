@@ -1,17 +1,17 @@
 
 
-"flare/txshsoundcolumn.h"
-"flare/levelset.h"
-"flare/txsheet.h"
-"flare/toonzscene.h"
-"flare/tproject.h"
-"flare/sceneproperties.h"
+#include "flare/txshsoundcolumn.h"
+#include "flare/levelset.h"
+#include "flare/txsheet.h"
+#include "flare/toonzscene.h"
+#include "flare/tproject.h"
+#include "flare/sceneproperties.h"
 
 #include "tstream.h"
 #include "toutputproperties.h"
 #include "tsop.h"
 #include "tconvert.h"
-"flare/preferences.h"
+#include "flare/preferences.h"
 
 #include <QAudioFormat>
 #include <QAudioDeviceInfo>

@@ -1,6 +1,6 @@
 
 
-"flare/studiopalette.h"
+#include "flare/studiopalette.h"
 #include "tfiletype.h"
 #include "tstream.h"
 #include "tconvert.h"
@@ -9,9 +9,9 @@
 #include "traster.h"
 #include "tsystem.h"
 #include "tcolorstyles.h"
-"flare/toonzfolders.h"
-"flare/tproject.h"
-"flare/toonzscene.h"
+#include "flare/toonzfolders.h"
+#include "flare/tproject.h"
+#include "flare/toonzscene.h"
 #include "tpalette.h"
 
 #include <time.h>

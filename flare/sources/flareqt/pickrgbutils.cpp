@@ -10,7 +10,7 @@
 #include <QApplication>
 #include <QScreen>
 
-"flareqt/pickrgbutils.h"
+#include "flareqt/pickrgbutils.h"
 
 //*************************************************************************************
 //    Local namespace

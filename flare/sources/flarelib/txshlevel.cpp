@@ -1,8 +1,8 @@
 
 
-"flare/txshlevel.h"
-"flare/txshleveltypes.h"
-"flare/hook.h"
+#include "flare/txshlevel.h"
+#include "flare/txshleveltypes.h"
+#include "flare/hook.h"
 
 //-----------------------------------------------------------------------------
 

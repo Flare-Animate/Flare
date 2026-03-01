@@ -4,7 +4,7 @@
 #include <QPaintEvent>
 #include <QPainter>
 
-"flareqt/marksbar.h"
+#include "flareqt/marksbar.h"
 
 //*****************************************************************************
 //    Local namespace stuff

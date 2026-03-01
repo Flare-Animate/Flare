@@ -3,10 +3,10 @@
 #include "functionpaneltools.h"
 
 // TnzQt includes
-"flareqt/functionselection.h"
+#include "flareqt/functionselection.h"
 
 // TnzLib includes
-"flare/tframehandle.h"
+#include "flare/tframehandle.h"
 
 // TnzCore includes
 #include "tundo.h"

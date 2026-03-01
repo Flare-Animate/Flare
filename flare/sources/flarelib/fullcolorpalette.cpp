@@ -1,9 +1,9 @@
 
 
-"flare/fullcolorpalette.h"
-"flare/tscenehandle.h"
-"flare/toonzscene.h"
-"flare/toonzfolders.h"
+#include "flare/fullcolorpalette.h"
+#include "flare/tscenehandle.h"
+#include "flare/toonzscene.h"
+#include "flare/toonzfolders.h"
 #include "tsystem.h"
 #include "tstream.h"
 #include "tpalette.h"

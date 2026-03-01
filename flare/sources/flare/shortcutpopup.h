@@ -8,7 +8,7 @@
 #include <QComboBox>
 #include <QKeySequenceEdit>
 #include "filebrowserpopup.h"
-"flareqt/dvdialog.h"
+#include "flareqt/dvdialog.h"
 
 // forward declaration
 class QPushButton;

@@ -10,8 +10,8 @@
 #include "tthread.h"
 #include "timage.h"
 
-"flare/tcenterlinevectorizer.h"
-"flareqt/planeviewer.h"
+#include "flare/tcenterlinevectorizer.h"
+#include "flareqt/planeviewer.h"
 
 // Qt includes
 #include <QFrame>

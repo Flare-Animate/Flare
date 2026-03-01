@@ -7,7 +7,7 @@
 #include "tcommon.h"
 
 // TnzQt includes
-"flareqt/intfield.h"
+#include "flareqt/intfield.h"
 
 // Qt includes
 #include <QWidget>
@@ -15,7 +15,7 @@
 
 #undef DVAPI
 #undef DVVAR
-#ifdef TOONZQT_EXPORTS
+#ifdef FLAREQT_EXPORTS
 #define DVAPI DV_EXPORT_API
 #define DVVAR DV_EXPORT_VAR
 #else

@@ -10,15 +10,15 @@
 #include "columnselection.h"
 
 // TnzQt includes
-"flareqt/selection.h"
-"flareqt/tselectionhandle.h"
+#include "flareqt/selection.h"
+#include "flareqt/tselectionhandle.h"
 
 // TnzLib includes
-"flare/txsheet.h"
-"flare/txshsimplelevel.h"
-"flare/txshcell.h"
-"flare/txsheethandle.h"
-"flare/txshlevelhandle.h"
+#include "flare/txsheet.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/txshcell.h"
+#include "flare/txsheethandle.h"
+#include "flare/txshlevelhandle.h"
 
 // tcg includes
 #include "tcg/boost/range_utility.h"

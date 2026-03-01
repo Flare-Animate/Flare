@@ -1,6 +1,6 @@
 
 
-"flare/scriptbinding_files.h"
+#include "flare/scriptbinding_files.h"
 #include <QScriptEngine>
 #include <QFile>
 #include <QFileInfo>

@@ -1,12 +1,12 @@
 
 
 // TnzLib includes
-"flare/txsheet.h"
-"flare/txshcell.h"
-"flare/hook.h"
-"flare/dpiscale.h"
-"flare/txshsimplelevel.h"
-"flare/stage.h"
+#include "flare/txsheet.h"
+#include "flare/txshcell.h"
+#include "flare/hook.h"
+#include "flare/dpiscale.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/stage.h"
 
 #include "xshhandlemanager.h"
 

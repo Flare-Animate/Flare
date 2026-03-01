@@ -4,7 +4,7 @@
 #define MULTIPLESELECTION_H
 
 // TnzQt includes
-"flareqt/selection.h"
+#include "flareqt/selection.h"
 
 // STD includes
 #include <algorithm>

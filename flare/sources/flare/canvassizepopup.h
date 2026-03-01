@@ -3,8 +3,8 @@
 #ifndef CANVASSIZEPOPUP_H
 #define CANVASSIZEPOPUP_H
 
-"flareqt/dvdialog.h"
-"flare/txshsimplelevel.h"
+#include "flareqt/dvdialog.h"
+#include "flare/txshsimplelevel.h"
 #include <QPixmap>
 
 // forward declaration

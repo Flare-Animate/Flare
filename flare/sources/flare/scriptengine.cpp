@@ -7,20 +7,20 @@
 #include <QTextStream>
 #include <QFile>
 
-"flareqt/menubarcommand.h"
-"flareqt/dvdialog.h"
+#include "flareqt/menubarcommand.h"
+#include "flareqt/dvdialog.h"
 #include "filebrowserpopup.h"
 #include "tapp.h"
 
-"flare/txsheethandle.h"
-"flare/tscenehandle.h"
-"flare/toonzscene.h"
-"flare/levelset.h"
-"flare/txsheet.h"
-"flare/txshcell.h"
-"flare/txshsimplelevel.h"
-"flare/txshleveltypes.h"
-"flare/toonzfolders.h"
+#include "flare/txsheethandle.h"
+#include "flare/tscenehandle.h"
+#include "flare/toonzscene.h"
+#include "flare/levelset.h"
+#include "flare/txsheet.h"
+#include "flare/txshcell.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/txshleveltypes.h"
+#include "flare/toonzfolders.h"
 
 namespace ScriptWrapper {
 

@@ -8,14 +8,14 @@
 #include "tcontenthistory.h"
 
 // TnzLib includes
-"flare/txshleveltypes.h"
-"flare/imagemanager.h"
-"flare/toonzscene.h"
-"flare/levelproperties.h"
-"flare/preferences.h"
-"flare/sceneproperties.h"
+#include "flare/txshleveltypes.h"
+#include "flare/imagemanager.h"
+#include "flare/toonzscene.h"
+#include "flare/levelproperties.h"
+#include "flare/preferences.h"
+#include "flare/sceneproperties.h"
 
-"flare/levelupdater.h"
+#include "flare/levelupdater.h"
 
 //*****************************************************************************************
 //    Local namespace stuff

@@ -3,15 +3,15 @@
 
 #include <tools/tool.h>
 
-<flare/tapplication.h>
-<flare/txsheet.h>
-<flare/txsheethandle.h>
-<flare/txshlevelhandle.h>
-<flare/tframehandle.h>
-<flare/tobjecthandle.h>
-<flare/dpiscale.h>
-<flare/toonzscene.h>
-<flare/sceneproperties.h>
+#include "flare/tapplication.h"
+#include "flare/txsheet.h"
+#include "flare/txsheethandle.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/tframehandle.h"
+#include "flare/tobjecthandle.h"
+#include "flare/dpiscale.h"
+#include "flare/toonzscene.h"
+#include "flare/sceneproperties.h"
 
 #include <tgl.h>
 #include <tpixelutils.h>

@@ -14,23 +14,23 @@
 #include "tools/cursormanager.h"
 
 // TnzQt includes
-"flareqt/tselectionhandle.h"
-"flareqt/selection.h"
-"flareqt/stageobjectsdata.h"
+#include "flareqt/tselectionhandle.h"
+#include "flareqt/selection.h"
+#include "flareqt/stageobjectsdata.h"
 #include "historytypes.h"
 
 // TnzLib includes
-"flare/preferences.h"
-"flare/txsheet.h"
-"flare/tstageobjecttree.h"
-"flare/tscenehandle.h"
-"flare/tstageobject.h"
-"flare/tstageobjectkeyframe.h"
-"flare/txsheethandle.h"
-"flare/fxdag.h"
-"flare/tcolumnfxset.h"
-"flare/txshleveltypes.h"
-"flare/tcolumnhandle.h"
+#include "flare/preferences.h"
+#include "flare/txsheet.h"
+#include "flare/tstageobjecttree.h"
+#include "flare/tscenehandle.h"
+#include "flare/tstageobject.h"
+#include "flare/tstageobjectkeyframe.h"
+#include "flare/txsheethandle.h"
+#include "flare/fxdag.h"
+#include "flare/tcolumnfxset.h"
+#include "flare/txshleveltypes.h"
+#include "flare/tcolumnhandle.h"
 
 // TnzBase includes
 #include "tfx.h"

@@ -15,7 +15,7 @@
 #include "tparamuiconcept.h"
 
 // TnzLib includes
-"flare/toonzimageutils.h"
+#include "flare/toonzimageutils.h"
 
 // TnzStdfx includes
 #include "particlesengine.h"

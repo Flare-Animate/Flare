@@ -3,10 +3,10 @@
 // #define AUTOCLOSE_DEBUG
 
 #include "texception.h"
-"flare/autoclose.h"
+#include "flare/autoclose.h"
 #include "trastercm.h"
 #include "skeletonlut.h"
-"flare/fill.h"
+#include "flare/fill.h"
 #include <set>
 #include <queue>
 #include <unordered_set>

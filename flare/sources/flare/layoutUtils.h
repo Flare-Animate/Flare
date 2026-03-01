@@ -3,12 +3,12 @@
 
 #include <tgeometry.h>
 #include <tfilepath.h>
-<flare/txshsimplelevel.h>
+#include "flare/txshsimplelevel.h"
 #include "tfiletype.h"
-"flare/toonzscene.h"
+#include "flare/toonzscene.h"
 #include "tapp.h"
-"flare/tscenehandle.h"
-"flare/levelset.h"
+#include "flare/tscenehandle.h"
+#include "flare/levelset.h"
 
 #include "qvariant.h"
 #include <QString>

@@ -1,9 +1,9 @@
 
 
-"flare/Naa2TlvConverter.h"
+#include "flare/Naa2TlvConverter.h"
 
-"flare/tcenterlinevectorizer.h"
-"flare/stage.h"
+#include "flare/tcenterlinevectorizer.h"
+#include "flare/stage.h"
 #include "tpixelutils.h"
 #include "tpalette.h"
 

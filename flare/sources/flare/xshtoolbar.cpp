@@ -7,10 +7,10 @@
 #include "commandbarpopup.h"
 
 // TnzLib includes
-"flare/preferences.h"
-"flare/toonzscene.h"
-"flare/tscenehandle.h"
-"flare/childstack.h"
+#include "flare/preferences.h"
+#include "flare/toonzscene.h"
+#include "flare/tscenehandle.h"
+#include "flare/childstack.h"
 
 // Qt includes
 #include <QWidgetAction>

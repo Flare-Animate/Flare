@@ -4,7 +4,7 @@
 #define RULER_INCLUDED
 
 #include <QWidget>
-"flare/sceneproperties.h"
+#include "flare/sceneproperties.h"
 
 // forward declaration
 class SceneViewer;

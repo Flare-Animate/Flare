@@ -8,12 +8,12 @@
 #include "tapp.h"
 
 // TnzQt includes
-"flareqt/menubarcommand.h"
+#include "flareqt/menubarcommand.h"
 
 // TnzLib includes
-"flare/tfxhandle.h"
-"flare/tcolumnfx.h"
-"flare/toonzfolders.h"
+#include "flare/tfxhandle.h"
+#include "flare/tcolumnfx.h"
+#include "flare/toonzfolders.h"
 
 // TnzBase includes
 #include "tfx.h"

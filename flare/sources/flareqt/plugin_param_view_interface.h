@@ -6,7 +6,7 @@
 #include "tfx.h"
 #include "toonz_hostif.h"
 
-<flareqt/fxsettings.h>
+#include "flareqt/fxsettings.h"
 
 #include <QWidget>
 

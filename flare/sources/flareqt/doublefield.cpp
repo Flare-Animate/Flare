@@ -4,8 +4,8 @@
 #include <array>
 #include <QtGlobal>
 
-"flareqt/doublefield.h"
-"flareqt/dvdialog.h"
+#include "flareqt/doublefield.h"
+#include "flareqt/dvdialog.h"
 #include "tunit.h"
 
 #include <QDoubleValidator>

@@ -7,12 +7,12 @@
 #include "tfx.h"
 
 // TnzLib includes
-"flare/fxcommand.h"
-"flare/txshcolumn.h"
-"flare/tcolumnfx.h"
+#include "flare/fxcommand.h"
+#include "flare/txshcolumn.h"
+#include "flare/tcolumnfx.h"
 
 // TnzQt includes
-"flareqt/dvmimedata.h"
+#include "flareqt/dvmimedata.h"
 
 // Qt includes
 #include <QList>

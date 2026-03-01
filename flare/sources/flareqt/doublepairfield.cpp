@@ -1,7 +1,7 @@
 
 
-"flareqt/doublepairfield.h"
-"flareqt/dvdialog.h"
+#include "flareqt/doublepairfield.h"
+#include "flareqt/dvdialog.h"
 
 #include "tcommon.h"
 

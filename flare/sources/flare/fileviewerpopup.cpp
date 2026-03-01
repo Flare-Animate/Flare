@@ -10,7 +10,7 @@
 #include <QUrl>
 #include <QPainter>
 
-"flare/toonzimageutils.h"
+#include "flare/toonzimageutils.h"
 #include "tsystem.h"
 #include "timagecache.h"
 /*
@@ -22,10 +22,10 @@
 #include "tframe.h"
 #include "tsound.h"
 #include "tsop.h"
-"flare/application.h"
-"flare/sceneproperties.h"
+#include "flare/application.h"
+#include "flare/sceneproperties.h"
 #include "toutputproperties.h"
-"flare/tabscene.h"
+#include "flare/tabscene.h"
 class TSoundTrack;
 using namespace TwConsts;*/
 

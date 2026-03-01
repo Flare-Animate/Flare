@@ -11,19 +11,19 @@
 #include "saveloadqsettings.h"
 
 // TnzLib includes
-"flare/tpalettehandle.h"
-"flare/txshlevelhandle.h"
-"flare/txshlevel.h"
-"flare/stylemanager.h"
+#include "flare/tpalettehandle.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/txshlevel.h"
+#include "flare/stylemanager.h"
 
 // TnzQt includes
-"flareqt/checkbox.h"
-"flareqt/intfield.h"
-"flareqt/doublefield.h"
-"flareqt/colorfield.h"
-"flareqt/tabbar.h"
-"flareqt/glwidget_for_highdpi.h"
-"flareqt/hexcolornames.h"
+#include "flareqt/checkbox.h"
+#include "flareqt/intfield.h"
+#include "flareqt/doublefield.h"
+#include "flareqt/colorfield.h"
+#include "flareqt/tabbar.h"
+#include "flareqt/glwidget_for_highdpi.h"
+#include "flareqt/hexcolornames.h"
 
 // Qt includes
 #include <QWidget>
@@ -39,7 +39,7 @@
 
 #undef DVAPI
 #undef DVVAR
-#ifdef TOONZQT_EXPORTS
+#ifdef FLAREQT_EXPORTS
 #define DVAPI DV_EXPORT_API
 #define DVVAR DV_EXPORT_VAR
 #else

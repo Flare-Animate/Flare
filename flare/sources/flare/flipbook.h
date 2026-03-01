@@ -3,7 +3,7 @@
 #ifndef FLIPBOOK_H
 #define FLIPBOOK_H
 
-"flareqt/flipconsole.h"
+#include "flareqt/flipconsole.h"
 #include "imageviewer.h"
 
 #include "tlevel_io.h"
@@ -12,11 +12,11 @@
 #include "filebrowserpopup.h"
 
 #include "tfx.h"
-"flare/txsheet.h"
+#include "flare/txsheet.h"
 
 #include <QTimer>
 
-"flareqt/flipconsoleowner.h"
+#include "flareqt/flipconsoleowner.h"
 
 class QPoint;
 class TPalette;

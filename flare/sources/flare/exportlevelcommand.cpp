@@ -12,24 +12,24 @@
 #include "tstroke.h"
 
 // ToonzLib includes
-"flare/txshsimplelevel.h"
-"flare/txshlevelhandle.h"
-"flare/txshleveltypes.h"
-"flare/tscenehandle.h"
-"flare/toonzscene.h"
-"flare/sceneproperties.h"
-"flare/imagemanager.h"
-"flare/tcamera.h"
-"flare/toonzimageutils.h"
-"flare/levelupdater.h"
-"flare/preferences.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/txshlevelhandle.h"
+#include "flare/txshleveltypes.h"
+#include "flare/tscenehandle.h"
+#include "flare/toonzscene.h"
+#include "flare/sceneproperties.h"
+#include "flare/imagemanager.h"
+#include "flare/tcamera.h"
+#include "flare/toonzimageutils.h"
+#include "flare/levelupdater.h"
+#include "flare/preferences.h"
 
 #include "toutputproperties.h"
 #include "ttile.h"
 
 // ToonzQt includes
-"flareqt/dvdialog.h"
-"flareqt/gutil.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/gutil.h"
 
 // Toonz includes
 #include "tapp.h"

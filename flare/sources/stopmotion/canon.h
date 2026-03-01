@@ -14,8 +14,8 @@
 
 // Toonz Includes
 #include "traster.h"
-"flareqt/gutil.h"
-"flareqt/dvdialog.h"
+#include "flareqt/gutil.h"
+#include "flareqt/dvdialog.h"
 
 #include "jpgconverter.h"
 

@@ -6,7 +6,7 @@
 #include <QStringList>
 #include <QList>
 #include <array>
-"flare/txsheet.h"
+#include "flare/txsheet.h"
 #include "tenv.h"
 #include "xsheetviewer.h"
 
