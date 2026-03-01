@@ -3828,7 +3828,7 @@ Do you want to overwrite it?</source>
         <translation>%1 不存在。</translation>
     </message>
     <message>
-        <source>Import Toonz Lip Sync File</source>
+        <source>Import Flare Lip Sync File</source>
         <translation>导入 Toonz 口型同步文件</translation>
     </message>
 </context>
@@ -4119,11 +4119,11 @@ Do you want to create it?</source>
         <translation>保存位置:</translation>
     </message>
     <message>
-        <source>Toonz Vector Level</source>
+        <source>Flare Vector Level</source>
         <translation>Toonz 矢量层级</translation>
     </message>
     <message>
-        <source>Toonz Raster Level</source>
+        <source>Flare Raster Level</source>
         <translation>Toonz 光栅层级</translation>
     </message>
     <message>
@@ -4270,11 +4270,11 @@ Do you want to create it?</source>
         <translation>声音列</translation>
     </message>
     <message>
-        <source>Toonz Vector level</source>
+        <source>Flare Vector level</source>
         <translation>Toonz 矢量层级</translation>
     </message>
     <message>
-        <source>Toonz Raster level</source>
+        <source>Flare Raster level</source>
         <translation>Toonz 光栅层级</translation>
     </message>
     <message>
@@ -4871,7 +4871,7 @@ Please use the frame numbers for reference.</source>
         <translation>文件路径丢失。</translation>
     </message>
     <message>
-        <source>Import Toonz Lip Sync File</source>
+        <source>Import Flare Lip Sync File</source>
         <translation>导入 Toonz 口型同步文件</translation>
     </message>
     <message>
@@ -6634,11 +6634,11 @@ Please use the frame numbers for reference.</source>
         <translation type="vanished">新矢量层级</translation>
     </message>
     <message>
-        <source>&amp;New Toonz Raster Level</source>
+        <source>&amp;New Flare Raster Level</source>
         <translation>新建 Toonz 光栅层级(&amp;N)</translation>
     </message>
     <message>
-        <source>New Toonz Raster Level</source>
+        <source>New Flare Raster Level</source>
         <translation type="vanished">新 Toonz 光栅层级</translation>
     </message>
     <message>
@@ -6690,7 +6690,7 @@ Please use the frame numbers for reference.</source>
         <translation>显示/隐藏当前时间指示器</translation>
     </message>
     <message>
-        <source>Vectors to Toonz Raster</source>
+        <source>Vectors to Flare Raster</source>
         <translation>转换矢量为 Toonz 光栅</translation>
     </message>
     <message>
@@ -6822,11 +6822,11 @@ Please use the frame numbers for reference.</source>
         <translation>画笔 - 锁定透明度</translation>
     </message>
     <message>
-        <source>http://opentoonz.readthedocs.io</source>
-        <translation>http://opentoonz.readthedocs.io</translation>
+        <source>http://flare-animate.readthedocs.io</source>
+        <translation>http://flare-animate.readthedocs.io</translation>
     </message>
     <message>
-        <source>&amp;Import Toonz Lip Sync File...</source>
+        <source>&amp;Import Flare Lip Sync File...</source>
         <translation>导入 Toonz 口型同步文件(&amp;I)...</translation>
     </message>
     <message>
@@ -6974,12 +6974,12 @@ N.B. 确保你没有在运行其他 Flare 进程、
         <translation>无法删除 %1 : </translation>
     </message>
     <message>
-        <source>https://github.com/opentoonz/opentoonz/releases/latest</source>
-        <translation>https://github.com/opentoonz/opentoonz/releases/latest</translation>
+        <source>https://github.com/Flare-Animate/Flare/releases/latest</source>
+        <translation>https://github.com/Flare-Animate/Flare/releases/latest</translation>
     </message>
     <message>
-        <source>https://groups.google.com/forum/#!forum/opentoonz_en</source>
-        <translation>https://groups.google.com/forum/#!forum/opentoonz_en</translation>
+        <source>https://github.com/Flare-Animate/Flare/discussions</source>
+        <translation>https://github.com/Flare-Animate/Flare/discussions</translation>
     </message>
     <message>
         <source>To report a bug, click on the button below to open a web browser window for Flare&apos;s Issues page on https://github.com.  Click on the &apos;New issue&apos; button and fill out the form.</source>
@@ -9366,11 +9366,11 @@ Set the output folder path to the subfolder as well.</source>
         <translation>默认层级类型:</translation>
     </message>
     <message>
-        <source>Toonz Vector Level</source>
+        <source>Flare Vector Level</source>
         <translation>Toonz 矢量层级</translation>
     </message>
     <message>
-        <source>Toonz Raster Level</source>
+        <source>Flare Raster Level</source>
         <translation>Toonz 光栅层级</translation>
     </message>
     <message>
@@ -12147,8 +12147,8 @@ Are you sure to </source>
         <translation>访问网站</translation>
     </message>
     <message>
-        <source>https://opentoonz.github.io/e/</source>
-        <translation>https://opentoonz.github.io/e/</translation>
+        <source>https://flare-animate.github.io/e/</source>
+        <translation>https://flare-animate.github.io/e/</translation>
     </message>
     <message>
         <source>Add color model&apos;s palette to the destination palette.</source>
@@ -17855,7 +17855,7 @@ Hold F3 Key on the Viewer to Show This Frame Only</source>
         <translation type="vanished">新矢量层级</translation>
     </message>
     <message>
-        <source>New Toonz Raster Level</source>
+        <source>New Flare Raster Level</source>
         <translation type="vanished">新Toonz光栅层级</translation>
     </message>
     <message>

@@ -3800,7 +3800,7 @@ void TCellSelection::convertVectortoVector() {
   }
 
   // This is where the copying actually happens
-  // copy old frames to Toonz Raster
+  // copy old frames to Flare Raster
   bool keepOriginalPalette;
   bool success = data->getLevelFrames(
       sl, newFrameIds, DrawingData::OVER_SELECTION, true, keepOriginalPalette,
@@ -3810,7 +3810,7 @@ void TCellSelection::convertVectortoVector() {
   std::vector<TFrameId> newFids;
   sl->getFids(newFids);
 
-  // copy the Toonz Raster frames onto the old level
+  // copy the Flare Raster frames onto the old level
   data->clear();
   data->setLevelFrames(sl, newFrameIds);
   if (Preferences::instance()->getKeepFillOnVectorSimplify())

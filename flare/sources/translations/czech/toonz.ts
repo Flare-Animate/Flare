@@ -3866,7 +3866,7 @@ Chcete jej přepsat?</translation>
         <translation>%1 neexistuje.</translation>
     </message>
     <message>
-        <source>Import Toonz Lip Sync File</source>
+        <source>Import Flare Lip Sync File</source>
         <translation>Zavést soubor synchronizace okraje Toonz</translation>
     </message>
 </context>
@@ -4161,11 +4161,11 @@ Chcete ji vytvořit?</translation>
         <translation>OK</translation>
     </message>
     <message>
-        <source>Toonz Vector Level</source>
+        <source>Flare Vector Level</source>
         <translation>Vektorová úroveň Toonz</translation>
     </message>
     <message>
-        <source>Toonz Raster Level</source>
+        <source>Flare Raster Level</source>
         <translation>Rastrová úroveň Toonz</translation>
     </message>
     <message>
@@ -4312,11 +4312,11 @@ Chcete ji vytvořit?</translation>
         <translation>Sloupec zvuku</translation>
     </message>
     <message>
-        <source>Toonz Vector level</source>
+        <source>Flare Vector level</source>
         <translation>Vektorová úroveň Toonz</translation>
     </message>
     <message>
-        <source>Toonz Raster level</source>
+        <source>Flare Raster level</source>
         <translation>Rastrová úroveň Toonz</translation>
     </message>
     <message>
@@ -4906,7 +4906,7 @@ Pro odkaz, prosím, použijte čísla snímků.</translation>
         <translation>Cesta k souboru je neznámá.</translation>
     </message>
     <message>
-        <source>Import Toonz Lip Sync File</source>
+        <source>Import Flare Lip Sync File</source>
         <translation>Zavést soubor synchronizace okraje Toonz</translation>
     </message>
     <message>
@@ -6665,11 +6665,11 @@ Pro odkaz, prosím, použijte čísla snímků.</translation>
         <translation type="vanished">Nová vektorová úroveň</translation>
     </message>
     <message>
-        <source>&amp;New Toonz Raster Level</source>
+        <source>&amp;New Flare Raster Level</source>
         <translation>&amp;Nová rastrová úroveň Toonz</translation>
     </message>
     <message>
-        <source>New Toonz Raster Level</source>
+        <source>New Flare Raster Level</source>
         <translation type="vanished">Nová rastrová úroveň Toonz</translation>
     </message>
     <message>
@@ -6733,7 +6733,7 @@ Pro odkaz, prosím, použijte čísla snímků.</translation>
         <translation>Přepnout ukazatel nynějšího času</translation>
     </message>
     <message>
-        <source>Vectors to Toonz Raster</source>
+        <source>Vectors to Flare Raster</source>
         <translation>Vektory na rastr Toonz</translation>
     </message>
     <message>
@@ -6869,11 +6869,11 @@ Pro odkaz, prosím, použijte čísla snímků.</translation>
         <translation>Nástroj štětec - zamknout alfu</translation>
     </message>
     <message>
-        <source>http://opentoonz.readthedocs.io</source>
-        <translation>http://opentoonz.readthedocs.io</translation>
+        <source>http://flare-animate.readthedocs.io</source>
+        <translation>http://flare-animate.readthedocs.io</translation>
     </message>
     <message>
-        <source>&amp;Import Toonz Lip Sync File...</source>
+        <source>&amp;Import Flare Lip Sync File...</source>
         <translation>&amp;Zavést soubor synchronizace okraje Toonz...</translation>
     </message>
     <message>
@@ -7021,12 +7021,12 @@ protože jinak můžete smazat pro něj nezbytné soubory.</translation>
         <translation>Nelze smazat %1 : </translation>
     </message>
     <message>
-        <source>https://github.com/opentoonz/opentoonz/releases/latest</source>
-        <translation>https://github.com/opentoonz/opentoonz/releases/latest</translation>
+        <source>https://github.com/Flare-Animate/Flare/releases/latest</source>
+        <translation>https://github.com/Flare-Animate/Flare/releases/latest</translation>
     </message>
     <message>
-        <source>https://groups.google.com/forum/#!forum/opentoonz_en</source>
-        <translation>https://groups.google.com/forum/#!forum/opentoonz_en</translation>
+        <source>https://github.com/Flare-Animate/Flare/discussions</source>
+        <translation>https://github.com/Flare-Animate/Flare/discussions</translation>
     </message>
     <message>
         <source>To report a bug, click on the button below to open a web browser window for Flare&apos;s Issues page on https://github.com.  Click on the &apos;New issue&apos; button and fill out the form.</source>
@@ -9382,11 +9382,11 @@ Nastavit cestu k výstupní složce také na podsložku.</translation>
         <translation>Výchozí formát úrovní:</translation>
     </message>
     <message>
-        <source>Toonz Vector Level</source>
+        <source>Flare Vector Level</source>
         <translation>Vektorová úroveň Toonz</translation>
     </message>
     <message>
-        <source>Toonz Raster Level</source>
+        <source>Flare Raster Level</source>
         <translation>Rastrová úroveň Toonz</translation>
     </message>
     <message>
@@ -12173,8 +12173,8 @@ Neurčená chyba.</translation>
         <translation>Navštívit internetovou stránku</translation>
     </message>
     <message>
-        <source>https://opentoonz.github.io/e/</source>
-        <translation>https://opentoonz.github.io/e/</translation>
+        <source>https://flare-animate.github.io/e/</source>
+        <translation>https://flare-animate.github.io/e/</translation>
     </message>
     <message>
         <source>Change current drawing %1</source>

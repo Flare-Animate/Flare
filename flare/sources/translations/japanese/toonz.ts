@@ -3915,7 +3915,7 @@ Do you want to overwrite it?</source>
         <translation>%1 は存在しません。</translation>
     </message>
     <message>
-        <source>Import Toonz Lip Sync File</source>
+        <source>Import Flare Lip Sync File</source>
         <translation>Toonzリップシンクファイルを読み込み</translation>
     </message>
 </context>
@@ -4206,11 +4206,11 @@ Do you want to create it?</source>
         <translation>保存先フォルダ：</translation>
     </message>
     <message>
-        <source>Toonz Vector Level</source>
+        <source>Flare Vector Level</source>
         <translation>Toonzベクターレベル</translation>
     </message>
     <message>
-        <source>Toonz Raster Level</source>
+        <source>Flare Raster Level</source>
         <translation>Toonzラスターレベル</translation>
     </message>
     <message>
@@ -4361,11 +4361,11 @@ Do you want to create it?</source>
         <translation>オーディオ</translation>
     </message>
     <message>
-        <source>Toonz Vector level</source>
+        <source>Flare Vector level</source>
         <translation>Toonzベクターレベル</translation>
     </message>
     <message>
-        <source>Toonz Raster level</source>
+        <source>Flare Raster level</source>
         <translation>Toonzラスターレベル</translation>
     </message>
     <message>
@@ -4951,7 +4951,7 @@ Please use the frame numbers for reference.</source>
         <translation>ファイルパスが不明です。</translation>
     </message>
     <message>
-        <source>Import Toonz Lip Sync File</source>
+        <source>Import Flare Lip Sync File</source>
         <translation>Toonzリップシンクファイルを読み込み</translation>
     </message>
     <message>
@@ -6714,11 +6714,11 @@ Please use the frame numbers for reference.</source>
         <translation type="vanished">新規ベクターレベル</translation>
     </message>
     <message>
-        <source>&amp;New Toonz Raster Level</source>
+        <source>&amp;New Flare Raster Level</source>
         <translation>新規Toonzラスターレベル (&amp;N)</translation>
     </message>
     <message>
-        <source>New Toonz Raster Level</source>
+        <source>New Flare Raster Level</source>
         <translation type="vanished">新規Toonzラスターレベル</translation>
     </message>
     <message>
@@ -6770,7 +6770,7 @@ Please use the frame numbers for reference.</source>
         <translation>フレームインジケータの表示/非表示</translation>
     </message>
     <message>
-        <source>Vectors to Toonz Raster</source>
+        <source>Vectors to Flare Raster</source>
         <translation type="vanished">ベクターからToonzラスターに変換</translation>
     </message>
     <message>
@@ -6902,11 +6902,11 @@ Please use the frame numbers for reference.</source>
         <translation>ブラシツール（ラスターMyPaintブラシ） - 透明部分の保護</translation>
     </message>
     <message>
-        <source>http://opentoonz.readthedocs.io</source>
-        <translation>https://opentoonz.readthedocs.io/ja/latest/</translation>
+        <source>http://flare-animate.readthedocs.io</source>
+        <translation>https://flare-animate.readthedocs.io/ja/latest/</translation>
     </message>
     <message>
-        <source>&amp;Import Toonz Lip Sync File...</source>
+        <source>&amp;Import Flare Lip Sync File...</source>
         <translation>Toonzリップシンクファイルを読み込み (&amp;I)...</translation>
     </message>
     <message>
@@ -7054,11 +7054,11 @@ or you may delete necessary files for it.</source>
         <translation>%1 を削除できません：</translation>
     </message>
     <message>
-        <source>https://github.com/opentoonz/opentoonz/releases/latest</source>
-        <translation>https://github.com/opentoonz/opentoonz/releases/latest</translation>
+        <source>https://github.com/Flare-Animate/Flare/releases/latest</source>
+        <translation>https://github.com/Flare-Animate/Flare/releases/latest</translation>
     </message>
     <message>
-        <source>https://groups.google.com/forum/#!forum/opentoonz_en</source>
+        <source>https://github.com/Flare-Animate/Flare/discussions</source>
         <translation>https://groups.google.com/forum/#!forum/opentoonz</translation>
     </message>
     <message>
@@ -7724,7 +7724,7 @@ or you may delete necessary files for it.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Convert to Toonz Raster...</source>
+        <source>Convert to Flare Raster...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -9479,11 +9479,11 @@ Set the output folder path to the subfolder as well.</source>
         <translation>既定のレベル形式：</translation>
     </message>
     <message>
-        <source>Toonz Vector Level</source>
+        <source>Flare Vector Level</source>
         <translation>Toonzベクターレベル</translation>
     </message>
     <message>
-        <source>Toonz Raster Level</source>
+        <source>Flare Raster Level</source>
         <translation>Toonzラスターレベル</translation>
     </message>
     <message>
@@ -12293,8 +12293,8 @@ Are you sure to </source>
         <translation>ウェブサイトを開く</translation>
     </message>
     <message>
-        <source>https://opentoonz.github.io/e/</source>
-        <translation>https://opentoonz.github.io/</translation>
+        <source>https://flare-animate.github.io/e/</source>
+        <translation>https://flare-animate.github.io/</translation>
     </message>
     <message>
         <source>Add color model&apos;s palette to the destination palette.</source>
@@ -18061,7 +18061,7 @@ Hold F3 Key on the Viewer to Show This Frame Only</source>
         <translation type="vanished">新規ベクターレベル</translation>
     </message>
     <message>
-        <source>New Toonz Raster Level</source>
+        <source>New Flare Raster Level</source>
         <translation type="vanished">新規Toonzラスターレベル</translation>
     </message>
     <message>

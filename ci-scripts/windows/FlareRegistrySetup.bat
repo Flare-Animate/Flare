@@ -31,11 +31,11 @@ echo ========================================
 echo         Flare Registry Setup
 echo ========================================
 
-REM Check if the registry key exists (we store TOONZROOT value for compatibility)
-reg query "HKEY_LOCAL_MACHINE\SOFTWARE\Flare\Flare" /v TOONZROOT >nul 2>&1
+REM Check if the registry key exists (we store FLAREROOT value for compatibility)
+reg query "HKEY_LOCAL_MACHINE\SOFTWARE\Flare\Flare" /v FLAREROOT >nul 2>&1
 if %ERRORLEVEL% EQU 0 (
     REM Key exists, check if it's different
-    for /f "tokens=2*" %%A in ('reg query "HKEY_LOCAL_MACHINE\SOFTWARE\Flare\Flare" /v TOONZROOT') do set "EXISTING_PATH=%%B"
+    for /f "tokens=2*" %%A in ('reg query "HKEY_LOCAL_MACHINE\SOFTWARE\Flare\Flare" /v FLAREROOT') do set "EXISTING_PATH=%%B"
     if "!EXISTING_PATH!" == "%STUFF_PATH%" (
         color 0E
         echo [WARNING] Registry key already exists with the same path.
@@ -80,13 +80,13 @@ if %ERRORLEVEL% NEQ 0 (
 )
 del "%REG_FILE%" >nul 2>&1
 
-REM Create the registry file (store value named TOONZROOT for compatibility)
+REM Create the registry file (store value named FLAREROOT for compatibility)
 set "STUFF_PATH_ESCAPED=%STUFF_PATH:\=\\%"
 (
     echo Windows Registry Editor Version 5.00
     echo.
     echo [HKEY_LOCAL_MACHINE\SOFTWARE\Flare\Flare]
-    echo "TOONZROOT"="%STUFF_PATH_ESCAPED%"
+    echo "FLAREROOT"="%STUFF_PATH_ESCAPED%"
 ) > "%REG_FILE%" || (
     echo [ERROR] Failed to create registry file
     exit /b 1

@@ -2,7 +2,7 @@ For licenses of third party libraries exploited in this software, please see the
 
 - - - - - - - - - - - - - - - -
 
-OpenToonz
+Flare
 
 All contributions by DWANGO:
 Copyright (c) 2016 - 2026, DWANGO Co., Ltd.

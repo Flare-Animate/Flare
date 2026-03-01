@@ -309,7 +309,7 @@ void invalidateIcons() {
   s.m_paintIndex = mask & ToonzCheck::ePaint ? tc->getColorIndex() : -1;
   IconGenerator::instance()->setSettings(s);
 
-  // Force icons to refresh for Toonz Vector levels
+  // Force icons to refresh for Flare Vector levels
   TXshLevel *sl = TApp::instance()->getCurrentLevel()->getLevel();
   if (sl && sl->getType() == PLI_XSHLEVEL) {
     std::vector<TFrameId> fids;

@@ -935,8 +935,8 @@ QString TTool::updateEnabled(int rowIndex, int columnIndex) {
     ToolTargetType targetType;
     const char *name;
   } types[] = {
-    { PLI_XSHLEVEL  , VectorImage , QT_TR_NOOP("Toonz Vector Level") },
-    { TZP_XSHLEVEL  , ToonzImage  , QT_TR_NOOP("Toonz Raster Level") },
+    { PLI_XSHLEVEL  , VectorImage , QT_TR_NOOP("Flare Vector Level") },
+    { TZP_XSHLEVEL  , ToonzImage  , QT_TR_NOOP("Flare Raster Level") },
     { OVL_XSHLEVEL  , RasterImage , QT_TR_NOOP("Raster Level")       },
     { MESH_XSHLEVEL , MeshImage   , QT_TR_NOOP("Mesh Level")         },
     { META_XSHLEVEL , MetaImage   , QT_TR_NOOP("Assistants Level")   },

@@ -44,7 +44,7 @@ class ToonzRasterBrushToolNotifier;
 //--------------------------------------------------------------
 
 //************************************************************************
-//  Toonz Raster Brush Data declaration
+//  Flare Raster Brush Data declaration
 //************************************************************************
 
 struct BrushData final : public TPersist {
@@ -71,7 +71,7 @@ struct BrushData final : public TPersist {
 };
 
 //************************************************************************
-//   Toonz Raster Brush Preset Manager declaration
+//   Flare Raster Brush Preset Manager declaration
 //************************************************************************
 
 class BrushPresetManager {
@@ -92,7 +92,7 @@ public:
 };
 
 //************************************************************************
-//   Toonz Raster Brush Tool declaration
+//   Flare Raster Brush Tool declaration
 //************************************************************************
 
 class ToonzRasterBrushTool final : public TTool,

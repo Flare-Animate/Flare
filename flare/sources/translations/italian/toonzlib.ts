@@ -70,7 +70,7 @@
     <name>ImageBuilder</name>
     <message>
         <source>Bad argument (%1): should be &apos;Raster&apos; or ToonzRaster&apos;</source>
-        <translation type="vanished">Argomento inappropriato (%1): deve essere &apos;Raster&apos; o &apos;Toonz Raster&apos;</translation>
+        <translation type="vanished">Argomento inappropriato (%1): deve essere &apos;Raster&apos; o &apos;Flare Raster&apos;</translation>
     </message>
     <message>
         <source>ImageBuilder(%1 image)</source>
@@ -791,7 +791,7 @@
     <name>TScriptBinding::ImageBuilder</name>
     <message>
         <source>Bad argument (%1): should be &apos;Raster&apos; or ToonzRaster&apos;</source>
-        <translation type="unfinished">Argomento inappropriato (%1): deve essere &apos;Raster&apos; o &apos;Toonz Raster&apos;</translation>
+        <translation type="unfinished">Argomento inappropriato (%1): deve essere &apos;Raster&apos; o &apos;Flare Raster&apos;</translation>
     </message>
     <message>
         <source>ImageBuilder(%1 image)</source>

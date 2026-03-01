@@ -100,7 +100,7 @@ CMake上で、`WITH_CANON` オプションをONにします。
 
 ### レジストリキーの作成
 1. レジストリエディタで下記のキーを作成し、 Stuff フォルダの作成でコピーした stuff フォルダのパスを記載します
-  - HKEY_LOCAL_MACHINE\SOFTWARE\Flare\Flare\TOONZROOT
+  - HKEY_LOCAL_MACHINE\SOFTWARE\Flare\Flare\FLAREROOT
 
 ### 実行
 Flare.exe を実行して動作すれば成功です。おめでとうございます。

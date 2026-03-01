@@ -107,7 +107,7 @@ struct VectorizationBuilder final : public TThread::Executor {
 
   QList<VectorizerSwatchArea *> m_listeners;
 
-  // Toonz Raster Level may have palette including MyPaint styles,
+  // Flare Raster Level may have palette including MyPaint styles,
   // which cannot be rendered in vector levels.
   // In such case prepare an alternative palette in which MyPaint styles
   // are converted to solid color styles.

@@ -142,7 +142,7 @@ private:
 
           switch (baseType) {
           case TFileType::CMAPPED_IMAGE:
-            return TXshLevelType::TZP_XSHLEVEL;  // Toonz Raster
+            return TXshLevelType::TZP_XSHLEVEL;  // Flare Raster
           case TFileType::RASTER_IMAGE:
             return TXshLevelType::OVL_XSHLEVEL;  // Raster
           case TFileType::VECTOR_IMAGE:

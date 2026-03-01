@@ -3143,7 +3143,7 @@ Do you want to overwrite it?</source>
     <name>ImportMagpieFilePopup</name>
     <message>
         <location filename="../../toonz/filebrowserpopup.cpp" line="2163"/>
-        <source>Import Toonz Lip Sync File</source>
+        <source>Import Flare Lip Sync File</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -3420,12 +3420,12 @@ Do you want to overwrite it?</source>
     </message>
     <message>
         <location filename="../../toonz/levelcreatepopup.cpp" line="187"/>
-        <source>Toonz Vector Level</source>
+        <source>Flare Vector Level</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../../toonz/levelcreatepopup.cpp" line="188"/>
-        <source>Toonz Raster Level</source>
+        <source>Flare Raster Level</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -3640,7 +3640,7 @@ Do you want to create it?</source>
     </message>
     <message>
         <location filename="../../toonz/levelsettingspopup.cpp" line="682"/>
-        <source>Toonz Raster level</source>
+        <source>Flare Raster level</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -3655,7 +3655,7 @@ Do you want to create it?</source>
     </message>
     <message>
         <location filename="../../toonz/levelsettingspopup.cpp" line="691"/>
-        <source>Toonz Vector level</source>
+        <source>Flare Vector level</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -4137,7 +4137,7 @@ Please use the frame numbers for reference.</source>
     <message>
         <location filename="../../toonz/magpiefileimportpopup.cpp" line="56"/>
         <location filename="../../toonz/magpiefileimportpopup.cpp" line="154"/>
-        <source>Import Toonz Lip Sync File</source>
+        <source>Import Flare Lip Sync File</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -4226,17 +4226,17 @@ Please use the frame numbers for reference.</source>
     </message>
     <message>
         <location filename="../../toonz/mainwindow.cpp" line="1106"/>
-        <source>http://opentoonz.readthedocs.io</source>
+        <source>http://flare-animate.readthedocs.io</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../../toonz/mainwindow.cpp" line="1113"/>
-        <source>https://github.com/opentoonz/opentoonz/releases/latest</source>
+        <source>https://github.com/Flare-Animate/Flare/releases/latest</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../../toonz/mainwindow.cpp" line="1120"/>
-        <source>https://groups.google.com/forum/#!forum/opentoonz_en</source>
+        <source>https://github.com/Flare-Animate/Flare/discussions</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -4326,7 +4326,7 @@ Please use the frame numbers for reference.</source>
     </message>
     <message>
         <location filename="../../toonz/mainwindow.cpp" line="1692"/>
-        <source>&amp;New Toonz Raster Level</source>
+        <source>&amp;New Flare Raster Level</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -4381,7 +4381,7 @@ Please use the frame numbers for reference.</source>
     </message>
     <message>
         <location filename="../../toonz/mainwindow.cpp" line="1716"/>
-        <source>&amp;Import Toonz Lip Sync File...</source>
+        <source>&amp;Import Flare Lip Sync File...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -5667,7 +5667,7 @@ Please use the frame numbers for reference.</source>
     </message>
     <message>
         <location filename="../../toonz/mainwindow.cpp" line="2375"/>
-        <source>Vectors to Toonz Raster</source>
+        <source>Vectors to Flare Raster</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -9234,12 +9234,12 @@ Is it OK to release these shortcuts?</source>
     </message>
     <message>
         <location filename="../../toonz/preferencespopup.cpp" line="1152"/>
-        <source>Toonz Vector Level</source>
+        <source>Flare Vector Level</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../../toonz/preferencespopup.cpp" line="1153"/>
-        <source>Toonz Raster Level</source>
+        <source>Flare Raster Level</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -11597,7 +11597,7 @@ Visit the Web site for more information.</source>
     </message>
     <message>
         <location filename="../../toonz/mainwindow.cpp" line="1391"/>
-        <source>https://opentoonz.github.io/e/</source>
+        <source>https://flare-animate.github.io/e/</source>
         <translation type="unfinished"></translation>
     </message>
     <message>

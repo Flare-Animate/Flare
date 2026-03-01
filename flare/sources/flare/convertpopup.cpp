@@ -606,7 +606,7 @@ QFrame *ConvertPopup::createTlvSettings() {
 
   m_appendDefaultPalette->setToolTip(
       tr("When activated, styles of the default "
-         "palette\n($TOONZSTUDIOPALETTE\\Global Palettes\\Default Palettes\\Cleanup_Palette.tpl) will \nbe "
+         "palette\n($FLARESTUDIOPALETTE\\Global Palettes\\Default Palettes\\Cleanup_Palette.tpl) will \nbe "
          "appended to the palette after conversion in \norder to save the "
          "effort of creating styles \nbefore color designing."));
 

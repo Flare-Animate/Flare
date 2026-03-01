@@ -3829,7 +3829,7 @@ Do you want to overwrite it?</source>
         <translation>%1 no existe.</translation>
     </message>
     <message>
-        <source>Import Toonz Lip Sync File</source>
+        <source>Import Flare Lip Sync File</source>
         <translation>Importar archivo de sincro labial de Toonz</translation>
     </message>
 </context>
@@ -4120,11 +4120,11 @@ Do you want to create it?</source>
         <translation>Guardar en:</translation>
     </message>
     <message>
-        <source>Toonz Vector Level</source>
+        <source>Flare Vector Level</source>
         <translation>Vectorial de Toonz</translation>
     </message>
     <message>
-        <source>Toonz Raster Level</source>
+        <source>Flare Raster Level</source>
         <translation>Imagen de Toonz</translation>
     </message>
     <message>
@@ -4255,11 +4255,11 @@ Do you want to create it?</source>
         <translation type="vanished">Nivel de escaneo</translation>
     </message>
     <message>
-        <source>Toonz Vector level</source>
+        <source>Flare Vector level</source>
         <translation>Nivel vectorial</translation>
     </message>
     <message>
-        <source>Toonz Raster level</source>
+        <source>Flare Raster level</source>
         <translation>Nivel de imagen de Toonz</translation>
     </message>
     <message>
@@ -4865,7 +4865,7 @@ Usar los números de fotograma como referencia.</translation>
         <translation>Falta la ruta al archivo.</translation>
     </message>
     <message>
-        <source>Import Toonz Lip Sync File</source>
+        <source>Import Flare Lip Sync File</source>
         <translation>Importar archivo de sincro labial de Toonz</translation>
     </message>
     <message>
@@ -6628,11 +6628,11 @@ Usar los números de fotograma como referencia.</translation>
         <translation type="vanished">Nuevo nivel vectorial</translation>
     </message>
     <message>
-        <source>&amp;New Toonz Raster Level</source>
+        <source>&amp;New Flare Raster Level</source>
         <translation>&amp;Nuevo nivel de imagen de Toonz</translation>
     </message>
     <message>
-        <source>New Toonz Raster Level</source>
+        <source>New Flare Raster Level</source>
         <translation type="vanished">Nuevo nivel de imagen de Toonz</translation>
     </message>
     <message>
@@ -6684,7 +6684,7 @@ Usar los números de fotograma como referencia.</translation>
         <translation>Indicador de tiempo actual</translation>
     </message>
     <message>
-        <source>Vectors to Toonz Raster</source>
+        <source>Vectors to Flare Raster</source>
         <translation>Vectorial a imagen de Toonz</translation>
     </message>
     <message>
@@ -6817,10 +6817,10 @@ Usar los números de fotograma como referencia.</translation>
     </message>
     <message>
         <source>https://flare-animate.github.io/website/</source>
-        <translation>https://opentoonz.readthedocs.io/es/latest/</translation>
+        <translation>https://flare-animate.readthedocs.io/es/latest/</translation>
     </message>
     <message>
-        <source>&amp;Import Toonz Lip Sync File...</source>
+        <source>&amp;Import Flare Lip Sync File...</source>
         <translation>&amp;Importar sincro labial de Toonz...</translation>
     </message>
     <message>
@@ -9339,11 +9339,11 @@ También establecer la ruta de salida a esa carpeta.</translation>
         <translation>Tipo de nivel predefinido:</translation>
     </message>
     <message>
-        <source>Toonz Vector Level</source>
+        <source>Flare Vector Level</source>
         <translation>Vectorial de Toonz</translation>
     </message>
     <message>
-        <source>Toonz Raster Level</source>
+        <source>Flare Raster Level</source>
         <translation>Imagen de Toonz</translation>
     </message>
     <message>
@@ -17761,7 +17761,7 @@ Mantener presionada la tecla F3 para ver sólo este fotograma en el visor</trans
         <translation type="vanished">Nuevo nivel vectorial</translation>
     </message>
     <message>
-        <source>New Toonz Raster Level</source>
+        <source>New Flare Raster Level</source>
         <translation type="vanished">Nuevo nivel de imagen de Toonz</translation>
     </message>
     <message>

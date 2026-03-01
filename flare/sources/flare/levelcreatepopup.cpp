@@ -195,8 +195,8 @@ LevelCreatePopup::LevelCreatePopup()
   QRegExp rx("[^\\\\/:?*.\"<>|]+");
   m_nameFld->setValidator(new QRegExpValidator(rx, this));
 
-  m_levelTypeOm->addItem(tr("Toonz Vector Level"), (int)PLI_XSHLEVEL);
-  m_levelTypeOm->addItem(tr("Toonz Raster Level"), (int)TZP_XSHLEVEL);
+  m_levelTypeOm->addItem(tr("Flare Vector Level"), (int)PLI_XSHLEVEL);
+  m_levelTypeOm->addItem(tr("Flare Raster Level"), (int)TZP_XSHLEVEL);
   m_levelTypeOm->addItem(tr("Raster Level"), (int)OVL_XSHLEVEL);
   m_levelTypeOm->addItem(tr("Scan Level"), (int)TZI_XSHLEVEL);
   m_levelTypeOm->addItem(tr("Assistants Level"), (int)META_XSHLEVEL);

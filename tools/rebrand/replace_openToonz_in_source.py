@@ -21,13 +21,13 @@ INCLUDE_GLOBS = ['**/*.cpp', '**/*.h', '**/*.c', '**/*.py', '**/*.qml', '**/*.js
 SKIP_FILES = {'README.md'}
 
 # lines containing any of these substrings will be skipped from replacement
-URL_INDICATORS = ['http://', 'https://', 'github.com/opentoonz', 'opentoonz.readthedocs', 'opentoonz.github.io']
+URL_INDICATORS = ['http://', 'https://', 'github.com/opentoonz', 'opentoonz.readthedocs', 'flare-animate.github.io']
 
 # regex for word-boundary matches
 RE_OPEN = re.compile(r"\bOpenToonz\b")
 RE_LOWER = re.compile(r"\bopentoonz\b")
-RE_TR_OPEN = re.compile(r'(tr\(\s*")([^"]*OpenToonz[^"]*)("\s*\))')
-RE_QT_TR_OPEN = re.compile(r'(QObject::tr\(\s*")([^"]*OpenToonz[^"]*)("\s*\))')
+RE_TR_OPEN = re.compile(r'(tr\(\s*")([^"]*Flare[^"]*)("\s*\))')
+RE_QT_TR_OPEN = re.compile(r'(QObject::tr\(\s*")([^"]*Flare[^"]*)("\s*\))')
 
 PATH_REPLACEMENTS = [
     (re.compile(r"/flare/"), "/flare/"),
@@ -83,7 +83,7 @@ def process_file(path: Path) -> int:
 
 
 def replace_in_tr_strings(text):
-    # Replace OpenToonz inside tr() strings and QObject::tr() occurrences
+    # Replace Flare inside tr() strings and QObject::tr() occurrences
     new_text = text
     count = 0
 
@@ -129,7 +129,7 @@ if __name__ == '__main__':
 
         # then run the general process for other replacements on non-URL lines
         if not changed:
-            if 'OpenToonz' in text or 'opentoonz' in text.lower():
+            if 'Flare' in text or 'opentoonz' in text.lower():
                 print(f'Processing: {f}')
                 try:
                     if process_file(f):

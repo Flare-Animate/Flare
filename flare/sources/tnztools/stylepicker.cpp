@@ -106,7 +106,7 @@ int StylePicker::pickStyleId(const TPointD &pos, double radius, double scale2,
 }
 
 //---------------------------------------------------------
-/*--- Toonz Raster LevelのToneを拾う。 ---*/
+/*--- Flare Raster LevelのToneを拾う。 ---*/
 int StylePicker::pickTone(const TPointD &pos) const {
   if (TToonzImageP ti = m_image) {
     TRasterCM32P ras = ti->getRaster();

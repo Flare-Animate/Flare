@@ -155,7 +155,7 @@ If a previous binary of Flare was already installed, this step and the following
 
 ### Creating Registry Keys
 1. Using the registry editor, create the following key and copy the path of the `$Flare/stuff` folder from above to it.
-  - HKEY_LOCAL_MACHINE\SOFTWARE\Flare\Flare\TOONZROOT
+  - HKEY_LOCAL_MACHINE\SOFTWARE\Flare\Flare\FLAREROOT
 
 ### Running
 `Flare.exe` can now be run.  Congratulations!

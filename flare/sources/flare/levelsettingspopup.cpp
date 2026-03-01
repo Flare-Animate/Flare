@@ -716,7 +716,7 @@ LevelSettingsValues LevelSettingsPopup::getValues(TXshLevelP level) {
   // leveltype
   switch (levelType) {
   case ToonzRaster:
-    values.typeStr = tr("Toonz Raster level");
+    values.typeStr = tr("Flare Raster level");
     break;
   case NonLinearRaster:
   case LinearRaster:
@@ -726,7 +726,7 @@ LevelSettingsValues LevelSettingsPopup::getValues(TXshLevelP level) {
     values.typeStr = tr("Mesh level");
     break;
   case ToonzVector:
-    values.typeStr = tr("Toonz Vector level");
+    values.typeStr = tr("Flare Vector level");
     break;
   case Palette:
     values.typeStr = tr("Palette level");

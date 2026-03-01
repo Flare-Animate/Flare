@@ -110,7 +110,7 @@ namespace {
 //   (es <systemVarPrefix>PROJECTS etc.)
 //
 
-const char *rootVarName     = "TOONZROOT";
+const char *rootVarName     = "FLAREROOT";
 const char *systemVarPrefix = "TOONZ";
 
 // TODO: forse anche questo andrebbe in tnzbase

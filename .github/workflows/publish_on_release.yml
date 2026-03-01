@@ -75,9 +75,9 @@ jobs:
           cd flare/build
           sudo ninja install
           mkdir -p appdir/usr
-          # prefer /opt/flare if it exists, otherwise legacy OpenToonz
+          # prefer /opt/flare if it exists, otherwise legacy Flare
           cp -r /opt/flare/* appdir/usr 2>/dev/null || true
-          cp -r /opt/opentoonz/* appdir/usr || true
+          cp -r /opt/flare/* appdir/usr || true
           # Create AppImage (best-effort)
           wget -q https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
           chmod +x linuxdeploy-x86_64.AppImage
@@ -107,13 +107,13 @@ jobs:
           if (Test-Path FlarePortable) { Remove-Item -Recurse -Force FlarePortable }
           New-Item -ItemType Directory -Path FlarePortable | Out-Null
 
-          # locate the executable; try both Flare.exe and legacy OpenToonz.exe
+          # locate the executable; try both Flare.exe and legacy Flare.exe
           $exe = $null
           $exe = Get-ChildItem -Path build -Filter Flare.exe -Recurse -ErrorAction SilentlyContinue |
                  Where-Object { $_.FullName -notmatch 'CMakeFiles' } |
                  Select-Object -First 1
           if (-not $exe) {
-            $exe = Get-ChildItem -Path build -Filter OpenToonz.exe -Recurse -ErrorAction SilentlyContinue |
+            $exe = Get-ChildItem -Path build -Filter Flare.exe -Recurse -ErrorAction SilentlyContinue |
                    Where-Object { $_.FullName -notmatch 'CMakeFiles' } |
                    Select-Object -First 1
           }

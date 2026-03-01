@@ -53,7 +53,7 @@ MagpieFileImportPopup::MagpieFileImportPopup()
     , m_toField(0)
     , m_flipbook(0)
     , m_levelPath() {
-  setWindowTitle(tr("Import Toonz Lip Sync File"));
+  setWindowTitle(tr("Import Flare Lip Sync File"));
 
   beginVLayout();
 
@@ -151,7 +151,7 @@ MagpieFileImportPopup::MagpieFileImportPopup()
                                  FlipConsole::eFlipHorizontal,
                                  FlipConsole::eFlipVertical,
                                  FlipConsole::eResetView};
-  m_flipbook = new FlipBook(this, tr("Import Toonz Lip Sync File"), buttonMask);
+  m_flipbook = new FlipBook(this, tr("Import Flare Lip Sync File"), buttonMask);
   m_flipbook->setFixedHeight(250);
   frameLayout->addWidget(m_flipbook);
   frame->setLayout(frameLayout);

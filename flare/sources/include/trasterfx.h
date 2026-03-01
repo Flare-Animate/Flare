@@ -150,7 +150,7 @@ public:
                                //! Should be moved to TOutputProperties.
 
   // when this flag is true, TLevelColumnFx::doGetBBox returns full image sized
-  // box instead of the bounding box. It takes effect only for Toonz Raster /
+  // box instead of the bounding box. It takes effect only for Flare Raster /
   // Raster levels. Currently used only in Tile Fx Iwa. (see iwa_tilefx.cpp)
   bool m_getFullSizeBBox;
 

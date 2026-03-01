@@ -63,7 +63,7 @@ inline ostream &operator<<(ostream &out, const TFilePath &fp) {
 //------------------------------------------------------------------------
 namespace {
 
-const char *rootVarName     = "TOONZROOT";
+const char *rootVarName     = "FLAREROOT";
 const char *systemVarPrefix = "TOONZ";
 
 namespace {

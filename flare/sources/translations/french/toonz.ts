@@ -2530,7 +2530,7 @@ Do you want to overwrite it?</translation>
         <translation>%1 n&apos; existe pas.</translation>
     </message>
     <message>
-        <source>Import Toonz Lip Sync File</source>
+        <source>Import Flare Lip Sync File</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -2809,11 +2809,11 @@ Voulez-vous le créer?</translation>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Toonz Vector Level</source>
+        <source>Flare Vector Level</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Toonz Raster Level</source>
+        <source>Flare Raster Level</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -2944,11 +2944,11 @@ Voulez-vous le créer?</translation>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Toonz Vector level</source>
+        <source>Flare Vector level</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Toonz Raster level</source>
+        <source>Flare Raster level</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -3517,7 +3517,7 @@ Please use the frame numbers for reference.</source>
         <translation>Le chemin du fichier manque.</translation>
     </message>
     <message>
-        <source>Import Toonz Lip Sync File</source>
+        <source>Import Flare Lip Sync File</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -5252,11 +5252,11 @@ Please use the frame numbers for reference.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>&amp;New Toonz Raster Level</source>
+        <source>&amp;New Flare Raster Level</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>New Toonz Raster Level</source>
+        <source>New Flare Raster Level</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -5320,7 +5320,7 @@ Please use the frame numbers for reference.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Vectors to Toonz Raster</source>
+        <source>Vectors to Flare Raster</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -5456,11 +5456,11 @@ Please use the frame numbers for reference.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>http://opentoonz.readthedocs.io</source>
+        <source>http://flare-animate.readthedocs.io</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>&amp;Import Toonz Lip Sync File...</source>
+        <source>&amp;Import Flare Lip Sync File...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -5602,11 +5602,11 @@ or you may delete necessary files for it.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>https://github.com/opentoonz/opentoonz/releases/latest</source>
+        <source>https://github.com/Flare-Animate/Flare/releases/latest</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>https://groups.google.com/forum/#!forum/opentoonz_en</source>
+        <source>https://github.com/Flare-Animate/Flare/discussions</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -5698,11 +5698,11 @@ or you may delete necessary files for it.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>&amp;New Toonz Raster Level</source>
+        <source>&amp;New Flare Raster Level</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>New Toonz Raster Level</source>
+        <source>New Flare Raster Level</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -5766,7 +5766,7 @@ or you may delete necessary files for it.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Vectors to Toonz Raster</source>
+        <source>Vectors to Flare Raster</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -5902,11 +5902,11 @@ or you may delete necessary files for it.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>http://opentoonz.readthedocs.io</source>
+        <source>http://flare-animate.readthedocs.io</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>&amp;Import Toonz Lip Sync File...</source>
+        <source>&amp;Import Flare Lip Sync File...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -6039,7 +6039,7 @@ or you may delete necessary files for it.</source>
         <source>
 Are you sure?
 
-N.B. Make sure you are not running another process of OpenToonz,
+N.B. Make sure you are not running another process of Flare,
 or you may delete necessary files for it.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -6048,15 +6048,15 @@ or you may delete necessary files for it.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>https://github.com/opentoonz/opentoonz/releases/latest</source>
+        <source>https://github.com/Flare-Animate/Flare/releases/latest</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>https://groups.google.com/forum/#!forum/opentoonz_en</source>
+        <source>https://github.com/Flare-Animate/Flare/discussions</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>To report a bug, click on the button below to open a web browser window for OpenToonz&apos;s Issues page on https://github.com.  Click on the &apos;New issue&apos; button and fill out the form.</source>
+        <source>To report a bug, click on the button below to open a web browser window for Flare&apos;s Issues page on https://github.com.  Click on the &apos;New issue&apos; button and fill out the form.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -7465,11 +7465,11 @@ Set the output folder path to the subfolder as well.</source>
         <translation>Type de Niveau par défaut:</translation>
     </message>
     <message>
-        <source>Toonz Vector Level</source>
+        <source>Flare Vector Level</source>
         <translation></translation>
     </message>
     <message>
-        <source>Toonz Raster Level</source>
+        <source>Flare Raster Level</source>
         <translation></translation>
     </message>
     <message>
@@ -9176,7 +9176,7 @@ Certains niveaux n&apos;ont pas été chargés, car leur version n&apos;est pas 
     </message>
     <message>
         <source>Match lines can be applied to Toonz raster levels only.</source>
-        <translation>Les lignes de match peut être appliquée seulement à des niveaux Toonz Raster.</translation>
+        <translation>Les lignes de match peut être appliquée seulement à des niveaux Flare Raster.</translation>
     </message>
     <message>
         <source>The style index you specified is not available in the palette of the destination level.</source>
@@ -9805,7 +9805,7 @@ Are you sure ?</source>
         <translation type="unfinished">Visiter le Site Web</translation>
     </message>
     <message>
-        <source>https://opentoonz.github.io/e/</source>
+        <source>https://flare-animate.github.io/e/</source>
         <translation type="unfinished"></translation>
     </message>
     <message>

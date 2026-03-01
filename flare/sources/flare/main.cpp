@@ -94,8 +94,8 @@ using namespace DVGui;
 TEnv::IntVar EnvSoftwareCurrentFontSize("SoftwareCurrentFontSize", 12);
 
 // These are the same as the default values. See tenv.cpp and tversion.h
-const char *rootVarName     = "TOONZROOT";
-const char *systemVarPrefix = "TOONZ";
+const char *rootVarName     = "FLAREROOT";
+const char *systemVarPrefix = "FLARE";
 
 #ifdef MACOSX
 #include "tthread.h"
@@ -127,7 +127,7 @@ static void toonzRunOutOfContMemHandler(unsigned long size) {
 #ifdef _WIN32
   static bool firstTime = true;
   if (firstTime) {
-    MessageBox(NULL, (LPCWSTR)L"Run out of contiguous physical memory: please save all and restart Toonz!",
+    MessageBox(NULL, (LPCWSTR)L"Run out of contiguous physical memory: please save all and restart Flare!",
 				   (LPCWSTR)L"Warning", MB_OK | MB_SYSTEMMODAL);
     firstTime = false;
   }
@@ -169,7 +169,7 @@ static void initToonzEnv(QHash<QString, QString> &argPathValues) {
   /*-- TOONZROOTのPathの確認 --*/
   // controllo se la xxxroot e' definita e corrisponde ad un folder esistente
 
-  /*-- ENGLISH: Confirm TOONZROOT Path
+  /*-- ENGLISH: Confirm FLAREROOT Path
         Check if the xxxroot is defined and corresponds to an existing folder
   --*/
 
@@ -213,7 +213,7 @@ static void initToonzEnv(QHash<QString, QString> &argPathValues) {
   for (it = projectsRoots.begin(); it != projectsRoots.end(); ++it)
     projectManager->addProjectsRoot(*it);
 
-  /*-- もしまだ無ければ、TOONZROOT/sandboxにsandboxプロジェクトを作る --*/
+  /*-- もしまだ無ければ、FLAREROOT/sandboxにsandboxプロジェクトを作る --*/
   projectManager->createSandboxIfNeeded();
 
   /*
@@ -272,7 +272,7 @@ int main(int argc, char *argv[]) {
     TCli::StringQualifier layoutFileQual(
         "-layout filename",
         "Custom layout file to be used, it should be saved in "
-        "$TOONZPROFILES\\layouts\\personal\\[CurrentLayoutName].[UserName]\\. "
+        "$FLAREPROFILES\\layouts\\personal\\[CurrentLayoutName].[UserName]\\. "
         "layouts.txt is used by default.");
     usageLine = usageLine + layoutFileQual;
 
@@ -492,7 +492,7 @@ if (QFileInfo(localSplashPath).exists() && QFileInfo(localSplashPath).isFile()) 
   glutInit(&argc, argv);
 #endif
 
-  splash.showMessage(offsetStr + "Initializing Toonz environment ...",
+  splash.showMessage(offsetStr + "Initializing Flare environment ...",
                      Qt::AlignCenter, Qt::white);
   a.processEvents();
 

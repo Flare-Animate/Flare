@@ -1,11 +1,11 @@
 blank_issues_enabled: true
 contact_links:
   - name: Manual
-    url: https://opentoonz.readthedocs.io/
-    about: The official, extensive manual used by Flare (hosted on OpenToonz docs)
+    url: https://flare-animate.readthedocs.io/
+    about: The official, extensive manual used by Flare (hosted on Flare docs)
   - name: User forum
-    url: https://groups.google.com/forum/#!forum/opentoonz_en/categories/
+    url: https://github.com/Flare-Animate/Flare/discussions/categories/
     about: You can ask and answer general questions here, and connect with other users
   - name: ユーザーフォーラム
     url: https://groups.google.com/forum/#!forum/opentoonz/categories/
-    about: このフォーラムは、OpenToonz/Flare の利用者同士で情報共有を行うことを目的としています
+    about: このフォーラムは、Flare/Flare の利用者同士で情報共有を行うことを目的としています

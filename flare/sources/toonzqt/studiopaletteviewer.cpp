@@ -677,8 +677,8 @@ void StudioPaletteTreeViewer::setAsDefault() {
 
   QString label = QObject::tr("Set As...");
   QStringList radioButtons;
-  radioButtons.append(QString("Default Toonz Raster Palette"));
-  radioButtons.append(QString("Default Toonz Vector Palette"));
+  radioButtons.append(QString("Default Flare Raster Palette"));
+  radioButtons.append(QString("Default Flare Vector Palette"));
   radioButtons.append(QString("Default Raster Drawing Palette"));
   radioButtons.append(QString("Default Cleanup Palette"));
 

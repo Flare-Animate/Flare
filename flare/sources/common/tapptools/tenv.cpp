@@ -113,7 +113,7 @@ public:
 #else
     TFilePath systemVarPath = getSystemVarPath(varName);
     if (systemVarPath.isEmpty()) {
-      std::cout << "varName:" << varName << " TOONZROOT not set..."
+      std::cout << "varName:" << varName << " FLAREROOT not set..."
                 << std::endl;
       return "";
     }
@@ -123,13 +123,13 @@ public:
                         if (!value)
                                 {
                                 std::cout << varName << " not set, returning
-   TOONZROOT" << std::endl;
-        //value = getenv("TOONZROOT");
+   FLAREROOT" << std::endl;
+        //value = getenv("FLAREROOT");
                         value="";
                         std::cout << "!!!value= "<< value << std::endl;
                         if (!value)
                                         {
-                                        std::cout << varName << "TOONZROOT not
+                                        std::cout << varName << "FLAREROOT not
    set..." << std::endl;
                                         //exit(-1);
                                         return "";
@@ -630,7 +630,7 @@ void TEnv::saveAllEnvVariables() { VariableSet::instance()->save(); }
 
 bool TEnv::setArgPathValue(std::string key, std::string value) {
   EnvGlobals *eg = EnvGlobals::instance();
-  // in case of "-TOONZROOT" , set the all unregistered paths
+  // in case of "-FLAREROOT" , set the all unregistered paths
   if (key == getRootVarName()) {
     TFilePath rootPath(value);
     eg->setStuffDir(rootPath);

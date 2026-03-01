@@ -1293,7 +1293,7 @@ QString PreferencesPopup::getUIString(PreferencesItemId id) {
       {saveUnpaintedInCleanup,
        tr("Keep Original Cleaned Up Drawings As Backup")},
       {minimizeSaveboxAfterEditing,
-       tr("Minimize Savebox after Editing (Toonz Raster Level)")},
+       tr("Minimize Savebox after Editing (Flare Raster Level)")},
       {useNumpadForSwitchingStyles,
        tr("Use Numpad and Tab keys for Switching Styles")},
       {downArrowInLevelStripCreatesNewFrame,
@@ -1474,8 +1474,8 @@ QList<ComboBoxItem> PreferencesPopup::getComboItemList(
       {DefRasterFormat, {{"tif", "tif"}, {"png", "png"}}},
       //{scanLevelType, {{"tif", "tif"}, {"png", "png"}}},
       {DefLevelType,
-       {{tr("Toonz Vector Level"), PLI_XSHLEVEL},
-        {tr("Toonz Raster Level"), TZP_XSHLEVEL},
+       {{tr("Flare Vector Level"), PLI_XSHLEVEL},
+        {tr("Flare Raster Level"), TZP_XSHLEVEL},
         {tr("Raster Level"), OVL_XSHLEVEL}}},
       {DefLevelSizePolicy,
        {{tr("Custom"), 0},
@@ -2079,7 +2079,7 @@ QWidget* PreferencesPopup::createToolsPage() {
   insertUI(levelBasedToolsDisplay, lay,
            getComboItemList(levelBasedToolsDisplay));
   QGridLayout* fillToolOptionsLay =
-      insertGroupBox(tr("Fill Tool Options (Toonz Raster Level)"), lay);
+      insertGroupBox(tr("Fill Tool Options (Flare Raster Level)"), lay);
   {
     insertUI(DefRegionWithPaint, fillToolOptionsLay);
     insertUI(ReferFillPrevailing, fillToolOptionsLay);

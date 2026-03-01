@@ -2232,7 +2232,7 @@ void ReplaceParentDirectoryPopup::initFolder() {
 // ImportMagpieFilePopup
 
 ImportMagpieFilePopup::ImportMagpieFilePopup()
-    : FileBrowserPopup(tr("Import Toonz Lip Sync File")) {
+    : FileBrowserPopup(tr("Import Flare Lip Sync File")) {
   setOkText(tr("Load"));
   addFilterType("tls");
 }

@@ -4750,7 +4750,7 @@ Do you want to overwrite it?</source>
     </message>
     <message>
         <location filename="../../toonz/filebrowserpopup.cpp" line="2169"/>
-        <source>Import Toonz Lip Sync File</source>
+        <source>Import Flare Lip Sync File</source>
         <translation>Импортировать файл синхронизации губ (TLS)</translation>
     </message>
     <message>
@@ -5047,12 +5047,12 @@ Do you want to overwrite it?</source>
     </message>
     <message>
         <location filename="../../toonz/levelcreatepopup.cpp" line="196"/>
-        <source>Toonz Vector Level</source>
+        <source>Flare Vector Level</source>
         <translation>Векторный уровень Toonz</translation>
     </message>
     <message>
         <location filename="../../toonz/levelcreatepopup.cpp" line="197"/>
-        <source>Toonz Raster Level</source>
+        <source>Flare Raster Level</source>
         <translation>Растровый уровень Toonz</translation>
     </message>
     <message>
@@ -5274,12 +5274,12 @@ Do you want to create it?</source>
     </message>
     <message>
         <location filename="../../toonz/levelsettingspopup.cpp" line="729"/>
-        <source>Toonz Vector level</source>
+        <source>Flare Vector level</source>
         <translation>Векторный уровень Toonz</translation>
     </message>
     <message>
         <location filename="../../toonz/levelsettingspopup.cpp" line="719"/>
-        <source>Toonz Raster level</source>
+        <source>Flare Raster level</source>
         <translation>Растровый уровень Toonz</translation>
     </message>
     <message>
@@ -5949,7 +5949,7 @@ Please use the frame numbers for reference.</source>
     <message>
         <location filename="../../toonz/magpiefileimportpopup.cpp" line="56"/>
         <location filename="../../toonz/magpiefileimportpopup.cpp" line="154"/>
-        <source>Import Toonz Lip Sync File</source>
+        <source>Import Flare Lip Sync File</source>
         <translation>Импорт файла синхронизации губ (TLS)</translation>
     </message>
     <message>
@@ -6033,17 +6033,17 @@ Please use the frame numbers for reference.</source>
     </message>
     <message>
         <location filename="../../toonz/mainwindow.cpp" line="1011"/>
-        <source>http://opentoonz.readthedocs.io</source>
-        <translation>https://opentoonz.readthedocs.io/ru/latest/</translation>
+        <source>http://flare-animate.readthedocs.io</source>
+        <translation>https://flare-animate.readthedocs.io/ru/latest/</translation>
     </message>
     <message>
         <location filename="../../toonz/mainwindow.cpp" line="1018"/>
-        <source>https://github.com/opentoonz/opentoonz/releases/latest</source>
+        <source>https://github.com/Flare-Animate/Flare/releases/latest</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../../toonz/mainwindow.cpp" line="1025"/>
-        <source>https://groups.google.com/forum/#!forum/opentoonz_en</source>
+        <source>https://github.com/Flare-Animate/Flare/discussions</source>
         <translation></translation>
     </message>
     <message>
@@ -6136,11 +6136,11 @@ Please use the frame numbers for reference.</source>
     </message>
     <message>
         <location filename="../../toonz/mainwindow.cpp" line="1869"/>
-        <source>&amp;New Toonz Raster Level</source>
+        <source>&amp;New Flare Raster Level</source>
         <translation>&amp;Новый растровый уровень Toonz</translation>
     </message>
     <message>
-        <source>New Toonz Raster Level</source>
+        <source>New Flare Raster Level</source>
         <translation type="vanished">Новый растровый уровень Toonz</translation>
     </message>
     <message>
@@ -6740,7 +6740,7 @@ Please use the frame numbers for reference.</source>
     </message>
     <message>
         <location filename="../../toonz/mainwindow.cpp" line="1734"/>
-        <source>&amp;Import Toonz Lip Sync File...</source>
+        <source>&amp;Import Flare Lip Sync File...</source>
         <translation>&amp;Импортировать липсинк файл (TLS)...</translation>
     </message>
     <message>
@@ -7829,7 +7829,7 @@ or you may delete necessary files for it.</source>
     </message>
     <message>
         <location filename="../../toonz/mainwindow.cpp" line="1932"/>
-        <source>Vectors to Toonz Raster</source>
+        <source>Vectors to Flare Raster</source>
         <translation>Конвертировать вектор в Toonz растр</translation>
     </message>
     <message>
@@ -11785,12 +11785,12 @@ if both are possible on coding file path.</source>
     </message>
     <message>
         <location filename="../../toonz/preferencespopup.cpp" line="1413"/>
-        <source>Toonz Vector Level</source>
+        <source>Flare Vector Level</source>
         <translation>Векторный уровень Toonz</translation>
     </message>
     <message>
         <location filename="../../toonz/preferencespopup.cpp" line="1414"/>
-        <source>Toonz Raster Level</source>
+        <source>Flare Raster Level</source>
         <translation>Растровый уровень Toonz</translation>
     </message>
     <message>
@@ -16030,8 +16030,8 @@ Visit the Web site for more information.</source>
     </message>
     <message>
         <location filename="../../toonz/mainwindow.cpp" line="1328"/>
-        <source>https://opentoonz.github.io/e/</source>
-        <translation>https://opentoonz.readthedocs.io/ru/latest/</translation>
+        <source>https://flare-animate.github.io/e/</source>
+        <translation>https://flare-animate.readthedocs.io/ru/latest/</translation>
     </message>
     <message>
         <location filename="../../toonz/main.cpp" line="113"/>

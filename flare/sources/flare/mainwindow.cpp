@@ -193,7 +193,7 @@ void makePrivate(Room *room) {
       else
         DVGui::warning(
             QObject::tr("Cannot open menubar settings template file. "
-                        "Re-installing Toonz will solve this problem."));
+                        "Re-installing Flare will solve this problem."));
     }
   }
 }
@@ -1084,21 +1084,21 @@ void MainWindow::onAbout() {
 //-----------------------------------------------------------------------------
 
 void MainWindow::onOpenOnlineManual() {
-  QDesktopServices::openUrl(QUrl(tr("http://opentoonz.readthedocs.io")));
+  QDesktopServices::openUrl(QUrl(tr("http://flare-animate.readthedocs.io")));
 }
 
 //-----------------------------------------------------------------------------
 
 void MainWindow::onOpenWhatsNew() {
   QDesktopServices::openUrl(
-      QUrl(tr("https://github.com/opentoonz/opentoonz/releases/latest")));
+      QUrl(tr("https://github.com/Flare-Animate/Flare/releases/latest")));
 }
 
 //-----------------------------------------------------------------------------
 
 void MainWindow::onOpenCommunityForum() {
   QDesktopServices::openUrl(
-      QUrl(tr("https://groups.google.com/forum/#!forum/opentoonz_en")));
+      QUrl(tr("https://github.com/Flare-Animate/Flare/discussions")));
 }
 
 //-----------------------------------------------------------------------------
@@ -1106,7 +1106,7 @@ void MainWindow::onOpenCommunityForum() {
 void MainWindow::onOpenReportABug() {
   QString str = QString(
       tr("To report a bug, click on the button below to open a web browser "
-         "window for OpenToonz's Issues page on https://github.com.  Click on "
+         "window for Flare's Issues page on https://github.com.  Click on "
          "the 'New issue' button and fill out the form."));
 
   std::vector<QString> buttons = {QObject::tr("Report a Bug"),
@@ -1114,7 +1114,7 @@ void MainWindow::onOpenReportABug() {
   int ret = DVGui::MsgBox(DVGui::INFORMATION, str, buttons, 1);
   if (ret == 1)
     QDesktopServices::openUrl(
-        QUrl("https://github.com/opentoonz/opentoonz/issues"));
+        QUrl("https://github.com/Flare-Animate/Flare/issues"));
 }
 //-----------------------------------------------------------------------------
 
@@ -1375,7 +1375,7 @@ extern const char *applicationVersion;
 void MainWindow::checkForUpdates() {
   // Since there is only a single version of Opentoonz, we can do a simple check
   // against a string
-  QString updateUrl("http://opentoonz.github.io/opentoonz-version.txt");
+  QString updateUrl("http://flare-animate.github.io/opentoonz-version.txt");
 
   m_updateChecker = new UpdateChecker(updateUrl);
       connect(m_updateChecker, SIGNAL(done(bool)), this,
@@ -1409,7 +1409,7 @@ void MainWindow::onUpdateCheckerDone(bool error) {
     dialog->deleteLater();
     if (ret == 1) {
       // Write the new last date to file
-      QDesktopServices::openUrl(QObject::tr("https://opentoonz.github.io/e/"));
+      QDesktopServices::openUrl(QObject::tr("https://flare-animate.github.io/e/"));
     }
   }
 
@@ -1820,7 +1820,7 @@ void MainWindow::defineActions() {
   createMenuFileAction(MI_LoadColorModel, QT_TR_NOOP("&Load Color Model..."),
                        "", "load_colormodel");
   createMenuFileAction(MI_ImportMagpieFile,
-                       QT_TR_NOOP("&Import Toonz Lip Sync File..."), "",
+                       QT_TR_NOOP("&Import Flare Lip Sync File..."), "",
                        "dialogue_import");
   createMenuFileAction(MI_ImportFlashVector,
                        QT_TR_NOOP("&Import Flash (Vector via External Decompiler)..."), "",
@@ -1962,7 +1962,7 @@ void MainWindow::defineActions() {
   createMenuLevelAction(MI_NewVectorLevel, QT_TR_NOOP("&New Vector Level"), "",
                         "new_vector_level");
   createMenuLevelAction(MI_NewToonzRasterLevel,
-                        QT_TR_NOOP("&New Toonz Raster Level"), "",
+                        QT_TR_NOOP("&New Flare Raster Level"), "",
                         "new_toonz_raster_level");
   createMenuLevelAction(MI_NewRasterLevel, QT_TR_NOOP("&New Raster Level"), "",
                         "new_raster_level");
@@ -2031,14 +2031,14 @@ void MainWindow::defineActions() {
   createMenuLevelAction(MI_ConvertToVectors,
                         QT_TR_NOOP("Convert to Vectors..."), "", "convert");
   createMenuLevelAction(MI_ConvertToToonzRaster,
-                        QT_TR_NOOP("Convert to Toonz Raster..."), "");
+                        QT_TR_NOOP("Convert to Flare Raster..."), "");
   createMenuLevelAction(
       MI_ConvertVectorToVector,
       QT_TRANSLATE_NOOP("MainWindow",
                         "Replace Vectors with Simplified Vectors"),
       "");
   createMenuLevelAction(MI_FillHoles, QT_TR_NOOP("&Fill Holes..."), "",
-                        "Fill small holes in Toonz Raster Level");
+                        "Fill small holes in Flare Raster Level");
   createMenuLevelAction(MI_Tracking, QT_TR_NOOP("Tracking..."), "", "focus");
 
   // Menu - Xsheet

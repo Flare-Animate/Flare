@@ -81,7 +81,7 @@ void FillHolesDialog::apply() {
   }
   int size = Frames.size();
   if (size == 0) {
-    DVGui::warning(tr("No Toonz Raster Level Selected"));
+    DVGui::warning(tr("No Flare Raster Level Selected"));
     return;
   } else {
     m_progressDialog =

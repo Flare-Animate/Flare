@@ -488,7 +488,7 @@ void CrashHandler::copyClipboard() {
 //-----------------------------------------------------------------------------
 
 void CrashHandler::openWebpage() {
-  QDesktopServices::openUrl(QUrl("https://github.com/opentoonz/opentoonz/issues"));
+  QDesktopServices::openUrl(QUrl("https://github.com/Flare-Animate/Flare/issues"));
 }  
 
 //-----------------------------------------------------------------------------

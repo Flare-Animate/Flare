@@ -63,7 +63,7 @@ public:
   int pickStyleId(const TPointD &point, double radius, double scale2,
                   int mode = 2) const;
 
-  /*--- Toonz Raster LevelのToneを拾う。 ---*/
+  /*--- Flare Raster LevelのToneを拾う。 ---*/
   int pickTone(const TPointD &pos) const;
 
   // per pli come sopra, ma ritorna il maincolor

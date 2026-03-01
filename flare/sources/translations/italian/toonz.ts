@@ -3609,7 +3609,7 @@ Vuoi sovrascriverlo?</translation>
         <translation>%1 non esiste.</translation>
     </message>
     <message>
-        <source>Import Toonz Lip Sync File</source>
+        <source>Import Flare Lip Sync File</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -3885,11 +3885,11 @@ Vuoi crearla?</translation>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Toonz Vector Level</source>
+        <source>Flare Vector Level</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Toonz Raster Level</source>
+        <source>Flare Raster Level</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -4032,11 +4032,11 @@ Vuoi crearla?</translation>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Toonz Vector level</source>
+        <source>Flare Vector level</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Toonz Raster level</source>
+        <source>Flare Raster level</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -4564,7 +4564,7 @@ Please use the frame numbers for reference.</source>
         <translation>Il percorso non è stato definito.</translation>
     </message>
     <message>
-        <source>Import Toonz Lip Sync File</source>
+        <source>Import Flare Lip Sync File</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -6272,7 +6272,7 @@ Decrementa lo spessore minimo del pennello</translation>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>&amp;New Toonz Raster Level</source>
+        <source>&amp;New Flare Raster Level</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -6332,7 +6332,7 @@ Decrementa lo spessore minimo del pennello</translation>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Vectors to Toonz Raster</source>
+        <source>Vectors to Flare Raster</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -6464,11 +6464,11 @@ Decrementa lo spessore minimo del pennello</translation>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>http://opentoonz.readthedocs.io</source>
+        <source>http://flare-animate.readthedocs.io</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>&amp;Import Toonz Lip Sync File...</source>
+        <source>&amp;Import Flare Lip Sync File...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -6606,11 +6606,11 @@ or you may delete necessary files for it.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>https://github.com/opentoonz/opentoonz/releases/latest</source>
+        <source>https://github.com/Flare-Animate/Flare/releases/latest</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>https://groups.google.com/forum/#!forum/opentoonz_en</source>
+        <source>https://github.com/Flare-Animate/Flare/discussions</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -7282,7 +7282,7 @@ or you may delete necessary files for it.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>&amp;New Toonz Raster Level</source>
+        <source>&amp;New Flare Raster Level</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -7342,7 +7342,7 @@ or you may delete necessary files for it.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Vectors to Toonz Raster</source>
+        <source>Vectors to Flare Raster</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -7474,11 +7474,11 @@ or you may delete necessary files for it.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>http://opentoonz.readthedocs.io</source>
+        <source>http://flare-animate.readthedocs.io</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>&amp;Import Toonz Lip Sync File...</source>
+        <source>&amp;Import Flare Lip Sync File...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -7607,7 +7607,7 @@ or you may delete necessary files for it.</source>
         <source>
 Are you sure?
 
-N.B. Make sure you are not running another process of OpenToonz,
+N.B. Make sure you are not running another process of Flare,
 or you may delete necessary files for it.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -7616,15 +7616,15 @@ or you may delete necessary files for it.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>https://github.com/opentoonz/opentoonz/releases/latest</source>
+        <source>https://github.com/Flare-Animate/Flare/releases/latest</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>https://groups.google.com/forum/#!forum/opentoonz_en</source>
+        <source>https://github.com/Flare-Animate/Flare/discussions</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>To report a bug, click on the button below to open a web browser window for OpenToonz&apos;s Issues page on https://github.com.  Click on the &apos;New issue&apos; button and fill out the form.</source>
+        <source>To report a bug, click on the button below to open a web browser window for Flare&apos;s Issues page on https://github.com.  Click on the &apos;New issue&apos; button and fill out the form.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -8112,7 +8112,7 @@ or you may delete necessary files for it.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>You must restart OpenToonz, close it now?</source>
+        <source>You must restart Flare, close it now?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -9858,11 +9858,11 @@ Set the output folder path to the subfolder as well.</source>
         <translation>Tipo Livello Predefinito:</translation>
     </message>
     <message>
-        <source>Toonz Vector Level</source>
+        <source>Flare Vector Level</source>
         <translation></translation>
     </message>
     <message>
-        <source>Toonz Raster Level</source>
+        <source>Flare Raster Level</source>
         <translation></translation>
     </message>
     <message>
@@ -12458,7 +12458,7 @@ Are you sure ?</source>
         <translation type="unfinished">Visita il Sito Web</translation>
     </message>
     <message>
-        <source>https://opentoonz.github.io/e/</source>
+        <source>https://flare-animate.github.io/e/</source>
         <translation type="unfinished"></translation>
     </message>
     <message>

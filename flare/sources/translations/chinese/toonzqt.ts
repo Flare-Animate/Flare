@@ -2032,8 +2032,8 @@ and tone may be slightly discretized.</source>
         <translation type="vanished">Flare</translation>
     </message>
     <message>
-        <source>OpenToonz</source>
-        <translation type="vanished">OpenToonz</translation>
+        <source>Flare</source>
+        <translation type="vanished">Flare</translation>
     </message>
 </context>
 <context>

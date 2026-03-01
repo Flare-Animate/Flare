@@ -157,7 +157,7 @@ void getSelectedFids(std::vector<TFrameId> &fids, TXshSimpleLevel *level,
   for (fst = fidsSet.begin(); fst != fsEnd; ++fst) fids.push_back(*fst);
 }
 
-// Toonz Raster Level may have palette including MyPaint styles,
+// Flare Raster Level may have palette including MyPaint styles,
 // which cannot be rendered in vector levels.
 // In such case replace MyPaint styles by solid color styles.
 void replaceMyPaintBrushStyles(TPalette *palette) {

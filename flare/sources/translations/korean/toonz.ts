@@ -3675,7 +3675,7 @@ Do you want to overwrite it?</source>
         <translation>%1이 존재하지 않음.</translation>
     </message>
     <message>
-        <source>Import Toonz Lip Sync File</source>
+        <source>Import Flare Lip Sync File</source>
         <translation>립 싱크 파일 가져 오기</translation>
     </message>
 </context>
@@ -3900,11 +3900,11 @@ Do you want to overwrite it?</source>
         <translation>적용</translation>
     </message>
     <message>
-        <source>Toonz Vector Level</source>
+        <source>Flare Vector Level</source>
         <translation>툰즈 벡터 레벨</translation>
     </message>
     <message>
-        <source>Toonz Raster Level</source>
+        <source>Flare Raster Level</source>
         <translation>툰즈 래스터 레벨</translation>
     </message>
     <message>
@@ -4081,11 +4081,11 @@ Do you want to create it?</source>
         <translation type="vanished">스캔 레벨</translation>
     </message>
     <message>
-        <source>Toonz Vector level</source>
+        <source>Flare Vector level</source>
         <translation>툰즈 백터 레벨</translation>
     </message>
     <message>
-        <source>Toonz Raster level</source>
+        <source>Flare Raster level</source>
         <translation>툰즈 래스터 레벨</translation>
     </message>
     <message>
@@ -4685,7 +4685,7 @@ Please use the frame numbers for reference.</source>
         <translation>파일 경로가 없음.</translation>
     </message>
     <message>
-        <source>Import Toonz Lip Sync File</source>
+        <source>Import Flare Lip Sync File</source>
         <translation>립 싱크 파일 가져 오기</translation>
     </message>
     <message>
@@ -4788,11 +4788,11 @@ Please use the frame numbers for reference.</source>
         <translation type="vanished">뉴 벡터 레벨</translation>
     </message>
     <message>
-        <source>&amp;New Toonz Raster Level</source>
+        <source>&amp;New Flare Raster Level</source>
         <translation>뉴 툰즈 래스터 레벨(&amp;N)</translation>
     </message>
     <message>
-        <source>New Toonz Raster Level</source>
+        <source>New Flare Raster Level</source>
         <translation type="vanished">뉴 툰즈 래스터 레벨</translation>
     </message>
     <message>
@@ -5784,7 +5784,7 @@ Please use the frame numbers for reference.</source>
         <translation>백터로 변환...</translation>
     </message>
     <message>
-        <source>Vectors to Toonz Raster</source>
+        <source>Vectors to Flare Raster</source>
         <translation>툰즈 래스터로 백터</translation>
     </message>
     <message>
@@ -6392,7 +6392,7 @@ Please use the frame numbers for reference.</source>
         <translation>Fx/스테이지 도식 전환</translation>
     </message>
     <message>
-        <source>http://opentoonz.readthedocs.io</source>
+        <source>http://flare-animate.readthedocs.io</source>
         <translation></translation>
     </message>
     <message>
@@ -6470,7 +6470,7 @@ N.B. Open Toonz 다른 프로세스를 실행하고 있지 않은지 확인하�
         <translation>%1을 삭제 할 수 있음:</translation>
     </message>
     <message>
-        <source>&amp;Import Toonz Lip Sync File...</source>
+        <source>&amp;Import Flare Lip Sync File...</source>
         <translation>립싱크 파일 가져오기(&amp;I)...</translation>
     </message>
     <message>
@@ -6566,11 +6566,11 @@ N.B. Open Toonz 다른 프로세스를 실행하고 있지 않은지 확인하�
         <translation>모션 삽입 프레임 정지로 이동</translation>
     </message>
     <message>
-        <source>https://github.com/opentoonz/opentoonz/releases/latest</source>
+        <source>https://github.com/Flare-Animate/Flare/releases/latest</source>
         <translation></translation>
     </message>
     <message>
-        <source>https://groups.google.com/forum/#!forum/opentoonz_en</source>
+        <source>https://github.com/Flare-Animate/Flare/discussions</source>
         <translation></translation>
     </message>
     <message>
@@ -9093,11 +9093,11 @@ if both are possible on coding file path.</source>
         <translation>항상 현재 위치에서 파일가져오기 하세요</translation>
     </message>
     <message>
-        <source>Toonz Vector Level</source>
+        <source>Flare Vector Level</source>
         <translation>툰즈 백터 레벨</translation>
     </message>
     <message>
-        <source>Toonz Raster Level</source>
+        <source>Flare Raster Level</source>
         <translation>툰즈 래스터 레벨</translation>
     </message>
     <message>
@@ -11672,7 +11672,7 @@ Visit the Web site for more information.</source>
         <translation>출시 시 최신 버전을 확인하세요.</translation>
     </message>
     <message>
-        <source>https://opentoonz.github.io/e/</source>
+        <source>https://flare-animate.github.io/e/</source>
         <translation></translation>
     </message>
     <message>

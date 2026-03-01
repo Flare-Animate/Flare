@@ -268,7 +268,7 @@ QString InfoViewerImp::getTypeString() {
   if (ext == "tlv" || ext == "tzp" || ext == "tzu")
     return "Toonz Cmapped Raster Level";
   else if (ext == "pli" || ext == "svg")
-    return "Toonz Vector Level";
+    return "Flare Vector Level";
   else if (ext == "mov" || ext == "avi" || ext == "3gp")
     return "Movie File";
   else if (ext == "tnz")

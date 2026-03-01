@@ -151,7 +151,7 @@ Visual Studio 2019构建的工程文件可以使用2022版本打开。
 
 ### 创建注册表
 1. 打开注册表编辑器，创建下列键名，并将键值设为`$Flare/stuff`的绝对路径。
-  - HKEY_LOCAL_MACHINE\SOFTWARE\Flare\Flare\TOONZROOT
+  - HKEY_LOCAL_MACHINE\SOFTWARE\Flare\Flare\FLAREROOT
 
 ### 运行
 `Flare.exe` 现在可以运行了。 
