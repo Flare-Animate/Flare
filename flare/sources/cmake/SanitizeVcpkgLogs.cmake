@@ -10,6 +10,8 @@ if(NOT DEFINED CMAKE_BINARY_DIR)
     message(FATAL_ERROR "CMAKE_BINARY_DIR is not defined")
 endif()
 
+cmake_policy(SET CMP0009 NEW)
+
 # --- 1. Sanitize vcpkg.applocal.log files ---
 file(GLOB_RECURSE _vcpkg_applocal_logs "${CMAKE_BINARY_DIR}/**/vcpkg.applocal.log")
 foreach(_applog ${_vcpkg_applocal_logs})

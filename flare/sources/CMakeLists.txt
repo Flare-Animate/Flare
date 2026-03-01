@@ -1166,7 +1166,9 @@ add_subdirectory(tnztools)
 # every target defined so far.  This ensures the log-cleaning script is run
 # immediately before each project starts building, catching any wildcards that
 # were introduced earlier in the same build invocation.
-attach_sanitizer_to_all_targets()
+if(COMMAND attach_sanitizer_to_all_targets)
+    attach_sanitizer_to_all_targets()
+endif()
 
 add_subdirectory(${SDKROOT}/lzo/driver lzodriver)
 
