@@ -271,8 +271,6 @@ set(SOURCES
     iwa_noise1234.cpp
     iwa_pnperspectivefx.cpp
     iwa_soapbubblefx.cpp
-    ${SDKROOT}/kiss_fft/kiss_fft.c
-    ${SDKROOT}/kiss_fft/kiss_fftnd.c
     iwa_bokehfx.cpp
     iwa_timecodefx.cpp
     iwa_bokehreffx.cpp
@@ -303,6 +301,16 @@ endif()
 set(OBJCSOURCES
 )
 
+# append kiss_fft sources only if present
+if(EXISTS "${SDKROOT}/kiss_fft/kiss_fft.c" AND EXISTS "${SDKROOT}/kiss_fft/kiss_fftnd.c")
+    list(APPEND SOURCES
+        "${SDKROOT}/kiss_fft/kiss_fft.c"
+        "${SDKROOT}/kiss_fft/kiss_fftnd.c"
+    )
+else()
+    message(WARNING "kiss_fft source files not found under ${SDKROOT}/kiss_fft; skipping dsp routines")
+endif()
+
 add_library(tnzstdfx SHARED ${HEADERS} ${SOURCES} ${OBJCSOURCES})
 add_definitions(
     -D_USRDLL
@@ -329,9 +337,13 @@ else()
     )
 endif()
 
-include_directories(
-    ${SDKROOT}/kiss_fft
-)
+if(EXISTS "${SDKROOT}/kiss_fft/kiss_fft.c")
+    include_directories(
+        ${SDKROOT}/kiss_fft
+    )
+else()
+    message(WARNING "kiss_fft directory missing; fft features disabled")
+endif()
 
 _find_flare_library(TNZLIBS "tnzcore;tnzbase;flarelib")
 
