@@ -1170,7 +1170,11 @@ if(COMMAND attach_sanitizer_to_all_targets)
     attach_sanitizer_to_all_targets()
 endif()
 
-add_subdirectory(${SDKROOT}/lzo/driver lzodriver)
+if(EXISTS "${SDKROOT}/lzo/driver")
+    add_subdirectory(${SDKROOT}/lzo/driver lzodriver)
+else()
+    message(STATUS "LZO driver directory not found; skipping lzodriver build")
+endif()
 
 add_subdirectory(flare)
 add_subdirectory(tcleanupper)

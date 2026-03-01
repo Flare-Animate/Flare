@@ -103,7 +103,7 @@ void postThreadMsg(TThread::Message *) {}
 void qt_mac_set_menubar_merge(bool enable);
 #endif
 
-// Modifica per toonz (non servono questo tipo di licenze)
+// Modifica per flare (non servono questo tipo di licenze)
 #define NO_LICENSE
 //-----------------------------------------------------------------------------
 
@@ -123,7 +123,7 @@ static void lastWarningError(QString msg) {
 }
 //-----------------------------------------------------------------------------
 
-static void toonzRunOutOfContMemHandler(unsigned long size) {
+static void flareRunOutOfContMemHandler(unsigned long size) {
 #ifdef _WIN32
   static bool firstTime = true;
   if (firstTime) {
@@ -142,12 +142,12 @@ DV_IMPORT_API void initColorFx();
 
 //-----------------------------------------------------------------------------
 
-//! Inizializzaza l'Environment di Toonz
+//! Inizializzaza l'Environment di Flare
 /*! In particolare imposta la projectRoot e
     la stuffDir, controlla se la directory di outputs esiste (e provvede a
     crearla in caso contrario) verifica inoltre che stuffDir esista.
 */
-static void initToonzEnv(QHash<QString, QString> &argPathValues) {
+static void initFlareEnv(QHash<QString, QString> &argPathValues) {
   StudioPalette::enable(true);
   TEnv::setRootVarName(rootVarName);
   TEnv::setSystemVarPrefix(systemVarPrefix);
@@ -166,7 +166,7 @@ static void initToonzEnv(QHash<QString, QString> &argPathValues) {
   QCoreApplication::setApplicationName(
       QString::fromStdString(TEnv::getApplicationName()));
 
-  /*-- TOONZROOTのPathの確認 --*/
+  /*-- FLAREROOTのPathの確認 --*/
   // controllo se la xxxroot e' definita e corrisponde ad un folder esistente
 
   /*-- ENGLISH: Confirm FLAREROOT Path
@@ -206,7 +206,7 @@ static void initToonzEnv(QHash<QString, QString> &argPathValues) {
   TProjectManager *projectManager = TProjectManager::instance();
 
   /*--
-   * TOONZPROJECTSのパスセットを取得する。（TOONZPROJECTSはセミコロンで区切って複数設定可能）
+   * FLAREPROJECTSのパスセットを取得する。（FLAREPROJECTSはセミコロンで区切って複数設定可能）
    * --*/
   TFilePathSet projectsRoots = ToonzFolder::getProjectsFolders();
   TFilePathSet::iterator it;
@@ -226,7 +226,7 @@ project->setUseScenePath(TProject::Extras, false);
 */
   // Imposto la rootDir per ImageCache
 
-  /*-- TOONZCACHEROOTの設定  --*/
+  /*-- FLARECACHEROOTの設定  --*/
   TFilePath cacheDir = ToonzFolder::getCacheRootFolder();
   if (cacheDir.isEmpty()) cacheDir = TEnv::getStuffDir() + "cache";
   TImageCache::instance()->setRootDir(cacheDir);
@@ -498,13 +498,13 @@ if (QFileInfo(localSplashPath).exists() && QFileInfo(localSplashPath).isFile()) 
 
   // Install run out of contiguous memory callback
   TBigMemoryManager::instance()->setRunOutOfContiguousMemoryHandler(
-      &toonzRunOutOfContMemHandler);
+      &flareRunOutOfContMemHandler);
 
   // Setup third party
   ThirdParty::initialize();
 
-  // Toonz environment
-  initToonzEnv(argumentPathValues);
+  // Flare environment
+  initFlareEnv(argumentPathValues);
 
   // prepare for 30bit display
   if (Preferences::instance()->is30bitDisplayEnabled()) {
@@ -577,14 +577,14 @@ if (QFileInfo(localSplashPath).exists() && QFileInfo(localSplashPath).isFile()) 
   languagePathString += "\\" + Preferences::instance()->getCurrentLanguage();
 #endif
   QTranslator translator;
-  translator.load("toonz", languagePathString);
+  translator.load("flare", languagePathString);
 
   // La installo
   a.installTranslator(&translator);
 
   // Carico la traduzione contenuta in toonzqt.qm (se e' presente)
   QTranslator translator2;
-  translator2.load("toonzqt", languagePathString);
+  translator2.load("flareqt", languagePathString);
   a.installTranslator(&translator2);
 
   // Carico la traduzione contenuta in tnzcore.qm (se e' presente)
@@ -592,10 +592,10 @@ if (QFileInfo(localSplashPath).exists() && QFileInfo(localSplashPath).isFile()) 
   tnzcoreTranslator.load("tnzcore", languagePathString);
   qApp->installTranslator(&tnzcoreTranslator);
 
-  // Carico la traduzione contenuta in toonzlib.qm (se e' presente)
-  QTranslator toonzlibTranslator;
-  toonzlibTranslator.load("toonzlib", languagePathString);
-  qApp->installTranslator(&toonzlibTranslator);
+  // Carico la traduzione contenuta in flarelib.qm (se e' presente)
+  QTranslator flarelibTranslator;
+  flarelibTranslator.load("flarelib", languagePathString);
+  qApp->installTranslator(&flarelibTranslator);
 
   // Carico la traduzione contenuta in colorfx.qm (se e' presente)
   QTranslator colorfxTranslator;

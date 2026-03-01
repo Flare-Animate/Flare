@@ -7059,7 +7059,7 @@ or you may delete necessary files for it.</source>
     </message>
     <message>
         <source>https://github.com/Flare-Animate/Flare/discussions</source>
-        <translation>https://groups.google.com/forum/#!forum/opentoonz</translation>
+        <translation>https://groups.google.com/forum/#!forum/Flare</translation>
     </message>
     <message>
         <source>To report a bug, click on the button below to open a web browser window for Flare&apos;s Issues page on https://github.com.  Click on the &apos;New issue&apos; button and fill out the form.</source>

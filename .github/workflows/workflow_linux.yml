@@ -127,7 +127,10 @@ jobs:
         cp appdir/usr/share/icons/hicolor/256x256/apps/*.png appdir/ || true
 
         mkdir artifact
-        if [ -d "appdir/usr/share/opentoonz/stuff" ]; then
+        if [ -d "appdir/usr/share/flare/stuff" ]; then
+          mv appdir/usr/share/flare/stuff artifact/portablestuff
+          rmdir appdir/usr/share/flare || true
+        elif [ -d "appdir/usr/share/opentoonz/stuff" ]; then
           mv appdir/usr/share/opentoonz/stuff artifact/portablestuff
           rmdir appdir/usr/share/opentoonz || true
         fi
@@ -140,7 +143,7 @@ jobs:
           chmod +x "${tool}"
         done
 
-        echo Copiando dependencias x64 (prefer flare, fallback to opentoonz)...
+        echo Copying x64 dependencies (prefer flare, fallback to legacy paths)...
           if [ -d /opt/flare ]; then cp -r /opt/flare/* appdir/usr || true; elif [ -d /opt/flare ]; then cp -r /opt/flare/* appdir/usr || true; fi
 
         if [ -f appdir/usr/bin/Flare ]; then BINNAME=Flare; elif [ -f appdir/usr/bin/Flare ]; then BINNAME=Flare; else BINNAME=$(ls appdir/usr/bin | head -n1); fi

@@ -1373,9 +1373,9 @@ extern const char *applicationName;
 extern const char *applicationVersion;
 //-----------------------------------------------------------------------------
 void MainWindow::checkForUpdates() {
-  // Since there is only a single version of Opentoonz, we can do a simple check
+  // Since there is only a single version of Flare, we can do a simple check
   // against a string
-  QString updateUrl("http://flare-animate.github.io/opentoonz-version.txt");
+  QString updateUrl("http://flare-animate.github.io/flare-version.txt");
 
   m_updateChecker = new UpdateChecker(updateUrl);
       connect(m_updateChecker, SIGNAL(done(bool)), this,
