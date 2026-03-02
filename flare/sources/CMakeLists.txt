@@ -594,6 +594,13 @@ if(BUILD_ENV_MSVC)
     endif()
     # Prefer system/vcpkg libjpeg; fall back to bundled thirdparty
     find_package(JPEG QUIET)
+    # ensure the variables are not left as NOTFOUND
+    if(NOT JPEG_INCLUDE_DIR OR JPEG_INCLUDE_DIR STREQUAL "NOTFOUND")
+        set(JPEG_INCLUDE_DIR "")
+    endif()
+    if(NOT JPEG_LIBRARY OR JPEG_LIBRARY STREQUAL "NOTFOUND")
+        set(JPEG_LIBRARY "")
+    endif()
     if(TARGET JPEG::JPEG)
         set(JPEG_LIB JPEG::JPEG)
     elseif(DEFINED JPEG_LIBRARIES)
@@ -986,14 +993,20 @@ else()
     find_package(Boost)
 endif()
 
-include_directories(
-    SYSTEM
+# collect system include directories; skip empty entries
+set(_SYSTEM_INCLUDES
     ${Boost_INCLUDE_DIR}
     ${LZ4_LIB_INCLUDE_DIRS}
     ${USB_LIB_INCLUDE_DIRS}
     ${SUPERLU_INCLUDE_DIR}
-    ${JPEG_INCLUDE_DIR}
     ${MYPAINT_LIB_INCLUDE_DIRS}
+)
+if(JPEG_INCLUDE_DIR)
+    list(APPEND _SYSTEM_INCLUDES ${JPEG_INCLUDE_DIR})
+endif()
+include_directories(
+    SYSTEM
+    ${_SYSTEM_INCLUDES}
 )
 
 if(PLATFORM EQUAL 64)
