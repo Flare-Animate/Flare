@@ -2070,7 +2070,7 @@ static void makeHtml(TFilePath fp) {
   os << "<meta http-equiv=\"content-type\" content=\"text/html;charset=utf-8\">"
      << endl;
   os << "<meta http-equiv=\"Content-Style-Type\" content=\"text/css\">" << endl;
-  os << "<meta name=\"Generator\" content=\"Toonz 5.2\">" << endl;
+  os << "<meta name=\"Generator\" content=\"Flare\">" << endl;
   os << "<link rel=\"stylesheet\" type=\"text/css\" href=\"xsheet.css\">"
      << endl;
   os << "</head><body>" << endl;

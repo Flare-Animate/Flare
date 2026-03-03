@@ -1,24 +1,33 @@
 # yaml-language-server: $schema=https://json.schemastore.org/github-workflow
-name: Sync from upstream OpenToonz (Agentic)
-# Pulls new commits from opentoonz/opentoonz, applies them commit-by-commit,
-# automatically rebrands all OpenToonz → Flare content, and opens a PR.
-# Uses tools/sync/upstream_agent.py for smart conflict resolution so that
-# Flare-specific changes and branding are never overwritten.
+name: Sync from upstream (Agentic)
+# Pulls improvements from opentoonz/opentoonz and/or tahoma2d/tahoma2d,
+# applies them commit-by-commit with full auto-rebrand, and opens a PR.
+# Flare-specific code, branding, and files are never overwritten.
+# Uses tools/sync/upstream_agent.py for all logic.
 
 on:
   workflow_dispatch:
     inputs:
+      source:
+        description: 'Which upstream(s) to sync'
+        required: false
+        type: choice
+        default: all
+        options:
+          - all
+          - opentoonz
+          - tahoma2d
       max_commits:
-        description: 'Max upstream commits to apply (default: 50)'
+        description: 'Max commits per upstream (default: 50)'
         required: false
         default: '50'
       dry_run:
-        description: 'Dry run (list commits, do not apply)'
+        description: 'Dry run — list commits without applying'
         required: false
         type: boolean
         default: false
       reset_state:
-        description: 'Reset sync state (re-scan last 20 upstream commits)'
+        description: 'Reset sync state (re-scans last ~20 commits per upstream)'
         required: false
         type: boolean
         default: false
@@ -50,7 +59,7 @@ jobs:
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Set up Python
+      - name: Set up Python 3.11
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
@@ -61,58 +70,67 @@ jobs:
       - name: Run upstream sync agent
         id: agent
         run: |
-          ARGS="--max-commits ${{ inputs.max_commits || '50' }}"
+          ARGS="--source ${{ inputs.source || 'all' }}"
+          ARGS="$ARGS --max-commits ${{ inputs.max_commits || '50' }}"
           if [ "${{ inputs.dry_run }}" = "true" ]; then ARGS="$ARGS --dry-run"; fi
           if [ "${{ inputs.reset_state }}" = "true" ]; then ARGS="$ARGS --reset-state"; fi
 
           python tools/sync/upstream_agent.py $ARGS 2>&1 | tee /tmp/sync_agent.log
-          echo "exit_code=${PIPESTATUS[0]}" >> "$GITHUB_OUTPUT"
+          echo "agent_exit=${PIPESTATUS[0]}" >> "$GITHUB_OUTPUT"
 
-      - name: Check for new commits
+      - name: Count new commits
         id: changes
         run: |
-          COUNT=$(git log origin/master..HEAD --oneline | wc -l)
+          COUNT=$(git log origin/master..HEAD --oneline 2>/dev/null | wc -l)
           echo "commit_count=$COUNT" >> "$GITHUB_OUTPUT"
           echo "Commits ahead of master: $COUNT"
 
       - name: Push sync branch
-        if: steps.changes.outputs.commit_count != '0'
+        if: steps.changes.outputs.commit_count != '0' && inputs.dry_run != 'true'
         run: git push origin "$BRANCH_NAME"
 
       - name: Create Pull Request
-        if: steps.changes.outputs.commit_count != '0'
+        if: steps.changes.outputs.commit_count != '0' && inputs.dry_run != 'true'
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const fs   = require('fs');
-            const log  = fs.existsSync('/tmp/sync_agent.log')
-                       ? fs.readFileSync('/tmp/sync_agent.log', 'utf8').slice(-8000)
-                       : '(log unavailable)';
-            const count = '${{ steps.changes.outputs.commit_count }}';
+            const fs    = require('fs');
+            const log   = fs.existsSync('/tmp/sync_agent.log')
+                        ? fs.readFileSync('/tmp/sync_agent.log', 'utf8').slice(-10000)
+                        : '(log unavailable)';
+            const count  = '${{ steps.changes.outputs.commit_count }}';
+            const source = '${{ inputs.source || "all" }}';
+            const srcLabel = source === 'all'
+              ? 'opentoonz/opentoonz + tahoma2d/tahoma2d'
+              : (source === 'opentoonz' ? 'opentoonz/opentoonz' : 'tahoma2d/tahoma2d');
+
             const body = [
-              '## 🔄 Upstream sync from opentoonz/opentoonz',
+              `## 🔄 Upstream sync from ${srcLabel}`,
               '',
               `Applied **${count}** upstream commit(s) with automatic Flare rebranding.`,
               '',
               '### What the agent did',
-              '- Fetched new commits from `opentoonz/opentoonz`',
-              '- Applied each commit individually (cherry-pick, not bulk merge)',
-              '- Auto-rebranded: `OpenToonz→Flare`, `ToonzFolder→FlareFolder`,',
-              '  `ToonzVersion→FlareVersion`, `systemVarPrefix TOONZ→FLARE`,',
-              '  GitHub URLs, install paths, env vars, and more',
-              '- Conflict resolution: branding-only conflicts kept Flare version;',
-              '  functional conflicts took upstream code then rebranded it',
-              '- Flare-only files (`.github/`, `flare/`, `README.md`, etc.)',
-              '  were never touched by upstream',
+              '- Fetched new commits from upstream repo(s)',
+              '- Applied each commit individually (cherry-pick — never a bulk merge)',
+              '- Deduplicated commits present in multiple upstreams',
+              '- Auto-rebranded all upstream names → Flare:',
+              '  - `OpenToonz` → `Flare`, `Tahoma2D` → `Flare`',
+              '  - `ToonzFolder` → `FlareFolder`, `ToonzVersion` → `FlareVersion`',
+              '  - Env vars: `TOONZROOT`/`TAHOMAROOT` → `FLAREROOT`, etc.',
+              '  - GitHub URLs, install paths, shortcut preset filenames',
+              '- Conflict resolution:',
+              '  - Branding-only conflicts → kept **Flare** version',
+              '  - Functional conflicts    → took **upstream** code, then rebranded',
+              '- Protected Flare-only paths: `flare/`, `.github/`, `README.md`, etc.',
               '',
               '### Review checklist',
-              '- [ ] Build passes (CI will run automatically)',
+              '- [ ] CI build passes',
               '- [ ] No unintended branding regressions',
               '- [ ] New upstream features work as expected',
               '- [ ] No Flare-specific code was removed',
               '',
-              '<details><summary>Agent log</summary>',
+              '<details><summary>📋 Agent log</summary>',
               '',
               '```',
               log,
@@ -120,23 +138,28 @@ jobs:
               '</details>',
             ].join('\n');
 
-            await github.rest.pulls.create({
+            const { data: pr } = await github.rest.pulls.create({
               owner: context.repo.owner,
               repo:  context.repo.repo,
-              title: `🔄 Sync ${count} upstream commit(s) from opentoonz/opentoonz`,
+              title: `🔄 Sync ${count} upstream commit(s) from ${srcLabel}`,
               head:  process.env.BRANCH_NAME,
               base:  'master',
               body,
             });
+            core.info(`PR created: ${pr.html_url}`);
+
+      - name: Dry-run complete
+        if: inputs.dry_run == 'true'
+        run: echo "✅ Dry-run complete — no changes pushed."
 
       - name: No new commits
-        if: steps.changes.outputs.commit_count == '0'
-        run: echo "✅ Already up to date with opentoonz/opentoonz — no PR needed."
+        if: steps.changes.outputs.commit_count == '0' && inputs.dry_run != 'true'
+        run: echo "✅ Already up to date — no PR needed."
 
       - name: Upload agent log
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: sync-agent-log
+          name: sync-agent-log-${{ github.run_id }}
           path: /tmp/sync_agent.log
           if-no-files-found: ignore

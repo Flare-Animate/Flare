@@ -780,7 +780,7 @@ void FlipBook::onButtonPressed(FlipConsole::EGadget button) {
       return;
     } else if ((TVectorImageP)img) {
       DVGui::warning(
-          tr("It is not possible to take or compare snapshots for Toonz vector "
+          tr("It is not possible to take or compare snapshots for Flare vector "
              "levels."));
       return;
     }
@@ -803,7 +803,7 @@ void FlipBook::onButtonPressed(FlipConsole::EGadget button) {
     if (m_flipConsole->isChecked(FlipConsole::eCompare) &&
         (TVectorImageP)getCurrentImage(m_flipConsole->getCurrentFrame())) {
       DVGui::warning(
-          tr("It is not possible to take or compare snapshots for Toonz vector "
+          tr("It is not possible to take or compare snapshots for Flare vector "
              "levels."));
       // cancel the button pressing
       m_flipConsole->pressButton(FlipConsole::eCompare);
