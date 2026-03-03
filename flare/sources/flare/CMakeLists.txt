@@ -3146,3 +3146,49 @@ endif()
 if(WITH_QT_SCRIPT)
     target_link_libraries(Flare Qt5::Script)
 endif()
+
+# --- Install rules (Linux / Unix) ---
+if(BUILD_ENV_UNIXLIKE AND NOT BUILD_TARGET_WIN)
+    install(TARGETS Flare DESTINATION bin)
+
+    install(
+        PROGRAMS
+            "$<TARGET_FILE:tcleanup>"
+            "$<TARGET_FILE:tcomposer>"
+            "$<TARGET_FILE:tconverter>"
+            "$<TARGET_FILE:tfarmcontroller>"
+            "$<TARGET_FILE:tfarmserver>"
+        DESTINATION bin
+    )
+
+    if(LZODRIVER_FOUND)
+        install(
+            PROGRAMS
+                "$<TARGET_FILE:lzocompress>"
+                "$<TARGET_FILE:lzodecompress>"
+            DESTINATION bin
+        )
+    endif()
+
+    install(
+        FILES
+            "$<TARGET_FILE:tnzcore>"
+            "$<TARGET_FILE:tnzbase>"
+            "$<TARGET_FILE:flarelib>"
+            "$<TARGET_FILE:colorfx>"
+            "$<TARGET_FILE:tnzext>"
+            "$<TARGET_FILE:image>"
+            "$<TARGET_FILE:sound>"
+            "$<TARGET_FILE:flareqt>"
+            "$<TARGET_FILE:tnztools>"
+            "$<TARGET_FILE:tnzstdfx>"
+            "$<TARGET_FILE:tfarm>"
+        DESTINATION lib/flare
+    )
+
+    install(
+        DIRECTORY
+            ${CMAKE_SOURCE_DIR}/../../stuff
+        DESTINATION share/flare
+    )
+endif()
