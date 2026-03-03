@@ -45,16 +45,15 @@ jobs:
       - name: Download and Force Third-Party Libs
         run: |
           @echo on
-          :: 1. Download thirdparty libs
+          :: 1. Download prebuilt thirdparty .lib/.dll files
           curl -fsSL -o libs.zip https://github.com/andeon/opentoonz-thirdparty-libs/releases/download/prebuilt-libs-v1/thirdparty-libs.zip
           
-          :: 2. Remove existing thirdparty to replace LFS pointers with real files
-          if exist thirdparty rmdir /S /Q thirdparty
+          :: 2. Extract at repo root — the zip already has a thirdparty/ prefix,
+          ::    so this overwrites the LFS-pointer .lib/.dll files with real
+          ::    binaries while keeping the header files from the git checkout.
+          7z x -y libs.zip
           
-          :: 3. Extract
-          7z x -y libs.zip -othirdparty
-          
-          :: 4. Configure headers
+          :: 3. Configure headers (tiff, libpng)
           cd thirdparty
           
           copy /Y tiff-4.0.3\libtiff\tif_config.vc.h tiff-4.0.3\libtiff\tif_config.h
@@ -63,7 +62,7 @@ jobs:
           
           cd ..
           
-          :: 5. Set environment variable
+          :: 4. Set environment variable
           echo THIRDPARTY_DIR=%GITHUB_WORKSPACE%\thirdparty>> %GITHUB_ENV%
           del /Q libs.zip
         shell: cmd
