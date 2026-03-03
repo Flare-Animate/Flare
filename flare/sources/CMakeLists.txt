@@ -1084,7 +1084,7 @@ if(WITH_TRANSLATION)
         set(qm_files "")
         foreach(lang ${LANG_CODES})
             set(ts_file "${CMAKE_SOURCE_DIR}/translations/${lang}/${module}.ts")
-            set(qm_dir  "${CMAKE_BINARY_DIR}/../../stuff/config/loc/${lang}")
+            set(qm_dir  "${CMAKE_SOURCE_DIR}/../../stuff/config/loc/${lang}")
             set(qm_file "${qm_dir}/${module}.qm")
 
             # Ensure output directory exists at configure time (safe for parallel builds)
@@ -1119,15 +1119,15 @@ if(WITH_TRANSLATION)
     # ---------------------------------------------------------------------
     # Rename language folders from code to native name (e.g. japanese → 日本語)
     # ---------------------------------------------------------------------
-    set(LOC_ROOT "${CMAKE_BINARY_DIR}/../../stuff/config/loc")
+    set(LOC_ROOT "${CMAKE_SOURCE_DIR}/../../stuff/config/loc")
 
     add_custom_target(rename_translation_folders ALL
         DEPENDS
-            translate_toonz
+            translate_flare
             translate_tnzcore
-            translate_toonzlib
+            translate_flarelib
             translate_tnztools
-            translate_toonzqt
+            translate_flareqt
             translate_image
             translate_colorfx
         COMMENT "Renaming language folders to native display names"
