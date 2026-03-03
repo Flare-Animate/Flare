@@ -9,7 +9,6 @@
 #include "flareqt/gutil.h"
 #include "flareqt/dvdialog.h"
 #include "flare/filebrowserpopup.h"
-#include "flareqt/gutil.h"
 
 #include <QProcess>
 #include <QDesktopServices>

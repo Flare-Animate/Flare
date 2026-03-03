@@ -4,11 +4,7 @@
 #include "tools/tool.h"
 #include "tools/cursors.h"
 
-#ifdef FLAREQT_EXPORTS
 #include "flare/preferences.h"
-#else
-#include "flare/preferences.h"
-#endif
 
 #include <QWidget>
 #include <QPixmap>
