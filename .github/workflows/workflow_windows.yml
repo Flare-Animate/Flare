@@ -5,7 +5,8 @@ on:
   push:
     branches: [ master, B4uti4github-patch-1 ]
   pull_request:
-    branches: [ master ]
+    branches: [ master, B4uti4github-patch-1 ]
+  workflow_dispatch:
 
 permissions:
   contents: read
