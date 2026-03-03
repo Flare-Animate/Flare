@@ -494,7 +494,7 @@ void CrashHandler::openWebpage() {
 //-----------------------------------------------------------------------------
 
 void CrashHandler::openFolder() {
-  TFilePath fp = ToonzFolder::getCrashReportFolder();
+  TFilePath fp = FlareFolder::getCrashReportFolder();
   QDesktopServices::openUrl(QUrl("file:///" + fp.getQString()));
 }
 
@@ -545,8 +545,8 @@ bool CrashHandler::trigger(const QString reason, bool showDialog) {
   strftime(dateName, 128, "%Y-%m-%d %H:%M:%S", tm);
   strftime(fileName, 128, "Crash-%Y%m%d-%H%M%S.log", tm);
   strftime(dumpName, 128, "Crash-%Y%m%d-%H%M%S.dmp", tm);
-  TFilePath fpCrsh = ToonzFolder::getCrashReportFolder() + fileName;
-  TFilePath fpDump = ToonzFolder::getCrashReportFolder() + dumpName;
+  TFilePath fpCrsh = FlareFolder::getCrashReportFolder() + fileName;
+  TFilePath fpDump = FlareFolder::getCrashReportFolder() + dumpName;
 
   // Generate minidump
   bool minidump = generateMinidump(fpDump);

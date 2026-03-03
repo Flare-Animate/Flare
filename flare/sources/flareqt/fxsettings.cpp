@@ -873,7 +873,7 @@ void ParamsPageSet::createControls(const TFxP &fx, int index) {
     return;
   }
 
-  TFilePath fp = ToonzFolder::getProfileFolder() + "layouts" + "fxs" +
+  TFilePath fp = FlareFolder::getProfileFolder() + "layouts" + "fxs" +
                  (fx->getFxType() + ".xml");
 
   TIStream is(fp);

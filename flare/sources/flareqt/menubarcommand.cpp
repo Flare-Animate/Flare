@@ -101,7 +101,7 @@ void CommandManager::setShortcut(CommandId id, QAction *action,
     action->setShortcut(QKeySequence(QString::fromStdString(shortcutString)));
   else
     action->setShortcut(QKeySequence());
-  TFilePath fp = ToonzFolder::getMyModuleDir() + TFilePath("shortcuts.ini");
+  TFilePath fp = FlareFolder::getMyModuleDir() + TFilePath("shortcuts.ini");
   QSettings settings(toQString(fp), QSettings::IniFormat);
   settings.beginGroup("shortcuts");
   settings.setValue(QString(id), QString::fromStdString(shortcutString));
@@ -303,7 +303,7 @@ void CommandManager::setShortcut(QAction *action, std::string shortcutString,
   m_shortcutTable[shortcutString] = node;
 
   // registro il tutto
-  TFilePath fp = ToonzFolder::getMyModuleDir() + TFilePath("shortcuts.ini");
+  TFilePath fp = FlareFolder::getMyModuleDir() + TFilePath("shortcuts.ini");
   QSettings settings(toQString(fp), QSettings::IniFormat);
   settings.beginGroup("shortcuts");
   settings.setValue(QString::fromStdString(node->m_id),
@@ -419,11 +419,11 @@ void CommandManager::enlargeIcon(CommandId id, const QSize dstSize) {
 // In menubarcommand.cpp
 void CommandManager::loadShortcuts() {
   // Load shortcuts file
-  TFilePath fp = ToonzFolder::getMyModuleDir() + TFilePath("shortcuts.ini");
+  TFilePath fp = FlareFolder::getMyModuleDir() + TFilePath("shortcuts.ini");
 
   if (!TFileStatus(fp).doesExist()) {
     TFilePath tmplFp =
-        ToonzFolder::getTemplateModuleDir() + TFilePath("shortcuts.ini");
+        FlareFolder::getTemplateModuleDir() + TFilePath("shortcuts.ini");
     if (TFileStatus(tmplFp).doesExist()) {
       TSystem::copyFile(fp, tmplFp);
     } else {

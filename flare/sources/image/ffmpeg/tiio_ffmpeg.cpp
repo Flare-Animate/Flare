@@ -61,7 +61,7 @@ bool Ffmpeg::checkFormat(std::string format) {
 }
 
 TFilePath Ffmpeg::getFfmpegCache() const {
-  QString cacheRoot = ToonzFolder::getCacheRootFolder().getQString();
+  QString cacheRoot = FlareFolder::getCacheRootFolder().getQString();
   TFilePath cachePath(cacheRoot + "/ffmpeg");
   if (!TSystem::doesExistFileOrLevel(cachePath)) {
     try {

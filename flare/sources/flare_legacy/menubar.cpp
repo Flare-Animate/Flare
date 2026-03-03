@@ -1550,7 +1550,7 @@ void StackedMenuBar::doCustomizeMenuBar(int index) {
     /*- OKが押され、roomname_menubar.xmlが更新された状態 -*/
     /*- xmlファイルからメニューバーを作り直して格納 -*/
     std::string mbFileName = room->getPath().getName() + "_menubar.xml";
-    TFilePath mbPath       = ToonzFolder::getMyRoomsDir() + mbFileName;
+    TFilePath mbPath       = FlareFolder::getMyRoomsDir() + mbFileName;
     if (!TFileStatus(mbPath).isReadable()) {
       DVGui::warning(tr("Cannot open menubar settings file %1")
                          .arg(QString::fromStdString(mbFileName)));

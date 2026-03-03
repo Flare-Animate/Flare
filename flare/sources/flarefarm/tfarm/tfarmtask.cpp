@@ -367,7 +367,7 @@ static QString getExeName(bool isComposer) {
 #ifdef _WIN32
   return name + ".exe ";
 #elif defined(MACOSX)
-  TVER::ToonzVersion tver;
+  TVER::FlareVersion tver;
   return QString::fromStdString(tver.getAppName()) + ".app/Contents/MacOS/" +
          name;
 #else

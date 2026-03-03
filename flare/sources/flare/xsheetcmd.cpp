@@ -1784,7 +1784,7 @@ std::vector<std::pair<std::string, string>> infos;
 void readParameters() {
   infos.clear();
   const std::string name("xsheet_html.xml");
-  TFilePath fp = ToonzFolder::getModuleFile(name);
+  TFilePath fp = FlareFolder::getModuleFile(name);
   if (!TFileStatus(fp).doesExist()) return;
   try {
     TIStream is(fp);
@@ -1813,7 +1813,7 @@ void copyCss(TFilePath fp) {
   const std::string name("xsheet.css");
   TFilePath cssFp = fp.getParentDir() + name;
   if (TFileStatus(cssFp).doesExist()) return;
-  TFilePath src = ToonzFolder::getModuleFile(name);
+  TFilePath src = FlareFolder::getModuleFile(name);
   if (TFileStatus(src).doesExist()) {
     try {
       TSystem::copyFile(cssFp, src);

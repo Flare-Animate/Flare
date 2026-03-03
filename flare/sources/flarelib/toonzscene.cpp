@@ -110,7 +110,7 @@ TFilePath adjustTypeAndFrame(int levelType, TFilePath fp)
 //-----------------------------------------------------------------------------
 
 TFilePath getUntitledScenesDir() {
-  return ToonzFolder::getCacheRootFolder() + "temp";
+  return FlareFolder::getCacheRootFolder() + "temp";
 }
 
 //-----------------------------------------------------------------------------

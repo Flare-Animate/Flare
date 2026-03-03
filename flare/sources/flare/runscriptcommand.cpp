@@ -26,10 +26,10 @@ void RunScriptCommand::execute() {
   static GenericLoadFilePopup *popup = 0;
   if (popup == 0) {
     popup        = new GenericLoadFilePopup(QObject::tr("Run script"));
-    TFilePath fp = ToonzFolder::getLibraryFolder() + "scripts";
+    TFilePath fp = FlareFolder::getLibraryFolder() + "scripts";
     TFileStatus fpStatus(fp);
     if (!fpStatus.doesExist() || !fpStatus.isDirectory())
-      fp = ToonzFolder::getLibraryFolder();
+      fp = FlareFolder::getLibraryFolder();
 
     QStringList types;
     types << "qs"

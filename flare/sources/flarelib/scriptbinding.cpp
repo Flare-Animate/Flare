@@ -182,7 +182,7 @@ void bindAll(QScriptEngine &engine) {
   qScriptRegisterQObjectMetaType<TScriptBinding::Image *>(&engine);
 
   // Set version information in the script environment
-  engine.evaluate("ToonzVersion='7.1'");
+  engine.evaluate("FlareVersion='7.1'");
 
   // Additional global script setup could go here
   // Example: engine.evaluate("toonz={version:'7.0'}; script={version:'1.0'};");

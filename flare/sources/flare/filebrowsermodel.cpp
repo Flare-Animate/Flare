@@ -1070,7 +1070,7 @@ void DvDirModelRootNode::refreshChildren() {
     addChild(child);
 
     child = new DvDirModelSpecialFileFolderNode(
-        this, L"Library", ToonzFolder::getLibraryFolder());
+        this, L"Library", FlareFolder::getLibraryFolder());
     child->setIconName("library");
     m_specialNodes.push_back(child);
     addChild(child);

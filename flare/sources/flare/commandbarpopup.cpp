@@ -308,9 +308,9 @@ CommandBarTree::CommandBarTree(TFilePath& path, QWidget* parent)
     fp = path;
   } else {
     if (path.getName() == "xsheettoolbar") {
-      fp = ToonzFolder::getTemplateModuleDir() + TFilePath("xsheettoolbar.xml");
+      fp = FlareFolder::getTemplateModuleDir() + TFilePath("xsheettoolbar.xml");
     } else {
-      fp = ToonzFolder::getTemplateModuleDir() + TFilePath("commandbar.xml");
+      fp = FlareFolder::getTemplateModuleDir() + TFilePath("commandbar.xml");
     }
   }
 
@@ -520,11 +520,11 @@ CommandBarPopup::CommandBarPopup(bool isXsheetToolbar)
              "CustomizeCommandBar") {
   QLabel* commandBarLabel;
   if (isXsheetToolbar) {
-    m_path = ToonzFolder::getMyModuleDir() + TFilePath("xsheettoolbar.xml");
+    m_path = FlareFolder::getMyModuleDir() + TFilePath("xsheettoolbar.xml");
     commandBarLabel = new QLabel(tr("XSheet Toolbar"));
     setWindowTitle(tr("Customize XSheet Toolbar"));
   } else {
-    m_path = ToonzFolder::getMyModuleDir() + TFilePath("commandbar.xml");
+    m_path = FlareFolder::getMyModuleDir() + TFilePath("commandbar.xml");
     commandBarLabel = new QLabel(tr("Command Bar"));
     setWindowTitle(tr("Customize Command Bar"));
   }

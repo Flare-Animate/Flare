@@ -265,7 +265,7 @@ FunctionPanel::FunctionPanel(QWidget *parent, bool isFloating)
 
   if (m_isFloating) {
     // load the dialog size
-    TFilePath fp(ToonzFolder::getMyModuleDir() + TFilePath("popups.ini"));
+    TFilePath fp(FlareFolder::getMyModuleDir() + TFilePath("popups.ini"));
     QSettings settings(toQString(fp), QSettings::IniFormat);
 
     setGeometry(
@@ -278,7 +278,7 @@ FunctionPanel::FunctionPanel(QWidget *parent, bool isFloating)
 FunctionPanel::~FunctionPanel() {
   if (m_isFloating) {
     // save the dialog size
-    TFilePath fp(ToonzFolder::getMyModuleDir() + TFilePath("popups.ini"));
+    TFilePath fp(FlareFolder::getMyModuleDir() + TFilePath("popups.ini"));
     QSettings settings(toQString(fp), QSettings::IniFormat);
 
     settings.setValue("FunctionCurves", geometry());

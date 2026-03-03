@@ -749,7 +749,7 @@ void StartupPopup::setupProjectChange() {
 void StartupPopup::loadPresetList() {
   m_presetCombo->clear();
   m_presetCombo->addItem("...");
-  m_presetListFile = ToonzFolder::getReslistPath(false).getQString();
+  m_presetListFile = FlareFolder::getReslistPath(false).getQString();
   QFile file(m_presetListFile);
   if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
     QTextStream in(&file);

@@ -44,17 +44,17 @@ void CommandBar::fillToolbar(CommandBar *toolbar, bool isXsheetToolbar) {
   TFilePath personalPath;
   if (isXsheetToolbar) {
     personalPath =
-        ToonzFolder::getMyModuleDir() + TFilePath("xsheettoolbar.xml");
+        FlareFolder::getMyModuleDir() + TFilePath("xsheettoolbar.xml");
   } else {
-    personalPath = ToonzFolder::getMyModuleDir() + TFilePath("commandbar.xml");
+    personalPath = FlareFolder::getMyModuleDir() + TFilePath("commandbar.xml");
   }
   if (!TSystem::doesExistFileOrLevel(personalPath)) {
     if (isXsheetToolbar) {
       personalPath =
-          ToonzFolder::getTemplateModuleDir() + TFilePath("xsheettoolbar.xml");
+          FlareFolder::getTemplateModuleDir() + TFilePath("xsheettoolbar.xml");
     } else {
       personalPath =
-          ToonzFolder::getTemplateModuleDir() + TFilePath("commandbar.xml");
+          FlareFolder::getTemplateModuleDir() + TFilePath("commandbar.xml");
     }
   }
   QFile file(toQString(personalPath));

@@ -1367,11 +1367,11 @@ SubCameraButton::SubCameraButton(const QString& text, QWidget* parent)
   setCheckable(true);
 
   // load preference file
-  TFilePath layoutDir = ToonzFolder::getMyModuleDir();
+  TFilePath layoutDir = FlareFolder::getMyModuleDir();
   TFilePath prefPath  = layoutDir + TFilePath("camera_capture_subcamera.ini");
   // In case the personal settings is not exist (for new users)
   if (!TFileStatus(prefPath).doesExist()) {
-    TFilePath templatePath = ToonzFolder::getTemplateModuleDir() +
+    TFilePath templatePath = FlareFolder::getTemplateModuleDir() +
                              TFilePath("camera_capture_subcamera.ini");
     // If there is the template, copy it to the personal one
     if (TFileStatus(templatePath).doesExist())
@@ -3695,7 +3695,7 @@ QString PencilTestPopup::getCameraConfigurationPath(const QString& folderName,
   if (cameraName.isEmpty()) return QString();
   QString resolution   = m_resolutionCombo->currentText();
   QString hostName     = QHostInfo::localHostName();
-  TFilePath folderPath = ToonzFolder::getLibraryFolder();
+  TFilePath folderPath = FlareFolder::getLibraryFolder();
   return folderPath.getQString() + "\\" + folderName + "\\" + hostName + "_" +
          cameraName + "_" + resolution + "." + ext;
 }
@@ -3791,7 +3791,7 @@ void PencilTestPopup::onCalibExportBtnClicked() {
 
 void PencilTestPopup::onCalibReadme() {
   TFilePath readmeFp =
-      ToonzFolder::getLibraryFolder() + "camera calibration" + "readme.txt";
+      FlareFolder::getLibraryFolder() + "camera calibration" + "readme.txt";
   if (!TFileStatus(readmeFp).doesExist()) return;
   if (TSystem::isUNC(readmeFp))
     QDesktopServices::openUrl(QUrl(readmeFp.getQString()));
@@ -3981,7 +3981,7 @@ ExportCalibrationFilePopup::ExportCalibrationFilePopup(QWidget* parent)
 
 void ExportCalibrationFilePopup::showEvent(QShowEvent* e) {
   FileBrowserPopup::showEvent(e);
-  setFolder(ToonzFolder::getLibraryFolder() + "camera calibration");
+  setFolder(FlareFolder::getLibraryFolder() + "camera calibration");
 }
 
 //=============================================================================
@@ -3997,5 +3997,5 @@ LoadCalibrationFilePopup::LoadCalibrationFilePopup(QWidget* parent)
 
 void LoadCalibrationFilePopup::showEvent(QShowEvent* e) {
   FileBrowserPopup::showEvent(e);
-  setFolder(ToonzFolder::getLibraryFolder() + "camera calibration");
+  setFolder(FlareFolder::getLibraryFolder() + "camera calibration");
 }

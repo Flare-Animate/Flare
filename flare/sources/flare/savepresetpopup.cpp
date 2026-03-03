@@ -64,7 +64,7 @@ bool SavePresetPopup::apply() {
   bool isMacro      = macroFx != 0;
   std::wstring name = m_nameFld->text().toStdWString();
   if (name.empty()) return 0;
-  TFilePath fp = ToonzFolder::getFxPresetFolder() + "presets" +
+  TFilePath fp = FlareFolder::getFxPresetFolder() + "presets" +
                  fx->getFxType() + (name + (isMacro ? L".macrofx" : L".fx"));
   if (!TFileStatus(fp.getParentDir()).doesExist()) {
     try {

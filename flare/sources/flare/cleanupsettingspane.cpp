@@ -135,7 +135,7 @@ CleanupSettingsPane::CleanupSettingsPane(QWidget *parent)
   m_rotateOm->addItems(rotate);
   // Camera
   cameraFrame->setObjectName("CleanupSettingsFrame");
-  m_cameraWidget->setCameraPresetListFile(ToonzFolder::getReslistPath(true));
+  m_cameraWidget->setCameraPresetListFile(FlareFolder::getReslistPath(true));
   // LineProcessing
   lineProcFrame->setObjectName("CleanupSettingsFrame");
   QStringList items;

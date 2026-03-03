@@ -91,7 +91,7 @@ TFilePath layoutUtils::decodePath(const QString& path) {
   if (path.isEmpty()) return TFilePath();
   TFilePath fp(path);
   if (fp.getParentDir().isEmpty()) {
-    fp = ToonzFolder::getLibraryFolder() + TFilePath("layouts") + fp;
+    fp = FlareFolder::getLibraryFolder() + TFilePath("layouts") + fp;
   }
   return fp;
 }

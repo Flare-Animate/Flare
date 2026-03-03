@@ -17,7 +17,7 @@
 
 #include <set>
 
-namespace ToonzFolder {
+namespace FlareFolder {
 
 DVAPI TFilePath getModulesDir();
 DVAPI TFilePath getTemplateModuleDir();

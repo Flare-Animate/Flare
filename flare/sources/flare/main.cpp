@@ -189,7 +189,7 @@ static void initFlareEnv(QHash<QString, QString> &argPathValues) {
 
   // TPluginManager::instance()->loadStandardPlugins();
 
-  TFilePath library = ToonzFolder::getLibraryFolder();
+  TFilePath library = FlareFolder::getLibraryFolder();
 
   TRasterImagePatternStrokeStyle::setRootDir(library);
   TVectorImagePatternStrokeStyle::setRootDir(library);
@@ -208,7 +208,7 @@ static void initFlareEnv(QHash<QString, QString> &argPathValues) {
   /*--
    * FLAREPROJECTSのパスセットを取得する。（FLAREPROJECTSはセミコロンで区切って複数設定可能）
    * --*/
-  TFilePathSet projectsRoots = ToonzFolder::getProjectsFolders();
+  TFilePathSet projectsRoots = FlareFolder::getProjectsFolders();
   TFilePathSet::iterator it;
   for (it = projectsRoots.begin(); it != projectsRoots.end(); ++it)
     projectManager->addProjectsRoot(*it);
@@ -227,7 +227,7 @@ project->setUseScenePath(TProject::Extras, false);
   // Imposto la rootDir per ImageCache
 
   /*-- FLARECACHEROOTの設定  --*/
-  TFilePath cacheDir = ToonzFolder::getCacheRootFolder();
+  TFilePath cacheDir = FlareFolder::getCacheRootFolder();
   if (cacheDir.isEmpty()) cacheDir = TEnv::getStuffDir() + "cache";
   TImageCache::instance()->setRootDir(cacheDir);
 }
@@ -639,7 +639,7 @@ if (QFileInfo(localSplashPath).exists() && QFileInfo(localSplashPath).isFile()) 
                      Qt::white);
   a.processEvents();
 
-  loadShaderInterfaces(ToonzFolder::getLibraryFolder() + TFilePath("shaders"));
+  loadShaderInterfaces(FlareFolder::getLibraryFolder() + TFilePath("shaders"));
 
   splash.showMessage(offsetStr + "Initializing Flare ...", Qt::AlignCenter,
                      Qt::white);
@@ -764,7 +764,7 @@ if (QFileInfo(localSplashPath).exists() && QFileInfo(localSplashPath).isFile()) 
   }
   a.processEvents();
 
-  TFilePath fp = ToonzFolder::getModuleFile("mainwindow.ini");
+  TFilePath fp = FlareFolder::getModuleFile("mainwindow.ini");
   QSettings settings(toQString(fp), QSettings::IniFormat);
   if (settings.contains("MainWindowGeometry"))
     w.restoreGeometry(settings.value("MainWindowGeometry").toByteArray());

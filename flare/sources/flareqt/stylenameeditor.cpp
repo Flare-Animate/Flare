@@ -130,7 +130,7 @@ void AddWordButton::onClicked() { emit clicked(m_column); }
 // load word list from user's settings
 
 void EasyInputArea::loadList() {
-  TFilePath fp(ToonzFolder::getMyModuleDir() +
+  TFilePath fp(FlareFolder::getMyModuleDir() +
                TFilePath(styleNameEasyInputWordsFileName));
   if (!TFileStatus(fp).doesExist()) return;
   QSettings wordsSettings(toQString(fp), QSettings::IniFormat);
@@ -149,7 +149,7 @@ void EasyInputArea::loadList() {
 // save word list to user's settings
 
 void EasyInputArea::saveList() {
-  TFilePath fp(ToonzFolder::getMyModuleDir() +
+  TFilePath fp(FlareFolder::getMyModuleDir() +
                TFilePath(styleNameEasyInputWordsFileName));
   QSettings wordsSettings(toQString(fp), QSettings::IniFormat);
   wordsSettings.clear();

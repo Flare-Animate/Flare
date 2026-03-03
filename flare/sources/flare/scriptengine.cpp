@@ -85,7 +85,7 @@ public:
   }
   ~LoadScriptPopup() {}
   void initFolder() {
-    setFolder(ToonzFolder::getLibraryFolder());
+    setFolder(FlareFolder::getLibraryFolder());
     // setFolder("");
   }
   bool execute() {

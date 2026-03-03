@@ -1894,7 +1894,7 @@ void TXshSimpleLevel::initializePalette() {
       is >> palette;
     } else {
       TFilePath globalPath(
-          ToonzFolder::getStudioPaletteFolder().getQString().append(
+          FlareFolder::getStudioPaletteFolder().getQString().append(
               "\\Global Palettes\\Default "
               "Palettes\\Toonz_Raster_Palette.tpl"));
       if (TSystem::doesExistFileOrLevel(globalPath)) {
@@ -1912,7 +1912,7 @@ void TXshSimpleLevel::initializePalette() {
       is >> palette;
     } else {
       TFilePath globalPath(
-          ToonzFolder::getStudioPaletteFolder().getQString().append(
+          FlareFolder::getStudioPaletteFolder().getQString().append(
               "\\Global Palettes\\Default "
               "Palettes\\Toonz_Vector_Palette.tpl"));
       if (TSystem::doesExistFileOrLevel(globalPath)) {

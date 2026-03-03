@@ -20,7 +20,7 @@ namespace {
 
 const TFilePath CustomPanelFolderName("custompanels");
 const TFilePath customPaneFolderPath() {
-  return ToonzFolder::getMyModuleDir() + CustomPanelFolderName;
+  return FlareFolder::getMyModuleDir() + CustomPanelFolderName;
 }
 }  // namespace
 

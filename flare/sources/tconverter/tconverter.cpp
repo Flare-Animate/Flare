@@ -42,7 +42,7 @@ typedef QualifierT<TFilePath> FilePathQualifier;
 #define RENDER_LICENSE_NOT_FOUND 888
 
 const char *rootVarName     = "FLAREROOT";
-const char *systemVarPrefix = "TOONZ";
+const char *systemVarPrefix = "FLARE";
 
 namespace {
 

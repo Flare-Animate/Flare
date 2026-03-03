@@ -2885,7 +2885,7 @@ StyleEditor::StyleEditor(PaletteController *paletteController, QWidget *parent)
     , m_editedStyle(0) {
   setFocusPolicy(Qt::NoFocus);
   // Remove
-  TFilePath libraryPath = ToonzFolder::getLibraryFolder();
+  TFilePath libraryPath = FlareFolder::getLibraryFolder();
   setRootPath(libraryPath);
 
   m_styleBar = new DVGui::TabBar(this);

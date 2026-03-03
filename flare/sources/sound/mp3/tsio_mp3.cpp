@@ -41,7 +41,7 @@ TSoundTrackP TSoundTrackReaderMp3::load() {
 }
 
 TFilePath FfmpegAudio::getFfmpegCache() {
-  QString cacheRoot = ToonzFolder::getCacheRootFolder().getQString();
+  QString cacheRoot = FlareFolder::getCacheRootFolder().getQString();
   if (!TSystem::doesExistFileOrLevel(TFilePath(cacheRoot + "/ffmpeg"))) {
     TSystem::mkDir(TFilePath(cacheRoot + "/ffmpeg"));
   }

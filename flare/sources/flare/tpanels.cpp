@@ -1562,7 +1562,7 @@ FxSettingsPanel::FxSettingsPanel(QWidget *parent) : TPanel(parent) {
 // FxSettings will adjust its size according to the current fx
 // so we only restore position of the panel.
 void FxSettingsPanel::restoreFloatingPanelState() {
-  TFilePath savePath = ToonzFolder::getMyModuleDir() + TFilePath("popups.ini");
+  TFilePath savePath = FlareFolder::getMyModuleDir() + TFilePath("popups.ini");
   QSettings settings(QString::fromStdWString(savePath.getWideString()),
                      QSettings::IniFormat);
   settings.beginGroup("Panels");
