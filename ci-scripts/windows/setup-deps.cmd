@@ -56,7 +56,22 @@ if not exist vcpkg\bootstrap-vcpkg.bat (
 )
 
 pushd vcpkg
-call bootstrap-vcpkg.bat || (echo ERROR: bootstrap-vcpkg.bat failed & exit /b 1)
-.\vcpkg.exe install lzo:x64-windows || (echo ERROR: vcpkg install lzo failed & exit /b 1)
+set BOOT_ATTEMPTS=0
+:boot_retry
+set /A BOOT_ATTEMPTS+=1
+echo Bootstrap attempt %BOOT_ATTEMPTS% ...
+call bootstrap-vcpkg.bat
+if %ERRORLEVEL% EQU 0 goto :boot_ok
+echo bootstrap-vcpkg.bat failed on attempt %BOOT_ATTEMPTS%
+if %BOOT_ATTEMPTS% GEQ 3 (
+  echo ERROR: bootstrap-vcpkg.bat failed after 3 attempts
+  popd
+  exit /b 1
+)
+echo Retrying in 10s...
+timeout /t 10 /nobreak
+goto :boot_retry
+:boot_ok
+.\vcpkg.exe install lzo:x64-windows || (echo ERROR: vcpkg install lzo failed & popd & exit /b 1)
 popd
 echo VCPKG_ROOT=%GITHUB_WORKSPACE%\vcpkg>> %GITHUB_ENV%
