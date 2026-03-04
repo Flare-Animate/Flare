@@ -111,7 +111,7 @@ namespace {
 //
 
 const char *rootVarName     = "FLAREROOT";
-const char *systemVarPrefix = "TOONZ";
+const char *systemVarPrefix = "FLARE";
 
 // TODO: forse anche questo andrebbe in tnzbase
 // ci possono essere altri programmi offline oltre al tcomposer
@@ -144,13 +144,13 @@ inline bool isBlank(char c) { return c == ' ' || c == '\t' || c == '\n'; }
 // allora **DEVE** essere messo in libreria. Parliamone.
 //
 //========================================================================
-// setToonzFolder
+// setFlareFolder
 //------------------------------------------------------------------------
 
 // Ritorna il path della variabile passata come secondo argomento
 // entrambe vengono lette da un file di testo (filename).
 
-TFilePath setToonzFolder(const TFilePath &filename, std::string toonzVar) {
+TFilePath setFlareFolder(const TFilePath &filename, std::string toonzVar) {
   Tifstream is(filename);
   if (!is) return TFilePath();
 
@@ -744,18 +744,18 @@ int main(int argc, char *argv[]) {
   TMeasureManager::instance()->                 // Loads camera-related units
       addCameraMeasures(getCurrentCameraSize);  //
 
-  TFilePathSet fps = ToonzFolder::getProjectsFolders();
+  TFilePathSet fps = FlareFolder::getProjectsFolders();
   TFilePathSet::iterator fpIt;
   for (fpIt = fps.begin(); fpIt != fps.end(); ++fpIt)
     TProjectManager::instance()->addProjectsRoot(*fpIt);
 
-  TFilePath libraryFolder = ToonzFolder::getLibraryFolder();
+  TFilePath libraryFolder = FlareFolder::getLibraryFolder();
   TRasterImagePatternStrokeStyle::setRootDir(libraryFolder);
   TVectorImagePatternStrokeStyle::setRootDir(libraryFolder);
   TVectorBrushStyle::setRootDir(libraryFolder);
   TPalette::setRootDir(libraryFolder);
   TImageStyle::setLibraryDir(libraryFolder);
-  TFilePath cacheRoot = ToonzFolder::getCacheRootFolder();
+  TFilePath cacheRoot = FlareFolder::getCacheRootFolder();
   if (cacheRoot.isEmpty()) cacheRoot = TEnv::getStuffDir() + "cache";
   TImageCache::instance()->setRootDir(cacheRoot);
   // #endif
@@ -793,7 +793,7 @@ int main(int argc, char *argv[]) {
     initStdFx();
     initColorFx();
 
-    loadShaderInterfaces(ToonzFolder::getLibraryFolder() +
+    loadShaderInterfaces(FlareFolder::getLibraryFolder() +
                          TFilePath("shaders"));
 
     // #endif

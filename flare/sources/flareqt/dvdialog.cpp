@@ -69,7 +69,7 @@ QPixmap getMsgBoxPixmap(MsgType type) {
 //-----------------------------------------------------------------------------
 
 QString getMsgBoxTitle(MsgType type) {
-  TVER::ToonzVersion tver;
+  TVER::FlareVersion tver;
   QString title = QString::fromStdString(tver.getAppName() + " " +
                                          tver.getAppVersionString() + " - ");
 
@@ -281,7 +281,7 @@ Dialog::Dialog(QWidget *parent, bool hasButton, bool hasFixedSize,
 
   if (settingsPath.isEmpty()) {
     TFilePath savePath =
-        ToonzFolder::getMyModuleDir() + TFilePath("popups.ini");
+        FlareFolder::getMyModuleDir() + TFilePath("popups.ini");
     settingsPath = QString::fromStdWString(savePath.getWideString());
   }
 

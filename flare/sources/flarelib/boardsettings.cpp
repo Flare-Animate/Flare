@@ -218,7 +218,7 @@ void BoardItem::saveData(TOStream &os) {
 
   if (m_type == Image) {
     // if the path is in library folder, then save the relative path
-    TFilePath libFp = ToonzFolder::getLibraryFolder();
+    TFilePath libFp = FlareFolder::getLibraryFolder();
     if (libFp.isAncestorOf(m_imgPath))
       os.child("imgPath") << 1 << m_imgPath - libFp;
     else
@@ -255,7 +255,7 @@ void BoardItem::loadData(TIStream &is) {
       TFilePath fp;
       is >> isInLibrary >> fp;
       if (isInLibrary == 1)
-        m_imgPath = ToonzFolder::getLibraryFolder() + fp;
+        m_imgPath = FlareFolder::getLibraryFolder() + fp;
       else
         m_imgPath = fp;
     } else if (tagName == "imgARMode") {

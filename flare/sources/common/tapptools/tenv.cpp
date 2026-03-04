@@ -40,7 +40,7 @@ const std::map<std::string, std::string> systemPathMap{
 
 class EnvGlobals {  // singleton
 
-  ToonzVersion m_version;
+  FlareVersion m_version;
   std::string m_applicationFileName;  // May differ from application name
   std::string m_applicationVersion;
   std::string m_applicationFullName;

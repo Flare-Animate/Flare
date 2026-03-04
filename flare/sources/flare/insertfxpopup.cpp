@@ -244,9 +244,9 @@ InsertFxPopup::InsertFxPopup()
 
   QList<QTreeWidgetItem *> fxItems;
 
-  TFilePath path = TFilePath(ToonzFolder::getProfileFolder() + "layouts" +
+  TFilePath path = TFilePath(FlareFolder::getProfileFolder() + "layouts" +
                              "fxs" + "fxs.lst");
-  m_presetFolder = TFilePath(ToonzFolder::getFxPresetFolder() + "presets");
+  m_presetFolder = TFilePath(FlareFolder::getFxPresetFolder() + "presets");
   loadFx(path);
   loadMacro();
 

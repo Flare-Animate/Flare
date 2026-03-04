@@ -50,7 +50,7 @@ TPalette *FullColorPalette::getPalette(ToonzScene *scene) {
     fullPath = scene->decodeFilePath(app);
   }
   if (!TSystem::doesExistFileOrLevel(fullPath)) {
-    fullPath = ToonzFolder::getStudioPaletteFolder() +
+    fullPath = FlareFolder::getStudioPaletteFolder() +
                "Global Palettes\\Default Palettes\\Raster_Drawing_Palette.tpl";
   }
   if (TSystem::doesExistFileOrLevel(fullPath)) {

@@ -254,13 +254,13 @@ bool Preferences::LevelFormat::matches(const TFilePath &fp) const {
 
 Preferences::Preferences() {
   // Load preference file
-  TFilePath layoutDir = ToonzFolder::getMyModuleDir();
+  TFilePath layoutDir = FlareFolder::getMyModuleDir();
   TFilePath prefPath  = layoutDir + TFilePath("preferences.ini");
 
   // In case the personal settings do not exist (for new users)
   if (!TFileStatus(prefPath).doesExist()) {
     TFilePath templatePath =
-        ToonzFolder::getTemplateModuleDir() + TFilePath("preferences.ini");
+        FlareFolder::getTemplateModuleDir() + TFilePath("preferences.ini");
     // If there is a template, copy it to the personal one
     if (TFileStatus(templatePath).doesExist())
       TSystem::copyFile(prefPath, templatePath);
@@ -354,7 +354,7 @@ void Preferences::initializeOptions() {
   }
 
   // Load rooms or layouts
-  TFilePath room_path(ToonzFolder::getRoomsDir());
+  TFilePath room_path(FlareFolder::getRoomsDir());
   TFilePathSet room_fpset;
   try {
     TSystem::readDirectory(room_fpset, room_path, true, false);

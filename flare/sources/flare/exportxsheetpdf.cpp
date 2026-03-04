@@ -2224,7 +2224,7 @@ ExportXsheetPdfPopup::~ExportXsheetPdfPopup() {
 void ExportXsheetPdfPopup::loadPresetItems() {
   // check in the preset folder
   TFilePath presetFolderPath =
-      ToonzFolder::getLibraryFolder() + "xsheetpdfpresets";
+      FlareFolder::getLibraryFolder() + "xsheetpdfpresets";
   QDir presetFolder(presetFolderPath.getQString());
   QStringList filters;
   filters << "*.ini";

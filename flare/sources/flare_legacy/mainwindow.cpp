@@ -104,18 +104,18 @@ bool readRoomList(std::vector<TFilePath> &roomPaths,
   TFilePath fp;
   /*-レイアウトファイルが指定されている場合--*/
   if (!argumentLayoutFileName.isEmpty()) {
-    fp = ToonzFolder::getRoomsFile(argumentLayoutFileName.toStdString());
+    fp = FlareFolder::getRoomsFile(argumentLayoutFileName.toStdString());
     if (!TFileStatus(fp).doesExist()) {
       DVGui::warning("Room layout file " + argumentLayoutFileName +
                      " not found!");
-      fp = ToonzFolder::getRoomsFile(layoutsFileName);
+      fp = FlareFolder::getRoomsFile(layoutsFileName);
       if (!TFileStatus(fp).doesExist()) return false;
     } else {
       argumentLayoutFileLoaded = true;
       layoutsFileName          = argumentLayoutFileName.toStdString();
     }
   } else {
-    fp = ToonzFolder::getRoomsFile(layoutsFileName);
+    fp = FlareFolder::getRoomsFile(layoutsFileName);
     if (!TFileStatus(fp).doesExist()) return false;
   }
 
@@ -141,7 +141,7 @@ bool readRoomList(std::vector<TFilePath> &roomPaths,
 //-----------------------------------------------------------------------------
 
 void writeRoomList(std::vector<TFilePath> &roomPaths) {
-  TFilePath fp = ToonzFolder::getMyRoomsDir() + layoutsFileName;
+  TFilePath fp = FlareFolder::getMyRoomsDir() + layoutsFileName;
   TSystem::touchParentDir(fp);
   Tofstream os(fp);
   if (!os) return;
@@ -164,7 +164,7 @@ void writeRoomList(std::vector<Room *> &rooms) {
 //-----------------------------------------------------------------------------
 
 void makePrivate(Room *room) {
-  TFilePath layoutDir       = ToonzFolder::getMyRoomsDir();
+  TFilePath layoutDir       = FlareFolder::getMyRoomsDir();
   TFilePath roomPath        = room->getPath();
   std::string mbSrcFileName = roomPath.getName() + "_menubar.xml";
   if (roomPath == TFilePath() || roomPath.getParentDir() != layoutDir) {
@@ -182,12 +182,12 @@ void makePrivate(Room *room) {
   TFilePath myMBPath        = layoutDir + mbDstFileName;
   if (!TFileStatus(myMBPath).isReadable()) {
     TFilePath templateRoomMBPath =
-        ToonzFolder::getTemplateRoomsDir() + mbSrcFileName;
+        FlareFolder::getTemplateRoomsDir() + mbSrcFileName;
     if (TFileStatus(templateRoomMBPath).doesExist())
       TSystem::copyFile(myMBPath, templateRoomMBPath);
     else {
       TFilePath templateFullMBPath =
-          ToonzFolder::getTemplateRoomsDir() + "menubar_template.xml";
+          FlareFolder::getTemplateRoomsDir() + "menubar_template.xml";
       if (TFileStatus(templateFullMBPath).doesExist())
         TSystem::copyFile(myMBPath, templateFullMBPath);
       else
@@ -516,7 +516,7 @@ centralWidget->setLayout(centralWidgetLayout);*/
                     &MainWindow::onNewMetaLevelButtonPressed);
   // remove ffmpegCache if still exists from crashed exit
   QString ffmpegCachePath =
-      ToonzFolder::getCacheRootFolder().getQString() + "//ffmpeg";
+      FlareFolder::getCacheRootFolder().getQString() + "//ffmpeg";
   if (TSystem::doesExistFileOrLevel(TFilePath(ffmpegCachePath))) {
     TSystem::rmDirTree(TFilePath(ffmpegCachePath));
   }
@@ -531,7 +531,7 @@ MainWindow::~MainWindow() {
   TEnv::saveAllEnvVariables();
   // cleanup ffmpeg cache
   QString ffmpegCachePath =
-      ToonzFolder::getCacheRootFolder().getQString() + "//ffmpeg";
+      FlareFolder::getCacheRootFolder().getQString() + "//ffmpeg";
   if (TSystem::doesExistFileOrLevel(TFilePath(ffmpegCachePath))) {
     TSystem::rmDirTree(TFilePath(ffmpegCachePath));
   }
@@ -634,7 +634,7 @@ void MainWindow::readSettings(const QString &argumentLayoutFileName) {
   }
 
   // Get Current Room
-  TFilePath fp = ToonzFolder::getRoomsFile(currentRoomFileName);
+  TFilePath fp = FlareFolder::getRoomsFile(currentRoomFileName);
   Tifstream is(fp);
   std::string name;
   is >> name;
@@ -654,7 +654,7 @@ void MainWindow::readSettings(const QString &argumentLayoutFileName) {
 
       /*- ここでMenuBarファイルをロードする -*/
       std::string mbFileName = roomPath.getName() + "_menubar.xml";
-      stackedMenuBar->loadAndAddMenubar(ToonzFolder::getRoomsFile(mbFileName));
+      stackedMenuBar->loadAndAddMenubar(FlareFolder::getRoomsFile(mbFileName));
 
       // room->setDockOptions(QMainWindow::DockOptions(
       //  (QMainWindow::AnimatedDocks | QMainWindow::AllowNestedDocks) &
@@ -664,7 +664,7 @@ void MainWindow::readSettings(const QString &argumentLayoutFileName) {
   }
 
   // Read the flipbook history
-  FlipBookPool::instance()->load(ToonzFolder::getMyModuleDir() +
+  FlipBookPool::instance()->load(FlareFolder::getMyModuleDir() +
                                  TFilePath("fliphistory.ini"));
 
   /*- レイアウト設定ファイルが見つからなかった場合、初期Roomの生成 -*/
@@ -763,11 +763,11 @@ void MainWindow::writeSettings() {
   }
 
   // Current room settings
-  Tofstream os(ToonzFolder::getMyRoomsDir() + currentRoomFileName);
+  Tofstream os(FlareFolder::getMyRoomsDir() + currentRoomFileName);
   os << getCurrentRoom()->getName().toStdString();
 
   // Main window settings
-  TFilePath fp = ToonzFolder::getMyModuleDir() + TFilePath("mainwindow.ini");
+  TFilePath fp = FlareFolder::getMyModuleDir() + TFilePath("mainwindow.ini");
   QSettings settings(toQString(fp), QSettings::IniFormat);
 
   settings.setValue("MainWindowGeometry", saveGeometry());
@@ -1139,7 +1139,7 @@ void MainWindow::resetRoomsLayout() {
 
   m_saveSettingsOnQuit = false;
 
-  TFilePath layoutDir = ToonzFolder::getMyRoomsDir();
+  TFilePath layoutDir = FlareFolder::getMyRoomsDir();
   if (layoutDir != TFilePath()) {
     // TSystem::deleteFile(layoutDir);
     TSystem::rmDirTree(layoutDir);
@@ -3196,7 +3196,7 @@ void MainWindow::clearCacheFolder() {
   // 1. $CACHE/[Current ProcessID]
   // 2. $CACHE/temp/[Current scene folder] if the current scene is untitled
 
-  TFilePath cacheRoot = ToonzFolder::getCacheRootFolder();
+  TFilePath cacheRoot = FlareFolder::getCacheRootFolder();
   if (cacheRoot.isEmpty()) cacheRoot = TEnv::getStuffDir() + "cache";
 
   TFilePathSet filesToBeRemoved;
@@ -3407,7 +3407,7 @@ void RecentFiles::clearRecentFilesList(FileType fileType) {
 //-----------------------------------------------------------------------------
 
 void RecentFiles::loadRecentFiles() {
-  TFilePath fp = ToonzFolder::getMyModuleDir() + TFilePath("RecentFiles.ini");
+  TFilePath fp = FlareFolder::getMyModuleDir() + TFilePath("RecentFiles.ini");
   QSettings settings(toQString(fp), QSettings::IniFormat);
   int i;
 
@@ -3469,7 +3469,7 @@ void RecentFiles::loadRecentFiles() {
 //-----------------------------------------------------------------------------
 
 void RecentFiles::saveRecentFiles() {
-  TFilePath fp = ToonzFolder::getMyModuleDir() + TFilePath("RecentFiles.ini");
+  TFilePath fp = FlareFolder::getMyModuleDir() + TFilePath("RecentFiles.ini");
   QSettings settings(toQString(fp), QSettings::IniFormat);
   settings.setValue(QString("Scenes"), QVariant(m_recentScenes));
   settings.setValue(QString("SceneProjects"), QVariant(m_recentSceneProjects));

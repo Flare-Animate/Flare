@@ -311,12 +311,6 @@ else()
     message(WARNING "kiss_fft source files not found under ${SDKROOT}/kiss_fft; skipping dsp routines")
 endif()
 
-# safeguard in case the above logic misfires (CI quirk)
-list(REMOVE_ITEM SOURCES
-    "${SDKROOT}/kiss_fft/kiss_fft.c"
-    "${SDKROOT}/kiss_fft/kiss_fftnd.c"
-)
-
 add_library(tnzstdfx SHARED ${HEADERS} ${SOURCES} ${OBJCSOURCES})
 add_definitions(
     -D_USRDLL

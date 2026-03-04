@@ -20,14 +20,14 @@ namespace {
 //---------------------------------------------------------
 
 void printToonzRelease(ostream &out) {
-  TVER::ToonzVersion tver;
+  TVER::FlareVersion tver;
   out << tver.getAppVersionInfo("") << endl;
 }
 
 //---------------------------------------------------------
 
 void printLibRelease(ostream &out) {
-  TVER::ToonzVersion tver;
+  TVER::FlareVersion tver;
   out << tver.getAppVersionInfo("") << " - " __DATE__ << endl;
 }
 //---------------------------------------------------------

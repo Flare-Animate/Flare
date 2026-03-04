@@ -1,179 +1,165 @@
 # yaml-language-server: $schema=https://json.schemastore.org/github-workflow
-name: Sync from upstream (Flare)
-# this job pulls from the Flare repo and applies the Flare rebranding script
+name: Sync from upstream (Agentic)
+# Pulls improvements from opentoonz/opentoonz and/or tahoma2d/tahoma2d,
+# applies them commit-by-commit with full auto-rebrand, and opens a PR.
+# Flare-specific code, branding, and files are never overwritten.
+# Uses tools/sync/upstream_agent.py for all logic.
 
 on:
-  # Run manually
   workflow_dispatch:
-  # Run every Monday at 00:00 UTC
+    inputs:
+      source:
+        description: 'Which upstream(s) to sync'
+        required: false
+        type: choice
+        default: all
+        options:
+          - all
+          - opentoonz
+          - tahoma2d
+      max_commits:
+        description: 'Max commits per upstream (default: 50)'
+        required: false
+        default: '50'
+      dry_run:
+        description: 'Dry run — list commits without applying'
+        required: false
+        type: boolean
+        default: false
+      reset_state:
+        description: 'Reset sync state (re-scans last ~20 commits per upstream)'
+        required: false
+        type: boolean
+        default: false
   schedule:
-    - cron: '0 0 * * 1'
+    # Every Monday at 02:00 UTC
+    - cron: '0 2 * * 1'
+
+permissions:
+  contents: write
+  pull-requests: write
 
 jobs:
-  sync-upstream:
+  sync:
     runs-on: ubuntu-latest
     env:
       GIT_LFS_SKIP_SMUDGE: '1'
-    permissions:
-      contents: write
-      pull-requests: write
+      BRANCH_NAME: sync-upstream-${{ github.run_id }}
 
     steps:
-      - name: Checkout
+      - name: Checkout Flare
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Fetch full history for proper syncing
+          fetch-depth: 0
           lfs: false
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Configure Git
         run: |
-          git config user.name "github-actions[bot]"
+          git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Add Flare upstream remote
-        run: |
-          git remote add upstream https://github.com/Flare-Animate/Flare.git || true
-          git fetch upstream
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
 
       - name: Create sync branch
-        run: |
-          BRANCH_NAME="sync-upstream-$(date +%Y%m%d-%H%M%S)"
-          echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
-          git checkout -b $BRANCH_NAME
+        run: git checkout -b "$BRANCH_NAME"
 
-      - name: Merge upstream changes
-        id: merge
-        continue-on-error: true
+      - name: Run upstream sync agent
+        id: agent
         run: |
-          # Try to merge upstream/master
-          git merge upstream/master --no-commit --no-ff || echo "MERGE_CONFLICT=true" >> $GITHUB_ENV
+          ARGS="--source ${{ inputs.source || 'all' }}"
+          ARGS="$ARGS --max-commits ${{ inputs.max_commits || '50' }}"
+          if [ "${{ inputs.dry_run }}" = "true" ]; then ARGS="$ARGS --dry-run"; fi
+          if [ "${{ inputs.reset_state }}" = "true" ]; then ARGS="$ARGS --reset-state"; fi
 
-      - name: Apply Flare rebranding
-        if: env.MERGE_CONFLICT != 'true'
+          python tools/sync/upstream_agent.py $ARGS 2>&1 | tee /tmp/sync_agent.log
+          echo "agent_exit=${PIPESTATUS[0]}" >> "$GITHUB_OUTPUT"
+
+      - name: Count new commits
+        id: changes
         run: |
-          # Create a script to perform the rebranding
-          cat > /tmp/rebrand.sh << 'EOF'
-          #!/bin/bash
-          set -e
-          
-          echo "Applying Flare rebranding..."
-          
-          # Function to rebrand files (case-sensitive replacements)
-          rebrand_file() {
-            local file="$1"
-            # Skip README files
-            if [[ "$file" == *"README"* ]] || [[ "$file" == */doc/* ]]; then
-              return
-            fi
-            
-            # Skip binary files
-            if file "$file" | grep -q "text"; then
-              # Replace Flare with Flare (in text, UI, comments, etc.)
-              # Do this BEFORE the lowercase replacement to avoid conflicts
-              sed -i 's/Flare/Flare/g' "$file"
-              
-              # Replace opentoonz with flare (lowercase, in URLs, paths, etc.)
-              sed -i 's/opentoonz/flare/g' "$file"
-              
-              # Update directory references from toonz to flare
-              # But preserve code namespaces and class names
-              sed -i 's|/toonz/|/flare/|g' "$file"
-              sed -i 's|\\toonz\\|\\flare\\|g' "$file"
-              
-              # Update application name in UI strings and metadata
-              # Be selective to avoid breaking code
-              sed -i 's/"Toonz"/"Flare"/g' "$file"
-              sed -i "s/'Toonz'/'Flare'/g" "$file"
-              
-              # Update window titles and display names
-              sed -i 's/Toonz Production/Flare/g' "$file"
-            fi
-          }
-          
-          # Find and rebrand specific file types
-          find . -type f \( \
-               -name "*.qrc" -o -name "*.ui" -o -name "*.desktop" \
-               -o -name "*.plist" -o -name "*.rc" -o -name "*.xml" \) \
-               ! -path "*/thirdparty/*" \
-               ! -path "*/.git/*" \
-               ! -path "*/doc/*" \
-               ! -name "README*" \
-               -print0 | while IFS= read -r -d '' file; do
-            rebrand_file "$file"
-          done
-          
-          echo "Rebranding complete."
-          EOF
-          
-          chmod +x /tmp/rebrand.sh
-          /tmp/rebrand.sh
+          COUNT=$(git log origin/master..HEAD --oneline 2>/dev/null | wc -l)
+          echo "commit_count=$COUNT" >> "$GITHUB_OUTPUT"
+          echo "Commits ahead of master: $COUNT"
 
-      - name: Capture upstream commit hash
-        if: env.MERGE_CONFLICT != 'true'
-        run: |
-          UPSTREAM_COMMIT=$(git rev-parse upstream/master)
-          echo "UPSTREAM_COMMIT=$UPSTREAM_COMMIT" >> $GITHUB_ENV
-          echo "Upstream commit: $UPSTREAM_COMMIT"
-
-      - name: Restore README files
-        if: env.MERGE_CONFLICT != 'true'
-        run: |
-          # Restore README files to our version (ignore upstream changes)
-          git checkout HEAD -- README.md || true
-          git checkout HEAD -- doc/ || true
-
-      - name: Commit changes
-        if: env.MERGE_CONFLICT != 'true'
-        run: |
-          git add -A
-          if git diff --cached --quiet; then
-            echo "No changes to commit"
-            echo "HAS_CHANGES=false" >> $GITHUB_ENV
-          else
-            git commit -m "Sync from Flare upstream with Flare rebranding
-
-          This automated sync merges changes from the Flare upstream repository
-          and applies Flare branding. README files are preserved from the Flare fork.
-          
-          Upstream commit: ${{ env.UPSTREAM_COMMIT }}"
-            echo "HAS_CHANGES=true" >> $GITHUB_ENV
-          fi
+      - name: Push sync branch
+        if: steps.changes.outputs.commit_count != '0' && inputs.dry_run != 'true'
+        run: git push origin "$BRANCH_NAME"
 
       - name: Create Pull Request
-        if: env.MERGE_CONFLICT != 'true' && env.HAS_CHANGES == 'true'
-        uses: peter-evans/create-pull-request@v7
+        if: steps.changes.outputs.commit_count != '0' && inputs.dry_run != 'true'
+        uses: actions/github-script@v7
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          branch: ${{ env.BRANCH_NAME }}
-          title: "🔄 Sync from Flare upstream"
-          body: |
-            ## Upstream Sync
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs    = require('fs');
+            const log   = fs.existsSync('/tmp/sync_agent.log')
+                        ? fs.readFileSync('/tmp/sync_agent.log', 'utf8').slice(-10000)
+                        : '(log unavailable)';
+            const count  = '${{ steps.changes.outputs.commit_count }}';
+            const source = '${{ inputs.source || "all" }}';
+            const srcLabel = source === 'all'
+              ? 'opentoonz/opentoonz + tahoma2d/tahoma2d'
+              : (source === 'opentoonz' ? 'opentoonz/opentoonz' : 'tahoma2d/tahoma2d');
 
-            This PR syncs changes from the [Flare upstream repository](https://github.com/Flare-Animate/Flare) and applies Flare rebranding.
+            const body = [
+              `## 🔄 Upstream sync from ${srcLabel}`,
+              '',
+              `Applied **${count}** upstream commit(s) with automatic Flare rebranding.`,
+              '',
+              '### What the agent did',
+              '- Fetched new commits from upstream repo(s)',
+              '- Applied each commit individually (cherry-pick — never a bulk merge)',
+              '- Deduplicated commits present in multiple upstreams',
+              '- Auto-rebranded all upstream names → Flare:',
+              '  - `OpenToonz` → `Flare`, `Tahoma2D` → `Flare`',
+              '  - `ToonzFolder` → `FlareFolder`, `ToonzVersion` → `FlareVersion`',
+              '  - Env vars: `TOONZROOT`/`TAHOMAROOT` → `FLAREROOT`, etc.',
+              '  - GitHub URLs, install paths, shortcut preset filenames',
+              '- Conflict resolution:',
+              '  - Branding-only conflicts → kept **Flare** version',
+              '  - Functional conflicts    → took **upstream** code, then rebranded',
+              '- Protected Flare-only paths: `flare/`, `.github/`, `README.md`, etc.',
+              '',
+              '### Review checklist',
+              '- [ ] CI build passes',
+              '- [ ] No unintended branding regressions',
+              '- [ ] New upstream features work as expected',
+              '- [ ] No Flare-specific code was removed',
+              '',
+              '<details><summary>📋 Agent log</summary>',
+              '',
+              '```',
+              log,
+              '```',
+              '</details>',
+            ].join('\n');
 
-            ### Changes Applied:
-            - ✅ Merged upstream changes
-            - ✅ Applied Flare rebranding (Flare → Flare)
-            - ✅ Preserved Flare README files
+            const { data: pr } = await github.rest.pulls.create({
+              owner: context.repo.owner,
+              repo:  context.repo.repo,
+              title: `🔄 Sync ${count} upstream commit(s) from ${srcLabel}`,
+              head:  process.env.BRANCH_NAME,
+              base:  'master',
+              body,
+            });
+            core.info(`PR created: ${pr.html_url}`);
 
-            ### Review Notes:
-            - Please review the changes carefully
-            - Check for any branding that may have been missed
-            - Verify that core functionality remains intact
-            - Test the build after merging
+      - name: Dry-run complete
+        if: inputs.dry_run == 'true'
+        run: echo "✅ Dry-run complete — no changes pushed."
 
-            **Upstream commit:** `${{ env.UPSTREAM_COMMIT }}`
+      - name: No new commits
+        if: steps.changes.outputs.commit_count == '0' && inputs.dry_run != 'true'
+        run: echo "✅ Already up to date — no PR needed."
 
-            ---
-            *This PR was automatically created by the sync-upstream workflow*
-          labels: |
-            upstream-sync
-            automated
-
-      - name: Handle merge conflicts
-        if: env.MERGE_CONFLICT == 'true'
-        run: |
-          echo "::error::Merge conflicts detected during upstream sync"
-          echo "Please manually resolve conflicts and create a PR"
-          git merge --abort || true
-          exit 1
+      - name: Upload agent log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sync-agent-log-${{ github.run_id }}
+          path: /tmp/sync_agent.log
+          if-no-files-found: ignore

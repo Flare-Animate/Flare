@@ -1241,7 +1241,7 @@ SaveBoardPresetFilePopup::SaveBoardPresetFilePopup()
 
 void SaveBoardPresetFilePopup::showEvent(QShowEvent* e) {
   FileBrowserPopup::showEvent(e);
-  setFolder(ToonzFolder::getLibraryFolder() + "clapperboards");
+  setFolder(FlareFolder::getLibraryFolder() + "clapperboards");
 }
 
 //=============================================================================
@@ -1254,7 +1254,7 @@ LoadBoardPresetFilePopup::LoadBoardPresetFilePopup()
 
 void LoadBoardPresetFilePopup::showEvent(QShowEvent* e) {
   FileBrowserPopup::showEvent(e);
-  setFolder(ToonzFolder::getLibraryFolder() + "clapperboards");
+  setFolder(FlareFolder::getLibraryFolder() + "clapperboards");
 }
 
 //=============================================================================

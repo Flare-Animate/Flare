@@ -75,7 +75,7 @@ QColor PBStartedColor    = QColor(220, 160, 160);
 QColor PBFinishedColor   = QColor(235, 235, 235);
 
 QString getFlipSettingsPath() {
-  return toQString(ToonzFolder::getMyModuleDir() +
+  return toQString(FlareFolder::getMyModuleDir() +
                    TFilePath("fliphistory.ini"));
 }
 

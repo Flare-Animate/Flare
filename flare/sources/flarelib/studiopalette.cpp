@@ -161,7 +161,7 @@ const std::string pathTableFileName = "palette_paths.ini";
 
 StudioPalette::StudioPalette() {
   try {
-    m_root = ToonzFolder::getStudioPaletteFolder();
+    m_root = FlareFolder::getStudioPaletteFolder();
   } catch (...) {
     return;
   }

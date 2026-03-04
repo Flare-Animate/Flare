@@ -5,7 +5,7 @@
 
 namespace TVER {
 
-class ToonzVersion {
+class FlareVersion {
 public:
   std::string getAppName(void);
   float getAppVersion(void);
@@ -22,43 +22,43 @@ private:
   const float applicationVersion  = 1.7f;
   const float applicationRevision = 1;
   const char *applicationNote     = "";
-  const char *systemVarPrefix     = "TOONZ";
+  const char *systemVarPrefix     = "FLARE";
 };
 
-std::string ToonzVersion::getAppName(void) {
+std::string FlareVersion::getAppName(void) {
   std::string appname = applicationName;
   return appname;
 }
-float ToonzVersion::getAppVersion(void) {
+float FlareVersion::getAppVersion(void) {
   float appver = applicationVersion;
   return appver;
 }
-float ToonzVersion::getAppRevision(void) {
+float FlareVersion::getAppRevision(void) {
   float apprev = applicationRevision;
   return apprev;
 }
-std::string ToonzVersion::getAppNote(void) {
+std::string FlareVersion::getAppNote(void) {
   std::string appnote = applicationNote;
   return appnote;
 }
-std::string ToonzVersion::getSystemVarPrefix(void) {
+std::string FlareVersion::getSystemVarPrefix(void) {
   std::string prefix = systemVarPrefix;
   return prefix;
 }
-bool ToonzVersion::hasAppNote(void) { return *applicationNote != 0; }
-std::string ToonzVersion::getAppVersionString(void) {
+bool FlareVersion::hasAppNote(void) { return *applicationNote != 0; }
+std::string FlareVersion::getAppVersionString(void) {
   char buffer[50];
   snprintf(buffer, sizeof(buffer), "%.1f", applicationVersion);
   std::string appver = std::string(buffer);
   return appver;
 }
-std::string ToonzVersion::getAppRevisionString(void) {
+std::string FlareVersion::getAppRevisionString(void) {
   char buffer[50];
   snprintf(buffer, sizeof(buffer), "%g", applicationRevision);
   std::string apprev = std::string(buffer);
   return apprev;
 }
-std::string ToonzVersion::getAppVersionInfo(std::string msg) {
+std::string FlareVersion::getAppVersionInfo(std::string msg) {
   std::string appinfo = std::string(applicationName);
   appinfo += " " + msg + " v";
   appinfo += getAppVersionString();

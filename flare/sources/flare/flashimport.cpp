@@ -9,7 +9,6 @@
 #include "flareqt/gutil.h"
 #include "flareqt/dvdialog.h"
 #include "flare/filebrowserpopup.h"
-#include "flareqt/gutil.h"
 
 #include <QProcess>
 #include <QDesktopServices>
@@ -68,7 +67,7 @@ void ImportFlashVectorCommand::execute() {
   candidates << QDir(QCoreApplication::applicationDirPath())
                     .absoluteFilePath("tools/flash/decompile_flash.py");
   // Relative to source module dir
-  QString moduleDir = ToonzFolder::getMyModuleDir().getQString();
+  QString moduleDir = FlareFolder::getMyModuleDir().getQString();
   candidates << QDir(moduleDir).absoluteFilePath("../../../../tools/flash/decompile_flash.py");
 
   QString scriptPath;
@@ -181,7 +180,7 @@ void ImportFlashContainerCommand::execute() {
   QStringList candidates;
   candidates << QDir(QCoreApplication::applicationDirPath()).absoluteFilePath("../../tools/flash/import_container.py");
   candidates << QDir(QCoreApplication::applicationDirPath()).absoluteFilePath("tools/flash/import_container.py");
-  QString moduleDir = ToonzFolder::getMyModuleDir().getQString();
+  QString moduleDir = FlareFolder::getMyModuleDir().getQString();
   candidates << QDir(moduleDir).absoluteFilePath("../../../../tools/flash/import_container.py");
 
   QString scriptPath;

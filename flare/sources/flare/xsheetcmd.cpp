@@ -1,5 +1,4 @@
 // TnzCore includes
-#include <QMainWindow>
 #include "tundo.h"
 #include "trandom.h"
 #include "tvectorimage.h"
@@ -1785,7 +1784,7 @@ std::vector<std::pair<std::string, string>> infos;
 void readParameters() {
   infos.clear();
   const std::string name("xsheet_html.xml");
-  TFilePath fp = ToonzFolder::getModuleFile(name);
+  TFilePath fp = FlareFolder::getModuleFile(name);
   if (!TFileStatus(fp).doesExist()) return;
   try {
     TIStream is(fp);
@@ -1814,7 +1813,7 @@ void copyCss(TFilePath fp) {
   const std::string name("xsheet.css");
   TFilePath cssFp = fp.getParentDir() + name;
   if (TFileStatus(cssFp).doesExist()) return;
-  TFilePath src = ToonzFolder::getModuleFile(name);
+  TFilePath src = FlareFolder::getModuleFile(name);
   if (TFileStatus(src).doesExist()) {
     try {
       TSystem::copyFile(cssFp, src);
@@ -2071,7 +2070,7 @@ static void makeHtml(TFilePath fp) {
   os << "<meta http-equiv=\"content-type\" content=\"text/html;charset=utf-8\">"
      << endl;
   os << "<meta http-equiv=\"Content-Style-Type\" content=\"text/css\">" << endl;
-  os << "<meta name=\"Generator\" content=\"Toonz 5.2\">" << endl;
+  os << "<meta name=\"Generator\" content=\"Flare\">" << endl;
   os << "<link rel=\"stylesheet\" type=\"text/css\" href=\"xsheet.css\">"
      << endl;
   os << "</head><body>" << endl;

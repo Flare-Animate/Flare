@@ -84,7 +84,7 @@ QScriptValue runFunction(QScriptContext *context, QScriptEngine *engine) {
       TScriptBinding::checkFilePath(context, context->argument(0), fp);
   if (err.isError()) return err;
   if (!fp.isAbsolute()) {
-    fp = ToonzFolder::getLibraryFolder() + "scripts" + fp;
+    fp = FlareFolder::getLibraryFolder() + "scripts" + fp;
   }
 
   QString fpStr = QString::fromStdWString(fp.getWideString());

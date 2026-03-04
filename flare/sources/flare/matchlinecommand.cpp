@@ -215,7 +215,7 @@ bool checkColumnValidity(int column) {
 
     if (cell[i].getSimpleLevel()->getType() != TZP_XSHLEVEL) {
       DVGui::warning(QObject::tr(
-          "Match lines can be applied to Toonz raster levels only."));
+          "Match lines can be applied to Flare raster levels only."));
       return false;
     }
     if (level != cell[i].getSimpleLevel()) {
@@ -582,7 +582,7 @@ void doDeleteCommand(bool isMatchline) {
     }
     if (cell.m_level->getType() != TZP_XSHLEVEL) {
       DVGui::warning(QObject::tr(
-          "Match lines can be deleted from Toonz raster levels only"));
+          "Match lines can be deleted from Flare raster levels only"));
       return;
     }
   }

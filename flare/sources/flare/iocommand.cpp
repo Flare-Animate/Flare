@@ -1495,7 +1495,7 @@ bool IoCmd::saveScene(const TFilePath &path, int flags) {
     // Open the new cache resources HD pool
     TCacheResourcePool::instance()->setPath(
         QString::fromStdWString(
-            ToonzFolder::getCacheRootFolder().getWideString()),
+            FlareFolder::getCacheRootFolder().getWideString()),
         QString::fromStdWString(scene->getProject()->getName().getWideName()),
         QString::fromStdWString(scene->getSceneName()));
 #endif
@@ -2026,7 +2026,7 @@ bool IoCmd::loadScene(const TFilePath &path, bool updateRecentFile,
 #ifdef USE_SQLITE_HDPOOL
   TCacheResourcePool::instance()->setPath(
       QString::fromStdWString(
-          ToonzFolder::getCacheRootFolder().getWideString()),
+          FlareFolder::getCacheRootFolder().getWideString()),
       QString::fromStdWString(project->getName().getWideName()),
       QString::fromStdWString(scene->getSceneName()));
 #endif

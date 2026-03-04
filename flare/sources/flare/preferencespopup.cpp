@@ -1197,7 +1197,7 @@ QString PreferencesPopup::getUIString(PreferencesItemId id) {
       {undoMemorySize, tr("Undo Memory Size (MB):")},
       {taskchunksize, tr("Render Task Chunk Size:")},
       {replaceAfterSaveLevelAs,
-       tr("Replace Toonz Level after SaveLevelAs command")},
+       tr("Replace Flare Level after SaveLevelAs command")},
       {backupEnabled, tr("Backup Scene and Animation Levels when Saving")},
       {backupKeepCount, tr("# of backups to keep:")},
       {sceneNumberingEnabled, tr("Add Info water mark in Rendered Frames")},

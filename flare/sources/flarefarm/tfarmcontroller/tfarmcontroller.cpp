@@ -55,7 +55,7 @@ int inline STRICMP(const char *a, const char *b) {
 namespace {
 
 TFilePath getGlobalRoot() {
-  TVER::ToonzVersion tver;
+  TVER::FlareVersion tver;
   TFilePath rootDir;
 
 #ifdef _WIN32
@@ -100,7 +100,7 @@ TFilePath getGlobalRoot() {
 //--------------------------------------------------------------------
 
 TFilePath getLocalRoot() {
-  TVER::ToonzVersion tver;
+  TVER::FlareVersion tver;
   TFilePath lroot;
 
 #ifdef _WIN32
@@ -2230,7 +2230,7 @@ public:
 void ControllerService::onStart(int argc, char *argv[]) {
   // Initialize thread components
   TThread::init();
-  TVER::ToonzVersion tver;
+  TVER::FlareVersion tver;
 
   if (isRunningAsConsoleApp()) {
     // i messaggi verranno ridiretti sullo standard output

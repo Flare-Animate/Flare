@@ -778,7 +778,7 @@ void doMatchlines(int column, int mColumn, int index, int inkPrevalence,
       if (!timg || !tmatch) {
         getImageProgressBar->close();
         DVGui::warning(QObject::tr(
-            "Match lines can be applied to Toonz raster levels only."));
+            "Match lines can be applied to Flare raster levels only."));
         /*-- 前に遡ってキャッシュを消去 --*/
         i--;
         for (; i >= 0; i--) {
@@ -810,7 +810,7 @@ void doMatchlines(int column, int mColumn, int index, int inkPrevalence,
 
   if (matchingLevels.empty()) {
     DVGui::warning(
-        QObject::tr("Match lines can be applied to Toonz raster levels only."));
+        QObject::tr("Match lines can be applied to Flare raster levels only."));
     return;
   }
 

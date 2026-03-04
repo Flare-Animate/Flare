@@ -675,7 +675,7 @@ void ShortcutPopup::onDeletePreset() {
     return;
   }
   TFilePath presetDir =
-      ToonzFolder::getMyModuleDir() + TFilePath("shortcutpresets");
+      FlareFolder::getMyModuleDir() + TFilePath("shortcutpresets");
   QString presetName = m_presetChoiceCB->currentData().toString();
   if (TSystem::doesExistFileOrLevel(presetDir +
                                     TFilePath(presetName + ".ini"))) {
@@ -701,7 +701,7 @@ void ShortcutPopup::importPreset() {
   if (!showConfirmDialog()) return;
 
   TFilePath presetDir =
-      ToonzFolder::getMyModuleDir() + TFilePath("shortcutpresets");
+      FlareFolder::getMyModuleDir() + TFilePath("shortcutpresets");
   if (!TSystem::doesExistFileOrLevel(presetDir)) {
     TSystem::mkDir(presetDir);
   }
@@ -724,9 +724,9 @@ void ShortcutPopup::onLoadPreset() {
   TFilePath presetDir;
   if (m_presetChoiceCB->currentIndex() <= 4)
     presetDir =
-        ToonzFolder::getProfileFolder() + TFilePath("layouts/shortcuts");
+        FlareFolder::getProfileFolder() + TFilePath("layouts/shortcuts");
   else
-    presetDir = ToonzFolder::getMyModuleDir() + TFilePath("shortcutpresets");
+    presetDir = FlareFolder::getMyModuleDir() + TFilePath("shortcutpresets");
 
   if (preset.isEmpty()) return;
   if (preset == QString("LoadFromFile")) {
@@ -759,7 +759,7 @@ void ShortcutPopup::buildPresets() {
   m_presetChoiceCB->addItem("Animate (Legacy)", QString("otadobe"));
 
   TFilePath presetDir =
-      ToonzFolder::getMyModuleDir() + TFilePath("shortcutpresets");
+      FlareFolder::getMyModuleDir() + TFilePath("shortcutpresets");
   if (TSystem::doesExistFileOrLevel(presetDir)) {
     TFilePathSet fps = TSystem::readDirectory(presetDir, true, true, false);
     QStringList customPresets;
@@ -783,7 +783,7 @@ void ShortcutPopup::onSavePreset() {
       DVGui::getText(tr("Enter Preset Name"), tr("Preset Name:"), "");
   if (presetName == "") return;
   TFilePath presetDir =
-      ToonzFolder::getMyModuleDir() + TFilePath("shortcutpresets");
+      FlareFolder::getMyModuleDir() + TFilePath("shortcutpresets");
   if (!TSystem::doesExistFileOrLevel(presetDir)) {
     TSystem::mkDir(presetDir);
   }

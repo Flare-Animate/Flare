@@ -155,9 +155,9 @@ TFx *createFx(QAction *action, TXsheetHandle *xshHandle) {
 
 AddFxContextMenu::AddFxContextMenu()
     : QObject(), m_app(0), m_currentCursorScenePos(0, 0), m_againCommand(0) {
-  m_fxListPath = TFilePath(ToonzFolder::getProfileFolder() + "layouts" + "fxs" +
+  m_fxListPath = TFilePath(FlareFolder::getProfileFolder() + "layouts" + "fxs" +
                            "fxs.lst");
-  m_presetPath = TFilePath(ToonzFolder::getFxPresetFolder() + "presets");
+  m_presetPath = TFilePath(FlareFolder::getFxPresetFolder() + "presets");
 
   m_insertMenu         = new QMenu(tr("Insert FX"), 0);
   m_insertActionGroup  = new QActionGroup(m_insertMenu);

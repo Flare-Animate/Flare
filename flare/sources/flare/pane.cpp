@@ -63,7 +63,7 @@ TPanel::~TPanel() {
   // restore them when opening the floating panel next time
   if (isFloating()) {
     TFilePath savePath =
-        ToonzFolder::getMyModuleDir() + TFilePath("popups.ini");
+        FlareFolder::getMyModuleDir() + TFilePath("popups.ini");
     QSettings settings(QString::fromStdWString(savePath.getWideString()),
                        QSettings::IniFormat);
     settings.beginGroup("Panels");
@@ -151,7 +151,7 @@ void TPanel::leaveEvent(QEvent *event) {
     in floatingpanelcommand.cpp
 */
 void TPanel::restoreFloatingPanelState() {
-  TFilePath savePath = ToonzFolder::getMyModuleDir() + TFilePath("popups.ini");
+  TFilePath savePath = FlareFolder::getMyModuleDir() + TFilePath("popups.ini");
   QSettings settings(QString::fromStdWString(savePath.getWideString()),
                      QSettings::IniFormat);
   settings.beginGroup("Panels");

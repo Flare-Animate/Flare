@@ -49,7 +49,7 @@ elseif(BUILD_ENV_APPLE)
 	    "$<TARGET_FILE:tnzbase>"
 	    "$<TARGET_FILE:flarelib>"
     )
-    add_dependencies(tfarm tnzcore tnzbase toonzlib tnzext)
+    add_dependencies(tfarm tnzcore tnzbase flarelib tnzext)
 elseif(BUILD_ENV_UNIXLIKE)
     _find_flare_library(EXTRA_LIBS "tnzcore;tnzbase;flarelib;tnzext")
     if(BUILD_TARGET_WIN)

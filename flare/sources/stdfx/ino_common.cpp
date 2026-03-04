@@ -321,7 +321,7 @@ bool check_sw_  = true;
 bool ino::log_enable_sw(void) {
   if (check_sw_) {
     TFileStatus file(
-        // ToonzFolder::getProfileFolder()
+        // FlareFolder::getProfileFolder()
         TEnv::getConfigDir() + "fx_ino_no_log.setup");
     if (file.doesExist()) {
       enable_sw_ = false;

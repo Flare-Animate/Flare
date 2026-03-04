@@ -809,7 +809,7 @@ bool AutoLipSyncPopup::setAudioFile() {
 
 //-----------------------------------------------------------------------------
 void AutoLipSyncPopup::saveAudio() {
-  QString cacheRoot = ToonzFolder::getCacheRootFolder().getQString();
+  QString cacheRoot = FlareFolder::getCacheRootFolder().getQString();
   QDir cacheDir(cacheRoot);
   if (!cacheDir.exists("rhubarb")) {
     cacheDir.mkpath("rhubarb");
@@ -839,7 +839,7 @@ void AutoLipSyncPopup::saveAudio() {
 //-----------------------------------------------------------------------------
 
 void AutoLipSyncPopup::runRhubarb() {
-  QString cacheRoot = ToonzFolder::getCacheRootFolder().getQString();
+  QString cacheRoot = FlareFolder::getCacheRootFolder().getQString();
   QDir cacheDir(cacheRoot);
   if (!cacheDir.exists("rhubarb")) {
     cacheDir.mkpath("rhubarb");

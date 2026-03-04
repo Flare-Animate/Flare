@@ -356,7 +356,7 @@ void mergeColumns(int column, int mColumn, bool isRedo, bool groupLevels) {
         }
       } else {
         DVGui::warning(
-            QObject::tr("It is possible to merge only Toonz vector levels or "
+            QObject::tr("It is possible to merge only Flare vector levels or "
                         "standard raster levels."));
         return;
       }
@@ -382,7 +382,7 @@ void mergeColumns(int column, int mColumn, bool isRedo, bool groupLevels) {
 
   if (matchingLevels.empty()) {
     DVGui::warning(
-        QObject::tr("It is possible to merge only Toonz vector levels or "
+        QObject::tr("It is possible to merge only Flare vector levels or "
                     "standard raster levels."));
     return;
   }

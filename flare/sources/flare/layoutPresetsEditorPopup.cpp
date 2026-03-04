@@ -346,7 +346,7 @@ void LayoutPresetsEditorPopup::updateEditorWidgets() {
   m_nameEdit->setText(preset.m_name);
   if (preset.m_layoutPath.isEmpty()) {
     const QString loPath =
-        (ToonzFolder::getLibraryFolder() + TFilePath("layouts")).getQString();
+        (FlareFolder::getLibraryFolder() + TFilePath("layouts")).getQString();
     m_layoutField->setPath(loPath);
     m_layoutField->getField()->clear();
   } else
@@ -665,7 +665,7 @@ void LayoutPresetsEditorPopup::onLayoutPathChanged() {
   int idx = m_presetList->currentRow();
   if (idx < 0 || idx >= m_presets.size()) return;
   const TFilePath loPath =
-      ToonzFolder::getLibraryFolder() + TFilePath("layouts");
+      FlareFolder::getLibraryFolder() + TFilePath("layouts");
   const TFilePath curPath(m_layoutField->getPath());
   if (curPath.getParentDir() == loPath) {
     QString path                = curPath.withoutParentDir().getQString();

@@ -85,7 +85,7 @@ QImage rasterToQImage(const TRasterP &ras, bool premultiplied = true,
 //********************************************************************************
 
 FavoritesManager::FavoritesManager() {
-  m_fpPinsToTop = ToonzFolder::getMyModuleDir() + "pintotopbrushes.txt";
+  m_fpPinsToTop = FlareFolder::getMyModuleDir() + "pintotopbrushes.txt";
   m_xxPinsToTop = false;
   loadPinsToTop();
 }

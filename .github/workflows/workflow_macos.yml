@@ -59,7 +59,7 @@ jobs:
             done
           }
           
-          brew update
+          brew update || true
 
           checkPkgAndInstall pkg-config glew lz4 libjpeg libpng lzo boost libusb libmypaint ccache jpeg-turbo ninja opencv openjph openexr qt@5
 
@@ -124,7 +124,7 @@ jobs:
 
       - name: Introduce Libraries and Stuff
         run: |
-          cd flare/build/toonz
+          cd flare/build/flare
           # copy portable stuff if present
           cp -pr ../../../stuff Flare.app/portablestuff 2>/dev/null || true
           /usr/local/opt/qt@5/bin/macdeployqt Flare.app -verbose=0 -always-overwrite \
@@ -138,7 +138,7 @@ jobs:
 
       - name: Modify Library Paths
         run: |
-          cd flare/build/toonz/Flare.app/Contents/Frameworks
+          cd flare/build/flare/Flare.app/Contents/Frameworks
           for TARGETLIB in *.dylib; do
             otool -L "$TARGETLIB" | grep ".dylib" | grep -v "$TARGETLIB" | grep -v "@executable_path/../Frameworks" | awk '{print $1}' | while read -r FROMPATH; do
               LIBNAME=$(basename "$FROMPATH")
@@ -150,7 +150,7 @@ jobs:
 
       - name: Create Artifact
         run: |
-          cd flare/build/toonz
+          cd flare/build/flare
           echo "Creating DMG..."
           ATTEMPT=0
           while [ $ATTEMPT -lt 10 ]; do

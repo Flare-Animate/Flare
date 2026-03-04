@@ -202,14 +202,14 @@ bool HexColorNames::loadMainFile(bool reload) {
 //-----------------------------------------------------------------------------
 
 bool HexColorNames::hasUserFile() {
-  TFilePath userCTFp = ToonzFolder::getMyModuleDir() + COLORNAMES_FILE;
+  TFilePath userCTFp = FlareFolder::getMyModuleDir() + COLORNAMES_FILE;
   return TFileStatus(userCTFp).doesExist();
 }
 
 //-----------------------------------------------------------------------------
 
 bool HexColorNames::loadUserFile(bool reload) {
-  TFilePath userCTFp = ToonzFolder::getMyModuleDir() + COLORNAMES_FILE;
+  TFilePath userCTFp = FlareFolder::getMyModuleDir() + COLORNAMES_FILE;
   if (TFileStatus(userCTFp).doesExist()) {
     if (reload || s_usercolornames.isEmpty()) {
       return loadColorTableXML(s_usercolornames, userCTFp);
@@ -229,7 +229,7 @@ bool HexColorNames::loadTempFile(const TFilePath &fp) {
 //-----------------------------------------------------------------------------
 
 bool HexColorNames::saveUserFile() {
-  TFilePath userCTFp = ToonzFolder::getMyModuleDir() + COLORNAMES_FILE;
+  TFilePath userCTFp = FlareFolder::getMyModuleDir() + COLORNAMES_FILE;
   return saveColorTableXML(s_usercolornames, userCTFp);
 }
 

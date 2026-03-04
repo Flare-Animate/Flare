@@ -54,7 +54,7 @@ namespace {
 
 //--------------------------------------------------------------------
 TFilePath getGlobalRoot() {
-  TVER::ToonzVersion tver;
+  TVER::FlareVersion tver;
   TFilePath rootDir;
 
 #ifdef _WIN32
@@ -98,7 +98,7 @@ TFilePath getGlobalRoot() {
 //--------------------------------------------------------------------
 
 TFilePath getLocalRoot() {
-  TVER::ToonzVersion tver;
+  TVER::FlareVersion tver;
   TFilePath lroot;
 
 #ifdef _WIN32
@@ -378,7 +378,7 @@ static QString getExeName(bool isComposer) {
 #ifdef _WIN32
   return name + ".exe ";
 #elif defined(MACOSX)
-  TVER::ToonzVersion tver;
+  TVER::FlareVersion tver;
   return "\"./" + QString::fromStdString(tver.getAppName()) +
          ".app/Contents/MacOS/" + name + "\" ";
 #else
@@ -773,7 +773,7 @@ static bool loadServerData(const QString &hostname, QString &addr, int &port) {
 void FarmServerService::onStart(int argc, char *argv[]) {
   // Initialize thread components
   TThread::init();
-  TVER::ToonzVersion tver;
+  TVER::FlareVersion tver;
 
 #ifdef _WIN32
 //  DebugBreak();

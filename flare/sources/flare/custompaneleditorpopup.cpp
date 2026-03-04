@@ -42,13 +42,13 @@ namespace {
 const TFilePath CustomPanelTemplateFolderName("custom panel templates");
 
 TFilePath customPaneTemplateFolderPath() {
-  return ToonzFolder::getLibraryFolder() + CustomPanelTemplateFolderName;
+  return FlareFolder::getLibraryFolder() + CustomPanelTemplateFolderName;
 }
 
 const TFilePath CustomPanelFolderName("custompanels");
 
 TFilePath customPaneFolderPath() {
-  return ToonzFolder::getMyModuleDir() + CustomPanelFolderName;
+  return FlareFolder::getMyModuleDir() + CustomPanelFolderName;
 }
 
 QPoint relativePos(QWidget* child, QWidget* refParent) {

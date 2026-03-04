@@ -938,7 +938,7 @@ TFilePath TProjectManager::getProjectPathByProjectFolder(
 
 void TProjectManager::getFolderNames(std::vector<std::string> &names) {
   names.clear();
-  TFilePath fp = ToonzFolder::getProfileFolder() + "project_folders.txt";
+  TFilePath fp = FlareFolder::getProfileFolder() + "project_folders.txt";
   try {
     Tifstream is(fp);
     if (is)
