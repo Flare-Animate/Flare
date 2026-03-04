@@ -131,10 +131,15 @@ jobs:
         fi
 
         base_url="https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous"
+        APPIMAGE_TOOLS_OK=1
         for tool in linuxdeploy-x86_64.AppImage linuxdeploy-plugin-qt-x86_64.AppImage linuxdeploy-plugin-appimage-x86_64.AppImage; do
-          wget -q --show-progress "${base_url}/${tool}" || \
-          wget -q --show-progress "${base_url}/${tool}" || \
-          wget -q --show-progress "${base_url}/${tool}"
+          if ! (wget -q --show-progress "${base_url}/${tool}" || \
+                wget -q --show-progress "${base_url}/${tool}" || \
+                wget -q --show-progress "${base_url}/${tool}"); then
+            echo "Warning: failed to download ${tool}; skipping AppImage generation for this run."
+            APPIMAGE_TOOLS_OK=0
+            break
+          fi
           chmod +x "${tool}"
         done
 
@@ -162,19 +167,22 @@ jobs:
         echo "=== linuxdeploy tools ==="
         ls -la linuxdeploy* || true
         echo "=== Running linuxdeploy ==="
-
-        ./linuxdeploy-x86_64.AppImage \
-          --appdir=appdir \
-          --desktop-file=appdir/io.github.Flare.desktop \
-          --icon-file=appdir/io.github.Flare.png \
-          --plugin=qt \
-          --output=appimage \
-          --custom-apprun=apprun.sh || {
-            echo "linuxdeploy failed with exit code $?"
-            echo "=== Listing appdir structure ==="
-            find appdir -maxdepth 3 -type f | head -50
-            exit 1
-          }
+        if [ "${APPIMAGE_TOOLS_OK}" -eq 1 ]; then
+          ./linuxdeploy-x86_64.AppImage \
+            --appdir=appdir \
+            --desktop-file=appdir/io.github.Flare.desktop \
+            --icon-file=appdir/io.github.Flare.png \
+            --plugin=qt \
+            --output=appimage \
+            --custom-apprun=apprun.sh || {
+              echo "linuxdeploy failed with exit code $?"
+              echo "=== Listing appdir structure ==="
+              find appdir -maxdepth 3 -type f | head -50
+              exit 1
+            }
+        else
+          echo "Skipping linuxdeploy because required AppImage tools are unavailable."
+        fi
 
         if ls Flare*.AppImage >/dev/null 2>&1; then mv Flare*.AppImage artifact/Flare.AppImage; fi
         ARTIFACT_NAME=Flare-${{ runner.os }}-${{ matrix.compiler }}
