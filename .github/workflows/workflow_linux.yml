@@ -119,9 +119,7 @@ jobs:
         sudo ninja install
         
         mkdir -p appdir/usr
-        # copy any preinstalled system files; ignore errors
-        # prefer Flare installation if present, fall back to legacy Flare
-        cp -r /opt/flare/* appdir/usr 2>/dev/null || true
+        # copy installed files into AppDir
         cp -r /opt/flare/* appdir/usr 2>/dev/null || true
         cp appdir/usr/share/applications/*.desktop appdir/ || true
         cp appdir/usr/share/icons/hicolor/256x256/apps/*.png appdir/ || true
@@ -129,10 +127,7 @@ jobs:
         mkdir artifact
         if [ -d "appdir/usr/share/flare/stuff" ]; then
           mv appdir/usr/share/flare/stuff artifact/portablestuff
-          rmdir appdir/usr/share/flare || true
-        elif [ -d "appdir/usr/share/opentoonz/stuff" ]; then
-          mv appdir/usr/share/opentoonz/stuff artifact/portablestuff
-          rmdir appdir/usr/share/opentoonz || true
+          rmdir appdir/usr/share/flare 2>/dev/null || true
         fi
 
         base_url="https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous"
@@ -143,18 +138,45 @@ jobs:
           chmod +x "${tool}"
         done
 
-        echo Copying x64 dependencies (prefer flare, fallback to legacy paths)...
-          if [ -d /opt/flare ]; then cp -r /opt/flare/* appdir/usr || true; elif [ -d /opt/flare ]; then cp -r /opt/flare/* appdir/usr || true; fi
+        if [ -d appdir/usr/lib/flare ]; then
+          export LD_LIBRARY_PATH="appdir/usr/lib/flare:${LD_LIBRARY_PATH:-}"
+        fi
 
-        if [ -f appdir/usr/bin/Flare ]; then BINNAME=Flare; elif [ -f appdir/usr/bin/Flare ]; then BINNAME=Flare; else BINNAME=$(ls appdir/usr/bin | head -n1); fi
-        printf "#!/usr/bin/env bash\nexec \"\${APPDIR}/usr/bin/${BINNAME}\"" > apprun.sh
+        # Determine main executable name
+        if [ -f appdir/usr/bin/Flare ]; then
+          BINNAME=Flare
+        else
+          BINNAME=$(ls appdir/usr/bin | head -n1)
+        fi
+        printf '#!/usr/bin/env bash\nexec "${APPDIR}/usr/bin/%s"\n' "${BINNAME}" > apprun.sh
         chmod 755 apprun.sh
 
-        if [ -d appdir/usr/lib/flare ]; then export LD_LIBRARY_PATH="appdir/usr/lib/flare:$LD_LIBRARY_PATH"; elif [ -d appdir/usr/lib/flare ]; then export LD_LIBRARY_PATH="appdir/usr/lib/flare:$LD_LIBRARY_PATH"; fi
+        # Ensure plugins are findable by adding CWD to PATH
+        export PATH="$(pwd):$PATH"
 
-        ./linuxdeploy-x86_64.AppImage --appdir=appdir --plugin=qt --output=appimage --custom-apprun=apprun.sh
+        echo "=== AppDir contents (bin, share/applications, share/icons) ==="
+        ls -la appdir/usr/bin/ || true
+        ls -la appdir/usr/share/applications/ || true
+        ls -la appdir/usr/share/icons/hicolor/256x256/apps/ || true
+        ls -la appdir/*.desktop appdir/*.png || true
+        echo "=== linuxdeploy tools ==="
+        ls -la linuxdeploy* || true
+        echo "=== Running linuxdeploy ==="
 
-        if ls Flare*.AppImage >/dev/null 2>&1; then mv Flare*.AppImage artifact/Flare.AppImage; elif ls Flare*.AppImage >/dev/null 2>&1; then mv Flare*.AppImage artifact/Flare.AppImage; fi
+        ./linuxdeploy-x86_64.AppImage \
+          --appdir=appdir \
+          --desktop-file=appdir/io.github.Flare.desktop \
+          --icon-file=appdir/io.github.Flare.png \
+          --plugin=qt \
+          --output=appimage \
+          --custom-apprun=apprun.sh || {
+            echo "linuxdeploy failed with exit code $?"
+            echo "=== Listing appdir structure ==="
+            find appdir -maxdepth 3 -type f | head -50
+            exit 1
+          }
+
+        if ls Flare*.AppImage >/dev/null 2>&1; then mv Flare*.AppImage artifact/Flare.AppImage; fi
         ARTIFACT_NAME=Flare-${{ runner.os }}-${{ matrix.compiler }}
         mv artifact ${ARTIFACT_NAME} || true
         tar zcf ${ARTIFACT_NAME}.tar.gz ${ARTIFACT_NAME} || true

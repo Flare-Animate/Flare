@@ -3054,6 +3054,7 @@ include_directories(
     ../flarefarm/include
     ../flareqt
     ../stopmotion
+    ../mousedragfilter
     ..  # include source root so headers prefixed with "flare/" resolve
 )
 
