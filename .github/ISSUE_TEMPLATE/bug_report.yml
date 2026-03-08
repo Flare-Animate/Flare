@@ -7,7 +7,7 @@ body:
         ⚠️ **Before you start:**
         - Check for [existing issues](https://github.com/Flare-Animate/Flare/issues?q=is%3Aopen+is%3Aissue) to avoid duplicates.
         - (Optional) Also check existing [Flare issues](https://github.com/Flare-Animate/Flare/issues?q=is%3Aopen+is%3Aissue) for related reports.
-        - Try the latest [nightly build](https://flare-animate.github.io/website/nightlies) — many bugs are fixed there.
+        - Try the latest [nightly build](https://github.com/Flare-Animate/Flare-nightlies/releases) — many bugs are fixed there.
         - Update your GPU and tablet drivers if you're seeing visual or input issues.
 
         Reports missing key details may be closed if we can't reproduce the problem. Help us help you!

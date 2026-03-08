@@ -99,12 +99,18 @@ build:
 after_build:
   # Deploy Qt dependencies
   - cmd: >-
+<<<<<<< HEAD
       if exist "%CONFIGURATION%\Flare.exe" (
         %QT_PATH%\bin\windeployqt.exe %CONFIGURATION%\Flare.exe || exit /b 1
       ) else (
         if not exist "%CONFIGURATION%\Flare.exe" (echo Neither Flare.exe nor Flare.exe found & exit /b 1)
         %QT_PATH%\bin\windeployqt.exe %CONFIGURATION%\Flare.exe || exit /b 1
       )
+=======
+      if not exist "%CONFIGURATION%\Flare.exe" (echo Flare.exe not found & exit /b 1)
+
+      %QT_PATH%\bin\windeployqt.exe %CONFIGURATION%\Flare.exe || exit /b 1
+>>>>>>> d5bea63b0 (Rebrand CI scripts/templates: remove leftover OpenToonz references)
 
       echo Deployed Qt dependencies
 
@@ -129,5 +135,9 @@ after_build:
       echo Packaged portable resources
 
 artifacts:
+<<<<<<< HEAD
   - path: toonz\$(PLATFORM)\$(CONFIGURATION)
+=======
+  - path: flare\$(PLATFORM)\$(CONFIGURATION)
+>>>>>>> d5bea63b0 (Rebrand CI scripts/templates: remove leftover OpenToonz references)
     name: Flare

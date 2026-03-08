@@ -119,6 +119,7 @@ jobs:
         sudo ninja install
         
         mkdir -p appdir/usr
+<<<<<<< HEAD
         # copy installed files into AppDir
         cp -r /opt/flare/* appdir/usr 2>/dev/null || true
         cp appdir/usr/share/applications/*.desktop appdir/ || true
@@ -129,6 +130,15 @@ jobs:
           mv appdir/usr/share/flare/stuff artifact/portablestuff
           rmdir appdir/usr/share/flare 2>/dev/null || true
         fi
+=======
+        cp -r /opt/flare/* appdir/usr
+        cp appdir/usr/share/applications/*.desktop appdir
+        cp appdir/usr/share/icons/hicolor/*/apps/*.png appdir
+
+        mkdir artifact
+        mv appdir/usr/share/flare/stuff artifact/portablestuff
+        rmdir appdir/usr/share/flare
+>>>>>>> d5bea63b0 (Rebrand CI scripts/templates: remove leftover OpenToonz references)
 
         base_url="https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous"
         APPIMAGE_TOOLS_OK=1
@@ -143,6 +153,7 @@ jobs:
           chmod +x "${tool}"
         done
 
+<<<<<<< HEAD
         if [ -d appdir/usr/lib/flare ]; then
           export LD_LIBRARY_PATH="appdir/usr/lib/flare:${LD_LIBRARY_PATH:-}"
         fi
@@ -158,6 +169,27 @@ jobs:
 
         # Ensure plugins are findable by adding CWD to PATH
         export PATH="$(pwd):$PATH"
+=======
+        cat << EOF > apprun.sh
+        #!/usr/bin/env bash
+        exec "\${APPDIR}/usr/bin/Flare"
+        EOF
+        chmod 755 apprun.sh
+
+        export LD_LIBRARY_PATH='appdir/usr/lib/flare'
+        ./linuxdeploy-x86_64.AppImage --appdir=appdir --plugin=qt --output=appimage --custom-apprun=apprun.sh \
+        --executable=appdir/usr/bin/lzocompress \
+        --executable=appdir/usr/bin/lzodecompress \
+        --executable=appdir/usr/bin/tcleanup \
+        --executable=appdir/usr/bin/tcomposer \
+        --executable=appdir/usr/bin/tconverter \
+        --executable=appdir/usr/bin/tfarmcontroller \
+        --executable=appdir/usr/bin/tfarmserver
+        mv Flare*.AppImage artifact/Flare.AppImage
+        ARTIFACT_NAME=Flare-${{ runner.os }}-${{ matrix.compiler }}-${{ github.sha }}
+        mv artifact ${ARTIFACT_NAME}
+        tar zcf ${ARTIFACT_NAME}.tar.gz ${ARTIFACT_NAME}
+>>>>>>> d5bea63b0 (Rebrand CI scripts/templates: remove leftover OpenToonz references)
 
         echo "=== AppDir contents (bin, share/applications, share/icons) ==="
         ls -la appdir/usr/bin/ || true
@@ -193,6 +225,7 @@ jobs:
       if: always()
       uses: actions/upload-artifact@v4
       with:
+<<<<<<< HEAD
         name: Flare-AppImage-${{ matrix.compiler }}
         path: flare/build/*.tar.gz
 
@@ -218,3 +251,7 @@ jobs:
           const build = readTrunc('flare/build/build.log');
           const body = `**Automated build logs (truncated)**\n\n--- CMake configure log ---\n${cmake}\n\n--- Build log ---\n${build}`;
           await github.rest.issues.createComment({ owner, repo, issue_number: pr, body });
+=======
+        name: Flare-${{ runner.os }}-${{ matrix.compiler }}-${{ github.sha }}
+        path: flare/build/Flare-${{ runner.os }}-${{ matrix.compiler }}-${{ github.sha }}.tar.gz
+>>>>>>> d5bea63b0 (Rebrand CI scripts/templates: remove leftover OpenToonz references)

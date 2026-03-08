@@ -31,7 +31,11 @@ echo ========================================
 echo         Flare Registry Setup
 echo ========================================
 
+<<<<<<< HEAD
 REM Check if the registry key exists (we store FLAREROOT value for compatibility)
+=======
+REM Check if the registry key exists
+>>>>>>> d5bea63b0 (Rebrand CI scripts/templates: remove leftover OpenToonz references)
 reg query "HKEY_LOCAL_MACHINE\SOFTWARE\Flare\Flare" /v FLAREROOT >nul 2>&1
 if %ERRORLEVEL% EQU 0 (
     REM Key exists, check if it's different

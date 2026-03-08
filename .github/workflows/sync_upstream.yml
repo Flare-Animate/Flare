@@ -64,6 +64,11 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: Add upstream remote (OpenToonz)
+        run: |
+          git remote add upstream https://github.com/opentoonz/opentoonz.git || true
+          git fetch upstream
+
       - name: Create sync branch
         run: git checkout -b "$BRANCH_NAME"
 
