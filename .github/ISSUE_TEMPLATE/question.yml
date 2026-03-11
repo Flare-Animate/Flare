@@ -7,7 +7,9 @@ body:
       value: |
         Please search existing issues before posting to avoid creating duplicates.
         
-        For general support please head over to the Flare Community Forum or consult the [Manual](https://flare-animate.github.io/website/).
+<<<<<<< HEAD
+        For general support please head over to the Flare Community Forum or discussion board or consult the [Manual](https://flare-animate.readthedocs.io/en/latest/).
+>>>>>>> d5bea63b0 (Rebrand CI scripts/templates: remove leftover OpenToonz references)
   - type: textarea
     attributes:
       label: Ask a question related to Flare
