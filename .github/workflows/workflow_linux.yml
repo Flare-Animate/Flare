@@ -202,6 +202,7 @@ jobs:
       if: always()
       run: |
         SMOKE_LOG="flare/build/smoke_test.log"
+        mkdir -p "$(dirname "$SMOKE_LOG")"
         echo "=== Linux Smoke Test (compiler: ${{ matrix.compiler }}) ===" | tee -a "$SMOKE_LOG"
 
         # Install Xvfb for a headless display

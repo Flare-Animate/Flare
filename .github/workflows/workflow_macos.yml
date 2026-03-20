@@ -49,17 +49,25 @@ jobs:
 
       - name: Install libraries
         run: |
+          # Skip auto-update: it's slow and causes symlink conflicts with pre-installed Qt 6
+          export HOMEBREW_NO_AUTO_UPDATE=1
+
+          # The macos-15-intel runner has Qt 6 (qtbase, qtdeclarative, etc.) pre-linked.
+          # Unlinking them prevents "Could not symlink … belonging to qtbase" errors when
+          # brew tries to link qt@5 or any formula that touches the same include paths.
+          for qtpkg in qtbase qtdeclarative qt; do
+            brew unlink "$qtpkg" 2>/dev/null || true
+          done
+
           checkPkgAndInstall() {
             for pkg in "$@"; do
-              if brew ls --versions "$pkg" >/dev/null; then
+              if brew ls --versions "$pkg" >/dev/null 2>&1; then
                 echo "$pkg already installed"
               else
-                brew install "$pkg"
+                brew install --overwrite "$pkg"
               fi
             done
           }
-          
-          brew update || true
 
           checkPkgAndInstall pkg-config glew lz4 libjpeg libpng lzo boost libusb libmypaint ccache jpeg-turbo ninja opencv openjph openexr qt@5
 
@@ -171,6 +179,7 @@ jobs:
         if: always()
         run: |
           SMOKE_LOG="flare/build/smoke_test.log"
+          mkdir -p "$(dirname "$SMOKE_LOG")"
           echo "=== macOS Smoke Test ===" | tee "$SMOKE_LOG"
 
           # Find the binary inside the .app bundle

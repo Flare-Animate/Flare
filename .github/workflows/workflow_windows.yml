@@ -3,9 +3,21 @@ name: Windows Build
 
 on:
   push:
-    branches: [ master, B4uti4github-patch-1 ]
+    paths:
+      - '**/*'
+      - '!appveyor.yml'
+      - '!README.md'
+      - '!doc/**'
+      - '!**/.github/**'
+      - '.github/workflows/workflow_windows.yml'
   pull_request:
-    branches: [ master, B4uti4github-patch-1 ]
+    paths:
+      - '**/*'
+      - '!appveyor.yml'
+      - '!README.md'
+      - '!doc/**'
+      - '!**/.github/**'
+      - '.github/workflows/workflow_windows.yml'
   workflow_dispatch:
 
 permissions:
