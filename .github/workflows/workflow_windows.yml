@@ -256,8 +256,21 @@ jobs:
           if exist "thirdparty\libmypaint\dist\64\libintl-8.dll"               copy /Y "thirdparty\libmypaint\dist\64\libintl-8.dll"               FlarePortable\
           if exist "thirdparty\libmypaint\dist\64\libjson-c-2.dll"             copy /Y "thirdparty\libmypaint\dist\64\libjson-c-2.dll"             FlarePortable\
           
-          :: 7. OpenCV
-          for /f "delims=" %%j in ('dir /b /s "C:\tools\opencv\*x64*\bin\opencv_world*.dll" 2^>nul') do copy /Y "%%j" FlarePortable\
+          :: 7. OpenCV x64 DLLs
+          :: Standard choco layout is C:\tools\opencv\build\x64\vc<N>\bin\.
+          :: dir /s does NOT expand wildcards in intermediate path components,
+          :: so enumerate vc14/15/16/17 explicitly, then fall back to a recursive search.
+          for %%v in (vc17 vc16 vc15 vc14) do (
+            if exist "C:\tools\opencv\build\x64\%%v\bin" (
+              for %%f in ("C:\tools\opencv\build\x64\%%v\bin\opencv_world*.dll") do (
+                if exist "%%f" copy /Y "%%f" FlarePortable\
+              )
+            )
+          )
+          :: Recursive fallback for non-standard layouts; findstr filters to x64 paths only
+          for /f "delims=" %%j in ('dir /b /s "C:\tools\opencv\opencv_world*.dll" 2^>nul ^| findstr /i "\\x64\\"') do (
+            copy /Y "%%j" FlarePortable\ 2>nul
+          )
 
           :: 8. Deploy Qt + MSVC runtime
           echo Running windeployqt...
@@ -269,7 +282,28 @@ jobs:
               xcopy /Y /E /I "stuff" "FlarePortable\portablestuff"
           )
 
-          :: 10. Cleanup
+          :: 10. System requirements README (so users know this is x64 Windows only)
+          (
+            echo Flare - Windows x64 Portable
+            echo ================================
+            echo.
+            echo SYSTEM REQUIREMENTS:
+            echo   Windows 10 or 11, 64-bit (x86_64/AMD64^)
+            echo   ARM Windows is not supported.
+            echo.
+            echo USAGE:
+            echo   Run Flare.exe from this folder.
+            echo   Do NOT move Flare.exe out of this folder; it needs the DLLs
+            echo   and portablestuff folder to be present in the same directory.
+            echo.
+            echo TROUBLESHOOTING:
+            echo   "DLL not found" errors  ^-^>  you may have moved Flare.exe, or
+            echo     your antivirus quarantined a DLL; whitelist this folder.
+            echo   "wrong architecture" error  ^-^>  you are running 32-bit Windows;
+            echo     this build requires 64-bit Windows.
+          ) > FlarePortable\README.txt
+
+          :: 11. Cleanup
           del /S /Q FlarePortable\*.pdb 2>nul
         shell: cmd
 

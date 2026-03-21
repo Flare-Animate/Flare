@@ -179,11 +179,45 @@ jobs:
           if exist "thirdparty\libmypaint\dist\64\libintl-8.dll"        copy /Y "thirdparty\libmypaint\dist\64\libintl-8.dll"        FlarePortable\
           if exist "thirdparty\libmypaint\dist\64\libjson-c-2.dll"      copy /Y "thirdparty\libmypaint\dist\64\libjson-c-2.dll"      FlarePortable\
 
+          :: OpenCV x64 DLLs — enumerate vc14/15/16/17 explicitly (dir /s ignores
+          :: wildcards in intermediate path components), then recursive fallback
+          for %%v in (vc17 vc16 vc15 vc14) do (
+            if exist "C:\tools\opencv\build\x64\%%v\bin" (
+              for %%f in ("C:\tools\opencv\build\x64\%%v\bin\opencv_world*.dll") do (
+                if exist "%%f" copy /Y "%%f" FlarePortable\
+              )
+            )
+          )
+          for /f "delims=" %%j in ('dir /b /s "C:\tools\opencv\opencv_world*.dll" 2^>nul ^| findstr /i "\\x64\\"') do (
+            copy /Y "%%j" FlarePortable\ 2>nul
+          )
+
           :: Deploy Qt + MSVC runtime
           "%QT_PATH%\bin\windeployqt.exe" FlarePortable\Flare.exe --opengl --compiler-runtime
 
           :: Add portable data folder
           if exist "stuff" ( mkdir FlarePortable\portablestuff & xcopy /Y /E /I "stuff" "FlarePortable\portablestuff" )
+
+          :: System requirements README
+          (
+            echo Flare - Windows x64 Portable
+            echo ================================
+            echo.
+            echo SYSTEM REQUIREMENTS:
+            echo   Windows 10 or 11, 64-bit (x86_64/AMD64^)
+            echo   ARM Windows is not supported.
+            echo.
+            echo USAGE:
+            echo   Run Flare.exe from this folder.
+            echo   Do NOT move Flare.exe out of this folder; it needs the DLLs
+            echo   and portablestuff folder to be present in the same directory.
+            echo.
+            echo TROUBLESHOOTING:
+            echo   "DLL not found" errors  ^-^>  you may have moved Flare.exe, or
+            echo     your antivirus quarantined a DLL; whitelist this folder.
+            echo   "wrong architecture" error  ^-^>  you are running 32-bit Windows;
+            echo     this build requires 64-bit Windows.
+          ) > FlarePortable\README.txt
 
           del /S /Q FlarePortable\*.pdb 2>nul
 
