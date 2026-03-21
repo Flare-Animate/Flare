@@ -435,6 +435,14 @@ int main(int argc, char *argv[]) {
     bool ret = QDir::setCurrent(appDir.absolutePath());
     assert(ret);
   }
+#elif defined(_WIN32)
+  // On Windows, explicitly set the working directory to the folder that
+  // contains Flare.exe.  TEnv's portable-mode detection looks for
+  // portablestuff\ relative to QDir::currentPath(); if the user launches
+  // via a shortcut, the Start Menu, or any launcher that sets a different
+  // "Start in" directory the detection silently fails and Flare falls back
+  // to the registry – which is never set for a portable install.
+  QDir::setCurrent(QApplication::applicationDirPath());
 #endif
 
   // Set show icons in menus flag (use iconVisibleInMenu to disable selectively)

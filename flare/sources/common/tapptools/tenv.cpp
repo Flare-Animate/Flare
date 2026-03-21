@@ -4,6 +4,7 @@
 #include "tfilepath_io.h"
 #include "tversion.h"
 
+#include <QCoreApplication>
 #include <QDir>
 #include <QSettings>
 #include <QStandardPaths>
@@ -240,6 +241,26 @@ public:
         TFilePath(m_workingDirectory + "\\portablestuff\\");
     TFileStatus portableStatus(portableCheck);
     m_isPortable = portableStatus.doesExist();
+
+#ifdef _WIN32
+    // Belt-and-suspenders fallback: if portablestuff\ was not found in the
+    // current working directory, also check the directory that contains the
+    // executable.  This covers the rare cases where setWorkingDirectory() is
+    // called before main() has had a chance to call QDir::setCurrent (e.g.
+    // via a static initialiser in another translation unit) or when a
+    // non-standard launcher overrides the CWD after startup.
+    if (!m_isPortable && QCoreApplication::instance()) {
+      QString exeDir      = QCoreApplication::applicationDirPath();
+      QByteArray exeDirBa = exeDir.toLatin1();
+      TFilePath exeDirCheck =
+          TFilePath(std::string(exeDirBa.data()) + "\\portablestuff\\");
+      TFileStatus exeDirStatus(exeDirCheck);
+      if (exeDirStatus.doesExist()) {
+        m_isPortable       = true;
+        m_workingDirectory = exeDirBa.data();
+      }
+    }
+#endif
 
 #ifdef MACOSX
     // macOS 10.12 (Sierra) translocates applications before running them
