@@ -1,10 +1,8 @@
 @echo on
-:: Ensure we have a working vcpkg checkout. Try git clone up to 3 times
-:: (network glitches are common on runners). If git clone repeatedly
-:: fails, fall back to downloading the archive zip.
-
-choco install opencv --version=%OPENCV_VERSION% -y
-choco install boost-msvc-14.3 --version=%BOOST_VERSION% -y
+:: OpenCV and Boost are installed conditionally by the workflow when the cache
+:: is missing (see "Install OpenCV and Boost if cache is missing" step).
+:: Do NOT re-install them here — that would defeat the cache and cause version
+:: mismatches if the toolset or version env vars ever diverge.
 
 if exist vcpkg\bootstrap-vcpkg.bat (
   echo vcpkg bootstrap present, skipping clone

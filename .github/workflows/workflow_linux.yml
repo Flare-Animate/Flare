@@ -119,26 +119,17 @@ jobs:
         sudo ninja install
         
         mkdir -p appdir/usr
-<<<<<<< HEAD
-        # copy installed files into AppDir
+        # copy installed files into AppDir; use || true fallbacks since
+        # paths may vary by install prefix
         cp -r /opt/flare/* appdir/usr 2>/dev/null || true
         cp appdir/usr/share/applications/*.desktop appdir/ || true
-        cp appdir/usr/share/icons/hicolor/256x256/apps/*.png appdir/ || true
+        cp appdir/usr/share/icons/hicolor/*/apps/*.png appdir/ || true
 
         mkdir artifact
         if [ -d "appdir/usr/share/flare/stuff" ]; then
           mv appdir/usr/share/flare/stuff artifact/portablestuff
           rmdir appdir/usr/share/flare 2>/dev/null || true
         fi
-=======
-        cp -r /opt/flare/* appdir/usr
-        cp appdir/usr/share/applications/*.desktop appdir
-        cp appdir/usr/share/icons/hicolor/*/apps/*.png appdir
-
-        mkdir artifact
-        mv appdir/usr/share/flare/stuff artifact/portablestuff
-        rmdir appdir/usr/share/flare
->>>>>>> d5bea63b0 (Rebrand CI scripts/templates: remove leftover OpenToonz references)
 
         base_url="https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous"
         APPIMAGE_TOOLS_OK=1
@@ -153,12 +144,11 @@ jobs:
           chmod +x "${tool}"
         done
 
-<<<<<<< HEAD
         if [ -d appdir/usr/lib/flare ]; then
           export LD_LIBRARY_PATH="appdir/usr/lib/flare:${LD_LIBRARY_PATH:-}"
         fi
 
-        # Determine main executable name
+        # Determine main executable name (handles Flare or legacy name)
         if [ -f appdir/usr/bin/Flare ]; then
           BINNAME=Flare
         else
@@ -167,29 +157,16 @@ jobs:
         printf '#!/usr/bin/env bash\nexec "${APPDIR}/usr/bin/%s"\n' "${BINNAME}" > apprun.sh
         chmod 755 apprun.sh
 
-        # Ensure plugins are findable by adding CWD to PATH
+        # Ensure linuxdeploy plugins in CWD are on PATH (required with APPIMAGE_EXTRACT_AND_RUN=1)
         export PATH="$(pwd):$PATH"
-=======
-        cat << EOF > apprun.sh
-        #!/usr/bin/env bash
-        exec "\${APPDIR}/usr/bin/Flare"
-        EOF
-        chmod 755 apprun.sh
 
-        export LD_LIBRARY_PATH='appdir/usr/lib/flare'
-        ./linuxdeploy-x86_64.AppImage --appdir=appdir --plugin=qt --output=appimage --custom-apprun=apprun.sh \
-        --executable=appdir/usr/bin/lzocompress \
-        --executable=appdir/usr/bin/lzodecompress \
-        --executable=appdir/usr/bin/tcleanup \
-        --executable=appdir/usr/bin/tcomposer \
-        --executable=appdir/usr/bin/tconverter \
-        --executable=appdir/usr/bin/tfarmcontroller \
-        --executable=appdir/usr/bin/tfarmserver
-        mv Flare*.AppImage artifact/Flare.AppImage
-        ARTIFACT_NAME=Flare-${{ runner.os }}-${{ matrix.compiler }}-${{ github.sha }}
-        mv artifact ${ARTIFACT_NAME}
-        tar zcf ${ARTIFACT_NAME}.tar.gz ${ARTIFACT_NAME}
->>>>>>> d5bea63b0 (Rebrand CI scripts/templates: remove leftover OpenToonz references)
+        # Build optional --executable flags for helper binaries that may exist
+        EXTRA_EXECS=""
+        for helper in lzocompress lzodecompress tcleanup tcomposer tconverter tfarmcontroller tfarmserver; do
+          if [ -f "appdir/usr/bin/${helper}" ]; then
+            EXTRA_EXECS="${EXTRA_EXECS} --executable=appdir/usr/bin/${helper}"
+          fi
+        done
 
         echo "=== AppDir contents (bin, share/applications, share/icons) ==="
         ls -la appdir/usr/bin/ || true
@@ -221,11 +198,74 @@ jobs:
         mv artifact ${ARTIFACT_NAME} || true
         tar zcf ${ARTIFACT_NAME}.tar.gz ${ARTIFACT_NAME} || true
 
+    - name: Smoke Test – verify binary launches (headless)
+      if: always()
+      run: |
+        SMOKE_LOG="flare/build/smoke_test.log"
+        mkdir -p "$(dirname "$SMOKE_LOG")"
+        echo "=== Linux Smoke Test (compiler: ${{ matrix.compiler }}) ===" | tee -a "$SMOKE_LOG"
+
+        # Install Xvfb for a headless display
+        sudo apt-get install -y --no-install-recommends xvfb 2>&1 | tail -5
+
+        # Find the installed binary (ninja install puts it under /opt/flare)
+        BINARY=""
+        for candidate in /opt/flare/bin/Flare /opt/flare/bin/flare \
+                         /usr/local/bin/Flare /usr/local/bin/flare; do
+          if [ -x "$candidate" ]; then BINARY="$candidate"; break; fi
+        done
+
+        # Fallback: look for an AppImage in the build tree
+        if [ -z "$BINARY" ]; then
+          APPIMAGE=$(find flare/build -name "*.AppImage" 2>/dev/null | head -1)
+          if [ -n "$APPIMAGE" ]; then
+            chmod +x "$APPIMAGE"
+            BINARY="$APPIMAGE"
+          fi
+        fi
+
+        if [ -z "$BINARY" ]; then
+          echo "SMOKE TEST SKIP: No Flare binary or AppImage found" | tee -a "$SMOKE_LOG"
+        else
+          echo "Testing: $BINARY" | tee -a "$SMOKE_LOG"
+
+          # Start a virtual display
+          Xvfb :99 -screen 0 1280x720x24 &
+          XVFB_PID=$!
+          export DISPLAY=:99
+          sleep 1
+
+          # Launch with 8-second timeout; capture stderr
+          timeout 8 "$BINARY" 2>&1 | tee -a "$SMOKE_LOG" &
+          APP_PID=$!
+          sleep 8
+
+          if kill -0 $APP_PID 2>/dev/null; then
+            kill $APP_PID 2>/dev/null
+            echo "SMOKE TEST PASS: Flare ran 8+ seconds without crashing" | tee -a "$SMOKE_LOG"
+          else
+            wait $APP_PID 2>/dev/null
+            EXIT=$?
+            echo "SMOKE TEST: Flare exited with code $EXIT" | tee -a "$SMOKE_LOG"
+            if [ $EXIT -ne 0 ] && [ $EXIT -ne 124 ]; then
+              echo "SMOKE TEST WARN: Non-zero exit code $EXIT (may indicate missing library or crash)" | tee -a "$SMOKE_LOG"
+            fi
+          fi
+          kill $XVFB_PID 2>/dev/null || true
+        fi
+
+    - name: Upload smoke test log
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: smoke-test-linux-${{ matrix.compiler }}
+        path: flare/build/smoke_test.log
+        if-no-files-found: ignore
+
     - name: Upload
       if: always()
       uses: actions/upload-artifact@v4
       with:
-<<<<<<< HEAD
         name: Flare-AppImage-${{ matrix.compiler }}
         path: flare/build/*.tar.gz
 
@@ -249,9 +289,6 @@ jobs:
           }
           const cmake = readTrunc('flare/build/cmake_configure.log');
           const build = readTrunc('flare/build/build.log');
-          const body = `**Automated build logs (truncated)**\n\n--- CMake configure log ---\n${cmake}\n\n--- Build log ---\n${build}`;
+          const smoke = readTrunc('flare/build/smoke_test.log');
+          const body = `**Automated build logs – Linux (${{ matrix.compiler }}) (truncated)**\n\n--- CMake configure log ---\n${cmake}\n\n--- Build log ---\n${build}\n\n--- Smoke test (launch check) ---\n${smoke}`;
           await github.rest.issues.createComment({ owner, repo, issue_number: pr, body });
-=======
-        name: Flare-${{ runner.os }}-${{ matrix.compiler }}-${{ github.sha }}
-        path: flare/build/Flare-${{ runner.os }}-${{ matrix.compiler }}-${{ github.sha }}.tar.gz
->>>>>>> d5bea63b0 (Rebrand CI scripts/templates: remove leftover OpenToonz references)

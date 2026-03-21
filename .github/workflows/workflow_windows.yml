@@ -3,9 +3,21 @@ name: Windows Build
 
 on:
   push:
-    branches: [ master, B4uti4github-patch-1 ]
+    paths:
+      - '**/*'
+      - '!appveyor.yml'
+      - '!README.md'
+      - '!doc/**'
+      - '!**/.github/**'
+      - '.github/workflows/workflow_windows.yml'
   pull_request:
-    branches: [ master, B4uti4github-patch-1 ]
+    paths:
+      - '**/*'
+      - '!appveyor.yml'
+      - '!README.md'
+      - '!doc/**'
+      - '!**/.github/**'
+      - '.github/workflows/workflow_windows.yml'
   workflow_dispatch:
 
 permissions:
@@ -48,7 +60,9 @@ jobs:
           :: 1. Download prebuilt thirdparty .lib/.dll files
           curl -fsSL -o libs.zip https://github.com/andeon/opentoonz-thirdparty-libs/releases/download/prebuilt-libs-v1/thirdparty-libs.zip
           
-          :: 2. Extract at repo root
+          :: 2. Extract at repo root — the zip already has a thirdparty/ prefix,
+          ::    so this overwrites the LFS-pointer .lib/.dll files with real
+          ::    binaries while keeping the header files from the git checkout.
           7z x -y libs.zip
           
           :: 3. Configure headers (tiff, libpng)
@@ -105,7 +119,7 @@ jobs:
           path: |
             C:\tools\opencv
             ${{ env.BOOST_ROOT }}
-          key: ${{ runner.os }}-deps-${{ env.OPENCV_VERSION }}-${{ env.BOOST_VERSION }}
+          key: ${{ runner.os }}-deps-${{ env.OPENCV_VERSION }}-${{ env.BOOST_VERSION }}-${{ env.BOOST_TOOLSET }}
 
       - name: ccache storage
         uses: actions/cache@v4
@@ -213,7 +227,7 @@ jobs:
           :: 2. Copy EXE
           for /f "delims=" %%i in ('dir /b /s "build\Flare.exe" ^| findstr /v "CMakeFiles"') do copy /Y "%%i" FlarePortable\Flare.exe
           
-          :: 3. Copy DLLs from build
+          :: 3. Copy DLLs built by CMake (all RelWithDebInfo output dirs, including vcpkg-provided DLLs)
           for /f "delims=" %%d in ('dir /b /s "build\*.dll" ^| findstr /i "RelWithDebInfo" ^| findstr /v "CMakeFiles"') do copy /Y "%%d" FlarePortable\
 
           :: 4. Validation
@@ -223,25 +237,174 @@ jobs:
               exit /b 1
           )
 
-          :: 5. External dependencies (thirdparty and OpenCV)
-          echo Copying x64 dependencies...
-          for /f "delims=" %%l in ('dir /b /s "thirdparty\*.dll" ^| findstr /i "64 x64"') do copy /Y "%%l" FlarePortable\
-          
-          for /f "delims=" %%j in ('dir /b /s "C:\tools\opencv\*x64*\bin\opencv_world*.dll" 2^>nul') do copy /Y "%%j" FlarePortable\
+          :: 5. vcpkg runtime DLLs (belt-and-suspenders: also copy from vcpkg bin directly
+          ::    in case CMake didn't propagate them to the build output)
+          if exist "%VCPKG_ROOT%\installed\x64-windows\bin" (
+              for /f "delims=" %%v in ('dir /b /s "%VCPKG_ROOT%\installed\x64-windows\bin\*.dll" 2^>nul') do copy /Y "%%v" FlarePortable\
+          )
 
-          :: 6. Deploy Qt + MSVC runtime
+          :: 6. External thirdparty DLLs (64-bit)
+          echo Copying x64 thirdparty DLLs...
+          :: Generic sweep for any DLL under a path containing "64" or "x64"
+          for /f "delims=" %%l in ('dir /b /s "thirdparty\*.dll" ^| findstr /i "64 x64"') do copy /Y "%%l" FlarePortable\
+          :: Explicit belt-and-suspenders for the most critical ones in case the
+          :: generic sweep misses a path that doesn't contain "64"/"x64"
+          if exist "thirdparty\glew\glew-1.9.0\bin\64bit\glew32.dll"           copy /Y "thirdparty\glew\glew-1.9.0\bin\64bit\glew32.dll"           FlarePortable\
+          if exist "thirdparty\glut\3.7.6\lib\glut64.dll"                      copy /Y "thirdparty\glut\3.7.6\lib\glut64.dll"                      FlarePortable\
+          if exist "thirdparty\libmypaint\dist\64\libmypaint-1-4-0.dll"        copy /Y "thirdparty\libmypaint\dist\64\libmypaint-1-4-0.dll"        FlarePortable\
+          if exist "thirdparty\libmypaint\dist\64\libiconv-2.dll"              copy /Y "thirdparty\libmypaint\dist\64\libiconv-2.dll"              FlarePortable\
+          if exist "thirdparty\libmypaint\dist\64\libintl-8.dll"               copy /Y "thirdparty\libmypaint\dist\64\libintl-8.dll"               FlarePortable\
+          if exist "thirdparty\libmypaint\dist\64\libjson-c-2.dll"             copy /Y "thirdparty\libmypaint\dist\64\libjson-c-2.dll"             FlarePortable\
+          
+          :: 7. OpenCV x64 DLLs
+          :: Standard choco layout is C:\tools\opencv\build\x64\vc<N>\bin\.
+          :: dir /s does NOT expand wildcards in intermediate path components,
+          :: so enumerate vc14/15/16/17 explicitly, then fall back to a recursive search.
+          for %%v in (vc17 vc16 vc15 vc14) do (
+            if exist "C:\tools\opencv\build\x64\%%v\bin" (
+              for %%f in ("C:\tools\opencv\build\x64\%%v\bin\opencv_world*.dll") do (
+                if exist "%%f" copy /Y "%%f" FlarePortable\
+              )
+            )
+          )
+          :: Recursive fallback for non-standard layouts; findstr filters to x64 paths only
+          for /f "delims=" %%j in ('dir /b /s "C:\tools\opencv\opencv_world*.dll" 2^>nul ^| findstr /i "\\x64\\"') do (
+            copy /Y "%%j" FlarePortable\ 2>nul
+          )
+
+          :: 8. Deploy Qt + MSVC runtime
           echo Running windeployqt...
           "%QT_PATH%\bin\windeployqt.exe" "FlarePortable\Flare.exe" --opengl --compiler-runtime
 
-          :: 7. Portable mode (stuff -> portablestuff)
+          :: 9. Portable mode (stuff -> portablestuff)
           if exist "stuff" (
               mkdir "FlarePortable\portablestuff"
               xcopy /Y /E /I "stuff" "FlarePortable\portablestuff"
           )
 
-          :: 8. Cleanup
+          :: 10. System requirements README (so users know this is x64 Windows only)
+          (
+            echo Flare - Windows x64 Portable
+            echo ================================
+            echo.
+            echo SYSTEM REQUIREMENTS:
+            echo   Windows 10 or 11, 64-bit (x86_64/AMD64^)
+            echo   ARM Windows is not supported.
+            echo.
+            echo USAGE:
+            echo   Run Flare.exe from this folder.
+            echo   Do NOT move Flare.exe out of this folder; it needs the DLLs
+            echo   and portablestuff folder to be present in the same directory.
+            echo.
+            echo TROUBLESHOOTING:
+            echo   "DLL not found" errors  ^-^>  you may have moved Flare.exe, or
+            echo     your antivirus quarantined a DLL; whitelist this folder.
+            echo   "wrong architecture" error  ^-^>  you are running 32-bit Windows;
+            echo     this build requires 64-bit Windows.
+          ) > FlarePortable\README.txt
+
+          :: 11. Cleanup
           del /S /Q FlarePortable\*.pdb 2>nul
         shell: cmd
+
+      - name: Smoke Test – DLL dependency check + launch test
+        if: always()
+        shell: pwsh
+        run: |
+          $log = [System.Collections.Generic.List[string]]::new()
+          $log.Add("=== Windows Smoke Test ===")
+          $log.Add("")
+
+          # --- Static analysis: list all DLLs present in FlarePortable ---
+          $log.Add("--- DLLs present in FlarePortable (root) ---")
+          $rootDlls = Get-ChildItem FlarePortable -Filter *.dll -File | Select-Object -ExpandProperty Name | Sort-Object
+          $rootDlls | ForEach-Object { $log.Add("  $_") }
+          $log.Add("Total root DLLs: $($rootDlls.Count)")
+          $log.Add("")
+
+          # --- dumpbin: direct dependencies of Flare.exe ---
+          $log.Add("--- dumpbin /DEPENDENTS FlarePortable\Flare.exe ---")
+          try {
+            $dumpout = & dumpbin /DEPENDENTS FlarePortable\Flare.exe 2>&1
+            $needed  = $dumpout | Select-String '\.dll' |
+                       ForEach-Object { ($_ -replace '^\s+','').Trim() } |
+                       Where-Object { $_ -ne '' }
+            $needed | ForEach-Object { $log.Add("  needs: $_") }
+            $log.Add("")
+            $log.Add("--- Checking direct deps are present ---")
+            $missing = @()
+            foreach ($dll in $needed) {
+              $name = [System.IO.Path]::GetFileName($dll)
+              $inPackage = Test-Path "FlarePortable\$name"
+              $inSystem  = $null -ne (Get-Command $name -ErrorAction SilentlyContinue)
+              if (-not $inPackage -and -not $inSystem) { $missing += $name }
+              $log.Add("  $name -> package=$inPackage  system=$inSystem")
+            }
+            if ($missing.Count -gt 0) {
+              $log.Add("")
+              $log.Add("SMOKE TEST WARN: These DLLs are neither in FlarePortable nor system PATH:")
+              $missing | ForEach-Object { $log.Add("  MISSING: $_") }
+            } else {
+              $log.Add("")
+              $log.Add("SMOKE TEST OK: All direct DLL dependencies accounted for.")
+            }
+          } catch {
+            $log.Add("dumpbin not available or failed: $_")
+          }
+          $log.Add("")
+
+          # --- Runtime test: launch Flare.exe with 8-second timeout ---
+          $log.Add("--- Runtime launch test (8-second timeout, hidden window) ---")
+          # Suppress Windows Error Reporting dialog boxes on this runner
+          try {
+            reg add "HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting" /v DontShowUI /t REG_DWORD /d 1 /f 2>&1 | Out-Null
+            reg add "HKLM\SOFTWARE\WOW6432Node\Microsoft\Windows\Windows Error Reporting" /v DontShowUI /t REG_DWORD /d 1 /f 2>&1 | Out-Null
+          } catch {}
+
+          $exePath = "$PWD\FlarePortable\Flare.exe"
+          if (-not (Test-Path $exePath)) {
+            $log.Add("SMOKE TEST SKIP: Flare.exe not found at $exePath")
+          } else {
+            try {
+              $psi = New-Object System.Diagnostics.ProcessStartInfo
+              $psi.FileName        = $exePath
+              $psi.WorkingDirectory = "$PWD\FlarePortable"
+              $psi.WindowStyle     = [System.Diagnostics.ProcessWindowStyle]::Hidden
+              $psi.UseShellExecute = $true   # needed for hidden window
+              $proc = [System.Diagnostics.Process]::Start($psi)
+              $completed = $proc.WaitForExit(8000)
+              if (-not $completed) {
+                $proc.Kill()
+                $log.Add("SMOKE TEST PASS: Flare.exe ran for 8+ seconds without a startup crash")
+              } else {
+                $raw  = $proc.ExitCode
+                $hex  = "0x{0:X8}" -f ($raw -band 0xFFFFFFFF)
+                $log.Add("Flare.exe exited quickly: code=$raw ($hex)")
+                switch ($raw -band 0xFFFFFFFF) {
+                  0xC0000135 { $log.Add("SMOKE TEST FAIL: STATUS_DLL_NOT_FOUND – a required DLL is missing from FlarePortable") }
+                  0xC000007B { $log.Add("SMOKE TEST FAIL: STATUS_INVALID_IMAGE_FORMAT – wrong-bitness DLL loaded") }
+                  0xC0000034 { $log.Add("SMOKE TEST WARN: STATUS_OBJECT_NAME_NOT_FOUND") }
+                  0x00000000 { $log.Add("SMOKE TEST OK: Exited cleanly (exit 0)") }
+                  default    { $log.Add("SMOKE TEST NOTE: Exited with code $hex (may be expected for headless run)") }
+                }
+              }
+            } catch {
+              $log.Add("SMOKE TEST ERROR: Could not launch Flare.exe – $_")
+            }
+          }
+
+          # Write log and echo it
+          $log | Out-File -FilePath smoke_test.log -Encoding utf8
+          Write-Host ($log -join "`n")
+
+      - name: Upload smoke test log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-test-windows
+          path: smoke_test.log
+          if-no-files-found: ignore
+
 
       - name: Upload Flare Portable
         uses: actions/upload-artifact@v4
@@ -270,6 +433,7 @@ jobs:
             }
             const cmake = readTrunc('build/cmake_configure.log');
             const build = readTrunc('build/build.log');
+            const smoke = readTrunc('smoke_test.log');
             const note = (!fs.existsSync('build/cmake_configure.log') && !fs.existsSync('build/build.log')) ? '\n\n**Note:** log files missing – checkout or prior step may have failed.' : '';
-            const body = `**Automated build logs (truncated)**\n\n--- CMake configure log ---\n${cmake}\n\n--- Build log ---\n${build}${note}`;
+            const body = `**Automated build logs – Windows (truncated)**\n\n--- CMake configure log ---\n${cmake}\n\n--- Build log ---\n${build}\n\n--- Smoke test (DLL check + launch test) ---\n${smoke}${note}`;
             await github.rest.issues.createComment({ owner, repo, issue_number: pr, body });
