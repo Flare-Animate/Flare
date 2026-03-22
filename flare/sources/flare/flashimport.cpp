@@ -15,6 +15,7 @@
 #include "flare/tproject.h"
 #include "flare/preferences.h"
 #include "flare/tapp.h"
+#include "flare/tscenehandle.h"
 #include "flare/toonzfolders.h"
 #include "flare/toonzscene.h"
 

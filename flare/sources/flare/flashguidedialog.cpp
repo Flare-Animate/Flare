@@ -1,7 +1,7 @@
 #include "flashguidedialog.h"
 
 #include "menubarcommandids.h"
-#include "menuitemhandler.h"
+#include "flareqt/menubarcommand.h"
 
 #include <QFile>
 #include <QFont>
