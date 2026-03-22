@@ -715,5 +715,7 @@
 		<file>Resources/scripticon.png</file>
 		<file>Resources/savescreen.png</file>
 		<file>Resources/warning.svg</file>
+		<file alias="doc/how_to_import_swf.md">../../../doc/how_to_import_swf.md</file>
+		<file alias="doc/FLASH_SUPPORT.md">../../../doc/FLASH_SUPPORT.md</file>
 	</qresource>
 </RCC>

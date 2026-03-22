@@ -407,6 +407,7 @@ set(SOURCES
     exportcameratrackpopup.h
     layoutPresetsEditorPopup.h
     layoutUtils.h
+    flashguidedialog.h
 )
 
 if(PLATFORM EQUAL 64)
@@ -2993,6 +2994,7 @@ set(SOURCES
     filedata.cpp
     metnum.cpp
     # Native built-in Flash format support (no external tools required)
+    flashguidedialog.cpp
     flashimport.cpp
     ../common/flash/XFLReader.cpp
     # minizip for ZIP/FLA/SWC extraction (bundled with zlib thirdparty)

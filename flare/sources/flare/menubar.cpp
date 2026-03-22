@@ -494,6 +494,7 @@ QMenuBar *StackedMenuBar::createCleanupMenuBar() {
   //----Help Menu
   QMenu *helpMenu = addMenu(tr("Help"), cleanupMenuBar);
   addMenuItem(helpMenu, MI_About);
+  addMenuItem(helpMenu, MI_FlashGuide);
 
   return cleanupMenuBar;
 }
@@ -661,6 +662,7 @@ QMenuBar *StackedMenuBar::createPltEditMenuBar() {
   //---Help Menu
   QMenu *helpMenu = addMenu(tr("Help"), pltEditMenuBar);
   addMenuItem(helpMenu, MI_About);
+  addMenuItem(helpMenu, MI_FlashGuide);
 
   return pltEditMenuBar;
 }
@@ -838,6 +840,7 @@ QMenuBar *StackedMenuBar::createInknPaintMenuBar() {
   //---Help Menu
   QMenu *helpMenu = addMenu(tr("Help"), inknPaintMenuBar);
   addMenuItem(helpMenu, MI_About);
+  addMenuItem(helpMenu, MI_FlashGuide);
 
   return inknPaintMenuBar;
 }
@@ -1022,6 +1025,7 @@ QMenuBar *StackedMenuBar::createXsheetMenuBar() {
   //---Help Menu
   QMenu *helpMenu = addMenu(tr("Help"), xsheetMenuBar);
   addMenuItem(helpMenu, MI_About);
+  addMenuItem(helpMenu, MI_FlashGuide);
 
   return xsheetMenuBar;
 }
@@ -1058,6 +1062,7 @@ QMenuBar *StackedMenuBar::createBatchesMenuBar() {
   //---Help Menu
   QMenu *helpMenu = addMenu(tr("Help"), batchesMenuBar);
   addMenuItem(helpMenu, MI_About);
+  addMenuItem(helpMenu, MI_FlashGuide);
 
   return batchesMenuBar;
 }
@@ -1095,6 +1100,7 @@ QMenuBar *StackedMenuBar::createBrowserMenuBar() {
   //---Help Menu
   QMenu *helpMenu = addMenu(tr("Help"), browserMenuBar);
   addMenuItem(helpMenu, MI_About);
+  addMenuItem(helpMenu, MI_FlashGuide);
 
   return browserMenuBar;
 }
@@ -1487,6 +1493,7 @@ QMenuBar *StackedMenuBar::createFullMenuBar() {
   addMenuItem(helpMenu, MI_OpenReportABug);
   helpMenu->addSeparator();
   addMenuItem(helpMenu, MI_About);
+  addMenuItem(helpMenu, MI_FlashGuide);
 
 // addMenuItem(fileMenu, MI_TestAnimation);
 // fileMenu->addSeparator();
