@@ -33,7 +33,6 @@ jobs:
       CCACHE_DIR: ${{ github.workspace }}\.ccache
       GIT_LFS_SKIP_SMUDGE: '1'
       THIRDPARTY_DIR: ${{ github.workspace }}\thirdparty
-      QT_PATH: ${{ github.workspace }}\thirdparty\qt\Qt5.15.2_wintab\5.15.2_wintab\msvc2019_64
       VCPKG_ROOT: ${{ github.workspace }}\vcpkg
 
     steps:
@@ -69,16 +68,55 @@ jobs:
         shell: cmd
 
       - name: Install custom Qt 5.15.2
+        shell: pwsh
         run: |
-          @echo on
-          if not exist "%QT_PATH%\bin\qmake.exe" (
-            curl -fsSL -o qt.zip https://github.com/andeon/opentoonz-thirdparty-libs/releases/download/prebuilt-libs-v1/Qt5.15.2_wintab.zip
-            7z x -y qt.zip -o"%THIRDPARTY_DIR%\qt"
-            del /Q qt.zip
-          ) else (
-            echo Qt already present
-          )
-        shell: cmd
+          # Download Qt5.15.2 with wintab support
+          New-Item -ItemType Directory -Force -Path "thirdparty\qt" | Out-Null
+          $maxRetry = 3
+          for ($i = 1; $i -le $maxRetry; $i++) {
+            try {
+              Invoke-WebRequest -Uri "https://github.com/shun-iwasawa/qt5/releases/download/v5.15.2_wintab/Qt5.15.2_wintab.zip" `
+                -OutFile "Qt5.15.2_wintab.zip" -ErrorAction Stop
+              break
+            } catch {
+              if ($i -eq $maxRetry) { Write-Error "Qt download failed after $maxRetry attempts: $_"; exit 1 }
+              Write-Host "Download attempt $i failed, retrying..."
+              Start-Sleep -Seconds 5
+            }
+          }
+
+          # Verify zip was downloaded
+          if (-not (Test-Path "Qt5.15.2_wintab.zip") -or (Get-Item "Qt5.15.2_wintab.zip").Length -lt 1MB) {
+            Write-Error "Qt zip file missing or too small"
+            exit 1
+          }
+
+          # Extract
+          & 7z x -y Qt5.15.2_wintab.zip "-othirdparty\qt"
+          if ($LASTEXITCODE -ne 0) { Write-Error "Qt extraction failed"; exit 1 }
+          Remove-Item "Qt5.15.2_wintab.zip" -Force -ErrorAction SilentlyContinue
+
+          # Find qmake.exe and derive the Qt root (parent of bin/)
+          $qmake = Get-ChildItem -Path "thirdparty\qt" -Filter "qmake.exe" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $qmake) {
+            Write-Error "qmake.exe not found in extracted Qt"
+            Get-ChildItem -Path "thirdparty\qt" -Recurse | Select-Object -First 30
+            exit 1
+          }
+
+          # Qt root = parent of the bin/ directory that contains qmake.exe
+          $qtRoot = $qmake.DirectoryName | Split-Path -Parent
+          Write-Host "Found Qt at: $qtRoot"
+
+          # Verify the path exists before saving
+          if (-not (Test-Path $qtRoot)) {
+            Write-Error "Detected Qt root does not exist: $qtRoot"
+            exit 1
+          }
+
+          # Save to GITHUB_ENV (no trailing backslash)
+          $qtRoot = $qtRoot.TrimEnd('\', '/')
+          "QT_PATH=$qtRoot" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
 
       - name: Cache System Dependencies (OpenCV/Boost)
         id: cache-deps
