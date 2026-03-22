@@ -144,6 +144,7 @@ set(MOC_HEADERS
     exportcameratrackpopup.h
     layoutPresetsEditorPopup.h
     layoutUtils.h
+    flashguidedialog.h
 )
 
 if(PLATFORM EQUAL 64)
