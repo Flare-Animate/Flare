@@ -1,49 +1,74 @@
-# Flare Flash Format Import (FLA / XFL / SWF / SWC / AS)
+# Flare Flash Format Import (FLA / XFL / SWF / SWC / FLV / F4V / AS)
 
-Flare includes **built-in, native** import support for all common Flash file
-formats. No external tools, decompilers, Python scripts, or third-party
-software are required — everything runs inside the application.
+Flare includes **built-in, native** import support for all Flash file formats.
+No external tools, Java runtimes, Python scripts, or third-party software are
+required — everything is compiled directly into the application.
 
 ## Supported formats
 
-| Extension | Description |
-|-----------|-------------|
-| `.fla`    | Flash/Animate project (ZIP-backed XFL archive) |
-| `.xfl`    | Uncompressed XFL project (directory or single-file ZIP) |
-| `.swf`    | Compiled SWF binary |
-| `.swc`    | SWF component library (ZIP archive) |
-| `.as`     | ActionScript source file |
+| Extension | Description | Native handling |
+|-----------|-------------|-----------------|
+| `.fla`    | Flash/Animate project (ZIP-backed XFL) | ZIP extracted with minizip; DOMDocument.xml parsed |
+| `.xfl`    | Uncompressed XFL project (directory or ZIP) | Parsed with XFLReader |
+| `.swf`    | Compiled SWF binary | Header decoded; embedded bitmaps extracted via tag scan |
+| `.swc`    | SWF component library (ZIP) | ZIP extracted; `catalog.xml` parsed; `library.swf` bitmaps extracted |
+| `.flv`    | Flash Video | Header validated; loaded as raster level via FFmpeg |
+| `.f4v`    | Flash H.264 video (ISO BMFF / MP4) | `ftyp` box read; loaded as raster level via FFmpeg |
+| `.as`     | ActionScript source | Copied as reference text |
+
+## Why not JPEXS / external tools?
+
+JPEXS Free Flash Decompiler is **GPL v3** — incompatible with Flare's BSD
+licence — and requires a Java runtime.  The old approach of calling it via
+Python scripts was deliberately replaced by this native C++ implementation.
+No external tools are needed or used.
 
 ## How to import
 
-**File → Import → Import Flash (FLA / XFL / SWF / SWC / AS)...**
+**File → Import → Import Flash (FLA / XFL / SWF / SWC / FLV / F4V / AS)...**
 
-A standard file dialog opens; pick any supported file.  After import Flare:
+A file dialog opens; select any supported file. After import Flare:
 
-1. Extracts ZIP archives (FLA, SWC) using the bundled minizip library.
-2. Parses `DOMDocument.xml` (FLA / XFL) and reports document properties.
-3. Auto-loads embedded bitmap assets (PNG / JPEG) into the current scene.
-4. Writes a `manifest.txt` next to the exported files.
-5. Offers to open the export folder.
+1. Validates the file signature natively (no external process).
+2. Extracts ZIP archives (FLA, SWC) using the bundled minizip library.
+3. Parses `DOMDocument.xml` (FLA/XFL) and reports document properties.
+4. Scans SWF tag streams and extracts all embedded JPEG and lossless bitmaps.
+5. Parses SWC `catalog.xml` (Apache Flex SDK format) to list exported symbols.
+6. Decompresses zlib-compressed SWF bodies (CWS, SWF6+) using Qt.
+7. Reads FLV / F4V headers and loads video files as raster levels via FFmpeg.
+8. Auto-loads extracted bitmap assets into the current scene.
+9. Writes `manifest.txt` and optionally opens the export folder.
 
-The unified command is also accessible as
-**File → Import → Import Flash Container (FLA / SWC)...** for workflow
-compatibility.
+## Architecture
 
-## How it works (technical)
+```
+flare/sources/common/flash/
+    XFLReader.h/cpp         XFL/FLA parser; ZIP extraction via minizip
+    FSWFStream.h/cpp        Low-level SWF binary stream (write path)
+    FDT*.h/cpp              Flash data-type tag implementations
+    FCT.h/cpp               Flash character tables
+    FAction.h/cpp           ActionScript tag stubs
+    tflash.h/cpp            TFlash: SWF write / render engine
 
-All processing is done in native C++, compiled directly into Flare:
+flare/sources/flare/
+    flashimport.cpp         UI commands (zero external dependencies)
+                            — readSwfHeader(), extractSwfBitmaps()
+                            — readFlvHeader(), readF4vHeader()
+                            — SWC catalog.xml parser
 
-| Task | Component |
-|------|-----------|
-| ZIP extraction (FLA, SWC) | `unzip.c` / `ioapi.c` from `thirdparty/zlib-1.2.8/contrib/minizip` |
-| XFL XML parsing | `flare/sources/common/flash/XFLReader.cpp` |
-| SWF header decoding | Inline bit-stream reader in `flashimport.cpp` |
-| Flash data types | `FDT*.cpp`, `FCT.cpp`, `FSWFStream.cpp` in `flare/sources/common/flash/` |
-| SWF writing / rendering | `TFlash` class — `tflash.cpp` |
+flare/sources/image/tiio.cpp
+                            FLV + F4V registered as RASTER_LEVEL
+                            (reader via TLevelReaderFFmpeg when FFmpeg present)
 
-## ActionScript
+thirdparty/zlib-1.2.8/contrib/minizip/
+    unzip.c, ioapi.c        ZIP extraction compiled into Flare
+```
 
-ActionScript (`.as`) files are copied into the export folder for reference.
-Flare does not execute ActionScript; the files are included so animators can
-inspect original scripting logic and re-implement behaviour manually.
+## Format references (not bundled)
+
+| Reference | Used for | License |
+|-----------|----------|---------|
+| [Ruffle](https://github.com/ruffle-rs/ruffle) `swf/src/tag_code.rs` | SWF tag codes, RECT bit layout, DefineBitsJPEG/Lossless binary format | MIT/Apache 2.0 |
+| [Apache Flex SDK](https://github.com/apache/flex-sdk) | SWC `catalog.xml` schema | Apache 2.0 |
+| [lifeart/fla-viewer](https://github.com/lifeart/fla-viewer) | XFL DOMDocument.xml schema | MIT |
+| FLV/F4V public spec | FLV 9-byte header, ISO BMFF `ftyp` box | Public spec |

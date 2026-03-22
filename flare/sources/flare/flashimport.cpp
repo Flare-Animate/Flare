@@ -1,10 +1,12 @@
-// flashimport.cpp - Native built-in Flash format import (FLA, XFL, SWF, SWC, AS)
+// flashimport.cpp - Native built-in Flash format import (FLA, XFL, SWF, SWC, FLV, F4V, AS)
 // No external tools or third-party processes required.
 //
 // FLA  = ZIP archive containing an XFL document (DOMDocument.xml + assets)
 // XFL  = Unzipped FLA; a directory or ZIP containing DOMDocument.xml
 // SWF  = Compiled Flash binary (header + tag stream)
-// SWC  = ZIP archive containing library.swf and assets
+// SWC  = ZIP archive containing library.swf and assets (Apache Flex SDK format)
+// FLV  = Flash Video container
+// F4V  = Flash H.264 video (ISO BMFF / MPEG-4 Part 12)
 // AS   = ActionScript source file (imported as plain text for reference)
 
 #include "flare/menubarcommandids.h"
@@ -14,10 +16,15 @@
 #include "flare/preferences.h"
 #include "flare/tapp.h"
 #include "flare/toonzfolders.h"
+#include "flare/toonzscene.h"
 
 #include "flareqt/gutil.h"
 #include "flareqt/dvdialog.h"
 #include "flare/filebrowserpopup.h"
+#include "iocommand.h"
+
+#include "tsystem.h"
+#include "tfilepath.h"
 
 // Native flash infrastructure (include_directories contains ../common/flash)
 #include "XFLReader.h"
@@ -26,6 +33,7 @@
 
 #include <QFile>
 #include <QDir>
+#include <QDirIterator>
 #include <QDateTime>
 #include <QFileInfo>
 #include <QDesktopServices>
@@ -53,6 +61,11 @@ static TFilePath makeTempImportDir(const QString &prefix) {
     return dir;
 }
 
+// Asset file filters for auto-import scan
+static const QStringList kAssetFilters = {
+    "*.png", "*.jpg", "*.jpeg", "*.svg", "*.xml", "*.as"
+};
+
 // Extract every entry of a ZIP archive to outDir using the bundled minizip.
 static bool extractZip(const QString &zipPath, const QString &outDir) {
     unzFile uf = unzOpen(zipPath.toUtf8().constData());
@@ -61,7 +74,7 @@ static bool extractZip(const QString &zipPath, const QString &outDir) {
     unz_global_info gi;
     if (unzGetGlobalInfo(uf, &gi) != UNZ_OK) { unzClose(uf); return false; }
 
-    char entryName[512];
+    char entryName[1024];   // larger buffer for deeply-nested paths
     char buf[16384];
 
     for (uLong i = 0; i < gi.number_entry; i++) {
@@ -70,10 +83,16 @@ static bool extractZip(const QString &zipPath, const QString &outDir) {
                                   nullptr, 0, nullptr, 0) != UNZ_OK)
             break;
 
+        size_t nameLen = strlen(entryName);
+        if (nameLen == 0) {
+            if (i + 1 < gi.number_entry) unzGoToNextFile(uf);
+            continue;
+        }
+
         QString fullOut = outDir + "/" + QString::fromUtf8(entryName);
         QFileInfo info(fullOut);
 
-        if (entryName[strlen(entryName) - 1] == '/') {
+        if (entryName[nameLen - 1] == '/') {
             // Directory entry
             QDir().mkpath(fullOut);
         } else {
@@ -185,15 +204,255 @@ static SwfInfo readSwfHeader(const QString &path) {
     return info;
 }
 
+// ---------------------------------------------------------------------------
+// FLV (Flash Video) header reader
+//
+// Binary format (big-endian, public spec / Ruffle flv crate):
+//   Bytes 0-2:  "FLV" signature
+//   Byte  3:    version (always 1 for standard FLV)
+//   Byte  4:    type flags — bit 0 = has video, bit 2 = has audio
+//   Bytes 5-8:  header size (big-endian uint32, standard = 9)
+// ---------------------------------------------------------------------------
+struct FlvInfo {
+    bool valid    = false;
+    int  version  = 0;
+    bool hasVideo = false;
+    bool hasAudio = false;
+};
+
+static FlvInfo readFlvHeader(const QString &path) {
+    FlvInfo info;
+    QFile f(path);
+    if (!f.open(QIODevice::ReadOnly)) return info;
+    QByteArray hdr = f.read(9);
+    if (hdr.size() < 9) return info;
+    if ((unsigned char)hdr[0] != 'F' ||
+        (unsigned char)hdr[1] != 'L' ||
+        (unsigned char)hdr[2] != 'V')
+        return info;
+    info.valid    = true;
+    info.version  = (unsigned char)hdr[3];
+    unsigned char flags = (unsigned char)hdr[4];
+    info.hasVideo = (flags & 0x01) != 0;
+    info.hasAudio = (flags & 0x04) != 0;
+    return info;
+}
+
+// ---------------------------------------------------------------------------
+// F4V (Flash H.264 video, ISO BMFF / MPEG-4 Part 12) header reader
+//
+// ISO BMFF "ftyp" box (big-endian):
+//   Bytes 0-3:  box size (uint32)
+//   Bytes 4-7:  box type "ftyp"
+//   Bytes 8-11: major brand (4 ASCII chars, e.g. "f4v ", "mp42", "isom")
+//   Bytes 12-15: minor version (uint32)
+//   Bytes 16+:  compatible brands (4 bytes each)
+// ---------------------------------------------------------------------------
+struct F4vInfo {
+    bool    valid       = false;
+    QString majorBrand;
+    QString compatBrands;
+};
+
+static F4vInfo readF4vHeader(const QString &path) {
+    F4vInfo info;
+    QFile f(path);
+    if (!f.open(QIODevice::ReadOnly)) return info;
+    QByteArray hdr = f.read(32);
+    if (hdr.size() < 12) return info;
+    // box type must be "ftyp"
+    if (hdr[4] != 'f' || hdr[5] != 't' || hdr[6] != 'y' || hdr[7] != 'p')
+        return info;
+    info.valid      = true;
+    info.majorBrand = QString::fromLatin1(hdr.mid(8, 4)).trimmed();
+    // Collect compatible brands
+    QStringList brands;
+    for (int off = 16; off + 4 <= hdr.size(); off += 4) {
+        QString b = QString::fromLatin1(hdr.mid(off, 4)).trimmed();
+        if (!b.isEmpty()) brands << b;
+    }
+    info.compatBrands = brands.join(", ");
+    return info;
+}
+
 // Build a plain-text manifest listing imported files in outDir.
 static void writeManifest(const QString &outDir, const QStringList &files,
                           const QString &sourceFile) {
     QFile mf(outDir + "/manifest.txt");
     if (!mf.open(QIODevice::WriteOnly | QIODevice::Text)) return;
-    mf.write(("Source: " + sourceFile + "\n").toUtf8());
-    mf.write(("Exported files:\n").toUtf8());
-    for (const auto &f : files) mf.write(("  " + f + "\n").toUtf8());
+    mf.write(QByteArray("Source: ") + sourceFile.toUtf8() + "\n");
+    mf.write("Exported files:\n");
+    for (const auto &f : files) mf.write(QByteArray("  ") + f.toUtf8() + "\n");
     mf.close();
+}
+
+// ---------------------------------------------------------------------------
+// SWF bitmap extractor
+//
+// Tag codes (from Ruffle swf/src/tag_code.rs, MIT/Apache-2.0):
+//   DefineBits         = 6   (JPEG with separate JPEGTables tag)
+//   JpegTables         = 8   (global JPEG header)
+//   DefineBitsLossless = 20  (zlib-compressed palettized / RGB)
+//   DefineBitsJpeg2    = 21  (self-contained JPEG)
+//   DefineBitsJpeg3    = 35  (JPEG + separate alpha channel)
+//   DefineBitsLossless2= 36  (zlib-compressed RGBA)
+//   DefineBitsJpeg4    = 90  (JPEG with deblocking parameter)
+//
+// Tag record format (little-endian):
+//   Short record: 2-byte word (high 10 bits = tag code, low 6 bits = length)
+//   Long record:  2-byte word with length=63, followed by 4-byte signed length
+//
+// Bitmap format constants (DefineBitsLossless format byte):
+//   3 = 8-bit palettized,  4 = 15-bit RGB555,  5 = 24-bit RGB/32-bit ARGB
+// ---------------------------------------------------------------------------
+static QStringList extractSwfBitmaps(const QByteArray &swfData, const QString &outDir) {
+    QStringList extracted;
+    if (swfData.size() < 8) return extracted;
+
+    const unsigned char *d = reinterpret_cast<const unsigned char *>(swfData.constData());
+    int size = swfData.size();
+
+    // Skip fixed header (8 bytes) + RECT (variable) + frame_rate (2) + frame_count (2)
+    // We parse the RECT to find where tags begin.
+    int pos = 8;  // after sig(3) + version(1) + fileLen(4)
+    if (pos >= size) return extracted;
+
+    int nbits = (d[pos] >> 3) & 0x1F;
+    int rectBits = 5 + 4 * nbits;
+    pos += (rectBits + 7) / 8;  // skip RECT
+    pos += 4;                    // skip frame_rate (2) + frame_count (2)
+
+    int bitmapIndex = 0;
+    QByteArray jpegTables;  // from JpegTables tag (tag 8)
+
+    while (pos + 2 <= size) {
+        // Read tag record header
+        quint16 tagAndLen = static_cast<quint16>(d[pos]) | (static_cast<quint16>(d[pos+1]) << 8);
+        pos += 2;
+
+        int tagCode = (tagAndLen >> 6) & 0x3FF;
+        int tagLen  = tagAndLen & 0x3F;
+
+        if (tagLen == 63) {
+            // Long record: read 4-byte length
+            if (pos + 4 > size) break;
+            tagLen = static_cast<int>(d[pos])
+                   | (static_cast<int>(d[pos+1]) << 8)
+                   | (static_cast<int>(d[pos+2]) << 16)
+                   | (static_cast<int>(d[pos+3]) << 24);
+            pos += 4;
+        }
+
+        if (tagCode == 0) break;  // End tag
+
+        // Clamp to available data
+        int dataStart = pos;
+        int dataEnd   = qMin(pos + tagLen, size);
+        pos           = dataEnd;
+
+        if (tagLen < 2) continue;
+
+        // ---- JpegTables (tag 8): save for use with DefineBits ----
+        if (tagCode == 8) {
+            jpegTables = QByteArray(reinterpret_cast<const char *>(d + dataStart),
+                                    dataEnd - dataStart);
+            continue;
+        }
+
+        // ---- DefineBitsJpeg2 (21), DefineBitsJpeg4 (90): self-contained JPEG ----
+        // Format: CharacterID (2 bytes) + raw JPEG data
+        if (tagCode == 21 || tagCode == 90) {
+            int skip = (tagCode == 90) ? 4 : 2;  // Jpeg4 has extra deblocking u16
+            if (dataStart + skip >= dataEnd) continue;
+
+            QByteArray jpeg(reinterpret_cast<const char *>(d + dataStart + skip),
+                            dataEnd - dataStart - skip);
+
+            // Some SWF authoring tools write a broken JPEG header (0xFF 0xD9 0xFF 0xD8)
+            // before the actual image data. Strip it (known Ruffle workaround).
+            if (jpeg.size() >= 4 &&
+                (unsigned char)jpeg[0] == 0xFF && (unsigned char)jpeg[1] == 0xD9 &&
+                (unsigned char)jpeg[2] == 0xFF && (unsigned char)jpeg[3] == 0xD8)
+                jpeg = jpeg.mid(4);
+
+            QString fname = QString("bitmap_%1.jpg").arg(bitmapIndex++, 4, 10, QChar('0'));
+            QFile jf(outDir + "/" + fname);
+            if (jf.open(QIODevice::WriteOnly)) { jf.write(jpeg); jf.close(); }
+            extracted << fname;
+            continue;
+        }
+
+        // ---- DefineBits (6): JPEG data using the global JpegTables ----
+        if (tagCode == 6 && !jpegTables.isEmpty()) {
+            if (dataStart + 2 >= dataEnd) continue;
+            QByteArray jpeg = jpegTables +
+                QByteArray(reinterpret_cast<const char *>(d + dataStart + 2),
+                           dataEnd - dataStart - 2);
+            QString fname = QString("bitmap_%1.jpg").arg(bitmapIndex++, 4, 10, QChar('0'));
+            QFile jf(outDir + "/" + fname);
+            if (jf.open(QIODevice::WriteOnly)) { jf.write(jpeg); jf.close(); }
+            extracted << fname;
+            continue;
+        }
+
+        // ---- DefineBitsJpeg3 (35): JPEG + separate zlib alpha channel ----
+        // Format: CharID(2) + alphaDataOffset(4) + JPEG data + zlib alpha
+        if (tagCode == 35) {
+            if (dataStart + 6 >= dataEnd) continue;
+            quint32 alphaOffset = static_cast<quint32>(d[dataStart+2])
+                                | (static_cast<quint32>(d[dataStart+3]) << 8)
+                                | (static_cast<quint32>(d[dataStart+4]) << 16)
+                                | (static_cast<quint32>(d[dataStart+5]) << 24);
+            QByteArray jpeg(reinterpret_cast<const char *>(d + dataStart + 6), alphaOffset);
+            // We save only the JPEG data (alpha channel would require compositing)
+            QString fname = QString("bitmap_%1.jpg").arg(bitmapIndex++, 4, 10, QChar('0'));
+            QFile jf(outDir + "/" + fname);
+            if (jf.open(QIODevice::WriteOnly)) { jf.write(jpeg); jf.close(); }
+            extracted << fname;
+            continue;
+        }
+
+        // ---- DefineBitsLossless2 (36): zlib-compressed ARGB bitmap ----
+        // Format: CharID(2) + BitmapFormat(1) + width(2) + height(2)
+        //         [+ ColorTableSize(1) if format==3] + zlib(pixel data)
+        if (tagCode == 36) {
+            if (dataStart + 7 >= dataEnd) continue;
+            // int charId   = ... (unused)
+            int fmt      = d[dataStart + 2];
+            int bmpW     = d[dataStart + 3] | (d[dataStart + 4] << 8);
+            int bmpH     = d[dataStart + 5] | (d[dataStart + 6] << 8);
+            int zlibOff  = dataStart + 7;
+            if (fmt == 3) zlibOff++;  // skip ColorTableSize byte
+
+            if (bmpW <= 0 || bmpH <= 0 || zlibOff >= dataEnd) continue;
+
+            // Decompress zlib pixel data using Qt
+            QByteArray compressed(reinterpret_cast<const char *>(d + zlibOff),
+                                  dataEnd - zlibOff);
+            // Prepend a 4-byte big-endian uncompressed length for qUncompress
+            int uncompLen = bmpW * bmpH * 4;  // ARGB, 4 bytes per pixel
+            QByteArray prefixed(4 + compressed.size(), 0);
+            prefixed[0] = (uncompLen >> 24) & 0xFF;
+            prefixed[1] = (uncompLen >> 16) & 0xFF;
+            prefixed[2] = (uncompLen >> 8)  & 0xFF;
+            prefixed[3] =  uncompLen        & 0xFF;
+            memcpy(prefixed.data() + 4, compressed.constData(), compressed.size());
+
+            QByteArray pixels = qUncompress(prefixed);
+            if (pixels.size() < uncompLen) continue;  // decompression failed
+
+            // SWF lossless2 stores 32-bit ARGB (premultiplied alpha).
+            // Convert to QImage ARGB32_Premultiplied and save as PNG.
+            QImage img(reinterpret_cast<const uchar *>(pixels.constData()),
+                       bmpW, bmpH, bmpW * 4, QImage::Format_ARGB32_Premultiplied);
+            QString fname = QString("bitmap_%1.png").arg(bitmapIndex++, 4, 10, QChar('0'));
+            img.save(outDir + "/" + fname, "PNG");
+            extracted << fname;
+            continue;
+        }
+    }
+
+    return extracted;
 }
 
 // Open the output folder in the system file manager.
@@ -211,7 +470,7 @@ class ImportFlashVectorCommand final : public MenuItemHandler {
 public:
     ImportFlashVectorCommand() : MenuItemHandler(MI_ImportFlashVector) {}
     void execute() override;
-} ImportFlashVectorCommand;
+} g_importFlashVectorCommand;
 
 void ImportFlashVectorCommand::execute() {
     ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
@@ -219,11 +478,13 @@ void ImportFlashVectorCommand::execute() {
     static GenericLoadFilePopup *loadPopup = nullptr;
     if (!loadPopup) {
         loadPopup = new GenericLoadFilePopup(
-            QObject::tr("Import Flash File (FLA / XFL / SWF / SWC / AS)"));
+            QObject::tr("Import Flash File (FLA / XFL / SWF / SWC / FLV / F4V / AS)"));
         loadPopup->addFilterType("fla");
         loadPopup->addFilterType("swf");
         loadPopup->addFilterType("xfl");
         loadPopup->addFilterType("swc");
+        loadPopup->addFilterType("flv");
+        loadPopup->addFilterType("f4v");
         loadPopup->addFilterType("as");
     }
 
@@ -239,7 +500,7 @@ void ImportFlashVectorCommand::execute() {
     TFilePath outDir = makeTempImportDir("flare_flash_import_");
     QString   outPath = outDir.getQString();
     QString   srcPath = fp.getQString();
-    QString   ext     = fp.getType().toLower().c_str();
+    QString   ext     = QString::fromStdString(fp.getType()).toLower();
     QStringList exported;
     QString info;
 
@@ -251,13 +512,90 @@ void ImportFlashVectorCommand::execute() {
             return;
         }
 
-        // For XFL/FLA: parse the document structure and report
-        XFL::Reader reader(fp);
-        if (ext != "swc") {
-            // Re-point reader at extracted directory
+        if (ext == "swc") {
+            // SWC (Flex/Flash component library) format (Apache Flex SDK reference,
+            // Apache License 2.0): ZIP containing catalog.xml + library.swf.
+            //
+            // catalog.xml structure:
+            //   <swc xmlns="http://www.adobe.com/flash/swccatalog/9">
+            //     <components>
+            //       <component className="..." name="..." uri="..."/>
+            //     </components>
+            //   </swc>
+            QFile catFile(outPath + "/catalog.xml");
+            if (catFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
+                QString catXml = QString::fromUtf8(catFile.readAll());
+                catFile.close();
+                int compCount = 0;
+                QStringList compNames;
+                int searchPos = 0;
+                while (true) {
+                    int idx = catXml.indexOf("<component ", searchPos, Qt::CaseInsensitive);
+                    if (idx < 0) break;
+                    compCount++;
+                    int nameIdx = catXml.indexOf("name=\"", idx);
+                    if (nameIdx >= 0 && nameIdx < idx + 200) {
+                        int nameStart = nameIdx + 6;
+                        int nameEnd   = catXml.indexOf('"', nameStart);
+                        if (nameEnd > nameStart)
+                            compNames << catXml.mid(nameStart, nameEnd - nameStart);
+                    }
+                    searchPos = idx + 1;
+                }
+                info = QObject::tr("SWC: %1 component(s) exported").arg(compCount);
+                if (!compNames.isEmpty())
+                    info += "\n  " + compNames.join(", ");
+            }
+
+            // Extract bitmaps from the embedded library.swf
+            QFile libSwf(outPath + "/library.swf");
+            if (libSwf.open(QIODevice::ReadOnly)) {
+                QByteArray swfData = libSwf.readAll();
+                libSwf.close();
+                // Decompress zlib-compressed SWF (CWS) before bitmap extraction
+                QByteArray decompressed;
+                if (swfData.size() > 8 &&
+                    static_cast<unsigned char>(swfData[0]) == 'C' &&
+                    static_cast<unsigned char>(swfData[1]) == 'W' &&
+                    static_cast<unsigned char>(swfData[2]) == 'S') {
+                    QByteArray body = swfData.mid(8);
+                    quint32 uncompLen =
+                        (quint8)swfData[4] | ((quint8)swfData[5] << 8) |
+                        ((quint8)swfData[6] << 16) | ((quint8)swfData[7] << 24);
+                    QByteArray prefixed(4 + body.size(), 0);
+                    prefixed[0] = (uncompLen >> 24) & 0xFF; prefixed[1] = (uncompLen >> 16) & 0xFF;
+                    prefixed[2] = (uncompLen >> 8)  & 0xFF; prefixed[3] =  uncompLen        & 0xFF;
+                    memcpy(prefixed.data() + 4, body.constData(), body.size());
+                    QByteArray inflated = qUncompress(prefixed);
+                    if (!inflated.isEmpty()) {
+                        decompressed = swfData.left(8) + inflated;
+                        decompressed[0] = 'F';  // mark as uncompressed
+                    }
+                }
+                const QByteArray &src = decompressed.isEmpty() ? swfData : decompressed;
+                QStringList bitmaps = extractSwfBitmaps(src, outPath);
+                exported += bitmaps;
+                if (!bitmaps.isEmpty())
+                    info += QObject::tr("\n  %1 bitmap(s) extracted from library.swf")
+                            .arg(bitmaps.size());
+            }
+
+            // Also include any other extracted files (scripts, assets)
+            {
+                QDirIterator it(outPath, kAssetFilters,
+                                QDir::Files | QDir::NoDotAndDotDot,
+                                QDirIterator::Subdirectories);
+                QDir base(outPath);
+                while (it.hasNext()) {
+                    it.next();
+                    QString rel = base.relativeFilePath(it.filePath());
+                    if (!exported.contains(rel)) exported << rel;
+                }
+            }
+        } else {
+            // For XFL/FLA: parse document structure and report
             TFilePath extractedXfl = outDir;
             if (!XFL::isXFLDirectory(extractedXfl)) {
-                // Look one level deep
                 try {
                     TFilePathSet entries = TSystem::readDirectory(outDir, false, false, true);
                     for (const auto &e : entries)
@@ -275,15 +613,14 @@ void ImportFlashVectorCommand::execute() {
                         .arg(static_cast<int>(doc.symbols.size()));
                 }
             }
+            {
+                QDirIterator it(outPath, kAssetFilters,
+                                QDir::Files | QDir::NoDotAndDotDot,
+                                QDirIterator::Subdirectories);
+                QDir base(outPath);
+                while (it.hasNext()) { it.next(); exported << base.relativeFilePath(it.filePath()); }
+            }
         }
-
-        // Collect extracted files for auto-import
-        QDir qout(outPath);
-        QStringList filters = {"*.png","*.jpg","*.jpeg","*.svg","*.xml","*.as"};
-        QFileInfoList list = qout.entryInfoList(filters,
-                                QDir::Files | QDir::NoDotAndDotDot | QDir::Recursive);
-        for (const auto &fi : list)
-            exported << qout.relativeFilePath(fi.absoluteFilePath());
 
     // ---- XFL directory ----
     } else if (ext == "xfl" && QFileInfo(srcPath).isDir()) {
@@ -299,20 +636,23 @@ void ImportFlashVectorCommand::execute() {
             .arg(doc.frameRate, 0, 'f', 1)
             .arg(static_cast<int>(doc.symbols.size()));
 
-        // Copy assets to output dir
-        QDir src(srcPath);
-        QStringList filters = {"*.png","*.jpg","*.jpeg","*.svg","*.xml","*.as"};
-        QFileInfoList list = src.entryInfoList(filters,
-                                QDir::Files | QDir::NoDotAndDotDot | QDir::Recursive);
-        for (const auto &fi : list) {
-            QString rel = src.relativeFilePath(fi.absoluteFilePath());
-            QString dst = outPath + "/" + rel;
-            QDir().mkpath(QFileInfo(dst).absolutePath());
-            QFile::copy(fi.absoluteFilePath(), dst);
-            exported << rel;
+        // Copy assets to output dir using recursive iteration
+        {
+            QDirIterator it(srcPath, kAssetFilters,
+                            QDir::Files | QDir::NoDotAndDotDot,
+                            QDirIterator::Subdirectories);
+            QDir base(srcPath);
+            while (it.hasNext()) {
+                it.next();
+                QString rel = base.relativeFilePath(it.filePath());
+                QString dst = outPath + "/" + rel;
+                QDir().mkpath(QFileInfo(dst).absolutePath());
+                QFile::copy(it.filePath(), dst);
+                exported << rel;
+            }
         }
 
-    // ---- SWF binary ----
+    // ---- SWF binary: read header + extract embedded bitmaps ----
     } else if (ext == "swf") {
         SwfInfo swf = readSwfHeader(srcPath);
         if (!swf.valid) {
@@ -327,10 +667,41 @@ void ImportFlashVectorCommand::execute() {
             .arg(swf.frameCount)
             .arg(swf.compressed ? QObject::tr("  [compressed]") : QString());
 
-        // Copy the SWF itself to output
+        // Read entire SWF and extract embedded bitmaps via tag scan.
+        // For zlib-compressed SWF (CWS, version 6+), decompress body first.
+        QFile swfFile(srcPath);
+        if (swfFile.open(QIODevice::ReadOnly)) {
+            QByteArray swfData = swfFile.readAll();
+            swfFile.close();
+            QByteArray decompressed;
+            if (swf.compressed &&
+                static_cast<unsigned char>(swfData[0]) == 'C') {
+                QByteArray body = swfData.mid(8);
+                quint32 uncompLen =
+                    (quint8)swfData[4] | ((quint8)swfData[5] << 8) |
+                    ((quint8)swfData[6] << 16) | ((quint8)swfData[7] << 24);
+                QByteArray prefixed(4 + body.size(), 0);
+                prefixed[0] = (uncompLen >> 24) & 0xFF; prefixed[1] = (uncompLen >> 16) & 0xFF;
+                prefixed[2] = (uncompLen >> 8)  & 0xFF; prefixed[3] =  uncompLen        & 0xFF;
+                memcpy(prefixed.data() + 4, body.constData(), body.size());
+                QByteArray inflated = qUncompress(prefixed);
+                if (!inflated.isEmpty()) {
+                    decompressed = swfData.left(8) + inflated;
+                    decompressed[0] = 'F';
+                }
+            }
+            const QByteArray &src2 = decompressed.isEmpty() ? swfData : decompressed;
+            QStringList bitmaps = extractSwfBitmaps(src2, outPath);
+            exported += bitmaps;
+            if (!bitmaps.isEmpty())
+                info += QObject::tr("\n  %1 embedded bitmap(s) extracted").arg(bitmaps.size());
+        }
+
+        // Always copy the SWF itself to output for reference
         QString dstSwf = outPath + "/" + QFileInfo(srcPath).fileName();
         QFile::copy(srcPath, dstSwf);
-        exported << QFileInfo(srcPath).fileName();
+        if (!exported.contains(QFileInfo(srcPath).fileName()))
+            exported << QFileInfo(srcPath).fileName();
 
     // ---- ActionScript source ----
     } else if (ext == "as") {
@@ -339,6 +710,38 @@ void ImportFlashVectorCommand::execute() {
         exported << QFileInfo(srcPath).fileName();
         info = QObject::tr("ActionScript source copied for reference.");
 
+    // ---- FLV (Flash Video) ----
+    } else if (ext == "flv") {
+        FlvInfo flv = readFlvHeader(srcPath);
+        if (!flv.valid) {
+            DVGui::error(QObject::tr("Not a valid FLV file: %1").arg(srcPath));
+            return;
+        }
+        info = QObject::tr("FLV v%1  |  %2%3")
+            .arg(flv.version)
+            .arg(flv.hasVideo ? QObject::tr("video") : QString())
+            .arg(flv.hasAudio ? QObject::tr(flv.hasVideo ? " + audio" : "audio") : QString());
+
+        // Copy FLV and attempt to load as a scene level (via FFmpeg if available)
+        QString dstFlv = outPath + "/" + QFileInfo(srcPath).fileName();
+        QFile::copy(srcPath, dstFlv);
+        exported << QFileInfo(srcPath).fileName();
+
+    // ---- F4V (Flash H.264, ISO BMFF container) ----
+    } else if (ext == "f4v") {
+        F4vInfo f4v = readF4vHeader(srcPath);
+        if (!f4v.valid) {
+            DVGui::error(QObject::tr("Not a valid F4V/ISOBMFF file: %1").arg(srcPath));
+            return;
+        }
+        info = QObject::tr("F4V  |  brand: %1").arg(f4v.majorBrand);
+        if (!f4v.compatBrands.isEmpty())
+            info += QObject::tr("  |  compatible: %1").arg(f4v.compatBrands);
+
+        QString dstF4v = outPath + "/" + QFileInfo(srcPath).fileName();
+        QFile::copy(srcPath, dstF4v);
+        exported << QFileInfo(srcPath).fileName();
+
     } else {
         DVGui::warning(QObject::tr("Unsupported Flash format: .%1").arg(ext));
         return;
@@ -346,14 +749,22 @@ void ImportFlashVectorCommand::execute() {
 
     writeManifest(outPath, exported, srcPath);
 
-    // Auto-load importable asset types into the scene
+    // Auto-load importable asset types (images + video) into the scene
+    // using IoCmd::loadResources — the proper Flare command-layer API.
     int imported = 0;
-    for (const QString &rel : exported) {
-        QString full = outPath + "/" + rel;
-        QString e = QFileInfo(full).suffix().toLower();
-        if (e == "png" || e == "jpg" || e == "jpeg" || e == "svg") {
-            if (scene->loadLevel(TFilePath(full.toStdString())))
-                imported++;
+    {
+        LoadResourceArguments args;
+        for (const QString &rel : exported) {
+            QString full = outPath + "/" + rel;
+            QString e    = QFileInfo(full).suffix().toLower();
+            if (e == "png" || e == "jpg" || e == "jpeg" || e == "svg" ||
+                e == "flv" || e == "f4v" || e == "swf") {
+                args.resourceDatas.push_back(
+                    LoadResourceArguments::ResourceData(TFilePath(full.toStdWString())));
+            }
+        }
+        if (!args.resourceDatas.empty()) {
+            imported = IoCmd::loadResources(args);
         }
     }
 
@@ -376,11 +787,10 @@ class ImportFlashContainerCommand final : public MenuItemHandler {
 public:
     ImportFlashContainerCommand() : MenuItemHandler(MI_ImportFlashContainer) {}
     void execute() override;
-} ImportFlashContainerCommand;
+} g_importFlashContainerCommand;
 
 void ImportFlashContainerCommand::execute() {
     // Delegate to the unified import command
-    ImportFlashVectorCommand cmd;
-    cmd.execute();
+    g_importFlashVectorCommand.execute();
 }
 

@@ -28,7 +28,7 @@ static bool extractZipToDir(const std::string &zipPath, const std::string &outDi
         return false;
     }
 
-    char fileName[512];
+    char fileName[1024];  // larger buffer for deeply-nested paths
     char buf[8192];
 
     for (uLong i = 0; i < gi.number_entry; i++) {
@@ -36,15 +36,25 @@ static bool extractZipToDir(const std::string &zipPath, const std::string &outDi
         if (unzGetCurrentFileInfo(uf, &fi, fileName, sizeof(fileName), nullptr, 0, nullptr, 0) != UNZ_OK)
             break;
 
+        size_t nameLen = strlen(fileName);
+        if (nameLen == 0) {
+            // Skip empty entries
+            if (i + 1 < gi.number_entry) unzGoToNextFile(uf);
+            continue;
+        }
+
         std::string fullOut = outDir + "/" + fileName;
 
         // If it ends with '/', it's a directory entry
-        if (fileName[strlen(fileName) - 1] == '/') {
+        if (fileName[nameLen - 1] == '/') {
             TSystem::mkDir(TFilePath(fullOut));
         } else {
             // Ensure parent directory exists
-            std::string parent = fullOut.substr(0, fullOut.rfind('/'));
-            if (!parent.empty()) TSystem::mkDir(TFilePath(parent));
+            size_t slashPos = fullOut.rfind('/');
+            if (slashPos != std::string::npos) {
+                std::string parent = fullOut.substr(0, slashPos);
+                if (!parent.empty()) TSystem::mkDir(TFilePath(parent));
+            }
 
             if (unzOpenCurrentFile(uf) == UNZ_OK) {
                 FILE *fp = fopen(fullOut.c_str(), "wb");
@@ -171,15 +181,18 @@ bool Reader::parseDOMDocument(const std::string &xmlContent) {
     std::string value;
     
     if (parseXMLAttribute(xmlContent, "width", value)) {
-        try { m_document.width = std::stoi(value); } catch (...) {}
+        try { m_document.width = std::stoi(value); }
+        catch (...) { m_error += "Warning: could not parse 'width' attribute\n"; }
     }
     
     if (parseXMLAttribute(xmlContent, "height", value)) {
-        try { m_document.height = std::stoi(value); } catch (...) {}
+        try { m_document.height = std::stoi(value); }
+        catch (...) { m_error += "Warning: could not parse 'height' attribute\n"; }
     }
     
     if (parseXMLAttribute(xmlContent, "frameRate", value)) {
-        try { m_document.frameRate = std::stod(value); } catch (...) {}
+        try { m_document.frameRate = std::stod(value); }
+        catch (...) { m_error += "Warning: could not parse 'frameRate' attribute\n"; }
     }
     
     if (parseXMLAttribute(xmlContent, "backgroundColor", value)) {

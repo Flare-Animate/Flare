@@ -1823,7 +1823,7 @@ void MainWindow::defineActions() {
                        QT_TR_NOOP("&Import Flare Lip Sync File..."), "",
                        "dialogue_import");
   createMenuFileAction(MI_ImportFlashVector,
-                       QT_TR_NOOP("&Import Flash (FLA / XFL / SWF / SWC / AS)..."), "",
+                       QT_TR_NOOP("&Import Flash (FLA / XFL / SWF / SWC / FLV / F4V / AS)..."), "",
                        "import_flash");
   createMenuFileAction(MI_ImportFlashContainer,
                        QT_TR_NOOP("&Import Flash Container (FLA / SWC)..."), "",
