@@ -26,6 +26,7 @@
 
 #include "tsystem.h"
 #include "tfilepath.h"
+#include "tlevel_io.h"
 
 // Native flash infrastructure (include_directories contains ../common/flash)
 #include "XFLReader.h"
@@ -66,6 +67,12 @@ static TFilePath makeTempImportDir(const QString &prefix) {
 static const QStringList kAssetFilters = {
     "*.png", "*.jpg", "*.jpeg", "*.svg", "*.xml", "*.as"
 };
+
+static bool hasLevelReaderForExtension(const QString &extension) {
+    QStringList formats;
+    TLevelReader::getSupportedFormats(formats);
+    return formats.contains(extension, Qt::CaseInsensitive);
+}
 
 // Extract every entry of a ZIP archive to outDir using the bundled minizip.
 static bool extractZip(const QString &zipPath, const QString &outDir) {
@@ -781,7 +788,18 @@ void ImportFlashVectorCommand::execute() {
 
     writeManifest(outPath, exported, srcPath);
 
-    // Auto-load importable asset types (images + video) into the scene
+    const bool canAutoLoadSwf = hasLevelReaderForExtension("swf");
+    const bool canAutoLoadFlv = hasLevelReaderForExtension("flv");
+    const bool canAutoLoadF4v = hasLevelReaderForExtension("f4v");
+
+    if (ext == "swf" && !canAutoLoadSwf)
+        info += QObject::tr("\n  SWF file exported for reference; this build can still import any extracted embedded bitmaps.");
+    else if (ext == "flv" && !canAutoLoadFlv)
+        info += QObject::tr("\n  FLV file exported for reference; no native FLV reader is available in this build.");
+    else if (ext == "f4v" && !canAutoLoadF4v)
+        info += QObject::tr("\n  F4V file exported for reference; no native F4V reader is available in this build.");
+
+    // Auto-load importable asset types into the scene.
     // using IoCmd::loadResources — the proper Flare command-layer API.
     int imported = 0;
     {
@@ -790,7 +808,9 @@ void ImportFlashVectorCommand::execute() {
             QString full = outPath + "/" + rel;
             QString e    = QFileInfo(full).suffix().toLower();
             if (e == "png" || e == "jpg" || e == "jpeg" || e == "svg" ||
-                e == "flv" || e == "f4v" || e == "swf") {
+                (e == "swf" && canAutoLoadSwf) ||
+                (e == "flv" && canAutoLoadFlv) ||
+                (e == "f4v" && canAutoLoadF4v)) {
                 args.resourceDatas.push_back(
                     IoCmd::LoadResourceArguments::ResourceData(TFilePath(full.toStdWString())));
             }

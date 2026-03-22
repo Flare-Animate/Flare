@@ -1823,7 +1823,7 @@ void MainWindow::defineActions() {
                        QT_TR_NOOP("&Import Flare Lip Sync File..."), "",
                        "dialogue_import");
   createMenuFileAction(MI_ImportFlashVector,
-                       QT_TR_NOOP("&Import Flash (Vector via External Decompiler)..."), "",
+                       QT_TR_NOOP("&Import Flash (FLA / XFL / SWF / SWC / FLV / F4V / AS)..."), "",
                        "import_flash");
   createMenuFileAction(MI_NewProject, QT_TR_NOOP("&New Project..."), "",
                        "new_project");
@@ -3520,4 +3520,3 @@ void RecentFiles::refreshRecentFilesMenu(FileType fileType) {
     if (!menu->isEnabled()) menu->setEnabled(true);
   }
 }
-
