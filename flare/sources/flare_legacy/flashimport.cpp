@@ -184,14 +184,14 @@ void ImportFlashVectorCommand::execute() {
 
     int imported = 0;
     {
-        LoadResourceArguments args;
+        IoCmd::LoadResourceArguments args;
         for (const QString &rel : exported) {
             QString full = outPath + "/" + rel;
             QString e    = QFileInfo(full).suffix().toLower();
             if (e == "png" || e == "jpg" || e == "jpeg" || e == "svg" ||
                 e == "flv" || e == "f4v" || e == "swf")
                 args.resourceDatas.push_back(
-                    LoadResourceArguments::ResourceData(TFilePath(full.toStdWString())));
+                    IoCmd::LoadResourceArguments::ResourceData(TFilePath(full.toStdWString())));
         }
         if (!args.resourceDatas.empty())
             imported = IoCmd::loadResources(args);
