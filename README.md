@@ -18,7 +18,7 @@ inspired by Adobe Animate and adds built-in Flash ecosystem import support for
 FLA/XFL/SWC/SWF/FLV/F4V/AS workflows.
 
 For the original Flare project and its history, see the Flare website:
-https://flare-animate.github.io/e/
+https://flare-animate.github.io/
 
 ## Program Requirements
 

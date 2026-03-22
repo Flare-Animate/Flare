@@ -68,12 +68,6 @@ static const QStringList kAssetFilters = {
     "*.png", "*.jpg", "*.jpeg", "*.svg", "*.xml", "*.as"
 };
 
-static bool hasLevelReaderForExtension(const QString &extension) {
-    QStringList formats;
-    TLevelReader::getSupportedFormats(formats);
-    return formats.contains(extension, Qt::CaseInsensitive);
-}
-
 // Extract every entry of a ZIP archive to outDir using the bundled minizip.
 static bool extractZip(const QString &zipPath, const QString &outDir) {
     unzFile uf = unzOpen(zipPath.toUtf8().constData());
@@ -788,9 +782,11 @@ void ImportFlashVectorCommand::execute() {
 
     writeManifest(outPath, exported, srcPath);
 
-    const bool canAutoLoadSwf = hasLevelReaderForExtension("swf");
-    const bool canAutoLoadFlv = hasLevelReaderForExtension("flv");
-    const bool canAutoLoadF4v = hasLevelReaderForExtension("f4v");
+    QStringList supportedLevelFormats;
+    TLevelReader::getSupportedFormats(supportedLevelFormats);
+    const bool canAutoLoadSwf = supportedLevelFormats.contains("swf", Qt::CaseInsensitive);
+    const bool canAutoLoadFlv = supportedLevelFormats.contains("flv", Qt::CaseInsensitive);
+    const bool canAutoLoadF4v = supportedLevelFormats.contains("f4v", Qt::CaseInsensitive);
 
     if (ext == "swf" && !canAutoLoadSwf)
         info += QObject::tr("\n  SWF file exported for reference; this build can still import any extracted embedded bitmaps.");
