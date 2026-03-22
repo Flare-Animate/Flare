@@ -275,6 +275,37 @@ static F4vInfo readF4vHeader(const QString &path) {
     return info;
 }
 
+// Decompress a zlib-compressed SWF body (CWS signature).
+// Returns the decompressed full SWF (header patched to FWS), or empty on failure.
+static QByteArray decompressCwsSwf(const QByteArray &swfData) {
+    if (swfData.size() < 9 ||
+        static_cast<unsigned char>(swfData[0]) != 'C' ||
+        static_cast<unsigned char>(swfData[1]) != 'W' ||
+        static_cast<unsigned char>(swfData[2]) != 'S')
+        return {};
+
+    quint32 uncompLen =
+        (quint8)swfData[4]        | ((quint8)swfData[5] << 8) |
+        ((quint8)swfData[6] << 16)| ((quint8)swfData[7] << 24);
+
+    // Sanity-cap: reject malformed headers claiming > 100 MB uncompressed
+    static constexpr quint32 kMaxSwfUncompressed = 100 * 1024 * 1024u;
+    if (uncompLen > kMaxSwfUncompressed) return {};
+
+    QByteArray body = swfData.mid(8);
+    QByteArray prefixed(4 + body.size(), '\0');
+    prefixed[0] = (uncompLen >> 24) & 0xFF; prefixed[1] = (uncompLen >> 16) & 0xFF;
+    prefixed[2] = (uncompLen >> 8)  & 0xFF; prefixed[3] =  uncompLen        & 0xFF;
+    memcpy(prefixed.data() + 4, body.constData(), body.size());
+
+    QByteArray inflated = qUncompress(prefixed);
+    if (inflated.isEmpty()) return {};
+
+    QByteArray result = swfData.left(8) + inflated;
+    result[0] = 'F';  // mark as uncompressed
+    return result;
+}
+
 // Build a plain-text manifest listing imported files in outDir.
 static void writeManifest(const QString &outDir, const QStringList &files,
                           const QString &sourceFile) {
