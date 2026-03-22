@@ -1,70 +1,49 @@
-Flare SWF/FLA Import
+# Flare Flash Format Import (FLA / XFL / SWF / SWC / AS)
 
-Flare adds basic import support for SWF files by leveraging FFmpeg. This imports
-SWF animations as raster frames (PNG frames) so they can be used in a Flare
-scene.
+Flare includes **built-in, native** import support for all common Flash file
+formats. No external tools, decompilers, Python scripts, or third-party
+software are required — everything runs inside the application.
 
-Prerequisites:
-- FFmpeg installed and in PATH (or configured in Flare Preferences).
+## Supported formats
 
-How it works:
-- If FFmpeg supports reading the SWF format on your system, Flare will use
-  its FFmpeg-based readers to decode frames and import them as a raster level.
-- FLA is a proprietary authoring format; Flare will recognize `.fla` extensions
-  but extraction usually requires authoring tools or external conversion tools.
+| Extension | Description |
+|-----------|-------------|
+| `.fla`    | Flash/Animate project (ZIP-backed XFL archive) |
+| `.xfl`    | Uncompressed XFL project (directory or single-file ZIP) |
+| `.swf`    | Compiled SWF binary |
+| `.swc`    | SWF component library (ZIP archive) |
+| `.as`     | ActionScript source file |
 
-Notes:
-- Using JPEXS or other Flash decompilers may allow improved import of vector
-  assets. These tools are third-party and subject to their own licenses.
-- This import path is intentionally implemented to avoid including GPL-licensed
-  decompilers directly in the repository. Instead, users are encouraged to
-  install and configure compatible third-party tools and use them to export
-  material that Flare can consume.
+## How to import
 
-If you need more advanced Flash vector support (symbol extraction, ActionScript
-handling), consider using external decompilers to export SWF contents to SVG
-or image sequences and import those into Flare.
+**File → Import → Import Flash (FLA / XFL / SWF / SWC / AS)...**
 
-Vector import (recommended workflow)
+A standard file dialog opens; pick any supported file.  After import Flare:
 
-- Install a third-party Flash decompiler (we recommend JPEXS Free Flash
-  Decompiler: https://github.com/jindrapetrik/jpexs-decompiler).
-- From Flare: File → Import → Import Flash (Vector via External Decompiler)...
-  The action will attempt to run a small helper script included in the
-  repository (tools/flash/decompile_flash.py) which calls the external
-decompiler to export SVG or image sequences into a temporary folder.
-- After export completes, Flare opens the containing folder so you can import
-  the generated SVG/PNG files using File → Load Level or by dragging them into
-  the File Browser.
+1. Extracts ZIP archives (FLA, SWC) using the bundled minizip library.
+2. Parses `DOMDocument.xml` (FLA / XFL) and reports document properties.
+3. Auto-loads embedded bitmap assets (PNG / JPEG) into the current scene.
+4. Writes a `manifest.txt` next to the exported files.
+5. Offers to open the export folder.
 
-Notes:
-- We do not bundle any third-party decompilers with Flare; you must install
-  them separately. This avoids license conflicts and lets you pick a tool that
-  suits your needs.
-- The helper script attempts several invocation styles for JPEXS. If the
-  script can’t find a decompiler on your PATH, specify the decompiler path
-  manually (or run the decompiler yourself and import the exported files).
+The unified command is also accessible as
+**File → Import → Import Flash Container (FLA / SWC)...** for workflow
+compatibility.
 
-Native container import (FLA / XFL / SWC / AS)
+## How it works (technical)
 
-- Flare also provides a "File → Import → Import Flash/XFL/SWC (Native)..."
-  action which runs `tools/flash/import_container.py`. This helper attempts to
-  extract assets from container formats and will call the decompiler helper for
-  embedded SWF files when available.
-- Supported behaviors:
-  - `.swf`: decompiled using the external decompiler (same as vector import).
-  - `.swc`: ZIP archive; the script extracts scripts and assets and decompiles
-    any embedded SWF entries.
-  - `.fla`: the script tries to unzip the file (many modern FLA files are
-    zip-backed XFL archives). If unzipping fails it will attempt to run the
-    decompiler on the package; if that also fails you will be asked to export
-    XFL from Adobe Animate or use a third-party decompiler.
-  - `.xfl`: treated as a project folder or zipped XFL; asset files are copied
-    for manual import into Flare.
-  - `.as`: ActionScript source files are copied into the export folder and
-    recorded in the manifest.
+All processing is done in native C++, compiled directly into Flare:
 
-- The importer writes a `manifest.json` into the output folder describing the
-  exported files; use this to review and import files into Flare.
-- ActionScript files are included as source/metadata and are not executed by
-  Flare; consider them as reference code attached to layers or symbols for now.
+| Task | Component |
+|------|-----------|
+| ZIP extraction (FLA, SWC) | `unzip.c` / `ioapi.c` from `thirdparty/zlib-1.2.8/contrib/minizip` |
+| XFL XML parsing | `flare/sources/common/flash/XFLReader.cpp` |
+| SWF header decoding | Inline bit-stream reader in `flashimport.cpp` |
+| Flash data types | `FDT*.cpp`, `FCT.cpp`, `FSWFStream.cpp` in `flare/sources/common/flash/` |
+| SWF writing / rendering | `TFlash` class — `tflash.cpp` |
+
+## ActionScript
+
+ActionScript (`.as`) files are copied into the export folder for reference.
+Flare does not execute ActionScript; the files are included so animators can
+inspect original scripting logic and re-implement behaviour manually.

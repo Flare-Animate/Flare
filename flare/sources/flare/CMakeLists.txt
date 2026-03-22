@@ -2992,6 +2992,12 @@ set(SOURCES
     frameheadgadget.cpp
     filedata.cpp
     metnum.cpp
+    # Native built-in Flash format support (no external tools required)
+    flashimport.cpp
+    ../common/flash/XFLReader.cpp
+    # minizip for ZIP/FLA/SWC extraction (bundled with zlib thirdparty)
+    ${SDKROOT}/zlib-1.2.8/contrib/minizip/unzip.c
+    ${SDKROOT}/zlib-1.2.8/contrib/minizip/ioapi.c
 )# add stopmotion sources to SOURCES so Flare executable links correctly
 if(PLATFORM EQUAL 64)
     set(SOURCES
@@ -3056,6 +3062,9 @@ include_directories(
     ../stopmotion
     ../mousedragfilter
     ..  # include source root so headers prefixed with "flare/" resolve
+    ../common/flash
+    ${SDKROOT}/zlib-1.2.8
+    ${SDKROOT}/zlib-1.2.8/contrib/minizip
 )
 
 if (WITH_CANON)
