@@ -2,22 +2,22 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="610" height="344" viewBox="0 0 610 344">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#10231A"/>
-      <stop offset="55%" stop-color="#163428"/>
-      <stop offset="100%" stop-color="#1F4A37"/>
+      <stop offset="0%" stop-color="#4A1A00"/>
+      <stop offset="50%" stop-color="#CC5500"/>
+      <stop offset="100%" stop-color="#FF8C00"/>
     </linearGradient>
     <linearGradient id="flareAccent" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#FFB347"/>
+      <stop offset="0%" stop-color="#FFD700"/>
       <stop offset="100%" stop-color="#FF6B2D"/>
     </linearGradient>
   </defs>
   <rect width="610" height="344" fill="url(#bg)"/>
-  <circle cx="108" cy="112" r="62" fill="#214B39" opacity="0.65"/>
+  <circle cx="108" cy="112" r="62" fill="#8B4513" opacity="0.45"/>
   <path d="M96 61 C122 79 135 103 135 123 C135 152 114 175 86 175 C64 175 46 160 46 138 C46 116 58 98 77 84 C77 103 87 116 103 123 C95 109 92 97 96 61 Z" fill="url(#flareAccent)"/>
   <path d="M102 88 C116 99 123 113 123 126 C123 145 109 159 92 159 C78 159 66 148 66 133 C66 118 74 106 86 97 C86 110 93 119 104 124 C99 114 97 105 102 88 Z" fill="#FFF3DE" opacity="0.95"/>
-  <text x="170" y="132" fill="#FFFFFF" font-family="Arial, Helvetica, sans-serif" font-size="72" font-weight="700" letter-spacing="1.5">Flare</text>
-  <text x="173" y="170" fill="#FFBE6B" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="600">Native Flash import. No external tools.</text>
-  <rect x="0" y="314" width="610" height="30" fill="#0C1712"/>
-  <text x="26" y="334" fill="#8ED0A8" font-family="Arial, Helvetica, sans-serif" font-size="14">Flare Animation Studio</text>
-  <text x="584" y="334" text-anchor="end" fill="#D6EADB" font-family="Arial, Helvetica, sans-serif" font-size="13">flare-animate.github.io</text>
+  <text x="170" y="132" fill="#FFFFFF" font-family="'Faktum Wide Light', 'Faktum Wide', Arial, Helvetica, sans-serif" font-size="72" font-weight="300" letter-spacing="1.5">Flare</text>
+  <text x="173" y="170" fill="#FFF5E0" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="600">A familiar animation suite</text>
+  <rect x="0" y="314" width="610" height="30" fill="#3A1500"/>
+  <text x="26" y="334" fill="#FFD0A0" font-family="Arial, Helvetica, sans-serif" font-size="14">Flare Animation Studio</text>
+  <text x="584" y="334" text-anchor="end" fill="#FFE8CC" font-family="Arial, Helvetica, sans-serif" font-size="13">flare-animate.github.io/website</text>
 </svg>

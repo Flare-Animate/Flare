@@ -826,18 +826,3 @@ void ImportFlashVectorCommand::execute() {
     int ret = DVGui::MsgBox(DVGui::INFORMATION, msg, btns);
     if (ret == 1) openFolder(outPath);
 }
-
-// ---------------------------------------------------------------------------
-// Command: Import Flash Container (same handler, kept for menu compatibility)
-// ---------------------------------------------------------------------------
-
-class ImportFlashContainerCommand final : public MenuItemHandler {
-public:
-    ImportFlashContainerCommand() : MenuItemHandler(MI_ImportFlashContainer) {}
-    void execute() override;
-} g_importFlashContainerCommand;
-
-void ImportFlashContainerCommand::execute() {
-    // Delegate to the unified import command
-    g_importFlashVectorCommand.execute();
-}

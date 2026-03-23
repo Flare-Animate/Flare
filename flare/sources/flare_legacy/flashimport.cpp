@@ -223,13 +223,3 @@ void ImportFlashVectorCommand::execute() {
     int ret = DVGui::MsgBox(DVGui::INFORMATION, msg, btns);
     if (ret == 1) openFolder(outPath);
 }
-
-class ImportFlashContainerCommand final : public MenuItemHandler {
-public:
-    ImportFlashContainerCommand() : MenuItemHandler(MI_ImportFlashContainer) {}
-    void execute() override;
-} g_importFlashContainerLegacy;
-
-void ImportFlashContainerCommand::execute() {
-    g_importFlashVectorLegacy.execute();
-}
