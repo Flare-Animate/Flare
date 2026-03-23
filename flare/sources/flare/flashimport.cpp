@@ -70,10 +70,13 @@ static const QStringList kAssetFilters = {
 // Validate that a resolved path stays under the intended directory (Zip Slip guard).
 static bool isPathUnderDir(const QString &dir, const QString &candidate) {
     QDir base(dir);
-    QString canonical = QFileInfo(candidate).absoluteFilePath();
+    QString canonical = QFileInfo(candidate).canonicalFilePath();
+    // If the file doesn't exist yet, canonicalFilePath returns empty; fall back
+    if (canonical.isEmpty())
+        canonical = QFileInfo(candidate).absoluteFilePath();
     QString baseCanonical = base.absolutePath();
     if (!baseCanonical.endsWith('/')) baseCanonical += '/';
-    return canonical.startsWith(baseCanonical) || canonical == base.absolutePath();
+    return canonical.startsWith(baseCanonical);
 }
 
 // Extract every entry of a ZIP archive to outDir using the bundled minizip.
@@ -103,7 +106,8 @@ static bool extractZip(const QString &zipPath, const QString &outDir) {
 
         // Zip Slip protection: reject absolute paths and path traversal
         if (entryStr.startsWith('/') || entryStr.startsWith('\\') ||
-            entryStr.contains("..") ||
+            entryStr.contains("../") || entryStr.contains("..\\") ||
+            entryStr.endsWith("..") ||
             (entryStr.length() >= 2 && entryStr[1] == ':')) {
             if (i + 1 < gi.number_entry) unzGoToNextFile(uf);
             continue;
@@ -441,8 +445,9 @@ static QStringList extractSwfBitmaps(const QByteArray &swfData, const QString &o
                    | (static_cast<quint32>(d[pos+3]) << 24);
             pos += 4;
             // Validate: reject absurd lengths that would exceed remaining data
-            if (longLen > static_cast<quint32>(size - pos)) {
-                tagLen = size - pos;  // clamp to remaining
+            int remaining = (pos < size) ? (size - pos) : 0;
+            if (longLen > static_cast<quint32>(remaining)) {
+                tagLen = remaining;  // clamp to remaining
             } else {
                 tagLen = static_cast<int>(longLen);
             }

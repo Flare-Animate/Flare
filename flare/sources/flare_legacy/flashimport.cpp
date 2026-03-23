@@ -56,10 +56,12 @@ static const QStringList kAssetFilters = {
 // Zip Slip guard: validate resolved path stays under intended directory.
 static bool isPathUnderDir(const QString &dir, const QString &candidate) {
     QDir base(dir);
-    QString canonical = QFileInfo(candidate).absoluteFilePath();
+    QString canonical = QFileInfo(candidate).canonicalFilePath();
+    if (canonical.isEmpty())
+        canonical = QFileInfo(candidate).absoluteFilePath();
     QString baseCanonical = base.absolutePath();
     if (!baseCanonical.endsWith('/')) baseCanonical += '/';
-    return canonical.startsWith(baseCanonical) || canonical == base.absolutePath();
+    return canonical.startsWith(baseCanonical);
 }
 
 static bool extractZip(const QString &zipPath, const QString &outDir) {
@@ -78,7 +80,8 @@ static bool extractZip(const QString &zipPath, const QString &outDir) {
         QString entryStr = QString::fromUtf8(entryName);
         // Zip Slip protection
         if (entryStr.startsWith('/') || entryStr.startsWith('\\') ||
-            entryStr.contains("..") ||
+            entryStr.contains("../") || entryStr.contains("..\\") ||
+            entryStr.endsWith("..") ||
             (entryStr.length() >= 2 && entryStr[1] == ':')) {
             if (i+1 < gi.number_entry) unzGoToNextFile(uf);
             continue;

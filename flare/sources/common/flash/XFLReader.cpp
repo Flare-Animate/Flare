@@ -47,7 +47,9 @@ static bool extractZipToDir(const std::string &zipPath, const std::string &outDi
 
         // Zip Slip protection: reject path traversal and absolute paths
         std::string entryStr(fileName, nameLen);
-        if (entryStr.find("..") != std::string::npos ||
+        if (entryStr.empty() ||
+            entryStr.find("../") != std::string::npos ||
+            entryStr.find("..\\") != std::string::npos ||
             entryStr[0] == '/' || entryStr[0] == '\\' ||
             (entryStr.size() >= 2 && entryStr[1] == ':')) {
             if (i + 1 < gi.number_entry) unzGoToNextFile(uf);
