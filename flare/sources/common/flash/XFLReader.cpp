@@ -35,6 +35,7 @@ static bool extractZipToDir(const std::string &zipPath, const std::string &outDi
 
     for (uLong i = 0; i < gi.number_entry; i++) {
         unz_file_info fi;
+        fileName[0] = '\0';  // Initialize buffer
         if (unzGetCurrentFileInfo(uf, &fi, fileName, sizeof(fileName), nullptr, 0, nullptr, 0) != UNZ_OK)
             break;
 
@@ -73,9 +74,20 @@ static bool extractZipToDir(const std::string &zipPath, const std::string &outDi
                 FILE *fp = fopen(fullOut.c_str(), "wb");
                 if (fp) {
                     int nbytes;
-                    while ((nbytes = unzReadCurrentFile(uf, buf, sizeof(buf))) > 0)
-                        fwrite(buf, 1, nbytes, fp);
+                    bool writeSuccess = true;
+                    while ((nbytes = unzReadCurrentFile(uf, buf, sizeof(buf))) > 0) {
+                        if (fwrite(buf, 1, nbytes, fp) != static_cast<size_t>(nbytes)) {
+                            writeSuccess = false;
+                            break;
+                        }
+                    }
                     fclose(fp);
+                    if (!writeSuccess) {
+                        unzCloseCurrentFile(uf);
+                        unzClose(uf);
+                        return false;
+                    }
+                }
                 }
                 unzCloseCurrentFile(uf);
             }

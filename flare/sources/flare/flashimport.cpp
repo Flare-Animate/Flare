@@ -383,7 +383,7 @@ static QStringList extractFLABinaryMedia(const QString &outDir) {
 
         QString fname = QString("media_%1.%2").arg(idx++, 4, 10, QChar('0')).arg(ext);
         QString dst = outDir + "/" + fname;
-        QFile::copy(it.filePath(), dst);
+        if (!QFile::copy(it.filePath(), dst)) continue;
         extracted << fname;
     }
     return extracted;
@@ -774,7 +774,7 @@ void ImportFlashVectorCommand::execute() {
                 QString rel = base.relativeFilePath(it.filePath());
                 QString dst = outPath + "/" + rel;
                 QDir().mkpath(QFileInfo(dst).absolutePath());
-                QFile::copy(it.filePath(), dst);
+                if (!QFile::copy(it.filePath(), dst)) continue;
                 exported << rel;
             }
         }
@@ -812,9 +812,10 @@ void ImportFlashVectorCommand::execute() {
 
         // Always copy the SWF itself to output for reference
         QString dstSwf = outPath + "/" + QFileInfo(srcPath).fileName();
-        QFile::copy(srcPath, dstSwf);
-        if (!exported.contains(QFileInfo(srcPath).fileName()))
-            exported << QFileInfo(srcPath).fileName();
+        if (QFile::copy(srcPath, dstSwf)) {
+            if (!exported.contains(QFileInfo(srcPath).fileName()))
+                exported << QFileInfo(srcPath).fileName();
+        }
 
     // ---- ActionScript source ----
     } else if (ext == "as") {
