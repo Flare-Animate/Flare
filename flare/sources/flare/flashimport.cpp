@@ -865,15 +865,22 @@ void ImportFlashVectorCommand::execute() {
     // SWF/FLV/F4V are never directly loadable as Flare levels — Flare has no
     // native level reader for these binary Flash formats.  Only the extracted
     // image assets (PNG, JPG, SVG) can be auto-loaded into the scene.
-    // This is consistent with how lightspark and open-flash/swf-bitmap handle
-    // SWF content: they extract/render bitmaps rather than treating the SWF
-    // container as an importable animation level.
+    // Future support roadmap:
+    //  - SWF vector DefineShape rendering
+    //  - timeline/tween reconstruction from FLA/XFL
+    //  - ActionScript execution (insecure sandboxed runtime)
+    //  - SWF sprite/movieclip playback timeline
+    //  - sound extraction from SWF/SWC
     if (ext == "swf")
         info += QObject::tr("\n  Embedded bitmaps extracted from SWF for import.");
     else if (ext == "flv")
         info += QObject::tr("\n  FLV copied for reference (no native FLV level reader).");
     else if (ext == "f4v")
         info += QObject::tr("\n  F4V copied for reference (no native F4V level reader).");
+
+    if (ext == "fla" || ext == "xfl") {
+      info += QObject::tr("\n  Note: FLA/XFL import currently extracts bitmap media; advanced timeline/vector/actionscript support is experimental.");
+    }
 
     // Auto-load only image assets that Flare can natively handle as levels.
     int imported = 0;

@@ -181,8 +181,7 @@ void makePrivate(Room *room) {
   std::string mbDstFileName = roomPath.getName() + "_menubar.xml";
   TFilePath myMBPath        = layoutDir + mbDstFileName;
   if (!TFileStatus(myMBPath).isReadable()) {
-    TFilePath templateRoomMBPath =
-        FlareFolder::getTemplateRoomsDir() + mbSrcFileName;
+    TFilePath templateRoomMBPath = FlareFolder::getTemplateRoomsDir() + mbSrcFileName;
     if (TFileStatus(templateRoomMBPath).doesExist())
       TSystem::copyFile(myMBPath, templateRoomMBPath);
     else {
@@ -190,10 +189,13 @@ void makePrivate(Room *room) {
           FlareFolder::getTemplateRoomsDir() + "menubar_template.xml";
       if (TFileStatus(templateFullMBPath).doesExist())
         TSystem::copyFile(myMBPath, templateFullMBPath);
-      else
+      else {
         DVGui::warning(
-            QObject::tr("Cannot open menubar settings template file. "
-                        "Re-installing Flare will solve this problem."));
+            QObject::tr("Cannot open menubar settings template file (%1). "
+                        "Please reinstall Flare, or create a new room from "
+                        "File > Rooms > New Room.")
+                .arg(FlareFolder::getTemplateRoomsDir().getQString()));
+      }
     }
   }
 }

@@ -171,10 +171,16 @@ TFilePath FlareFolder::getRoomsDir() {
 }
 
 TFilePath FlareFolder::getTemplateRoomsDir() {
-  return getRoomsDir() +
-         Preferences::instance()->getCurrentRoomChoice().toStdWString();
-  // TFilePath fp(getMyModuleDir() + TFilePath(mySettingsFileName));
-  // return getRoomsDir() + getModuleName();
+  TFilePath candidate = getRoomsDir() +
+      Preferences::instance()->getCurrentRoomChoice().toStdWString();
+  if (TFileStatus(candidate).doesExist()) return candidate;
+
+  // fall back to default room template if customized room path is missing
+  TFilePath fallback = getRoomsDir() + "Default";
+  if (TFileStatus(fallback).doesExist()) return fallback;
+
+  // last resort, use the rooms directory itself
+  return getRoomsDir();
 }
 
 TFilePath FlareFolder::getMyRoomsDir() {
