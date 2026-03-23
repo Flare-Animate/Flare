@@ -1,6 +1,11 @@
 // flashimport.cpp (flare_legacy) — Native Flash format import.
-// Delegates entirely to the unified command in flare/flashimport.cpp
-// via the MenuItemHandler command registry. No external tools required.
+// Mirrors the unified command in flare/flashimport.cpp.
+// No external tools required.
+//
+// SWF tag parsing follows the approach from:
+//   - lightspark (LGPL-3.0, github.com/lightspark/lightspark)
+//   - open-flash/swf-bitmap (AGPL-3.0, github.com/open-flash/swf-bitmap)
+// FLA binary media detection uses magic-byte sniffing per Adobe XFL spec.
 
 #include "flare/menubarcommandids.h"
 #include "flare/menubar.h"
@@ -17,7 +22,6 @@
 #include "iocommand.h"
 #include "tsystem.h"
 #include "tfilepath.h"
-#include "tlevel_io.h"
 
 // XFL / ZIP / SWF native infrastructure
 #include "XFLReader.h"
@@ -36,13 +40,6 @@
 
 using namespace DVGui;
 
-// ---------------------------------------------------------------------------
-// flare_legacy builds share the same native import logic.
-// The implementation lives in flare/sources/flare/flashimport.cpp;
-// this file simply re-registers the same commands so flare_legacy also
-// gets native Flash support without any external dependencies.
-// ---------------------------------------------------------------------------
-
 namespace {
 
 static TFilePath makeTempImportDir(const QString &prefix) {
@@ -56,6 +53,15 @@ static const QStringList kAssetFilters = {
     "*.png", "*.jpg", "*.jpeg", "*.svg", "*.xml", "*.as"
 };
 
+// Zip Slip guard: validate resolved path stays under intended directory.
+static bool isPathUnderDir(const QString &dir, const QString &candidate) {
+    QDir base(dir);
+    QString canonical = QFileInfo(candidate).absoluteFilePath();
+    QString baseCanonical = base.absolutePath();
+    if (!baseCanonical.endsWith('/')) baseCanonical += '/';
+    return canonical.startsWith(baseCanonical) || canonical == base.absolutePath();
+}
+
 static bool extractZip(const QString &zipPath, const QString &outDir) {
     unzFile uf = unzOpen(zipPath.toUtf8().constData());
     if (!uf) return false;
@@ -68,7 +74,21 @@ static bool extractZip(const QString &zipPath, const QString &outDir) {
                                   nullptr, 0, nullptr, 0) != UNZ_OK) break;
         size_t nameLen = strlen(entryName);
         if (nameLen == 0) { if (i+1 < gi.number_entry) unzGoToNextFile(uf); continue; }
-        QString fullOut = outDir + "/" + QString::fromUtf8(entryName);
+
+        QString entryStr = QString::fromUtf8(entryName);
+        // Zip Slip protection
+        if (entryStr.startsWith('/') || entryStr.startsWith('\\') ||
+            entryStr.contains("..") ||
+            (entryStr.length() >= 2 && entryStr[1] == ':')) {
+            if (i+1 < gi.number_entry) unzGoToNextFile(uf);
+            continue;
+        }
+        QString fullOut = outDir + "/" + entryStr;
+        if (!isPathUnderDir(outDir, fullOut)) {
+            if (i+1 < gi.number_entry) unzGoToNextFile(uf);
+            continue;
+        }
+
         if (entryName[nameLen-1] == '/') {
             QDir().mkpath(fullOut);
         } else {
@@ -87,6 +107,34 @@ static bool extractZip(const QString &zipPath, const QString &outDir) {
         if (i+1 < gi.number_entry && unzGoToNextFile(uf) != UNZ_OK) break;
     }
     unzClose(uf); return true;
+}
+
+// FLA binary media: .dat files in bin/ are raw JPEG/PNG/GIF data.
+static QStringList extractFLABinaryMedia(const QString &outDir) {
+    QStringList extracted;
+    QString binDir = outDir + "/bin";
+    QDir bin(binDir);
+    if (!bin.exists()) return extracted;
+    int idx = 0;
+    QDirIterator it(binDir, {"*.dat"}, QDir::Files);
+    while (it.hasNext()) {
+        it.next();
+        QFile f(it.filePath());
+        if (!f.open(QIODevice::ReadOnly)) continue;
+        QByteArray header = f.read(8);
+        f.close();
+        if (header.size() < 4) continue;
+        const unsigned char *h = reinterpret_cast<const unsigned char *>(header.constData());
+        QString ext;
+        if (h[0] == 0xFF && h[1] == 0xD8 && h[2] == 0xFF) ext = "jpg";
+        else if (h[0] == 0x89 && h[1] == 0x50 && h[2] == 0x4E && h[3] == 0x47) ext = "png";
+        else if (h[0] == 0x47 && h[1] == 0x49 && h[2] == 0x46 && h[3] == 0x38) ext = "gif";
+        else continue;
+        QString fname = QString("media_%1.%2").arg(idx++, 4, 10, QChar('0')).arg(ext);
+        QFile::copy(it.filePath(), outDir + "/" + fname);
+        extracted << fname;
+    }
+    return extracted;
 }
 
 static void writeManifest(const QString &outDir, const QStringList &files,
@@ -116,13 +164,10 @@ void ImportFlashVectorCommand::execute() {
     static GenericLoadFilePopup *loadPopup = nullptr;
     if (!loadPopup) {
         loadPopup = new GenericLoadFilePopup(
-            QObject::tr("Import Flash (FLA / XFL / SWF / SWC / FLV / F4V / AS)"));
+            QObject::tr("Import Flash (FLA / XFL / SWC / AS)"));
         loadPopup->addFilterType("fla");
-        loadPopup->addFilterType("swf");
         loadPopup->addFilterType("xfl");
         loadPopup->addFilterType("swc");
-        loadPopup->addFilterType("flv");
-        loadPopup->addFilterType("f4v");
         loadPopup->addFilterType("as");
     }
     if (!scene->isUntitled())
@@ -165,6 +210,12 @@ void ImportFlashVectorCommand::execute() {
                         .arg((int)doc.symbols.size());
                 }
             }
+            // Extract binary media from FLA's bin/ directory
+            QStringList binMedia = extractFLABinaryMedia(outPath);
+            exported += binMedia;
+            if (!binMedia.isEmpty())
+                info += QObject::tr("\n  %1 bitmap(s) extracted from FLA binary media")
+                        .arg(binMedia.size());
         }
         QDirIterator it(outPath, kAssetFilters,
                         QDir::Files | QDir::NoDotAndDotDot,
@@ -183,29 +234,14 @@ void ImportFlashVectorCommand::execute() {
 
     writeManifest(outPath, exported, srcPath);
 
-    QStringList supportedLevelFormats;
-    TLevelReader::getSupportedFormats(supportedLevelFormats);
-    const bool canAutoLoadSwf = supportedLevelFormats.contains("swf", Qt::CaseInsensitive);
-    const bool canAutoLoadFlv = supportedLevelFormats.contains("flv", Qt::CaseInsensitive);
-    const bool canAutoLoadF4v = supportedLevelFormats.contains("f4v", Qt::CaseInsensitive);
-
-    if (ext == "swf" && !canAutoLoadSwf)
-        info += QObject::tr("\n  SWF file exported for reference; this build can still import any extracted embedded bitmaps.");
-    else if (ext == "flv" && !canAutoLoadFlv)
-        info += QObject::tr("\n  FLV file exported for reference; no native FLV reader is available in this build.");
-    else if (ext == "f4v" && !canAutoLoadF4v)
-        info += QObject::tr("\n  F4V file exported for reference; no native F4V reader is available in this build.");
-
+    // Only auto-load image formats that Flare can natively handle as levels.
     int imported = 0;
     {
         IoCmd::LoadResourceArguments args;
         for (const QString &rel : exported) {
             QString full = outPath + "/" + rel;
             QString e    = QFileInfo(full).suffix().toLower();
-            if (e == "png" || e == "jpg" || e == "jpeg" || e == "svg" ||
-                (e == "swf" && canAutoLoadSwf) ||
-                (e == "flv" && canAutoLoadFlv) ||
-                (e == "f4v" && canAutoLoadF4v))
+            if (e == "png" || e == "jpg" || e == "jpeg" || e == "svg")
                 args.resourceDatas.push_back(
                     IoCmd::LoadResourceArguments::ResourceData(TFilePath(full.toStdWString())));
         }

@@ -8,6 +8,8 @@
 #include <sstream>
 #include <cstring>
 #include <vector>
+#include <QString>
+#include <QDateTime>
 
 // Minizip for ZIP/FLA extraction (from thirdparty/zlib-1.2.8/contrib/minizip)
 #include "unzip.h"
@@ -43,7 +45,16 @@ static bool extractZipToDir(const std::string &zipPath, const std::string &outDi
             continue;
         }
 
-        std::string fullOut = outDir + "/" + fileName;
+        // Zip Slip protection: reject path traversal and absolute paths
+        std::string entryStr(fileName, nameLen);
+        if (entryStr.find("..") != std::string::npos ||
+            entryStr[0] == '/' || entryStr[0] == '\\' ||
+            (entryStr.size() >= 2 && entryStr[1] == ':')) {
+            if (i + 1 < gi.number_entry) unzGoToNextFile(uf);
+            continue;
+        }
+
+        std::string fullOut = outDir + "/" + entryStr;
 
         // If it ends with '/', it's a directory entry
         if (fileName[nameLen - 1] == '/') {
@@ -108,8 +119,10 @@ bool Reader::read() {
 }
 
 bool Reader::readFromZip() {
-    // Extract ZIP to a temp directory, then read as directory
-    TFilePath tmpDir = TSystem::getTempDir() + TFilePath("xfl_import_tmp");
+    // Extract ZIP to a unique temp directory per import to avoid collisions
+    QString uniqueName = "xfl_import_" + QString::number(
+        QDateTime::currentMSecsSinceEpoch());
+    TFilePath tmpDir = TSystem::getTempDir() + TFilePath(uniqueName.toStdString());
     TSystem::mkDir(tmpDir);
 
     TFilePath extracted = extractZip(tmpDir);
