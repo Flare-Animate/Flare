@@ -236,6 +236,22 @@ void initImageIo(bool lightVersion) {
     } else {
       TFileType::declare("fla", TFileType::RASTER_LEVEL);
     }
+
+    // FLV (Flash Video) — standard container for streamed Flash content
+    if (Ffmpeg::checkFormat("flv")) {
+      TLevelWriter::define("flv", TLevelWriterMp4::create, true);
+      TLevelReader::define("flv", TLevelReaderFFmpeg::create);
+      Tiio::defineWriterProperties("flv", new Tiio::Mp4WriterProperties());
+    }
+    TFileType::declare("flv", TFileType::RASTER_LEVEL);
+
+    // F4V (Flash H.264 video, ISO BMFF / MPEG-4 Part 12 container)
+    if (Ffmpeg::checkFormat("f4v") || Ffmpeg::checkFormat("mp4")) {
+      TLevelWriter::define("f4v", TLevelWriterMp4::create, true);
+      TLevelReader::define("f4v", TLevelReaderFFmpeg::create);
+      Tiio::defineWriterProperties("f4v", new Tiio::Mp4WriterProperties());
+    }
+    TFileType::declare("f4v", TFileType::RASTER_LEVEL);
   }
 #endif
   // end ffmpeg

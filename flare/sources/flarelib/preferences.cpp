@@ -411,7 +411,7 @@ void Preferences::definePreferenceItems() {
   define(oldCameraUnits, "oldCameraUnits", QMetaType::QString, "inch");
   define(linearUnits, "linearUnits", QMetaType::QString, "mm");
   define(cameraUnits, "cameraUnits", QMetaType::QString, "inch");
-  define(CurrentRoomChoice, "CurrentRoomChoice", QMetaType::QString, "Default");
+  define(CurrentRoomChoice, "CurrentRoomChoice", QMetaType::QString, "AdobeAnimate");
   define(functionEditorToggle, "functionEditorToggle", QMetaType::Int,
          static_cast<int>(ShowGraphEditorInPopup));
   define(moveCurrentFrameByClickCellArea, "moveCurrentFrameByClickCellArea",

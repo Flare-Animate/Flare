@@ -1823,7 +1823,7 @@ void MainWindow::defineActions() {
                        QT_TR_NOOP("&Import Flare Lip Sync File..."), "",
                        "dialogue_import");
   createMenuFileAction(MI_ImportFlashVector,
-                       QT_TR_NOOP("&Import Flash (Vector via External Decompiler)..."), "",
+                       QT_TR_NOOP("&Import Flash (FLA / XFL / SWF / SWC / FLV / F4V / AS)..."), "",
                        "import_flash");
   createMenuFileAction(MI_NewProject, QT_TR_NOOP("&New Project..."), "",
                        "new_project");
@@ -2361,6 +2361,8 @@ void MainWindow::defineActions() {
                           QT_TR_NOOP("Toggle Main Window's See Through Mode"),
                           "Alt+`", "toggle_seethroughwin_on");
   createMenuHelpAction(MI_About, QT_TR_NOOP("&About Flare..."), "", "info");
+  createMenuHelpAction(MI_FlashGuide, QT_TR_NOOP("&Flash Format Guide..."), "",
+                       "flash_guide");
   createMenuWindowsAction(MI_StartupPopup, QT_TR_NOOP("&Startup Popup..."),
                           "Alt+S", "flare");
   createMenuWindowsAction(MI_OpenGuidedDrawingControls,

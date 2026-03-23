@@ -33,7 +33,6 @@ jobs:
       CCACHE_DIR: ${{ github.workspace }}\.ccache
       GIT_LFS_SKIP_SMUDGE: '1'
       THIRDPARTY_DIR: ${{ github.workspace }}\thirdparty
-      QT_PATH: ${{ github.workspace }}\thirdparty\qt\Qt5.15.2_wintab\5.15.2_wintab\msvc2019_64
       VCPKG_ROOT: ${{ github.workspace }}\vcpkg
 
     steps:
@@ -69,16 +68,55 @@ jobs:
         shell: cmd
 
       - name: Install custom Qt 5.15.2
+        shell: pwsh
         run: |
-          @echo on
-          if not exist "%QT_PATH%\bin\qmake.exe" (
-            curl -fsSL -o qt.zip https://github.com/andeon/opentoonz-thirdparty-libs/releases/download/prebuilt-libs-v1/Qt5.15.2_wintab.zip
-            7z x -y qt.zip -o"%THIRDPARTY_DIR%\qt"
-            del /Q qt.zip
-          ) else (
-            echo Qt already present
-          )
-        shell: cmd
+          # Download Qt5.15.2 with wintab support
+          New-Item -ItemType Directory -Force -Path "thirdparty\qt" | Out-Null
+          $maxRetry = 3
+          for ($i = 1; $i -le $maxRetry; $i++) {
+            try {
+              Invoke-WebRequest -Uri "https://github.com/shun-iwasawa/qt5/releases/download/v5.15.2_wintab/Qt5.15.2_wintab.zip" `
+                -OutFile "Qt5.15.2_wintab.zip" -ErrorAction Stop
+              break
+            } catch {
+              if ($i -eq $maxRetry) { Write-Error "Qt download failed after $maxRetry attempts: $_"; exit 1 }
+              Write-Host "Download attempt $i failed, retrying..."
+              Start-Sleep -Seconds 5
+            }
+          }
+
+          # Verify zip was downloaded
+          if (-not (Test-Path "Qt5.15.2_wintab.zip") -or (Get-Item "Qt5.15.2_wintab.zip").Length -lt 1MB) {
+            Write-Error "Qt zip file missing or too small"
+            exit 1
+          }
+
+          # Extract
+          & 7z x -y Qt5.15.2_wintab.zip "-othirdparty\qt"
+          if ($LASTEXITCODE -ne 0) { Write-Error "Qt extraction failed"; exit 1 }
+          Remove-Item "Qt5.15.2_wintab.zip" -Force -ErrorAction SilentlyContinue
+
+          # Find qmake.exe and derive the Qt root (parent of bin/)
+          $qmake = Get-ChildItem -Path "thirdparty\qt" -Filter "qmake.exe" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $qmake) {
+            Write-Error "qmake.exe not found in extracted Qt"
+            Get-ChildItem -Path "thirdparty\qt" -Recurse | Select-Object -First 30
+            exit 1
+          }
+
+          # Qt root = parent of the bin/ directory that contains qmake.exe
+          $qtRoot = $qmake.DirectoryName | Split-Path -Parent
+          Write-Host "Found Qt at: $qtRoot"
+
+          # Verify the path exists before saving
+          if (-not (Test-Path $qtRoot)) {
+            Write-Error "Detected Qt root does not exist: $qtRoot"
+            exit 1
+          }
+
+          # Save to GITHUB_ENV (no trailing backslash)
+          $qtRoot = $qtRoot.TrimEnd('\', '/')
+          "QT_PATH=$qtRoot" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
 
       - name: Cache System Dependencies (OpenCV/Boost)
         id: cache-deps
@@ -403,7 +441,9 @@ jobs:
           else
             echo "Testing: $BINARY" | tee -a "$SMOKE_LOG"
             Xvfb :99 -screen 0 1280x720x24 & XVFB_PID=$!; export DISPLAY=:99; sleep 1
-            timeout 8 "$BINARY" 2>&1 | tee -a "$SMOKE_LOG" &; APP_PID=$!; sleep 8
+            timeout 8 "$BINARY" 2>&1 | tee -a "$SMOKE_LOG" &
+            APP_PID=$!
+            sleep 8
             if kill -0 $APP_PID 2>/dev/null; then
               kill $APP_PID 2>/dev/null
               echo "SMOKE PASS: Flare ran 8+ seconds" | tee -a "$SMOKE_LOG"
@@ -537,7 +577,9 @@ jobs:
           else
             echo "Testing: $APP_BINARY" | tee -a "$SMOKE_LOG"
             otool -L "$APP_BINARY" 2>&1 | tee -a "$SMOKE_LOG"
-            timeout 8 "$APP_BINARY" 2>&1 | tee -a "$SMOKE_LOG" &; APP_PID=$!; sleep 8
+            timeout 8 "$APP_BINARY" 2>&1 | tee -a "$SMOKE_LOG" &
+            APP_PID=$!
+            sleep 8
             if kill -0 $APP_PID 2>/dev/null; then
               kill $APP_PID 2>/dev/null
               echo "SMOKE PASS: Flare ran 8+ seconds" | tee -a "$SMOKE_LOG"
@@ -579,6 +621,21 @@ jobs:
       - name: List downloaded artifacts
         run: find dist -type f | sort
 
+      - name: Prepare release assets
+        run: |
+          rm -rf release-assets
+          mkdir -p release-assets
+
+          if [ -d "dist/Flare-Windows-Portable-nightly" ]; then
+            (
+              cd dist
+              zip -qry ../release-assets/Flare-Windows-Portable-nightly.zip Flare-Windows-Portable-nightly
+            )
+          fi
+
+          find dist -type f \( -name '*.tar.gz' -o -name '*.dmg' \) -exec cp -f {} release-assets/ \;
+          find release-assets -type f | sort
+
       - name: Publish / update rolling nightly release
         uses: softprops/action-gh-release@v2
         with:
@@ -595,7 +652,7 @@ jobs:
 
             | Platform | Package | Requirements |
             |----------|---------|--------------|
-            | **Windows** | `Flare-Windows-Portable-nightly` | Windows 10/11 **64-bit (x86_64/AMD64)** — ARM is not supported |
+            | **Windows** | `Flare-Windows-Portable-nightly.zip` | Windows 10/11 **64-bit (x86_64/AMD64)** — ARM is not supported |
             | **Linux** | `Flare-Linux-nightly.tar.gz` | x86_64 Linux, glibc 2.35+ (Ubuntu 22.04 or newer) |
             | **macOS** | `Flare-macOS-nightly` | macOS 13+ Intel (Apple Silicon via Rosetta 2) |
 
@@ -609,4 +666,4 @@ jobs:
 
             See the [smoke test logs](https://github.com/Flare-Animate/Flare/actions/runs/${{ github.run_id }}) for DLL and launch validation results.
           files: |
-            dist/**/*
+            release-assets/*

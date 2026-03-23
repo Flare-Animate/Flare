@@ -144,6 +144,7 @@ set(MOC_HEADERS
     exportcameratrackpopup.h
     layoutPresetsEditorPopup.h
     layoutUtils.h
+    flashguidedialog.h
 )
 
 if(PLATFORM EQUAL 64)
@@ -407,6 +408,7 @@ set(SOURCES
     exportcameratrackpopup.h
     layoutPresetsEditorPopup.h
     layoutUtils.h
+    flashguidedialog.h
 )
 
 if(PLATFORM EQUAL 64)
@@ -2992,6 +2994,13 @@ set(SOURCES
     frameheadgadget.cpp
     filedata.cpp
     metnum.cpp
+    # Native built-in Flash format support (no external tools required)
+    flashguidedialog.cpp
+    flashimport.cpp
+    ../common/flash/XFLReader.cpp
+    # minizip for ZIP/FLA/SWC extraction (bundled with zlib thirdparty)
+    ${SDKROOT}/zlib-1.2.8/contrib/minizip/unzip.c
+    ${SDKROOT}/zlib-1.2.8/contrib/minizip/ioapi.c
 )# add stopmotion sources to SOURCES so Flare executable links correctly
 if(PLATFORM EQUAL 64)
     set(SOURCES
@@ -3056,6 +3065,9 @@ include_directories(
     ../stopmotion
     ../mousedragfilter
     ..  # include source root so headers prefixed with "flare/" resolve
+    ../common/flash
+    ${SDKROOT}/zlib-1.2.8
+    ${SDKROOT}/zlib-1.2.8/contrib/minizip
 )
 
 if (WITH_CANON)
@@ -3081,7 +3093,7 @@ if(BUILD_ENV_MSVC)
     target_link_libraries(Flare
         Qt5::WinMain Qt5::Core Qt5::Gui Qt5::Network Qt5::OpenGL Qt5::Svg Qt5::Xml
         Qt5::Widgets Qt5::PrintSupport Qt5::Multimedia Qt5::UiTools
-        ${GL_LIB} ${GLUT_LIB}
+        ${GL_LIB} ${GLUT_LIB} ${Z_LIB}
         ${EXTRA_LIBS} strmiids
         tnzcore tnzbase flarelib colorfx tnzext image sound flareqt tnztools tnzstdfx tfarm
     )
@@ -3103,7 +3115,7 @@ elseif(BUILD_ENV_APPLE)
     target_link_libraries(Flare
         Qt5::Core Qt5::Gui Qt5::Network Qt5::OpenGL Qt5::Svg Qt5::Xml
         Qt5::Widgets Qt5::PrintSupport Qt5::Multimedia Qt5::MultimediaWidgets Qt5::UiTools
-        ${GL_LIB} ${GLUT_LIB}
+        ${GL_LIB} ${GLUT_LIB} ${Z_LIB}
         ${COCOA_LIB} ${EXTRA_LIBS} ${X64ONLY_LIBS} mousedragfilter
     )
 
@@ -3138,7 +3150,7 @@ elseif(BUILD_ENV_UNIXLIKE)
     target_link_libraries(
         Flare Qt5::Core Qt5::Gui Qt5::Network Qt5::OpenGL Qt5::Svg Qt5::Xml
         Qt5::Widgets Qt5::PrintSupport Qt5::Multimedia Qt5::UiTools
-        ${GL_LIB} ${GLUT_LIB} ${GLU_LIB}
+        ${GL_LIB} ${GLUT_LIB} ${GLU_LIB} ${Z_LIB}
         ${EXTRA_LIBS}
     )
 endif()

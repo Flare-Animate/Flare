@@ -14,11 +14,11 @@ attribution. See the Licensing section below for details.
 ## What is Flare?
 
 Flare is a community-driven fork of OpenToonz that ships a revamped UI layout
-inspired by Adobe Animate and introduces native import support for SWF files
-(when FFmpeg is available) and experimental helpers for FLA projects.
+inspired by Adobe Animate and adds built-in Flash ecosystem import support for
+FLA/XFL/SWC/SWF/FLV/F4V/AS workflows.
 
 For the original Flare project and its history, see the Flare website:
-https://Flare.github.io/e/index.html
+https://flare-animate.github.io/website
 
 ## Program Requirements
 
@@ -79,16 +79,11 @@ menu and choose "Adobe Animate".
 
 ### Importing SWF files
 
-Flare uses FFmpeg to import `.swf` files as raster frame sequences when
-FFmpeg supports the format on your system. Install FFmpeg and ensure it is
-available on your PATH (or configure it via Preferences) to enable SWF import
-capabilities.
-
-Flare also provides a Vector Flash import workflow that leverages third-party
-Flash decompilers (e.g., JPEXS). Use File → Import → Import Flash (Vector via
-External Decompiler)... to run a helper script that exports SVG/image sequences
-from Flash files for importing into Flare. See `doc/how_to_import_swf.md` for
-details.
+Flare provides a built-in Flash import workflow for `.fla`, `.xfl`, `.swc`,
+`.swf`, `.flv`, `.f4v`, and `.as`. Native metadata/asset extraction works
+without external helper tools; when FFmpeg exposes direct readers for
+`.swf`/`.flv`/`.f4v` on your system, Flare can also load those containers as
+scene levels automatically.
 
 ## Development helper scripts
 
@@ -102,4 +97,3 @@ python scripts/log_watcher.py    # defaults to flare/build
 ```
 
 You can run the same command via the "watch logs" task in VS Code (`Ctrl+Shift+B`).
-
