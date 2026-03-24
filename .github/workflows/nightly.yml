@@ -39,7 +39,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
         with:
+          token: ${{ secrets.GITHUB_TOKEN }}
           lfs: false
+          submodules: false
           fetch-depth: 1
 
       - name: Install Build Tools
@@ -335,7 +337,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
         with:
+          token: ${{ secrets.GITHUB_TOKEN }}
           lfs: false
+          submodules: false
           fetch-depth: 1
 
       - name: Install libraries

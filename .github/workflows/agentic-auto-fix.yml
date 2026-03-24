@@ -16,6 +16,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
         with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          submodules: false
           fetch-depth: 0
 
       - name: Set up vcpkg (manual)
