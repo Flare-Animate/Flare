@@ -50,6 +50,16 @@ jobs:
         persist-credentials: true
         clean: true
 
+    - name: Checkout diagnostic info
+      run: |
+        echo "Git version: $(git --version)"
+        git status
+        git branch -vv
+        git log -1 --oneline
+        git remote -v
+        git rev-parse --is-shallow-repository
+        git tag -l | head -n 20
+
     - name: Prune local tags to avoid non-fast-forward conflicts from rolling nightly tag updates
       run: |
         git tag -l | xargs -r git tag -d

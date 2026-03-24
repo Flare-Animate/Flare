@@ -46,7 +46,16 @@ jobs:
           fetch-depth: 0
           persist-credentials: true
           clean: true
-
+      - name: Checkout diagnostic info
+        shell: pwsh
+        run: |
+          Write-Host "Git version: $(git --version)"
+          git status
+          git branch -vv
+          git log -1 --oneline
+          git remote -v
+          git rev-parse --is-shallow-repository
+          git tag -l | Select-Object -First 20
       - name: Prune local tags to avoid non-fast-forward conflicts from rolling nightly tag updates
         shell: pwsh
         run: |
