@@ -116,8 +116,20 @@ jobs:
 
     - name: Build Flare
       run: |
+        set -x
+        echo "===> Build Flare: directory debug information <==="
+        pwd
+        ls -la .
+        if [ -d "flare" ]; then ls -la flare; else echo "ERROR: flare directory missing"; fi
+        if [ -d "flare/sources" ]; then ls -la flare/sources; else echo "ERROR: flare/sources directory missing"; fi
+
         cd flare
+        pwd
+        ls -la .
         mkdir -p build && cd build
+        pwd
+        ls -la .
+
         set +e
         cmake ../sources -G Ninja \
           -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
