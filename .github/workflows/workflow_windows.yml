@@ -42,17 +42,24 @@ jobs:
       - name: Pre-check git remote reachability
         shell: pwsh
         run: |
-          $tries = 0
-          while ($tries -lt 3) {
-            try {
-              git ls-remote origin -h | Out-Null
-              Write-Host "git remote reachable"
-              break
-            } catch {
-              $tries++
-              Write-Host "git remote not reachable, retrying ($tries)"
-              Start-Sleep -Seconds 3
+          # Only attempt a remote reachability check if an 'origin' remote exists.
+          $origin = $null
+          try { $origin = git remote get-url origin 2>$null } catch { $null }
+          if ($origin) {
+            $tries = 0
+            while ($tries -lt 3) {
+              try {
+                git ls-remote origin -h | Out-Null
+                Write-Host "git remote reachable"
+                break
+              } catch {
+                $tries++
+                Write-Host "git remote not reachable, retrying ($tries)"
+                Start-Sleep -Seconds 3
+              }
             }
+          } else {
+            Write-Host "No 'origin' remote configured; skipping git remote reachability check (actions/checkout will perform the checkout)."
           }
 
       - name: Checkout repository

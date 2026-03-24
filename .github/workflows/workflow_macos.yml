@@ -34,18 +34,23 @@ jobs:
     steps:
       - name: Pre-check git remote reachability
         run: |
-          set -e
-          n=0
-          until [ $n -ge 3 ]
-          do
-            if git ls-remote origin >/dev/null 2>&1; then
-              echo "git remote reachable"
-              break
-            fi
-            n=$((n+1))
-            echo "git remote not reachable, retrying ($n)"
-            sleep 3
-          done
+          # Only attempt a remote reachability check if an 'origin' remote exists.
+          if git remote get-url origin >/dev/null 2>&1; then
+            set -e
+            n=0
+            until [ $n -ge 3 ]
+            do
+              if git ls-remote origin >/dev/null 2>&1; then
+                echo "git remote reachable"
+                break
+              fi
+              n=$((n+1))
+              echo "git remote not reachable, retrying ($n)"
+              sleep 3
+            done
+          else
+            echo "No 'origin' remote configured; skipping git remote reachability check (actions/checkout will handle repository checkout)."
+          fi
 
       - name: Checkout repository
         uses: actions/checkout@v6
