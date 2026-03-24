@@ -813,8 +813,12 @@ void ImportFlashVectorCommand::execute() {
         // Always copy the SWF itself to output for reference
         QString dstSwf = outPath + "/" + QFileInfo(srcPath).fileName();
         if (QFile::copy(srcPath, dstSwf)) {
-            if (!exported.contains(QFileInfo(srcPath).fileName()))
-                exported << QFileInfo(srcPath).fileName();
+            QString fileName = QFileInfo(srcPath).fileName();
+            if (!exported.contains(fileName))
+                exported << fileName;
+        } else {
+            // If we can't copy SWF, continue with the rest of import rather than failing.
+            qDebug() << "Warning: failed to copy SWF to" << dstSwf;
         }
 
     // ---- ActionScript source ----

@@ -83,11 +83,12 @@ static bool extractZipToDir(const std::string &zipPath, const std::string &outDi
                     }
                     fclose(fp);
                     if (!writeSuccess) {
+                        // Do not fail the entire archive extraction for a single file;
+                        // continue with the next entry after cleaning up.
                         unzCloseCurrentFile(uf);
-                        unzClose(uf);
-                        return false;
+                        if (i + 1 < gi.number_entry) unzGoToNextFile(uf);
+                        continue;
                     }
-                }
                 }
                 unzCloseCurrentFile(uf);
             }
