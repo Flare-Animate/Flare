@@ -43,10 +43,12 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         lfs: false
-        fetch-depth: 1
+        fetch-depth: 0
+        persist-credentials: true
+        clean: true
 
     - name: Prune local tags to avoid non-fast-forward conflicts from rolling nightly tag updates
       run: |
@@ -107,7 +109,7 @@ jobs:
 
     - name: Upload build logs
       if: always()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: build-logs-${{ matrix.compiler }}
         path: |
@@ -260,7 +262,7 @@ jobs:
 
     - name: Upload smoke test log
       if: always()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: smoke-test-linux-${{ matrix.compiler }}
         path: flare/build/smoke_test.log
@@ -268,7 +270,7 @@ jobs:
 
     - name: Upload
       if: always()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: Flare-AppImage-${{ matrix.compiler }}
         path: flare/build/*.tar.gz

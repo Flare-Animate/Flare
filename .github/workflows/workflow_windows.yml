@@ -40,10 +40,12 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           lfs: false
           fetch-depth: 0
+          persist-credentials: true
+          clean: true
 
       - name: Prune local tags to avoid non-fast-forward conflicts from rolling nightly tag updates
         shell: pwsh
@@ -203,7 +205,7 @@ jobs:
 
       - name: Archive build logs
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: build-logs-windows
           path: |
@@ -232,7 +234,7 @@ jobs:
 
       - name: Upload build logs (always)
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: build-logs-windows-final
           path: |
@@ -422,7 +424,7 @@ jobs:
 
       - name: Upload smoke test log
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: smoke-test-windows
           path: smoke_test.log
@@ -430,7 +432,7 @@ jobs:
 
 
       - name: Upload Flare Portable
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: Flare-Windows-Portable
           path: FlarePortable/

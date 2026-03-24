@@ -31,10 +31,12 @@ jobs:
     runs-on: macos-15-intel
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           lfs: false
-          fetch-depth: 1
+          fetch-depth: 0
+          persist-credentials: true
+          clean: true
 
       - name: Prune local tags to avoid non-fast-forward conflicts from rolling nightly tag updates
         run: |
@@ -127,7 +129,7 @@ jobs:
 
       - name: Upload build logs
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: build-logs-macos
           path: |
@@ -138,8 +140,21 @@ jobs:
       - name: Introduce Libraries and Stuff
         run: |
           cd flare/build/flare
+          if [ ! -d "Flare.app" ]; then
+            echo "ERROR: Flare.app not found; build likely failed before macdeployqt step."
+            ls -l
+            exit 1
+          fi
+
           # copy portable stuff if present
           cp -pr ../../../stuff Flare.app/portablestuff 2>/dev/null || true
+
+          if [ ! -x "/usr/local/opt/qt@5/bin/macdeployqt" ]; then
+            echo "ERROR: macdeployqt not found at /usr/local/opt/qt@5/bin/macdeployqt"
+            ls -l /usr/local/opt/qt@5/bin || true
+            exit 1
+          fi
+
           /usr/local/opt/qt@5/bin/macdeployqt Flare.app -verbose=0 -always-overwrite \
             -executable=Flare.app/Contents/MacOS/lzocompress \
             -executable=Flare.app/Contents/MacOS/lzodecompress \
@@ -245,13 +260,13 @@ jobs:
 
       - name: Upload smoke test log
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: smoke-test-macos
           path: flare/build/smoke_test.log
           if-no-files-found: ignore
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: Flare-${{ runner.os }}-${{ github.sha }}
           path: flare/build/${{ env.DMG }}
