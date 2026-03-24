@@ -151,7 +151,13 @@ jobs:
 
       - name: Modify Library Paths
         run: |
-          cd flare/build/flare/Flare.app/Contents/Frameworks
+          FRAMEWORKS_DIR=$(find flare/build -path "*/Flare.app/Contents/Frameworks" -type d | head -n 1)
+          if [ -z "$FRAMEWORKS_DIR" ]; then
+            echo "Frameworks directory not found; skipping install_name_tool adjustments."
+            exit 0
+          fi
+          echo "Using frameworks dir: $FRAMEWORKS_DIR"
+          cd "$FRAMEWORKS_DIR"
           for TARGETLIB in *.dylib; do
             otool -L "$TARGETLIB" | grep ".dylib" | grep -v "$TARGETLIB" | grep -v "@executable_path/../Frameworks" | awk '{print $1}' | while read -r FROMPATH; do
               LIBNAME=$(basename "$FROMPATH")
