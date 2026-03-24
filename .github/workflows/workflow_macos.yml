@@ -149,12 +149,15 @@ jobs:
 
       - name: Introduce Libraries and Stuff
         run: |
-          cd flare/build/flare
-          if [ ! -d "Flare.app" ]; then
-            echo "ERROR: Flare.app not found; build likely failed before macdeployqt step."
-            ls -l
+          cd flare/build
+          APPBUNDLE=$(find . -type d -name 'Flare.app' | head -n 1)
+          if [ -z "$APPBUNDLE" ]; then
+            echo "ERROR: Flare.app bundle not found under flare/build. Directory tree:" 1>&2
+            find . -maxdepth 4 -type d | sed 's/^/  /' 1>&2
             exit 1
           fi
+          echo "Found app bundle: $APPBUNDLE"
+          cd "$(dirname "$APPBUNDLE")"
 
           # copy portable stuff if present
           cp -pr ../../../stuff Flare.app/portablestuff 2>/dev/null || true

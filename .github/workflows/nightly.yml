@@ -540,7 +540,15 @@ jobs:
 
       - name: Package macOS app
         run: |
-          cd flare/build/flare
+          cd flare/build
+          APPBUNDLE=$(find . -type d -name 'Flare.app' | head -n 1)
+          if [ -z "$APPBUNDLE" ]; then
+            echo "ERROR: Flare.app bundle not found under flare/build. Directory tree:"
+            find . -maxdepth 4 -type d | sed 's/^/  /'
+            exit 1
+          fi
+          echo "Found app bundle: $APPBUNDLE"
+          cd "$(dirname "$APPBUNDLE")"
           cp -pr ../../../stuff Flare.app/portablestuff 2>/dev/null || true
           /usr/local/opt/qt@5/bin/macdeployqt Flare.app -verbose=0 -always-overwrite \
             -executable=Flare.app/Contents/MacOS/lzocompress \
