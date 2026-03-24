@@ -55,3 +55,6 @@ repo_script_problems.json
 stuff/config/loc/
 run_68428401017.log
 run_68428398819.log
+ci_monitor.log
+actions_page.html
+pr_page.html
