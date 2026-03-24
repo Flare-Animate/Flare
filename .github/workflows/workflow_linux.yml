@@ -48,6 +48,10 @@ jobs:
         lfs: false
         fetch-depth: 1
 
+    - name: Prune local tags to avoid non-fast-forward conflicts from rolling nightly tag updates
+      run: |
+        git tag -l | xargs -r git tag -d
+
     - name: Install libraries
       run: |
         sudo apt-get update
