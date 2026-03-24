@@ -747,7 +747,7 @@ void ImportFlashVectorCommand::execute() {
                     if (!exported.contains(m)) {
                         // Copy to output root for auto-load
                         QString src2 = extractedXfl.getQString() + "/" + m;
-                        QString dst2 = outDir + "/" + m;
+                        QString dst2 = outPath + "/" + m;
                         if (!QFile::exists(dst2)) QFile::copy(src2, dst2);
                         exported << m;
                     }
@@ -931,7 +931,7 @@ void ImportFlashVectorCommand::execute() {
     std::vector<QString> btns = {QObject::tr("Open folder"), QObject::tr("Save as FLA"), QObject::tr("OK")};
     int ret = DVGui::MsgBox(DVGui::INFORMATION, msg, btns);
     if (ret == 1) {
-      openFolder(outDir);
+      openFolder(outPath);
     } else if (ret == 2 && (ext == "fla" || ext == "xfl" || ext == "swc")) {
       QString savePath = QFileDialog::getSaveFileName(nullptr,
           QObject::tr("Save as FLA"), outDir.getQString(),
@@ -950,3 +950,4 @@ void ImportFlashVectorCommand::execute() {
         }
       }
     }
+}
