@@ -459,9 +459,22 @@ if(BUILD_ENV_MSVC)
     # ensure build order with renamed library targets
     add_dependencies(Flare tnzcore tnzbase flarelib colorfx tnzext image sound flareqt tnztools tnzstdfx tfarm)
 else()
-    set(MACOSX_BUNDLE_ICON_FILE "Flare.icns")
-    set_source_files_properties(Flare.icns PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
-    add_executable(Flare MACOSX_BUNDLE Flare.icns ${HEADERS} ${SOURCES} ${OBJCSOURCES} ${RESOURCES})
+    set(FLARE_ICON_SOURCE "")
+    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/Flare.icns")
+        set(FLARE_ICON_SOURCE "Flare.icns")
+        set(MACOSX_BUNDLE_ICON_FILE "Flare.icns")
+        set_source_files_properties(Flare.icns PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
+        message(STATUS "Flare.icns found; building macOS bundle with icon.")
+    else()
+        message(WARNING "Flare.icns not found; building macOS bundle without icon.")
+    endif()
+
+    if(FLARE_ICON_SOURCE)
+        add_executable(Flare MACOSX_BUNDLE ${FLARE_ICON_SOURCE} ${HEADERS} ${SOURCES} ${OBJCSOURCES} ${RESOURCES})
+    else()
+        add_executable(Flare MACOSX_BUNDLE ${HEADERS} ${SOURCES} ${OBJCSOURCES} ${RESOURCES})
+    endif()
+
     add_dependencies(Flare tnzcore tnzbase flarelib colorfx tnzext image sound flareqt tnztools tnzstdfx tfarm)
     #add_definitions(
     #    -DTNZBASE_EXPORTS

@@ -46,7 +46,7 @@ jobs:
           )
           timeout /t 3 /nobreak
           goto :clone_vcpkg
-    :vcpkg_ready
+        :vcpkg_ready
           pushd vcpkg
           call bootstrap-vcpkg.bat || (echo bootstrap failed & exit /b 1)
           popd
