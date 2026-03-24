@@ -39,6 +39,16 @@ jobs:
       GIT_LFS_SKIP_SMUDGE: '1'
 
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          lfs: false
+          submodules: false
+          fetch-depth: 0
+          persist-credentials: true
+          clean: true
+
       - name: Pre-check git remote reachability
         shell: pwsh
         run: |
@@ -61,16 +71,6 @@ jobs:
           } else {
             Write-Host "No 'origin' remote configured; skipping git remote reachability check (actions/checkout will perform the checkout)."
           }
-
-      - name: Checkout repository
-        uses: actions/checkout@v6
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          lfs: false
-          submodules: false
-          fetch-depth: 0
-          persist-credentials: true
-          clean: true
       - name: Checkout diagnostic info
         shell: pwsh
         run: |

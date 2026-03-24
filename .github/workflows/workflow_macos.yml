@@ -32,6 +32,16 @@ jobs:
       GIT_LFS_SKIP_SMUDGE: '1'
     runs-on: macos-15-intel
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          lfs: false
+          submodules: false
+          fetch-depth: 0
+          persist-credentials: true
+          clean: true
+
       - name: Pre-check git remote reachability
         run: |
           # Only attempt a remote reachability check if an 'origin' remote exists.
@@ -51,16 +61,6 @@ jobs:
           else
             echo "No 'origin' remote configured; skipping git remote reachability check (actions/checkout will handle repository checkout)."
           fi
-
-      - name: Checkout repository
-        uses: actions/checkout@v6
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          lfs: false
-          submodules: false
-          fetch-depth: 0
-          persist-credentials: true
-          clean: true
 
       - name: Checkout diagnostic info
         run: |
