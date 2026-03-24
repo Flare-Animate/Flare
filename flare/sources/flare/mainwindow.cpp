@@ -181,19 +181,33 @@ void makePrivate(Room *room) {
   std::string mbDstFileName = roomPath.getName() + "_menubar.xml";
   TFilePath myMBPath        = layoutDir + mbDstFileName;
   if (!TFileStatus(myMBPath).isReadable()) {
-    TFilePath templateRoomMBPath =
-        FlareFolder::getTemplateRoomsDir() + mbSrcFileName;
-    if (TFileStatus(templateRoomMBPath).doesExist())
-      TSystem::copyFile(myMBPath, templateRoomMBPath);
-    else {
-      TFilePath templateFullMBPath =
-          FlareFolder::getTemplateRoomsDir() + "menubar_template.xml";
-      if (TFileStatus(templateFullMBPath).doesExist())
-        TSystem::copyFile(myMBPath, templateFullMBPath);
-      else
-        DVGui::warning(
-            QObject::tr("Cannot open menubar settings template file. "
-                        "Re-installing Flare will solve this problem."));
+    auto copyTemplate = [&](const TFilePath &basePath)->bool {
+      TFilePath candidate1 = basePath + mbSrcFileName;
+      if (TFileStatus(candidate1).doesExist()) {
+        TSystem::copyFile(myMBPath, candidate1);
+        return true;
+      }
+      TFilePath candidate2 = basePath + "menubar_template.xml";
+      if (TFileStatus(candidate2).doesExist()) {
+        TSystem::copyFile(myMBPath, candidate2);
+        return true;
+      }
+      return false;
+    };
+
+    TFilePath templateRoomsDir = FlareFolder::getTemplateRoomsDir();
+    if (!copyTemplate(templateRoomsDir)) {
+      TFilePath defaultRoomsDir = FlareFolder::getRoomsDir() + "Default";
+      if (!copyTemplate(defaultRoomsDir)) {
+        TFilePath roomsDir = FlareFolder::getRoomsDir();
+        if (!copyTemplate(roomsDir)) {
+          DVGui::warning(
+              QObject::tr("Cannot open menubar settings template file (%1). "
+                          "Please reinstall Flare, or create a new room from "
+                          "File > Rooms > New Room.")
+                  .arg(FlareFolder::getTemplateRoomsDir().getQString()));
+        }
+      }
     }
   }
 }
@@ -1795,7 +1809,7 @@ void MainWindow::defineActions() {
   createMenuFileAction(MI_SaveScene, QT_TR_NOOP("&Save Scene Only"),
                        "Ctrl+Shift+S", "save_scene");
   createMenuFileAction(MI_SaveSceneAs, QT_TR_NOOP("&Save Scene As..."), "",
-                       "save_scene_as");
+                       "save_scene");
   menuAct = createMenuFileAction(MI_RevertScene, QT_TR_NOOP("&Revert Scene"),
                                  "", "revert_scene");
   menuAct->setEnabled(false);
@@ -1823,7 +1837,7 @@ void MainWindow::defineActions() {
                        QT_TR_NOOP("&Import Flare Lip Sync File..."), "",
                        "dialogue_import");
   createMenuFileAction(MI_ImportFlashVector,
-                       QT_TR_NOOP("&Import Flash (Vector via External Decompiler)..."), "",
+                       QT_TR_NOOP("&Import Flash (FLA / XFL / SWF / SWC / FLV / F4V / AS)..."), "",
                        "import_flash");
   createMenuFileAction(MI_NewProject, QT_TR_NOOP("&New Project..."), "",
                        "new_project");
@@ -1909,7 +1923,7 @@ void MainWindow::defineActions() {
   createMenuEditAction(MI_Group, QT_TR_NOOP("&Group"), "Ctrl+G", "group");
   createMenuEditAction(MI_Ungroup, QT_TR_NOOP("&Ungroup"), "Ctrl+Shift+G",
                        "ungroup");
-  createMenuEditAction(MI_EnterGroup, QT_TR_NOOP("&Enter Group"), "",
+   createMenuEditAction(MI_EnterGroup, QT_TR_NOOP("&Enter Group"), "",
                        "enter_group");
   createMenuEditAction(MI_ExitGroup, QT_TR_NOOP("&Exit Group"), "",
                        "leave_group");
@@ -2361,6 +2375,8 @@ void MainWindow::defineActions() {
                           QT_TR_NOOP("Toggle Main Window's See Through Mode"),
                           "Alt+`", "toggle_seethroughwin_on");
   createMenuHelpAction(MI_About, QT_TR_NOOP("&About Flare..."), "", "info");
+  createMenuHelpAction(MI_FlashGuide, QT_TR_NOOP("&Flash Format Guide..."), "",
+                       "flash_guide");
   createMenuWindowsAction(MI_StartupPopup, QT_TR_NOOP("&Startup Popup..."),
                           "Alt+S", "flare");
   createMenuWindowsAction(MI_OpenGuidedDrawingControls,
@@ -3194,7 +3210,7 @@ void MainWindow::clearCacheFolder() {
   // So, this function will delete all files / folders in $CACHE
   // except the following items:
   // 1. $CACHE/[Current ProcessID]
-  // 2. $CACHE/temp/[Current scene folder] if the current scene is untitled
+  //   // 2. $CACHE/temp/[Current scene folder] if the current scene is untitled
 
   TFilePath cacheRoot = FlareFolder::getCacheRootFolder();
   if (cacheRoot.isEmpty()) cacheRoot = TEnv::getStuffDir() + "cache";

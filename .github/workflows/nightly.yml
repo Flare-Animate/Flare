@@ -1,0 +1,669 @@
+name: Nightly Prebuilt Release
+
+# Builds all 3 platforms on every push to master and on a daily schedule.
+# Artifacts are attached to a rolling "nightly" pre-release tag so users can
+# always grab the latest build without waiting for a tagged release.
+
+on:
+  push:
+    branches: [ master ]
+  schedule:
+    # Run at 03:00 UTC every day
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write   # needed to create/update the nightly release
+  issues: write
+  pull-requests: write
+
+jobs:
+  # ─────────────────────────────────────────────────────────
+  # Windows
+  # ─────────────────────────────────────────────────────────
+  windows:
+    runs-on: windows-2022
+    env:
+      MSVCVERSION: "Visual Studio 17 2022"
+      BOOST_TOOLSET: "14.3"
+      BOOST_VERSION: "1.87.0"
+      BOOST_ROOT: C:\local\boost_1_87_0
+      OPENCV_VERSION: "4.11.0"
+      OpenCV_DIR: C:\tools\opencv\build
+      CCACHE_DIR: ${{ github.workspace }}\.ccache
+      GIT_LFS_SKIP_SMUDGE: '1'
+      THIRDPARTY_DIR: ${{ github.workspace }}\thirdparty
+      VCPKG_ROOT: ${{ github.workspace }}\vcpkg
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          lfs: false
+          fetch-depth: 1
+
+      - name: Install Build Tools
+        run: |
+          choco install ccache -y
+          ccache -M 2G
+        shell: cmd
+
+      - name: Add msbuild to PATH
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Download and Force Third-Party Libs
+        run: |
+          @echo on
+          :: Download prebuilt thirdparty .lib/.dll files — zip has a thirdparty/ prefix;
+          :: extract at repo root so the real binaries overwrite LFS-pointer stubs while
+          :: headers from the git checkout are preserved.
+          curl -fsSL -o libs.zip https://github.com/andeon/opentoonz-thirdparty-libs/releases/download/prebuilt-libs-v1/thirdparty-libs.zip
+          7z x -y libs.zip
+          del /Q libs.zip
+          cd thirdparty
+          copy /Y tiff-4.0.3\libtiff\tif_config.vc.h tiff-4.0.3\libtiff\tif_config.h
+          copy /Y tiff-4.0.3\libtiff\tiffconf.vc.h tiff-4.0.3\libtiff\tiffconf.h
+          copy /Y libpng-1.6.21\scripts\pnglibconf.h.prebuilt libpng-1.6.21\pnglibconf.h
+          cd ..
+        shell: cmd
+
+      - name: Install custom Qt 5.15.2
+        shell: pwsh
+        run: |
+          # Download Qt5.15.2 with wintab support
+          New-Item -ItemType Directory -Force -Path "thirdparty\qt" | Out-Null
+          $maxRetry = 3
+          for ($i = 1; $i -le $maxRetry; $i++) {
+            try {
+              Invoke-WebRequest -Uri "https://github.com/shun-iwasawa/qt5/releases/download/v5.15.2_wintab/Qt5.15.2_wintab.zip" `
+                -OutFile "Qt5.15.2_wintab.zip" -ErrorAction Stop
+              break
+            } catch {
+              if ($i -eq $maxRetry) { Write-Error "Qt download failed after $maxRetry attempts: $_"; exit 1 }
+              Write-Host "Download attempt $i failed, retrying..."
+              Start-Sleep -Seconds 5
+            }
+          }
+
+          # Verify zip was downloaded
+          if (-not (Test-Path "Qt5.15.2_wintab.zip") -or (Get-Item "Qt5.15.2_wintab.zip").Length -lt 1MB) {
+            Write-Error "Qt zip file missing or too small"
+            exit 1
+          }
+
+          # Extract
+          & 7z x -y Qt5.15.2_wintab.zip "-othirdparty\qt"
+          if ($LASTEXITCODE -ne 0) { Write-Error "Qt extraction failed"; exit 1 }
+          Remove-Item "Qt5.15.2_wintab.zip" -Force -ErrorAction SilentlyContinue
+
+          # Find qmake.exe and derive the Qt root (parent of bin/)
+          $qmake = Get-ChildItem -Path "thirdparty\qt" -Filter "qmake.exe" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $qmake) {
+            Write-Error "qmake.exe not found in extracted Qt"
+            Get-ChildItem -Path "thirdparty\qt" -Recurse | Select-Object -First 30
+            exit 1
+          }
+
+          # Qt root = parent of the bin/ directory that contains qmake.exe
+          $qtRoot = $qmake.DirectoryName | Split-Path -Parent
+          Write-Host "Found Qt at: $qtRoot"
+
+          # Verify the path exists before saving
+          if (-not (Test-Path $qtRoot)) {
+            Write-Error "Detected Qt root does not exist: $qtRoot"
+            exit 1
+          }
+
+          # Save to GITHUB_ENV (no trailing backslash)
+          $qtRoot = $qtRoot.TrimEnd('\', '/')
+          "QT_PATH=$qtRoot" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+
+      - name: Cache System Dependencies (OpenCV/Boost)
+        id: cache-deps
+        uses: actions/cache@v4
+        with:
+          path: |
+            C:\tools\opencv
+            C:\local\boost_1_87_0
+          key: ${{ runner.os }}-deps-${{ env.OPENCV_VERSION }}-${{ env.BOOST_VERSION }}-${{ env.BOOST_TOOLSET }}
+
+      - name: ccache storage
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: ${{ runner.os }}-ccache-nightly
+          max-size: "2G"
+          variant: ccache
+
+      - name: Install OpenCV and Boost if cache is missing
+        if: steps.cache-deps.outputs.cache-hit != 'true'
+        run: |
+          choco install opencv --version=%OPENCV_VERSION% -y
+          choco install boost-msvc-%BOOST_TOOLSET% --version=%BOOST_VERSION% -y
+        shell: cmd
+
+      - name: Install Windows dependencies
+        run: ci-scripts/windows/setup-deps.cmd
+        shell: cmd
+
+      - name: Configure CMake
+        run: |
+          @echo on
+          if not exist build mkdir build
+          set +e
+          cmake -S flare/sources -B build ^
+            -G "%MSVCVERSION%" -A x64 ^
+            -DQT_PATH="%QT_PATH%" ^
+            -DBOOST_ROOT="%BOOST_ROOT%" ^
+            -DOpenCV_DIR="%OpenCV_DIR%" ^
+            -DWITH_WINTAB=ON ^
+            -DWITH_TRANSLATION=OFF ^
+            -DWITH_SYSTEM_LZO=ON ^
+            -DWITH_LZODRIVER=OFF ^
+            -DCMAKE_TOOLCHAIN_FILE="%VCPKG_ROOT%\scripts\buildsystems\vcpkg.cmake" ^
+            -DVCPKG_TARGET_TRIPLET=x64-windows > build\cmake_configure.log 2>&1
+          set rc=%ERRORLEVEL%
+          type build\cmake_configure.log
+          if %rc% NEQ 0 exit /b %rc%
+        shell: cmd
+
+      - name: Build Flare
+        run: |
+          cmake --build build --config RelWithDebInfo --parallel 4 > build\build.log 2>&1
+          if %ERRORLEVEL% NEQ 0 ( type build\build.log & exit /b 1 )
+          type build\build.log
+        shell: cmd
+
+      - name: Create Package
+        run: |
+          @echo on
+          if exist FlarePortable rmdir /S /Q FlarePortable
+          mkdir FlarePortable
+
+          for /f "delims=" %%i in ('dir /b /s "build\Flare.exe" ^| findstr /v "CMakeFiles"') do copy /Y "%%i" FlarePortable\Flare.exe
+          if not exist FlarePortable\Flare.exe ( echo ERROR: Flare.exe not found & exit /b 1 )
+
+          for /f "delims=" %%d in ('dir /b /s "build\*.dll" ^| findstr /i "RelWithDebInfo" ^| findstr /v "CMakeFiles"') do copy /Y "%%d" FlarePortable\
+
+          if exist "%VCPKG_ROOT%\installed\x64-windows\bin" (
+            for /f "delims=" %%v in ('dir /b /s "%VCPKG_ROOT%\installed\x64-windows\bin\*.dll" 2^>nul') do copy /Y "%%v" FlarePortable\
+          )
+
+          for /f "delims=" %%l in ('dir /b /s "thirdparty\*.dll" ^| findstr /i "64 x64"') do copy /Y "%%l" FlarePortable\
+          if exist "thirdparty\glew\glew-1.9.0\bin\64bit\glew32.dll"    copy /Y "thirdparty\glew\glew-1.9.0\bin\64bit\glew32.dll"    FlarePortable\
+          if exist "thirdparty\glut\3.7.6\lib\glut64.dll"               copy /Y "thirdparty\glut\3.7.6\lib\glut64.dll"               FlarePortable\
+          if exist "thirdparty\libmypaint\dist\64\libmypaint-1-4-0.dll" copy /Y "thirdparty\libmypaint\dist\64\libmypaint-1-4-0.dll" FlarePortable\
+          if exist "thirdparty\libmypaint\dist\64\libiconv-2.dll"       copy /Y "thirdparty\libmypaint\dist\64\libiconv-2.dll"       FlarePortable\
+          if exist "thirdparty\libmypaint\dist\64\libintl-8.dll"        copy /Y "thirdparty\libmypaint\dist\64\libintl-8.dll"        FlarePortable\
+          if exist "thirdparty\libmypaint\dist\64\libjson-c-2.dll"      copy /Y "thirdparty\libmypaint\dist\64\libjson-c-2.dll"      FlarePortable\
+
+          :: OpenCV x64 DLLs — enumerate vc14/15/16/17 explicitly (dir /s ignores
+          :: wildcards in intermediate path components), then recursive fallback
+          for %%v in (vc17 vc16 vc15 vc14) do (
+            if exist "C:\tools\opencv\build\x64\%%v\bin" (
+              for %%f in ("C:\tools\opencv\build\x64\%%v\bin\opencv_world*.dll") do (
+                if exist "%%f" copy /Y "%%f" FlarePortable\
+              )
+            )
+          )
+          for /f "delims=" %%j in ('dir /b /s "C:\tools\opencv\opencv_world*.dll" 2^>nul ^| findstr /i "\\x64\\"') do (
+            copy /Y "%%j" FlarePortable\ 2>nul
+          )
+
+          "%QT_PATH%\bin\windeployqt.exe" "FlarePortable\Flare.exe" --opengl --compiler-runtime
+
+          if exist "stuff" (
+            mkdir "FlarePortable\portablestuff"
+            xcopy /Y /E /I "stuff" "FlarePortable\portablestuff"
+          )
+
+          :: System requirements README
+          (
+            echo Flare - Windows x64 Portable ^(Nightly^)
+            echo ==========================================
+            echo.
+            echo SYSTEM REQUIREMENTS:
+            echo   Windows 10 or 11, 64-bit (x86_64/AMD64^)
+            echo   ARM Windows is not supported.
+            echo.
+            echo USAGE:
+            echo   Run Flare.exe from this folder.
+            echo   Do NOT move Flare.exe out of this folder; it needs the DLLs
+            echo   and portablestuff folder to be present in the same directory.
+            echo.
+            echo TROUBLESHOOTING:
+            echo   "DLL not found" errors  ^-^>  you may have moved Flare.exe, or
+            echo     your antivirus quarantined a DLL; whitelist this folder.
+            echo   "wrong architecture" error  ^-^>  you are running 32-bit Windows;
+            echo     this build requires 64-bit Windows.
+          ) > FlarePortable\README.txt
+
+          del /S /Q FlarePortable\*.pdb 2>nul
+        shell: cmd
+
+      - name: Smoke Test – DLL check + launch test
+        if: always()
+        shell: pwsh
+        run: |
+          $log = [System.Collections.Generic.List[string]]::new()
+          $log.Add("=== Windows Nightly Smoke Test ===")
+          $log.Add("")
+          $log.Add("--- DLLs present in FlarePortable (root) ---")
+          $rootDlls = Get-ChildItem FlarePortable -Filter *.dll -File -ErrorAction SilentlyContinue |
+                      Select-Object -ExpandProperty Name | Sort-Object
+          $rootDlls | ForEach-Object { $log.Add("  $_") }
+          $log.Add("Total root DLLs: $($rootDlls.Count)")
+          $log.Add("")
+
+          $log.Add("--- dumpbin /DEPENDENTS FlarePortable\Flare.exe ---")
+          try {
+            $dumpout = & dumpbin /DEPENDENTS FlarePortable\Flare.exe 2>&1
+            $needed = $dumpout | Select-String '\.dll' |
+                      ForEach-Object { ($_ -replace '^\s+','').Trim() } |
+                      Where-Object { $_ -ne '' }
+            $missing = @()
+            foreach ($dll in $needed) {
+              $name = [System.IO.Path]::GetFileName($dll)
+              $inPkg = Test-Path "FlarePortable\$name"
+              $inSys = $null -ne (Get-Command $name -ErrorAction SilentlyContinue)
+              if (-not $inPkg -and -not $inSys) { $missing += $name }
+              $log.Add("  $name -> package=$inPkg system=$inSys")
+            }
+            if ($missing.Count -gt 0) {
+              $log.Add(""); $log.Add("SMOKE WARN: Missing DLLs:")
+              $missing | ForEach-Object { $log.Add("  MISSING: $_") }
+            } else { $log.Add(""); $log.Add("SMOKE OK: All direct DLL dependencies accounted for.") }
+          } catch { $log.Add("dumpbin not available: $_") }
+          $log.Add("")
+
+          $log.Add("--- Runtime launch test (8s hidden window) ---")
+          try {
+            reg add "HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting" /v DontShowUI /t REG_DWORD /d 1 /f 2>&1 | Out-Null
+            reg add "HKLM\SOFTWARE\WOW6432Node\Microsoft\Windows\Windows Error Reporting" /v DontShowUI /t REG_DWORD /d 1 /f 2>&1 | Out-Null
+          } catch {}
+          $exePath = "$PWD\FlarePortable\Flare.exe"
+          if (-not (Test-Path $exePath)) {
+            $log.Add("SMOKE SKIP: Flare.exe not found")
+          } else {
+            try {
+              $psi = New-Object System.Diagnostics.ProcessStartInfo
+              $psi.FileName = $exePath; $psi.WorkingDirectory = "$PWD\FlarePortable"
+              $psi.WindowStyle = [System.Diagnostics.ProcessWindowStyle]::Hidden
+              $psi.UseShellExecute = $true
+              $proc = [System.Diagnostics.Process]::Start($psi)
+              $done = $proc.WaitForExit(8000)
+              if (-not $done) {
+                $proc.Kill()
+                $log.Add("SMOKE PASS: Flare.exe ran 8+ seconds without crashing")
+              } else {
+                $raw = $proc.ExitCode; $hex = "0x{0:X8}" -f ($raw -band 0xFFFFFFFF)
+                $log.Add("Flare.exe exited: code=$raw ($hex)")
+                switch ($raw -band 0xFFFFFFFF) {
+                  0xC0000135 { $log.Add("SMOKE FAIL: STATUS_DLL_NOT_FOUND – a required DLL is missing") }
+                  0xC000007B { $log.Add("SMOKE FAIL: STATUS_INVALID_IMAGE_FORMAT – wrong-bitness DLL") }
+                  0x00000000 { $log.Add("SMOKE OK: Exited cleanly") }
+                  default    { $log.Add("SMOKE NOTE: code $hex (may be expected without a display)") }
+                }
+              }
+            } catch { $log.Add("SMOKE ERROR: $_") }
+          }
+          $log | Out-File -FilePath smoke_test.log -Encoding utf8
+          Write-Host ($log -join "`n")
+
+      - name: Upload Windows portable
+        uses: actions/upload-artifact@v4
+        with:
+          name: Flare-Windows-Portable-nightly
+          path: FlarePortable/
+          if-no-files-found: error
+
+      - name: Upload smoke test log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-test-windows-nightly
+          path: smoke_test.log
+          if-no-files-found: ignore
+
+  # ─────────────────────────────────────────────────────────
+  # Linux
+  # ─────────────────────────────────────────────────────────
+  linux:
+    runs-on: ubuntu-24.04
+    env:
+      GIT_LFS_SKIP_SMUDGE: '1'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          lfs: false
+          fetch-depth: 1
+
+      - name: Install libraries
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential cmake pkg-config ninja-build ccache xvfb \
+            libboost-all-dev qtbase5-dev qt5-qmake qtscript5-dev \
+            qttools5-dev qttools5-dev-tools qtmultimedia5-dev qtwayland5 \
+            libqt5svg5-dev libqt5opengl5-dev libqt5multimedia5-plugins \
+            libqt5serialport5-dev libsuperlu-dev liblz4-dev libusb-1.0-0-dev \
+            liblzo2-dev libpng-dev libjpeg-dev libglew-dev freeglut3-dev \
+            libfreetype6-dev libjson-c-dev libmypaint-dev libopencv-dev \
+            libturbojpeg0-dev libomp-dev libfuse2
+
+      - name: Set up ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: ${{ runner.os }}-gcc-nightly
+          max-size: "2G"
+
+      - name: Build libtiff
+        run: |
+          cd thirdparty/tiff-4.0.3
+          chmod +x configure
+          ./configure --disable-jbig --disable-shared --with-pic
+          make -j2
+
+      - name: Build Flare
+        run: |
+          cd flare
+          mkdir -p build && cd build
+          cmake ../sources -G Ninja \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+            -DWITH_TRANSLATION=OFF \
+            -DWITH_SYSTEM_LZO=ON \
+            -DWITH_LZODRIVER=OFF \
+            -DCMAKE_BUILD_TYPE=Release > cmake_configure.log 2>&1
+          cat cmake_configure.log
+          ninja -j2 2>&1 | tee build.log
+
+      - name: Create AppImage
+        env:
+          APPIMAGE_EXTRACT_AND_RUN: 1
+        run: |
+          cd flare/build
+          sudo ninja install
+          mkdir -p appdir/usr
+          cp -r /opt/flare/* appdir/usr 2>/dev/null || true
+          cp appdir/usr/share/applications/*.desktop appdir/ || true
+          cp appdir/usr/share/icons/hicolor/*/apps/*.png appdir/ || true
+          mkdir artifact
+          if [ -d "appdir/usr/share/flare/stuff" ]; then
+            mv appdir/usr/share/flare/stuff artifact/portablestuff
+            rmdir appdir/usr/share/flare 2>/dev/null || true
+          fi
+
+          base_url="https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous"
+          TOOLS_OK=1
+          for tool in linuxdeploy-x86_64.AppImage linuxdeploy-plugin-qt-x86_64.AppImage linuxdeploy-plugin-appimage-x86_64.AppImage; do
+            if ! (wget -q "${base_url}/${tool}" || wget -q "${base_url}/${tool}" || wget -q "${base_url}/${tool}"); then
+              echo "Warning: failed to download ${tool}; skipping AppImage"
+              TOOLS_OK=0; break
+            fi
+            chmod +x "${tool}"
+          done
+
+          if [ -d appdir/usr/lib/flare ]; then
+            export LD_LIBRARY_PATH="appdir/usr/lib/flare:${LD_LIBRARY_PATH:-}"
+          fi
+          if [ -f appdir/usr/bin/Flare ]; then BINNAME=Flare; else BINNAME=$(ls appdir/usr/bin | head -n1); fi
+          printf '#!/usr/bin/env bash\nexec "${APPDIR}/usr/bin/%s"\n' "${BINNAME}" > apprun.sh
+          chmod 755 apprun.sh
+          export PATH="$(pwd):$PATH"
+
+          if [ "${TOOLS_OK}" -eq 1 ]; then
+            ./linuxdeploy-x86_64.AppImage --appdir=appdir \
+              --desktop-file=appdir/io.github.Flare.desktop \
+              --icon-file=appdir/io.github.Flare.png \
+              --plugin=qt --output=appimage --custom-apprun=apprun.sh || true
+          fi
+
+          if ls Flare*.AppImage >/dev/null 2>&1; then mv Flare*.AppImage artifact/Flare.AppImage; fi
+          ARTIFACT_NAME=Flare-Linux-nightly
+          mv artifact ${ARTIFACT_NAME} || true
+          tar zcf ${ARTIFACT_NAME}.tar.gz ${ARTIFACT_NAME} || true
+
+      - name: Smoke Test – verify binary launches
+        if: always()
+        run: |
+          SMOKE_LOG="flare/build/smoke_test.log"
+          mkdir -p "$(dirname "$SMOKE_LOG")"
+          echo "=== Linux Nightly Smoke Test ===" | tee "$SMOKE_LOG"
+          APPIMAGE=$(find flare/build -name "*.AppImage" 2>/dev/null | head -1)
+          BINARY=""
+          for c in /opt/flare/bin/Flare /opt/flare/bin/flare /usr/local/bin/Flare; do
+            [ -x "$c" ] && BINARY="$c" && break
+          done
+          [ -z "$BINARY" ] && [ -n "$APPIMAGE" ] && chmod +x "$APPIMAGE" && BINARY="$APPIMAGE"
+          if [ -z "$BINARY" ]; then
+            echo "SMOKE SKIP: No binary found" | tee -a "$SMOKE_LOG"
+          else
+            echo "Testing: $BINARY" | tee -a "$SMOKE_LOG"
+            Xvfb :99 -screen 0 1280x720x24 & XVFB_PID=$!; export DISPLAY=:99; sleep 1
+            timeout 8 "$BINARY" 2>&1 | tee -a "$SMOKE_LOG" &
+            APP_PID=$!
+            sleep 8
+            if kill -0 $APP_PID 2>/dev/null; then
+              kill $APP_PID 2>/dev/null
+              echo "SMOKE PASS: Flare ran 8+ seconds" | tee -a "$SMOKE_LOG"
+            else
+              wait $APP_PID 2>/dev/null; EXIT=$?
+              echo "SMOKE: Exited with code $EXIT" | tee -a "$SMOKE_LOG"
+            fi
+            kill $XVFB_PID 2>/dev/null || true
+          fi
+
+      - name: Upload Linux AppImage
+        uses: actions/upload-artifact@v4
+        with:
+          name: Flare-Linux-nightly
+          path: flare/build/Flare-Linux-nightly.tar.gz
+          if-no-files-found: ignore
+
+      - name: Upload smoke test log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-test-linux-nightly
+          path: flare/build/smoke_test.log
+          if-no-files-found: ignore
+
+  # ─────────────────────────────────────────────────────────
+  # macOS
+  # ─────────────────────────────────────────────────────────
+  macos:
+    runs-on: macos-15-intel
+    env:
+      GIT_LFS_SKIP_SMUDGE: '1'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          lfs: false
+          fetch-depth: 1
+
+      - name: Clean Python symlinks
+        run: |
+          find /usr/local/bin -type l \( -name "python*" -o -name "pip*" -o -name "2to3*" -o -name "idle*" -o -name "pydoc*" \) \
+            -exec sh -c 'file -b {} | grep -q "symbolic link to .*Python.framework" && rm {}' \;
+          brew link --overwrite --force python@3.14 || true
+
+      - name: Install libraries
+        run: |
+          export HOMEBREW_NO_AUTO_UPDATE=1
+          for qtpkg in qtbase qtdeclarative qt; do
+            brew unlink "$qtpkg" 2>/dev/null || true
+          done
+          checkPkgAndInstall() {
+            for pkg in "$@"; do
+              if brew ls --versions "$pkg" >/dev/null 2>&1; then
+                echo "$pkg already installed"
+              else
+                brew install --overwrite "$pkg"
+              fi
+            done
+          }
+          checkPkgAndInstall pkg-config glew lz4 libjpeg libpng lzo boost libusb libmypaint \
+            ccache jpeg-turbo ninja opencv openjph openexr qt@5
+
+      - name: Set up ccache
+        run: |
+          export PATH="/usr/local/opt/ccache/libexec:$PATH"
+          mkdir -p /Users/runner/.ccache
+      - uses: actions/cache@v5
+        with:
+          path: /Users/runner/.ccache
+          key: ${{ runner.os }}-nightly-${{ github.sha }}
+          restore-keys: ${{ runner.os }}-
+
+      - name: Build libtiff
+        run: |
+          cd thirdparty/tiff-4.0.3
+          chmod +x configure
+          CFLAGS='-fPIC' CXXFLAGS='-fPIC' ./configure --disable-lzma
+          make -j $(sysctl -n hw.ncpu)
+          make install
+
+      - name: Build
+        run: |
+          export PKG_CONFIG_PATH="/usr/local/opt/jpeg-turbo/lib/pkgconfig:$PKG_CONFIG_PATH"
+          cd flare; rm -rf build; mkdir -p build; cd build
+          cmake -S ../sources -B . -G Ninja \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+            -DQT_PATH=$(brew --prefix qt@5)/lib \
+            -DQt5_DIR=$(brew --prefix qt@5)/lib/cmake/Qt5 \
+            -DCMAKE_PREFIX_PATH=$(brew --prefix qt@5)/lib/cmake/Qt5 \
+            -DWITH_TRANSLATION=OFF -DWITH_SYSTEM_LZO=ON -DWITH_LZODRIVER=OFF > cmake_configure.log 2>&1
+          cat cmake_configure.log
+          ninja -j $(sysctl -n hw.ncpu) 2>&1 | tee build.log
+
+      - name: Package macOS app
+        run: |
+          cd flare/build/flare
+          cp -pr ../../../stuff Flare.app/portablestuff 2>/dev/null || true
+          /usr/local/opt/qt@5/bin/macdeployqt Flare.app -verbose=0 -always-overwrite \
+            -executable=Flare.app/Contents/MacOS/lzocompress \
+            -executable=Flare.app/Contents/MacOS/lzodecompress \
+            -executable=Flare.app/Contents/MacOS/tcleanup \
+            -executable=Flare.app/Contents/MacOS/tcomposer \
+            -executable=Flare.app/Contents/MacOS/tconverter \
+            -executable=Flare.app/Contents/MacOS/tfarmcontroller \
+            -executable=Flare.app/Contents/MacOS/tfarmserver
+
+      - name: Create DMG
+        run: |
+          cd flare/build/flare
+          ATTEMPT=0
+          while [ $ATTEMPT -lt 5 ]; do
+            /usr/local/opt/qt@5/bin/macdeployqt Flare.app -dmg -verbose=0 && [ -f Flare.dmg ] && break
+            ATTEMPT=$((ATTEMPT+1)); echo "Attempt $ATTEMPT failed"
+          done
+          [ -f Flare.dmg ] && echo "DMG=flare/build/flare/Flare.dmg" >> $GITHUB_ENV || echo "DMG=" >> $GITHUB_ENV
+
+      - name: Smoke Test – verify app launches
+        if: always()
+        run: |
+          SMOKE_LOG="flare/build/smoke_test.log"
+          mkdir -p "$(dirname "$SMOKE_LOG")"
+          echo "=== macOS Nightly Smoke Test ===" | tee "$SMOKE_LOG"
+          APP_BINARY=""
+          for c in "flare/build/flare/Flare.app/Contents/MacOS/Flare"; do
+            [ -f "$c" ] && APP_BINARY="$c" && break
+          done
+          [ -z "$APP_BINARY" ] && APP_BINARY=$(find flare/build -path "*/MacOS/Flare" -type f 2>/dev/null | head -1)
+          if [ -z "$APP_BINARY" ]; then
+            echo "SMOKE SKIP: Flare binary not found" | tee -a "$SMOKE_LOG"
+          else
+            echo "Testing: $APP_BINARY" | tee -a "$SMOKE_LOG"
+            otool -L "$APP_BINARY" 2>&1 | tee -a "$SMOKE_LOG"
+            timeout 8 "$APP_BINARY" 2>&1 | tee -a "$SMOKE_LOG" &
+            APP_PID=$!
+            sleep 8
+            if kill -0 $APP_PID 2>/dev/null; then
+              kill $APP_PID 2>/dev/null
+              echo "SMOKE PASS: Flare ran 8+ seconds" | tee -a "$SMOKE_LOG"
+            else
+              wait $APP_PID 2>/dev/null; EXIT=$?
+              echo "SMOKE: Exited with code $EXIT" | tee -a "$SMOKE_LOG"
+            fi
+          fi
+
+      - name: Upload macOS DMG
+        if: ${{ env.DMG != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: Flare-macOS-nightly
+          path: ${{ env.DMG }}
+          if-no-files-found: ignore
+
+      - name: Upload smoke test log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-test-macos-nightly
+          path: flare/build/smoke_test.log
+          if-no-files-found: ignore
+
+  # ─────────────────────────────────────────────────────────
+  # Publish rolling nightly release
+  # ─────────────────────────────────────────────────────────
+  publish-nightly:
+    needs: [ windows, linux, macos ]
+    if: always() && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist/
+
+      - name: List downloaded artifacts
+        run: find dist -type f | sort
+
+      - name: Prepare release assets
+        run: |
+          rm -rf release-assets
+          mkdir -p release-assets
+
+          if [ -d "dist/Flare-Windows-Portable-nightly" ]; then
+            (
+              cd dist
+              zip -qry ../release-assets/Flare-Windows-Portable-nightly.zip Flare-Windows-Portable-nightly
+            )
+          fi
+
+          find dist -type f \( -name '*.tar.gz' -o -name '*.dmg' \) -exec cp -f {} release-assets/ \;
+          find release-assets -type f | sort
+
+      - name: Publish / update rolling nightly release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: nightly
+          name: "Nightly Build (latest master)"
+          prerelease: true
+          draft: false
+          body: |
+            **Automated nightly build** from [`master`](https://github.com/Flare-Animate/Flare/tree/master) — commit ${{ github.sha }}.
+
+            These are pre-release binaries built automatically. They may be unstable.
+
+            ## Downloads
+
+            | Platform | Package | Requirements |
+            |----------|---------|--------------|
+            | **Windows** | `Flare-Windows-Portable-nightly.zip` | Windows 10/11 **64-bit (x86_64/AMD64)** — ARM is not supported |
+            | **Linux** | `Flare-Linux-nightly.tar.gz` | x86_64 Linux, glibc 2.35+ (Ubuntu 22.04 or newer) |
+            | **macOS** | `Flare-macOS-nightly` | macOS 13+ Intel (Apple Silicon via Rosetta 2) |
+
+            ## Windows usage
+
+            1. Extract the ZIP — keep all files together in the same folder.
+            2. Run `Flare.exe` from that folder.
+            3. **Do NOT move `Flare.exe` out of the folder** — it needs the bundled DLLs and `portablestuff/` to be in the same directory.
+
+            > **"DLL not found" / crashes on launch?**  Make sure you're on **64-bit Windows** and haven't moved `Flare.exe`. If antivirus quarantined a DLL, whitelist the folder and re-extract.
+
+            See the [smoke test logs](https://github.com/Flare-Animate/Flare/actions/runs/${{ github.run_id }}) for DLL and launch validation results.
+          files: |
+            release-assets/*

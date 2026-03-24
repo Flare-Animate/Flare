@@ -60,7 +60,7 @@ struct Document {
 };
 
 // XFL Reader class - parses XFL format files
-class DVAPI Reader {
+class Reader {
 public:
     // Constructor
     // @param xflPath: Path to .xfl/.fla file (ZIP) or XFL directory
@@ -102,10 +102,16 @@ private:
 };
 
 // Helper function to check if a file is a modern FLA (ZIP-based XFL)
-DVAPI bool isFLAZipBased(const TFilePath &flaPath);
+bool isFLAZipBased(const TFilePath &flaPath);
 
 // Helper function to check if a directory contains XFL structure
-DVAPI bool isXFLDirectory(const TFilePath &dirPath);
+bool isXFLDirectory(const TFilePath &dirPath);
+
+// Write XFL directory back into a FLA ZIP archive.
+// @param xflPath: source XFL folder containing DOMDocument.xml + assets
+// @param flaPath: destination .fla file (ZIP archive)
+// @return: true on success.
+DVAPI bool writeFLA(const TFilePath &xflPath, const TFilePath &flaPath);
 
 } // namespace XFL
 
