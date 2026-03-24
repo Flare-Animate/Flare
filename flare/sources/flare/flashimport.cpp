@@ -39,6 +39,8 @@
 #include <QFileInfo>
 #include <QDesktopServices>
 #include <QUrl>
+#include <QDebug>
+#include <QFileDialog>
 
 // Minizip for ZIP/FLA/SWC extraction (include_directories contains minizip path)
 #include "unzip.h"
@@ -926,7 +928,25 @@ void ImportFlashVectorCommand::execute() {
     if (imported > 0)
         msg += QObject::tr("\n%1 asset(s) added to the scene.").arg(imported);
 
-    std::vector<QString> btns = {QObject::tr("Open folder"), QObject::tr("OK")};
+    std::vector<QString> btns = {QObject::tr("Open folder"), QObject::tr("Save as FLA"), QObject::tr("OK")};
     int ret = DVGui::MsgBox(DVGui::INFORMATION, msg, btns);
-    if (ret == 1) openFolder(outPath);
-}
+    if (ret == 1) {
+      openFolder(outDir);
+    } else if (ret == 2 && (ext == "fla" || ext == "xfl" || ext == "swc")) {
+      QString savePath = QFileDialog::getSaveFileName(nullptr,
+          QObject::tr("Save as FLA"), outDir.getQString(),
+          QObject::tr("Adobe FLA files (*.fla)"));
+      if (!savePath.isEmpty()) {
+        TFilePath sourceDir;
+        if (ext == "xfl" && QFileInfo(srcPath).isDir())
+          sourceDir = fp;
+        else
+          sourceDir = outDir;
+
+        if (XFL::writeFLA(sourceDir, TFilePath(savePath.toStdWString()))) {
+          DVGui::info(QObject::tr("Saved FLA successfully: %1").arg(savePath));
+        } else {
+          DVGui::error(QObject::tr("Failed to save FLA: %1").arg(savePath));
+        }
+      }
+    }

@@ -107,6 +107,12 @@ bool isFLAZipBased(const TFilePath &flaPath);
 // Helper function to check if a directory contains XFL structure
 bool isXFLDirectory(const TFilePath &dirPath);
 
+// Write XFL directory back into a FLA ZIP archive.
+// @param xflPath: source XFL folder containing DOMDocument.xml + assets
+// @param flaPath: destination .fla file (ZIP archive)
+// @return: true on success.
+DVAPI bool writeFLA(const TFilePath &xflPath, const TFilePath &flaPath);
+
 } // namespace XFL
 
 #endif // XFLREADER_H_

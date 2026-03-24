@@ -10,9 +10,12 @@
 #include <vector>
 #include <QString>
 #include <QDateTime>
+#include <QDebug>
+#include <QDir>
 
 // Minizip for ZIP/FLA extraction (from thirdparty/zlib-1.2.8/contrib/minizip)
 #include "unzip.h"
+#include "zip.h"
 
 namespace XFL {
 
@@ -340,6 +343,78 @@ TFilePath Reader::extractZip(const TFilePath &outputDir) {
     } catch (...) {}
 
     return outDir;
+}
+
+bool writeFLA(const TFilePath &xflPath, const TFilePath &flaPath) {
+    if (!TSystem::doesExistFileOrLevel(xflPath) || !TFileStatus(xflPath).isDirectory()) {
+        qDebug() << "[XFL] writeFLA failed: source is not a directory" << xflPath.getQString();
+        return false;
+    }
+
+    QString srcDir = xflPath.getQString();
+    QString dstZip = flaPath.getQString();
+    qDebug() << "[XFL] writeFLA" << srcDir << "->" << dstZip;
+
+    zipFile zf = zipOpen(dstZip.toUtf8().constData(), APPEND_STATUS_CREATE);
+    if (!zf) {
+        qDebug() << "[XFL] writeFLA failed: could not open output zip" << dstZip;
+        return false;
+    }
+
+    TFilePathSet files;
+    try {
+        files = TSystem::readDirectory(xflPath, false, true, true);
+    } catch (...) {
+        qDebug() << "[XFL] writeFLA failed: could not read source directory" << srcDir;
+        zipClose(zf, nullptr);
+        return false;
+    }
+
+    for (const auto &fp : files) {
+        QString fullPath = fp.getQString();
+        QString relPath = QDir(srcDir).relativeFilePath(fullPath).replace('\\', '/');
+        if (relPath.isEmpty()) continue;
+
+        zip_fileinfo zi = {};
+        int err = zipOpenNewFileInZip(zf, relPath.toUtf8().constData(), &zi,
+                                     nullptr, 0, nullptr, 0, nullptr,
+                                     Z_DEFLATED, Z_DEFAULT_COMPRESSION);
+        if (err != ZIP_OK) {
+            qDebug() << "[XFL] writeFLA failed: cannot add" << relPath;
+            zipClose(zf, nullptr);
+            return false;
+        }
+
+        QFile inFile(fullPath);
+        if (!inFile.open(QIODevice::ReadOnly)) {
+            qDebug() << "[XFL] writeFLA failed: cannot open file" << fullPath;
+            zipCloseFileInZip(zf);
+            zipClose(zf, nullptr);
+            return false;
+        }
+
+        QByteArray content = inFile.readAll();
+        inFile.close();
+
+        if (!content.isEmpty()) {
+            if (zipWriteInFileInZip(zf, content.constData(), content.size()) != ZIP_OK) {
+                qDebug() << "[XFL] writeFLA failed: error writing file" << relPath;
+                zipCloseFileInZip(zf);
+                zipClose(zf, nullptr);
+                return false;
+            }
+        }
+
+        zipCloseFileInZip(zf);
+    }
+
+    if (zipClose(zf, nullptr) != ZIP_OK) {
+        qDebug() << "[XFL] writeFLA failed: could not close zip" << dstZip;
+        return false;
+    }
+
+    qDebug() << "[XFL] writeFLA success" << dstZip;
+    return true;
 }
 
 //-----------------------------------------------------------------------------
