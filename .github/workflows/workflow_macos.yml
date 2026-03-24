@@ -197,8 +197,15 @@ jobs:
 
       - name: Create Artifact
         run: |
-          cd flare/build/flare
-          echo "Creating DMG..."
+          cd flare/build
+          APPBUNDLE=$(find . -type d -name 'Flare.app' | head -n 1)
+          if [ -z "$APPBUNDLE" ]; then
+            echo "ERROR: Flare.app bundle not found for DMG creation" 1>&2
+            find . -type d | sed 's/^/  /' 1>&2
+            exit 1
+          fi
+          cd "$(dirname "$APPBUNDLE")"
+          echo "Creating DMG from $(pwd)/Flare.app..."
           ATTEMPT=0
           while [ $ATTEMPT -lt 10 ]; do
             /usr/local/opt/qt@5/bin/macdeployqt Flare.app -dmg -verbose=0 && \

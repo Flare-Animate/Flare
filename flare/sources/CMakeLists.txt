@@ -1152,7 +1152,11 @@ else()
 endif()
 
 add_subdirectory(flare)
-# flare_legacy is no longer built; executable defined in flare/CMakeLists
+
+# Legacy Flare executable target (for compatibility and macOS app bundle creation)
+# TODO: Migrate fully to flare/ app target and remove flare_legacy when stable.
+add_subdirectory(flare_legacy)
+
 add_subdirectory(tcleanupper)
 add_subdirectory(tcomposer)
 add_subdirectory(tconverter)
