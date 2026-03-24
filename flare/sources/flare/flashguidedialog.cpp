@@ -31,7 +31,8 @@ FlashGuideDialog::FlashGuideDialog(QWidget *parent)
   const QString importGuide = loadDocFile(
       ":/doc/how_to_import_swf.md",
       tr("Documentation not available.\n\n"
-         "To import Flash files, use File > Import > Flash (FLA/XFL/SWF)."));
+         "To import Flash files, use File > Import > Flash (FLA/XFL/SWF).\n"
+         "Save-to-FLA is currently not supported in Flare; use File > Export > SWF or an Adobe Animate workflow for full round-tripping."));
 
   const QString techRef = loadDocFile(
       ":/doc/FLASH_SUPPORT.md",

@@ -48,6 +48,18 @@ static bool extractZipToDir(const std::string &zipPath, const std::string &outDi
 
         // Zip Slip protection: reject path traversal and absolute paths
         std::string entryStr(fileName, nameLen);
+
+        // Normalize path separators and strip leading ./ for correct DOMDocument.xml detection
+        for (auto &ch : entryStr) {
+            if (ch == '\\') ch = '/';
+        }
+        while (entryStr.rfind("./", 0) == 0) {
+            entryStr.erase(0, 2);
+        }
+        while (!entryStr.empty() && entryStr[0] == '/') {
+            entryStr.erase(0, 1);
+        }
+
         if (entryStr.empty() ||
             entryStr.find("../") != std::string::npos ||
             entryStr.find("..\\") != std::string::npos ||
@@ -161,7 +173,21 @@ bool Reader::readFromZip() {
 bool Reader::readFromDirectory() {
     // Look for DOMDocument.xml in the directory
     TFilePath docPath = m_xflPath + "DOMDocument.xml";
-    
+
+    if (!TSystem::doesExistFileOrLevel(docPath)) {
+        // Fallback: scan first-level subdirectories for DOMDocument.xml
+        try {
+            TFilePathSet entries = TSystem::readDirectory(m_xflPath, false, true, true);
+            for (const auto &entry : entries) {
+                if (entry.getType() == "" && isXFLDirectory(entry)) {
+                    m_xflPath = entry;
+                    docPath   = m_xflPath + "DOMDocument.xml";
+                    break;
+                }
+            }
+        } catch (...) {}
+    }
+
     if (!TSystem::doesExistFileOrLevel(docPath)) {
         m_error = "DOMDocument.xml not found in XFL directory: " + m_xflPath.getQString().toStdString();
         return false;

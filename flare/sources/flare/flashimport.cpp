@@ -104,6 +104,13 @@ static bool extractZip(const QString &zipPath, const QString &outDir) {
 
         QString entryStr = QString::fromUtf8(entryName);
 
+        // Normalize path separators and strip leading ./ (common in ZIP entries)
+        entryStr.replace('\\', '/');
+        while (entryStr.startsWith("./"))
+            entryStr = entryStr.mid(2);
+        while (entryStr.startsWith('/'))
+            entryStr = entryStr.mid(1);
+
         // Zip Slip protection: reject absolute paths and path traversal
         if (entryStr.startsWith('/') || entryStr.startsWith('\\') ||
             entryStr.contains("../") || entryStr.contains("..\\") ||
@@ -719,6 +726,10 @@ void ImportFlashVectorCommand::execute() {
                         .arg(doc.width).arg(doc.height)
                         .arg(doc.frameRate, 0, 'f', 1)
                         .arg(static_cast<int>(doc.symbols.size()));
+                } else {
+                    QString err = QString::fromStdString(r2.getError());
+                    info = QObject::tr("Failed to parse XFL metadata: %1").arg(err);
+                    DVGui::warning(info);
                 }
             }
             // Extract binary media from FLA's bin/ directory (.dat → PNG/JPG)
@@ -734,7 +745,7 @@ void ImportFlashVectorCommand::execute() {
                     if (!exported.contains(m)) {
                         // Copy to output root for auto-load
                         QString src2 = extractedXfl.getQString() + "/" + m;
-                        QString dst2 = outPath + "/" + m;
+                        QString dst2 = outDir + "/" + m;
                         if (!QFile::exists(dst2)) QFile::copy(src2, dst2);
                         exported << m;
                     }
