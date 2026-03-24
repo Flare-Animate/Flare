@@ -2,11 +2,21 @@ name: Linux Build
 
 on:
   push:
-    branches:
-      - master
+    paths:
+      - '**/*'
+      - '!appveyor.yml'
+      - '!README.md'
+      - '!doc/**'
+      - '!**/.github/**'
+      - '.github/workflows/workflow_linux.yml'
   pull_request:
-    branches:
-      - master
+    paths:
+      - '**/*'
+      - '!appveyor.yml'
+      - '!README.md'
+      - '!doc/**'
+      - '!**/.github/**'
+      - '.github/workflows/workflow_linux.yml'
   workflow_dispatch:
 
 permissions:

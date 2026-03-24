@@ -2,11 +2,21 @@ name: MacOS Build
 
 on:
   push:
-    branches:
-      - master
+    paths:
+      - '**/*'
+      - '!appveyor.yml'
+      - '!README.md'
+      - '!doc/**'
+      - '!**/.github/**'
+      - '.github/workflows/workflow_macos.yml'
   pull_request:
-    branches:
-      - master
+    paths:
+      - '**/*'
+      - '!appveyor.yml'
+      - '!README.md'
+      - '!doc/**'
+      - '!**/.github/**'
+      - '.github/workflows/workflow_macos.yml'
   workflow_dispatch:
 
 permissions:
