@@ -634,7 +634,7 @@ void ImportFlashVectorCommand::execute() {
     if (ext == "fla" || ext == "swc" || (ext == "xfl" && XFL::isFLAZipBased(fp))) {
 
         if (!extractZip(srcPath, outPath)) {
-            DVGui::error(QObject::tr("Failed to extract archive: %1").arg(srcPath));
+            DVGui::error(QObject::tr("Failed to extract archive (invalid/corrupt ZIP): %1").arg(srcPath));
             return;
         }
 
@@ -750,7 +750,11 @@ void ImportFlashVectorCommand::execute() {
         }
 
     // ---- XFL directory ----
-    } else if (ext == "xfl" && QFileInfo(srcPath).isDir()) {
+    } else if ((ext == "xfl" && QFileInfo(srcPath).isDir()) || QFileInfo(srcPath).isDir()) {
+        if (!QFileInfo(srcPath).exists()) {
+            DVGui::error(QObject::tr("XFL directory does not exist: %1").arg(srcPath));
+            return;
+        }
         XFL::Reader reader(fp);
         if (!reader.read()) {
             DVGui::error(QObject::tr("Failed to read XFL: %1").arg(reader.getError().c_str()));
