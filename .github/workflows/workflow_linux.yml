@@ -33,10 +33,27 @@ jobs:
             cxx: clang++
 
     steps:
+    - name: Pre-check git remote reachability
+      run: |
+        set -e
+        n=0
+        until [ $n -ge 3 ]
+        do
+          if git ls-remote origin >/dev/null 2>&1; then
+            echo "git remote reachable"
+            break
+          fi
+          n=$((n+1))
+          echo "git remote not reachable, retrying ($n)"
+          sleep 3
+        done
+
     - name: Checkout repository
       uses: actions/checkout@v6
       with:
+        token: ${{ secrets.GITHUB_TOKEN }}
         lfs: false
+        submodules: false
         fetch-depth: 0
         persist-credentials: true
         clean: true

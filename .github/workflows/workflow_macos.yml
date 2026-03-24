@@ -21,10 +21,27 @@ jobs:
       GIT_LFS_SKIP_SMUDGE: '1'
     runs-on: macos-15-intel
     steps:
+      - name: Pre-check git remote reachability
+        run: |
+          set -e
+          n=0
+          until [ $n -ge 3 ]
+          do
+            if git ls-remote origin >/dev/null 2>&1; then
+              echo "git remote reachable"
+              break
+            fi
+            n=$((n+1))
+            echo "git remote not reachable, retrying ($n)"
+            sleep 3
+          done
+
       - name: Checkout repository
         uses: actions/checkout@v6
         with:
+          token: ${{ secrets.GITHUB_TOKEN }}
           lfs: false
+          submodules: false
           fetch-depth: 0
           persist-credentials: true
           clean: true
@@ -127,6 +144,12 @@ jobs:
             if [ -f build.log ]; then cat build.log; fi
             exit 1
           fi
+
+          echo "=== CMake target list for debug ==="
+          ninja -t targets | grep -E "(^flare_legacy$|^Flare$|^Flare )" || true
+
+          echo "=== Flare.app check post-build ==="
+          find . -name 'Flare.app' -maxdepth 8 -print || true
 
       - name: Upload build logs
         if: always()
