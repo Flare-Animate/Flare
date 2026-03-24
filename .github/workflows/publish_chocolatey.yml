@@ -14,7 +14,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
         with:
+          token: ${{ secrets.GITHUB_TOKEN }}
           lfs: false
+          submodules: false
 
       - name: Download Flare Windows zip from Release
         shell: pwsh
