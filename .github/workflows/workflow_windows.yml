@@ -258,16 +258,28 @@ jobs:
           if exist FlarePortable rmdir /S /Q FlarePortable
           mkdir FlarePortable
 
-          :: 2. Copy EXE
-          for /f "delims=" %%i in ('dir /b /s "build\Flare.exe" ^| findstr /v "CMakeFiles"') do copy /Y "%%i" FlarePortable\Flare.exe
-          
+          :: 2. Copy EXE (search both root and subdirs)
+          set "EXE_PATH="
+          for /f "delims=" %%i in ('dir /b /s "build\*Flare.exe" ^| findstr /v "CMakeFiles"') do (
+            set "EXE_PATH=%%i"
+            goto :copy_exe
+          )
+          :copy_exe
+          if not defined EXE_PATH (
+            echo ERROR: Flare.exe not found in build/ tree
+            dir /s /b build | findstr /i "Flare.exe"
+            exit /b 1
+          )
+          echo Found Flare.exe: %EXE_PATH%
+          copy /Y "%EXE_PATH%" FlarePortable\Flare.exe
+
           :: 3. Copy DLLs built by CMake (all RelWithDebInfo output dirs, including vcpkg-provided DLLs)
           for /f "delims=" %%d in ('dir /b /s "build\*.dll" ^| findstr /i "RelWithDebInfo" ^| findstr /v "CMakeFiles"') do copy /Y "%%d" FlarePortable\
 
           :: 4. Validation
           if not exist "FlarePortable\Flare.exe" (
-              echo ERROR: Flare.exe not found. Listing exe files:
-              dir /s /b build | findstr /i ".exe"
+              echo ERROR: Flare.exe not copied. Listing exe files:
+              dir /s /b build | findstr /i "Flare.exe"
               exit /b 1
           )
 
