@@ -1,0 +1,146 @@
+﻿2026-03-25T21:26:06.7033027Z ##[group]Run docker run --rm -v "$(pwd):/repo" -w /repo rhysd/actionlint:latest -color
+2026-03-25T21:26:06.7033723Z [36;1mdocker run --rm -v "$(pwd):/repo" -w /repo rhysd/actionlint:latest -color[0m
+2026-03-25T21:26:06.7063895Z shell: /usr/bin/bash -e {0}
+2026-03-25T21:26:06.7064175Z ##[endgroup]
+2026-03-25T21:26:06.7413530Z Unable to find image 'rhysd/actionlint:latest' locally
+2026-03-25T21:26:07.0761284Z latest: Pulling from rhysd/actionlint
+2026-03-25T21:26:07.1645102Z 589002ba0eae: Already exists
+2026-03-25T21:26:07.1681098Z 947dfbe3ffd7: Pulling fs layer
+2026-03-25T21:26:07.1682262Z 3ba6dbfa8d9f: Pulling fs layer
+2026-03-25T21:26:07.1683257Z a4125d59338b: Pulling fs layer
+2026-03-25T21:26:07.3745236Z 3ba6dbfa8d9f: Verifying Checksum
+2026-03-25T21:26:07.3745702Z 3ba6dbfa8d9f: Download complete
+2026-03-25T21:26:07.3834482Z 947dfbe3ffd7: Verifying Checksum
+2026-03-25T21:26:07.3835099Z 947dfbe3ffd7: Download complete
+2026-03-25T21:26:07.5262037Z a4125d59338b: Verifying Checksum
+2026-03-25T21:26:07.5262922Z a4125d59338b: Download complete
+2026-03-25T21:26:08.6059260Z 947dfbe3ffd7: Pull complete
+2026-03-25T21:26:08.6813644Z 3ba6dbfa8d9f: Pull complete
+2026-03-25T21:26:09.2452319Z a4125d59338b: Pull complete
+2026-03-25T21:26:09.2496161Z Digest: sha256:6f03470d0152251d7f07f7c4dc019dbe7024c72cd952f839544c7798843efa8f
+2026-03-25T21:26:09.2515175Z Status: Downloaded newer image for rhysd/actionlint:latest
+2026-03-25T21:26:09.6676175Z [33m.github/workflows/nightly.yml[0m[90m:[0m388[90m:[0m9[90m: [0m[1mshellcheck reported issue in this script: SC2012:info:26:68: Use find instead of ls to better handle non-alphanumeric filenames[0m[90m [shellcheck]
+2026-03-25T21:26:09.6677775Z [0m[90m    |
+2026-03-25T21:26:09.6678163Z [0m[90m388 | [0m        run: |
+2026-03-25T21:26:09.6678628Z [90m    | [0m[32m        ^~~~[0m
+2026-03-25T21:26:09.6680275Z [33m.github/workflows/nightly.yml[0m[90m:[0m388[90m:[0m9[90m: [0m[1mshellcheck reported issue in this script: SC2016:info:27:8: Expressions don't expand in single quotes, use double quotes for that[0m[90m [shellcheck]
+2026-03-25T21:26:09.6681911Z [0m[90m    |
+2026-03-25T21:26:09.6682278Z [0m[90m388 | [0m        run: |
+2026-03-25T21:26:09.6682943Z [90m    | [0m[32m        ^~~~[0m
+2026-03-25T21:26:09.6699198Z [33m.github/workflows/nightly.yml[0m[90m:[0m388[90m:[0m9[90m: [0m[1mshellcheck reported issue in this script: SC2155:warning:29:8: Declare and assign separately to avoid masking return values[0m[90m [shellcheck]
+2026-03-25T21:26:09.6700852Z [0m[90m    |
+2026-03-25T21:26:09.6701249Z [0m[90m388 | [0m        run: |
+2026-03-25T21:26:09.6701709Z [90m    | [0m[32m        ^~~~[0m
+2026-03-25T21:26:09.6703737Z [33m.github/workflows/nightly.yml[0m[90m:[0m491[90m:[0m9[90m: [0m[1mshellcheck reported issue in this script: SC2156:warning:2:15: Injecting filenames is fragile and insecure. Use parameters[0m[90m [shellcheck]
+2026-03-25T21:26:09.6705335Z [0m[90m    |
+2026-03-25T21:26:09.6705729Z [0m[90m491 | [0m        run: |
+2026-03-25T21:26:09.6706245Z [90m    | [0m[32m        ^~~~[0m
+2026-03-25T21:26:09.6713693Z [33m.github/workflows/nightly.yml[0m[90m:[0m525[90m:[0m9[90m: [0m[1mshellcheck reported issue in this script: SC2046:warning:4:9: Quote this to prevent word splitting[0m[90m [shellcheck]
+2026-03-25T21:26:09.6715120Z [0m[90m    |
+2026-03-25T21:26:09.6715351Z [0m[90m525 | [0m        run: |
+2026-03-25T21:26:09.6715611Z [90m    | [0m[32m        ^~~~[0m
+2026-03-25T21:26:09.6716474Z [33m.github/workflows/nightly.yml[0m[90m:[0m533[90m:[0m9[90m: [0m[1mshellcheck reported issue in this script: SC2046:warning:10:10: Quote this to prevent word splitting[0m[90m [shellcheck]
+2026-03-25T21:26:09.6717213Z [0m[90m    |
+2026-03-25T21:26:09.6717422Z [0m[90m533 | [0m        run: |
+2026-03-25T21:26:09.6717672Z [90m    | [0m[32m        ^~~~[0m
+2026-03-25T21:26:09.6718711Z [33m.github/workflows/nightly.yml[0m[90m:[0m533[90m:[0m9[90m: [0m[1mshellcheck reported issue in this script: SC2046:warning:5:13: Quote this to prevent word splitting[0m[90m [shellcheck]
+2026-03-25T21:26:09.6720006Z [0m[90m    |
+2026-03-25T21:26:09.6720221Z [0m[90m533 | [0m        run: |
+2026-03-25T21:26:09.6720609Z [90m    | [0m[32m        ^~~~[0m
+2026-03-25T21:26:09.6721439Z [33m.github/workflows/nightly.yml[0m[90m:[0m533[90m:[0m9[90m: [0m[1mshellcheck reported issue in this script: SC2046:warning:6:13: Quote this to prevent word splitting[0m[90m [shellcheck]
+2026-03-25T21:26:09.6722301Z [0m[90m    |
+2026-03-25T21:26:09.6722508Z [0m[90m533 | [0m        run: |
+2026-03-25T21:26:09.6722995Z [90m    | [0m[32m        ^~~~[0m
+2026-03-25T21:26:09.6724309Z [33m.github/workflows/nightly.yml[0m[90m:[0m533[90m:[0m9[90m: [0m[1mshellcheck reported issue in this script: SC2046:warning:7:23: Quote this to prevent word splitting[0m[90m [shellcheck]
+2026-03-25T21:26:09.6725253Z [0m[90m    |
+2026-03-25T21:26:09.6725546Z [0m[90m533 | [0m        run: |
+2026-03-25T21:26:09.6725960Z [90m    | [0m[32m        ^~~~[0m
+2026-03-25T21:26:09.6727430Z [33m.github/workflows/nightly.yml[0m[90m:[0m567[90m:[0m9[90m: [0m[1mshellcheck reported issue in this script: SC2086:info:7:63: Double quote to prevent globbing and word splitting[0m[90m [shellcheck]
+2026-03-25T21:26:09.6728893Z [0m[90m    |
+2026-03-25T21:26:09.6729767Z [0m[90m567 | [0m        run: |
+2026-03-25T21:26:09.6730104Z [90m    | [0m[32m        ^~~~[0m
+2026-03-25T21:26:09.6731114Z [33m.github/workflows/nightly.yml[0m[90m:[0m567[90m:[0m9[90m: [0m[1mshellcheck reported issue in this script: SC2086:info:7:93: Double quote to prevent globbing and word splitting[0m[90m [shellcheck]
+2026-03-25T21:26:09.6731972Z [0m[90m    |
+2026-03-25T21:26:09.6732199Z [0m[90m567 | [0m        run: |
+2026-03-25T21:26:09.6732443Z [90m    | [0m[32m        ^~~~[0m
+2026-03-25T21:26:09.6733979Z [33m.github/workflows/publish_on_release.yml[0m[90m:[0m92[90m:[0m9[90m: [0m[1mshellcheck reported issue in this script: SC2046:warning:5:13: Quote this to prevent word splitting[0m[90m [shellcheck]
+2026-03-25T21:26:09.6735219Z [0m[90m   |
+2026-03-25T21:26:09.6735658Z [0m[90m92 | [0m        run: |
+2026-03-25T21:26:09.6736052Z [90m   | [0m[32m        ^~~~[0m
+2026-03-25T21:26:09.6737622Z [33m.github/workflows/publish_on_release.yml[0m[90m:[0m92[90m:[0m9[90m: [0m[1mshellcheck reported issue in this script: SC2046:warning:7:9: Quote this to prevent word splitting[0m[90m [shellcheck]
+2026-03-25T21:26:09.6739087Z [0m[90m   |
+2026-03-25T21:26:09.6739447Z [0m[90m92 | [0m        run: |
+2026-03-25T21:26:09.6739901Z [90m   | [0m[32m        ^~~~[0m
+2026-03-25T21:26:09.6741657Z [33m.github/workflows/publish_on_release.yml[0m[90m:[0m123[90m:[0m9[90m: [0m[1mshellcheck reported issue in this script: SC2012:info:17:12: Use find instead of ls to better handle non-alphanumeric filenames[0m[90m [shellcheck]
+2026-03-25T21:26:09.6743518Z [0m[90m    |
+2026-03-25T21:26:09.6743909Z [0m[90m123 | [0m        run: |
+2026-03-25T21:26:09.6744393Z [90m    | [0m[32m        ^~~~[0m
+2026-03-25T21:26:09.6745559Z [33m.github/workflows/publish_on_release.yml[0m[90m:[0m123[90m:[0m9[90m: [0m[1mshellcheck reported issue in this script: SC2086:info:18:32: Double quote to prevent globbing and word splitting[0m[90m [shellcheck]
+2026-03-25T21:26:09.6746951Z [0m[90m    |
+2026-03-25T21:26:09.6747352Z [0m[90m123 | [0m        run: |
+2026-03-25T21:26:09.6747669Z [90m    | [0m[32m        ^~~~[0m
+2026-03-25T21:26:09.6748846Z [33m.github/workflows/publish_on_release.yml[0m[90m:[0m123[90m:[0m9[90m: [0m[1mshellcheck reported issue in this script: SC2155:warning:13:8: Declare and assign separately to avoid masking return values[0m[90m [shellcheck]
+2026-03-25T21:26:09.6749832Z [0m[90m    |
+2026-03-25T21:26:09.6750042Z [0m[90m123 | [0m        run: |
+2026-03-25T21:26:09.6750292Z [90m    | [0m[32m        ^~~~[0m
+2026-03-25T21:26:09.6751545Z [33m.github/workflows/publish_on_release.yml[0m[90m:[0m145[90m:[0m9[90m: [0m[1mshellcheck reported issue in this script: SC2086:info:8:20: Double quote to prevent globbing and word splitting[0m[90m [shellcheck]
+2026-03-25T21:26:09.6753305Z [0m[90m    |
+2026-03-25T21:26:09.6753612Z [0m[90m145 | [0m        run: |
+2026-03-25T21:26:09.6753855Z [90m    | [0m[32m        ^~~~[0m
+2026-03-25T21:26:09.6755185Z [33m.github/workflows/sync_upstream.yml[0m[90m:[0m77[90m:[0m9[90m: [0m[1mshellcheck reported issue in this script: SC2086:info:6:37: Double quote to prevent globbing and word splitting[0m[90m [shellcheck]
+2026-03-25T21:26:09.6756112Z [0m[90m   |
+2026-03-25T21:26:09.6756312Z [0m[90m77 | [0m        run: |
+2026-03-25T21:26:09.6756571Z [90m   | [0m[32m        ^~~~[0m
+2026-03-25T21:26:09.6757509Z [33m.github/workflows/workflow_linux.yml[0m[90m:[0m172[90m:[0m7[90m: [0m[1mshellcheck reported issue in this script: SC2012:info:38:13: Use find instead of ls to better handle non-alphanumeric filenames[0m[90m [shellcheck]
+2026-03-25T21:26:09.6758349Z [0m[90m    |
+2026-03-25T21:26:09.6758561Z [0m[90m172 | [0m      run: |
+2026-03-25T21:26:09.6758796Z [90m    | [0m[32m      ^~~~[0m
+2026-03-25T21:26:09.6759756Z [33m.github/workflows/workflow_linux.yml[0m[90m:[0m172[90m:[0m7[90m: [0m[1mshellcheck reported issue in this script: SC2016:info:40:8: Expressions don't expand in single quotes, use double quotes for that[0m[90m [shellcheck]
+2026-03-25T21:26:09.6760783Z [0m[90m    |
+2026-03-25T21:26:09.6761014Z [0m[90m172 | [0m      run: |
+2026-03-25T21:26:09.6761243Z [90m    | [0m[32m      ^~~~[0m
+2026-03-25T21:26:09.6762255Z [33m.github/workflows/workflow_linux.yml[0m[90m:[0m172[90m:[0m7[90m: [0m[1mshellcheck reported issue in this script: SC2155:warning:44:8: Declare and assign separately to avoid masking return values[0m[90m [shellcheck]
+2026-03-25T21:26:09.6763386Z [0m[90m    |
+2026-03-25T21:26:09.6763585Z [0m[90m172 | [0m      run: |
+2026-03-25T21:26:09.6763821Z [90m    | [0m[32m      ^~~~[0m
+2026-03-25T21:26:09.6764753Z [33m.github/workflows/workflow_macos.yml[0m[90m:[0m83[90m:[0m9[90m: [0m[1mshellcheck reported issue in this script: SC2156:warning:2:15: Injecting filenames is fragile and insecure. Use parameters[0m[90m [shellcheck]
+2026-03-25T21:26:09.6765567Z [0m[90m   |
+2026-03-25T21:26:09.6765761Z [0m[90m83 | [0m        run: |
+2026-03-25T21:26:09.6766006Z [90m   | [0m[32m        ^~~~[0m
+2026-03-25T21:26:09.6766832Z [33m.github/workflows/workflow_macos.yml[0m[90m:[0m132[90m:[0m9[90m: [0m[1mshellcheck reported issue in this script: SC2046:warning:4:9: Quote this to prevent word splitting[0m[90m [shellcheck]
+2026-03-25T21:26:09.6767562Z [0m[90m    |
+2026-03-25T21:26:09.6767760Z [0m[90m132 | [0m        run: |
+2026-03-25T21:26:09.6767996Z [90m    | [0m[32m        ^~~~[0m
+2026-03-25T21:26:09.6768824Z [33m.github/workflows/workflow_macos.yml[0m[90m:[0m140[90m:[0m9[90m: [0m[1mshellcheck reported issue in this script: SC2046:warning:10:13: Quote this to prevent word splitting[0m[90m [shellcheck]
+2026-03-25T21:26:09.6769561Z [0m[90m    |
+2026-03-25T21:26:09.6769754Z [0m[90m140 | [0m        run: |
+2026-03-25T21:26:09.6769996Z [90m    | [0m[32m        ^~~~[0m
+2026-03-25T21:26:09.6770821Z [33m.github/workflows/workflow_macos.yml[0m[90m:[0m140[90m:[0m9[90m: [0m[1mshellcheck reported issue in this script: SC2046:warning:11:13: Quote this to prevent word splitting[0m[90m [shellcheck]
+2026-03-25T21:26:09.6771578Z [0m[90m    |
+2026-03-25T21:26:09.6771769Z [0m[90m140 | [0m        run: |
+2026-03-25T21:26:09.6772012Z [90m    | [0m[32m        ^~~~[0m
+2026-03-25T21:26:09.6773326Z [33m.github/workflows/workflow_macos.yml[0m[90m:[0m140[90m:[0m9[90m: [0m[1mshellcheck reported issue in this script: SC2046:warning:12:23: Quote this to prevent word splitting[0m[90m [shellcheck]
+2026-03-25T21:26:09.6774698Z [0m[90m    |
+2026-03-25T21:26:09.6774922Z [0m[90m140 | [0m        run: |
+2026-03-25T21:26:09.6775165Z [90m    | [0m[32m        ^~~~[0m
+2026-03-25T21:26:09.6776459Z [33m.github/workflows/workflow_macos.yml[0m[90m:[0m140[90m:[0m9[90m: [0m[1mshellcheck reported issue in this script: SC2046:warning:25:16: Quote this to prevent word splitting[0m[90m [shellcheck]
+2026-03-25T21:26:09.6777204Z [0m[90m    |
+2026-03-25T21:26:09.6777419Z [0m[90m140 | [0m        run: |
+2026-03-25T21:26:09.6777846Z [90m    | [0m[32m        ^~~~[0m
+2026-03-25T21:26:09.6778819Z [33m.github/workflows/workflow_macos.yml[0m[90m:[0m236[90m:[0m9[90m: [0m[1mshellcheck reported issue in this script: SC2086:info:18:27: Double quote to prevent globbing and word splitting[0m[90m [shellcheck]
+2026-03-25T21:26:09.6779753Z [0m[90m    |
+2026-03-25T21:26:09.6779959Z [0m[90m236 | [0m        run: |
+2026-03-25T21:26:09.6780325Z [90m    | [0m[32m        ^~~~[0m
+2026-03-25T21:26:09.6781379Z [33m.github/workflows/workflow_macos.yml[0m[90m:[0m236[90m:[0m9[90m: [0m[1mshellcheck reported issue in this script: SC2086:info:20:33: Double quote to prevent globbing and word splitting[0m[90m [shellcheck]
+2026-03-25T21:26:09.6782246Z [0m[90m    |
+2026-03-25T21:26:09.6782485Z [0m[90m236 | [0m        run: |
+2026-03-25T21:26:09.6782980Z [90m    | [0m[32m        ^~~~[0m
+2026-03-25T21:26:09.6784211Z [33m.github/workflows/workflow_macos.yml[0m[90m:[0m236[90m:[0m9[90m: [0m[1mshellcheck reported issue in this script: SC2086:info:22:18: Double quote to prevent globbing and word splitting[0m[90m [shellcheck]
+2026-03-25T21:26:09.6785855Z [0m[90m    |
+2026-03-25T21:26:09.6786215Z [0m[90m236 | [0m        run: |
+2026-03-25T21:26:09.6786622Z [90m    | [0m[32m        ^~~~[0m
+2026-03-25T21:26:09.6787599Z [33m.github/workflows/workflow_macos.yml[0m[90m:[0m236[90m:[0m9[90m: [0m[1mshellcheck reported issue in this script: SC2235:style:13:3: Use { ..; } instead of (..) to avoid subshell overhead[0m[90m [shellcheck]
+2026-03-25T21:26:09.6788380Z [0m[90m    |
+2026-03-25T21:26:09.6788582Z [0m[90m236 | [0m        run: |
+2026-03-25T21:26:09.6788829Z [90m    | [0m[32m        ^~~~[0m
+2026-03-25T21:26:09.7388787Z ##[error]Process completed with exit code 1.
