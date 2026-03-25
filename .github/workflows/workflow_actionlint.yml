@@ -21,6 +21,5 @@ jobs:
         with:
           fetch-depth: 0
       - name: Run actionlint
-        uses: docker://rhysd/actionlint:latest
-        with:
-          args: -color
+        run: |
+          docker run --rm -v "$(pwd):/repo" -w /repo rhysd/actionlint:latest -color
