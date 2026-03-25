@@ -328,6 +328,8 @@ jobs:
       if: ${{ github.event_name == 'pull_request' && always() }}
       uses: actions/github-script@v6
       with:
+        env:
+          MATRIX_COMPILER: ${{ matrix.compiler }}
         script: |
           const fs = require('fs');
           const owner = context.repo.owner;
@@ -345,5 +347,5 @@ jobs:
           const cmake = readTrunc('flare/build/cmake_configure.log');
           const build = readTrunc('flare/build/build.log');
           const smoke = readTrunc('flare/build/smoke_test.log');
-          const body = `**Automated build logs – Linux (${{ matrix.compiler }}) (truncated)**\n\n--- CMake configure log ---\n${cmake}\n\n--- Build log ---\n${build}\n\n--- Smoke test (launch check) ---\n${smoke}`;
+          const body = `**Automated build logs – Linux (${process.env.MATRIX_COMPILER}) (truncated)**\n\n--- CMake configure log ---\n${cmake}\n\n--- Build log ---\n${build}\n\n--- Smoke test (launch check) ---\n${smoke}`;
           await github.rest.issues.createComment({ owner, repo, issue_number: pr, body });

@@ -11,6 +11,9 @@ on:
     branches: [ main, master, rebrand-to-flare-mass, restore-flash-9e73b8, rename-to-flare-full ]
   pull_request:
     branches: [ main, master, rename-to-flare-full ]
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   tests:

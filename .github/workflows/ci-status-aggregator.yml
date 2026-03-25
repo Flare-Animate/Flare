@@ -1,0 +1,67 @@
+name: CI Status Aggregator
+on:
+  workflow_run:
+    workflows:
+      - Windows Build
+      - Linux Build
+      - MacOS Build
+    types:
+      - completed
+permissions:
+  contents: read
+  pull-requests: write
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.workflow_run.head_branch || github.ref }}
+  cancel-in-progress: true
+jobs:
+  summarize:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Post consolidated CI status to PR
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const run = context.payload.workflow_run;
+            const headSha = run.head_sha;
+            const headBranch = run.head_branch;
+            const event = run.event;
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const prNum = (run.pull_requests && run.pull_requests[0] && run.pull_requests[0].number) || null;
+            if (!prNum) {
+              core.info('No PR associated with this workflow_run; skipping.');
+              return;
+            }
+            // Fetch workflow runs for this commit/branch and filter platform builds
+            const targetNames = new Set(['Windows Build', 'Linux Build', 'MacOS Build']);
+            const runsResp = await github.rest.actions.listWorkflowRunsForRepo({
+              owner, repo, per_page: 100, branch: headBranch
+            });
+            const runsForSha = runsResp.data.workflow_runs.filter(r => r.head_sha === headSha && targetNames.has(r.name));
+            const byName = {};
+            for (const r of runsForSha) {
+              const prev = byName[r.name];
+              // Choose the latest by run_number
+              if (!prev || r.run_number > prev.run_number) byName[r.name] = r;
+            }
+            const names = Array.from(targetNames.values());
+            const missing = names.filter(n => !(n in byName));
+            const results = names.map(n => {
+              const r = byName[n];
+              return r ? `- ${n}: conclusion=${r.conclusion || 'unknown'} status=${r.status}` : `- ${n}: no run found`;
+            }).join('\n');
+            const allPass = names.every(n => byName[n] && byName[n].conclusion === 'success');
+            const anyFail = names.some(n => byName[n] && byName[n].conclusion && byName[n].conclusion !== 'success');
+            let body = `CI status for commit ${headSha.slice(0,7)} (branch ${headBranch})\n\n${results}\n\n`;
+            if (missing.length) {
+              body += `Note: missing runs for: ${missing.join(', ')}\n`;
+            }
+            if (allPass) {
+              body += `✅ All platform workflows are passing.`;
+            } else if (anyFail) {
+              body += `❌ One or more platform workflows failed. Please check the logs in the respective workflow runs.`;
+            } else {
+              body += `⏳ Waiting for remaining platform workflows to complete.`;
+            }
+            await github.rest.issues.createComment({ owner, repo, issue_number: prNum, body });
