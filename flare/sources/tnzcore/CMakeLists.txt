@@ -233,6 +233,8 @@ set(SOURCES
     ../common/flash/FSWFStream.cpp
     ../common/flash/FSound.cpp
     ../common/flash/XFLReader.cpp
+    ${SDKROOT}/zlib-1.2.8/contrib/minizip/unzip.c
+    ${SDKROOT}/zlib-1.2.8/contrib/minizip/zip.c
     ../common/psdlib/psd.cpp
     ../common/psdlib/psdutils.cpp
     ../common/trop/bbox.cpp
@@ -348,6 +350,7 @@ include_directories(
     SYSTEM
     ../common/flash
     ${SDKROOT}/Lz4/Lz4_131/lib/
+    ${SDKROOT}/zlib-1.2.8/contrib/minizip
 )
 
 if(BUILD_TARGET_WIN)
