@@ -558,6 +558,7 @@ include_directories(
     ../../sources/flarefarm/include
     ../../sources/flareqt
     ../../sources/stopmotion
+    ../../sources/flare
 )
 
 if (WITH_CANON)
