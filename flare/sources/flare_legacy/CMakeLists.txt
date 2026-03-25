@@ -558,6 +558,7 @@ include_directories(
     ../../sources/flarefarm/include
     ../../sources/flareqt
     ../../sources/stopmotion
+    ../../sources/common/flash
     ../../sources/flare
     ../../sources
 )
