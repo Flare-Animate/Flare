@@ -24,6 +24,9 @@ permissions:
   contents: read
   issues: write
   pull-requests: write
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   macOS:

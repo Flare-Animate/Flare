@@ -12,14 +12,17 @@ permissions:
 
 jobs:
   diagnose-build:
-    runs-on: windows-latest
+    runs-on: windows-2022
     steps:
       - name: Checkout
         uses: actions/checkout@v6
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          lfs: false
           submodules: false
           fetch-depth: 0
+          persist-credentials: true
+          clean: true
 
       - name: Set up vcpkg (manual)
         shell: cmd
@@ -57,13 +60,32 @@ jobs:
       - name: Configure (CMake)
         shell: cmd
         run: |
+          @echo on
+          if exist build rmdir /S /Q build
           mkdir build
-          cmake -S . -B build -G "Visual Studio 16 2019" -A x64 -Wno-dev
+          cmake -S flare/sources -B build -G "Visual Studio 17 2022" -A x64 ^
+            -DWITH_SYSTEM_LZO=ON ^
+            -DWITH_LZODRIVER=OFF ^
+            -DCMAKE_BUILD_TYPE=RelWithDebInfo > build\cmake_configure.log 2>&1
+          if %ERRORLEVEL% NEQ 0 (
+            type build\cmake_configure.log
+            exit /b %ERRORLEVEL%
+          )
 
       - name: Build (CMake)
         shell: cmd
         run: |
-          cmake --build build --config RelWithDebInfo --target Flare --parallel 4 || exit /b 0
+          @echo on
+          cmake --build build --config RelWithDebInfo --target Flare --parallel 4 > build\build.log 2>&1
+          set rc=%ERRORLEVEL%
+          echo --- CMake configure log ---
+          if exist build\cmake_configure.log type build\cmake_configure.log
+          echo --- Build log ---
+          if exist build\build.log type build\build.log
+          if %rc% NEQ 0 (
+            echo Build failed with exit code %rc%
+            exit /b %rc%
+          )
 
       - name: Upload build logs
         uses: actions/upload-artifact@v6
@@ -74,14 +96,28 @@ jobs:
             build\CMakeFiles\CMakeOutput.log
             build\CMakeFiles\CMakeError.log
             build\build.log
+            build\cmake_configure.log
 
-      - name: Post PR comment with short status
+      - name: Post PR comment with logs (truncated)
         if: github.event_name == 'pull_request'
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const owner = context.repo.owner
-            const repo = context.repo.repo
-            const pr = context.payload.pull_request.number
-            await github.issues.createComment({ owner, repo, issue_number: pr, body: `Agentic build check completed — logs uploaded as artifact (see Actions run).` })
+            const fs = require('fs');
+            function readTrunc(path) {
+              try {
+                if (!fs.existsSync(path)) return '(missing)';
+                const content = fs.readFileSync(path, 'utf8');
+                if (content.length > 12000) return content.slice(0, 6000) + '\n\n... (truncated) ...\n\n' + content.slice(-6000);
+                return content;
+              } catch (e) { return `(error reading ${path}): ${e.message}`; }
+            }
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const pr = context.payload.pull_request.number;
+            const cmake = readTrunc('build/cmake_configure.log');
+            const build = readTrunc('build/build.log');
+            const note = (!fs.existsSync('build/cmake_configure.log') && !fs.existsSync('build/build.log')) ? '\n\nNote: log files missing – checkout or prior step may have failed.' : '';
+            const body = `Agentic build check completed — Windows\n\n--- CMake configure log ---\n${cmake}\n\n--- Build log ---\n${build}${note}`;
+            await github.issues.createComment({ owner, repo, issue_number: pr, body });
