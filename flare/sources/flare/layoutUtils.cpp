@@ -330,8 +330,8 @@ TRasterFxP layoutUtils::getLayoutFx(int frames) {
 
       layoutFx->setName(L"Layout");
     }
-    return layoutFx;
   }
+  return layoutFx;
 }
 
 TStageObject* layoutUtils::getCurrentCamera() {

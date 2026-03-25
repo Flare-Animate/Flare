@@ -21,4 +21,4 @@ jobs:
         with:
           fetch-depth: 0
       - name: Run actionlint
-        uses: rhysd/actionlint@v1
+        uses: rhysd/actionlint-action@v1
