@@ -120,4 +120,4 @@ jobs:
             const build = readTrunc('build/build.log');
             const note = (!fs.existsSync('build/cmake_configure.log') && !fs.existsSync('build/build.log')) ? '\n\nNote: log files missing – checkout or prior step may have failed.' : '';
             const body = `Agentic build check completed — Windows\n\n--- CMake configure log ---\n${cmake}\n\n--- Build log ---\n${build}${note}`;
-            await github.issues.createComment({ owner, repo, issue_number: pr, body });
+            await github.rest.issues.createComment({ owner, repo, issue_number: pr, body });

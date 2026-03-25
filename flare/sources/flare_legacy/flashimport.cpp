@@ -10,6 +10,7 @@
 #include "flare/menubarcommandids.h"
 #include "flare/menubar.h"
 #include "flare/tapp.h"
+#include "flare/tscenehandle.h"
 #include "flare/ocaio.h"
 #include "flare/tproject.h"
 #include "flare/preferences.h"
