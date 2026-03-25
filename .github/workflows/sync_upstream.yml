@@ -48,7 +48,7 @@ jobs:
 
     steps:
       - name: Checkout Flare
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
           lfs: false
@@ -60,7 +60,7 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: Set up Python 3.11
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v4
         with:
           python-version: '3.11'
 
@@ -161,9 +161,9 @@ jobs:
         if: steps.changes.outputs.commit_count == '0' && inputs.dry_run != 'true'
         run: echo "✅ Already up to date — no PR needed."
 
-      - name: Upload agent log
+      - name: Upload sync log
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v4
         with:
           name: sync-agent-log-${{ github.run_id }}
           path: /tmp/sync_agent.log

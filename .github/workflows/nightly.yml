@@ -38,7 +38,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           lfs: false
@@ -312,7 +312,7 @@ jobs:
           Write-Host ($log -join "`n")
 
       - name: Upload Windows portable
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v4
         with:
           name: Flare-Windows-Portable-nightly
           path: FlarePortable/
@@ -320,7 +320,7 @@ jobs:
 
       - name: Upload smoke test log
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v4
         with:
           name: smoke-test-windows-nightly
           path: smoke_test.log
@@ -335,7 +335,7 @@ jobs:
       GIT_LFS_SKIP_SMUDGE: '1'
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           lfs: false
@@ -459,7 +459,7 @@ jobs:
           fi
 
       - name: Upload Linux AppImage
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v4
         with:
           name: Flare-Linux-nightly
           path: flare/build/Flare-Linux-nightly.tar.gz
@@ -467,7 +467,7 @@ jobs:
 
       - name: Upload smoke test log
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v4
         with:
           name: smoke-test-linux-nightly
           path: flare/build/smoke_test.log
@@ -482,7 +482,7 @@ jobs:
       GIT_LFS_SKIP_SMUDGE: '1'
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
         with:
           lfs: false
           fetch-depth: 1
@@ -515,7 +515,7 @@ jobs:
         run: |
           export PATH="/usr/local/opt/ccache/libexec:$PATH"
           mkdir -p /Users/runner/.ccache
-      - uses: actions/cache@v5
+      - uses: actions/cache@v4
         with:
           path: /Users/runner/.ccache
           key: ${{ runner.os }}-nightly-${{ github.sha }}
@@ -603,7 +603,7 @@ jobs:
 
       - name: Upload macOS DMG
         if: ${{ env.DMG != '' }}
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v4
         with:
           name: Flare-macOS-nightly
           path: ${{ env.DMG }}
@@ -611,7 +611,7 @@ jobs:
 
       - name: Upload smoke test log
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v4
         with:
           name: smoke-test-macos-nightly
           path: flare/build/smoke_test.log
