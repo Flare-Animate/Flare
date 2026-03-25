@@ -489,6 +489,9 @@ endif()
 
 set(OBJCSOURCES filebrowsermodel.cpp)
 
+# Ensure any objc/other single-file sources are resolved too
+resolve_flare_legacy_paths(OBJCSOURCES OBJCSOURCES)
+
 # Resource file(s)
 # resources live in the sibling "flare" directory after the rebrand
 set(RESOURCES "${CMAKE_CURRENT_SOURCE_DIR}/../flare/flare.qrc")
