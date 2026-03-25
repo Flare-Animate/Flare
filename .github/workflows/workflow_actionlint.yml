@@ -21,4 +21,6 @@ jobs:
         with:
           fetch-depth: 0
       - name: Run actionlint
-        uses: rhysd/actionlint-action@v1
+        uses: docker://rhysd/actionlint:latest
+        with:
+          args: -color
