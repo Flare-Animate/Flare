@@ -7,7 +7,6 @@ on:
 
 jobs:
   placeholder:
-    if: false  # disable placeholder run; compiled workflow should replace this
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

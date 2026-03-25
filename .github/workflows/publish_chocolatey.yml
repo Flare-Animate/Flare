@@ -7,7 +7,6 @@ on:
 
 jobs:
   publish-choco:
-    if: ${{ secrets.CHOCO_API_KEY }}
     runs-on: windows-latest
 
     steps:

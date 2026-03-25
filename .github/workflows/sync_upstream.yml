@@ -60,7 +60,7 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: Set up Python 3.11
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
@@ -105,7 +105,7 @@ jobs:
                         ? fs.readFileSync('/tmp/sync_agent.log', 'utf8').slice(-10000)
                         : '(log unavailable)';
             const count  = '${{ steps.changes.outputs.commit_count }}';
-            const source = '${{ inputs.source || "all" }}';
+            const source = '${{ inputs.source || 'all' }}';
             const srcLabel = source === 'all'
               ? 'opentoonz/opentoonz + tahoma2d/tahoma2d'
               : (source === 'opentoonz' ? 'opentoonz/opentoonz' : 'tahoma2d/tahoma2d');
