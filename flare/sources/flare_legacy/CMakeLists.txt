@@ -1,5 +1,24 @@
 set(VERSION 1.7.1)
 
+function(resolve_flare_legacy_paths input_var output_var)
+  set(resolved_files "")
+  foreach(f IN LISTS ${input_var})
+    if(IS_ABSOLUTE "${f}")
+      set(candidate "${f}")
+    elseif(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${f}")
+      set(candidate "${CMAKE_CURRENT_SOURCE_DIR}/${f}")
+    elseif(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../flare/${f}")
+      set(candidate "${CMAKE_CURRENT_SOURCE_DIR}/../flare/${f}")
+    elseif(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../${f}")
+      set(candidate "${CMAKE_CURRENT_SOURCE_DIR}/../${f}")
+    else()
+      message(FATAL_ERROR "flare_legacy: cannot locate project file '${f}'")
+    endif()
+    list(APPEND resolved_files "${candidate}")
+  endforeach()
+  set(${output_var} ${resolved_files} PARENT_SCOPE)
+endfunction()
+
 set(MOC_HEADERS
     addfilmstripframespopup.h
     adjustlevelspopup.h
@@ -405,6 +424,11 @@ set(SOURCES
     ObjectTracker.cpp
     predict3d.cpp
 )
+
+# Ensure legacy CMake target resolves moved/new file paths correctly.
+resolve_flare_legacy_paths(MOC_HEADERS MOC_HEADERS)
+resolve_flare_legacy_paths(HEADERS HEADERS)
+resolve_flare_legacy_paths(SOURCES SOURCES)
 
 if(PLATFORM EQUAL 64)
     set(SOURCES
