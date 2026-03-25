@@ -99,7 +99,7 @@ jobs:
           libqt5serialport5-dev libsuperlu-dev liblz4-dev libusb-1.0-0-dev \
           liblzo2-dev libpng-dev libjpeg-dev libglew-dev freeglut3-dev \
           libfreetype6-dev libjson-c-dev libmypaint-dev libopencv-dev \
-          libturbojpeg0-dev libomp-dev libfuse2
+          libturbojpeg0-dev libomp-dev libfuse2 libzip-dev libminizip-dev
 
     - name: Set up ccache
       uses: hendrikmuhs/ccache-action@v1.2

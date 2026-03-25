@@ -121,6 +121,10 @@ jobs:
           key: ${{ runner.os }}-${{ github.sha }}
           restore-keys: ${{ runner.os }}-
 
+      - name: Install libzip for unzip.h (macOS)
+        run: |
+          brew install libzip || true
+
       - name: Build libtiff
         run: |
           cd thirdparty/tiff-4.0.3
