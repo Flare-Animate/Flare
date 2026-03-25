@@ -559,6 +559,7 @@ include_directories(
     ../../sources/flareqt
     ../../sources/stopmotion
     ../../sources/flare
+    ../../sources
 )
 
 if (WITH_CANON)
