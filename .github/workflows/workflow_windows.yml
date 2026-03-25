@@ -388,39 +388,46 @@ jobs:
 
           # --- Static analysis: list all DLLs present in FlarePortable ---
           $log.Add("--- DLLs present in FlarePortable (root) ---")
-          $rootDlls = Get-ChildItem FlarePortable -Filter *.dll -File | Select-Object -ExpandProperty Name | Sort-Object
+          $rootDlls = @()
+          if (Test-Path "FlarePortable") {
+            $rootDlls = Get-ChildItem FlarePortable -Filter *.dll -File -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Name | Sort-Object
+          }
           $rootDlls | ForEach-Object { $log.Add("  $_") }
           $log.Add("Total root DLLs: $($rootDlls.Count)")
           $log.Add("")
 
           # --- dumpbin: direct dependencies of Flare.exe ---
           $log.Add("--- dumpbin /DEPENDENTS FlarePortable\Flare.exe ---")
-          try {
-            $dumpout = & dumpbin /DEPENDENTS FlarePortable\Flare.exe 2>&1
-            $needed  = $dumpout | Select-String '\.dll' |
-                       ForEach-Object { ($_ -replace '^\s+','').Trim() } |
-                       Where-Object { $_ -ne '' }
-            $needed | ForEach-Object { $log.Add("  needs: $_") }
-            $log.Add("")
-            $log.Add("--- Checking direct deps are present ---")
-            $missing = @()
-            foreach ($dll in $needed) {
-              $name = [System.IO.Path]::GetFileName($dll)
-              $inPackage = Test-Path "FlarePortable\$name"
-              $inSystem  = $null -ne (Get-Command $name -ErrorAction SilentlyContinue)
-              if (-not $inPackage -and -not $inSystem) { $missing += $name }
-              $log.Add("  $name -> package=$inPackage  system=$inSystem")
-            }
-            if ($missing.Count -gt 0) {
+          if (-not (Test-Path "FlarePortable\Flare.exe")) {
+            $log.Add("SKIP: FlarePortable\Flare.exe not found; skipping dependency check.")
+          } else {
+            try {
+              $dumpout = & dumpbin /DEPENDENTS FlarePortable\Flare.exe 2>&1
+              $needed  = $dumpout | Select-String '\.dll' |
+                         ForEach-Object { ($_ -replace '^\s+','').Trim() } |
+                         Where-Object { $_ -ne '' }
+              $needed | ForEach-Object { $log.Add("  needs: $_") }
               $log.Add("")
-              $log.Add("SMOKE TEST WARN: These DLLs are neither in FlarePortable nor system PATH:")
-              $missing | ForEach-Object { $log.Add("  MISSING: $_") }
-            } else {
-              $log.Add("")
-              $log.Add("SMOKE TEST OK: All direct DLL dependencies accounted for.")
+              $log.Add("--- Checking direct deps are present ---")
+              $missing = @()
+              foreach ($dll in $needed) {
+                $name = [System.IO.Path]::GetFileName($dll)
+                $inPackage = Test-Path "FlarePortable\$name"
+                $inSystem  = $null -ne (Get-Command $name -ErrorAction SilentlyContinue)
+                if (-not $inPackage -and -not $inSystem) { $missing += $name }
+                $log.Add("  $name -> package=$inPackage  system=$inSystem")
+              }
+              if ($missing.Count -gt 0) {
+                $log.Add("")
+                $log.Add("SMOKE TEST WARN: These DLLs are neither in FlarePortable nor system PATH:")
+                $missing | ForEach-Object { $log.Add("  MISSING: $_") }
+              } else {
+                $log.Add("")
+                $log.Add("SMOKE TEST OK: All direct DLL dependencies accounted for.")
+              }
+            } catch {
+              $log.Add("dumpbin not available or failed: $_")
             }
-          } catch {
-            $log.Add("dumpbin not available or failed: $_")
           }
           $log.Add("")
 

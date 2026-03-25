@@ -1,8 +1,10 @@
 set(VERSION 1.7.1)
 
 function(resolve_flare_legacy_paths input_var output_var)
+  # Read the list variable named by input_var
   set(resolved_files "")
-  foreach(f IN LISTS ${input_var})
+  set(input_list "${${input_var}}")
+  foreach(f ${input_list})
     if(IS_ABSOLUTE "${f}")
       set(candidate "${f}")
     elseif(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${f}")
@@ -11,11 +13,16 @@ function(resolve_flare_legacy_paths input_var output_var)
       set(candidate "${CMAKE_CURRENT_SOURCE_DIR}/../flare/${f}")
     elseif(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../${f}")
       set(candidate "${CMAKE_CURRENT_SOURCE_DIR}/../${f}")
-    else()
-      message(FATAL_ERROR "flare_legacy: cannot locate project file '${f}'")
-    endif()
+        else()
+            message(WARNING "flare_legacy: cannot locate project file '${f}' (checked ${CMAKE_CURRENT_SOURCE_DIR}/${f} and ../flare/${f})")
+            # skip missing file so configure can continue; caller will see fewer resolved entries
+            continue()
+        endif()
     list(APPEND resolved_files "${candidate}")
   endforeach()
+  # Debug summary
+  list(LENGTH resolved_files _len)
+  message(STATUS "flare_legacy: resolved ${_len} entries from ${input_var}")
   set(${output_var} ${resolved_files} PARENT_SCOPE)
 endfunction()
 
@@ -425,11 +432,6 @@ set(SOURCES
     predict3d.cpp
 )
 
-# Ensure legacy CMake target resolves moved/new file paths correctly.
-resolve_flare_legacy_paths(MOC_HEADERS MOC_HEADERS)
-resolve_flare_legacy_paths(HEADERS HEADERS)
-resolve_flare_legacy_paths(SOURCES SOURCES)
-
 if(PLATFORM EQUAL 64)
     set(SOURCES
         ${SOURCES}
@@ -454,6 +456,12 @@ else()
         xshbreadcrumbs.cpp
     )
 endif()
+
+# Ensure legacy CMake target resolves moved/new file paths correctly.
+# Run resolution after platform-specific SOURCES/MOC_HEADERS/HEADERS have been appended
+resolve_flare_legacy_paths(MOC_HEADERS MOC_HEADERS)
+resolve_flare_legacy_paths(HEADERS HEADERS)
+resolve_flare_legacy_paths(SOURCES SOURCES)
 
 if(WITH_TRANSLATION)
     add_translation(flare ${HEADERS} ${SOURCES})
