@@ -233,6 +233,7 @@ set(SOURCES
     ../common/flash/FSWFStream.cpp
     ../common/flash/FSound.cpp
     ../common/flash/XFLReader.cpp
+    ${SDKROOT}/zlib-1.2.8/contrib/minizip/ioapi.c
     ${SDKROOT}/zlib-1.2.8/contrib/minizip/unzip.c
     ${SDKROOT}/zlib-1.2.8/contrib/minizip/zip.c
     ../common/psdlib/psd.cpp
