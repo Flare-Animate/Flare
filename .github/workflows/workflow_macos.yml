@@ -36,7 +36,7 @@ jobs:
     runs-on: macos-15-intel
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           lfs: false
@@ -118,7 +118,7 @@ jobs:
         run: |
           export PATH="/usr/local/opt/ccache/libexec:$PATH"
           mkdir -p /Users/runner/.ccache
-      - uses: actions/cache@v5
+      - uses: actions/cache@v4
         with:
           path: /Users/runner/.ccache
           key: ${{ runner.os }}-${{ github.sha }}
@@ -176,7 +176,7 @@ jobs:
 
       - name: Upload build logs
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v4
         with:
           name: build-logs-macos
           path: |
@@ -317,13 +317,13 @@ jobs:
 
       - name: Upload smoke test log
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v4
         with:
           name: smoke-test-macos
           path: flare/build/smoke_test.log
           if-no-files-found: ignore
 
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v4
         with:
           name: Flare-${{ runner.os }}-${{ github.sha }}
           path: flare/build/${{ env.DMG }}

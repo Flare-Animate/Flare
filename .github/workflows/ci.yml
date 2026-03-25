@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           lfs: false
@@ -52,7 +52,7 @@ jobs:
           python tools/flash/lint_repo_scripts.py
 
       - name: Upload script problems
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v4
         with:
           name: repo-script-problems
           path: repo_script_problems.json

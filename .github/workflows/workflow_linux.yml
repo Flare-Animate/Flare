@@ -48,7 +48,7 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v6
+      uses: actions/checkout@v4
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         lfs: false
@@ -158,7 +158,7 @@ jobs:
 
     - name: Upload build logs
       if: always()
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@v4
       with:
         name: build-logs-${{ matrix.compiler }}
         path: |
@@ -326,10 +326,10 @@ jobs:
 
     - name: Post build logs to PR
       if: ${{ github.event_name == 'pull_request' && always() }}
-      uses: actions/github-script@v6
+      uses: actions/github-script@v7
+      env:
+        MATRIX_COMPILER: ${{ matrix.compiler }}
       with:
-        env:
-          MATRIX_COMPILER: ${{ matrix.compiler }}
         script: |
           const fs = require('fs');
           const owner = context.repo.owner;
