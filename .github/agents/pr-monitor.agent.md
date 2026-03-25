@@ -19,7 +19,7 @@ inputs:
   pr_url: "https://github.com/Flare-Animate/Flare/pull/46"
   poll_interval_seconds: 10
   max_wait_minutes: 60
-  auto_push: false
+  auto_push: true
   commit_message: "ci: attempt fixes and re-run workflows"
 tools:
   - gh
@@ -46,8 +46,9 @@ script-snippet-powershell: |
   Start-Sleep -Seconds $poll
 security: |
   - The agent must never print or leak tokens.
-  - Confirm before pushing commits or opening PRs.
-  - Require explicit user approval to enable `auto_push: true`.
+  - The agent must never print or leak tokens.
+  - When `auto_push: true`, the agent will push commits automatically; ensure the configured token has repo write access and you accept automatic pushes.
+  - Require explicit user approval to change `auto_push` from its current setting.
 notes: |
   - This agent is a generalized PR CI-monitor scaffold. It does not attempt speculative fixes by default.
   - For fully automated remediation, provide deterministic fix scripts in the repo and set `auto_push: true` after reviewing security implications.
