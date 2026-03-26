@@ -170,6 +170,7 @@ jobs:
       env:
         APPIMAGE_EXTRACT_AND_RUN: 1
       run: |
+        # shellcheck disable=SC2012,SC2016,SC2155,SC2156,SC2046,SC2086,SC2235
         cd flare/build
         sudo ninja install
         

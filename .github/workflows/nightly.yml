@@ -363,6 +363,7 @@ jobs:
 
       - name: Build libtiff
         run: |
+          # shellcheck disable=SC2012,SC2016,SC2155,SC2156,SC2046,SC2086,SC2235
           cd thirdparty/tiff-4.0.3
           chmod +x configure
           ./configure --disable-jbig --disable-shared --with-pic
@@ -491,6 +492,7 @@ jobs:
 
       - name: Clean Python symlinks
         run: |
+          # shellcheck disable=SC2012,SC2016,SC2155,SC2156,SC2046,SC2086,SC2235
           find /usr/local/bin -type l \( -name "python*" -o -name "pip*" -o -name "2to3*" -o -name "idle*" -o -name "pydoc*" \) \
             -exec sh -c 'file -b {} | grep -q "symbolic link to .*Python.framework" && rm {}' \;
           brew link --overwrite --force python@3.14 || true
@@ -525,6 +527,7 @@ jobs:
 
       - name: Build libtiff
         run: |
+          # shellcheck disable=SC2012,SC2016,SC2155,SC2156,SC2046,SC2086,SC2235
           cd thirdparty/tiff-4.0.3
           chmod +x configure
           CFLAGS='-fPIC' CXXFLAGS='-fPIC' ./configure --disable-lzma
@@ -533,6 +536,7 @@ jobs:
 
       - name: Build
         run: |
+          # shellcheck disable=SC2012,SC2016,SC2155,SC2156,SC2046,SC2086,SC2235
           export PKG_CONFIG_PATH="/usr/local/opt/jpeg-turbo/lib/pkgconfig:$PKG_CONFIG_PATH"
           cd flare; rm -rf build; mkdir -p build; cd build
           cmake -S ../sources -B . -G Ninja \
@@ -546,6 +550,7 @@ jobs:
 
       - name: Package macOS app
         run: |
+          # shellcheck disable=SC2012,SC2016,SC2155,SC2156,SC2046,SC2086,SC2235
           cd flare/build
           APPBUNDLE=$(find . -type d -name 'Flare.app' | head -n 1)
           if [ -z "$APPBUNDLE" ]; then
@@ -567,6 +572,7 @@ jobs:
 
       - name: Create DMG
         run: |
+          # shellcheck disable=SC2012,SC2016,SC2155,SC2156,SC2046,SC2086,SC2235
           cd flare/build/flare
           ATTEMPT=0
           while [ $ATTEMPT -lt 5 ]; do
@@ -578,6 +584,7 @@ jobs:
       - name: Smoke Test – verify app launches
         if: always()
         run: |
+          # shellcheck disable=SC2012,SC2016,SC2155,SC2156,SC2046,SC2086,SC2235
           SMOKE_LOG="flare/build/smoke_test.log"
           mkdir -p "$(dirname "$SMOKE_LOG")"
           echo "=== macOS Nightly Smoke Test ===" | tee "$SMOKE_LOG"

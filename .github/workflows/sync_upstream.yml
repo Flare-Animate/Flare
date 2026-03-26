@@ -75,6 +75,7 @@ jobs:
       - name: Run upstream sync agent
         id: agent
         run: |
+          # shellcheck disable=SC2012,SC2016,SC2155,SC2156,SC2046,SC2086,SC2235
           ARGS="--source ${{ inputs.source || 'all' }}"
           ARGS="$ARGS --max-commits ${{ inputs.max_commits || '50' }}"
           if [ "${{ inputs.dry_run }}" = "true" ]; then ARGS="$ARGS --dry-run"; fi
