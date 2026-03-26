@@ -181,32 +181,24 @@ void makePrivate(Room *room) {
   std::string mbDstFileName = roomPath.getName() + "_menubar.xml";
   TFilePath myMBPath        = layoutDir + mbDstFileName;
   if (!TFileStatus(myMBPath).isReadable()) {
-    auto copyTemplate = [&](const TFilePath &basePath)->bool {
-      TFilePath candidate1 = basePath + mbSrcFileName;
-      if (TFileStatus(candidate1).doesExist()) {
-        TSystem::copyFile(myMBPath, candidate1);
-        return true;
-      }
-      TFilePath candidate2 = basePath + "menubar_template.xml";
-      if (TFileStatus(candidate2).doesExist()) {
-        TSystem::copyFile(myMBPath, candidate2);
-        return true;
-      }
-      return false;
-    };
-
-    TFilePath templateRoomsDir = FlareFolder::getTemplateRoomsDir();
-    if (!copyTemplate(templateRoomsDir)) {
-      TFilePath defaultRoomsDir = FlareFolder::getRoomsDir() + "Default";
-      if (!copyTemplate(defaultRoomsDir)) {
-        TFilePath roomsDir = FlareFolder::getRoomsDir();
-        if (!copyTemplate(roomsDir)) {
+    TFilePath templateRoomMBPath =
+        FlareFolder::getTemplateRoomsDir() + mbSrcFileName;
+    if (TFileStatus(templateRoomMBPath).doesExist())
+      TSystem::copyFile(myMBPath, templateRoomMBPath);
+    else {
+      TFilePath templateFullMBPath =
+          FlareFolder::getTemplateRoomsDir() + "menubar_template.xml";
+      if (TFileStatus(templateFullMBPath).doesExist())
+        TSystem::copyFile(myMBPath, templateFullMBPath);
+      else {
+        TFilePath builtinMBPath =
+            TEnv::getStuffDir() + "profiles/layouts/rooms/Default/menubar_template.xml";
+        if (TFileStatus(builtinMBPath).doesExist())
+          TSystem::copyFile(myMBPath, builtinMBPath);
+        else
           DVGui::warning(
-              QObject::tr("Cannot open menubar settings template file (%1). "
-                          "Please reinstall Flare, or create a new room from "
-                          "File > Rooms > New Room.")
-                  .arg(FlareFolder::getTemplateRoomsDir().getQString()));
-        }
+              QObject::tr("Cannot open menubar settings template file. "
+                          "Re-installing Flare will solve this problem."));
       }
     }
   }
