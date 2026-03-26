@@ -177,6 +177,7 @@ set(MOC_HEADERS
     xdtsimportpopup.h
     expressionreferencemanager.h
     tooloptionsshortcutinvoker.h
+    tvpjson_io.h
     exportxsheetpdf.h
     custompanelmanager.h
     custompaneleditorpopup.h
@@ -184,6 +185,7 @@ set(MOC_HEADERS
     exportcameratrackpopup.h
     layoutPresetsEditorPopup.h
     layoutUtils.h
+    scriptconsolepanel.h
 )
 
 if(PLATFORM EQUAL 64)
@@ -437,6 +439,11 @@ set(SOURCES
     sxfio.cpp
     ocaio.cpp
     flashimport.cpp
+    scriptconsolepanel_stub.cpp
+    ../common/flash/XFLReader.cpp
+    ${SDKROOT}/zlib-1.2.8/contrib/minizip/ioapi.c
+    ${SDKROOT}/zlib-1.2.8/contrib/minizip/unzip.c
+    ${SDKROOT}/zlib-1.2.8/contrib/minizip/zip.c
     xdtsimportpopup.cpp
     expressionreferencemanager.cpp
     tooloptionsshortcutinvoker.cpp
@@ -564,6 +571,7 @@ include_directories(
     ../../sources/common/flash
     ../../sources/flare
     ../../sources
+    ${SDKROOT}/zlib-1.2.8/contrib/minizip
 )
 
 if (WITH_CANON)

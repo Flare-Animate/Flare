@@ -14,8 +14,8 @@
 #include <QDir>
 
 // Minizip for ZIP/FLA extraction (from thirdparty/zlib-1.2.8/contrib/minizip)
-#include "unzip.h"
-#include "zip.h"
+#include "../../../../thirdparty/zlib-1.2.8/contrib/minizip/unzip.h"
+#include "../../../../thirdparty/zlib-1.2.8/contrib/minizip/zip.h"
 
 namespace XFL {
 

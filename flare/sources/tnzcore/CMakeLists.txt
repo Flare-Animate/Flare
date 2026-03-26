@@ -348,7 +348,6 @@ message("subdir: tnzcore")
 #message("Sources:" ${SOURCES})
 
 include_directories(
-    SYSTEM
     ../common/flash
     ${SDKROOT}/Lz4/Lz4_131/lib/
     ${SDKROOT}/zlib-1.2.8/contrib/minizip
