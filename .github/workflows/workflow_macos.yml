@@ -84,8 +84,7 @@ jobs:
         run: |
           # shellcheck disable=SC2012,SC2016,SC2155,SC2156,SC2046,SC2086,SC2235
           find /usr/local/bin -type l \( -name "python*" -o -name "pip*" -o -name "2to3*" -o -name "idle*" -o -name "pydoc*" \) \
-            -exec sh -c 'file -b {} | grep -q "symbolic link to .*Python.framework" && echo "Removing {}" && rm {}' \
-            ;
+            -exec sh -c 'file -b {} | grep -q "symbolic link to .*Python.framework" && echo "Removing {}" && rm {}' \;
           for py_version in python@3.11 python@3.12 python@3.13 python@3.14; do
             if brew list --versions $py_version >/dev/null; then
               brew unlink $py_version || true
