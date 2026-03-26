@@ -33,6 +33,7 @@ jobs:
     timeout-minutes: 180
     env:
       GIT_LFS_SKIP_SMUDGE: '1'
+      DMG: ''
     runs-on: macos-15-intel
     steps:
       - name: Checkout repository
@@ -335,6 +336,14 @@ jobs:
         with:
           name: Flare-${{ runner.os }}-${{ github.sha }}
           path: flare/build/${{ env.DMG }}
+
+      - name: Upload macOS artifact
+        if: ${{ env.DMG != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: Flare-${{ runner.os }}-${{ github.sha }}
+          path: flare/build/${{ env.DMG }}
+          if-no-files-found: ignore
 
       - name: Post build logs to PR
         if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && always() }}
