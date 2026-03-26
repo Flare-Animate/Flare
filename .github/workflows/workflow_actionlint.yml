@@ -27,4 +27,4 @@ jobs:
       - name: Install actionlint
         run: go install github.com/rhysd/actionlint/cmd/actionlint@latest
       - name: Run actionlint
-        run: actionlint -color
+        run: actionlint -color --config .github/actionlint.yml
