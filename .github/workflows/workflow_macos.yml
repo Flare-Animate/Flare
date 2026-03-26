@@ -1,33 +1,70 @@
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow
 name: MacOS Build
 
 on:
   push:
-    branches:
-      - master
+    paths:
+      - '**/*'
+      - '!appveyor.yml'
+      - '!README.md'
+      - '!doc/**'
+      - '!**/.github/**'
+      - '.github/workflows/workflow_macos.yml'
   pull_request:
-    branches:
-      - master
+    paths:
+      - '**/*'
+      - '!appveyor.yml'
+      - '!README.md'
+      - '!doc/**'
+      - '!**/.github/**'
+      - '.github/workflows/workflow_macos.yml'
   workflow_dispatch:
 
 permissions:
   contents: read
   issues: write
   pull-requests: write
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   macOS:
     timeout-minutes: 180
     env:
       GIT_LFS_SKIP_SMUDGE: '1'
+      DMG: ''
     runs-on: macos-15-intel
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
         with:
+          token: ${{ secrets.GITHUB_TOKEN }}
           lfs: false
+          submodules: false
           fetch-depth: 0
           persist-credentials: true
           clean: true
+
+      - name: Pre-check git remote reachability
+        run: |
+          # Only attempt a remote reachability check if an 'origin' remote exists.
+          if git remote get-url origin >/dev/null 2>&1; then
+            set -e
+            n=0
+            until [ $n -ge 3 ]
+            do
+              if git ls-remote origin >/dev/null 2>&1; then
+                echo "git remote reachable"
+                break
+              fi
+              n=$((n+1))
+              echo "git remote not reachable, retrying ($n)"
+              sleep 3
+            done
+          else
+            echo "No 'origin' remote configured; skipping git remote reachability check (actions/checkout will handle repository checkout)."
+          fi
 
       - name: Checkout diagnostic info
         run: |
@@ -45,6 +82,7 @@ jobs:
 
       - name: Clean Python symlinks
         run: |
+          # shellcheck disable=SC2012,SC2016,SC2155,SC2156,SC2046,SC2086,SC2235
           find /usr/local/bin -type l \( -name "python*" -o -name "pip*" -o -name "2to3*" -o -name "idle*" -o -name "pydoc*" \) \
             -exec sh -c 'file -b {} | grep -q "symbolic link to .*Python.framework" && echo "Removing {}" && rm {}' \;
           for py_version in python@3.11 python@3.12 python@3.13 python@3.14; do
@@ -56,12 +94,13 @@ jobs:
 
       - name: Install libraries
         run: |
+          # shellcheck disable=SC2012,SC2016,SC2155,SC2156,SC2046,SC2086,SC2235
           # Skip auto-update: it's slow and causes symlink conflicts with pre-installed Qt 6
           export HOMEBREW_NO_AUTO_UPDATE=1
 
           # The macos-15-intel runner has Qt 6 (qtbase, qtdeclarative, etc.) pre-linked.
           # Unlinking them prevents "Could not symlink … belonging to qtbase" errors when
-          # brew tries to link qt@5 or any formula that touches the same include paths.
+          # installing qt@5 for the release build.
           for qtpkg in qtbase qtdeclarative qt; do
             brew unlink "$qtpkg" 2>/dev/null || true
           done
@@ -82,11 +121,15 @@ jobs:
         run: |
           export PATH="/usr/local/opt/ccache/libexec:$PATH"
           mkdir -p /Users/runner/.ccache
-      - uses: actions/cache@v5
+      - uses: actions/cache@v4
         with:
           path: /Users/runner/.ccache
           key: ${{ runner.os }}-${{ github.sha }}
           restore-keys: ${{ runner.os }}-
+
+      - name: Install libzip for unzip.h (macOS)
+        run: |
+          brew install libzip || true
 
       - name: Build libtiff
         run: |
@@ -128,9 +171,15 @@ jobs:
             exit 1
           fi
 
+          echo "=== CMake target list for debug ==="
+          ninja -t targets | grep -E "(^flare_legacy$|^Flare$|^Flare )" || true
+
+          echo "=== Flare.app check post-build ==="
+          find . -name 'Flare.app' -maxdepth 8 -print || true
+
       - name: Upload build logs
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v4
         with:
           name: build-logs-macos
           path: |
@@ -153,6 +202,13 @@ jobs:
           # copy portable stuff if present
           cp -pr ../../../stuff Flare.app/portablestuff 2>/dev/null || true
 
+          BUNDLE_BINARY=$(find Flare.app/Contents/MacOS -maxdepth 1 -type f -perm +111 | head -n 1)
+          if [ -z "$BUNDLE_BINARY" ]; then
+            echo "WARNING: no executable binary found in Flare.app/Contents/MacOS; skipping macdeployqt"
+            ls -al Flare.app/Contents/MacOS || true
+            exit 0
+          fi
+
           if [ ! -x "/usr/local/opt/qt@5/bin/macdeployqt" ]; then
             echo "ERROR: macdeployqt not found at /usr/local/opt/qt@5/bin/macdeployqt"
             ls -l /usr/local/opt/qt@5/bin || true
@@ -160,6 +216,7 @@ jobs:
           fi
 
           /usr/local/opt/qt@5/bin/macdeployqt Flare.app -verbose=0 -always-overwrite \
+            -executable="Flare.app/Contents/MacOS/$(basename "$BUNDLE_BINARY")" \
             -executable=Flare.app/Contents/MacOS/lzocompress \
             -executable=Flare.app/Contents/MacOS/lzodecompress \
             -executable=Flare.app/Contents/MacOS/tcleanup \
@@ -271,20 +328,28 @@ jobs:
 
       - name: Upload smoke test log
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v4
         with:
           name: smoke-test-macos
           path: flare/build/smoke_test.log
           if-no-files-found: ignore
 
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v4
         with:
           name: Flare-${{ runner.os }}-${{ github.sha }}
           path: flare/build/${{ env.DMG }}
 
+      - name: Upload macOS artifact
+        if: ${{ env.DMG != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: Flare-${{ runner.os }}-${{ github.sha }}
+          path: flare/build/${{ env.DMG }}
+          if-no-files-found: ignore
+
       - name: Post build logs to PR
         if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && always() }}
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           script: |
             const fs = require('fs');

@@ -37,6 +37,7 @@ set(HEADERS ${MOC_HEADERS}
     ../common/flash/FSound.h
     ../common/flash/FSWFStream.h
     ../common/flash/Macromedia.h
+    ../common/flash/XFLReader.h
     ../common/psdlib/psd.h
     ../common/psdlib/psdutils.h
     ../common/trop/runsmap.h
@@ -231,6 +232,10 @@ set(SOURCES
     ../common/flash/FPrimitive.cpp
     ../common/flash/FSWFStream.cpp
     ../common/flash/FSound.cpp
+    ../common/flash/XFLReader.cpp
+    ${SDKROOT}/zlib-1.2.8/contrib/minizip/ioapi.c
+    ${SDKROOT}/zlib-1.2.8/contrib/minizip/unzip.c
+    ${SDKROOT}/zlib-1.2.8/contrib/minizip/zip.c
     ../common/psdlib/psd.cpp
     ../common/psdlib/psdutils.cpp
     ../common/trop/bbox.cpp
@@ -343,9 +348,9 @@ message("subdir: tnzcore")
 #message("Sources:" ${SOURCES})
 
 include_directories(
-    SYSTEM
     ../common/flash
     ${SDKROOT}/Lz4/Lz4_131/lib/
+    ${SDKROOT}/zlib-1.2.8/contrib/minizip
 )
 
 if(BUILD_TARGET_WIN)

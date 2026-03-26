@@ -452,6 +452,11 @@ if(Qt5Core_VERSION VERSION_LESS QT_MINIMUM_VERSION)
 endif()
 unset(QT_MINIMUM_VERSION)
 
+# Add minizip include path globally so unzip.h can be found by flare_legacy and flash import targets
+include_directories(
+    ${SDKROOT}/zlib-1.2.8/contrib/minizip
+)
+
 if(BUILD_ENV_MSVC)
     include_directories(
         SYSTEM

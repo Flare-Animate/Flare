@@ -190,10 +190,17 @@ void makePrivate(Room *room) {
           FlareFolder::getTemplateRoomsDir() + "menubar_template.xml";
       if (TFileStatus(templateFullMBPath).doesExist())
         TSystem::copyFile(myMBPath, templateFullMBPath);
-      else
-        DVGui::warning(
-            QObject::tr("Cannot open menubar settings template file. "
-                        "Re-installing Flare will solve this problem."));
+      else {
+        // fallback to the built-in stuff template location
+        TFilePath builtinMBPath =
+            TEnv::getStuffDir() + "profiles/layouts/rooms/Default/menubar_template.xml";
+        if (TFileStatus(builtinMBPath).doesExist())
+          TSystem::copyFile(myMBPath, builtinMBPath);
+        else
+          DVGui::warning(
+              QObject::tr("Cannot open menubar settings template file. "
+                          "Re-installing Flare will solve this problem."));
+      }
     }
   }
 }

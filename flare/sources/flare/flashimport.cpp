@@ -608,7 +608,9 @@ public:
 } g_importFlashVectorCommand;
 
 void ImportFlashVectorCommand::execute() {
-    ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
+    TApp *app = TApp::instance();
+    TSceneHandle *sceneHandle = app->getCurrentScene();
+    ToonzScene *scene = sceneHandle->getScene();
 
     static GenericLoadFilePopup *loadPopup = nullptr;
     if (!loadPopup) {

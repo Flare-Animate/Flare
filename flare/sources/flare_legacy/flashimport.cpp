@@ -10,6 +10,7 @@
 #include "flare/menubarcommandids.h"
 #include "flare/menubar.h"
 #include "flare/tapp.h"
+#include "flare/tscenehandle.h"
 #include "flare/ocaio.h"
 #include "flare/tproject.h"
 #include "flare/preferences.h"
@@ -162,7 +163,9 @@ public:
 } g_importFlashVectorLegacy;
 
 void ImportFlashVectorCommand::execute() {
-    ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
+    TApp *app = TApp::instance();
+    TSceneHandle *sceneHandle = app->getCurrentScene();
+    ToonzScene *scene = sceneHandle->getScene();
 
     static GenericLoadFilePopup *loadPopup = nullptr;
     if (!loadPopup) {

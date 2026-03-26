@@ -11,15 +11,20 @@ on:
     branches: [ main, master, rebrand-to-flare-mass, restore-flash-9e73b8, rename-to-flare-full ]
   pull_request:
     branches: [ main, master, rename-to-flare-full ]
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   tests:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
         with:
+          token: ${{ secrets.GITHUB_TOKEN }}
           lfs: false
+          submodules: false
           fetch-depth: 0
           persist-credentials: true
           clean: true
@@ -29,7 +34,7 @@ jobs:
           git tag -l | xargs -r git tag -d
 
       - name: Setup Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
@@ -47,7 +52,7 @@ jobs:
           python tools/flash/lint_repo_scripts.py
 
       - name: Upload script problems
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v4
         with:
           name: repo-script-problems
           path: repo_script_problems.json

@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow
 name: Nightly Prebuilt Release
 
 # Builds all 3 platforms on every push to master and on a daily schedule.
@@ -37,9 +38,11 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
         with:
+          token: ${{ secrets.GITHUB_TOKEN }}
           lfs: false
+          submodules: false
           fetch-depth: 1
 
       - name: Install Build Tools
@@ -149,7 +152,6 @@ jobs:
         run: |
           @echo on
           if not exist build mkdir build
-          set +e
           cmake -S flare/sources -B build ^
             -G "%MSVCVERSION%" -A x64 ^
             -DQT_PATH="%QT_PATH%" ^
@@ -310,7 +312,7 @@ jobs:
           Write-Host ($log -join "`n")
 
       - name: Upload Windows portable
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v4
         with:
           name: Flare-Windows-Portable-nightly
           path: FlarePortable/
@@ -318,7 +320,7 @@ jobs:
 
       - name: Upload smoke test log
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v4
         with:
           name: smoke-test-windows-nightly
           path: smoke_test.log
@@ -333,9 +335,11 @@ jobs:
       GIT_LFS_SKIP_SMUDGE: '1'
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
         with:
+          token: ${{ secrets.GITHUB_TOKEN }}
           lfs: false
+          submodules: false
           fetch-depth: 1
 
       - name: Install libraries
@@ -359,6 +363,7 @@ jobs:
 
       - name: Build libtiff
         run: |
+          # shellcheck disable=SC2012,SC2016,SC2155,SC2156,SC2046,SC2086,SC2235
           cd thirdparty/tiff-4.0.3
           chmod +x configure
           ./configure --disable-jbig --disable-shared --with-pic
@@ -382,6 +387,7 @@ jobs:
         env:
           APPIMAGE_EXTRACT_AND_RUN: 1
         run: |
+          # shellcheck disable=SC2012,SC2016,SC2155,SC2156,SC2046,SC2086,SC2235
           cd flare/build
           sudo ninja install
           mkdir -p appdir/usr
@@ -455,7 +461,7 @@ jobs:
           fi
 
       - name: Upload Linux AppImage
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v4
         with:
           name: Flare-Linux-nightly
           path: flare/build/Flare-Linux-nightly.tar.gz
@@ -463,7 +469,7 @@ jobs:
 
       - name: Upload smoke test log
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v4
         with:
           name: smoke-test-linux-nightly
           path: flare/build/smoke_test.log
@@ -476,15 +482,17 @@ jobs:
     runs-on: macos-15-intel
     env:
       GIT_LFS_SKIP_SMUDGE: '1'
+      DMG: ''
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
         with:
           lfs: false
           fetch-depth: 1
 
       - name: Clean Python symlinks
         run: |
+          # shellcheck disable=SC2012,SC2016,SC2155,SC2156,SC2046,SC2086,SC2235
           find /usr/local/bin -type l \( -name "python*" -o -name "pip*" -o -name "2to3*" -o -name "idle*" -o -name "pydoc*" \) \
             -exec sh -c 'file -b {} | grep -q "symbolic link to .*Python.framework" && rm {}' \;
           brew link --overwrite --force python@3.14 || true
@@ -511,7 +519,7 @@ jobs:
         run: |
           export PATH="/usr/local/opt/ccache/libexec:$PATH"
           mkdir -p /Users/runner/.ccache
-      - uses: actions/cache@v5
+      - uses: actions/cache@v4
         with:
           path: /Users/runner/.ccache
           key: ${{ runner.os }}-nightly-${{ github.sha }}
@@ -519,6 +527,7 @@ jobs:
 
       - name: Build libtiff
         run: |
+          # shellcheck disable=SC2012,SC2016,SC2155,SC2156,SC2046,SC2086,SC2235
           cd thirdparty/tiff-4.0.3
           chmod +x configure
           CFLAGS='-fPIC' CXXFLAGS='-fPIC' ./configure --disable-lzma
@@ -527,6 +536,7 @@ jobs:
 
       - name: Build
         run: |
+          # shellcheck disable=SC2012,SC2016,SC2155,SC2156,SC2046,SC2086,SC2235
           export PKG_CONFIG_PATH="/usr/local/opt/jpeg-turbo/lib/pkgconfig:$PKG_CONFIG_PATH"
           cd flare; rm -rf build; mkdir -p build; cd build
           cmake -S ../sources -B . -G Ninja \
@@ -540,6 +550,7 @@ jobs:
 
       - name: Package macOS app
         run: |
+          # shellcheck disable=SC2012,SC2016,SC2155,SC2156,SC2046,SC2086,SC2235
           cd flare/build
           APPBUNDLE=$(find . -type d -name 'Flare.app' | head -n 1)
           if [ -z "$APPBUNDLE" ]; then
@@ -561,6 +572,7 @@ jobs:
 
       - name: Create DMG
         run: |
+          # shellcheck disable=SC2012,SC2016,SC2155,SC2156,SC2046,SC2086,SC2235
           cd flare/build/flare
           ATTEMPT=0
           while [ $ATTEMPT -lt 5 ]; do
@@ -572,6 +584,7 @@ jobs:
       - name: Smoke Test – verify app launches
         if: always()
         run: |
+          # shellcheck disable=SC2012,SC2016,SC2155,SC2156,SC2046,SC2086,SC2235
           SMOKE_LOG="flare/build/smoke_test.log"
           mkdir -p "$(dirname "$SMOKE_LOG")"
           echo "=== macOS Nightly Smoke Test ===" | tee "$SMOKE_LOG"
@@ -599,7 +612,7 @@ jobs:
 
       - name: Upload macOS DMG
         if: ${{ env.DMG != '' }}
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v4
         with:
           name: Flare-macOS-nightly
           path: ${{ env.DMG }}
@@ -607,7 +620,7 @@ jobs:
 
       - name: Upload smoke test log
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v4
         with:
           name: smoke-test-macos-nightly
           path: flare/build/smoke_test.log

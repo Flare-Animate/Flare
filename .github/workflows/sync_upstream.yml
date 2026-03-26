@@ -48,7 +48,7 @@ jobs:
 
     steps:
       - name: Checkout Flare
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
           lfs: false
@@ -75,6 +75,7 @@ jobs:
       - name: Run upstream sync agent
         id: agent
         run: |
+          # shellcheck disable=SC2012,SC2016,SC2155,SC2156,SC2046,SC2086,SC2235
           ARGS="--source ${{ inputs.source || 'all' }}"
           ARGS="$ARGS --max-commits ${{ inputs.max_commits || '50' }}"
           if [ "${{ inputs.dry_run }}" = "true" ]; then ARGS="$ARGS --dry-run"; fi
@@ -105,7 +106,7 @@ jobs:
                         ? fs.readFileSync('/tmp/sync_agent.log', 'utf8').slice(-10000)
                         : '(log unavailable)';
             const count  = '${{ steps.changes.outputs.commit_count }}';
-            const source = '${{ inputs.source || "all" }}';
+            const source = '${{ inputs.source || 'all' }}';
             const srcLabel = source === 'all'
               ? 'opentoonz/opentoonz + tahoma2d/tahoma2d'
               : (source === 'opentoonz' ? 'opentoonz/opentoonz' : 'tahoma2d/tahoma2d');
@@ -161,9 +162,9 @@ jobs:
         if: steps.changes.outputs.commit_count == '0' && inputs.dry_run != 'true'
         run: echo "✅ Already up to date — no PR needed."
 
-      - name: Upload agent log
+      - name: Upload sync log
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v4
         with:
           name: sync-agent-log-${{ github.run_id }}
           path: /tmp/sync_agent.log

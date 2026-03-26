@@ -1,18 +1,32 @@
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow
 name: Linux Build
 
 on:
   push:
-    branches:
-      - master
+    paths:
+      - '**/*'
+      - '!appveyor.yml'
+      - '!README.md'
+      - '!doc/**'
+      - '!**/.github/**'
+      - '.github/workflows/workflow_linux.yml'
   pull_request:
-    branches:
-      - master
+    paths:
+      - '**/*'
+      - '!appveyor.yml'
+      - '!README.md'
+      - '!doc/**'
+      - '!**/.github/**'
+      - '.github/workflows/workflow_linux.yml'
   workflow_dispatch:
 
 permissions:
   contents: read
   issues: write
   pull-requests: write
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   Ubuntu:
@@ -34,12 +48,34 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v6
+      uses: actions/checkout@v4
       with:
+        token: ${{ secrets.GITHUB_TOKEN }}
         lfs: false
+        submodules: false
         fetch-depth: 0
         persist-credentials: true
         clean: true
+
+    - name: Pre-check git remote reachability
+      run: |
+        # Only attempt a remote reachability check if an 'origin' remote exists.
+        if git remote get-url origin >/dev/null 2>&1; then
+          set -e
+          n=0
+          until [ $n -ge 3 ]
+          do
+            if git ls-remote origin >/dev/null 2>&1; then
+              echo "git remote reachable"
+              break
+            fi
+            n=$((n+1))
+            echo "git remote not reachable, retrying ($n)"
+            sleep 3
+          done
+        else
+          echo "No 'origin' remote configured; skipping git remote reachability check (actions/checkout will handle repository checkout)."
+        fi
 
     - name: Checkout diagnostic info
       run: |
@@ -66,7 +102,7 @@ jobs:
           libqt5serialport5-dev libsuperlu-dev liblz4-dev libusb-1.0-0-dev \
           liblzo2-dev libpng-dev libjpeg-dev libglew-dev freeglut3-dev \
           libfreetype6-dev libjson-c-dev libmypaint-dev libopencv-dev \
-          libturbojpeg0-dev libomp-dev libfuse2
+          libturbojpeg0-dev libomp-dev libfuse2 libzip-dev libminizip-dev
 
     - name: Set up ccache
       uses: hendrikmuhs/ccache-action@v1.2
@@ -83,8 +119,20 @@ jobs:
 
     - name: Build Flare
       run: |
+        set -x
+        echo "===> Build Flare: directory debug information <==="
+        pwd
+        ls -la .
+        if [ -d "flare" ]; then ls -la flare; else echo "ERROR: flare directory missing"; fi
+        if [ -d "flare/sources" ]; then ls -la flare/sources; else echo "ERROR: flare/sources directory missing"; fi
+
         cd flare
+        pwd
+        ls -la .
         mkdir -p build && cd build
+        pwd
+        ls -la .
+
         set +e
         cmake ../sources -G Ninja \
           -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
@@ -110,7 +158,7 @@ jobs:
 
     - name: Upload build logs
       if: always()
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@v4
       with:
         name: build-logs-${{ matrix.compiler }}
         path: |
@@ -122,6 +170,7 @@ jobs:
       env:
         APPIMAGE_EXTRACT_AND_RUN: 1
       run: |
+        # shellcheck disable=SC2012,SC2016,SC2155,SC2156,SC2046,SC2086,SC2235
         cd flare/build
         sudo ninja install
         
@@ -278,7 +327,9 @@ jobs:
 
     - name: Post build logs to PR
       if: ${{ github.event_name == 'pull_request' && always() }}
-      uses: actions/github-script@v6
+      uses: actions/github-script@v7
+      env:
+        MATRIX_COMPILER: ${{ matrix.compiler }}
       with:
         script: |
           const fs = require('fs');
@@ -297,5 +348,5 @@ jobs:
           const cmake = readTrunc('flare/build/cmake_configure.log');
           const build = readTrunc('flare/build/build.log');
           const smoke = readTrunc('flare/build/smoke_test.log');
-          const body = `**Automated build logs – Linux (${{ matrix.compiler }}) (truncated)**\n\n--- CMake configure log ---\n${cmake}\n\n--- Build log ---\n${build}\n\n--- Smoke test (launch check) ---\n${smoke}`;
+          const body = `**Automated build logs – Linux (${process.env.MATRIX_COMPILER}) (truncated)**\n\n--- CMake configure log ---\n${cmake}\n\n--- Build log ---\n${build}\n\n--- Smoke test (launch check) ---\n${smoke}`;
           await github.rest.issues.createComment({ owner, repo, issue_number: pr, body });

@@ -7,14 +7,15 @@ on:
 
 jobs:
   publish-choco:
-    if: ${{ secrets.CHOCO_API_KEY }}
     runs-on: windows-latest
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
         with:
+          token: ${{ secrets.GITHUB_TOKEN }}
           lfs: false
+          submodules: false
 
       - name: Download Flare Windows zip from Release
         shell: pwsh

@@ -1,41 +1,32 @@
-name: Agentic — Auto-fix Build
-
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow
+name: .github/workflows/agentic-auto-fix.yml
 on:
   pull_request:
     types: [opened, synchronize, reopened, labeled]
-  workflow_dispatch:
-
-permissions:
-  contents: write
-  pull-requests: write
+  workflow_dispatch: {}
 
 jobs:
-  diagnose-build:
-    runs-on: windows-latest
+  auto-fix:
+    if: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'agentic-auto-fix') }}
+    runs-on: windows-2022
     steps:
-      - name: Checkout
-        uses: actions/checkout@v6
+      - name: Checkout repository
+        uses: actions/checkout@v4
         with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          lfs: false
+          submodules: false
           fetch-depth: 0
+          persist-credentials: true
+          clean: true
 
-      - name: Set up vcpkg (manual)
+      - name: Install vcpkg
         shell: cmd
         run: |
           @echo on
-          if exist vcpkg\bootstrap-vcpkg.bat (
-            echo vcpkg already present
-            goto :vcpkg_ready
-          )
-          if exist vcpkg (
-            echo Removing stale vcpkg\n            rmdir /S /Q vcpkg
-          )
-          set CLONE_ATTEMPTS=0
+          if exist vcpkg rmdir /S /Q vcpkg
           :clone_vcpkg
-          set /A CLONE_ATTEMPTS+=1
-          git clone --depth 1 https://github.com/microsoft/vcpkg.git vcpkg
-          if %ERRORLEVEL% EQU 0 goto :vcpkg_ready
-          echo clone failed with %ERRORLEVEL% attempt %CLONE_ATTEMPTS%
-          if %CLONE_ATTEMPTS% GEQ 3 (
+          git clone --depth 1 https://github.com/microsoft/vcpkg.git vcpkg || (
             echo fallback to zip
             curl -fsSL -o vcpkg.zip https://github.com/microsoft/vcpkg/archive/refs/heads/master.zip
             7z x -y vcpkg.zip -ovcpkg_tmp
@@ -45,8 +36,8 @@ jobs:
             goto :vcpkg_ready
           )
           timeout /t 3 /nobreak
-          goto :clone_vcpkg
-        :vcpkg_ready
+          goto :vcpkg_ready
+          :vcpkg_ready
           pushd vcpkg
           call bootstrap-vcpkg.bat || (echo bootstrap failed & exit /b 1)
           popd
@@ -54,31 +45,60 @@ jobs:
       - name: Configure (CMake)
         shell: cmd
         run: |
+          @echo on
+          if exist build rmdir /S /Q build
           mkdir build
-          cmake -S . -B build -G "Visual Studio 16 2019" -A x64 -Wno-dev
+          cmake -S flare/sources -B build ^
+            -G "Visual Studio 17 2022" -A x64 ^
+            -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake ^
+            -DVCPKG_TARGET_TRIPLET=x64-windows-static ^
+            -DWITH_SYSTEM_LZO=OFF -DWITH_LZODRIVER=OFF ^
+            -DWITH_TWAIN=OFF -DWITH_CANON=OFF ^
+            -DWITH_SQLITE=OFF -DWITH_OPENCV=OFF ^
+            -DWITH_GSL=OFF -DWITH_BOOST=OFF ^
+            -DWITH_FREETYPE=OFF -DWITH_GLEW=OFF ^
+            -DWITH_LZ4=OFF -DWITH_LZO=OFF ^
+            -DWITH_PNG=OFF -DWITH_JPEG=OFF ^
+            -DWITH_TIFF=OFF -DWITH_ZLIB=OFF ^
+            -DWITH_QT=OFF ^
+            > build\cmake_configure.log 2>&1
+          if %ERRORLEVEL% NEQ 0 ( type build\cmake_configure.log & exit /b 1 )
+          type build\cmake_configure.log
 
-      - name: Build (CMake)
+      - name: Build
         shell: cmd
         run: |
-          cmake --build build --config RelWithDebInfo --target Flare --parallel 4 || exit /b 0
+          @echo on
+          cmake --build build --config RelWithDebInfo --parallel 4 > build\build.log 2>&1
+          if %ERRORLEVEL% NEQ 0 ( type build\build.log & exit /b 1 )
+          type build\build.log
 
       - name: Upload build logs
-        uses: actions/upload-artifact@v6
+        if: always()
+        uses: actions/upload-artifact@v4
         with:
           name: build-logs
-          path: |
-            build\CMakeCache.txt
-            build\CMakeFiles\CMakeOutput.log
-            build\CMakeFiles\CMakeError.log
-            build\build.log
+          path: build\*.log
+          if-no-files-found: ignore
 
-      - name: Post PR comment with short status
-        if: github.event_name == 'pull_request'
+      - name: Post build logs to PR
+        if: ${{ github.event_name == 'pull_request' && always() }}
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const owner = context.repo.owner
-            const repo = context.repo.repo
-            const pr = context.payload.pull_request.number
-            await github.issues.createComment({ owner, repo, issue_number: pr, body: `Agentic build check completed — logs uploaded as artifact (see Actions run).` })
+            const fs = require('fs');
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const pr = context.payload.pull_request.number;
+            
+            let logText = '';
+            if (fs.existsSync('build/cmake_configure.log')) {
+              logText += '--- CMake configure log ---\n' + fs.readFileSync('build/cmake_configure.log', 'utf8').slice(-2000) + '\n';
+            }
+            if (fs.existsSync('build/build.log')) {
+              logText += '--- Build log ---\n' + fs.readFileSync('build/build.log', 'utf8').slice(-2000) + '\n';
+            }
+            
+            const body = 'Automated build logs (truncated)\n```\n' + (logText || '(no logs found)') + '\n```';
+            await github.rest.issues.createComment({ owner, repo, issue_number: pr, body });

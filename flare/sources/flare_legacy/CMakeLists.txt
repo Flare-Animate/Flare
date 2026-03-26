@@ -1,5 +1,54 @@
 set(VERSION 1.7.1)
 
+function(resolve_flare_legacy_paths input_var output_var)
+  # Read the list variable named by input_var
+  set(resolved_files "")
+  set(input_list "${${input_var}}")
+  foreach(f ${input_list})
+        # Build list of candidate paths to try (in order)
+        set(_candidates "")
+        list(APPEND _candidates "${f}")
+        list(APPEND _candidates "${CMAKE_CURRENT_SOURCE_DIR}/${f}")
+        list(APPEND _candidates "${CMAKE_CURRENT_SOURCE_DIR}/../flare/${f}")
+        list(APPEND _candidates "${CMAKE_CURRENT_SOURCE_DIR}/../${f}")
+        list(APPEND _candidates "${CMAKE_CURRENT_SOURCE_DIR}/../toonz/${f}")
+        list(APPEND _candidates "${CMAKE_CURRENT_SOURCE_DIR}/../../toonz/${f}")
+        list(APPEND _candidates "${CMAKE_CURRENT_SOURCE_DIR}/../../flare/${f}")
+        list(APPEND _candidates "${CMAKE_CURRENT_SOURCE_DIR}/../sources/flare/${f}")
+        list(APPEND _candidates "${CMAKE_CURRENT_SOURCE_DIR}/../flare/${f}")
+        list(APPEND _candidates "${CMAKE_SOURCE_DIR}/flare/sources/flare/${f}")
+        list(APPEND _candidates "${CMAKE_SOURCE_DIR}/flare/sources/flare_legacy/${f}")
+
+        set(candidate "")
+        foreach(_cand ${_candidates})
+            if(IS_ABSOLUTE "${_cand}")
+                if(EXISTS "${_cand}")
+                    set(candidate "${_cand}")
+                    break()
+                endif()
+            else()
+                if(EXISTS "${_cand}")
+                    set(candidate "${_cand}")
+                    break()
+                endif()
+            endif()
+        endforeach()
+
+        if(candidate STREQUAL "")
+            # Verbose warning listing all paths we tried
+            string(REPLACE ";" "\n  " _tried "${_candidates}")
+            message(WARNING "flare_legacy: cannot locate project file '${f}'. Tried paths:\n  ${_tried}")
+            # skip missing file so configure can continue; caller will see fewer resolved entries
+            continue()
+        endif()
+    list(APPEND resolved_files "${candidate}")
+  endforeach()
+  # Debug summary
+  list(LENGTH resolved_files _len)
+  message(STATUS "flare_legacy: resolved ${_len} entries from ${input_var}")
+  set(${output_var} ${resolved_files} PARENT_SCOPE)
+endfunction()
+
 set(MOC_HEADERS
     addfilmstripframespopup.h
     adjustlevelspopup.h
@@ -128,6 +177,7 @@ set(MOC_HEADERS
     xdtsimportpopup.h
     expressionreferencemanager.h
     tooloptionsshortcutinvoker.h
+    tvpjson_io.h
     exportxsheetpdf.h
     custompanelmanager.h
     custompaneleditorpopup.h
@@ -135,6 +185,7 @@ set(MOC_HEADERS
     exportcameratrackpopup.h
     layoutPresetsEditorPopup.h
     layoutUtils.h
+    scriptconsolepanel.h
 )
 
 if(PLATFORM EQUAL 64)
@@ -388,6 +439,11 @@ set(SOURCES
     sxfio.cpp
     ocaio.cpp
     flashimport.cpp
+    scriptconsolepanel_stub.cpp
+    ../common/flash/XFLReader.cpp
+    ${SDKROOT}/zlib-1.2.8/contrib/minizip/ioapi.c
+    ${SDKROOT}/zlib-1.2.8/contrib/minizip/unzip.c
+    ${SDKROOT}/zlib-1.2.8/contrib/minizip/zip.c
     xdtsimportpopup.cpp
     expressionreferencemanager.cpp
     tooloptionsshortcutinvoker.cpp
@@ -431,11 +487,20 @@ else()
     )
 endif()
 
+# Ensure legacy CMake target resolves moved/new file paths correctly.
+# Run resolution after platform-specific SOURCES/MOC_HEADERS/HEADERS have been appended
+resolve_flare_legacy_paths(MOC_HEADERS MOC_HEADERS)
+resolve_flare_legacy_paths(HEADERS HEADERS)
+resolve_flare_legacy_paths(SOURCES SOURCES)
+
 if(WITH_TRANSLATION)
     add_translation(flare ${HEADERS} ${SOURCES})
 endif()
 
 set(OBJCSOURCES filebrowsermodel.cpp)
+
+# Ensure any objc/other single-file sources are resolved too
+resolve_flare_legacy_paths(OBJCSOURCES OBJCSOURCES)
 
 # Resource file(s)
 # resources live in the sibling "flare" directory after the rebrand
@@ -503,6 +568,10 @@ include_directories(
     ../../sources/flarefarm/include
     ../../sources/flareqt
     ../../sources/stopmotion
+    ../../sources/common/flash
+    ../../sources/flare
+    ../../sources
+    ${SDKROOT}/zlib-1.2.8/contrib/minizip
 )
 
 if (WITH_CANON)

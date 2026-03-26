@@ -10,15 +10,20 @@ jobs:
     runs-on: ${{ matrix.os }}
     env:
       GIT_LFS_SKIP_SMUDGE: '1'
+      APPIMAGE: ''
+      DMG: ''
+      ARTIFACT: ''
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
         with:
+          token: ${{ secrets.GITHUB_TOKEN }}
           lfs: false
+          submodules: false
           fetch-depth: 0
 
       - name: Install build deps (Ubuntu)
@@ -81,6 +86,7 @@ jobs:
       - name: Build (Linux)
         if: matrix.os == 'ubuntu-latest'
         run: |
+          # shellcheck disable=SC2012,SC2016,SC2155,SC2156,SC2046,SC2086,SC2235
           mkdir -p flare/build && cd flare/build
           cmake ../sources -G Ninja -DCMAKE_BUILD_TYPE=Release -DWITH_SYSTEM_LZO=ON -DWITH_LZODRIVER=OFF 2>&1 | tee cmake_configure.log
           ninja -j2 2>&1 | tee build.log
@@ -88,6 +94,7 @@ jobs:
       - name: Build (macOS)
         if: matrix.os == 'macos-latest'
         run: |
+          # shellcheck disable=SC2012,SC2016,SC2155,SC2156,SC2046,SC2086,SC2235
           cd flare
           rm -rf build
           mkdir -p build && cd build
@@ -119,6 +126,7 @@ jobs:
       - name: Package artifact (Linux)
         if: matrix.os == 'ubuntu-latest'
         run: |
+          # shellcheck disable=SC2012,SC2016,SC2155,SC2156,SC2046,SC2086,SC2235
           cd flare/build
           sudo ninja install
           mkdir -p appdir/usr
@@ -141,6 +149,7 @@ jobs:
       - name: Package artifact (macOS)
         if: matrix.os == 'macos-latest'
         run: |
+          # shellcheck disable=SC2012,SC2016,SC2155,SC2156,SC2046,SC2086,SC2235
           cd flare/build
           DMG=""
           if [ -f flare/Flare.dmg ]; then

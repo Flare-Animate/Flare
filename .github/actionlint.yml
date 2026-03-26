@@ -1,0 +1,4 @@
+paths:
+  .github/workflows/**:
+    ignore:
+      - 'shellcheck reported issue in this script: SC.*'
