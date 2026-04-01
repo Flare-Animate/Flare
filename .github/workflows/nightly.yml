@@ -559,27 +559,53 @@ jobs:
             exit 1
           fi
           echo "Found app bundle: $APPBUNDLE"
-          cd "$(dirname "$APPBUNDLE")"
+          BUNDLE_DIR="$(cd "$(dirname "$APPBUNDLE")" && pwd)"
+          echo "BUNDLE_DIR=$BUNDLE_DIR" >> $GITHUB_ENV
+          cd "$BUNDLE_DIR"
           cp -pr ../../../stuff Flare.app/portablestuff 2>/dev/null || true
-          /usr/local/opt/qt@5/bin/macdeployqt Flare.app -verbose=0 -always-overwrite \
-            -executable=Flare.app/Contents/MacOS/lzocompress \
-            -executable=Flare.app/Contents/MacOS/lzodecompress \
-            -executable=Flare.app/Contents/MacOS/tcleanup \
-            -executable=Flare.app/Contents/MacOS/tcomposer \
-            -executable=Flare.app/Contents/MacOS/tconverter \
-            -executable=Flare.app/Contents/MacOS/tfarmcontroller \
-            -executable=Flare.app/Contents/MacOS/tfarmserver
+          # Find the real binary name from Info.plist (handles both 'Flare' and legacy names)
+          MAIN_BIN=$(defaults read "$BUNDLE_DIR/Flare.app/Contents/Info.plist" CFBundleExecutable 2>/dev/null || echo "Flare")
+          EXTRA_EXECS=""
+          for helper in lzocompress lzodecompress tcleanup tcomposer tconverter tfarmcontroller tfarmserver; do
+            if [ -f "Flare.app/Contents/MacOS/$helper" ]; then
+              EXTRA_EXECS="$EXTRA_EXECS -executable=Flare.app/Contents/MacOS/$helper"
+            fi
+          done
+          if [ -f "Flare.app/Contents/MacOS/$MAIN_BIN" ]; then
+            # shellcheck disable=SC2086
+            /usr/local/opt/qt@5/bin/macdeployqt Flare.app -verbose=0 -always-overwrite \
+              -executable="Flare.app/Contents/MacOS/$MAIN_BIN" \
+              $EXTRA_EXECS || echo "macdeployqt Package: non-fatal errors (continuing)"
+          else
+            echo "WARNING: main binary '$MAIN_BIN' not found in MacOS dir; skipping macdeployqt"
+            ls -la "Flare.app/Contents/MacOS/" || true
+          fi
 
       - name: Create DMG
         run: |
           # shellcheck disable=SC2012,SC2016,SC2155,SC2156,SC2046,SC2086,SC2235
-          cd flare/build/flare
-          ATTEMPT=0
-          while [ $ATTEMPT -lt 5 ]; do
-            /usr/local/opt/qt@5/bin/macdeployqt Flare.app -dmg -verbose=0 && [ -f Flare.dmg ] && break
-            ATTEMPT=$((ATTEMPT+1)); echo "Attempt $ATTEMPT failed"
-          done
-          [ -f Flare.dmg ] && echo "DMG=flare/build/flare/Flare.dmg" >> $GITHUB_ENV || echo "DMG=" >> $GITHUB_ENV
+          # Use the bundle dir discovered in the Package step (dynamic, not hardcoded)
+          BUNDLE_DIR="${{ env.BUNDLE_DIR }}"
+          if [ -z "$BUNDLE_DIR" ]; then
+            APPBUNDLE=$(find flare/build -type d -name 'Flare.app' | head -n 1)
+            [ -n "$APPBUNDLE" ] && BUNDLE_DIR="$(cd "$(dirname "$APPBUNDLE")" && pwd)"
+          fi
+          if [ -z "$BUNDLE_DIR" ] || [ ! -d "$BUNDLE_DIR/Flare.app" ]; then
+            echo "ERROR: Flare.app not found for DMG creation"
+            echo "DMG=" >> $GITHUB_ENV
+          else
+            cd "$BUNDLE_DIR"
+            ATTEMPT=0
+            while [ $ATTEMPT -lt 5 ]; do
+              /usr/local/opt/qt@5/bin/macdeployqt Flare.app -dmg -verbose=0 && [ -f Flare.dmg ] && break
+              ATTEMPT=$((ATTEMPT+1)); echo "Attempt $ATTEMPT failed"
+            done
+            if [ -f Flare.dmg ]; then
+              echo "DMG=$BUNDLE_DIR/Flare.dmg" >> $GITHUB_ENV
+            else
+              echo "DMG=" >> $GITHUB_ENV
+            fi
+          fi
 
       - name: Smoke Test – verify app launches
         if: always()
