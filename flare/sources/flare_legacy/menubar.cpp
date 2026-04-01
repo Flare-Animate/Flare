@@ -1484,6 +1484,8 @@ QMenuBar *StackedMenuBar::createFullMenuBar() {
   helpMenu->addSeparator();
   addMenuItem(helpMenu, MI_OpenReportABug);
   helpMenu->addSeparator();
+  addMenuItem(helpMenu, MI_FlashGuide);
+  helpMenu->addSeparator();
   addMenuItem(helpMenu, MI_About);
 
 // addMenuItem(fileMenu, MI_TestAnimation);

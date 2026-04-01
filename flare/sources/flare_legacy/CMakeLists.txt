@@ -186,6 +186,7 @@ set(MOC_HEADERS
     layoutPresetsEditorPopup.h
     layoutUtils.h
     scriptconsolepanel.h
+    flashguidedialog.h
 )
 
 if(PLATFORM EQUAL 64)
@@ -439,6 +440,7 @@ set(SOURCES
     sxfio.cpp
     ocaio.cpp
     flashimport.cpp
+    flashguidedialog.cpp
     scriptconsolepanel_stub.cpp
     ../common/flash/XFLReader.cpp
     ${SDKROOT}/zlib-1.2.8/contrib/minizip/ioapi.c

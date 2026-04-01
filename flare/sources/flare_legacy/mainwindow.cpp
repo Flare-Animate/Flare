@@ -2396,6 +2396,8 @@ void MainWindow::defineActions() {
                        "", "web");
   createMenuHelpAction(MI_OpenReportABug, QT_TR_NOOP("&Report a Bug..."), "",
                        "web");
+  createMenuHelpAction(MI_FlashGuide, QT_TR_NOOP("&Flash Format Guide..."), "",
+                       "import_flash");
 
   // Fill
 
