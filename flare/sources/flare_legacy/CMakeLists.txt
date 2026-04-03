@@ -440,6 +440,7 @@ set(SOURCES
     sxfio.cpp
     ocaio.cpp
     flashimport.cpp
+    flashexport.cpp
     flashguidedialog.cpp
     scriptconsolepanel_stub.cpp
     ../common/flash/XFLReader.cpp

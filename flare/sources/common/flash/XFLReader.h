@@ -1,13 +1,17 @@
 // XFLReader.h - XFL (XML Flash) format reader
 // Copyright (c) 2026 Flare Project
-// 
-// This module provides XFL format parsing capabilities for importing
-// Adobe Animate/Flash projects. XFL is an XML-based format used by
-// modern Flash/Animate as the source format for FLA files.
 //
-// References:
-// - Adobe XFL format specification
-// - jpexs-decompiler XFLConverter implementation
+// Parses Adobe Animate / Flash XFL/FLA project files.
+// XFL is the XML-based source format written by Adobe Animate (formerly Flash
+// Professional). A FLA file is simply a ZIP archive of an XFL directory tree.
+//
+// Format knowledge drawn from (ideas only, no code copied):
+//   - Adobe XFL specification (public)
+//   - jpexs-decompiler (GPL-3.0) — XFLConverter timeline/layer/frame model
+//   - fla-viewer (MIT)           — DOMDocument XML attribute names
+//   - ruffle (MIT/Apache-2.0)    — SWF tag reference numbers cited in comments
+//   - open-flash/swf-bitmap (ISC) — bitmap format byte constants
+//   - lightspark (LGPL-3.0)      — CWS/ZWS decompression approach
 
 #ifndef XFLREADER_H_
 #define XFLREADER_H_
@@ -29,6 +33,68 @@
 #endif
 
 namespace XFL {
+
+// ---------------------------------------------------------------------------
+// 2-D affine transform from a <Matrix> element (DOMBitmapInstance etc.)
+// a/b/c/d = rotation+scale 2×2; tx/ty = translation in pixels.
+// ---------------------------------------------------------------------------
+struct Transform {
+    double a  = 1.0, b  = 0.0;
+    double c  = 0.0, d  = 1.0;
+    double tx = 0.0, ty = 0.0;
+};
+
+// ---------------------------------------------------------------------------
+// A bitmap asset declared in the <media> section of DOMDocument.xml.
+// 'name' is the key referenced by DOMBitmapInstance.libraryItemName.
+// 'href' is a path relative to the XFL directory root (e.g. "LIBRARY/a.png").
+// ---------------------------------------------------------------------------
+struct BitmapItem {
+    std::string name;
+    std::string href;
+};
+
+// ---------------------------------------------------------------------------
+// A single element placed inside a DOMFrame's <elements>.
+// Only bitmap instances are populated from DOMDocument; symbol instances
+// are noted but their full timeline lives in a separate LIBRARY/ XML.
+// ---------------------------------------------------------------------------
+struct FrameElement {
+    enum Type { NONE, BITMAP_INSTANCE, SYMBOL_INSTANCE } type = NONE;
+    std::string libraryItemName;  // key into Document::bitmaps
+    Transform   matrix;
+};
+
+// ---------------------------------------------------------------------------
+// One "keyframe span" in the XFL timeline.
+// index    = first row (0-based)
+// duration = how many consecutive rows this span occupies
+// ---------------------------------------------------------------------------
+struct XFLFrame {
+    int  index    = 0;
+    int  duration = 1;
+    bool keyFrame = false;
+    std::string name;
+    std::vector<FrameElement> elements;
+};
+
+// ---------------------------------------------------------------------------
+// One layer in a DOMTimeline.
+// layerType: "normal" | "guide" | "mask" | "folder"
+// ---------------------------------------------------------------------------
+struct XFLLayer {
+    std::string name;
+    std::string layerType;
+    std::vector<XFLFrame> frames;
+};
+
+// ---------------------------------------------------------------------------
+// A complete timeline (Scene 1 or a symbol's internal timeline).
+// ---------------------------------------------------------------------------
+struct XFLTimeline {
+    std::string name;
+    std::vector<XFLLayer> layers;
+};
 
 // Symbol types in XFL library
 enum SymbolType {
@@ -54,8 +120,10 @@ struct Document {
     int height;
     double frameRate;
     std::string backgroundColor;
-    std::vector<Symbol> symbols;
-    
+    std::vector<Symbol>      symbols;   // from LIBRARY/*.xml
+    std::vector<BitmapItem>  bitmaps;   // from <media> section
+    std::vector<XFLTimeline> timelines; // from <timelines> section
+
     Document() : width(550), height(400), frameRate(24.0), backgroundColor("#FFFFFF") {}
 };
 
