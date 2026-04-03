@@ -2,7 +2,6 @@
 
 #include "menubarcommandids.h"
 #include "flareqt/menubarcommand.h"
-#include "flareqt/dvdialog.h"
 
 #include <QFile>
 #include <QFont>
