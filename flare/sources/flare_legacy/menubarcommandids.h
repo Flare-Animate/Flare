@@ -42,6 +42,7 @@
 #define MI_ImportMagpieFile "MI_ImportMagpieFile"
 #define MI_ImportFlashVector "MI_ImportFlashVector"
 #define MI_FlashGuide "MI_FlashGuide"
+#define MI_ExportFlash "MI_ExportFlash"
 #define MI_NewNoteLevel "MI_NewNoteLevel"
 #define MI_RemoveEmptyColumns "MI_RemoveEmptyColumns"
 #define MI_NewProject "MI_NewProject"
