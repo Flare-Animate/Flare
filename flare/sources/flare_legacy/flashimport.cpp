@@ -31,9 +31,9 @@
 //   lightspark (LGPL-3.0)               — CWS decompression approach
 //   Apache Flex SDK (Apache-2.0)        — SWC catalog.xml structure
 
-#include "flare/menubarcommandids.h"
-#include "flare/menubar.h"
-#include "flare/tapp.h"
+#include "menubarcommandids.h"
+#include "menubar.h"
+#include "tapp.h"
 #include "flare/tscenehandle.h"
 #include "flare/txsheethandle.h"
 #include "flare/toonzscene.h"
@@ -46,7 +46,7 @@
 
 #include "flareqt/gutil.h"
 #include "flareqt/dvdialog.h"
-#include "flare/filebrowserpopup.h"
+#include "filebrowserpopup.h"
 #include "iocommand.h"
 #include "tsystem.h"
 #include "tfilepath.h"
