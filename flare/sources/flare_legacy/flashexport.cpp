@@ -12,8 +12,8 @@
 // names from the publicly-available XFL specification are used.
 
 #include "menubarcommandids.h"
-#include "flare/menubar.h"
-#include "flare/tapp.h"
+#include "menubar.h"
+#include "tapp.h"
 #include "flare/tscenehandle.h"
 #include "flare/txsheethandle.h"
 #include "flare/toonzscene.h"
@@ -30,8 +30,9 @@
 
 #include "flareqt/gutil.h"
 #include "flareqt/dvdialog.h"
-#include "flare/filebrowserpopup.h"
+#include "filebrowserpopup.h"
 #include "iocommand.h"
+#include "exportlevelcommand.h"
 #include "tsystem.h"
 #include "tfilepath.h"
 
@@ -63,9 +64,9 @@ static QString layerName(TXshCellColumn *col, int colIndex) {
     TXshCell first = col->getCell(col->getFirstRow());
     TXshSimpleLevel *sl = first.getSimpleLevel();
     if (sl) {
-        std::string name = sl->getName();
+        std::wstring name = sl->getName();
         if (!name.empty())
-            return QString::fromStdString(name);
+            return QString::fromStdWString(name);
     }
     return QStringLiteral("Layer_%1").arg(colIndex + 1);
 }

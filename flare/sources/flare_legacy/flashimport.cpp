@@ -36,6 +36,7 @@
 #include "tapp.h"
 #include "flare/tscenehandle.h"
 #include "flare/txsheethandle.h"
+#include "flare/txshlevelhandle.h"
 #include "flare/toonzscene.h"
 #include "flare/tproject.h"
 #include "flare/txsheet.h"
@@ -187,9 +188,9 @@ static QString extractAdobeZipPackage(const QString &srcPath, const QString &out
                                        const QString &ext) {
     if (!extractZip(srcPath, outDir)) return {};
     QStringList candidates;
-    if      (ext == "ane") candidates = {"META-INF/ANE/extension.xml", "META-INF/extension.xml"};
-    else if (ext == "air") candidates = {"META-INF/AIR/application.xml", "META-INF/MANIFEST.MF"};
-    else if (ext == "oam") candidates = {"OAMMetadata.xml", "META-INF/OAM/metadata.xml", "metadata.xml"};
+    if      (ext == "ane") { candidates << "META-INF/ANE/extension.xml" << "META-INF/extension.xml"; }
+    else if (ext == "air") { candidates << "META-INF/AIR/application.xml" << "META-INF/MANIFEST.MF"; }
+    else if (ext == "oam") { candidates << "OAMMetadata.xml" << "META-INF/OAM/metadata.xml" << "metadata.xml"; }
     for (const QString &rel : candidates)
         if (QFile::exists(outDir + "/" + rel)) return rel;
     return {};
