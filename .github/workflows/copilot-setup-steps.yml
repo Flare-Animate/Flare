@@ -77,6 +77,8 @@ jobs:
         run: |
           echo "#include \"flare/sources/common/flash/XFLReader.h\"" > /tmp/xfl_check.cpp
           echo "int main(){return 0;}" >> /tmp/xfl_check.cpp
-          g++ -std=c++17 -Iflare/sources/include -Iflare/sources/common/flash \
-              /tmp/xfl_check.cpp -o /tmp/xfl_check 2>&1 || true
+          if ! g++ -std=c++17 -Iflare/sources/include -Iflare/sources/common/flash \
+              /tmp/xfl_check.cpp -o /tmp/xfl_check 2>&1; then
+            echo "::warning::XFLReader header smoke-check failed – check include paths"
+          fi
           echo "Setup complete – Copilot agent environment ready."

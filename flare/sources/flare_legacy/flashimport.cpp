@@ -324,10 +324,8 @@ static void importXFLScene(ToonzScene *scene, TXsheet *xsheet,
         if (layer.layerType == "guide" || layer.layerType == "folder") continue;
 
         // Count useful frames (bitmap or symbol instances)
-        int totalFrames = 0;
         bool hasBitmapCells = false;
         for (const XFL::XFLFrame &fr : layer.frames) {
-            totalFrames = qMax(totalFrames, fr.index + fr.duration);
             for (const XFL::FrameElement &el : fr.elements) {
                 if (el.type == XFL::FrameElement::BITMAP_INSTANCE &&
                     bitmapLevels.contains(QString::fromStdString(el.libraryItemName)))

@@ -1866,6 +1866,18 @@ bool IoCmd::loadScene(const TFilePath &path, bool updateRecentFile,
   bool isXdts         = scenePath.getType() == "xdts";
   bool isSxf          = scenePath.getType() == "sxf";
   if (scenePath.getType() == "") scenePath = scenePath.withType("tnz");
+  // FLA / XFL — route to Flash import instead of treating as a scene file
+  if (scenePath.getType() == "fla" || scenePath.getType() == "xfl") {
+    QAction *act = CommandManager::instance()->getAction(MI_ImportFlashVector);
+    if (act) {
+      QMetaObject::invokeMethod(act, "trigger", Qt::QueuedConnection);
+      return true;
+    }
+    DVGui::error(QObject::tr(
+        "Flash import is not available.\n"
+        "Use File \u2192 Import \u2192 Flash to open FLA / XFL files."));
+    return false;
+  }
   if (scenePath.getType() != "tnz" && !isXdts && !isSxf) {
     QString msg;
     msg = QObject::tr("File %1 doesn't look like a TOONZ Scene")
@@ -2150,9 +2162,19 @@ bool IoCmd::loadScene() {
   if (fileSelection) {
     std::vector<TFilePath> files;
     fileSelection->getSelectedFiles(files);
-    if (files.size() == 1 && files[0] != TFilePath() &&
-        files[0].getType() == "tnz")
-      return loadScene(files[0]);
+    if (files.size() == 1 && files[0] != TFilePath()) {
+      const std::string t = files[0].getType();
+      if (t == "tnz")
+        return loadScene(files[0]);
+      if (t == "fla" || t == "xfl") {
+        // Route Flash files to the import command
+        QAction *act = CommandManager::instance()->getAction(MI_ImportFlashVector);
+        if (act) {
+          QMetaObject::invokeMethod(act, "trigger", Qt::QueuedConnection);
+          return true;
+        }
+      }
+    }
   }
 
   static LoadScenePopup *popup = 0;
