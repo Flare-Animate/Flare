@@ -69,12 +69,14 @@ struct FrameElement {
 // One "keyframe span" in the XFL timeline.
 // index    = first row (0-based)
 // duration = how many consecutive rows this span occupies
+// tweenType: "" | "motion" | "shape" (classic tweens)
 // ---------------------------------------------------------------------------
 struct XFLFrame {
     int  index    = 0;
     int  duration = 1;
     bool keyFrame = false;
     std::string name;
+    std::string tweenType;  // "motion", "shape", or "" for static
     std::vector<FrameElement> elements;
 };
 

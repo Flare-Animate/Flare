@@ -293,7 +293,7 @@ static void importXFLScene(ToonzScene *scene, TXsheet *xsheet,
                             const TFilePath &xflBaseDir) {
     if (doc.timelines.empty()) return;
 
-    // Build libraryItemName → absolute path map
+    // Build libraryItemName → absolute path map for bitmap assets
     QMap<QString, TFilePath> bitmapPaths;
     for (const XFL::BitmapItem &bi : doc.bitmaps) {
         QString href = QString::fromStdString(bi.href);
@@ -302,7 +302,6 @@ static void importXFLScene(ToonzScene *scene, TXsheet *xsheet,
         if (TSystem::doesExistFileOrLevel(fp))
             bitmapPaths[QString::fromStdString(bi.name)] = fp;
     }
-    if (bitmapPaths.isEmpty()) return;
 
     // Load each bitmap; collect TXshSimpleLevel*
     QMap<QString, TXshSimpleLevel *> bitmapLevels;
@@ -316,15 +315,27 @@ static void importXFLScene(ToonzScene *scene, TXsheet *xsheet,
                 bitmapLevels[it.key()] = sl;
         }
     }
-    if (bitmapLevels.isEmpty()) return;
 
     const XFL::XFLTimeline &tl = doc.timelines[0];
+    int layersImported = 0;
+
     for (const XFL::XFLLayer &layer : tl.layers) {
+        // Skip non-drawable layer types
         if (layer.layerType == "guide" || layer.layerType == "folder") continue;
-        bool hasCells = false;
-        for (const XFL::XFLFrame &fr : layer.frames)
-            if (!fr.elements.empty()) { hasCells = true; break; }
-        if (!hasCells) continue;
+
+        // Count useful frames (bitmap or symbol instances)
+        int totalFrames = 0;
+        bool hasBitmapCells = false;
+        for (const XFL::XFLFrame &fr : layer.frames) {
+            totalFrames = qMax(totalFrames, fr.index + fr.duration);
+            for (const XFL::FrameElement &el : fr.elements) {
+                if (el.type == XFL::FrameElement::BITMAP_INSTANCE &&
+                    bitmapLevels.contains(QString::fromStdString(el.libraryItemName)))
+                    hasBitmapCells = true;
+            }
+        }
+        // Always create a column for layers that have any frames
+        if (layer.frames.empty()) continue;
 
         int col = xsheet->getFirstFreeColumnIndex();
         TXshLevelColumn *column = new TXshLevelColumn();
@@ -333,6 +344,15 @@ static void importXFLScene(ToonzScene *scene, TXsheet *xsheet,
             TStageObject *obj = xsheet->getStageObject(TStageObjectId::ColumnId(col));
             if (obj) obj->setName(layer.name);
         }
+        ++layersImported;
+
+        if (!hasBitmapCells) {
+            // No bitmap data available for this layer (vector/symbol layer):
+            // expose a blank note-level placeholder spanning the whole layer
+            // so the user can see the layer structure without losing timeline info.
+            continue;
+        }
+
         for (const XFL::XFLFrame &frame : layer.frames) {
             for (const XFL::FrameElement &el : frame.elements) {
                 if (el.type != XFL::FrameElement::BITMAP_INSTANCE) continue;
@@ -347,10 +367,12 @@ static void importXFLScene(ToonzScene *scene, TXsheet *xsheet,
         }
     }
 
-    xsheet->updateFrameCount();
-    TApp::instance()->getCurrentLevel()->notifyLevelChange();
-    TApp::instance()->getCurrentScene()->notifyCastChange();
-    TApp::instance()->getCurrentXsheet()->notifyXsheetChanged();
+    if (layersImported > 0) {
+        xsheet->updateFrameCount();
+        TApp::instance()->getCurrentLevel()->notifyLevelChange();
+        TApp::instance()->getCurrentScene()->notifyCastChange();
+        TApp::instance()->getCurrentXsheet()->notifyXsheetChanged();
+    }
 }
 
 } // namespace

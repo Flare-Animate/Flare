@@ -337,6 +337,8 @@ bool Reader::parseDOMDocument(const std::string &xmlContent) {
                 frame.keyFrame = (attrs.value("keyFrame").toString() == "true");
                 if (attrs.hasAttribute("name"))
                     frame.name = attrs.value("name").toString().toStdString();
+                if (attrs.hasAttribute("tweenType"))
+                    frame.tweenType = attrs.value("tweenType").toString().toStdString();
                 m_document.timelines[tIdx].layers[lIdx].frames.push_back(std::move(frame));
                 fIdx = static_cast<int>(m_document.timelines[tIdx].layers[lIdx].frames.size()) - 1;
                 eIdx = -1;
