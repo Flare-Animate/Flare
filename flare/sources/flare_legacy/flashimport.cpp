@@ -408,6 +408,11 @@ void ImportFlashVectorCommand::execute() {
         loadPopup->addFilterType("lwf");
         loadPopup->addFilterType("rsl");
         loadPopup->addFilterType("afl");
+        // Adobe extension / plugin formats (issue #52)
+        loadPopup->addFilterType("zxp");   // Adobe Extension (CC), ZIP-based
+        loadPopup->addFilterType("mxp");   // Adobe Extension Manager package (legacy)
+        loadPopup->addFilterType("jsfl");  // JavaScript Flash (JSFL) script
+        loadPopup->addFilterType("csx");   // CEP extension (JSON manifest + web content)
     }
     if (!scene->isUntitled())
         loadPopup->setFolder(scene->getScenePath().getParentDir());
@@ -571,6 +576,51 @@ void ImportFlashVectorCommand::execute() {
     } else if (ext == "lwf" || ext == "rsl" || ext == "afl") {
         copyFileForReference(srcPath, outPath, exported);
         info = QObject::tr("%1 file copied for reference.").arg(ext.toUpper());
+
+    // ---- ZXP / MXP — Adobe Extension packages (ZIP-based) ----------------
+    } else if (ext == "zxp" || ext == "mxp") {
+        // ZXP (Creative Cloud) and MXP (Extension Manager) are ZIP archives.
+        // Extract contents and copy for reference; show manifest summary.
+        if (!extractZip(srcPath, outPath)) {
+            DVGui::error(QObject::tr("Failed to extract extension package: %1").arg(srcPath));
+            return;
+        }
+        // Try to find manifest for info display
+        QString manifest;
+        for (const QString &mf : QStringList{"manifest.xml", "ExtensionManifest.xml", "Manifest.xml"}) {
+            QFile f(outPath + "/" + mf);
+            if (f.open(QIODevice::ReadOnly | QIODevice::Text)) {
+                manifest = QString::fromUtf8(f.readAll()).left(800);
+                f.close();
+                break;
+            }
+        }
+        info = QObject::tr("%1 extension extracted.").arg(ext.toUpper());
+        if (!manifest.isEmpty())
+            info += "\n" + manifest.left(300);
+        QDirIterator it(outPath, QDir::Files | QDir::NoDotAndDotDot, QDirIterator::Subdirectories);
+        QDir base(outPath);
+        while (it.hasNext()) {
+            it.next();
+            exported << base.relativeFilePath(it.filePath());
+        }
+
+    // ---- JSFL — JavaScript Flash script (plain text) ----------------------
+    } else if (ext == "jsfl") {
+        copyFileForReference(srcPath, outPath, exported);
+        // Show first lines for info
+        QFile f(srcPath);
+        if (f.open(QIODevice::ReadOnly | QIODevice::Text)) {
+            info = QObject::tr("JSFL script:\n") + QString::fromUtf8(f.read(400));
+            f.close();
+        } else {
+            info = QObject::tr("JSFL script copied for reference.");
+        }
+
+    // ---- CSX — CEP extension (JSON/HTML/JS panel) -------------------------
+    } else if (ext == "csx") {
+        copyFileForReference(srcPath, outPath, exported);
+        info = QObject::tr("CSX extension copied for reference.");
 
     } else {
         DVGui::warning(QObject::tr("Unsupported Flash format: .%1").arg(ext));
