@@ -443,7 +443,6 @@ set(SOURCES
     flashexport.cpp
     flashguidedialog.cpp
     scriptconsolepanel_stub.cpp
-    ../common/flash/XFLReader.cpp
     ${SDKROOT}/zlib-1.2.8/contrib/minizip/ioapi.c
     ${SDKROOT}/zlib-1.2.8/contrib/minizip/unzip.c
     ${SDKROOT}/zlib-1.2.8/contrib/minizip/zip.c

@@ -71,27 +71,4 @@ void FlashGuideCommand::execute() {
   dlg->show();
 }
 
-//-----------------------------------------------------------------------------
 
-class FlashExportCommand final : public MenuItemHandler {
-public:
-  FlashExportCommand() : MenuItemHandler(MI_ExportFlash) {}
-  void execute() override;
-} g_flashExportCommand;
-
-void FlashExportCommand::execute() {
-  DVGui::MsgBox(
-      DVGui::INFORMATION,
-      QObject::tr(
-          "<b>Native SWF / FLA export is not yet implemented.</b><br><br>"
-          "To bring your Flare scene into Adobe Animate:<br>"
-          "<ol>"
-          "<li>Export as <b>OCA</b> (File &gt; Export &gt; Open Cel Animation) — "
-          "this preserves layers, timing, and bitmap frames.</li>"
-          "<li>Use the <i>OCA Importer</i> script in Adobe Animate (available "
-          "from the Animate community exchange) to bring the OCA package in.</li>"
-          "<li>From Animate you can then save as FLA or publish as SWF.</li>"
-          "</ol>"
-          "For a full technical reference, see <b>Help &gt; Flash Format Guide</b>."),
-      std::vector<QString>{QObject::tr("OK")}, 0);
-}
