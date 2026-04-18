@@ -332,7 +332,7 @@ static void importXFLScene(ToonzScene *scene, TXsheet *xsheet,
                     hasBitmapCells = true;
             }
         }
-        // Always create a column for layers that have any frames
+        // Skip layers with no frames at all
         if (layer.frames.empty()) continue;
 
         int col = xsheet->getFirstFreeColumnIndex();

@@ -488,7 +488,8 @@ bool writeFLA(const TFilePath &xflPath, const TFilePath &flaPath) {
 
     TFilePathSet files;
     try {
-        // Use readDirectoryTree to include LIBRARY/ subdirectory and all assets
+        // readDirectoryTree(path, groupFrames=false, onlyFiles=true): recursively
+        // lists all files under xflPath, including LIBRARY/ subdirectory assets.
         files = TSystem::readDirectoryTree(xflPath, false, true);
     } catch (...) {
         qDebug() << "[XFL] writeFLA failed: could not read source directory" << srcDir;
