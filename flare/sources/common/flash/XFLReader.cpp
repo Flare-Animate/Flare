@@ -1,5 +1,12 @@
 // XFLReader.cpp - XFL (XML Flash) format reader implementation
 // Copyright (c) 2026 Flare Project
+//
+// Format knowledge (ideas only, no code copied):
+//   - Adobe XFL specification (public) — element/attribute names, structure
+//   - jpexs-decompiler (GPL-3.0)       — layer/frame/element model
+//   - fla-viewer (MIT)                 — attribute-parsing approach
+//   - ruffle (MIT/Apache-2.0)          — SWF format context (cross-reference)
+//   - open-flash libraries (ISC)       — format constants
 
 #include "XFLReader.h"
 #include "tsystem.h"
@@ -12,6 +19,7 @@
 #include <QDateTime>
 #include <QDebug>
 #include <QDir>
+#include <QXmlStreamReader>
 
 // Minizip for ZIP/FLA extraction (from thirdparty/zlib-1.2.8/contrib/minizip)
 #include "../../../../thirdparty/zlib-1.2.8/contrib/minizip/unzip.h"
@@ -234,28 +242,149 @@ bool Reader::readFromDirectory() {
     return true;
 }
 
+// ---------------------------------------------------------------------------
+// Full DOMDocument.xml parser using QXmlStreamReader
+//
+// XFL document structure (Adobe XFL spec):
+//   <DOMDocument width="..." height="..." frameRate="..." backgroundColor="...">
+//     <media>
+//       <DOMBitmapItem name="..." href="LIBRARY/foo.png" .../>
+//     </media>
+//     <symbols>
+//       <Include href="LIBRARY/Symbol1.xml" name="Symbol1"/>
+//     </symbols>
+//     <timelines>
+//       <DOMTimeline name="Scene 1">
+//         <layers>
+//           <DOMLayer name="..." layerType="normal|guide|mask|folder">
+//             <frames>
+//               <DOMFrame index="0" duration="1" keyFrame="true">
+//                 <elements>
+//                   <DOMBitmapInstance libraryItemName="...">
+//                     <matrix><Matrix a="1" b="0" c="0" d="1" tx="0" ty="0"/></matrix>
+//                   </DOMBitmapInstance>
+//                 </elements>
+//               </DOMFrame>
+//             </frames>
+//           </DOMLayer>
+//         </layers>
+//       </DOMTimeline>
+//     </timelines>
+//   </DOMDocument>
+// ---------------------------------------------------------------------------
 bool Reader::parseDOMDocument(const std::string &xmlContent) {
-    std::string value;
-    
-    if (parseXMLAttribute(xmlContent, "width", value)) {
-        try { m_document.width = std::stoi(value); }
-        catch (...) { m_error += "Warning: could not parse 'width' attribute\n"; }
+    QXmlStreamReader xml(QString::fromUtf8(xmlContent.c_str()));
+
+    // Indices track position in each container; using indices (not pointers)
+    // avoids iterator invalidation when vector::push_back reallocates.
+    int tIdx = -1;  // current XFLTimeline in m_document.timelines
+    int lIdx = -1;  // current XFLLayer  in timelines[tIdx].layers
+    int fIdx = -1;  // current XFLFrame  in layers[lIdx].frames
+    int eIdx = -1;  // current FrameElement in frames[fIdx].elements
+
+    bool inMatrix = false;  // inside a <Matrix> element scoped to an element
+
+    while (!xml.atEnd()) {
+        xml.readNext();
+
+        if (xml.isStartElement()) {
+            const QString name = xml.name().toString();
+            const QXmlStreamAttributes attrs = xml.attributes();
+
+            // ---- root document attributes ----
+            if (name == "DOMDocument") {
+                if (attrs.hasAttribute("width"))
+                    try { m_document.width = attrs.value("width").toInt(); } catch (...) {}
+                if (attrs.hasAttribute("height"))
+                    try { m_document.height = attrs.value("height").toInt(); } catch (...) {}
+                if (attrs.hasAttribute("frameRate"))
+                    try { m_document.frameRate = attrs.value("frameRate").toDouble(); } catch (...) {}
+                if (attrs.hasAttribute("backgroundColor"))
+                    m_document.backgroundColor = attrs.value("backgroundColor").toString().toStdString();
+            }
+
+            // ---- media section: bitmap library items ----
+            else if (name == "DOMBitmapItem") {
+                BitmapItem bi;
+                bi.name = attrs.value("name").toString().toStdString();
+                bi.href = attrs.value("href").toString().toStdString();
+                if (!bi.name.empty())
+                    m_document.bitmaps.push_back(bi);
+            }
+
+            // ---- timelines ----
+            else if (name == "DOMTimeline") {
+                XFLTimeline tl;
+                tl.name = attrs.value("name").toString().toStdString();
+                m_document.timelines.push_back(std::move(tl));
+                tIdx = static_cast<int>(m_document.timelines.size()) - 1;
+                lIdx = fIdx = eIdx = -1;
+            }
+            else if (name == "DOMLayer" && tIdx >= 0) {
+                XFLLayer layer;
+                layer.name     = attrs.value("name").toString().toStdString();
+                layer.layerType = attrs.value("layerType").toString().toStdString();
+                if (layer.layerType.empty()) layer.layerType = "normal";
+                m_document.timelines[tIdx].layers.push_back(std::move(layer));
+                lIdx = static_cast<int>(m_document.timelines[tIdx].layers.size()) - 1;
+                fIdx = eIdx = -1;
+            }
+            else if (name == "DOMFrame" && tIdx >= 0 && lIdx >= 0) {
+                XFLFrame frame;
+                frame.index    = attrs.value("index").toInt();
+                frame.duration = attrs.hasAttribute("duration")
+                                    ? attrs.value("duration").toInt() : 1;
+                frame.keyFrame = (attrs.value("keyFrame").toString() == "true");
+                if (attrs.hasAttribute("name"))
+                    frame.name = attrs.value("name").toString().toStdString();
+                if (attrs.hasAttribute("tweenType"))
+                    frame.tweenType = attrs.value("tweenType").toString().toStdString();
+                m_document.timelines[tIdx].layers[lIdx].frames.push_back(std::move(frame));
+                fIdx = static_cast<int>(m_document.timelines[tIdx].layers[lIdx].frames.size()) - 1;
+                eIdx = -1;
+            }
+            else if (name == "DOMBitmapInstance" && tIdx >= 0 && lIdx >= 0 && fIdx >= 0) {
+                FrameElement el;
+                el.type            = FrameElement::BITMAP_INSTANCE;
+                el.libraryItemName = attrs.value("libraryItemName").toString().toStdString();
+                m_document.timelines[tIdx].layers[lIdx].frames[fIdx].elements.push_back(std::move(el));
+                eIdx = static_cast<int>(
+                    m_document.timelines[tIdx].layers[lIdx].frames[fIdx].elements.size()) - 1;
+            }
+            else if (name == "DOMSymbolInstance" && tIdx >= 0 && lIdx >= 0 && fIdx >= 0) {
+                FrameElement el;
+                el.type            = FrameElement::SYMBOL_INSTANCE;
+                el.libraryItemName = attrs.value("libraryItemName").toString().toStdString();
+                m_document.timelines[tIdx].layers[lIdx].frames[fIdx].elements.push_back(std::move(el));
+                eIdx = static_cast<int>(
+                    m_document.timelines[tIdx].layers[lIdx].frames[fIdx].elements.size()) - 1;
+            }
+            // <matrix><Matrix .../></matrix> — transform for the current element
+            else if (name == "Matrix" && eIdx >= 0 && tIdx >= 0 && lIdx >= 0 && fIdx >= 0) {
+                Transform &m =
+                    m_document.timelines[tIdx].layers[lIdx].frames[fIdx].elements[eIdx].matrix;
+                if (attrs.hasAttribute("a"))  m.a  = attrs.value("a").toDouble();
+                if (attrs.hasAttribute("b"))  m.b  = attrs.value("b").toDouble();
+                if (attrs.hasAttribute("c"))  m.c  = attrs.value("c").toDouble();
+                if (attrs.hasAttribute("d"))  m.d  = attrs.value("d").toDouble();
+                if (attrs.hasAttribute("tx")) m.tx = attrs.value("tx").toDouble();
+                if (attrs.hasAttribute("ty")) m.ty = attrs.value("ty").toDouble();
+            }
+        }
+        else if (xml.isEndElement()) {
+            const QString name = xml.name().toString();
+            if      (name == "DOMBitmapInstance" || name == "DOMSymbolInstance") eIdx = -1;
+            else if (name == "DOMFrame")    fIdx = -1;
+            else if (name == "DOMLayer")    lIdx = -1;
+            else if (name == "DOMTimeline") { tIdx = -1; lIdx = fIdx = eIdx = -1; }
+        }
     }
-    
-    if (parseXMLAttribute(xmlContent, "height", value)) {
-        try { m_document.height = std::stoi(value); }
-        catch (...) { m_error += "Warning: could not parse 'height' attribute\n"; }
+
+    if (xml.hasError()) {
+        // Non-fatal: report but proceed with whatever was parsed.
+        m_error += "XML warning: " + xml.errorString().toStdString() + "\n";
     }
-    
-    if (parseXMLAttribute(xmlContent, "frameRate", value)) {
-        try { m_document.frameRate = std::stod(value); }
-        catch (...) { m_error += "Warning: could not parse 'frameRate' attribute\n"; }
-    }
-    
-    if (parseXMLAttribute(xmlContent, "backgroundColor", value)) {
-        m_document.backgroundColor = value;
-    }
-    
+
     return true;
 }
 
@@ -263,34 +392,30 @@ bool Reader::parseSymbol(const std::string &xmlContent, const std::string &symbo
     if (xmlContent.find("<DOMSymbolItem") == std::string::npos) {
         return false;
     }
-    
+
     Symbol symbol;
     symbol.name = symbolName;
-    
+
+    // Use simple attribute extraction for symbol-level metadata only.
     std::string value;
-    
-    if (parseXMLAttribute(xmlContent, "itemID", value)) {
+    if (parseXMLAttribute(xmlContent, "itemID", value))
         symbol.itemId = value;
-    }
-    
+
     if (parseXMLAttribute(xmlContent, "symbolType", value)) {
-        if (value == "movie clip") {
+        if (value == "movie clip")
             symbol.type = SYMBOL_MOVIECLIP;
-        } else if (value == "button") {
+        else if (value == "button")
             symbol.type = SYMBOL_BUTTON;
-        } else {
+        else
             symbol.type = SYMBOL_GRAPHIC;
-        }
     }
-    
-    if (parseXMLAttribute(xmlContent, "linkageClassName", value)) {
+
+    if (parseXMLAttribute(xmlContent, "linkageClassName", value))
         symbol.linkageClass = value;
-    }
-    
-    if (parseXMLAttribute(xmlContent, "linkageExportForAS", value)) {
+
+    if (parseXMLAttribute(xmlContent, "linkageExportForAS", value))
         symbol.linkageExport = (value == "true");
-    }
-    
+
     m_document.symbols.push_back(symbol);
     return true;
 }
@@ -363,7 +488,9 @@ bool writeFLA(const TFilePath &xflPath, const TFilePath &flaPath) {
 
     TFilePathSet files;
     try {
-        files = TSystem::readDirectory(xflPath, false, true, true);
+        // readDirectoryTree(path, groupFrames=false, onlyFiles=true): recursively
+        // lists all files under xflPath, including LIBRARY/ subdirectory assets.
+        files = TSystem::readDirectoryTree(xflPath, false, true);
     } catch (...) {
         qDebug() << "[XFL] writeFLA failed: could not read source directory" << srcDir;
         zipClose(zf, nullptr);

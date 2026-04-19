@@ -70,3 +70,5 @@ void FlashGuideCommand::execute() {
   dlg->setAttribute(Qt::WA_DeleteOnClose);
   dlg->show();
 }
+
+

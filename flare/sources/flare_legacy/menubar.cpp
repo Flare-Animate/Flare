@@ -1140,6 +1140,7 @@ QMenuBar *StackedMenuBar::createFullMenuBar() {
     addMenuItem(exportMenu, MI_ExportXDTS);
     addMenuItem(exportMenu, MI_ExportSXF);
     addMenuItem(exportMenu, MI_ExportOCA);
+    addMenuItem(exportMenu, MI_ExportFlash);
     addMenuItem(exportMenu, MI_ExportXsheetPDF);
 #if defined(x64)
     addMenuItem(exportMenu, MI_StopMotionExportImageSequence);
@@ -1483,6 +1484,8 @@ QMenuBar *StackedMenuBar::createFullMenuBar() {
   addMenuItem(helpMenu, MI_OpenCommunityForum);
   helpMenu->addSeparator();
   addMenuItem(helpMenu, MI_OpenReportABug);
+  helpMenu->addSeparator();
+  addMenuItem(helpMenu, MI_FlashGuide);
   helpMenu->addSeparator();
   addMenuItem(helpMenu, MI_About);
 

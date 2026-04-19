@@ -25,21 +25,19 @@
         <menu title="Import">
             <command>MI_ImportMagpieFile</command>
             <command>MI_ImportOCA</command>
+            <command>MI_ImportFlashVector</command>
         </menu>
         <menu title="Export">
-            <command>MI_ExportCurrentScene</command>		
+            <command>MI_ExportCurrentScene</command>
             <command>MI_SoundTrack</command>
             <command>MI_ExportXDTS</command>
             <command>MI_ExportSXF</command>
             <command>MI_ExportOCA</command>
-            <command>MI_StopMotionExportImageSequence</command>
+            <command>MI_ExportFlash</command>
             <command>MI_ExportTvpJson</command>
             <command>MI_ExportXsheetPDF</command>
             <command>MI_ExportCameraTrack</command>
         </menu>
-        <separator/>
-        <command>MI_PrintXsheet</command>
-        <command>MI_Print</command>
         <separator/>
         <menu title="Script">
             <command>MI_RunScript</command>
@@ -49,8 +47,8 @@
         <command>MI_Preferences</command>
         <command>MI_ShortcutPopup</command>
         <separator/>
-        <command>MI_ClearCacheFolder</command>  
-        <separator/> 
+        <command>MI_ClearCacheFolder</command>
+        <separator/>
         <command>MI_Quit</command>
     </menu>
     <menu title="Edit">
@@ -84,22 +82,6 @@
             <command>MI_SendBack</command>
         </menu>
     </menu>
-    <menu title="Scan &amp;&amp; Cleanup">
-        <command>MI_DefineScanner</command>
-        <command>MI_ScanSettings</command>
-        <command>MI_Scan</command>
-        <command>MI_SetScanCropbox</command>
-        <command>MI_ResetScanCropbox</command>
-        <separator/>
-        <command>MI_CleanupSettings</command>
-        <command>MI_CleanupPreview</command>
-        <command>MI_OpacityCheck</command>
-        <command>MI_CameraTest</command>
-        <command>MI_Cleanup</command>
-        <separator/>
-        <command>MI_PencilTest</command>
-        <command>MI_Autocenter</command>
-    </menu>
     <menu title="Level">
         <menu title="New">
             <command>MI_NewLevel</command>
@@ -115,14 +97,11 @@
         <command>MI_SaveAllLevels</command>
         <command>MI_OpenRecentLevel</command>
         <command>MI_ExportLevel</command>
-        <command>MI_ExportAllLevels</command>
         <separator/>
         <command>MI_AddFrames</command>
         <command>MI_Renumber</command>
         <command>MI_ReplaceLevel</command>
-        <command>MI_RevertToCleanedUp</command>
         <command>MI_RevertToLastSaved</command>
-        <command>MI_Tracking</command>
         <separator/>
         <menu title="Adjust">
             <command>MI_BrightnessAndContrast</command>
@@ -132,15 +111,6 @@
             <command>MI_Binarize</command>
             <command>MI_LinesFade</command>
         </menu>
-        <menu title="Optimize">
-            <command>MI_FillHoles</command>
-            <command>MI_RemoveEndpoints</command>
-            <command>MI_ConvertVectorToVector</command>
-        </menu>
-        <menu title="Convert">
-            <command>MI_ConvertToVectors</command>
-            <command>MI_ConvertToToonzRaster</command>
-        </menu>
         <separator/>
         <command>MI_ExposeResource</command>
         <command>MI_EditLevel</command>
@@ -148,7 +118,6 @@
         <command>MI_CanvasSize</command>
         <command>MI_LevelSettings</command>
         <command>MI_FileInfo</command>
-        <command>MI_ReplaceParentDirectory</command>
         <separator/>
         <command>MI_RemoveUnused</command>
     </menu>
@@ -161,24 +130,15 @@
         <command>MI_SaveSubxsheetAs</command>
         <command>MI_Collapse</command>
         <command>MI_Resequence</command>
-        <command>MI_CloneChild</command>
         <command>MI_ExplodeChild</command>
-        <command>MI_ToggleEditInPlace</command>
-        <separator/>
-        <command>MI_ApplyMatchLines</command>
-        <command>MI_MergeCmapped</command>
         <separator/>
         <command>MI_MergeColumns</command>
-        <command>MI_DeleteMatchLines</command>
-        <command>MI_DeleteInk</command>
         <separator/>
         <command>MI_InsertFx</command>
         <command>MI_NewOutputFx</command>
         <separator/>
         <command>MI_InsertSceneFrame</command>
         <command>MI_RemoveSceneFrame</command>
-        <command>MI_InsertGlobalKeyframe</command>
-        <command>MI_RemoveGlobalKeyframe</command>
         <separator/>
         <command>MI_LipSyncPopup</command>
         <separator/>
@@ -196,40 +156,15 @@
             <command>MI_Reframe2</command>
             <command>MI_Reframe3</command>
             <command>MI_Reframe4</command>
-            <command>MI_ReframeWithEmptyInbetweens</command>
-        </menu>
-        <menu title="Step">
-            <command>MI_IncreaseStep</command>
-            <command>MI_DecreaseStep</command>
-            <command>MI_ResetStep</command>
-            <command>MI_Step2</command>
-            <command>MI_Step3</command>
-            <command>MI_Step4</command>
-        </menu>
-        <menu title="Each">
-            <command>MI_Each2</command>
-            <command>MI_Each3</command>
-            <command>MI_Each4</command>
         </menu>
         <command>MI_Rollup</command>
         <command>MI_Rolldown</command>
         <command>MI_TimeStretch</command>
-        <command>MI_AutoInputCellNumber</command>
         <separator/>
-        <menu title="Drawing Substitution">
-            <command>MI_DrawingSubBackward</command>
-            <command>MI_DrawingSubForward</command>
-            <command>MI_DrawingSubGroupBackward</command>
-            <command>MI_DrawingSubGroupForward</command>
-        </menu>
-        <separator/>
-        <command>MI_Autorenumber</command>
         <command>MI_CreateBlankDrawing</command>
         <command>MI_Duplicate</command>
         <command>MI_MergeFrames</command>
         <command>MI_CloneLevel</command>
-        <separator/>
-        <command>MI_FillEmptyCell</command>
     </menu>
     <menu title="Play">
         <command>MI_Play</command>
@@ -240,15 +175,9 @@
         <command>MI_LastFrame</command>
         <command>MI_PrevFrame</command>
         <command>MI_NextFrame</command>
-        <command>MI_PrevStep</command>
-        <command>MI_NextStep</command>
         <separator/>
         <command>MI_PrevDrawing</command>
         <command>MI_NextDrawing</command>
-        <command>MI_PrevKeyframe</command>
-        <command>MI_NextKeyframe</command>
-        <separator/>
-        <command>MI_Link</command>
     </menu>
     <menu title="Render">
         <command>MI_PreviewSettings</command>
@@ -273,21 +202,10 @@
         <separator/>
         <command>MI_TCheck</command>
         <command>MI_ICheck</command>
-        <command>MI_Ink1Check</command>
         <command>MI_PCheck</command>
-        <command>MI_IOnly</command>
         <command>MI_BCheck</command>
         <command>MI_GCheck</command>
         <command>MI_ACheck</command>
-        <separator/>
-        <command>MI_ShiftTrace</command>
-        <command>MI_EditShift</command>
-        <command>MI_NoShift</command>
-        <command>MI_ResetShift</command>
-        <separator/>
-        <command>MI_VectorGuidedDrawing</command>
-        <separator/>
-        <command>MI_RasterizePli</command>
     </menu>
     <menu title="Windows">
         <menu title="Workspace">
@@ -307,7 +225,6 @@
         <separator/>
         <command>MI_OpenComboViewer</command>
         <command>MI_OpenLevelView</command>
-        <command>MI_OpenFileViewer</command>
         <separator/>
         <command>MI_OpenXshView</command>
         <command>MI_OpenTimelineView</command>
@@ -317,23 +234,14 @@
         <command>MI_OpenFilmStrip</command>
         <separator/>
         <command>MI_OpenFileBrowser</command>
-        <command>MI_OpenPreproductionBoard</command>
-        <command>MI_OpenFileBrowser2</command>
         <separator/>
-        <command>MI_OpenCleanupSettings</command>
         <command>MI_OpenTasks</command>
-        <command>MI_OpenBatchServers</command>
         <command>MI_OpenTMessage</command>
         <command>MI_OpenHistoryPanel</command>
-        <command>MI_AudioRecording</command>
-        <command>MI_OpenStopMotionPanel</command>
         <command>MI_StartupPopup</command>
-        <command>MI_OpenGuidedDrawingControls</command>
-        <command>MI_OpenCustomPanels</command>
         <separator/>
         <command>MI_MaximizePanel</command>
         <command>MI_FullScreenWindow</command>
-        <command>MI_SeeThroughWindow</command>
     </menu>
     <menu title="Help">
         <command>MI_OpenOnlineManual</command>
@@ -342,6 +250,8 @@
         <separator/>
         <command>MI_OpenReportABug</command>
         <separator/>
-        <command>MI_About</command>     
+        <command>MI_FlashGuide</command>
+        <separator/>
+        <command>MI_About</command>
     </menu>
 </menubar>

@@ -16,8 +16,14 @@
 #include "flare/preferences.h"
 #include "flare/tapp.h"
 #include "flare/tscenehandle.h"
+#include "flare/txsheethandle.h"
 #include "flare/toonzfolders.h"
 #include "flare/toonzscene.h"
+#include "flare/txsheet.h"
+#include "flare/txshcell.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/txshlevelcolumn.h"
+#include "flare/tstageobject.h"
 
 #include "flareqt/gutil.h"
 #include "flareqt/dvdialog.h"
@@ -595,6 +601,145 @@ static void openFolder(const QString &path) {
     QDesktopServices::openUrl(QUrl::fromLocalFile(path));
 }
 
+// ---------------------------------------------------------------------------
+// Copy a single file to outDir and add its filename to the exported list.
+// Used by text/binary format handlers (AS, ASC, MXML, LWF, RSL, AFL).
+// ---------------------------------------------------------------------------
+static void copyFileForReference(const QString &srcPath, const QString &outDir,
+                                 QStringList &exported, const QString &infoMsg = {}) {
+    QString fname = QFileInfo(srcPath).fileName();
+    QString dst   = outDir + "/" + fname;
+    QFile::copy(srcPath, dst);
+    exported << fname;
+    (void)infoMsg;
+}
+
+// ---------------------------------------------------------------------------
+// ANE / AIR / OAM — ZIP-based Adobe packaging formats.
+//
+// ANE  (Adobe Native Extension) — ZIP; contains META-INF/ANE/extension.xml
+// AIR  (Adobe AIR application)  — ZIP; contains META-INF/AIR/application.xml
+// OAM  (Open Architecture Mod.) — ZIP; contains OAMMetadata.xml or META-INF/OAM/metadata.xml
+//
+// All three use the same ZIP extraction pipeline as FLA/SWC.
+// Format knowledge: Adobe AIR SDK Reference, Adobe Animate OAM spec.
+// ---------------------------------------------------------------------------
+static QString extractAdobeZipPackage(const QString &srcPath, const QString &outDir,
+                                      const QString &ext) {
+    if (!extractZip(srcPath, outDir)) return {};
+
+    // Find and report the manifest/metadata XML specific to each format.
+    QStringList candidates;
+    if (ext == "ane")
+        candidates = {"META-INF/ANE/extension.xml", "META-INF/extension.xml"};
+    else if (ext == "air")
+        candidates = {"META-INF/AIR/application.xml", "META-INF/MANIFEST.MF"};
+    else if (ext == "oam")
+        candidates = {"OAMMetadata.xml", "META-INF/OAM/metadata.xml", "metadata.xml"};
+
+    for (const QString &rel : candidates) {
+        QFile f(outDir + "/" + rel);
+        if (f.exists()) {
+            return rel;  // return the found manifest path
+        }
+    }
+    return {};
+}
+
+// ---------------------------------------------------------------------------
+// Native FLA/XFL scene import
+//
+// After XFLReader has fully parsed the document (including timelines),
+// this function populates the active Flare xsheet:
+//   - each DOMLayer  → TXshLevelColumn
+//   - each DOMBitmapItem → PNG loaded via IoCmd::loadResources
+//   - each DOMFrame span → cells set via TXsheet::setCell
+//
+// Approach:
+//   1. Map libraryItemName → TFilePath from parsed BitmapItem list
+//   2. Load each bitmap once using IoCmd::loadResources (expose=false)
+//   3. Iterate layers (topmost XFL layer = leftmost Flare column)
+//   4. For each keyframe with a BITMAP_INSTANCE element, set cells for its duration
+//
+// References:
+//   jpexs-decompiler XFLConverter (GPL-3.0) — layer/frame/element model (ideas only)
+//   fla-viewer (MIT) — attribute interpretation (ideas only)
+//   OCA import (ocaio.cpp) — xsheet insertion pattern
+// ---------------------------------------------------------------------------
+static void importXFLScene(ToonzScene *scene, TXsheet *xsheet,
+                            const XFL::Document &doc,
+                            const TFilePath &xflBaseDir) {
+    if (doc.timelines.empty()) return;
+
+    // Build libraryItemName → absolute file path
+    QMap<QString, TFilePath> bitmapPaths;
+    for (const XFL::BitmapItem &bi : doc.bitmaps) {
+        QString href = QString::fromStdString(bi.href);
+        href.replace('\\', '/');
+        TFilePath fp = xflBaseDir + TFilePath(href.toStdString());
+        if (TSystem::doesExistFileOrLevel(fp))
+            bitmapPaths[QString::fromStdString(bi.name)] = fp;
+    }
+    if (bitmapPaths.isEmpty()) return;
+
+    // Load all referenced bitmaps; collect TXshSimpleLevel* per name.
+    // IoCmd::loadResources(expose=false) → levels added to scene but no column auto-inserted.
+    QMap<QString, TXshSimpleLevel *> bitmapLevels;
+    for (auto it = bitmapPaths.constBegin(); it != bitmapPaths.constEnd(); ++it) {
+        IoCmd::LoadResourceArguments args;
+        args.expose = false;
+        args.resourceDatas.emplace_back(it.value());
+        IoCmd::loadResources(args);
+        if (!args.loadedLevels.empty()) {
+            TXshLevel *lv = *args.loadedLevels.begin();
+            if (TXshSimpleLevel *sl = lv ? dynamic_cast<TXshSimpleLevel *>(lv) : nullptr)
+                bitmapLevels[it.key()] = sl;
+        }
+    }
+    if (bitmapLevels.isEmpty()) return;
+
+    const XFL::XFLTimeline &tl = doc.timelines[0];
+
+    // Iterate layers: XFL layers[0] = topmost visual layer → col 0 in Flare.
+    for (const XFL::XFLLayer &layer : tl.layers) {
+        if (layer.layerType == "guide" || layer.layerType == "folder") continue;
+
+        // Skip layers with no bitmap elements
+        bool hasCells = false;
+        for (const XFL::XFLFrame &fr : layer.frames)
+            if (!fr.elements.empty()) { hasCells = true; break; }
+        if (!hasCells) continue;
+
+        int col = xsheet->getFirstFreeColumnIndex();
+        TXshLevelColumn *column = new TXshLevelColumn();
+        xsheet->insertColumn(col, column);
+
+        if (!layer.name.empty()) {
+            TStageObject *obj = xsheet->getStageObject(TStageObjectId::ColumnId(col));
+            if (obj) obj->setName(layer.name);
+        }
+
+        for (const XFL::XFLFrame &frame : layer.frames) {
+            // Use only the first bitmap element per frame span
+            for (const XFL::FrameElement &el : frame.elements) {
+                if (el.type != XFL::FrameElement::BITMAP_INSTANCE) continue;
+                TXshSimpleLevel *sl = bitmapLevels.value(
+                    QString::fromStdString(el.libraryItemName), nullptr);
+                if (!sl) continue;
+                TXshCell cell(sl, TFrameId(1));  // PNG = single frame, id=1
+                for (int r = frame.index; r < frame.index + frame.duration; ++r)
+                    xsheet->setCell(r, col, cell);
+                break;
+            }
+        }
+    }
+
+    xsheet->updateFrameCount();
+    TApp::instance()->getCurrentLevel()->notifyLevelChange();
+    TApp::instance()->getCurrentScene()->notifyCastChange();
+    TApp::instance()->getCurrentXsheet()->notifyXsheetChanged();
+}
+
 } // anonymous namespace
 
 // ---------------------------------------------------------------------------
@@ -615,14 +760,27 @@ void ImportFlashVectorCommand::execute() {
     static GenericLoadFilePopup *loadPopup = nullptr;
     if (!loadPopup) {
         loadPopup = new GenericLoadFilePopup(
-            QObject::tr("Import Flash File (FLA / XFL / SWF / SWC / FLV / F4V / AS)"));
+            QObject::tr("Import Flash / Animate File"));
+        // Core Flash / Animate project formats
         loadPopup->addFilterType("fla");
-        loadPopup->addFilterType("swf");
         loadPopup->addFilterType("xfl");
+        loadPopup->addFilterType("swf");
         loadPopup->addFilterType("swc");
+        // ActionScript source
+        loadPopup->addFilterType("as");
+        loadPopup->addFilterType("asc");
+        loadPopup->addFilterType("mxml");
+        // Video
         loadPopup->addFilterType("flv");
         loadPopup->addFilterType("f4v");
-        loadPopup->addFilterType("as");
+        // AIR / ANE / OAM packaging
+        loadPopup->addFilterType("air");
+        loadPopup->addFilterType("ane");
+        loadPopup->addFilterType("oam");
+        // Other Flash-ecosystem formats
+        loadPopup->addFilterType("lwf");
+        loadPopup->addFilterType("rsl");
+        loadPopup->addFilterType("afl");
     }
 
     if (!scene->isUntitled())
@@ -725,11 +883,20 @@ void ImportFlashVectorCommand::execute() {
                 XFL::Reader r2(extractedXfl);
                 if (r2.read()) {
                     const XFL::Document &doc = r2.getDocument();
+                    int tlCount = static_cast<int>(doc.timelines.size());
+                    int bmCount = static_cast<int>(doc.bitmaps.size());
                     info = QObject::tr(
-                        "Document: %1 × %2 px  |  %3 fps  |  %4 symbol(s)")
+                        "Document: %1 × %2 px  |  %3 fps  |  %4 symbol(s)  |  %5 bitmap(s)  |  %6 timeline(s)")
                         .arg(doc.width).arg(doc.height)
                         .arg(doc.frameRate, 0, 'f', 1)
-                        .arg(static_cast<int>(doc.symbols.size()));
+                        .arg(static_cast<int>(doc.symbols.size()))
+                        .arg(bmCount)
+                        .arg(tlCount);
+                    // Native scene import: map FLA layers → Flare columns
+                    if (tlCount > 0) {
+                        TXsheet *xsheet = TApp::instance()->getCurrentXsheet()->getXsheet();
+                        importXFLScene(scene, xsheet, doc, extractedXfl);
+                    }
                 } else {
                     QString err = QString::fromStdString(r2.getError());
                     info = QObject::tr("Failed to parse XFL metadata: %1").arg(err);
@@ -777,10 +944,18 @@ void ImportFlashVectorCommand::execute() {
         }
         const XFL::Document &doc = reader.getDocument();
         info = QObject::tr(
-            "Document: %1 × %2 px  |  %3 fps  |  %4 symbol(s)")
+            "Document: %1 × %2 px  |  %3 fps  |  %4 symbol(s)  |  %5 bitmap(s)  |  %6 timeline(s)")
             .arg(doc.width).arg(doc.height)
             .arg(doc.frameRate, 0, 'f', 1)
-            .arg(static_cast<int>(doc.symbols.size()));
+            .arg(static_cast<int>(doc.symbols.size()))
+            .arg(static_cast<int>(doc.bitmaps.size()))
+            .arg(static_cast<int>(doc.timelines.size()));
+
+        // Native scene import for XFL directory
+        if (!doc.timelines.empty()) {
+            TXsheet *xsheet = TApp::instance()->getCurrentXsheet()->getXsheet();
+            importXFLScene(scene, xsheet, doc, fp);
+        }
 
         // Copy assets to output dir using recursive iteration
         {
@@ -840,12 +1015,20 @@ void ImportFlashVectorCommand::execute() {
             qDebug() << "Warning: failed to copy SWF to" << dstSwf;
         }
 
-    // ---- ActionScript source ----
+    // ---- ActionScript source (.as) ----
     } else if (ext == "as") {
-        QString dstAs = outPath + "/" + QFileInfo(srcPath).fileName();
-        QFile::copy(srcPath, dstAs);
-        exported << QFileInfo(srcPath).fileName();
+        copyFileForReference(srcPath, outPath, exported);
         info = QObject::tr("ActionScript source copied for reference.");
+
+    // ---- ActionScript command script (.asc) ----
+    } else if (ext == "asc") {
+        copyFileForReference(srcPath, outPath, exported);
+        info = QObject::tr("ActionScript command script (.asc) copied for reference.");
+
+    // ---- MXML (Apache Flex / Royale UI definition) ----
+    } else if (ext == "mxml") {
+        copyFileForReference(srcPath, outPath, exported);
+        info = QObject::tr("MXML (Flex UI) file copied for reference.");
 
     // ---- FLV (Flash Video) ----
     } else if (ext == "flv") {
@@ -858,11 +1041,7 @@ void ImportFlashVectorCommand::execute() {
             .arg(flv.version)
             .arg(flv.hasVideo ? QObject::tr("video") : QString())
             .arg(flv.hasAudio ? QObject::tr(flv.hasVideo ? " + audio" : "audio") : QString());
-
-        // Copy FLV and attempt to load as a scene level (via FFmpeg if available)
-        QString dstFlv = outPath + "/" + QFileInfo(srcPath).fileName();
-        QFile::copy(srcPath, dstFlv);
-        exported << QFileInfo(srcPath).fileName();
+        copyFileForReference(srcPath, outPath, exported);
 
     // ---- F4V (Flash H.264, ISO BMFF container) ----
     } else if (ext == "f4v") {
@@ -874,10 +1053,47 @@ void ImportFlashVectorCommand::execute() {
         info = QObject::tr("F4V  |  brand: %1").arg(f4v.majorBrand);
         if (!f4v.compatBrands.isEmpty())
             info += QObject::tr("  |  compatible: %1").arg(f4v.compatBrands);
+        copyFileForReference(srcPath, outPath, exported);
 
-        QString dstF4v = outPath + "/" + QFileInfo(srcPath).fileName();
-        QFile::copy(srcPath, dstF4v);
-        exported << QFileInfo(srcPath).fileName();
+    // ---- ANE (Adobe Native Extension) — ZIP ----
+    } else if (ext == "ane") {
+        QString manifest = extractAdobeZipPackage(srcPath, outPath, "ane");
+        info = manifest.isEmpty()
+            ? QObject::tr("ANE: extracted (no extension.xml found)")
+            : QObject::tr("ANE: extension manifest at %1").arg(manifest);
+        QDirIterator it(outPath, kAssetFilters, QDir::Files | QDir::NoDotAndDotDot,
+                        QDirIterator::Subdirectories);
+        QDir base(outPath);
+        while (it.hasNext()) { it.next(); exported << base.relativeFilePath(it.filePath()); }
+
+    // ---- AIR (Adobe AIR application package) — ZIP ----
+    } else if (ext == "air") {
+        QString manifest = extractAdobeZipPackage(srcPath, outPath, "air");
+        info = manifest.isEmpty()
+            ? QObject::tr("AIR: extracted (no application.xml found)")
+            : QObject::tr("AIR: application manifest at %1").arg(manifest);
+        QDirIterator it(outPath, kAssetFilters, QDir::Files | QDir::NoDotAndDotDot,
+                        QDirIterator::Subdirectories);
+        QDir base(outPath);
+        while (it.hasNext()) { it.next(); exported << base.relativeFilePath(it.filePath()); }
+
+    // ---- OAM (Open Architecture Module) — ZIP ----
+    } else if (ext == "oam") {
+        QString manifest = extractAdobeZipPackage(srcPath, outPath, "oam");
+        info = manifest.isEmpty()
+            ? QObject::tr("OAM: extracted (no OAMMetadata.xml found)")
+            : QObject::tr("OAM: metadata at %1").arg(manifest);
+        QDirIterator it(outPath, kAssetFilters, QDir::Files | QDir::NoDotAndDotDot,
+                        QDirIterator::Subdirectories);
+        QDir base(outPath);
+        while (it.hasNext()) { it.next(); exported << base.relativeFilePath(it.filePath()); }
+
+    // ---- LWF (Lightweight SWF alternative) / RSL (Runtime Shared Library) /
+    //      AFL (ActionScript Library, legacy) — copy for reference ----
+    } else if (ext == "lwf" || ext == "rsl" || ext == "afl") {
+        copyFileForReference(srcPath, outPath, exported);
+        info = QObject::tr("%1 file copied for reference.")
+                   .arg(ext.toUpper());
 
     } else {
         DVGui::warning(QObject::tr("Unsupported Flash format: .%1").arg(ext));

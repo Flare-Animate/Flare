@@ -4,7 +4,7 @@ description: |
   Monitor GitHub Actions for a pull request, scrape workflow logs,
   wait/sleep with exponential backoff while workflows run, and when failures
   occur fetch & surface logs to help debug. Optionally attempt automated
-  fixes, commit, and push to re-run CI. Primary target: https://github.com/Flare-Animate/Flare/pull/46
+  fixes, commit, and push to re-run CI. Primary target: https://github.com/Flare-Animate/Flare/pull/48
 applyTo:
   - 
     - "pull request"
@@ -16,7 +16,7 @@ recommendations: |
   - Provide `GITHUB_TOKEN` or run `gh auth login` with a token that has repo access.
   - Runs best from the repository checkout of the target repo (or with `GITHUB_REPOSITORY` set).
 inputs:
-  pr_url: "https://github.com/Flare-Animate/Flare/pull/46"
+  pr_url: "https://github.com/Flare-Animate/Flare/pull/48"
   poll_interval_seconds: 10
   max_wait_minutes: 60
   auto_push: true
@@ -27,7 +27,7 @@ tools:
   - powershell
   - bash
 examples: |
-  - Prompt: "Run PR Monitor for PR 46" → Uses `pr_url` input.
+  - Prompt: "Run PR Monitor for PR 48" → Uses `pr_url` input.
   - Prompt: "Monitor PR 46 until completion, scrape failures" → identical flow, stops after surfacing logs.
 workflow: |
   1. Use `gh run list --repo <owner>/<repo> --branch <pr-branch> --json databaseId,name,status,conclusion,headSha,createdAt` to find CI workflow runs for the PR.

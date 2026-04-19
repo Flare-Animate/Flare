@@ -217,13 +217,7 @@ jobs:
 
           /usr/local/opt/qt@5/bin/macdeployqt Flare.app -verbose=0 -always-overwrite \
             -executable="Flare.app/Contents/MacOS/$(basename "$BUNDLE_BINARY")" \
-            -executable=Flare.app/Contents/MacOS/lzocompress \
-            -executable=Flare.app/Contents/MacOS/lzodecompress \
-            -executable=Flare.app/Contents/MacOS/tcleanup \
-            -executable=Flare.app/Contents/MacOS/tcomposer \
-            -executable=Flare.app/Contents/MacOS/tconverter \
-            -executable=Flare.app/Contents/MacOS/tfarmcontroller \
-            -executable=Flare.app/Contents/MacOS/tfarmserver
+            $(for h in lzocompress lzodecompress tcleanup tcomposer tconverter tfarmcontroller tfarmserver; do [ -f "Flare.app/Contents/MacOS/$h" ] && echo "-executable=Flare.app/Contents/MacOS/$h"; done)
 
       - name: Modify Library Paths
         run: |
@@ -252,19 +246,18 @@ jobs:
             find . -type d | sed 's/^/  /' 1>&2
             exit 1
           fi
-          cd "$(dirname "$APPBUNDLE")"
-          echo "Creating DMG from $(pwd)/Flare.app..."
+          BUNDLE_DIR="$(cd "$(dirname "$APPBUNDLE")" && pwd)"
+          cd "$BUNDLE_DIR"
+          echo "Creating DMG from $BUNDLE_DIR/Flare.app..."
           ATTEMPT=0
           while [ $ATTEMPT -lt 10 ]; do
             /usr/local/opt/qt@5/bin/macdeployqt Flare.app -dmg -verbose=0 && \
-            ([ -f Flare.dmg ] || [ -f toonz/Flare.dmg ]) && break
+            [ -f Flare.dmg ] && break
             ATTEMPT=$((ATTEMPT+1))
             echo "Attempt $ATTEMPT failed to build DMG."
           done
           if [ -f Flare.dmg ]; then
-            echo "DMG=Flare.dmg" >> $GITHUB_ENV
-          elif [ -f toonz/Flare.dmg ]; then
-            echo "DMG=toonz/Flare.dmg" >> $GITHUB_ENV
+            echo "DMG=$BUNDLE_DIR/Flare.dmg" >> $GITHUB_ENV
           else
             echo "DMG=" >> $GITHUB_ENV
           fi
@@ -334,17 +327,12 @@ jobs:
           path: flare/build/smoke_test.log
           if-no-files-found: ignore
 
-      - uses: actions/upload-artifact@v4
-        with:
-          name: Flare-${{ runner.os }}-${{ github.sha }}
-          path: flare/build/${{ env.DMG }}
-
       - name: Upload macOS artifact
         if: ${{ env.DMG != '' }}
         uses: actions/upload-artifact@v4
         with:
           name: Flare-${{ runner.os }}-${{ github.sha }}
-          path: flare/build/${{ env.DMG }}
+          path: ${{ env.DMG }}
           if-no-files-found: ignore
 
       - name: Post build logs to PR

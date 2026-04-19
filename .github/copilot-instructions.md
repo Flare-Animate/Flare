@@ -168,3 +168,64 @@ Split dimensions across `desloppify-reviewer` calls (Copilot runs them concurren
 
 <!-- desloppify-overlay: copilot -->
 <!-- desloppify-end -->
+
+---
+
+## Flare Project — Copilot Agent Instructions
+
+### Repository layout
+
+```
+flare/sources/flare/          – main app sources (menus, UI, command handlers)
+flare/sources/flare_legacy/   – the shipped executable (extends flare/ with legacy glue)
+flare/sources/common/flash/   – XFLReader.h/.cpp, all platform-shared Flash parsing code
+flare/sources/tnzcore/        – core engine library (compiled as shared lib / DLL)
+flare/sources/include/        – public headers (use "flare/" prefix when including)
+stuff/profiles/layouts/rooms/ – room preset directories (each needs menubar_template.xml)
+.github/workflows/            – CI/CD workflows for Linux, macOS, Windows
+```
+
+### Build system quick facts
+
+- **Primary executable**: `flare_legacy` target (CMake).  Files in `flare/sources/flare_legacy/CMakeLists.txt`.
+- **Shared engine**: `tnzcore` library.  `XFLReader.cpp` lives there — **do NOT add it to `flare_legacy` SOURCES** (would cause duplicate symbol LNK2005/multiple definition errors).
+- **Include paths for flare_legacy**: headers in `sources/flare/` use bare names (`#include "menubarcommandids.h"`); headers in `sources/include/flare/` use the `flare/` prefix (`#include "flare/txsheet.h"`).
+- **MOC_HEADERS**: every `.h` with `Q_OBJECT` must be listed in `MOC_HEADERS` in its owning `CMakeLists.txt` or the link will fail with missing `staticMetaObject`/vtable symbols.
+
+### Flash / FLA support conventions
+
+- `.fla` files are ZIP archives containing an XFL directory (`DOMDocument.xml` + `LIBRARY/`).
+- `XFL::Reader` (in `XFLReader.cpp`) parses `DOMDocument.xml` into an `XFL::Document` struct.
+- Import entry point: `ImportFlashVectorCommand::execute()` in `flare_legacy/flashimport.cpp`.
+- Export entry point: `FlashExportCommand::execute()` in `flare_legacy/flashexport.cpp`.
+- Flash guide dialog: `FlashGuideCommand::execute()` in `flare/flashguidedialog.cpp`.
+- **Never add duplicate command registrations** — each `MI_*` ID must appear in exactly one `MenuItemHandler` subclass across both files.
+- TNZ format (`.tnz`) is Flare's native project format and must be preserved alongside FLA support.
+
+### Command IDs
+
+New menu commands need to be declared in **both**:
+1. `flare/sources/flare/menubarcommandids.h`
+2. `flare/sources/flare_legacy/menubarcommandids.h`
+
+And wired into the menu in:
+- `flare/sources/flare_legacy/menubar.cpp`
+- `flare/sources/flare_legacy/mainwindow.cpp`
+- `stuff/profiles/layouts/rooms/AdobeAnimate/menubar_template.xml`
+- `stuff/profiles/layouts/rooms/Default/menubar_template.xml`
+
+### CI workflow notes
+
+- Linux/macOS build: `ninja -j$(nproc)` inside `flare/build/`
+- Windows build: `cmake --build build --config RelWithDebInfo`
+- macOS: must `brew unlink qtbase qtdeclarative qt` before installing `qt@5` (pre-installed Qt 6 conflicts)
+- `upload-artifact` version must be `@v4` across all workflows (no v5/v6)
+- Workflow runs from bot commits may show `action_required` — this needs manual approval from a maintainer
+
+### PR checklist
+
+Before pushing a fix:
+1. Check that no symbol is defined in both `flashguidedialog.cpp` **and** `flashexport.cpp`.
+2. Check that `XFLReader.cpp` is NOT in `flare_legacy/CMakeLists.txt`.
+3. All headers with `Q_OBJECT` are in `MOC_HEADERS`.
+4. `stuff/profiles/layouts/rooms/*/menubar_template.xml` contains any new menu items.

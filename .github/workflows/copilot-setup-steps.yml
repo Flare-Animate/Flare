@@ -1,0 +1,85 @@
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow
+# Copilot Agent Environment Setup
+# This workflow pre-installs all tools and dependencies needed by the GitHub
+# Copilot coding agent when it works on this repository. The job MUST be named
+# exactly "copilot-setup-steps" for GitHub to recognise it.
+# Docs: https://docs.github.com/en/copilot/how-tos/use-copilot-agents/cloud-agent/customize-the-agent-environment
+
+name: "Copilot Setup Steps"
+
+on:
+  workflow_dispatch: {}
+  push:
+    paths:
+      - ".github/workflows/copilot-setup-steps.yml"
+  pull_request:
+    paths:
+      - ".github/workflows/copilot-setup-steps.yml"
+
+jobs:
+  copilot-setup-steps:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          lfs: false
+          submodules: false
+
+      # -----------------------------------------------------------------------
+      # C++ build toolchain + Qt 5 + all Flare runtime dependencies
+      # (mirrors what workflow_linux.yml installs so the agent can build/test)
+      # -----------------------------------------------------------------------
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential cmake pkg-config ninja-build ccache git \
+            libboost-all-dev \
+            qtbase5-dev qt5-qmake qtscript5-dev \
+            qttools5-dev qttools5-dev-tools qtmultimedia5-dev qtwayland5 \
+            libqt5svg5-dev libqt5opengl5-dev libqt5multimedia5-plugins \
+            libqt5serialport5-dev \
+            libsuperlu-dev liblz4-dev libusb-1.0-0-dev \
+            liblzo2-dev libpng-dev libjpeg-dev libglew-dev freeglut3-dev \
+            libfreetype6-dev libjson-c-dev libmypaint-dev libopencv-dev \
+            libturbojpeg0-dev libomp-dev libfuse2 libzip-dev libminizip-dev \
+            xvfb
+
+      # -----------------------------------------------------------------------
+      # Python tooling – used by sync/upstream scripts and helper tools
+      # -----------------------------------------------------------------------
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Python tools
+        run: |
+          pip install --upgrade pip
+          pip install requests PyYAML lxml
+
+      # -----------------------------------------------------------------------
+      # GitHub CLI – used by agent workflows and PR-monitor agent
+      # -----------------------------------------------------------------------
+      - name: Verify GitHub CLI
+        run: gh --version
+
+      # -----------------------------------------------------------------------
+      # Quick compile-check of XFLReader (the Flash support core)
+      # so that the agent gets early feedback if it breaks the Flash parser.
+      # -----------------------------------------------------------------------
+      - name: Smoke-check XFLReader headers
+        run: |
+          echo "#include \"flare/sources/common/flash/XFLReader.h\"" > /tmp/xfl_check.cpp
+          echo "int main(){return 0;}" >> /tmp/xfl_check.cpp
+          COMPILE_OUT=$(g++ -std=c++17 -Iflare/sources/include -Iflare/sources/common/flash \
+              /tmp/xfl_check.cpp -o /tmp/xfl_check 2>&1) || {
+            echo "::warning::XFLReader header smoke-check failed – check include paths"
+            echo "Compiler output: $COMPILE_OUT"
+          }
+          echo "Setup complete – Copilot agent environment ready."

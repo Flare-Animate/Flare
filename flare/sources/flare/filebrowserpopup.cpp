@@ -69,6 +69,10 @@
 #include <QCoreApplication>
 #include <QMainWindow>
 #include <QApplication>
+#include <QMetaObject>
+
+// TnzQt includes (CommandManager – for FLA routing)
+#include "flareqt/menubarcommand.h"
 
 //***********************************************************************************
 //    FileBrowserPopup  implementation
@@ -513,6 +517,9 @@ LoadScenePopup::LoadScenePopup() : FileBrowserPopup(tr("Load Scene")) {
   addFilterType("tnz");
   addFilterType("xdts");
   addFilterType("sxf");
+  // Flash / Adobe Animate project files – handled via import in execute()
+  addFilterType("fla");
+  addFilterType("xfl");
 
   // set the initial current path according to the current module
   setInitialFolderByCurrentRoom();
@@ -526,8 +533,22 @@ bool LoadScenePopup::execute() {
 
   const TFilePath &fp = *m_selectedPaths.begin();
 
-  if (fp.getType() != "tnz" && fp.getType() != "xdts" &&
-      fp.getType() != "sxf") {
+  // FLA / XFL – route to Flash import command instead of scene load
+  const std::string type = fp.getType();
+  if (type == "fla" || type == "xfl") {
+    QAction *act =
+        CommandManager::instance()->getAction(MI_ImportFlashVector);
+    if (act) {
+      // Invoke via Qt's event queue so this dialog closes first
+      QMetaObject::invokeMethod(act, "trigger", Qt::QueuedConnection);
+      return true;
+    }
+    DVGui::error(tr("Flash import is not available in this build.\n"
+                    "Use File \u2192 Import \u2192 Flash to open FLA / XFL files."));
+    return false;
+  }
+
+  if (type != "tnz" && type != "xdts" && type != "sxf") {
     DVGui::error(toQString(fp) + tr(" is not a scene file."));
     return false;
   }
