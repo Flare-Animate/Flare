@@ -663,3 +663,285 @@ def test_import_swf_reference_copy():
         )
     finally:
         shutil.rmtree(td)
+
+
+# ---------------------------------------------------------------------------
+# New tests – bundled JSFL reference scripts  (issue #11)
+# ---------------------------------------------------------------------------
+
+def _get_script_path(name: str) -> str:
+    """Return the absolute path to a bundled JSFL script."""
+    return os.path.abspath(
+        os.path.join(os.path.dirname(__file__), "..", "scripts", name)
+    )
+
+
+def test_bundled_jsfl_scripts_exist():
+    """All three bundled JSFL scripts are present on disk."""
+    for name in ("increment_instances.jsfl",
+                 "add_instance_to_symbol.jsfl",
+                 "bake_transform.jsfl"):
+        assert os.path.exists(_get_script_path(name)), f"Missing bundled script: {name}"
+
+
+def test_bundled_jsfl_increment_instances_importable():
+    """increment_instances.jsfl is importable and has expected functions."""
+    td = tempfile.mkdtemp(prefix="flare_test_incr_")
+    try:
+        src = _get_script_path("increment_instances.jsfl")
+        out = os.path.join(td, "out")
+        proc = run_script(["--input", src, "--output", out])
+        assert proc.returncode == 0, proc.stderr.decode()
+        with open(os.path.join(out, "manifest.json"), "r", encoding="utf-8") as f:
+            data = json.load(f)
+        jsfl_meta = data.get("jsfl_scripts", {})
+        script_key = next((k for k in jsfl_meta if "increment_instances" in k), None)
+        assert script_key is not None, "increment_instances.jsfl not in jsfl_scripts metadata"
+        assert "incrementInstances" in jsfl_meta[script_key].get("functions", [])
+    finally:
+        shutil.rmtree(td)
+
+
+def test_bundled_jsfl_add_instance_importable():
+    """add_instance_to_symbol.jsfl is importable and has expected functions."""
+    td = tempfile.mkdtemp(prefix="flare_test_add_")
+    try:
+        src = _get_script_path("add_instance_to_symbol.jsfl")
+        out = os.path.join(td, "out")
+        proc = run_script(["--input", src, "--output", out])
+        assert proc.returncode == 0, proc.stderr.decode()
+        with open(os.path.join(out, "manifest.json"), "r", encoding="utf-8") as f:
+            data = json.load(f)
+        jsfl_meta = data.get("jsfl_scripts", {})
+        script_key = next((k for k in jsfl_meta if "add_instance" in k), None)
+        assert script_key is not None, "add_instance_to_symbol.jsfl not in jsfl_scripts metadata"
+        fns = jsfl_meta[script_key].get("functions", [])
+        assert "addInstanceToSymbol" in fns
+        assert "_findLibraryItem" in fns
+    finally:
+        shutil.rmtree(td)
+
+
+def test_bundled_jsfl_bake_transform_importable():
+    """bake_transform.jsfl is importable and has expected functions."""
+    td = tempfile.mkdtemp(prefix="flare_test_bake_")
+    try:
+        src = _get_script_path("bake_transform.jsfl")
+        out = os.path.join(td, "out")
+        proc = run_script(["--input", src, "--output", out])
+        assert proc.returncode == 0, proc.stderr.decode()
+        with open(os.path.join(out, "manifest.json"), "r", encoding="utf-8") as f:
+            data = json.load(f)
+        jsfl_meta = data.get("jsfl_scripts", {})
+        script_key = next((k for k in jsfl_meta if "bake_transform" in k), None)
+        assert script_key is not None, "bake_transform.jsfl not in jsfl_scripts metadata"
+        fns = jsfl_meta[script_key].get("functions", [])
+        assert "bakeTransform" in fns
+    finally:
+        shutil.rmtree(td)
+
+
+# ---------------------------------------------------------------------------
+# New tests – XFL blend mode / filter metadata  (discussion #26)
+# ---------------------------------------------------------------------------
+
+def test_xfl_handler_symbol_with_blend_mode():
+    """XFLReader extracts blend mode from a DOMSymbolItem that contains blend mode instances."""
+    xh = _import_xfl_handler()
+    td = tempfile.mkdtemp(prefix="flare_test_blend_")
+    try:
+        os.makedirs(os.path.join(td, "LIBRARY"), exist_ok=True)
+        with open(os.path.join(td, "DOMDocument.xml"), "w", encoding="utf-8") as f:
+            f.write(_minimal_dom_document_xml())
+
+        # Graphic symbol containing an instance with 'multiply' blend mode (discussion #26)
+        sym_xml = (
+            '<?xml version="1.0" encoding="utf-8"?>\n'
+            '<DOMSymbolItem xmlns="http://ns.adobe.com/xfl/2008/"'
+            ' name="ShadowOverlay" itemID="blend-001"'
+            ' symbolType="graphic">\n'
+            '  <timeline>\n'
+            '    <DOMTimeline name="ShadowOverlay">\n'
+            '      <layers>\n'
+            '        <DOMLayer name="Layer 1">\n'
+            '          <frames>\n'
+            '            <DOMFrame index="0" duration="1">\n'
+            '              <elements>\n'
+            '                <DOMSymbolInstance libraryItemName="bg"'
+            '                  blendMode="multiply"/>\n'
+            '              </elements>\n'
+            '            </DOMFrame>\n'
+            '          </frames>\n'
+            '        </DOMLayer>\n'
+            '      </layers>\n'
+            '    </DOMTimeline>\n'
+            '  </timeline>\n'
+            '</DOMSymbolItem>\n'
+        )
+        with open(os.path.join(td, "LIBRARY", "ShadowOverlay.xml"), "w", encoding="utf-8") as f:
+            f.write(sym_xml)
+
+        reader = xh.XFLReader(td)
+        doc = reader.read()
+        assert len(doc.symbols) == 1
+        sym = doc.symbols[0]
+        assert sym.name == "ShadowOverlay"
+        # Blend mode should be extracted from the nested instance (discussion #26)
+        assert sym.blend_mode == "multiply", (
+            f"Expected blend_mode='multiply', got {sym.blend_mode!r}"
+        )
+    finally:
+        shutil.rmtree(td)
+
+
+def test_xfl_handler_realistic_fla_format():
+    """XFLReader handles a realistic Adobe Animate FLA with full XFL namespace declarations."""
+    xh = _import_xfl_handler()
+    td = tempfile.mkdtemp(prefix="flare_test_realistic_fla_")
+    try:
+        # Build a realistic DOMDocument.xml matching what Adobe Animate writes:
+        # - Full XFL namespace on root element
+        # - Multiple attribute blocks (width, height, frameRate, backgroundColor)
+        # - Nested timelines with multiple layers and frames
+        realistic_dom = (
+            '<?xml version="1.0" encoding="utf-8"?>\n'
+            '<DOMDocument'
+            ' xmlns="http://ns.adobe.com/xfl/2008/"'
+            ' xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"'
+            ' currentTimeline="1"'
+            ' xflVersion="2.97"'
+            ' creatorInfo="Adobe Animate CC 2023"'
+            ' platform="Macintosh"'
+            ' versionInfo="Saved by Adobe Animate"'
+            ' width="1920"'
+            ' height="1080"'
+            ' frameRate="24"'
+            ' backgroundColor="#000033"'
+            ' majorVersion="24"'
+            ' minorVersion="0"'
+            ' buildNumber="354"'
+            ' nextSceneIdentifier="3">\n'
+            '  <symbols>\n'
+            '    <Include href="LIBRARY/hero_rig.xml" itemID="abc-001" loadImmediate="false"/>\n'
+            '    <Include href="LIBRARY/bg_scroll.xml" itemID="abc-002" loadImmediate="false"/>\n'
+            '  </symbols>\n'
+            '  <timelines>\n'
+            '    <DOMTimeline name="Scene 1" currentFrame="12">\n'
+            '      <layers>\n'
+            '        <DOMLayer name="FX" layerType="normal" color="#FF6600" current="true">\n'
+            '          <frames>\n'
+            '            <DOMFrame index="0" duration="48" keyFrame="true">\n'
+            '              <elements>\n'
+            '                <DOMSymbolInstance libraryItemName="hero_rig"'
+            '                  symbolType="graphic" loop="loop" firstFrame="0"\n'
+            '                  blendMode="normal">\n'
+            '                  <matrix><Matrix tx="960" ty="540"/></matrix>\n'
+            '                </DOMSymbolInstance>\n'
+            '              </elements>\n'
+            '            </DOMFrame>\n'
+            '          </frames>\n'
+            '        </DOMLayer>\n'
+            '        <DOMLayer name="BG" layerType="normal">\n'
+            '          <frames>\n'
+            '            <DOMFrame index="0" duration="48" keyFrame="true">\n'
+            '              <elements/>\n'
+            '            </DOMFrame>\n'
+            '          </frames>\n'
+            '        </DOMLayer>\n'
+            '      </layers>\n'
+            '    </DOMTimeline>\n'
+            '  </timelines>\n'
+            '</DOMDocument>\n'
+        )
+
+        fla_path = os.path.join(td, "aerowave_ep01.fla")
+        with zipfile.ZipFile(fla_path, "w", zipfile.ZIP_DEFLATED) as zf:
+            zf.writestr("DOMDocument.xml", realistic_dom)
+            zf.writestr("LIBRARY/hero_rig.xml",
+                        '<?xml version="1.0"?>'
+                        '<DOMSymbolItem xmlns="http://ns.adobe.com/xfl/2008/"'
+                        ' name="hero_rig" itemID="abc-001" symbolType="movie clip"'
+                        ' linkageClassName="HeroRig" linkageExportForAS="true"/>')
+            zf.writestr("LIBRARY/bg_scroll.xml",
+                        '<?xml version="1.0"?>'
+                        '<DOMSymbolItem xmlns="http://ns.adobe.com/xfl/2008/"'
+                        ' name="bg_scroll" itemID="abc-002" symbolType="graphic"/>')
+
+        reader = xh.XFLReader(fla_path)
+        doc = reader.read()
+
+        # Verify correct attribute parsing from realistic Adobe Animate format
+        assert doc.width == 1920, f"Expected width 1920, got {doc.width}"
+        assert doc.height == 1080, f"Expected height 1080, got {doc.height}"
+        assert abs(doc.frame_rate - 24.0) < 0.01
+        assert doc.background_color == "#000033"
+        assert len(doc.symbols) == 2
+
+        hero = next((s for s in doc.symbols if s.name == "hero_rig"), None)
+        assert hero is not None, "hero_rig symbol not parsed"
+        assert hero.symbol_type == "movie clip"
+        assert hero.linkage_export is True
+        assert hero.linkage_class == "HeroRig"
+
+        bg = next((s for s in doc.symbols if s.name == "bg_scroll"), None)
+        assert bg is not None, "bg_scroll symbol not parsed"
+        assert bg.symbol_type == "graphic"
+    finally:
+        shutil.rmtree(td)
+
+
+def test_xfl_handler_symbol_with_drop_shadow_filter():
+    """XFLReader extracts DOMDropShadowFilter from a graphic symbol (discussion #26)."""
+    xh = _import_xfl_handler()
+    td = tempfile.mkdtemp(prefix="flare_test_filter_")
+    try:
+        os.makedirs(os.path.join(td, "LIBRARY"), exist_ok=True)
+        with open(os.path.join(td, "DOMDocument.xml"), "w", encoding="utf-8") as f:
+            f.write(_minimal_dom_document_xml())
+
+        # Graphic symbol with a drop shadow filter applied to a shape (discussion #26)
+        sym_xml = (
+            '<?xml version="1.0" encoding="utf-8"?>\n'
+            '<DOMSymbolItem xmlns="http://ns.adobe.com/xfl/2008/"'
+            ' name="LitChar" itemID="flt-001" symbolType="graphic">\n'
+            '  <timeline>\n'
+            '    <DOMTimeline name="LitChar">\n'
+            '      <layers>\n'
+            '        <DOMLayer name="body">\n'
+            '          <frames>\n'
+            '            <DOMFrame index="0" duration="1">\n'
+            '              <elements>\n'
+            '                <DOMShape blendMode="normal">\n'
+            '                  <filters>\n'
+            '                    <DOMDropShadowFilter blurX="5" blurY="5"'
+            '                      distance="4" angle="45"'
+            '                      color="#000000" strength="100"'
+            '                      quality="low" inner="false"'
+            '                      knockout="false" hideObject="false"/>\n'
+            '                  </filters>\n'
+            '                </DOMShape>\n'
+            '              </elements>\n'
+            '            </DOMFrame>\n'
+            '          </frames>\n'
+            '        </DOMLayer>\n'
+            '      </layers>\n'
+            '    </DOMTimeline>\n'
+            '  </timeline>\n'
+            '</DOMSymbolItem>\n'
+        )
+        with open(os.path.join(td, "LIBRARY", "LitChar.xml"), "w", encoding="utf-8") as f:
+            f.write(sym_xml)
+
+        reader = xh.XFLReader(td)
+        doc = reader.read()
+        assert len(doc.symbols) == 1
+        sym = doc.symbols[0]
+        assert sym.name == "LitChar"
+        # Drop shadow filter should be extracted
+        assert len(sym.filters) == 1, f"Expected 1 filter, got {len(sym.filters)}: {sym.filters}"
+        flt = sym.filters[0]
+        assert flt.filter_type == "DOMDropShadowFilter"
+        assert flt.params.get("blurX") == "5"
+        assert flt.params.get("angle") == "45"
+    finally:
+        shutil.rmtree(td)

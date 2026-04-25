@@ -192,14 +192,14 @@ def _safe_extract_zip(path: str, extract_dir: str) -> None:
             entry = entry.lstrip("/")
 
             # Reject path traversal and absolute paths
-            if not entry or ".." in entry.split("/") or os.path.isabs(entry):
+            if not entry or ".." in entry.split("/") or entry.endswith("..") or os.path.isabs(entry):
                 continue
             # Also reject Windows drive-letter paths (e.g. "C:/...")
             if len(entry) >= 2 and entry[1] == ":":
                 continue
 
             target = os.path.realpath(os.path.join(abs_extract, entry))
-            if not target.startswith(abs_extract + os.sep) and target != abs_extract:
+            if not target.startswith(abs_extract + os.sep):
                 continue  # would escape output directory
 
             if member.filename.endswith("/"):

@@ -6,7 +6,7 @@
 #include <QByteArray>
 #include <QDir>
 #include <QFile>
-#include <QRegExp>
+#include <QRegularExpression>
 #include <QString>
 #include <QStringList>
 #include <QXmlStreamReader>
@@ -557,7 +557,13 @@ static bool isPathSafeForExtraction(const QString &outDir, const QString &entryN
     while (entry.startsWith("./")) entry = entry.mid(2);
     while (entry.startsWith('/'))  entry = entry.mid(1);
     if (entry.isEmpty()) return false;
-    if (entry.startsWith('/') || entry.contains("../") || entry.endsWith("..")) return false;
+    if (entry.startsWith('/')) return false;
+    // Reject any remaining backslash after normalisation
+    if (entry.contains('\\')) return false;
+    // Reject '..' path traversal segments (including trailing '..')
+    for (const QString &seg : entry.split('/')) {
+        if (seg == "..") return false;
+    }
     if (entry.size() >= 2 && entry[1] == ':') return false;  // Windows drive path
     return true;
 }
@@ -590,13 +596,9 @@ void testZipSlipSafePathsAccepted() {
 
 static QStringList extractJSFLFunctions(const QString &src) {
     QStringList names;
-    // Simple pattern: "function <name>(" anywhere in the source
-    QRegExp re("\\bfunction\\s+([A-Za-z_$][A-Za-z0-9_$]*)\\s*\\(");
-    int pos = 0;
-    while ((pos = re.indexIn(src, pos)) != -1) {
-        names << re.cap(1);
-        pos += re.matchedLength();
-    }
+    QRegularExpression re(R"(\bfunction\s+([A-Za-z_$][A-Za-z0-9_$]*)\s*\()");
+    QRegularExpressionMatchIterator it = re.globalMatch(src);
+    while (it.hasNext()) names << it.next().captured(1);
     return names;
 }
 

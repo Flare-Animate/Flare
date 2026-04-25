@@ -61,7 +61,7 @@
 #include <QDateTime>
 #include <QFileInfo>
 #include <QDesktopServices>
-#include <QRegExp>
+#include <QRegularExpression>
 #include <QUrl>
 #include <cstring>
 
@@ -615,11 +615,9 @@ void ImportFlashVectorCommand::execute() {
             QString src = QString::fromUtf8(f.readAll()); f.close();
             // Extract named function declarations (issue #11, #52)
             QStringList funcNames;
-            QRegExp funcRe("\\bfunction\\s+([A-Za-z_$][A-Za-z0-9_$]*)\\s*\\(");
-            int pos = 0;
-            while ((pos = funcRe.indexIn(src, pos)) != -1) {
-                funcNames << funcRe.cap(1); pos += funcRe.matchedLength();
-            }
+            QRegularExpression funcRe(R"(\bfunction\s+([A-Za-z_$][A-Za-z0-9_$]*)\s*\()");
+            QRegularExpressionMatchIterator it = funcRe.globalMatch(src);
+            while (it.hasNext()) funcNames << it.next().captured(1);
             // Detect JSFL API root objects
             QStringList apis;
             for (const char *api : {"fl.", "doc.", "timeline.", "layer.", "item.", "dom."}) {
