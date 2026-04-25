@@ -108,39 +108,52 @@ class XFLReader:
         return self.document
     
     def _parse_document(self, file_obj):
-        """Parse the main DOMDocument.xml file."""
+        """Parse the main DOMDocument.xml file.
+
+        Handles both plain-tag format (DOMDocument) and namespace-qualified
+        format ({http://ns.adobe.com/xfl/2008/}DOMDocument) that Adobe Animate
+        writes into modern .fla files.
+        """
         try:
             tree = ET.parse(file_obj)
             root = tree.getroot()
-            
+
+            # Strip namespace prefix so tag comparisons work for both formats.
+            local_tag = root.tag.split("}")[-1] if "}" in root.tag else root.tag
+
             # Extract document properties
-            if root.tag == 'DOMDocument':
+            if local_tag == 'DOMDocument':
                 self.document.width = int(root.get('width', 550))
                 self.document.height = int(root.get('height', 400))
                 self.document.frame_rate = float(root.get('frameRate', 24.0))
                 self.document.background_color = root.get('backgroundColor', '#FFFFFF')
         except ET.ParseError as e:
             print(f"Warning: Failed to parse DOMDocument.xml: {e}")
-    
+
     def _parse_symbol(self, file_obj, symbol_name: str):
-        """Parse a library symbol XML file."""
+        """Parse a library symbol XML file.
+
+        Handles both plain-tag and namespace-qualified formats.
+        """
         try:
             tree = ET.parse(file_obj)
             root = tree.getroot()
-            
+
+            local_tag = root.tag.split("}")[-1] if "}" in root.tag else root.tag
+
             # Extract symbol information
-            if root.tag == 'DOMSymbolItem':
+            if local_tag == 'DOMSymbolItem':
                 symbol = XFLSymbol(
                     name=root.get('name', symbol_name),
                     item_id=root.get('itemID', ''),
                     symbol_type=root.get('symbolType', 'graphic')
                 )
-                
+
                 # Check for linkage (ActionScript export)
                 if root.get('linkageClassName'):
                     symbol.linkage_class = root.get('linkageClassName')
                     symbol.linkage_export = root.get('linkageExportForAS', 'false') == 'true'
-                
+
                 self.document.symbols.append(symbol)
         except ET.ParseError:
             pass  # Silently skip invalid symbol files
@@ -209,26 +222,37 @@ class XFLWriter:
     
     def _generate_document_xml(self) -> str:
         """Generate the main DOMDocument.xml content."""
-        xml = f'''<?xml version="1.0" encoding="utf-8"?>
-<DOMDocument xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://ns.adobe.com/xfl/2008/" currentTimeline="1" xflVersion="2.97" creatorInfo="Flare" platform="Macintosh" versionInfo="Saved by Flare" majorVersion="1" minorVersion="0" buildNumber="0" nextSceneIdentifier="2" playOptionsPlayLoop="false" playOptionsPlayPages="false" playOptionsPlayFrameActions="false" autoSaveHasPrompted="true">
-  <symbols/>
-  <timelines>
-    <DOMTimeline name="Scene 1" currentFrame="0">
-      <layers>
-        <DOMLayer name="Layer 1" color="#4FFF4F" current="true" isSelected="true">
-          <frames>
-            <DOMFrame index="0" duration="1" tweenType="none" motionTweenSnap="true" motionTweenSync="false">
-              <elements/>
-            </DOMFrame>
-          </frames>
-        </DOMLayer>
-      </layers>
-    </DOMTimeline>
-  </timelines>
-  <persistentData/>
-  <printSettings/>
-  <publishHistory/>
-</DOMDocument>'''
+        xml = (
+            '<?xml version="1.0" encoding="utf-8"?>\n'
+            '<DOMDocument'
+            ' xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"'
+            ' xmlns="http://ns.adobe.com/xfl/2008/"'
+            f' width="{self.document.width}"'
+            f' height="{self.document.height}"'
+            f' frameRate="{self.document.frame_rate}"'
+            f' backgroundColor="{self.document.background_color}"'
+            ' currentTimeline="1" xflVersion="2.97" creatorInfo="Flare"'
+            ' platform="Macintosh" versionInfo="Saved by Flare"'
+            ' majorVersion="1" minorVersion="0" buildNumber="0"'
+            ' nextSceneIdentifier="2">\n'
+            '  <symbols/>\n'
+            '  <timelines>\n'
+            '    <DOMTimeline name="Scene 1" currentFrame="0">\n'
+            '      <layers>\n'
+            '        <DOMLayer name="Layer 1" color="#4FFF4F"'
+            ' current="true" isSelected="true">\n'
+            '          <frames>\n'
+            '            <DOMFrame index="0" duration="1"'
+            ' tweenType="none">\n'
+            '              <elements/>\n'
+            '            </DOMFrame>\n'
+            '          </frames>\n'
+            '        </DOMLayer>\n'
+            '      </layers>\n'
+            '    </DOMTimeline>\n'
+            '  </timelines>\n'
+            '</DOMDocument>\n'
+        )
         return xml
     
     def _generate_publish_settings(self) -> str:

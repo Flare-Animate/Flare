@@ -6,8 +6,10 @@
 #include <QByteArray>
 #include <QDir>
 #include <QFile>
+#include <QRegExp>
 #include <QString>
 #include <QStringList>
+#include <QXmlStreamReader>
 #include <cstdio>
 #include <cstring>
 
@@ -357,12 +359,279 @@ void testF4vHeaderInvalid() {
 }
 
 // ---------------------------------------------------------------------------
+// XFL / DOMDocument attribute parsing
+//
+// The XFLDocument attribute parser used in XFLReader.cpp extracts width,
+// height, frameRate, and backgroundColor from a DOMDocument.xml root element.
+// These tests exercise that logic independently using QXmlStreamReader on a
+// minimal in-memory XML string (matching exactly what XFLReader::parseDOMDocument
+// does), so they compile and run with Qt only — no tnzcore linkage needed.
+// ---------------------------------------------------------------------------
+
+static bool parseXFLDocumentAttributes(const QByteArray &xmlData,
+                                        int &outWidth, int &outHeight,
+                                        double &outFrameRate,
+                                        QString &outBgColor) {
+    // Mirror of XFLReader::parseDOMDocument attribute extraction.
+    QXmlStreamReader xml(xmlData);
+    while (!xml.atEnd()) {
+        xml.readNext();
+        if (xml.isStartElement()) {
+            // Strip namespace prefix (Adobe FLA files use xmlns="http://ns.adobe.com/xfl/2008/")
+            QString localName = xml.name().toString();
+            if (localName == "DOMDocument") {
+                const QXmlStreamAttributes a = xml.attributes();
+                if (a.hasAttribute("width"))     outWidth     = a.value("width").toInt();
+                if (a.hasAttribute("height"))    outHeight    = a.value("height").toInt();
+                if (a.hasAttribute("frameRate")) outFrameRate = a.value("frameRate").toDouble();
+                if (a.hasAttribute("backgroundColor")) outBgColor = a.value("backgroundColor").toString();
+                return !xml.hasError();
+            }
+        }
+    }
+    return false;
+}
+
+static QByteArray buildMinimalDOMDocument(int w, int h, double fps, const char *bg) {
+    // A minimal DOMDocument.xml matching the format written by XFLWriter / Adobe Animate.
+    QString xml = QString(
+        "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
+        "<DOMDocument xmlns=\"http://ns.adobe.com/xfl/2008/\""
+        " width=\"%1\" height=\"%2\" frameRate=\"%3\" backgroundColor=\"%4\">"
+        "<symbols/><timelines/></DOMDocument>\n"
+    ).arg(w).arg(h).arg(fps, 0, 'f', 1).arg(bg);
+    return xml.toUtf8();
+}
+
+void testXFLDocumentBasicAttributes() {
+    beginTest("testXFLDocumentBasicAttributes");
+    QByteArray xml = buildMinimalDOMDocument(1280, 720, 30.0, "#FF8800");
+    int w = 0, h = 0; double fps = 0; QString bg;
+    ASSERT_TRUE(parseXFLDocumentAttributes(xml, w, h, fps, bg));
+    ASSERT_EQ(w, 1280);
+    ASSERT_EQ(h, 720);
+    ASSERT_EQ((int)(fps + 0.5), 30);
+    ASSERT_STR_EQ(bg, "#FF8800");
+    endTest("testXFLDocumentBasicAttributes");
+}
+
+void testXFLDocumentDefaultDimensions() {
+    beginTest("testXFLDocumentDefaultDimensions");
+    // Standard Adobe Animate default: 550×400, 24fps, white background
+    QByteArray xml = buildMinimalDOMDocument(550, 400, 24.0, "#FFFFFF");
+    int w = 0, h = 0; double fps = 0; QString bg;
+    ASSERT_TRUE(parseXFLDocumentAttributes(xml, w, h, fps, bg));
+    ASSERT_EQ(w, 550);
+    ASSERT_EQ(h, 400);
+    ASSERT_EQ((int)(fps + 0.5), 24);
+    ASSERT_STR_EQ(bg, "#FFFFFF");
+    endTest("testXFLDocumentDefaultDimensions");
+}
+
+void testXFLDocumentHighResolution() {
+    beginTest("testXFLDocumentHighResolution");
+    // 4K UHD canvas
+    QByteArray xml = buildMinimalDOMDocument(3840, 2160, 60.0, "#000000");
+    int w = 0, h = 0; double fps = 0; QString bg;
+    ASSERT_TRUE(parseXFLDocumentAttributes(xml, w, h, fps, bg));
+    ASSERT_EQ(w, 3840);
+    ASSERT_EQ(h, 2160);
+    ASSERT_EQ((int)(fps + 0.5), 60);
+    endTest("testXFLDocumentHighResolution");
+}
+
+void testXFLDocumentNoNamespace() {
+    beginTest("testXFLDocumentNoNamespace");
+    // Some older or third-party tools omit the XFL namespace.
+    QByteArray xml =
+        "<?xml version=\"1.0\"?>\n"
+        "<DOMDocument width=\"800\" height=\"600\" frameRate=\"12.0\" backgroundColor=\"#336699\">"
+        "</DOMDocument>\n";
+    int w = 0, h = 0; double fps = 0; QString bg;
+    ASSERT_TRUE(parseXFLDocumentAttributes(xml, w, h, fps, bg));
+    ASSERT_EQ(w, 800);
+    ASSERT_EQ(h, 600);
+    ASSERT_EQ((int)(fps + 0.5), 12);
+    endTest("testXFLDocumentNoNamespace");
+}
+
+void testXFLDocumentMalformedXML() {
+    beginTest("testXFLDocumentMalformedXML");
+    // Malformed XML: parser should not crash; parseXFLDocumentAttributes may
+    // return false (no valid DOMDocument root found) but must not throw.
+    QByteArray xml = "<DOMDocument width='400' height='300'><unclosed>\n";
+    int w = 0, h = 0; double fps = 0; QString bg;
+    // Tolerate either true (partial parse) or false (no complete element found)
+    (void)parseXFLDocumentAttributes(xml, w, h, fps, bg);
+    // The important thing is we reach here without a crash
+    endTest("testXFLDocumentMalformedXML");
+}
+
+void testXFLFrameRateFractional() {
+    beginTest("testXFLFrameRateFractional");
+    // 23.976 fps (film framerate)
+    QByteArray xml = buildMinimalDOMDocument(1920, 1080, 23.976, "#FFFFFF");
+    int w = 0, h = 0; double fps = 0; QString bg;
+    ASSERT_TRUE(parseXFLDocumentAttributes(xml, w, h, fps, bg));
+    ASSERT_EQ(w, 1920);
+    ASSERT_EQ(h, 1080);
+    // Allow small floating-point tolerance
+    ASSERT_TRUE(fps > 23.9 && fps < 24.1);
+    endTest("testXFLFrameRateFractional");
+}
+
+// ---------------------------------------------------------------------------
+// FLA binary media extraction helper tests
+//
+// The JPEG / PNG / GIF magic-byte detection used by extractFLABinaryMedia() is
+// re-implemented here to verify the magic-byte constants are correct.
+// ---------------------------------------------------------------------------
+
+struct BinaryMediaResult { bool valid; QString ext; };
+
+static BinaryMediaResult detectBinaryMediaType(const QByteArray &hdr) {
+    BinaryMediaResult r { false, {} };
+    if (hdr.size() < 4) return r;
+    const auto *h = reinterpret_cast<const unsigned char *>(hdr.constData());
+    if (h[0]==0xFF && h[1]==0xD8 && h[2]==0xFF)              { r.valid=true; r.ext="jpg"; }
+    else if (h[0]==0x89 && h[1]==0x50 && h[2]==0x4E && h[3]==0x47) { r.valid=true; r.ext="png"; }
+    else if (h[0]==0x47 && h[1]==0x49 && h[2]==0x46 && h[3]==0x38) { r.valid=true; r.ext="gif"; }
+    return r;
+}
+
+void testBinaryMediaJPEG() {
+    beginTest("testBinaryMediaJPEG");
+    QByteArray hdr = QByteArray("\xFF\xD8\xFF\xE0\x00\x10JFIF", 10);
+    auto r = detectBinaryMediaType(hdr);
+    ASSERT_TRUE(r.valid);
+    ASSERT_STR_EQ(r.ext, "jpg");
+    endTest("testBinaryMediaJPEG");
+}
+
+void testBinaryMediaPNG() {
+    beginTest("testBinaryMediaPNG");
+    QByteArray hdr = QByteArray("\x89PNG\r\n\x1A\n\x00\x00", 10);
+    auto r = detectBinaryMediaType(hdr);
+    ASSERT_TRUE(r.valid);
+    ASSERT_STR_EQ(r.ext, "png");
+    endTest("testBinaryMediaPNG");
+}
+
+void testBinaryMediaGIF() {
+    beginTest("testBinaryMediaGIF");
+    QByteArray hdr = QByteArray("GIF89a\x01\x00\x01\x00", 10);
+    auto r = detectBinaryMediaType(hdr);
+    ASSERT_TRUE(r.valid);
+    ASSERT_STR_EQ(r.ext, "gif");
+    endTest("testBinaryMediaGIF");
+}
+
+void testBinaryMediaUnknown() {
+    beginTest("testBinaryMediaUnknown");
+    QByteArray hdr = QByteArray("RIFF\x00\x00\x00\x00WAVE", 12);
+    auto r = detectBinaryMediaType(hdr);
+    ASSERT_TRUE(!r.valid);
+    endTest("testBinaryMediaUnknown");
+}
+
+void testBinaryMediaTooShort() {
+    beginTest("testBinaryMediaTooShort");
+    QByteArray hdr = QByteArray("\xFF\xD8", 2);   // JPEG but only 2 bytes
+    auto r = detectBinaryMediaType(hdr);
+    ASSERT_TRUE(!r.valid);
+    endTest("testBinaryMediaTooShort");
+}
+
+// ---------------------------------------------------------------------------
+// Zip Slip protection logic tests
+//
+// The isPathUnderDir() / path-traversal guard logic is re-implemented here
+// so these tests run without the full flashimport.cpp dependency.
+// ---------------------------------------------------------------------------
+
+static bool isPathSafeForExtraction(const QString &outDir, const QString &entryName) {
+    // Mirror the logic in extractZip() and _safe_extract_zip (Python equivalent).
+    // Returns false if the entry would escape outDir.
+    QString entry = entryName;
+    entry.replace('\\', '/');
+    while (entry.startsWith("./")) entry = entry.mid(2);
+    while (entry.startsWith('/'))  entry = entry.mid(1);
+    if (entry.isEmpty()) return false;
+    if (entry.startsWith('/') || entry.contains("../") || entry.endsWith("..")) return false;
+    if (entry.size() >= 2 && entry[1] == ':') return false;  // Windows drive path
+    return true;
+}
+
+void testZipSlipTraversalRejected() {
+    beginTest("testZipSlipTraversalRejected");
+    ASSERT_TRUE(!isPathSafeForExtraction("/tmp/out", "../../etc/passwd"));
+    ASSERT_TRUE(!isPathSafeForExtraction("/tmp/out", "../escape.txt"));
+    ASSERT_TRUE(!isPathSafeForExtraction("/tmp/out", "/absolute/path.txt"));
+    ASSERT_TRUE(!isPathSafeForExtraction("/tmp/out", "C:/Windows/System32/evil.dll"));
+    endTest("testZipSlipTraversalRejected");
+}
+
+void testZipSlipSafePathsAccepted() {
+    beginTest("testZipSlipSafePathsAccepted");
+    ASSERT_TRUE(isPathSafeForExtraction("/tmp/out", "DOMDocument.xml"));
+    ASSERT_TRUE(isPathSafeForExtraction("/tmp/out", "LIBRARY/Symbol1.xml"));
+    ASSERT_TRUE(isPathSafeForExtraction("/tmp/out", "bin/bitmap0001.dat"));
+    ASSERT_TRUE(isPathSafeForExtraction("/tmp/out", "./nested/path/file.png"));  // ./ prefix stripped
+    endTest("testZipSlipSafePathsAccepted");
+}
+
+// ---------------------------------------------------------------------------
+// JSFL / ActionScript content detection tests (issue #52, #11)
+//
+// These test the regex-level function-name extraction logic used by
+// import_container.py's extract_jsfl_functions() — re-implemented here in
+// C++ for the C++ test suite completeness.
+// ---------------------------------------------------------------------------
+
+static QStringList extractJSFLFunctions(const QString &src) {
+    QStringList names;
+    // Simple pattern: "function <name>(" anywhere in the source
+    QRegExp re("\\bfunction\\s+([A-Za-z_$][A-Za-z0-9_$]*)\\s*\\(");
+    int pos = 0;
+    while ((pos = re.indexIn(src, pos)) != -1) {
+        names << re.cap(1);
+        pos += re.matchedLength();
+    }
+    return names;
+}
+
+void testJSFLFunctionExtraction() {
+    beginTest("testJSFLFunctionExtraction");
+    QString src =
+        "// JSFL toolbar script\n"
+        "function incrementInstances(startFrame) {\n"
+        "  fl.trace('hi');\n"
+        "}\n"
+        "function addLayer() { }\n"
+        "var anon = function() {};\n"  // anonymous – should not be extracted
+        "function resetTimeline(doc) {}\n";
+    QStringList fns = extractJSFLFunctions(src);
+    ASSERT_TRUE(fns.contains("incrementInstances"));
+    ASSERT_TRUE(fns.contains("addLayer"));
+    ASSERT_TRUE(fns.contains("resetTimeline"));
+    ASSERT_EQ(fns.size(), 3);
+    endTest("testJSFLFunctionExtraction");
+}
+
+void testJSFLEmptySource() {
+    beginTest("testJSFLEmptySource");
+    ASSERT_EQ(extractJSFLFunctions("").size(), 0);
+    ASSERT_EQ(extractJSFLFunctions("// no functions here\nvar x = 1;").size(), 0);
+    endTest("testJSFLEmptySource");
+}
+
+// ---------------------------------------------------------------------------
 // main
 // ---------------------------------------------------------------------------
 
 int main(int argc, char **argv) {
     (void)argc; (void)argv;
-    // QCoreApplication not strictly required for QFile/QDir/QString
+    // QCoreApplication not strictly required for QFile/QDir/QString/QRegExp
     printf("=== Flash header parsing unit tests ===\n");
     testSwfHeaderUncompressed();
     testSwfHeaderCompressed();
@@ -371,6 +640,25 @@ int main(int argc, char **argv) {
     testFlvHeaderInvalid();
     testF4vHeaderValid();
     testF4vHeaderInvalid();
+    printf("\n=== XFL / DOMDocument attribute tests ===\n");
+    testXFLDocumentBasicAttributes();
+    testXFLDocumentDefaultDimensions();
+    testXFLDocumentHighResolution();
+    testXFLDocumentNoNamespace();
+    testXFLDocumentMalformedXML();
+    testXFLFrameRateFractional();
+    printf("\n=== Binary media magic-byte detection tests ===\n");
+    testBinaryMediaJPEG();
+    testBinaryMediaPNG();
+    testBinaryMediaGIF();
+    testBinaryMediaUnknown();
+    testBinaryMediaTooShort();
+    printf("\n=== Zip Slip / path traversal protection tests ===\n");
+    testZipSlipTraversalRejected();
+    testZipSlipSafePathsAccepted();
+    printf("\n=== JSFL function extraction tests ===\n");
+    testJSFLFunctionExtraction();
+    testJSFLEmptySource();
     printf("=======================================\n");
     printf("Results: %d passed, %d failed\n", g_pass, g_fail);
     return g_fail == 0 ? 0 : 1;

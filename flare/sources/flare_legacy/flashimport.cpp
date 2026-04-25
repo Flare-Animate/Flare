@@ -61,6 +61,7 @@
 #include <QDateTime>
 #include <QFileInfo>
 #include <QDesktopServices>
+#include <QRegExp>
 #include <QUrl>
 #include <cstring>
 
@@ -608,11 +609,29 @@ void ImportFlashVectorCommand::execute() {
     // ---- JSFL — JavaScript Flash script (plain text) ----------------------
     } else if (ext == "jsfl") {
         copyFileForReference(srcPath, outPath, exported);
-        // Show first lines for info
+        // Parse function names and JSFL API calls for informative summary
         QFile f(srcPath);
         if (f.open(QIODevice::ReadOnly | QIODevice::Text)) {
-            info = QObject::tr("JSFL script:\n") + QString::fromUtf8(f.read(400));
-            f.close();
+            QString src = QString::fromUtf8(f.readAll()); f.close();
+            // Extract named function declarations (issue #11, #52)
+            QStringList funcNames;
+            QRegExp funcRe("\\bfunction\\s+([A-Za-z_$][A-Za-z0-9_$]*)\\s*\\(");
+            int pos = 0;
+            while ((pos = funcRe.indexIn(src, pos)) != -1) {
+                funcNames << funcRe.cap(1); pos += funcRe.matchedLength();
+            }
+            // Detect JSFL API root objects
+            QStringList apis;
+            for (const char *api : {"fl.", "doc.", "timeline.", "layer.", "item.", "dom."}) {
+                if (src.contains(QLatin1String(api))) apis << QString(api).chopped(1);
+            }
+            info = QObject::tr("JSFL script: %1 function(s)").arg(funcNames.size());
+            if (!funcNames.isEmpty())
+                info += QObject::tr("\n  Functions: ") + funcNames.join(", ");
+            if (!apis.isEmpty())
+                info += QObject::tr("\n  JSFL APIs: ") + apis.join(", ");
+            if (funcNames.isEmpty() && apis.isEmpty())
+                info += "\n" + src.left(300);
         } else {
             info = QObject::tr("JSFL script copied for reference.");
         }
