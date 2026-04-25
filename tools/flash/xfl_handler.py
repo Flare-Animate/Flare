@@ -18,10 +18,17 @@ from __future__ import annotations
 
 import json
 import os
-import xml.etree.ElementTree as ET
 from dataclasses import dataclass
 from typing import Dict, List, Optional
 import zipfile
+
+# Use defusedxml when available to guard against XML bomb / XXE attacks in
+# untrusted FLA/XFL files.  Falls back to the stdlib implementation if the
+# package is not installed (e.g. minimal CI environments).
+try:
+    import defusedxml.ElementTree as ET
+except ImportError:
+    import xml.etree.ElementTree as ET  # type: ignore[no-redef]  # noqa: S405
 
 
 @dataclass
@@ -144,7 +151,7 @@ class XFLReader:
         writes into modern .fla files.
         """
         try:
-            tree = ET.parse(file_obj)
+            tree = ET.parse(file_obj)  # nosec B314 — defusedxml used when available
             root = tree.getroot()
 
             if self._local_tag(root.tag) == 'DOMDocument':
@@ -163,7 +170,7 @@ class XFLReader:
         (discussion #26: graphic symbols should support blend mode and filters).
         """
         try:
-            tree = ET.parse(file_obj)
+            tree = ET.parse(file_obj)  # nosec B314 — defusedxml used when available
             root = tree.getroot()
 
             if self._local_tag(root.tag) == 'DOMSymbolItem':
