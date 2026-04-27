@@ -85,8 +85,8 @@ def extract_jsfl_functions(path: str) -> list:
             src = f.read()
         for m in re.finditer(r"\bfunction\s+([A-Za-z_$][A-Za-z0-9_$]*)\s*\(", src):
             functions.append(m.group(1))
-    except OSError:
-        pass
+    except OSError as e:
+        print(f"Warning: could not read script file '{path}' for function extraction: {e}", file=sys.stderr)
     return functions
 
 
