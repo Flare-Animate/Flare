@@ -104,7 +104,8 @@ def detect_jsfl_api_calls(path: str) -> list:
         for m in re.finditer(r"\b(fl|doc|timeline|layer|item|dom)\s*\.", src):
             apis.add(m.group(1))
     except OSError:
-        pass
+        # Best-effort scanner: unreadable/missing files are treated as having no detectable API calls.
+        return []
     return sorted(apis)
 
 
