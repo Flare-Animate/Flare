@@ -18,10 +18,28 @@ from __future__ import annotations
 
 import json
 import os
-import xml.etree.ElementTree as ET
 from dataclasses import dataclass
 from typing import Dict, List, Optional
 import zipfile
+
+# Use defusedxml when available to guard against XML bomb / XXE attacks in
+# untrusted FLA/XFL files.  Falls back to the stdlib implementation if the
+# package is not installed (e.g. minimal CI environments).
+try:
+    import defusedxml.ElementTree as ET
+except ImportError:
+    import xml.etree.ElementTree as ET  # type: ignore[no-redef]  # noqa: S405
+
+
+@dataclass
+class XFLFilter:
+    """Represents a visual filter applied to a symbol instance (discussion #26)."""
+    filter_type: str                # e.g. "DropShadowFilter", "BlurFilter", "GlowFilter"
+    params: dict = None
+
+    def __post_init__(self):
+        if self.params is None:
+            self.params = {}
 
 
 @dataclass
@@ -32,6 +50,14 @@ class XFLSymbol:
     symbol_type: str  # "graphic", "movie clip", "button"
     linkage_class: Optional[str] = None
     linkage_export: bool = False
+    # Blend mode support (discussion #26): graphic symbols can now carry blend
+    # mode metadata, matching how movie clip instances work in Adobe Animate.
+    blend_mode: Optional[str] = None   # e.g. "normal", "multiply", "screen", "overlay"
+    filters: List[XFLFilter] = None
+
+    def __post_init__(self):
+        if self.filters is None:
+            self.filters = []
 
 
 @dataclass
@@ -42,7 +68,7 @@ class XFLDocument:
     frame_rate: float = 24.0
     background_color: str = "#FFFFFF"
     symbols: List[XFLSymbol] = None
-    
+
     def __post_init__(self):
         if self.symbols is None:
             self.symbols = []
@@ -107,43 +133,106 @@ class XFLReader:
         
         return self.document
     
+    @staticmethod
+    def _local_tag(tag: str) -> str:
+        """Strip the XML namespace prefix from a tag name.
+
+        Converts ``{http://ns.adobe.com/xfl/2008/}DOMDocument`` to
+        ``DOMDocument`` so comparisons work for both namespaced and
+        non-namespaced XFL files.
+        """
+        return tag.split("}")[-1] if "}" in tag else tag
+
     def _parse_document(self, file_obj):
-        """Parse the main DOMDocument.xml file."""
+        """Parse the main DOMDocument.xml file.
+
+        Handles both plain-tag format (DOMDocument) and namespace-qualified
+        format ({http://ns.adobe.com/xfl/2008/}DOMDocument) that Adobe Animate
+        writes into modern .fla files.
+        """
         try:
-            tree = ET.parse(file_obj)
+            tree = ET.parse(file_obj)  # nosec B314 — defusedxml used when available
             root = tree.getroot()
-            
-            # Extract document properties
-            if root.tag == 'DOMDocument':
+
+            if self._local_tag(root.tag) == 'DOMDocument':
                 self.document.width = int(root.get('width', 550))
                 self.document.height = int(root.get('height', 400))
                 self.document.frame_rate = float(root.get('frameRate', 24.0))
                 self.document.background_color = root.get('backgroundColor', '#FFFFFF')
         except ET.ParseError as e:
             print(f"Warning: Failed to parse DOMDocument.xml: {e}")
-    
+
     def _parse_symbol(self, file_obj, symbol_name: str):
-        """Parse a library symbol XML file."""
+        """Parse a library symbol XML file.
+
+        Handles both plain-tag and namespace-qualified formats.
+        Extracts blend mode and filter data for graphic and movie clip symbols
+        (discussion #26: graphic symbols should support blend mode and filters).
+        """
         try:
-            tree = ET.parse(file_obj)
+            tree = ET.parse(file_obj)  # nosec B314 — defusedxml used when available
             root = tree.getroot()
-            
-            # Extract symbol information
-            if root.tag == 'DOMSymbolItem':
+
+            if self._local_tag(root.tag) == 'DOMSymbolItem':
                 symbol = XFLSymbol(
                     name=root.get('name', symbol_name),
                     item_id=root.get('itemID', ''),
                     symbol_type=root.get('symbolType', 'graphic')
                 )
-                
+
                 # Check for linkage (ActionScript export)
                 if root.get('linkageClassName'):
                     symbol.linkage_class = root.get('linkageClassName')
                     symbol.linkage_export = root.get('linkageExportForAS', 'false') == 'true'
-                
+
+                # Extract blend mode and filters from the symbol's first instance
+                # (discussion #26 — graphic symbols should carry blend mode/filter metadata
+                # just like movie clip instances in Adobe Animate)
+                self._extract_symbol_fx(root, symbol)
+
                 self.document.symbols.append(symbol)
         except ET.ParseError:
             pass  # Silently skip invalid symbol files
+
+    def _extract_symbol_fx(self, root: ET.Element, symbol: "XFLSymbol") -> None:
+        """Extract blend mode and filter metadata from a symbol's timeline frames.
+
+        Walks the symbol's layer/frame/element tree and captures the blend mode
+        and filter list from the *first* DOMSymbolInstance or DOMShape element
+        found.  This mirrors how Adobe Animate stores per-instance effects inside
+        a graphic symbol's timeline (discussion #26).
+        """
+        ns_prefix = ""
+        if "}" in root.tag:
+            ns_prefix = root.tag.split("}")[0] + "}"
+
+        _instance_tags = {"DOMSymbolInstance", "DOMShape",
+                          "DOMBitmapInstance", "DOMStaticText"}
+
+        # Walk timeline → layers → frames → (elements container) → instances
+        for timeline in root.iter(f"{ns_prefix}DOMTimeline"):
+            for layer in timeline.iter(f"{ns_prefix}DOMLayer"):
+                for frame in layer.iter(f"{ns_prefix}DOMFrame"):
+                    # Iterate all descendants of the frame to find instances
+                    for elem in frame.iter():
+                        if elem is frame:
+                            continue
+                        local = self._local_tag(elem.tag)
+                        if local in _instance_tags:
+                            # Blend mode
+                            if elem.get("blendMode"):
+                                symbol.blend_mode = elem.get("blendMode")
+
+                            # Filters (DOMDropShadowFilter, DOMBlurFilter, etc.)
+                            for child in elem:
+                                if self._local_tag(child.tag) == "filters":
+                                    for flt in child:
+                                        ftype = self._local_tag(flt.tag)
+                                        params = dict(flt.attrib)
+                                        symbol.filters.append(XFLFilter(
+                                            filter_type=ftype, params=params
+                                        ))
+                            return  # Use first element only
 
 
 class XFLWriter:
@@ -209,26 +298,37 @@ class XFLWriter:
     
     def _generate_document_xml(self) -> str:
         """Generate the main DOMDocument.xml content."""
-        xml = f'''<?xml version="1.0" encoding="utf-8"?>
-<DOMDocument xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://ns.adobe.com/xfl/2008/" currentTimeline="1" xflVersion="2.97" creatorInfo="Flare" platform="Macintosh" versionInfo="Saved by Flare" majorVersion="1" minorVersion="0" buildNumber="0" nextSceneIdentifier="2" playOptionsPlayLoop="false" playOptionsPlayPages="false" playOptionsPlayFrameActions="false" autoSaveHasPrompted="true">
-  <symbols/>
-  <timelines>
-    <DOMTimeline name="Scene 1" currentFrame="0">
-      <layers>
-        <DOMLayer name="Layer 1" color="#4FFF4F" current="true" isSelected="true">
-          <frames>
-            <DOMFrame index="0" duration="1" tweenType="none" motionTweenSnap="true" motionTweenSync="false">
-              <elements/>
-            </DOMFrame>
-          </frames>
-        </DOMLayer>
-      </layers>
-    </DOMTimeline>
-  </timelines>
-  <persistentData/>
-  <printSettings/>
-  <publishHistory/>
-</DOMDocument>'''
+        xml = (
+            '<?xml version="1.0" encoding="utf-8"?>\n'
+            '<DOMDocument'
+            ' xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"'
+            ' xmlns="http://ns.adobe.com/xfl/2008/"'
+            f' width="{self.document.width}"'
+            f' height="{self.document.height}"'
+            f' frameRate="{self.document.frame_rate}"'
+            f' backgroundColor="{self.document.background_color}"'
+            ' currentTimeline="1" xflVersion="2.97" creatorInfo="Flare"'
+            ' platform="Macintosh" versionInfo="Saved by Flare"'
+            ' majorVersion="1" minorVersion="0" buildNumber="0"'
+            ' nextSceneIdentifier="2">\n'
+            '  <symbols/>\n'
+            '  <timelines>\n'
+            '    <DOMTimeline name="Scene 1" currentFrame="0">\n'
+            '      <layers>\n'
+            '        <DOMLayer name="Layer 1" color="#4FFF4F"'
+            ' current="true" isSelected="true">\n'
+            '          <frames>\n'
+            '            <DOMFrame index="0" duration="1"'
+            ' tweenType="none">\n'
+            '              <elements/>\n'
+            '            </DOMFrame>\n'
+            '          </frames>\n'
+            '        </DOMLayer>\n'
+            '      </layers>\n'
+            '    </DOMTimeline>\n'
+            '  </timelines>\n'
+            '</DOMDocument>\n'
+        )
         return xml
     
     def _generate_publish_settings(self) -> str:

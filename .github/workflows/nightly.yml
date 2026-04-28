@@ -668,6 +668,10 @@ jobs:
       - name: List downloaded artifacts
         run: find dist -type f | sort
 
+      - name: Get build date
+        id: build_date
+        run: echo "DATE=$(date -u +'%Y-%m-%d %H:%M UTC')" >> "$GITHUB_OUTPUT"
+
       - name: Prepare release assets
         run: |
           rm -rf release-assets
@@ -687,11 +691,13 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: nightly
-          name: "Nightly Build (latest master)"
+          name: "Nightly Build — ${{ steps.build_date.outputs.DATE }}"
           prerelease: true
           draft: false
           body: |
-            **Automated nightly build** from [`master`](https://github.com/Flare-Animate/Flare/tree/master) — commit ${{ github.sha }}.
+            **Automated nightly build** from [`master`](https://github.com/Flare-Animate/Flare/tree/master) — commit [`${{ github.sha }}`](https://github.com/Flare-Animate/Flare/commit/${{ github.sha }}).
+
+            🕐 **Built:** ${{ steps.build_date.outputs.DATE }}
 
             These are pre-release binaries built automatically. They may be unstable.
 
@@ -701,7 +707,7 @@ jobs:
             |----------|---------|--------------|
             | **Windows** | `Flare-Windows-Portable-nightly.zip` | Windows 10/11 **64-bit (x86_64/AMD64)** — ARM is not supported |
             | **Linux** | `Flare-Linux-nightly.tar.gz` | x86_64 Linux, glibc 2.35+ (Ubuntu 22.04 or newer) |
-            | **macOS** | `Flare-macOS-nightly` | macOS 13+ Intel (Apple Silicon via Rosetta 2) |
+            | **macOS** | `Flare.dmg` | macOS 13+ Intel (Apple Silicon via Rosetta 2) |
 
             ## Windows usage
 
@@ -711,6 +717,19 @@ jobs:
 
             > **"DLL not found" / crashes on launch?**  Make sure you're on **64-bit Windows** and haven't moved `Flare.exe`. If antivirus quarantined a DLL, whitelist the folder and re-extract.
 
-            See the [smoke test logs](https://github.com/Flare-Animate/Flare/actions/runs/${{ github.run_id }}) for DLL and launch validation results.
+            ## macOS usage
+
+            1. Open `Flare.dmg`.
+            2. Drag **Flare.app** to your Applications folder.
+            3. On first launch, right-click → **Open** (to bypass Gatekeeper on unsigned builds).
+
+            > **"Flare cannot be opened because the developer cannot be verified"?** Right-click the app and choose **Open**, or go to **System Preferences → Privacy & Security** and click **Open Anyway**.
+
+            ## Linux usage
+
+            1. Extract: `tar xzf Flare-Linux-nightly.tar.gz`
+            2. Inside the `Flare-Linux-nightly/` folder run `./Flare.AppImage` (or the `Flare` binary if AppImage creation was skipped).
+
+            See the [CI run](https://github.com/Flare-Animate/Flare/actions/runs/${{ github.run_id }}) for build logs and smoke test results.
           files: |
             release-assets/*
