@@ -216,7 +216,7 @@ And wired into the menu in:
 
 ### CI workflow notes
 
-- Linux/macOS build: `ninja -j$(nproc)` inside `flare/build/`
+- Linux/macOS build: `ninja -j2` inside `flare/build/` (limited to avoid memory exhaustion)
 - Windows build: `cmake --build build --config RelWithDebInfo`
 - macOS: must `brew unlink qtbase qtdeclarative qt` before installing `qt@5` (pre-installed Qt 6 conflicts)
 - `upload-artifact` version must be `@v4` across all workflows (no v5/v6)
