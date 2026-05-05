@@ -85,10 +85,18 @@ export PKG_CONFIG_PATH="/opt/homebrew/opt/jpeg-turbo/lib/pkgconfig:$PKG_CONFIG_P
 
 3. Set up build environment
 
+⚠️ **IMPORTANT: Resource Usage Warning**
+
+Building Flare is memory-intensive. Using too many parallel jobs can exhaust system memory and cause instability, especially on systems with limited RAM.
+
+**Recommended parallel job settings:**
+- Systems with **< 8GB RAM**: Use `make -j2` (2 parallel jobs)
+- Systems with **> 8GB RAM**: Use `make -j4` or `make -j$(sysctl -n hw.ncpu)` (all cores)
+
 To build from command line, do the following:
 ```sh
 cmake ../sources -DQT_PATH='/opt/homebrew/opt/qt@5/lib'  #replace QT path with your installed QT version#
-make
+make -j2
 ```
 - If you downloaded the QT installer and installed to `/Users/yourlogin/Qt` instead of by using homebrew, your lib path may look something like this: `~/Qt/5.12.2/clang_64/lib` or `~/Qt/5.12.2/clang_32/lib`
 

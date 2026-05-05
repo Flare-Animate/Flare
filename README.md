@@ -37,16 +37,21 @@ instructions.
 
 ## How to Build Locally
 
+⚠️ **IMPORTANT:** Building Flare is memory-intensive. On systems with limited RAM (< 8GB), limit parallel jobs to avoid system freezes. See platform-specific guides below for details.
+
 You can configure a build directory from the repository root with a command such as:
 
 ```sh
 cmake -S flare/sources -B build -G "Ninja" -DCMAKE_BUILD_TYPE=Release
 ```
 
-and then build:
+and then build (limit parallel jobs on low-memory systems):
 
 ```sh
-cmake --build build --parallel
+# For systems with < 4GB RAM, use: cmake --build build -j1
+# For systems with 4-8GB RAM, use: cmake --build build -j2
+# For systems with > 8GB RAM, use: cmake --build build --parallel
+cmake --build build -j2
 ```
 
 For more detailed, platform‑specific guidance follow the links below:

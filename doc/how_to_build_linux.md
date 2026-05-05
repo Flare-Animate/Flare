@@ -121,21 +121,32 @@ Features from the modified libtiff are needed currently, so this isn't a simple 
 ```
 $ cd Flare/thirdparty/tiff-4.0.3
 $ ./configure --with-pic --disable-jbig
-$ make -j$(nproc)
+$ make -j2
 $ cd ../../
 ```
 
 ### Building Flare
+
+⚠️ **IMPORTANT: Resource Usage Warning**
+
+Building Flare is **very memory-intensive**. Using too many parallel jobs can exhaust system memory and cause your system to freeze or crash (kernel panic), especially on systems with 4GB RAM or less.
+
+**Recommended parallel job settings:**
+- Systems with **< 4GB RAM**: Use `-j1` (single job, slower but safe)
+- Systems with **4-8GB RAM**: Use `-j2` (2 parallel jobs)
+- Systems with **> 8GB RAM**: Use `-j4` or `-j$(nproc)` (all cores)
 
 ```
 $ cd flare
 $ mkdir build
 $ cd build
 $ cmake ../sources
-$ make -j$(nproc)
+$ make -j2
 ```
 
-The build takes a lot of time, be patient. CMake may not pick up all the required dependencies. On Fedora 30, it can be helpful to use 
+**Note:** The build takes considerable time (30-60+ minutes depending on hardware). Be patient and avoid using resource-intensive applications during the build.
+
+The build takes a lot of time, be patient. CMake may not pick up all the required dependencies. On Fedora 30, it can be helpful to use
 ```
 $cmake ../sources/ -DSUPERLU_INCLUDE_DIR=/usr/include/SuperLU
 ```
