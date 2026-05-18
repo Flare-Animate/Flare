@@ -435,6 +435,7 @@ QMenuBar *StackedMenuBar::createCleanupMenuBar() {
   addMenuItem(editMenu, MI_PasteInto);
   editMenu->addSeparator();
   addMenuItem(editMenu, MI_Clear);
+  addMenuItem(editMenu, MI_ClearViewerContent);
   addMenuItem(editMenu, MI_Insert);
   addMenuItem(editMenu, MI_InsertAbove);
   addMenuItem(editMenu, MI_SelectAll);
@@ -586,6 +587,7 @@ QMenuBar *StackedMenuBar::createPltEditMenuBar() {
   addMenuItem(editMenu, MI_PasteInto);
   editMenu->addSeparator();
   addMenuItem(editMenu, MI_Clear);
+  addMenuItem(editMenu, MI_ClearViewerContent);
   addMenuItem(editMenu, MI_Insert);
   addMenuItem(editMenu, MI_InsertAbove);
   addMenuItem(editMenu, MI_SelectAll);
@@ -770,6 +772,7 @@ QMenuBar *StackedMenuBar::createInknPaintMenuBar() {
   addMenuItem(editMenu, MI_PasteInto);
   editMenu->addSeparator();
   addMenuItem(editMenu, MI_Clear);
+  addMenuItem(editMenu, MI_ClearViewerContent);
   addMenuItem(editMenu, MI_Insert);
   addMenuItem(editMenu, MI_InsertAbove);
   addMenuItem(editMenu, MI_SelectAll);
@@ -950,6 +953,7 @@ QMenuBar *StackedMenuBar::createXsheetMenuBar() {
   addMenuItem(editMenu, MI_PasteInto);
   editMenu->addSeparator();
   addMenuItem(editMenu, MI_Clear);
+  addMenuItem(editMenu, MI_ClearViewerContent);
   addMenuItem(editMenu, MI_Insert);
   addMenuItem(editMenu, MI_InsertAbove);
   addMenuItem(editMenu, MI_SelectAll);
@@ -1188,6 +1192,7 @@ QMenuBar *StackedMenuBar::createFullMenuBar() {
   addMenuItem(editMenu, MI_Insert);
   addMenuItem(editMenu, MI_InsertAbove);
   addMenuItem(editMenu, MI_Clear);
+  addMenuItem(editMenu, MI_ClearViewerContent);
   editMenu->addSeparator();
   addMenuItem(editMenu, MI_SelectAll);
   addMenuItem(editMenu, MI_InvertSelection);

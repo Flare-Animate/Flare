@@ -5,8 +5,8 @@
 Building Flare from source requires the following dependencies:
 - Git
 - GCC or Clang
-- CMake (3.10 or newer)
-- Qt 5.x (5.15 or newer)
+- CMake (3.4.1 or newer).
+- Qt5 (5.9 or newer)
 - Boost (1.55 or newer)
 - LibPNG
 - SuperLU
@@ -16,28 +16,38 @@ Building Flare from source requires the following dependencies:
 - Jpeg-Turbo (1.4 or newer)
 - OpenCV 3.2 or newer
 
-### Installing Dependencies on Debian / Ubuntu
+### Installing Dependencies on Debian / Ubuntu 16.04 (Xenial) / Devuan
 
 ```
-$sudo apt-get install build-essential git cmake pkg-config libboost-all-dev qtbase5-dev libqt5svg5-dev qtscript5-dev qttools5-dev qttools5-dev-tools libqt5opengl5-dev qtmultimedia5-dev libqt5multimedia5-plugins libqt5serialport5-dev libsuperlu-dev liblz4-dev libusb-1.0-0-dev liblzo2-dev libpng-dev libjpeg-dev libglew-dev freeglut3-dev libfreetype6-dev libjson-c-dev qtwayland5 libmypaint-dev libopencv-dev libturbojpeg-dev
+$ sudo apt-get install build-essential git cmake freeglut3-dev libboost-all-dev libegl1-mesa-dev libfreetype6-dev libgles2-mesa-dev libglew-dev libglib2.0-dev libjpeg-dev libjpeg-turbo8-dev libjson-c-dev liblz4-dev liblzma-dev liblzo2-dev libpng-dev libsuperlu-dev pkg-config qt5-default qtbase5-dev libqt5svg5-dev qtscript5-dev qttools5-dev qttools5-dev-tools libqt5opengl5-dev qtmultimedia5-dev libqt5multimedia5-plugins qtwayland5 qtdeclarative5-dev libqt5waylandclient5-dev libqt5waylandcompositor5-dev
+```
+In Debian / Devuan: replace `libjpeg-turbo8-dev` with `libturbojpg0-dev` and `qt5-default` with `libqt5serialport5-dev` and add: `libsuperlu-dev liblz4-dev liblzo-dev libmypaint-dev libglew-dev freeglut3-dev` 
+
+
+Find a PPA repository for Qt 5.9 or later and install the following:
+```
+$ sudo apt-get install -y qt59multimedia qt59script qt59serialport qt59svg qt59tools
 ```
 
-For newest versions of OS you may install libmypaint from repository and don't need to build it from source:
-
+Find a PPA repository for MyPaint 1.3 and install the following:
 ```
-$ sudo apt-get install libmypaint-dev
+$ sudo apt-get install -y libmypaint-dev
+```
+
+Find a PPA repository for OpenCV 3.2 or later and install the following:
+```
+$ sudo apt-get install -y libopencv-dev
 ```
 
 Notes:
 * It's possible we also need `libgsl2` (or maybe `libopenblas-dev`)
-* We may also need `libegl1-mesa-dev libgles2-mesa-dev libglib2.0-dev liblzma-dev`
 * For Qt, MyPaint and OpenCV, you can alternatively build and install from source.
 
 ### Installing Dependencies on Fedora
 (it may include some useless packages)
 
 ```
-$ sudo dnf install gcc gcc-c++ automake git cmake boost boost-devel SuperLU SuperLU-devel lz4-devel lzma libusb-devel lzo-devel libjpeg-turbo-devel libGLEW glew-devel freeglut-devel freeglut freetype-devel libpng-devel qt5-qtbase-devel qt5-qtsvg qt5-qtsvg-devel qt5-qtscript qt5-qtscript-devel qt5-qttools qt5-qttools-devel qt5-qtmultimedia-devel blas blas-devel json-c-devel libtool intltool make qt5-qtmultimedia turbojpeg-devel opencv-devel qt5-qttools-static qt5-qtserialport-devel
+$ sudo dnf install gcc gcc-c++ automake git cmake boost boost-devel SuperLU SuperLU-devel lz4-devel lzma lzo-devel libjpeg-turbo-devel libGLEW glew-devel freeglut-devel freeglut freetype-devel libpng-devel qt5-qtbase-devel qt5-qtsvg qt5-qtsvg-devel qt5-qtscript qt5-qtscript-devel qt5-qttools qt5-qttools-devel qt5-qtmultimedia-devel blas blas-devel json-c-devel libtool intltool make qt5-qtmultimedia
 ```
 
 For newest versions of OS you may install libmypaint from repository and don't need to build it from source:
@@ -50,7 +60,7 @@ $ sudo dnf install libmypaint-devel
 ### Installing Dependencies on ArchLinux
 
 ```
-$ sudo pacman -S base-devel git cmake boost boost-libs qt5-base qt5-svg qt5-script qt5-tools qt5-multimedia lz4 libusb lzo libjpeg-turbo glew freeglut freetype2
+$ sudo pacman -S base-devel git cmake boost boost-libs qt5-base qt5-svg qt5-script qt5-tools qt5-multimedia lz4 lzo libjpeg-turbo glew freeglut freetype2 qt5-serialport
 $ sudo pacman -S blas cblas
 ```
 From AUR, using eg. yaourt:
@@ -64,7 +74,7 @@ Notes:
 ### Installing Dependencies on openSUSE
 
 ```
-$ zypper in boost-devel cmake freeglut-devel freetype2-devel gcc-c++ glew-devel libQt5OpenGL-devel libjpeg-devel liblz4-devel libpng16-compat-devel libqt5-linguist-devel libqt5-qtbase-devel libqt5-qtmultimedia-devel libqt5-qtscript-devel libqt5-qtsvg-devel libtiff-devel libusb-devel lzo-devel openblas-devel pkgconfig sed superlu-devel zlib-devel json-c-devel libqt5-qtmultimedia
+$ zypper in boost-devel cmake freeglut-devel freetype2-devel gcc-c++ glew-devel libQt5OpenGL-devel libjpeg-devel liblz4-devel libpng16-compat-devel libqt5-linguist-devel libqt5-qtbase-devel libqt5-qtmultimedia-devel libqt5-qtscript-devel libqt5-qtsvg-devel libtiff-devel lzo-devel openblas-devel pkgconfig sed superlu-devel zlib-devel json-c-devel libqt5-qtmultimedia
 ```
 
 For newest versions of OS you may install libmypaint from repository and don't need to build it from source:
@@ -93,7 +103,7 @@ $ cd ..
 ### Cloning the GIT Tree
 
 ```
-$ git clone https://github.com/Flare/Flare
+$ git clone https://github.com/flare/flare
 ```
 
 ### Copying the 'stuff' Directory
@@ -113,40 +123,50 @@ $ cp -r flare/stuff $HOME/.config/Flare/
 
 *Currently this is required to run Flare.*
 
+### Creating SystemVar.ini
+
+TODO: fix the code to discover it automatically
+
+```
+$ cat << EOF > $HOME/.config/Flare/SystemVar.ini
+[General]
+TAHOMA2DROOT="$HOME/.config/Flare/stuff"
+TAHOMA2DPROFILES="$HOME/.config/Flare/stuff/profiles"
+TAHOMA2DCACHEROOT="$HOME/.config/Flare/stuff/cache"
+TAHOMA2DCONFIG="$HOME/.config/Flare/stuff/config"
+TAHOMA2DFXPRESETS="$HOME/.config/Flare/stuff/fxs"
+TAHOMA2DLIBRARY="$HOME/.config/Flare/stuff/library"
+TAHOMA2DPROFILES="$HOME/.config/Flare/stuff/profiles"
+TAHOMA2DPROJECTS="$HOME/.config/Flare/stuff/projects"
+TAHOMA2DROOT="$HOME/.config/Flare/stuff"
+TAHOMA2DSTUDIOPALETTE="$HOME/.config/Flare/stuff/studiopalette"
+EOF
+```
+Note the generated file must not actually contain `$HOME`, this expands to an absolute path in the generated file.
+
 ### Building LibTIFF
 
 TODO: make sure we can use the system libtiff instead and remove this section.
 Features from the modified libtiff are needed currently, so this isn't a simple switch.
 
 ```
-$ cd Flare/thirdparty/tiff-4.0.3
-$ ./configure --with-pic --disable-jbig
-$ make -j2
+$ cd flare/thirdparty/tiff-4.2.0
+$ ./configure --with-pic --disable-jbig --disable-webp 
+$ make -j$(nproc)
 $ cd ../../
 ```
 
 ### Building Flare
 
-⚠️ **IMPORTANT: Resource Usage Warning**
-
-Building Flare is **very memory-intensive**. Using too many parallel jobs can exhaust system memory and cause your system to freeze or crash (kernel panic), especially on systems with 4GB RAM or less.
-
-**Recommended parallel job settings:**
-- Systems with **< 4GB RAM**: Use `-j1` (single job, slower but safe)
-- Systems with **4-8GB RAM**: Use `-j2` (2 parallel jobs)
-- Systems with **> 8GB RAM**: Use `-j4` or `-j$(nproc)` (all cores)
-
 ```
-$ cd flare
+$ cd toonz
 $ mkdir build
 $ cd build
 $ cmake ../sources
-$ make -j2
+$ make -j$(nproc)
 ```
 
-**Note:** The build takes considerable time (30-60+ minutes depending on hardware). Be patient and avoid using resource-intensive applications during the build.
-
-The build takes a lot of time, be patient. CMake may not pick up all the required dependencies. On Fedora 30, it can be helpful to use
+The build takes a lot of time, be patient. CMake may not pick up all the required dependencies. On Fedora 30, it can be helpful to use 
 ```
 $cmake ../sources/ -DSUPERLU_INCLUDE_DIR=/usr/include/SuperLU
 ```
@@ -197,9 +217,8 @@ You can change the installation path by modifying the `CMAKE_INSTALL_PREFIX` CMa
 It may be helpful to use existing packages as a reference when creating a package for your own distribution.
 
 - ArchLinux (AUR):
-  https://aur.archlinux.org/packages/Flare-git/
+  https://aur.archlinux.org/packages/flare-git/
 
 - App-Image (Portable):
   https://github.com/morevnaproject/morevna-builds
-
 

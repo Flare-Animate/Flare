@@ -59,6 +59,10 @@ void DragCenterTool::leftButtonDrag(const TPointD &pos, const TMouseEvent &) {
   m_center      = m_oldCenter + (m_affine * (pos - m_firstPos)) * factor;
   TTool::getApplication()->getCurrentXsheet()->getXsheet()->setCenter(
       m_objId, m_frame, m_center);
+
+  TTool::Application *app = TTool::getApplication();
+  app->getCurrentObject()->notifyObjectIdChanged(
+      true);  // Keyframes navigator reads this
 }
 
 //------------------------------------------------------------
@@ -204,6 +208,10 @@ void DragPositionTool::leftButtonDrag(const TPointD &pos,
   setValues(getOldValue(0) + delta.x * factor,
             getOldValue(1) + delta.y * factor);
   m_dragged = true;
+
+  TTool::Application *app = TTool::getApplication();
+  app->getCurrentObject()->notifyObjectIdChanged(
+      true);  // Keyframes navigator reads this
 }
 
 //============================================================
@@ -246,6 +254,10 @@ void DragRotationTool::leftButtonDrag(const TPointD &pos, const TMouseEvent &) {
   m_dragged = true;
 
   m_lastPos = pos;
+
+  TTool::Application *app = TTool::getApplication();
+  app->getCurrentObject()->notifyObjectIdChanged(
+      true);  // Keyframes navigator reads this
 }
 
 //============================================================

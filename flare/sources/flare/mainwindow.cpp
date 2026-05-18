@@ -529,6 +529,10 @@ centralWidget->setLayout(centralWidgetLayout);*/
 
   connect(TApp::instance(), SIGNAL(activeViewerChanged()), this,
           SLOT(onActiveViewerChanged()));
+
+  connect(TUndoManager::manager(), SIGNAL(historyChanged()), this,
+          SLOT(onHistoryChanged()));
+  onHistoryChanged();
 }
 
 //-----------------------------------------------------------------------------
@@ -1013,7 +1017,7 @@ void MainWindow::onUndo() {
   // do not use undo if tool is currently in use
   if (toolH->getTool()->isUndoable()) {
     bool ret = TUndoManager::manager()->undo();
-    if (!ret) DVGui::error(QObject::tr("No more Undo operations available."));
+//    if (!ret) DVGui::error(QObject::tr("No more Undo operations available."));
   }
 }
 
@@ -1024,7 +1028,15 @@ void MainWindow::onRedo() {
   while (TApp::instance()->isSaveInProgress());
 
   bool ret = TUndoManager::manager()->redo();
-  if (!ret) DVGui::error(QObject::tr("No more Redo operations available."));
+//  if (!ret) DVGui::error(QObject::tr("No more Redo operations available."));
+}
+
+void MainWindow::onHistoryChanged() {
+  QAction *action = CommandManager::instance()->getAction(MI_Undo);
+  action->setEnabled(!TUndoManager::manager()->atBeginning());
+
+  action = CommandManager::instance()->getAction(MI_Redo);
+  action->setEnabled(!TUndoManager::manager()->atEnd());
 }
 
 //-----------------------------------------------------------------------------
@@ -1734,6 +1746,13 @@ QAction *MainWindow::createStopMotionAction(const char *id, const char *name,
                                             const char *iconSVGName) {
   return createAction(id, name, defaultShortcut, StopMotionCommandType,
                       iconSVGName);
+}
+
+//-----------------------------------------------------------------------------
+
+QAction *MainWindow::createSpecialModifierAction(
+    const char *id, const char *name, const QString &defaultShortcut) {
+  return createAction(id, name, defaultShortcut, SpecialModifierKeyType);
 }
 
 //-----------------------------------------------------------------------------
@@ -3138,6 +3157,9 @@ void MainWindow::defineActions() {
   createStopMotionAction(MI_StopMotionToggleUseLiveViewImages,
                          QT_TR_NOOP("Show original live view images."), "");
 #endif  // x64
+
+  // Special Modifier Keys
+  createSpecialModifierAction(V_Scrub, QT_TR_NOOP("Viewer Scrub"), "#");
 
   // create cell mark actions
   for (int markId = 0; markId < 12; markId++) {

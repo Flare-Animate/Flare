@@ -569,14 +569,13 @@ private:
 //=========================================================
 
 Tiio::PngWriterProperties::PngWriterProperties()
-    : m_matte("Alpha Channel", true), m_colormap("Colormap", nullptr) {
+    : m_matte("Alpha Channel", true) {
   bind(m_matte);
-  bind(m_colormap);
+  // Colormap intentionally unbound to prevent XML serialization
 }
 
 void Tiio::PngWriterProperties::updateTranslation() {
   m_matte.setQStringName(tr("Alpha Channel"));
-  m_colormap.setQStringName(tr("Colormap"));
 }
 
 //=========================================================

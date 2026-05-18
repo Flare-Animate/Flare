@@ -80,6 +80,7 @@ public:
   void saveMenuTree(TFilePath& path);
 
 protected:
+  void dropEvent(QDropEvent* event) override;
   bool dropMimeData(QTreeWidgetItem* parent, int index, const QMimeData* data,
                     Qt::DropAction action) override;
 
@@ -102,12 +103,21 @@ class CommandBarPopup final : public DVGui::Dialog {
   CommandBarTree* m_menuBarTree;
   TFilePath m_path;
 
+  QPushButton *m_moveItemUpBtn, *m_moveItemDownBtn, *m_removeItemBtn,
+      *m_addItemBtn;
+
 public:
   explicit CommandBarPopup(bool isXsheetToolbar = false);
 
 private slots:
   void onOkPressed();
   void onSearchTextChanged(const QString& text);
+  void onMoveItemUp();
+  void onMoveItemDown();
+  void onAddItem();
+  void onRemoveItem();
+  void onCommandListSelectionChanged();
+  void onMenuBarSelectionChanged();
 };
 
 #endif  // COMMANDBARPOPUP_H

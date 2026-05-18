@@ -272,6 +272,10 @@ void XsheetGUI::setPlayRange(int r0, int r1, int step, bool withUndo) {
   }
   ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
   scene->getProperties()->getPreviewProperties()->setRange(r0, r1, step);
+  if (scene->getProperties()
+          ->getOutputProperties()
+          ->isSyncWithPlayRangeEnabled())
+    scene->getProperties()->getOutputProperties()->setRange(r0, r1, step);
   TApp::instance()->getCurrentScene()->notifySceneChanged();
 }
 

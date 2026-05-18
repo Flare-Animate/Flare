@@ -330,7 +330,7 @@ void ToolUtils::drawRectWhitArrow(const TPointD &pos, double r) {
 
 //-----------------------------------------------------------------------------
 
-QRadialGradient ToolUtils::getBrushPad(int size, double hardness) {
+QRadialGradient ToolUtils::getBrushPad(double size, double hardness) {
   hardness        = tcrop(hardness, 0.0, 0.97);
   double halfSize = size * 0.5;
   double x        = halfSize * hardness;

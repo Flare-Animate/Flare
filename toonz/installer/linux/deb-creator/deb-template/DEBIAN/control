@@ -1,0 +1,15 @@
+Package: tahoma2d
+Version: 1.6.1
+Maintainer: Tahoma2D
+Section: graphics
+Installed-Size: 
+Homepage: https://tahoma2d.org/
+Architecture: amd64
+Priority: optional
+Depends: gphoto2
+Description: Tahoma 2D Version 1.6.1
+ Tahoma2D is a 2D and stop motion animation software. 
+ .
+ It is a fork of OpenToonz which is based on Toonz Studio Ghibli Version, originally developed in Italy by Digital Video, Inc., and customized by Studio Ghibli over many years of production.
+ .
+ Tahoma2D is mostly open source, but in order to support Canon cameras, we use the Canon proprietary SDK. Tahoma2D can be built without the SDK, however.

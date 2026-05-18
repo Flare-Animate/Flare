@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop">
+  <id>org.flare.Flare</id>
+  <launchable type="desktop-id">org.flare.Flare.desktop</launchable>
+  <name>Flare</name>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>BSD-3-Clause</project_license>
+  <developer_name>Flare</developer_name>
+  <summary>2D animation</summary>
+  <description>
+    <p>Free and powerful software for 2D and stop motion animators</p>
+    <p>Flare is a 2D and stop motion animation software. It is a fork of Flare which is based on Toonz Studio Ghibli Version, originally developed in Italy by Digital Video, Inc., and customized by Studio Ghibli over many years of production.</p>
+  </description>
+  <url type="homepage">https://flare.org</url>
+  <url type="bugtracker">https://github.com/flare/flare/issues</url>
+  <screenshots>
+    <screenshot type="default">
+      <image>https://flare.org/media/screenshots/tahoma2d_ui.png</image>
+    </screenshot>
+  </screenshots>
+  <content_rating type="oars-1.1"/>
+  <releases>
+    <release version="1.6.1" date="2026-05-01"/>
+    <release version="1.6.0" date="2026-03-01"/>
+    <release version="1.5.4" date="2025-08-01"/>
+    <release version="1.5.3" date="2025-06-01"/>
+    <release version="1.5.2" date="2025-03-31"/>
+    <release version="1.5.1" date="2025-02-03"/>
+    <release version="1.5.0" date="2024-12-01"/>
+    <release version="1.4.5" date="2024-10-01"/>
+    <release version="1.4.4" date="2024-08-01"/>
+    <release version="1.4.3" date="2024-06-02"/>
+    <release version="1.4.2" date="2024-04-02"/>
+    <release version="1.4.1" date="2024-02-01"/>
+    <release version="1.4.0" date="2023-12-01"/>
+    <release version="1.3.0" date="2022-05-06"/>
+    <release version="1.2.0" date="2021-05-03"/>
+    <release version="1.1.0" date="2020-10-30"/>
+    <release version="1.0.1" date="2020-09-04"/>
+    <release version="1.0.0" date="2020-09-01"/>
+  </releases>
+</component>

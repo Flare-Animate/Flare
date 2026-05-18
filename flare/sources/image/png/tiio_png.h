@@ -19,7 +19,6 @@ class PngWriterProperties final : public TPropertyGroup {
 public:
   // TEnumProperty m_pixelSize;
   TBoolProperty m_matte;
-  TPointerProperty m_colormap;
 
   PngWriterProperties();
   void updateTranslation() override;
