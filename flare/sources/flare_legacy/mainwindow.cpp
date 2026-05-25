@@ -530,6 +530,10 @@ centralWidget->setLayout(centralWidgetLayout);*/
 
   connect(TApp::instance(), SIGNAL(activeViewerChanged()), this,
           SLOT(onActiveViewerChanged()));
+
+  connect(TUndoManager::manager(), SIGNAL(historyChanged()), this,
+          SLOT(onHistoryChanged()));
+  onHistoryChanged();
 }
 
 //-----------------------------------------------------------------------------
@@ -1026,6 +1030,14 @@ void MainWindow::onRedo() {
 
   bool ret = TUndoManager::manager()->redo();
   if (!ret) DVGui::error(QObject::tr("No more Redo operations available."));
+}
+
+void MainWindow::onHistoryChanged() {
+  QAction *action = CommandManager::instance()->getAction(MI_Undo);
+  action->setEnabled(!TUndoManager::manager()->atBeginning());
+
+  action = CommandManager::instance()->getAction(MI_Redo);
+  action->setEnabled(!TUndoManager::manager()->atEnd());
 }
 
 //-----------------------------------------------------------------------------
@@ -3136,6 +3148,16 @@ void MainWindow::defineActions() {
   createStopMotionAction(MI_StopMotionToggleUseLiveViewImages,
                          QT_TR_NOOP("Show original live view images."), "");
 #endif  // x64
+
+  // create drawing mark actions
+  for (int markId = 0; markId < 12; markId++) {
+    std::string cmdId = (std::string)MI_SetDrawingMark + std::to_string(markId);
+    std::string labelStr =
+        QT_TR_NOOP("Set Drawing Mark ") + std::to_string(markId);
+    QAction *action = createAction(cmdId.c_str(), labelStr.c_str(), "", "",
+                                   DrawingMarkCommandType);
+    action->setData(markId);
+  }
 
   // create cell mark actions
   for (int markId = 0; markId < 12; markId++) {

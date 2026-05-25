@@ -223,7 +223,7 @@ protected:
   bool eventFilter(QObject *obj, QEvent *event) override;
 
 private:
-  void updateXshLevel();
+  void updateXshLevel(bool isColumnSwitch = false);
   void updateCurrentFrame();
 
 protected slots:

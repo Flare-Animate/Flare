@@ -1906,7 +1906,7 @@ public:
 
   void redo() const override {
     if (!m_level || m_frames.empty()) return;
-    if (m_level->getType() == PLI_XSHLEVEL)
+    if (m_level->getType() != TZP_XSHLEVEL)
       FilmstripCmd::insert(m_level.getPointer(), m_frames, false);
     else if (m_level->getType() == TZP_XSHLEVEL) {
       makeSpaceForFids(m_level.getPointer(), m_frames);
