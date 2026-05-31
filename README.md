@@ -9,6 +9,8 @@ user experience and improving interoperability with Flash assets (.swf/.fla).
 This repository is a fork of OpenToonz and retains the original licensing and
 attribution. See the Licensing section below for details.
 
+<iframe src="https://discord.com/widget?id=1500316971802296430&theme=dark" width="350" height="500" allowtransparency="true" frameborder="0" sandbox="allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts"></iframe>
+
 [日本語](./doc/README_ja.md) [简体中文](./doc/README_chs.md)
 
 ## What is Flare?
