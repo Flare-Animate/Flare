@@ -9,7 +9,7 @@ user experience and improving interoperability with Flash assets (.swf/.fla).
 This repository is a fork of OpenToonz and retains the original licensing and
 attribution. See the Licensing section below for details.
 
-[![Discord Server](https://discord.com/api/guilds/1500316971802296430/widget.png?style=banner2)](https://discord.com/invite/xQ36SAgp6)
+[![Discord Server](https://discord.com/api/guilds/1500316971802296430/widget.png?style=banner2)](https://discord.gg/JpeScW8Awa)
 
 
 [日本語](./doc/README_ja.md) [简体中文](./doc/README_chs.md)
