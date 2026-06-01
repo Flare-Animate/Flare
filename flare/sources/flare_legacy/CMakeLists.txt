@@ -1,4 +1,4 @@
-set(VERSION 1.7.1)
+set(VERSION 1.8)
 
 function(resolve_flare_legacy_paths input_var output_var)
   # Read the list variable named by input_var

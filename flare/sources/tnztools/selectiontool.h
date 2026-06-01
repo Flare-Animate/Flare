@@ -473,6 +473,7 @@ signals:
   void clickFlipVertical();
   void clickRotateLeft();
   void clickRotateRight();
+  void clickFlipDirection();
 };
 
 #endif  // SELECTIONTOOL_INCLUDED

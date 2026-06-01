@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop">
+  <id>io.github.Flare</id>
+  <launchable type="desktop-id">io.github.Flare.desktop</launchable>
+  <name>Flare</name>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>BSD-3-Clause</project_license>
+  <developer_name>DWANGO Co., Ltd.</developer_name>
+  <summary>2D animation</summary>
+  <description>
+    <p>
+      This is software for producing a 2D animation.
+    </p>
+    <p>
+      It is based on the software "Toonz", which was developed
+      by Digital Video S.p.A. in Italy, customized by Studio Ghibli,
+      and has been used for creating its works for many years.
+      Dwango launched the Flare project in cooperation
+      with Digital Video and Studio Ghibli.
+    </p>
+  </description>
+  <url type="homepage">https://flare.github.io/e/</url>
+  <url type="bugtracker">https://github.com/flare/flare/issues</url>
+  <screenshots>
+    <screenshot type="default">
+      <image>https://raw.githubusercontent.com/flathub/io.github.Flare/master/screenshot1.png</image>
+    </screenshot>
+  </screenshots>
+  <content_rating type="oars-1.1" />
+  <releases>
+    <release version="1.8.0" date="2026-06-15"></release>
+  </releases>
+</component>

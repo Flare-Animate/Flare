@@ -1371,8 +1371,8 @@ void IoCmd::newScene() {
   app->getCurrentObject()->setIsSpline(false);
   app->getCurrentColumn()->setColumnIndex(0);
 
-  // CleanupParameters *cp = scene->getProperties()->getCleanupParameters();
-  // CleanupParameters::GlobalParameters.assign(cp);
+  CleanupParameters *cp = scene->getProperties()->getCleanupParameters();
+  CleanupParameters::GlobalParameters.assign(cp);
   // CleanupSettingsModel::onSceneSwitched()
 
   // updateCleanupSettingsPopup();
@@ -1503,9 +1503,12 @@ bool IoCmd::saveScene(const TFilePath &path, int flags) {
 
   // Don't store current cleanup parameters to scene's parameters' cache if
   // autosave (would save to scene file) .
+  CleanupParameters *cp = scene->getProperties()->getCleanupParameters();
+  CleanupParameters keepCP(*cp);
   if (!isAutosave) {
-    CleanupParameters::GlobalParameters.assign(
-        scene->getProperties()->getCleanupParameters());
+    // In case of a .cln file be loaded into GlobalParemeters,
+    // we should also write these info into .tnz (scene file)
+    cp->assign(&CleanupParameters::GlobalParameters, false);
   }
 
   // Must wait for current save to finish, just in case
@@ -1520,6 +1523,13 @@ bool IoCmd::saveScene(const TFilePath &path, int flags) {
     DVGui::error(QObject::tr("Couldn't save %1").arg(toQString(scenePath)));
   }
   TApp::instance()->setSaveInProgress(false);
+
+  cp->assign(&keepCP);
+  // Make sure that the current cleanup palette is set to currentParams' palette
+  TApp::instance()
+      ->getPaletteController()
+      ->getCurrentCleanupPalette()
+      ->setPalette(cp->m_cleanupPalette.getPointer());
 
   // in case of saving subxsheet, revert the level paths after saving
   revertOrgLevelPaths();
@@ -2031,8 +2041,8 @@ bool IoCmd::loadScene(const TFilePath &path, bool updateRecentFile,
   PreviewFxManager::instance()->reset();
   // updateCleanupSettingsPopup();
   /*- CleanupParameterの更新 -*/  // CleanupSettingsModel::onSceneSwitched()
-  // CleanupParameters *cp = scene->getProperties()->getCleanupParameters();
-  // CleanupParameters::GlobalParameters.assign(cp);
+  CleanupParameters *cp = scene->getProperties()->getCleanupParameters();
+  CleanupParameters::GlobalParameters.assign(cp);
   CacheFxCommand::instance()->onSceneLoaded();
 
 #ifdef USE_SQLITE_HDPOOL
@@ -2493,7 +2503,7 @@ int IoCmd::loadResources(LoadResourceArguments &args, bool updateRecentFile,
     if (importDialog.aborted()) break;
 
     LoadResourceArguments::ResourceData rd(args.resourceDatas[r]);
-    TFilePath &path  = rd.m_path;
+    TFilePath path   = rd.m_path;
     QString origName = path.withoutParentDir().getQString();
 
     if (!path.isLevelName())
@@ -2501,8 +2511,13 @@ int IoCmd::loadResources(LoadResourceArguments &args, bool updateRecentFile,
 
     // duplicate check
     auto isDuplicate =
-        [&rd](const IoCmd::LoadResourceArguments::ResourceData &existingRd) {
-          return existingRd.m_path == rd.m_path;
+        [&path,
+         scene](const IoCmd::LoadResourceArguments::ResourceData &existingRd) {
+          if (!existingRd.m_path.isAbsolute() || !path.isAbsolute())
+            return scene->decodeFilePath(existingRd.m_path) ==
+                   scene->decodeFilePath(path);
+          else
+            return existingRd.m_path == path;
         };
     if (std::find_if(rds.begin(), rds.end(), isDuplicate) != rds.end()) {
       if (!all) {
@@ -2868,7 +2883,7 @@ void IoCmd::convertNAARaster2TLV(
   TApp *app                           = TApp::instance();
   ToonzScene *scene                   = app->getCurrentScene()->getScene();
   for (auto &rd : rds) {
-    TFilePath &path = rd.m_path;
+    TFilePath path = rd.m_path;
     if (path.getDots() == ".." &&
         rasterExts.contains(QString::fromStdString(path.getType()).toLower())) {
       if (!path.isAbsolute()) path = scene->decodeFilePath(path);
@@ -2927,7 +2942,8 @@ void IoCmd::convertNAARaster2TLV(
           }
         }
         convertingPopup.hide();
-        if (!convertingPopup.wasCanceled()) path = scene->codeFilePath(dstPath);
+        if (!convertingPopup.wasCanceled())
+          rd = LoadResourceArguments::ResourceData(dstPath);
       }
     }
   }
