@@ -1,0 +1,130 @@
+version: 1.8.0.{build}
+
+environment:
+  QT_PATH: "%APPVEYOR_BUILD_FOLDER%\\thirdparty\\qt\\5.15.2_wintab\\msvc2019_64"
+  OPENCV_VERSION: "4.13.0"
+  OPENCV_DLL: "C:\\Tools\\opencv\\build\\x64\\vc16\\bin\\opencv_world4130.dll"
+  BOOST_ROOT: "C:\\Libraries\\boost_1_89_0"
+  MSVC_VERSION: "Visual Studio 17 2022"
+
+init:
+  - git lfs install --skip-smudge  # Avoid issue with GitHub LFS quota
+
+skip_commits:
+  files:
+    - 'doc/**/*'               # Skip everything inside doc/ (recursive)
+    - '.github/**/*'           # Skip everything inside .github/ (recursive)
+    - 'README.md'              # Skip changes only to README.md
+pull_requests:
+  do_not_increment_build_number: true
+skip_tags: true
+image: Visual Studio 2022
+configuration: Release
+platform: x64
+clone_depth: 1
+
+cache:
+  - C:\Tools\opencv
+
+install:
+  # Install OpenCV if not cached
+  - cmd: >-
+      if exist "%OPENCV_DLL%" (echo OpenCV cached, skipping install) else (choco install opencv --version=%OPENCV_VERSION% --no-progress --yes --force || exit /b 1 & echo Installed OpenCV)
+
+  # Download and extract custom Qt 5.15.2 with WinTab support
+  - cmd: >-
+      mkdir thirdparty\qt
+
+      curl -fsSL -o Qt5.15.2_wintab.zip https://github.com/shun-iwasawa/qt5/releases/download/v5.15.2_wintab/Qt5.15.2_wintab.zip || exit /b 1
+
+      7z x Qt5.15.2_wintab.zip -o%APPVEYOR_BUILD_FOLDER% || exit /b 1
+
+      echo Extracted Qt5.15.2_wintab.zip
+
+      move Qt5.15.2_wintab\5.15.2_wintab thirdparty\qt || exit /b 1
+
+      echo Moved Qt directory to thirdparty\qt
+
+      REM Create directories for symbolic link
+
+      mkdir C:\Qt\5.15.2
+
+      REM Create junction to point to the downloaded folder
+
+      cmd /c mklink /J C:\Qt\5.15.2\msvc2019_64 %APPVEYOR_BUILD_FOLDER%\thirdparty\qt\5.15.2_wintab\msvc2019_64
+
+      echo Created junction C:\Qt\5.15.2\msvc2019_64 pointing to %APPVEYOR_BUILD_FOLDER%\thirdparty\qt\5.15.2_wintab\msvc2019_64
+
+  # Download and extract third-party libraries (GitHub LFS quota issue)
+  - cmd: >-
+      curl -fsSL -o thirdparty-libs.zip https://github.com/andeon/flare-thirdparty-libs/releases/download/prebuilt-libs-v1/thirdparty-libs.zip || exit /b 1
+
+      7z x -y thirdparty-libs.zip -o%APPVEYOR_BUILD_FOLDER% || exit /b 1
+
+      echo Extracted third-party libraries
+
+  # Configure third-party libraries
+  - cmd: >-
+      cd thirdparty
+
+      copy /Y tiff-4.0.3\libtiff\tif_config.vc.h tiff-4.0.3\libtiff\tif_config.h || exit /b 1
+
+      copy /Y tiff-4.0.3\libtiff\tiffconf.vc.h tiff-4.0.3\libtiff\tiffconf.h || exit /b 1
+
+      copy /Y libpng-1.6.21\scripts\pnglibconf.h.prebuilt libpng-1.6.21\pnglibconf.h || exit /b 1
+
+      cd ..\
+
+      echo Configured third-party libraries
+
+  # Configure CMake
+  - cmd: >-
+      if not exist "%QT_PATH%\bin\qmake.exe" (echo QT_PATH does not exist or is invalid: %QT_PATH% & exit /b 1)
+
+      if not exist "%BOOST_ROOT%" (echo Boost not found && exit /b 1)
+
+      cd toonz
+
+      mkdir %PLATFORM% && cd %PLATFORM%
+
+      cmake ..\sources -G "%MSVC_VERSION%" -T v142 -Ax64 -DQT_PATH="%QT_PATH%" -DBOOST_ROOT="%BOOST_ROOT%" -DOpenCV_DIR="C:\Tools\opencv\build" -DWITH_WINTAB=ON || exit /b 1
+
+      echo CMake configuration completed
+
+build:
+  project: $(APPVEYOR_BUILD_FOLDER)\toonz\$(PLATFORM)\ALL_BUILD.vcxproj
+  parallel: true
+  verbosity: minimal
+
+after_build:
+  # Deploy Qt dependencies
+  - cmd: >-
+      if not exist "%CONFIGURATION%\Flare.exe" (echo Flare.exe not found & exit /b 1)
+
+      %QT_PATH%\bin\windeployqt.exe %CONFIGURATION%\Flare.exe || exit /b 1
+
+      echo Deployed Qt dependencies
+
+  # Copy required DLLs
+  - cmd: >-
+      copy /Y ..\..\thirdparty\glut\3.7.6\lib\glut64.dll %CONFIGURATION% || exit /b 1
+
+      copy /Y ..\..\thirdparty\glew\glew-1.9.0\bin\64bit\glew32.dll %CONFIGURATION% || exit /b 1
+
+      copy /Y "%OPENCV_DLL%" %CONFIGURATION% || exit /b 1
+
+      xcopy /Y /E ..\..\thirdparty\libmypaint\dist\64\*.dll %CONFIGURATION% || exit /b 1
+
+      echo Copied required DLLs
+
+  # Package portable resources
+  - cmd: >-
+      mkdir "%CONFIGURATION%\portablestuff" || exit /b 1
+
+      xcopy /Y /E ..\..\stuff "%CONFIGURATION%\portablestuff" || exit /b 1
+
+      echo Packaged portable resources
+
+artifacts:
+  - path: toonz\$(PLATFORM)\$(CONFIGURATION)
+    name: Flare

@@ -39,57 +39,5 @@ ipch/
 #macOS
 .DS_Store
 
-*.pyc
-__pycache__/
-
-# ignore Qt thirdparty directory which is large and rebuilt externally
-/thirdparty/qt
-/thirdparty/qt/**
-
-# ignore local scripts folder used during builds
-/.scripts
-/FlarePortable
-tmp.txt
-Qt5*.zip
-repo_script_problems.json
-stuff/config/loc/
-run_68428401017.log
-run_68428398819.log
-ci_monitor.log
-actions_page.html
-pr_page.html
-ci_retrigger.log
-.github/workflows/faileubuntu.txt
-
-# CI debug/log artefacts left by previous agent sessions
-run-*.txt
-run-*-log.txt
-run-*-jobs.json
-run_*.txt
-linux_run_*.txt
-cmake_config_log*.txt
-cmake_clean_config.txt
-debug_output.txt
-gitlog.txt
-rebrand_debug.txt
-runlogs.zip
-runmeta.json
-joblog.zip
-action_logs.zip
-logs.zip
-libs.zip
-orig_CMake.txt
-sparse.patch
-check_suites.json
-tflash_base.cpp
-tflash_ours.cpp
-tflash_theirs.cpp
-show_diff.py
-show_log.py
-move_thirdparty.py
-ci_build_monitor.ps1
-ci_full_loop.ps1
-test_package.bat
-test_package_root.bat
-appveyor.yml
-requirements.txt
+# generated qm files
+/stuff/config/loc
