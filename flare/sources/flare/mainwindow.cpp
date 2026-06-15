@@ -506,6 +506,8 @@ centralWidget->setLayout(centralWidgetLayout);*/
   setCommandHandler(MI_OpenWhatsNew, this, &MainWindow::onOpenWhatsNew);
   setCommandHandler(MI_OpenCommunityForum, this,
                     &MainWindow::onOpenCommunityForum);
+  setCommandHandler(MI_OpenDiscord, this, &MainWindow::onOpenDiscord);
+  setCommandHandler(MI_OpenWebsite, this, &MainWindow::onOpenWebsite);
   setCommandHandler(MI_OpenReportABug, this, &MainWindow::onOpenReportABug);
 
   setCommandHandler(MI_MaximizePanel, this, &MainWindow::maximizePanel);
@@ -1105,6 +1107,18 @@ void MainWindow::onOpenWhatsNew() {
 void MainWindow::onOpenCommunityForum() {
   QDesktopServices::openUrl(
       QUrl(tr("https://github.com/Flare-Animate/Flare/discussions")));
+}
+
+//-----------------------------------------------------------------------------
+
+void MainWindow::onOpenDiscord() {
+  QDesktopServices::openUrl(QUrl("https://discord.com/invite/JpeScW8Awa"));
+}
+
+//-----------------------------------------------------------------------------
+
+void MainWindow::onOpenWebsite() {
+  QDesktopServices::openUrl(QUrl("https://flare-animate.github.io/website/"));
 }
 
 //-----------------------------------------------------------------------------
@@ -2401,6 +2415,10 @@ void MainWindow::defineActions() {
                        "web");
   createMenuHelpAction(MI_OpenCommunityForum, QT_TR_NOOP("&Community Forum..."),
                        "", "web");
+  createMenuHelpAction(MI_OpenDiscord, QT_TR_NOOP("Join us on &Discord..."), "",
+                       "web");
+  createMenuHelpAction(MI_OpenWebsite, QT_TR_NOOP("Flare &Website..."), "",
+                       "web");
   createMenuHelpAction(MI_OpenReportABug, QT_TR_NOOP("&Report a Bug..."), "",
                        "web");
 

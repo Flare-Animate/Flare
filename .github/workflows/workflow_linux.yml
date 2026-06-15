@@ -187,18 +187,23 @@ jobs:
           rmdir appdir/usr/share/flare 2>/dev/null || true
         fi
 
-        base_url="https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous"
+        # Each linuxdeploy tool lives in its OWN GitHub repo; the qt / appimage
+        # plugins are NOT in linuxdeploy/linuxdeploy (downloading them from there
+        # 404s and silently skips AppImage generation).
         APPIMAGE_TOOLS_OK=1
-        for tool in linuxdeploy-x86_64.AppImage linuxdeploy-plugin-qt-x86_64.AppImage linuxdeploy-plugin-appimage-x86_64.AppImage; do
-          if ! (wget -q --show-progress "${base_url}/${tool}" || \
-                wget -q --show-progress "${base_url}/${tool}" || \
-                wget -q --show-progress "${base_url}/${tool}"); then
-            echo "Warning: failed to download ${tool}; skipping AppImage generation for this run."
-            APPIMAGE_TOOLS_OK=0
-            break
-          fi
-          chmod +x "${tool}"
-        done
+        download_tool() {
+          repo="$1"; file="$2"
+          url="https://github.com/${repo}/releases/download/continuous/${file}"
+          for attempt in 1 2 3; do
+            if wget -q "${url}" -O "${file}"; then chmod +x "${file}"; return 0; fi
+            sleep 3
+          done
+          echo "::warning::failed to download ${file} from ${repo}"
+          return 1
+        }
+        download_tool linuxdeploy/linuxdeploy                 linuxdeploy-x86_64.AppImage                 || APPIMAGE_TOOLS_OK=0
+        download_tool linuxdeploy/linuxdeploy-plugin-qt       linuxdeploy-plugin-qt-x86_64.AppImage       || APPIMAGE_TOOLS_OK=0
+        download_tool linuxdeploy/linuxdeploy-plugin-appimage linuxdeploy-plugin-appimage-x86_64.AppImage || APPIMAGE_TOOLS_OK=0
 
         if [ -d appdir/usr/lib/flare ]; then
           export LD_LIBRARY_PATH="appdir/usr/lib/flare:${LD_LIBRARY_PATH:-}"
