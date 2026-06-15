@@ -66,6 +66,13 @@ vector & raster drawing, the xsheet and timeline, plastic & skeleton rigging,
 the GTS scanning tools, the effects (FX) schematic, motion tracking, and the
 script console.
 
+### Merging with Next2Flash
+The Flare-Animate org is consolidating its Flash tooling by merging
+[Next2Flash](https://github.com/SSF2-Mods-Official/Next2Flash) — an MIT-licensed
+SWF round-trip editor with a native AS3 decompiler — into Flare. The native SWF
+reader/writer pieces are being ported, while AS3 round-tripping is bridged as an
+optional helper. See [`doc/NEXT2FLASH_INTEGRATION.md`](./doc/NEXT2FLASH_INTEGRATION.md).
+
 ## Download
 
 Pre-built nightly binaries for **Windows**, **Linux** (AppImage + tarball), and
