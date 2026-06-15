@@ -10,7 +10,8 @@ video playback if it is installed).
 
 | Format | Extension | Support |
 |--------|-----------|---------|
-| Flash project (ZIP) | `.fla` | Extract with minizip → parse XFLReader |
+| Flash project (XFL-based, CS5+) | `.fla` | Extract with minizip → parse XFLReader |
+| Flash project (legacy binary, CS4-) | `.fla` | OLE2 compound document — detected, embedded bitmaps recovered (QImage-validated); full timeline import not yet supported (re-save as CS5+/XFL) |
 | XFL project | `.xfl` | Directory or ZIP → parse XFLReader |
 | Compiled Flash | `.swf` | Header + embedded bitmap extraction |
 | Component library | `.swc` | ZIP + catalog.xml + library.swf bitmaps |
