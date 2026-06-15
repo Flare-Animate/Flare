@@ -116,10 +116,11 @@ static bool extractZip(const QString &zipPath, const QString &outDir) {
         entryStr.replace('\\', '/');
         while (entryStr.startsWith("./"))
             entryStr = entryStr.mid(2);
-        while (entryStr.startsWith('/'))
-            entryStr = entryStr.mid(1);
 
-        // Zip Slip protection: reject absolute paths and path traversal
+        // Zip Slip protection: reject absolute paths and path traversal.
+        // Absolute entries (leading '/' or a drive letter) are rejected rather
+        // than silently relativized — a well-formed FLA/XFL/SWC never contains
+        // them, so their presence indicates a malformed or malicious archive.
         if (entryStr.startsWith('/') || entryStr.startsWith('\\') ||
             entryStr.contains("../") || entryStr.contains("..\\") ||
             entryStr.endsWith("..") ||
