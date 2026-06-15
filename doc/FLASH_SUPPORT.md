@@ -95,3 +95,12 @@ flash.writeMovie(fp);
 | [Apache Flex SDK](https://github.com/apache/flex-sdk) | SWC `catalog.xml` schema | Apache 2.0 |
 | [lifeart/fla-viewer](https://github.com/lifeart/fla-viewer) | XFL DOMDocument.xml structure | MIT |
 | FLV / ISO BMFF public spec | FLV 9-byte header, `ftyp` box layout | Public spec |
+
+## Roadmap: Next2Flash merge
+
+The Flare-Animate org is consolidating its Flash tooling by merging
+[Next2Flash](https://github.com/SSF2-Mods-Official/Next2Flash) (an MIT-licensed
+SWF round-trip editor with a native AS3 decompiler) into Flare. Because the two
+projects use different stacks (C++/Qt vs Python/JS/Electron), the merge ports the
+native-friendly pieces and bridges AS3 as an optional helper. See
+[`NEXT2FLASH_INTEGRATION.md`](./NEXT2FLASH_INTEGRATION.md) for the full plan.
