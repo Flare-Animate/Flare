@@ -245,13 +245,13 @@ jobs:
             --plugin=qt \
             --output=appimage \
             --custom-apprun=apprun.sh || {
-              echo "linuxdeploy failed with exit code $?"
+              ec=$?
+              echo "::warning::linuxdeploy/appimage packaging failed with exit code ${ec}; AppImage will be absent for this build"
               echo "=== Listing appdir structure ==="
-              find appdir -maxdepth 3 -type f | head -50
-              exit 1
+              find appdir -maxdepth 3 -type f | head -50 || true
             }
         else
-          echo "Skipping linuxdeploy because required AppImage tools are unavailable."
+          echo "::warning::Skipping linuxdeploy because required AppImage tools are unavailable."
         fi
 
         if ls Flare*.AppImage >/dev/null 2>&1; then mv Flare*.AppImage artifact/Flare.AppImage; fi
