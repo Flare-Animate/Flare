@@ -526,12 +526,6 @@ jobs:
       - name: Install libraries
         run: |
           export HOMEBREW_NO_AUTO_UPDATE=1
-          # Unlink all conflicting Qt 6 components so qt@5 can install (the runner
-          # now also pre-links qtsvg, which previously broke the qt@5 install).
-          for qtpkg in qt qtbase qtdeclarative qtsvg qttools qt5compat \
-                       qtmultimedia qtshadertools qtimageformats; do
-            brew unlink "$qtpkg" 2>/dev/null || true
-          done
           checkPkgAndInstall() {
             for pkg in "$@"; do
               if brew ls --versions "$pkg" >/dev/null 2>&1; then
@@ -541,8 +535,19 @@ jobs:
               fi
             done
           }
+          unlinkQt6() {
+            # qt@5 refuses to install while any conflicting Qt 6 component is linked.
+            for qtpkg in qt qtbase qtdeclarative qtsvg qttools qt5compat \
+                         qtmultimedia qtshadertools qtimageformats; do
+              brew unlink "$qtpkg" 2>/dev/null || true
+            done
+          }
+          # Install everything except qt@5 first. opencv depends on Qt 6 and will
+          # link qtbase/qtsvg/qtdeclarative, so unlinking must happen AFTER it.
           checkPkgAndInstall pkg-config glew lz4 libjpeg libpng lzo boost libusb libmypaint \
-            ccache jpeg-turbo ninja opencv openjph openexr qt@5
+            ccache jpeg-turbo ninja opencv openjph openexr
+          unlinkQt6
+          checkPkgAndInstall qt@5
 
       - name: Set up ccache
         run: |
