@@ -526,7 +526,10 @@ jobs:
       - name: Install libraries
         run: |
           export HOMEBREW_NO_AUTO_UPDATE=1
-          for qtpkg in qtbase qtdeclarative qt; do
+          # Unlink all conflicting Qt 6 components so qt@5 can install (the runner
+          # now also pre-links qtsvg, which previously broke the qt@5 install).
+          for qtpkg in qt qtbase qtdeclarative qtsvg qttools qt5compat \
+                       qtmultimedia qtshadertools qtimageformats; do
             brew unlink "$qtpkg" 2>/dev/null || true
           done
           checkPkgAndInstall() {

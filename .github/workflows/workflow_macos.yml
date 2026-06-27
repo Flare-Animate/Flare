@@ -98,10 +98,12 @@ jobs:
           # Skip auto-update: it's slow and causes symlink conflicts with pre-installed Qt 6
           export HOMEBREW_NO_AUTO_UPDATE=1
 
-          # The macos-15-intel runner has Qt 6 (qtbase, qtdeclarative, etc.) pre-linked.
-          # Unlinking them prevents "Could not symlink … belonging to qtbase" errors when
-          # installing qt@5 for the release build.
-          for qtpkg in qtbase qtdeclarative qt; do
+          # The macos-15-intel runner has Qt 6 (qtbase, qtdeclarative, qtsvg, …)
+          # pre-linked. qt@5 refuses to install while any conflicting Qt 6 component
+          # is linked ("Cannot install qt@5 because conflicting formulae are
+          # installed"), so unlink the full set before installing qt@5.
+          for qtpkg in qt qtbase qtdeclarative qtsvg qttools qt5compat \
+                       qtmultimedia qtshadertools qtimageformats; do
             brew unlink "$qtpkg" 2>/dev/null || true
           done
 
