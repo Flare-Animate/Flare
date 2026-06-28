@@ -10,7 +10,8 @@ video playback if it is installed).
 
 | Format | Extension | Support |
 |--------|-----------|---------|
-| Flash project (ZIP) | `.fla` | Extract with minizip → parse XFLReader |
+| Flash project (XFL-based, CS5+) | `.fla` | Extract with minizip → parse XFLReader |
+| Flash project (legacy binary, CS4-) | `.fla` | OLE2 compound document — detected, embedded bitmaps recovered (QImage-validated); full timeline import not yet supported (re-save as CS5+/XFL) |
 | XFL project | `.xfl` | Directory or ZIP → parse XFLReader |
 | Compiled Flash | `.swf` | Header + embedded bitmap extraction |
 | Component library | `.swc` | ZIP + catalog.xml + library.swf bitmaps |
@@ -95,3 +96,12 @@ flash.writeMovie(fp);
 | [Apache Flex SDK](https://github.com/apache/flex-sdk) | SWC `catalog.xml` schema | Apache 2.0 |
 | [lifeart/fla-viewer](https://github.com/lifeart/fla-viewer) | XFL DOMDocument.xml structure | MIT |
 | FLV / ISO BMFF public spec | FLV 9-byte header, `ftyp` box layout | Public spec |
+
+## Roadmap: Next2Flash merge
+
+The Flare-Animate org is consolidating its Flash tooling by merging
+[Next2Flash](https://github.com/SSF2-Mods-Official/Next2Flash) (an MIT-licensed
+SWF round-trip editor with a native AS3 decompiler) into Flare. Because the two
+projects use different stacks (C++/Qt vs Python/JS/Electron), the merge ports the
+native-friendly pieces and bridges AS3 as an optional helper. See
+[`NEXT2FLASH_INTEGRATION.md`](./NEXT2FLASH_INTEGRATION.md) for the full plan.

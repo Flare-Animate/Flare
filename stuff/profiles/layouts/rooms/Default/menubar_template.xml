@@ -8,6 +8,10 @@
         <command>MI_OpenRecentScene</command>
         <command>MI_RevertScene</command>
         <separator/>
+        <!-- Flash / Adobe Animate file operations – prominently placed -->
+        <command>MI_ImportFlashVector</command>
+        <command>MI_ExportFlash</command>
+        <separator/>
         <command>MI_LoadFolder</command>
         <command>MI_LoadSubSceneFile</command>
         <separator/>
@@ -247,9 +251,12 @@
         <command>MI_OpenOnlineManual</command>
         <command>MI_OpenWhatsNew</command>
         <command>MI_OpenCommunityForum</command>
+        <command>MI_OpenDiscord</command>
+        <command>MI_OpenWebsite</command>
         <separator/>
         <command>MI_OpenReportABug</command>
         <separator/>
+        <!-- Flash/Animate guide prominently placed in Help for this room -->
         <command>MI_FlashGuide</command>
         <separator/>
         <command>MI_About</command>

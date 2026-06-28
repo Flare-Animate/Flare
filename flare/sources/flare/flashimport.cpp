@@ -40,6 +40,7 @@
 
 #include <QFile>
 #include <QDir>
+#include <QImage>
 #include <QDirIterator>
 #include <QDateTime>
 #include <QFileInfo>
@@ -116,10 +117,11 @@ static bool extractZip(const QString &zipPath, const QString &outDir) {
         entryStr.replace('\\', '/');
         while (entryStr.startsWith("./"))
             entryStr = entryStr.mid(2);
-        while (entryStr.startsWith('/'))
-            entryStr = entryStr.mid(1);
 
-        // Zip Slip protection: reject absolute paths and path traversal
+        // Zip Slip protection: reject absolute paths and path traversal.
+        // Absolute entries (leading '/' or a drive letter) are rejected rather
+        // than silently relativized — a well-formed FLA/XFL/SWC never contains
+        // them, so their presence indicates a malformed or malicious archive.
         if (entryStr.startsWith('/') || entryStr.startsWith('\\') ||
             entryStr.contains("../") || entryStr.contains("..\\") ||
             entryStr.endsWith("..") ||
@@ -401,6 +403,66 @@ static QStringList extractFLABinaryMedia(const QString &outDir) {
         if (!QFile::copy(it.filePath(), dst)) continue;
         extracted << fname;
     }
+    return extracted;
+}
+
+// ---------------------------------------------------------------------------
+// Legacy binary FLA support (Flash CS4 and earlier)
+//
+// Pre-CS5 .fla files are not ZIP/XFL archives — they are OLE2 / Compound File
+// Binary Format (CFBF) documents, identified by the 8-byte magic
+// D0 CF 11 E0 A1 B1 1A E1. Flare's ZIP-based importer cannot open them, which
+// previously surfaced as a misleading "invalid/corrupt ZIP" error (issue #47).
+//
+// Full timeline/symbol reconstruction from the binary format is a large effort
+// (tracked with the Next2Flash merge). As a first step we (a) detect the format
+// and tell the user exactly what it is and how to convert it, and (b) recover
+// whatever embedded bitmaps we can, validating each candidate with QImage so a
+// false-positive marker in entropy data never produces a broken image.
+// ---------------------------------------------------------------------------
+static bool isOle2CompoundFile(const QString &path) {
+    QFile f(path);
+    if (!f.open(QIODevice::ReadOnly)) return false;
+    QByteArray magic = f.read(8);
+    f.close();
+    static const unsigned char kOle2[8] = {0xD0, 0xCF, 0x11, 0xE0,
+                                           0xA1, 0xB1, 0x1A, 0xE1};
+    return magic.size() == 8 &&
+           std::memcmp(magic.constData(), kOle2, 8) == 0;
+}
+
+static QStringList extractLegacyFlaBitmaps(const QByteArray &data,
+                                           const QString &outDir) {
+    QStringList extracted;
+    int idx = 0;
+
+    // Carve candidates by image signature; decode each with QImage (which stops
+    // at the real end of the image and rejects invalid candidates) and re-save
+    // as PNG. Signatures are scanned independently; the window for each is up to
+    // the next signature of the same type.
+    auto carve = [&](const QByteArray &sig, const char *qtFormat) {
+        int pos = 0;
+        int found = 0;
+        while (pos < data.size() && found < 4096) {
+            int start = data.indexOf(sig, pos);
+            if (start < 0) break;
+            int next = data.indexOf(sig, start + sig.size());
+            int end  = (next < 0) ? data.size() : next;
+            QByteArray chunk = data.mid(start, end - start);
+            pos = start + sig.size();
+            ++found;
+            QImage img;
+            if (img.loadFromData(chunk, qtFormat) && !img.isNull() &&
+                img.width() >= 2 && img.height() >= 2) {
+                QString fname =
+                    QString("media_%1.png").arg(idx++, 4, 10, QChar('0'));
+                if (img.save(outDir + "/" + fname, "PNG")) extracted << fname;
+            }
+        }
+    };
+
+    carve(QByteArray("\xFF\xD8\xFF", 3), "JPG");
+    carve(QByteArray("\x89PNG\r\n\x1A\n", 8), "PNG");
     return extracted;
 }
 
@@ -799,8 +861,31 @@ void ImportFlashVectorCommand::execute() {
     QStringList exported;
     QString info;
 
+    // ---- Legacy binary FLA (Flash CS4 and earlier; OLE2 compound document) ----
+    if (ext == "fla" && isOle2CompoundFile(srcPath)) {
+        QFile flaFile(srcPath);
+        QStringList bitmaps;
+        if (flaFile.open(QIODevice::ReadOnly)) {
+            QByteArray flaData = flaFile.readAll();
+            flaFile.close();
+            bitmaps = extractLegacyFlaBitmaps(flaData, outPath);
+        }
+        exported += bitmaps;
+        info = QObject::tr(
+            "Legacy binary FLA detected (Adobe Flash CS4 or earlier).\n"
+            "Flare natively imports XFL-based FLAs (Animate / Flash CS5 and "
+            "newer). Full timeline and symbol import for the older binary format "
+            "is not supported yet — to import everything, open this file in Adobe "
+            "Animate and re-save it as a CS5+ FLA or an uncompressed XFL.");
+        if (!bitmaps.isEmpty())
+            info += QObject::tr("\n  Recovered %1 embedded bitmap(s) from the file.")
+                        .arg(bitmaps.size());
+        else
+            info += QObject::tr("\n  No embedded bitmaps could be recovered.");
+
     // ---- FLA / XFL / SWC : ZIP-based container ----
-    if (ext == "fla" || ext == "swc" || (ext == "xfl" && XFL::isFLAZipBased(fp))) {
+    } else if (ext == "fla" || ext == "swc" ||
+               (ext == "xfl" && XFL::isFLAZipBased(fp))) {
 
         if (!extractZip(srcPath, outPath)) {
             DVGui::error(QObject::tr("Failed to extract archive (invalid/corrupt ZIP): %1").arg(srcPath));

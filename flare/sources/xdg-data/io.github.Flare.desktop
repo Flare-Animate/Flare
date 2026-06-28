@@ -5,6 +5,6 @@ Exec=flare
 Icon=io.github.Flare
 Terminal=false
 Type=Application
-Categories=Graphics;RasterGraphics;2DGraphics;Animation;
+Categories=Graphics;2DGraphics;RasterGraphics;VectorGraphics;X-Animation;
 StartupWMClass=Flare
 MimeType=application/x-toonz-tnz;application/x-shockwave-flash;application/x-xfl;

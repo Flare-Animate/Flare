@@ -109,6 +109,8 @@ public:
   void onOpenOnlineManual();
   void onOpenWhatsNew();
   void onOpenCommunityForum();
+  void onOpenDiscord();
+  void onOpenWebsite();
   void onOpenReportABug();
   void checkForUpdates();
   int getRoomCount() const;

@@ -555,8 +555,8 @@ static bool isPathSafeForExtraction(const QString &outDir, const QString &entryN
     QString entry = entryName;
     entry.replace('\\', '/');
     while (entry.startsWith("./")) entry = entry.mid(2);
-    while (entry.startsWith('/'))  entry = entry.mid(1);
     if (entry.isEmpty()) return false;
+    // Absolute paths are rejected outright (not relativized) — matches extractZip().
     if (entry.startsWith('/')) return false;
     // Reject any remaining backslash after normalisation
     if (entry.contains('\\')) return false;
