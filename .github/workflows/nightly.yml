@@ -396,8 +396,15 @@ jobs:
           cp appdir/usr/share/icons/hicolor/*/apps/*.png appdir/ || true
           mkdir artifact
           if [ -d "appdir/usr/share/flare/stuff" ]; then
-            mv appdir/usr/share/flare/stuff artifact/portablestuff
-            rmdir appdir/usr/share/flare 2>/dev/null || true
+            # Keep a copy for plain-tarball users (they run the raw binary)...
+            cp -r appdir/usr/share/flare/stuff artifact/portablestuff
+            # ...and bundle it INSIDE the AppImage next to the binary so Flare
+            # detects portable mode (applicationDirPath()/portablestuff) at
+            # runtime. Without this the AppImage aborts with "FLAREROOT not set"
+            # because it has no data dir (issue #60).
+            mkdir -p appdir/usr/bin
+            cp -r appdir/usr/share/flare/stuff appdir/usr/bin/portablestuff
+            rm -rf appdir/usr/share/flare
           fi
 
           # Each linuxdeploy tool lives in its OWN GitHub repo. Downloading the
