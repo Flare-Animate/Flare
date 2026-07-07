@@ -182,6 +182,16 @@ bool Reader::readFromZip() {
 }
 
 bool Reader::readFromDirectory() {
+    // Directory-based XFL projects (Adobe Animate / Flash "Save as XFL") are a
+    // FOLDER containing DOMDocument.xml, LIBRARY/, bin/, and a tiny <name>.xfl
+    // *marker* file. That marker is NOT a container — if the user selected it,
+    // m_xflPath points at the marker file, so m_xflPath + "DOMDocument.xml"
+    // resolves to the nonsensical "<name>.xfl/DOMDocument.xml". Detect this and
+    // use the marker's parent directory (the real project root) instead.
+    if (!isXFLDirectory(m_xflPath) && isXFLDirectory(m_xflPath.getParentDir())) {
+        m_xflPath = m_xflPath.getParentDir();
+    }
+
     // Look for DOMDocument.xml in the directory
     TFilePath docPath = m_xflPath + "DOMDocument.xml";
 

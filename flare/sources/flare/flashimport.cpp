@@ -41,6 +41,9 @@
 #include <QFile>
 #include <QDir>
 #include <QImage>
+#include <QVector>
+#include <QSet>
+#include <QList>
 #include <QDirIterator>
 #include <QDateTime>
 #include <QFileInfo>
@@ -431,38 +434,166 @@ static bool isOle2CompoundFile(const QString &path) {
            std::memcmp(magic.constData(), kOle2, 8) == 0;
 }
 
+// Minimal OLE2 / Compound File Binary Format (CFBF) reader — just enough to walk
+// a legacy binary FLA's directory and return each stream's reassembled bytes.
+// Legacy FLA bitmaps live in per-symbol streams; reading streams individually
+// avoids the cross-stream fragmentation that defeats a whole-file byte scan.
+// Reference: [MS-CFB] / the olefile documentation.
+namespace {
+class CfbfReader {
+public:
+    explicit CfbfReader(const QByteArray &data) : m_d(data) { m_ok = parse(); }
+    bool ok() const { return m_ok; }
+
+    // Bytes of every stream (type == 2) in the compound file.
+    QList<QByteArray> streams() const {
+        QList<QByteArray> out;
+        for (int i = 0; i + 128 <= m_dir.size(); i += 128) {
+            if (static_cast<quint8>(m_dir[i + 66]) != 2) continue;  // 2 = stream
+            quint32 start = u32(m_dir, i + 116);
+            quint64 size  = static_cast<quint64>(u32(m_dir, i + 120)) |
+                            (static_cast<quint64>(u32(m_dir, i + 124)) << 32);
+            QByteArray blob = (size < m_miniCutoff)
+                                  ? readMini(start, static_cast<quint32>(size))
+                                  : readChain(start).left(static_cast<int>(size));
+            if (!blob.isEmpty()) out.append(blob);
+        }
+        return out;
+    }
+
+private:
+    static quint32 u32(const QByteArray &b, int o) {
+        return static_cast<quint32>(static_cast<quint8>(b[o])) |
+               (static_cast<quint32>(static_cast<quint8>(b[o + 1])) << 8) |
+               (static_cast<quint32>(static_cast<quint8>(b[o + 2])) << 16) |
+               (static_cast<quint32>(static_cast<quint8>(b[o + 3])) << 24);
+    }
+    QByteArray sector(quint32 i) const {
+        qint64 off = 512 + static_cast<qint64>(i) * m_secSize;
+        if (off < 0 || off + m_secSize > m_d.size()) return QByteArray();
+        return m_d.mid(static_cast<int>(off), static_cast<int>(m_secSize));
+    }
+    QVector<quint32> chainSectors(quint32 start) const {
+        QVector<quint32> out; QSet<quint32> seen; quint32 s = start;
+        while (s < 0xFFFFFFFE && s < static_cast<quint32>(m_fat.size()) &&
+               !seen.contains(s)) {
+            seen.insert(s); out.append(s); s = m_fat[static_cast<int>(s)];
+        }
+        return out;
+    }
+    QByteArray readChain(quint32 start) const {
+        QByteArray out;
+        const QVector<quint32> secs = chainSectors(start);
+        for (quint32 s : secs) out += sector(s);
+        return out;
+    }
+    QByteArray readMini(quint32 start, quint32 size) const {
+        QByteArray out; QSet<quint32> seen; quint32 s = start;
+        while (s < 0xFFFFFFFE && s < static_cast<quint32>(m_miniFat.size()) &&
+               !seen.contains(s)) {
+            seen.insert(s);
+            out += m_miniStream.mid(static_cast<int>(s) * static_cast<int>(m_miniSize),
+                                    static_cast<int>(m_miniSize));
+            s = m_miniFat[static_cast<int>(s)];
+        }
+        return out.left(static_cast<int>(size));
+    }
+    bool parse() {
+        if (m_d.size() < 512) return false;
+        static const unsigned char magic[8] = {0xD0, 0xCF, 0x11, 0xE0,
+                                               0xA1, 0xB1, 0x1A, 0xE1};
+        if (std::memcmp(m_d.constData(), magic, 8) != 0) return false;
+        quint16 secShift  = static_cast<quint8>(m_d[30]) | (static_cast<quint8>(m_d[31]) << 8);
+        quint16 miniShift = static_cast<quint8>(m_d[32]) | (static_cast<quint8>(m_d[33]) << 8);
+        if (secShift < 7 || secShift > 20 || miniShift < 1 || miniShift > 12) return false;
+        m_secSize  = 1u << secShift;
+        m_miniSize = 1u << miniShift;
+        quint32 dirStart     = u32(m_d, 48);
+        m_miniCutoff         = u32(m_d, 56);
+        quint32 miniFatStart = u32(m_d, 60);
+        quint32 difatStart   = u32(m_d, 68);
+
+        QVector<quint32> difat;
+        for (int i = 0; i < 109; ++i) difat.append(u32(m_d, 76 + i * 4));
+        quint32 nxt = difatStart; int guard = 0;
+        while (nxt < 0xFFFFFFFE && guard++ < 1000000) {
+            QByteArray sec = sector(nxt);
+            if (sec.size() < static_cast<int>(m_secSize)) break;
+            int cnt = static_cast<int>(m_secSize) / 4;
+            for (int i = 0; i < cnt - 1; ++i) difat.append(u32(sec, i * 4));
+            nxt = u32(sec, (cnt - 1) * 4);
+        }
+        for (quint32 fs : difat) {
+            if (fs >= 0xFFFFFFFE) continue;
+            QByteArray sec = sector(fs);
+            if (sec.size() < static_cast<int>(m_secSize)) continue;
+            for (int i = 0; i < static_cast<int>(m_secSize) / 4; ++i)
+                m_fat.append(u32(sec, i * 4));
+        }
+        if (m_fat.isEmpty()) return false;
+        m_dir = readChain(dirStart);
+        const QVector<quint32> mfSecs = chainSectors(miniFatStart);
+        for (quint32 s : mfSecs) {
+            QByteArray sec = sector(s);
+            for (int i = 0; i < static_cast<int>(m_secSize) / 4; ++i)
+                m_miniFat.append(u32(sec, i * 4));
+        }
+        if (m_dir.size() < 128) return false;
+        m_miniStream = readChain(u32(m_dir, 116));  // root entry start = mini stream
+        return true;
+    }
+
+    const QByteArray &m_d;
+    bool m_ok = false;
+    quint32 m_secSize = 512, m_miniSize = 64, m_miniCutoff = 4096;
+    QVector<quint32> m_fat, m_miniFat;
+    QByteArray m_dir, m_miniStream;
+};
+}  // namespace
+
 static QStringList extractLegacyFlaBitmaps(const QByteArray &data,
                                            const QString &outDir) {
     QStringList extracted;
     int idx = 0;
 
-    // Carve candidates by image signature; decode each with QImage (which stops
-    // at the real end of the image and rejects invalid candidates) and re-save
-    // as PNG. Signatures are scanned independently; the window for each is up to
-    // the next signature of the same type.
-    auto carve = [&](const QByteArray &sig, const char *qtFormat) {
-        int pos = 0;
-        int found = 0;
-        while (pos < data.size() && found < 4096) {
-            int start = data.indexOf(sig, pos);
-            if (start < 0) break;
-            int next = data.indexOf(sig, start + sig.size());
-            int end  = (next < 0) ? data.size() : next;
-            QByteArray chunk = data.mid(start, end - start);
-            pos = start + sig.size();
-            ++found;
-            QImage img;
-            if (img.loadFromData(chunk, qtFormat) && !img.isNull() &&
-                img.width() >= 2 && img.height() >= 2) {
-                QString fname =
-                    QString("media_%1.png").arg(idx++, 4, 10, QChar('0'));
-                if (img.save(outDir + "/" + fname, "PNG")) extracted << fname;
+    // Carve every embedded image out of one blob: for each signature, take the
+    // window up to the next signature and let QImage decode it (QImage stops at
+    // the real end of the image and rejects false positives in entropy data).
+    auto carveBlob = [&](const QByteArray &blob) {
+        auto scan = [&](const QByteArray &sig, const char *qtFormat) {
+            int pos = 0, found = 0;
+            while (pos < blob.size() && found < 4096) {
+                int start = blob.indexOf(sig, pos);
+                if (start < 0) break;
+                int next = blob.indexOf(sig, start + sig.size());
+                int end  = (next < 0) ? blob.size() : next;
+                pos = start + sig.size();
+                ++found;
+                QImage img;
+                if (img.loadFromData(blob.mid(start, end - start), qtFormat) &&
+                    !img.isNull() && img.width() >= 2 && img.height() >= 2) {
+                    QString fname =
+                        QString("media_%1.png").arg(idx++, 4, 10, QChar('0'));
+                    if (img.save(outDir + "/" + fname, "PNG")) extracted << fname;
+                }
             }
-        }
+        };
+        scan(QByteArray("\xFF\xD8\xFF", 3), "JPG");
+        scan(QByteArray("\x89PNG\r\n\x1A\n", 8), "PNG");
     };
 
-    carve(QByteArray("\xFF\xD8\xFF", 3), "JPG");
-    carve(QByteArray("\x89PNG\r\n\x1A\n", 8), "PNG");
+    // Preferred path: parse the OLE2 compound file and carve each stream on its
+    // own (bitmaps are stored per-symbol, so this recovers far more than a
+    // whole-file scan and never splices two streams together).
+    CfbfReader ole(data);
+    if (ole.ok()) {
+        const QList<QByteArray> streams = ole.streams();
+        for (const QByteArray &s : streams) carveBlob(s);
+    }
+
+    // Fallback: if CFBF parsing failed or found nothing, scan the whole file.
+    if (extracted.isEmpty()) carveBlob(data);
+
     return extracted;
 }
 
@@ -1016,13 +1147,25 @@ void ImportFlashVectorCommand::execute() {
             }
         }
 
-    // ---- XFL directory ----
-    } else if ((ext == "xfl" && QFileInfo(srcPath).isDir()) || QFileInfo(srcPath).isDir()) {
+    // ---- XFL directory or .xfl marker file ----
+    } else if (ext == "xfl" || QFileInfo(srcPath).isDir()) {
         if (!QFileInfo(srcPath).exists()) {
-            DVGui::error(QObject::tr("XFL directory does not exist: %1").arg(srcPath));
+            DVGui::error(QObject::tr("XFL path does not exist: %1").arg(srcPath));
             return;
         }
-        XFL::Reader reader(fp);
+        // A directory-based XFL project is a FOLDER; when the user selects the
+        // tiny "<name>.xfl" marker file inside it, the real project root is that
+        // file's parent directory. Resolve it so asset copying and href lookups
+        // use the folder, not the marker file.
+        QFileInfo srcInfo(srcPath);
+        TFilePath xflDir = fp;
+        QString   xflDirPath = srcPath;
+        if (srcInfo.isFile()) {
+            xflDir     = fp.getParentDir();
+            xflDirPath = xflDir.getQString();
+        }
+
+        XFL::Reader reader(xflDir);
         if (!reader.read()) {
             DVGui::error(QObject::tr("Failed to read XFL: %1").arg(reader.getError().c_str()));
             return;
@@ -1039,15 +1182,15 @@ void ImportFlashVectorCommand::execute() {
         // Native scene import for XFL directory
         if (!doc.timelines.empty()) {
             TXsheet *xsheet = TApp::instance()->getCurrentXsheet()->getXsheet();
-            importXFLScene(scene, xsheet, doc, fp);
+            importXFLScene(scene, xsheet, doc, xflDir);
         }
 
         // Copy assets to output dir using recursive iteration
         {
-            QDirIterator it(srcPath, kAssetFilters,
+            QDirIterator it(xflDirPath, kAssetFilters,
                             QDir::Files | QDir::NoDotAndDotDot,
                             QDirIterator::Subdirectories);
-            QDir base(srcPath);
+            QDir base(xflDirPath);
             while (it.hasNext()) {
                 it.next();
                 QString rel = base.relativeFilePath(it.filePath());
