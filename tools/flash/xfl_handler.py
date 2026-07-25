@@ -103,12 +103,18 @@ class XFLReader:
 
     @staticmethod
     def _looks_like_zip(path: str) -> bool:
-        """Return True if *path* is a file beginning with the ZIP signature."""
+        """Return True if *path* is a file beginning with a real ZIP signature.
+
+        Checks the full 4-byte local-file-header signature (PK\\x03\\x04) rather
+        than just the 2-byte 'PK' prefix, so a plain-text XFL marker file that
+        happens to start with those two characters isn't misclassified as a ZIP
+        and sent down the _read_from_zip() path.
+        """
         if not os.path.isfile(path):
             return False
         try:
             with open(path, 'rb') as f:
-                return f.read(2) == b'PK'
+                return f.read(4) == b'PK\x03\x04'
         except OSError:
             return False
         

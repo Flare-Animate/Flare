@@ -57,6 +57,8 @@
 
 #include <fstream>
 #include <cstring>
+#include <climits>
+#include <algorithm>
 
 using namespace DVGui;
 
@@ -453,9 +455,19 @@ public:
             quint32 start = u32(m_dir, i + 116);
             quint64 size  = static_cast<quint64>(u32(m_dir, i + 120)) |
                             (static_cast<quint64>(u32(m_dir, i + 124)) << 32);
-            QByteArray blob = (size < m_miniCutoff)
-                                  ? readMini(start, static_cast<quint32>(size))
-                                  : readChain(start).left(static_cast<int>(size));
+            QByteArray blob;
+            if (size < m_miniCutoff) {
+                blob = readMini(start, static_cast<quint32>(size));
+            } else {
+                blob = readChain(start);
+                // Clamp against the actual chain length rather than casting a
+                // 64-bit size to int directly: a corrupt/malicious stream size
+                // field could exceed INT_MAX and wrap negative, which would
+                // make left() return the wrong (or an empty) blob.
+                qint64 wanted = static_cast<qint64>(std::min<quint64>(
+                    size, static_cast<quint64>(blob.size())));
+                blob = blob.left(static_cast<int>(wanted));
+            }
             if (!blob.isEmpty()) out.append(blob);
         }
         return out;
@@ -482,8 +494,12 @@ private:
         return out;
     }
     QByteArray readChain(quint32 start) const {
-        QByteArray out;
         const QVector<quint32> secs = chainSectors(start);
+        QByteArray out;
+        // Reserve up front: appending sector-by-sector without this causes
+        // repeated reallocation/copy (quadratic) for large multi-sector streams.
+        out.reserve(static_cast<int>(std::min<qint64>(
+            static_cast<qint64>(secs.size()) * m_secSize, INT_MAX)));
         for (quint32 s : secs) out += sector(s);
         return out;
     }
@@ -1156,13 +1172,19 @@ void ImportFlashVectorCommand::execute() {
         // A directory-based XFL project is a FOLDER; when the user selects the
         // tiny "<name>.xfl" marker file inside it, the real project root is that
         // file's parent directory. Resolve it so asset copying and href lookups
-        // use the folder, not the marker file.
+        // use the folder, not the marker file — but only when the parent
+        // actually looks like an XFL project (has DOMDocument.xml); otherwise
+        // this is some other .xfl file and we keep treating srcPath itself as
+        // the target, matching the pre-existing (non-marker) behavior.
         QFileInfo srcInfo(srcPath);
         TFilePath xflDir = fp;
         QString   xflDirPath = srcPath;
         if (srcInfo.isFile()) {
-            xflDir     = fp.getParentDir();
-            xflDirPath = xflDir.getQString();
+            TFilePath parentDir = fp.getParentDir();
+            if (XFL::isXFLDirectory(parentDir)) {
+                xflDir     = parentDir;
+                xflDirPath = parentDir.getQString();
+            }
         }
 
         XFL::Reader reader(xflDir);
