@@ -265,7 +265,7 @@ class ABCFile:
         p = self._parse_scripts(data, p)
 
         # Method bodies
-        p = self._parse_method_bodies(data, p)
+        self._parse_method_bodies(data, p)
 
     # ── Constant Pool ─────────────────────────────────────────────────
     def _parse_cpool(self, d: bytes, p: int) -> int:

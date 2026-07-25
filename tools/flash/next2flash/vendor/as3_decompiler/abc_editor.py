@@ -100,10 +100,7 @@ NS_Private          = 0x05
 #  AVM2 Constant-value kind constants (for default values / trait values)
 # ═══════════════════════════════════════════════════════════════════════════
 
-CONSTANT_Double  = 0x06
-CONSTANT_True    = 0x0B
-CONSTANT_False   = 0x0A
-CONSTANT_Null    = 0x0C
+
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -189,13 +186,6 @@ OPCODE_BY_NAME: Dict[str, int] = {
 
 #: Reverse mapping: opcode byte → name.
 NAME_BY_OPCODE: Dict[int, str] = {v: k for k, v in OPCODE_BY_NAME.items()}
-
-# Branch opcodes whose operands are relative s24 offsets
-_BRANCH_OPCODES = frozenset({
-    0x0C, 0x0D, 0x0E, 0x0F, 0x10, 0x11, 0x12,
-    0x13, 0x14, 0x15, 0x16, 0x17, 0x18,
-    0x19, 0x1A,
-})
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -338,8 +328,6 @@ class Assembler:
                 else:
                     size += _operand_byte_size(desc, val)
             pos += size
-        # End position (for resolving labels at the end)
-        end_pos = pos
 
         # Build label → byte position map
         label_pos: Dict[str, int] = {}

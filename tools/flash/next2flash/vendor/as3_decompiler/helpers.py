@@ -2,11 +2,8 @@
 
 from __future__ import annotations
 
-import logging
 import struct
 from typing import Dict, List
-
-log = logging.getLogger(__name__)
 
 from .abc_parser import (
     ABCFile, _ru30,
