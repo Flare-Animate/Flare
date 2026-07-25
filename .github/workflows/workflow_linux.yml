@@ -183,8 +183,13 @@ jobs:
 
         mkdir artifact
         if [ -d "appdir/usr/share/flare/stuff" ]; then
-          mv appdir/usr/share/flare/stuff artifact/portablestuff
-          rmdir appdir/usr/share/flare 2>/dev/null || true
+          # Copy for plain-tarball users, and bundle a copy inside the AppImage
+          # next to the binary so Flare detects portable mode at runtime (else
+          # the AppImage aborts with "FLAREROOT not set" — issue #60).
+          cp -r appdir/usr/share/flare/stuff artifact/portablestuff
+          mkdir -p appdir/usr/bin
+          cp -r appdir/usr/share/flare/stuff appdir/usr/bin/portablestuff
+          rm -rf appdir/usr/share/flare
         fi
 
         # Each linuxdeploy tool lives in its OWN GitHub repo; the qt / appimage

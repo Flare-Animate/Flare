@@ -24,6 +24,10 @@ TOfflineGL::Imp *MacOfflineGenerator1(const TDimension &dim) {
 #include <map>
 #include <sstream>
 
+#if defined(__linux__) && !defined(MACOSX)
+#include <unistd.h>  // readlink() for /proc/self/exe portable detection
+#endif
+
 using namespace TEnv;
 using namespace TVER;
 
@@ -242,7 +246,32 @@ public:
     TFileStatus portableStatus(portableCheck);
     m_isPortable = portableStatus.doesExist();
 
-#ifdef _WIN32
+#if defined(__linux__) && !defined(MACOSX)
+    // On Linux, resolve the executable's OWN directory via /proc/self/exe and
+    // treat a sibling portablestuff/ as a portable install. This works even
+    // before QApplication exists — getStuffDir() is called very early in main()
+    // (before the QApplication is built), so applicationDirPath() is unavailable
+    // here. This is essential for AppImages: the mounted binary lives next to a
+    // bundled portablestuff/, but the CWD is wherever the user launched from, so
+    // without this the app aborts with "FLAREROOT not set" (issue #60).
+    if (!m_isPortable) {
+      char exeBuf[4096];
+      ssize_t n = ::readlink("/proc/self/exe", exeBuf, sizeof(exeBuf) - 1);
+      if (n > 0) {
+        exeBuf[n] = '\0';
+        std::string exePath(exeBuf);
+        std::string::size_type slash = exePath.find_last_of('/');
+        if (slash != std::string::npos) {
+          std::string exeDir    = exePath.substr(0, slash);
+          TFilePath exeDirCheck = TFilePath(exeDir + "/portablestuff/");
+          if (TFileStatus(exeDirCheck).doesExist()) {
+            m_isPortable       = true;
+            m_workingDirectory = exeDir;
+          }
+        }
+      }
+    }
+#elif defined(_WIN32)
     // Belt-and-suspenders fallback: if portablestuff\ was not found in the
     // current working directory, also check the directory that contains the
     // executable.  This covers the rare cases where setWorkingDirectory() is

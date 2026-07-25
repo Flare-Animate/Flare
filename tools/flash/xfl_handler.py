@@ -78,14 +78,39 @@ class XFLReader:
     """Read and parse XFL format files."""
     
     def __init__(self, xfl_path: str):
-        """Initialize reader with path to XFL file or directory.
-        
+        """Initialize reader with path to an XFL/FLA file or directory.
+
         Args:
-            xfl_path: Path to .xfl file (ZIP) or uncompressed XFL directory
+            xfl_path: One of
+              * a ZIP-based ``.fla``/``.xfl`` archive,
+              * a directory-based XFL project folder, or
+              * the tiny ``<name>.xfl`` *marker* file that sits inside such a
+                folder (Adobe Animate "Save as XFL" writes one). The marker is
+                NOT a container — the real project root is its parent directory.
         """
         self.xfl_path = xfl_path
-        self.is_zip = xfl_path.lower().endswith('.xfl') or xfl_path.lower().endswith('.fla')
         self.document = XFLDocument()
+
+        # Detect a real ZIP archive by its magic bytes, not just the extension —
+        # a directory-based ``.xfl`` marker is a plain text file, not a ZIP.
+        self.is_zip = self._looks_like_zip(xfl_path)
+
+        # If handed the ``.xfl`` marker file of a directory-based project, use the
+        # folder it lives in as the project root.
+        if (not self.is_zip and os.path.isfile(xfl_path)
+                and xfl_path.lower().endswith('.xfl')):
+            self.xfl_path = os.path.dirname(os.path.abspath(xfl_path))
+
+    @staticmethod
+    def _looks_like_zip(path: str) -> bool:
+        """Return True if *path* is a file beginning with the ZIP signature."""
+        if not os.path.isfile(path):
+            return False
+        try:
+            with open(path, 'rb') as f:
+                return f.read(2) == b'PK'
+        except OSError:
+            return False
         
     def read(self) -> XFLDocument:
         """Read and parse the XFL structure.
@@ -116,13 +141,18 @@ class XFLReader:
     
     def _read_from_directory(self) -> XFLDocument:
         """Read XFL from an uncompressed directory."""
-        doc_path = os.path.join(self.xfl_path, 'DOMDocument.xml')
+        base = self.xfl_path
+        # If we still hold a file path (e.g. a ``.xfl`` marker), the project root
+        # is the directory that contains it.
+        if os.path.isfile(base):
+            base = os.path.dirname(os.path.abspath(base))
+        doc_path = os.path.join(base, 'DOMDocument.xml')
         if os.path.exists(doc_path):
             with open(doc_path, 'rb') as f:
                 self._parse_document(f)
         
         # Parse library
-        lib_dir = os.path.join(self.xfl_path, 'LIBRARY')
+        lib_dir = os.path.join(base, 'LIBRARY')
         if os.path.isdir(lib_dir):
             for root, _, files in os.walk(lib_dir):
                 for fname in files:
