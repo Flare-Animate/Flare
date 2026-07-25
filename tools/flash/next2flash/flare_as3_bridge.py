@@ -45,13 +45,18 @@ def _import_vendor():
 
 
 def cmd_status() -> dict:
+    # Schema is fixed at {available, version} per the documented protocol —
+    # diagnostics on the failure path go to stderr, not into the JSON, so
+    # callers can rely on a stable shape rather than checking for an
+    # occasionally-present extra key.
     if not _vendor_available():
         return {"available": False, "version": None}
     try:
         _import_vendor()
         return {"available": True, "version": "next2flash-as3-decompiler"}
     except Exception as e:
-        return {"available": False, "version": None, "error": str(e)}
+        print(f"flare_as3_bridge: vendor import failed: {e}", file=sys.stderr)
+        return {"available": False, "version": None}
 
 
 def cmd_decompile(swf_path: str, out_dir: str) -> dict:
@@ -62,7 +67,9 @@ def cmd_decompile(swf_path: str, out_dir: str) -> dict:
         pkg = _import_vendor()
         _, abc_blocks = pkg.read_abc_blocks(swf_path)
         if not abc_blocks:
-            return {"ok": True, "classes": [], "error": "no ActionScript 3 (DoABC) found in SWF"}
+            # No embedded AS3 is not a failure — ok=True/error=None, with an
+            # empty classes list telling the caller there was nothing to do.
+            return {"ok": True, "classes": [], "error": None}
 
         out = Path(out_dir)
         out.mkdir(parents=True, exist_ok=True)
