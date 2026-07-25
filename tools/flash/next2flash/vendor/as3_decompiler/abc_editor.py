@@ -100,9 +100,6 @@ NS_Private          = 0x05
 #  AVM2 Constant-value kind constants (for default values / trait values)
 # ═══════════════════════════════════════════════════════════════════════════
 
-CONSTANT_Utf8    = 0x01
-CONSTANT_Int     = 0x03
-CONSTANT_UInt    = 0x04
 CONSTANT_Double  = 0x06
 CONSTANT_True    = 0x0B
 CONSTANT_False   = 0x0A

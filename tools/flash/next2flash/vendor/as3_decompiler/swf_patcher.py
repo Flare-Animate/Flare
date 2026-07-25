@@ -635,7 +635,7 @@ class MxmlcShellManager:
                 try:
                     self._proc.kill()
                 except Exception:
-                    pass
+                    pass  # process already dead/unkillable - nothing more we can do
             self._proc = None
             self._ready = False
 
@@ -726,7 +726,7 @@ def prewarm_compiler(
                     if f.read() == source:
                         need_write = False
             except Exception:
-                pass
+                pass  # couldn't read the existing file to compare - fall through and (re)write it
         if need_write:
             with open(as_path, 'w', encoding='utf-8') as f:
                 f.write(source)
@@ -1161,7 +1161,7 @@ def recompile_classes(
                 if existing == source:
                     need_write = False
             except Exception:
-                pass
+                pass  # couldn't read the existing file to compare - fall through and (re)write it
 
         if need_write:
             with open(as_path, 'w', encoding='utf-8') as f:

@@ -74,11 +74,17 @@ def cmd_decompile(swf_path: str, out_dir: str) -> dict:
         out = Path(out_dir)
         out.mkdir(parents=True, exist_ok=True)
         classes: list[str] = []
-        for name, abc_data in abc_blocks:
+        # A SWF can carry multiple DoABC/DoABC2 tags, and class/package names
+        # can collide across blocks — decompiling them all into the same
+        # out_dir would let a later block silently overwrite an earlier
+        # block's files. Give each block its own subdirectory instead.
+        for i, (name, abc_data) in enumerate(abc_blocks):
+            block_dir = out / f"block_{i}"
+            block_dir.mkdir(parents=True, exist_ok=True)
             abc = pkg.ABCFile(abc_data)
             dec = pkg.AS3Decompiler(abc)
-            n = dec.decompile_all(str(out))
-            classes.append(f"{name} ({n} class(es))")
+            n = dec.decompile_all(str(block_dir))
+            classes.append(f"{name} ({n} class(es), in block_{i}/)")
         return {"ok": True, "classes": classes, "error": None}
     except Exception as e:
         return {"ok": False, "classes": [], "error": f"decompile failed: {e}"}

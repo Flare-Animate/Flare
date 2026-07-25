@@ -194,7 +194,7 @@ class _ZlibStream(io.RawIOBase):
                     try:
                         chunks.append(self._dec.flush())
                     except Exception:
-                        pass
+                        pass  # truncated/incomplete stream at EOF - keep what decompressed so far
                     self._eof = True
                     break
                 chunks.append(self._dec.decompress(compressed))
@@ -207,7 +207,7 @@ class _ZlibStream(io.RawIOBase):
                 try:
                     self._buf += self._dec.flush()
                 except Exception:
-                    pass
+                    pass  # truncated/incomplete stream at EOF - keep what decompressed so far
                 self._eof = True
                 break
             self._buf += self._dec.decompress(compressed)
