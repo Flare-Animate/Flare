@@ -101,20 +101,27 @@ class XFLReader:
                 and xfl_path.lower().endswith('.xfl')):
             self.xfl_path = os.path.dirname(os.path.abspath(xfl_path))
 
+    # Valid ZIP magic numbers: local file header (normal case), end-of-central-
+    # directory record (a valid but empty archive), and the spanned/split
+    # archive marker. Checking only PK\x03\x04 would misclassify the latter two
+    # as "not zip" and send a legitimate ZIP-based FLA/XFL down the wrong path.
+    _ZIP_SIGNATURES = (b'PK\x03\x04', b'PK\x05\x06', b'PK\x07\x08')
+
     @staticmethod
     def _looks_like_zip(path: str) -> bool:
         """Return True if *path* is a file beginning with a real ZIP signature.
 
-        Checks the full 4-byte local-file-header signature (PK\\x03\\x04) rather
-        than just the 2-byte 'PK' prefix, so a plain-text XFL marker file that
-        happens to start with those two characters isn't misclassified as a ZIP
-        and sent down the _read_from_zip() path.
+        Checks the full 4-byte signature rather than just the 2-byte 'PK'
+        prefix, so a plain-text XFL marker file that happens to start with
+        those two characters isn't misclassified as a ZIP and sent down the
+        _read_from_zip() path.
         """
         if not os.path.isfile(path):
             return False
         try:
             with open(path, 'rb') as f:
-                return f.read(4) == b'PK\x03\x04'
+                header = f.read(4)
+                return header in XFLReader._ZIP_SIGNATURES
         except OSError:
             return False
         
