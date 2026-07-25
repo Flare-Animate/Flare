@@ -14,6 +14,12 @@ from .method_decompiler import MethodDecompiler
 
 logger = logging.getLogger(__name__)
 
+# Without __all__, `from .class_decompiler import *` (done by __init__.py)
+# would re-export every name this module itself imported via `import *`
+# (abc_parser/opcodes/helpers), polluting the package namespace. Only the
+# public class is meant to be re-exported from here.
+__all__ = ['AS3Decompiler']
+
 # Derived indent levels (from INDENT_UNIT imported from helpers)
 _I1 = INDENT_UNIT          # 1 level (package body / file-scope class body)
 _I2 = INDENT_UNIT * 2      # 2 levels (class members)

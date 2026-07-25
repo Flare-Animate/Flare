@@ -15,9 +15,8 @@ from __future__ import annotations
 import io
 import logging
 import struct
-import sys
 import zlib
-from typing import Generator, List, Optional, Tuple
+from typing import Generator, List, Tuple
 
 log = logging.getLogger(__name__)
 

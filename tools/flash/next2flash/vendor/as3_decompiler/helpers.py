@@ -164,7 +164,7 @@ def _to_hex_if_int(s: str) -> str:
         if v >= 0:
             return _fmt_hex(v)
     except (ValueError, OverflowError):
-        pass
+        pass  # not an integer literal (or out of range) - fall through and return s unchanged
     return s
 
 def _fmt_uint(v: int) -> str:

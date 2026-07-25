@@ -11,10 +11,8 @@ All other tags (shapes, bitmaps, sounds, sprites) are preserved byte-for-byte.
 
 from __future__ import annotations
 
-import io
 import logging
 import os
-import re
 import struct
 import subprocess
 import sys
@@ -38,7 +36,7 @@ from as3_decompiler.swf_reader import (
 )
 from as3_decompiler.abc_parser import ABCFile
 from as3_decompiler.class_decompiler import AS3Decompiler
-from as3_decompiler.abc_patcher import transplant_class, extract_method_texts, _detect_changed_methods
+from as3_decompiler.abc_patcher import transplant_class, _detect_changed_methods
 
 __all__ = ['read_swf_full', 'write_swf_from_tags',
            'recompile_class', 'recompile_classes']
