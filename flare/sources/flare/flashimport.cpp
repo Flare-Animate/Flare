@@ -51,6 +51,7 @@
 #include <QUrl>
 #include <QDebug>
 #include <QFileDialog>
+#include <QRegularExpression>
 
 // Minizip for ZIP/FLA/SWC extraction (include_directories contains minizip path)
 #include "unzip.h"
@@ -78,7 +79,7 @@ static TFilePath makeTempImportDir(const QString &prefix) {
 
 // Asset file filters for auto-import scan
 static const QStringList kAssetFilters = {
-    "*.png", "*.jpg", "*.jpeg", "*.svg", "*.xml", "*.as"
+    "*.png", "*.jpg", "*.jpeg", "*.svg", "*.xml", "*.as", "*.jsfl"
 };
 
 // Validate that a resolved path stays under the intended directory (Zip Slip guard).
@@ -823,6 +824,17 @@ static void copyFileForReference(const QString &srcPath, const QString &outDir,
     (void)infoMsg;
 }
 
+// Adobe JSFL uses host-specific APIs. Flare never executes imported scripts.
+static QStringList findJsflFunctions(const QString &source) {
+    QStringList names;
+    QRegularExpression re(R"(\bfunction\s+([A-Za-z_$][A-Za-z0-9_$]*)\s*\()",
+                          QRegularExpression::MultilineOption);
+    QRegularExpressionMatchIterator it = re.globalMatch(source);
+    while (it.hasNext()) names << it.next().captured(1);
+    names.removeDuplicates();
+    return names;
+}
+
 // ---------------------------------------------------------------------------
 // ANE / AIR / OAM — ZIP-based Adobe packaging formats.
 //
@@ -845,6 +857,10 @@ static QString extractAdobeZipPackage(const QString &srcPath, const QString &out
         candidates = {"META-INF/AIR/application.xml", "META-INF/MANIFEST.MF"};
     else if (ext == "oam")
         candidates = {"OAMMetadata.xml", "META-INF/OAM/metadata.xml", "metadata.xml"};
+    else if (ext == "zxp")
+        candidates = {"CSXS/manifest.xml", "META-INF/manifest.xml", "manifest.xml"};
+    else if (ext == "mxp")
+        candidates = {"install.xml", "Install.xml", "manifest.xml"};
 
     for (const QString &rel : candidates) {
         QFile f(outDir + "/" + rel);
@@ -979,6 +995,9 @@ void ImportFlashVectorCommand::execute() {
         loadPopup->addFilterType("as");
         loadPopup->addFilterType("asc");
         loadPopup->addFilterType("mxml");
+        loadPopup->addFilterType("jsfl");
+        loadPopup->addFilterType("zxp");
+        loadPopup->addFilterType("mxp");
         // Video
         loadPopup->addFilterType("flv");
         loadPopup->addFilterType("f4v");
@@ -1279,6 +1298,34 @@ void ImportFlashVectorCommand::execute() {
     } else if (ext == "mxml") {
         copyFileForReference(srcPath, outPath, exported);
         info = QObject::tr("MXML (Flex UI) file copied for reference.");
+
+    // ---- JSFL (Adobe Animate command script) ----
+    } else if (ext == "jsfl") {
+        QFile script(srcPath);
+        QStringList functions;
+        if (script.open(QIODevice::ReadOnly | QIODevice::Text)) {
+            functions = findJsflFunctions(QString::fromUtf8(script.readAll()));
+            script.close();
+        }
+        copyFileForReference(srcPath, outPath, exported);
+        info = QObject::tr("JSFL script copied for inspection; scripts are not executed.");
+        if (!functions.isEmpty())
+            info += QObject::tr("\n  Functions: %1").arg(functions.join(", "));
+
+    // ---- ZXP / MXP (Adobe extension packages) ----
+    } else if (ext == "zxp" || ext == "mxp") {
+        QString manifest = extractAdobeZipPackage(srcPath, outPath, ext);
+        QDirIterator it(outPath, kAssetFilters, QDir::Files | QDir::NoDotAndDotDot,
+                        QDirIterator::Subdirectories);
+        QDir base(outPath);
+        while (it.hasNext()) {
+            it.next();
+            exported << base.relativeFilePath(it.filePath());
+        }
+        info = manifest.isEmpty()
+            ? QObject::tr("%1 extension package extracted (no manifest found).").arg(ext.toUpper())
+            : QObject::tr("%1 extension package extracted; manifest: %2").arg(ext.toUpper(), manifest);
+        info += QObject::tr("\n  Extension code is not executed by Flare.");
 
     // ---- FLV (Flash Video) ----
     } else if (ext == "flv") {

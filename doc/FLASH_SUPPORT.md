@@ -18,6 +18,10 @@ video playback if it is installed).
 | Flash Video | `.flv` | Header validated; raster level via FFmpeg |
 | Flash H.264 video | `.f4v` | ISO BMFF ftyp; raster level via FFmpeg |
 | ActionScript source | `.as` | Copied as reference text |
+| Animate command script | `.jsfl` | Copied and top-level functions listed; never executed |
+| Adobe extension package | `.zxp` / `.mxp` | Safely unpacked for inspection; installer code is never executed |
+| Animate command script | `.jsfl` | Copied and top-level functions listed; never executed |
+| Adobe extension package | `.zxp` / `.mxp` | Safely unpacked for inspection; installer code is never executed |
 
 ## Why not JPEXS?
 
