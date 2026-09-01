@@ -93,3 +93,5 @@ test_package.bat
 test_package_root.bat
 appveyor.yml
 requirements.txt
+/LocalTest
+*.log

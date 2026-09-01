@@ -258,14 +258,23 @@ jobs:
           fi
           BUNDLE_DIR="$(cd "$(dirname "$APPBUNDLE")" && pwd)"
           cd "$BUNDLE_DIR"
-          echo "Creating DMG from $BUNDLE_DIR/Flare.app..."
-          ATTEMPT=0
-          while [ $ATTEMPT -lt 10 ]; do
-            /usr/local/opt/qt@5/bin/macdeployqt Flare.app -dmg -verbose=0 && \
-            [ -f Flare.dmg ] && break
-            ATTEMPT=$((ATTEMPT+1))
-            echo "Attempt $ATTEMPT failed to build DMG."
+
+          # Ad-hoc sign so Gatekeeper says "unidentified developer" (with an
+          # Open Anyway option) instead of "damaged and can't be opened".
+          find Flare.app/Contents/Frameworks \( -name "*.dylib" -o -name "*.framework" \) 2>/dev/null | while read -r f; do
+            codesign --force --sign - "$f" 2>/dev/null || true
           done
+          codesign --force --deep --sign - Flare.app || echo "WARNING: codesign failed"
+
+          echo "Creating DMG from $BUNDLE_DIR/Flare.app..."
+          # Manual DMG so we can embed an /Applications drag-install symlink.
+          rm -f Flare.dmg rw.Flare.dmg
+          DMG_STAGING=$(mktemp -d)
+          cp -R Flare.app "$DMG_STAGING/"
+          ln -s /Applications "$DMG_STAGING/Applications"
+          hdiutil create -volname Flare -srcfolder "$DMG_STAGING" -ov -format UDRW rw.Flare.dmg && \
+          hdiutil convert rw.Flare.dmg -format UDZO -o Flare.dmg
+          rm -rf "$DMG_STAGING" rw.Flare.dmg
           if [ -f Flare.dmg ]; then
             echo "DMG=$BUNDLE_DIR/Flare.dmg" >> $GITHUB_ENV
           else

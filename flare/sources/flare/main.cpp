@@ -51,6 +51,7 @@
 
 // TnzCore includes
 #include "tsystem.h"
+#include "texception.h"
 #include "tthread.h"
 #include "tthreadmessage.h"
 #include "tundo.h"
@@ -512,7 +513,18 @@ if (QFileInfo(localSplashPath).exists() && QFileInfo(localSplashPath).isFile()) 
   ThirdParty::initialize();
 
   // Flare environment
-  initFlareEnv(argumentPathValues);
+  // Wrap startup init: an uncaught C++ exception here aborts with no
+  // user-visible message (issue #67). Surface the reason instead.
+  try {
+    initFlareEnv(argumentPathValues);
+  } catch (TException &e) {
+    fatalError("Startup failed: " +
+               QString::fromStdWString(e.getMessage()));
+  } catch (const std::exception &e) {
+    fatalError(QString("Startup failed: %1").arg(e.what()));
+  } catch (...) {
+    fatalError("Startup failed: unknown exception during initialization");
+  }
 
   // prepare for 30bit display
   if (Preferences::instance()->is30bitDisplayEnabled()) {

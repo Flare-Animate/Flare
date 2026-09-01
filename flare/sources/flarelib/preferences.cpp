@@ -293,7 +293,7 @@ Preferences::Preferences() {
   }
 
   if (!m_styleSheetList.contains(getStringValue(CurrentStyleSheetName)))
-    setValue(CurrentStyleSheetName, "Default");
+    setValue(CurrentStyleSheetName, "LiquidGlass");
 
   if (!m_languageList.contains(getStringValue(CurrentLanguageName)))
     setValue(CurrentLanguageName, "English");

@@ -17,6 +17,12 @@ subscription and without a dead runtime.
 
 ➡️ **Website:** https://flare-animate.github.io/website/ · **Discord:** https://discord.com/invite/JpeScW8Awa
 
+> ⚠️ **Very early alpha.** Flare is under active, community-driven development.
+> Expect bugs, missing polish, and incomplete Flash/Animate import fidelity.
+> Not yet production-ready — back up your work and report issues on
+> [GitHub](https://github.com/Flare-Animate/Flare/issues) or
+> [Discord](https://discord.com/invite/JpeScW8Awa).
+
 [日本語](./doc/README_ja.md) · [简体中文](./doc/README_chs.md)
 
 ---

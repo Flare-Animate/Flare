@@ -33,11 +33,19 @@ Check site for any changes in installation instructions, but they will probably 
 
 In a Terminal window, execute the following statements:
 ```sh
-brew install glew lz4 libjpeg libpng lzo pkg-config libusb cmake git-lfs libmypaint qt@5 boost jpeg-turbo opencv
+brew install glew lz4 libjpeg libpng lzo pkg-config libusb cmake git-lfs libmypaint boost jpeg-turbo opencv
+brew unlink qt qtbase qtdeclarative qtsvg qttools qt5compat qtmultimedia qtshadertools qtimageformats 2>/dev/null
+brew install qt@5
 git lfs install
 ```
 
 NOTE: This will install the latest version of QT v5.x which may not be compatible with older OS versions.
+
+NOTE (issue #63): install `qt@5` **after** `opencv`, not in the same command.
+`opencv` depends on Qt 6 and links `qtbase`/`qtsvg`/`qtdeclarative`; installing
+`qt@5` while those are linked fails with "Cannot install qt@5 because
+conflicting formulae are installed." The `brew unlink` step above clears them
+first.
 
 If you cannot use the most recent version, download the online installer from https://www.qt.io/download and install the appropriate `macOS` version (min 5.15).  If installing via this method, be sure to install the `Qt Script (Deprecated)` libraries.
 

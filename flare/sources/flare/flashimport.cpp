@@ -51,12 +51,15 @@
 #include <QUrl>
 #include <QDebug>
 #include <QFileDialog>
+#include <QRegularExpression>
 
 // Minizip for ZIP/FLA/SWC extraction (include_directories contains minizip path)
 #include "unzip.h"
 
 #include <fstream>
 #include <cstring>
+#include <climits>
+#include <algorithm>
 
 using namespace DVGui;
 
@@ -76,7 +79,7 @@ static TFilePath makeTempImportDir(const QString &prefix) {
 
 // Asset file filters for auto-import scan
 static const QStringList kAssetFilters = {
-    "*.png", "*.jpg", "*.jpeg", "*.svg", "*.xml", "*.as"
+    "*.png", "*.jpg", "*.jpeg", "*.svg", "*.xml", "*.as", "*.jsfl"
 };
 
 // Validate that a resolved path stays under the intended directory (Zip Slip guard).
@@ -453,9 +456,19 @@ public:
             quint32 start = u32(m_dir, i + 116);
             quint64 size  = static_cast<quint64>(u32(m_dir, i + 120)) |
                             (static_cast<quint64>(u32(m_dir, i + 124)) << 32);
-            QByteArray blob = (size < m_miniCutoff)
-                                  ? readMini(start, static_cast<quint32>(size))
-                                  : readChain(start).left(static_cast<int>(size));
+            QByteArray blob;
+            if (size < m_miniCutoff) {
+                blob = readMini(start, static_cast<quint32>(size));
+            } else {
+                blob = readChain(start);
+                // Clamp against the actual chain length rather than casting a
+                // 64-bit size to int directly: a corrupt/malicious stream size
+                // field could exceed INT_MAX and wrap negative, which would
+                // make left() return the wrong (or an empty) blob.
+                qint64 wanted = static_cast<qint64>(std::min<quint64>(
+                    size, static_cast<quint64>(blob.size())));
+                blob = blob.left(static_cast<int>(wanted));
+            }
             if (!blob.isEmpty()) out.append(blob);
         }
         return out;
@@ -482,8 +495,12 @@ private:
         return out;
     }
     QByteArray readChain(quint32 start) const {
-        QByteArray out;
         const QVector<quint32> secs = chainSectors(start);
+        QByteArray out;
+        // Reserve up front: appending sector-by-sector without this causes
+        // repeated reallocation/copy (quadratic) for large multi-sector streams.
+        out.reserve(static_cast<int>(std::min<qint64>(
+            static_cast<qint64>(secs.size()) * m_secSize, INT_MAX)));
         for (quint32 s : secs) out += sector(s);
         return out;
     }
@@ -807,6 +824,17 @@ static void copyFileForReference(const QString &srcPath, const QString &outDir,
     (void)infoMsg;
 }
 
+// Adobe JSFL uses host-specific APIs. Flare never executes imported scripts.
+static QStringList findJsflFunctions(const QString &source) {
+    QStringList names;
+    QRegularExpression re(R"(\bfunction\s+([A-Za-z_$][A-Za-z0-9_$]*)\s*\()",
+                          QRegularExpression::MultilineOption);
+    QRegularExpressionMatchIterator it = re.globalMatch(source);
+    while (it.hasNext()) names << it.next().captured(1);
+    names.removeDuplicates();
+    return names;
+}
+
 // ---------------------------------------------------------------------------
 // ANE / AIR / OAM — ZIP-based Adobe packaging formats.
 //
@@ -829,6 +857,10 @@ static QString extractAdobeZipPackage(const QString &srcPath, const QString &out
         candidates = {"META-INF/AIR/application.xml", "META-INF/MANIFEST.MF"};
     else if (ext == "oam")
         candidates = {"OAMMetadata.xml", "META-INF/OAM/metadata.xml", "metadata.xml"};
+    else if (ext == "zxp")
+        candidates = {"CSXS/manifest.xml", "META-INF/manifest.xml", "manifest.xml"};
+    else if (ext == "mxp")
+        candidates = {"install.xml", "Install.xml", "manifest.xml"};
 
     for (const QString &rel : candidates) {
         QFile f(outDir + "/" + rel);
@@ -963,6 +995,9 @@ void ImportFlashVectorCommand::execute() {
         loadPopup->addFilterType("as");
         loadPopup->addFilterType("asc");
         loadPopup->addFilterType("mxml");
+        loadPopup->addFilterType("jsfl");
+        loadPopup->addFilterType("zxp");
+        loadPopup->addFilterType("mxp");
         // Video
         loadPopup->addFilterType("flv");
         loadPopup->addFilterType("f4v");
@@ -1156,13 +1191,19 @@ void ImportFlashVectorCommand::execute() {
         // A directory-based XFL project is a FOLDER; when the user selects the
         // tiny "<name>.xfl" marker file inside it, the real project root is that
         // file's parent directory. Resolve it so asset copying and href lookups
-        // use the folder, not the marker file.
+        // use the folder, not the marker file — but only when the parent
+        // actually looks like an XFL project (has DOMDocument.xml); otherwise
+        // this is some other .xfl file and we keep treating srcPath itself as
+        // the target, matching the pre-existing (non-marker) behavior.
         QFileInfo srcInfo(srcPath);
         TFilePath xflDir = fp;
         QString   xflDirPath = srcPath;
         if (srcInfo.isFile()) {
-            xflDir     = fp.getParentDir();
-            xflDirPath = xflDir.getQString();
+            TFilePath parentDir = fp.getParentDir();
+            if (XFL::isXFLDirectory(parentDir)) {
+                xflDir     = parentDir;
+                xflDirPath = parentDir.getQString();
+            }
         }
 
         XFL::Reader reader(xflDir);
@@ -1257,6 +1298,34 @@ void ImportFlashVectorCommand::execute() {
     } else if (ext == "mxml") {
         copyFileForReference(srcPath, outPath, exported);
         info = QObject::tr("MXML (Flex UI) file copied for reference.");
+
+    // ---- JSFL (Adobe Animate command script) ----
+    } else if (ext == "jsfl") {
+        QFile script(srcPath);
+        QStringList functions;
+        if (script.open(QIODevice::ReadOnly | QIODevice::Text)) {
+            functions = findJsflFunctions(QString::fromUtf8(script.readAll()));
+            script.close();
+        }
+        copyFileForReference(srcPath, outPath, exported);
+        info = QObject::tr("JSFL script copied for inspection; scripts are not executed.");
+        if (!functions.isEmpty())
+            info += QObject::tr("\n  Functions: %1").arg(functions.join(", "));
+
+    // ---- ZXP / MXP (Adobe extension packages) ----
+    } else if (ext == "zxp" || ext == "mxp") {
+        QString manifest = extractAdobeZipPackage(srcPath, outPath, ext);
+        QDirIterator it(outPath, kAssetFilters, QDir::Files | QDir::NoDotAndDotDot,
+                        QDirIterator::Subdirectories);
+        QDir base(outPath);
+        while (it.hasNext()) {
+            it.next();
+            exported << base.relativeFilePath(it.filePath());
+        }
+        info = manifest.isEmpty()
+            ? QObject::tr("%1 extension package extracted (no manifest found).").arg(ext.toUpper())
+            : QObject::tr("%1 extension package extracted; manifest: %2").arg(ext.toUpper(), manifest);
+        info += QObject::tr("\n  Extension code is not executed by Flare.");
 
     // ---- FLV (Flash Video) ----
     } else if (ext == "flv") {

@@ -34,29 +34,75 @@ def _vendor_available() -> bool:
     return (VENDOR_DIR / "__init__.py").is_file()
 
 
+def _import_vendor():
+    """Import the vendored as3_decompiler package (adds vendor/ to sys.path)."""
+    import sys as _sys
+    vendor_root = str(VENDOR_DIR.parent)
+    if vendor_root not in _sys.path:
+        _sys.path.insert(0, vendor_root)
+    import as3_decompiler as pkg
+    return pkg
+
+
 def cmd_status() -> dict:
-    return {"available": _vendor_available(), "version": None}
+    # Schema is fixed at {available, version} per the documented protocol —
+    # diagnostics on the failure path go to stderr, not into the JSON, so
+    # callers can rely on a stable shape rather than checking for an
+    # occasionally-present extra key.
+    if not _vendor_available():
+        return {"available": False, "version": None}
+    try:
+        _import_vendor()
+        return {"available": True, "version": "next2flash-as3-decompiler"}
+    except Exception as e:
+        print(f"flare_as3_bridge: vendor import failed: {e}", file=sys.stderr)
+        return {"available": False, "version": None}
 
 
 def cmd_decompile(swf_path: str, out_dir: str) -> dict:
     if not _vendor_available():
         return {"ok": False, "classes": [],
                 "error": "as3_decompiler not vendored — see tools/flash/next2flash/README.md"}
-    # sys.path.insert(0, str(VENDOR_DIR.parent))
-    # from as3_decompiler.swf_reader import ...
-    return {"ok": False, "classes": [], "error": "not yet implemented"}
+    try:
+        pkg = _import_vendor()
+        _, abc_blocks = pkg.read_abc_blocks(swf_path)
+        if not abc_blocks:
+            # No embedded AS3 is not a failure — ok=True/error=None, with an
+            # empty classes list telling the caller there was nothing to do.
+            return {"ok": True, "classes": [], "error": None}
+
+        out = Path(out_dir)
+        out.mkdir(parents=True, exist_ok=True)
+        classes: list[str] = []
+        # A SWF can carry multiple DoABC/DoABC2 tags, and class/package names
+        # can collide across blocks — decompiling them all into the same
+        # out_dir would let a later block silently overwrite an earlier
+        # block's files. Give each block its own subdirectory instead.
+        for i, (name, abc_data) in enumerate(abc_blocks):
+            block_dir = out / f"block_{i}"
+            block_dir.mkdir(parents=True, exist_ok=True)
+            abc = pkg.ABCFile(abc_data)
+            dec = pkg.AS3Decompiler(abc)
+            n = dec.decompile_all(str(block_dir))
+            classes.append(f"{name} ({n} class(es), in block_{i}/)")
+        return {"ok": True, "classes": classes, "error": None}
+    except Exception as e:
+        return {"ok": False, "classes": [], "error": f"decompile failed: {e}"}
 
 
 def cmd_compile(source_dir: str, out_swf: str) -> dict:
     if not _vendor_available():
         return {"ok": False, "error": "as3_decompiler not vendored"}
-    return {"ok": False, "error": "not yet implemented"}
+    # AS3 recompilation needs the Flex SDK toolchain Next2Flash bundles, which
+    # is not part of this vendored slice (decompiler only). Left for a later
+    # pass — see doc/NEXT2FLASH_INTEGRATION.md Track 2.
+    return {"ok": False, "error": "AS3 recompilation not yet ported (decompile-only for now)"}
 
 
 def cmd_patch(swf_path: str, patch_json: str, out_swf: str) -> dict:
     if not _vendor_available():
         return {"ok": False, "error": "as3_decompiler not vendored"}
-    return {"ok": False, "error": "not yet implemented"}
+    return {"ok": False, "error": "AS3 patching not yet ported (decompile-only for now)"}
 
 
 def main(argv: list[str]) -> int:
