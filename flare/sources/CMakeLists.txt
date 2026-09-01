@@ -856,7 +856,13 @@ elseif(BUILD_ENV_UNIXLIKE)
     # This is not required for Flare itself, but libtiff will pick it up if
     # present and libimage won't be aware causing linker to fail
     pkg_check_modules(LZMA liblzma)
-    set(TIFF_LIB ${TIFF_LIBRARY} ${LZMA_LIBRARIES})
+    # Same story for JBIG: a libtiff built with JBIG support references
+    # jbg_* symbols that libimage does not link. Add it when present.
+    find_library(JBIG_LIB jbig)
+    if(JBIG_LIB)
+        message("******* libjbig:" ${JBIG_LIB})
+    endif()
+    set(TIFF_LIB ${TIFF_LIBRARY} ${LZMA_LIBRARIES} ${JBIG_LIB})
 
     if(GLEW-NOTFOUND)
         pkg_check_modules(GLEW REQUIRED glew)
