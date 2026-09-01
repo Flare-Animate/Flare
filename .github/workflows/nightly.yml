@@ -622,6 +622,25 @@ jobs:
             ls -la "Flare.app/Contents/MacOS/" || true
           fi
 
+      - name: Ad-hoc sign app bundle
+        run: |
+          # shellcheck disable=SC2012,SC2016,SC2155,SC2156,SC2046,SC2086,SC2235
+          # Unsigned/modified bundles make Gatekeeper say "Flare.app is damaged
+          # and can't be opened" (issue #66). macdeployqt rewrites the binary
+          # and adds frameworks, invalidating any existing signature. Ad-hoc
+          # signing (codesign -s -) gives the bundle a valid local signature so
+          # macOS treats it as a normal unsigned app ("unidentified developer"
+          # with an Open Anyway option) instead of "damaged".
+          BUNDLE_DIR="${{ env.BUNDLE_DIR }}"
+          [ -z "$BUNDLE_DIR" ] && BUNDLE_DIR="$(cd "$(dirname "$(find flare/build -type d -name 'Flare.app' | head -n 1)")" && pwd)"
+          cd "$BUNDLE_DIR"
+          # Sign nested frameworks/libs first (deep), then the whole bundle
+          find Flare.app/Contents/Frameworks -name "*.dylib" -o -name "*.framework" 2>/dev/null | while read -r f; do
+            codesign --force --sign - "$f" 2>/dev/null || true
+          done
+          codesign --force --deep --sign - Flare.app || echo "::warning::codesign failed"
+          codesign --verify --verbose=1 Flare.app 2>&1 || true
+
       - name: Create DMG
         run: |
           # shellcheck disable=SC2012,SC2016,SC2155,SC2156,SC2046,SC2086,SC2235
@@ -636,11 +655,16 @@ jobs:
             echo "DMG=" >> $GITHUB_ENV
           else
             cd "$BUNDLE_DIR"
-            ATTEMPT=0
-            while [ $ATTEMPT -lt 5 ]; do
-              /usr/local/opt/qt@5/bin/macdeployqt Flare.app -dmg -verbose=0 && [ -f Flare.dmg ] && break
-              ATTEMPT=$((ATTEMPT+1)); echo "Attempt $ATTEMPT failed"
-            done
+            # Build DMG manually (not macdeployqt -dmg) so we can add an
+            # /Applications symlink for drag-to-install and keep it read-write
+            # long enough to add the link. UDZO = compressed read-only final.
+            rm -f Flare.dmg rw.Flare.dmg
+            DMG_STAGING=$(mktemp -d)
+            cp -R Flare.app "$DMG_STAGING/"
+            ln -s /Applications "$DMG_STAGING/Applications"
+            hdiutil create -volname Flare -srcfolder "$DMG_STAGING" -ov -format UDRW rw.Flare.dmg
+            hdiutil convert rw.Flare.dmg -format UDZO -o Flare.dmg
+            rm -rf "$DMG_STAGING" rw.Flare.dmg
             if [ -f Flare.dmg ]; then
               echo "DMG=$BUNDLE_DIR/Flare.dmg" >> $GITHUB_ENV
             else

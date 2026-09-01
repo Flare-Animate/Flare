@@ -1021,14 +1021,44 @@ if(WITH_TRANSLATION)
     endfunction()
 
     # ---------------------------------------------------------------------
+    # Locate lrelease. Qt5LinguistTools normally provides
+    # Qt5_LRELEASE_EXECUTABLE, but some distros/package layouts do not export
+    # it. Fall back to find_program before giving up. Without lrelease no
+    # translate_* targets are created, which breaks the
+    # rename_translation_folders dependency chain
+    # ("ninja: error: 'sources/translate_flare', needed by
+    # 'sources/CMakeFiles/rename_translation_folders', missing and no known
+    # rule to make it").
+    # ---------------------------------------------------------------------
+    if(NOT Qt5_LRELEASE_EXECUTABLE)
+        find_program(Qt5_LRELEASE_EXECUTABLE
+            NAMES lrelease-qt5 lrelease lrelease5
+            HINTS ${QT_PATH} ${Qt5_DIR} ${CMAKE_PREFIX_PATH}
+            PATH_SUFFIXES bin ../bin ../../bin
+        )
+    endif()
+    if(NOT Qt5_LRELEASE_EXECUTABLE)
+        message(WARNING
+            "lrelease not found; skipping translation compilation. "
+            "Install Qt5 Linguist tools (qttools5-dev-tools on Debian/Ubuntu, "
+            "qt5-tools elsewhere) or configure with -DWITH_TRANSLATION=OFF.")
+        set(WITH_TRANSLATION OFF)
+    endif()
+endif()
+
+if(WITH_TRANSLATION)
+
+    # ---------------------------------------------------------------------
     # Language data and display names
     # ---------------------------------------------------------------------
     set(LANG_CODES
         japanese italian french spanish chinese german russian korean czech
+        norwegian_bokmal
     )
 
     set(LANG_DISPLAY_NAMES
         "日本語" "Italiano" "Français" "Español" "中文" "Deutsch" "Русский" "한국어" "Čeština"
+        "Norsk Bokmål"
     )
 
     list(LENGTH LANG_CODES CODE_COUNT)
