@@ -527,11 +527,17 @@ if(BUILD_ENV_MSVC)
     add_dependencies(Flare tnzcore tnzbase flarelib colorfx tnzext image sound flareqt tnztools tnzstdfx tfarm)
 else()
     set(FLARE_ICON_SOURCE "")
-    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/Flare.icns")
-        set(FLARE_ICON_SOURCE "Flare.icns")
+    # The icon ships in ../flare/Flare.icns (this dir has no copy); search both.
+    find_file(FLARE_ICON_FILE
+        NAMES Flare.icns
+        PATHS "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/../flare"
+        NO_DEFAULT_PATH
+    )
+    if(FLARE_ICON_FILE)
+        set(FLARE_ICON_SOURCE "${FLARE_ICON_FILE}")
         set(MACOSX_BUNDLE_ICON_FILE "Flare.icns")
-        set_source_files_properties(Flare.icns PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
-        message(STATUS "Flare.icns found; building macOS bundle with icon.")
+        set_source_files_properties(${FLARE_ICON_FILE} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
+        message(STATUS "Flare.icns found (${FLARE_ICON_FILE}); building macOS bundle with icon.")
     else()
         message(WARNING "Flare.icns not found; building macOS bundle without icon.")
     endif()
