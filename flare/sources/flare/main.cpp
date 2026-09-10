@@ -176,8 +176,12 @@ static void initFlareEnv(QHash<QString, QString> &argPathValues) {
 
   TFilePath stuffDir = TEnv::getStuffDir();
   if (stuffDir == TFilePath())
-    fatalError("Undefined or empty: \"" + toQString(TEnv::getRootVarPath()) +
-               "\"");
+    fatalError(
+        QObject::tr("Could not locate Flare's \"stuff\" folder.\n\n"
+                    "Set the %1 environment variable to its full path, or "
+                    "reinstall Flare so the folder is placed next to the "
+                    "executable (portablestuff) or under share/flare/stuff.")
+            .arg(QString::fromStdString(TEnv::getRootVarName())));
   else if (!TFileStatus(stuffDir).isDirectory())
     fatalError("Folder \"" + toQString(stuffDir) +
                "\" not found or not readable");

@@ -418,6 +418,91 @@ class XFLWriter:
         return xml
 
 
+def read_swf_header(swf_path: str) -> Optional[Dict]:
+    """Read a SWF file header.
+
+    Returns a dict with ``version``, ``compression`` ('none' | 'zlib' | 'lzma'),
+    ``width``/``height`` in pixels, ``frame_rate`` and ``frame_count``, or None
+    if the file is not a SWF. ``background_color`` comes from the
+    SetBackgroundColor tag when one is present, else Flash's white default.
+
+    The stage RECT is a bit-packed FIXED-length field in twips (1/20 px):
+    5 bits giving the width of each of the following four fields, then xmin,
+    xmax, ymin, ymax.  Frame rate is an 8.8 fixed-point value.
+    """
+    try:
+        with open(swf_path, 'rb') as f:
+            head = f.read(8)
+            if len(head) < 8:
+                return None
+            signature = head[:3]
+            if signature not in (b'FWS', b'CWS', b'ZWS'):
+                return None
+            version = head[3]
+            body = f.read()
+    except OSError:
+        return None
+
+    if signature == b'CWS':
+        compression = 'zlib'
+        try:
+            import zlib
+            body = zlib.decompress(body)
+        except Exception:
+            return None
+    elif signature == b'ZWS':
+        # LZMA-compressed SWF uses a non-standard container; callers decide how
+        # to handle it rather than guessing at a decode here.
+        return {'version': version, 'compression': 'lzma', 'width': 0,
+                'height': 0, 'frame_rate': 0.0, 'frame_count': 0,
+                'background_color': '#FFFFFF'}
+    else:
+        compression = 'none'
+
+    if not body:
+        return None
+
+    nbits = body[0] >> 3
+    total_bits = 5 + nbits * 4
+    rect_len = (total_bits + 7) // 8
+    if len(body) < rect_len + 4:
+        return None
+
+    bits = ''.join(f'{byte:08b}' for byte in body[:rect_len])
+    fields = [int(bits[5 + i * nbits:5 + (i + 1) * nbits] or '0', 2)
+              for i in range(4)]
+    xmin, xmax, ymin, ymax = fields
+    width = round((xmax - xmin) / 20)
+    height = round((ymax - ymin) / 20)
+
+    frame_rate = body[rect_len + 1] + body[rect_len] / 256.0
+    frame_count = int.from_bytes(body[rect_len + 2:rect_len + 4], 'little')
+
+    background_color = '#FFFFFF'
+    pos = rect_len + 4
+    while pos + 2 <= len(body):
+        code_and_length = int.from_bytes(body[pos:pos + 2], 'little')
+        tag_type = code_and_length >> 6
+        tag_length = code_and_length & 0x3F
+        pos += 2
+        if tag_length == 0x3F:
+            if pos + 4 > len(body):
+                break
+            tag_length = int.from_bytes(body[pos:pos + 4], 'little')
+            pos += 4
+        if tag_type == 0:  # End
+            break
+        if tag_type == 9 and tag_length >= 3:  # SetBackgroundColor
+            r, g, b = body[pos], body[pos + 1], body[pos + 2]
+            background_color = f'#{r:02X}{g:02X}{b:02X}'
+            break
+        pos += tag_length
+
+    return {'version': version, 'compression': compression, 'width': width,
+            'height': height, 'frame_rate': round(frame_rate, 3),
+            'frame_count': frame_count, 'background_color': background_color}
+
+
 def convert_swf_to_xfl(swf_path: str, xfl_output: str, use_jpexs: bool = True) -> bool:
     """Convert a SWF file to XFL format.
     
@@ -447,10 +532,28 @@ def convert_swf_to_xfl(swf_path: str, xfl_output: str, use_jpexs: bool = True) -
         except (FileNotFoundError, subprocess.TimeoutExpired):
             pass
     
-    # Fallback: create basic XFL structure
-    # This would require full SWF parsing - placeholder for now
-    print("Note: Full SWF->XFL conversion requires JPEXS decompiler or advanced SWF parsing")
-    return False
+    # Fallback: no decompiler available. Rebuilding shapes, symbols and
+    # timelines from SWF tags is JPEXS' job; what we can always do without it is
+    # read the SWF header and emit a valid, openable XFL whose document
+    # properties (stage size, frame rate, background colour) match the source,
+    # so the artwork can be re-imported into a correctly configured stage.
+    header = read_swf_header(swf_path)
+    if header is None:
+        print(f"Error: {swf_path} is not a readable SWF file")
+        return False
+    if header['compression'] == 'lzma':
+        print("Error: LZMA-compressed SWF (ZWS) is not supported by this "
+              "fallback; install JPEXS/ffdec to convert it")
+        return False
+
+    document = XFLDocument(width=header['width'], height=header['height'],
+                           frame_rate=header['frame_rate'],
+                           background_color=header['background_color'])
+    XFLWriter(xfl_output, document).write()
+    print(f"Note: wrote stage-only XFL ({header['width']}x{header['height']} @ "
+          f"{header['frame_rate']}fps, {header['frame_count']} frame(s)). "
+          "Install JPEXS/ffdec to also convert shapes, symbols and timelines.")
+    return True
 
 
 if __name__ == '__main__':

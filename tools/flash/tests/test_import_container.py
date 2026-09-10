@@ -945,3 +945,115 @@ def test_xfl_handler_symbol_with_drop_shadow_filter():
         assert flt.params.get("angle") == "45"
     finally:
         shutil.rmtree(td)
+
+
+# ---------------------------------------------------------------------------
+# SWF header parsing / SWF -> XFL fallback conversion
+# ---------------------------------------------------------------------------
+
+def _build_swf(width_px, height_px, fps, frames, bg=None, compress=False):
+    """Build an in-memory SWF with the given stage properties."""
+    import struct
+    import zlib as _zlib
+
+    xmax, ymax = width_px * 20, height_px * 20
+    nbits = max(xmax, ymax).bit_length() + 1
+    bits = f"{nbits:05b}" + "".join(f"{v:0{nbits}b}" for v in (0, xmax, 0, ymax))
+    bits += "0" * (-len(bits) % 8)
+    rect = bytes(int(bits[i:i + 8], 2) for i in range(0, len(bits), 8))
+
+    payload = rect + struct.pack("<HH", int(round(fps * 256)), frames)
+    if bg:
+        payload += struct.pack("<H", (9 << 6) | 3) + bytes(bg)
+    payload += struct.pack("<H", 0)  # End tag
+
+    length = 8 + len(payload)
+    if compress:
+        return b"CWS" + struct.pack("<BI", 9, length) + _zlib.compress(payload)
+    return b"FWS" + struct.pack("<BI", 9, length) + payload
+
+
+def test_read_swf_header_uncompressed_and_compressed():
+    sys.path.insert(0, os.path.abspath(os.path.join(
+        os.path.dirname(__file__), "..")))
+    from xfl_handler import read_swf_header
+
+    td = tempfile.mkdtemp()
+    try:
+        plain = os.path.join(td, "plain.swf")
+        with open(plain, "wb") as f:
+            f.write(_build_swf(550, 400, 24.0, 10))
+        h = read_swf_header(plain)
+        assert h["width"] == 550 and h["height"] == 400
+        assert h["frame_rate"] == 24.0
+        assert h["frame_count"] == 10
+        assert h["compression"] == "none"
+        assert h["background_color"] == "#FFFFFF"
+
+        packed = os.path.join(td, "packed.swf")
+        with open(packed, "wb") as f:
+            f.write(_build_swf(1920, 1080, 30.0, 300, bg=(0x12, 0x34, 0x56),
+                               compress=True))
+        h = read_swf_header(packed)
+        assert h["width"] == 1920 and h["height"] == 1080
+        assert h["frame_rate"] == 30.0
+        assert h["compression"] == "zlib"
+        assert h["background_color"] == "#123456"
+    finally:
+        shutil.rmtree(td)
+
+
+def test_read_swf_header_rejects_non_swf():
+    sys.path.insert(0, os.path.abspath(os.path.join(
+        os.path.dirname(__file__), "..")))
+    from xfl_handler import read_swf_header
+
+    td = tempfile.mkdtemp()
+    try:
+        junk = os.path.join(td, "junk.bin")
+        with open(junk, "wb") as f:
+            f.write(b"not a swf at all")
+        assert read_swf_header(junk) is None
+        assert read_swf_header(os.path.join(td, "missing.swf")) is None
+    finally:
+        shutil.rmtree(td)
+
+
+def test_convert_swf_to_xfl_fallback_writes_matching_stage():
+    """Without JPEXS the converter still emits a valid, correctly-sized XFL."""
+    sys.path.insert(0, os.path.abspath(os.path.join(
+        os.path.dirname(__file__), "..")))
+    from xfl_handler import XFLReader, convert_swf_to_xfl
+
+    td = tempfile.mkdtemp()
+    try:
+        swf = os.path.join(td, "in.swf")
+        with open(swf, "wb") as f:
+            f.write(_build_swf(640, 480, 12.0, 5, bg=(0x00, 0x00, 0x00)))
+        out = os.path.join(td, "out_xfl")
+        assert convert_swf_to_xfl(swf, out, use_jpexs=False) is True
+        assert os.path.isfile(os.path.join(out, "DOMDocument.xml"))
+
+        doc = XFLReader(out).read()
+        assert doc.width == 640
+        assert doc.height == 480
+        assert doc.frame_rate == 12.0
+        assert doc.background_color == "#000000"
+    finally:
+        shutil.rmtree(td)
+
+
+def test_convert_swf_to_xfl_fallback_rejects_non_swf():
+    sys.path.insert(0, os.path.abspath(os.path.join(
+        os.path.dirname(__file__), "..")))
+    from xfl_handler import convert_swf_to_xfl
+
+    td = tempfile.mkdtemp()
+    try:
+        junk = os.path.join(td, "junk.swf")
+        with open(junk, "wb") as f:
+            f.write(b"definitely not a swf")
+        assert convert_swf_to_xfl(junk, os.path.join(td, "out"),
+                                  use_jpexs=False) is False
+    finally:
+        shutil.rmtree(td)
