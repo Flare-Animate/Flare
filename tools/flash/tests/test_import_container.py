@@ -1057,3 +1057,50 @@ def test_convert_swf_to_xfl_fallback_rejects_non_swf():
                                   use_jpexs=False) is False
     finally:
         shutil.rmtree(td)
+
+
+def _build_swf_rect(xmin, xmax, ymin, ymax, fps=24.0, frames=1):
+    """Build a SWF whose stage RECT uses the given signed twip bounds."""
+    import struct
+
+    vals = (xmin, xmax, ymin, ymax)
+    nbits = max(abs(v).bit_length() for v in vals) + 2
+
+    def sb(v):
+        if v < 0:
+            v += 1 << nbits
+        return f"{v:0{nbits}b}"
+
+    bits = f"{nbits:05b}" + "".join(sb(v) for v in vals)
+    bits += "0" * (-len(bits) % 8)
+    rect = bytes(int(bits[i:i + 8], 2) for i in range(0, len(bits), 8))
+
+    payload = rect + struct.pack("<HH", int(round(fps * 256)), frames)
+    payload += struct.pack("<H", 0)  # End tag
+    return b"FWS" + struct.pack("<BI", 9, 8 + len(payload)) + payload
+
+
+def test_read_swf_header_decodes_negative_stage_origin():
+    """SWF RECT fields are signed (SB); a negative xmin/ymin is valid."""
+    sys.path.insert(0, os.path.abspath(os.path.join(
+        os.path.dirname(__file__), "..")))
+    from xfl_handler import read_swf_header
+
+    td = tempfile.mkdtemp()
+    try:
+        # Stage 550x400 px, but origin offset so xmin/ymin are negative.
+        swf = os.path.join(td, "neg.swf")
+        with open(swf, "wb") as f:
+            f.write(_build_swf_rect(-200 * 20, 350 * 20, -100 * 20, 300 * 20))
+        h = read_swf_header(swf)
+        assert h["width"] == 550, h
+        assert h["height"] == 400, h
+
+        # Fully symmetric stage centred on the origin.
+        swf2 = os.path.join(td, "centered.swf")
+        with open(swf2, "wb") as f:
+            f.write(_build_swf_rect(-4000, 4000, -2000, 2000))
+        h = read_swf_header(swf2)
+        assert h["width"] == 400 and h["height"] == 200, h
+    finally:
+        shutil.rmtree(td)

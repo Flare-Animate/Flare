@@ -469,7 +469,19 @@ def read_swf_header(swf_path: str) -> Optional[Dict]:
         return None
 
     bits = ''.join(f'{byte:08b}' for byte in body[:rect_len])
-    fields = [int(bits[5 + i * nbits:5 + (i + 1) * nbits] or '0', 2)
+
+    def _signed(field: str) -> int:
+        """Decode one SB[nbits] field: two's complement, most significant bit
+        is the sign. SWF stage bounds are signed, and xmin/ymin are legitimately
+        negative in files whose stage origin is not the top-left corner."""
+        if not field:
+            return 0
+        value = int(field, 2)
+        if field[0] == '1':
+            value -= 1 << len(field)
+        return value
+
+    fields = [_signed(bits[5 + i * nbits:5 + (i + 1) * nbits])
               for i in range(4)]
     xmin, xmax, ymin, ymax = fields
     width = round((xmax - xmin) / 20)

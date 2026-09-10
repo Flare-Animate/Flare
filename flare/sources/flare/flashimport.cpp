@@ -161,8 +161,11 @@ static bool extractZip(const QString &zipPath, const QString &outDir,
 
         QFileInfo info(fullOut);
 
-        if (entryName[nameLen - 1] == '/') {
-            // Directory entry
+        // Test the NORMALIZED name, not the raw buffer: Windows tools write
+        // directory entries with a trailing backslash, which entryStr has
+        // already turned into '/'. Checking the raw bytes would misclassify
+        // those as files and try to open a directory for writing.
+        if (entryStr.endsWith('/')) {
             QDir().mkpath(fullOut);
             dirCount++;
             continue;
@@ -186,11 +189,15 @@ static bool extractZip(const QString &zipPath, const QString &outDir,
         while ((n = unzReadCurrentFile(uf, buf, sizeof(buf))) > 0) {
             if (outFile.write(buf, n) != n) { writeOk = false; break; }
         }
-        // A negative return from unzReadCurrentFile is a CRC or inflate error,
-        // not end-of-entry: the file we just wrote is incomplete.
+        // A negative return from unzReadCurrentFile is an inflate error, not
+        // end-of-entry: the file we just wrote is incomplete.
         if (n < 0) writeOk = false;
         outFile.close();
-        unzCloseCurrentFile(uf);
+        // minizip validates the entry's CRC in unzCloseCurrentFile and reports
+        // a mismatch as UNZ_CRCERROR. Reads can reach EOF cleanly and still
+        // fail here, so a silently-corrupt entry only shows up in this return
+        // value — don't count it as extracted.
+        if (unzCloseCurrentFile(uf) != UNZ_OK) writeOk = false;
 
         if (writeOk) {
             extractedCount++;

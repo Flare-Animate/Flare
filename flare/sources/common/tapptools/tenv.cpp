@@ -28,6 +28,9 @@ TOfflineGL::Imp *MacOfflineGenerator1(const TDimension &dim) {
 
 #if defined(__linux__) && !defined(MACOSX)
 #include <unistd.h>  // readlink() for /proc/self/exe portable detection
+#elif defined(MACOSX)
+#include <mach-o/dyld.h>  // _NSGetExecutablePath() for bundle-relative lookup
+#include <cstdint>
 #endif
 
 using namespace TEnv;
@@ -141,20 +144,43 @@ public:
     std::vector<std::string> candidates;
 
     // 1. Relative to the executable: <prefix>/bin/Flare -> <prefix>/share/flare/stuff
-    std::string exeDir = getWorkingDirectory();
+    //
+    // This has to be the executable's OWN directory, which is NOT
+    // getWorkingDirectory(): that holds the process CWD (setWorkingDirectory()
+    // only replaces it with the executable's directory on Linux, and only when
+    // a sibling portablestuff/ was found). Deriving these candidates from the
+    // CWD would point them at wherever the user happened to launch from. We
+    // also cannot use QCoreApplication::applicationDirPath() — getStuffDir() is
+    // called before the QApplication exists. So resolve the real path per
+    // platform, and simply skip the executable-relative candidates when no
+    // platform call is available rather than substituting a wrong directory.
+    std::string exeDir;
 #if defined(__linux__) && !defined(MACOSX)
-    char exeBuf[4096];
-    ssize_t n = ::readlink("/proc/self/exe", exeBuf, sizeof(exeBuf) - 1);
-    if (n > 0) {
-      exeBuf[n]                    = '\0';
-      std::string exePath(exeBuf);
-      std::string::size_type slash = exePath.find_last_of('/');
-      if (slash != std::string::npos) exeDir = exePath.substr(0, slash);
+    {
+      char exeBuf[4096];
+      ssize_t n = ::readlink("/proc/self/exe", exeBuf, sizeof(exeBuf) - 1);
+      if (n > 0) {
+        exeBuf[n] = '\0';
+        exeDir    = exeBuf;
+      }
+    }
+#elif defined(MACOSX)
+    {
+      char     exeBuf[4096];
+      uint32_t size = sizeof(exeBuf);
+      // Returns 0 on success; the path may be non-canonical (symlinks, "..")
+      // but every candidate below is validated with isDirectory() anyway.
+      if (_NSGetExecutablePath(exeBuf, &size) == 0) exeDir = exeBuf;
     }
 #endif
     if (!exeDir.empty()) {
+      std::string::size_type slash = exeDir.find_last_of('/');
+      exeDir = (slash == std::string::npos) ? std::string() : exeDir.substr(0, slash);
+    }
+    if (!exeDir.empty()) {
       candidates.push_back(exeDir + "/../share/flare/stuff");
-      candidates.push_back(exeDir + "/../Resources/stuff");  // macOS bundle
+      // Flare.app/Contents/MacOS/Flare -> Flare.app/Contents/Resources/stuff
+      candidates.push_back(exeDir + "/../Resources/stuff");
       candidates.push_back(exeDir + "/stuff");
     }
 
