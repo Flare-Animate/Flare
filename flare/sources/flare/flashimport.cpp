@@ -95,27 +95,44 @@ static bool isPathUnderDir(const QString &dir, const QString &candidate) {
 }
 
 // Extract every entry of a ZIP archive to outDir using the bundled minizip.
-static bool extractZip(const QString &zipPath, const QString &outDir) {
-    unzFile uf = unzOpen(zipPath.toUtf8().constData());
-    if (!uf) return false;
+//
+// Uses minizip's 64-bit API throughout. Animate writes ZIP64 archives for large
+// FLAs (rig libraries with tens of thousands of entries, or >4 GB of media), and
+// the 32-bit unz_file_info/unzGetGlobalInfo pair truncates their offsets, sizes
+// and entry counts — the classic EOCD stores 0xFFFF when the real count does not
+// fit — so extraction silently stopped short on exactly the big shared rigs
+// users report trouble with (issues #47, #70).
+//
+// Iteration is driven by unzGoToFirstFile/unzGoToNextFile rather than by that
+// entry count, so a truncated or wrong count cannot cut extraction short either.
+// Returns true if at least one file entry was written; the number of entries
+// that could not be written is reported in failedEntries so the caller can tell
+// "nothing readable here" from "partially recovered".
+static bool extractZip(const QString &zipPath, const QString &outDir,
+                       int *failedEntries = nullptr) {
+    if (failedEntries) *failedEntries = 0;
 
-    unz_global_info gi;
-    if (unzGetGlobalInfo(uf, &gi) != UNZ_OK) { unzClose(uf); return false; }
+    unzFile uf = unzOpen64(zipPath.toUtf8().constData());
+    if (!uf) return false;
 
     char entryName[1024];   // larger buffer for deeply-nested paths
     char buf[16384];
 
-    for (uLong i = 0; i < gi.number_entry; i++) {
-        unz_file_info fi;
-        if (unzGetCurrentFileInfo(uf, &fi, entryName, sizeof(entryName),
-                                  nullptr, 0, nullptr, 0) != UNZ_OK)
-            break;
+    int extractedCount = 0;
+    int failedCount    = 0;
+    int dirCount       = 0;
 
-        size_t nameLen = strlen(entryName);
-        if (nameLen == 0) {
-            if (i + 1 < gi.number_entry) unzGoToNextFile(uf);
+    int nextStatus = unzGoToFirstFile(uf);
+    for (; nextStatus == UNZ_OK; nextStatus = unzGoToNextFile(uf)) {
+        unz_file_info64 fi;
+        if (unzGetCurrentFileInfo64(uf, &fi, entryName, sizeof(entryName),
+                                    nullptr, 0, nullptr, 0) != UNZ_OK) {
+            failedCount++;
             continue;
         }
+
+        size_t nameLen = strlen(entryName);
+        if (nameLen == 0) continue;
 
         QString entryStr = QString::fromUtf8(entryName);
 
@@ -132,13 +149,13 @@ static bool extractZip(const QString &zipPath, const QString &outDir) {
             entryStr.contains("../") || entryStr.contains("..\\") ||
             entryStr.endsWith("..") ||
             (entryStr.length() >= 2 && entryStr[1] == ':')) {
-            if (i + 1 < gi.number_entry) unzGoToNextFile(uf);
+            failedCount++;
             continue;
         }
 
         QString fullOut = outDir + "/" + entryStr;
         if (!isPathUnderDir(outDir, fullOut)) {
-            if (i + 1 < gi.number_entry) unzGoToNextFile(uf);
+            failedCount++;
             continue;
         }
 
@@ -147,24 +164,46 @@ static bool extractZip(const QString &zipPath, const QString &outDir) {
         if (entryName[nameLen - 1] == '/') {
             // Directory entry
             QDir().mkpath(fullOut);
-        } else {
-            QDir().mkpath(info.absolutePath());
-            if (unzOpenCurrentFile(uf) == UNZ_OK) {
-                QFile outFile(fullOut);
-                if (outFile.open(QIODevice::WriteOnly)) {
-                    int n;
-                    while ((n = unzReadCurrentFile(uf, buf, sizeof(buf))) > 0)
-                        outFile.write(buf, n);
-                    outFile.close();
-                }
-                unzCloseCurrentFile(uf);
-            }
+            dirCount++;
+            continue;
         }
 
-        if (i + 1 < gi.number_entry && unzGoToNextFile(uf) != UNZ_OK) break;
+        QDir().mkpath(info.absolutePath());
+        if (unzOpenCurrentFile(uf) != UNZ_OK) {
+            failedCount++;
+            continue;
+        }
+
+        QFile outFile(fullOut);
+        if (!outFile.open(QIODevice::WriteOnly)) {
+            unzCloseCurrentFile(uf);
+            failedCount++;
+            continue;
+        }
+
+        bool writeOk = true;
+        int  n;
+        while ((n = unzReadCurrentFile(uf, buf, sizeof(buf))) > 0) {
+            if (outFile.write(buf, n) != n) { writeOk = false; break; }
+        }
+        // A negative return from unzReadCurrentFile is a CRC or inflate error,
+        // not end-of-entry: the file we just wrote is incomplete.
+        if (n < 0) writeOk = false;
+        outFile.close();
+        unzCloseCurrentFile(uf);
+
+        if (writeOk) {
+            extractedCount++;
+        } else {
+            outFile.remove();
+            failedCount++;
+        }
     }
     unzClose(uf);
-    return true;
+
+    if (failedEntries) *failedEntries = failedCount;
+    // An archive of nothing but directory entries is still a successful read.
+    return extractedCount > 0 || (dirCount > 0 && failedCount == 0);
 }
 
 // Read the SWF file header and extract basic metadata.
@@ -1053,10 +1092,24 @@ void ImportFlashVectorCommand::execute() {
     } else if (ext == "fla" || ext == "swc" ||
                (ext == "xfl" && XFL::isFLAZipBased(fp))) {
 
-        if (!extractZip(srcPath, outPath)) {
-            DVGui::error(QObject::tr("Failed to extract archive (invalid/corrupt ZIP): %1").arg(srcPath));
+        int zipFailures = 0;
+        if (!extractZip(srcPath, outPath, &zipFailures)) {
+            DVGui::error(QObject::tr(
+                "Could not read anything from \"%1\".\n\n"
+                "The file is not a readable ZIP-based archive. If it is a .fla "
+                "saved by Flash CS4 or earlier, re-save it from Adobe Animate as "
+                "a CS5+ .fla or an uncompressed XFL folder; if it was downloaded, "
+                "the download may be incomplete.").arg(srcPath));
             return;
         }
+        // Partial recovery still imports: tell the user what was skipped instead
+        // of throwing away the entries that did read cleanly. Held aside and
+        // prepended below, because both branches below assign to `info`.
+        QString archiveWarning;
+        if (zipFailures > 0)
+            archiveWarning =
+                QObject::tr("%1 entr(ies) in the archive could not be read and "
+                            "were skipped.\n").arg(zipFailures);
 
         if (ext == "swc") {
             // SWC (Flex/Flash component library) format (Apache Flex SDK reference,
@@ -1181,6 +1234,7 @@ void ImportFlashVectorCommand::execute() {
                 while (it.hasNext()) { it.next(); exported << base.relativeFilePath(it.filePath()); }
             }
         }
+        if (!archiveWarning.isEmpty()) info = archiveWarning + info;
 
     // ---- XFL directory or .xfl marker file ----
     } else if (ext == "xfl" || QFileInfo(srcPath).isDir()) {
