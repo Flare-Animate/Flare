@@ -549,10 +549,11 @@ jobs:
               brew unlink "$qtpkg" 2>/dev/null || true
             done
           }
-          # Install everything except qt@5 first. opencv depends on Qt 6 and will
+          # Install everything except qt@5 first. opencv@4 depends on Qt 6 and will
           # link qtbase/qtsvg/qtdeclarative, so unlinking must happen AFTER it.
+          # opencv (unpinned) is 5.x which removed cv::getRotationMatrix2D; pin to @4.
           checkPkgAndInstall pkg-config glew lz4 libjpeg libpng lzo boost libusb libmypaint \
-            ccache jpeg-turbo ninja opencv openjph openexr
+            ccache jpeg-turbo ninja opencv@4 openjph openexr
           unlinkQt6
           checkPkgAndInstall qt@5
 
@@ -585,6 +586,7 @@ jobs:
             -DQT_PATH=$(brew --prefix qt@5)/lib \
             -DQt5_DIR=$(brew --prefix qt@5)/lib/cmake/Qt5 \
             -DCMAKE_PREFIX_PATH=$(brew --prefix qt@5)/lib/cmake/Qt5 \
+            -DOpenCV_DIR=$(brew --prefix opencv@4)/lib/cmake/opencv4 \
             -DWITH_TRANSLATION=OFF -DWITH_SYSTEM_LZO=ON -DWITH_LZODRIVER=OFF > cmake_configure.log 2>&1
           cat cmake_configure.log
           ninja -j $(sysctl -n hw.ncpu) 2>&1 | tee build.log
