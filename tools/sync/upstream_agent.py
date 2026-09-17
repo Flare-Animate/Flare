@@ -177,6 +177,18 @@ def save_state(state: dict) -> None:
     STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
     STATE_FILE.write_text(json.dumps(state, indent=2))
 
+def stage_state_file() -> bool:
+    """Stage the sync state so the last-synced SHAs travel with the PR.
+
+    save_state() only writes the file. Nothing ever staged it, so the state
+    never reached master and every scheduled run re-scanned the same ~20
+    upstream commits instead of resuming where the previous sync stopped.
+    """
+    if not STATE_FILE.exists():
+        return False
+    git(["add", "--", str(STATE_FILE.relative_to(REPO_ROOT))], check=False)
+    return True
+
 
 def compile_rules(extra: list[tuple[str, str, int]]) -> list[tuple[re.Pattern, str]]:
     rules = SHARED_REBRAND_RULES + extra
@@ -219,6 +231,29 @@ def rebrand_staged(compiled: list[tuple[re.Pattern, str]]) -> int:
 
 def is_flare_only(rel_path: str) -> bool:
     return rel_path.startswith(FLARE_ONLY_PREFIXES)
+
+
+def drop_flare_only_from_index() -> list[str]:
+    """Undo staged changes to paths Flare owns, restoring them to HEAD.
+
+    resolve_conflicts() already honours FLARE_ONLY_PREFIXES, but only for files
+    git reported as conflicted. An upstream commit that *adds* a file under one
+    of those prefixes cherry-picks cleanly and so never reaches that check — it
+    just lands in the sync commit. That is how upstream's .github/workflows/
+    files ended up in every sync branch, and GITHUB_TOKEN may not push workflow
+    changes at all, so the push (and the whole run) failed.
+    """
+    staged = git(["diff", "--cached", "--name-only"], capture=True).stdout
+    dropped = [f.strip() for f in staged.splitlines()
+               if f.strip() and is_flare_only(f.strip())]
+    for rel in dropped:
+        in_head = git(["cat-file", "-e", f"HEAD:{rel}"], check=False).returncode == 0
+        if in_head:
+            git(["checkout", "HEAD", "--", rel], check=False)
+        else:
+            # Added by upstream and absent from Flare — drop it entirely.
+            git(["rm", "-f", "-q", "--", rel], check=False)
+    return dropped
 
 
 def patch_fingerprint(sha: str) -> str:
@@ -319,6 +354,10 @@ def apply_commit(sha: str,
             print(f"    ⚠  unresolved: {unresolved}")
             git(["cherry-pick", "--abort"], check=False)
             return False
+    dropped = drop_flare_only_from_index()
+    if dropped:
+        print(f"    ⊘  kept Flare's own: {', '.join(dropped[:5])}"
+              + (f" (+{len(dropped) - 5} more)" if len(dropped) > 5 else ""))
     n = rebrand_staged(compiled)
     if n:
         print(f"    ✎  rebranded {n} file(s)")
@@ -399,6 +438,7 @@ def sync(sources: list[UpstreamSource], max_commits: int,
         staged = git(["diff", "--cached", "--name-only"],
                      capture=True).stdout.strip()
         if staged:
+            stage_state_file()
             msg = [f"Sync {len(all_applied)} commit(s) from upstream", ""]
             for key, c in all_applied:
                 msg.append(f"  [{key}] {c['sha'][:8]} {c['subject'][:60]}")
