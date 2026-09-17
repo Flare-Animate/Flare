@@ -332,7 +332,17 @@ static bool runTool(std::string &out, const char *const argv[]) {
 
 static bool addr2line(std::string &out, const char *exepath, const char *addr) {
 #ifdef MACOSX
-  const char *const argv[] = {"atos", "-o", exepath, addr, nullptr};
+  // -l is not optional. backtrace_symbols() reports the runtime PC, which
+  // includes the ASLR slide, while atos interprets a bare address relative to
+  // the image's *preferred* load address. Without telling it where the image
+  // actually landed, every lookup comes back "??" — a well-formed command that
+  // still symbolicates nothing. _dyld_get_image_header(0) is the main
+  // executable's real load address.
+  char loadAddr[32];
+  snprintf(loadAddr, sizeof(loadAddr), "%p",
+           (const void *)_dyld_get_image_header(0));
+  const char *const argv[] = {"atos", "-o", exepath, "-l", loadAddr, addr,
+                              nullptr};
 #else
   const char *const argv[] = {"addr2line", "-f", "-p", "-e", exepath, addr,
                               nullptr};
@@ -361,7 +371,11 @@ static void printBacktrace(std::string &out) {
   // Get executable path. /proc is Linux-only: on macOS the readlink() always
   // failed, exepath stayed empty, and addr2line() below then ran
   // `atos -o "" ...` against no binary at all.
-  char exepath[512];
+  // 4096, matching tenv.cpp: _NSGetExecutablePath() fails outright when the
+  // buffer is too small, so a 512-byte one would have made Flare installed
+  // under a long path look unresolvable and silently dropped every frame back
+  // to a raw symbol. macOS PATH_MAX is 1024, so this cannot now be too small.
+  char exepath[4096];
   memset(exepath, 0, sizeof(exepath));
 #ifdef MACOSX
   uint32_t exepathSize = sizeof(exepath);
