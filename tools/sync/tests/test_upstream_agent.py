@@ -4,6 +4,7 @@ Covers the protected-path guarantee the sync agent advertises: an upstream
 commit must never bring its own .github/ (or any other Flare-owned) file into
 the sync branch, whether or not that file conflicts.
 """
+import json
 import subprocess
 import sys
 from pathlib import Path
@@ -100,6 +101,30 @@ def test_readme_and_flare_dir_are_protected(repo):
 
     assert staged(repo) == ["toonz/sources/foo.cpp"]
     assert not (repo / "flare/sources/main.cpp").exists()
+
+
+def test_protected_only_run_still_records_progress(repo):
+    """A whole run whose commits touch only Flare-owned paths must still
+    persist last_synced_sha, or every later run re-scans the same commits.
+
+    Drives the real sync() against a local upstream remote, so the ordering of
+    stage_state_file() and the has-anything-to-commit test is what is checked.
+    """
+    base = git(repo, "rev-parse", "HEAD").stdout.strip()
+    write(repo, ".github/workflows/linux_build.yml", "name: OpenToonz Linux\n")
+    sha = upstream_commit(repo)
+
+    agent.save_state({"upstreams": {"ot": {"last_synced_sha": base}}})
+    src = agent.UpstreamSource(key="ot", remote="up", url=str(repo),
+                               branch="upstream")
+    assert agent.sync([src], max_commits=10, dry_run=False) == 0
+
+    state = json.loads(agent.STATE_FILE.read_text())
+    assert state["upstreams"]["ot"]["last_synced_sha"] == sha
+
+    committed = git(repo, "show", "--name-only", "--format=", "HEAD").stdout
+    assert ".github/state.json" in committed
+    assert "linux_build.yml" not in committed
 
 
 def test_state_file_is_staged_for_the_sync_commit(repo):

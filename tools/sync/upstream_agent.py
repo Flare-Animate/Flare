@@ -247,7 +247,10 @@ def drop_flare_only_from_index() -> list[str]:
     dropped = [f.strip() for f in staged.splitlines()
                if f.strip() and is_flare_only(f.strip())]
     for rel in dropped:
-        in_head = git(["cat-file", "-e", f"HEAD:{rel}"], check=False).returncode == 0
+        # capture=True only to swallow cat-file's "exists on disk, but not in
+        # 'HEAD'" note — that is the expected answer for an upstream addition.
+        in_head = git(["cat-file", "-e", f"HEAD:{rel}"],
+                      check=False, capture=True).returncode == 0
         if in_head:
             git(["checkout", "HEAD", "--", rel], check=False)
         else:
@@ -435,10 +438,14 @@ def sync(sources: list[UpstreamSource], max_commits: int,
 
     # Final commit
     if not dry_run and all_applied:
+        # Staged before the has-anything-to-commit test on purpose: when every
+        # applied commit turned out to touch only Flare-owned paths there is no
+        # content left, and skipping the commit would throw away the progress
+        # those commits represent — the next run would re-scan them forever.
+        stage_state_file()
         staged = git(["diff", "--cached", "--name-only"],
                      capture=True).stdout.strip()
         if staged:
-            stage_state_file()
             msg = [f"Sync {len(all_applied)} commit(s) from upstream", ""]
             for key, c in all_applied:
                 msg.append(f"  [{key}] {c['sha'][:8]} {c['subject'][:60]}")
