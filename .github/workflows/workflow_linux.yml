@@ -337,7 +337,7 @@ jobs:
           EXIT=$?
           set -e
         fi
-        kill $XVFB_PID 2>/dev/null || true
+        kill "$XVFB_PID" 2>/dev/null || true
 
         case "$EXIT" in
           alive) echo "SMOKE TEST PASS: Flare ran 8+ seconds without crashing" | tee -a "$SMOKE_LOG" ;;
