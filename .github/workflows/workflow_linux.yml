@@ -317,33 +317,36 @@ jobs:
         # dynamic linker, was recorded as "exited with code 0". Redirecting to
         # the log instead of piping makes $! the app's own PID.
         #
-        # Deliberately not using `timeout`: it is GNU coreutils and is absent
-        # from the macOS runners, where the equivalent step silently never ran
-        # the app at all. Same hand-rolled wait on both so neither can rot.
+        # A watchdog plus `wait`, rather than polling with `kill -0`: a child
+        # that has exited but not yet been reaped is a zombie, and `kill -0`
+        # succeeds on a zombie, so polling can report an immediate crash as
+        # "still running". `wait` is the authoritative answer — it reaps the
+        # child and yields its real status — and the watchdog supplies the time
+        # limit that `timeout` would (GNU coreutils; absent on macOS runners,
+        # where the equivalent step silently never ran the app at all).
         "$BINARY" >>"$SMOKE_LOG" 2>&1 &
         APP_PID=$!
-        for _ in 1 2 3 4 5 6 7 8; do
-          kill -0 "$APP_PID" 2>/dev/null || break
-          sleep 1
-        done
+        ( sleep 8
+          kill -TERM "$APP_PID" 2>/dev/null
+          sleep 2
+          kill -KILL "$APP_PID" 2>/dev/null ) &
+        WATCHDOG_PID=$!
 
-        if kill -0 "$APP_PID" 2>/dev/null; then
-          kill "$APP_PID" 2>/dev/null
-          wait "$APP_PID" 2>/dev/null || true
-          EXIT=alive
-        else
-          set +e
-          wait "$APP_PID"
-          EXIT=$?
-          set -e
-        fi
+        set +e
+        wait "$APP_PID"
+        EXIT=$?
+        set -e
+        kill "$WATCHDOG_PID" 2>/dev/null || true
+        wait "$WATCHDOG_PID" 2>/dev/null || true
         kill "$XVFB_PID" 2>/dev/null || true
 
+        # 143 = SIGTERM, 137 = SIGKILL: our watchdog fired, so the app was still
+        # running at the end of the window. That is the pass we want.
         case "$EXIT" in
-          alive) echo "SMOKE TEST PASS: Flare ran 8+ seconds without crashing" | tee -a "$SMOKE_LOG" ;;
-          0)     echo "SMOKE TEST PASS: Flare exited cleanly" | tee -a "$SMOKE_LOG" ;;
-          *)     echo "SMOKE TEST FAIL: Flare exited with code $EXIT (crash, or a library it could not load)" | tee -a "$SMOKE_LOG"
-                 exit 1 ;;
+          143|137) echo "SMOKE TEST PASS: Flare ran 8+ seconds without crashing" | tee -a "$SMOKE_LOG" ;;
+          0)       echo "SMOKE TEST PASS: Flare exited cleanly" | tee -a "$SMOKE_LOG" ;;
+          *)       echo "SMOKE TEST FAIL: Flare exited with code $EXIT (crash, or a library it could not load)" | tee -a "$SMOKE_LOG"
+                   exit 1 ;;
         esac
 
     - name: Upload smoke test log

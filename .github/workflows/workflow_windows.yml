@@ -434,23 +434,39 @@ jobs:
             try {
               if (-not $dumpbin) { throw "dumpbin could not be located via PATH or vswhere" }
               $dumpout = & $dumpbin /DEPENDENTS FlarePortable\Flare.exe 2>&1
+              # A native command that fails does NOT throw in PowerShell, so
+              # without this the error text would flow on, yield an empty
+              # $needed, and log "all dependencies accounted for" having checked
+              # nothing at all.
+              if ($LASTEXITCODE -ne 0) { throw "dumpbin exited $LASTEXITCODE`: $dumpout" }
               $needed  = $dumpout | Select-String '\.dll' |
                          ForEach-Object { ($_ -replace '^\s+','').Trim() } |
                          Where-Object { $_ -ne '' }
+              if (-not $needed) { throw "dumpbin produced no DLL dependency lines" }
               $needed | ForEach-Object { $log.Add("  needs: $_") }
               $log.Add("")
               $log.Add("--- Checking direct deps are present ---")
+              # Resolve against real directories. Get-Command was used here
+              # before and cannot work: .dll is not in PATHEXT, so it finds no
+              # DLL at all — KERNEL32.dll and every other system import would
+              # have been reported missing the moment dumpbin started running.
+              $searchDirs = @("FlarePortable", "$env:SystemRoot\System32", "$env:SystemRoot") +
+                            ($env:Path -split ';' | Where-Object { $_ -and (Test-Path $_) })
               $missing = @()
               foreach ($dll in $needed) {
                 $name = [System.IO.Path]::GetFileName($dll)
-                $inPackage = Test-Path "FlarePortable\$name"
-                $inSystem  = $null -ne (Get-Command $name -ErrorAction SilentlyContinue)
-                if (-not $inPackage -and -not $inSystem) { $missing += $name }
-                $log.Add("  $name -> package=$inPackage  system=$inSystem")
+                $inPackage = Test-Path (Join-Path "FlarePortable" $name)
+                $where = $null
+                foreach ($d in $searchDirs) {
+                  $candidate = Join-Path $d $name
+                  if (Test-Path $candidate) { $where = $candidate; break }
+                }
+                if (-not $where) { $missing += $name }
+                $log.Add("  $name -> package=$inPackage  found=$(if ($where) { $where } else { 'NO' })")
               }
               if ($missing.Count -gt 0) {
                 $log.Add("")
-                $log.Add("SMOKE TEST FAIL: These DLLs are neither in FlarePortable nor system PATH:")
+                $log.Add("SMOKE TEST FAIL: These DLLs are in neither FlarePortable, System32, nor any PATH directory:")
                 $missing | ForEach-Object { $log.Add("  MISSING: $_") }
                 $failed = $true
               } else {
