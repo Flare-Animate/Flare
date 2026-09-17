@@ -265,7 +265,9 @@ jobs:
         tar zcf ${ARTIFACT_NAME}.tar.gz ${ARTIFACT_NAME} || true
 
     - name: Smoke Test – verify binary launches (headless)
-      if: always()
+      # success(), not always(): after a failed build there is no binary, and a
+      # "not found" result then says nothing about whether Flare launches.
+      if: success()
       run: |
         SMOKE_LOG="flare/build/smoke_test.log"
         mkdir -p "$(dirname "$SMOKE_LOG")"
@@ -274,10 +276,15 @@ jobs:
         # Install Xvfb for a headless display
         sudo apt-get install -y --no-install-recommends xvfb 2>&1 | tail -5
 
-        # Find the installed binary (ninja install puts it under /opt/flare)
+        # Find the installed entry point (ninja install puts it under /opt/flare).
+        # The lowercase 'flare' is the generated launcher script and is what must
+        # be tested: the shared libraries install to <prefix>/lib/flare, which is
+        # not on the default loader path, and the launcher is what exports
+        # LD_LIBRARY_PATH before exec'ing the uppercase 'Flare' ELF. Probing the
+        # ELF first made this step fail on libcolorfx.so on every single run.
         BINARY=""
-        for candidate in /opt/flare/bin/Flare /opt/flare/bin/flare \
-                         /usr/local/bin/Flare /usr/local/bin/flare; do
+        for candidate in /opt/flare/bin/flare /opt/flare/bin/Flare \
+                         /usr/local/bin/flare /usr/local/bin/Flare; do
           if [ -x "$candidate" ]; then BINARY="$candidate"; break; fi
         done
 
@@ -291,34 +298,53 @@ jobs:
         fi
 
         if [ -z "$BINARY" ]; then
-          echo "SMOKE TEST SKIP: No Flare binary or AppImage found" | tee -a "$SMOKE_LOG"
-        else
-          echo "Testing: $BINARY" | tee -a "$SMOKE_LOG"
-
-          # Start a virtual display
-          Xvfb :99 -screen 0 1280x720x24 &
-          XVFB_PID=$!
-          export DISPLAY=:99
-          sleep 1
-
-          # Launch with 8-second timeout; capture stderr
-          timeout 8 "$BINARY" 2>&1 | tee -a "$SMOKE_LOG" &
-          APP_PID=$!
-          sleep 8
-
-          if kill -0 $APP_PID 2>/dev/null; then
-            kill $APP_PID 2>/dev/null
-            echo "SMOKE TEST PASS: Flare ran 8+ seconds without crashing" | tee -a "$SMOKE_LOG"
-          else
-            wait $APP_PID 2>/dev/null
-            EXIT=$?
-            echo "SMOKE TEST: Flare exited with code $EXIT" | tee -a "$SMOKE_LOG"
-            if [ $EXIT -ne 0 ] && [ $EXIT -ne 124 ]; then
-              echo "SMOKE TEST WARN: Non-zero exit code $EXIT (may indicate missing library or crash)" | tee -a "$SMOKE_LOG"
-            fi
-          fi
-          kill $XVFB_PID 2>/dev/null || true
+          echo "SMOKE TEST FAIL: No Flare binary or AppImage found after a successful build" | tee -a "$SMOKE_LOG"
+          exit 1
         fi
+
+        echo "Testing: $BINARY" | tee -a "$SMOKE_LOG"
+
+        # Start a virtual display
+        Xvfb :99 -screen 0 1280x720x24 &
+        XVFB_PID=$!
+        export DISPLAY=:99
+        sleep 1
+
+        # Background the binary DIRECTLY — not through a pipe. The previous
+        # version piped into tee and captured $!, which in bash is the PID of a
+        # pipeline's LAST element (tee), not the app; `wait` therefore returned
+        # tee's status and every launch, including a binary that died in the
+        # dynamic linker, was recorded as "exited with code 0". Redirecting to
+        # the log instead of piping makes $! the app's own PID.
+        #
+        # Deliberately not using `timeout`: it is GNU coreutils and is absent
+        # from the macOS runners, where the equivalent step silently never ran
+        # the app at all. Same hand-rolled wait on both so neither can rot.
+        "$BINARY" >>"$SMOKE_LOG" 2>&1 &
+        APP_PID=$!
+        for _ in 1 2 3 4 5 6 7 8; do
+          kill -0 "$APP_PID" 2>/dev/null || break
+          sleep 1
+        done
+
+        if kill -0 "$APP_PID" 2>/dev/null; then
+          kill "$APP_PID" 2>/dev/null
+          wait "$APP_PID" 2>/dev/null || true
+          EXIT=alive
+        else
+          set +e
+          wait "$APP_PID"
+          EXIT=$?
+          set -e
+        fi
+        kill $XVFB_PID 2>/dev/null || true
+
+        case "$EXIT" in
+          alive) echo "SMOKE TEST PASS: Flare ran 8+ seconds without crashing" | tee -a "$SMOKE_LOG" ;;
+          0)     echo "SMOKE TEST PASS: Flare exited cleanly" | tee -a "$SMOKE_LOG" ;;
+          *)     echo "SMOKE TEST FAIL: Flare exited with code $EXIT (crash, or a library it could not load)" | tee -a "$SMOKE_LOG"
+                 exit 1 ;;
+        esac
 
     - name: Upload smoke test log
       if: always()

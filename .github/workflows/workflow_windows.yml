@@ -382,12 +382,19 @@ jobs:
         shell: cmd
 
       - name: Smoke Test – DLL dependency check + launch test
-        if: always()
+        # success(), not always(): after a failed build there is no Flare.exe, and
+        # a "not found" result then says nothing about whether Flare launches.
+        if: success()
         shell: pwsh
         run: |
           $log = [System.Collections.Generic.List[string]]::new()
           $log.Add("=== Windows Smoke Test ===")
           $log.Add("")
+          # Every failure below sets this. The log is written and echoed first,
+          # then the step exits non-zero — previously each of these was only a
+          # log line, so a Flare.exe that died with STATUS_DLL_NOT_FOUND still
+          # produced a green check.
+          $failed = $false
 
           # --- Static analysis: list all DLLs present in FlarePortable ---
           $log.Add("--- DLLs present in FlarePortable (root) ---")
@@ -402,10 +409,31 @@ jobs:
           # --- dumpbin: direct dependencies of Flare.exe ---
           $log.Add("--- dumpbin /DEPENDENTS FlarePortable\Flare.exe ---")
           if (-not (Test-Path "FlarePortable\Flare.exe")) {
-            $log.Add("SKIP: FlarePortable\Flare.exe not found; skipping dependency check.")
+            $log.Add("SMOKE TEST FAIL: FlarePortable\Flare.exe not found after a successful build.")
+            $failed = $true
           } else {
+            # pwsh does not inherit the Visual Studio developer environment, so
+            # `dumpbin` was never on PATH and this whole check silently did
+            # nothing on every run ("dumpbin not recognized", caught and logged).
+            # Resolve it through vswhere, which is present on every GitHub
+            # Windows runner.
+            $dumpbin = (Get-Command dumpbin -ErrorAction SilentlyContinue).Source
+            if (-not $dumpbin) {
+              $vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\Installer\vswhere.exe'
+              if (Test-Path $vswhere) {
+                $vsRoot = & $vswhere -latest -products * -property installationPath
+                if ($vsRoot) {
+                  $dumpbin = Get-ChildItem -Path (Join-Path $vsRoot 'VC\Tools\MSVC') `
+                                           -Filter dumpbin.exe -Recurse -ErrorAction SilentlyContinue |
+                             Where-Object { $_.FullName -match 'Hostx64\\x64' } |
+                             Select-Object -First 1 -ExpandProperty FullName
+                }
+              }
+            }
+            if ($dumpbin) { $log.Add("using dumpbin: $dumpbin") }
             try {
-              $dumpout = & dumpbin /DEPENDENTS FlarePortable\Flare.exe 2>&1
+              if (-not $dumpbin) { throw "dumpbin could not be located via PATH or vswhere" }
+              $dumpout = & $dumpbin /DEPENDENTS FlarePortable\Flare.exe 2>&1
               $needed  = $dumpout | Select-String '\.dll' |
                          ForEach-Object { ($_ -replace '^\s+','').Trim() } |
                          Where-Object { $_ -ne '' }
@@ -422,14 +450,18 @@ jobs:
               }
               if ($missing.Count -gt 0) {
                 $log.Add("")
-                $log.Add("SMOKE TEST WARN: These DLLs are neither in FlarePortable nor system PATH:")
+                $log.Add("SMOKE TEST FAIL: These DLLs are neither in FlarePortable nor system PATH:")
                 $missing | ForEach-Object { $log.Add("  MISSING: $_") }
+                $failed = $true
               } else {
                 $log.Add("")
                 $log.Add("SMOKE TEST OK: All direct DLL dependencies accounted for.")
               }
             } catch {
-              $log.Add("dumpbin not available or failed: $_")
+              # Not a build defect, so not $failed — but say plainly that the
+              # dependency check did NOT run, rather than implying it passed.
+              $log.Add("SMOKE TEST SKIPPED (dependency check only): $_")
+              $log.Add("The runtime launch test below is the authoritative check.")
             }
           }
           $log.Add("")
@@ -444,7 +476,8 @@ jobs:
 
           $exePath = "$PWD\FlarePortable\Flare.exe"
           if (-not (Test-Path $exePath)) {
-            $log.Add("SMOKE TEST SKIP: Flare.exe not found at $exePath")
+            $log.Add("SMOKE TEST FAIL: Flare.exe not found at $exePath")
+            $failed = $true
           } else {
             try {
               $psi = New-Object System.Diagnostics.ProcessStartInfo
@@ -462,21 +495,24 @@ jobs:
                 $hex  = "0x{0:X8}" -f ($raw -band 0xFFFFFFFF)
                 $log.Add("Flare.exe exited quickly: code=$raw ($hex)")
                 switch ($raw -band 0xFFFFFFFF) {
-                  0xC0000135 { $log.Add("SMOKE TEST FAIL: STATUS_DLL_NOT_FOUND – a required DLL is missing from FlarePortable") }
-                  0xC000007B { $log.Add("SMOKE TEST FAIL: STATUS_INVALID_IMAGE_FORMAT – wrong-bitness DLL loaded") }
-                  0xC0000034 { $log.Add("SMOKE TEST WARN: STATUS_OBJECT_NAME_NOT_FOUND") }
+                  0xC0000135 { $log.Add("SMOKE TEST FAIL: STATUS_DLL_NOT_FOUND – a required DLL is missing from FlarePortable"); $failed = $true }
+                  0xC000007B { $log.Add("SMOKE TEST FAIL: STATUS_INVALID_IMAGE_FORMAT – wrong-bitness DLL loaded"); $failed = $true }
+                  0xC0000034 { $log.Add("SMOKE TEST FAIL: STATUS_OBJECT_NAME_NOT_FOUND – a file Flare.exe opened at startup is missing"); $failed = $true }
                   0x00000000 { $log.Add("SMOKE TEST OK: Exited cleanly (exit 0)") }
-                  default    { $log.Add("SMOKE TEST NOTE: Exited with code $hex (may be expected for headless run)") }
+                  default    { $log.Add("SMOKE TEST FAIL: Exited with code $hex before the 8s window elapsed"); $failed = $true }
                 }
               }
             } catch {
-              $log.Add("SMOKE TEST ERROR: Could not launch Flare.exe – $_")
+              $log.Add("SMOKE TEST FAIL: Could not launch Flare.exe – $_")
+              $failed = $true
             }
           }
 
-          # Write log and echo it
+          # Write log and echo it BEFORE failing, so the PR comment and the
+          # uploaded artifact still show why.
           $log | Out-File -FilePath smoke_test.log -Encoding utf8
           Write-Host ($log -join "`n")
+          if ($failed) { exit 1 }
 
       - name: Upload smoke test log
         if: always()

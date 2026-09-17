@@ -285,7 +285,9 @@ jobs:
           fi
 
       - name: Smoke Test – verify app launches (headless)
-        if: always()
+        # success(), not always(): after a failed build there is no bundle, and a
+        # "not found" result then says nothing about whether Flare launches.
+        if: success()
         run: |
           SMOKE_LOG="flare/build/smoke_test.log"
           mkdir -p "$(dirname "$SMOKE_LOG")"
@@ -299,7 +301,8 @@ jobs:
           fi
 
           if [ -z "$APP_BINARY" ] || [ ! -f "$APP_BINARY" ]; then
-            echo "SMOKE TEST SKIP: Flare binary not found" | tee -a "$SMOKE_LOG"
+            echo "SMOKE TEST FAIL: Flare binary not found after a successful build" | tee -a "$SMOKE_LOG"
+            exit 1
           else
             echo "Testing: $APP_BINARY" | tee -a "$SMOKE_LOG"
             echo "--- ldd / otool -L output (direct dependencies) ---" | tee -a "$SMOKE_LOG"
@@ -321,24 +324,46 @@ jobs:
             done < <(otool -L "$APP_BINARY" 2>/dev/null | tail -n +2)
             if [ $MISSING -eq 0 ]; then
               echo "SMOKE TEST OK: All direct dylib references resolved" | tee -a "$SMOKE_LOG"
+            else
+              echo "SMOKE TEST FAIL: $MISSING dylib reference(s) could not be resolved" | tee -a "$SMOKE_LOG"
+              exit 1
             fi
             echo "" | tee -a "$SMOKE_LOG"
 
-            # Runtime launch test with 8-second timeout (macOS CI has a display)
-            echo "--- Runtime launch test (8-second timeout) ---" | tee -a "$SMOKE_LOG"
-            timeout 8 "$APP_BINARY" 2>&1 | tee -a "$SMOKE_LOG" &
+            # Runtime launch test, 8-second window (macOS CI has a display).
+            #
+            # No `timeout` here: it is GNU coreutils and is NOT present on the
+            # macOS runners. The previous version called it anyway, so this step
+            # died with "timeout: command not found" and then reported "exited
+            # with code 0" — the app was never launched on macOS at all.
+            #
+            # Background the binary directly rather than through a pipe, so $!
+            # is the app's PID and not tee's (the old bug on both platforms).
+            echo "--- Runtime launch test (8-second window) ---" | tee -a "$SMOKE_LOG"
+            "$APP_BINARY" >>"$SMOKE_LOG" 2>&1 &
             APP_PID=$!
-            sleep 8
-            if kill -0 $APP_PID 2>/dev/null; then
-              kill $APP_PID 2>/dev/null
-              echo "SMOKE TEST PASS: Flare ran 8+ seconds without crashing" | tee -a "$SMOKE_LOG"
+            for _ in 1 2 3 4 5 6 7 8; do
+              kill -0 "$APP_PID" 2>/dev/null || break
+              sleep 1
+            done
+
+            if kill -0 "$APP_PID" 2>/dev/null; then
+              kill "$APP_PID" 2>/dev/null
+              wait "$APP_PID" 2>/dev/null || true
+              EXIT=alive
             else
-              wait $APP_PID 2>/dev/null; EXIT=$?
-              echo "SMOKE TEST: Flare exited with code $EXIT" | tee -a "$SMOKE_LOG"
-              if [ $EXIT -ne 0 ] && [ $EXIT -ne 124 ]; then
-                echo "SMOKE TEST WARN: Non-zero exit code $EXIT" | tee -a "$SMOKE_LOG"
-              fi
+              set +e
+              wait "$APP_PID"
+              EXIT=$?
+              set -e
             fi
+
+            case "$EXIT" in
+              alive) echo "SMOKE TEST PASS: Flare ran 8+ seconds without crashing" | tee -a "$SMOKE_LOG" ;;
+              0)     echo "SMOKE TEST PASS: Flare exited cleanly" | tee -a "$SMOKE_LOG" ;;
+              *)     echo "SMOKE TEST FAIL: Flare exited with code $EXIT" | tee -a "$SMOKE_LOG"
+                     exit 1 ;;
+            esac
           fi
 
       - name: Upload smoke test log
