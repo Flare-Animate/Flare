@@ -285,7 +285,9 @@ jobs:
           fi
 
       - name: Smoke Test – verify app launches (headless)
-        if: always()
+        # success(), not always(): after a failed build there is no bundle, and a
+        # "not found" result then says nothing about whether Flare launches.
+        if: success()
         run: |
           SMOKE_LOG="flare/build/smoke_test.log"
           mkdir -p "$(dirname "$SMOKE_LOG")"
@@ -299,46 +301,85 @@ jobs:
           fi
 
           if [ -z "$APP_BINARY" ] || [ ! -f "$APP_BINARY" ]; then
-            echo "SMOKE TEST SKIP: Flare binary not found" | tee -a "$SMOKE_LOG"
+            echo "SMOKE TEST FAIL: Flare binary not found after a successful build" | tee -a "$SMOKE_LOG"
+            exit 1
           else
             echo "Testing: $APP_BINARY" | tee -a "$SMOKE_LOG"
             echo "--- ldd / otool -L output (direct dependencies) ---" | tee -a "$SMOKE_LOG"
             otool -L "$APP_BINARY" 2>&1 | tee -a "$SMOKE_LOG"
             echo "" | tee -a "$SMOKE_LOG"
 
-            # Check for broken @rpath / @executable_path references
+            # For the main executable both @executable_path and @loader_path
+            # resolve to its own directory, so those CAN be checked — the old
+            # loop skipped them along with @rpath, which meant a missing
+            # bundled dylib still counted as "all references resolved".
+            # @rpath genuinely needs the LC_RPATH entries to resolve, so it is
+            # still skipped, and the OK message no longer claims otherwise; the
+            # runtime launch test below is what covers those.
+            BIN_DIR=$(dirname "$APP_BINARY")
             echo "--- Checking for missing dylibs ---" | tee -a "$SMOKE_LOG"
             MISSING=0
+            SKIPPED_RPATH=0
             while IFS= read -r line; do
               lib=$(echo "$line" | awk '{print $1}')
+              [ -n "$lib" ] || continue
               case "$lib" in
-                /usr/*|/System/*|@executable_path/*|@rpath/*|@loader_path/*) continue ;;
-                *) if [ -n "$lib" ] && [ ! -f "$lib" ]; then
-                     echo "  MISSING: $lib" | tee -a "$SMOKE_LOG"
-                     MISSING=$((MISSING+1))
-                   fi ;;
+                /usr/*|/System/*) continue ;;
+                @rpath/*) SKIPPED_RPATH=$((SKIPPED_RPATH+1)); continue ;;
+                @executable_path/*|@loader_path/*)
+                  resolved="$BIN_DIR/${lib#@*path/}" ;;
+                *) resolved="$lib" ;;
               esac
+              if [ ! -f "$resolved" ]; then
+                echo "  MISSING: $lib -> $resolved" | tee -a "$SMOKE_LOG"
+                MISSING=$((MISSING+1))
+              fi
             done < <(otool -L "$APP_BINARY" 2>/dev/null | tail -n +2)
             if [ $MISSING -eq 0 ]; then
-              echo "SMOKE TEST OK: All direct dylib references resolved" | tee -a "$SMOKE_LOG"
+              echo "SMOKE TEST OK: absolute and @executable_path/@loader_path dylibs resolved ($SKIPPED_RPATH @rpath entries not checked here)" | tee -a "$SMOKE_LOG"
+            else
+              echo "SMOKE TEST FAIL: $MISSING dylib reference(s) could not be resolved" | tee -a "$SMOKE_LOG"
+              exit 1
             fi
             echo "" | tee -a "$SMOKE_LOG"
 
-            # Runtime launch test with 8-second timeout (macOS CI has a display)
-            echo "--- Runtime launch test (8-second timeout) ---" | tee -a "$SMOKE_LOG"
-            timeout 8 "$APP_BINARY" 2>&1 | tee -a "$SMOKE_LOG" &
+            # Runtime launch test, 8-second window (macOS CI has a display).
+            #
+            # No `timeout` here: it is GNU coreutils and is NOT present on the
+            # macOS runners. The previous version called it anyway, so this step
+            # died with "timeout: command not found" and then reported "exited
+            # with code 0" — the app was never launched on macOS at all.
+            #
+            # Background the binary directly rather than through a pipe, so $!
+            # is the app's PID and not tee's (the old bug on both platforms),
+            # then a watchdog plus `wait` rather than polling with `kill -0`:
+            # `kill -0` succeeds on a not-yet-reaped zombie, so polling can
+            # report an immediate crash as "still running". Identical to the
+            # Linux job.
+            echo "--- Runtime launch test (8-second window) ---" | tee -a "$SMOKE_LOG"
+            "$APP_BINARY" >>"$SMOKE_LOG" 2>&1 &
             APP_PID=$!
-            sleep 8
-            if kill -0 $APP_PID 2>/dev/null; then
-              kill $APP_PID 2>/dev/null
-              echo "SMOKE TEST PASS: Flare ran 8+ seconds without crashing" | tee -a "$SMOKE_LOG"
-            else
-              wait $APP_PID 2>/dev/null; EXIT=$?
-              echo "SMOKE TEST: Flare exited with code $EXIT" | tee -a "$SMOKE_LOG"
-              if [ $EXIT -ne 0 ] && [ $EXIT -ne 124 ]; then
-                echo "SMOKE TEST WARN: Non-zero exit code $EXIT" | tee -a "$SMOKE_LOG"
-              fi
-            fi
+            ( sleep 8
+              kill -TERM "$APP_PID" 2>/dev/null
+              sleep 2
+              kill -KILL "$APP_PID" 2>/dev/null ) &
+            WATCHDOG_PID=$!
+
+            set +e
+            wait "$APP_PID"
+            EXIT=$?
+            set -e
+            kill "$WATCHDOG_PID" 2>/dev/null || true
+            wait "$WATCHDOG_PID" 2>/dev/null || true
+
+            # 143 = SIGTERM, 137 = SIGKILL: the watchdog fired, so the app was
+            # still running at the end of the window.
+            case "$EXIT" in
+              143|137) echo "SMOKE TEST PASS: Flare ran 8+ seconds without crashing" | tee -a "$SMOKE_LOG" ;;
+              0)       echo "SMOKE TEST PASS: Flare exited cleanly" | tee -a "$SMOKE_LOG" ;;
+              *)       echo "SMOKE TEST FAIL: Flare exited with code $EXIT" | tee -a "$SMOKE_LOG"
+                       exit 1 ;;
+            esac
           fi
 
       - name: Upload smoke test log
