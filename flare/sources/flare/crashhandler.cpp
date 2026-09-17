@@ -14,6 +14,10 @@
 #include <unistd.h>
 #include <err.h>
 #include <regex>
+#ifdef MACOSX
+#include <mach-o/dyld.h>  // _NSGetExecutablePath(); /proc does not exist here
+#include <cstdint>
+#endif
 #endif
 
 #include "tgl.h"
@@ -314,16 +318,44 @@ static void printBacktrace(std::string &out) {
   const int size = 256;
   void *buffer[size];
 
-  // Get executable path
+  // Get executable path. /proc is Linux-only: on macOS the readlink() always
+  // failed, exepath stayed empty, and addr2line() below then ran
+  // `atos -o "" ...` against no binary at all.
   char exepath[512];
-  memset(exepath, 0, 512);
-  if (readlink("/proc/self/exe", exepath, 512) < 0)
+  memset(exepath, 0, sizeof(exepath));
+#ifdef MACOSX
+  uint32_t exepathSize = sizeof(exepath);
+  if (_NSGetExecutablePath(exepath, &exepathSize) != 0) {
+    exepath[0] = '\0';
     fprintf(stderr, "Couldn't get exe path\n");
+  }
+#else
+  // readlink() does not NUL-terminate, so leave room and terminate by hand.
+  ssize_t exepathLen = readlink("/proc/self/exe", exepath, sizeof(exepath) - 1);
+  if (exepathLen < 0) {
+    exepath[0] = '\0';
+    fprintf(stderr, "Couldn't get exe path\n");
+  } else {
+    exepath[exepathLen] = '\0';
+  }
+#endif
 
   // Back trace
   int nptrs  = backtrace(buffer, size);
   char **bts = backtrace_symbols(buffer, nptrs);
-  std::regex re("\\[(.+)\\]");
+  // Match ONLY a hex address. backtrace_symbols() formats differ:
+  //   Linux: /opt/flare/bin/Flare(+0x1a2b3c) [0x55d1a2b3c4d5]
+  //   macOS: 3   Flare   0x000000010a2b3c4d -[NSApplication run] + 72
+  // The old pattern was "\[(.+)\]", which on macOS matched the *Objective-C
+  // selector* inside the brackets rather than an address — so a frame like
+  // -[NSApplication(NSEventRouting) _nextEventMatchingEventMask:...] was
+  // pasted unquoted into the atos command line and the shell died on the
+  // parenthesis. Capturing a hex address means nothing else can reach sh.
+#ifdef MACOSX
+  std::regex re("(0x[0-9a-fA-F]+)");
+#else
+  std::regex re("\\[(0x[0-9a-fA-F]+)\\]");
+#endif
   if (bts) {
     for (int i = 0; i < nptrs; ++i) {
       // Skip first frames since they point to this function
@@ -338,7 +370,9 @@ static void printBacktrace(std::string &out) {
       std::smatch ms;
 
       bool found = false;
-      if (std::regex_search(sym, ms, re)) {
+      // No executable path means addr2line/atos has nothing to resolve
+      // against; fall straight through to the raw symbol.
+      if (exepath[0] && std::regex_search(sym, ms, re)) {
         std::string addr = ms[1];
         if (addr2line(line, exepath, addr.c_str())) {
           found = (line.rfind("??", 0) != 0);
