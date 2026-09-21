@@ -250,6 +250,7 @@
     <menu title="Help">
         <command>MI_OpenOnlineManual</command>
         <command>MI_OpenWhatsNew</command>
+        <command>MI_Quicklink</command>
         <command>MI_OpenCommunityForum</command>
         <command>MI_OpenDiscord</command>
         <command>MI_OpenWebsite</command>
