@@ -1,3 +1,4 @@
+cmake_minimum_required(VERSION 3.10)
 project(blur_plugin C CXX)
 set(PLUGINSDK_ROOT ../../flare/sources/flareqt)
 set(PLUGINSDK_UTILS_PATH ../)
