@@ -38,6 +38,8 @@ set(HEADERS ${MOC_HEADERS}
     ../common/flash/FSWFStream.h
     ../common/flash/Macromedia.h
     ../common/flash/XFLReader.h
+    ../common/flash/SWFAssets.h
+    ../common/flash/ZipArchive.h
     ../common/psdlib/psd.h
     ../common/psdlib/psdutils.h
     ../common/trop/runsmap.h
@@ -233,6 +235,8 @@ set(SOURCES
     ../common/flash/FSWFStream.cpp
     ../common/flash/FSound.cpp
     ../common/flash/XFLReader.cpp
+    ../common/flash/SWFAssets.cpp
+    ../common/flash/ZipArchive.cpp
     ${SDKROOT}/zlib-1.2.8/contrib/minizip/ioapi.c
     ${SDKROOT}/zlib-1.2.8/contrib/minizip/unzip.c
     ${SDKROOT}/zlib-1.2.8/contrib/minizip/zip.c

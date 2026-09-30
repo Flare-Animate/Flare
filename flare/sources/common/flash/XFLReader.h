@@ -165,7 +165,7 @@ private:
     bool readFromZip();
     bool readFromDirectory();
     bool parseDOMDocument(const std::string &xmlContent);
-    bool parseSymbol(const std::string &xmlContent, const std::string &symbolName);
+    bool parseSymbol(const std::string &xmlContent, const TFilePath &symbolPath);
     
     // XML parsing helper
     bool parseXMLAttribute(const std::string &xml, const std::string &attrName, std::string &value);

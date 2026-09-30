@@ -24,106 +24,25 @@
 // Minizip for ZIP/FLA extraction (from thirdparty/zlib-1.2.8/contrib/minizip)
 #include "../../../../thirdparty/zlib-1.2.8/contrib/minizip/unzip.h"
 #include "../../../../thirdparty/zlib-1.2.8/contrib/minizip/zip.h"
+#include "ZipArchive.h"
 
 namespace XFL {
 
 //-----------------------------------------------------------------------------
-// Internal helper: extract a ZIP archive to a directory using minizip
-// Returns true on success.
+// Internal helper: extract a ZIP archive to a directory.
+//
+// Delegates to the shared extractor, which repairs a wrong end-of-central-
+// directory record before unpacking. Many real .fla/.swc files in the wild
+// carry a stale trailer that otherwise makes unzOpen() fail outright.
 //-----------------------------------------------------------------------------
 static bool extractZipToDir(const std::string &zipPath, const std::string &outDir) {
-    unzFile uf = unzOpen(zipPath.c_str());
-    if (!uf) return false;
-
-    unz_global_info gi;
-    if (unzGetGlobalInfo(uf, &gi) != UNZ_OK) {
-        unzClose(uf);
-        return false;
-    }
-
-    char fileName[1024];  // larger buffer for deeply-nested paths
-    char buf[8192];
-
-    for (uLong i = 0; i < gi.number_entry; i++) {
-        unz_file_info fi;
-        fileName[0] = '\0';  // Initialize buffer
-        if (unzGetCurrentFileInfo(uf, &fi, fileName, sizeof(fileName), nullptr, 0, nullptr, 0) != UNZ_OK)
-            break;
-
-        size_t nameLen = strlen(fileName);
-        if (nameLen == 0) {
-            // Skip empty entries
-            if (i + 1 < gi.number_entry) unzGoToNextFile(uf);
-            continue;
-        }
-
-        // Zip Slip protection: reject path traversal and absolute paths
-        std::string entryStr(fileName, nameLen);
-
-        // Normalize path separators and strip leading ./ for correct DOMDocument.xml detection
-        for (auto &ch : entryStr) {
-            if (ch == '\\') ch = '/';
-        }
-        while (entryStr.rfind("./", 0) == 0) {
-            entryStr.erase(0, 2);
-        }
-        while (!entryStr.empty() && entryStr[0] == '/') {
-            entryStr.erase(0, 1);
-        }
-
-        if (entryStr.empty() ||
-            entryStr.find("../") != std::string::npos ||
-            entryStr.find("..\\") != std::string::npos ||
-            entryStr[0] == '/' || entryStr[0] == '\\' ||
-            (entryStr.size() >= 2 && entryStr[1] == ':')) {
-            if (i + 1 < gi.number_entry) unzGoToNextFile(uf);
-            continue;
-        }
-
-        std::string fullOut = outDir + "/" + entryStr;
-
-        // If it ends with '/', it's a directory entry
-        if (fileName[nameLen - 1] == '/') {
-            TSystem::mkDir(TFilePath(fullOut));
-        } else {
-            // Ensure parent directory exists
-            size_t slashPos = fullOut.rfind('/');
-            if (slashPos != std::string::npos) {
-                std::string parent = fullOut.substr(0, slashPos);
-                if (!parent.empty()) TSystem::mkDir(TFilePath(parent));
-            }
-
-            if (unzOpenCurrentFile(uf) == UNZ_OK) {
-                FILE *fp = fopen(fullOut.c_str(), "wb");
-                if (fp) {
-                    int nbytes;
-                    bool writeSuccess = true;
-                    while ((nbytes = unzReadCurrentFile(uf, buf, sizeof(buf))) > 0) {
-                        if (fwrite(buf, 1, nbytes, fp) != static_cast<size_t>(nbytes)) {
-                            writeSuccess = false;
-                            break;
-                        }
-                    }
-                    fclose(fp);
-                    if (!writeSuccess) {
-                        // Do not fail the entire archive extraction for a single file;
-                        // continue with the next entry after cleaning up.
-                        unzCloseCurrentFile(uf);
-                        if (i + 1 < gi.number_entry) unzGoToNextFile(uf);
-                        continue;
-                    }
-                }
-                unzCloseCurrentFile(uf);
-            }
-        }
-
-        if (i + 1 < gi.number_entry) {
-            if (unzGoToNextFile(uf) != UNZ_OK) break;
-        }
-    }
-
-    unzClose(uf);
-    return true;
+    std::string detail;
+    if (FlareZip::extract(TFilePath(QString::fromStdString(zipPath)),
+                          TFilePath(QString::fromStdString(outDir)), detail))
+        return true;
+    if (!detail.empty())
+        qDebug() << "[XFL] ZIP extraction failed:" << detail.c_str();
+    return false;
 }
 
 //-----------------------------------------------------------------------------
@@ -230,25 +149,32 @@ bool Reader::readFromDirectory() {
         return false;
     }
     
-    // Look for library symbols in LIBRARY directory
+    // Walk the LIBRARY directory *recursively*. Adobe Animate mirrors the
+    // library's folder structure on disk, so a typical FLA keeps most of its
+    // symbols in subdirectories ("Body Parts/Characters/.../Face.xml"); a
+    // flat scan therefore sees only the handful sitting at the top level.
     TFilePath libPath = m_xflPath + "LIBRARY";
     if (TSystem::doesExistFileOrLevel(libPath)) {
-        TFilePathSet files = TSystem::readDirectory(libPath, true, false, true);
+        TFilePathSet files;
+        try {
+            files = TSystem::readDirectoryTree(libPath, false, true);
+        } catch (...) {
+        }
         for (const auto &symbolPath : files) {
-            if (symbolPath.getType() == "xml") {
-                std::ifstream symbolFile(symbolPath.getQString().toStdString());
-                if (symbolFile.is_open()) {
-                    std::stringstream symbolBuffer;
-                    symbolBuffer << symbolFile.rdbuf();
-                    std::string symbolContent = symbolBuffer.str();
-                    symbolFile.close();
-                    
-                    parseSymbol(symbolContent, symbolPath.getName());
-                }
-            }
+            if (symbolPath.getType() != "xml") continue;
+            std::ifstream symbolFile(symbolPath.getQString().toStdString());
+            if (!symbolFile.is_open()) continue;
+            std::stringstream symbolBuffer;
+            symbolBuffer << symbolFile.rdbuf();
+            std::string symbolContent = symbolBuffer.str();
+            symbolFile.close();
+
+            // Use the path relative to LIBRARY/ as the display name: it is what
+            // DOMSymbolInstance/@libraryItemName refers to for nested symbols.
+            parseSymbol(symbolContent, symbolPath);
         }
     }
-    
+
     return true;
 }
 
@@ -398,33 +324,81 @@ bool Reader::parseDOMDocument(const std::string &xmlContent) {
     return true;
 }
 
-bool Reader::parseSymbol(const std::string &xmlContent, const std::string &symbolName) {
-    if (xmlContent.find("<DOMSymbolItem") == std::string::npos) {
-        return false;
-    }
+bool Reader::parseSymbol(const std::string &xmlContent, const TFilePath &symbolPath) {
+    QXmlStreamReader xml(QString::fromUtf8(xmlContent.c_str()));
 
+    // localName() strips any namespace prefix, so this matches both the
+    // unprefixed <DOMSymbolItem> that Animate writes into .fla archives and the
+    // <ns:DOMSymbolItem> form produced by "Save as XFL". A substring search for
+    // "<DOMSymbolItem" silently failed on the prefixed variant, which dropped
+    // every symbol in an uncompressed XFL project.
+    bool found = false;
     Symbol symbol;
-    symbol.name = symbolName;
+    QString relativeName;
 
-    // Use simple attribute extraction for symbol-level metadata only.
-    std::string value;
-    if (parseXMLAttribute(xmlContent, "itemID", value))
-        symbol.itemId = value;
+    while (!xml.atEnd()) {
+        xml.readNext();
+        if (!xml.isStartElement()) continue;
 
-    if (parseXMLAttribute(xmlContent, "symbolType", value)) {
-        if (value == "movie clip")
-            symbol.type = SYMBOL_MOVIECLIP;
-        else if (value == "button")
-            symbol.type = SYMBOL_BUTTON;
-        else
-            symbol.type = SYMBOL_GRAPHIC;
+        const QString name = xml.name().toString();
+        const QXmlStreamAttributes attrs = xml.attributes();
+
+        if (name == QLatin1String("DOMSymbolItem") && !found) {
+            found = true;
+            symbol.name = attrs.value("name").toString().toStdString();
+            symbol.itemId = attrs.value("itemID").toString().toStdString();
+
+            const QString type = attrs.value("symbolType").toString();
+            if (type == QLatin1String("movie clip"))
+                symbol.type = SYMBOL_MOVIECLIP;
+            else if (type == QLatin1String("button"))
+                symbol.type = SYMBOL_BUTTON;
+            else
+                symbol.type = SYMBOL_GRAPHIC;
+
+            symbol.linkageClass = attrs.value("linkageClassName").toString().toStdString();
+            symbol.linkageExport =
+                (attrs.value("linkageExportForAS").toString() == QLatin1String("true"));
+
+        // Bitmap assets live here, not in a <media> section: Animate writes each
+        // one as a graphic symbol whose <BitmapData href="..."/> points at the
+        // real file. Without this the bitmap list is empty for every modern FLA
+        // and the whole timeline import is skipped.
+        } else if (name == QLatin1String("DOMBitmapItem") ||
+                   name == QLatin1String("BitmapData")) {
+            const QString href = attrs.value("href").toString();
+            if (href.isEmpty()) continue;
+            BitmapItem item;
+            item.href = href.toStdString();
+            const int slash = href.lastIndexOf(QLatin1Char('/'));
+            const QString base = (slash >= 0) ? href.mid(slash + 1) : href;
+            const int dot = base.lastIndexOf(QLatin1Char('.'));
+            item.name = ((dot > 0) ? base.left(dot) : base)
+                            .replace(QLatin1Char('&'), QLatin1String("and"))
+                            .toStdString();
+            if (symbol.name.empty()) symbol.name = item.name;
+            if (item.name.empty()) item.name = symbol.name;
+            m_document.bitmaps.push_back(item);
+
+        } else if (name == QLatin1String("DOMSymbolInstance") ||
+                   name == QLatin1String("DOMBitmapInstance")) {
+            // Record the library item name a symbol instance refers to, so a
+            // bitmap symbol can still be resolved by name.
+            const QString ref = attrs.value("libraryItemName").toString();
+            if (!found && !ref.isEmpty()) relativeName = ref;
+        }
     }
 
-    if (parseXMLAttribute(xmlContent, "linkageClassName", value))
-        symbol.linkageClass = value;
+    if (!found) return false;
 
-    if (parseXMLAttribute(xmlContent, "linkageExportForAS", value))
-        symbol.linkageExport = (value == "true");
+    // Prefer the name declared in the file; fall back to the path relative to
+    // LIBRARY/, which is how nested symbols are addressed.
+    if (symbol.name.empty()) {
+        symbol.name = relativeName.toStdString();
+    }
+    if (symbol.name.empty()) {
+        symbol.name = symbolPath.getName();
+    }
 
     m_document.symbols.push_back(symbol);
     return true;
