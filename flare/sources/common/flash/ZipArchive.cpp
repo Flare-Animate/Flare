@@ -246,7 +246,11 @@ Status normalize(const TFilePath &zipPath, const TFilePath &outPath,
     int    cdCount = 0;
 
     const quint32 declaredCount = entriesTotal ? entriesTotal : entriesOnDisk;
-    for (qint64 window = 64 * 1024; window <= fileSize; window *= 8) {
+    // Grow the scan window backwards from the EOCD. Termination is decided by
+    // the window reaching the start of the file, not by the window size: an
+    // archive smaller than the first window (a small FLA, a SWC) must still be
+    // scanned, so the size of the window must never gate the loop.
+    for (qint64 window = 64 * 1024;; window *= 8) {
         const qint64 winStart = std::max<qint64>(0, eocdOffset - window);
         const QByteArray buf = readAt(f, winStart, eocdOffset - winStart);
         if (buf.isEmpty()) break;
