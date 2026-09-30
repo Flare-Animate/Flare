@@ -85,11 +85,68 @@ UPSTREAMS: list[UpstreamSource] = [
     ),
 ]
 
+# ── upstream path -> Flare path ──────────────────────────────────────────────
+# Upstream OpenToonz keeps its entire C++ tree under "toonz/". Flare renamed
+# that directory to "flare/" but left every other path alone, so the two repos
+# share no file paths for the code that matters.
+#
+# Without this mapping the agent wrote upstream's commits out at their original
+# "toonz/sources/..." paths. Nothing in the build references "toonz/", so the
+# functional fixes landed in files the compiler never sees while "flare/" was
+# simultaneously protected by FLARE_ONLY_PREFIXES and kept at its old
+# contents. That is why seven sync branches piled up unmerged, and why the two
+# newest ones carry 24k lines of dead shadow tree under toonz/.
+#
+# Paths are rewritten in the index after a cherry-pick and before rebranding.
+# Longest prefix wins, so more specific entries must come first.
+UPSTREAM_PATH_MAP: tuple[tuple[str, str], ...] = (
+    # toonz/sources/<module>/...  ->  flare/sources/<module>/...
+    ("toonz/sources/toonz/",    "flare/sources/flare/"),
+    ("toonz/sources/toonzqt/",  "flare/sources/flareqt/"),
+    ("toonz/sources/toonzlib/", "flare/sources/flarelib/"),
+    ("toonz/sources/toonzfarm/", "flare/sources/flarefarm/"),
+    # Sub-tree moves inside the toonz/ root itself.
+    ("toonz/installer/",        "packaging/"),
+    ("toonz/cmake/",            "cmake/"),
+    ("toonz/README.md",         "doc/UPSTREAM_README_opentoonz.md"),
+    # Any other toonz/sources/<module>/ (common, include, tnz*, image, sound,
+    # stopmotion, ...) keeps its module name; only the root moves.
+    ("toonz/sources/",          "flare/sources/"),
+    # The top-level build file and everything else.
+    ("toonz/CMakeLists.txt",    "CMakeLists.txt"),
+    ("toonz/",                  ""),
+    # Tahoma2D is a hard fork that already uses the Flare layout.
+    ("tahoma2d/sources/",       "flare/sources/"),
+    ("tahoma2d/",               ""),
+)
+
+
+def map_upstream_path(rel_path: str) -> str:
+    """Translate one upstream-relative path into its Flare equivalent.
+
+    Returns "" when the path has no counterpart and should be dropped.
+    """
+    for src, dst in UPSTREAM_PATH_MAP:
+        if rel_path.startswith(src):
+            return dst + rel_path[len(src):]
+    return rel_path
+
+
 # ── files/directories Flare owns (never overwrite from any upstream) ──────────
+# NOTE: "flare/" is deliberately absent, even though it is Flare's own source
+# tree. It is also the image of upstream's "toonz/" tree once UPSTREAM_PATH_MAP
+# has been applied, so protecting it wholesale threw away precisely the commits
+# we are trying to sync: every remapped file was immediately dropped again as
+# "Flare-owned", and the sync agent reported success while applying nothing.
+#
+# Flare-authored files are still safe. Upstream has no "flare/" directory, so a
+# synced commit can only ever mention "flare/..." as the mapped image of a
+# "toonz/..." path it actually changed. Where both sides edited the same lines,
+# resolve_conflicts() already decides per hunk: upstream wins on functional
+# changes, Flare on branding-only ones.
 FLARE_ONLY_PREFIXES = (
     "README.md",
     ".github/",
-    "flare/",
     "tools/sync/",
     "tools/rebrand/",
     "stuff/profiles/layouts/shortcuts/defflare.ini",
@@ -348,6 +405,72 @@ def new_commits(src: UpstreamSource, last_sha: str | None,
     return commits
 
 
+def remap_staged_paths() -> list[tuple[str, str]]:
+    """Rewrite staged paths from their upstream layout into Flare's.
+
+    Runs immediately after the cherry-pick and before
+    drop_flare_only_from_index(): a commit that adds toonz/sources/toonz/foo.cpp
+    is still staged under the upstream name at that point, so it has to be moved
+    to flare/sources/flare/foo.cpp before the Flare-only check can judge it.
+
+    The staged blob is copied rather than the working-tree file so the move is
+    independent of what happens to be on disk, and the upstream entry is
+    explicitly removed from the index so a file cannot be synced twice under
+    both names.
+    """
+    staged = git(["diff", "--cached", "--name-only", "--diff-filter=ACMR"],
+                 check=False, capture=True).stdout.splitlines()
+    moved: list[tuple[str, str]] = []
+    for raw in staged:
+        old_path = raw.decode("utf-8", "replace") if isinstance(raw, bytes) else raw
+        new_path = map_upstream_path(old_path)
+        if new_path == old_path:
+            continue
+
+        if new_path:
+            # git() captures text; use a raw call so binary members survive.
+            blob = subprocess.run(["git", "show", ":" + old_path],
+                                  cwd=REPO_ROOT, capture_output=True, check=False)
+            target = REPO_ROOT / new_path
+            target.parent.mkdir(parents=True, exist_ok=True)
+            if blob.returncode == 0:
+                target.write_bytes(blob.stdout)
+            else:
+                # No staged content (a pure rename, say): fall back to whatever
+                # is in the working tree.
+                src_file = REPO_ROOT / old_path
+                if not src_file.is_file():
+                    moved.append((old_path, new_path))
+                    continue
+                target.write_bytes(src_file.read_bytes())
+            git(["add", "--", new_path], check=False)
+
+        # Retire the upstream entry: from the index and from the working tree.
+        # -f is required because a file the cherry-pick just added is "modified"
+        # relative to HEAD, and git rm refuses to touch those without it.
+        git(["rm", "--cached", "-f", "-q", "--ignore-unmatch", "--", old_path],
+            check=False)
+        try:
+            (REPO_ROOT / old_path).unlink()
+        except OSError:
+            pass
+        # Prune directories the move just emptied, so a sync does not leave a
+        # hollow toonz/ tree behind for the next run to trip over.
+        pruned = (REPO_ROOT / old_path).parent
+        while pruned != REPO_ROOT and pruned.is_dir():
+            try:
+                next(pruned.iterdir())
+                break          # still holds something; leave it alone
+            except StopIteration:
+                try:
+                    pruned.rmdir()
+                except OSError:
+                    break
+                pruned = pruned.parent
+        moved.append((old_path, new_path))
+    return moved
+
+
 def apply_commit(sha: str,
                  compiled: list[tuple[re.Pattern, str]]) -> bool:
     result = git(["cherry-pick", "--no-commit", "-x", sha], check=False)
@@ -357,6 +480,9 @@ def apply_commit(sha: str,
             print(f"    ⚠  unresolved: {unresolved}")
             git(["cherry-pick", "--abort"], check=False)
             return False
+    remapped = remap_staged_paths()
+    if remapped:
+        print(f"    ⇄  remapped {len(remapped)} path(s) into flare/")
     dropped = drop_flare_only_from_index()
     if dropped:
         print(f"    ⊘  kept Flare's own: {', '.join(dropped[:5])}"
