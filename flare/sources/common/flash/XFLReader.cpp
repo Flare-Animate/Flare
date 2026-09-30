@@ -239,6 +239,19 @@ bool Reader::parseDOMDocument(const std::string &xmlContent) {
                     m_document.backgroundColor = attrs.value("backgroundColor").toString().toStdString();
             }
 
+            // ---- content census -------------------------------------------
+            // Counted even when the reader cannot convert it, so the importer
+            // can tell the user what a document contains instead of silently
+            // producing an empty scene.
+            else if (name == "DOMShape")          ++m_document.census.shapes;
+            else if (name == "DOMShapeText")      ++m_document.census.shapeText;
+            else if (name == "DOMMorphShape")     ++m_document.census.morphs;
+            else if (name == "DOMStaticText" ||
+                     name == "DOMText")           ++m_document.census.texts;
+            else if (name == "DOMSoundItem")      ++m_document.census.sounds;
+            else if (name == "DOMVideoItem")      ++m_document.census.videos;
+            else if (name == "DOMComponentInstance") ++m_document.census.components;
+
             // ---- media section: bitmap library items ----
             else if (name == "DOMBitmapItem") {
                 BitmapItem bi;
@@ -286,6 +299,7 @@ bool Reader::parseDOMDocument(const std::string &xmlContent) {
                 m_document.timelines[tIdx].layers[lIdx].frames[fIdx].elements.push_back(std::move(el));
                 eIdx = static_cast<int>(
                     m_document.timelines[tIdx].layers[lIdx].frames[fIdx].elements.size()) - 1;
+                ++m_document.census.bitmaps;
             }
             else if (name == "DOMSymbolInstance" && tIdx >= 0 && lIdx >= 0 && fIdx >= 0) {
                 FrameElement el;
@@ -294,6 +308,7 @@ bool Reader::parseDOMDocument(const std::string &xmlContent) {
                 m_document.timelines[tIdx].layers[lIdx].frames[fIdx].elements.push_back(std::move(el));
                 eIdx = static_cast<int>(
                     m_document.timelines[tIdx].layers[lIdx].frames[fIdx].elements.size()) - 1;
+                ++m_document.census.symbols;
             }
             // <matrix><Matrix .../></matrix> — transform for the current element
             else if (name == "Matrix" && eIdx >= 0 && tIdx >= 0 && lIdx >= 0 && fIdx >= 0) {
@@ -380,6 +395,21 @@ bool Reader::parseSymbol(const std::string &xmlContent, const TFilePath &symbolP
             if (item.name.empty()) item.name = symbol.name;
             m_document.bitmaps.push_back(item);
 
+        } else if (name == QLatin1String("DOMShape")) {
+            ++m_document.census.shapes;
+        } else if (name == QLatin1String("DOMShapeText")) {
+            ++m_document.census.shapeText;
+        } else if (name == QLatin1String("DOMMorphShape")) {
+            ++m_document.census.morphs;
+        } else if (name == QLatin1String("DOMStaticText") ||
+                   name == QLatin1String("DOMText")) {
+            ++m_document.census.texts;
+        } else if (name == QLatin1String("DOMSoundItem")) {
+            ++m_document.census.sounds;
+        } else if (name == QLatin1String("DOMVideoItem")) {
+            ++m_document.census.videos;
+        } else if (name == QLatin1String("DOMComponentInstance")) {
+            ++m_document.census.components;
         } else if (name == QLatin1String("DOMSymbolInstance") ||
                    name == QLatin1String("DOMBitmapInstance")) {
             // Record the library item name a symbol instance refers to, so a

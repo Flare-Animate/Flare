@@ -8,18 +8,66 @@ video playback if it is installed).
 
 ## Supported formats
 
-| Format | Extension | Support |
-|--------|-----------|---------|
-| Flash project (XFL-based, CS5+) | `.fla` | Extract with minizip → parse XFLReader |
-| Flash project (legacy binary, CS4-) | `.fla` | OLE2 compound document — detected, embedded bitmaps recovered (QImage-validated); full timeline import not yet supported (re-save as CS5+/XFL) |
-| XFL project | `.xfl` | Directory or ZIP → parse XFLReader |
-| Compiled Flash | `.swf` | Header + embedded bitmap extraction |
-| Component library | `.swc` | ZIP + catalog.xml + library.swf bitmaps |
-| Flash Video | `.flv` | Header validated; raster level via FFmpeg |
-| Flash H.264 video | `.f4v` | ISO BMFF ftyp; raster level via FFmpeg |
-| ActionScript source | `.as` | Copied as reference text |
-| Animate command script | `.jsfl` | Copied and top-level functions listed; never executed |
-| Adobe extension package | `.zxp` / `.mxp` | Safely unpacked for inspection; installer code is never executed |
+The container is identified from the **leading bytes**, not the extension. The
+extension is only consulted when the content is unidentifiable, which is why a
+SWF named `.ssf` and an FLA re-zipped as `.zip` both import correctly. The
+single list of advertised extensions lives in
+`FlashAssets::supportedExtensions()`, so the file dialog and the dispatch cannot
+drift apart.
+
+### Fully supported — contents become levels or files
+
+| Format | Extension | What is imported |
+|--------|-----------|------------------|
+| Flash project (XFL-based, CS5+) | `.fla` | Document, library, timeline layers/frames, bitmap instances to levels; binary media; every asset unpacked |
+| XFL project | `.xfl` | Directory or ZIP; same as above |
+| Compiled Flash | `.swf` | Header metadata, **images to levels**, **sounds to files**, ActionScript 3 to source |
+| Component library | `.swc` | ZIP + `catalog.xml` + `library.swf` images and sounds |
+| Mislabeled SWF | `.ssf` / `.dat` | Sniffed as SWF |
+| Re-zipped FLA | `.zip` | Sniffed, trailer repaired if needed, imported as FLA |
+| ActionScript 3 | inside `.swf` | Decompiled to `.as` via the optional `flare-as3` helper |
+
+### Detected, contents partially converted
+
+| Format | Extension | Status |
+|--------|-----------|--------|
+| Legacy binary FLA (CS4 and earlier) | `.fla` | OLE2/CFBF. Embedded images recovered and validated by decoding them. **Timeline and vector art not converted** |
+| Flash Lite project | `.fls` | Sniffed (same containers as `.fla`) |
+| Compressed-sound SWF | `.swz` | Sniffed (same FWS/CWS/ZWS header) |
+| Keystroke-signed SWF | `.ksk` | Sniffed (same header) |
+| Flash Shared Library | `.sol` | Unpacked as ZIP |
+| Flash Video | `.flv` | Header validated; copied for reference; raster playback via FFmpeg |
+| Flash H.264 video | `.f4v` | ISO BMFF `ftyp`; copied for reference; playback via FFmpeg |
+| MPEG-4 video | `.m4v` | Sniffed as ISO BMFF |
+
+### Unpacked for inspection; code is never executed
+
+| Format | Extension |
+|--------|-----------|
+| Adobe extension package | `.zxp` / `.mxp` |
+| Adobe Native Extension | `.ane` |
+| Adobe AIR application | `.air` |
+| Open Architecture Module | `.oam` |
+| ActionScript source / command script | `.as` / `.asc` / `.mxml` / `.jsfl` |
+| Legacy libraries, copied as reference | `.rsl` / `.afl` / `.lwf` |
+
+### Known gaps
+
+These are **detected and reported**, never silently dropped. The import dialog
+names what a document contains that it could not convert, so an import that
+produces no levels is always explained rather than looking like a broken file.
+
+| Content | Where | Status |
+|---------|-------|--------|
+| Vector shapes | FLA/XFL `<DOMShape>`, SWF `DefineShape`/`Shape3`/`Shape4` | Not converted. Adobe encodes these two ways (`edges` and `cubics` string grammars); a partial decoder would produce subtly wrong art, so it is not attempted |
+| Text | `<DOMStaticText>`, `<DOMText>`, `DefineText`/`Text2` | Not converted |
+| Embedded fonts | `DefineFont`/`Font2`/`Font3` | Not converted |
+| Video items | `<DOMVideoItem>`, `DefineVideoStream` | Not converted |
+| Components | `<DOMComponentInstance>` | Not converted |
+| Nested sprite timelines | SWF `DefineSprite` + `PlaceObject*` | Counted and reported, not rebuilt |
+| ActionScript 1/2 | `DoAction` / `DoInitAction` | Counted and reported. Only AS3 (`DoABC`) is decompiled |
+| Binary FLA timeline | Legacy OLE2 `.fla` | Not reconstructed; re-save as CS5+ or XFL |
+| Sound codecs | `DefineSound`, `SoundStreamBlock` | MP3 and raw PCM are written as playable files. ADPCM, Nellymoser, Speex and AAC are written under an honest extension (`.adpcm` / `.raw`) because no decoder is bundled |
 | Mislabeled SWF | `.ssf` / `.dat` | Content-sniffed and imported as SWF; extension is only a hint |
 | Re-zipped FLA | `.zip` | Content-sniffed, trailer repaired if needed, imported as FLA |
 
@@ -28,6 +76,38 @@ video playback if it is installed).
 JPEXS (GPL v3 + Java) is **licence-incompatible** with Flare's BSD licence and
 requires an external runtime. The previous implementation used it via Python
 scripts; that entire approach has been replaced by native C++.
+
+## Embedded audio
+
+SWF carries audio in two ways, both handled:
+
+- **DefineSound (14)** — a self-contained clip per tag. `DefineSound` 1/2
+  (uncompressed), 3 (MP3) and 4 (uncompressed LE) each write one file. MP3 is
+  scanned for the first MPEG frame sync before writing, because some encoders
+  prepend padding bytes that stop players from opening the file.
+- **SoundStreamHead (18/45/89) + SoundStreamBlock (19/60)** — streaming audio,
+  split across blocks. Consecutive blocks are concatenated per stream and
+  flushed when the stream ends.
+
+Uncompressed 16-bit PCM is wrapped in a canonical 44-byte RIFF/WAVE header so
+it opens in any player. ADPCM, Nellymoser, Speex and AAC have no container we
+can write without a codec we do not bundle, so their bytes are written under an
+honest `.adpcm` / `.raw` extension rather than being dropped or mislabelled as
+MP3.
+
+Measured on the 3.5 MB sample SWF: **63 clips extracted, all well-formed.**
+
+## Content census
+
+`FlashAssets::censusSwf()` and `XFLReader`'s `ContentCensus` walk the document
+and count what is actually in it: images, sounds, vector shapes, text, fonts,
+video, components, nested timelines, and both ActionScript generations. The
+import dialog prints the counts it cannot convert.
+
+This exists because the previous behaviour was the worst kind: a vector-only FLA
+imported as a completely empty scene and reported "import complete" with no
+explanation, which is indistinguishable from a file Flare failed to read. The
+same FLA now reports, for example, "491 vector shape(s) not converted".
 
 ## ZIP trailer repair
 
@@ -107,9 +187,11 @@ extractor on `library.swf`.
 ```
 flare/sources/common/flash/
     tflash.h/cpp            TFlash SWF writer / renderer
-    XFLReader.h/cpp         XFL/FLA parser (document, library, bitmaps)
-    SWFAssets.h/cpp         SWF/FLV/F4V headers, SWF tag-stream bitmaps,
-                            legacy OLE2/CFBF FLA carving, content sniffing
+    XFLReader.h/cpp         XFL/FLA parser (document, library, bitmaps,
+                            content census)
+    SWFAssets.h/cpp         SWF/FLV/F4V headers, SWF tag-stream bitmaps and
+                            audio, content census, legacy OLE2/CFBF FLA
+                            carving, container sniffing, extension list
     ZipArchive.h/cpp        ZIP trailer repair + hardened extraction
     As3Bridge.h/cpp         optional client for the flare-as3 helper
     FSWFStream.h/cpp        SWF binary stream

@@ -237,49 +237,6 @@ DVAPI QStringList extractFLABinaryMedia(const QString &outDir) {
 
 // ---------------------------------------------------------------------------
 
-// Format detection by content rather than by file extension.
-//
-// Flash files in the wild routinely carry the wrong extension: ".ssf" and
-// ".dat" are used for plain SWFs, and users rename or re-zip FLAs. Dispatching
-// purely on the extension meant those files were rejected as "Unsupported Flash
-// format" even though the content was perfectly readable.
-//
-// Everything here looks at the leading bytes only, which is unambiguous: the
-// formats we accept all have a distinct magic number.
-// ---------------------------------------------------------------------------
-DVAPI Format detectFormat(const QString &path) {
-    QFile f(path);
-    if (!f.open(QIODevice::ReadOnly)) return Format::Unknown;
-    const QByteArray magic = f.read(12);
-    f.close();
-    if (magic.size() < 4) return Format::Unknown;
-
-    const unsigned char *h = reinterpret_cast<const unsigned char *>(magic.constData());
-
-    // OLE2 / Compound File Binary: legacy binary .fla
-    static const unsigned char kOle2[8] = {0xD0, 0xCF, 0x11, 0xE0,
-                                           0xA1, 0xB1, 0x1A, 0xE1};
-    if (magic.size() >= 8 && std::memcmp(h, kOle2, 8) == 0)
-        return Format::Ole2Fla;
-
-    // SWF: "FWS" uncompressed, "CWS" zlib, "ZWS" LZMA
-    if (h[0] == 'F' || h[0] == 'C' || h[0] == 'Z')
-        if (h[1] == 'W' && h[2] == 'S') return Format::Swf;
-
-    // ZIP: all four valid local-file-header / end-of-directory signatures
-    if (h[0] == 'P' && h[1] == 'K' &&
-        (h[2] == 0x03 || h[2] == 0x05 || h[2] == 0x07))
-        return Format::Zip;
-
-    // ISO base media file format box (f4v / mp4 family)
-    if (magic.size() >= 8 && std::memcmp(h + 4, "ftyp", 4) == 0)
-        return Format::IsoBmff;
-
-    return Format::Unknown;
-}
-
-// ---------------------------------------------------------------------------
-
 // Legacy binary FLA support (Flash CS4 and earlier)
 //
 // Pre-CS5 .fla files are not ZIP/XFL archives — they are OLE2 / Compound File
@@ -494,7 +451,8 @@ DVAPI QStringList extractLegacyFlaBitmaps(const QByteArray &data,
 //   21  DefineBitsJPEG2       self-contained JPEG
 //   22  DefineBitsJPEG3       JPEG + separate zlib alpha channel
 //   23  DefineBitsJPEG4       JPEG + deblocking u16 + zlib alpha
-//   24  DefineBitsJPEG5       JPEG + zlib alpha (SWF 13)
+//   26  PlaceObject2          timeline placement (not extracted)
+//   24  DefineFont2           (not an image tag; see the note below)
 //   35  DefineBitsLossless2   zlib; 3 = 8-bit palettized ARGB,
 //                             5 = 32-bit premultiplied ARGB
 //   36  DefineBitsLossless3   same layout as 35 (SWF 13)
@@ -662,11 +620,13 @@ DVAPI QStringList extractSwfBitmaps(const QByteArray &swfData, const QString &ou
             continue;
         }
 
-        // ---- DefineBitsJPEG3 (22) / JPEG4 (23) / JPEG5 (24) ----------------
+        // ---- DefineBitsJPEG3 (22) / DefineBitsJPEG4 (23) --------------------
         // 22: CharacterID(2) + AlphaDataOffset(4) + JPEG + zlib alpha
         // 23: CharacterID(2) + AlphaDataOffset(4) + DeblockParam(2) + JPEG + zlib alpha
-        // 24: as 22, with the alpha length stored as a zlib u16 prefix
-        if (tagCode == 22 || tagCode == 23 || tagCode == 24) {
+        //
+        // There is no "DefineBitsJPEG5" tag: 24 is DefineFont2, and treating
+        // it as a JPEG would misinterpret font tables as image data.
+        if (tagCode == 22 || tagCode == 23) {
             const int headerLen = (tagCode == 23) ? 8 : 6;
             if (dataStart + headerLen >= dataEnd) continue;
 
@@ -719,6 +679,8 @@ DVAPI QStringList extractSwfBitmaps(const QByteArray &swfData, const QString &ou
         // ---- DefineBitsLossless (20) and (35) / (36) / (90) ----------------
         // 20 : 3 = 8-bit indexed, 4 = 15-bit RGB555, 5 = 24-bit RGB
         // 35/36/90: 3 = 8-bit palettized premultiplied ARGB, 5 = 32-bit ARGB
+        // 24 (DefineFont2) is deliberately not handled here: see the note on
+        // the JPEG3/4 branch above.
         if (tagCode == 20 || tagCode == 35 || tagCode == 36 || tagCode == 90) {
             if (dataStart + 6 >= dataEnd) continue;
             const bool premultiplied = (tagCode != 20);
@@ -862,6 +824,389 @@ DVAPI QStringList extractSwfBitmaps(const QByteArray &swfData, const QString &ou
     }
 
     return extracted;
+}
+
+
+// ---------------------------------------------------------------------------
+// Content census and audio extraction
+//
+// One tag walker, shared so the census and the extractor can never disagree
+// about where the tag stream actually is.
+//
+// Tag codes follow the Adobe SWF specification. Note in particular that 24 is
+// DefineFont2, not a bitmap tag, and that the spec defines no "JPEG5" image
+// tag: the JPEG family is 21 (JPEG2), 22 (JPEG3) and 23 (JPEG4).
+// ---------------------------------------------------------------------------
+namespace {
+
+struct SwfTag {
+    int code  = 0;
+    int start = 0;
+    int end   = 0;
+    int len() const { return end - start; }
+};
+
+// Walks a SWF tag stream starting from a byte offset.
+class TagWalker {
+public:
+    TagWalker(const unsigned char *d, int size, int pos)
+        : m_d(d), m_size(size), m_pos(pos) {}
+
+    bool next(SwfTag &t) {
+        if (m_pos + 2 > m_size) return false;
+        const unsigned raw = static_cast<unsigned>(m_d[m_pos]) |
+                             (static_cast<unsigned>(m_d[m_pos + 1]) << 8);
+        m_pos += 2;
+        t.code = static_cast<int>((raw >> 6) & 0x3FF);
+        int len = static_cast<int>(raw & 0x3F);
+        if (len == 63) {
+            if (m_pos + 4 > m_size) return false;
+            const quint64 v =
+                static_cast<quint64>(m_d[m_pos]) |
+                (static_cast<quint64>(m_d[m_pos + 1]) << 8) |
+                (static_cast<quint64>(m_d[m_pos + 2]) << 16) |
+                (static_cast<quint64>(m_d[m_pos + 3]) << 24);
+            m_pos += 4;
+            const int remaining = (m_pos < m_size) ? (m_size - m_pos) : 0;
+            // A corrupt length must not walk us past the buffer.
+            len = (v > static_cast<quint64>(remaining)) ? remaining
+                                                        : static_cast<int>(v);
+        }
+        if (t.code == 0) return false;   // End tag
+        t.start = m_pos;
+        t.end   = qMin(m_pos + len, m_size);
+        m_pos   = t.end;
+        return t.end > t.start;
+    }
+
+private:
+    const unsigned char *m_d;
+    int m_size;
+    int m_pos;
+};
+
+// Offset just past the SWF fixed header + RECT + frameRate + frameCount.
+int swfBodyOffset(const unsigned char *d, int size) {
+    int pos = 8;
+    if (pos >= size) return -1;
+    const int nbits = (d[pos] >> 3) & 0x1F;
+    pos += (5 + 4 * nbits + 7) / 8;
+    pos += 4;
+    return (pos <= size) ? pos : -1;
+}
+
+const int kSwfRates[4] = {5512, 11025, 22050, 44100};
+
+// Audio codec id from the low 4 bits of the SoundFormat byte.
+enum SwfSoundFormat {
+    kSndUncompressed = 0, kSndADPCM = 1, kSndMP3 = 2, kSndRawPCM = 3,
+    kSndNelly8 = 5, kSndNelly = 6, kSndSpeex = 9, kSndAAC = 10
+};
+
+struct SwfAudioFormat {
+    int codec = kSndADPCM;
+    int rate  = 5512;
+    QString extension;
+};
+
+// Decode the SoundFormat/SoundRate/SoundSize pair that DefineSound and
+// SoundStreamHead both carry.
+SwfAudioFormat readAudioHeader(const unsigned char *p) {
+    SwfAudioFormat a;
+    a.codec = p[0] & 0x0F;
+    a.rate  = kSwfRates[(p[1] >> 2) & 0x03];
+    switch (a.codec) {
+    case kSndMP3:    a.extension = "mp3";   break;
+    case kSndRawPCM: a.extension = "wav";   break;  // little-endian 16-bit stereo
+    case kSndSpeex:
+    case kSndAAC:    a.extension = "raw";   break;
+    case kSndADPCM:  a.extension = "adpcm"; break;
+    default:         a.extension = "raw";   break;  // Nellymoser family
+    }
+    return a;
+}
+
+// First MPEG frame sync, so a DefineSound body can be written as a playable
+// .mp3: some encoders prepend a few bytes of padding before the frames.
+int mpegSyncOffset(const unsigned char *d, int len) {
+    for (int i = 0; i + 1 < len && i < 64; ++i) {
+        if (d[i] == 0xFF && (d[i + 1] & 0xE0) == 0xE0) return i;
+    }
+    return -1;
+}
+
+// Wrap 16-bit little-endian PCM in a canonical 44-byte RIFF/WAVE header.
+QByteArray pcmToWav(const unsigned char *d, int len, int channels, int rate) {
+    if (len < 0) len = 0;
+    QByteArray out(44 + len, '\0');
+    unsigned char *o = reinterpret_cast<unsigned char *>(out.data());
+    const quint32 dataSize = static_cast<quint32>(len);
+    const quint32 byteRate = static_cast<quint32>(rate * channels * 2);
+    const quint16 blockAlign = static_cast<quint16>(channels * 2);
+    auto le16 = [&](int at, quint16 v) {
+        o[at] = static_cast<unsigned char>(v & 0xFF);
+        o[at + 1] = static_cast<unsigned char>((v >> 8) & 0xFF);
+    };
+    auto le32 = [&](int at, quint32 v) {
+        o[at] = static_cast<unsigned char>(v & 0xFF);
+        o[at + 1] = static_cast<unsigned char>((v >> 8) & 0xFF);
+        o[at + 2] = static_cast<unsigned char>((v >> 16) & 0xFF);
+        o[at + 3] = static_cast<unsigned char>((v >> 24) & 0xFF);
+    };
+    std::memcpy(o, "RIFF", 4);
+    le32(4, 36 + dataSize);
+    std::memcpy(o + 8, "WAVEfmt ", 8);
+    le32(16, 16);                 // fmt chunk size
+    le16(20, 1);                  // PCM
+    le16(22, static_cast<quint16>(channels));
+    le32(24, static_cast<quint32>(rate));
+    le32(28, byteRate);
+    le16(32, blockAlign);
+    le16(34, 16);                 // bits per sample
+    std::memcpy(o + 36, "data", 4);
+    le32(40, dataSize);
+    if (len > 0) std::memcpy(o + 44, d, static_cast<size_t>(len));
+    return out;
+}
+
+bool writeAsset(const QString &outDir, const QString &name, const QByteArray &data) {
+    QFile f(outDir + "/" + name);
+    if (!f.open(QIODevice::WriteOnly)) return false;
+    f.write(data);
+    f.close();
+    return true;
+}
+
+void censusInto(const unsigned char *d, int size, int pos, SwfContent &c,
+                int depth) {
+    TagWalker w(d, size, pos);
+    SwfTag t;
+    while (w.next(t)) {
+        switch (t.code) {
+        // Bitmaps. JPEGTables (8) carries a header, not an image, so it is
+        // deliberately absent.
+        case 6: case 20: case 21: case 22: case 23:
+        case 35: case 36: case 90:
+            ++c.bitmaps; break;
+        case 14:  ++c.audio;  break;              // DefineSound
+        case 18: case 45: case 89: ++c.streams; break;   // SoundStreamHead/2
+        case 2: case 32: case 46: case 83: ++c.shapes; break;  // shape / morph
+        case 11: case 33: ++c.texts; break;        // DefineText / Text2
+        case 10: case 24: case 75: ++c.fonts; break;  // Font / Font2 / Font3
+        case 12: case 59: ++c.actions; break;       // DoAction / DoInitAction
+        case 72: case 82: ++c.abc;     break;       // DoABC / DoABCDefine2
+        case 81: case 93: ++c.video;   break;       // DefineVideoStream(2)
+        case 87: ++c.binary; break;                 // DefineBinaryData
+        case 39: {                                  // DefineSprite
+            ++c.sprites;
+            // The sprite body is its own tag stream, after CharacterID(2) and
+            // FrameCount(2). Recurse so nested art is counted too.
+            if (depth < 4 && t.len() > 4)
+                censusInto(d, size, t.start + 4, c, depth + 1);
+            break;
+        }
+        default: break;
+        }
+    }
+}
+
+}  // namespace
+
+SwfContent censusSwf(const QByteArray &swfData) {
+    SwfContent c;
+    if (swfData.size() < 9) return c;
+    const unsigned char *d =
+        reinterpret_cast<const unsigned char *>(swfData.constData());
+    const int body = swfBodyOffset(d, swfData.size());
+    if (body < 0) return c;
+    censusInto(d, swfData.size(), body, c, 0);
+    return c;
+}
+
+// ---------------------------------------------------------------------------
+// Audio extraction
+// ---------------------------------------------------------------------------
+namespace {
+
+QStringList extractAudioFromRange(const unsigned char *d, int size, int pos,
+                                  const QString &outDir, const QString &prefix) {
+    QStringList out;
+    TagWalker w(d, size, pos);
+    SwfTag t;
+    int counter = 0;
+
+    // Streaming-audio state, scoped to this call rather than static: the helper
+    // is used for both a directly-imported SWF and a SWC's library.swf.
+    bool inStream = false;
+    QByteArray streamData;
+    SwfAudioFormat streamFmt;
+
+    auto flushStream = [&]() {
+        if (!inStream || streamData.isEmpty()) { inStream = false; return; }
+        const QString ext = streamFmt.extension.isEmpty() ? QString("raw")
+                                                         : streamFmt.extension;
+        const QString name = QString("%1stream_%2.%3")
+                                 .arg(prefix)
+                                 .arg(counter, 4, 10, QChar('0'))
+                                 .arg(ext);
+        bool ok = false;
+        if (streamFmt.codec == kSndMP3) {
+            const int skip = mpegSyncOffset(
+                reinterpret_cast<const unsigned char *>(streamData.constData()),
+                streamData.size());
+            ok = writeAsset(outDir, name,
+                            skip > 0 ? streamData.mid(skip) : streamData);
+        } else if (streamFmt.codec == kSndRawPCM) {
+            ok = writeAsset(outDir, name,
+                            pcmToWav(
+                                reinterpret_cast<const unsigned char *>(
+                                    streamData.constData()),
+                                streamData.size(), 2, streamFmt.rate));
+        } else {
+            ok = writeAsset(outDir, name, streamData);
+        }
+        if (ok) out << name;
+        streamData.clear();
+        inStream = false;
+    };
+
+    while (w.next(t)) {
+        const unsigned char *p = d + t.start;
+        const int len = t.len();
+
+        // ---- DefineSound (14): one self-contained clip ---------------------
+        if (t.code == 14 && len > 8) {
+            // p[0..1] SoundId, then the SoundFormat/SoundRate pair at p[2..3].
+            const SwfAudioFormat fmt = readAudioHeader(p + 2);
+            // Both the ADPCM/Nellymoser family and MP3/PCM carry a 16-bit
+            // field between the sample count and the data.
+            int dataOff = 8;
+            if (fmt.codec == kSndMP3) {
+                // MP3: UI16 fv where the low nibble is the block size.
+                dataOff = 8;
+            }
+            if (dataOff >= len) continue;
+
+            QByteArray body(reinterpret_cast<const char *>(p + dataOff),
+                            len - dataOff);
+            if (body.isEmpty()) continue;
+
+            const QString stem = QString("%1sound_%2").arg(prefix).arg(
+                counter, 4, 10, QChar('0'));
+            bool ok = false;
+            if (fmt.codec == kSndMP3) {
+                const int skip = mpegSyncOffset(p + dataOff, len - dataOff);
+                ok = writeAsset(outDir, stem + ".mp3",
+                                skip > 0 ? body.mid(skip) : body);
+            } else if (fmt.codec == kSndRawPCM) {
+                ok = writeAsset(outDir, stem + ".wav",
+                                pcmToWav(p + dataOff, len - dataOff, 2, fmt.rate));
+            } else {
+                // ADPCM / Nellymoser / Speex / AAC have no container we can
+                // write without a codec we do not ship. Keep the bytes under an
+                // honest extension so the asset is not silently lost.
+                ok = writeAsset(outDir, stem + "." + fmt.extension, body);
+            }
+            if (ok) out << stem + (fmt.codec == kSndMP3   ? ".mp3"
+                                   : fmt.codec == kSndRawPCM ? ".wav"
+                                                            : "." + fmt.extension);
+            ++counter;
+            continue;
+        }
+
+        // ---- SoundStreamHead (18 / 45 / 89) opens a stream -----------------
+        if (t.code == 18 || t.code == 45 || t.code == 89) {
+            flushStream();
+            inStream = true;
+            streamData.clear();
+            streamFmt = (len > 4) ? readAudioHeader(p + 2) : SwfAudioFormat();
+            continue;
+        }
+
+        // ---- SoundStreamBlock (19 / 60) appends ---------------------------
+        if ((t.code == 19 || t.code == 60) && inStream) {
+            streamData.append(reinterpret_cast<const char *>(p), len);
+            continue;
+        }
+
+        // Any other tag closes the stream.
+        flushStream();
+    }
+    flushStream();
+    return out;
+}
+
+}  // namespace
+
+QStringList extractSwfAudio(const QByteArray &swfData, const QString &outDir) {
+    if (swfData.size() < 9) return QStringList();
+    const unsigned char *d =
+        reinterpret_cast<const unsigned char *>(swfData.constData());
+    const int body = swfBodyOffset(d, swfData.size());
+    if (body < 0) return QStringList();
+    return extractAudioFromRange(d, swfData.size(), body, outDir, QString());
+}
+
+
+
+// ---------------------------------------------------------------------------
+// Container sniffing
+//
+// The bytes are authoritative; the extension is only a hint. Everything the
+// importer accepts has a distinct magic number, so a SWF named ".fla", or an
+// FLA re-zipped as ".zip", still resolves correctly.
+// ---------------------------------------------------------------------------
+
+Format detectFormat(const QString &path) {
+    QFile f(path);
+    if (!f.open(QIODevice::ReadOnly)) return Format::Unknown;
+    const QByteArray magic = f.read(12);
+    f.close();
+    if (magic.size() < 4) return Format::Unknown;
+
+    const unsigned char *h = reinterpret_cast<const unsigned char *>(magic.constData());
+
+    // OLE2 / Compound File Binary: legacy binary .fla, and Flash Lite .fls.
+    static const unsigned char kOle2[8] = {0xD0, 0xCF, 0x11, 0xE0,
+                                           0xA1, 0xB1, 0x1A, 0xE1};
+    if (magic.size() >= 8 && std::memcmp(h, kOle2, 8) == 0) return Format::Ole2Fla;
+
+    // SWF: "FWS" uncompressed, "CWS" zlib, "ZWS" LZMA. The same header is used
+    // by .swz (a SWF whose sounds ship pre-compressed) and by .ksk (a
+    // keystroke-signed SWF), so both are recognised here rather than by name.
+    if ((h[0] == 'F' || h[0] == 'C' || h[0] == 'Z') && h[1] == 'W' && h[2] == 'S')
+        return Format::Swf;
+
+    // ZIP: every valid local-header / end-of-directory signature.
+    if (h[0] == 'P' && h[1] == 'K' &&
+        (h[2] == 0x03 || h[2] == 0x05 || h[2] == 0x07))
+        return Format::Zip;
+
+    // ISO base media file format: .f4v, .m4v, .mp4.
+    if (magic.size() >= 8 && std::memcmp(h + 4, "ftyp", 4) == 0)
+        return Format::IsoBmff;
+
+    return Format::Unknown;
+}
+
+QStringList supportedExtensions() {
+    return {
+        // Flash project, both generations
+        "fla", "xfl", "fls",
+        // Compiled Flash
+        "swf", "swz", "swc", "sol", "ksk",
+        // Mislabeled payloads: ".ssf" is a plain SWF in the wild, and users
+        // re-zip FLAs because some hosts refuse ".fla" uploads.
+        "ssf", "dat", "zip",
+        // Video
+        "flv", "f4v", "m4v",
+        // ActionScript source
+        "as", "asc", "mxml", "jsfl",
+        // Packaging / extensions
+        "zxp", "mxp", "ane", "air", "oam",
+        // Copied for reference; not parsed
+        "lwf", "rsl", "afl",
+    };
 }
 
 }  // namespace FlashAssets

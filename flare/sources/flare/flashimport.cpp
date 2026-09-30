@@ -170,6 +170,26 @@ static QString extractAdobeZipPackage(const QString &srcPath, const QString &out
     return {};
 }
 
+// Name the content an XFL/FLA document holds that the importer cannot yet turn
+// into a level. A vector-only FLA is the common case, and without this it
+// reports a successful import that added nothing to the scene - which looks
+// exactly like a broken file.
+static QString describeUnconverted(const XFL::ContentCensus &c) {
+    QStringList missing;
+    if (c.shapes)     missing << QObject::tr("%1 vector shape(s)").arg(c.shapes);
+    if (c.shapeText)  missing << QObject::tr("%1 shape text object(s)").arg(c.shapeText);
+    if (c.texts)      missing << QObject::tr("%1 text object(s)").arg(c.texts);
+    if (c.morphs)     missing << QObject::tr("%1 morph shape(s)").arg(c.morphs);
+    if (c.sounds)     missing << QObject::tr("%1 sound(s)").arg(c.sounds);
+    if (c.videos)     missing << QObject::tr("%1 video item(s)").arg(c.videos);
+    if (c.components) missing << QObject::tr("%1 component instance(s)").arg(c.components);
+    if (missing.isEmpty()) return {};
+    return QObject::tr("\n  Not converted to levels: %1. Vector art and text "
+                       "import is not implemented yet; the document is unpacked "
+                       "to the export folder.")
+        .arg(missing.join(", "));
+}
+
 // ---------------------------------------------------------------------------
 // Native FLA/XFL scene import
 //
@@ -285,34 +305,10 @@ void ImportFlashVectorCommand::execute() {
     if (!loadPopup) {
         loadPopup = new GenericLoadFilePopup(
             QObject::tr("Import Flash / Animate File"));
-        // Core Flash / Animate project formats
-        loadPopup->addFilterType("fla");
-        loadPopup->addFilterType("xfl");
-        loadPopup->addFilterType("swf");
-        loadPopup->addFilterType("swc");
-        // ActionScript source
-        loadPopup->addFilterType("as");
-        loadPopup->addFilterType("asc");
-        loadPopup->addFilterType("mxml");
-        loadPopup->addFilterType("jsfl");
-        loadPopup->addFilterType("zxp");
-        loadPopup->addFilterType("mxp");
-        // Video
-        loadPopup->addFilterType("flv");
-        loadPopup->addFilterType("f4v");
-        // AIR / ANE / OAM packaging
-        loadPopup->addFilterType("air");
-        loadPopup->addFilterType("ane");
-        loadPopup->addFilterType("oam");
-        // Other Flash-ecosystem formats
-        loadPopup->addFilterType("lwf");
-        loadPopup->addFilterType("rsl");
-        loadPopup->addFilterType("afl");
-        // Mislabeled Flash payloads: ".ssf" is a plain SWF in the wild, and
-        // users re-zip FLAs because some hosts refuse ".fla" uploads.
-        loadPopup->addFilterType("ssf");
-        loadPopup->addFilterType("dat");
-        loadPopup->addFilterType("zip");
+        // One list, owned by the format module, so the dialog and the dispatch
+        // can never drift apart.
+        for (const QString &ext : FlashAssets::supportedExtensions())
+            loadPopup->addFilterType(ext);
     }
 
     if (!scene->isUntitled())
@@ -342,10 +338,15 @@ void ImportFlashVectorCommand::execute() {
         (detected == FlashAssets::Format::Zip) ||
         (detected == FlashAssets::Format::Unknown &&
          (ext == "fla" || ext == "swc" || ext == "zxp" || ext == "mxp" ||
-          ext == "ane" || ext == "air" || ext == "oam" || ext == "zip"));
+          ext == "ane" || ext == "air" || ext == "oam" || ext == "zip" ||
+          ext == "sol" || ext == "fls"));
+    // ".swz" (pre-compressed sounds) and ".ksk" (keystroke-signed) carry the
+    // ordinary FWS/CWS/ZWS header, so the sniffer already resolves them; the
+    // extension is only consulted for content the magic number cannot place.
     const bool isSwf = (detected == FlashAssets::Format::Swf) ||
                        (detected == FlashAssets::Format::Unknown &&
-                        (ext == "swf" || ext == "ssf" || ext == "dat"));
+                        (ext == "swf" || ext == "ssf" || ext == "dat" ||
+                         ext == "swz" || ext == "ksk"));
 
     // ---- Legacy binary FLA (Flash CS4 and earlier; OLE2 compound document) ----
     if (detected == FlashAssets::Format::Ole2Fla) {
@@ -476,6 +477,7 @@ void ImportFlashVectorCommand::execute() {
                         .arg(bmCount)
                         .arg(tlCount);
                     // Native scene import: map FLA layers → Flare columns
+                    info += describeUnconverted(doc.census);
                     if (tlCount > 0) {
                         TXsheet *xsheet = TApp::instance()->getCurrentXsheet()->getXsheet();
                         importXFLScene(scene, xsheet, doc, extractedXfl);
@@ -551,6 +553,7 @@ void ImportFlashVectorCommand::execute() {
             .arg(static_cast<int>(doc.symbols.size()))
             .arg(static_cast<int>(doc.bitmaps.size()))
             .arg(static_cast<int>(doc.timelines.size()));
+        info += describeUnconverted(doc.census);
 
         // Native scene import for XFL directory
         if (!doc.timelines.empty()) {
@@ -606,6 +609,41 @@ void ImportFlashVectorCommand::execute() {
             exported += bitmaps;
             if (!bitmaps.isEmpty())
                 info += QObject::tr("\n  %1 embedded bitmap(s) extracted").arg(bitmaps.size());
+
+            // Embedded audio. MP3 and raw PCM become playable files; ADPCM and
+            // the proprietary codecs are written under an honest extension
+            // rather than dropped.
+            {
+                const QStringList audio = FlashAssets::extractSwfAudio(src2, outPath);
+                exported += audio;
+                if (!audio.isEmpty())
+                    info += QObject::tr("\n  %1 embedded sound(s) extracted")
+                                .arg(audio.size());
+            }
+
+            // Name whatever the movie holds that cannot become a level.
+            // Without this, a vector-only SWF reports a successful import that
+            // produced nothing, which reads exactly like a broken file.
+            {
+                const FlashAssets::SwfContent c = FlashAssets::censusSwf(src2);
+                QStringList missing;
+                if (c.shapes)  missing << QObject::tr("%1 vector shape(s)").arg(c.shapes);
+                if (c.texts)   missing << QObject::tr("%1 text object(s)").arg(c.texts);
+                if (c.fonts)   missing << QObject::tr("%1 embedded font(s)").arg(c.fonts);
+                if (c.video)   missing << QObject::tr("%1 video stream(s)").arg(c.video);
+                if (c.sprites) missing << QObject::tr("%1 nested timeline(s)").arg(c.sprites);
+                if (c.binary)  missing << QObject::tr("%1 embedded binary blob(s)").arg(c.binary);
+                if (c.actions)
+                    missing << QObject::tr("%1 ActionScript 1/2 block(s)").arg(c.actions);
+                if (!missing.isEmpty())
+                    info += QObject::tr(
+                                "\n  Not converted to levels: %1. The movie is "
+                                "unpacked to the export folder.")
+                            .arg(missing.join(", "));
+                if (c.abc)
+                    info += QObject::tr("\n  %1 ActionScript 3 block(s) present.")
+                                .arg(c.abc);
+            }
 
             // ActionScript: needs the optional flare-as3 helper (Next2Flash
             // merge). Probed the same way FFmpeg is - when it is absent the
@@ -706,16 +744,19 @@ void ImportFlashVectorCommand::execute() {
             .arg(flv.hasAudio ? QObject::tr(flv.hasVideo ? " + audio" : "audio") : QString());
         copyFileForReference(srcPath, outPath, exported);
 
-    // ---- F4V (Flash H.264, ISO BMFF container) ----
-    } else if (ext == "f4v") {
-        F4vInfo f4v = FlashAssets::readF4vHeader(srcPath);
+    // ---- F4V / M4V (Flash H.264, ISO BMFF container) ----
+    } else if (detected == FlashAssets::Format::IsoBmff) {
+        const F4vInfo f4v = FlashAssets::readF4vHeader(srcPath);
         if (!f4v.valid) {
             DVGui::error(QObject::tr("Not a valid F4V/ISOBMFF file: %1").arg(srcPath));
             return;
         }
-        info = QObject::tr("F4V  |  brand: %1").arg(f4v.majorBrand);
+        info = QObject::tr("%1  |  brand: %2").arg(ext.toUpper(), f4v.majorBrand);
         if (!f4v.compatBrands.isEmpty())
             info += QObject::tr("  |  compatible: %1").arg(f4v.compatBrands);
+        if (ext != "f4v")
+            info += QObject::tr("\n  Extension is .%1 but the content is an "
+                               "ISO base-media (MPEG-4) file.").arg(ext);
         copyFileForReference(srcPath, outPath, exported);
 
     // ---- ANE (Adobe Native Extension) — ZIP ----
@@ -767,19 +808,20 @@ void ImportFlashVectorCommand::execute() {
 
     // SWF/FLV/F4V are never directly loadable as Flare levels — Flare has no
     // native level reader for these binary Flash formats.  Only the extracted
-    // image assets (PNG, JPG, SVG) can be auto-loaded into the scene.
-    // Future support roadmap:
-    //  - SWF vector DefineShape rendering
-    //  - timeline/tween reconstruction from FLA/XFL
-    //  - ActionScript execution (insecure sandboxed runtime)
-    //  - SWF sprite/movieclip playback timeline
-    //  - sound extraction from SWF/SWC
+    // assets (PNG, JPG, SVG) can be auto-loaded into the scene.
+    //
+    // Implemented:  SWF images, SWF audio, XFL/FLA images + timeline/layers.
+    // Not yet:       SWF vector art, text, embedded fonts, video streams and
+    //                nested sprite timelines; the binary FLA timeline. The
+    //                import dialog names what it found, so an empty result is
+    //                always explained rather than looking like a broken file.
     if (isSwf)
-        info += QObject::tr("\n  Embedded bitmaps extracted from SWF for import.");
+        info += QObject::tr("\n  Embedded bitmaps and sounds extracted for import.");
     else if (ext == "flv")
         info += QObject::tr("\n  FLV copied for reference (no native FLV level reader).");
-    else if (ext == "f4v")
-        info += QObject::tr("\n  F4V copied for reference (no native F4V level reader).");
+    else if (detected == FlashAssets::Format::IsoBmff)
+        info += QObject::tr("\n  ISO base-media file copied for reference "
+                            "(no native level reader).");
 
     if (detected == FlashAssets::Format::Ole2Fla)
         info += QObject::tr("\n  Note: legacy binary FLA timeline/vector import is "

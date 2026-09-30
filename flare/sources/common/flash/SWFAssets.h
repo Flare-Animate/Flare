@@ -41,15 +41,25 @@ namespace FlashAssets {
 // Container formats, identified from the leading bytes rather than the
 // extension: Flash payloads in the wild are routinely mislabeled (".ssf" holds
 // a plain SWF, FLAs get re-zipped as ".zip").
+//
+// The sniffer is deliberately authoritative - the extension is only consulted
+// for formats with no reliable magic number, and only when the bytes tell us
+// nothing. That is what lets a SWF named ".fla", or an FLA re-zipped as
+// ".zip", import correctly.
 enum class Format {
     Unknown,
-    Swf,      // FWS / CWS / ZWS
-    Ole2Fla,  // legacy binary FLA (Flash CS4 and earlier)
-    Zip,      // ZIP-backed XFL: .fla (CS5+), .swc, .zxp, .mxp, .ane, .air, .oam
-    IsoBmff   // .f4v / mp4 family
+    Swf,      // FWS / CWS / ZWS  (also .swz, .ksk: same header)
+    Ole2Fla,  // legacy binary FLA (Flash CS4 and earlier); also .fls
+    Zip,      // ZIP-backed XFL: .fla (CS5+), .swc, .zxp, .mxp, .ane, .air,
+              // .oam, .sol (Flash Shared Library)
+    IsoBmff   // .f4v / .m4v / .mp4 - ftyp box
 };
 
 DVAPI Format detectFormat(const QString &path);
+
+// Every extension the Flash import command advertises. Kept beside the
+// sniffer so the file dialog and the dispatch cannot drift apart.
+DVAPI QStringList supportedExtensions();
 
 struct SwfInfo {
     bool valid = false;
@@ -100,6 +110,44 @@ DVAPI QStringList extractLegacyFlaBitmaps(const QByteArray &data,
 // Returns the file names written into `outDir`.
 DVAPI QStringList extractSwfBitmaps(const QByteArray &swfData,
                                     const QString &outDir);
+
+// What a SWF actually contains. The importer reports this so content it cannot
+// convert is *named* rather than silently dropped -- a SWF full of vector art
+// used to import as a completely empty scene with no explanation.
+struct SwfContent {
+    int bitmaps = 0;   // DefineBits / JPEG / lossless image tags
+    int audio   = 0;   // DefineSound
+    int streams = 0;   // SoundStreamHead/Block (streaming audio)
+    int shapes  = 0;   // DefineShape / Shape3 / Shape4 / MorphShape
+    int texts   = 0;   // DefineText / DefineText2
+    int fonts   = 0;   // DefineFont / Font2 / Font3
+    int sprites = 0;   // DefineSprite (nested timelines)
+    int actions = 0;   // DoAction / DoInitAction (ActionScript 1/2 bytecode)
+    int abc     = 0;   // DoABC / DoABC2 (ActionScript 3 bytecode)
+    int video   = 0;   // DefineVideoStream
+    int binary  = 0;   // DefineBinaryData
+
+    bool isEmpty() const {
+        return !(bitmaps || audio || streams || shapes || texts || fonts ||
+                 sprites || actions || abc || video || binary);
+    }
+    // True when the movie carries art that the bitmap extractor cannot turn
+    // into a level, so the user should be told why the import looks empty.
+    bool hasNonBitmapArt() const {
+        return shapes || texts || fonts || sprites || video;
+    }
+};
+
+// Census a SWF tag stream (recursing into DefineSprite).
+DVAPI SwfContent censusSwf(const QByteArray &swfData);
+
+// Extract embedded audio. DefineSound tags become one file each; streaming
+// audio (SoundStreamHead + SoundStreamBlock) is concatenated per stream.
+// MP3 is written as .mp3, uncompressed 16-bit PCM as .wav, ADPCM and the
+// proprietary codecs as raw .raw (they cannot be decoded without a codec we do
+// not ship). Returns the file names written into `outDir`.
+DVAPI QStringList extractSwfAudio(const QByteArray &swfData,
+                                  const QString &outDir);
 
 }  // namespace FlashAssets
 
