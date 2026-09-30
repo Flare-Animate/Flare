@@ -1970,7 +1970,7 @@ void MainWindow::defineActions() {
                         "new_vector_level");
   createMenuLevelAction(MI_NewToonzRasterLevel,
                         QT_TR_NOOP("&New Flare Raster Level"), "",
-                        "new_toonz_raster_level");
+                        "new_flare_raster_level");
   createMenuLevelAction(MI_NewRasterLevel, QT_TR_NOOP("&New Raster Level"), "",
                         "new_raster_level");
   createMenuFileAction(MI_NewMetaLevel, QT_TR_NOOP("&New Assistant Level"),
