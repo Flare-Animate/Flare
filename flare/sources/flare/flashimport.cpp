@@ -672,8 +672,14 @@ void ImportFlashVectorCommand::execute() {
                                 .arg(as3.error);
                 }
             } else {
-                info += QObject::tr("\n  ActionScript decompilation is unavailable "
-                                    "(optional flare-as3 helper not installed).");
+                // Say *why*: "no Python interpreter" and "helper script missing"
+                // need completely different things from the user.
+                const QString why = As3Bridge::unavailableReason();
+                info += QObject::tr("\n  ActionScript decompilation unavailable: %1")
+                            .arg(why.isEmpty()
+                                     ? QObject::tr("the optional flare-as3 helper "
+                                                   "is not installed")
+                                     : why);
             }
         }
 

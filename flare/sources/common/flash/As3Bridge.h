@@ -49,6 +49,11 @@ bool isAvailable();
 // Version string reported by the helper, empty when unavailable.
 QString version();
 
+// Why the helper is unavailable, for a message a user can act on: a missing
+// helper script, a missing Python interpreter, or an import failure. Empty
+// when the helper is available.
+QString unavailableReason();
+
 // Decompile every AS3 class in `swf` to ActionScript under `outDir`.
 // Returns ok=false with `error` set when the helper is unavailable, so callers
 // can distinguish "no AS3 support installed" from "this file has no AS3".

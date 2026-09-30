@@ -142,10 +142,74 @@ def test_unknown_command_is_reported_not_raised():
     assert proc.returncode == 1
 
 
-def test_compile_reports_itself_unported():
-    _, result = run_bridge(["compile", "src", "out.swf"])
-    assert result["ok"] is False
-    assert "not yet ported" in result["error"]
+def test_compile_drives_mxmlc_and_says_where_it_looked_when_absent():
+    """`compile` uses the Flex SDK's mxmlc, as Next2Flash does.
+
+    The SDK is not vendored, so in a machine without it the command has to
+    explain itself rather than fail vaguely: it must name the tool and the
+    locations it searched.
+    """
+    td = tempfile.mkdtemp()
+    try:
+        src = os.path.join(td, "src")
+        os.makedirs(src)
+        with open(os.path.join(src, "Main.as"), "w", encoding="utf-8") as f:
+            f.write("package { public class Main { public function Main() {} } }")
+
+        _, result = run_bridge(["compile", src, os.path.join(td, "out.swf")])
+        assert result["ok"] is False
+        # Either the SDK was found and mxmlc failed, or it was not found and
+        # the message must be actionable. Both are acceptable; a vague message
+        # is not.
+        msg = result["error"]
+        if "mxmlc" in msg and "exited with status" not in msg:
+            assert "FLARE_FLEX_SDK" in msg, msg
+            assert "looked in" in msg, msg
+    finally:
+        shutil.rmtree(td, ignore_errors=True)
+
+
+def test_compile_rejects_a_directory_with_no_sources():
+    td = tempfile.mkdtemp()
+    try:
+        _, result = run_bridge(["compile", td, os.path.join(td, "out.swf")])
+        assert result["ok"] is False
+        assert "no .as sources" in result["error"]
+    finally:
+        shutil.rmtree(td, ignore_errors=True)
+
+
+def test_capabilities_reports_every_command_and_keeps_status_schema():
+    """`status` has a fixed two-key schema; capabilities carries the detail.
+
+    Both the C++ client and test_status_reports_vendored_decompiler() depend on
+    the status shape, so the richer report must not leak into it.
+    """
+    _, status = run_bridge(["status"])
+    assert set(status) == {"available", "version"}
+
+    _, caps = run_bridge(["capabilities"])
+    assert set(caps) == {"available", "commands", "flex_sdk"}
+    assert set(caps["commands"]) == {"status", "decompile", "patch", "compile"}
+    for name, info in caps["commands"].items():
+        assert set(info) == {"ok", "detail"}, name
+        assert isinstance(info["ok"], bool), name
+        assert info["detail"], f"{name} must explain itself"
+    # Decompiling needs no SDK at all, so it must be available here.
+    assert caps["commands"]["decompile"]["ok"] is True
+    # ...while compile is gated on the SDK, and must say so either way.
+    compile_info = caps["commands"]["compile"]
+    assert compile_info["ok"] is False or "mxmlc at" in compile_info["detail"]
+
+
+def test_help_is_not_an_error():
+    """"--help" used to return a JSON error; it should document the contract."""
+    proc = subprocess.run([PY, BRIDGE, "--help"],
+                          stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    assert proc.returncode == 0
+    out = proc.stdout.decode("utf-8")
+    for command in ("status", "capabilities", "decompile", "compile", "patch"):
+        assert command in out, f"{command} missing from --help"
 
 
 def test_decompile_swf_without_abc_is_success_with_no_classes():
@@ -282,3 +346,50 @@ def test_patch_rejects_malformed_patch_files():
         assert result["ok"] is False and "must be an object" in result["error"]
     finally:
         shutil.rmtree(td)
+
+
+def test_decompile_accepts_a_bare_abc_block():
+    """A standalone .abc is what asc2.jar and the Flex SDK emit.
+
+    It is not a SWF, so the tag-walking reader cannot be used on it; the
+    bridge has to hand the raw bytes to the ABC parser directly and report the
+    block in the same shape as a SWF.
+
+    This asserts the *routing* -- that a bare .abc is accepted, parsed, and
+    given its own block directory. That the parser recovers classes is
+    Next2Flash's code and is covered by the SWF path; the fixture used here is
+    a structural skeleton with an empty class list by construction.
+    """
+    td = tempfile.mkdtemp()
+    try:
+        abc = _abc_with_strings(["hello", "world"])
+        abc_path = os.path.join(td, "block.abc")
+        with open(abc_path, "wb") as f:
+            f.write(abc)
+
+        out_dir = os.path.join(td, "out")
+        _, result = run_bridge(["decompile", abc_path, out_dir])
+        assert result["ok"] is True, result
+        assert result["error"] is None
+        # One entry, naming the file and the block directory it used.
+        assert len(result["classes"]) == 1, result
+        entry = result["classes"][0]
+        assert "block.abc" in entry, entry
+        assert "block_0/" in entry, entry
+        # The block directory must exist: that is what proves the .abc branch
+        # ran rather than the SWF tag walker quietly finding nothing.
+        assert os.path.isdir(os.path.join(out_dir, "block_0"))
+    finally:
+        shutil.rmtree(td, ignore_errors=True)
+
+
+def test_decompile_rejects_an_empty_abc():
+    td = tempfile.mkdtemp()
+    try:
+        abc_path = os.path.join(td, "empty.abc")
+        open(abc_path, "wb").close()
+        _, result = run_bridge(["decompile", abc_path, os.path.join(td, "out")])
+        assert result["ok"] is False
+        assert "empty" in result["error"]
+    finally:
+        shutil.rmtree(td, ignore_errors=True)

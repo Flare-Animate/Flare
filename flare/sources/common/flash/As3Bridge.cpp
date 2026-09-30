@@ -154,6 +154,7 @@ Result invoke(const QStringList &args, QString &error) {
 bool       g_probed   = false;
 bool       g_available = false;
 QString    g_version;
+QString    g_reason;
 
 // Run `status` and return the answer as JSON (empty on any failure).
 QJsonObject probeStatus(QString &error) {
@@ -192,13 +193,20 @@ bool isAvailable() {
         const QJsonObject o = probeStatus(err);
         g_available = o.value("available").toBool(false);
         g_version   = o.value("version").toString();
-        if (!g_available)
+        if (!g_available) {
+            g_reason = err;
             qDebug() << "[AS3] helper unavailable:" << err;
+        }
     }
     return g_available;
 }
 
 QString version() { return isAvailable() ? g_version : QString(); }
+
+QString unavailableReason() {
+    isAvailable();
+    return g_reason;
+}
 
 Result decompile(const TFilePath &swf, const TFilePath &outDir) {
     QString err;
