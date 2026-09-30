@@ -417,77 +417,110 @@ bool extract(const TFilePath &zipPath, const TFilePath &outDir,
         return false;
     }
 
-    unzFile uf = unzOpen(usable.toUtf8().constData());
+    unzFile uf = unzOpen64(usable.toUtf8().constData());
     if (!uf) {
         if (detail.empty()) detail = "archive could not be opened";
-        return false;
-    }
-
-    unz_global_info gi;
-    if (unzGetGlobalInfo(uf, &gi) != UNZ_OK) {
-        unzClose(uf);
-        detail = "archive has no readable central directory";
         return false;
     }
 
     const QString outDirPath = QDir(outDir.getQString()).absolutePath();
     QByteArray name(4096, Qt::Uninitialized);
     QByteArray buf(64 * 1024, Qt::Uninitialized);
-    int written = 0;
-    int skipped = 0;
+    int written  = 0;
+    int skipped  = 0;   // rejected by the traversal checks
+    int failed   = 0;   // present in the archive but unreadable
+    int dirCount = 0;
 
-    for (uLong i = 0; i < gi.number_entry; ++i) {
-        unz_file_info fi;
-        if (unzGetCurrentFileInfo(uf, &fi, name.data(), name.size(), nullptr, 0,
-                                  nullptr, 0) != UNZ_OK)
-            break;
+    // Drive iteration from the archive itself rather than from the entry count
+    // in the trailer. That count is the field most likely to be wrong (see the
+    // file header), and a truncated count would silently stop extraction short.
+    for (int next = unzGoToFirstFile(uf); next == UNZ_OK;
+         next = unzGoToNextFile(uf)) {
+        unz_file_info64 fi;
+        if (unzGetCurrentFileInfo64(uf, &fi, name.data(), name.size(), nullptr, 0,
+                                    nullptr, 0) != UNZ_OK) {
+            ++failed;
+            continue;
+        }
+        name[name.size() - 1] = '\0';  // guarantee termination
+        const QString rawName =
+            QString::fromUtf8(name.constData(),
+                              static_cast<int>(qstrlen(name.constData())));
+        if (rawName.isEmpty()) continue;
 
-        const QString rawName = QString::fromUtf8(name.constData(),
-                                                 static_cast<int>(qstrlen(name.constData())));
-        const bool isDir = !rawName.isEmpty() && rawName.endsWith('/');
+        QString rel = rawName;
+        rel.replace('\\', '/');
+        while (rel.startsWith("./")) rel = rel.mid(2);
+        const bool isDir = rel.endsWith('/');
 
-        if (!isDir && !memberNameIsSafe(rawName)) {
+        if (!isDir && !memberNameIsSafe(rel)) {
             ++skipped;
-        } else {
-            QString rel = rawName;
-            rel.replace('\\', '/');
-            while (rel.startsWith("./")) rel = rel.mid(2);
-            const QString fullOut = outDirPath + "/" + rel;
-
-            // Second line of defence: confirm the resolved path really is
-            // inside outDir even if the name slipped past the textual checks.
-            if (!isPathUnderDir(outDirPath, fullOut)) {
-                ++skipped;
-            } else if (isDir) {
-                QDir().mkpath(fullOut);
-            } else {
-                QDir().mkpath(QFileInfo(fullOut).absolutePath());
-                if (unzOpenCurrentFile(uf) == UNZ_OK) {
-                    QFile outFile(fullOut);
-                    if (outFile.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
-                        int n;
-                        while ((n = unzReadCurrentFile(uf, buf.data(),
-                                                      static_cast<unsigned>(buf.size()))) > 0)
-                            outFile.write(buf.constData(), n);
-                        outFile.close();
-                        ++written;
-                    }
-                    // A single unreadable member must not abandon the archive.
-                    unzCloseCurrentFile(uf);
-                }
-            }
+            continue;
         }
 
-        if (i + 1 < gi.number_entry && unzGoToNextFile(uf) != UNZ_OK) break;
+        const QString fullOut = outDirPath + "/" + rel;
+
+        // Second line of defence: confirm the resolved path really is inside
+        // outDir even if the name slipped past the textual checks.
+        if (!isPathUnderDir(outDirPath, fullOut)) {
+            ++skipped;
+            continue;
+        }
+
+        if (isDir) {
+            QDir().mkpath(fullOut);
+            ++dirCount;
+            continue;
+        }
+
+        QDir().mkpath(QFileInfo(fullOut).absolutePath());
+        if (unzOpenCurrentFile(uf) != UNZ_OK) {
+            ++failed;
+            continue;
+        }
+
+        bool writeOk = true;
+        QFile outFile(fullOut);
+        if (!outFile.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+            unzCloseCurrentFile(uf);
+            ++failed;
+            continue;
+        }
+        int n = 0;
+        while ((n = unzReadCurrentFile(uf, buf.data(),
+                                       static_cast<unsigned>(buf.size()))) > 0) {
+            if (outFile.write(buf.constData(), n) != n) { writeOk = false; break; }
+        }
+        // A negative return is an inflate error, not end-of-entry: whatever we
+        // wrote is incomplete.
+        if (n < 0) writeOk = false;
+        outFile.close();
+
+        // minizip validates the entry's CRC in unzCloseCurrentFile and reports
+        // a mismatch as UNZ_CRCERROR. A read can reach EOF cleanly and still
+        // fail here, so a silently corrupt entry only shows up in this return
+        // value - do not count it as extracted.
+        if (unzCloseCurrentFile(uf) != UNZ_OK) writeOk = false;
+
+        if (writeOk) {
+            ++written;
+        } else {
+            outFile.remove();
+            ++failed;
+        }
     }
     unzClose(uf);
 
-    if (skipped > 0) {
+    if (skipped > 0)
         qDebug() << "[ZipArchive] skipped" << skipped
                  << "unsafe member(s) in" << zipPath.getQString();
-    }
-    if (written == 0 && skipped > 0) return false;
-    return true;
+    if (failed > 0)
+        qDebug() << "[ZipArchive]" << failed << "member(s) of"
+                 << zipPath.getQString() << "could not be read and were skipped";
+
+    if (written == 0 && failed > 0 && dirCount == 0) return false;
+    // An archive of nothing but directory entries is still a successful read.
+    return written > 0 || (dirCount > 0 && failed == 0);
 }
 
 }  // namespace FlareZip

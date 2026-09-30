@@ -23,9 +23,14 @@ TOfflineGL::Imp *MacOfflineGenerator1(const TDimension &dim) {
 
 #include <map>
 #include <sstream>
+#include <vector>
+#include <cstdlib>
 
 #if defined(__linux__) && !defined(MACOSX)
 #include <unistd.h>  // readlink() for /proc/self/exe portable detection
+#elif defined(MACOSX)
+#include <mach-o/dyld.h>  // _NSGetExecutablePath() for bundle-relative lookup
+#include <cstdint>
 #endif
 
 using namespace TEnv;
@@ -117,33 +122,83 @@ public:
     return TSystem::getSystemValue(getSystemVarPath(varName)).toStdString();
 #else
     TFilePath systemVarPath = getSystemVarPath(varName);
-    if (systemVarPath.isEmpty()) {
-      std::cout << "varName:" << varName << " FLAREROOT not set..."
-                << std::endl;
-      return "";
+    if (!systemVarPath.isEmpty()) return ::to_string(systemVarPath);
+
+    // SystemVar.ini has no entry for this variable. Honour a real environment
+    // variable of the same name before giving up: the Linux launcher script and
+    // most packaged builds export FLAREROOT (and friends) directly, and users
+    // who start the binary without the launcher have no .ini at all.
+    if (const char *envValue = ::getenv(varName.c_str())) {
+      if (envValue[0] != '\0') return std::string(envValue);
     }
-    return ::to_string(systemVarPath);
-/*
-                        char *value = getenv(varName.c_str());
-                        if (!value)
-                                {
-                                std::cout << varName << " not set, returning
-   FLAREROOT" << std::endl;
-        //value = getenv("FLAREROOT");
-                        value="";
-                        std::cout << "!!!value= "<< value << std::endl;
-                        if (!value)
-                                        {
-                                        std::cout << varName << "FLAREROOT not
-   set..." << std::endl;
-                                        //exit(-1);
-                                        return "";
-                                        }
-                                }
-      return string(value);
-        */
+    return "";
 #endif
   }
+
+#ifndef _WIN32
+  // Locate the "stuff" directory when neither SystemVar.ini nor the environment
+  // names it. Without this the app aborts at startup with an empty-root fatal
+  // error on any install that did not go through the launcher script — AppImages
+  // and distro packages in particular (issues #60, #65).
+  TFilePath findStuffDirFallback() {
+    std::vector<std::string> candidates;
+
+    // 1. Relative to the executable: <prefix>/bin/Flare -> <prefix>/share/flare/stuff
+    //
+    // This has to be the executable's OWN directory, which is NOT
+    // getWorkingDirectory(): that holds the process CWD (setWorkingDirectory()
+    // only replaces it with the executable's directory on Linux, and only when
+    // a sibling portablestuff/ was found). Deriving these candidates from the
+    // CWD would point them at wherever the user happened to launch from. We
+    // also cannot use QCoreApplication::applicationDirPath() — getStuffDir() is
+    // called before the QApplication exists. So resolve the real path per
+    // platform, and simply skip the executable-relative candidates when no
+    // platform call is available rather than substituting a wrong directory.
+    std::string exeDir;
+#if defined(__linux__) && !defined(MACOSX)
+    {
+      char exeBuf[4096];
+      ssize_t n = ::readlink("/proc/self/exe", exeBuf, sizeof(exeBuf) - 1);
+      if (n > 0) {
+        exeBuf[n] = '\0';
+        exeDir    = exeBuf;
+      }
+    }
+#elif defined(MACOSX)
+    {
+      char     exeBuf[4096];
+      uint32_t size = sizeof(exeBuf);
+      // Returns 0 on success; the path may be non-canonical (symlinks, "..")
+      // but every candidate below is validated with isDirectory() anyway.
+      if (_NSGetExecutablePath(exeBuf, &size) == 0) exeDir = exeBuf;
+    }
+#endif
+    if (!exeDir.empty()) {
+      std::string::size_type slash = exeDir.find_last_of('/');
+      exeDir = (slash == std::string::npos) ? std::string() : exeDir.substr(0, slash);
+    }
+    if (!exeDir.empty()) {
+      candidates.push_back(exeDir + "/../share/flare/stuff");
+      // Flare.app/Contents/MacOS/Flare -> Flare.app/Contents/Resources/stuff
+      candidates.push_back(exeDir + "/../Resources/stuff");
+      candidates.push_back(exeDir + "/stuff");
+    }
+
+    // 2. Standard system prefixes used by distro packages.
+    candidates.push_back("/usr/local/share/flare/stuff");
+    candidates.push_back("/usr/share/flare/stuff");
+
+    // 3. The per-user copy the launcher script creates.
+    std::string home = QDir::homePath().toStdString();
+    if (!home.empty()) candidates.push_back(home + "/.config/Flare/stuff");
+
+    for (const std::string &c : candidates) {
+      TFilePath candidate(c);
+      if (TFileStatus(candidate).isDirectory()) return candidate;
+    }
+    return TFilePath();
+  }
+#endif
 
   TFilePath getSystemVarPathValue(std::string varName) {
     // return if the path is registered by command line argument
@@ -157,7 +212,15 @@ public:
     if (m_isPortable)
       return TFilePath((getWorkingDirectory() + "\\portablestuff\\"));
 
-    return TFilePath(getSystemVarValue(m_rootVarName));
+    TFilePath stuffDir(getSystemVarValue(m_rootVarName));
+#ifndef _WIN32
+    // Windows keeps its registry-only behaviour (the installer writes the key);
+    // elsewhere fall back to the standard install locations so a missing
+    // SystemVar.ini is not a fatal startup error.
+    if (stuffDir.isEmpty() || !TFileStatus(stuffDir).isDirectory())
+      stuffDir = findStuffDirFallback();
+#endif
+    return stuffDir;
   }
   void setStuffDir(const TFilePath &stuffDir) {
     delete m_stuffDir;

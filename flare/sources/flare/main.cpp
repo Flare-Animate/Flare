@@ -51,6 +51,7 @@
 
 // TnzCore includes
 #include "tsystem.h"
+#include "texception.h"
 #include "tthread.h"
 #include "tthreadmessage.h"
 #include "tundo.h"
@@ -175,8 +176,12 @@ static void initFlareEnv(QHash<QString, QString> &argPathValues) {
 
   TFilePath stuffDir = TEnv::getStuffDir();
   if (stuffDir == TFilePath())
-    fatalError("Undefined or empty: \"" + toQString(TEnv::getRootVarPath()) +
-               "\"");
+    fatalError(
+        QObject::tr("Could not locate Flare's \"stuff\" folder.\n\n"
+                    "Set the %1 environment variable to its full path, or "
+                    "reinstall Flare so the folder is placed next to the "
+                    "executable (portablestuff) or under share/flare/stuff.")
+            .arg(QString::fromStdString(TEnv::getRootVarName())));
   else if (!TFileStatus(stuffDir).isDirectory())
     fatalError("Folder \"" + toQString(stuffDir) +
                "\" not found or not readable");
@@ -512,7 +517,18 @@ if (QFileInfo(localSplashPath).exists() && QFileInfo(localSplashPath).isFile()) 
   ThirdParty::initialize();
 
   // Flare environment
-  initFlareEnv(argumentPathValues);
+  // Wrap startup init: an uncaught C++ exception here aborts with no
+  // user-visible message (issue #67). Surface the reason instead.
+  try {
+    initFlareEnv(argumentPathValues);
+  } catch (TException &e) {
+    fatalError("Startup failed: " +
+               QString::fromStdWString(e.getMessage()));
+  } catch (const std::exception &e) {
+    fatalError(QString("Startup failed: %1").arg(e.what()));
+  } catch (...) {
+    fatalError("Startup failed: unknown exception during initialization");
+  }
 
   // prepare for 30bit display
   if (Preferences::instance()->is30bitDisplayEnabled()) {

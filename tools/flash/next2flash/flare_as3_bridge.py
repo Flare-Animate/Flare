@@ -7,9 +7,12 @@ this script the same way it detects FFmpeg: if it's absent or reports
 unavailable, AS3 import/export is simply skipped and everything else (FLA/XFL
 bitmap + timeline import) works exactly as before.
 
-Once vendor/as3_decompiler/ (from Next2Flash, MIT licensed) is populated, the
-three commands below call into it. Until then this is a stub that reports
-itself unavailable, so `flashimport.cpp` can probe for the bridge safely.
+vendor/as3_decompiler/ (from Next2Flash, MIT licensed) is populated, so
+`status`, `decompile` and `patch` are live. `compile` still needs the Flex SDK
+toolchain that is not part of the vendored slice and reports itself unported.
+When the vendored package is missing or fails to import, every command degrades
+to an "unavailable" answer instead of raising, so a caller can probe the bridge
+the same way Flare probes for FFmpeg.
 
 Protocol: one JSON object on stdout per invocation.
   flare_as3_bridge.py status
@@ -19,7 +22,15 @@ Protocol: one JSON object on stdout per invocation.
   flare_as3_bridge.py compile <source_dir> <output.swf>
       -> {"ok": bool, "error": str|None}
   flare_as3_bridge.py patch <input.swf> <patch.json> <output.swf>
-      -> {"ok": bool, "error": str|None}
+      -> {"ok": bool, "replaced": int, "blocks": int, "error": str|None}
+
+patch.json format:
+  {"strings": {"old text": "new text", ...}}
+
+Every AS3 constant-string pool entry in the SWF that matches a key exactly is
+replaced with its value, and the SWF is re-emitted with all other tags (shapes,
+bitmaps, sounds, timeline) byte-identical. This is the retexting/relinking pass
+Flare needs for imported Flash rigs, and it is pure Python — no Flex SDK.
 """
 from __future__ import annotations
 
@@ -101,8 +112,77 @@ def cmd_compile(source_dir: str, out_swf: str) -> dict:
 
 def cmd_patch(swf_path: str, patch_json: str, out_swf: str) -> dict:
     if not _vendor_available():
-        return {"ok": False, "error": "as3_decompiler not vendored"}
-    return {"ok": False, "error": "AS3 patching not yet ported (decompile-only for now)"}
+        return {"ok": False, "replaced": 0, "blocks": 0,
+                "error": "as3_decompiler not vendored"}
+    try:
+        with open(patch_json, encoding="utf-8") as f:
+            patch = json.load(f)
+    except Exception as e:
+        return {"ok": False, "replaced": 0, "blocks": 0,
+                "error": f"could not read patch file: {e}"}
+
+    mapping = patch.get("strings") or {}
+    if not isinstance(mapping, dict):
+        return {"ok": False, "replaced": 0, "blocks": 0,
+                "error": 'patch "strings" must be an object of {old: new}'}
+    if not mapping:
+        return {"ok": False, "replaced": 0, "blocks": 0,
+                "error": 'patch contains no "strings" entries'}
+
+    try:
+        _import_vendor()
+        from as3_decompiler import abc_editor, abc_patcher, swf_patcher
+
+        swf = swf_patcher.read_swf_full(swf_path)
+        tags = swf["tags"]
+        abc_tags = (swf_patcher.TAG_DOABC, swf_patcher.TAG_DOABC2)
+
+        replaced = 0
+        blocks = 0
+        for i, (tag_type, body) in enumerate(tags):
+            if tag_type not in abc_tags:
+                continue
+
+            # Split the tag body ourselves rather than through the vendor's
+            # extract helper: DoABC2 carries a flags word and a name that must
+            # both survive the round-trip byte-for-byte, and the helper
+            # substitutes a display name for an empty one.
+            if tag_type == swf_patcher.TAG_DOABC2:
+                if len(body) < 5:
+                    continue
+                null_pos = body.find(b"\x00", 4)
+                if null_pos < 0:
+                    continue
+                prefix, abc_data = body[:null_pos + 1], body[null_pos + 1:]
+            else:
+                prefix, abc_data = b"", body
+
+            editor = abc_editor.ABCEditor(abc_data)
+            strings = editor.abc.strings
+            hits = 0
+            # Index 0 is the ABC "any" sentinel (always the empty string) and is
+            # never a real constant — replacing it corrupts every multiname.
+            for idx in range(1, len(strings)):
+                new_value = mapping.get(strings[idx])
+                if new_value is not None and new_value != strings[idx]:
+                    strings[idx] = new_value
+                    hits += 1
+            if not hits:
+                continue
+
+            tags[i] = (tag_type, prefix + abc_patcher.serialize_abc(editor.abc))
+            replaced += hits
+            blocks += 1
+
+        if replaced == 0:
+            return {"ok": False, "replaced": 0, "blocks": 0,
+                    "error": "no matching AS3 constant strings found in this SWF"}
+
+        swf_patcher.write_swf_from_tags(swf, out_swf)
+        return {"ok": True, "replaced": replaced, "blocks": blocks, "error": None}
+    except Exception as e:
+        return {"ok": False, "replaced": 0, "blocks": 0,
+                "error": f"patch failed: {e}"}
 
 
 def main(argv: list[str]) -> int:

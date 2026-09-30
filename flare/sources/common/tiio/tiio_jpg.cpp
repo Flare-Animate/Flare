@@ -73,6 +73,13 @@ JpgReader::~JpgReader() {
 Tiio::RowOrder JpgReader::getRowOrder() const { return Tiio::TOP2BOTTOM; }
 
 void JpgReader::open(FILE *file) {
+  if (!file) {
+    // fopen failed (missing/unreadable file): mark invalid and bail out
+    // before touching libjpeg, which would dereference the NULL FILE*.
+    m_info.m_valid = false;
+    return;
+  }
+
   m_cinfo.err             = jpeg_std_error(&m_jerr);
   m_cinfo.err->error_exit = tnz_error_exit;
 
@@ -193,6 +200,8 @@ public:
   JpgWriter() : m_chan(0), m_headerWritten(false) {}
 
   void open(FILE *file, const TImageInfo &info) override {
+    if (!file) return;  // fopen failed; nothing to write to
+
     m_cinfo.err = jpeg_std_error(&m_jerr);
     jpeg_create_compress(&m_cinfo);
 
@@ -247,12 +256,16 @@ public:
   }
 
   ~JpgWriter() {
-    jpeg_finish_compress(&m_cinfo);
-    jpeg_destroy_compress(&m_cinfo);
+    if (m_chan) {
+      jpeg_finish_compress(&m_cinfo);
+      jpeg_destroy_compress(&m_cinfo);
+    }
     delete m_properties;
   }
 
-  void flush() override { fflush(m_chan); }
+  void flush() override {
+    if (m_chan) fflush(m_chan);
+  }
 
   Tiio::RowOrder getRowOrder() const override { return Tiio::TOP2BOTTOM; }
 

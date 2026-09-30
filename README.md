@@ -94,6 +94,19 @@ Pre-built nightly binaries for **Windows**, **Linux** (AppImage + tarball), and
 
 These are pre-release builds and may be unstable.
 
+**macOS first launch:** Flare is not yet notarized, so a downloaded `Flare.app`
+arrives quarantined. If the icon shows a 🚫 badge or macOS calls the app
+"damaged" — and no entry appears under **Privacy & Security** to approve — clear
+the quarantine flag once:
+
+```sh
+xattr -dr com.apple.quarantine /Applications/Flare.app
+```
+
+**Linux:** if the app exits with *"Could not locate Flare's stuff folder"*, point
+`FLAREROOT` at the installed `stuff` directory (e.g.
+`export FLAREROOT=/usr/share/flare/stuff`). The AppImage finds it automatically.
+
 ## Program Requirements
 
 To enable FFmpeg-based `.swf`/`.flv`/`.f4v` playback, install **FFmpeg** and make

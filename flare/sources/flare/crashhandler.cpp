@@ -13,7 +13,13 @@
 #include <signal.h>
 #include <unistd.h>
 #include <err.h>
+#include <errno.h>
+#include <sys/wait.h>
 #include <regex>
+#ifdef MACOSX
+#include <mach-o/dyld.h>  // _NSGetExecutablePath(); /proc does not exist here
+#include <cstdint>
+#endif
 #endif
 
 #include "tgl.h"
@@ -275,25 +281,73 @@ LONG WINAPI exceptionHandler(PEXCEPTION_POINTERS info) {
 
 #ifndef _WIN32
 
-static bool sh(std::string &out, const char *cmd) {
+// Run argv[0] with the given arguments and collect its output.
+//
+// Deliberately fork+exec rather than popen(): popen() runs the command through
+// /bin/sh, and the executable path is interpolated into that command line. A
+// path is not under our control — a user can keep Flare.app in any directory
+// they like — so a directory named with a backtick or $( ) was enough to get
+// arbitrary code executed at crash time. Passing an argv array means the shell
+// never parses any of this. It also keeps /bin/sh out of an already-fragile
+// crash path.
+static bool runTool(std::string &out, const char *const argv[]) {
+  int fds[2];
+  if (pipe(fds) != 0) return false;
+
+  pid_t pid = fork();
+  if (pid < 0) {
+    close(fds[0]);
+    close(fds[1]);
+    return false;
+  }
+  if (pid == 0) {
+    // Child: stdout and stderr -> pipe, then exec. No shell involved.
+    close(fds[0]);
+    dup2(fds[1], STDOUT_FILENO);
+    dup2(fds[1], STDERR_FILENO);
+    close(fds[1]);
+    execvp(argv[0], const_cast<char *const *>(argv));
+    _exit(127);  // exec failed; never return into the parent's handler
+  }
+
+  close(fds[1]);
   char buffer[128];
-  FILE *p = popen(cmd, "r");
-  if (p == NULL) return false;
-  while (fgets(buffer, 128, p)) out.append(buffer);
-  pclose(p);
-  return true;
+  ssize_t n;
+  while ((n = read(fds[0], buffer, sizeof(buffer))) != 0) {
+    if (n < 0) {
+      if (errno == EINTR) continue;  // a crash handler runs amid signals
+      break;
+    }
+    out.append(buffer, n);
+  }
+  close(fds[0]);
+
+  int status = 0;
+  while (waitpid(pid, &status, 0) < 0 && errno == EINTR) {
+  }
+  return WIFEXITED(status) && WEXITSTATUS(status) == 0;
 }
 
 //-----------------------------------------------------------------------------
 
 static bool addr2line(std::string &out, const char *exepath, const char *addr) {
-  char cmd[512];
 #ifdef MACOSX
-  sprintf(cmd, "atos -o \"%.400s\" %s 2>&1", exepath, addr);
+  // -l is not optional. backtrace_symbols() reports the runtime PC, which
+  // includes the ASLR slide, while atos interprets a bare address relative to
+  // the image's *preferred* load address. Without telling it where the image
+  // actually landed, every lookup comes back "??" — a well-formed command that
+  // still symbolicates nothing. _dyld_get_image_header(0) is the main
+  // executable's real load address.
+  char loadAddr[32];
+  snprintf(loadAddr, sizeof(loadAddr), "%p",
+           (const void *)_dyld_get_image_header(0));
+  const char *const argv[] = {"atos", "-o", exepath, "-l", loadAddr, addr,
+                              nullptr};
 #else
-  sprintf(cmd, "addr2line -f -p -e \"%.400s\" %s 2>&1", exepath, addr);
+  const char *const argv[] = {"addr2line", "-f", "-p", "-e", exepath, addr,
+                              nullptr};
 #endif
-  return sh(out, cmd);
+  return runTool(out, argv);
 }
 
 //-----------------------------------------------------------------------------
@@ -314,16 +368,48 @@ static void printBacktrace(std::string &out) {
   const int size = 256;
   void *buffer[size];
 
-  // Get executable path
-  char exepath[512];
-  memset(exepath, 0, 512);
-  if (readlink("/proc/self/exe", exepath, 512) < 0)
+  // Get executable path. /proc is Linux-only: on macOS the readlink() always
+  // failed, exepath stayed empty, and addr2line() below then ran
+  // `atos -o "" ...` against no binary at all.
+  // 4096, matching tenv.cpp: _NSGetExecutablePath() fails outright when the
+  // buffer is too small, so a 512-byte one would have made Flare installed
+  // under a long path look unresolvable and silently dropped every frame back
+  // to a raw symbol. macOS PATH_MAX is 1024, so this cannot now be too small.
+  char exepath[4096];
+  memset(exepath, 0, sizeof(exepath));
+#ifdef MACOSX
+  uint32_t exepathSize = sizeof(exepath);
+  if (_NSGetExecutablePath(exepath, &exepathSize) != 0) {
+    exepath[0] = '\0';
     fprintf(stderr, "Couldn't get exe path\n");
+  }
+#else
+  // readlink() does not NUL-terminate, so leave room and terminate by hand.
+  ssize_t exepathLen = readlink("/proc/self/exe", exepath, sizeof(exepath) - 1);
+  if (exepathLen < 0) {
+    exepath[0] = '\0';
+    fprintf(stderr, "Couldn't get exe path\n");
+  } else {
+    exepath[exepathLen] = '\0';
+  }
+#endif
 
   // Back trace
   int nptrs  = backtrace(buffer, size);
   char **bts = backtrace_symbols(buffer, nptrs);
-  std::regex re("\\[(.+)\\]");
+  // Match ONLY a hex address. backtrace_symbols() formats differ:
+  //   Linux: /opt/flare/bin/Flare(+0x1a2b3c) [0x55d1a2b3c4d5]
+  //   macOS: 3   Flare   0x000000010a2b3c4d -[NSApplication run] + 72
+  // The old pattern was "\[(.+)\]", which on macOS matched the *Objective-C
+  // selector* inside the brackets rather than an address — so a frame like
+  // -[NSApplication(NSEventRouting) _nextEventMatchingEventMask:...] was
+  // pasted unquoted into the atos command line and the shell died on the
+  // parenthesis. Capturing a hex address means nothing else can reach sh.
+#ifdef MACOSX
+  std::regex re("(0x[0-9a-fA-F]+)");
+#else
+  std::regex re("\\[(0x[0-9a-fA-F]+)\\]");
+#endif
   if (bts) {
     for (int i = 0; i < nptrs; ++i) {
       // Skip first frames since they point to this function
@@ -338,7 +424,9 @@ static void printBacktrace(std::string &out) {
       std::smatch ms;
 
       bool found = false;
-      if (std::regex_search(sym, ms, re)) {
+      // No executable path means addr2line/atos has nothing to resolve
+      // against; fall straight through to the raw symbol.
+      if (exepath[0] && std::regex_search(sym, ms, re)) {
         std::string addr = ms[1];
         if (addr2line(line, exepath, addr.c_str())) {
           found = (line.rfind("??", 0) != 0);
