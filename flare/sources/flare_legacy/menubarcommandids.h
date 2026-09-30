@@ -41,6 +41,7 @@
 #define MI_LoadColorModel "MI_LoadColorModel"
 #define MI_ImportMagpieFile "MI_ImportMagpieFile"
 #define MI_ImportFlashVector "MI_ImportFlashVector"
+#define MI_ImportMohoProject "MI_ImportMohoProject"
 #define MI_FlashGuide "MI_FlashGuide"
 #define MI_ExportFlash "MI_ExportFlash"
 #define MI_NewNoteLevel "MI_NewNoteLevel"

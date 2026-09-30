@@ -38,6 +38,7 @@ set(HEADERS ${MOC_HEADERS}
     ../common/flash/FSWFStream.h
     ../common/flash/Macromedia.h
     ../common/flash/XFLReader.h
+    ../common/moho/MohoReader.h
     ../common/flash/As3Bridge.h
     ../common/flash/SWFAssets.h
     ../common/flash/ZipArchive.h
@@ -236,6 +237,7 @@ set(SOURCES
     ../common/flash/FSWFStream.cpp
     ../common/flash/FSound.cpp
     ../common/flash/XFLReader.cpp
+    ../common/moho/MohoReader.cpp
     ../common/flash/As3Bridge.cpp
     ../common/flash/SWFAssets.cpp
     ../common/flash/ZipArchive.cpp
@@ -415,3 +417,9 @@ target_link_libraries(tnzcore
     ${GL_LIB} ${GLUT_LIB} ${QT_LIB} ${Z_LIB} ${JPEG_LIB} ${LZ4_LIB}
     ${EXTRA_LIBS}
 )
+
+# The common/flash and common/moho headers guard their API with TFLASH_EXPORTS
+# to pick dllexport vs dllimport. Nothing ever defined it, so those modules were
+# being *defined* inside this DLL as __declspec(dllimport) -- an ABI the linker
+# cannot honour, and one that leaves the symbols unusable by direct importers.
+target_compile_definitions(tnzcore PRIVATE TFLASH_EXPORTS)
