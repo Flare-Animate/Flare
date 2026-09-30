@@ -1,6 +1,6 @@
 # Merging Next2Flash into Flare — Integration Plan
 
-Status: **assessment / roadmap** (no code merged yet)
+Status: **AS3 track merged**; SWF round-trip port still to do
 
 [Next2Flash](https://github.com/SSF2-Mods-Official/Next2Flash) and Flare are being
 brought together as the Flare-Animate org consolidates its Flash tooling. This
@@ -93,16 +93,28 @@ incorporated into a BSD project provided the MIT copyright notice is preserved.
 Any ported file or bundled sidecar must keep Next2Flash's `LICENSE` and a header
 note. The bundled **Flex SDK** is Apache-2.0 and must ship with its own NOTICE.
 
-## Concrete first steps
+## Status of the plan
 
-- [ ] Add Next2Flash as a git submodule under `thirdparty/next2flash/` (or vendored
-      `tools/flash/next2flash/`) so the Python helper can be packaged optionally.
-- [ ] Define the `flare-as3` CLI contract (stdin/stdout JSON: `decompile`,
-      `compile`, `patch`).
-- [ ] Wire an optional "ActionScript (via Next2Flash)" path into
+- [x] Vendor the AS3 decompiler under `tools/flash/next2flash/vendor/` so the
+      Python helper can be packaged optionally. Provenance recorded in
+      `vendor/as3_decompiler/VENDORED.md`.
+- [x] Define the `flare-as3` CLI contract (one JSON object on stdout:
+      `status`, `decompile`, `patch`, `compile`).
+- [x] Wire the optional "ActionScript (via Next2Flash)" path into
       `flashimport.cpp`, detected like FFmpeg.
-- [ ] Begin Track 1.1: port char-ID preservation into `common/flash/tflash`.
-- [ ] Credit Next2Flash in `README.md` and `doc/FLASH_SUPPORT.md`.
+      `common/flash/As3Bridge.{h,cpp}` + the SWF branch of the import dialog.
+      Verified: 1043 AS3 classes recovered from a 3.5 MB SWF.
+- [x] Credit Next2Flash in `README.md` and `doc/FLASH_SUPPORT.md`.
+- [x] Add bridge tests (`tools/flash/tests/test_as3_bridge.py`).
+- [ ] Port `char_id_allocator.py` character-ID preservation into
+      `common/flash/tflash` (Track 1.1). Not started.
+- [ ] Port `app/swf_to_n2d.py` and `app/compile_n2d.py` natively (Track 1.2).
+      These two are ~400 KB of SWF<->XML conversion and are where most of
+      Next2Flash's remaining value sits; see "What is still upstream-only" in
+      `tools/flash/next2flash/README.md`.
+- [ ] `compile`: blocked only on the Flex SDK `mxmlc` toolchain. The patcher
+      side (`abc_patcher.transplant_class`, `swf_patcher.recompile_class`)
+      is already vendored and reachable.
 
 > This plan keeps Flare installable with zero extra runtime for the common case
 > (open a FLA, get the art), while still delivering Next2Flash's AS3 superpowers to

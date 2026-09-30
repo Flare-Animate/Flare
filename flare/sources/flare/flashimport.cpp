@@ -37,6 +37,7 @@
 #include "XFLReader.h"
 #include "ZipArchive.h"
 #include "SWFAssets.h"
+#include "As3Bridge.h"
 #include "FSWFStream.h"
 #include "Macromedia.h"
 
@@ -605,6 +606,37 @@ void ImportFlashVectorCommand::execute() {
             exported += bitmaps;
             if (!bitmaps.isEmpty())
                 info += QObject::tr("\n  %1 embedded bitmap(s) extracted").arg(bitmaps.size());
+
+            // ActionScript: needs the optional flare-as3 helper (Next2Flash
+            // merge). Probed the same way FFmpeg is - when it is absent the
+            // rest of the import is unaffected and AS3 is simply skipped.
+            if (As3Bridge::isAvailable()) {
+                const As3Bridge::Result as3 =
+                    As3Bridge::decompile(fp, outDir);
+                if (as3.ok && !as3.classes.isEmpty()) {
+                    const QString asDir = outPath + "/as3";
+                    QDir().mkpath(asDir);
+                    QStringList asFiles;
+                    QDirIterator it(asDir, QStringList{"*.as"}, QDir::Files,
+                                    QDirIterator::Subdirectories);
+                    while (it.hasNext()) {
+                        it.next();
+                        asFiles << "as3/" +
+                                    QDir(asDir).relativeFilePath(it.filePath());
+                    }
+                    asFiles.sort();
+                    exported += asFiles;
+                    info += QObject::tr("\n  %1 ActionScript class(es) decompiled "
+                                        "(%2)")
+                                .arg(as3.classes.size()).arg(as3.blocks);
+                } else if (!as3.error.isEmpty()) {
+                    info += QObject::tr("\n  ActionScript not extracted: %1")
+                                .arg(as3.error);
+                }
+            } else {
+                info += QObject::tr("\n  ActionScript decompilation is unavailable "
+                                    "(optional flare-as3 helper not installed).");
+            }
         }
 
         // Always copy the SWF itself to output for reference

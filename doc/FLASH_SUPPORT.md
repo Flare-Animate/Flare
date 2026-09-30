@@ -20,8 +20,8 @@ video playback if it is installed).
 | ActionScript source | `.as` | Copied as reference text |
 | Animate command script | `.jsfl` | Copied and top-level functions listed; never executed |
 | Adobe extension package | `.zxp` / `.mxp` | Safely unpacked for inspection; installer code is never executed |
-| Animate command script | `.jsfl` | Copied and top-level functions listed; never executed |
-| Adobe extension package | `.zxp` / `.mxp` | Safely unpacked for inspection; installer code is never executed |
+| Mislabeled SWF | `.ssf` / `.dat` | Content-sniffed and imported as SWF; extension is only a hint |
+| Re-zipped FLA | `.zip` | Content-sniffed, trailer repaired if needed, imported as FLA |
 
 ## Why not JPEXS?
 
@@ -29,21 +29,69 @@ JPEXS (GPL v3 + Java) is **licence-incompatible** with Flare's BSD licence and
 requires an external runtime. The previous implementation used it via Python
 scripts; that entire approach has been replaced by native C++.
 
+## ZIP trailer repair
+
+A number of real FLAs carry an end-of-central-directory record whose size and
+offset fields do not describe the central directory actually in the file. Adobe
+emits a duplicate local `mimetype` header and then computes the trailer from a
+stale entry count; on the sample used for testing, `cd_size` was overstated by
+exactly one `mimetype` record (54 bytes) while the central directory itself was
+intact.
+
+minizip rejects such an archive outright — `unzReadEndOfCentralDirRecord()`
+bails with `UNZ_BADZIPFILE` when `eocdOffset < cdOffset + cdSize` — and so does
+Python's `zipfile`. That is what produced the "invalid/corrupt ZIP" error users
+reported on perfectly valid files (issue #70).
+
+`common/flash/ZipArchive.cpp` locates the real central directory and re-emits a
+corrected trailer, copying the payload verbatim. A recovered directory is only
+accepted when a full walk of its records lands exactly on the existing EOCD
+*and* every record's back-pointer resolves to a real local file header, so a
+coincidental `PK\x01\x02` inside compressed data cannot be mistaken for one.
+ZIP64 archives are left alone; minizip already handles those.
+
 ## SWF bitmap extraction
 
-SWF tag codes (referenced from Ruffle `swf/src/tag_code.rs`, MIT/Apache 2.0):
+Tag codes per the Adobe SWF specification, cross-checked against Ruffle's
+`swf/src/tag_code.rs` (MIT/Apache 2.0):
 
 | Tag | Code | Extraction |
 |-----|------|-----------|
 | DefineBits | 6 | JPEG with global JpegTables |
 | JpegTables | 8 | Global JPEG header table |
-| DefineBitsJpeg2 | 21 | Self-contained JPEG → saved as `.jpg` |
-| DefineBitsJpeg3 | 35 | JPEG + zlib alpha → JPEG portion saved |
-| DefineBitsJpeg4 | 90 | JPEG with deblocking → saved as `.jpg` |
-| DefineBitsLossless2 | 36 | zlib ARGB → decompressed via Qt → saved as `.png` |
+| DefineBitsLossless | 20 | zlib; 8-bit indexed / RGB555 / 24-bit RGB |
+| DefineBitsJPEG2 | 21 | Self-contained JPEG → `.jpg` |
+| DefineBitsJPEG3 | 22 | JPEG + zlib alpha → composited to `.png` |
+| DefineBitsJPEG4 | 23 | As 22, plus a deblocking parameter |
+| DefineBitsJPEG5 | 24 | As 22 |
+| DefineBitsLossless2 | 35 | zlib; 8-bit palettized or 32-bit premultiplied ARGB |
+| DefineBitsLossless3 | 36 | Same layout as 35 |
+| DefineBitsLossless4 | 90 | Same layout as 35 |
+
+Rows of a lossless payload are padded out to a multiple of 4 **bytes**, so the
+stride depends on the pixel size: 1- and 3-byte-per-pixel rows are padded,
+2- and 4-byte rows already are. Getting this wrong truncates every image whose
+width is not a multiple of 4.
 
 CWS (zlib-compressed SWF, version 6+) bodies are decompressed with `qUncompress`
 before the tag scan.
+
+Measured on a 3.5 MB SWF named `.ssf`: 919 embedded bitmaps recovered, all
+decodable.
+
+## ActionScript
+
+AS3 lives in AVM2 bytecode inside DoABC/DoABC2 tags. Decompiling it needs a real
+AVM2 decompiler, so Flare treats it as an *optional* sidecar: the Next2Flash
+`as3_decompiler` package is vendored under
+`tools/flash/next2flash/vendor/as3_decompiler/` (MIT) and driven through
+`common/flash/As3Bridge.{h,cpp}`.
+
+`As3Bridge::isAvailable()` is probed once and cached, exactly the way FFmpeg is
+detected. When the helper or a Python interpreter is absent, the import dialog
+says so and everything else — FLA/XFL/SWF bitmaps, the timeline — works
+unchanged with no Python at all. See
+[`NEXT2FLASH_INTEGRATION.md`](./NEXT2FLASH_INTEGRATION.md).
 
 ## SWC component libraries (Apache Flex SDK format)
 
@@ -59,17 +107,19 @@ extractor on `library.swf`.
 ```
 flare/sources/common/flash/
     tflash.h/cpp            TFlash SWF writer / renderer
-    XFLReader.h/cpp         XFL/FLA parser (minizip-based ZIP extraction)
+    XFLReader.h/cpp         XFL/FLA parser (document, library, bitmaps)
+    SWFAssets.h/cpp         SWF/FLV/F4V headers, SWF tag-stream bitmaps,
+                            legacy OLE2/CFBF FLA carving, content sniffing
+    ZipArchive.h/cpp        ZIP trailer repair + hardened extraction
+    As3Bridge.h/cpp         optional client for the flare-as3 helper
     FSWFStream.h/cpp        SWF binary stream
     FDT*.h/cpp              Flash data-type tags
     FCT.h/cpp               Character tables
     FAction.h/cpp           ActionScript stubs
 
 flare/sources/flare/
-    flashimport.cpp         MI_ImportFlashVector / MI_ImportFlashContainer
-                            readSwfHeader(), extractSwfBitmaps()
-                            readFlvHeader(), readF4vHeader()
-                            SWC catalog.xml parser
+    flashimport.cpp         MI_ImportFlashVector: dialog, format dispatch,
+                            scene import, SWC catalog.xml parsing
 
 flare/sources/image/tiio.cpp
                             FLV + F4V declared as RASTER_LEVEL;
