@@ -23,6 +23,13 @@ NS = "{http://ns.adobe.com/xfl/2008/}"
 SVG_NS = "{http://www.w3.org/2000/svg}"
 NUM = r"(-?(?:\d+\.?\d*)|#(?:[0-9A-Fa-f]{1,6}\.[0-9A-Fa-f]{0,2}))"
 
+# The same tolerance the C++ decoder uses, for the same two tests:
+# a restated moveTo, and a contour that returns to its start. It has
+# to match exactly, or the two implementations answer different
+# questions and a disagreement here says nothing about either one.
+# Five coordinate quanta (1/256 twip is 1.95e-4 px).
+EPSILON = 1e-3
+
 
 def decode_number(tok):
     if not tok.startswith("#"):
@@ -73,7 +80,7 @@ def decode(s):
         if v == "!":
             dest = (nums[0] / 20.0, nums[1] / 20.0)
             restates = (at is not None and cur and
-                        abs(at[0] - dest[0]) < 1e-9 and abs(at[1] - dest[1]) < 1e-9)
+                        abs(at[0] - dest[0]) < EPSILON and abs(at[1] - dest[1]) < EPSILON)
             if cur and not restates:
                 contours.append(cur); cur = []
             at = dest
@@ -132,7 +139,7 @@ def main():
         return 1
     rows = []
     with open(manifest, encoding="utf-8") as f:
-        header = f.readline()
+        f.readline()   # the column names
         for line in f:
             if line.strip():
                 rows.append(line.rstrip("\n").split("\t"))
@@ -147,20 +154,21 @@ def main():
     for path in glob.glob(os.path.join(src, "**", "*.xml"), recursive=True):
         rel = os.path.relpath(path, src).replace("\\", "/")
         try:
-            # Only the shapes that carry an `edges` attribute, which is what the
-            # exporter numbered: shapes with no geometry are skipped there, so
-            # including them here would shift every index.
+            # The same rule the exporter uses, or the two number shapes
+            # differently and every shape after the first disagreement is
+            # compared against the wrong geometry: an <Edge> element with a
+            # non-empty `edges` attribute, at any depth inside the <DOMShape>,
+            # counted whether or not it goes on to produce any contours.
             keep = []
             for el in ET.parse(path).iter(NS + "DOMShape"):
-                edges = el.find(NS + "edges")
-                if edges is not None and any(e.get("edges")
-                                             for e in edges):
+                if any(e.get("edges") for e in el.iter(NS + "Edge")):
                     keep.append(el)
             docs[rel] = keep
         except (ET.ParseError, OSError):
             pass
 
     checked = mismatch = clipped = unparsable = missing = 0
+    no_contour = 0
     count_disagree = 0
     bad_rows = 0
     problems = []
@@ -174,6 +182,18 @@ def main():
                 problems.append(("<manifest>", f"malformed row: {row!r}"))
             continue
         name, source, index, contours, points = row
+        if int(contours) == 0:
+            # A geometry-bearing shape that decoded to no contours: an `edges`
+            # attribute of "S1" and nothing else. The exporter records it so the
+            # index it assigns stays aligned with the document, but writes no
+            # SVG. Both facts are correct; treating the absent file as a failure
+            # made the verifier reject a run that was in fact complete.
+            no_contour += 1
+            if os.path.isfile(os.path.join(outdir, name)):
+                # It wrote a file after all, so the two sides disagree about
+                # what a zero-contour shape should produce.
+                problems.append((name, "zero contours but an SVG was written"))
+            continue
         svg_path = os.path.join(outdir, name)
         if not os.path.isfile(svg_path):
             missing += 1
@@ -187,19 +207,18 @@ def main():
             missing += 1
             continue
         el = shapes[idx]
-        edges = el.find(NS + "edges")
         want = []
-        if edges is not None:
-            for e in edges:
-                d = e.get("edges")
-                if not d:
-                    continue
-                try:
-                    for c in decode(d):
-                        if len(c) >= 2:
-                            want.extend(c)
-                except ValueError:
-                    pass
+        # Any <Edge> at any depth, matching the rule used to select the shape.
+        for e in el.iter(NS + "Edge"):
+            d = e.get("edges")
+            if not d:
+                continue
+            try:
+                for c in decode(d):
+                    if len(c) >= 2:
+                        want.extend(c)
+            except ValueError:
+                pass
 
         try:
             root = ET.parse(svg_path).getroot()
@@ -247,6 +266,7 @@ def main():
 
     print(f"checked              : {checked}")
     print(f"missing / unpaired   : {missing}")
+    print(f"shapes with no contour: {no_contour}  (recorded, no SVG written)")
     print(f"malformed rows       : {bad_rows}")
     print(f"unparsable SVG       : {unparsable}")
     print(f"manifest count differs: {count_disagree}")
@@ -256,7 +276,7 @@ def main():
         print(f"   {name}: {why}")
     ok = (mismatch == 0 and clipped == 0 and unparsable == 0 and missing == 0
           and count_disagree == 0 and bad_rows == 0
-          and checked == len(rows))
+          and checked == len(rows) - no_contour)
     print()
     print("PASSED" if ok else "FAILED")
     return 0 if ok else 1

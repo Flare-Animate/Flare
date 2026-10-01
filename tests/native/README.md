@@ -36,6 +36,11 @@ cmake --build build --config RelWithDebInfo
 cmake --build <build_local> --config RelWithDebInfo --target tnzcore
 ```
 
+Set `QT_BIN` in the environment before running. Qt5Core is not beside the test
+binary, so without it the process fails to start at all — no output, exit code
+0xC0000135. The readers also need `tnzcore.dll` and Flare's own runtime
+dependencies on `PATH`; `run_tests.py` sets all of that.
+
 Set these in the cache if your tree differs from the defaults:
 
 | Variable | Default |

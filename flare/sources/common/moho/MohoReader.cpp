@@ -12,6 +12,7 @@
 #include "ZipArchive.h"
 #include "tsystem.h"
 
+#include <QAtomicInteger>
 #include <QDateTime>
 #include <QDir>
 #include <QFile>
@@ -31,10 +32,23 @@ namespace {
 // unpacking leaves a copy. TSystem has no scoped helper for that, and getting
 // the removal wrong on any of the several early returns out of read() leaks a
 // full copy of the project into the temp directory on every import.
+//
+// The destructor is deliberately silent about failure. TSystem::rmDirTree
+// throws, and a throw from a destructor is std::terminate -- so an unreadable
+// file in the extraction, which is ordinary when something has the directory
+// open, would abort the application mid-import. A leftover temp directory is a
+// far smaller problem than a crash, and the caller has no way to act on the
+// exception anyway.
 class ScopedTempDir {
 public:
     explicit ScopedTempDir(TFilePath dir) : m_dir(std::move(dir)) {}
-    ~ScopedTempDir() { TSystem::rmDirTree(m_dir); }
+    ~ScopedTempDir() noexcept {
+        try {
+            TSystem::rmDirTree(m_dir);
+        } catch (...) {
+            // Nothing useful to do here. See the note above.
+        }
+    }
 
     ScopedTempDir(const ScopedTempDir &) = delete;
     ScopedTempDir &operator=(const ScopedTempDir &) = delete;
@@ -187,18 +201,56 @@ bool read(const TFilePath &path, Document &doc) {
     if (doc.container == Container::Zip) {
         // Reuse the shared, hardened ZIP extractor: it repairs stale trailers
         // and refuses member paths that escape the output directory.
+        //
+        // The source file's name is embedded, so it has to be reduced to
+        // characters a directory name may actually contain. TSystem::mkDir
+        // rejects more than the Windows-reserved set -- '+' among them -- and an
+        // earlier version of this listed only the reserved characters, so
+        // importing "foo+bar.moho" still threw: out of read(), past its
+        // "returns false and fills doc.error" contract, and through a menu
+        // handler with no catch around it. Allowlisting is the fix, because
+        // there is then no rejected character to have forgotten.
+        QString base = QFileInfo(path.getQString()).fileName();
+        static const QString allowed =
+            QStringLiteral("abcdefghijklmnopqrstuvwxyz"
+                           "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                           "0123456789-_.");
+        for (QChar &c : base)
+            if (!allowed.contains(c))
+                c = QLatin1Char('_');
+        if (base.isEmpty())
+            base = QStringLiteral("project");
+        // A path component is length-limited, and a long source name would
+        // otherwise push the whole temp path over it.
+        if (base.size() > 48)
+            base.truncate(48);
+
+        // Uniqueness. The millisecond clock alone collides when the same file
+        // is read twice inside one millisecond, and the second extraction would
+        // then remove the first one's directory while it is being read.
+        static QAtomicInteger<quint64> counter(0);
         const QString tmpName =
-            QStringLiteral("moho_%1_%2")
-                .arg(QFileInfo(path.getQString()).fileName())
-                .arg(QDateTime::currentMSecsSinceEpoch());
+            QStringLiteral("moho_%1_%2_%3")
+                .arg(base)
+                .arg(QDateTime::currentMSecsSinceEpoch())
+                .arg(counter.fetchAndAddOrdered(1));
+
         const TFilePath outDir =
             TSystem::getTempDir() + TFilePath(tmpName.toStdString());
         // Scoped so the extraction is removed on every path out, including the
-        // three early returns below. Without it, each import of a ZIP project
-        // left a full extracted copy -- plus preview.jpg -- in %TEMP%
-        // permanently, under a name that changed every run.
+        // early returns below. Without it, each import of a ZIP project left a
+        // full extracted copy -- plus preview.jpg -- in %TEMP% permanently,
+        // under a name that changed every run. Declared before the try so a
+        // throw from mkDir cannot skip its own cleanup.
         const ScopedTempDir extraction(outDir);
-        TSystem::mkDir(outDir);
+        try {
+            TSystem::mkDir(outDir);
+        } catch (const std::exception &e) {
+            doc.error = QStringLiteral("could not create a temporary directory "
+                                       "to unpack the project into: %1")
+                            .arg(QString::fromUtf8(e.what()));
+            return false;
+        }
         std::string detail;
         if (!FlareZip::extract(path, outDir, detail)) {
             doc.error = "could not read the project container: " +
@@ -378,6 +430,9 @@ int writeManifest(const TFilePath &projectPath, const Document &doc,
     root["format"] = "moho-rig-manifest";
     root["format_version"] = 1;
     root["source_file"] = QFileInfo(projectPath.getQString()).fileName();
+    // Which member of the container held the document. Written but never read
+    // before, so it said nothing useful to anyone.
+    root["container_entry"] = doc.containerEntry;
     root["mime_type"] = doc.mimeType;
     root["moho_version"] = doc.version;
     root["major_version"] = doc.majorVersion;

@@ -18,11 +18,21 @@ constexpr double kTwipsPerPixel = 20.0;
 // malformed or hostile, and allocating for it would be worse than rejecting it.
 constexpr int kMaxSegments = 1 << 22;
 
-// How far a moveTo may land from the current point and still count as a
-// restatement rather than a subpath break. Flash restates the current point
-// bit-identically, so this only has to absorb rounding; it is absolute so that
-// the answer does not depend on the coordinate's magnitude.
-constexpr double kPointEpsilon = 1e-6;
+// How far two coordinates may differ and still count as the same point, used
+// for both the moveTo-restatement test and the closure test.
+//
+// It has to be coarser than the format's coordinate quantum and it has to match
+// the tolerance in the Python reference in tests/native/, or the two
+// implementations answer different questions and the differential check reports
+// a disagreement that is really a disagreement about the epsilon.
+//
+// The quantum is 1/256 twip = 1.95e-4 px, so 1e-3 px is about five quanta: wide
+// enough that a hex-written closing point and a decimal-written opening point
+// still compare equal, and narrow enough not to merge genuinely distinct
+// vertices a user can see. Absolute, so the answer does not depend on the
+// coordinate's magnitude -- qFuzzyCompare's relative tolerance does, which is
+// why it is not used here.
+constexpr double kPointEpsilon = 1e-3;
 
 // --- tokenizer -------------------------------------------------------------
 //
@@ -250,11 +260,12 @@ bool decodeEdges(const QString &edges, bool stroked, Shape &out, QString &error)
         return true;
     }
 
-    // Pair each opcode with the numbers that follow it. The tokenizer stored
-    // every number as an Op::Line token with its value in `a`, so the arity of
-    // the opcode that precedes them tells us how many to take.
+    // Pair each opcode with the numbers that follow it. The tokenizer tags
+    // numbers as Op::Number, so the arity of the opcode that precedes them
+    // tells us how many to take, and anything that is not an opcode here is
+    // rejected rather than read as one.
     struct Raw {
-        char op;   // '!', '|', '/', '[' or 'n' for a number
+        char op;   // '!', '|', '[' for an opcode, 'n' for a number
         double v;  // pixels, for 'n'
     };
     QVector<Raw> raw;
@@ -265,6 +276,17 @@ bool decodeEdges(const QString &edges, bool stroked, Shape &out, QString &error)
         if (t.op == Op::Style) {  // no geometry
             ++ti;
             continue;
+        }
+        if (t.op == Op::Number) {
+            // A number where an opcode belongs. Without this the token fell
+            // through to the '|' default below and was silently read as a
+            // lineTo with coordinate 0 -- a plausible-looking contour instead
+            // of an error. The Python reference rejects the same input, so
+            // without this the two implementations disagreed.
+            error = QObject::tr("expected an opcode at offset %1 but found %2")
+                        .arg(ti)
+                        .arg(describeToken(t));
+            return false;
         }
         const int arity = (t.op == Op::Quad) ? 4 : 2;
         if (ti + arity >= toks.size()) {

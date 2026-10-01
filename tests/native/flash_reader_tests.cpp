@@ -34,52 +34,6 @@ static QString fx(const QString &dir, const QString &name) {
     return QDir(dir).filePath(name);
 }
 
-// A minimal but genuinely valid ZIP holding one stored member. Written by hand
-// so the member name can be something a safe extractor must refuse.
-static void makeZipWithMember(const QString &path, const QByteArray &name,
-                              const QByteArray &body) {
-    QFile f(path);
-    if (!f.open(QIODevice::WriteOnly)) return;
-    auto le16 = [](quint16 v) {
-        return QByteArray::fromRawData(reinterpret_cast<const char *>(&v), 2);
-    };
-    auto le32 = [](quint32 v) {
-        return QByteArray::fromRawData(reinterpret_cast<const char *>(&v), 4);
-    };
-
-    QByteArray z;
-    const quint16 ver = 20, flags = 0, method = 0, t = 0, date = 0;
-    const quint32 crc = 0, csize = quint32(body.size()),
-                   usize = quint32(body.size());
-    const quint16 nlen = quint16(name.size()), elen = 0;
-    const quint32 offset = 0;
-
-    z.append("PK\x03\x04", 4);
-    z.append(le16(ver)).append(le16(flags)).append(le16(method));
-    z.append(le16(t)).append(le16(date));
-    z.append(le32(crc)).append(le32(csize)).append(le32(usize));
-    z.append(le16(nlen)).append(le16(elen));
-    z.append(name).append(body);
-
-    z.append("PK\x01\x02", 4);
-    z.append(le16(ver)).append(le16(ver)).append(le16(flags));
-    z.append(le16(method)).append(le16(t)).append(le16(date));
-    z.append(le32(crc)).append(le32(csize)).append(le32(usize));
-    z.append(le16(nlen)).append(le16(elen)).append(le16(elen));
-    z.append(le16(elen)).append(le32(offset));
-    z.append(name);
-
-    z.append("PK\x05\x06", 4);
-    const quint16 dnum = 0, cnum = 1, thisn = 1, csizeN = 0;
-    const quint32 coff = 0;
-    z.append(le16(dnum)).append(le16(cnum)).append(le16(thisn));
-    z.append(le16(csizeN)).append(le32(coff));
-    z.append(le16(nlen)).append(name);
-
-    f.write(z);
-    f.close();
-}
-
 // For labels built at run time.
 static void checkQ(bool ok, const QString &what, const QString &detail = {}) {
     check(ok, qPrintable(what), detail);
@@ -239,26 +193,44 @@ static void test_zip_extraction(const QString &dir) {
     QDir(out3).removeRecursively();
 
     // Zip-slip: a member whose path escapes the output directory must not be
-    // written above it. Built as a real archive, so the extractor has to reach
-    // the member name to be tested at all -- a stub cannot exercise the guard.
-    const QString slip = QDir::temp().filePath("flare_zipslip.zip");
-    makeZipWithMember(slip, "../escape.txt", "gotcha");
+    // written above it.
+    //
+    // The archive is a generated fixture rather than bytes built here, and that
+    // matters: the hand-built version had a 49-byte central directory where the
+    // spec says 46, so the extractor rejected it before it ever reached the
+    // member name. The assertion passed because the archive was malformed, not
+    // because the traversal guard worked. generate_trailer_fixtures.py now
+    // builds it and asserts that a normal ZIP reader can open it, which is what
+    // makes this test able to fail.
+    const QString slip = fx(dir, "zipslip.zip");
+    if (QFile::exists(slip)) {
+        // Where a stray file would land if the guard failed.
+        const QString above = QDir::temp().filePath("escape.txt");
+        QFile::remove(above);
+        const QString out4 = QDir::temp().filePath("flare_zipslip_out");
+        QDir(out4).removeRecursively();
+        QDir().mkpath(out4);
 
-    // Where a stray file would land if the guard failed.
-    const QString above = QDir::temp().filePath("escape.txt");
-    QFile::remove(above);
-    const QString out4 = QDir::temp().filePath("flare_zipslip_out");
-    QDir().mkpath(out4);
-    std::string d4;
-    FlareZip::extract(TFilePath(slip.toStdString()),
-                      TFilePath(out4.toStdString()), d4);
-    check(!QFile::exists(above),
-          "a member named ../escape.txt is not written above the output dir");
-    check(!QFile::exists(QDir(out4).filePath("escape.txt")),
-          "and it is not silently written inside it either");
-    QFile::remove(slip);
-    QFile::remove(above);
-    QDir(out4).removeRecursively();
+        std::string d4;
+        FlareZip::extract(TFilePath(slip.toStdString()),
+                          TFilePath(out4.toStdString()), d4);
+
+        check(!QFile::exists(above),
+              "a member named ../escape.txt is not written above the output dir");
+        check(!QFile::exists(QDir(out4).filePath("escape.txt")),
+              "and it is not silently written inside it either");
+        // The archive is readable, so the extractor really did walk its members.
+        // Without this the two checks above would also pass if the archive had
+        // been rejected wholesale.
+        check(QFile::exists(QDir(out4).filePath("benign.txt")),
+              "the archive's ordinary members were extracted, so the traversal "
+              "member was actually reached",
+              QString::fromStdString(d4));
+        QFile::remove(above);
+        QDir(out4).removeRecursively();
+    } else {
+        fprintf(stderr, "   (skipping the Zip-slip case: fixture absent)\n");
+    }
 }
 
 // ---------------------------------------------------------------------------

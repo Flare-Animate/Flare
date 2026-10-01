@@ -1,12 +1,18 @@
-"""One command to run every test in the repository.
+"""One command to run the repository's test suites.
 
-Deliberately narrow: it runs the suites that exist and reports honestly when
-one cannot run, rather than skipping silently or pretending the rest covers for
-it.
+Runs everything that can run unattended. Three checks are deliberately not in the
+default set:
+
+  tests/native/differential_shape.py   needs an extracted FLA
+  tests/native/verify_shapes_svg.py     needs an extracted FLA and shape_export
+  tests/native/mutation_check.py        needs a built tnzcore, which it rebuilds
+
+They are listed at the end of the output so this is not mistaken for "everything
+passes, therefore everything has been checked".
 
     python tests/run_all.py   (from the repository root)
 
-Exits non-zero if anything fails or if a suite that should be runnable is not.
+Exits non-zero if anything fails.
 """
 import os
 import subprocess
@@ -22,15 +28,29 @@ SUITES = [
     ("moho menu wiring", [sys.executable, "tests/moho/test_moho_menu.py"], REPO),
     ("native readers (C++)", [sys.executable, "run_tests.py", "--no-build"],
      os.path.join(HERE, "native")),
+    ("flash fixtures", [sys.executable, "verify_fixtures.py"],
+     os.path.join(HERE, "flash_fixtures")),
+]
+
+# Not run here, and why. Each would fail on a clean checkout for a reason that
+# has nothing to do with whether the code is correct.
+NEEDS_INPUT = [
+    ("tests/native/differential_shape.py", "an extracted .fla directory"),
+    ("tests/native/verify_shapes_svg.py", "an extracted .fla directory, and the "
+                                          "output of shape_export"),
+    ("tests/native/mutation_check.py", "a built tnzcore, because it rebuilds to "
+                                       "inject each bug in turn"),
 ]
 
 
 def main():
     if not os.environ.get("QT_BIN"):
-        print("   note: QT_BIN is not set, so the C++ tests may not find Qt's "
-              "plugins\n"
-              "         and report that no bitmaps decoded. Set it to "
-              "<qt>/5.x/<kit>/bin.")
+        print("   note: QT_BIN is not set. The C++ tests link Qt5Core, which is"
+              " not beside\n"
+              "         the test binary, so without it the process fails to"
+              " start at all -- no\n"
+              "         output, exit code 0xC0000135. Set QT_BIN to"
+              " <qt>/5.x/<kit>/bin.")
 
     results = []
     for label, argv, cwd in SUITES:
@@ -50,9 +70,13 @@ def main():
     print()
     if failed:
         print(f"FAILED: {len(failed)} of {len(results)} suites")
-        return 1
-    print(f"PASSED: all {len(results)} suites")
-    return 0
+    else:
+        print(f"PASSED: all {len(results)} suites")
+    print()
+    print("not covered here (each needs input a clean checkout does not have):")
+    for name, why in NEEDS_INPUT:
+        print(f"   {name}  -- {why}")
+    return 1 if failed else 0
 
 
 if __name__ == "__main__":

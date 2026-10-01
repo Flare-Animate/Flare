@@ -39,6 +39,8 @@
 #include "tcommon.h"
 #include "tfilepath.h"
 #include <QJsonObject>
+#include <QJsonValue>
+#include <QMap>
 #include <QString>
 #include <QStringList>
 #include <QVector>

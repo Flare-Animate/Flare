@@ -16,18 +16,40 @@
 #include <QRegularExpression>
 #include <cstdio>
 
+
+// One manifest row. A shape that produced no SVG is still recorded, because the
+// verifier walks the manifest and indexes into the document by the same number.
+static void recordRow(QFile &manifest, const QString &name,
+                      const QString &source, int index, int contours,
+                      int points) {
+    const QString row = name + QLatin1Char('\t') + source + QLatin1Char('\t') +
+                        QString::number(index) + QLatin1Char('\t') +
+                        QString::number(contours) + QLatin1Char('\t') +
+                        QString::number(points) + QLatin1Char('\n');
+    manifest.write(row.toUtf8());
+}
+
 // True when the fragment contains an <Edge ...> whose `edges` attribute is
 // non-empty.
 //
 // This has to be the *same* rule the verifier uses to decide which shapes to
-// compare. It was a raw substring search for "edges=", which also matches a
+// compare: an <Edge> carrying a non-empty `edges` attribute, at any depth
+// inside the <DOMShape>, and the shape counted whether or not it goes on to
+// produce any geometry. It was a raw substring search for "edges=", which also matches a
 // <fills> block or a comment; the verifier parsed the XML and looked for a real
 // <Edge> element. When the two sides numbered shapes differently, every shape
 // after the first disagreement in a document was verified against the wrong
 // geometry -- and the run still reported success.
 static bool hasGeometry(const QString &inner) {
+    // `<Edge\b[^>]*?/>?` rather than `<Edge\b[^>]*>`: a raw '>' is legal
+    // inside an XML attribute value, and a greedy [^>]* stops at it. An
+    // `edges` attribute of "!0 0>0" then truncated the tag, the attribute
+    // regex found no complete quoted value, and hasGeometry reported no
+    // geometry for a shape the verifier -- parsing the XML properly -- saw
+    // fine. Every later shape in that document was then compared against the
+    // wrong geometry.
     static const QRegularExpression edge(
-        QStringLiteral("<Edge\\b[^>]*>"),
+        QStringLiteral("<Edge\\b[^>]*/?>"),
         QRegularExpression::DotMatchesEverythingOption);
     // An attribute name at a tag boundary, not a substring: an attribute value
     // could itself contain "edges=".
@@ -108,16 +130,34 @@ int main(int argc, char **argv) {
             const QString inner = m.captured(1);
             if (!hasGeometry(inner)) continue;
 
+            // Count the shape first, and count it whatever happens next. The
+            // per-document index used to be incremented only after a shape
+            // produced contours, so a geometry-bearing shape that decoded to
+            // nothing -- an `edges` attribute of "S1" and nothing else -- was
+            // skipped by the counter but kept by the verifier. Every later
+            // shape in that document was then off by one.
             ++shapes;
+            ++localIndex;
+
+            const QString name =
+                QStringLiteral("shape_%1.svg").arg(shapes, 5, 10, QLatin1Char('0'));
+            const QString rel = root.relativeFilePath(fi.absoluteFilePath());
+
             XFL::Shape s;
             QString err;
             if (!XFL::decodeShapeXml(inner, s, err)) {
+                // Still recorded: the verifier walks the manifest, and a row it
+                // cannot find would be a silent hole in the coverage.
+                recordRow(manifest, name, rel, localIndex, 0, 0);
                 ++failed;
                 if (failed <= 3)
                     fprintf(stderr, "   decode failed: %s\n", qPrintable(err));
                 continue;
             }
             if (s.contours.isEmpty()) {
+                // Recorded even though no SVG is written, so the index the
+                // verifier walks stays aligned with the document.
+                recordRow(manifest, name, rel, localIndex, 0, 0);
                 ++empty;
                 continue;
             }
@@ -126,9 +166,6 @@ int main(int argc, char **argv) {
                 totalPoints += c.points.size();
             strokes += s.strokedContours;
 
-            ++localIndex;
-            const QString name =
-                QStringLiteral("shape_%1.svg").arg(shapes, 5, 10, QLatin1Char('0'));
             QFile o(outDir.filePath(name));
             if (o.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
                 o.write(XFL::toSvgDocument(s, name).toUtf8());
@@ -136,15 +173,7 @@ int main(int argc, char **argv) {
             }
             int npts = 0;
             for (const XFL::Contour &c : s.contours) npts += c.points.size();
-            // .arg with five placeholders needs the chained overload for the
-            // two-argument case; the rest are ints.
-            QString rel = root.relativeFilePath(fi.absoluteFilePath());
-            QString row = name + QLatin1Char('\t') + rel +
-                          QLatin1Char('\t') + QString::number(localIndex) +
-                          QLatin1Char('\t') + QString::number(s.contours.size()) +
-                          QLatin1Char('\t') + QString::number(npts) +
-                          QLatin1Char('\n');
-            manifest.write(row.toUtf8());
+            recordRow(manifest, name, rel, localIndex, s.contours.size(), npts);
         }
     }
 

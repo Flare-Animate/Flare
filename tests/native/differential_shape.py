@@ -18,6 +18,13 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 NS = "{http://ns.adobe.com/xfl/2008/}"
 NUM = r"(-?(?:\d+\.?\d*)|#(?:[0-9A-Fa-f]{1,6}\.[0-9A-Fa-f]{0,2}))"
 
+# The same tolerance the C++ decoder uses, for the same two tests:
+# a restated moveTo, and a contour that returns to its start. It has
+# to match exactly, or the two implementations answer different
+# questions and a disagreement here says nothing about either one.
+# Five coordinate quanta (1/256 twip is 1.95e-4 px).
+EPSILON = 1e-3
+
 
 # Note: no `assert` anywhere below. Python strips asserts under `python -O`, and
 # these are structural guards the differential comparison depends on -- with them
@@ -84,11 +91,17 @@ def decode(s):
         if v == "!":
             dest = (nums[0] / 20.0, nums[1] / 20.0)
             restates = (at is not None and cur and
-                        abs(at[0] - dest[0]) < 1e-9 and abs(at[1] - dest[1]) < 1e-9)
+                        abs(at[0] - dest[0]) < EPSILON and abs(at[1] - dest[1]) < EPSILON)
             if cur and not restates:
                 contours.append(cur); cur = []
             at = dest
-            cur.append(dest)
+            # A restatement adds no geometry, so it must add no point either.
+            # Recording the duplicate desynchronises the point list from the
+            # segment list, shifting every control point after it -- which is
+            # the very misreading this file is written to catch, and which it
+            # was itself making.
+            if not restates:
+                cur.append(dest)
         elif v == "|":
             at = (nums[0] / 20.0, nums[1] / 20.0)
             cur.append(at)
@@ -125,7 +138,8 @@ def python_census(root):
                 if len(c) < 2:
                     continue
                 contours += 1
-                if abs(c[0][0] - c[-1][0]) < 1e-6 and abs(c[0][1] - c[-1][1]) < 1e-6:
+                if (abs(c[0][0] - c[-1][0]) < EPSILON
+                        and abs(c[0][1] - c[-1][1]) < EPSILON):
                     closed += 1
                 for x, y in c:
                     xs.append(x); ys.append(y)

@@ -177,8 +177,9 @@ int main(int argc, char **argv) {
                       s.alternatives.contains("MouthC"),
                   "alternatives are the child layer names");
             // The channel holds names, not indices. Frame 0 is the rest pose,
-            // so the first key is the rest state; the fixture's keys return to
-            // MouthA, so rest and end agree -- and reporting both is the point.
+            // so the first key is the rest state and the last is where the
+            // timeline ends up. The fixture keys A -> B -> C precisely so the
+            // two differ and neither can stand in for the other.
             check(s.childAtRest == "MouthA",
                   "the child at rest is the first key", s.childAtRest);
             check(s.childAtEnd == "MouthC",
@@ -377,7 +378,18 @@ int main(int argc, char **argv) {
         };
 
         const QString good = QDir(dir).filePath("minimal_rig.moho");
+
+        // A control the test creates itself, so it does not depend on what other
+        // runs happened to leave behind: if the reader leaked, the count would
+        // go up by one and the assertions below would fail. Without a
+        // non-zero baseline, "the count did not increase" would also be
+        // satisfied by the reader never unpacking anything at all.
+        const QString marker =
+            QDir::temp().filePath("moho_testcontrol_marker");
+        QDir(marker).mkpath(".");
         const int before = countMohoTemps();
+        check(before > 0, "the control directory is visible to the counter",
+              QString("%1").arg(before));
         Moho::Document d1;
         g_read(TFilePath(good.toStdString()), d1);
         check(d1.valid, "the good project still parses");
@@ -392,6 +404,8 @@ int main(int argc, char **argv) {
         check(countMohoTemps() == before,
               "the extraction directory is removed after a rejection too",
               QString("%1 -> %2").arg(before).arg(countMohoTemps()));
+
+        QDir(marker).removeRecursively();
     }
 
     // ---- an invalid document must not produce a manifest ------------------
@@ -403,9 +417,8 @@ int main(int argc, char **argv) {
               QString::number(n));
     }
 
-    // Leave no scratch behind: the suite creates and removes its own.
-    // Leave no scratch behind: the suite creates and removes its own. Qt5's
-    // QDir::removeRecursively takes no argument, so point a QDir at the target.
+    // Leave no scratch behind. Qt5's QDir::removeRecursively takes no
+    // argument, so point a QDir at the target.
     QDir scratch(QDir(QDir::tempPath())
                      .filePath(QStringLiteral("flare_moho_manifest_test")));
     scratch.removeRecursively();

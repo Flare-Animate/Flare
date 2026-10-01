@@ -4,9 +4,13 @@
 python tests/run_all.py
 ```
 
-Runs every suite and exits non-zero if any fail. Set `QT_BIN` to your Qt
-`bin` directory first, or the C++ tests cannot find Qt's image plugins and will
-report that no bitmaps decoded.
+Runs every suite that can run unattended and exits non-zero if any fail. It
+prints, at the end, the two checks it does *not* run — both need an extracted
+FLA, and there is no committed one — so a clean pass is not mistaken for
+"everything has been checked".
+
+Set `QT_BIN` to your Qt `bin` directory first, or the C++ tests cannot find
+Qt's image plugins and will report that no bitmaps decoded.
 
 | Suite | What it covers |
 |-------|----------------|
@@ -17,6 +21,10 @@ report that no bitmaps decoded.
 | `tests/native/moho_reader_tests.cpp` | the whole Moho reader surface |
 | `tests/native/differential_shape.py` | the C++ shape decoder against an independent Python one, over a real FLA |
 | `tests/native/verify_shapes_svg.py` | exported SVGs against an independent decode: every point, and every viewBox |
+| `tests/native/mutation_check.py` | injects each fixed shape bug in turn and confirms the suite catches it |
+
+`run_all.py` prints the last three at the end as not-covered, because a clean
+pass through the default set is not evidence they ran.
 | `tests/flash_fixtures/verify_fixtures.py` | each fixture meets the importer's format contract |
 
 ## The rules these follow

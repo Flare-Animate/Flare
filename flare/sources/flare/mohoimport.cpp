@@ -33,6 +33,8 @@ QString describe(const Moho::Document &doc) {
              .arg(doc.version)
              .arg(doc.mimeType.isEmpty() ? QObject::tr("(none)")
                                          : doc.mimeType);
+    if (!doc.containerEntry.isEmpty())
+        s += QObject::tr("\n  Read from: %1").arg(doc.containerEntry);
     s += QObject::tr("\n  Canvas: %1 x %2 at %3 fps, frames %4-%5")
              .arg(doc.width)
              .arg(doc.height)
@@ -139,8 +141,10 @@ void ImportMohoProjectCommand::execute() {
     // the message box and then popped a second modal saying the same thing --
     // and that second one fired unconditionally, so a failed write still
     // reported "Moho structure written to".
-    QMessageBox *box = new QMessageBox(QMessageBox::Information,
-                                       QObject::tr("Moho Project"), describe(doc));
+    QMessageBox *box =
+        new QMessageBox(written > 0 ? QMessageBox::Information
+                                    : QMessageBox::Warning,
+                        QObject::tr("Moho Project"), describe(doc));
     if (written > 0) {
         box->setInformativeText(
             QObject::tr("Wrote %1 file(s) to:\n%2")
