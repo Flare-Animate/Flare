@@ -510,7 +510,9 @@ static bool saveJpegWithAlpha(const QByteArray &jpeg, const QByteArray &alphaZli
     QByteArray alpha = inflateExact(
         reinterpret_cast<const unsigned char *>(alphaZlib.constData()),
         alphaZlib.size(), alphaLen);
-    if (alpha.isEmpty()) return false;
+    // inflateExact() already returns either exactly alphaLen bytes or nothing;
+    // re-stating it here is what makes the unchecked indexing below safe to read.
+    if (alpha.size() != alphaLen) return false;
 
     QImage rgb;
     if (!rgb.loadFromData(jpeg, "JPG") || rgb.isNull()) return false;
@@ -523,7 +525,9 @@ static bool saveJpegWithAlpha(const QByteArray &jpeg, const QByteArray &alphaZli
             const QColor c = rgb.pixelColor(std::min(x, rgb.width() - 1),
                                             std::min(y, rgb.height() - 1));
             dst[x] = qRgba(c.red(), c.green(), c.blue(),
-                           static_cast<unsigned char>(alpha.at(y * width + x)));
+                           static_cast<unsigned char>(
+                               alpha.at(static_cast<int>(
+                                   static_cast<qint64>(y) * width + x))));
         }
     }
 
