@@ -26,6 +26,7 @@
             <command>MI_ImportMagpieFile</command>
             <command>MI_ImportOCA</command>
             <command>MI_ImportFlashVector</command>
+            <command>MI_ImportMohoProject</command>
         </menu>
         <menu title="Export">
             <command>MI_ExportCurrentScene</command>		

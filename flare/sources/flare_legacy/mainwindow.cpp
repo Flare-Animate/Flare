@@ -1832,6 +1832,9 @@ void MainWindow::defineActions() {
   createMenuFileAction(MI_ImportFlashVector,
                        QT_TR_NOOP("&Import Flash (FLA / XFL / SWF / SWC / FLV / F4V / AS)..."), "",
                        "import_flash");
+  createMenuFileAction(MI_ImportMohoProject,
+                       QT_TR_NOOP("Import &Moho Project (rig structure and assets)..."), "",
+                       "import_moho");
   createMenuFileAction(MI_NewProject, QT_TR_NOOP("&New Project..."), "",
                        "new_project");
   createMenuFileAction(MI_ProjectSettings, QT_TR_NOOP("&Project Settings..."),
@@ -1970,7 +1973,7 @@ void MainWindow::defineActions() {
                         "new_vector_level");
   createMenuLevelAction(MI_NewToonzRasterLevel,
                         QT_TR_NOOP("&New Flare Raster Level"), "",
-                        "new_toonz_raster_level");
+                        "new_flare_raster_level");
   createMenuLevelAction(MI_NewRasterLevel, QT_TR_NOOP("&New Raster Level"), "",
                         "new_raster_level");
   createMenuFileAction(MI_NewMetaLevel, QT_TR_NOOP("&New Assistant Level"),

@@ -440,6 +440,7 @@ set(SOURCES
     sxfio.cpp
     ocaio.cpp
     flashimport.cpp
+    mohoimport.cpp
     flashexport.cpp
     flashguidedialog.cpp
     scriptconsolepanel_stub.cpp
@@ -577,6 +578,7 @@ include_directories(
     ../../sources/flareqt
     ../../sources/stopmotion
     ../../sources/common/flash
+    ../../sources/common/moho
     ../../sources/flare
     ../../sources
     ${SDKROOT}/zlib-1.2.8/contrib/minizip
