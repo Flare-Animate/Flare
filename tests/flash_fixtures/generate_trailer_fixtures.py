@@ -159,6 +159,27 @@ def _repoint_cd(data: bytes, new_eocd: int, new_cd_off: int, cd_size: int) -> by
     return bytes(out)
 
 
+def make_zipslip() -> bytes:
+    """A valid archive with a member whose name escapes the output directory.
+
+    Generated here rather than hand-built in the C++ test: a hand-built central
+    directory is easy to get subtly wrong, and when it is wrong the extractor
+    rejects the archive before it ever reaches the member name -- so the
+    path-traversal assertion passes without the guard ever being exercised.
+    Verified below that zipfile really can read it, which is what makes the test
+    meaningful.
+    """
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
+        # zinfo(), not writestr(name, ...): writestr stamps each entry with the
+        # current time, which made this committed fixture differ on every
+        # regeneration and left `git status` permanently dirty.
+        zf.writestr(zinfo("benign.txt"), b"this one is fine")
+        zf.writestr(zinfo("../escape.txt"), b"this one is not")
+        zf.writestr(zinfo("nested/deep.txt"), b"and this one is fine too")
+    return buf.getvalue()
+
+
 def main() -> None:
     for name, blob in (("stale_trailer.fla", make_stale_trailer()),
                        ("orphan_local.fla", make_orphan_local_header())):
@@ -173,6 +194,29 @@ def main() -> None:
                 print(f"  !! unexpectedly opened by zipfile ({len(z.namelist())} entries)")
         except zipfile.BadZipFile as e:
             print(f"  confirmed: zipfile rejects it ({e})")
+
+    # The Zip-slip fixture, which has to be a *readable* archive: a malformed one
+    # is rejected before the extractor reaches the member name, so the test that
+    # uses it would pass without the traversal guard ever running.
+    path = os.path.join(HERE, "zipslip.zip")
+    blob = make_zipslip()
+    with open(path, "wb") as f:
+        f.write(blob)
+    print(f"wrote zipslip.zip ({len(blob)} bytes)")
+    with zipfile.ZipFile(path) as z:
+        names = z.namelist()
+        print(f"  confirmed readable: {names}")
+        if "../escape.txt" not in names:
+            raise SystemExit("zipslip.zip does not contain the traversal member")
+        if z.read("benign.txt") != b"this one is fine":
+            raise SystemExit("zipslip.zip: benign member does not read back")
+        if z.read("nested/deep.txt") != b"and this one is fine too":
+            raise SystemExit("zipslip.zip: nested member does not read back")
+    # Reproducible, like the other fixtures: regenerating must not dirty the
+    # tree, or a diff on this file says nothing.
+    if make_zipslip() != blob:
+        raise SystemExit("zipslip.zip is not reproducible: "
+                         "two generations differ")
 
 
 if __name__ == "__main__":
