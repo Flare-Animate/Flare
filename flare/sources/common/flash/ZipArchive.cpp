@@ -79,7 +79,6 @@ QByteArray readAt(QFile &f, qint64 offset, qint64 n) {
 struct CdRecord {
     quint32 localHeaderOffset = 0;
     int     nameLen = 0;
-    bool    nameEndsWithSlash = false;
     int     nextOffset = 0;  // absolute offset of the following record
 };
 
@@ -101,8 +100,6 @@ bool decodeCdRecord(const QByteArray &head, int recordStart, qint64 fileSize,
     if (next > fileSize) return false;
 
     out.nameLen = nameLen;
-    out.nameEndsWithSlash = (nameLen > 0 &&
-        head[kCdRecordSize + nameLen - 1] == '/');
     out.nextOffset = static_cast<int>(next);
     return true;
 }

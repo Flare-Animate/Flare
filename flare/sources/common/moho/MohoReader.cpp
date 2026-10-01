@@ -446,11 +446,21 @@ int writeManifest(const TFilePath &projectPath, const Document &doc,
         const QString imgDir = outDir.getQString() + "/images";
         TSystem::mkDir(TFilePath(imgDir));
         for (const QString &rel : doc.referencedImages) {
-            const QString abs = QDir(projDir).absoluteFilePath(rel);
+            // These come straight out of the project file, which is untrusted
+            // input: an absolute entry, or one climbing out with "..", would
+            // read a file from anywhere the user can reach and write it outside
+            // the import folder. cleanPath() resolves ".." lexically, so a
+            // cleaned relative path that does not start with ".." cannot escape.
+            const QString clean = QDir::cleanPath(rel);
+            if (clean.isEmpty() || clean == QLatin1String(".") ||
+                QDir::isAbsolutePath(clean) || clean == QLatin1String("..") ||
+                clean.startsWith(QLatin1String("../")))
+                continue;
+            const QString abs = QDir(projDir).absoluteFilePath(clean);
             if (!QFileInfo::exists(abs)) continue;
             // Keep the sub-path so a rig with e.g. "images/char/arm.png"
             // does not flatten to one directory.
-            const QString dst = imgDir + "/" + rel;
+            const QString dst = imgDir + "/" + clean;
             TSystem::mkDir(TFilePath(QFileInfo(dst).absolutePath()));
             if (QFile::copy(abs, dst)) ++written;
         }

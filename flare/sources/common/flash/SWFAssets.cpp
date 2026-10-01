@@ -449,22 +449,22 @@ DVAPI QStringList extractLegacyFlaBitmaps(const QByteArray &data,
 //   20  DefineBitsLossless    zlib; 3 = 8-bit indexed, 4 = 15-bit RGB555,
 //                             5 = 24-bit RGB (NOT premultiplied)
 //   21  DefineBitsJPEG2       self-contained JPEG
-//   22  DefineBitsJPEG3       JPEG + separate zlib alpha channel
-//   23  DefineBitsJPEG4       JPEG + deblocking u16 + zlib alpha
-//   26  PlaceObject2          timeline placement (not extracted)
-//   24  DefineFont2           (not an image tag; see the note below)
-//   35  DefineBitsLossless2   zlib; 3 = 8-bit palettized ARGB,
+//   35  DefineBitsJPEG3       JPEG + separate zlib alpha channel
+//   36  DefineBitsLossless2   zlib; 3 = 8-bit palettized ARGB,
 //                             5 = 32-bit premultiplied ARGB
-//   36  DefineBitsLossless3   same layout as 35 (SWF 13)
-//   90  DefineBitsLossless4   same layout as 35 (SWF 16)
+//   90  DefineBitsJPEG4       JPEG + deblocking u16 + zlib alpha
+//
+// Not image tags, and all three have been dispatched as one at some point in
+// this file's history:
+//   22  DefineShape2          a shape, same family as 2 / 32 / 83
+//   23  DefineButtonCxform    a button colour transform
+//   24  DefineFont2           a font table
+// The specification defines no DefineBitsLossless3/4 and no DefineBitsJPEG5;
+// the lossless family is 20 and 36 only.
 //
 // Tag record format (little-endian):
 //   Short record: 2-byte word (high 10 bits = tag code, low 6 bits = length)
 //   Long record:  2-byte word with length=63, followed by 4-byte signed length
-//
-// Note the previous revision of this function mis-assigned 35/90 as the JPEG
-// variants. 35/36/90 are the zlib lossless family and 22/23/24 are the JPEG
-// ones, so real-world SWFs lost every palettized image and every alpha JPEG.
 // ---------------------------------------------------------------------------
 
 // Rows of a DefineBitsLossless payload are padded out to a multiple of 4
@@ -624,14 +624,18 @@ DVAPI QStringList extractSwfBitmaps(const QByteArray &swfData, const QString &ou
             continue;
         }
 
-        // ---- DefineBitsJPEG3 (22) / DefineBitsJPEG4 (23) --------------------
-        // 22: CharacterID(2) + AlphaDataOffset(4) + JPEG + zlib alpha
-        // 23: CharacterID(2) + AlphaDataOffset(4) + DeblockParam(2) + JPEG + zlib alpha
+        // ---- DefineBitsJPEG3 (35) / DefineBitsJPEG4 (90) -------------------
+        // 35: CharacterID(2) + AlphaDataOffset(4) + JPEG + zlib alpha
+        // 90: CharacterID(2) + AlphaDataOffset(4) + DeblockParam(2) + JPEG
+        //     + zlib alpha
         //
-        // There is no "DefineBitsJPEG5" tag: 24 is DefineFont2, and treating
-        // it as a JPEG would misinterpret font tables as image data.
-        if (tagCode == 22 || tagCode == 23) {
-            const int headerLen = (tagCode == 23) ? 8 : 6;
+        // These are the codes the SWF specification assigns, and the ones
+        // Macromedia.h in this very directory already lists: 22 is
+        // stagDefineShape2 and 23 is stagDefineButtonCxform, so dispatching
+        // either one here parsed a shape or a button colour transform as image
+        // data while real alpha JPEGs fell through to the lossless branch.
+        if (tagCode == 35 || tagCode == 90) {
+            const int headerLen = (tagCode == 90) ? 8 : 6;
             if (dataStart + headerLen >= dataEnd) continue;
 
             quint32 alphaOffset = static_cast<quint32>(d[dataStart + 2])
@@ -642,11 +646,12 @@ DVAPI QStringList extractSwfBitmaps(const QByteArray &swfData, const QString &ou
             if (alphaOffset > static_cast<quint32>(maxAlpha))
                 alphaOffset = static_cast<quint32>(maxAlpha);
 
-            // Layout: CharacterID(2) AlphaDataOffset(4) JPEG alpha. The JPEG
-            // starts at +6; AlphaDataOffset is measured from there.
-            QByteArray jpeg = payload(6, static_cast<int>(alphaOffset));
+            // AlphaDataOffset counts the bytes of ImageData, so it is measured
+            // from the end of the fixed header -- which JPEG4's DeblockParam
+            // makes two bytes longer than JPEG3's.
+            QByteArray jpeg = payload(headerLen, static_cast<int>(alphaOffset));
             QByteArray alphaZlib =
-                payload(6 + static_cast<int>(alphaOffset),
+                payload(headerLen + static_cast<int>(alphaOffset),
                         maxAlpha - static_cast<int>(alphaOffset));
             if (jpeg.isEmpty() || alphaZlib.isEmpty()) continue;
 
@@ -680,51 +685,15 @@ DVAPI QStringList extractSwfBitmaps(const QByteArray &swfData, const QString &ou
             continue;
         }
 
-        // ---- DefineBitsLossless (20) and (35) / (36) / (90) ----------------
-        // 20 : 3 = 8-bit indexed, 4 = 15-bit RGB555, 5 = 24-bit RGB
-        // 35/36/90: 3 = 8-bit palettized premultiplied ARGB, 5 = 32-bit ARGB
-        // 24 (DefineFont2) is deliberately not handled here: see the note on
-        // the JPEG3/4 branch above.
-        if (tagCode == 20 || tagCode == 35 || tagCode == 36 || tagCode == 90) {
+        // ---- DefineBitsLossless (20) / DefineBitsLossless2 (36) ------------
+        // 20: 3 = 8-bit indexed, 4 = 15-bit RGB555, 5 = 24-bit RGB
+        // 36: 3 = 8-bit palettized premultiplied ARGB, 5 = 32-bit ARGB
+        if (tagCode == 20 || tagCode == 36) {
             if (dataStart + 6 >= dataEnd) continue;
             const bool premultiplied = (tagCode != 20);
 
-            const int fmt  = d[dataStart + 2];
-
-            // Tag 35 is DefineBitsLossless2 in the specification, but a fair
-            // amount of SWF in the wild stores DefineBitsJPEG3 (CharacterID,
-            // AlphaDataOffset, JPEG, zlib alpha) under that code. A format byte
-            // outside 3/4/5 is the giveaway, so retry as a JPEG before giving up.
-            if (fmt < 3 || fmt > 5) {
-                if (tagCode == 35 && dataStart + 6 <= dataEnd) {
-                    quint32 off = static_cast<quint32>(d[dataStart + 2])
-                               | (static_cast<quint32>(d[dataStart + 3]) << 8)
-                               | (static_cast<quint32>(d[dataStart + 4]) << 16)
-                               | (static_cast<quint32>(d[dataStart + 5]) << 24);
-                    const int avail = dataEnd - (dataStart + 6);
-                    if (off > static_cast<quint32>(avail))
-                        off = static_cast<quint32>(avail);
-                    QByteArray jpeg = payload(6, static_cast<int>(off));
-                    QByteArray alpha =
-                        payload(6 + static_cast<int>(off), avail - static_cast<int>(off));
-                    QImage probe;
-                    if (!jpeg.isEmpty() && !alpha.isEmpty() &&
-                        probe.loadFromData(jpeg, "JPG") && !probe.isNull()) {
-                        if (!saveJpegWithAlpha(jpeg, alpha, probe.width(),
-                                               probe.height(), outDir,
-                                               bitmapIndex, extracted)) {
-                            const QString fname = QString("bitmap_%1.jpg")
-                                .arg(bitmapIndex++, 4, 10, QChar('0'));
-                            QFile jf(outDir + "/" + fname);
-                            if (jf.open(QIODevice::WriteOnly)) {
-                                jf.write(jpeg); jf.close();
-                            }
-                            extracted << fname;
-                        }
-                    }
-                }
-                continue;
-            }
+            const int fmt = d[dataStart + 2];
+            if (fmt < 3 || fmt > 5) continue;
 
             const int bmpW = d[dataStart + 3] | (d[dataStart + 4] << 8);
             const int bmpH = d[dataStart + 5] | (d[dataStart + 6] << 8);
@@ -837,9 +806,10 @@ DVAPI QStringList extractSwfBitmaps(const QByteArray &swfData, const QString &ou
 // One tag walker, shared so the census and the extractor can never disagree
 // about where the tag stream actually is.
 //
-// Tag codes follow the Adobe SWF specification. Note in particular that 24 is
-// DefineFont2, not a bitmap tag, and that the spec defines no "JPEG5" image
-// tag: the JPEG family is 21 (JPEG2), 22 (JPEG3) and 23 (JPEG4).
+// Tag codes follow the Adobe SWF specification: the JPEG family is 21 (JPEG2),
+// 35 (JPEG3) and 90 (JPEG4), and the lossless family is 20 and 36. Codes 22,
+// 23 and 24 are DefineShape2, DefineButtonCxform and DefineFont2 -- not
+// bitmaps, whatever earlier revisions of this file assumed.
 // ---------------------------------------------------------------------------
 namespace {
 
@@ -989,12 +959,12 @@ void censusInto(const unsigned char *d, int size, int pos, SwfContent &c,
         switch (t.code) {
         // Bitmaps. JPEGTables (8) carries a header, not an image, so it is
         // deliberately absent.
-        case 6: case 20: case 21: case 22: case 23:
-        case 35: case 36: case 90:
+        case 6: case 20: case 21: case 35: case 36: case 90:
             ++c.bitmaps; break;
         case 14:  ++c.audio;  break;              // DefineSound
         case 18: case 45: case 89: ++c.streams; break;   // SoundStreamHead/2
-        case 2: case 32: case 46: case 83: ++c.shapes; break;  // shape / morph
+        // Shape2 (22) belongs here, not with the bitmaps.
+        case 2: case 22: case 32: case 46: case 83: ++c.shapes; break;
         case 11: case 33: ++c.texts; break;        // DefineText / Text2
         case 10: case 24: case 75: ++c.fonts; break;  // Font / Font2 / Font3
         case 12: case 59: ++c.actions; break;       // DoAction / DoInitAction

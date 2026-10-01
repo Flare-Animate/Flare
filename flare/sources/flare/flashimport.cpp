@@ -151,15 +151,15 @@ static QString extractAdobeZipPackage(const QString &srcPath, const QString &out
     // Find and report the manifest/metadata XML specific to each format.
     QStringList candidates;
     if (ext == "ane")
-        candidates = {"META-INF/ANE/extension.xml", "META-INF/extension.xml"};
+        candidates = QStringList{"META-INF/ANE/extension.xml", "META-INF/extension.xml"};
     else if (ext == "air")
-        candidates = {"META-INF/AIR/application.xml", "META-INF/MANIFEST.MF"};
+        candidates = QStringList{"META-INF/AIR/application.xml", "META-INF/MANIFEST.MF"};
     else if (ext == "oam")
-        candidates = {"OAMMetadata.xml", "META-INF/OAM/metadata.xml", "metadata.xml"};
+        candidates = QStringList{"OAMMetadata.xml", "META-INF/OAM/metadata.xml", "metadata.xml"};
     else if (ext == "zxp")
-        candidates = {"CSXS/manifest.xml", "META-INF/manifest.xml", "manifest.xml"};
+        candidates = QStringList{"CSXS/manifest.xml", "META-INF/manifest.xml", "manifest.xml"};
     else if (ext == "mxp")
-        candidates = {"install.xml", "Install.xml", "manifest.xml"};
+        candidates = QStringList{"install.xml", "Install.xml", "manifest.xml"};
 
     for (const QString &rel : candidates) {
         QFile f(outDir + "/" + rel);
@@ -382,7 +382,7 @@ void ImportFlashVectorCommand::execute() {
         // Tell the user when the trailer had to be salvaged: the archive is
         // valid, but naive tools (and older Flare builds) rejected it.
         if (ext == "fla" || ext == "zip") {
-            const TFilePathSet probe = TSystem::readDirectory(outPath, false, true, true);
+            const TFilePathSet probe = TSystem::readDirectory(outDir, false, true, true);
             bool hasDomDocument = false;
             for (const auto &e : probe) hasDomDocument |= (e.getName() == "DOMDocument.xml");
             if (hasDomDocument)
@@ -579,7 +579,7 @@ void ImportFlashVectorCommand::execute() {
 
     // ---- SWF binary: read header + extract embedded bitmaps ----
     } else if (isSwf) {
-        SwfInfo swf = FlashAssets::readSwfHeader(srcPath);
+        FlashAssets::SwfInfo swf = FlashAssets::readSwfHeader(srcPath);
         if (!swf.valid) {
             DVGui::error(QObject::tr("Not a valid SWF file: %1").arg(srcPath));
             return;
@@ -739,7 +739,7 @@ void ImportFlashVectorCommand::execute() {
 
     // ---- FLV (Flash Video) ----
     } else if (ext == "flv") {
-        FlvInfo flv = FlashAssets::readFlvHeader(srcPath);
+        FlashAssets::FlvInfo flv = FlashAssets::readFlvHeader(srcPath);
         if (!flv.valid) {
             DVGui::error(QObject::tr("Not a valid FLV file: %1").arg(srcPath));
             return;
@@ -752,7 +752,7 @@ void ImportFlashVectorCommand::execute() {
 
     // ---- F4V / M4V (Flash H.264, ISO BMFF container) ----
     } else if (detected == FlashAssets::Format::IsoBmff) {
-        const F4vInfo f4v = FlashAssets::readF4vHeader(srcPath);
+        const FlashAssets::F4vInfo f4v = FlashAssets::readF4vHeader(srcPath);
         if (!f4v.valid) {
             DVGui::error(QObject::tr("Not a valid F4V/ISOBMFF file: %1").arg(srcPath));
             return;

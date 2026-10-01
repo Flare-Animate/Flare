@@ -418,13 +418,37 @@ def remap_staged_paths() -> list[tuple[str, str]]:
     explicitly removed from the index so a file cannot be synced twice under
     both names.
     """
-    staged = git(["diff", "--cached", "--name-only", "--diff-filter=ACMR"],
+    # Deletions (D) are in here deliberately: an upstream commit that removes
+    # toonz/sources/toonz/foo.cpp has to remove Flare's flare/sources/flare/foo.cpp,
+    # and a filter of ACMR left that file behind for good while staging a
+    # deletion at a path Flare does not even have.
+    staged = git(["diff", "--cached", "--name-status", "--diff-filter=ACMRD"],
                  check=False, capture=True).stdout.splitlines()
     moved: list[tuple[str, str]] = []
     for raw in staged:
-        old_path = raw.decode("utf-8", "replace") if isinstance(raw, bytes) else raw
+        line = raw.decode("utf-8", "replace") if isinstance(raw, bytes) else raw
+        if not line.strip():
+            continue
+        fields = line.split("\t")
+        status = fields[0]
+        # A rename or copy reports both paths; the destination is what is staged.
+        old_path = fields[-1]
         new_path = map_upstream_path(old_path)
         if new_path == old_path:
+            continue
+
+        if status.startswith("D"):
+            # The upstream file is gone, so Flare's mapped copy has to go too --
+            # that is the whole point of seeing D here.
+            if new_path:
+                git(["rm", "-f", "-q", "--ignore-unmatch", "--", new_path],
+                    check=False)
+            # Then un-stage the upstream name, the same guarantee the add/modify
+            # path gives: nothing is ever left staged under the upstream layout.
+            # Restoring from HEAD covers index and working tree in one go, and
+            # is a harmless no-op where Flare has no such path at all.
+            git(["checkout", "-q", "HEAD", "--", old_path], check=False)
+            moved.append((old_path, new_path))
             continue
 
         if new_path:

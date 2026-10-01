@@ -238,10 +238,12 @@ def cmd_compile(source_dir: str, out_swf: str) -> dict:
     try:
         proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                               timeout=600)
+    except subprocess.TimeoutExpired:
+        # Must precede the generic handler: TimeoutExpired derives from
+        # Exception, so the order below would have swallowed it.
+        return {"ok": False, "error": "mxmlc timed out after 600s", "log": None}
     except Exception as e:
         return {"ok": False, "error": f"mxmlc could not be run: {e}", "log": None}
-    except subprocess.TimeoutExpired:
-        return {"ok": False, "error": "mxmlc timed out after 600s", "log": None}
 
     log = proc.stdout.decode("utf-8", "replace") if proc.stdout else ""
     if proc.returncode != 0 or not out.is_file():
