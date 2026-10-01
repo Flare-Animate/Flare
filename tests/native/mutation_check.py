@@ -106,7 +106,7 @@ def build():
     """
     for cwd, args in ((BUILD, ["--target", "tnzcore", "-j", "8"]),
                       (os.path.join(HERE, "build"), ["-j", "8"])):
-        r = subprocess.run(["cmake", "--build", cwd if False else cwd,
+        r = subprocess.run(["cmake", "--build", cwd,
                             "--config", "RelWithDebInfo"] + args,
                            cwd=cwd, capture_output=True, text=True)
         if r.returncode:
