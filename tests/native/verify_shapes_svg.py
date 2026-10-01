@@ -45,19 +45,37 @@ def decode_number(tok):
 
 
 def tokenize(s):
+    """Yield ('op', ch) and ('n', value) pairs.
+
+    Mirrors the C++ tokenizer, including the checks that make the two
+    comparable: a number in an opcode position and an 'S' with no digit are both
+    errors here, exactly as they are there. Without them this file raised
+    IndexError on the first malformed edge and aborted the whole run, and
+    invented a phantom contour for a bare "S".
+    """
     i, n = 0, len(s)
     while i < n:
         c = s[i]
         if c in " \t\n\r":
-            i += 1; continue
+            i += 1
+            continue
         if c in "!|":
-            yield ("op", c); i += 1; continue
+            yield ("op", c)
+            i += 1
+            continue
         if c in "[]":
-            yield ("op", "["); i += 1; continue
+            yield ("op", "[")
+            i += 1
+            continue
         if c == "/":
-            yield ("op", "|"); i += 1; continue
+            yield ("op", "|")      # a lineTo, byte-identical to '|'
+            i += 1
+            continue
         if c == "S":
-            i += 2; continue
+            if i + 1 >= n or not s[i + 1].isdigit():
+                raise ValueError("S without a style digit")
+            i += 2
+            continue
         m = re.match(NUM, s[i:])
         if not m:
             raise ValueError(f"cannot lex at {i}: {s[i:i+20]!r}")
@@ -72,25 +90,33 @@ def decode(s):
     i = 0
     while i < len(toks):
         kind, v = toks[i]
+        if kind != "op":
+            # A number where an opcode belongs. The C++ decoder rejects this too.
+            raise ValueError(f"number where an opcode belongs, at token {i}")
         arity = 4 if v == "[" else 2
         for k in range(arity):
             if i + 1 + k >= len(toks) or toks[i + 1 + k][0] != "n":
-                raise ValueError("truncated")
+                raise ValueError("truncated coordinate list")
         nums = [toks[i + 1 + k][1] for k in range(arity)]
         if v == "!":
             dest = (nums[0] / 20.0, nums[1] / 20.0)
             restates = (at is not None and cur and
-                        abs(at[0] - dest[0]) < EPSILON and abs(at[1] - dest[1]) < EPSILON)
+                        abs(at[0] - dest[0]) < EPSILON
+                        and abs(at[1] - dest[1]) < EPSILON)
             if cur and not restates:
-                contours.append(cur); cur = []
+                contours.append(cur)
+                cur = []
             at = dest
+            # A restatement adds no geometry, so it must add no point either.
             if not restates:
                 cur.append(dest)
         elif v == "|":
-            at = (nums[0] / 20.0, nums[1] / 20.0); cur.append(at)
+            at = (nums[0] / 20.0, nums[1] / 20.0)
+            cur.append(at)
         else:
             cur.append((nums[0] / 20.0, nums[1] / 20.0))
-            at = (nums[2] / 20.0, nums[3] / 20.0); cur.append(at)
+            at = (nums[2] / 20.0, nums[3] / 20.0)
+            cur.append(at)
         i += 1 + arity
     if cur:
         contours.append(cur)

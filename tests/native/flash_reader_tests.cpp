@@ -6,7 +6,9 @@
 // relinking.
 //
 // usage: flash_reader_tests <fixtureDir>
-#include <windows.h>
+// No <windows.h>: nothing here needs it, and including it before the Flare
+// headers defines min/max as macros, which collides with the std::min and
+// std::max in tcommon.h under /permissive-.
 
 #include "As3Bridge.h"
 #include "SWFAssets.h"
