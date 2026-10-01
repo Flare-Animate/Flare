@@ -23,6 +23,21 @@
 #include <QStringList>
 #include <QVector>
 
+// Same export dance as every other header in this directory: the bodies live in
+// tnzcore, which is built with TFLASH_EXPORTS, and callers in the Flare
+// executable need the import side. Without this the free functions below are not
+// exported from the DLL at all, and MSVC fails the link -- which stayed hidden
+// for as long as nothing in the shipped binary called them.
+#undef DVAPI
+#undef DVVAR
+#ifdef TFLASH_EXPORTS
+#define DVAPI DV_EXPORT_API
+#define DVVAR DV_EXPORT_VAR
+#else
+#define DVAPI DV_IMPORT_API
+#define DVVAR DV_IMPORT_VAR
+#endif
+
 namespace As3Bridge {
 
 // One class recovered from an ABC block.
@@ -44,31 +59,31 @@ struct Result {
 
 // Is the helper usable? Probed once and cached; safe to call from the UI thread
 // after the first call. Never blocks for longer than a short process launch.
-bool isAvailable();
+DVAPI bool isAvailable();
 
 // Version string reported by the helper, empty when unavailable.
-QString version();
+DVAPI QString version();
 
 // Why the helper is unavailable, for a message a user can act on: a missing
 // helper script, a missing Python interpreter, or an import failure. Empty
 // when the helper is available.
-QString unavailableReason();
+DVAPI QString unavailableReason();
 
 // Decompile every AS3 class in `swf` to ActionScript under `outDir`.
 // Returns ok=false with `error` set when the helper is unavailable, so callers
 // can distinguish "no AS3 support installed" from "this file has no AS3".
-Result decompile(const TFilePath &swf, const TFilePath &outDir);
+DVAPI Result decompile(const TFilePath &swf, const TFilePath &outDir);
 
 // Rewrite AS3 constant strings in `swf` using `patchJson`
 // ({"strings": {"old": "new", ...}}) and write the result to `outSwf`.
 // Every other tag is re-emitted byte-identical, so this is safe to run on a
 // published movie.
-Result patchStrings(const TFilePath &swf, const TFilePath &patchJson,
-                    const TFilePath &outSwf);
+DVAPI Result patchStrings(const TFilePath &swf, const TFilePath &patchJson,
+                          const TFilePath &outSwf);
 
 // Recompile ActionScript back into an SWF. Needs the Flex SDK toolchain, which
 // is not part of the vendored slice, so this reports itself unsupported.
-Result compile(const TFilePath &sourceDir, const TFilePath &outSwf);
+DVAPI Result compile(const TFilePath &sourceDir, const TFilePath &outSwf);
 
 }  // namespace As3Bridge
 
