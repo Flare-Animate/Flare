@@ -244,6 +244,47 @@ static void test_malformed() {
         check(!err.isEmpty(), "the rejection carries a reason");
     }
 
+    // Operand/opcode confusion in both directions. These are the only inputs
+    // that reach the "expected a coordinate / expected an opcode" branches, so
+    // without them the diagnostic those branches exist for has no coverage.
+    struct BadCase {
+        const char *input;
+        const char *expectInError;   // nullptr: any reason will do
+    };
+    const BadCase confused[] = {
+        // A number where an opcode belongs: "!0 0 5 5 5".
+        {"!0 0 5 5 5", "expected an opcode"},
+        // An opcode where a number belongs: "!0 0|200 !300 0".
+        {"!0 0|200 !300 0", "expected a coordinate"},
+        // An opcode between a coordinate pair: "!0 0|200 |0". (A trailing "|"
+        // instead would be caught earlier, as a truncated list, which is also a
+        // correct rejection but a different message.)
+        {"!0 0|200 |0", "expected a coordinate"},
+        // A number immediately after a style marker.
+        {"!0 0S3 400 400", "expected an opcode"},
+    };
+    for (const BadCase &c : confused) {
+        XFL::Shape s2;
+        QString err;
+        const bool ok2 = XFL::decodeEdges(QString::fromLatin1(c.input), false,
+                                          s2, err);
+        check(!ok2, QString("rejects \"%1\"").arg(QString::fromLatin1(c.input))
+                        .toLatin1().constData());
+        check(err.contains(QLatin1String(c.expectInError)),
+              QString("and says why: \"%1\"")
+                  .arg(QString::fromLatin1(c.expectInError))
+                  .toLatin1()
+                  .constData(),
+              err);
+        // The message has to name what it found, not just where.
+        check(err.contains(QLatin1String("a moveTo")) ||
+                  err.contains(QLatin1String("a lineTo")) ||
+                  err.contains(QLatin1String("a quadratic")) ||
+                  err.contains(QLatin1String("a style marker")) ||
+                  err.contains(QLatin1String("the number")),
+              "the diagnostic names what it found", err);
+    }
+
     // An empty string is not an error: <Edge> elements with only a `cubics`
     // attribute and no geometry exist in real documents.
     XFL::Shape s;
@@ -404,6 +445,52 @@ static void test_svg() {
     check(XFL::decodeEdges("!0 0|200 0", false, o, err), "the open shape decodes");
     check(!XFL::toSvgPath(o).endsWith("Z"),
           "an unclosed contour gets no Z");
+
+    // The restatement tolerance, pinned to the Python reference's.
+    //
+    // A restatement within the epsilon is a restatement; one outside it is a
+    // subpath break. The epsilon has to be absolute, and it has to match the one
+    // in tests/native/differential_shape.py exactly -- qFuzzyCompare is relative
+    // and so scale-dependent, and the two answers have to agree or the
+    // differential check is comparing different rules. These two cases are what
+    // would catch the two implementations drifting apart again; on real
+    // geometry, where Flash restates bit-identically, they never fire.
+    {
+        // 200.01 twips is 10.0005 px against a current point of 10, so the gap
+        // is 5e-4 px: under the 1e-3 epsilon, so still one contour. (An earlier
+        // version of this used 200.0005, which is 2.5e-5 px -- twenty times
+        // tighter than the comment claimed, so it did not pin the epsilon from
+        // below the way it said it did.)
+        XFL::Shape near;
+        check(XFL::decodeEdges("!0 0|200 0|200 200 !200.01 200|200 200", false,
+                               near, err),
+              "a near-threshold restatement decodes", err);
+        check(near.contours.size() == 1,
+              "a moveTo 5e-4 px away is still a restatement, not a break",
+              QString::number(near.contours.size()));
+
+        // 0.025 px apart: over the epsilon, so a genuine subpath break.
+        // (200.5 twips is 10.025 px against a current point of 10.0.)
+        XFL::Shape far;
+        check(XFL::decodeEdges("!0 0|200 0|200 200 !200.5 200|200 200", false,
+                               far, err),
+              "a far moveTo decodes", err);
+        check(far.contours.size() == 2,
+              "a moveTo 0.025 px away is a real subpath break",
+              QString::number(far.contours.size()));
+
+        // A contour that returns to within the epsilon counts as closed. The
+        // opening point is hex and the closing one decimal, so they are not
+        // bit-identical: they differ by one coordinate quantum, 1/256 twip
+        // = 1.95e-4 px. A tolerance finer than that would call this open and
+        // drop the Z.
+        XFL::Shape quant;
+        check(XFL::decodeEdges("!#0.01 0|200 0|200 200|0 0", false, quant, err),
+              "a hex-opened contour decodes", err);
+        if (!quant.contours.isEmpty())
+            check(quant.contours.first().closed,
+                  "a contour returning to one quantum away is still closed");
+    }
 
     // A contour that mixes lines and quadratics. A straight segment adds one
     // point and a quadratic adds two, so the point stream is irregular; a
