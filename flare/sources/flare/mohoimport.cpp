@@ -21,11 +21,7 @@
 #include "MohoReader.h"
 #include "tsystem.h"
 
-#include <QDir>
-#include <QFileInfo>
 #include <QMessageBox>
-#include <QPushButton>
-#include <QVBoxLayout>
 
 namespace {
 
@@ -53,11 +49,14 @@ QString describe(const Moho::Document &doc) {
     if (!doc.switches.isEmpty()) {
         s += QObject::tr("\n  Switch layers: %1").arg(doc.switches.size());
         for (const Moho::Switch &sw : doc.switches) {
-            s += QObject::tr("\n      %1 (%2 alternative(s), active: %3)")
+            s += QObject::tr("\n      %1 (%2 alternative(s)")
                      .arg(sw.name)
-                     .arg(sw.alternatives.size())
-                     .arg(sw.activeChild.isEmpty() ? QObject::tr("unset")
-                                                   : sw.activeChild);
+                     .arg(sw.alternatives.size());
+            if (!sw.childAtRest.isEmpty()) {
+                s += QObject::tr(", at rest: %1").arg(sw.childAtRest);
+                if (!sw.childAtEnd.isEmpty() && sw.childAtEnd != sw.childAtRest)
+                    s += QObject::tr(", ending on: %1").arg(sw.childAtEnd);
+            }
         }
     }
     s += QObject::tr("\n  Animation: %1 keyframe(s) across %2 channel(s)")
@@ -136,17 +135,25 @@ void ImportMohoProjectCommand::execute() {
         fp.getName() + "_flare_import");
     const int written = Moho::writeManifest(fp, doc, outDir);
 
+    // One dialog, not two. The previous version showed the output directory in
+    // the message box and then popped a second modal saying the same thing --
+    // and that second one fired unconditionally, so a failed write still
+    // reported "Moho structure written to".
     QMessageBox *box = new QMessageBox(QMessageBox::Information,
                                        QObject::tr("Moho Project"), describe(doc));
-    if (written > 0)
+    if (written > 0) {
         box->setInformativeText(
             QObject::tr("Wrote %1 file(s) to:\n%2")
                 .arg(written)
                 .arg(toQString(outDir)));
+    } else {
+        box->setInformativeText(
+            QObject::tr("Could not write the manifest to:\n%1\n\n"
+                        "The project was read successfully; only the export "
+                        "failed.")
+                .arg(toQString(outDir)));
+    }
     box->setTextInteractionFlags(Qt::TextSelectableByMouse);
     box->exec();
     box->deleteLater();
-
-    DVGui::info(QObject::tr("Moho structure written to:\n%1")
-                    .arg(toQString(outDir)));
 }

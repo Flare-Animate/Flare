@@ -12,6 +12,7 @@
 #include "tsystem.h"
 
 #include <QCoreApplication>
+#include <QString>
 #include <QDir>
 #include <QFile>
 #include <QJsonArray>
@@ -64,12 +65,22 @@ int main(int argc, char **argv) {
     }
     const QString dir = QString::fromLocal8Bit(argv[1]);
 
-    HMODULE core = LoadLibraryA(
-        "C:\\Users\\charl\\Documents\\Flare\\build_local\\RelWithDebInfo\\"
-        "tnzcore.dll");
+    // Where the built tnzcore lives. Overridable, because a hardcoded absolute
+    // path made this suite unrunnable on any other machine or build directory,
+    // and the failure gave the operator no hint about what to set.
+    QString tnzcore = QString::fromLocal8Bit(qgetenv("FLARE_TNZCORE"));
+    if (tnzcore.isEmpty()) {
+        tnzcore = QStringLiteral(
+            "C:/Users/charl/Documents/Flare/build_local/RelWithDebInfo/tnzcore.dll");
+    }
+    HMODULE core = LoadLibraryA(tnzcore.toLocal8Bit().constData());
     if (!core) {
-        fprintf(stderr, "   could not load tnzcore.dll (err %lu)\n",
-                (unsigned long)GetLastError());
+        fprintf(stderr,
+                "   could not load tnzcore.dll from\n     %s\n"
+                "   (err %lu)\n"
+                "   Set FLARE_TNZCORE to the built library, or run via "
+                "run_tests.py which sets it.\n",
+                qPrintable(tnzcore), (unsigned long)GetLastError());
         return 1;
     }
     g_detect = (FnDetect)GetProcAddress(
@@ -159,14 +170,23 @@ int main(int argc, char **argv) {
         if (!d.switches.isEmpty()) {
             const Moho::Switch &s = d.switches.first();
             check(s.name == "Mouth", "switch named", s.name);
-            check(s.alternatives.size() == 2, "two alternatives",
+            check(s.alternatives.size() == 3, "three alternatives",
                   QString::number(s.alternatives.size()));
             check(s.alternatives.contains("MouthA") &&
-                      s.alternatives.contains("MouthB"),
+                      s.alternatives.contains("MouthB") &&
+                      s.alternatives.contains("MouthC"),
                   "alternatives are the child layer names");
-            // The channel holds names, not indices.
-            check(s.activeChild == "MouthA",
-                  "active child resolved from the key value", s.activeChild);
+            // The channel holds names, not indices. Frame 0 is the rest pose,
+            // so the first key is the rest state; the fixture's keys return to
+            // MouthA, so rest and end agree -- and reporting both is the point.
+            check(s.childAtRest == "MouthA",
+                  "the child at rest is the first key", s.childAtRest);
+            check(s.childAtEnd == "MouthC",
+                  "the child at the end is the last key", s.childAtEnd);
+            // The point of the fixture: these differ, so neither can be
+            // substituted for the other by accident.
+            check(s.childAtRest != s.childAtEnd,
+                  "rest and end differ, so the two cannot be confused");
         }
     }
 
@@ -290,6 +310,7 @@ int main(int argc, char **argv) {
     {
         const QString outDir =
             QDir(QDir::tempPath()).filePath("flare_moho_manifest_test");
+        QDir(outDir).removeRecursively();
         QDir().mkpath(outDir);
         const Moho::Document d = load(dir, "nested_and_dangling_bone.moho");
         const int written = g_manifest(
@@ -339,6 +360,40 @@ int main(int argc, char **argv) {
               "manifest explains the image-availability caveat");
     }
 
+    // ---- the extraction temp directory must not survive -------------------
+    // Reading a .moho unpacks it, and the unpack used to be left behind: every
+    // import of a ZIP project permanently added a full copy of it (plus
+    // preview.jpg) to the temp directory, under a name that changed every run.
+    {
+        const QString tempRoot = QDir::tempPath();
+        auto countMohoTemps = [&] {
+            int n = 0;
+            QDir d(tempRoot);
+            for (const QString &n2 : d.entryList(
+                     QStringList() << QStringLiteral("moho_*"),
+                     QDir::Dirs | QDir::NoDotAndDotDot))
+                ++n;
+            return n;
+        };
+
+        const QString good = QDir(dir).filePath("minimal_rig.moho");
+        const int before = countMohoTemps();
+        Moho::Document d1;
+        g_read(TFilePath(good.toStdString()), d1);
+        check(d1.valid, "the good project still parses");
+        check(countMohoTemps() == before,
+              "the extraction directory is removed after a successful read",
+              QString("%1 -> %2").arg(before).arg(countMohoTemps()));
+
+        // And on a rejection, which is the path most likely to have been missed.
+        Moho::Document d2;
+        g_read(TFilePath(QDir(dir).filePath("plain.zip").toStdString()), d2);
+        check(!d2.valid, "the non-Moho archive is still rejected");
+        check(countMohoTemps() == before,
+              "the extraction directory is removed after a rejection too",
+              QString("%1 -> %2").arg(before).arg(countMohoTemps()));
+    }
+
     // ---- an invalid document must not produce a manifest ------------------
     {
         Moho::Document bad;
@@ -348,7 +403,14 @@ int main(int argc, char **argv) {
               QString::number(n));
     }
 
+    // Leave no scratch behind: the suite creates and removes its own.
+    // Leave no scratch behind: the suite creates and removes its own. Qt5's
+    // QDir::removeRecursively takes no argument, so point a QDir at the target.
+    QDir scratch(QDir(QDir::tempPath())
+                     .filePath(QStringLiteral("flare_moho_manifest_test")));
+    scratch.removeRecursively();
     fprintf(stderr, "\n%s: %d checks, %d failure(s)\n",
             gFail ? "FAILED" : "PASSED", gChecks, gFail);
+    if (core) FreeLibrary(core);
     return gFail ? 1 : 0;
 }

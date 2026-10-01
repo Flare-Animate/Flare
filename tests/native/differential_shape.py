@@ -19,6 +19,12 @@ NS = "{http://ns.adobe.com/xfl/2008/}"
 NUM = r"(-?(?:\d+\.?\d*)|#(?:[0-9A-Fa-f]{1,6}\.[0-9A-Fa-f]{0,2}))"
 
 
+# Note: no `assert` anywhere below. Python strips asserts under `python -O`, and
+# these are structural guards the differential comparison depends on -- with them
+# gone, a malformed edge is silently skipped on one side and the run still
+# reports agreement.
+
+
 def decode_number(tok):
     if not tok.startswith("#"):
         return float(tok)
@@ -46,12 +52,13 @@ def tokenize(s):
         if c == "/":
             yield ("op", "|"); i += 1; continue   # a lineTo, like '|'
         if c == "S":
-            i += 1
-            assert i < n and s[i].isdigit(), "S without a digit"
-            i += 1
+            if i + 1 >= n or not s[i + 1].isdigit():
+                raise ValueError("S without a style digit")
+            i += 2
             continue
         m = re.match(NUM, s[i:])
-        assert m, f"cannot lex at {i}: {s[i:i+20]!r}"
+        if not m:
+            raise ValueError(f"cannot lex at {i}: {s[i:i+20]!r}")
         yield ("n", decode_number(m.group(1)))
         i += m.end()
 
@@ -63,10 +70,17 @@ def decode(s):
     i = 0
     while i < len(toks):
         kind, v = toks[i]
-        assert kind == "op", "number without an opcode"
+        if kind != "op":
+            # A number where an opcode belongs. The C++ decoder rejects this too;
+            # letting it through here would make one side fail and the other
+            # succeed on the same input, which is the whole thing this file
+            # exists to detect.
+            raise ValueError(f"number where an opcode belongs, at token {i}")
         arity = 4 if v == "[" else 2
+        for k in range(arity):
+            if i + 1 + k >= len(toks) or toks[i + 1 + k][0] != "n":
+                raise ValueError("truncated coordinate list")
         nums = [toks[i + 1 + k][1] for k in range(arity)]
-        assert all(toks[i + 1 + k][0] == "n" for k in range(arity)), "short"
         if v == "!":
             dest = (nums[0] / 20.0, nums[1] / 20.0)
             restates = (at is not None and cur and
@@ -89,7 +103,7 @@ def decode(s):
 
 
 def python_census(root):
-    edges = parsed = contours = closed = 0
+    edges = parsed = failed = contours = closed = 0
     xs, ys = [], []
     for path in glob.glob(os.path.join(root, "**", "*.xml"), recursive=True):
         try:
@@ -103,7 +117,8 @@ def python_census(root):
             edges += 1
             try:
                 cs = decode(d)
-            except AssertionError:
+            except ValueError:
+                failed += 1
                 continue
             parsed += 1
             for c in cs:
@@ -114,7 +129,11 @@ def python_census(root):
                     closed += 1
                 for x, y in c:
                     xs.append(x); ys.append(y)
-    return dict(edges=edges, parsed=parsed, failed=edges - parsed,
+    # `failed` counted in the loop, so both sides measure the same thing. It was
+    # derived as edges - parsed here, which agrees only because every edge is
+    # either parsed or failed -- a distinction that stops holding as soon as one
+    # side skips an edge for a different reason.
+    return dict(edges=edges, parsed=parsed, failed=failed,
                 contours=contours, closed=closed,
                 minx=min(xs) if xs else 0, maxx=max(xs) if xs else 0,
                 miny=min(ys) if ys else 0, maxy=max(ys) if ys else 0)

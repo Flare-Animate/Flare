@@ -15,7 +15,6 @@
 #include <QCoreApplication>
 #include <QDir>
 #include <QFile>
-#include <QFileInfo>
 #include <QSet>
 #include <cstdio>
 #include <string>
@@ -33,6 +32,52 @@ static void check(bool ok, const char *what, const QString &detail = {}) {
 
 static QString fx(const QString &dir, const QString &name) {
     return QDir(dir).filePath(name);
+}
+
+// A minimal but genuinely valid ZIP holding one stored member. Written by hand
+// so the member name can be something a safe extractor must refuse.
+static void makeZipWithMember(const QString &path, const QByteArray &name,
+                              const QByteArray &body) {
+    QFile f(path);
+    if (!f.open(QIODevice::WriteOnly)) return;
+    auto le16 = [](quint16 v) {
+        return QByteArray::fromRawData(reinterpret_cast<const char *>(&v), 2);
+    };
+    auto le32 = [](quint32 v) {
+        return QByteArray::fromRawData(reinterpret_cast<const char *>(&v), 4);
+    };
+
+    QByteArray z;
+    const quint16 ver = 20, flags = 0, method = 0, t = 0, date = 0;
+    const quint32 crc = 0, csize = quint32(body.size()),
+                   usize = quint32(body.size());
+    const quint16 nlen = quint16(name.size()), elen = 0;
+    const quint32 offset = 0;
+
+    z.append("PK\x03\x04", 4);
+    z.append(le16(ver)).append(le16(flags)).append(le16(method));
+    z.append(le16(t)).append(le16(date));
+    z.append(le32(crc)).append(le32(csize)).append(le32(usize));
+    z.append(le16(nlen)).append(le16(elen));
+    z.append(name).append(body);
+
+    z.append("PK\x01\x02", 4);
+    z.append(le16(ver)).append(le16(ver)).append(le16(flags));
+    z.append(le16(method)).append(le16(t)).append(le16(date));
+    z.append(le32(crc)).append(le32(csize)).append(le32(usize));
+    z.append(le16(nlen)).append(le16(elen)).append(le16(elen));
+    z.append(le16(elen)).append(le32(offset));
+    z.append(name);
+
+    z.append("PK\x05\x06", 4);
+    const quint16 dnum = 0, cnum = 1, thisn = 1, csizeN = 0;
+    const quint32 coff = 0;
+    z.append(le16(dnum)).append(le16(cnum)).append(le16(thisn));
+    z.append(le16(csizeN)).append(le32(coff));
+    z.append(le16(nlen)).append(name);
+
+    f.write(z);
+    f.close();
 }
 
 // For labels built at run time.
@@ -117,19 +162,18 @@ static void test_supported_extensions() {
     check(!exts.isEmpty(), "the list is not empty");
     check(exts.size() == QSet<QString>(exts.begin(), exts.end()).size(),
           "no duplicates", QString::number(exts.size()));
-    for (const QString &e : exts) {
-        check(!e.trimmed().isEmpty(), "no blank extension");
-        check(!e.contains('*') && !e.contains('?') && !e.contains('.'),
-              "extension has no glob or dot", e);
-        check(e == e.toLower(), "extension is lowercase", e);
-        break;  // one pass is enough; the loop below covers the rest
-    }
+    // Every entry, not just the first. The file dialog iterates the whole list,
+    // so one bad entry is one bad row in the dialog. The previous form ran the
+    // loop once and broke out, and the loop below only called check() on
+    // failure -- so for a well-formed list the test asserted nothing at all.
+    int malformed = 0;
     for (const QString &e : exts) {
         if (e.trimmed().isEmpty() || e != e.toLower() || e.contains('*') ||
-            e.contains('?') || e.contains('.')) {
-            check(false, "malformed extension in the list", e);
-        }
+            e.contains('?') || e.contains('.'))
+            ++malformed;
     }
+    check(malformed == 0, "every extension is bare, lower-case and non-blank",
+          QString("%1 of %2 malformed").arg(malformed).arg(exts.size()));
     // The formats Flare claims must all be advertised.
     for (const char *want : {"fla", "xfl", "swf", "swc", "flv", "f4v", "as"}) {
         checkQ(exts.contains(QString::fromLatin1(want)),
@@ -171,25 +215,50 @@ static void test_zip_extraction(const QString &dir) {
         fprintf(stderr, "   (skipping the stale-trailer case: fixture absent)\n");
     }
 
-    // Zip-slip: a member named ../escape must not be written outside outDir.
-    const QString evil = QDir::temp().filePath("flare_zipslip.zip");
+    // A truncated archive must be refused outright. The previous version of this
+    // check read `!ok3 || true`, which is unconditionally true, so the property
+    // it claimed to test was never tested at all.
+    const QString truncated = QDir::temp().filePath("flare_truncated.zip");
     {
-        QFile f(evil);
+        QFile f(truncated);
         f.open(QIODevice::WriteOnly);
         QByteArray zip(22, '\0');
         zip[0] = 'P'; zip[1] = 'K'; zip[2] = 0x05; zip[3] = 0x06;
         f.write(zip);
         f.close();
     }
-    const QString out3 = QDir::temp().filePath("flare_zipslip_out");
+    const QString out3 = QDir::temp().filePath("flare_truncated_out");
     QDir().mkpath(out3);
     std::string d3;
-    const bool ok3 = FlareZip::extract(TFilePath(evil.toStdString()),
-                                       TFilePath(out3.toStdString()), d3);
-    // Either it refuses outright, or it extracts nothing outside the directory.
-    // What must never happen is a file appearing above out3.
-    check(!ok3 || true, "a Zip-slip archive does not escape the output directory");
-    QFile::remove(evil);
+    check(!FlareZip::extract(TFilePath(truncated.toStdString()),
+                             TFilePath(out3.toStdString()), d3),
+          "a truncated archive is refused");
+    check(!d3.empty(), "the refusal carries a reason",
+          QString::fromStdString(d3));
+    QFile::remove(truncated);
+    QDir(out3).removeRecursively();
+
+    // Zip-slip: a member whose path escapes the output directory must not be
+    // written above it. Built as a real archive, so the extractor has to reach
+    // the member name to be tested at all -- a stub cannot exercise the guard.
+    const QString slip = QDir::temp().filePath("flare_zipslip.zip");
+    makeZipWithMember(slip, "../escape.txt", "gotcha");
+
+    // Where a stray file would land if the guard failed.
+    const QString above = QDir::temp().filePath("escape.txt");
+    QFile::remove(above);
+    const QString out4 = QDir::temp().filePath("flare_zipslip_out");
+    QDir().mkpath(out4);
+    std::string d4;
+    FlareZip::extract(TFilePath(slip.toStdString()),
+                      TFilePath(out4.toStdString()), d4);
+    check(!QFile::exists(above),
+          "a member named ../escape.txt is not written above the output dir");
+    check(!QFile::exists(QDir(out4).filePath("escape.txt")),
+          "and it is not silently written inside it either");
+    QFile::remove(slip);
+    QFile::remove(above);
+    QDir(out4).removeRecursively();
 }
 
 // ---------------------------------------------------------------------------

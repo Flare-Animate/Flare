@@ -7,8 +7,6 @@
 
 #include <QXmlStreamReader>
 
-#include <cmath>
-
 namespace XFL {
 
 namespace {
@@ -20,20 +18,42 @@ constexpr double kTwipsPerPixel = 20.0;
 // malformed or hostile, and allocating for it would be worse than rejecting it.
 constexpr int kMaxSegments = 1 << 22;
 
+// How far a moveTo may land from the current point and still count as a
+// restatement rather than a subpath break. Flash restates the current point
+// bit-identically, so this only has to absorb rounding; it is absolute so that
+// the answer does not depend on the coordinate's magnitude.
+constexpr double kPointEpsilon = 1e-6;
+
 // --- tokenizer -------------------------------------------------------------
 //
 // Hand-written rather than regex-based, for two reasons that both bite on real
 // data: an 'S' opcode is immediately followed by a digit that must not be
 // lexed as a number, and attribute values contain raw newlines.
 
-enum class Op { Move, Line, Quad, Style };
+enum class Op { Move, Line, Quad, Style, Number };
 
 struct Token {
     Op op = Op::Move;
-    double a = 0, b = 0;   // Move/Line: destination. Quad: control point.
-    double c = 0, d = 0;   // Quad: endpoint.
-    int style = 0;         // Style: bitmask.
+    // A coordinate, for Op::Number. Kept in its own member rather than reusing
+    // the unused a/b/c/d: a number used to be tagged Op::Line, the same enum
+    // value as a '|' opcode, so a number in an opcode position was silently
+    // read as an opcode with coordinate 0 instead of being rejected.
+    double value = 0.0;
 };
+
+// For an error message: what a token turned out to be. Saying "found a lineTo"
+// is actionable; saying "found 0" is not.
+QString describeToken(const Token &t) {
+    switch (t.op) {
+        case Op::Move:  return QObject::tr("a moveTo");
+        case Op::Line:  return QObject::tr("a lineTo");
+        case Op::Quad:  return QObject::tr("a quadratic");
+        case Op::Style: return QObject::tr("a style marker");
+        case Op::Number: return QObject::tr("the number %1")
+                               .arg(t.value, 0, 'g', 12);
+    }
+    return QObject::tr("an unknown token");
+}
 
 inline bool isDigit(char c) { return c >= '0' && c <= '9'; }
 inline bool isHex(char c) {
@@ -66,25 +86,27 @@ bool tokenize(const QString &s, QVector<Token> &out, QString &error) {
             case '/':
             case '[':
             case ']':
-                out.append(Token{(ch == '!'   ? Op::Move
-                                  : ch == '[' || ch == ']' ? Op::Quad
-                                                           : Op::Line),
-                                 0, 0, 0, 0, 0});
+                // '/' and ']' are aliases: '/' is a lineTo and ']' is a
+                // quadratic, byte-for-byte identical to '|' and '['.
+                out.append(Token{(ch == '!'                    ? Op::Move
+                                  : (ch == '[' || ch == ']')  ? Op::Quad
+                                                             : Op::Line),
+                                 0.0});
                 ++i;
                 break;
             case 'S': {
-                // S is immediately followed by a single digit 1..7. It is a
-                // restatement of the <Edge> style attributes, not a geometry
+                // S is immediately followed by a single style digit 1..7. It is
+                // a restatement of the <Edge> style attributes, not a geometry
                 // change, so the value is read and discarded.
+                const int sPos = i;
                 ++i;
                 if (i >= n || !isDigit(s.at(i).toLatin1())) {
                     error = QObject::tr(
                         "S opcode is not followed by a style digit at offset %1")
-                                .arg(i);
+                                .arg(sPos);
                     return false;
                 }
-                out.append(Token{Op::Style, 0, 0, 0, 0,
-                                 s.at(i).toLatin1() - '0'});
+                out.append(Token{Op::Style, double(s.at(i).toLatin1() - '0')});
                 ++i;
                 break;
             }
@@ -127,9 +149,7 @@ bool tokenize(const QString &s, QVector<Token> &out, QString &error) {
                         error = QObject::tr("cannot decode number \"%1\"").arg(tok);
                         return false;
                     }
-                    // Pairs are filled in by the caller; stash the raw value in
-                    // `a` and let the arity pass below consume the right count.
-                    out.append(Token{Op::Line, v, 0, 0, 0, 0});
+                    out.append(Token{Op::Number, v});
                     break;
                 }
                 error = QObject::tr("unexpected character '%1' at offset %2")
@@ -251,12 +271,28 @@ bool decodeEdges(const QString &edges, bool stroked, Shape &out, QString &error)
             error = QObject::tr("truncated coordinate list");
             return false;
         }
+        // The consumed tokens must be numbers. Without this, a number sitting
+        // where an opcode belongs would be read as an opcode with a zero
+        // coordinate, and an opcode sitting where a number belongs would be read
+        // as the number 0 -- either way producing a plausible-looking contour
+        // instead of an error.
+        for (int k = 1; k <= arity; ++k) {
+            if (toks.at(ti + k).op != Op::Number) {
+                error = QObject::tr(
+                            "expected a coordinate at offset %1 but found %2")
+                            .arg(ti + k)
+                            .arg(describeToken(toks.at(ti + k)));
+                return false;
+            }
+        }
+        // '/' and ']' were normalised to '|' and '[' by the tokenizer, so the
+        // character is a label for the segment kind, not a distinct opcode.
         const char op = (t.op == Op::Move)  ? '!'
                         : (t.op == Op::Quad) ? '['
                                              : '|';
         raw.append(Raw{op, 0});
         for (int k = 1; k <= arity; ++k)
-            raw.append(Raw{'n', toks.at(ti + k).a / kTwipsPerPixel});
+            raw.append(Raw{'n', toks.at(ti + k).value / kTwipsPerPixel});
         ti += arity + 1;
     }
 
@@ -279,7 +315,8 @@ bool decodeEdges(const QString &edges, bool stroked, Shape &out, QString &error)
             // synthesising a close.
             const QPointF f = cur.points.first();
             const QPointF l = cur.points.last();
-            cur.closed = qAbs(f.x() - l.x()) < 0.01 && qAbs(f.y() - l.y()) < 0.01;
+            cur.closed = qAbs(f.x() - l.x()) < kPointEpsilon &&
+                         qAbs(f.y() - l.y()) < kPointEpsilon;
             out.contours.append(cur);
             if (stroked) ++out.strokedContours;
         }
@@ -304,9 +341,14 @@ bool decodeEdges(const QString &edges, bool stroked, Shape &out, QString &error)
             // quadratic. Those are not subpath breaks: treating them as breaks
             // splits each outline into disconnected fragments, and the fill
             // comes out wrong. A moveTo that goes nowhere is a restatement.
+            // An absolute tolerance, not qFuzzyCompare: that is a relative
+            // comparison whose tolerance scales with the magnitude, so it is
+            // neither the test the format describes nor the one the Python
+            // reference in tests/native/differential_shape.py implements. The
+            // two must agree or the differential check compares different rules.
             const bool restates =
-                !cur.points.isEmpty() && qFuzzyCompare(at.x(), dest.x()) &&
-                qFuzzyCompare(at.y(), dest.y());
+                !cur.points.isEmpty() && qAbs(at.x() - dest.x()) < kPointEpsilon &&
+                qAbs(at.y() - dest.y()) < kPointEpsilon;
             if (!restates) flush();
             at = dest;
             // A restatement adds no geometry, so it must not add a point
@@ -317,15 +359,16 @@ bool decodeEdges(const QString &edges, bool stroked, Shape &out, QString &error)
             if (!restates) cur.points.append(at);
             ++out.moveSegments;
             i += 3;
-        } else if (op == '|' || op == '/') {
+        } else if (op == '|') {
             if (i + 2 >= raw.size() || raw.at(i + 1).op != 'n' ||
                 raw.at(i + 2).op != 'n') {
                 error = QObject::tr("lineTo without two coordinates");
                 return false;
             }
-            // '/' is a lineTo, identical to '|'. There is no close-path opcode
-            // in this format: treating '/' as one is a common and wrong reading
-            // that yields a differently-shaped path.
+            // A line. The tokenizer has already mapped '/' here, because '/'
+            // is a lineTo and this format has no close-path opcode: treating it
+            // as one is a common and wrong reading that yields a
+            // differently-shaped path.
             at = QPointF(raw.at(i + 1).v, raw.at(i + 2).v);
             if (cur.points.isEmpty()) {
                 // A line before any move: start a contour here rather than
@@ -370,7 +413,6 @@ bool decodeShapeXml(const QString &xml, Shape &out, QString &error) {
     // rejects that, so wrap the fragment in a synthetic root -- the decoder only
     // looks for <Edge> descendants, so the wrapper is invisible to it.
     QXmlStreamReader xr(QStringLiteral("<shape>") + xml + QStringLiteral("</shape>"));
-    bool any = false;
     while (!xr.atEnd()) {
         xr.readNext();
         if (!xr.isStartElement()) continue;
@@ -401,14 +443,12 @@ bool decodeShapeXml(const QString &xml, Shape &out, QString &error) {
         out.quadSegments += part.quadSegments;
         out.lineSegments += part.lineSegments;
         out.moveSegments += part.moveSegments;
-        any = true;
     }
     if (xr.hasError()) {
         error = xr.errorString();
         out = Shape();
         return false;
     }
-    Q_UNUSED(any);
     return true;
 }
 

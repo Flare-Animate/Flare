@@ -93,10 +93,14 @@ minimal = doc([{
 # ---------------------------------------------------------------------------
 switch = doc([{
     "type": "SwitchLayer", "name": "Mouth", "uuid": "sw-1", "visible": True,
-    "switch_keys": channel(["MouthA", "MouthB", "MouthA"], ctype="String"),
+    # The rest state and the end state differ, so a reader that reports only one
+    # of them -- or reports the wrong one -- is caught. A fixture that returns to
+    # its starting value cannot tell the two apart.
+    "switch_keys": channel(["MouthA", "MouthB", "MouthC"], ctype="String"),
     "layers": [
         {"type": "MeshLayer", "name": "MouthA", "uuid": "m-a", "visible": True},
         {"type": "MeshLayer", "name": "MouthB", "uuid": "m-b", "visible": True},
+        {"type": "MeshLayer", "name": "MouthC", "uuid": "m-c", "visible": True},
     ],
 }])
 

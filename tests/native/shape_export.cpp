@@ -16,6 +16,32 @@
 #include <QRegularExpression>
 #include <cstdio>
 
+// True when the fragment contains an <Edge ...> whose `edges` attribute is
+// non-empty.
+//
+// This has to be the *same* rule the verifier uses to decide which shapes to
+// compare. It was a raw substring search for "edges=", which also matches a
+// <fills> block or a comment; the verifier parsed the XML and looked for a real
+// <Edge> element. When the two sides numbered shapes differently, every shape
+// after the first disagreement in a document was verified against the wrong
+// geometry -- and the run still reported success.
+static bool hasGeometry(const QString &inner) {
+    static const QRegularExpression edge(
+        QStringLiteral("<Edge\\b[^>]*>"),
+        QRegularExpression::DotMatchesEverythingOption);
+    // An attribute name at a tag boundary, not a substring: an attribute value
+    // could itself contain "edges=".
+    static const QRegularExpression attr(
+        QStringLiteral("(\\s|^)edges\\s*=\\s*(\"[^\"]*\"|'[^']*')"));
+    QRegularExpressionMatchIterator it = edge.globalMatch(inner);
+    while (it.hasNext()) {
+        const QRegularExpressionMatch m = attr.match(it.next().captured(0));
+        // Longer than the two quote characters, so the value is non-empty.
+        if (m.hasMatch() && m.captured(2).size() > 2) return true;
+    }
+    return false;
+}
+
 static QFileInfoList walkXml(const QDir &dir) {
     QFileInfoList out;
     // NoDotAndDotDot, not NoDot: NoDot excludes only ".", so ".." recurses
@@ -80,7 +106,7 @@ int main(int argc, char **argv) {
             if (shapes >= limit) break;
             const QRegularExpressionMatch m = it.next();
             const QString inner = m.captured(1);
-            if (!inner.contains(QLatin1String("edges="))) continue;
+            if (!hasGeometry(inner)) continue;
 
             ++shapes;
             XFL::Shape s;

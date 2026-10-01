@@ -19,12 +19,29 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonParseError>
-#include <QSet>
 #include <functional>
 
 namespace Moho {
 
 namespace {
+
+// Removes a directory when it goes out of scope.
+//
+// A Moho project is a ZIP that has to be unpacked before it can be read, and
+// unpacking leaves a copy. TSystem has no scoped helper for that, and getting
+// the removal wrong on any of the several early returns out of read() leaks a
+// full copy of the project into the temp directory on every import.
+class ScopedTempDir {
+public:
+    explicit ScopedTempDir(TFilePath dir) : m_dir(std::move(dir)) {}
+    ~ScopedTempDir() { TSystem::rmDirTree(m_dir); }
+
+    ScopedTempDir(const ScopedTempDir &) = delete;
+    ScopedTempDir &operator=(const ScopedTempDir &) = delete;
+
+private:
+    TFilePath m_dir;
+};
 
 // A Moho animated value. All six flavours share the same key names.
 Channel readChannel(const QJsonValue &v) {
@@ -167,7 +184,6 @@ bool read(const TFilePath &path, Document &doc) {
 
     // ---- get the JSON document --------------------------------------------
     QByteArray raw;
-    QString containerEntry;
     if (doc.container == Container::Zip) {
         // Reuse the shared, hardened ZIP extractor: it repairs stale trailers
         // and refuses member paths that escape the output directory.
@@ -177,6 +193,11 @@ bool read(const TFilePath &path, Document &doc) {
                 .arg(QDateTime::currentMSecsSinceEpoch());
         const TFilePath outDir =
             TSystem::getTempDir() + TFilePath(tmpName.toStdString());
+        // Scoped so the extraction is removed on every path out, including the
+        // three early returns below. Without it, each import of a ZIP project
+        // left a full extracted copy -- plus preview.jpg -- in %TEMP%
+        // permanently, under a name that changed every run.
+        const ScopedTempDir extraction(outDir);
         TSystem::mkDir(outDir);
         std::string detail;
         if (!FlareZip::extract(path, outDir, detail)) {
@@ -192,7 +213,7 @@ bool read(const TFilePath &path, Document &doc) {
             QFile in(f);
             if (!in.open(QIODevice::ReadOnly)) continue;
             raw = in.readAll();
-            containerEntry = name;
+            doc.containerEntry = name;
             break;
         }
         if (raw.isEmpty()) {
@@ -207,15 +228,25 @@ bool read(const TFilePath &path, Document &doc) {
             return false;
         }
         raw = f.readAll();
-        containerEntry = QFileInfo(path.getQString()).fileName();
+        doc.containerEntry = QFileInfo(path.getQString()).fileName();
     }
 
     // ---- parse -------------------------------------------------------------
     QJsonParseError perr{};
     const QJsonDocument jd = QJsonDocument::fromJson(raw, &perr);
-    if (perr.error != QJsonParseError::NoError || !jd.isObject()) {
+    if (perr.error != QJsonParseError::NoError) {
         doc.error = "the project document is not valid JSON: " +
                     perr.errorString();
+        return false;
+    }
+    if (!jd.isObject()) {
+        // Distinct from the above: this parsed cleanly, it is just not a
+        // document. Reporting it as a JSON error produced the nonsense message
+        // "not valid JSON: no error occurred".
+        doc.error = QStringLiteral(
+            "the project document is a JSON %1, not a Moho document (which is "
+            "a JSON object)")
+            .arg(jd.isArray() ? QStringLiteral("array") : QStringLiteral("value"));
         return false;
     }
     const QJsonObject root = jd.object();
@@ -277,8 +308,14 @@ bool read(const TFilePath &path, Document &doc) {
                     if (c.isObject()) sw.alternatives << c.toObject().value("name").toString();
                 }
                 sw.keys = readChannel(o.value("switch_keys"));
-                if (sw.keys.size() > 0)
-                    sw.activeChild = sw.keys.values.first().toString();
+                if (sw.keys.size() > 0) {
+                    // Frame 0 is the rest pose in a Moho document, so the first
+                    // key is the rest state; the last is where the timeline ends
+                    // up. Reporting only one of them, under a name implying
+                    // "whatever is showing now", would be misleading either way.
+                    sw.childAtRest = sw.keys.values.first().toString();
+                    sw.childAtEnd = sw.keys.values.last().toString();
+                }
                 doc.switches.append(sw);
             }
             // Bones live on the BoneLayer's skeleton, as a flat array with
@@ -329,7 +366,6 @@ bool read(const TFilePath &path, Document &doc) {
     }
 
     doc.valid = true;
-    Q_UNUSED(containerEntry);
     return true;
 }
 
@@ -385,7 +421,8 @@ int writeManifest(const TFilePath &projectPath, const Document &doc,
         o["name"] = s.name;
         o["alternatives"] = QJsonArray::fromStringList(QStringList(s.alternatives.begin(),
                                                     s.alternatives.end()));
-        o["active_child"] = s.activeChild;
+        o["child_at_rest"] = s.childAtRest;
+        o["child_at_end"] = s.childAtEnd;
         o["keys"] = s.keys.frames.size();
         switches.append(o);
     }

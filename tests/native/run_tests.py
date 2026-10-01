@@ -111,6 +111,11 @@ def main():
     env["PATH"] = os.pathsep.join(
         [d for d in dll_dirs if os.path.isdir(d)] + [env.get("PATH", "")])
 
+    # Where the built tnzcore is, for the suites that resolve it at run time
+    # rather than linking against it.
+    env["FLARE_TNZCORE"] = os.path.join(flare_build, "RelWithDebInfo",
+                                        "tnzcore.dll")
+
     failed = 0
     for name, which in TARGETS:
         if args.filter and args.filter not in name:

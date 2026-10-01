@@ -161,8 +161,19 @@ def main():
             pass
 
     checked = mismatch = clipped = unparsable = missing = 0
+    count_disagree = 0
+    bad_rows = 0
     problems = []
-    for name, source, index, contours, points in rows:
+    for row in rows:
+        if len(row) != 5:
+            # A truncated or stray line. Reported, not raised: a manifest this
+            # script cannot read is a failure of the thing being verified, and
+            # aborting with a traceback hides every other check.
+            bad_rows += 1
+            if len(problems) < 5:
+                problems.append(("<manifest>", f"malformed row: {row!r}"))
+            continue
+        name, source, index, contours, points = row
         svg_path = os.path.join(outdir, name)
         if not os.path.isfile(svg_path):
             missing += 1
@@ -203,6 +214,15 @@ def main():
 
         checked += 1
         got = svg_points(path_el.get("d"))
+        # The exporter's own counts, cross-checked against this decode. They were
+        # in the manifest and unused, which was the cheapest available
+        # independent signal that the two sides agreed on which shape a row
+        # refers to.
+        if len(got) != int(points):
+            count_disagree += 1
+            if len(problems) < 5:
+                problems.append((name, f"manifest says {points} points, "
+                                       f"SVG has {len(got)}"))
         if len(got) != len(want):
             mismatch += 1
             if len(problems) < 5:
@@ -227,12 +247,15 @@ def main():
 
     print(f"checked              : {checked}")
     print(f"missing / unpaired   : {missing}")
+    print(f"malformed rows       : {bad_rows}")
     print(f"unparsable SVG       : {unparsable}")
+    print(f"manifest count differs: {count_disagree}")
     print(f"point mismatches     : {mismatch}")
     print(f"shapes with clipped art: {clipped}")
     for name, why in problems:
         print(f"   {name}: {why}")
     ok = (mismatch == 0 and clipped == 0 and unparsable == 0 and missing == 0
+          and count_disagree == 0 and bad_rows == 0
           and checked == len(rows))
     print()
     print("PASSED" if ok else "FAILED")

@@ -9,9 +9,7 @@
 #include "XFLShape.h"
 
 #include <QCoreApplication>
-#include <QDir>
-#include <QFile>
-#include <QTextStream>
+#include <cstdio>
 #include <cmath>
 
 static int gFail = 0;
@@ -382,8 +380,14 @@ static void test_svg() {
           "the triangle decodes", err);
     const QString d = XFL::toSvgPath(s);
     check(d.startsWith("M0 0"), "path starts with a moveto", d.left(20));
-    check(d.contains("L400 0") || d.endsWith("Z"),
+    // The previous form was `d.contains("L400 0") || d.endsWith("Z")`, and the
+    // path does end with Z, so the disjunction was unconditionally true and the
+    // property it named was never checked.
+    check(!d.contains(QLatin1Char('Q')),
           "a line-only contour has no quadratic", d);
+    // The input is in twips and the path is in pixels, so 400 -> 20.
+    check(d.contains("L20 0") && d.contains("L20 20") && d.contains("L0 0"),
+          "every line endpoint is present", d);
     check(d.endsWith("Z"), "a closed contour gets an explicit Z", d.right(8));
 
     // A quadratic must stay a quadratic, not be flattened.

@@ -12,7 +12,6 @@
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
-#include <QTextStream>
 #include <QXmlStreamReader>
 
 static int gEdges = 0, gParsed = 0, gFailed = 0;
@@ -45,10 +44,12 @@ static void visit(const QString &path) {
             for (const XFL::Contour &c : s.contours) {
                 if (c.points.size() < 2) continue;
                 ++gContours;
-                const QPointF f0 = c.points.first();
-                const QPointF l0 = c.points.last();
-                if (qAbs(f0.x() - l0.x()) < 1e-6 && qAbs(f0.y() - l0.y()) < 1e-6)
-                    ++gClosed;
+                // Contour::closed, not a reimplementation of the test with a
+                // different tolerance. The differential check compares this
+                // number, so recomputing it here meant the comparison was
+                // measuring the census's own arithmetic rather than the field it
+                // appeared to cover.
+                if (c.closed) ++gClosed;
                 for (const QPointF &p : c.points) {
                     if (!gAny) {
                         gMinX = gMaxX = p.x();
