@@ -1,0 +1,4 @@
+# Test build output. The parent .gitignore already covers `build*`, but be
+# explicit: these directories are large and entirely generated.
+build/
+build*/
