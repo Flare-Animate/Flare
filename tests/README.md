@@ -13,7 +13,10 @@ report that no bitmaps decoded.
 | `tools/flash/tests`, `tools/sync/tests` (pytest) | the `flare-as3` bridge's JSON contract and AS3 patch pass; the upstream sync agent's path mapping |
 | `tests/moho/test_moho_menu.py` | the Moho import command's menu wiring |
 | `tests/native/flash_reader_tests.cpp` | format sniffing, SWF header, ZIP extraction and trailer repair, Zip-Slip refusal, malformed input, AS3 bridge degradation |
+| `tests/native/xfl_shape_tests.cpp` | the XFL `<DOMShape>` decoder: number grammar, opcode arity, implicit closure, restated moveTos, malformed input, SVG output |
 | `tests/native/moho_reader_tests.cpp` | the whole Moho reader surface |
+| `tests/native/differential_shape.py` | the C++ shape decoder against an independent Python one, over a real FLA |
+| `tests/native/verify_shapes_svg.py` | exported SVGs against an independent decode: every point, and every viewBox |
 | `tests/flash_fixtures/verify_fixtures.py` | each fixture meets the importer's format contract |
 
 ## The rules these follow

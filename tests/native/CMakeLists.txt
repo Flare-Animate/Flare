@@ -58,6 +58,60 @@ target_link_libraries(flash_reader_tests PRIVATE
     kernel32.lib
 )
 
+add_executable(xfl_shape_tests
+    xfl_shape_tests.cpp
+)
+target_include_directories(xfl_shape_tests PRIVATE
+    "${FLASH_ROOT}/flare/sources/common/flash"
+    "${FLASH_ROOT}/flare/sources/include"
+    "${ZLIB_DIR}"
+    "${MINIZIP}"
+)
+target_link_libraries(xfl_shape_tests PRIVATE
+    Qt5::Core
+    Qt5::Gui
+    "${ZLIB_IMPORT_LIB}"
+    "${BUILD}/sources/tnzcore/RelWithDebInfo/tnzcore.lib"
+    "${BUILD}/sources/tnzbase/RelWithDebInfo/tnzbase.lib"
+    kernel32.lib
+)
+
+add_executable(shape_census
+    shape_census.cpp
+)
+target_include_directories(shape_census PRIVATE
+    "${FLASH_ROOT}/flare/sources/common/flash"
+    "${FLASH_ROOT}/flare/sources/include"
+    "${ZLIB_DIR}"
+    "${MINIZIP}"
+)
+target_link_libraries(shape_census PRIVATE
+    Qt5::Core
+    Qt5::Gui
+    "${ZLIB_IMPORT_LIB}"
+    "${BUILD}/sources/tnzcore/RelWithDebInfo/tnzcore.lib"
+    "${BUILD}/sources/tnzbase/RelWithDebInfo/tnzbase.lib"
+    kernel32.lib
+)
+
+add_executable(shape_export
+    shape_export.cpp
+)
+target_include_directories(shape_export PRIVATE
+    "${FLASH_ROOT}/flare/sources/common/flash"
+    "${FLASH_ROOT}/flare/sources/include"
+    "${ZLIB_DIR}"
+    "${MINIZIP}"
+)
+target_link_libraries(shape_export PRIVATE
+    Qt5::Core
+    Qt5::Gui
+    "${ZLIB_IMPORT_LIB}"
+    "${BUILD}/sources/tnzcore/RelWithDebInfo/tnzcore.lib"
+    "${BUILD}/sources/tnzbase/RelWithDebInfo/tnzbase.lib"
+    kernel32.lib
+)
+
 add_executable(moho_reader_tests
     moho_reader_tests.cpp
 )

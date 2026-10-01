@@ -23,6 +23,7 @@ TNZCORE_LIB = os.path.join(FLARE_BUILD, "sources", "tnzcore", "RelWithDebInfo",
 # (binary, which fixture set it takes)
 TARGETS = [
     ("flash_reader_tests", "flash"),
+    ("xfl_shape_tests", "none"),
     ("moho_reader_tests", "moho"),
 ]
 
@@ -118,8 +119,13 @@ def main():
         if not os.path.isfile(exe):
             die(f"{name} was not built (expected {exe})")
         fxd = flash_fx if which == "flash" else moho_fx
+        if which == "none":
+            # Self-contained: the geometry is written into the test, so no
+            # fixture directory is needed.
+            fxd = ""
         print(f"\n=== {name} ===")
-        r = run([exe, os.path.abspath(fxd)], env=env)
+        argv = [exe] + ([os.path.abspath(fxd)] if fxd else [])
+        r = run(argv, env=env)
         sys.stderr.write(r.stderr)
         tail = [l for l in r.stderr.splitlines() if "checks," in l]
         print("   " + (tail[-1] if tail else f"exit {r.returncode}"))

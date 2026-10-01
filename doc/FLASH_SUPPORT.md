@@ -59,7 +59,8 @@ produces no levels is always explained rather than looking like a broken file.
 
 | Content | Where | Status |
 |---------|-------|--------|
-| Vector shapes | FLA/XFL `<DOMShape>`, SWF `DefineShape`/`Shape3`/`Shape4` | Not converted. Adobe encodes these two ways (`edges` and `cubics` string grammars); a partial decoder would produce subtly wrong art, so it is not attempted |
+| Vector shapes, XFL | FLA/XFL `<DOMShape>` `<edges>` | **Decoded.** `common/flash/XFLShape` reads the `edges` attribute to contours and emits SVG. Verified against 491 real shapes from a published FLA, against an independent decoder, coordinate for coordinate. The sibling `cubics` attribute is deliberately ignored: it is an editor hint and on real documents describes a *different* outline |
+| Vector shapes, SWF | `DefineShape`/`DefineShape2`/`DefineShape3`/`DefineShape4` | Not yet converted. The record grammar is well specified and quadrant-based, but SWF shape bounds are stroke-inclusive, so a wrong decode is not obvious from the geometry alone |
 | Text | `<DOMStaticText>`, `<DOMText>`, `DefineText`/`Text2` | Not converted |
 | Embedded fonts | `DefineFont`/`Font2`/`Font3` | Not converted |
 | Video items | `<DOMVideoItem>`, `DefineVideoStream` | Not converted |
