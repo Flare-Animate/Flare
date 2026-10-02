@@ -7,6 +7,15 @@
 // importer itself uses, so a result here is a result for the shipped code.
 //
 // usage: probe_samples <file-or-directory> ...
+//   Every printf below prints one value. A combined call with several values
+//   printed 140694538682368 where `switches` should have been 0, and
+//   0x65004400000000 -- the UTF-16 characters "eD", a QString's bytes -- in
+//   another build: the argument list was shifted. Every field except the last
+//   lined up, so the output read as a reader returning nonsense rather than as
+//   the formatting fault it was, and it survived several rounds of checking the
+//   data instead of the output. A standalone reproduction of the same shapes is
+//   correct, which is the argument for avoiding the construct rather than relying
+//   on it.
 #include "MohoReader.h"
 #include "tfilepath.h"
 #include "SWFAssets.h"
@@ -21,6 +30,7 @@
 #include <QImage>
 #include <QTemporaryDir>
 #include <cstdio>
+#include <cstring>
 
 static QString fmtName(FlashAssets::Format f) {
   switch (f) {
@@ -98,10 +108,17 @@ static void probeFile(const QString &path, const QString &keepDir) {
     const QByteArray &src = decompressed ? body : bytes;
 
     const FlashAssets::SwfContent c = FlashAssets::censusSwf(src);
-    printf("  swf census     : bitmap=%d shape=%d text=%d font=%d video=%d "
-           "audio=%d stream=%d sprite=%d action=%d abc=%d binary=%d\n",
-           c.bitmaps, c.shapes, c.texts, c.fonts, c.video, c.audio, c.streams,
-           c.sprites, c.actions, c.abc, c.binary);
+    printf("  swf census     : bitmap=%d", c.bitmaps);
+    printf(" shape=%d", c.shapes);
+    printf(" text=%d", c.texts);
+    printf(" font=%d", c.fonts);
+    printf(" video=%d", c.video);
+    printf(" audio=%d", c.audio);
+    printf(" stream=%d", c.streams);
+    printf(" sprite=%d", c.sprites);
+    printf(" action=%d", c.actions);
+    printf(" abc=%d", c.abc);
+    printf(" binary=%d\n", c.binary);
     if (!decompressed && c.isEmpty())
       printf("  swf note       : census is empty; is this really a tag "
                "stream?\n");
@@ -240,15 +257,20 @@ static void probeFile(const QString &path, const QString &keepDir) {
       XFL::Reader xr{TFilePath(path)};
       if (xr.read()) {
         const XFL::ContentCensus &c = xr.getDocument().census;
-        printf("  xfl census     : shapes=%d shapeText=%d texts=%d morphs=%d "
-               "bitmaps=%d symbols=%d components=%d sounds=%d videos=%d\n",
-               c.shapes, c.shapeText, c.texts, c.morphs, c.bitmaps, c.symbols,
-               c.components, c.sounds, c.videos);
-        printf("  xfl document   : %dx%d @ %.2f fps, %zu timeline(s), %zu "
-               "bitmap item(s)\n",
-               xr.getDocument().width, xr.getDocument().height,
-               xr.getDocument().frameRate,
-               xr.getDocument().timelines.size(),
+        printf("  xfl census     : shapes=%d", c.shapes);
+        printf(" shapeText=%d", c.shapeText);
+        printf(" texts=%d", c.texts);
+        printf(" morphs=%d", c.morphs);
+        printf(" bitmaps=%d", c.bitmaps);
+        printf(" symbols=%d", c.symbols);
+        printf(" components=%d", c.components);
+        printf(" sounds=%d", c.sounds);
+        printf(" videos=%d\n", c.videos);
+        printf("  xfl document   : %dx%d", xr.getDocument().width,
+               xr.getDocument().height);
+        printf(" @ %.2f fps", xr.getDocument().frameRate);
+        printf(", %zu timeline(s)", xr.getDocument().timelines.size());
+        printf(", %zu bitmap item(s)\n",
                xr.getDocument().bitmaps.size());
       } else {
         printf("  xfl census     : reader failed: %s\n",
@@ -264,19 +286,37 @@ static void probeFile(const QString &path, const QString &keepDir) {
   const bool mohoOk = Moho::read(TFilePath(path), d);
   printf("  moho read      : %s", mohoOk ? "valid" : "rejected");
   if (mohoOk) {
-    printf("  container=%s entry=%s version=%d  %dx%d  %d-%d @ %.2f fps\n",
-           qPrintable(containerName(d.container)),
-           qPrintable(d.containerEntry), d.version, d.width, d.height,
-           d.startFrame, d.endFrame, d.fps);
-    printf("  moho rig       : %d top-level, %d total layers, %zu bones, "
-           "%zu switches, %zu keyframe tracks, %d keyframes\n",
-           d.layers.size(), d.totalLayers, d.bones.size(), d.switches.size(),
-           (size_t)d.keyframeTracks, d.keyframes);
+    printf("  container=%s", qPrintable(containerName(d.container)));
+    printf(" entry=%s", qPrintable(d.containerEntry));
+    printf(" version=%d", d.version);
+    printf("  %dx%d", d.width, d.height);
+    printf("  %d-%d", d.startFrame, d.endFrame);
+    printf(" @ %.2f fps\n", d.fps);
+    // Every container size is a size_t and every count an int. Mixing them is not
+    // cosmetic on x64-64: printf reads the argument list by width, so a size_t
+    // handed to %d desynchronises everything after it. That reported
+    // "switches: 140698833649664" for a document with no switch layers at all.
+
+    // Every container size is a size_t and every count an int. Mixing them is not
+    // cosmetic on x64-64: printf reads the argument list by width, so a size_t
+    // handed to %d desynchronises everything after it. That reported
+    // "switches: 140698833649664" for a document with no switch layers.
+    // One printf per value, not one for the whole line. See the note at the top of
+    // this file: a combined call here printed a QString's bytes into a %zu slot,
+    // and because every earlier field lined up it read as a reader returning
+    // nonsense rather than as the formatting fault it was.
+    printf("  moho rig       : %zu top-level", d.layers.size());
+    printf(", %d total layers", d.totalLayers);
+    printf(", %zu bones", d.bones.size());
+    printf(", %zu switches", d.switches.size());
+    printf(", %d keyframe tracks", d.keyframeTracks);
+    printf(", %d keyframes\n", d.keyframes);
     printf("  moho content   : %d shapes, %d mesh points, %d styles, %d "
            "actions\n",
            d.shapes, d.meshPoints, d.styles, d.actions);
-    printf("  moho artwork   : %d referenced, %d found, %d missing\n",
-           d.referencedImages.size(), d.imagesFound, d.imagesMissing);
+    printf("  moho artwork   : %zu referenced", d.referencedImages.size());
+    printf(", %d found", d.imagesFound);
+    printf(", %d missing\n", d.imagesMissing);
     if (!d.referencedImages.isEmpty()) {
       printf("      first      : %s\n",
              qPrintable(d.referencedImages.first()));
