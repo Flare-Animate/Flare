@@ -110,6 +110,29 @@ imported as a completely empty scene and reported "import complete" with no
 explanation, which is indistinguishable from a file Flare failed to read. The
 same FLA now reports, for example, "491 vector shape(s) not converted".
 
+### Tag-code dispatch is tested, because a wrong code is silent
+
+The census and the bitmap extractor dispatch on SWF tag codes separately, and
+getting one wrong produces no error: the JPEG branch probes the payload and
+`continue`s when it does not decode, and the lossless branch rejects a format
+byte outside 3/4/5. A transposed tag family therefore writes no file and reports
+success.
+
+`flash_reader_tests` pins every code it dispatches on — 2/22/32/46/83 shapes,
+6/20/21/35/36/90 bitmaps, 10/48/75 fonts, 60/62 video — against the
+specification's tag table and against `flare/sources/common/flash/Macromedia.h`,
+and `test_jpeg3_extraction_by_tag_code` builds a real `DefineBitsJPEG3` and
+`DefineBitsJPEG4` and asserts each yields a decodable file. The four controls in
+`mutation_check.py` that reintroduce the original transpositions must all be
+caught, or the test is not covering them.
+
+This was added after a merge brought a corrected copy of `SWFAssets.cpp` into
+view, at which point it turned out the JPEG and lossless families had been
+transposed, tag 24 (Protect) was being counted as a font while 48
+(DefineFont2) was not, and video was counted on 81/93 — codes that belong to
+`DefineSceneAndFrameLabelData` and `DefineScalingGrid`, so that tally was never
+reachable at all.
+
 ## ZIP trailer repair
 
 A number of real FLAs carry an end-of-central-directory record whose size and

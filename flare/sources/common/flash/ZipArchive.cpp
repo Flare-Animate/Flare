@@ -79,7 +79,6 @@ QByteArray readAt(QFile &f, qint64 offset, qint64 n) {
 struct CdRecord {
     quint32 localHeaderOffset = 0;
     int     nameLen = 0;
-    bool    nameEndsWithSlash = false;
     int     nextOffset = 0;  // absolute offset of the following record
 };
 
@@ -101,8 +100,6 @@ bool decodeCdRecord(const QByteArray &head, int recordStart, qint64 fileSize,
     if (next > fileSize) return false;
 
     out.nameLen = nameLen;
-    out.nameEndsWithSlash = (nameLen > 0 &&
-        head[kCdRecordSize + nameLen - 1] == '/');
     out.nextOffset = static_cast<int>(next);
     return true;
 }
@@ -352,13 +349,32 @@ namespace {
 // The textual checks in memberNameIsSafe() are the primary defence; this is the
 // belt-and-braces check that survives symlinked or oddly-normalised names.
 bool isPathUnderDir(const QString &baseDir, const QString &candidate) {
-    const QString base = QDir(baseDir).absolutePath();
-    const QString canon = QFileInfo(candidate).canonicalFilePath();
-    const QString abs   = canon.isEmpty() ? QFileInfo(candidate).absoluteFilePath()
-                                          : canon;
-    QString prefix = base;
+    const QDir dir(baseDir);
+    QString prefix = dir.canonicalPath();
+    if (prefix.isEmpty()) prefix = dir.absolutePath();
+    if (prefix.isEmpty()) return false;
     if (!prefix.endsWith('/')) prefix += '/';
-    return abs.startsWith(prefix);
+
+    // canonicalFilePath() is empty for a path that does not exist yet, and
+    // absoluteFilePath() does not follow symlinks -- so a member written into a
+    // symlinked subdirectory would pass a purely textual comparison. Walk up to
+    // the deepest ancestor that does exist, canonicalise that, then re-append
+    // the part that is still to be created.
+    QFileInfo info(QDir::cleanPath(QFileInfo(candidate).absoluteFilePath()));
+    QStringList pending;
+    while (!info.exists()) {
+        const QString parent = info.path();
+        if (parent.isEmpty() || parent == info.filePath()) return false;
+        pending.prepend(info.fileName());
+        info.setFile(parent);
+    }
+    QString resolved = info.canonicalFilePath();
+    if (resolved.isEmpty()) return false;
+    if (!pending.isEmpty()) {
+        resolved += QLatin1Char('/');
+        resolved += pending.join(QLatin1Char('/'));
+    }
+    return resolved.startsWith(prefix);
 }
 
 // A scratch file that removes itself when it goes out of scope, so the

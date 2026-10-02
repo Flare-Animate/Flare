@@ -116,14 +116,46 @@ def build():
     return True, ""
 
 
-def run():
-    r = subprocess.run([EXE], capture_output=True, text=True, env=ENV)
+def run(exe=EXE, args=()):
+    r = subprocess.run([exe, *args], capture_output=True, text=True, env=ENV)
     return r.returncode, r.stderr
 
 
 def clip(text, n=84):
     return text.strip()[:n]
 
+
+# The SWF census and bitmap extractor. A second source file, a second test
+# binary, and a different failure mode: a wrong tag code makes the extractor
+# write no file and say nothing, which is why these went unnoticed until a
+# merge brought a corrected copy of the file into view.
+SWF_ASSETS = os.path.join(HERE, "..", "..", "flare", "sources", "common",
+                          "flash", "SWFAssets.cpp")
+
+# (name, pattern, replacement). The first two are the family transposition:
+# 22 is DefineShape2 and 35 is DefineBitsJPEG3, per the SWF specification and
+# per flare/sources/common/flash/Macromedia.h.
+SWF_MUTATIONS = [
+    ("tag 22 missing from the shape tally",
+     r"case 2: case 22: case 32: case 46: case 83: \+\+c\.shapes;",
+     "case 2: case 32: case 46: case 83: ++c.shapes;"),
+    ("JPEG3/JPEG4 dispatch moved onto the lossless codes",
+     r"if \(tagCode == 35 \|\| tagCode == 90\) \{",
+     "if (tagCode == 20 || tagCode == 36) {"),
+    ("tag 24 counted as a font, 48 ignored again",
+     r"case 10: case 48: case 75: \+\+c\.fonts;",
+     "case 10: case 24: case 75: ++c.fonts;"),
+    ("video back on the unreachable 81/93 codes",
+     r"case 60: case 62: \+\+c\.video;",
+     "case 81: case 93: ++c.video;"),
+]
+
+# Which binary covers which file. Kept next to the tables so adding a mutation
+# cannot leave it unassigned: main() refuses to run if a file has no binary.
+COVERING = {
+    "SHAPE": "XFL_SHAPE",
+    "SWF_ASSETS": "FLASH_READER",
+}
 
 def main():
     if not os.path.isfile(EXE):
@@ -146,9 +178,33 @@ def main():
         return 1
     print("  [ok  ] baseline passes")
 
+    # Both binaries the mutation table depends on. A missing one would make every
+    # mutation for that file read as MISSED -- indistinguishable from "the suite
+    # cannot see this bug", which is the confusion the NO-BUILD outcome exists to
+    # prevent.
+    reader_exe = os.path.join(HERE, "build", "RelWithDebInfo",
+                              "flash_reader_tests.exe")
+    if not os.path.isfile(reader_exe):
+        print(f"   {reader_exe} not built, so the SWF mutations could not be "
+              f"run.\n         Its results would be meaningless; refusing.")
+        return 1
+    rc, _ = run(reader_exe, (os.path.join(HERE, "..", "flash_fixtures"),))
+    if rc != 0:
+        print("  flash_reader_tests FAILS on unmodified sources -- results "
+              "below would be meaningless")
+        return 1
+    print("  [ok  ] flash_reader_tests passes")
+
     results = []
-    for name, pattern, repl in MUTATIONS:
-        original = io.open(SHAPE, encoding="utf-8", newline="").read()
+    # (source path, the binary that covers it, extra argv, name, pattern, repl)
+    plan = [(SHAPE, EXE, (), *m) for m in MUTATIONS]
+    reader_exe = os.path.join(HERE, "build", "RelWithDebInfo",
+                              "flash_reader_tests.exe")
+    reader_args = (os.path.join(HERE, "..", "flash_fixtures"),)
+    plan += [(SWF_ASSETS, reader_exe, reader_args, *m) for m in SWF_MUTATIONS]
+
+    for source, exe, extra, name, pattern, repl in plan:
+        original = io.open(source, encoding="utf-8", newline="").read()
         ntext = norm(original)
         new, count = re.subn(pattern, repl, ntext)
         if count != 1:
@@ -165,7 +221,7 @@ def main():
             print(f"  [skip] {name}: substitution was a no-op")
             continue
 
-        io.open(SHAPE, "w", encoding="utf-8", newline="").write(new)
+        io.open(source, "w", encoding="utf-8", newline="").write(new)
         try:
             ok, detail = build()
             if not ok:
@@ -174,7 +230,7 @@ def main():
                 results.append((name, "NO-BUILD", detail))
                 print(f"  [skip] {name}: the mutation did not compile -- {detail[:70]}")
                 continue
-            rc, out = run()
+            rc, out = run(exe, extra)
             caught = rc != 0
             m = re.search(r"\[FAIL\] (.+)", out)
             results.append((name, "CAUGHT" if caught else "MISSED",
@@ -188,7 +244,7 @@ def main():
             if m:
                 print(f"          caught by: {clip(m.group(1), 86)}")
         finally:
-            io.open(SHAPE, "w", encoding="utf-8", newline="").write(original)
+            io.open(source, "w", encoding="utf-8", newline="").write(original)
 
     print()
     ok, _ = build()

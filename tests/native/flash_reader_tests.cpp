@@ -11,13 +11,16 @@
 // std::max in tcommon.h under /permissive-.
 
 #include "As3Bridge.h"
+#include "jpeg3_fixture.h"
 #include "SWFAssets.h"
 #include "ZipArchive.h"
 
 #include <QCoreApplication>
 #include <QDir>
 #include <QFile>
+#include <QImage>
 #include <QSet>
+#include <QTemporaryDir>
 #include <cstdio>
 #include <string>
 
@@ -105,6 +108,292 @@ static void test_swf_header(const QString &dir) {
     check(info.height == 400, "height read", QString::number(info.height));
     check(info.frameRate == 24, "frame rate read", QString::number(info.frameRate));
     check(info.version > 0, "version read", QString::number(info.version));
+}
+
+// A SWF tag record: the 16-bit header (code in the top 10 bits, length in the
+// low 6) followed, when the length does not fit, by a 32-bit length. TagWalker
+// reads the 32-bit form when the low 6 bits are 63.
+//
+// The length form matters as much as the code. These bodies are ~350 bytes, so
+// they cannot use the short form: writing body.size() & 0x3F truncates to 27,
+// the walker reads a 27-byte tag, the extractor's own bounds check bails, and
+// the test fails for a reason that has nothing to do with the tag code.
+static void appendTagRecord(QByteArray &swf, int code, const QByteArray &body) {
+    Q_ASSERT(body.size() < 0x3FFFFFFF);
+    if (body.size() < 0x3F) {
+        const quint16 record = static_cast<quint16>(
+            (static_cast<quint32>(code & 0x3FF) << 6) |
+            static_cast<quint32>(body.size()));
+        swf.append(reinterpret_cast<const char *>(&record), 2);
+    } else {
+        const quint16 record =
+            static_cast<quint16>((static_cast<quint32>(code & 0x3FF) << 6) | 0x3F);
+        swf.append(reinterpret_cast<const char *>(&record), 2);
+        const quint32 len = static_cast<quint32>(body.size());
+        swf.append(reinterpret_cast<const char *>(&len), 4);
+    }
+    swf.append(body);
+}
+
+// ---------------------------------------------------------------------------
+// Tag-code dispatch. The census reports what a SWF holds so content that cannot
+// be converted is *named* rather than silently dropped, which means the
+// numbers are a user-facing claim about the file and a wrong code makes the
+// claim false.
+//
+// The bug this pins: the bitmap family and the JPEG/lossless families had been
+// transposed. 22/23 were dispatched as DefineBitsJPEG3/4 and 35/90 as the
+// lossless variants. Per the SWF specification, and per this repository's own
+// flare/sources/common/flash/Macromedia.h, 22 is DefineShape2, 23 is
+// DefineButtonCxform, 35 is DefineBitsJPEG3, 36 is DefineBitsLossless2 and 90
+// is DefineBitsJPEG4. So shapes and button colour transforms were being counted
+// as images, and every real alpha JPEG fell through to the lossless branch.
+//
+// It survived three review rounds because no fixture contained a tag 22 and
+// because the wrong branch papered over itself: a "format byte outside 3/4/5"
+// was taken as a sign that a lossless tag was really a JPEG, which made the
+// misparse produce plausible output rather than an error.
+//
+// So this builds a SWF from tags whose codes are known, one tag per code, and
+// asserts where each lands. Synthetic rather than a binary fixture: the point is
+// the mapping, and a generated tag stream states its own intent in the test.
+// ---------------------------------------------------------------------------
+static void test_census_tag_codes() {
+    fprintf(stderr, "\n-- census tag codes --\n");
+
+    // SWF_CWS: "CWS", version, fileLength, then an uncompressed body. The census
+    // does not decompress, so the tag stream is stored as-is and the caller
+    // hands it the same bytes it wrote.
+    // swfBodyOffset() reads: signature(3) version(1) fileLength(4), then a RECT
+    // whose bit-packed header byte has nbits = (byte >> 3) & 0x1F, occupying
+    // (5 + 4*nbits + 7) / 8 bytes, then frameRate(2) and frameCount(2). The tag
+    // stream starts there. nbits = 0 gives a one-byte RECT, the smallest legal.
+    //
+    // Each tag is a 16-bit record: code in the top 10 bits, length in the low 6.
+    // A length of 63 means a 32-bit length follows. TagWalker returns false when
+    // a tag occupies no bytes, so the bodies here carry a filler byte rather
+    // than being empty -- the census reads only the code, and a non-empty body
+    // is what keeps the walker advancing.
+    const auto swfWithTags = [](const QList<quint16> &codes) {
+        QByteArray body;
+        for (const quint16 code : codes)
+            appendTagRecord(body, code, QByteArray(1, static_cast<char>(0x00)));
+        QByteArray out;
+        out.append("FWS");
+        out.append(static_cast<char>(0x06));              // version 6
+        for (int i = 0; i < 4; ++i) out.append(static_cast<char>(0x00));  // length
+        out.append(static_cast<char>(0x00));              // RECT: nbits = 0
+        const quint16 rate = 0x0100, count = 1;
+        out.append(reinterpret_cast<const char *>(&rate), 2);
+        out.append(reinterpret_cast<const char *>(&count), 2);
+        out.append(body);
+        return out;
+    };
+
+    struct Expect {
+        quint16 code;
+        const char *name;
+        int bitmaps;
+        int shapes;
+        int fonts;
+        int video;
+    };
+    // One tag at a time, so a code that lands in two tallies cannot hide behind
+    // another tag's contribution. Codes verified against the SWF specification's
+    // tag table and against flare/sources/common/flash/Macromedia.h.
+    const Expect cases[] = {
+        {2, "DefineShape", 0, 1, 0, 0},
+        {22, "DefineShape2", 0, 1, 0, 0},
+        {32, "DefineShape3", 0, 1, 0, 0},
+        {83, "DefineShape4", 0, 1, 0, 0},
+        {46, "DefineMorphShape", 0, 1, 0, 0},
+        {20, "DefineBitsLossless", 1, 0, 0, 0},
+        {36, "DefineBitsLossless2", 1, 0, 0, 0},
+        {21, "DefineBitsJPEG2", 1, 0, 0, 0},
+        {35, "DefineBitsJPEG3", 1, 0, 0, 0},
+        {90, "DefineBitsJPEG4", 1, 0, 0, 0},
+        {6, "DefineBits", 1, 0, 0, 0},
+        {24, "Protect", 0, 0, 0, 0},
+        {48, "DefineFont2", 0, 0, 1, 0},
+        {75, "DefineFont3", 0, 0, 1, 0},
+        {10, "DefineFont", 0, 0, 1, 0},
+        // Video is 60 and 62. 81 and 93 are DefineSceneAndFrameLabelData and
+        // DefineScalingGrid -- the previous tally used those, so it was never
+        // reachable, and a real video clip went uncounted.
+        {60, "DefineVideoStream", 0, 0, 0, 1},
+        {62, "DefineVideoStream2", 0, 0, 0, 1},
+        // 23 is DefineButtonCxform: not a bitmap, not a shape, not a font. It
+        // used to be dispatched as DefineBitsJPEG4, so this is the case that
+        // fails on the old mapping.
+        {23, "DefineButtonCxform", 0, 0, 0, 0},
+        // 8 is JPEGTables: a header, not an image. Deliberately uncounted.
+        {8, "JPEGTables", 0, 0, 0, 0},
+    };
+
+    int wrong = 0;
+    for (const Expect &e : cases) {
+        const QByteArray swf = swfWithTags({e.code});
+        const FlashAssets::SwfContent c = FlashAssets::censusSwf(swf);
+        const bool ok = (c.bitmaps == e.bitmaps && c.shapes == e.shapes &&
+                         c.fonts == e.fonts && c.video == e.video);
+        checkQ(ok, QString("tag %1 (%2) lands in bitmaps=%3 shapes=%4 fonts=%5 "
+                           "video=%6")
+                       .arg(e.code)
+                       .arg(QString::fromLatin1(e.name))
+                       .arg(c.bitmaps)
+                       .arg(c.shapes)
+                       .arg(c.fonts)
+                       .arg(c.video));
+        if (!ok) ++wrong;
+    }
+    check(wrong == 0, "every tag code lands in exactly the right tally",
+          QString("%1 mis-dispatched").arg(wrong));
+
+    // A tag the census does not know must not be counted at all, and must not
+    // stop the walk: an unknown tag followed by a known one has to find it.
+    {
+        const QByteArray swf = swfWithTags({0x7fff, 2, 0x7ffe});
+        const FlashAssets::SwfContent c = FlashAssets::censusSwf(swf);
+        check(c.shapes == 1,
+              "an unknown tag does not stop the walk", QString::number(c.shapes));
+        check(c.bitmaps == 0, "and is not counted as an image");
+    }
+
+    // Several shapes in one movie: the tally has to accumulate, and a code that
+    // reached two branches would show up as an inflated count.
+    {
+        const QByteArray swf = swfWithTags({2, 22, 32, 83, 46, 20, 36, 21, 35, 90});
+        const FlashAssets::SwfContent c = FlashAssets::censusSwf(swf);
+        check(c.shapes == 5, "five shape tags counted", QString::number(c.shapes));
+        check(c.bitmaps == 5, "five bitmap tags counted", QString::number(c.bitmaps));
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Bitmap *extraction*, as opposed to the census above. The census and the
+// extractor dispatch on the tag codes separately, so passing the census says
+// nothing about extraction: a mutation that moves the JPEG3/JPEG4 branch onto
+// the lossless codes leaves every tally above correct.
+//
+// It also fails silently, which is why no test caught it. The JPEG branch probes
+// the payload with QImage and `continue`s when it does not decode, and the
+// lossless branch rejects a format byte outside 3/4/5 -- so a wrong code writes
+// no file and reports no error. The user sees an import that silently lost an
+// image, which is the failure mode this whole census exists to make impossible.
+//
+// So this builds a real DefineBitsJPEG3 -- a genuine JPEG, a zlib alpha channel
+// and the 6-byte fixed header -- and asserts a decodable file comes out. The
+// payload comes from tests/native/make_jpeg3_fixture.py, which encodes it with a
+// real encoder and verifies it decodes before writing it, because hand-written
+// JPEG bytes do not.
+// ---------------------------------------------------------------------------
+static void test_jpeg3_extraction_by_tag_code() {
+    fprintf(stderr, "\n-- JPEG3 extraction --\n");
+
+    // The fixture's own precondition. Asserted rather than assumed: an
+    // undecodable fixture makes every check below pass vacuously, which is
+    // exactly what happened when this payload was a hand-written byte array.
+    {
+        QImage probe;
+        const bool ok =
+            probe.loadFromData(QByteArray(reinterpret_cast<const char *>(
+                                              jpeg3_fixture::jpeg),
+                                          static_cast<int>(
+                                              sizeof(jpeg3_fixture::jpeg))),
+                               "JPG") &&
+            !probe.isNull();
+        check(ok, "the fixture JPEG decodes, so this test is not vacuous");
+        check(probe.width() == 2 && probe.height() == 2,
+              "and is 2x2, as the fixture assumes",
+              QString("%1x%2").arg(probe.width()).arg(probe.height()));
+        if (!ok) return;
+    }
+
+    // DefineBitsJPEG3 body: CharacterID(2), AlphaDataOffset(4), then ImageData
+    // -- the JPEG, then the zlib alpha. AlphaDataOffset counts the bytes of
+    // ImageData, so it is measured from the end of the 6-byte header and is
+    // therefore the JPEG's length.
+    const quint32 alphaOffset =
+        static_cast<quint32>(sizeof(jpeg3_fixture::jpeg));
+    QByteArray body;
+    const quint16 charId = 1;
+    body.append(reinterpret_cast<const char *>(&charId), 2);
+    body.append(reinterpret_cast<const char *>(&alphaOffset), 4);
+    body.append(reinterpret_cast<const char *>(jpeg3_fixture::jpeg),
+                sizeof(jpeg3_fixture::jpeg));
+    body.append(reinterpret_cast<const char *>(jpeg3_fixture::alpha),
+                sizeof(jpeg3_fixture::alpha));
+
+    // Wrap in a minimal SWF carrying just this one tag, then extract. The tag
+    // code is the point: 35 is DefineBitsJPEG3, and before this test nothing
+    // checked that a 35 reached the JPEG branch at all.
+    QByteArray swf;
+    swf.append("FWS");
+    swf.append(static_cast<char>(0x06));
+    for (int i = 0; i < 4; ++i) swf.append(static_cast<char>(0x00));  // length
+    swf.append(static_cast<char>(0x00));                              // RECT nbits=0
+    const quint16 rate = 0x0100, count = 1;
+    swf.append(reinterpret_cast<const char *>(&rate), 2);
+    swf.append(reinterpret_cast<const char *>(&count), 2);
+    appendTagRecord(swf, 35, body);
+
+    QTemporaryDir dir;
+    check(dir.isValid(), "temp directory available");
+    if (!dir.isValid()) return;
+
+    const QStringList written = FlashAssets::extractSwfBitmaps(swf, dir.path());
+    check(written.size() == 1, "a DefineBitsJPEG3 tag yields exactly one file",
+          QString("%1 written").arg(written.size()));
+    if (written.size() != 1) return;
+
+    const QString p = QDir(dir.path()).filePath(written.first());
+    check(QFile::exists(p), "the reported file exists on disk", p);
+    // A usable alpha channel becomes a .png carrying it; otherwise the JPEG is
+    // written on its own as a .jpg. Either is a success, but the file has to
+    // decode -- a file that exists and will not open is worse than none,
+    // because the user believes the image was imported.
+    QImage got(p);
+    check(!got.isNull(), "the extracted file decodes as an image", p);
+    check(got.width() == 2 && got.height() == 2,
+          "and has the dimensions the embedded JPEG declared",
+          QString("%1x%2").arg(got.width()).arg(got.height()));
+
+    // A JPEG4 tag carries a 2-byte DeblockParam, so its header is 8 bytes and
+    // AlphaDataOffset is measured from there. Off-by-two here shifts the JPEG
+    // and alpha against each other and the branch falls back to writing a
+    // truncated file, so the second code gets its own case.
+    QByteArray body4;
+    const quint16 charId4 = 2;
+    body4.append(reinterpret_cast<const char *>(&charId4), 2);
+    body4.append(reinterpret_cast<const char *>(&alphaOffset), 4);
+    const quint16 deblock = 0x0000;
+    body4.append(reinterpret_cast<const char *>(&deblock), 2);
+    body4.append(reinterpret_cast<const char *>(jpeg3_fixture::jpeg),
+                 sizeof(jpeg3_fixture::jpeg));
+    body4.append(reinterpret_cast<const char *>(jpeg3_fixture::alpha),
+                 sizeof(jpeg3_fixture::alpha));
+
+    QByteArray swf4;
+    swf4.append("FWS");
+    swf4.append(static_cast<char>(0x06));
+    for (int i = 0; i < 4; ++i) swf4.append(static_cast<char>(0x00));
+    swf4.append(static_cast<char>(0x00));
+    swf4.append(reinterpret_cast<const char *>(&rate), 2);
+    swf4.append(reinterpret_cast<const char *>(&count), 2);
+    appendTagRecord(swf4, 90, body4);
+
+    QTemporaryDir dir4;
+    check(dir4.isValid(), "second temp directory available");
+    if (!dir4.isValid()) return;
+    const QStringList written4 = FlashAssets::extractSwfBitmaps(swf4, dir4.path());
+    check(written4.size() == 1, "a DefineBitsJPEG4 tag yields exactly one file",
+          QString("%1 written").arg(written4.size()));
+    if (written4.size() == 1) {
+        QImage got4(QDir(dir4.path()).filePath(written4.first()));
+        check(!got4.isNull(), "the JPEG4 file decodes too");
+        check(got4.width() == 2 && got4.height() == 2,
+              "and keeps the right dimensions -- the 8-byte header is handled");
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -299,6 +588,8 @@ int main(int argc, char **argv) {
 
     test_format_detection(dir);
     test_swf_header(dir);
+    test_census_tag_codes();
+    test_jpeg3_extraction_by_tag_code();
     test_supported_extensions();
     test_zip_extraction(dir);
     test_malformed_inputs(dir);

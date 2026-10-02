@@ -388,9 +388,9 @@ bool Reader::parseSymbol(const std::string &xmlContent, const TFilePath &symbolP
             const int slash = href.lastIndexOf(QLatin1Char('/'));
             const QString base = (slash >= 0) ? href.mid(slash + 1) : href;
             const int dot = base.lastIndexOf(QLatin1Char('.'));
-            item.name = ((dot > 0) ? base.left(dot) : base)
-                            .replace(QLatin1Char('&'), QLatin1String("and"))
-                            .toStdString();
+            QString stem = (dot > 0) ? base.left(dot) : base;
+            stem.replace(QLatin1Char('&'), QLatin1String("and"));
+            item.name = stem.toStdString();
             if (symbol.name.empty()) symbol.name = item.name;
             if (item.name.empty()) item.name = symbol.name;
             m_document.bitmaps.push_back(item);

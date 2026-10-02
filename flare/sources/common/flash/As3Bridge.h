@@ -23,8 +23,11 @@
 #include <QStringList>
 #include <QVector>
 
-// As with the rest of common/flash, the public API is exported from tnzcore and
-// imported everywhere else. Without this the functions are internal to the DLL.
+// Same export dance as every other header in this directory: the bodies live in
+// tnzcore, which is built with TFLASH_EXPORTS, and callers in the Flare
+// executable need the import side. Without this the free functions below are not
+// exported from the DLL at all, and MSVC fails the link -- which stayed hidden
+// for as long as nothing in the shipped binary called them.
 #undef DVAPI
 #undef DVVAR
 #ifdef TFLASH_EXPORTS
@@ -76,7 +79,7 @@ DVAPI Result decompile(const TFilePath &swf, const TFilePath &outDir);
 // Every other tag is re-emitted byte-identical, so this is safe to run on a
 // published movie.
 DVAPI Result patchStrings(const TFilePath &swf, const TFilePath &patchJson,
-                    const TFilePath &outSwf);
+                          const TFilePath &outSwf);
 
 // Recompile ActionScript back into an SWF. Needs the Flex SDK toolchain, which
 // is not part of the vendored slice, so this reports itself unsupported.

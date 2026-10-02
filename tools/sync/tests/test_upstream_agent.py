@@ -208,3 +208,30 @@ def test_a_touched_toonz_source_lands_under_flare(repo):
     # under two names. (The directory itself still exists: the fixture seeds
     # toonz/sources/toonz/foo.cpp in the base commit, so it is tracked in HEAD.)
     assert "toonz/sources/toonz/aboutpopup.cpp" not in staged(repo)
+
+
+def test_an_upstream_deletion_removes_flares_mapped_copy(repo):
+    """An upstream file being deleted must delete Flare's renamed copy.
+
+    The remap used to query the index with --diff-filter=ACMR, so a deletion was
+    never seen: the obsolete file stayed in flare/sources/flare/ for good, while
+    the only staged change was a deletion of a path that does not exist in
+    Flare's layout at all.
+    """
+    # Flare carries the renamed copy; upstream still has it under toonz/.
+    write(repo, "flare/sources/flare/gone.cpp", "// flare's copy\n")
+    write(repo, "toonz/sources/toonz/gone.cpp", "// upstream copy\n")
+    git(repo, "add", "-A")
+    git(repo, "commit", "-q", "-m", "both copies exist")
+    git(repo, "checkout", "-q", "master")
+    git(repo, "merge", "-q", "--ff-only", "upstream")
+    git(repo, "checkout", "-q", "upstream")
+
+    (repo / "toonz/sources/toonz/gone.cpp").unlink()
+    sha = upstream_commit(repo, "upstream deletes gone.cpp")
+
+    assert agent.apply_commit(sha, agent.compile_rules([]))
+
+    assert not (repo / "flare/sources/flare/gone.cpp").exists()
+    assert staged(repo) == ["flare/sources/flare/gone.cpp"]
+    assert "toonz/sources/toonz/gone.cpp" not in staged(repo)

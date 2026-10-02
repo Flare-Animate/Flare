@@ -11,7 +11,8 @@
 // tests. flashimport.cpp keeps only the dialog, dispatch and scene-import glue.
 //
 // Format knowledge (see also doc/FLASH_SUPPORT.md):
-//   - Adobe SWF specification, tag codes 6/8/20/21/22/23/24/35/36/90
+//   - Adobe SWF specification, image tag codes 6/8/20/21/35/36/90
+//     (22, 23 and 24 are DefineShape2, DefineButtonCxform and DefineFont2)
 //   - Ruffle (MIT/Apache-2.0)  - tag reference numbers and RECT bit layout
 //   - [MS-CFB]                - Compound File Binary layout used by legacy FLA
 //   - FLV public spec / ISO BMFF - container headers
