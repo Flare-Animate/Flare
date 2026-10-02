@@ -110,9 +110,13 @@ static void probeFile(const QString &path, const QString &keepDir) {
     const FlashAssets::SwfContent c = FlashAssets::censusSwf(src);
     printf("  swf census     : bitmap=%d", c.bitmaps);
     printf(" shape=%d", c.shapes);
+    printf(" button=%d", c.buttons);
+    printf(" field=%d", c.fields);
+    printf(" symbol=%d", c.symbols);
     printf(" text=%d", c.texts);
     printf(" font=%d", c.fonts);
     printf(" video=%d", c.video);
+    printf(" videoFrame=%d", c.videoFrames);
     printf(" audio=%d", c.audio);
     printf(" stream=%d", c.streams);
     printf(" sprite=%d", c.sprites);

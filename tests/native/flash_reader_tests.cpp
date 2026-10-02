@@ -193,41 +193,68 @@ static void test_census_tag_codes() {
     struct Expect {
         quint16 code;
         const char *name;
+        // Column order matches the case table below, which is documented in the
+        // same order:
+        //     bmp shp btn fld sym vid txt fnt vdo
         int bitmaps;
         int shapes;
+        int buttons;
+        int fields;
+        int symbols;
+        int videoFrames;
+        int texts;
         int fonts;
         int video;
     };
     // One tag at a time, so a code that lands in two tallies cannot hide behind
     // another tag's contribution. Codes verified against the SWF specification's
     // tag table and against flare/sources/common/flash/Macromedia.h.
+    //
+    // buttons, fields, symbols and videoFrames were added after measuring
+    // mario.ssf -- a real 3.5 MB SWF with 14,882 tags across 26 codes -- which
+    // showed SymbolClass going untallied while carrying the name of every display
+    // object in the movie, and DefineButton and DefineEditText uncounted although
+    // both are content a user can see.
     const Expect cases[] = {
-        {2, "DefineShape", 0, 1, 0, 0},
-        {22, "DefineShape2", 0, 1, 0, 0},
-        {32, "DefineShape3", 0, 1, 0, 0},
-        {83, "DefineShape4", 0, 1, 0, 0},
-        {46, "DefineMorphShape", 0, 1, 0, 0},
-        {20, "DefineBitsLossless", 1, 0, 0, 0},
-        {36, "DefineBitsLossless2", 1, 0, 0, 0},
-        {21, "DefineBitsJPEG2", 1, 0, 0, 0},
-        {35, "DefineBitsJPEG3", 1, 0, 0, 0},
-        {90, "DefineBitsJPEG4", 1, 0, 0, 0},
-        {6, "DefineBits", 1, 0, 0, 0},
-        {24, "Protect", 0, 0, 0, 0},
-        {48, "DefineFont2", 0, 0, 1, 0},
-        {75, "DefineFont3", 0, 0, 1, 0},
-        {10, "DefineFont", 0, 0, 1, 0},
-        // Video is 60 and 62. 81 and 93 are DefineSceneAndFrameLabelData and
-        // DefineScalingGrid -- the previous tally used those, so it was never
-        // reachable, and a real video clip went uncounted.
-        {60, "DefineVideoStream", 0, 0, 0, 1},
-        {62, "DefineVideoStream2", 0, 0, 0, 1},
-        // 23 is DefineButtonCxform: not a bitmap, not a shape, not a font. It
-        // used to be dispatched as DefineBitsJPEG4, so this is the case that
-        // fails on the old mapping.
-        {23, "DefineButtonCxform", 0, 0, 0, 0},
+        //       code  name                 bmp shp btn fld sym vid txt fnt vdo
+        {2, "DefineShape", 0, 1, 0, 0, 0, 0, 0, 0, 0},
+        {22, "DefineShape2", 0, 1, 0, 0, 0, 0, 0, 0, 0},
+        {32, "DefineShape3", 0, 1, 0, 0, 0, 0, 0, 0, 0},
+        {83, "DefineShape4", 0, 1, 0, 0, 0, 0, 0, 0, 0},
+        {46, "DefineMorphShape", 0, 1, 0, 0, 0, 0, 0, 0, 0},
+        {20, "DefineBitsLossless", 1, 0, 0, 0, 0, 0, 0, 0, 0},
+        {36, "DefineBitsLossless2", 1, 0, 0, 0, 0, 0, 0, 0, 0},
+        {21, "DefineBitsJPEG2", 1, 0, 0, 0, 0, 0, 0, 0, 0},
+        {35, "DefineBitsJPEG3", 1, 0, 0, 0, 0, 0, 0, 0, 0},
+        {90, "DefineBitsJPEG4", 1, 0, 0, 0, 0, 0, 0, 0, 0},
+        {6, "DefineBits", 1, 0, 0, 0, 0, 0, 0, 0, 0},
+        // Buttons are art a user can see and click; a text field is one they can
+        // type into. Neither was tallied, so a movie built from buttons reported
+        // no vector art and no text at all.
+        {3, "DefineButton", 0, 0, 1, 0, 0, 0, 0, 0, 0},
+        {34, "DefineButton2", 0, 0, 1, 0, 0, 0, 0, 0, 0},
+        {37, "DefineEditText", 0, 0, 0, 1, 0, 0, 0, 0, 0},
+        // SymbolClass names every display object in the movie.
+        {76, "SymbolClass", 0, 0, 0, 0, 1, 0, 0, 0, 0},
+        {24, "Protect", 0, 0, 0, 0, 0, 0, 0, 0, 0},
+        {48, "DefineFont2", 0, 0, 0, 0, 0, 0, 0, 1, 0},
+        {75, "DefineFont3", 0, 0, 0, 0, 0, 0, 0, 1, 0},
+        {10, "DefineFont", 0, 0, 0, 0, 0, 0, 0, 1, 0},
+        {60, "DefineVideoStream", 0, 0, 0, 0, 0, 0, 0, 0, 1},
+        {62, "DefineVideoStream2", 0, 0, 0, 0, 0, 0, 0, 0, 1},
+        // A frame of an embedded video stream, counted apart from the stream so a
+        // movie with video can say how much of it there is.
+        {61, "VideoFrame", 0, 0, 0, 0, 0, 1, 0, 0, 0},
+        {23, "DefineButtonCxform", 0, 0, 0, 0, 0, 0, 0, 0, 0},
         // 8 is JPEGTables: a header, not an image. Deliberately uncounted.
-        {8, "JPEGTables", 0, 0, 0, 0},
+        {8, "JPEGTables", 0, 0, 0, 0, 0, 0, 0, 0, 0},
+        // Structure, not content: timeline placement. Counted in no tally, and
+        // deliberately so -- in mario.ssf these three are 9,515 of 14,882 tags,
+        // 64%, in a movie with 111 shapes.
+        {26, "PlaceObject2", 0, 0, 0, 0, 0, 0, 0, 0, 0},
+        {28, "RemoveObject2", 0, 0, 0, 0, 0, 0, 0, 0, 0},
+        {70, "PlaceObject3", 0, 0, 0, 0, 0, 0, 0, 0, 0},
+        {43, "FrameLabel", 0, 0, 0, 0, 0, 0, 0, 0, 0},
     };
 
     int wrong = 0;
@@ -235,15 +262,19 @@ static void test_census_tag_codes() {
         const QByteArray swf = swfWithTags({e.code});
         const FlashAssets::SwfContent c = FlashAssets::censusSwf(swf);
         const bool ok = (c.bitmaps == e.bitmaps && c.shapes == e.shapes &&
-                         c.fonts == e.fonts && c.video == e.video);
-        checkQ(ok, QString("tag %1 (%2) lands in bitmaps=%3 shapes=%4 fonts=%5 "
-                           "video=%6")
+                         c.buttons == e.buttons && c.fields == e.fields &&
+                         c.symbols == e.symbols &&
+                         c.videoFrames == e.videoFrames &&
+                         c.texts == e.texts && c.fonts == e.fonts &&
+                         c.video == e.video);
+        checkQ(ok, QString("%1 (%2) lands in the right tally")
                        .arg(e.code)
-                       .arg(QString::fromLatin1(e.name))
-                       .arg(c.bitmaps)
-                       .arg(c.shapes)
-                       .arg(c.fonts)
-                       .arg(c.video));
+                       .arg(QString::fromLatin1(e.name)),
+               QString("got bmp=%1 shp=%2 btn=%3 fld=%4 sym=%5 vfr=%6 "
+                       "txt=%7 fnt=%8 vdo=%9")
+                   .arg(c.bitmaps).arg(c.shapes).arg(c.buttons)
+                   .arg(c.fields).arg(c.symbols).arg(c.videoFrames)
+                   .arg(c.texts).arg(c.fonts).arg(c.video));
         if (!ok) ++wrong;
     }
     check(wrong == 0, "every tag code lands in exactly the right tally",

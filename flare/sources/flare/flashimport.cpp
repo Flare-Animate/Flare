@@ -628,6 +628,9 @@ void ImportFlashVectorCommand::execute() {
                 const FlashAssets::SwfContent c = FlashAssets::censusSwf(src2);
                 QStringList missing;
                 if (c.shapes)  missing << QObject::tr("%1 vector shape(s)").arg(c.shapes);
+                if (c.buttons) missing << QObject::tr("%1 button(s)").arg(c.buttons);
+                if (c.fields)  missing << QObject::tr("%1 text field(s)").arg(c.fields);
+                if (c.symbols) missing << QObject::tr("%1 named symbol(s)").arg(c.symbols);
                 if (c.texts)   missing << QObject::tr("%1 text object(s)").arg(c.texts);
                 if (c.fonts)   missing << QObject::tr("%1 embedded font(s)").arg(c.fonts);
                 if (c.video)   missing << QObject::tr("%1 video stream(s)").arg(c.video);

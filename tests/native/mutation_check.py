@@ -312,6 +312,21 @@ SWF_ASSETS = os.path.join(HERE, "..", "..", "flare", "sources", "common",
 # 22 is DefineShape2 and 35 is DefineBitsJPEG3, per the SWF specification and
 # per flare/sources/common/flash/Macromedia.h.
 SWF_MUTATIONS = [
+    # The four tallies added after measuring mario.ssf. Each is a single-line swap
+    # in the census dispatch, and each is the whole of its own tally -- so
+    # deleting one outright is the same failure this catches.
+    ("DefineButton and DefineButton2 no longer counted as buttons",
+     r"case 3: case 34: \+\+c\.buttons;",
+     "case 3: case 34: break;"),
+    ("DefineEditText no longer counted as a text field",
+     r"case 37: \+\+c\.fields;",
+     "case 37: break;"),
+    ("SymbolClass no longer counted",
+     r"case 76: \+\+c\.symbols;",
+     "case 76: break;"),
+    ("VideoFrame no longer counted",
+     r"case 61: \+\+c\.videoFrames;",
+     "case 61: break;"),
     ("tag 22 missing from the shape tally",
      r"case 2: case 22: case 32: case 46: case 83: \+\+c\.shapes;",
      "case 2: case 32: case 46: case 83: ++c.shapes;"),

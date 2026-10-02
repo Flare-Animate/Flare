@@ -976,7 +976,36 @@ void censusInto(const unsigned char *d, int size, int pos, SwfContent &c,
         // DefineVideoStream(2) are 60 and 62. 81 and 93 are DefineSceneAndFrame-
         // LabelData and DefineScalingGrid, so this tally was never reachable.
         case 60: case 62: ++c.video;   break;
+        // VideoFrame (61) is a frame of the stream above, counted separately so a
+        // movie with video can say how much of it there is rather than only that a
+        // stream exists.
+        case 61: ++c.videoFrames; break;
         case 87: ++c.binary; break;                 // DefineBinaryData
+        // Buttons (3, 34) are art a user can see and click; DefineEditText (37) is
+        // a text field they can type into. Neither was counted, so a movie built
+        // from buttons reported no vector art and no text at all.
+        case 3: case 34: ++c.buttons; break;        // DefineButton / DefineButton2
+        case 37: ++c.fields;  break;                // DefineEditText
+        // SymbolClass (76): the name of every display object in the movie.
+        case 76: ++c.symbols; break;
+
+        // Deliberately not counted, because they are timeline structure rather than
+        // content, and counting them would make the census useless: in a real 3.5 MB
+        // SWF, PlaceObject2 (26), RemoveObject2 (28) and PlaceObject3 (70) are 9,515
+        // of 14,882 tags -- 64% -- in a movie with 111 shapes. Reporting "14,882
+        // items" for 111 shapes is the opposite of naming what a file holds.
+        // FrameLabel (43) is structural for the same reason, as are ExportAssets
+        // (56), ImportAssets (57), SetTabIndex (66), FileAttributes (69),
+        // CSMTextSettings (74), DefineFontAlignZones (73), DefineScalingGrid (78),
+        // DefineSceneAndFrameLabelData (86), DefineFontName (88), Protect (24),
+        // JPEGTables (8) and DefineButtonSound (4/7/17).
+        // Only codes that appear nowhere else in this switch, because a repeated
+        // case label does not compile. 24 is already above, as the negative case
+        // that caught the font transposition; 5, 8, 13 and 23 likewise.
+        case 26: case 28: case 70: case 43: case 66: case 69: case 73:
+        case 74: case 78: case 86: case 88: case 56: case 57:
+        case 9: case 77: case 15: case 19: case 58: case 4: case 7: case 17:
+            break;                                   // structure, not content
         case 39: {                                  // DefineSprite
             ++c.sprites;
             // The sprite body is its own tag stream, after CharacterID(2) and

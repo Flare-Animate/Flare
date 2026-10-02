@@ -125,12 +125,25 @@ struct SwfContent {
     int sprites = 0;   // DefineSprite (nested timelines)
     int actions = 0;   // DoAction / DoInitAction (ActionScript 1/2 bytecode)
     int abc     = 0;   // DoABC / DoABC2 (ActionScript 3 bytecode)
-    int video   = 0;   // DefineVideoStream
+    int video   = 0;   // DefineVideoStream / DefineVideoStream2
+    // Buttons and dynamic text fields are content a user recognises: a button is
+    // art they can click, an edit field is text they can type into. Neither was
+    // counted, so a movie built from buttons reported no vector art and no text.
+    int buttons = 0;   // DefineButton / DefineButton2
+    int fields  = 0;   // DefineEditText
+    // SymbolClass carries the name of every display object in the movie. A real
+    // 3.5 MB SWF has one tag carrying 14 KB of them; counting nothing here made a
+    // movie of named symbols report as having none.
+    int symbols = 0;   // SymbolClass
+    // Video frames, so a movie with an embedded clip says how much of it there is
+    // rather than only that a stream exists.
+    int videoFrames = 0;  // VideoFrame
     int binary  = 0;   // DefineBinaryData
 
     bool isEmpty() const {
         return !(bitmaps || audio || streams || shapes || texts || fonts ||
-                 sprites || actions || abc || video || binary);
+                 sprites || actions || abc || video || binary || buttons ||
+                 fields || symbols || videoFrames);
     }
     // True when the movie carries art that the bitmap extractor cannot turn
     // into a level, so the user should be told why the import looks empty.
