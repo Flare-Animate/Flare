@@ -348,6 +348,12 @@ SWF_MUTATIONS = [
 MOHO_READER = os.path.join(HERE, "..", "..", "flare", "sources", "common",
                            "moho", "MohoReader.cpp")
 
+# The XFL reader, covered by xfl_shape_tests' census case. Separate again because
+# the census is the only thing the dialog prints about an .fla -- it names what the
+# document holds, including content the reader does not convert.
+XFL_READER = os.path.join(HERE, "..", "..", "flare", "sources", "common",
+                          "flash", "XFLReader.cpp")
+
 MOHO_MUTATIONS = [
     # The Moho container sniffer. A separate source and a separate binary, for the
     # same reason as the SWF table: these controls exist because the sniffer used
@@ -393,12 +399,48 @@ MOHO_MUTATIONS = [
      "const QByteArray head = f.peek(8);"),
 ]
 
+XFL_MUTATIONS = [
+    # The bug this table exists for. parseSymbol() grouped DOMBitmapInstance with
+    # DOMSymbolInstance, recorded only the name it referred to, and tallied neither
+    # -- so an FLA with bitmaps inside its LIBRARY/ reported none, in the dialog
+    # whose whole job is to name what a document holds.
+    #
+    # \s* rather than a literal run of spaces, because norm() collapses runs of
+    # spaces before substituting: a pattern that spells out the indentation never
+    # matches, and reports nothing about why. Each pattern also names enough
+    # surrounding text to be unambiguous, because the DOMDocument path has its own
+    # DOMShape and census.symbols sites which must not be touched.
+    ("DOMBitmapInstance grouped with DOMSymbolInstance again (the original bug)",
+     r'\}\s*else if \(name == QLatin1String\("DOMSymbolInstance"\)\) \{\n'
+     r'\s*// Record the library item name a symbol instance refers to, so a\n'
+     r'\s*// bitmap symbol can still be resolved by name\.\n'
+     r'\s*const QString ref = attrs\.value\("libraryItemName"\)\.toString\(\);\n'
+     r'\s*if \(!found && !ref\.isEmpty\(\)\) relativeName = ref;\n'
+     r'\s*\+\+m_document\.census\.symbols;\n'
+     r'\s*\}\s*else if \(name == QLatin1String\("DOMBitmapInstance"\)\) \{'
+     r'.*?\+\+m_document\.census\.bitmaps;\s*\}',
+     '        } else if (name == QLatin1String("DOMSymbolInstance") ||\n'
+     '                   name == QLatin1String("DOMBitmapInstance")) {\n'
+     '            const QString ref = attrs.value("libraryItemName").toString();\n'
+     '            if (!found && !ref.isEmpty()) relativeName = ref;\n'
+     '        }'),
+    ("a shape inside a library symbol no longer counted",
+     r'\}\s*else if \(name == QLatin1String\("DOMShape"\)\) \{\n'
+     r'\s*\+\+m_document\.census\.shapes;\n'
+     r'\s*\}\s*else if \(name == QLatin1String\("DOMShapeText"\)\) \{\n'
+     r'\s*\+\+m_document\.census\.shapeText;',
+     '        } else if (name == QLatin1String("DOMShape")) {\n'
+     '        } else if (name == QLatin1String("DOMShapeText")) {\n'
+     '            ++m_document.census.shapeText;'),
+]
+
 # Which binary covers which file. Kept next to the tables so adding a mutation
 # cannot leave it unassigned: main() refuses to run if a file has no binary.
 COVERING = {
     "SHAPE": "XFL_SHAPE",
     "SWF_ASSETS": "FLASH_READER",
     "MOHO_READER": "MOHO_READER",
+    "XFL_READER": "XFL_SHAPE",
 }
 
 def main():
@@ -459,6 +501,10 @@ def main():
                            "generate_moho_fixtures.py")
         subprocess.run([sys.executable, gen, moho_fx], check=True)
     plan += [(MOHO_READER, moho_exe, (moho_fx,), *m) for m in MOHO_MUTATIONS]
+    # XFL census, covered by the census case in xfl_shape_tests.
+    xfl_exe = os.path.join(HERE, 'build', 'RelWithDebInfo',
+                           'xfl_shape_tests.exe')
+    plan += [(XFL_READER, xfl_exe, (), *m) for m in XFL_MUTATIONS]
 
     for source, exe, extra, name, pattern, repl in plan:
         original = io.open(source, encoding="utf-8", newline="").read()

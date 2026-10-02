@@ -6,8 +6,13 @@
 // pipeline on geometry taken verbatim from a real FLA.
 //
 // usage: xfl_shape_tests <extracted-fla-dir>
+#include "XFLReader.h"
 #include "XFLShape.h"
 
+#include <QDir>
+#include <QFile>
+#include <QTemporaryDir>
+#include <QXmlStreamReader>
 #include <QCoreApplication>
 #include <cstdio>
 #include <cmath>
@@ -539,6 +544,116 @@ static void test_svg() {
     check(edoc.contains("viewBox=\"0 0 0 0\""), "with a zero viewBox");
 }
 
+// ---------------------------------------------------------------------------
+// A minimal .xfl directory, for the census.
+//
+// DOMDocument.xml declares one timeline, one layer, one frame holding a symbol
+// instance. LIBRARY/Sym1.xml declares that symbol -- as a DOMSymbolItem, which is
+// what Animate writes into a .fla's LIBRARY/, checked against a real export -- and
+// its body contains one shape and one bitmap instance.
+//
+// Expected: shapes=1, symbols=1, bitmaps=1 -- the document declares a timeline
+// holding a symbol *instance*, and the only shape and the only bitmap are inside
+// the library symbol. So this also proves the library walk runs at all: without
+// it the shape and the bitmap would both be zero.
+//
+// The bitmap is the regression. parseSymbol() grouped DOMBitmapInstance with
+// DOMSymbolInstance, recorded only the name it referred to, and tallied neither --
+// so an FLA with bitmaps inside its library symbols reported none in the dialog
+// that prints this census.
+// ---------------------------------------------------------------------------
+static bool writeXflFixture(const QString &root) {
+  QDir().mkpath(root + "/LIBRARY");
+
+  const auto put = [](const QString &path, const QByteArray &body) {
+    QFile f(path);
+    if (!f.open(QIODevice::WriteOnly)) return false;
+    f.write(body);
+    f.close();
+    return true;
+  };
+
+  const QByteArray dom =
+      "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+      "<DOMDocument xmlns=\"http://ns.adobe.com/xfl/2008/\" "
+      "width=\"640\" height=\"360\" frameRate=\"24\">\n"
+      "  <symbols><Include name=\"Sym1\" href=\"LIBRARY/Sym1.xml\"/></symbols>\n"
+      "  <timelines><DOMTimeline name=\"Scene 1\"><layers>"
+      "<DOMLayer name=\"Layer 1\" layerType=\"normal\"><frames>"
+      "<DOMFrame index=\"0\" duration=\"1\">"
+      "<elements><DOMSymbolInstance libraryItemName=\"Sym1\"/></elements>"
+      "</DOMFrame></frames></DOMLayer></layers></DOMTimeline></timelines>\n"
+      "</DOMDocument>\n";
+
+  const QByteArray sym =
+      "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+      "<DOMSymbolItem xmlns=\"http://ns.adobe.com/xfl/2008/\" name=\"Sym1\" "
+      "itemID=\"1\" symbolType=\"graphic\">\n"
+      "  <contents><DOMGroup>\n"
+      "    <DOMShape edges=\"!0 0|10 0|10 10 !0 10\">"
+      "<fills><FillStyle><SolidColor rgb=\"#FF0000\"/></FillStyle></fills>"
+      "</DOMShape>\n"
+      "    <DOMBitmapInstance libraryItemName=\"Bmp1\"/>\n"
+      "  </DOMGroup></contents>\n"
+      "</DOMSymbolItem>\n";
+
+  return put(root + "/DOMDocument.xml", dom) &&
+         put(root + "/LIBRARY/Sym1.xml", sym);
+}
+
+static void test_census() {
+  fprintf(stderr, "\n-- XFL census --\n");
+  QTemporaryDir dir;
+  if (!dir.isValid()) {
+    check(false, "a temporary directory is available");
+    return;
+  }
+  const QString root = dir.path() + "/doc.xfl";
+  if (!writeXflFixture(root)) {
+    check(false, "the fixture is written");
+    return;
+  }
+  check(true, "the fixture is written");
+
+  XFL::Reader reader{TFilePath(root.toStdString())};
+  const bool ok = reader.read();
+  check(ok, "the reader reads an .xfl directory",
+        QString::fromStdString(reader.getError()));
+  if (!ok) return;
+
+  const XFL::Document &doc = reader.getDocument();
+  const XFL::ContentCensus &c = doc.census;
+
+  // One shape, and it is inside the library symbol: the document itself holds a
+  // symbol instance. Reaching 1 at all means parseSymbol() ran.
+  QString shapesMsg = QString("shapes: the one in the library symbol (got %1)")
+                          .arg(c.shapes);
+  check(c.shapes == 1, "the census counts a shape inside a library symbol",
+        shapesMsg);
+
+  QString symMsg = QString("symbols: the one instance in the timeline (got %1)")
+                       .arg(c.symbols);
+  check(c.symbols == 1,
+        "the census counts symbol instances on the timeline", symMsg);
+
+  // The regression this test exists for.
+  QString bmpMsg = QString("bitmaps: the instance inside the library symbol "
+                          "(got %1)")
+                       .arg(c.bitmaps);
+  check(c.bitmaps == 1,
+        "the census counts a bitmap inside a library symbol", bmpMsg);
+
+  QString sizeMsg = QString("stage size read from the document's attributes "
+                            "(%1x%2)")
+                        .arg(doc.width).arg(doc.height);
+  check(doc.width == 640 && doc.height == 360,
+        "the stage size comes from the document's attributes", sizeMsg);
+
+  check(!doc.timelines.empty(),
+        "the timeline was parsed",
+        QString::number(doc.timelines.size()));
+}
+
 int main(int argc, char **argv) {
     QCoreApplication app(argc, argv);
     // argv[1] is accepted for symmetry with the other suites; these cases are
@@ -546,6 +661,8 @@ int main(int argc, char **argv) {
     (void)argc;
     (void)argv;
 
+
+    test_census();
     test_numbers();
     test_opcodes();
     test_closure();
