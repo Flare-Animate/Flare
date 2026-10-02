@@ -118,20 +118,58 @@ getting one wrong produces no error: the JPEG branch probes the payload and
 byte outside 3/4/5. A transposed tag family therefore writes no file and reports
 success.
 
-`flash_reader_tests` pins every code it dispatches on — 2/22/32/46/83 shapes,
-6/20/21/35/36/90 bitmaps, 10/48/75 fonts, 60/62 video — against the
-specification's tag table and against `flare/sources/common/flash/Macromedia.h`,
-and `test_jpeg3_extraction_by_tag_code` builds a real `DefineBitsJPEG3` and
-`DefineBitsJPEG4` and asserts each yields a decodable file. The four controls in
+`flash_reader_tests` pins every code it dispatches on -- one tag at a time, so a
+code landing in two tallies cannot hide behind another's contribution -- against
+the specification's tag table and against
+`flare/sources/common/flash/Macromedia.h`:
+
+| Tally | Codes |
+|-------|-------|
+| bitmaps | 6, 20, 21, 35, 36, 90 |
+| shapes | 2, 22, 32, 46, 83 |
+| buttons | 3, 34 |
+| text fields | 37 |
+| named symbols | 76 |
+| video streams / frames | 60, 62 / 61 |
+| text / fonts | 11, 33 / 10, 48, 75 |
+| audio / streams | 14 / 18, 45, 89 |
+| ActionScript 1 / 3 | 12, 59 / 72, 82 |
+| binary / sprites | 87 / 39 |
+
+`test_jpeg3_extraction_by_tag_code` builds a real `DefineBitsJPEG3` and
+`DefineBitsJPEG4` and asserts each yields a decodable file. The controls in
 `mutation_check.py` that reintroduce the original transpositions must all be
 caught, or the test is not covering them.
 
 This was added after a merge brought a corrected copy of `SWFAssets.cpp` into
 view, at which point it turned out the JPEG and lossless families had been
 transposed, tag 24 (Protect) was being counted as a font while 48
-(DefineFont2) was not, and video was counted on 81/93 — codes that belong to
+(DefineFont2) was not, and video was counted on 81/93 -- codes that belong to
 `DefineSceneAndFrameLabelData` and `DefineScalingGrid`, so that tally was never
 reachable at all.
+
+### What the census does not count, and why
+
+Measured over `mario.ssf`, a real 3.5 MB uncompressed SWF, walked with an
+independent decoder: **14,882 tags across 26 distinct codes**. The census tallies
+**1,736** of them. The rest are timeline *structure*, and counting them would make
+the census less useful rather than more complete -- `PlaceObject2`,
+`RemoveObject2` and `PlaceObject3` alone are 9,515 tags, **64%**, in a movie with
+111 shapes, so a census that counted them would report "14,882 items" for 111
+shapes.
+
+Also excluded, for the same reason: `FrameLabel` (176 tags in that file),
+`ExportAssets`, `ImportAssets`, `SetTabIndex`, `FileAttributes`,
+`DefineFontAlignZones`, `CSMTextSettings`, `DefineScalingGrid`,
+`DefineSceneAndFrameLabelData`, `DefineFontName` and `Protect`.
+
+That list is a comment in the census dispatch rather than an absence, so the
+omission reads as a decision rather than an oversight.
+
+The four tallies the same measurement showed missing -- buttons, text fields,
+`SymbolClass` and video frames -- were added. `SymbolClass` was the significant
+one: that file carries a single 14 KB tag holding the name of every display object
+in the movie, and the census reported nothing about it.
 
 ## ZIP trailer repair
 
