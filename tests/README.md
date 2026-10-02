@@ -16,12 +16,13 @@ Qt's image plugins and will report that no bitmaps decoded.
 |-------|----------------|
 | `tools/flash/tests`, `tools/sync/tests` (pytest) | the `flare-as3` bridge's JSON contract and AS3 patch pass; the upstream sync agent's path mapping |
 | `tests/moho/test_moho_menu.py` | the Moho import command's menu wiring |
-| `tests/native/flash_reader_tests.cpp` | format sniffing, SWF header, ZIP extraction and trailer repair, Zip-Slip refusal, malformed input, AS3 bridge degradation |
+| `tests/native/flash_reader_tests.cpp` | format sniffing, SWF header, ZIP extraction and trailer repair, Zip-Slip refusal, malformed input, SWF tag-code dispatch, AS3 bridge degradation |
 | `tests/native/xfl_shape_tests.cpp` | the XFL `<DOMShape>` decoder: number grammar, opcode arity, implicit closure, restated moveTos, malformed input, SVG output |
-| `tests/native/moho_reader_tests.cpp` | the whole Moho reader surface |
+| `tests/native/moho_reader_tests.cpp` | the whole Moho reader surface, including container sniffing against real binary signatures |
 | `tests/native/differential_shape.py` | the C++ shape decoder against an independent Python one, over a real FLA |
 | `tests/native/verify_shapes_svg.py` | exported SVGs against an independent decode: every point, and every viewBox |
-| `tests/native/mutation_check.py` | injects each fixed shape bug in turn and confirms the suite catches it |
+| `tests/native/mutation_check.py` | injects each fixed bug in turn, across three sources and three test binaries, and confirms the suite catches it |
+| `tests/native/probe_samples.cpp` | not a test: reports what each shipped reader makes of any file given, so untested formats show up as zeros rather than passes |
 
 `run_all.py` prints the last three at the end as not-covered, because a clean
 pass through the default set is not evidence they ran.

@@ -94,6 +94,28 @@ target_link_libraries(shape_census PRIVATE
     kernel32.lib
 )
 
+# A probe rather than a test: it takes arbitrary paths and prints what each
+# shipped reader made of them, so a gap in coverage shows up as a zero rather
+# than as a pass. Needs the moho include path too, since it reports both.
+add_executable(probe_samples
+    probe_samples.cpp
+)
+target_include_directories(probe_samples PRIVATE
+    "${FLASH_ROOT}/flare/sources/common/flash"
+    "${FLASH_ROOT}/flare/sources/common/moho"
+    "${FLASH_ROOT}/flare/sources/include"
+    "${ZLIB_DIR}"
+    "${MINIZIP}"
+)
+target_link_libraries(probe_samples PRIVATE
+    Qt5::Core
+    Qt5::Gui
+    "${ZLIB_IMPORT_LIB}"
+    "${BUILD}/sources/tnzcore/RelWithDebInfo/tnzcore.lib"
+    "${BUILD}/sources/tnzbase/RelWithDebInfo/tnzbase.lib"
+    kernel32.lib
+)
+
 add_executable(shape_export
     shape_export.cpp
 )

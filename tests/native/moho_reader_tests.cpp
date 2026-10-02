@@ -6,13 +6,18 @@
 // with a dangling parent index, and several ways a file can be rejected.
 //
 // Run: moho_tests <fixtureDir>
-#include <windows.h>
-
 #include "MohoReader.h"
 #include "tsystem.h"
 
+// Needed for LoadLibraryA / GetProcAddress / HMODULE: this test resolves the
+// reader's exports at run time out of the built tnzcore, so it can exercise the
+// shipped DLL rather than a linked copy. Not removable -- I tried, and the
+// build failed with HMODULE undeclared.
+#include <windows.h>
+
 #include <QCoreApplication>
 #include <QString>
+#include <QTemporaryDir>
 #include <QDir>
 #include <QFile>
 #include <QJsonArray>
@@ -114,6 +119,146 @@ int main(int argc, char **argv) {
           "a non-Moho ZIP still reads as a ZIP");
     check(g_detect(TFilePath("nope.moho")) == Moho::Container::Unknown,
           "a missing file is Unknown");
+
+    // ---- a binary file must not be diagnosed as a legacy .anme -----------
+    // Found by running the shipped reader over real files: mario.ssf, a 3.5 MB
+    // uncompressed SWF that Moho exported, came back as "pre-11 .anme project:
+    // a plain-text format Moho itself only reads. Re-save it from Moho as a
+    // .moho project." That is the worst possible answer to give someone holding
+    // a Flash movie: it names a real format, says it is old, and points them at
+    // software that cannot help. The cause was inferring Legacy from "the first
+    // non-space byte is not '{'", which is true of every SWF, PNG and PDF.
+    //
+    // So the container sniffer has to decline on binary content it does not
+    // recognise, rather than pick the nearest format it knows.
+    {
+        QTemporaryDir bin;
+        check(bin.isValid(), "temp dir for the binary-detection cases");
+
+        // The real leading bytes of each, so this is not a synthetic guess. The
+        // length comes from strlen rather than being written out, so the two
+        // cannot drift apart the way a hand-written pair did.
+        struct Binary {
+            const char *name;
+            const char *magic;
+        };
+        const Binary cases[] = {
+            {"swf_fws.fws", "FWS"},         // uncompressed Flash movie
+            {"swf_cws.cws", "CWS"},         // zlib-compressed Flash movie
+            {"flv.flv", "FLV"},             // Flash video
+            {"png.png", "\x89PNG"},        // image
+            {"gif.gif", "GIF8"},            // image
+            {"pdf.pdf", "%PDF"},            // document
+            {"elf.so", "\x7f" "ELF"},      // a shared object
+            // Moho's own SWF export: identical bytes, a .ssf name. This is the
+            // case that was actually reported.
+            {"mario_export.ssf", "FWS"},
+        };
+
+        for (const Binary &c : cases) {
+            const QString p = QDir(bin.path()).filePath(c.name);
+            // Trailing bytes so the file is longer than its signature and the
+            // 64-byte peek is genuinely exercised rather than ending on it.
+            QByteArray blob(c.magic);
+            blob.append(QByteArray(200, '\0'));
+            for (int i = 0; i < blob.size(); ++i)
+                blob[i] = static_cast<char>((blob.at(i) + i * 7) & 0xFF);
+
+            QFile f(p);
+            f.open(QIODevice::WriteOnly);
+            f.write(blob);
+            f.close();
+
+            const Moho::Container got = g_detect(TFilePath(p.toStdString()));
+            check(got == Moho::Container::Unknown,
+                  "a binary file is not diagnosed as a legacy .anme",
+                  QString::fromLatin1(c.name));
+        }
+
+        // And the consequence, not just the enum: what the user is told has to be
+        // the honest thing. Asserting the enum alone would still pass while the
+        // dialog said "re-save it from Moho".
+        {
+            const QString p = QDir(bin.path()).filePath("swf_cws.cws");
+            Moho::Document doc;
+            const bool ok = g_read(TFilePath(p.toStdString()), doc);
+            check(!ok, "a Flash movie is not a Moho project");
+            check(!doc.error.contains("anme"),
+                  "and the message does not claim it is a legacy .anme",
+                  doc.error);
+            check(!doc.error.contains("Re-save"),
+                  "nor tell the user to re-save it from Moho", doc.error);
+            check(doc.error.contains("not a Moho project"),
+                  "but says plainly that it is not one", doc.error);
+        }
+    }
+
+    // ---- a BOM must not make a valid .mohoproj look legacy ---------------
+    // JSON permits a UTF-8 BOM and editors emit one. The old detector skipped
+    // whitespace but not the BOM, so such a file was classified Legacy and the
+    // user was told to re-save a perfectly good project.
+    {
+        QTemporaryDir bom;
+        check(bom.isValid(), "temp dir for the BOM case");
+        const QString p = QDir(bom.path()).filePath("bom.mohoproj");
+        QFile f(p);
+        f.open(QIODevice::WriteOnly);
+        f.write("\xEF\xBB\xBF", 3);
+        f.write("{\"moho_version\":1021,\"main\":\"m\",\"layers\":[]}");
+        f.close();
+        check(g_detect(TFilePath(p.toStdString())) == Moho::Container::RawJson,
+              "a BOM before the JSON brace still reads as a document");
+
+        // And it must parse, not merely be classified right -- QJsonDocument
+        // handles the BOM itself, but only if the reader passes the bytes on
+        // rather than stripping them into a different code path.
+        Moho::Document doc;
+        const bool parsed = g_read(TFilePath(p.toStdString()), doc);
+        check(parsed, "a BOM-prefixed document parses", doc.error);
+    }
+
+    // ---- leading whitespace ahead of the brace ---------------------------
+    {
+        QTemporaryDir ws;
+        check(ws.isValid(), "temp dir for the whitespace case");
+        const QString p = QDir(ws.path()).filePath("ws.mohoproj");
+        QFile f(p);
+        f.open(QIODevice::WriteOnly);
+        f.write("\n\n   ", 5);
+        f.write("{\"moho_version\":1021,\"main\":\"m\",\"layers\":[]}");
+        f.close();
+        check(g_detect(TFilePath(p.toStdString())) == Moho::Container::RawJson,
+              "whitespace ahead of the brace still reads as a document");
+    }
+
+    // ---- the .anme signature must be required, not merely absent ---------
+    // The negative of the case above: plain text that is not a Moho project at
+    // all must not be classified Legacy either, or the same wrong advice comes
+    // back for a text file the user misnamed.
+    {
+        QTemporaryDir txt;
+        check(txt.isValid(), "temp dir for the plain-text case");
+        const QString p = QDir(txt.path()).filePath("notes.txt");
+        QFile f(p);
+        f.open(QIODevice::WriteOnly);
+        f.write("hello world\nthis is not a project\n", 33);
+        f.close();
+        check(g_detect(TFilePath(p.toStdString())) == Moho::Container::Unknown,
+              "arbitrary plain text is Unknown, not Legacy");
+    }
+
+    // ---- the .anme signature still wins when genuinely present -----------
+    {
+        QTemporaryDir leg;
+        check(leg.isValid(), "temp dir for the real-legacy case");
+        const QString p = QDir(leg.path()).filePath("real.anme");
+        QFile f(p);
+        f.open(QIODevice::WriteOnly);
+        f.write("Anime Studio Project\r\n  version 9\r\n{\r\n", 40);
+        f.close();
+        check(g_detect(TFilePath(p.toStdString())) == Moho::Container::Legacy,
+              "the .anme header is still recognised");
+    }
 
     // ---- both container forms give the same document ----------------------
     fprintf(stderr, "\n-- container equivalence --\n");

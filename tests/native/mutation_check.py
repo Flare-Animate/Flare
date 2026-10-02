@@ -50,11 +50,182 @@ def norm(text):
     return re.sub(r"[ \t]+", " ", text.replace("\r\n", "\n"))
 
 
+def _literal_repl(repl):
+    """Escape backslashes so re.sub does not read them as substitution escapes.
+
+    re.sub interprets the replacement: `\n` becomes a newline and `\1` is a group
+    reference. A control that restores a character comparison has to contain the C
+    literal `\n`, and re was turning that into a line break -- so the mutation did
+    not compile, and the harness reported NO-BUILD, which it treats as "this
+    control cannot tell me anything". The one control whose whole purpose is to
+    prove the Moho sniffer catches the original bug was therefore reporting
+    nothing.
+
+    Only the backslashes re would misinterpret are doubled. re reads `\\1`..`\\99`
+    and `\\g<n>` as group references and every other backslash sequence as a
+    literal escape, so those are left alone and the rest are doubled. Doubling
+    everything instead -- which is what the first version did -- turned the
+    '/' control's `\\1` into a literal backslash-1 in the injected source, and the
+    compiler said:
+
+        error C3688: invalid literal suffix 'case'
+    """
+    return re.sub(r"\\(?![0-9]|g<)", r"\\\\", repl)
+
+def _restore_eol(original, mutated, pattern, repl, file_eol):
+    """Put the file's line endings back after a substitution.
+
+    re.sub splices the replacement's own line breaks in verbatim, and those are
+    bare \n because the tables are Python literals. These sources are CRLF, so a
+    multi-line replacement drops a few CRLFs and leaves git dirty for the duration
+    of the mutation -- and a control that was silently rewriting a file's
+    formatting is not a control worth trusting.
+
+    So normalise every line ending in the mutated text. Earlier versions tried to
+    touch only the lines a replacement introduced: first by bracketing characters
+    from each end, then by diffing line indices. Both were wrong at the boundary
+    -- a replacement shorter than the text it displaces leaves no clean bracket --
+    and the number of controls introducing bare LFs went 5, then 4, then 1, then
+    back to 2. Nothing distinguishes the introduced lines anyway: the whole file
+    should come out looking the same, which is the property being checked here.
+    """
+    if file_eol == "\n":
+        return mutated
+    if mutated.count("\r\n") == mutated.count("\n"):
+        return mutated          # already consistent
+    return mutated.replace("\r\n", "\n").replace("\n", file_eol)
+
+
+def inject(original, pattern, repl):
+    """Apply a mutation pattern to the source, returning (text, count).
+
+    The pattern is tried against the original text first, so a pattern that does
+    not need normalisation mutates exactly the lines it names.
+
+    Failing that it is tried against a normalised copy -- one with \r\n stripped
+    and runs of spaces collapsed -- because patterns that mention indentation or
+    explicit whitespace need that. The result is then mapped back onto the
+    original line by line, so what gets written differs from the original only in
+    the lines the mutation actually touched.
+
+    This matters: writing the normalised text back instead would convert the
+    whole file to LF for the duration of the mutation. That still compiles, but
+    the reported diff would be every line in the file rather than the injected
+    one, and an interrupted run would leave the file with its line endings
+    rewritten.
+    """
+    # re.S is required, not optional. Without it `.*?` cannot cross a newline,
+    # so every multi-line pattern matches nothing and the control silently stops
+    # testing anything. That happened to three of these, including the '/' one:
+    # the harness reported them as "pattern matched 0 times" and carried on, so
+    # a run could end with a summary line while a control was doing nothing.
+    file_eol = "\r\n" if "\r\n" in original else "\n"
+
+    lit = _literal_repl(repl)
+    new, n = re.subn(pattern, lit, original, flags=re.S)
+    if n == 1:
+        # The replacement's own line endings are whatever the table happened to
+        # spell -- usually a bare \n, since these are Python literals. Restoring
+        # the file's convention is not cosmetic: these sources are CRLF, so a
+        # multi-line replacement would otherwise drop a few CRLFs and leave git
+        # dirty for the duration of the mutation. Done on both paths, because a
+        # control's effect must not depend on whether its pattern needed
+        # normalisation.
+        if file_eol != "\n":
+            # Only the lines the replacement introduced, so a \r\n already in the
+            # surrounding original text is not doubled.
+            new = _restore_eol(original, new, pattern, repl, file_eol)
+        return new, n
+    if n > 1:
+        return None, n
+
+    ntext = norm(original)
+    m = re.search(pattern, ntext, flags=re.S)
+    if m is None:
+        return None, 0
+    mutated = m.expand(_literal_repl(repl))
+
+    # Splice rather than rewrite. The match is located by line number in the
+    # normalised text -- which has the same lines as the original, only
+    # re-indented -- and the replacement is written into that line range of the
+    # original. Rewriting the whole normalised text instead would convert the
+    # file to LF, and rebuilding it line by line only works while the mutation
+    # happens to preserve the line count, which is false for every control that
+    # replaces a block with a shorter one. That is most of the interesting ones.
+
+    start_line = ntext.count("\n", 0, m.start())
+    end_line = ntext.count("\n", 0, m.end()) + 1  # +1: the match ends at a break
+
+    orig_lines = original.splitlines(keepends=True)
+    if start_line >= len(orig_lines):
+        return None, 0
+
+    # Each injected line is rebased onto the original line it replaces: same
+    # leading whitespace, same line ending. Without this, a control whose
+    # pattern mentions indentation -- so had to be matched against the
+    # normalised copy -- writes back that copy's indentation, and every line of
+    # the replaced region differs from the original by its leading whitespace.
+    # That showed up as controls "rewriting" 374 to 469 lines and shifting the
+    # file's CRLF count, which would dirty git for the duration of every run.
+    #
+    # A control that genuinely wants to change indentation says so by starting
+    # its replacement line with a backslash: removing a line should not re-indent
+    # the file, and adding one should not either unless asked.
+    KEEP = "\\"
+
+    def leading(ln):
+        return ln[:len(ln) - len(ln.lstrip(" \t"))]
+
+    def eol_at(idx):
+        if idx < len(orig_lines):
+            tail = orig_lines[idx]
+            return "\r\n" if tail.endswith("\r\n") else "\n"
+        return "\r\n" if "\r\n" in original else "\n"
+
+    # The replacement's own line endings are whatever the table happened to
+    # spell -- usually a bare \n, since these are Python literals. Rewrite them
+    # to the file's convention before splitting, so a multi-line replacement in a
+    # CRLF file does not drop the file's line-ending mix and leave git dirty for
+    # the duration of the mutation.
+    file_eol = "\r\n" if "\r\n" in original else "\n"
+    body = mutated.replace("\r\n", "\n").rstrip("\n")
+    if file_eol != "\n":
+        body = body.replace("\n", file_eol)
+    body_lines = body.split(file_eol) if body else []
+
+    injected = []
+    for k, ln in enumerate(body_lines):
+        orig_idx = start_line + k
+        if orig_idx < len(orig_lines):
+            base_indent = leading(orig_lines[orig_idx])
+            eol = eol_at(orig_idx)
+        else:
+            # Beyond the original's end: use the indentation of the last line of
+            # the replaced region, which is where the block was.
+            base_indent = leading(orig_lines[min(end_line, len(orig_lines)) - 1])
+            eol = eol_at(orig_idx)
+        # The EOL is already part of `ln` -- it came from splitting on file_eol --
+        # so appending eol here would double it.
+        if ln.endswith("\r\n"):
+            ln = ln[:-2]
+        elif ln.endswith("\n"):
+            ln = ln[:-1]
+        if ln.startswith(KEEP):
+            injected.append(ln[1:] + eol)
+        else:
+            injected.append(base_indent + ln.lstrip(" \t") + eol)
+
+    return ("".join(orig_lines[:start_line])
+            + "".join(injected)
+            + "".join(orig_lines[end_line:]), 1)
+
+
 # (name, regex, replacement). Each reintroduces a bug that was fixed, and each
 # is one of the ways this format is commonly misread.
 MUTATIONS = [
     ("restatement test uses qFuzzyCompare, which is relative",
-     r"!cur\.points\.isEmpty\(\) && qAbs\(at\.x\(\) - dest\.x\(\)\) < kPointEpsilon &&\s*qAbs\(at\.y\(\) - dest\.y\(\)\) < kPointEpsilon",
+     r"!cur\.points\.isEmpty\(\) && qAbs\(at\.x\(\) - dest\.x\(\)\) < kPointEpsilon &&\s*"
+     r"qAbs\(at\.y\(\) - dest\.y\(\)\) < kPointEpsilon",
      "!cur.points.isEmpty() && qFuzzyCompare(at.x(), dest.x()) &&\n"
      "                qFuzzyCompare(at.y(), dest.y())"),
 
@@ -72,8 +243,13 @@ MUTATIONS = [
     # tokenizer normalises it here. An earlier version of this control matched
     # the restatement predicate instead, so two controls hit one site and
     # nothing exercised this one.
+    # \\r?\\n rather than \\n: matched against the original text, which is
+    # CRLF, a bare \\n never matches a position just after a \\r -- so the
+    # pattern fell through to a later `case '!'` and the replacement landed in
+    # the wrong switch. This control predates norm(), which is what made that
+    # safe for the others.
     ("'/' normalised to a subpath break instead of a lineTo",
-     r"case '!':\n(\s*)case '\|':\n\s*case '/':\n",
+     r"case '!':\r?\n(\s*)case '\|':\r?\n\s*case '/':\r?\n",
      "case '!':\n\\1case '|':\n"),
 
     ("the comparison epsilon is finer than the coordinate quantum",
@@ -150,11 +326,64 @@ SWF_MUTATIONS = [
      "case 81: case 93: ++c.video;"),
 ]
 
+# The Moho container sniffer. A separate source and a separate binary, for the
+# same reason as the SWF table: these tests exist because the sniffer used to
+# classify every non-JSON file as a legacy .anme project, so a user holding a
+# Flash movie was told to re-save it from Moho.
+MOHO_READER = os.path.join(HERE, "..", "..", "flare", "sources", "common",
+                           "moho", "MohoReader.cpp")
+
+MOHO_MUTATIONS = [
+    # The Moho container sniffer. A separate source and a separate binary, for the
+    # same reason as the SWF table: these controls exist because the sniffer used
+    # to classify every non-JSON file as a legacy .anme project, so a user holding
+    # a Flash movie was told to re-save it from Moho.
+    #
+    # Found by running the shipped reader over mario.ssf, a 3.5 MB uncompressed SWF
+    # that Moho exported, which came back as "pre-11 .anme project ... Re-save it
+    # from Moho as a .moho project."
+    #
+    # Each is a single-line swap, which is the shape every control in this table
+    # that works reliably has. The first attempt here replaced the whole decision
+    # loop and took five tries to get right -- the lazy `.*?` stopped at the wrong
+    # `return`, then ran on into read(), then stranded the function tail, then left
+    # a brace too many. A control that is hard to read is a control nobody can
+    # tell is doing the right thing.
+    # The two lines are not adjacent: a comment explaining why Unknown is the
+    # right answer sits between them. \s* spans it.
+    ("every non-JSON file classified as a legacy .anme (the original bug)",
+     r"(if \(ch == '\{'\) return Container::RawJson;\s*"
+     r"(?://[^\n]*\n\s*)*)return Container::Unknown;",
+     r"\1return Container::Legacy;"),
+
+    ("the JSON branch no longer distinguishes a brace from anything else",
+     r"if \(ch == '\{'\) return Container::RawJson;",
+     r"if (false) return Container::RawJson;"),
+
+    # Negating the guard is the whole decision: without the signature, the
+    # leading-whitespace check can never pass, so nothing is ever Legacy here.
+    ("the .anme signature no longer required",
+     r"if \(legacyAt >= 0 && legacyAt < 16\) \{",
+     r"if (false) {"),
+
+    ("a UTF-8 BOM no longer skipped before the JSON brace",
+     r"if \(ch == 0xEF && i \+ 2 < head\.size\(\) &&\s*"
+     r"static_cast<unsigned char>\(head\.at\(i \+ 1\)\) == 0xBB &&\s*"
+     r"static_cast<unsigned char>\(head\.at\(i \+ 2\)\) == 0xBF\) \{\s*"
+     r"i \+= 2;\s*continue;\s*\}",
+     "if (false) { i += 2; continue; }"),
+
+    ("the container peek shrunk to 8 bytes, missing a late signature",
+     r"const QByteArray head = f\.peek\(64\);",
+     "const QByteArray head = f.peek(8);"),
+]
+
 # Which binary covers which file. Kept next to the tables so adding a mutation
 # cannot leave it unassigned: main() refuses to run if a file has no binary.
 COVERING = {
     "SHAPE": "XFL_SHAPE",
     "SWF_ASSETS": "FLASH_READER",
+    "MOHO_READER": "MOHO_READER",
 }
 
 def main():
@@ -202,17 +431,33 @@ def main():
                               "flash_reader_tests.exe")
     reader_args = (os.path.join(HERE, "..", "flash_fixtures"),)
     plan += [(SWF_ASSETS, reader_exe, reader_args, *m) for m in SWF_MUTATIONS]
+    # The Moho fixtures are generated, not committed, so the binary needs
+    # the same directory run_all.py passes it.
+    moho_exe = os.path.join(HERE, "build", "RelWithDebInfo",
+                           "moho_reader_tests.exe")
+    moho_fx = os.environ.get("FLARE_MOHO_FIXTURES")
+    if not moho_fx:
+        import tempfile
+        moho_fx = os.path.join(tempfile.mkdtemp(prefix="moho_fx"), "fx")
+        os.makedirs(moho_fx, exist_ok=True)
+        gen = os.path.join(HERE, "..", "flash_fixtures",
+                           "generate_moho_fixtures.py")
+        subprocess.run([sys.executable, gen, moho_fx], check=True)
+    plan += [(MOHO_READER, moho_exe, (moho_fx,), *m) for m in MOHO_MUTATIONS]
 
     for source, exe, extra, name, pattern, repl in plan:
         original = io.open(source, encoding="utf-8", newline="").read()
-        ntext = norm(original)
-        new, count = re.subn(pattern, repl, ntext)
-        if count != 1:
-            results.append((name, "SKIPPED", f"pattern matched {count} times"))
+        new, count = inject(original, pattern, repl)
+        if new is None or count != 1:
+            results.append((name, "SKIPPED",
+                            f"pattern matched {count} times"))
             print(f"  [skip] {name}: pattern matched {count} times")
             continue
 
-        diff = [l for l in difflib.unified_diff(ntext.splitlines(),
+        # Diffed against the *original*, not a normalised copy, so the printed
+        # lines are the ones actually injected rather than every line in the
+        # file differing by a stripped carriage return.
+        diff = [l for l in difflib.unified_diff(original.splitlines(),
                                                  new.splitlines(),
                                                  lineterm="", n=0)
                 if l.startswith(("+", "-")) and not l.startswith(("+++", "---"))]

@@ -25,6 +25,30 @@ Moho project is rejected with a reason rather than mis-parsed.
 Both container forms yield the same document; that equivalence is covered by a
 regression test.
 
+### Rejecting a non-Moho file without guessing
+
+The pre-11 `.anme` format is plain text beginning with the literal header
+`Anime Studio Project`, and that header is what identifies it. It used to be
+inferred instead — "the first non-whitespace byte is not `{`, so this is a legacy
+project" — which is true of every SWF, PNG, PDF and ELF, so any binary file
+dropped on the Moho import was reported as
+
+> pre-11 .anme project: a plain-text format Moho itself only reads. Re-save it
+> from Moho as a .moho project.
+
+That is the worst answer available for a user holding a Flash movie: it names a
+real format, says it is old, and points at software that cannot help. It was
+found by running the reader over real files — `mario.ssf`, a 3.5 MB uncompressed
+SWF that Moho exported — rather than by any test, because no test fed the reader a
+SWF. `tests/native/probe_samples` now exists so that a format nobody thought to
+test reports as a number rather than as a pass.
+
+The same function now also skips a UTF-8 BOM before the JSON brace, which the
+JSON grammar permits and editors emit, and peeks 64 bytes rather than 8 so a
+header after leading whitespace is still seen. Both are covered by
+`moho_reader_tests`, and `mutation_check.py` carries controls that reintroduce
+each of the three behaviours.
+
 ## What is extracted
 
 - Canvas size, frame rate, frame range, format version

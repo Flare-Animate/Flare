@@ -62,7 +62,44 @@ python ../flash_fixtures/generate_moho_fixtures.py /tmp/mohofx
 
 # moho_reader_tests <moho fixture dir>
 ./build/RelWithDebInfo/moho_reader_tests /tmp/mohofx
+
+# probe_samples <file-or-dir> ... -- report, don't assert
+./build/RelWithDebInfo/probe_samples ~/Downloads/"Flare Samples"
 ```
+
+## `probe_samples` is a probe, not a test
+
+The other two binaries assert. `probe_samples` takes any path and *reports* what
+each shipped reader made of it: which container was detected, the SWF header, the
+content census, how many bitmaps and audio streams were actually extracted, and
+what the Moho reader saw. It exits zero whatever it finds.
+
+That is the point. A test can only check what somebody already thought to assert,
+so a format nobody thought to test reports as a pass. A probe over real files
+reports the numbers instead, and a gap shows up as a zero:
+
+```
+=== mario.ssf  (3478.0 KB) ===
+  flash detected : SWF
+  swf header     : valid  version=15  640x360  30 fps
+  swf census     : bitmap=919 shape=258 ... sprite=244 abc=1
+  swf extracted  : 919 bitmap(s), 63 audio
+```
+
+This is how the real Moho bugs were found rather than guessed at. `mario.ssf` is a
+Moho SWF export, and the Moho reader called it
+
+> pre-11 .anme project: a plain-text format Moho itself only reads. Re-save it
+> from Moho as a .moho project.
+
+— advice that names a real format and points at software that cannot help
+somebody holding a Flash movie. No test would have caught that, because no test
+fed the reader a SWF. See `MohoReader.cpp`'s `detectContainer` and the binary
+detection cases in `moho_reader_tests.cpp`.
+
+Point it at anything: real projects, files you suspect are mislabelled, or a
+directory of them. It also reports the Moho read of every file it visits, so a
+`.moho` and a mislabelled `.zip` are directly comparable.
 
 Each prints one line per check and exits non-zero on any failure. The readers
 need Qt's image plugins on the path, so set

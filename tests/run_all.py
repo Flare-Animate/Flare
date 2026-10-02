@@ -40,6 +40,11 @@ NEEDS_INPUT = [
                                           "output of shape_export"),
     ("tests/native/mutation_check.py", "a built tnzcore, because it rebuilds to "
                                        "inject each bug in turn"),
+    # Not a check -- it reports rather than asserts -- but it is the thing that
+    # finds the untested format, so a run that never invokes it has not used the
+    # tool that would have reported a gap. It needs real files to say anything.
+    ("tests/native/probe_samples", "real Adobe/Flash/Moho files to report on; it "
+                                   "asserts nothing, so it cannot be a suite"),
 ]
 
 

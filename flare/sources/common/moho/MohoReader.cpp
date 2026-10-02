@@ -12,6 +12,8 @@
 #include "ZipArchive.h"
 #include "tsystem.h"
 
+#include <cctype>
+
 #include <QAtomicInteger>
 #include <QDateTime>
 #include <QDir>
@@ -162,22 +164,54 @@ void readLayer(const QJsonObject &o, int depth, Layer &layer) {
 Container detectContainer(const TFilePath &path) {
     QFile f(path.getQString());
     if (!f.open(QIODevice::ReadOnly)) return Container::Unknown;
-    const QByteArray head = f.peek(8);
+    // 64 bytes: enough for the ZIP local header, a BOM plus the .anme signature,
+    // and whitespace ahead of a '{'. The old peek of 8 could not see a signature
+    // that arrived after leading whitespace or a BOM.
+    const QByteArray head = f.peek(64);
     f.close();
+    if (head.isEmpty()) return Container::Unknown;
 
     if (head.size() >= 4 && head[0] == 'P' && head[1] == 'K' &&
         (head[2] == 0x03 || head[2] == 0x05 || head[2] == 0x07))
         return Container::Zip;
 
-    // Moho documents are JSON; they always start with '{' (minified).
-    for (int i = 0; i < head.size(); ++i) {
-        const char ch = head.at(i);
-        if (ch == ' ' || ch == '\n' || ch == '\r' || ch == '\t') continue;
-        if (ch == '{') return Container::RawJson;
-        // Pre-11 .anme files are brace-delimited plain text; they start with a
-        // header line rather than JSON.
+    // The pre-11 .anme format is plain text beginning with this literal header.
+    // Checking for it is what keeps a binary file from being diagnosed as a
+    // legacy Moho project: "the first non-space byte is not '{'" is true of
+    // every SWF, PNG and PDF, so inferring Legacy from it told a user holding a
+    // Flash movie that they had an old Moho project and should re-save it from
+    // Moho -- advice that cannot help them. So the header is required.
+    static const char kLegacyHeader[] = "Anime Studio Project";
+    const int legacyAt = head.indexOf(kLegacyHeader);
+    if (legacyAt >= 0 && legacyAt < 16) {
+        // Confined to the leading whitespace, so the phrase appearing later in
+        // an unrelated binary does not classify that binary as legacy.
+        for (int i = 0; i < legacyAt; ++i)
+            if (!isspace(static_cast<unsigned char>(head.at(i))))
+                return Container::Unknown;
         return Container::Legacy;
     }
+
+    // Moho documents are JSON, so they begin with '{' once a UTF-8 BOM -- which
+    // the JSON grammar allows, and which editors do emit -- and any whitespace
+    // are skipped. The BOM was not skipped before, so a valid .mohoproj that
+    // carried one was classified as legacy.
+    for (int i = 0; i < head.size(); ++i) {
+        const unsigned char ch = static_cast<unsigned char>(head.at(i));
+        if (isspace(ch)) continue;
+        if (ch == 0xEF && i + 2 < head.size() &&
+            static_cast<unsigned char>(head.at(i + 1)) == 0xBB &&
+            static_cast<unsigned char>(head.at(i + 2)) == 0xBF) {
+            i += 2;
+            continue;
+        }
+        if (ch == '{') return Container::RawJson;
+        // Not JSON, not legacy, not a ZIP. Report that, rather than picking a
+        // container for it and then failing inside that reader.
+        return Container::Unknown;
+    }
+    // Nothing but whitespace: an empty document. Unknown, so the caller says the
+    // file holds no project rather than that the format is unrecognised.
     return Container::Unknown;
 }
 
