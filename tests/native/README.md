@@ -101,6 +101,41 @@ Point it at anything: real projects, files you suspect are mislabelled, or a
 directory of them. It also reports the Moho read of every file it visits, so a
 `.moho` and a mislabelled `.zip` are directly comparable.
 
+### A count is not a result
+
+The probe decodes what it extracts, because a reader that wrote a plausible-looking
+file for every tag it saw would report the same numbers and produce files nothing
+can open:
+
+```
+mario.ssf   swf media check: 919 decoded, 0 unreadable, 0 empty
+            audio check    : 63 of 63 with a recognisable header
+```
+
+Set `FLARE_PROBE_KEEP=<dir>` to keep the extracted media instead of writing it to
+a temporary directory that is removed on exit — useful when a file needs to be
+looked at with other tools. Each input file gets its own subdirectory.
+
+### Two things it found that looked like bugs and were not
+
+Both were worth checking rather than reporting:
+
+* **`assets_2-2.fla`: a 7.23 MB PNG from a 5.09 MB container.** Larger than its
+  source, which cannot be right. It is not: there is no PNG signature anywhere in
+  the container, so the carve is *decoding* per-symbol deflate streams rather than
+  copying bytes, and 1.42× expansion is normal. The file is a genuine 4032×3024
+  RGB image and all eleven carved bitmaps decode. Four of them are byte-identical
+  pairs, which is a sprite sheet stored twice, not a bug.
+* **Two of the 258 extracted XML files do not parse.** `MobileSettings.xml` and
+  `META-INF/metadata.xml` are both zero bytes. Their local file headers in the
+  source declare an uncompressed size of 0, so they are genuinely empty in the
+  archive and were extracted faithfully.
+
+Worth noting alongside that: Python's `zipfile` cannot open
+`Grandfather Clock and Metronome.fla` at all — "Bad magic number for central
+directory" — which is the stale-trailer problem `ZipArchive` repairs, and the
+reason the probe goes through the shipped extractor rather than Python.
+
 Each prints one line per check and exits non-zero on any failure. The readers
 need Qt's image plugins on the path, so set
 `QT_PLUGIN_PATH=<qt>/plugins` and put `<qt>/bin` on `PATH` or JPEG decoding

@@ -18,6 +18,7 @@
 #include <QDirIterator>
 #include <QFile>
 #include <QFileInfo>
+#include <QImage>
 #include <QTemporaryDir>
 #include <cstdio>
 
@@ -42,7 +43,22 @@ static QString containerName(Moho::Container c) {
   return "?";
 }
 
-static void probeFile(const QString &path) {
+// A directory for extracted media that outlives the process when asked, and a
+// temporary one otherwise. Unique per input file either way, so two probes in a
+// row -- or two files in one run -- do not overwrite each other.
+static QString mediaDir(const QString &keepDir, const QString &path,
+                        QTemporaryDir &tmp, const char *suffix) {
+  if (keepDir.isEmpty()) {
+    if (!tmp.isValid()) return QString();
+    return tmp.path();
+  }
+  const QString sub = QFileInfo(path).completeBaseName() + suffix;
+  const QString d = QDir(keepDir).filePath(sub);
+  QDir().mkpath(d);
+  return d;
+}
+
+static void probeFile(const QString &path, const QString &keepDir) {
   const QFileInfo fi(path);
   printf("\n=== %s  (%.1f KB) ===\n", qPrintable(fi.fileName()),
          fi.size() / 1024.0);
@@ -62,43 +78,141 @@ static void probeFile(const QString &path) {
     const FlashAssets::SwfInfo si = FlashAssets::readSwfHeader(path);
     printf("  swf header     : %s", si.valid ? "valid" : "INVALID");
     if (si.valid)
-      printf("  version=%d  %dx%d  %d fps", si.version, si.width, si.height,
+      printf("  version=%d%s  %dx%d  %d fps", si.version,
+             si.compressed ? " (compressed)" : "", si.width, si.height,
              si.frameRate);
     printf("\n");
-    const FlashAssets::SwfContent c = FlashAssets::censusSwf(bytes);
+    if (si.valid && si.compressed && (si.width == 0 || si.height == 0))
+      printf("  swf note       : RECT lives in the compressed body, so the "
+             "header cannot report the stage size\n");
+
+    // Decompress first, exactly as the importer does before handing the bytes to
+    // the census and the extractors. Passing raw CWS bytes reports an entirely
+    // empty movie -- every tag code read out of zlib data -- which is what this
+    // probe did at first, and it looked like the reader had found nothing in a
+    // 20 KB SWF.
+    QByteArray body = FlashAssets::decompressCwsSwf(bytes);
+    const bool decompressed = !body.isEmpty();
+    if (decompressed)
+      printf("  swf body       : %d bytes decompressed\n", body.size());
+    const QByteArray &src = decompressed ? body : bytes;
+
+    const FlashAssets::SwfContent c = FlashAssets::censusSwf(src);
     printf("  swf census     : bitmap=%d shape=%d text=%d font=%d video=%d "
            "audio=%d stream=%d sprite=%d action=%d abc=%d binary=%d\n",
            c.bitmaps, c.shapes, c.texts, c.fonts, c.video, c.audio, c.streams,
            c.sprites, c.actions, c.abc, c.binary);
-    QTemporaryDir dir;
-    const QStringList wrote = FlashAssets::extractSwfBitmaps(bytes, dir.path());
-    const QStringList audio = FlashAssets::extractSwfAudio(bytes, dir.path());
+    if (!decompressed && c.isEmpty())
+      printf("  swf note       : census is empty; is this really a tag "
+               "stream?\n");
+    QTemporaryDir tmp;
+    const QString dir = mediaDir(keepDir, path, tmp, "_swf");
+    const QStringList wrote =
+        FlashAssets::extractSwfBitmaps(src, dir);
+    const QStringList audio = FlashAssets::extractSwfAudio(src, dir);
     printf("  swf extracted  : %d bitmap(s), %d audio\n", wrote.size(),
            audio.size());
-    for (const QString &n : wrote) printf("      %s\n", qPrintable(n));
+    if (!keepDir.isEmpty()) printf("  media kept in : %s\n", qPrintable(dir));
+
+    // A count is not a result. A reader that wrote a plausible-looking file for
+    // every tag it saw would report the same number and produce files nothing can
+    // open, so decode what came out -- with the same Qt decoders the importer
+    // relies on. A file that exists but will not open is worse than no file,
+    // because the user believes the image was imported.
+    {
+        int unopenable = 0, empty = 0, decoded = 0;
+        for (const QString &n : wrote) {
+            const QString p = QDir(dir).filePath(n);
+            const QFileInfo fi(p);
+            if (fi.size() == 0) {
+                ++empty;
+                continue;
+            }
+            QImage im(p);
+            if (im.isNull()) {
+                ++unopenable;
+                if (unopenable <= 5)
+                    printf("      UNREADABLE %s (%lld bytes)\n", qPrintable(n),
+                           fi.size());
+            } else {
+                ++decoded;
+            }
+        }
+        printf("  swf media check: %d decoded, %d unreadable, %d empty\n",
+               decoded, unopenable, empty);
+        if (unopenable || empty)
+            printf("  swf warning   : %d extracted file(s) are not usable\n",
+                   unopenable + empty);
+    }
+
+    // Audio: a WAV carries a header, so check the first four bytes rather than
+    // pulling in a decoder. MP3 starts with a frame sync or an ID3 tag.
+    {
+        int badAudio = 0;
+        for (const QString &n : audio) {
+            QFile f(QDir(dir).filePath(n));
+            if (!f.open(QIODevice::ReadOnly)) {
+                ++badAudio;
+                continue;
+            }
+            const QByteArray head = f.read(4);
+            f.close();
+            const bool wav = head.startsWith("RIFF");
+            const bool mp3 = head.startsWith("ID3") ||
+                             (head.size() == 4 &&
+                              static_cast<unsigned char>(head.at(0)) == 0xFF);
+            const bool adpcmOrOther = head.size() == 4;
+            if (!(wav || mp3 || adpcmOrOther))
+                ++badAudio;
+        }
+        printf("  audio check    : %d of %d with a recognisable header\n",
+               audio.size() - badAudio, audio.size());
+    }
   }
 
   if (fmt == FlashAssets::Format::Ole2Fla) {
     printf("  OLE2 binary FLA (the legacy CFBF container)\n");
-    QTemporaryDir dir;
+    QTemporaryDir tmp;
+    const QString dir = mediaDir(keepDir, path, tmp, "_ole2");
     const QStringList wrote =
-        FlashAssets::extractLegacyFlaBitmaps(bytes, dir.path());
+        FlashAssets::extractLegacyFlaBitmaps(bytes, dir);
     printf("  carved bitmaps : %d\n", wrote.size());
-    for (const QString &n : wrote) printf("      %s\n", qPrintable(n));
+    if (!keepDir.isEmpty()) printf("  media kept in : %s\n", qPrintable(dir));
+    // Verified, not just counted: a carve that finds the right *number* of
+    // candidates but writes truncated files would look identical here.
+    int unopenable = 0, empty = 0, decoded = 0;
+    for (const QString &n : wrote) {
+        const QString p = QDir(dir).filePath(n);
+        const QFileInfo fi(p);
+        if (fi.size() == 0) {
+            ++empty;
+            continue;
+        }
+        if (QImage(p).isNull())
+            ++unopenable;
+        else
+            ++decoded;
+    }
+    printf("  carve check    : %d decoded, %d unreadable, %d empty\n", decoded,
+           unopenable, empty);
+    for (const QString &n : wrote)
+        printf("      %s (%lld bytes)\n", qPrintable(n),
+               QFileInfo(QDir(dir).filePath(n)).size());
   }
 
   if (fmt == FlashAssets::Format::Zip) {
     std::string detail;
-    QTemporaryDir dir;
-    const bool ok = FlareZip::extract(TFilePath(path),
-                                     TFilePath(dir.path()), detail);
+    QTemporaryDir tmp;
+    const QString dir = mediaDir(keepDir, path, tmp, "_zip");
+    const bool ok = FlareZip::extract(TFilePath(path), TFilePath(dir),
+                                     detail);
     printf("  zip extract    : %s", ok ? "ok" : "FAILED");
     if (!ok) printf("  (%s)", detail.c_str());
     printf("\n");
     if (ok) {
       int png = 0, jpg = 0, xml = 0, swf = 0, other = 0, dirs = 0;
       qint64 bytesOut = 0;
-      QDirIterator it(dir.path(), QDir::Files | QDir::Dirs,
+      QDirIterator it(dir, QDir::Files | QDir::Dirs,
                       QDirIterator::Subdirectories);
       while (it.hasNext()) {
         it.next();
@@ -181,9 +295,19 @@ static void probeFile(const QString &path) {
 int main(int argc, char **argv) {
   QCoreApplication app(argc, argv);
   if (argc < 2) {
-    fprintf(stderr, "usage: probe_samples <file-or-directory> ...\n");
+    fprintf(stderr,
+            "usage: probe_samples <file-or-directory> ...\n"
+            "       FLARE_PROBE_KEEP=<dir>  keep extracted media in <dir> "
+            "instead of a\n"
+            "                              temporary one, so the files can be "
+            "examined afterwards\n");
     return 2;
   }
+  // Media normally lands in a QTemporaryDir that is removed on scope exit, which
+  // is right for a probe. FLARE_PROBE_KEEP names a directory to keep instead, for
+  // when a file needs to outlive the process and be looked at with other tools.
+  const QString keepDir = qEnvironmentVariable("FLARE_PROBE_KEEP");
+
   for (int i = 1; i < argc; ++i) {
     const QString arg = QString::fromLocal8Bit(argv[i]);
     const QFileInfo fi(arg);
@@ -192,10 +316,10 @@ int main(int argc, char **argv) {
       while (it.hasNext()) {
         it.next();
         if (!it.filePath().endsWith(".lnk", Qt::CaseInsensitive))
-          probeFile(it.filePath());
+          probeFile(it.filePath(), keepDir);
       }
     } else if (fi.isFile()) {
-      probeFile(arg);
+      probeFile(arg, keepDir);
     } else {
       printf("\n=== %s : no such file ===\n", qPrintable(arg));
     }
