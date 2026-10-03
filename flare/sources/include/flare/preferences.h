@@ -26,7 +26,7 @@
 
 #undef DVAPI
 #undef DVVAR
-#ifdef FLARELIB_EXPORTS
+#ifdef TOONZLIB_EXPORTS
 #define DVAPI DV_EXPORT_API
 #define DVVAR DV_EXPORT_VAR
 #else
@@ -72,6 +72,12 @@ class DVAPI Preferences final : public QObject  // singleton
   Q_OBJECT
 
 public:
+  // The project path configured in preferences, read from the
+  // defaultProjectPath key.
+  QString getDefaultProjectPath() const {
+    return getStringValue(defaultProjectPath);
+  }
+
   struct LevelFormat {
     QString m_name;  //!< Name displayed for the format.
     QRegularExpression m_pathFormat;
@@ -238,6 +244,9 @@ public:
   bool isViewerIndicatorEnabled() const {
     return getBoolValue(viewerIndicatorEnabled);
   }
+  bool isRestoreViewerViewFromLastSessionEnabled() const {
+    return getBoolValue(restoreViewerViewFromLastSession);
+  }
 
   // Visualization  tab
   bool getShow0ThickLines() const { return getBoolValue(show0ThickLines); }
@@ -289,7 +298,6 @@ public:
 
   // Import Export Tab
   QString getFfmpegPath() const { return getStringValue(ffmpegPath); }
-  QString getFlashDecompilerPath() const { return getStringValue(flashDecompilerPath); }
   int getFfmpegTimeout() { return getIntValue(ffmpegTimeout); }
   QString getFastRenderPath() const { return getStringValue(fastRenderPath); }
   bool getFfmpegMultiThread() const { return getBoolValue(ffmpegMultiThread); }
@@ -301,7 +309,12 @@ public:
   QString getDefRasterFormat() const { return getStringValue(DefRasterFormat); }
   // QString getScanLevelType() const { return getStringValue(scanLevelType); }
   int getDefLevelType() const { return getIntValue(DefLevelType); }
-  int getDefLevelSizePolicy() const { return getIntValue(DefLevelSizePolicy); }
+  QString getDefAssistantType() const {
+    return getStringValue(DefAssistantType);
+  }
+  bool isNewLevelSizeToCameraSizeEnabled() const {
+    return getBoolValue(newLevelSizeToCameraSizeEnabled);
+  }
   double getDefLevelWidth() const { return getDoubleValue(DefLevelWidth); }
   double getDefLevelHeight() const { return getDoubleValue(DefLevelHeight); }
   double getDefLevelDpi() const { return getDoubleValue(DefLevelDpi); }
@@ -361,6 +374,18 @@ public:
   }
   int getTempToolSwitchTimer() const {
     return getIntValue(tempToolSwitchTimer);
+  }
+  double getAnimateToolHandleSize() const {
+    return getDoubleValue(animateToolHandleSize);
+  }
+  TPixel32 getAnimateToolColor() const {
+    return getColorValue(animateToolColor);
+  }
+  QString getDefaultStartupTool() const {
+    return getStringValue(defaultStartupTool);
+  }
+  QString getDefaultNewSceneTool() const {
+    return getStringValue(defaultNewSceneTool);
   }
 
   // Xsheet  tab
@@ -431,6 +456,18 @@ public:
   }
   void getCurrentColumnData(TPixel &color) const {
     color = getColorValue(currentColumnColor);
+  }
+  bool isCustomCurrentCellColorEnabled() const {
+    return getBoolValue(customCurrentCellColorEnabled);
+  }
+  void getCurrentCellData(TPixel &color) const {
+    color = getColorValue(currentCellColor);
+  }
+  bool isCustomCurrentColumnOutlineColorEnabled() const {
+    return getBoolValue(customCurrentColumnOutlineColorEnabled);
+  }
+  void getCurrentColumnOutlineColor(TPixel &color) const {
+    color = getColorValue(currentColumnOutlineColor);
   }
 
   LevelNameDisplayType getLevelNameDisplayType() const {
@@ -510,6 +547,10 @@ public:
     ink   = getColorValue(transpCheckInkOnWhite);
     paint = getColorValue(transpCheckPaint);
   }
+  // Returns the configured colors used for Ink and Paint check operations
+  TPixel getInkCheckColor() const { return getColorValue(inkCheckColor); }
+  TPixel getInk1CheckColor() const { return getColorValue(ink1CheckColor); }
+  TPixel getPaintCheckColor() const { return getColorValue(paintCheckColor); }
 
   // Version Control  tab
   bool isSVNEnabled() const { return getBoolValue(SVNEnabled); }
@@ -567,6 +608,7 @@ Q_SIGNALS:
   void stopAutoSave();
   void startAutoSave();
   void autoSavePeriodChanged();
+  void fillOnlySaveboxChanged(bool enabled);
 
 private:
   std::unique_ptr<QSettings> m_settings;
@@ -587,4 +629,3 @@ private:
 };
 
 #endif  // PREFERENCES_H
-

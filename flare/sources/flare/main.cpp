@@ -75,6 +75,7 @@
 #include <QApplication>
 #include <QAbstractEventDispatcher>
 #include <QAbstractNativeEventFilter>
+#include <QByteArray>
 #include <QSplashScreen>
 #include <QGLPixelBuffer>
 #include <QTranslator>
@@ -173,6 +174,8 @@ static void initFlareEnv(QHash<QString, QString> &argPathValues) {
   /*-- ENGLISH: Confirm FLAREROOT Path
         Check if the xxxroot is defined and corresponds to an existing folder
   --*/
+
+  TEnv::initUserStuffDir();
 
   TFilePath stuffDir = TEnv::getStuffDir();
   if (stuffDir == TFilePath())
@@ -501,7 +504,7 @@ if (QFileInfo(localSplashPath).exists() && QFileInfo(localSplashPath).isFile()) 
   fmt.setStencil(true);
   QGLFormat::setDefaultFormat(fmt);
 
-#ifndef __HAIKU__
+#if !defined(__HAIKU__) && !defined(MACOSX)
   glutInit(&argc, argv);
 #endif
 
@@ -823,7 +826,12 @@ if (QFileInfo(localSplashPath).exists() && QFileInfo(localSplashPath).isFile()) 
   // Show floating panels only after the main window has been shown
   w.startupFloatingPanels();
 
-  CommandManager::instance()->execute(T_Hand);
+  const QByteArray defaultStartupTool =
+      Preferences::instance()->getDefaultStartupTool().toLatin1();
+  if (CommandManager::instance()->getAction(defaultStartupTool.constData()))
+    CommandManager::instance()->execute(defaultStartupTool.constData());
+  else
+    CommandManager::instance()->execute(T_Hand);
   if (!loadFilePath.isEmpty()) {
     splash.showMessage(
         QString("Loading file '") + loadFilePath.getQString() + "'...",

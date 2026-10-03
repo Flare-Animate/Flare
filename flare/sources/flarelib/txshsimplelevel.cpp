@@ -15,9 +15,9 @@
 #include "flare/preferences.h"
 #include "flare/stage.h"
 #include "flare/textureutils.h"
+#include "flare/mypaintbrushstyle.h"
 #include "flare/levelset.h"
 #include "flare/tcamera.h"
-#include "flare/sceneproperties.h"
 
 // TnzBase includes
 #include "tenv.h"
@@ -36,6 +36,7 @@
 #include "timageinfo.h"
 #include "tlogger.h"
 #include "tstream.h"
+#include "tsimplecolorstyles.h"
 #include "tsystem.h"
 #include "tcontenthistory.h"
 #include "tfilepath.h"
@@ -165,7 +166,7 @@ bool TXshSimpleLevel::m_fillFullColorRaster = false;
 
 TXshSimpleLevel::TXshSimpleLevel(const std::wstring& name)
     : TXshLevel(m_classCode, name)
-    , m_properties(new LevelProperties)
+    , m_properties(std::make_unique<LevelProperties>())
     , m_palette(nullptr)
     , m_idBase(std::to_string(idBaseCode++))
     , m_editableRangeUserInfo(L"")
@@ -179,11 +180,7 @@ TXshSimpleLevel::TXshSimpleLevel(const std::wstring& name)
 
 TXshSimpleLevel::~TXshSimpleLevel() {
   clearFrames();
-
-  if (m_palette) {
-    m_palette->release();
-    m_palette = nullptr;
-  }
+  // m_palette is TPaletteP – automatically releases
 }
 
 //-----------------------------------------------------------------------------
@@ -402,24 +399,15 @@ void TXshSimpleLevel::clonePropertiesFrom(const TXshSimpleLevel* oldSl) {
 
 //-----------------------------------------------------------------------------
 
-TPalette* TXshSimpleLevel::getPalette() const { return m_palette; }
+TPalette* TXshSimpleLevel::getPalette() const { return m_palette.getPointer(); }
 
 //-----------------------------------------------------------------------------
 
 void TXshSimpleLevel::setPalette(TPalette* palette) {
-  if (m_palette != palette) {
-    if (m_palette) {
-      m_palette->release();
-    }
+  m_palette = palette;  // TPaletteP handles ref counting automatically
 
-    m_palette = palette;
-    if (m_palette) {
-      m_palette->addRef();
-      if (!(getType() & FULLCOLOR_TYPE)) {
-        m_palette->setPaletteName(getName());
-      }
-    }
-  }
+  if (m_palette && !(getType() & FULLCOLOR_TYPE))
+    m_palette->setPaletteName(getName());
 }
 
 //-----------------------------------------------------------------------------
@@ -602,7 +590,7 @@ TImageP TXshSimpleLevel::getFrameIcon(const TFrameId& fid) const {
       imgId, ImageManager::dontPutInCache, &extData);
 
   if (TToonzImageP timg = img) {
-    if (m_palette) timg->setPalette(m_palette);
+    if (m_palette) timg->setPalette(m_palette.getPointer());
   }
 
   return img;
@@ -1516,13 +1504,14 @@ void TXshSimpleLevel::save(const TFilePath& fp, const TFilePath& oldFp,
         if (TSystem::doesExistFileOrLevel(*it)) TSystem::removeFileOrLevel(*it);
       }
 
-      TXshSimpleLevel* sl = new TXshSimpleLevel;
+      // Use smart pointer to manage temporary level
+      TXshSimpleLevelP sl = new TXshSimpleLevel;
       sl->setScene(getScene());
       sl->setPalette(getPalette());
       sl->setPath(getScene()->codeFilePath(app));
       sl->setType(getType());
       sl->setDirtyFlag(getDirtyFlag());
-      sl->addRef();
+      // sl->addRef();  // not needed – smart pointer handles ref
 
       for (const auto& fid : m_editableRange) {
         sl->setFrame(fid, getFrame(fid, false));
@@ -1538,7 +1527,8 @@ void TXshSimpleLevel::save(const TFilePath& fp, const TFilePath& oldFp,
       }
 
       sl->setRenumberTable();
-      sl->save(app);
+      sl->save(
+          app);  // sl will be automatically released when it goes out of scope
 
 #ifdef _WIN32
       if (TSystem::doesExistFileOrLevel(app)) TSystem::hideFileOrLevel(app);
@@ -1882,14 +1872,18 @@ void TXshSimpleLevel::initializePalette() {
   ToonzScene* scene = getScene();
   assert(scene);
 
+  bool hasPalettesAlias =
+      (scene->getProject()->getFolderIndex("palettes") >= 0);
+
   TFilePath fullPath;
-  TPalette* palette = new TPalette();
+  TPalette* palette = nullptr;
   int type          = getType();
   switch (type) {
   case TZP_XSHLEVEL:
     fullPath =
         scene->decodeFilePath(TFilePath("+palettes\\Toonz_Raster_Palette.tpl"));
-    if (TSystem::doesExistFileOrLevel(fullPath)) {
+    if (hasPalettesAlias && TSystem::doesExistFileOrLevel(fullPath)) {
+      palette = new TPalette();
       TIStream is(fullPath);
       is >> palette;
     } else {
@@ -1898,16 +1892,18 @@ void TXshSimpleLevel::initializePalette() {
               "\\Global Palettes\\Default "
               "Palettes\\Toonz_Raster_Palette.tpl"));
       if (TSystem::doesExistFileOrLevel(globalPath)) {
+        palette = new TPalette();
         TIStream is(globalPath);
         is >> palette;
-        TSystem::copyFile(fullPath, globalPath);
+        if (hasPalettesAlias) TSystem::copyFile(fullPath, globalPath);
       }
     }
     break;
   case PLI_XSHLEVEL:
     fullPath =
         scene->decodeFilePath(TFilePath("+palettes\\Toonz_Vector_Palette.tpl"));
-    if (TSystem::doesExistFileOrLevel(fullPath)) {
+    if (hasPalettesAlias && TSystem::doesExistFileOrLevel(fullPath)) {
+      palette = new TPalette();
       TIStream is(fullPath);
       is >> palette;
     } else {
@@ -1916,9 +1912,10 @@ void TXshSimpleLevel::initializePalette() {
               "\\Global Palettes\\Default "
               "Palettes\\Toonz_Vector_Palette.tpl"));
       if (TSystem::doesExistFileOrLevel(globalPath)) {
+        palette = new TPalette();
         TIStream is(globalPath);
         is >> palette;
-        TSystem::copyFile(fullPath, globalPath);
+        if (hasPalettesAlias) TSystem::copyFile(fullPath, globalPath);
       }
     }
     break;
@@ -1928,12 +1925,12 @@ void TXshSimpleLevel::initializePalette() {
     break;
   }
 
-  if (palette && type != OVL_XSHLEVEL) {
-    palette->setPaletteName(getName());
+  if (palette) {
+    if (type != OVL_XSHLEVEL) {
+      palette->setPaletteName(getName());
+    }
+    setPalette(palette);
   }
-
-  palette->setDirtyFlag(true);
-  setPalette(palette);
 }
 
 //-----------------------------------------------------------------------------
@@ -1947,65 +1944,17 @@ void TXshSimpleLevel::initializeResolutionAndDpi(const TDimension& dim,
 
   double dpiY = dpi;
   getProperties()->setDpiPolicy(LevelProperties::DP_ImageDpi);
-
   if (dim == TDimension()) {
     double w = 0, h = 0;
-
     Preferences* pref = Preferences::instance();
-    int policy        = pref->getDefLevelSizePolicy();
-
-    if (policy == 2) {
-      std::wstring layoutName =
-          getScene()->getProperties()->getLayoutPresetName().toStdWString();
-      if (layoutName != L"") {
-        TXshSimpleLevel* sl = nullptr;
-        std::vector<TXshLevel*> levels;
-        getScene()->getLevelSet()->listLevels(levels, TFilePath("Layout"));
-        for (auto it : levels) {
-          if (it->getName().substr(0, layoutName.length()) == layoutName) {
-            sl = it->getSimpleLevel();
-            break;
-          }
-        }
-        if (sl) {
-          TDimensionD size;
-          if (sl->getType() == TXshLevelType::PLI_XSHLEVEL &&
-              sl->getFrameCount() > 0) {
-            TRectD rect = sl->getFrame(sl->getFirstFid(), false)->getBBox();
-            size        = TDimensionD(rect.getLx(), rect.getLy());
-            size.lx /= Stage::inch;
-            size.ly /= Stage::inch;
-            dpi  = sl->getProperties()->getDpi().x;
-            dpiY = sl->getProperties()->getDpi().y;
-          } else {
-            TDimension res = sl->getResolution();
-            if (res.lx > 0 && res.ly > 0) {
-              TPointD slDpi = sl->getDpi();
-              if (slDpi.x > 0 && slDpi.y > 0) {
-                size = TDimensionD(res.lx, res.ly);
-                size.lx /= slDpi.x;
-                size.ly /= slDpi.y;
-                dpi  = slDpi.x;
-                dpiY = slDpi.y;
-              }
-            }
-          }
-          w = size.lx;
-          h = size.ly;
-        }
-      }
-    }
-
-    if (policy == 1 && (w == 0 || h == 0)) {
+    if (pref->isNewLevelSizeToCameraSizeEnabled()) {
       TDimensionD camSize = getScene()->getCurrentCamera()->getSize();
       w                   = camSize.lx;
       h                   = camSize.ly;
       getProperties()->setDpiPolicy(LevelProperties::DP_CustomDpi);
       dpi  = getScene()->getCurrentCamera()->getDpi().x;
       dpiY = getScene()->getCurrentCamera()->getDpi().y;
-    }
-
-    if (policy == 0 || w == 0 || h == 0) {
+    } else {
       w    = pref->getDefLevelWidth();
       h    = pref->getDefLevelHeight();
       dpi  = pref->getDefLevelDpi();
@@ -2292,8 +2241,7 @@ void TXshSimpleLevel::getFiles(const TFilePath& fp, TFilePathSet& fpset) {
 //-----------------------------------------------------------------------------
 
 void TXshSimpleLevel::setContentHistory(TContentHistory* contentHistory) {
-  if (contentHistory != m_contentHistory.get())
-    m_contentHistory.reset(contentHistory);
+  m_contentHistory.reset(contentHistory);
 }
 
 //-----------------------------------------------------------------------------
@@ -2425,4 +2373,3 @@ bool TXshSimpleLevel::isFrameReadOnly(TFrameId fid) {
 
   return m_isReadOnly;
 }
-

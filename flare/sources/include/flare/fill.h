@@ -46,6 +46,13 @@ public:
   bool m_usePrevailingReferFill;
   bool m_extendFill;
 
+  // Upstream: the source image's extent and top-left, for fills that sample a
+  // bitmap rather than synthesising one. Declared in Tahoma2D's fill.h;
+  // OpenToonz has neither, and the synced fill.cpp reads both through a
+  // FillParameters argument.
+  TDimension m_imageSize;
+  TPoint m_imageOffset;
+
   FillParameters()
       : m_styleId(0)
       , m_fillType()

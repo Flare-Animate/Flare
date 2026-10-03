@@ -1,28 +1,25 @@
+
+
 #include <QtGlobal>
 
 #include "dvdirtreeview.h"
 
 #include "filebrowsermodel.h"
-#include "filebrowser.h"
 #include "menubarcommandids.h"
-#include "tapp.h"
-#include "flare/tscenehandle.h"
-
-// TnzQt includes
-#include "flareqt/icongenerator.h"
-#include "flareqt/dvdialog.h"
-#include "flareqt/gutil.h"
-
-// ToonzLib
+#include "filebrowser.h"
 #include "tconvert.h"
+#include "tsystem.h"
 #include "flare/toonzscene.h"
 #include "flare/namebuilder.h"
 #include "flare/tproject.h"
 #include "flare/preferences.h"
 #include "flare/txshsimplelevel.h"
-#include "tsystem.h"
+#include "flareqt/icongenerator.h"
+#include "flareqt/dvdialog.h"
+#include "flareqt/gutil.h"
+#include "tapp.h"
+#include "flare/tscenehandle.h"
 
-// Qt includes
 #include <QPainter>
 #include <QPixmap>
 #include <QMouseEvent>
@@ -33,63 +30,48 @@
 #include <QDir>
 #include <QMimeData>
 #include <QFileSystemWatcher>
-#include <QRegularExpression>
 
 using namespace DVGui;
 
 namespace {
-
 //---------------------------------------------------------------------------
 
-QStringList getLevelFileNames(const TFilePath &path) {
+QStringList getLevelFileNames(TFilePath path) {
   TFilePath dir = path.getParentDir();
   QDir qDir(QString::fromStdWString(dir.getWideString()));
-
   QString levelName =
-      QRegularExpression::escape(QString::fromStdWString(path.getWideName()));
+      QRegExp::escape(QString::fromStdWString(path.getWideName()));
   QString levelType = QString::fromStdString(path.getType());
-
-  // Pattern for matching level files: name.[0-9]{1,4}.type
-  QString pattern = QString("^%1\\.[0-9]{1,4}\\.%2$").arg(levelName, levelType);
-  QRegularExpression regExp(pattern);
-
+  QString exp(levelName + ".[0-9]{1,4}." + levelType);
+  QRegExp regExp(exp);
   QStringList list = qDir.entryList(QDir::Files);
-  QStringList result;
-
-  for (const QString &file : list) {
-    if (regExp.match(file).hasMatch()) {
-      result.append(file);
-    }
-  }
-
-  return result;
+  return list.filter(regExp);
 }
-
 }  // namespace
 
 //=============================================================================
 // MyFileSystemWatcher
 //-----------------------------------------------------------------------------
 
-MyFileSystemWatcher::MyFileSystemWatcher(QObject *parent) : QObject(parent) {
+MyFileSystemWatcher::MyFileSystemWatcher() {
   m_watcher = new QFileSystemWatcher(this);
 
-  connect(m_watcher, &QFileSystemWatcher::directoryChanged, this,
-          &MyFileSystemWatcher::directoryChanged);
+  bool ret = connect(m_watcher, SIGNAL(directoryChanged(const QString &)), this,
+                     SIGNAL(directoryChanged(const QString &)));
+  assert(ret);
 }
 
 void MyFileSystemWatcher::addPaths(const QStringList &paths, bool onlyNewPath) {
   if (paths.isEmpty()) return;
-
-  for (const QString &path : paths) {
-    // If the path is not watched yet, try to start watching it
+  for (int p = 0; p < paths.size(); p++) {
+    QString path = paths.at(p);
+    if (path.isEmpty() || path.isNull()) continue;
+    // if the path is not watched yet, try to start watching it
     if (!m_watchedPath.contains(path)) {
-      // Symlink paths will not be watched
-      if (m_watcher->addPath(path)) {
-        m_watchedPath.append(path);
-      }
+      // symlink path will not be watched
+      if (m_watcher->addPath(path)) m_watchedPath.append(path);
     }
-    // Or just add path to the list
+    // or just add path to the list
     else if (!onlyNewPath) {
       m_watchedPath.append(path);
     }
@@ -98,18 +80,16 @@ void MyFileSystemWatcher::addPaths(const QStringList &paths, bool onlyNewPath) {
 
 void MyFileSystemWatcher::removePaths(const QStringList &paths) {
   if (m_watchedPath.isEmpty() || paths.isEmpty()) return;
-
-  for (const QString &path : paths) {
+  for (int p = 0; p < paths.size(); p++) {
+    QString path = paths.at(p);
     // removeOne will return false for symlink paths
-    if (m_watchedPath.removeOne(path) && !m_watchedPath.contains(path)) {
-      m_watcher->removePath(path);
-    }
+    bool ret = m_watchedPath.removeOne(path);
+    if (ret && !m_watchedPath.contains(path)) m_watcher->removePath(path);
   }
 }
 
 void MyFileSystemWatcher::removeAllPaths() {
   if (m_watchedPath.isEmpty()) return;
-
   m_watcher->removePaths(m_watcher->directories());
   m_watchedPath.clear();
 }
@@ -119,11 +99,12 @@ void MyFileSystemWatcher::removeAllPaths() {
 //-----------------------------------------------------------------------------
 
 DvDirTreeViewDelegate::DvDirTreeViewDelegate(DvDirTreeView *parent)
-    : QItemDelegate(parent), m_treeView(parent) {}
+    : QItemDelegate(parent)  // QAbstractItemDelegate(parent)
+    , m_treeView(parent) {}
 
 //-----------------------------------------------------------------------------
 
-DvDirTreeViewDelegate::~DvDirTreeViewDelegate() = default;
+DvDirTreeViewDelegate::~DvDirTreeViewDelegate() {}
 
 //-----------------------------------------------------------------------------
 
@@ -131,24 +112,21 @@ QWidget *DvDirTreeViewDelegate::createEditor(QWidget *parent,
                                              const QStyleOptionViewItem &option,
                                              const QModelIndex &index) const {
   DvDirModelNode *node = DvDirModel::instance()->getNode(index);
-  if (!node) return nullptr;
-
+  if (!node) return 0;
   DvDirModelFileFolderNode *fnode =
       dynamic_cast<DvDirModelFileFolderNode *>(node);
-  if (!fnode || fnode->isProjectFolder()) return nullptr;
-
+  if (!fnode || fnode->isProjectFolder()) return 0;
   QPixmap px = node->getPixmap(m_treeView->isExpanded(index));
-  QRect rect = option.rect;
-
+  QRect rect = option.rect.adjusted(-option.decorationSize.width() - 2, 0, 0, 0);
   if (index.data().canConvert(QMetaType::QString)) {
     NodeEditor *editor = new NodeEditor(parent, rect, px.width());
     editor->setText(index.data().toString());
-    connect(editor, &NodeEditor::editingFinished, this,
-            &DvDirTreeViewDelegate::commitAndCloseEditor);
+    connect(editor, SIGNAL(editingFinished()), this,
+            SLOT(commitAndCloseEditor()));
     return editor;
+  } else {
+    return QAbstractItemDelegate::createEditor(parent, option, index);
   }
-
-  return QAbstractItemDelegate::createEditor(parent, option, index);
 }
 
 //-----------------------------------------------------------------------------
@@ -157,38 +135,34 @@ bool DvDirTreeViewDelegate::editorEvent(QEvent *ev, QAbstractItemModel *model,
                                         const QStyleOptionViewItem &option,
                                         const QModelIndex &index) {
   if (ev->type() == QEvent::MouseButtonPress) {
-    QMouseEvent *mev = static_cast<QMouseEvent *>(ev);
-    QRect bounds     = option.rect;
-    int x            = mev->pos().x() - bounds.x();
-
+    QMouseEvent *mev             = static_cast<QMouseEvent *>(ev);
+    QRect bounds                 = option.rect;
+    int x                        = mev->pos().x() - bounds.x();
     DvDirModelNode *node         = DvDirModel::instance()->getNode(index);
     DvDirModelProjectNode *pnode = dynamic_cast<DvDirModelProjectNode *>(node);
     DvDirVersionControlProjectNode *vcpNode =
         dynamic_cast<DvDirVersionControlProjectNode *>(node);
 
-    // Shrink/expand the tree by clicking the item
+    // shrink / expand the tree by clicking the item
     if (node) {
-      if (m_treeView->isExpanded(index)) {
+      if (m_treeView->isExpanded(index))
         m_treeView->collapse(index);
-      } else {
+      else
         m_treeView->expand(index);
-      }
     }
 
-    if ((pnode && !pnode->isCurrent() && 14 < x && x < 26) ||
-        (vcpNode && !vcpNode->isCurrent() && 14 < x && x < 26)) {
-      if (pnode) {
+    if ((pnode && pnode->isCurrent() == false && 14 < x && x < 26) ||
+        (vcpNode && vcpNode->isCurrent() == false && 14 < x && x < 26)) {
+      if (pnode)
         pnode->makeCurrent();
-      } else if (vcpNode) {
+      else if (vcpNode)
         vcpNode->makeCurrent();
-      }
       m_treeView->update();
       return true;
     } else {
       m_treeView->update();
     }
   }
-
   return false;
 }
 
@@ -201,7 +175,7 @@ void DvDirTreeViewDelegate::paint(QPainter *painter,
   DvDirModelNode *node = DvDirModel::instance()->getNode(index);
   if (!node) return;
 
-  // Current node and drag'n drop
+  // current node and drag'n drop
   bool isCurrent = (m_treeView->getCurrentNode() == node);
   if (isCurrent) {
     painter->fillRect(rect.adjusted(-2, 0, 0, 0),
@@ -218,7 +192,7 @@ void DvDirTreeViewDelegate::paint(QPainter *painter,
     }
   }
 
-  // Icon
+  // icon
   QPixmap px = node->getPixmap(m_treeView->isExpanded(index));
   if (!px.isNull()) {
     int x = rect.left();
@@ -237,33 +211,33 @@ void DvDirTreeViewDelegate::paint(QPainter *painter,
 
   rect.adjust((pnode || vcpNode) ? 31 : 22, 0, 0, 0);
 
-  // Draw text
-  QString name = index.data().toString();
+  // draw text
+  QVariant d   = index.data();
+  QString name = d.toString();
 
-  // Text color
+  // text color
+
   if (fnode && fnode->isProjectFolder()) {
-    painter->setPen(isCurrent ? m_treeView->getSelectedFolderTextColor()
-                              : m_treeView->getFolderTextColor());
+    painter->setPen((isCurrent) ? m_treeView->getSelectedFolderTextColor()
+                                : m_treeView->getFolderTextColor());
   } else {
-    painter->setPen(isCurrent ? m_treeView->getSelectedTextColor()
-                              : m_treeView->getTextColor());
+    painter->setPen((isCurrent) ? m_treeView->getSelectedTextColor()
+                                : m_treeView->getTextColor());
   }
 
   painter->drawText(rect, Qt::AlignVCenter | Qt::AlignLeft, name);
 
-  // Project folder node, version control node
+  // project folder node, version control node
   if (pnode || vcpNode) {
     painter->setPen(m_treeView->getTextColor());
-    if ((pnode && pnode->isCurrent()) || (vcpNode && vcpNode->isCurrent())) {
+    if ((pnode && pnode->isCurrent()) || (vcpNode && vcpNode->isCurrent()))
       painter->setBrush(Qt::red);
-    } else {
+    else
       painter->setBrush(Qt::NoBrush);
-    }
     int d = 8;
     int y = (rect.height() - d) / 2;
     painter->drawEllipse(rect.x() - d - 4, rect.y() + y, d, d);
   }
-
   if (vcNode && vcNode->isUnderVersionControl() &&
       TFileStatus(vcNode->getPath()).doesExist() && !vcNode->isUnversioned()) {
     if (vcNode->isSynched()) {
@@ -288,14 +262,10 @@ void DvDirTreeViewDelegate::paint(QPainter *painter,
 
 void DvDirTreeViewDelegate::setEditorData(QWidget *editor,
                                           const QModelIndex &index) const {
-  if (index.data().canConvert(QMetaType::QString)) {
+  if (index.data().canConvert(QMetaType::QString))
     NodeEditor *nodeEditor = qobject_cast<NodeEditor *>(editor);
-    if (nodeEditor) {
-      nodeEditor->setText(index.data().toString());
-    }
-  } else {
+  else
     QAbstractItemDelegate::setEditorData(editor, index);
-  }
 }
 
 //-----------------------------------------------------------------------------
@@ -305,37 +275,29 @@ void DvDirTreeViewDelegate::setModelData(QWidget *editor,
                                          const QModelIndex &index) const {
   if (index.data().canConvert(QMetaType::QString)) {
     NodeEditor *nodeEditor = qobject_cast<NodeEditor *>(editor);
-    if (nodeEditor) {
-      model->setData(index, QVariant::fromValue(nodeEditor->getText()));
-    }
-  } else {
+    model->setData(index, QVariant::fromValue(
+                              nodeEditor->getText()));  // starEditor->text()));
+  } else
     QAbstractItemDelegate::setModelData(editor, model, index);
-  }
 }
 
 //----------------------------------------------------------------------------
 
 void DvDirTreeViewDelegate::commitAndCloseEditor() {
   NodeEditor *editor = qobject_cast<NodeEditor *>(sender());
-  if (!editor) return;
-
   emit commitData(editor);
   emit closeEditor(editor);
-
-  // Find the FileBrowser parent
-  QWidget *w               = m_treeView;
-  FileBrowser *fileBrowser = nullptr;
+  QWidget* w = m_treeView;
+  FileBrowser* fileBrowser = nullptr;
   while (w) {
-    fileBrowser = qobject_cast<FileBrowser *>(w);
-    if (fileBrowser) break;
-    w = w->parentWidget();
+      fileBrowser = qobject_cast<FileBrowser*>(w);
+      if (fileBrowser) break;
+      w = w->parentWidget();
   }
 
-  if (fileBrowser) {
-    fileBrowser->onTreeFolderChanged();
-  }
+  if (fileBrowser) fileBrowser->onTreeFolderChanged();
+  emit(m_treeView->currentNodeChanged());
 }
-
 //-----------------------------------------------------------------------------
 
 QSize DvDirTreeViewDelegate::sizeHint(const QStyleOptionViewItem &option,
@@ -347,9 +309,7 @@ QSize DvDirTreeViewDelegate::sizeHint(const QStyleOptionViewItem &option,
 
 void DvDirTreeViewDelegate::updateEditorGeometry(
     QWidget *editor, const QStyleOptionViewItem &option,
-    const QModelIndex &index) const {
-  QItemDelegate::updateEditorGeometry(editor, option, index);
-}
+    const QModelIndex &index) const {}
 
 //=============================================================================
 //
@@ -360,9 +320,9 @@ void DvDirTreeViewDelegate::updateEditorGeometry(
 DvDirTreeView::DvDirTreeView(QWidget *parent)
     : StyledTreeView(parent)
     , m_globalSelectionEnabled(true)
-    , m_currentDropItem(nullptr)
+    , m_currentDropItem(0)
     , m_refreshVersionControlEnabled(false)
-    , m_currentRefreshedNode(nullptr) {
+    , m_currentRefreshedNode(0) {
   setModel(DvDirModel::instance());
   header()->close();
   setItemDelegate(new DvDirTreeViewDelegate(this));
@@ -373,34 +333,52 @@ DvDirTreeView::DvDirTreeView(QWidget *parent)
 
   // Connect all possible changes that can alter the
   // bottom horizontal scrollbar to resize contents...
-  connect(this, &DvDirTreeView::expanded, this, &DvDirTreeView::resizeToConts);
-  connect(this, &DvDirTreeView::collapsed, this, &DvDirTreeView::resizeToConts);
-  connect(this->model(), &QAbstractItemModel::layoutChanged, this,
-          &DvDirTreeView::resizeToConts);
+  bool ret = true;
+  ret      = ret && connect(this, SIGNAL(expanded(const QModelIndex &)), this,
+                            SLOT(resizeToConts()));
+
+  ret = ret && connect(this, SIGNAL(collapsed(const QModelIndex &)), this,
+                       SLOT(resizeToConts()));
+
+  ret = ret && connect(this->model(), SIGNAL(layoutChanged()), this,
+                       SLOT(resizeToConts()));
+
+  ret = ret && connect(dynamic_cast<DvDirModel *>(this->model()),
+                       &DvDirModel::projectAdded, [=]() {
+                         collapseAll();
+                         setCurrentNode(TProjectManager::instance()
+                                            ->getCurrentProjectPath()
+                                            .getParentDir(),
+                                        true);
+                       });
 
   if (Preferences::instance()->isWatchFileSystemEnabled()) {
-    connect(this, &DvDirTreeView::expanded, this, &DvDirTreeView::onExpanded);
-    connect(this, &DvDirTreeView::collapsed, this, &DvDirTreeView::onCollapsed);
+    ret = ret && connect(this, SIGNAL(expanded(const QModelIndex &)), this,
+                         SLOT(onExpanded(const QModelIndex &)));
+
+    ret = ret && connect(this, SIGNAL(collapsed(const QModelIndex &)), this,
+                         SLOT(onCollapsed(const QModelIndex &)));
     addPathsToWatcher();
   }
+  ret = ret && connect(MyFileSystemWatcher::instance(),
+                       SIGNAL(directoryChanged(const QString &)), this,
+                       SLOT(onMonitoredDirectoryChanged(const QString &)));
 
-  connect(MyFileSystemWatcher::instance(),
-          &MyFileSystemWatcher::directoryChanged, this,
-          &DvDirTreeView::onMonitoredDirectoryChanged);
+  ret = ret && connect(TApp::instance()->getCurrentScene(),
+                       SIGNAL(preferenceChanged(const QString &)), this,
+                       SLOT(onPreferenceChanged(const QString &)));
 
-  connect(TApp::instance()->getCurrentScene(), &TSceneHandle::preferenceChanged,
-          this, &DvDirTreeView::onPreferenceChanged);
+  assert(ret);
 
   setAcceptDrops(true);
 
-  if (Preferences::instance()->isAutomaticSVNFolderRefreshEnabled()) {
+  if (Preferences::instance()->isAutomaticSVNFolderRefreshEnabled())
     setRefreshVersionControlEnabled(true);
-  }
 }
 
 //-----------------------------------------------------------------------------
 
-void DvDirTreeView::resizeToConts() { resizeColumnToContents(0); }
+void DvDirTreeView::resizeToConts(void) { resizeColumnToContents(0); }
 
 //-----------------------------------------------------------------------------
 
@@ -420,7 +398,7 @@ void DvDirTreeView::dragEnterEvent(QDragEnterEvent *e) {
 //-----------------------------------------------------------------------------
 
 void DvDirTreeView::dragLeaveEvent(QDragLeaveEvent *e) {
-  m_currentDropItem = nullptr;
+  m_currentDropItem = 0;
   update();
 }
 
@@ -429,15 +407,12 @@ void DvDirTreeView::dragLeaveEvent(QDragLeaveEvent *e) {
 void DvDirTreeView::dragMoveEvent(QDragMoveEvent *e) {
   const QMimeData *mimeData = e->mimeData();
   if (!acceptResourceDrop(mimeData->urls())) return;
-
   QModelIndex index = indexAt(e->pos());
   DvDirModelFileFolderNode *folderNode =
       dynamic_cast<DvDirModelFileFolderNode *>(
           DvDirModel::instance()->getNode(index));
   DvDirModelNode *node = DvDirModel::instance()->getNode(index);
-
-  if (!node || !node->isFolder()) return;
-
+  if (!node->isFolder()) return;
   m_currentDropItem = folderNode;
   update();
   e->accept();
@@ -447,16 +422,15 @@ void DvDirTreeView::dragMoveEvent(QDragMoveEvent *e) {
 
 void DvDirTreeView::dropEvent(QDropEvent *e) {
   const QMimeData *mimeData = e->mimeData();
-  m_currentDropItem         = nullptr;
+  m_currentDropItem         = 0;
   update();
-
   QModelIndex index = indexAt(e->pos());
   DvDirModelFileFolderNode *folderNode =
       dynamic_cast<DvDirModelFileFolderNode *>(
           DvDirModel::instance()->getNode(index));
   if (!folderNode || !folderNode->isFolder()) return;
   if (!mimeData->hasUrls()) return;
-
+  int count = 0;
   for (const QUrl &url : mimeData->urls()) {
     TFilePath srcFp(url.toLocalFile().toStdWString());
     TFilePath dstFp = folderNode->getPath();
@@ -469,22 +443,18 @@ void DvDirTreeView::dropEvent(QDropEvent *e) {
     NameBuilder *nameBuilder =
         NameBuilder::getBuilder(::to_wstring(path.getName()));
     std::wstring levelNameOut;
-
-    do {
-      levelNameOut = nameBuilder->getNext();
-    } while (TSystem::doesExistFileOrLevel(path.withName(levelNameOut)));
-
+    do levelNameOut = nameBuilder->getNext();
+    while (TSystem::doesExistFileOrLevel(path.withName(levelNameOut)));
     dstFp = path.withName(levelNameOut);
 
     if (dstFp != srcFp) {
       if (TSystem::copyFileOrLevel(dstFp, srcFp)) {
         TSystem::removeFileOrLevel(srcFp);
         FileBrowser::refreshFolder(srcFp.getParentDir());
-      } else {
+      } else
         DVGui::error(tr("There was an error copying %1 to %2")
                          .arg(toQString(srcFp))
                          .arg(toQString(dstFp)));
-      }
     }
   }
 }
@@ -511,11 +481,9 @@ void DvDirTreeView::contextMenuEvent(QContextMenuEvent *e) {
     TFilePath path       = vcNode->getPath();
     bool fileExists      = TFileStatus(path).doesExist();
     std::string pathType = path.getType();
-
     DvDirVersionControlProjectNode *vcProjectNode =
         dynamic_cast<DvDirVersionControlProjectNode *>(node);
-    QAction *action = nullptr;
-
+    QAction *action;
     if (vcNode->isUnderVersionControl()) {
       if (vcProjectNode || (fileExists && pathType == "tnz")) {
         DvItemListModel::Status status = DvItemListModel::VC_None;
@@ -532,74 +500,70 @@ void DvDirTreeView::contextMenuEvent(QContextMenuEvent *e) {
 
         if (status == DvItemListModel::VC_ReadOnly) {
           action = menu.addAction(tr("Edit"));
-          connect(action, &QAction::triggered, this,
-                  &DvDirTreeView::editCurrentVersionControlNode);
+          connect(action, SIGNAL(triggered()), this,
+                  SLOT(editCurrentVersionControlNode()));
         } else if (status == DvItemListModel::VC_Edited) {
-          action = menu.addAction(tr("Unlock"));
-          connect(action, &QAction::triggered, this,
-                  &DvDirTreeView::unlockCurrentVersionControlNode);
+          action = menu.addAction("Unlock");
+          connect(action, SIGNAL(triggered()), this,
+                  SLOT(unlockCurrentVersionControlNode()));
         } else if (status == DvItemListModel::VC_Modified) {
-          action = menu.addAction(tr("Revert"));
-          connect(action, &QAction::triggered, this,
-                  &DvDirTreeView::revertCurrentVersionControlNode);
+          action = menu.addAction("Revert");
+          connect(action, SIGNAL(triggered()), this,
+                  SLOT(revertCurrentVersionControlNode()));
         }
       }
 
       action = menu.addAction(tr("Get"));
-      connect(action, &QAction::triggered, this,
-              &DvDirTreeView::updateCurrentVersionControlNode);
+      connect(action, SIGNAL(triggered()), this,
+              SLOT(updateCurrentVersionControlNode()));
     }
-
     if (fileExists) {
       action = menu.addAction(tr("Put..."));
-      connect(action, &QAction::triggered, this,
-              &DvDirTreeView::putCurrentVersionControlNode);
+      connect(action, SIGNAL(triggered()), this,
+              SLOT(putCurrentVersionControlNode()));
     }
-
     if (vcNode->isUnderVersionControl() && fileExists) {
       DvDirVersionControlRootNode *rootNode =
           dynamic_cast<DvDirVersionControlRootNode *>(vcNode);
       if (!rootNode) {
         action = menu.addAction(tr("Delete"));
-        connect(action, &QAction::triggered, this,
-                &DvDirTreeView::deleteCurrentVersionControlNode);
+        connect(action, SIGNAL(triggered()), this,
+                SLOT(deleteCurrentVersionControlNode()));
       }
     }
-
     if (pathType != "tnz" && vcNode->isUnderVersionControl()) {
       menu.addSeparator();
 
       action = menu.addAction(tr("Refresh"));
-      connect(action, &QAction::triggered, this,
-              &DvDirTreeView::refreshCurrentVersionControlNode);
+      connect(action, SIGNAL(triggered()), this,
+              SLOT(refreshCurrentVersionControlNode()));
 
       if (fileExists) {
         menu.addSeparator();
 
         action = menu.addAction(tr("Cleanup"));
-        connect(action, &QAction::triggered, this,
-                &DvDirTreeView::cleanupCurrentVersionControlNode);
+        connect(action, SIGNAL(triggered()), this,
+                SLOT(cleanupCurrentVersionControlNode()));
 
         action = menu.addAction(tr("Purge"));
-        connect(action, &QAction::triggered, this,
-                &DvDirTreeView::purgeCurrentVersionControlNode);
+        connect(action, SIGNAL(triggered()), this,
+                SLOT(purgeCurrentVersionControlNode()));
       }
     }
   }
 
-  if (!menu.isEmpty()) {
-    menu.exec(e->globalPos());
-  }
+  if (!menu.isEmpty()) menu.exec(e->globalPos());
 }
 
 //-----------------------------------------------------------------------------
 
-void DvDirTreeView::createMenuAction(QMenu &menu, const QString &name,
+void DvDirTreeView::createMenuAction(QMenu &menu, QString name,
                                      const char *slot, bool enable) {
   QAction *act = menu.addAction(name);
   act->setEnabled(enable);
-  // Not using old-style connect - using member function pointers instead
-  // This would need to be updated based on actual slot function
+  std::string slotName(slot);
+  slotName = std::string("1") + slotName;
+  connect(act, SIGNAL(triggered()), slotName.c_str());
 }
 
 //-----------------------------------------------------------------------------
@@ -618,8 +582,9 @@ TFilePath DvDirTreeView::getCurrentPath() const {
 //-----------------------------------------------------------------------------
 
 DvDirModelNode *DvDirTreeView::getCurrentNode() const {
-  QModelIndex index = currentIndex();
-  return DvDirModel::instance()->getNode(index);
+  QModelIndex index    = currentIndex();
+  DvDirModelNode *node = DvDirModel::instance()->getNode(index);
+  return node;
 }
 
 //-----------------------------------------------------------------------------
@@ -633,18 +598,17 @@ void DvDirTreeView::enableCommands() {
 void DvDirTreeView::currentChanged(const QModelIndex &current,
                                    const QModelIndex &previous) {
   if (m_globalSelectionEnabled) {
-    // Make current selection; needed to intercept the MI_Clear command
+    // rende la selezione corrente; serve per intercettare il comando MI_Clear
     makeCurrent();
   }
 
   // Automatic refresh of version control node
+
   if (refreshVersionControlEnabled() && isVisible() &&
       Preferences::instance()->isAutomaticSVNFolderRefreshEnabled()) {
     DvDirVersionControlNode *vcNode = dynamic_cast<DvDirVersionControlNode *>(
         DvDirModel::instance()->getNode(current));
-    if (vcNode) {
-      refreshVersionControl(vcNode);
-    }
+    if (vcNode) refreshVersionControl(vcNode);
   }
 
   emit currentNodeChanged();
@@ -663,7 +627,6 @@ void DvDirTreeView::deleteFolder() {
   DvDirModel *model = DvDirModel::instance();
   QModelIndex index = currentIndex();
   if (!index.isValid()) return;
-
   QModelIndex parentIndex = index.parent();
   if (!parentIndex.isValid()) return;
 
@@ -671,7 +634,6 @@ void DvDirTreeView::deleteFolder() {
       dynamic_cast<DvDirModelFileFolderNode *>(model->getNode(index));
   if (!node) return;
   if (!node->isRenameEnabled()) return;
-
   TFilePath fp = node->getPath();
   int ret = DVGui::MsgBox(tr("Delete folder ") + toQString(fp) + "?", tr("Yes"),
                           tr("No"), 1);
@@ -687,6 +649,7 @@ void DvDirTreeView::deleteFolder() {
   }
 
   model->removeRow(index.row(), parentIndex);
+  // m_model->refresh(parentIndex);
   setCurrentIndex(parentIndex);
 }
 
@@ -694,7 +657,6 @@ void DvDirTreeView::deleteFolder() {
 
 void DvDirTreeView::setCurrentNode(DvDirModelNode *node) {
   if (getCurrentNode() == node) return;
-
   QModelIndex index = DvDirModel::instance()->getIndexByNode(node);
   setCurrentIndex(index);
   scrollTo(index);
@@ -706,25 +668,17 @@ void DvDirTreeView::setCurrentNode(const TFilePath &fp, bool expandNode) {
   DvDirModelFileFolderNode *node =
       dynamic_cast<DvDirModelFileFolderNode *>(getCurrentNode());
   if (node && node->getPath() == fp) return;
-
   QModelIndex index = DvDirModel::instance()->getIndexByPath(fp);
   setCurrentIndex(index);
-
-  if (expandNode) {
-    expand(index);
-  }
-
-  scrollTo(index);
+  if (expandNode) expand(index);
+  scrollTo(index /*, QAbstractItemView::PositionAtCenter*/);
 }
 
 //-----------------------------------------------------------------------------
 
 void DvDirTreeView::updateVersionControl(DvDirVersionControlNode *node) {
-  if (!node) return;
-
   DvDirVersionControlRootNode *rootNode =
       dynamic_cast<DvDirVersionControlRootNode *>(node);
-
   if (rootNode) {
     QString localPath = QString::fromStdWString(rootNode->getLocalPath());
     if (!QFile::exists(localPath)) {
@@ -741,26 +695,22 @@ void DvDirTreeView::updateVersionControl(DvDirVersionControlNode *node) {
       m_currentRefreshedNode = node;
       setRefreshVersionControlEnabled(false);
 
-      if (isVisible()) {
+      if (isVisible())
         m_currentRefreshedNode->setTemporaryName(L" Checkout...");
-      }
 
       QStringList args;
       args << "checkout"
            << QString::fromStdWString(rootNode->getRepositoryPath()) << "."
            << "--depth=empty";
-
-      connect(&m_thread, &VersionControlThread::error, this,
-              &DvDirTreeView::onCheckOutError);
-      connect(&m_thread, &VersionControlThread::done, this,
-              &DvDirTreeView::onCheckOutDone);
-
+      connect(&m_thread, SIGNAL(error(const QString &)), this,
+              SLOT(onCheckOutError(const QString &)));
+      connect(&m_thread, SIGNAL(done(const QString &)), this,
+              SLOT(onCheckOutDone(const QString &)));
       m_thread.executeCommand(localPath, "svn", args, true);
     }
     // Full checkout on the root node
-    else {
+    else
       vc->update(this, localPath + "/", QStringList(), 0);
-    }
   }
   // Perform a normal update (on an arbitrary node)
   else if (node) {
@@ -773,16 +723,15 @@ void DvDirTreeView::updateVersionControl(DvDirVersionControlNode *node) {
       vc->setPassword(QString::fromStdWString(rootNode->getPassword()));
     }
 
-    // Check if the path exists, otherwise, it is a missing folder/file that
-    // has to be retrieved.
+    // Check if the path exist, otherwise, it is a missing folder / file that
+    // has to be get.
     TFilePath path   = node->getPath();
     bool isSceneFile = path.getType() == "tnz";
-
-    if (TFileStatus(path).doesExist() && !isSceneFile) {
+    if (TFileStatus(path).doesExist() && !isSceneFile)
       vc->update(this, toQString(node->getPath()), QStringList("."), 0);
-    } else {
+    else {
       // Find the workingDir (the first existing path)
-      // and in the meantime, store the missing folders or files
+      // and in the meantime, store the missing folders on files
       QStringList files;
       while (!TFileStatus(path).doesExist()) {
         files.prepend(toQString(path));
@@ -793,23 +742,21 @@ void DvDirTreeView::updateVersionControl(DvDirVersionControlNode *node) {
       QString workingDir = toQString(path.getParentDir());
       QDir dir(workingDir);
       QStringList relativeFiles;
-
-      for (const QString &file : files) {
+      for (int i = 0; i < files.count(); i++) {
 #ifdef MACOSX
-        relativeFiles << dir.relativeFilePath(file);
+        relativeFiles << dir.relativeFilePath(files.at(i));
 #else
-        relativeFiles << dir.relativeFilePath(file).replace("/", "\\");
+        relativeFiles << dir.relativeFilePath(files.at(i)).replace("/", "\\");
 #endif
       }
 
       relativeFiles.append(QString::fromStdWString(node->getName()));
 
-      if (relativeFiles.count() == 1) {
+      if (relativeFiles.count() == 1)
         vc->update(this, workingDir, relativeFiles, 0);
-      } else {
+      else
         // Update the missing folders with non-recursive option ON
         vc->update(this, workingDir, relativeFiles, 0, true, false, true);
-      }
     }
   }
 }
@@ -818,7 +765,6 @@ void DvDirTreeView::updateVersionControl(DvDirVersionControlNode *node) {
 
 void DvDirTreeView::putVersionControl(DvDirVersionControlNode *node) {
   if (!node) return;
-
   VersionControl *vc = VersionControl::instance();
 
   // Get the root node to retrieve username and password
@@ -842,11 +788,10 @@ void DvDirTreeView::putVersionControl(DvDirVersionControlNode *node) {
     }
 
     vc->commit(this, toQString(node->getPath()), files, true);
-  } else {
+  } else
     vc->commit(this, toQString(path.getParentDir()),
                QStringList(QString::fromStdWString(node->getName())),
                !isSceneFile);
-  }
 }
 
 //-----------------------------------------------------------------------------
@@ -866,7 +811,6 @@ void DvDirTreeView::cleanupVersionControl(DvDirVersionControlNode *node) {
     vc->setUserName(QString::fromStdWString(rootNode->getUserName()));
     vc->setPassword(QString::fromStdWString(rootNode->getPassword()));
   }
-
   vc->cleanupFolder(this, toQString(path));
 }
 
@@ -911,14 +855,12 @@ void DvDirTreeView::deleteVersionControl(DvDirVersionControlNode *node) {
 
   TFilePath path   = node->getPath();
   bool isSceneFile = path.getType() == "tnz";
-
-  if (isSceneFile) {
+  if (path.getType() == "tnz")
     vc->deleteFiles(this, toQString(parentNode->getPath()),
                     QStringList(QString::fromStdWString(node->getName())));
-  } else if (path.getType().empty()) {
+  else if (path.getType() == "")
     vc->deleteFolder(this, toQString(parentNode->getPath()),
                      QString::fromStdWString(node->getName()));
-  }
 }
 
 //-----------------------------------------------------------------------------
@@ -934,16 +876,12 @@ void DvDirTreeView::listVersionControl(
   args << "info";
   args << "--xml";
 
-  disconnect(&m_thread, &VersionControlThread::done, this,
-             &DvDirTreeView::onInfoDone);
-  disconnect(&m_thread, &VersionControlThread::error, this,
-             &DvDirTreeView::onRefreshStatusError);
-
-  connect(&m_thread, &VersionControlThread::error, this,
-          &DvDirTreeView::onRefreshStatusError);
-  connect(&m_thread, &VersionControlThread::done, this,
-          &DvDirTreeView::onInfoDone);
-
+  m_thread.disconnect(SIGNAL(done(const QString &)));
+  m_thread.disconnect(SIGNAL(error(const QString &)));
+  connect(&m_thread, SIGNAL(error(const QString &)), this,
+          SLOT(onRefreshStatusError(const QString &)));
+  connect(&m_thread, SIGNAL(done(const QString &)), this,
+          SLOT(onInfoDone(const QString &)));
   m_thread.executeCommand(toQString(lastExistingNode->getPath()), "svn", args);
 }
 
@@ -953,16 +891,12 @@ void DvDirTreeView::refreshVersionControl(DvDirVersionControlNode *node,
                                           const QStringList &files) {
   if (!refreshVersionControlEnabled()) return;
 
-  if (m_currentRefreshedNode) {
-    m_currentRefreshedNode->restoreName();
-  }
+  if (m_currentRefreshedNode) m_currentRefreshedNode->restoreName();
 
   m_currentRefreshedNode = node;
   QString tempName       = tr("Refreshing...");
-
   DvDirVersionControlRootNode *rootNode =
       dynamic_cast<DvDirVersionControlRootNode *>(node);
-
   if (rootNode) {
     QString path = QString::fromStdWString(rootNode->getLocalPath()) + "/";
 
@@ -970,25 +904,18 @@ void DvDirTreeView::refreshVersionControl(DvDirVersionControlNode *node,
 
     // Check if the localPath is a working copy (has a .svn subfolder)
     if (vc->isFolderUnderVersionControl(path)) {
-      if (isVisible()) {
-        rootNode->setTemporaryName(tempName.toStdWString());
-      }
+      if (isVisible()) rootNode->setTemporaryName(tempName.toStdWString());
 
       if (rootNode) {
         vc->setUserName(QString::fromStdWString(rootNode->getUserName()));
         vc->setPassword(QString::fromStdWString(rootNode->getPassword()));
       }
-
-      disconnect(&m_thread, &VersionControlThread::statusRetrieved, this,
-                 &DvDirTreeView::onRefreshStatusDone);
-      disconnect(&m_thread, &VersionControlThread::error, this,
-                 &DvDirTreeView::onRefreshStatusError);
-
-      connect(&m_thread, &VersionControlThread::error, this,
-              &DvDirTreeView::onRefreshStatusError);
-      connect(&m_thread, &VersionControlThread::statusRetrieved, this,
-              &DvDirTreeView::onRefreshStatusDone);
-
+      m_thread.disconnect(SIGNAL(statusRetrieved(const QString &)));
+      m_thread.disconnect(SIGNAL(error(const QString &)));
+      connect(&m_thread, SIGNAL(error(const QString &)), this,
+              SLOT(onRefreshStatusError(const QString &)));
+      connect(&m_thread, SIGNAL(statusRetrieved(const QString &)), this,
+              SLOT(onRefreshStatusDone(const QString &)));
       setRefreshVersionControlEnabled(false);
       m_thread.getSVNStatus(path, true, true);
     }
@@ -1012,26 +939,19 @@ void DvDirTreeView::refreshVersionControl(DvDirVersionControlNode *node,
         (isSceneFile && QFile(nodePath).exists())) {
       VersionControl *vc                    = VersionControl::instance();
       DvDirVersionControlRootNode *rootNode = node->getVersionControlRootNode();
-
       if (rootNode) {
         vc->setUserName(QString::fromStdWString(rootNode->getUserName()));
         vc->setPassword(QString::fromStdWString(rootNode->getPassword()));
       }
-
-      disconnect(&m_thread, &VersionControlThread::statusRetrieved, this,
-                 &DvDirTreeView::onRefreshStatusDone);
-      disconnect(&m_thread, &VersionControlThread::error, this,
-                 &DvDirTreeView::onRefreshStatusError);
-
-      connect(&m_thread, &VersionControlThread::error, this,
-              &DvDirTreeView::onRefreshStatusError);
-      connect(&m_thread, &VersionControlThread::statusRetrieved, this,
-              &DvDirTreeView::onRefreshStatusDone);
-
+      m_thread.disconnect(SIGNAL(statusRetrieved(const QString &)));
+      m_thread.disconnect(SIGNAL(error(const QString &)));
+      connect(&m_thread, SIGNAL(error(const QString &)), this,
+              SLOT(onRefreshStatusError(const QString &)));
+      connect(&m_thread, SIGNAL(statusRetrieved(const QString &)), this,
+              SLOT(onRefreshStatusDone(const QString &)));
       if (files.isEmpty()) {
-        if (isVisible() && node->isUnderVersionControl()) {
+        if (isVisible() && node->isUnderVersionControl())
           node->setTemporaryName(tempName.toStdWString());
-        }
 
         if (isSceneFile) {
           if (node->isUnderVersionControl()) {
@@ -1050,15 +970,13 @@ void DvDirTreeView::refreshVersionControl(DvDirVersionControlNode *node,
           }
         }
       } else {
-        if (isVisible()) {
-          node->setTemporaryName(tempName.toStdWString());
-        }
+        if (isVisible()) node->setTemporaryName(tempName.toStdWString());
         setRefreshVersionControlEnabled(false);
         m_thread.getSVNStatus(nodePath, files, true, true);
       }
     }
     // Missing node: call svn list to retrieve the list of files...
-    // Missing node that isSceneFile doesn't need any update
+    // Missing node that isSceneFile doesn't needs any update
     else if (!isSceneFile) {
       DvDirVersionControlRootNode *rootNode = node->getVersionControlRootNode();
       if (rootNode) {
@@ -1072,7 +990,7 @@ void DvDirTreeView::refreshVersionControl(DvDirVersionControlNode *node,
         DvDirModelNode *n    = node->getParent();
         QString relativePath = QString::fromStdWString(node->getName());
 
-        // Get the last existing parent node, and store in the meantime, its
+        // get the last existing parent node, and store in the meantime, its
         // relative path
         while (!QDir(nodePath).exists() && n != rootNode) {
           if (!n) break;
@@ -1080,9 +998,7 @@ void DvDirTreeView::refreshVersionControl(DvDirVersionControlNode *node,
           n = n->getParent();
         }
 
-        if (isVisible()) {
-          node->setTemporaryName(tempName.toStdWString());
-        }
+        if (isVisible()) node->setTemporaryName(tempName.toStdWString());
 
         setRefreshVersionControlEnabled(false);
         listVersionControl(dynamic_cast<DvDirVersionControlNode *>(n),
@@ -1119,7 +1035,6 @@ void DvDirTreeView::editCurrentVersionControlNode() {
 
       sceneIconsCount++;
     }
-
     VersionControl::instance()->lock(this, toQString(path.getParentDir()),
                                      files, sceneIconsCount);
   } else {
@@ -1127,8 +1042,7 @@ void DvDirTreeView::editCurrentVersionControlNode() {
         TProjectManager::instance()->projectFolderToProjectPath(path);
 
     auto currentProject = TProjectManager::instance()->getCurrentProject();
-    if (!currentProject) return;
-
+    if (!currentProject->isLoaded()) return;
     TFilePath sceneFolder =
         currentProject->decode(currentProject->getFolder(TProject::Scenes));
     TFilePath scenesDescPath = sceneFolder + "scenes.xml";
@@ -1175,7 +1089,6 @@ void DvDirTreeView::unlockCurrentVersionControlNode() {
 
       sceneIconsCount++;
     }
-
     VersionControl::instance()->unlock(this, toQString(path.getParentDir()),
                                        files, sceneIconsCount);
   } else {
@@ -1183,8 +1096,7 @@ void DvDirTreeView::unlockCurrentVersionControlNode() {
         TProjectManager::instance()->projectFolderToProjectPath(path);
 
     auto currentProject = TProjectManager::instance()->getCurrentProject();
-    if (!currentProject) return;
-
+    if (!currentProject->isLoaded()) return;
     TFilePath sceneFolder =
         currentProject->decode(currentProject->getFolder(TProject::Scenes));
     TFilePath scenesDescPath = sceneFolder + "scenes.xml";
@@ -1199,7 +1111,6 @@ void DvDirTreeView::unlockCurrentVersionControlNode() {
     files.append(
         dir.relativeFilePath(toQString(scenesDescPath)).replace("/", "\\"));
 #endif
-
     VersionControl::instance()->unlock(this, toQString(path), files, 0);
   }
 }
@@ -1231,16 +1142,14 @@ void DvDirTreeView::revertCurrentVersionControlNode() {
 
       sceneIconsCount++;
     }
-
     VersionControl::instance()->revert(this, toQString(path.getParentDir()),
                                        files, false, sceneIconsCount);
   } else {
     TFilePath fp =
         TProjectManager::instance()->projectFolderToProjectPath(path);
-
-    auto currentProject = TProjectManager::instance()->getCurrentProject();
-    if (!currentProject) return;
-
+    auto currentProject =
+        TProjectManager::instance()->getCurrentProject();
+    if (!currentProject->isLoaded()) return;
     TFilePath sceneFolder =
         currentProject->decode(currentProject->getFolder(TProject::Scenes));
     TFilePath scenesDescPath = sceneFolder + "scenes.xml";
@@ -1318,15 +1227,13 @@ void DvDirTreeView::purgeCurrentVersionControlNode() {
 //-----------------------------------------------------------------------------
 
 void DvDirTreeView::onCheckOutError(const QString &text) {
-  disconnect(&m_thread, &VersionControlThread::error, this,
-             &DvDirTreeView::onCheckOutError);
-  disconnect(&m_thread, &VersionControlThread::done, this,
-             &DvDirTreeView::onCheckOutDone);
+  disconnect(&m_thread, SIGNAL(error(const QString &)), this,
+             SLOT(onCheckOutError(const QString &)));
+  disconnect(&m_thread, SIGNAL(done(const QString &)), this,
+             SLOT(onCheckOutDone(const QString &)));
 
   if (isVisible()) {
-    if (m_currentRefreshedNode) {
-      m_currentRefreshedNode->restoreName();
-    }
+    if (m_currentRefreshedNode) m_currentRefreshedNode->restoreName();
   }
 
   setRefreshVersionControlEnabled(true);
@@ -1337,10 +1244,10 @@ void DvDirTreeView::onCheckOutError(const QString &text) {
 //-----------------------------------------------------------------------------
 
 void DvDirTreeView::onCheckOutDone(const QString &text) {
-  disconnect(&m_thread, &VersionControlThread::error, this,
-             &DvDirTreeView::onCheckOutError);
-  disconnect(&m_thread, &VersionControlThread::done, this,
-             &DvDirTreeView::onCheckOutDone);
+  disconnect(&m_thread, SIGNAL(error(const QString &)), this,
+             SLOT(onCheckOutError(const QString &)));
+  disconnect(&m_thread, SIGNAL(done(const QString &)), this,
+             SLOT(onCheckOutDone(const QString &)));
 
   if (isVisible()) {
     if (!m_currentRefreshedNode) return;
@@ -1350,7 +1257,6 @@ void DvDirTreeView::onCheckOutDone(const QString &text) {
         DvDirModel::instance()->getIndexByNode(m_currentRefreshedNode);
     DvDirModel::instance()->refresh(index);
   }
-
   setRefreshVersionControlEnabled(true);
   // Refresh the node
   refreshCurrentVersionControlNode();
@@ -1368,14 +1274,12 @@ void DvDirTreeView::onInfoDone(const QString &xmlResponse) {
   args << repositoryURL;
   args << "--xml";
 
-  disconnect(&m_thread, &VersionControlThread::done, this,
-             &DvDirTreeView::onInfoDone);
-
+  disconnect(&m_thread, SIGNAL(done(const QString &)), this,
+             SLOT(onInfoDone(const QString &)));
   if (!m_currentRefreshedNode) return;
 
-  connect(&m_thread, &VersionControlThread::done, this,
-          &DvDirTreeView::onListDone);
-
+  connect(&m_thread, SIGNAL(done(const QString &)), this,
+          SLOT(onListDone(const QString &)));
   m_thread.executeCommand(toQString(m_currentRefreshedNode->getPath()), "svn",
                           args);
 }
@@ -1417,43 +1321,13 @@ void DvDirTreeView::onRefreshStatusDone(const QString &text) {
 
   m_currentRefreshedNode->setExists(TFileStatus(nodePath).doesExist());
 
-  bool nodeChanged = false;
-
-  // If needed, transform the DvDirVersionControlNode "vcNode" to a
-  // DvDirVersionControlProjectNode
-  // And put it on the tree (removing the previous entry)
-  if (m_currentRefreshedNode->getNodeType() != "Project" &&
-      TProjectManager::instance()->isProject(nodePath)) {
-    DvDirModelNode *parentNode = m_currentRefreshedNode->getParent();
-    if (parentNode) {
-      std::wstring name = m_currentRefreshedNode->getName();
-
-      // Remove the old node (which is not a project node)
-      DvDirModel::instance()->removeRows(
-          m_currentRefreshedNode->getRow(), 1,
-          DvDirModel::instance()->getIndexByNode(parentNode));
-
-      // Add a new project node instead of the old one
-      DvDirVersionControlProjectNode *newNode =
-          new DvDirVersionControlProjectNode(parentNode, name, nodePath);
-      parentNode->addChild(newNode);
-      nodeChanged            = true;
-      m_currentRefreshedNode = newNode;
-    }
-  }
-
   SVNStatusReader sr(text);
   QStringList checkPartialLockList =
       m_currentRefreshedNode->refreshVersionControl(sr.getStatus());
 
-  if (!checkPartialLockList.isEmpty()) {
+  if (!checkPartialLockList.isEmpty())
     checkPartialLock(toQString(nodePath), checkPartialLockList);
-  } else {
-    // Refresh also the right side (thumbnails)
-    if (nodeChanged && m_currentRefreshedNode) {
-      setCurrentNode(m_currentRefreshedNode);
-    }
-
+  else {
     emit currentNodeChanged();
 
     QModelIndex index =
@@ -1468,11 +1342,7 @@ void DvDirTreeView::onRefreshStatusDone(const QString &text) {
 
 void DvDirTreeView::onRefreshStatusError(const QString &text) {
   if (!isVisible()) return;
-
-  if (m_currentRefreshedNode) {
-    m_currentRefreshedNode->restoreName();
-  }
-
+  m_currentRefreshedNode->restoreName();
   setRefreshVersionControlEnabled(true);
   DVGui::error(tr("Refresh operation failed:\n") + text);
 }
@@ -1483,19 +1353,17 @@ void DvDirTreeView::checkPartialLock(const QString &workingDir,
                                      const QStringList &files) {
   QStringList args;
   args << "proplist";
-  args.append(files);
+  int filesCount = files.count();
+  for (int i = 0; i < filesCount; i++) args << files.at(i);
   args << "--xml";
   args << "-v";
 
-  disconnect(&m_thread, &VersionControlThread::done, this,
-             &DvDirTreeView::onCheckPartialLockDone);
-  disconnect(&m_thread, &VersionControlThread::error, this,
-             &DvDirTreeView::onCheckPartialLockError);
-
-  connect(&m_thread, &VersionControlThread::error, this,
-          &DvDirTreeView::onCheckPartialLockError);
-  connect(&m_thread, &VersionControlThread::done, this,
-          &DvDirTreeView::onCheckPartialLockDone);
+  m_thread.disconnect(SIGNAL(done(const QString &)));
+  m_thread.disconnect(SIGNAL(error(const QString &)));
+  connect(&m_thread, SIGNAL(error(const QString &)), this,
+          SLOT(onCheckPartialLockError(const QString &)));
+  connect(&m_thread, SIGNAL(done(const QString &)), this,
+          SLOT(onCheckPartialLockDone(const QString &)));
 
   m_thread.executeCommand(workingDir, "svn", args, true);
 }
@@ -1503,11 +1371,8 @@ void DvDirTreeView::checkPartialLock(const QString &workingDir,
 //-----------------------------------------------------------------------------
 
 void DvDirTreeView::onCheckPartialLockError(const QString &text) {
-  disconnect(&m_thread, &VersionControlThread::done, this,
-             &DvDirTreeView::onCheckPartialLockDone);
-  disconnect(&m_thread, &VersionControlThread::error, this,
-             &DvDirTreeView::onCheckPartialLockError);
-
+  m_thread.disconnect(SIGNAL(done(const QString &)));
+  m_thread.disconnect(SIGNAL(error(const QString &)));
   setRefreshVersionControlEnabled(true);
   DVGui::error(tr("Refresh operation failed:\n") + text);
 }
@@ -1517,10 +1382,8 @@ void DvDirTreeView::onCheckPartialLockError(const QString &text) {
 void DvDirTreeView::onCheckPartialLockDone(const QString &xmlResults) {
   if (!m_currentRefreshedNode) return;
 
-  disconnect(&m_thread, &VersionControlThread::done, this,
-             &DvDirTreeView::onCheckPartialLockDone);
-  disconnect(&m_thread, &VersionControlThread::error, this,
-             &DvDirTreeView::onCheckPartialLockError);
+  m_thread.disconnect(SIGNAL(done(const QString &)));
+  m_thread.disconnect(SIGNAL(error(const QString &)));
 
   SVNPartialLockReader reader(xmlResults);
   QList<SVNPartialLock> list = reader.getPartialLock();
@@ -1528,13 +1391,17 @@ void DvDirTreeView::onCheckPartialLockDone(const QString &xmlResults) {
   QString userName = VersionControl::instance()->getUserName();
   QString hostName = QHostInfo::localHostName();
 
-  for (const SVNPartialLock &lock : list) {
-    // Check if the pair SVN username / Hostname is inside the lock list...
-    bool havePartialLock = false;
-    unsigned int from    = 0;
-    unsigned int to      = 0;
+  int count = list.size();
+  for (int i = 0; i < count; i++) {
+    SVNPartialLock lock = list.at(i);
 
-    for (const SVNPartialLockInfo &info : lock.m_partialLockList) {
+    // Check if the pair SVN username / Hostname is inside the lock list...
+    bool havePartialLock           = false;
+    unsigned int from              = 0;
+    unsigned int to                = 0;
+    QList<SVNPartialLockInfo> list = lock.m_partialLockList;
+    for (int i = 0; i < list.size(); i++) {
+      SVNPartialLockInfo info = list.at(i);
       if (info.m_userName == userName && info.m_hostName == hostName) {
         havePartialLock = true;
         from            = info.m_from;
@@ -1556,15 +1423,12 @@ void DvDirTreeView::onCheckPartialLockDone(const QString &xmlResults) {
       s.m_isPartialEdited = false;
       s.m_isPartialLocked = true;
     }
-
     m_currentRefreshedNode->insertVersionControlStatus(lock.m_fileName, s);
   }
-
   m_currentRefreshedNode->restoreName();
   QModelIndex index =
       DvDirModel::instance()->getIndexByNode(m_currentRefreshedNode);
   DvDirModel::instance()->refresh(index);
-
   emit currentNodeChanged();
   setRefreshVersionControlEnabled(true);
 }
@@ -1585,36 +1449,29 @@ DvItemListModel::Status DvDirTreeView::getItemVersionControlStatus(
     if (s.m_item == "missing" ||
         (s.m_item == "none" && s.m_repoStatus == "added"))
       return DvItemListModel::VC_Missing;
-
     if (s.m_item == "unversioned") return DvItemListModel::VC_Unversioned;
-
     // If, for some errors, there is some item added locally but not committed
     // yet, use the modified status
     if (s.m_item == "modified" || s.m_item == "added")
       return DvItemListModel::VC_Modified;
-
     if (s.m_isPartialEdited) {
-      QString from = QString::number(s.m_editFrom);
-      QString to   = QString::number(s.m_editTo);
-
+      QString from                          = QString::number(s.m_editFrom);
+      QString to                            = QString::number(s.m_editTo);
       DvDirVersionControlRootNode *rootNode = node->getVersionControlRootNode();
       QString userName = QString::fromStdWString(rootNode->getUserName());
       QString hostName = TSystem::getHostName();
 
-      TFilePath tempFp(s.m_path.toStdWString());
-      QString tempFileName = QString::fromStdWString(tempFp.getWideName()) +
-                             "_" + userName + "_" + hostName + "_" + from +
-                             "-" + to + "." +
-                             QString::fromStdString(tempFp.getType());
+      TFilePath fp(s.m_path.toStdWString());
+      QString tempFileName = QString::fromStdWString(fp.getWideName()) + "_" +
+                             userName + "_" + hostName + "_" + from + "-" + to +
+                             "." + QString::fromStdString(fp.getType());
 
       if (dir.exists(tempFileName))
         return DvItemListModel::VC_PartialModified;
       else
         return DvItemListModel::VC_PartialEdited;
     }
-
     if (s.m_isPartialLocked) return DvItemListModel::VC_PartialLocked;
-
     if (s.m_isLocked) {
       DvDirVersionControlRootNode *rootNode = node->getVersionControlRootNode();
       if (rootNode) {
@@ -1625,11 +1482,9 @@ DvItemListModel::Status DvDirTreeView::getItemVersionControlStatus(
           return DvItemListModel::VC_Edited;
       }
     }
-
     // Pay attention: "ToUpdate" is more important than "ReadOnly"
     if (s.m_item == "normal" && s.m_repoStatus == "modified")
       return DvItemListModel::VC_ToUpdate;
-
     if (!fs.isWritable() || s.m_item == "normal")
       return DvItemListModel::VC_ReadOnly;
   } else if (fp.getDots() == "..") {
@@ -1647,7 +1502,6 @@ DvItemListModel::Status DvDirTreeView::getItemVersionControlStatus(
 
     // In the meantime I will set the from and to range index
     int from = 0, to = 0;
-
     for (int i = 0; i < levelCount; i++) {
       SVNStatus s = node->getVersionControlStatus(levelNames.at(i));
       TFileStatus fs(node->getPath() + levelNames.at(i).toStdWString());
@@ -1719,10 +1573,8 @@ DvItemListModel::Status DvDirTreeView::getItemVersionControlStatus(
         return DvItemListModel::VC_PartialLocked;
     } else if (readOnlyCount == levelCount)
       return DvItemListModel::VC_ReadOnly;
-
     return DvItemListModel::VC_None;
   }
-
   return DvItemListModel::VC_None;
 }
 
@@ -1731,9 +1583,7 @@ DvItemListModel::Status DvDirTreeView::getItemVersionControlStatus(
 void DvDirTreeView::addPathsToWatcher() {
   QStringList paths;
   getExpandedPathsRecursive(rootIndex(), paths);
-  if (!paths.isEmpty()) {
-    MyFileSystemWatcher::instance()->addPaths(paths);
-  }
+  if (!paths.isEmpty()) MyFileSystemWatcher::instance()->addPaths(paths);
 }
 
 void DvDirTreeView::getExpandedPathsRecursive(const QModelIndex &index,
@@ -1741,14 +1591,12 @@ void DvDirTreeView::getExpandedPathsRecursive(const QModelIndex &index,
   DvDirModelNode *node = DvDirModel::instance()->getNode(index);
   DvDirModelFileFolderNode *fileFolderNode =
       dynamic_cast<DvDirModelFileFolderNode *>(node);
-
   if (fileFolderNode) {
     QString path = toQString(fileFolderNode->getPath());
     if (!paths.contains(path)) {
       paths.append(path);
     }
   }
-
   /*- search child nodes if this node is expanded -*/
   if (index != rootIndex() && !isExpanded(index)) return;
 
@@ -1788,16 +1636,12 @@ void DvDirTreeView::onMonitoredDirectoryChanged(const QString &dirPath) {
                              ->getNode(rootIndex())
                              ->getNodeByPath(TFilePath(dirPath));
   if (!node) return;
-
   QStringList paths;
   for (int c = 0; c < node->getChildCount(); c++) {
     DvDirModelFileFolderNode *childNode =
         dynamic_cast<DvDirModelFileFolderNode *>(node->getChild(c));
-    if (childNode) {
-      paths.append(toQString(childNode->getPath()));
-    }
+    if (childNode) paths.append(toQString(childNode->getPath()));
   }
-
   MyFileSystemWatcher::instance()->addPaths(paths, true);
 }
 
@@ -1805,25 +1649,30 @@ void DvDirTreeView::onMonitoredDirectoryChanged(const QString &dirPath) {
 void DvDirTreeView::onPreferenceChanged(const QString &prefName) {
   // react only when the related preference is changed
   if (prefName != "WatchFileSystem") return;
-
+  bool ret = true;
   if (Preferences::instance()->isWatchFileSystemEnabled()) {
-    connect(this, &DvDirTreeView::expanded, this, &DvDirTreeView::onExpanded);
-    connect(this, &DvDirTreeView::collapsed, this, &DvDirTreeView::onCollapsed);
+    ret = ret && connect(this, SIGNAL(expanded(const QModelIndex &)), this,
+                         SLOT(onExpanded(const QModelIndex &)));
+
+    ret = ret && connect(this, SIGNAL(collapsed(const QModelIndex &)), this,
+                         SLOT(onCollapsed(const QModelIndex &)));
     addPathsToWatcher();
   } else {
-    disconnect(this, &DvDirTreeView::expanded, this,
-               &DvDirTreeView::onExpanded);
-    disconnect(this, &DvDirTreeView::collapsed, this,
-               &DvDirTreeView::onCollapsed);
+    ret = ret && disconnect(this, SIGNAL(expanded(const QModelIndex &)), this,
+                            SLOT(onExpanded(const QModelIndex &)));
+    ret = ret && disconnect(this, SIGNAL(collapsed(const QModelIndex &)), this,
+                            SLOT(onCollapsed(const QModelIndex &)));
+
     MyFileSystemWatcher::instance()->removeAllPaths();
   }
+  assert(ret);
 }
 
 //=============================================================================
 // NodeEditor
 //-----------------------------------------------------------------------------
 
-NodeEditor::NodeEditor(QWidget *parent, const QRect &rect, int leftMargin)
+NodeEditor::NodeEditor(QWidget *parent, QRect rect, int leftMargin)
     : QWidget(parent) {
   setGeometry(rect);
   m_lineEdit          = new LineEdit();
@@ -1832,8 +1681,7 @@ NodeEditor::NodeEditor(QWidget *parent, const QRect &rect, int leftMargin)
   layout->addSpacing(leftMargin);
   layout->addWidget(m_lineEdit);
   setLayout(layout);
-  connect(m_lineEdit, &LineEdit::editingFinished, this,
-          &NodeEditor::emitFinished);
+  connect(m_lineEdit, SIGNAL(editingFinished()), this, SLOT(emitFinished()));
 }
 
 //-----------------------------------------------------------------------------
@@ -1846,4 +1694,3 @@ void NodeEditor::focusInEvent(QFocusEvent *) {
 //-----------------------------------------------------------------------------
 
 void NodeEditor::emitFinished() { emit editingFinished(); }
-

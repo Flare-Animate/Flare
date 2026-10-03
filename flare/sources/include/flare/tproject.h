@@ -30,7 +30,17 @@ class DVAPI TProject final {
 
   FilePathProperties *m_fpProp;
 
+  // Upstream: set once load() has read the project's directories, so a caller can
+  // tell an unloaded project from an empty one. The synced tproject.cpp reads it
+  // and the declaration did not arrive with it.
+  bool m_isLoaded = false;
+
 public:
+  // Upstream: whether level paths resolve through the sub-scene path. Declared in
+  // Tahoma2D's tproject.h; OpenToonz has neither, and the synced tproject.cpp
+  // calls it.
+  void setUseSubScenePath(bool on);
+
   // default folders names
   static const std::string Inputs;
   static const std::string Drawings;
