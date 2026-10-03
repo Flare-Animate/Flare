@@ -116,6 +116,44 @@ target_link_libraries(probe_samples PRIVATE
     kernel32.lib
 )
 
+# Decode one DefineShape body and print the result, so the SWF shape decoder can
+# be checked against a real file without a test harness in the way.
+add_executable(swfshape_probe
+    swfshape_probe.cpp
+)
+target_include_directories(swfshape_probe PRIVATE
+    "${FLASH_ROOT}/flare/sources/common/flash"
+    "${FLASH_ROOT}/flare/sources/include"
+    "${ZLIB_DIR}"
+    "${MINIZIP}"
+)
+target_link_libraries(swfshape_probe PRIVATE
+    Qt5::Core
+    Qt5::Gui
+    "${ZLIB_IMPORT_LIB}"
+    "${BUILD}/sources/tnzcore/RelWithDebInfo/tnzcore.lib"
+    "${BUILD}/sources/tnzbase/RelWithDebInfo/tnzbase.lib"
+    kernel32.lib
+)
+
+add_executable(swfshape_tests
+    swfshape_tests.cpp
+)
+target_include_directories(swfshape_tests PRIVATE
+    "${FLASH_ROOT}/flare/sources/common/flash"
+    "${FLASH_ROOT}/flare/sources/include"
+    "${ZLIB_DIR}"
+    "${MINIZIP}"
+)
+target_link_libraries(swfshape_tests PRIVATE
+    Qt5::Core
+    Qt5::Gui
+    "${ZLIB_IMPORT_LIB}"
+    "${BUILD}/sources/tnzcore/RelWithDebInfo/tnzcore.lib"
+    "${BUILD}/sources/tnzbase/RelWithDebInfo/tnzbase.lib"
+    kernel32.lib
+)
+
 add_executable(shape_export
     shape_export.cpp
 )

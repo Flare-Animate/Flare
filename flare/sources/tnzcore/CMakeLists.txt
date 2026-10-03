@@ -239,6 +239,8 @@ set(SOURCES
     ../common/flash/FSound.cpp
     ../common/flash/XFLReader.cpp
     ../common/flash/XFLShape.cpp
+    ../common/flash/SWFShape.h
+    ../common/flash/SWFShape.cpp
     ../common/moho/MohoReader.cpp
     ../common/flash/As3Bridge.cpp
     ../common/flash/SWFAssets.cpp
