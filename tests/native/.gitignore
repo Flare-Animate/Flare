@@ -1,0 +1,13 @@
+# Test build output. The parent .gitignore already covers `build*`, but be
+# explicit: these are large and entirely generated.
+build/
+build*/
+CMakeFiles/
+CMakeCache.txt
+*.vcxproj
+*.vcxproj.filters
+# CMake writes these into the source directory when the build tree is separate
+# from it, which is how tests/native is built. Both are generated and both land
+# in `git status` as untracked, so they were about to be committed.
+cmake_install.cmake
+*.sln

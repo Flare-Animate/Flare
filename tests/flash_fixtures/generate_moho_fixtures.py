@@ -11,6 +11,26 @@ import zipfile
 
 OUT = sys.argv[1] if len(sys.argv) > 1 else "."
 
+# A fixed timestamp for every archive entry.
+#
+# zipfile.writestr() stamps each entry with the current time, so regenerating
+# a fixture produced a byte-different file every time. That matters for
+# committed fixtures: `git status` was permanently dirty after any
+# regeneration, and a fixture's checksum could not be used to tell whether it
+# had really changed. Fixing the timestamp makes generation reproducible, so a
+# fixture differs only when its content differs.
+_ZIP_EPOCH = (1980, 1, 1, 0, 0, 0)
+
+
+def zinfo(name):
+    """A ZipInfo with a fixed timestamp, so archives are reproducible."""
+    zi = zipfile.ZipInfo(name, date_time=_ZIP_EPOCH)
+    zi.compress_type = zipfile.ZIP_DEFLATED
+    # 0o644: rw-r--r--, so the archive is usable on any host.
+    zi.external_attr = (0o644 << 16)
+    return zi
+
+
 
 def channel(vals, frames=None, ctype="Val"):
     """A Moho animated value: parallel `when`/`val` arrays."""
@@ -73,10 +93,14 @@ minimal = doc([{
 # ---------------------------------------------------------------------------
 switch = doc([{
     "type": "SwitchLayer", "name": "Mouth", "uuid": "sw-1", "visible": True,
-    "switch_keys": channel(["MouthA", "MouthB", "MouthA"], ctype="String"),
+    # The rest state and the end state differ, so a reader that reports only one
+    # of them -- or reports the wrong one -- is caught. A fixture that returns to
+    # its starting value cannot tell the two apart.
+    "switch_keys": channel(["MouthA", "MouthB", "MouthC"], ctype="String"),
     "layers": [
         {"type": "MeshLayer", "name": "MouthA", "uuid": "m-a", "visible": True},
         {"type": "MeshLayer", "name": "MouthB", "uuid": "m-b", "visible": True},
+        {"type": "MeshLayer", "name": "MouthC", "uuid": "m-c", "visible": True},
     ],
 }])
 
@@ -149,7 +173,7 @@ for name, d in fixtures.items():
     # The ZIP container form, which is what .moho actually is.
     zpath = os.path.join(OUT, name + ".moho")
     with zipfile.ZipFile(zpath, "w", zipfile.ZIP_DEFLATED) as z:
-        z.writestr("Project.mohoproj", json.dumps(d))
+        z.writestr(zinfo("Project.mohoproj"), json.dumps(d))
     # The bare document form, which .mohoproj is.
     with open(os.path.join(OUT, name + ".mohoproj"), "w",
               encoding="utf-8") as f:
@@ -163,6 +187,6 @@ with open(os.path.join(OUT, "legacy.anme"), "w", encoding="utf-8") as f:
     f.write("Anime Studio Project\n  version 9\n  {\n")
 # A ZIP that is not a Moho project at all.
 with zipfile.ZipFile(os.path.join(OUT, "plain.zip"), "w") as z:
-    z.writestr("readme.txt", "not a moho project")
+    z.writestr(zinfo("readme.txt"), "not a moho project")
 print("  truncated.mohoproj, legacy.anme, plain.zip")
 print("done")

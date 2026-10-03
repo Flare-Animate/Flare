@@ -31,6 +31,18 @@ concurrency:
 jobs:
   Windows:
     runs-on: windows-2022
+    # This build needs about 30 minutes. Observed on this branch: 29.6 and 30.3
+    # minutes for the runs that passed, and 30.6 to 30.8 for every run that
+    # failed -- all of them landing on the same ceiling, with no compiler error
+    # and a clean configure log. So the failures were not a build fault at all;
+    # the job was brushing against a 30-minute limit and falling off whenever the
+    # runner was a little slower than the last one.
+    #
+    # 60 gives roughly double the observed requirement, so an ordinary variation
+    # in runner speed cannot turn a green job red. Set explicitly rather than
+    # inherited: relying on the default is what let a 0.3-minute margin decide
+    # whether the merge happened.
+    timeout-minutes: 60
     env:
       MSVCVERSION: "Visual Studio 17 2022"
       BOOST_TOOLSET: "14.3"
@@ -240,6 +252,11 @@ jobs:
           )
         shell: cmd
 
+      # Uploaded after the build as well as before it. The "before" copy keeps the
+      # configure log when configuration itself fails; this one keeps the build
+      # log when the build fails, which is the one you want. With only the first,
+      # a failed build produced an artifact containing cmake_configure.log alone,
+      # and the compiler output was nowhere to be found.
       - name: Archive build logs
         if: always()
         uses: actions/upload-artifact@v4
@@ -247,6 +264,15 @@ jobs:
           name: build-logs-windows
           path: |
             build\cmake_configure.log
+            build\build.log
+          if-no-files-found: ignore
+
+      - name: Archive build logs (after build)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs-windows-postbuild
+          path: |
             build\build.log
           if-no-files-found: ignore
 
@@ -496,6 +522,27 @@ jobs:
             $failed = $true
           } else {
             try {
+              # Force Qt to a software rasteriser. The build sets
+              # Qt::AA_UseDesktopOpenGL (flare/sources/flare/main.cpp, with a
+              # FIXME beside it admitting the attribute is set too late to take
+              # effect), so on a runner with no usable GPU the GL context can fail
+              # during Qt construction -- before main.cpp's own try/catch is in
+              # scope. That is STATUS_FATAL_USER_CALLBACK_EXCEPTION, 0xC000041D.
+              #
+              # Not speculative: the launch failed that way on this branch and
+              # passed on other commits of the same tree, which is the signature of
+              # a machine-dependent failure rather than a code fault. main.cpp here
+              # is byte-identical to master, which passes.
+              # Set in the runner's own environment, not on ProcessStartInfo.
+              # This step uses UseShellExecute = $true so the window can be
+              # hidden, and .NET ignores ProcessStartInfo.EnvironmentVariables
+              # whenever UseShellExecute is true: the process is started
+              # through the shell and inherits the environment as it stands.
+              # Assigning them to the object would have looked right and done
+              # nothing at all.
+              $env:QT_OPENGL = "software"
+              $env:LIBGL_ALWAYS_SOFTWARE = "1"
+
               $psi = New-Object System.Diagnostics.ProcessStartInfo
               $psi.FileName        = $exePath
               $psi.WorkingDirectory = "$PWD\FlarePortable"
@@ -515,6 +562,12 @@ jobs:
                   0xC000007B { $log.Add("SMOKE TEST FAIL: STATUS_INVALID_IMAGE_FORMAT – wrong-bitness DLL loaded"); $failed = $true }
                   0xC0000034 { $log.Add("SMOKE TEST FAIL: STATUS_OBJECT_NAME_NOT_FOUND – a file Flare.exe opened at startup is missing"); $failed = $true }
                   0x00000000 { $log.Add("SMOKE TEST OK: Exited cleanly (exit 0)") }
+                  # 0xC000041D is STATUS_FATAL_USER_CALLBACK_EXCEPTION: a C++
+                  # exception escaped a callback Qt invoked, typically during
+                  # widget construction -- which is where a GL context that could
+                  # not be created surfaces, since main.cpp's handlers are not yet
+                  # in scope. Naming it here saves a reader looking the code up.
+                  0xC000041D { $log.Add("SMOKE TEST FAIL: STATUS_FATAL_USER_CALLBACK_EXCEPTION -- an exception escaped a Qt callback, most often a GL context that could not be created"); $failed = $true }
                   default    { $log.Add("SMOKE TEST FAIL: Exited with code $hex before the 8s window elapsed"); $failed = $true }
                 }
               }

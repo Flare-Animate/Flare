@@ -5,6 +5,7 @@
 // flare/sources/flare/flashimport.cpp; they never depended on the scene layer.
 
 #include "SWFAssets.h"
+#include "SWFShape.h"
 #include "tsystem.h"
 
 #include <QDir>
@@ -850,7 +851,17 @@ public:
         t.start = m_pos;
         t.end   = qMin(m_pos + len, m_size);
         m_pos   = t.end;
-        return t.end > t.start;
+        // A zero-length tag body is legal for some codes but not for a shape, and
+        // treating it as "nothing here" makes the walk stop: every later tag in the
+        // movie is then skipped, silently. The real movie this was found on has one --
+        // an empty DefineShape4 with a 63-byte length that reads as 0 once clamped --
+        // and the 2312 bytes after it contain the last four shapes, one of which is a
+        // 60-byte DefineShape4 the census counts and the extractor never saw.
+        //
+        // So: only stop when the tag has no room left in the buffer at all. A tag that
+        // is present but empty is reported, and the caller's own length check decides
+        // what to make of it.
+        return t.end > t.start || len == 0;
     }
 
 private:
@@ -966,11 +977,46 @@ void censusInto(const unsigned char *d, int size, int pos, SwfContent &c,
         // Shape2 (22) belongs here, not with the bitmaps.
         case 2: case 22: case 32: case 46: case 83: ++c.shapes; break;
         case 11: case 33: ++c.texts; break;        // DefineText / Text2
-        case 10: case 24: case 75: ++c.fonts; break;  // Font / Font2 / Font3
+        // 48 is DefineFont2, not 24. 24 is Protect, which carries no content;
+        // counting it as a font made every FLA-exported SWF report a font table
+        // it does not have, while missing the font tag it does have. 75 is
+        // DefineFont3, written by editors only.
+        case 10: case 48: case 75: ++c.fonts; break;  // Font / Font2 / Font3
         case 12: case 59: ++c.actions; break;       // DoAction / DoInitAction
         case 72: case 82: ++c.abc;     break;       // DoABC / DoABCDefine2
-        case 81: case 93: ++c.video;   break;       // DefineVideoStream(2)
+        // DefineVideoStream(2) are 60 and 62. 81 and 93 are DefineSceneAndFrame-
+        // LabelData and DefineScalingGrid, so this tally was never reachable.
+        case 60: case 62: ++c.video;   break;
+        // VideoFrame (61) is a frame of the stream above, counted separately so a
+        // movie with video can say how much of it there is rather than only that a
+        // stream exists.
+        case 61: ++c.videoFrames; break;
         case 87: ++c.binary; break;                 // DefineBinaryData
+        // Buttons (3, 34) are art a user can see and click; DefineEditText (37) is
+        // a text field they can type into. Neither was counted, so a movie built
+        // from buttons reported no vector art and no text at all.
+        case 3: case 34: ++c.buttons; break;        // DefineButton / DefineButton2
+        case 37: ++c.fields;  break;                // DefineEditText
+        // SymbolClass (76): the name of every display object in the movie.
+        case 76: ++c.symbols; break;
+
+        // Deliberately not counted, because they are timeline structure rather than
+        // content, and counting them would make the census useless: in a real 3.5 MB
+        // SWF, PlaceObject2 (26), RemoveObject2 (28) and PlaceObject3 (70) are 9,515
+        // of 14,882 tags -- 64% -- in a movie with 111 shapes. Reporting "14,882
+        // items" for 111 shapes is the opposite of naming what a file holds.
+        // FrameLabel (43) is structural for the same reason, as are ExportAssets
+        // (56), ImportAssets (57), SetTabIndex (66), FileAttributes (69),
+        // CSMTextSettings (74), DefineFontAlignZones (73), DefineScalingGrid (78),
+        // DefineSceneAndFrameLabelData (86), DefineFontName (88), Protect (24),
+        // JPEGTables (8) and DefineButtonSound (4/7/17).
+        // Only codes that appear nowhere else in this switch, because a repeated
+        // case label does not compile. 24 is already above, as the negative case
+        // that caught the font transposition; 5, 8, 13 and 23 likewise.
+        case 26: case 28: case 70: case 43: case 66: case 69: case 73:
+        case 74: case 78: case 86: case 88: case 56: case 57:
+        case 9: case 77: case 15: case 19: case 58: case 4: case 7: case 17:
+            break;                                   // structure, not content
         case 39: {                                  // DefineSprite
             ++c.sprites;
             // The sprite body is its own tag stream, after CharacterID(2) and
@@ -1119,6 +1165,159 @@ QStringList extractSwfAudio(const QByteArray &swfData, const QString &outDir) {
     const int body = swfBodyOffset(d, swfData.size());
     if (body < 0) return QStringList();
     return extractAudioFromRange(d, swfData.size(), body, outDir, QString());
+}
+
+// ---------------------------------------------------------------------------
+// Vector shape extraction
+//
+// A SWF's vector art is the one kind of content a movie can be built entirely from,
+// and until now it was only counted: the import reported "258 vector shape(s) not
+// converted" and wrote nothing. SWFShape decodes all four DefineShape tags, so each
+// one becomes an SVG file here, on the same terms as a bitmap or a sound.
+//
+// What the SVG is and is not: the outline only. A shape's fill and line styles are
+// indices into arrays this does not read, so the geometry comes out unpainted. That
+// is stated in the file's comment rather than left for the user to discover, and it
+// is why the importer says so in its summary.
+//
+// Morph shapes (DefineMorphShape, 46) are counted but not decoded: their records
+// carry a start and an end shape per step and need both at once, which is a
+// different decoder rather than an extension of this one.
+// ---------------------------------------------------------------------------
+namespace {
+
+// A whole SVG document for one shape: the path at 1/20 px per twip, which is the
+// same scale XFLShape uses, so a shape and an FLA of the same art come out the same
+// size. Width and height are written explicitly as well as the viewBox, because a
+// level loader that ignores the viewBox would otherwise get a unit-sized image.
+QString shapeToSvgDocument(const SWF::Shape &s, double &outW, double &outH) {
+    const QString d = SWF::toSvgPath(s);
+    if (d.isEmpty()) return QString();
+
+    // EdgeBounds is the outline's own extent and excludes any stroke; ShapeBounds
+    // includes it. Prefer the tighter one so the viewBox is the artwork, not the
+    // pen width around it. A degenerate extent still has to produce a valid file.
+    QPointF lo = s.hasEdgeBounds ? s.edgeMin : s.boundsMin;
+    QPointF hi = s.hasEdgeBounds ? s.edgeMax : s.boundsMax;
+    const double w = qMax(hi.x() - lo.x(), 1.0);
+    const double h = qMax(hi.y() - lo.y(), 1.0);
+    outW = w / 20.0;
+    outH = h / 20.0;
+
+    // The path has to be escaped. toSvgPath formats coordinates numerically, so on
+    // today's output nothing in it needs escaping -- but a decimal point written as a
+    // comma under a locale-aware format, or a stray NaN from a degenerate bounds
+    // computation, produces a file that no XML parser will read, and the symptom is a
+    // shape that silently fails to load. Escape it rather than assume.
+    QString path = d;
+    path.replace(QLatin1Char('&'), QLatin1String("&amp;"));
+    path.replace(QLatin1Char('<'), QLatin1String("&lt;"));
+    path.replace(QLatin1Char('>'), QLatin1String("&gt;"));
+    path.replace(QLatin1Char('"'), QLatin1String("&quot;"));
+
+    return QStringLiteral(
+               "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+               "<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\"\n"
+               "     width=\"%1\" height=\"%2\"\n"
+               "     viewBox=\"%3 %4 %5 %6\">\n"
+               "  <path d=\"%7\" fill=\"#000000\" fill-rule=\"nonzero\"/>\n"
+               "</svg>\n")
+        .arg(outW, 0, 'f', 3)
+        .arg(outH, 0, 'f', 3)
+        .arg(lo.x(), 0, 'f', 3)
+        .arg(lo.y(), 0, 'f', 3)
+        .arg(w, 0, 'f', 3)
+        .arg(h, 0, 'f', 3)
+        .arg(path);
+}
+
+void extractShapesFromRange(const unsigned char *d, int size, int pos,
+                            const QString &outDir, const QString &prefix,
+                            QStringList &out, int &skipped, int depth) {
+    if (depth > 6) return;      // sprites nest; do not follow a cycle
+    TagWalker w(d, size, pos);
+    SwfTag t;
+    int index = 0;
+    while (w.next(t)) {
+        // Both sprite tags open with a CharacterID. DefineSprite (39) follows it with
+        // FRAMETEST records -- a UI16 count then, per record, a UI16 frame count --
+        // before the tags start; DefineSprite2 (90) follows it with the tags
+        // directly. Treating 39 as though it were 90 lands four bytes into a frame
+        // test and finds nothing, which is why a sprite's art was silently dropped
+        // rather than reported.
+        if ((t.code == 39 || t.code == 90) && t.len() > 2) {
+            int inner = t.start + 2;          // past the CharacterID
+            if (t.code == 39) {
+                if (inner + 2 > t.end) { ++index; continue; }
+                const int frameTests =
+                    static_cast<int>(d[inner]) | (static_cast<int>(d[inner + 1]) << 8);
+                inner += 2;
+                for (int f = 0; f < frameTests && inner + 2 <= t.end; ++f) {
+                    const int frames =
+                        static_cast<int>(d[inner]) | (static_cast<int>(d[inner + 1]) << 8);
+                    inner += 2 + 2 * frames;   // UI16 count plus one UI16 per frame
+                }
+            }
+            if (inner < t.end)
+                extractShapesFromRange(d, size, inner, outDir,
+                                       prefix + QString("sprite%1_")
+                                           .arg(index, 3, 10, QChar('0')),
+                                       out, skipped, depth + 1);
+            ++index;
+            continue;
+        }
+        int version = 0;
+        switch (t.code) {
+            case 2:  version = 1; break;   // DefineShape
+            case 22: version = 2; break;   // DefineShape2
+            case 32: version = 3; break;   // DefineShape3
+            case 83: version = 4; break;   // DefineShape4
+            default: break;
+        }
+        if (version == 0) continue;
+
+        const QByteArray body(reinterpret_cast<const char *>(d + t.start),
+                              t.len());
+        const SWF::Shape s = SWF::decodeShape(body, version);
+        double pw = 0, ph = 0;
+        const QString svg = s.ok ? shapeToSvgDocument(s, pw, ph) : QString();
+        if (svg.isEmpty()) {
+            // The decoder refuses a tag it cannot read rather than returning a
+            // partial outline, so there is nothing to write. Counted so the summary
+            // can say how many were left out instead of quietly writing fewer files.
+            ++skipped;
+            continue;
+        }
+        const QString name =
+            QString("%1shape%2_id%3.svg")
+                .arg(prefix)
+                .arg(index, 4, 10, QChar('0'))
+                .arg(s.id);
+        QFile f(QDir(outDir).filePath(name));
+        if (!f.open(QIODevice::WriteOnly | QIODevice::Truncate)) continue;
+        f.write(svg.toUtf8());
+        f.close();
+        out << name;
+        ++index;
+    }
+}
+
+}  // namespace
+
+QStringList extractSwfShapes(const QByteArray &swfData, const QString &outDir,
+                             int *skipped) {
+    QStringList written;
+    int bad = 0;
+    if (skipped) *skipped = 0;
+    if (swfData.size() < 9) return written;
+    const unsigned char *d =
+        reinterpret_cast<const unsigned char *>(swfData.constData());
+    const int body = swfBodyOffset(d, swfData.size());
+    if (body < 0) return written;
+    extractShapesFromRange(d, swfData.size(), body, outDir, QString(), written,
+                           bad, 0);
+    if (skipped) *skipped = bad;
+    return written;
 }
 
 

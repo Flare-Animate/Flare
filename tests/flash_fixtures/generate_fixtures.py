@@ -10,6 +10,26 @@ import os, struct, zipfile, shutil
 HERE = os.path.dirname(os.path.abspath(__file__))
 
 
+# A fixed timestamp for every archive entry.
+#
+# zipfile.writestr() stamps each entry with the current time, so regenerating
+# a fixture produced a byte-different file every time. That matters for
+# committed fixtures: `git status` was permanently dirty after any
+# regeneration, and a fixture's checksum could not be used to tell whether it
+# had really changed. Fixing the timestamp makes generation reproducible, so a
+# fixture differs only when its content differs.
+_ZIP_EPOCH = (1980, 1, 1, 0, 0, 0)
+
+
+def zinfo(name):
+    """A ZipInfo with a fixed timestamp, so archives are reproducible."""
+    zi = zipfile.ZipInfo(name, date_time=_ZIP_EPOCH)
+    zi.compress_type = zipfile.ZIP_DEFLATED
+    # 0o644: rw-r--r--, so the archive is usable on any host.
+    zi.external_attr = (0o644 << 16)
+    return zi
+
+
 def build_uncompressed_swf(version=5, w_px=550, h_px=400, fps=24, frames=1) -> bytes:
     """Minimal uncompressed FWS SWF: header + RECT + frameRate + frameCount.
     Matches the layout flashimport.cpp::readSwfHeader expects."""
@@ -105,13 +125,13 @@ def main():
 
     # FLA: ZIP archive containing the XFL document at the root
     with zipfile.ZipFile(os.path.join(HERE, 'sample.fla'), 'w', zipfile.ZIP_DEFLATED) as z:
-        z.writestr('DOMDocument.xml', DOMDOCUMENT)
-        z.writestr('LIBRARY/', '')
+        z.writestr(zinfo('DOMDocument.xml'), DOMDOCUMENT)
+        z.writestr(zinfo('LIBRARY/'), '')
 
     # SWC: ZIP with catalog.xml + library.swf
     with zipfile.ZipFile(os.path.join(HERE, 'sample.swc'), 'w', zipfile.ZIP_DEFLATED) as z:
-        z.writestr('catalog.xml', CATALOG_XML)
-        z.writestr('library.swf', swf)
+        z.writestr(zinfo('catalog.xml'), CATALOG_XML)
+        z.writestr(zinfo('library.swf'), swf)
 
     print('Generated fixtures in', HERE)
     for name in sorted(os.listdir(HERE)):

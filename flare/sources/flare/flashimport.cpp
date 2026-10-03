@@ -610,6 +610,26 @@ void ImportFlashVectorCommand::execute() {
             if (!bitmaps.isEmpty())
                 info += QObject::tr("\n  %1 embedded bitmap(s) extracted").arg(bitmaps.size());
 
+            // Vector art. Every DefineShape becomes an SVG, on the same terms as a
+            // bitmap: a real movie's art is mostly shapes, and until this existed the
+            // import counted them and wrote nothing.
+            int shapesSkipped = 0;
+            int shapesWritten  = 0;
+            {
+                const QStringList shapes =
+                    FlashAssets::extractSwfShapes(src2, outPath, &shapesSkipped);
+                shapesWritten = shapes.size();
+                exported += shapes;
+                if (!shapes.isEmpty()) {
+                    info += QObject::tr("\n  %1 vector shape(s) written as SVG "
+                                        "(outline only, no paint)")
+                                .arg(shapes.size());
+                    if (shapesSkipped)
+                        info += QObject::tr("; %1 could not be decoded")
+                                    .arg(shapesSkipped);
+                }
+            }
+
             // Embedded audio. MP3 and raw PCM become playable files; ADPCM and
             // the proprietary codecs are written under an honest extension
             // rather than dropped.
@@ -627,7 +647,15 @@ void ImportFlashVectorCommand::execute() {
             {
                 const FlashAssets::SwfContent c = FlashAssets::censusSwf(src2);
                 QStringList missing;
-                if (c.shapes)  missing << QObject::tr("%1 vector shape(s)").arg(c.shapes);
+                // Shapes are written as SVG above, so they are only "missing" as
+                // levels -- and the morph shapes in that count are not decoded at
+                // all. Say which, rather than implying the vector art was dropped.
+                const int morphs = qMax(0, c.shapes - shapesWritten);
+                if (morphs)
+                    missing << QObject::tr("%1 morph shape(s)").arg(morphs);
+                if (c.buttons) missing << QObject::tr("%1 button(s)").arg(c.buttons);
+                if (c.fields)  missing << QObject::tr("%1 text field(s)").arg(c.fields);
+                if (c.symbols) missing << QObject::tr("%1 named symbol(s)").arg(c.symbols);
                 if (c.texts)   missing << QObject::tr("%1 text object(s)").arg(c.texts);
                 if (c.fonts)   missing << QObject::tr("%1 embedded font(s)").arg(c.fonts);
                 if (c.video)   missing << QObject::tr("%1 video stream(s)").arg(c.video);

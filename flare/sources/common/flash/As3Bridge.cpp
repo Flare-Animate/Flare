@@ -42,6 +42,27 @@ QStringList candidateScriptPaths() {
     const QString root = qEnvironmentVariable("FLAREROOT");
     if (!root.isEmpty())
         out << root + "/tools/flash/next2flash/flare_as3_bridge.py";
+
+    // 3. Walk up from the executable. A development build puts Flare.exe in
+    //    build_local/RelWithDebInfo, so the script is four levels above it and
+    //    none of the fixed candidates resolve -- the bridge reported unavailable
+    //    with the helper sitting in the tree, and every SWF import silently lost
+    //    its ActionScript while the dialog claimed the helper was not installed.
+    //    A portable bundle happened to work, because there the script really is
+    //    beside the executable, which is why this went unnoticed.
+    //
+    //    Bounded at six levels: enough for build/<config> and
+    //    build_local/<config> with a subdirectory in between, and it cannot walk
+    //    off the top of a drive.
+    const QString relative =
+        "/tools/flash/next2flash/flare_as3_bridge.py";
+    QDir dir(appDir);
+    for (int up = 0; up < 6; ++up) {
+        const QString here = dir.absolutePath() + relative;
+        if (!out.contains(here)) out << here;
+        if (!dir.cdUp()) break;
+    }
+
     out << "flare_as3_bridge.py";
     return out;
 }
