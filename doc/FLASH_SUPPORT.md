@@ -21,11 +21,38 @@ drift apart.
 |--------|-----------|------------------|
 | Flash project (XFL-based, CS5+) | `.fla` | Document, library, timeline layers/frames, bitmap instances to levels; binary media; every asset unpacked |
 | XFL project | `.xfl` | Directory or ZIP; same as above |
-| Compiled Flash | `.swf` | Header metadata, **images to levels**, **sounds to files**, ActionScript 3 to source |
+| Compiled Flash | `.swf` | Header metadata; **images written as image files**, **sounds to files**, ActionScript 3 to `.as` source. **Nothing becomes editable level content** — see below |
 | Component library | `.swc` | ZIP + `catalog.xml` + `library.swf` images and sounds |
 | Mislabeled SWF | `.ssf` / `.dat` | Sniffed as SWF |
 | Re-zipped FLA | `.zip` | Sniffed, trailer repaired if needed, imported as FLA |
 | ActionScript 3 | inside `.swf` | Decompiled to `.as` via the optional `flare-as3` helper |
+
+### What a `.swf` does and does not become
+
+Worth being exact about, because the difference is easy to assume away.
+
+An `.fla` or `.xfl` goes through `importXFLScene()`, which loads the document's
+referenced bitmaps as levels and maps each layer onto an xsheet column, filling
+cells for that layer's frames. An `.swf` has no such step: it is scanned for
+embedded media, and what it yields is
+
+* bitmap and audio streams written out as ordinary files,
+* ActionScript decompiled to `.as` beside them,
+* a census, so the dialog can name the vector shapes, text, fonts, buttons and
+  named symbols it could **not** convert.
+
+Within an `.fla` it is bitmap instances specifically: `importXFLScene()` skips any
+frame element whose type is not `BITMAP_INSTANCE`, and takes only the first such
+element in each frame span. A `SYMBOL_INSTANCE` on an FLA layer is therefore
+skipped too — the column is created and stays empty, which is a quieter version
+of the same gap.
+
+So importing a `.swf` produces a directory of assets and a manifest, not a scene.
+The counts the dialog prints are the honest version of the same fact: they name
+what the movie holds that did not become level content. This is not a regression —
+a compiled SWF has no editable timeline to map, and reconstructing one from a tag
+stream is the unimplemented `DefineShape` work described under
+[Known gaps](#known-gaps).
 
 ### Detected, contents partially converted
 
