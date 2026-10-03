@@ -24,6 +24,7 @@ TNZCORE_LIB = os.path.join(FLARE_BUILD, "sources", "tnzcore", "RelWithDebInfo",
 TARGETS = [
     ("flash_reader_tests", "flash"),
     ("xfl_shape_tests", "none"),
+    ("swfshape_tests", "flash"),
     ("moho_reader_tests", "moho"),
 ]
 
