@@ -23,15 +23,47 @@
 //       four SNumBits values, both relative to the current point.
 //
 //   StyleChangeRecord:
-//     StateNewStyles(1) StateLineStyle(1) StateFillStyle1(1) StateFillStyle0(1)
-//     StateMoveTo(1), then 6 reserved bits.
+//     Five state bits -- MoveTo, FillStyle0, FillStyle1, LineStyle, NewStyles --
+//     and then the payload, with *no* reserved field after them.
+//
+//     Those five are a little-endian bitfield of the value read MSB-first, so MoveTo
+//     is the *first* of the five and NewStyles the last. Reading them as bits 3 to 7
+//     of the same value leaves three of them permanently false -- a five-bit field
+//     cannot hold bits 5, 6 or 7 -- so MoveTo fires exactly when a line style is
+//     selected and no real move is ever seen. That was the largest of the faults
+//     here and nothing about the output said so.
+//
 //     StateMoveTo -> MoveBits(5), MoveDeltaX(SMoveBits), MoveDeltaY(SMoveBits).
 //     The move is absolute, not relative to the current point.
+//     One index per flag that is set, FillStyle0's first.
+//     StateNewStyles -> a whole new style array, byte aligned.
 //
 // The styles ahead of the records decide NumFillBits and NumLineBits, which give
 // the width of the fill and line indices -- so they must be read even though this
 // decoder does not use the styles, and a malformed style array must still be
 // walked or every subsequent record is read at the wrong bit.
+//
+// Two alignment rules matter and neither is obvious:
+//
+//   * After the RECT -- the one bit-packed part of the header -- the style arrays
+//     start at the next byte. On Ruffle's own DefineShape.swf the RECT ends at bit
+//     61 and the fill count is at bit 64, one solid red fill. Read straddling at
+//     bit 61 the same byte reads no fills and the next reads 32 line styles, which
+//     cannot fit in a 26-byte tag.
+//   * After a MATRIX, likewise. A MATRIX's width is not a multiple of eight, so a
+//     style that carries one does not end on a boundary, and reading the next
+//     field straddling gives it a different *value*: on a real DefineShape3 whose
+//     matrix ends at bit 130, the gradient's flags byte reads 0x00 there, saying a
+//     gradient with no records, and 0x04 at the boundary, saying the four it has.
+//
+// Both follow from how the format is actually read: Ruffle's style arrays go
+// through a byte reader while a matrix goes through a bit reader over the same
+// slice, and that bit reader advances the slice by whole bytes, so the partial byte
+// is gone by the time the next field is read.
+//
+// Verified against the 250 DefineShape tags of a real 3.5 MB SWF: every one
+// decodes, and every one produces the same outline, vertex for vertex, as JPEXS --
+// an independent and mature SWF decoder -- does on the same bytes.
 //
 // Not handled, and stated rather than left to look supported: DefineMorphShape
 // (46), whose records are a start/end pair per shape and need both endpoints at
@@ -94,6 +126,12 @@ struct Shape {
 
   int numFillStyles = 0;
   int numLineStyles = 0;
+  // The two nibble widths the tag declares. They are not needed to produce
+  // geometry, but they are a checkable fact about the tag: a decoder whose bit
+  // widths disagree with the file's is out of step with it, and nothing else the
+  // tag says reveals that on its own.
+  int numFillBits = 0;
+  int numLineBits = 0;
   int records = 0;         // shape records consumed, edges and style changes
   QVector<Contour> contours;
 

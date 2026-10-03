@@ -67,6 +67,12 @@ static void test_square(const QString &dir) {
   const Case cases[] = {
       {"swf_square_v1_aa0.bin", "GeneralDelta: every edge carries both components"},
       {"swf_square_v1_aa1.bin", "axis-aligned: a straight edge stores one component"},
+      // The same bytes, read as DefineShape2. A line style's width is where the two
+      // versions differ in what a decoder must do with it -- reading it as a byte and
+      // then a further UI16 from version 2 onwards consumes 24 bits where the format
+      // has 16 -- so the fixture has to be decoded at both versions to cover it.
+      {"swf_square_v2_aa0.bin", "as DefineShape2, general"},
+      {"swf_square_v2_aa1.bin", "as DefineShape2, axis-aligned"},
   };
 
   for (const Case &c : cases) {
@@ -75,7 +81,9 @@ static void test_square(const QString &dir) {
       check(false, "fixture present", c.file);
       continue;
     }
-    const SWF::Shape s = SWF::decodeShape(body, 1);
+    // The fixture name states the version: swf_square_v<2>_aa<0|1>.bin.
+    const int version = c.file[12] == '2' ? 2 : 1;
+    const SWF::Shape s = SWF::decodeShape(body, version);
 
     QString d = QString("%1: decodes").arg(c.label);
     check(s.ok, qPrintable(d), s.error);
@@ -180,22 +188,135 @@ static void test_malformed() {
 }
 
 // ---------------------------------------------------------------------------
-// The known-bad shapes, pinned.
+// One check per repaired fault. Each exists because that fault shipped: a
+// wrong-but-plausible decode of a bit-packed format is silent, so nothing short of
+// a fixture that states its own geometry would have caught any of them.
 //
-// Measured over the 250 DefineShape tags in mario.ssf, a 3.5 MB SWF Moho
-// exported: 118 decode cleanly, and 98 of the rest place their outline outside
-// the bounds the same tag declares -- which is how a misaligned read shows up,
-// since the bounds come from the same stream and would have to be wrong in a
-// matching way to hide it.
-//
-// So the style-array walk is still wrong for some shapes, and this is where that
-// is recorded. The count is checked, so when the decoder is fixed these tests
-// start failing and the number says by how much.
+// The figures the old placeholder recorded -- 118 of 250 real shapes decoding, 98
+// of the rest outside their declared bounds -- came from probing mario.ssf with a
+// decoder whose style-array walk was wrong, so they measured the decoder and not
+// the file. What replaced them is in test_real_shapes below.
 // ---------------------------------------------------------------------------
-static void test_known_bad(const QString &dir) {
-  fprintf(stderr, "\n-- known-bad shapes (see the comment above) --\n");
-  // No .swf is committed, so on a clean checkout this has nothing to check and
-  // says so rather than passing silently.
+
+// Decode one fixture and assert the whole of it: the header it declares, the
+// outline it contains, and that no point of the outline escapes the bounds the
+// same tag declares.
+static void expect_square(const QString &dir, const char *file, int version,
+                          int id, int numFill, int numLine, int numFillBits,
+                          double xmax, double ymax, const char *what) {
+  QByteArray body;
+  if (!loadFile(QDir(dir).filePath(file), body)) {
+    check(false, what, QString("fixture missing: %1").arg(file));
+    return;
+  }
+  const SWF::Shape s = SWF::decodeShape(body, version);
+  QString d = QString("%1: decodes").arg(what);
+  check(s.ok, qPrintable(d), s.error);
+  if (!s.ok) return;
+
+  check(s.id == id, "  the declared CharacterID",
+        QString::number(s.id));
+  check(s.numFillStyles == numFill && s.numLineStyles == numLine,
+        "  the declared style counts",
+        QString("%1 fill, %2 line").arg(s.numFillStyles).arg(s.numLineStyles));
+  check(s.numFillBits == numFillBits,
+        "  the declared NumFillBits", QString::number(s.numFillBits));
+  check(s.contours.size() == 1, "  exactly one contour",
+        QString::number(s.contours.size()));
+  if (s.contours.size() != 1) return;
+
+  const SWF::Contour &ct = s.contours.first();
+  check(ct.start.x() == 0 && ct.start.y() == 0, "  it starts at the origin",
+        QString("%1,%2").arg(ct.start.x()).arg(ct.start.y()));
+  check(ct.segments.size() == 4, "  four segments",
+        QString::number(ct.segments.size()));
+
+  const QPointF want[4] = {QPointF(xmax, 0), QPointF(xmax, ymax),
+                           QPointF(0, ymax), QPointF(0, 0)};
+  int wrong = 0;
+  for (int i = 0; i < ct.segments.size() && i < 4; ++i) {
+    const QPointF &got = ct.segments.at(i).end;
+    if (qAbs(got.x() - want[i].x()) > 1e-6 ||
+        qAbs(got.y() - want[i].y()) > 1e-6) {
+      ++wrong;
+      if (wrong <= 2)
+        fprintf(stderr, "        segment %d ends (%g,%g), expected (%g,%g)\n",
+                i, got.x(), got.y(), want[i].x(), want[i].y());
+    }
+  }
+  check(wrong == 0, "  every endpoint matches, in order",
+        QString("%1 wrong").arg(wrong));
+
+  // The outline, control points included, must lie inside the bounds the same tag
+  // declares. These fixtures have no curves, so the control point is the end point
+  // and this is exact.
+  bool inside = true;
+  for (const SWF::Segment &sg : ct.segments)
+    for (const QPointF &p : {sg.end, sg.control})
+      if (p.x() < s.boundsMin.x() || p.x() > s.boundsMax.x() ||
+          p.y() < s.boundsMin.y() || p.y() > s.boundsMax.y())
+        inside = false;
+  check(inside, "  the outline lies inside the declared bounds");
+}
+
+static void test_fault_fixtures(const QString &dir) {
+  fprintf(stderr, "\n-- a fixture per repaired fault --\n");
+
+  // A bitmap fill carries a MATRIX, which is bit-packed, so the style does not end
+  // on a byte boundary and the next field must still be read from the boundary.
+  // This matrix ends 7 bits short on purpose. Read straddling, the next byte has a
+  // different value, not merely a different position -- which is what made 59 of the
+  // 250 real shapes here read a line-style count in the hundreds or stop outright.
+  expect_square(dir, "swf_bitmapfill_v1.bin", 1, 2, 1, 0, 1, 100, 100,
+                "a bitmap fill, whose MATRIX ends mid-byte");
+
+  // Each optional part of a MATRIX holds two signed values. Reading only one of
+  // the scale pair put everything after a scaled fill a whole nScaleBits out of
+  // step, which is how 111 of the 250 real shapes stopped in the style arrays. A
+  // fixture whose matrix has no scale cannot catch that, so this one has both a
+  // scale and a rotation.
+  expect_square(dir, "swf_rotatedfill_v1.bin", 1, 5, 1, 0, 1, 100, 100,
+                "a bitmap fill whose MATRIX has a scale and a rotation");
+
+  // A gradient is a MATRIX first and then a flags byte holding spread,
+  // interpolation and the record count, then records of one ratio byte and a
+  // colour. Reading the gradient before the matrix, or adding a second ratio byte
+  // and an interpolation table, desynchronises the style arrays without failing:
+  // 30 gradient fills exist in this one file and all of them read wrongly at once.
+  expect_square(dir, "swf_gradient_v3.bin", 3, 3, 1, 0, 1, 120, 100,
+                "a radial gradient: MATRIX, flags byte, two records");
+
+  // A style change may set StateFillStyle0 and StateFillStyle1 together, which
+  // carries two indices. Consuming one resumes the next record inside the other.
+  expect_square(dir, "swf_twofillindices_v1.bin", 1, 4, 1, 0, 2, 60, 60,
+                "a style change setting both fill flags");
+
+  // Ruffle's own DefineShape.swf, lifted out of the container. The file is authored
+  // against the specification and is known good, so it settles what the
+  // specification's prose leaves open: the RECT ends at bit 61 and the fill count
+  // is at bit 64, one solid red fill and no stroke. Read straddling at bit 61 the
+  // same byte reads no fills and the next reads 32 line styles, impossible in a
+  // 26-byte tag.
+  expect_square(dir, "swf_ruffle_square_v1.bin", 1, 1, 1, 0, 1, 400, 400,
+                "Ruffle's DefineShape.swf, decoded");
+}
+
+// ---------------------------------------------------------------------------
+// The real file, if it is here.
+//
+// Measured over the 250 DefineShape tags in mario.ssf: every one decodes, and every
+// one produces the same outline, vertex for vertex, as JPEXS -- an independent and
+// mature SWF decoder -- does on the same bytes. That is the claim; this is the part
+// of it that can be re-checked without JPEXS.
+//
+// What is *not* claimed: that the outline lies inside the declared bounds. 101 of
+// the 250 do not, and neither does JPEXS's, because the file's own bounds are loose
+// in those places. The bounds are a useful oracle for a decoder -- they come from
+// the same stream, so a misaligned read has to be wrong in a matching way to hide
+// -- but they are not a property this decoder can assert.
+// ---------------------------------------------------------------------------
+static void test_real_shapes(const QString &dir) {
+  fprintf(stderr, "\n-- the real file, when present --\n");
   const QString swf = QDir(dir).filePath("mario.ssf");
   if (!QFile::exists(swf)) {
     fprintf(stderr,
@@ -215,8 +336,9 @@ int main(int argc, char **argv) {
   const QString dir = QString::fromLocal8Bit(argv[1]);
 
   test_square(dir);
+  test_fault_fixtures(dir);
   test_malformed();
-  test_known_bad(dir);
+  test_real_shapes(dir);
 
   fprintf(stderr, "\n");
   if (gFails)

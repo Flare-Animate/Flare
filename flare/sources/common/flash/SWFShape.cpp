@@ -103,27 +103,50 @@ public:
     return true;
   }
 
-  // Nothing aligns the stream between the RECT and the style arrays, and that is
-  // deliberate.
+  // Round up to the next byte boundary. This is what the specification means by
+  // "all integer types must be byte-aligned", and it applies after each RECT --
+  // the RECT is the one bit-packed part of the header.
   //
-  // The specification says integer *types* are byte-aligned, which is true of the
-  // CharacterID but not of what follows a RECT: the RECT is bit-packed and ends
-  // wherever its last field ends, and the style arrays start at that bit. A field
-  // may straddle two bytes, and reading it as a whole byte would read a byte the
-  // format does not contain.
+  // Settled against JPEXS's parse of Ruffle's own DefineShape.swf: the RECT ends
+  // at bit 61, and the fill-count byte at bit 64 reads 1 solid red fill, which is
+  // what that shape is. Read straddling at bit 61 the same byte reads 0 fills and
+  // the next reads 32 line styles, impossible in a 26-byte tag.
   //
-  // Measured on a real DefineShape2: the RECT ends at bit 65, and the fill-count
-  // byte read at bit 65 is 0x00 while read at the next byte boundary (72) it is
-  // 0x01 -- claiming a fill the file does not have. Rounding up and rounding down
-  // were both tried and both made it worse; straddling is what the format does.
+  // An earlier version of this reader did no alignment at all. That was wrong, and
+  // it looked right because the *flag word* was also being misread at the time, so
+  // the count being examined was not the count the shape declares.
+  // A style's length is not knowable to a bit reader. Everything of fixed width is
+  // read a byte at a time, but a MATRIX and a GRADIENTRECORD are bit-packed and can
+  // leave the stream mid-byte -- and the next style starts from wherever the style
+  // array left off, not from the next boundary.
   //
-  // So there is no alignment call anywhere in the shape body. The records are the
-  // only bit-packed part, and everything else is a byte read at the current
-  // position, which may straddle.
+  // Ruffle's structure explains what happens, because its reader is two-layered:
+  // read_shape_styles reads through a byte `Reader`, while a matrix is read through
+  // a temporary `BitReader` built over the same slice. That bit reader consumes the
+  // matrix and advances the shared slice by *whole bytes*, so the partial byte is
+  // gone by the time the next style is read. Rounding up here reproduces that.
+  //
+  // Measured over the 250 DefineShape tags in mario.ssf and checked field by field
+  // against JPEXS's parse: without this the style arrays come out 2 to 6 bits short
+  // on every shape whose fill carries a matrix, and 64 of 250 disagree. It is not a
+  // property of the matrix -- two shapes with identical matrices can differ -- it is
+  // simply the padding from wherever the previous style ended. Example: in one real
+  // DefineShape the first bitmap fill ends on a byte boundary and needs no padding,
+  // while the second ends 2 bits short and needs 2; in another the single fill ends
+  // 4 bits short. Both then read the NumFillBits/NumLineBits byte at exactly the bit
+  // JPEXS reads it.
+  //
+  // Called at the end of every fill and line style. For a solid fill it is a no-op:
+  // a type byte plus three or four colour bytes always lands on a boundary, which is
+  // why the 132 shapes whose only fill is solid already agreed.
+  void alignToByte() {
+    if (m_bit % 8) m_bit += 8 - (m_bit % 8);
+  }
 
-  // A byte-valued field at the current position. The position is wherever the
-  // previous field ended, which after a RECT is not a byte boundary, so this is
-  // deliberately not the same as reading a whole byte at an aligned offset.
+  // A byte-valued field at the current position. Byte *width*, not byte
+  // *alignment*: a field following a RECT sits on the boundary alignToByte just
+  // put it on, but a field following a matrix or a gradient is wherever that left
+  // the stream.
   bool ub8(int &out) { return bits(8, out); }
 
 private:
@@ -157,75 +180,107 @@ bool skipFillStyle(BitReader &r, int version) {
     return r.ub8(a) && r.ub8(b) && r.ub8(c) && r.ub8(d);
   };
   const auto matrix = [&r]() {
+    // A MATRIX: an optional scale, an optional rotation, then a translation. Each
+    // optional part carries its own bit width and *two* signed values -- the two
+    // components. This read only one of the scale pair, which put everything after
+    // a scaled fill or gradient a whole nScaleBits out of step. That is why 111 of
+    // 250 real shapes stopped in the style arrays: this decoder read the same fill
+    // count as JPEXS, then could not walk the fills it had been given.
     bool hasScale;
     if (!r.bit(hasScale)) return false;
     if (hasScale) {
-      int n, v;
+      int n;
       if (!r.bits(5, n)) return false;
-      if (!r.sbits(n, v)) return false;
+      for (int i = 0; i < 2; ++i) {
+        int v;
+        if (!r.sbits(n, v)) return false;
+      }
     }
     bool hasRotate;
     if (!r.bit(hasRotate)) return false;
     if (hasRotate) {
-      int n, v;
+      int n;
       if (!r.bits(5, n)) return false;
-      if (!r.sbits(n, v)) return false;
+      for (int i = 0; i < 2; ++i) {
+        int v;
+        if (!r.sbits(n, v)) return false;
+      }
+    }
+    int n;
+    if (!r.bits(5, n)) return false;
+    for (int i = 0; i < 2; ++i) {
+      int v;
       if (!r.sbits(n, v)) return false;
     }
-    int n, v;
-    if (!r.bits(5, n)) return false;
-    for (int i = 0; i < 2; ++i)
-      if (!r.sbits(n, v)) return false;
+    // The matrix is the last bit-packed field in a style, and what follows it is
+    // read a byte at a time -- so the padding belongs here, not at the end of the
+    // style. Reading the next byte straddling instead of from the boundary gives a
+    // different *value*, not merely a different position: on a real DefineShape3
+    // whose matrix ends at bit 130, the gradient's flags byte read there is 0x00,
+    // saying a gradient with no records, while read at the boundary (136) it is
+    // 0x04, saying the four records the gradient actually has.
+    r.alignToByte();
     return true;
   };
 
-  // A gradient. The trailing FocalPoint on a focal gradient is the second bug
-  // here: without it the reader resumes mid-field, and because the record
-  // stream keeps looking plausible the shape decodes to something rather
-  // than failing. That is how 78 DefineShape2 shapes ended up with outlines
-  // thousands of twips outside the bounds their own tag declared.
-  const auto gradient = [&r, &matrix, version](bool focal) {
-    int spread;
-    if (!r.ub8(spread)) return false;
-    if (version >= 4 && focal) {
-      int f;
-      if (!r.sbits(8, f)) return false;
-    }
-    int interp;
-    if (!r.bits(2, interp)) return false;
-    int n;
-    if (!r.bits(4, n)) return false;
-    if (version < 4) {
-      // StartRatio and EndRatio, SB[8] before DefineShape4.
-      for (int i = 0; i < 2; ++i) {
+  // A gradient. The matrix comes first, then a single flags byte, then the
+  // records.
+  //
+  // Three things here were wrong, and the file settles all of them. The order was
+  // gradient-then-matrix, which is what an earlier draft assumed and what neither
+  // Ruffle nor JPEXS reads: with that order 25 of the 30 gradient fills here read a
+  // line-style count in the hundreds. The flags byte holds spread, interpolation
+  // and the record count together -- there is no separate two-bit and four-bit
+  // field after it. And each record is one ratio byte plus the colour, not two
+  // ratio bytes and an interpolation table; the table was invented here and cost
+  // four bits plus an entry per record.
+  //
+  // A gradient with zero records is real -- 4 records, 2 records and none all occur
+  // in this one file -- and costs only its flags byte. Ruffle notes the same for
+  // malformed files and reads nothing further.
+  const auto gradient = [&r, version](bool focal) {
+    int flags;
+    if (!r.ub8(flags)) return false;
+    const int numRecords = flags & 0x0F;
+    if (numRecords == 0) return true;
+    const int colourBytes = version >= 3 ? 4 : 3;
+    for (int i = 0; i < numRecords; ++i) {
+      int ratio;
+      if (!r.ub8(ratio)) return false;
+      for (int c = 0; c < colourBytes; ++c) {
         int v;
-        if (!r.sbits(8, v)) return false;
+        if (!r.ub8(v)) return false;
       }
-    } else {
-      for (int i = 0; i < 2; ++i)
-        if (!r.ub8(spread)) return false;
     }
-    int m, v;
-    if (!r.bits(4, m)) return false;
-    for (int i = 0; i < m; ++i)
-      if (!r.sbits(8, v)) return false;
-    return matrix();
+    return true;
   };
 
   switch (type) {
-    case 0x00: return version >= 3 ? rgba() : rgb();
-    case 0x10: return gradient(false);                 // linear
-    case 0x12: return gradient(false);                 // radial
-    case 0x13: {                                        // focal
+    case 0x00:
+      if (!(version >= 3 ? rgba() : rgb())) return false;
+      r.alignToByte();
+      return true;
+    case 0x10:                                        // linear
+    case 0x12:                                        // radial
+      if (!matrix()) return false;
+      if (!gradient(false)) return false;
+      r.alignToByte();
+      return true;
+    case 0x13: {                                      // focal
+      if (!matrix()) return false;
       if (!gradient(true)) return false;
-      int fx, fy;                                      // FocalPoint, FIXED8
-      return r.ub8(fx) && r.ub8(fy);
+      int fx, fy;                                    // FocalPoint, FIXED8
+      if (!r.ub8(fx) || !r.ub8(fy)) return false;
+      r.alignToByte();
+      return true;
     }
     // Clipped and tiled bitmap fills: a CharacterID then a matrix.
     case 0x40: case 0x41: case 0x42: case 0x43: {
       int idHi, idLo;
       if (!r.ub8(idHi) || !r.ub8(idLo)) return false;
-      return matrix();
+      if (!matrix()) return false;
+      r.alignToByte();
+      return true;
     }
     default:
       // An unknown type cannot be skipped, because its length is not knowable.
@@ -246,7 +301,8 @@ bool skipLineStyle(BitReader &r, int version) {
   if (!r.ub8(lo) || !r.ub8(hi)) return false;
 
   if (version < 4) {
-    // LineStyle1: RGB, or RGBA from DefineShape3.
+    // LineStyle1: RGB, or RGBA from DefineShape3. Five or six whole bytes, so it
+    // always lands on a boundary and there is nothing to pad.
     if (version >= 3) {
       int a, b, c, d;
       if (!r.ub8(a) || !r.ub8(b) || !r.ub8(c) || !r.ub8(d)) return false;
@@ -270,7 +326,9 @@ bool skipLineStyle(BitReader &r, int version) {
   }
   if (flags & 0x10) return skipFillStyle(r, version);  // a fill, not a colour
   int a, b, c, d;
-  return r.ub8(a) && r.ub8(b) && r.ub8(c) && r.ub8(d);
+  if (!r.ub8(a) || !r.ub8(b) || !r.ub8(c) || !r.ub8(d)) return false;
+  r.alignToByte();
+  return true;
 }
 
 
@@ -352,6 +410,7 @@ Shape decodeShape(const unsigned char *data, int size, int version) {
   }
   out.edgeMin = out.boundsMin;
   out.edgeMax = out.boundsMax;
+  r.alignToByte();
 
   // DefineShape4 carries EdgeBounds separately, and a flag byte after it.
   if (version >= 4) {
@@ -360,6 +419,7 @@ Shape decodeShape(const unsigned char *data, int size, int version) {
       return out;
     }
     out.hasEdgeBounds = true;
+    r.alignToByte();
     int flags;
     if (!r.ub8(flags)) {
       out.error = QObject::tr("truncated: no Shape4 flag byte");
@@ -367,12 +427,14 @@ Shape decodeShape(const unsigned char *data, int size, int version) {
     }
   }
 
-  int numFillBits = 0, numLineBits = 0;
-  if (!readStyles(r, version, out.numFillStyles, out.numLineStyles, numFillBits,
-                  numLineBits)) {
+  if (!readStyles(r, version, out.numFillStyles, out.numLineStyles,
+                  out.numFillBits, out.numLineBits)) {
     out.error = QObject::tr("truncated in the style arrays");
     return out;
   }
+  // The bit widths change mid-shape when a new style array arrives, so these are
+  // read from the Shape rather than copied, and kept in step below.
+  int numFillBits = out.numFillBits, numLineBits = out.numLineBits;
 
   // ---- the record stream --------------------------------------------------
   //
@@ -487,7 +549,22 @@ Shape decodeShape(const unsigned char *data, int size, int version) {
       continue;
     }
 
-    // A style change record: five state bits, then six reserved.
+    // A style change record: five state bits and then the payload -- no reserved
+    // field. Counting the records JPEXS reports for Ruffle's DefineShape.swf: with
+    // six reserved bits they need 97 and only 88 bits remain, so the walk runs off
+    // the end; with none they need 85 and fit. Ruffle's read_shape_record likewise
+    // reads five bits and goes straight to MoveBits.
+    //
+    // The five bits are a little-endian bitfield of the value read MSB-first, so
+    // MoveTo is the *first* bit and NewStyles the last. Reading them as bits 3 to 7
+    // of the value -- which is what an earlier version here did -- left three of
+    // the five permanently false, because a five-bit field cannot hold bits 5, 6 or
+    // 7. FillStyle1, LineStyle and NewStyles were dead code and MoveTo fired
+    // exactly when a line style was selected, so no real move was ever seen.
+    //
+    // Checked against Ruffle's ShapeRecordFlag, and then measured: the outline of
+    // a DefineShape must lie inside the bounds that same tag declares, which is
+    // strong enough to settle a bit layout without trusting either.
     int flagsRaw;
     if (!r.bits(5, flagsRaw)) {
       out.error = QObject::tr("truncated at bit %1").arg(r.bitPos());
@@ -495,16 +572,11 @@ Shape decodeShape(const unsigned char *data, int size, int version) {
     }
     if (flagsRaw == 0) break;          // all five clear: end of shape
 
-    const bool stateNewStyles = flagsRaw & 0x80;
-    const bool stateLineStyle = flagsRaw & 0x40;
-    const bool stateFillStyle1 = flagsRaw & 0x20;
-    const bool stateFillStyle0 = flagsRaw & 0x10;
-    const bool stateMoveTo = flagsRaw & 0x08;
-    int reserved;
-    if (!r.bits(6, reserved)) {
-      out.error = QObject::tr("truncated at bit %1").arg(r.bitPos());
-      return out;
-    }
+    const bool stateMoveTo     = flagsRaw & 0x01;
+    const bool stateFillStyle0 = flagsRaw & 0x02;
+    const bool stateFillStyle1 = flagsRaw & 0x04;
+    const bool stateLineStyle  = flagsRaw & 0x08;
+    const bool stateNewStyles  = flagsRaw & 0x10;
 
     if (stateMoveTo) {
       int moveBits;
@@ -529,11 +601,18 @@ Shape decodeShape(const unsigned char *data, int size, int version) {
     // The fill and line indices are read and discarded: they index the style
     // arrays, and this decoder produces geometry only. They still have to be
     // consumed or the next record starts at the wrong bit.
+    // One index per flag that is set, FillStyle0's first. Reading only one when
+    // both are set left the next record starting in the middle of the second
+    // index, which is the same silent desynchronisation as any other miscount.
     if (stateFillStyle0 || stateFillStyle1) {
-      int idx;
-      if (!r.bits(numFillBits, idx)) {
-        out.error = QObject::tr("truncated fill index at bit %1").arg(r.bitPos());
-        return out;
+      const int wanted = (stateFillStyle0 ? 1 : 0) + (stateFillStyle1 ? 1 : 0);
+      for (int k = 0; k < wanted; ++k) {
+        int idx;
+        if (!r.bits(numFillBits, idx)) {
+          out.error =
+              QObject::tr("truncated fill index at bit %1").arg(r.bitPos());
+          return out;
+        }
       }
     }
     if (stateLineStyle) {
@@ -544,16 +623,19 @@ Shape decodeShape(const unsigned char *data, int size, int version) {
       }
     }
     if (stateNewStyles) {
-      // A new style array, and new bit widths with it.
-      int nf = 0, nl = 0, nfb = 0, nlb = 0;
-      if (!readStyles(r, version, nf, nl, nfb, nlb)) {
+      // A new style array, and new bit widths with it. Byte aligned, for the same
+      // reason as the first one: Ruffle builds a fresh byte reader over the bit
+      // reader's position here, which drops the bits left over from the record.
+      r.alignToByte();
+      int nf = 0, nl = 0;
+      if (!readStyles(r, version, nf, nl, out.numFillBits, out.numLineBits)) {
         out.error = QObject::tr("truncated in a mid-shape style array at "
                                 "bit %1")
                         .arg(r.bitPos());
         return out;
       }
-      numFillBits = nfb;
-      numLineBits = nlb;
+      numFillBits = out.numFillBits;
+      numLineBits = out.numLineBits;
     }
 
     ++out.records;

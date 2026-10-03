@@ -87,7 +87,7 @@ produces no levels is always explained rather than looking like a broken file.
 | Content | Where | Status |
 |---------|-------|--------|
 | Vector shapes, XFL | FLA/XFL `<DOMShape>` `<edges>` | **Decoded.** `common/flash/XFLShape` reads the `edges` attribute to contours and emits SVG. Verified against 491 real shapes from a published FLA, against an independent decoder, coordinate for coordinate. The sibling `cubics` attribute is deliberately ignored: it is an editor hint and on real documents describes a *different* outline |
-| Vector shapes, SWF | `DefineShape`/`DefineShape2`/`DefineShape3`/`DefineShape4` | Not yet converted. The record grammar is well specified and quadrant-based, but SWF shape bounds are stroke-inclusive, so a wrong decode is not obvious from the geometry alone |
+| Vector shapes, SWF | `DefineShape`/`DefineShape2`/`DefineShape3`/`DefineShape4` | **Geometry decoded, not yet wired into the import path.** `common/flash/SWFShape` reads all four tags to contours and emits SVG. Verified on the 250 `DefineShape` tags of a real 3.5 MB SWF: every one decodes, and every one produces the same outline, vertex for vertex, as JPEXS — an independent and mature SWF decoder — does on the same bytes. Eight faults were found and fixed on the way, each now covered by a fixture whose expected geometry is stated; see the note below on why they were silent |
 | Text | `<DOMStaticText>`, `<DOMText>`, `DefineText`/`Text2` | Not converted |
 | Embedded fonts | `DefineFont`/`Font2`/`Font3` | Not converted |
 | Video items | `<DOMVideoItem>`, `DefineVideoStream` | Not converted |
@@ -104,6 +104,36 @@ produces no levels is always explained rather than looking like a broken file.
 JPEXS (GPL v3 + Java) is **licence-incompatible** with Flare's BSD licence and
 requires an external runtime. The previous implementation used it via Python
 scripts; that entire approach has been replaced by native C++.
+
+It is still the thing to check a decoder against, though, and was for the SWF shape
+work: JPEXS was run over the sample files purely as an oracle and none of its code
+is vendored. That is what turned "the decoder looks plausible" into "all 250 real
+shapes produce the same vertices as an independent implementation".
+
+## Why a wrong SWF shape decode is silent
+
+A `DefineShape` body is bit-packed: after a bit-packed `RECT` the style arrays are
+read a byte at a time, then the record stream is bit-packed again. Every fault
+below produced a shape that looked drawn rather than an error, which is why none of
+them was caught by inspection of the output and why each now has a fixture.
+
+| Fault | What it did |
+|-------|-------------|
+| The five style-change flags read at bits 3..7 of a five-bit field | Three of the five tests could never be true, so `MoveTo` fired exactly when a *line style* was selected. No real move was ever seen |
+| Six reserved bits after the flag word | The record stream desynchronised by six bits per style change and ran off the end |
+| The `MATRIX` scale read as one component instead of two | Everything after a scaled fill went out of step by a whole `nScaleBits`; 111 of 250 shapes stopped in the style arrays |
+| No padding after a bit-packed `MATRIX` | The next byte was read straddling, which gives it a different *value*, not merely a different position: 59 shapes read a line-style count in the hundreds |
+| No padding after the `RECT` | The fill count was read straddling; on a known-good 26-byte tag that reads 0 fills and then 32 line styles |
+| The gradient `MATRIX` read after the records | All 30 gradient fills in one file desynchronised at once |
+| A gradient read as two ratio bytes and an interpolation table | Both invented here; the format has one ratio byte per record and no table |
+| Only one fill index consumed when both fill flags are set | The next record began inside the second index |
+
+The general lesson, and the reason the fixtures exist: **a plausible wrong answer is
+what this format produces when the bit stream is misread.** The shape's own declared
+bounds are a useful oracle, because they come from the same stream and a wrong read
+would have to be wrong in a matching way to hide — but they are the file's bounds,
+not a guarantee, and 101 of the 250 real shapes here have outlines outside them,
+as JPEXS's parse also does.
 
 ## Embedded audio
 
