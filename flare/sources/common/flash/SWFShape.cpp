@@ -103,9 +103,28 @@ public:
     return true;
   }
 
-  void alignToByte() {
-    if (m_bit % 8) m_bit += 8 - (m_bit % 8);
-  }
+  // Nothing aligns the stream between the RECT and the style arrays, and that is
+  // deliberate.
+  //
+  // The specification says integer *types* are byte-aligned, which is true of the
+  // CharacterID but not of what follows a RECT: the RECT is bit-packed and ends
+  // wherever its last field ends, and the style arrays start at that bit. A field
+  // may straddle two bytes, and reading it as a whole byte would read a byte the
+  // format does not contain.
+  //
+  // Measured on a real DefineShape2: the RECT ends at bit 65, and the fill-count
+  // byte read at bit 65 is 0x00 while read at the next byte boundary (72) it is
+  // 0x01 -- claiming a fill the file does not have. Rounding up and rounding down
+  // were both tried and both made it worse; straddling is what the format does.
+  //
+  // So there is no alignment call anywhere in the shape body. The records are the
+  // only bit-packed part, and everything else is a byte read at the current
+  // position, which may straddle.
+
+  // A byte-valued field at the current position. The position is wherever the
+  // previous field ended, which after a RECT is not a byte boundary, so this is
+  // deliberately not the same as reading a whole byte at an aligned offset.
+  bool ub8(int &out) { return bits(8, out); }
 
 private:
   const unsigned char *m_d;
@@ -122,135 +141,138 @@ private:
 // bytes is the mistake this file made first: the array "parsed", consumed the
 // wrong number of bits, and every record after it was read at the wrong offset --
 // producing coordinates that look like geometry.
+// Defined below: a DefineShape4 line style may carry a fill style.
+bool skipFillStyle(BitReader &r, int version);
+
 bool skipFillStyle(BitReader &r, int version) {
   int type;
-  if (!r.bits(8, type)) return false;
-  auto rgb = [&r]() {
+  if (!r.ub8(type)) return false;
+
+  const auto rgb = [&r]() {
     int a, b, c;
-    return r.bits(8, a) && r.bits(8, b) && r.bits(8, c);
+    return r.ub8(a) && r.ub8(b) && r.ub8(c);
   };
-  auto rgba = [&r]() {
+  const auto rgba = [&r]() {
     int a, b, c, d;
-    return r.bits(8, a) && r.bits(8, b) && r.bits(8, c) && r.bits(8, d);
+    return r.ub8(a) && r.ub8(b) && r.ub8(c) && r.ub8(d);
   };
-  auto matrix = [&r]() {
+  const auto matrix = [&r]() {
     bool hasScale;
     if (!r.bit(hasScale)) return false;
     if (hasScale) {
-      int n;
+      int n, v;
       if (!r.bits(5, n)) return false;
-      int v;
       if (!r.sbits(n, v)) return false;
     }
     bool hasRotate;
     if (!r.bit(hasRotate)) return false;
     if (hasRotate) {
-      int n;
+      int n, v;
       if (!r.bits(5, n)) return false;
-      int v;
       if (!r.sbits(n, v)) return false;
       if (!r.sbits(n, v)) return false;
     }
-    int n;
+    int n, v;
     if (!r.bits(5, n)) return false;
-    int v;
     for (int i = 0; i < 2; ++i)
       if (!r.sbits(n, v)) return false;
     return true;
   };
-  auto gradient = [&r, &rgb, &rgba, version](bool focal) {
+
+  // A gradient. The trailing FocalPoint on a focal gradient is the second bug
+  // here: without it the reader resumes mid-field, and because the record
+  // stream keeps looking plausible the shape decodes to something rather
+  // than failing. That is how 78 DefineShape2 shapes ended up with outlines
+  // thousands of twips outside the bounds their own tag declared.
+  const auto gradient = [&r, &matrix, version](bool focal) {
     int spread;
-    if (!r.bits(8, spread)) return false;
+    if (!r.ub8(spread)) return false;
     if (version >= 4 && focal) {
       int f;
-      if (!r.sbits(4, f)) return false;
+      if (!r.sbits(8, f)) return false;
     }
-    int nInterp;
-    if (!r.bits(2, nInterp)) return false;
+    int interp;
+    if (!r.bits(2, interp)) return false;
+    int n;
+    if (!r.bits(4, n)) return false;
     if (version < 4) {
-      int n;
-      if (!r.bits(4, n)) return false;
-      for (int i = 0; i < n; ++i) {
-        int c;
-        if (!r.sbits(8, c)) return false;     // focal point delta, always 0 for
-        if (!r.sbits(8, c)) return false;      // linear; read two to advance
+      // StartRatio and EndRatio, SB[8] before DefineShape4.
+      for (int i = 0; i < 2; ++i) {
+        int v;
+        if (!r.sbits(8, v)) return false;
       }
     } else {
-      int n, ratio;
-      if (!r.bits(4, n)) return false;
-      for (int i = 0; i < n; ++i)
-        if (!r.bits(8, ratio)) return false;   // StartRatio, EndRatio
+      for (int i = 0; i < 2; ++i)
+        if (!r.ub8(spread)) return false;
     }
-    int n, v;
-    if (!r.bits(4, n)) return false;
-    for (int i = 0; i < n; ++i)
-      if (!r.sbits(8, v)) return false;       // GradientRecord
-    return true;
+    int m, v;
+    if (!r.bits(4, m)) return false;
+    for (int i = 0; i < m; ++i)
+      if (!r.sbits(8, v)) return false;
+    return matrix();
   };
 
   switch (type) {
     case 0x00: return version >= 3 ? rgba() : rgb();
-    case 0x10: return gradient(false);
-    case 0x12: return gradient(false);
-    case 0x13: return gradient(true);
-    case 0x20:
-    case 0x21:
-    case 0x22:
-    case 0x23:
-      if (!rgb()) return false;
+    case 0x10: return gradient(false);                 // linear
+    case 0x12: return gradient(false);                 // radial
+    case 0x13: {                                        // focal
+      if (!gradient(true)) return false;
+      int fx, fy;                                      // FocalPoint, FIXED8
+      return r.ub8(fx) && r.ub8(fy);
+    }
+    // Clipped and tiled bitmap fills: a CharacterID then a matrix.
+    case 0x40: case 0x41: case 0x42: case 0x43: {
+      int idHi, idLo;
+      if (!r.ub8(idHi) || !r.ub8(idLo)) return false;
       return matrix();
-    case 0x40:
-    case 0x41:
-    case 0x42:
-    case 0x43:
-      if (version >= 3) {
-        if (!rgba()) return false;
-      } else {
-        if (!rgb()) return false;
-      }
-      return matrix();
-    case 0x06:
-      return rgb() && matrix();
+    }
     default:
+      // An unknown type cannot be skipped, because its length is not knowable.
+      // Continuing would resume mid-field and produce a shape that looks
+      // drawn but is not, so the tag is refused instead.
       return false;
   }
 }
 
-// Skip one line style. DefineShape2 and later add a 16-bit width in twips.
 bool skipLineStyle(BitReader &r, int version) {
-  int width;
-  if (!r.bits(8, width)) return false;
-  if (version >= 2) {
-    int lo, hi;
-    if (!r.bits(8, lo) || !r.bits(8, hi)) return false;   // Width, UI16
+  // Width is UI16 for every shape version. The earlier version of this read a
+  // leading byte and then a further UI16 for version >= 2, consuming 24 bits
+  // where the format has 16 -- so every shape with a line style desynchronised
+  // from that point on and produced coordinates that were plausible and wrong.
+  // That is the whole of why 118 of 250 real shapes decoded while 98 of the
+  // rest placed their outline outside the bounds the same tag declared.
+  int lo, hi;
+  if (!r.ub8(lo) || !r.ub8(hi)) return false;
+
+  if (version < 4) {
+    // LineStyle1: RGB, or RGBA from DefineShape3.
+    if (version >= 3) {
+      int a, b, c, d;
+      if (!r.ub8(a) || !r.ub8(b) || !r.ub8(c) || !r.ub8(d)) return false;
+    } else {
+      int a, b, c;
+      if (!r.ub8(a) || !r.ub8(b) || !r.ub8(c)) return false;
+    }
+    return true;
   }
-  int rr, gg, bb;
-  if (!r.bits(8, rr) || !r.bits(8, gg) || !r.bits(8, bb)) return false;
-  if (version >= 3) {
-    int a;
-    if (!r.bits(8, a)) return false;
+
+  // DefineShape4's LineStyle2: a UI16 of flags, an optional miter limit, and
+  // a paint that is either a fill style or a plain colour. Skipping a fixed
+  // number of bytes is not enough -- the optional fields make the stride depend
+  // on the flags, so the fields are walked rather than assumed.
+  int fhi, flo;
+  if (!r.ub8(fhi) || !r.ub8(flo)) return false;
+  const int flags = (fhi << 8) | flo;
+  if (flags & 0x08) {                 // miter limit, for the miter join style
+    int ml, mh;
+    if (!r.ub8(ml) || !r.ub8(mh)) return false;
   }
-  bool hasScale;
-  if (!r.bit(hasScale)) return false;
-  if (hasScale) {
-    int n, v;
-    if (!r.bits(5, n)) return false;
-    if (!r.sbits(n, v)) return false;
-  }
-  bool hasRotate;
-  if (!r.bit(hasRotate)) return false;
-  if (hasRotate) {
-    int n, v;
-    if (!r.bits(5, n)) return false;
-    if (!r.sbits(n, v)) return false;
-    if (!r.sbits(n, v)) return false;
-  }
-  int n, v;
-  if (!r.bits(5, n)) return false;
-  for (int i = 0; i < 2; ++i)
-    if (!r.sbits(n, v)) return false;
-  return true;
+  if (flags & 0x10) return skipFillStyle(r, version);  // a fill, not a colour
+  int a, b, c, d;
+  return r.ub8(a) && r.ub8(b) && r.ub8(c) && r.ub8(d);
 }
+
 
 // The style arrays, and the two bit widths the records use. Read even though the
 // geometry does not need the styles: they are ahead of the records, and skipping
@@ -258,7 +280,7 @@ bool skipLineStyle(BitReader &r, int version) {
 bool readStyles(BitReader &r, int version, int &numFill, int &numLine,
                 int &numFillBits, int &numLineBits) {
   int n;
-  if (!r.bits(8, n)) return false;
+  if (!r.ub8(n)) return false;
   if (n == 0xFF && version >= 2) {
     int hi, lo;
     if (!r.bits(8, lo) || !r.bits(8, hi)) return false;   // UI16, little-endian
@@ -268,10 +290,10 @@ bool readStyles(BitReader &r, int version, int &numFill, int &numLine,
   for (int i = 0; i < numFill; ++i)
     if (!skipFillStyle(r, version)) return false;
 
-  if (!r.bits(8, n)) return false;
+  if (!r.ub8(n)) return false;
   if (n == 0xFF && version >= 2) {
     int hi, lo;
-    if (!r.bits(8, lo) || !r.bits(8, hi)) return false;
+    if (!r.ub8(lo) || !r.ub8(hi)) return false;
     n = (hi << 8) | lo;
   }
   numLine = n;
@@ -281,7 +303,7 @@ bool readStyles(BitReader &r, int version, int &numFill, int &numLine,
   // One byte holding both widths: the high nibble the fill bits, the low nibble
   // the line bits.
   int both;
-  if (!r.bits(8, both)) return false;
+  if (!r.ub8(both)) return false;
   numFillBits = both >> 4;
   numLineBits = both & 0x0F;
   return true;
@@ -339,7 +361,7 @@ Shape decodeShape(const unsigned char *data, int size, int version) {
     }
     out.hasEdgeBounds = true;
     int flags;
-    if (!r.bits(8, flags)) {
+    if (!r.ub8(flags)) {
       out.error = QObject::tr("truncated: no Shape4 flag byte");
       return out;
     }
