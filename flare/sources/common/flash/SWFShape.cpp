@@ -317,13 +317,19 @@ bool skipLineStyle(BitReader &r, int version) {
   // a paint that is either a fill style or a plain colour. Skipping a fixed
   // number of bytes is not enough -- the optional fields make the stride depend
   // on the flags, so the fields are walked rather than assumed.
-  int fhi, flo;
-  if (!r.ub8(fhi) || !r.ub8(flo)) return false;
-  const int flags = (fhi << 8) | flo;
+  // The flags are a UI16, and a UI16 in this format is little-endian: low byte
+  // first. Assembled the other way round -- (high << 8) | low -- the value 0x0008 in
+  // the file reads as 0x0800, whose bit 3 is clear, so the conditional miter limit
+  // is skipped and every field after it lands two bytes out of step. A shape with a
+  // LineStyle2 then decodes to something, rather than failing.
+  int flo, fhi;
+  if (!r.ub8(flo) || !r.ub8(fhi)) return false;
+  const int flags = flo | (fhi << 8);
   if (flags & 0x08) {                 // miter limit, for the miter join style
     int ml, mh;
     if (!r.ub8(ml) || !r.ub8(mh)) return false;
   }
+
   if (flags & 0x10) return skipFillStyle(r, version);  // a fill, not a colour
   int a, b, c, d;
   if (!r.ub8(a) || !r.ub8(b) || !r.ub8(c) || !r.ub8(d)) return false;

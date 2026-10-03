@@ -328,6 +328,97 @@ static void test_fault_fixtures(const QString &dir) {
                 "Ruffle's DefineShape.swf, decoded");
 }
 
+static void test_shape_cases(const QString &dir) {
+  fprintf(stderr, "\n-- shape cases the real sample does not cover --\n");
+
+  expect_square(dir, "swf_implicit_origin_v1.bin", 1, 6, 1, 0, 0, 100, 100,
+                "an edge with no preceding move starts at the origin");
+
+  {
+    QByteArray body;
+    if (!loadFile(QDir(dir).filePath("swf_twocontours_v1.bin"), body)) {
+      check(false, "two contours: fixture present",
+            "swf_twocontours_v1.bin");
+    } else {
+      const SWF::Shape s = SWF::decodeShape(body, 1);
+      check(s.ok, "two contours: decodes", s.error);
+      if (s.ok) {
+        check(s.contours.size() == 2, "  two contours",
+              QString::number(s.contours.size()));
+        if (s.contours.size() == 2) {
+          check(s.contours.at(0).start == QPointF(0, 0) &&
+                    s.contours.at(1).start == QPointF(60, 60),
+                "  the second starts where its move says",
+                QString("%1,%2 and %3,%4")
+                    .arg(s.contours.at(0).start.x())
+                    .arg(s.contours.at(0).start.y())
+                    .arg(s.contours.at(1).start.x())
+                    .arg(s.contours.at(1).start.y()));
+          check(s.contours.at(0).segments.size() == 4 &&
+                    s.contours.at(1).segments.size() == 4,
+                "  four edges each");
+        }
+      }
+    }
+  }
+
+  {
+    QByteArray body;
+    if (!loadFile(QDir(dir).filePath("swf_allcurves_v4.bin"), body)) {
+      check(false, "all curves: fixture present", "swf_allcurves_v4.bin");
+    } else {
+      const SWF::Shape s = SWF::decodeShape(body, 4);
+      check(s.ok, "all curves: decodes", s.error);
+      if (s.ok) {
+        check(s.contours.size() == 1, "  one contour",
+              QString::number(s.contours.size()));
+        int curves = 0;
+        for (const SWF::Segment &sg : s.contours.first().segments)
+          if (sg.curve) ++curves;
+        check(curves == 4, "  all four segments are curves",
+              QString::number(curves));
+        check(s.contours.first().segments.size() == 4, "  four segments");
+      }
+    }
+  }
+
+  {
+    QByteArray body;
+    if (!loadFile(QDir(dir).filePath("swf_shape4_linestyle2_v4.bin"), body)) {
+      check(false, "LineStyle2: fixture present",
+            "swf_shape4_linestyle2_v4.bin");
+    } else {
+      const SWF::Shape s = SWF::decodeShape(body, 4);
+      check(s.ok, "LineStyle2 with a miter limit: decodes", s.error);
+      if (s.ok) {
+        check(s.numFillStyles == 1 && s.numLineStyles == 1,
+              "  one fill and one line style",
+              QString("%1 fill, %2 line")
+                  .arg(s.numFillStyles)
+                  .arg(s.numLineStyles));
+        check(s.hasEdgeBounds, "  EdgeBounds present");
+        if (s.hasEdgeBounds)
+          check(s.edgeMin == QPointF(10, 10) && s.edgeMax == QPointF(90, 90),
+                "  EdgeBounds exclude the stroke",
+                QString("%1,%2 to %3,%4")
+                    .arg(s.edgeMin.x())
+                    .arg(s.edgeMin.y())
+                    .arg(s.edgeMax.x())
+                    .arg(s.edgeMax.y()));
+        check(s.contours.size() == 1 &&
+                  s.contours.first().segments.size() == 4,
+              "  one contour of four edges");
+        if (!s.contours.isEmpty() && !s.contours.first().segments.isEmpty())
+          check(s.contours.first().start == QPointF(10, 10),
+                "  inside EdgeBounds, not ShapeBounds",
+                QString("%1,%2")
+                    .arg(s.contours.first().start.x())
+                    .arg(s.contours.first().start.y()));
+      }
+    }
+  }
+}
+
 // ---------------------------------------------------------------------------
 // The real file, if it is here.
 //
@@ -364,6 +455,7 @@ int main(int argc, char **argv) {
 
   test_square(dir);
   test_fault_fixtures(dir);
+  test_shape_cases(dir);
   test_malformed();
   test_real_shapes(dir);
 

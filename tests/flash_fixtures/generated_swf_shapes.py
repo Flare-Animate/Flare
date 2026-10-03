@@ -137,6 +137,17 @@ def rect_edges(w, dx, dy, nbits):
             w.s(ey, nbits)
 
 
+def curve_to(w, cx, cy, ax, ay, nbits):
+    """One curved edge. Both deltas are relative to the current point."""
+    w.put(1, 1)                           # an edge
+    w.put(0, 1)                           # curved
+    w.put(nbits - 2, 4)
+    w.s(cx, nbits)
+    w.s(cy, nbits)
+    w.s(ax, nbits)
+    w.s(ay, nbits)
+
+
 def end_of_shape(w):
     w.put(0, 1)                           # not an edge
     w.put(0, 5)                           # all five state bits clear
@@ -362,6 +373,123 @@ def build_from_ruffle_fixture(path):
     return None
 
 
+# ---------------------------------------------------------------------------
+# 6. A shape that opens with an edge and no move.
+# ---------------------------------------------------------------------------
+def build_implicit_origin():
+    w = BW()
+    w.u16le(6)
+    w.rect(0, 100, 0, 100, 8)
+    w.u8(1)
+    w.u8(0x00)
+    w.u8(0xFF)
+    w.u8(0x00)
+    w.u8(0x00)
+    w.u8(0)
+    w.u8(0x00)
+
+    w.put(0, 1)
+    w.put(FILL_STYLE_0, 5)
+    rect_edges(w, 100, 100, 8)
+    end_of_shape(w)
+    return w.bytes()
+
+
+# ---------------------------------------------------------------------------
+# 7. Two contours in one shape, the second starting with a move.
+# ---------------------------------------------------------------------------
+def build_two_contours():
+    w = BW()
+    w.u16le(7)
+    w.rect(0, 100, 0, 100, 8)
+    w.u8(1)
+    w.u8(0x00)
+    w.u8(0x00)
+    w.u8(0xFF)
+    w.u8(0x00)
+    w.u8(0)
+    w.u8(0x00)
+
+    w.put(0, 1)
+    w.put(MOVE_TO, 5)
+    w.put(8, 5)
+    w.s(0, 8)
+    w.s(0, 8)
+    w.put(0, 1)
+    w.put(FILL_STYLE_0, 5)
+    rect_edges(w, 40, 40, 8)
+
+    w.put(0, 1)
+    w.put(MOVE_TO, 5)
+    w.put(8, 5)
+    w.s(60, 8)
+    w.s(60, 8)
+    w.put(0, 1)
+    w.put(FILL_STYLE_0, 5)
+    rect_edges(w, 40, 40, 8)
+    end_of_shape(w)
+    return w.bytes()
+
+
+# ---------------------------------------------------------------------------
+# 8. A shape that is nothing but curves.
+# ---------------------------------------------------------------------------
+def build_all_curves():
+    w = BW()
+    w.u16le(8)
+    w.rect(0, 100, 0, 100, 8)
+    w.rect(0, 100, 0, 100, 8)
+    w.u8(0x00)
+    w.u8(1)
+    for c in (0x00, 0xFF, 0xFF, 0xFF, 0xFF):
+        w.u8(c)
+    w.u8(0)
+    w.u8(0x10)
+
+    w.put(0, 1)
+    w.put(MOVE_TO | FILL_STYLE_0, 5)
+    w.put(8, 5)
+    w.s(0, 8)
+    w.s(50, 8)
+    w.put(0, 1)
+    curve_to(w, 0, -50, 50, -50, 8)
+    curve_to(w, 50, 0, 50, 50, 8)
+    curve_to(w, 0, 50, -50, 50, 8)
+    curve_to(w, -50, 0, -50, -50, 8)
+    end_of_shape(w)
+    return w.bytes()
+
+
+# ---------------------------------------------------------------------------
+# 9. A DefineShape4 carrying a LineStyle2 with a miter limit.
+# ---------------------------------------------------------------------------
+def build_shape4_linestyle2():
+    w = BW()
+    w.u16le(9)
+    w.rect(0, 100, 0, 100, 8)
+    w.rect(10, 90, 10, 90, 8)
+    w.u8(0x00)
+    w.u8(1)
+    for c in (0x00, 0xFF, 0x00, 0x00, 0xFF):
+        w.u8(c)
+    w.u8(1)
+    w.u16le(40)
+    w.u16le(0x0008)
+    w.u16le(0x0300)
+    for c in (0xFF, 0x00, 0x00, 0xFF):
+        w.u8(c)
+    w.u8(0x00)
+
+    w.put(0, 1)
+    w.put(MOVE_TO | FILL_STYLE_0 | LINE_STYLE, 5)
+    w.put(8, 5)
+    w.s(10, 8)
+    w.s(10, 8)
+    rect_edges(w, 80, 80, 8)
+    end_of_shape(w)
+    return w.bytes()
+
+
 # What each fixture declares. The tests assert these, so a fixture that stops saying
 # what it contains is caught rather than quietly agreeing with whatever the decoder
 # does.
@@ -389,7 +517,12 @@ def main():
                           ("swf_rotatedfill_v1.bin", build_rotated_fill),
                           ("swf_gradient_v3.bin", build_gradient),
                           ("swf_twofillindices_v1.bin",
-                           build_two_fill_indices)):
+                           build_two_fill_indices),
+                          ("swf_implicit_origin_v1.bin", build_implicit_origin),
+                          ("swf_twocontours_v1.bin", build_two_contours),
+                          ("swf_allcurves_v4.bin", build_all_curves),
+                          ("swf_shape4_linestyle2_v4.bin",
+                           build_shape4_linestyle2)):
         data = builder()
         open(os.path.join(outdir, name), "wb").write(data)
         written.append((name, len(data), data))

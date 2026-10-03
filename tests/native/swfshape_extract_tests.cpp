@@ -223,6 +223,10 @@ int main(int argc, char **argv) {
         {"swf_gradient_v3.bin", 32},
         {"swf_twofillindices_v1.bin", 2},
         {"swf_ruffle_square_v1.bin", 2},
+        {"swf_implicit_origin_v1.bin", 2},
+        {"swf_twocontours_v1.bin", 2},
+        {"swf_allcurves_v4.bin", 83},
+        {"swf_shape4_linestyle2_v4.bin", 83},
     };
     for (const auto &c : cases) {
       QFile f(d.filePath(QString::fromLatin1(c.file)));
