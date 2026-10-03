@@ -88,9 +88,17 @@ def build(axis_aligned=False):
     w.u8(0)                          # type 0 = solid
     w.u8(0xFF); w.u8(0x00); w.u8(0x00)
     w.u8(1)                          # LineStyleArray count
-    w.u8(20)                         # width
-    w.u8(0x00); w.u8(0x00); w.u8(0x00)
-    w.put(0, 1); w.put(0, 1); w.put(0, 5)      # identity matrix
+    # Width is UI16 in every shape version. The first version of this wrote a
+    # single byte, which is what the decoder also expected -- so the fixture
+    # encoded the reader's own bug and would have kept passing after a fix. A
+    # fixture built from the same reading as the code cannot catch that code
+    # being wrong, which is the whole reason the square is checked against Ruffle's
+    # .fla oracle as well.
+    w.u8(20); w.u8(0x00)             # width, UI16 little-endian
+    w.u8(0x00); w.u8(0x00); w.u8(0x00)         # RGB -- and nothing else:
+    # a LineStyle1 has no matrix, which is why the first version of this wrote
+    # 7 bits the format does not contain and the decoder read the NumFillBits
+    # byte out of the middle of the record stream.
     w.u8(0x00)                       # NumFillBits=0, NumLineBits=0
 
     w.put(0, 1)                      # not an edge
@@ -147,9 +155,11 @@ def build_square(axis_aligned=False):
     w.u8(0)                          # type 0 = solid
     w.u8(0xFF); w.u8(0x00); w.u8(0x00)
     w.u8(1)                          # LineStyleArray count
-    w.u8(20)                         # width
+    # Width is UI16 in every version. This second copy of the writer
+    # is the one main() uses; the first was fixed and left behind.
+    w.u8(20); w.u8(0x00)             # width, UI16 little-endian
     w.u8(0x00); w.u8(0x00); w.u8(0x00)
-    w.put(0, 1); w.put(0, 1); w.put(0, 5)      # identity matrix
+    # and nothing else -- a LineStyle1 has no matrix.
     w.u8(0x00)                       # NumFillBits=0, NumLineBits=0
 
     w.put(0, 1)                      # not an edge
