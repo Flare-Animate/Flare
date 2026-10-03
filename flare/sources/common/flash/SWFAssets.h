@@ -155,6 +155,24 @@ struct SwfContent {
 // Census a SWF tag stream (recursing into DefineSprite).
 DVAPI SwfContent censusSwf(const QByteArray &swfData);
 
+// Write every DefineShape{,2,3,4} in the movie out as an SVG, and return the file
+// names written into `outDir`.
+//
+// This is the content a SWF can be made entirely of, and until now it was only
+// counted: the import reported how many vector shapes it had not converted and
+// produced nothing for them.
+//
+// The SVG is the outline only. A shape's fills and strokes are indices into style
+// arrays this does not read, so the path is written unpainted -- stated rather than
+// left for the user to find out. DefineMorphShape (46) is counted but not decoded:
+// its records carry a start and an end shape per step and need both at once.
+//
+// `skipped`, if given, receives the number of shape tags the decoder refused. A
+// refused tag is one whose bit stream does not decode; the decoder returns no
+// outline for it rather than a partial one, so there is nothing to write.
+DVAPI QStringList extractSwfShapes(const QByteArray &swfData,
+                                   const QString &outDir, int *skipped = nullptr);
+
 // Extract embedded audio. DefineSound tags become one file each; streaming
 // audio (SoundStreamHead + SoundStreamBlock) is concatenated per stream.
 // MP3 is written as .mp3, uncompressed 16-bit PCM as .wav, ADPCM and the

@@ -25,6 +25,7 @@ TARGETS = [
     ("flash_reader_tests", "flash"),
     ("xfl_shape_tests", "none"),
     ("swfshape_tests", "flash"),
+    ("swfshape_extract_tests", "flash"),
     ("moho_reader_tests", "moho"),
 ]
 

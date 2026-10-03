@@ -154,6 +154,42 @@ target_link_libraries(swfshape_tests PRIVATE
     kernel32.lib
 )
 
+add_executable(swfshape_real_tests
+    swfshape_real_tests.cpp
+)
+target_include_directories(swfshape_real_tests PRIVATE
+    "${FLASH_ROOT}/flare/sources/common/flash"
+    "${FLASH_ROOT}/flare/sources/include"
+    "${ZLIB_DIR}"
+    "${MINIZIP}"
+)
+target_link_libraries(swfshape_real_tests PRIVATE
+    Qt5::Core
+    Qt5::Gui
+    "${ZLIB_IMPORT_LIB}"
+    "${BUILD}/sources/tnzcore/RelWithDebInfo/tnzcore.lib"
+    "${BUILD}/sources/tnzbase/RelWithDebInfo/tnzbase.lib"
+    kernel32.lib
+)
+
+add_executable(swfshape_extract_tests
+    swfshape_extract_tests.cpp
+)
+target_include_directories(swfshape_extract_tests PRIVATE
+    "${FLASH_ROOT}/flare/sources/common/flash"
+    "${FLASH_ROOT}/flare/sources/include"
+    "${ZLIB_DIR}"
+    "${MINIZIP}"
+)
+target_link_libraries(swfshape_extract_tests PRIVATE
+    Qt5::Core
+    Qt5::Gui
+    "${ZLIB_IMPORT_LIB}"
+    "${BUILD}/sources/tnzcore/RelWithDebInfo/tnzcore.lib"
+    "${BUILD}/sources/tnzbase/RelWithDebInfo/tnzbase.lib"
+    kernel32.lib
+)
+
 add_executable(shape_export
     shape_export.cpp
 )

@@ -87,7 +87,7 @@ produces no levels is always explained rather than looking like a broken file.
 | Content | Where | Status |
 |---------|-------|--------|
 | Vector shapes, XFL | FLA/XFL `<DOMShape>` `<edges>` | **Decoded.** `common/flash/XFLShape` reads the `edges` attribute to contours and emits SVG. Verified against 491 real shapes from a published FLA, against an independent decoder, coordinate for coordinate. The sibling `cubics` attribute is deliberately ignored: it is an editor hint and on real documents describes a *different* outline |
-| Vector shapes, SWF | `DefineShape`/`DefineShape2`/`DefineShape3`/`DefineShape4` | **Geometry decoded, not yet wired into the import path.** `common/flash/SWFShape` reads all four tags to contours and emits SVG. Verified on the 250 `DefineShape` tags of a real 3.5 MB SWF: every one decodes, and every one produces the same outline, vertex for vertex, as JPEXS — an independent and mature SWF decoder — does on the same bytes. Eight faults were found and fixed on the way, each now covered by a fixture whose expected geometry is stated; see the note below on why they were silent |
+| Vector shapes, SWF | `DefineShape`/`DefineShape2`/`DefineShape3`/`DefineShape4` | **Decoded and written out.** `common/flash/SWFShape` reads all four tags to contours and emits SVG; `FlashAssets::extractSwfShapes` writes one SVG per tag, recursing into sprites. Verified on the 250 `DefineShape` tags of a real 3.5 MB SWF: every one decodes, produces the same outline vertex for vertex as JPEXS (an independent and mature SWF decoder) does on the same bytes, and all 250 files parse back as XML. The geometry is unpainted — fills and strokes are style indices this does not read — and the import says so |
 | Text | `<DOMStaticText>`, `<DOMText>`, `DefineText`/`Text2` | Not converted |
 | Embedded fonts | `DefineFont`/`Font2`/`Font3` | Not converted |
 | Video items | `<DOMVideoItem>`, `DefineVideoStream` | Not converted |
@@ -117,6 +117,9 @@ read a byte at a time, then the record stream is bit-packed again. Every fault
 below produced a shape that looked drawn rather than an error, which is why none of
 them was caught by inspection of the output and why each now has a fixture.
 
+Three faults were in the shape decoder itself, and five more in the tag walk around
+it. All eight produced a plausible count rather than an error.
+
 | Fault | What it did |
 |-------|-------------|
 | The five style-change flags read at bits 3..7 of a five-bit field | Three of the five tests could never be true, so `MoveTo` fired exactly when a *line style* was selected. No real move was ever seen |
@@ -127,6 +130,8 @@ them was caught by inspection of the output and why each now has a fixture.
 | The gradient `MATRIX` read after the records | All 30 gradient fills in one file desynchronised at once |
 | A gradient read as two ratio bytes and an interpolation table | Both invented here; the format has one ratio byte per record and no table |
 | Only one fill index consumed when both fill flags are set | The next record began inside the second index |
+| A `DefineSprite`'s tags assumed to start four bytes in | True of `DefineSprite2`, not of `DefineSprite`, which puts FRAMETEST records there. A sprite's art was dropped without a word |
+| An empty tag reported as "end of the stream" | The real 3.5 MB sample has one empty `DefineShape4` mid-stream; the walk stopped there and the 2312 bytes after it — four more shapes — were never read. The import reported 249 of 250 and said nothing about the last |
 
 The general lesson, and the reason the fixtures exist: **a plausible wrong answer is
 what this format produces when the bit stream is misread.** The shape's own declared
@@ -134,6 +139,10 @@ bounds are a useful oracle, because they come from the same stream and a wrong r
 would have to be wrong in a matching way to hide — but they are the file's bounds,
 not a guarantee, and 101 of the 250 real shapes here have outlines outside them,
 as JPEXS's parse also does.
+
+The tag-walk faults have a second lesson: two readers that share a bug look like
+agreement. The census and the extractor both reported the truncated stream without
+comment, which read as two independent confirmations.
 
 ## Embedded audio
 

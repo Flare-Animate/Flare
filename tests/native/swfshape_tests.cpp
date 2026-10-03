@@ -181,6 +181,33 @@ static void test_malformed() {
   check(s.contours.isEmpty(),
         "  and yields no partial outline rather than a wrong one");
 
+  // A RECT that claims more bits than the buffer holds. A 5-bit Nbits can reach 31,
+  // and four fields that wide need 124 bits, so a three-byte body cannot contain one.
+  // The reader must notice and refuse rather than read past the end.
+  {
+    QByteArray wide = QByteArray::fromHex("0100");    // CharacterID 1
+    wide.append(char(0xF8));                          // Nbits = 31 in the top 5 bits
+    wide.append(QByteArray(2, '\xff'));               // far too little RECT
+    const SWF::Shape truncated = SWF::decodeShape(wide, 1);
+    check(!truncated.ok,
+          "a RECT claiming more bits than the buffer holds is refused",
+          truncated.error);
+    check(truncated.contours.isEmpty(),
+          "  and yields no partial outline either");
+  }
+
+  // A shape whose style arrays run off the end before the records begin. The count
+  // says five fills and the buffer holds a couple of bytes.
+  {
+    QByteArray few = QByteArray::fromHex("01005000c8000c80");
+    few.append(char(0x05));                           // five fill styles
+    few.append(QByteArray(3, '\x11'));                // and not enough for them
+    const SWF::Shape s2 = SWF::decodeShape(few, 1);
+    check(!s2.ok, "a fill style array longer than the tag is refused");
+    check(s2.contours.isEmpty(),
+          "  and yields no partial outline either");
+  }
+
   check(!SWF::decodeShape(QByteArray::fromHex("0100"), 0).ok,
         "version 0 is refused");
   check(!SWF::decodeShape(QByteArray::fromHex("0100"), 5).ok,
