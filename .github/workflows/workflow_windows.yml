@@ -540,6 +540,11 @@ jobs:
               # through the shell and inherits the environment as it stands.
               # Assigning them to the object would have looked right and done
               # nothing at all.
+              # QT_QPA_PLATFORM=offscreen renders without a native window or GPU,
+              # so the desktop-GL attribute above has nothing to fail on. This is
+              # a smoke test -- "the process starts and stays up" -- not a
+              # rendering test, and offscreen is what Qt provides for exactly that.
+              $env:QT_QPA_PLATFORM = "offscreen"
               $env:QT_OPENGL = "software"
               $env:LIBGL_ALWAYS_SOFTWARE = "1"
 
