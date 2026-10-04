@@ -39,6 +39,8 @@
 #include "tcommon.h"
 #include "tfilepath.h"
 #include <QJsonObject>
+#include <QJsonValue>
+#include <QMap>
 #include <QString>
 #include <QStringList>
 #include <QVector>
@@ -99,7 +101,12 @@ struct Switch {
     QString name;
     QVector<QString> alternatives;   // child layer names
     Channel keys;                    // String channel naming the active child
-    QString activeChild;             // resolved value at the rest pose
+    // The child named at the first key. In a Moho document frame 0 is the rest
+    // pose rather than frame one, so the first key *is* the rest pose -- but it
+    // is not necessarily the child showing later in the timeline, which is what
+    // "active" suggests. Both are reported rather than picking one silently.
+    QString childAtRest;
+    QString childAtEnd;              // empty when the channel has no keys
 };
 
 // A parsed Moho document.
@@ -107,6 +114,10 @@ struct Document {
     bool valid = false;
     Container container = Container::Unknown;
     QString mimeType;
+    // Which member of the container held the document ("Project.mohoproj", or
+    // the file's own name for a bare .mohoproj). Worth reporting: it tells a
+    // user immediately whether they handed over a .moho or a stripped project.
+    QString containerEntry;
     int version = 0;              // format revision: 1021 / 1038 / 1045
     int majorVersion = 0;
 

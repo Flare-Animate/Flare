@@ -35,6 +35,34 @@ import is unaffected. Script resolution walks the executable directory, then
 | `patch`   | live  | Real AS3 constant-string retexting pass. Re-emits the SWF with every other tag byte-identical. Pure Python, no Flex SDK. |
 | `compile` | stub  | Needs the Flex SDK `mxmlc` toolchain, which is not part of the vendored slice. `abc_patcher.transplant_class` and `swf_patcher.recompile_class` are already the bridge to it — only the toolchain is missing. |
 
+### Verified end to end, from C++
+
+`decompile` was previously only ever demonstrated from the Python command line.
+It now runs through the shipped entry point, `As3Bridge::decompile()`, against a
+real 3.5 MB SWF that Moho exported:
+
+```
+isAvailable      : 1
+version          : next2flash-as3-decompiler
+decompile ok     : 1
+files written    : 1043 (787930 bytes)
+```
+
+The output is real ActionScript, not stubs — the largest class, `MarioExt.as` at
+185 KB, opens with `public class MarioExt extends SSF2Character`, typed members and
+a constructor.
+
+Getting there needed a fix. `As3Bridge::isAvailable()` looked for the helper
+beside the executable, one level up, and in `FLAREROOT` or `PATH` — but a
+development build puts `Flare.exe` in `build_local/RelWithDebInfo`, four levels
+below `tools/flash/next2flash/`. So the bridge reported unavailable with the helper
+sitting in the tree, every SWF import silently lost its ActionScript, and the
+dialog said the helper "is not installed", which is false and points the user at
+reinstalling something already present. A portable bundle happened to work,
+because there the script really is beside the executable, which is why it went
+unnoticed. The candidate list now walks up from the executable, bounded at six
+levels.
+
 ## How it is wired in
 
 `flashimport.cpp`'s SWF branch calls `As3Bridge::isAvailable()` after bitmap

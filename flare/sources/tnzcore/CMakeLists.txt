@@ -38,6 +38,7 @@ set(HEADERS ${MOC_HEADERS}
     ../common/flash/FSWFStream.h
     ../common/flash/Macromedia.h
     ../common/flash/XFLReader.h
+    ../common/flash/XFLShape.h
     ../common/moho/MohoReader.h
     ../common/flash/As3Bridge.h
     ../common/flash/SWFAssets.h
@@ -237,6 +238,9 @@ set(SOURCES
     ../common/flash/FSWFStream.cpp
     ../common/flash/FSound.cpp
     ../common/flash/XFLReader.cpp
+    ../common/flash/XFLShape.cpp
+    ../common/flash/SWFShape.h
+    ../common/flash/SWFShape.cpp
     ../common/moho/MohoReader.cpp
     ../common/flash/As3Bridge.cpp
     ../common/flash/SWFAssets.cpp
