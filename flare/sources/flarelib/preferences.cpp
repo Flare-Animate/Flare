@@ -22,6 +22,7 @@
 
 // Qt includes
 #include <QSettings>
+#include <QStandardPaths>
 #include <QStringList>
 #include <QAction>
 #include <QColor>
@@ -508,6 +509,15 @@ void Preferences::definePreferenceItems() {
   setCallBack(rasterBackgroundColor, &Preferences::setRasterBackgroundColor);
   setCallBack(autosaveEnabled, &Preferences::enableAutosave);
   setCallBack(autosavePeriod, &Preferences::setAutosavePeriod);
+
+  // Upstream bb63d765b: the default location new projects and the browser open
+  // in. Defaults to the OS documents folder, like upstream.
+  {
+    const QStringList docs =
+        QStandardPaths::standardLocations(QStandardPaths::DocumentsLocation);
+    define(defaultProjectPath, "defaultProjectPath", QMetaType::QString,
+           docs.isEmpty() ? QString() : docs.first());
+  }
 
   // Import / Export
   define(ffmpegPath, "ffmpegPath", QMetaType::QString, "");

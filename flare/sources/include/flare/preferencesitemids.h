@@ -78,6 +78,7 @@ enum PreferencesItemId {
   backupKeepCount,
   rasterBackgroundColor,
   resetUndoOnSavingLevel,
+  defaultProjectPath,
 
   //----------
   // Import / Export
