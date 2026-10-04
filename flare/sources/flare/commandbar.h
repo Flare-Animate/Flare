@@ -30,7 +30,7 @@ public:
   CommandBar(QWidget *parent = 0, Qt::WindowFlags flags = Qt::WindowFlags(),
              bool isCollapsible = false, bool isXsheetToolbar = false);
 
-  void save(QSettings &settings) const override;
+  void save(QSettings &settings, bool forPopupIni = false) const override;
   void load(QSettings &settings) override;
 
 signals:

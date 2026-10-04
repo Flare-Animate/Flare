@@ -5,18 +5,13 @@
 
 #include "tfilepath.h"
 #include "tthread.h"
-
 #include "traster.h"
-#ifdef HAVE_MYPaint
+
 #include "flare/mypaintbrushstyle.h"
-#endif
 
 #include <QSize>
-#include <QVector>
 #include <QList>
-#include <QImage>
 #include <QString>
-#include <QOffscreenSurface>
 
 #undef DVAPI
 #undef DVVAR
@@ -28,105 +23,80 @@
 #define DVVAR DV_IMPORT_VAR
 #endif
 
-//********************************************************************************
-//    FavoritesManager declaration
-//********************************************************************************
+//-------------------------------------------------------------------------
 
-class DVAPI FavoritesManager : public QObject {
-  Q_OBJECT
+//  Forward declarations
+class QImage;
 
-  TFilePath m_fpPinsToTop;
-  QVector<std::string> m_pinsToTop;
-  bool m_xxPinsToTop;  // dirty pins-to-top
-
-  FavoritesManager();
-
-public:
-  static FavoritesManager *instance();
-
-  bool loadPinsToTop();
-  void savePinsToTop();
-
-  const QVector<std::string> &getAllPinsToTop() const { return m_pinsToTop; }
-
-  bool getPinToTop(std::string idname) const;
-  void setPinToTop(std::string idname, bool state);
-  void togglePinToTop(std::string idname);
-
-  void emitPinsToTopChange() { emit pinsToTopChanged(); }
-
-signals:
-  void pinsToTopChanged();
-};
+//-------------------------------------------------------------------------
 
 //********************************************************************************
-//    BaseStyleManager declaration
+//    CustomStyleManager declaration
 //********************************************************************************
 
-class DVAPI BaseStyleManager : public QObject {
+class DVAPI CustomStyleManager final : public QObject {
   Q_OBJECT
 
 public:
-  struct DVAPI ChipData {
-    QString name;        // chip name
-    QString desc;        // chip description
-    QImage image;        // preview image
-    int tagId;           // tagID
-    bool isVector;       // is a vector?
-    TRasterP raster;     // raster data
-    std::string idname;  // brush id name
-    std::size_t hash;    // hash for fast compare with current style
+  struct DVAPI PatternData {
+    QImage *m_image;
+    QString m_patternName;
+    bool m_isVector;
+    bool m_isGenerated;
+    TFilePath m_path;
+    std::string m_idName;  // brush id name
 
-    bool markPinToTop;  // Pin To Top
-    bool markFavorite;  // Favorite
-
-    ChipData(QString name = "", QString description = "",
-             QImage image = QImage(), int tagId = 0, bool isVector = false,
-             TRasterP raster = TRasterP(), std::string idname = "",
-             std::size_t hash = 0)
-        : name(name)
-        , desc(description)
-        , image(image)
-        , tagId(tagId)
-        , isVector(isVector)
-        , raster(raster)
-        , idname(idname)
-        , hash(hash)
-        , markPinToTop(false)
-        , markFavorite(false) {}
+    PatternData()
+        : m_image(0)
+        , m_patternName("")
+        , m_isVector(false)
+        , m_isGenerated(false)
+        , m_path(TFilePath())
+        , m_idName("") {}
   };
 
-protected:
-  TFilePath m_rootPath;
+  class StyleLoaderTask;
+  friend class CustomStyleManager::StyleLoaderTask;
+
+private:
+  QList<PatternData> m_patterns;
   TFilePath m_stylesFolder;
   QString m_filters;
   QSize m_chipSize;
-  bool m_loaded;
-
-  QVector<ChipData> m_chips;
 
   bool m_isIndexed;
   QList<int> m_indexes;
   QString m_searchText;
 
-  static TFilePath s_rootPath;
-  static ChipData s_emptyChipData;
+  TThread::Executor m_executor;
+  bool m_started;
+  std::vector<TFilePath> m_activeLoads;
+  int m_itemsLoaded;
 
 public:
-  BaseStyleManager(const TFilePath &stylesFolder, QString filters = QString(),
-                   QSize chipSize = QSize(25, 25));
+  CustomStyleManager(const TFilePath &stylesFolder, QString filters = QString(),
+                     QSize chipSize = QSize(30, 30));
 
+  void setStyleFolder(TFilePath styleFolder);
   const TFilePath &stylesFolder() const { return m_stylesFolder; }
   QSize getChipSize() const { return m_chipSize; }
   QString getFilters() const { return m_filters; }
 
-  int countData() const {
-    return m_isIndexed ? m_indexes.count() : m_chips.count();
+  int getPatternCount();
+  PatternData getPattern(int index);
+
+  void loadItems();
+
+  void loadItemFinished(TFilePath file);
+
+  void loadGeneratedStyle(TFilePath file);
+
+  bool isLoading() { return m_activeLoads.size() > 0; }
+  bool hasLoadedItems() { return m_itemsLoaded > 0; }
+  void signalLoadDone() {
+    m_itemsLoaded = 0;
+    emit itemsUpdated();
   }
-  int getIndex(int index) const {
-    return m_isIndexed ? m_indexes[index] : index;
-  }
-  const ChipData &getData(int index) const;
 
   void applyFilter();
   void applyFilter(const QString text) {
@@ -135,98 +105,179 @@ public:
   }
   QString getSearchText() const { return m_searchText; }
 
-  bool isLoaded() { return m_loaded; }
-  virtual void loadItems() = 0;
-
-  static TFilePath getRootPath();
-  static void setRootPath(const TFilePath &rootPath);
-};
-
-//********************************************************************************
-//    CustomStyleManager declaration
-//********************************************************************************
-
-class DVAPI CustomStyleManager final : public BaseStyleManager {
-  Q_OBJECT
-
-  TThread::Executor m_executor;
-  bool m_started;
-
-  std::string m_rasterIdName;
-  std::string m_vectorIdName;
-
-public:
-  CustomStyleManager(std::string rasterIdName, std::string vectorIdName,
-                     const TFilePath &stylesFolder, QString filters = QString(),
-                     QSize chipSize = QSize(25, 25));
-
-  void loadItems() override;
-
-  class StyleLoaderTask;
-  friend class CustomStyleManager::StyleLoaderTask;
-
 private:
-  QImage makeIcon(const TFilePath &path, const QSize &qChipSize,
-                  std::shared_ptr<QOffscreenSurface> offsurf);
-
-  ChipData createPattern(const TFilePath &path,
-                         std::shared_ptr<QOffscreenSurface> offsurf);
+  void addPattern(const TFilePath &path);
 
 signals:
-  void patternAdded();
+
+  void itemsUpdated();
 };
 
 //********************************************************************************
 //    TextureStyleManager declaration
 //********************************************************************************
 
-class DVAPI TextureStyleManager final : public BaseStyleManager {
+class DVAPI TextureStyleManager final : public QObject {
   Q_OBJECT
+
+public:
+  struct DVAPI TextureData {
+    TRaster32P m_raster;
+    QString m_textureName;
+    TFilePath m_path;
+    std::string m_idName;  // brush id name
+
+    TextureData() : m_raster(0), m_textureName(""), m_path(TFilePath()), m_idName("") {}
+  };
+
+private:
+  QList<TextureData> m_textures;
+  TFilePath m_stylesFolder;
+  QString m_filters;
+  QSize m_chipSize;
+
+  bool m_isIndexed;
+  QList<int> m_indexes;
+  QString m_searchText;
 
 public:
   TextureStyleManager(const TFilePath &stylesFolder,
-                      QSize chipSize = QSize(25, 25));
+                      QString filters = QString(),
+                      QSize chipSize  = QSize(30, 30));
 
-  void loadItems() override;
+  void setStyleFolder(TFilePath styleFolder);
+  const TFilePath &stylesFolder() const { return m_stylesFolder; }
+  QSize getChipSize() const { return m_chipSize; }
+  QString getFilters() const { return m_filters; }
+
+  int getTextureCount();
+  TextureData getTexture(int index);
+
+  void loadTexture(TFilePath &fp);
+  void loadItems();
+
+  void applyFilter();
+  void applyFilter(const QString text) {
+    m_searchText = text;
+    applyFilter();
+  }
+  QString getSearchText() const { return m_searchText; }
 
 private:
-  void loadTexture(const TFilePath &fp);
+  void addTexture(const TFilePath &path);
+
+signals:
+
+  void itemsUpdated();
 };
 
-#ifdef HAVE_MYPaint
 //********************************************************************************
-//    MyPaintBrushStyleManager declaration
+//    BrushStyleManager declaration
 //********************************************************************************
 
-class DVAPI MyPaintBrushStyleManager final : public BaseStyleManager {
+class DVAPI BrushStyleManager final : public QObject {
   Q_OBJECT
 
-  std::vector<TMyPaintBrushStyle> m_brushes;
+public:
+  struct DVAPI BrushData {
+    TMyPaintBrushStyle m_brush;
+    QString m_brushName;
+    TFilePath m_path;
+    std::string m_idName;  // brush id name
+
+    BrushData()
+        : m_brush(), m_brushName(""), m_path(TFilePath()), m_idName("") {}
+  };
+
+private:
+  QList<BrushData> m_brushes;
+  TFilePath m_stylesFolder;
+  QString m_filters;
+  QSize m_chipSize;
+
+  bool m_isIndexed;
+  QList<int> m_indexes;
+  QString m_searchText;
 
 public:
-  MyPaintBrushStyleManager(QSize chipSize = QSize(25, 25));
+  BrushStyleManager(const TFilePath &stylesFolder, QString filters = QString(),
+                    QSize chipSize = QSize(30, 30));
 
-  TMyPaintBrushStyle &getBrush(int index) {
-    assert(0 <= index && index < countData());
-    return m_brushes[getIndex(index)];
+  void setStyleFolder(TFilePath styleFolder);
+  const TFilePath &stylesFolder() const { return m_stylesFolder; }
+  QSize getChipSize() const { return m_chipSize; }
+  QString getFilters() const { return m_filters; }
+
+  int getBrushCount();
+  BrushData getBrush(int index);
+
+  void loadItems();
+
+  void applyFilter();
+  void applyFilter(const QString text) {
+    m_searchText = text;
+    applyFilter();
+  }
+  QString getSearchText() const { return m_searchText; }
+
+signals:
+
+  void itemsUpdated();
+};
+
+//********************************************************************************
+//    StyleManager declaration
+//********************************************************************************
+
+// singleton
+class DVAPI TStyleManager {
+  std::vector<std::pair<TFilePath, QString>> m_customStyleFolders;
+  std::vector<CustomStyleManager *> m_customStyleManagers;
+
+  std::vector<std::pair<TFilePath, QString>> m_textureStyleFolders;
+  std::vector<TextureStyleManager *> m_textureStyleManagers;
+
+  std::vector<std::pair<TFilePath, QString>> m_brushStyleFolders;
+  std::vector<BrushStyleManager *> m_brushStyleManagers;
+
+  TStyleManager() {}
+
+public:
+  static TStyleManager *instance() {
+    static TStyleManager theInstance;
+    return &theInstance;
   }
 
-  void loadItems() override;
-};
-#endif // HAVE_MYPaint
+  ~TStyleManager() {}
 
-//********************************************************************************
-//    SpecialStyleManager declaration
-//********************************************************************************
+  CustomStyleManager *getCustomStyleManager(TFilePath stylesFolder,
+                                            QString filters = QString("*"),
+                                            QSize chipSize  = QSize(30, 30));
 
-class DVAPI SpecialStyleManager final : public BaseStyleManager {
-  Q_OBJECT
+  TextureStyleManager *getTextureStyleManager(TFilePath stylesFolder,
+                                              QString filters = QString("*"),
+                                              QSize chipSize  = QSize(30, 30));
 
-public:
-  SpecialStyleManager(QSize chipSize = QSize(25, 25));
+  BrushStyleManager *getBrushStyleManager(TFilePath stylesFolder,
+                                          QString filters = QString("*"),
+                                          QSize chipSize  = QSize(30, 30));
 
-  void loadItems() override;
+  TFilePathSet getCustomStyleFolders();
+  TFilePathSet getTextureStyleFolders();
+  TFilePathSet getBrushStyleFolders();
+
+  void removeCustomStyleFolder(TFilePath styleFolder);
+  void removeTextureStyleFolder(TFilePath styleFolder);
+  void removeBrushStyleFolder(TFilePath styleFolder);
+
+  bool isLoading();
+  void signalLoadsFinished();
+
+  void changeStyleSetFolder(CustomStyleManager *styleManager,
+                            TFilePath newPath);
+  void changeStyleSetFolder(TextureStyleManager *styleManager,
+                            TFilePath newPath);
+  void changeStyleSetFolder(BrushStyleManager *styleManager, TFilePath newPath);
 };
 
 #endif  // STYLEMANAGER_H
-

@@ -203,7 +203,9 @@ static void initFlareEnv(QHash<QString, QString> &argPathValues) {
   TVectorImagePatternStrokeStyle::setRootDir(library);
   TVectorBrushStyle::setRootDir(library);
 
-  CustomStyleManager::setRootPath(library);
+  // Upstream passes the library folder through the style-manager constructors
+  // now (see stylemanager.h); the global root path this used to set no longer
+  // exists after the port, so there is nothing to set here.
 
   // sembra indispensabile nella lettura dei .tab 2.2:
   TPalette::setRootDir(library);

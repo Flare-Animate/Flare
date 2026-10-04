@@ -181,7 +181,7 @@ void CommandBar::contextMenuEvent(QContextMenuEvent *event) {
 
 //-----------------------------------------------------------------------------
 
-void CommandBar::save(QSettings &settings) const {
+void CommandBar::save(QSettings &settings, bool forPopupIni) const {
   if (m_isXsheetToolbar) return;
   settings.setValue(QStringLiteral("orientation"),
                     orientation() == Qt::Vertical

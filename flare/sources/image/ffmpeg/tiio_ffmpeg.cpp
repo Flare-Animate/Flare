@@ -1,5 +1,8 @@
 #include "tiio_ffmpeg.h"
-#include "../toonz/tapp.h"
+// Rebranded with the tree: upstream says ../toonz/tapp.h, which was this file's
+// sibling directory before toonz/ became flare/. The toonz/stage.h include just
+// below arrived already rebranded; this one was missed.
+#include "../flare/tapp.h"
 #include "tsystem.h"
 #include "tsound.h"
 #include "tenv.h"

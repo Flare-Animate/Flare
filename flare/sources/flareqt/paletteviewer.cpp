@@ -270,7 +270,7 @@ void PaletteViewer::toggleVariableWidth(bool checked) {
 
 //-----------------------------------------------------------------------------
 
-void PaletteViewer::save(QSettings &settings) const {
+void PaletteViewer::save(QSettings &settings, bool forPopupIni) const {
   int toolbarOnTop = m_toolbarOnTop ? 1 : 0;
   settings.setValue("toolbarOnTop", toolbarOnTop);
   int visibleParts = m_toolbarVisibleOtherParts;

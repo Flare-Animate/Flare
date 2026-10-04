@@ -517,6 +517,11 @@ void Preferences::definePreferenceItems() {
         QStandardPaths::standardLocations(QStandardPaths::DocumentsLocation);
     define(defaultProjectPath, "defaultProjectPath", QMetaType::QString,
            docs.isEmpty() ? QString() : docs.first());
+
+  define(recordFileHistory, "recordFileHistory", QMetaType::Bool, true);
+
+  QString userName = TSystem::getUserName();
+  define(recordAsUsername, "recordAsUsername", QMetaType::QString, userName);
   }
 
   // Import / Export
