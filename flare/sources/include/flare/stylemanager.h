@@ -175,6 +175,7 @@ signals:
 //    BrushStyleManager declaration
 //********************************************************************************
 
+#ifdef HAVE_MYPaint
 class DVAPI BrushStyleManager final : public QObject {
   Q_OBJECT
 
@@ -224,6 +225,7 @@ signals:
 
   void itemsUpdated();
 };
+#endif  // HAVE_MYPaint
 
 //********************************************************************************
 //    StyleManager declaration
@@ -238,7 +240,9 @@ class DVAPI TStyleManager {
   std::vector<TextureStyleManager *> m_textureStyleManagers;
 
   std::vector<std::pair<TFilePath, QString>> m_brushStyleFolders;
+#ifdef HAVE_MYPaint
   std::vector<BrushStyleManager *> m_brushStyleManagers;
+#endif  // HAVE_MYPaint
 
   TStyleManager() {}
 
@@ -258,17 +262,23 @@ public:
                                               QString filters = QString("*"),
                                               QSize chipSize  = QSize(30, 30));
 
+#ifdef HAVE_MYPaint
   BrushStyleManager *getBrushStyleManager(TFilePath stylesFolder,
                                           QString filters = QString("*"),
                                           QSize chipSize  = QSize(30, 30));
+#endif  // HAVE_MYPaint
 
   TFilePathSet getCustomStyleFolders();
   TFilePathSet getTextureStyleFolders();
+#ifdef HAVE_MYPaint
   TFilePathSet getBrushStyleFolders();
+#endif  // HAVE_MYPaint
 
   void removeCustomStyleFolder(TFilePath styleFolder);
   void removeTextureStyleFolder(TFilePath styleFolder);
+#ifdef HAVE_MYPaint
   void removeBrushStyleFolder(TFilePath styleFolder);
+#endif  // HAVE_MYPaint
 
   bool isLoading();
   void signalLoadsFinished();
@@ -277,7 +287,9 @@ public:
                             TFilePath newPath);
   void changeStyleSetFolder(TextureStyleManager *styleManager,
                             TFilePath newPath);
+#ifdef HAVE_MYPaint
   void changeStyleSetFolder(BrushStyleManager *styleManager, TFilePath newPath);
+#endif  // HAVE_MYPaint
 };
 
 #endif  // STYLEMANAGER_H

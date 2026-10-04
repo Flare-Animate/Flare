@@ -3176,6 +3176,7 @@ void TextureStyleChooserPage::addSelectedStylesToSet(std::vector<int> selection,
   if (added) m_editor->setUpdated(setPath);
 }
 
+#ifdef HAVE_MYPaint
 //*****************************************************************************
 //    MyPaintBrushStyleChooserPage definition
 //*****************************************************************************
@@ -3357,6 +3358,7 @@ void MyPaintBrushStyleChooserPage::addSelectedStylesToSet(
 
   if (added) m_editor->setUpdated(setPath);
 }
+#endif  // HAVE_MYPaint
 
 //*****************************************************************************
 //    SpecialStyleChooser  definition

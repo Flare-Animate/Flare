@@ -523,6 +523,7 @@ void TextureStyleManager::setStyleFolder(TFilePath styleFolder) {
 }
 
 //********************************************************************************
+#ifdef HAVE_MYPaint
 //    BrushStyleManager implementation
 //********************************************************************************
 
@@ -629,6 +630,7 @@ void BrushStyleManager::setStyleFolder(TFilePath styleFolder) {
     m_brushes[i].m_path =
         styleFolder + TFilePath(m_brushes[i].m_path.getLevelName());
 }
+#endif  // HAVE_MYPaint
 
 //********************************************************************************
 //    StyleManager definition
@@ -681,6 +683,7 @@ TextureStyleManager *TStyleManager::getTextureStyleManager(
 
 //---------------------------------------------------------
 
+#ifdef HAVE_MYPaint
 BrushStyleManager *TStyleManager::getBrushStyleManager(TFilePath stylesFolder,
                                                        QString filters,
                                                        QSize chipSize) {
@@ -701,6 +704,7 @@ BrushStyleManager *TStyleManager::getBrushStyleManager(TFilePath stylesFolder,
 
   return rm;
 }
+#endif  // HAVE_MYPaint
 
 //---------------------------------------------------------
 
@@ -758,6 +762,7 @@ TFilePathSet TStyleManager::getTextureStyleFolders() {
 
 //---------------------------------------------------------
 
+#ifdef HAVE_MYPaint
 TFilePathSet TStyleManager::getBrushStyleFolders() {
   TFilePathSet fps;
 
@@ -770,6 +775,7 @@ TFilePathSet TStyleManager::getBrushStyleFolders() {
 
   return fps;
 }
+#endif  // HAVE_MYPaint
 
 //---------------------------------------------------------
 
@@ -801,6 +807,7 @@ void TStyleManager::removeTextureStyleFolder(TFilePath styleFolder) {
 
 //---------------------------------------------------------
 
+#ifdef HAVE_MYPaint
 void TStyleManager::removeBrushStyleFolder(TFilePath styleFolder) {
   std::vector<std::pair<TFilePath, QString>>::iterator it;
   int i = 0;
@@ -812,6 +819,7 @@ void TStyleManager::removeBrushStyleFolder(TFilePath styleFolder) {
     break;
   }
 }
+#endif  // HAVE_MYPaint
 
 //---------------------------------------------------------
 
@@ -871,6 +879,7 @@ void TStyleManager::changeStyleSetFolder(TextureStyleManager *styleManager,
 
 //---------------------------------------------------------
 
+#ifdef HAVE_MYPaint
 void TStyleManager::changeStyleSetFolder(BrushStyleManager *styleManager,
                                          TFilePath newPath) {
   std::pair<TFilePath, QString> oldKey(styleManager->stylesFolder(),
@@ -896,3 +905,4 @@ void TStyleManager::changeStyleSetFolder(BrushStyleManager *styleManager,
   m_brushStyleManagers.push_back(styleManager);
   styleManager->loadItems();
 }
+#endif  // HAVE_MYPaint
