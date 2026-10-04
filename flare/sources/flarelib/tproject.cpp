@@ -1139,6 +1139,30 @@ std::shared_ptr<TProject> TProjectManager::loadSceneProject(const TFilePath &sce
   return project;
 }
 
+// The pre-sync two-arg form, kept because ToonzScene still tracks standalone
+// scenes through it (m_standAlone, read in the save path). Upstream Tahoma2D
+// removed the member, the overload and the whole standalone concept together;
+// porting that here would rework scene saving, so this wrapper preserves the old
+// contract instead: whether a scenes.xml names a project above the scene, probed
+// the same way the body above probes it, then the one-arg load itself.
+std::shared_ptr<TProject> TProjectManager::loadSceneProject(
+    const TFilePath &scenePath, bool *notFound) {
+  if (notFound) {
+    TFilePath folder = scenePath.getParentDir();
+    bool found       = true;
+    for (;;) {
+      if (TFileStatus(folder + "scenes.xml").doesExist()) break;
+      if (folder.isRoot()) {
+        found = false;
+        break;
+      }
+      folder = folder.getParentDir();
+    }
+    *notFound = !found;
+  }
+  return loadSceneProject(scenePath);
+}
+
 //-------------------------------------------------------------------
 
 void TProjectManager::notifyListeners() {

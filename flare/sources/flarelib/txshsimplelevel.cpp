@@ -399,7 +399,7 @@ void TXshSimpleLevel::clonePropertiesFrom(const TXshSimpleLevel* oldSl) {
 
 //-----------------------------------------------------------------------------
 
-TPalette* TXshSimpleLevel::getPalette() const { return m_palette.getPointer(); }
+TPalette* TXshSimpleLevel::getPalette() const { return m_palette; }
 
 //-----------------------------------------------------------------------------
 
@@ -590,7 +590,7 @@ TImageP TXshSimpleLevel::getFrameIcon(const TFrameId& fid) const {
       imgId, ImageManager::dontPutInCache, &extData);
 
   if (TToonzImageP timg = img) {
-    if (m_palette) timg->setPalette(m_palette.getPointer());
+    if (m_palette) timg->setPalette(m_palette);
   }
 
   return img;

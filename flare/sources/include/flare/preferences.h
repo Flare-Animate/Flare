@@ -26,7 +26,12 @@
 
 #undef DVAPI
 #undef DVVAR
-#ifdef TOONZLIB_EXPORTS
+// Rebranded with the library: every other header in this directory tests
+// FLARELIB_EXPORTS, which is what flarelib/CMakeLists.txt defines. This one still
+// tested the pre-rebrand TOONZLIB_EXPORTS, so the class was always declared
+// dllimport -- harmless everywhere the class is only used, fatal in the moc
+// translation unit that defines its staticMetaObject (C2491).
+#ifdef FLARELIB_EXPORTS
 #define DVAPI DV_EXPORT_API
 #define DVVAR DV_EXPORT_VAR
 #else

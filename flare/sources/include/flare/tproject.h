@@ -26,20 +26,23 @@ class DVAPI TProject final {
   std::vector<std::string> m_folderNames;
   std::map<std::string, TFilePath> m_folders;
   std::map<std::string, bool> m_useScenePathFlags;
+  // Tahoma2D's tproject.h has this; OpenToonz has neither it nor the setter the
+  // synced tproject.cpp defines. Without the member the setter has nothing to set.
+  bool m_useSubScenePath = false;
   TSceneProperties *m_sprop;
 
   FilePathProperties *m_fpProp;
 
-  // Upstream: set once load() has read the project's directories, so a caller can
-  // tell an unloaded project from an empty one. The synced tproject.cpp reads it
-  // and the declaration did not arrive with it.
+  // Set once load() has read the project's directories, so a caller can tell an
+  // unloaded project from an empty one. Tahoma2D declares it plain; the explicit
+  // initializer here only makes the pre-load state defined.
   bool m_isLoaded = false;
 
 public:
-  // Upstream: whether level paths resolve through the sub-scene path. Declared in
-  // Tahoma2D's tproject.h; OpenToonz has neither, and the synced tproject.cpp
-  // calls it.
+  // Tahoma2D's tproject.h declares both; the synced tproject.cpp defines the
+  // setter and reads the member.
   void setUseSubScenePath(bool on);
+  bool getUseSubScenePath() { return m_useSubScenePath; }
 
   // default folders names
   static const std::string Inputs;
@@ -49,6 +52,9 @@ public:
   static const std::string Outputs;
   static const std::string Scripts;
   static const std::string Palettes;
+  // Tahoma2D's tproject.h has this; the synced tproject.cpp defines it next to
+  // Palettes and reads it when listing standard folders.
+  static const std::string StopMotion;
 
   static const TFilePath SandboxProjectName;
 
@@ -99,6 +105,10 @@ public:
   void load(const TFilePath &projectPath);
 
   static bool isAProjectPath(const TFilePath &fp);
+
+  // Tahoma2D's tproject.h has this; the synced tproject.cpp calls it to avoid
+  // loading a project that was never read.
+  bool isLoaded() const { return m_isLoaded; }
 
 private:
   // not implemented
@@ -160,8 +170,13 @@ public:
   TFilePath getProjectPathByName(const TFilePath &projectName);
   TFilePath getProjectPathByProjectFolder(const TFilePath &projectFolder);
 
-  std::shared_ptr<TProject> loadSceneProject(const TFilePath &scenePath, 
-      bool* notFound = 0);
+  std::shared_ptr<TProject> loadSceneProject(const TFilePath &scenePath,
+                                      bool *notFound);
+  // Tahoma2D's form, defined in tproject.cpp beside the two-arg one. Most call
+  // sites use this; the two-arg overload wraps it for the ToonzScene callers
+  // that still track standalone scenes. The two-arg form has no default, so a
+  // one-arg call unambiguously means this one.
+  std::shared_ptr<TProject> loadSceneProject(const TFilePath &scenePath);
   void getFolderNames(std::vector<std::string> &names);
 
   void addListener(Listener *listener);
