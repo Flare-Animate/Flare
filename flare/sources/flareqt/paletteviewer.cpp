@@ -1056,6 +1056,7 @@ void PaletteViewer::clearStyleSelection() { m_pageViewer->clearSelection(); }
  */
 void PaletteViewer::setPageView(int currentIndexPage) {
   TPalette *palette    = getPalette();
+  m_currentIndexPage   = palette ? currentIndexPage : 0;
   TPalette::Page *page = palette ? palette->getPage(currentIndexPage) : 0;
   m_pageViewer->setPage(page);
 }

@@ -846,12 +846,12 @@ TProjectManager *TProjectManager::instance() {
 /*! Adds the specified folder \b fp in the projects roots container.\n
         If \b fp is already contained in the container, the method does nothing.
         \note \b fp must be a folder and not a file path.*/
-// void TProjectManager::addProjectsRoot(const TFilePath &root) {
-//  // assert(TFileStatus(root).isDirectory());
-//  if (std::find(m_projectsRoots.begin(), m_projectsRoots.end(), root) ==
-//      m_projectsRoots.end())
-//    m_projectsRoots.push_back(root);
-//}
+void TProjectManager::addProjectsRoot(const TFilePath &root) {
+  // assert(TFileStatus(root).isDirectory());
+  if (std::find(m_projectsRoots.begin(), m_projectsRoots.end(), root) ==
+      m_projectsRoots.end())
+    m_projectsRoots.push_back(root);
+}
 
 //-------------------------------------------------------------------
 

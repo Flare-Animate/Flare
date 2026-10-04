@@ -1,14 +1,15 @@
 #include "tiio_ffmpeg.h"
-// Rebranded with the tree: upstream says ../toonz/tapp.h, which was this file's
-// sibling directory before toonz/ became flare/. The toonz/stage.h include just
-// below arrived already rebranded; this one was missed.
-#include "../flare/tapp.h"
+// Upstream includes ../toonz/tapp.h here, but nothing in this file uses it,
+// and the rebranded path does not exist anywhere in the tree. Dropped rather
+// than re-pointed: an include that resolves nowhere fails the build either way,
+// and inventing a target for it would be worse.
 #include "tsystem.h"
 #include "tsound.h"
 #include "tenv.h"
 #include "timageinfo.h"
 #include "flare/stage.h"
 
+#include <QCoreApplication>
 #include <QProcess>
 #include <QEventLoop>
 #include <QTimer>

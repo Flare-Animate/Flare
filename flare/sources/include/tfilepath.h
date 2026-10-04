@@ -194,14 +194,17 @@ public:
   // ProjectPopup::updateProjectFromFields
   // returns true if something changed
   static bool setFilePathProperties(bool useStandard, bool acceptNonAlphaSuffix,
-                                    int letterCountForSuffix) {
+                                    int letterCountForSuffix,
+                                    bool noSeparatorFormatAllowed = false) {
     if (m_useStandard == useStandard &&
         m_acceptNonAlphabetSuffix == acceptNonAlphaSuffix &&
-        m_letterCountForSuffix == letterCountForSuffix)
+        m_letterCountForSuffix == letterCountForSuffix &&
+        m_noSeparatorFormatAllowed == noSeparatorFormatAllowed)
       return false;
     m_useStandard             = useStandard;
     m_acceptNonAlphabetSuffix = acceptNonAlphaSuffix;
     m_letterCountForSuffix    = letterCountForSuffix;
+    m_noSeparatorFormatAllowed = noSeparatorFormatAllowed;
     return true;
   }
   static bool useStandard() { return m_useStandard; }

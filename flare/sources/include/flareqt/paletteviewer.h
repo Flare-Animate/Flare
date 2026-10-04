@@ -88,6 +88,10 @@ public:
     m_pageViewer->setViewMode((PaletteViewerGUI::PageViewer::ViewMode)mode);
   }
 
+  // Upstream name, typo included: matches Tahoma2D so future diffs stay
+  // meaningful.
+  int geCurrentPageIndex() { return m_currentIndexPage; }
+
   void updateView();
 
   void enableSaveAction(bool enable);
@@ -105,6 +109,10 @@ protected:
 
   QScrollArea *m_pageViewerScrollArea;
   PaletteViewerGUI::PageViewer *m_pageViewer;
+  // Upstream: remembers the page setPageView() selected, so the style
+  // editor can ask which page is current. The synced styleeditor.cpp
+  // reads it and the declaration did not arrive with it.
+  int m_currentIndexPage = 0;
   TabBarContainter *m_tabBarContainer;
   PaletteTabBar *m_pagesBar;
   QToolBar *m_paletteToolBar;

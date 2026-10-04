@@ -23,6 +23,7 @@ TOfflineGL::Imp *MacOfflineGenerator1(const TDimension &dim) {
 
 #include <map>
 #include <sstream>
+#include <iostream>
 
 using namespace TEnv;
 using namespace TVER;
@@ -70,6 +71,27 @@ public:
     static EnvGlobals _instance;
     return &_instance;
   }
+
+#ifndef _WIN32
+  // Location of the ini file holding the system variables. Split out of
+  // getSystemVarPath() below so that first-run seeding writes the file
+  // where this reads it, instead of duplicating the per-platform layout.
+  // Mirrors that function's macOS/Unix branches exactly.
+  QString getSystemVarFile() {
+#ifdef MACOSX
+    return getWorkingDirectory() +
+           QString("/Contents/Resources/SystemVar.ini");
+#elif defined(HAIKU)
+    return QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation) + "/SystemVar.ini";
+#else /* Generic Unix */
+    QString settingsPath = QDir::homePath();
+    settingsPath.append("/.config/");
+    settingsPath.append(getApplicationName().c_str());
+    settingsPath.append("/SystemVar.ini");
+    return settingsPath;
+#endif
+  }
+#endif
 
   TFilePath getSystemVarPath(std::string varName) {
 #ifdef _WIN32
@@ -620,7 +642,114 @@ void TEnv::setStuffDir(const TFilePath &stuffDir) {
   EnvGlobals::instance()->setStuffDir(stuffDir);
 }
 
-void TEnv::saveAllEnvVariables() { VariableSet::instance()->save(); }
+#if !defined(_WIN32) && !defined(MACOSX)
+// The helpers below exist only where initUserStuffDir does real
+// work. On Windows/macOS the entry point is a documented no-op,
+// and EnvGlobals has no getSystemVarFile there -- compiling
+// these callers anyway would be the same dangling reference the
+// sync left behind, one layer down.
+// OpenToonz's per-user stuff seeding, verbatim apart from the installed
+// share dir (share/flare/stuff here; share/opentoonz/stuff there -- confirmed
+// against flare_legacy/CMakeLists.txt). The declaration arrived with the sync
+// but no definition anywhere, so tconverter/tcleanupper/tcomposer and the app
+// itself failed to link. No-op on Windows/macOS, in portable mode, with a
+// custom root, or once seeded, exactly as documented on the declaration.
+namespace {
+TFilePath getInstalledStuffDir() {
+  TFilePath exeDir(QCoreApplication::applicationDirPath().toStdWString());
+  return exeDir.getParentDir() + "share" + "flare" + "stuff";
+}
+
+TFilePath getUserStuffDir(EnvGlobals *eg) {
+  TFilePath systemVarFile(eg->getSystemVarFile().toStdWString());
+  return systemVarFile.getParentDir() + "stuff";
+}
+
+bool copyDirOrFail(const QString &dst, const QString &src) {
+  if (!QDir().mkpath(dst)) return false;
+
+  const QFileInfoList entries = QDir(src).entryInfoList(
+      QDir::AllEntries | QDir::NoDotAndDotDot | QDir::Hidden | QDir::System);
+  for (const QFileInfo &fi : entries) {
+    const QString target = dst + "/" + fi.fileName();
+    // copy symlinks as files: following them could recurse forever
+    if (fi.isDir() && !fi.isSymLink()) {
+      if (!copyDirOrFail(target, fi.filePath())) return false;
+    } else if (!QFile::copy(fi.filePath(), target)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool seedStuffTreeIfMissing(const TFilePath &userStuffDir) {
+  if (TFileStatus(userStuffDir).doesExist()) return true;
+
+  TFilePath installedStuffDir = getInstalledStuffDir();
+  if (!TFileStatus(installedStuffDir).isDirectory())
+    return false;  // build tree: nothing to copy from
+
+  const QString userStuffDirStr = userStuffDir.getQString();
+  const QString stagingDirStr   = userStuffDirStr + ".incomplete";
+
+  // Rename into place only after a complete copy, so a failed one leaves
+  // nothing a later run would mistake for finished stuff.
+  QDir(stagingDirStr).removeRecursively();  // leftovers from a failed attempt
+  if (!copyDirOrFail(stagingDirStr, installedStuffDir.getQString()) ||
+      !QDir().rename(stagingDirStr, userStuffDirStr)) {
+    QDir(stagingDirStr).removeRecursively();
+    std::cerr << "Failed to initialize " << userStuffDirStr.toStdString()
+              << " from " << installedStuffDir.getQString().toStdString()
+              << std::endl;
+    return false;
+  }
+
+  // writable dirs the app expects, possibly absent from the packaged tree
+  QDir().mkpath((userStuffDir + "projects" + "library").getQString());
+  QDir().mkpath((userStuffDir + "projects" + "fxs").getQString());
+  return true;
+}
+
+void writeRootVar(EnvGlobals *eg, const TFilePath &userStuffDir) {
+  QSettings settings(eg->getSystemVarFile(), QSettings::IniFormat);
+  settings.setValue(QString::fromStdString(eg->getRootVarName()),
+                    userStuffDir.getQString());
+  settings.sync();
+}
+}  // namespace
+
+void TEnv::initUserStuffDir() {
+#if !defined(_WIN32) && !defined(MACOSX)
+  EnvGlobals *eg = EnvGlobals::instance();
+
+  // portable builds carry their own stuff; nothing to seed
+  if (eg->getIsPortable()) return;
+
+  // respect an explicit -TOONZROOT command-line override
+  if (eg->getArgPathValue(eg->getRootVarName()) != "") return;
+
+  TFilePath userStuffDir = getUserStuffDir(eg);
+
+  // Leave a root configured elsewhere alone even when it is gone: usually an
+  // unmounted volume, and the ini is not rewritten either way. String compare,
+  // so an equivalent spelling also counts as elsewhere.
+  TFilePath configuredRoot = eg->getRootVarPath();
+  if (!configuredRoot.isEmpty() && configuredRoot != userStuffDir) return;
+
+  if (!QDir().mkpath(userStuffDir.getParentDir().getQString())) return;
+  if (!seedStuffTreeIfMissing(userStuffDir)) return;
+  if (configuredRoot.isEmpty()) writeRootVar(eg, userStuffDir);
+#endif
+}
+#endif  // !defined(_WIN32) && !defined(MACOSX)
+
+#if defined(_WIN32) || defined(MACOSX)
+// Documented no-op where the OS layout needs no seeding. Exists so
+// the callers (tconverter, tcleanupper, tcomposer, the app) link
+// on every platform; the guard above compiles the real work out.
+void TEnv::initUserStuffDir() {}
+#endif
+
 void TEnv::loadAllEnvVariables() { VariableSet::instance()->load(); }
 
 bool TEnv::setArgPathValue(std::string key, std::string value) {

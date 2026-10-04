@@ -198,6 +198,9 @@ public:
   PathAliasPriority getPathAliasPriority() const {
     return PathAliasPriority(getIntValue(pathAliasPriority));
   }
+  bool isShowAdvancedOptionsEnabled() const {
+    return getBoolValue(showAdvancedOptions);
+  }
   bool isLazyLoadRoomsEnabled() { return getBoolValue(lazyLoadRooms); }
 
   // Interface  tab

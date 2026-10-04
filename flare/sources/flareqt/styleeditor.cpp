@@ -3,6 +3,7 @@
 #include "flareqt/styleeditor.h"
 
 // TnzQt includes
+#include "flareqt/paletteviewer.h"
 #include "flareqt/gutil.h"
 #include "flareqt/filefield.h"
 #include "historytypes.h"
@@ -3961,9 +3962,11 @@ void SettingsPage::updateValues() {
           m_paramsLayout->itemAtPosition(p, (isMyPaint ? 3 : 2))->widget());
       bool enabled = m_editedStyle->isParamDefault(p);
       if (!enabled && isMyPaint) {
+#ifdef HAVE_MYPaint
         TMyPaintBrushStyle *myPaintStyle =
             (TMyPaintBrushStyle *)m_editedStyle.getPointer();
         enabled = myPaintStyle->isMappingDefault((MyPaintBrushSetting)p);
+#endif  // HAVE_MYPaint
       }
       resetStyleEnabled |= enabled;
       pushButton->setEnabled(enabled);
@@ -4074,9 +4077,11 @@ void SettingsPage::onValueReset() {
 
   bool isMyPaint = m_editedStyle->getTagId() == 4001;
   if (isMyPaint) {
+#ifdef HAVE_MYPaint
     TMyPaintBrushStyle *myPaintStyle =
         (TMyPaintBrushStyle *)m_editedStyle.getPointer();
     myPaintStyle->resetMapping((MyPaintBrushSetting)p);
+#endif  // HAVE_MYPaint
   }
 
   // Forward the signal to the style editor
@@ -4090,9 +4095,11 @@ void SettingsPage::onResetStyle() {
 
   bool isMyPaint = m_editedStyle->getTagId() == 4001;
   if (isMyPaint) {
+#ifdef HAVE_MYPaint
     TMyPaintBrushStyle *myPaintStyle =
         (TMyPaintBrushStyle *)m_editedStyle.getPointer();
     myPaintStyle->resetStyle();
+#endif  // HAVE_MYPaint
   }
 
   if (!m_updating) emit paramStyleChanged(false);
@@ -4100,6 +4107,7 @@ void SettingsPage::onResetStyle() {
 
 //-----------------------------------------------------------------------------
 
+#ifdef HAVE_MYPaint
 void SettingsPage::onOpenStylusConfig() {
   assert(m_editedStyle);
 
@@ -4212,9 +4220,11 @@ void SettingsPage::onOpenStylusConfig() {
 
   m_stylusConfig->show();
 }
+#endif  // HAVE_MYPaint
 
 //-----------------------------------------------------------------------------
 
+#ifdef HAVE_MYPaint
 void SettingsPage::onConfigStateChanged(int configId) {
   assert(m_editedStyle);
 
@@ -4237,9 +4247,11 @@ void SettingsPage::onConfigStateChanged(int configId) {
     if (!m_updating) emit paramStyleChanged(false);
   }
 }
+#endif  // HAVE_MYPaint
 
 //-----------------------------------------------------------------------------
 
+#ifdef HAVE_MYPaint
 void SettingsPage::onConfigCurveChanged(int configId, bool isDragging) {
   assert(m_editedStyle);
 
@@ -4271,6 +4283,7 @@ void SettingsPage::onConfigCurveChanged(int configId, bool isDragging) {
 
   if (!m_updating) emit paramStyleChanged(isDragging);
 }
+#endif  // HAVE_MYPaint
 
 //-----------------------------------------------------------------------------
 
@@ -4438,6 +4451,7 @@ StyleEditor::StyleEditor(PaletteController *paletteController, QWidget *parent)
   createStylePage(StylePageType::VectorBrush,
                   libraryPath + TFilePath("vector brushes"),
                   getStylePageFilter(StylePageType::VectorBrush));
+#ifdef HAVE_MYPaint
 
   TFilePathSet dirs = TMyPaintBrushStyle::getBrushesDirs();
   for (TFilePathSet::iterator i = dirs.begin(); i != dirs.end(); ++i) {
@@ -4446,6 +4460,7 @@ StyleEditor::StyleEditor(PaletteController *paletteController, QWidget *parent)
       createStylePage(StylePageType::Raster, *i,
                       getStylePageFilter(StylePageType::Raster));
   }
+#endif  // HAVE_MYPaint
 
   // For the plainColorPage and the settingsPage
   // I create a "fake" QScrollArea (without ScrollingBar
@@ -5129,8 +5144,10 @@ void StyleEditor::contextMenuEvent(QContextMenuEvent *event) {
     page = new TextureStyleChooserPage(TFilePath(), QString(), this);
   else if (tab == StyleEditorTab::Vector)  // Vector tab
     page = new CustomStyleChooserPage(TFilePath(), QString(), this);
+#ifdef HAVE_MYPaint
   else if (tab == StyleEditorTab::Raster)  // Raster tab
     page = new MyPaintBrushStyleChooserPage(TFilePath(), QString(), this);
+#endif  // HAVE_MYPaint
   else
     return;
 
@@ -5379,11 +5396,13 @@ void StyleEditor::copyEditedStyleToPalette(bool isDragging) {
 
   bool styleChanged = false;
   if (m_editedStyle->getTagId() == 4001) {
+#ifdef HAVE_MYPaint
     TMyPaintBrushStyle *oldMyPaintStyle =
         (TMyPaintBrushStyle *)m_oldStyle.getPointer();
     TMyPaintBrushStyle *newMyPaintStyle =
         (TMyPaintBrushStyle *)m_editedStyle.getPointer();
     styleChanged = !(oldMyPaintStyle == newMyPaintStyle);
+#endif  // HAVE_MYPaint
   } else
     styleChanged = !(*m_oldStyle == *m_editedStyle);
 
@@ -6284,6 +6303,7 @@ void StyleEditor::createStylePage(StylePageType pageType, TFilePath styleFolder,
           m_vectorMenu->actions()[m_vectorPages.size() - 1], menuAction);
       break;
     }
+#ifdef HAVE_MYPaint
     case StylePageType::Raster: {
       MyPaintBrushStyleChooserPage *newPage =
           new MyPaintBrushStyleChooserPage(styleFolder, filters, this);
@@ -6328,6 +6348,7 @@ void StyleEditor::createStylePage(StylePageType pageType, TFilePath styleFolder,
           m_rasterMenu->actions()[m_rasterPages.size() - 1], menuAction);
       break;
     }
+#endif  // HAVE_MYPaint
     }
   }
 
@@ -6993,7 +7014,9 @@ void StyleEditor::updatePage(int pageIndex) {
     fps   = TStyleManager::instance()->getCustomStyleFolders();
     pages = &m_vectorPages;
   } else if (pageIndex == StyleEditorTab::Raster) {
+#ifdef HAVE_MYPaint
     fps   = TStyleManager::instance()->getBrushStyleFolders();
+#endif  // HAVE_MYPaint
     pages = &m_rasterPages;
   } else
     return;
@@ -7088,9 +7111,10 @@ void StyleEditor::onScanStyleSetChanges() {
     pageType = StylePageType::Raster;
 
     fps.push_back(favoritesLibPath + TFilePath("raster styles"));
-
+#ifdef HAVE_MYPaint
     TFilePathSet dirs = TMyPaintBrushStyle::getBrushesDirs();
     if (!dirs.empty()) fps.merge(dirs);
+#endif  // HAVE_MYPaint
   } else
     return;
 

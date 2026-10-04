@@ -83,6 +83,10 @@ class LutCalibrator;
 //=============================================
 
 //=============================================================================
+// Only defined when MyPaint support is enabled; the SettingsPage holds
+// it by pointer and never touches it otherwise.
+class StylusConfigPopup;
+
 namespace StyleEditorGUI {
 //=============================================================================
 
@@ -716,8 +720,14 @@ class SettingsPage final : public QScrollArea {
                                //! the Style Editor.
 
   bool
+
       m_updating;  //!< Whether the page is copying style content to its widget,
+
                    //!  to be displayed.
+  // Only constructed for MyPaint styles (see onOpenStylusConfig);
+  // kept unconditional so the constructor init list needs no guards.
+  StylusConfigPopup *m_stylusConfig;
+  int m_parameterId;
 private:
   int getParamIndex(const QWidget *widget);
 
@@ -739,6 +749,12 @@ private slots:
   void onAutofillChanged();
   void onValueChanged(bool isDragging = false);
   void onValueReset();
+  void onResetStyle();
+#ifdef HAVE_MYPaint
+  void onOpenStylusConfig();
+  void onConfigStateChanged(int);
+  void onConfigCurveChanged(int, bool);
+#endif  // HAVE_MYPaint
 };
 
 //=============================================================================

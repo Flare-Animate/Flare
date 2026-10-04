@@ -392,6 +392,7 @@ void Preferences::definePreferenceItems() {
   define(customProjectRoot, "customProjectRoot", QMetaType::QString, "");
   define(pathAliasPriority, "pathAliasPriority", QMetaType::Int,
          static_cast<int>(ProjectFolderOnly));
+  define(showAdvancedOptions, "showAdvancedOptions", QMetaType::Bool, false);
 
   setCallBack(undoMemorySize, &Preferences::setUndoMemorySize);
   define(lazyLoadRooms, "lazyLoadRooms", QMetaType::Bool, true);
