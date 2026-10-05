@@ -1,11 +1,13 @@
-#include "flare/preferences.h"
+
+
+#include "toonz/preferences.h"
 
 // TnzLib includes
-#include "flare/tscenehandle.h"
-#include "flare/toonzscene.h"
-#include "flare/toonzfolders.h"
-#include "flare/tcamera.h"
-#include "flare/txshleveltypes.h"
+#include "toonz/tscenehandle.h"
+#include "toonz/toonzscene.h"
+#include "toonz/toonzfolders.h"
+#include "toonz/tcamera.h"
+#include "toonz/txshleveltypes.h"
 
 // TnzBase includes
 #include "tenv.h"
@@ -293,7 +295,7 @@ Preferences::Preferences() {
   }
 
   if (!m_styleSheetList.contains(getStringValue(CurrentStyleSheetName)))
-    setValue(CurrentStyleSheetName, "LiquidGlass");
+    setValue(CurrentStyleSheetName, "Default");
 
   if (!m_languageList.contains(getStringValue(CurrentLanguageName)))
     setValue(CurrentLanguageName, "English");
@@ -452,6 +454,8 @@ void Preferences::definePreferenceItems() {
   bool defIconsVisible = true;
 #endif
   define(showIconsInMenu, "showIconsInMenu", QMetaType::Bool, defIconsVisible);
+  define(showRoomBindButtons, "showRoomBindButtons", QMetaType::Bool, true);
+  define(customHelpLink, "customHelpLink", QMetaType::QString, "");
 
   setCallBack(pixelsOnly, &Preferences::setPixelsOnly);
   setCallBack(linearUnits, &Preferences::setUnits);
@@ -459,6 +463,8 @@ void Preferences::definePreferenceItems() {
 
   define(viewerIndicatorEnabled, "viewerIndicatorEnabled", QMetaType::Bool,
          true);
+  define(restoreViewerViewFromLastSession, "restoreViewerViewFromLastSession",
+         QMetaType::Bool, false);
 
   // Visualization
   define(show0ThickLines, "show0ThickLines", QMetaType::Bool, true);
@@ -513,14 +519,13 @@ void Preferences::definePreferenceItems() {
   define(rhubarbPath, "rhubarbPath", QMetaType::QString, "");
   define(rhubarbTimeout, "rhubarbTimeout", QMetaType::Int, 600, 0,
          std::numeric_limits<int>::max());
-  // Path to a third-party Flash decompiler (e.g., JPEXS). Used by the
-  // "Import Flash (Vector via External Decompiler)" workflow.
-  define(flashDecompilerPath, "flashDecompilerPath", QMetaType::QString, "");
 
   // Drawing
   define(DefRasterFormat, "DefRasterFormat", QMetaType::QString, "tif");
   define(DefLevelType, "DefLevelType", QMetaType::Int, TZP_XSHLEVEL);
-  define(DefLevelSizePolicy, "DefLevelSizePolicy", QMetaType::Int, 2);
+  define(DefAssistantType, "DefAssistantType", QMetaType::QString, "");
+  define(newLevelSizeToCameraSizeEnabled, "newLevelSizeToCameraSizeEnabled",
+         QMetaType::Bool, false);
   define(DefLevelWidth, "DefLevelWidth", QMetaType::Double,
          TCamera().getSize().lx, 0.1, std::numeric_limits<double>::max());
   define(DefLevelHeight, "DefLevelHeight", QMetaType::Double,
@@ -568,6 +573,16 @@ void Preferences::definePreferenceItems() {
          true);
   define(tempToolSwitchTimer, "tempToolSwitchTimer", QMetaType::Int, 500, 1,
          std::numeric_limits<int>::max());
+  define(animateToolHandleSize, "animateToolHandleSize", QMetaType::Double, 1.0,
+         0.01, 6.0);
+  define(animateToolColor, "animateToolColor", QMetaType::QColor,
+         QColor(250, 127, 240));
+  // The Preferences dialog updates both keys together. Advanced users may set
+  // these command IDs independently in preferences.ini.
+  define(defaultStartupTool, "defaultStartupTool", QMetaType::QString,
+         "T_Hand");
+  define(defaultNewSceneTool, "defaultNewSceneTool", QMetaType::QString,
+         "T_Hand");
 
   // Xsheet
   define(xsheetLayoutPreference, "xsheetLayoutPreference", QMetaType::QString,
@@ -612,6 +627,14 @@ void Preferences::definePreferenceItems() {
          true);
   define(currentColumnColor, "currentColumnColor", QMetaType::QColor,
          QColor(Qt::yellow));
+  define(customCurrentCellColorEnabled, "customCurrentCellColorEnabled",
+         QMetaType::Bool, false);
+  define(currentCellColor, "currentCellColor", QMetaType::QColor,
+         QColor(Qt::cyan));
+  define(customCurrentColumnOutlineColorEnabled,
+         "customCurrentColumnOutlineColorEnabled", QMetaType::Bool, false);
+  define(currentColumnOutlineColor, "currentColumnOutlineColor",
+         QMetaType::QColor, QColor(105, 168, 223));
   define(levelNameDisplayType, "levelNameDisplayType", QMetaType::Int,
          0);  // default
   define(showFrameNumberWithLetters, "showFrameNumberWithLetters",
@@ -675,6 +698,10 @@ void Preferences::definePreferenceItems() {
          QColor(Qt::white));
   define(transpCheckPaint, "transpCheckPaint", QMetaType::QColor,
          QColor(127, 127, 127));
+  define(inkCheckColor, "inkCheckColor", QMetaType::QColor, QColor(Qt::red));
+  define(ink1CheckColor, "ink1CheckColor", QMetaType::QColor, QColor(Qt::red));
+  define(paintCheckColor, "paintCheckColor", QMetaType::QColor,
+         QColor(Qt::red));
 
   // Version Control
   define(SVNEnabled, "SVNEnabled", QMetaType::Bool, false);
@@ -689,8 +716,10 @@ void Preferences::definePreferenceItems() {
   define(useQtNativeWinInk, "useQtNativeWinInk", QMetaType::Bool, false);
 
   // Others (not appearing in the popup)
+  // Tape Tool: 0 = ask, 1 = continue, 2 = cancel.
+  define(tapeToolFillRiskPolicy, "tapeToolFillRiskPolicy", QMetaType::Int, 0);
   // Shortcut popup settings
-  define(shortcutPreset, "shortcutPreset", QMetaType::QString, "defflare");
+  define(shortcutPreset, "shortcutPreset", QMetaType::QString, "defopentoonz");
   // Viewer context menu
   define(guidedDrawingType, "guidedDrawingType", QMetaType::Int, 0);  // Off
   define(guidedAutoInbetween, "guidedAutoInbetween", QMetaType::Bool,
@@ -842,13 +871,6 @@ void Preferences::resolveCompatibility() {
         true)
       setValue(cellInputMethod, 2);
   }
-  // "newLevelSizeToCameraSizeEnabled" is changed to "DefLevelSizePolicy"
-  if (m_settings->contains("newLevelSizeToCameraSizeEnabled") &&
-      !m_settings->contains("DefLevelSizePolicy")) {
-    if (m_settings->value("newLevelSizeToCameraSizeEnabled").toBool() ==
-        true)
-      setValue(DefLevelSizePolicy, 1);
-  }
 }
 
 //-----------------------------------------------------------------
@@ -936,6 +958,7 @@ void Preferences::setValue(const PreferencesItemId id, QVariant value,
                            bool saveToFile) {
   assert(m_items.contains(id));
   if (!m_items.contains(id)) return;
+  bool valueChanged = m_items[id].value != value;
   m_items[id].value = value;
   if (saveToFile) {
     if (m_items[id].type ==
@@ -951,6 +974,8 @@ void Preferences::setValue(const PreferencesItemId id, QVariant value,
 
   // Execute callback
   if (m_items[id].onEditedFunc) (this->*(m_items[id].onEditedFunc))();
+  if (valueChanged && id == FillOnlysavebox)
+    emit fillOnlySaveboxChanged(value.toBool());
 }
 
 //-----------------------------------------------------------------
@@ -1156,4 +1181,3 @@ QString Preferences::getColorCalibrationLutPath(QString &monitorName) const {
 
   return lutPathMap.value(monitorName).toString();
 }
-

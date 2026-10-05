@@ -10,27 +10,27 @@
 #include "stdfx/shaderfx.h"
 
 // TnzLib includes
-#include "flare/toonzfolders.h"
-#include "flare/tlog.h"
-#include "flare/tstageobjecttree.h"
-#include "flare/stage.h"
-#include "flare/preferences.h"
-#include "flare/tproject.h"
-#include "flare/toonzscene.h"
-#include "flare/sceneproperties.h"
-#include "flare/txshsoundlevel.h"
-#include "flare/txshsoundcolumn.h"
-#include "flare/tcamera.h"
-#include "flare/scenefx.h"
-#include "flare/movierenderer.h"
-#include "flare/multimediarenderer.h"
+#include "toonz/toonzfolders.h"
+#include "toonz/tlog.h"
+#include "toonz/tstageobjecttree.h"
+#include "toonz/stage.h"
+#include "toonz/preferences.h"
+#include "toonz/tproject.h"
+#include "toonz/toonzscene.h"
+#include "toonz/sceneproperties.h"
+#include "toonz/txshsoundlevel.h"
+#include "toonz/txshsoundcolumn.h"
+#include "toonz/tcamera.h"
+#include "toonz/scenefx.h"
+#include "toonz/movierenderer.h"
+#include "toonz/multimediarenderer.h"
 #include "toutputproperties.h"
-#include "flare/imagestyles.h"
+#include "toonz/imagestyles.h"
 #include "tproperty.h"
-#include "flare/levelset.h"
-#include "flare/txshsimplelevel.h"
-#include "flare/levelproperties.h"
-#include "flare/filepathproperties.h"
+#include "toonz/levelset.h"
+#include "toonz/txshsimplelevel.h"
+#include "toonz/levelproperties.h"
+#include "toonz/filepathproperties.h"
 
 // TnzSound includes
 #include "tnzsound.h"
@@ -68,7 +68,7 @@
 #include "tpalette.h"
 
 // TnzQt includes
-#include "flareqt/pluginloader.h"
+#include "toonzqt/pluginloader.h"
 
 // Qt includes
 #include <QApplication>
@@ -144,13 +144,13 @@ inline bool isBlank(char c) { return c == ' ' || c == '\t' || c == '\n'; }
 // allora **DEVE** essere messo in libreria. Parliamone.
 //
 //========================================================================
-// setFlareFolder
+// setToonzFolder
 //------------------------------------------------------------------------
 
 // Ritorna il path della variabile passata come secondo argomento
 // entrambe vengono lette da un file di testo (filename).
 
-TFilePath setFlareFolder(const TFilePath &filename, std::string toonzVar) {
+TFilePath setToonzFolder(const TFilePath &filename, std::string toonzVar) {
   Tifstream is(filename);
   if (!is) return TFilePath();
 
@@ -695,6 +695,8 @@ int main(int argc, char *argv[]) {
   TEnv::setSystemVarPrefix(systemVarPrefix);
   TEnv::setApplicationFileName(argv[0]);
 
+  TEnv::initUserStuffDir();
+
   QCoreApplication::setOrganizationName("Flare");
   QCoreApplication::setOrganizationDomain("");
   QCoreApplication::setApplicationName(
@@ -734,7 +736,7 @@ int main(int argc, char *argv[]) {
     fatalError(string("Directory \"") + ::to_string(fp) +
                "\" not found or not readable");
 
-  TFilePath lRootDir    = fp + "FlareFarm";
+  TFilePath lRootDir    = fp + "toonzfarm";
   TFilePath logFilePath = lRootDir + "tcomposer.log";
   m_userLog             = new TUserLogAppend(logFilePath);
   string msg;
@@ -827,9 +829,9 @@ int main(int argc, char *argv[]) {
 
     // update TFilePath condition on loading the current project
     FilePathProperties *fpProp = project->getFilePathProperties();
-    TFilePath::setFilePathProperties(fpProp->useStandard(),
-                                     fpProp->acceptNonAlphabetSuffix(),
-                                     fpProp->letterCountForSuffix());
+    TFilePath::setFilePathProperties(
+        fpProp->useStandard(), fpProp->acceptNonAlphabetSuffix(),
+        fpProp->letterCountForSuffix(), fpProp->noSeparatorFormatAllowed());
 
     Sw1.start();
 
@@ -1037,5 +1039,3 @@ int main(int argc, char *argv[]) {
   if (framePair.first != framePair.second) return -1;
   return 0;
 }
-
-

@@ -4,25 +4,25 @@
 #include "tfarmcontroller.h"
 
 // TnzLib includes
-#include "flare/txshleveltypes.h"
-#include "flare/tpalettehandle.h"
-#include "flare/tscenehandle.h"
-#include "flare/txshlevelhandle.h"
-#include "flare/sceneproperties.h"
-#include "flare/levelproperties.h"
-#include "flare/levelupdater.h"
-#include "flare/preferences.h"
-#include "flare/toonzfolders.h"
-#include "flare/toonzscene.h"
-#include "flare/txshchildlevel.h"
-#include "flare/tproject.h"
-#include "flare/tcleanupper.h"
-#include "flare/txsheet.h"
-#include "flare/txshcell.h"
-#include "flare/txshcolumn.h"
-#include "flare/tlog.h"
-#include "flare/imagestyles.h"
-#include "flare/filepathproperties.h"
+#include "toonz/txshleveltypes.h"
+#include "toonz/tpalettehandle.h"
+#include "toonz/tscenehandle.h"
+#include "toonz/txshlevelhandle.h"
+#include "toonz/sceneproperties.h"
+#include "toonz/levelproperties.h"
+#include "toonz/levelupdater.h"
+#include "toonz/preferences.h"
+#include "toonz/toonzfolders.h"
+#include "toonz/toonzscene.h"
+#include "toonz/txshchildlevel.h"
+#include "toonz/tproject.h"
+#include "toonz/tcleanupper.h"
+#include "toonz/txsheet.h"
+#include "toonz/txshcell.h"
+#include "toonz/txshcolumn.h"
+#include "toonz/tlog.h"
+#include "toonz/imagestyles.h"
+#include "toonz/filepathproperties.h"
 
 // TnzBase includes
 #include "tcli.h"
@@ -137,13 +137,13 @@ void fatalError(string msg) {
 inline bool isBlank(char c) { return c == ' ' || c == '\t' || c == '\n'; }
 
 //========================================================================
-// setFlareFolder
+// setToonzFolder
 //------------------------------------------------------------------------
 
 // Ritorna il path della variabile passata come secondo argomento
 // entrambe vengono lette da un file di testo (filename).
 
-TFilePath setFlareFolder(const TFilePath &filename, std::string toonzVar) {
+TFilePath setToonzFolder(const TFilePath &filename, std::string toonzVar) {
   Tifstream is(filename);
   if (!is) return TFilePath();
 
@@ -498,6 +498,8 @@ int main(int argc, char *argv[]) {
   TEnv::setSystemVarPrefix(systemVarPrefix);
   TEnv::setApplicationFileName(argv[0]);
 
+  TEnv::initUserStuffDir();
+
   QCoreApplication::setOrganizationName("Flare");
   QCoreApplication::setOrganizationDomain("");
   QCoreApplication::setApplicationName(
@@ -525,7 +527,7 @@ int main(int argc, char *argv[]) {
     fatalError(string("Directory \"") + ::to_string(fproot) +
                "\" not found or not readable");
 
-  TFilePath lRootDir    = TEnv::getStuffDir() + "FlareFarm";
+  TFilePath lRootDir    = TEnv::getStuffDir() + "toonzfarm";
   TFilePath logFilePath = lRootDir + "tcleanup.log";
   TUserLogAppend m_userLog(logFilePath);
 
@@ -599,9 +601,9 @@ int main(int argc, char *argv[]) {
 
   // update TFilePath condition on loading the current project
   FilePathProperties *fpProp = project->getFilePathProperties();
-  TFilePath::setFilePathProperties(fpProp->useStandard(),
-                                   fpProp->acceptNonAlphabetSuffix(),
-                                   fpProp->letterCountForSuffix());
+  TFilePath::setFilePathProperties(
+      fpProp->useStandard(), fpProp->acceptNonAlphabetSuffix(),
+      fpProp->letterCountForSuffix(), fpProp->noSeparatorFormatAllowed());
 
   TFilePath fp = srcName;
 
@@ -630,7 +632,7 @@ int main(int argc, char *argv[]) {
   else {
     try {
       TProjectManager *pm = TProjectManager::instance();
-      auto sceneProject = pm->loadSceneProject(fp);
+      auto sceneProject   = pm->loadSceneProject(fp);
       if (!sceneProject) {
         cerr << "can't open project." << endl;
         return -3;
@@ -854,5 +856,3 @@ int main(int argc, char *argv[]) {
   return 0;
 }
 //------------------------------------------------------------------------
-
-

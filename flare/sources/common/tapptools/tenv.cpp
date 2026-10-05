@@ -4,10 +4,10 @@
 #include "tfilepath_io.h"
 #include "tversion.h"
 
-#include <QCoreApplication>
 #include <QDir>
 #include <QSettings>
 #include <QStandardPaths>
+#include <QCoreApplication>
 
 #ifdef LEVO_MACOSX
 
@@ -23,15 +23,6 @@ TOfflineGL::Imp *MacOfflineGenerator1(const TDimension &dim) {
 
 #include <map>
 #include <sstream>
-#include <vector>
-#include <cstdlib>
-
-#if defined(__linux__) && !defined(MACOSX)
-#include <unistd.h>  // readlink() for /proc/self/exe portable detection
-#elif defined(MACOSX)
-#include <mach-o/dyld.h>  // _NSGetExecutablePath() for bundle-relative lookup
-#include <cstdint>
-#endif
 
 using namespace TEnv;
 using namespace TVER;
@@ -57,7 +48,7 @@ class EnvGlobals {  // singleton
   std::string m_moduleName;
   std::string m_rootVarName;
   std::string m_systemVarPrefix;
-  std::string m_workingDirectory;
+  QString m_workingDirectory;
   TFilePath m_registryRoot;
   TFilePath m_envFile;
   TFilePath *m_stuffDir;
@@ -87,14 +78,11 @@ public:
     QString settingsPath;
 
 #ifdef MACOSX
-    settingsPath = QString::fromStdString(getApplicationFileName()) +
-                   QString(".app") +
+    settingsPath = getWorkingDirectory() +
                    QString("/Contents/Resources/SystemVar.ini");
 #else
 #ifdef HAIKU
-    settingsPath =
-        QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation) +
-        "/SystemVar.ini";
+    settingsPath = QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation) + "/SystemVar.ini";
 #else /* Generic Unix */
     // TODO: use QStandardPaths::ConfigLocation when we drop Qt4
     settingsPath = QDir::homePath();
@@ -122,83 +110,33 @@ public:
     return TSystem::getSystemValue(getSystemVarPath(varName)).toStdString();
 #else
     TFilePath systemVarPath = getSystemVarPath(varName);
-    if (!systemVarPath.isEmpty()) return ::to_string(systemVarPath);
-
-    // SystemVar.ini has no entry for this variable. Honour a real environment
-    // variable of the same name before giving up: the Linux launcher script and
-    // most packaged builds export FLAREROOT (and friends) directly, and users
-    // who start the binary without the launcher have no .ini at all.
-    if (const char *envValue = ::getenv(varName.c_str())) {
-      if (envValue[0] != '\0') return std::string(envValue);
+    if (systemVarPath.isEmpty()) {
+      std::cout << "varName:" << varName << " TAHOMA2DROOT not set..."
+                << std::endl;
+      return "";
     }
-    return "";
+    return ::to_string(systemVarPath);
+/*
+                        char *value = getenv(varName.c_str());
+                        if (!value)
+                                {
+                                std::cout << varName << " not set, returning
+   TAHOMA2DROOT" << std::endl;
+        //value = getenv("TAHOMA2DROOT");
+                        value="";
+                        std::cout << "!!!value= "<< value << std::endl;
+                        if (!value)
+                                        {
+                                        std::cout << varName << "TAHOMA2DROOT not
+   set..." << std::endl;
+                                        //exit(-1);
+                                        return "";
+                                        }
+                                }
+      return string(value);
+        */
 #endif
   }
-
-#ifndef _WIN32
-  // Locate the "stuff" directory when neither SystemVar.ini nor the environment
-  // names it. Without this the app aborts at startup with an empty-root fatal
-  // error on any install that did not go through the launcher script — AppImages
-  // and distro packages in particular (issues #60, #65).
-  TFilePath findStuffDirFallback() {
-    std::vector<std::string> candidates;
-
-    // 1. Relative to the executable: <prefix>/bin/Flare -> <prefix>/share/flare/stuff
-    //
-    // This has to be the executable's OWN directory, which is NOT
-    // getWorkingDirectory(): that holds the process CWD (setWorkingDirectory()
-    // only replaces it with the executable's directory on Linux, and only when
-    // a sibling portablestuff/ was found). Deriving these candidates from the
-    // CWD would point them at wherever the user happened to launch from. We
-    // also cannot use QCoreApplication::applicationDirPath() — getStuffDir() is
-    // called before the QApplication exists. So resolve the real path per
-    // platform, and simply skip the executable-relative candidates when no
-    // platform call is available rather than substituting a wrong directory.
-    std::string exeDir;
-#if defined(__linux__) && !defined(MACOSX)
-    {
-      char exeBuf[4096];
-      ssize_t n = ::readlink("/proc/self/exe", exeBuf, sizeof(exeBuf) - 1);
-      if (n > 0) {
-        exeBuf[n] = '\0';
-        exeDir    = exeBuf;
-      }
-    }
-#elif defined(MACOSX)
-    {
-      char     exeBuf[4096];
-      uint32_t size = sizeof(exeBuf);
-      // Returns 0 on success; the path may be non-canonical (symlinks, "..")
-      // but every candidate below is validated with isDirectory() anyway.
-      if (_NSGetExecutablePath(exeBuf, &size) == 0) exeDir = exeBuf;
-    }
-#endif
-    if (!exeDir.empty()) {
-      std::string::size_type slash = exeDir.find_last_of('/');
-      exeDir = (slash == std::string::npos) ? std::string() : exeDir.substr(0, slash);
-    }
-    if (!exeDir.empty()) {
-      candidates.push_back(exeDir + "/../share/flare/stuff");
-      // Flare.app/Contents/MacOS/Flare -> Flare.app/Contents/Resources/stuff
-      candidates.push_back(exeDir + "/../Resources/stuff");
-      candidates.push_back(exeDir + "/stuff");
-    }
-
-    // 2. Standard system prefixes used by distro packages.
-    candidates.push_back("/usr/local/share/flare/stuff");
-    candidates.push_back("/usr/share/flare/stuff");
-
-    // 3. The per-user copy the launcher script creates.
-    std::string home = QDir::homePath().toStdString();
-    if (!home.empty()) candidates.push_back(home + "/.config/Flare/stuff");
-
-    for (const std::string &c : candidates) {
-      TFilePath candidate(c);
-      if (TFileStatus(candidate).isDirectory()) return candidate;
-    }
-    return TFilePath();
-  }
-#endif
 
   TFilePath getSystemVarPathValue(std::string varName) {
     // return if the path is registered by command line argument
@@ -210,17 +148,9 @@ public:
   TFilePath getStuffDir() {
     if (m_stuffDir) return *m_stuffDir;
     if (m_isPortable)
-      return TFilePath((getWorkingDirectory() + "\\portablestuff\\"));
+      return TFilePath(getWorkingDirectory()) + "tahomastuff";
 
-    TFilePath stuffDir(getSystemVarValue(m_rootVarName));
-#ifndef _WIN32
-    // Windows keeps its registry-only behaviour (the installer writes the key);
-    // elsewhere fall back to the standard install locations so a missing
-    // SystemVar.ini is not a fatal startup error.
-    if (stuffDir.isEmpty() || !TFileStatus(stuffDir).isDirectory())
-      stuffDir = findStuffDirFallback();
-#endif
-    return stuffDir;
+    return TFilePath(getSystemVarValue(m_rootVarName));
   }
   void setStuffDir(const TFilePath &stuffDir) {
     delete m_stuffDir;
@@ -232,8 +162,8 @@ public:
         getSystemVarPathValue(getSystemVarPrefix() + "PROFILES");
     if (profilesDir == TFilePath())
       profilesDir = getStuffDir() + systemPathMap.at("PROFILES");
-    m_envFile =
-        profilesDir + "env" + (TSystem::getUserName().toStdString() + ".env");
+    m_envFile = profilesDir + "users" + TSystem::getUserName().toStdString() +
+                "env.ini";
   }
 
   void init() {
@@ -249,13 +179,12 @@ public:
       m_applicationFullName += " " + m_version.getAppNote();
 
     m_moduleName  = m_version.getAppName();
-    m_rootVarName = m_version.getSystemVarPrefix() + "ROOT";
+    m_rootVarName = toUpper(m_version.getAppName()) + "ROOT";
 #ifdef _WIN32
     // from v1.3, registry root is moved to SOFTWARE\\Flare\\Flare
-    m_registryRoot =
-        TFilePath("SOFTWARE\\Flare\\") + m_version.getAppName();
+    m_registryRoot = TFilePath("SOFTWARE\\Flare\\") + m_version.getAppName();
 #endif
-    m_systemVarPrefix = m_version.getSystemVarPrefix();
+    m_systemVarPrefix = toUpper(m_version.getAppName());
     updateEnvFile();
   }
 
@@ -284,95 +213,55 @@ public:
   std::string getModuleName() { return m_moduleName; }
 
   void setRootVarName(std::string varName) {
-    if (m_rootVarName == varName) return;
     m_rootVarName = varName;
     updateEnvFile();
   }
   std::string getRootVarName() { return m_rootVarName; }
 
   void setSystemVarPrefix(std::string prefix) {
-    if (m_systemVarPrefix == prefix) return;
     m_systemVarPrefix = prefix;
     updateEnvFile();
   }
   std::string getSystemVarPrefix() { return m_systemVarPrefix; }
 
   void setWorkingDirectory() {
-    QString workingDirectoryTmp  = QDir::currentPath();
-    QByteArray ba                = workingDirectoryTmp.toLatin1();
-    const char *workingDirectory = ba.data();
-    m_workingDirectory           = workingDirectory;
-
+    m_workingDirectory = QDir::currentPath();
     // check if portable
-    TFilePath portableCheck =
-        TFilePath(m_workingDirectory + "\\portablestuff\\");
+    TFilePath portableCheck = TFilePath(m_workingDirectory) + "tahomastuff";
     TFileStatus portableStatus(portableCheck);
     m_isPortable = portableStatus.doesExist();
-
-#if defined(__linux__) && !defined(MACOSX)
-    // On Linux, resolve the executable's OWN directory via /proc/self/exe and
-    // treat a sibling portablestuff/ as a portable install. This works even
-    // before QApplication exists — getStuffDir() is called very early in main()
-    // (before the QApplication is built), so applicationDirPath() is unavailable
-    // here. This is essential for AppImages: the mounted binary lives next to a
-    // bundled portablestuff/, but the CWD is wherever the user launched from, so
-    // without this the app aborts with "FLAREROOT not set" (issue #60).
-    if (!m_isPortable) {
-      char exeBuf[4096];
-      ssize_t n = ::readlink("/proc/self/exe", exeBuf, sizeof(exeBuf) - 1);
-      if (n > 0) {
-        exeBuf[n] = '\0';
-        std::string exePath(exeBuf);
-        std::string::size_type slash = exePath.find_last_of('/');
-        if (slash != std::string::npos) {
-          std::string exeDir    = exePath.substr(0, slash);
-          TFilePath exeDirCheck = TFilePath(exeDir + "/portablestuff/");
-          if (TFileStatus(exeDirCheck).doesExist()) {
-            m_isPortable       = true;
-            m_workingDirectory = exeDir;
-          }
-        }
-      }
-    }
-#elif defined(_WIN32)
-    // Belt-and-suspenders fallback: if portablestuff\ was not found in the
-    // current working directory, also check the directory that contains the
-    // executable.  This covers the rare cases where setWorkingDirectory() is
-    // called before main() has had a chance to call QDir::setCurrent (e.g.
-    // via a static initialiser in another translation unit) or when a
-    // non-standard launcher overrides the CWD after startup.
-    if (!m_isPortable && QCoreApplication::instance()) {
-      QString exeDir      = QCoreApplication::applicationDirPath();
-      QByteArray exeDirBa = exeDir.toLatin1();
-      TFilePath exeDirCheck =
-          TFilePath(std::string(exeDirBa.data()) + "\\portablestuff\\");
-      TFileStatus exeDirStatus(exeDirCheck);
-      if (exeDirStatus.doesExist()) {
-        m_isPortable       = true;
-        m_workingDirectory = exeDirBa.data();
-      }
-    }
-#endif
 
 #ifdef MACOSX
     // macOS 10.12 (Sierra) translocates applications before running them
     // depending on how it was installed. This separates the app from the
-    // portablestuff folder and we don't know where it is so we stop treating it
-    // as a portable. Placing portablestuff inside Flare.app will keep
+    // tahomastuff folder and we don't know where it is so we stop treating it
+    // as a portable. Placing stuff inside Flare.app will keep
     // everything together when it translocates.
     if (!m_isPortable) {
       portableCheck =
-          TFilePath(m_workingDirectory + "\\" + getApplicationFileName() +
-                    ".app\\portablestuff\\");
+          TFilePath(m_workingDirectory) + "Contents/Resources/tahomastuff";
       portableStatus = TFileStatus(portableCheck);
       m_isPortable   = portableStatus.doesExist();
       if (m_isPortable)
-        m_workingDirectory =
-            portableCheck.getParentDir().getQString().toStdString();
+        m_workingDirectory = portableCheck.getParentDir().getQString();
+    }
+#elif defined(LINUX) || defined(FREEBSD)
+    // Linux AppImages are mounted and run in a different location separating it
+    // from the tahomastuff folder. This will use the original location of the
+    // AppImage to look for it
+    if (!m_isPortable) {
+      char *value = getenv("APPIMAGE");
+      if (value) {
+        portableCheck  = TFilePath(value).getParentDir() + "/tahomastuff";
+        portableStatus = TFileStatus(portableCheck);
+        m_isPortable   = portableStatus.doesExist();
+        if (m_isPortable)
+          m_workingDirectory = portableCheck.getParentDir().getQString();
+      }
     }
 #endif
   }
-  std::string getWorkingDirectory() { return m_workingDirectory; }
+  QString getWorkingDirectory() { return m_workingDirectory; }
 
   bool getIsPortable() { return m_isPortable; }
 
@@ -591,7 +480,7 @@ Variable::Variable(std::string name)
 Variable::Variable(std::string name, std::string defaultValue)
     : m_imp(VariableSet::instance()->getImp(name)) {
   // assert(!m_imp->m_defaultDefined);
-  m_imp->m_defaultDefined = true;
+  m_imp->m_defaultDefined              = true;
   if (!m_imp->m_loaded) m_imp->m_value = defaultValue;
 }
 
@@ -688,11 +577,11 @@ TFilePathSet TEnv::getSystemVarPathSetValue(std::string varName) {
   TFilePathSet lst;
   EnvGlobals *eg = EnvGlobals::instance();
   // if the path is registered by command line argument, then use it
-  std::string value = eg->getArgPathValue(varName);
+  std::string value      = eg->getArgPathValue(varName);
   if (value == "") value = eg->getSystemVarValue(varName);
-  int len = (int)value.size();
-  int i   = 0;
-  int j   = value.find(';');
+  int len                = (int)value.size();
+  int i                  = 0;
+  int j                  = value.find(';');
   while (j != std::string::npos) {
     std::string s = value.substr(i, j - i);
     lst.push_back(TFilePath(s));
@@ -713,11 +602,11 @@ std::string TEnv::getSystemVarPrefix() {
 }
 
 TFilePath TEnv::getStuffDir() {
-  // #ifdef MACOSX
-  //  return TFilePath("/Applications/Toonz 5.0/Toonz 5.0 stuff");
-  // #else
+  //#ifdef MACOSX
+  // return TFilePath("/Applications/Toonz 5.0/Toonz 5.0 stuff");
+  //#else
   return EnvGlobals::instance()->getStuffDir();
-  // #endif
+  //#endif
 }
 
 bool TEnv::getIsPortable() { return EnvGlobals::instance()->getIsPortable(); }
@@ -735,15 +624,22 @@ TFilePath TEnv::getConfigDir() {
   return fp != TFilePath() ? fp + "profiles" : fp;
 }
 */
+TFilePath TEnv::getWorkingDirectory() {
+  TFilePath workingDir(EnvGlobals::instance()->getWorkingDirectory());
+  if (workingDir == TFilePath()) workingDir = TFilePath(QDir::currentPath());
+  return workingDir;
+}
+
 void TEnv::setStuffDir(const TFilePath &stuffDir) {
   EnvGlobals::instance()->setStuffDir(stuffDir);
 }
 
 void TEnv::saveAllEnvVariables() { VariableSet::instance()->save(); }
+void TEnv::loadAllEnvVariables() { VariableSet::instance()->load(); }
 
 bool TEnv::setArgPathValue(std::string key, std::string value) {
   EnvGlobals *eg = EnvGlobals::instance();
-  // in case of "-FLAREROOT" , set the all unregistered paths
+  // in case of "-TAHOMA2DROOT" , set the all unregistered paths
   if (key == getRootVarName()) {
     TFilePath rootPath(value);
     eg->setStuffDir(rootPath);
@@ -806,6 +702,14 @@ std::istream &operator>>(std::istream &is, TRect &rect) {
   return is >> rect.x0 >> rect.y0 >> rect.x1 >> rect.y1;
 }
 
+std::istream &operator>>(std::istream &is, QList<TPointD> &pts) {
+  double x, y;
+  while (is >> x >> y) {
+    pts.push_back(TPointD(x, y));
+  }
+  return is;
+}
+
 template <class T>
 std::string toString2(T value) {
   std::ostringstream ss;
@@ -816,7 +720,21 @@ std::string toString2(T value) {
 template <>
 std::string toString2(TRect value) {
   std::ostringstream ss;
-  ss << value.x0 << " " << value.y0 << " " << value.x1 << " " << value.y1;
+  ss << value.x0 << " " << value.y0 << " " << value.x1 << " " << value.y1
+     << '\0';
+  return ss.str();
+}
+
+template <>
+std::string toString2(QList<TPointD> value) {
+  std::ostringstream ss;
+  bool first = true;
+  for (auto pt : value) {
+    if (!first) ss << " ";
+    first = false;
+    ss << pt.x << " " << pt.y;
+  }
+  ss << '\0';
   return ss.str();
 }
 
@@ -890,5 +808,20 @@ RectVar::operator TRect() const {
   return v;
 }
 void RectVar::operator=(const TRect &v) { assignValue(toString2(v)); }
+
+
+//-------------------------------------------------------------------
+
+PointListVar::PointListVar(std::string name, const QList<TPointD> &defValue)
+    : Variable(name, toString2(defValue)) {}
+PointListVar::PointListVar(std::string name) : Variable(name) {}
+PointListVar::operator QList<TPointD>() const {
+  QList<TPointD> v;
+  fromString(getValue(), v);
+  return v;
+}
+void PointListVar::operator=(const QList<TPointD> &v) {
+  assignValue(toString2(v));
+}
 
 //=========================================================

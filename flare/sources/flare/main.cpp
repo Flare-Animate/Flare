@@ -174,6 +174,8 @@ static void initFlareEnv(QHash<QString, QString> &argPathValues) {
         Check if the xxxroot is defined and corresponds to an existing folder
   --*/
 
+  TEnv::initUserStuffDir();
+
   TFilePath stuffDir = TEnv::getStuffDir();
   if (stuffDir == TFilePath())
     fatalError(
@@ -501,7 +503,7 @@ if (QFileInfo(localSplashPath).exists() && QFileInfo(localSplashPath).isFile()) 
   fmt.setStencil(true);
   QGLFormat::setDefaultFormat(fmt);
 
-#ifndef __HAIKU__
+#if !defined(__HAIKU__) && !defined(MACOSX)
   glutInit(&argc, argv);
 #endif
 

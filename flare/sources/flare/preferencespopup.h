@@ -139,6 +139,7 @@ private:
   void onLevelBasedToolsDisplayChanged();
   // Xsheet
   void onShowKeyframesOnCellAreaChanged();
+  void onCurrentCellColorChanged();
   void onShowXSheetToolbarClicked();
   void onUnifyColumnVisibilityTogglesChanged();
   void onShowXsheetBreadcrumbsClicked();

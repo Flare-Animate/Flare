@@ -1,55 +1,7 @@
-set(VERSION 1.7.1)
-
-function(resolve_flare_legacy_paths input_var output_var)
-  # Read the list variable named by input_var
-  set(resolved_files "")
-  set(input_list "${${input_var}}")
-  foreach(f ${input_list})
-        # Build list of candidate paths to try (in order)
-        set(_candidates "")
-        list(APPEND _candidates "${f}")
-        list(APPEND _candidates "${CMAKE_CURRENT_SOURCE_DIR}/${f}")
-        list(APPEND _candidates "${CMAKE_CURRENT_SOURCE_DIR}/../flare/${f}")
-        list(APPEND _candidates "${CMAKE_CURRENT_SOURCE_DIR}/../${f}")
-        list(APPEND _candidates "${CMAKE_CURRENT_SOURCE_DIR}/../toonz/${f}")
-        list(APPEND _candidates "${CMAKE_CURRENT_SOURCE_DIR}/../../toonz/${f}")
-        list(APPEND _candidates "${CMAKE_CURRENT_SOURCE_DIR}/../../flare/${f}")
-        list(APPEND _candidates "${CMAKE_CURRENT_SOURCE_DIR}/../sources/flare/${f}")
-        list(APPEND _candidates "${CMAKE_CURRENT_SOURCE_DIR}/../flare/${f}")
-        list(APPEND _candidates "${CMAKE_SOURCE_DIR}/flare/sources/flare/${f}")
-        list(APPEND _candidates "${CMAKE_SOURCE_DIR}/flare/sources/flare_legacy/${f}")
-
-        set(candidate "")
-        foreach(_cand ${_candidates})
-            if(IS_ABSOLUTE "${_cand}")
-                if(EXISTS "${_cand}")
-                    set(candidate "${_cand}")
-                    break()
-                endif()
-            else()
-                if(EXISTS "${_cand}")
-                    set(candidate "${_cand}")
-                    break()
-                endif()
-            endif()
-        endforeach()
-
-        if(candidate STREQUAL "")
-            # Verbose warning listing all paths we tried
-            string(REPLACE ";" "\n  " _tried "${_candidates}")
-            message(WARNING "flare_legacy: cannot locate project file '${f}'. Tried paths:\n  ${_tried}")
-            # skip missing file so configure can continue; caller will see fewer resolved entries
-            continue()
-        endif()
-    list(APPEND resolved_files "${candidate}")
-  endforeach()
-  # Debug summary
-  list(LENGTH resolved_files _len)
-  message(STATUS "flare_legacy: resolved ${_len} entries from ${input_var}")
-  set(${output_var} ${resolved_files} PARENT_SCOPE)
-endfunction()
+set(VERSION 1.6.3)
 
 set(MOC_HEADERS
+    aboutpopup.h
     addfilmstripframespopup.h
     adjustlevelspopup.h
     adjustthicknesspopup.h
@@ -59,7 +11,6 @@ set(MOC_HEADERS
     batches.h
     batchserversviewer.h
     binarizepopup.h
-    fillholespopup.h
     boardsettingspopup.h
     brightnessandcontrastpopup.h
     cachefxcommand.h
@@ -85,13 +36,11 @@ set(MOC_HEADERS
     dvitemview.h
     dvwidgets.h
     exportlevelpopup.h
-    exportalllevelspopup.h
     exportpanel.h
     exportscenepopup.h
     filebrowser.h
     filebrowsermodel.h
     filebrowserpopup.h
-    fileinfopopup.h
     filmstrip.h
     flipbook.h
     formatsettingspopups.h
@@ -99,25 +48,23 @@ set(MOC_HEADERS
     fxparameditorpopup.h
     histogrampopup.h
     historypane.h
+    multicolumnsortproxymodel.h
+    vectorinspector.h
     imageviewer.h
-    insertfxpopup.h
     layerfooterpanel.h
     layerheaderpanel.h
     levelcreatepopup.h
     levelsettingspopup.h
     linesfadepopup.h
     lipsyncpopup.h
-    autolipsyncpopup.h
     loadfolderpopup.h
     locatorpopup.h
     magpiefileimportpopup.h
     mainwindow.h
     matchline.h
     menubar.h
-    menubarpopup.h
     meshifypopup.h
     messagepanel.h
-    ocaio.h
     onionskinmaskgui.h
     outputsettingspopup.h
     overwritepopup.h
@@ -133,16 +80,16 @@ set(MOC_HEADERS
     reslist.h
     ruler.h
     savepresetpopup.h
-    scanpopup.h
-    scenebrowser.h
     scenesettingspopup.h
     sceneviewer.h
     sceneviewercontextmenu.h
+    scriptconsolepanel.h
     separatecolorspopup.h
     separatecolorsswatch.h
     shortcutpopup.h
     soundtrackexport.h
     startuppopup.h
+    statusbar.h
     styleshortcutswitchablepanel.h
     svncleanupdialog.h
     svncommitdialog.h
@@ -160,11 +107,10 @@ set(MOC_HEADERS
     toolbar.h
     tpanels.h
     trackerpopup.h
-    vectorguideddrawingpane.h
+	vectorguideddrawingpane.h
     vectorizerpopup.h
     vectorizerswatch.h
     versioncontrol.h
-    versioncontrolxmlwriter.h
     versioncontroltimeline.h
     versioncontrolwidget.h
     viewerpane.h
@@ -173,46 +119,34 @@ set(MOC_HEADERS
     xsheetviewer.h
     xshnoteviewer.h
     xshrowviewer.h
-    xshtoolbar.h
-    xdtsimportpopup.h
-    expressionreferencemanager.h
+    quicktoolbar.h
+	xdtsimportpopup.h
+	expressionreferencemanager.h
     tooloptionsshortcutinvoker.h
-    tvpjson_io.h
     exportxsheetpdf.h
     custompanelmanager.h
     custompaneleditorpopup.h
     convertfolderpopup.h
     exportcameratrackpopup.h
-    layoutPresetsEditorPopup.h
-    layoutUtils.h
-    scriptconsolepanel.h
-    flashguidedialog.h
+    motionpathpanel.h
+    ../stopmotion/stopmotion.h
+    ../stopmotion/stopmotioncontroller.h
+    ../stopmotion/webcam.h
+    ../stopmotion/jpgconverter.h
+    ../stopmotion/canon.h
+    ../stopmotion/stopmotionserial.h
+    ../stopmotion/stopmotionlight.h
+    ../stopmotion/gphotocam.h
+    cameracapturelevelcontrol.h
+    navtageditorpopup.h
+    viewereventlogpopup.h
+    xshbreadcrumbs.h
+    alignmentpane.h
+    tipspopup.h
+    gphotoeventlogpopup.h
+    preproductionboard.h
+    maintoolbar.h
 )
-
-if(PLATFORM EQUAL 64)
-    set(MOC_HEADERS
-        ${MOC_HEADERS}
-        ../stopmotion/stopmotion.h
-        ../stopmotion/stopmotioncontroller.h
-        ../stopmotion/webcam.h
-        ../stopmotion/jpgconverter.h
-        ../stopmotion/canon.h
-        ../stopmotion/stopmotionserial.h
-        ../stopmotion/stopmotionlight.h
-        cameracapturelevelcontrol.h
-        penciltestpopup.h
-        navtageditorpopup.h
-        xshbreadcrumbs.h
-    )
-else()
-    set(MOC_HEADERS
-        ${MOC_HEADERS}
-        cameracapturelevelcontrol_qt.h
-        penciltestpopup_qt.h
-        navtageditorpopup.h
-        xshbreadcrumbs.h
-    )
-endif()
 
 set(HEADERS
     ${MOC_HEADERS}
@@ -255,7 +189,7 @@ set(HEADERS
     ../include/orientation.h
     ../include/saveloadqsettings.h
     xdtsio.h
-    sxfio.h
+    ocaio.h
     levelcommand.h
 # Tracker file
     ObjectTracker.h
@@ -278,7 +212,6 @@ set(SOURCES
     mainwindow.cpp
     matchline.cpp
     menubar.cpp
-    menubarpopup.cpp
     mergecolumns.cpp
     moviegenerator.cpp
     pane.cpp
@@ -291,7 +224,6 @@ set(SOURCES
     batchserversviewer.cpp
     castviewer.cpp
     exportlevelpopup.cpp
-    exportalllevelspopup.cpp
     exportscenepopup.cpp
     colormodelviewer.cpp
     exportpanel.cpp
@@ -310,7 +242,7 @@ set(SOURCES
     xsheetviewer.cpp
     xshnoteviewer.cpp
     xshrowviewer.cpp
-    xshtoolbar.cpp
+    quicktoolbar.cpp
     sceneviewer.cpp
     sceneviewerevents.cpp
     viewerdraw.cpp
@@ -321,6 +253,7 @@ set(SOURCES
     fileselection.cpp
     filmstripselection.cpp
     keyframeselection.cpp
+    aboutpopup.cpp
     addfilmstripframespopup.cpp
     camerasettingspopup.cpp
     convertpopup.cpp
@@ -331,13 +264,11 @@ set(SOURCES
     formatsettingspopups.cpp
     fxparameditorpopup.cpp
     histogrampopup.cpp
-    insertfxpopup.cpp
     layerfooterpanel.cpp
     layerheaderpanel.cpp
     levelcreatepopup.cpp
     levelsettingspopup.cpp
     lipsyncpopup.cpp
-    autolipsyncpopup.cpp
     magpiefileimportpopup.cpp
     outputsettingspopup.cpp
     overwritepopup.cpp
@@ -348,26 +279,23 @@ set(SOURCES
     renumberpopup.cpp
     runscriptcommand.cpp
     savepresetpopup.cpp
-    scanpopup.cpp
-    scenebrowser.cpp
-    scenebrowserversioncontrol.cpp
     sceneviewercontextmenu.cpp
     scenesettingspopup.cpp
+    scriptconsolepanel.cpp
     shortcutpopup.cpp
     soundtrackexport.cpp
     startuppopup.cpp
+    statusbar.cpp
     subcameramanager.cpp
     kis_tablet_support_win8.cpp
     timestretchpopup.cpp
     trackerpopup.cpp
     vectorguideddrawingpane.cpp
     vectorizerpopup.cpp
-    rasterizecommand.cpp
     vectorizerswatch.cpp
     versioncontrol.cpp
     versioncontroltimeline.cpp
     versioncontrolxmlreader.cpp
-    versioncontrolxmlwriter.cpp
     versioncontrolwidget.cpp
     viewerpopup.cpp
     cellselectioncommand.cpp
@@ -375,7 +303,6 @@ set(SOURCES
     filmstripcommand.cpp
     iocommand.cpp
     levelcommand.cpp
-    viewercommand.cpp
     print.cpp
     subscenecommand.cpp
     svncleanupdialog.cpp
@@ -415,7 +342,6 @@ set(SOURCES
     adjustlevelspopup.cpp
     adjustthicknesspopup.cpp
     binarizepopup.cpp
-    fillholespopup.cpp
     brightnessandcontrastpopup.cpp
     linesfadepopup.cpp
     rendercommand.cpp
@@ -426,29 +352,22 @@ set(SOURCES
     mergecmapped.cpp
     comboviewerpane.cpp
     historypane.cpp
+    multicolumnsortproxymodel.cpp
+    vectorinspector.cpp
     cleanupsettingspane.cpp
     audiorecordingpopup.cpp
     locatorpopup.cpp
     styleshortcutswitchablepanel.cpp
-    reframepopup.cpp
-    autoinputcellnumberpopup.cpp
-    colormodelbehaviorpopup.cpp
-    boardsettingspopup.cpp
-    separatecolorsswatch.cpp
-    separatecolorspopup.cpp
+	reframepopup.cpp
+	autoinputcellnumberpopup.cpp
+	colormodelbehaviorpopup.cpp
+	boardsettingspopup.cpp
+	separatecolorsswatch.cpp
+	separatecolorspopup.cpp
     xdtsio.cpp
-    sxfio.cpp
     ocaio.cpp
-    flashimport.cpp
-    mohoimport.cpp
-    flashexport.cpp
-    flashguidedialog.cpp
-    scriptconsolepanel_stub.cpp
-    ${SDKROOT}/zlib-1.2.8/contrib/minizip/ioapi.c
-    ${SDKROOT}/zlib-1.2.8/contrib/minizip/unzip.c
-    ${SDKROOT}/zlib-1.2.8/contrib/minizip/zip.c
-    xdtsimportpopup.cpp
-    expressionreferencemanager.cpp
+	xdtsimportpopup.cpp
+	expressionreferencemanager.cpp
     tooloptionsshortcutinvoker.cpp
     tvpjson_io.cpp
     exportxsheetpdf.cpp
@@ -456,61 +375,42 @@ set(SOURCES
     custompaneleditorpopup.cpp
     convertfolderpopup.cpp
     exportcameratrackpopup.cpp
-    layoutPresetsEditorPopup.cpp
-    layoutUtils.cpp
 # Tracker file
     dummyprocessor.cpp
     metnum.cpp
     ObjectTracker.cpp
     predict3d.cpp
+    motionpathpanel.cpp
+    ../stopmotion/stopmotion.cpp
+    ../stopmotion/stopmotioncontroller.cpp
+    ../stopmotion/webcam.cpp
+    ../stopmotion/jpgconverter.cpp
+    ../stopmotion/canon.cpp
+    ../stopmotion/stopmotionserial.cpp
+    ../stopmotion/stopmotionlight.cpp
+    ../stopmotion/gphotocam.cpp
+	cameracapturelevelcontrol.cpp
+    navtageditorpopup.cpp
+    viewereventlogpopup.cpp
+    xshbreadcrumbs.cpp
+    alignmentpane.cpp
+    tipspopup.cpp
+    gphotoeventlogpopup.cpp
+    preproductionboard.cpp
+    maintoolbar.cpp
 )
 
-if(PLATFORM EQUAL 64)
-    set(SOURCES
-        ${SOURCES}
-        ../stopmotion/stopmotion.cpp
-        ../stopmotion/stopmotioncontroller.cpp
-        ../stopmotion/webcam.cpp
-        ../stopmotion/jpgconverter.cpp
-        ../stopmotion/canon.cpp
-        ../stopmotion/stopmotionserial.cpp
-        ../stopmotion/stopmotionlight.cpp
-        cameracapturelevelcontrol.cpp
-        penciltestpopup.cpp
-        navtageditorpopup.cpp
-        xshbreadcrumbs.cpp
-    )
-else()
-    set(SOURCES
-        ${SOURCES}
-        cameracapturelevelcontrol_qt.cpp
-        penciltestpopup_qt.cpp
-        navtageditorpopup.cpp
-        xshbreadcrumbs.cpp
-    )
-endif()
-
-# Ensure legacy CMake target resolves moved/new file paths correctly.
-# Run resolution after platform-specific SOURCES/MOC_HEADERS/HEADERS have been appended
-resolve_flare_legacy_paths(MOC_HEADERS MOC_HEADERS)
-resolve_flare_legacy_paths(HEADERS HEADERS)
-resolve_flare_legacy_paths(SOURCES SOURCES)
-
 if(WITH_TRANSLATION)
-    add_translation(flare ${HEADERS} ${SOURCES})
+    add_translation(toonz ${HEADERS} ${SOURCES})
 endif()
 
 set(OBJCSOURCES filebrowsermodel.cpp)
 
-# Ensure any objc/other single-file sources are resolved too
-resolve_flare_legacy_paths(OBJCSOURCES OBJCSOURCES)
-
 # Resource file(s)
-# resources live in the sibling "flare" directory after the rebrand
-set(RESOURCES "${CMAKE_CURRENT_SOURCE_DIR}/../flare/flare.qrc")
+set(RESOURCES toonz.qrc)
 
 if(BUILD_ENV_MSVC)
-    set(RC_FILE "${CMAKE_CURRENT_SOURCE_DIR}/../flare/flare.rc")
+    set(RC_FILE toonz.rc)
 endif()
 
 qt5_add_resources(SOURCES ${RESOURCES})
@@ -524,32 +424,10 @@ qt5_wrap_cpp(SOURCES ${MOC_HEADERS})
 
 if(BUILD_ENV_MSVC)
     add_executable(Flare WIN32 ${HEADERS} ${SOURCES} ${OBJCSOURCES} ${RESOURCES} ${RC_FILE})
-    # ensure build order with renamed library targets
-    add_dependencies(Flare tnzcore tnzbase flarelib colorfx tnzext image sound flareqt tnztools tnzstdfx tfarm)
 else()
-    set(FLARE_ICON_SOURCE "")
-    # The icon ships in ../flare/Flare.icns (this dir has no copy); search both.
-    find_file(FLARE_ICON_FILE
-        NAMES Flare.icns
-        PATHS "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/../flare"
-        NO_DEFAULT_PATH
-    )
-    if(FLARE_ICON_FILE)
-        set(FLARE_ICON_SOURCE "${FLARE_ICON_FILE}")
-        set(MACOSX_BUNDLE_ICON_FILE "Flare.icns")
-        set_source_files_properties(${FLARE_ICON_FILE} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
-        message(STATUS "Flare.icns found (${FLARE_ICON_FILE}); building macOS bundle with icon.")
-    else()
-        message(WARNING "Flare.icns not found; building macOS bundle without icon.")
-    endif()
-
-    if(FLARE_ICON_SOURCE)
-        add_executable(Flare MACOSX_BUNDLE ${FLARE_ICON_SOURCE} ${HEADERS} ${SOURCES} ${OBJCSOURCES} ${RESOURCES})
-    else()
-        add_executable(Flare MACOSX_BUNDLE ${HEADERS} ${SOURCES} ${OBJCSOURCES} ${RESOURCES})
-    endif()
-
-    add_dependencies(Flare tnzcore tnzbase flarelib colorfx tnzext image sound flareqt tnztools tnzstdfx tfarm)
+    set(MACOSX_BUNDLE_ICON_FILE "Flare.icns")
+    set_source_files_properties(Flare.icns PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
+    add_executable(Flare MACOSX_BUNDLE Flare.icns ${HEADERS} ${SOURCES} ${OBJCSOURCES} ${RESOURCES})
     #add_definitions(
     #    -DTNZBASE_EXPORTS
     #    -DTPARAM_EXPORTS
@@ -567,25 +445,24 @@ if(BUILD_TARGET_WIN)
     )
 endif()
 
-message("subdir: flare_legacy (application)")
+message("subdir: toonz")
 message("Bin: " ${CMAKE_CURRENT_BINARY_DIR})
 #message("Lib: " ${LIBRARY_OUTPUT_PATH})
 #message("Exe: " ${EXECUTABLE_OUTPUT_PATH})
 #message("Sources:" ${SOURCES})
 
 include_directories(
-    ../../sources/flarefarm/include
-    ../../sources/flareqt
+    ../../sources/toonzfarm/include
+    ../../sources/toonzqt
     ../../sources/stopmotion
-    ../../sources/common/flash
-    ../../sources/common/moho
-    ../../sources/flare
-    ../../sources
-    ${SDKROOT}/zlib-1.2.8/contrib/minizip
 )
 
 if (WITH_CANON)
     add_definitions(-DWITH_CANON)
+endif()
+
+if (WITH_GPHOTO2)
+    add_definitions(-DWITH_GPHOTO2)
 endif()
 
 if (WITH_WINTAB AND BUILD_TARGET_WIN AND (PLATFORM EQUAL 64))
@@ -593,83 +470,89 @@ if (WITH_WINTAB AND BUILD_TARGET_WIN AND (PLATFORM EQUAL 64))
 endif()
 
 if(BUILD_ENV_APPLE)
-    include_directories(../../sources/mousedragfilter)
-    if(PLATFORM EQUAL 64)
-        include_directories(${TURBOJPEG_INCLUDE_DIRS})
-    endif()
+    include_directories(
+       ../../sources/mousedragfilter
+       ${TURBOJPEG_INCLUDE_DIRS}
+    )
 endif()
+
+
 
 if(BUILD_TARGET_WIN)
     if(PLATFORM EQUAL 32)
         include_directories(
             SYSTEM
-            ${SDKROOT}/quicktime/QT73SDK/CIncludes
         )
     endif()
 endif()
 
 if(BUILD_ENV_MSVC)
-    set(EXTRA_LIBS)
-    if(CMAKE_CXX_FLAGS_DEBUG)
-        target_compile_options(Flare PRIVATE /EHsc) # Enable C++ Exceptions in Debug Mode.
+    if(WITH_CANON) 
+        set(EXTRA_LIBS ${EXTRA_LIBS} ${CANON_LIB})
     endif()
-    if(PLATFORM EQUAL 64)
-        set(EXTRA_LIBS ${EXTRA_LIBS} Qt5::SerialPort ${TURBOJPEG_LIB} ${OpenCV_LIBS})
-        if(WITH_CANON)
-            set(EXTRA_LIBS ${EXTRA_LIBS} ${CANON_LIB})
-        endif()
+
+    if(WITH_GPHOTO2)
+        set(EXTRA_LIBS ${EXTRA_LIBS} ${GPHOTO2_LIB} ${GPHOTO2_PORT_LIB} ${GPHOTO2_COMPAT_LIB})
     endif()
+
     target_link_libraries(Flare
         Qt5::WinMain Qt5::Core Qt5::Gui Qt5::Network Qt5::OpenGL Qt5::Svg Qt5::Xml
-        Qt5::Widgets Qt5::PrintSupport Qt5::Multimedia Qt5::UiTools
-        ${GL_LIB} ${GLUT_LIB}
-        ${EXTRA_LIBS} strmiids
-        tnzcore tnzbase flarelib colorfx tnzext image sound flareqt tnztools tnzstdfx tfarm
+        Qt5::Script Qt5::Widgets Qt5::PrintSupport Qt5::Multimedia Qt5::SerialPort Qt5::UiTools
+        ${GL_LIB} ${GLUT_LIB} ${TURBOJPEG_LIB} ${OpenCV_LIBS} ${EXTRA_LIBS} strmiids
+        tnzcore tnzbase toonzlib colorfx tnzext image sound toonzqt tnztools tnzstdfx tfarm
     )
-elseif(BUILD_ENV_APPLE)
+elseif(BUILD_ENV_APPLE AND WITH_CANON)
     find_library(COCOA_LIB Cocoa)
 
-    _find_flare_library(EXTRA_LIBS "tnzcore;tnzbase;flarelib;colorfx;tnzext;image;sound;flareqt;tnztools")
+    _find_toonz_library(EXTRA_LIBS "tnzcore;tnzbase;toonzlib;colorfx;tnzext;image;sound;toonzqt;tnztools")
 
     # 変なところにライブラリ生成するカスども
     set(EXTRA_LIBS ${EXTRA_LIBS} "$<TARGET_FILE:tnzstdfx>" "$<TARGET_FILE:tfarm>")
-    set(X64ONLY_LIBS)
-    if(PLATFORM EQUAL 64)
-        set(X64ONLY_LIBS ${X64ONLY_LIBS} Qt5::SerialPort ${TURBOJPEG_LIB} ${OpenCV_LIBS})
-        if(WITH_CANON)
-            set(X64ONLY_LIBS ${X64ONLY_LIBS} ${CANON_LIB})
-        endif()
+
+    if(WITH_GPHOTO2)
+        set(EXTRA_LIBS ${EXTRA_LIBS} ${GPHOTO2_LIB} ${GPHOTO2_PORT_LIB})
     endif()
+
+    add_dependencies(Flare tnzcore tnzbase toonzlib colorfx tnzext image sound toonzqt tnztools tnzstdfx tfarm)
 
     target_link_libraries(Flare
         Qt5::Core Qt5::Gui Qt5::Network Qt5::OpenGL Qt5::Svg Qt5::Xml
-        Qt5::Widgets Qt5::PrintSupport Qt5::Multimedia Qt5::MultimediaWidgets Qt5::UiTools
-        ${GL_LIB} ${GLUT_LIB}
-        ${COCOA_LIB} ${EXTRA_LIBS} ${X64ONLY_LIBS} mousedragfilter
+        Qt5::Script Qt5::Widgets Qt5::PrintSupport Qt5::Multimedia Qt5::MultimediaWidgets Qt5::SerialPort Qt5::UiTools
+        ${GL_LIB} ${GLUT_LIB} ${CANON_LIB} ${TURBOJPEG_LIB} ${OpenCV_LIBS}
+        ${COCOA_LIB} ${EXTRA_LIBS} mousedragfilter
     )
 
-    # ADDED/UPDATED: Expanded dependencies for all libs and utilities (ensures build order)
-    add_dependencies(Flare tnzcore tnzbase flarelib colorfx tnzext image sound flareqt tnztools tnzstdfx tfarm tcomposer tcleanup tconverter tfarmcontroller tfarmserver)
+elseif(BUILD_ENV_APPLE)
+    find_library(COCOA_LIB Cocoa)
 
-    # ADDED/UPDATED: Configure Info.plist for bundle (retina support etc.)
-    set_target_properties(Flare PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${CMAKE_SOURCE_DIR}/../cmake/BundleInfo.plist.in)
+    _find_toonz_library(EXTRA_LIBS "tnzcore;tnzbase;toonzlib;colorfx;tnzext;image;sound;toonzqt;tnztools")
 
-    # ADDED/UPDATED: Merged RPATH command (single one with both paths; || true for CI; COMMENT for logs)
-    add_custom_command(TARGET Flare POST_BUILD
-        COMMAND ${CMAKE_INSTALL_NAME_TOOL} -add_rpath @executable_path/. "$<TARGET_FILE:Flare>" || true
-        COMMAND ${CMAKE_INSTALL_NAME_TOOL} -add_rpath ${CMAKE_INSTALL_RPATH} "$<TARGET_FILE:Flare>" || true
-        COMMENT "Adding RPATHs to Flare executable"
+    # 変なところにライブラリ生成するカスども
+    set(EXTRA_LIBS ${EXTRA_LIBS} "$<TARGET_FILE:tnzstdfx>" "$<TARGET_FILE:tfarm>")
+
+    if(WITH_GPHOTO2)
+        set(EXTRA_LIBS ${EXTRA_LIBS} ${GPHOTO2_LIB} ${GPHOTO2_PORT_LIB})
+    endif()
+
+    add_dependencies(Flare tnzcore tnzbase toonzlib colorfx tnzext image sound toonzqt tnztools tnzstdfx tfarm)
+
+    target_link_libraries(Flare
+        Qt5::Core Qt5::Gui Qt5::Network Qt5::OpenGL Qt5::Svg Qt5::Xml
+        Qt5::Script Qt5::Widgets Qt5::PrintSupport Qt5::Multimedia Qt5::MultimediaWidgets Qt5::SerialPort Qt5::UiTools
+        ${GL_LIB} ${GLUT_LIB} ${TURBOJPEG_LIB} ${OpenCV_LIBS}
+        ${COCOA_LIB} ${EXTRA_LIBS} mousedragfilter
     )
 
-elseif(BUILD_ENV_UNIXLIKE)
-    _find_flare_library(EXTRA_LIBS "tnzcore;tnzbase;flarelib;colorfx;tnzext;image;sound;flareqt;tnztools")
+elseif(BUILD_ENV_UNIXLIKE AND WITH_CANON)
+    _find_toonz_library(EXTRA_LIBS "tnzcore;tnzbase;toonzlib;colorfx;tnzext;image;sound;toonzqt;tnztools")
 
     # 変なところにライブラリ生成するカスども
     set(EXTRA_LIBS ${EXTRA_LIBS} "$<TARGET_FILE:tnzstdfx>" "$<TARGET_FILE:tfarm>")
 
     set(EXTRA_LIBS ${EXTRA_LIBS} ${Boost_LIBRARIES} ${OPENBLAS_LIB} ${EXECINFO_LIBRARY})
-    if(PLATFORM EQUAL 64)
-        set(EXTRA_LIBS ${EXTRA_LIBS} Qt5::SerialPort ${TURBOJPEG_LIB} ${OpenCV_LIBS})
+
+    if(WITH_GPHOTO2)
+        set(EXTRA_LIBS ${EXTRA_LIBS} ${GPHOTO2_LIB} ${GPHOTO2_PORT_LIB})
     endif()
 
     if(BUILD_TARGET_WIN)
@@ -678,92 +561,80 @@ elseif(BUILD_ENV_UNIXLIKE)
 
     target_link_libraries(
         Flare Qt5::Core Qt5::Gui Qt5::Network Qt5::OpenGL Qt5::Svg Qt5::Xml
-        Qt5::Widgets Qt5::PrintSupport Qt5::Multimedia Qt5::UiTools
-        ${GL_LIB} ${GLUT_LIB} ${GLU_LIB}
-        ${EXTRA_LIBS}
+        Qt5::Script Qt5::Widgets Qt5::PrintSupport Qt5::Multimedia Qt5::SerialPort Qt5::UiTools
+        ${GL_LIB} ${GLUT_LIB} ${GLU_LIB} ${CANON_LIB} ${TURBOJPEG_LIB} ${OpenCV_LIBS}
+        ${EXTRA_LIBS} dl
     )
-endif()
 
-# Link QtScript to Flare only if the module was found
-if(WITH_QT_SCRIPT)
-    target_link_libraries(Flare Qt5::Script)
+elseif(BUILD_ENV_UNIXLIKE)
+    _find_toonz_library(EXTRA_LIBS "tnzcore;tnzbase;toonzlib;colorfx;tnzext;image;sound;toonzqt;tnztools")
+
+    # 変なところにライブラリ生成するカスども
+    set(EXTRA_LIBS ${EXTRA_LIBS} "$<TARGET_FILE:tnzstdfx>" "$<TARGET_FILE:tfarm>")
+
+    set(EXTRA_LIBS ${EXTRA_LIBS} ${Boost_LIBRARIES} ${OPENBLAS_LIB} ${EXECINFO_LIBRARY})
+
+    if(WITH_GPHOTO2)
+        set(EXTRA_LIBS ${EXTRA_LIBS} ${GPHOTO2_LIB} ${GPHOTO2_PORT_LIB})
+    endif()
+
+    if(BUILD_TARGET_WIN)
+        set(EXTRA_LIBS ${EXTRA_LIBS} Qt5::WinMain -lstrmiids -mwindows)
+    endif()
+
+    target_link_libraries(
+        Flare Qt5::Core Qt5::Gui Qt5::Network Qt5::OpenGL Qt5::Svg Qt5::Xml
+        Qt5::Script Qt5::Widgets Qt5::PrintSupport Qt5::Multimedia Qt5::SerialPort Qt5::UiTools
+        ${GL_LIB} ${GLUT_LIB} ${GLU_LIB} ${TURBOJPEG_LIB} ${OpenCV_LIBS}
+        ${EXTRA_LIBS} dl
+    )
 endif()
 
 if(BUILD_ENV_APPLE)
     # CMAKE_RUNTIME_OUTPUT_DIRECTORY should be equivalent to usage on windows despite empty
     # OSX だと CMAKE_RUNTIME_OUTPUT_DIRECTORY が空だが Windows 版と同じ使い方ができるようにしておく
-    # Removed: get_target_property(bin Flare LOCATION)
-    # Use generator expression for runtime directory
-    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "$<TARGET_FILE_DIR:Flare>")
+    get_target_property(bin Flare LOCATION)
+    get_filename_component(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${bin} DIRECTORY)
+    # show CMAKE_RUNTIME_OUTPUT_DIRECTORY
     message("CMAKE_RUNTIME_OUTPUT_DIRECTORY:" ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 endif()
 
 # copy utility executables onto the directory after build
 if(LZODRIVER_FOUND)
-    add_custom_command(TARGET Flare POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:lzocompress> ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-        COMMENT "Copying lzocompress to output dir"
-    )
-    add_custom_command(TARGET Flare POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:lzodecompress> ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-        COMMENT "Copying lzodecompress to output dir"
-    )
-    add_dependencies(Flare lzocompress lzodecompress)  # Ensures order
+    add_custom_command(TARGET Flare POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:lzocompress> ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} DEPENDS lzocompress)
+    add_custom_command(TARGET Flare POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:lzodecompress> ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} DEPENDS lzodecompress)
 endif()
 
 if(BUILD_ENV_APPLE)
     get_target_property(loc Flare MACOSX_BUNDLE_NAME)
     message(" ==> App Bundle: " ${loc})
-    message(" ==> Mach-o: " $<TARGET_FILE:Flare>)  # Fixed: Use generator expression instead of ${bin}
+    message(" ==> Mach-o: " ${bin})
     foreach(lib ${EXTRA_LIBS})
         message(" copy:" ${lib} "==>" ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
-        add_custom_command(TARGET Flare POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy ${lib} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}  # UPDATED: Use CMAKE_COMMAND for portability (instead of cp)
-            COMMENT "Copying lib ${lib} to output dir"
-        )
+        add_custom_command(TARGET Flare POST_BUILD COMMAND cp ${lib} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
     endforeach()
-    # ADDED: Already included in expanded dependencies above
 
-    add_custom_command(TARGET Flare POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:tcomposer> ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-        COMMENT "Copying tcomposer to output dir"
-    )
-    add_custom_command(TARGET Flare POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:tcleanup> ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-        COMMENT "Copying tcleanup to output dir"
-    )
-    add_custom_command(TARGET Flare POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:tconverter> ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-        COMMENT "Copying tconverter to output dir"
-    )
-    add_custom_command(TARGET Flare POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:tfarmcontroller> ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-        COMMENT "Copying tfarmcontroller to output dir"
-    )
-    add_custom_command(TARGET Flare POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:tfarmserver> ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-        COMMENT "Copying tfarmserver to output dir"
-    )
-    # ADDED: Already included in expanded dependencies above
+    add_custom_command(TARGET Flare POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:tcomposer> ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} DEPENDS tcomposer)
+    add_custom_command(TARGET Flare POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:tcleanup> ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} DEPENDS tcleanup)
+    add_custom_command(TARGET Flare POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:tconverter> ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} DEPENDS tconverter)
+    add_custom_command(TARGET Flare POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:tfarmcontroller> ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} DEPENDS tfarmcontroller)
+    add_custom_command(TARGET Flare POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:tfarmserver> ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} DEPENDS tfarmserver)
 
-    add_custom_command(TARGET Flare POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/../Resources
-        COMMENT "Creating Resources directory"
+    add_custom_command(TARGET Flare POST_BUILD COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/../Resources)
+    add_custom_command(TARGET Flare POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/../install/SystemVar.ini ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/../Resources)
+
+    add_custom_command(TARGET Flare POST_BUILD COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/../../../qss)
+
+    add_custom_command(TARGET Flare
+        POST_BUILD COMMAND
+        ${CMAKE_INSTALL_NAME_TOOL} -add_rpath @executable_path/. ${bin} || true
     )
-    add_custom_command(TARGET Flare POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/../install/SystemVar.ini ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/../Resources
-        COMMENT "Copying SystemVar.ini to Resources"
+    add_custom_command(TARGET Flare
+        POST_BUILD COMMAND
+        ${CMAKE_INSTALL_NAME_TOOL} -add_rpath ${CMAKE_INSTALL_RPATH} ${bin} || true
     )
 
-    add_custom_command(TARGET Flare POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/../../../qss
-        COMMENT "Creating qss directory"
-    )
-
-    # REMOVED: The duplicate RPATH commands were merged at the top of if(BUILD_ENV_APPLE)
-endif()
-
-if(BUILD_ENV_UNIXLIKE AND BUILD_TARGET_WIN)
+elseif(BUILD_ENV_UNIXLIKE AND BUILD_TARGET_WIN)
     # Setup files on Windows platform while cross compilation.
     install(
         TARGETS
@@ -794,18 +665,18 @@ if(BUILD_ENV_UNIXLIKE AND BUILD_TARGET_WIN)
         FILES
             "$<TARGET_FILE:tnzcore>"
             "$<TARGET_FILE:tnzbase>"
-            "$<TARGET_FILE:flarelib>"
+            "$<TARGET_FILE:toonzlib>"
             "$<TARGET_FILE:colorfx>"
             "$<TARGET_FILE:tnzext>"
             "$<TARGET_FILE:image>"
             "$<TARGET_FILE:sound>"
-            "$<TARGET_FILE:flareqt>"
+            "$<TARGET_FILE:toonzqt>"
             "$<TARGET_FILE:tnztools>"
             "$<TARGET_FILE:tnzstdfx>"
             "$<TARGET_FILE:tfarm>"
         DESTINATION bin
     )
-
+    
     install(
         DIRECTORY
             ${CMAKE_SOURCE_DIR}/../../stuff
@@ -829,14 +700,14 @@ elseif(BUILD_ENV_UNIXLIKE AND NOT BUILD_TARGET_WIN)
     # and sets the library preload path.
     file(WRITE ${CMAKE_BINARY_DIR}/bin/flare
 "#!/bin/sh
-FLARE_BASE=\$(dirname \"\$0\")/..
+TAHOMA2D_BASE=\$(dirname \"\$0\")/..
 
 if [ ! -d \$HOME/.config/Flare ]; then
     mkdir -p \$HOME/.config/Flare
 fi
 
 if [ ! -d \$HOME/.config/Flare/stuff ]; then
-    cp -r \$FLARE_BASE/share/flare/stuff \$HOME/.config/Flare
+    cp -r \$TAHOMA2D_BASE/share/flare/stuff \$HOME/.config/Flare
 fi
 
 if [ ! -d \$HOME/.config/Flare/stuff/projects/library ]; then
@@ -850,22 +721,38 @@ fi
 if [ ! -e \$HOME/.config/Flare/SystemVar.ini ]; then
     cat << EOF > $HOME/.config/Flare/SystemVar.ini
 [General]
-FLAREROOT=\"\$HOME/.config/Flare/stuff\"
-FlarePROFILES=\"\$HOME/.config/Flare/stuff/profiles\"
-FLARECACHEROOT=\"\$HOME/.config/Flare/stuff/cache\"
-FLARECONFIG=\"\$HOME/.config/Flare/stuff/config\"
-FLAREFXPRESETS=\"\$HOME/.config/Flare/stuff/fxs\"
-FLARELIBRARY=\"\$HOME/.config/Flare/stuff/library\"
-FLAREPROFILES=\"\$HOME/.config/Flare/stuff/profiles\"
-FLAREPROJECTS=\"\$HOME/.config/Flare/stuff/projects\"
-FLAREROOT=\"\$HOME/.config/Flare/stuff\"
-FLARESTUDIOPALETTE=\"\$HOME/.config/Flare/stuff/studiopalette\"
+TAHOMA2DROOT=\"\$HOME/.config/Flare/stuff\"
+TAHOMA2DPROFILES=\"\$HOME/.config/Flare/stuff/profiles\"
+TAHOMA2DCACHEROOT=\"\$HOME/.config/Flare/stuff/cache\"
+TAHOMA2DCONFIG=\"\$HOME/.config/Flare/stuff/config\"
+TAHOMA2DFXPRESETS=\"\$HOME/.config/Flare/stuff/fxs\"
+TAHOMA2DLIBRARY=\"\$HOME/.config/Flare/stuff/library\"
+TAHOMA2DPROJECTS=\"$HOME/.config/Flare/stuff/projects\"
+TAHOMA2DSTUDIOPALETTE=\"\$HOME/.config/Flare/stuff/studiopalette\"
 EOF
 fi
 
-export ${PRELOAD_VARIABLE}=\${FLARE_BASE}/lib/flare:\${${PRELOAD_VARIABLE}}
+export ${PRELOAD_VARIABLE}=\${TAHOMA2D_BASE}/lib/flare:\${${PRELOAD_VARIABLE}}
 
-exec \$FLARE_BASE/bin/Flare \"\$@\"
+IFS=:
+for LIBPATH in \$LD_LIBRARY_PATH
+do
+  if [ \"\$CAMLIBS\" = \"\" -a -d \$LIBPATH/libgphoto2 ]
+  then
+     export CAMLIBS=`find \$LIBPATH/libgphoto2 -mindepth 1 -type d`
+  fi
+
+  if [ \"\$IOLIBS\" = \"\" -a -d \$LIBPATH/libgphoto2_port ]
+  then
+     export IOLIBS=`find \$LIBPATH/libgphoto2_port -mindepth 1 -type d`
+  fi
+done
+unset IFS
+
+echo \"CAMLIBS: \$CAMLIBS\"
+echo \"IOLIBS: \$IOLIBS\"
+
+exec \$TAHOMA2D_BASE/bin/Flare \"\$@\"
 ")
     # only needed for executing without installing
     execute_process(COMMAND chmod +x ${CMAKE_BINARY_DIR}/bin/flare)
@@ -894,12 +781,12 @@ exec \$FLARE_BASE/bin/Flare \"\$@\"
         FILES
             "$<TARGET_FILE:tnzcore>"
             "$<TARGET_FILE:tnzbase>"
-            "$<TARGET_FILE:flarelib>"
+            "$<TARGET_FILE:toonzlib>"
             "$<TARGET_FILE:colorfx>"
             "$<TARGET_FILE:tnzext>"
             "$<TARGET_FILE:image>"
             "$<TARGET_FILE:sound>"
-            "$<TARGET_FILE:flareqt>"
+            "$<TARGET_FILE:toonzqt>"
             "$<TARGET_FILE:tnztools>"
             "$<TARGET_FILE:tnzstdfx>"
             "$<TARGET_FILE:tfarm>"

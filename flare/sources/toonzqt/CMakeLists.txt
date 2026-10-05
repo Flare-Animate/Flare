@@ -38,6 +38,7 @@ set(MOC_HEADERS
     ../include/toonzqt/icongenerator.h
     ../include/toonzqt/imageutils.h
     ../include/toonzqt/infoviewer.h
+    ../include/toonzqt/insertfxpopup.h
     ../include/toonzqt/intfield.h
     ../include/toonzqt/intpairfield.h
     ../include/toonzqt/keyframenavigator.h
@@ -200,6 +201,7 @@ set(SOURCES
     stylenameeditor.cpp
     combohistogram.cpp
     fxiconmanager.cpp
+    insertfxpopup.cpp
     pluginhost.cpp
     plugin_tile_interface.cpp
     plugin_port_interface.cpp

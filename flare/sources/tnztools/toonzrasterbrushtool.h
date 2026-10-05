@@ -8,9 +8,9 @@
 #include <trasterimage.h>
 #include <ttoonzimage.h>
 #include <tstroke.h>
-#include "flare/strokegenerator.h"
-#include "flare/rasterstrokegenerator.h"
-#include "flare/preferences.h"
+#include <toonz/strokegenerator.h>
+#include <toonz/rasterstrokegenerator.h>
+#include "toonz/preferences.h"
 #include <tools/tool.h>
 #include <tools/cursors.h>
 
@@ -30,6 +30,8 @@
 #include <QCoreApplication>
 #include <QRadialGradient>
 #include <QElapsedTimer>
+#include <vector>
+#include <utility>
 
 //--------------------------------------------------------------
 
@@ -44,7 +46,7 @@ class ToonzRasterBrushToolNotifier;
 //--------------------------------------------------------------
 
 //************************************************************************
-//  Flare Raster Brush Data declaration
+//  Toonz Raster Brush Data declaration
 //************************************************************************
 
 struct BrushData final : public TPersist {
@@ -59,7 +61,35 @@ struct BrushData final : public TPersist {
   int m_drawOrder;
   double m_modifierSize, m_modifierOpacity;
   bool m_modifierEraser, m_modifierLockAlpha;
+  int m_eraserMode;
   bool m_assistants;
+  
+  // Style snapshot information (for strict preset restoration)
+  int m_styleInfoVersion;     // 0 = old, 1 = MyPaint only, 2 = full snapshot
+  
+  // MyPaint style info (version >= 1)
+  bool m_hasMyPaint;          // true if preset was created with MyPaint style
+  std::string m_myPaintPath;  // path to MyPaint brush if applicable
+  
+  // Texture style info (version >= 2, kept for backward compatibility)
+  bool m_hasTexture;          // true if preset was created with Texture style
+  std::string m_texturePath;  // path to the texture image
+  double m_textureScale;      // texture scale
+  double m_textureRotation;   // texture rotation
+  double m_textureDispX;      // texture displacement X
+  double m_textureDispY;      // texture displacement Y
+  double m_textureContrast;   // texture contrast
+  int m_textureType;          // 0=FIXED, 1=AUTOMATIC, 2=RANDOM
+  bool m_textureIsPattern;    // is pattern mode
+  
+  // Generic style snapshot (version >= 3)
+  // Replaces individual texture/mypaint fields for new presets.
+  // Captures ALL parameters of ANY TColorStyle generically.
+  bool m_hasStyleSnapshot;             // true if generic snapshot present
+  int m_snapshotStyleTagId;            // TColorStyle::getTagId() for recreation
+  std::string m_snapshotBrushIdName;   // TColorStyle::getBrushIdName()
+  std::string m_snapshotFilePath;      // Primary file (MyPaint brush, texture image)
+  std::vector<std::pair<int, double>> m_snapshotParams; // (paramIndex, numericValue)
 
   BrushData();
   BrushData(const std::wstring &name);
@@ -71,7 +101,7 @@ struct BrushData final : public TPersist {
 };
 
 //************************************************************************
-//   Flare Raster Brush Preset Manager declaration
+//   Toonz Raster Brush Preset Manager declaration
 //************************************************************************
 
 class BrushPresetManager {
@@ -92,7 +122,7 @@ public:
 };
 
 //************************************************************************
-//   Flare Raster Brush Tool declaration
+//   Toonz Raster Brush Tool declaration
 //************************************************************************
 
 class ToonzRasterBrushTool final : public TTool,
@@ -185,7 +215,6 @@ protected:
 #endif
   TInputModifier::List m_modifierReplicate;
 
-#ifdef HAVE_MYPaint
   class MyPaintStroke : public TTrackHandler {
   public:
     MyPaintToonzBrush brush;
@@ -195,7 +224,6 @@ protected:
                          bool interpolation = false)
         : brush(ras, controller, brush, interpolation) {}
   };
-#endif
 
   class PencilStroke : public TTrackHandler {
   public:
@@ -243,9 +271,9 @@ protected:
 
     struct MyPaint {
       bool isActive = false;
-#ifdef HAVE_MYPaint
+      bool eraser                       = false;
+      MyPaintToonzEraserMode eraserMode = MyPaintToonzEraserMode::Lines;
       mypaint::Brush baseBrush;
-#endif
       TRect strokeSegmentRect;
     } myPaint;
   } m_painting;
@@ -260,6 +288,8 @@ protected:
   TBoolProperty m_pencil;
   TBoolProperty m_pressure;
   TDoubleProperty m_modifierSize;
+  TBoolProperty m_modifierEraser;
+  TEnumProperty m_eraserMode;
   TBoolProperty m_modifierLockAlpha;
   TBoolProperty m_assistants;
 
@@ -316,4 +346,3 @@ protected slots:
 };
 
 #endif  // TOONZRASTERBRUSHTOOL_H
-

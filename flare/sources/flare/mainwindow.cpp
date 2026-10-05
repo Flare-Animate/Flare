@@ -1,3 +1,5 @@
+
+
 #include "mainwindow.h"
 
 // Tnz6 includes
@@ -9,31 +11,32 @@
 #include "messagepanel.h"
 #include "iocommand.h"
 #include "tapp.h"
-#include "comboviewerpane.h"
-#include "startuppopup.h"
+#include "viewerpane.h"
 #include "tooloptionsshortcutinvoker.h"
 #include "custompanelmanager.h"
+#include "maintoolbar.h"
+#include "statusbar.h"
+#include "aboutpopup.h"
 
 // TnzTools includes
 #include "tools/toolcommandids.h"
 #include "tools/toolhandle.h"
 
 // TnzQt includes
-#include "flareqt/gutil.h"
-#include "flareqt/icongenerator.h"
-#include "flareqt/viewcommandids.h"
-#include "flareqt/updatechecker.h"
-#include "flareqt/paletteviewer.h"
-#include "flareqt/seethroughwindow.h"
+#include "toonzqt/gutil.h"
+#include "toonzqt/icongenerator.h"
+#include "toonzqt/viewcommandids.h"
+#include "toonzqt/updatechecker.h"
+#include "toonzqt/paletteviewer.h"
 
 // TnzLib includes
-#include "flare/toonzfolders.h"
-#include "flare/stage2.h"
-#include "flare/stylemanager.h"
-#include "flare/tscenehandle.h"
-#include "flare/toonzscene.h"
-#include "flare/txshleveltypes.h"
-#include "flare/tproject.h"
+#include "toonz/toonzfolders.h"
+#include "toonz/stage2.h"
+#include "toonz/stylemanager.h"
+#include "toonz/tscenehandle.h"
+#include "toonz/toonzscene.h"
+#include "toonz/txshleveltypes.h"
+#include "toonz/tproject.h"
 
 // TnzBase includes
 #include "tenv.h"
@@ -47,7 +50,7 @@
 #include <QStackedWidget>
 #include <QSettings>
 #include <QApplication>
-#include <QGLPixelBuffer>
+#include <QOpenGLFramebufferObject>
 #include <QDebug>
 #include <QDesktopServices>
 #include <QButtonGroup>
@@ -57,15 +60,14 @@
 #ifdef _WIN32
 #include <QtPlatformHeaders/QWindowsWindowFunctions>
 #endif
-#include <docklayout.h>
 
 TEnv::IntVar ViewCameraToggleAction("ViewCameraToggleAction", 1);
-TEnv::IntVar ViewTableToggleAction("ViewTableToggleAction", 1);
+TEnv::IntVar ViewTableToggleAction("ViewTableToggleAction", 0);
 TEnv::IntVar FieldGuideToggleAction("FieldGuideToggleAction", 0);
 TEnv::IntVar ViewBBoxToggleAction("ViewBBoxToggleAction1", 1);
 TEnv::IntVar EditInPlaceToggleAction("EditInPlaceToggleAction", 0);
 TEnv::IntVar RasterizePliToggleAction("RasterizePliToggleAction", 0);
-TEnv::IntVar LayoutGuideToggleAction("LayoutGuideToggleAction", 0);
+TEnv::IntVar SafeAreaToggleAction("SafeAreaToggleAction", 0);
 TEnv::IntVar ViewColorcardToggleAction("ViewColorcardToggleAction", 1);
 TEnv::IntVar ViewGuideToggleAction("ViewGuideToggleAction", 1);
 TEnv::IntVar ViewRulerToggleAction("ViewRulerToggleAction", 1);
@@ -78,13 +80,19 @@ TEnv::IntVar BCheckToggleAction("BCheckToggleAction", 0);
 TEnv::IntVar GCheckToggleAction("GCheckToggleAction", 0);
 TEnv::IntVar ACheckToggleAction("ACheckToggleAction", 0);
 TEnv::IntVar LinkToggleAction("LinkToggleAction", 0);
-TEnv::IntVar DockingCheckToggleAction("DockingCheckToggleAction", 0);
+TEnv::IntVar ShowMainToolbarAction("ShowMainToolbarAction", 1);
+TEnv::IntVar ShowStatusBarAction("ShowStatusBarAction", 1);
+// TEnv::IntVar DockingCheckToggleAction("DockingCheckToggleAction", 1);
 TEnv::IntVar ShiftTraceToggleAction("ShiftTraceToggleAction", 0);
 TEnv::IntVar EditShiftToggleAction("EditShiftToggleAction", 0);
 TEnv::IntVar ShowShiftOriginToggleAction("ShowShiftOriginToggleAction", 0);
 TEnv::IntVar NoShiftToggleAction("NoShiftToggleAction", 0);
 TEnv::IntVar TouchGestureControl("TouchGestureControl", 0);
-TEnv::IntVar ShowBuildDateInTitle("ShowBuildDateInTitle", 1);
+TEnv::IntVar TransparencySliderValue("TransparencySliderValue", 50);
+TEnv::IntVar ShowPerspectiveGrids("ShowPerspectiveGrids", 0);
+TEnv::IntVar ShowSymmetryGuide("ShowSymmetryGuide", 0);
+
+TEnv::StringVar SkipVersion("SkipVersion", "0.0");
 
 //=============================================================================
 namespace {
@@ -164,9 +172,8 @@ void writeRoomList(std::vector<Room *> &rooms) {
 //-----------------------------------------------------------------------------
 
 void makePrivate(Room *room) {
-  TFilePath layoutDir       = FlareFolder::getMyRoomsDir();
-  TFilePath roomPath        = room->getPath();
-  std::string mbSrcFileName = roomPath.getName() + "_menubar.xml";
+  TFilePath layoutDir = FlareFolder::getMyRoomsDir();
+  TFilePath roomPath  = room->getPath();
   if (roomPath == TFilePath() || roomPath.getParentDir() != layoutDir) {
     int count = 1;
     for (;;) {
@@ -176,31 +183,6 @@ void makePrivate(Room *room) {
     room->setPath(roomPath);
     TSystem::touchParentDir(roomPath);
     room->save();
-  }
-  /*- create private menubar settings if not exists -*/
-  std::string mbDstFileName = roomPath.getName() + "_menubar.xml";
-  TFilePath myMBPath        = layoutDir + mbDstFileName;
-  if (!TFileStatus(myMBPath).isReadable()) {
-    TFilePath templateRoomMBPath =
-        FlareFolder::getTemplateRoomsDir() + mbSrcFileName;
-    if (TFileStatus(templateRoomMBPath).doesExist())
-      TSystem::copyFile(myMBPath, templateRoomMBPath);
-    else {
-      TFilePath templateFullMBPath =
-          FlareFolder::getTemplateRoomsDir() + "menubar_template.xml";
-      if (TFileStatus(templateFullMBPath).doesExist())
-        TSystem::copyFile(myMBPath, templateFullMBPath);
-      else {
-        TFilePath builtinMBPath =
-            TEnv::getStuffDir() + "profiles/layouts/rooms/Default/menubar_template.xml";
-        if (TFileStatus(builtinMBPath).doesExist())
-          TSystem::copyFile(myMBPath, builtinMBPath);
-        else
-          DVGui::warning(
-              QObject::tr("Cannot open menubar settings template file. "
-                          "Re-installing Flare will solve this problem."));
-      }
-    }
   }
 }
 
@@ -246,48 +228,29 @@ int get_version_code_from(std::string ver) {
 //=============================================================================
 // Room
 //-----------------------------------------------------------------------------
-void copyQSettings(QSettings &source, QSettings &destination,
-                   bool commit = true) {
-  // 1. Get all keys in the current group
-  QStringList keys = source.allKeys();
 
-  // 2. Iterate and copy all simple key-value pairs
-  for (const QString &key : keys) {
-    destination.setValue(key, source.value(key));
-  }
+void Room::setName(QString name) {
+  m_name   = name;
+  m_trName = name;
 
-  // 3. Get all sub-groups
-  QStringList groups = source.childGroups();
-
-  // 4. Recursively process all groups (sections)
-  for (const QString &group : groups) {
-    // Move into the source group
-    source.beginGroup(group);
-    // Move into the destination group
-    destination.beginGroup(group);
-
-    // Recursively call the copy function for the subgroup
-    copyQSettings(source, destination, false);  // Don't sync yet
-
-    // Go back up for both
-    destination.endGroup();
-    source.endGroup();
-  }
-
-  // 5. Save the changes if commit is requested
-  if (commit) {
-    destination.sync();
-  }
+  // Set translatable name if it matches default room
+  if (m_name == "2D")
+    m_trName = tr("2D");
+  else if (m_name == "StopMotion")
+    m_trName = tr("StopMotion");
+  else if (m_name == "Timing")
+    m_trName = tr("Timing");
+  else if (m_name == "FX")
+    m_trName = tr("FX");
+  else if (m_name == "Browser")
+    m_trName = tr("Browser");
+  else if (m_name == "History")
+    m_trName = tr("History");
+  else if (m_name == "New Room")
+    m_trName = tr("New Room");
 }
 
 void Room::save() {
-  if (!m_initialized && m_settings) {
-    QSettings *newSettings =
-        new QSettings(getPath().getQString(), QSettings::Format::IniFormat);
-    copyQSettings(*m_settings, *newSettings, true);
-    m_settings.reset(newSettings);
-    return;
-  }
   DockLayout *layout = dockLayout();
 
   // Now save layout state
@@ -327,26 +290,16 @@ void Room::save() {
 }
 
 //-----------------------------------------------------------------------------
-void Room::load(const TFilePath &fp, RoomLoadParams &params) {
-  if (!m_initialized || !m_settings) {
-    m_settings.reset(new QSettings(toQString(fp), QSettings::IniFormat));
-  }
+
+std::pair<DockLayout *, DockLayout::State> Room::load(const TFilePath &fp) {
+  QSettings settings(toQString(fp), QSettings::IniFormat);
 
   setPath(fp);
+
   DockLayout *layout = dockLayout();
 
-  m_settings->beginGroup("room");
-  QStringList itemsList = m_settings->childGroups();
-
-  QString roomName = m_settings->value("name").toString();
-  setName(roomName);
-
-  if (params.activeRoomName.isEmpty()) params.activeRoomName = roomName;
-
-  if (!params.forceBuildGui && params.activeRoomName != roomName) {
-    m_settings->endGroup();
-    return;
-  }
+  settings.beginGroup("room");
+  QStringList itemsList = settings.childGroups();
 
   std::vector<QRect> geometries;
   unsigned int i;
@@ -355,13 +308,13 @@ void Room::load(const TFilePath &fp, RoomLoadParams &params) {
     // NOTE: Panels have to be retrieved in the precise order they were saved.
     // settings.beginGroup(itemsList[i]);  //NO! itemsList has lexicographical
     // ordering!!
-    m_settings->beginGroup("pane_" + QString::number(i));
+    settings.beginGroup("pane_" + QString::number(i));
 
     TPanel *pane = 0;
     QString paneObjectName;
 
     // Retrieve panel name
-    QVariant name = m_settings->value("name");
+    QVariant name = settings.value("name");
     if (name.canConvert(QVariant::String)) {
       // Allocate panel
       paneObjectName          = name.toString();
@@ -369,7 +322,7 @@ void Room::load(const TFilePath &fp, RoomLoadParams &params) {
       pane = TPanelFactory::createPanel(this, paneObjectName);
       if (SaveLoadQSettings *persistent =
               dynamic_cast<SaveLoadQSettings *>(pane->widget()))
-        persistent->load(*m_settings);
+        persistent->load(settings);
     }
 
     if (!pane) {
@@ -390,30 +343,59 @@ void Room::load(const TFilePath &fp, RoomLoadParams &params) {
     addDockWidget(pane);
 
     // Store its geometry
-    geometries.push_back(m_settings->value("geometry").toRect());
+    geometries.push_back(settings.value("geometry").toRect());
 
     // Restore view type if present
-    if (m_settings->contains("viewtype"))
-      pane->setViewType(m_settings->value("viewtype").toInt());
+    if (settings.contains("viewtype"))
+      pane->setViewType(settings.value("viewtype").toInt());
 
     // Restore flipbook pool indices
     if (paneObjectName == "FlipBook") {
-      int index = m_settings->value("index").toInt();
+      int index = settings.value("index").toInt();
       dynamic_cast<FlipBook *>(pane->widget())->setPoolIndex(index);
     }
 
-    m_settings->endGroup();
+    settings.endGroup();
   }
 
   // resolve resize events here to avoid unwanted minimize of floating viewer
   qApp->processEvents();
 
-  DockLayout::State state(geometries,
-                          m_settings->value("hierarchy").toString());
+  DockLayout::State state(geometries, settings.value("hierarchy").toString());
 
   layout->restoreState(state);
 
-  m_initialized = true;
+  setName(settings.value("name").toString());
+  return std::make_pair(layout, state);
+}
+
+//-----------------------------------------------------------------------------
+
+void Room::reload() {
+  TFilePath fp = getPath();
+
+  QSettings settings(toQString(fp), QSettings::IniFormat);
+
+  DockLayout *layout = dockLayout();
+  std::vector<QRect> geometries;
+
+  hide();
+  QRect lgeo = layout->geometry();
+
+  for (int i = layout->count() - 1; i >= 0; i--) {
+    TPanel *pane = static_cast<TPanel *>(layout->itemAt(i)->widget());
+    removeDockWidget(pane);
+  }
+
+  DockLayout::State state(geometries, "-1 ");
+  layout->restoreState(state);
+
+  load(fp);
+
+  layout->setGeometry(lgeo);
+  layout->redistribute();
+
+  show();
 }
 
 //=============================================================================
@@ -432,6 +414,7 @@ MainWindow::MainWindow(const QString &argumentLayoutFileName, QWidget *parent,
   m_toolsActionGroup = new QActionGroup(this);
   m_toolsActionGroup->setExclusive(true);
   m_currentRoomsChoice = Preferences::instance()->getCurrentRoomChoice();
+  makeTransparencyDialog();
   defineActions();
   // user defined shortcuts will be loaded here
   CommandManager::instance()->loadShortcuts();
@@ -447,6 +430,13 @@ MainWindow::MainWindow(const QString &argumentLayoutFileName, QWidget *parent,
 
   addToolBar(m_topBar);
   addToolBarBreak(Qt::TopToolBarArea);
+
+  m_mainToolbar = new MainToolbar(this);
+  m_mainToolbar->setVisible(ShowMainToolbarAction == 1 ? true : false);
+
+  addToolBar(m_mainToolbar);
+  addToolBarBreak(Qt::TopToolBarArea);
+
 
   m_stackedWidget = new QStackedWidget(this);
 
@@ -465,6 +455,13 @@ centralWidget->setLayout(centralWidgetLayout);*/
 
   setCentralWidget(m_stackedWidget);
 
+  m_statusBar = new StatusBar(this);
+  setStatusBar(m_statusBar);
+  m_statusBar->setVisible(ShowStatusBarAction == 1 ? true : false);
+  TApp::instance()->setStatusBar(m_statusBar);
+
+  m_aboutPopup = new AboutPopup(this);
+
   // Leggo i settings
   readSettings(argumentLayoutFileName);
 
@@ -472,16 +469,13 @@ centralWidget->setLayout(centralWidgetLayout);*/
   QTabBar *roomTabWidget = m_topBar->getRoomTabWidget();
   connect(m_stackedWidget, SIGNAL(currentChanged(int)),
           SLOT(onCurrentRoomChanged(int)));
-
-  QObject::connect(roomTabWidget, &QTabBar::currentChanged, [this](int index) {
-    Room *dstRoom = getRoom(index);
-    if (dstRoom->notInitialized()) dstRoom->initialize();
-    this->m_stackedWidget->setCurrentIndex(index);
-  });
+  connect(roomTabWidget, SIGNAL(currentChanged(int)), m_stackedWidget,
+          SLOT(setCurrentIndex(int)));
 
   /*-- タイトルバーにScene名を表示する --*/
   connect(TApp::instance()->getCurrentScene(), SIGNAL(nameSceneChanged()), this,
           SLOT(changeWindowTitle()));
+
   changeWindowTitle();
 
   // Connetto i comandi che sono in RoomTabWidget
@@ -496,6 +490,7 @@ centralWidget->setLayout(centralWidgetLayout);*/
   setCommandHandler("MI_Undo", this, &MainWindow::onUndo);
   setCommandHandler("MI_Redo", this, &MainWindow::onRedo);
   setCommandHandler("MI_NewScene", this, &MainWindow::onNewScene);
+  setCommandHandler("MI_SaveSceneVersion", this, &MainWindow::onSaveSceneVersion);
   setCommandHandler("MI_LoadScene", this, &MainWindow::onLoadScene);
   setCommandHandler("MI_LoadSubSceneFile", this, &MainWindow::onLoadSubScene);
   setCommandHandler("MI_ResetRoomLayout", this, &MainWindow::resetRoomsLayout);
@@ -503,16 +498,16 @@ centralWidget->setLayout(centralWidgetLayout);*/
 
   setCommandHandler(MI_About, this, &MainWindow::onAbout);
   setCommandHandler(MI_OpenOnlineManual, this, &MainWindow::onOpenOnlineManual);
+  //  setCommandHandler(MI_SupportTahoma2D, this,
+  //  &MainWindow::onSupportTahoma2D);
   setCommandHandler(MI_OpenWhatsNew, this, &MainWindow::onOpenWhatsNew);
   setCommandHandler(MI_OpenCommunityForum, this,
                     &MainWindow::onOpenCommunityForum);
-  setCommandHandler(MI_OpenDiscord, this, &MainWindow::onOpenDiscord);
-  setCommandHandler(MI_OpenWebsite, this, &MainWindow::onOpenWebsite);
   setCommandHandler(MI_OpenReportABug, this, &MainWindow::onOpenReportABug);
+  setCommandHandler(MI_OpenCrashReportFolder, this, &MainWindow::onOpenCrashReportFolder);
 
   setCommandHandler(MI_MaximizePanel, this, &MainWindow::maximizePanel);
   setCommandHandler(MI_FullScreenWindow, this, &MainWindow::fullScreenWindow);
-  setCommandHandler(MI_SeeThroughWindow, this, &MainWindow::seeThroughWindow);
   setCommandHandler("MI_NewVectorLevel", this,
                     &MainWindow::onNewVectorLevelButtonPressed);
   setCommandHandler("MI_NewToonzRasterLevel", this,
@@ -520,8 +515,6 @@ centralWidget->setLayout(centralWidgetLayout);*/
   setCommandHandler("MI_NewRasterLevel", this,
                     &MainWindow::onNewRasterLevelButtonPressed);
   setCommandHandler(MI_ClearCacheFolder, this, &MainWindow::clearCacheFolder);
-  setCommandHandler("MI_NewMetaLevel", this,
-                    &MainWindow::onNewMetaLevelButtonPressed);
   // remove ffmpegCache if still exists from crashed exit
   QString ffmpegCachePath =
       FlareFolder::getCacheRootFolder().getQString() + "//ffmpeg";
@@ -531,6 +524,10 @@ centralWidget->setLayout(centralWidgetLayout);*/
 
   connect(TApp::instance(), SIGNAL(activeViewerChanged()), this,
           SLOT(onActiveViewerChanged()));
+
+  connect(TUndoManager::manager(), SIGNAL(historyChanged()), this,
+          SLOT(onHistoryChanged()));
+  onHistoryChanged();
 }
 
 //-----------------------------------------------------------------------------
@@ -552,7 +549,7 @@ void MainWindow::changeWindowTitle() {
   ToonzScene *scene = app->getCurrentScene()->getScene();
   if (!scene) return;
 
-  auto project        = scene->getProject();
+  auto project = scene->getProject();
   QString projectName = QString::fromStdString(project->getName().getName());
 
   QString sceneName = QString::fromStdWString(scene->getSceneName());
@@ -566,9 +563,6 @@ void MainWindow::changeWindowTitle() {
   QString name = sceneName + " [" + projectName + "] : " +
                  QString::fromStdString(TEnv::getApplicationFullName());
 
-  if (ShowBuildDateInTitle) {
-    name += " (built " __DATE__ " " __TIME__ ")";
-  }
   setWindowTitle(name);
 }
 
@@ -621,8 +615,7 @@ void MainWindow::refreshWriteSettings() { writeSettings(); }
 void MainWindow::readSettings(const QString &argumentLayoutFileName) {
   QTabBar *roomTabWidget = m_topBar->getRoomTabWidget();
 
-  /*-- Pageを追加すると同時にMenubarを追加する --*/
-  StackedMenuBar *stackedMenuBar = m_topBar->getStackedMenuBar();
+  m_topBar->loadMenubar();
 
   std::vector<Room *> rooms;
 
@@ -641,28 +634,14 @@ void MainWindow::readSettings(const QString &argumentLayoutFileName) {
     }
   }
 
-  // Get Current Room
-  TFilePath fp = FlareFolder::getRoomsFile(currentRoomFileName);
-  Tifstream is(fp);
-  std::string name;
-  is >> name;
-
-  QString currentRoomName = QString::fromUtf8(name.c_str());
-  Room::RoomLoadParams params;
-  params.activeRoomName = currentRoomName;
-  params.forceBuildGui  = !Preferences::instance()->isLazyLoadRoomsEnabled();
-
-  for (int i = 0; i < (int)roomPaths.size(); i++) {
+  int i;
+  for (i = 0; i < (int)roomPaths.size(); i++) {
     TFilePath roomPath = roomPaths[i];
     if (TFileStatus(roomPath).doesExist()) {
       Room *room = new Room(this);
-      room->load(roomPath, params);
+      m_panelStates.push_back(room->load(roomPath));
       m_stackedWidget->addWidget(room);
-      roomTabWidget->addTab(room->getName());
-
-      /*- ここでMenuBarファイルをロードする -*/
-      std::string mbFileName = roomPath.getName() + "_menubar.xml";
-      stackedMenuBar->loadAndAddMenubar(FlareFolder::getRoomsFile(mbFileName));
+      roomTabWidget->addTab(room->getTrName());
 
       // room->setDockOptions(QMainWindow::DockOptions(
       //  (QMainWindow::AnimatedDocks | QMainWindow::AllowNestedDocks) &
@@ -675,45 +654,31 @@ void MainWindow::readSettings(const QString &argumentLayoutFileName) {
   FlipBookPool::instance()->load(FlareFolder::getMyModuleDir() +
                                  TFilePath("fliphistory.ini"));
 
-  /*- レイアウト設定ファイルが見つからなかった場合、初期Roomの生成 -*/
-  // Se leggendo i settings non ho inizializzato le stanze lo faccio ora.
-  // Puo' accadere se si buttano i file di inizializzazione.
   if (rooms.empty()) {
-    // CleanupRoom
-    Room *cleanupRoom = createCleanupRoom();
-    m_stackedWidget->addWidget(cleanupRoom);
-    rooms.push_back(cleanupRoom);
-    stackedMenuBar->createMenuBarByName(cleanupRoom->getName());
+    // 2D Room
+    Room *room2D = create2DRoom();
+    m_stackedWidget->addWidget(room2D);
+    rooms.push_back(room2D);
 
-    // PltEditRoom
-    Room *pltEditRoom = createPltEditRoom();
-    m_stackedWidget->addWidget(pltEditRoom);
-    rooms.push_back(pltEditRoom);
-    stackedMenuBar->createMenuBarByName(pltEditRoom->getName());
+    // Stop Motion Room
+    Room *roomStopMotion = createStopMotionRoom();
+    m_stackedWidget->addWidget(roomStopMotion);
+    rooms.push_back(roomStopMotion);
 
-    // InknPaintRoom
-    Room *inknPaintRoom = createInknPaintRoom();
-    m_stackedWidget->addWidget(inknPaintRoom);
-    rooms.push_back(inknPaintRoom);
-    stackedMenuBar->createMenuBarByName(inknPaintRoom->getName());
+    // Timing Room
+    Room *roomTiming = createTimingRoom();
+    m_stackedWidget->addWidget(roomTiming);
+    rooms.push_back(roomTiming);
 
-    // XsheetRoom
-    Room *xsheetRoom = createXsheetRoom();
-    m_stackedWidget->addWidget(xsheetRoom);
-    rooms.push_back(xsheetRoom);
-    stackedMenuBar->createMenuBarByName(xsheetRoom->getName());
-
-    // BatchesRoom
-    Room *batchesRoom = createBatchesRoom();
-    m_stackedWidget->addWidget(batchesRoom);
-    rooms.push_back(batchesRoom);
-    stackedMenuBar->createMenuBarByName(batchesRoom->getName());
+    // FX Room
+    Room *roomFX = createFXRoom();
+    m_stackedWidget->addWidget(roomFX);
+    rooms.push_back(roomFX);
 
     // BrowserRoom
     Room *browserRoom = createBrowserRoom();
     m_stackedWidget->addWidget(browserRoom);
     rooms.push_back(browserRoom);
-    stackedMenuBar->createMenuBarByName(browserRoom->getName());
   }
 
   /*- If the layout files were loaded from template, then save them as private
@@ -721,12 +686,16 @@ void MainWindow::readSettings(const QString &argumentLayoutFileName) {
   makePrivate(rooms);
   writeRoomList(rooms);
 
-  // Set Current Room
+  // Imposto la stanza corrente
+  TFilePath fp = FlareFolder::getRoomsFile(currentRoomFileName);
+  Tifstream is(fp);
+  std::string currentRoomName;
+  is >> currentRoomName;
   if (currentRoomName != "") {
     int count = m_stackedWidget->count();
     int index;
     for (index = 0; index < count; index++)
-      if (getRoom(index)->getName() == currentRoomName) break;
+      if (getRoom(index)->getName().toStdString() == currentRoomName) break;
     if (index < count) {
       m_oldRoomIndex = index;
       roomTabWidget->setCurrentIndex(index);
@@ -774,6 +743,11 @@ void MainWindow::writeSettings() {
   Tofstream os(FlareFolder::getMyRoomsDir() + currentRoomFileName);
   os << getCurrentRoom()->getName().toStdString();
 
+  // Perspective grid tool - custom grid
+  TTool *perspectiveTool =
+      TTool::getTool(T_PerspectiveGrid, TTool::VectorImage);
+  if (perspectiveTool) perspectiveTool->saveTool();
+
   // Main window settings
   TFilePath fp = FlareFolder::getMyModuleDir() + TFilePath("mainwindow.ini");
   QSettings settings(toQString(fp), QSettings::IniFormat);
@@ -783,191 +757,246 @@ void MainWindow::writeSettings() {
 
 //-----------------------------------------------------------------------------
 
-Room *MainWindow::createCleanupRoom() {
-  Room *cleanupRoom = new Room(this);
-  cleanupRoom->setName("Cleanup");
-  cleanupRoom->setObjectName("CleanupRoom");
+Room *MainWindow::create2DRoom() {
+  Room *room = new Room(this);
+  room->setName("2D");
+  room->setObjectName("2DRoom");
 
-  m_topBar->getRoomTabWidget()->addTab(tr("Cleanup"));
+  m_topBar->getRoomTabWidget()->addTab(room->getTrName());
 
-  DockLayout *layout = cleanupRoom->dockLayout();
+  DockLayout *layout = room->dockLayout();
 
-  // Viewer
-  TPanel *viewer = TPanelFactory::createPanel(cleanupRoom, "ComboViewer");
-  if (viewer) {
-    cleanupRoom->addDockWidget(viewer);
-    layout->dockItem(viewer);
-    ComboViewerPanel *cvp = qobject_cast<ComboViewerPanel *>(viewer);
-    if (cvp)
-      // hide all parts
-      cvp->setVisiblePartsFlag(VPPARTS_None);
-  }
-
-  // CleanupSettings
-  TPanel *cleanupSettingsPane =
-      TPanelFactory::createPanel(cleanupRoom, "CleanupSettings");
-  if (cleanupSettingsPane) {
-    cleanupRoom->addDockWidget(cleanupSettingsPane);
-    layout->dockItem(cleanupSettingsPane, viewer, Region::right);
-  }
-
-  // Xsheet
-  TPanel *xsheetPane = TPanelFactory::createPanel(cleanupRoom, "Xsheet");
-  if (xsheetPane) {
-    cleanupRoom->addDockWidget(xsheetPane);
-    layout->dockItem(xsheetPane, viewer, Region::bottom);
-  }
-
-  return cleanupRoom;
-}
-
-//-----------------------------------------------------------------------------
-
-Room *MainWindow::createPltEditRoom() {
-  Room *pltEditRoom = new Room(this);
-  pltEditRoom->setName("PltEdit");
-  pltEditRoom->setObjectName("PltEditRoom");
-
-  m_topBar->getRoomTabWidget()->addTab(tr("PltEdit"));
-
-  DockLayout *layout = pltEditRoom->dockLayout();
-
-  // Viewer
-  TPanel *viewer = TPanelFactory::createPanel(pltEditRoom, "ComboViewer");
-  if (viewer) {
-    pltEditRoom->addDockWidget(viewer);
-    layout->dockItem(viewer);
-
-    ComboViewerPanel *cvp = qobject_cast<ComboViewerPanel *>(viewer);
-    if (cvp) cvp->setVisiblePartsFlag(VPPARTS_TOOLBAR | VPPARTS_TOOLOPTIONS);
-  }
-
-  // Palette
-  TPanel *palettePane = TPanelFactory::createPanel(pltEditRoom, "LevelPalette");
-  if (palettePane) {
-    pltEditRoom->addDockWidget(palettePane);
-    layout->dockItem(palettePane, viewer, Region::bottom);
-  }
+  std::vector<QRect> geometries;
 
   // StyleEditor
-  TPanel *styleEditorPane =
-      TPanelFactory::createPanel(pltEditRoom, "StyleEditor");
+  TPanel *styleEditorPane = TPanelFactory::createPanel(room, "StyleEditor");
   if (styleEditorPane) {
-    pltEditRoom->addDockWidget(styleEditorPane);
-    layout->dockItem(styleEditorPane, viewer, Region::left);
+    styleEditorPane->setGeometry(QRect(34, 30, 259, 358));
+    geometries.push_back(styleEditorPane->geometry());
+    room->addDockWidget(styleEditorPane);
+    layout->dockItem(styleEditorPane);
   }
 
-  // Xsheet
-  TPanel *xsheetPane = TPanelFactory::createPanel(pltEditRoom, "Xsheet");
-  if (xsheetPane) {
-    pltEditRoom->addDockWidget(xsheetPane);
-    layout->dockItem(xsheetPane, palettePane, Region::left);
+  // Timeline
+  TPanel *timelinePane = TPanelFactory::createPanel(room, "Timeline");
+  if (timelinePane) {
+    timelinePane->setGeometry(QRect(34, 764, 1886, 211));
+    geometries.push_back(timelinePane->geometry());
+    room->addDockWidget(timelinePane);
+    layout->dockItem(timelinePane);
   }
 
-  // Studio Palette
-  TPanel *studioPaletteViewer =
-      TPanelFactory::createPanel(pltEditRoom, "StudioPalette");
-  if (studioPaletteViewer) {
-    pltEditRoom->addDockWidget(studioPaletteViewer);
-    layout->dockItem(studioPaletteViewer, xsheetPane, Region::left);
+  // SceneViewer
+  TPanel *sceneViewerPane = TPanelFactory::createPanel(room, "SceneViewer");
+  if (sceneViewerPane) {
+    sceneViewerPane->setGeometry(QRect(297, 30, 1623, 730));
+    geometries.push_back(sceneViewerPane->geometry());
+    room->addDockWidget(sceneViewerPane);
+    layout->dockItem(sceneViewerPane);
   }
 
-  return pltEditRoom;
+  // ToolBar
+  TPanel *toolBarPane = TPanelFactory::createPanel(room, "ToolBar");
+  if (toolBarPane) {
+    toolBarPane->setGeometry(QRect(0, 30, 30, 945));
+    geometries.push_back(toolBarPane->geometry());
+    room->addDockWidget(toolBarPane);
+    layout->dockItem(toolBarPane);
+  }
+
+  // ToolOptions
+  TPanel *toolOptionsPane = TPanelFactory::createPanel(room, "ToolOptions");
+  if (toolOptionsPane) {
+    toolOptionsPane->setGeometry(QRect(0, 0, 1920, 26));
+    geometries.push_back(toolOptionsPane->geometry());
+    room->addDockWidget(toolOptionsPane);
+    layout->dockItem(toolOptionsPane);
+  }
+
+  // LevelPalette
+  TPanel *levelPalettePane = TPanelFactory::createPanel(room, "LevelPalette");
+  if (levelPalettePane) {
+    levelPalettePane->setGeometry(QRect(34, 392, 259, 368));
+    geometries.push_back(levelPalettePane->geometry());
+    room->addDockWidget(levelPalettePane);
+    layout->dockItem(levelPalettePane);
+  }
+
+  DockLayout::State state(geometries, "-1 1 [ 4 [ 3 [ [ [ 0 5 ] 2 ] 1 ] ] ] ");
+
+  layout->restoreState(state);
+
+  m_panelStates.push_back(std::make_pair(layout, state));
+
+  return room;
 }
 
 //-----------------------------------------------------------------------------
 
-Room *MainWindow::createInknPaintRoom() {
-  Room *inknPaintRoom = new Room(this);
-  inknPaintRoom->setName("InknPaint");
-  inknPaintRoom->setObjectName("InknPaintRoom");
+Room *MainWindow::createStopMotionRoom() {
+  Room *room = new Room(this);
+  room->setName("StopMotion");
+  room->setObjectName("StopMotionRoom");
 
-  m_topBar->getRoomTabWidget()->addTab(tr("InknPaint"));
+  m_topBar->getRoomTabWidget()->addTab(room->getTrName());
 
-  DockLayout *layout = inknPaintRoom->dockLayout();
+  DockLayout *layout = room->dockLayout();
 
-  // Viewer
-  TPanel *viewer = TPanelFactory::createPanel(inknPaintRoom, "ComboViewer");
-  if (viewer) {
-    inknPaintRoom->addDockWidget(viewer);
-    layout->dockItem(viewer);
+  std::vector<QRect> geometries;
+
+  // SceneViewer
+  TPanel *sceneViewerPane = TPanelFactory::createPanel(room, "SceneViewer");
+  if (sceneViewerPane) {
+    sceneViewerPane->setGeometry(QRect(0, 0, 1529, 774));
+    geometries.push_back(sceneViewerPane->geometry());
+    room->addDockWidget(sceneViewerPane);
+    layout->dockItem(sceneViewerPane);
   }
 
-  // Palette
-  TPanel *palettePane =
-      TPanelFactory::createPanel(inknPaintRoom, "LevelPalette");
-  if (palettePane) {
-    inknPaintRoom->addDockWidget(palettePane);
-    layout->dockItem(palettePane, viewer, Region::bottom);
+  // Timeline
+  TPanel *timelinePane = TPanelFactory::createPanel(room, "Timeline");
+  if (timelinePane) {
+    timelinePane->setGeometry(QRect(0, 778, 1920, 197));
+    geometries.push_back(timelinePane->geometry());
+    room->addDockWidget(timelinePane);
+    layout->dockItem(timelinePane);
   }
 
-  // Filmstrip
-  TPanel *filmStripPane =
-      TPanelFactory::createPanel(inknPaintRoom, "FilmStrip");
-  if (filmStripPane) {
-    inknPaintRoom->addDockWidget(filmStripPane);
-    layout->dockItem(filmStripPane, viewer, Region::right);
+  // Stop Motion Controller
+  TPanel *stopMotionControllerPane =
+      TPanelFactory::createPanel(room, "StopMotionController");
+  if (stopMotionControllerPane) {
+    stopMotionControllerPane->setGeometry(QRect(1533, 0, 387, 774));
+    geometries.push_back(stopMotionControllerPane->geometry());
+    room->addDockWidget(stopMotionControllerPane);
+    layout->dockItem(stopMotionControllerPane);
   }
 
-  return inknPaintRoom;
+  DockLayout::State state(geometries, "-1 1 [ [ 0 2 ] 1 ] ");
+
+  layout->restoreState(state);
+
+  m_panelStates.push_back(std::make_pair(layout, state));
+
+  return room;
 }
 
 //-----------------------------------------------------------------------------
 
-Room *MainWindow::createXsheetRoom() {
-  Room *xsheetRoom = new Room(this);
-  xsheetRoom->setName("Xsheet");
-  xsheetRoom->setObjectName("XsheetRoom");
+Room *MainWindow::createTimingRoom() {
+  Room *room = new Room(this);
+  room->setName("Timing");
+  room->setObjectName("TimingRoom");
 
-  m_topBar->getRoomTabWidget()->addTab(tr("Xsheet"));
+  m_topBar->getRoomTabWidget()->addTab(room->getTrName());
 
-  DockLayout *layout = xsheetRoom->dockLayout();
+  DockLayout *layout = room->dockLayout();
 
-  // Xsheet
-  TPanel *xsheetPane = TPanelFactory::createPanel(xsheetRoom, "Xsheet");
-  if (xsheetPane) {
-    xsheetRoom->addDockWidget(xsheetPane);
-    layout->dockItem(xsheetPane);
+  std::vector<QRect> geometries;
+
+  // SceneViewer
+  TPanel *sceneViewerPane = TPanelFactory::createPanel(room, "SceneViewer");
+  if (sceneViewerPane) {
+    sceneViewerPane->setGeometry(QRect(995, 30, 925, 710));
+    geometries.push_back(sceneViewerPane->geometry());
+    room->addDockWidget(sceneViewerPane);
+    layout->dockItem(sceneViewerPane);
   }
 
-  // FunctionEditor
+  // ToolBar
+  TPanel *toolBarPane = TPanelFactory::createPanel(room, "ToolBar");
+  if (toolBarPane) {
+    toolBarPane->setGeometry(QRect(0, 0, 35, 995));
+    geometries.push_back(toolBarPane->geometry());
+    room->addDockWidget(toolBarPane);
+    layout->dockItem(toolBarPane);
+  }
+
+  // ToolOptions
+  TPanel *toolOptionsPane = TPanelFactory::createPanel(room, "ToolOptions");
+  if (toolOptionsPane) {
+    toolOptionsPane->setGeometry(QRect(39, 0, 1881, 26));
+    geometries.push_back(toolOptionsPane->geometry());
+    room->addDockWidget(toolOptionsPane);
+    layout->dockItem(toolOptionsPane);
+  }
+
+  // Timeline
+  TPanel *timelinePane = TPanelFactory::createPanel(room, "Timeline");
+  if (timelinePane) {
+    timelinePane->setGeometry(QRect(39, 744, 1881, 251));
+    geometries.push_back(timelinePane->geometry());
+    room->addDockWidget(timelinePane);
+    layout->dockItem(timelinePane);
+  }
+
+  // Function Editor
   TPanel *functionEditorPane =
-      TPanelFactory::createPanel(xsheetRoom, "FunctionEditor");
+      TPanelFactory::createPanel(room, "FunctionEditor");
   if (functionEditorPane) {
-    xsheetRoom->addDockWidget(functionEditorPane);
-    layout->dockItem(functionEditorPane, xsheetPane, Region::right);
+    functionEditorPane->setGeometry(QRect(39, 30, 952, 710));
+    geometries.push_back(functionEditorPane->geometry());
+    room->addDockWidget(functionEditorPane);
+    layout->dockItem(functionEditorPane);
   }
 
-  return xsheetRoom;
+  DockLayout::State state(geometries, "-1 0 [ 1 [ 2 [ 4 0 ] 3 ] ] ");
+
+  layout->restoreState(state);
+
+  m_panelStates.push_back(std::make_pair(layout, state));
+
+  return room;
 }
 
 //-----------------------------------------------------------------------------
 
-Room *MainWindow::createBatchesRoom() {
-  Room *batchesRoom = new Room(this);
-  batchesRoom->setName("Batches");
-  batchesRoom->setObjectName("BatchesRoom");
+Room *MainWindow::createFXRoom() {
+  Room *room = new Room(this);
+  room->setName("FX");
+  room->setObjectName("FXRoom");
 
-  m_topBar->getRoomTabWidget()->addTab("Batches");
+  m_topBar->getRoomTabWidget()->addTab(room->getTrName());
 
-  DockLayout *layout = batchesRoom->dockLayout();
+  DockLayout *layout = room->dockLayout();
 
-  // Tasks
-  TPanel *tasksViewer = TPanelFactory::createPanel(batchesRoom, "Tasks");
-  if (tasksViewer) {
-    batchesRoom->addDockWidget(tasksViewer);
-    layout->dockItem(tasksViewer);
+  std::vector<QRect> geometries;
+
+  // Timeline
+  TPanel *timelinePane = TPanelFactory::createPanel(room, "Timeline");
+  if (timelinePane) {
+    timelinePane->setGeometry(QRect(0, 743, 1920, 252));
+    geometries.push_back(timelinePane->geometry());
+    room->addDockWidget(timelinePane);
+    layout->dockItem(timelinePane);
   }
 
-  // BatchServers
-  TPanel *batchServersViewer =
-      TPanelFactory::createPanel(batchesRoom, "BatchServers");
-  if (batchServersViewer) {
-    batchesRoom->addDockWidget(batchServersViewer);
-    layout->dockItem(batchServersViewer, tasksViewer, Region::right);
+  // SceneViewer
+  TPanel *sceneViewerPane = TPanelFactory::createPanel(room, "SceneViewer");
+  if (sceneViewerPane) {
+    sceneViewerPane->setGeometry(QRect(849, 0, 1071, 739));
+    geometries.push_back(sceneViewerPane->geometry());
+    room->addDockWidget(sceneViewerPane);
+    layout->dockItem(sceneViewerPane);
   }
 
-  return batchesRoom;
+  // Schematic
+  TPanel *schematicPane = TPanelFactory::createPanel(room, "Schematic");
+  if (schematicPane) {
+    schematicPane->setGeometry(QRect(0, 0, 845, 739));
+    schematicPane->setViewType(0);
+    geometries.push_back(schematicPane->geometry());
+    room->addDockWidget(schematicPane);
+    layout->dockItem(schematicPane);
+  }
+
+  DockLayout::State state(geometries, "-1 1 [ [ 2 1 ] 0 ] ");
+
+  layout->restoreState(state);
+
+  m_panelStates.push_back(std::make_pair(layout, state));
+
+  return room;
 }
 
 //-----------------------------------------------------------------------------
@@ -977,13 +1006,17 @@ Room *MainWindow::createBrowserRoom() {
   browserRoom->setName("Browser");
   browserRoom->setObjectName("BrowserRoom");
 
-  m_topBar->getRoomTabWidget()->addTab("Browser");
+  m_topBar->getRoomTabWidget()->addTab(browserRoom->getTrName());
 
   DockLayout *layout = browserRoom->dockLayout();
+
+  std::vector<QRect> geometries;
 
   // Browser
   TPanel *browserPane = TPanelFactory::createPanel(browserRoom, "Browser");
   if (browserPane) {
+    browserPane->setGeometry(QRect(0, 0, 1920, 497));
+    geometries.push_back(browserPane->geometry());
     browserRoom->addDockWidget(browserPane);
     layout->dockItem(browserPane);
   }
@@ -991,9 +1024,17 @@ Room *MainWindow::createBrowserRoom() {
   // Scene Cast
   TPanel *sceneCastPanel = TPanelFactory::createPanel(browserRoom, "SceneCast");
   if (sceneCastPanel) {
+    sceneCastPanel->setGeometry(QRect(0, 501, 1920, 494));
+    geometries.push_back(sceneCastPanel->geometry());
     browserRoom->addDockWidget(sceneCastPanel);
     layout->dockItem(sceneCastPanel, browserPane, Region::bottom);
   }
+
+  DockLayout::State state(geometries, "-1 1 [ 0 1 ] ");
+
+  layout->restoreState(state);
+
+  m_panelStates.push_back(std::make_pair(layout, state));
 
   return browserRoom;
 }
@@ -1008,14 +1049,15 @@ Room *MainWindow::getCurrentRoom() const {
 
 void MainWindow::onUndo() {
   // Must wait for current save to finish, just in case
-  while (TApp::instance()->isSaveInProgress());
+  while (TApp::instance()->isSaveInProgress())
+    ;
 
   ToolHandle *toolH = TApp::instance()->getCurrentTool();
 
   // do not use undo if tool is currently in use
   if (toolH->getTool()->isUndoable()) {
     bool ret = TUndoManager::manager()->undo();
-    if (!ret) DVGui::error(QObject::tr("No more Undo operations available."));
+//    if (!ret) DVGui::error(QObject::tr("No more Undo operations available."));
   }
 }
 
@@ -1023,10 +1065,19 @@ void MainWindow::onUndo() {
 
 void MainWindow::onRedo() {
   // Must wait for current save to finish, just in case
-  while (TApp::instance()->isSaveInProgress());
+  while (TApp::instance()->isSaveInProgress())
+    ;
 
   bool ret = TUndoManager::manager()->redo();
-  if (!ret) DVGui::error(QObject::tr("No more Redo operations available."));
+//  if (!ret) DVGui::error(QObject::tr("No more Redo operations available."));
+}
+
+void MainWindow::onHistoryChanged() {
+  QAction *action = CommandManager::instance()->getAction(MI_Undo);
+  action->setEnabled(!TUndoManager::manager()->atBeginning());
+
+  action = CommandManager::instance()->getAction(MI_Redo);
+  action->setEnabled(!TUndoManager::manager()->atEnd());
 }
 
 //-----------------------------------------------------------------------------
@@ -1045,6 +1096,8 @@ void MainWindow::onNewScene() {
 
 void MainWindow::onLoadScene() { IoCmd::loadScene(); }
 
+void MainWindow::onSaveSceneVersion() { IoCmd::saveSceneVersion(); }
+
 //-----------------------------------------------------------------------------
 
 void MainWindow::onLoadSubScene() { IoCmd::loadSubScene(); }
@@ -1054,71 +1107,31 @@ void MainWindow::onUpgradeTabPro() {}
 
 //-----------------------------------------------------------------------------
 
-void MainWindow::onAbout() {
-  QLabel *label  = new QLabel();
-  QPixmap pixmap = QIcon(":Resources/splash.svg").pixmap(QSize(610, 344));
-  pixmap.setDevicePixelRatio(getDevicePixelRatio(this));
-  label->setPixmap(pixmap);
-
-  DVGui::Dialog *dialog = new DVGui::Dialog(this, true);
-  dialog->setWindowTitle(tr("About Flare"));
-  dialog->setTopMargin(0);
-  dialog->addWidget(label);
-  QHBoxLayout *hLay = new QHBoxLayout();
-  {
-    QString name = QString::fromStdString(TEnv::getApplicationFullName());
-    name += " (built " __DATE__ " " __TIME__ ")";
-    hLay->addWidget(new QLabel(name, dialog));
-
-    QCheckBox *showDateCheckBox =
-        new QCheckBox(tr("Show build date in title"), dialog);
-    showDateCheckBox->setChecked(ShowBuildDateInTitle);
-    connect(showDateCheckBox, &QCheckBox::stateChanged, [=](int state) {
-      bool show            = (state == Qt::Checked);
-      ShowBuildDateInTitle = show;
-      changeWindowTitle();
-    });
-    hLay->addWidget(showDateCheckBox);
-  }
-  dialog->addLayout(hLay);
-
-  QPushButton *button = new QPushButton(tr("Close"), dialog);
-  button->setDefault(true);
-  dialog->addButtonBarWidget(button);
-  connect(button, SIGNAL(clicked()), dialog, SLOT(accept()));
-  dialog->exec();
-}
+void MainWindow::onAbout() { m_aboutPopup->exec(); }
 
 //-----------------------------------------------------------------------------
 
 void MainWindow::onOpenOnlineManual() {
-  QDesktopServices::openUrl(QUrl(tr("http://flare-animate.readthedocs.io")));
+  QDesktopServices::openUrl(QUrl(tr("http://flare.readthedocs.io")));
 }
+
+//-----------------------------------------------------------------------------
+
+// void MainWindow::onSupportTahoma2D() {
+//  QDesktopServices::openUrl(QUrl("http://patreon.com/jeremybullock"));
+//}
 
 //-----------------------------------------------------------------------------
 
 void MainWindow::onOpenWhatsNew() {
   QDesktopServices::openUrl(
-      QUrl(tr("https://github.com/Flare-Animate/Flare/releases/latest")));
+      QUrl(tr("https://flare.readthedocs.io/en/latest/whats_new.html")));
 }
 
 //-----------------------------------------------------------------------------
 
 void MainWindow::onOpenCommunityForum() {
-  QDesktopServices::openUrl(
-      QUrl(tr("https://github.com/Flare-Animate/Flare/discussions")));
-}
-
-//-----------------------------------------------------------------------------
-
-void MainWindow::onOpenDiscord() {
-  QDesktopServices::openUrl(QUrl("https://discord.com/invite/JpeScW8Awa"));
-}
-
-//-----------------------------------------------------------------------------
-
-void MainWindow::onOpenWebsite() {
-  QDesktopServices::openUrl(QUrl("https://flare-animate.github.io/website/"));
+  QDesktopServices::openUrl(QUrl(tr("https://groups.google.com/g/flare")));
 }
 
 //-----------------------------------------------------------------------------
@@ -1134,59 +1147,64 @@ void MainWindow::onOpenReportABug() {
   int ret = DVGui::MsgBox(DVGui::INFORMATION, str, buttons, 1);
   if (ret == 1)
     QDesktopServices::openUrl(
-        QUrl("https://github.com/Flare-Animate/Flare/issues"));
+        QUrl("https://github.com/flare/flare/issues"));
 }
+
+//-----------------------------------------------------------------------------
+
+void MainWindow::onOpenCrashReportFolder() {
+  TFilePath fp = FlareFolder::getCrashReportFolder();
+  QDesktopServices::openUrl(QUrl("file:///" + fp.getQString()));
+}
+
 //-----------------------------------------------------------------------------
 
 void MainWindow::autofillToggle() {
   TPaletteHandle *h = TApp::instance()->getCurrentPalette();
-  h->toggleAutopaint();
+  if (h->getPalette()) h->toggleAutopaint();
 }
 
 void MainWindow::resetRoomsLayout() {
-  if (!m_saveSettingsOnQuit) return;
-
-  QString message(tr("Reset rooms to their default?"));
-  message += "\n" + tr("All user rooms will be lost!");
-
-  QMessageBox::StandardButton ret = QMessageBox::question(
-      this, tr("Reset Rooms"), message,
-      QMessageBox::StandardButtons(QMessageBox::Yes | QMessageBox::No));
-
-  if (ret != QMessageBox::Yes) return;
-
-  // Reflect changes to initwizard.cpp: void UIPage::resetRoom()
-
-  m_saveSettingsOnQuit = false;
+  QString question(
+      tr("Are you sure you want to reload and restore default rooms?\nCustom "
+         "rooms will not be touched."));
+  int ret = DVGui::MsgBox(question, QObject::tr("Yes"), QObject::tr("No"));
+  if (ret == 0 || ret == 2) return;
 
   TFilePath layoutDir = FlareFolder::getMyRoomsDir();
   if (layoutDir != TFilePath()) {
-    // TSystem::deleteFile(layoutDir);
-    TSystem::rmDirTree(layoutDir);
-  }
-  /*if (layoutDir != TFilePath()) {
-          try {
-                  TFilePathSet fpset;
-                  TSystem::readDirectory(fpset, layoutDir, true, false);
-                  for (auto const& path : fpset) {
-                          QString fn = toQString(path.withoutParentDir());
-                          if (fn.startsWith("room") || fn.startsWith("popups"))
-  {
-                                  TSystem::deleteFile(path);
-                          }
-                  }
-          } catch (...) {
+    TFilePath layoutTemplateDir = FlareFolder::getTemplateRoomsDir();
+    TFilePathSet room_fpset;
+    try {
+      TSystem::readDirectory(room_fpset, layoutTemplateDir, false, true);
+      TFilePathSet::iterator it = room_fpset.begin();
+      for (int i = 0; it != room_fpset.end(); it++, i++) {
+        TFilePath defaultfp = *it;
+        if (defaultfp.getType() != "ini") continue;
+        TFilePath fp = layoutDir + defaultfp.getLevelName();
+        if (TFileStatus(fp).doesExist()) {
+          for (i = 0; i < m_stackedWidget->count(); i++) {
+            Room *room = getRoom(i);
+            if (room->getPath() == fp) {
+              room->reload();
+              break;
+            }
           }
-  }*/
+        } else {
+          TSystem::copyFile(fp, defaultfp);
 
-  DVGui::info(
-      QObject::tr("The rooms will be reset the next time you run Flare."));
-
-  ret = QMessageBox::question(
-      this, tr("Reset Rooms"), tr("You must restart Flare, close it now?"),
-      QMessageBox::StandardButtons(QMessageBox::Yes | QMessageBox::No));
-
-  if (ret == QMessageBox::Yes) close();
+          QTabBar *roomTabWidget = m_topBar->getRoomTabWidget();
+          Room *room             = new Room(this);
+          room->hide();
+          m_panelStates.push_back(room->load(fp));
+          m_stackedWidget->addWidget(room);
+          roomTabWidget->addTab(room->getTrName());
+          room->show();
+        }
+      }
+    } catch (...) {
+    }
+  }
 }
 
 void MainWindow::maximizePanel() {
@@ -1204,33 +1222,24 @@ void MainWindow::maximizePanel() {
 }
 
 void MainWindow::fullScreenWindow() {
-  if (isFullScreen()) {
-    if (m_wasMaximized)
-      showMaximized();
-    else
-      showNormal();
-  } else {
+  if (isFullScreen())
+    showNormal();
+  else {
 #if defined(_WIN32)
     // http://doc.qt.io/qt-5/windows-issues.html#fullscreen-opengl-based-windows
     this->winId();
     QWindowsWindowFunctions::setHasBorderInFullScreen(this->windowHandle(),
                                                       true);
 #endif
-    m_wasMaximized = isMaximized();
     this->showFullScreen();
   }
-}
-
-void MainWindow::seeThroughWindow() {
-  SeeThroughWindowMode::instance()->toggleMode(this);
 }
 
 //-----------------------------------------------------------------------------
 
 void MainWindow::onCurrentRoomChanged(int newRoomIndex) {
-  Room *oldRoom = getRoom(m_oldRoomIndex);
-  Room *newRoom = getRoom(newRoomIndex);
-
+  Room *oldRoom            = getRoom(m_oldRoomIndex);
+  Room *newRoom            = getRoom(newRoomIndex);
   QList<TPanel *> paneList = oldRoom->findChildren<TPanel *>();
 
   // Change the parent of all the floating dockWidgets
@@ -1272,7 +1281,7 @@ void MainWindow::onIndexSwapped(int firstIndex, int secondIndex) {
 
 void MainWindow::insertNewRoom() {
   Room *room = new Room(this);
-  room->setName("room");
+  room->setName("New Room");
   if (m_saveSettingsOnQuit) makePrivate(room);
   m_stackedWidget->insertWidget(0, room);
 
@@ -1291,19 +1300,15 @@ void MainWindow::deleteRoom(int index) {
   } catch (...) {
     DVGui::error(tr("Cannot delete") + toQString(fp));
     // Se non ho rimosso la stanza devo rimettere il tab!!
-    m_topBar->getRoomTabWidget()->insertTab(index, room->getName());
+    m_topBar->getRoomTabWidget()->insertTab(index, room->getTrName());
     return;
   }
-
-  /*- delete menubar settings file as well -*/
-  std::string mbFileName = fp.getName() + "_menubar.xml";
-  TFilePath mbFp         = fp.getParentDir() + mbFileName;
-  TSystem::deleteFile(mbFp);
 
   // The old room index must be updated if index < of it
   if (index < m_oldRoomIndex) m_oldRoomIndex--;
 
   m_stackedWidget->removeWidget(room);
+  m_panelStates.erase(m_panelStates.begin() + index);
   delete room;
 }
 
@@ -1332,13 +1337,17 @@ void MainWindow::onMenuCheckboxChanged() {
     EditInPlaceToggleAction = isChecked;
   else if (cm->getAction(MI_ViewBBox) == action)
     ViewBBoxToggleAction = isChecked;
+  else if (cm->getAction(MI_ShowSymmetryGuide) == action)
+    ShowSymmetryGuide = isChecked;
+  else if (cm->getAction(MI_ShowPerspectiveGrids) == action)
+    ShowPerspectiveGrids = isChecked;
   else if (cm->getAction(MI_FieldGuide) == action)
     FieldGuideToggleAction = isChecked;
   else if (cm->getAction(MI_RasterizePli) == action) {
-    if (!QGLPixelBuffer::hasOpenGLPbuffers()) isChecked = 0;
+//    if (!QOpenGLFramebufferObject::hasOpenGLPbuffers()) isChecked = 0;
     RasterizePliToggleAction = isChecked;
-  } else if (cm->getAction(MI_LayoutGuide) == action)
-    LayoutGuideToggleAction = isChecked;
+  } else if (cm->getAction(MI_SafeArea) == action)
+    SafeAreaToggleAction = isChecked;
   else if (cm->getAction(MI_ViewColorcard) == action)
     ViewColorcardToggleAction = isChecked;
   else if (cm->getAction(MI_ViewGuide) == action)
@@ -1347,8 +1356,8 @@ void MainWindow::onMenuCheckboxChanged() {
     ViewRulerToggleAction = isChecked;
   else if (cm->getAction(MI_TCheck) == action)
     TCheckToggleAction = isChecked;
-  else if (cm->getAction(MI_DockingCheck) == action)
-    DockingCheckToggleAction = isChecked;
+  // else if (cm->getAction(MI_DockingCheck) == action)
+  //  DockingCheckToggleAction = isChecked;
   else if (cm->getAction(MI_ICheck) == action)
     ICheckToggleAction = isChecked;
   else if (cm->getAction(MI_Ink1Check) == action)
@@ -1382,12 +1391,6 @@ void MainWindow::onMenuCheckboxChanged() {
 void MainWindow::showEvent(QShowEvent *event) {
   getCurrentRoom()->layout()->setEnabled(true);  // See main function in
                                                  // main.cpp
-  if (Preferences::instance()->isStartupPopupEnabled() &&
-      !m_startupPopupShown) {
-    StartupPopup *startupPopup = new StartupPopup();
-    startupPopup->show();
-    m_startupPopupShown = true;
-  }
 }
 extern const char *applicationName;
 extern const char *applicationVersion;
@@ -1395,11 +1398,11 @@ extern const char *applicationVersion;
 void MainWindow::checkForUpdates() {
   // Since there is only a single version of Flare, we can do a simple check
   // against a string
-  QString updateUrl("http://flare-animate.github.io/flare-version.txt");
+  QString updateUrl("http://flare.org/files/flare-version.txt");
 
   m_updateChecker = new UpdateChecker(updateUrl);
-      connect(m_updateChecker, SIGNAL(done(bool)), this,
-              SLOT(onUpdateCheckerDone(bool)));
+  connect(m_updateChecker, SIGNAL(done(bool)), this,
+          SLOT(onUpdateCheckerDone(bool)));
 }
 //-----------------------------------------------------------------------------
 
@@ -1411,16 +1414,23 @@ void MainWindow::onUpdateCheckerDone(bool error) {
 
   int const software_version =
       get_version_code_from(TEnv::getApplicationVersion());
+  QString latestVersionStr = m_updateChecker->getLatestVersion();
+  // Check result for valid version format. If we get garbage back, likely not
+  // connected to internet or other issue so skip check
+  if (!QRegularExpression("^[0-9.]*$").match(latestVersionStr).hasMatch())
+    return;
   int const latest_version =
-      get_version_code_from(m_updateChecker->getLatestVersion().toStdString());
-  if (software_version < latest_version) {
+      get_version_code_from(latestVersionStr.toStdString());
+  int skip_version = get_version_code_from(SkipVersion.getValue());
+  if (software_version < latest_version && skip_version != latest_version) {
     QStringList buttons;
     buttons.push_back(QObject::tr("Visit Web Site"));
+    buttons.push_back(QObject::tr("Skip version"));
     buttons.push_back(QObject::tr("Cancel"));
     DVGui::MessageAndCheckboxDialog *dialog = DVGui::createMsgandCheckbox(
-        DVGui::INFORMATION,
-        QObject::tr("An update is available for this software.\nVisit the Web "
-                    "site for more information."),
+        DVGui::INFORMATION, QObject::tr("Version %1 is now available.\n\nVisit "
+                                        "the Web site for more information.\n")
+                                .arg(latestVersionStr),
         QObject::tr("Check for the latest version on launch."), buttons, 0,
         Qt::Checked);
     int ret = dialog->exec();
@@ -1429,7 +1439,10 @@ void MainWindow::onUpdateCheckerDone(bool error) {
     dialog->deleteLater();
     if (ret == 1) {
       // Write the new last date to file
-      QDesktopServices::openUrl(QObject::tr("https://flare-animate.github.io/e/"));
+      QDesktopServices::openUrl(
+          QObject::tr("https://github.com/flare/flare/releases/latest"));
+    } else if (ret == 2) {
+      SkipVersion = latestVersionStr.toStdString();
     }
   }
 
@@ -1509,7 +1522,8 @@ void MainWindow::closeEvent(QCloseEvent *event) {
 
 QAction *MainWindow::createAction(const char *id, const char *name,
                                   const QString &defaultShortcut,
-                                  CommandType type, const char *iconSVGName) {
+                                  QString newStatusTip, CommandType type,
+                                  const char *iconSVGName) {
   QAction *action = new DVAction(tr(name), this);
 
   // For "edit" category menu commands may behave various function
@@ -1521,7 +1535,8 @@ QAction *MainWindow::createAction(const char *id, const char *name,
   if (type == MenuEditCommandType) action->setIconText(tr(name));
 
 #if !defined(_WIN32)
-  bool visible = Preferences::instance()->getBoolValue(showIconsInMenu);
+  bool visible = Preferences::instance()->isShowAdvancedOptionsEnabled() &&
+                 Preferences::instance()->getBoolValue(showIconsInMenu);
   action->setIconVisibleInMenu(visible);
 #endif
 
@@ -1541,7 +1556,7 @@ QAction *MainWindow::createAction(const char *id, const char *name,
 #endif
     // do nothing for other platforms
   } else
-    action->setIcon(createQIcon(iconSVGName, true));
+    action->setIcon(createQIcon(iconSVGName, false, true));
   addAction(action);
 #ifdef MACOSX
   // To prevent the wrong menu items (due to MacOS menu naming conventions),
@@ -1560,6 +1575,7 @@ QAction *MainWindow::createAction(const char *id, const char *name,
 #endif
   CommandManager::instance()->define(id, type, defaultShortcut.toStdString(),
                                      action, iconSVGName);
+  action->setStatusTip(newStatusTip);
   return action;
 }
 
@@ -1568,27 +1584,30 @@ QAction *MainWindow::createAction(const char *id, const char *name,
 QAction *MainWindow::createRightClickMenuAction(const char *id,
                                                 const char *name,
                                                 const QString &defaultShortcut,
-                                                const char *iconSVGName) {
-  return createAction(id, name, defaultShortcut, RightClickMenuCommandType,
-                      iconSVGName);
+                                                const char *iconSVGName,
+                                                QString newStatusTip) {
+  return createAction(id, name, defaultShortcut, newStatusTip,
+                      RightClickMenuCommandType, iconSVGName);
 }
 
 //-----------------------------------------------------------------------------
 
 QAction *MainWindow::createMenuFileAction(const char *id, const char *name,
                                           const QString &defaultShortcut,
-                                          const char *iconSVGName) {
-  return createAction(id, name, defaultShortcut, MenuFileCommandType,
-                      iconSVGName);
+                                          const char *iconSVGName,
+                                          QString newStatusTip) {
+  return createAction(id, name, defaultShortcut, newStatusTip,
+                      MenuFileCommandType, iconSVGName);
 }
 
 //-----------------------------------------------------------------------------
 
 QAction *MainWindow::createMenuEditAction(const char *id, const char *name,
                                           const QString &defaultShortcut,
-                                          const char *iconSVGName) {
-  return createAction(id, name, defaultShortcut, MenuEditCommandType,
-                      iconSVGName);
+                                          const char *iconSVGName,
+                                          QString newStatusTip) {
+  return createAction(id, name, defaultShortcut, newStatusTip,
+                      MenuEditCommandType, iconSVGName);
 }
 
 //-----------------------------------------------------------------------------
@@ -1596,105 +1615,119 @@ QAction *MainWindow::createMenuEditAction(const char *id, const char *name,
 QAction *MainWindow::createMenuScanCleanupAction(const char *id,
                                                  const char *name,
                                                  const QString &defaultShortcut,
-                                                 const char *iconSVGName) {
-  return createAction(id, name, defaultShortcut, MenuScanCleanupCommandType,
-                      iconSVGName);
+                                                 const char *iconSVGName,
+                                                 QString newStatusTip) {
+  return createAction(id, name, defaultShortcut, newStatusTip,
+                      MenuScanCleanupCommandType, iconSVGName);
 }
 
 //-----------------------------------------------------------------------------
 
 QAction *MainWindow::createMenuLevelAction(const char *id, const char *name,
                                            const QString &defaultShortcut,
-                                           const char *iconSVGName) {
-  return createAction(id, name, defaultShortcut, MenuLevelCommandType,
-                      iconSVGName);
+                                           const char *iconSVGName,
+                                           QString newStatusTip) {
+  return createAction(id, name, defaultShortcut, newStatusTip,
+                      MenuLevelCommandType, iconSVGName);
 }
 
 //-----------------------------------------------------------------------------
 
 QAction *MainWindow::createMenuXsheetAction(const char *id, const char *name,
                                             const QString &defaultShortcut,
-                                            const char *iconSVGName) {
-  return createAction(id, name, defaultShortcut, MenuXsheetCommandType,
-                      iconSVGName);
+                                            const char *iconSVGName,
+                                            QString newStatusTip) {
+  return createAction(id, name, defaultShortcut, newStatusTip,
+                      MenuXsheetCommandType, iconSVGName);
 }
 
 //-----------------------------------------------------------------------------
 
 QAction *MainWindow::createMenuCellsAction(const char *id, const char *name,
                                            const QString &defaultShortcut,
-                                           const char *iconSVGName) {
-  return createAction(id, name, defaultShortcut, MenuCellsCommandType,
-                      iconSVGName);
+                                           const char *iconSVGName,
+                                           QString newStatusTip) {
+  return createAction(id, name, defaultShortcut, newStatusTip,
+                      MenuCellsCommandType, iconSVGName);
 }
 
 //-----------------------------------------------------------------------------
 
 QAction *MainWindow::createMenuViewAction(const char *id, const char *name,
                                           const QString &defaultShortcut,
-                                          const char *iconSVGName) {
-  return createAction(id, name, defaultShortcut, MenuViewCommandType,
-                      iconSVGName);
+                                          const char *iconSVGName,
+                                          QString newStatusTip) {
+  return createAction(id, name, defaultShortcut, newStatusTip,
+                      MenuViewCommandType, iconSVGName);
 }
 
 //-----------------------------------------------------------------------------
 
 QAction *MainWindow::createMenuWindowsAction(const char *id, const char *name,
                                              const QString &defaultShortcut,
-                                             const char *iconSVGName) {
-  return createAction(id, name, defaultShortcut, MenuWindowsCommandType,
-                      iconSVGName);
+                                             const char *iconSVGName,
+                                             QString newStatusTip) {
+  return createAction(id, name, defaultShortcut, newStatusTip,
+                      MenuWindowsCommandType, iconSVGName);
 }
 
 //-----------------------------------------------------------------------------
 
 QAction *MainWindow::createMenuPlayAction(const char *id, const char *name,
                                           const QString &defaultShortcut,
-                                          const char *iconSVGName) {
-  return createAction(id, name, defaultShortcut, MenuPlayCommandType,
-                      iconSVGName);
+                                          const char *iconSVGName,
+                                          QString newStatusTip) {
+  return createAction(id, name, defaultShortcut, newStatusTip,
+                      MenuPlayCommandType, iconSVGName);
 }
 
 //-----------------------------------------------------------------------------
 
 QAction *MainWindow::createMenuRenderAction(const char *id, const char *name,
                                             const QString &defaultShortcut,
-                                            const char *iconSVGName) {
-  return createAction(id, name, defaultShortcut, MenuRenderCommandType,
-                      iconSVGName);
+                                            const char *iconSVGName,
+                                            QString newStatusTip) {
+  return createAction(id, name, defaultShortcut, newStatusTip,
+                      MenuRenderCommandType, iconSVGName);
 }
 
 //-----------------------------------------------------------------------------
 
 QAction *MainWindow::createMenuHelpAction(const char *id, const char *name,
                                           const QString &defaultShortcut,
-                                          const char *iconSVGName) {
-  return createAction(id, name, defaultShortcut, MenuHelpCommandType,
-                      iconSVGName);
+                                          const char *iconSVGName,
+                                          QString newStatusTip) {
+  return createAction(id, name, defaultShortcut, newStatusTip,
+                      MenuHelpCommandType, iconSVGName);
 }
 
 //-----------------------------------------------------------------------------
 
 QAction *MainWindow::createRGBAAction(const char *id, const char *name,
                                       const QString &defaultShortcut,
-                                      const char *iconSVGName) {
-  return createAction(id, name, defaultShortcut, RGBACommandType, iconSVGName);
+                                      const char *iconSVGName,
+                                      QString newStatusTip) {
+  return createAction(id, name, defaultShortcut, newStatusTip, RGBACommandType,
+                      iconSVGName);
 }
 
 //-----------------------------------------------------------------------------
 
 QAction *MainWindow::createFillAction(const char *id, const char *name,
                                       const QString &defaultShortcut,
-                                      const char *iconSVGName) {
-  return createAction(id, name, defaultShortcut, FillCommandType, iconSVGName);
+                                      const char *iconSVGName,
+                                      QString newStatusTip) {
+  return createAction(id, name, defaultShortcut, newStatusTip, FillCommandType,
+                      iconSVGName);
 }
 //-----------------------------------------------------------------------------
 
 QAction *MainWindow::createMenuAction(const char *id, const char *name,
-                                      QList<QString> list,
+                                      QList<QString> list, QString newStatusTip,
                                       bool isForRecentFiles) {
   QMenu *menu     = new DVMenuAction(tr(name), this, list, isForRecentFiles);
   QAction *action = menu->menuAction();
+  action->setStatusTip(newStatusTip);
   CommandManager::instance()->define(id, MenuCommandType, "", action);
   return action;
 }
@@ -1703,24 +1736,29 @@ QAction *MainWindow::createMenuAction(const char *id, const char *name,
 
 QAction *MainWindow::createViewerAction(const char *id, const char *name,
                                         const QString &defaultShortcut,
-                                        const char *iconSVGName) {
-  return createAction(id, name, defaultShortcut, ZoomCommandType, iconSVGName);
+                                        const char *iconSVGName,
+                                        QString newStatusTip) {
+  return createAction(id, name, defaultShortcut, newStatusTip, ZoomCommandType,
+                      iconSVGName);
 }
 
 //-----------------------------------------------------------------------------
 
 QAction *MainWindow::createVisualizationButtonAction(const char *id,
                                                      const char *name,
-                                                     const char *iconSVGName) {
-  return createAction(id, name, "", VisualizationButtonCommandType,
-                      iconSVGName);
+                                                     const char *iconSVGName,
+                                                     QString newStatusTip) {
+  return createAction(id, name, "", newStatusTip,
+                      VisualizationButtonCommandType, iconSVGName);
 }
 
 //-----------------------------------------------------------------------------
 
 QAction *MainWindow::createMiscAction(const char *id, const char *name,
-                                      const char *defaultShortcut) {
+                                      const char *defaultShortcut,
+                                      QString newStatusTip) {
   QAction *action = new DVAction(tr(name), this);
+  action->setStatusTip(newStatusTip);
   CommandManager::instance()->define(id, MiscCommandType, defaultShortcut,
                                      action);
   return action;
@@ -1730,11 +1768,13 @@ QAction *MainWindow::createMiscAction(const char *id, const char *name,
 
 QAction *MainWindow::createToolOptionsAction(const char *id, const char *name,
                                              const QString &defaultShortcut,
-                                             const char *iconSVGName) {
+                                             const char *iconSVGName,
+                                             QString newStatusTip) {
   QAction *action = new DVAction(tr(name), this);
   if (iconSVGName && *iconSVGName)
-    action->setIcon(createQIcon(iconSVGName, true));
+    action->setIcon(createQIcon(iconSVGName, false, true));
   addAction(action);
+  action->setStatusTip(newStatusTip);
   CommandManager::instance()->define(id, ToolModifierCommandType,
                                      defaultShortcut.toStdString(), action,
                                      iconSVGName);
@@ -1745,9 +1785,20 @@ QAction *MainWindow::createToolOptionsAction(const char *id, const char *name,
 
 QAction *MainWindow::createStopMotionAction(const char *id, const char *name,
                                             const QString &defaultShortcut,
-                                            const char *iconSVGName) {
-  return createAction(id, name, defaultShortcut, StopMotionCommandType,
-                      iconSVGName);
+                                            const char *iconSVGName,
+                                            QString newStatusTip) {
+  return createAction(id, name, defaultShortcut, newStatusTip,
+                      StopMotionCommandType, iconSVGName);
+}
+
+//-----------------------------------------------------------------------------
+
+QAction *MainWindow::createSpecialModifierAction(const char *id,
+                                                 const char *name,
+                                                 const QString &defaultShortcut,
+                                                 QString newStatusTip) {
+  return createAction(id, name, defaultShortcut, newStatusTip,
+                      SpecialModifierKeyType);
 }
 
 //-----------------------------------------------------------------------------
@@ -1755,13 +1806,16 @@ QAction *MainWindow::createStopMotionAction(const char *id, const char *name,
 QAction *MainWindow::createToggle(const char *id, const char *name,
                                   const QString &defaultShortcut,
                                   bool startStatus, CommandType type,
-                                  const char *iconSVGName) {
-  QAction *action = createAction(id, name, defaultShortcut, type, iconSVGName);
+                                  const char *iconSVGName,
+                                  QString newStatusTip) {
+  QAction *action =
+      createAction(id, name, defaultShortcut, newStatusTip, type, iconSVGName);
   // Remove if the icon is not set. Checkbox will be drawn by style sheet.
   if (!iconSVGName || !*iconSVGName) action->setIcon(QIcon());
 #if defined(_WIN32)
   else {
-    bool visible = Preferences::instance()->getBoolValue(showIconsInMenu);
+    bool visible = Preferences::instance()->isShowAdvancedOptionsEnabled() &&
+                   Preferences::instance()->getBoolValue(showIconsInMenu);
     action->setIconVisibleInMenu(visible);
   }
 #endif
@@ -1777,11 +1831,13 @@ QAction *MainWindow::createToggle(const char *id, const char *name,
 
 QAction *MainWindow::createToolAction(const char *id, const char *iconName,
                                       const char *name,
-                                      const QString &defaultShortcut) {
+                                      const QString &defaultShortcut,
+                                      QString newStatusTip) {
   QIcon icon      = createQIcon(iconName);
   QAction *action = new DVAction(icon, tr(name), this);
   action->setCheckable(true);
   action->setActionGroup(m_toolsActionGroup);
+  action->setStatusTip(newStatusTip);
 
   // When the viewer is maximized (not fullscreen) the toolbar is hidden and the
   // actions are disabled,
@@ -1797,83 +1853,99 @@ QAction *MainWindow::createToolAction(const char *id, const char *iconName,
 //-----------------------------------------------------------------------------
 
 void MainWindow::defineActions() {
+  QString separator = "                    ";
   QAction *menuAct;
-
-  // Reserved Navigation Keys (DO NOT USE: Will conflict!):
-  // 1. SPACE         = T_Hand
-  // 2. SHIFT + SPACE = T_Rotate
-  // 3. CTRL  + SPACE = T_Zoom
 
   // Menu - File
 
   createMenuFileAction(MI_NewScene, QT_TR_NOOP("&New Scene"), "Ctrl+N",
-                       "new_scene");
+                       "new_scene", tr("Create a new scene."));
   createMenuFileAction(MI_LoadScene, QT_TR_NOOP("&Load Scene..."), "Ctrl+L",
-                       "load_scene");
-  createMenuFileAction(MI_SaveAll, QT_TR_NOOP("&Save All"), "Ctrl+S",
-                       "saveall");
-  createMenuFileAction(MI_SaveScene, QT_TR_NOOP("&Save Scene Only"),
-                       "Ctrl+Shift+S", "save_scene");
+                       "load_scene", tr("Load an existing scene."));
+  createMenuFileAction(MI_SaveScene, QT_TR_NOOP("&Save Scene"), "Ctrl+Shift+S",
+                       "save_scene",
+                       tr("Save ONLY the scene.") + separator +
+                           tr("This does NOT save levels or images."));
   createMenuFileAction(MI_SaveSceneAs, QT_TR_NOOP("&Save Scene As..."), "",
-                       "save_scene");
-  menuAct = createMenuFileAction(MI_RevertScene, QT_TR_NOOP("&Revert Scene"),
-                                 "", "revert_scene");
+                       "save_scene_as",
+                       tr("Save ONLY the scene with a new name.") + separator +
+                           tr("This does NOT save levels or images."));
+  createMenuFileAction(MI_SaveSceneVersion, QT_TR_NOOP("&Save Scene Version..."), "",
+                       "save_scene_version",
+                       tr("Increment scene version.") + separator +
+                           tr("Add a number suffix if necessary."));
+  createMenuFileAction(MI_SaveAll, QT_TR_NOOP("&Save All"), "Ctrl+S", "saveall",
+                       tr("Save the scene info and the levels and images.") +
+                           separator + tr("Saves everything."));
+  menuAct = createMenuFileAction(
+      MI_RevertScene, QT_TR_NOOP("&Revert Scene"), "", "revert_scene",
+      tr("Revert the scene to its previously saved state."));
   menuAct->setEnabled(false);
   QList<QString> files;
-  createMenuFileAction(MI_LoadFolder, QT_TR_NOOP("&Load Folder..."), "",
-                       "load_folder");
-  createMenuFileAction(MI_LoadSubSceneFile,
-                       QT_TR_NOOP("&Load As Sub-xsheet..."), "",
-                       "load_as_sub_xsheet");
+  createMenuFileAction(
+      MI_LoadFolder, QT_TR_NOOP("&Load Folder..."), "", "load_folder",
+      tr("Load the contents of a folder into the current scene."));
+  createMenuFileAction(
+      MI_LoadSubSceneFile, QT_TR_NOOP("&Load As Sub-Scene..."), "",
+      "load_as_sub_xsheet",
+      tr("Load an existing scene into the current scene as a sub-scene"));
   createMenuAction(MI_OpenRecentScene, QT_TR_NOOP("&Open Recent Scene File"),
-                   files);
+                   files, tr("Load a recently used scene."));
   createMenuAction(MI_OpenRecentLevel, QT_TR_NOOP("&Open Recent Level File"),
-                   files);
+                   files, tr("Load a recently used level."));
   createMenuFileAction(MI_ClearRecentScene,
-                       QT_TR_NOOP("&Clear Recent Scene File List"), "");
+                       QT_TR_NOOP("&Clear Recent Scene File List"), "", "",
+                       tr("Remove everything from the recent scene list."));
   createMenuFileAction(MI_ClearRecentLevel,
-                       QT_TR_NOOP("&Clear Recent level File List"), "");
-  createMenuFileAction(MI_ConvertFileWithInput, QT_TR_NOOP("&Convert File..."),
-                       "", "convert");
+                       QT_TR_NOOP("&Clear Recent level File List"), "", "",
+                       tr("Remove everything from the recent level list."));
+  createMenuFileAction(
+      MI_ConvertFileWithInput, QT_TR_NOOP("&Convert File..."), "", "convert",
+      tr("Convert an existing file or image sequence to another format."));
   createMenuFileAction(MI_ConvertTZPInFolder,
                        QT_TR_NOOP("&Convert TZP Files In Folder..."), "");
   createMenuFileAction(MI_LoadColorModel, QT_TR_NOOP("&Load Color Model..."),
-                       "", "load_colormodel");
+                       "", "load_colormodel",
+                       tr("Load an image as a color guide."));
   createMenuFileAction(MI_ImportMagpieFile,
-                       QT_TR_NOOP("&Import Flare Lip Sync File..."), "",
-                       "dialogue_import");
-  createMenuFileAction(MI_ImportFlashVector,
-                       QT_TR_NOOP("&Import Flash (FLA / XFL / SWF / SWC / FLV / F4V / AS)..."), "",
-                       "import_flash");
-  createMenuFileAction(MI_ImportMohoProject,
-                       QT_TR_NOOP("Import &Moho Project (rig structure and assets)..."), "",
-                       "import_moho");
+                       QT_TR_NOOP("&Import Toonz Lip Sync File..."), "",
+                       "dialogue_import",
+                       tr("Import a lip sync file to be applied to a level."));
   createMenuFileAction(MI_NewProject, QT_TR_NOOP("&New Project..."), "",
-                       "new_project");
+                       "new_project",
+                       tr("Create a new project.") + separator +
+                           tr("A project is a container for a collection of "
+                              "related scenes and drawings."));
+  createMenuAction(MI_OpenRecentProject, QT_TR_NOOP("&Open Recent Project"),
+                   files, "");
+  createMenuFileAction(MI_LoadProject, QT_TR_NOOP("&Load Project..."), "", "",
+                       tr("Load an existing project."));
   createMenuFileAction(MI_ProjectSettings, QT_TR_NOOP("&Project Settings..."),
                        "", "project_settings");
   createMenuFileAction(MI_SaveDefaultSettings,
-                       QT_TR_NOOP("&Set Scene Settings as Default"), "",
-                       "save_default_settings");
-  createMenuFileAction(MI_SoundTrack, QT_TR_NOOP("&Export Soundtrack"), "");
+                       QT_TR_NOOP("&Save Default Settings"), "",
+                       "save_default_settings",
+                       tr("Use the current scene's settings as a template for "
+                          "all new scenes in the current project."));
+  createMenuFileAction(
+      MI_SoundTrack, QT_TR_NOOP("&Export Soundtrack"), "", "export_soundtrack",
+      tr("Exports the soundtrack to the current scene as a wav file."));
   createMenuFileAction(MI_Preferences, QT_TR_NOOP("&Preferences..."), "Ctrl+U",
-                       "gear");
+                       "gear", tr("Change Flare's settings."));
   createMenuFileAction(MI_ShortcutPopup, QT_TR_NOOP("&Configure Shortcuts..."),
-                       "", "shortcuts");
+                       "", "shortcuts",
+                       tr("Change the shortcuts of Flare."));
   createMenuFileAction(MI_PrintXsheet, QT_TR_NOOP("&Print Xsheet"), "",
-                       "printer");
+                       "printer", tr("Print the scene's exposure sheet."));
 
   createMenuFileAction(MI_ExportXsheetPDF, QT_TR_NOOP("&Export Xsheet to PDF"),
-                       "");
+                       "", "export_xsheetpdf");
 
   createMenuFileAction(
       MI_ExportXDTS,
       QT_TRANSLATE_NOOP("MainWindow",
                         "Export Exchange Digital Time Sheet (XDTS)"),
-      "");
-  createMenuFileAction(
-      MI_ExportSXF,
-      QT_TRANSLATE_NOOP("MainWindow", "Export Stylos Exchange Format(SXF)"), "");
+      "", "export_xdts");
   createMenuFileAction(
       MI_ExportOCA,
       QT_TRANSLATE_NOOP("MainWindow", "Export Open Cel Animation (OCA)"), "",
@@ -1883,21 +1955,20 @@ void MainWindow::defineActions() {
       QT_TRANSLATE_NOOP("MainWindow", "Import Open Cel Animation (OCA)"), "",
       "import_oca");
   createMenuFileAction(
-      MI_ExportFlash,
-      QT_TRANSLATE_NOOP(
-          "MainWindow",
-          "Export for Flash / Adobe Animate Workflow..."),
-      "", "export_flash");
-  createMenuFileAction(
       MI_ExportTvpJson,
-      QT_TRANSLATE_NOOP("MainWindow", "Export TVPaint JSON File"), "");
-  createMenuFileAction("MI_RunScript", QT_TR_NOOP("Run Script..."), "",
-                       "run_script");
-  createMenuFileAction("MI_OpenScriptConsole",
-                       QT_TR_NOOP("Open Script Console..."), "", "console");
+      QT_TRANSLATE_NOOP("MainWindow", "Export TVPaint JSON File"), "",
+      "export_tvpaint");
+  createMenuFileAction(
+      "MI_RunScript", QT_TR_NOOP("Run Script..."), "", "run_script",
+      tr("Run a script to perform a series of actions on a scene."));
+  createMenuFileAction(
+      "MI_OpenScriptConsole", QT_TR_NOOP("Open Script Console..."), "",
+      "console",
+      tr("Open a console window where you can enter script commands."));
   createMenuFileAction(MI_Print, QT_TR_NOOP("&Print Current Frame..."),
                        "Ctrl+P", "printer");
-  createMenuFileAction(MI_Quit, QT_TR_NOOP("&Quit"), "Ctrl+Q", "quit");
+  createMenuFileAction(MI_Quit, QT_TR_NOOP("&Quit"), "Ctrl+Q", "quit",
+                       tr("Bye."));
 #ifndef NDEBUG
   createMenuFileAction("MI_ReloadStyle", QT_TR_NOOP("Reload qss"), "");
 #endif
@@ -1908,9 +1979,10 @@ void MainWindow::defineActions() {
   createMenuFileAction(MI_ClearCacheFolder, QT_TR_NOOP("&Clear Cache Folder"),
                        "", "clear_cache");
   createMenuFileAction(MI_ExportCurrentScene,
-                       QT_TR_NOOP("&Export Current Scene"), "");
+                       QT_TR_NOOP("&Export Current Scene"), "", "export_scene",
+                       tr("Export the current scene to another project."));
   createMenuFileAction(MI_ExportCameraTrack, QT_TR_NOOP("&Export Camera Track"),
-                       "");
+                       "", "export_cameratrack");
 
   // Menu - Edit
 
@@ -1924,50 +1996,68 @@ void MainWindow::defineActions() {
   createMenuEditAction(MI_Copy, QT_TR_NOOP("&Copy"), "Ctrl+C", "content_copy");
   createMenuEditAction(MI_Paste, QT_TR_NOOP("&Paste Insert"), "Ctrl+V",
                        "paste");
-  createMenuEditAction(MI_PasteAbove, QT_TR_NOOP("&Paste Insert Above/After"),
+  createMenuEditAction(MI_PasteBelow, QT_TR_NOOP("&Paste Insert Below/Before"),
                        "Ctrl+Shift+V", "paste_above_after");
   createMenuEditAction(MI_PasteDuplicate, QT_TR_NOOP("&Paste as a Copy"), "",
                        "paste_duplicate");
   createMenuEditAction(MI_PasteInto, QT_TR_NOOP("&Paste Into"), "",
                        "paste_into");
-  createMenuEditAction(MI_Clear, QT_TR_NOOP("&Delete"), "Del", "delete");
-  createMenuEditAction(MI_ClearViewerContent, QT_TR_NOOP("&Clear Viewer Content"), "", "clear_viewer");
+#ifdef MACOSX
+  QString delKey = "Backspace";
+#else
+  QString delKey = "Del";
+#endif
+  createMenuEditAction(MI_Clear, QT_TR_NOOP("&Delete"), delKey, "delete");
   createMenuEditAction(MI_Insert, QT_TR_NOOP("&Insert"), "Ins", "insert");
-  createMenuEditAction(MI_InsertAbove, QT_TR_NOOP("&Insert Above/After"),
+  createMenuEditAction(MI_InsertBelow, QT_TR_NOOP("&Insert Below/Before"),
                        "Shift+Ins", "insert_above_after");
   createMenuEditAction(MI_Group, QT_TR_NOOP("&Group"), "Ctrl+G", "group");
   createMenuEditAction(MI_Ungroup, QT_TR_NOOP("&Ungroup"), "Ctrl+Shift+G",
                        "ungroup");
-   createMenuEditAction(MI_EnterGroup, QT_TR_NOOP("&Enter Group"), "",
+  createMenuEditAction(MI_EnterGroup, QT_TR_NOOP("&Enter Group"), "",
                        "enter_group");
   createMenuEditAction(MI_ExitGroup, QT_TR_NOOP("&Exit Group"), "",
                        "leave_group");
-  createMenuEditAction(MI_SendBack, QT_TR_NOOP("&Move to Back"), "",
+  createMenuEditAction(MI_SendBack, QT_TR_NOOP("&Move to Back"), "Ctrl+[",
                        "move_to_back");
-  createMenuEditAction(MI_SendBackward, QT_TR_NOOP("&Move Back One"), "",
+  createMenuEditAction(MI_SendBackward, QT_TR_NOOP("&Move Back One"), "[",
                        "move_back_one");
-  createMenuEditAction(MI_BringForward, QT_TR_NOOP("&Move Forward One"), "",
+  createMenuEditAction(MI_BringForward, QT_TR_NOOP("&Move Forward One"), "]",
                        "move_forward_one");
-  createMenuEditAction(MI_BringToFront, QT_TR_NOOP("&Move to Front"), "",
+  createMenuEditAction(MI_BringToFront, QT_TR_NOOP("&Move to Front"), "Ctrl+]",
                        "move_to_front");
+  createMenuEditAction(MI_UngroupAll, QT_TR_NOOP("&Ungroup All"), "",
+                       "ungroup_all");
+  createMenuFileAction(MI_ClearRecentProject,
+                       QT_TR_NOOP("&Clear Recent Project List"), "", "",
+                       tr("Remove everything from the recent project list."));
+  // createMenuEditAction(MI_PasteNew, QT_TR_NOOP("&Paste New"),  "");
+  createMenuEditAction(MI_ClearFrames, QT_TR_NOOP("&Clear Frames"), "");
+  createMenuEditAction(MI_RemoveCells, QT_TR_NOOP("&Remove Cells"), "",
+                       "remove");
+  createMenuEditAction(MI_AlignLeft, QT_TR_NOOP("&Align Left"), "",
+                       "select_align_left");
+  createMenuEditAction(MI_AlignRight, QT_TR_NOOP("&Align Right"), "",
+                       "select_align_right");
+  createMenuEditAction(MI_AlignTop, QT_TR_NOOP("&Align Top"), "",
+                       "select_align_top");
+  createMenuEditAction(MI_AlignBottom, QT_TR_NOOP("&Align Bottom"), "",
+                       "select_align_bottom");
+  createMenuEditAction(MI_AlignCenterHorizontal,
+                       QT_TR_NOOP("&Align Center Horizontally"), "",
+                       "select_align_center_h");
+  createMenuEditAction(MI_AlignCenterVertical,
+                       QT_TR_NOOP("&Align Center Vertically"), "",
+                       "select_align_center_v");
+  createMenuEditAction(MI_DistributeHorizontal,
+                       QT_TR_NOOP("&Distribute Horizontally"), "",
+                       "select_distribute_h");
+  createMenuEditAction(MI_DistributeVertical,
+                       QT_TR_NOOP("&Distribute Vertically"), "",
+                       "select_distribute_v");
 
-  // Menu - Scan & Cleanup
+  // Menu - Cleanup
 
-  createMenuScanCleanupAction(
-      MI_DefineScanner, QT_TR_NOOP("&Define Scanner..."), "", "scanner_define");
-  createMenuScanCleanupAction(MI_ScanSettings, QT_TR_NOOP("&Scan Settings..."),
-                              "", "scanner_settings");
-  createMenuScanCleanupAction(MI_Scan, QT_TR_NOOP("&Scan"), "", "scanner");
-  createMenuScanCleanupAction(MI_Autocenter, QT_TR_NOOP("&Autocenter..."), "",
-                              "autocenter");
-  menuAct = createToggle(MI_SetScanCropbox, QT_TR_NOOP("&Set Cropbox"), "", 0,
-                         MenuScanCleanupCommandType, "set_cropbox");
-  SetScanCropboxCheck::instance()->setToggle(menuAct);
-  QString scannerType = QSettings().value("CurrentScannerType").toString();
-  if (scannerType == "TWAIN") menuAct->setDisabled(true);
-  menuAct = createMenuScanCleanupAction(
-      MI_ResetScanCropbox, QT_TR_NOOP("&Reset Cropbox"), "", "reset_cropbox");
-  if (scannerType == "TWAIN") menuAct->setDisabled(true);
   createMenuScanCleanupAction(MI_CleanupSettings,
                               QT_TR_NOOP("&Cleanup Settings..."), "",
                               "cleanup_settings");
@@ -1981,41 +2071,48 @@ void MainWindow::defineActions() {
                MenuScanCleanupCommandType, "opacity_check");
   createMenuScanCleanupAction(MI_Cleanup, QT_TR_NOOP("&Cleanup"), "",
                               "cleanup");
-  createMenuScanCleanupAction(MI_PencilTest, QT_TR_NOOP("&Camera Capture..."),
-                              "", "camera_capture");
 
   // Menu - Level
 
   createMenuLevelAction(MI_NewLevel, QT_TR_NOOP("&New Level..."), "Alt+N",
-                        "new_level");
+                        "new_level", tr("Create a new drawing layer."));
   createMenuLevelAction(MI_NewVectorLevel, QT_TR_NOOP("&New Vector Level"), "",
-                        "new_vector_level");
-  createMenuLevelAction(MI_NewToonzRasterLevel,
-                        QT_TR_NOOP("&New Flare Raster Level"), "",
-                        "new_flare_raster_level");
-  createMenuLevelAction(MI_NewRasterLevel, QT_TR_NOOP("&New Raster Level"), "",
-                        "new_raster_level");
-  createMenuFileAction(MI_NewMetaLevel, QT_TR_NOOP("&New Assistant Level"),
-                       "new_meta_level");
+                        "new_vector_level",
+                        tr("Create a new vector level.") + separator +
+                            tr("Vectors can be manipulated easily and have "
+                               "some extra tools and features."));
+  createMenuLevelAction(
+      MI_NewToonzRasterLevel, QT_TR_NOOP("&New Smart Raster Level"), "",
+      "new_toonz_raster_level",
+      tr("Create a new Smart Raster level.") + separator +
+          tr("Smart Raster levels are color mapped making the colors easier to "
+             "adjust at any time."));
+  createMenuLevelAction(
+      MI_NewRasterLevel, QT_TR_NOOP("&New Raster Level"), "",
+      "new_raster_level",
+      tr("Create a new raster level") + separator +
+          tr("Raster levels are traditional drawing levels") + separator +
+          tr("Imported images will be imported as raster levels."));
   createMenuLevelAction(MI_LoadLevel, QT_TR_NOOP("&Load Level..."), "",
-                        "load_level");
+                        "load_level", tr("Load an existing level."));
   createMenuLevelAction(MI_SaveLevel, QT_TR_NOOP("&Save Level"), "",
-                        "save_level");
-  createMenuLevelAction(MI_SaveAllLevels, QT_TR_NOOP("&Save All Levels"), "",
-                        "save_all_levels");
-  createMenuLevelAction(MI_SaveLevelAs, QT_TR_NOOP("&Save Level As..."), "",
-                        "save_level_as");
+                        "save_level",
+                        tr("Save the current level.") + separator +
+                            tr("This does not save the scene info."));
+  createMenuLevelAction(
+      MI_SaveAllLevels, QT_TR_NOOP("&Save All Levels"), "", "save_all_levels",
+      tr("Save all levels loaded into the scene.") + separator +
+          tr("This does not save the scene info."));
+  createMenuLevelAction(
+      MI_SaveLevelAs, QT_TR_NOOP("&Save Level As..."), "", "save_level_as",
+      tr("Save the current level as a different name.") + separator +
+          tr("This does not save the scene info."));
   createMenuLevelAction(MI_ExportLevel, QT_TR_NOOP("&Export Level..."), "",
-                        "export_level");
-  createMenuLevelAction(MI_ExportAllLevels,
-                        QT_TR_NOOP("&Export All Levels... "), "",
-                        "export_all_levels");
+                        "export_level",
+                        tr("Export the current level as an image sequence."));
   createMenuLevelAction(MI_RemoveEndpoints,
                         QT_TR_NOOP("&Remove Vector Overflow"), "",
                         "remove_vector_overflow");
-  createMenuLevelAction(MI_SortWithPaletteOrder,
-                        QT_TR_NOOP("&Sort Strokes with Palette Order"), "",
-                        "sort_with_palette_order");
   createMenuLevelAction(MI_AddFrames, QT_TR_NOOP("&Add Frames..."), "",
                         "add_cells");
   createMenuLevelAction(MI_Renumber, QT_TR_NOOP("&Renumber..."), "",
@@ -2027,7 +2124,7 @@ void MainWindow::defineActions() {
                         "revert_level_to_cleanup");
   createMenuLevelAction(MI_RevertToLastSaved, QT_TR_NOOP("&Reload"), "",
                         "reload_level");
-  createMenuLevelAction(MI_ExposeResource, QT_TR_NOOP("&Expose in Xsheet"), "");
+  createMenuLevelAction(MI_ExposeResource, QT_TR_NOOP("&Expose in Scene"), "");
   createMenuLevelAction(MI_EditLevel, QT_TR_NOOP("&Display in Level Strip"),
                         "");
   createMenuLevelAction(MI_LevelSettings, QT_TR_NOOP("&Level Settings..."), "",
@@ -2060,27 +2157,35 @@ void MainWindow::defineActions() {
   createMenuLevelAction(MI_ConvertToVectors,
                         QT_TR_NOOP("Convert to Vectors..."), "", "convert");
   createMenuLevelAction(MI_ConvertToToonzRaster,
-                        QT_TR_NOOP("Convert to Flare Raster..."), "");
+                        QT_TR_NOOP("Vectors to Smart Raster"), "");
   createMenuLevelAction(
       MI_ConvertVectorToVector,
       QT_TRANSLATE_NOOP("MainWindow",
                         "Replace Vectors with Simplified Vectors"),
       "");
-  createMenuLevelAction(MI_FillHoles, QT_TR_NOOP("&Fill Holes..."), "",
-                        "Fill small holes in Flare Raster Level");
   createMenuLevelAction(MI_Tracking, QT_TR_NOOP("Tracking..."), "", "focus");
+  createMenuLevelAction(
+      MI_NewSpline, QT_TR_NOOP("&New Motion Path"), "", "menu_toggle",
+      tr("Create a new motion path.") + separator +
+          tr("Motion paths can be used as animation guides, or you can animate "
+             "objects along a motion path."));
 
-  // Menu - Xsheet
+  createMenuLevelAction(MI_NewFolder, QT_TR_NOOP("New Folder"), "",
+                        "new_folder_column");
+  createMenuLevelAction(MI_NewPegbar, QT_TR_NOOP("New Pegbar"), "",
+                        "pegbar");
+
+  // Menu - Scene
 
   createMenuXsheetAction(MI_SceneSettings, QT_TR_NOOP("&Scene Settings..."), "",
                          "scene_settings");
   createMenuXsheetAction(MI_CameraSettings, QT_TR_NOOP("&Camera Settings..."),
                          "", "camera_settings");
-  createMenuXsheetAction(MI_OpenChild, QT_TR_NOOP("&Open Sub-Xsheet"), "",
+  createMenuXsheetAction(MI_OpenChild, QT_TR_NOOP("&Open Sub-Scene"), "",
                          "sub_enter");
-  createMenuXsheetAction(MI_CloseChild, QT_TR_NOOP("&Close Sub-Xsheet"), "",
+  createMenuXsheetAction(MI_CloseChild, QT_TR_NOOP("&Close Sub-Scene"), "",
                          "sub_leave");
-  createMenuXsheetAction(MI_ExplodeChild, QT_TR_NOOP("Explode Sub-Xsheet"), "",
+  createMenuXsheetAction(MI_ExplodeChild, QT_TR_NOOP("Explode Sub-Scene"), "",
                          "sub_explode");
   createMenuXsheetAction(MI_Collapse, QT_TR_NOOP("Collapse"), "",
                          "sub_collapse");
@@ -2088,11 +2193,9 @@ void MainWindow::defineActions() {
                EditInPlaceToggleAction ? 1 : 0, MenuXsheetCommandType,
                "sub_edit_in_place");
   createMenuXsheetAction(MI_SaveSubxsheetAs,
-                         QT_TR_NOOP("&Save Sub-Xsheet As..."), "",
+                         QT_TR_NOOP("&Save Sub-Scene As..."), "",
                          "sub_xsheet_saveas");
-  createMenuXsheetAction(MI_Resequence, QT_TR_NOOP("Resequence"), "",
-                         "resequence");
-  createMenuXsheetAction(MI_CloneChild, QT_TR_NOOP("Clone Sub-Xsheet"), "",
+  createMenuXsheetAction(MI_CloneChild, QT_TR_NOOP("Clone Sub-Scene"), "",
                          "sub_clone");
   createMenuXsheetAction(MI_ApplyMatchLines,
                          QT_TR_NOOP("&Apply Match Lines..."), "",
@@ -2105,9 +2208,7 @@ void MainWindow::defineActions() {
                          "delete_lines");
   createMenuXsheetAction(MI_MergeColumns, QT_TR_NOOP("&Merge Levels"), "",
                          "merge_levels");
-  createMenuXsheetAction(MI_InsertFx, QT_TR_NOOP("&New FX..."), "Ctrl+F",
-                         "fx_logo");
-  createMenuXsheetAction(MI_NewOutputFx, QT_TR_NOOP("&New Output"), "Alt+O",
+  createMenuXsheetAction(MI_NewOutputFx, QT_TR_NOOP("&New Output"), "",
                          "output");
   createMenuXsheetAction(MI_InsertSceneFrame, QT_TR_NOOP("Insert Frame"), "",
                          "insert_frame");
@@ -2119,16 +2220,30 @@ void MainWindow::defineActions() {
   createMenuXsheetAction(MI_RemoveGlobalKeyframe,
                          QT_TR_NOOP("Remove Multiple Keys"), "",
                          "remove_multiple_keys");
+  createMenuXsheetAction(MI_SetGlobalStopframe,
+                         QT_TR_NOOP("Set Multiple Stop Frames"), "");
+  createMenuXsheetAction(MI_RemoveGlobalStopframe,
+                         QT_TR_NOOP("Remove Multiple Stop Frames"), "");
   createMenuXsheetAction(MI_RemoveEmptyColumns,
                          QT_TR_NOOP("Remove Empty Columns"), "",
                          "remove_empty_columns");
+  createMenuXsheetAction(MI_ConvertToImplicitHolds,
+                         QT_TR_NOOP("Convert to use Implicit Holds"), "", "");
+  createMenuXsheetAction(MI_ConvertToExplicitHolds,
+                         QT_TR_NOOP("Convert to use Explicit Holds"), "", "");
   createMenuXsheetAction(MI_LipSyncPopup,
-                         QT_TR_NOOP("&Apply Lip Sync Data to Column"), "Alt+L",
+                         QT_TR_NOOP("&Apply Lip Sync to Column"), "Alt+L",
                          "dialogue");
-  createMenuXsheetAction(MI_AutoLipSyncPopup,
-                         QT_TR_NOOP("&Apply Auto Lip Sync to Column"),
-                         "Ctrl+Alt+L", "dialogue");
-
+  createMenuXsheetAction(MI_Resequence, QT_TR_NOOP("Resequence"), "",
+                         "resequence");
+  createMenuXsheetAction(MI_SetStartMarker, QT_TR_NOOP("Set Start Marker"), "");
+  createMenuXsheetAction(MI_SetStopMarker, QT_TR_NOOP("Set Stop Marker"), "");
+  createMenuXsheetAction(MI_ClearMarkers, QT_TR_NOOP("Remove Markers"), "");
+  createMenuXsheetAction(MI_SetAutoMarkers, QT_TR_NOOP("Set Auto Markers"), "");
+  createMenuXsheetAction(MI_PreviewThis,
+                         QT_TR_NOOP("Set Markers to Current Frame"), "");
+  createMenuXsheetAction(MI_PreviewSelected,
+                         QT_TR_NOOP("Set Markers to Selected Range"), "");
   createMenuXsheetAction(MI_ToggleTaggedFrame,
                          QT_TR_NOOP("Toggle Navigation Tag"), "",
                          "toggle_nav_tag");
@@ -2171,6 +2286,8 @@ void MainWindow::defineActions() {
   createMenuCellsAction(MI_CreateBlankDrawing,
                         QT_TR_NOOP("&Create Blank Drawing"), "Alt+D",
                         "add_cell");
+  createMenuCellsAction(MI_StopFrameHold, QT_TR_NOOP("&Stop Frame Hold"), "",
+                        "stop_frame_hold");
   createMenuCellsAction(MI_Duplicate, QT_TR_NOOP("&Duplicate Drawing  "), "D",
                         "duplicate_drawing");
   createMenuCellsAction(MI_Autorenumber, QT_TR_NOOP("&Autorenumber"), "",
@@ -2200,6 +2317,17 @@ void MainWindow::defineActions() {
   createMenuCellsAction(MI_FillEmptyCell, QT_TR_NOOP("&Fill In Empty Cells"),
                         "", "fill_empty_cells");
 
+  createMenuCellsAction(MI_InbetweenLinear, QT_TR_NOOP("&Linear"), "",
+                        "inbetween_linear");
+  createMenuCellsAction(MI_InbetweenEaseIn, QT_TR_NOOP("&Ease In"), "",
+                        "inbetween_easein");
+  createMenuCellsAction(MI_InbetweenEaseOut, QT_TR_NOOP("&Ease Out"), "",
+                        "inbetween_easeout");
+  createMenuCellsAction(MI_InbetweenEaseInOut, QT_TR_NOOP("&Ease In/Out"), "",
+                        "inbetween_easeinout");
+  createMenuCellsAction(MI_LoopFrames, QT_TR_NOOP("Loop Frames"), "", "");
+  createMenuCellsAction(MI_RemoveFrameLoop, QT_TR_NOOP("Remove Frame Loop"), "", "");
+
   // Menu - Play
 
   createToggle(MI_Link, QT_TR_NOOP("Link Flipbooks"), "",
@@ -2207,6 +2335,7 @@ void MainWindow::defineActions() {
   createMenuPlayAction(MI_Play, QT_TR_NOOP("Play"), "P", "play");
   createMenuPlayAction(MI_ShortPlay, QT_TR_NOOP("Short Play"), "Alt+P");
   createMenuPlayAction(MI_Loop, QT_TR_NOOP("Loop"), "L", "loop");
+  createMenuPlayAction(MI_PingPong, QT_TR_NOOP("Ping Pong"), "", "pingpong");
   createMenuPlayAction(MI_Pause, QT_TR_NOOP("Pause"), "", "pause");
   createMenuPlayAction(MI_FirstFrame, QT_TR_NOOP("First Frame"), "Alt+,",
                        "framefirst");
@@ -2229,33 +2358,47 @@ void MainWindow::defineActions() {
                        "prevkey");
   createMenuPlayAction(MI_ToggleBlankFrames, QT_TR_NOOP("Toggle Blank Frames"),
                        "", "blankframes");
-
+  createMenuPlayAction(MI_InbetweenFlip, QT_TR_NOOP("Inbetween Flip"), "",
+                       "inbetween_flip");
   // Menu - Render
 
-  createMenuRenderAction(MI_OutputSettings, QT_TR_NOOP("&Output Settings..."),
-                         "Ctrl+O", "output_settings");
-  createMenuRenderAction(MI_PreviewSettings, QT_TR_NOOP("&Preview Settings..."),
-                         "", "preview_settings");
+  createMenuRenderAction(
+      MI_OutputSettings, QT_TR_NOOP("&Render Settings..."), "Ctrl+O",
+      "output_settings",
+      tr("Control the render settings for the current scene.") + separator +
+          tr("You can render from the render settings window also."));
+  createMenuRenderAction(
+      MI_PreviewSettings, QT_TR_NOOP("&Preview Settings..."), "",
+      "preview_settings",
+      tr("Control the settings that will be used to preview the scene."));
   createMenuRenderAction(MI_Render, QT_TR_NOOP("&Render"), "Ctrl+Shift+R",
-                         "render");
-  createMenuRenderAction(MI_FastRender, QT_TR_NOOP("&Fast Render to MP4"),
-                         "Alt+R", "fast_render_mp4");
-  createMenuRenderAction(MI_Preview, QT_TR_NOOP("&Preview"), "Ctrl+R",
-                         "preview");
-  createMenuRenderAction(MI_SavePreviewedFrames,
-                         QT_TR_NOOP("&Save Previewed Frames"), "",
-                         "save_previewed_frames");
+                         "render",
+                         tr("Renders according to the settings and "
+                            "location set in Render Settings."));
+  createMenuRenderAction(
+      MI_FastRender, QT_TR_NOOP("&Fast Render to MP4"), "Alt+R",
+      "fast_render_mp4",
+      tr("Exports an MP4 file to the location specified in the preferences.") +
+          separator +
+          tr("This is quicker than going into the Render Settings "
+             "and setting up an MP4 render."));
+  createMenuRenderAction(
+      MI_Preview, QT_TR_NOOP("&Preview"), "Ctrl+R", "preview",
+      tr("Previews the current scene with all effects applied."));
+  createMenuRenderAction(
+      MI_SavePreviewedFrames, QT_TR_NOOP("&Save Previewed Frames"), "",
+      "save_previewed_frames",
+      tr("Save the images created during preview to a specified location."));
   createToggle(MI_ToggleViewerPreview, QT_TR_NOOP("Toggle Viewer Preview"), "",
-               false, MenuRenderCommandType, "preview");
+               false, MenuRenderCommandType, "pane_preview");
   createToggle(MI_ToggleViewerSubCameraPreview,
                QT_TR_NOOP("Toggle Viewer Sub-camera Preview"), "", false,
-               MenuRenderCommandType, "subpreview");
+               MenuRenderCommandType, "pane_subpreview");
 
-  createRightClickMenuAction(MI_OpenPltGizmo, QT_TR_NOOP("&Palette Gizmo"), "",
-                             "palettegizmo");
-  createRightClickMenuAction(MI_EraseUnusedStyles,
-                             QT_TR_NOOP("&Delete Unused Styles"), "",
-                             "delete_unused_styles");
+  createMenuRenderAction(
+      MI_SaveAndRender, QT_TR_NOOP("&Save and Render"), "", "render",
+      tr("Saves the current scene and renders according to the settings and "
+         "location set in Render Settings."));
 
   // Menu - View
 
@@ -2263,12 +2406,16 @@ void MainWindow::defineActions() {
                ViewCameraToggleAction ? 1 : 0, MenuViewCommandType);
   createToggle(MI_ViewTable, QT_TR_NOOP("&Table"), "",
                ViewTableToggleAction ? 1 : 0, MenuViewCommandType);
-  createToggle(MI_FieldGuide, QT_TR_NOOP("&Field Guide"), "Shift+G",
+  createToggle(MI_ShowSymmetryGuide, QT_TR_NOOP("&Symmetry Guide"), "",
+               ShowSymmetryGuide ? 1 : 0, MenuViewCommandType);
+  createToggle(MI_ShowPerspectiveGrids, QT_TR_NOOP("&Perspective Grids"), "",
+               ShowPerspectiveGrids ? 1 : 0, MenuViewCommandType);
+  createToggle(MI_FieldGuide, QT_TR_NOOP("&Grids and Overlays"), "Shift+G",
                FieldGuideToggleAction ? 1 : 0, MenuViewCommandType);
   createToggle(MI_ViewBBox, QT_TR_NOOP("&Raster Bounding Box"), "",
                ViewBBoxToggleAction ? 1 : 0, MenuViewCommandType);
-  createToggle(MI_LayoutGuide, QT_TR_NOOP("&Layout Guide"), "",
-               LayoutGuideToggleAction ? 1 : 0, MenuViewCommandType);
+  createToggle(MI_SafeArea, QT_TR_NOOP("&Safe Area"), "",
+               SafeAreaToggleAction ? 1 : 0, MenuViewCommandType);
   createToggle(MI_ViewColorcard, QT_TR_NOOP("&Camera BG Color"), "",
                ViewColorcardToggleAction ? 1 : 0, MenuViewCommandType);
   createToggle(MI_ViewGuide, QT_TR_NOOP("&Guide"), "",
@@ -2312,25 +2459,28 @@ void MainWindow::defineActions() {
   CommandManager::instance()->enable(MI_EditShift, false);
   CommandManager::instance()->enable(MI_NoShift, false);
   CommandManager::instance()->enable(MI_ShowShiftOrigin, false);
-  createAction(MI_ResetShift, QT_TR_NOOP("Reset Shift"), "",
+  createAction(MI_ResetShift, QT_TR_NOOP("Reset Shift"), "", "",
                MenuViewCommandType, "shift_and_trace_reset");
-  createToggle(MI_VectorGuidedDrawing, QT_TR_NOOP("Vector Guided Drawing"), "",
+  createToggle(MI_VectorGuidedDrawing, QT_TR_NOOP("Vector Guided Tweening"), "",
                Preferences::instance()->isGuidedDrawingEnabled(),
                MenuViewCommandType, "view_guided_drawing");
-  if (QGLPixelBuffer::hasOpenGLPbuffers())
+//  if (QOpenGLFramebufferObject::hasOpenGLPbuffers())
     createToggle(MI_RasterizePli, QT_TR_NOOP("&Visualize Vector As Raster"), "",
                  RasterizePliToggleAction ? 1 : 0, MenuViewCommandType,
                  "view_vector_as_raster");
-  else
-    RasterizePliToggleAction = 0;
+//  else
+//    RasterizePliToggleAction = 0;
+  createToggle(MI_ToggleLightTable, QT_TR_NOOP("Light Table"), "", false,
+               MenuViewCommandType, "light_table");
+  createToggle(MI_CurrentDrawingOnTop, QT_TR_NOOP("Current Drawing On Top"), "", false,
+               MenuViewCommandType, "current_on_top");
 
-  // Menu - Windows
+  // Menu - Panes
 
   createMenuWindowsAction(MI_OpenFileBrowser, QT_TR_NOOP("&File Browser"), "",
                           "filebrowser");
   createMenuWindowsAction(MI_OpenPreproductionBoard,
-                          QT_TR_NOOP("&Preproduction Board"), "",
-                          "preproductionboard");
+                          QT_TR_NOOP("&Preproduction Board"), "", "");
   createMenuWindowsAction(MI_OpenFileViewer, QT_TR_NOOP("&Flipbook"), "",
                           "flipbook");
   createMenuWindowsAction(MI_OpenFunctionEditor, QT_TR_NOOP("&Function Editor"),
@@ -2350,6 +2500,8 @@ void MainWindow::defineActions() {
                           "", "studiopalette");
   createMenuWindowsAction(MI_OpenSchematic, QT_TR_NOOP("&Schematic"), "",
                           "schematic");
+  createMenuWindowsAction(MI_InsertFx, QT_TR_NOOP("&FX Browser"), "Ctrl+F",
+                          "fx_logo");
   createMenuWindowsAction(MI_FxParamEditor, QT_TR_NOOP("&FX Editor"), "Ctrl+K",
                           "fx_settings");
   createMenuWindowsAction(MI_OpenCleanupSettings,
@@ -2364,10 +2516,9 @@ void MainWindow::defineActions() {
                           "", "tool_options");
   createMenuWindowsAction(MI_OpenCommandToolbar, QT_TR_NOOP("&Command Bar"), "",
                           "star");
-#if defined(x64)
   createMenuWindowsAction(MI_OpenStopMotionPanel,
-                          QT_TR_NOOP("&Stop Motion Controls"), "");
-#endif
+                          QT_TR_NOOP("&Stop Motion Controls"), "",
+                          "camera_capture");
   createMenuWindowsAction(MI_OpenLevelView, QT_TR_NOOP("&Viewer"), "",
                           "viewer");
   createMenuWindowsAction(MI_OpenXshView, QT_TR_NOOP("&Xsheet"), "", "xsheet");
@@ -2380,50 +2531,60 @@ void MainWindow::defineActions() {
   createMenuWindowsAction(MI_AudioRecording, QT_TR_NOOP("Record Audio"),
                           "Alt+A", "recordaudio");
   createMenuWindowsAction(MI_ResetRoomLayout,
-                          QT_TR_NOOP("&Reset to Default Rooms"), "");
+                          QT_TR_NOOP("&Reset All Default Rooms"), "");
   createMenuWindowsAction(MI_MaximizePanel, QT_TR_NOOP("Toggle Maximize Panel"),
                           "`", "fit_to_window");
   createMenuWindowsAction(MI_FullScreenWindow,
                           QT_TR_NOOP("Toggle Main Window's Full Screen Mode"),
                           "Ctrl+`", "toggle_fullscreen");
-  createMenuWindowsAction(MI_SeeThroughWindow,
-                          QT_TR_NOOP("Toggle Main Window's See Through Mode"),
-                          "Alt+`", "toggle_seethroughwin_on");
-  createMenuHelpAction(MI_About, QT_TR_NOOP("&About Flare..."), "", "info");
-  createMenuHelpAction(MI_FlashGuide, QT_TR_NOOP("&Flash Format Guide..."), "",
-                       "flash_guide");
   createMenuWindowsAction(MI_StartupPopup, QT_TR_NOOP("&Startup Popup..."),
                           "Alt+S", "flare");
   createMenuWindowsAction(MI_OpenGuidedDrawingControls,
-                          QT_TR_NOOP("Guided Drawing Controls"), "",
+                          QT_TR_NOOP("Guided Tweening Controls"), "",
                           "guided_drawing");
+  createMenuWindowsAction(MI_OpenAlignmentPanel,
+                          QT_TR_NOOP("Align and Distribute Panel"), "",
+                          "");
 
-  createMenuAction(MI_OpenCustomPanels, QT_TR_NOOP("&Custom Panels"), files,
+  createMenuAction(MI_OpenCustomPanels, QT_TR_NOOP("&Custom Panels"), files, "",
                    false);
   createMenuWindowsAction(MI_CustomPanelEditor,
                           QT_TR_NOOP("&Custom Panel Editor..."), "", "");
-  createMenuWindowsAction(MI_OpenLocator, QT_TR_NOOP("&Locator"), "",
-                          "locator");
+  createMenuWindowsAction(MI_OpenLocator, QT_TR_NOOP("&Locator"), "", "locator");
 
-  menuAct =
-      createToggle(MI_DockingCheck, QT_TR_NOOP("&Lock Room Panes"), "",
-                   DockingCheckToggleAction ? 1 : 0, MenuWindowsCommandType);
-  DockingCheck::instance()->setToggle(menuAct);
+  // menuAct = createToggle(MI_DockingCheck, QT_TR_NOOP("&Lock Room Panes"), "",
+  //                        DockingCheckToggleAction ? 1 : 0,
+  //                        MenuWindowsCommandType);
+  // DockingCheck::instance()->setToggle(menuAct);
+  createMenuWindowsAction(MI_OpenExport, QT_TR_NOOP("&Export"), "");
+  createMenuWindowsAction(MI_OpenMotionPathPanel, QT_TR_NOOP("&Motion Paths"),
+                          "", "motion_path");
 
   // Menu - Help
 
   createMenuHelpAction(MI_OpenOnlineManual, QT_TR_NOOP("&Online Manual..."),
                        "F1", "manual");
+  createMenuHelpAction(MI_OpenTips, QT_TR_NOOP("&Tips..."), "", "");
   createMenuHelpAction(MI_OpenWhatsNew, QT_TR_NOOP("&What's New..."), "",
                        "web");
   createMenuHelpAction(MI_OpenCommunityForum, QT_TR_NOOP("&Community Forum..."),
                        "", "web");
-  createMenuHelpAction(MI_OpenDiscord, QT_TR_NOOP("Join us on &Discord..."), "",
-                       "web");
-  createMenuHelpAction(MI_OpenWebsite, QT_TR_NOOP("Flare &Website..."), "",
-                       "web");
   createMenuHelpAction(MI_OpenReportABug, QT_TR_NOOP("&Report a Bug..."), "",
                        "web");
+  createMenuHelpAction(MI_OpenViewerEventLog,
+                       QT_TR_NOOP("Viewer Event Log"), "", "");
+#ifdef WITH_GPHOTO2
+  createMenuHelpAction(MI_OpenGPhotoEventLog,
+                       QT_TR_NOOP("GPhoto Event Log"), "", "");
+#endif
+  createMenuHelpAction(MI_OpenVectorInspectorPanel,
+                          QT_TR_NOOP("Vector Inspector"), "",
+                          "vectorinspector");
+  createMenuHelpAction(MI_OpenCrashReportFolder, QT_TR_NOOP("&Open Reports Folder..."), "", "");
+  createMenuHelpAction(MI_About, QT_TR_NOOP("&About Flare..."), "", "info");
+  //  createMenuHelpAction(MI_SupportTahoma2D, QT_TR_NOOP("&Support
+  //  Flare..."), "",
+  //                       "web");
 
   // Fill
 
@@ -2435,19 +2596,26 @@ void MainWindow::defineActions() {
 
   // Right Click
 
-  createRightClickMenuAction(MI_SavePaletteAs,
-                             QT_TR_NOOP("&Save Palette As..."), "", "saveas");
-  createRightClickMenuAction(MI_OverwritePalette, QT_TR_NOOP("&Save Palette"),
-                             "", "save");
+  createRightClickMenuAction(
+      MI_SavePaletteAs, QT_TR_NOOP("&Save Palette As..."), "", "saveas",
+      tr("Save the current style palette as a separate file with a new name."));
+  createRightClickMenuAction(
+      MI_OverwritePalette, QT_TR_NOOP("&Save Palette"), "", "save",
+      tr("Save the current style palette as a separate file."));
   createRightClickMenuAction(MI_RegeneratePreview,
-                             QT_TR_NOOP("&Regenerate Preview"), "");
+                             QT_TR_NOOP("&Regenerate Preview"), "", "",
+                             tr("Recreates a set of preview images."));
   createRightClickMenuAction(MI_RegenerateFramePr,
-                             QT_TR_NOOP("&Regenerate Frame Preview"), "");
-  createRightClickMenuAction(MI_ClonePreview, QT_TR_NOOP("&Clone Preview"), "");
+                             QT_TR_NOOP("&Regenerate Frame Preview"), "", "",
+                             tr("Regenerate the frame preview."));
+  createRightClickMenuAction(MI_ClonePreview, QT_TR_NOOP("&Clone Preview"), "",
+                             "",
+                             tr("Creates a clone of the previewed images."));
   createRightClickMenuAction(MI_FreezePreview,
-                             QT_TR_NOOP("&Freeze//Unfreeze Preview"), "");
+                             QT_TR_NOOP("&Freeze//Unfreeze Preview"), "", "",
+                             tr("Prevent the preview from being updated."));
   CommandManager::instance()->setToggleTexts(
-      MI_FreezePreview, tr("Freeze Preview"), tr("Unfreeze Preview"));
+      MI_FreezePreview, tr("Freeze Preview"), QT_TR_NOOP("Unfreeze Preview"));
   createRightClickMenuAction(MI_SavePreset, QT_TR_NOOP("&Save As Preset"), "");
   createRightClickMenuAction(MI_PreviewFx, QT_TR_NOOP("Preview Fx"), "");
   createRightClickMenuAction(MI_PasteValues, QT_TR_NOOP("&Paste Color && Name"),
@@ -2465,15 +2633,25 @@ void MainWindow::defineActions() {
                              "");
   createRightClickMenuAction(MI_ViewFile, QT_TR_NOOP("&View..."), "",
                              "view_file");
-  createRightClickMenuAction(MI_ToggleXSheetToolbar,
-                             QT_TR_NOOP("Toggle XSheet Toolbar"), "");
+  createRightClickMenuAction(MI_ToggleQuickToolbar,
+                             QT_TR_NOOP("Toggle Quick Toolbar"), "");
   createRightClickMenuAction(MI_ToggleXsheetBreadcrumbs,
-                             QT_TR_NOOP("Toggle Sub-Xsheet Navigation Bar"), "",
+                             QT_TR_NOOP("Toggle Sub-Scene Navigation Bar"), "",
                              "toggle_sub_nav");
   createRightClickMenuAction(MI_ToggleXsheetCameraColumn,
-                             QT_TR_NOOP("Show/Hide Xsheet Camera Column"), "");
-  createRightClickMenuAction(MI_SetKeyframes, QT_TR_NOOP("&Set Key"), "F6",
-                             "set_keyframe");
+                             QT_TR_NOOP("Show/Hide Camera Column"), "");
+  createRightClickMenuAction(MI_ToggleOpenCloseFolder,
+                             QT_TR_NOOP("Open/Close Folder"), "");
+  createRightClickMenuAction(MI_SetKeyframes, QT_TR_NOOP("&Set Key"), "Z",
+                             "set_key");
+  createRightClickMenuAction(MI_SetRestKeyframes, QT_TR_NOOP("&Set Rest Key"),
+                             "", "rest_key");
+  createRightClickMenuAction(MI_SetGlobalKeyframes,
+                             QT_TR_NOOP("&Set Global Key"), "", "global_key");
+  createRightClickMenuAction(MI_SetGlobalRestKeyframes,
+                             QT_TR_NOOP("&Set Global Rest Key"), "",
+                             "global_rest_key");
+
   createRightClickMenuAction(MI_ShiftKeyframesDown,
                              QT_TR_NOOP("&Shift Keys Down"), "",
                              "shift_keys_down");
@@ -2483,11 +2661,10 @@ void MainWindow::defineActions() {
                              "paste_numbers");
   createRightClickMenuAction(MI_PasteCellContent,
                              QT_TR_NOOP("&Paste Cell Content"), "", "paste");
-
   createRightClickMenuAction(MI_Histogram, QT_TR_NOOP("&Histogram"), "");
   // MI_ViewerHistogram command is used as a proxy. It will be called when
   // the MI_Histogram is used while the current flip console is in viewer.
-  createAction(MI_ViewerHistogram, QT_TR_NOOP("&Viewer Histogram"), "",
+  createAction(MI_ViewerHistogram, QT_TR_NOOP("&Viewer Histogram"), "", "",
                HiddenCommandType);
 
   createRightClickMenuAction(MI_BlendColors, QT_TR_NOOP("&Blend colors"), "");
@@ -2497,6 +2674,8 @@ void MainWindow::defineActions() {
                RightClickMenuCommandType, "zero_thick_lines");
   createToggle(MI_CursorOutline, QT_TR_NOOP("Toggle Cursor Size Outline"), "",
                false, RightClickMenuCommandType);
+  createRightClickMenuAction(MI_ClearAllOnionSkinMarkers,
+                             QT_TR_NOOP("&Clear All Onion Skin Markers"), "");
   createRightClickMenuAction(MI_ToggleCurrentTimeIndicator,
                              QT_TR_NOOP("Toggle Current Time Indicator"), "");
   createRightClickMenuAction(MI_DuplicateFile, QT_TR_NOOP("Duplicate"), "",
@@ -2512,7 +2691,6 @@ void MainWindow::defineActions() {
                              "load_scene");
   createRightClickMenuAction(MI_ExportScenes, QT_TR_NOOP("Export Scene..."), "",
                              "export_scene");
-
   createRightClickMenuAction(MI_RemoveLevel, QT_TR_NOOP("Remove Level"), "",
                              "remove_level");
   createRightClickMenuAction(MI_AddToBatchRenderList,
@@ -2611,224 +2789,321 @@ void MainWindow::defineActions() {
   createRightClickMenuAction(MI_SeparateColors,
                              QT_TR_NOOP("Separate Colors..."), "",
                              "separate_colors");
+  createRightClickMenuAction(MI_OpenPltGizmo, QT_TR_NOOP("&Palette Gizmo"), "",
+                             "palettegizmo");
+  createRightClickMenuAction(MI_EraseUnusedStyles,
+                             QT_TR_NOOP("&Delete Unused Styles"), "",
+                             "delete_unused_styles");
+
+  createRightClickMenuAction(MI_SetLinearControlPoint,
+                             QT_TR_NOOP("&Set Linear Control Point"), "",
+                             "set_linear_cp");
+  createRightClickMenuAction(MI_SetNonLinearControlPoint,
+                             QT_TR_NOOP("&Set Nonlinear Control Point"), "",
+                             "set_nonlinear_cp");
+  createRightClickMenuAction(MI_PlasticCopySkeleton,
+                             QT_TR_NOOP("&Copy Skeleton"), "", "");
+  createRightClickMenuAction(MI_PlasticPasteSkeleton,
+                             QT_TR_NOOP("&Paste Skeleton"), "", "");
+
+  // createRightClickMenuAction(MI_LoadSubSceneFile, QT_TR_NOOP("Load As
+  // Sub-xsheet"),   ""); createRightClickMenuAction(MI_LoadResourceFile,
+  // QT_TR_NOOP("Load"), ""); createRightClickMenuAction(MI_PremultiplyFile,
+  // QT_TR_NOOP("Premultiply"), "");
+  // createRightClickMenuAction(MI_OpenCurrentScene, QT_TR_NOOP("&Current
+  // Scene"), "");
+  createRightClickMenuAction(MI_SaveStudioPalette,
+                             QT_TR_NOOP("&Save Studio Palette"), "", "",
+                             tr("Save the current Studio Palette."));
+  createRightClickMenuAction(MI_SaveAsDefaultPalette,
+                             QT_TR_NOOP("&Save As Default Palette"), "", "",
+                             tr("Save the current style palette as the default "
+                                "for new levels of the current level type."));
+  createToggle(MI_ToggleAutoCreate, QT_TR_NOOP("Toggle Auto-Creation"), "",
+               Preferences::instance()->isAutoCreateEnabled(), MiscCommandType,
+               "auto_create",
+               tr("Toggles the auto-creation of frames when drawing in blank "
+                  "cells on the timeline/xsheet."));
+  createToggle(MI_ToggleCreationInHoldCells,
+               QT_TR_NOOP("Toggle Creation In Hold Cells"), "",
+               Preferences::instance()->isCreationInHoldCellsEnabled(),
+               MiscCommandType, "create_in_hold",
+               tr("Toggles the auto-creation of frames when drawing in held "
+                  "cells on the timeline/xsheet."));
+  createToggle(MI_ToggleAutoStretch, QT_TR_NOOP("Toggle Auto-Stretch"), "",
+               Preferences::instance()->isAutoStretchEnabled(), MiscCommandType,
+               "auto_stretch",
+               tr("Toggles the auto-stretch of a frame to the next frame"));
   createToggle(MI_ViewerIndicator, QT_TR_NOOP("Toggle Viewer Indicators"), "",
                Preferences::instance()->isViewerIndicatorEnabled(),
                RightClickMenuCommandType);
+  createToggle(MI_ToggleImplicitHold, QT_TR_NOOP("Toggle Implicit Hold"), "",
+               Preferences::instance()->isImplicitHoldEnabled(),
+               MiscCommandType, "implicit_hold",
+               tr("Toggles the implicit hold of a frame to the next frame"));
 
   // Tools
 
-  createToolAction(T_Edit, "animate", QT_TR_NOOP("Animate Tool"), "A");
-  createToolAction(T_Selection, "selection", QT_TR_NOOP("Selection Tool"), "S");
-  createToolAction(T_Brush, "brush", QT_TR_NOOP("Brush Tool"), "B");
-  createToolAction(T_Geometric, "geometric", QT_TR_NOOP("Geometric Tool"), "G");
-  createToolAction(T_Type, "type", QT_TR_NOOP("Type Tool"), "Y");
-  createToolAction(T_Fill, "fill", QT_TR_NOOP("Fill Tool"), "F");
-  createToolAction(T_PaintBrush, "paintbrush", QT_TR_NOOP("Paint Brush Tool"),
-                   "");
-  createToolAction(T_Eraser, "eraser", QT_TR_NOOP("Eraser Tool"), "E");
-  createToolAction(T_Tape, "tape", QT_TR_NOOP("Tape Tool"), "T");
+  createToolAction(T_Edit, "animate", QT_TR_NOOP("Animate Tool"), "A",
+                   tr("Animate Tool: Modifies the position, rotation and size "
+                      "of the current column"));
+  createToolAction(
+      T_Selection, "selection", QT_TR_NOOP("Selection Tool"), "S",
+      tr("Selection Tool: Select parts of your image to transform it."));
+  createToolAction(T_Brush, "brush", QT_TR_NOOP("Brush Tool"), "B",
+                   tr("Brush Tool: Draws in the work area freehand"));
+  createToolAction(T_Geometric, "geometric", QT_TR_NOOP("Geometry Tool"), "G",
+                   tr("Geometry Tool: Draws geometric shapes"));
+  createToolAction(T_Type, "type", QT_TR_NOOP("Type Tool"), "Y",
+                   tr("Type Tool: Adds text"));
+  createToolAction(T_Fill, "fill", QT_TR_NOOP("Fill Tool"), "F",
+                   tr("Fill Tool: Fills drawing areas with the current style"));
+  createToolAction(
+      T_PaintBrush, "paintbrush", QT_TR_NOOP("Smart Raster Paint Tool"), "",
+      tr("Smart Raster Paint: Paints areas in Smart Raster levels"));
+  createToolAction(T_Eraser, "eraser", QT_TR_NOOP("Eraser Tool"), "E",
+                   tr("Eraser Tool: Erases lines and areas"));
+  createToolAction(
+      T_Tape, "tape", QT_TR_NOOP("Tape Tool"), "T",
+      tr("Tape Tool: Closes gaps in raster, joins edges in vector"));
   createToolAction(T_StylePicker, "stylepicker",
-                   QT_TR_NOOP("Style Picker Tool"), "I");
-  createToolAction(T_RGBPicker, "rgbpicker", QT_TR_NOOP("RGB Picker Tool"),
-                   "Shift+I");
+                   QT_TR_NOOP("Style Picker Tool"), "K",
+                   tr("Style Picker: Selects style on current drawing"));
+  createToolAction(
+      T_RGBPicker, "rgbpicker", QT_TR_NOOP("RGB Picker Tool"), "R",
+      tr("RGB Picker: Picks color on screen and applies to current style"));
   createToolAction(T_ControlPointEditor, "controlpointeditor",
-                   QT_TR_NOOP("Control Point Editor Tool"), "C");
-  createToolAction(T_Pinch, "pinch", QT_TR_NOOP("Pinch Tool"), "M");
-  createToolAction(T_Pump, "pump", QT_TR_NOOP("Pump Tool"), "");
-  createToolAction(T_Magnet, "magnet", QT_TR_NOOP("Magnet Tool"), "");
-  createToolAction(T_Bender, "bender", QT_TR_NOOP("Bender Tool"), "");
-  createToolAction(T_Iron, "iron", QT_TR_NOOP("Iron Tool"), "");
+                   QT_TR_NOOP("Control Point Editor Tool"), "C",
+                   tr("Control Point Editor: Modifies vector lines by editing "
+                      "its control points"));
+  createToolAction(T_Pinch, "pinch", QT_TR_NOOP("Pinch Tool"), "M",
+                   tr("Pinch Tool: Pulls vector drawings"));
+  createToolAction(T_Pump, "pump", QT_TR_NOOP("Pump Tool"), "",
+                   tr("Pump Tool: Changes vector thickness"));
+  createToolAction(T_Magnet, "magnet", QT_TR_NOOP("Magnet Tool"), "",
+                   tr("Magnet Tool: Deforms vector lines"));
+  createToolAction(
+      T_Bender, "bender", QT_TR_NOOP("Bender Tool"), "",
+      tr("Bender Tool: Bends vector shapes around the first click"));
+  createToolAction(T_Iron, "iron", QT_TR_NOOP("Iron Tool"), "",
+                   tr("Iron Tool: Smooths out vector lines"));
 
-  createToolAction(T_Cutter, "cutter", QT_TR_NOOP("Cutter Tool"), "");
-  createToolAction(T_Skeleton, "skeleton", QT_TR_NOOP("Skeleton Tool"), "V");
-  createToolAction(T_Tracker, "radar", QT_TR_NOOP("Tracker Tool"), "");
-  createToolAction(T_Hook, "hook", QT_TR_NOOP("Hook Tool"), "O");
-  createToolAction(T_Zoom, "zoom", QT_TR_NOOP("Zoom Tool"), "R");
-  createToolAction(T_Rotate, "rotate", QT_TR_NOOP("Rotate Tool"), "R");
-  createToolAction(T_Hand, "hand", QT_TR_NOOP("Hand Tool"), "H");
-  createToolAction(T_Plastic, "plastic", QT_TR_NOOP("Plastic Tool"), "X");
-  createToolAction(T_Ruler, "ruler", QT_TR_NOOP("Ruler Tool"), "");
-  createToolAction(T_Finger, "finger", QT_TR_NOOP("Finger Tool"), "");
-  createToolAction(T_EditAssistants, "assistant", QT_TR_NOOP("Edit Assistants"),
-                   "");
-  // Viewer Navigation tools (available only during the shortcut key is pressed)
-  createToolAction(T_ZoomView, "zoom", QT_TR_NOOP("Zoom View"), "Shift+Space");
-  createToolAction(T_RotateView, "rotate", QT_TR_NOOP("Rotate View"),
-                   "Ctrl+Space");
-  createToolAction(T_HandView, "hand", QT_TR_NOOP("Pan View"), "Space");
+  createToolAction(T_Cutter, "cutter", QT_TR_NOOP("Cutter Tool"), "",
+                   tr("Cutter Tool: Splits vector lines"));
+  createToolAction(T_Skeleton, "skeleton", QT_TR_NOOP("Skeleton Tool"), "V",
+                   tr("Skeleton Tool: Allows to build a skeleton and animate "
+                      "in a cut-out workflow"));
+  createToolAction(
+      T_Tracker, "radar", QT_TR_NOOP("Tracker Tool"), "",
+      tr("Tracker Tool: Tracks specific regions in a sequence of images"));
+  createToolAction(T_Hook, "hook", QT_TR_NOOP("Hook Tool"), "O",
+                   tr("Hook Tool: Create reference points to aid in movement "
+                      "or to link other objects by them"));
+  createToolAction(T_Zoom, "zoom", QT_TR_NOOP("Zoom Tool"), "Shift+Space",
+                   tr("Zoom Tool: Zooms viewer"));
+  createToolAction(T_Rotate, "rotate", QT_TR_NOOP("Rotate Tool"), "Ctrl+Space",
+                   tr("Rotate Tool: Rotate the viewer"));
+  createToolAction(T_Hand, "hand", QT_TR_NOOP("Hand Tool"), "Space",
+                   tr("Hand Tool: Pans the workspace"));
+  createToolAction(T_Plastic, "plastic", QT_TR_NOOP("Plastic Tool"), "X",
+                   tr("Plastic Tool: Builds a mesh that allows to deform and "
+                      "animate a level"));
+  createToolAction(T_Ruler, "ruler", QT_TR_NOOP("Ruler Tool"), "",
+                   tr("Ruler Tool: Measure distances on the canvas"));
+  createToolAction(T_PerspectiveGrid, "perspective_grid",
+                   QT_TR_NOOP("Perspective Grid Tool"), "",
+                   tr("Perspective Grid Tool: Set up perspective grids"));
+  createToolAction(T_Symmetry, "symmetry", QT_TR_NOOP("Symmetry Tool"), "",
+                   tr("Symmetry Tool: Set up symmetrical guide"));
+  createToolAction(T_Finger, "finger", QT_TR_NOOP("Finger Tool"), "",
+                   tr("Finger Tool: Smudges small areas to cover with line"));
 
   /*-- Animate tool + mode switching shortcuts --*/
-  createAction(MI_EditNextMode, QT_TR_NOOP("Animate Tool - Next Mode"), "",
+  createAction(MI_EditNextMode, QT_TR_NOOP("Animate Tool - Next Mode"), "", "",
                ToolCommandType);
-  createAction(MI_EditPosition, QT_TR_NOOP("Animate Tool - Position"), "",
+  createAction(MI_EditPosition, QT_TR_NOOP("Animate Tool - Position"), "", "",
                ToolCommandType, "edit_position");
-  createAction(MI_EditRotation, QT_TR_NOOP("Animate Tool - Rotation"), "",
+  createAction(MI_EditRotation, QT_TR_NOOP("Animate Tool - Rotation"), "", "",
                ToolCommandType, "edit_rotation");
-  createAction(MI_EditScale, QT_TR_NOOP("Animate Tool - Scale"), "",
+  createAction(MI_EditScale, QT_TR_NOOP("Animate Tool - Scale"), "", "",
                ToolCommandType, "edit_scale");
-  createAction(MI_EditShear, QT_TR_NOOP("Animate Tool - Shear"), "",
+  createAction(MI_EditShear, QT_TR_NOOP("Animate Tool - Shear"), "", "",
                ToolCommandType, "edit_shear");
-  createAction(MI_EditCenter, QT_TR_NOOP("Animate Tool - Center"), "",
+  createAction(MI_EditCenter, QT_TR_NOOP("Animate Tool - Center"), "", "",
                ToolCommandType, "edit_center");
-  createAction(MI_EditAll, QT_TR_NOOP("Animate Tool - All"), "",
+  createAction(MI_EditDrawingNumber, QT_TR_NOOP("Animate Tool - Drawing #"), "", "",
+               ToolCommandType, "edit_drawingnumber");
+  createAction(MI_EditAll, QT_TR_NOOP("Animate Tool - All"), "", "",
                ToolCommandType, "edit_all");
 
   /*-- Selection tool + type switching shortcuts --*/
   createAction(MI_SelectionNextType, QT_TR_NOOP("Selection Tool - Next Type"),
-               "", ToolCommandType);
+               "", "", ToolCommandType);
   createAction(MI_SelectionRectangular,
-               QT_TR_NOOP("Selection Tool - Rectangular"), "", ToolCommandType,
-               "selection_rectangular");
+               QT_TR_NOOP("Selection Tool - Rectangular"), "", "",
+               ToolCommandType, "selection_rectangular");
   createAction(MI_SelectionFreehand, QT_TR_NOOP("Selection Tool - Freehand"),
-               "", ToolCommandType, "selection_freehand");
+               "", "", ToolCommandType, "selection_freehand");
   createAction(MI_SelectionPolyline, QT_TR_NOOP("Selection Tool - Polyline"),
-               "", ToolCommandType, "selection_polyline");
+               "", "", ToolCommandType, "selection_polyline");
+
+  /*-- Brush tool + mode switching shortcuts --*/
+  createAction(MI_BrushAutoFillOn, QT_TR_NOOP("Brush Tool - Auto Fill On"), "",
+               "", ToolCommandType);
+  createAction(MI_BrushAutoFillOff,
+               QT_TR_NOOP("Brush Tool - Auto Close/Group/Fill Off"), "", "",
+               ToolCommandType);
+  createAction(MI_BrushAutoCloseOn, QT_TR_NOOP("Brush Tool - Auto Close On"), "",
+               "", ToolCommandType);
+  createAction(MI_BrushAutoGroupOn,
+               QT_TR_NOOP("Brush Tool - Auto Group On"), "", "",
+               ToolCommandType);
 
   /*-- Geometric tool + shape switching shortcuts --*/
   createAction(MI_GeometricNextShape, QT_TR_NOOP("Geometric Tool - Next Shape"),
-               "", ToolCommandType);
+               "", "", ToolCommandType);
   createAction(MI_GeometricRectangle, QT_TR_NOOP("Geometric Tool - Rectangle"),
-               "", ToolCommandType, "geometric_rectangle");
+               "", "", ToolCommandType, "geometric_rectangle");
   createAction(MI_GeometricCircle, QT_TR_NOOP("Geometric Tool - Circle"), "",
-               ToolCommandType, "geometric_circle");
+               "", ToolCommandType, "geometric_circle");
   createAction(MI_GeometricEllipse, QT_TR_NOOP("Geometric Tool - Ellipse"), "",
-               ToolCommandType, "geometric_ellipse");
-  createAction(MI_GeometricLine, QT_TR_NOOP("Geometric Tool - Line"), "",
+               "", ToolCommandType, "geometric_ellipse");
+  createAction(MI_GeometricLine, QT_TR_NOOP("Geometric Tool - Line"), "", "",
                ToolCommandType, "geometric_line");
   createAction(MI_GeometricPolyline, QT_TR_NOOP("Geometric Tool - Polyline"),
-               "", ToolCommandType, "geometric_polyline");
-  createAction(MI_GeometricArc, QT_TR_NOOP("Geometric Tool - Arc"), "",
+               "", "", ToolCommandType, "geometric_polyline");
+  createAction(MI_GeometricArc, QT_TR_NOOP("Geometric Tool - Arc"), "", "",
                ToolCommandType, "geometric_arc");
   createAction(MI_GeometricMultiArc, QT_TR_NOOP("Geometric Tool - MultiArc"),
-               "", ToolCommandType, "geometric_multiarc");
+               "", "", ToolCommandType, "geometric_multiarc");
   createAction(MI_GeometricPolygon, QT_TR_NOOP("Geometric Tool - Polygon"), "",
-               ToolCommandType, "geometric_polygon");
+               "", ToolCommandType, "geometric_polygon");
 
   /*-- Type tool + style switching shortcuts --*/
-  createAction(MI_TypeNextStyle, QT_TR_NOOP("Type Tool - Next Style"), "",
+  createAction(MI_TypeNextStyle, QT_TR_NOOP("Type Tool - Next Style"), "", "",
                ToolCommandType);
-  createAction(MI_TypeOblique, QT_TR_NOOP("Type Tool - Oblique"), "",
+  createAction(MI_TypeOblique, QT_TR_NOOP("Type Tool - Oblique"), "", "",
                ToolCommandType);
-  createAction(MI_TypeRegular, QT_TR_NOOP("Type Tool - Regular"), "",
+  createAction(MI_TypeRegular, QT_TR_NOOP("Type Tool - Regular"), "", "",
                ToolCommandType);
   createAction(MI_TypeBoldOblique, QT_TR_NOOP("Type Tool - Bold Oblique"), "",
-               ToolCommandType);
-  createAction(MI_TypeBold, QT_TR_NOOP("Type Tool - Bold"), "",
+               "", ToolCommandType);
+  createAction(MI_TypeBold, QT_TR_NOOP("Type Tool - Bold"), "", "",
                ToolCommandType);
 
   /*-- Paint Brush tool + mode swicthing shortcuts --*/
   createAction(MI_PaintBrushNextMode, QT_TR_NOOP("Paint Brush - Next Mode"), "",
-               ToolCommandType);
-  createAction(MI_PaintBrushAreas, QT_TR_NOOP("Paint Brush - Areas"), "",
+               "", ToolCommandType);
+  createAction(MI_PaintBrushAreas, QT_TR_NOOP("Paint Brush - Areas"), "", "",
                ToolCommandType, "paintbrush_mode_areas");
-  createAction(MI_PaintBrushLines, QT_TR_NOOP("Paint Brush - Lines"), "",
+  createAction(MI_PaintBrushLines, QT_TR_NOOP("Paint Brush - Lines"), "", "",
                ToolCommandType, "paintbrush_mode_lines");
   createAction(MI_PaintBrushLinesAndAreas,
-               QT_TR_NOOP("Paint Brush - Lines & Areas"), "", ToolCommandType,
-               "paintbrush_mode_lines_areas");
+               QT_TR_NOOP("Paint Brush - Lines & Areas"), "", "",
+               ToolCommandType, "paintbrush_mode_lines_areas");
 
   /*-- Fill tool + type/mode switching shortcuts --*/
-  createAction(MI_FillNextType, QT_TR_NOOP("Fill Tool - Next Type"), "",
+  createAction(MI_FillNextType, QT_TR_NOOP("Fill Tool - Next Type"), "", "",
                ToolCommandType);
-  createAction(MI_FillNormal, QT_TR_NOOP("Fill Tool - Normal"), "",
+  createAction(MI_FillNormal, QT_TR_NOOP("Fill Tool - Normal"), "", "",
                ToolCommandType, "fill_normal");
   createAction(MI_FillRectangular, QT_TR_NOOP("Fill Tool - Rectangular"), "",
-               ToolCommandType, "fill_rectangular");
-  createAction(MI_FillFreehand, QT_TR_NOOP("Fill Tool - Freehand"), "",
+               "", ToolCommandType, "fill_rectangular");
+  createAction(MI_FillFreehand, QT_TR_NOOP("Fill Tool - Freehand"), "", "",
                ToolCommandType, "fill_freehand");
-  createAction(MI_FillPolyline, QT_TR_NOOP("Fill Tool - Polyline"), "",
+  createAction(MI_FillPolyline, QT_TR_NOOP("Fill Tool - Polyline"), "", "",
                ToolCommandType, "fill_polyline");
-  createAction(MI_FillFreepick, QT_TR_NOOP("Fill Tool - Pick+Freehand"), "",
+  createAction(MI_FillFreepick, QT_TR_NOOP("Fill Tool - Pick+Freehand"), "", "",
                ToolCommandType, "fill_freepick");
-  createAction(MI_FillNextMode, QT_TR_NOOP("Fill Tool - Next Mode"), "",
+  createAction(MI_FillNextMode, QT_TR_NOOP("Fill Tool - Next Mode"), "", "",
                ToolCommandType);
-  createAction(MI_FillAreas, QT_TR_NOOP("Fill Tool - Areas"), "",
-               ToolCommandType, "fill_mode_areas");
-  createAction(MI_FillLines, QT_TR_NOOP("Fill Tool - Lines"), "",
-               ToolCommandType, "fill_mode_lines");
+  createAction(MI_FillAreas, QT_TR_NOOP("Fill Tool - Areas"), "", "",
+               ToolCommandType);
+  createAction(MI_FillLines, QT_TR_NOOP("Fill Tool - Lines"), "", "",
+               ToolCommandType);
   createAction(MI_FillLinesAndAreas, QT_TR_NOOP("Fill Tool - Lines & Areas"),
-               "", ToolCommandType, "fill_mode_lines_areas");
+               "", "", ToolCommandType);
 
   /*-- Eraser tool + type switching shortcuts --*/
-  createAction(MI_EraserNextType, QT_TR_NOOP("Eraser Tool - Next Type"), "",
+  createAction(MI_EraserNextType, QT_TR_NOOP("Eraser Tool - Next Type"), "", "",
                ToolCommandType);
-  createAction(MI_EraserNormal, QT_TR_NOOP("Eraser Tool - Normal"), "",
-               ToolCommandType, "eraser_normal");
+  createAction(MI_EraserNormal, QT_TR_NOOP("Eraser Tool - Normal"), "", "",
+               ToolCommandType);
   createAction(MI_EraserRectangular, QT_TR_NOOP("Eraser Tool - Rectangular"),
-               "", ToolCommandType, "eraser_rectangular");
-  createAction(MI_EraserFreehand, QT_TR_NOOP("Eraser Tool - Freehand"), "",
-               ToolCommandType, "eraser_freehand");
-  createAction(MI_EraserPolyline, QT_TR_NOOP("Eraser Tool - Polyline"), "",
-               ToolCommandType, "eraser_polyline");
-  createAction(MI_EraserSegment, QT_TR_NOOP("Eraser Tool - Segment"), "",
-               ToolCommandType, "eraser_segment");
+               "", "", ToolCommandType);
+  createAction(MI_EraserFreehand, QT_TR_NOOP("Eraser Tool - Freehand"), "", "",
+               ToolCommandType);
+  createAction(MI_EraserPolyline, QT_TR_NOOP("Eraser Tool - Polyline"), "", "",
+               ToolCommandType);
+  createAction(MI_EraserSegment, QT_TR_NOOP("Eraser Tool - Segment"), "", "",
+               ToolCommandType);
 
   /*-- Tape tool + type/mode switching shortcuts --*/
-  createAction(MI_TapeNextType, QT_TR_NOOP("Tape Tool - Next Type"), "",
+  createAction(MI_TapeNextType, QT_TR_NOOP("Tape Tool - Next Type"), "", "",
                ToolCommandType);
-  createAction(MI_TapeNormal, QT_TR_NOOP("Tape Tool - Normal"), "",
+  createAction(MI_TapeNormal, QT_TR_NOOP("Tape Tool - Normal"), "", "",
                ToolCommandType, "tape_normal");
   createAction(MI_TapeRectangular, QT_TR_NOOP("Tape Tool - Rectangular"), "",
-               ToolCommandType, "tape_rectangular");
-  createAction(MI_TapeNextMode, QT_TR_NOOP("Tape Tool - Next Mode"), "",
+               "", ToolCommandType, "tape_rectangular");
+  createAction(MI_TapeNextMode, QT_TR_NOOP("Tape Tool - Next Mode"), "", "",
                ToolCommandType);
   createAction(MI_TapeEndpointToEndpoint,
-               QT_TR_NOOP("Tape Tool - Endpoint to Endpoint"), "",
+               QT_TR_NOOP("Tape Tool - Endpoint to Endpoint"), "", "",
                ToolCommandType, "tape_end_to_end");
   createAction(MI_TapeEndpointToLine,
-               QT_TR_NOOP("Tape Tool - Endpoint to Line"), "", ToolCommandType,
-               "tape_end_to_line");
+               QT_TR_NOOP("Tape Tool - Endpoint to Line"), "", "",
+               ToolCommandType, "tape_end_to_line");
   createAction(MI_TapeLineToLine, QT_TR_NOOP("Tape Tool - Line to Line"), "",
-               ToolCommandType, "tape_line_to_line");
+               "", ToolCommandType, "tape_line_to_line");
 
   /*-- Style Picker tool + mode switching shortcuts --*/
   createAction(MI_PickStyleNextMode,
-               QT_TR_NOOP("Style Picker Tool - Next Mode"), "",
+               QT_TR_NOOP("Style Picker Tool - Next Mode"), "", "",
                ToolCommandType);
   createAction(MI_PickStyleAreas, QT_TR_NOOP("Style Picker Tool - Areas"), "",
-               ToolCommandType, "stylepicker_areas");
+               "", ToolCommandType, "stylepicker_areas");
   createAction(MI_PickStyleLines, QT_TR_NOOP("Style Picker Tool - Lines"), "",
-               ToolCommandType, "stylepicker_lines");
+               "", ToolCommandType, "stylepicker_lines");
   createAction(MI_PickStyleLinesAndAreas,
-               QT_TR_NOOP("Style Picker Tool - Lines & Areas"), "",
+               QT_TR_NOOP("Style Picker Tool - Lines & Areas"), "", "",
                ToolCommandType, "stylepicker_lines_areas");
 
   /*-- RGB Picker tool + type switching shortcuts --*/
   createAction(MI_RGBPickerNextType, QT_TR_NOOP("RGB Picker Tool - Next Type"),
-               "", ToolCommandType);
+               "", "", ToolCommandType);
   createAction(MI_RGBPickerNormal, QT_TR_NOOP("RGB Picker Tool - Normal"), "",
-               ToolCommandType);
+               "", ToolCommandType);
   createAction(MI_RGBPickerRectangular,
-               QT_TR_NOOP("RGB Picker Tool - Rectangular"), "",
+               QT_TR_NOOP("RGB Picker Tool - Rectangular"), "", "",
                ToolCommandType);
   createAction(MI_RGBPickerFreehand, QT_TR_NOOP("RGB Picker Tool - Freehand"),
-               "", ToolCommandType);
+               "", "", ToolCommandType);
   createAction(MI_RGBPickerPolyline, QT_TR_NOOP("RGB Picker Tool - Polyline"),
-               "", ToolCommandType);
+               "", "", ToolCommandType);
 
   /*-- Skeleton tool + mode switching shortcuts --*/
   createAction(MI_SkeletonNextMode, QT_TR_NOOP("Skeleton Tool - Next Mode"), "",
-               ToolCommandType);
+               "", ToolCommandType);
   createAction(MI_SkeletonBuildSkeleton,
-               QT_TR_NOOP("Skeleton Tool - Build Skeleton"), "",
+               QT_TR_NOOP("Skeleton Tool - Build Skeleton"), "", "",
                ToolCommandType);
   createAction(MI_SkeletonAnimate, QT_TR_NOOP("Skeleton Tool - Animate"), "",
-               ToolCommandType);
+               "", ToolCommandType);
   createAction(MI_SkeletonInverseKinematics,
-               QT_TR_NOOP("Skeleton Tool - Inverse Kinematics"), "",
+               QT_TR_NOOP("Skeleton Tool - Inverse Kinematics"), "", "",
                ToolCommandType);
 
   /*-- Plastic tool + mode switching shortcuts --*/
   createAction(MI_PlasticNextMode, QT_TR_NOOP("Plastic Tool - Next Mode"), "",
-               ToolCommandType);
-  createAction(MI_PlasticEditMesh, QT_TR_NOOP("Plastic Tool - Edit Mesh"), "",
-               ToolCommandType);
-  createAction(MI_PlasticPaintRigid, QT_TR_NOOP("Plastic Tool - Paint Rigid"),
                "", ToolCommandType);
+  createAction(MI_PlasticEditMesh, QT_TR_NOOP("Plastic Tool - Edit Mesh"), "",
+               "", ToolCommandType);
+  createAction(MI_PlasticPaintRigid, QT_TR_NOOP("Plastic Tool - Paint Rigid"),
+               "", "", ToolCommandType);
   createAction(MI_PlasticBuildSkeleton,
-               QT_TR_NOOP("Plastic Tool - Build Skeleton"), "",
+               QT_TR_NOOP("Plastic Tool - Build Skeleton"), "", "",
                ToolCommandType);
-  createAction(MI_PlasticAnimate, QT_TR_NOOP("Plastic Tool - Animate"), "",
+  createAction(MI_PlasticAnimate, QT_TR_NOOP("Plastic Tool - Animate"), "", "",
                ToolCommandType);
 
   // Tool Modifiers
@@ -2856,20 +3131,22 @@ void MainWindow::defineActions() {
                           QT_TR_NOOP("Flip Previous Guide Stroke Direction"),
                           "");
   createToolOptionsAction("A_ToolOption_GlobalKey", QT_TR_NOOP("Global Key"),
-                          "");
+                          "", "global_key");
+  createToolOptionsAction("A_ToolOption_KeepDistance", QT_TR_NOOP("Keep Distance"),
+                          "", "");
 
   createToolOptionsAction("A_IncreaseMaxBrushThickness",
-                          QT_TR_NOOP("Brush size - Increase max"), "]");
+                          QT_TR_NOOP("Brush size - Increase max"), "I");
   createToolOptionsAction("A_DecreaseMaxBrushThickness",
-                          QT_TR_NOOP("Brush size - Decrease max"), "[");
+                          QT_TR_NOOP("Brush size - Decrease max"), "U");
   createToolOptionsAction("A_IncreaseMinBrushThickness",
-                          QT_TR_NOOP("Brush size - Increase min"), "Shift+]");
+                          QT_TR_NOOP("Brush size - Increase min"), "J");
   createToolOptionsAction("A_DecreaseMinBrushThickness",
-                          QT_TR_NOOP("Brush size - Decrease min"), "Shift+[");
+                          QT_TR_NOOP("Brush size - Decrease min"), "H");
   createToolOptionsAction("A_IncreaseBrushHardness",
-                          QT_TR_NOOP("Brush hardness - Increase"), "Ctrl+]");
+                          QT_TR_NOOP("Brush hardness - Increase"), "");
   createToolOptionsAction("A_DecreaseBrushHardness",
-                          QT_TR_NOOP("Brush hardness - Decrease"), "Ctrl+[");
+                          QT_TR_NOOP("Brush hardness - Decrease"), "");
   createToolOptionsAction("A_ToolOption_SnapSensitivity",
                           QT_TR_NOOP("Snap Sensitivity"), "");
   createToolOptionsAction("A_ToolOption_AutoGroup", QT_TR_NOOP("Auto Group"),
@@ -2878,6 +3155,16 @@ void MainWindow::defineActions() {
                           QT_TR_NOOP("Break sharp angles"), "");
   createToolOptionsAction("A_ToolOption_FrameRange", QT_TR_NOOP("Frame range"),
                           "F6");
+  createToolOptionsAction("A_ToolOption_FrameRange:Off",
+                          QT_TR_NOOP("Frame range - Off"), "");
+  createToolOptionsAction("A_ToolOption_FrameRange:Linear",
+                          QT_TR_NOOP("Frame range - Linear"), "");
+  createToolOptionsAction("A_ToolOption_FrameRange:Ease In",
+                          QT_TR_NOOP("Frame range - Ease In"), "");
+  createToolOptionsAction("A_ToolOption_FrameRange:Ease Out",
+                          QT_TR_NOOP("Frame range - Ease Out"), "");
+  createToolOptionsAction("A_ToolOption_FrameRange:Ease In/Out",
+                          QT_TR_NOOP("Frame range - Ease In/Out"), "");
   createToolOptionsAction("A_ToolOption_IK", QT_TR_NOOP("Inverse Kinematics"),
                           "");
   createToolOptionsAction("A_ToolOption_Invert", QT_TR_NOOP("Invert"), "");
@@ -2894,10 +3181,8 @@ void MainWindow::defineActions() {
                           QT_TR_NOOP("Pressure Sensitivity"), "Shift+P");
   createToolOptionsAction("A_ToolOption_SegmentInk", QT_TR_NOOP("Segment Ink"),
                           "F8");
-  createToolOptionsAction("A_ToolOption_EmptyOnly", QT_TR_NOOP("Empty Only"),
-                          "F7");
   createToolOptionsAction("A_ToolOption_Selective", QT_TR_NOOP("Selective"),
-                          "F9");
+                          "F7");
   createToolOptionsAction("A_ToolOption_DrawOrder",
                           QT_TR_NOOP("Brush Tool - Draw Order"), "");
   createToolOptionsAction("A_ToolOption_Smooth", QT_TR_NOOP("Smooth"), "");
@@ -2914,6 +3199,7 @@ void MainWindow::defineActions() {
                           "");
   createToolOptionsAction("A_ToolOption_LockAlpha",
                           QT_TR_NOOP("Brush Tool - Lock Alpha"), "");
+
   createToolOptionsAction("A_ToolOption_BrushPreset",
                           QT_TR_NOOP("Brush Preset"), "");
   createToolOptionsAction("A_ToolOption_GeometricShape",
@@ -2937,13 +3223,15 @@ void MainWindow::defineActions() {
   createToolOptionsAction("A_ToolOption_GeometricEdge",
                           QT_TR_NOOP("Geometric Edge"), "");
   createToolOptionsAction("A_ToolOption_Mode", QT_TR_NOOP("Mode"), "");
-  menuAct = createToolOptionsAction(
-      "A_ToolOption_Mode:Areas", QT_TR_NOOP("Mode - Areas"), "", "mode_areas");
-  menuAct = createToolOptionsAction(
-      "A_ToolOption_Mode:Lines", QT_TR_NOOP("Mode - Lines"), "", "mode_lines");
+  menuAct =
+      createToolOptionsAction("A_ToolOption_Mode:Areas",
+                              QT_TR_NOOP("Mode - Areas"), "", "mode_areas", "");
+  menuAct =
+      createToolOptionsAction("A_ToolOption_Mode:Lines",
+                              QT_TR_NOOP("Mode - Lines"), "", "mode_lines", "");
   menuAct = createToolOptionsAction("A_ToolOption_Mode:Lines & Areas",
                                     QT_TR_NOOP("Mode - Lines && Areas"), "",
-                                    "mode_areas_lines");
+                                    "mode_areas_lines", "");
   createToolOptionsAction("A_ToolOption_Mode:Endpoint to Endpoint",
                           QT_TR_NOOP("Mode - Endpoint to Endpoint"), "");
   createToolOptionsAction("A_ToolOption_Mode:Endpoint to Line",
@@ -2952,27 +3240,29 @@ void MainWindow::defineActions() {
                           QT_TR_NOOP("Mode - Line to Line"), "");
   createToolOptionsAction("A_ToolOption_Type", QT_TR_NOOP("Type"), "");
 
-  menuAct =
-      createToolOptionsAction("A_ToolOption_Type:Normal",
-                              QT_TR_NOOP("Type - Normal"), "", "type_normal");
+  menuAct = createToolOptionsAction("A_ToolOption_Type:Normal",
+                                    QT_TR_NOOP("Type - Normal"), "",
+                                    "type_normal", "");
+
   menuAct = createToolOptionsAction("A_ToolOption_Type:Rectangular",
                                     QT_TR_NOOP("Type - Rectangular"), "F5",
-                                    "type_rectangular");
-  menuAct =
-      createToolOptionsAction("A_ToolOption_Type:Freehand",
-                              QT_TR_NOOP("Type - Freehand"), "", "type_lasso");
+                                    "type_rectangular", "");
+
+  menuAct = createToolOptionsAction("A_ToolOption_Type:Freehand",
+                                    QT_TR_NOOP("Type - Freehand"), "",
+                                    "type_lasso", "");
+
   menuAct = createToolOptionsAction("A_ToolOption_Type:Polyline",
                                     QT_TR_NOOP("Type - Polyline"), "",
-                                    "type_polyline");
+                                    "type_polyline", "");
+
   menuAct = createToolOptionsAction("A_ToolOption_Type:Freepick",
                                     QT_TR_NOOP("Type - Pick+Freehand"), "",
-                                    "type_pickerlasso");
+                                    "type_pickerlasso", "");
+
   menuAct = createToolOptionsAction("A_ToolOption_Type:Segment",
                                     QT_TR_NOOP("Type - Segment"), "",
-                                    "type_erase_segment");
-  menuAct = createToolOptionsAction("A_ToolOption_Type:MultiArc",
-                                    QT_TR_NOOP("Eraser Type - MultiArc"), "",
-                                    "type_erase_multiarc");
+                                    "type_erase_segment", "");
 
   createToolOptionsAction("A_ToolOption_TypeFont", QT_TR_NOOP("TypeTool Font"),
                           "");
@@ -3033,6 +3323,12 @@ void MainWindow::defineActions() {
                               QT_TR_NOOP("Fill Tool - Autopaint Lines"), "");
   menuAct->setIcon(createQIcon("toggle_autofill"));
 
+  // createToolOptionsAction("A_ToolOption_Link", QT_TR_NOOP("Link"), "");
+  createToolOptionsAction("A_ToolOption_AutoClose", QT_TR_NOOP("Auto Close"),
+                          "");
+  createToolOptionsAction("A_ToolOption_DrawUnder", QT_TR_NOOP("Draw Under"),
+                          "");
+
   createToolOptionsAction("A_ToolOption_FlipHorizontal",
                           QT_TR_NOOP("Flip Selection/Object Horizontally"), "");
   createToolOptionsAction("A_ToolOption_FlipVertical",
@@ -3041,6 +3337,14 @@ void MainWindow::defineActions() {
                           QT_TR_NOOP("Rotate Selection/Object Left"), "");
   createToolOptionsAction("A_ToolOption_RotateRight",
                           QT_TR_NOOP("Rotate Selection/Object Right"), "");
+  createToolOptionsAction("A_ToolOption_PaintBehind", QT_TR_NOOP("Paint Behind"),
+                          "");
+
+  createToolOptionsAction("A_ToolOption_ShowDirection",
+                          QT_TR_NOOP("Show Direction"), "");
+  createToolOptionsAction("A_ToolOption_FlipDirection",
+                          QT_TR_NOOP("Flip Direction"), "");
+
 
   // Visualization
 
@@ -3055,8 +3359,6 @@ void MainWindow::defineActions() {
   createViewerAction(V_ActualPixelSize, QT_TR_NOOP("Actual Pixel Size"), "N");
   createViewerAction(V_FlipX, QT_TR_NOOP("Flip Viewer Horizontally"), "");
   createViewerAction(V_FlipY, QT_TR_NOOP("Flip Viewer Vertically"), "");
-  createViewerAction(V_RotateLeft, QT_TR_NOOP("Rotate View Left"), "");
-  createViewerAction(V_RotateRight, QT_TR_NOOP("Rotate View Right"), "");
   createViewerAction(V_ShowHideFullScreen, QT_TR_NOOP("Show//Hide Full Screen"),
                      "Alt+F");
   CommandManager::instance()->setToggleTexts(V_ShowHideFullScreen,
@@ -3070,6 +3372,21 @@ void MainWindow::defineActions() {
   createViewerAction(MI_ZoomOutAndFitPanel,
                      QT_TR_NOOP("Zoom Out And Fit Floating Panel"),
                      "Ctrl+Alt+-");
+  menuAct = createToggle(MI_ShowMainToolbar, QT_TR_NOOP("&Show Main Toolbar"), "",
+                         ShowMainToolbarAction ? 1 : 0, MenuViewCommandType);
+  connect(menuAct, SIGNAL(triggered(bool)), this, SLOT(toggleMainToolbar(bool)));
+  menuAct = createToggle(MI_ShowStatusBar, QT_TR_NOOP("&Show Status Bar"), "",
+                         ShowStatusBarAction ? 1 : 0, MenuViewCommandType);
+  connect(menuAct, SIGNAL(triggered(bool)), this, SLOT(toggleStatusBar(bool)));
+  menuAct =
+      createToggle(MI_ToggleTransparent, QT_TR_NOOP("&Toggle Transparency"), "",
+                   0, MenuViewCommandType);
+  connect(menuAct, SIGNAL(triggered(bool)), this,
+          SLOT(toggleTransparency(bool)));
+  connect(m_transparencyTogglerWindow, &QDialog::finished, [=](int result) {
+    toggleTransparency(false);
+    menuAct->setChecked(false);
+  });
 
   // Following actions are for adding "Visualization" menu items to the command
   // bar. They are separated from the original actions in order to avoid
@@ -3093,10 +3410,6 @@ void MainWindow::defineActions() {
       VB_FlipX, QT_TR_NOOP("Flip Viewer Horizontally"), "fliphoriz");
   createVisualizationButtonAction(
       VB_FlipY, QT_TR_NOOP("Flip Viewer Vertically"), "flipvert");
-  createVisualizationButtonAction(VB_RotateLeft, QT_TR_NOOP("Rotate View Left"),
-                                  "rotateleft");
-  createVisualizationButtonAction(
-      VB_RotateRight, QT_TR_NOOP("Rotate View Right"), "rotateright");
 
   // Misc
 
@@ -3104,13 +3417,15 @@ void MainWindow::defineActions() {
       createToggle(MI_TouchGestureControl, QT_TR_NOOP("&Touch Gesture Control"),
                    "", TouchGestureControl ? 1 : 0, MiscCommandType, "touch");
   menuAct->setEnabled(true);
-  ;
   createMiscAction(MI_CameraStage, QT_TR_NOOP("&Camera Settings..."), "");
   menuAct =
       createMiscAction(MI_RefreshTree, QT_TR_NOOP("Refresh Folder Tree"), "");
   menuAct->setIconText(tr("Refresh"));
   createMiscAction("A_FxSchematicToggle",
                    QT_TR_NOOP("Toggle FX/Stage schematic"), "");
+  // createAction(MI_SavePreview, QT_TR_NOOP("&Save Preview"), "");
+  // createAction(MI_TestAnimation, QT_TR_NOOP("Test Animation"),
+  // "Ctrl+Return"); createAction(MI_Export, QT_TR_NOOP("Export"), "Ctrl+E");
 
   // RGBA
 
@@ -3127,9 +3442,11 @@ void MainWindow::defineActions() {
 
   // Stop Motion
 
-#if defined(x64)
-  createStopMotionAction(MI_StopMotionExportImageSequence,
-                         QT_TR_NOOP("&Export Stop Motion Image Sequence"), "");
+  createStopMotionAction(
+      MI_StopMotionExportImageSequence,
+      QT_TR_NOOP("&Export Stop Motion Image Sequence"), "", "export_smimages",
+      tr("Exports the full resolution stop motion image sequence.") +
+          separator + tr("This is especially useful if using a DSLR camera."));
   createStopMotionAction(MI_StopMotionCapture,
                          QT_TR_NOOP("Capture Stop Motion Frame"), "");
   createStopMotionAction(MI_StopMotionRaiseOpacity,
@@ -3138,12 +3455,10 @@ void MainWindow::defineActions() {
                          QT_TR_NOOP("Lower Stop Motion Opacity"), "");
   createStopMotionAction(MI_StopMotionToggleLiveView,
                          QT_TR_NOOP("Toggle Stop Motion Live View"), "");
-#ifdef WITH_CANON
   createStopMotionAction(MI_StopMotionToggleZoom,
                          QT_TR_NOOP("Toggle Stop Motion Zoom"), "");
   createStopMotionAction(MI_StopMotionPickFocusCheck,
                          QT_TR_NOOP("Pick Focus Check Location"), "");
-#endif  // WITH_CANON
   createStopMotionAction(MI_StopMotionLowerSubsampling,
                          QT_TR_NOOP("Lower Stop Motion Level Subsampling"), "");
   createStopMotionAction(MI_StopMotionRaiseSubsampling,
@@ -3158,15 +3473,38 @@ void MainWindow::defineActions() {
                          "");
   createStopMotionAction(MI_StopMotionToggleUseLiveViewImages,
                          QT_TR_NOOP("Show original live view images."), "");
-#endif  // x64
+
+  // Special Modifier Keys
+  createSpecialModifierAction(V_Scrub, QT_TR_NOOP("Viewer Scrub"), "#");
+
+  // create drawing mark actions
+  std::string cmdId    = (std::string)MI_SetDrawingMark + "None";
+  std::string labelStr = QT_TR_NOOP("Remove Drawing Mark");
+  QAction *action      = createAction(cmdId.c_str(), labelStr.c_str(), "", "",
+                                      DrawingMarkCommandType);
+  action->setData(-1);
+
+  for (int markId = 0; markId < 12; markId++) {
+    std::string cmdId = (std::string)MI_SetDrawingMark + std::to_string(markId);
+    std::string labelStr =
+        QT_TR_NOOP("Set Drawing Mark ") + std::to_string(markId);
+    QAction *action = createAction(cmdId.c_str(), labelStr.c_str(), "", "",
+                                   DrawingMarkCommandType);
+    action->setData(markId);
+  }
 
   // create cell mark actions
+  cmdId    = (std::string)MI_SetCellMark + "None";
+  labelStr = QT_TR_NOOP("Remove Cell Mark");
+  action   = createAction(cmdId.c_str(), labelStr.c_str(), "", "",
+                          CellMarkCommandType);
+  action->setData(-1);
   for (int markId = 0; markId < 12; markId++) {
     std::string cmdId = (std::string)MI_SetCellMark + std::to_string(markId);
     std::string labelStr =
         QT_TR_NOOP("Set Cell Mark ") + std::to_string(markId);
-    QAction *action =
-        createAction(cmdId.c_str(), labelStr.c_str(), "", CellMarkCommandType);
+    QAction *action = createAction(cmdId.c_str(), labelStr.c_str(), "", "",
+                                   CellMarkCommandType);
     action->setData(markId);
   }
 }
@@ -3229,7 +3567,7 @@ void MainWindow::clearCacheFolder() {
   // So, this function will delete all files / folders in $CACHE
   // except the following items:
   // 1. $CACHE/[Current ProcessID]
-  //   // 2. $CACHE/temp/[Current scene folder] if the current scene is untitled
+  // 2. $CACHE/temp/[Current scene folder] if the current scene is untitled
 
   TFilePath cacheRoot = FlareFolder::getCacheRootFolder();
   if (cacheRoot.isEmpty()) cacheRoot = TEnv::getStuffDir() + "cache";
@@ -3307,12 +3645,95 @@ void MainWindow::clearCacheFolder() {
 
 //-----------------------------------------------------------------------------
 
-void MainWindow::onNewMetaLevelButtonPressed() {
-  int defaultLevelType = Preferences::instance()->getDefLevelType();
-  Preferences::instance()->setValue(DefLevelType, META_XSHLEVEL);
-  CommandManager::instance()->execute("MI_NewLevel");
-  Preferences::instance()->setValue(DefLevelType, defaultLevelType);
+void MainWindow::toggleMainToolbar(bool on) {
+  if (!on) {
+    m_mainToolbar->hide();
+    ShowMainToolbarAction = 0;
+  } else {
+    m_mainToolbar->show();
+    ShowMainToolbarAction = 1;
+  }
 }
+
+//-----------------------------------------------------------------------------
+
+void MainWindow::toggleStatusBar(bool on) {
+  if (!on) {
+    m_statusBar->hide();
+    ShowStatusBarAction = 0;
+  } else {
+    m_statusBar->show();
+    ShowStatusBarAction = 1;
+  }
+}
+
+//-----------------------------------------------------------------------------
+
+void MainWindow::toggleTransparency(bool on) {
+  if (!on) {
+    this->setProperty("windowOpacity", 1.0);
+  } else {
+    this->setProperty("windowOpacity", (double)TransparencySliderValue / 100);
+    m_transparencyTogglerWindow->show();
+  }
+}
+
+//-----------------------------------------------------------------------------
+
+void MainWindow::makeTransparencyDialog() {
+  m_transparencyTogglerWindow = new QDialog();
+  m_transparencyTogglerWindow->setWindowFlags(Qt::WindowStaysOnTopHint |
+                                              Qt::WindowCloseButtonHint);
+
+  m_transparencyTogglerWindow->setFixedHeight(100);
+  m_transparencyTogglerWindow->setFixedWidth(250);
+  m_transparencyTogglerWindow->setWindowTitle(tr("Flare Transparency"));
+  QPushButton *toggleButton = new QPushButton(this);
+  toggleButton->setText(tr("Close to turn off Transparency."));
+  connect(toggleButton, &QPushButton::clicked,
+          [=]() { m_transparencyTogglerWindow->accept(); });
+  m_transparencySlider = new QSlider(this);
+  m_transparencySlider->setRange(-100, -30);
+  m_transparencySlider->setValue(TransparencySliderValue * -1);
+  m_transparencySlider->setOrientation(Qt::Horizontal);
+  connect(m_transparencySlider, &QSlider::valueChanged, [=](int value) {
+    TransparencySliderValue = value * -1;
+    toggleTransparency(true);
+  });
+
+  QVBoxLayout *togglerLayout       = new QVBoxLayout();
+  QHBoxLayout *togglerSliderLayout = new QHBoxLayout();
+  togglerSliderLayout->addWidget(new QLabel(tr("Amount: "), this));
+  togglerSliderLayout->addWidget(m_transparencySlider);
+  togglerLayout->addLayout(togglerSliderLayout);
+  togglerLayout->addWidget(toggleButton);
+
+  m_transparencyTogglerWindow->setLayout(togglerLayout);
+}
+
+//-----------------------------------------------------------------------------
+
+class ToggleMainToolbar final : public MenuItemHandler {
+public:
+  ToggleMainToolbar() : MenuItemHandler("MI_ShowMainToolbar") {}
+  void execute() override {}
+} ToggleMainToolbar;
+
+//-----------------------------------------------------------------------------
+
+class ToggleStatusBar final : public MenuItemHandler {
+public:
+  ToggleStatusBar() : MenuItemHandler("MI_ShowStatusBar") {}
+  void execute() override {}
+} toggleStatusBar;
+
+//-----------------------------------------------------------------------------
+
+class ToggleTransparency final : public MenuItemHandler {
+public:
+  ToggleTransparency() : MenuItemHandler("MI_ToggleTransparent") {}
+  void execute() override {}
+} toggleTransparency;
 
 //-----------------------------------------------------------------------------
 
@@ -3332,7 +3753,10 @@ void MainWindow::onQuit() { close(); }
 //=============================================================================
 
 RecentFiles::RecentFiles()
-    : m_recentScenes(), m_recentSceneProjects(), m_recentLevels() {}
+    : m_recentScenes()
+    , m_recentSceneProjects()
+    , m_recentLevels()
+    , m_recentProjects() {}
 
 //-----------------------------------------------------------------------------
 
@@ -3349,9 +3773,10 @@ RecentFiles::~RecentFiles() {}
 
 void RecentFiles::addFilePath(QString path, FileType fileType,
                               QString projectName) {
-  QList<QString> files = (fileType == Scene)   ? m_recentScenes
-                         : (fileType == Level) ? m_recentLevels
-                                               : m_recentFlipbookImages;
+  QList<QString> files = (fileType == Scene)     ? m_recentScenes
+                         : (fileType == Level)   ? m_recentLevels
+                         : (fileType == Project) ? m_recentProjects
+                                                 : m_recentFlipbookImages;
   int i;
   for (i = 0; i < files.size(); i++)
     if (files.at(i) == path) {
@@ -3370,6 +3795,8 @@ void RecentFiles::addFilePath(QString path, FileType fileType,
     m_recentScenes = files;
   else if (fileType == Level)
     m_recentLevels = files;
+  else if (fileType == Project)
+    m_recentProjects = files;
   else
     m_recentFlipbookImages = files;
 
@@ -3385,6 +3812,8 @@ void RecentFiles::moveFilePath(int fromIndex, int toIndex, FileType fileType) {
     m_recentSceneProjects.move(fromIndex, toIndex);
   } else if (fileType == Level)
     m_recentLevels.move(fromIndex, toIndex);
+  else if (fileType == Project)
+    m_recentProjects.move(fromIndex, toIndex);
   else
     m_recentFlipbookImages.move(fromIndex, toIndex);
   saveRecentFiles();
@@ -3398,15 +3827,18 @@ void RecentFiles::removeFilePath(int index, FileType fileType) {
     m_recentSceneProjects.removeAt(index);
   } else if (fileType == Level)
     m_recentLevels.removeAt(index);
+  else if (fileType == Project)
+    m_recentProjects.removeAt(index);
   saveRecentFiles();
 }
 
 //-----------------------------------------------------------------------------
 
 QString RecentFiles::getFilePath(int index, FileType fileType) const {
-  return (fileType == Scene)   ? m_recentScenes[index]
-         : (fileType == Level) ? m_recentLevels[index]
-                               : m_recentFlipbookImages[index];
+  return (fileType == Scene)     ? m_recentScenes[index]
+         : (fileType == Level)   ? m_recentLevels[index]
+         : (fileType == Project) ? m_recentProjects[index]
+                                 : m_recentFlipbookImages[index];
 }
 
 //-----------------------------------------------------------------------------
@@ -3432,11 +3864,23 @@ void RecentFiles::clearRecentFilesList(FileType fileType) {
     m_recentSceneProjects.clear();
   } else if (fileType == Level)
     m_recentLevels.clear();
+  else if (fileType == Project)
+    m_recentProjects.clear();
   else
     m_recentFlipbookImages.clear();
 
   refreshRecentFilesMenu(fileType);
   saveRecentFiles();
+}
+
+//-----------------------------------------------------------------------------
+
+void RecentFiles::clearAllRecentFilesList(bool saveNow) {
+  m_recentScenes.clear();
+  m_recentSceneProjects.clear();
+  m_recentLevels.clear();
+  m_recentFlipbookImages.clear();
+  if (saveNow) saveRecentFiles();
 }
 
 //-----------------------------------------------------------------------------
@@ -3474,16 +3918,20 @@ void RecentFiles::loadRecentFiles() {
   if (!levels.isEmpty()) {
     for (i = 0; i < levels.size(); i++) {
       QString path = levels.at(i).toString();
-#ifdef x64
-      if (path.endsWith(".mov") || path.endsWith(".3gp") ||
-          path.endsWith(".pct") || path.endsWith(".pict"))
-        continue;
-#endif
       m_recentLevels.append(path);
     }
   } else {
     QString level = settings.value(QString("Levels")).toString();
     if (!level.isEmpty()) m_recentLevels.append(level);
+  }
+
+  QList<QVariant> projects = settings.value(QString("Projects")).toList();
+  if (!projects.isEmpty()) {
+    for (i = 0; i < projects.size(); i++)
+      m_recentProjects.append(projects.at(i).toString());
+  } else {
+    QString project = settings.value(QString("Projects")).toString();
+    if (!project.isEmpty()) m_recentProjects.append(project);
   }
 
   QList<QVariant> flipImages =
@@ -3499,6 +3947,7 @@ void RecentFiles::loadRecentFiles() {
   refreshRecentFilesMenu(Scene);
   refreshRecentFilesMenu(Level);
   refreshRecentFilesMenu(Flip);
+  refreshRecentFilesMenu(Project);
 }
 
 //-----------------------------------------------------------------------------
@@ -3509,23 +3958,36 @@ void RecentFiles::saveRecentFiles() {
   settings.setValue(QString("Scenes"), QVariant(m_recentScenes));
   settings.setValue(QString("SceneProjects"), QVariant(m_recentSceneProjects));
   settings.setValue(QString("Levels"), QVariant(m_recentLevels));
+  settings.setValue(QString("Projects"), QVariant(m_recentProjects));
   settings.setValue(QString("FlipbookImages"),
                     QVariant(m_recentFlipbookImages));
 }
 
 //-----------------------------------------------------------------------------
 
+void RecentFiles::updateStuffPath(QString oldPath, QString newPath) {
+  m_recentScenes.replaceInStrings(oldPath, newPath);
+  m_recentLevels.replaceInStrings(oldPath, newPath);
+  m_recentFlipbookImages.replaceInStrings(oldPath, newPath);
+}
+
+//-----------------------------------------------------------------------------
+
 QList<QString> RecentFiles::getFilesNameList(FileType fileType) {
-  QList<QString> files = (fileType == Scene)   ? m_recentScenes
-                         : (fileType == Level) ? m_recentLevels
-                                               : m_recentFlipbookImages;
+  QList<QString> files = (fileType == Scene)     ? m_recentScenes
+                         : (fileType == Level)   ? m_recentLevels
+                         : (fileType == Project) ? m_recentProjects
+                                                 : m_recentFlipbookImages;
   QList<QString> names;
   int i;
   for (i = 0; i < files.size(); i++) {
     TFilePath path(files.at(i).toStdWString());
     QString str, number;
-    names.append(number.number(i + 1) + QString(". ") +
-                 str.fromStdWString(path.getWideString()));
+    if (fileType != Project)
+      names.append(number.number(i + 1) + QString(". ") +
+                   str.fromStdWString(path.getWideString()));
+    else
+      names.append(str.fromStdWString(path.getWideString()));
   }
   return names;
 }
@@ -3533,9 +3995,10 @@ QList<QString> RecentFiles::getFilesNameList(FileType fileType) {
 //-----------------------------------------------------------------------------
 
 void RecentFiles::refreshRecentFilesMenu(FileType fileType) {
-  CommandId id = (fileType == Scene)   ? MI_OpenRecentScene
-                 : (fileType == Level) ? MI_OpenRecentLevel
-                                       : MI_LoadRecentImage;
+  CommandId id = (fileType == Scene)     ? MI_OpenRecentScene
+                 : (fileType == Level)   ? MI_OpenRecentLevel
+                 : (fileType == Project) ? MI_OpenRecentProject
+                                         : MI_LoadRecentImage;
   QAction *act = CommandManager::instance()->getAction(id);
   if (!act) return;
   DVMenuAction *menu = dynamic_cast<DVMenuAction *>(act->menu());
@@ -3544,9 +4007,20 @@ void RecentFiles::refreshRecentFilesMenu(FileType fileType) {
   if (names.isEmpty())
     menu->setEnabled(false);
   else {
-    CommandId clearActionId = (fileType == Scene)   ? MI_ClearRecentScene
-                              : (fileType == Level) ? MI_ClearRecentLevel
-                                                    : MI_ClearRecentImage;
+    CommandId clearActionId = (fileType == Scene)     ? MI_ClearRecentScene
+                              : (fileType == Level)   ? MI_ClearRecentLevel
+                              : (fileType == Project) ? MI_ClearRecentProject
+                                                      : MI_ClearRecentImage;
+    if (fileType == Project) {
+      QString number;
+      QList<QString> prjNames;
+      TProjectManager *pm = TProjectManager::instance();
+      for (int i = 0; i < names.size(); i++)
+        prjNames.push_back(
+            number.number(i + 1) + QString(". ") +
+            TFilePath(names.at(i)).withoutParentDir().getQString());
+      names = prjNames;
+    }
     menu->setActions(names);
     menu->addSeparator();
     QAction *clearAction = CommandManager::instance()->getAction(clearActionId);
@@ -3555,4 +4029,3 @@ void RecentFiles::refreshRecentFilesMenu(FileType fileType) {
     if (!menu->isEnabled()) menu->setEnabled(true);
   }
 }
-

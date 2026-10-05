@@ -11,7 +11,6 @@ public:
   float getAppVersion(void);
   float getAppRevision(void);
   std::string getAppNote(void);
-  std::string getSystemVarPrefix(void);
   bool hasAppNote(void);
   std::string getAppVersionString(void);
   std::string getAppRevisionString(void);
@@ -19,10 +18,9 @@ public:
 
 private:
   const char *applicationName     = "Flare";
-  const float applicationVersion  = 1.7f;
-  const float applicationRevision = 1;
+  const float applicationVersion  = 1.6f;
+  const float applicationRevision = 3;
   const char *applicationNote     = "";
-  const char *systemVarPrefix     = "FLARE";
 };
 
 std::string FlareVersion::getAppName(void) {
@@ -40,10 +38,6 @@ float FlareVersion::getAppRevision(void) {
 std::string FlareVersion::getAppNote(void) {
   std::string appnote = applicationNote;
   return appnote;
-}
-std::string FlareVersion::getSystemVarPrefix(void) {
-  std::string prefix = systemVarPrefix;
-  return prefix;
 }
 bool FlareVersion::hasAppNote(void) { return *applicationNote != 0; }
 std::string FlareVersion::getAppVersionString(void) {

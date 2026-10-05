@@ -16,27 +16,27 @@
 #include "tools/toolhandle.h"
 #include "../tnztools/stylepickertool.h"
 // TnzQt includes
-#include "flareqt/menubarcommand.h"
-#include "flareqt/viewcommandids.h"
-#include "flareqt/dvdialog.h"
-#include "flareqt/icongenerator.h"
-#include "flareqt/gutil.h"
-#include "flareqt/tselectionhandle.h"
-#include "flareqt/styleselection.h"
+#include "toonzqt/menubarcommand.h"
+#include "toonzqt/viewcommandids.h"
+#include "toonzqt/dvdialog.h"
+#include "toonzqt/icongenerator.h"
+#include "toonzqt/gutil.h"
+#include "toonzqt/tselectionhandle.h"
+#include "toonzqt/styleselection.h"
 // TnzLib includes
-#include "flare/palettecmd.h"
-#include "flare/txshlevelhandle.h"
-#include "flare/tpalettehandle.h"
-#include "flare/tframehandle.h"
-#include "flare/tscenehandle.h"
-#include "flare/txsheethandle.h"
-#include "flare/tcolumnhandle.h"
-#include "flare/toonzscene.h"
-#include "flare/txsheet.h"
-#include "flare/palettecontroller.h"
-#include "flare/txshlevel.h"
-#include "flare/txshsimplelevel.h"
-#include "flare/txshcell.h"
+#include "toonz/palettecmd.h"
+#include "toonz/txshlevelhandle.h"
+#include "toonz/tpalettehandle.h"
+#include "toonz/tframehandle.h"
+#include "toonz/tscenehandle.h"
+#include "toonz/txsheethandle.h"
+#include "toonz/tcolumnhandle.h"
+#include "toonz/toonzscene.h"
+#include "toonz/txsheet.h"
+#include "toonz/palettecontroller.h"
+#include "toonz/txshlevel.h"
+#include "toonz/txshsimplelevel.h"
+#include "toonz/txshcell.h"
 // TnzCore includes
 #include "tsystem.h"
 #include "ttoonzimage.h"
@@ -45,8 +45,6 @@
 #include <QMouseEvent>
 #include <QUrl>
 #include <QMenu>
-#include <qtoolbutton.h>
-#include <tpanels.h>
 
 #define LINES "Lines"
 #define AREAS "Areas"
@@ -88,16 +86,7 @@ ColorModelViewer::ColorModelViewer(QWidget *parent)
     , m_mode(0)
     , m_currentRefImgPath(TFilePath()) {
   setObjectName("colormodel");
-  m_pickLineStylesBtn = new QToolButton(this);
-  QString tip("Pick Line Styles");
-  QIcon icon = createQIcon("stylepicker_lines");
-  m_pickLineStylesBtn->setIcon(icon);
-  m_pickLineStylesBtn->setToolTip(tip);
-  m_pickLineStylesBtn->setCheckable(true);
-  QToolBar *toolBar = this->findChild<QToolBar *>("FlipConsolePlayToolBar");
-  if (toolBar) {
-    toolBar->addWidget(m_pickLineStylesBtn);
-  }
+
   setToolCursor(m_imageViewer, ToolCursor::PickerCursor);
   // Do not call the special procedure for flipbook closures...
   disconnect(parentWidget(), SIGNAL(closeButtonPressed()), this,
@@ -262,8 +251,6 @@ void ColorModelViewer::pick(const QPoint &p) {
   TPaletteHandle *ph =
       TApp::instance()->getPaletteController()->getCurrentLevelPalette();
   TPalette *currentPalette = ph->getPalette();
-  TXshLevelHandle *lh      = TApp::instance()->getCurrentLevel();
-  TXshSimpleLevel *level   = lh->getSimpleLevel();
   if (!currentPalette) return;
   /*- Cannot pick outside the screen -*/
   if (!m_imageViewer->rect().contains(p)) return;
@@ -305,23 +292,14 @@ void ColorModelViewer::pick(const QPoint &p) {
   TTool *tool = TApp::instance()->getCurrentTool()->getTool();
   if (tool->getName() == T_StylePicker) {
     StylePickerTool *spTool = dynamic_cast<StylePickerTool *>(tool);
-    if (spTool) {
-      if (spTool->isOrganizePaletteActive()) {
-        TPoint point = picker.getRasterPoint(pos);
-        int frame    = m_flipConsole->getCurrentFrame() - 1;
-        PaletteCmd::organizePaletteStyle(
-            ph, styleIndex, TColorStyle::PickedPosition(point, frame),
-            ph->getStyleIndex());
-        return;
-      } else if (spTool->isReplaceStyleActive() && level &&
-                 level->getPalette() == currentPalette) {
-        TPoint point = picker.getRasterPoint(pos);
-        int frame    = m_flipConsole->getCurrentFrame() - 1;
-        replaceLevelStyle(lh, ph, styleIndex, ph->getStyleIndex());
-        return;
-      }
+    if (spTool && spTool->isOrganizePaletteActive()) {
+      TPoint point = picker.getRasterPoint(pos);
+      int frame    = m_flipConsole->getCurrentFrame() - 1;
+      PaletteCmd::organizePaletteStyle(
+          ph, styleIndex, TColorStyle::PickedPosition(point, frame));
     }
   }
+
   ph->setStyleIndex(styleIndex);
 }
 //-----------------------------------------------------------------------------
@@ -347,8 +325,8 @@ void ColorModelViewer::showEvent(QShowEvent *e) {
   ToolHandle *toolHandle        = TApp::instance()->getCurrentTool();
   bool ret = connect(paletteHandle, SIGNAL(paletteSwitched()), this,
                      SLOT(showCurrentImage()));
-  ret      = ret && connect(paletteHandle, SIGNAL(paletteChanged()), this,
-                            SLOT(showCurrentImage()));
+  ret = ret && connect(paletteHandle, SIGNAL(paletteChanged()), this,
+                       SLOT(showCurrentImage()));
   ret = ret && connect(paletteHandle, SIGNAL(colorStyleChanged(bool)), this,
                        SLOT(showCurrentImage()));
   /*- Change pick type and cursor according to tool type -*/
@@ -378,8 +356,6 @@ void ColorModelViewer::changePickType() {
   if (!propGroup) {
     m_mode = 2;
     setToolCursor(m_imageViewer, ToolCursor::PickerCursor);
-    m_pickLineStylesBtn->setDisabled(true);
-    m_pickLineStylesBtn->setChecked(true);
     return;
   }
   /*- Tools without "Mode:" return 0 -*/
@@ -387,8 +363,6 @@ void ColorModelViewer::changePickType() {
   if (!modeProp) {
     m_mode = 2;
     setToolCursor(m_imageViewer, ToolCursor::PickerCursor);
-    m_pickLineStylesBtn->setDisabled(true);
-    m_pickLineStylesBtn->setChecked(true);
     return;
   } else {
     std::string var = modeProp->getValueAsString();
@@ -396,19 +370,13 @@ void ColorModelViewer::changePickType() {
       m_mode = 1;
       setToolCursor(m_imageViewer, ToolCursor::PickerCursorLine);
     } else if (var == AREAS) {
-      if (m_pickLineStylesBtn->isChecked()) {
-        m_mode = 2;  // Areas & Line
-      } else {
-        m_mode = 0;
-      }
+      m_mode = 0;
       setToolCursor(m_imageViewer, ToolCursor::PickerCursorArea);
     } else  // Line & Areas
     {
       m_mode = 2;
       setToolCursor(m_imageViewer, ToolCursor::PickerCursor);
     }
-    m_pickLineStylesBtn->setEnabled(var == AREAS);
-    m_pickLineStylesBtn->setChecked(m_mode != 0);
   }
 }
 //-----------------------------------------------------------------------------
@@ -581,4 +549,3 @@ void ColorModelViewer::repickFromColorModel() {
 //=============================================================================
 OpenFloatingPanel openColorModelCommand(MI_OpenColorModel, "ColorModel",
                                         QObject::tr("Color Model"));
-

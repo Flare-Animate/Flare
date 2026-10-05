@@ -432,6 +432,18 @@ public:
   void getCurrentColumnData(TPixel &color) const {
     color = getColorValue(currentColumnColor);
   }
+  bool isCustomCurrentCellColorEnabled() const {
+    return getBoolValue(customCurrentCellColorEnabled);
+  }
+  void getCurrentCellData(TPixel &color) const {
+    color = getColorValue(currentCellColor);
+  }
+  bool isCustomCurrentColumnOutlineColorEnabled() const {
+    return getBoolValue(customCurrentColumnOutlineColorEnabled);
+  }
+  void getCurrentColumnOutlineColor(TPixel &color) const {
+    color = getColorValue(currentColumnOutlineColor);
+  }
 
   LevelNameDisplayType getLevelNameDisplayType() const {
     return LevelNameDisplayType(getIntValue(levelNameDisplayType));
