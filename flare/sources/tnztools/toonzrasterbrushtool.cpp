@@ -1242,6 +1242,7 @@ void ToonzRasterBrushTool::inputSetBusy(bool busy) {
     setWorkAndBackupImages();
 
     if (m_isMyPaintStyleSelected) {
+#ifdef HAVE_MYPaint
       // init myPaint drawing
 
       m_painting.myPaint.isActive = true;
@@ -1281,6 +1282,7 @@ void ToonzRasterBrushTool::inputSetBusy(bool busy) {
               MYPAINT_BRUSH_SETTING_LOCK_ALPHA, (MyPaintBrushInput)i, 0);
         }
       }
+#endif
     } else if (m_hardness.getValue() == 100 || m_pencil.getValue()) {
       // init pencil drawing
 
@@ -1368,6 +1370,7 @@ void ToonzRasterBrushTool::inputPaintTrackPoint(const TTrackPoint &point,
   double pressure    = m_pressure.getValue() ? point.pressure : defPressure;
 
   if (m_painting.myPaint.isActive) {
+#ifdef HAVE_MYPaint
     // mypaint case
 
     // init brush
@@ -1398,6 +1401,7 @@ void ToonzRasterBrushTool::inputPaintTrackPoint(const TTrackPoint &point,
 
     // determine invalidate rect
     invalidateRect += convert(m_painting.myPaint.strokeSegmentRect) - rasCenter;
+#endif
   } else if (m_painting.pencil.isActive) {
     // pencil case
 
@@ -1705,7 +1709,7 @@ void ToonzRasterBrushTool::updateWorkAndBackupRasters(const TRect &rect) {
     enlargedRect *= ras->getBounds();
     if (enlargedRect.isEmpty()) return;
 
-    if (m_painting.myPaint.isActive && m_painting.myPaint.eraser)
+    if (m_painting.myPaint.eraser)
       m_workRas->extract(enlargedRect)->clear();
     else
       m_workRas->extract(enlargedRect)->copy(ras->extract(enlargedRect));
@@ -1722,7 +1726,7 @@ void ToonzRasterBrushTool::updateWorkAndBackupRasters(const TRect &rect) {
     TRect lastRect     = m_workBackupRect * ras->getBounds();
     QList<TRect> rects = ToolUtils::splitRect(enlargedRect, lastRect);
     for (int i = 0; i < rects.size(); i++) {
-      if (m_painting.myPaint.isActive && m_painting.myPaint.eraser)
+      if (m_painting.myPaint.eraser)
         m_workRas->extract(rects[i])->clear();
       else
         m_workRas->extract(rects[i])->copy(ras->extract(rects[i]));
@@ -1923,8 +1927,13 @@ void ToonzRasterBrushTool::loadPreset() {
             TColorStyle *newStyle = nullptr;
             
             if (preset.m_snapshotStyleTagId == 4001) {
+#ifdef HAVE_MYPaint
               TFilePath mpPath(preset.m_snapshotFilePath);
               newStyle = new TMyPaintBrushStyle(mpPath);
+#else
+              // No MyPaint support: fall through to the flat-colour style below.
+              newStyle = new TSolidColorStyle(currentColor);
+#endif
             } else if (preset.m_snapshotStyleTagId == 2001) {
               TFilePath texRelPath(preset.m_snapshotFilePath);
               TFilePath fullTexPath = TEnv::getStuffDir() + "library" + "textures" + texRelPath;
@@ -1966,12 +1975,16 @@ void ToonzRasterBrushTool::loadPreset() {
               newStyle->setMainColor(currentColor);
               commitStyle(newStyle);
             }
-          } else if (preset.m_hasMyPaint) {
+          }
+#ifdef HAVE_MYPaint
+          else if (preset.m_hasMyPaint) {
             TFilePath myPaintPath(preset.m_myPaintPath);
             TMyPaintBrushStyle *newStyle = new TMyPaintBrushStyle(myPaintPath);
             newStyle->setMainColor(currentColor);
             commitStyle(newStyle);
-          } else if (preset.m_hasTexture && preset.m_styleInfoVersion >= 2) {
+          }
+#endif
+          else if (preset.m_hasTexture && preset.m_styleInfoVersion >= 2) {
             TFilePath texRelPath(preset.m_texturePath);
             TFilePath fullTexPath = TEnv::getStuffDir() + "library" + "textures" + texRelPath;
             TRaster32P textureRas;
@@ -1993,12 +2006,21 @@ void ToonzRasterBrushTool::loadPreset() {
             newStyle->setParamValue(0, preset.m_textureIsPattern);
             newStyle->setMainColor(currentColor);
             commitStyle(newStyle);
-          } else if (!preset.m_hasMyPaint && !preset.m_hasTexture && !preset.m_hasStyleSnapshot) {
+          }
+#ifdef HAVE_MYPaint
+          else if (!preset.m_hasMyPaint && !preset.m_hasTexture && !preset.m_hasStyleSnapshot) {
             if (dynamic_cast<TMyPaintBrushStyle*>(currentStyle) ||
                 dynamic_cast<TTextureStyle*>(currentStyle)) {
               TSolidColorStyle *newStyle = new TSolidColorStyle(currentColor);
               commitStyle(newStyle);
             }
+          }
+#endif
+          else {
+            // Without MyPaint support a preset that carried a MyPaint brush still
+            // needs a usable style, so fall back to its flat colour.
+            TSolidColorStyle *newStyle = new TSolidColorStyle(currentColor);
+            commitStyle(newStyle);
           }
         }
       }
@@ -2045,13 +2067,16 @@ void ToonzRasterBrushTool::addPreset(QString name) {
       preset.m_snapshotBrushIdName = style->getBrushIdName();
       
       // Extract primary file path based on style type
+#ifdef HAVE_MYPaint
       if (TMyPaintBrushStyle *mpStyle = dynamic_cast<TMyPaintBrushStyle*>(style)) {
         std::wstring wpath = mpStyle->getPath().getWideString();
         preset.m_snapshotFilePath = std::string(wpath.begin(), wpath.end());
         // Legacy compatibility
         preset.m_hasMyPaint = true;
         preset.m_myPaintPath = preset.m_snapshotFilePath;
-      } else if (TTextureStyle *texStyle = dynamic_cast<TTextureStyle*>(style)) {
+      } else
+#endif
+      if (TTextureStyle *texStyle = dynamic_cast<TTextureStyle*>(style)) {
         TFilePath texPath = texStyle->getParamValue(TColorStyle::TFilePath_tag(), 0);
         std::wstring wpath = texPath.getWideString();
         preset.m_snapshotFilePath = std::string(wpath.begin(), wpath.end());
@@ -2156,9 +2181,13 @@ void ToonzRasterBrushTool::onColorStyleChanged() {
   m_enabled = false;
 
   TTool::Application *app = getApplication();
+#ifdef HAVE_MYPaint
   TMyPaintBrushStyle *mpbs =
       dynamic_cast<TMyPaintBrushStyle *>(app->getCurrentLevelStyle());
   m_isMyPaintStyleSelected = (mpbs) ? true : false;
+#else
+  m_isMyPaintStyleSelected = false;
+#endif
   getApplication()->getCurrentTool()->notifyToolChanged();
 }
 
@@ -2173,6 +2202,7 @@ double ToonzRasterBrushTool::restartBrushTimer() {
 //------------------------------------------------------------------
 
 void ToonzRasterBrushTool::updateCurrentStyle() {
+#ifdef HAVE_MYPaint
   if (m_isMyPaintStyleSelected) {
     TTool::Application *app = TTool::getApplication();
     TMyPaintBrushStyle *brushStyle =
@@ -2188,6 +2218,7 @@ void ToonzRasterBrushTool::updateCurrentStyle() {
     double radius    = exp(radiusLog);
     m_minCursorThick = m_maxCursorThick = (int)std::round(2.0 * radius);
   }
+#endif
 }
 //==========================================================================================================
 

@@ -900,10 +900,10 @@ void inkFill(const TRasterCM32P &r, const TPoint &pin, int ink, int searchRay,
   r->unlock();
 }
 //-----------------------------------------------------------------------------
-void fullColorFill(const TRaster32P &ras, const FillParameters &params,
-                   TTileSaverFullColor *saver, TXsheet *xsheet, int frameIndex,
-                   bool fillGaps, bool closeGaps, int closeStyleIndex,
-                   double autoCloseDistance) {
+void DVAPI fullColorFill(const TRaster32P &ras, const FillParameters &params,
+                         TTileSaverFullColor *saver, TXsheet *xsheet,
+                         int frameIndex, bool fillGaps, bool closeGaps,
+                         int closeStyleIndex, double autoCloseDistance) {
   int oldy, xa, xb, xc, xd, dy, oldxd, oldxc;
   TPixel32 *pix, *limit, *pix0, *oldpix, *refpix, *oldrefpix;
   TPixelCM32 *refCMpix;

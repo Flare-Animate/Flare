@@ -8,16 +8,13 @@
 #endif
 
 #include <QTreeWidget>
-<<<<<<<< HEAD:flare/sources/flare/insertfxpopup.h
+// Union of both sides: the incoming side added includes without replacing any.
 #include "flareqt/dvdialog.h"
-========
 #include <QFrame>
 #include <QPoint>
 
 #include "tcommon.h"
-#include "flareqt/dvdialog.h"
 #include "flare/tapplication.h"
->>>>>>>> 16661c844 (Add dockable FX Browser with schematic drag and drop):flare/sources/include/flareqt/insertfxpopup.h
 #include "tfilepath.h"
 #include "tstream.h"
 

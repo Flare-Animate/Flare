@@ -215,6 +215,7 @@ protected:
 #endif
   TInputModifier::List m_modifierReplicate;
 
+#ifdef HAVE_MYPaint
   class MyPaintStroke : public TTrackHandler {
   public:
     MyPaintToonzBrush brush;
@@ -224,6 +225,7 @@ protected:
                          bool interpolation = false)
         : brush(ras, controller, brush, interpolation) {}
   };
+#endif
 
   class PencilStroke : public TTrackHandler {
   public:
@@ -271,9 +273,11 @@ protected:
 
     struct MyPaint {
       bool isActive = false;
-      bool eraser                       = false;
+      bool eraser   = false;
+#ifdef HAVE_MYPaint
       MyPaintToonzEraserMode eraserMode = MyPaintToonzEraserMode::Lines;
       mypaint::Brush baseBrush;
+#endif
       TRect strokeSegmentRect;
     } myPaint;
   } m_painting;

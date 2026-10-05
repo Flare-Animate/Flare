@@ -3,20 +3,13 @@
 #include "flareqt/insertfxpopup.h"
 
 // TnzQt includes
-<<<<<<<< HEAD:flare/sources/flare/insertfxpopup.cpp
-#include "flareqt/menubarcommand.h"
-#include "flareqt/gutil.h"
-#include "flareqt/fxselection.h"
-#include "flareqt/tselectionhandle.h"
-#include "flareqt/pluginloader.h"  // inter-module plugin loader accessor
-========
+// Union of both sides: the incoming side added includes without replacing any.
 #include "flareqt/menubarcommand.h"
 #include "flareqt/gutil.h"
 #include "flareqt/fxselection.h"
 #include "flareqt/tselectionhandle.h"
 #include "flareqt/pluginloader.h"  // inter-module plugin loader accessor
 #include "fxdata.h"
->>>>>>>> 16661c844 (Add dockable FX Browser with schematic drag and drop):flare/sources/flareqt/insertfxpopup.cpp
 
 // TnzLib includes
 #include "flare/tscenehandle.h"
@@ -750,11 +743,7 @@ void InsertFxPopup::removePreset() {
   delete item;
   if (m_app) m_app->getCurrentFx()->notifyFxPresetRemoved();
 }
-<<<<<<<< HEAD:flare/sources/flare/insertfxpopup.cpp
-
-//=============================================================================
-
-OpenPopupCommandHandler<InsertFxPopup> openInsertFxPopup(MI_InsertFx);
-
-========
->>>>>>>> 16661c844 (Add dockable FX Browser with schematic drag and drop):flare/sources/flareqt/insertfxpopup.cpp
+// The popup opener OpenPopupCommandHandler<InsertFxPopup> openInsertFxPopup
+// was dropped by the incoming dockable-browser PR, and correctly so: MI_InsertFx
+// is a macro from flare/menubarcommandids.h, which this file does not include.
+// The FX browser is reached as a dockable panel instead (see tpanels.cpp).

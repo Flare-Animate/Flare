@@ -122,6 +122,9 @@ void DVAPI rectFillInk(const TRasterCM32P &ras, const TRect &r, int color);
 void DVAPI fillautoInks(TRasterCM32P &r, TRect &rect,
                         const TRasterCM32P &rbefore, TPalette *plt);
 
+// Needed by fullColorFill's gap-closing parameters below.
+class TXsheet;
+
 // Ported from Tahoma2D (toonzlib/fillutil.cpp), where the synced fill.cpp gap-closing path expects it. The sync dropped the definition while keeping the call. Declaration text matches upstream verbatim.
 void DVAPI finishGapLines(TRasterCM32P &rin, TRect &rect,
                           const TRasterCM32P &rbefore,
@@ -129,8 +132,24 @@ void DVAPI finishGapLines(TRasterCM32P &rin, TRect &rect,
                           int clickedColorStyle, int fillIndex,
                           int closeColorStyle, bool closeGaps);
 
+// Every parameter the definition in flarelib/fill.cpp takes must appear here.
+// The synced definition grew four extra defaulted parameters for the gap-closing
+// path (xsheet, frameIndex, fillGaps, closeGaps, closeStyleIndex,
+// autoCloseDistance) while this declaration kept the original three, so
+// fullcolorfilltool.cpp's three-argument call decorated to a symbol that was
+// never emitted:
+//
+//   fullcolorfilltool.obj : error LNK2019: unresolved external symbol
+//   __imp_?fullColorFill@@YAXAEBV?$TRasterPT@VTPixelRGBM32@@@@AEBVFillParameters@@
+//   PEAVTTileSaverFullColor@@@Z
+//
+// Note the mangled name encodes TRasterPT<TPixelRGBM32>, i.e. TRaster32P, so the
+// call site is right and only the declaration was short.
 void DVAPI fullColorFill(const TRaster32P &ras, const FillParameters &params,
-                         TTileSaverFullColor *saver = 0);
+                         TTileSaverFullColor *saver = 0, TXsheet *xsheet = 0,
+                         int frameIndex = -1, bool fillGaps = false,
+                         bool closeGaps = false, int closeStyleIndex = -1,
+                         double autoCloseDistance = -1.0);
 
 void DVAPI fillHoles(const TRasterCM32P &ras, const int size,
                      TTileSaverCM32 *saver = nullptr);
