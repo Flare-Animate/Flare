@@ -28,6 +28,8 @@
 
 #include "edittoolgadgets.h"
 
+#include <algorithm>
+
 // For Qt translation support
 #include <QCoreApplication>
 
@@ -69,6 +71,9 @@ namespace {
 //-----------------------------------------------------------------------------
 
 using EditToolGadgets::DragTool;
+
+// Keep fixed-size labels visible until the handle drops below 5%.
+constexpr double MinTextVisibilityScale = 0.05;
 
 //=============================================================================
 // DragCenterTool
@@ -820,9 +825,8 @@ void EditTool::mouseMove(const TPointD &, const TMouseEvent &e) {
     selectedDevice = m_what;
     if (m_what == Translation && e.isCtrlPressed())
       selectedDevice = ZTranslation;
-    else if (
-        m_what == ZTranslation &&
-        !e.isCtrlPressed()) /*--ここには、一度Z移動をした後に入る可能性がある--*/
+    else if (m_what == ZTranslation &&
+             !e.isCtrlPressed()) /*-- Here, it may enter after a Z movement --*/
       selectedDevice = Translation;
     else if (m_what == Scale && e.isCtrlPressed())
       selectedDevice = ScaleXY;
@@ -848,7 +852,7 @@ TPoint lastScreenPos;
 
 void EditTool::leftButtonDown(const TPointD &ppos, const TMouseEvent &e) {
   TPointD pos = ppos;
-  /*-- Soundカラムの場合は何もしない --*/
+  /*-- Do nothing for Sound column --*/
   if (!doesApply()) return;
 
   if (m_activeAxis.getValue() == L"Position")
@@ -1001,6 +1005,48 @@ void EditTool::leftButtonUp(const TPointD &pos, const TMouseEvent &e) {
 }
 
 //-----------------------------------------------------------------------------
+
+bool EditTool::keyDown(QKeyEvent *event) {
+  if (!event || !doesApply() || m_dragTool || getSpline() ||
+      (m_activeAxis.getValue() != L"Position" &&
+       m_activeAxis.getValue() != L"All"))
+    return false;
+
+  TPointD delta;
+  switch (event->key()) {
+  case Qt::Key_Up:
+    delta.y = 1.0;
+    break;
+  case Qt::Key_Down:
+    delta.y = -1.0;
+    break;
+  case Qt::Key_Left:
+    delta.x = -1.0;
+    break;
+  case Qt::Key_Right:
+    delta.x = 1.0;
+    break;
+  default:
+    return false;
+  }
+
+  if (event->modifiers() & Qt::ShiftModifier) delta *= 10.0;
+
+  TMouseEvent mouseEvent;
+  DragPositionTool dragTool(m_lockPositionX.getValue(),
+                            m_lockPositionY.getValue(),
+                            m_globalKeyframes.getValue());
+  TUndoManager::manager()->beginBlock();
+  dragTool.leftButtonDown(TPointD(), mouseEvent);
+  dragTool.leftButtonDrag(delta, mouseEvent);
+  dragTool.leftButtonUp();
+  TUndoManager::manager()->endBlock();
+  TTool::getApplication()->getCurrentObject()->notifyObjectIdChanged(false);
+  invalidate();
+  return true;
+}
+
+//-----------------------------------------------------------------------------
 namespace {
 //-----------------------------------------------------------------------------
 
@@ -1077,7 +1123,7 @@ void drawCameraIcon() {
 }
 
 void drawZArrow() {
-  /*--矢印--*/
+  /*-- Arrow --*/
   glBegin(GL_LINE_LOOP);
   glVertex2i(0, 3);
   glVertex2i(2, 2);
@@ -1090,7 +1136,7 @@ void drawZArrow() {
   glVertex2i(-1, 2);
   glVertex2i(-2, 2);
   glEnd();
-  /*--Zの文字--*/
+  /*-- Letter Z --*/
   glBegin(GL_LINE_STRIP);
   glVertex2i(3, 4);
   glVertex2i(5, 4);
@@ -1127,8 +1173,11 @@ glColor3d(0,0,0);
 //-----------------------------------------------------------------------------
 
 void EditTool::drawMainHandle() {
-  const TPixel32 normalColor(250, 127, 240);
-  const TPixel32 highlightedColor(150, 255, 140);
+  // Initialize local preference variables
+  const TPixel32 normalColor = Preferences::instance()->getAnimateToolColor();
+  const TPixel32 highlightedColor = TPixel32(150, 255, 140);
+  const double prefScale = Preferences::instance()->getAnimateToolHandleSize();
+  const bool showText    = prefScale >= MinTextVisibilityScale;
 
   // collect information
   TXsheet *xsh         = getXsheet();
@@ -1147,9 +1196,11 @@ void EditTool::drawMainHandle() {
   // so in the system of ref. of the gadget the center is always in the origin
   center = TPointD();
 
-  double unit = sqrt(tglGetPixelSize2());
-  unit *= devPixRatio;
-  bool dragging = m_dragTool != 0;
+  // Keep text at a DPI-aware screen size while the handle scales.
+  const double textUnit  = sqrt(tglGetPixelSize2()) * devPixRatio;
+  const double unit      = textUnit * prefScale;
+  const double labelUnit = std::max(unit, textUnit);
+  bool dragging          = m_dragTool != 0;
 
   // draw center
   tglColor(m_highlightedDevice == Center ? highlightedColor : normalColor);
@@ -1159,26 +1210,28 @@ void EditTool::drawMainHandle() {
   else {
     tglDrawCircle(center, unit * 10);
     tglDrawCircle(center, unit * 8);
-    if (m_highlightedDevice == Center && !dragging)
-      drawText(center + TPointD(4 * unit, 0), unit, "Move center");
+    if (showText && m_highlightedDevice == Center && !dragging)
+      drawText(center + TPointD(4 * labelUnit, 0), textUnit, "Move center");
   }
   glPopName();
 
   // draw label (column/pegbar name; possibly camera icon)
   tglColor(normalColor);
-  glPushMatrix();
-  glTranslated(center.x + unit * 10, center.y - unit * 20, 0);
-
-  if (objId.isColumn() || objId.isPegbar()) {
+  if (showText && (objId.isColumn() || objId.isPegbar())) {
+    glPushMatrix();
+    glTranslated(center.x + labelUnit * 10, center.y - labelUnit * 20, 0);
     TStageObject *pegbar = xsh->getStageObject(objId);
     std::string name     = pegbar->getFullName();
-    glScaled(unit * 2, unit * 1.5, 1);
+    glScaled(textUnit * 2, textUnit * 1.5, 1);
     tglDrawText(TPointD(0, 0), name);
+    glPopMatrix();
   } else if (objId.isCamera()) {
+    glPushMatrix();
+    glTranslated(center.x + unit * 10, center.y - unit * 20, 0);
     glScaled(unit, unit, 1);
     drawCameraIcon();
+    glPopMatrix();
   }
-  glPopMatrix();
 
   // draw rotation handle
   const double delta = 30;
@@ -1190,8 +1243,8 @@ void EditTool::drawMainHandle() {
   else
     tglDrawDisk(p, unit * 5);
   glPopName();
-  if (m_highlightedDevice == Rotation && !dragging && !isPicking())
-    drawText(p, unit, "Rotate");
+  if (showText && m_highlightedDevice == Rotation && !dragging && !isPicking())
+    drawText(p, textUnit, "Rotate");
   tglColor(normalColor);
   tglDrawSegment(p, center);
 
@@ -1211,17 +1264,16 @@ void EditTool::drawMainHandle() {
   else
     tglDrawRect(p.x - r, p.y - r, p.x + r, p.y + r);
   glPopName();
-  TPointD scaleTooltipPos = p + unit * TPointD(-16, -16);
-  if (m_highlightedDevice == Scale && !dragging && !isPicking())
-    drawText(scaleTooltipPos, unit, "Scale");
+  TPointD scaleTooltipPos = p + labelUnit * TPointD(-16, -16);
+  if (showText && m_highlightedDevice == Scale && !dragging && !isPicking())
+    drawText(scaleTooltipPos, textUnit, "Scale");
 
   tglColor(normalColor);
   tglDrawSegment(p, center);
 
   TPointD q;
   double dd = unit * 10;
-
-  q = p + TPointD(dd, dd);
+  q         = p + TPointD(dd, dd);
   tglColor(m_highlightedDevice == ScaleXY ? highlightedColor : normalColor);
   glPushName(ScaleXY);
   hitRect =
@@ -1232,8 +1284,8 @@ void EditTool::drawMainHandle() {
   else
     tglDrawRect(q.x - r, q.y - r, q.x + r, q.y + r);
   glPopName();
-  if (m_highlightedDevice == ScaleXY && !dragging && !isPicking())
-    drawText(scaleTooltipPos, unit, "Horizontal/Vertical scale");
+  if (showText && m_highlightedDevice == ScaleXY && !dragging && !isPicking())
+    drawText(scaleTooltipPos, textUnit, "Horizontal/Vertical scale");
 
   // draw shear handle
   p = center + m_currentScaleFactor * unit * delta * TPointD(1, -1);
@@ -1257,31 +1309,25 @@ void EditTool::drawMainHandle() {
     glEnd();
   }
   glPopName();
-  if (m_highlightedDevice == Shear && !dragging)
-    drawText(p + TPointD(0, -unit * 10), unit, "Shear");
+  if (showText && m_highlightedDevice == Shear && !dragging)
+    drawText(p + TPointD(0, -labelUnit * 10), textUnit, "Shear");
   tglColor(normalColor);
   tglDrawSegment(p, center);
 
-  //
   if (objId.isCamera()) {
     if (xsh->getStageObjectTree()->getCurrentCameraId() != objId) {
       glEnable(GL_LINE_STIPPLE);
-      glColor3d(1.0, 0.0, 1.0);
+      tglColor(normalColor);
       glLineStipple(1, 0x1111);
       TRectD cameraRect = TTool::getApplication()
                               ->getCurrentScene()
                               ->getScene()
                               ->getCurrentCamera()
                               ->getStageRect();
-
-      glPushMatrix();
-      // tglMultMatrix(mat);
       tglDrawRect(cameraRect);
-      glPopMatrix();
       glDisable(GL_LINE_STIPPLE);
     }
   }
-
   glPopMatrix();
 }
 //-----------------------------------------------------------------------------
@@ -1299,34 +1345,34 @@ void EditTool::draw() {
     m_fxGadgetController->draw(isPicking());
     return;
   }
-  const TPixel32 normalColor(250, 127, 240);
-  const TPixel32 highlightedColor(150, 255, 140);
 
-  // collect information
-  TXsheet *xsh = getXsheet();
+  // GLOBAL DEFINITION OF COLORS AND SCALE FOR THIS FUNCTION
+  const TPixel32 normalColor = Preferences::instance()->getAnimateToolColor();
+  const TPixel32 highlightedColor = TPixel32(150, 255, 140);
+  const double prefScale = Preferences::instance()->getAnimateToolHandleSize();
+  const bool showText    = prefScale >= MinTextVisibilityScale;
+
+  TXsheet *xsh         = getXsheet();
   /*-- Obtain ID of the current editing stage object --*/
   TStageObjectId objId = getObjectId();
-
-  int frame         = getFrame();
-  TAffine parentAff = xsh->getParentPlacement(objId, frame);
-  TAffine aff       = xsh->getPlacement(objId, frame);
-  TPointD center    = Stage::inch * xsh->getCenter(objId, frame);
+  int frame            = getFrame();
+  TAffine parentAff    = xsh->getParentPlacement(objId, frame);
+  TAffine aff          = xsh->getPlacement(objId, frame);
+  TPointD center       = Stage::inch * xsh->getCenter(objId, frame);
 
   /*-- Enable Z translation on 3D view --*/
   if (getViewer()->is3DView()) {
     glPushMatrix();
     glPushName(ZTranslation);
-
     tglColor(m_highlightedDevice == ZTranslation ? highlightedColor
                                                  : normalColor);
-
     glPushMatrix();
     double z = xsh->getZ(objId, frame);
     glTranslated(0, -1, z);
-    drawArrow(50, isPicking());
+    // Apply prefScale to the 3D arrow as well
+    drawArrow(50 * prefScale, isPicking());
     glPopName();
     glPopMatrix();
-
     glPopMatrix();
     return;
   }
@@ -1338,7 +1384,10 @@ void EditTool::draw() {
     return;
   }
 
-  double unit = getPixelSize();
+  // Keep text at a DPI-aware screen size while the handle scales.
+  const double textUnit  = getPixelSize();
+  const double unit      = textUnit * prefScale;
+  const double labelUnit = std::max(unit, textUnit);
 
   /*-- Obtain object's center position --*/
   glPushMatrix();
@@ -1361,45 +1410,35 @@ void EditTool::draw() {
     glScaled(unit * 8, unit * 8, 1);
     drawZArrow();
     glPopMatrix();
-  }
-  /*-- Rotation, Position : Draw vertical and horizontal lines --*/
-  else if (m_activeAxis.getValue() == L"Rotation" ||
-           m_activeAxis.getValue() == L"Position") {
+  } else if (m_activeAxis.getValue() == L"Rotation" ||
+             m_activeAxis.getValue() == L"Position") {
     glPushMatrix();
     tglMultMatrix(parentAff.inv() * aff * TTranslation(center));
     glScaled(unit, unit, 1);
     tglColor(normalColor);
-    glBegin(GL_LINE_STRIP);
-    glVertex2i(-800, 0);
-    glVertex2i(800, 0);
-    glEnd();
-    glBegin(GL_LINE_STRIP);
-    glVertex2i(0, -100);
-    glVertex2i(0, 100);
+    const int crossHairRadius = 100;
+    glBegin(GL_LINES);  // GL_LINE_STRIP to GL_LINES for continuous axes
+    glVertex2i(-crossHairRadius, 0);
+    glVertex2i(crossHairRadius, 0);
+    glVertex2i(0, -crossHairRadius);
+    glVertex2i(0, crossHairRadius);
     glEnd();
     glPopMatrix();
   }
-  glPushMatrix();
 
+  glPushMatrix();
   tglMultMatrix(parentAff.inv() * TTranslation(aff * center));
   center = TPointD();
 
-  bool dragging = m_dragTool != 0;
-
-  // draw center
-  tglColor(normalColor);
+  // Draw center with highlight
+  tglColor(m_highlightedDevice == Center ? highlightedColor : normalColor);
   glPushName(Center);
   {
     tglDrawCircle(center, unit * 10);
     tglDrawCircle(center, unit * 8);
-
-    /*-- Draw crossed lines in the circle. It's already translated to the center
-     * position. --*/
-    glBegin(GL_LINE_STRIP);
+    glBegin(GL_LINES);
     glVertex2d(-unit * 8, 0.0);
     glVertex2d(unit * 8, 0.0);
-    glEnd();
-    glBegin(GL_LINE_STRIP);
     glVertex2d(0.0, -unit * 8);
     glVertex2d(0.0, unit * 8);
     glEnd();
@@ -1408,24 +1447,30 @@ void EditTool::draw() {
 
   // draw label (column/pegbar name; possibly camera icon)
   tglColor(normalColor);
-  glPushMatrix();
-  glTranslated(center.x + unit * 10, center.y - unit * 20, 0);
 
   /*-- Object name --*/
   TStageObject *pegbar = xsh->getStageObject(objId);
   std::string name     = pegbar->getFullName();
-  if (objId.isColumn() || objId.isPegbar() || objId.isTable()) {
-    glScaled(unit * 2, unit * 1.5, 1);
-    tglDrawText(TPointD(0, 0), name);
-  } else if (objId.isCamera()) {
+  if (showText && (objId.isColumn() || objId.isPegbar() || objId.isTable())) {
     glPushMatrix();
-    glScaled(unit * 2, unit * 1.5, 1);
-    tglDrawText(TPointD(12, 0), name);
+    glTranslated(center.x + labelUnit * 10, center.y - labelUnit * 20, 0);
+    glScaled(textUnit * 2, textUnit * 1.5, 1);
+    tglDrawText(TPointD(0, 0), name);
     glPopMatrix();
+  } else if (objId.isCamera()) {
+    if (showText) {
+      glPushMatrix();
+      glTranslated(center.x + labelUnit * 10, center.y - labelUnit * 20, 0);
+      glScaled(textUnit * 2, textUnit * 1.5, 1);
+      tglDrawText(TPointD(12 * labelUnit / textUnit, 0), name);
+      glPopMatrix();
+    }
+    glPushMatrix();
+    glTranslated(center.x + unit * 10, center.y - unit * 20, 0);
     glScaled(unit, unit, 1);
     drawCameraIcon();
+    glPopMatrix();
   }
-  glPopMatrix();
 
   /*--- When editing non-active camera, draw its camera frame ---*/
   if (objId.isCamera()) {
@@ -1433,23 +1478,18 @@ void EditTool::draw() {
       // TODO : glLineStipple has been deprecated in the OpenGL APIs. Need to be
       // replaced. 2016/1/20 shun_iwasawa
       glEnable(GL_LINE_STIPPLE);
-      glColor3d(1.0, 0.0, 1.0);
+      tglColor(normalColor);
       glLineStipple(1, 0x1111);
       TRectD cameraRect = TTool::getApplication()
                               ->getCurrentScene()
                               ->getScene()
                               ->getCurrentCamera()
                               ->getStageRect();
-
-      glPushMatrix();
       tglDrawRect(cameraRect);
-      glPopMatrix();
       glDisable(GL_LINE_STIPPLE);
     }
   }
-
   glPopMatrix();
-
   m_fxGadgetController->draw(isPicking());
 }
 
@@ -1567,7 +1607,7 @@ bool EditTool::onPropertyChanged(std::string propertyName) {
   else if (propertyName == m_showCenterPosition.getName())
     ShowCenterPosition = (int)m_showCenterPosition.getValue();
 
-  /*-- Active Axis の変更 --*/
+  /*-- Active Axis change --*/
   else if (propertyName == m_activeAxis.getName()) {
     std::wstring activeAxis = m_activeAxis.getValue();
     if (activeAxis == L"Position")
@@ -1705,4 +1745,3 @@ QString EditTool::updateEnabled(int rowIndex, int columnIndex) {
 //=============================================================================
 
 EditTool arrowTool;
-

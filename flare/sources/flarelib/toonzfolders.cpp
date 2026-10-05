@@ -91,6 +91,12 @@ TFilePath FlareFolder::getLibraryFolder() {
   return fp;
 }
 
+// Upstream ToonzFolder::getMyFavoritesFolder, verbatim apart from the class
+// name. See the header note.
+TFilePath FlareFolder::getMyFavoritesFolder() {
+  return getMyModuleDir() + "favorites";
+}
+
 TFilePath FlareFolder::getStudioPaletteFolder() {
   TFilePath fp = getSystemVarPathValue(getSystemVarPrefix() + "STUDIOPALETTE");
   if (fp == TFilePath())

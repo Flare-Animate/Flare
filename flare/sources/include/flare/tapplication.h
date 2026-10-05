@@ -3,6 +3,8 @@
 #ifndef TAPPLICATION_H
 #define TAPPLICATION_H
 
+#include <QString>
+
 //====================================================
 
 //    Forward declarations
@@ -51,6 +53,10 @@ public:
   virtual int getCurrentLevelStyleIndex() const     = 0;
   virtual void setCurrentLevelStyleIndex(int index,
                                          bool forceUpdate = false) = 0;
+  // Tahoma2D added this for the style-set manager's status hints; the synced
+  // styleeditor.cpp calls it (guarded by null). No subclass exists in-tree, so
+  // nothing needs a matching implementation.
+  virtual void showMessage(QString message, int duration = 2000) = 0;
 };
 
 #endif  // TAPPLICATION_H

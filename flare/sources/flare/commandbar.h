@@ -5,6 +5,7 @@
 
 #include <memory>
 
+#include "saveloadqsettings.h"
 #include "flare/txsheet.h"
 #include "flareqt/keyframenavigator.h"
 
@@ -19,14 +20,18 @@ class QAction;
 // CommandBar
 //-----------------------------------------------------------------------------
 
-class CommandBar : public QToolBar {
+class CommandBar : public QToolBar, public SaveLoadQSettings {
   Q_OBJECT
 protected:
   bool m_isCollapsible;
+  bool m_isXsheetToolbar;
 
 public:
   CommandBar(QWidget *parent = 0, Qt::WindowFlags flags = Qt::WindowFlags(),
              bool isCollapsible = false, bool isXsheetToolbar = false);
+
+  void save(QSettings &settings, bool forPopupIni = false) const override;
+  void load(QSettings &settings) override;
 
 signals:
   void updateVisibility();
@@ -38,7 +43,7 @@ protected:
 
 protected slots:
   void doCustomizeCommandBar();
+  void onOrientationChanged(Qt::Orientation orientation);
 };
 
 #endif  // COMMANDBAR_H
-

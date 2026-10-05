@@ -26,6 +26,11 @@
 
 #undef DVAPI
 #undef DVVAR
+// Rebranded with the library: every other header in this directory tests
+// FLARELIB_EXPORTS, which is what flarelib/CMakeLists.txt defines. This one still
+// tested the pre-rebrand TOONZLIB_EXPORTS, so the class was always declared
+// dllimport -- harmless everywhere the class is only used, fatal in the moc
+// translation unit that defines its staticMetaObject (C2491).
 #ifdef FLARELIB_EXPORTS
 #define DVAPI DV_EXPORT_API
 #define DVVAR DV_EXPORT_VAR
@@ -72,6 +77,12 @@ class DVAPI Preferences final : public QObject  // singleton
   Q_OBJECT
 
 public:
+  // The project path configured in preferences, read from the
+  // defaultProjectPath key.
+  QString getDefaultProjectPath() const {
+    return getStringValue(defaultProjectPath);
+  }
+
   struct LevelFormat {
     QString m_name;  //!< Name displayed for the format.
     QRegularExpression m_pathFormat;
@@ -187,6 +198,9 @@ public:
   PathAliasPriority getPathAliasPriority() const {
     return PathAliasPriority(getIntValue(pathAliasPriority));
   }
+  bool isShowAdvancedOptionsEnabled() const {
+    return getBoolValue(showAdvancedOptions);
+  }
   bool isLazyLoadRoomsEnabled() { return getBoolValue(lazyLoadRooms); }
 
   // Interface  tab
@@ -237,6 +251,9 @@ public:
 
   bool isViewerIndicatorEnabled() const {
     return getBoolValue(viewerIndicatorEnabled);
+  }
+  bool isRestoreViewerViewFromLastSessionEnabled() const {
+    return getBoolValue(restoreViewerViewFromLastSession);
   }
 
   // Visualization  tab
@@ -289,7 +306,6 @@ public:
 
   // Import Export Tab
   QString getFfmpegPath() const { return getStringValue(ffmpegPath); }
-  QString getFlashDecompilerPath() const { return getStringValue(flashDecompilerPath); }
   int getFfmpegTimeout() { return getIntValue(ffmpegTimeout); }
   QString getFastRenderPath() const { return getStringValue(fastRenderPath); }
   bool getFfmpegMultiThread() const { return getBoolValue(ffmpegMultiThread); }
@@ -301,7 +317,12 @@ public:
   QString getDefRasterFormat() const { return getStringValue(DefRasterFormat); }
   // QString getScanLevelType() const { return getStringValue(scanLevelType); }
   int getDefLevelType() const { return getIntValue(DefLevelType); }
-  int getDefLevelSizePolicy() const { return getIntValue(DefLevelSizePolicy); }
+  QString getDefAssistantType() const {
+    return getStringValue(DefAssistantType);
+  }
+  bool isNewLevelSizeToCameraSizeEnabled() const {
+    return getBoolValue(newLevelSizeToCameraSizeEnabled);
+  }
   double getDefLevelWidth() const { return getDoubleValue(DefLevelWidth); }
   double getDefLevelHeight() const { return getDoubleValue(DefLevelHeight); }
   double getDefLevelDpi() const { return getDoubleValue(DefLevelDpi); }
@@ -361,6 +382,18 @@ public:
   }
   int getTempToolSwitchTimer() const {
     return getIntValue(tempToolSwitchTimer);
+  }
+  double getAnimateToolHandleSize() const {
+    return getDoubleValue(animateToolHandleSize);
+  }
+  TPixel32 getAnimateToolColor() const {
+    return getColorValue(animateToolColor);
+  }
+  QString getDefaultStartupTool() const {
+    return getStringValue(defaultStartupTool);
+  }
+  QString getDefaultNewSceneTool() const {
+    return getStringValue(defaultNewSceneTool);
   }
 
   // Xsheet  tab
@@ -431,6 +464,18 @@ public:
   }
   void getCurrentColumnData(TPixel &color) const {
     color = getColorValue(currentColumnColor);
+  }
+  bool isCustomCurrentCellColorEnabled() const {
+    return getBoolValue(customCurrentCellColorEnabled);
+  }
+  void getCurrentCellData(TPixel &color) const {
+    color = getColorValue(currentCellColor);
+  }
+  bool isCustomCurrentColumnOutlineColorEnabled() const {
+    return getBoolValue(customCurrentColumnOutlineColorEnabled);
+  }
+  void getCurrentColumnOutlineColor(TPixel &color) const {
+    color = getColorValue(currentColumnOutlineColor);
   }
 
   LevelNameDisplayType getLevelNameDisplayType() const {
@@ -510,6 +555,10 @@ public:
     ink   = getColorValue(transpCheckInkOnWhite);
     paint = getColorValue(transpCheckPaint);
   }
+  // Returns the configured colors used for Ink and Paint check operations
+  TPixel getInkCheckColor() const { return getColorValue(inkCheckColor); }
+  TPixel getInk1CheckColor() const { return getColorValue(ink1CheckColor); }
+  TPixel getPaintCheckColor() const { return getColorValue(paintCheckColor); }
 
   // Version Control  tab
   bool isSVNEnabled() const { return getBoolValue(SVNEnabled); }
@@ -567,6 +616,7 @@ Q_SIGNALS:
   void stopAutoSave();
   void startAutoSave();
   void autoSavePeriodChanged();
+  void fillOnlySaveboxChanged(bool enabled);
 
 private:
   std::unique_ptr<QSettings> m_settings;
@@ -587,4 +637,3 @@ private:
 };
 
 #endif  // PREFERENCES_H
-

@@ -39,6 +39,9 @@ DVAPI TFilePath getFirstProjectsFolder();
 DVAPI TFilePath getStudioPaletteFolder();
 DVAPI TFilePath getFxPresetFolder();
 DVAPI TFilePath getLibraryFolder();
+// Upstream ToonzFolder has this; the rebrand renamed the class but the method
+// never arrived, while the synced styleeditor.cpp calls it in eight places.
+DVAPI TFilePath getMyFavoritesFolder();
 DVAPI TFilePath getReslistPath(bool forCleanup);
 DVAPI TFilePath getCacheRootFolder();
 DVAPI TFilePath getCrashReportFolder();

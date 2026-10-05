@@ -13,6 +13,7 @@ enum PreferencesItemId {
   projectRoot,
   customProjectRoot,
   pathAliasPriority,
+  showAdvancedOptions,
   lazyLoadRooms,
 
   //----------
@@ -40,8 +41,11 @@ enum PreferencesItemId {
   colorCalibrationEnabled,
   colorCalibrationLutPaths,
   showIconsInMenu,
+  showRoomBindButtons,
+  customHelpLink,
   displayIn30bit,
   viewerIndicatorEnabled,
+  restoreViewerViewFromLastSession,
 
   //----------
   // Visualization
@@ -75,6 +79,9 @@ enum PreferencesItemId {
   backupKeepCount,
   rasterBackgroundColor,
   resetUndoOnSavingLevel,
+  defaultProjectPath,
+  recordFileHistory,
+  recordAsUsername,
 
   //----------
   // Import / Export
@@ -85,14 +92,14 @@ enum PreferencesItemId {
   quickTimeBackend,
   rhubarbPath,
   rhubarbTimeout,
-  flashDecompilerPath,
 
   //----------
   // Drawing
   DefRasterFormat,
   // scanLevelType,// deprecated
   DefLevelType,
-  DefLevelSizePolicy,
+  DefAssistantType,
+  newLevelSizeToCameraSizeEnabled,
   DefLevelWidth,
   DefLevelHeight,
   DefLevelDpi,
@@ -125,6 +132,10 @@ enum PreferencesItemId {
   useStrokeEndCursor,
   clickTwiceToCreateArcs,
   tempToolSwitchTimer,
+  animateToolHandleSize,
+  animateToolColor,
+  defaultStartupTool,
+  defaultNewSceneTool,
 
   //----------
   // Xsheet
@@ -151,6 +162,10 @@ enum PreferencesItemId {
   syncLevelRenumberWithXsheet,
   currentTimelineEnabled,
   currentColumnColor,
+  customCurrentCellColorEnabled,
+  currentCellColor,
+  customCurrentColumnOutlineColorEnabled,
+  currentColumnOutlineColor,
   levelNameDisplayType,
   showFrameNumberWithLetters,
   linkColumnNameWithLevel,
@@ -192,6 +207,9 @@ enum PreferencesItemId {
   transpCheckInkOnWhite,
   transpCheckInkOnBlack,
   transpCheckPaint,
+  inkCheckColor,
+  ink1CheckColor,
+  paintCheckColor,
 
   //----------
   // Version Control
