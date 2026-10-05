@@ -6,6 +6,9 @@
 #include <QAbstractItemModel>
 #include <QPixmap>
 #include <QMap>
+// std::set for m_projectPaths, added with the tahoma2d port of the root node.
+#include <set>
+#include <vector>
 #include "tfilepath.h"
 #include "flare/toonzfolders.h"
 
@@ -314,14 +317,21 @@ class DvDirModelRootNode final : public DvDirModelNode {
   DvDirModelMyComputerNode *m_myComputerNode;
   DvDirModelNetworkNode *m_networkNode;
   DvDirModelProjectNode *m_sandboxProjectNode;
+  // Ported from tahoma2d: filebrowsermodel.cpp tracks the open projects and the
+  // per-project folder nodes, which this header did not declare.
+  DvDirModelProjectNode *m_currentProjectNode;
+  std::set<TFilePath> m_projectPaths;
   DvDirModelSceneFolderNode *m_sceneFolderNode;
   std::vector<DvDirModelSpecialFileFolderNode *> m_specialNodes;
+  std::vector<DvDirModelSpecialFileFolderNode *> m_projectDirNodes;
 
   void add(std::wstring name, const TFilePath &path);
 
 public:
   DvDirModelRootNode();
+  void refreshDefaultProjectPath();
   void refreshChildren() override;
+  int getProjectPathsSize() { return m_projectPaths.size(); }
 
   DvDirModelNode *getNodeByPath(const TFilePath &path) override;
   // QPixmap getPixmap(bool isOpen) const;

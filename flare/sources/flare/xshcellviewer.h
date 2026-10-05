@@ -5,6 +5,8 @@
 
 #include <QWidget>
 #include <QLineEdit>
+// m_timer, added with the tahoma2d port of CellArea.
+#include <QTimer>
 #include "orientation.h"
 
 #include "flare/txshcell.h"
@@ -90,6 +92,33 @@ class CellArea final : public QWidget {
   QString m_tooltip;
 
   RenameCellField *m_renameCell;
+
+  // Ported from tahoma2d (toonz/sources/toonz/xshcellviewer.h, class CellArea).
+  // xshcellviewer.cpp is ahead of this header and uses all of these; without them
+  // the file fails with a wall of "undeclared identifier" on its own members.
+  TXshCell m_tooltipCell;
+  QTimer *m_timer;
+  bool m_dragBeginEase, m_dragEndEase, m_dragKeyframe;
+  QPoint m_keyHighlight;
+  QPoint m_loopFrameMarkerHighlight;
+
+  void drawCellMarker(QPainter &p, int markId, QRect rect,
+                      bool hasFrame = false, bool isNextEmpty = true);
+  void drawDrawingMarker(QPainter &p, int markId, QRect rect, TFrameId fid,
+                         bool hasFrame, bool isLoopedCell);
+  void drawEndOfLevelMarker(QPainter &p, QRect rect, bool isNextEmpty,
+                            bool isStopFrame = false, bool isLooped = false);
+  void drawFolderColumn(QPainter &p, int r0, int r1, int col);
+  void drawLoopFrameMarker(QPainter &p, int row, int col);
+  void drawPegbarColumn(QPainter &p, int r0, int r1, int col);
+
+  bool isOverLoopFrameMarker(int row, int col, QPoint mouseInCell,
+                             QPoint frameAdj);
+
+  void onDelayToolTip();
+  void onSetDrawingMark();
+  void updateCursor();
+  void updateKeyHighlight(int row, int col);
 
   void drawCells(QPainter &p, const QRect toBeUpdated);
   void drawNonEmptyBackground(QPainter &p) const;
