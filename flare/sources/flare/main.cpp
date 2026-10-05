@@ -89,6 +89,42 @@
 #include <float.h>
 #endif
 #include <QtPlatformHeaders/QWindowsWindowFunctions>
+
+namespace {
+
+/*! Calls T::setWinTabEnabled(on) if this Qt provides it.
+
+    That entry point exists only in the custom Qt that cherry-picks WinTab
+    support (github.com/shun-iwasawa/qt5, tag v5.15.2_wintab). WITH_WINTAB
+    documents the requirement, but a plain #ifdef cannot enforce it: enabling the
+    option against a stock Qt 5.15.2 produced
+
+        error C2039: 'setWinTabEnabled': is not a member of
+                     'QWindowsWindowFunctions'
+
+    which blames main.cpp rather than the option that caused it.
+
+    The call lives in a template so that it is instantiated only in the overload
+    that is selected. Testing for the symbol and then calling it behind a plain
+    `if` does not work: the condition is not a compile-time constant, so the body
+    is still parsed and the missing member is still an error. Selecting between
+    two overloads by argument type is something the compiler can act on, and the
+    overload it rejects is never instantiated.
+
+    With the cherry-picked Qt the first overload matches and the toggle happens.
+    With stock Qt only the fallback matches, and the code does what the option
+    already means for a Qt without native WinTab: leave Qt's WinTab handling off.
+*/
+template <typename T>
+auto setWinTabIfAvailable(bool on, int)
+    -> decltype(T::setWinTabEnabled(on), void()) {
+  T::setWinTabEnabled(on);
+}
+
+template <typename T>
+void setWinTabIfAvailable(bool, long) {}
+
+}  // namespace
 #endif
 
 using namespace DVGui;
@@ -768,7 +804,7 @@ if (QFileInfo(localSplashPath).exists() && QFileInfo(localSplashPath).isFile()) 
 
 #ifdef WITH_WINTAB
   bool useQtNativeWinInk = Preferences::instance()->isQtNativeWinInkEnabled();
-  QWindowsWindowFunctions::setWinTabEnabled(!useQtNativeWinInk);
+  setWinTabIfAvailable<QWindowsWindowFunctions>(!useQtNativeWinInk, 0);
 #endif
 
   splash.showMessage(offsetStr + "Loading style sheet ...", Qt::AlignCenter,
