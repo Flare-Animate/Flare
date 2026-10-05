@@ -168,6 +168,10 @@ enum PreferencesItemId {
   currentColumnOutlineColor,
   levelNameDisplayType,
   showFrameNumberWithLetters,
+  // Ported from tahoma2d: xshcellviewer.cpp reads these two, through
+  // Preferences::isShowDragBarsEnabled and getTimelineLayoutPreference.
+  showDragBars,
+  timelineLayoutPreference,
   linkColumnNameWithLevel,
 
   //----------

@@ -132,6 +132,9 @@ class DvDirModelSpecialFileFolderNode : public DvDirModelFileFolderNode {
 private:
   QString m_iconName;
   QSize m_iconSize;
+  // Ported from tahoma2d: the special-file nodes (Devices, Volume Information)
+  // can carry a pixmap as well as an icon, and filebrowsermodel.cpp sets it.
+  QPixmap m_pixmap;
 
 public:
   DvDirModelSpecialFileFolderNode(DvDirModelNode *parent, std::wstring name,
@@ -139,6 +142,7 @@ public:
   QPixmap getPixmap(bool isOpen) const override;
   void setIconName(const QString &iconName) { m_iconName = iconName; }
   void setIconSize(const QSize &size) { m_iconSize = size; }
+  void setPixmap(const QPixmap &pixmap);
 };
 
 //-----------------------------------------------------------------------------
@@ -289,6 +293,17 @@ public:
 };
 
 //-----------------------------------------------------------------------------
+
+// Ported from tahoma2d. filebrowsermodel.cpp constructs this node and the local
+// header never declared it, so every use failed with "is not a class or
+// namespace name".
+class DvDirModelStuffFolderNode final : public DvDirModelNode {
+public:
+  DvDirModelStuffFolderNode(DvDirModelNode *parent);
+  void refreshChildren() override;
+  QPixmap getPixmap(bool isOpen) const override;
+  bool isFolder() const override { return true; }
+};
 
 class DvDirModelMyComputerNode final : public DvDirModelNode {
 public:

@@ -487,6 +487,13 @@ public:
   bool isShowFrameNumberWithLettersEnabled() const {
     return getBoolValue(showFrameNumberWithLetters);
   }
+  // Ported from tahoma2d: xshcellviewer.cpp reads both of these.
+  bool isShowDragBarsEnabled() const {
+    return getBoolValue(showDragBars);
+  }
+  QString getTimelineLayoutPreference() const {
+    return getStringValue(timelineLayoutPreference);
+  }
   bool isLinkColumnNameWithLevelEnabled() const {
     return getBoolValue(linkColumnNameWithLevel);
   }
