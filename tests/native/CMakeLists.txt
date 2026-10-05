@@ -32,11 +32,75 @@ set(MINIZIP "${ZLIB_DIR}/contrib/minizip" CACHE PATH
 set(ZLIB_IMPORT_LIB "${FLASH_ROOT}/vcpkg/installed/x64-windows/lib/zlib.lib"
     CACHE FILEPATH "zlib import library")
 
+# Where CMake actually puts a target's import library differs between build
+# layouts: an in-source tree writes to <build>/<target>/RelWithDebInfo, while the
+# older build_local tree nests it under <build>/sources/<target>/RelWithDebInfo.
+# Probe both instead of hardcoding one, so pointing BUILD at either tree works.
+function(_flare_find_target_lib OUT_DIR OUT_LIB)
+    foreach(_sub "sources/tnzcore" "tnzcore")
+        set(_dir "${BUILD}/${_sub}/RelWithDebInfo")
+        if(EXISTS "${_dir}/tnzcore.lib")
+            set(${OUT_DIR} "${_dir}" PARENT_SCOPE)
+            set(${OUT_LIB} "${_dir}/tnzcore.lib" PARENT_SCOPE)
+            return()
+        endif()
+    endforeach()
+    set(${OUT_DIR} "" PARENT_SCOPE)
+    set(${OUT_LIB} "" PARENT_SCOPE)
+endfunction()
+
 # Fail early and clearly rather than deep inside a link error.
-if(NOT EXISTS "${BUILD}/sources/tnzcore/RelWithDebInfo/tnzcore.lib")
+_flare_find_target_lib(TNZCORE_LIB_DIR TNZCORE_LIB)
+if(NOT TNZCORE_LIB)
     message(FATAL_ERROR
-        "tnzcore.lib not found under ${BUILD}. Build it first:\n"
+        "tnzcore.lib not found under ${BUILD} (looked in "
+        "sources/tnzcore/RelWithDebInfo and tnzcore/RelWithDebInfo). "
+        "Build it first:\n"
         "  cmake --build ${BUILD} --config RelWithDebInfo --target tnzcore")
+endif()
+message(STATUS "native tests: using tnzcore from ${TNZCORE_LIB_DIR}")
+
+# tnzbase sits beside tnzcore in either layout; find it rather than deriving it by
+# walking up from tnzcore, which only works for the nested build_local layout.
+function(_flare_find_sibling_lib OUT_LIB)
+    set(_name "${ARGV1}")
+    foreach(_sub "sources/${_name}" "${_name}")
+        set(_dir "${BUILD}/${_sub}/RelWithDebInfo")
+        if(EXISTS "${_dir}/${_name}.lib")
+            set(${OUT_LIB} "${_dir}/${_name}.lib" PARENT_SCOPE)
+            return()
+        endif()
+    endforeach()
+    set(${OUT_LIB} "" PARENT_SCOPE)
+endfunction()
+
+_flare_find_sibling_lib(TNZBASE_LIB tnzbase)
+if(NOT TNZBASE_LIB)
+    message(FATAL_ERROR
+        "tnzbase.lib not found under ${BUILD} (looked in "
+        "sources/tnzbase/RelWithDebInfo and tnzbase/RelWithDebInfo). "
+        "Build it first:\n"
+        "  cmake --build ${BUILD} --config RelWithDebInfo --target tnzbase")
+endif()
+message(STATUS "native tests: using tnzbase from ${TNZBASE_LIB}")
+
+# Same question for flareqt, needed by flareupdater_tests.
+function(_flare_find_flareqt_lib OUT_LIB)
+    foreach(_sub "sources/flareqt" "flareqt")
+        set(_dir "${BUILD}/${_sub}/RelWithDebInfo")
+        if(EXISTS "${_dir}/flareqt.lib")
+            set(${OUT_LIB} "${_dir}/flareqt.lib" PARENT_SCOPE)
+            return()
+        endif()
+    endforeach()
+    set(${OUT_LIB} "" PARENT_SCOPE)
+endfunction()
+
+_flare_find_flareqt_lib(FLAREQT_LIB)
+if(NOT FLAREQT_LIB)
+    set(FLAREQT_LIB "")
+    message(STATUS "native tests: flareqt.lib not found under ${BUILD}; "
+                   "flareupdater_tests will not link")
 endif()
 
 add_executable(flash_reader_tests
@@ -53,8 +117,8 @@ target_link_libraries(flash_reader_tests PRIVATE
     Qt5::Core
     Qt5::Gui
     "${ZLIB_IMPORT_LIB}"
-    "${BUILD}/sources/tnzcore/RelWithDebInfo/tnzcore.lib"
-    "${BUILD}/sources/tnzbase/RelWithDebInfo/tnzbase.lib"
+    "${TNZCORE_LIB}"
+    "${TNZBASE_LIB}"
     kernel32.lib
 )
 
@@ -71,8 +135,8 @@ target_link_libraries(xfl_shape_tests PRIVATE
     Qt5::Core
     Qt5::Gui
     "${ZLIB_IMPORT_LIB}"
-    "${BUILD}/sources/tnzcore/RelWithDebInfo/tnzcore.lib"
-    "${BUILD}/sources/tnzbase/RelWithDebInfo/tnzbase.lib"
+    "${TNZCORE_LIB}"
+    "${TNZBASE_LIB}"
     kernel32.lib
 )
 
@@ -89,8 +153,8 @@ target_link_libraries(shape_census PRIVATE
     Qt5::Core
     Qt5::Gui
     "${ZLIB_IMPORT_LIB}"
-    "${BUILD}/sources/tnzcore/RelWithDebInfo/tnzcore.lib"
-    "${BUILD}/sources/tnzbase/RelWithDebInfo/tnzbase.lib"
+    "${TNZCORE_LIB}"
+    "${TNZBASE_LIB}"
     kernel32.lib
 )
 
@@ -111,8 +175,8 @@ target_link_libraries(probe_samples PRIVATE
     Qt5::Core
     Qt5::Gui
     "${ZLIB_IMPORT_LIB}"
-    "${BUILD}/sources/tnzcore/RelWithDebInfo/tnzcore.lib"
-    "${BUILD}/sources/tnzbase/RelWithDebInfo/tnzbase.lib"
+    "${TNZCORE_LIB}"
+    "${TNZBASE_LIB}"
     kernel32.lib
 )
 
@@ -131,8 +195,8 @@ target_link_libraries(swfshape_probe PRIVATE
     Qt5::Core
     Qt5::Gui
     "${ZLIB_IMPORT_LIB}"
-    "${BUILD}/sources/tnzcore/RelWithDebInfo/tnzcore.lib"
-    "${BUILD}/sources/tnzbase/RelWithDebInfo/tnzbase.lib"
+    "${TNZCORE_LIB}"
+    "${TNZBASE_LIB}"
     kernel32.lib
 )
 
@@ -149,8 +213,8 @@ target_link_libraries(swfshape_tests PRIVATE
     Qt5::Core
     Qt5::Gui
     "${ZLIB_IMPORT_LIB}"
-    "${BUILD}/sources/tnzcore/RelWithDebInfo/tnzcore.lib"
-    "${BUILD}/sources/tnzbase/RelWithDebInfo/tnzbase.lib"
+    "${TNZCORE_LIB}"
+    "${TNZBASE_LIB}"
     kernel32.lib
 )
 
@@ -167,8 +231,8 @@ target_link_libraries(swfshape_real_tests PRIVATE
     Qt5::Core
     Qt5::Gui
     "${ZLIB_IMPORT_LIB}"
-    "${BUILD}/sources/tnzcore/RelWithDebInfo/tnzcore.lib"
-    "${BUILD}/sources/tnzbase/RelWithDebInfo/tnzbase.lib"
+    "${TNZCORE_LIB}"
+    "${TNZBASE_LIB}"
     kernel32.lib
 )
 
@@ -185,8 +249,8 @@ target_link_libraries(swfshape_extract_tests PRIVATE
     Qt5::Core
     Qt5::Gui
     "${ZLIB_IMPORT_LIB}"
-    "${BUILD}/sources/tnzcore/RelWithDebInfo/tnzcore.lib"
-    "${BUILD}/sources/tnzbase/RelWithDebInfo/tnzbase.lib"
+    "${TNZCORE_LIB}"
+    "${TNZBASE_LIB}"
     kernel32.lib
 )
 
@@ -203,8 +267,8 @@ target_link_libraries(shape_export PRIVATE
     Qt5::Core
     Qt5::Gui
     "${ZLIB_IMPORT_LIB}"
-    "${BUILD}/sources/tnzcore/RelWithDebInfo/tnzcore.lib"
-    "${BUILD}/sources/tnzbase/RelWithDebInfo/tnzbase.lib"
+    "${TNZCORE_LIB}"
+    "${TNZBASE_LIB}"
     kernel32.lib
 )
 
@@ -222,7 +286,37 @@ target_link_libraries(moho_reader_tests PRIVATE
     Qt5::Core
     Qt5::Gui
     "${ZLIB_IMPORT_LIB}"
-    "${BUILD}/sources/tnzcore/RelWithDebInfo/tnzcore.lib"
-    "${BUILD}/sources/tnzbase/RelWithDebInfo/tnzbase.lib"
+    "${TNZCORE_LIB}"
+    "${TNZBASE_LIB}"
+    kernel32.lib
+)
+
+# FlareUpdater's decision logic, driven against the shipped flareqt DLL.
+add_executable(flareupdater_tests
+    flareupdater_tests.cpp
+)
+target_include_directories(flareupdater_tests PRIVATE
+    "${FLASH_ROOT}/flare/sources/include"
+)
+target_link_libraries(flareupdater_tests PRIVATE
+    Qt5::Core
+    "${FLAREQT_LIB}"
+    kernel32.lib
+)
+
+# The network half of FlareUpdater, against the real GitHub releases API.
+# Skips cleanly when offline, so it is safe to run anywhere.
+add_executable(flareupdater_net_tests
+    flareupdater_net_tests.cpp
+)
+target_include_directories(flareupdater_net_tests PRIVATE
+    "${FLASH_ROOT}/flare/sources/include"
+)
+# No Qt5::Network here: the test drives FlareUpdater through its own signals and
+# only needs QCoreApplication/QEventLoop from Qt5Core. Qt5::Network is linked by
+# flareqt itself, so the import library is already present at run time.
+target_link_libraries(flareupdater_net_tests PRIVATE
+    Qt5::Core
+    "${FLAREQT_LIB}"
     kernel32.lib
 )

@@ -26,7 +26,13 @@ SUITES = [
     ("flash/bridge (pytest)", [sys.executable, "-m", "pytest",
                                "tools/flash/tests", "tools/sync/tests", "-q"], REPO),
     ("moho menu wiring", [sys.executable, "tests/moho/test_moho_menu.py"], REPO),
-    ("native readers (C++)", [sys.executable, "run_tests.py", "--no-build"],
+    # No --no-build: the runner builds the test binaries itself. Passing it made
+    # this suite depend on someone having remembered to build them first, so it
+    # reported a failure for a missing artefact rather than a real defect. The
+    # Flare build tree it links against comes from $FLARE_BUILD, which
+    # run_tests.py reads, so an out-of-the-way build is picked up without
+    # editing anything.
+    ("native readers (C++)", [sys.executable, "run_tests.py"],
      os.path.join(HERE, "native")),
     ("flash fixtures", [sys.executable, "verify_fixtures.py"],
      os.path.join(HERE, "flash_fixtures")),

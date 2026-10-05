@@ -15,10 +15,26 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.abspath(os.path.join(HERE, "..", ".."))
-FLARE_BUILD = os.path.join(REPO, "build_local")
+FLARE_BUILD = os.environ.get("FLARE_BUILD", os.path.join(REPO, "build_local"))
 DEFAULT_BUILD = os.path.join(HERE, "build")
-TNZCORE_LIB = os.path.join(FLARE_BUILD, "sources", "tnzcore", "RelWithDebInfo",
-                           "tnzcore.lib")
+
+
+def find_lib(build, name):
+    """Locate a target's import library in either supported build layout.
+
+    A tree configured from flare/sources -- which is what CI does -- writes to
+    <build>/<target>/RelWithDebInfo. The older build_local tree nests it under
+    <build>/sources/<target>/RelWithDebInfo. Probing both means pointing
+    --flare-build at either tree works, instead of reporting "tnzcore has not
+    been built" for a build that is sitting right there. tests/native/CMakeLists.txt
+    already probes both for the same reason.
+    """
+    for sub in (name, os.path.join("sources", name)):
+        candidate = os.path.join(build, sub, "RelWithDebInfo", name + ".lib")
+        if os.path.isfile(candidate):
+            return candidate
+    return None
+
 
 # (binary, which fixture set it takes)
 TARGETS = [
@@ -27,6 +43,8 @@ TARGETS = [
     ("swfshape_tests", "flash"),
     ("swfshape_extract_tests", "flash"),
     ("moho_reader_tests", "moho"),
+    ("flareupdater_tests", "none"),
+    ("flareupdater_net_tests", "none"),
 ]
 
 
@@ -76,18 +94,31 @@ def main():
     args = ap.parse_args()
 
     flare_build = os.path.abspath(args.flare_build)
-    tnzcore_lib = os.path.join(flare_build, "sources", "tnzcore",
-                               "RelWithDebInfo", "tnzcore.lib")
-    if not os.path.isfile(tnzcore_lib):
-        die(f"tnzcore has not been built.\n"
+    tnzcore_lib = find_lib(flare_build, "tnzcore")
+    flareqt_lib = find_lib(flare_build, "flareqt")
+    if not tnzcore_lib:
+        die(f"tnzcore has not been built (looked in "
+            f"<build>/tnzcore/RelWithDebInfo and "
+            f"<build>/sources/tnzcore/RelWithDebInfo).\n"
             f"  cmake --build {flare_build} --config RelWithDebInfo --target tnzcore")
+    print(f"   tnzcore: {tnzcore_lib}")
+    if flareqt_lib:
+        print(f"   flareqt: {flareqt_lib}")
+    else:
+        # Not fatal for the format readers, but the updater tests link it, so
+        # say so plainly rather than failing later with unresolved externals.
+        print("   flareqt: not built -- flareupdater tests will be skipped")
 
     flash_fx, moho_fx = ensure_fixtures()
 
     if not args.no_build:
         build = os.path.abspath(args.build_dir)
         # Point the tests at this tree's build rather than the default.
-        r = run(["cmake", "-B", build, "-DCMAKE_BUILD_TYPE=RelWithDebInfo",
+        # -S is required: without it CMake configures whatever source directory
+        # the caller's cwd happens to be, which is the repo root -- and the root
+        # CMakeLists.txt configures the whole application rather than the tests.
+        r = run(["cmake", "-S", HERE, "-B", build,
+                 "-DCMAKE_BUILD_TYPE=RelWithDebInfo",
                  f"-DBUILD={flare_build}",
                  f"-DFLASH_ROOT={REPO}"])
         if r.returncode:
@@ -105,7 +136,11 @@ def main():
     # no output and exit code 0xC0000135.
     env = dict(os.environ)
     dll_dirs = [os.path.join(flare_build, "RelWithDebInfo"),
-                os.path.join(REPO, "LocalTest")]
+                os.path.join(REPO, "LocalTest"),
+                # flareqt pulls in the vcpkg-built third-party DLLs (OpenCV, tiff,
+                # ...) transitively. Without these on PATH a test that links
+                # flareqt dies at load time with 0xC0000135 and no output.
+                os.path.join(REPO, "vcpkg", "installed", "x64-windows", "bin")]
     qt_bin = env.get("QT_BIN", "")
     if qt_bin:
         dll_dirs.append(qt_bin)
@@ -121,6 +156,9 @@ def main():
     failed = 0
     for name, which in TARGETS:
         if args.filter and args.filter not in name:
+            continue
+        if name.startswith("flareupdater") and not flareqt_lib:
+            print(f"   SKIP  {name} (flareqt.lib not built)")
             continue
         exe = os.path.join(exe_dir, name + ".exe")
         if not os.path.isfile(exe):
