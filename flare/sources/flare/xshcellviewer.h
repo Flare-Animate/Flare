@@ -127,11 +127,13 @@ class CellArea final : public QWidget {
   void drawSelectionBackground(QPainter &p) const;
   void drawExtenderHandles(QPainter &p);
 
-  void drawDragHandle(QPainter &p, const QPoint &xy,
+  void drawDragHandle(QPainter &p, bool isStart, bool isLastRow,
+                      const QPoint &xy,
                       const QColor &sideColor) const;
   void drawEndOfDragHandle(QPainter &p, bool isEnd, const QPoint &xy,
                            const QColor &cellColor) const;
-  void drawLockedDottedLine(QPainter &p, bool isLocked, const QPoint &xy,
+  void drawLockedDottedLine(QPainter &p, bool isLocked, bool isStart,
+                            bool isLastRow, const QPoint &xy,
                             const QColor &cellColor) const;
 
   void drawFrameSeparator(QPainter &p, int row, int col, bool emptyFrame,
@@ -150,7 +152,7 @@ class CellArea final : public QWidget {
 
   void drawNotes(QPainter &p, const QRect toBeUpdated);
 
-  void drawCurrentTimeIndicator(QPainter &p, const QPoint &xy, int col,
+  void drawCurrentTimeIndicator(QPainter &p, const QPoint &xy,
                                 bool isFolded = false);
 
   void drawFrameMarker(QPainter &p, const QPoint &xy, QColor color,

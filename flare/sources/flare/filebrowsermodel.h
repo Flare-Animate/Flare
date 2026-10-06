@@ -334,6 +334,7 @@ class DvDirModelRootNode final : public DvDirModelNode {
   DvDirModelProjectNode *m_sandboxProjectNode;
   // Ported from tahoma2d: filebrowsermodel.cpp tracks the open projects and the
   // per-project folder nodes, which this header did not declare.
+  std::vector<DvDirModelProjectNode *> m_projectNodes;
   DvDirModelProjectNode *m_currentProjectNode;
   std::set<TFilePath> m_projectPaths;
   DvDirModelSceneFolderNode *m_sceneFolderNode;

@@ -53,7 +53,7 @@ QStringList getLevelFileNames(TFilePath path) {
 // MyFileSystemWatcher
 //-----------------------------------------------------------------------------
 
-MyFileSystemWatcher::MyFileSystemWatcher() {
+MyFileSystemWatcher::MyFileSystemWatcher(QObject *parent) : QObject(parent) {
   m_watcher = new QFileSystemWatcher(this);
 
   bool ret = connect(m_watcher, SIGNAL(directoryChanged(const QString &)), this,
@@ -557,7 +557,7 @@ void DvDirTreeView::contextMenuEvent(QContextMenuEvent *e) {
 
 //-----------------------------------------------------------------------------
 
-void DvDirTreeView::createMenuAction(QMenu &menu, QString name,
+void DvDirTreeView::createMenuAction(QMenu &menu, const QString &name,
                                      const char *slot, bool enable) {
   QAction *act = menu.addAction(name);
   act->setEnabled(enable);
@@ -1672,7 +1672,7 @@ void DvDirTreeView::onPreferenceChanged(const QString &prefName) {
 // NodeEditor
 //-----------------------------------------------------------------------------
 
-NodeEditor::NodeEditor(QWidget *parent, QRect rect, int leftMargin)
+NodeEditor::NodeEditor(QWidget *parent, const QRect &rect, int leftMargin)
     : QWidget(parent) {
   setGeometry(rect);
   m_lineEdit          = new LineEdit();

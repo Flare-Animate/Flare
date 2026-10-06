@@ -174,7 +174,8 @@ void CustomPanelUIField::mousePressEvent(QMouseEvent* event) {
 // UiPreviewWidget
 //-----------------------------------------------------------------------------
 
-UiPreviewWidget::UiPreviewWidget(QPixmap uiPixmap, QList<UiEntry>& uiEntries,
+UiPreviewWidget::UiPreviewWidget(const QPixmap& uiPixmap,
+                                     const QList<UiEntry>& uiEntries,
                                  QWidget* parent)
     : QWidget(parent), m_highlightUiId(-1), m_uiPixmap(uiPixmap) {
   for (auto entry : uiEntries) m_rectTable.append(entry.rect);
@@ -183,7 +184,7 @@ UiPreviewWidget::UiPreviewWidget(QPixmap uiPixmap, QList<UiEntry>& uiEntries,
   setMouseTracking(true);
 }
 
-void UiPreviewWidget::onViewerResize(QSize size) {
+void UiPreviewWidget::onViewerResize(const QSize& size) {
   if (m_uiPixmap.isNull()) return;
   setFixedSize(std::max(size.width(), m_uiPixmap.width()),
                std::max(size.height(), m_uiPixmap.height()));
@@ -215,7 +216,7 @@ void UiPreviewWidget::mousePressEvent(QMouseEvent* event) {
   if (m_highlightUiId >= 0) emit clicked(m_highlightUiId);
 }
 
-void UiPreviewWidget::onMove(const QPoint pos) {
+void UiPreviewWidget::onMove(const QPoint& pos) {
   QPoint offset((width() - m_uiPixmap.width()) / 2,
                 (height() - m_uiPixmap.height()) / 2);
 
@@ -528,8 +529,8 @@ void CustomPanelEditorPopup::onHighlight(int id) {
 
 //-----------------------------------------------------------------------------
 // set pixmap of updated ui to the preview
-void CustomPanelEditorPopup::onCommandChanged(QString oldCmdId,
-                                              QString newCmdId) {
+void CustomPanelEditorPopup::onCommandChanged(const QString& oldCmdId,
+                                              const QString& newCmdId) {
   // If the command is dragged from another field, then swap the commands.
   if (!newCmdId.isEmpty()) {
     CustomPanelUIField* senderField =
@@ -582,7 +583,7 @@ void CustomPanelEditorPopup::onPreviewClicked(int id) {
   drag->exec(Qt::MoveAction);
 }
 
-void CustomPanelEditorPopup::onPreviewDropped(int id, QString cmdId,
+void CustomPanelEditorPopup::onPreviewDropped(int id, const QString& cmdId,
                                               bool fromTree) {
   CustomPanelUIField* field = m_uiEntries.at(id).field;
   if (!field) return;
@@ -598,7 +599,7 @@ void CustomPanelEditorPopup::onPreviewDropped(int id, QString cmdId,
 
 //-----------------------------------------------------------------------------
 
-QList<int> CustomPanelEditorPopup::entryIdByObjName(const QString objName) {
+QList<int> CustomPanelEditorPopup::entryIdByObjName(const QString& objName) {
   QList<int> ret;
   for (int i = 0; i < m_uiEntries.size(); i++) {
     if (m_uiEntries[i].objectName == objName) ret.append(i);
