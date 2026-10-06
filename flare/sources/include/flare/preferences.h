@@ -494,6 +494,16 @@ public:
   QString getTimelineLayoutPreference() const {
     return getStringValue(timelineLayoutPreference);
   }
+  // Dropped by the upstream-sync merge and put back here. preferencespopup.cpp
+  // calls getFlashDecompilerPath (the "flashDecompilerPath: undeclared
+  // identifier" errors) and levelcreatepopup.cpp and txshsimplelevel.cpp call
+  // getDefLevelSizePolicy.
+  QString getFlashDecompilerPath() const {
+    return getStringValue(flashDecompilerPath);
+  }
+  int getDefLevelSizePolicy() const {
+    return getIntValue(DefLevelSizePolicy);
+  }
   bool isLinkColumnNameWithLevelEnabled() const {
     return getBoolValue(linkColumnNameWithLevel);
   }

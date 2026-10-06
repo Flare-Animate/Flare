@@ -92,12 +92,19 @@ enum PreferencesItemId {
   quickTimeBackend,
   rhubarbPath,
   rhubarbTimeout,
+  // Dropped by the upstream-sync merge and put back here: PreferencesPopup reads
+  // it through Preferences::getFlashDecompilerPath to locate the SWF decompiler.
+  flashDecompilerPath,
 
   //----------
   // Drawing
   DefRasterFormat,
   // scanLevelType,// deprecated
   DefLevelType,
+  // Dropped by the upstream-sync merge and put back here: levelcreatepopup.cpp
+  // and txshsimplelevel.cpp both read it through
+  // Preferences::getDefLevelSizePolicy.
+  DefLevelSizePolicy,
   DefAssistantType,
   newLevelSizeToCameraSizeEnabled,
   DefLevelWidth,
