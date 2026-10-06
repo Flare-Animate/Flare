@@ -6,6 +6,11 @@
 #include "cleanupsettingspopup.h"
 #include "iocommand.h"
 #include "mainwindow.h"
+
+// showMessage calls QMainWindow::statusBar(), which returns a QStatusBar -- the
+// type needs its definition here, not just the forward declaration the header
+// relies on.
+#include <QStatusBar>
 #include "cellselection.h"
 
 // TnzTools includes

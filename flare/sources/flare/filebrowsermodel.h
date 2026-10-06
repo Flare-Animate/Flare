@@ -418,6 +418,12 @@ public:
   }
   void notifyEndMoveRows() { emit endMoveRows(); }
 
+  // Emitted when a project is added to the folder list. Added by the upstream
+  // sync -- dvdirtreeview.cpp connects to it, but the local DvDirModel never
+  // declared it. DvDirModel gains a `signals:` section for it.
+signals:
+  void projectAdded();
+
 protected slots:
   // when the scene switched, update the path of the scene location node
   void onSceneSwitched();
