@@ -72,7 +72,7 @@ static QStringList unpackStringList(const QByteArray& ba) {
 //-----------------------------------------------------------------------------
 
 CustomPanelUIField::CustomPanelUIField(const int objId,
-                                       const QString objectName,
+                                       const QString& objectName,
                                        QWidget* parent, bool isFirst)
     : QLabel(tr("Drag and set command"), parent), m_id(objId) {
   QFont fnt = font();
@@ -93,7 +93,7 @@ CustomPanelUIField::CustomPanelUIField(const int objId,
   }
 }
 
-bool CustomPanelUIField::setCommand(QString commandId) {
+bool CustomPanelUIField::setCommand(const QString& commandId) {
   if (m_commandId == commandId) return false;
   if (commandId.isEmpty()) {
     m_commandId = commandId;
