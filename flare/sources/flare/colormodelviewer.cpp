@@ -296,7 +296,8 @@ void ColorModelViewer::pick(const QPoint &p) {
       TPoint point = picker.getRasterPoint(pos);
       int frame    = m_flipConsole->getCurrentFrame() - 1;
       PaletteCmd::organizePaletteStyle(
-          ph, styleIndex, TColorStyle::PickedPosition(point, frame));
+          ph, styleIndex, TColorStyle::PickedPosition(point, frame),
+          ph->getStyleIndex());
     }
   }
 

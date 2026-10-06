@@ -149,6 +149,10 @@ TFilePath FlareFolder::getReslistPath(bool forCleanup) {
   return getConfigDir() + (forCleanup ? "cleanupreslist.txt" : "reslist.txt");
 }
 
+TFilePath FlareFolder::getMyReslistPath(bool forCleanup) {
+  return getReslistPath(forCleanup);
+}
+
 TFilePath FlareFolder::getTemplateModuleDir() {
   // return getModulesDir() + getModuleName();
   return getModulesDir() + "settings";

@@ -43,6 +43,11 @@ DVAPI TFilePath getLibraryFolder();
 // never arrived, while the synced styleeditor.cpp calls it in eight places.
 DVAPI TFilePath getMyFavoritesFolder();
 DVAPI TFilePath getReslistPath(bool forCleanup);
+// Upstream spells the same accessor ToonzFolder::getMyReslistPath; the synced
+// cleanupsettingspane.cpp calls that name (as FlareFolder::getMyReslistPath),
+// while the local namespace only had getReslistPath. Provide both so the call
+// sites that survive the merge find the function they expect.
+DVAPI TFilePath getMyReslistPath(bool forCleanup);
 DVAPI TFilePath getCacheRootFolder();
 DVAPI TFilePath getCrashReportFolder();
 DVAPI TFilePath getProfileFolder();

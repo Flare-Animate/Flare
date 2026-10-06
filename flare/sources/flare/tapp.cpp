@@ -219,6 +219,12 @@ TApp *TApp::instance() {
   return &_instance;
 }
 
+void TApp::showMessage(QString message, int duration) {
+  // Upstream routes this to a dedicated status-bar member. The class here does
+  // not carry one; the main window's status bar is the equivalent surface.
+  if (m_mainWindow) m_mainWindow->statusBar()->showMessage(message, duration);
+}
+
 //-----------------------------------------------------------------------------
 
 TApp::~TApp() {}

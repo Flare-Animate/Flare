@@ -54,8 +54,11 @@ public:
   virtual void setCurrentLevelStyleIndex(int index,
                                          bool forceUpdate = false) = 0;
   // Tahoma2D added this for the style-set manager's status hints; the synced
-  // styleeditor.cpp calls it (guarded by null). No subclass exists in-tree, so
-  // nothing needs a matching implementation.
+  // styleeditor.cpp calls it (guarded by null). Pure virtual because both the
+  // interface and its concrete implementations must agree on it; TApp implements
+  // it by forwarding to the main window's status bar.
+  // (A previous comment here said no subclass exists in-tree, which is what
+  // left TApp abstract -- TTool::Application subclasses TApplication in-tree.)
   virtual void showMessage(QString message, int duration = 2000) = 0;
 };
 
