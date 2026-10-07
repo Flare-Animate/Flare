@@ -163,7 +163,7 @@ void copyFramesWithoutUndo(TXshSimpleLevel *sl, std::set<TFrameId> &frames) {
   QClipboard *clipboard = QApplication::clipboard();
   TXsheet *xsh          = TApp::instance()->getCurrentXsheet()->getXsheet();
   DrawingData *data     = new DrawingData();
-  data->setLevelFrames(sl, frames, true);
+  data->setLevelFrames(sl, frames);
   clipboard->setMimeData(data, QClipboard::Clipboard);
 }
 
@@ -464,7 +464,7 @@ void cutFramesWithoutUndo(TXshSimpleLevel *sl, std::set<TFrameId> &frames) {
 
   QClipboard *clipboard = QApplication::clipboard();
   DrawingData *data     = new DrawingData();
-  data->setFrames(imageSet, sl, *levelHooks, drawingMarks);
+  data->setFrames(imageSet, sl, *levelHooks);
   clipboard->setMimeData(data, QClipboard::Clipboard);
 
   for (it = frames.begin(); it != frames.end(); ++it, i++) {
@@ -1811,7 +1811,7 @@ void FilmstripCmd::pasteInto(TXshSimpleLevel *sl, std::set<TFrameId> &frames) {
   if (const DrawingData *drawingData =
           dynamic_cast<const DrawingData *>(clipboard->mimeData())) {
     DrawingData *data = new DrawingData();
-    data->setLevelFrames(sl, frames, true);
+    data->setLevelFrames(sl, frames);
 
     HookSet *oldLevelHooks = new HookSet();
     *oldLevelHooks         = *sl->getHookSet();
@@ -1873,7 +1873,7 @@ void FilmstripCmd::deleteFrames(TXshSimpleLevel *sl,
   std::map<TFrameId, int> drawingMarks = sl->getDrawingMarks();
   std::map<TFrameId, QString> imageSet = deleteFramesWithoutUndo(sl, frames);
   DrawingData *oldData = new DrawingData();
-  oldData->setFrames(imageSet, sl, *levelHooks, drawingMarks);
+  oldData->setFrames(imageSet, sl, *levelHooks);
 
   TUndoManager::manager()->add(
       new DeleteFramesUndo(sl, framesToDelete, oldFrames, oldData));
@@ -1904,7 +1904,7 @@ void FilmstripCmd::clear(TXshSimpleLevel *sl, std::set<TFrameId> &frames) {
   std::map<TFrameId, QString> clearedFrames =
       clearFramesWithoutUndo(sl, frames);
   DrawingData *oldData = new DrawingData();
-  oldData->setFrames(clearedFrames, sl, *levelHooks, drawingMarks);
+  oldData->setFrames(clearedFrames, sl, *levelHooks);
   DrawingData *newData = new DrawingData();
   newData->setLevelFrames(sl, frames);
   frames.clear();
