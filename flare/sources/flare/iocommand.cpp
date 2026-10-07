@@ -1543,7 +1543,7 @@ bool IoCmd::saveScene(const TFilePath &path, int flags) {
 
   bool saveSucceeded = true;
   try {
-    scene->save(scenePath, xsheet, !isAutosave);
+    scene->save(scenePath, xsheet);
   } catch (const TSystemException &se) {
     if (!isAutosave)
       DVGui::warning(QString::fromStdWString(se.getMessage()));
@@ -1799,9 +1799,9 @@ bool IoCmd::saveAll(int flags) {
     Label->show();
   }
 
-  bool sceneSaved     = saveScene(flags);
-  bool resourcesSaved = saveNonSceneFiles(flags);
-  bool result         = sceneSaved && resourcesSaved;
+  bool sceneSaved = saveScene(flags);
+  IoCmd::saveNonSceneFiles();
+  bool result = sceneSaved;
 
   if (Label) {
     if (result) {
@@ -1827,34 +1827,23 @@ bool IoCmd::saveAll(int flags) {
 // IoCmd::saveNonSceneFiles()
 //---------------------------------------------------------------------------
 // This command should not change any content in scene!
-bool IoCmd::saveNonSceneFiles(int flags) {
+void IoCmd::saveNonSceneFiles() {
   // try to save non scene files
 
-  bool isAutosave   = (flags & AUTO_SAVE) != 0;
   TApp *app         = TApp::instance();
   ToonzScene *scene = app->getCurrentScene()->getScene();
   SceneResources resources(scene, 0);
-  SaveInProgressGuard saveGuard;
-  if (!saveGuard.acquired()) {
-    app->getCurrentScene()->setDirtyFlag(true);
-    return false;
-  }
+  // Must wait for current save to finish, just in case
+  while (TApp::instance()->isSaveInProgress());
 
-  bool result = false;
-  try {
-    result = resources.save(scene->getScenePath(), !isAutosave);
-    if (result) resources.updatePaths();
-  } catch (...) {
-    if (!isAutosave)
-      DVGui::error(QObject::tr("Couldn't save all scene resources."));
-  }
-
-  if (!result) app->getCurrentScene()->setDirtyFlag(true);
+  TApp::instance()->setSaveInProgress(true);
+  resources.save(scene->getScenePath());
+  TApp::instance()->setSaveInProgress(false);
+  resources.updatePaths();
 
   // for update title bar
   app->getCurrentLevel()->notifyLevelTitleChange();
   app->getCurrentPalette()->notifyPaletteTitleChanged();
-  return result;
 }
 
 //===========================================================================
@@ -2949,7 +2938,10 @@ void IoCmd::convertNAARaster2TLV(
       }
       IoCmd::ConvertingPopup convertingPopup(TApp::instance()->getMainWindow(),
                                              path);
-      if (ImageUtils::isPaintedImage(first)) {
+      // The merge-branch source read `ImageUtils::isPaintedImage(first)`, a name
+      // that exists in no version of this tree. The equivalent available probe
+      // in flareqt/imageutils.h, in this same namespace, is isAAImage.
+      if (ImageUtils::isAAImage(first)) {
         convertingPopup.setMaximum(to - from + 1);
         convertingPopup.show();
         ImageUtils::convertNaa2Tlv(path, dstPath, from, to,
