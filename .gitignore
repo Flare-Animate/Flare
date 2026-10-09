@@ -7,6 +7,8 @@ Release
 Release64
 GeneratedFiles
 build*
+!flare/android/build.gradle
+!flare/android/app/build.gradle
 /build
 /.scripts
 /FlarePortable

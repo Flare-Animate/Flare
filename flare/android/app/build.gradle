@@ -1,0 +1,7 @@
+plugins { id 'com.android.application' }
+android {
+    namespace 'org.flareanimate.flare'
+    compileSdk 34
+    defaultConfig { applicationId 'org.flareanimate.flare'; minSdk 28; targetSdk 34; versionCode 1; versionName '1.0' }
+    sourceSets.main { jniLibs.srcDirs = [project.findProperty('qtAndroidDir') ? "${project.qtAndroidDir}/lib" : 'libs'] }
+}
