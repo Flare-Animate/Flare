@@ -184,7 +184,23 @@ def _safe_extract_zip(path: str, extract_dir: str) -> None:
     or that carry absolute paths are silently skipped.
     """
     abs_extract = os.path.realpath(extract_dir)
-    with zipfile.ZipFile(path, "r") as z:
+    try:
+        z = zipfile.ZipFile(path, "r")
+    except zipfile.BadZipFile:
+        # Damaged central directory (common in FLAs saved by crashed Animate):
+        # recover entries from local file headers instead.
+        for name, data in _scan_local_headers(path):
+            entry = name.replace("\\", "/").lstrip("/")
+            if not entry or ".." in entry.split("/") or (len(entry) >= 2 and entry[1] == ":"):
+                continue
+            target = os.path.realpath(os.path.join(abs_extract, entry))
+            if not target.startswith(abs_extract + os.sep) or entry.endswith("/"):
+                continue
+            os.makedirs(os.path.dirname(target), exist_ok=True)
+            with open(target, "wb") as dst:
+                dst.write(data)
+        return
+    with z:
         for member in z.infolist():
             # Normalise separator and strip leading ./ or /
             entry = member.filename.replace("\\", "/")
@@ -211,12 +227,68 @@ def _safe_extract_zip(path: str, extract_dir: str) -> None:
                     shutil.copyfileobj(src, dst)
 
 
+ZIP_LOCAL = bytes.fromhex("504b0304")
+
+
+def _scan_local_headers(path: str):
+    """Yield (name, bytes) from ZIP local headers, ignoring the central directory."""
+    import struct
+    import zlib
+    with open(path, "rb") as f:
+        buf = f.read()
+    pos = buf.find(ZIP_LOCAL)
+    while pos != -1 and pos + 30 <= len(buf):
+        _, flag, method, _, _, _, csize, _, nlen, xlen = struct.unpack_from("<HHHHHIIIHH", buf, pos + 4)
+        name = buf[pos + 30:pos + 30 + nlen].decode("utf-8" if flag & 0x800 else "cp437", "replace")
+        start = pos + 30 + nlen + xlen
+        data = None
+        try:
+            if method == 8:
+                d = zlib.decompressobj(-15)
+                data = d.decompress(buf[start:] if (flag & 8 or not csize) else buf[start:start + csize])
+                end = len(buf) - len(d.unused_data) if (flag & 8 or not csize) else start + csize
+            elif method == 0 and csize:
+                data, end = buf[start:start + csize], start + csize
+            else:
+                end = start
+        except zlib.error:
+            end = start
+        if data is not None:
+            yield name, data
+        pos = buf.find(ZIP_LOCAL, max(end, pos + 4))
+
+
+def handle_cfb_fla(path: str, outdir: str) -> list:
+    """Legacy (Flash 8/CS3) FLAs are OLE compound files; dump their streams.
+
+    Stream layout follows JPEXS' FLA notes: Contents, Page N, Symbol N, Media N.
+    """
+    try:
+        import olefile
+    except ImportError:
+        raise RuntimeError("Legacy binary FLA needs 'olefile' (pip install olefile), or resave as XFL in Animate.")
+    out = os.path.join(outdir, "fla_streams")
+    os.makedirs(out, exist_ok=True)
+    exported = []
+    with olefile.OleFileIO(path) as ole:
+        for parts in ole.listdir():
+            rel = "_".join(parts)
+            with open(os.path.join(out, rel), "wb") as f:
+                f.write(ole.openstream(parts).read())
+            exported.append("fla_streams/" + rel)
+    return exported
+
+
 def handle_fla(path: str, outdir: str, decompiler: str | None) -> list:
     # Try to unzip the FLA (some FLA files are zip archives containing XFL
     # structure). If unzipping works, treat as XFL. Otherwise give a helpful
     # message asking the user to export XFL or use the external decompiler.
     exported = []
-    if zipfile.is_zipfile(path):
+    with open(path, "rb") as f:
+        magic = f.read(8)
+    if magic == bytes.fromhex("d0cf11e0a1b11ae1"):
+        return handle_cfb_fla(path, outdir)
+    if magic[:4] == ZIP_LOCAL or zipfile.is_zipfile(path):
         extract_dir = os.path.join(outdir, "fla_extracted")
         os.makedirs(extract_dir, exist_ok=True)
         _safe_extract_zip(path, extract_dir)
@@ -234,11 +306,75 @@ def handle_fla(path: str, outdir: str, decompiler: str | None) -> list:
     return exported
 
 
+def builtin_swf_extract(path: str, outdir: str) -> list:
+    """Dependency-free SWF fallback (tag walk per SWF spec, as in ruffle/swf2js).
+
+    Writes swf_info.json (header + tag histogram) and dumps embedded JPEG/PNG/GIF
+    images from DefineBits* tags (6/21/35/90). DefineBitsJPEG3/4 alpha is dropped.
+    """
+    import struct
+    import zlib
+    with open(path, "rb") as f:
+        raw = f.read()
+    sig, ver = raw[:3], raw[3]
+    if sig == b"CWS":
+        body = zlib.decompress(raw[8:])
+    elif sig == b"ZWS":
+        import lzma
+        props = raw[12:17]
+        body = lzma.LZMADecompressor(lzma.FORMAT_RAW, filters=[lzma._decode_filter_properties(lzma.FILTER_LZMA1, props)]).decompress(raw[17:])
+    elif sig == b"FWS":
+        body = raw[8:]
+    else:
+        raise RuntimeError("Not a SWF file")
+    nbits = body[0] >> 3
+    pos = (5 + 4 * nbits + 7) // 8
+    rate, count = body[pos + 1], struct.unpack_from("<H", body, pos + 2)[0]
+    pos += 4
+    tags, exported = {}, []
+    os.makedirs(outdir, exist_ok=True)
+    while pos + 2 <= len(body):
+        code_len = struct.unpack_from("<H", body, pos)[0]
+        code, ln = code_len >> 6, code_len & 0x3F
+        pos += 2
+        if ln == 0x3F:
+            ln = struct.unpack_from("<I", body, pos)[0]
+            pos += 4
+        data = body[pos:pos + ln]
+        pos += ln
+        tags[code] = tags.get(code, 0) + 1
+        if code == 0:
+            break
+        if code in (6, 21, 35, 90) and len(data) > 2:
+            cid = struct.unpack_from("<H", data)[0]
+            img = data[2:]
+            if code in (35, 90):
+                alen = struct.unpack_from("<I", img)[0]
+                img = img[4 + (2 if code == 90 else 0):][:alen]
+            img = img.replace(bytes.fromhex("ffd9ffd8"), b"", 1) if img[:4] == bytes.fromhex("ffd9ffd8") else img
+            ext = ".png" if img[1:4] == b"PNG" else ".gif" if img[:3] == b"GIF" else ".jpg"
+            name = f"image_{cid}{ext}"
+            with open(os.path.join(outdir, name), "wb") as f:
+                f.write(img)
+            exported.append(name)
+    info = {"version": ver, "frame_rate": rate, "frame_count": count,
+            "has_as3": 82 in tags or 72 in tags, "tags": tags}
+    with open(os.path.join(outdir, "swf_info.json"), "w", encoding="utf-8") as f:
+        json.dump(info, f, indent=2)
+    return exported + ["swf_info.json"]
+
+
 def handle_swf(path: str, outdir: str, decompiler: str | None) -> list:
     exported = []
     tmp = os.path.join(outdir, "swf_decomp")
     os.makedirs(tmp, exist_ok=True)
-    exported += run_decompiler_on_swf(path, tmp, decompiler)
+    try:
+        exported += run_decompiler_on_swf(path, tmp, decompiler)
+    except RuntimeError as e:
+        if decompiler:
+            raise
+        print(f"Warning: JPEXS unavailable, using built-in SWF extractor ({str(e).splitlines()[0]})", file=sys.stderr)
+        return builtin_swf_extract(path, outdir)
     # include script files from decompiler output too
     exported += copy_tree(tmp, outdir, patterns=(".svg", ".png", ".jpg", ".jpeg", ".xml", ".as", ".jsfl", ".js"))
     return exported
@@ -251,9 +387,54 @@ def handle_as(path: str, outdir: str) -> list:
     return [os.path.basename(tgt)]
 
 
+# Magic headers for media/Adobe formats we pass through (ideas from ruffle/jpexs sniffing).
+MEDIA_MAGIC = {
+    ".flv": (b"FLV",),
+    ".f4v": (b"ftyp",),  # ISO BMFF: checked at offset 4
+    ".psd": (b"8BPS",),
+    ".ai": (b"%PDF", b"%!PS"),
+    ".aep": (b"RIFX",),
+}
+
+
+def handle_media(path: str, outdir: str, ext: str) -> list:
+    with open(path, "rb") as f:
+        head = f.read(12)
+    probe = head[4:8] if ext == ".f4v" else head
+    if not any(probe.startswith(m) for m in MEDIA_MAGIC[ext]):
+        raise RuntimeError(f"{os.path.basename(path)}: not a valid {ext} file (bad header)")
+    return handle_as(path, outdir)
+
+
+def handle_air(path: str, outdir: str, decompiler: str | None) -> list:
+    """AIR/ANE packages are ZIPs holding SWF/SWC/XML; extract then recurse."""
+    if not zipfile.is_zipfile(path):
+        raise RuntimeError(f"{os.path.basename(path)}: AIR/ANE package is not a ZIP archive")
+    extract_dir = os.path.join(outdir, "pkg_extracted")
+    os.makedirs(extract_dir, exist_ok=True)
+    _safe_extract_zip(path, extract_dir)
+    exported = []
+    for root, _, names in os.walk(extract_dir):
+        for n in names:
+            full = os.path.join(root, n)
+            rel = os.path.relpath(full, outdir).replace("\\", "/")
+            exported.append(rel)
+            low = n.lower()
+            try:
+                if low.endswith(".fla"):
+                    exported += handle_fla(full, os.path.join(outdir, n + "_x"), decompiler)
+                elif low.endswith(".swf"):
+                    exported += handle_swf(full, os.path.join(outdir, n + "_x"), decompiler)
+                elif low.endswith(".swc"):
+                    exported += handle_swc(full, os.path.join(outdir, n + "_x"), decompiler)
+            except Exception as e:  # nested decompile optional
+                print(f"Warning: {rel}: {e}", file=sys.stderr)
+    return exported
+
+
 def main():
     parser = argparse.ArgumentParser(description="Import Flash container and extract assets to an output directory")
-    parser.add_argument("--input", "-i", required=True, help="Input file or folder (FLA/XFL/SWF/SWC/AS/JSFL)")
+    parser.add_argument("--input", "-i", required=True, help="Input file or folder (FLA/XFL/SWF/SWC/AS/JSFL/AIR/ANE/FLV/F4V/PSD/AI/AEP)")
     parser.add_argument("--output", "-o", required=True, help="Output directory (will be created)")
     parser.add_argument("--decompiler", "-d", help="Optional path to an external Flash decompiler (JPEXS/ffdec)")
     parser.add_argument("--no-lint-scripts", dest="lint_scripts", action="store_false", help="Disable script linting (requires 'esprima' for best results)")
@@ -280,6 +461,12 @@ def main():
         else:
             _, ext = os.path.splitext(inp)
             ext = ext.lower()
+            with open(inp, "rb") as f:
+                magic = f.read(3)
+            if magic in (b"FWS", b"CWS", b"ZWS") and ext not in (".swc",):
+                ext = ".swf"  # SWF under any extension (e.g. .ssf, .spl)
+            if ext == ".zip":
+                ext = ".air"  # generic archive: extract and recurse
             if ext == ".swf":
                 files += handle_swf(inp, outdir, decompiler)
                 container_type = "swf"
@@ -299,6 +486,12 @@ def main():
                 else:
                     files += handle_fla(inp, outdir, decompiler)
                 container_type = "xfl"
+            elif ext in (".air", ".ane"):
+                files += handle_air(inp, outdir, decompiler)
+                container_type = ext.lstrip('.')
+            elif ext in MEDIA_MAGIC:
+                files += handle_media(inp, outdir, ext)
+                container_type = ext.lstrip('.')
             elif ext == ".as" or ext == ".jsfl":
                 files += handle_as(inp, outdir)
                 container_type = ext.lstrip('.')
