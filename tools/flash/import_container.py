@@ -266,6 +266,13 @@ def handle_cfb_fla(path: str, outdir: str) -> list:
     try:
         import olefile
     except ImportError:
+        import site  # python -I drops user site; retry there
+        sys.path.append(site.getusersitepackages())
+        try:
+            import olefile
+        except ImportError:
+            olefile = None
+    if olefile is None:
         raise RuntimeError("Legacy binary FLA needs 'olefile' (pip install olefile), or resave as XFL in Animate.")
     out = os.path.join(outdir, "fla_streams")
     os.makedirs(out, exist_ok=True)
