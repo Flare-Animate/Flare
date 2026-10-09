@@ -320,3 +320,8 @@ target_link_libraries(flareupdater_net_tests PRIVATE
     "${FLAREQT_LIB}"
     kernel32.lib
 )
+
+# P2P remote-control protocol (header-only, no deps).
+add_executable(remote_protocol_tests
+    remote_protocol_tests.cpp
+)
