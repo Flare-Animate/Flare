@@ -53,7 +53,9 @@ enum class Format {
     Ole2Fla,  // legacy binary FLA (Flash CS4 and earlier); also .fls
     Zip,      // ZIP-backed XFL: .fla (CS5+), .swc, .zxp, .mxp, .ane, .air,
               // .oam, .sol (Flash Shared Library)
-    IsoBmff   // .f4v / .m4v / .mp4 - ftyp box
+    IsoBmff,  // .f4v / .m4v / .mp4 - ftyp box
+    Psd,      // Photoshop .psd/.psb - "8BPS"
+    Pdf       // .ai (modern Illustrator is PDF-compatible) / .pdf - "%PDF"
 };
 
 DVAPI Format detectFormat(const QString &path);

@@ -69,6 +69,22 @@ static void test_format_detection(const QString &dir) {
               FlashAssets::Format::IsoBmff,
           "an F4v is detected as ISO BMFF");
 
+    for (const char *n : {"sample.air", "sample.ane"})
+        checkQ(FlashAssets::detectFormat(fx(dir, n)) == FlashAssets::Format::Zip,
+               QString("%1 is detected as a ZIP package").arg(n));
+    check(FlashAssets::detectFormat(fx(dir, "sample.psd")) ==
+              FlashAssets::Format::Psd, "a PSD is detected");
+    check(FlashAssets::detectFormat(fx(dir, "sample.ai")) ==
+              FlashAssets::Format::Pdf, "an AI (PDF-compatible) is detected");
+    check(FlashAssets::detectFormat(fx(dir, "sample.jsfl")) ==
+              FlashAssets::Format::Unknown, "JSFL text is not mistaken for a binary");
+    {
+        const QStringList ex = FlashAssets::supportedExtensions();
+        for (const char *e : {"xfl", "swc", "flv", "f4v", "as", "jsfl", "air",
+                              "ane", "psd", "ai"})
+            checkQ(ex.contains(e), QString("extension .%1 is supported").arg(e));
+    }
+
     // The whole point of sniffing: a SWF under a name that means nothing.
     const QString misnamed = QDir::temp().filePath("flare_misnamed.qqq");
     QFile::remove(misnamed);

@@ -1359,6 +1359,10 @@ Format detectFormat(const QString &path) {
     if (magic.size() >= 8 && std::memcmp(h + 4, "ftyp", 4) == 0)
         return Format::IsoBmff;
 
+    // Photoshop and Illustrator: Adobe formats that travel with Flash assets.
+    if (std::memcmp(h, "8BPS", 4) == 0) return Format::Psd;
+    if (std::memcmp(h, "%PDF", 4) == 0) return Format::Pdf;
+
     return Format::Unknown;
 }
 
@@ -1379,6 +1383,8 @@ QStringList supportedExtensions() {
         "zxp", "mxp", "ane", "air", "oam",
         // Copied for reference; not parsed
         "lwf", "rsl", "afl",
+        // Photoshop / Illustrator
+        "psd", "psb", "ai",
     };
 }
 

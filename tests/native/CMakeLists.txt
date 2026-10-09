@@ -113,6 +113,15 @@ target_include_directories(flash_reader_tests PRIVATE
     "${ZLIB_DIR}"
     "${MINIZIP}"
 )
+# Optional: compile the Flash sources into the test directly, for checking edits
+# before tnzcore.dll has been rebuilt. Local definitions win over the import lib.
+set(FLASH_LOCAL_SRC OFF CACHE BOOL "Compile common/flash sources into flash_reader_tests")
+if(FLASH_LOCAL_SRC)
+    target_sources(flash_reader_tests PRIVATE
+        "${FLASH_ROOT}/flare/sources/common/flash/SWFAssets.cpp"
+        "${FLASH_ROOT}/flare/sources/common/flash/SWFShape.cpp")
+    target_compile_definitions(flash_reader_tests PRIVATE TFLASH_EXPORTS)
+endif()
 target_link_libraries(flash_reader_tests PRIVATE
     Qt5::Core
     Qt5::Gui
