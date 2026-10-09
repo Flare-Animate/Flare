@@ -1,0 +1,17 @@
+name: Android build
+on:
+  workflow_dispatch:
+  pull_request:
+    paths: ['flare/android/**', 'cmake/android-toolchain.cmake', '.github/workflows/workflow_android.yml']
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    continue-on-error: true   # experimental until native deps are ported
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: '17' }
+      - uses: jurplel/install-qt-action@v4
+        with: { version: '6.5.3', host: linux, target: android, arch: android_arm64_v8a }
+      - name: Configure (CMake + NDK)
+        run: cmake -S . -B build-android -DCMAKE_TOOLCHAIN_FILE=$PWD/cmake/android-toolchain.cmake -DANDROID_NDK=$ANDROID_NDK_ROOT -DQT_ANDROID_DIR=$QT_ROOT_DIR
