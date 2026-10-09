@@ -144,13 +144,13 @@ inline bool isBlank(char c) { return c == ' ' || c == '\t' || c == '\n'; }
 // allora **DEVE** essere messo in libreria. Parliamone.
 //
 //========================================================================
-// setFlareFolder
+// setToonzFolder
 //------------------------------------------------------------------------
 
 // Ritorna il path della variabile passata come secondo argomento
 // entrambe vengono lette da un file di testo (filename).
 
-TFilePath setFlareFolder(const TFilePath &filename, std::string toonzVar) {
+TFilePath setToonzFolder(const TFilePath &filename, std::string toonzVar) {
   Tifstream is(filename);
   if (!is) return TFilePath();
 
@@ -695,6 +695,8 @@ int main(int argc, char *argv[]) {
   TEnv::setSystemVarPrefix(systemVarPrefix);
   TEnv::setApplicationFileName(argv[0]);
 
+  TEnv::initUserStuffDir();
+
   QCoreApplication::setOrganizationName("Flare");
   QCoreApplication::setOrganizationDomain("");
   QCoreApplication::setApplicationName(
@@ -734,7 +736,7 @@ int main(int argc, char *argv[]) {
     fatalError(string("Directory \"") + ::to_string(fp) +
                "\" not found or not readable");
 
-  TFilePath lRootDir    = fp + "FlareFarm";
+  TFilePath lRootDir    = fp + "toonzfarm";
   TFilePath logFilePath = lRootDir + "tcomposer.log";
   m_userLog             = new TUserLogAppend(logFilePath);
   string msg;
@@ -827,9 +829,9 @@ int main(int argc, char *argv[]) {
 
     // update TFilePath condition on loading the current project
     FilePathProperties *fpProp = project->getFilePathProperties();
-    TFilePath::setFilePathProperties(fpProp->useStandard(),
-                                     fpProp->acceptNonAlphabetSuffix(),
-                                     fpProp->letterCountForSuffix());
+    TFilePath::setFilePathProperties(
+        fpProp->useStandard(), fpProp->acceptNonAlphabetSuffix(),
+        fpProp->letterCountForSuffix(), fpProp->noSeparatorFormatAllowed());
 
     Sw1.start();
 
@@ -1037,5 +1039,3 @@ int main(int argc, char *argv[]) {
   if (framePair.first != framePair.second) return -1;
   return 0;
 }
-
-

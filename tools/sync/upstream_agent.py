@@ -157,9 +157,26 @@ FLARE_ONLY_PREFIXES = (
 # ── shared rebrand rules (applied for ALL upstreams) ─────────────────────────
 # Order matters: most-specific first.
 SHARED_REBRAND_RULES: list[tuple[str, str, int]] = [
+    # Quoted include paths. The rename moved toonz/sources/<module>/x.h to
+    # flare/sources/<module>/x.h, and the path map fixes the *file locations* --
+    # but nothing rewrote the #include lines pointing at them, so the synced tree
+    # compiled against paths that do not exist:
+    #
+    #   fatal error C1083: Cannot open include file: 'toonz/levelproperties.h'
+    #
+    # 37 files were left that way. The rules are ordered before the branding ones
+    # because they are unambiguous: inside a quoted include, "toonz/" is always
+    # the old layout.
+    (r'(#include\s*[<"])toonz/',        r'\1flare/',            0),
+    (r'(#include\s*[<"])(toonz4\.6)/',   r'\1flare/',            0),
+
     # Internal C++ names already rebranded in Flare
     (r"\bToonzVersion\b",              "FlareVersion",         0),
     (r"\bToonzFolder\b",               "FlareFolder",          0),
+
+    # Include guards and paths that embed the module directory name.
+    (r'(#include\s*[<"])toonzqt/',      r'\1flareqt/',          0),
+    (r'(#include\s*[<"])toonzlib/',     r'\1flarelib/',         0),
 
     # System-var prefix
     (r'systemVarPrefix\s*=\s*"TOONZ"', 'systemVarPrefix = "FLARE"', 0),
