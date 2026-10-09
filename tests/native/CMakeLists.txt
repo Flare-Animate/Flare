@@ -203,6 +203,14 @@ target_link_libraries(swfshape_probe PRIVATE
 add_executable(swfshape_tests
     swfshape_tests.cpp
 )
+# Prebuilt tnzcore can be stale: -DFLASH_LOCAL_SRC=ON tests the checked-out decoder.
+option(FLASH_LOCAL_SRC "compile SWFShape.cpp into swfshape_tests" OFF)
+if(FLASH_LOCAL_SRC)
+  target_compile_definitions(swfshape_tests PRIVATE TFLASH_EXPORTS)
+  target_link_options(swfshape_tests PRIVATE /FORCE:MULTIPLE)
+  target_sources(swfshape_tests PRIVATE
+      "${FLASH_ROOT}/flare/sources/common/flash/SWFShape.cpp")
+endif()
 target_include_directories(swfshape_tests PRIVATE
     "${FLASH_ROOT}/flare/sources/common/flash"
     "${FLASH_ROOT}/flare/sources/include"
