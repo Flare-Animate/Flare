@@ -30,11 +30,6 @@ class ColorModelViewer final : public FlipBook {
   */
   TFilePath m_currentRefImgPath;
 
-  /*! Button to toggle line style picking when in "Areas" mode.
-      When checked and mode is AREAS, forces m_mode = 2 (Lines & Areas).
-  */
-  QToolButton *m_pickLineStylesBtn;
-
 public:
   ColorModelViewer(QWidget *parent = 0);
   ~ColorModelViewer();

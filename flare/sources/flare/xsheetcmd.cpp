@@ -1,3 +1,5 @@
+
+
 // TnzCore includes
 #include "tundo.h"
 #include "trandom.h"
@@ -40,7 +42,13 @@
 #include "flare/tfxhandle.h"
 #include "flare/scenefx.h"
 #include "flare/preferences.h"
+#include "flare/txshlevelcolumn.h"
 #include "flare/navigationtags.h"
+#include "flare/txshfoldercolumn.h"
+#include "flare/txshpegbarcolumn.h"
+#include "flare/tstageobjectcmd.h"
+
+#include "../toonz/filmstripselection.h"
 
 // TnzQt includes
 #include "flareqt/tselectionhandle.h"
@@ -48,8 +56,8 @@
 #include "flareqt/menubarcommand.h"
 #include "flareqt/stageobjectsdata.h"
 #include "historytypes.h"
+#include "xsheetdragtool.h"
 #include "xsheetviewer.h"
-
 // Tnz6 includes
 #include "cellselection.h"
 #include "columnselection.h"
@@ -61,12 +69,9 @@
 #include "columncommand.h"
 #include "xshcellviewer.h"  // SetCellMarkUndo
 #include "navtageditorpopup.h"
-#include "castselection.h"
 
 // Qt includes
 #include <QClipboard>
-#include <QInputDialog>
-#include <functional>
 
 // tcg includes
 #include "tcg/boost/range_utility.h"
@@ -105,7 +110,7 @@ bool isKeyframe(int r, int c) {
 
   TStageObjectId objectId =
       (c == -1) ? TStageObjectId::CameraId(xsh->getCameraColumnIndex())
-                : TStageObjectId::ColumnId(c);
+                : xsh->getColumnObjectId(c);
 
   TStageObject *object = xsh->getStageObject(objectId);
   assert(object);
@@ -124,22 +129,20 @@ namespace XshCmd {
 class InsertSceneFrameUndo : public TUndo {
 protected:
   int m_frame;
+  int m_playR0, m_playR1, m_playStep;
 
 public:
-  InsertSceneFrameUndo(int frame) : m_frame(frame) {}
+  InsertSceneFrameUndo(int frame) : m_frame(frame) {
+    XsheetGUI::getPlayRange(m_playR0, m_playR1, m_playStep);
+  }
 
   void undo() const override {
     doRemoveSceneFrame(m_frame);
-
-    TApp::instance()->getCurrentScene()->setDirtyFlag(true);
-    TApp::instance()->getCurrentXsheet()->notifyXsheetChanged();
+    XsheetGUI::setPlayRange(m_playR0, m_playR1, m_playStep, false);
   }
 
   void redo() const override {
     doInsertSceneFrame(m_frame);
-
-    TApp::instance()->getCurrentScene()->setDirtyFlag(true);
-    TApp::instance()->getCurrentXsheet()->notifyXsheetChanged();
   }
 
   int getSize() const override { return sizeof(*this); }
@@ -151,26 +154,33 @@ public:
   int getHistoryType() override { return HistoryType::Xsheet; }
 
 protected:
-  static void doInsertSceneFrame(int frame);
-  static void doRemoveSceneFrame(int frame);
+  static void doInsertSceneFrame(int frame, bool notify = true);
+  static void doRemoveSceneFrame(int frame, bool notify = true);
 };
 
 //-----------------------------------------------------------------------------
 
-void InsertSceneFrameUndo::doInsertSceneFrame(int frame) {
+void InsertSceneFrameUndo::doInsertSceneFrame(int frame, bool notify) {
   TXsheet *xsh = TApp::instance()->getCurrentXsheet()->getXsheet();
 
   int c, colsCount = xsh->getColumnCount();
+  bool updateSound = false;
   for (c = -1; c < colsCount; ++c) {
     TStageObjectId objectId;
 
     if (c == -1)
       objectId = TStageObjectId::CameraId(xsh->getCameraColumnIndex());
     else {
-      objectId = TStageObjectId::ColumnId(c);
+      objectId = xsh->getColumnObjectId(c);
 
       xsh->insertCells(frame, c);
-      xsh->setCell(frame, c, xsh->getCell(frame + 1, c));
+      xsh->shiftMarkers(frame, c, 1);
+      TXshCell cell;
+      if (!Preferences::instance()->isImplicitHoldEnabled() && frame > 0)
+        cell = xsh->getCell(frame - 1, c);
+      xsh->setCell(frame, c, cell);
+      if (xsh->getColumn(c) && xsh->getColumn(c)->getSoundColumn())
+        updateSound = true;
     }
 
     if (!xsh->getColumn(c) || xsh->getColumn(c)->isLocked()) continue;
@@ -180,12 +190,22 @@ void InsertSceneFrameUndo::doInsertSceneFrame(int frame) {
   }
 
   xsh->getNavigationTags()->shiftTags(frame, 1);
+  XsheetGUI::shiftPlayRange(frame, 1);
+
+  if (notify) {
+    TApp::instance()->getCurrentScene()->setDirtyFlag(true);
+    TApp::instance()->getCurrentXsheet()->notifyXsheetChanged();
+    if (updateSound)
+      TApp::instance()->getCurrentXsheet()->notifyXsheetSoundChanged();
+  }
 }
 
 //-----------------------------------------------------------------------------
 
-void InsertSceneFrameUndo::doRemoveSceneFrame(int frame) {
+void InsertSceneFrameUndo::doRemoveSceneFrame(int frame, bool notify) {
   TXsheet *xsh = TApp::instance()->getCurrentXsheet()->getXsheet();
+
+  bool updateSound = false;
 
   for (int c = -1; c != xsh->getColumnCount(); ++c) {
     TStageObjectId objectId;
@@ -193,9 +213,13 @@ void InsertSceneFrameUndo::doRemoveSceneFrame(int frame) {
     if (c == -1)
       objectId = TStageObjectId::CameraId(xsh->getCameraColumnIndex());
     else {
-      objectId = TStageObjectId::ColumnId(c);
+      objectId = xsh->getColumnObjectId(c);
+
+      if (xsh->getColumn(c) && xsh->getColumn(c)->getSoundColumn())
+        updateSound = true;
 
       xsh->removeCells(frame, c);
+      xsh->shiftMarkers(frame, c, -1);
     }
 
     if (!xsh->getColumn(c) || xsh->getColumn(c)->isLocked()) continue;
@@ -206,6 +230,14 @@ void InsertSceneFrameUndo::doRemoveSceneFrame(int frame) {
 
   if (xsh->isFrameTagged(frame)) xsh->getNavigationTags()->removeTag(frame);
   xsh->getNavigationTags()->shiftTags(frame, -1);
+  XsheetGUI::shiftPlayRange(frame, -1);
+
+  if (notify) {
+    TApp::instance()->getCurrentScene()->setDirtyFlag(true);
+    TApp::instance()->getCurrentXsheet()->notifyXsheetChanged();
+    if (updateSound)
+      TApp::instance()->getCurrentXsheet()->notifyXsheetSoundChanged();
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -242,6 +274,76 @@ public:
   }
 } insertSceneFrameCommand;
 
+//=============================================================================
+
+class ToggleAutoCreateCommand final : public MenuItemHandler {
+public:
+  ToggleAutoCreateCommand() : MenuItemHandler(MI_ToggleAutoCreate) {}
+  void execute() override {
+    bool currentAutoCreateEnabled =
+        Preferences::instance()->isAutoCreateEnabled();
+    if (CommandManager::instance()
+            ->getAction(MI_ToggleAutoCreate)
+            ->isChecked() == currentAutoCreateEnabled)
+      return;
+    Preferences::instance()->setValue(EnableAutocreation,
+                                      !currentAutoCreateEnabled);
+  }
+} ToggleAutoCreateCommand;
+
+//=============================================================================
+
+class ToggleCreationInHoldCellsCommand final : public MenuItemHandler {
+public:
+  ToggleCreationInHoldCellsCommand()
+      : MenuItemHandler(MI_ToggleCreationInHoldCells) {}
+  void execute() override {
+    bool currentCreationInHoldCells =
+        Preferences::instance()->isCreationInHoldCellsEnabled();
+    if (CommandManager::instance()
+            ->getAction(MI_ToggleCreationInHoldCells)
+            ->isChecked() == currentCreationInHoldCells)
+      return;
+    Preferences::instance()->setValue(EnableCreationInHoldCells,
+                                      !currentCreationInHoldCells);
+  }
+} ToggleCreationInHoldCellsCommand;
+
+//=============================================================================
+
+class ToggleAutoStretchCommand final : public MenuItemHandler {
+public:
+  ToggleAutoStretchCommand() : MenuItemHandler(MI_ToggleAutoStretch) {}
+  void execute() override {
+    bool currentAutoStretchEnabled =
+        Preferences::instance()->isAutoStretchEnabled();
+    if (CommandManager::instance()
+            ->getAction(MI_ToggleAutoStretch)
+            ->isChecked() == currentAutoStretchEnabled)
+      return;
+    Preferences::instance()->setValue(EnableAutoStretch,
+                                      !currentAutoStretchEnabled);
+  }
+} ToggleAutoStretchCommand;
+
+//=============================================================================
+
+class ToggleImplicitHoldCommand final : public MenuItemHandler {
+public:
+  ToggleImplicitHoldCommand() : MenuItemHandler(MI_ToggleImplicitHold) {}
+  void execute() override {
+    bool currentImplicitHoldEnabled =
+        Preferences::instance()->isImplicitHoldEnabled();
+    if (CommandManager::instance()
+            ->getAction(MI_ToggleImplicitHold)
+            ->isChecked() == currentImplicitHoldEnabled)
+      return;
+    Preferences::instance()->setValue(EnableImplicitHold,
+                                      !currentImplicitHoldEnabled);
+    TApp::instance()->getCurrentXsheet()->notifyXsheetChanged();
+  }
+} ToggleImplicitHoldCommand;
+
 //*****************************************************************************
 //    RemoveSceneFrame  command
 //*****************************************************************************
@@ -249,6 +351,9 @@ public:
 class RemoveSceneFrameUndo final : public InsertSceneFrameUndo {
   std::vector<TXshCell> m_cells;
   std::vector<TStageObject::Keyframe> m_keyframes;
+  std::vector<QList<std::pair<int, int>>> m_loops;
+  std::vector<QMap<int, int>> m_cellMarks;
+
   NavigationTags::Tag m_tag;
 
 public:
@@ -260,6 +365,8 @@ public:
 
     m_cells.resize(colsCount);
     m_keyframes.resize(colsCount + 1);
+    m_loops.resize(colsCount);
+    m_cellMarks.resize(colsCount);
     m_tag = xsh->getNavigationTags()->getTag(frame);
 
     // Inserting the eventual camera keyframe at the end
@@ -270,21 +377,29 @@ public:
 
     for (int c = 0; c != colsCount; ++c) {
       // Store cell
-      m_cells[c] = xsh->getCell(m_frame, c);
+      const TXshCell &cell = xsh->getCell(m_frame, c, false, false);
+      m_cells[c]           = cell;
+
+      TXshColumn *column = xsh->getColumn(c);
+      if (column) {
+        m_loops[c] = column->getLoops();
+        TXshCellColumn *cellColumn = column->getCellColumn();
+        if (cellColumn) m_cellMarks[c] = cellColumn->getCellMarks();
+      }
 
       // Store stage object keyframes
-      TStageObject *obj = xsh->getStageObject(TStageObjectId::ColumnId(c));
+      TStageObject *obj = xsh->getStageObject(xsh->getColumnObjectId(c));
       if (obj->isKeyframe(m_frame)) m_keyframes[c] = obj->getKeyframe(m_frame);
     }
   }
 
-  void redo() const override { InsertSceneFrameUndo::undo(); }
+  void redo() const override { doRemoveSceneFrame(m_frame); }
 
   void undo() const override {
     TXsheet *xsh = TApp::instance()->getCurrentXsheet()->getXsheet();
 
     // Insert an empty frame, need space for our stored stuff
-    doInsertSceneFrame(m_frame);
+    doInsertSceneFrame(m_frame, false);
 
     // Insert cells
     int cellsCount = m_cells.size();
@@ -296,11 +411,22 @@ public:
       cameraObj->setKeyframeWithoutUndo(m_frame, m_keyframes[cellsCount]);
     }
 
+    bool updateSound = false;
+
     for (int c = 0; c != cellsCount; ++c) {
       xsh->setCell(m_frame, c, m_cells[c]);
 
+      TXshColumn *column = xsh->getColumn(c);
+
+      if (column) {
+        column->setLoops(m_loops[c]);
+        if (column->getSoundColumn()) updateSound = true;
+        TXshCellColumn *cellColumn = column->getCellColumn();
+        if (cellColumn) cellColumn->setCellMarks(m_cellMarks[c]);
+      }
+
       if (m_keyframes[c].m_isKeyframe) {
-        TStageObject *obj = xsh->getStageObject(TStageObjectId::ColumnId(c));
+        TStageObject *obj = xsh->getStageObject(xsh->getColumnObjectId(c));
         obj->setKeyframeWithoutUndo(m_frame, m_keyframes[c]);
       }
     }
@@ -308,9 +434,12 @@ public:
     // Restore tag if there was one
     if (m_tag.m_frame != -1)
       xsh->getNavigationTags()->addTag(m_tag.m_frame, m_tag.m_label);
+    XsheetGUI::setPlayRange(m_playR0, m_playR1, m_playStep, false);
 
     TApp::instance()->getCurrentScene()->setDirtyFlag(true);
     TApp::instance()->getCurrentXsheet()->notifyXsheetChanged();
+    if (updateSound)
+      TApp::instance()->getCurrentXsheet()->notifyXsheetSoundChanged();
   }
 
   int getSize() const override {
@@ -379,17 +508,16 @@ void GlobalKeyframeUndo::doInsertGlobalKeyframes(
     TStageObjectId objectId;
 
     TXshColumn *column = xsh->getColumn(c);
-    if (column && column->getSoundColumn()) continue;
+    if (!column || column->isLocked() || column->getSoundColumn() ||
+        column->getFolderColumn())
+      continue;
 
     if (c == -1)
       objectId = TStageObjectId::CameraId(xsh->getCameraColumnIndex());
-    else
-      objectId = TStageObjectId::ColumnId(c);
-
-    TXshColumn *xshColumn = xsh->getColumn(c);
-    if (!xshColumn || xshColumn->isLocked() ||
-        (xshColumn->isCellEmpty(frame) && !objectId.isCamera()))
-      continue;
+    else {
+      objectId = xsh->getColumnObjectId(c);
+      if (!objectId.isPegbar() && column->isCellEmpty(frame)) continue;
+    }
 
     TStageObject *obj = xsh->getStageObject(objectId);
     obj->setKeyframeWithoutUndo(frame);
@@ -406,17 +534,20 @@ void GlobalKeyframeUndo::doRemoveGlobalKeyframes(
     TStageObjectId objectId;
 
     TXshColumn *column = xsh->getColumn(c);
-    if (column && column->getSoundColumn()) continue;
+    if (column && (column->isLocked() || column->getSoundColumn() ||
+                   column->getFolderColumn()))
+      continue;
 
     if (c == -1)
       objectId = TStageObjectId::CameraId(xsh->getCameraColumnIndex());
     else
-      objectId = TStageObjectId::ColumnId(c);
-
-    if (xsh->getColumn(c) && xsh->getColumn(c)->isLocked()) continue;
+      objectId = xsh->getColumnObjectId(c);
 
     TStageObject *obj = xsh->getStageObject(objectId);
     obj->removeKeyframeWithoutUndo(frame);
+    // Move frame center back to origin
+    TPointD center = obj->getCenter(frame);
+    if (center != TPointD()) obj->setCenter(frame, center, true);
   }
 }
 
@@ -484,6 +615,7 @@ public:
 
 class RemoveGlobalKeyframeUndo final : public GlobalKeyframeUndo {
   std::vector<TStageObject::Keyframe> m_keyframes;
+  std::vector<std::pair<TPointD, TPointD>> m_centerData;
 
 public:
   RemoveGlobalKeyframeUndo(int frame, const std::vector<int> &columns)
@@ -494,12 +626,25 @@ public:
 
         TStageObjectId objectId =
             (c == -1) ? TStageObjectId::CameraId(xsh->getCameraColumnIndex())
-                      : TStageObjectId::ColumnId(c);
+                      : xsh->getColumnObjectId(c);
 
         TStageObject *object = xsh->getStageObject(objectId);
         assert(object);
 
         return object->getKeyframe(r);
+      }
+      static std::pair<TPointD, TPointD> getCenterData(int r, int c) {
+        TXsheet *xsh = TApp::instance()->getCurrentXsheet()->getXsheet();
+
+        TStageObjectId objectId =
+            (c == -1) ? TStageObjectId::CameraId(xsh->getCameraColumnIndex())
+                      : xsh->getColumnObjectId(c);
+
+        TStageObject *object = xsh->getStageObject(objectId);
+        assert(object);
+        TPointD center, offset;
+        object->getCenterAndOffset(center, offset);
+        return std::pair<TPointD, TPointD>(center, offset);
       }
     };  // locals
 
@@ -508,6 +653,10 @@ public:
 
     tcg::substitute(m_keyframes,
                     m_columns | ba::transformed([frame](int c){ return locals::getKeyframe(frame, c); }));
+
+    tcg::substitute(m_centerData, m_columns | ba::transformed([frame](int c) {
+                                    return locals::getCenterData(frame, c);
+                                 }));
   }
 
   void redo() const override {
@@ -526,10 +675,11 @@ public:
 
       TStageObjectId objectId =
           (col == -1) ? TStageObjectId::CameraId(xsh->getCameraColumnIndex())
-                      : TStageObjectId::ColumnId(col);
+                      : xsh->getColumnObjectId(col);
 
       TStageObject *object = xsh->getStageObject(objectId);
       object->setKeyframeWithoutUndo(m_frame, m_keyframes[c]);
+      object->setCenterAndOffset(m_centerData[c].first,m_centerData[c].second);
     }
 
     TApp::instance()->getCurrentScene()->setDirtyFlag(true);
@@ -572,6 +722,265 @@ public:
   }
 } removeGlobalKeyframeCommand;
 
+//*****************************************************************************
+//    SetGlobalStopframe  command
+//*****************************************************************************
+
+class SetGlobalStopframeUndo final : public TUndo {
+  std::vector<std::pair<int, TXshCell>> m_oldCells;
+  std::vector<int> m_columns;
+  int m_frame;
+
+public:
+  SetGlobalStopframeUndo(int frame, const std::vector<int> &columns);
+  ~SetGlobalStopframeUndo() {}
+
+  void undo() const override {
+    if (m_frame < 0 || !m_oldCells.size()) return;
+
+    TXsheet *xsh = TApp::instance()->getCurrentXsheet()->getXsheet();
+
+    for (int i = 0; i < m_oldCells.size(); i++) {
+      std::pair<int, TXshCell> cellData = m_oldCells[i];
+      TXshColumn *xshColumn = xsh->getColumn(cellData.first);
+      if (!xshColumn) continue;
+
+      TXshCellColumn *cellColumn = xshColumn->getCellColumn();
+      if (!cellColumn) continue;
+
+      std::vector<TXshCell> cells;
+      cells.push_back(cellData.second);
+      cellColumn->setCells(m_frame, 1, &cells[0]);
+    }
+
+    TApp::instance()->getCurrentScene()->setDirtyFlag(true);
+    TApp::instance()->getCurrentXsheet()->notifyXsheetChanged();
+  }
+
+  void redo() const override;
+
+  int getSize() const override { return m_oldCells.size(); }
+
+  QString getHistoryString() override {
+    return QObject::tr("Set Multiple Stop Frames  at Frame %1")
+        .arg(QString::number(m_frame + 1));
+  }
+};
+
+//-----------------------------------------------------------------------------
+
+SetGlobalStopframeUndo::SetGlobalStopframeUndo(int frame,
+                                               const std::vector<int> &columns)
+    : m_frame(frame), m_columns(columns) {
+  TXsheet *xsh = TApp::instance()->getCurrentXsheet()->getXsheet();
+
+  m_oldCells.clear();
+
+  for (int c : m_columns) {
+    if (c < 0) continue;
+
+    TXshColumn *xshColumn = xsh->getColumn(c);
+    if (!xshColumn || xshColumn->getSoundColumn() ||
+        xshColumn->getSoundTextColumn() || xshColumn->getFolderColumn() ||
+        xshColumn->isLocked() || xshColumn->isEmpty())
+      continue;
+
+    TXshCellColumn *cellColumn = xshColumn->getCellColumn();
+    if (!cellColumn || cellColumn->isEmpty()) continue;
+
+    TXshCell cell = cellColumn->getCell(m_frame, false, false);
+    if (!cell.isEmpty()) continue;
+
+    m_oldCells.push_back(std::make_pair(c, cell));
+  }
+}
+
+//-----------------------------------------------------------------------------
+
+void SetGlobalStopframeUndo::redo() const {
+  TXsheet *xsh = TApp::instance()->getCurrentXsheet()->getXsheet();
+
+  for (int c : m_columns) {
+    if (c < 0) continue;
+
+    TXshColumn *xshColumn = xsh->getColumn(c);
+    if (!xshColumn || xshColumn->getSoundColumn() ||
+        xshColumn->getSoundTextColumn() || xshColumn->getFolderColumn() ||
+        xshColumn->isLocked() || xshColumn->isEmpty())
+      continue;
+
+    TXshCellColumn *cellColumn = xshColumn->getCellColumn();
+    if (!cellColumn || cellColumn->isEmpty()) continue;
+
+    TXshCell cell = cellColumn->getCell(m_frame);
+    if (!cell.isEmpty() && !cellColumn->isCellImplicit(m_frame)) continue;
+
+    if (cell.isEmpty()) {  // Might have hit a stop frame
+      for (int r = m_frame - 1; r >= 0; r--) {
+        cell = cellColumn->getCell(r, false, false);
+        if (cell.isEmpty()) continue;
+        break;
+      }
+      if (cell.isEmpty()) continue;
+    }
+    cellColumn->setCell(
+        m_frame, TXshCell(cell.m_level.getPointer(), TFrameId::STOP_FRAME));
+  }
+
+  TApp::instance()->getCurrentScene()->setDirtyFlag(true);
+  TApp::instance()->getCurrentXsheet()->notifyXsheetChanged();
+}
+
+//-----------------------------------------------------------------------------
+
+static void setGlobalStopframe(int frame) {
+  std::vector<int> columns;
+  ::getColumns(columns);
+
+  if (columns.empty()) return;
+
+  TUndo *undo = new SetGlobalStopframeUndo(frame, columns);
+  TUndoManager::manager()->add(undo);
+
+  undo->redo();
+}
+
+//=============================================================================
+
+class SetGlobalStopframeCommand final : public MenuItemHandler {
+public:
+  SetGlobalStopframeCommand() : MenuItemHandler(MI_SetGlobalStopframe) {}
+  void execute() override {
+    int frame = TApp::instance()->getCurrentFrame()->getFrame();
+    XshCmd::setGlobalStopframe(frame);
+  }
+} setGlobalStopframeCommand;
+
+//*****************************************************************************
+//    RemoveGlobalStopframe  command
+//*****************************************************************************
+
+class RemoveGlobalStopframeUndo final : public TUndo {
+  std::vector<std::pair<int, TXshCell>> m_oldCells;
+  std::vector<int> m_columns;
+  int m_frame;
+
+public:
+  RemoveGlobalStopframeUndo(int frame, const std::vector<int> &columns);
+  ~RemoveGlobalStopframeUndo() {}
+
+  void undo() const override {
+    if (m_frame < 0 || !m_oldCells.size()) return;
+
+    TXsheet *xsh = TApp::instance()->getCurrentXsheet()->getXsheet();
+
+    for (int i = 0; i < m_oldCells.size(); i++) {
+      std::pair<int, TXshCell> cellData = m_oldCells[i];
+      TXshColumn *xshColumn = xsh->getColumn(cellData.first);
+      if (!xshColumn) continue;
+
+      TXshCellColumn *cellColumn = xshColumn->getCellColumn();
+      if (!cellColumn) continue;
+
+      std::vector<TXshCell> cells;
+      cells.push_back(cellData.second);
+      cellColumn->setCells(m_frame, 1, &cells[0]);
+    }
+
+    TApp::instance()->getCurrentScene()->setDirtyFlag(true);
+    TApp::instance()->getCurrentXsheet()->notifyXsheetChanged();
+  }
+
+  void redo() const override;
+
+  int getSize() const override { return m_oldCells.size(); }
+
+  QString getHistoryString() override {
+    return QObject::tr("Remove Multiple Stop Frames at Frame %1")
+        .arg(QString::number(m_frame + 1));
+  }
+};
+
+//-----------------------------------------------------------------------------
+
+RemoveGlobalStopframeUndo::RemoveGlobalStopframeUndo(
+    int frame, const std::vector<int> &columns)
+    : m_frame(frame), m_columns(columns) {
+  TXsheet *xsh = TApp::instance()->getCurrentXsheet()->getXsheet();
+
+  m_oldCells.clear();
+
+  for (int c : m_columns) {
+    if (c < 0) continue;
+
+    TXshColumn *xshColumn = xsh->getColumn(c);
+    if (!xshColumn || xshColumn->getSoundColumn() ||
+        xshColumn->getSoundTextColumn() || xshColumn->getFolderColumn() ||
+        xshColumn->isLocked() || xshColumn->isEmpty())
+      continue;
+
+    TXshCellColumn *cellColumn = xshColumn->getCellColumn();
+    if (!cellColumn || cellColumn->isEmpty()) continue;
+
+    TXshCell cell = cellColumn->getCell(m_frame, false, false);
+    if (!cell.getFrameId().isStopFrame()) continue;
+
+    m_oldCells.push_back(std::make_pair(c, cell));
+  }
+}
+
+//-----------------------------------------------------------------------------
+
+void RemoveGlobalStopframeUndo::redo() const {
+  TXsheet *xsh = TApp::instance()->getCurrentXsheet()->getXsheet();
+
+  for (int c : m_columns) {
+    if (c < 0) continue;
+
+    TXshColumn *xshColumn = xsh->getColumn(c);
+    if (!xshColumn || xshColumn->getSoundColumn() ||
+        xshColumn->getSoundTextColumn() || xshColumn->getFolderColumn() ||
+        xshColumn->isLocked() || xshColumn->isEmpty())
+      continue;
+
+    TXshCellColumn *cellColumn = xshColumn->getCellColumn();
+    if (!cellColumn || cellColumn->isEmpty()) continue;
+
+    TXshCell cell = cellColumn->getCell(m_frame, false, false);
+    if (!cell.getFrameId().isStopFrame()) continue;
+
+    cellColumn->clearCells(m_frame, 1);
+  }
+
+  TApp::instance()->getCurrentScene()->setDirtyFlag(true);
+  TApp::instance()->getCurrentXsheet()->notifyXsheetChanged();
+}
+
+//-----------------------------------------------------------------------------
+
+static void removeGlobalStopframe(int frame) {
+  std::vector<int> columns;
+  ::getColumns(columns);
+
+  if (columns.empty()) return;
+
+  TUndo *undo = new RemoveGlobalStopframeUndo(frame, columns);
+  TUndoManager::manager()->add(undo);
+
+  undo->redo();
+}
+
+//=============================================================================
+
+class RemoveGlobalStopframeCommand final : public MenuItemHandler {
+public:
+  RemoveGlobalStopframeCommand() : MenuItemHandler(MI_RemoveGlobalStopframe) {}
+  void execute() override {
+    int frame = TApp::instance()->getCurrentFrame()->getFrame();
+    XshCmd::removeGlobalStopframe(frame);
+  }
+} RemoveGlobalStopframeCommand;
+
 //============================================================
 //	Drawing Substitution
 //============================================================
@@ -596,11 +1005,10 @@ public:
     int r = m_range.m_r0;
     while (c <= m_range.m_c1) {
       tempCol = c;
-      while (r <= m_range.m_r1) {
+      while (r <= m_range.m_r1 + 1) {
         tempRow = r;
-        if (xsh->getCell(tempRow, tempCol).isEmpty()) {
+        if (xsh->getCell(tempRow, tempCol, false, false).isEmpty())
           emptyCells.push_back(std::make_pair(tempRow, tempCol));
-        }
         r++;
       }
       r = m_range.m_r0;
@@ -622,7 +1030,7 @@ public:
     int r = m_range.m_r0;
     while (c <= m_range.m_c1) {
       col = c;
-      while (r <= m_range.m_r1) {
+      while (r <= m_range.m_r1 + 1) {
         row        = r;
         bool found = false;
         for (int i = 0; i < emptyCells.size(); i++) {
@@ -635,7 +1043,7 @@ public:
           r++;
           continue;
         }
-        changeDrawing(-m_direction, row, col);
+        if (r <= m_range.m_r1) changeDrawing(-m_direction, row, col);
         r++;
       }
       r = m_range.m_r0;
@@ -656,11 +1064,13 @@ public:
     int col, row;
     int c = m_range.m_c0;
     int r = m_range.m_r0;
+    TXsheetP xsh = TApp::instance()->getCurrentXsheet()->getXsheet();
     while (c <= m_range.m_c1) {
       col = c;
       while (r <= m_range.m_r1) {
         row = r;
-        changeDrawing(m_direction, row, col);
+        if (row == m_range.m_r0 || !xsh->isImplicitCell(row, col))
+          changeDrawing(m_direction, row, col);
         r++;
       }
       r = m_range.m_r0;
@@ -724,13 +1134,16 @@ public:
 
         // Find the 1st populated cell in the column
         if (baseCell.isEmpty()) continue;
+        if (xsh->isImplicitCell(r, c))
+          emptyCells.push_back(std::make_pair(r, c));
 
         FramesMap::key_type frameBaseKey(r, c);
         int frameCount    = 1;
         TXshCell nextCell = xsh->getCell((r + frameCount), c);
         while (nextCell == baseCell ||
                (nextCell.isEmpty() && (r + frameCount) <= m_range.m_r1)) {
-          if (nextCell.isEmpty())
+          if ((r + frameCount) >= xsh->getFrameCount()) break;
+          if (nextCell.isEmpty() || xsh->isImplicitCell((r + frameCount), c))
             emptyCells.push_back(std::make_pair((r + frameCount), c));
 
           frameCount++;
@@ -778,7 +1191,10 @@ public:
       while (n < ct->second) {
         int row = ct->first.first + n;
         int col = ct->first.second;
-        DrawingSubtitutionUndo::changeDrawing(m_direction, row, col);
+        if (n == 0 ||
+            !TApp::instance()->getCurrentXsheet()->getXsheet()->isImplicitCell(
+                row, col))
+          DrawingSubtitutionUndo::changeDrawing(m_direction, row, col);
         n++;
       }
     }
@@ -802,19 +1218,21 @@ bool DrawingSubtitutionUndo::changeDrawing(int delta, int row, int col) {
   TTool::Application *app = TTool::getApplication();
   TXsheet *xsh            = app->getCurrentScene()->getScene()->getXsheet();
   TXshCell cell           = xsh->getCell(row, col);
+  TXshCell prevCell       = xsh->getCell(row - 1, col);
   bool usePrevCell        = false;
   if (cell.isEmpty()) {
-    TXshCell prevCell = xsh->getCell(row - 1, col);
     if (prevCell.isEmpty() || !(prevCell.m_level->getSimpleLevel() ||
                                 prevCell.m_level->getChildLevel() ||
                                 prevCell.m_level->getSoundTextLevel()))
       return false;
     cell        = prevCell;
     usePrevCell = true;
-  } else if (!cell.m_level || !(cell.m_level->getSimpleLevel() ||
-                                cell.m_level->getChildLevel() ||
-                                cell.m_level->getSoundTextLevel()))
+  } else if (cell.getFrameId().isStopFrame() || !cell.m_level ||
+             !(cell.m_level->getSimpleLevel() ||
+               cell.m_level->getChildLevel() ||
+               cell.m_level->getSoundTextLevel()))
     return false;
+
   TXshLevel *level = cell.m_level->getSimpleLevel();
   if (!level) level = cell.m_level->getChildLevel();
   if (!level) level = cell.m_level->getSoundTextLevel();
@@ -869,7 +1287,11 @@ bool DrawingSubtitutionUndo::changeDrawing(int delta, int row, int col) {
   else
     cellFrameId = TFrameId(index);
 
-  setDrawing(cellFrameId, row, col, cell, level);
+  if (Preferences::instance()->isImplicitHoldEnabled() && !prevCell.isEmpty() &&
+      prevCell.getFrameId() == cellFrameId)
+    setDrawing(TFrameId::EMPTY_FRAME, row, col, TXshCell(), nullptr);
+  else
+    setDrawing(cellFrameId, row, col, cell, level);
 
   return true;
 }
@@ -898,9 +1320,7 @@ static void drawingSubstituion(int dir) {
   }
   int row = TTool::getApplication()->getCurrentFrame()->getFrame();
   int col = TTool::getApplication()->getCurrentColumn()->getColumnIndex();
-  if (col == -1) col = 0;
-  if (range.m_c0 == -1) range.m_c0 = 0;
-  
+
   DrawingSubtitutionUndo *undo =
       new DrawingSubtitutionUndo(dir, range, row, col, selected);
   TUndoManager::manager()->add(undo);
@@ -1054,6 +1474,91 @@ public:
 
 //============================================================
 
+class NewFolderUndo final : public TUndo {
+  TXshFolderColumnP m_folderColumn;
+  int m_col;
+  QString m_columnName;
+
+public:
+  NewFolderUndo(TXshFolderColumn *folderColumn, int col,
+                   QString columnName)
+      : m_folderColumn(folderColumn)
+      , m_col(col)
+      , m_columnName(columnName) {}
+
+  void undo() const override {
+    TApp *app    = TApp::instance();
+    TXsheet *xsh = app->getCurrentXsheet()->getXsheet();
+    xsh->removeColumn(m_col);
+    app->getCurrentXsheet()->notifyXsheetChanged();
+  }
+
+  void redo() const override {
+    TApp *app    = TApp::instance();
+    TXsheet *xsh = app->getCurrentXsheet()->getXsheet();
+    xsh->insertColumn(m_col, m_folderColumn.getPointer());
+
+    TStageObject *obj = xsh->getStageObject(TStageObjectId::ColumnId(m_col));
+    std::string str   = m_columnName.toStdString();
+    obj->setName(str);
+
+    app->getCurrentXsheet()->notifyXsheetChanged();
+  }
+
+  int getSize() const override { return sizeof(*this); }
+
+  QString getHistoryString() override { return QObject::tr("New Level Folder"); }
+
+  int getHistoryType() override { return HistoryType::Xsheet; }
+};
+
+//============================================================
+
+static void newFolder() {
+  TTool::Application *app = TTool::getApplication();
+  TXsheet *xsh            = app->getCurrentScene()->getScene()->getXsheet();
+  int col = TTool::getApplication()->getCurrentColumn()->getColumnIndex();
+  if (!xsh->isColumnEmpty(col)) col++;
+  TXshFolderColumn *folderCol = new TXshFolderColumn();
+  int folderId                = xsh->getNewFolderId();
+
+  folderCol->setXsheet(xsh);
+  folderCol->setFolderColumnFolderId(folderId);
+  xsh->insertColumn(col, folderCol);
+
+  TStageObject *obj = xsh->getStageObject(TStageObjectId::ColumnId(col));
+  QString str       = "Folder" + QString::number(folderId);
+  obj->setName(str.toStdString());
+
+  TUndoManager::manager()->add(new NewFolderUndo(folderCol, col, str));
+
+  TXsheetHandle *xshHandle = app->getCurrentXsheet();
+  xshHandle->notifyXsheetChanged();
+}
+
+//============================================================
+
+class NewFolderCommand final : public MenuItemHandler {
+public:
+  NewFolderCommand() : MenuItemHandler(MI_NewFolder) {}
+  void execute() override { XshCmd::newFolder(); }
+} NewFolderCommand;
+
+//============================================================
+
+class NewPegbarCommand final : public MenuItemHandler {
+public:
+  NewPegbarCommand() : MenuItemHandler(MI_NewPegbar) {}
+  void execute() override {
+    TTool::Application *app = TTool::getApplication();
+    int col                 = app->getCurrentColumn()->getColumnIndex();
+    TStageObjectCmd::addNewPegbar(app->getCurrentXsheet(),
+                                  app->getCurrentObject(), QPointF(), ++col);
+  }
+} NewPegbarCommand;
+
+//============================================================
+
 static void removeEmptyColumns() {
   TTool::Application *app = TTool::getApplication();
   TXsheet *xsh            = app->getCurrentScene()->getScene()->getXsheet();
@@ -1077,6 +1582,55 @@ public:
   RemoveEmptyColumnsCommand() : MenuItemHandler(MI_RemoveEmptyColumns) {}
   void execute() override { XshCmd::removeEmptyColumns(); }
 } RemoveEmptyColumnsCommand;
+
+//============================================================
+
+static void convertHoldType(int holdType) {
+  TTool::Application *app = TTool::getApplication();
+  TXsheet *xsh            = app->getCurrentScene()->getScene()->getXsheet();
+
+  if (!xsh) return;
+
+  int answer = DVGui::MsgBox(
+      QString(QObject::tr("Converting scene to use %1 Holds can only be undone "
+                          "using 'Revert Scene'. Save before converting.\nDo "
+                          "you want to continue?")
+                  .arg(holdType == 0 ? QObject::tr("Implicit")
+                                     : QObject::tr("Explicit"))),
+      QObject::tr("Continue"), QObject::tr("Cancel"), 1);
+
+  if (answer == 0 || answer == 2) return;
+
+  QAction *action =
+      CommandManager::instance()->getAction(MI_ToggleImplicitHold);
+  if (holdType == 0) {
+    xsh->convertToImplicitHolds();
+    if (action && !action->isChecked()) action->trigger();
+  } else {
+    int r0, r1, step;
+    XsheetGUI::getPlayRange(r0, r1, step);
+    xsh->convertToExplicitHolds(r1);
+    if (action && action->isChecked()) action->trigger();
+  }
+
+  app->getCurrentScene()->setDirtyFlag();
+
+  app->getCurrentXsheet()->notifyXsheetChanged();
+}
+
+class ConvertToImplicitHoldsCommand final : public MenuItemHandler {
+public:
+  ConvertToImplicitHoldsCommand()
+      : MenuItemHandler(MI_ConvertToImplicitHolds) {}
+  void execute() override { XshCmd::convertHoldType(0); }
+} ConvertToImplicitHoldsCommand;
+
+class ConvertToExplicitHoldsCommand final : public MenuItemHandler {
+public:
+  ConvertToExplicitHoldsCommand()
+      : MenuItemHandler(MI_ConvertToExplicitHolds) {}
+  void execute() override { XshCmd::convertHoldType(1); }
+} ConvertToExplicitHoldsCommand;
 
 //============================================================
 
@@ -1106,7 +1660,7 @@ public:
       if (col == -1 && Preferences::instance()->isXsheetCameraColumnVisible())
         objectId = TStageObjectId::CameraId(xsh->getCameraColumnIndex());
       else
-        objectId = TStageObjectId::ColumnId(col);
+        objectId = xsh->getColumnObjectId(col);
       TStageObject *pegbar = xsh->getStageObject(objectId);
       if (pegbar->isKeyframe(row)) selection->select(row, col);
     }
@@ -1168,7 +1722,7 @@ public:
       if (col == -1 && Preferences::instance()->isXsheetCameraColumnVisible())
         objectId = TStageObjectId::CameraId(xsh->getCameraColumnIndex());
       else
-        objectId = TStageObjectId::ColumnId(col);
+        objectId = xsh->getColumnObjectId(col);
       TStageObject *pegbar = xsh->getStageObject(objectId);
       TStageObject::KeyframeMap keyframes;
       pegbar->getKeyframes(keyframes);
@@ -1205,7 +1759,7 @@ public:
       if (col == -1 && Preferences::instance()->isXsheetCameraColumnVisible())
         objectId = TStageObjectId::CameraId(xsh->getCameraColumnIndex());
       else
-        objectId = TStageObjectId::ColumnId(col);
+        objectId = xsh->getColumnObjectId(col);
       TStageObject *pegbar = xsh->getStageObject(objectId);
       TStageObject::KeyframeMap keyframes;
       pegbar->getKeyframes(keyframes);
@@ -1244,7 +1798,7 @@ public:
       if (col == -1 && Preferences::instance()->isXsheetCameraColumnVisible())
         objectId = TStageObjectId::CameraId(xsh->getCameraColumnIndex());
       else
-        objectId = TStageObjectId::ColumnId(col);
+        objectId = xsh->getColumnObjectId(col);
       TStageObject *pegbar = xsh->getStageObject(objectId);
       TStageObject::KeyframeMap keyframes;
       pegbar->getKeyframes(keyframes);
@@ -1359,7 +1913,7 @@ public:
       if (col == -1 && Preferences::instance()->isXsheetCameraColumnVisible())
         objectId = TStageObjectId::CameraId(xsh->getCameraColumnIndex());
       else
-        objectId = TStageObjectId::ColumnId(col);
+        objectId = xsh->getColumnObjectId(col);
       TStageObject *pegbar = xsh->getStageObject(objectId);
       TStageObject::KeyframeMap keyframes;
       pegbar->getKeyframes(keyframes);
@@ -1407,7 +1961,7 @@ public:
       if (col == -1)
         objectId = TStageObjectId::CameraId(xsh->getCameraColumnIndex());
       else
-        objectId = TStageObjectId::ColumnId(col);
+        objectId = xsh->getColumnObjectId(col);
       TStageObject *pegbar = xsh->getStageObject(objectId);
       TStageObject::KeyframeMap keyframes;
       pegbar->getKeyframes(keyframes);
@@ -1444,7 +1998,7 @@ public:
       if (col == -1 && Preferences::instance()->isXsheetCameraColumnVisible())
         objectId = TStageObjectId::CameraId(xsh->getCameraColumnIndex());
       else
-        objectId = TStageObjectId::ColumnId(col);
+        objectId = xsh->getColumnObjectId(col);
       TStageObject *pegbar = xsh->getStageObject(objectId);
       TStageObject::KeyframeMap keyframes;
       pegbar->getKeyframes(keyframes);
@@ -1726,18 +2280,59 @@ public:
 
     pegbar->getKeyframeSpan(row, r0, ease0, r1, ease1);
 
+    if (r0 > r1) return;
+
     KeyFrameHandleCommandUndo *undo =
         new KeyFrameHandleCommandUndo(objectId, r0, r1);
 
     TStageObject::Keyframe k0 = pegbar->getKeyframe(r0);
     TStageObject::Keyframe k1 = pegbar->getKeyframe(r1);
 
+    double segmentWidth = r1 - r0;
+    switch (m_type) {
+    case TDoubleKeyframe::SpeedInOut:
+    case TDoubleKeyframe::EaseInOut:
+    case TDoubleKeyframe::EaseInOutPercentage:
+      if (ease0 == -1 && ease1 == -1) {
+        ease0 = segmentWidth / 3.0;
+        ease1 = -ease0;
+      }
+      break;
+    default:
+      ease0 = ease1 = 0;
+      break;
+    }
+
     for (int i = 0; i < TStageObject::T_ChannelCount; i++) {
       k0.m_channels[i].m_type     = m_type;
+      k0.m_channels[i].m_speedOut  = TPointD(ease0, 0);
       k1.m_channels[i].m_prevType = m_type;
+      k1.m_channels[i].m_speedIn  = TPointD(ease1, 0);
     }
+
+    std::map<QString, SkVD::Keyframe> &vdfs0 =
+        k0.m_skeletonKeyframe.m_vertexKeyframes;
+    std::map<QString, SkVD::Keyframe> &vdfs1 =
+        k1.m_skeletonKeyframe.m_vertexKeyframes;
+
+    std::map<QString, SkVD::Keyframe>::iterator vdft0 = vdfs0.begin(),
+                                                vdfEnd0(vdfs0.end());
+    std::map<QString, SkVD::Keyframe>::iterator vdft1 = vdfs1.begin(),
+                                                vdfEnd1(vdfs1.end());
+    for (; vdft0 != vdfEnd0; ++vdft0, ++vdft1) {
+      for (int p = 0; p < SkVD::PARAMS_COUNT; ++p) {
+        TDoubleKeyframe &vkf0 = vdft0->second.m_keyframes[p];
+        TDoubleKeyframe &vkf1 = vdft1->second.m_keyframes[p];
+        vkf0.m_type           = m_type;
+        vkf0.m_speedOut       = TPointD(ease0, 0);
+        vkf1.m_prevType       = m_type;
+        vkf1.m_speedIn        = TPointD(ease1, 0);
+      }
+    }
+
     pegbar->setKeyframeWithoutUndo(r0, k0);
     pegbar->setKeyframeWithoutUndo(r1, k1);
+    pegbar->updateKeyframes();
 
     TUndoManager::manager()->add(undo);
 
@@ -1959,7 +2554,6 @@ void XsheetWriter::cell(ostream &os, int r, int c) {
     TXshLevel *level = cell.m_level.getPointer();
     std::string type = "levelcell";
     if (level->getChildLevel())
-
       type = "subxsheetcell";
     else if (level->getZeraryFxLevel())
       type = "fxcell";
@@ -2070,7 +2664,7 @@ static void makeHtml(TFilePath fp) {
   os << "<meta http-equiv=\"content-type\" content=\"text/html;charset=utf-8\">"
      << endl;
   os << "<meta http-equiv=\"Content-Style-Type\" content=\"text/css\">" << endl;
-  os << "<meta name=\"Generator\" content=\"Flare\">" << endl;
+  os << "<meta name=\"Generator\" content=\"Toonz 5.2\">" << endl;
   os << "<link rel=\"stylesheet\" type=\"text/css\" href=\"xsheet.css\">"
      << endl;
   os << "</head><body>" << endl;
@@ -2163,13 +2757,98 @@ public:
 
 //-----------------------------------------------------------------------------
 
+class ToggleXsheetOpenCloseFolderCommand final : public MenuItemHandler {
+public:
+  ToggleXsheetOpenCloseFolderCommand()
+      : MenuItemHandler(MI_ToggleOpenCloseFolder) {}
+
+  void execute() override {
+    TApp::instance()->getCurrentXsheetViewer()->toggleCurrentFolderOpenClose();
+  }
+
+} ToggleXsheetOpenCloseFolderCommand;
+
+//-----------------------------------------------------------------------------
+
+class SetDrawingMarkCommand final : public MenuItemHandler {
+  int m_markId;
+
+public:
+  SetDrawingMarkCommand(int markId)
+      : MenuItemHandler(((std::string)MI_SetDrawingMark +
+                         (markId < 0 ? "None" : std::to_string(markId)))
+                            .c_str())
+      , m_markId(markId) {}
+
+  void execute() override {
+    TApp *app         = TApp::instance();
+    TXsheet *xsh      = app->getCurrentXsheet()->getXsheet();
+
+    TSelection *selection = app->getCurrentSelection()->getSelection();
+    if (!selection) return;
+
+    if (TApp::instance()->getCurrentFrame()->isEditingLevel()) {
+      TFilmstripSelection *filmstripSelection =
+          dynamic_cast<TFilmstripSelection *>(selection);
+      if (!filmstripSelection) return;
+
+      filmstripSelection->setDrawingMark(m_markId);
+      return;
+    }
+
+    TCellSelection *cellSelection = dynamic_cast<TCellSelection *>(selection);
+    if (!cellSelection) return;
+
+    int r0, r1, c0, c1;
+    cellSelection->getSelectedCells(r0, c0, r1, c1);
+    if (c0 < 0) c0 = 0;
+
+    std::vector<TXshCell> cells;
+
+    // Find all unique cells with a drawing
+    for (int c = c0; c <= c1; c++) {
+      for (int r = r0; r <= r1; r++) {
+        TXshCell cell = xsh->getCell(r, c, true, false);
+        if (cell.isEmpty() || cell.getFrameId().isStopFrame() ||
+            !cell.getSimpleLevel())
+          continue;
+        if (std::find(cells.begin(), cells.end(), cell) != cells.end())
+          continue;
+        cells.push_back(cell);
+      }
+    }
+
+    if (cells.empty()) return;
+
+    XsheetGUI::SetDrawingMarkUndo *undo = new XsheetGUI::SetDrawingMarkUndo(cells, m_markId);
+    undo->redo();
+    TUndoManager::manager()->add(undo);
+  }
+};
+SetDrawingMarkCommand DrawingMarkCommandNone(-1);
+SetDrawingMarkCommand DrawingMarkCommand0(0);
+SetDrawingMarkCommand DrawingMarkCommand1(1);
+SetDrawingMarkCommand DrawingMarkCommand2(2);
+SetDrawingMarkCommand DrawingMarkCommand3(3);
+SetDrawingMarkCommand DrawingMarkCommand4(4);
+SetDrawingMarkCommand DrawingMarkCommand5(5);
+SetDrawingMarkCommand DrawingMarkCommand6(6);
+SetDrawingMarkCommand DrawingMarkCommand7(7);
+SetDrawingMarkCommand DrawingMarkCommand8(8);
+SetDrawingMarkCommand DrawingMarkCommand9(9);
+SetDrawingMarkCommand DrawingMarkCommand10(10);
+SetDrawingMarkCommand DrawingMarkCommand11(11);
+
+//-----------------------------------------------------------------------------
+
 class SetCellMarkCommand final : public MenuItemHandler {
   int m_markId;
 
 public:
   SetCellMarkCommand(int markId)
-      : MenuItemHandler(
-            ((std::string)MI_SetCellMark + std::to_string(markId)).c_str())
+      : MenuItemHandler(((std::string)MI_SetCellMark +
+                         (markId < 0 ? "None" : std::to_string(markId)))
+                            .c_str())
       , m_markId(markId) {}
 
   void execute() override {
@@ -2186,6 +2865,7 @@ public:
     TUndoManager::manager()->add(undo);
   }
 };
+SetCellMarkCommand CellMarkCommandNone(-1);
 SetCellMarkCommand CellMarkCommand0(0);
 SetCellMarkCommand CellMarkCommand1(1);
 SetCellMarkCommand CellMarkCommand2(2);
@@ -2201,12 +2881,167 @@ SetCellMarkCommand CellMarkCommand11(11);
 
 //============================================================
 
+class SetStartMarker final : public MenuItemHandler {
+public:
+    SetStartMarker()
+        : MenuItemHandler(MI_SetStartMarker) {}
+    void execute() override { 
+        int frame = TApp::instance()->getCurrentFrame()->getFrame();
+        assert(frame >= 0);
+
+        int r0, r1, step;
+        XsheetGUI::getPlayRange(r0, r1, step);
+        if (r0 > r1) {
+            r0 = 0;
+            r1 = TApp::instance()->getCurrentScene()->getScene()->getFrameCount() - 1;
+            if (r1 < 1) r1 = 1;
+        }
+        r0 = frame;
+        if (r1 < r0) r1 = r0;
+        XsheetGUI::setPlayRange(r0, r1, step);
+        TApp::instance()->getCurrentXsheetViewer()->update();
+    }
+} SetStartMarker;
+
+//============================================================
+
+class SetStopMarker final : public MenuItemHandler {
+public:
+    SetStopMarker()
+        : MenuItemHandler(MI_SetStopMarker) {}
+    void execute() override {
+        int frame = TApp::instance()->getCurrentFrame()->getFrame();
+        assert(frame >= 0);
+
+        int r0, r1, step;
+        XsheetGUI::getPlayRange(r0, r1, step);
+        if (r0 > r1) {
+            r0 = 0;
+            r1 = TApp::instance()->getCurrentScene()->getScene()->getFrameCount() - 1;
+            if (r1 < 1) r1 = 1;
+        }
+        r1 = frame;
+        if (r1 < r0) r0 = r1;
+        r1 -= (step == 0) ? (r1 - r0) : (r1 - r0) % step;
+        XsheetGUI::setPlayRange(r0, r1, step);
+        TApp::instance()->getCurrentXsheetViewer()->update();
+    }
+} SetStopMarker;
+
+//============================================================
+
+class ClearMarkers final : public MenuItemHandler {
+public:
+    ClearMarkers()
+        : MenuItemHandler(MI_ClearMarkers) {}
+    void execute() override {
+        int step, r0, r1;
+        XsheetGUI::getPlayRange(r0, r1, step);
+        XsheetGUI::setPlayRange(0, -1, step);
+        TApp::instance()->getCurrentXsheetViewer()->update();
+    }
+} ClearMarkers;
+
+//============================================================
+
+class SetAutoMarkers final : public MenuItemHandler {
+public:
+    SetAutoMarkers()
+        : MenuItemHandler(MI_SetAutoMarkers) {}
+
+    enum Direction { up = 0, down };
+
+    int getNonEmptyCell(int row, int column, int lastRow, Direction direction) {
+        int currentPos = row;
+        bool exit = false;
+
+        while (!exit) {
+            TXsheet *xsh = TApp::instance()->getCurrentXsheetViewer()->getXsheet();
+            TXshCell cell = xsh->getCell(currentPos, column);
+            if (cell.isEmpty() || cell.getFrameId().isStopFrame() ||
+                (direction == down && currentPos > lastRow)) {
+                if (direction == down && currentPos > lastRow) {
+                  if (cell.getFrameId().isStopFrame())
+                    currentPos = lastRow;
+                  else if (xsh->isImplicitCell(currentPos, column))
+                    currentPos = (row >= lastRow) ? (row + 1) : currentPos++;
+                }
+                (direction == up) ? currentPos++ : currentPos--;
+                exit = true;
+            } else
+                (direction == up) ? currentPos-- : currentPos++;
+        }
+
+        return currentPos;
+    }
+
+    void execute() override {
+        int col       = TApp::instance()->getCurrentColumn()->getColumnIndex();
+        int row       = TApp::instance()->getCurrentFrame()->getFrame();
+        TXsheet *xsh  = TApp::instance()->getCurrentXsheetViewer()->getXsheet();
+        TXshCell cell = xsh->getCell(row, col);
+        if (cell.isEmpty() || cell.getFrameId().isStopFrame()) return;
+        int step, r0, r1;
+
+        xsh->getCellRange(col, r0, r1);
+
+        int top = getNonEmptyCell(row, col, r0, Direction::up);
+        int bottom = getNonEmptyCell(row, col, r1, Direction::down);
+
+        XsheetGUI::getPlayRange(r0, r1, step);
+        XsheetGUI::setPlayRange(top, bottom, step);
+        TApp::instance()->getCurrentXsheetViewer()->update();
+
+    }
+} SetAutoMarkers;
+
+//============================================================
+
+class PreviewThis final : public MenuItemHandler {
+public:
+    PreviewThis()
+        : MenuItemHandler(MI_PreviewThis) {}
+
+    void execute() override {
+        int row = TApp::instance()->getCurrentFrame()->getFrame();
+        assert(row >= 0);
+        int r0, r1, step;
+        XsheetGUI::getPlayRange(r0, r1, step);
+        XsheetGUI::setPlayRange(row, row, step);
+        TApp::instance()->getCurrentXsheetViewer()->update();
+    }
+} PreviewThis;
+
+//============================================================
+
+class PreviewSelected final : public MenuItemHandler {
+public:
+  PreviewSelected() : MenuItemHandler(MI_PreviewSelected) {}
+
+  void execute() override {
+    TApp *app             = TApp::instance();
+    TSelection *selection = app->getCurrentSelection()->getSelection();
+    if (!selection) return;
+    TCellSelection *cellSelection = dynamic_cast<TCellSelection *>(selection);
+    if (!cellSelection) return;
+    int row0, col0, row1, col1;
+    cellSelection->getSelectedCells(row0, col0, row1, col1);
+    int r0, r1, step;
+    XsheetGUI::getPlayRange(r0, r1, step);
+    XsheetGUI::setPlayRange(row0, row1, step);
+    TApp::instance()->getCurrentXsheetViewer()->update();
+  }
+} PreviewSelected;
+
+//============================================================
+
 class ToggleTaggedFrame final : public MenuItemHandler {
 public:
   ToggleTaggedFrame() : MenuItemHandler(MI_ToggleTaggedFrame) {}
   void execute() override {
     TApp *app = TApp::instance();
-    int frame = app->getCurrentFrame()->getFrame();
+    int frame = app->getCurrentXsheetViewer()->getContextMenuRow();
+    if (frame < 0) frame = app->getCurrentFrame()->getFrame();
     assert(frame >= 0);
     TXsheet *xsh = app->getCurrentXsheet()->getXsheet();
 
@@ -2228,7 +3063,8 @@ public:
   EditTaggedFrame() : MenuItemHandler(MI_EditTaggedFrame) {}
   void execute() override {
     TApp *app = TApp::instance();
-    int frame = app->getCurrentFrame()->getFrame();
+    int frame = app->getCurrentXsheetViewer()->getContextMenuRow();
+    if (frame < 0) frame = app->getCurrentFrame()->getFrame();
     assert(frame >= 0);
     TXsheet *xsh = app->getCurrentXsheet()->getXsheet();
 
@@ -2250,13 +3086,19 @@ public:
   void execute() override {
     TApp *app = TApp::instance();
     int frame = app->getCurrentFrame()->getFrame();
+    int col   = app->getCurrentColumn()->getColumnIndex();
     assert(frame >= 0);
     TXsheet *xsh = app->getCurrentXsheet()->getXsheet();
 
     NavigationTags *navTags = xsh->getNavigationTags();
     int nextFrame           = navTags->getNextTag(frame);
-    if (nextFrame != -1)
+    if (nextFrame != -1) {
       app->getCurrentXsheetViewer()->setCurrentRow(nextFrame);
+      TCellSelection *cellSelection = dynamic_cast<TCellSelection *>(
+          TApp::instance()->getCurrentSelection()->getSelection());
+      if (cellSelection)
+        cellSelection->selectCells(nextFrame, col, nextFrame, col);
+    }
   }
 } NextTaggedFrame;
 
@@ -2268,13 +3110,19 @@ public:
   void execute() override {
     TApp *app = TApp::instance();
     int frame = app->getCurrentFrame()->getFrame();
+    int col   = app->getCurrentColumn()->getColumnIndex();
     assert(frame >= 0);
     TXsheet *xsh = app->getCurrentXsheet()->getXsheet();
 
     NavigationTags *navTags = xsh->getNavigationTags();
     int prevFrame           = navTags->getPrevTag(frame);
-    if (prevFrame != -1)
+    if (prevFrame != -1) {
       app->getCurrentXsheetViewer()->setCurrentRow(prevFrame);
+      TCellSelection *cellSelection = dynamic_cast<TCellSelection *>(
+          TApp::instance()->getCurrentSelection()->getSelection());
+      if (cellSelection)
+        cellSelection->selectCells(prevFrame, col, prevFrame, col);
+    }
   }
 } PrevTaggedFrame;
 
@@ -2300,122 +3148,3 @@ public:
     TApp::instance()->getCurrentXsheetViewer()->update();
   }
 } ClearTags;
-
-// Increment Instances Undo/Command
-struct IncInstItem {
-  TXsheet *m_xsh;
-  int m_r;
-  int m_c;
-  TXshCell m_oldCell;
-  TXshCell m_newCell;
-};
-
-class IncrementInstancesUndo final : public TUndo {
-  std::vector<IncInstItem> m_items;
-  QString m_symbolName;
-
-public:
-  IncrementInstancesUndo(const std::vector<IncInstItem> &items,
-                          const QString &symbolName)
-      : m_items(items), m_symbolName(symbolName) {}
-
-  void undo() const override {
-    for (const IncInstItem &it : m_items) it.m_xsh->setCell(it.m_r, it.m_c, it.m_oldCell);
-    TApp::instance()->getCurrentXsheet()->notifyXsheetChanged();
-  }
-
-  void redo() const override {
-    for (const IncInstItem &it : m_items) it.m_xsh->setCell(it.m_r, it.m_c, it.m_newCell);
-    TApp::instance()->getCurrentXsheet()->notifyXsheetChanged();
-  }
-
-  int getSize() const override { return sizeof(*this); }
-
-  QString getHistoryString() override {
-    return QObject::tr("Increment Instances : %1").arg(m_symbolName);
-  }
-  int getHistoryType() override { return HistoryType::Xsheet; }
-};
-
-class IncrementInstancesCommand final : public MenuItemHandler {
-public:
-  IncrementInstancesCommand() : MenuItemHandler(MI_IncrementInstances) {}
-  void execute() override {
-    TSelection *selection = TSelection::getCurrent();
-    CastSelection *castSelection = dynamic_cast<CastSelection *>(selection);
-    if (!castSelection) {
-      DVGui::error(QObject::tr("Select a symbol in the Library first."));
-      return;
-    }
-
-    std::vector<TXshLevel *> levels;
-    castSelection->getSelectedLevels(levels);
-    std::vector<TXshChildLevel *> childLevels;
-    for (TXshLevel *lvl : levels) {
-      if (TXshChildLevel *cl = lvl->getChildLevel()) childLevels.push_back(cl);
-    }
-    if (childLevels.empty()) {
-      DVGui::error(QObject::tr("No symbol selected."));
-      return;
-    }
-
-    bool ok = false;
-    QWidget *parent = TApp::instance()->getMainWindow();
-    int startFrame = QInputDialog::getInt(parent, QObject::tr("Increment Instances"),
-                                         QObject::tr("Start frame (>=)"), 1, -1000000, 1000000, 1, &ok);
-    if (!ok) return;
-    int shift = QInputDialog::getInt(parent, QObject::tr("Increment Instances"),
-                                     QObject::tr("Shift amount (+/-)"), 1, -1000000, 1000000, 1, &ok);
-    if (!ok) return;
-
-    TXsheet *topXsh = TApp::instance()->getCurrentScene()->getScene()->getTopXsheet();
-    std::vector<IncInstItem> items;
-    std::set<TXsheet *> visited;
-    std::function<void(TXsheet *)> traverse = [&](TXsheet *xsh) {
-      if (!xsh || visited.count(xsh)) return;
-      visited.insert(xsh);
-      for (int c = 0; c < xsh->getColumnCount(); ++c) {
-        int r0, r1;
-        int n = xsh->getCellRange(c, r0, r1);
-        if (n <= 0) continue;
-        for (int r = r0; r <= r1; ++r) {
-          TXshCell cell = xsh->getCell(r, c);
-          if (cell.isEmpty()) continue;
-          if (cell.m_level && cell.m_level->getChildLevel()) {
-            TXshChildLevel *cl = cell.m_level->getChildLevel();
-            for (TXshChildLevel *selectedCl : childLevels) {
-              if (cl == selectedCl) {
-                TFrameId fid = cell.getFrameId();
-                if (fid.getNumber() >= startFrame) {
-                  TXshCell newCell = cell;
-                  newCell.m_frameId = TFrameId(fid.getNumber() + shift, fid.getLetter(), fid.getZeroPadding(), fid.getStartSeqInd());
-                  IncInstItem it{ xsh, r, c, cell, newCell };
-                  items.push_back(it);
-                }
-                break;
-              }
-            }
-            // traverse into sub xsheet
-            TXsheet *childXsh = cl->getXsheet();
-            if (childXsh) traverse(childXsh);
-          }
-        }
-      }
-    };
-
-    traverse(topXsh);
-
-    if (items.empty()) {
-      DVGui::info(QObject::tr("No instances found to modify."));
-      return;
-    }
-
-    QString symbolName = QString::fromStdWString(childLevels[0]->getName());
-    IncrementInstancesUndo *undo = new IncrementInstancesUndo(items, symbolName);
-    undo->redo();
-    TUndoManager::manager()->add(undo);
-
-    TApp::instance()->getCurrentScene()->setDirtyFlag(true);
-  }
-} incrementInstancesCommand;
-

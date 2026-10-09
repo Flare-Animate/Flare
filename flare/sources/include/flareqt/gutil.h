@@ -355,6 +355,12 @@ private:
 QString DVAPI getIconPath(const QString &iconSVGName);
 
 //-----------------------------------------------------------------------------
+
+// Tahoma2D's key-name translator (Windows key names to macOS glyphs); the
+// synced styleeditor.cpp uses it for its status hints. Verbatim from upstream.
+QString DVAPI trModKey(QString key);
+
+//-----------------------------------------------------------------------------
 // SVGIconEngine
 
 // Cache Key Generator
