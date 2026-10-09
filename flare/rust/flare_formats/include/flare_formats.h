@@ -11,6 +11,11 @@ int32_t flare_swf_header(const uint8_t *data, size_t len, uint8_t *compression,
                          uint8_t *version, uint32_t *file_length);
 /* DOMDocument width/height/frameRate; returns 0 on success. */
 int32_t flare_xfl_dom_info(const uint8_t *data, size_t len, double *w, double *h, double *fps);
+/* Uncompressed SWF tags (incl. End); -1 on error. codes may be NULL. */
+int32_t flare_swf_tag_count(const uint8_t *data, size_t len);
+int32_t flare_swf_tag_codes(const uint8_t *data, size_t len, uint16_t *codes, size_t max);
+/* First XFL timeline: returns layer count, total frames in *frames; -1 on error. */
+int32_t flare_xfl_layer_count(const uint8_t *data, size_t len, uint32_t *frames);
 #ifdef __cplusplus
 }
 #endif

@@ -1,5 +1,37 @@
 //! Flare format sniffing (SWF/CFBF/XFL). SWF header layout per the SWF spec, as in ruffle (MIT/Apache-2.0).
 use std::slice;
+pub mod swf;
+pub mod xfl;
+
+/// Count of SWF tags (incl. End); -1 if not uncompressed SWF.
+#[no_mangle]
+pub unsafe extern "C" fn flare_swf_tag_count(data: *const u8, len: usize) -> i32 {
+    swf::tags(bytes(data, len)).map_or(-1, |t| t.len() as i32)
+}
+
+/// Write up to `max` tag codes into `codes`; returns total count or -1.
+#[no_mangle]
+pub unsafe extern "C" fn flare_swf_tag_codes(data: *const u8, len: usize, codes: *mut u16, max: usize) -> i32 {
+    match swf::tags(bytes(data, len)) {
+        Some(t) => {
+            if !codes.is_null() { for (i, g) in t.iter().take(max).enumerate() { *codes.add(i) = g.code; } }
+            t.len() as i32
+        }
+        None => -1,
+    }
+}
+
+/// Layer count of first XFL timeline; writes total frame count to `frames`. -1 on error.
+#[no_mangle]
+pub unsafe extern "C" fn flare_xfl_layer_count(data: *const u8, len: usize, frames: *mut u32) -> i32 {
+    match xfl::layers(bytes(data, len)) {
+        Some(l) => {
+            if !frames.is_null() { *frames = l.iter().map(|x| x.frames.len() as u32).sum(); }
+            l.len() as i32
+        }
+        None => -1,
+    }
+}
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 #[repr(i32)]
