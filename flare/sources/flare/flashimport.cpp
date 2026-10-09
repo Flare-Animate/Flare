@@ -828,7 +828,10 @@ void ImportFlashVectorCommand::execute() {
 
     // ---- LWF (Lightweight SWF alternative) / RSL (Runtime Shared Library) /
     //      AFL (ActionScript Library, legacy) — copy for reference ----
-    } else if (ext == "lwf" || ext == "rsl" || ext == "afl") {
+    } else if (ext == "lwf" || ext == "rsl" || ext == "afl" || ext == "psd" ||
+               ext == "psb" || ext == "ai" ||
+               detected == FlashAssets::Format::Psd ||
+               detected == FlashAssets::Format::Pdf) {
         copyFileForReference(srcPath, outPath, exported);
         info = QObject::tr("%1 file copied for reference.")
                    .arg(ext.toUpper());

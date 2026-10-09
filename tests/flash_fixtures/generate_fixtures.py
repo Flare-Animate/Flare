@@ -133,6 +133,29 @@ def main():
         z.writestr(zinfo('catalog.xml'), CATALOG_XML)
         z.writestr(zinfo('library.swf'), swf)
 
+    # AIR / ANE: ZIP packages with their manifests
+    with zipfile.ZipFile(os.path.join(HERE, 'sample.air'), 'w', zipfile.ZIP_DEFLATED) as z:
+        z.writestr(zinfo('META-INF/AIR/application.xml'),
+                   '<application xmlns="http://ns.adobe.com/air/application/33.0"><id>t</id></application>')
+        z.writestr(zinfo('main.swf'), swf)
+    with zipfile.ZipFile(os.path.join(HERE, 'sample.ane'), 'w', zipfile.ZIP_DEFLATED) as z:
+        z.writestr(zinfo('META-INF/ANE/extension.xml'),
+                   '<extension xmlns="http://ns.adobe.com/air/extension/33.0"><id>t</id></extension>')
+        z.writestr(zinfo('library.swf'), swf)
+
+    # JSFL
+    with open(os.path.join(HERE, 'sample.jsfl'), 'w', encoding='utf-8') as f:
+        f.write('fl.trace("hi");\n')
+
+    # PSD: "8BPS" v1, 6 reserved, 3 channels, 1x1, 8bpc, RGB(3), 3 empty sections + raw image
+    with open(os.path.join(HERE, 'sample.psd'), 'wb') as f:
+        f.write(b'8BPS' + struct.pack('>H', 1) + bytes(6) + struct.pack('>HIIHH', 3, 1, 1, 8, 3)
+                + struct.pack('>III', 0, 0, 0) + struct.pack('>H', 0) + bytes([255, 0, 0]))
+
+    # AI: PDF-compatible Illustrator file
+    with open(os.path.join(HERE, 'sample.ai'), 'wb') as f:
+        f.write(b'%PDF-1.5\n%AIPrivateData\n1 0 obj<</Type/Catalog>>endobj\ntrailer<</Root 1 0 R>>\n%%EOF\n')
+
     print('Generated fixtures in', HERE)
     for name in sorted(os.listdir(HERE)):
         p = os.path.join(HERE, name)
