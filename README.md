@@ -99,6 +99,22 @@ arrives quarantined. If the icon shows a 🚫 badge or macOS calls the app
 "damaged" — and no entry appears under **Privacy & Security** to approve — clear
 the quarantine flag once:
 
+A fork of OpenToonz rebranded as Flare — focused on providing an Adobe Animate-like
+user experience and improving interoperability with Flash assets (.swf/.fla).
+
+This repository is a fork of OpenToonz and retains the original licensing and
+attribution. See the Licensing section below for details.
+
+[![Discord Server](https://discord.com/api/guilds/1500316971802296430/widget.png?style=banner2)](https://discord.com/invite/xQ36SAgp6)
+
+
+[日本語](./doc/README_ja.md) [简体中文](./doc/README_chs.md)
+
+## What is Flare?
+
+Flare is a community-driven fork of OpenToonz that ships a revamped UI layout
+inspired by Adobe Animate and adds built-in Flash ecosystem import support for
+FLA/XFL/SWC/SWF/FLV/F4V/AS workflows.
 ```sh
 xattr -dr com.apple.quarantine /Applications/Flare.app
 ```
