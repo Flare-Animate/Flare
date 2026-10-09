@@ -1528,6 +1528,8 @@ QString PreferencesPopup::getUIString(PreferencesItemId id) {
        tr("Automatically Refresh Folder Contents")},
       {latestVersionCheckEnabled,
        tr("Check for the Latest Version of Flare on Launch")},
+      {updateNightlyChannel,
+       tr("Update Channel: Include Nightly / Pre-release Builds")},
 
       // Touch / Tablet Settings
       // TounchGestureControl // Touch Gesture is a checkable command and not in
@@ -2503,6 +2505,7 @@ QGridLayout* PreferencesPopup::createVersionControlLayout() {
   insertUI(SVNEnabled, lay);
   insertUI(automaticSVNFolderRefreshEnabled, lay);
   insertUI(latestVersionCheckEnabled, lay);
+  insertUI(updateNightlyChannel, lay);
 
   lay->setRowStretch(lay->rowCount(), 1);
 

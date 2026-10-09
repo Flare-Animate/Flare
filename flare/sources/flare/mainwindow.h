@@ -116,7 +116,9 @@ public:
   void onOpenDiscord();
   void onOpenWebsite();
   void onOpenReportABug();
-  void checkForUpdates();
+  void checkForUpdates(bool manual = false);
+  void onCheckForUpdates();
+  bool m_manualUpdateCheck = false;
   int getRoomCount() const;
   Room *getRoom(int index) const;
   Room *getRoomByName(QString &roomName);

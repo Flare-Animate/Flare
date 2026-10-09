@@ -51,6 +51,7 @@ public:
     QString name;
     QUrl url;
     qint64 size = 0;
+    QString sha256;  //!< lowercase hex from the release API; empty = unknown
 
     bool isValid() const { return !name.isEmpty() && url.isValid(); }
   };
@@ -148,6 +149,7 @@ private:
   QNetworkReply* m_releaseReply = nullptr;
   QNetworkReply* m_downloadReply = nullptr;
   QUrl m_destinationDir;
+  QString m_expectedSha256;
 
   void onReleaseFinished();
   void onDownloadFinished();

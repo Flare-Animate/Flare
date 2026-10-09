@@ -1,6 +1,7 @@
 #include "flareqt/flareupdater.h"
 
 #include <QCoreApplication>
+#include <QCryptographicHash>
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
@@ -165,10 +166,17 @@ FlareUpdater::Release FlareUpdater::parseReleaseJson(const QByteArray& json,
       QJsonDocument::fromJson(json, &parseError);
   if (parseError.error != QJsonParseError::NoError)
     return fail("release feed was not valid JSON");
-  if (!doc.isObject())
+  QJsonObject obj;
+  if (doc.isArray()) {  // /releases list (nightly channel): newest non-draft
+    for (const QJsonValue& v : doc.array())
+      if (v.isObject() && !v.toObject().value(QStringLiteral("draft")).toBool()) {
+        obj = v.toObject();
+        break;
+      }
+  } else if (doc.isObject())
+    obj = doc.object();
+  else
     return fail("release feed was not a JSON object");
-
-  const QJsonObject obj = doc.object();
 
   Release release;
   release.tag       = obj.value(QStringLiteral("tag_name")).toString().trimmed();
@@ -186,6 +194,9 @@ FlareUpdater::Release FlareUpdater::parseReleaseJson(const QByteArray& json,
     Asset asset;
     asset.name = a.value(QStringLiteral("name")).toString();
     asset.url  = QUrl(a.value(QStringLiteral("browser_download_url")).toString());
+    const QString digest = a.value(QStringLiteral("digest")).toString();
+    if (digest.startsWith(QStringLiteral("sha256:")))
+      asset.sha256 = digest.mid(7).toLower();
     asset.size = static_cast<qint64>(
         a.value(QStringLiteral("size")).toDouble(0.0));
     if (asset.isValid())
@@ -352,6 +363,7 @@ void FlareUpdater::download(const Asset& asset, const QUrl& destinationDir) {
   }
 
   m_destinationDir = destinationDir;
+  m_expectedSha256 = asset.sha256;
 
   QNetworkRequest request(asset.url);
   request.setRawHeader("User-Agent", "Flare-Updater");
@@ -405,6 +417,15 @@ void FlareUpdater::onDownloadFinished() {
     return;
   }
   file.close();
+
+  // Verify against GitHub's published digest before anything can run it.
+  if (!m_expectedSha256.isEmpty() &&
+      QCryptographicHash::hash(payload, QCryptographicHash::Sha256).toHex() !=
+          m_expectedSha256.toLatin1()) {
+    QFile::remove(partPath);
+    emit failed(QStringLiteral("the update failed its checksum verification"));
+    return;
+  }
 
   QFile::remove(finalPath);
   if (!QFile::rename(partPath, finalPath)) {

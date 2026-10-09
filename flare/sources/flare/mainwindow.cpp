@@ -505,6 +505,7 @@ centralWidget->setLayout(centralWidgetLayout);*/
   setCommandHandler(MI_AutoFillToggle, this, &MainWindow::autofillToggle);
 
   setCommandHandler(MI_About, this, &MainWindow::onAbout);
+  setCommandHandler(MI_CheckForUpdates, this, &MainWindow::onCheckForUpdates);
   setCommandHandler(MI_OpenOnlineManual, this, &MainWindow::onOpenOnlineManual);
   setCommandHandler(MI_OpenWhatsNew, this, &MainWindow::onOpenWhatsNew);
   setCommandHandler(MI_OpenCommunityForum, this,
@@ -1094,6 +1095,8 @@ void MainWindow::onAbout() {
 
 //-----------------------------------------------------------------------------
 
+void MainWindow::onCheckForUpdates() { checkForUpdates(true); }
+
 void MainWindow::onOpenOnlineManual() {
   QDesktopServices::openUrl(QUrl(tr("http://flare-animate.readthedocs.io")));
 }
@@ -1411,9 +1414,10 @@ extern const char *applicationVersion;
     silent: a user who is offline or rate-limited should not be interrupted, and
     an update check is not something they asked for on this particular launch.
 */
-void MainWindow::checkForUpdates() {
+void MainWindow::checkForUpdates(bool manual) {
   if (m_flareUpdater)
     return;  // a check is already in flight
+  m_manualUpdateCheck = manual;
 
   m_flareUpdater = new FlareUpdater(this);
   connect(m_flareUpdater, &FlareUpdater::releaseReady, this,
@@ -1426,8 +1430,11 @@ void MainWindow::checkForUpdates() {
           &MainWindow::onFlareUpdateFinished);
 
   m_flareUpdater->checkForRelease(
-      QUrl(QStringLiteral("https://api.github.com/repos/Flare-Animate/Flare/"
-                          "releases/latest")));
+      QUrl(Preferences::instance()->getBoolValue(updateNightlyChannel)
+               ? QStringLiteral("https://api.github.com/repos/Flare-Animate/"
+                                "Flare/releases?per_page=10")
+               : QStringLiteral("https://api.github.com/repos/Flare-Animate/"
+                                "Flare/releases/latest")));
 }
 
 //-----------------------------------------------------------------------------
@@ -1438,8 +1445,11 @@ void MainWindow::onFlareReleaseReady(const FlareUpdater::Release& release) {
 
   const QString current = QString::fromStdString(TEnv::getApplicationVersion());
 
-  if (FlareUpdater::compareVersions(release.tag, current) <= 0)
+  if (FlareUpdater::compareVersions(release.tag, current) <= 0) {
+    if (m_manualUpdateCheck)
+      DVGui::info(QObject::tr("Flare is up to date (%1).").arg(current));
     return;  // up to date, or the published build is older
+  }
 
   // Don't nag about a release candidate unless the installed build is older
   // than it: offering "1.8.0-rc1" to someone on "1.7.1" is reasonable, offering
@@ -1539,7 +1549,7 @@ void MainWindow::applyFlareUpdate(const QString& downloadedPath) {
 void MainWindow::onFlareUpdateFailed(const QString& message) {
   // Only speak up if the user asked for this update by hand; a background check
   // that cannot reach the network is not worth a dialog.
-  if (m_flareUpdater && m_flareUpdater->parent() == this)
+  if (m_manualUpdateCheck)
     DVGui::warning(QObject::tr("Flare could not check for updates.\n\n%1")
                        .arg(message));
   if (m_flareUpdater) {
@@ -2525,6 +2535,8 @@ void MainWindow::defineActions() {
 
   // Menu - Help
 
+  createMenuHelpAction(MI_CheckForUpdates, QT_TR_NOOP("Check for &Updates..."),
+                       "", "web");
   createMenuHelpAction(MI_OpenOnlineManual, QT_TR_NOOP("&Online Manual..."),
                        "F1", "manual");
   createMenuHelpAction(MI_OpenWhatsNew, QT_TR_NOOP("&What's New..."), "",
