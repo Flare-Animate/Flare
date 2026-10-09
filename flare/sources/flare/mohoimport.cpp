@@ -5,12 +5,11 @@
 // writes a manifest of its structure and gathers whatever bitmaps it can find.
 // See common/moho/MohoReader.h for the format and for what is out of scope.
 //
-// This deliberately does not attempt to render the rig. Reproducing a Moho
-// render means solving the skeleton, then per-layer region-weight deformation,
-// then bezier reconstruction, masking, layer effects and bone dynamics; see the
-// reader header for why that is a much larger project than reading the file.
-// What Flare can do honestly is show the user the rig's structure and collect
-// its assets, which is what you need to decide what to do with it.
+// Then builds the scene (MohoPlan.h): every drawable layer becomes an xsheet
+// column (bitmap layers load their image, vector layers get a named vector
+// level), bones become a pegbar hierarchy the columns are parented to, and
+// switch layers gate their children's cells by the switch keys. Mesh
+// deformation / Smart Bones are not solved; geometry is not rendered.
 
 #include "flare/menubarcommandids.h"
 #include "flare/menubar.h"
@@ -19,6 +18,20 @@
 #include "flareqt/gutil.h"
 
 #include "MohoReader.h"
+#include "MohoPlan.h"
+#include "tapp.h"
+#include "flare/tscenehandle.h"
+#include "flare/toonzscene.h"
+#include "flare/txsheet.h"
+#include "flare/txshcell.h"
+#include "flare/txshcolumn.h"
+#include "flare/txshlevel.h"
+#include "flare/txshsimplelevel.h"
+#include "flare/txshleveltypes.h"
+#include "flare/tstageobject.h"
+#include "flare/tstageobjectid.h"
+#include "tvectorimage.h"
+#include "tundo.h"
 #include "tsystem.h"
 
 #include <QMessageBox>
@@ -89,11 +102,64 @@ QString describe(const Moho::Document &doc) {
 
     // Be explicit about the limit, so nobody reads this as a silent success.
     s += QObject::tr(
-             "\n\n  This reads the project's structure and collects its assets. "
-             "Rendering the rig -- pose, mesh deformation, Smart Bones, layer "
-             "effects -- is not implemented, so the artwork is not brought into "
-             "the scene as editable levels.");
+             "\n\n  Layers become xsheet columns, bones become pegbars and "
+             "switch keys drive cells. Mesh deformation, Smart Bones and layer "
+             "effects are not solved; vector geometry arrives as empty named "
+             "vector levels to redraw or trace.");
     return s;
+}
+
+// Build the plan into the current scene. Returns the number of columns made.
+int buildScene(const TFilePath &fp, const Moho::Document &doc) {
+    ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
+    if (!scene) return 0;
+    TXsheet *xsh = scene->getXsheet();
+    const Moho::Plan plan = Moho::makePlan(doc);
+    const TFilePath dir = fp.getParentDir();
+
+    TUndoManager::manager()->beginBlock();
+    // Bones -> pegbars, after any pegbars already in the scene's tree.
+    for (int b = 0; b < doc.bones.size(); ++b) {
+        TStageObject *peg = xsh->getStageObject(TStageObjectId::PegbarId(b));
+        peg->setName(doc.bones[b].name.toStdString());
+        const int par = doc.bones[b].parent;
+        peg->setParent(par >= 0 && par < doc.bones.size()
+                           ? TStageObjectId::PegbarId(par)
+                           : TStageObjectId::TableId);
+    }
+    const int col0 = xsh->getFirstFreeColumnIndex();
+    int made = 0;
+    for (const Moho::ColumnPlan &cp : plan.columns) {
+        const int col = col0 + made;
+        TXshLevel *lvl = nullptr;
+        if (!cp.imagePath.isEmpty()) {
+            const TFilePath img = dir + TFilePath(cp.imagePath.toStdWString());
+            if (TSystem::doesExistFileOrLevel(img))
+                lvl = scene->loadLevel(img, nullptr, cp.name.toStdWString());
+        }
+        if (!lvl) {  // vector / missing bitmap: named, editable vector level
+            lvl = scene->createNewLevel(PLI_XSHLEVEL, cp.name.toStdWString());
+            if (TXshSimpleLevel *sl = lvl ? lvl->getSimpleLevel() : nullptr)
+                sl->setFrame(TFrameId(1), new TVectorImage());
+        }
+        if (!lvl) continue;
+        std::vector<TFrameId> fids;
+        lvl->getFids(fids);
+        const TFrameId fid = fids.empty() ? TFrameId(1) : fids.front();
+        for (int r = 0; r < plan.rowCount; ++r)
+            if (cp.rows.value(r, true)) xsh->setCell(r, col, TXshCell(lvl, fid));
+        TStageObject *obj = xsh->getStageObject(TStageObjectId::ColumnId(col));
+        obj->setName(cp.name.toStdString());
+        if (cp.parentBone >= 0 && cp.parentBone < doc.bones.size())
+            obj->setParent(TStageObjectId::PegbarId(cp.parentBone));
+        if (TXshColumn *c = xsh->getColumn(col))
+            if (!cp.visible) c->setCamstandVisible(false);
+        ++made;
+    }
+    TUndoManager::manager()->endBlock();
+    TApp::instance()->getCurrentScene()->notifySceneChanged();
+    TApp::instance()->getCurrentScene()->notifyCastChange();
+    return made;
 }
 
 }  // namespace
@@ -136,6 +202,7 @@ void ImportMohoProjectCommand::execute() {
     const TFilePath outDir = fp.getParentDir() + TFilePath(
         fp.getName() + "_flare_import");
     const int written = Moho::writeManifest(fp, doc, outDir);
+    const int columns = buildScene(fp, doc);
 
     // One dialog, not two. The previous version showed the output directory in
     // the message box and then popped a second modal saying the same thing --
@@ -147,7 +214,9 @@ void ImportMohoProjectCommand::execute() {
                         QObject::tr("Moho Project"), describe(doc));
     if (written > 0) {
         box->setInformativeText(
-            QObject::tr("Wrote %1 file(s) to:\n%2")
+            QObject::tr("Created %1 column(s), %2 pegbar(s).\nWrote %3 file(s) to:\n%4")
+                .arg(columns)
+                .arg(doc.bones.size())
                 .arg(written)
                 .arg(toQString(outDir)));
     } else {
