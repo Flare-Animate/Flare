@@ -45,6 +45,51 @@ pub unsafe extern "C" fn flare_swf_header(data: *const u8, len: usize, c: *mut u
     }
 }
 
+
+/// Uncompressed SWF: (frame_rate_8.8, frame_count) after the RECT.
+pub fn swf_frames(d: &[u8]) -> Option<(u16, u16)> {
+    if swf_header(d)?.0 != b'F' || d.len() < 9 { return None; }
+    let nbits = (d[8] >> 3) as usize;
+    let off = 8 + (5 + 4 * nbits + 7) / 8;
+    if d.len() < off + 4 { return None; }
+    Some((u16::from_le_bytes([d[off], d[off + 1]]), u16::from_le_bytes([d[off + 2], d[off + 3]])))
+}
+
+/// CFBF header: (major_version, sector_size).
+pub fn cfbf_header(d: &[u8]) -> Option<(u16, u32)> {
+    if d.len() < 0x20 || !d.starts_with(&CFBF_SIG) { return None; }
+    let shift = u16::from_le_bytes([d[0x1E], d[0x1F]]);
+    if shift > 16 { return None; }
+    Some((u16::from_le_bytes([d[0x1A], d[0x1B]]), 1u32 << shift))
+}
+
+fn attr(tag: &str, name: &str) -> Option<f64> {
+    let k = format!(" {}=\"", name);
+    let i = tag.find(&k)? + k.len();
+    tag[i..].split('"').next()?.parse().ok()
+}
+
+/// DOMDocument stage info: (width, height, frameRate) with XFL defaults 550x400@24.
+pub fn xfl_dom_info(d: &[u8]) -> Option<(f64, f64, f64)> {
+    let s = std::str::from_utf8(d).ok()?;
+    let i = s.find("<DOMDocument")?;
+    let tag = &s[i..i + s[i..].find('>')?];
+    Some((attr(tag, "width").unwrap_or(550.0), attr(tag, "height").unwrap_or(400.0), attr(tag, "frameRate").unwrap_or(24.0)))
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn flare_xfl_dom_info(data: *const u8, len: usize, w: *mut f64, h: *mut f64, fps: *mut f64) -> i32 {
+    match xfl_dom_info(bytes(data, len)) {
+        Some((a, b, c)) => {
+            if !w.is_null() { *w = a; }
+            if !h.is_null() { *h = b; }
+            if !fps.is_null() { *fps = c; }
+            0
+        }
+        None => -1,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -59,6 +104,13 @@ mod tests {
         assert_eq!(detect(b"PK\x03\x04....DOMDocument.xml"), Format::XflZip);
         assert_eq!(detect(b"<?xml version=\"1.0\"?><DOMDocument>"), Format::XflXml);
         assert_eq!(detect(b"PK\x03\x04nothing"), Format::Unknown);
+    }
+    #[test] fn parse() {
+        let d = [b'F', b'W', b'S', 10, 0, 0, 0, 0, 0x08, 0, 0x00, 0x18, 5, 0];
+        assert_eq!(swf_frames(&d), Some((0x1800, 5)));
+        let mut c = [0u8; 0x20]; c[..8].copy_from_slice(&CFBF_SIG); c[0x1A] = 3; c[0x1E] = 9;
+        assert_eq!(cfbf_header(&c), Some((3, 512)));
+        assert_eq!(xfl_dom_info(b"<DOMDocument xmlns=\"x\" width=\"1280\" frameRate=\"30\">"), Some((1280.0, 400.0, 30.0)));
     }
     #[test] fn ffi_null() { unsafe { assert_eq!(flare_detect_format(std::ptr::null(), 0), 0); } }
 }

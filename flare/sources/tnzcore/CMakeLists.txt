@@ -421,6 +421,9 @@ target_link_libraries(tnzcore
     ${GL_LIB} ${GLUT_LIB} ${QT_LIB} ${Z_LIB} ${JPEG_LIB} ${LZ4_LIB}
     ${EXTRA_LIBS}
 )
+if(TARGET flare_formats)
+    target_link_libraries(tnzcore flare_formats)
+endif()
 
 # The common/flash and common/moho headers guard their API with TFLASH_EXPORTS
 # to pick dllexport vs dllimport. Nothing ever defined it, so those modules were
