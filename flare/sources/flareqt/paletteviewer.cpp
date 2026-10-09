@@ -270,7 +270,7 @@ void PaletteViewer::toggleVariableWidth(bool checked) {
 
 //-----------------------------------------------------------------------------
 
-void PaletteViewer::save(QSettings &settings) const {
+void PaletteViewer::save(QSettings &settings, bool forPopupIni) const {
   int toolbarOnTop = m_toolbarOnTop ? 1 : 0;
   settings.setValue("toolbarOnTop", toolbarOnTop);
   int visibleParts = m_toolbarVisibleOtherParts;
@@ -1056,6 +1056,7 @@ void PaletteViewer::clearStyleSelection() { m_pageViewer->clearSelection(); }
  */
 void PaletteViewer::setPageView(int currentIndexPage) {
   TPalette *palette    = getPalette();
+  m_currentIndexPage   = palette ? currentIndexPage : 0;
   TPalette::Page *page = palette ? palette->getPage(currentIndexPage) : 0;
   m_pageViewer->setPage(page);
 }

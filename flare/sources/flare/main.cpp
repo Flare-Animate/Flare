@@ -75,6 +75,7 @@
 #include <QApplication>
 #include <QAbstractEventDispatcher>
 #include <QAbstractNativeEventFilter>
+#include <QByteArray>
 #include <QSplashScreen>
 #include <QGLPixelBuffer>
 #include <QTranslator>
@@ -88,6 +89,42 @@
 #include <float.h>
 #endif
 #include <QtPlatformHeaders/QWindowsWindowFunctions>
+
+namespace {
+
+/*! Calls T::setWinTabEnabled(on) if this Qt provides it.
+
+    That entry point exists only in the custom Qt that cherry-picks WinTab
+    support (github.com/shun-iwasawa/qt5, tag v5.15.2_wintab). WITH_WINTAB
+    documents the requirement, but a plain #ifdef cannot enforce it: enabling the
+    option against a stock Qt 5.15.2 produced
+
+        error C2039: 'setWinTabEnabled': is not a member of
+                     'QWindowsWindowFunctions'
+
+    which blames main.cpp rather than the option that caused it.
+
+    The call lives in a template so that it is instantiated only in the overload
+    that is selected. Testing for the symbol and then calling it behind a plain
+    `if` does not work: the condition is not a compile-time constant, so the body
+    is still parsed and the missing member is still an error. Selecting between
+    two overloads by argument type is something the compiler can act on, and the
+    overload it rejects is never instantiated.
+
+    With the cherry-picked Qt the first overload matches and the toggle happens.
+    With stock Qt only the fallback matches, and the code does what the option
+    already means for a Qt without native WinTab: leave Qt's WinTab handling off.
+*/
+template <typename T>
+auto setWinTabIfAvailable(bool on, int)
+    -> decltype(T::setWinTabEnabled(on), void()) {
+  T::setWinTabEnabled(on);
+}
+
+template <typename T>
+void setWinTabIfAvailable(bool, long) {}
+
+}  // namespace
 #endif
 
 using namespace DVGui;
@@ -174,6 +211,8 @@ static void initFlareEnv(QHash<QString, QString> &argPathValues) {
         Check if the xxxroot is defined and corresponds to an existing folder
   --*/
 
+  TEnv::initUserStuffDir();
+
   TFilePath stuffDir = TEnv::getStuffDir();
   if (stuffDir == TFilePath())
     fatalError(
@@ -200,7 +239,9 @@ static void initFlareEnv(QHash<QString, QString> &argPathValues) {
   TVectorImagePatternStrokeStyle::setRootDir(library);
   TVectorBrushStyle::setRootDir(library);
 
-  CustomStyleManager::setRootPath(library);
+  // Upstream passes the library folder through the style-manager constructors
+  // now (see stylemanager.h); the global root path this used to set no longer
+  // exists after the port, so there is nothing to set here.
 
   // sembra indispensabile nella lettura dei .tab 2.2:
   TPalette::setRootDir(library);
@@ -501,7 +542,7 @@ if (QFileInfo(localSplashPath).exists() && QFileInfo(localSplashPath).isFile()) 
   fmt.setStencil(true);
   QGLFormat::setDefaultFormat(fmt);
 
-#ifndef __HAIKU__
+#if !defined(__HAIKU__) && !defined(MACOSX)
   glutInit(&argc, argv);
 #endif
 
@@ -763,7 +804,7 @@ if (QFileInfo(localSplashPath).exists() && QFileInfo(localSplashPath).isFile()) 
 
 #ifdef WITH_WINTAB
   bool useQtNativeWinInk = Preferences::instance()->isQtNativeWinInkEnabled();
-  QWindowsWindowFunctions::setWinTabEnabled(!useQtNativeWinInk);
+  setWinTabIfAvailable<QWindowsWindowFunctions>(!useQtNativeWinInk, 0);
 #endif
 
   splash.showMessage(offsetStr + "Loading style sheet ...", Qt::AlignCenter,
@@ -823,7 +864,12 @@ if (QFileInfo(localSplashPath).exists() && QFileInfo(localSplashPath).isFile()) 
   // Show floating panels only after the main window has been shown
   w.startupFloatingPanels();
 
-  CommandManager::instance()->execute(T_Hand);
+  const QByteArray defaultStartupTool =
+      Preferences::instance()->getDefaultStartupTool().toLatin1();
+  if (CommandManager::instance()->getAction(defaultStartupTool.constData()))
+    CommandManager::instance()->execute(defaultStartupTool.constData());
+  else
+    CommandManager::instance()->execute(T_Hand);
   if (!loadFilePath.isEmpty()) {
     splash.showMessage(
         QString("Loading file '") + loadFilePath.getQString() + "'...",
