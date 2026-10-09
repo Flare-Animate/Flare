@@ -45,6 +45,7 @@ TARGETS = [
     ("moho_reader_tests", "moho"),
     ("flareupdater_tests", "none"),
     ("flareupdater_net_tests", "none"),
+    ("remote_protocol_tests", "none"),
 ]
 
 
