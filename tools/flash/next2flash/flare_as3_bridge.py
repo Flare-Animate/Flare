@@ -262,12 +262,10 @@ def cmd_capabilities() -> dict:
     the tests both rely on, so capability reporting lives here instead.
     """
     available = False
-    version = None
     if _vendor_available():
         try:
             _import_vendor()
             available = True
-            version = "next2flash-as3-decompiler"
         except Exception as e:
             print(f"flare_as3_bridge: vendor import failed: {e}", file=sys.stderr)
 
