@@ -18,6 +18,11 @@
 #include "traster.h"
 #include "trasterimage.h"
 
+// Needed by convertSingleFileToSequence, ported from tahoma2d: it takes a TXsheet
+// pointer and only ever dereferences it, so a forward declaration is enough --
+// and the build failed with "syntax error: identifier 'TXsheet'" without one.
+class TXsheet;
+
 // Qt includes
 #include <QObject>
 #include <QStringList>
@@ -192,6 +197,17 @@ public:
   TRasterImageP getFrameToCleanup(const TFrameId &fid,
                                   bool toBeLineProcessed) const;
   TRasterImageP getFrameRasterized(const TFrameId &fid, TPointD dpi) const;
+
+  // Ported from tahoma2d (include/toonz/txshsimplelevel.h, class TXshSimpleLevel).
+  // filmstripcommand.cpp sets and reads the drawing marks these carry -- the
+  // diamond and other symbols drawn in a cell -- and the upstream-sync merge
+  // brought that .cpp without these declarations.
+  bool isSingleFileLevel();
+  bool canConvertSingleFileToSequence();
+  void convertSingleFileToSequence(TXsheet *xsh);
+  std::map<TFrameId, int> getDrawingMarks() const { return m_drawingMarks; }
+  int getDrawingMark(const TFrameId &fid) const;
+  void setDrawingMark(const TFrameId &fid, int markId);
 
   std::string getImageId(const TFrameId &fid, int frameStatus = -1) const;
   std::string getIconId(const TFrameId &fid, int frameStatus = -1) const;
@@ -377,6 +393,11 @@ private:
   //! Save simple level in scene-decoded path \p decodedFp.
   void saveSimpleLevel(const TFilePath &decodedFp,
                        bool overwritePalette = true);
+
+  // Ported from tahoma2d, with the access it has upstream: backing store for
+  // the drawing marks declared in the public section above. Declaring it public
+  // would compile and link and change nothing visible, so the section matters.
+  std::map<TFrameId, int> m_drawingMarks;
 };
 
 //=====================================================================================

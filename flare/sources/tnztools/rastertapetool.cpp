@@ -34,10 +34,9 @@
 using namespace ToolUtils;
 
 TEnv::StringVar AutocloseVectorType("InknpaintAutocloseVectorType", "Normal");
-TEnv::IntVar AutocloseDistance("InknpaintAutocloseDistance", 30);
-TEnv::DoubleVar AutocloseAngle("InknpaintAutocloseAngle", 60.0);
+// AutocloseDistance/Angle/Opacity are defined in flarelib/autoclose.cpp and
+// imported through flare/autoclose.h (DVVAR); see there for why they moved.
 TEnv::IntVar AutocloseRange("InknpaintAutocloseRange", 0);
-TEnv::IntVar AutocloseOpacity("InknpaintAutocloseOpacity", 255);
 TEnv::IntVar AutocloseIgnoreAutoPaint("AutocloseIgnoreAutoPaint", 0);
 
 #define NORMAL_CLOSE L"Normal"

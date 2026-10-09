@@ -24,6 +24,7 @@
 
 //    Forward declarations
 
+class PaletteViewer;
 class TPaletteHandle;
 
 //=====================================================
@@ -47,6 +48,8 @@ class DVAPI PaletteController final : public QObject {
   //! current palette handle specified
   //! on
   //!  the last setCurrentPalette() invocation.
+  PaletteViewer *m_currentPaletteViewer = nullptr;
+
   TPixel32 m_colorSample;
   bool m_colorAutoApplyEnabled;
 
@@ -83,6 +86,11 @@ public:
   void notifyStylePassivePicked(const int ink, const int paint,
                                 const int tone) {
     emit stylePassivePicked(ink, paint, tone);
+  }
+
+  PaletteViewer *getCurrentPaletteViewer() { return m_currentPaletteViewer; }
+  void setCurrentPaletteViewer(PaletteViewer *viewer) {
+    m_currentPaletteViewer = viewer;
   }
 
 public slots:
