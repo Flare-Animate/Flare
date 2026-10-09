@@ -1968,6 +1968,9 @@ void MainWindow::defineActions() {
   createMenuFileAction(MI_ImportFlashVector,
                        QT_TR_NOOP("&Import Flash (FLA / XFL / SWF / SWC / FLV / F4V / AS)..."), "",
                        "import_flash");
+  createMenuFileAction(MI_SwfRoundTrip,
+                       QT_TR_NOOP("SWF &ActionScript Round Trip (Next2Flash)..."),
+                       "", "import_flash");
   createMenuFileAction(MI_ImportMohoProject,
                        QT_TR_NOOP("Import &Moho Project (rig structure and assets)..."), "",
                        "import_moho");

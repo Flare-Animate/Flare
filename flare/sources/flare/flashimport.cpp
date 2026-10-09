@@ -911,3 +911,52 @@ void ImportFlashVectorCommand::execute() {
       }
     }
 }
+
+// ---------------------------------------------------------------------------
+// Command: SWF ActionScript round trip (Next2Flash). Decompiles AS3 next to
+// the SWF, then optionally re-emits it with a {"strings":{...}} patch; all
+// non-ABC tags stay byte-identical. Degrades with a message without Python.
+// ---------------------------------------------------------------------------
+
+class SwfRoundTripCommand final : public MenuItemHandler {
+public:
+    SwfRoundTripCommand() : MenuItemHandler(MI_SwfRoundTrip) {}
+    void execute() override {
+        if (!As3Bridge::isAvailable()) {
+            DVGui::warning(QObject::tr("ActionScript support unavailable: %1")
+                               .arg(As3Bridge::unavailableReason()));
+            return;
+        }
+        const QString in = QFileDialog::getOpenFileName(
+            nullptr, QObject::tr("SWF Round Trip: choose SWF"), QString(),
+            "SWF (*.swf)");
+        if (in.isEmpty()) return;
+        const QFileInfo fi(in);
+        const QString outDir = fi.absolutePath() + "/" + fi.completeBaseName() + "_as3";
+        QDir().mkpath(outDir);
+        const As3Bridge::Result d = As3Bridge::decompile(
+            TFilePath(in.toStdWString()), TFilePath(outDir.toStdWString()));
+        if (!d.ok) {
+            DVGui::warning(QObject::tr("Decompile failed: %1").arg(d.error));
+            return;
+        }
+        const QString patch = QFileDialog::getOpenFileName(
+            nullptr, QObject::tr("Optional string patch JSON (cancel to skip)"),
+            outDir, "JSON (*.json)");
+        if (patch.isEmpty()) {
+            DVGui::info(QObject::tr("Decompiled %1 class(es) to %2")
+                            .arg(d.classes.size()).arg(outDir));
+            return;
+        }
+        const QString out =
+            fi.absolutePath() + "/" + fi.completeBaseName() + "_patched.swf";
+        const As3Bridge::Result p = As3Bridge::patchStrings(
+            TFilePath(in.toStdWString()), TFilePath(patch.toStdWString()),
+            TFilePath(out.toStdWString()));
+        if (!p.ok)
+            DVGui::warning(QObject::tr("Patch failed: %1").arg(p.error));
+        else
+            DVGui::info(QObject::tr("Round trip: %1 string(s) in %2 block(s) -> %3")
+                            .arg(p.replaced).arg(p.blocks).arg(out));
+    }
+} g_swfRoundTripCommand;
