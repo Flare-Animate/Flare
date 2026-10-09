@@ -29,6 +29,7 @@
 
 // TnzTools includes
 #include "tools/toolhandle.h"
+#include "tools/toolcommandids.h"
 
 // ToonzQt includes
 #include "flareqt/gutil.h"
@@ -39,6 +40,7 @@
 #include "flareqt/imageutils.h"
 
 // ToonzLib includes
+#include "flare/preferences.h"
 #include "flare/palettecontroller.h"
 #include "flare/tscenehandle.h"
 #include "flare/tobjecthandle.h"
@@ -86,6 +88,7 @@
 // Qt includes
 #include <QLabel>
 #include <QApplication>
+#include <QByteArray>
 #include <QClipboard>
 #include <QDirIterator>
 
@@ -106,6 +109,22 @@ TXshLevel *getLevelByPath(ToonzScene *scene, const TFilePath &actualPath);
 
 // forward declaration
 class RenderingSuspender;
+
+class SaveInProgressGuard {
+  bool m_acquired;
+
+public:
+  SaveInProgressGuard()
+      : m_acquired(!TApp::instance()->isSaveInProgress()) {
+    if (m_acquired) TApp::instance()->setSaveInProgress(true);
+  }
+
+  ~SaveInProgressGuard() {
+    if (m_acquired) TApp::instance()->setSaveInProgress(false);
+  }
+
+  bool acquired() const { return m_acquired; }
+};
 
 //===========================================================================
 // class ResourceImportDialog
@@ -1362,7 +1381,12 @@ void IoCmd::newScene() {
   ToolHandle *toolH = TApp::instance()->getCurrentTool();
   if (toolH && toolH->getTool()) toolH->getTool()->reset();
 
-  CommandManager::instance()->execute("T_Hand");
+  const QByteArray defaultNewSceneTool =
+      Preferences::instance()->getDefaultNewSceneTool().toLatin1();
+  if (CommandManager::instance()->getAction(defaultNewSceneTool.constData()))
+    CommandManager::instance()->execute(defaultNewSceneTool.constData());
+  else
+    CommandManager::instance()->execute(T_Hand);
 
   CommandManager::instance()->enable(MI_SaveSubxsheetAs, false);
 
@@ -1371,8 +1395,8 @@ void IoCmd::newScene() {
   app->getCurrentObject()->setIsSpline(false);
   app->getCurrentColumn()->setColumnIndex(0);
 
-  // CleanupParameters *cp = scene->getProperties()->getCleanupParameters();
-  // CleanupParameters::GlobalParameters.assign(cp);
+  CleanupParameters *cp = scene->getProperties()->getCleanupParameters();
+  CleanupParameters::GlobalParameters.assign(cp);
   // CleanupSettingsModel::onSceneSwitched()
 
   // updateCleanupSettingsPopup();
@@ -1383,7 +1407,7 @@ void IoCmd::newScene() {
 
   if (!TApp::instance()->isApplicationStarting())
     QApplication::clipboard()->clear();
-  TSelection::setCurrent(0);
+  TSelection::setCurrent(nullptr);
   TUndoManager::manager()->reset();
 
   bool exist = TSystem::doesExistFileOrLevel(
@@ -1406,20 +1430,23 @@ bool IoCmd::saveScene(const TFilePath &path, int flags) {
   TFilePath scenePath = path;
   if (scenePath.getType() == "") scenePath = scenePath.withType("tnz");
   if (scenePath.getType() != "tnz") {
-    error(
-        QObject::tr("%1 has an invalid file extension.").arg(toQString(path)));
+    if (!isAutosave)
+      error(QObject::tr("%1 has an invalid file extension.")
+                .arg(toQString(path)));
     return false;
   }
   TFileStatus dirStatus(scenePath.getParentDir());
   if (!(dirStatus.doesExist() && dirStatus.isWritable())) {
-    error(QObject::tr("%1 is an invalid path.")
-              .arg(toQString(scenePath.getParentDir())));
+    if (!isAutosave)
+      error(QObject::tr("%1 is an invalid path.")
+                .arg(toQString(scenePath.getParentDir())));
     return false;
   }
 
-  // notify user if the scene will be saved including any "broken" expression
-  // reference
-  if (!ExpressionReferenceManager::instance()->askIfParamIsIgnoredOnSave(
+  // Autosave must not enter a modal decision state. Broken-expression
+  // references are still reported when the user explicitly saves.
+  if (!isAutosave &&
+      !ExpressionReferenceManager::instance()->askIfParamIsIgnoredOnSave(
           saveSubxsheet))
     return false;
 
@@ -1438,6 +1465,9 @@ bool IoCmd::saveScene(const TFilePath &path, int flags) {
 
   TXsheet *xsheet = 0;
   if (saveSubxsheet) xsheet = TApp::instance()->getCurrentXsheet()->getXsheet();
+
+  SaveInProgressGuard saveGuard;
+  if (!saveGuard.acquired()) return false;
 
   // Automatically remove unused levels
   if (!saveSubxsheet && !isAutosave &&
@@ -1483,7 +1513,7 @@ bool IoCmd::saveScene(const TFilePath &path, int flags) {
   TFilePath oldFullPath = scene->decodeFilePath(scene->getScenePath());
   TFilePath newFullPath = scene->decodeFilePath(scenePath);
 
-  QApplication::setOverrideCursor(Qt::WaitCursor);
+  if (!isAutosave) QApplication::setOverrideCursor(Qt::WaitCursor);
   if (app->getCurrentScene()->getDirtyFlag())
     scene->getContentHistory(true)->modifiedNow();
 
@@ -1503,26 +1533,48 @@ bool IoCmd::saveScene(const TFilePath &path, int flags) {
 
   // Don't store current cleanup parameters to scene's parameters' cache if
   // autosave (would save to scene file) .
+  CleanupParameters *cp = scene->getProperties()->getCleanupParameters();
+  CleanupParameters keepCP(*cp);
   if (!isAutosave) {
-    CleanupParameters::GlobalParameters.assign(
-        scene->getProperties()->getCleanupParameters());
+    // In case of a .cln file be loaded into GlobalParemeters,
+    // we should also write these info into .tnz (scene file)
+    cp->assign(&CleanupParameters::GlobalParameters, false);
   }
 
-  // Must wait for current save to finish, just in case
-  while (TApp::instance()->isSaveInProgress());
-
-  TApp::instance()->setSaveInProgress(true);
+  bool saveSucceeded = true;
   try {
     scene->save(scenePath, xsheet);
   } catch (const TSystemException &se) {
-    DVGui::warning(QString::fromStdWString(se.getMessage()));
+    if (!isAutosave)
+      DVGui::warning(QString::fromStdWString(se.getMessage()));
+    saveSucceeded = false;
   } catch (...) {
-    DVGui::error(QObject::tr("Couldn't save %1").arg(toQString(scenePath)));
+    if (!isAutosave)
+      DVGui::error(QObject::tr("Couldn't save %1").arg(toQString(scenePath)));
+    saveSucceeded = false;
   }
-  TApp::instance()->setSaveInProgress(false);
+
+  if (!isAutosave) {
+    // Restore the cleanup settings without replacing the palette object.
+    // Palette handles keep raw pointers to it, and resetting the cleanup handle
+    // here would also make the cleanup palette current.
+    cp->assign(&keepCP, false);
+  }
+
+  cp->assign(&keepCP);
+  // Make sure that the current cleanup palette is set to currentParams' palette
+  TApp::instance()
+      ->getPaletteController()
+      ->getCurrentCleanupPalette()
+      ->setPalette(cp->m_cleanupPalette.getPointer());
 
   // in case of saving subxsheet, revert the level paths after saving
   revertOrgLevelPaths();
+
+  if (!saveSucceeded) {
+    if (!isAutosave) QApplication::restoreOverrideCursor();
+    return false;
+  }
 
   if (!overwrite && !saveSubxsheet)
     app->getCurrentScene()->notifyNameSceneChange();
@@ -1546,7 +1598,7 @@ bool IoCmd::saveScene(const TFilePath &path, int flags) {
                                  ->getName()
                                  .getName()));
 
-  QApplication::restoreOverrideCursor();
+  if (!isAutosave) QApplication::restoreOverrideCursor();
 
   bool exist = TSystem::doesExistFileOrLevel(
       scene->decodeFilePath(scene->getScenePath()));
@@ -1565,6 +1617,8 @@ bool IoCmd::saveScene(int flags) {
       TApp::instance()->getCurrentSelection()->getSelection();
   ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
   if (scene->isUntitled()) {
+    if (flags & AUTO_SAVE) return false;
+
     static SaveSceneAsPopup *popup = 0;
     if (!popup) popup = new SaveSceneAsPopup();
     int ret = popup->exec();
@@ -1729,39 +1783,43 @@ bool IoCmd::saveAll(int flags) {
   // try to save as much as possible
   // if anything is wrong, return false
 
+  bool isAutosave     = (flags & AUTO_SAVE) != 0;
   QMainWindow *parent = TApp::instance()->getMainWindow();
-  QLabel *Label       = new QLabel("Saving...", parent);
-  Label->setStyleSheet(
-      "font-size: 20px;"
-      "background-color: black; color: white; "
-      "font-weight: bold; padding: 5px;");
-  Label->adjustSize();
-  QPoint pos = parent->rect().bottomRight();
-  Label->move(pos.x() - Label->width() - 40, pos.y() - Label->height() - 30);
-  Label->show();
-
-  // NOTE: saveScene already check saveInProgress
-  bool result = saveScene(flags);
-
-  saveNonSceneFiles();
-
-  // End Label Notice
-  if (result) {
-    Label->setText("Saved All");
+  QLabel *Label       = nullptr;
+  if (!isAutosave) {
+    Label = new QLabel("Saving...", parent);
     Label->setStyleSheet(
         "font-size: 20px;"
-        "background-color: black; color: green; "
+        "background-color: black; color: white; "
         "font-weight: bold; padding: 5px;");
-  } else {
-    Label->setText("Save All Failed");
-    Label->setStyleSheet(
-        "font-size: 20px;"
-        "background-color: black; color: red; "
-        "font-weight: bold; padding: 5px;");
+    Label->adjustSize();
+    QPoint pos = parent->rect().bottomRight();
+    Label->move(pos.x() - Label->width() - 40,
+                pos.y() - Label->height() - 30);
+    Label->show();
   }
-  Label->adjustSize();
 
-  QTimer::singleShot(2500, Label, &QLabel::deleteLater);
+  bool sceneSaved = saveScene(flags);
+  IoCmd::saveNonSceneFiles();
+  bool result = sceneSaved;
+
+  if (Label) {
+    if (result) {
+      Label->setText("Saved All");
+      Label->setStyleSheet(
+          "font-size: 20px;"
+          "background-color: black; color: green; "
+          "font-weight: bold; padding: 5px;");
+    } else {
+      Label->setText("Save All Failed");
+      Label->setStyleSheet(
+          "font-size: 20px;"
+          "background-color: black; color: red; "
+          "font-weight: bold; padding: 5px;");
+    }
+    Label->adjustSize();
+    QTimer::singleShot(2500, Label, &QLabel::deleteLater);
+  }
   return result;
 }
 
@@ -1866,18 +1924,6 @@ bool IoCmd::loadScene(const TFilePath &path, bool updateRecentFile,
   bool isXdts         = scenePath.getType() == "xdts";
   bool isSxf          = scenePath.getType() == "sxf";
   if (scenePath.getType() == "") scenePath = scenePath.withType("tnz");
-  // FLA / XFL — route to Flash import instead of treating as a scene file
-  if (scenePath.getType() == "fla" || scenePath.getType() == "xfl") {
-    QAction *act = CommandManager::instance()->getAction(MI_ImportFlashVector);
-    if (act) {
-      QMetaObject::invokeMethod(act, "trigger", Qt::QueuedConnection);
-      return true;
-    }
-    DVGui::error(QObject::tr(
-        "Flash import is not available.\n"
-        "Use File \u2192 Import \u2192 Flash to open FLA / XFL files."));
-    return false;
-  }
   if (scenePath.getType() != "tnz" && !isXdts && !isSxf) {
     QString msg;
     msg = QObject::tr("File %1 doesn't look like a TOONZ Scene")
@@ -2031,8 +2077,8 @@ bool IoCmd::loadScene(const TFilePath &path, bool updateRecentFile,
   PreviewFxManager::instance()->reset();
   // updateCleanupSettingsPopup();
   /*- CleanupParameterの更新 -*/  // CleanupSettingsModel::onSceneSwitched()
-  // CleanupParameters *cp = scene->getProperties()->getCleanupParameters();
-  // CleanupParameters::GlobalParameters.assign(cp);
+  CleanupParameters *cp = scene->getProperties()->getCleanupParameters();
+  CleanupParameters::GlobalParameters.assign(cp);
   CacheFxCommand::instance()->onSceneLoaded();
 
 #ifdef USE_SQLITE_HDPOOL
@@ -2162,19 +2208,9 @@ bool IoCmd::loadScene() {
   if (fileSelection) {
     std::vector<TFilePath> files;
     fileSelection->getSelectedFiles(files);
-    if (files.size() == 1 && files[0] != TFilePath()) {
-      const std::string t = files[0].getType();
-      if (t == "tnz")
-        return loadScene(files[0]);
-      if (t == "fla" || t == "xfl") {
-        // Route Flash files to the import command
-        QAction *act = CommandManager::instance()->getAction(MI_ImportFlashVector);
-        if (act) {
-          QMetaObject::invokeMethod(act, "trigger", Qt::QueuedConnection);
-          return true;
-        }
-      }
-    }
+    if (files.size() == 1 && files[0] != TFilePath() &&
+        files[0].getType() == "tnz")
+      return loadScene(files[0]);
   }
 
   static LoadScenePopup *popup = 0;
@@ -2493,7 +2529,7 @@ int IoCmd::loadResources(LoadResourceArguments &args, bool updateRecentFile,
     if (importDialog.aborted()) break;
 
     LoadResourceArguments::ResourceData rd(args.resourceDatas[r]);
-    TFilePath &path  = rd.m_path;
+    TFilePath path   = rd.m_path;
     QString origName = path.withoutParentDir().getQString();
 
     if (!path.isLevelName())
@@ -2501,8 +2537,13 @@ int IoCmd::loadResources(LoadResourceArguments &args, bool updateRecentFile,
 
     // duplicate check
     auto isDuplicate =
-        [&rd](const IoCmd::LoadResourceArguments::ResourceData &existingRd) {
-          return existingRd.m_path == rd.m_path;
+        [&path,
+         scene](const IoCmd::LoadResourceArguments::ResourceData &existingRd) {
+          if (!existingRd.m_path.isAbsolute() || !path.isAbsolute())
+            return scene->decodeFilePath(existingRd.m_path) ==
+                   scene->decodeFilePath(path);
+          else
+            return existingRd.m_path == path;
         };
     if (std::find_if(rds.begin(), rds.end(), isDuplicate) != rds.end()) {
       if (!all) {
@@ -2868,7 +2909,7 @@ void IoCmd::convertNAARaster2TLV(
   TApp *app                           = TApp::instance();
   ToonzScene *scene                   = app->getCurrentScene()->getScene();
   for (auto &rd : rds) {
-    TFilePath &path = rd.m_path;
+    TFilePath path = rd.m_path;
     if (path.getDots() == ".." &&
         rasterExts.contains(QString::fromStdString(path.getType()).toLower())) {
       if (!path.isAbsolute()) path = scene->decodeFilePath(path);
@@ -2897,10 +2938,20 @@ void IoCmd::convertNAARaster2TLV(
       }
       IoCmd::ConvertingPopup convertingPopup(TApp::instance()->getMainWindow(),
                                              path);
-      /*convertingPopup.show();
-      ImageUtils::convertNaa2Tlv(path, dstPath, from, to,
-      convertingPopup.getNotifier(), 0, true, dpi); convertingPopup.hide(); path
-      = convertingPopup.getResultPath();*/
+      // The merge-branch source read `ImageUtils::isPaintedImage(first)`, a name
+      // that exists in no version of this tree. The equivalent available probe
+      // in flareqt/imageutils.h, in this same namespace, is isAAImage.
+      if (ImageUtils::isAAImage(first)) {
+        convertingPopup.setMaximum(to - from + 1);
+        convertingPopup.show();
+        ImageUtils::convertNaa2Tlv(path, dstPath, from, to,
+                                   convertingPopup.getNotifier(), 0, true, dpi);
+        convertingPopup.hide();
+        if (!convertingPopup.wasCanceled())
+          rd = LoadResourceArguments::ResourceData(dstPath);
+        return;
+      }
+
       Convert2Tlv converter(path, TFilePath(), dstPath.getParentDir(),
                             QString::fromStdWString(dstPath.getWideName()),
                             from, to, false, TFilePath(), 0, 0, 50, true, true,
@@ -2927,7 +2978,8 @@ void IoCmd::convertNAARaster2TLV(
           }
         }
         convertingPopup.hide();
-        if (!convertingPopup.wasCanceled()) path = scene->codeFilePath(dstPath);
+        if (!convertingPopup.wasCanceled())
+          rd = LoadResourceArguments::ResourceData(dstPath);
       }
     }
   }
@@ -3488,4 +3540,3 @@ public:
   SaveAllLevelsCommandHandler() : MenuItemHandler(MI_SaveAllLevels) {}
   void execute() { IoCmd::saveNonSceneFiles(); }
 } saveAllLevelsCommandHandler;
-

@@ -181,6 +181,15 @@ TVectorBrushStyle::TVectorBrushStyle(const std::string &brushName,
 
 //-----------------------------------------------------------------
 
+TVectorBrushStyle::TVectorBrushStyle(TFilePath basePath,
+                                     const std::string &brushName,
+                                     TVectorImageP vi)
+    : m_brush(vi), m_basePath(basePath) {
+  loadBrush(brushName);
+}
+
+//-----------------------------------------------------------------
+
 TVectorBrushStyle::~TVectorBrushStyle() {}
 
 //-----------------------------------------------------------------

@@ -3099,6 +3099,7 @@ XsheetViewer {
   qproperty-CurrentTimeIndicatorColor: hsl(0, 100%, 64%);
   qproperty-EmptyColumnHeadColor: #514d4c;
   qproperty-CellFocusColor: orange;
+  qproperty-ColumnFocusColor: #80b5e6;
   qproperty-ColumnHeadPastelizer: transparent;
   qproperty-SelectedColumnHead: rgba(236, 204, 198, 0.5);
   qproperty-FoldedColumnBGColor: rgba(255, 255, 255, 0.45);

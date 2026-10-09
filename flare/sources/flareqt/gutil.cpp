@@ -1285,3 +1285,17 @@ QSize SvgIconEngine::getBestToolbarSizeByDpr(const QSize &requestedSize) {
   return bestSize;
 }
 
+// Tahoma2D's key-name translator, verbatim: on macOS it swaps Windows modifier
+// names for glyphs, everywhere else it returns the key unchanged.
+QString trModKey(QString key) {
+#ifdef MACOSX
+  // Convert Windows key modifier to macOS modifier
+  key = key.replace("Ctrl", QString::fromStdWString(L"\u2318"));
+  key = key.replace("Shift", QString::fromStdWString(L"\u21e7"));
+  key = key.replace("Alt", QString::fromStdWString(L"\u2325"));
+  key = key.replace("Meta", QString::fromStdWString(L"\u2303"));
+  key = key.replace("+", "");
+#endif
+  return key;
+}
+
