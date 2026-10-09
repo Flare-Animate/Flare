@@ -133,7 +133,7 @@ public:
 #else
     TFilePath systemVarPath = getSystemVarPath(varName);
     if (systemVarPath.isEmpty()) {
-      std::cout << "varName:" << varName << " TAHOMA2DROOT not set..."
+      std::cout << "varName:" << varName << " not set..."
                 << std::endl;
       return "";
     }
@@ -736,8 +736,17 @@ void TEnv::initUserStuffDir() {
   TFilePath configuredRoot = eg->getRootVarPath();
   if (!configuredRoot.isEmpty() && configuredRoot != userStuffDir) return;
 
-  if (!QDir().mkpath(userStuffDir.getParentDir().getQString())) return;
-  if (!seedStuffTreeIfMissing(userStuffDir)) return;
+  // Seeding can fail (read-only HOME, e.g. live distros / AppImage on Puppy
+  // Linux). Fall back to using the packaged stuff dir in place so FLAREROOT
+  // is never left unset.
+  if (!QDir().mkpath(userStuffDir.getParentDir().getQString()) ||
+      !seedStuffTreeIfMissing(userStuffDir)) {
+    if (configuredRoot.isEmpty()) {
+      TFilePath installed = getInstalledStuffDir();
+      if (TFileStatus(installed).isDirectory()) eg->setStuffDir(installed);
+    }
+    return;
+  }
   if (configuredRoot.isEmpty()) writeRootVar(eg, userStuffDir);
 #endif
 }
