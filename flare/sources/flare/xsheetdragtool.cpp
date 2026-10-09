@@ -186,7 +186,7 @@ public:
     int firstCol =
         Preferences::instance()->isXsheetCameraColumnVisible() ? -1 : 0;
     if (col < firstCol || (!getViewer()->orientation()->isVerticalTimeline() &&
-                           col >= xsh->getColumnCount()))
+                           col > xsh->getColumnCount()))
       return;
     if (row < 0) row = 0;
     if (m_modifier & Qt::ControlModifier)
@@ -1590,7 +1590,7 @@ public:
     int firstCol =
         Preferences::instance()->isXsheetCameraColumnVisible() ? -1 : 0;
     if (col < firstCol || (!getViewer()->orientation()->isVerticalTimeline() &&
-                           col >= xsh->getColumnCount()))
+                           col > xsh->getColumnCount()))
       return;
     TColumnSelection *selection = getViewer()->getColumnSelection();
     selection->selectNone();
@@ -1686,7 +1686,7 @@ public:
 //-----------------------------------------------------------------------------
 
 class ColumnMoveDragTool final : public XsheetGUI::DragTool {
-  int m_offset, m_firstCol, m_lastCol, m_origOffset;
+  int m_offset, m_firstCol, m_lastCol, m_origOffset, m_columnLimit;
 
 public:
   ColumnMoveDragTool(XsheetViewer *viewer)
@@ -1694,7 +1694,8 @@ public:
       , m_firstCol(-1)
       , m_lastCol(-1)
       , m_offset(0)
-      , m_origOffset(0) {}
+      , m_origOffset(0)
+      , m_columnLimit(0) {}
 
   void onClick(const QMouseEvent *event) override {
     QPoint xy                   = event->pos();
@@ -1724,6 +1725,7 @@ public:
     if (indices.empty()) return;
     m_firstCol = m_lastCol = *indices.begin();
     assert(m_firstCol >= 0);
+    m_columnLimit = getViewer()->getXsheet()->getColumnCount();
     m_origOffset = m_offset = m_firstCol - col;
     assert(m_lastCol == *indices.begin());
     getViewer()->update();
@@ -1743,7 +1745,7 @@ public:
 
     assert(m_lastCol == *indices.begin());
 
-    int currEnd = xsh->getColumnCount() - 1;
+    int currEnd = m_columnLimit;
     int origCol = col;
     if (col < 0)
       col = 0;
