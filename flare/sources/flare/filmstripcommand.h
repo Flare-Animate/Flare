@@ -20,6 +20,12 @@ class TXshSoundLevel;
 namespace FilmstripCmd {
 void addFrames(TXshSimpleLevel *sl, int start, int end, int step);
 
+// The synced filmstripcommand.cpp defines these but the namespace never
+// declared them. Added here; matches the definitions in the .cpp.
+void deleteFrames(TXshSimpleLevel *sl, std::set<TFrameId> &frames);
+void setDrawingMark(TXshSimpleLevel *sl, std::set<TFrameId> &frames,
+                    int markId);
+
 void renumber(TXshSimpleLevel *sl, std::set<TFrameId> &frames, int startFrame,
               int stepFrame);
 void renumber(TXshSimpleLevel *sl,

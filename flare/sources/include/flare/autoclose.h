@@ -23,10 +23,16 @@
 #endif
 
 extern TEnv::StringVar AutocloseVectorType;
-extern TEnv::IntVar AutocloseDistance;
-extern TEnv::DoubleVar AutocloseAngle;
+// Defined once in flarelib (autoclose.cpp), which is where fill.cpp's gap-
+// closing path reads them from. They cannot stay defined in tnztools/
+// rastertapetool.cpp: flarelib.dll would not link on Windows, where a DLL
+// needs the definition in a library it links. DVVAR exports them, and
+// tnztools links flarelib, so the tools keep working through this header.
+// Types and defaults follow upstream Tahoma2D (DoubleVar distance).
+extern DVVAR TEnv::DoubleVar AutocloseDistance;
+extern DVVAR TEnv::DoubleVar AutocloseAngle;
 extern TEnv::IntVar AutocloseRange;
-extern TEnv::IntVar AutocloseOpacity;
+extern DVVAR TEnv::IntVar AutocloseOpacity;
 extern TEnv::IntVar AutocloseIgnoreAutoPaint;
 
 struct AutocloseSettings {
@@ -55,8 +61,11 @@ public:
               std::set<int> autoPaintStyles = std::set<int>());
   ~TAutocloser();
 
-  // calculates the segments and draws them on the raster
-  void exec();
+  // calculates the segments and draws them on the raster, returning whether any
+  // gap was actually closed. Live Tahoma2D declares bool here; every sync-branch
+  // copy still says void while its fill.cpp already assigns the result -- the
+  // sync paired a newer fill.cpp with an older header. Body matches upstream.
+  bool exec();
   void exec(std::string id);
 
   // does not modify the raster. It only calculates the segments

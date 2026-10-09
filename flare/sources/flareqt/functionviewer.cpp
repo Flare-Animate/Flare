@@ -796,7 +796,7 @@ bool FunctionViewer::isExpressionPageActive() {
 
 //----------------------------------------------------------------------------
 
-void FunctionViewer::save(QSettings &settings) const {
+void FunctionViewer::save(QSettings &settings, bool forPopupIni) const {
   settings.setValue("toggleStatus", m_toggleStatus);
   settings.setValue("showIbtwnValuesInSheet",
                     m_numericalColumns->isIbtwnValueVisible());

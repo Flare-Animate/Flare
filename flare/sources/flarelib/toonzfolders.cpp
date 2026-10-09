@@ -91,6 +91,12 @@ TFilePath FlareFolder::getLibraryFolder() {
   return fp;
 }
 
+// Upstream ToonzFolder::getMyFavoritesFolder, verbatim apart from the class
+// name. See the header note.
+TFilePath FlareFolder::getMyFavoritesFolder() {
+  return getMyModuleDir() + "favorites";
+}
+
 TFilePath FlareFolder::getStudioPaletteFolder() {
   TFilePath fp = getSystemVarPathValue(getSystemVarPrefix() + "STUDIOPALETTE");
   if (fp == TFilePath())
@@ -141,6 +147,10 @@ TFilePath FlareFolder::getProfileFolder() {
 
 TFilePath FlareFolder::getReslistPath(bool forCleanup) {
   return getConfigDir() + (forCleanup ? "cleanupreslist.txt" : "reslist.txt");
+}
+
+TFilePath FlareFolder::getMyReslistPath(bool forCleanup) {
+  return getReslistPath(forCleanup);
 }
 
 TFilePath FlareFolder::getTemplateModuleDir() {

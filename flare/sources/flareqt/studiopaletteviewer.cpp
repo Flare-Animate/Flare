@@ -1353,7 +1353,7 @@ void StudioPaletteViewer::setViewMode(int mode) {
 
 //-----------------------------------------------------------------------------
 
-void StudioPaletteViewer::save(QSettings &settings) const {
+void StudioPaletteViewer::save(QSettings &settings, bool forPopupIni) const {
   m_studioPaletteViewer->save(settings);
 }
 
