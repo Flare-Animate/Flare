@@ -13,6 +13,8 @@
 [![Issues](https://img.shields.io/github/issues/Flare-Animate/Flare)](https://github.com/Flare-Animate/Flare/issues)
 ![Platforms](https://img.shields.io/badge/platforms-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey)
 ![Status](https://img.shields.io/badge/status-early%20alpha-red)
+![C++](https://img.shields.io/badge/C%2B%2B-Qt-00599C)
+![Rust](https://img.shields.io/badge/Rust-planned-orange)
 
 [Website](https://flare-animate.github.io/website/) · [Discord](https://discord.com/invite/JpeScW8Awa) · [Download](https://github.com/Flare-Animate/Flare/releases/tag/nightly) · [Issues](https://github.com/Flare-Animate/Flare/issues) · [日本語](./doc/README_ja.md) · [简体中文](./doc/README_chs.md)
 
@@ -24,7 +26,7 @@
 
 ## Contents
 
-[Overview](#overview) · [Screenshots](#screenshots) · [Features](#features) · [Install](#install) · [Build](#build-from-source) · [Architecture](#architecture) · [Contributing](#contributing) · [License](#license)
+[Overview](#overview) · [Screenshots](#screenshots) · [Features](#features) · [Install](#install) · [Build](#build-from-source) · [Architecture](#architecture) · [Roadmap](#roadmap) · [Contributing](#contributing) · [License](#license)
 
 ## Overview
 
@@ -122,6 +124,26 @@ Platform guides: [Windows](./doc/how_to_build_win.md) · [macOS](./doc/how_to_bu
 | `doc/` | Build guides and design docs |
 
 Dev tip: `python scripts/log_watcher.py` tails build `*.log` files (VS Code task "watch logs", `Ctrl+Shift+B`).
+
+## Roadmap
+
+Goal: a C++/Rust successor to Flash / Adobe Animate (CS6-era workflow plus later Animate features), built on OpenToonz.
+Status is honest: items marked Planned have no shipped code unless a doc says otherwise.
+
+| Feature | Status |
+|---------|--------|
+| Flash/Animate import (`.fla` `.xfl` `.swf` `.swc`) | In progress |
+| Moho project import | In progress ([doc](./doc/MOHO_SUPPORT.md)) |
+| Next2Flash SWF round-trip, AS3 decompiler | In progress ([doc](./doc/NEXT2FLASH_INTEGRATION.md)) |
+| Beginner-friendly (FlipaClip-style) layout profile | Planned |
+| Basic game-creation tools (AS3-style scripting) | Planned |
+| Incremental Rust backend (compat with OpenToonz data formats) | Planned |
+| Android build ([guide](./doc/how_to_build_android.md)) | Planned |
+| Windows installer EXE ([packaging/windows](./packaging/windows)) | In progress |
+| Peer-to-peer remote control | Planned |
+| Auto-update | Planned |
+
+Reference projects: [JPEXS decompiler](https://github.com/jindrapetrik/jpexs-decompiler), [Ruffle](https://github.com/ruffle-rs/ruffle), [swf2js](https://github.com/ienaga/swf2js), [Citrus Engine](https://github.com/DaVikingCode/Citrus-Engine), [as3mxml](https://github.com/BowlerHatLLC/vscode-as3mxml). Licenses are preserved wherever code is ported.
 
 ## Contributing
 
