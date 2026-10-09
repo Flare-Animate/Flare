@@ -5,6 +5,8 @@
 
 #include <QWidget>
 #include <QLineEdit>
+// m_timer, added with the tahoma2d port of CellArea.
+#include <QTimer>
 #include "orientation.h"
 
 #include "flare/txshcell.h"
@@ -91,6 +93,33 @@ class CellArea final : public QWidget {
 
   RenameCellField *m_renameCell;
 
+  // Ported from tahoma2d (toonz/sources/toonz/xshcellviewer.h, class CellArea).
+  // xshcellviewer.cpp is ahead of this header and uses all of these; without them
+  // the file fails with a wall of "undeclared identifier" on its own members.
+  TXshCell m_tooltipCell;
+  QTimer *m_timer;
+  bool m_dragBeginEase, m_dragEndEase, m_dragKeyframe;
+  QPoint m_keyHighlight;
+  QPoint m_loopFrameMarkerHighlight;
+
+  void drawCellMarker(QPainter &p, int markId, QRect rect,
+                      bool hasFrame = false, bool isNextEmpty = true);
+  void drawDrawingMarker(QPainter &p, int markId, QRect rect, TFrameId fid,
+                         bool hasFrame, bool isLoopedCell);
+  void drawEndOfLevelMarker(QPainter &p, QRect rect, bool isNextEmpty,
+                            bool isStopFrame = false, bool isLooped = false);
+  void drawFolderColumn(QPainter &p, int r0, int r1, int col);
+  void drawLoopFrameMarker(QPainter &p, int row, int col);
+  void drawPegbarColumn(QPainter &p, int r0, int r1, int col);
+
+  bool isOverLoopFrameMarker(int row, int col, QPoint mouseInCell,
+                             QPoint frameAdj);
+
+  void onDelayToolTip();
+  void onSetDrawingMark();
+  void updateCursor();
+  void updateKeyHighlight(int row, int col);
+
   void drawCells(QPainter &p, const QRect toBeUpdated);
   void drawNonEmptyBackground(QPainter &p) const;
   void drawFoldedColumns(QPainter &p, int layerAxis,
@@ -98,11 +127,13 @@ class CellArea final : public QWidget {
   void drawSelectionBackground(QPainter &p) const;
   void drawExtenderHandles(QPainter &p);
 
-  void drawDragHandle(QPainter &p, const QPoint &xy,
+  void drawDragHandle(QPainter &p, bool isStart, bool isLastRow,
+                      const QPoint &xy,
                       const QColor &sideColor) const;
   void drawEndOfDragHandle(QPainter &p, bool isEnd, const QPoint &xy,
                            const QColor &cellColor) const;
-  void drawLockedDottedLine(QPainter &p, bool isLocked, const QPoint &xy,
+  void drawLockedDottedLine(QPainter &p, bool isLocked, bool isStart,
+                            bool isLastRow, const QPoint &xy,
                             const QColor &cellColor) const;
 
   void drawFrameSeparator(QPainter &p, int row, int col, bool emptyFrame,
@@ -121,7 +152,7 @@ class CellArea final : public QWidget {
 
   void drawNotes(QPainter &p, const QRect toBeUpdated);
 
-  void drawCurrentTimeIndicator(QPainter &p, const QPoint &xy, int col,
+  void drawCurrentTimeIndicator(QPainter &p, const QPoint &xy,
                                 bool isFolded = false);
 
   void drawFrameMarker(QPainter &p, const QPoint &xy, QColor color,

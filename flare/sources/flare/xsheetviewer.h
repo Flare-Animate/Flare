@@ -122,6 +122,7 @@ const QColor SelectedMetaColumnColor(216, 180, 245);
 
 // Empty column
 const QColor EmptyColumnColor(124, 124, 124);
+const QColor FreeColumnTint(255, 255, 255, 16);
 // Occupied column
 const QColor NotEmptyColumnColor(164, 164, 164);
 
@@ -293,6 +294,9 @@ class XsheetViewer final : public QFrame, public SaveLoadQSettings {
   QColor m_cellFocusColor;
   Q_PROPERTY(
       QColor CellFocusColor READ getCellFocusColor WRITE setCellFocusColor)
+  QColor m_columnFocusColor = QColor(105, 168, 223);
+  Q_PROPERTY(QColor ColumnFocusColor READ getColumnFocusColor WRITE
+                 setColumnFocusColor)
 
   // Play range
   QColor m_playRangeColor;
@@ -916,7 +920,9 @@ public:
 
   // Cell focus
   void setCellFocusColor(const QColor &color) { m_cellFocusColor = color; }
-  QColor getCellFocusColor() const { return m_cellFocusColor; }
+  QColor getCellFocusColor() const;
+  void setColumnFocusColor(const QColor &color) { m_columnFocusColor = color; }
+  QColor getColumnFocusColor() const;
 
   // Play range
   QColor getPlayRangeColor() const { return m_playRangeColor; }
@@ -1385,7 +1391,8 @@ public:
   FrameDisplayStyle getFrameDisplayStyle() { return m_frameDisplayStyle; }
 
   // SaveLoadQSettings
-  virtual void save(QSettings &settings) const override;
+  virtual void save(QSettings &settings,
+                    bool forPopupIni = false) const override;
   virtual void load(QSettings &settings) override;
 
   QString getXsheetLayout() const { return m_xsheetLayout; }
