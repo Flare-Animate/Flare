@@ -1,6 +1,11 @@
 Some of code in this repository is derived from thirdparty libraries.
 For files in the "thirdparty" directory: Please consult with the licenses in the appropriate READMEs or source codes.
 For files in the "stuff/library/mypaint brushes" directory: Please see the licenses in stuff/library/mypaint brushes/Licenses.txt.
+For files in the "tools/flash/next2flash" directory: the bundled AS3 decompiler
+  is MIT licensed (C) masterwebx; see tools/flash/next2flash/vendor/as3_decompiler/LICENSE
+  and doc/NEXT2FLASH_INTEGRATION.md. Ruffle and Next2Flash are referenced in
+  source comments purely for documenting third-party Flash format behaviour;
+  no Ruffle code is distributed.
 
 - - - - - - - - - - - - - - - -
 

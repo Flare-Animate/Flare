@@ -6,6 +6,11 @@
 #include "cleanupsettingspopup.h"
 #include "iocommand.h"
 #include "mainwindow.h"
+
+// showMessage calls QMainWindow::statusBar(), which returns a QStatusBar -- the
+// type needs its definition here, not just the forward declaration the header
+// relies on.
+#include <QStatusBar>
 #include "cellselection.h"
 
 // TnzTools includes
@@ -217,6 +222,12 @@ TApp::TApp()
 TApp *TApp::instance() {
   static TApp _instance;
   return &_instance;
+}
+
+void TApp::showMessage(QString message, int duration) {
+  // Upstream routes this to a dedicated status-bar member. The class here does
+  // not carry one; the main window's status bar is the equivalent surface.
+  if (m_mainWindow) m_mainWindow->statusBar()->showMessage(message, duration);
 }
 
 //-----------------------------------------------------------------------------

@@ -611,10 +611,11 @@ bool VersionControl::testSetup() {
 
     if (!list.isEmpty()) {
       QString firstLine = list.first();
-      firstLine         = firstLine.remove("svn, version 1."); //ignore the 1. since SVN decimal versions are not zero padded
-
-      double version = firstLine.left(3).toDouble();
-      if (version < 5) { // only check decimal version 1.xx
+      QStringList wordList = firstLine.split(" ");
+      QStringList version =
+          wordList.size() >= 3 ? wordList[2].split(".") : QStringList();
+      if (!version.size() ||
+          (version[0].toInt() == 1 && version[1].toInt() < 5)) {
         DVGui::warning(
             tr("The version control client application installed on your "
                "computer needs to be updated, otherwise some features may not "
@@ -652,6 +653,7 @@ void VersionControl::commit(QWidget *parent, const QString &workingDir,
           SIGNAL(commandDone(const QStringList &)));
   dialog->show();
   dialog->raise();
+  dialog->activateWindow();
 }
 
 //-----------------------------------------------------------------------------
@@ -665,6 +667,7 @@ void VersionControl::revert(QWidget *parent, const QString &workingDir,
           SIGNAL(commandDone(const QStringList &)));
   dialog->show();
   dialog->raise();
+  dialog->activateWindow();
 }
 
 //-----------------------------------------------------------------------------
@@ -680,6 +683,7 @@ void VersionControl::update(QWidget *parent, const QString &workingDir,
           SIGNAL(commandDone(const QStringList &)));
   dialog->show();
   dialog->raise();
+  dialog->activateWindow();
 }
 
 //-----------------------------------------------------------------------------
@@ -693,6 +697,7 @@ void VersionControl::updateAndLock(QWidget *parent, const QString &workingDir,
           SIGNAL(commandDone(const QStringList &)));
   dialog->show();
   dialog->raise();
+  dialog->activateWindow();
 }
 
 //-----------------------------------------------------------------------------
@@ -705,6 +710,7 @@ void VersionControl::lock(QWidget *parent, const QString &workingDir,
           SIGNAL(commandDone(const QStringList &)));
   dialog->show();
   dialog->raise();
+  dialog->activateWindow();
 }
 
 //-----------------------------------------------------------------------------
@@ -718,6 +724,7 @@ void VersionControl::unlock(QWidget *parent, const QString &workingDir,
           SIGNAL(commandDone(const QStringList &)));
   dialog->show();
   dialog->raise();
+  dialog->activateWindow();
 }
 
 //-----------------------------------------------------------------------------
@@ -730,6 +737,7 @@ void VersionControl::lockFrameRange(QWidget *parent, const QString &workingDir,
           SIGNAL(commandDone(const QStringList &)));
   dialog->show();
   dialog->raise();
+  dialog->activateWindow();
 }
 
 //-----------------------------------------------------------------------------
@@ -742,6 +750,7 @@ void VersionControl::lockFrameRange(QWidget *parent, const QString &workingDir,
           SIGNAL(commandDone(const QStringList &)));
   dialog->show();
   dialog->raise();
+  dialog->activateWindow();
 }
 
 //-----------------------------------------------------------------------------
@@ -755,6 +764,7 @@ void VersionControl::unlockFrameRange(QWidget *parent,
           SIGNAL(commandDone(const QStringList &)));
   dialog->show();
   dialog->raise();
+  dialog->activateWindow();
 }
 
 //-----------------------------------------------------------------------------
@@ -768,6 +778,7 @@ void VersionControl::unlockFrameRange(QWidget *parent,
           SIGNAL(commandDone(const QStringList &)));
   dialog->show();
   dialog->raise();
+  dialog->activateWindow();
 }
 
 //-----------------------------------------------------------------------------
@@ -779,6 +790,7 @@ void VersionControl::showFrameRangeLockInfo(QWidget *parent,
       new SVNFrameRangeLockInfoDialog(parent, workingDir, file);
   dialog->show();
   dialog->raise();
+  dialog->activateWindow();
 }
 
 //-----------------------------------------------------------------------------
@@ -790,6 +802,7 @@ void VersionControl::showFrameRangeLockInfo(QWidget *parent,
       new SVNMultiFrameRangeLockInfoDialog(parent, workingDir, files);
   dialog->show();
   dialog->raise();
+  dialog->activateWindow();
 }
 
 //-----------------------------------------------------------------------------
@@ -803,6 +816,7 @@ void VersionControl::commitFrameRange(QWidget *parent,
           SIGNAL(commandDone(const QStringList &)));
   dialog->show();
   dialog->raise();
+  dialog->activateWindow();
 }
 
 //-----------------------------------------------------------------------------
@@ -817,6 +831,7 @@ void VersionControl::revertFrameRange(QWidget *parent,
           SIGNAL(commandDone(const QStringList &)));
   dialog->show();
   dialog->raise();
+  dialog->activateWindow();
 }
 
 //-----------------------------------------------------------------------------
@@ -830,6 +845,7 @@ void VersionControl::deleteFiles(QWidget *parent, const QString &workingDir,
           SIGNAL(commandDone(const QStringList &)));
   dialog->show();
   dialog->raise();
+  dialog->activateWindow();
 }
 
 //-----------------------------------------------------------------------------
@@ -842,6 +858,7 @@ void VersionControl::deleteFolder(QWidget *parent, const QString &workingDir,
           SIGNAL(commandDone(const QStringList &)));
   dialog->show();
   dialog->raise();
+  dialog->activateWindow();
 }
 
 //-----------------------------------------------------------------------------
@@ -850,6 +867,7 @@ void VersionControl::cleanupFolder(QWidget *parent, const QString &workingDir) {
   SVNCleanupDialog *dialog = new SVNCleanupDialog(parent, workingDir);
   dialog->show();
   dialog->raise();
+  dialog->activateWindow();
 }
 
 //-----------------------------------------------------------------------------
@@ -858,6 +876,7 @@ void VersionControl::purgeFolder(QWidget *parent, const QString &workingDir) {
   SVNPurgeDialog *dialog = new SVNPurgeDialog(parent, workingDir);
   dialog->show();
   dialog->raise();
+  dialog->activateWindow();
 }
 
 //-----------------------------------------------------------------------------
@@ -932,4 +951,3 @@ QStringList VersionControl::getCurrentSceneContents() const {
   }
   return contents;
 }
-

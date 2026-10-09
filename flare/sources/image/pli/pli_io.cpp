@@ -8,6 +8,7 @@
 //#include "tstrokeoutline.h"
 #include "tsimplecolorstyles.h"
 #include "tcontenthistory.h"
+#include "flare/preferences.h"
 #include "tfilepath_io.h"
 //#include <fstream.h>
 #include "../compatibility/tfile_io.h"
@@ -702,7 +703,11 @@ void ParsedPliImp::loadInfo(bool readPlt, TPalette *&palette,
       m_iChan.seekg(pos, ios::beg);
       TagElem *tagElem = readTag();
       TextTag *textTag = (TextTag *)tagElem->m_tag;
-      history          = new TContentHistory(true);
+      QString altUsername =
+          Preferences::instance()->getStringValue(recordAsUsername);
+      bool recordEdit =
+          Preferences::instance()->getBoolValue(recordFileHistory);
+      history = new TContentHistory(true, altUsername, recordEdit);
       history->deserialize(QString::fromStdString(textTag->m_text));
       delete tagElem;
     }
