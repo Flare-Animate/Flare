@@ -356,6 +356,19 @@ jobs:
           path: FlarePortable/
           if-no-files-found: error
 
+      - name: Build installer (Flare-Setup.exe)
+        shell: pwsh
+        run: |
+          choco install nsis -y --no-progress
+          & "${env:ProgramFiles(x86)}\NSIS\makensis.exe" "/XOutFile $PWD\Flare-Setup.exe" /DVERSION=${{ github.run_number }} "/DSRCDIR=$PWD\FlarePortable" packaging\windows\installer.nsi
+
+      - name: Upload installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: Flare-Setup-nightly
+          path: Flare-Setup.exe
+          if-no-files-found: error
+
       - name: Upload smoke test log
         if: always()
         uses: actions/upload-artifact@v4
