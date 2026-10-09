@@ -15,6 +15,16 @@
 // #define AUT_SPOT_SAMPLES 40
 using namespace SkeletonLut;
 
+// The gap-closing preference variables, owned by this library so the
+// fill.cpp gap path links on Windows (a DLL needs the definition in a
+// library it links; tnztools/rastertapetool.cpp cannot provide them).
+// Names, types and defaults follow upstream Tahoma2D. The tools read and
+// write them through flare/autoclose.h, which tnztools links against.
+TEnv::DoubleVar AutocloseDistance("InknpaintAutocloseDistance", 20.0);
+TEnv::DoubleVar AutocloseAngle("InknpaintAutocloseAngle", 60.0);
+TEnv::IntVar AutocloseOpacity("InknpaintAutocloseOpacity", 180);
+
+
 class TAutocloser::Imp {
 public:
   struct Seed {
@@ -1545,10 +1555,11 @@ TAutocloser::TAutocloser(const TRasterP &r, int ink, const AutocloseSettings st,
     , m_autoPaintStyles(autoPaints) {}
 /*------------------------------------------------------------------------*/
 
-void TAutocloser::exec() {
+bool TAutocloser::exec() {
   std::vector<TAutocloser::Segment> segments;
   compute(segments);
   draw(segments);
+  return segments.size() > 0;
 }
 
 void TAutocloser::exec(std::string id) {

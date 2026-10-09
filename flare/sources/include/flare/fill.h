@@ -22,6 +22,7 @@
 #include "traster.h"
 #include "trastercm.h"
 #include "tropcm.h"
+#include "flare/txsheet.h"
 
 #include "preferences.h"
 #define DEF_REGION_WITH_PAINT                                                  \
@@ -45,6 +46,13 @@ public:
   bool m_defRegionWithPaint;
   bool m_usePrevailingReferFill;
   bool m_extendFill;
+
+  // Upstream: the source image's extent and top-left, for fills that sample a
+  // bitmap rather than synthesising one. Declared in Tahoma2D's fill.h;
+  // OpenToonz has neither, and the synced fill.cpp reads both through a
+  // FillParameters argument.
+  TDimension m_imageSize;
+  TPoint m_imageOffset;
 
   FillParameters()
       : m_styleId(0)
@@ -88,9 +96,15 @@ class TTileSaverFullColor;
 //=============================================================================
 
 // returns true if the savebox is changed typically, if you fill the bg)
+// Tahoma2D added gap-closing parameters to this overload and dropped the old
+// (saver, ref) form; the synced fill.cpp defines the new signature, so the header
+// must declare it -- as upstream does, defaults included. The 2-arg calls in
+// convert2tlv.cpp then bind here instead of to a function with no definition.
 DVAPI bool fill(const TRasterCM32P &r, const FillParameters &params,
-                TTileSaverCM32 *saver = 0,
-                const TRaster32P &ref = TRaster32P());
+                TTileSaverCM32 *saver = 0, bool fillGaps = false,
+                bool closeGaps = false, int closeStyleIndex = -1,
+                double autoCloseDistance = -1.0, TXsheet *xsheet = 0,
+                int frameIndex = -1);
 
 DVAPI void fill(const TRaster32P &ras, const TRaster32P &ref,
                 const FillParameters &params, TTileSaverFullColor *saver = 0);
@@ -108,8 +122,34 @@ void DVAPI rectFillInk(const TRasterCM32P &ras, const TRect &r, int color);
 void DVAPI fillautoInks(TRasterCM32P &r, TRect &rect,
                         const TRasterCM32P &rbefore, TPalette *plt);
 
+// Needed by fullColorFill's gap-closing parameters below.
+class TXsheet;
+
+// Ported from Tahoma2D (toonzlib/fillutil.cpp), where the synced fill.cpp gap-closing path expects it. The sync dropped the definition while keeping the call. Declaration text matches upstream verbatim.
+void DVAPI finishGapLines(TRasterCM32P &rin, TRect &rect,
+                          const TRasterCM32P &rbefore,
+                          const TRasterCM32P &combined, TPalette *plt,
+                          int clickedColorStyle, int fillIndex,
+                          int closeColorStyle, bool closeGaps);
+
+// Every parameter the definition in flarelib/fill.cpp takes must appear here.
+// The synced definition grew four extra defaulted parameters for the gap-closing
+// path (xsheet, frameIndex, fillGaps, closeGaps, closeStyleIndex,
+// autoCloseDistance) while this declaration kept the original three, so
+// fullcolorfilltool.cpp's three-argument call decorated to a symbol that was
+// never emitted:
+//
+//   fullcolorfilltool.obj : error LNK2019: unresolved external symbol
+//   __imp_?fullColorFill@@YAXAEBV?$TRasterPT@VTPixelRGBM32@@@@AEBVFillParameters@@
+//   PEAVTTileSaverFullColor@@@Z
+//
+// Note the mangled name encodes TRasterPT<TPixelRGBM32>, i.e. TRaster32P, so the
+// call site is right and only the declaration was short.
 void DVAPI fullColorFill(const TRaster32P &ras, const FillParameters &params,
-                         TTileSaverFullColor *saver = 0);
+                         TTileSaverFullColor *saver = 0, TXsheet *xsheet = 0,
+                         int frameIndex = -1, bool fillGaps = false,
+                         bool closeGaps = false, int closeStyleIndex = -1,
+                         double autoCloseDistance = -1.0);
 
 void DVAPI fillHoles(const TRasterCM32P &ras, const int size,
                      TTileSaverCM32 *saver = nullptr);

@@ -1,0 +1,17 @@
+#!/bin/bash
+
+DIR="`dirname \"$0\"`" 
+DIR="`( cd \"$DIR\" && readlink -f $(pwd) )`"
+echo "DIR: $DIR"
+export APPDIR=$DIR
+
+export CAMLIBS=`find $APPDIR/usr/lib/libgphoto2 -mindepth 1 -type d`
+echo "CAMLIBS: $CAMLIBS"
+
+export IOLIBS=`find $APPDIR/usr/lib/libgphoto2_port -mindepth 1 -type d`
+echo "IOLIBS: $IOLIBS"
+
+export QT_PLUGIN_PATH="$(readlink -f "$(dirname "$(find "${APPDIR}" -type d -path '*/plugins/platforms' 2>/dev/null)" 2>/dev/null)" 2>/dev/null)"
+echo "QT_PLUGIN_PATH=$QT_PLUGIN_PATH"
+
+$APPDIR/usr/bin/Tahoma2D "$@"

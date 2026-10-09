@@ -970,14 +970,49 @@ TPixel32 TTextureStyle::getMainColor() const
 //*************************************************************************************
 
 TRasterImagePatternStrokeStyle::TRasterImagePatternStrokeStyle()
-    : m_level(), m_name(""), m_space(0), m_rotation(0) {}
+    : m_color(TPixel32::Black), m_patternName(""), m_space(20), m_rotation(0), m_flip(false), m_tessellator(new TglTessellator) {
+  m_basePath = getRootDir();
+}
+
+// See header: folder-based construction for style sets.
+TRasterImagePatternStrokeStyle::TRasterImagePatternStrokeStyle(
+    TFilePath basePath, const std::string &patternName)
+    : m_color(TPixel32::Black)
+    , m_patternName(patternName)
+    , m_space(20)
+    , m_rotation(0)
+    , m_flip(false)
+    , m_basePath(basePath)
+    , m_tessellator(new TglTessellator) {
+  if (m_patternName != "") loadLevel(m_patternName);
+}
 
 //-----------------------------------------------------------------------------
 
 TRasterImagePatternStrokeStyle::TRasterImagePatternStrokeStyle(
     const std::string &patternName)
-    : m_level(), m_name(patternName), m_space(20), m_rotation(0) {
-  if (m_name != "") loadLevel(m_name);
+    : m_color(TPixel32::Black), m_patternName(patternName), m_space(20), m_rotation(0), m_flip(false), m_tessellator(new TglTessellator) {
+  m_basePath = getRootDir();
+  if (m_patternName != "") loadLevel(m_patternName);
+}
+
+// Ported: the ported header declares these (upstream); the old
+// .cpp predates them.
+TRasterImagePatternStrokeStyle::~TRasterImagePatternStrokeStyle() { delete m_tessellator; }
+
+//-----------------------------------------------------------------------------
+
+bool TRasterImagePatternStrokeStyle::getParamValue(TColorStyle::bool_tag,
+                                        int index) const {
+  assert(index == 2);
+  return m_flip;
+}
+
+//-----------------------------------------------------------------------------
+
+void TRasterImagePatternStrokeStyle::setParamValue(int index, bool value) {
+  assert(index == 2);
+  m_flip = value;
 }
 
 //-----------------------------------------------------------------------------
@@ -1006,13 +1041,13 @@ QString TRasterImagePatternStrokeStyle::getDescription() const {
 //-----------------------------------------------------------------------------
 
 std::string TRasterImagePatternStrokeStyle::getBrushIdName() const {
-  return "RasterImagePatternStrokeStyle:" + m_name;
+  return "RasterImagePatternStrokeStyle:" + m_patternName;
 }
 
 //-----------------------------------------------------------------------------
 
 void TRasterImagePatternStrokeStyle::makeIcon(const TDimension &size) {
-  if (!m_level) loadLevel(m_name);
+  if (!m_level) loadLevel(m_patternName);
   m_icon                   = TRaster32P();
   TLevel::Iterator frameIt = m_level->begin();
 
@@ -1028,6 +1063,7 @@ void TRasterImagePatternStrokeStyle::makeIcon(const TDimension &size) {
       double sc = 0.8 * std::min(sx, sy);
       TRop::resample(icon, src,
                      TScale(sc).place(src->getCenterD(), icon->getCenterD()));
+      if (m_color != TPixel32::Black) { TRop::applyColorScale(icon, m_color); }
       TRop::addBackground(icon, TPixel32::White);
       m_icon = icon;
     }
@@ -1049,24 +1085,30 @@ void TRasterImagePatternStrokeStyle::makeIcon(const TDimension &size) {
 
 //-----------------------------------------------------------------------------
 
-int TRasterImagePatternStrokeStyle::getParamCount() const { return 2; }
+int TRasterImagePatternStrokeStyle::getParamCount() const { return 3; }
 
 //-----------------------------------------------------------------------------
 
 TColorStyle::ParamType TRasterImagePatternStrokeStyle::getParamType(
     int index) const {
   assert(0 <= index && index < getParamCount());
-  return TColorStyle::DOUBLE;
+  return (index == 2) ? TColorStyle::BOOL
+                      : TColorStyle::DOUBLE;
 }
 
 //-----------------------------------------------------------------------------
 
 QString TRasterImagePatternStrokeStyle::getParamNames(int index) const {
   assert(0 <= index && index < getParamCount());
-  return (index == 0) ? QCoreApplication::translate(
-                            "TRasterImagePatternStrokeStyle", "Distance")
-                      : QCoreApplication::translate(
-                            "TRasterImagePatternStrokeStyle", "Rotation");
+  switch(index) {
+    case 0:
+      return QCoreApplication::translate("TRasterImagePatternStrokeStyle", "Distance");
+    case 1:
+      return QCoreApplication::translate("TRasterImagePatternStrokeStyle", "Rotation");
+    case 2:
+      return QCoreApplication::translate("TRasterImagePatternStrokeStyle", "Flip");
+  }
+  return QString();
 }
 
 //-----------------------------------------------------------------------------
@@ -1076,8 +1118,8 @@ void TRasterImagePatternStrokeStyle::getParamRange(int index, double &min,
   assert(0 <= index && index < getParamCount());
 
   if (index == 0) {
-    min = -50;
-    max = 50;
+    min = -100;
+    max = 200;
   } else {
     min = -180;
     max = 180;
@@ -1133,14 +1175,14 @@ void TRasterImagePatternStrokeStyle::loadLevel(const std::string &patternName) {
   m_level = TLevelP();
 
   // aggiorno il nome
-  m_name = patternName;
+  m_patternName = patternName;
 
   // getRootDir() e' nulla se non si e' chiamata la setRoot(..)
-  assert(!getRootDir().isEmpty());
+  assert(!m_basePath.isEmpty());
 
   // leggo tutti i livelli contenuti
   TFilePathSet fps;
-  TSystem::readDirectory(fps, getRootDir());
+  TSystem::readDirectory(fps, m_basePath);
 
   // prendo il primo livello il cui nome sia patternName
   // (puo' essere un pli, ma anche un png, ecc.)
@@ -1195,6 +1237,8 @@ void TRasterImagePatternStrokeStyle::loadLevel(const std::string &patternName) {
       m_level->setFrame(frameIt->first, new TRasterImage(ras));
     }
   }
+
+  colorizeTexture(m_color);
   // cancello il contesto offline (se e' stato creato)
   delete glContext;
 }
@@ -1230,9 +1274,10 @@ void TRasterImagePatternStrokeStyle::computeTransformations(
     double ang    = rad2degree(atan(v)) + m_rotation;
 
     int ly    = std::max(1.0, images[index].ly);
-    double sc = p.thick / ly;
-    transformations.push_back(TTranslation(p) * TRotation(ang) * TScale(sc));
-    double ds = std::max(2.0, sc * images[index].lx * 2 + m_space);
+    double sx = p.thick / ly;
+    double sy =  (m_flip) ? sx : -sx;
+    transformations.push_back(TTranslation(p) * TRotation(ang) * TScale(sx, sy));
+    double ds = std::max(0.25, sx * images[index].lx * 2 * (m_space * .01 + 1));
     s += ds;
   }
 }
@@ -1241,13 +1286,30 @@ void TRasterImagePatternStrokeStyle::computeTransformations(
 
 void TRasterImagePatternStrokeStyle::drawStroke(
     const TVectorRenderData &rd, const std::vector<TAffine> &transformations,
-    const TStroke *stroke) const {
+    const TStroke *stroke) {
   TStopWatch sw;
   sw.start();
   CHECK_GL_ERROR
 
   const int frameCount = m_level->getFrameCount();
   if (frameCount == 0) return;
+
+  TLevelP level;
+  TPixel32 color = m_color;
+  if (rd.m_cf) color = (*rd.m_cf)(color);
+  // it shouldn't be necessary to use m_level when color is black/opaque, 
+  // but m_levelC doesn't work for some reason when it is.
+  if (color == TPixel32::Black) {
+    level = m_level;
+  } else {
+    level = m_levelC;
+    if (color !=  lastColor) {
+      colorizeTexture(color);
+      lastColor = color;
+    }
+  }
+  // if variable stroke opacity is added opacity should be done on the gpu
+  // instead of via colorizeTexture(), it would be too slow.
 
   // lo stroke viene disegnato ripetendo size volte le frameCount immagini
   // contenute in level, posizionando ognuna secondo transformations[i]
@@ -1256,7 +1318,7 @@ void TRasterImagePatternStrokeStyle::drawStroke(
   glEnable(GL_TEXTURE_2D);
   glEnable(GL_BLEND);
 
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
   GLuint texId;
   glGenTextures(1, &texId);
@@ -1276,8 +1338,8 @@ void TRasterImagePatternStrokeStyle::drawStroke(
 
   // visto che cambiare texture costa tempo il ciclo esterno e' sulle textures
   // piuttosto che sulle trasformazioni
-  TLevel::Iterator frameIt = m_level->begin();
-  for (int i = 0; i < (int)size && frameIt != m_level->end(); ++i, ++frameIt) {
+  TLevel::Iterator frameIt = level->begin();
+  for (int i = 0; i < (int)size && frameIt != level->end(); ++i, ++frameIt) {
     TRasterImageP ri = frameIt->second;
     TRasterP ras;
     if (ri) ras = ri->getRaster();
@@ -1325,14 +1387,39 @@ void TRasterImagePatternStrokeStyle::drawStroke(
   glDisable(GL_TEXTURE_2D);
   glDisable(GL_BLEND);
 }
+void TRasterImagePatternStrokeStyle::colorizeTexture(TPixel32 color) const {
+  TLevel::Iterator frameIt;
+  for (frameIt = m_level->begin(); frameIt != m_level->end(); ++frameIt) {
+    TRasterImageP ri = frameIt->second;
+    TRasterP ras;
+    if (ri) ras = ri->getRaster()->clone();
+
+    if (color != TPixel32::Black) {
+      TRop::applyColorScale(ras, color);
+    }
+
+    m_levelC->setFrame(frameIt->first, new TRasterImage(ras));
+  }  
+}
+void TRasterImagePatternStrokeStyle::drawRegion(const TColorFunction *cf, const bool antiAliasing,
+  TRegionOutline &boundary) const {
+  m_tessellator->tessellate(cf, antiAliasing, boundary, m_color);
+}
+void TRasterImagePatternStrokeStyle::drawStroke(
+    const TColorFunction *cf, TStrokeOutline *outline, 
+    const TStroke *stroke) const { 
+      assert(false); 
+    };
 
 //-----------------------------------------------------------------------------
 
 void TRasterImagePatternStrokeStyle::loadData(TInputStreamInterface &is) {
   m_level = TLevelP();
-  m_name  = "";
+  m_patternName  = "";
   std::string name;
-  is >> name >> m_space >> m_rotation;
+  int flip;
+  is >> name >> m_space >> m_rotation >> flip >> m_color;
+  m_flip = (flip == 0) ? false : true;
   if (name != "") {
     try {
       loadLevel(name);
@@ -1345,13 +1432,14 @@ void TRasterImagePatternStrokeStyle::loadData(TInputStreamInterface &is) {
 
 void TRasterImagePatternStrokeStyle::loadData(int ids,
                                               TInputStreamInterface &is) {
-  if (ids != 100)
+  if (ids != 100 && ids != 2000)
     throw TException("image pattern stroke style: unknown obsolete format");
 
   m_level = TLevelP();
-  m_name  = "";
+  m_patternName  = "";
   std::string name;
-  is >> name;
+  if (ids == 100) is >> name;
+  if (ids == 2000) is >> name >> m_space >> m_rotation;
   if (name != "") {
     try {
       loadLevel(name);
@@ -1364,7 +1452,8 @@ void TRasterImagePatternStrokeStyle::loadData(int ids,
 
 void TRasterImagePatternStrokeStyle::saveData(
     TOutputStreamInterface &os) const {
-  os << m_name << m_space << m_rotation;
+  int flip = m_flip ? 1 : 0;
+  os << m_patternName << m_space << m_rotation << flip << m_color;
 }
 
 //-----------------------------------------------------------------------------
@@ -1383,6 +1472,7 @@ TStrokeProp *TRasterImagePatternStrokeStyle::makeStrokeProp(
 void TRasterImagePatternStrokeStyle::getObsoleteTagIds(
     std::vector<int> &ids) const {
   ids.push_back(100);
+  ids.push_back(2000);
 }
 
 //-----------------------------------------------------------------------------
@@ -1398,13 +1488,27 @@ TRectD TRasterImagePatternStrokeStyle::getStrokeBBox(
 //*************************************************************************************
 
 TVectorImagePatternStrokeStyle::TVectorImagePatternStrokeStyle()
-    : m_level(), m_name(""), m_space(0), m_rotation(0) {}
+    : m_level(), m_name(""), m_space(0), m_rotation(0) {
+  m_basePath = getRootDir();
+}
+
+// See header: folder-based construction for style sets.
+TVectorImagePatternStrokeStyle::TVectorImagePatternStrokeStyle(
+    TFilePath basePath, const std::string &patternName)
+    : m_level()
+    , m_name(patternName)
+    , m_space(20)
+    , m_rotation(0)
+    , m_basePath(basePath) {
+  loadLevel(patternName);
+}
 
 //-----------------------------------------------------------------------------
 
 TVectorImagePatternStrokeStyle::TVectorImagePatternStrokeStyle(
     const std::string &patternName)
     : m_level(), m_name(patternName), m_space(20), m_rotation(0) {
+  m_basePath = getRootDir();
   loadLevel(patternName);
 }
 
@@ -1517,8 +1621,8 @@ void TVectorImagePatternStrokeStyle::getParamRange(int index, double &min,
   assert(0 <= index && index < getParamCount());
 
   if (index == 0) {
-    min = -50;
-    max = 50;
+    min = -100;
+    max = 200;
   } else {
     min = -180;
     max = 180;
@@ -1556,9 +1660,9 @@ void TVectorImagePatternStrokeStyle::setParamValue(int index, double value) {
 void TVectorImagePatternStrokeStyle::loadLevel(const std::string &patternName) {
   m_level = TLevelP();
   m_name  = patternName;
-  assert(!getRootDir()
-              .isEmpty());  // se e' vuota, non si e' chiamata la setRoot(..)
-  TFilePath fp = getRootDir() + (patternName + ".pli");
+  assert(
+      !m_basePath.isEmpty());  // se e' vuota, non si e' chiamata la setRoot(..)
+  TFilePath fp = m_basePath + (patternName + ".pli");
   TLevelReaderP lr(fp);
   m_level = lr->loadInfo();
   TLevel::Iterator frameIt;
@@ -1600,7 +1704,7 @@ void TVectorImagePatternStrokeStyle::computeTransformations(
     TAffine aff =
         TTranslation(p) * TRotation(ang) * TScale(sc) * TTranslation(-center);
     transformations.push_back(aff);
-    double ds = std::max(2.0, sc * bbox.getLx() + m_space);
+    double ds = std::max(0.25, sc * bbox.getLx() * (m_space * .01 + 1));
     s += ds;
   }
 }
