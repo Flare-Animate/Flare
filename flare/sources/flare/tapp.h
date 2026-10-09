@@ -102,6 +102,11 @@ public:
   */
   static TApp *instance();
 
+  // The pure virtual in TApplication. Dropped by the upstream-sync merge, which
+  // left TApp abstract (error C2259 at the only place it is instantiated,
+  // TApp::instance). Forward status hints to the main window's status bar.
+  void showMessage(QString message, int duration = 2000) override;
+
   ~TApp();
   /*!
           Returns a pointer to the current scene.

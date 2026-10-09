@@ -13,6 +13,7 @@ enum PreferencesItemId {
   projectRoot,
   customProjectRoot,
   pathAliasPriority,
+  showAdvancedOptions,
   lazyLoadRooms,
 
   //----------
@@ -40,8 +41,11 @@ enum PreferencesItemId {
   colorCalibrationEnabled,
   colorCalibrationLutPaths,
   showIconsInMenu,
+  showRoomBindButtons,
+  customHelpLink,
   displayIn30bit,
   viewerIndicatorEnabled,
+  restoreViewerViewFromLastSession,
 
   //----------
   // Visualization
@@ -75,6 +79,9 @@ enum PreferencesItemId {
   backupKeepCount,
   rasterBackgroundColor,
   resetUndoOnSavingLevel,
+  defaultProjectPath,
+  recordFileHistory,
+  recordAsUsername,
 
   //----------
   // Import / Export
@@ -85,6 +92,8 @@ enum PreferencesItemId {
   quickTimeBackend,
   rhubarbPath,
   rhubarbTimeout,
+  // Dropped by the upstream-sync merge and put back here: PreferencesPopup reads
+  // it through Preferences::getFlashDecompilerPath to locate the SWF decompiler.
   flashDecompilerPath,
 
   //----------
@@ -92,7 +101,12 @@ enum PreferencesItemId {
   DefRasterFormat,
   // scanLevelType,// deprecated
   DefLevelType,
+  // Dropped by the upstream-sync merge and put back here: levelcreatepopup.cpp
+  // and txshsimplelevel.cpp both read it through
+  // Preferences::getDefLevelSizePolicy.
   DefLevelSizePolicy,
+  DefAssistantType,
+  newLevelSizeToCameraSizeEnabled,
   DefLevelWidth,
   DefLevelHeight,
   DefLevelDpi,
@@ -125,6 +139,10 @@ enum PreferencesItemId {
   useStrokeEndCursor,
   clickTwiceToCreateArcs,
   tempToolSwitchTimer,
+  animateToolHandleSize,
+  animateToolColor,
+  defaultStartupTool,
+  defaultNewSceneTool,
 
   //----------
   // Xsheet
@@ -151,8 +169,16 @@ enum PreferencesItemId {
   syncLevelRenumberWithXsheet,
   currentTimelineEnabled,
   currentColumnColor,
+  customCurrentCellColorEnabled,
+  currentCellColor,
+  customCurrentColumnOutlineColorEnabled,
+  currentColumnOutlineColor,
   levelNameDisplayType,
   showFrameNumberWithLetters,
+  // Ported from tahoma2d: xshcellviewer.cpp reads these two, through
+  // Preferences::isShowDragBarsEnabled and getTimelineLayoutPreference.
+  showDragBars,
+  timelineLayoutPreference,
   linkColumnNameWithLevel,
 
   //----------
@@ -192,6 +218,9 @@ enum PreferencesItemId {
   transpCheckInkOnWhite,
   transpCheckInkOnBlack,
   transpCheckPaint,
+  inkCheckColor,
+  ink1CheckColor,
+  paintCheckColor,
 
   //----------
   // Version Control
