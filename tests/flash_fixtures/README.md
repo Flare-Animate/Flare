@@ -1,0 +1,52 @@
+# Flash import test fixtures
+
+Minimal-but-valid sample files for every Flash/Animate format Flare imports, plus
+two checkers. These are deterministic inputs for exercising the Flash import
+pipeline (`flare/sources/flare/flashimport.cpp`, `common/flash/XFLReader`).
+
+| Fixture | Format | What it proves |
+|---------|--------|----------------|
+| `sample.swf` | Uncompressed FWS SWF (550×400 @ 24fps) | `readSwfHeader()` RECT/frameRate decode |
+| `sample.flv` | FLV header (video+audio) | `readFlvHeader()` magic + flags |
+| `sample.f4v` | ISO-BMFF `ftyp` box (`f4v `) | `readF4vHeader()` brand detection |
+| `sample.as` | ActionScript 3 source | `.as` text import path |
+| `sample_xfl/` | XFL directory + `DOMDocument.xml` | `XFLReader` directory parse |
+| `sample.fla` | ZIP wrapping the XFL document | FLA = ZIP → `extractZip` → XFL parse |
+| `sample.swc` | ZIP (`catalog.xml` + `library.swf`) | SWC catalog + embedded-SWF bitmap path |
+| `stale_trailer.fla` | Valid FLA with a lying EOCD record | the trailer repair from issue #70 |
+| `orphan_local.fla` | Valid FLA with a local header not in the central directory | the trailer repair must reject, not guess |
+
+The last two come from `generate_trailer_fixtures.py` and are the regression
+fixtures for the ZIP trailer salvage. `stale_trailer.fla` is a well-formed
+archive whose end-of-central-directory overstates the central directory size —
+exactly what real FLAs in the wild do, and what `zipfile` and minizip both
+reject. Before the repair, opening it produced "Failed to extract archive".
+
+The Moho fixtures are generated rather than committed, because there are more
+of them; see `generate_moho_fixtures.py` and `doc/MOHO_SUPPORT.md`.
+
+## Running the checks
+
+```sh
+# (re)generate the fixtures
+python generate_fixtures.py
+python generate_trailer_fixtures.py
+
+# verify each fixture meets the importer's format contract (exit 0 = all pass)
+python verify_fixtures.py
+```
+
+Generation is **reproducible**: every archive entry is pinned to a fixed
+timestamp, because `zipfile.writestr()` otherwise stamps each entry with the
+current time and regenerating produces a byte-different file. Without that, four
+committed fixtures were permanently dirty in `git status` and a diff on them
+told you nothing.
+
+## What does *not* test these
+
+The C++ tests live in `tests/native` and call the real readers. These fixtures
+are the inputs; they are not the tests. See `tests/README.md`.
+
+> These fixtures are intentionally tiny. They validate that each format is
+> recognised and its metadata parsed — not full visual fidelity, which is the
+> ongoing Flash-import work (see `doc/FLASH_SUPPORT.md`).

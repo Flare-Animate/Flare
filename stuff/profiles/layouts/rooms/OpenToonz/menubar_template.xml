@@ -26,6 +26,7 @@
             <command>MI_ImportMagpieFile</command>
             <command>MI_ImportOCA</command>
             <command>MI_ImportFlashVector</command>
+            <command>MI_ImportMohoProject</command>
         </menu>
         <menu title="Export">
             <command>MI_ExportCurrentScene</command>		
@@ -341,6 +342,8 @@
         <command>MI_OpenOnlineManual</command>
         <command>MI_OpenWhatsNew</command>
         <command>MI_OpenCommunityForum</command>
+        <command>MI_OpenDiscord</command>
+        <command>MI_OpenWebsite</command>
         <separator/>
         <command>MI_OpenReportABug</command>
         <separator/>

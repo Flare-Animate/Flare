@@ -854,7 +854,7 @@ void BaseViewerPanel::setVisiblePartsFlag(UINT flag) {
 }
 
 // SaveLoadQSettings
-void BaseViewerPanel::save(QSettings &settings) const {
+void BaseViewerPanel::save(QSettings &settings, bool forPopupIni) const {
   settings.setValue("viewerVisibleParts", m_visiblePartsFlag);
 }
 

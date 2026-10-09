@@ -1,0 +1,33 @@
+/* Liquid Glass is Flare's default interface theme. The original Default theme
+   remains selectable in Preferences for users who prefer the classic look. */
+:TOONZCOLORS {
+  -bg-color: #202a38; -icon-base-opacity: 0.88; -icon-disabled-opacity: 0.35;
+  -icon-base-color: #d8e7f3; -icon-active-color: #ffffff; -icon-selected-color: #ffffff;
+  -icon-on-color: #ffffff; -icon-close-color: #ffffff; -icon-preview-color: #111923;
+  -icon-vcheck-color: #ffffff; -icon-lock-color: #ffffff; -icon-keyframe-color: #74d8ff;
+  -icon-keyframe-modified-color: #ffbd6d;
+}
+QWidget { background-color: #202a38; color: #e5eef6; }
+QWidget:disabled { color: rgba(229, 238, 246, 0.38); }
+QToolTip, #helpToolTip { background-color: #273549; border: 1 solid #5d7895; border-radius: 4px; color: #f5fbff; padding: 4px 6px; }
+TPanel, QDockWidget { background-color: #243144; border: 1 solid #405873; border-radius: 5px; }
+#DockSeparator, QMainWindow::separator, QSplitter::handle { background-color: #334861; height: 3px; width: 3px; }
+#TopBar, #TopBarTabContainer, QMenuBar { background-color: #1c2634; border-bottom: 1 solid #506b87; }
+QMenuBar::item { background: transparent; padding: 4px 7px; }
+QMenuBar::item:selected { background-color: #324963; border-radius: 4px; color: #ffffff; }
+QMenu, QComboBox QAbstractItemView { background-color: #29394d; border: 1 solid #5d7895; border-radius: 5px; padding: 3px; }
+QMenu::item { padding: 5px 28px 5px 14px; border-radius: 3px; }
+QMenu::item:selected, QComboBox QAbstractItemView::item:selected { background-color: #3c88ad; color: #ffffff; }
+#TopBarTab::tab { background-color: #27364a; border: 1 solid #48627d; border-bottom: 0; border-radius: 5px 5px 0 0; margin: 2px 1px 0 0; padding: 4px 10px; }
+#TopBarTab::tab:hover { background-color: #36516c; }
+#TopBarTab::tab:selected { background-color: #3c88ad; border-color: #74d8ff; color: #ffffff; }
+QPushButton, QToolButton, QComboBox, QLineEdit, QSpinBox { background-color: #2c3d52; border: 1 solid #587491; border-radius: 4px; color: #eaf5ff; min-height: 20px; padding: 2px 6px; }
+QPushButton:hover, QToolButton:hover, QComboBox:hover { background-color: #38536e; border-color: #86d4f3; }
+QPushButton:pressed, QToolButton:pressed, QToolButton:checked { background-color: #337ea5; border-color: #9fe8ff; }
+QLineEdit:focus, QSpinBox:focus, QComboBox:focus { border: 1 solid #74d8ff; background-color: #30475e; }
+QTabBar::tab { background-color: #29394d; border: 1 solid #4c6681; border-radius: 4px 4px 0 0; padding: 4px 8px; }
+QTabBar::tab:selected { background-color: #397fa5; color: #ffffff; }
+QScrollBar:vertical, QScrollBar:horizontal { background: #1b2634; margin: 0; }
+QScrollBar::handle:vertical, QScrollBar::handle:horizontal { background: #53718d; border-radius: 3px; min-height: 20px; min-width: 20px; }
+QScrollBar::handle:hover { background: #77b9d9; }
+QScrollBar::add-line, QScrollBar::sub-line { width: 0; height: 0; }

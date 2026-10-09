@@ -6,6 +6,9 @@
 #include <QAbstractItemModel>
 #include <QPixmap>
 #include <QMap>
+// std::set for m_projectPaths, added with the tahoma2d port of the root node.
+#include <set>
+#include <vector>
 #include "tfilepath.h"
 #include "flare/toonzfolders.h"
 
@@ -129,6 +132,9 @@ class DvDirModelSpecialFileFolderNode : public DvDirModelFileFolderNode {
 private:
   QString m_iconName;
   QSize m_iconSize;
+  // Ported from tahoma2d: the special-file nodes (Devices, Volume Information)
+  // can carry a pixmap as well as an icon, and filebrowsermodel.cpp sets it.
+  QPixmap m_pixmap;
 
 public:
   DvDirModelSpecialFileFolderNode(DvDirModelNode *parent, std::wstring name,
@@ -136,6 +142,7 @@ public:
   QPixmap getPixmap(bool isOpen) const override;
   void setIconName(const QString &iconName) { m_iconName = iconName; }
   void setIconSize(const QSize &size) { m_iconSize = size; }
+  void setPixmap(const QPixmap &pixmap);
 };
 
 //-----------------------------------------------------------------------------
@@ -287,6 +294,17 @@ public:
 
 //-----------------------------------------------------------------------------
 
+// Ported from tahoma2d. filebrowsermodel.cpp constructs this node and the local
+// header never declared it, so every use failed with "is not a class or
+// namespace name".
+class DvDirModelStuffFolderNode final : public DvDirModelNode {
+public:
+  DvDirModelStuffFolderNode(DvDirModelNode *parent);
+  void refreshChildren() override;
+  QPixmap getPixmap(bool isOpen) const override;
+  bool isFolder() const override { return true; }
+};
+
 class DvDirModelMyComputerNode final : public DvDirModelNode {
 public:
   DvDirModelMyComputerNode(DvDirModelNode *parent);
@@ -314,14 +332,22 @@ class DvDirModelRootNode final : public DvDirModelNode {
   DvDirModelMyComputerNode *m_myComputerNode;
   DvDirModelNetworkNode *m_networkNode;
   DvDirModelProjectNode *m_sandboxProjectNode;
+  // Ported from tahoma2d: filebrowsermodel.cpp tracks the open projects and the
+  // per-project folder nodes, which this header did not declare.
+  std::vector<DvDirModelProjectNode *> m_projectNodes;
+  DvDirModelProjectNode *m_currentProjectNode;
+  std::set<TFilePath> m_projectPaths;
   DvDirModelSceneFolderNode *m_sceneFolderNode;
   std::vector<DvDirModelSpecialFileFolderNode *> m_specialNodes;
+  std::vector<DvDirModelSpecialFileFolderNode *> m_projectDirNodes;
 
   void add(std::wstring name, const TFilePath &path);
 
 public:
   DvDirModelRootNode();
+  void refreshDefaultProjectPath();
   void refreshChildren() override;
+  int getProjectPathsSize() { return m_projectPaths.size(); }
 
   DvDirModelNode *getNodeByPath(const TFilePath &path) override;
   // QPixmap getPixmap(bool isOpen) const;
@@ -391,6 +417,12 @@ public:
     emit beginMoveRows(srcParent, first, last, dstParent, dstChild);
   }
   void notifyEndMoveRows() { emit endMoveRows(); }
+
+  // Emitted when a project is added to the folder list. Added by the upstream
+  // sync -- dvdirtreeview.cpp connects to it, but the local DvDirModel never
+  // declared it. DvDirModel gains a `signals:` section for it.
+signals:
+  void projectAdded();
 
 protected slots:
   // when the scene switched, update the path of the scene location node

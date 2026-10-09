@@ -41,6 +41,7 @@
 #define MI_LoadColorModel "MI_LoadColorModel"
 #define MI_ImportMagpieFile "MI_ImportMagpieFile"
 #define MI_ImportFlashVector "MI_ImportFlashVector"
+#define MI_ImportMohoProject "MI_ImportMohoProject"
 #define MI_NewNoteLevel "MI_NewNoteLevel"
 #define MI_RemoveEmptyColumns "MI_RemoveEmptyColumns"
 #define MI_NewProject "MI_NewProject"
@@ -138,6 +139,7 @@
 #define MI_DeleteInk "MI_DeleteInk"
 #define MI_InsertSceneFrame "MI_InsertSceneFrame"
 #define MI_RemoveSceneFrame "MI_RemoveSceneFrame"
+#define MI_RemoveSelectedSceneFrames "MI_RemoveSelectedSceneFrames"
 
 #define MI_InsertGlobalKeyframe "MI_InsertGlobalKeyframe"
 #define MI_RemoveGlobalKeyframe "MI_RemoveGlobalKeyframe"
@@ -458,6 +460,8 @@
 #define MI_OpenOnlineManual "MI_OpenOnlineManual"
 #define MI_OpenWhatsNew "MI_OpenWhatsNew"
 #define MI_OpenCommunityForum "MI_OpenCommunityForum"
+#define MI_OpenDiscord "MI_OpenDiscord"
+#define MI_OpenWebsite "MI_OpenWebsite"
 #define MI_OpenReportABug "MI_OpenReportABug"
 
 #define MI_ClearCacheFolder "MI_ClearCacheFolder"

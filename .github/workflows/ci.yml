@@ -45,7 +45,7 @@ jobs:
 
       - name: Run Python tests
         run: |
-          pytest tools/flash/tests -q
+          pytest tools/flash/tests tools/sync/tests -q
 
       - name: Lint repository scripts
         run: |

@@ -116,6 +116,32 @@ struct Symbol {
     Symbol() : type(SYMBOL_GRAPHIC), linkageExport(false) {}
 };
 
+// What an XFL/FLA document actually contains.
+//
+// The importer can turn bitmaps into levels but cannot yet convert vector
+// art, so without this a vector-only FLA imports as a completely empty scene
+// with no explanation. The census lets the dialog name what it found and what
+// it could not convert.
+struct ContentCensus {
+    int shapes    = 0;   // <DOMShape>        vector art
+    int shapeText = 0;   // <DOMShapeText>    text inside a shape
+    int texts     = 0;   // <DOMStaticText> / <DOMText>
+    int sounds    = 0;   // <DOMSoundItem>
+    int videos    = 0;   // <DOMVideoItem>
+    int components = 0;  // <DOMComponentInstance>  Flash components
+    int symbols   = 0;   // <DOMSymbolInstance>
+    int bitmaps   = 0;   // <DOMBitmapInstance>
+    int morphs    = 0;   // <DOMMorphShape>
+
+    int nonBitmapArt() const {
+        return shapes + shapeText + texts + morphs;
+    }
+    bool isEmpty() const {
+        return !(shapes || shapeText || texts || sounds || videos || components ||
+                 symbols || bitmaps || morphs);
+    }
+};
+
 // Represents the main XFL document properties
 struct Document {
     int width;
@@ -125,6 +151,9 @@ struct Document {
     std::vector<Symbol>      symbols;   // from LIBRARY/*.xml
     std::vector<BitmapItem>  bitmaps;   // from <media> section
     std::vector<XFLTimeline> timelines; // from <timelines> section
+    // What the document contains, including content this reader does not
+    // convert. Filled in by both the DOMDocument and the LIBRARY walk.
+    ContentCensus census;
 
     Document() : width(550), height(400), frameRate(24.0), backgroundColor("#FFFFFF") {}
 };
@@ -165,7 +194,7 @@ private:
     bool readFromZip();
     bool readFromDirectory();
     bool parseDOMDocument(const std::string &xmlContent);
-    bool parseSymbol(const std::string &xmlContent, const std::string &symbolName);
+    bool parseSymbol(const std::string &xmlContent, const TFilePath &symbolPath);
     
     // XML parsing helper
     bool parseXMLAttribute(const std::string &xml, const std::string &attrName, std::string &value);

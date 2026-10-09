@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<DOMDocument xmlns="http://ns.adobe.com/xfl/2008/" width="550" height="400" frameRate="24" backgroundColor="#FFFFFF">
+  <symbols/>
+  <timelines>
+    <DOMTimeline name="Scene 1">
+      <layers>
+        <DOMLayer name="Layer 1">
+          <frames><DOMFrame index="0" duration="1"/></frames>
+        </DOMLayer>
+      </layers>
+    </DOMTimeline>
+  </timelines>
+</DOMDocument>

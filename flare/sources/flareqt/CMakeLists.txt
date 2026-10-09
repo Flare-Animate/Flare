@@ -70,6 +70,7 @@ set(MOC_HEADERS
     ../include/flareqt/treemodel.h
     ../include/flareqt/tselectionhandle.h
     ../include/flareqt/updatechecker.h
+../include/flareqt/flareupdater.h
     ../include/flareqt/validatedchoicedialog.h
 )
 
@@ -189,6 +190,7 @@ set(SOURCES
     functiontreeviewer.cpp
     functionviewer.cpp
     updatechecker.cpp
+flareupdater.cpp
     validatedchoicedialog.cpp
     trepetitionguard.cpp
     camerasettingswidget.cpp

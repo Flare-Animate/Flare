@@ -31,6 +31,18 @@ concurrency:
 jobs:
   Windows:
     runs-on: windows-2022
+    # This build needs about 30 minutes. Observed on this branch: 29.6 and 30.3
+    # minutes for the runs that passed, and 30.6 to 30.8 for every run that
+    # failed -- all of them landing on the same ceiling, with no compiler error
+    # and a clean configure log. So the failures were not a build fault at all;
+    # the job was brushing against a 30-minute limit and falling off whenever the
+    # runner was a little slower than the last one.
+    #
+    # 60 gives roughly double the observed requirement, so an ordinary variation
+    # in runner speed cannot turn a green job red. Set explicitly rather than
+    # inherited: relying on the default is what let a 0.3-minute margin decide
+    # whether the merge happened.
+    timeout-minutes: 60
     env:
       MSVCVERSION: "Visual Studio 17 2022"
       BOOST_TOOLSET: "14.3"
@@ -240,6 +252,11 @@ jobs:
           )
         shell: cmd
 
+      # Uploaded after the build as well as before it. The "before" copy keeps the
+      # configure log when configuration itself fails; this one keeps the build
+      # log when the build fails, which is the one you want. With only the first,
+      # a failed build produced an artifact containing cmake_configure.log alone,
+      # and the compiler output was nowhere to be found.
       - name: Archive build logs
         if: always()
         uses: actions/upload-artifact@v4
@@ -247,6 +264,15 @@ jobs:
           name: build-logs-windows
           path: |
             build\cmake_configure.log
+            build\build.log
+          if-no-files-found: ignore
+
+      - name: Archive build logs (after build)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs-windows-postbuild
+          path: |
             build\build.log
           if-no-files-found: ignore
 
@@ -382,12 +408,19 @@ jobs:
         shell: cmd
 
       - name: Smoke Test – DLL dependency check + launch test
-        if: always()
+        # success(), not always(): after a failed build there is no Flare.exe, and
+        # a "not found" result then says nothing about whether Flare launches.
+        if: success()
         shell: pwsh
         run: |
           $log = [System.Collections.Generic.List[string]]::new()
           $log.Add("=== Windows Smoke Test ===")
           $log.Add("")
+          # Every failure below sets this. The log is written and echoed first,
+          # then the step exits non-zero — previously each of these was only a
+          # log line, so a Flare.exe that died with STATUS_DLL_NOT_FOUND still
+          # produced a green check.
+          $failed = $false
 
           # --- Static analysis: list all DLLs present in FlarePortable ---
           $log.Add("--- DLLs present in FlarePortable (root) ---")
@@ -402,34 +435,75 @@ jobs:
           # --- dumpbin: direct dependencies of Flare.exe ---
           $log.Add("--- dumpbin /DEPENDENTS FlarePortable\Flare.exe ---")
           if (-not (Test-Path "FlarePortable\Flare.exe")) {
-            $log.Add("SKIP: FlarePortable\Flare.exe not found; skipping dependency check.")
+            $log.Add("SMOKE TEST FAIL: FlarePortable\Flare.exe not found after a successful build.")
+            $failed = $true
           } else {
+            # pwsh does not inherit the Visual Studio developer environment, so
+            # `dumpbin` was never on PATH and this whole check silently did
+            # nothing on every run ("dumpbin not recognized", caught and logged).
+            # Resolve it through vswhere, which is present on every GitHub
+            # Windows runner.
+            $dumpbin = (Get-Command dumpbin -ErrorAction SilentlyContinue).Source
+            if (-not $dumpbin) {
+              $vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\Installer\vswhere.exe'
+              if (Test-Path $vswhere) {
+                $vsRoot = & $vswhere -latest -products * -property installationPath
+                if ($vsRoot) {
+                  $dumpbin = Get-ChildItem -Path (Join-Path $vsRoot 'VC\Tools\MSVC') `
+                                           -Filter dumpbin.exe -Recurse -ErrorAction SilentlyContinue |
+                             Where-Object { $_.FullName -match 'Hostx64\\x64' } |
+                             Select-Object -First 1 -ExpandProperty FullName
+                }
+              }
+            }
+            if ($dumpbin) { $log.Add("using dumpbin: $dumpbin") }
             try {
-              $dumpout = & dumpbin /DEPENDENTS FlarePortable\Flare.exe 2>&1
+              if (-not $dumpbin) { throw "dumpbin could not be located via PATH or vswhere" }
+              $dumpout = & $dumpbin /DEPENDENTS FlarePortable\Flare.exe 2>&1
+              # A native command that fails does NOT throw in PowerShell, so
+              # without this the error text would flow on, yield an empty
+              # $needed, and log "all dependencies accounted for" having checked
+              # nothing at all.
+              if ($LASTEXITCODE -ne 0) { throw "dumpbin exited $LASTEXITCODE`: $dumpout" }
               $needed  = $dumpout | Select-String '\.dll' |
                          ForEach-Object { ($_ -replace '^\s+','').Trim() } |
                          Where-Object { $_ -ne '' }
+              if (-not $needed) { throw "dumpbin produced no DLL dependency lines" }
               $needed | ForEach-Object { $log.Add("  needs: $_") }
               $log.Add("")
               $log.Add("--- Checking direct deps are present ---")
+              # Resolve against real directories. Get-Command was used here
+              # before and cannot work: .dll is not in PATHEXT, so it finds no
+              # DLL at all — KERNEL32.dll and every other system import would
+              # have been reported missing the moment dumpbin started running.
+              $searchDirs = @("FlarePortable", "$env:SystemRoot\System32", "$env:SystemRoot") +
+                            ($env:Path -split ';' | Where-Object { $_ -and (Test-Path $_) })
               $missing = @()
               foreach ($dll in $needed) {
                 $name = [System.IO.Path]::GetFileName($dll)
-                $inPackage = Test-Path "FlarePortable\$name"
-                $inSystem  = $null -ne (Get-Command $name -ErrorAction SilentlyContinue)
-                if (-not $inPackage -and -not $inSystem) { $missing += $name }
-                $log.Add("  $name -> package=$inPackage  system=$inSystem")
+                $inPackage = Test-Path (Join-Path "FlarePortable" $name)
+                $where = $null
+                foreach ($d in $searchDirs) {
+                  $candidate = Join-Path $d $name
+                  if (Test-Path $candidate) { $where = $candidate; break }
+                }
+                if (-not $where) { $missing += $name }
+                $log.Add("  $name -> package=$inPackage  found=$(if ($where) { $where } else { 'NO' })")
               }
               if ($missing.Count -gt 0) {
                 $log.Add("")
-                $log.Add("SMOKE TEST WARN: These DLLs are neither in FlarePortable nor system PATH:")
+                $log.Add("SMOKE TEST FAIL: These DLLs are in neither FlarePortable, System32, nor any PATH directory:")
                 $missing | ForEach-Object { $log.Add("  MISSING: $_") }
+                $failed = $true
               } else {
                 $log.Add("")
                 $log.Add("SMOKE TEST OK: All direct DLL dependencies accounted for.")
               }
             } catch {
-              $log.Add("dumpbin not available or failed: $_")
+              # Not a build defect, so not $failed — but say plainly that the
+              # dependency check did NOT run, rather than implying it passed.
+              $log.Add("SMOKE TEST SKIPPED (dependency check only): $_")
+              $log.Add("The runtime launch test below is the authoritative check.")
             }
           }
           $log.Add("")
@@ -444,9 +518,36 @@ jobs:
 
           $exePath = "$PWD\FlarePortable\Flare.exe"
           if (-not (Test-Path $exePath)) {
-            $log.Add("SMOKE TEST SKIP: Flare.exe not found at $exePath")
+            $log.Add("SMOKE TEST FAIL: Flare.exe not found at $exePath")
+            $failed = $true
           } else {
             try {
+              # Force Qt to a software rasteriser. The build sets
+              # Qt::AA_UseDesktopOpenGL (flare/sources/flare/main.cpp, with a
+              # FIXME beside it admitting the attribute is set too late to take
+              # effect), so on a runner with no usable GPU the GL context can fail
+              # during Qt construction -- before main.cpp's own try/catch is in
+              # scope. That is STATUS_FATAL_USER_CALLBACK_EXCEPTION, 0xC000041D.
+              #
+              # Not speculative: the launch failed that way on this branch and
+              # passed on other commits of the same tree, which is the signature of
+              # a machine-dependent failure rather than a code fault. main.cpp here
+              # is byte-identical to master, which passes.
+              # Set in the runner's own environment, not on ProcessStartInfo.
+              # This step uses UseShellExecute = $true so the window can be
+              # hidden, and .NET ignores ProcessStartInfo.EnvironmentVariables
+              # whenever UseShellExecute is true: the process is started
+              # through the shell and inherits the environment as it stands.
+              # Assigning them to the object would have looked right and done
+              # nothing at all.
+              # QT_QPA_PLATFORM=offscreen renders without a native window or GPU,
+              # so the desktop-GL attribute above has nothing to fail on. This is
+              # a smoke test -- "the process starts and stays up" -- not a
+              # rendering test, and offscreen is what Qt provides for exactly that.
+              $env:QT_QPA_PLATFORM = "offscreen"
+              $env:QT_OPENGL = "software"
+              $env:LIBGL_ALWAYS_SOFTWARE = "1"
+
               $psi = New-Object System.Diagnostics.ProcessStartInfo
               $psi.FileName        = $exePath
               $psi.WorkingDirectory = "$PWD\FlarePortable"
@@ -462,21 +563,30 @@ jobs:
                 $hex  = "0x{0:X8}" -f ($raw -band 0xFFFFFFFF)
                 $log.Add("Flare.exe exited quickly: code=$raw ($hex)")
                 switch ($raw -band 0xFFFFFFFF) {
-                  0xC0000135 { $log.Add("SMOKE TEST FAIL: STATUS_DLL_NOT_FOUND – a required DLL is missing from FlarePortable") }
-                  0xC000007B { $log.Add("SMOKE TEST FAIL: STATUS_INVALID_IMAGE_FORMAT – wrong-bitness DLL loaded") }
-                  0xC0000034 { $log.Add("SMOKE TEST WARN: STATUS_OBJECT_NAME_NOT_FOUND") }
+                  0xC0000135 { $log.Add("SMOKE TEST FAIL: STATUS_DLL_NOT_FOUND – a required DLL is missing from FlarePortable"); $failed = $true }
+                  0xC000007B { $log.Add("SMOKE TEST FAIL: STATUS_INVALID_IMAGE_FORMAT – wrong-bitness DLL loaded"); $failed = $true }
+                  0xC0000034 { $log.Add("SMOKE TEST FAIL: STATUS_OBJECT_NAME_NOT_FOUND – a file Flare.exe opened at startup is missing"); $failed = $true }
                   0x00000000 { $log.Add("SMOKE TEST OK: Exited cleanly (exit 0)") }
-                  default    { $log.Add("SMOKE TEST NOTE: Exited with code $hex (may be expected for headless run)") }
+                  # 0xC000041D is STATUS_FATAL_USER_CALLBACK_EXCEPTION: a C++
+                  # exception escaped a callback Qt invoked, typically during
+                  # widget construction -- which is where a GL context that could
+                  # not be created surfaces, since main.cpp's handlers are not yet
+                  # in scope. Naming it here saves a reader looking the code up.
+                  0xC000041D { $log.Add("SMOKE TEST FAIL: STATUS_FATAL_USER_CALLBACK_EXCEPTION -- an exception escaped a Qt callback, most often a GL context that could not be created"); $failed = $true }
+                  default    { $log.Add("SMOKE TEST FAIL: Exited with code $hex before the 8s window elapsed"); $failed = $true }
                 }
               }
             } catch {
-              $log.Add("SMOKE TEST ERROR: Could not launch Flare.exe – $_")
+              $log.Add("SMOKE TEST FAIL: Could not launch Flare.exe – $_")
+              $failed = $true
             }
           }
 
-          # Write log and echo it
+          # Write log and echo it BEFORE failing, so the PR comment and the
+          # uploaded artifact still show why.
           $log | Out-File -FilePath smoke_test.log -Encoding utf8
           Write-Host ($log -join "`n")
+          if ($failed) { exit 1 }
 
       - name: Upload smoke test log
         if: always()

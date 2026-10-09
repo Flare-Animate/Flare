@@ -23,6 +23,9 @@
 #include "flareqt/icongenerator.h"
 #include "flareqt/viewcommandids.h"
 #include "flareqt/updatechecker.h"
+#include "flareqt/flareupdater.h"
+
+#include <QProgressDialog>
 #include "flareqt/paletteviewer.h"
 #include "flareqt/seethroughwindow.h"
 
@@ -506,6 +509,8 @@ centralWidget->setLayout(centralWidgetLayout);*/
   setCommandHandler(MI_OpenWhatsNew, this, &MainWindow::onOpenWhatsNew);
   setCommandHandler(MI_OpenCommunityForum, this,
                     &MainWindow::onOpenCommunityForum);
+  setCommandHandler(MI_OpenDiscord, this, &MainWindow::onOpenDiscord);
+  setCommandHandler(MI_OpenWebsite, this, &MainWindow::onOpenWebsite);
   setCommandHandler(MI_OpenReportABug, this, &MainWindow::onOpenReportABug);
 
   setCommandHandler(MI_MaximizePanel, this, &MainWindow::maximizePanel);
@@ -1109,6 +1114,18 @@ void MainWindow::onOpenCommunityForum() {
 
 //-----------------------------------------------------------------------------
 
+void MainWindow::onOpenDiscord() {
+  QDesktopServices::openUrl(QUrl("https://discord.com/invite/JpeScW8Awa"));
+}
+
+//-----------------------------------------------------------------------------
+
+void MainWindow::onOpenWebsite() {
+  QDesktopServices::openUrl(QUrl("https://flare-animate.github.io/website/"));
+}
+
+//-----------------------------------------------------------------------------
+
 void MainWindow::onOpenReportABug() {
   QString str = QString(
       tr("To report a bug, click on the button below to open a web browser "
@@ -1378,50 +1395,160 @@ void MainWindow::showEvent(QShowEvent *event) {
 extern const char *applicationName;
 extern const char *applicationVersion;
 //-----------------------------------------------------------------------------
-void MainWindow::checkForUpdates() {
-  // Since there is only a single version of Flare, we can do a simple check
-  // against a string
-  QString updateUrl("http://flare-animate.github.io/flare-version.txt");
 
-  m_updateChecker = new UpdateChecker(updateUrl);
-      connect(m_updateChecker, SIGNAL(done(bool)), this,
-              SLOT(onUpdateCheckerDone(bool)));
+/*!
+    Asks GitHub whether a newer Flare has been published, and offers to install
+    it.
+
+    This replaces the previous behaviour, which fetched a bare version string
+    from flare-version.txt and could only open a web page in the user's browser.
+    That could not deliver an update -- it made the user download and install one
+    by hand -- and it could not tell a release candidate from a final release.
+
+    The GitHub Releases API gives us the tag and the per-platform downloads, so
+    the comparison is done with FlareUpdater::compareVersions and the right
+    binary is fetched and installed in place. Failures here are deliberately
+    silent: a user who is offline or rate-limited should not be interrupted, and
+    an update check is not something they asked for on this particular launch.
+*/
+void MainWindow::checkForUpdates() {
+  if (m_flareUpdater)
+    return;  // a check is already in flight
+
+  m_flareUpdater = new FlareUpdater(this);
+  connect(m_flareUpdater, &FlareUpdater::releaseReady, this,
+          &MainWindow::onFlareReleaseReady);
+  connect(m_flareUpdater, &FlareUpdater::failed, this,
+          &MainWindow::onFlareUpdateFailed);
+  connect(m_flareUpdater, &FlareUpdater::downloadProgress, this,
+          &MainWindow::onFlareUpdateProgress);
+  connect(m_flareUpdater, &FlareUpdater::downloadFinished, this,
+          &MainWindow::onFlareUpdateFinished);
+
+  m_flareUpdater->checkForRelease(
+      QUrl(QStringLiteral("https://api.github.com/repos/Flare-Animate/Flare/"
+                          "releases/latest")));
 }
+
 //-----------------------------------------------------------------------------
 
-void MainWindow::onUpdateCheckerDone(bool error) {
-  if (error) {
-    // Get the last update date
+void MainWindow::onFlareReleaseReady(const FlareUpdater::Release& release) {
+  if (release.draft)
+    return;  // a draft is not published yet
+
+  const QString current = QString::fromStdString(TEnv::getApplicationVersion());
+
+  if (FlareUpdater::compareVersions(release.tag, current) <= 0)
+    return;  // up to date, or the published build is older
+
+  // Don't nag about a release candidate unless the installed build is older
+  // than it: offering "1.8.0-rc1" to someone on "1.7.1" is reasonable, offering
+  // it to someone already on the final "1.8.0" is not.
+  QString why;
+  const auto asset =
+      FlareUpdater::pickAssetForCurrentPlatform(release.assets, &why);
+  if (!asset.isValid()) {
+    // Nothing for this platform. Not an error worth interrupting anyone over --
+    // the check simply cannot help this user.
+    DVGui::info(
+        QObject::tr("Flare %1 is available, but there is no download for this "
+                    "platform (%2).")
+            .arg(release.tag, why.isEmpty() ? QObject::tr("unknown reason") : why));
     return;
   }
 
-  int const software_version =
-      get_version_code_from(TEnv::getApplicationVersion());
-  int const latest_version =
-      get_version_code_from(m_updateChecker->getLatestVersion().toStdString());
-  if (software_version < latest_version) {
-    QStringList buttons;
-    buttons.push_back(QObject::tr("Visit Web Site"));
-    buttons.push_back(QObject::tr("Cancel"));
-    DVGui::MessageAndCheckboxDialog *dialog = DVGui::createMsgandCheckbox(
-        DVGui::INFORMATION,
-        QObject::tr("An update is available for this software.\nVisit the Web "
-                    "site for more information."),
-        QObject::tr("Check for the latest version on launch."), buttons, 0,
-        Qt::Checked);
-    int ret = dialog->exec();
-    if (dialog->getChecked() == Qt::Unchecked)
-      Preferences::instance()->setValue(latestVersionCheckEnabled, false);
-    dialog->deleteLater();
-    if (ret == 1) {
-      // Write the new last date to file
-      QDesktopServices::openUrl(QObject::tr("https://flare-animate.github.io/e/"));
-    }
-  }
+  QStringList buttons;
+  buttons.push_back(QObject::tr("Install Now"));
+  buttons.push_back(QObject::tr("Release Notes"));
+  buttons.push_back(QObject::tr("Later"));
 
-  disconnect(m_updateChecker);
-  m_updateChecker->deleteLater();
+  auto* dialog = DVGui::createMsgandCheckbox(
+      DVGui::INFORMATION,
+      QObject::tr("Flare %1 is available.\n\nYou have %2.\n\n%3")
+          .arg(release.tag, current,
+               release.notes.isEmpty()
+                   ? QObject::tr("Download: %1").arg(asset.name)
+                   : release.notes.left(400)),
+      QObject::tr("Check for the latest version on launch."), buttons, 0,
+      Qt::Checked);
+
+  const int ret = dialog->exec();
+  if (dialog->getChecked() == Qt::Unchecked)
+    Preferences::instance()->setValue(latestVersionCheckEnabled, false);
+  dialog->deleteLater();
+
+  if (ret == 0)
+    startFlareUpdateDownload(asset);
+  else if (ret == 1 && !release.notes.isEmpty())
+    DVGui::info(release.notes);
 }
+
+//-----------------------------------------------------------------------------
+
+void MainWindow::startFlareUpdateDownload(const FlareUpdater::Asset& asset) {
+  if (!m_flareUpdater)
+    return;
+
+  // Download beside the executable rather than into the user's temp area, so the
+  // installer does not have to move the file across volumes -- which is what
+  // makes a same-directory replace fail while the old one is still running.
+  const QDir target = QFileInfo(QCoreApplication::applicationFilePath())
+                          .absoluteDir();
+  m_flareUpdater->download(asset, QUrl::fromLocalFile(target.path()));
+}
+
+//-----------------------------------------------------------------------------
+
+void MainWindow::onFlareUpdateProgress(qint64 received, qint64 total) {
+  static QProgressDialog* progress = nullptr;
+  if (!progress) {
+    progress = new QProgressDialog(
+        QObject::tr("Downloading the update..."), QString(), 0, 100, this);
+    progress->setWindowModality(Qt::WindowModal);
+    progress->setAutoClose(false);
+    progress->setAutoReset(false);
+  }
+  progress->setMaximum(static_cast<int>(total > 0 ? total : 0));
+  progress->setValue(static_cast<int>(received));
+  progress->show();
+}
+
+//-----------------------------------------------------------------------------
+
+void MainWindow::onFlareUpdateFinished(const QString& savedPath) {
+  DVGui::info(QObject::tr("The update has been downloaded.\n\nFlare will "
+                          "restart to finish installing it."));
+  applyFlareUpdate(savedPath);
+}
+
+//-----------------------------------------------------------------------------
+
+void MainWindow::applyFlareUpdate(const QString& downloadedPath) {
+  QString error;
+  if (!FlareUpdater::applyUpdate(downloadedPath, &error)) {
+    // A failed install is the one case that must not be quiet: the user asked
+    // for this explicitly and is now looking at a stale binary.
+    DVGui::error(QObject::tr("The update could not be installed.\n\n%1\n\nThe "
+                            "download is still at:\n%2")
+                    .arg(error, downloadedPath));
+  }
+}
+
+//-----------------------------------------------------------------------------
+
+void MainWindow::onFlareUpdateFailed(const QString& message) {
+  // Only speak up if the user asked for this update by hand; a background check
+  // that cannot reach the network is not worth a dialog.
+  if (m_flareUpdater && m_flareUpdater->parent() == this)
+    DVGui::warning(QObject::tr("Flare could not check for updates.\n\n%1")
+                       .arg(message));
+  if (m_flareUpdater) {
+    m_flareUpdater->deleteLater();
+    m_flareUpdater = nullptr;
+  }
+}
+
+//-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
 
@@ -1831,6 +1958,9 @@ void MainWindow::defineActions() {
   createMenuFileAction(MI_ImportFlashVector,
                        QT_TR_NOOP("&Import Flash (FLA / XFL / SWF / SWC / FLV / F4V / AS)..."), "",
                        "import_flash");
+  createMenuFileAction(MI_ImportMohoProject,
+                       QT_TR_NOOP("Import &Moho Project (rig structure and assets)..."), "",
+                       "import_moho");
   createMenuFileAction(MI_NewProject, QT_TR_NOOP("&New Project..."), "",
                        "new_project");
   createMenuFileAction(MI_ProjectSettings, QT_TR_NOOP("&Project Settings..."),
@@ -1975,7 +2105,7 @@ void MainWindow::defineActions() {
                         "new_vector_level");
   createMenuLevelAction(MI_NewToonzRasterLevel,
                         QT_TR_NOOP("&New Flare Raster Level"), "",
-                        "new_toonz_raster_level");
+                        "new_flare_raster_level");
   createMenuLevelAction(MI_NewRasterLevel, QT_TR_NOOP("&New Raster Level"), "",
                         "new_raster_level");
   createMenuFileAction(MI_NewMetaLevel, QT_TR_NOOP("&New Assistant Level"),
@@ -2401,6 +2531,10 @@ void MainWindow::defineActions() {
                        "web");
   createMenuHelpAction(MI_OpenCommunityForum, QT_TR_NOOP("&Community Forum..."),
                        "", "web");
+  createMenuHelpAction(MI_OpenDiscord, QT_TR_NOOP("Join us on &Discord..."), "",
+                       "web");
+  createMenuHelpAction(MI_OpenWebsite, QT_TR_NOOP("Flare &Website..."), "",
+                       "web");
   createMenuHelpAction(MI_OpenReportABug, QT_TR_NOOP("&Report a Bug..."), "",
                        "web");
 

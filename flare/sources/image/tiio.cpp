@@ -228,14 +228,17 @@ void initImageIo(bool lightVersion) {
     // Always declare the file types so they appear in file dialogs
     TFileType::declare("swf", TFileType::RASTER_LEVEL);
 
-    // FLA is a publishing/project format and may not be directly supported by FFmpeg,
-    // but declare it so it is visible; if FFmpeg supports it, register reader as well
+    // FLA/XFL are Flare's primary project formats alongside native .tnz —
+    // declare them unconditionally so they're first-class in file dialogs
+    // regardless of FFmpeg. Actual parsing (native, not FFmpeg) is handled by
+    // the Flash importer (flare/flashimport.cpp -> common/flash/XFLReader);
+    // FFmpeg is only used opportunistically for direct raster-level playback
+    // when it happens to support the container.
     if (Ffmpeg::checkFormat("fla")) {
       TLevelReader::define("fla", TLevelReaderFFmpeg::create);
-      TFileType::declare("fla", TFileType::RASTER_LEVEL);
-    } else {
-      TFileType::declare("fla", TFileType::RASTER_LEVEL);
     }
+    TFileType::declare("fla", TFileType::RASTER_LEVEL);
+    TFileType::declare("xfl", TFileType::RASTER_LEVEL);
 
     // FLV (Flash Video) — standard container for streamed Flash content
     if (Ffmpeg::checkFormat("flv")) {

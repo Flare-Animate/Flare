@@ -78,14 +78,52 @@ class XFLReader:
     """Read and parse XFL format files."""
     
     def __init__(self, xfl_path: str):
-        """Initialize reader with path to XFL file or directory.
-        
+        """Initialize reader with path to an XFL/FLA file or directory.
+
         Args:
-            xfl_path: Path to .xfl file (ZIP) or uncompressed XFL directory
+            xfl_path: One of
+              * a ZIP-based ``.fla``/``.xfl`` archive,
+              * a directory-based XFL project folder, or
+              * the tiny ``<name>.xfl`` *marker* file that sits inside such a
+                folder (Adobe Animate "Save as XFL" writes one). The marker is
+                NOT a container — the real project root is its parent directory.
         """
         self.xfl_path = xfl_path
-        self.is_zip = xfl_path.lower().endswith('.xfl') or xfl_path.lower().endswith('.fla')
         self.document = XFLDocument()
+
+        # Detect a real ZIP archive by its magic bytes, not just the extension —
+        # a directory-based ``.xfl`` marker is a plain text file, not a ZIP.
+        self.is_zip = self._looks_like_zip(xfl_path)
+
+        # If handed the ``.xfl`` marker file of a directory-based project, use the
+        # folder it lives in as the project root.
+        if (not self.is_zip and os.path.isfile(xfl_path)
+                and xfl_path.lower().endswith('.xfl')):
+            self.xfl_path = os.path.dirname(os.path.abspath(xfl_path))
+
+    # Valid ZIP magic numbers: local file header (normal case), end-of-central-
+    # directory record (a valid but empty archive), and the spanned/split
+    # archive marker. Checking only PK\x03\x04 would misclassify the latter two
+    # as "not zip" and send a legitimate ZIP-based FLA/XFL down the wrong path.
+    _ZIP_SIGNATURES = (b'PK\x03\x04', b'PK\x05\x06', b'PK\x07\x08')
+
+    @staticmethod
+    def _looks_like_zip(path: str) -> bool:
+        """Return True if *path* is a file beginning with a real ZIP signature.
+
+        Checks the full 4-byte signature rather than just the 2-byte 'PK'
+        prefix, so a plain-text XFL marker file that happens to start with
+        those two characters isn't misclassified as a ZIP and sent down the
+        _read_from_zip() path.
+        """
+        if not os.path.isfile(path):
+            return False
+        try:
+            with open(path, 'rb') as f:
+                header = f.read(4)
+                return header in XFLReader._ZIP_SIGNATURES
+        except OSError:
+            return False
         
     def read(self) -> XFLDocument:
         """Read and parse the XFL structure.
@@ -116,13 +154,18 @@ class XFLReader:
     
     def _read_from_directory(self) -> XFLDocument:
         """Read XFL from an uncompressed directory."""
-        doc_path = os.path.join(self.xfl_path, 'DOMDocument.xml')
+        base = self.xfl_path
+        # If we still hold a file path (e.g. a ``.xfl`` marker), the project root
+        # is the directory that contains it.
+        if os.path.isfile(base):
+            base = os.path.dirname(os.path.abspath(base))
+        doc_path = os.path.join(base, 'DOMDocument.xml')
         if os.path.exists(doc_path):
             with open(doc_path, 'rb') as f:
                 self._parse_document(f)
         
         # Parse library
-        lib_dir = os.path.join(self.xfl_path, 'LIBRARY')
+        lib_dir = os.path.join(base, 'LIBRARY')
         if os.path.isdir(lib_dir):
             for root, _, files in os.walk(lib_dir):
                 for fname in files:
@@ -375,6 +418,103 @@ class XFLWriter:
         return xml
 
 
+def read_swf_header(swf_path: str) -> Optional[Dict]:
+    """Read a SWF file header.
+
+    Returns a dict with ``version``, ``compression`` ('none' | 'zlib' | 'lzma'),
+    ``width``/``height`` in pixels, ``frame_rate`` and ``frame_count``, or None
+    if the file is not a SWF. ``background_color`` comes from the
+    SetBackgroundColor tag when one is present, else Flash's white default.
+
+    The stage RECT is a bit-packed FIXED-length field in twips (1/20 px):
+    5 bits giving the width of each of the following four fields, then xmin,
+    xmax, ymin, ymax.  Frame rate is an 8.8 fixed-point value.
+    """
+    try:
+        with open(swf_path, 'rb') as f:
+            head = f.read(8)
+            if len(head) < 8:
+                return None
+            signature = head[:3]
+            if signature not in (b'FWS', b'CWS', b'ZWS'):
+                return None
+            version = head[3]
+            body = f.read()
+    except OSError:
+        return None
+
+    if signature == b'CWS':
+        compression = 'zlib'
+        try:
+            import zlib
+            body = zlib.decompress(body)
+        except Exception:
+            return None
+    elif signature == b'ZWS':
+        # LZMA-compressed SWF uses a non-standard container; callers decide how
+        # to handle it rather than guessing at a decode here.
+        return {'version': version, 'compression': 'lzma', 'width': 0,
+                'height': 0, 'frame_rate': 0.0, 'frame_count': 0,
+                'background_color': '#FFFFFF'}
+    else:
+        compression = 'none'
+
+    if not body:
+        return None
+
+    nbits = body[0] >> 3
+    total_bits = 5 + nbits * 4
+    rect_len = (total_bits + 7) // 8
+    if len(body) < rect_len + 4:
+        return None
+
+    bits = ''.join(f'{byte:08b}' for byte in body[:rect_len])
+
+    def _signed(field: str) -> int:
+        """Decode one SB[nbits] field: two's complement, most significant bit
+        is the sign. SWF stage bounds are signed, and xmin/ymin are legitimately
+        negative in files whose stage origin is not the top-left corner."""
+        if not field:
+            return 0
+        value = int(field, 2)
+        if field[0] == '1':
+            value -= 1 << len(field)
+        return value
+
+    fields = [_signed(bits[5 + i * nbits:5 + (i + 1) * nbits])
+              for i in range(4)]
+    xmin, xmax, ymin, ymax = fields
+    width = round((xmax - xmin) / 20)
+    height = round((ymax - ymin) / 20)
+
+    frame_rate = body[rect_len + 1] + body[rect_len] / 256.0
+    frame_count = int.from_bytes(body[rect_len + 2:rect_len + 4], 'little')
+
+    background_color = '#FFFFFF'
+    pos = rect_len + 4
+    while pos + 2 <= len(body):
+        code_and_length = int.from_bytes(body[pos:pos + 2], 'little')
+        tag_type = code_and_length >> 6
+        tag_length = code_and_length & 0x3F
+        pos += 2
+        if tag_length == 0x3F:
+            if pos + 4 > len(body):
+                break
+            tag_length = int.from_bytes(body[pos:pos + 4], 'little')
+            pos += 4
+        if tag_type == 0:  # End
+            break
+        if tag_type == 9 and tag_length >= 3:  # SetBackgroundColor
+            r, g, b = body[pos], body[pos + 1], body[pos + 2]
+            background_color = f'#{r:02X}{g:02X}{b:02X}'
+            break
+        pos += tag_length
+
+    return {'version': version, 'compression': compression, 'width': width,
+            'height': height, 'frame_rate': round(frame_rate, 3),
+            'frame_count': frame_count, 'background_color': background_color}
+
+
 def convert_swf_to_xfl(swf_path: str, xfl_output: str, use_jpexs: bool = True) -> bool:
     """Convert a SWF file to XFL format.
     
@@ -404,10 +544,28 @@ def convert_swf_to_xfl(swf_path: str, xfl_output: str, use_jpexs: bool = True) -
         except (FileNotFoundError, subprocess.TimeoutExpired):
             pass
     
-    # Fallback: create basic XFL structure
-    # This would require full SWF parsing - placeholder for now
-    print("Note: Full SWF->XFL conversion requires JPEXS decompiler or advanced SWF parsing")
-    return False
+    # Fallback: no decompiler available. Rebuilding shapes, symbols and
+    # timelines from SWF tags is JPEXS' job; what we can always do without it is
+    # read the SWF header and emit a valid, openable XFL whose document
+    # properties (stage size, frame rate, background colour) match the source,
+    # so the artwork can be re-imported into a correctly configured stage.
+    header = read_swf_header(swf_path)
+    if header is None:
+        print(f"Error: {swf_path} is not a readable SWF file")
+        return False
+    if header['compression'] == 'lzma':
+        print("Error: LZMA-compressed SWF (ZWS) is not supported by this "
+              "fallback; install JPEXS/ffdec to convert it")
+        return False
+
+    document = XFLDocument(width=header['width'], height=header['height'],
+                           frame_rate=header['frame_rate'],
+                           background_color=header['background_color'])
+    XFLWriter(xfl_output, document).write()
+    print(f"Note: wrote stage-only XFL ({header['width']}x{header['height']} @ "
+          f"{header['frame_rate']}fps, {header['frame_count']} frame(s)). "
+          "Install JPEXS/ffdec to also convert shapes, symbols and timelines.")
+    return True
 
 
 if __name__ == '__main__':

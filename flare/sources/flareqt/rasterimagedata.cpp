@@ -78,6 +78,11 @@ ToonzImageData::ToonzImageData(const ToonzImageData &src)
   m_transformation  = src.m_transformation;
   m_originalStrokes = src.m_originalStrokes;
   m_dim             = src.m_dim;
+  setImageData(src.imageData());
+  for (const QString &format : src.formats()) {
+    if (format != "application/x-qt-image")
+      QMimeData::setData(format, src.data(format));
+  }
   assert(m_palette);
 }
 
@@ -211,6 +216,11 @@ FullColorImageData::FullColorImageData(const FullColorImageData &src)
   m_transformation  = src.m_transformation;
   m_originalStrokes = src.m_originalStrokes;
   m_dim             = src.m_dim;
+  setImageData(src.imageData());
+  for (const QString &format : src.formats()) {
+    if (format != "application/x-qt-image")
+      QMimeData::setData(format, src.data(format));
+  }
 }
 
 //-------------------------------------------------------------------

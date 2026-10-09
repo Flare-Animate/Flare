@@ -1139,6 +1139,7 @@ QMenuBar *StackedMenuBar::createFullMenuBar() {
     addMenuItem(importMenu, MI_ImportMagpieFile); 
     addMenuItem(importMenu, MI_ImportOCA);
     addMenuItem(importMenu, MI_ImportFlashVector);
+    addMenuItem(importMenu, MI_ImportMohoProject);
   }
   QMenu *exportMenu = fileMenu->addMenu(tr("Export"));
   {
@@ -1489,6 +1490,8 @@ QMenuBar *StackedMenuBar::createFullMenuBar() {
   addMenuItem(helpMenu, MI_OpenOnlineManual);
   addMenuItem(helpMenu, MI_OpenWhatsNew);
   addMenuItem(helpMenu, MI_OpenCommunityForum);
+  addMenuItem(helpMenu, MI_OpenDiscord);
+  addMenuItem(helpMenu, MI_OpenWebsite);
   helpMenu->addSeparator();
   addMenuItem(helpMenu, MI_OpenReportABug);
   helpMenu->addSeparator();

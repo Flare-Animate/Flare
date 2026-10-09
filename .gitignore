@@ -1,17 +1,47 @@
+# ---------------------------------------------------------------------------
+# Build output
+# ---------------------------------------------------------------------------
 Debug
 Debug64
 Release
 Release64
 GeneratedFiles
+build*
+/build
+/.scripts
+/FlarePortable
+/LocalTest
+/LocalTest-*
+
+# Editor / IDE
 .vs
 *.opensdf
 *.sdf
 *.suo
 *.user
-build*
+.idea
+.clang_complete
+Debug/
+Debug Library/
+Release/
+Release Library/
+ipch/
+*.config
+*.creator
+*.files
+*.includes
 Thumbs.db
 
-# bundled thirdparty libraries
+# macOS
+.DS_Store
+
+# Python
+*.pyc
+__pycache__/
+
+# ---------------------------------------------------------------------------
+# Bundled third-party libraries (large, fetched/built out of band)
+# ---------------------------------------------------------------------------
 /thirdparty/boost
 /thirdparty/libjpeg-turbo64
 /thirdparty/lzo
@@ -20,70 +50,40 @@ Thumbs.db
 /thirdparty/Lz4/Lz4_131
 /thirdparty/libusb/libusb-1.0.9
 /thirdparty/glew/glew-1.9.0
-lzo-2.09
-
-.clang_complete
-Debug/
-Debug Library/
-Release/
-Release Library/
-ipch/
-.idea
-
-# qtcreator files
-*.config
-*.creator
-*.files
-*.includes
-
-#macOS
-.DS_Store
-
-*.pyc
-__pycache__/
-
-# ignore Qt thirdparty directory which is large and rebuilt externally
 /thirdparty/qt
 /thirdparty/qt/**
+lzo-2.09
 
-# ignore local scripts folder used during builds
-/.scripts
-/FlarePortable
-tmp.txt
-Qt5*.zip
-repo_script_problems.json
-stuff/config/loc/
-run_68428401017.log
-run_68428398819.log
-ci_monitor.log
-actions_page.html
-pr_page.html
-ci_retrigger.log
-.github/workflows/faileubuntu.txt
-
-# CI debug/log artefacts left by previous agent sessions
+# ---------------------------------------------------------------------------
+# Scratch output from CI, agents and local debugging.
+#
+# This used to be an ever-growing list of one-off filenames
+# (run_68428401017.log, ci_monitor.log, debug_output.txt, gitlog.txt, ...),
+# each added by whatever run happened to produce it. Patterns cover the whole
+# class instead, so nothing new has to be added by hand.
+# ---------------------------------------------------------------------------
+*.log
+# CI log bundles dropped in the repo root (runlogs.zip, joblog.zip, ...)
+/*.zip
 run-*.txt
-run-*-log.txt
-run-*-jobs.json
 run_*.txt
+run_*-jobs.json
 linux_run_*.txt
-cmake_config_log*.txt
-cmake_clean_config.txt
+cmake_*log*.txt
 debug_output.txt
 gitlog.txt
 rebrand_debug.txt
-runlogs.zip
 runmeta.json
-joblog.zip
-action_logs.zip
-logs.zip
-libs.zip
+check_suites.json
 orig_CMake.txt
 sparse.patch
-check_suites.json
 tflash_base.cpp
 tflash_ours.cpp
 tflash_theirs.cpp
+actions_page.html
+pr_page.html
+repo_script_problems.json
+.github/workflows/faileubuntu.txt
 show_diff.py
 show_log.py
 move_thirdparty.py
@@ -93,3 +93,6 @@ test_package.bat
 test_package_root.bat
 appveyor.yml
 requirements.txt
+Qt5*.zip
+tmp.txt
+stuff/config/loc/

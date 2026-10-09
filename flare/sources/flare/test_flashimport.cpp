@@ -1,8 +1,21 @@
-// test_flashimport.cpp — unit tests for Flash header parsing logic
-// Compile standalone (no modification to flashimport.cpp needed):
-//   g++ -std=c++17 test_flashimport.cpp -o test_flash \
-//       $(pkg-config --cflags --libs Qt5Core) && ./test_flash
-
+// test_flashimport.cpp - SUPERSEDED. Do not extend this file.
+//
+// It copies the parsers out of flashimport.cpp into the test so it can reach
+// them, which means it would still pass if the shipped code were emptied or
+// broken. That is the failure mode worth avoiding most, and this file is the
+// example of it. It is also not in any build, so nothing ran it.
+//
+// The parsers now live in common/flash (SWFAssets, ZipArchive) and are tested
+// against the real implementation in tests/native/:
+//   tests/native/flash_reader_tests.cpp   format sniffing, SWF header, ZIP
+//                                         extraction and trailer repair
+//   tests/native/moho_reader_tests.cpp    the Moho reader
+//
+// The original file body follows, kept for reference only.
+//
+// ---------------------------------------------------------------------------
+// Original file follows.
+// ---------------------------------------------------------------------------
 #include <QByteArray>
 #include <QDir>
 #include <QFile>
@@ -555,8 +568,8 @@ static bool isPathSafeForExtraction(const QString &outDir, const QString &entryN
     QString entry = entryName;
     entry.replace('\\', '/');
     while (entry.startsWith("./")) entry = entry.mid(2);
-    while (entry.startsWith('/'))  entry = entry.mid(1);
     if (entry.isEmpty()) return false;
+    // Absolute paths are rejected outright (not relativized) — matches extractZip().
     if (entry.startsWith('/')) return false;
     // Reject any remaining backslash after normalisation
     if (entry.contains('\\')) return false;
