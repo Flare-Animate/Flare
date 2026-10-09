@@ -1,0 +1,8 @@
+[package]
+name = "flare_formats"
+version = "0.1.0"
+edition = "2021"
+license = "BSD-3-Clause"
+
+[lib]
+crate-type = ["cdylib", "staticlib", "rlib"]

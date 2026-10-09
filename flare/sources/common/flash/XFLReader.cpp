@@ -25,6 +25,9 @@
 #include "../../../../thirdparty/zlib-1.2.8/contrib/minizip/unzip.h"
 #include "../../../../thirdparty/zlib-1.2.8/contrib/minizip/zip.h"
 #include "ZipArchive.h"
+#ifdef FLARE_WITH_RUST
+#include "flare_formats.h"
+#endif
 
 namespace XFL {
 
@@ -67,7 +70,20 @@ Reader::~Reader() {
 
 bool Reader::read() {
     m_error.clear();
-    
+
+#ifdef FLARE_WITH_RUST
+    // Rust sniff: reject legacy CFBF .fla early; anything else falls back to C++ path.
+    if (m_isZip) {
+        std::ifstream f(m_xflPath.getQString().toStdString(), std::ios::binary);
+        uint8_t head[512] = {0};
+        f.read(reinterpret_cast<char *>(head), sizeof(head));
+        if (flare_detect_format(head, (size_t)f.gcount()) == 2) {
+            m_error = "Legacy CFBF .fla (Flash CS4 or older) is not supported; resave as XFL";
+            return false;
+        }
+    }
+#endif
+
     if (m_isZip) {
         return readFromZip();
     } else {
