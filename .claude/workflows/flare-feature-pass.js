@@ -9,7 +9,7 @@ const RES = {
   properties: { ok: { type: 'boolean' }, branch: { type: 'string' }, notes: { type: 'string' } },
   required: ['ok', 'notes'],
 }
-const rules = 'Repo: Flare (OpenToonz fork, C++/Qt, CMake). Be terse. Minimal diff, reuse existing code. Commit on your worktree branch. Do NOT push or merge. Never mark done without a runnable check.'
+const rules = 'FIRST invoke Skill anthropic-skills:caveman and anthropic-skills:ponytail and follow them (terse caveman output, laziest working solution, incl. in thinking). Token budget is tight: no exploration sprawl, no re-reading, no long logs, batch tool calls, grep before read, final report <=6 lines. Haiku for tests/mechanical work only. Repo: Flare (OpenToonz fork, C++/Qt, CMake). Be terse. Minimal diff, reuse existing code. Commit on your worktree branch. Do NOT push or merge. Never mark done without a runnable check.'
 const items = Array.isArray(args) ? args : []
 if (!items.length) return 'no args'
 const out = await pipeline(
