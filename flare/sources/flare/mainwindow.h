@@ -19,6 +19,10 @@
 class QStackedWidget;
 class TPanel;
 class UpdateChecker;
+// Included rather than forward-declared: the auto-update slots below take
+// const FlareUpdater::Release&, and a nested type is only nameable once its
+// enclosing class is complete.
+#include "flareqt/flareupdater.h"
 class ComboViewerPanel;
 class TopBar;
 //-----------------------------------------------------------------------------
@@ -75,7 +79,7 @@ class MainWindow final : public QMainWindow {
   bool m_wasMaximized      = false;
   int m_oldRoomIndex;
   QString m_currentRoomsChoice;
-  UpdateChecker *m_updateChecker;
+  FlareUpdater *m_flareUpdater = nullptr;
 
   TopBar *m_topBar;
 
@@ -233,7 +237,15 @@ protected slots:
   void onInkCheckTriggered(bool on);
   void onInk1CheckTriggered(bool on);
 
-  void onUpdateCheckerDone(bool);
+  // GitHub auto-update. onFlareReleaseReady decides whether the published release
+  // is actually newer; onFlareUpdateProgress/onFlareUpdateFinished carry the
+  // download; onFlareUpdateFailed reports why it could not be done.
+  void onFlareReleaseReady(const FlareUpdater::Release& release);
+  void onFlareUpdateProgress(qint64 received, qint64 total);
+  void onFlareUpdateFinished(const QString& savedPath);
+  void onFlareUpdateFailed(const QString& message);
+  void startFlareUpdateDownload(const FlareUpdater::Asset& asset);
+  void applyFlareUpdate(const QString& downloadedPath);
   void onActiveViewerChanged();
 
 public slots:

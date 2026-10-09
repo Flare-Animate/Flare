@@ -180,6 +180,28 @@ message("PLATFORM:" ${PLATFORM})
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/../cmake/util_compiler.cmake)
 
+# Repository root, whichever entry point was used.
+#
+# ${CMAKE_SOURCE_DIR} is the repository root only when CMake is configured from
+# the root CMakeLists.txt. Configuring with -S flare/sources -- which is what
+# .github/workflows/workflow_windows.yml does -- makes it flare/sources, and then
+# every ${FLARE_ROOT}/vcpkg, /cmake, /thirdparty and /translations lookup
+# below silently misses. Probe for the marker directories instead of assuming.
+get_filename_component(_flare_root "${CMAKE_CURRENT_SOURCE_DIR}" ABSOLUTE)
+foreach(_flare_up a b c)
+  if(EXISTS "${_flare_root}/vcpkg" AND EXISTS "${_flare_root}/flare")
+    break()
+  endif()
+  get_filename_component(_flare_root "${_flare_root}/.." ABSOLUTE)
+endforeach()
+if(NOT EXISTS "${_flare_root}/vcpkg")
+  message(FATAL_ERROR
+    "Could not locate the repository root (looked for vcpkg/ and flare/ above "
+    "${CMAKE_CURRENT_SOURCE_DIR}). Pass -DFLARE_ROOT=<repo> to set it directly.")
+endif()
+set(FLARE_ROOT "${_flare_root}" CACHE PATH "Flare repository root")
+message(STATUS "Flare repository root: ${FLARE_ROOT}")
+
 get_filename_component(SDKROOT ../../thirdparty/ ABSOLUTE)
 message(STATUS "SDK Root:" ${SDKROOT})
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../cmake")
@@ -224,28 +246,28 @@ if(BUILD_ENV_MSVC)
 
     # sanitize any existing vcpkg applocal logs right now before projects are generated
     execute_process(COMMAND ${CMAKE_COMMAND} -E echo "Sanitizing vcpkg.applocal.log files (configure-time)...")
-    execute_process(COMMAND ${CMAKE_COMMAND} -P "${CMAKE_SOURCE_DIR}/cmake/SanitizeVcpkgLogs.cmake")
+    execute_process(COMMAND ${CMAKE_COMMAND} -P "${FLARE_ROOT}/cmake/SanitizeVcpkgLogs.cmake")
 
     # If a local vcpkg is present, add its installed directories early so
     # find_package and find_dependency (OpenCV -> Protobuf etc.) can resolve
     # package configs during the initial configure step.
-    if(EXISTS "${CMAKE_SOURCE_DIR}/vcpkg")
+    if(EXISTS "${FLARE_ROOT}/vcpkg")
         if(CMAKE_SIZEOF_VOID_P EQUAL 8)
             set(_vcpkg_triplet "x64-windows")
         else()
             set(_vcpkg_triplet "x86-windows")
         endif()
-        list(APPEND CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}" "${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}/share")
+        list(APPEND CMAKE_PREFIX_PATH "${FLARE_ROOT}/vcpkg/installed/${_vcpkg_triplet}" "${FLARE_ROOT}/vcpkg/installed/${_vcpkg_triplet}/share")
 
         # Add vcpkg include dir so headers from vcpkg (e.g. OpenCV) are discoverable
         # even when system find_package doesn't locate them. This is a safe fallback
         # that prevents missing-header compile errors when vcpkg is present.
-        include_directories(SYSTEM "${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}/include")
+        include_directories(SYSTEM "${FLARE_ROOT}/vcpkg/installed/${_vcpkg_triplet}/include")
 
         # Also add the vcpkg lib directory to the linker search path so MSBuild
         # can resolve import-libs when its vcpkg integration points at a different
         # vcpkg root (prevents LNK1104: cannot open file 'freeglut.lib').
-        link_directories("${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}/lib")
+        link_directories("${FLARE_ROOT}/vcpkg/installed/${_vcpkg_triplet}/lib")
 
         # Disable vcpkg applocal behavior - it can emit wildcard DLL entries
         # (e.g. libcrypto-*-x64.dll) which MSBuild treats as invalid paths (MSB3541).
@@ -275,7 +297,7 @@ if(BUILD_ENV_MSVC)
         # use them.  The target is invoked early on every configuration build.
         add_custom_target(sanitize_vcpkg_logs ALL
             COMMAND ${CMAKE_COMMAND} -E echo "Sanitizing vcpkg.applocal.log files..."
-            COMMAND ${CMAKE_COMMAND} -P "${CMAKE_SOURCE_DIR}/cmake/SanitizeVcpkgLogs.cmake"
+            COMMAND ${CMAKE_COMMAND} -P "${FLARE_ROOT}/cmake/SanitizeVcpkgLogs.cmake"
             COMMENT "Removing wildcard DLL entries from applocal logs"
         )
         # Also ensure every target sanitizes logs immediately before building.  The
@@ -288,11 +310,11 @@ if(BUILD_ENV_MSVC)
             # Avoid recursion on the sanitizer target itself
             if(NOT _target STREQUAL "sanitize_vcpkg_logs")
                 add_custom_command(TARGET ${_target} PRE_BUILD
-                    COMMAND ${CMAKE_COMMAND} -P "${CMAKE_SOURCE_DIR}/cmake/SanitizeVcpkgLogs.cmake"
+                    COMMAND ${CMAKE_COMMAND} -P "${FLARE_ROOT}/cmake/SanitizeVcpkgLogs.cmake"
                     COMMENT "Sanitizing vcpkg logs before building ${_target}"
                 )
                 add_custom_command(TARGET ${_target} POST_BUILD
-                    COMMAND ${CMAKE_COMMAND} -P "${CMAKE_SOURCE_DIR}/cmake/SanitizeVcpkgLogs.cmake"
+                    COMMAND ${CMAKE_COMMAND} -P "${FLARE_ROOT}/cmake/SanitizeVcpkgLogs.cmake"
                     COMMENT "Sanitizing vcpkg logs after building ${_target}"
                 )
             endif()
@@ -576,9 +598,9 @@ if(BUILD_ENV_MSVC)
         set(JPEG_LIB ${SDKROOT}/libjpeg-turbo/lib/jpeg-static_${MSVC_LIB_VERSION}${PLATFORM2}.lib)
     endif()
     # TurboJPEG fallback
-    find_path(TURBOJPEG_INCLUDE_DIR turbojpeg.h PATHS ${CMAKE_SOURCE_DIR}/vcpkg/installed/x64-windows/include NO_DEFAULT_PATH)
+    find_path(TURBOJPEG_INCLUDE_DIR turbojpeg.h PATHS ${FLARE_ROOT}/vcpkg/installed/x64-windows/include NO_DEFAULT_PATH)
     if(TURBOJPEG_INCLUDE_DIR)
-        set(TURBOJPEG_LIB "${CMAKE_SOURCE_DIR}/vcpkg/installed/x64-windows/lib/turbojpeg.lib")
+        set(TURBOJPEG_LIB "${FLARE_ROOT}/vcpkg/installed/x64-windows/lib/turbojpeg.lib")
     else()
         set(TURBOJPEG_LIB ${SDKROOT}/libjpeg-turbo/lib/turbojpeg-static_${MSVC_LIB_VERSION}${PLATFORM2}.lib)
     endif()
@@ -588,7 +610,7 @@ if(BUILD_ENV_MSVC)
         debug  ${SDKROOT}/tiff-4.0.3/lib/LibTIFF-4.0.3_${MSVC_LIB_VERSION}${PLATFORM2}d.lib
     )
     # Prefer vcpkg-installed libtiff when bundled import library/header are missing
-    if(EXISTS "${CMAKE_SOURCE_DIR}/vcpkg")
+    if(EXISTS "${FLARE_ROOT}/vcpkg")
         if(NOT DEFINED _vcpkg_triplet)
             if(CMAKE_SIZEOF_VOID_P EQUAL 8)
                 set(_vcpkg_triplet "x64-windows")
@@ -596,8 +618,8 @@ if(BUILD_ENV_MSVC)
                 set(_vcpkg_triplet "x86-windows")
             endif()
         endif()
-        find_file(_vcpkg_tiff_header NAMES tiffio.h PATHS "${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}/include" NO_DEFAULT_PATH)
-        find_file(_vcpkg_tiff_lib NAMES tiff.lib TIFF.lib PATHS "${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}/lib" NO_DEFAULT_PATH)
+        find_file(_vcpkg_tiff_header NAMES tiffio.h PATHS "${FLARE_ROOT}/vcpkg/installed/${_vcpkg_triplet}/include" NO_DEFAULT_PATH)
+        find_file(_vcpkg_tiff_lib NAMES tiff.lib TIFF.lib PATHS "${FLARE_ROOT}/vcpkg/installed/${_vcpkg_triplet}/lib" NO_DEFAULT_PATH)
         if(_vcpkg_tiff_header AND _vcpkg_tiff_lib)
             # Prefer vcpkg libtiff only if it exposes the 64-bit RGBA helpers used by
             # our TIFF reader. Some vcpkg builds omit TIFFReadRGBAStrip_64 /
@@ -607,8 +629,8 @@ if(BUILD_ENV_MSVC)
             file(READ "${_vcpkg_tiff_header}" _vcpkg_tiff_header_head LIMIT 8192)
             string(FIND "${_vcpkg_tiff_header_head}" "TIFFReadRGBAStrip_64" _vcpkg_tiff_has_64)
             if(NOT _vcpkg_tiff_has_64 EQUAL -1)
-                set(TIFF_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}/include")
-                set(TIFF_LIB "${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}/lib/tiff.lib")
+                set(TIFF_INCLUDE_DIR "${FLARE_ROOT}/vcpkg/installed/${_vcpkg_triplet}/include")
+                set(TIFF_LIB "${FLARE_ROOT}/vcpkg/installed/${_vcpkg_triplet}/lib/tiff.lib")
                 message(STATUS "Using vcpkg-installed libtiff: ${TIFF_LIB}")
             else()
                 message(WARNING "vcpkg-installed libtiff lacks TIFFReadRGBA 64-bit helpers; using bundled thirdparty libtiff instead.")
@@ -620,7 +642,7 @@ if(BUILD_ENV_MSVC)
         debug  ${SDKROOT}/libpng-1.6.21/lib/libpng16_${MSVC_LIB_VERSION}${PLATFORM2}d.lib
     )
     # Prefer vcpkg-installed libpng when the bundled import lib/header are missing or invalid
-    if(EXISTS "${CMAKE_SOURCE_DIR}/vcpkg")
+    if(EXISTS "${FLARE_ROOT}/vcpkg")
         if(NOT DEFINED _vcpkg_triplet)
             if(CMAKE_SIZEOF_VOID_P EQUAL 8)
                 set(_vcpkg_triplet "x64-windows")
@@ -628,17 +650,17 @@ if(BUILD_ENV_MSVC)
                 set(_vcpkg_triplet "x86-windows")
             endif()
         endif()
-        find_file(_vcpkg_png_header NAMES png.h pngconf.h PATHS "${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}/include" NO_DEFAULT_PATH)
-        find_file(_vcpkg_png_lib NAMES libpng16.lib png16.lib PNG16.lib PATHS "${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}/lib" NO_DEFAULT_PATH)
+        find_file(_vcpkg_png_header NAMES png.h pngconf.h PATHS "${FLARE_ROOT}/vcpkg/installed/${_vcpkg_triplet}/include" NO_DEFAULT_PATH)
+        find_file(_vcpkg_png_lib NAMES libpng16.lib png16.lib PNG16.lib PATHS "${FLARE_ROOT}/vcpkg/installed/${_vcpkg_triplet}/lib" NO_DEFAULT_PATH)
         if(_vcpkg_png_header AND _vcpkg_png_lib)
-            set(PNG_LIB "${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}/lib/libpng16.lib")
-            set(PNG_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}/include")
+            set(PNG_LIB "${FLARE_ROOT}/vcpkg/installed/${_vcpkg_triplet}/lib/libpng16.lib")
+            set(PNG_INCLUDE_DIRS "${FLARE_ROOT}/vcpkg/installed/${_vcpkg_triplet}/include")
             message(STATUS "Using vcpkg-installed libpng: ${PNG_LIB}")
         endif()
     endif()
     set(GLEW_LIB ${SDKROOT}/glew/glew-1.9.0/lib/glew${PLATFORM}.lib)
     # Prefer vcpkg-installed GLEW when available (fixes missing/corrupt thirdparty import libs)
-    if(EXISTS "${CMAKE_SOURCE_DIR}/vcpkg")
+    if(EXISTS "${FLARE_ROOT}/vcpkg")
         if(NOT DEFINED _vcpkg_triplet)
             if(CMAKE_SIZEOF_VOID_P EQUAL 8)
                 set(_vcpkg_triplet "x64-windows")
@@ -646,7 +668,7 @@ if(BUILD_ENV_MSVC)
                 set(_vcpkg_triplet "x86-windows")
             endif()
         endif()
-        find_file(_vcpkg_glew_lib NAMES glew.lib glew32.lib glew64.lib glew64s.lib glew64mx.lib PATHS "${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}/lib" NO_DEFAULT_PATH)
+        find_file(_vcpkg_glew_lib NAMES glew.lib glew32.lib glew64.lib glew64s.lib glew64mx.lib PATHS "${FLARE_ROOT}/vcpkg/installed/${_vcpkg_triplet}/lib" NO_DEFAULT_PATH)
         if(_vcpkg_glew_lib)
             set(GLEW_LIB "${_vcpkg_glew_lib}")
             message(STATUS "Using vcpkg-installed GLEW: ${GLEW_LIB}")
@@ -669,18 +691,18 @@ if(BUILD_ENV_MSVC)
         if(NOT _is_lfs EQUAL -1)
             message(WARNING "Detected Git-LFS pointer for SuperLU import library; will try vcpkg or build from source.")
             # try vcpkg-installed SuperLU first
-            if(EXISTS "${CMAKE_SOURCE_DIR}/vcpkg")
+            if(EXISTS "${FLARE_ROOT}/vcpkg")
                 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
                     set(_vcpkg_triplet "x64-windows")
                 else()
                     set(_vcpkg_triplet "x86-windows")
                 endif()
-                find_file(_vcpkg_superlu_lib NAMES superlu.lib libsuperlu.lib PATHS "${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}/lib" NO_DEFAULT_PATH)
+                find_file(_vcpkg_superlu_lib NAMES superlu.lib libsuperlu.lib PATHS "${FLARE_ROOT}/vcpkg/installed/${_vcpkg_triplet}/lib" NO_DEFAULT_PATH)
                 if(_vcpkg_superlu_lib)
                     set(SUPERLU_LIB "${_vcpkg_superlu_lib}")
                     message(STATUS "Using vcpkg-installed SuperLU: ${SUPERLU_LIB}")
                     # If METIS is available in vcpkg, prefer it for SuperLU's ordering
-                    find_file(_vcpkg_metis_lib NAMES metis.lib libmetis.lib PATHS "${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}/lib" NO_DEFAULT_PATH)
+                    find_file(_vcpkg_metis_lib NAMES metis.lib libmetis.lib PATHS "${FLARE_ROOT}/vcpkg/installed/${_vcpkg_triplet}/lib" NO_DEFAULT_PATH)
                     if(_vcpkg_metis_lib)
                         set(METIS_LIB "${_vcpkg_metis_lib}")
                         message(STATUS "Using vcpkg-installed METIS: ${METIS_LIB}")
@@ -692,13 +714,13 @@ if(BUILD_ENV_MSVC)
                 message(STATUS "Adding ExternalProject 'superlu_local' — building SuperLU from thirdparty source")
                 include(ExternalProject)
                 ExternalProject_Add(superlu_local
-                    SOURCE_DIR "${CMAKE_SOURCE_DIR}/thirdparty/superlu/SuperLU_4.1/prj/SuperLU"
+                    SOURCE_DIR "${FLARE_ROOT}/thirdparty/superlu/SuperLU_4.1/prj/SuperLU"
                     CONFIGURE_COMMAND ""
-                    BUILD_COMMAND ${CMAKE_BUILD_TOOL} "${CMAKE_SOURCE_DIR}/thirdparty/superlu/SuperLU_4.1/prj/SuperLU/SuperLU.sln" /p:Configuration=Release /m
+                    BUILD_COMMAND ${CMAKE_BUILD_TOOL} "${FLARE_ROOT}/thirdparty/superlu/SuperLU_4.1/prj/SuperLU/SuperLU.sln" /p:Configuration=Release /m
                     INSTALL_COMMAND ""
-                    BUILD_BYPRODUCTS "${CMAKE_SOURCE_DIR}/thirdparty/superlu/SuperLU_2015_64.lib"
+                    BUILD_BYPRODUCTS "${FLARE_ROOT}/thirdparty/superlu/SuperLU_2015_64.lib"
                 )
-                set(SUPERLU_LIB "${CMAKE_SOURCE_DIR}/thirdparty/superlu/SuperLU_2015_64.lib")
+                set(SUPERLU_LIB "${FLARE_ROOT}/thirdparty/superlu/SuperLU_2015_64.lib")
             endif()
         endif()
     endif()
@@ -709,13 +731,13 @@ if(BUILD_ENV_MSVC)
         string(FIND "${_openblas_head}" "version https://git-lfs.github.com/spec/v1" _is_lfs_openblas)
         if(NOT _is_lfs_openblas EQUAL -1)
             message(WARNING "Detected Git-LFS pointer for OpenBLAS import library; will try vcpkg-installed OpenBLAS")
-            if(EXISTS "${CMAKE_SOURCE_DIR}/vcpkg")
+            if(EXISTS "${FLARE_ROOT}/vcpkg")
                 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
                     set(_vcpkg_triplet "x64-windows")
                 else()
                     set(_vcpkg_triplet "x86-windows")
                 endif()
-                find_file(_vcpkg_openblas_lib NAMES libopenblas.lib openblas.lib PATHS "${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}/lib" NO_DEFAULT_PATH)
+                find_file(_vcpkg_openblas_lib NAMES libopenblas.lib openblas.lib PATHS "${FLARE_ROOT}/vcpkg/installed/${_vcpkg_triplet}/lib" NO_DEFAULT_PATH)
                 if(_vcpkg_openblas_lib)
                     set(OPENBLAS_LIB "${_vcpkg_openblas_lib}")
                     message(STATUS "Using vcpkg-installed OpenBLAS: ${OPENBLAS_LIB}")
@@ -740,7 +762,7 @@ if(BUILD_ENV_MSVC)
     endif()
 
     if(_is_lfs_mypaint GREATER -1)
-        if(EXISTS "${CMAKE_SOURCE_DIR}/vcpkg")
+        if(EXISTS "${FLARE_ROOT}/vcpkg")
             if(NOT DEFINED _vcpkg_triplet)
                 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
                     set(_vcpkg_triplet "x64-windows")
@@ -748,10 +770,10 @@ if(BUILD_ENV_MSVC)
                     set(_vcpkg_triplet "x86-windows")
                 endif()
             endif()
-            find_file(_vcpkg_mypaint_lib NAMES libmypaint.lib mypaint.lib PATHS "${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}/lib" NO_DEFAULT_PATH)
+            find_file(_vcpkg_mypaint_lib NAMES libmypaint.lib mypaint.lib PATHS "${FLARE_ROOT}/vcpkg/installed/${_vcpkg_triplet}/lib" NO_DEFAULT_PATH)
             if(_vcpkg_mypaint_lib)
                 set(MYPAINT_LIB_LDFLAGS "${_vcpkg_mypaint_lib}")
-                set(MYPAINT_LIB_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/vcpkg/installed/${_vcpkg_triplet}/include")
+                set(MYPAINT_LIB_INCLUDE_DIRS "${FLARE_ROOT}/vcpkg/installed/${_vcpkg_triplet}/include")
                 message(STATUS "Using vcpkg-installed libmypaint: ${MYPAINT_LIB_LDFLAGS}")
             endif()
         endif()
@@ -1079,8 +1101,8 @@ if(WITH_TRANSLATION)
     function(compile_translations module)
         set(qm_files "")
         foreach(lang ${LANG_CODES})
-            set(ts_file "${CMAKE_SOURCE_DIR}/translations/${lang}/${module}.ts")
-            set(qm_dir  "${CMAKE_SOURCE_DIR}/../../stuff/config/loc/${lang}")
+            set(ts_file "${FLARE_ROOT}/translations/${lang}/${module}.ts")
+            set(qm_dir  "${FLARE_ROOT}/stuff/config/loc/${lang}")
             set(qm_file "${qm_dir}/${module}.qm")
 
             # Ensure output directory exists at configure time (safe for parallel builds)
@@ -1115,7 +1137,7 @@ if(WITH_TRANSLATION)
     # ---------------------------------------------------------------------
     # Rename language folders from code to native name (e.g. japanese → 日本語)
     # ---------------------------------------------------------------------
-    set(LOC_ROOT "${CMAKE_SOURCE_DIR}/../../stuff/config/loc")
+    set(LOC_ROOT "${FLARE_ROOT}/stuff/config/loc")
 
     add_custom_target(rename_translation_folders ALL
         DEPENDS
