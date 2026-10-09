@@ -227,6 +227,7 @@ enum PreferencesItemId {
   SVNEnabled,
   automaticSVNFolderRefreshEnabled,
   latestVersionCheckEnabled,
+  updateNightlyChannel,
 
   //----------
   // Touch / Tablet Settings

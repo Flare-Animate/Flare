@@ -725,6 +725,7 @@ void Preferences::definePreferenceItems() {
          QMetaType::Bool, true);
   define(latestVersionCheckEnabled, "latestVersionCheckEnabled",
          QMetaType::Bool, true);
+  define(updateNightlyChannel, "updateNightlyChannel", QMetaType::Bool, false);
 
   // Touch / Tablet Settings
   define(winInkEnabled, "winInkEnabled", QMetaType::Bool, false);
