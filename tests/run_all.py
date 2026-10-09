@@ -26,6 +26,7 @@ SUITES = [
     ("flash/bridge (pytest)", [sys.executable, "-m", "pytest",
                                "tools/flash/tests", "tools/sync/tests", "-q"], REPO),
     ("moho menu wiring", [sys.executable, "tests/moho/test_moho_menu.py"], REPO),
+    ("flipaclip profile", [sys.executable, "tests/test_flipaclip_profile.py"], REPO),
     # No --no-build: the runner builds the test binaries itself. Passing it made
     # this suite depend on someone having remembered to build them first, so it
     # reported a failure for a missing artefact rather than a real defect. The
