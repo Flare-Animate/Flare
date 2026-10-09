@@ -325,3 +325,10 @@ target_link_libraries(flareupdater_net_tests PRIVATE
 add_executable(remote_protocol_tests
     remote_protocol_tests.cpp
 )
+
+# Moho import plan (header-only, no DLL).
+add_executable(moho_plan_tests moho_plan_tests.cpp)
+target_include_directories(moho_plan_tests PRIVATE
+    "${FLASH_ROOT}/flare/sources/common/moho"
+    "${FLASH_ROOT}/flare/sources/include")
+target_link_libraries(moho_plan_tests PRIVATE Qt5::Core)

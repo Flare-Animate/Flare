@@ -6,8 +6,26 @@
 reports what the rig contains, and writes a manifest of its structure beside
 the project, gathering whatever bitmaps it can find.
 
-It does **not** bring the artwork into the scene as editable levels. That is
-deliberate, and the reasons are in [Why not rendering](#why-not-rendering).
+It then builds the scene (`common/moho/MohoPlan.h`, executed by
+`flare/mohoimport.cpp`):
+
+| Moho                     | Flare                                                      |
+|--------------------------|------------------------------------------------------------|
+| Image layer              | column + raster level loaded from `image_path`             |
+| Vector / mesh layer      | column + empty vector level named `Group/Layer`            |
+| Group / Bone layer       | flattened; path kept in the column name, bone inherited    |
+| Switch layer             | one column per child; cells only on frames its key selects |
+| Bones (`skeleton.bones`) | pegbars, parent hierarchy kept; bound layers parented      |
+| Hidden layer             | column with camstand visibility off                        |
+| Frame range              | xsheet rows `start..end` (frame 0 = rest pose, skipped)    |
+
+Not solved (see [Why not rendering](#why-not-rendering)): mesh deformation,
+region/flexible binding (-1), Smart Bones, per-layer transform channels,
+layer effects. Vector geometry arrives as empty named levels to redraw/trace.
+Missing bitmaps fall back to an empty vector level so the column still exists.
+
+Tested by `tests/native/moho_plan_tests.cpp` (flatten, bone inherit, switch
+gating, keyless switch).
 
 ## Formats
 
