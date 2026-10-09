@@ -34,6 +34,26 @@ import io
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 
+# A fixed timestamp for every archive entry.
+#
+# zipfile.writestr() stamps each entry with the current time, so regenerating
+# a fixture produced a byte-different file every time. That matters for
+# committed fixtures: `git status` was permanently dirty after any
+# regeneration, and a fixture's checksum could not be used to tell whether it
+# had really changed. Fixing the timestamp makes generation reproducible, so a
+# fixture differs only when its content differs.
+_ZIP_EPOCH = (1980, 1, 1, 0, 0, 0)
+
+
+def zinfo(name):
+    """A ZipInfo with a fixed timestamp, so archives are reproducible."""
+    zi = zipfile.ZipInfo(name, date_time=_ZIP_EPOCH)
+    zi.compress_type = zipfile.ZIP_DEFLATED
+    # 0o644: rw-r--r--, so the archive is usable on any host.
+    zi.external_attr = (0o644 << 16)
+    return zi
+
+
 MIMETYPE = b"application/vnd.adobe.xfl"
 
 DOM_DOCUMENT = b"""<?xml version="1.0" encoding="utf-8"?>
@@ -65,10 +85,10 @@ def build_xfl_zip(extra_member: bytes = b"") -> bytes:
         info = zipfile.ZipInfo("mimetype", date_time=(2020, 8, 19, 0, 0, 0))
         info.compress_type = zipfile.ZIP_STORED
         zf.writestr(info, MIMETYPE)
-        zf.writestr("DOMDocument.xml", DOM_DOCUMENT)
-        zf.writestr("PublishSettings.xml", b"<publishSettings/>")
+        zf.writestr(zinfo("DOMDocument.xml"), DOM_DOCUMENT)
+        zf.writestr(zinfo("PublishSettings.xml"), b"<publishSettings/>")
         if extra_member:
-            zf.writestr("extra.txt", extra_member)
+            zf.writestr(zinfo("extra.txt"), extra_member)
     return buf.getvalue()
 
 
@@ -139,6 +159,27 @@ def _repoint_cd(data: bytes, new_eocd: int, new_cd_off: int, cd_size: int) -> by
     return bytes(out)
 
 
+def make_zipslip() -> bytes:
+    """A valid archive with a member whose name escapes the output directory.
+
+    Generated here rather than hand-built in the C++ test: a hand-built central
+    directory is easy to get subtly wrong, and when it is wrong the extractor
+    rejects the archive before it ever reaches the member name -- so the
+    path-traversal assertion passes without the guard ever being exercised.
+    Verified below that zipfile really can read it, which is what makes the test
+    meaningful.
+    """
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
+        # zinfo(), not writestr(name, ...): writestr stamps each entry with the
+        # current time, which made this committed fixture differ on every
+        # regeneration and left `git status` permanently dirty.
+        zf.writestr(zinfo("benign.txt"), b"this one is fine")
+        zf.writestr(zinfo("../escape.txt"), b"this one is not")
+        zf.writestr(zinfo("nested/deep.txt"), b"and this one is fine too")
+    return buf.getvalue()
+
+
 def main() -> None:
     for name, blob in (("stale_trailer.fla", make_stale_trailer()),
                        ("orphan_local.fla", make_orphan_local_header())):
@@ -153,6 +194,29 @@ def main() -> None:
                 print(f"  !! unexpectedly opened by zipfile ({len(z.namelist())} entries)")
         except zipfile.BadZipFile as e:
             print(f"  confirmed: zipfile rejects it ({e})")
+
+    # The Zip-slip fixture, which has to be a *readable* archive: a malformed one
+    # is rejected before the extractor reaches the member name, so the test that
+    # uses it would pass without the traversal guard ever running.
+    path = os.path.join(HERE, "zipslip.zip")
+    blob = make_zipslip()
+    with open(path, "wb") as f:
+        f.write(blob)
+    print(f"wrote zipslip.zip ({len(blob)} bytes)")
+    with zipfile.ZipFile(path) as z:
+        names = z.namelist()
+        print(f"  confirmed readable: {names}")
+        if "../escape.txt" not in names:
+            raise SystemExit("zipslip.zip does not contain the traversal member")
+        if z.read("benign.txt") != b"this one is fine":
+            raise SystemExit("zipslip.zip: benign member does not read back")
+        if z.read("nested/deep.txt") != b"and this one is fine too":
+            raise SystemExit("zipslip.zip: nested member does not read back")
+    # Reproducible, like the other fixtures: regenerating must not dirty the
+    # tree, or a diff on this file says nothing.
+    if make_zipslip() != blob:
+        raise SystemExit("zipslip.zip is not reproducible: "
+                         "two generations differ")
 
 
 if __name__ == "__main__":

@@ -21,11 +21,38 @@ drift apart.
 |--------|-----------|------------------|
 | Flash project (XFL-based, CS5+) | `.fla` | Document, library, timeline layers/frames, bitmap instances to levels; binary media; every asset unpacked |
 | XFL project | `.xfl` | Directory or ZIP; same as above |
-| Compiled Flash | `.swf` | Header metadata, **images to levels**, **sounds to files**, ActionScript 3 to source |
+| Compiled Flash | `.swf` | Header metadata; **images written as image files**, **sounds to files**, ActionScript 3 to `.as` source. **Nothing becomes editable level content** — see below |
 | Component library | `.swc` | ZIP + `catalog.xml` + `library.swf` images and sounds |
 | Mislabeled SWF | `.ssf` / `.dat` | Sniffed as SWF |
 | Re-zipped FLA | `.zip` | Sniffed, trailer repaired if needed, imported as FLA |
 | ActionScript 3 | inside `.swf` | Decompiled to `.as` via the optional `flare-as3` helper |
+
+### What a `.swf` does and does not become
+
+Worth being exact about, because the difference is easy to assume away.
+
+An `.fla` or `.xfl` goes through `importXFLScene()`, which loads the document's
+referenced bitmaps as levels and maps each layer onto an xsheet column, filling
+cells for that layer's frames. An `.swf` has no such step: it is scanned for
+embedded media, and what it yields is
+
+* bitmap and audio streams written out as ordinary files,
+* ActionScript decompiled to `.as` beside them,
+* a census, so the dialog can name the vector shapes, text, fonts, buttons and
+  named symbols it could **not** convert.
+
+Within an `.fla` it is bitmap instances specifically: `importXFLScene()` skips any
+frame element whose type is not `BITMAP_INSTANCE`, and takes only the first such
+element in each frame span. A `SYMBOL_INSTANCE` on an FLA layer is therefore
+skipped too — the column is created and stays empty, which is a quieter version
+of the same gap.
+
+So importing a `.swf` produces a directory of assets and a manifest, not a scene.
+The counts the dialog prints are the honest version of the same fact: they name
+what the movie holds that did not become level content. This is not a regression —
+a compiled SWF has no editable timeline to map, and reconstructing one from a tag
+stream is the unimplemented `DefineShape` work described under
+[Known gaps](#known-gaps).
 
 ### Detected, contents partially converted
 
@@ -59,7 +86,8 @@ produces no levels is always explained rather than looking like a broken file.
 
 | Content | Where | Status |
 |---------|-------|--------|
-| Vector shapes | FLA/XFL `<DOMShape>`, SWF `DefineShape`/`Shape3`/`Shape4` | Not converted. Adobe encodes these two ways (`edges` and `cubics` string grammars); a partial decoder would produce subtly wrong art, so it is not attempted |
+| Vector shapes, XFL | FLA/XFL `<DOMShape>` `<edges>` | **Decoded.** `common/flash/XFLShape` reads the `edges` attribute to contours and emits SVG. Verified against 491 real shapes from a published FLA, against an independent decoder, coordinate for coordinate. The sibling `cubics` attribute is deliberately ignored: it is an editor hint and on real documents describes a *different* outline |
+| Vector shapes, SWF | `DefineShape`/`DefineShape2`/`DefineShape3`/`DefineShape4` | **Decoded and written out.** `common/flash/SWFShape` reads all four tags to contours and emits SVG; `FlashAssets::extractSwfShapes` writes one SVG per tag, recursing into sprites. Verified on the 250 `DefineShape` tags of a real 3.5 MB SWF: every one decodes, produces the same outline vertex for vertex as JPEXS (an independent and mature SWF decoder) does on the same bytes, and all 250 files parse back as XML. The geometry is unpainted — fills and strokes are style indices this does not read — and the import says so |
 | Text | `<DOMStaticText>`, `<DOMText>`, `DefineText`/`Text2` | Not converted |
 | Embedded fonts | `DefineFont`/`Font2`/`Font3` | Not converted |
 | Video items | `<DOMVideoItem>`, `DefineVideoStream` | Not converted |
@@ -76,6 +104,45 @@ produces no levels is always explained rather than looking like a broken file.
 JPEXS (GPL v3 + Java) is **licence-incompatible** with Flare's BSD licence and
 requires an external runtime. The previous implementation used it via Python
 scripts; that entire approach has been replaced by native C++.
+
+It is still the thing to check a decoder against, though, and was for the SWF shape
+work: JPEXS was run over the sample files purely as an oracle and none of its code
+is vendored. That is what turned "the decoder looks plausible" into "all 250 real
+shapes produce the same vertices as an independent implementation".
+
+## Why a wrong SWF shape decode is silent
+
+A `DefineShape` body is bit-packed: after a bit-packed `RECT` the style arrays are
+read a byte at a time, then the record stream is bit-packed again. Every fault
+below produced a shape that looked drawn rather than an error, which is why none of
+them was caught by inspection of the output and why each now has a fixture.
+
+Three faults were in the shape decoder itself, and five more in the tag walk around
+it. All eight produced a plausible count rather than an error.
+
+| Fault | What it did |
+|-------|-------------|
+| The five style-change flags read at bits 3..7 of a five-bit field | Three of the five tests could never be true, so `MoveTo` fired exactly when a *line style* was selected. No real move was ever seen |
+| Six reserved bits after the flag word | The record stream desynchronised by six bits per style change and ran off the end |
+| The `MATRIX` scale read as one component instead of two | Everything after a scaled fill went out of step by a whole `nScaleBits`; 111 of 250 shapes stopped in the style arrays |
+| No padding after a bit-packed `MATRIX` | The next byte was read straddling, which gives it a different *value*, not merely a different position: 59 shapes read a line-style count in the hundreds |
+| No padding after the `RECT` | The fill count was read straddling; on a known-good 26-byte tag that reads 0 fills and then 32 line styles |
+| The gradient `MATRIX` read after the records | All 30 gradient fills in one file desynchronised at once |
+| A gradient read as two ratio bytes and an interpolation table | Both invented here; the format has one ratio byte per record and no table |
+| Only one fill index consumed when both fill flags are set | The next record began inside the second index |
+| A `DefineSprite`'s tags assumed to start four bytes in | True of `DefineSprite2`, not of `DefineSprite`, which puts FRAMETEST records there. A sprite's art was dropped without a word |
+| An empty tag reported as "end of the stream" | The real 3.5 MB sample has one empty `DefineShape4` mid-stream; the walk stopped there and the 2312 bytes after it — four more shapes — were never read. The import reported 249 of 250 and said nothing about the last |
+
+The general lesson, and the reason the fixtures exist: **a plausible wrong answer is
+what this format produces when the bit stream is misread.** The shape's own declared
+bounds are a useful oracle, because they come from the same stream and a wrong read
+would have to be wrong in a matching way to hide — but they are the file's bounds,
+not a guarantee, and 101 of the 250 real shapes here have outlines outside them,
+as JPEXS's parse also does.
+
+The tag-walk faults have a second lesson: two readers that share a bug look like
+agreement. The census and the extractor both reported the truncated stream without
+comment, which read as two independent confirmations.
 
 ## Embedded audio
 
@@ -108,6 +175,67 @@ This exists because the previous behaviour was the worst kind: a vector-only FLA
 imported as a completely empty scene and reported "import complete" with no
 explanation, which is indistinguishable from a file Flare failed to read. The
 same FLA now reports, for example, "491 vector shape(s) not converted".
+
+### Tag-code dispatch is tested, because a wrong code is silent
+
+The census and the bitmap extractor dispatch on SWF tag codes separately, and
+getting one wrong produces no error: the JPEG branch probes the payload and
+`continue`s when it does not decode, and the lossless branch rejects a format
+byte outside 3/4/5. A transposed tag family therefore writes no file and reports
+success.
+
+`flash_reader_tests` pins every code it dispatches on -- one tag at a time, so a
+code landing in two tallies cannot hide behind another's contribution -- against
+the specification's tag table and against
+`flare/sources/common/flash/Macromedia.h`:
+
+| Tally | Codes |
+|-------|-------|
+| bitmaps | 6, 20, 21, 35, 36, 90 |
+| shapes | 2, 22, 32, 46, 83 |
+| buttons | 3, 34 |
+| text fields | 37 |
+| named symbols | 76 |
+| video streams / frames | 60, 62 / 61 |
+| text / fonts | 11, 33 / 10, 48, 75 |
+| audio / streams | 14 / 18, 45, 89 |
+| ActionScript 1 / 3 | 12, 59 / 72, 82 |
+| binary / sprites | 87 / 39 |
+
+`test_jpeg3_extraction_by_tag_code` builds a real `DefineBitsJPEG3` and
+`DefineBitsJPEG4` and asserts each yields a decodable file. The controls in
+`mutation_check.py` that reintroduce the original transpositions must all be
+caught, or the test is not covering them.
+
+This was added after a merge brought a corrected copy of `SWFAssets.cpp` into
+view, at which point it turned out the JPEG and lossless families had been
+transposed, tag 24 (Protect) was being counted as a font while 48
+(DefineFont2) was not, and video was counted on 81/93 -- codes that belong to
+`DefineSceneAndFrameLabelData` and `DefineScalingGrid`, so that tally was never
+reachable at all.
+
+### What the census does not count, and why
+
+Measured over `mario.ssf`, a real 3.5 MB uncompressed SWF, walked with an
+independent decoder: **14,882 tags across 26 distinct codes**. The census tallies
+**1,736** of them. The rest are timeline *structure*, and counting them would make
+the census less useful rather than more complete -- `PlaceObject2`,
+`RemoveObject2` and `PlaceObject3` alone are 9,515 tags, **64%**, in a movie with
+111 shapes, so a census that counted them would report "14,882 items" for 111
+shapes.
+
+Also excluded, for the same reason: `FrameLabel` (176 tags in that file),
+`ExportAssets`, `ImportAssets`, `SetTabIndex`, `FileAttributes`,
+`DefineFontAlignZones`, `CSMTextSettings`, `DefineScalingGrid`,
+`DefineSceneAndFrameLabelData`, `DefineFontName` and `Protect`.
+
+That list is a comment in the census dispatch rather than an absence, so the
+omission reads as a decision rather than an oversight.
+
+The four tallies the same measurement showed missing -- buttons, text fields,
+`SymbolClass` and video frames -- were added. `SymbolClass` was the significant
+one: that file carries a single 14 KB tag holding the name of every display object
+in the movie, and the census reported nothing about it.
 
 ## ZIP trailer repair
 

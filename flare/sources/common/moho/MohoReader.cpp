@@ -12,6 +12,9 @@
 #include "ZipArchive.h"
 #include "tsystem.h"
 
+#include <cctype>
+
+#include <QAtomicInteger>
 #include <QDateTime>
 #include <QDir>
 #include <QFile>
@@ -19,12 +22,42 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonParseError>
-#include <QSet>
 #include <functional>
 
 namespace Moho {
 
 namespace {
+
+// Removes a directory when it goes out of scope.
+//
+// A Moho project is a ZIP that has to be unpacked before it can be read, and
+// unpacking leaves a copy. TSystem has no scoped helper for that, and getting
+// the removal wrong on any of the several early returns out of read() leaks a
+// full copy of the project into the temp directory on every import.
+//
+// The destructor is deliberately silent about failure. TSystem::rmDirTree
+// throws, and a throw from a destructor is std::terminate -- so an unreadable
+// file in the extraction, which is ordinary when something has the directory
+// open, would abort the application mid-import. A leftover temp directory is a
+// far smaller problem than a crash, and the caller has no way to act on the
+// exception anyway.
+class ScopedTempDir {
+public:
+    explicit ScopedTempDir(TFilePath dir) : m_dir(std::move(dir)) {}
+    ~ScopedTempDir() noexcept {
+        try {
+            TSystem::rmDirTree(m_dir);
+        } catch (...) {
+            // Nothing useful to do here. See the note above.
+        }
+    }
+
+    ScopedTempDir(const ScopedTempDir &) = delete;
+    ScopedTempDir &operator=(const ScopedTempDir &) = delete;
+
+private:
+    TFilePath m_dir;
+};
 
 // A Moho animated value. All six flavours share the same key names.
 Channel readChannel(const QJsonValue &v) {
@@ -131,22 +164,54 @@ void readLayer(const QJsonObject &o, int depth, Layer &layer) {
 Container detectContainer(const TFilePath &path) {
     QFile f(path.getQString());
     if (!f.open(QIODevice::ReadOnly)) return Container::Unknown;
-    const QByteArray head = f.peek(8);
+    // 64 bytes: enough for the ZIP local header, a BOM plus the .anme signature,
+    // and whitespace ahead of a '{'. The old peek of 8 could not see a signature
+    // that arrived after leading whitespace or a BOM.
+    const QByteArray head = f.peek(64);
     f.close();
+    if (head.isEmpty()) return Container::Unknown;
 
     if (head.size() >= 4 && head[0] == 'P' && head[1] == 'K' &&
         (head[2] == 0x03 || head[2] == 0x05 || head[2] == 0x07))
         return Container::Zip;
 
-    // Moho documents are JSON; they always start with '{' (minified).
-    for (int i = 0; i < head.size(); ++i) {
-        const char ch = head.at(i);
-        if (ch == ' ' || ch == '\n' || ch == '\r' || ch == '\t') continue;
-        if (ch == '{') return Container::RawJson;
-        // Pre-11 .anme files are brace-delimited plain text; they start with a
-        // header line rather than JSON.
+    // The pre-11 .anme format is plain text beginning with this literal header.
+    // Checking for it is what keeps a binary file from being diagnosed as a
+    // legacy Moho project: "the first non-space byte is not '{'" is true of
+    // every SWF, PNG and PDF, so inferring Legacy from it told a user holding a
+    // Flash movie that they had an old Moho project and should re-save it from
+    // Moho -- advice that cannot help them. So the header is required.
+    static const char kLegacyHeader[] = "Anime Studio Project";
+    const int legacyAt = head.indexOf(kLegacyHeader);
+    if (legacyAt >= 0 && legacyAt < 16) {
+        // Confined to the leading whitespace, so the phrase appearing later in
+        // an unrelated binary does not classify that binary as legacy.
+        for (int i = 0; i < legacyAt; ++i)
+            if (!isspace(static_cast<unsigned char>(head.at(i))))
+                return Container::Unknown;
         return Container::Legacy;
     }
+
+    // Moho documents are JSON, so they begin with '{' once a UTF-8 BOM -- which
+    // the JSON grammar allows, and which editors do emit -- and any whitespace
+    // are skipped. The BOM was not skipped before, so a valid .mohoproj that
+    // carried one was classified as legacy.
+    for (int i = 0; i < head.size(); ++i) {
+        const unsigned char ch = static_cast<unsigned char>(head.at(i));
+        if (isspace(ch)) continue;
+        if (ch == 0xEF && i + 2 < head.size() &&
+            static_cast<unsigned char>(head.at(i + 1)) == 0xBB &&
+            static_cast<unsigned char>(head.at(i + 2)) == 0xBF) {
+            i += 2;
+            continue;
+        }
+        if (ch == '{') return Container::RawJson;
+        // Not JSON, not legacy, not a ZIP. Report that, rather than picking a
+        // container for it and then failing inside that reader.
+        return Container::Unknown;
+    }
+    // Nothing but whitespace: an empty document. Unknown, so the caller says the
+    // file holds no project rather than that the format is unrecognised.
     return Container::Unknown;
 }
 
@@ -167,17 +232,59 @@ bool read(const TFilePath &path, Document &doc) {
 
     // ---- get the JSON document --------------------------------------------
     QByteArray raw;
-    QString containerEntry;
     if (doc.container == Container::Zip) {
         // Reuse the shared, hardened ZIP extractor: it repairs stale trailers
         // and refuses member paths that escape the output directory.
+        //
+        // The source file's name is embedded, so it has to be reduced to
+        // characters a directory name may actually contain. TSystem::mkDir
+        // rejects more than the Windows-reserved set -- '+' among them -- and an
+        // earlier version of this listed only the reserved characters, so
+        // importing "foo+bar.moho" still threw: out of read(), past its
+        // "returns false and fills doc.error" contract, and through a menu
+        // handler with no catch around it. Allowlisting is the fix, because
+        // there is then no rejected character to have forgotten.
+        QString base = QFileInfo(path.getQString()).fileName();
+        static const QString allowed =
+            QStringLiteral("abcdefghijklmnopqrstuvwxyz"
+                           "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                           "0123456789-_.");
+        for (QChar &c : base)
+            if (!allowed.contains(c))
+                c = QLatin1Char('_');
+        if (base.isEmpty())
+            base = QStringLiteral("project");
+        // A path component is length-limited, and a long source name would
+        // otherwise push the whole temp path over it.
+        if (base.size() > 48)
+            base.truncate(48);
+
+        // Uniqueness. The millisecond clock alone collides when the same file
+        // is read twice inside one millisecond, and the second extraction would
+        // then remove the first one's directory while it is being read.
+        static QAtomicInteger<quint64> counter(0);
         const QString tmpName =
-            QStringLiteral("moho_%1_%2")
-                .arg(QFileInfo(path.getQString()).fileName())
-                .arg(QDateTime::currentMSecsSinceEpoch());
+            QStringLiteral("moho_%1_%2_%3")
+                .arg(base)
+                .arg(QDateTime::currentMSecsSinceEpoch())
+                .arg(counter.fetchAndAddOrdered(1));
+
         const TFilePath outDir =
             TSystem::getTempDir() + TFilePath(tmpName.toStdString());
-        TSystem::mkDir(outDir);
+        // Scoped so the extraction is removed on every path out, including the
+        // early returns below. Without it, each import of a ZIP project left a
+        // full extracted copy -- plus preview.jpg -- in %TEMP% permanently,
+        // under a name that changed every run. Declared before the try so a
+        // throw from mkDir cannot skip its own cleanup.
+        const ScopedTempDir extraction(outDir);
+        try {
+            TSystem::mkDir(outDir);
+        } catch (const std::exception &e) {
+            doc.error = QStringLiteral("could not create a temporary directory "
+                                       "to unpack the project into: %1")
+                            .arg(QString::fromUtf8(e.what()));
+            return false;
+        }
         std::string detail;
         if (!FlareZip::extract(path, outDir, detail)) {
             doc.error = "could not read the project container: " +
@@ -192,7 +299,7 @@ bool read(const TFilePath &path, Document &doc) {
             QFile in(f);
             if (!in.open(QIODevice::ReadOnly)) continue;
             raw = in.readAll();
-            containerEntry = name;
+            doc.containerEntry = name;
             break;
         }
         if (raw.isEmpty()) {
@@ -207,15 +314,25 @@ bool read(const TFilePath &path, Document &doc) {
             return false;
         }
         raw = f.readAll();
-        containerEntry = QFileInfo(path.getQString()).fileName();
+        doc.containerEntry = QFileInfo(path.getQString()).fileName();
     }
 
     // ---- parse -------------------------------------------------------------
     QJsonParseError perr{};
     const QJsonDocument jd = QJsonDocument::fromJson(raw, &perr);
-    if (perr.error != QJsonParseError::NoError || !jd.isObject()) {
+    if (perr.error != QJsonParseError::NoError) {
         doc.error = "the project document is not valid JSON: " +
                     perr.errorString();
+        return false;
+    }
+    if (!jd.isObject()) {
+        // Distinct from the above: this parsed cleanly, it is just not a
+        // document. Reporting it as a JSON error produced the nonsense message
+        // "not valid JSON: no error occurred".
+        doc.error = QStringLiteral(
+            "the project document is a JSON %1, not a Moho document (which is "
+            "a JSON object)")
+            .arg(jd.isArray() ? QStringLiteral("array") : QStringLiteral("value"));
         return false;
     }
     const QJsonObject root = jd.object();
@@ -277,8 +394,14 @@ bool read(const TFilePath &path, Document &doc) {
                     if (c.isObject()) sw.alternatives << c.toObject().value("name").toString();
                 }
                 sw.keys = readChannel(o.value("switch_keys"));
-                if (sw.keys.size() > 0)
-                    sw.activeChild = sw.keys.values.first().toString();
+                if (sw.keys.size() > 0) {
+                    // Frame 0 is the rest pose in a Moho document, so the first
+                    // key is the rest state; the last is where the timeline ends
+                    // up. Reporting only one of them, under a name implying
+                    // "whatever is showing now", would be misleading either way.
+                    sw.childAtRest = sw.keys.values.first().toString();
+                    sw.childAtEnd = sw.keys.values.last().toString();
+                }
                 doc.switches.append(sw);
             }
             // Bones live on the BoneLayer's skeleton, as a flat array with
@@ -329,7 +452,6 @@ bool read(const TFilePath &path, Document &doc) {
     }
 
     doc.valid = true;
-    Q_UNUSED(containerEntry);
     return true;
 }
 
@@ -342,6 +464,9 @@ int writeManifest(const TFilePath &projectPath, const Document &doc,
     root["format"] = "moho-rig-manifest";
     root["format_version"] = 1;
     root["source_file"] = QFileInfo(projectPath.getQString()).fileName();
+    // Which member of the container held the document. Written but never read
+    // before, so it said nothing useful to anyone.
+    root["container_entry"] = doc.containerEntry;
     root["mime_type"] = doc.mimeType;
     root["moho_version"] = doc.version;
     root["major_version"] = doc.majorVersion;
@@ -385,7 +510,8 @@ int writeManifest(const TFilePath &projectPath, const Document &doc,
         o["name"] = s.name;
         o["alternatives"] = QJsonArray::fromStringList(QStringList(s.alternatives.begin(),
                                                     s.alternatives.end()));
-        o["active_child"] = s.activeChild;
+        o["child_at_rest"] = s.childAtRest;
+        o["child_at_end"] = s.childAtEnd;
         o["keys"] = s.keys.frames.size();
         switches.append(o);
     }

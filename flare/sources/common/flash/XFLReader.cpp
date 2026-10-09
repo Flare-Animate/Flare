@@ -410,12 +410,21 @@ bool Reader::parseSymbol(const std::string &xmlContent, const TFilePath &symbolP
             ++m_document.census.videos;
         } else if (name == QLatin1String("DOMComponentInstance")) {
             ++m_document.census.components;
-        } else if (name == QLatin1String("DOMSymbolInstance") ||
-                   name == QLatin1String("DOMBitmapInstance")) {
+        } else if (name == QLatin1String("DOMSymbolInstance")) {
             // Record the library item name a symbol instance refers to, so a
             // bitmap symbol can still be resolved by name.
             const QString ref = attrs.value("libraryItemName").toString();
             if (!found && !ref.isEmpty()) relativeName = ref;
+            ++m_document.census.symbols;
+        } else if (name == QLatin1String("DOMBitmapInstance")) {
+            // Its own tally. It was grouped with DOMSymbolInstance above, so a
+            // bitmap placed on the timeline inside a library symbol was counted
+            // as neither a bitmap nor a symbol -- and the import dialog, which
+            // prints this census to say what a file holds, reported an FLA with
+            // bitmaps in it as having none.
+            const QString ref = attrs.value("libraryItemName").toString();
+            if (!found && !ref.isEmpty()) relativeName = ref;
+            ++m_document.census.bitmaps;
         }
     }
 

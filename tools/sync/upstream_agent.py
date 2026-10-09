@@ -614,7 +614,32 @@ def sync(sources: list[UpstreamSource], max_commits: int,
     return 0
 
 
+def _make_console_safe() -> None:
+    """Let the agent output reach a Windows console.
+
+    The progress rules and status symbols are U+2500, U+2139, U+1F504 and
+    friends, none of which exist in cp1252 -- the default for a Windows
+    console. Printing one raised UnicodeEncodeError and killed the run before
+    any work happened, which is why the upstream commits the orphaned
+    sync-upstream branches carry were never landed: the tool that would land
+    them failed to start.
+
+    errors="replace" rather than "strict": an
+    unencodable character becomes a question mark, so output can never abort a
+    run whatever the console is.
+    """
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8", errors="replace")
+        except (AttributeError, ValueError):
+            # Python < 3.7, or a stream with no reconfigure. A console that
+            # genuinely cannot cope will still say so, which is better than
+            # not running at all.
+            pass
+
+
 def main() -> None:
+    _make_console_safe()
     parser = argparse.ArgumentParser(
         description="Flare multi-upstream sync agent",
         formatter_class=argparse.RawDescriptionHelpFormatter,
