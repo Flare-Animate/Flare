@@ -3,7 +3,7 @@ import re, configparser
 def rd(f):
     d={}
     for l in open(f,encoding='utf-8'):
-        m=re.match(r'([A-Za-z_0-9]+)=(.*)$',l.rstrip('\n'))
+        m=re.match(r'([A-Za-z_0-9][^=]*)=(.*)$',l.rstrip('\n'))
         if m:d[m[1]]=m[2]
     return d
 def wr(f,d):
@@ -26,4 +26,4 @@ for k,v in base.items():
     if k not in a:a[k]=v if v not in used else ''
 wr('otanimate.ini',a)
 for f in ['otflash','otflipaclip','otanimate']:
-    c=configparser.ConfigParser();c.optionxform=str;c.read(f+'.ini',encoding='utf-8');print(f,len(c['shortcuts']))
+    c=configparser.ConfigParser(delimiters=('=',));c.optionxform=str;c.read(f+'.ini',encoding='utf-8');print(f,len(c['shortcuts']))
