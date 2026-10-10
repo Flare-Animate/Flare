@@ -47,6 +47,7 @@ public:
 
   void removeChildren(int row, int count);
   void addChild(DvDirModelNode *child);
+  void insertChild(int row, DvDirModelNode *child);
   virtual void visualizeContent(FileBrowser *browser) {}  // ?????????????
 
   virtual QPixmap getPixmap(bool isOpen) const;
@@ -417,6 +418,7 @@ public:
     emit beginMoveRows(srcParent, first, last, dstParent, dstChild);
   }
   void notifyEndMoveRows() { emit endMoveRows(); }
+  void forceRefresh();
 
   // Emitted when a project is added to the folder list. Added by the upstream
   // sync -- dvdirtreeview.cpp connects to it, but the local DvDirModel never

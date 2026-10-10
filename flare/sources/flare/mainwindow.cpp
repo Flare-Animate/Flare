@@ -3479,6 +3479,7 @@ void RecentFiles::addFilePath(QString path, FileType fileType,
                               QString projectName) {
   QList<QString> files = (fileType == Scene)   ? m_recentScenes
                          : (fileType == Level) ? m_recentLevels
+                         : (fileType == Project) ? m_recentProjects
                                                : m_recentFlipbookImages;
   int i;
   for (i = 0; i < files.size(); i++)
@@ -3498,6 +3499,8 @@ void RecentFiles::addFilePath(QString path, FileType fileType,
     m_recentScenes = files;
   else if (fileType == Level)
     m_recentLevels = files;
+  else if (fileType == Project)
+    m_recentProjects = files;
   else
     m_recentFlipbookImages = files;
 
@@ -3624,6 +3627,8 @@ void RecentFiles::loadRecentFiles() {
     if (!flipImage.isEmpty()) m_recentFlipbookImages.append(flipImage);
   }
 
+  m_recentProjects = settings.value(QString("Projects")).toStringList();
+
   refreshRecentFilesMenu(Scene);
   refreshRecentFilesMenu(Level);
   refreshRecentFilesMenu(Flip);
@@ -3637,6 +3642,7 @@ void RecentFiles::saveRecentFiles() {
   settings.setValue(QString("Scenes"), QVariant(m_recentScenes));
   settings.setValue(QString("SceneProjects"), QVariant(m_recentSceneProjects));
   settings.setValue(QString("Levels"), QVariant(m_recentLevels));
+  settings.setValue(QString("Projects"), QVariant(m_recentProjects));
   settings.setValue(QString("FlipbookImages"),
                     QVariant(m_recentFlipbookImages));
 }
@@ -3646,6 +3652,7 @@ void RecentFiles::saveRecentFiles() {
 QList<QString> RecentFiles::getFilesNameList(FileType fileType) {
   QList<QString> files = (fileType == Scene)   ? m_recentScenes
                          : (fileType == Level) ? m_recentLevels
+                         : (fileType == Project) ? m_recentProjects
                                                : m_recentFlipbookImages;
   QList<QString> names;
   int i;
@@ -3661,6 +3668,7 @@ QList<QString> RecentFiles::getFilesNameList(FileType fileType) {
 //-----------------------------------------------------------------------------
 
 void RecentFiles::refreshRecentFilesMenu(FileType fileType) {
+  if (fileType == Project) return;
   CommandId id = (fileType == Scene)   ? MI_OpenRecentScene
                  : (fileType == Level) ? MI_OpenRecentLevel
                                        : MI_LoadRecentImage;
