@@ -2208,8 +2208,8 @@ void MainWindow::defineActions() {
                          "sub_leave");
   createMenuXsheetAction(MI_ExplodeChild, QT_TR_NOOP("Explode Sub-Xsheet"), "",
                          "sub_explode");
-  createMenuXsheetAction(MI_Collapse, QT_TR_NOOP("Collapse"), "",
-                         "sub_collapse");
+  createMenuXsheetAction(MI_Collapse, QT_TR_NOOP("Convert to Symbol / Sub-Xsheet"),
+                         "Ctrl+Alt+G", "sub_collapse");
   createToggle(MI_ToggleEditInPlace, QT_TR_NOOP("&Toggle Edit In Place"), "",
                EditInPlaceToggleAction ? 1 : 0, MenuXsheetCommandType,
                "sub_edit_in_place");
