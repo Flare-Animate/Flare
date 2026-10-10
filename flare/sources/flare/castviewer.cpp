@@ -965,7 +965,13 @@ void CastBrowser::newSymbol(const std::string &kind) {
   size_t n = flare_symlib_add((const uint8_t *)lib.data(), lib.size(),
                               (const uint8_t *)line.data(), line.size(),
                               (uint8_t *)out.data(), out.size());
-  if (n <= (size_t)out.size()) s_symlib = QString::fromUtf8(out.data(), (int)n);
+  if (n > (size_t)out.size()) {
+    out.resize((int)n);
+    n = flare_symlib_add((const uint8_t *)lib.data(), lib.size(),
+                         (const uint8_t *)line.data(), line.size(),
+                         (uint8_t *)out.data(), out.size());
+  }
+  s_symlib = QString::fromUtf8(out.data(), (int)n);
   TApp::instance()->getCurrentScene()->setDirtyFlag(true);
   TApp::instance()->getCurrentScene()->notifyCastChange();
   refreshData();
