@@ -191,6 +191,30 @@ pub unsafe extern "C" fn flare_xfl_export_svg(xfl_dir: *const std::os::raw::c_ch
     CString::new(s.replace('\0', " ")).map_or(std::ptr::null_mut(), |c| c.into_raw())
 }
 
+/// Timeline length (frames) of an SWF (FWS/CWS), FLA/XFL zip, or DOMDocument.xml / .xfl stub path. -1 if unknown.
+pub fn file_frames(path: &std::path::Path) -> i32 {
+    let Ok(d) = std::fs::read(path) else { return -1 };
+    let dom = |x: &[u8]| xfl::layers(x).map_or(-1, |l| l.iter().flat_map(|y| y.frames.iter().map(|f| f.index + f.duration.max(1))).max().unwrap_or(0) as i32);
+    if d.starts_with(b"CWS") && d.len() > 8 {
+        let mut u = d[..8].to_vec(); u[0] = b'F';
+        u.extend(miniz_oxide::inflate::decompress_to_vec_zlib(&d[8..]).unwrap_or_default());
+        return swf_frames(&u).map_or(-1, |f| f.1 as i32);
+    }
+    if d.starts_with(b"FWS") { return swf_frames(&d).map_or(-1, |f| f.1 as i32); }
+    if d.starts_with(b"PK") { return moho::unzip_any(&d, &[b"DOMDocument.xml"]).map_or(-1, |x| dom(&x)); }
+    if path.extension().map_or(false, |e| e.eq_ignore_ascii_case("xfl")) {
+        return std::fs::read(path.with_file_name("DOMDocument.xml")).map_or(-1, |x| dom(&x));
+    }
+    dom(&d)
+}
+
+/// C ABI for file_frames (UTF-8 path).
+#[no_mangle]
+pub unsafe extern "C" fn flare_file_frame_count(path: *const std::os::raw::c_char) -> i32 {
+    if path.is_null() { return -1; }
+    file_frames(std::path::Path::new(&*std::ffi::CStr::from_ptr(path).to_string_lossy()))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -213,6 +237,7 @@ mod tests {
         assert_eq!(cfbf_header(&c), Some((3, 512)));
         assert_eq!(xfl_dom_info(b"<DOMDocument xmlns=\"x\" width=\"1280\" frameRate=\"30\">"), Some((1280.0, 400.0, 30.0)));
     }
+    #[test] fn icons_frames() { let p = std::path::Path::new("C:/Users/charl/Downloads/Flare Samples/online/fla/icons.fla"); if p.exists() { println!("icons frames={}", file_frames(p)); assert!(file_frames(p) >= 0); } }
     #[test] fn ffi_null() { unsafe { assert_eq!(flare_detect_format(std::ptr::null(), 0), 0); } }
     #[test] fn ffi_symlib_add() {
         let line = b"mc\tf\tSym1\tlvl";

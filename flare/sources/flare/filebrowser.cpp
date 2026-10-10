@@ -83,6 +83,7 @@
 #include <boost/iterator/counting_iterator.hpp>
 #include <boost/range/adaptor/filtered.hpp>
 #include <boost/range/adaptor/transformed.hpp>
+#include "flare_formats.h"
 
 namespace ba = boost::adaptors;
 
@@ -886,6 +887,12 @@ item.m_validInfo = true;*/
 //! calculated by using a dedicated thread and therefore cannot be simply
 //! classified as *valid* or *invalid* infos...
 void FileBrowser::readFrameCount(Item &item) {
+  std::string t = item.m_path.getType();
+  if (!item.m_isFolder && (t == "fla" || t == "xfl" || t == "swf")) {
+    item.m_frameCount = std::max(0, flare_file_frame_count(
+        item.m_path.getQString().toUtf8().constData()));
+    return;
+  }
   if (!item.m_isFolder &&
       TFileType::isViewable(TFileType::getInfo(item.m_path))) {
     if (isMultipleFrameType(item.m_path.getType()))

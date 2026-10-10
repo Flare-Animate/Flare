@@ -5,14 +5,15 @@ fn u16le(d: &[u8], o: usize) -> Option<usize> { Some(u16::from_le_bytes(d.get(o.
 fn u32le(d: &[u8], o: usize) -> Option<usize> { Some(u32::from_le_bytes(d.get(o..o + 4)?.try_into().ok()?) as usize) }
 
 /// Extract Project.mohoproj / Project.animeproj from a ZIP (central directory walk).
-fn unzip(d: &[u8]) -> Option<Vec<u8>> {
+pub(crate) fn unzip(d: &[u8]) -> Option<Vec<u8>> { unzip_any(d, &[b"Project.mohoproj", b"Project.animeproj"]) }
+pub(crate) fn unzip_any(d: &[u8], names: &[&[u8]]) -> Option<Vec<u8>> {
     let eocd = (0..d.len().saturating_sub(21)).rev().take(70000).find(|&i| d[i..i + 4] == [0x50, 0x4b, 5, 6])?;
     let (n, mut p) = (u16le(d, eocd + 10)?, u32le(d, eocd + 16)?);
     for _ in 0..n {
         if d.get(p..p + 4)? != [0x50, 0x4b, 1, 2] { return None; }
         let (method, csize, nl, el, cl, lo) = (u16le(d, p + 10)?, u32le(d, p + 20)?, u16le(d, p + 28)?, u16le(d, p + 30)?, u16le(d, p + 32)?, u32le(d, p + 42)?);
         let name = d.get(p + 46..p + 46 + nl)?;
-        if name == b"Project.mohoproj" || name == b"Project.animeproj" {
+        if names.contains(&name) {
             let start = lo + 30 + u16le(d, lo + 26)? + u16le(d, lo + 28)?;
             let raw = d.get(start..start + csize)?;
             return match method { 0 => Some(raw.to_vec()), 8 => miniz_oxide::inflate::decompress_to_vec(raw).ok(), _ => None };
