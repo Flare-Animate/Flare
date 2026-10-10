@@ -18,6 +18,22 @@ pub unsafe extern "C" fn flare_fcp_parse(data: *const u8, len: usize) -> *mut st
 pub unsafe extern "C" fn flare_fcp_free(p: *mut std::os::raw::c_char) { flare_moho_free(p) }
 pub mod xflrender;
 pub mod symlib;
+pub mod tfilepath;
+pub mod tenv;
+
+/// TFilePath query (see header). Returns full byte length; copies up to `cap` into `out`.
+#[no_mangle]
+pub unsafe extern "C" fn flare_tfilepath_query(path: *const std::os::raw::c_char, kind: i32, out: *mut u8, cap: usize) -> usize {
+    if path.is_null() { return 0; }
+    let p = std::ffi::CStr::from_ptr(path).to_string_lossy();
+    let s = match kind {
+        0 => tfilepath::get_type(&p), 1 => tfilepath::get_name(&p), 2 => tfilepath::get_level_name(&p),
+        3 => tfilepath::get_parent_dir(&p), 4 => tfilepath::get_dots(&p), 5 => tfilepath::get_frame(&p).to_string(),
+        _ => return 0,
+    };
+    if !out.is_null() { std::ptr::copy_nonoverlapping(s.as_ptr(), out, s.len().min(cap)); }
+    s.len()
+}
 
 /// Symbol library: add TSV `line` to TSV `lib`, write normalized TSV into `out` (up to `cap`). Returns full length.
 #[no_mangle]
@@ -206,4 +222,16 @@ mod tests {
         assert_eq!(unsafe { flare_symlib_add(line.as_ptr(), 0, line.as_ptr(), line.len(), buf.as_mut_ptr(), n) }, n);
         assert!(String::from_utf8_lossy(&buf).contains("Sym1"));
     }
+}
+
+/// TEnv path-set split (see header). Entries joined by newline; returns full byte length, copies up to `cap`.
+#[no_mangle]
+pub unsafe extern "C" fn flare_tenv_path_set(value: *const std::os::raw::c_char, out: *mut u8, cap: usize) -> usize {
+    if value.is_null() { return 0; }
+    let v = std::ffi::CStr::from_ptr(value).to_string_lossy();
+    let s = tenv::path_set(&v).join("
+");
+    let n = s.len().min(cap);
+    if !out.is_null() && n > 0 { std::ptr::copy_nonoverlapping(s.as_ptr(), out, n); }
+    s.len()
 }
