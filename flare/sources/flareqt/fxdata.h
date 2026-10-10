@@ -20,11 +20,18 @@
 
 using namespace TFxCommand;
 
+#undef DVAPI
+#ifdef FLAREQT_EXPORTS
+#define DVAPI DV_EXPORT_API
+#else
+#define DVAPI DV_IMPORT_API
+#endif
+
 //**********************************************************************
 //    FxsData  declaration
 //**********************************************************************
 
-class FxsData final : public DvMimeData {
+class DVAPI FxsData final : public DvMimeData {
   QList<TFxP> m_fxs;
   QMap<TFx *, bool> m_visitedFxs;
   QMap<TFx *, int> m_zeraryFxColumnSize;

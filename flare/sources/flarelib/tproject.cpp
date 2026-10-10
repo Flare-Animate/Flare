@@ -1271,3 +1271,22 @@ bool TProjectManager::isProject(const TFilePath &projectFolder) {
   TFilePath projectPath = projectFolderToProjectPath(projectFolder);
   return TFileStatus(projectPath).doesExist();
 }
+
+//-------------------------------------------------------------------
+
+TFilePath TProjectManager::getCurrentProjectRoot() {
+  TFilePath cur = getCurrentProjectPath();
+  for (const TFilePath &r : m_projectsRoots)
+    if (r.isAncestorOf(cur)) return r;
+  for (const TFilePath &r : m_svnProjectsRoots)
+    if (r.isAncestorOf(cur)) return r;
+  if (m_projectsRoots.empty())
+    addProjectsRoot(TEnv::getStuffDir() + "projects");
+  return m_projectsRoots[0];
+}
+
+void TProjectManager::getProjectRoots(std::vector<TFilePath> &projectRoots) {
+  projectRoots = m_projectsRoots;
+  projectRoots.insert(projectRoots.end(), m_svnProjectsRoots.begin(),
+                      m_svnProjectsRoots.end());
+}

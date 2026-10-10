@@ -67,7 +67,7 @@ protected:
 // InsertFxPopup
 //-----------------------------------------------------------------------------
 
-class DVAPI InsertFxPopup final : public QFrame {
+class InsertFxPopup final : public QFrame {
   Q_OBJECT
 
   FxTree *m_fxTree;

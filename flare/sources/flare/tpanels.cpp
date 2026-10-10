@@ -7,8 +7,6 @@
 #include "viewerpane.h"
 #include "exportpanel.h"
 #include "scriptconsolepanel.h"
-#include "brushpresetpanel.h"
-#include "toolpropertiespanel.h"
 
 #include "floatingpanelcommand.h"
 #include "subscenecommand.h"
@@ -87,9 +85,7 @@
 #include "flare/fxcommand.h"
 #include "flare/tstageobjectcmd.h"
 
-#include "../../toonz/locatorpopup.h"
-
-#include "flareqt/insertfxpopup.h"
+#include "../../flare/locatorpopup.h"
 
 // TnzBase includes
 #include "trasterfx.h"
@@ -259,7 +255,7 @@ void SchematicScenePanel::onDeleteStageObjects(
     return;
 
   TApp *app = TApp::instance();
-  // Safe conversion QList → std::vector (avoids std::length_error crash)
+  // Safe conversion QList �� std::vector (avoids std::length_error crash)
   const QList<TStageObjectId> objList = selection->getObjects();
   std::vector<TStageObjectId> objects(objList.begin(), objList.end());
 
@@ -985,8 +981,6 @@ public:
     panel->setFixWidthMode(TPanel::fixed);
     panel->setWidget(toolbar);
     panel->setIsMaximizable(false);
-    // A tab strip would not fit this bar (see DockLayout::supportsTabGrouping)
-    panel->setProperty("canJoinDockTabs", false);
     // panel->setAllowedAreas(Qt::LeftDockWidgetArea|Qt::RightDockWidgetArea);
     panel->setFixedWidth(44);  // 35
     toolbar->setFixedWidth(34);
@@ -1013,8 +1007,6 @@ public:
   TPanel *createPanel(QWidget *parent) override {
     TPanel *panel = new CommandBarPanel(parent);
     panel->setObjectName(getPanelType());
-    // A tab strip would not fit this bar (see DockLayout::supportsTabGrouping)
-    panel->setProperty("canJoinDockTabs", false);
     return panel;
   }
   void initialize(TPanel *panel) override {}
@@ -1053,8 +1045,6 @@ public:
     panel->setObjectName(getPanelType());
     panel->setWindowTitle(getPanelType());
     panel->resize(600, panel->height());
-    // A tab strip would not fit this bar (see DockLayout::supportsTabGrouping)
-    panel->setProperty("canJoinDockTabs", false);
     return panel;
   }
   void initialize(TPanel *panel) override { assert(0); }
@@ -1137,20 +1127,20 @@ void FlipbookPanel::initializeTitleBar(TPanelTitleBar *titleBar) {
   int x         = -91;
   int iconWidth = 20;
 
-  // Safe area button
-  TPanelTitleBarButtonForSafeArea *safeAreaButton =
-      new TPanelTitleBarButtonForSafeArea(titleBar, "safearea");
-  safeAreaButton->setToolTip(tr("Safe Area (Right Click to Select)"));
-  titleBar->add(QPoint(x, 0), safeAreaButton);
-  ret = ret && connect(safeAreaButton, SIGNAL(toggled(bool)),
-                       CommandManager::instance()->getAction(MI_SafeArea),
+  // Layout Guide button
+  TPanelTitleBarButtonForLayoutGuide *layoutGuideButton =
+      new TPanelTitleBarButtonForLayoutGuide(titleBar, "layoutguide");
+  layoutGuideButton->setToolTip(tr("Layout Guide (Right Click to Select)"));
+  titleBar->add(QPoint(x, 0), layoutGuideButton);
+  ret = ret && connect(layoutGuideButton, SIGNAL(toggled(bool)),
+                       CommandManager::instance()->getAction(MI_LayoutGuide),
                        SLOT(trigger()));
-  ret = ret && connect(CommandManager::instance()->getAction(MI_SafeArea),
-                       SIGNAL(triggered(bool)), safeAreaButton,
+  ret = ret && connect(CommandManager::instance()->getAction(MI_LayoutGuide),
+                       SIGNAL(triggered(bool)), layoutGuideButton,
                        SLOT(setPressed(bool)));
   // Synchronize initial state
-  safeAreaButton->setPressed(
-      CommandManager::instance()->getAction(MI_SafeArea)->isChecked());
+  layoutGuideButton->setPressed(
+      CommandManager::instance()->getAction(MI_LayoutGuide)->isChecked());
 
   x += 28 + iconWidth;
   // Minimize button
@@ -1547,66 +1537,6 @@ OpenFloatingPanel openStopMotionPanelCommand(
 #endif  // x64
 
 //=============================================================================
-// BrushPresetPanel - Dynamic brush preset management panel
-//-----------------------------------------------------------------------------
-
-class BrushPresetPanelFactory final : public TPanelFactory {
-public:
-  BrushPresetPanelFactory() : TPanelFactory("BrushPreset") {}
-
-  TPanel *createPanel(QWidget *parent) override {
-    BrushPresetPanel *panel = new BrushPresetPanel(parent);
-    panel->setObjectName(getPanelType());
-    panel->setWindowTitle(QObject::tr("Brush Presets") +
-                          QObject::tr(" [WIP]"));  // Temporarily add WIP label
-    panel->setIsMaximizable(false);
-
-    // Enable room binding feature
-    panel->addRoomBindButton();
-
-    return panel;
-  }
-
-  void initialize(TPanel *panel) override { assert(0); }
-} brushPresetPanelFactory;
-
-//=============================================================================
-OpenFloatingPanel openBrushPresetPanelCommand(MI_OpenBrushPresetPanel,
-                                              "BrushPreset",
-                                              QObject::tr("Brush Presets"));
-//-----------------------------------------------------------------------------
-
-//=============================================================================
-// Tool Properties Panel
-//-----------------------------------------------------------------------------
-
-class ToolPropertiesPanelFactory final : public TPanelFactory {
-public:
-  ToolPropertiesPanelFactory() : TPanelFactory("ToolProperties") {}
-
-  TPanel *createPanel(QWidget *parent) override {
-    ToolPropertiesPanel *panel = new ToolPropertiesPanel(parent);
-    panel->setObjectName(getPanelType());
-    panel->setWindowTitle(QObject::tr("Tool Properties") +
-                          QObject::tr(" [WIP]"));  // Temporarily add WIP label
-    panel->setIsMaximizable(false);
-
-    // Enable room binding feature
-    panel->addRoomBindButton();
-
-    return panel;
-  }
-
-  void initialize(TPanel *panel) override { assert(0); }
-} toolPropertiesPanelFactory;
-
-//=============================================================================
-OpenFloatingPanel openToolPropertiesPanelCommand(
-    MI_OpenToolPropertiesPanel, "ToolProperties",
-    QObject::tr("Tool Properties"));
-//-----------------------------------------------------------------------------
-
-//=============================================================================
 // FxSettings
 //-----------------------------------------------------------------------------
 
@@ -1728,6 +1658,12 @@ public:
 } zoomInAndFitPanel;
 
 //=============================================================================
+OpenFloatingPanel openFxBrowserCommand(MI_InsertFx, "FxBrowser",
+                                       QObject::tr("Fx Browser"));
+
+//-----------------------------------------------------------------------------
+
+//=============================================================================
 // LocatorPanel
 //-----------------------------------------------------------------------------
 
@@ -1762,40 +1698,4 @@ public:
 OpenFloatingPanel openLocatorCommand(MI_OpenLocator, "Locator",
                                      QObject::tr("Locator"));
 
-//-----------------------------------------------------------------------------
 
-//=============================================================================
-// FxBrowserPanel
-//-----------------------------------------------------------------------------
-
-FxBrowserPanel::FxBrowserPanel(QWidget *parent) : TPanel(parent) {
-  m_fxBrowser = new InsertFxPopup(this);
-  m_fxBrowser->setApplication(TApp::instance());
-
-  setWidget(m_fxBrowser);
-}
-
-//=============================================================================
-// FxBrowserFactory
-//-----------------------------------------------------------------------------
-
-class FxBrowserFactory final : public TPanelFactory {
-public:
-  FxBrowserFactory() : TPanelFactory("FxBrowser") {}
-
-  TPanel *createPanel(QWidget *parent) override {
-    FxBrowserPanel *panel = new FxBrowserPanel(parent);
-    panel->move(qApp->desktop()->screenGeometry(panel).center());
-    panel->setObjectName(getPanelType());
-    panel->setWindowTitle(QObject::tr("FX Browser"));
-    panel->setMinimumWidth(233);
-    return panel;
-  }
-
-  void initialize(TPanel *panel) override { assert(0); }
-
-} FxBrowserFactory;
-
-//=============================================================================
-OpenFloatingPanel openFxBrowserCommand(MI_InsertFx, "FxBrowser",
-                                       QObject::tr("FX Browser"));

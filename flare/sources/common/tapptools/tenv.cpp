@@ -760,6 +760,7 @@ void TEnv::initUserStuffDir() {}
 #endif
 
 void TEnv::loadAllEnvVariables() { VariableSet::instance()->load(); }
+void TEnv::saveAllEnvVariables() { VariableSet::instance()->save(); }
 
 bool TEnv::setArgPathValue(std::string key, std::string value) {
   EnvGlobals *eg = EnvGlobals::instance();
