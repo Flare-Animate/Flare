@@ -77,6 +77,11 @@ if(NOT BUILD_TARGET_BSD)
         tzp/toonzrle.cpp
         tzp/avl.c
     )
+    # private tiffiop.h (system libtiff-dev lacks it); needs configure-generated tif_config.h
+    if(NOT WIN32)
+        set_source_files_properties(tzp/tiio_tzp.cpp tzp/toonzrle.cpp PROPERTIES
+            COMPILE_OPTIONS "-idirafter;${FLARE_ROOT}/thirdparty/tiff-4.0.3/libtiff")
+    endif()
 endif()
 
 
