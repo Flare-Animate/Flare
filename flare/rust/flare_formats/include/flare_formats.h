@@ -22,3 +22,7 @@ void flare_moho_free(char *p);
 #ifdef __cplusplus
 }
 #endif
+
+/* FlipaClip .fcp -> JSON {fps,width,height,frames[]}; NULL on error. Free with flare_fcp_free. */
+char *flare_fcp_parse(const unsigned char *data, size_t len);
+void flare_fcp_free(char *p);

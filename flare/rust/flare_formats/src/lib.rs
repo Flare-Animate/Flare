@@ -3,6 +3,19 @@ use std::slice;
 pub mod swf;
 pub mod xfl;
 pub mod moho;
+pub mod fcp;
+
+/// Parse FlipaClip .fcp; JSON (free with flare_fcp_free) or NULL.
+#[no_mangle]
+pub unsafe extern "C" fn flare_fcp_parse(data: *const u8, len: usize) -> *mut std::os::raw::c_char {
+    match fcp::parse(bytes(data, len)).ok().and_then(|s| std::ffi::CString::new(s).ok()) {
+        Some(c) => c.into_raw(),
+        None => std::ptr::null_mut(),
+    }
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn flare_fcp_free(p: *mut std::os::raw::c_char) { flare_moho_free(p) }
 
 /// Count of SWF tags (incl. End); -1 if not uncompressed SWF.
 #[no_mangle]
