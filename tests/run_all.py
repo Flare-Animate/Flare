@@ -55,12 +55,34 @@ NEEDS_INPUT = [
 ]
 
 
+def native_runner_finds_qt():
+    """Ask the native runner for the Qt root rather than duplicating the search.
+
+    run_tests.py owns find_qt_root(); importing it keeps one search in one place,
+    and a failure there means "cannot find", not "crashed".
+    """
+    try:
+        import importlib.util
+        here = os.path.dirname(os.path.abspath(__file__))
+        spec = importlib.util.spec_from_file_location(
+            "_native_runner", os.path.join(here, "native", "run_tests.py"))
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        return bool(mod.find_qt_root())
+    except Exception:
+        return False
+
+
 def main():
-    if not os.environ.get("QT_BIN"):
-        print("   note: QT_BIN is not set. The C++ tests link Qt5Core, which is"
+    # run_tests.py now locates Qt itself and feeds it to both cmake and PATH, so
+    # this note fired on machines where the native suite was in fact running fine
+    # -- it reported 97 passing checks under exactly the conditions it warned about.
+    # Warn only when Qt genuinely cannot be found anywhere.
+    if not os.environ.get("QT_BIN") and not native_runner_finds_qt():
+        print("   note: Qt was not found. The C++ tests link Qt5Core, which is"
               " not beside\n"
-              "         the test binary, so without it the process fails to"
-              " start at all -- no\n"
+              "         the test binary, so without it those processes fail to"
+              " start -- no\n"
               "         output, exit code 0xC0000135. Set QT_BIN to"
               " <qt>/5.x/<kit>/bin.")
 
