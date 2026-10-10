@@ -212,7 +212,7 @@ And wired into the menu in:
 - `flare/sources/flare_legacy/menubar.cpp`
 - `flare/sources/flare_legacy/mainwindow.cpp`
 - `stuff/profiles/layouts/rooms/AdobeAnimate/menubar_template.xml`
-- `stuff/profiles/layouts/rooms/Default/menubar_template.xml`
+- `stuff/profiles/layouts/rooms/Animate/menubar_template.xml`
 
 ### CI workflow notes
 

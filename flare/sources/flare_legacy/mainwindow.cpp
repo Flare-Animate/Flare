@@ -196,7 +196,7 @@ void makePrivate(Room *room) {
       else {
         // fallback to the built-in stuff template location
         TFilePath builtinMBPath =
-            TEnv::getStuffDir() + "profiles/layouts/rooms/Default/menubar_template.xml";
+            TEnv::getStuffDir() + "profiles/layouts/rooms/Animate/menubar_template.xml";
         if (TFileStatus(builtinMBPath).doesExist())
           TSystem::copyFile(myMBPath, builtinMBPath);
         else
