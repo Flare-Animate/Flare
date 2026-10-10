@@ -1,0 +1,14 @@
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+
+find_dependency(Qt5 5.15 REQUIRED COMPONENTS Core Gui Widgets Quick)
+find_dependency(Box2D REQUIRED)
+
+include("${CMAKE_CURRENT_LIST_DIR}/tgameTargets.cmake")
+
+# tgame version variables
+set(tgame_VERSION "@PROJECT_VERSION@")
+set(tgame_VERSION_MAJOR "@PROJECT_VERSION_MAJOR@")
+set(tgame_VERSION_MINOR "@PROJECT_VERSION_MINOR@")
+set(tgame_VERSION_PATCH "@PROJECT_VERSION_PATCH@")
