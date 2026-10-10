@@ -19,6 +19,7 @@ pub unsafe extern "C" fn flare_fcp_free(p: *mut std::os::raw::c_char) { flare_mo
 pub mod xflrender;
 pub mod symlib;
 pub mod tfilepath;
+pub mod tenv;
 
 /// TFilePath query (see header). Returns full byte length; copies up to `cap` into `out`.
 #[no_mangle]
@@ -213,4 +214,16 @@ mod tests {
         assert_eq!(xfl_dom_info(b"<DOMDocument xmlns=\"x\" width=\"1280\" frameRate=\"30\">"), Some((1280.0, 400.0, 30.0)));
     }
     #[test] fn ffi_null() { unsafe { assert_eq!(flare_detect_format(std::ptr::null(), 0), 0); } }
+}
+
+/// TEnv path-set split (see header). Entries joined by newline; returns full byte length, copies up to `cap`.
+#[no_mangle]
+pub unsafe extern "C" fn flare_tenv_path_set(value: *const std::os::raw::c_char, out: *mut u8, cap: usize) -> usize {
+    if value.is_null() { return 0; }
+    let v = std::ffi::CStr::from_ptr(value).to_string_lossy();
+    let s = tenv::path_set(&v).join("
+");
+    let n = s.len().min(cap);
+    if !out.is_null() && n > 0 { std::ptr::copy_nonoverlapping(s.as_ptr(), out, n); }
+    s.len()
 }

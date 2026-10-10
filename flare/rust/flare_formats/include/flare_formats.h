@@ -26,6 +26,9 @@ char *flare_xfl_export_svg(const char *xfl_dir_utf8, const char *out_dir_utf8);
 size_t flare_symlib_add(const uint8_t *lib, size_t lib_len, const uint8_t *line, size_t line_len, uint8_t *out, size_t cap);
 /* TFilePath (common/tsystem/tfilepath.cpp, standard mode). kind: 0 type,1 name,2 levelName,3 parentDir,4 dots,5 frame(decimal, -1 none). Writes UTF-8 to out; returns full len. */
 size_t flare_tfilepath_query(const char *path_utf8, int32_t kind, char *out, size_t cap);
+/* TEnv::getSystemVarPathSetValue split (tenv.cpp). Entries joined by '
+'; returns full len, copies up to cap. */
+size_t flare_tenv_path_set(const char *value_utf8, char *out, size_t cap);
 #ifdef __cplusplus
 }
 #endif
