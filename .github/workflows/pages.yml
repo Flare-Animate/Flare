@@ -1,0 +1,20 @@
+name: pages
+on:
+  push:
+    branches: [master]
+    paths: [tools/flash/ts/**, tools/flash/webapp/**]
+  workflow_dispatch:
+permissions: { contents: read, pages: write, id-token: write }
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: { name: github-pages, url: "${{ steps.d.outputs.page_url }}" }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 24 }
+      - run: node tools/flash/webapp/build.test.ts && node tools/flash/webapp/build.ts
+      - uses: actions/upload-pages-artifact@v3
+        with: { path: tools/flash/webapp/dist }
+      - id: d
+        uses: actions/deploy-pages@v4

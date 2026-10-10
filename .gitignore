@@ -98,3 +98,4 @@ requirements.txt
 Qt5*.zip
 tmp.txt
 stuff/config/loc/
+tools/flash/webapp/dist/
