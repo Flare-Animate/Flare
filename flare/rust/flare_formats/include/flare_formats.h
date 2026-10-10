@@ -16,6 +16,9 @@ int32_t flare_swf_tag_count(const uint8_t *data, size_t len);
 int32_t flare_swf_tag_codes(const uint8_t *data, size_t len, uint16_t *codes, size_t max);
 /* First XFL timeline: returns layer count, total frames in *frames; -1 on error. */
 int32_t flare_xfl_layer_count(const uint8_t *data, size_t len, uint32_t *frames);
+/* Moho .moho/.mohoproj -> normalised JSON (layers, bones, tracks); NULL on error. Free with flare_moho_free. */
+char *flare_moho_parse(const uint8_t *data, size_t len);
+void flare_moho_free(char *p);
 #ifdef __cplusplus
 }
 #endif

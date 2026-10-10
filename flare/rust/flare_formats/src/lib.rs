@@ -2,6 +2,7 @@
 use std::slice;
 pub mod swf;
 pub mod xfl;
+pub mod moho;
 
 /// Count of SWF tags (incl. End); -1 if not uncompressed SWF.
 #[no_mangle]
@@ -120,6 +121,20 @@ pub unsafe extern "C" fn flare_xfl_dom_info(data: *const u8, len: usize, w: *mut
         }
         None => -1,
     }
+}
+
+/// Parse a Moho project; returns malloc'd-by-Rust NUL-terminated JSON (free with flare_moho_free), or NULL on error.
+#[no_mangle]
+pub unsafe extern "C" fn flare_moho_parse(data: *const u8, len: usize) -> *mut std::os::raw::c_char {
+    match moho::parse(bytes(data, len)).ok().and_then(|s| std::ffi::CString::new(s).ok()) {
+        Some(c) => c.into_raw(),
+        None => std::ptr::null_mut(),
+    }
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn flare_moho_free(p: *mut std::os::raw::c_char) {
+    if !p.is_null() { drop(std::ffi::CString::from_raw(p)); }
 }
 
 #[cfg(test)]
