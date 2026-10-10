@@ -45,7 +45,8 @@
 CommandItem::CommandItem(QTreeWidgetItem* parent, QAction* action)
     : QTreeWidgetItem(parent, UserType), m_action(action) {
   setFlags(Qt::ItemIsSelectable | Qt::ItemIsDragEnabled | Qt::ItemIsEnabled |
-           Qt::ItemNeverHasChildren);
+           Qt::ItemNeverHasChildren | Qt::ItemIsUserCheckable);
+  setCheckState(0, Qt::Checked);  // checked = shown
 
   QString tempText = m_action->text();
   // Removing accelerator key indicator
@@ -365,12 +366,13 @@ void CommandBarTree::loadMenuRecursive(QXmlStreamReader& reader,
                                        QTreeWidgetItem* parentItem) {
   while (reader.readNextStartElement()) {
     if (reader.name() == QStringLiteral("command")) {
+      bool hidden     = reader.attributes().value("hidden") == QLatin1String("1");
       QString cmdName = reader.readElementText();
       QAction* action =
           CommandManager::instance()->getAction(cmdName.toStdString().c_str());
       if (action) {
         CommandItem* item = new CommandItem(parentItem, action);
-        Q_UNUSED(item);
+        if (hidden) item->setCheckState(0, Qt::Unchecked);
       }
     } else if (reader.name() == QStringLiteral("command_debug")) {
 #ifndef NDEBUG
@@ -423,6 +425,14 @@ void CommandBarTree::saveMenuRecursive(QXmlStreamWriter& writer,
     SeparatorItem* sep   = dynamic_cast<SeparatorItem*>(parentItem->child(c));
 
     if (command) {
+      if (command->checkState(0) == Qt::Unchecked)
+        writer.writeStartElement("command"),
+            writer.writeAttribute("hidden", "1"),
+            writer.writeCharacters(QString::fromStdString(
+                CommandManager::instance()->getIdFromAction(
+                    command->getAction()))),
+            writer.writeEndElement();
+      else
       writer.writeTextElement(
           "command",
           QString::fromStdString(CommandManager::instance()->getIdFromAction(

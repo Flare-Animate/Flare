@@ -78,11 +78,12 @@ void CommandBar::fillToolbar(CommandBar *toolbar, bool isXsheetToolbar) {
     if (reader.name() == "commandbar") {
       while (reader.readNextStartElement()) {
         if (reader.name() == "command") {
+          bool hidden = reader.attributes().value("hidden") == QLatin1String("1");
           QString cmdName    = reader.readElementText();
           std::string cmdStr = cmdName.toStdString();
           QAction *action =
               CommandManager::instance()->getAction(cmdStr.c_str());
-          if (action) toolbar->addAction(action);
+          if (action && !hidden) toolbar->addAction(action);
         } else if (reader.name() == "separator") {
           toolbar->addSeparator();
           reader.skipCurrentElement();
