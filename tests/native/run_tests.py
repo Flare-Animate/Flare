@@ -84,6 +84,50 @@ def ensure_fixtures():
     return os.path.join(HERE, "..", "flash_fixtures"), moho_fx
 
 
+def find_qt_root():
+    """Return the Qt install prefix, or "" if it cannot be found.
+
+    A prefix is a directory holding lib/cmake/Qt5Core. It is found recursively to
+    depth 3, because the usual Windows layouts nest: C:\\Qt\\5.15.2 contains only
+    msvc2019_64, so the prefix is C:\\Qt\\5.15.2\\msvc2019_64 and a one-level search
+    for it finds nothing. Depth 3 covers C:\\Qt\\5.15.2\\msvc2019_64 while staying
+    cheap; a missing lib/cmake anywhere below stops that branch.
+
+    QT_BIN wins if set, since it names an explicit bin directory and its parent is
+    the prefix. Set CMAKE_PREFIX_PATH in the environment as a fallback.
+    """
+    roots = []
+    if os.environ.get("QT_BIN"):
+        roots.append(os.environ["QT_BIN"])
+    if sys.platform == "win32":
+        roots.append(os.environ.get("QTDIR", r"C:\Qt"))
+    else:
+        roots += ["/usr", "/opt/Qt", "/usr/local"]
+
+    for root in roots:
+        if not root or not os.path.isdir(root):
+            continue
+        # The given root may itself be the prefix.
+        if os.path.isdir(os.path.join(root, "lib", "cmake", "Qt5Core")):
+            return root
+        for cur, dirs, _files in os.walk(root):
+            depth = cur[len(root):].count(os.sep)
+            if depth >= 3:
+                dirs[:] = []
+                continue
+            # Prune noise that cannot contain a Qt prefix.
+            dirs[:] = [d for d in dirs
+                       if d not in ("Src", "sources", "node_modules", ".git")]
+            if os.path.isdir(os.path.join(cur, "lib", "cmake", "Qt5Core")):
+                return cur
+
+    # Last resort: an already-exported prefix.
+    for entry in os.environ.get("CMAKE_PREFIX_PATH", "").split(os.pathsep):
+        if entry and os.path.isdir(os.path.join(entry, "lib", "cmake", "Qt5Core")):
+            return entry
+    return ""
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--build-dir", default=DEFAULT_BUILD)
@@ -116,6 +160,22 @@ def main():
 
     flash_fx, moho_fx = ensure_fixtures()
 
+    # Locate the Qt root and feed it to CMake.
+    #
+    # The runtime QT_BIN detection below (added earlier this session) only sets PATH,
+    # so it never helped configure: cmake failed at find_package(Qt5Core) with "Add the
+    # installation prefix of Qt5Core to CMAKE_PREFIX_PATH". And the search has to walk
+    # more than one level -- C:\Qt\5.15.2 holds only msvc2019_64, so the root is
+    # C:\Qt\5.15.2\msvc2019_64, which a direct child search for Qt5Core.dll misses.
+    # Recursive to depth 3 from the QTDIR/C:\Qt roots, plus any prefix already set.
+    qt_root = find_qt_root()
+    cmake_prefix = []
+    if qt_root:
+        cmake_prefix.append(qt_root)
+    if os.environ.get("CMAKE_PREFIX_PATH"):
+        cmake_prefix.append(os.environ["CMAKE_PREFIX_PATH"])
+    prefix_arg = ("-DCMAKE_PREFIX_PATH=" + ";".join(cmake_prefix)) if cmake_prefix else []
+
     if not args.no_build:
         build = os.path.abspath(args.build_dir)
         # Point the tests at this tree's build rather than the default.
@@ -137,7 +197,7 @@ def main():
         r = run(["cmake", "-S", HERE, "-B", build,
                  "-DCMAKE_BUILD_TYPE=RelWithDebInfo",
                  f"-DBUILD={flare_build}",
-                 f"-DFLASH_ROOT={REPO}"] + extra)
+                 f"-DFLASH_ROOT={REPO}"] + extra + prefix_arg)
         if r.returncode:
             die("cmake configure failed:\n" + r.stdout + r.stderr)
         r = run(["cmake", "--build", build, "--config", "RelWithDebInfo", "-j", "8"])
@@ -185,21 +245,10 @@ def main():
     # self-configuring on a machine where Qt is installed but not exported, which is
     # the common case on Windows.
     qt_bin = env.get("QT_BIN", "")
-    if not qt_bin:
-        candidates = []
-        if sys.platform == "win32":
-            qroot = os.environ.get("QTDIR", r"C:\Qt")
-            candidates.append(os.path.join(qroot, "5.15.2", "msvc2019_64", "bin"))
-            candidates.append(os.path.join(qroot, "5.15.2", "mingw73_64", "bin"))
-            candidates.append(os.path.join(qroot, "5.15.2", "msvc2019", "bin"))
-        else:
-            candidates += ["/usr/lib/x86_64-linux-gnu", "/usr/lib64", "/usr/lib"]
-        for c in candidates:
-            if os.path.isfile(os.path.join(c, "Qt5Core.dll")) or \
-               os.path.isfile(os.path.join(c, "libQt5Core.so.5")):
-                qt_bin = c
-                break
-        if qt_bin:
+    if not qt_bin and qt_root:
+        cand = os.path.join(qt_root, "bin")
+        if os.path.isdir(cand):
+            qt_bin = cand
             env["QT_BIN"] = qt_bin
     if qt_bin:
         dll_dirs.append(qt_bin)
