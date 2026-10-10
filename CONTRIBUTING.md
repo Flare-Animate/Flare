@@ -63,3 +63,8 @@ You can generate `.qm` files by using [Qt Linguist](http://doc.qt.io/qt-5.6/ling
 Please locate generated `.qm` files in `stuff/config/loc`.
 It enables the Flare installer to install them into the `stuff` directory.
 
+
+## Submitting a layout
+
+Layouts live in `stuff/profiles/layouts/rooms/<Name>/`. Build yours (by hand or with an AI agent, see `doc/LAYOUT_CUSTOMIZATION.md`),
+check it with `python tools/layout_tool.py validate <dir>` and `python tests/test_layout_tool.py`, then send a PR containing only that directory.
