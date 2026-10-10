@@ -1155,3 +1155,45 @@ void DVAPI fullColorFill(const TRaster32P &ras, const FillParameters &params,
     }
   }
 }
+
+// Fill enclosed transparent regions of at most size*size pixels with ink.
+// ponytail: 4-connected flood, ink = first inked neighbour; no gap closing.
+void fillHoles(const TRasterCM32P &ras, const int size, TTileSaverCM32 *saver) {
+  const int w = ras->getLx(), h = ras->getLy();
+  const int maxArea = size * size;
+  std::vector<char> seen((size_t)w * h, 0);
+  auto empty = [&](int x, int y) {
+    TPixelCM32 *p = ras->pixels(y) + x;
+    return p->getTone() == TPixelCM32::getMaxTone() && p->getPaint() == 0;
+  };
+  for (int y0 = 0; y0 < h; y0++)
+    for (int x0 = 0; x0 < w; x0++) {
+      if (seen[(size_t)y0 * w + x0] || !empty(x0, y0)) continue;
+      std::vector<TPoint> comp{TPoint(x0, y0)};
+      seen[(size_t)y0 * w + x0] = 1;
+      bool border = false;
+      int ink = -1;
+      for (size_t i = 0; i < comp.size(); i++) {
+        TPoint c = comp[i];
+        if (c.x == 0 || c.y == 0 || c.x == w - 1 || c.y == h - 1) border = true;
+        const int dx[4] = {1, -1, 0, 0}, dy[4] = {0, 0, 1, -1};
+        for (int k = 0; k < 4; k++) {
+          int x = c.x + dx[k], y = c.y + dy[k];
+          if (x < 0 || y < 0 || x >= w || y >= h) continue;
+          if (empty(x, y)) {
+            if (!seen[(size_t)y * w + x]) {
+              seen[(size_t)y * w + x] = 1;
+              comp.push_back(TPoint(x, y));
+            }
+          } else if (ink < 0 &&
+                     (ras->pixels(y) + x)->getTone() < TPixelCM32::getMaxTone())
+            ink = (ras->pixels(y) + x)->getInk();
+        }
+      }
+      if (border || ink < 0 || (int)comp.size() > maxArea) continue;
+      for (const TPoint &c : comp) {
+        if (saver) saver->save(TRect(c.x, c.y, c.x, c.y));
+        *(ras->pixels(c.y) + c.x) = TPixelCM32(ink, 0, 0);
+      }
+    }
+}

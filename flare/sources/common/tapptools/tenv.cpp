@@ -949,3 +949,5 @@ void PointListVar::operator=(const QList<TPointD> &v) {
 }
 
 //=========================================================
+
+void TEnv::saveAllEnvVariables() { VariableSet::instance()->save(); }
