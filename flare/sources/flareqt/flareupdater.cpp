@@ -451,6 +451,25 @@ bool FlareUpdater::applyUpdate(const QString& archivePath, QString* error) {
   const QString exe = QCoreApplication::applicationFilePath();
 
 #ifdef Q_OS_WIN
+  // An installer (Setup.exe / .msi) is run, not swapped over the running exe.
+  {
+    const QString n = QFileInfo(archivePath).fileName().toLower();
+    if (n.contains(QStringLiteral("setup")) ||
+        n.contains(QStringLiteral("install")) ||
+        n.endsWith(QStringLiteral(".msi"))) {
+      const bool ok =
+          n.endsWith(QStringLiteral(".msi"))
+              ? QProcess::startDetached(
+                    QStringLiteral("msiexec"),
+                    QStringList{QStringLiteral("/i"),
+                                QDir::toNativeSeparators(archivePath)})
+              : QProcess::startDetached(QDir::toNativeSeparators(archivePath),
+                                        QStringList());
+      if (!ok) return fail(QStringLiteral("could not launch the installer"));
+      QCoreApplication::quit();
+      return true;
+    }
+  }
   // Cannot overwrite a running executable, so hand the replacement to a helper
   // that waits for this process to exit. Started detached and hidden so no
   // console flashes on the user's desktop.
@@ -492,15 +511,22 @@ bool FlareUpdater::applyUpdate(const QString& archivePath, QString* error) {
 
 #else
   // A self-contained AppImage can simply be replaced in place.
-  const QString backup = exe + QStringLiteral(".old");
+  // Inside an AppImage applicationFilePath() is the mounted copy; replace the
+  // AppImage file itself.
+  const QString appImage = QString::fromLocal8Bit(qgetenv("APPIMAGE"));
+  const QString target   = appImage.isEmpty() ? exe : appImage;
+  QFile::setPermissions(archivePath,
+                        QFile::permissions(archivePath) | QFile::ExeOwner |
+                            QFile::ExeGroup | QFile::ExeOther);
+  const QString backup = target + QStringLiteral(".old");
   QFile::remove(backup);
-  if (!QFile::rename(exe, backup))
+  if (!QFile::rename(target, backup))
     return fail(QStringLiteral("could not move the running application aside"));
-  if (!QFile::rename(archivePath, exe)) {
-    QFile::rename(backup, exe);  // put it back rather than leave nothing
+  if (!QFile::rename(archivePath, target)) {
+    QFile::rename(backup, target);  // put it back rather than leave nothing
     return fail(QStringLiteral("could not install the update"));
   }
-  QProcess::startDetached(exe, QStringList());
+  QProcess::startDetached(target, QStringList());
   QCoreApplication::quit();
   return true;
 #endif
