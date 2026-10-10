@@ -19,9 +19,14 @@ int32_t flare_xfl_layer_count(const uint8_t *data, size_t len, uint32_t *frames)
 /* Moho .moho/.mohoproj -> normalised JSON (layers, bones, tracks); NULL on error. Free with flare_moho_free. */
 char *flare_moho_parse(const uint8_t *data, size_t len);
 void flare_moho_free(char *p);
+<<<<<<< HEAD
 /* XFL dir -> per-frame SVGs + frames.tsv (layer,name,row,file) in out_dir. Returns log
    ("ok N\n..." or "error ..."); NULL on bad args. Free with flare_moho_free. */
 char *flare_xfl_export_svg(const char *xfl_dir_utf8, const char *out_dir_utf8);
+=======
+/* Flash-style symbol library (TSV: kind\tfolder\tname\tlevel; kind mc|gr|btn|dir). Adds line, writes normalized TSV to out; returns full len. */
+size_t flare_symlib_add(const uint8_t *lib, size_t lib_len, const uint8_t *line, size_t line_len, uint8_t *out, size_t cap);
+>>>>>>> worktree-wf_053c23a8-1be-15
 #ifdef __cplusplus
 }
 #endif

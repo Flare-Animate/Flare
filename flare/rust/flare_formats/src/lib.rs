@@ -17,6 +17,15 @@ pub unsafe extern "C" fn flare_fcp_parse(data: *const u8, len: usize) -> *mut st
 #[no_mangle]
 pub unsafe extern "C" fn flare_fcp_free(p: *mut std::os::raw::c_char) { flare_moho_free(p) }
 pub mod xflrender;
+pub mod symlib;
+
+/// Symbol library: add TSV `line` to TSV `lib`, write normalized TSV into `out` (up to `cap`). Returns full length.
+#[no_mangle]
+pub unsafe extern "C" fn flare_symlib_add(lib: *const u8, lib_len: usize, line: *const u8, line_len: usize, out: *mut u8, cap: usize) -> usize {
+    let s = symlib::add(&String::from_utf8_lossy(bytes(lib, lib_len)), &String::from_utf8_lossy(bytes(line, line_len)));
+    if !out.is_null() { std::ptr::copy_nonoverlapping(s.as_ptr(), out, s.len().min(cap)); }
+    s.len()
+}
 
 /// Count of SWF tags (incl. End); -1 if not uncompressed SWF.
 #[no_mangle]
