@@ -3,30 +3,10 @@
 #ifndef INSERTFXPOPUP_H
 #define INSERTFXPOPUP_H
 
-#ifdef _MSC_VER
-#pragma warning(disable : 4251)
-#endif
-
 #include <QTreeWidget>
-// Union of both sides: the incoming side added includes without replacing any.
 #include "flareqt/dvdialog.h"
-#include <QFrame>
-#include <QPoint>
-
-#include "tcommon.h"
-#include "flare/tapplication.h"
 #include "tfilepath.h"
 #include "tstream.h"
-
-#undef DVAPI
-#undef DVVAR
-#ifdef TOONZQT_EXPORTS
-#define DVAPI DV_EXPORT_API
-#define DVVAR DV_EXPORT_VAR
-#else
-#define DVAPI DV_IMPORT_API
-#define DVVAR DV_IMPORT_VAR
-#endif
 
 // forward declaration
 class QTreeWidget;
@@ -42,32 +22,19 @@ class TFx;
 class FxTree final : public QTreeWidget {
   Q_OBJECT
 
-  QPoint m_dragStartPos;
-  bool m_maybeDragging = false;
-
 public:
-  FxTree(QWidget *parent = nullptr) : QTreeWidget(parent) {}
-
   void searchItems(const QString &searchWord = QString());
 
 private:
   void displayAll(QTreeWidgetItem *item);
   void hideAll(QTreeWidgetItem *item);
-
-  //! Build an Fx for the item under the cursor and start a drag carrying it.
-  void startFxDrag(QTreeWidgetItem *item);
-
-protected:
-  void mousePressEvent(QMouseEvent *) override;
-  void mouseMoveEvent(QMouseEvent *) override;
-  void mouseReleaseEvent(QMouseEvent *) override;
 };
 
 //=============================================================================
 // InsertFxPopup
 //-----------------------------------------------------------------------------
 
-class DVAPI InsertFxPopup final : public QFrame {
+class InsertFxPopup final : public DVGui::Dialog {
   Q_OBJECT
 
   FxTree *m_fxTree;
@@ -79,19 +46,12 @@ class DVAPI InsertFxPopup final : public QFrame {
   QIcon m_presetIcon;
   QIcon m_fxIcon;
 
-  TApplication *m_app;
-  QString m_searchText;
-
 public:
-  InsertFxPopup(QWidget *parent       = nullptr,
-                Qt::WindowFlags flags = Qt::WindowFlags());
-  ~InsertFxPopup();
-
-  void setApplication(TApplication *app);
-
-  TFx *createFx();
+  InsertFxPopup();
 
 private:
+  TFx *createFx();
+
   void makeItem(QTreeWidgetItem *parent, std::string fxid);
 
   void loadFolder(QTreeWidgetItem *parent);
@@ -109,6 +69,7 @@ public slots:
 
 protected:
   void showEvent(QShowEvent *) override;
+  void hideEvent(QHideEvent *) override;
   void contextMenuEvent(QContextMenuEvent *) override;
 
 protected slots:
