@@ -92,6 +92,10 @@ def main():
                     help="skip the CMake configure and build")
     ap.add_argument("--filter", default="",
                     help="only run tests whose name contains this")
+    ap.add_argument("--no-local-src", action="store_true",
+                    help="link the tests against the built tnzcore instead of "
+                         "compiling common/flash into them; catches export/ABI "
+                         "mistakes that FLASH_LOCAL_SRC hides")
     args = ap.parse_args()
 
     flare_build = os.path.abspath(args.flare_build)
@@ -118,10 +122,22 @@ def main():
         # -S is required: without it CMake configures whatever source directory
         # the caller's cwd happens to be, which is the repo root -- and the root
         # CMakeLists.txt configures the whole application rather than the tests.
+        #
+        # FLASH_LOCAL_SRC defaults ON here even though CMakeLists.txt keeps it OFF by
+        # default. The tests link TNZCORE_LIB, which is whatever tnzcore.dll happens to
+        # be lying in the build tree -- frequently a prebuilt DLL that predates the
+        # Flash reader. That surfaced as LNK1120 "unresolved external
+        # __imp_?extractSwfShapes@FlashAssets" in swfshape_extract_tests and
+        # swfshape_real_tests: the tests were right and the DLL was stale, so the
+        # suite reported a build failure for a defect that was not in the source.
+        # Compiling common/flash into the test executables makes them depend only on
+        # the checked-out source. Pass --no-local-src to test against the built DLL,
+        # which is the arrangement that catches export/ABI mistakes.
+        extra = [] if args.no_local_src else ["-DFLASH_LOCAL_SRC=ON"]
         r = run(["cmake", "-S", HERE, "-B", build,
                  "-DCMAKE_BUILD_TYPE=RelWithDebInfo",
                  f"-DBUILD={flare_build}",
-                 f"-DFLASH_ROOT={REPO}"])
+                 f"-DFLASH_ROOT={REPO}"] + extra)
         if r.returncode:
             die("cmake configure failed:\n" + r.stdout + r.stderr)
         r = run(["cmake", "--build", build, "--config", "RelWithDebInfo", "-j", "8"])
@@ -142,7 +158,29 @@ def main():
                 # ...) transitively. Without these on PATH a test that links
                 # flareqt dies at load time with 0xC0000135 and no output.
                 os.path.join(REPO, "vcpkg", "installed", "x64-windows", "bin")]
+    # QT_BIN unset was reported as "the C++ tests link Qt5Core, which is not beside
+    # the test binary, so without it the process fails to start at all". Rather than
+    # only honouring the env var, derive it: a Qt bin dir is any directory containing
+    # Qt5Core.dll, searched along the usual install roots. This makes the suite
+    # self-configuring on a machine where Qt is installed but not exported, which is
+    # the common case on Windows.
     qt_bin = env.get("QT_BIN", "")
+    if not qt_bin:
+        candidates = []
+        if sys.platform == "win32":
+            qroot = os.environ.get("QTDIR", r"C:\Qt")
+            candidates.append(os.path.join(qroot, "5.15.2", "msvc2019_64", "bin"))
+            candidates.append(os.path.join(qroot, "5.15.2", "mingw73_64", "bin"))
+            candidates.append(os.path.join(qroot, "5.15.2", "msvc2019", "bin"))
+        else:
+            candidates += ["/usr/lib/x86_64-linux-gnu", "/usr/lib64", "/usr/lib"]
+        for c in candidates:
+            if os.path.isfile(os.path.join(c, "Qt5Core.dll")) or \
+               os.path.isfile(os.path.join(c, "libQt5Core.so.5")):
+                qt_bin = c
+                break
+        if qt_bin:
+            env["QT_BIN"] = qt_bin
     if qt_bin:
         dll_dirs.append(qt_bin)
         env["QT_PLUGIN_PATH"] = os.path.join(qt_bin, "..", "plugins")

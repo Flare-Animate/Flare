@@ -1201,6 +1201,7 @@ add_subdirectory(stdfx)
 add_subdirectory(sound)
 add_subdirectory(colorfx)
 add_subdirectory(image)
+add_subdirectory(tgame)
 add_subdirectory(flareqt)
 add_subdirectory(tnztools)
 

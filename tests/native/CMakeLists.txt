@@ -238,6 +238,18 @@ target_link_libraries(swfshape_tests PRIVATE
 add_executable(swfshape_real_tests
     swfshape_real_tests.cpp
 )
+# Both extractSwfShapes callers failed to link with LNK1120 when TNZCORE_LIB was a
+# prebuilt DLL predating FlashAssets::extractSwfShapes -- the same staleness that
+# FLASH_LOCAL_SRC already works around for swfshape_tests. Compiling the checked-out
+# reader in gives them the same escape hatch, so the two shape-extraction tests can
+# be run against the source without first rebuilding tnzcore.
+if(FLASH_LOCAL_SRC)
+  target_compile_definitions(swfshape_real_tests PRIVATE TFLASH_EXPORTS)
+  target_link_options(swfshape_real_tests PRIVATE /FORCE:MULTIPLE)
+  target_sources(swfshape_real_tests PRIVATE
+      "${FLASH_ROOT}/flare/sources/common/flash/SWFAssets.cpp"
+      "${FLASH_ROOT}/flare/sources/common/flash/SWFShape.cpp")
+endif()
 target_include_directories(swfshape_real_tests PRIVATE
     "${FLASH_ROOT}/flare/sources/common/flash"
     "${FLASH_ROOT}/flare/sources/include"
@@ -256,6 +268,15 @@ target_link_libraries(swfshape_real_tests PRIVATE
 add_executable(swfshape_extract_tests
     swfshape_extract_tests.cpp
 )
+# See the note on swfshape_real_tests: this target hit the same LNK1120 against a
+# stale prebuilt tnzcore.
+if(FLASH_LOCAL_SRC)
+  target_compile_definitions(swfshape_extract_tests PRIVATE TFLASH_EXPORTS)
+  target_link_options(swfshape_extract_tests PRIVATE /FORCE:MULTIPLE)
+  target_sources(swfshape_extract_tests PRIVATE
+      "${FLASH_ROOT}/flare/sources/common/flash/SWFAssets.cpp"
+      "${FLASH_ROOT}/flare/sources/common/flash/SWFShape.cpp")
+endif()
 target_include_directories(swfshape_extract_tests PRIVATE
     "${FLASH_ROOT}/flare/sources/common/flash"
     "${FLASH_ROOT}/flare/sources/include"
@@ -309,9 +330,43 @@ target_link_libraries(moho_reader_tests PRIVATE
 )
 
 # FlareUpdater's decision logic, driven against the shipped flareqt DLL.
+# Qt5::Network is genuinely required when FlareUpdater is compiled in rather than
+# imported: checkForRelease issues a real HTTPS request, which needs QNetworkAccessManager.
+# With the prebuilt flareqt.lib the symbol arrived transitively; compiled locally it does
+# not, and the net test would link but fail at run time on an unresolved entry point.
+if(FLAREUPDATER_LOCAL_SRC)
+    find_package(Qt5 COMPONENTS Network QUIET)
+    if(TARGET Qt5::Network)
+        target_link_libraries(flareupdater_tests PRIVATE Qt5::Network)
+        target_link_libraries(flareupdater_net_tests PRIVATE Qt5::Network)
+    endif()
+endif()
+
+# flareqt.lib is frequently a prebuilt DLL that predates FlareUpdater entirely:
+# the two dates differed by five days, and no flareupdater*.obj existed in its build
+# output, so both updater tests died with LNK1120 naming five and nine unresolved
+# __imp_?FlareUpdater:: symbols. The source was present and correct; the import
+# library was simply stale. Compiling flareupdater.cpp in gives the tests the same
+# escape hatch FLASH_LOCAL_SRC gives the Flash readers, so they depend only on the
+# checked-out source. --no-local-src still exercises the real export/ABI path.
+set(FLAREUPDATER_LOCAL_SRC ON CACHE BOOL
+    "compile flareupdater.cpp into the updater tests")
+# AUTOMOC rather than a hand-listed .moc: flareupdater.h is Q_OBJECT and lives in
+# flare/sources/include, so the generated file lands in the target's autogen directory
+# and is compiled automatically. Listing a .moc source here would fail configure,
+# since no such file exists until CMake generates it.
+function(_flareupdater_local src)
+    target_sources(${src} PRIVATE
+        "${FLASH_ROOT}/flare/sources/flareqt/flareupdater.cpp")
+    set_target_properties(${src} PROPERTIES AUTOMOC ON)
+endfunction()
+
 add_executable(flareupdater_tests
     flareupdater_tests.cpp
 )
+if(FLAREUPDATER_LOCAL_SRC)
+    _flareupdater_local(flareupdater_tests)
+endif()
 target_include_directories(flareupdater_tests PRIVATE
     "${FLASH_ROOT}/flare/sources/include"
 )
@@ -326,6 +381,9 @@ target_link_libraries(flareupdater_tests PRIVATE
 add_executable(flareupdater_net_tests
     flareupdater_net_tests.cpp
 )
+if(FLAREUPDATER_LOCAL_SRC)
+    _flareupdater_local(flareupdater_net_tests)
+endif()
 target_include_directories(flareupdater_net_tests PRIVATE
     "${FLASH_ROOT}/flare/sources/include"
 )
