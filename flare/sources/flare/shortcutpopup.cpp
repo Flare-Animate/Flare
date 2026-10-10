@@ -757,6 +757,8 @@ void ShortcutPopup::buildPresets() {
   m_presetChoiceCB->addItem("Toon Boom Harmony", QString("otharmony"));
   m_presetChoiceCB->addItem("Animate", QString("otanimate"));
   m_presetChoiceCB->addItem("Animate (Legacy)", QString("otadobe"));
+  m_presetChoiceCB->addItem("Flash CS6", QString("otflash"));
+  m_presetChoiceCB->addItem("FlipaClip", QString("otflipaclip"));
 
   TFilePath presetDir =
       FlareFolder::getMyModuleDir() + TFilePath("shortcutpresets");
