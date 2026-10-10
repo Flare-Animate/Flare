@@ -1,6 +1,10 @@
 
 
-#include "flareqt/insertfxpopup.h"
+#include "insertfxpopup.h"
+
+// Tnz6 includes
+#include "menubarcommandids.h"
+#include "tapp.h"
 
 // TnzQt includes
 // Union of both sides: the incoming side added includes without replacing any.
