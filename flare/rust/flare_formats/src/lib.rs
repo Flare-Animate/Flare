@@ -18,6 +18,21 @@ pub unsafe extern "C" fn flare_fcp_parse(data: *const u8, len: usize) -> *mut st
 pub unsafe extern "C" fn flare_fcp_free(p: *mut std::os::raw::c_char) { flare_moho_free(p) }
 pub mod xflrender;
 pub mod symlib;
+pub mod tfilepath;
+
+/// TFilePath query (see header). Returns full byte length; copies up to `cap` into `out`.
+#[no_mangle]
+pub unsafe extern "C" fn flare_tfilepath_query(path: *const std::os::raw::c_char, kind: i32, out: *mut u8, cap: usize) -> usize {
+    if path.is_null() { return 0; }
+    let p = std::ffi::CStr::from_ptr(path).to_string_lossy();
+    let s = match kind {
+        0 => tfilepath::get_type(&p), 1 => tfilepath::get_name(&p), 2 => tfilepath::get_level_name(&p),
+        3 => tfilepath::get_parent_dir(&p), 4 => tfilepath::get_dots(&p), 5 => tfilepath::get_frame(&p).to_string(),
+        _ => return 0,
+    };
+    if !out.is_null() { std::ptr::copy_nonoverlapping(s.as_ptr(), out, s.len().min(cap)); }
+    s.len()
+}
 
 /// Symbol library: add TSV `line` to TSV `lib`, write normalized TSV into `out` (up to `cap`). Returns full length.
 #[no_mangle]
