@@ -27,6 +27,14 @@ find_library(
     NO_DEFAULT_PATH
 )
 
+# fall back to system libtiff (bundled 4.0.3 no longer built on Linux/macOS)
+if(NOT TIFF_LIBRARY)
+    find_library(TIFF_LIBRARY NAMES tiff libtiff)
+endif()
+if(NOT TIFF_INCLUDE_DIR)
+    find_path(TIFF_INCLUDE_DIR NAMES tiffio.h)
+endif()
+
 message("***** libtiff Header path:" ${TIFF_INCLUDE_DIR})
 message("***** libtiff Library path:" ${TIFF_LIBRARY})
 
