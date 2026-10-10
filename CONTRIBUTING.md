@@ -9,6 +9,16 @@ This document describes some points about the contribution process for Flare.
 - [Features](#features)
 - [Translations](#translations)
 
+## New here? Start with a labelled issue
+
+- `good first issue`: small, scoped fixes. Good first PR.
+- `beginner friendly`: easy tasks, often no coding (text, docs, translations).
+- `translation`: help translate Flare.
+- `help wanted`: maintainers want help here.
+- `priority`: important, take these first.
+
+Not a programmer? Translation, docs and bug reports all count. Comment on an issue before starting so work is not duplicated.
+
 ## Pull-requests
 
 The Flare organization loves any kind of contributions, such as fixing typos and code refactoring.
