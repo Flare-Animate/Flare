@@ -19,6 +19,9 @@ int32_t flare_xfl_layer_count(const uint8_t *data, size_t len, uint32_t *frames)
 /* Moho .moho/.mohoproj -> normalised JSON (layers, bones, tracks); NULL on error. Free with flare_moho_free. */
 char *flare_moho_parse(const uint8_t *data, size_t len);
 void flare_moho_free(char *p);
+/* XFL dir -> per-frame SVGs + frames.tsv (layer,name,row,file) in out_dir. Returns log
+   ("ok N\n..." or "error ..."); NULL on bad args. Free with flare_moho_free. */
+char *flare_xfl_export_svg(const char *xfl_dir_utf8, const char *out_dir_utf8);
 #ifdef __cplusplus
 }
 #endif
