@@ -212,11 +212,15 @@ static QString describeUnconverted(const XFL::ContentCensus &c) {
 //   OCA import (ocaio.cpp) — xsheet insertion pattern
 // ---------------------------------------------------------------------------
 static QString g_xflLog;  // last XFL import log, shown in the result dialog
-static void importXFLScene(ToonzScene *scene, TXsheet *xsheet,
-                            const XFL::Document &doc,
-                            const TFilePath &xflBaseDir, const QString &outPath) {
-    if (doc.timelines.empty()) return;
 
+// Append to %TEMP%/flare_import.log (persistent across imports).
+static void appendImportLog(const QString &text) {
+    QFile f(QDir::tempPath() + "/flare_import.log");
+    if (f.open(QIODevice::Append | QIODevice::Text))
+        f.write((QDateTime::currentDateTime().toString(Qt::ISODate) + "\n" + text + "\n\n").toUtf8());
+}
+
+static void importXflSvg(TXsheet *xsheet, const TFilePath &xflBaseDir, const QString &outPath) {
     // Vector art (DOMShape + nested symbols) -> per-frame SVG via Rust flare_formats.
     // Without this, CS6 FLA/XFL files (art lives in LIBRARY symbols) import blank.
     {
@@ -261,6 +265,13 @@ static void importXFLScene(ToonzScene *scene, TXsheet *xsheet,
         xsheet->updateFrameCount();
         TApp::instance()->getCurrentXsheet()->notifyXsheetChanged();
     }
+}
+
+static void importXFLScene(ToonzScene *scene, TXsheet *xsheet,
+                            const XFL::Document &doc,
+                            const TFilePath &xflBaseDir, const QString &outPath) {
+    importXflSvg(xsheet, xflBaseDir, outPath);
+    if (doc.timelines.empty()) return;
 
     // Build libraryItemName → absolute file path
     QMap<QString, TFilePath> bitmapPaths;
@@ -532,7 +543,7 @@ void ImportFlashVectorCommand::execute() {
                 } else {
                     QString err = QString::fromStdString(r2.getError());
                     info = QObject::tr("Failed to parse XFL metadata: %1").arg(err);
-                    DVGui::warning(info);
+                    importXflSvg(TApp::instance()->getCurrentXsheet()->getXsheet(), extractedXfl, outPath);
                 }
             }
             // Extract binary media from FLA's bin/ directory (.dat → PNG/JPG)
@@ -922,6 +933,7 @@ void ImportFlashVectorCommand::execute() {
             QString full = outPath + "/" + rel;
             QString e    = QFileInfo(full).suffix().toLower();
             // Only load image formats that Flare supports as levels
+            if (rel.startsWith("xfl_svg/")) continue;  // already placed in xsheet
             if (e == "png" || e == "jpg" || e == "jpeg" || e == "svg") {
                 args.resourceDatas.push_back(
                     IoCmd::LoadResourceArguments::ResourceData(TFilePath(full.toStdWString())));
@@ -934,6 +946,7 @@ void ImportFlashVectorCommand::execute() {
 
     QString msg = QObject::tr("Flash import complete.\n");
     if (!info.isEmpty()) msg += info + "\n";
+    appendImportLog(srcPath + "\n" + info + "\n" + g_xflLog);
     if (!g_xflLog.isEmpty()) {
         // Import log: what was parsed / skipped and why (full text in flare_import_log.txt).
         QStringList ll = g_xflLog.split('\n');

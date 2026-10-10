@@ -29,6 +29,8 @@ size_t flare_tfilepath_query(const char *path_utf8, int32_t kind, char *out, siz
 /* TEnv::getSystemVarPathSetValue split (tenv.cpp). Entries joined by '
 '; returns full len, copies up to cap. */
 size_t flare_tenv_path_set(const char *value_utf8, char *out, size_t cap);
+/* Frame count of SWF / zip FLA / XFL folder or DOMDocument.xml (UTF-8 path); -1 if unknown. */
+int32_t flare_flash_frame_count(const char *path_utf8);
 #ifdef __cplusplus
 }
 #endif

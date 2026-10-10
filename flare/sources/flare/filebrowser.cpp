@@ -1,6 +1,7 @@
 
 
 #include "filebrowser.h"
+#include "flare_formats.h"
 
 // Tnz6 includes
 #include "dvdirtreeview.h"
@@ -842,6 +843,12 @@ void FileBrowser::readInfo(Item &item) {
         item.m_frameCount = scene.loadFrameCount(fp);
       } catch (...) {
       }
+    } else if (fp.getType() == "fla" || fp.getType() == "xfl" ||
+               fp.getType() == "swf") {
+      // Rust flare_formats: SWF header / FLA zip / XFL DOMDocument timeline.
+      item.m_frameCount =
+          std::max(0, (int)flare_flash_frame_count(
+                          info.absoluteFilePath().toUtf8().constData()));
     } else
       readFrameCount(item);
 

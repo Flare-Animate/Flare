@@ -17,6 +17,15 @@ pub unsafe extern "C" fn flare_fcp_parse(data: *const u8, len: usize) -> *mut st
 #[no_mangle]
 pub unsafe extern "C" fn flare_fcp_free(p: *mut std::os::raw::c_char) { flare_moho_free(p) }
 pub mod xflrender;
+pub mod framecount;
+
+/// Frame count of a SWF / FLA / XFL file or folder; -1 if unknown.
+#[no_mangle]
+pub unsafe extern "C" fn flare_flash_frame_count(path: *const std::os::raw::c_char) -> i32 {
+    if path.is_null() { return -1; }
+    let p = std::ffi::CStr::from_ptr(path).to_string_lossy().into_owned();
+    framecount::frame_count(std::path::Path::new(&p)).map_or(-1, |n| n as i32)
+}
 pub mod symlib;
 pub mod tfilepath;
 pub mod tenv;
