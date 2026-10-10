@@ -8,6 +8,7 @@ This document describes some points about the contribution process for Flare.
 - [Bugs](#bugs)
 - [Features](#features)
 - [Translations](#translations)
+- [Beginner-friendly tasks](#beginner-friendly-tasks)
 
 ## Pull-requests
 
@@ -57,6 +58,18 @@ If you cannot implement the feature, please open a topic on the [Google Group Pa
 It enables us to discuss implementations of the feature there.
 Feature requests posted on GitHub without an active developer or funding will be closed 
 to keep the issue tracker from becoming cluttered with unfulfilled feature requests.
+
+## Beginner-friendly tasks
+
+New to contributing? Start with issues labeled:
+
+- `beginner friendly`: small, self-contained tasks that need little prior knowledge. Use the "Beginner task" issue template to propose one.
+- `good first issue`: real, important problems with a clear scope, good entry points for new contributors.
+- `translation`: translating the Flare UI or docs (see [Translations](#translations)).
+- `help wanted`: maintainers would welcome help here.
+- `priority`: important issues to take first.
+
+Comment on an issue before starting so work is not duplicated, then open a pull request as described in [Pull-requests](#pull-requests).
 
 ## Translations
 
