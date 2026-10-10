@@ -83,6 +83,7 @@
 #include <boost/iterator/counting_iterator.hpp>
 #include <boost/range/adaptor/filtered.hpp>
 #include <boost/range/adaptor/transformed.hpp>
+#include "flare_formats.h"
 
 namespace ba = boost::adaptors;
 
@@ -842,6 +843,11 @@ void FileBrowser::readInfo(Item &item) {
         item.m_frameCount = scene.loadFrameCount(fp);
       } catch (...) {
       }
+    } else if (fp.getType() == "fla" || fp.getType() == "xfl" ||
+               fp.getType() == "swf") {
+      // Flash files: frame count via Rust flare_formats (zip FLA / XFL / SWF).
+      item.m_frameCount = std::max(
+          0, flare_file_frame_count(fp.getQString().toUtf8().constData()));
     } else
       readFrameCount(item);
 

@@ -3,6 +3,22 @@ use std::slice;
 pub mod swf;
 pub mod xfl;
 pub mod moho;
+pub mod frames;
+
+/// Frame count for .fla/.xfl/.swf path (UTF-8); -1 unknown.
+#[no_mangle]
+pub unsafe extern "C" fn flare_file_frame_count(path: *const std::os::raw::c_char) -> i32 {
+    if path.is_null() { return -1; }
+    frames::file_frames(std::path::Path::new(&*std::ffi::CStr::from_ptr(path).to_string_lossy()))
+}
+
+/// CFBF (legacy FLA) streams as "name\tsize\n" lines; NULL if not CFBF. Free with flare_moho_free.
+#[no_mangle]
+pub unsafe extern "C" fn flare_cfbf_streams(data: *const u8, len: usize) -> *mut std::os::raw::c_char {
+    let Some(v) = frames::cfbf_streams(bytes(data, len)) else { return std::ptr::null_mut() };
+    let s: String = v.iter().map(|(n, z)| format!("{}\t{}\n", n.replace('\0', ""), z)).collect();
+    std::ffi::CString::new(s).map_or(std::ptr::null_mut(), |c| c.into_raw())
+}
 pub mod fcp;
 
 /// Parse FlipaClip .fcp; JSON (free with flare_fcp_free) or NULL.

@@ -403,6 +403,14 @@ void ImportFlashVectorCommand::execute() {
             QByteArray flaData = flaFile.readAll();
             flaFile.close();
             bitmaps = FlashAssets::extractLegacyFlaBitmaps(flaData, outPath);
+            // CFBF directory via Rust: lists pages/symbols/media streams for the log.
+            char *st = flare_cfbf_streams(
+                reinterpret_cast<const uint8_t *>(flaData.constData()), flaData.size());
+            g_xflLog = st ? QStringLiteral("legacy FLA streams (name\tsize):\n") + QString::fromUtf8(st)
+                          : QStringLiteral("error: CFBF directory unreadable\n");
+            flare_moho_free(st);
+            QFile lf(outPath + "/flare_import_log.txt");
+            if (lf.open(QIODevice::WriteOnly | QIODevice::Text)) lf.write(g_xflLog.toUtf8());
         }
         exported += bitmaps;
         info = QObject::tr(
