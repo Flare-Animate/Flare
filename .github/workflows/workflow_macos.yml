@@ -141,7 +141,7 @@ jobs:
 
       - name: Install libzip for unzip.h (macOS)
         run: |
-          brew install libzip || true
+          brew install libzip libtiff || true
 
       - name: Build libtiff
         run: |
