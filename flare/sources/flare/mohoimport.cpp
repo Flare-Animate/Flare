@@ -35,6 +35,13 @@
 #include "tsystem.h"
 
 #include <QMessageBox>
+#include <QFile>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonArray>
+#ifdef FLARE_WITH_RUST
+#include "flare_formats.h"
+#endif
 
 namespace {
 
@@ -107,6 +114,31 @@ QString describe(const Moho::Document &doc) {
              "effects are not solved; vector geometry arrives as empty named "
              "vector levels to redraw or trace.");
     return s;
+}
+
+// Rust backend (flare_formats) cross-check: layers, bones, keyframe tracks and
+// interpolation parsed independently of the C++ reader. Empty without Rust.
+QString rustSummary(const TFilePath &fp) {
+#ifdef FLARE_WITH_RUST
+    QFile f(fp.getQString());
+    if (!f.open(QIODevice::ReadOnly)) return QString();
+    const QByteArray data = f.readAll();
+    char *js = flare_moho_parse(reinterpret_cast<const uint8_t *>(data.constData()),
+                                (size_t)data.size());
+    if (!js) return QString();
+    const QJsonObject o = QJsonDocument::fromJson(QByteArray(js)).object();
+    flare_moho_free(js);
+    return QObject::tr("
+  Rust parser: %1 layer(s), %2 bone(s), %3 track(s), "
+                       "%4 keyframe(s) with interpolation")
+        .arg(o["layers"].toArray().size())
+        .arg(o["bones"].toArray().size())
+        .arg(o["tracks"].toArray().size())
+        .arg(o["keyframe_count"].toInt());
+#else
+    Q_UNUSED(fp);
+    return QString();
+#endif
 }
 
 // Build the plan into the current scene. Returns the number of columns made.
@@ -211,7 +243,8 @@ void ImportMohoProjectCommand::execute() {
     QMessageBox *box =
         new QMessageBox(written > 0 ? QMessageBox::Information
                                     : QMessageBox::Warning,
-                        QObject::tr("Moho Project"), describe(doc));
+                        QObject::tr("Moho Project"),
+                        describe(doc) + rustSummary(fp));
     if (written > 0) {
         box->setInformativeText(
             QObject::tr("Created %1 column(s), %2 pegbar(s).\nWrote %3 file(s) to:\n%4")
