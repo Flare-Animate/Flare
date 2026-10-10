@@ -146,6 +146,26 @@ def main():
         print("   built the test binaries\n")
 
     exe_dir = os.path.join(os.path.abspath(args.build_dir), "RelWithDebInfo")
+
+    # A tnzcore.dll left beside the test executables shadows the one on PATH: Windows
+    # resolves imports from the exe's own directory first. A stale copy died at load
+    # time with STATUS_ENTRYPOINT_NOT_FOUND (0xC0000139) and no output, on exactly the
+    # tests importing symbols the older DLL lacks (XFL::decodeXflNumber,
+    # As3Bridge::isAvailable, FlareZip::extract), which reads as a code fault and is
+    # not one -- both pass against the current DLL. CMake now stages the fresh copy
+    # (stage_tnzcore_runtime); this catches the case where it was not rebuilt, e.g.
+    # --no-build, by deleting any copy older than the one being put on PATH.
+    _staged = os.path.join(exe_dir, "tnzcore.dll")
+    _current = os.path.join(os.path.abspath(flare_build), "RelWithDebInfo",
+                            "tnzcore.dll")
+    if os.path.isfile(_staged) and os.path.isfile(_current):
+        if os.path.getmtime(_staged) < os.path.getmtime(_current):
+            try:
+                os.remove(_staged)
+                print("   removed a stale tnzcore.dll beside the tests\n")
+            except OSError:
+                pass
+
     # Qt's plugins must be reachable or bitmap decoding silently yields nothing.
     # These binaries link tnzcore.dll, Qt5Core.dll and (transitively) OpenGL,
     # zlib and the Freeglut/LZ4/JPEG builds -- none of which sit beside the test

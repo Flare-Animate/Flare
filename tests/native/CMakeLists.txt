@@ -60,6 +60,35 @@ if(NOT TNZCORE_LIB)
 endif()
 message(STATUS "native tests: using tnzcore from ${TNZCORE_LIB_DIR}")
 
+# Keep the runtime DLL beside the test executables in step with the import library.
+#
+# Windows resolves imports from the executable's own directory before PATH, so a
+# tnzcore.dll left in the output directory from an earlier run shadows the one
+# run_tests.py puts on PATH. That produced STATUS_ENTRYPOINT_NOT_FOUND (0xC0000139)
+# before main(), with no output, on exactly the tests that import symbols the
+# older DLL lacks -- XFL::decodeXflNumber, XFL::toSvgDocument, As3Bridge::isAvailable,
+# FlareZip::extract. It looks like a code fault and is not one: both binaries pass
+# when run against the current DLL.
+#
+# The copy is stamped from the import library, so it re-runs whenever tnzcore.lib
+# is newer than the staged DLL, and costs nothing on an incremental build.
+if(BUILD_ENV_MSVC)
+    # Multi-config generators put every target in <build>/<config>, and run_tests.py
+    # looks for exactly that. Naming it directly avoids a target dependency cycle:
+    # the staging target would otherwise have to depend on a test target in order to
+    # use its generator expression, while a test target depends on the staging target.
+    set(_tnzcore_dll "${TNZCORE_LIB_DIR}/tnzcore.dll")
+    set(_stage_dest "${CMAKE_BINARY_DIR}/RelWithDebInfo")
+    if(EXISTS "${_tnzcore_dll}")
+        add_custom_target(stage_tnzcore_runtime ALL
+            COMMAND ${CMAKE_COMMAND} -E make_directory "${_stage_dest}"
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                    "${_tnzcore_dll}" "${_stage_dest}"
+            COMMENT "staging tnzcore.dll beside the native tests"
+            VERBATIM)
+    endif()
+endif()
+
 # tnzbase sits beside tnzcore in either layout; find it rather than deriving it by
 # walking up from tnzcore, which only works for the nested build_local layout.
 function(_flare_find_sibling_lib OUT_LIB)
