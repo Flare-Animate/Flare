@@ -52,9 +52,9 @@ subscription and no dead runtime.
 | Adobe Animate-style default workspace (OpenToonz and StudioGhibli rooms selectable in **Preferences > Interface > Rooms**) | Available |
 | Vector + raster drawing, xsheet, timeline | Available (inherited) |
 | Plastic/skeleton rigging, FX schematic, motion tracking, script console | Available (inherited) |
-| Flash/Animate import (table below) | Work in progress |
-| Next2Flash SWF round-trip + AS3 decompiler merge | In progress, see [`doc/NEXT2FLASH_INTEGRATION.md`](./doc/NEXT2FLASH_INTEGRATION.md) |
-| Moho project support | In progress, see [`doc/MOHO_SUPPORT.md`](./doc/MOHO_SUPPORT.md) |
+| Flash/Animate import (table below) | Shipped; fidelity improving |
+| Next2Flash SWF round-trip + AS3 decompiler | Shipped as optional sidecar, see [`doc/NEXT2FLASH_INTEGRATION.md`](./doc/NEXT2FLASH_INTEGRATION.md) |
+| Moho project support | Shipped: structure, rig, asset manifest (no rendering), see [`doc/MOHO_SUPPORT.md`](./doc/MOHO_SUPPORT.md) |
 
 ### Supported Flash file types
 
@@ -171,7 +171,6 @@ and it needs a freshly built `tnzcore` and `flareqt`.
 ## Roadmap
 
 Goal: a C++/Rust successor to Flash / Adobe Animate (CS6-era workflow plus later Animate features), built on OpenToonz.
-Status is honest: items marked Planned have no shipped code unless a doc says otherwise.
 
 Status is honest: each row states what is in the tree, not what is intended.
 

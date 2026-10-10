@@ -2,6 +2,13 @@
 
 This document describes some points about the contribution process for Flare.
 
+## Contents
+
+- [Pull-requests](#pull-requests) (incl. [Workflow](#workflow))
+- [Bugs](#bugs)
+- [Features](#features)
+- [Translations](#translations)
+
 ## Pull-requests
 
 The Flare organization loves any kind of contributions, such as fixing typos and code refactoring.
@@ -21,7 +28,7 @@ We will first review the request, then we will accept it, add comments for rewor
        `fix/fatal-bugs`, `feature/new-useful-gui` and so on.
    - fix codes, then test them.
    - `git commit` them with good commit messages.
-0. `pull` the latest changes form the `master` branch of the upstream.
+0. `pull` the latest changes from the `master` branch of the upstream.
    - `git pull upstream master` or `git pull --rebase upstream master`.
    - apply [clang-format](http://clang.llvm.org/docs/ClangFormat.html) with `flare/sources/.clang-format`.
      - `cd flare/sources`
@@ -33,12 +40,14 @@ We will first review the request, then we will accept it, add comments for rewor
 ## Bugs
 
 If you find bugs, please report details about them using [issues](https://github.com/Flare-Animate/Flare/issues).
-Please include information needed to reproduce the bug, including the operating system 
-and information directly relating to the issue. Links to screen captures of what is 
-observed on screen or video of specific steps to produce the problem are very helpful.  
+Please include information needed to reproduce the bug, including the operating system
+and information directly relating to the issue. Links to screen captures of what is
+observed on screen or video of specific steps to produce the problem are very helpful.
+
 Then we will try to reproduce the bugs and fix them.
-Unfortunately, bugs can sometimes only be reproduced in your own environment, 
-so we cannot reproduce them. 
+Unfortunately, bugs can sometimes only be reproduced in your own environment,
+so we cannot reproduce them.
+
 If you believe you can fix the bug, please submit a pull request.
 
 ## Features
