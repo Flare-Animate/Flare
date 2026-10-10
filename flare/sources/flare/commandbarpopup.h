@@ -78,6 +78,10 @@ public:
   explicit CommandBarTree(TFilePath& path, QWidget* parent = nullptr);
 
   void saveMenuTree(TFilePath& path);
+  void importTree(const TFilePath& fp) {
+    clear();
+    loadMenuTree(fp);
+  }
 
 protected:
   bool dropMimeData(QTreeWidgetItem* parent, int index, const QMimeData* data,
@@ -107,6 +111,8 @@ public:
 
 private slots:
   void onOkPressed();
+  void onExport();
+  void onImport();
   void onSearchTextChanged(const QString& text);
 };
 

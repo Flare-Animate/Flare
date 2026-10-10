@@ -28,6 +28,7 @@
 #include <QXmlStreamWriter>
 #include <QDataStream>
 #include <QMimeData>
+#include <QFileDialog>
 #include <QDrag>
 #include <QMouseEvent>
 #include <QPainter>
@@ -592,6 +593,12 @@ CommandBarPopup::CommandBarPopup(bool isXsheetToolbar)
   m_buttonLayout->setContentsMargins(0, 0, 0, 0);
   m_buttonLayout->setSpacing(30);
   {
+    QPushButton* importBtn = new QPushButton(tr("Import Layout..."), this);
+    QPushButton* exportBtn = new QPushButton(tr("Export Layout..."), this);
+    connect(importBtn, &QPushButton::clicked, this, &CommandBarPopup::onImport);
+    connect(exportBtn, &QPushButton::clicked, this, &CommandBarPopup::onExport);
+    m_buttonLayout->addWidget(importBtn, 0);
+    m_buttonLayout->addWidget(exportBtn, 0);
     m_buttonLayout->addStretch(1);
     m_buttonLayout->addWidget(okBtn, 0);
     m_buttonLayout->addWidget(cancelBtn, 0);
@@ -621,3 +628,18 @@ void CommandBarPopup::onSearchTextChanged(const QString& text) {
   busy = false;
 }
 
+
+void CommandBarPopup::onExport() {
+  QString f = QFileDialog::getSaveFileName(this, tr("Export Layout"), QString(),
+                                           tr("Layout XML (*.xml)"));
+  if (f.isEmpty()) return;
+  TFilePath fp(f.toStdWString());
+  m_menuBarTree->saveMenuTree(fp);
+}
+
+void CommandBarPopup::onImport() {
+  QString f = QFileDialog::getOpenFileName(this, tr("Import Layout"), QString(),
+                                           tr("Layout XML (*.xml)"));
+  if (f.isEmpty()) return;
+  m_menuBarTree->importTree(TFilePath(f.toStdWString()));
+}
