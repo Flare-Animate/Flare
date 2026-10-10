@@ -63,3 +63,6 @@ You can generate `.qm` files by using [Qt Linguist](http://doc.qt.io/qt-5.6/ling
 Please locate generated `.qm` files in `stuff/config/loc`.
 It enables the Flare installer to install them into the `stuff` directory.
 
+
+## Submitting a layout
+Add a profile dir under `stuff/profiles/layouts/rooms/` and open a PR. Never name it `Default`. See doc/LAYOUT_CUSTOMIZATION.md.
