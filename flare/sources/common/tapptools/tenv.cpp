@@ -169,8 +169,12 @@ public:
 
   TFilePath getStuffDir() {
     if (m_stuffDir) return *m_stuffDir;
-    if (m_isPortable)
-      return TFilePath(getWorkingDirectory()) + "tahomastuff";
+    if (m_isPortable) {
+      TFilePath p = TFilePath(getWorkingDirectory()) + "portablestuff";
+      return TFileStatus(p).doesExist()
+                 ? p
+                 : TFilePath(getWorkingDirectory()) + "tahomastuff";
+    }
 
     return TFilePath(getSystemVarValue(m_rootVarName));
   }
@@ -251,7 +255,9 @@ public:
     // check if portable
     TFilePath portableCheck = TFilePath(m_workingDirectory) + "tahomastuff";
     TFileStatus portableStatus(portableCheck);
-    m_isPortable = portableStatus.doesExist();
+    m_isPortable = portableStatus.doesExist() ||
+                   TFileStatus(TFilePath(m_workingDirectory) + "portablestuff")
+                       .doesExist();
 
 #ifdef MACOSX
     // macOS 10.12 (Sierra) translocates applications before running them
