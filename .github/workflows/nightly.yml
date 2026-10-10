@@ -396,7 +396,7 @@ jobs:
       - name: Install libraries
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends \
+          sudo apt-get install -y --no-install-recommends libtiff-dev \
             build-essential cmake pkg-config ninja-build ccache xvfb \
             libboost-all-dev qtbase5-dev qt5-qmake qtscript5-dev \
             qttools5-dev qttools5-dev-tools qtmultimedia5-dev qtwayland5 \
@@ -411,14 +411,6 @@ jobs:
         with:
           key: ${{ runner.os }}-gcc-nightly
           max-size: "2G"
-
-      - name: Build libtiff
-        run: |
-          # shellcheck disable=SC2012,SC2016,SC2155,SC2156,SC2046,SC2086,SC2235
-          cd thirdparty/tiff-4.0.3
-          chmod +x configure
-          ./configure --disable-jbig --disable-shared --with-pic
-          make -j2
 
       - name: Build Flare
         run: |
@@ -639,15 +631,6 @@ jobs:
           path: /Users/runner/.ccache
           key: ${{ runner.os }}-nightly-${{ github.sha }}
           restore-keys: ${{ runner.os }}-
-
-      - name: Build libtiff
-        run: |
-          # shellcheck disable=SC2012,SC2016,SC2155,SC2156,SC2046,SC2086,SC2235
-          cd thirdparty/tiff-4.0.3
-          chmod +x configure
-          CFLAGS='-fPIC' CXXFLAGS='-fPIC' ./configure --disable-lzma
-          make -j $(sysctl -n hw.ncpu)
-          make install
 
       - name: Build
         run: |
