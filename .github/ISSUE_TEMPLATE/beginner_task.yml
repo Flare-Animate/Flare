@@ -1,0 +1,23 @@
+name: Beginner task
+description: Propose a small, easy task for newcomers
+labels: ['beginner friendly']
+body:
+  - type: textarea
+    id: task
+    attributes:
+      label: What needs doing?
+      description: Describe the small task (typo, string, small UI fix, docs, translation).
+    validations:
+      required: true
+  - type: textarea
+    id: where
+    attributes:
+      label: Where in the code or docs?
+      description: File paths or screens involved, if known.
+  - type: textarea
+    id: done
+    attributes:
+      label: How do we know it is done?
+      description: Expected result.
+    validations:
+      required: true

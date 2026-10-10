@@ -10,6 +10,11 @@
 #include "flareqt/gutil.h"
 
 #include "filebrowser.h"
+#include <QPixmap>
+
+static QPixmap generateIconPixmap(const char *name) {
+  return QPixmap(QString(":Resources/%1.svg").arg(name));
+}
 #include "history.h"
 #include "iocommand.h"
 
@@ -1070,7 +1075,7 @@ void DvDirModelStuffFolderNode::refreshChildren() {
   addChild(child);
 
   child = new DvDirModelSpecialFileFolderNode(this, L"Fx Plugins",
-                                              FlareFolder::getPluginsFolder());
+                                              (FlareFolder::getMyModuleDir() + "plugins"));
   child->setPixmap(generateIconPixmap("plugins"));
   addChild(child);
 
