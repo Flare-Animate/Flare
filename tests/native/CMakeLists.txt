@@ -329,19 +329,6 @@ target_link_libraries(moho_reader_tests PRIVATE
     kernel32.lib
 )
 
-# FlareUpdater's decision logic, driven against the shipped flareqt DLL.
-# Qt5::Network is genuinely required when FlareUpdater is compiled in rather than
-# imported: checkForRelease issues a real HTTPS request, which needs QNetworkAccessManager.
-# With the prebuilt flareqt.lib the symbol arrived transitively; compiled locally it does
-# not, and the net test would link but fail at run time on an unresolved entry point.
-if(FLAREUPDATER_LOCAL_SRC)
-    find_package(Qt5 COMPONENTS Network QUIET)
-    if(TARGET Qt5::Network)
-        target_link_libraries(flareupdater_tests PRIVATE Qt5::Network)
-        target_link_libraries(flareupdater_net_tests PRIVATE Qt5::Network)
-    endif()
-endif()
-
 # flareqt.lib is frequently a prebuilt DLL that predates FlareUpdater entirely:
 # the two dates differed by five days, and no flareupdater*.obj existed in its build
 # output, so both updater tests died with LNK1120 naming five and nine unresolved
@@ -351,13 +338,22 @@ endif()
 # checked-out source. --no-local-src still exercises the real export/ABI path.
 set(FLAREUPDATER_LOCAL_SRC ON CACHE BOOL
     "compile flareupdater.cpp into the updater tests")
-# AUTOMOC rather than a hand-listed .moc: flareupdater.h is Q_OBJECT and lives in
-# flare/sources/include, so the generated file lands in the target's autogen directory
-# and is compiled automatically. Listing a .moc source here would fail configure,
-# since no such file exists until CMake generates it.
+# FLAREQT_EXPORTS is essential. flareupdater.h sets DVAPI to DV_IMPORT_API unless it
+# is defined, so without this the class is declared dllimport while being compiled into
+# the test executable: MSVC warns C4273 on every method and then resolves every signal,
+# staticMetaObject and vftable entry as __imp_* against a DLL that is not there.
+#
+# The header must be listed as a source, not just the .cpp. AUTOMOC only mocs a header
+# that sits beside a same-basename source or that is itself listed as a target source;
+# flareupdater.h is in flare/sources/include/flareqt while flareupdater.cpp is in
+# flare/sources/flareqt, so no pair forms and the autogen set comes back empty
+# ("No files found that require moc"). That produced LNK2001 on staticMetaObject,
+# metaObject, qt_metacast and qt_metacall, plus LNK2019 on every signal.
 function(_flareupdater_local src)
     target_sources(${src} PRIVATE
-        "${FLASH_ROOT}/flare/sources/flareqt/flareupdater.cpp")
+        "${FLASH_ROOT}/flare/sources/flareqt/flareupdater.cpp"
+        "${FLASH_ROOT}/flare/sources/include/flareqt/flareupdater.h")
+    target_compile_definitions(${src} PRIVATE FLAREQT_EXPORTS)
     set_target_properties(${src} PROPERTIES AUTOMOC ON)
 endfunction()
 
@@ -375,6 +371,44 @@ target_link_libraries(flareupdater_tests PRIVATE
     "${FLAREQT_LIB}"
     kernel32.lib
 )
+
+# Qt5::Network is genuinely required when FlareUpdater is compiled in rather than
+# imported. checkForRelease issues a real HTTPS request, which needs
+# QNetworkAccessManager; with the prebuilt flareqt.lib that arrived transitively, but
+# compiled locally it does not -- the first attempt at this fix left the two targets
+# on Qt5::Core alone and both then failed with C1083 "Cannot open include file:
+# 'QNetworkAccessManager'". Applied here rather than at the top of the file, since
+# target_link_libraries needs the target to exist first.
+# Qt5::Network is genuinely required when FlareUpdater is compiled in rather than
+# imported: checkForRelease issues a real HTTPS request through
+# QNetworkAccessManager, which with a prebuilt flareqt.lib arrived transitively but
+# compiled locally does not.
+#
+# Qt5_DIR was never set by this project -- lines 19-20 find Qt5Core and Qt5Gui by
+# their own component names, which populates Qt5Core_DIR/Qt5Gui_DIR but leaves the
+# umbrella Qt5_DIR cache entry NOTFOUND. So a bare find_package(Qt5 COMPONENTS Network)
+# cannot resolve. CMAKE_PREFIX_PATH has to be seeded with the Qt root, which is
+# inferred from where Qt5Core_DIR points (…/lib/cmake/Qt5Core -> three levels up).
+if(FLAREUPDATER_LOCAL_SRC)
+    if(Qt5Core_DIR)
+        get_filename_component(_qt5core_libdir "${Qt5Core_DIR}" DIRECTORY)  # lib/cmake
+        get_filename_component(_qt5core_lib    "${_qt5core_libdir}" DIRECTORY)
+        get_filename_component(_qt5_root       "${_qt5core_lib}" DIRECTORY)
+        if(EXISTS "${_qt5_root}/lib/cmake/Qt5Network")
+            list(APPEND CMAKE_PREFIX_PATH "${_qt5_root}")
+        endif()
+    endif()
+    find_package(Qt5 COMPONENTS Network QUIET)
+    if(NOT TARGET Qt5::Network)
+        message(FATAL_ERROR
+            "FLAREUPDATER_LOCAL_SRC=ON needs Qt5::Network, and it could not be found "
+            "(Qt5Core_DIR=${Qt5Core_DIR}). flareupdater.cpp includes "
+            "<QNetworkAccessManager>. Pass -DCMAKE_PREFIX_PATH=<qt-root> on the same "
+            "command line, or use -DFLAREUPDATER_LOCAL_SRC=OFF to link the prebuilt "
+            "flareqt instead.")
+    endif()
+    target_link_libraries(flareupdater_tests PRIVATE Qt5::Network)
+endif()
 
 # The network half of FlareUpdater, against the real GitHub releases API.
 # Skips cleanly when offline, so it is safe to run anywhere.
@@ -395,6 +429,9 @@ target_link_libraries(flareupdater_net_tests PRIVATE
     "${FLAREQT_LIB}"
     kernel32.lib
 )
+if(FLAREUPDATER_LOCAL_SRC AND TARGET Qt5::Network)
+    target_link_libraries(flareupdater_net_tests PRIVATE Qt5::Network)
+endif()
 
 # P2P remote-control protocol (header-only, no deps).
 add_executable(remote_protocol_tests
