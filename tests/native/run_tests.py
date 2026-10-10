@@ -174,7 +174,11 @@ def main():
         cmake_prefix.append(qt_root)
     if os.environ.get("CMAKE_PREFIX_PATH"):
         cmake_prefix.append(os.environ["CMAKE_PREFIX_PATH"])
-    prefix_arg = ("-DCMAKE_PREFIX_PATH=" + ";".join(cmake_prefix)) if cmake_prefix else []
+    # A list in both branches: this is spliced into an argument list below, so a
+    # bare string here raised "can only concatenate list (not str) to list" the
+    # moment Qt was found -- which is precisely when the flag is needed, so it only
+    # ever failed on the machines it was written to fix.
+    prefix_arg = ["-DCMAKE_PREFIX_PATH=" + ";".join(cmake_prefix)] if cmake_prefix else []
 
     if not args.no_build:
         build = os.path.abspath(args.build_dir)
@@ -262,6 +266,7 @@ def main():
                                         "tnzcore.dll")
 
     failed = 0
+    skipped = 0
     for name, which in TARGETS:
         if args.filter and args.filter not in name:
             continue
@@ -280,15 +285,36 @@ def main():
         argv = [exe] + ([os.path.abspath(fxd)] if fxd else [])
         r = run(argv, env=env)
         sys.stderr.write(r.stderr)
-        tail = [l for l in r.stderr.splitlines() if "checks," in l]
-        print("   " + (tail[-1] if tail else f"exit {r.returncode}"))
+        # The summary line is not reliably on stderr: flareupdater_tests and
+        # remote_protocol_tests print "PASSED: N checks" on stdout, so a
+        # stderr-only search reported them as a bare "exit 0" and lost the count.
+        tail = [l for l in (r.stderr + "\n" + r.stdout).splitlines()
+                if "checks," in l]
+        line = tail[-1].strip() if tail else f"exit {r.returncode}"
+        # A self-skipping test exits 0 having run nothing -- flareupdater_net_tests
+        # does exactly that when Qt has no TLS backend, which would read as green
+        # in CI. Say SKIPPED rather than pass.
+        if "SKIPPED" in (r.stderr + r.stdout) and not tail:
+            line = "SKIPPED (no coverage)"
+            print(f"   {line}")
+            skipped += 1
+            continue
+        print(f"   {line}")
         if r.returncode:
             failed += 1
 
     print()
+    # A skip is reported, not silently folded into "all passed": the point of
+    # surfacing it is that a self-skipping binary contributes no coverage, and an
+    # unqualified PASSED would hide that from CI.
+    if skipped:
+        print(f"SKIPPED: {skipped} test binary/binaries ran no checks")
     if failed:
         print(f"FAILED: {failed} test binary/binaries")
         return 1
+    if skipped:
+        print("PASSED: no failures, but see the skipped binaries above")
+        return 0
     print("PASSED: all test binaries")
     return 0
 
