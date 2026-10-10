@@ -128,8 +128,7 @@ QString rustSummary(const TFilePath &fp) {
     if (!js) return QString();
     const QJsonObject o = QJsonDocument::fromJson(QByteArray(js)).object();
     flare_moho_free(js);
-    return QObject::tr("
-  Rust parser: %1 layer(s), %2 bone(s), %3 track(s), "
+    return QObject::tr("\n  Rust parser: %1 layer(s), %2 bone(s), %3 track(s), "
                        "%4 keyframe(s) with interpolation")
         .arg(o["layers"].toArray().size())
         .arg(o["bones"].toArray().size())
