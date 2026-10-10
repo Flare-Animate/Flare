@@ -40,6 +40,7 @@
 #include "As3Bridge.h"
 #include "FSWFStream.h"
 #include "Macromedia.h"
+#include "flare_formats.h"
 
 #include <QFile>
 #include <QDir>
@@ -210,10 +211,56 @@ static QString describeUnconverted(const XFL::ContentCensus &c) {
 //   fla-viewer (MIT) — attribute interpretation (ideas only)
 //   OCA import (ocaio.cpp) — xsheet insertion pattern
 // ---------------------------------------------------------------------------
+static QString g_xflLog;  // last XFL import log, shown in the result dialog
 static void importXFLScene(ToonzScene *scene, TXsheet *xsheet,
                             const XFL::Document &doc,
-                            const TFilePath &xflBaseDir) {
+                            const TFilePath &xflBaseDir, const QString &outPath) {
     if (doc.timelines.empty()) return;
+
+    // Vector art (DOMShape + nested symbols) -> per-frame SVG via Rust flare_formats.
+    // Without this, CS6 FLA/XFL files (art lives in LIBRARY symbols) import blank.
+    {
+        const QString svgDir = outPath + "/xfl_svg";
+        char *res = flare_xfl_export_svg(xflBaseDir.getQString().toUtf8().constData(),
+                                         svgDir.toUtf8().constData());
+        g_xflLog = res ? QString::fromUtf8(res) : QStringLiteral("error: no result\n");
+        flare_moho_free(res);
+        QMap<QString, TXshSimpleLevel *> svgLevels;
+        QMap<int, int> layerCol;
+        QFile tsv(svgDir + "/frames.tsv");
+        if (g_xflLog.startsWith("ok") && tsv.open(QIODevice::ReadOnly)) {
+            for (const QString &line : QString::fromUtf8(tsv.readAll()).split('\n', Qt::SkipEmptyParts)) {
+                const QStringList f = line.split('\t');
+                if (f.size() < 4) continue;
+                TXshSimpleLevel *sl = svgLevels.value(f[3], nullptr);
+                if (!svgLevels.contains(f[3])) {
+                    IoCmd::LoadResourceArguments args;
+                    args.expose = false;
+                    args.resourceDatas.emplace_back(TFilePath((svgDir + "/" + f[3]).toStdWString()));
+                    IoCmd::loadResources(args);
+                    if (!args.loadedLevels.empty())
+                        sl = dynamic_cast<TXshSimpleLevel *>(*args.loadedLevels.begin());
+                    svgLevels[f[3]] = sl;
+                    if (!sl) g_xflLog += "load failed: " + f[3] + "\n";
+                }
+                if (!sl) continue;
+                const int li = f[0].toInt();
+                if (!layerCol.contains(li)) {
+                    int col = xsheet->getFirstFreeColumnIndex();
+                    xsheet->insertColumn(col, new TXshLevelColumn());
+                    if (TStageObject *obj = xsheet->getStageObject(TStageObjectId::ColumnId(col)))
+                        obj->setName(f[1].toStdString());
+                    layerCol[li] = col;
+                }
+                xsheet->setCell(f[2].toInt(), layerCol[li], TXshCell(sl, sl->getFirstFid()));
+            }
+        }
+        QFile lf(outPath + "/flare_import_log.txt");
+        if (lf.open(QIODevice::WriteOnly | QIODevice::Text)) lf.write(g_xflLog.toUtf8());
+        qDebug().noquote() << "[XFL import]" << g_xflLog;
+        xsheet->updateFrameCount();
+        TApp::instance()->getCurrentXsheet()->notifyXsheetChanged();
+    }
 
     // Build libraryItemName → absolute file path
     QMap<QString, TFilePath> bitmapPaths;
@@ -480,7 +527,7 @@ void ImportFlashVectorCommand::execute() {
                     info += describeUnconverted(doc.census);
                     if (tlCount > 0) {
                         TXsheet *xsheet = TApp::instance()->getCurrentXsheet()->getXsheet();
-                        importXFLScene(scene, xsheet, doc, extractedXfl);
+                        importXFLScene(scene, xsheet, doc, extractedXfl, outPath);
                     }
                 } else {
                     QString err = QString::fromStdString(r2.getError());
@@ -558,7 +605,7 @@ void ImportFlashVectorCommand::execute() {
         // Native scene import for XFL directory
         if (!doc.timelines.empty()) {
             TXsheet *xsheet = TApp::instance()->getCurrentXsheet()->getXsheet();
-            importXFLScene(scene, xsheet, doc, xflDir);
+            importXFLScene(scene, xsheet, doc, xflDir, outPath);
         }
 
         // Copy assets to output dir using recursive iteration
@@ -887,6 +934,13 @@ void ImportFlashVectorCommand::execute() {
 
     QString msg = QObject::tr("Flash import complete.\n");
     if (!info.isEmpty()) msg += info + "\n";
+    if (!g_xflLog.isEmpty()) {
+        // Import log: what was parsed / skipped and why (full text in flare_import_log.txt).
+        QStringList ll = g_xflLog.split('\n');
+        if (ll.size() > 25) ll = ll.mid(0, 25) << "...";
+        msg += QObject::tr("\nImport log (%1/flare_import_log.txt):\n").arg(outPath) + ll.join('\n') + "\n";
+        g_xflLog.clear();
+    }
     msg += QObject::tr("\n%1 file(s) exported to:\n%2").arg(exported.size()).arg(outPath);
     if (imported > 0)
         msg += QObject::tr("\n%1 asset(s) added to the scene.").arg(imported);

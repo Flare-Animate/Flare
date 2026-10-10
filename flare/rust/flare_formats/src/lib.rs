@@ -16,6 +16,7 @@ pub unsafe extern "C" fn flare_fcp_parse(data: *const u8, len: usize) -> *mut st
 
 #[no_mangle]
 pub unsafe extern "C" fn flare_fcp_free(p: *mut std::os::raw::c_char) { flare_moho_free(p) }
+pub mod xflrender;
 
 /// Count of SWF tags (incl. End); -1 if not uncompressed SWF.
 #[no_mangle]
@@ -148,6 +149,21 @@ pub unsafe extern "C" fn flare_moho_parse(data: *const u8, len: usize) -> *mut s
 #[no_mangle]
 pub unsafe extern "C" fn flare_moho_free(p: *mut std::os::raw::c_char) {
     if !p.is_null() { drop(std::ffi::CString::from_raw(p)); }
+}
+
+/// Render XFL dir (DOMDocument.xml + LIBRARY) to per-frame SVGs + frames.tsv in out_dir.
+/// Returns log text (first line "ok <n>" or "error <msg>"); free with flare_moho_free.
+#[no_mangle]
+pub unsafe extern "C" fn flare_xfl_export_svg(xfl_dir: *const std::os::raw::c_char, out_dir: *const std::os::raw::c_char) -> *mut std::os::raw::c_char {
+    use std::ffi::{CStr, CString};
+    if xfl_dir.is_null() || out_dir.is_null() { return std::ptr::null_mut(); }
+    let d = CStr::from_ptr(xfl_dir).to_string_lossy().into_owned();
+    let o = CStr::from_ptr(out_dir).to_string_lossy().into_owned();
+    let s = match xflrender::export(std::path::Path::new(&d), std::path::Path::new(&o)) {
+        Ok((n, log)) => format!("ok {n}\n{log}"),
+        Err(e) => format!("error {e}\n"),
+    };
+    CString::new(s.replace('\0', " ")).map_or(std::ptr::null_mut(), |c| c.into_raw())
 }
 
 #[cfg(test)]
