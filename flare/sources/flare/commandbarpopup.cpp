@@ -28,6 +28,7 @@
 #include <QXmlStreamWriter>
 #include <QDataStream>
 #include <QMimeData>
+#include <QFileDialog>
 #include <QDrag>
 #include <QMouseEvent>
 #include <QPainter>
@@ -44,7 +45,8 @@
 CommandItem::CommandItem(QTreeWidgetItem* parent, QAction* action)
     : QTreeWidgetItem(parent, UserType), m_action(action) {
   setFlags(Qt::ItemIsSelectable | Qt::ItemIsDragEnabled | Qt::ItemIsEnabled |
-           Qt::ItemNeverHasChildren);
+           Qt::ItemNeverHasChildren | Qt::ItemIsUserCheckable);
+  setCheckState(0, Qt::Checked);  // checked = shown
 
   QString tempText = m_action->text();
   // Removing accelerator key indicator
@@ -364,12 +366,13 @@ void CommandBarTree::loadMenuRecursive(QXmlStreamReader& reader,
                                        QTreeWidgetItem* parentItem) {
   while (reader.readNextStartElement()) {
     if (reader.name() == QStringLiteral("command")) {
+      bool hidden     = reader.attributes().value("hidden") == QLatin1String("1");
       QString cmdName = reader.readElementText();
       QAction* action =
           CommandManager::instance()->getAction(cmdName.toStdString().c_str());
       if (action) {
         CommandItem* item = new CommandItem(parentItem, action);
-        Q_UNUSED(item);
+        if (hidden) item->setCheckState(0, Qt::Unchecked);
       }
     } else if (reader.name() == QStringLiteral("command_debug")) {
 #ifndef NDEBUG
@@ -422,6 +425,14 @@ void CommandBarTree::saveMenuRecursive(QXmlStreamWriter& writer,
     SeparatorItem* sep   = dynamic_cast<SeparatorItem*>(parentItem->child(c));
 
     if (command) {
+      if (command->checkState(0) == Qt::Unchecked)
+        writer.writeStartElement("command"),
+            writer.writeAttribute("hidden", "1"),
+            writer.writeCharacters(QString::fromStdString(
+                CommandManager::instance()->getIdFromAction(
+                    command->getAction()))),
+            writer.writeEndElement();
+      else
       writer.writeTextElement(
           "command",
           QString::fromStdString(CommandManager::instance()->getIdFromAction(
@@ -592,6 +603,12 @@ CommandBarPopup::CommandBarPopup(bool isXsheetToolbar)
   m_buttonLayout->setContentsMargins(0, 0, 0, 0);
   m_buttonLayout->setSpacing(30);
   {
+    QPushButton* importBtn = new QPushButton(tr("Import Layout..."), this);
+    QPushButton* exportBtn = new QPushButton(tr("Export Layout..."), this);
+    connect(importBtn, &QPushButton::clicked, this, &CommandBarPopup::onImport);
+    connect(exportBtn, &QPushButton::clicked, this, &CommandBarPopup::onExport);
+    m_buttonLayout->addWidget(importBtn, 0);
+    m_buttonLayout->addWidget(exportBtn, 0);
     m_buttonLayout->addStretch(1);
     m_buttonLayout->addWidget(okBtn, 0);
     m_buttonLayout->addWidget(cancelBtn, 0);
@@ -621,3 +638,18 @@ void CommandBarPopup::onSearchTextChanged(const QString& text) {
   busy = false;
 }
 
+
+void CommandBarPopup::onExport() {
+  QString f = QFileDialog::getSaveFileName(this, tr("Export Layout"), QString(),
+                                           tr("Layout XML (*.xml)"));
+  if (f.isEmpty()) return;
+  TFilePath fp(f.toStdWString());
+  m_menuBarTree->saveMenuTree(fp);
+}
+
+void CommandBarPopup::onImport() {
+  QString f = QFileDialog::getOpenFileName(this, tr("Import Layout"), QString(),
+                                           tr("Layout XML (*.xml)"));
+  if (f.isEmpty()) return;
+  m_menuBarTree->importTree(TFilePath(f.toStdWString()));
+}
