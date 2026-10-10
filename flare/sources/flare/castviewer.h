@@ -90,6 +90,8 @@ public:
   QVariant getItemData(int index, DataType dataType,
                        bool isSelected = false) override;
   QMenu *getContextMenu(QWidget *parent, int index) override;
+  void newSymbol(const std::string &kind);
+  static QString s_symlib;  // symlib TSV (flare_formats)
   void startDragDrop() override;
   bool acceptDrop(const QMimeData *data) const override;
   bool drop(const QMimeData *data) override;

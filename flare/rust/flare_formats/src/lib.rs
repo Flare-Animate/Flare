@@ -198,4 +198,12 @@ mod tests {
         assert_eq!(xfl_dom_info(b"<DOMDocument xmlns=\"x\" width=\"1280\" frameRate=\"30\">"), Some((1280.0, 400.0, 30.0)));
     }
     #[test] fn ffi_null() { unsafe { assert_eq!(flare_detect_format(std::ptr::null(), 0), 0); } }
+    #[test] fn ffi_symlib_add() {
+        let line = b"mc\tf\tSym1\tlvl";
+        let n = unsafe { flare_symlib_add(line.as_ptr(), 0, line.as_ptr(), line.len(), std::ptr::null_mut(), 0) };
+        assert!(n > 0);
+        let mut buf = vec![0u8; n];
+        assert_eq!(unsafe { flare_symlib_add(line.as_ptr(), 0, line.as_ptr(), line.len(), buf.as_mut_ptr(), n) }, n);
+        assert!(String::from_utf8_lossy(&buf).contains("Sym1"));
+    }
 }
