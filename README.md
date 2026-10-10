@@ -4,7 +4,7 @@
 
 <img width="663" height="400" alt="Flare banner" src="https://github.com/user-attachments/assets/73e4050f-f248-419e-8e61-fe8814ab984d" />
 
-**A free, open-source 2D animation studio with an Adobe Animate-style workflow and native Flash/Animate file import.**
+**A free, open-source Animation suite based on OpenToonz and Next2Flash. Designed with continuity for Adobe Flash/Animate users**
 
 [![Discord](https://img.shields.io/discord/1500316971802296430?label=Discord&logo=discord&logoColor=white&color=5865F2)](https://discord.com/invite/JpeScW8Awa)
 [![Website](https://img.shields.io/badge/website-flare--animate-orange)](https://flare-animate.github.io/website/)
