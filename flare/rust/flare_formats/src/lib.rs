@@ -3,6 +3,15 @@ use std::slice;
 pub mod swf;
 pub mod xfl;
 pub mod moho;
+pub mod symlib;
+
+/// Symbol library: add TSV `line` to TSV `lib`, write normalized TSV into `out` (up to `cap`). Returns full length.
+#[no_mangle]
+pub unsafe extern "C" fn flare_symlib_add(lib: *const u8, lib_len: usize, line: *const u8, line_len: usize, out: *mut u8, cap: usize) -> usize {
+    let s = symlib::add(&String::from_utf8_lossy(bytes(lib, lib_len)), &String::from_utf8_lossy(bytes(line, line_len)));
+    if !out.is_null() { std::ptr::copy_nonoverlapping(s.as_ptr(), out, s.len().min(cap)); }
+    s.len()
+}
 
 /// Count of SWF tags (incl. End); -1 if not uncompressed SWF.
 #[no_mangle]
