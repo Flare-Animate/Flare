@@ -1396,7 +1396,7 @@ extern const char *applicationVersion;
     silent: a user who is offline or rate-limited should not be interrupted, and
     an update check is not something they asked for on this particular launch.
 */
-void MainWindow::checkForUpdates() {
+void MainWindow::checkForUpdates(bool /*manual*/) {
   if (m_flareUpdater)
     return;  // a check is already in flight
 
