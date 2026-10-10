@@ -49,6 +49,8 @@
 #include <QDesktopServices>
 #include <QUrl>
 #include <QMenu>
+#include <QInputDialog>
+#include "flare_formats.h"
 #include <QDir>
 
 const char *AudioFolderName = "Audio";
@@ -723,6 +725,15 @@ QMenu *CastBrowser::getContextMenu(QWidget *parent, int index) {
   if (indices.empty()) {
     QMenu *menu = new QMenu(parent);
     menu->addAction(CommandManager::instance()->getAction(MI_RemoveUnused));
+    // Flash-style symbols: vector level in current cast folder, recorded in symlib.
+    static const char *kinds[][2] = {
+        {"mc", "New MovieClip Symbol"}, {"gr", "New Graphic Symbol"},
+        {"btn", "New Button Symbol"}};
+    for (auto &k : kinds) {
+      std::string kind = k[0];
+      QObject::connect(menu->addAction(tr(k[1])), &QAction::triggered, this,
+                       [this, kind] { newSymbol(kind); });
+    }
     return menu;
   }
   // controllo cosa c'e' nella selezione.
@@ -930,3 +941,32 @@ void CastBrowser::viewFileInfo() {
 OpenFloatingPanel openCastPane(MI_OpenFileBrowser2, "SceneCast",
                                QObject::tr("Scene Cast"));
 
+
+//-----------------------------------------------------------------------------
+
+QString CastBrowser::s_symlib;
+
+void CastBrowser::newSymbol(const std::string &kind) {
+  bool ok;
+  QString name = QInputDialog::getText(this, tr("New Symbol"), tr("Name:"),
+                                       QLineEdit::Normal, "Symbol", &ok);
+  if (!ok || name.isEmpty()) return;
+  ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
+  TXshLevel *xl     = scene->createNewLevel(PLI_XSHLEVEL, name.toStdWString());
+  if (!xl) return;
+  TFilePath folder = m_treeViewer->getCurrentFolder();
+  if (!folder.isEmpty()) scene->getLevelSet()->moveLevelToFolder(folder, xl);
+  QByteArray lib  = s_symlib.toUtf8();
+  QByteArray line = (QString::fromStdString(kind) + "	" +
+                     QString::fromStdWString(folder.getWideString()) + "	" +
+                     name + "	" + QString::fromStdWString(xl->getName()))
+                        .toUtf8();
+  QByteArray out(lib.size() + line.size() + 64, 0);
+  size_t n = flare_symlib_add((const uint8_t *)lib.data(), lib.size(),
+                              (const uint8_t *)line.data(), line.size(),
+                              (uint8_t *)out.data(), out.size());
+  if (n <= (size_t)out.size()) s_symlib = QString::fromUtf8(out.data(), (int)n);
+  TApp::instance()->getCurrentScene()->setDirtyFlag(true);
+  TApp::instance()->getCurrentScene()->notifyCastChange();
+  refreshData();
+}
