@@ -1,0 +1,28 @@
+name: Beginner friendly task
+description: Small, well-scoped task for new contributors
+labels: ["beginner friendly"]
+body:
+  - type: textarea
+    id: task
+    attributes:
+      label: What needs doing
+      description: One or two sentences. Point at the file or screen involved if you can.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps / hints
+      description: Rough steps, or where to start looking.
+  - type: dropdown
+    id: skill
+    attributes:
+      label: Skill needed
+      options:
+        - Translation / text
+        - Docs
+        - UI tweak
+        - Small code fix (C++/Qt)
+        - Other
+    validations:
+      required: true
