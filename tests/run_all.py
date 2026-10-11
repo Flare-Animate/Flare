@@ -35,6 +35,9 @@ SUITES = [
     # atlas_check: resolves LOGIC-ATLAS.md's own file/symbol/constant claims
     # against the tree. Runs last so the docs are checked after the code.
     ("logic atlas", [sys.executable, "scripts/atlas_check.py"], REPO),
+    # issue map: probes the tree for what answers each open GitHub issue.
+    # Skips loudly (never fails) without gh/network.
+    ("issue map", [sys.executable, "tests/check_issue_fixes.py"], REPO),
     # No --no-build: the runner builds the test binaries itself. Passing it made
     # this suite depend on someone having remembered to build them first, so it
     # reported a failure for a missing artefact rather than a real defect. The
