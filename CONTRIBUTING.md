@@ -97,4 +97,7 @@ It enables the Flare installer to install them into the `stuff` directory.
 
 
 ## Submitting a layout
-Add a profile dir under `stuff/profiles/layouts/rooms/` and open a PR. Never name it `Default`. See doc/LAYOUT_CUSTOMIZATION.md.
+
+Layouts live in `stuff/profiles/layouts/rooms/<Name>/`. Build yours (by hand or with an AI agent, see `doc/LAYOUT_CUSTOMIZATION.md`),
+check it with `python tools/layout_tool.py validate <dir>` and `python tests/test_layout_tool.py`, then send a PR containing only that directory.
+Never name it `Default`.
