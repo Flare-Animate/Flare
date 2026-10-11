@@ -45,6 +45,50 @@ pub fn swf_frame_count(d: &[u8]) -> Option<u32> {
     crate::swf_frames(full).map(|(_, n)| n as u32)
 }
 
+fn u32at(d: &[u8], o: usize) -> Option<u32> {
+    Some(u32::from_le_bytes(d.get(o..o + 4)?.try_into().ok()?))
+}
+
+/// CFBF directory: (name, size) of each stream. Header DIFAT only (files under
+/// ~7MB at 512-byte sectors). Used by the legacy-FLA import log so the user can
+/// see what a binary .fla actually contains.
+pub fn cfbf_streams(d: &[u8]) -> Option<Vec<(String, u64)>> {
+    let ss = crate::cfbf_header(d)?.1 as usize;
+    if ss < 128 {
+        return None;
+    }
+    let sec = |n: u32| ss + n as usize * ss;
+    let mut fat = Vec::new();
+    for i in 0..109 {
+        let s = u32at(d, 0x4C + i * 4)?;
+        if s >= 0xFFFF_FFFA {
+            break;
+        }
+        for k in 0..ss / 4 {
+            fat.push(u32at(d, sec(s) + k * 4).unwrap_or(0xFFFF_FFFE));
+        }
+    }
+    let (mut s, mut out, mut guard) = (u32at(d, 0x30)?, Vec::new(), 0);
+    while s < 0xFFFF_FFFA && guard < 100_000 {
+        for e in 0..ss / 128 {
+            let b = sec(s) + e * 128;
+            let Some(ent) = d.get(b..b + 128) else { break };
+            let nl = (u16::from_le_bytes([ent[64], ent[65]]) as usize).min(64);
+            if ent[66] != 2 || nl < 2 {
+                continue;
+            } // 2 = stream
+            let name: Vec<u16> = ent[..nl - 2]
+                .chunks(2)
+                .map(|c| u16::from_le_bytes([c[0], c[1]]))
+                .collect();
+            out.push((String::from_utf16_lossy(&name), u32at(ent, 120)? as u64));
+        }
+        s = *fat.get(s as usize)?;
+        guard += 1;
+    }
+    Some(out)
+}
+
 pub fn frame_count(path: &Path) -> Option<u32> {
     if path.is_dir() { return xfl_frames(&std::fs::read(path.join("DOMDocument.xml")).ok()?); }
     let d = std::fs::read(path).ok()?;
@@ -68,5 +112,6 @@ mod tests {
             println!("{:?}", r.map(|(n, l)| (n, l.lines().take(20).collect::<Vec<_>>().join("\n"))));
         }
         assert_eq!(super::xfl_frames(br#"<DOMLayer name="a"><DOMFrame index="3" duration="4"/>"#), Some(7));
+        assert!(super::cfbf_streams(b"not a compound document").is_none());
     }
 }

@@ -26,6 +26,15 @@ pub unsafe extern "C" fn flare_flash_frame_count(path: *const std::os::raw::c_ch
     let p = std::ffi::CStr::from_ptr(path).to_string_lossy().into_owned();
     framecount::frame_count(std::path::Path::new(&p)).map_or(-1, |n| n as i32)
 }
+
+/// CFBF (legacy FLA) streams as "name\tsize\n" lines; NULL if not CFBF.
+/// Free with flare_moho_free. Used by the legacy-FLA import log.
+#[no_mangle]
+pub unsafe extern "C" fn flare_cfbf_streams(data: *const u8, len: usize) -> *mut std::os::raw::c_char {
+    let Some(v) = framecount::cfbf_streams(bytes(data, len)) else { return std::ptr::null_mut() };
+    let s: String = v.iter().map(|(n, z)| format!("{}\t{}\n", n.replace('\0', ""), z)).collect();
+    std::ffi::CString::new(s).map_or(std::ptr::null_mut(), |c| c.into_raw())
+}
 pub mod symlib;
 pub mod tfilepath;
 pub mod tenv;

@@ -31,6 +31,8 @@ size_t flare_tfilepath_query(const char *path_utf8, int32_t kind, char *out, siz
 size_t flare_tenv_path_set(const char *value_utf8, char *out, size_t cap);
 /* Frame count of SWF / zip FLA / XFL folder or DOMDocument.xml (UTF-8 path); -1 if unknown. */
 int32_t flare_flash_frame_count(const char *path_utf8);
+/* CFBF (legacy FLA) streams as "name\tsize\n" lines; NULL if not CFBF. Free with flare_moho_free. */
+char *flare_cfbf_streams(const uint8_t *data, size_t len);
 #ifdef __cplusplus
 }
 #endif
