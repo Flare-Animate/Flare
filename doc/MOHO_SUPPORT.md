@@ -27,7 +27,7 @@ Missing bitmaps fall back to an empty vector level so the column still exists.
 Tested by `tests/native/moho_plan_tests.cpp` (flatten, bone inherit, switch
 gating, keyless switch).
 
-## Rust parser (`flare/rust/flare_formats/src/moho.rs`)
+## Rust parser (`flare/sources/common/moho/rust/moho.rs`)
 
 With `-DFLARE_WITH_RUST=ON` the import dialog also reports a parse by the Rust
 module (`flare_moho_parse` / `flare_moho_free`, C ABI in `flare_formats.h`).
@@ -36,7 +36,7 @@ layer tree (groups, switch layers with their alternatives, parent bone, image
 path), bones (parent, length), and every animated channel (`when`/`val`/`interp`)
 as keyframes with interpolation mode (linear, smooth, ease_in, ease_out, step,
 noise). Tested against the real `CharWalk.moho` and `.mohoproj`
-(`cargo test moho` in `flare/rust`; tests skip if the sample is absent).
+(`cargo test moho --manifest-path flare/sources/Cargo.toml`; tests skip if the sample is absent).
 
 ## Formats
 

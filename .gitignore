@@ -99,3 +99,4 @@ Qt5*.zip
 tmp.txt
 stuff/config/loc/
 tools/flash/webapp/dist/
+flare/sources/target/

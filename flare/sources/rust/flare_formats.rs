@@ -1,8 +1,16 @@
 //! Flare format sniffing (SWF/CFBF/XFL). SWF header layout per the SWF spec, as in ruffle (MIT/Apache-2.0).
+//!
+//! Crate root only: every module lives beside the C++ subsystem it ports
+//! (`common/<subsystem>/rust/`), so the tree keeps matching OpenToonz/Tahoma.
 use std::slice;
+
+#[path = "../common/flash/rust/swf.rs"]
 pub mod swf;
+#[path = "../common/flash/rust/xfl.rs"]
 pub mod xfl;
+#[path = "../common/moho/rust/moho.rs"]
 pub mod moho;
+#[path = "../common/flash/rust/fcp.rs"]
 pub mod fcp;
 
 /// Parse FlipaClip .fcp; JSON (free with flare_fcp_free) or NULL.
@@ -16,7 +24,9 @@ pub unsafe extern "C" fn flare_fcp_parse(data: *const u8, len: usize) -> *mut st
 
 #[no_mangle]
 pub unsafe extern "C" fn flare_fcp_free(p: *mut std::os::raw::c_char) { flare_moho_free(p) }
+#[path = "../common/flash/rust/xflrender.rs"]
 pub mod xflrender;
+#[path = "../common/flash/rust/framecount.rs"]
 pub mod framecount;
 
 /// Frame count of a SWF / FLA / XFL file or folder; -1 if unknown.
@@ -35,8 +45,11 @@ pub unsafe extern "C" fn flare_cfbf_streams(data: *const u8, len: usize) -> *mut
     let s: String = v.iter().map(|(n, z)| format!("{}\t{}\n", n.replace('\0', ""), z)).collect();
     std::ffi::CString::new(s).map_or(std::ptr::null_mut(), |c| c.into_raw())
 }
+#[path = "../common/flash/rust/symlib.rs"]
 pub mod symlib;
+#[path = "../common/tsystem/rust/tfilepath.rs"]
 pub mod tfilepath;
+#[path = "../common/tapptools/rust/tenv.rs"]
 pub mod tenv;
 
 /// TFilePath query (see header). Returns full byte length; copies up to `cap` into `out`.

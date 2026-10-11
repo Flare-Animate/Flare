@@ -1,13 +1,13 @@
 # Stub audit status
 
-Scope: flare/rust, tools/flash, flare/sources/flare/{flashimport,mohoimport,castviewer}.cpp.
+Scope: flare/sources/{rust,common/*/rust,remote/rust}, tools/flash, flare/sources/flare/{flashimport,mohoimport,castviewer}.cpp.
 Method: rg for todo!/unimplemented!/"not yet"/"not implemented"/stub/placeholder.
 
 ## Result
 
 | Area | Item | Status |
 |------|------|--------|
-| flare/rust | no todo!/unimplemented!/stub markers | clean |
+| flare/sources/*/rust | no todo!/unimplemented!/stub markers | clean |
 | flashimport.cpp | vector shape import (XFL/FLA shapes) | NOT implemented; reported as "Not converted to levels" |
 | flashimport.cpp | shape text, static/dynamic text | NOT implemented |
 | flashimport.cpp | morph shapes, sounds, video, components | NOT implemented |

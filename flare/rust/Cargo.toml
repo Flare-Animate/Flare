@@ -1,3 +1,0 @@
-[workspace]
-members = ["flare_formats", "flare_remote"]
-resolver = "2"

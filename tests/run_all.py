@@ -29,6 +29,12 @@ SUITES = [
     ("flipaclip profile", [sys.executable, "tests/test_flipaclip_profile.py"], REPO),
     ("layout tool", [sys.executable, "tests/test_layout_tool.py"], REPO),
     ("game export", [sys.executable, "tests/test_game_export.py"], REPO),
+    # Rust format/remote crates. Cargo is not on PATH in every environment, so
+    # resolve it rather than reporting a failure for a missing toolchain.
+    ("rust (cargo test)", [sys.executable, "tests/run_rust.py"], REPO),
+    # atlas_check: resolves LOGIC-ATLAS.md's own file/symbol/constant claims
+    # against the tree. Runs last so the docs are checked after the code.
+    ("logic atlas", [sys.executable, "scripts/atlas_check.py"], REPO),
     # No --no-build: the runner builds the test binaries itself. Passing it made
     # this suite depend on someone having remembered to build them first, so it
     # reported a failure for a missing artefact rather than a real defect. The

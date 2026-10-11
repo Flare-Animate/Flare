@@ -1,0 +1,42 @@
+#!/bin/sh
+# pre-commit: keep LOGIC-ATLAS.md honest at commit time.
+# Install once per clone: cp scripts/hooks/pre-commit .git/hooks/pre-commit
+# Layer 1 (staged check, cheap): subsystem source staged without the atlas blocks.
+# Layer 2 (semantic check): atlas_check.py resolves the atlas claims vs the tree.
+staged=$(git diff --cached --name-only --diff-filter=ACMR)
+[ -z "$staged" ] && exit 0
+
+subsys=$(printf '%s\n' "$staged" \
+  | grep -E '^(flare/sources/rust/[^/]+\.rs|flare/sources/remote/rust/.*\.rs|flare/sources/common/(flash|moho|tgame)/rust/.*\.rs|flare/sources/common/(flash|moho|tgame)/.*\.(cpp|h)|flare/sources/remote/.*\.h|tools/flash/next2flash/.*\.py)$' \
+  | grep -v '/tests/')
+
+atlas_staged=$(printf '%s\n' "$staged" | grep -x 'LOGIC-ATLAS.md')
+
+if [ -n "$subsys" ] && [ -z "$atlas_staged" ]; then
+  echo "pre-commit blocked: LOGIC-ATLAS.md was not updated, but subsystem source changed:" >&2
+  printf '%s\n' "$subsys" | sed 's/^/    /' >&2
+  echo "  Update the matching '## <subsystem>' section and bump its Snapshot line," >&2
+  echo "  then 'git add LOGIC-ATLAS.md' and commit again." >&2
+  exit 1
+fi
+
+find_python() {
+  if [ -n "$ATLAS_PYTHON" ]; then echo "$ATLAS_PYTHON"; return; fi
+  for c in python3 python py; do
+    p=$(command -v "$c" 2>/dev/null) || continue
+    case "$p" in *WindowsApps*) continue;; esac
+    if "$p" -c "" 2>/dev/null; then echo "$p"; return; fi
+  done
+}
+
+if [ -n "$subsys" ] || [ -n "$atlas_staged" ]; then
+  PY=$(find_python)
+  if [ -n "$PY" ]; then
+    if ! "$PY" scripts/atlas_check.py >&2; then
+      echo "pre-commit blocked: scripts/atlas_check.py found a broken atlas claim (above)." >&2
+      exit 1
+    fi
+  else
+    echo "pre-commit: python not found; skipped scripts/atlas_check.py (staged check still applied)." >&2
+  fi
+fi

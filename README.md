@@ -136,7 +136,7 @@ Platform guides: [Windows](./doc/how_to_build_win.md) · [macOS](./doc/how_to_bu
 | `flare/sources/common/flash/` | Format readers: SWF, XFL/FLA, ZIP, shapes, optional AS3 bridge |
 | `flare/sources/common/moho/` | Moho (Lost Marble) project reader |
 | `flare/sources/common/tgame/` | Game engine: entity-component-system, fixed-timestep loop, systems |
-| `flare/rust/` | Rust backend (`flare_formats`): format sniffing via a C ABI, behind `-DFLARE_WITH_RUST=ON` |
+| `flare/sources/common/*/rust/` | Rust backend (`flare_formats`): modules beside the C++ they port, manifest at `flare/sources/Cargo.toml`, behind `-DFLARE_WITH_RUST=ON` |
 | `tools/flash/next2flash/` | Optional Python sidecar for ActionScript decompile / string patch / compile |
 | `stuff/` | Runtime data: rooms, profiles, brushes, FX presets |
 | `thirdparty/` | Bundled third-party libraries |
@@ -159,7 +159,7 @@ Individual suites, useful while iterating:
 ```sh
 python tests/native/run_tests.py          # native C++ readers and updater
 python -m pytest tools/flash/tests -q     # Flash bridge and format fixtures
-cargo test --manifest-path flare/rust/Cargo.toml
+cargo test --workspace --manifest-path flare/sources/Cargo.toml
 python tests/check_issue_fixes.py         # which open issues have code answering them
 ```
 
