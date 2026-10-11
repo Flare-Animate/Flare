@@ -80,13 +80,24 @@ PROBES = {
 
 def main():
     try:
-        issues = json.loads(subprocess.run(
+        raw = subprocess.run(
             ["gh", "issue", "list", "--state", "open", "--limit", "50",
              "--json", "number,title"],
-            cwd=REPO, capture_output=True, text=True).stdout or "[]")
+            cwd=REPO, capture_output=True, text=True)
     except Exception as e:
-        print("  could not list issues:", e)
-        return 1
+        print("  SKIP: could not run gh (%s); issue map not verified" % e)
+        return 0
+    if raw.returncode != 0:
+        # No gh, not authenticated, or offline: skip loudly. Reporting this as a
+        # failure would make the suite depend on network and on a login token.
+        print("  SKIP: gh unavailable (exit %d); issue map not verified"
+              % raw.returncode)
+        return 0
+    try:
+        issues = json.loads(raw.stdout or "[]")
+    except ValueError as e:
+        print("  SKIP: gh output was not JSON (%s); issue map not verified" % e)
+        return 0
 
     by_num = {i["number"]: i for i in issues}
     addressed, open_items = [], []
@@ -112,6 +123,10 @@ def main():
 
     print("\n  %d of %d open issues have code answering them"
           % (len(addressed), len(by_num)))
+    missing = [n for n in sorted(by_num) if n not in PROBES]
+    if missing:
+        print("  NOTE: no probe defined for #%s; docs/ISSUE_MAP.md must say why"
+              % ", #".join(str(n) for n in missing))
     return 0
 
 
