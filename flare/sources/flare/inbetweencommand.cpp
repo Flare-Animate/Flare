@@ -16,7 +16,7 @@
 #include "drawingdata.h"
 #include "flareqt/strokesdata.h"
 #include "flareqt/toonzimagedata.h"
-#include "timageCache.h"
+#include "timagecache.h"
 #include "tools/toolutils.h"
 #include "flareqt/icongenerator.h"
 

@@ -4,7 +4,7 @@
 #define BRUSHPRESETBRIDGE_H
 
 #include <QString>
-#include <TSmartPointer.h>
+#include "tsmartpointer.h"
 #include "tpalette.h"
 #include "tcolorstyles.h"
 #include "tundo.h"
