@@ -50,7 +50,10 @@
 #include <QUrl>
 #include <QMenu>
 #include <QInputDialog>
+#include <QMessageBox>
+#ifdef FLARE_WITH_RUST
 #include "flare_formats.h"
+#endif
 #include <QDir>
 
 const char *AudioFolderName = "Audio";
@@ -956,6 +959,7 @@ void CastBrowser::newSymbol(const std::string &kind) {
   if (!xl) return;
   TFilePath folder = m_treeViewer->getCurrentFolder();
   if (!folder.isEmpty()) scene->getLevelSet()->moveLevelToFolder(folder, xl);
+#ifdef FLARE_WITH_RUST
   QByteArray lib  = s_symlib.toUtf8();
   QByteArray line = (QString::fromStdString(kind) + "	" +
                      QString::fromStdWString(folder.getWideString()) + "	" +
@@ -972,6 +976,16 @@ void CastBrowser::newSymbol(const std::string &kind) {
                          (uint8_t *)out.data(), out.size());
   }
   s_symlib = QString::fromUtf8(out.data(), (int)n);
+#else
+  // The symbol library is parsed by the Rust crate; without the backend there is
+  // no parser, so say so rather than writing a library nothing can read. The level
+  // itself was already created above, so the symbol still exists as a level.
+  QMessageBox::information(
+      this, tr("New Symbol"),
+      tr("The Flash symbol library needs the Rust backend, which this build does "
+         "not have. The level was created, but it was not added to the library.\n\n"
+         "Rebuild with -DFLARE_WITH_RUST=ON to enable the library."));
+#endif
   TApp::instance()->getCurrentScene()->setDirtyFlag(true);
   TApp::instance()->getCurrentScene()->notifyCastChange();
   refreshData();

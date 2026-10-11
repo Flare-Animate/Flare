@@ -40,7 +40,9 @@
 #include "As3Bridge.h"
 #include "FSWFStream.h"
 #include "Macromedia.h"
+#ifdef FLARE_WITH_RUST
 #include "flare_formats.h"
+#endif
 
 #include <QFile>
 #include <QDir>
@@ -223,6 +225,7 @@ static void appendImportLog(const QString &text) {
 static void importXflSvg(TXsheet *xsheet, const TFilePath &xflBaseDir, const QString &outPath) {
     // Vector art (DOMShape + nested symbols) -> per-frame SVG via Rust flare_formats.
     // Without this, CS6 FLA/XFL files (art lives in LIBRARY symbols) import blank.
+#ifdef FLARE_WITH_RUST
     {
         const QString svgDir = outPath + "/xfl_svg";
         char *res = flare_xfl_export_svg(xflBaseDir.getQString().toUtf8().constData(),
@@ -265,6 +268,16 @@ static void importXflSvg(TXsheet *xsheet, const TFilePath &xflBaseDir, const QSt
         xsheet->updateFrameCount();
         TApp::instance()->getCurrentXsheet()->notifyXsheetChanged();
     }
+#else
+    // Built without the Rust backend (-DFLARE_WITH_RUST=OFF): no SVG export, so
+    // CS6 vector art living in LIBRARY symbols cannot be placed. Say so in the
+    // log rather than silently importing a blank timeline.
+    g_xflLog = "error: built without the Rust backend; rebuild with "
+               "-DFLARE_WITH_RUST=ON to import XFL vector art\n";
+    QFile lf(outPath + "/flare_import_log.txt");
+    if (lf.open(QIODevice::WriteOnly | QIODevice::Text)) lf.write(g_xflLog.toUtf8());
+    qDebug().noquote() << "[XFL import]" << g_xflLog;
+#endif
 }
 
 static void importXFLScene(ToonzScene *scene, TXsheet *xsheet,
@@ -414,6 +427,7 @@ void ImportFlashVectorCommand::execute() {
             QByteArray flaData = flaFile.readAll();
             flaFile.close();
             bitmaps = FlashAssets::extractLegacyFlaBitmaps(flaData, outPath);
+#ifdef FLARE_WITH_RUST
             // CFBF directory via Rust: lists streams for the log so the user
             // can see what a binary .fla actually contains.
             char *st = flare_cfbf_streams(
@@ -421,6 +435,11 @@ void ImportFlashVectorCommand::execute() {
             g_xflLog = st ? QStringLiteral("legacy FLA streams (name\tsize):\n") + QString::fromUtf8(st)
                           : QStringLiteral("error: CFBF directory unreadable\n");
             flare_moho_free(st);
+#else
+            g_xflLog = QStringLiteral(
+                "legacy FLA bitmaps extracted; stream listing needs the Rust "
+                "backend (-DFLARE_WITH_RUST=ON)\n");
+#endif
             QFile lf(outPath + "/flare_import_log.txt");
             if (lf.open(QIODevice::WriteOnly | QIODevice::Text)) lf.write(g_xflLog.toUtf8());
         }

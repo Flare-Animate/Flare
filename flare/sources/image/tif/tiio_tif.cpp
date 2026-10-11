@@ -24,6 +24,43 @@ extern "C" {
 }
 
 // Ensure 64-bit TIFF RGBA helpers are declared for headers that omit them
+#ifdef FLARE_TIFF_NO_RGBA_64
+// Some system libtiff builds (Ubuntu's, for one) do not export the 64-bit RGBA
+// entry points at all, which is an unresolved external at link time. libtiff
+// packs RGBA into its raster type identically in both widths, so widening the
+// 32-bit API reproduces what TIFFReadRGBAStrip_64 / TIFFReadRGBATile_64 write.
+#include <vector>
+
+static inline uint64 flare_pack_rgba(uint32 v) {
+  return (uint64)TIFFGetR(v) | ((uint64)TIFFGetG(v) << 8) |
+         ((uint64)TIFFGetB(v) << 16) | ((uint64)TIFFGetA(v) << 24);
+}
+
+static int flare_read_rgba_strip_64(TIFF *tif, uint32 row, uint64 *raster) {
+  uint32 w = 0, h = 0, rps = 1;
+  TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &w);
+  if (!TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &h) || !w || row >= h) return 1;
+  TIFFGetField(tif, TIFFTAG_ROWSPERSTRIP, &rps);
+  uint32 rows = (rps && rps < h - row) ? rps : h - row;
+  std::vector<uint32> tmp((size_t)w * rows);
+  if (!TIFFReadRGBAStrip(tif, row, tmp.empty() ? nullptr : &tmp[0])) return 0;
+  for (size_t i = 0, n = tmp.size(); i < n; ++i) raster[i] = flare_pack_rgba(tmp[i]);
+  return 1;
+}
+
+static int flare_read_rgba_tile_64(TIFF *tif, uint32 x, uint32 y, uint64 *raster) {
+  uint32 tw = 0, th = 0;
+  if (!TIFFGetField(tif, TIFFTAG_TILEWIDTH, &tw) ||
+      !TIFFGetField(tif, TIFFTAG_TILELENGTH, &th) || !tw || !th)
+    return 0;
+  std::vector<uint32> tmp((size_t)tw * th);
+  if (!TIFFReadRGBATile(tif, x, y, &tmp[0])) return 0;
+  for (size_t i = 0, n = tmp.size(); i < n; ++i) raster[i] = flare_pack_rgba(tmp[i]);
+  return 1;
+}
+#define TIFFReadRGBAStrip_64 flare_read_rgba_strip_64
+#define TIFFReadRGBATile_64  flare_read_rgba_tile_64
+#else
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -31,6 +68,7 @@ extern int TIFFReadRGBAStrip_64(TIFF *tif, uint32 row, uint64 *raster);
 extern int TIFFReadRGBATile_64(TIFF *tif, uint32 x, uint32 y, uint64 *raster);
 #ifdef __cplusplus
 }
+#endif
 #endif
 
 #include "tiio_tif.h"

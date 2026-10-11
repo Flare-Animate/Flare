@@ -206,3 +206,22 @@ elseif(BUILD_ENV_UNIXLIKE)
 endif()
 
 target_link_libraries(image Qt5::Core Qt5::Gui Qt5::Network ${Z_LIB} ${GLUT_LIB} ${GL_LIB} ${JPEG_LIB} ${TIFF_LIB} ${PNG_LIB} ${EXTRA_LIBS})
+
+# The TIFF reader wants libtiff's 64-bit RGBA entry points, but some libtiff
+# builds (Ubuntu's, for one) do not export them, which is an unresolved
+# external at link time rather than a compile error. Probe for the symbol and
+# fall back to a widening shim over the 32-bit API when it is missing.
+include(CheckCXXSymbolExists)
+set(_flare_saved_req_libs "${CMAKE_REQUIRED_LIBRARIES}")
+set(_flare_saved_req_flags "${CMAKE_REQUIRED_FLAGS}")
+set(CMAKE_REQUIRED_LIBRARIES "${TIFF_LIB}")
+set(CMAKE_REQUIRED_FLAGS "")
+check_cxx_symbol_exists(TIFFReadRGBAStrip_64 "tiffio.h" FLARE_HAVE_TIFF_RGBA_64)
+set(CMAKE_REQUIRED_LIBRARIES "${_flare_saved_req_libs}")
+set(CMAKE_REQUIRED_FLAGS "${_flare_saved_req_flags}")
+unset(_flare_saved_req_libs)
+unset(_flare_saved_req_flags)
+if(NOT FLARE_HAVE_TIFF_RGBA_64)
+    message(STATUS "libtiff lacks TIFFReadRGBAStrip_64; using the 32-bit widening shim.")
+    target_compile_definitions(image PRIVATE FLARE_TIFF_NO_RGBA_64=1)
+endif()
