@@ -3,6 +3,7 @@
 //! datagram lands; first frame must be "hello <code>". No libdatachannel.
 use std::net::{SocketAddr, UdpSocket};
 use std::time::{Duration, Instant};
+use std::ffi::c_char;
 
 pub const ALPHA: &[u8] = b"23456789ABCDEFGHJKMNPQRSTVWXYZ";
 
@@ -62,9 +63,12 @@ impl Peer {
     }
     pub fn send(&self, m: &Msg) -> std::io::Result<()> { self.sock.send_to(encode(m).as_bytes(), self.remote).map(|_| ()) }
     /// Next valid non-hello message, or None on timeout.
-    pub fn recv(&self) -> Option<Msg> {
+    pub fn recv(&self) -> Option<Msg> { self.recv_timeout(Duration::from_millis(2000)) }
+    /// Next message, giving up after `budget`. `recv` is `recv_timeout(2s)`.
+    pub fn recv_timeout(&self, budget: Duration) -> Option<Msg> {
+        let deadline = Instant::now() + budget;
         let mut buf = [0u8; 1500];
-        for _ in 0..40 {
+        while Instant::now() < deadline {
             if let Ok((n, f)) = self.sock.recv_from(&mut buf) {
                 let m = decode(&String::from_utf8_lossy(&buf[..n]));
                 if f == self.remote && !matches!(m.verb, Verb::Invalid | Verb::Hello) { return Some(m); }
@@ -72,6 +76,115 @@ impl Peer {
         }
         None
     }
+}
+
+// ---- C ABI ---------------------------------------------------------------
+// flare/sources/remote/remotetransport.h declares this shape; the C++ remote
+// dialog uses it so the shipped app drives the same transport the tests cover.
+// A NULL handle means "no peer": wrong code, or the timeout expired. Nothing
+// here throws, and no pointer crosses the boundary that the caller does not own.
+
+use std::ffi::CStr;
+
+/// Opaque connected session. Owned by the caller; free with flare_remote_close.
+pub struct FlareRemote {
+    peer: Peer,
+    port: u16,
+}
+
+fn cstr(p: *const c_char) -> Option<String> {
+    if p.is_null() { return None; }
+    unsafe { CStr::from_ptr(p) }.to_str().ok().map(str::to_owned)
+}
+
+unsafe fn msg_of(verb: &str, arg: &str) -> Msg {
+    Msg { verb: VERBS.iter().find(|v| v.1 == verb).map_or(Verb::Invalid, |v| v.0), arg: arg.into() }
+}
+
+/// Announce `code` on `port` (0 = ephemeral) and wait `timeout_ms` for a peer.
+/// Returns NULL on timeout or a code mismatch.
+#[no_mangle]
+pub unsafe extern "C" fn flare_remote_host(
+    port: u16, code: *const c_char, timeout_ms: u32,
+) -> *mut FlareRemote {
+    let Some(code) = cstr(code) else { return std::ptr::null_mut() };
+    let Ok(sock) = UdpSocket::bind(SocketAddr::from(([0, 0, 0, 0], port))) else { return std::ptr::null_mut() };
+    let bound = sock.local_addr().map(|a| a.port()).unwrap_or(port);
+    // Accept from whoever answers the code: learn the peer from the first datagram.
+    let Ok(remote) = wait_for_hello(&sock, &code, Duration::from_millis(timeout_ms as u64)) else { return std::ptr::null_mut() };
+    match Peer::connect(sock, remote, &code, Duration::from_millis(timeout_ms as u64)) {
+        Ok(peer) => Box::into_raw(Box::new(FlareRemote { peer, port: bound })),
+        Err(_) => std::ptr::null_mut(),
+    }
+}
+
+/// Dial `host:port` as the joining peer.
+#[no_mangle]
+pub unsafe extern "C" fn flare_remote_join(
+    host: *const c_char, port: u16, code: *const c_char, timeout_ms: u32,
+) -> *mut FlareRemote {
+    let (Some(host), Some(code)) = (cstr(host), cstr(code)) else { return std::ptr::null_mut() };
+    let Ok(ip) = host.parse::<std::net::IpAddr>() else { return std::ptr::null_mut() };
+    let Ok(sock) = UdpSocket::bind(SocketAddr::from(([0, 0, 0, 0], 0))) else { return std::ptr::null_mut() };
+    match Peer::connect(sock, SocketAddr::new(ip, port), &code, Duration::from_millis(timeout_ms as u64)) {
+        Ok(peer) => Box::into_raw(Box::new(FlareRemote { peer, port })),
+        Err(_) => std::ptr::null_mut(),
+    }
+}
+
+/// The port actually bound, for the UI to advertise. 0 when `s` is NULL.
+#[no_mangle]
+pub unsafe extern "C" fn flare_remote_port(s: *const FlareRemote) -> u16 {
+    if s.is_null() { 0 } else { (*s).port }
+}
+
+/// Send one message. 0 on success, -1 on a NULL handle or send failure.
+#[no_mangle]
+pub unsafe extern "C" fn flare_remote_send(
+    s: *mut FlareRemote, verb: *const c_char, arg: *const c_char,
+) -> i32 {
+    if s.is_null() { return -1; }
+    let (Some(v), Some(a)) = (cstr(verb), cstr(arg)) else { return -1 };
+    match (*s).peer.send(&msg_of(&v, &a)) { Ok(()) => 0, Err(_) => -1 }
+}
+
+/// Wait up to `timeout_ms` for a message; writes the encoded form into `out`.
+/// 1 = got one (out holds up to `cap` bytes, NUL-terminated when it fits),
+/// 0 = nothing arrived, -1 = bad arguments.
+#[no_mangle]
+pub unsafe extern "C" fn flare_remote_poll(
+    s: *const FlareRemote, timeout_ms: u32, out: *mut c_char, cap: usize,
+) -> i32 {
+    if s.is_null() || out.is_null() || cap == 0 { return -1; }
+    match (*s).peer.recv_timeout(Duration::from_millis(timeout_ms as u64)) {
+        Some(m) => {
+            let e = encode(&m);
+            let bytes = e.as_bytes();
+            let n = bytes.len().min(cap - 1);
+            std::ptr::copy_nonoverlapping(bytes.as_ptr(), out as *mut u8, n);
+            *out.add(n) = 0;
+            1
+        }
+        None => 0,
+    }
+}
+
+/// Drop the session. Safe with NULL; never called twice on the same handle.
+#[no_mangle]
+pub unsafe extern "C" fn flare_remote_close(s: *mut FlareRemote) {
+    if !s.is_null() { drop(Box::from_raw(s)); }
+}
+
+fn wait_for_hello(sock: &UdpSocket, code: &str, budget: Duration) -> std::io::Result<SocketAddr> {
+    let end = Instant::now() + budget;
+    let mut buf = [0u8; 1500];
+    while Instant::now() < end {
+        if let Ok((n, from)) = sock.recv_from(&mut buf) {
+            let m = decode(&String::from_utf8_lossy(&buf[..n]));
+            if m.verb == Verb::Hello && m.arg == code { return Ok(from); }
+        }
+    }
+    Err(std::io::ErrorKind::TimedOut.into())
 }
 
 #[cfg(test)]
@@ -96,4 +209,36 @@ mod tests {
         b.send(&m(Verb::Command, "MI_Undo")).unwrap(); assert_eq!(a.recv(), Some(m(Verb::Command, "MI_Undo")));
     }
     #[test] fn bad_code() { let (a, b) = pair("ABC234", "ZZZ999"); assert!(a.is_err() && b.is_err()); }
+}
+
+#[cfg(test)]
+mod ffi_tests {
+    use super::*;
+
+    fn cs(s: &str) -> Vec<c_char> {
+        s.as_bytes().iter().chain(std::iter::once(&0u8)).map(|b| *b as c_char).collect()
+    }
+    fn text(out: &[c_char]) -> String {
+        unsafe { std::ffi::CStr::from_ptr(out.as_ptr()) }.to_str().unwrap().to_owned()
+    }
+
+    #[test]
+    fn ffi_abi_shapes() {
+        // Test that the C ABI function signatures are correct and safe.
+        let play = cs("play");
+        let empty = cs("");
+        let mut out = [0i8; 64];
+
+        // NULL handles must be inert and return errors, never panic.
+        assert_eq!(unsafe { flare_remote_send(std::ptr::null_mut(), play.as_ptr(), empty.as_ptr()) }, -1);
+        assert_eq!(unsafe { flare_remote_poll(std::ptr::null(), 0, out.as_mut_ptr(), out.len()) }, -1);
+        assert_eq!(unsafe { flare_remote_port(std::ptr::null()) }, 0);
+        unsafe { flare_remote_close(std::ptr::null_mut()) };
+
+        // Invalid host/join args (NULL strings) must return NULL, not crash.
+        let h = unsafe { flare_remote_host(0, std::ptr::null(), 100) };
+        assert!(h.is_null());
+        let g = unsafe { flare_remote_join(std::ptr::null(), 0, std::ptr::null(), 100) };
+        assert!(g.is_null());
+    }
 }

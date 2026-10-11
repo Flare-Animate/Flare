@@ -19,7 +19,7 @@ import commands served from `flare/sources/flare`.
 > A missing or misspelled `#[path]` is a compile error, so the crate root is the single
 > inventory of what has been ported.
 
-> Snapshot: Flare @ 7efedd012 (branch unification to master-only plus the CFBF stream
+> Snapshot: Flare @ b213689c4 (remote crate C ABI + tests, all suites pass)
 > listing port): Rust format sniffing over a C ABI, C++ SWF/XFL/Moho readers, an
 > optional Python AS3 sidecar, a scaffolded game engine, and a P2P protocol with tests.
 
@@ -245,8 +245,9 @@ FFmpeg detection.
 **Namespace:** `flare_remote`  **Dir:** `flare/sources/remote`  **Deps:** `flare_remote` (Rust crate, tested)  **Entry points:** `remoteprotocol.h`, `remotetransport.h`, `remotedialog.h`.
 
 **Job:** The wire protocol for serverless device-to-device remote control: message framing
-(`Msg`), session state (`Session`), and the transport interface. Protocol and tests only —
-no transport is implemented.
+(`Msg`), session state (`Session`), and the transport interface. The Rust crate now
+implements the transport (UDP hole-punch with a 6-char pairing code) and exposes a
+C ABI so the C++ dialog can drive it without reimplementing the protocol.
 
 **Key functions/types:**
 - `Msg` (`remoteprotocol.h`) — the framed message type.
@@ -265,15 +266,19 @@ no transport is implemented.
 
 **Namespace:** crate root  **Dir:** `flare/sources/remote/rust`  **Deps:** none (leaf)  **Entry points:** `src/lib.rs`, `Cargo.toml`.
 
-**Job:** The Rust side of the remote-control protocol, unit-tested (3 tests). Must stay
-framing-compatible with `flare/sources/remote`.
+**Job:** The Rust side of the remote-control protocol. Implements UDP hole-punch,
+pairing-code exchange, message framing, and a C ABI (`flare_remote_host`,
+`flare_remote_join`, `flare_remote_send`, `flare_remote_poll`, `flare_remote_close`,
+`flare_remote_port`). Unit-tested (4 tests: protocol round-trip, bad code rejection,
+and C ABI shape checks).
 
 **Invariants:**
 - Framing changes land in both the crate and `remoteprotocol.h` in one commit — a silent split bricks interop with no compile error on either side.
+- The C ABI never panics; NULL handles and invalid arguments return error codes.
 
 **State:** stateless helpers plus session structs.
 
-**Coupling:** consumed by nothing yet; mirrors the C++ protocol headers.
+**Coupling:** consumed by the C++ remote dialog (via `remotetransport.h`); mirrors the C++ protocol headers.
 
 ---
 
