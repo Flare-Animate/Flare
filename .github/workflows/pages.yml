@@ -20,7 +20,7 @@ jobs:
           node --disable-warning=ExperimentalWarning tools/flash/webapp/build.ts
           test -f tools/flash/webapp/dist/index.html
           test -f tools/flash/webapp/dist/app.js
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         with: { path: tools/flash/webapp/dist }
       - id: d
         uses: actions/deploy-pages@v4
