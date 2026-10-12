@@ -1,23 +1,42 @@
 //! Flash-style symbol library: folders + symbols (movieclip/graphic/button).
 //! Stored as TSV lines `kind\tfolder/path\tname\tlevel` (kind: mc|gr|btn|dir).
 #[derive(Debug, Clone, PartialEq)]
-pub struct Item { pub kind: String, pub folder: String, pub name: String, pub level: String }
+pub struct Item {
+    pub kind: String,
+    pub folder: String,
+    pub name: String,
+    pub level: String,
+}
 
 pub fn parse(s: &str) -> Vec<Item> {
-    let mut v: Vec<Item> = s.lines().filter_map(|l| {
-        let f: Vec<&str> = l.split('\t').collect();
-        let k = *f.first()?;
-        if !matches!(k, "mc" | "gr" | "btn" | "dir") || f.len() < 3 || f[2].is_empty() { return None; }
-        Some(Item { kind: k.into(), folder: f[1].trim_matches('/').into(), name: f[2].into(), level: f.get(3).unwrap_or(&"").to_string() })
-    }).collect();
+    let mut v: Vec<Item> = s
+        .lines()
+        .filter_map(|l| {
+            let f: Vec<&str> = l.split('\t').collect();
+            let k = *f.first()?;
+            if !matches!(k, "mc" | "gr" | "btn" | "dir") || f.len() < 3 || f[2].is_empty() {
+                return None;
+            }
+            Some(Item {
+                kind: k.into(),
+                folder: f[1].trim_matches('/').into(),
+                name: f[2].into(),
+                level: f.get(3).unwrap_or(&"").to_string(),
+            })
+        })
+        .collect();
     // stable sort keeps first occurrence first, so dedup keeps the newest (prepended) entry
-    v.sort_by(|a, b| (&a.folder, a.kind != "dir", &a.name).cmp(&(&b.folder, b.kind != "dir", &b.name)));
+    v.sort_by(|a, b| {
+        (&a.folder, a.kind != "dir", &a.name).cmp(&(&b.folder, b.kind != "dir", &b.name))
+    });
     v.dedup_by(|a, b| a.folder == b.folder && a.name == b.name);
     v
 }
 
 pub fn dump(v: &[Item]) -> String {
-    v.iter().map(|i| format!("{}\t{}\t{}\t{}\n", i.kind, i.folder, i.name, i.level)).collect()
+    v.iter()
+        .map(|i| format!("{}\t{}\t{}\t{}\n", i.kind, i.folder, i.name, i.level))
+        .collect()
 }
 
 /// Add item (dup folder+name replaced). Returns normalized TSV.
