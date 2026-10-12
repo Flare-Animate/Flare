@@ -2,7 +2,7 @@
 
 # Flare
 
-<img width="663" height="400" alt="Flare banner" src="doc/images/banner.svg" />
+<img width="610" height="344" alt="Flare splash screen" src="doc/images/banner.svg" />
 
 **A free, open-source Animation suite based on OpenToonz and Next2Flash. Designed with continuity for Adobe Flash/Animate users**
 
