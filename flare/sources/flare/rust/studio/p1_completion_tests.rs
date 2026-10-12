@@ -412,7 +412,7 @@ fn linked_layer_properties_and_frame_display_are_reachable_localized_and_stable(
                 // the hover first keeps the query unambiguous while still
                 // asserting what the test is about: hovering does not move the
                 // widget.
-                hover_off(h);
+                hover_off(&mut h);
                 assert_eq!(h.get_by_label(&label).rect(), rect);
                 h.get_by_label(&label).click();
                 h.run();
@@ -427,7 +427,7 @@ fn linked_layer_properties_and_frame_display_are_reachable_localized_and_stable(
                 let rect = h.get_by_label(&label).rect();
                 h.get_by_label(&label).hover();
                 h.run();
-                hover_off(h);
+                hover_off(&mut h);
                 assert_eq!(h.get_by_label(&label).rect(), rect);
                 assert!(
                     rect.width()
