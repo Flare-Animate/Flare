@@ -1535,11 +1535,9 @@ bool IoCmd::saveScene(const TFilePath &path, int flags) {
   // autosave (would save to scene file) .
   CleanupParameters *cp = scene->getProperties()->getCleanupParameters();
   CleanupParameters keepCP(*cp);
-  if (!isAutosave) {
-    // In case of a .cln file be loaded into GlobalParemeters,
-    // we should also write these info into .tnz (scene file)
-    cp->assign(&CleanupParameters::GlobalParameters, false);
-  }
+  // In case of a .cln file be loaded into GlobalParemeters,
+  // we should also write these info into .tnz (scene file)
+  cp->assign(&CleanupParameters::GlobalParameters, false);
 
   bool saveSucceeded = true;
   try {
@@ -1561,7 +1559,7 @@ bool IoCmd::saveScene(const TFilePath &path, int flags) {
     cp->assign(&keepCP, false);
   }
 
-  cp->assign(&keepCP);
+  cp->assign(&keepCP, false);
   // Make sure that the current cleanup palette is set to currentParams' palette
   TApp::instance()
       ->getPaletteController()

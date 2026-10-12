@@ -11,6 +11,10 @@ For files in the "tools/flash/next2flash" directory: the bundled AS3 decompiler
 
 Flare
 
+Portions adapted from Flare's vector alignment commands and panel:
+Copyright (c) 2016 - 2023, John Dancel (manongjohn)
+All rights reserved.
+
 All contributions by DWANGO:
 Copyright (c) 2016 - 2026, DWANGO Co., Ltd.
 All rights reserved.

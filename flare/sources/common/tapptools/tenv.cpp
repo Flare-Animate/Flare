@@ -273,6 +273,20 @@ public:
       if (m_isPortable)
         m_workingDirectory = portableCheck.getParentDir().getQString();
     }
+#elif defined(LINUX) || defined(FREEBSD)
+    // Linux AppImages are mounted and run in a different location separating it
+    // from the tahomastuff folder. This will use the original location of the
+    // AppImage to look for it
+    if (!m_isPortable) {
+      char *value = getenv("APPIMAGE");
+      if (value) {
+        portableCheck  = TFilePath(value).getParentDir() + "/tahomastuff";
+        portableStatus = TFileStatus(portableCheck);
+        m_isPortable   = portableStatus.doesExist();
+        if (m_isPortable)
+          m_workingDirectory = portableCheck.getParentDir().getQString();
+      }
+    }
 #endif
   }
   QString getWorkingDirectory() { return m_workingDirectory; }
@@ -654,8 +668,8 @@ void TEnv::setStuffDir(const TFilePath &stuffDir) {
 // and EnvGlobals has no getSystemVarFile there -- compiling
 // these callers anyway would be the same dangling reference the
 // sync left behind, one layer down.
-// OpenToonz's per-user stuff seeding, verbatim apart from the installed
-// share dir (share/flare/stuff here; share/opentoonz/stuff there -- confirmed
+// Flare's per-user stuff seeding, verbatim apart from the installed
+// share dir (share/flare/stuff here; share/flare/stuff there -- confirmed
 // against flare_legacy/CMakeLists.txt). The declaration arrived with the sync
 // but no definition anywhere, so tconverter/tcleanupper/tcomposer and the app
 // itself failed to link. No-op on Windows/macOS, in portable mode, with a
@@ -731,7 +745,7 @@ void TEnv::initUserStuffDir() {
   // portable builds carry their own stuff; nothing to seed
   if (eg->getIsPortable()) return;
 
-  // respect an explicit -TOONZROOT command-line override
+  // respect an explicit -FLAREROOT command-line override
   if (eg->getArgPathValue(eg->getRootVarName()) != "") return;
 
   TFilePath userStuffDir = getUserStuffDir(eg);
