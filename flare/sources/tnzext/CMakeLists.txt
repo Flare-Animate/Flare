@@ -84,29 +84,20 @@ if(BUILD_ENV_APPLE)
     add_dependencies(tnzext tnzcore tnzbase)
 endif()
 
-add_definitions(
-    -DTNZEXT_EXPORTS
-)
-
-message("subdir: tnzext")
-message("Bin: " ${CMAKE_CURRENT_BINARY_DIR})
+target_compile_definitions(tnzext PRIVATE TNZEXT_EXPORTS)
 
 if(BUILD_ENV_APPLE)
     find_library(ACCE_LIB Accelerate)
 endif()
 
 if(BUILD_ENV_MSVC OR BUILD_ENV_APPLE)
-    # Warning, this looks wrong,
-    # should _only_ use SUPERLU_INCLUDE_DIR, for now do this with Linux.
-    include_directories(
-        SYSTEM
-        ${SDKROOT}/superlu/SuperLU_4.1/SRC
-    )
+    set(_tnzext_superlu_include_dir "${SDKROOT}/superlu/SuperLU_4.1/SRC")
+    if(NOT EXISTS "${_tnzext_superlu_include_dir}")
+        set(_tnzext_superlu_include_dir "${SUPERLU_INCLUDE_DIR}")
+    endif()
+    target_include_directories(tnzext SYSTEM PRIVATE "${_tnzext_superlu_include_dir}")
 else()
-    include_directories(
-        SYSTEM
-        ${SUPERLU_INCLUDE_DIR}
-    )
+    target_include_directories(tnzext SYSTEM PRIVATE "${SUPERLU_INCLUDE_DIR}")
 endif()
 
 if(BUILD_ENV_MSVC)
@@ -124,6 +115,12 @@ elseif(BUILD_ENV_APPLE)
         "$<TARGET_FILE:tnzcore>"
         "$<TARGET_FILE:tnzbase>"
     )
+
+    # If SuperLU is built from thirdparty source (architecture mismatch with the
+    # bundled archive), make sure the archive exists before linking tnzext.
+    if(TARGET superlu_local)
+        add_dependencies(tnzext superlu_local)
+    endif()
 
     target_link_libraries(tnzext
         Qt5::Core Qt5::Gui Qt5::OpenGL Qt5::Network

@@ -593,16 +593,17 @@ endif()
 if(BUILD_ENV_APPLE)
     # CMAKE_RUNTIME_OUTPUT_DIRECTORY should be equivalent to usage on windows despite empty
     # OSX だと CMAKE_RUNTIME_OUTPUT_DIRECTORY が空だが Windows 版と同じ使い方ができるようにしておく
-    get_target_property(bin Flare LOCATION)
-    get_filename_component(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${bin} DIRECTORY)
+    set(bin "$<TARGET_FILE:Flare>")
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "$<TARGET_FILE_DIR:Flare>")
     # show CMAKE_RUNTIME_OUTPUT_DIRECTORY
     message("CMAKE_RUNTIME_OUTPUT_DIRECTORY:" ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 endif()
 
 # copy utility executables onto the directory after build
 if(LZODRIVER_FOUND)
-    add_custom_command(TARGET Flare POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:lzocompress> ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} DEPENDS lzocompress)
-    add_custom_command(TARGET Flare POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:lzodecompress> ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} DEPENDS lzodecompress)
+    add_dependencies(Flare lzocompress lzodecompress)
+    add_custom_command(TARGET Flare POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:lzocompress> ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+    add_custom_command(TARGET Flare POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:lzodecompress> ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 endif()
 
 if(BUILD_ENV_APPLE)
@@ -614,11 +615,12 @@ if(BUILD_ENV_APPLE)
         add_custom_command(TARGET Flare POST_BUILD COMMAND cp ${lib} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
     endforeach()
 
-    add_custom_command(TARGET Flare POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:tcomposer> ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} DEPENDS tcomposer)
-    add_custom_command(TARGET Flare POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:tcleanup> ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} DEPENDS tcleanup)
-    add_custom_command(TARGET Flare POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:tconverter> ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} DEPENDS tconverter)
-    add_custom_command(TARGET Flare POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:tfarmcontroller> ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} DEPENDS tfarmcontroller)
-    add_custom_command(TARGET Flare POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:tfarmserver> ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} DEPENDS tfarmserver)
+    add_dependencies(Flare tcomposer tcleanup tconverter tfarmcontroller tfarmserver)
+    add_custom_command(TARGET Flare POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:tcomposer> ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+    add_custom_command(TARGET Flare POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:tcleanup> ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+    add_custom_command(TARGET Flare POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:tconverter> ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+    add_custom_command(TARGET Flare POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:tfarmcontroller> ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+    add_custom_command(TARGET Flare POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:tfarmserver> ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 
     add_custom_command(TARGET Flare POST_BUILD COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/../Resources)
     add_custom_command(TARGET Flare POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/../install/SystemVar.ini ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/../Resources)
@@ -627,11 +629,13 @@ if(BUILD_ENV_APPLE)
 
     add_custom_command(TARGET Flare
         POST_BUILD COMMAND
-        ${CMAKE_INSTALL_NAME_TOOL} -add_rpath @executable_path/. ${bin} || true
+        /bin/sh -c
+        "\"${CMAKE_INSTALL_NAME_TOOL}\" -add_rpath '@executable_path/.' \"${bin}\" || true"
     )
     add_custom_command(TARGET Flare
         POST_BUILD COMMAND
-        ${CMAKE_INSTALL_NAME_TOOL} -add_rpath ${CMAKE_INSTALL_RPATH} ${bin} || true
+        /bin/sh -c
+        "\"${CMAKE_INSTALL_NAME_TOOL}\" -add_rpath \"${CMAKE_INSTALL_RPATH}\" \"${bin}\" || true"
     )
 
 elseif(BUILD_ENV_UNIXLIKE AND BUILD_TARGET_WIN)

@@ -7,6 +7,7 @@ Release
 Release64
 GeneratedFiles
 build*
+flare/android/.gradle/
 !flare/android/build.gradle
 !flare/android/app/build.gradle
 # `build*` above is meant for build output, but it also swallowed the web
