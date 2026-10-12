@@ -1,5 +1,5 @@
 use super::layer_types::LayerType;
-use super::timeline_tests::{app, click, drag, fixture, roundtrip};
+use super::timeline_tests::{app, click, drag, fixture, hover_off, roundtrip};
 use super::*;
 use ac_core::{ElementKind, Layer, LayerKind, Selection};
 use egui_kittest::{
@@ -7,6 +7,12 @@ use egui_kittest::{
     Harness,
 };
 
+/// Move the pointer somewhere no widget is hovered, and settle.
+///
+/// Controls here attach `on_hover_text(<their own label>)`, so while the
+/// pointer rests on one, a tooltip appears carrying a *second* node with the
+/// same label. Any `get_by_label` after that hover is ambiguous and panics.
+/// Tests that hover and then re-query by label must call this first.
 fn folder_fixture() -> ac_core::Document {
     let mut doc = fixture();
     let mut folder = Layer::new("Folder", 0);
@@ -398,6 +404,15 @@ fn linked_layer_properties_and_frame_display_are_reachable_localized_and_stable(
                 let rect = h.get_by_label(&label).rect();
                 h.get_by_label(&label).hover();
                 h.run();
+                // Move the pointer off the widget before querying again.
+                // widgets.rs attaches on_hover_text(<same label>) to these
+                // controls, so while the pointer is over one, the tooltip
+                // carries a second node with an identical label and
+                // get_by_label panics with "Found two or more nodes". Clearing
+                // the hover first keeps the query unambiguous while still
+                // asserting what the test is about: hovering does not move the
+                // widget.
+                hover_off(h);
                 assert_eq!(h.get_by_label(&label).rect(), rect);
                 h.get_by_label(&label).click();
                 h.run();
@@ -412,6 +427,7 @@ fn linked_layer_properties_and_frame_display_are_reachable_localized_and_stable(
                 let rect = h.get_by_label(&label).rect();
                 h.get_by_label(&label).hover();
                 h.run();
+                hover_off(h);
                 assert_eq!(h.get_by_label(&label).rect(), rect);
                 assert!(
                     rect.width()

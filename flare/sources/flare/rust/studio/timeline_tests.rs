@@ -66,6 +66,21 @@ pub(super) fn click(h: &mut Harness<Studio>, pos: egui::Pos2, modifiers: egui::M
     h.run();
 }
 
+/// Step budget for a held pointer drag. See the note in `drag`.
+const DRAG_STEPS: usize = 60;
+
+/// Move the pointer somewhere no widget is hovered, and settle.
+///
+/// Controls in this UI attach `on_hover_text(<their own label>)`, so while the
+/// pointer rests on one a tooltip appears carrying a *second* node with the
+/// same label. A `get_by_label` after such a hover is ambiguous and panics with
+/// "Found two or more nodes". Tests that hover and then re-query by label must
+/// call this first.
+pub(super) fn hover_off(h: &mut Harness<Studio>) {
+    h.hover_at(egui::Pos2::new(-1.0e4, -1.0e4));
+    h.run();
+}
+
 pub(super) fn drag(
     h: &mut Harness<Studio>,
     start: egui::Pos2,
@@ -81,12 +96,17 @@ pub(super) fn drag(
         pressed: true,
         modifiers,
     });
-    h.run();
+    // run() defaults to a 4-step budget, which a held drag exhausts: the
+    // timeline keeps requesting repaints while the pointer button is down
+    // (hover highlight, drag cursor, autoscroll edges), so the harness aborts
+    // with "exceeded max_steps" before the gesture can finish. run_steps gives
+    // the drag room to settle. Non-drag gestures elsewhere still use run().
+    h.run_steps(DRAG_STEPS);
     h.hover_at(end);
-    h.run();
+    h.run_steps(DRAG_STEPS);
     if cancel {
         h.key_press(egui::Key::Escape);
-        h.run();
+        h.run_steps(DRAG_STEPS);
     }
     h.event(egui::Event::PointerButton {
         pos: end,

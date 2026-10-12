@@ -9,6 +9,10 @@ fn main() -> eframe::Result {
             wgpu_options,
             viewport: eframe::egui::ViewportBuilder::default()
                 .with_decorations(!cfg!(target_os = "windows"))
+                // Same icon as the main Qt application (Flare.ico), embedded at
+                // compile time. Without this the window showed the generic
+                // default executable icon.
+                .with_icon(flare_studio::icon::icon_data())
                 .with_inner_size([1440.0, 920.0])
                 .with_min_inner_size([800.0, 600.0]),
             ..Default::default()

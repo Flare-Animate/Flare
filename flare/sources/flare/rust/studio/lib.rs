@@ -4,6 +4,7 @@ pub mod app;
 pub mod commands;
 pub mod document;
 pub mod i18n;
+pub mod icon;
 pub mod theme;
 pub mod widgets;
 
