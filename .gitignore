@@ -14,6 +14,7 @@ build*
 /FlarePortable
 /LocalTest
 /LocalTest-*
+/target/ghidra-ui-study/
 
 # Editor / IDE
 .vs
