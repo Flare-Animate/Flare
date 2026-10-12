@@ -1,5 +1,5 @@
 #!/bin/bash
-export TAHOMA2DVERSION=1.6.1
+export TAHOMA2DVERSION=1.6.3
 
 if [ -d /usr/local/Cellar/qt@5 ]
 then
@@ -18,79 +18,50 @@ then
    export TOONZDIR=$TOONZDIR/Release
 fi
 
-if [ -d $TOONZDIR/Flare.app/Contents/Resources/tahomastuff ]
-then
-   # In case of prior builds, replace stuff folder
-   rm -rf $TOONZDIR/Flare.app/Contents/Resources/tahomastuff
-fi
-
-if [ -d thirdparty/apps/ffmpeg/bin ]
-then
-   echo ">>> Copying FFmpeg to Flare.app/Contents/Resources/ffmpeg"
-   if [ -d $TOONZDIR/Flare.app/Contents/Resources/ffmpeg ]
-   then
-      # In case of prior builds, replace ffmpeg folder
-      rm -rf $TOONZDIR/Flare.app/Contents/Resources/ffmpeg
-   fi
-   mkdir $TOONZDIR/Flare.app/Contents/Resources/ffmpeg
-   cp -R thirdparty/apps/ffmpeg/bin/ffmpeg thirdparty/apps/ffmpeg/bin/ffprobe $TOONZDIR/Flare.app/Contents/Resources/ffmpeg
-   chmod -R 755 $TOONZDIR/Flare.app/Contents/Resources/ffmpeg
-fi
-
-if [ -d thirdparty/apps/rhubarb ]
-then
-   echo ">>> Copying Rhubarb Lip Sync to Flare.app/Contents/Resources/rhubarb"
-   if [ -d $TOONZDIR/Flare.app/Contents/Resources/rhubarb ]
-   then
-      # In case of prior builds, replace rhubarb folder
-      rm -rf $TOONZDIR/Flare.app/Contents/Resources/rhubarb
-   fi
-   mkdir $TOONZDIR/Flare.app/Contents/Resources/rhubarb
-   cp -R thirdparty/apps/rhubarb/rhubarb thirdparty/apps/rhubarb/res $TOONZDIR/Flare.app/Contents/Resources/rhubarb
-   chmod -R 755 $TOONZDIR/Flare.app/Contents/Resources/rhubarb
-fi
-
-if [ ! -d $TOONZDIR/Flare.app/Contents/Frameworks ]
-then
-   mkdir $TOONZDIR/Flare.app/Contents/Frameworks
-fi
-
-if [ -d thirdparty/canon/Framework ]
-then
-   if [ ! -d $TOONZDIR/Flare.app/Contents/Frameworks/EDSDK.framework ]
-   then
-      echo ">>> Copying canon framework to Flare.app/Contents/Frameworks/EDSDK.Framework"
-      cp -R thirdparty/canon/Framework/ $TOONZDIR/Flare.app/Contents/Frameworks
-      chmod -R 755 $TOONZDIR/Flare.app/Contents/Frameworks/EDSDK.framework
-   fi
-fi
-
-if [ ! -d $TOONZDIR/Flare.app/Contents/Frameworks/libgphoto2 ]
-then
-   echo ">>> Copying libghoto2 supporting directories to Flare.app/Contents/Resources"
-   cp -R /usr/local/lib/libgphoto2 $TOONZDIR/Flare.app/Contents/Resources
-   cp -R /usr/local/lib/libgphoto2_port $TOONZDIR/Flare.app/Contents/Resources
-
-   rm $TOONZDIR/Flare.app/Contents/Resources/libgphoto2/print-camera-list
-   find $TOONZDIR/Flare.app/Contents/Resources/libgphoto2* -name *.la -exec rm -f {} \;
-fi
-
-echo ">>> Creating DSYM files"
+###
+### Cleanup prior runs just in case
+###
 if [ -d $TOONZDIR/DSYM ]
 then
    rm -rf $TOONZDIR/DSYM
 fi
 
-for X in `find $TOONZDIR/Flare.app/Contents/MacOS -type f`
-do
-   dsymutil -o $TOONZDIR/DSYM $X
-   strip -S $X
-done
+if [ -d $TOONZDIR/Flare.app/Contents/Frameworks ]
+then
+   rm -rf $TOONZDIR/Flare.app/Contents/Frameworks
+fi
+
+if [ -d $TOONZDIR/Flare.app/Contents/Plugins ]
+then
+   rm -rf $TOONZDIR/Flare.app/Contents/Plugins
+fi
 
 if [ -d $TOONZDIR/Flare.app/Contents/Resources/DWARF ]
 then
    rm -rf $TOONZDIR/Flare.app/Contents/Resources/DWARF
 fi
+
+if [ -d $TOONZDIR/Flare.app/Contents/Resources/tahomastuff ]
+then
+   rm -rf $TOONZDIR/Flare.app/Contents/Resources/tahomastuff
+fi
+
+if [ -d $TOONZDIR/Flare.app/Contents/Resources/ffmpeg ]
+then
+   rm -rf $TOONZDIR/Flare.app/Contents/Resources/ffmpeg
+fi
+
+if [ -d $TOONZDIR/Flare.app/Contents/Resources/rhubarb ]
+then
+   rm -rf $TOONZDIR/Flare.app/Contents/Resources/rhubarb
+fi
+
+echo ">>> Creating DSYM files"
+for X in `find $TOONZDIR/Flare.app/Contents/MacOS -type f`
+do
+   dsymutil -o $TOONZDIR/DSYM $X
+   strip -S $X
+done
 
 echo ">>> Configuring Flare.app for deployment"
 
@@ -103,6 +74,9 @@ $QTDIR/bin/macdeployqt $TOONZDIR/Flare.app -verbose=0 -always-overwrite \
    -executable=$TOONZDIR/Flare.app/Contents/MacOS/tfarmcontroller \
    -executable=$TOONZDIR/Flare.app/Contents/MacOS/tfarmserver 
 
+###
+### Add additional frameworks
+###
 for FW in `echo "QtDBus QtPdf QtQml QtQmlModels QtQuick QtVirtualKeyboard"`
 do
    if [ ! -d $TOONZDIR/Flare.app/Contents/Frameworks/$FW.framework ]
@@ -112,10 +86,43 @@ do
    fi
 done
 
-if [ ! -d $TOONZDIR/Flare.app/Contents/lib ]
+if [ -d thirdparty/canon/Framework ]
 then
-   echo ">>> Adding Contents/lib symbolic link to Flare.app/Contents/Frameworks"
-   ln -s Frameworks $TOONZDIR/Flare.app/Contents/lib
+   if [ ! -d $TOONZDIR/Flare.app/Contents/Frameworks/EDSDK.framework ]
+   then
+      echo ">>> Copying canon EDSDK.Framework to Flare.app/Contents/Frameworks"
+      cp -R thirdparty/canon/Framework/ $TOONZDIR/Flare.app/Contents/Frameworks
+      chmod -R 755 $TOONZDIR/Flare.app/Contents/Frameworks/EDSDK.framework
+   fi
+fi
+
+###
+### Install additional resources
+###
+if [ -d thirdparty/apps/ffmpeg/bin ]
+then
+   echo ">>> Copying FFmpeg to Flare.app/Contents/Resources/ffmpeg"
+   mkdir $TOONZDIR/Flare.app/Contents/Resources/ffmpeg
+   cp -R thirdparty/apps/ffmpeg/bin/ffmpeg thirdparty/apps/ffmpeg/bin/ffprobe $TOONZDIR/Flare.app/Contents/Resources/ffmpeg
+   chmod -R 755 $TOONZDIR/Flare.app/Contents/Resources/ffmpeg
+fi
+
+if [ -d thirdparty/apps/rhubarb ]
+then
+   echo ">>> Copying Rhubarb Lip Sync to Flare.app/Contents/Resources/rhubarb"
+   mkdir $TOONZDIR/Flare.app/Contents/Resources/rhubarb
+   cp -R thirdparty/apps/rhubarb/rhubarb thirdparty/apps/rhubarb/res $TOONZDIR/Flare.app/Contents/Resources/rhubarb
+   chmod -R 755 $TOONZDIR/Flare.app/Contents/Resources/rhubarb
+fi
+
+if [ ! -d $TOONZDIR/Flare.app/Contents/Resources/libgphoto2 ]
+then
+   echo ">>> Copying libghoto2 supporting directories to Flare.app/Contents/Resources"
+   cp -R /usr/local/lib/libgphoto2 $TOONZDIR/Flare.app/Contents/Resources
+   cp -R /usr/local/lib/libgphoto2_port $TOONZDIR/Flare.app/Contents/Resources
+
+   rm $TOONZDIR/Flare.app/Contents/Resources/libgphoto2/print-camera-list
+   find $TOONZDIR/Flare.app/Contents/Resources/libgphoto2* -name *.la -exec rm -f {} \;
 fi
 
 echo ">>> Correcting library paths"
@@ -167,35 +174,42 @@ function checkLibFile() {
          fi
          if [ "$Y" != "$W" ]
          then
-            echo "Fixing $DEPFILE in $LIBFILE"
             if [ "$X" != "" ]
             then
                local Y=`echo $DEPFILE | sed -e"s/^.*\/\.\.\///" -e"s/@rpath.//"`
-               install_name_tool -change $DEPFILE @executable_path/../Frameworks/$Y $LIBFILE
-            else
-               install_name_tool -change $DEPFILE @executable_path/../Frameworks/$Y $LIBFILE
             fi
+            echo "Fixing $DEPFILE in $LIBFILE"
+            install_name_tool -change $DEPFILE @executable_path/../Frameworks/$Y $LIBFILE
          fi
          FIXCHECK=`otool -D $LIBFILE | grep -v ":" | grep -e"\/usr\/local"`
          if [ "$FIXCHECK" == "$DEPFILE" ]
          then
             echo "   Fixed ID!"
-            install_name_tool -id @executable_path/../Frameworks/$Y $LIBFILE
+            install_name_tool -id @rpath/$Y $LIBFILE
          fi
       fi
    done
 }
 
-for FILE in `find $TOONZDIR/Flare.app/Contents -type f | grep -v -e"\.h" -e"\.prl" -e"\.plist" -e"\.conf" -e"\.icns" -e"EDSDK" -e"\/Headers\/"`
+for FILE in `find $TOONZDIR/Flare.app/Contents -type f | grep -v -e"\.h" -e"\.prl" -e"\.plist" -e"\.conf" -e"\.icns" -e"EDSDK" -e"\/Headers\/" -e"sphinx"`
 do
    checkLibFile $FILE
 done
 
+###
+### Add DSYM files
+###
 echo ">>> Moving DSYM/Contents/Resources to Flare.app/Contents/Resources"
 mv $TOONZDIR/DSYM/Contents/Resources/* $TOONZDIR/Flare.app/Contents/Resources
 
+###
+### Cleanup unnecessary files
+###
 find $TOONZDIR/Flare.app -name .DS_Store -exec rm {} \;
 
+###
+### Build Packages
+###
 echo ">>> Codesign Flare.app (installed)"
 codesign --deep --force --sign - $TOONZDIR/Flare.app
 
