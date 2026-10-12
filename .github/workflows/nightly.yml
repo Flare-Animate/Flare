@@ -828,7 +828,7 @@ jobs:
           find release-assets -type f | sort
 
       - name: Publish / update rolling nightly release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: nightly
           name: "Nightly Build — ${{ steps.build_date.outputs.DATE }}"
