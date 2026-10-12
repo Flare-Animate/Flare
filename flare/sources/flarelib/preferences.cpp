@@ -1118,6 +1118,18 @@ QString Preferences::getCurrentStyleSheet() const {
   styleSheetStr.replace(QRegularExpression("url\\(['\"]([^'\"]+)['\"]\\)"),
                         "url(\"" + currentStyleFolderPath + QString("/\\1\")"));
 
+  // Same for @import, so a theme can build on another one instead of restating
+  // all ~3350 lines. Without this, @import resolved against the process working
+  // directory rather than the theme's own folder, so a composed theme loaded
+  // nothing. LiquidGlass is the first user: a small set of overrides on top of
+  // a complete theme.
+  //
+  // Only relative specifiers are rewritten, so an @import naming a site
+  // style (scheme or leading slash) is left alone.
+  styleSheetStr.replace(
+      QRegularExpression("@import\\s+(['\"])(?!https?:|/)([^'\"]+)\\1"),
+      QString("@import \"") + currentStyleFolderPath + QString("/\\2\""));
+
   return styleSheetStr;
 }
 

@@ -1,5 +1,14 @@
 /* Liquid Glass is Flare's default interface theme. The original Default theme
-   remains selectable in Preferences for users who prefer the classic look. */
+   remains selectable in Preferences for users who prefer the classic look.
+
+   This file used to be a 33-line fragment covering only common widgets, so
+   picking it left the rest of the UI unstyled. Every theme in this directory
+   covers the same 715 selectors; rather than hand-maintaining another 3350-line
+   copy, Liquid Glass now layers its palette and shape overrides on top of a
+   complete base theme. The path below is rewritten to an absolute one by
+   Preferences::getCurrentStyleSheet(), so it resolves regardless of the
+   process working directory. */
+@import "../Dark/Dark.qss";
 :TOONZCOLORS {
   -bg-color: #202a38; -icon-base-opacity: 0.88; -icon-disabled-opacity: 0.35;
   -icon-base-color: #d8e7f3; -icon-active-color: #ffffff; -icon-selected-color: #ffffff;
