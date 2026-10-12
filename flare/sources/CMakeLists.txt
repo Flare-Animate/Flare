@@ -1,7 +1,10 @@
 ﻿cmake_policy(SET CMP0141 NEW)
 set(CMAKE_POLICY_DEFAULT_CMP0141 NEW)
 
-cmake_minimum_required(VERSION 2.8.11)
+# Must stay >= 3.5: CMake 4 removed compatibility with older policies outright,
+# and `cmake_minimum_required(VERSION < 3.5)` is a hard configure error there
+# (this is what broke the macOS runner).
+cmake_minimum_required(VERSION 3.10)
 
 set(CMAKE_BUILD_TYPE_INIT Release)
 
@@ -106,6 +109,13 @@ option(WITH_SYSTEM_LZO "Use the system LZO library instead of 'thirdparty'" ${_i
 option(WITH_SYSTEM_SUPERLU "Use the system SuperLU library instead of 'thirdparty'" ${_init_SYSTEM_SUPERLU})
 option(WITH_CANON "Build with Canon DSLR support - Requires Canon SDK" OFF)
 option(WITH_GPHOTO2 "Build with Libgphoto2" OFF)
+# Rust backend. Restored after the upstream sync dropped it; without this the
+# Cargo workspace under flare/sources is never built and FLARE_WITH_RUST=ON is
+# silently ignored.
+option(FLARE_WITH_RUST "Build optional Rust backend (flare/sources/Cargo.toml, needs cargo)" OFF)
+if(FLARE_WITH_RUST)
+    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/rust ${CMAKE_BINARY_DIR}/flare_rust)
+endif()
 option(WITH_TRANSLATION "Generate translation projects as well" ON)
 option(WITH_WINTAB "(Windows only) Build with customized Qt with WinTab support. https://github.com/shun-iwasawa/qt5/releases/tag/v5.15.2_wintab" OFF)
 
@@ -136,11 +146,14 @@ if(BUILD_ENV_MSVC)
         file(COPY "${SDKROOT}/libpng-1.6.21/scripts/pnglibconf.h.prebuilt" DESTINATION "${SDKROOT}/libpng-1.6.21")
         file(RENAME "${SDKROOT}/libpng-1.6.21/pnglibconf.h.prebuilt" "${SDKROOT}/libpng-1.6.21/pnglibconf.h")
     endif()
-    if(NOT EXISTS "${SDKROOT}/tiff-4.2.0/libtiff/tif_config.h")
-        file(COPY_FILE "${SDKROOT}/tiff-4.2.0/libtiff/tif_config.vc.h" "${SDKROOT}/tiff-4.2.0/libtiff/tif_config.h")
+    # Guarded: an unconditional file(COPY_FILE) here hard-errors at configure
+    # time on Windows when the .vc.h is missing, which is a checkout problem
+    # rather than a reason to fail the whole build.
+    if(EXISTS "${SDKROOT}/tiff-4.0.3/libtiff/tif_config.vc.h")
+        file(COPY_FILE "${SDKROOT}/tiff-4.0.3/libtiff/tif_config.vc.h" "${SDKROOT}/tiff-4.0.3/libtiff/tif_config.h")
     endif()
-    if(NOT EXISTS "${SDKROOT}/tiff-4.2.0/libtiff/tiffconf.h")
-        file(COPY_FILE "${SDKROOT}/tiff-4.2.0/libtiff/tiffconf.vc.h" "${SDKROOT}/tiff-4.2.0/libtiff/tiffconf.h")
+    if(EXISTS "${SDKROOT}/tiff-4.0.3/libtiff/tiffconf.vc.h")
+        file(COPY_FILE "${SDKROOT}/tiff-4.0.3/libtiff/tiffconf.vc.h" "${SDKROOT}/tiff-4.0.3/libtiff/tiffconf.h")
     endif()
 endif()
 
@@ -203,7 +216,7 @@ elseif(BUILD_ENV_APPLE)
     set(CMAKE_CXX_STANDARD 17)
 elseif(BUILD_ENV_UNIXLIKE)
     # Needed for correct Qt detection
-    cmake_minimum_required(VERSION 2.8.12)
+    # cmake_minimum_required(VERSION 2.8.12)  # Redundant, and < 3.5 is a hard error on CMake 4
     set(PRELOAD_VARIABLE "LD_LIBRARY_PATH")
     if(CMAKE_SIZEOF_VOID_P MATCHES "8")
         set(PLATFORM 64)
@@ -336,7 +349,11 @@ get_target_property(QtCore_location Qt5::Core LOCATION)
 get_target_property(QtWidget_location Qt5::Widgets LOCATION)
 message(STATUS "Qt Core Location:" ${QtCore_location})
 
-macro(_find_toonz_library OUT_LIB_LIST IN_LIB_LIST)
+# Flare's sub-projects (flarelib, flareqt, stdfx, sound, colorfx, ...) all call
+# _find_flare_library. Upstream's name for this macro is _find_toonz_library;
+# the upstream sync reverted the definition but not the call sites, which
+# produced "Unknown CMake command \"_find_flare_library\"" at configure time.
+macro(_find_flare_library OUT_LIB_LIST IN_LIB_LIST)
     set(OUTLIST "")
     foreach(arg ${IN_LIB_LIST})
         unset(COREPATH CACHE)
@@ -389,10 +406,10 @@ if(BUILD_ENV_MSVC)
     #set(JPEG_LIB ${SDKROOT}/LibJPEG/jpeg-9/lib/LibJPEG-9_${MSVC_LIB_VERSION}${PLATFORM2}.lib)
     set(JPEG_LIB ${SDKROOT}/libjpeg-turbo/lib/jpeg-static_${MSVC_LIB_VERSION}${PLATFORM2}.lib)
     set(TURBOJPEG_LIB ${SDKROOT}/libjpeg-turbo/lib/turbojpeg-static_${MSVC_LIB_VERSION}${PLATFORM2}.lib)
-    set(TIFF_INCLUDE_DIR ${SDKROOT}/tiff-4.2.0/libtiff)
+    set(TIFF_INCLUDE_DIR ${SDKROOT}/tiff-4.0.3/libtiff)
     set(TIFF_LIB
-        optimized ${SDKROOT}/tiff-4.2.0/lib/Libtiff-4.2.0_${MSVC_LIB_VERSION}${PLATFORM2}.lib
-        debug  ${SDKROOT}/tiff-4.2.0/lib/Libtiff-4.2.0_${MSVC_LIB_VERSION}${PLATFORM2}d.lib
+        optimized ${SDKROOT}/tiff-4.0.3/lib/LibTIFF-4.0.3_${MSVC_LIB_VERSION}${PLATFORM2}.lib
+        debug  ${SDKROOT}/tiff-4.0.3/lib/LibTIFF-4.0.3_${MSVC_LIB_VERSION}${PLATFORM2}d.lib
     )
     set(PNG_LIB
         optimized ${SDKROOT}/libpng-1.6.21/lib/libpng16_${MSVC_LIB_VERSION}${PLATFORM2}.lib
@@ -698,22 +715,30 @@ set(CMAKE_CXX_FLAGS "${CXX_WARNINGS} ${CMAKE_CXX_FLAGS}")
 add_subdirectory(tnzcore)
 add_subdirectory(tnzbase)
 add_subdirectory(tnzext)
-add_subdirectory(toonzlib)
-add_subdirectory(toonzfarm/tfarm)
+add_subdirectory(flarelib)
+add_subdirectory(flarefarm/tfarm)
 add_subdirectory(stdfx)
 add_subdirectory(sound)
 add_subdirectory(colorfx)
 add_subdirectory(image)
-add_subdirectory(toonzqt)
+# tgame lives under common/ (moved beside the C++ it relates to), not at the
+# top of sources/. Off by default: it needs Box2D and Qt5Quick.
+option(WITH_TGAME "Build experimental tgame module (needs Box2D, Qt5Quick)" OFF)
+if(WITH_TGAME)
+    add_subdirectory(common/tgame)
+endif()
+add_subdirectory(flareqt)
 add_subdirectory(tnztools)
 
 add_subdirectory(${SDKROOT}/lzo/driver lzodriver)
 
-add_subdirectory(toonz)
+add_subdirectory(flare)
+add_subdirectory(flare_legacy)
 add_subdirectory(tcleanupper)
 add_subdirectory(tcomposer)
 add_subdirectory(tconverter)
-add_subdirectory(toonzfarm)
+add_subdirectory(flarefarm)
+add_subdirectory(t32bitsrv)
 
 if(BUILD_ENV_APPLE)
     add_subdirectory(mousedragfilter)

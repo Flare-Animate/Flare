@@ -229,6 +229,49 @@ _BRANDING_PAT = re.compile(
 )
 
 
+# ── CMake-scoped rebrand rules ───────────────────────────────────────────────────
+# The shared rules above only match `#include "toonzlib/..."`-style include
+# lines. Upstream's *build files* refer to the same modules as bare identifiers:
+# directory names in add_subdirectory(), library targets in add_dependencies()
+# and $<TARGET_FILE:...>, the _find_toonz_library macro, and toonz.qrc / toonz.rc.
+# None of those were rewritten, so a synced CMakeLists.txt came in naming
+# directories and targets that do not exist in Flare (they are flarelib,
+# flareqt, flarefarm and flare) and calling a macro that was never defined --
+# which fails `cmake` at configure time on every platform.
+#
+# These are deliberately kept separate from SHARED_REBRAND_RULES and applied
+# only to CMake files. A blanket `\btoonzqt\b` -> `flareqt` rule would also hit
+# the ~116 occurrences of "toonzQt"/"ToonzLib" that live in C++ *comments* and in
+# string literals such as "verify_toonzlib"; rewriting a literal can change
+# behaviour. Inside a CMake file those identifiers are unambiguous.
+CMAKE_REBRAND_RULES: list[tuple[str, str, int]] = [
+    (r"\btoonzlib\b",    "flarelib",   0),
+    (r"\btoonzqt\b",     "flareqt",    0),
+    (r"\btoonzfarm\b",   "flarefarm",  0),
+    # The application directory itself. Word-bounded and anchored on the
+    # add_subdirectory / add_translation call so `toonz` inside other words
+    # (ToonzVersion, tversion.h, ...) is never touched.
+    (r"(add_subdirectory\(\s*)toonz(?=\s*\))",             r"\1flare", 0),
+    (r"(add_translation\(\s*)toonz(?=\s)",                 r"\1flare", 0),
+    (r"(message\([^)]*?)\bsubdir:\s*toonz\b",             r"\1subdir: flare", 0),
+    (r"\b_find_toonz_library\b",  "_find_flare_library",   0),
+    (r"\btoonz\.qrc\b",            "flare.qrc",            0),
+    (r"\btoonz\.rc\b",             "flare.rc",             0),
+    # Translation catalogues are named after the module; upstream ships
+    # toonz.ts, Flare ships flare.ts.
+    (r"(translations/\$\{lang\}/)toonz\.ts", r"\1flare.ts", 0),
+]
+
+# File names that get the CMake-scoped rules on top of the shared ones.
+CMAKE_FILE_NAMES = {"cmakelists.txt"}
+CMAKE_FILE_SUFFIXES = {".cmake"}
+
+
+def is_cmake_file(path: Path) -> bool:
+    return path.name.lower() in CMAKE_FILE_NAMES or \
+        path.suffix.lower() in CMAKE_FILE_SUFFIXES
+
+
 # ── helpers ────────────────────────────────────────────────────────────────────
 
 def run(cmd: list[str], check=True, capture=False,
@@ -269,6 +312,17 @@ def compile_rules(extra: list[tuple[str, str, int]]) -> list[tuple[re.Pattern, s
     return [(re.compile(pat, flags), repl) for pat, repl, flags in rules]
 
 
+def compile_cmake_rules(extra: list[tuple[str, str, int]] = ()) -> list[tuple[re.Pattern, str]]:
+    """Compile only the CMake-scoped layer.
+
+    Deliberately does not include SHARED_REBRAND_RULES: rebrand_file() has
+    already applied those, and folding them in here would run every shared
+    substitution twice on build files.
+    """
+    return [(re.compile(pat, flags), repl)
+            for pat, repl, flags in list(extra) + CMAKE_REBRAND_RULES]
+
+
 def rebrand_text(text: str,
                  compiled: list[tuple[re.Pattern, str]]) -> str:
     for pattern, repl in compiled:
@@ -277,7 +331,8 @@ def rebrand_text(text: str,
 
 
 def rebrand_file(path: Path,
-                 compiled: list[tuple[re.Pattern, str]]) -> bool:
+                 compiled: list[tuple[re.Pattern, str]],
+                 cmake_rules: list[tuple[re.Pattern, str]] | None = None) -> bool:
     if path.suffix.lower() not in REBRAND_EXTS:
         return False
     try:
@@ -285,19 +340,23 @@ def rebrand_file(path: Path,
     except OSError:
         return False
     rebranded = rebrand_text(original, compiled)
+    # CMake-scoped rules go on top, and only for build files.
+    if cmake_rules and is_cmake_file(path):
+        rebranded = rebrand_text(rebranded, cmake_rules)
     if rebranded != original:
         path.write_text(rebranded, encoding="utf-8")
         return True
     return False
 
 
-def rebrand_staged(compiled: list[tuple[re.Pattern, str]]) -> int:
+def rebrand_staged(compiled: list[tuple[re.Pattern, str]],
+                   cmake_rules: list[tuple[re.Pattern, str]] | None = None) -> int:
     result = git(["diff", "--cached", "--name-only"], capture=True)
     files = [f.strip() for f in result.stdout.splitlines() if f.strip()]
     changed = 0
     for rel in files:
         p = REPO_ROOT / rel
-        if p.exists() and rebrand_file(p, compiled):
+        if p.exists() and rebrand_file(p, compiled, cmake_rules):
             git(["add", rel], check=False)
             changed += 1
     return changed
@@ -513,7 +572,8 @@ def remap_staged_paths() -> list[tuple[str, str]]:
 
 
 def apply_commit(sha: str,
-                 compiled: list[tuple[re.Pattern, str]]) -> bool:
+                 compiled: list[tuple[re.Pattern, str]],
+                 cmake_rules: list[tuple[re.Pattern, str]] | None = None) -> bool:
     result = git(["cherry-pick", "--no-commit", "-x", sha], check=False)
     if result.returncode != 0:
         unresolved = resolve_conflicts(compiled)
@@ -528,7 +588,7 @@ def apply_commit(sha: str,
     if dropped:
         print(f"    ⊘  kept Flare's own: {', '.join(dropped[:5])}"
               + (f" (+{len(dropped) - 5} more)" if len(dropped) > 5 else ""))
-    n = rebrand_staged(compiled)
+    n = rebrand_staged(compiled, cmake_rules)
     if n:
         print(f"    ✎  rebranded {n} file(s)")
     return True
@@ -562,6 +622,7 @@ def sync_source(src: UpstreamSource, state: dict,
     print(f"  🔄 {len(commits)} commit(s) to apply\n")
 
     compiled = compile_rules(src.extra_rules)
+    cmake_rules = compile_cmake_rules(src.extra_rules)
     applied: list[dict]  = []
     skipped: list[dict]  = []
 
@@ -573,7 +634,7 @@ def sync_source(src: UpstreamSource, state: dict,
             applied.append(c)
             seen_fps.add(c["fp"])
             continue
-        ok = apply_commit(sha, compiled)
+        ok = apply_commit(sha, compiled, cmake_rules)
         if ok:
             applied.append(c)
             seen_fps.add(c["fp"])

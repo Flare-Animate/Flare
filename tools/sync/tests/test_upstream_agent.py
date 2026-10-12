@@ -156,6 +156,76 @@ def test_state_file_is_staged_for_the_sync_commit(repo):
     assert staged(repo) == [".github/state.json"]
 
 
+# --- CMake identifiers ------------------------------------------------------------
+#
+# An upstream sync replaced Flare's CMakeLists.txt with upstream's, which names
+# directories and targets that do not exist here (they are flarelib, flareqt,
+# flarefarm, flare) and defines _find_toonz_library while Flare's sub-projects
+# call _find_flare_library. cmake then failed at configure time on Windows,
+# Linux and macOS. The shared rebrand rules only matched #include lines, so all
+# of it survived the rebrand pass. These tests pin the CMake-scoped rules that
+# close that gap.
+
+CMAKE_EXPECTED = [
+    ("add_subdirectory(toonzlib)", "add_subdirectory(flarelib)"),
+    ("add_subdirectory(toonzfarm/tfarm)", "add_subdirectory(flarefarm/tfarm)"),
+    ("add_subdirectory(toonzqt)", "add_subdirectory(flareqt)"),
+    ("add_subdirectory(toonz)", "add_subdirectory(flare)"),
+    ("add_subdirectory(toonzfarm)", "add_subdirectory(flarefarm)"),
+    ("macro(_find_toonz_library OUT IN)", "macro(_find_flare_library OUT IN)"),
+    ('_find_toonz_library(EXTRA_LIBS "tnzcore;toonzlib")',
+     '_find_flare_library(EXTRA_LIBS "tnzcore;flarelib")'),
+    ('"$<TARGET_FILE:toonzlib>"', '"$<TARGET_FILE:flarelib>"'),
+    ('"$<TARGET_FILE:toonzqt>"', '"$<TARGET_FILE:flareqt>"'),
+    ("set(RESOURCES toonz.qrc)", "set(RESOURCES flare.qrc)"),
+    ("set(RC_FILE toonz.rc)", "set(RC_FILE flare.rc)"),
+    ("add_translation(toonz ${HEADERS} ${SOURCES})",
+     "add_translation(flare ${HEADERS} ${SOURCES})"),
+    ("../../sources/toonzfarm/include", "../../sources/flarefarm/include"),
+    ("../../sources/toonzqt", "../../sources/flareqt"),
+    ("tnzcore tnzbase toonzlib colorfx toonzqt",
+     "tnzcore tnzbase flarelib colorfx flareqt"),
+]
+
+
+@pytest.mark.parametrize("before,after", CMAKE_EXPECTED)
+def test_cmake_identifiers_are_rebranded(before, after):
+    """Every upstream build-file identifier must resolve to Flare's name.
+
+    Each pair was taken verbatim from the CMakeLists.txt that broke CI; one that
+    still passes silently is a rule that has gone missing again.
+    """
+    out = agent.rebrand_text(before, agent.compile_cmake_rules([]))
+    assert out == after, f"{before!r} was not rebranded"
+
+
+@pytest.mark.parametrize("source", [
+    "// toonzQt includes",
+    'else if (name == "verify_toonzlib")',
+    "// ToonzLib includes",
+    "/* toonzfarm */",
+    'QString s = "toonzqt";',
+])
+def test_cmake_rules_do_not_leak_into_cpp(source):
+    """The bare-identifier rules are scoped to build files.
+
+    "toonzQt"/"ToonzLib" occur in C++ comments and in string literals -- about
+    116 times -- and rewriting a literal can change behaviour, so these must
+    survive the shared pass untouched.
+    """
+    assert agent.rebrand_text(source, agent.compile_rules([])) == source
+
+
+def test_shared_rules_alone_do_not_touch_cmake():
+    """Documents the original bug: the shared pass left every one of these alone.
+
+    If this ever starts failing, the shared rules grew CMake coverage and the
+    CMake-scoped rules may now be double-applying.
+    """
+    for before, _after in CMAKE_EXPECTED:
+        assert agent.rebrand_text(before, agent.compile_rules([])) == before
+
+
 # --- upstream path -> Flare path ------------------------------------------------
 
 def test_upstream_toonz_paths_are_mapped_into_flare_tree():

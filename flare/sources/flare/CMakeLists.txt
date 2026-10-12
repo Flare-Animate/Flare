@@ -401,16 +401,16 @@ set(SOURCES
 )
 
 if(WITH_TRANSLATION)
-    add_translation(toonz ${HEADERS} ${SOURCES})
+    add_translation(flare ${HEADERS} ${SOURCES})
 endif()
 
 set(OBJCSOURCES filebrowsermodel.cpp)
 
 # Resource file(s)
-set(RESOURCES toonz.qrc)
+set(RESOURCES flare.qrc)
 
 if(BUILD_ENV_MSVC)
-    set(RC_FILE toonz.rc)
+    set(RC_FILE flare.rc)
 endif()
 
 qt5_add_resources(SOURCES ${RESOURCES})
@@ -445,15 +445,15 @@ if(BUILD_TARGET_WIN)
     )
 endif()
 
-message("subdir: toonz")
+message("subdir: flare")
 message("Bin: " ${CMAKE_CURRENT_BINARY_DIR})
 #message("Lib: " ${LIBRARY_OUTPUT_PATH})
 #message("Exe: " ${EXECUTABLE_OUTPUT_PATH})
 #message("Sources:" ${SOURCES})
 
 include_directories(
-    ../../sources/toonzfarm/include
-    ../../sources/toonzqt
+    ../../sources/flarefarm/include
+    ../../sources/flareqt
     ../../sources/stopmotion
 )
 
@@ -499,12 +499,12 @@ if(BUILD_ENV_MSVC)
         Qt5::WinMain Qt5::Core Qt5::Gui Qt5::Network Qt5::OpenGL Qt5::Svg Qt5::Xml
         Qt5::Script Qt5::Widgets Qt5::PrintSupport Qt5::Multimedia Qt5::SerialPort Qt5::UiTools
         ${GL_LIB} ${GLUT_LIB} ${TURBOJPEG_LIB} ${OpenCV_LIBS} ${EXTRA_LIBS} strmiids
-        tnzcore tnzbase toonzlib colorfx tnzext image sound toonzqt tnztools tnzstdfx tfarm
+        tnzcore tnzbase flarelib colorfx tnzext image sound flareqt tnztools tnzstdfx tfarm
     )
 elseif(BUILD_ENV_APPLE AND WITH_CANON)
     find_library(COCOA_LIB Cocoa)
 
-    _find_toonz_library(EXTRA_LIBS "tnzcore;tnzbase;toonzlib;colorfx;tnzext;image;sound;toonzqt;tnztools")
+    _find_flare_library(EXTRA_LIBS "tnzcore;tnzbase;flarelib;colorfx;tnzext;image;sound;flareqt;tnztools")
 
     # 変なところにライブラリ生成するカスども
     set(EXTRA_LIBS ${EXTRA_LIBS} "$<TARGET_FILE:tnzstdfx>" "$<TARGET_FILE:tfarm>")
@@ -513,7 +513,7 @@ elseif(BUILD_ENV_APPLE AND WITH_CANON)
         set(EXTRA_LIBS ${EXTRA_LIBS} ${GPHOTO2_LIB} ${GPHOTO2_PORT_LIB})
     endif()
 
-    add_dependencies(Flare tnzcore tnzbase toonzlib colorfx tnzext image sound toonzqt tnztools tnzstdfx tfarm)
+    add_dependencies(Flare tnzcore tnzbase flarelib colorfx tnzext image sound flareqt tnztools tnzstdfx tfarm)
 
     target_link_libraries(Flare
         Qt5::Core Qt5::Gui Qt5::Network Qt5::OpenGL Qt5::Svg Qt5::Xml
@@ -525,7 +525,7 @@ elseif(BUILD_ENV_APPLE AND WITH_CANON)
 elseif(BUILD_ENV_APPLE)
     find_library(COCOA_LIB Cocoa)
 
-    _find_toonz_library(EXTRA_LIBS "tnzcore;tnzbase;toonzlib;colorfx;tnzext;image;sound;toonzqt;tnztools")
+    _find_flare_library(EXTRA_LIBS "tnzcore;tnzbase;flarelib;colorfx;tnzext;image;sound;flareqt;tnztools")
 
     # 変なところにライブラリ生成するカスども
     set(EXTRA_LIBS ${EXTRA_LIBS} "$<TARGET_FILE:tnzstdfx>" "$<TARGET_FILE:tfarm>")
@@ -534,7 +534,7 @@ elseif(BUILD_ENV_APPLE)
         set(EXTRA_LIBS ${EXTRA_LIBS} ${GPHOTO2_LIB} ${GPHOTO2_PORT_LIB})
     endif()
 
-    add_dependencies(Flare tnzcore tnzbase toonzlib colorfx tnzext image sound toonzqt tnztools tnzstdfx tfarm)
+    add_dependencies(Flare tnzcore tnzbase flarelib colorfx tnzext image sound flareqt tnztools tnzstdfx tfarm)
 
     target_link_libraries(Flare
         Qt5::Core Qt5::Gui Qt5::Network Qt5::OpenGL Qt5::Svg Qt5::Xml
@@ -544,7 +544,7 @@ elseif(BUILD_ENV_APPLE)
     )
 
 elseif(BUILD_ENV_UNIXLIKE AND WITH_CANON)
-    _find_toonz_library(EXTRA_LIBS "tnzcore;tnzbase;toonzlib;colorfx;tnzext;image;sound;toonzqt;tnztools")
+    _find_flare_library(EXTRA_LIBS "tnzcore;tnzbase;flarelib;colorfx;tnzext;image;sound;flareqt;tnztools")
 
     # 変なところにライブラリ生成するカスども
     set(EXTRA_LIBS ${EXTRA_LIBS} "$<TARGET_FILE:tnzstdfx>" "$<TARGET_FILE:tfarm>")
@@ -567,7 +567,7 @@ elseif(BUILD_ENV_UNIXLIKE AND WITH_CANON)
     )
 
 elseif(BUILD_ENV_UNIXLIKE)
-    _find_toonz_library(EXTRA_LIBS "tnzcore;tnzbase;toonzlib;colorfx;tnzext;image;sound;toonzqt;tnztools")
+    _find_flare_library(EXTRA_LIBS "tnzcore;tnzbase;flarelib;colorfx;tnzext;image;sound;flareqt;tnztools")
 
     # 変なところにライブラリ生成するカスども
     set(EXTRA_LIBS ${EXTRA_LIBS} "$<TARGET_FILE:tnzstdfx>" "$<TARGET_FILE:tfarm>")
@@ -665,12 +665,12 @@ elseif(BUILD_ENV_UNIXLIKE AND BUILD_TARGET_WIN)
         FILES
             "$<TARGET_FILE:tnzcore>"
             "$<TARGET_FILE:tnzbase>"
-            "$<TARGET_FILE:toonzlib>"
+            "$<TARGET_FILE:flarelib>"
             "$<TARGET_FILE:colorfx>"
             "$<TARGET_FILE:tnzext>"
             "$<TARGET_FILE:image>"
             "$<TARGET_FILE:sound>"
-            "$<TARGET_FILE:toonzqt>"
+            "$<TARGET_FILE:flareqt>"
             "$<TARGET_FILE:tnztools>"
             "$<TARGET_FILE:tnzstdfx>"
             "$<TARGET_FILE:tfarm>"
@@ -781,12 +781,12 @@ exec \$TAHOMA2D_BASE/bin/Flare \"\$@\"
         FILES
             "$<TARGET_FILE:tnzcore>"
             "$<TARGET_FILE:tnzbase>"
-            "$<TARGET_FILE:toonzlib>"
+            "$<TARGET_FILE:flarelib>"
             "$<TARGET_FILE:colorfx>"
             "$<TARGET_FILE:tnzext>"
             "$<TARGET_FILE:image>"
             "$<TARGET_FILE:sound>"
-            "$<TARGET_FILE:toonzqt>"
+            "$<TARGET_FILE:flareqt>"
             "$<TARGET_FILE:tnztools>"
             "$<TARGET_FILE:tnzstdfx>"
             "$<TARGET_FILE:tfarm>"
