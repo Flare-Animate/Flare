@@ -56,7 +56,7 @@ subscription and no dead runtime.
 | Next2Flash SWF round-trip + AS3 decompiler | Shipped as optional sidecar, see [`doc/NEXT2FLASH_INTEGRATION.md`](./doc/NEXT2FLASH_INTEGRATION.md) |
 | Moho project support | Shipped: structure, rig, asset manifest (no rendering), see [`doc/MOHO_SUPPORT.md`](./doc/MOHO_SUPPORT.md) |
 
-### Supported Flash file types
+### Newly Supported file types
 
 | Format | Extension | Status |
 |--------|-----------|--------|
@@ -66,7 +66,7 @@ subscription and no dead runtime.
 | Component library | `.swc` | Catalog + embedded bitmaps |
 | Flash Video | `.flv` / `.f4v` | Raster level via FFmpeg |
 | ActionScript | `.as` | Imported as reference text |
-| Legacy binary FLA (OLE2/CFBF, CS4 and earlier) | `.moho`-era `.fla`, `.fls` | Carved and read |
+| Legacy binary FLA (OLE2/CFBF, CS4 and earlier) |  `.fla`, `.fls` | Carved and read |
 | Adobe AIR packages | `.air`, `.ane`, `.oam` | Unpacked, assets gathered |
 | Extension packages | `.zxp`, `.mxp` | Unpacked, assets gathered |
 | Shared libraries | `.sol` | Unpacked, assets gathered |
