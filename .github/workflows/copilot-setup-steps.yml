@@ -54,7 +54,7 @@ jobs:
       # Python tooling – used by sync/upstream scripts and helper tools
       # -----------------------------------------------------------------------
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: "3.12"
 
