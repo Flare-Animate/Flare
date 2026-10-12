@@ -658,8 +658,10 @@ elseif(BUILD_ENV_APPLE)
 
     # ADDED/UPDATED: Merged RPATH command (single one with both paths; || true for CI; COMMENT for logs)
     add_custom_command(TARGET Flare POST_BUILD
-        COMMAND ${CMAKE_INSTALL_NAME_TOOL} -add_rpath @executable_path/. "$<TARGET_FILE:Flare>" || true
-        COMMAND ${CMAKE_INSTALL_NAME_TOOL} -add_rpath ${CMAKE_INSTALL_RPATH} "$<TARGET_FILE:Flare>" || true
+        COMMAND /bin/sh -c
+            "\"${CMAKE_INSTALL_NAME_TOOL}\" -add_rpath '@executable_path/.' \"$<TARGET_FILE:Flare>\" || true"
+        COMMAND /bin/sh -c
+            "\"${CMAKE_INSTALL_NAME_TOOL}\" -add_rpath \"${CMAKE_INSTALL_RPATH}\" \"$<TARGET_FILE:Flare>\" || true"
         COMMENT "Adding RPATHs to Flare executable"
     )
 

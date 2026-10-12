@@ -10,6 +10,9 @@ set(CMAKE_BUILD_TYPE_INIT Release)
 
 project(Flare)
 
+# Repository root for project-relative paths such as "stuff/" and bundled third-party archives.
+get_filename_component(FLARE_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../.." ABSOLUTE)
+
 
 #-----------------------------------------------------------------------------
 # Platform Specific Defaults
@@ -118,6 +121,21 @@ if(FLARE_WITH_RUST)
 endif()
 option(WITH_TRANSLATION "Generate translation projects as well" ON)
 option(WITH_WINTAB "(Windows only) Build with customized Qt with WinTab support. https://github.com/shun-iwasawa/qt5/releases/tag/v5.15.2_wintab" OFF)
+
+if(NOT DEFINED FLARE_BUILD_MODERN AND NOT DEFINED FLARE_BUILD_LEGACY)
+    set(FLARE_BUILD_LEGACY ON CACHE BOOL "Build the legacy Flare application target")
+endif()
+
+option(FLARE_BUILD_MODERN "Build the modern Flare application target" OFF)
+option(FLARE_BUILD_LEGACY "Build the legacy Flare application target" OFF)
+
+if(FLARE_BUILD_MODERN AND FLARE_BUILD_LEGACY)
+    message(FATAL_ERROR "Select exactly one Flare app target: FLARE_BUILD_MODERN or FLARE_BUILD_LEGACY.")
+endif()
+
+if(NOT FLARE_BUILD_MODERN AND NOT FLARE_BUILD_LEGACY)
+    message(FATAL_ERROR "Enable one Flare app target: FLARE_BUILD_MODERN or FLARE_BUILD_LEGACY.")
+endif()
 
 # avoid using again
 option_defaults_clear()
@@ -449,6 +467,54 @@ elseif(BUILD_ENV_APPLE)
     set(SUPERLU_LIB ${SUPERLU_LIBRARY})
     message("SuperLU:" ${SUPERLU_INCLUDE_DIR})
 
+    # The bundled SuperLU archive (thirdparty/superlu/libsuperlu_4.1.a) is a fat
+    # i386/x86_64 file: on arm64 macOS ld silently skips it, and tnzext fails to
+    # link with undefined sp_*/superlu_* symbols. If the found library has no
+    # slice for the build architecture, build SuperLU from the bundled source
+    # (same approach as the MSVC Git-LFS-pointer path below).
+    if(EXISTS "${SUPERLU_LIB}" AND NOT IS_DIRECTORY "${SUPERLU_LIB}")
+        execute_process(COMMAND lipo -archs "${SUPERLU_LIB}"
+            OUTPUT_VARIABLE _superlu_archs OUTPUT_STRIP_TRAILING_WHITESPACE
+            RESULT_VARIABLE _superlu_lipo_rc)
+        if(_superlu_lipo_rc EQUAL 0 AND NOT " ${_superlu_archs} " MATCHES " ${CMAKE_SYSTEM_PROCESSOR} ")
+            message(STATUS "SuperLU archive has no ${CMAKE_SYSTEM_PROCESSOR} slice (${_superlu_archs}); building from thirdparty source")
+            set(_superlu_root "${CMAKE_BINARY_DIR}/superlu-src/SuperLU_4.1")
+            if(NOT EXISTS "${_superlu_root}/SRC/dcolumn_dfs.c")
+                file(COPY "${FLARE_ROOT}/thirdparty/superlu/SuperLU_4.1" DESTINATION "${CMAKE_BINARY_DIR}/superlu-src")
+            endif()
+            file(WRITE "${_superlu_root}/make.inc"
+"SuperLUroot = ${_superlu_root}
+SUPERLULIB  = ${_superlu_root}/lib/libsuperlu_4.1.a
+BLASDEF     =
+ARCH        = ar
+ARCHFLAGS   = cr
+RANLIB      = ranlib
+CC          = cc
+CFLAGS      = -O2 -DPRNTlevel=0 -Wno-error=implicit-function-declaration -Wno-error=implicit-int
+NOOPTS      =
+CDEFS       = -DAdd_
+")
+            # Compile all objects with SuperLU's own make, then regenerate the
+            # archive in one deterministic ar pass. Apple's BSD ar silently
+            # skips adding members when several ar invocations hit the same
+            # archive within one second, so the makefile's four per-precision
+            # `ar cr` steps (written for GNU ar) leave only the first
+            # precision archived when run back-to-back.
+            add_custom_command(
+                OUTPUT "${_superlu_root}/lib/libsuperlu_4.1.a"
+                COMMAND make -C "${_superlu_root}/SRC"
+                COMMAND sh -c "cd \"${_superlu_root}\" && rm -f lib/libsuperlu_4.1.a && ar crs lib/libsuperlu_4.1.a SRC/*.o"
+                WORKING_DIRECTORY "${_superlu_root}"
+                DEPENDS "${_superlu_root}/make.inc"
+                COMMENT "Building SuperLU from thirdparty source for ${CMAKE_SYSTEM_PROCESSOR}"
+                VERBATIM
+            )
+            add_custom_target(superlu_local ALL
+                DEPENDS "${_superlu_root}/lib/libsuperlu_4.1.a")
+            set(SUPERLU_LIB "${_superlu_root}/lib/libsuperlu_4.1.a")
+        endif()
+    endif()
+
     find_package(JPEG REQUIRED)
 
     # the libraries have .pc
@@ -585,7 +651,7 @@ elseif(BUILD_ENV_UNIXLIKE)
         find_library(GPHOTO2_PORT_LIB gphoto2_port)
         message("**************** gphoto2_port lib:" ${GPHOTO2_PORT_LIB})
     endif()
-	
+
     find_library(DEFLATE_LIB deflate)
 endif()
 
@@ -629,6 +695,7 @@ if(BUILD_ENV_MSVC OR BUILD_ENV_APPLE)
         HINTS
             ${THIRDPARTY_LIBS_HINTS}
         PATH_SUFFIXES
+            boost/boost_1_92_0/
             boost/boost_1_61_0/
             boost/boost_1_60_0/
             boost/boost_1_59_0/
@@ -732,8 +799,13 @@ add_subdirectory(tnztools)
 
 add_subdirectory(${SDKROOT}/lzo/driver lzodriver)
 
-add_subdirectory(flare)
-add_subdirectory(flare_legacy)
+if(FLARE_BUILD_MODERN)
+    add_subdirectory(flare)
+endif()
+if(FLARE_BUILD_LEGACY)
+    add_subdirectory(flare_legacy)
+endif()
+
 add_subdirectory(tcleanupper)
 add_subdirectory(tcomposer)
 add_subdirectory(tconverter)
@@ -742,16 +814,6 @@ add_subdirectory(t32bitsrv)
 
 if(BUILD_ENV_APPLE)
     add_subdirectory(mousedragfilter)
-endif()
-
-if(BUILD_ENV_APPLE)
-    add_custom_command(TARGET executable
-        POST_BUILD COMMAND
-        ${CMAKE_INSTALL_NAME_TOOL} -add_rpath ${CMAKE_INSTALL_RPATH}
-        $<TARGET_FILE:executable>
-    )
-    # add capability for retina displays
-    set_target_properties(Flare PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${CMAKE_SOURCE_DIR}/../cmake/BundleInfo.plist.in)
 endif()
 
 if(BUILD_ENV_UNIXLIKE AND NOT BUILD_TARGET_WIN)
