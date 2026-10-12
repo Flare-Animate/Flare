@@ -22,8 +22,17 @@ function frames(body: string): number {
 export function parseHtml5(js: string): Html5Manifest {
   if (!/createjs|cjs\./.test(js) || !/lib\./.test(js)) throw new Error("not an Animate canvas export");
   const p = /lib\.properties\s*=\s*\{([^]*?)\n?\};/.exec(js)?.[1] ?? "";
-  const assets = [...(/manifest\s*:\s*\[([^]*?)\]/.exec(p)?.[1] ?? "").matchAll(/\{[^}]*?src\s*:\s*"([^"]+)"[^}]*?id\s*:\s*"([^"]+)"[^}]*\}/g)]
-    .map(m => ({ src: m[1], id: m[2] }));
+  // Manifest entries put src and id in either order depending on the Animate
+  // version, so read both keys out of each {...} independently rather than
+  // assuming one sequence -- the old src-then-id pattern silently reported zero
+  // assets for id-first manifests, which also emptied every symbol's bitmaps.
+  const assets = [...(/manifest\s*:\s*\[([^]*?)\]/.exec(p)?.[1] ?? "").matchAll(/\{[^}]*\}/g)]
+    .map(m => m[0])
+    .filter(obj => /src\s*:/.test(obj) && /id\s*:/.test(obj))
+    .map(obj => ({
+      src: /src\s*:\s*"([^"]+)"/.exec(obj)![1],
+      id: /id\s*:\s*"([^"]+)"/.exec(obj)![1],
+    }));
   const bg = /color\s*:\s*"([^"]+)"/.exec(p)?.[1] ?? "#FFFFFF";
   const symbols: Html5Symbol[] = [];
   const starts = [...js.matchAll(/\(lib\.(\w+)\s*=\s*function\s*\([^)]*\)\s*\{/g)];

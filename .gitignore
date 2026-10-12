@@ -9,6 +9,12 @@ GeneratedFiles
 build*
 !flare/android/build.gradle
 !flare/android/app/build.gradle
+# `build*` above is meant for build output, but it also swallowed the web
+# app's build scripts -- which .github/workflows/pages.yml runs, so the deploy
+# failed on a clean checkout with "cannot find module". Keep the sources, still
+# ignore their output (see tools/flash/webapp/dist/ further down).
+!tools/flash/webapp/build.ts
+!tools/flash/webapp/build.test.ts
 /build
 /.scripts
 /FlarePortable
