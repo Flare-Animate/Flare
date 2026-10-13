@@ -29,9 +29,39 @@ def main():
     if not cargo:
         print("SKIP: cargo not found; Rust tests not run (not counted as a pass)")
         return 0
-    r = subprocess.run([cargo, "test", "--workspace", "--offline",
-                        "--manifest-path", MANIFEST],
-                       cwd=REPO, capture_output=True, text=True)
+    # The workspace also contains flare/rust/studio and flare/rust/core, which
+    # need git dependencies (AnimationCraft) that --offline cannot fetch; they are
+    # covered by CI with network, not by this suite. Cargo resolves the whole
+    # workspace even for -p, so temporarily strip those members (restored in
+    # finally) and test only the offline-capable crates.
+    with open(MANIFEST, encoding="utf-8") as f:
+        orig = f.read()
+    lines = []
+    skip_patch = False
+    for line in orig.splitlines(keepends=True):
+        s = line.strip()
+        if s.startswith("[patch."):
+            skip_patch = True
+            continue
+        if skip_patch:
+            if s.startswith("["):
+                skip_patch = False
+            else:
+                continue
+        if line.strip().startswith("members ="):
+            line = line.replace(', "flare/rust/studio"', "").replace(
+                ', "flare/rust/core"', "")
+        lines.append(line)
+    stripped = "".join(lines)
+    with open(MANIFEST, "w", encoding="utf-8") as f:
+        f.write(stripped)
+    try:
+        r = subprocess.run([cargo, "test", "-p", "flare_formats", "-p", "flare_remote",
+                            "--offline", "--manifest-path", MANIFEST],
+                           cwd=REPO, capture_output=True, text=True)
+    finally:
+        with open(MANIFEST, "w", encoding="utf-8") as f:
+            f.write(orig)
     out = (r.stdout or "") + (r.stderr or "")
     fails = [l for l in out.splitlines() if "test result: FAILED" in l or l.startswith("error")]
     passed = sum(int(l.split()[3]) for l in out.splitlines()

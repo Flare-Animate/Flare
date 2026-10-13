@@ -83,6 +83,7 @@ set(HEADERS
     ../include/flare/cleanupparameters.h
     ../include/flare/columnfan.h
     ../include/flare/controlpointobserver.h
+    ../include/flare/customvectorbrushexporter.h
     ../include/flare/currentimage.h
     ../include/flare/doubleparamcmd.h
     ../include/flare/dpiscale.h
@@ -200,6 +201,7 @@ set(SOURCES
     cleanupparameters.cpp
     columnfan.cpp
     convert2tlv.cpp
+    customvectorbrushexporter.cpp
     dpiscale.cpp
     fill.cpp
     fillutil.cpp
