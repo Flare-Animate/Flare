@@ -2,12 +2,15 @@ cmake_minimum_required(VERSION 3.10)
 
 set(CMAKE_BUILD_TYPE_INIT Release)
 
-# Set C++17 globally 
+# Set C++17 globally
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 message(STATUS "C++ standard: ${CMAKE_CXX_STANDARD}")
 
 project(Flare LANGUAGES C CXX)
+
+# Repository root for project-relative paths such as "stuff/" and bundled third-party archives.
+get_filename_component(FLARE_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../.." ABSOLUTE)
 
 #-----------------------------------------------------------------------------
 # Platform Specific Defaults
@@ -806,6 +809,54 @@ elseif(BUILD_ENV_APPLE)
     set(SUPERLU_LIB ${SUPERLU_LIBRARY})
     message("SuperLU:" ${SUPERLU_INCLUDE_DIR})
 
+    # The bundled SuperLU archive (thirdparty/superlu/libsuperlu_4.1.a) is a fat
+    # i386/x86_64 file: on arm64 macOS ld silently skips it, and tnzext fails to
+    # link with undefined sp_*/superlu_* symbols. If the found library has no
+    # slice for the build architecture, build SuperLU from the bundled source
+    # (same approach as the MSVC Git-LFS-pointer path below).
+    if(EXISTS "${SUPERLU_LIB}" AND NOT IS_DIRECTORY "${SUPERLU_LIB}")
+        execute_process(COMMAND lipo -archs "${SUPERLU_LIB}"
+            OUTPUT_VARIABLE _superlu_archs OUTPUT_STRIP_TRAILING_WHITESPACE
+            RESULT_VARIABLE _superlu_lipo_rc)
+        if(_superlu_lipo_rc EQUAL 0 AND NOT " ${_superlu_archs} " MATCHES " ${CMAKE_SYSTEM_PROCESSOR} ")
+            message(STATUS "SuperLU archive has no ${CMAKE_SYSTEM_PROCESSOR} slice (${_superlu_archs}); building from thirdparty source")
+            set(_superlu_root "${CMAKE_BINARY_DIR}/superlu-src/SuperLU_4.1")
+            if(NOT EXISTS "${_superlu_root}/SRC/dcolumn_dfs.c")
+                file(COPY "${FLARE_ROOT}/thirdparty/superlu/SuperLU_4.1" DESTINATION "${CMAKE_BINARY_DIR}/superlu-src")
+            endif()
+            file(WRITE "${_superlu_root}/make.inc"
+"SuperLUroot = ${_superlu_root}
+SUPERLULIB  = ${_superlu_root}/lib/libsuperlu_4.1.a
+BLASDEF     =
+ARCH        = ar
+ARCHFLAGS   = cr
+RANLIB      = ranlib
+CC          = cc
+CFLAGS      = -O2 -DPRNTlevel=0 -Wno-error=implicit-function-declaration -Wno-error=implicit-int
+NOOPTS      =
+CDEFS       = -DAdd_
+")
+            # Compile all objects with SuperLU's own make, then regenerate the
+            # archive in one deterministic ar pass. Apple's BSD ar silently
+            # skips adding members when several ar invocations hit the same
+            # archive within one second, so the makefile's four per-precision
+            # `ar cr` steps (written for GNU ar) leave only the first
+            # precision archived when run back-to-back.
+            add_custom_command(
+                OUTPUT "${_superlu_root}/lib/libsuperlu_4.1.a"
+                COMMAND make -C "${_superlu_root}/SRC"
+                COMMAND sh -c "cd \"${_superlu_root}\" && rm -f lib/libsuperlu_4.1.a && ar crs lib/libsuperlu_4.1.a SRC/*.o"
+                WORKING_DIRECTORY "${_superlu_root}"
+                DEPENDS "${_superlu_root}/make.inc"
+                COMMENT "Building SuperLU from thirdparty source for ${CMAKE_SYSTEM_PROCESSOR}"
+                VERBATIM
+            )
+            add_custom_target(superlu_local ALL
+                DEPENDS "${_superlu_root}/lib/libsuperlu_4.1.a")
+            set(SUPERLU_LIB "${_superlu_root}/lib/libsuperlu_4.1.a")
+        endif()
+    endif()
+
     find_package(JPEG REQUIRED)
 
     # the libraries have .pc
@@ -978,7 +1029,8 @@ if(BUILD_ENV_MSVC OR BUILD_ENV_APPLE)
             ${BOOST_ROOT}  # From -D or env
             ${THIRDPARTY_LIBS_HINTS}
         PATH_SUFFIXES
-            boost/boost_1_89_0/  # Added recent versions (e.g., Homebrew 1.89)
+            boost/boost_1_92_0/
+            boost/boost_1_89_0/
             boost/boost_1_87_0/
             boost/boost_1_86_0/
             boost/boost_1_85_0/
@@ -1223,7 +1275,6 @@ else()
 endif()
 
 add_subdirectory(flare)
-
 # Legacy Flare executable target (for compatibility and macOS app bundle creation)
 # TODO: Migrate fully to flare/ app target and remove flare_legacy when stable.
 add_subdirectory(flare_legacy)

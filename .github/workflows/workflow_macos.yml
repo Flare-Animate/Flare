@@ -212,8 +212,13 @@ jobs:
           echo "Found app bundle: $APPBUNDLE"
           cd "$(dirname "$APPBUNDLE")"
 
-          # copy portable stuff if present
-          cp -pr ../../../stuff Flare.app/portablestuff 2>/dev/null || true
+          # CMake copies this beside the executable, where TEnv portable-mode
+          # lookup expects it. Fail packaging if the post-build copy is missing.
+          if [ ! -d "Flare.app/Contents/MacOS/portablestuff" ]; then
+            echo "ERROR: portablestuff not found beside the app executable" 1>&2
+            ls -al Flare.app/Contents/MacOS 1>&2
+            exit 1
+          fi
 
           BUNDLE_BINARY=$(find Flare.app/Contents/MacOS -maxdepth 1 -type f -perm +111 | head -n 1)
           if [ -z "$BUNDLE_BINARY" ]; then
