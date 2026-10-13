@@ -4,7 +4,7 @@
 # port (common/<subsystem>/rust/), mirroring the OpenToonz/Tahoma source tree.
 # Only the crate scaffolding is here; every module sits with its subsystem.
 [workspace]
-members = ["remote/rust", "flare/rust/studio", "flare/rust/core"]
+members = ["remote/rust", "flare/rust/core"]  # studio excluded: ac-render git dep (KMSDax/AnimationCraft) is 404
 
 [package]
 name = "flare_formats"
