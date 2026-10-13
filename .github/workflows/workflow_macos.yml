@@ -241,6 +241,20 @@ jobs:
           fi
           echo "Using frameworks dir: $FRAMEWORKS_DIR"
           cd "$FRAMEWORKS_DIR"
+          # Issue #98: transitive deps (e.g. libavdevice -> libavfilter) that
+          # macdeployqt missed still point at Homebrew paths. Copy them in.
+          for PASS in 1 2 3 4 5 6; do
+            COPIED=0
+            for TARGETLIB in *.dylib; do
+              for FROMPATH in $(otool -L "$TARGETLIB" | awk 'NR>1{print $1}' | grep -E '^(/usr/local|/opt/homebrew)/'); do
+                LIBNAME=$(basename "$FROMPATH")
+                if [[ ! -e ./$LIBNAME && -f "$FROMPATH" ]]; then
+                  cp -L "$FROMPATH" "./$LIBNAME" && chmod u+w "./$LIBNAME" && COPIED=1
+                fi
+              done
+            done
+            [[ $COPIED -eq 0 ]] && break
+          done
           for TARGETLIB in *.dylib; do
             otool -L "$TARGETLIB" | grep ".dylib" | grep -v "$TARGETLIB" | grep -v "@executable_path/../Frameworks" | awk '{print $1}' | while read -r FROMPATH; do
               LIBNAME=$(basename "$FROMPATH")
