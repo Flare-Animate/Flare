@@ -1396,9 +1396,10 @@ extern const char *applicationVersion;
     silent: a user who is offline or rate-limited should not be interrupted, and
     an update check is not something they asked for on this particular launch.
 */
-void MainWindow::checkForUpdates(bool /*manual*/) {
+void MainWindow::checkForUpdates(bool manual) {
   if (m_flareUpdater)
     return;  // a check is already in flight
+  m_manualUpdateCheck = manual;
 
   m_flareUpdater = new FlareUpdater(this);
   connect(m_flareUpdater, &FlareUpdater::releaseReady, this,
@@ -1524,7 +1525,7 @@ void MainWindow::applyFlareUpdate(const QString& downloadedPath) {
 void MainWindow::onFlareUpdateFailed(const QString& message) {
   // Only speak up if the user asked for this update by hand; a background check
   // that cannot reach the network is not worth a dialog.
-  if (m_flareUpdater && m_flareUpdater->parent() == this)
+  if (m_manualUpdateCheck)
     DVGui::warning(QObject::tr("Flare could not check for updates.\n\n%1")
                        .arg(message));
   if (m_flareUpdater) {
