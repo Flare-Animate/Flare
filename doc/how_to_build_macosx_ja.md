@@ -59,10 +59,9 @@ $ cd build
 2. ビルド
 コマンドラインの場合は下記を実行します。
 ```
-$ cmake ../sources -DQT_PATH='/usr/local/opt/qt/lib' -DFLARE_BUILD_MODERN=ON -DFLARE_BUILD_LEGACY=OFF
+$ cmake ../sources -DQT_PATH='/usr/local/opt/qt/lib'
 $ make
 ```
-- 上記のオプションはモダン版アプリケーションを明示的に選択します。どちらのビルドオプションも指定しない場合は、レガシー版アプリケーションがデフォルトで有効になります。
 - Qt をHomebrewでなく http://download.qt.io/official_releases/qt/ からダウンロードして `/Users/ユーザ名/Qt` にインストールしている場合、`QT_PATH`の値は `~/Qt/5.12.2/clang_64/lib` または `~/Qt/5.12.2/clang_32/lib` のようになります。
 
 ビルドが長いので気長に待ちます。
@@ -70,7 +69,7 @@ $ make
 Xcodeを用いる場合は下記を実行します。
 ```
 $ sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
-$ cmake -G Xcode ../sources -B. -DQT_PATH='/usr/local/opt/qt/lib' -DWITH_TRANSLATION=OFF -DFLARE_BUILD_MODERN=ON -DFLARE_BUILD_LEGACY=OFF
+$ cmake -G Xcode ../sources -B. -DQT_PATH='/usr/local/opt/qt/lib' -DWITH_TRANSLATION=OFF
 ```
 - オプション `-DWITH_TRANSLATION=OFF` はXcode12以降で必要です。
 - Xcodeでプロジェクト `/Flare/flare/build/Flare.xcodeproj` を開き、ビルドします。

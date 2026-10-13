@@ -120,17 +120,11 @@ Requires **CMake 3.10+**. Building is memory-intensive; limit parallel jobs on
 low-RAM machines.
 
 ```sh
-cmake -S flare/sources -B build -G "Ninja" -DCMAKE_BUILD_TYPE=Release \
-  -DFLARE_BUILD_MODERN=ON -DFLARE_BUILD_LEGACY=OFF
+cmake -S flare/sources -B build -G "Ninja" -DCMAKE_BUILD_TYPE=Release
 
 # <4GB RAM: -j1  |  4-8GB RAM: -j2  |  >8GB RAM: --parallel
 cmake --build build -j2
 ```
-
-To build the legacy application instead, use
-`-DFLARE_BUILD_MODERN=OFF -DFLARE_BUILD_LEGACY=ON`. Only one application target
-can be enabled at a time. If neither option is provided, the legacy application
-is built by default.
 
 Platform guides: [Windows](./doc/how_to_build_win.md) · [macOS](./doc/how_to_build_macosx.md) · [Linux](./doc/how_to_build_linux.md) · [BSD](./doc/how_to_build_bsd.md)
 

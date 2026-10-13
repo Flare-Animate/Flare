@@ -59,12 +59,6 @@ This software can be built using Visual Studio 2019 and Qt 5.x
 -Click Generate
 -Should the CMakeLists.txt file change, such as during automatic build cleanup, there is no need to rerun CMake.
 
-In the CMake configuration, set `FLARE_BUILD_MODERN` to `ON` and
-`FLARE_BUILD_LEGACY` to `OFF` to build the modern application. Only one Flare
-application target can be enabled at a time. To build the legacy application
-instead, set `FLARE_BUILD_MODERN` to `OFF` and `FLARE_BUILD_LEGACY` to `ON`.
-If neither option is specified, the legacy application is enabled by default.
-
 ## Setting Up Libraries
 Rename the following files:
 - `$Flare/thirdparty/LibJPEG/jpeg-9/jconfig.vc` to `$Flare/thirdparty/LibJPEG/jpeg-9/jconfig.h`
