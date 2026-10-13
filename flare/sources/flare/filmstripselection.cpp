@@ -25,7 +25,6 @@
 #include "flare/txshlevel.h"
 #include "flare/txshsimplelevel.h"
 #include "flare/txshleveltypes.h"
-#include "canvassizepopup.h"
 
 // TnzCore includes
 #include "tundo.h"
@@ -144,7 +143,12 @@ void TFilmstripSelection::select(const TFrameId &fid, bool selected) {
   TTool *tool = app->getCurrentTool()->getTool();
   if (tool) tool->setSelectedFrames(m_selectedFrames);
 
-  updateCanvasSizeCommandEnabled();
+  TXshSimpleLevel *sl = app->getCurrentLevel()->getSimpleLevel();
+  bool rasterLevel    = sl->getType() == TZP_XSHLEVEL ||
+                     sl->getType() == OVL_XSHLEVEL ||
+                     sl->getType() == TZI_XSHLEVEL;
+
+  CommandManager::instance()->enable(MI_CanvasSize, rasterLevel);
 }
 
 //-----------------------------------------------------------------------------
@@ -158,7 +162,8 @@ bool TFilmstripSelection::isSelected(const TFrameId &fid) const {
 void TFilmstripSelection::selectNone() {
   m_selectedFrames.clear();
   updateInbetweenRange();
-  updateCanvasSizeCommandEnabled();
+  TXshSimpleLevel *sl = TApp::instance()->getCurrentLevel()->getSimpleLevel();
+  CommandManager::instance()->enable(MI_CanvasSize, false);
 }
 
 //-----------------------------------------------------------------------------
@@ -173,7 +178,10 @@ void TFilmstripSelection::selectAll() {
   updateInbetweenRange();
   TTool *tool = TApp::instance()->getCurrentTool()->getTool();
   tool->setSelectedFrames(m_selectedFrames);
-  updateCanvasSizeCommandEnabled();
+  bool rasterLevel = sl->getType() == TZP_XSHLEVEL ||
+                     sl->getType() == OVL_XSHLEVEL ||
+                     sl->getType() == TZI_XSHLEVEL;
+  CommandManager::instance()->enable(MI_CanvasSize, rasterLevel);
   notifyView();
 }
 
@@ -194,7 +202,9 @@ void TFilmstripSelection::invertSelection() {
   updateInbetweenRange();
   TTool *tool = TApp::instance()->getCurrentTool()->getTool();
   tool->setSelectedFrames(m_selectedFrames);
-  updateCanvasSizeCommandEnabled();
+  if (sl->getType() == TZP_XSHLEVEL || sl->getType() == OVL_XSHLEVEL ||
+      sl->getType() == TZI_XSHLEVEL)
+    CommandManager::instance()->enable(MI_CanvasSize, true);
   notifyView();
 }
 
@@ -391,3 +401,4 @@ void TFilmstripSelection::renumberFrames() {
   FilmstripCmd::renumber(sl, m_selectedFrames, startFrame, stepFrame);
   updateInbetweenRange();
 }
+

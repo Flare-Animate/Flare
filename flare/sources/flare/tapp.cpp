@@ -12,7 +12,6 @@
 // relies on.
 #include <QStatusBar>
 #include "cellselection.h"
-#include "canvassizepopup.h"
 
 // TnzTools includes
 #include "tools/tool.h"
@@ -457,7 +456,6 @@ void TApp::onSceneSwitched() {
 
   // update current tool
   m_currentTool->onImageChanged((TImage::Type)getCurrentImageType());
-  updateCanvasSizeCommandEnabled();
 }
 
 //-----------------------------------------------------------------------------
@@ -537,7 +535,6 @@ void TApp::onColumnIndexSwitched() {
 //-----------------------------------------------------------------------------
 
 void TApp::onXshLevelSwitched(TXshLevel *) {
-  updateCanvasSizeCommandEnabled();
   TXshLevel *level = m_currentLevel->getLevel();
   if (level) {
     TXshSimpleLevel *simpleLevel = level->getSimpleLevel();

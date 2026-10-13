@@ -511,7 +511,5 @@
 #define MI_ClearTags "MI_ClearTags"
 
 #define MI_OpenLocator "MI_OpenLocator"
-#define MI_OpenAlignmentPanel "MI_OpenAlignmentPanel"
-
 #endif
 

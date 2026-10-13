@@ -378,7 +378,7 @@ bool commit(PreparedFile &prepared, const TFilePath &destinationPath,
     return false;
   }
 
-      TSystem::deleteFile(destinationPath);
+  try {
     TSystem::renameFile(destinationPath, prepared.temporaryPath);
     prepared = PreparedFile();
   } catch (const TException &exception) {

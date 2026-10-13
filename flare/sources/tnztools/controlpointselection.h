@@ -9,9 +9,6 @@
 #include "tvectorimage.h"
 #include "tcurves.h"
 
-#include <memory>
-#include <set>
-
 //=============================================================================
 // ControlPointEditorStroke
 //-----------------------------------------------------------------------------
@@ -25,99 +22,73 @@ private:
     TThickPoint m_speedOut;
     bool m_isCusp;
 
-    ControlPoint(int i, const TThickPoint& speedIn, const TThickPoint& speedOut,
+    ControlPoint(int i, TThickPoint speedIn, TThickPoint speedOut,
                  bool isCusp = true)
         : m_pointIndex(i)
         , m_speedIn(speedIn)
         , m_speedOut(speedOut)
         , m_isCusp(isCusp) {}
-
-    ControlPoint() = default;
+    ControlPoint() {}
   };
 
   QList<ControlPoint> m_controlPoints;
   TVectorImageP m_vi;
-  int m_strokeIndex = -1;
+  int m_strokeIndex;
 
-  // Adjust chunk parity in the stroke
   void adjustChunkParity();
 
-  // Reset m_controlPoints based on current stroke
+  /*! Reset m_controlPoints. */
   void resetControlPoints();
 
-  // Get dependent point between two control points
   TThickPoint getPureDependentPoint(int index) const;
-
-  // Get all points that depend on the control point at index
   void getDependentPoints(
-      int index, std::vector<std::pair<int, TThickPoint>>& points) const;
-
-  // Update all points in the stroke
+      int index, std::vector<std::pair<int, TThickPoint>> &points) const;
   void updatePoints();
-
-  // Update points dependent on the specified control point
   void updateDependentPoint(int index);
 
-  // Get next control point index (with wrap-around for self-loop strokes)
-  int nextIndex(int index) const;
+  inline int nextIndex(int index) const;
+  inline int prevIndex(int index) const;
 
-  // Get previous control point index (with wrap-around for self-loop strokes)
-  int prevIndex(int index) const;
+  void moveSpeedIn(int index, const TPointD &delta, double minDistance);
+  void moveSpeedOut(int index, const TPointD &delta, double minDistance);
 
-  // Move speed-in point
-  void moveSpeedIn(int index, const TPointD& delta, double minDistance);
-
-  // Move speed-out point
-  void moveSpeedOut(int index, const TPointD& delta, double minDistance);
-
-  // Move a single control point without updating dependents
-  void moveSingleControlPoint(int index, const TPointD& delta);
+  void moveSingleControlPoint(int index, const TPointD &delta);
 
 public:
   enum PointType { CONTROL_POINT, SPEED_IN, SPEED_OUT, SEGMENT, NONE };
 
-  ControlPointEditorStroke() = default;
+  ControlPointEditorStroke() : m_vi() {}
 
-  // Allow copy constructor and assignment operator for compatibility
-  ControlPointEditorStroke(const ControlPointEditorStroke& other);
-  ControlPointEditorStroke& operator=(const ControlPointEditorStroke& other);
+  ~ControlPointEditorStroke() { m_controlPoints.clear(); }
 
-  // Create a deep copy of this stroke editor
-  ControlPointEditorStroke* clone() const;
+  ControlPointEditorStroke *clone() const;
 
-  /*! Modify stroke: between two linear or cusp points there must be an even
-     number of chunks. WARNING: This function may add control points to the
-     stroke. */
-  bool setStroke(const TVectorImageP& vi, int strokeIndex);
-
-  // Get the underlying TStroke
-  TStroke* getStroke() const {
-    return m_vi ? m_vi->getStroke(m_strokeIndex) : nullptr;
+  /*! Modify stroke: between two linear or cusp point must be a pair chunk
+number.
+PAY ATTENTION: Can add control point in the stroke. */
+  bool setStroke(const TVectorImageP &vi, int strokeIndex);
+  TStroke *getStroke() const {
+    return m_vi ? m_vi->getStroke(m_strokeIndex) : 0;
   }
 
-  // Stroke index accessors
   void setStrokeIndex(int strokeIndex) { m_strokeIndex = strokeIndex; }
   int getStrokeIndex() const { return m_strokeIndex; }
 
-  // Control point count
   int getControlPointCount() const { return m_controlPoints.size(); }
 
-  // Get control point data
   TThickPoint getControlPoint(int index) const;
-
-  /*! Convert from index point in ControlPointEditorStroke to index point in
+  /*! From index point in \b ControlPointEditorStroke to index point in \b
    * TStroke. */
   int getIndexPointInStroke(int index) const;
-
-  // Get speed points
   TThickPoint getSpeedInPoint(int index) const;
   TThickPoint getSpeedOutPoint(int index) const;
 
-  // Cusp point management
+  //! Return true if index point is a cusp.
   bool isCusp(int index) const;
+  //! Set \b m_isCusp of \b index point to \b isCusp.
+  /*! If isCusp == false check \b setSpeedIn and modify speed. */
   void setCusp(int index, bool isCusp, bool setSpeedIn);
 
-  // Linear speed point management
   bool isSpeedInLinear(int index) const;
   bool isSpeedOutLinear(int index) const;
   void setLinearSpeedIn(int index, bool linear = true,
@@ -125,34 +96,35 @@ public:
   void setLinearSpeedOut(int index, bool linear = true,
                          bool updatePoints = true);
 
-  /*! If isLinear==true, set the speedIn and speedOut values of the index point
-     to "0"; otherwise, set them to default values. Returns true if speedIn or
-     speedOut is modified. If updatePoints is true, update dependent points
-     afterwards. */
+  /*! If isLinear==true set to "0" the speedIn and speedOut value of index
+point; otherwise set to default value.
+Return true if speedIn or speedOut is modified.
+If updatePoints is true update dependent point after.*/
   bool setLinear(int index, bool isLinear, bool updatePoints = true);
-  bool setControlPointsLinear(const std::set<int>& points, bool isLinear);
+  bool setControlPointsLinear(std::set<int> points, bool isLinear);
 
-  // Control point manipulation
-  void moveControlPoint(int index, const TPointD& delta);
-  int addControlPoint(const TPointD& pos);
+  /*! Move \b index ControlPoint of \b delta. */
+  void moveControlPoint(int index, const TPointD &delta);
+
+  /*! Add a ControlPoint in \b point. Return added ControlPoint index. */
+  int addControlPoint(const TPointD &pos);
+
   void deleteControlPoint(int index);
 
-  // Speed point manipulation
-  void moveSpeed(int index, const TPointD& delta, bool isIn,
+  /*! Move speed in \b index of \b delta. */
+  void moveSpeed(int index, const TPointD &delta, bool isIn,
                  double minDistance);
 
-  // Segment manipulation
-  void moveSegment(int beforeIndex, int nextIndex, const TPointD& delta,
-                   const TPointD& pos);
+  /*! Move segment between \b beforeIndex and \b nextIndex of \b delta. */
+  void moveSegment(int beforeIndex, int nextIndex, const TPointD &delta,
+                   const TPointD &pos);
 
-  /*! Returns NONE if pos is far from the stroke.
-      Otherwise returns the type of point at the given position. */
-  PointType getPointTypeAt(const TPointD& pos, double& distance2,
-                           int& index) const;
+  /*!Return NONE if \b pos is far from stroke.*/
+  PointType getPointTypeAt(const TPointD &pos, double &distance2,
+                           int &index) const;
 
-  // Check if stroke is self-looping
   bool isSelfLoop() const {
-    TStroke* stroke = getStroke();
+    TStroke *stroke = getStroke();
     return stroke && stroke->isSelfLoop();
   }
 };
@@ -166,45 +138,33 @@ class ControlPointSelection final : public QObject, public TSelection {
 
 private:
   std::set<int> m_selectedPoints;
-  std::vector<int> m_selectionOrder;
-  int m_strokeIndex                                    = -1;
-  ControlPointEditorStroke* m_controlPointEditorStroke = nullptr;
+  int m_strokeIndex;
+  ControlPointEditorStroke *m_controlPointEditorStroke;
 
 public:
-  ControlPointSelection() = default;
+  ControlPointSelection() : m_controlPointEditorStroke(0), m_strokeIndex(-1) {}
 
-  // QObject doesn't allow copying, so we delete copy operations
-  ControlPointSelection(const ControlPointSelection&)            = delete;
-  ControlPointSelection& operator=(const ControlPointSelection&) = delete;
-
-  // Set the control point editor stroke to work with
   void setControlPointEditorStroke(
-      ControlPointEditorStroke* controlPointEditorStroke) {
+      ControlPointEditorStroke *controlPointEditorStroke) {
     m_controlPointEditorStroke = controlPointEditorStroke;
   }
 
-  // Selection interface implementation
   bool isEmpty() const override { return m_selectedPoints.empty(); }
-  void selectNone() override;
 
-  // Selection management
+  void selectNone() override { m_selectedPoints.clear(); }
   bool isSelected(int index) const;
   void select(int index);
   void unselect(int index);
 
-  // Delete selected control points
   void deleteControlPoints();
-  void alignControlPoints(VectorAlignment::Type type);
 
-  // Context menu management
-  void addMenuItems(QMenu* menu);
+  void addMenuItems(QMenu *menu);
 
-  // Command enabling
   void enableCommands() override;
-
-private slots:
+protected slots:
   void setLinear();
   void setUnlinear();
 };
 
 #endif  // CONTROLPOINT_SELECTION_INCLUDED
+

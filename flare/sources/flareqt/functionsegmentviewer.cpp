@@ -1037,7 +1037,6 @@ FunctionSegmentViewer::FunctionSegmentViewer(QWidget *parent,
     mainLayout->addLayout(moveLay, 0);
   }
   setLayout(mainLayout);
-  setMinimumHeight(minimumSizeHint().height());
 
   //---- signal-slot connections
   bool ret = true;

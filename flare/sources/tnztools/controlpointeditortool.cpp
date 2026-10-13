@@ -20,7 +20,6 @@
 #include "flare/stage2.h"
 #include "flare/tstageobject.h"
 
-#include "flareqt/tselectionhandle.h"
 #include <QKeyEvent>
 
 using namespace ToolUtils;
@@ -943,20 +942,13 @@ void ControlPointEditorTool::onActivate() {
     break;
   }
   m_controlPointEditorStroke.setStroke((TVectorImage *)0, -1);
-  m_selection.selectNone();
-  m_selection.makeCurrent();
   m_draw = true;
   resetSnap();
 }
 
 //---------------------------------------------------------------------------
 
-void ControlPointEditorTool::onDeactivate() {
-  m_draw = false;
-  if (TTool::getApplication()->getCurrentSelection()->getSelection() ==
-      &m_selection)
-    m_selection.makeNotCurrent();
-}
+void ControlPointEditorTool::onDeactivate() { m_draw = false; }
 
 //---------------------------------------------------------------------------
 

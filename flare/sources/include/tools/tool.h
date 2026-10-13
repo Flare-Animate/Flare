@@ -12,7 +12,6 @@
 
 // TnzCore includes
 #include "tcommon.h"
-#include "tools/vectoralignment.h"
 #include "tgeometry.h"
 #include "tfilepath.h"
 
@@ -559,11 +558,6 @@ transformation.
   void setCanUndo(bool on) { m_canUndo = on; }
   bool isUndoable() const { return m_canUndo; }
 
-  void setAlignMethod(VectorAlignment::Method method) {
-    m_alignMethod = method;
-  }
-  VectorAlignment::Method getAlignMethod() const { return m_alignMethod; }
-
   void tweenSelectedGuideStrokes();
   void tweenGuideStrokeToSelected();
   void flipGuideStrokeDirection(int mode);
@@ -597,7 +591,6 @@ protected:
 
   bool m_enabled;  //!< Whether the tool allows user interaction.
   bool m_canUndo = true; //!< Whether the tool allows the user to undo while the tool is selected
-  VectorAlignment::Method m_alignMethod = VectorAlignment::SELECT_AREA;
   bool m_active;
   bool m_picking;
 
