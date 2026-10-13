@@ -369,6 +369,9 @@ int main(int argc, char *argv[]) {
   // Enables high-DPI scaling. This attribute must be set before QApplication is
   // constructed. Available from Qt 5.6.
   QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+#ifdef Q_OS_WIN
+  QApplication::setAttribute(Qt::AA_UseDesktopOpenGL, true);
+#endif
 
   QApplication a(argc, argv);
 
@@ -412,7 +415,7 @@ int main(int argc, char *argv[]) {
   // angle,	force Qt to use desktop OpenGL
   // FIXME: This options should be called before constructing the application.
   // Thus, ANGLE seems to be enabled as of now.
-  a.setAttribute(Qt::AA_UseDesktopOpenGL, true);
+  // (moved before QApplication construction)
 #endif
 
   // Some Qt objects are destroyed badly without a living qApp. So, we must
