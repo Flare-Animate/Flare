@@ -143,6 +143,7 @@ matching OpenToonz/Tahoma as the rewrite proceeds — no `rust/` sidecar tree.
 census the import command can report on. Handles the containers Rust only sniffs.
 
 **Key functions/types:**
+- `cfbf.rs` (Rust) — legacy-FLA CFBF stream reader + image carver; C ABI `flare_cfbf_open/count/stream/bitmaps/free`.
 - `extractSwfShapes` (`SWFAssets.h`) — shapes out of an SWF tag stream.
 - `extractLegacyFlaBitmaps` (`SWFAssets.h`) — bitmap carving from OLE2/CFBF binary FLAs.
 - `Reader` (`XFLReader.h`) — `read`, `readFromZip`, `readFromDirectory`, `parseDOMDocument`, `parseSymbol`.
