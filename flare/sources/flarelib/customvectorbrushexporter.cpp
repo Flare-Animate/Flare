@@ -378,8 +378,8 @@ bool commit(PreparedFile &prepared, const TFilePath &destinationPath,
     return false;
   }
 
-  try {
-    TSystem::replaceFile(destinationPath, prepared.temporaryPath);
+      TSystem::deleteFile(destinationPath);
+    TSystem::renameFile(destinationPath, prepared.temporaryPath);
     prepared = PreparedFile();
   } catch (const TException &exception) {
     errorMessage = QObject::tr("Could not install the custom vector brush: %1")
