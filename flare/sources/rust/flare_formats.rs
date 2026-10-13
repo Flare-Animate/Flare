@@ -4,6 +4,8 @@
 //! (`common/<subsystem>/rust/`), so the tree keeps matching OpenToonz/Tahoma.
 use std::slice;
 
+#[path = "../common/flash/rust/cfbf.rs"]
+pub mod cfbf;
 #[path = "../common/flash/rust/fcp.rs"]
 pub mod fcp;
 #[path = "../common/moho/rust/moho.rs"]
