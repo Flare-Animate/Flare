@@ -152,6 +152,14 @@ FLARE_ONLY_PREFIXES = (
     "stuff/profiles/layouts/shortcuts/defflare.ini",
     "packaging/",
     "cmake/",
+    # Flare-specific build/CI files; the 345446d38 sync clobbered these.
+    "CMakeLists.txt",
+    "flare/cmake/",
+    "flare/sources/CMakeLists.txt",
+    "flare/sources/flare/CMakeLists.txt",
+    "flare/sources/flare_legacy/CMakeLists.txt",
+    "flare/sources/common/tapptools/tenv.cpp",
+    "ci-scripts/",
 )
 
 # ── shared rebrand rules (applied for ALL upstreams) ─────────────────────────
