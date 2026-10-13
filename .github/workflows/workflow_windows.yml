@@ -615,6 +615,10 @@ jobs:
         with:
           name: Flare-Windows-Portable
           path: FlarePortable/
+          # Keep the .gitkeep files: without them portablestuff\projects (and
+          # plugins, toonzfarm) are empty, the artifact drops them, and Flare
+          # crashes on launch looking for the projects folder.
+          include-hidden-files: true
           if-no-files-found: error
 
       - name: Post build logs to PR
