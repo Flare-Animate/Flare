@@ -103,18 +103,16 @@ Building Flare is memory-intensive. Using too many parallel jobs can exhaust sys
 
 To build from command line, do the following:
 ```sh
-cmake ../sources -DQT_PATH='/opt/homebrew/opt/qt@5/lib' \
-  -DFLARE_BUILD_MODERN=ON -DFLARE_BUILD_LEGACY=OFF  # replace QT path with your installed QT version
+cmake ../sources -DQT_PATH='/opt/homebrew/opt/qt@5/lib'  # replace QT path with your installed QT version
 make -j2
 ```
 - If you downloaded the QT installer and installed to `/Users/yourlogin/Qt` instead of by using homebrew, your lib path may look something like this: `~/Qt/5.12.2/clang_64/lib` or `~/Qt/5.12.2/clang_32/lib`
-- The build command explicitly selects the modern application. If neither build option is provided, the legacy application is enabled by default.
 
 To build using Xcode, do the following:
 ```sh
 sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
 cmake -G Xcode ../sources -B. -DQT_PATH='/opt/homebrew/opt/qt@5/lib' \
-  -DWITH_TRANSLATION=OFF -DFLARE_BUILD_MODERN=ON -DFLARE_BUILD_LEGACY=OFF  # replace QT path with your installed QT version
+  -DWITH_TRANSLATION=OFF  # replace QT path with your installed QT version
 ```
 - Note that the option `-DWITH_TRANSLATION=OFF` is needed to avoid error when using XCode 12+ which does not allow to add the same source to multiple targets.
 - Open Xcode app and open project /Users/yourlogin/Documents/Flare/flare/build/Flare.xcodeproj

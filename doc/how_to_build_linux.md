@@ -140,25 +140,20 @@ Building Flare is **very memory-intensive**. Using too many parallel jobs can ex
 $ cd flare
 $ mkdir build
 $ cd build
-$ cmake ../sources -DFLARE_BUILD_MODERN=ON -DFLARE_BUILD_LEGACY=OFF
+$ cmake ../sources
 $ make -j2
 ```
-
-These flags explicitly select the modern application. If neither build option
-is provided, the legacy application is enabled by default.
 
 **Note:** The build takes considerable time (30-60+ minutes depending on hardware). Be patient and avoid using resource-intensive applications during the build.
 
 The build takes a lot of time, be patient. CMake may not pick up all the required dependencies. On Fedora 30, it can be helpful to use
 ```
-$ cmake ../sources/ -DSUPERLU_INCLUDE_DIR=/usr/include/SuperLU \
-  -DFLARE_BUILD_MODERN=ON -DFLARE_BUILD_LEGACY=OFF
+$ cmake ../sources/ -DSUPERLU_INCLUDE_DIR=/usr/include/SuperLU
 ```
 instead of just
 ```
-$ cmake ../sources/ -DFLARE_BUILD_MODERN=ON -DFLARE_BUILD_LEGACY=OFF
+$ cmake ../sources/
 ```
-
 ### Troubleshooting Build Errors
 
 If something doesn't compile or link, please run `make` this way to help spot the problem:

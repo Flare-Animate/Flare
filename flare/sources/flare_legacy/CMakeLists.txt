@@ -661,6 +661,15 @@ elseif(BUILD_ENV_APPLE)
         COMMENT "Adding RPATHs to Flare executable"
     )
 
+    # Provide the runtime "stuff" data folder TEnv portable-mode lookup in
+    # main.cpp resolves it next to the bundled executable. Copied — never
+    # symlinked — so runtime writes stay inside the gitignored build tree.
+    add_custom_command(TARGET Flare POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${FLARE_ROOT}/stuff" "$<TARGET_FILE_DIR:Flare>/portablestuff"
+        COMMENT "Refreshing portablestuff (app data folder) from ${FLARE_ROOT}/stuff"
+    )
+
 elseif(BUILD_ENV_UNIXLIKE)
     _find_flare_library(EXTRA_LIBS "tnzcore;tnzbase;flarelib;colorfx;tnzext;image;sound;flareqt;tnztools")
 
