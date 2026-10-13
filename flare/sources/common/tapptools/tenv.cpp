@@ -259,6 +259,17 @@ public:
                    TFileStatus(TFilePath(m_workingDirectory) + "portablestuff")
                        .doesExist();
 
+    // Portable stuff is commonly next to the executable (AppImage, Windows
+    // portable zip) while the cwd is arbitrary; check there too.
+    if (!m_isPortable && QCoreApplication::instance()) {
+      QString exeDir = QCoreApplication::applicationDirPath();
+      if (TFileStatus(TFilePath(exeDir) + "portablestuff").doesExist() ||
+          TFileStatus(TFilePath(exeDir) + "tahomastuff").doesExist()) {
+        m_workingDirectory = exeDir;
+        m_isPortable       = true;
+      }
+    }
+
 #ifdef MACOSX
     // macOS 10.12 (Sierra) translocates applications before running them
     // depending on how it was installed. This separates the app from the
