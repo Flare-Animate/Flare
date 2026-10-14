@@ -700,6 +700,7 @@ jobs:
             echo "WARNING: main binary '$MAIN_BIN' not found in MacOS dir; skipping macdeployqt"
             ls -la "Flare.app/Contents/MacOS/" || true
           fi
+          bash "$GITHUB_WORKSPACE/ci-scripts/osx/bundle-homebrew-dylibs.sh" "$BUNDLE_DIR/Flare.app"
 
       - name: Ad-hoc sign app bundle
         run: |
