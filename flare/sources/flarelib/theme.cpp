@@ -1,6 +1,7 @@
 #include "flare/theme.h"
 
-#include "flarefolder.h"
+#include "flare/toonzfolders.h"
+#include "tenv.h"
 #include "tfilepath.h"
 #include "tsystem.h"
 
@@ -37,7 +38,7 @@ const QMap<QString, bool>& lightThemeTable() {
 
 /// Directory holding the themes, without a trailing separator.
 QString themeDir() {
-  return TFilePath(FlareFolder::getConfigDir() + "qss").getQString();
+  return TFilePath(TEnv::getConfigDir() + "qss").getQString();
 }
 
 /// Directory holding the layouts (rooms), without a trailing separator.
