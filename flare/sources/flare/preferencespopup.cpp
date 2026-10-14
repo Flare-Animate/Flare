@@ -2,6 +2,10 @@
 
 #include "preferencespopup.h"
 
+// Flare includes
+// Theme (appearance) vs Layout (room) -- see flare/theme.h.
+#include "flare/theme.h"
+
 // Tnz6 includes
 #include "menubarcommandids.h"
 #include "versioncontrol.h"
@@ -532,24 +536,19 @@ void PreferencesPopup::onStyleSheetTypeChanged() {
   qApp->setStyleSheet(currentStyle);
   QApplication::restoreOverrideCursor();
 
-  bool isDarkTheme = Preferences::instance()->getIconTheme();
-  bool themeCondition =
-      currentStyle.contains("file:///") && (currentStyle.contains("Light") ||
-                                            currentStyle.contains("Neutral")) ||
-      currentStyle.contains("imgs/black");
+  // The Theme decides the icon set. This is a lookup on the theme name, not a
+  // substring search over the stylesheet: the old test matched "Light",
+  // "Neutral" or "imgs/black", which mis-classified every dark theme not named
+  // after one of those two words -- Animate, Clay, Blue and Synthwave were all
+  // being switched to the light icon set.
+  const QString themeName = m_pref->getCurrentThemeName();
+  const bool isDarkTheme = Preferences::instance()->getIconTheme();
+  const bool wantsLightIcons = FlareTheme::isLightTheme(themeName);
 
-  if (themeCondition) {
-    if (!isDarkTheme) {
-      m_pref->setValue(iconTheme, true);
-      DVGui::MsgBoxInPopup(DVGui::MsgType(INFORMATION),
-                           tr("Please restart to reload the icons."));
-    }
-  } else {
-    if (isDarkTheme) {
-      m_pref->setValue(iconTheme, false);
-      DVGui::MsgBoxInPopup(DVGui::MsgType(INFORMATION),
-                           tr("Please restart to reload the icons."));
-    }
+  if (wantsLightIcons != isDarkTheme) {
+    m_pref->setValue(iconTheme, wantsLightIcons);
+    DVGui::MsgBoxInPopup(DVGui::MsgType(INFORMATION),
+                         tr("Please restart to reload the icons."));
   }
 }
 

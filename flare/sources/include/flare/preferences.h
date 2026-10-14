@@ -204,7 +204,22 @@ public:
   bool isLazyLoadRoomsEnabled() { return getBoolValue(lazyLoadRooms); }
 
   // Interface  tab
+  //
+  // A Theme is the colour/shape of the widgets; a Layout (a "room") is where
+  // the panels sit. They are separate and combine freely -- see flare/theme.h.
+  // getStyleSheetList()/getRoomMap() are the pre-existing accessors and are
+  // kept; the typed names below make the distinction explicit at the call site.
   QStringList getStyleSheetList() const { return m_styleSheetList; }
+  /// Themes: available appearance stylesheets.
+  QStringList getThemeNames() const;
+  /// The selected Theme.
+  QString getCurrentThemeName() const;
+  void setCurrentThemeName(const QString& name);
+  /// Layouts: available room layouts.
+  QStringList getLayoutNames() const;
+  /// The selected Layout.
+  QString getCurrentLayoutName() const;
+
   void storeOldUnits();
   void resetOldUnits();
   QStringList getLanguageList() const { return m_languageList; }

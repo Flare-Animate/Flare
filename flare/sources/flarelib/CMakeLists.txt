@@ -231,6 +231,7 @@ set(SOURCES
 	orientation.cpp
     outputproperties.cpp
     preferences.cpp
+theme.cpp
     rasterbrush.cpp
     rasterstrokegenerator.cpp
     scenefx.cpp

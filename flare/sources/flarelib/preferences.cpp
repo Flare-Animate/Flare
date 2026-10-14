@@ -1,6 +1,7 @@
 
 
 #include "flare/preferences.h"
+#include "flare/theme.h"
 
 // TnzLib includes
 #include "flare/tscenehandle.h"
@@ -1086,6 +1087,37 @@ QString Preferences::getCurrentLanguage() const {
 }
 
 //-----------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Theme / Layout access.
+//
+// These are two independent axes of the Interface tab, named so call sites read
+// correctly: a Theme is the colour and shape of the widgets, a Layout is where
+// the panels sit. The preference keys behind them were already separate; these
+// accessors make that explicit and keep the two namespaces distinct.
+
+QStringList Preferences::getThemeNames() const {
+  return FlareTheme::themeNames();
+}
+
+QString Preferences::getCurrentThemeName() const {
+  return getStringValue(CurrentStyleSheetName);
+}
+
+void Preferences::setCurrentThemeName(const QString& name) {
+  if (!FlareTheme::isThemeName(name)) return;
+  setValue(CurrentStyleSheetName, name);
+}
+
+QStringList Preferences::getLayoutNames() const {
+  return FlareTheme::layoutNames();
+}
+
+QString Preferences::getCurrentLayoutName() const {
+  return getStringValue(CurrentRoomChoice);
+}
+
+//-----------------------------------------------------------------------------
 
 QString Preferences::getCurrentStyleSheet() const {
   QString currentStyleSheetName = getStringValue(CurrentStyleSheetName);
