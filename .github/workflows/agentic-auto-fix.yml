@@ -52,7 +52,7 @@ jobs:
             -G "Visual Studio 17 2022" -A x64 ^
             -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake ^
             -DVCPKG_TARGET_TRIPLET=x64-windows-static ^
-            -DWITH_SYSTEM_LZO=OFF -DWITH_LZODRIVER=OFF ^
+            -DWITH_SYSTEM_LZO=OFF ^
             -DWITH_TWAIN=OFF -DWITH_CANON=OFF ^
             -DWITH_SQLITE=OFF -DWITH_OPENCV=OFF ^
             -DWITH_GSL=OFF -DWITH_BOOST=OFF ^

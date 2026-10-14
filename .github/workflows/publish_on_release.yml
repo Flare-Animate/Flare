@@ -88,7 +88,7 @@ jobs:
         run: |
           # shellcheck disable=SC2012,SC2016,SC2155,SC2156,SC2046,SC2086,SC2235
           mkdir -p flare/build && cd flare/build
-          cmake ../sources -G Ninja -DCMAKE_BUILD_TYPE=Release -DWITH_SYSTEM_LZO=ON -DWITH_LZODRIVER=OFF 2>&1 | tee cmake_configure.log
+          cmake ../sources -G Ninja -DCMAKE_BUILD_TYPE=Release -DWITH_SYSTEM_LZO=ON 2>&1 | tee cmake_configure.log
           ninja -j2 2>&1 | tee build.log
 
       - name: Build (macOS)
@@ -100,7 +100,7 @@ jobs:
           mkdir -p build && cd build
           cmake -S ../sources -B . -G Ninja -DCMAKE_BUILD_TYPE=Release \
             -DQt5_DIR=$(brew --prefix qt@5)/lib/cmake/Qt5 \
-            -DWITH_SYSTEM_LZO=ON -DWITH_LZODRIVER=OFF 2>&1 | tee cmake_configure.log
+            -DWITH_SYSTEM_LZO=ON 2>&1 | tee cmake_configure.log
           ninja -j$(sysctl -n hw.ncpu) 2>&1 | tee build.log
 
       - name: Build (Windows)
@@ -116,7 +116,6 @@ jobs:
             -DTHIRDPARTY_DIR="%THIRDPARTY_DIR%" ^
             -DWITH_WINTAB=ON ^
             -DWITH_SYSTEM_LZO=ON ^
-            -DWITH_LZODRIVER=OFF ^
             -DCMAKE_TOOLCHAIN_FILE="%VCPKG_ROOT%\scripts\buildsystems\vcpkg.cmake" ^
             -DCMAKE_BUILD_TYPE=Release > build\cmake_configure.log 2>&1
           if %ERRORLEVEL% NEQ 0 ( type build\cmake_configure.log & exit /b %ERRORLEVEL% )
