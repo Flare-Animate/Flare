@@ -28,11 +28,11 @@ We will first review the request, then we will accept it, add comments for rewor
 
 ### Workflow
 
-0. `fork` Flare to your GitHub account from `Flare/Flare`.
+0. `fork` Flare to your GitHub account from `Flare-Animate/Flare`.
    - (use the `fork` button at the https://github.com/Flare-Animate/Flare)
 0. `clone` the repository.
    - `git clone git@github.com:your-github-account/Flare.git`
-   - `git remote add upstream https://github.com/Flare/Flare.git`, additionally.
+   - `git remote add upstream https://github.com/Flare-Animate/Flare.git`, additionally.
 0. modify the codes.
    - `git checkout -b your-branch-name`
      - `your-branch-name` is a name of your modifications, for example,
@@ -66,7 +66,7 @@ If you believe you can fix the bug, please submit a pull request.
 If you had an idea about a new feature, please implement it and send a pull request to us.
 If you cannot implement the feature, please open a topic on the [Google Group Page](https://groups.google.com/forum/#!forum/Flare_en).
 It enables us to discuss implementations of the feature there.
-Feature requests posted on GitHub without an active developer or funding will be closed 
+Feature requests posted on GitHub without an active developer or funding will be closed
 to keep the issue tracker from becoming cluttered with unfulfilled feature requests.
 
 ## Beginner-friendly tasks

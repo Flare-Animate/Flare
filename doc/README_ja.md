@@ -5,9 +5,9 @@
 [English](../README.md) [简体中文](./README_chs.md)
 
 [![](https://ci.appveyor.com/api/projects/status/oa5l5pc964h8fv49/branch/master?svg=true)](https://ci.appveyor.com/project/Flare/Flare)
-[![Build Windows](https://github.com/Flare/Flare/actions/workflows/workflow_windows.yml/badge.svg?branch=master)](https://github.com/Flare/Flare/actions/workflows/workflow_windows.yml)
-[![Build macOS](https://github.com/Flare/Flare/actions/workflows/workflow_macos.yml/badge.svg?branch=master)](https://github.com/Flare/Flare/actions/workflows/workflow_macos.yml)
-[![Build Linux](https://github.com/Flare/Flare/actions/workflows/workflow_linux.yml/badge.svg?branch=master)](https://github.com/Flare/Flare/actions/workflows/workflow_linux.yml)
+[![Build Windows](https://github.com/Flare-Animate/Flare/actions/workflows/workflow_windows.yml/badge.svg?branch=master)](https://github.com/Flare-Animate/Flare/actions/workflows/workflow_windows.yml)
+[![Build macOS](https://github.com/Flare-Animate/Flare/actions/workflows/workflow_macos.yml/badge.svg?branch=master)](https://github.com/Flare-Animate/Flare/actions/workflows/workflow_macos.yml)
+[![Build Linux](https://github.com/Flare-Animate/Flare/actions/workflows/workflow_linux.yml/badge.svg?branch=master)](https://github.com/Flare-Animate/Flare/actions/workflows/workflow_linux.yml)
 [![Translation status](https://hosted.weblate.org/widgets/Flare/-/svg-badge.svg)](https://hosted.weblate.org/engage/Flare/)
 
 ## これは何？
@@ -23,7 +23,7 @@
 
 <https://Flare.github.io/> から最新安定版のインストーラーをダウンロードしてインストールしてください。
 
-過去のバージョンと不安定な最新版も <https://github.com/Flare/Flare/releases> から利用することができます。
+過去のバージョンと不安定な最新版も <https://github.com/Flare-Animate/Flare/releases> から利用することができます。
 
 ## ビルド方法
 
