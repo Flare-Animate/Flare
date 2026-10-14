@@ -84,6 +84,24 @@ if(NOT BUILD_TARGET_BSD)
     endif()
 endif()
 
+if(NOT BUILD_TARGET_BSD AND NOT WIN32)
+    set(_flare_tiff_source_dir "${FLARE_ROOT}/thirdparty/tiff-4.0.3")
+    set(_flare_tiff_build_dir "${CMAKE_BINARY_DIR}/generated/tiff")
+    file(MAKE_DIRECTORY "${_flare_tiff_build_dir}")
+    execute_process(
+        COMMAND "${_flare_tiff_source_dir}/configure"
+        WORKING_DIRECTORY "${_flare_tiff_build_dir}"
+        RESULT_VARIABLE _flare_tiff_configure_result
+        OUTPUT_VARIABLE _flare_tiff_configure_output
+        ERROR_VARIABLE _flare_tiff_configure_error
+    )
+    if(NOT "${_flare_tiff_configure_result}" STREQUAL "0")
+        message(FATAL_ERROR
+            "Failed to configure bundled libtiff:\n"
+            "${_flare_tiff_configure_output}${_flare_tiff_configure_error}")
+    endif()
+endif()
+
 
 if(BUILD_TARGET_WIN)
     set(HEADERS ${HEADERS}
@@ -129,7 +147,7 @@ add_definitions(
 
 if(NOT BUILD_TARGET_BSD AND NOT WIN32)
     target_include_directories(image PRIVATE
-        "${CMAKE_BINARY_DIR}/generated/tiff"
+        "${CMAKE_BINARY_DIR}/generated/tiff/libtiff"
     )
 endif()
 
