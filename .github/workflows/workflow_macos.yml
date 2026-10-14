@@ -376,6 +376,18 @@ jobs:
             # report an immediate crash as "still running". Identical to the
             # Linux job.
             echo "--- Runtime launch test (8-second window) ---" | tee -a "$SMOKE_LOG"
+            # Force a software rasteriser before launching. The build sets
+            # Qt::AA_UseDesktopOpenGL; on a runner with no usable GPU the GL
+            # context fails during Qt construction, before main.cpp's own
+            # try/catch is in scope. This mirrors the Windows jobs, which pass
+            # the same launch only because they set these.
+            #
+            # QT_QPA_PLATFORM=offscreen also removes the dependency on a window
+            # server session, which is what "headless" in this step's name
+            # actually requires.
+            export QT_QPA_PLATFORM=offscreen
+            export QT_OPENGL=software
+            export LIBGL_ALWAYS_SOFTWARE=1
             "$APP_BINARY" >>"$SMOKE_LOG" 2>&1 &
             APP_PID=$!
             ( sleep 8

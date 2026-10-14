@@ -313,6 +313,22 @@ jobs:
           $log.Add("")
 
           $log.Add("--- Runtime launch test (8s hidden window) ---")
+          # Force Qt to a software rasteriser before launching. The build sets
+          # Qt::AA_UseDesktopOpenGL, so on a runner with no usable GPU the GL
+          # context fails during Qt construction -- before main.cpp's own
+          # try/catch is in scope -- which is STATUS_FATAL_USER_CALLBACK_EXCEPTION
+          # (0xC000041D) and lands in the `default` arm below as a bogus crash.
+          #
+          # Identical to workflow_windows.yml, whose copy of this test passes.
+          # This one was missing the three lines and failed the same launch on
+          # the same commit. Set in the runner environment, not on
+          # ProcessStartInfo: this step uses UseShellExecute = $true so the
+          # window can be hidden, and .NET ignores ProcessStartInfo
+          # environment variables whenever UseShellExecute is true.
+          # QT_QPA_PLATFORM=offscreen needs no native window or GPU at all.
+          $env:QT_QPA_PLATFORM = "offscreen"
+          $env:QT_OPENGL = "software"
+          $env:LIBGL_ALWAYS_SOFTWARE = "1"
           try {
             reg add "HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting" /v DontShowUI /t REG_DWORD /d 1 /f 2>&1 | Out-Null
             reg add "HKLM\SOFTWARE\WOW6432Node\Microsoft\Windows\Windows Error Reporting" /v DontShowUI /t REG_DWORD /d 1 /f 2>&1 | Out-Null

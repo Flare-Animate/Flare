@@ -20,6 +20,11 @@ jobs:
           node --disable-warning=ExperimentalWarning tools/flash/webapp/build.ts
           test -f tools/flash/webapp/dist/index.html
           test -f tools/flash/webapp/dist/app.js
+      # deploy-pages resolves the deployment through the Pages API, which
+      # configure-pages sets up. Without this step the upload succeeds and the
+      # deploy then fails, which is exactly what was happening: the build and
+      # upload steps were green and only `actions/deploy-pages@v4` was red.
+      - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v5
         with: { path: tools/flash/webapp/dist }
       - id: d
