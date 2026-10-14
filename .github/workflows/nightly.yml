@@ -160,7 +160,6 @@ jobs:
             -DWITH_WINTAB=ON ^
             -DWITH_TRANSLATION=OFF ^
             -DWITH_SYSTEM_LZO=ON ^
-            -DWITH_LZODRIVER=OFF ^
             -DCMAKE_TOOLCHAIN_FILE="%VCPKG_ROOT%\scripts\buildsystems\vcpkg.cmake" ^
             -DVCPKG_TARGET_TRIPLET=x64-windows > build\cmake_configure.log 2>&1
           set rc=%ERRORLEVEL%
@@ -444,7 +443,6 @@ jobs:
             -DCMAKE_C_COMPILER_LAUNCHER=ccache \
             -DWITH_TRANSLATION=OFF \
             -DWITH_SYSTEM_LZO=ON \
-            -DWITH_LZODRIVER=OFF \
             -DCMAKE_BUILD_TYPE=Release > cmake_configure.log 2>&1
           cat cmake_configure.log
           ninja -j2 2>&1 | tee build.log
@@ -666,7 +664,7 @@ jobs:
             -DQt5_DIR=$(brew --prefix qt@5)/lib/cmake/Qt5 \
             -DCMAKE_PREFIX_PATH=$(brew --prefix qt@5)/lib/cmake/Qt5 \
             -DOpenCV_DIR=$(brew --prefix opencv@4)/lib/cmake/opencv4 \
-            -DWITH_TRANSLATION=OFF -DWITH_SYSTEM_LZO=ON -DWITH_LZODRIVER=OFF > cmake_configure.log 2>&1
+            -DWITH_TRANSLATION=OFF -DWITH_SYSTEM_LZO=ON > cmake_configure.log 2>&1
           cat cmake_configure.log
           ninja -j $(sysctl -n hw.ncpu) 2>&1 | tee build.log
 

@@ -167,8 +167,7 @@ jobs:
             -DCMAKE_PREFIX_PATH=$(brew --prefix qt@5)/lib/cmake/Qt5 \
             -DOpenCV_DIR=$(brew --prefix opencv@4)/lib/cmake/opencv4 \
             -DWITH_TRANSLATION=OFF \
-            -DWITH_SYSTEM_LZO=ON \
-            -DWITH_LZODRIVER=OFF > cmake_configure.log 2>&1
+            -DWITH_SYSTEM_LZO=ON > cmake_configure.log 2>&1
           rc=$?
           set -e
           echo "--- Begin CMake configure log ---"
