@@ -31,6 +31,9 @@ pub struct FillRegion {
     pub fill: Option<Color>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub gradient: Option<Gradient>,
+    /// Bitmap fill (Color panel ▸ Bitmap fill), in shape coordinates.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub bitmap: Option<crate::model::BitmapFill>,
     /// Outer contour first, then holes (even-odd).
     pub contours: Vec<Vec<Pt>>,
 }
@@ -41,6 +44,10 @@ pub struct StrokeEdge {
     #[serde(default)]
     pub closed: bool,
     pub stroke: Stroke,
+    /// Variable width (Width tool): (position 0…1 by length, width multiplier),
+    /// sorted; the ends default to 1. Same format as `Shape::width_profile`.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub width: Option<Vec<(f32, f32)>>,
 }
 
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
@@ -79,20 +86,8 @@ pub enum PaintMode {
 }
 
 impl PaintMode {
-    pub const BRUSH: [PaintMode; 5] = [
-        PaintMode::Normal,
-        PaintMode::Fills,
-        PaintMode::Behind,
-        PaintMode::Selection,
-        PaintMode::Inside,
-    ];
-    pub const ERASER: [PaintMode; 5] = [
-        PaintMode::Normal,
-        PaintMode::Fills,
-        PaintMode::Lines,
-        PaintMode::Selection,
-        PaintMode::Inside,
-    ];
+    pub const BRUSH: [PaintMode; 5] = [PaintMode::Normal, PaintMode::Fills, PaintMode::Behind, PaintMode::Selection, PaintMode::Inside];
+    pub const ERASER: [PaintMode; 5] = [PaintMode::Normal, PaintMode::Fills, PaintMode::Lines, PaintMode::Selection, PaintMode::Inside];
     pub fn name(self, eraser: bool) -> &'static str {
         match (self, eraser) {
             (PaintMode::Normal, true) => "Erase Normal",
@@ -118,40 +113,25 @@ fn q(a: P) -> Pt {
     pt(a[0] as f32, a[1] as f32)
 }
 fn shp_of(contours: &[Vec<Pt>]) -> Shp {
-    contours
-        .iter()
-        .map(|c| c.iter().map(|x| p(*x)).collect())
-        .collect()
+    contours.iter().map(|c| c.iter().map(|x| p(*x)).collect()).collect()
 }
 fn contours_of(s: &Shp) -> Vec<Vec<Pt>> {
-    s.iter()
-        .map(|c| c.iter().map(|x| q(*x)).collect())
-        .collect()
+    s.iter().map(|c| c.iter().map(|x| q(*x)).collect()).collect()
 }
 
 /// Flatten a path into closed polygons (for fills) — curves become polylines.
 pub fn path_polygons(path: &Path) -> Vec<Vec<Pt>> {
-    path.flatten(16)
-        .into_iter()
-        .filter(|(c, _)| c.len() >= 3)
-        .map(|(c, _)| c)
-        .collect()
+    path.flatten(16).into_iter().filter(|(c, _)| c.len() >= 3).map(|(c, _)| c).collect()
 }
 
 /// Flatten a path into polylines (for strokes): (points, closed).
 pub fn path_polylines(path: &Path) -> Vec<(Vec<Pt>, bool)> {
-    path.flatten(16)
-        .into_iter()
-        .filter(|(c, _)| c.len() >= 2)
-        .collect()
+    path.flatten(16).into_iter().filter(|(c, _)| c.len() >= 2).collect()
 }
 
 /// Even-odd normalise loose polygons into disjoint shapes.
 fn normalize(polys: &[Vec<Pt>]) -> Vec<Shp> {
-    let subj: Vec<Contour> = polys
-        .iter()
-        .map(|c| c.iter().map(|x| p(*x)).collect())
-        .collect();
+    let subj: Vec<Contour> = polys.iter().map(|c| c.iter().map(|x| p(*x)).collect()).collect();
     let empty: Vec<Contour> = vec![];
     subj.overlay(&empty, OverlayRule::Subject, FillRule::EvenOdd)
 }
@@ -179,10 +159,7 @@ fn shape_area(s: &Shp) -> f64 {
     s.iter()
         .map(|c| {
             let n = c.len();
-            (0..n)
-                .map(|i| c[i][0] * c[(i + 1) % n][1] - c[(i + 1) % n][0] * c[i][1])
-                .sum::<f64>()
-                / 2.0
+            (0..n).map(|i| c[i][0] * c[(i + 1) % n][1] - c[(i + 1) % n][0] * c[i][1]).sum::<f64>() / 2.0
         })
         .map(|a: f64| a.abs())
         .enumerate()
@@ -193,10 +170,7 @@ fn shape_area(s: &Shp) -> f64 {
 fn bbox(pts: impl Iterator<Item = Pt>) -> Option<(Pt, Pt)> {
     pts.fold(None, |acc, x| match acc {
         None => Some((x, x)),
-        Some((lo, hi)) => Some((
-            pt(lo.x.min(x.x), lo.y.min(x.y)),
-            pt(hi.x.max(x.x), hi.y.max(x.y)),
-        )),
+        Some((lo, hi)) => Some((pt(lo.x.min(x.x), lo.y.min(x.y)), pt(hi.x.max(x.x), hi.y.max(x.y)))),
     })
 }
 fn boxes_touch(a: (Pt, Pt), b: (Pt, Pt), pad: f32) -> bool {
@@ -222,11 +196,7 @@ fn point_in_contours(contours: &[Vec<Pt>], x: Pt) -> bool {
 fn seg_dist(x: Pt, a: Pt, b: Pt) -> (f32, f32) {
     let (dx, dy) = (b.x - a.x, b.y - a.y);
     let l2 = dx * dx + dy * dy;
-    let t = if l2 < 1e-12 {
-        0.0
-    } else {
-        (((x.x - a.x) * dx + (x.y - a.y) * dy) / l2).clamp(0.0, 1.0)
-    };
+    let t = if l2 < 1e-12 { 0.0 } else { (((x.x - a.x) * dx + (x.y - a.y) * dy) / l2).clamp(0.0, 1.0) };
     (pt(a.x + dx * t, a.y + dy * t).dist(x), t)
 }
 
@@ -285,10 +255,7 @@ fn split_polyline(line: &[Pt], at: &[(usize, f32)]) -> Vec<Vec<Pt>> {
         cur.push(line[i + 1]);
     }
     parts.push(cur);
-    parts
-        .into_iter()
-        .filter(|pp| pp.len() >= 2 && polyline_len(pp) > 0.05)
-        .collect()
+    parts.into_iter().filter(|pp| pp.len() >= 2 && polyline_len(pp) > 0.05).collect()
 }
 
 fn polyline_len(l: &[Pt]) -> f32 {
@@ -300,7 +267,7 @@ impl FillRegion {
         shp_of(&self.contours)
     }
     fn same_paint(&self, o: &FillRegion) -> bool {
-        self.fill == o.fill && self.gradient == o.gradient
+        self.fill == o.fill && self.gradient == o.gradient && self.bitmap == o.bitmap
     }
     pub fn bounds(&self) -> Option<(Pt, Pt)> {
         bbox(self.contours.first()?.iter().copied())
@@ -325,6 +292,85 @@ impl FillRegion {
 }
 
 impl StrokeEdge {
+    pub fn new(pts: Vec<Pt>, closed: bool, stroke: Stroke) -> StrokeEdge {
+        StrokeEdge { pts, closed, stroke, width: None }
+    }
+    /// Position (0…1 by length) of the point of this line nearest `x`.
+    pub fn t_of(&self, x: Pt) -> f32 {
+        let pts = self.closed_pts();
+        let total = polyline_len(&pts).max(1e-6);
+        let (mut acc, mut best) = (0.0, (f32::MAX, 0.0));
+        for w in pts.windows(2) {
+            let (d, t) = seg_dist(x, w[0], w[1]);
+            let l = w[0].dist(w[1]);
+            if d < best.0 {
+                best = (d, (acc + l * t) / total);
+            }
+            acc += l;
+        }
+        best.1
+    }
+    /// Width multiplier at position `t` (1 without a profile).
+    pub fn width_at(&self, t: f32) -> f32 {
+        let Some(p) = &self.width else { return 1.0 };
+        let mut v: Vec<(f32, f32)> = p.clone();
+        if v.first().is_none_or(|a| a.0 > 1e-4) {
+            v.insert(0, (0.0, 1.0));
+        }
+        if v.last().is_none_or(|a| a.0 < 1.0 - 1e-4) {
+            v.push((1.0, 1.0));
+        }
+        for w in v.windows(2) {
+            if t <= w[1].0 {
+                let u = (t - w[0].0) / (w[1].0 - w[0].0).max(1e-6);
+                return w[0].1 + (w[1].1 - w[0].1) * u.clamp(0.0, 1.0);
+            }
+        }
+        v[v.len() - 1].1
+    }
+    /// Set the width multiplier at `t` (adds a width point, or moves one within 2%).
+    pub fn set_width(&mut self, t: f32, mult: f32) {
+        let prof = self.width.get_or_insert_with(|| vec![(0.0, 1.0), (1.0, 1.0)]);
+        match prof.iter_mut().find(|(x, _)| (x - t).abs() < 0.02) {
+            Some(w) => w.1 = mult,
+            None => {
+                prof.push((t, mult));
+                prof.sort_by(|a, b| a.0.total_cmp(&b.0));
+            }
+        }
+    }
+    /// A piece of this line (cut, split or lifted): same stroke, the part of
+    /// the width profile it covers.
+    pub fn piece(&self, pts: Vec<Pt>, closed: bool) -> StrokeEdge {
+        let width = self.width.as_ref().and_then(|_| {
+            let (f, l) = (*pts.first()?, *pts.last()?);
+            let (t0, mut t1) = (self.t_of(f), self.t_of(l));
+            if closed {
+                return self.width.clone();
+            }
+            if t1 < t0 {
+                if self.closed {
+                    t1 += 1.0; // wraps past the start of a closed line
+                } else {
+                    return None;
+                }
+            }
+            let span = (t1 - t0).max(1e-6);
+            let at = |t: f32| self.width_at(if t > 1.0 { t - 1.0 } else { t });
+            let mut prof = vec![(0.0, at(t0))];
+            for (t, w) in self.width.iter().flatten() {
+                for tt in [*t, *t + 1.0] {
+                    if tt > t0 + 1e-4 && tt < t1 - 1e-4 {
+                        prof.push(((tt - t0) / span, *w));
+                    }
+                }
+            }
+            prof.push((1.0, at(t1)));
+            prof.sort_by(|a, b| a.0.total_cmp(&b.0));
+            (!prof.iter().all(|(_, w)| (w - 1.0).abs() < 1e-3)).then_some(prof)
+        });
+        StrokeEdge { pts, closed, stroke: self.stroke, width }
+    }
     pub fn path(&self) -> Path {
         let mut segs = vec![crate::geom::Seg::M(self.pts[0])];
         for x in &self.pts[1..] {
@@ -343,10 +389,7 @@ impl StrokeEdge {
         v
     }
     pub fn dist(&self, x: Pt) -> f32 {
-        self.closed_pts()
-            .windows(2)
-            .map(|w| seg_dist(x, w[0], w[1]).0)
-            .fold(f32::MAX, f32::min)
+        self.closed_pts().windows(2).map(|w| seg_dist(x, w[0], w[1]).0).fold(f32::MAX, f32::min)
     }
 }
 
@@ -387,23 +430,16 @@ impl MergeShape {
     }
     /// Hit only the floating selection.
     pub fn float_hit(&self, x: Pt, tol: f32) -> bool {
-        self.float
-            .as_ref()
-            .map(|f| f.hit(x, tol).is_some())
-            .unwrap_or(false)
+        self.float.as_ref().map(|f| f.hit(x, tol).is_some()).unwrap_or(false)
     }
 
     /// Regions as shapes with paint, split into connected pieces.
-    fn push_regions(&mut self, shapes: Vec<Shp>, fill: Option<Color>, gradient: Option<Gradient>) {
+    fn push_regions(&mut self, shapes: Vec<Shp>, fill: Option<Color>, gradient: Option<Gradient>, bitmap: Option<crate::model::BitmapFill>) {
         for s in shapes {
             if s.is_empty() || shape_area(&s).abs() < 0.01 {
                 continue;
             }
-            self.fills.push(FillRegion {
-                fill,
-                gradient: gradient.clone(),
-                contours: contours_of(&s),
-            });
+            self.fills.push(FillRegion { fill, gradient: gradient.clone(), bitmap, contours: contours_of(&s) });
         }
     }
 
@@ -426,16 +462,11 @@ impl MergeShape {
                     if taken[j] || !other.same_paint(&self.fills[i]) {
                         continue;
                     }
-                    let (Some(a), Some(b)) = (bb, other.bounds()) else {
-                        continue;
-                    };
+                    let (Some(a), Some(b)) = (bb, other.bounds()) else { continue };
                     if boxes_touch(a, b, 0.05) {
                         taken[j] = true;
                         group.push(j);
-                        bb = Some((
-                            pt(a.0.x.min(b.0.x), a.0.y.min(b.0.y)),
-                            pt(a.1.x.max(b.1.x), a.1.y.max(b.1.y)),
-                        ));
+                        bb = Some((pt(a.0.x.min(b.0.x), a.0.y.min(b.0.y)), pt(a.1.x.max(b.1.x), a.1.y.max(b.1.y))));
                         changed = true;
                     }
                 }
@@ -447,14 +478,10 @@ impl MergeShape {
             let shapes: Vec<Shp> = group.iter().map(|&k| self.fills[k].shp()).collect();
             let empty: Vec<Shp> = vec![];
             let merged = shapes.overlay(&empty, OverlayRule::Subject, FillRule::NonZero);
-            let (fill, gradient) = (self.fills[i].fill, self.fills[i].gradient.clone());
+            let (fill, gradient, bitmap) = (self.fills[i].fill, self.fills[i].gradient.clone(), self.fills[i].bitmap);
             for s in merged {
                 if shape_area(&s).abs() >= 0.01 {
-                    out.push(FillRegion {
-                        fill,
-                        gradient: gradient.clone(),
-                        contours: contours_of(&s),
-                    });
+                    out.push(FillRegion { fill, gradient: gradient.clone(), bitmap, contours: contours_of(&s) });
                 }
             }
         }
@@ -463,28 +490,24 @@ impl MergeShape {
 
     /// Draw a fill on top: it cuts every region (and the stroke parts) under it.
     /// `cut_strokes`: false for Paint Fills.
-    pub fn add_fill(
-        &mut self,
-        polys: &[Vec<Pt>],
-        fill: Option<Color>,
-        gradient: Option<Gradient>,
-        cut_strokes: bool,
-    ) {
+    pub fn add_fill(&mut self, polys: &[Vec<Pt>], fill: Option<Color>, gradient: Option<Gradient>, cut_strokes: bool) {
+        self.add_region(polys, &FillRegion { fill, gradient, bitmap: None, contours: vec![] }, cut_strokes);
+    }
+
+    /// `add_fill` with the paint (colour, gradient or bitmap) of `paint`.
+    pub fn add_region(&mut self, polys: &[Vec<Pt>], paint: &FillRegion, cut_strokes: bool) {
         let new = normalize(polys);
         if new.is_empty() {
             return;
         }
         self.cut(&new, true, cut_strokes);
-        self.push_regions(new, fill, gradient);
+        self.push_regions(new, paint.fill, paint.gradient.clone(), paint.bitmap);
         self.merge_same_paint();
     }
 
     /// Remove `area` from fills and/or strokes.
     fn cut(&mut self, area: &[Shp], fills: bool, strokes: bool) {
-        let abb = bbox(
-            area.iter()
-                .flat_map(|s| s.iter().flat_map(|c| c.iter().map(|x| q(*x)))),
-        );
+        let abb = bbox(area.iter().flat_map(|s| s.iter().flat_map(|c| c.iter().map(|x| q(*x)))));
         let Some(abb) = abb else { return };
         if fills {
             let old = std::mem::take(&mut self.fills);
@@ -492,7 +515,7 @@ impl MergeShape {
                 match r.bounds() {
                     Some(b) if boxes_touch(b, abb, 0.01) => {
                         let rest = diff_shapes(&[r.shp()], area);
-                        self.push_regions(rest, r.fill, r.gradient.clone());
+                        self.push_regions(rest, r.fill, r.gradient.clone(), r.bitmap);
                     }
                     _ => self.fills.push(r),
                 }
@@ -508,22 +531,11 @@ impl MergeShape {
                 }
                 let line: Vec<P> = s.closed_pts().iter().map(|x| p(*x)).collect();
                 let area_v: Vec<Shp> = area.to_vec();
-                let kept = line.clip_by(
-                    &area_v,
-                    FillRule::NonZero,
-                    ClipRule {
-                        invert: true,
-                        boundary_included: true,
-                    },
-                );
+                let kept = line.clip_by(&area_v, FillRule::NonZero, ClipRule { invert: true, boundary_included: false });
                 for k in kept {
                     let pts: Vec<Pt> = k.iter().map(|x| q(*x)).collect();
                     if pts.len() >= 2 && polyline_len(&pts) > 0.05 {
-                        self.strokes.push(StrokeEdge {
-                            pts,
-                            closed: false,
-                            stroke: s.stroke,
-                        });
+                        self.strokes.push(s.piece(pts, false));
                     }
                 }
             }
@@ -533,6 +545,12 @@ impl MergeShape {
     /// Draw a line: it splits the fills it crosses and the lines it crosses
     /// (and is split by them).
     pub fn add_stroke(&mut self, pts: &[Pt], closed: bool, stroke: Stroke) {
+        self.add_stroke_w(pts, closed, stroke, None);
+    }
+
+    /// `add_stroke` with a variable-width profile (a drawing object's width
+    /// profile joining the merge shape).
+    pub fn add_stroke_w(&mut self, pts: &[Pt], closed: bool, stroke: Stroke, width: Option<Vec<(f32, f32)>>) {
         if pts.len() < 2 {
             return;
         }
@@ -548,7 +566,7 @@ impl MergeShape {
             match r.bounds() {
                 Some(b) if boxes_touch(b, lb, 0.01) => {
                     let pieces = r.shp().slice_by(&lp, FillRule::EvenOdd);
-                    self.push_regions(pieces, r.fill, r.gradient.clone());
+                    self.push_regions(pieces, r.fill, r.gradient.clone(), r.bitmap);
                 }
                 _ => self.fills.push(r),
             }
@@ -562,11 +580,7 @@ impl MergeShape {
                 self.strokes.push(s);
             } else {
                 for piece in split_polyline(&sp, &at) {
-                    self.strokes.push(StrokeEdge {
-                        pts: piece,
-                        closed: false,
-                        stroke: s.stroke,
-                    });
+                    self.strokes.push(s.piece(piece, false));
                 }
             }
         }
@@ -579,27 +593,18 @@ impl MergeShape {
         at.dedup_by(|x, y| x.0 == y.0 && (x.1 - y.1).abs() < 1e-3);
         let pieces = split_polyline(&line, &at);
         let whole = pieces.len() == 1 && closed;
+        let src = StrokeEdge { pts: pts.to_vec(), closed, stroke, width };
         for piece in pieces {
             let mut piece = piece;
             if whole {
                 piece.pop();
             }
-            self.strokes.push(StrokeEdge {
-                pts: piece,
-                closed: whole,
-                stroke,
-            });
+            self.strokes.push(src.piece(piece, whole));
         }
     }
 
     /// A filled and/or stroked path drawn in merge mode.
-    pub fn add_path(
-        &mut self,
-        path: &Path,
-        fill: Option<Color>,
-        gradient: Option<Gradient>,
-        stroke: Option<Stroke>,
-    ) {
+    pub fn add_path(&mut self, path: &Path, fill: Option<Color>, gradient: Option<Gradient>, stroke: Option<Stroke>) {
         let polys = path_polygons(path);
         if (fill.is_some() || gradient.is_some()) && !polys.is_empty() {
             self.add_fill(&polys, fill, gradient, true);
@@ -613,13 +618,7 @@ impl MergeShape {
     }
 
     /// Eraser over `area` (closed polygons) in `mode`.
-    pub fn erase(
-        &mut self,
-        area: &[Vec<Pt>],
-        mode: PaintMode,
-        selected: &[Part],
-        inside: Option<usize>,
-    ) {
+    pub fn erase(&mut self, area: &[Vec<Pt>], mode: PaintMode, selected: &[Part], inside: Option<usize>) {
         let a = normalize(area);
         if a.is_empty() {
             return;
@@ -631,16 +630,7 @@ impl MergeShape {
             PaintMode::Selection | PaintMode::Inside | PaintMode::Behind => {
                 let which: Vec<usize> = match mode {
                     PaintMode::Inside => inside.into_iter().collect(),
-                    _ => selected
-                        .iter()
-                        .filter_map(|x| {
-                            if let Part::Fill(i) = x {
-                                Some(*i)
-                            } else {
-                                None
-                            }
-                        })
-                        .collect(),
+                    _ => selected.iter().filter_map(|x| if let Part::Fill(i) = x { Some(*i) } else { None }).collect(),
                 };
                 let mut out = vec![];
                 for (i, r) in std::mem::take(&mut self.fills).into_iter().enumerate() {
@@ -648,11 +638,7 @@ impl MergeShape {
                         let rest = diff_shapes(&[r.shp()], &a);
                         for s in rest {
                             if shape_area(&s).abs() >= 0.01 {
-                                out.push(FillRegion {
-                                    fill: r.fill,
-                                    gradient: r.gradient.clone(),
-                                    contours: contours_of(&s),
-                                });
+                                out.push(FillRegion { fill: r.fill, gradient: r.gradient.clone(), bitmap: r.bitmap, contours: contours_of(&s) });
                             }
                         }
                     } else {
@@ -665,14 +651,7 @@ impl MergeShape {
     }
 
     /// Brush paint `area` in `mode` (Paint Normal / Fills / Behind / Selection / Inside).
-    pub fn paint(
-        &mut self,
-        area: &[Vec<Pt>],
-        fill: Color,
-        mode: PaintMode,
-        selected: &[Part],
-        inside: Option<usize>,
-    ) {
+    pub fn paint(&mut self, area: &[Vec<Pt>], fill: Color, mode: PaintMode, selected: &[Part], inside: Option<usize>) {
         let a = normalize(area);
         if a.is_empty() {
             return;
@@ -686,22 +665,9 @@ impl MergeShape {
             PaintMode::Selection | PaintMode::Inside => {
                 let which: Vec<usize> = match mode {
                     PaintMode::Inside => inside.into_iter().collect(),
-                    _ => selected
-                        .iter()
-                        .filter_map(|x| {
-                            if let Part::Fill(i) = x {
-                                Some(*i)
-                            } else {
-                                None
-                            }
-                        })
-                        .collect(),
+                    _ => selected.iter().filter_map(|x| if let Part::Fill(i) = x { Some(*i) } else { None }).collect(),
                 };
-                let sel: Vec<Shp> = which
-                    .iter()
-                    .filter_map(|&i| self.fills.get(i))
-                    .map(|r| r.shp())
-                    .collect();
+                let sel: Vec<Shp> = which.iter().filter_map(|&i| self.fills.get(i)).map(|r| r.shp()).collect();
                 if sel.is_empty() {
                     return;
                 }
@@ -712,7 +678,7 @@ impl MergeShape {
             return;
         }
         self.cut(&a, true, mode == PaintMode::Normal);
-        self.push_regions(a, Some(fill), None);
+        self.push_regions(a, Some(fill), None, None);
         self.merge_same_paint();
     }
 
@@ -726,12 +692,7 @@ impl MergeShape {
         self.fill_at(x).map(Part::Fill)
     }
     pub fn fill_at(&self, x: Pt) -> Option<usize> {
-        self.fills.iter().rposition(|r| {
-            r.bounds()
-                .map(|b| boxes_touch(b, (x, x), 0.0))
-                .unwrap_or(false)
-                && r.contains(x)
-        })
+        self.fills.iter().rposition(|r| r.bounds().map(|b| boxes_touch(b, (x, x), 0.0)).unwrap_or(false) && r.contains(x))
     }
 
     /// Double-click: a fill plus the strokes along its edge (or a stroke plus
@@ -739,22 +700,10 @@ impl MergeShape {
     pub fn connected(&self, part: Part) -> Vec<Part> {
         match part {
             Part::Fill(i) => {
-                let Some(r) = self.fills.get(i) else {
-                    return vec![];
-                };
+                let Some(r) = self.fills.get(i) else { return vec![] };
                 let mut v = vec![part];
                 for (k, s) in self.strokes.iter().enumerate() {
-                    let on = s
-                        .pts
-                        .iter()
-                        .filter(|x| {
-                            r.contours.iter().any(|c| {
-                                c.windows(2)
-                                    .chain(std::iter::once([c[c.len() - 1], c[0]].as_slice()))
-                                    .any(|w| seg_dist(**x, w[0], w[1]).0 < s.stroke.width.max(1.0))
-                            })
-                        })
-                        .count();
+                    let on = s.pts.iter().filter(|x| r.contours.iter().any(|c| c.windows(2).chain(std::iter::once([c[c.len() - 1], c[0]].as_slice())).any(|w| seg_dist(**x, w[0], w[1]).0 < s.stroke.width.max(1.0)))).count();
                     if on * 2 >= s.pts.len() {
                         v.push(Part::Stroke(k));
                     }
@@ -786,26 +735,8 @@ impl MergeShape {
     /// Take parts out (they become a floating piece, e.g. while dragging).
     pub fn extract(&mut self, parts: &[Part]) -> MergeShape {
         let mut out = MergeShape::default();
-        let mut fi: Vec<usize> = parts
-            .iter()
-            .filter_map(|x| {
-                if let Part::Fill(i) = x {
-                    Some(*i)
-                } else {
-                    None
-                }
-            })
-            .collect();
-        let mut si: Vec<usize> = parts
-            .iter()
-            .filter_map(|x| {
-                if let Part::Stroke(i) = x {
-                    Some(*i)
-                } else {
-                    None
-                }
-            })
-            .collect();
+        let mut fi: Vec<usize> = parts.iter().filter_map(|x| if let Part::Fill(i) = x { Some(*i) } else { None }).collect();
+        let mut si: Vec<usize> = parts.iter().filter_map(|x| if let Part::Stroke(i) = x { Some(*i) } else { None }).collect();
         fi.sort();
         fi.dedup();
         si.sort();
@@ -835,26 +766,15 @@ impl MergeShape {
         let mut inner = MergeShape::default();
         for r in &self.fills {
             let pieces = intersect_shapes(&[r.shp()], &a);
-            inner.push_regions(pieces, r.fill, r.gradient.clone());
+            inner.push_regions(pieces, r.fill, r.gradient.clone(), r.bitmap);
         }
         for s in &self.strokes {
             let line: Vec<P> = s.closed_pts().iter().map(|x| p(*x)).collect();
             let av: Vec<Shp> = a.clone();
-            for k in line.clip_by(
-                &av,
-                FillRule::NonZero,
-                ClipRule {
-                    invert: false,
-                    boundary_included: false,
-                },
-            ) {
+            for k in line.clip_by(&av, FillRule::NonZero, ClipRule { invert: false, boundary_included: false }) {
                 let pts: Vec<Pt> = k.iter().map(|x| q(*x)).collect();
                 if pts.len() >= 2 && polyline_len(&pts) > 0.05 {
-                    inner.strokes.push(StrokeEdge {
-                        pts,
-                        closed: false,
-                        stroke: s.stroke,
-                    });
+                    inner.strokes.push(s.piece(pts, false));
                 }
             }
         }
@@ -867,7 +787,7 @@ impl MergeShape {
     /// dragged selection in merge mode).
     pub fn merge_in(&mut self, piece: &MergeShape) {
         for r in &piece.fills {
-            self.add_fill(&r.contours, r.fill, r.gradient.clone(), true);
+            self.add_region(&r.contours, r, true);
         }
         for s in &piece.strokes {
             self.add_stroke(&s.pts, s.closed, s.stroke);
@@ -884,6 +804,9 @@ impl MergeShape {
             if let Some(g) = &mut r.gradient {
                 g.matrix = m.concat(&g.matrix);
             }
+            if let Some(b) = &mut r.bitmap {
+                b.matrix = m.concat(&b.matrix);
+            }
         }
         for s in &mut self.strokes {
             for x in s.pts.iter_mut() {
@@ -893,26 +816,13 @@ impl MergeShape {
     }
 
     pub fn bounds(&self) -> Option<(Pt, Pt)> {
-        bbox(
-            self.fills
-                .iter()
-                .flat_map(|r| r.contours.iter().flatten().copied())
-                .chain(self.strokes.iter().flat_map(|s| s.pts.iter().copied())),
-        )
+        bbox(self.fills.iter().flat_map(|r| r.contours.iter().flatten().copied()).chain(self.strokes.iter().flat_map(|s| s.pts.iter().copied())))
     }
     pub fn part_bounds(&self, parts: &[Part]) -> Option<(Pt, Pt)> {
         bbox(parts.iter().flat_map(|x| -> Vec<Pt> {
             match x {
-                Part::Fill(i) => self
-                    .fills
-                    .get(*i)
-                    .map(|r| r.contours.concat())
-                    .unwrap_or_default(),
-                Part::Stroke(i) => self
-                    .strokes
-                    .get(*i)
-                    .map(|s| s.pts.clone())
-                    .unwrap_or_default(),
+                Part::Fill(i) => self.fills.get(*i).map(|r| r.contours.concat()).unwrap_or_default(),
+                Part::Stroke(i) => self.strokes.get(*i).map(|s| s.pts.clone()).unwrap_or_default(),
             }
         }))
     }
@@ -924,6 +834,19 @@ impl MergeShape {
                 if let Some(r) = self.fills.get_mut(*i) {
                     r.fill = fill;
                     r.gradient = gradient.clone();
+                    r.bitmap = None;
+                }
+            }
+        }
+        self.merge_same_paint();
+    }
+    /// Fill parts with a library bitmap (tiled from `matrix`).
+    pub fn set_bitmap_fill(&mut self, parts: &[Part], bitmap: crate::model::BitmapFill) {
+        for x in parts {
+            if let Part::Fill(i) = x {
+                if let Some(r) = self.fills.get_mut(*i) {
+                    r.bitmap = Some(bitmap);
+                    r.gradient = None;
                 }
             }
         }
@@ -941,19 +864,8 @@ impl MergeShape {
 
     /// Everything as one filled+stroked path per part (Group / drawing object).
     pub fn to_shapes(&self) -> Vec<crate::model::Shape> {
-        let mut v: Vec<crate::model::Shape> = self
-            .fills
-            .iter()
-            .map(|r| crate::model::Shape {
-                gradient: r.gradient.clone(),
-                ..crate::model::Shape::new(r.path(), r.fill, None)
-            })
-            .collect();
-        v.extend(
-            self.strokes
-                .iter()
-                .map(|s| crate::model::Shape::new(s.path(), None, Some(s.stroke))),
-        );
+        let mut v: Vec<crate::model::Shape> = self.fills.iter().map(|r| crate::model::Shape { gradient: r.gradient.clone(), bitmap_fill: r.bitmap, ..crate::model::Shape::new(r.path(), r.fill, None) }).collect();
+        v.extend(self.strokes.iter().map(|s| crate::model::Shape { width_profile: s.width.clone(), ..crate::model::Shape::new(s.path(), None, Some(s.stroke)) }));
         v
     }
 
@@ -967,10 +879,7 @@ impl MergeShape {
         let mut walls: Vec<Shp> = vec![];
         for s in &self.strokes {
             let line: Vec<P> = s.pts.iter().map(|a| p(*a)).collect();
-            let style = StrokeStyle::new(r * 2.0)
-                .line_join(LineJoin::Round(0.2))
-                .start_cap(LineCap::Round(0.2))
-                .end_cap(LineCap::Round(0.2));
+            let style = StrokeStyle::new(r * 2.0).line_join(LineJoin::Round(0.2)).start_cap(LineCap::Round(0.2)).end_cap(LineCap::Round(0.2));
             walls.extend(line.stroke(style, s.closed));
         }
         // existing fills are walls too
@@ -998,7 +907,7 @@ impl MergeShape {
                     };
                     let fills: Vec<Shp> = self.fills.iter().map(|f| f.shp()).collect();
                     let area = diff_shapes(&grown, &fills);
-                    self.push_regions(area, Some(fill), None);
+                    self.push_regions(area, Some(fill), None, None);
                     self.merge_same_paint();
                     return true;
                 }
@@ -1062,10 +971,7 @@ impl MergeShape {
 
     /// Straighten: simplify hard so curves become straight runs (Modify ▸ Shape ▸ Straighten).
     pub fn straighten(&mut self) {
-        let size = self
-            .bounds()
-            .map(|(lo, hi)| (hi.x - lo.x).max(hi.y - lo.y))
-            .unwrap_or(100.0);
+        let size = self.bounds().map(|(lo, hi)| (hi.x - lo.x).max(hi.y - lo.y)).unwrap_or(100.0);
         self.optimize((size * 0.03).max(1.0));
     }
 
@@ -1090,7 +996,7 @@ impl MergeShape {
     pub fn resolve(&mut self) {
         let regions = std::mem::take(&mut self.fills);
         for r in regions {
-            self.add_fill(&r.contours, r.fill, r.gradient.clone(), false);
+            self.add_region(&r.contours, &r, false);
         }
     }
 }
@@ -1105,23 +1011,9 @@ pub fn morph(a: &MergeShape, b: &MergeShape, t: f32) -> MergeShape {
                 let path = crate::geom::morph_paths(&x.path(), &y.path(), t);
                 let fill = match (x.fill, y.fill) {
                     (Some(c), Some(d)) => Some(c.lerp(d, t)),
-                    (c, d) => {
-                        if t < 0.5 {
-                            c
-                        } else {
-                            d
-                        }
-                    }
+                    (c, d) => if t < 0.5 { c } else { d },
                 };
-                out.fills.push(FillRegion {
-                    fill,
-                    gradient: if t < 0.5 {
-                        x.gradient.clone()
-                    } else {
-                        y.gradient.clone()
-                    },
-                    contours: path_polygons(&path),
-                });
+                out.fills.push(FillRegion { fill, gradient: if t < 0.5 { x.gradient.clone() } else { y.gradient.clone() }, bitmap: if t < 0.5 { x.bitmap } else { y.bitmap }, contours: path_polygons(&path) });
             }
             (Some(x), None) if t < 0.5 => out.fills.push(x.clone()),
             (None, Some(y)) if t >= 0.5 => out.fills.push(y.clone()),
@@ -1134,15 +1026,9 @@ pub fn morph(a: &MergeShape, b: &MergeShape, t: f32) -> MergeShape {
             (Some(x), Some(y)) => {
                 let path = crate::geom::morph_paths(&x.path(), &y.path(), t);
                 if let Some((pts, closed)) = path_polylines(&path).into_iter().next() {
-                    let stroke = Stroke {
-                        color: x.stroke.color.lerp(y.stroke.color, t),
-                        width: x.stroke.width + (y.stroke.width - x.stroke.width) * t,
-                    };
-                    out.strokes.push(StrokeEdge {
-                        pts,
-                        closed,
-                        stroke,
-                    });
+                    let stroke = Stroke { color: x.stroke.color.lerp(y.stroke.color, t), width: x.stroke.width + (y.stroke.width - x.stroke.width) * t };
+                    let width = if t < 0.5 { x.width.clone() } else { y.width.clone() };
+                    out.strokes.push(StrokeEdge { pts, closed, stroke, width });
                 }
             }
             (Some(x), None) if t < 0.5 => out.strokes.push(x.clone()),
@@ -1177,14 +1063,23 @@ pub fn bool_polys(a: &[Vec<Pt>], b: &[Vec<Pt>], op: BoolOp) -> Vec<Vec<Pt>> {
     r.iter().flat_map(contours_of).collect()
 }
 
+/// Grow filled polygons outward by `r` (faux bold text).
+pub fn grow_polygons(polys: &[Vec<Pt>], r: f32) -> Vec<Vec<Pt>> {
+    use i_overlay::mesh::float::outline::offset::OutlineOffset;
+    use i_overlay::mesh::float::style::OutlineStyle;
+    let st = OutlineStyle::new(r as f64);
+    let mut out = vec![];
+    for f in &normalize(polys) {
+        for s in f.outline(&st) {
+            out.extend(contours_of(&s));
+        }
+    }
+    out
+}
+
 /// Contours → a closed straight-segment path.
 pub fn polys_path(polys: &[Vec<Pt>]) -> Path {
-    FillRegion {
-        fill: None,
-        gradient: None,
-        contours: polys.to_vec(),
-    }
-    .path()
+    FillRegion { fill: None, gradient: None, bitmap: None, contours: polys.to_vec() }.path()
 }
 
 // ------------------------------------------------------------ edge bending
@@ -1199,14 +1094,13 @@ pub struct Bend {
     grab: f32,
     /// Corner drag: falloff is linear from the corner.
     corner: bool,
+    /// Ctrl-drag on an edge: the grabbed point becomes a new corner (straight
+    /// falloff to the neighbouring corners instead of a curve).
+    sharp: bool,
 }
 
 fn all_polylines(m: &MergeShape) -> Vec<(Vec<Pt>, bool)> {
-    let mut v: Vec<(Vec<Pt>, bool)> = m
-        .fills
-        .iter()
-        .flat_map(|r| r.contours.iter().map(|c| (c.clone(), true)))
-        .collect();
+    let mut v: Vec<(Vec<Pt>, bool)> = m.fills.iter().flat_map(|r| r.contours.iter().map(|c| (c.clone(), true))).collect();
     v.extend(m.strokes.iter().map(|s| (s.pts.clone(), s.closed)));
     v
 }
@@ -1221,16 +1115,11 @@ fn turn(c: &[Pt], i: usize, closed: bool) -> f32 {
     let b = c[i];
     let d = c[(i + 1) % n];
     let (u, v) = (pt(b.x - a.x, b.y - a.y), pt(d.x - b.x, d.y - b.y));
-    let (lu, lv) = (
-        (u.x * u.x + u.y * u.y).sqrt(),
-        (v.x * v.x + v.y * v.y).sqrt(),
-    );
+    let (lu, lv) = ((u.x * u.x + u.y * u.y).sqrt(), (v.x * v.x + v.y * v.y).sqrt());
     if lu < 1e-6 || lv < 1e-6 {
         return 0.0;
     }
-    ((u.x * v.x + u.y * v.y) / (lu * lv))
-        .clamp(-1.0, 1.0)
-        .acos()
+    ((u.x * v.x + u.y * v.y) / (lu * lv)).clamp(-1.0, 1.0).acos()
 }
 
 const CORNER: f32 = 0.6; // ~35°
@@ -1256,16 +1145,18 @@ impl MergeShape {
         // near a corner vertex?
         let corner = [(seg, 0.0f32), ((seg + 1) % n, 1.0)]
             .into_iter()
-            .find(|(v, at)| {
-                (t - at).abs() * c[seg].dist(c[(seg + 1) % n]) <= tol
-                    && turn(c, *v, *closed) > CORNER
-            })
+            .find(|(v, at)| (t - at).abs() * c[seg].dist(c[(seg + 1) % n]) <= tol && turn(c, *v, *closed) > CORNER)
             .map(|(v, _)| v);
         Some((li, seg, t, corner))
     }
 
     /// Start bending at `x` (Selection tool on an edge or a corner).
     pub fn begin_bend(&self, x: Pt, tol: f32) -> Option<Bend> {
+        self.begin_bend_ex(x, tol, false)
+    }
+
+    /// Like `begin_bend`; `sharp` (Ctrl-drag) adds a corner where the edge is grabbed.
+    pub fn begin_bend_ex(&self, x: Pt, tol: f32, sharp: bool) -> Option<Bend> {
         let (li, seg, t, corner) = self.nearest_edge(x, tol)?;
         let lines = all_polylines(self);
         let (c, closed) = &lines[li];
@@ -1284,12 +1175,7 @@ impl MergeShape {
                     params.push(reach(*qv));
                 }
             }
-            return Some(Bend {
-                base,
-                params,
-                grab: 1.0,
-                corner: true,
-            });
+            return Some(Bend { base, params, grab: 1.0, corner: true, sharp: false });
         }
         // edge: walk to the corners on both sides of the grabbed segment
         let (mut a, mut b) = (seg, (seg + 1) % n);
@@ -1337,7 +1223,16 @@ impl MergeShape {
                 break;
             }
         }
-        let resampled = resample(&chain, (total / 2.0).clamp(8.0, 64.0) as usize);
+        let mut resampled = resample(&chain, (total / 2.0).clamp(8.0, 64.0) as usize);
+        if sharp {
+            // make sure a vertex sits exactly where the new corner goes
+            let gp = c[seg].lerp(c[(seg + 1) % n], t);
+            let gs = grab;
+            let at = resampled.iter().position(|r| param_on(&chain, *r, total).map(|s| s > gs).unwrap_or(false)).unwrap_or(resampled.len() - 1);
+            if resampled.iter().all(|r| r.dist(gp) > 0.05) {
+                resampled.insert(at.max(1), gp);
+            }
+        }
         let base = insert_chain(self, &chain, &resampled);
         let mut params = vec![];
         for (pl, _) in all_polylines(&base) {
@@ -1345,12 +1240,7 @@ impl MergeShape {
                 params.push(param_on(&resampled, *qv, total));
             }
         }
-        Some(Bend {
-            base,
-            params,
-            grab: grab.clamp(0.02, 0.98),
-            corner: false,
-        })
+        Some(Bend { base, params, grab: grab.clamp(0.02, 0.98), corner: false, sharp })
     }
 }
 
@@ -1359,13 +1249,16 @@ impl Bend {
     pub fn apply(&self, delta: Pt) -> MergeShape {
         let mut out = self.base.clone();
         let mut k = 0;
-        let (g, corner) = (self.grab, self.corner);
+        let (g, corner, sharp) = (self.grab, self.corner, self.sharp);
         let w = |s: f32| -> f32 {
             if corner {
                 return s;
             }
             let u = if s <= g { s / g } else { (1.0 - s) / (1.0 - g) };
             let u = u.clamp(0.0, 1.0);
+            if sharp {
+                return u;
+            }
             1.0 - (1.0 - u) * (1.0 - u)
         };
         out.map_points(|x| {
@@ -1435,11 +1328,7 @@ fn insert_chain(m: &MergeShape, chain: &[Pt], resampled: &[Pt]) -> MergeShape {
             let (a, b) = (c[i], c[(i + 1) % n]);
             if let (Some(sa), Some(sb)) = (param_on(chain, a, total), param_on(chain, b, total)) {
                 // the resampled points strictly between sa and sb, in direction a → b
-                let mut mids: Vec<(f32, Pt)> = resampled
-                    .iter()
-                    .filter_map(|r| param_on(chain, *r, total).map(|s| (s, *r)))
-                    .filter(|(s, _)| (*s > sa.min(sb) + 1e-4) && (*s < sa.max(sb) - 1e-4))
-                    .collect();
+                let mut mids: Vec<(f32, Pt)> = resampled.iter().filter_map(|r| param_on(chain, *r, total).map(|s| (s, *r))).filter(|(s, _)| (*s > sa.min(sb) + 1e-4) && (*s < sa.max(sb) - 1e-4)).collect();
                 // only when the segment really runs along the chain (its midpoint is on it)
                 if param_on(chain, a.lerp(b, 0.5), total).is_none() {
                     continue;
@@ -1499,13 +1388,7 @@ fn chain_reach(lines: &[(Vec<Pt>, bool)], at: Pt) -> impl Fn(Pt) -> Option<f32> 
             }
         }
     }
-    move |x: Pt| {
-        marks
-            .iter()
-            .filter(|(m, _)| m.dist(x) < 0.05)
-            .map(|(_, f)| *f)
-            .fold(None, |a: Option<f32>, f| Some(a.map_or(f, |a| a.max(f))))
-    }
+    move |x: Pt| marks.iter().filter(|(m, _)| m.dist(x) < 0.05).map(|(_, f)| *f).fold(None, |a: Option<f32>, f| Some(a.map_or(f, |a| a.max(f))))
 }
 
 #[cfg(test)]
@@ -1532,44 +1415,27 @@ mod tests {
         m.add_fill(&[rect(50., 0., 100., 100.)], blue(), None, true);
         assert_eq!(m.fills.len(), 2);
         let r = m.fills.iter().position(|f| f.fill == red()).unwrap();
-        assert!(
-            (area(&m, r) - 5000.0).abs() < 1.0,
-            "blue cut the red square in half: {}",
-            area(&m, r)
-        );
+        assert!((area(&m, r) - 5000.0).abs() < 1.0, "blue cut the red square in half: {}", area(&m, r));
         // red over both: merges with the red half into one region
         m.add_fill(&[rect(40., 40., 30., 20.)], red(), None, true);
-        let reds: Vec<usize> = (0..m.fills.len())
-            .filter(|&i| m.fills[i].fill == red())
-            .collect();
+        let reds: Vec<usize> = (0..m.fills.len()).filter(|&i| m.fills[i].fill == red()).collect();
         assert_eq!(reds.len(), 1, "touching red areas merge");
         // blue square got a notch
         let b = m.fills.iter().position(|f| f.fill == blue()).unwrap();
-        assert!(
-            (area(&m, b) - (10000.0 - 400.0)).abs() < 1.0,
-            "{}",
-            area(&m, b)
-        );
+        assert!((area(&m, b) - (10000.0 - 400.0)).abs() < 1.0, "{}", area(&m, b));
     }
 
     #[test]
     fn line_splits_fill_and_lines_split_each_other() {
         let mut m = MergeShape::default();
-        let st = Stroke {
-            color: Color::rgb(0, 0, 0),
-            width: 1.0,
-        };
+        let st = Stroke { color: Color::rgb(0, 0, 0), width: 1.0 };
         m.add_fill(&[rect(0., 0., 100., 100.)], red(), None, true);
         m.add_stroke(&[pt(-10.0, 50.0), pt(110.0, 50.0)], false, st);
         assert_eq!(m.fills.len(), 2, "the line cut the square in two");
         assert_eq!(m.strokes.len(), 1);
         m.add_stroke(&[pt(50.0, -10.0), pt(50.0, 110.0)], false, st);
         assert_eq!(m.fills.len(), 4);
-        assert_eq!(
-            m.strokes.len(),
-            4,
-            "crossing lines split into four segments"
-        );
+        assert_eq!(m.strokes.len(), 4, "crossing lines split into four segments");
         // the top-left quarter can be picked alone
         let hit = m.hit(pt(25.0, 25.0), 1.0).unwrap();
         assert!(matches!(hit, Part::Fill(_)));
@@ -1581,36 +1447,23 @@ mod tests {
     #[test]
     fn shape_over_lines_erases_them_and_drop_merges() {
         let mut m = MergeShape::default();
-        let st = Stroke {
-            color: Color::rgb(0, 0, 0),
-            width: 2.0,
-        };
+        let st = Stroke { color: Color::rgb(0, 0, 0), width: 2.0 };
         m.add_stroke(&[pt(0.0, 50.0), pt(200.0, 50.0)], false, st);
         m.add_fill(&[rect(50., 0., 100., 100.)], blue(), None, true);
         let total: f32 = m.strokes.iter().map(|s| polyline_len(&s.pts)).sum();
-        assert!(
-            (total - 100.0).abs() < 0.5,
-            "the fill covered the middle of the line: {total}"
-        );
+        assert!((total - 100.0).abs() < 0.5, "the fill covered the middle of the line: {total}");
         // marquee-select the right half, drag it onto the left part
         let mut piece = m.extract_rect(pt(100.0, -10.0), pt(220.0, 110.0));
         assert!(!piece.fills.is_empty());
         piece.transform(&Matrix::translate(-80.0, 0.0));
         m.merge_in(&piece);
-        assert_eq!(
-            m.fills.iter().filter(|f| f.fill == blue()).count(),
-            1,
-            "dropped blue merges with blue"
-        );
+        assert_eq!(m.fills.iter().filter(|f| f.fill == blue()).count(), 1, "dropped blue merges with blue");
     }
 
     #[test]
     fn eraser_and_brush_modes() {
         let mut m = MergeShape::default();
-        let st = Stroke {
-            color: Color::rgb(0, 0, 0),
-            width: 2.0,
-        };
+        let st = Stroke { color: Color::rgb(0, 0, 0), width: 2.0 };
         m.add_fill(&[rect(0., 0., 100., 100.)], red(), None, true);
         m.add_stroke(&[pt(-20.0, 50.0), pt(120.0, 50.0)], false, st);
         // erase lines only
@@ -1621,66 +1474,26 @@ mod tests {
         assert_eq!(a.strokes.len(), 2);
         // paint behind: only outside the square
         let mut b = m.clone();
-        b.paint(
-            &[rect(80., 80., 40., 40.)],
-            Color::rgb(0, 255, 0),
-            PaintMode::Behind,
-            &[],
-            None,
-        );
-        let g = b
-            .fills
-            .iter()
-            .position(|f| f.fill == Some(Color::rgb(0, 255, 0)))
-            .unwrap();
+        b.paint(&[rect(80., 80., 40., 40.)], Color::rgb(0, 255, 0), PaintMode::Behind, &[], None);
+        let g = b.fills.iter().position(|f| f.fill == Some(Color::rgb(0, 255, 0))).unwrap();
         assert!((area(&b, g) - (1600.0 - 400.0)).abs() < 1.0);
         // paint inside the lower half only
         let lower = m.fill_at(pt(50.0, 75.0)).unwrap();
         let mut c = m.clone();
-        c.paint(
-            &[rect(40., 40., 20., 20.)],
-            Color::rgb(0, 255, 0),
-            PaintMode::Inside,
-            &[],
-            Some(lower),
-        );
-        let g = c
-            .fills
-            .iter()
-            .position(|f| f.fill == Some(Color::rgb(0, 255, 0)))
-            .unwrap();
+        c.paint(&[rect(40., 40., 20., 20.)], Color::rgb(0, 255, 0), PaintMode::Inside, &[], Some(lower));
+        let g = c.fills.iter().position(|f| f.fill == Some(Color::rgb(0, 255, 0))).unwrap();
         assert!((area(&c, g) - 200.0).abs() < 1.0);
     }
 
     #[test]
     fn bucket_fills_an_enclosed_area_with_gaps() {
         let mut m = MergeShape::default();
-        let st = Stroke {
-            color: Color::rgb(0, 0, 0),
-            width: 1.0,
-        };
+        let st = Stroke { color: Color::rgb(0, 0, 0), width: 1.0 };
         // a square outline with a 3 px gap in the top edge
         m.add_stroke(&[pt(0.0, 0.0), pt(48.0, 0.0)], false, st);
-        m.add_stroke(
-            &[
-                pt(51.0, 0.0),
-                pt(100.0, 0.0),
-                pt(100.0, 100.0),
-                pt(0.0, 100.0),
-                pt(0.0, 0.0),
-            ],
-            false,
-            st,
-        );
-        assert!(
-            !m.clone()
-                .fill_enclosed(pt(50.0, 50.0), Color::rgb(0, 255, 0), 1.0),
-            "small gap setting: leaks"
-        );
-        assert!(
-            m.fill_enclosed(pt(50.0, 50.0), Color::rgb(0, 255, 0), 6.0),
-            "closes the gap"
-        );
+        m.add_stroke(&[pt(51.0, 0.0), pt(100.0, 0.0), pt(100.0, 100.0), pt(0.0, 100.0), pt(0.0, 0.0)], false, st);
+        assert!(!m.clone().fill_enclosed(pt(50.0, 50.0), Color::rgb(0, 255, 0), 1.0), "small gap setting: leaks");
+        assert!(m.fill_enclosed(pt(50.0, 50.0), Color::rgb(0, 255, 0), 6.0), "closes the gap");
         let a = area(&m, 0);
         assert!(a > 9000.0 && a < 10100.0, "{a}");
     }
@@ -1688,41 +1501,213 @@ mod tests {
     #[test]
     fn bending_an_edge_curves_shared_geometry() {
         let mut m = MergeShape::default();
-        let st = Stroke {
-            color: Color::rgb(0, 0, 0),
-            width: 1.0,
-        };
+        let st = Stroke { color: Color::rgb(0, 0, 0), width: 1.0 };
         m.add_path(&Path::rect(0.0, 0.0, 100.0, 100.0), red(), None, Some(st));
-        let bend = m
-            .begin_bend(pt(50.0, 0.0), 2.0)
-            .expect("grabbed the top edge");
+        let bend = m.begin_bend(pt(50.0, 0.0), 2.0).expect("grabbed the top edge");
         let out = bend.apply(pt(0.0, -30.0));
         // the stroke's top midpoint and the fill's top midpoint both moved up by 30
-        let top_fill = out.fills[0].contours[0]
-            .iter()
-            .map(|x| x.y)
-            .fold(f32::MAX, f32::min);
-        let top_line = out.strokes[0]
-            .pts
-            .iter()
-            .map(|x| x.y)
-            .fold(f32::MAX, f32::min);
-        assert!(
-            (top_fill + 30.0).abs() < 1.0 && (top_line + 30.0).abs() < 1.0,
-            "{top_fill} {top_line}"
-        );
+        let top_fill = out.fills[0].contours[0].iter().map(|x| x.y).fold(f32::MAX, f32::min);
+        let top_line = out.strokes[0].pts.iter().map(|x| x.y).fold(f32::MAX, f32::min);
+        assert!((top_fill + 30.0).abs() < 1.0 && (top_line + 30.0).abs() < 1.0, "{top_fill} {top_line}");
         // the corners did not move
-        assert!(out.fills[0].contours[0]
-            .iter()
-            .any(|x| x.dist(pt(0.0, 0.0)) < 0.01));
+        assert!(out.fills[0].contours[0].iter().any(|x| x.dist(pt(0.0, 0.0)) < 0.01));
         // corner drag
         let c = m.begin_bend(pt(100.0, 100.0), 2.0).unwrap();
         let out = c.apply(pt(20.0, 20.0));
-        assert!(out.fills[0].contours[0]
-            .iter()
-            .any(|x| x.dist(pt(120.0, 120.0)) < 0.01));
-        assert!(out.fills[0].contours[0]
-            .iter()
-            .any(|x| x.dist(pt(0.0, 0.0)) < 0.01));
+        assert!(out.fills[0].contours[0].iter().any(|x| x.dist(pt(120.0, 120.0)) < 0.01));
+        assert!(out.fills[0].contours[0].iter().any(|x| x.dist(pt(0.0, 0.0)) < 0.01));
     }
+}
+
+impl MergeShape {
+    /// Magic Wand: the part of the bitmap-filled region under `x` whose
+    /// pixels are within `threshold` (0–255, per channel) of the colour at
+    /// `x`, connected to it. Returns polygons in shape coordinates.
+    pub fn magic_wand_area(&self, x: Pt, img: &crate::bitmap::Image, threshold: f32) -> Option<Vec<Vec<Pt>>> {
+        let ri = self.fill_at(x)?;
+        let r = &self.fills[ri];
+        let b = r.bitmap?;
+        let inv = b.matrix.invert()?;
+        let (lo, hi) = r.bounds()?;
+        // sampling grid: 1 unit cells, coarser for very large regions
+        let cell = (((hi.x - lo.x) * (hi.y - lo.y)) / 1_500_000.0).sqrt().max(1.0);
+        let (w, h) = ((((hi.x - lo.x) / cell).ceil() as usize).max(1), (((hi.y - lo.y) / cell).ceil() as usize).max(1));
+        let (iw, ih) = (img.width as i64, img.height as i64);
+        if iw == 0 || ih == 0 {
+            return None;
+        }
+        let sample = |p: Pt| -> [u8; 4] {
+            let q = inv.apply(p);
+            let (px, py) = ((q.x.floor() as i64).rem_euclid(iw), (q.y.floor() as i64).rem_euclid(ih));
+            let i = ((py * iw + px) * 4) as usize;
+            [img.rgba[i], img.rgba[i + 1], img.rgba[i + 2], img.rgba[i + 3]]
+        };
+        let centre = |cx: usize, cy: usize| pt(lo.x + (cx as f32 + 0.5) * cell, lo.y + (cy as f32 + 0.5) * cell);
+        // inside the region, row by row (even-odd crossings of every contour)
+        let mut inside = vec![false; w * h];
+        for cy in 0..h {
+            let y = lo.y + (cy as f32 + 0.5) * cell;
+            let mut xs = vec![];
+            for c in &r.contours {
+                let n = c.len();
+                for i in 0..n {
+                    let (a, bb) = (c[i], c[(i + 1) % n]);
+                    if (a.y > y) != (bb.y > y) {
+                        xs.push(a.x + (y - a.y) * (bb.x - a.x) / (bb.y - a.y));
+                    }
+                }
+            }
+            xs.sort_by(|a, b| a.partial_cmp(b).unwrap());
+            for pair in xs.chunks(2) {
+                if let [x0, x1] = pair {
+                    let a = (((x0 - lo.x) / cell - 0.5).ceil().max(0.0)) as usize;
+                    let bnd = (((x1 - lo.x) / cell - 0.5).floor()) as i64;
+                    for cx in a..=(bnd.max(-1) as usize).min(w.saturating_sub(1)) {
+                        if (bnd as isize) >= cx as isize {
+                            inside[cy * w + cx] = true;
+                        }
+                    }
+                }
+            }
+        }
+        let (sx, sy) = (((x.x - lo.x) / cell) as usize, ((x.y - lo.y) / cell) as usize);
+        if sx >= w || sy >= h {
+            return None;
+        }
+        let seed = sample(x);
+        let near = |c: [u8; 4]| (0..4).all(|k| (c[k] as f32 - seed[k] as f32).abs() <= threshold);
+        let mut hit = vec![false; w * h];
+        let mut stack = vec![(sx, sy)];
+        while let Some((cx, cy)) = stack.pop() {
+            let i = cy * w + cx;
+            if hit[i] || !inside[i] || !near(sample(centre(cx, cy))) {
+                continue;
+            }
+            hit[i] = true;
+            if cx > 0 {
+                stack.push((cx - 1, cy));
+            }
+            if cx + 1 < w {
+                stack.push((cx + 1, cy));
+            }
+            if cy > 0 {
+                stack.push((cx, cy - 1));
+            }
+            if cy + 1 < h {
+                stack.push((cx, cy + 1));
+            }
+        }
+        // runs of selected cells → rectangles → one outline
+        let mut rects: Vec<Vec<P>> = vec![];
+        for cy in 0..h {
+            let mut cx = 0;
+            while cx < w {
+                if hit[cy * w + cx] {
+                    let s = cx;
+                    while cx < w && hit[cy * w + cx] {
+                        cx += 1;
+                    }
+                    let (x0, x1) = (lo.x + s as f32 * cell, lo.x + cx as f32 * cell);
+                    let (y0, y1) = (lo.y + cy as f32 * cell, lo.y + (cy + 1) as f32 * cell);
+                    rects.push(vec![[x0 as f64, y0 as f64], [x1 as f64, y0 as f64], [x1 as f64, y1 as f64], [x0 as f64, y1 as f64]]);
+                } else {
+                    cx += 1;
+                }
+            }
+        }
+        if rects.is_empty() {
+            return None;
+        }
+        let empty: Vec<Vec<P>> = vec![];
+        let merged = rects.overlay(&empty, OverlayRule::Subject, FillRule::NonZero);
+        let polys: Vec<Vec<Pt>> = merged.iter().flat_map(|s| s.iter().map(|c| c.iter().map(|x| q(*x)).collect::<Vec<Pt>>())).filter(|c| c.len() >= 3).collect();
+        (!polys.is_empty()).then_some(polys)
+    }
+}
+
+// ------------------------------------------------------------ brush shapes
+
+/// Paint Brush tip shapes (Properties ▸ Tool ▸ Brush shape).
+#[derive(Clone, Copy, PartialEq, Eq, Debug, Default, serde::Serialize, serde::Deserialize)]
+pub enum BrushShape {
+    #[default]
+    Round,
+    Oval,
+    Square,
+    FlatHorizontal,
+    FlatVertical,
+    Slant,
+    SlantBack,
+}
+
+impl BrushShape {
+    pub const ALL: [BrushShape; 7] = [BrushShape::Round, BrushShape::Oval, BrushShape::Square, BrushShape::FlatHorizontal, BrushShape::FlatVertical, BrushShape::Slant, BrushShape::SlantBack];
+    pub fn name(self) -> &'static str {
+        match self {
+            BrushShape::Round => "Round",
+            BrushShape::Oval => "Oval",
+            BrushShape::Square => "Square",
+            BrushShape::FlatHorizontal => "Flat horizontal",
+            BrushShape::FlatVertical => "Flat vertical",
+            BrushShape::Slant => "Slant /",
+            BrushShape::SlantBack => "Slant \\",
+        }
+    }
+    /// The tip as a convex polygon around the origin for a brush of `size`.
+    pub fn nib(self, size: f32) -> Vec<Pt> {
+        let h = size / 2.0;
+        let thin = (size / 4.0).max(0.5) / 2.0;
+        let rect = |w: f32, hh: f32| vec![pt(-w, -hh), pt(w, -hh), pt(w, hh), pt(-w, hh)];
+        // a thin bar from bottom-left to top-right, `thin` thick
+        let k = h * std::f32::consts::FRAC_1_SQRT_2;
+        let n = thin * std::f32::consts::FRAC_1_SQRT_2;
+        let slant = |_: f32| vec![pt(-k - n, k - n), pt(k - n, -k - n), pt(k + n, -k + n), pt(-k + n, k + n)];
+        match self {
+            BrushShape::Round | BrushShape::Oval => {
+                let ry = if self == BrushShape::Oval { h * 0.5 } else { h };
+                (0..24).map(|i| { let a = i as f32 / 24.0 * std::f32::consts::TAU; pt(a.cos() * h, a.sin() * ry) }).collect()
+            }
+            BrushShape::Square => rect(h, h),
+            BrushShape::FlatHorizontal => rect(h, thin),
+            BrushShape::FlatVertical => rect(thin, h),
+            BrushShape::Slant => slant(1.0),
+            BrushShape::SlantBack => slant(-1.0).into_iter().map(|p| pt(-p.x, p.y)).collect(),
+        }
+    }
+}
+
+fn convex_hull(mut v: Vec<Pt>) -> Vec<Pt> {
+    v.sort_by(|a, b| a.x.partial_cmp(&b.x).unwrap().then(a.y.partial_cmp(&b.y).unwrap()));
+    v.dedup_by(|a, b| (a.x - b.x).abs() < 1e-5 && (a.y - b.y).abs() < 1e-5);
+    if v.len() < 3 {
+        return v;
+    }
+    let cross = |o: Pt, a: Pt, b: Pt| (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x);
+    let mut h: Vec<Pt> = Vec::with_capacity(v.len() * 2);
+    for pass in 0..2 {
+        let start = h.len();
+        let it: Box<dyn Iterator<Item = &Pt>> = if pass == 0 { Box::new(v.iter()) } else { Box::new(v.iter().rev()) };
+        for &x in it {
+            while h.len() >= start + 2 && cross(h[h.len() - 2], h[h.len() - 1], x) <= 0.0 {
+                h.pop();
+            }
+            h.push(x);
+        }
+        h.pop();
+    }
+    h
+}
+
+/// Sweep a convex brush tip along a centre line: the union of the tip's
+/// hull between every pair of consecutive points (a Minkowski sum).
+pub fn nib_outline(pts: &[Pt], nib: &[Pt]) -> Vec<Vec<Pt>> {
+    let at = |c: Pt| nib.iter().map(move |n| pt(c.x + n.x, c.y + n.y));
+    let hulls: Vec<Contour> = if pts.len() == 1 {
+        vec![convex_hull(at(pts[0]).collect()).into_iter().map(p).collect()]
+    } else {
+        pts.windows(2).map(|w| convex_hull(at(w[0]).chain(at(w[1])).collect()).into_iter().map(p).collect()).collect()
+    };
+    let empty: Vec<Contour> = vec![];
+    let r: Vec<Shp> = hulls.overlay(&empty, OverlayRule::Subject, FillRule::NonZero);
+    r.iter().flat_map(contours_of).collect()
 }

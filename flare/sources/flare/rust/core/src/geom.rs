@@ -54,46 +54,21 @@ pub struct Decomposed {
 }
 
 impl Matrix {
-    pub const IDENTITY: Matrix = Matrix {
-        a: 1.0,
-        b: 0.0,
-        c: 0.0,
-        d: 1.0,
-        tx: 0.0,
-        ty: 0.0,
-    };
+    pub const IDENTITY: Matrix = Matrix { a: 1.0, b: 0.0, c: 0.0, d: 1.0, tx: 0.0, ty: 0.0 };
 
     pub fn translate(tx: f32, ty: f32) -> Self {
-        Matrix {
-            tx,
-            ty,
-            ..Self::IDENTITY
-        }
+        Matrix { tx, ty, ..Self::IDENTITY }
     }
     pub fn scale(sx: f32, sy: f32) -> Self {
-        Matrix {
-            a: sx,
-            d: sy,
-            ..Self::IDENTITY
-        }
+        Matrix { a: sx, d: sy, ..Self::IDENTITY }
     }
     pub fn rotate(rad: f32) -> Self {
         let (s, c) = rad.sin_cos();
-        Matrix {
-            a: c,
-            b: s,
-            c: -s,
-            d: c,
-            tx: 0.0,
-            ty: 0.0,
-        }
+        Matrix { a: c, b: s, c: -s, d: c, tx: 0.0, ty: 0.0 }
     }
 
     pub fn apply(&self, p: Pt) -> Pt {
-        pt(
-            self.a * p.x + self.c * p.y + self.tx,
-            self.b * p.x + self.d * p.y + self.ty,
-        )
+        pt(self.a * p.x + self.c * p.y + self.tx, self.b * p.x + self.d * p.y + self.ty)
     }
 
     /// `self * other`: apply `other` first, then `self`.
@@ -135,14 +110,7 @@ impl Matrix {
             scale_y = -scale_y;
             skew_x = (self.c).atan2(-self.d);
         }
-        Decomposed {
-            tx: self.tx,
-            ty: self.ty,
-            scale_x,
-            scale_y,
-            skew_x,
-            skew_y,
-        }
+        Decomposed { tx: self.tx, ty: self.ty, scale_x, scale_y, skew_x, skew_y }
     }
 
     pub fn compose(d: &Decomposed) -> Matrix {
@@ -159,15 +127,20 @@ impl Matrix {
     /// Classic-tween interpolation: decompose both ends, interpolate scale,
     /// skew (shortest way round, plus `extra_turns` full CW rotations) and translation.
     pub fn interpolate(&self, o: &Matrix, t: f32, extra_turns: i32) -> Matrix {
+        self.interpolate_split(o, t, t, t, extra_turns)
+    }
+    /// Like `interpolate`, with separate progress for position, rotation/skew
+    /// and scale (classic tweens with per-property eases).
+    pub fn interpolate_split(&self, o: &Matrix, pos: f32, rot: f32, scale: f32, extra_turns: i32) -> Matrix {
         let a = self.decompose();
         let b = o.decompose();
         let turn = extra_turns as f32 * 2.0 * PI;
-        let ang = |x: f32, y: f32| x + (shortest(x, y) + turn) * t;
+        let ang = |x: f32, y: f32| x + (shortest(x, y) + turn) * rot;
         Matrix::compose(&Decomposed {
-            tx: a.tx + (b.tx - a.tx) * t,
-            ty: a.ty + (b.ty - a.ty) * t,
-            scale_x: a.scale_x + (b.scale_x - a.scale_x) * t,
-            scale_y: a.scale_y + (b.scale_y - a.scale_y) * t,
+            tx: a.tx + (b.tx - a.tx) * pos,
+            ty: a.ty + (b.ty - a.ty) * pos,
+            scale_x: a.scale_x + (b.scale_x - a.scale_x) * scale,
+            scale_y: a.scale_y + (b.scale_y - a.scale_y) * scale,
             skew_x: ang(a.skew_x, b.skew_x),
             skew_y: ang(a.skew_y, b.skew_y),
         })
@@ -378,24 +351,18 @@ impl Path {
                     if let Some(c) = cur.take() {
                         out.push(c);
                     }
-                    cur = Some(CubicSubpath {
-                        start: p,
-                        curves: vec![],
-                        closed: false,
-                    });
+                    cur = Some(CubicSubpath { start: p, curves: vec![], closed: false });
                     last = p;
                 }
                 Seg::L(p) => {
                     if let Some(c) = cur.as_mut() {
-                        c.curves
-                            .push([last.lerp(p, 1.0 / 3.0), last.lerp(p, 2.0 / 3.0), p]);
+                        c.curves.push([last.lerp(p, 1.0 / 3.0), last.lerp(p, 2.0 / 3.0), p]);
                     }
                     last = p;
                 }
                 Seg::Q(q, p) => {
                     if let Some(c) = cur.as_mut() {
-                        c.curves
-                            .push([last.lerp(q, 2.0 / 3.0), p.lerp(q, 2.0 / 3.0), p]);
+                        c.curves.push([last.lerp(q, 2.0 / 3.0), p.lerp(q, 2.0 / 3.0), p]);
                     }
                     last = p;
                 }
@@ -409,8 +376,7 @@ impl Path {
                     if let Some(mut c) = cur.take() {
                         if last.dist(c.start) > 1e-4 {
                             let s = c.start;
-                            c.curves
-                                .push([last.lerp(s, 1.0 / 3.0), last.lerp(s, 2.0 / 3.0), s]);
+                            c.curves.push([last.lerp(s, 1.0 / 3.0), last.lerp(s, 2.0 / 3.0), s]);
                         }
                         c.closed = true;
                         last = c.start;
@@ -449,11 +415,7 @@ pub struct CubicSubpath {
 
 impl CubicSubpath {
     fn curve_len(&self, i: usize) -> f32 {
-        let p0 = if i == 0 {
-            self.start
-        } else {
-            self.curves[i - 1][2]
-        };
+        let p0 = if i == 0 { self.start } else { self.curves[i - 1][2] };
         let c = &self.curves[i];
         p0.dist(c[0]) + c[0].dist(c[1]) + c[1].dist(c[2])
     }
@@ -469,11 +431,7 @@ impl CubicSubpath {
             let (i, _) = (0..self.curves.len())
                 .map(|i| (i, self.curve_len(i)))
                 .fold((0, -1.0), |acc, x| if x.1 > acc.1 { x } else { acc });
-            let p0 = if i == 0 {
-                self.start
-            } else {
-                self.curves[i - 1][2]
-            };
+            let p0 = if i == 0 { self.start } else { self.curves[i - 1][2] };
             let [c1, c2, p3] = self.curves[i];
             let m01 = p0.lerp(c1, 0.5);
             let m12 = c1.lerp(c2, 0.5);
@@ -496,13 +454,11 @@ impl CubicSubpath {
         let anchors_other: Vec<Pt> = other.curves.iter().map(|c| c[2]).collect();
         let best = (0..n)
             .map(|k| {
-                let cost: f32 = (0..n)
-                    .map(|i| {
-                        let p = self.curves[(i + k) % n][2];
-                        let q = anchors_other[i];
-                        (p.x - q.x).powi(2) + (p.y - q.y).powi(2)
-                    })
-                    .sum();
+                let cost: f32 = (0..n).map(|i| {
+                    let p = self.curves[(i + k) % n][2];
+                    let q = anchors_other[i];
+                    (p.x - q.x).powi(2) + (p.y - q.y).powi(2)
+                }).sum();
                 (k, cost)
             })
             .fold((0, f32::MAX), |a, b| if b.1 < a.1 { b } else { a })
@@ -524,11 +480,7 @@ impl CubicSubpath {
     }
 
     fn collapsed(at: Pt, n: usize, closed: bool) -> CubicSubpath {
-        CubicSubpath {
-            start: at,
-            curves: vec![[at, at, at]; n],
-            closed,
-        }
+        CubicSubpath { start: at, curves: vec![[at, at, at]; n], closed }
     }
 }
 
@@ -630,19 +582,10 @@ pub fn morph_paths_hinted(a: &Path, b: &Path, t: f32, ha: &[Pt], hb: &[Pt]) -> P
     let (x, y) = hinted_pair(x, y, ha, hb);
     let first = CubicSubpath {
         start: x.start.lerp(y.start, t),
-        curves: x
-            .curves
-            .iter()
-            .zip(&y.curves)
-            .map(|(p, q)| [p[0].lerp(q[0], t), p[1].lerp(q[1], t), p[2].lerp(q[2], t)])
-            .collect(),
+        curves: x.curves.iter().zip(&y.curves).map(|(p, q)| [p[0].lerp(q[0], t), p[1].lerp(q[1], t), p[2].lerp(q[2], t)]).collect(),
         closed: true,
     };
-    let rest = morph_paths(
-        &Path::from_cubic_subpaths(&sa),
-        &Path::from_cubic_subpaths(&sb),
-        t,
-    );
+    let rest = morph_paths(&Path::from_cubic_subpaths(&sa), &Path::from_cubic_subpaths(&sb), t);
     let mut out = vec![first];
     out.extend(rest.to_cubic_subpaths());
     Path::from_cubic_subpaths(&out)
@@ -650,12 +593,7 @@ pub fn morph_paths_hinted(a: &Path, b: &Path, t: f32, ha: &[Pt], hb: &[Pt]) -> P
 
 /// Rebuild two closed subpaths so their hint points are anchors at matching
 /// curve indices (equal curve counts between consecutive hints).
-fn hinted_pair(
-    mut x: CubicSubpath,
-    mut y: CubicSubpath,
-    ha: &[Pt],
-    hb: &[Pt],
-) -> (CubicSubpath, CubicSubpath) {
+fn hinted_pair(mut x: CubicSubpath, mut y: CubicSubpath, ha: &[Pt], hb: &[Pt]) -> (CubicSubpath, CubicSubpath) {
     // hint order along `a`
     let mut order: Vec<usize> = (0..ha.len()).collect();
     let pos = |sp: &CubicSubpath, p: Pt| {
@@ -675,18 +613,7 @@ fn hinted_pair(
     let pb = anchor_pts(&mut y, &order.iter().map(|&i| hb[i]).collect::<Vec<_>>());
     let segs = |sp: &CubicSubpath, pts: &[Pt]| -> Vec<CubicSubpath> {
         let n = sp.curves.len();
-        let idx: Vec<usize> = pts
-            .iter()
-            .map(|p| {
-                (0..n)
-                    .min_by(|&i, &j| {
-                        sp.curves[i][2]
-                            .dist(*p)
-                            .total_cmp(&sp.curves[j][2].dist(*p))
-                    })
-                    .unwrap_or(0)
-            })
-            .collect();
+        let idx: Vec<usize> = pts.iter().map(|p| (0..n).min_by(|&i, &j| sp.curves[i][2].dist(*p).total_cmp(&sp.curves[j][2].dist(*p))).unwrap_or(0)).collect();
         let k = idx.len();
         (0..k)
             .map(|m| {
@@ -702,20 +629,12 @@ fn hinted_pair(
                 if curves.is_empty() {
                     curves.push([start, start, start]);
                 }
-                CubicSubpath {
-                    start,
-                    curves,
-                    closed: false,
-                }
+                CubicSubpath { start, curves, closed: false }
             })
             .collect()
     };
     let (mut xa, mut yb) = (segs(&x, &pa), segs(&y, &pb));
-    let join = |parts: &[CubicSubpath]| CubicSubpath {
-        start: parts[0].start,
-        curves: parts.iter().flat_map(|p| p.curves.clone()).collect(),
-        closed: true,
-    };
+    let join = |parts: &[CubicSubpath]| CubicSubpath { start: parts[0].start, curves: parts.iter().flat_map(|p| p.curves.clone()).collect(), closed: true };
     for (p, q) in xa.iter_mut().zip(yb.iter_mut()) {
         let n = p.curves.len().max(q.curves.len());
         p.subdivide_to(n);
@@ -731,6 +650,11 @@ fn cubic_at(p0: Pt, p1: Pt, p2: Pt, p3: Pt, t: f32) -> Pt {
         a * p0.x + b * p1.x + c * p2.x + d * p3.x,
         a * p0.y + b * p1.y + c * p2.y + d * p3.y,
     )
+}
+
+/// Is `p` inside the polygon `poly` (even-odd)?
+pub fn point_in_polygon(p: Pt, poly: &[Pt]) -> bool {
+    point_in_poly(poly, p)
 }
 
 fn point_in_poly(poly: &[Pt], p: Pt) -> bool {
@@ -812,24 +736,12 @@ impl Path {
 
     /// Animate's PolyStar: a regular polygon, or a star whose inner points sit
     /// at `inner` (0..1) of the outer radius. First point faces up.
-    pub fn polystar(
-        cx: f32,
-        cy: f32,
-        rx: f32,
-        ry: f32,
-        sides: usize,
-        star: bool,
-        inner: f32,
-    ) -> Path {
+    pub fn polystar(cx: f32, cy: f32, rx: f32, ry: f32, sides: usize, star: bool, inner: f32) -> Path {
         let sides = sides.clamp(3, 32);
         let n = if star { sides * 2 } else { sides };
         let pts: Vec<Pt> = (0..n)
             .map(|i| {
-                let f = if star && i % 2 == 1 {
-                    inner.clamp(0.05, 1.0)
-                } else {
-                    1.0
-                };
+                let f = if star && i % 2 == 1 { inner.clamp(0.05, 1.0) } else { 1.0 };
                 let a = -PI / 2.0 + i as f32 * 2.0 * PI / n as f32;
                 pt(cx + rx * f * a.cos(), cy + ry * f * a.sin())
             })
@@ -867,9 +779,7 @@ impl Path {
             };
             if let Some(p) = p {
                 // skip an explicit closing point that sits on the start (closed shapes)
-                let closes = matches!(self.segs.get(i + 1), Some(Seg::Z))
-                    && start.map(|(_, s)| s.dist(p) < 1e-3).unwrap_or(false)
-                    && !matches!(s, Seg::M(_));
+                let closes = matches!(self.segs.get(i + 1), Some(Seg::Z)) && start.map(|(_, s)| s.dist(p) < 1e-3).unwrap_or(false) && !matches!(s, Seg::M(_));
                 if !closes {
                     out.push((i, p));
                 }
@@ -901,15 +811,8 @@ impl Path {
     }
 
     pub fn get_point(&self, r: PointRef) -> Option<Pt> {
-        match (
-            r,
-            self.segs.get(match r {
-                PointRef::Anchor(i) | PointRef::Handle(i, _) => i,
-            })?,
-        ) {
-            (PointRef::Anchor(_), Seg::M(p) | Seg::L(p) | Seg::Q(_, p) | Seg::C(_, _, p)) => {
-                Some(*p)
-            }
+        match (r, self.segs.get(match r { PointRef::Anchor(i) | PointRef::Handle(i, _) => i })?) {
+            (PointRef::Anchor(_), Seg::M(p) | Seg::L(p) | Seg::Q(_, p) | Seg::C(_, _, p)) => Some(*p),
             (PointRef::Handle(_, 0), Seg::Q(c, _)) => Some(*c),
             (PointRef::Handle(_, 0), Seg::C(c, _, _)) => Some(*c),
             (PointRef::Handle(_, 1), Seg::C(_, c, _)) => Some(*c),
@@ -922,9 +825,7 @@ impl Path {
     pub fn set_point(&mut self, r: PointRef, to: Pt) {
         match r {
             PointRef::Anchor(i) => {
-                let Some(from) = self.get_point(r) else {
-                    return;
-                };
+                let Some(from) = self.get_point(r) else { return };
                 let d = pt(to.x - from.x, to.y - from.y);
                 let shift = |p: &mut Pt| {
                     p.x += d.x;
@@ -944,11 +845,7 @@ impl Path {
                 }
                 // keep closed shapes closed: the last anchor before Z mirrors the M point
                 if matches!(self.segs[i], Seg::M(_)) {
-                    if let Some(z) = self.segs[i + 1..]
-                        .iter()
-                        .position(|s| matches!(s, Seg::Z | Seg::M(_)))
-                        .map(|k| k + i + 1)
-                    {
+                    if let Some(z) = self.segs[i + 1..].iter().position(|s| matches!(s, Seg::Z | Seg::M(_))).map(|k| k + i + 1) {
                         if matches!(self.segs[z], Seg::Z) && z > i + 1 {
                             let last = z - 1;
                             let lp = self.get_point(PointRef::Anchor(last));
@@ -1012,11 +909,7 @@ impl Path {
                     self.segs[i] = Seg::M(p);
                     self.segs.remove(i + 1);
                     // a closed shape's closing anchor equals the old start: retarget it
-                    if let Some(z) = self.segs[i + 1..]
-                        .iter()
-                        .position(|s| matches!(s, Seg::Z))
-                        .map(|k| k + i + 1)
-                    {
+                    if let Some(z) = self.segs[i + 1..].iter().position(|s| matches!(s, Seg::Z)).map(|k| k + i + 1) {
                         if z > i + 1 {
                             match &mut self.segs[z - 1] {
                                 Seg::L(q) | Seg::Q(_, q) | Seg::C(_, _, q) => *q = p,
@@ -1100,14 +993,11 @@ impl Path {
     /// Convert Anchor tool: toggle the anchor at segment `i` between corner
     /// (straight joins) and smooth (curved joins with symmetric handles).
     pub fn convert_anchor(&mut self, i: usize) {
-        let Some(a) = self.get_point(PointRef::Anchor(i)) else {
-            return;
-        };
+        let Some(a) = self.get_point(PointRef::Anchor(i)) else { return };
         let prev = self.seg_start(i);
         let next_i = i + 1;
         let next_end = self.segs.get(next_i).and_then(seg_end);
-        let is_smooth =
-            matches!(self.segs[i], Seg::C(..)) || matches!(self.segs.get(next_i), Some(Seg::C(..)));
+        let is_smooth = matches!(self.segs[i], Seg::C(..)) || matches!(self.segs.get(next_i), Some(Seg::C(..)));
         if is_smooth {
             if !matches!(self.segs[i], Seg::M(_)) {
                 self.segs[i] = Seg::L(a);
@@ -1185,12 +1075,7 @@ impl Path {
         }
         let k = 0.5523;
         // corner centres and the directions along the edges
-        let corners = [
-            (pt(x, y), pt(1.0, 0.0), pt(0.0, 1.0)),
-            (pt(x + w, y), pt(0.0, 1.0), pt(-1.0, 0.0)),
-            (pt(x + w, y + h), pt(-1.0, 0.0), pt(0.0, -1.0)),
-            (pt(x, y + h), pt(0.0, -1.0), pt(1.0, 0.0)),
-        ];
+        let corners = [(pt(x, y), pt(1.0, 0.0), pt(0.0, 1.0)), (pt(x + w, y), pt(0.0, 1.0), pt(-1.0, 0.0)), (pt(x + w, y + h), pt(-1.0, 0.0), pt(0.0, -1.0)), (pt(x, y + h), pt(0.0, -1.0), pt(1.0, 0.0))];
         let mut segs = vec![];
         for (i, (c, next_dir, prev_back)) in corners.iter().enumerate() {
             let rr = r[i];
@@ -1212,10 +1097,7 @@ impl Path {
                 segs.push(Seg::C(c1, c2, exit));
             } else {
                 // inverted corner: curve bulging into the rectangle
-                let inner = pt(
-                    c.x + (next_dir.x + prev_back.x) * a,
-                    c.y + (next_dir.y + prev_back.y) * a,
-                );
+                let inner = pt(c.x + (next_dir.x + prev_back.x) * a, c.y + (next_dir.y + prev_back.y) * a);
                 let c1 = entry.lerp(inner, k);
                 let c2 = exit.lerp(inner, k);
                 segs.push(Seg::C(c1, c2, exit));
@@ -1229,16 +1111,7 @@ impl Path {
     /// radius in % (Oval tool options, Oval Primitive). `close` joins an open
     /// arc's ends to the centre (or inner arc).
     #[allow(clippy::too_many_arguments)]
-    pub fn oval_arc(
-        cx: f32,
-        cy: f32,
-        rx: f32,
-        ry: f32,
-        start: f32,
-        end: f32,
-        inner: f32,
-        close: bool,
-    ) -> Path {
+    pub fn oval_arc(cx: f32, cy: f32, rx: f32, ry: f32, start: f32, end: f32, inner: f32, close: bool) -> Path {
         let mut sweep = (end - start).rem_euclid(360.0);
         let full = sweep < 0.01;
         if full {

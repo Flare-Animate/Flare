@@ -25,18 +25,16 @@ fn yes() -> bool {
     true
 }
 
-fn b64_ser<S: Serializer>(v: &[u8], s: S) -> Result<S::Ok, S::Error> {
+pub(crate) fn b64_ser<S: Serializer>(v: &[u8], s: S) -> Result<S::Ok, S::Error> {
     s.serialize_str(&base64::engine::general_purpose::STANDARD.encode(v))
 }
-fn b64_de<'de, D: Deserializer<'de>>(d: D) -> Result<Vec<u8>, D::Error> {
+pub(crate) fn b64_de<'de, D: Deserializer<'de>>(d: D) -> Result<Vec<u8>, D::Error> {
     let s = String::deserialize(d)?;
-    base64::engine::general_purpose::STANDARD
-        .decode(s.as_bytes())
-        .map_err(serde::de::Error::custom)
+    base64::engine::general_purpose::STANDARD.decode(s.as_bytes()).map_err(serde::de::Error::custom)
 }
 
 /// Decoded, premultiplied RGBA pixels (tiny-skia's layout).
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Image {
     pub width: u32,
     pub height: u32,
@@ -56,13 +54,7 @@ fn key(b: &BitmapAsset) -> (u32, usize, u64) {
 
 impl BitmapAsset {
     /// Encode straight (non-premultiplied) RGBA as a new asset.
-    pub fn from_rgba(
-        id: BitmapId,
-        name: &str,
-        width: u32,
-        height: u32,
-        rgba: &[u8],
-    ) -> Result<BitmapAsset, String> {
+    pub fn from_rgba(id: BitmapId, name: &str, width: u32, height: u32, rgba: &[u8]) -> Result<BitmapAsset, String> {
         let mut out = Vec::new();
         {
             let mut enc = png::Encoder::new(&mut out, width, height);
@@ -71,31 +63,20 @@ impl BitmapAsset {
             let mut w = enc.write_header().map_err(|e| e.to_string())?;
             w.write_image_data(rgba).map_err(|e| e.to_string())?;
         }
-        Ok(BitmapAsset {
-            id,
-            name: name.into(),
-            width,
-            height,
-            smoothing: true,
-            png: out,
-        })
+        Ok(BitmapAsset { id, name: name.into(), width, height, smoothing: true, png: out })
     }
 
     /// Wrap PNG bytes (checked by decoding them once).
     pub fn from_png(name: &str, png: Vec<u8>) -> Result<BitmapAsset, String> {
         let img = decode_png(&png, true).ok_or("not a PNG image this build can read")?;
-        Ok(BitmapAsset {
-            id: 0,
-            name: name.into(),
-            width: img.width,
-            height: img.height,
-            smoothing: true,
-            png,
-        })
+        Ok(BitmapAsset { id: 0, name: name.into(), width: img.width, height: img.height, smoothing: true, png })
     }
 
     /// Decoded pixels (cached across frames and undo snapshots).
     pub fn image(&self) -> Option<Arc<Image>> {
+        if let Some(live) = live_pixels(self.id) {
+            return Some(live);
+        }
         type Cache = Mutex<HashMap<(u32, usize, u64), Arc<Image>>>;
         static CACHE: OnceLock<Cache> = OnceLock::new();
         let cache = CACHE.get_or_init(|| Mutex::new(HashMap::new()));
@@ -113,11 +94,32 @@ impl BitmapAsset {
     }
 }
 
+type Live = Mutex<HashMap<BitmapId, Arc<Image>>>;
+fn live() -> &'static Live {
+    static LIVE: OnceLock<Live> = OnceLock::new();
+    LIVE.get_or_init(|| Mutex::new(HashMap::new()))
+}
+/// While a raster brush stroke is in progress its bitmap shows these pixels
+/// (no PNG round trip per mouse move); `None` ends the override.
+pub fn set_live_pixels(id: BitmapId, img: Option<Arc<Image>>) {
+    if let Ok(mut m) = live().lock() {
+        match img {
+            Some(i) => {
+                m.insert(id, i);
+            }
+            None => {
+                m.remove(&id);
+            }
+        }
+    }
+}
+fn live_pixels(id: BitmapId) -> Option<Arc<Image>> {
+    live().lock().ok()?.get(&id).cloned()
+}
+
 fn decode_png(bytes: &[u8], smoothing: bool) -> Option<Image> {
     let mut dec = png::Decoder::new(bytes);
-    dec.set_transformations(
-        png::Transformations::normalize_to_color8() | png::Transformations::ALPHA,
-    );
+    dec.set_transformations(png::Transformations::normalize_to_color8() | png::Transformations::ALPHA);
     let mut r = dec.read_info().ok()?;
     let mut buf = vec![0; r.output_buffer_size()];
     let info = r.next_frame(&mut buf).ok()?;
@@ -138,10 +140,5 @@ fn decode_png(bytes: &[u8], smoothing: bool) -> Option<Image> {
             *c = ((*c as u16 * a + 127) / 255) as u8;
         }
     }
-    Some(Image {
-        width: w,
-        height: h,
-        rgba,
-        smoothing,
-    })
+    Some(Image { width: w, height: h, rgba, smoothing })
 }

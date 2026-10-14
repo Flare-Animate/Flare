@@ -1,3 +1,5 @@
+// Ported from Flare (github.com/Flare-Animate/Flare, flare/sources/flare/rust/core,
+// commit a27136a), whose core is AnimationCraft's ac-core (MIT OR Apache-2.0).
 //! Sparse corrections over a retained authored curve. No sampled geometry or
 //! asset references: source paths, hints, easing and motion remain authoritative.
 use crate::{frames, model::*, Matrix};
