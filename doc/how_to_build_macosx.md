@@ -61,7 +61,7 @@ rm /usr/local/lib/cmake/glew
 These steps will put the Flare repository under /Users/yourlogin/Documents.
 ```sh
 cd ~/Documents   #or where you want to store the repository#
-git clone https://github.com/Flare/Flare
+git clone https://github.com/Flare-Animate/Flare
 cd Flare
 git lfs pull
 cd thirdparty/lzo
@@ -70,7 +70,7 @@ cd ../tiff-4.0.3
 ./configure --disable-lzma && make
 ```
 
-If you downloaded and installed boost from https://boost.org instead of homebrew, move the package under `thirdparty/boost` as follows: 
+If you downloaded and installed boost from https://boost.org instead of homebrew, move the package under `thirdparty/boost` as follows:
 ```sh
 cd thirdparty/boost
 mv ~/Downloads/boost_1_72_0.tar.bz2 .   #or whatever the boost filename you downloaded is#

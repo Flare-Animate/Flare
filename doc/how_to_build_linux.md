@@ -93,7 +93,7 @@ $ cd ..
 ### Cloning the GIT Tree
 
 ```
-$ git clone https://github.com/Flare/Flare
+$ git clone https://github.com/Flare-Animate/Flare
 ```
 
 ### Copying the 'stuff' Directory
