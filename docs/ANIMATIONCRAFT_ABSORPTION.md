@@ -92,6 +92,22 @@ The crate `ac-core` is rooted at `flarelib/` (Cargo.toml, ac_core.rs with `#[pat
 | `stdfx/` | fx, particles |
 | `tnzext/` `colorfx/` `image/` `flareqt/` `flare/` | deform; strokes; codecs; commands; demodocument (was demo) |
 
+## Wave 2: remaining RustConversion-AnimateCraft crates (f636b05)
+
+Each crate keeps its package name; manifest + root `.rs` + `ORIGIN.md` sit in the OpenToonz-matching directory, files are `ac_`-prefixed and wired with `#[path]` (no `rust/`, `crates/`, `src/`). Workspace-level `[workspace.package]`, `[workspace.dependencies]` and `[profile.*]` were added to `flare/sources/Cargo.toml`; `LICENSE-MIT`, `LICENSE-APACHE`, `THIRD-PARTY-NOTICES.md` are at `flare/sources/`.
+
+| Crate | Location (under `flare/sources`) |
+|---|---|
+| `ac-render` | `common/tvrender/` |
+| `ac-xfl` | `common/flash/` |
+| `ac-audio` | `sound/` |
+| `ac-script` | `common/expressions/` |
+| `ac-package` | `common/tsystem/` |
+| `ac-app` (bin `flare`) | `flare/` (`ac_app_main.rs`, `ac_app/`, `build.rs`, `assets/{icon,flare-icons,icons}`) |
+| `ac-cli` (bin `flare-cli`) | `flareqt/` |
+
+The git dependencies on `storytold/effectcraft` and `storytold/photocraft` are fetched through the proxy; Cargo.lock pins the upstream commits.
+
 ## minnamate import
 
 Crate `minnamate-core` (clean-room, no upstream licence file; see `flare/sources/tnztools/ORIGIN.md`) is rooted at `tnztools/` (Cargo.toml, minnamate_core.rs with `#[path]` mods, tests/ incl. fixtures). All files are prefixed `mm_` pending merge with overlapping AnimationCraft modules.
