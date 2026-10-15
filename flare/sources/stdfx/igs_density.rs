@@ -44,18 +44,17 @@ pub fn accum_by_trans(
     }
 }
 
-unsafe fn change_(image_array: *mut f32, height: i32, width: i32, channels: i32, ref_: *const f32, density: f64) {
+/// Safe core of igs::density::change: `image` is RGBA (4 floats per pixel),
+/// `ref_` holds one float per pixel when present.
+fn change_(image: &mut [f32], ref_: Option<&[f32]>, density: f64) {
     let integer_part = density as i32;
     let fractional_part = density - (density as i32) as f64;
 
-    let pixsize = height * width;
-    let mut image_array = image_array;
-    let mut ref_ = ref_;
-    for _ in 0..pixsize {
-        let rr1 = *image_array.add(RED);
-        let gg1 = *image_array.add(GRE);
-        let bb1 = *image_array.add(BLU);
-        let aa1 = *image_array.add(ALP);
+    for (i, px) in image.chunks_exact_mut(4).enumerate() {
+        let rr1 = px[RED];
+        let gg1 = px[GRE];
+        let bb1 = px[BLU];
+        let aa1 = px[ALP];
 
         let t = (1.0f64 - aa1 as f64) as f32;
         let mut rr2 = accum_by_trans(rr1, t, integer_part, fractional_part);
@@ -64,19 +63,18 @@ unsafe fn change_(image_array: *mut f32, height: i32, width: i32, channels: i32,
         let mut aa2 = accum_by_trans(aa1, t, integer_part, fractional_part);
 
         /* per-pixel change through the reference image, if any */
-        if !ref_.is_null() {
-            rr2 = (rr2 - rr1) * (*ref_) + rr1;
-            gg2 = (gg2 - gg1) * (*ref_) + gg1;
-            bb2 = (bb2 - bb1) * (*ref_) + bb1;
-            aa2 = (aa2 - aa1) * (*ref_) + aa1;
-            ref_ = ref_.add(1);
+        if let Some(r) = ref_ {
+            let k = r[i];
+            rr2 = (rr2 - rr1) * k + rr1;
+            gg2 = (gg2 - gg1) * k + gg1;
+            bb2 = (bb2 - bb1) * k + bb1;
+            aa2 = (aa2 - aa1) * k + aa1;
         }
 
-        *image_array.add(RED) = rr2;
-        *image_array.add(GRE) = gg2;
-        *image_array.add(BLU) = bb2;
-        *image_array.add(ALP) = aa2;
-        image_array = image_array.offset(channels as isize);
+        px[RED] = rr2;
+        px[GRE] = gg2;
+        px[BLU] = bb2;
+        px[ALP] = aa2;
     }
 }
 
@@ -84,7 +82,7 @@ unsafe fn change_(image_array: *mut f32, height: i32, width: i32, channels: i32,
 /// `std::domain_error("Bad channels,Not rgba")`.
 ///
 /// # Safety
-/// `image_array` must hold `height*width*channels` floats; `ref_` is null or
+/// `image_array` must hold `height*width*channels` floats (null or non-positive sizes are a no-op); `ref_` is null or
 /// holds `height*width` floats.
 #[no_mangle]
 pub unsafe extern "C" fn flare_igs_density_change(
@@ -93,7 +91,17 @@ pub unsafe extern "C" fn flare_igs_density_change(
     if 4 != channels {
         return BAD_CHANNELS;
     }
-    change_(image_array, height, width, channels, ref_, density);
+    if image_array.is_null() || height <= 0 || width <= 0 {
+        return OK; // nothing to change; the C++ loop runs zero times
+    }
+    let pixels = match (height as usize).checked_mul(width as usize) {
+        Some(n) => n,
+        None => return OK,
+    };
+    let Some(len) = pixels.checked_mul(4) else { return OK };
+    let image = std::slice::from_raw_parts_mut(image_array, len);
+    let reference = if ref_.is_null() { None } else { Some(std::slice::from_raw_parts(ref_, pixels)) };
+    change_(image, reference, density);
     OK
 }
 

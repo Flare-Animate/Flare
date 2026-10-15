@@ -27,13 +27,20 @@ impl User {
 pub struct PermissionsManager {
     users: BTreeMap<String, User>,
     user: Option<String>,
+    /// permissions.xml location. Passwords are NOT kept in memory: they are read
+    /// from this file only when asked for and dropped again right away.
+    file: std::path::PathBuf,
 }
 
 impl PermissionsManager {
     /// `config_dir` = TEnv::getConfigDir(); `user_name` = TSystem::getUserName().
     pub fn new(config_dir: &Path, user_name: &str) -> Self {
-        let mut m = PermissionsManager { users: BTreeMap::new(), user: None };
-        m.load_permissions(&config_dir.join("permissions.xml"));
+        let file = config_dir.join("permissions.xml");
+        let mut m = PermissionsManager { users: BTreeMap::new(), user: None, file };
+        m.load_permissions(&m.file.clone());
+        for u in m.users.values_mut() {
+            u.svn_passwords.clear(); // never retained after load
+        }
         m.user = if m.users.contains_key(user_name) {
             Some(user_name.to_owned())
         } else if m.users.contains_key("guest") {
@@ -92,7 +99,12 @@ impl PermissionsManager {
     }
 
     pub fn svn_password(&self, index: i32) -> String {
-        self.user.as_ref().and_then(|u| self.users.get(u)).map(|u| u.svn_password(index)).unwrap_or_default()
+        let Some(name) = self.user.as_ref() else { return String::new() };
+        // Re-read the file into a temporary manager; the passwords live only in
+        // that local value and are dropped when this function returns.
+        let mut tmp = PermissionsManager { users: BTreeMap::new(), user: None, file: self.file.clone() };
+        tmp.load_permissions(&self.file);
+        tmp.users.get(name).map(|u| u.svn_password(index)).unwrap_or_default()
     }
 }
 
@@ -136,7 +148,13 @@ mod tests {
     use super::*;
 
     fn dir_with(xml: &str) -> std::path::PathBuf {
-        let d = std::env::temp_dir().join(format!("flare_perm_{}", xml.len()));
+        use std::sync::atomic::{AtomicUsize, Ordering};
+        static N: AtomicUsize = AtomicUsize::new(0);
+        let d = std::env::temp_dir().join(format!(
+            "flare_perm_{}_{}",
+            std::process::id(),
+            N.fetch_add(1, Ordering::Relaxed)
+        ));
         std::fs::create_dir_all(&d).unwrap();
         std::fs::write(d.join("permissions.xml"), xml).unwrap();
         d
