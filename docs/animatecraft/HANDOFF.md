@@ -9,6 +9,7 @@ work where it stopped. Read it together with:
 | `docs/ANIMATE-GAP-ANALYSIS.md` | Feature-by-feature comparison with Animate, with statuses and priorities. **This is the to-do list.** |
 | `log/devlog.md` | What was done in each task, in order, with the tests and checks used |
 | `CONTRIBUTING.md` | Clean-room policy (must read before your first change) |
+| `docs/FUNCTION-SOURCES.md` | Every feature, where it lives in the code, and where it came from (own, port, dependency, algorithm) |
 | `docs/FLARE-REVIEW-PHASE5.md`, `docs/OPENTOONZ-REVIEW.md` | Reviews of the sources we port from |
 | `SCRIPTING.md` | Scripting and command reference |
 
