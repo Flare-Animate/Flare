@@ -27,6 +27,12 @@ var fl = (function () {
     return t === "movieclip" ? "movieclip" : t === "button" ? "button" : "graphic";
   }
   function info() { return ac.doc.info(); }
+  function layerRange(a, b) {
+    if (a === undefined || a === null) return {};
+    var r = { layer: a + 1 };
+    if (b !== undefined && b !== null) r.to_layer = b + 1;
+    return r;
+  }
   function layerNum(i) { return (i === undefined || i === null ? tl.currentLayer : i) + 1; }
 
   // ---------------------------------------------------------------- elements
@@ -132,7 +138,7 @@ var fl = (function () {
     convertToBlankKeyframes: function (a, b) { for (var f = a; f < (b === undefined ? a + 1 : b); f++) ac.timeline.insert_blank_keyframe({ frame: f + 1 }); },
     clearKeyframes: function (a, b) { for (var f = a; f < (b === undefined ? a + 1 : b); f++) { try { ac.timeline.clear_keyframe({ frame: f + 1 }); } catch (e) { /* not a keyframe */ } } },
     clearFrames: function (a, b) { ac.timeline.clear_frames({ frame: (a === undefined ? tl.currentFrame : a) + 1, to_frame: b === undefined ? undefined : b }); },
-    reverseFrames: function (a, b) { ac.timeline.reverse_frames({ frame: a + 1, to_frame: b === undefined ? a + 1 : b }); },
+    reverseFrames: function (a, b) { ac.timeline.reverse_frames(a === undefined ? {} : { frame: a + 1, to_frame: b === undefined ? a + 1 : b }); },
     createMotionTween: function (a) { ac.timeline.set_tween({ kind: "classic", frame: (a === undefined ? tl.currentFrame : a) + 1 }); },
     createMotionObject: function (a) { ac.timeline.set_tween({ kind: "motion", frame: (a === undefined ? tl.currentFrame : a) + 1 }); },
     setFrameProperty: function (prop, value, a, b) {
@@ -150,8 +156,14 @@ var fl = (function () {
     copyFrames: function (a, b) { ac.timeline.copy_frames({ frame: (a === undefined ? tl.currentFrame : a) + 1, to_frame: b === undefined ? undefined : b }); },
     cutFrames: function (a, b) { ac.timeline.cut_frames({ frame: (a === undefined ? tl.currentFrame : a) + 1, to_frame: b === undefined ? undefined : b }); },
     pasteFrames: function (a) { ac.timeline.paste_frames({ frame: (a === undefined ? tl.currentFrame : a) + 1 }); },
-    copyLayers: unsupported("Timeline.copyLayers"),
-    duplicateLayers: function () { throw new Error("JSFL: Timeline.duplicateLayers is not supported by Flare yet"); },
+    // Layer clipboard: Flare's Copy / Cut / Paste Layers commands. Indices are
+    // 0-based and inclusive; none = the layers selected in the timeline.
+    copyLayers: function (a, b) { ac.layer.copy(layerRange(a, b)); },
+    cutLayers: function (a, b) { ac.layer.cut(layerRange(a, b)); },
+    // pastes above the layer at `i` (default: the current layer), as the Paste Layers menu does
+    pasteLayers: function (i) { ac.layer.paste(i === undefined ? {} : { layer: i + 1 }); },
+    // duplicates the current layer (or the one at `i`) as "<name> copy"
+    duplicateLayers: function (i) { ac.layer.duplicate(i === undefined ? {} : { layer: i + 1 }); },
     expandFolder: function (expand, recurse, i) { if (i !== undefined) ac.layer.set({ layer: i + 1 }); },
   };
 

@@ -341,7 +341,7 @@ fn console(app: &mut App, ctx: &egui::Context) {
         });
         let lang = st.lang;
         if lang == Language::Jsfl {
-            ui.label(RichText::new("Built in. Runs scripts written for the authoring tool's JSFL API (fl, document, timeline, library); unsupported calls say so.").small().color(Color32::from_gray(150)));
+            ui.label(RichText::new("Built in. Runs scripts written for the authoring tool's JSFL API (fl, document, timeline, library); calls with no Flare equivalent throw an error naming them.").small().color(Color32::from_gray(150)));
         } else if lang != Language::Js {
             ui.label(RichText::new(format!("Runs with the {} installed on your computer (must be on PATH).", match lang { Language::Python => "Python", Language::Node => "Node.js", Language::Ruby => "Ruby", Language::Js | Language::Jsfl => "" })).small().color(Color32::from_gray(150)));
         }

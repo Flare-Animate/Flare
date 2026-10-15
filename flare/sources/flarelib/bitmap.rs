@@ -17,6 +17,11 @@ pub struct BitmapAsset {
     /// Smooth when scaled (Animate's "Allow smoothing").
     #[serde(default = "yes")]
     pub smoothing: bool,
+    /// The image data was missing when the document was imported: `png` is a
+    /// "MISSING" checkerboard placeholder, kept so the document still lays out
+    /// and exports. Survives save (.acx, .fla/XFL).
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub missing: bool,
     #[serde(serialize_with = "b64_ser", deserialize_with = "b64_de")]
     pub png: Vec<u8>,
 }
@@ -53,6 +58,36 @@ fn key(b: &BitmapAsset) -> (u32, usize, u64) {
 }
 
 impl BitmapAsset {
+    /// Stand-in for an image whose data is gone: a magenta / black checkerboard
+    /// with a white border and a red cross, so it can't be mistaken for
+    /// artwork. Flagged `missing` so the Library panel and saves keep track.
+    pub fn missing_placeholder(id: BitmapId, name: &str, width: u32, height: u32) -> BitmapAsset {
+        let (w, h) = (width.clamp(16, 2048), height.clamp(16, 2048));
+        let mut rgba = Vec::with_capacity((w * h * 4) as usize);
+        for y in 0..h {
+            for x in 0..w {
+                let edge = x < 2 || y < 2 || x + 2 >= w || y + 2 >= h;
+                // the two diagonals, about 3 px thick
+                let dx = x as f32 / w as f32;
+                let dy = y as f32 / h as f32;
+                let cross = ((dx - dy).abs() * w.max(h) as f32) < 1.5 || ((dx + dy - 1.0).abs() * w.max(h) as f32) < 1.5;
+                let px = if edge {
+                    [255, 255, 255, 255]
+                } else if cross {
+                    [255, 0, 0, 255]
+                } else if ((x / 8) + (y / 8)) % 2 == 0 {
+                    [255, 0, 255, 255]
+                } else {
+                    [0, 0, 0, 255]
+                };
+                rgba.extend_from_slice(&px);
+            }
+        }
+        let mut a = BitmapAsset::from_rgba(id, name, w, h, &rgba).expect("placeholder encodes");
+        a.missing = true;
+        a
+    }
+
     /// Encode straight (non-premultiplied) RGBA as a new asset.
     pub fn from_rgba(id: BitmapId, name: &str, width: u32, height: u32, rgba: &[u8]) -> Result<BitmapAsset, String> {
         let mut out = Vec::new();
@@ -63,13 +98,13 @@ impl BitmapAsset {
             let mut w = enc.write_header().map_err(|e| e.to_string())?;
             w.write_image_data(rgba).map_err(|e| e.to_string())?;
         }
-        Ok(BitmapAsset { id, name: name.into(), width, height, smoothing: true, png: out })
+        Ok(BitmapAsset { id, name: name.into(), width, height, smoothing: true, missing: false, png: out })
     }
 
     /// Wrap PNG bytes (checked by decoding them once).
     pub fn from_png(name: &str, png: Vec<u8>) -> Result<BitmapAsset, String> {
         let img = decode_png(&png, true).ok_or("not a PNG image this build can read")?;
-        Ok(BitmapAsset { id: 0, name: name.into(), width: img.width, height: img.height, smoothing: true, png })
+        Ok(BitmapAsset { id: 0, name: name.into(), width: img.width, height: img.height, smoothing: true, missing: false, png })
     }
 
     /// Decoded pixels (cached across frames and undo snapshots).

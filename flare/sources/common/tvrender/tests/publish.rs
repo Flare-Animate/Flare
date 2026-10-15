@@ -153,11 +153,11 @@ fn gradient_filters_publish_as_pixel_stages() {
     let m: serde_json::Value = serde_json::from_str(json).unwrap();
     let fx = m["fx"].as_array().unwrap().iter().find(|f| f.get("s").is_some()).expect("a staged effect");
     let s = fx["s"].as_array().unwrap();
-    assert_eq!(s.len(), 3, "css blur, the ramp glow, css adjust colour: {s:?}");
+    assert_eq!(s.len(), 3, "css blur, the ramp glow, the per-pixel adjust colour: {s:?}");
     assert!(s[0]["c"].as_str().unwrap().starts_with("blur("));
     assert_eq!(s[1]["g"]["k"], "glow");
     assert_eq!(s[1]["g"]["r"].as_array().unwrap().len(), 2);
-    assert!(s[2]["c"].is_string());
+    assert_eq!(s[2]["a"].as_array().unwrap().len(), 4, "brightness, contrast, saturation, hue");
     let rt = String::from_utf8(files[2].1.clone()).unwrap();
     assert!(rt.contains("function rampFilter"));
 }

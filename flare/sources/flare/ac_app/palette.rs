@@ -38,6 +38,7 @@ const COMMANDS: &[(&str, &str, &str, Run)] = &[
     ("File › Export", "Export Lottie JSON…", "", |a| a.file(FileAction::ExportLottie)),
     ("File › Export", "Export .fla / XFL…", "", |a| a.file(FileAction::ExportXfl)),
     ("File › Export", "Export Timing Sheet (XDTS)…", "", |a| a.file(FileAction::ExportXdts)),
+    ("File › Export", "Save a Copy as .acx…", "", |a| a.file(FileAction::ExportAcx)),
     ("File", "Publish Settings…", "Ctrl+Shift+F12", |a| a.publish.open = true),
     ("Edit", "Undo", "Ctrl+Z", |a| {
         a.ed.undo();

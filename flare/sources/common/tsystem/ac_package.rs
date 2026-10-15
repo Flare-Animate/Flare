@@ -56,7 +56,7 @@ pub struct Manifest {
 #[serde(tag = "type", rename_all = "lowercase")]
 pub enum LibraryEntry {
     Symbol { id: u32, name: String, kind: String, file: String },
-    Bitmap { id: u32, name: String, file: String, width: u32, height: u32, smoothing: bool },
+    Bitmap { id: u32, name: String, file: String, width: u32, height: u32, smoothing: bool, #[serde(default)] missing: bool },
     Sound { id: u32, name: String, file: String },
 }
 
@@ -114,7 +114,7 @@ pub fn parts(doc: &Document, thumbnail: Option<&[u8]>) -> Result<BTreeMap<String
     for b in &doc.bitmaps {
         let file = format!("library/bitmaps/{}.png", b.id);
         files.insert(file.clone(), b.png.clone());
-        index.push(LibraryEntry::Bitmap { id: b.id, name: b.name.clone(), file, width: b.width, height: b.height, smoothing: b.smoothing });
+        index.push(LibraryEntry::Bitmap { id: b.id, name: b.name.clone(), file, width: b.width, height: b.height, smoothing: b.smoothing, missing: b.missing });
     }
     for s in &doc.sounds {
         let file = format!("library/sounds/{}.{}", s.id, sound_ext(&s.data));
@@ -219,10 +219,10 @@ pub fn from_parts(files: &BTreeMap<String, Vec<u8>>) -> Result<Loaded, String> {
                     None => warnings.push(format!("symbol '{name}' is missing ({file})")),
                 }
             }
-            LibraryEntry::Bitmap { id, name, file, width, height, smoothing } => {
+            LibraryEntry::Bitmap { id, name, file, width, height, smoothing, missing } => {
                 known.push(file);
                 match files.get(file) {
-                    Some(b) => bitmaps.push(BitmapAsset { id: *id, name: name.clone(), width: *width, height: *height, smoothing: *smoothing, png: b.clone() }),
+                    Some(b) => bitmaps.push(BitmapAsset { id: *id, name: name.clone(), width: *width, height: *height, smoothing: *smoothing, missing: *missing, png: b.clone() }),
                     None => warnings.push(format!("bitmap '{name}' is missing ({file})")),
                 }
             }

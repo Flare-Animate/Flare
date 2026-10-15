@@ -758,16 +758,25 @@ impl Reader<'_> {
                     tries.push(format!("LIBRARY/{name}"));
                     let decoded = tries.iter().filter_map(|p| self.pkg.get(p)).find_map(|bytes| crate::dat::decode(bytes).ok());
                     let id = self.doc.bitmaps.iter().map(|b| b.id).max().unwrap_or(0) + 1;
+                    // Flare marks an item whose data was already missing when it saved
+                    // (the file then holds our placeholder): it stays missing.
+                    let flagged = b.attribute("flareMissing") == Some("true");
                     let asset = match decoded {
-                        Some((w, h, rgba)) => BitmapAsset::from_rgba(id, &name, w, h, &rgba),
+                        Some((w, h, rgba)) => BitmapAsset::from_rgba(id, &name, w, h, &rgba).map(|mut a| {
+                            a.missing = flagged;
+                            a
+                        }),
                         None => {
-                            self.warn.push(format!("bitmap '{name}': data missing or unreadable, using a placeholder"));
                             let (w, h) = ((f(b, "frameRight", 400.0) / 20.0).max(1.0) as u32, (f(b, "frameBottom", 400.0) / 20.0).max(1.0) as u32);
-                            let rgba: Vec<u8> = (0..w * h).flat_map(|i| if ((i % w) / 8 + (i / w) / 8) % 2 == 0 { [200, 200, 200, 255] } else { [255, 255, 255, 255] }).collect();
-                            BitmapAsset::from_rgba(id, &name, w, h, &rgba)
+                            Ok(BitmapAsset::missing_placeholder(id, &name, w, h))
                         }
                     };
                     if let Ok(mut a) = asset {
+                        if a.missing {
+                            let w = format!("bitmap '{name}': image data missing or unreadable, showing a MISSING placeholder (relink or re-import the image)");
+                            self.warn.push(w.clone());
+                            self.doc.warnings.push(w);
+                        }
                         a.smoothing = b.attribute("allowSmoothing") != Some("false");
                         self.bitmaps.insert(name, id);
                         self.doc.bitmaps.push(a);
@@ -792,7 +801,11 @@ impl Reader<'_> {
                             self.sounds.insert(name, id);
                             self.doc.sounds.push(asset);
                         }
-                        None => self.warn.push(format!("sound '{name}': data missing")),
+                        None => {
+                            let w = format!("sound '{name}': data missing, the sound was left out");
+                            self.warn.push(w.clone());
+                            self.doc.warnings.push(w);
+                        }
                     }
                 }
                 other => self.warn.push(format!("{other} '{name}' not supported")),

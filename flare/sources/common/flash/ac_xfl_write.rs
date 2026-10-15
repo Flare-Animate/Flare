@@ -794,14 +794,18 @@ pub(crate) fn write(doc: &Document) -> (Package, Vec<String>) {
         pkg.insert(format!("LIBRARY/{href}"), b.png.clone());
         let _ = writeln!(
             media,
-            "    <DOMBitmapItem name=\"{}\" href=\"{}\" bitmapDataHRef=\"{dat}\" frameRight=\"{}\" frameBottom=\"{}\" allowSmoothing=\"{}\" isJPEG=\"false\" sourceExternalFilepath=\"./LIBRARY/{}\"/>",
+            "    <DOMBitmapItem name=\"{}\" href=\"{}\" bitmapDataHRef=\"{dat}\" frameRight=\"{}\" frameBottom=\"{}\" allowSmoothing=\"{}\" isJPEG=\"false\"{} sourceExternalFilepath=\"./LIBRARY/{}\"/>",
             esc(&b.name),
             esc(&href),
             b.width * 20,
             b.height * 20,
             b.smoothing,
+            if b.missing { " flareMissing=\"true\"" } else { "" },
             esc(&href)
         );
+        if b.missing {
+            w.warn.push(format!("bitmap '{}' is missing its image data: the file holds a placeholder (flagged flareMissing)", b.name));
+        }
     }
 
     for s in &doc.sounds {

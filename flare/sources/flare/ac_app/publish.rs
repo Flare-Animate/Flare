@@ -60,7 +60,150 @@ pub struct Job {
     pub done: Arc<AtomicU32>,
     pub total: Arc<AtomicU32>,
     pub cancel: Arc<AtomicBool>,
-    rx: mpsc::Receiver<Result<String, String>>,
+    /// The result, and the publish report's notes (what the format couldn't hold exactly).
+    rx: mpsc::Receiver<(Result<String, String>, Vec<String>)>,
+}
+
+/// Every publish target the core can write, with the id used by scripts and
+/// the command line. `ALL` is the list shown in Publish Settings.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum PublishTarget {
+    Html5,
+    Svg,
+    SvgAnimated,
+    Gif,
+    Png,
+    PngSequence,
+    SpriteSheet,
+    Lottie,
+    Video,
+    Xfl,
+    Acx,
+    Xdts,
+}
+
+impl PublishTarget {
+    pub const ALL: [PublishTarget; 12] = [
+        PublishTarget::Html5,
+        PublishTarget::Svg,
+        PublishTarget::SvgAnimated,
+        PublishTarget::Gif,
+        PublishTarget::Png,
+        PublishTarget::PngSequence,
+        PublishTarget::SpriteSheet,
+        PublishTarget::Lottie,
+        PublishTarget::Video,
+        PublishTarget::Xfl,
+        PublishTarget::Acx,
+        PublishTarget::Xdts,
+    ];
+    pub fn id(self) -> &'static str {
+        match self {
+            PublishTarget::Html5 => "html5",
+            PublishTarget::Svg => "svg",
+            PublishTarget::SvgAnimated => "svg-animated",
+            PublishTarget::Gif => "gif",
+            PublishTarget::Png => "png",
+            PublishTarget::PngSequence => "png-sequence",
+            PublishTarget::SpriteSheet => "sprite-sheet",
+            PublishTarget::Lottie => "lottie",
+            PublishTarget::Video => "video",
+            PublishTarget::Xfl => "xfl",
+            PublishTarget::Acx => "acx",
+            PublishTarget::Xdts => "xdts",
+        }
+    }
+    /// Button label in Publish Settings.
+    pub fn label(self) -> &'static str {
+        match self {
+            PublishTarget::Html5 => "HTML5 Canvas…",
+            PublishTarget::Svg => "SVG frame…",
+            PublishTarget::SvgAnimated => "Animated SVG…",
+            PublishTarget::Gif => "GIF…",
+            PublishTarget::Png => "Image (PNG/JPEG/GIF)…",
+            PublishTarget::PngSequence => "PNG sequence…",
+            PublishTarget::SpriteSheet => "Sprite sheet…",
+            PublishTarget::Lottie => "Lottie…",
+            PublishTarget::Video => "Video…",
+            PublishTarget::Xfl => ".fla / XFL…",
+            PublishTarget::Acx => "Copy as .acx…",
+            PublishTarget::Xdts => "Timing sheet (XDTS)…",
+        }
+    }
+    /// The target for an id (case-insensitive, a few common aliases). An unknown
+    /// id says what the valid ones are.
+    pub fn parse(id: &str) -> Result<PublishTarget, String> {
+        let k = id.trim().to_ascii_lowercase().replace(['_', ' '], "-");
+        let alias = match k.as_str() {
+            "html" | "canvas" | "html5-canvas" => "html5",
+            "animated-svg" | "svga" => "svg-animated",
+            "image" | "jpeg" | "jpg" => "png",
+            "png-seq" | "frames" | "sequence" => "png-sequence",
+            "sprites" | "spritesheet" | "atlas" => "sprite-sheet",
+            "ffmpeg" | "mp4" | "webm" | "mov" => "video",
+            "fla" => "xfl",
+            "document" | "package" => "acx",
+            other => other,
+        };
+        PublishTarget::ALL.into_iter().find(|t| t.id() == alias).ok_or_else(|| format!("unknown publish format \"{id}\"; valid ids: {}", PublishTarget::ALL.map(PublishTarget::id).join(", ")))
+    }
+    /// The file action that runs this target.
+    pub(crate) fn action(self) -> FileAction {
+        match self {
+            PublishTarget::Html5 => FileAction::ExportHtml5,
+            PublishTarget::Svg => FileAction::ExportSvg,
+            PublishTarget::SvgAnimated => FileAction::ExportAnimatedSvg,
+            PublishTarget::Gif => FileAction::ExportGif,
+            PublishTarget::Png => FileAction::ExportPng,
+            PublishTarget::PngSequence => FileAction::ExportPngSequence,
+            PublishTarget::SpriteSheet => FileAction::ExportSpriteSheet,
+            PublishTarget::Lottie => FileAction::ExportLottie,
+            PublishTarget::Video => FileAction::ExportVideo,
+            PublishTarget::Xfl => FileAction::ExportXfl,
+            PublishTarget::Acx => FileAction::ExportAcx,
+            PublishTarget::Xdts => FileAction::ExportXdts,
+        }
+    }
+    /// The publish target a file action belongs to (None for open / import / save).
+    /// Exhaustive on purpose: a new action must be placed here.
+    pub(crate) fn of_action(a: FileAction) -> Option<PublishTarget> {
+        Some(match a {
+            FileAction::ExportHtml5 => PublishTarget::Html5,
+            FileAction::ExportSvg => PublishTarget::Svg,
+            FileAction::ExportAnimatedSvg => PublishTarget::SvgAnimated,
+            FileAction::ExportGif => PublishTarget::Gif,
+            FileAction::ExportPng => PublishTarget::Png,
+            FileAction::ExportPngSequence => PublishTarget::PngSequence,
+            FileAction::ExportSpriteSheet => PublishTarget::SpriteSheet,
+            FileAction::ExportLottie => PublishTarget::Lottie,
+            FileAction::ExportVideo => PublishTarget::Video,
+            FileAction::ExportXfl => PublishTarget::Xfl,
+            FileAction::ExportAcx => PublishTarget::Acx,
+            FileAction::ExportXdts => PublishTarget::Xdts,
+            FileAction::Open
+            | FileAction::Save
+            | FileAction::ImportImage
+            | FileAction::ImportSvg
+            | FileAction::ImportSequence
+            | FileAction::ImportPsd
+            | FileAction::ImportXdts
+            | FileAction::ImportSound
+            | FileAction::ImportSwatches
+            | FileAction::ExportSwatches => return None,
+        })
+    }
+}
+
+/// Write `doc` as an .acx package, or plain JSON for a `.json` name, without
+/// touching the open document's file name (File › Save a copy).
+pub fn save_copy(doc: &ac_core::Document, path: &std::path::Path) -> Result<String, String> {
+    let json = path.extension().is_some_and(|e| e.eq_ignore_ascii_case("json"));
+    if json {
+        std::fs::write(path, doc.to_json()).map_err(|e| format!("{}: {e}", path.display()))?;
+    } else {
+        ac_package::save(doc, path, None)?;
+    }
+    Ok(format!("Saved a copy to {}", path.display()))
 }
 
 impl PublishSettings {
@@ -92,6 +235,11 @@ impl PublishSettings {
 
 /// Exports that take a while run on a worker thread with progress + cancel.
 fn spawn(app: &mut App, label: String, work: impl FnOnce(&mut dyn FnMut(u32, u32) -> bool) -> Result<String, String> + Send + 'static) {
+    spawn_notes(app, label, move |prog, _| work(prog));
+}
+
+/// `spawn`, where the work can also return notes for the Output panel.
+fn spawn_notes(app: &mut App, label: String, work: impl FnOnce(&mut dyn FnMut(u32, u32) -> bool, &mut Vec<String>) -> Result<String, String> + Send + 'static) {
     if app.publish.job.is_some() {
         app.status = "An export is already running.".into();
         return;
@@ -109,8 +257,9 @@ fn spawn(app: &mut App, label: String, work: impl FnOnce(&mut dyn FnMut(u32, u32
             ctx.request_repaint();
             !c.load(Ordering::Relaxed)
         };
-        let r = work(&mut progress);
-        let _ = tx.send(r);
+        let mut notes = vec![];
+        let r = work(&mut progress, &mut notes);
+        let _ = tx.send((r, notes));
         ctx.request_repaint();
     });
     app.status = format!("{label}…");
@@ -142,7 +291,12 @@ pub(crate) fn run_file_action(app: &mut App, action: FileAction, path: &str) -> 
         }
         FileAction::ExportHtml5 => {
             let ho = ac_render::html5::Html5Opts { loop_play: app.publish.html_loop, range: o.range, single_file: false };
-            spawn(app, "Publishing HTML5 Canvas".into(), move |_| ac_render::html5::publish_to(&doc, &ho, &p).map(|page| format!("Published HTML5 Canvas: {}", page.display())));
+            spawn_notes(app, "Publishing HTML5 Canvas".into(), move |_, notes| {
+                let (page, warnings) = ac_render::html5::publish_to_report(&doc, &ho, &p)?;
+                let n = warnings.len();
+                notes.extend(warnings);
+                Ok(format!("Published HTML5 Canvas: {}{}", page.display(), if n == 0 { String::new() } else { format!(" ({n} notes about what the page can't show exactly, see Output)") }))
+            });
             Ok("Publishing HTML5 Canvas…".into())
         }
         FileAction::ExportSpriteSheet => {
@@ -159,6 +313,7 @@ pub(crate) fn run_file_action(app: &mut App, action: FileAction, path: &str) -> 
             }
             Ok(format!("Exported Lottie to {}{}", p.display(), if warn.is_empty() { String::new() } else { format!(" ({} notes, see Output)", warn.len()) }))
         }
+        FileAction::ExportAcx => save_copy(&doc, &p),
         FileAction::ExportXdts => std::fs::write(&p, ac_core::xdts::export(&doc, app.ed.scene_tl())).map_err(|e| e.to_string()).map(|_| format!("Exported timing sheet to {}", p.display())),
         FileAction::ImportImage => crate::import::import_image(app, path),
         FileAction::ImportSvg => crate::import::import_svg(app, path),
@@ -167,7 +322,10 @@ pub(crate) fn run_file_action(app: &mut App, action: FileAction, path: &str) -> 
         FileAction::ImportSwatches => crate::swatches::import(app, path),
         FileAction::ExportSwatches => crate::swatches::export(app, path),
         FileAction::ImportXdts => ac_core::xdts::import_file(&mut app.ed, std::path::Path::new(path)).map(|r| r.summary()),
-        _ => Err("unsupported".into()),
+        // handled by File ▸ Open / Save / Export in `App::do_file` before it gets here
+        FileAction::Open | FileAction::Save | FileAction::ExportPng | FileAction::ExportSvg | FileAction::ExportXfl | FileAction::ImportSound => {
+            Err(format!("internal error: “{}” is not a Publish job (it is handled by File › Open / Save / Export directly)", action.title()))
+        }
     }
 }
 
@@ -236,12 +394,19 @@ pub fn image_window(app: &mut App, ctx: &egui::Context) {
 
 pub fn window(app: &mut App, ctx: &egui::Context) {
     if let Some(job) = &app.publish.job {
-        if let Ok(r) = job.rx.try_recv() {
+        if let Ok((r, notes)) = job.rx.try_recv() {
             app.status = match r {
                 Ok(s) => s,
                 Err(e) => format!("{} failed: {e}", job.label),
             };
+            let label = job.label.clone();
             app.publish.job = None;
+            if !notes.is_empty() {
+                app.scripting.push(crate::scripting::OutKind::Info, format!("{label}: {} notes", notes.len()));
+                for w in notes {
+                    app.scripting.push(crate::scripting::OutKind::Info, format!("  • {w}"));
+                }
+            }
         }
     }
     if let Some(job) = &app.publish.job {
@@ -337,9 +502,9 @@ pub fn window(app: &mut App, ctx: &egui::Context) {
         ui.separator();
         ui.horizontal_wrapped(|ui| {
             ui.label("Export:");
-            for (a, l) in [(FileAction::ExportGif, "GIF…"), (FileAction::ExportPngSequence, "PNG sequence…"), (FileAction::ExportVideo, "Video…"), (FileAction::ExportPng, "Image (PNG/JPEG/GIF)…"), (FileAction::ExportSvg, "SVG frame…"), (FileAction::ExportHtml5, "HTML5 Canvas…"), (FileAction::ExportSpriteSheet, "Sprite sheet…"), (FileAction::ExportAnimatedSvg, "Animated SVG…"), (FileAction::ExportLottie, "Lottie…"), (FileAction::ExportXfl, ".fla / XFL…")] {
-                if ui.button(l).clicked() {
-                    app.file(a);
+            for t in PublishTarget::ALL {
+                if ui.button(t.label()).on_hover_text(format!("id: {}", t.id())).clicked() {
+                    app.file(t.action());
                 }
             }
         });
@@ -360,9 +525,10 @@ pub fn test_movie(app: &mut App) {
     let page = dir.join(format!("{}.html", if name.is_empty() { "movie".into() } else { name }));
     let ho = ac_render::html5::Html5Opts { loop_play: app.loop_play, range: None, single_file: true };
     let launch = crate::files::native_dialogs();
-    spawn(app, "Test Movie".into(), move |_| {
+    spawn_notes(app, "Test Movie".into(), move |_, notes| {
         std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
-        let out = ac_render::html5::publish_to(&doc, &ho, &page)?;
+        let (out, warnings) = ac_render::html5::publish_to_report(&doc, &ho, &page)?;
+        notes.extend(warnings);
         if launch {
             open_in_browser(&out)?;
             Ok(format!("Test Movie: playing in your browser ({})", out.display()))
@@ -381,4 +547,58 @@ fn open_in_browser(p: &std::path::Path) -> Result<(), String> {
         std::process::Command::new("xdg-open").arg(p).spawn()
     };
     r.map(|_| ()).map_err(|e| format!("couldn't open a browser: {e}"))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn every_target_has_a_unique_id_that_parses_back() {
+        let mut seen = std::collections::HashSet::new();
+        for t in PublishTarget::ALL {
+            assert!(seen.insert(t.id()), "duplicate id {}", t.id());
+            assert_eq!(PublishTarget::parse(t.id()), Ok(t));
+            assert_eq!(PublishTarget::parse(&t.id().to_uppercase()), Ok(t), "case-insensitive");
+            // each target runs a real file action, and the action maps back to the target
+            assert_eq!(PublishTarget::of_action(t.action()), Some(t), "{}", t.id());
+        }
+        // the formats the core supports
+        for id in ["html5", "svg", "gif", "png-sequence", "sprite-sheet", "lottie", "video", "xfl", "acx"] {
+            assert!(PublishTarget::parse(id).is_ok(), "{id}");
+        }
+        assert_eq!(PublishTarget::parse("fla"), Ok(PublishTarget::Xfl));
+        assert_eq!(PublishTarget::parse("sprite_sheet"), Ok(PublishTarget::SpriteSheet));
+    }
+
+    #[test]
+    fn unknown_format_error_lists_the_valid_ids() {
+        let e = PublishTarget::parse("swf").unwrap_err();
+        assert!(e.contains("unknown publish format \"swf\""), "{e}");
+        for t in PublishTarget::ALL {
+            assert!(e.contains(t.id()), "{e} lacks {}", t.id());
+        }
+    }
+
+    #[test]
+    fn non_publish_actions_are_not_targets() {
+        for a in [FileAction::Open, FileAction::Save, FileAction::ImportImage, FileAction::ImportSound, FileAction::ExportSwatches] {
+            assert_eq!(PublishTarget::of_action(a), None);
+        }
+    }
+
+    #[test]
+    fn save_copy_writes_a_package_or_json_that_opens_again() {
+        let dir = std::env::temp_dir().join(format!("flare-pub-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let mut doc = ac_core::Document::default();
+        doc.width = 321.0;
+        let acx = dir.join("copy.acx");
+        assert!(save_copy(&doc, &acx).unwrap().contains("copy.acx"));
+        assert_eq!(ac_package::open(&acx).unwrap().doc.width, 321.0);
+        let json = dir.join("copy.json");
+        save_copy(&doc, &json).unwrap();
+        assert_eq!(ac_core::Document::from_json(&std::fs::read_to_string(&json).unwrap()).unwrap().width, 321.0);
+        let _ = std::fs::remove_dir_all(&dir);
+    }
 }

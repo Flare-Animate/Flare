@@ -146,8 +146,10 @@ fn frame(n: Node) -> Result<Frame> {
                 _ => Rotate::Auto,
             },
         },
-        // The motion XML stays in `extra` too, written back while the tween is as read; one
-        // the model can't read leaves the tween unsupported, rather than the document unread.
+        // Deliberate round-trip fidelity, not a gap: the motion XML stays in `extra` too and is
+        // written back verbatim while the tween is as read. A tween the model can't read becomes
+        // `Tween::Unsupported`, carrying its raw XML through save unchanged, rather than the whole
+        // document failing to open or the tween being dropped or rewritten from a lossy reading.
         Some("motion object") => match crate::motion::read(n, duration) {
             Ok(m) => Tween::Motion(Box::new(m)),
             Err(_) => Tween::Unsupported("motion object".into()),

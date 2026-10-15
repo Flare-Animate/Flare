@@ -187,14 +187,30 @@ tl.layers[li].frames[0].actionScript = "this.stop();";
 doc.library.addNewItem("graphic", "Empty");
 fl.trace(tl.layerCount + " layers, " + tl.frameCount + " frames, items: " + doc.library.items.map(function (i) { return i.name + ":" + i.itemType; }).join(","));
 fl.trace("frame0 " + tl.layers[li].frames[0].tweenType + " " + tl.layers[li].frames[0].duration + " " + tl.getFrameProperty("name", 3));
-try { tl.copyLayers(); } catch (e) { fl.trace("unsupported ok"); }
+tl.copyLayers(li);
+tl.pasteLayers(li);
+fl.trace("pasted " + tl.layerCount + " " + tl.layers[li].name + "," + tl.layers[li + 1].name + " " + tl.layers[li].frames[0].tweenType + " " + tl.layers[li].frames[9].elements.length);
+tl.cutLayers(li);
+fl.trace("cut " + tl.layerCount);
+tl.duplicateLayers(li);
+fl.trace("dup " + tl.layers.map(function (l) { return l.name; }).join(","));
+tl.deleteLayer(li);
+try { tl.cutLayers(0, tl.layerCount - 1); } catch (e) { fl.trace("cut-all: " + e.message); }
+try { fl.openDocument("x.fla"); } catch (e) { fl.trace("no equivalent: " + e.message); }
 "##;
     let rep = run_code(&mut ed, Language::Jsfl, code, &ScriptOptions::default());
     assert!(rep.error.is_none(), "{:?} {:?}", rep.error, rep.log);
     assert_eq!(rep.log[0], "selected 3");
     assert_eq!(rep.log[1], "2 layers, 10 frames, items: Row:movie clip,Empty:graphic");
     assert_eq!(rep.log[2], "frame0 motion 9 go");
-    assert_eq!(rep.log[3], "unsupported ok");
+    // layer clipboard maps onto the editor's Copy / Cut / Paste / Duplicate Layers
+    assert_eq!(rep.log[3], "pasted 3 Boxes,Boxes motion 1");
+    assert_eq!(rep.log[4], "cut 2");
+    assert_eq!(rep.log[5], "dup Boxes copy,Boxes,Layer 1");
+    assert!(rep.log[6].starts_with("cut-all: ") && rep.log[6].contains("at least one"), "{:?}", rep.log[6]);
+    // calls with no equivalent still say so, by name
+    assert_eq!(rep.log[7], "no equivalent: JSFL: fl.openDocument is not supported by Flare yet");
+    assert_eq!(ed.doc.scene.layers.len(), 2, "the script leaves two layers");
     assert_eq!((ed.doc.width, ed.doc.fps), (640.0, 12.0));
     let l = &ed.doc.scene.layers[ed.doc.scene.layers.iter().position(|l| l.name == "Boxes").unwrap()];
     let k0 = &l.keyframes[&0];
@@ -245,4 +261,45 @@ try { FLfile.remove(uri); } catch (e) { fl.trace("no remove"); }
     assert_eq!(rep.log[2], "no remove");
     assert!(ed.doc.scene.layers[0].keyframes.contains_key(&10), "{:?}", ed.doc.scene.layers[0].keyframes.keys().collect::<Vec<_>>());
     std::fs::remove_dir_all(&dir).ok();
+}
+
+#[test]
+fn jsfl_layer_clipboard_keeps_folders_and_reports_empty_paste() {
+    let mut ed = Editor::new(Document::default());
+    let code = r##"
+var tl = fl.getDocumentDOM().timelines[0];
+var b = tl.addNewLayer("Inside");
+var a = tl.addNewLayer("Folder", "folder");
+tl.layers[b + 1].parentLayer = tl.layers[a];
+tl.currentLayer = a;
+try { tl.pasteLayers(); } catch (e) { fl.trace("empty: " + e.message); }
+tl.copyLayers(a);
+tl.pasteLayers(a);
+fl.trace(tl.layers.map(function (l) { return l.name + ":" + l.layerType; }).join(","));
+"##;
+    let rep = run_code(&mut ed, Language::Jsfl, code, &ScriptOptions::default());
+    assert!(rep.error.is_none(), "{:?} {:?}", rep.error, rep.log);
+    assert!(rep.log[0].starts_with("empty: ") && rep.log[0].contains("nothing copied"), "{:?}", rep.log);
+    // the folder and the layer inside it came along, twice over
+    let names: Vec<&str> = ed.doc.scene.layers.iter().map(|l| l.name.as_str()).collect();
+    assert_eq!(names.iter().filter(|n| **n == "Folder").count(), 2, "{names:?}");
+    assert_eq!(names.iter().filter(|n| **n == "Inside").count(), 2, "{names:?}");
+}
+
+#[test]
+fn jsfl_reverse_frames_reverses_the_range() {
+    let mut ed = Editor::new(Document::default());
+    let code = r##"
+var tl = fl.getDocumentDOM().timelines[0];
+tl.insertFrames(2);
+tl.insertKeyframe(1);
+tl.insertKeyframe(2);
+var fr = tl.layers[0].frames;
+fr[0].name = "a"; fr[1].name = "b"; fr[2].name = "c";
+tl.reverseFrames(0, 3);
+fl.trace(tl.layers[0].frames.map(function (f) { return f.name; }).join(""));
+"##;
+    let rep = run_code(&mut ed, Language::Jsfl, code, &ScriptOptions::default());
+    assert!(rep.error.is_none(), "{:?} {:?}", rep.error, rep.log);
+    assert_eq!(rep.log[0], "cba");
 }

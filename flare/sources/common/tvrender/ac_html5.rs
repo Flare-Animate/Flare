@@ -9,7 +9,7 @@
 //! `addEventListener("click", …)`), drives buttons and plays sounds with
 //! Animate's Event/Start/Stop/Stream rules.
 
-use ac_core::fx::{BevelType, BlendMode, Filter};
+use ac_core::fx::{BevelType, BlendMode, Filter, FxGroup};
 use ac_core::model::*;
 use ac_core::{Matrix, Path, Seg};
 use std::collections::HashMap;
@@ -103,70 +103,126 @@ fn rgba(c: Color, alpha: f32, tint: Option<(Color, f32)>, cx: Option<ColorXform>
     }
 }
 
-/// CSS filter + composite operation for an effect group.
-fn fx_json(filters: &[Filter], blend: BlendMode) -> String {
+/// Solid colour as a two-stop ramp: the effect's intensity (0…1) is the alpha
+/// (`c.a` scaled by it), exactly how ac-render's `combine` paints a shadow.
+fn solid_ramp(c: Color) -> String {
+    format!("[[0,{},{},{},0],[1,{},{},{},{}]]", c.r, c.g, c.b, c.r, c.g, c.b, c.a)
+}
+
+fn quality(q: u8) -> u8 {
+    q.clamp(1, 3)
+}
+
+/// How a group's filters reach the browser, in order:
+///
+/// * `Blur` and a plain outer `DropShadow` use canvas `ctx.filter`
+///   (`blur()`, `drop-shadow()`). The browser blurs with a Gaussian where
+///   ac-render uses box passes, so edges differ slightly (sigma = (x+y)/4).
+/// * `Glow`, `DropShadow` with inner / knockout / hide-object / strength over
+///   100, `Bevel`, `GradientGlow`, `GradientBevel` and `AdjustColor` run as
+///   per-pixel stages in `html5_runtime.js` (`rampFilter`, `adjustColor`) on an
+///   offscreen canvas: a separable box blur of the alpha plane, shifted by
+///   (cos a, sin a) * distance, scaled by strength/100 and composited under /
+///   over / instead of the object. These are ports of ac-render's formulas.
+/// * `MotionBlur` is resolved per occurrence (`"mb"`, see `Tables::list`).
+/// * `Effect` (EffectCraft) has no canvas equivalent: `Tables::bake` renders it
+///   at publish time and the group becomes a sprite (`"sp"`), so no filter
+///   reaches this function for it.
+///
+/// Things the page can only approximate are pushed on `warn`.
+fn fx_json(filters: &[Filter], blend: BlendMode, warn: &mut Vec<String>) -> String {
     let css = |c: Color, strength: f32| format!("rgba({},{},{},{})", c.r, c.g, c.b, (c.a as f32 / 255.0 * (strength / 100.0).min(1.0) * 100.0).round() / 100.0);
-    let mut f = vec![];
-    let mut unsupported = false;
-    // gradient filters run as per-pixel stages in the runtime (exact, like the
-    // stage); CSS filters before/after them are grouped into their own stages
+    let mut f: Vec<String> = vec![];
+    // per-pixel stages; CSS filters before / after them are grouped into their own stages
     let mut stages: Vec<String> = vec![];
-    let mut any_ramp = false;
-    for x in filters {
-        if let Filter::GradientGlow { blur_x, blur_y, strength, quality, angle, distance, knockout, kind, stops } | Filter::GradientBevel { blur_x, blur_y, strength, quality, angle, distance, knockout, kind, stops } = x {
-            if !f.is_empty() {
-                stages.push(format!("{{\"c\":{}}}", js_str(&f.join(" "))));
-                f.clear();
-            }
-            any_ramp = true;
-            let k = if matches!(x, Filter::GradientGlow { .. }) { "glow" } else { "bevel" };
-            let t = match kind {
-                BevelType::Inner => 0,
-                BevelType::Outer => 1,
-                BevelType::Full => 2,
-            };
-            let r: Vec<String> = stops.iter().map(|(p, c)| format!("[{},{},{},{},{}]", n(*p), c.r, c.g, c.b, c.a)).collect();
-            stages.push(format!(
-                "{{\"g\":{{\"k\":\"{k}\",\"bx\":{},\"by\":{},\"s\":{},\"q\":{},\"a\":{},\"d\":{},\"ko\":{},\"t\":{t},\"r\":[{}]}}}}",
-                n(*blur_x),
-                n(*blur_y),
-                n(strength / 100.0),
-                quality,
-                n(*angle),
-                n(*distance),
-                knockout,
-                r.join(",")
-            ));
-            continue;
+    fn flush(f: &mut Vec<String>, stages: &mut Vec<String>) {
+        if !f.is_empty() {
+            stages.push(format!("{{\"c\":{}}}", js_str(&f.join(" "))));
+            f.clear();
         }
+    }
+    let kind_t = |k: &BevelType| match k {
+        BevelType::Inner => 0,
+        BevelType::Outer => 1,
+        BevelType::Full => 2,
+    };
+    for x in filters {
         match x {
-            Filter::Blur { blur_x, blur_y, .. } => f.push(format!("blur({}px)", n((blur_x + blur_y) / 4.0))),
-            Filter::DropShadow { blur_x, blur_y, strength, angle, distance, color, inner, knockout, hide_object, .. } => {
-                unsupported |= *inner || *knockout || *hide_object;
-                let (dx, dy) = (angle.to_radians().cos() * distance, angle.to_radians().sin() * distance);
-                f.push(format!("drop-shadow({}px {}px {}px {})", n(dx), n(dy), n((blur_x + blur_y) / 4.0), css(*color, *strength)));
+            Filter::GradientGlow { blur_x, blur_y, strength, quality: q, angle, distance, knockout, kind, stops } | Filter::GradientBevel { blur_x, blur_y, strength, quality: q, angle, distance, knockout, kind, stops } => {
+                flush(&mut f, &mut stages);
+                let k = if matches!(x, Filter::GradientGlow { .. }) { "glow" } else { "bevel" };
+                let r: Vec<String> = stops.iter().map(|(p, c)| format!("[{},{},{},{},{}]", n(*p), c.r, c.g, c.b, c.a)).collect();
+                stages.push(format!(
+                    "{{\"g\":{{\"k\":\"{k}\",\"bx\":{},\"by\":{},\"s\":{},\"q\":{},\"a\":{},\"d\":{},\"ko\":{},\"t\":{},\"r\":[{}]}}}}",
+                    n(*blur_x),
+                    n(*blur_y),
+                    n(strength / 100.0),
+                    quality(*q),
+                    n(*angle),
+                    n(*distance),
+                    knockout,
+                    kind_t(kind),
+                    r.join(",")
+                ));
             }
-            Filter::Glow { blur_x, blur_y, strength, color, inner, knockout, .. } => {
-                unsupported |= *inner || *knockout;
-                let k = ((strength / 100.0).ceil() as usize).clamp(1, 3);
-                for _ in 0..k {
-                    f.push(format!("drop-shadow(0 0 {}px {})", n((blur_x + blur_y) / 4.0), css(*color, 100.0)));
+            Filter::Blur { blur_x, blur_y, .. } => f.push(format!("blur({}px)", n((blur_x + blur_y) / 4.0))),
+            Filter::DropShadow { blur_x, blur_y, strength, quality: q, angle, distance, color, inner, knockout, hide_object } => {
+                if !*inner && !*knockout && !*hide_object && *strength <= 100.0 {
+                    let (dx, dy) = (angle.to_radians().cos() * distance, angle.to_radians().sin() * distance);
+                    f.push(format!("drop-shadow({}px {}px {}px {})", n(dx), n(dy), n((blur_x + blur_y) / 4.0), css(*color, *strength)));
+                } else {
+                    flush(&mut f, &mut stages);
+                    let hide = *hide_object && !*inner;
+                    stages.push(format!(
+                        "{{\"g\":{{\"k\":\"glow\",\"bx\":{},\"by\":{},\"s\":{},\"q\":{},\"a\":{},\"d\":{},\"ko\":{},\"h\":{hide},\"nm\":true,\"t\":{},\"r\":{}}}}}",
+                        n(*blur_x),
+                        n(*blur_y),
+                        n(strength / 100.0),
+                        quality(*q),
+                        n(*angle),
+                        n(*distance),
+                        knockout,
+                        if *inner { 0 } else { 1 },
+                        solid_ramp(*color)
+                    ));
                 }
             }
-            Filter::Bevel { blur_x, blur_y, strength, shadow, highlight, angle, distance, kind, .. } => {
-                unsupported |= *kind != BevelType::Outer;
-                let (dx, dy) = (angle.to_radians().cos() * distance, angle.to_radians().sin() * distance);
-                let b = n((blur_x + blur_y) / 4.0);
-                f.push(format!("drop-shadow({}px {}px {b}px {})", n(-dx), n(-dy), css(*highlight, *strength)));
-                f.push(format!("drop-shadow({}px {}px {b}px {})", n(dx), n(dy), css(*shadow, *strength)));
+            Filter::Glow { blur_x, blur_y, strength, quality: q, color, inner, knockout } => {
+                flush(&mut f, &mut stages);
+                stages.push(format!(
+                    "{{\"g\":{{\"k\":\"glow\",\"bx\":{},\"by\":{},\"s\":{},\"q\":{},\"a\":0,\"d\":0,\"ko\":{},\"h\":false,\"nm\":true,\"t\":{},\"r\":{}}}}}",
+                    n(*blur_x),
+                    n(*blur_y),
+                    n(strength / 100.0),
+                    quality(*q),
+                    knockout,
+                    if *inner { 0 } else { 1 },
+                    solid_ramp(*color)
+                ));
             }
-            Filter::GradientGlow { .. } | Filter::GradientBevel { .. } => {} // handled above
-            Filter::MotionBlur { .. } => {} // per group occurrence ("mb"), see Tables::list
-            // EffectCraft effects run in Rust only; the published page shows the object without them.
-            Filter::Effect { .. } => unsupported = true,
+            Filter::Bevel { blur_x, blur_y, strength, quality: q, shadow, highlight, angle, distance, knockout, kind } => {
+                flush(&mut f, &mut stages);
+                stages.push(format!(
+                    "{{\"g\":{{\"k\":\"sbevel\",\"bx\":{},\"by\":{},\"s\":{},\"q\":{},\"a\":{},\"d\":{},\"ko\":{},\"t\":{},\"sh\":{},\"hl\":{}}}}}",
+                    n(*blur_x),
+                    n(*blur_y),
+                    n(strength / 100.0),
+                    quality(*q),
+                    n(*angle),
+                    n(*distance),
+                    knockout,
+                    kind_t(kind),
+                    solid_ramp(*shadow),
+                    solid_ramp(*highlight)
+                ));
+            }
             Filter::AdjustColor { brightness, contrast, saturation, hue } => {
-                f.push(format!("brightness({}) contrast({}) saturate({}) hue-rotate({}deg)", n(1.0 + brightness / 100.0), n(1.0 + contrast / 100.0), n(1.0 + saturation / 100.0), n(*hue)));
+                flush(&mut f, &mut stages);
+                stages.push(format!("{{\"a\":[{},{},{},{}]}}", n(*brightness), n(*contrast), n(*saturation), n(*hue)));
             }
+            Filter::MotionBlur { .. } => {} // per group occurrence ("mb"), see Tables::list
+            // baked into a sprite before we get here (Tables::bake); never reaches the page as a filter
+            Filter::Effect { .. } => {}
         }
     }
     let op = match blend {
@@ -178,17 +234,24 @@ fn fx_json(filters: &[Filter], blend: BlendMode) -> String {
         BlendMode::Overlay => "overlay",
         BlendMode::HardLight => "hard-light",
         BlendMode::Add => "lighter",
-        BlendMode::Subtract => "difference",
-        BlendMode::Difference => "difference",
+        BlendMode::Subtract | BlendMode::Difference => "difference",
         BlendMode::Invert => "exclusion",
         BlendMode::Alpha => "destination-in",
         BlendMode::Erase => "destination-out",
     };
-    let _ = unsupported;
-    if any_ramp {
-        if !f.is_empty() {
-            stages.push(format!("{{\"c\":{}}}", js_str(&f.join(" "))));
+    // canvas has no Subtract / Invert composite operation: closest ones used
+    let note = match blend {
+        BlendMode::Subtract => Some("the Subtract blend mode is drawn as Difference (canvas has no subtract operation)"),
+        BlendMode::Invert => Some("the Invert blend mode is drawn as Exclusion (canvas has no invert operation)"),
+        _ => None,
+    };
+    if let Some(w) = note {
+        if !warn.iter().any(|x| x == w) {
+            warn.push(w.to_string());
         }
+    }
+    if !stages.is_empty() {
+        flush(&mut f, &mut stages);
         return format!("{{\"f\":\"\",\"s\":[{}],\"o\":\"{op}\"}}", stages.join(","));
     }
     format!("{{\"f\":{},\"o\":\"{op}\"}}", js_str(&f.join(" ")))
@@ -205,6 +268,13 @@ struct Tables {
     clip_ix: HashMap<String, usize>,
     images: Vec<(String, Vec<u8>, bool)>,
     image_ix: HashMap<usize, usize>,
+    /// Stage size in pixels (baked effect sprites cover the whole stage).
+    w: u32,
+    h: u32,
+    /// Baked sprites already stored, by content hash → index into `images`.
+    baked_ix: HashMap<u64, usize>,
+    /// Things the page can't show exactly, for the publish report.
+    warnings: Vec<String>,
 }
 
 fn intern(v: &mut Vec<String>, ix: &mut HashMap<String, usize>, s: String) -> usize {
@@ -216,7 +286,71 @@ fn intern(v: &mut Vec<String>, ix: &mut HashMap<String, usize>, s: String) -> us
     v.len() - 1
 }
 
+/// PNG bytes of premultiplied RGBA pixels.
+fn png_of_premultiplied(width: u32, height: u32, premul: &[u8]) -> Vec<u8> {
+    let mut rgba = Vec::with_capacity(premul.len());
+    for px in premul.chunks_exact(4) {
+        let a = px[3] as u32;
+        let un = |c: u8| (c as u32 * 255 + a / 2).checked_div(a).unwrap_or(0).min(255) as u8;
+        rgba.extend_from_slice(&[un(px[0]), un(px[1]), un(px[2]), px[3]]);
+    }
+    let mut png_bytes = Vec::new();
+    {
+        let mut enc = png::Encoder::new(&mut png_bytes, width, height);
+        enc.set_color(png::ColorType::Rgba);
+        enc.set_depth(png::BitDepth::Eight);
+        if let Ok(mut w) = enc.write_header() {
+            let _ = w.write_image_data(&rgba);
+        }
+    }
+    png_bytes
+}
+
 impl Tables {
+    fn warn(&mut self, w: String) {
+        if !self.warnings.contains(&w) {
+            self.warnings.push(w);
+        }
+    }
+    /// Render an effect group that has EffectCraft effects through ac-render's
+    /// rasteriser (the same code the stage uses: its whole filter chain, motion
+    /// blur and warp included, blend left to the page) into a stage-sized PNG
+    /// sprite. Identical sprites across frames are stored once. None when it
+    /// can't be done (reported in the warnings).
+    fn bake(&mut self, items: &[DrawItem], level: usize, g: &FxGroup) -> Option<usize> {
+        for f in &g.filters {
+            if let Filter::Effect { id, .. } = f {
+                if crate::effectcraft::info(id).is_none() {
+                    self.warn(format!("EffectCraft effect \"{id}\" is not in the effect catalog: the page shows the object without it (the stage does too)"));
+                }
+            }
+        }
+        if self.w == 0 || self.h == 0 || self.w > 8192 || self.h > 8192 {
+            self.warn(format!("EffectCraft effects not baked: a {}×{} px stage is outside the 1–8192 px range; the page shows the objects without them", self.w, self.h));
+            return None;
+        }
+        let Some(mut pm) = tiny_skia::Pixmap::new(self.w, self.h) else {
+            self.warn("EffectCraft effects not baked: couldn't allocate the sprite; the page shows the objects without them".into());
+            return None;
+        };
+        let mut baked = g.clone();
+        baked.blend = BlendMode::Normal;
+        crate::fx::draw_group(&mut pm.as_mut(), items, level, &baked, &crate::RenderOpts::default(), &mut crate::fx::MaskCache::default());
+        let bytes = png_of_premultiplied(self.w, self.h, pm.data());
+        use std::hash::{Hash, Hasher};
+        let mut h = std::collections::hash_map::DefaultHasher::new();
+        bytes.hash(&mut h);
+        let key = h.finish();
+        if let Some(&i) = self.baked_ix.get(&key) {
+            if self.images[i].1 == bytes {
+                return Some(i);
+            }
+        }
+        let name = format!("images/fx{}.png", self.images.len() + 1);
+        self.images.push((name, bytes, true));
+        self.baked_ix.insert(key, self.images.len() - 1);
+        Some(self.images.len() - 1)
+    }
     fn path(&mut self, p: &Path) -> usize {
         intern(&mut self.paths, &mut self.path_ix, svg_path(p))
     }
@@ -226,21 +360,7 @@ impl Tables {
             return i;
         }
         // re-encode the decoded (premultiplied) pixels as PNG
-        let mut rgba = Vec::with_capacity(img.rgba.len());
-        for px in img.rgba.chunks_exact(4) {
-            let a = px[3] as u32;
-            let un = |c: u8| (c as u32 * 255 + a / 2).checked_div(a).unwrap_or(0).min(255) as u8;
-            rgba.extend_from_slice(&[un(px[0]), un(px[1]), un(px[2]), px[3]]);
-        }
-        let mut png_bytes = Vec::new();
-        {
-            let mut enc = png::Encoder::new(&mut png_bytes, img.width, img.height);
-            enc.set_color(png::ColorType::Rgba);
-            enc.set_depth(png::BitDepth::Eight);
-            if let Ok(mut w) = enc.write_header() {
-                let _ = w.write_image_data(&rgba);
-            }
-        }
+        let png_bytes = png_of_premultiplied(img.width, img.height, &img.rgba);
         let name = format!("images/img{}.png", self.images.len() + 1);
         self.images.push((name, png_bytes, img.smoothing));
         self.image_ix.insert(key, self.images.len() - 1);
@@ -351,7 +471,19 @@ impl Tables {
             while j < items.len() && items[j].fx.get(level).is_some_and(|h| Arc::ptr_eq(h, &g)) {
                 j += 1;
             }
-            let fx = intern(&mut self.fx, &mut self.fx_ix, fx_json(&g.filters, g.blend));
+            if g.filters.iter().any(|f| matches!(f, Filter::Effect { .. })) {
+                if let Some(sp) = self.bake(&items[i..j], level, &g) {
+                    let mut w = std::mem::take(&mut self.warnings);
+                    let fx = intern(&mut self.fx, &mut self.fx_ix, fx_json(&[], g.blend, &mut w));
+                    self.warnings = w;
+                    out.push(format!("{{\"x\":{fx},\"sp\":{sp}}}"));
+                    i = j;
+                    continue;
+                }
+            }
+            let mut w = std::mem::take(&mut self.warnings);
+            let fx = intern(&mut self.fx, &mut self.fx_ix, fx_json(&g.filters, g.blend, &mut w));
+            self.warnings = w;
             let inner = self.list(&items[i..j], level + 1);
             let mb = g
                 .motion
@@ -451,12 +583,26 @@ fn text_json(t: &ac_core::TextEl) -> String {
     s
 }
 
+/// A published page plus everything it can't show exactly.
+#[derive(Clone, Debug, Default)]
+pub struct Report {
+    pub files: Files,
+    /// Human-readable notes (approximated blend modes, effects that couldn't be
+    /// baked…); nothing is dropped without an entry here.
+    pub warnings: Vec<String>,
+}
+
 /// Build the published files.
 pub fn publish(doc: &Document, o: &Html5Opts) -> Files {
+    publish_report(doc, o).files
+}
+
+/// Build the published files and the list of things the page can't show exactly.
+pub fn publish_report(doc: &Document, o: &Html5Opts) -> Report {
     let total = doc.total_frames();
     let (f0, f1) = o.range.unwrap_or((0, total - 1));
     let (f0, f1) = (f0.min(total - 1), f1.min(total - 1).max(f0.min(total - 1)));
-    let mut t = Tables { paths: vec![], path_ix: HashMap::new(), items: vec![], item_ix: HashMap::new(), fx: vec![], fx_ix: HashMap::new(), clips: vec![], clip_ix: HashMap::new(), images: vec![], image_ix: HashMap::new() };
+    let mut t = Tables { paths: vec![], path_ix: HashMap::new(), items: vec![], item_ix: HashMap::new(), fx: vec![], fx_ix: HashMap::new(), clips: vec![], clip_ix: HashMap::new(), images: vec![], image_ix: HashMap::new(), w: doc.width.round().max(1.0) as u32, h: doc.height.round().max(1.0) as u32, baked_ix: HashMap::new(), warnings: vec![] };
     let mut frames = vec![];
     let mut extra = vec![]; // per frame: buttons + named instances + scripts + sounds
     // A script can hold the main timeline while movie clips keep playing:
@@ -594,10 +740,11 @@ pub fn publish(doc: &Document, o: &Html5Opts) -> Files {
         .collect();
     let sounds: Vec<String> = doc.sounds.iter().map(|s| format!("[{},{}]", js_str(&s.name), js_str(&format!("data:{};base64,{}", mime_of(&s.data), b64(&s.data))))).collect();
     let bg = doc.background;
+    let warnings = t.warnings.clone();
     let mut data = String::with_capacity(1 << 16);
     let _ = write!(
         data,
-        "var AC_MOVIE={{\"w\":{},\"h\":{},\"fps\":{},\"bg\":\"#{:02x}{:02x}{:02x}\",\"loop\":{},\"scenes\":[{}],\"labels\":[{}],\"paths\":[{}],\"items\":[{}],\"fx\":[{}],\"clips\":[{}],\"images\":[{}],\"sounds\":[{}],\"frames\":[{}],\"extra\":[{}]}};",
+        "var AC_MOVIE={{\"w\":{},\"h\":{},\"fps\":{},\"bg\":\"#{:02x}{:02x}{:02x}\",\"loop\":{},\"scenes\":[{}],\"labels\":[{}],\"paths\":[{}],\"items\":[{}],\"fx\":[{}],\"clips\":[{}],\"images\":[{}],\"sounds\":[{}],\"warnings\":[{}],\"frames\":[{}],\"extra\":[{}]}};",
         n(doc.width),
         n(doc.height),
         n(doc.fps),
@@ -613,6 +760,7 @@ pub fn publish(doc: &Document, o: &Html5Opts) -> Files {
         t.clips.join(","),
         images.join(","),
         sounds.join(","),
+        t.warnings.iter().map(|w| js_str(w)).collect::<Vec<_>>().join(","),
         frames.join(",\n"),
         extra.join(",")
     );
@@ -636,18 +784,23 @@ pub fn publish(doc: &Document, o: &Html5Opts) -> Files {
             files.push((name, bytes));
         }
     }
-    files
+    Report { files, warnings }
 }
 
 /// Publish to a folder (index.html + movie.js + runtime + images/) or, for
 /// a path ending in .html, one self-contained page.
 pub fn publish_to(doc: &Document, o: &Html5Opts, path: &std::path::Path) -> Result<std::path::PathBuf, String> {
+    publish_to_report(doc, o, path).map(|(p, _)| p)
+}
+
+/// `publish_to`, also returning the publish report's warnings.
+pub fn publish_to_report(doc: &Document, o: &Html5Opts, path: &std::path::Path) -> Result<(std::path::PathBuf, Vec<String>), String> {
     let single = path.extension().is_some_and(|e| e.eq_ignore_ascii_case("html") || e.eq_ignore_ascii_case("htm"));
     let o = Html5Opts { single_file: single || o.single_file, ..o.clone() };
-    let files = publish(doc, &o);
+    let Report { files, warnings } = publish_report(doc, &o);
     if single {
         std::fs::write(path, &files[0].1).map_err(|e| format!("{}: {e}", path.display()))?;
-        return Ok(path.to_path_buf());
+        return Ok((path.to_path_buf(), warnings));
     }
     for (name, bytes) in files {
         let p = path.join(&name);
@@ -656,5 +809,117 @@ pub fn publish_to(doc: &Document, o: &Html5Opts, path: &std::path::Path) -> Resu
         }
         std::fs::write(&p, bytes).map_err(|e| format!("{}: {e}", p.display()))?;
     }
-    Ok(path.join("index.html"))
+    Ok((path.join("index.html"), warnings))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn fx(filters: &[Filter], blend: BlendMode) -> (serde_json::Value, Vec<String>) {
+        let mut w = vec![];
+        let s = fx_json(filters, blend, &mut w);
+        (serde_json::from_str(&s).unwrap_or_else(|e| panic!("{e}: {s}")), w)
+    }
+    fn red() -> Color {
+        Color::rgb(255, 0, 0)
+    }
+
+    #[test]
+    fn blur_and_plain_drop_shadow_use_canvas_filter_strings() {
+        let f = [
+            Filter::Blur { blur_x: 8.0, blur_y: 4.0, quality: 1 },
+            Filter::DropShadow { blur_x: 4.0, blur_y: 4.0, strength: 100.0, quality: 1, angle: 0.0, distance: 6.0, color: Color::rgb(0, 0, 0), knockout: false, inner: false, hide_object: false },
+        ];
+        let (j, w) = fx(&f, BlendMode::Normal);
+        assert_eq!(j["f"], "blur(3px) drop-shadow(6px 0px 2px rgba(0,0,0,1))");
+        assert!(j.get("s").is_none(), "no per-pixel stages: {j}");
+        assert_eq!(j["o"], "source-over");
+        assert!(w.is_empty());
+    }
+
+    #[test]
+    fn shadow_variants_canvas_cannot_do_run_as_pixel_stages() {
+        for (inner, knockout, hide, strength, t) in [(true, false, false, 100.0, 0), (false, true, false, 100.0, 1), (false, false, true, 100.0, 1), (false, false, false, 250.0, 1)] {
+            let f = [Filter::DropShadow { blur_x: 4.0, blur_y: 4.0, strength, quality: 2, angle: 90.0, distance: 3.0, color: red(), knockout, inner, hide_object: hide }];
+            let (j, _) = fx(&f, BlendMode::Normal);
+            let g = &j["s"][0]["g"];
+            assert_eq!(j["f"], "", "{j}");
+            assert_eq!(g["k"], "glow", "{j}");
+            assert_eq!((g["t"].as_i64(), g["ko"].as_bool(), g["h"].as_bool(), g["nm"].as_bool(), g["q"].as_i64()), (Some(t), Some(knockout), Some(hide), Some(true), Some(2)), "{j}");
+            assert_eq!(g["s"], strength / 100.0);
+            assert_eq!(g["r"], serde_json::json!([[0, 255, 0, 0, 0], [1, 255, 0, 0, 255]]), "intensity is the alpha, colour constant");
+        }
+    }
+
+    #[test]
+    fn glow_bevel_and_adjust_color_are_stages_with_their_parameters() {
+        let f = [
+            Filter::Glow { blur_x: 6.0, blur_y: 6.0, strength: 200.0, quality: 3, color: Color { r: 1, g: 2, b: 3, a: 128 }, knockout: true, inner: true },
+            Filter::Bevel { blur_x: 5.0, blur_y: 5.0, strength: 100.0, quality: 1, shadow: Color::rgb(0, 0, 0), highlight: Color::rgb(255, 255, 255), angle: 45.0, distance: 5.0, knockout: false, kind: BevelType::Full },
+            Filter::AdjustColor { brightness: 10.0, contrast: -20.0, saturation: 30.0, hue: 90.0 },
+        ];
+        let (j, w) = fx(&f, BlendMode::Multiply);
+        let s = j["s"].as_array().unwrap();
+        assert_eq!(s.len(), 3, "{j}");
+        let g = &s[0]["g"];
+        assert_eq!((g["k"].as_str(), g["a"].as_i64(), g["d"].as_i64(), g["t"].as_i64(), g["ko"].as_bool(), g["s"].as_f64()), (Some("glow"), Some(0), Some(0), Some(0), Some(true), Some(2.0)));
+        assert_eq!(g["r"][1], serde_json::json!([1, 1, 2, 3, 128]));
+        let b = &s[1]["g"];
+        assert_eq!((b["k"].as_str(), b["t"].as_i64(), b["a"].as_f64(), b["d"].as_f64()), (Some("sbevel"), Some(2), Some(45.0), Some(5.0)));
+        assert_eq!(b["sh"][1], serde_json::json!([1, 0, 0, 0, 255]));
+        assert_eq!(b["hl"][1], serde_json::json!([1, 255, 255, 255, 255]));
+        assert_eq!(s[2]["a"], serde_json::json!([10, -20, 30, 90]));
+        assert_eq!(j["o"], "multiply");
+        assert!(w.is_empty(), "{w:?}");
+    }
+
+    #[test]
+    fn css_filters_between_pixel_stages_keep_their_order() {
+        let f = [
+            Filter::Blur { blur_x: 4.0, blur_y: 4.0, quality: 1 },
+            Filter::Glow { blur_x: 2.0, blur_y: 2.0, strength: 100.0, quality: 1, color: red(), knockout: false, inner: false },
+            Filter::Blur { blur_x: 8.0, blur_y: 8.0, quality: 1 },
+        ];
+        let (j, _) = fx(&f, BlendMode::Normal);
+        let s = j["s"].as_array().unwrap();
+        assert_eq!(s.len(), 3);
+        assert_eq!(s[0]["c"], "blur(2px)");
+        assert!(s[1].get("g").is_some());
+        assert_eq!(s[2]["c"], "blur(4px)");
+    }
+
+    #[test]
+    fn approximated_blend_modes_are_reported() {
+        let (j, w) = fx(&[], BlendMode::Subtract);
+        assert_eq!(j["o"], "difference");
+        assert_eq!(w.len(), 1);
+        assert!(w[0].contains("Subtract"));
+        let (_, w) = fx(&[], BlendMode::Invert);
+        assert!(w[0].contains("Invert"));
+        let (_, w) = fx(&[], BlendMode::Screen);
+        assert!(w.is_empty());
+    }
+
+    #[test]
+    fn runtime_defines_every_stage_the_generator_emits() {
+        for needle in ["function adjustColor", "g.k === \"sbevel\"", "g.k === \"glow\"", "g.nm", "g.h ?", "e.sp !== undefined", "st.a)", "function css("] {
+            assert!(RUNTIME.contains(needle), "runtime lacks `{needle}`");
+        }
+    }
+
+    #[test]
+    fn runtime_is_valid_javascript() {
+        let Ok(out) = std::process::Command::new("node").arg("--version").output() else { return };
+        if !out.status.success() {
+            return;
+        }
+        let dir = std::env::temp_dir().join(format!("flare-rt-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let f = dir.join("runtime.js");
+        std::fs::write(&f, RUNTIME).unwrap();
+        let r = std::process::Command::new("node").arg("--check").arg(&f).output().unwrap();
+        let _ = std::fs::remove_dir_all(&dir);
+        assert!(r.status.success(), "{}", String::from_utf8_lossy(&r.stderr));
+    }
 }

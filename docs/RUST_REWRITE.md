@@ -317,6 +317,13 @@ In short, Flare's end state is a unified Rust implementation of the OpenToonz/Ta
 - `sound/tsioutils.rs` (cpp deleted; header is extern "C"). Tests: `cargo test --lib tsioutils`.
 - Wave 3 (11 files, +62 tests; workspace total 683 -> 745): `common/tcore/{tmathutil,trandom}.rs`, `common/tparam/tcubicbezier.rs`, `common/tcolor/tcolorvalue.rs`, `common/trop/runsmap.rs`, `stdfx/igs_{color_rgb_hls,color_rgb_hsv,math_random,gauss_distribution,negate,density}.rs`. All `.cpp` deleted; headers are inline `extern "C"` forwarders (see PORTING.md). Tests: `cargo test --lib <module>`.
 
+### Gaps closed (audit follow-up)
+- HTML5 publish no longer discards filters: every `Filter` reaches the page. Blur / plain Drop Shadow use canvas `ctx.filter`; Glow, Bevel, inner / knockout / hide-object shadows and Adjust Color run as per-pixel stages in `html5_runtime.js` (same box-blur + shift + strength formulas as `ac_fx.rs`); EffectCraft effects are rendered at publish time by the stage rasteriser into a PNG sprite (deduplicated). `publish_report` returns a `Report { files, warnings }`; the warnings (Subtract / Invert blend approximations, unknown effect ids) appear in the Output panel.
+- XFL import of a bitmap whose `bin/*.dat` is gone: obvious MISSING placeholder, `BitmapAsset.missing`, `Document.warnings`; both survive .acx and .fla saves (`flareMissing="true"`) and the Library panel flags the item.
+- Publish targets are one enum (`PublishTarget`, ids listed in Publish Settings); the old `"unsupported"` branch is gone, unknown ids list the valid ones; new "Copy as .acx".
+- JSFL `copyLayers` / `cutLayers` / `pasteLayers` / `duplicateLayers` map onto the editor's layer clipboard (`layer.copy|cut|paste|duplicate`).
+- Left as is on purpose: `flarelib/mm_xfl.rs` keeps the raw XML of tweens it can't read (round-trip fidelity).
+
 ### Tooling survey
 - Automated C/C++→Rust tools exist (c2rust: rule-based, unsafe output; LLM+static-analysis research tools SACTOR, SmartC2Rust, RustMap, SafeTrans). None handle Qt/C++ class hierarchies; output would violate the safe-idiomatic rule. Port is manual, per file, test-verified.
 - `ac-core` (≈24k LOC; now spread across the OpenToonz-matching directories, crate root `flare/sources/flarelib/ac_core.rs`) and `flare-studio` (`toonzqt/`, ≈14k LOC) are the AnimationCraft editor, a different architecture from OpenToonz; they are not a line-matching port. Counted against the 2.3k C++ files, the matching rewrite is a few modules deep.

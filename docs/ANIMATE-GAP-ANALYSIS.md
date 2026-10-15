@@ -180,7 +180,7 @@ The two engine milestones that unlock most of the rest:
 | Swap Symbol | Yes | Properties ▸ Symbol | ✅ | |
 | Duplicate Symbol and swap | Yes | Properties ▸ Symbol ▸ Duplicate: copies the symbol into the same folder ("Ball copy", "Ball copy 2") and swaps the instance, one undo step (unverified) | ✅ | |
 | Colour effects: Brightness, Tint, Advanced (RGBA multiply/offset), Alpha | Yes | All five, tweenable | ✅ | |
-| **Filters**: Drop Shadow, Blur, Glow, Bevel, Gradient Glow, Gradient Bevel, Adjust Color; presets; filter tweening | Yes | All seven, presets, tweening (and motion-tween tracks); SVG export of blur/shadow/glow; HTML5 renders gradient filters per pixel (exact); plus Motion Blur and ~200 EffectCraft effects (beyond Animate) | ✅ | |
+| **Filters**: Drop Shadow, Blur, Glow, Bevel, Gradient Glow, Gradient Bevel, Adjust Color; presets; filter tweening | Yes | All seven, presets, tweening (and motion-tween tracks); SVG export of blur/shadow/glow; HTML5 renders every filter: Blur and plain Drop Shadow as canvas `ctx.filter`, Glow / Bevel / inner-knockout-hide shadows / Gradient Glow+Bevel / Adjust Color per pixel in the runtime (ports of the stage formulas), EffectCraft effects baked to PNG sprites at publish time; anything approximated is listed in the Output panel; plus Motion Blur and ~200 EffectCraft effects (beyond Animate) | ✅ | |
 | **Blend modes** (Normal, Layer, Darken, Multiply, Lighten, Screen, Overlay, Hard Light, Add, Subtract, Difference, Invert, Alpha, Erase) | Yes | All 14 | ✅ | |
 | Render: Original / Cache as Bitmap / Export as Bitmap; Visible flag | Yes | — | ❌ | P2 |
 | 9-slice scaling guides | Yes | — | ❌ | P2 |
@@ -240,7 +240,7 @@ The two engine milestones that unlock most of the rest:
 | ActionScript 3 (frame scripts, classes, Flash Player/AIR) | Yes | Not planned: dead runtime | — | P3 |
 | HTML5 Canvas frame scripts (JavaScript/CreateJS) | Yes | Sandboxed QuickJS in the editor; the same API in published pages, plus `addEventListener` click/mouseover/mouseout | 🟡 | P2 (rest of the CreateJS display API) |
 | Code Snippets panel | Yes | Actions snippets | 🟡 | P2 |
-| **JSFL** (authoring automation, Commands menu, `fl.getDocumentDOM()`) | Yes | JSFL shim (`fl`, Document, Timeline, Layer, Frame, Library, Element, FLfile, copy/cut/paste frames) on the command registry; `.jsfl` in the Script Console and CLI | 🟡 | P3 (the rest of the API) |
+| **JSFL** (authoring automation, Commands menu, `fl.getDocumentDOM()`) | Yes | JSFL shim (`fl`, Document, Timeline, Layer, Frame, Library, Element, FLfile, copy/cut/paste frames, `copyLayers` / `cutLayers` / `pasteLayers` / `duplicateLayers` / `reverseFrames`) on the command registry; calls with no equivalent throw an error naming them; `.jsfl` in the Script Console and CLI | 🟡 | P3 (the rest of the API) |
 | Run Command, saved Commands, Manage Saved Commands | Yes | Run Script / Run Example | 🟡 | P2 |
 | History → Save as Command | Yes | — | ❌ | P2 |
 | Debugger, Compiler Errors | Yes | Output panel | 🟡 | P3 |
@@ -250,8 +250,8 @@ The two engine milestones that unlock most of the rest:
 
 | Feature | Animate | Flare | Status | Pri |
 |---|---|---|---|---|
-| Publish Settings dialog (targets, per-target options, profiles) | Yes | Scale, frame range, transparency, GIF loop/quality, PNG prefix, ffmpeg | 🟡 | P2 (profiles) |
-| **HTML5 Canvas** publish (JS + HTML, CreateJS runtime, sprite sheets for bitmaps) | Yes | Own runtime: per-frame display lists over shared tables (exact match with the stage), masks, gradients, bitmaps, filters/blend via canvas filters, frame scripts, buttons with Over/Down/Hit, sounds (Web Audio); folder or one self-contained .html | ✅ | (movie clips follow the main clock, as on our stage) |
+| Publish Settings dialog (targets, per-target options, profiles) | Yes | Scale, frame range, transparency, GIF loop/quality, PNG prefix, ffmpeg; every target is one button (id: html5, svg, svg-animated, gif, png, png-sequence, sprite-sheet, lottie, video, xfl, acx, xdts); an unknown id lists the valid ones | 🟡 | P2 (profiles) |
+| **HTML5 Canvas** publish (JS + HTML, CreateJS runtime, sprite sheets for bitmaps) | Yes | Own runtime: per-frame display lists over shared tables (exact match with the stage), masks, gradients, bitmaps, filters via canvas filters, per-pixel runtime stages and baked EffectCraft sprites (Subtract / Invert blends approximate Difference / Exclusion and are reported), frame scripts, buttons with Over/Down/Hit, sounds (Web Audio); folder or one self-contained .html | ✅ | (movie clips follow the main clock, as on our stage) |
 | Export Video / Media (MP4/H.264 via Adobe Media Encoder, MOV) | Yes | MP4 (H.264), WebM (VP9, alpha), MOV (ProRes 4444) via ffmpeg, background job with progress | ✅ | |
 | Export Animated GIF (with settings: size, colours, loop, dither) | Yes (Save for Web) | Size, range, loop, quality, transparency | ✅ | |
 | Export Image (PNG/JPG/GIF/SVG with options, transparency) | Yes | PNG (transparency), JPEG (quality), GIF (palette, transparency) at any size; SVG | ✅ | |
@@ -268,7 +268,7 @@ The two engine milestones that unlock most of the rest:
 
 | Feature | Animate | Flare | Status | Pri |
 |---|---|---|---|---|
-| **.fla read** (ZIP of XFL: `DOMDocument.xml`, `LIBRARY/*.xml`, `bin/*.dat` bitmaps, media) | Yes | `common/flash/ac_xfl_read.rs`: scenes, layers, frames (classic/shape tweens, custom and per-property eases, label types, scripts, sounds), motion-object tweens (experimental), raw shapes, drawing objects, primitives, instances, groups, static text (faces → weight/italic), bitmaps, sounds, all filters; warnings for the rest | 🟡 | P1 (real-file corpus) |
+| **.fla read** (ZIP of XFL: `DOMDocument.xml`, `LIBRARY/*.xml`, `bin/*.dat` bitmaps, media) | Yes | `common/flash/ac_xfl_read.rs`: scenes, layers, frames (classic/shape tweens, custom and per-property eases, label types, scripts, sounds), motion-object tweens (experimental), raw shapes, drawing objects, primitives, instances, groups, static text (faces → weight/italic), bitmaps (data missing = a magenta/black MISSING placeholder, flagged in the Library, recorded in the document warnings and kept across .acx and .fla saves), sounds, all filters; warnings for the rest | 🟡 | P1 (real-file corpus) |
 | **.fla / XFL write** | Yes | Zipped .fla and XFL folders; shared edges; round-trip tested; motion tweens baked frame by frame | 🟡 | P2 (motion objects) |
 | Legacy binary .fla (CS4 and earlier) | Yes | — | ❌ | P3 |
 | Save As .xfl (uncompressed folder) | Yes | Yes (`name.xfl` → folder with the marker file) | ✅ | |

@@ -28,6 +28,7 @@ pub(crate) enum FileAction {
     ExportAnimatedSvg,
     ExportLottie,
     ExportXdts,
+    ExportAcx,
     ImportSwatches,
     ExportSwatches,
 }
@@ -54,6 +55,7 @@ impl FileAction {
             FileAction::ExportAnimatedSvg => "Export animated SVG",
             FileAction::ExportLottie => "Export Lottie JSON",
             FileAction::ExportXdts => "Export Timing Sheet (XDTS)",
+            FileAction::ExportAcx => "Save a copy as .acx (or .json)",
             FileAction::ImportSwatches => "Swatches from a palette (.aco, .ase, .gpl, .act) or gradients (.grd)",
             FileAction::ExportSwatches => "Save swatches (colours: .ase, .aco, .gpl; gradients: .grd)",
         }
@@ -74,6 +76,7 @@ impl FileAction {
             FileAction::ExportAnimatedSvg => format!("{doc_name}-animated.svg"),
             FileAction::ExportLottie => format!("{doc_name}.json"),
             FileAction::ExportXdts => format!("{doc_name}.xdts"),
+            FileAction::ExportAcx => format!("{doc_name}-copy.acx"),
         }
     }
     fn filters(self) -> (&'static str, &'static [&'static str]) {
@@ -87,6 +90,7 @@ impl FileAction {
             FileAction::ExportAnimatedSvg => ("SVG", &["svg"]),
             FileAction::ExportLottie => ("Lottie JSON", &["json"]),
             FileAction::ExportXdts => ("XDTS timing sheet", &["xdts"]),
+            FileAction::ExportAcx => ("Flare document (.acx; .json = plain JSON)", &["acx", "json"]),
             FileAction::ExportGif => ("Animated GIF", &["gif"]),
             FileAction::ExportPng => ("Image", &["png", "jpg", "jpeg", "gif"]),
             FileAction::ExportSvg | FileAction::ImportSvg => ("SVG", &["svg"]),

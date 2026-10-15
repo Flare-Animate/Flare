@@ -1076,6 +1076,11 @@ pub struct Document {
     /// that shape freehand strokes, in stage coordinates.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub assistants: Vec<crate::assist::Assistant>,
+    /// Problems found when the document was imported (missing media, skipped
+    /// features…). Saved with the document so they are not forgotten; the
+    /// Library panel flags the affected items (`BitmapAsset::missing`).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub warnings: Vec<String>,
 }
 
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
@@ -1117,6 +1122,7 @@ impl Default for Document {
             swatches: None,
             folders: vec![],
             linkage: Default::default(),
+            warnings: vec![],
         }
     }
 }

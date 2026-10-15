@@ -301,3 +301,56 @@ fn text_faces_split_into_family_weight_and_italic() {
     assert_eq!(split_face("Ubuntu Light"), (Some("Ubuntu Light".into()), 400, false));
     assert_eq!(split_face("OpenSans-Semibold"), (Some("Open Sans".into()), 600, false));
 }
+
+/// A document with one bitmap item whose bin/*.dat (and LIBRARY copy) is gone.
+fn missing_bitmap_package() -> Package {
+    let mut pkg = Package::new();
+    pkg.insert("mimetype".into(), b"application/vnd.adobe.xfl".to_vec());
+    pkg.insert(
+        "DOMDocument.xml".into(),
+        br#"<?xml version="1.0"?><DOMDocument width="100" height="60" frameRate="12"><media><DOMBitmapItem name="hero.png" href="hero.png" bitmapDataHRef="M 1 1.dat" frameRight="800" frameBottom="640" allowSmoothing="true"/></media><timelines><DOMTimeline name="Scene 1"><layers><DOMLayer name="Layer 1"><frames><DOMFrame index="0"><elements/></DOMFrame></frames></DOMLayer></layers></DOMTimeline></timelines></DOMDocument>"#.to_vec(),
+    );
+    pkg
+}
+
+#[test]
+fn missing_bitmap_data_is_flagged_warned_and_survives_save() {
+    let im = read_package(&missing_bitmap_package()).unwrap();
+    let b = &im.doc.bitmaps[0];
+    assert_eq!((b.name.as_str(), b.width, b.height), ("hero.png", 40, 32));
+    assert!(b.missing, "library item is flagged");
+    // the placeholder is obvious: magenta/black checker with a white frame and red cross
+    let px = image::load_from_memory(&b.png).unwrap().to_rgba8();
+    assert_eq!(px.get_pixel(0, 0).0, [255, 255, 255, 255], "white border");
+    let colours: std::collections::HashSet<[u8; 4]> = px.pixels().map(|p| p.0).collect();
+    for c in [[255, 0, 255, 255], [0, 0, 0, 255], [255, 0, 0, 255]] {
+        assert!(colours.contains(&c), "placeholder has {c:?}");
+    }
+    // recorded in the import report and in the document's own warnings
+    assert!(im.warnings.iter().any(|w| w.contains("hero.png") && w.contains("MISSING")), "{:?}", im.warnings);
+    assert_eq!(im.doc.warnings.len(), 1);
+    assert!(im.doc.warnings[0].contains("hero.png"));
+
+    // XFL round trip keeps the flag (the file holds the placeholder + flareMissing)
+    let (pkg, wwarn) = write_package(&im.doc);
+    assert!(wwarn.iter().any(|w| w.contains("hero.png")), "writing says so: {wwarn:?}");
+    assert!(String::from_utf8_lossy(&pkg["DOMDocument.xml"]).contains("flareMissing=\"true\""));
+    let back = read_package(&pkg).unwrap();
+    assert!(back.doc.bitmaps[0].missing, "still missing after a round trip");
+    assert!(back.doc.warnings.iter().any(|w| w.contains("hero.png")));
+
+    // a healthy bitmap is not flagged
+    let mut ok = im.doc.clone();
+    ok.bitmaps[0] = BitmapAsset::from_rgba(1, "hero.png", 2, 2, &[255u8; 16]).unwrap();
+    let (pkg, _) = write_package(&ok);
+    assert!(!String::from_utf8_lossy(&pkg["DOMDocument.xml"]).contains("flareMissing"));
+    assert!(!read_package(&pkg).unwrap().doc.bitmaps[0].missing);
+}
+
+#[test]
+fn missing_flag_survives_acx_save() {
+    let im = read_package(&missing_bitmap_package()).unwrap();
+    let json = Document::from_json(&im.doc.to_json()).unwrap();
+    assert!(json.bitmaps[0].missing);
+    assert_eq!(json.warnings, im.doc.warnings);
+}

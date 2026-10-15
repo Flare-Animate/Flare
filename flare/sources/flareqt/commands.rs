@@ -59,8 +59,9 @@ cmds! {
     "layer.list", "", "All layers with flags and frame counts";
     "layer.add", "name?", "New layer above the current one; returns its number";
     "layer.delete", "layer?", "Delete a layer";
-    "layer.copy", "layer?, to_layer? (copies the rows layer..to_layer)", "Copy Layers: the layers (and everything in their folders) with all frames";
-    "layer.cut", "layer?, to_layer?", "Cut Layers";
+    "layer.copy", "layer?, to_layer? (copies the rows layer..to_layer; none given = the selected layers)", "Copy Layers: the layers (and everything in their folders) with all frames";
+    "layer.cut", "layer?, to_layer?", "Cut Layers (at least one layer must stay)";
+    "layer.duplicate", "layer? (default: the current layer)", "Duplicate Layer: a copy above it, named '<name> copy'";
     "layer.paste", "layer? (pasted above it)", "Paste Layers: copied layers keep their folders, masks and parenting";
     "layer.select", "layer", "Make a layer current (number or name)";
     "layer.set", "layer?, name?, visible?, locked?, outline?, kind? ('normal'|'folder'|'mask'|'guide'), parent? (layer or 0 = none)", "Rename, change flags, type, or the folder/mask/guide a layer belongs to";
@@ -881,15 +882,33 @@ pub fn execute(ed: &mut Editor, id: &str, a: &Value) -> Result<Value, String> {
             Ok(json!(ed.layer + 1))
         }
         "layer.copy" | "layer.cut" => {
+            // with no layer given the layers already selected in the timeline are used
+            let given = a.get("layer").is_some() || a.get("to_layer").is_some();
             if let Some(l) = layer_arg(ed, a, "layer")? {
                 ed.layer = l;
             }
-            ed.frame_sel = layer_arg(ed, a, "to_layer")?.map(|to| FrameSel { layer0: ed.layer, layer1: to, f0: 0, f1: 0 });
+            if given {
+                ed.frame_sel = layer_arg(ed, a, "to_layer")?.map(|to| FrameSel { layer0: ed.layer.min(to), layer1: ed.layer.max(to), f0: 0, f1: 0 });
+            }
             if id == "layer.copy" {
                 ed.copy_layers();
             } else {
+                if ed.selected_layer_tree().len() >= ed.timeline().layers.len() {
+                    return Err("can't cut every layer: a timeline keeps at least one".into());
+                }
                 ed.cut_layers();
             }
+            Ok(Value::Null)
+        }
+        "layer.duplicate" => {
+            if let Some(l) = layer_arg(ed, a, "layer")? {
+                ed.layer = l;
+                ed.frame_sel = None;
+            }
+            if ed.timeline().layers.get(ed.layer).is_some_and(|l| l.kind == LayerKind::Camera) {
+                return Err("the camera layer can't be duplicated".into());
+            }
+            ed.duplicate_layer();
             Ok(Value::Null)
         }
         "layer.paste" => {

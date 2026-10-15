@@ -1607,7 +1607,7 @@ fn library(app: &mut App, ui: &mut egui::Ui) {
                 }
                 LibItem::Bitmap(id) => {
                     let Some(b) = app.ed.doc.bitmap(id) else { continue };
-                    let (name, bw, bh) = (b.name.clone(), b.width, b.height);
+                    let (name, bw, bh, missing) = (b.name.clone(), b.width, b.height, b.missing);
                     let leaf = ac_core::split_item_path(&name).1.to_string();
                     let uses = app.ed.bitmap_usage(id);
                     let (r, resp) = ui.allocate_exact_size(vec2(w, 22.0), Sense::click_and_drag());
@@ -1617,8 +1617,8 @@ fn library(app: &mut App, ui: &mut egui::Ui) {
                         ui.painter().rect_filled(r, 2.0, Color32::from_gray(0x3A));
                     }
                     let clip = ui.painter().with_clip_rect(Rect::from_min_max(r.min, pos2(r.left() + cols[1].1 - 6.0, r.bottom())));
-                    clip.text(pos2(r.left() + 6.0 + indent, r.center().y), Align2::LEFT_CENTER, format!("🖼 {leaf}"), FontId::proportional(12.5), Color32::from_gray(230));
-                    ui.painter().text(pos2(r.left() + cols[1].1, r.center().y), Align2::LEFT_CENTER, "Bitmap", FontId::proportional(11.5), Color32::from_gray(180));
+                    clip.text(pos2(r.left() + 6.0 + indent, r.center().y), Align2::LEFT_CENTER, if missing { format!("⚠ {leaf}") } else { format!("🖼 {leaf}") }, FontId::proportional(12.5), if missing { Color32::from_rgb(0xFF, 0x70, 0x70) } else { Color32::from_gray(230) });
+                    ui.painter().text(pos2(r.left() + cols[1].1, r.center().y), Align2::LEFT_CENTER, if missing { "Bitmap (missing)" } else { "Bitmap" }, FontId::proportional(11.5), if missing { Color32::from_rgb(0xFF, 0x70, 0x70) } else { Color32::from_gray(180) });
                     ui.painter().text(pos2(r.left() + cols[2].1 + 24.0, r.center().y), Align2::RIGHT_CENTER, uses.to_string(), FontId::proportional(11.5), Color32::from_gray(180));
                     ui.painter().text(pos2(r.left() + cols[3].1 + 36.0, r.center().y), Align2::RIGHT_CENTER, "–", FontId::proportional(11.5), Color32::from_gray(180));
                     if resp.clicked() || resp.drag_started() {
@@ -1633,7 +1633,7 @@ fn library(app: &mut App, ui: &mut egui::Ui) {
                     if resp.double_clicked() {
                         app.ed.place_bitmap(id, center_place);
                     }
-                    let resp = resp.on_hover_text(format!("{name}\nBitmap {bw}×{bh} · used {uses}×\nDrag onto the stage to place, or onto a folder"));
+                    let resp = resp.on_hover_text(format!("{name}\nBitmap {bw}×{bh} · used {uses}×{}\nDrag onto the stage to place, or onto a folder", if missing { "\nIMAGE DATA MISSING: this is a placeholder. Import the image again to use the real one." } else { "" }));
                     resp.context_menu(|ui| {
                         if ui.button("Place on Stage").clicked() { app.ed.place_bitmap(id, center_place); ui.close_menu(); }
                         if ui.button("Rename…").clicked() { app.dialog = Dialog::RenameBitmap { id, name: leaf.clone() }; ui.close_menu(); }

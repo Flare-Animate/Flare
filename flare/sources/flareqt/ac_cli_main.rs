@@ -131,7 +131,10 @@ fn run(args: &[String]) -> Result<(), String> {
         "html5" => {
             let d = load(arg(1)?)?;
             let o = ac_render::html5::Html5Opts { loop_play: !args.iter().any(|a| a == "--no-loop"), ..Default::default() };
-            let page = ac_render::html5::publish_to(&d, &o, Path::new(arg(2)?))?;
+            let (page, warnings) = ac_render::html5::publish_to_report(&d, &o, Path::new(arg(2)?))?;
+            for w in warnings {
+                eprintln!("note: {w}");
+            }
             println!("wrote {}", page.display());
         }
         "sprites" => {

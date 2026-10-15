@@ -108,6 +108,11 @@
     x.clearRect(0, 0, c.width, c.height);
     return c;
   }
+  // ctx.filter lengths are canvas pixels (the transform doesn't scale them),
+  // while the movie's numbers are stage pixels: scale them by the pixel ratio.
+  function css(f) {
+    return dpr === 1 ? f : f.replace(/(-?\d*\.?\d+)px/g, function (m, v) { return (+v * dpr) + "px"; });
+  }
   function stages(src, list, depth) {
     var cur = src, flip = 0;
     for (var i = 0; i < list.length; i++) {
@@ -115,13 +120,16 @@
       if (st.c) {
         var t = spareCanvas(depth * 2 + (flip ^= 1));
         var x = t.getContext("2d");
-        x.filter = st.c;
+        x.filter = css(st.c);
         x.drawImage(cur, 0, 0);
         x.filter = "none";
         cur = t;
       } else if (st.g) {
         if (cur === src) { var t2 = spareCanvas(depth * 2 + (flip ^= 1)); t2.getContext("2d").drawImage(cur, 0, 0); cur = t2; }
         rampFilter(cur, st.g, dpr);
+      } else if (st.a) {
+        if (cur === src) { var t3 = spareCanvas(depth * 2 + (flip ^= 1)); t3.getContext("2d").drawImage(cur, 0, 0); cur = t3; }
+        adjustColor(cur, st.a);
       }
     }
     return cur;
@@ -219,13 +227,30 @@
     }
     var bx = g.bx * scale, by = g.by * scale, dist = g.d * scale, k;
     if (g.ko) px.fill(0);
+    var one = null;
     if (g.k === "glow") {
+      // g.h: hide the object (outer shadow only); g.nm: solid colour, so the
+      // inner effect isn't masked a second time (shadowPlane already is)
       if (g.t !== 0) {
         var o = shadowPlane(alpha, w, h, bx, by, g.q, g.a, dist, g.s, false), mk = new Float32Array(n);
-        for (k = 0; k < n; k++) mk[k] = (o[k] > 0 ? 1 : 0) * (g.ko ? 1 - alpha[k] : 1);
-        combineRamp(px, o, mk, g.r, g.ko ? 2 : 0);
+        for (k = 0; k < n; k++) mk[k] = g.h ? 1 : (o[k] > 0 ? 1 : 0) * (g.ko ? 1 - alpha[k] : 1);
+        combineRamp(px, o, mk, g.r, g.ko || g.h ? 2 : 0);
       }
-      if (g.t !== 1) combineRamp(px, shadowPlane(alpha, w, h, bx, by, g.q, g.a, dist, g.s, true), alpha, g.r, g.ko ? 2 : 1);
+      if (g.t !== 1) {
+        if (g.nm) { one = new Float32Array(n); one.fill(1); }
+        combineRamp(px, shadowPlane(alpha, w, h, bx, by, g.q, g.a, dist, g.s, true), g.nm ? one : alpha, g.r, g.ko ? 2 : 1);
+      }
+    } else if (g.k === "sbevel") {
+      // solid Bevel: the highlight and shadow planes are painted in turn
+      one = new Float32Array(n); one.fill(1);
+      if (g.t !== 1) {
+        combineRamp(px, shadowPlane(alpha, w, h, bx, by, g.q, g.a + 180, dist, g.s, true), one, g.sh, 1);
+        combineRamp(px, shadowPlane(alpha, w, h, bx, by, g.q, g.a, dist, g.s, true), one, g.hl, 1);
+      }
+      if (g.t !== 0) {
+        combineRamp(px, shadowPlane(alpha, w, h, bx, by, g.q, g.a + 180, dist, g.s, false), one, g.hl, 0);
+        combineRamp(px, shadowPlane(alpha, w, h, bx, by, g.q, g.a, dist, g.s, false), one, g.sh, 0);
+      }
     } else {
       var side = function (inner) {
         var lit = shadowPlane(alpha, w, h, bx, by, g.q, g.a + 180, dist, g.s, inner), dark = shadowPlane(alpha, w, h, bx, by, g.q, g.a, dist, g.s, inner), v = new Float32Array(n);
@@ -241,6 +266,37 @@
       for (var c = 0; c < 3; c++) p[i * 4 + c] = A > 0 ? Math.round(Math.max(0, Math.min(1, px[i * 4 + c] / A)) * 255) : 0;
     }
     x.putImageData(img, x0, y0);
+  }
+
+  // Adjust Color, per pixel (same maths as ac-render's adjust_color):
+  //   rgb' = hueRotate(rgb); l = .213r + .715g + .072b
+  //   v = l + (v - l) * (1 + saturation/100); v = (v - .5) * (1 + contrast/100) + .5 + brightness/100
+  // hueRotate is the luminance-preserving matrix (as CSS hue-rotate, which
+  // can't be used alone: CSS brightness() multiplies where Animate adds).
+  function adjustColor(canvas, p) {
+    var x = canvas.getContext("2d", { willReadFrequently: true });
+    var img = x.getImageData(0, 0, canvas.width, canvas.height), d = img.data;
+    var cl = function (v) { return Math.max(-100, Math.min(100, v)); };
+    var b = cl(p[0]) / 100, c = 1 + cl(p[1]) / 100, s = 1 + cl(p[2]) / 100;
+    var sin = Math.sin(p[3] * Math.PI / 180), cos = Math.cos(p[3] * Math.PI / 180);
+    var lr = 0.213, lg = 0.715, lb = 0.072;
+    var m = [
+      lr + cos * (1 - lr) + sin * -lr, lg + cos * -lg + sin * -lg, lb + cos * -lb + sin * (1 - lb),
+      lr + cos * -lr + sin * 0.143, lg + cos * (1 - lg) + sin * 0.140, lb + cos * -lb + sin * -0.283,
+      lr + cos * -lr + sin * -(1 - lr), lg + cos * -lg + sin * lg, lb + cos * (1 - lb) + sin * lb
+    ];
+    for (var i = 0; i < d.length; i += 4) {
+      if (!d[i + 3]) continue;
+      var r = d[i] / 255, g = d[i + 1] / 255, bl = d[i + 2] / 255;
+      var v = [m[0] * r + m[1] * g + m[2] * bl, m[3] * r + m[4] * g + m[5] * bl, m[6] * r + m[7] * g + m[8] * bl];
+      var l = lr * v[0] + lg * v[1] + lb * v[2];
+      for (var k = 0; k < 3; k++) {
+        var t = l + (v[k] - l) * s;
+        t = (t - 0.5) * c + 0.5 + b;
+        d[i + k] = Math.round(Math.max(0, Math.min(1, t)) * 255);
+      }
+    }
+    x.putImageData(img, 0, 0);
   }
 
   // per-frame: overrides by src, button substitutions
@@ -276,7 +332,15 @@
       var e = list[i];
       if (typeof e === "number") { drawItem(c, M.items[e], depth); continue; }
       var off = offscreen(depth + 1);
-      if (e.mb) drawMotionBlur(off, e, depth);
+      if (e.sp !== undefined) {
+        // EffectCraft effects were rendered at publish time (full-stage sprite)
+        var sp = images[e.sp];
+        if (sp.img.complete && sp.img.naturalWidth) {
+          var sx = off.getContext("2d");
+          sx.imageSmoothingEnabled = sp.smooth;
+          sx.drawImage(sp.img, 0, 0, off.width, off.height);
+        }
+      } else if (e.mb) drawMotionBlur(off, e, depth);
       else drawList(off.getContext("2d"), e.c, depth + 1);
       var fx = M.fx[e.x];
       var src = off;
@@ -284,7 +348,7 @@
       if (fx.s) src = stages(off, fx.s, depth + 1);
       c.save();
       c.setTransform(1, 0, 0, 1, 0, 0);
-      if (fx.f) c.filter = fx.f;
+      if (fx.f) c.filter = css(fx.f);
       c.globalCompositeOperation = fx.o;
       c.drawImage(src, 0, 0);
       c.restore();
