@@ -5,12 +5,12 @@ Goal: advance the Rust rewrite on Conversion-ft-animationCraft with every unit i
 ## Backlog (owner tier)
 | # | Item | Tier | State |
 |---|---|---|---|
-| 1 | Batch 3 ports hsvutil, igs_perlin_noise | sonnet | done, REVIEW PENDING |
-| 2 | minnamate wave 2 import (cd2afd9) | sonnet | done, REVIEW PENDING |
-| 3 | cpp2rust draft workflow | sonnet | written, not runnable (default-branch rule); review pending |
-| 4 | Unification plan, step 0 + 3 (mm_bridge) | sonnet | in progress |
-| 5 | html5_runtime.js -> TypeScript | sonnet | in progress |
-| 6 | Batch 4 C++ ports | sonnet | in progress |
+| 1 | Batch 3 ports hsvutil, igs_perlin_noise | sonnet | done; reviewed APPROVE; golden tests added |
+| 2 | minnamate wave 2 import (cd2afd9) | sonnet | done; reviewed CHANGES -> 3 security findings fixed (path traversal, decompression bombs, audio alloc) |
+| 3 | cpp2rust draft workflow | sonnet | reviewed OK (no injection); not runnable until on default branch |
+| 4 | Unification plan, step 0 + 3 (mm_bridge) | sonnet | done; reviewed CHANGES -> silent-loss/dup-symbol findings fixed |
+| 5 | html5_runtime.js -> TypeScript | sonnet | done; reviewed OK; CI drift check added |
+| 6 | Batch 4 C++ ports (metnum, predict3d, CIL, CallCircle) | sonnet | done; reviewed APPROVE; lows fixed |
 | 7 | macOS smoke-test abort (SIGABRT, exit 134) | haiku triage, sonnet fix | waiting for diagnostics run on a413c66 |
 | 8 | Merge plan step 2 (single html5 runtime) | sonnet | blocked on 5 |
 
@@ -30,3 +30,6 @@ Main thread large (long CI-notification churn). Agents: ~85-140k tokens each, 14
 
 ## Retro (one line)
 CI notification noise and repeated pushes burned the most; hold pushes until a reviewed batch is ready.
+
+## Verification before push
+flare_formats 254, minnamate-core all suites green, html5 runtime --check up to date. CI on the pushed head is the remaining gate (macOS smoke abort still open).

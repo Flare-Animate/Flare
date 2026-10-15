@@ -85,6 +85,9 @@ pub struct Pcm {
     pub samples: Vec<i16>,
 }
 
+/// The most samples (all channels) a resampled sound may have: 1 GiB of i16.
+const MAX_SAMPLES: usize = 512 << 20;
+
 impl Pcm {
     /// Samples a channel.
     pub fn len(&self) -> usize {
@@ -102,13 +105,17 @@ impl Pcm {
     }
 
     /// Resampled to `rate`, straight lines between the samples.
-    pub fn resampled(&self, rate: u32) -> Pcm {
+    pub fn resampled(&self, rate: u32) -> Result<Pcm> {
         if rate == self.rate || self.is_empty() || self.rate == 0 {
-            return Pcm { rate, ..self.clone() };
+            return Ok(Pcm { rate, ..self.clone() });
         }
         let (n, len) = (self.channels.max(1) as usize, self.len());
         let out_len = (len as u64 * rate as u64 / self.rate as u64) as usize;
-        let mut samples = Vec::with_capacity(out_len * n);
+        // The rate is the file's: refuse a total that overflows or is past the cap.
+        let Some(total) = out_len.checked_mul(n).filter(|t| *t <= MAX_SAMPLES) else {
+            return Err(format!("resampling to {rate} Hz would make too many samples").into());
+        };
+        let mut samples = Vec::with_capacity(total);
         for j in 0..out_len {
             let x = j as f64 * self.rate as f64 / rate as f64;
             let (i, t) = (x as usize, x.fract());
@@ -117,7 +124,7 @@ impl Pcm {
                 samples.push((a + (b - a) * t).round() as i16);
             }
         }
-        Pcm { rate, channels: self.channels, samples }
+        Ok(Pcm { rate, channels: self.channels, samples })
     }
 }
 
@@ -606,7 +613,10 @@ mod tests {
         assert!(Sound::from_file(b"RIFF....WAVEjunk".to_vec(), "b.wav").is_err());
         // Resampled, the length follows the rate.
         let pcm = Pcm { rate: 10, channels: 1, samples: vec![0, 100, 200, 300] };
-        assert_eq!(pcm.resampled(20).samples, [0, 50, 100, 150, 200, 250, 300, 300]);
+        assert_eq!(pcm.resampled(20).unwrap().samples, [0, 50, 100, 150, 200, 250, 300, 300]);
+        // A rate that would need billions of samples is an error, not an allocation.
+        let long = Pcm { rate: 1, channels: 2, samples: vec![0; 2 * 1000] };
+        assert!(long.resampled(u32::MAX).is_err());
     }
 
     #[test]

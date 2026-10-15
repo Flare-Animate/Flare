@@ -9,6 +9,7 @@ name = "minnamate_core"
 path = "minnamate_core.rs"
 
 [dependencies]
+ac-core = { workspace = true }
 flate2 = "1"
 nanomp3 = { version = "0.2", default-features = false, features = ["std"] }
 i_overlay = "9"

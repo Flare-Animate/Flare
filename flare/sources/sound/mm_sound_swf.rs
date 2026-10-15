@@ -126,7 +126,7 @@ fn define(s: &Sound) -> Result<(SoundFormat, u32, Vec<u8>)> {
         return Ok(mp3);
     }
     let pcm = s.decode()?;
-    let pcm = pcm.resampled(swf_rate(pcm.rate));
+    let pcm = pcm.resampled(swf_rate(pcm.rate))?;
     let format = |compression| SoundFormat { compression, sample_rate: pcm.rate as u16, is_stereo: pcm.channels == 2, is_16_bit: true };
     Ok(match c {
         Compression::Raw => (format(AudioCompression::Uncompressed), pcm.len() as u32, pcm.samples.iter().flat_map(|v| v.to_le_bytes()).collect()),
@@ -178,7 +178,7 @@ fn stream(doc: &Document, sounds: &[(u32, &Frame, FrameSound)], skipped: &mut BT
     let (first, end) = (parts.iter().map(|p| p.0).min()?, parts.iter().map(|p| p.1).max()?);
     let mut mix = vec![0.0; at(end) * 2];
     for (start, stop, pcm, s) in &parts {
-        sound::mix(&pcm.resampled(rate), s, &mut mix[at(*start) * 2..at(*stop) * 2]);
+        sound::mix(&pcm.resampled(rate).ok()?, s, &mut mix[at(*start) * 2..at(*stop) * 2]);
     }
     // Each block opens at the step sizes the one before reached, or its first samples would
     // lag the sound, a click a frame.

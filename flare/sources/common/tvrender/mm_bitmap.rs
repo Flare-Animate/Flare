@@ -335,10 +335,18 @@ fn gif(b: &[u8]) -> Option<Pixmap> {
 /// by its u16 LE length, up to an empty one.
 // ponytail: unconfirmed against Animate, and its 8-bit palette kind isn't read (it stays as
 // read, unshown). Check against an Animate .fla's bin/ when one is at hand.
+const MAX_SIDE: usize = 16384;
+const MAX_BYTES: usize = 512 << 20;
+
 fn lossless(b: &[u8]) -> Option<Pixmap> {
     let (row, w, h) = (u16le(b, 2)?, u16le(b, 4)?, u16le(b, 6)?);
     let (alpha, compressed) = (*b.get(24)? != 0, *b.get(25)? != 0);
     if row != w * 4 {
+        return None;
+    }
+    // Capped before anything is allocated: the header is the file's to set.
+    let size = w.checked_mul(h).and_then(|n| n.checked_mul(4))?;
+    if w > MAX_SIDE || h > MAX_SIDE || size > MAX_BYTES {
         return None;
     }
     let mut argb = Vec::new();
@@ -352,7 +360,11 @@ fn lossless(b: &[u8]) -> Option<Pixmap> {
             z.extend_from_slice(b.get(at + 2..at + 2 + len)?);
             at += 2 + len;
         }
-        flate2::read::ZlibDecoder::new(&z[..]).read_to_end(&mut argb).ok()?;
+        // Bounded to what the header says it holds (plus a little slack, to tell "too long").
+        flate2::read::ZlibDecoder::new(&z[..]).take(size as u64 + 16).read_to_end(&mut argb).ok()?;
+        if argb.len() > size {
+            return None;
+        }
     } else {
         argb = b.get(26..)?.to_vec();
     }
@@ -689,6 +701,31 @@ pub(crate) fn swf_fill(f: &BitmapFill, id: swf::CharacterId, smoothed: bool) -> 
 #[cfg(test)]
 pub(crate) mod tests {
     use super::*;
+
+    #[test]
+    fn lossless_refuses_bombs() {
+        let head = |w: u16, h: u16| {
+            let mut b = vec![3, 5];
+            [w * 4, w, h].iter().for_each(|v| b.extend(v.to_le_bytes()));
+            b.resize(24, 0);
+            b.extend([1, 1]);
+            b
+        };
+        // Header far past the cap.
+        let mut big = head(16000, 16000);
+        big.extend([0, 0]);
+        assert!(lossless(&big).is_none());
+        // Small header, a stream that inflates to far more than it says.
+        let mut b = head(2, 2);
+        let z = zlib(&vec![0u8; 64 << 20]);
+        assert!(z.len() < 1 << 20 && z.len() < u16::MAX as usize * 40);
+        for c in z.chunks(60000) {
+            b.extend((c.len() as u16).to_le_bytes());
+            b.extend_from_slice(c);
+        }
+        b.extend([0, 0]);
+        assert!(lossless(&b).is_none());
+    }
 
     /// A `w` × `h` PNG, each pixel `color(x, y)` (straight RGBA).
     pub(crate) fn png(w: u32, h: u32, color: impl Fn(u32, u32) -> [u8; 4]) -> Vec<u8> {

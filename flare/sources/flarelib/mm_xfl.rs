@@ -50,6 +50,9 @@ pub(crate) fn frame_attrs(tween: &Tween) -> &'static [&'static str] {
     }
 }
 
+/// The most a single entry of a .fla may inflate to.
+const MAX_ENTRY: u64 = 256 << 20;
+
 /// Loads a `.fla` file, an XFL folder, or the `.xfl` / `DOMDocument.xml` inside one.
 pub fn load(path: &std::path::Path) -> Result<Document> {
     if let Some(dir) = folder(path) {
@@ -58,7 +61,10 @@ pub fn load(path: &std::path::Path) -> Result<Document> {
     let mut zip = zip::ZipArchive::new(fs::File::open(path)?)?;
     read_document(&mut |name| {
         let mut data = Vec::new();
-        zip.by_name(name)?.read_to_end(&mut data)?;
+        zip.by_name(name)?.take(MAX_ENTRY + 1).read_to_end(&mut data)?;
+        if data.len() as u64 > MAX_ENTRY {
+            return Err(format!("{name}: larger than {} MiB", MAX_ENTRY >> 20).into());
+        }
         Ok(data)
     })
 }
@@ -511,6 +517,22 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn oversized_zip_entry_is_refused() {
+        use std::io::Write;
+        let path = std::env::temp_dir().join(format!("minnamate-bomb-{}.fla", std::process::id()));
+        let mut z = zip::ZipWriter::new(fs::File::create(&path).unwrap());
+        z.start_file("DOMDocument.xml", zip::write::SimpleFileOptions::default().compression_method(zip::CompressionMethod::Deflated)).unwrap();
+        let chunk = vec![b' '; 1 << 20];
+        for _ in 0..300 {
+            z.write_all(&chunk).unwrap();
+        }
+        z.finish().unwrap();
+        let err = load(&path).err().expect("refused").to_string();
+        let _ = fs::remove_file(&path);
+        assert!(err.contains("larger than"), "{err}");
+    }
 
     #[test]
     fn twips_formats() {

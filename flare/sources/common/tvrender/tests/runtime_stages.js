@@ -16,7 +16,7 @@ const cv = mkCanvas(40, 40);
 global.window = { AC_MOVIE: { w: 40, h: 40, frames: [[]], images: [], paths: [], items: [], fx: [], clips: [], scenes: [{ start: 0 }], extra: [], sounds: [] }, devicePixelRatio: 1, addEventListener() {} };
 global.document = { getElementById: () => cv, createElement: () => mkCanvas(40, 40), addEventListener() {} };
 global.DOMMatrix = function () {}; global.Path2D = function () {}; global.Image = function () {}; global.requestAnimationFrame = () => {};
-src = src.replace("  // per-frame: overrides by src", "  window.__t = { rampFilter: rampFilter, adjustColor: adjustColor, css: css, openUrl: openUrl };\n  // per-frame: overrides by src");
+src = src.replace(/^\s*\/\/ per-frame: overrides by src/m, "  window.__t = { rampFilter: rampFilter, adjustColor: adjustColor, css: css, openUrl: openUrl };\n  // per-frame: overrides by src");
 try { (0, eval)(src); } catch (e) { /* start-up needs more DOM than the stub; the helpers are defined before it */ }
 const t = window.__t;
 assert(t, "runtime helpers not reachable");

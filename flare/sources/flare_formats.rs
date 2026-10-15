@@ -134,6 +134,14 @@ pub mod igs_median_filter;
 pub mod igs_median_filter_smooth;
 #[path = "stdfx/igs_hsv_noise.rs"]
 pub mod igs_hsv_noise;
+#[path = "flare/metnum.rs"]
+pub mod metnum;
+#[path = "flare/predict3d.rs"]
+pub mod predict3d;
+#[path = "flarelib/sandor_fxs/CIL.rs"]
+pub mod cil;
+#[path = "flarelib/sandor_fxs/CallCircle.rs"]
+pub mod callcircle;
 #[path = "stdfx/igs_hls_noise.rs"]
 pub mod igs_hls_noise;
 

@@ -3117,6 +3117,7 @@ dependencies = [
 name = "minnamate-core"
 version = "0.1.0"
 dependencies = [
+ "ac-core",
  "flate2",
  "i_overlay",
  "nanomp3",

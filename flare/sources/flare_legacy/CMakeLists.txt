@@ -460,9 +460,7 @@ set(SOURCES
     layoutUtils.cpp
 # Tracker file
     dummyprocessor.cpp
-    metnum.cpp
     ObjectTracker.cpp
-    predict3d.cpp
 )
 
 if(PLATFORM EQUAL 64)

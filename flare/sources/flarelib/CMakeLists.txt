@@ -298,8 +298,6 @@ theme.cpp
     vectorizerparameters.cpp
     sandor_fxs/blend.cpp
     sandor_fxs/BlurMatrix.cpp
-    sandor_fxs/CIL.cpp
-    sandor_fxs/CallCircle.cpp
     sandor_fxs/CallParam.cpp
     sandor_fxs/EraseContour.cpp
     sandor_fxs/InputParam.cpp

@@ -7,12 +7,16 @@
 #if !defined(AFX_CALLCIRCLE_H__D2565814_2151_11D6_B9B8_0040F674BE6A__INCLUDED_)
 #define AFX_CALLCIRCLE_H__D2565814_2151_11D6_B9B8_0040F674BE6A__INCLUDED_
 
+#include <memory>
 #include <memory.h>
 #include <string.h>
 #include "SDef.h"
 #include "STColSelPic.h"
 
-int xydwCompare(const void *a, const void *b);
+// Implemented in CallCircle.rs (flare_formats): fills the distance-sorted offset
+// list of the disc of radius r; capacity is the allocation size to use.
+extern "C" int flare_callcircle_capacity(double r);
+extern "C" int flare_callcircle_build(double r, SXYDW *out, int cap);
 
 class CCallCircle {
   double m_r;
@@ -20,14 +24,50 @@ class CCallCircle {
   std::unique_ptr<SXYDW[]> m_c;
 
   void draw(UCHAR *drawB, const int lX, const int lY, const int xx,
-            const int yy, const double r);
-  void null();
+            const int yy, const double r) {
+    double aa = 2.0 * r / 3.0;  // Size of antialiasing
+
+    for (int i = 0; i < m_nb && m_c[i].w <= r; i++) {
+      double w = m_c[i].w;
+      int x    = xx + m_c[i].x;
+      int y    = yy + m_c[i].y;
+      if (x >= 0 && y >= 0 && x < lX && y < lY) {
+        UCHAR *pDB = drawB + y * lX + x;
+        if (w <= aa) {
+          *pDB = (UCHAR)255;
+        } else {
+          double q  = 255.0 * (r - w) / (r - aa);
+          q         = D_CUT_0_255(q);
+          UCHAR ucq = UC_ROUND(q);
+          (*pDB)    = (*pDB) < ucq ? ucq : (*pDB);
+        }
+      }
+    }
+  }
+  void null() {
+    m_nb = 0;
+    m_r  = 0.0;
+    m_c.reset();
+  }
 
 public:
   CCallCircle() : m_r(0.0), m_nb(0) {}
-  CCallCircle(const double r);
-  virtual ~CCallCircle();
-  void print();
+  CCallCircle(const double r) : m_r(r), m_nb(0) {
+    int dd2 = flare_callcircle_capacity(r);
+    if (dd2 <= 0) {
+      null();
+      return;
+    }
+    m_c.reset(new SXYDW[dd2]);
+    int n = flare_callcircle_build(r, m_c.get(), dd2);
+    if (n < 0) {
+      null();
+      return;
+    }
+    m_nb = n;
+  }
+  virtual ~CCallCircle() { null(); }
+  void print() {}
 
   template <class P>
   void getCC(CSTColSelPic<P> &pic, P &col) {

@@ -9,6 +9,14 @@ yet `flarelib/model.rs` (ac) and `flarelib/mm_doc.rs` (mm) both exist today. RUS
 Qt `flare/` app the product. This plan treats the Rust egui `flare` binary as the interim product and ac `model.rs` as the
 single Rust document until the TXsheet-shaped model lands. Maintainers should confirm (step 0).
 
+## 0. Decision record (step 0)
+
+Decided (recorded in this branch, pending maintainer sign-off in RUST_REWRITE.md): the Rust egui `flare` binary
+(`ac-app`, bin `flare`) is the interim single app, and ac `flarelib/model.rs` is the single document model, as this plan
+states. `mm_doc` stays only as the XFL-shaped side of the adapter `flarelib/mm_bridge.rs` (owned by `minnamate-core`,
+which depends on `ac-core`; step 3 is implemented, lossy fields are listed in its module docs and returned as a
+`BridgeReport`). Revisit when the TXsheet-shaped model lands.
+
 ## 1. Overlap table
 
 | Area | AnimationCraft (ac) | minnamate (mm) | More complete |
@@ -44,7 +52,7 @@ CLI: `flareqt` (`flare-cli`) is the only CLI. `minnamate` and `minnamate-cli` bi
 Document: ac `model.rs` is the single model. `mm_doc` is not merged by hand; it becomes an adapter,
 `flarelib/mm_bridge.rs` with `impl From<&mm::doc::Document> for ac::Document` and the reverse where lossless.
 Rationale: the two models meet at XFL, and both already read/write it, so the XFL file is the lossless bridge. Smallest
-safe sequence: (a) round-trip test mm_xfl -> bridge -> ac_xfl_write -> ac_xfl_read -> compare, (b) migrate mm-only
+safe sequence (bridge reports every lossy field, incl. renamed duplicate symbols, shape extras, dangling parents; see mm_bridge.rs header): (a) round-trip test mm_xfl -> bridge -> ac_xfl_write -> ac_xfl_read -> compare, (b) migrate mm-only
 features one at a time onto ac types, (c) delete the mm reader/writer/doc when no mm consumer remains.
 
 Panel registry: add to `flare/ac_app/dock.rs` (today a closed `enum Module {Tools, Properties, Library, Timeline}`):

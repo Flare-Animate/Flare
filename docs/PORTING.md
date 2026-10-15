@@ -43,6 +43,10 @@ Crate manifest: `flare/sources/Cargo.toml`. Tests: `python tests/run_rust.py`.
 | stdfx | stdfx/igs_hls_noise.cpp | stdfx/igs_hls_noise.rs | 7 | coarse |
 | stdfx | stdfx/hsvutil.cpp | stdfx/hsvutil.rs | 5 | fine (scalar OLDRGB2HSV/OLDHSV2RGB; 2M random cases bit-identical to C++) |
 | stdfx | stdfx/igs_perlin_noise.cpp | stdfx/igs_perlin_noise.rs | 6 | coarse (8/16-bit + float; carries a private bit-identical copy of `Noise1234::noise(x,y,z)`; `iwa_noise1234.cpp` stays C++ because its per-pixel callers are C++; 150 random images bit-identical) |
+| flare | flare/metnum.cpp | flare/metnum.rs | 6 | coarse (Approx/Cholesky/CholForw/CholBack over `double**`; Alloc/Free stay inline in the header) |
+| flare | flare/predict3d.cpp | flare/predict3d.rs | 4 | coarse (whole point arrays; uses `metnum` directly in Rust) |
+| flarelib | flarelib/sandor_fxs/CIL.cpp | flarelib/sandor_fxs/CIL.rs | 4 | coarse (string -> sorted index list; `CCIL::set` forwards, `isIn` inline) |
+| flarelib | flarelib/sandor_fxs/CallCircle.cpp | flarelib/sandor_fxs/CallCircle.rs | 4 | coarse (builds the sorted offset list; class, ctor, draw and templates inline in the header) |
 | sound | sound/tsioutils.cpp | sound/tsioutils.rs | (earlier) | coarse |
 | tnzbase | tnzbase/permissionsmanager.cpp | tnzbase/permissionsmanager.rs | (earlier) | fine |
 
@@ -62,3 +66,10 @@ Batch 3 notes (`stdfx/hsvutil`, `stdfx/igs_perlin_noise`, +11 tests):
 - `igs_perlin_noise` header forwarder throws `std::domain_error("Bad bits,Not uchar/ushort")` (status 1) or `std::invalid_argument` (status 2: null image, negative size, channels <= 0, misaligned 16-bit/float buffer).
 - Deviations only where the C++ was UB: `OLDRGB2HSV` with NaN input returns hue 0 (C++ read an uninitialised value); null output pointers are skipped.
 - Skipped: `perlinnoise.cpp` (TRaster/TSpectrumParam), `igs_attenuation_distribution`/`igs_motion_wind_table`/`igs_maxmin*` (already rejected, see RUST_REWRITE.md), `gammafx`/`posterizefx` and other `*fx.cpp` (TRasterFx classes, Qt/TRasterFxPort bound).
+
+Batch 4 notes (`metnum`, `predict3d`, `CIL`, `CallCircle`, +18 tests):
+- Differential test against the original C++ from git (old and new in separate TUs, new linked to `libflare_formats.a`): Approx 20,000, Cholesky 20,000, CholForw/CholBack 40,000 (incl. aliased b/x and zero diagonals), Predict3D 20,000 (incl. collinear), CCIL::set 200,000 random/edge strings, CCallCircle 400 radii: 0 mismatches (bitwise on doubles).
+- Deviations only where the C++ was UB: CCIL tokens >= 100 chars overflowed a 100-byte buffer (Rust has no limit); `CCallCircle` with unusable radius (NaN, negative, > 5000, int overflow) yields an empty list.
+- `CallCircle` order of equal-distance offsets depended on `qsort`; it is now defined: stable sort of row-major generation order (y then x), which matches glibc 2.39 (0 mismatches) but may differ from old MSVC/macOS (unstable qsort) tie order. Pinned by a radius-1 unit test. The 5000 radius cap is kept (CCallCircle radius comes from the user-set `CallParam::m_thickness`, so no static bound on callers).
+- `CCIL` `atoi` now clamps to the `i32` range (old code truncated a saturated `long` to `int`); the old overflow was `strcpy` of the whole remaining list tail into a 100-byte buffer, so any list > 100 chars could overflow.
+- Skipped: `CallParam.cpp` (atof argv parsing + embeds two `CCIL`; wrapper would exceed the logic, strtod parity not worth it), `BlurMatrix.cpp` (`rand()`-driven createRandom and `vector<vector<SXYD>>` class graph), `PatternPosition.cpp` (rand(), SPOINT/SRECT vectors, CSTColSelPic templates), `namebuilder.cpp` (class hierarchy with `std::wstring` virtual interface; Windows-only invalid-name list; wrapper bigger than the logic).

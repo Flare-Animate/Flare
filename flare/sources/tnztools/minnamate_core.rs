@@ -2,6 +2,8 @@
 pub mod arrange;
 #[path = "../common/tvrender/mm_bitmap.rs"]
 pub mod bitmap;
+#[path = "../flarelib/mm_bridge.rs"]
+pub mod bridge;
 #[path = "../flarelib/mm_button.rs"]
 pub mod button;
 #[path = "../flarelib/mm_display.rs"]

@@ -313,6 +313,25 @@ pub fn output(target: &Target, stem: &str, ext: &str) -> String {
     if target.file.is_empty() { format!("{stem}.{ext}") } else { target.file.clone() }
 }
 
+/// `file` as a path below the publish folder: an error for an absolute path, a drive or root
+/// prefix, or any `..` (a document's Publish Settings are untrusted input).
+pub fn confine(file: &str) -> Result<PathBuf> {
+    let bad = || format!("Publish Settings file name \"{file}\" must stay inside the document's folder.");
+    let mut out = PathBuf::new();
+    for (i, part) in file.split(['/', '\\']).enumerate() {
+        if part == ".." || part.contains(':') || part.contains('\0') || (i == 0 && part.is_empty() && !file.is_empty()) {
+            return Err(bad().into());
+        }
+        if !part.is_empty() && part != "." {
+            out.push(part);
+        }
+    }
+    if out.components().any(|c| !matches!(c, std::path::Component::Normal(_))) {
+        return Err(bad().into());
+    }
+    Ok(out)
+}
+
 /// The document's name, as published files take it: a .fla's, or its XFL folder's.
 pub fn stem(doc_path: &Path) -> String {
     let name = match crate::xfl::folder(doc_path) {
@@ -334,7 +353,7 @@ pub fn folder(doc_path: &Path) -> PathBuf {
 /// folder. Returns the files written, each with the features it couldn't show.
 pub fn publish(doc: &Document, profile: &Profile, doc_path: &Path) -> Result<Vec<(PathBuf, BTreeSet<String>)>> {
     let (dir, stem) = (folder(doc_path), stem(doc_path));
-    let path = |target: &Target, ext: &str| dir.join(output(target, &stem, ext));
+    let path = |target: &Target, ext: &str| -> Result<PathBuf> { Ok(dir.join(confine(&output(target, &stem, ext))?)) };
     let write = |path: &Path, bytes: &[u8]| -> Result<()> {
         if let Some(parent) = path.parent() {
             fs::create_dir_all(parent)?;
@@ -346,7 +365,7 @@ pub fn publish(doc: &Document, profile: &Profile, doc_path: &Path) -> Result<Vec
     // and no SWF.
     if doc.is_canvas() {
         if profile.html.on {
-            let html = path(&profile.html, "html");
+            let html = path(&profile.html, "html")?;
             let name = html.file_stem().map_or_else(|| stem.clone(), |s| s.to_string_lossy().into_owned());
             let skipped = crate::html5::publish(doc, html.parent().unwrap_or(&dir), &name)?;
             written.push((html, skipped));
@@ -356,13 +375,13 @@ pub fn publish(doc: &Document, profile: &Profile, doc_path: &Path) -> Result<Vec
         let doc = if profile.include_hidden { doc } else { shown = without_hidden_layers(doc); &shown };
         let compression = if profile.compress { swf::Compression::Zlib } else { swf::Compression::None };
         let (bytes, skipped) = crate::swf_export::export_with(doc, profile.version, compression)?;
-        let swf = path(&profile.swf, "swf");
+        let swf = path(&profile.swf, "swf")?;
         write(&swf, &bytes)?;
         written.push((swf, skipped));
     }
     if profile.html.on && !doc.is_canvas() {
-        let html = path(&profile.html, "html");
-        let swf = path(&profile.swf, "swf");
+        let html = path(&profile.html, "html")?;
+        let swf = path(&profile.swf, "swf")?;
         // Relative to the page where it can be, so the two go onto a web server together.
         // ponytail: a SWF outside the page's folder gets a file URL; "../" paths would keep those relative too.
         let src = match html.parent().and_then(|page| swf.strip_prefix(page).ok()) {
@@ -376,14 +395,14 @@ pub fn publish(doc: &Document, profile: &Profile, doc_path: &Path) -> Result<Vec
     if profile.gif.target.on {
         let frames = if profile.gif.animated { 0..export::frame_count(doc) } else { 0..1 };
         let (bytes, skipped) = export::gif(doc, frames, scale(&profile.gif), false, profile.gif.repeat)?;
-        let gif = path(&profile.gif.target, "gif");
+        let gif = path(&profile.gif.target, "gif")?;
         write(&gif, &bytes)?;
         written.push((gif, skipped));
     }
     for (image, format, ext) in [(&profile.jpeg, Format::Jpeg(profile.jpeg.quality), "jpg"), (&profile.png, Format::Png, "png")] {
         if image.target.on {
             let (bytes, skipped) = export::image(doc, 0, scale(image), image.transparent, format)?;
-            let file = path(&image.target, ext);
+            let file = path(&image.target, ext)?;
             write(&file, &bytes)?;
             written.push((file, skipped));
         }
@@ -492,6 +511,19 @@ mod tests {
         // And a GIF's repeat count while it loops for ever.
         let gif = r#"<flash_profiles><flash_profile name="G"><PublishGifProperties><Loop>1</Loop><LoopCount>5</LoopCount></PublishGifProperties></flash_profile></flash_profiles>"#;
         assert!(Settings::parse(gif).unwrap().to_xml("movie").contains("<LoopCount>5</LoopCount>"));
+    }
+
+    #[test]
+    fn file_names_cannot_leave_the_folder() {
+        for bad in ["../x", "/abs", "C:\\x", "a/../../b", "a\\..\\b", "\\\\srv\\share", "c:x"] {
+            assert!(confine(bad).is_err(), "{bad}");
+        }
+        assert_eq!(confine("out/movie.swf").unwrap(), PathBuf::from("out").join("movie.swf"));
+        let dir = std::env::temp_dir().join(format!("minnamate-publish-bad-{}", std::process::id()));
+        let mut p = Profile::new("Default");
+        p.swf.file = "../escape.swf".into();
+        assert!(publish(&Document::new(10.0, 10.0, 12.0), &p, &dir.join("m.fla")).is_err());
+        assert!(!dir.parent().unwrap().join("escape.swf").exists());
     }
 
     #[test]
