@@ -35,7 +35,7 @@ char *flare_permissions_svn_password(int index);
 void flare_permissions_free(char *p);
 }
 
-class DVAPI PermissionsManager  // singleton
+class PermissionsManager  // singleton; header-only, forwards to permissionsmanager.rs
 {
 public:
   static PermissionsManager *instance() {
