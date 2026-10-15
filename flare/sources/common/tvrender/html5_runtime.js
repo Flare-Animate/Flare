@@ -354,6 +354,7 @@
           sx.drawImage(sp.img, 0, 0, off.width, off.height);
         }
       } else if (e.mb) drawMotionBlur(off, e, depth);
+      else if (e.cb !== undefined) drawCached(off, e, depth);
       else drawList(off.getContext("2d"), e.c, depth + 1);
       var fx = M.fx[e.x];
       var src = off;
@@ -366,6 +367,27 @@
       c.drawImage(src, 0, 0);
       c.restore();
     }
+  }
+
+  // Cache as bitmap: the group's picture is made once per distinct display
+  // list and size, then reused (a static cached object costs one drawImage).
+  // Nothing is cached while a bitmap is still loading.
+  var bitmapCache = {}, bitmapOrder = [];
+  function drawCached(off, e, depth) {
+    var key = e.cb + ":" + off.width + "x" + off.height, c = bitmapCache[key];
+    if (!c) {
+      var ready = images.every(function (im) { return im.img.complete; });
+      if (!ready) { drawList(off.getContext("2d"), e.c, depth + 1); return; }
+      c = document.createElement("canvas");
+      c.width = off.width; c.height = off.height;
+      drawList(c.getContext("2d"), e.c, depth + 1);
+      bitmapCache[key] = c;
+      bitmapOrder.push(key);
+      if (bitmapOrder.length > 48) delete bitmapCache[bitmapOrder.shift()];
+    }
+    var x = off.getContext("2d");
+    x.setTransform(1, 0, 0, 1, 0, 0);
+    x.drawImage(c, 0, 0);
   }
 
   // Asset Warp: each grid triangle of the group's picture drawn through the

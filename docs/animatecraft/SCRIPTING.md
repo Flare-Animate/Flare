@@ -149,6 +149,10 @@ ac.draw.text({ x: 40, y: 40, text: "Hi", font: "DejaVu Serif" }); // any install
 
 ```js
 ac.selection.add_filter({ type: "motion_blur", shutter: 180, samples: 12 }); // blur along the real movement
+ac.selection.set_display({ visible: false, cache_as_bitmap: true, export_as_bitmap: false }); // Properties ▸ Display
+ac.layer.add_filter({ type: "blur", blur_x: 8, blur_y: 8, layer: "Ball" });  // layer effect: the whole layer is one picture
+ac.layer.clear_filters({ layer: "Ball" });
+ac.symbol.set_scale_grid({ symbol: "Panel", left: 10, top: 10, right: 90, bottom: 90 }); // 9-slice; omit the numbers to remove
 // any EffectCraft effect by id (`flare-cli effects blur` lists them with their parameters);
 // numbers, booleans, [x, y] points (fractions of the object's bounds) and "#RRGGBBAA" colours
 ac.selection.add_filter({ type: "effect", id: "ec.blur.radial", params: { amount: 30, type: 1, center: [0.5, 0.5] } });
@@ -179,6 +183,8 @@ ac.motion.set_key({ prop: "rotation", frame: 12, value: 90 });
 ac.motion.set_key({ prop: "alpha", frame: 24, value: 0.2 });   // scale/alpha 0..1
 ac.motion.set_ease({ prop: "position", ease: "Sine In Out" });
 ac.motion.info({ layer: "Ball", frame: 1 });                    // keys per property
+// Edit ▸ Timeline ▸ Copy Motion as JS writes a tween as exactly these calls (set_tween, set_span_end,
+// set_ease, set_key for x/y and every property, set_interp, motion.set_ease) for pasting here
 
 ac.timeline.reverse_frames({ layer: 1, frame: 1, to_frame: 24 });
 ac.timeline.to_frame_by_frame({ layer: 1, frame: 1, to_frame: 24 });

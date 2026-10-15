@@ -24,6 +24,8 @@ mod options_bar;
 mod palette;
 #[path = "ac_app/prefs.rs"]
 mod prefs;
+#[path = "ac_app/presets.rs"]
+mod presets;
 #[path = "ac_app/panels.rs"]
 mod panels;
 #[path = "ac_app/publish.rs"]
@@ -72,7 +74,7 @@ pub(crate) enum Dialog {
     Recover { original: Option<String>, age_secs: u64 },
     ScaleRotate { scale: f32, rotate: f32 },
     TraceBitmap { threshold: u32, min_area: u32, fit: usize, corners: usize, centerline: bool, ink: u8, uniform: bool },
-    LayerProps { i: usize, name: String, kind: ac_core::LayerKind, parent: Option<usize>, color: Color32, visible: bool, locked: bool, outline: bool, height: u16 },
+    LayerProps { i: usize, name: String, kind: ac_core::LayerKind, parent: Option<usize>, color: Color32, visible: bool, locked: bool, outline: bool, height: u16, filters: Vec<ac_core::Filter> },
     About,
 }
 
@@ -189,6 +191,7 @@ pub struct App {
     pub(crate) align_to_stage: bool,
     pub(crate) info_open: bool,
     pub(crate) motion: motion_ui::MotionUi,
+    pub(crate) presets: presets::PresetsPanel,
     /// Control ▸ Enable Simple Buttons: buttons react to the pointer on the stage.
     pub(crate) simple_buttons: bool,
     pub(crate) scene_open: bool,
@@ -208,8 +211,8 @@ pub(crate) fn from32(c: Color32) -> Color {
     Color { r, g, b, a }
 }
 
-/// Layer Properties › OK: (layer, name, type, inside, colour, show, lock, outline, height %).
-type LayerPropsOk = (usize, String, ac_core::LayerKind, Option<usize>, Color32, bool, bool, bool, u16);
+/// Layer Properties › OK: (layer, name, type, inside, colour, show, lock, outline, height %, effects).
+type LayerPropsOk = (usize, String, ac_core::LayerKind, Option<usize>, Color32, bool, bool, bool, u16, Vec<ac_core::Filter>);
 
 impl App {
     fn new(cc: &eframe::CreationContext) -> Self {
@@ -313,6 +316,7 @@ impl App {
             align_to_stage: false,
             info_open: false,
             motion: Default::default(),
+            presets: Default::default(),
             simple_buttons: false,
             scene_open: false,
             bind_bone: None,
@@ -616,6 +620,9 @@ impl App {
         if k(cmd, Key::Z) {
             if let Some(l) = self.ed.undo() { self.status = format!("Undo {l}"); }
         }
+        // Copy / Paste Motion (before the plain Ctrl+C / Ctrl+V fallbacks, which would match them too)
+        if k(cmd | sh | Modifiers::ALT, Key::C) { palette::copy_motion(self); }
+        if k(cmd | sh | Modifiers::ALT, Key::V) { palette::paste_motion(self, true); }
         // Fallbacks in case the platform reports these as plain keys.
         if k(cmd, Key::C) { self.copy(); }
         if k(cmd, Key::X) { self.cut(); }
@@ -820,7 +827,7 @@ impl App {
 
     pub(crate) fn open_layer_props(&mut self, i: usize) {
         let Some(l) = self.ed.timeline().layers.get(i) else { return };
-        self.dialog = Dialog::LayerProps { i, name: l.name.clone(), kind: l.kind, parent: l.parent, color: c32(l.color), visible: l.visible, locked: l.locked, outline: l.outline, height: l.row_height };
+        self.dialog = Dialog::LayerProps { i, name: l.name.clone(), kind: l.kind, parent: l.parent, color: c32(l.color), visible: l.visible, locked: l.locked, outline: l.outline, height: l.row_height, filters: l.filters.clone() };
     }
 
     pub(crate) fn open_scale_rotate(&mut self) {
@@ -1012,6 +1019,7 @@ impl App {
                     if ui.add(egui::SelectableLabel::new(self.align_open, "Align  (Ctrl+K)")).clicked() { self.align_open = !self.align_open; ui.close_menu(); }
                     if ui.add(egui::SelectableLabel::new(self.info_open, "Info  (Ctrl+I)")).clicked() { self.info_open = !self.info_open; ui.close_menu(); }
                     if ui.add(egui::SelectableLabel::new(self.motion.open, "Motion Editor")).clicked() { self.motion.open = !self.motion.open; ui.close_menu(); }
+                    if ui.add(egui::SelectableLabel::new(self.presets.open, "Motion Presets")).on_hover_text("Ready-made movements: bounce, fly-in, fade, pulse, shake, spin, slides… and your own").clicked() { self.presets.open = !self.presets.open; ui.close_menu(); }
                     if ui.add(egui::SelectableLabel::new(self.scene_open, "Scene  (Shift+F2)")).clicked() { self.scene_open = !self.scene_open; ui.close_menu(); }
                     if ui.add(egui::Button::new("Output").shortcut_text("F2")).clicked() { self.scripting.output_open = true; ui.close_menu(); }
                     if ui.button("Script Console").clicked() { self.scripting.console_open = true; ui.close_menu(); }
@@ -1288,7 +1296,7 @@ impl App {
                     });
                 });
             }
-            Dialog::LayerProps { i, name, kind, parent, color, visible, locked, outline, height } => {
+            Dialog::LayerProps { i, name, kind, parent, color, visible, locked, outline, height, filters } => {
                 let li = *i;
                 let containers: Vec<(usize, String)> = self.ed.timeline().layers.iter().enumerate().filter(|(j, l)| *j < li && matches!(l.kind, ac_core::LayerKind::Folder | ac_core::LayerKind::Mask | ac_core::LayerKind::Guide)).map(|(j, l)| (j, l.name.clone())).collect();
                 win("Layer Properties").show(ctx, |ui| {
@@ -1331,8 +1339,14 @@ impl App {
                         });
                         ui.end_row();
                     });
+                    ui.separator();
+                    ui.label(RichText::new("Layer effects").strong());
+                    ui.label(RichText::new("Filters applied to everything this layer draws, as one picture").small().color(Color32::from_gray(150)));
+                    egui::ScrollArea::vertical().max_height(260.0).show(ui, |ui| {
+                        panels::filter_list_ui(self, ui, filters, "layer-fx");
+                    });
                     ui.horizontal(|ui| {
-                        if ui.button("OK").clicked() || enter { layer_ok = Some((li, name.clone(), *kind, *parent, *color, *visible, *locked, *outline, *height)); close = true; }
+                        if ui.button("OK").clicked() || enter { layer_ok = Some((li, name.clone(), *kind, *parent, *color, *visible, *locked, *outline, *height, filters.clone())); close = true; }
                         if ui.button("Cancel").clicked() || esc { close = true; }
                     });
                 });
@@ -1361,13 +1375,14 @@ impl App {
             self.ed.rename_bitmap(id, &ac_core::join_item_path(&folder, n.trim_start_matches('/')));
         }
         if let Some(id) = bitmap_delete { self.ed.delete_bitmap(id); self.lib.bitmap = None; }
-        if let Some((i, name, kind, parent, color, visible, locked, outline, height)) = layer_ok {
+        if let Some((i, name, kind, parent, color, visible, locked, outline, height, filters)) = layer_ok {
             let mark = self.ed.undo_depth();
             if self.ed.timeline().layers[i].name != name && !name.trim().is_empty() { self.ed.rename_layer(i, name.trim()); }
             self.ed.set_layer_kind(i, kind);
             self.ed.set_layer_parent(i, parent);
             self.ed.set_layer_look(i, from32(color), visible, locked, outline);
             self.ed.set_layer_row_height(i, height);
+            self.ed.set_layer_filters(i, filters);
             self.ed.squash_undo(mark, "Layer Properties");
         }
         if let Some((a, p)) = run { self.do_file(a, &p); }
@@ -1533,6 +1548,7 @@ impl eframe::App for App {
         self.ed.multi_frame = self.onion_opts.multi.then(|| self.onion_range());
         windows::align_window(self, ctx);
         motion_ui::motion_editor(self, ctx);
+        presets::window(self, ctx);
         windows::scene_window(self, ctx);
         rulers::edit_grid_window(self, ctx);
         rulers::edit_guides_window(self, ctx);

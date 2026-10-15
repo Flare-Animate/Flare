@@ -1,0 +1,819 @@
+[
+ {
+  "name": "Fly In From Left",
+  "category": "Entrance",
+  "description": "Flies in from the left and settles in place.",
+  "frames": 18,
+  "ease": "Cubic Out",
+  "tracks": {
+   "x": [
+    {
+     "f": 0,
+     "v": -420
+    },
+    {
+     "f": 18,
+     "v": 0
+    }
+   ]
+  }
+ },
+ {
+  "name": "Fly In From Right",
+  "category": "Entrance",
+  "description": "Flies in from the right and settles in place.",
+  "frames": 18,
+  "ease": "Cubic Out",
+  "tracks": {
+   "x": [
+    {
+     "f": 0,
+     "v": 420
+    },
+    {
+     "f": 18,
+     "v": 0
+    }
+   ]
+  }
+ },
+ {
+  "name": "Fly In From Top",
+  "category": "Entrance",
+  "description": "Flies in from the top and settles in place.",
+  "frames": 18,
+  "ease": "Cubic Out",
+  "tracks": {
+   "y": [
+    {
+     "f": 0,
+     "v": -320
+    },
+    {
+     "f": 18,
+     "v": 0
+    }
+   ]
+  }
+ },
+ {
+  "name": "Fly In From Bottom",
+  "category": "Entrance",
+  "description": "Flies in from the bottom and settles in place.",
+  "frames": 18,
+  "ease": "Cubic Out",
+  "tracks": {
+   "y": [
+    {
+     "f": 0,
+     "v": 320
+    },
+    {
+     "f": 18,
+     "v": 0
+    }
+   ]
+  }
+ },
+ {
+  "name": "Bounce Drop",
+  "category": "Entrance",
+  "description": "Drops from above and bounces to rest.",
+  "frames": 36,
+  "tracks": {
+   "y": [
+    {
+     "f": 0,
+     "v": -300.0
+    },
+    {
+     "f": 1,
+     "v": -297.0
+    },
+    {
+     "f": 2,
+     "v": -288.0
+    },
+    {
+     "f": 3,
+     "v": -273.0
+    },
+    {
+     "f": 4,
+     "v": -252.0
+    },
+    {
+     "f": 5,
+     "v": -225.0
+    },
+    {
+     "f": 6,
+     "v": -192.0
+    },
+    {
+     "f": 7,
+     "v": -153.0
+    },
+    {
+     "f": 8,
+     "v": -108.0
+    },
+    {
+     "f": 9,
+     "v": -57.0
+    },
+    {
+     "f": 10,
+     "v": -0.0
+    },
+    {
+     "f": 11,
+     "v": -24.444
+    },
+    {
+     "f": 12,
+     "v": -44.444
+    },
+    {
+     "f": 13,
+     "v": -60.0
+    },
+    {
+     "f": 14,
+     "v": -71.111
+    },
+    {
+     "f": 15,
+     "v": -77.778
+    },
+    {
+     "f": 16,
+     "v": -80.0
+    },
+    {
+     "f": 17,
+     "v": -77.778
+    },
+    {
+     "f": 18,
+     "v": -71.111
+    },
+    {
+     "f": 19,
+     "v": -60.0
+    },
+    {
+     "f": 20,
+     "v": -44.444
+    },
+    {
+     "f": 21,
+     "v": -24.444
+    },
+    {
+     "f": 22,
+     "v": -0.0
+    },
+    {
+     "f": 23,
+     "v": -10.5
+    },
+    {
+     "f": 24,
+     "v": -18.0
+    },
+    {
+     "f": 25,
+     "v": -22.5
+    },
+    {
+     "f": 26,
+     "v": -24.0
+    },
+    {
+     "f": 27,
+     "v": -22.5
+    },
+    {
+     "f": 28,
+     "v": -18.0
+    },
+    {
+     "f": 29,
+     "v": -10.5
+    },
+    {
+     "f": 30,
+     "v": -0.0
+    },
+    {
+     "f": 31,
+     "v": -6.0
+    },
+    {
+     "f": 32,
+     "v": -8.0
+    },
+    {
+     "f": 33,
+     "v": -6.0
+    },
+    {
+     "f": 34,
+     "v": -0.0
+    },
+    {
+     "f": 35,
+     "v": 0
+    }
+   ]
+  }
+ },
+ {
+  "name": "Pop In",
+  "category": "Entrance",
+  "description": "Grows past full size and settles, fading in.",
+  "frames": 14,
+  "tracks": {
+   "scale_x": [
+    {
+     "f": 0,
+     "v": 0.0
+    },
+    {
+     "f": 8,
+     "v": 1.15,
+     "smooth": true
+    },
+    {
+     "f": 12,
+     "v": 1.0,
+     "smooth": true
+    }
+   ],
+   "scale_y": [
+    {
+     "f": 0,
+     "v": 0.0
+    },
+    {
+     "f": 8,
+     "v": 1.15,
+     "smooth": true
+    },
+    {
+     "f": 12,
+     "v": 1.0,
+     "smooth": true
+    }
+   ],
+   "alpha": [
+    {
+     "f": 0,
+     "v": 0.0
+    },
+    {
+     "f": 5,
+     "v": 1.0
+    }
+   ]
+  }
+ },
+ {
+  "name": "Zoom In",
+  "category": "Entrance",
+  "description": "Scales up from small while fading in.",
+  "frames": 16,
+  "ease": "Quad Out",
+  "tracks": {
+   "scale_x": [
+    {
+     "f": 0,
+     "v": 0.2
+    },
+    {
+     "f": 16,
+     "v": 1.0
+    }
+   ],
+   "scale_y": [
+    {
+     "f": 0,
+     "v": 0.2
+    },
+    {
+     "f": 16,
+     "v": 1.0
+    }
+   ],
+   "alpha": [
+    {
+     "f": 0,
+     "v": 0.0
+    },
+    {
+     "f": 10,
+     "v": 1.0
+    }
+   ]
+  }
+ },
+ {
+  "name": "Fade In",
+  "category": "Entrance",
+  "description": "Fades in from transparent.",
+  "frames": 18,
+  "tracks": {
+   "alpha": [
+    {
+     "f": 0,
+     "v": 0.0
+    },
+    {
+     "f": 18,
+     "v": 1.0
+    }
+   ]
+  }
+ },
+ {
+  "name": "Fade Out",
+  "category": "Exit",
+  "description": "Fades out to transparent.",
+  "frames": 18,
+  "tracks": {
+   "alpha": [
+    {
+     "f": 0,
+     "v": 1.0
+    },
+    {
+     "f": 18,
+     "v": 0.0
+    }
+   ]
+  }
+ },
+ {
+  "name": "Drop Out",
+  "category": "Exit",
+  "description": "Falls away while fading.",
+  "frames": 16,
+  "ease": "Quad In",
+  "tracks": {
+   "y": [
+    {
+     "f": 0,
+     "v": 0
+    },
+    {
+     "f": 16,
+     "v": 420
+    }
+   ],
+   "alpha": [
+    {
+     "f": 0,
+     "v": 1.0
+    },
+    {
+     "f": 12,
+     "v": 0.0
+    }
+   ]
+  }
+ },
+ {
+  "name": "Pulse",
+  "category": "Emphasis",
+  "description": "One soft beat: grows and returns.",
+  "frames": 16,
+  "tracks": {
+   "scale_x": [
+    {
+     "f": 0,
+     "v": 1.0
+    },
+    {
+     "f": 8,
+     "v": 1.18,
+     "smooth": true
+    },
+    {
+     "f": 16,
+     "v": 1.0,
+     "smooth": true
+    }
+   ],
+   "scale_y": [
+    {
+     "f": 0,
+     "v": 1.0
+    },
+    {
+     "f": 8,
+     "v": 1.18,
+     "smooth": true
+    },
+    {
+     "f": 16,
+     "v": 1.0,
+     "smooth": true
+    }
+   ]
+  }
+ },
+ {
+  "name": "Heartbeat",
+  "category": "Emphasis",
+  "description": "Two quick beats and a rest.",
+  "frames": 30,
+  "tracks": {
+   "scale_x": [
+    {
+     "f": 0,
+     "v": 1.0
+    },
+    {
+     "f": 4,
+     "v": 1.25
+    },
+    {
+     "f": 8,
+     "v": 1.0
+    },
+    {
+     "f": 12,
+     "v": 1.25
+    },
+    {
+     "f": 18,
+     "v": 1.0
+    },
+    {
+     "f": 30,
+     "v": 1.0
+    }
+   ],
+   "scale_y": [
+    {
+     "f": 0,
+     "v": 1.0
+    },
+    {
+     "f": 4,
+     "v": 1.25
+    },
+    {
+     "f": 8,
+     "v": 1.0
+    },
+    {
+     "f": 12,
+     "v": 1.25
+    },
+    {
+     "f": 18,
+     "v": 1.0
+    },
+    {
+     "f": 30,
+     "v": 1.0
+    }
+   ]
+  }
+ },
+ {
+  "name": "Shake",
+  "category": "Emphasis",
+  "description": "Shakes side to side and calms down.",
+  "frames": 18,
+  "tracks": {
+   "x": [
+    {
+     "f": 0,
+     "v": 0
+    },
+    {
+     "f": 3,
+     "v": -12
+    },
+    {
+     "f": 6,
+     "v": 12
+    },
+    {
+     "f": 9,
+     "v": -10
+    },
+    {
+     "f": 12,
+     "v": 8
+    },
+    {
+     "f": 15,
+     "v": -4
+    },
+    {
+     "f": 18,
+     "v": 0
+    }
+   ]
+  }
+ },
+ {
+  "name": "Wobble",
+  "category": "Emphasis",
+  "description": "Rocks back and forth, settling.",
+  "frames": 20,
+  "tracks": {
+   "rotation": [
+    {
+     "f": 0,
+     "v": 0
+    },
+    {
+     "f": 4,
+     "v": -12,
+     "smooth": true
+    },
+    {
+     "f": 8,
+     "v": 10,
+     "smooth": true
+    },
+    {
+     "f": 12,
+     "v": -6,
+     "smooth": true
+    },
+    {
+     "f": 16,
+     "v": 3,
+     "smooth": true
+    },
+    {
+     "f": 20,
+     "v": 0,
+     "smooth": true
+    }
+   ]
+  }
+ },
+ {
+  "name": "Spin",
+  "category": "Emphasis",
+  "description": "One full turn.",
+  "frames": 24,
+  "tracks": {
+   "rotation": [
+    {
+     "f": 0,
+     "v": 0
+    },
+    {
+     "f": 24,
+     "v": 360
+    }
+   ]
+  }
+ },
+ {
+  "name": "Spin Grow",
+  "category": "Entrance",
+  "description": "Two turns while growing from nothing.",
+  "frames": 30,
+  "ease": "Quad Out",
+  "tracks": {
+   "rotation": [
+    {
+     "f": 0,
+     "v": 0
+    },
+    {
+     "f": 30,
+     "v": 720
+    }
+   ],
+   "scale_x": [
+    {
+     "f": 0,
+     "v": 0.0
+    },
+    {
+     "f": 30,
+     "v": 1.0
+    }
+   ],
+   "scale_y": [
+    {
+     "f": 0,
+     "v": 0.0
+    },
+    {
+     "f": 30,
+     "v": 1.0
+    }
+   ]
+  }
+ },
+ {
+  "name": "Swing",
+  "category": "Emphasis",
+  "description": "Swings like a pendulum.",
+  "frames": 48,
+  "tracks": {
+   "rotation": [
+    {
+     "f": 0,
+     "v": 0
+    },
+    {
+     "f": 12,
+     "v": 20,
+     "smooth": true
+    },
+    {
+     "f": 36,
+     "v": -20,
+     "smooth": true
+    },
+    {
+     "f": 48,
+     "v": 0,
+     "smooth": true
+    }
+   ]
+  }
+ },
+ {
+  "name": "Hop",
+  "category": "Emphasis",
+  "description": "A single hop up and down.",
+  "frames": 15,
+  "tracks": {
+   "y": [
+    {
+     "f": 0,
+     "v": -0.0
+    },
+    {
+     "f": 1,
+     "v": -15.918
+    },
+    {
+     "f": 2,
+     "v": -29.388
+    },
+    {
+     "f": 3,
+     "v": -40.408
+    },
+    {
+     "f": 4,
+     "v": -48.98
+    },
+    {
+     "f": 5,
+     "v": -55.102
+    },
+    {
+     "f": 6,
+     "v": -58.776
+    },
+    {
+     "f": 7,
+     "v": -60.0
+    },
+    {
+     "f": 8,
+     "v": -58.776
+    },
+    {
+     "f": 9,
+     "v": -55.102
+    },
+    {
+     "f": 10,
+     "v": -48.98
+    },
+    {
+     "f": 11,
+     "v": -40.408
+    },
+    {
+     "f": 12,
+     "v": -29.388
+    },
+    {
+     "f": 13,
+     "v": -15.918
+    },
+    {
+     "f": 14,
+     "v": -0.0
+    }
+   ]
+  }
+ },
+ {
+  "name": "Float",
+  "category": "Emphasis",
+  "description": "Drifts up and down gently (loops).",
+  "frames": 48,
+  "tracks": {
+   "y": [
+    {
+     "f": 0,
+     "v": 0
+    },
+    {
+     "f": 24,
+     "v": -14,
+     "smooth": true
+    },
+    {
+     "f": 48,
+     "v": 0,
+     "smooth": true
+    }
+   ]
+  }
+ },
+ {
+  "name": "Slide Left",
+  "category": "Motion",
+  "description": "Slides left and stops.",
+  "frames": 12,
+  "ease": "Quad In Out",
+  "tracks": {
+   "x": [
+    {
+     "f": 0,
+     "v": 0
+    },
+    {
+     "f": 12,
+     "v": -160
+    }
+   ]
+  }
+ },
+ {
+  "name": "Slide Right",
+  "category": "Motion",
+  "description": "Slides right and stops.",
+  "frames": 12,
+  "ease": "Quad In Out",
+  "tracks": {
+   "x": [
+    {
+     "f": 0,
+     "v": 0
+    },
+    {
+     "f": 12,
+     "v": 160
+    }
+   ]
+  }
+ },
+ {
+  "name": "Slide Up",
+  "category": "Motion",
+  "description": "Slides up and stops.",
+  "frames": 12,
+  "ease": "Quad In Out",
+  "tracks": {
+   "y": [
+    {
+     "f": 0,
+     "v": 0
+    },
+    {
+     "f": 12,
+     "v": -160
+    }
+   ]
+  }
+ },
+ {
+  "name": "Slide Down",
+  "category": "Motion",
+  "description": "Slides down and stops.",
+  "frames": 12,
+  "ease": "Quad In Out",
+  "tracks": {
+   "y": [
+    {
+     "f": 0,
+     "v": 0
+    },
+    {
+     "f": 12,
+     "v": 160
+    }
+   ]
+  }
+ }
+]

@@ -179,6 +179,13 @@ pub fn frame_menu(app: &mut App, ui: &mut egui::Ui) {
     if item(ui, "Convert to Frame-by-Frame", "") { app.ed.convert_to_frame_by_frame(); ui.close_menu(); }
     if item(ui, "Reverse Frames", "") { app.ed.reverse_frames(); ui.close_menu(); }
     if ui.button("Synchronize Symbols").on_hover_text("Graphic symbols keep playing across the keyframes in the selection (or the whole layer) instead of restarting: classic tweens get Sync, plain keyframes get their First Frame advanced").clicked() { crate::palette::sync_symbols(app); ui.close_menu(); }
+    ui.separator();
+    if item(ui, "Copy Motion", "Ctrl+Alt+Shift+C") { crate::palette::copy_motion(app); ui.close_menu(); }
+    if ui.add_enabled(app.ed.can_paste_motion(), egui::Button::new("Paste Motion").shortcut_text("Ctrl+Alt+Shift+V")).on_hover_text("The copied tween becomes a new motion tween of the selected object, starting from where it is").clicked() { crate::palette::paste_motion(app, true); ui.close_menu(); }
+    if ui.add_enabled(app.ed.can_paste_motion(), egui::Button::new("Paste Motion Special (Absolute Position)")).on_hover_text("The object takes the copied positions as they are").clicked() { crate::palette::paste_motion(app, false); ui.close_menu(); }
+    if item(ui, "Copy Motion as JS", "") { crate::palette::copy_motion_js(app); ui.close_menu(); }
+    if item(ui, "Motion Presets…", "") { app.presets.open = true; ui.close_menu(); }
+    ui.separator();
     let mut keep = app.settings.retain_tween_curves;
     if ui
         .checkbox(&mut keep, "Keep Tween Curves When Splitting")

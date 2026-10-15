@@ -331,6 +331,14 @@ In short, Flare's end state is a unified Rust implementation of the OpenToonz/Ta
 - (6) `tnzext` and `image` link `flare_formats` (Apple links tnzcore by file, so it isn't transitive); `Cplx` documents libstdc++ semantics, MSVC numerics deliberately not emulated.
 - Left as is on purpose: `flarelib/mm_xfl.rs` keeps the raw XML of tweens it can't read (round-trip fidelity).
 
+### P2 group 2: symbols & motion (Oct 15 2026)
+- **Copy / Paste Motion** (`flarelib/motion_clip.rs`): a classic or motion tween copies as per-frame transforms plus (motion tweens) `Keyframe.motion`, ease, ease curve and Orient to Path; Paste Motion makes a new motion tween of the selected object, relative to where it is (or absolute). Classic tweens are fitted to straight path segments and linear property keys by Douglas-Peucker. Copy Motion as JS emits `ac.timeline.set_tween` / `ac.motion.set_key` / `set_interp` / `set_ease` calls; tests replay the very same calls through `commands::execute`.
+- **Motion presets** (`flarelib/motion_presets.rs`, `motion_presets.json`): 23 presets of our own, values relative to the object, stretched over an existing span; user presets live in `settings.json`.
+- **Visible / Cache / Export as bitmap**: `Element.visible|cache_as_bitmap|export_as_bitmap` (serde defaults), `EvalCtx.show_hidden` (authoring view keeps hidden objects selectable), `FxGroup.cache` -> HTML5 `"cb"` ids + `drawCached` in the runtime; XFL `isVisible|cacheAsBitmap|exportAsBitmap`.
+- **9-slice** (`flarelib/scale9.rs`): `Symbol.scale_grid`; `eval_element` evaluates the instance unscaled and remaps the items (vector paths split at the grid lines, bitmaps/patterns as nine clipped copies), so the stage, every export and the HTML5 publish share it. XFL `scaleGridLeft|Right|Top|Bottom`.
+- **Layer effects**: `Layer.filters` wrap the layer's items in one outermost `FxGroup` in `evaluate`; XFL `<filters>` on `DOMLayer` (Flare extension).
+- Tests: `flarelib/tests/{p2_motion,p2_symbols}.rs`, `common/tvrender/tests/p2_symbols.rs`, `common/flash/tests/p2_symbols.rs`.
+
 ### Tooling survey
 - Automated C/C++→Rust tools exist (c2rust: rule-based, unsafe output; LLM+static-analysis research tools SACTOR, SmartC2Rust, RustMap, SafeTrans). None handle Qt/C++ class hierarchies; output would violate the safe-idiomatic rule. Port is manual, per file, test-verified.
 - `ac-core` (≈24k LOC; now spread across the OpenToonz-matching directories, crate root `flare/sources/flarelib/ac_core.rs`) and `flare-studio` (`toonzqt/`, ≈14k LOC) are the AnimationCraft editor, a different architecture from OpenToonz; they are not a line-matching port. Counted against the 2.3k C++ files, the matching rewrite is a few modules deep.
@@ -341,7 +349,7 @@ The crate `ac-core` is rooted at `flarelib/` (Cargo.toml, ac_core.rs with `#[pat
 
 | Directory | Files |
 |---|---|
-| `flarelib/` | bitmap, centerline, editor, frames, ik, model, rig, sound, trace, xdts, flare_frame_clock_tests, flare_tween_boundary_tests |
+| `flarelib/` | bitmap, centerline, editor, frames, ik, model, motion_clip, motion_presets (+ `.json`), rig, scale9, sound, trace, xdts, flare_frame_clock_tests, flare_tween_boundary_tests |
 | `tnztools/` | mypaint (was paint), sculpt; `assistants/assist` |
 | `common/` | `expressions/expr`, `tgeometry/geom`, `tvectorimage/merge`, `tparam/{motion,tween_edit}`, `tvrender/text` |
 | `stdfx/` | fx, particles |

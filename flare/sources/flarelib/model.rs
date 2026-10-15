@@ -568,6 +568,19 @@ pub struct Element {
     /// deform a mesh over what the element draws (OpenToonz plastic-style).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub mesh: Option<crate::deform::MeshWarp>,
+    /// Properties › Display › Visible: an invisible object is skipped by the
+    /// renderer and every export (it keeps its place in the document).
+    #[serde(default = "yes", skip_serializing_if = "is_true")]
+    pub visible: bool,
+    /// Properties › Rendering › Cache as bitmap: the object is rasterised
+    /// once and the picture reused while it does not change (a performance
+    /// hint; the HTML5 publish keeps a canvas cache for it).
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub cache_as_bitmap: bool,
+    /// Properties › Rendering › Export as bitmap (XFL `exportAsBitmap`): the
+    /// published object is drawn from a bitmap; treated like `cache_as_bitmap`.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub export_as_bitmap: bool,
 }
 
 /// Animate's Advanced colour effect: `out = in × mul + add` per channel
@@ -628,7 +641,7 @@ fn is_normal_blend(b: &crate::fx::BlendMode) -> bool {
 
 impl Element {
     fn base(name: &str, matrix: Matrix, kind: ElementKind) -> Self {
-        Element { name: name.into(), matrix, alpha: 1.0, tint: None, kind, three_d: None, filters: vec![], blend: Default::default(), color_fx: None, mesh: None }
+        Element { name: name.into(), matrix, alpha: 1.0, tint: None, kind, three_d: None, filters: vec![], blend: Default::default(), color_fx: None, mesh: None, visible: true, cache_as_bitmap: false, export_as_bitmap: false }
     }
     pub fn group(children: Vec<Element>) -> Self {
         Element::base("", Matrix::IDENTITY, ElementKind::Group(children))
@@ -950,6 +963,11 @@ pub struct Layer {
     /// Timeline row height in percent (Layer Properties › Layer height: 100, 200, 300).
     #[serde(default = "default_row_height", skip_serializing_if = "is_default_row_height")]
     pub row_height: u16,
+    /// Layer effects (Layer Properties › Effects): filters applied to the
+    /// layer's composited content (all its objects drawn as one picture),
+    /// outside any filters on the objects themselves.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub filters: Vec<crate::fx::Filter>,
 }
 
 fn default_row_height() -> u16 {
@@ -986,6 +1004,7 @@ impl Layer {
             collapsed: false,
             anim_parent: None,
             row_height: 100,
+            filters: vec![],
         }
     }
 
@@ -1027,6 +1046,20 @@ pub struct Symbol {
     pub name: String,
     pub kind: SymbolKind,
     pub timeline: Timeline,
+    /// 9-slice scaling grid (symbol coordinates): when an instance is scaled,
+    /// the four corners keep their size, the edges stretch along one axis
+    /// and only the centre stretches both ways.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub scale_grid: Option<ScaleGrid>,
+}
+
+/// The 9-slice grid of a symbol: the centre rectangle `left..right × top..bottom`.
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+pub struct ScaleGrid {
+    pub left: f32,
+    pub top: f32,
+    pub right: f32,
+    pub bottom: f32,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -1306,7 +1339,7 @@ impl Document {
     pub fn add_symbol(&mut self, name: &str, kind: SymbolKind, timeline: Timeline) -> SymbolId {
         let id = self.next_symbol_id;
         self.next_symbol_id += 1;
-        self.library.push(Symbol { id, name: name.into(), kind, timeline });
+        self.library.push(Symbol { id, name: name.into(), kind, timeline, scale_grid: None });
         id
     }
     pub fn perspective(&self) -> Perspective {
@@ -1592,11 +1625,14 @@ pub struct EvalCtx<'a> {
     pub button: Option<((usize, usize), u32)>,
     /// Top-level element being evaluated (set by `evaluate` at depth 0).
     pub top: std::cell::Cell<Option<(usize, usize)>>,
+    /// Authoring view: objects with Visible off are still drawn (so they can
+    /// be selected). Renders and exports leave this off and skip them.
+    pub show_hidden: bool,
 }
 
 impl<'a> EvalCtx<'a> {
     pub fn new(doc: &'a Document, global_frame: u32) -> Self {
-        EvalCtx { doc, global_frame, button: None, top: Default::default() }
+        EvalCtx { doc, global_frame, button: None, top: Default::default(), show_hidden: false }
     }
 }
 
@@ -1667,6 +1703,15 @@ pub fn evaluate(ctx: &EvalCtx, tl: &Timeline, frame: u32, parent: &Matrix, alpha
                 for it in &mut out[first..] {
                     it.src = Some((li, ei));
                 }
+            }
+        }
+        // Layer effects: everything the layer drew is one picture for its filters
+        if !layer.filters.is_empty() && outline.is_none() && out.len() > layer_first {
+            let mut g = FxGroup::new(layer.filters.clone(), BlendMode::Normal);
+            g.time = local as f32 / ctx.doc.fps.max(1.0);
+            let fx = Arc::new(g);
+            for it in &mut out[layer_first..] {
+                it.fx.insert(0, fx.clone());
             }
         }
         if let Some(m) = layer_effect_parent(tl, li, LayerKind::Mask).filter(|m| tl.layers[*m].visible) {
@@ -1751,6 +1796,9 @@ fn mask_clip(ctx: &EvalCtx, tl: &Timeline, m: usize, frame: u32, parent: &Matrix
 /// Draw items for one element (recursing into groups and symbols).
 #[allow(clippy::too_many_arguments)]
 pub fn eval_element(ctx: &EvalCtx, el: &Element, parent: &Matrix, alpha: f32, local: u32, outline: Option<Color>, depth: u32, out: &mut Vec<DrawItem>) {
+    if !el.visible && !ctx.show_hidden {
+        return;
+    }
     let m = parent.concat(&el.matrix);
     let a = alpha * el.alpha;
     let first = out.len();
@@ -1848,7 +1896,19 @@ pub fn eval_element(ctx: &EvalCtx, el: &Element, parent: &Matrix, alpha: f32, lo
                 },
                 kind => inst.symbol_frame(kind, local, ctx.global_frame, dur),
             };
-            evaluate(ctx, &sym.timeline, f, &m, a, depth + 1, out);
+            // 9-slice: evaluate unscaled, then stretch only the centre of the grid
+            let grid = sym.scale_grid.filter(|g| g.right > g.left && g.bottom > g.top);
+            let sliced = grid.and_then(|g| {
+                let (rest, sx, sy) = crate::scale9::split_scale(&el.matrix);
+                ((sx - 1.0).abs() > 1e-4 || (sy - 1.0).abs() > 1e-4).then_some((g, parent.concat(&rest), sx, sy))
+            });
+            match sliced {
+                Some((g, p, sx, sy)) => {
+                    evaluate(ctx, &sym.timeline, f, &p, a, depth + 1, out);
+                    crate::scale9::apply(out, first, &p, &g, sx, sy);
+                }
+                None => evaluate(ctx, &sym.timeline, f, &m, a, depth + 1, out),
+            }
             for it in &mut out[first..] {
                 if it.tint.is_none() {
                     it.tint = el.tint;
@@ -1892,8 +1952,10 @@ pub fn eval_element(ctx: &EvalCtx, el: &Element, parent: &Matrix, alpha: f32, lo
         _ => None,
     };
     // Filters and blend modes: everything this element drew is one layer.
-    if ((!el.filters.is_empty() || el.blend != BlendMode::Normal) && outline.is_none()) || mesh.is_some() {
+    let cached = (el.cache_as_bitmap || el.export_as_bitmap) && outline.is_none() && out.len() > first;
+    if ((!el.filters.is_empty() || el.blend != BlendMode::Normal) && outline.is_none()) || mesh.is_some() || cached {
         let mut g = FxGroup::new(el.filters.clone(), el.blend);
+        g.cache = cached;
         g.time = local as f32 / ctx.doc.fps.max(1.0);
         g.mesh = mesh;
         let fx = Arc::new(g);
@@ -1909,6 +1971,7 @@ pub fn element_local_center(ctx: &EvalCtx, el: &Element) -> Pt {
     let mut plain = el.clone();
     plain.matrix = Matrix::IDENTITY;
     plain.three_d = None;
+    plain.visible = true;
     plain.filters.clear();
     eval_element(ctx, &plain, &Matrix::IDENTITY, 1.0, 0, None, 1, &mut items);
     items

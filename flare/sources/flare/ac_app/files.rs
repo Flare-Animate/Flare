@@ -141,6 +141,9 @@ pub(crate) struct Settings {
     /// Properties › Filters › Presets: named filter lists.
     #[serde(default)]
     pub filter_presets: Vec<(String, Vec<ac_core::Filter>)>,
+    /// Window › Motion Presets: the presets you saved (the built-in ones ship with Flare).
+    #[serde(default)]
+    pub motion_presets: Vec<ac_core::motion_presets::MotionPreset>,
     /// Modify › Timeline › Keep Tween Curves When Splitting (Flare's timeline
     /// semantics). Off = Animate's behaviour.
     #[serde(default)]
@@ -216,7 +219,7 @@ fn yes() -> bool {
 
 impl Default for Settings {
     fn default() -> Self {
-        Settings { recent: vec![], last_dir: None, library_left: false, filter_presets: vec![], retain_tween_curves: false, show_startup: true, layout: None, swatches: None, swatches_open: false, options_bar: false, symbol_reg: [1, 1], doc_units: 0, prefs: Prefs::default(), tl_cell_w: 11.0, tl_seconds: false }
+        Settings { recent: vec![], last_dir: None, library_left: false, filter_presets: vec![], motion_presets: vec![], retain_tween_curves: false, show_startup: true, layout: None, swatches: None, swatches_open: false, options_bar: false, symbol_reg: [1, 1], doc_units: 0, prefs: Prefs::default(), tl_cell_w: 11.0, tl_seconds: false }
     }
 }
 

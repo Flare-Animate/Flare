@@ -434,6 +434,15 @@ impl W<'_> {
                     if e.blend != BlendMode::Normal {
                         let _ = write!(a, r#" blendMode="{}""#, Self::blend_name(e.blend));
                     }
+                    if e.cache_as_bitmap {
+                        a.push_str(r#" cacheAsBitmap="true""#);
+                    }
+                    if e.export_as_bitmap {
+                        a.push_str(r#" exportAsBitmap="true""#);
+                    }
+                    if !e.visible {
+                        a.push_str(r#" isVisible="false""#);
+                    }
                     let _ = writeln!(s, "{ind}<DOMSymbolInstance{a}>");
                     let inner = format!("{ind}  ");
                     s.push_str(&matrix_xml(&m, &inner));
@@ -613,7 +622,15 @@ impl W<'_> {
         if let Some(p) = l.parent {
             let _ = write!(a, r#" parentLayerIndex="{p}""#);
         }
-        let mut s = format!("{ind}<DOMLayer{a}>\n{ind}  <frames>\n");
+        let mut s = format!("{ind}<DOMLayer{a}>\n");
+        // layer effects (a Flare extension: Animate has none; it ignores the element)
+        if !l.filters.is_empty() {
+            s.push_str(&Self::filters_xml(&l.filters, &format!("{ind}  ")));
+            if l.filters.iter().any(|f| matches!(f, Filter::MotionBlur { .. } | Filter::Effect { .. })) {
+                self.warn.push(format!("layer '{}': Motion Blur and EffectCraft effects have no .fla equivalent and were left out", l.name));
+            }
+        }
+        let _ = writeln!(s, "{ind}  <frames>");
         let i3 = format!("{ind}    ");
         for (&start, kf) in &l.keyframes {
             if start >= l.end {
@@ -846,12 +863,16 @@ pub(crate) fn write(doc: &Document) -> (Package, Vec<String>) {
             SymbolKind::MovieClip => "",
         };
         let tl = w.timeline(&sym.timeline, "    ");
+        let grid = match sym.scale_grid {
+            Some(g) => format!(r#" scaleGridLeft="{}" scaleGridRight="{}" scaleGridTop="{}" scaleGridBottom="{}""#, g.left, g.right, g.top, g.bottom),
+            None => String::new(),
+        };
         let link = match doc.linkage.get(&sym.id) {
             Some(c) => format!(" linkageExportForAS=\"true\" linkageClassName=\"{}\"", esc(c)),
             None => String::new(),
         };
         let xml = format!(
-            "<DOMSymbolItem {NS} name=\"{}\" itemID=\"00000000-{:08x}\"{st}{link}>\n  <timeline>\n{tl}  </timeline>\n</DOMSymbolItem>\n",
+            "<DOMSymbolItem {NS} name=\"{}\" itemID=\"00000000-{:08x}\"{st}{grid}{link}>\n  <timeline>\n{tl}  </timeline>\n</DOMSymbolItem>\n",
             esc(&sym.name),
             i + 1
         );

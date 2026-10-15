@@ -117,7 +117,7 @@ fn lip_sync_and_sound_commands_drive_the_editor() {
     // a mouth symbol: 10 frames, one pose each
     let mut mouth = Timeline::new("Mouth");
     mouth.layers[0].end = 10;
-    d.library.push(Symbol { id: 1, name: "Mouth".into(), kind: SymbolKind::Graphic, timeline: mouth });
+    d.library.push(Symbol { id: 1, name: "Mouth".into(), kind: SymbolKind::Graphic, timeline: mouth, scale_grid: None });
     d.next_symbol_id = 2;
     d.scene.layers[0].keyframes.get_mut(&0).unwrap().elements.push(Element::instance("", 1, ac_core::geom::Matrix::IDENTITY));
     d.scene.layers.push(Layer::new("Voice", 1));
@@ -162,7 +162,7 @@ fn sounds_inside_symbols_play_and_effects_shape_them() {
     k.sound = Some(FrameSound::new(1));
     tl.layers[0].keyframes.insert(0, k);
     tl.layers[0].end = 5;
-    d.library.push(Symbol { id: 7, name: "Beeper".into(), kind: SymbolKind::Graphic, timeline: tl });
+    d.library.push(Symbol { id: 7, name: "Beeper".into(), kind: SymbolKind::Graphic, timeline: tl, scale_grid: None });
     d.next_symbol_id = 8;
     d.scene.layers[0].keyframes.get_mut(&0).unwrap().elements.push(Element::instance("", 7, Matrix::IDENTITY));
     let v = schedule(&d, &|_| Some(0.2));

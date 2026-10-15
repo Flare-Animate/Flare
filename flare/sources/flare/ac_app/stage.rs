@@ -44,6 +44,8 @@ pub enum Drag {
     GuideNew { vertical: bool, pos: f32 },
     /// An existing guide being moved (drop it on a ruler to remove it).
     Guide { vertical: bool, index: usize, pos: f32, started: bool },
+    /// Dragging a 9-slice guide (0 left, 1 right, 2 top, 3 bottom) of the symbol being edited.
+    ScaleGrid { edge: u8, started: bool },
     /// Dragging a shape hint.
     Hint { key: u32, index: usize, started: bool },
     /// Posing a shape armature with the Selection tool.
@@ -1074,6 +1076,10 @@ fn press(app: &mut App, rect: Rect, tool: Tool, origin: Pos2, p0: Pt, shift: boo
                 app.drag = Drag::Transform { mode, applied: Matrix::IDENTITY, started: false };
                 return;
             }
+            if let Some(edge) = scale_grid_at(app, rect, origin) {
+                app.drag = Drag::ScaleGrid { edge, started: false };
+                return;
+            }
             if let Some((vertical, index)) = app.guide_at(rect, origin) {
                 let pos = if vertical { app.ed.doc.guides.x[index] } else { app.ed.doc.guides.y[index] };
                 app.drag = Drag::Guide { vertical, index, pos, started: false };
@@ -1431,6 +1437,28 @@ fn press(app: &mut App, rect: Rect, tool: Tool, origin: Pos2, p0: Pt, shift: boo
 
 /// Selection-tool press on an object (or empty stage).
 /// Bind tool: the point of shape `s` under the pointer (index in path order).
+/// The symbol open for editing and its 9-slice grid, if it has one.
+fn scale_grid_editing(app: &App) -> Option<(ac_core::SymbolId, ac_core::ScaleGrid)> {
+    let id = app.ed.editing?;
+    let sym = app.ed.doc.symbol(id).filter(|s| s.name != ac_core::editor::GROUP_EDIT_NAME)?;
+    sym.scale_grid.map(|g| (id, g))
+}
+
+/// Which 9-slice guide (0 left, 1 right, 2 top, 3 bottom) is under `at`.
+fn scale_grid_at(app: &App, rect: Rect, at: Pos2) -> Option<u8> {
+    let (_, g) = scale_grid_editing(app)?;
+    let pick = |edge: u8| {
+        let s = match edge {
+            0 => app.to_screen(rect, pt(g.left, 0.0)).x,
+            1 => app.to_screen(rect, pt(g.right, 0.0)).x,
+            2 => app.to_screen(rect, pt(0.0, g.top)).y,
+            _ => app.to_screen(rect, pt(0.0, g.bottom)).y,
+        };
+        (s - if edge < 2 { at.x } else { at.y }).abs()
+    };
+    (0..4u8).map(|e| (e, pick(e))).filter(|(_, d)| *d <= 5.0).min_by(|a, b| a.1.total_cmp(&b.1)).map(|(e, _)| e)
+}
+
 fn bind_point_at(app: &App, rect: Rect, s: Selection, at: Pos2) -> Option<usize> {
     let el = app.ed.element_at(s)?;
     let ElementKind::Shape(sh) = &el.kind else { return None };
@@ -2477,6 +2505,24 @@ fn drag(app: &mut App, ui: &egui::Ui, rect: Rect, pos: Pos2, p: Pt, shift: bool,
             }
             app.ed.move_guide(v, i, np);
         }
+        Drag::ScaleGrid { edge, started } => {
+            let (edge, first) = (*edge, !*started);
+            *started = true;
+            if let Some((id, mut g)) = scale_grid_editing(app) {
+                let v = p.x.round();
+                let w = p.y.round();
+                match edge {
+                    0 => g.left = v.min(g.right - 1.0),
+                    1 => g.right = v.max(g.left + 1.0),
+                    2 => g.top = w.min(g.bottom - 1.0),
+                    _ => g.bottom = w.max(g.top + 1.0),
+                }
+                if first {
+                    app.ed.begin_edit("9-Slice Grid");
+                }
+                app.ed.set_symbol_scale_grid_live(id, g);
+            }
+        }
         Drag::GuideNew { .. } => {}
         Drag::Marquee { cur, .. } => *cur = p,
         Drag::TextBox { sel, start } => {
@@ -3430,6 +3476,18 @@ fn overlays(app: &App, ui: &egui::Ui, rect: Rect) {
             }
         }
         _ => {}
+    }
+    // 9-slice guides of the symbol being edited: dashed, draggable with the Selection tool
+    if let Some((_, g)) = scale_grid_editing(app) {
+        let st = EStroke::new(1.3_f32, Color32::from_rgb(0xFF, 0x9A, 0x2E));
+        for x in [g.left, g.right] {
+            let sx = app.to_screen(rect, pt(x, 0.0)).x;
+            painter.extend(egui::Shape::dashed_line(&[egui::pos2(sx, rect.top()), egui::pos2(sx, rect.bottom())], st, 6.0, 4.0));
+        }
+        for y in [g.top, g.bottom] {
+            let sy = app.to_screen(rect, pt(0.0, y)).y;
+            painter.extend(egui::Shape::dashed_line(&[egui::pos2(rect.left(), sy), egui::pos2(rect.right(), sy)], st, 6.0, 4.0));
+        }
     }
     // Snap guides
     let guide = EStroke::new(1.0_f32, Color32::from_rgb(0xFF, 0x3D, 0xB5));

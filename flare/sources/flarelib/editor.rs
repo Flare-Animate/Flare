@@ -52,6 +52,8 @@ pub struct Editor {
     redo: Vec<Snapshot>,
     element_clip: Vec<(Element, usize)>,
     frame_clip: Vec<FrameClip>,
+    /// Copy Motion: the copied tween (Paste Motion applies it to another object).
+    pub motion_clip: Option<crate::motion_clip::MotionClip>,
     /// Copied layers (Copy Layers), top first; parent links relative to the clip.
     layer_clip: Vec<Layer>,
     /// Show the scene through the camera layer (playback, Camera tool).
@@ -113,6 +115,7 @@ impl Editor {
             redo: vec![],
             element_clip: vec![],
             frame_clip: vec![],
+            motion_clip: None,
             layer_clip: vec![],
             camera_view: false,
             revision: 0,
@@ -126,7 +129,7 @@ impl Editor {
     }
 
     // ------------------------------------------------------------ plumbing
-    fn checkpoint(&mut self, label: &str) {
+    pub(crate) fn checkpoint(&mut self, label: &str) {
         self.revision += 1;
         self.undo.push(Snapshot { doc: self.doc.clone(), label: label.into() });
         let limit = UNDO_LIMIT.load(std::sync::atomic::Ordering::Relaxed);
@@ -306,7 +309,7 @@ impl Editor {
     /// Draw items for the timeline currently being edited (with `src` set).
     pub fn evaluate_current(&self, frame: u32) -> Vec<DrawItem> {
         let global = self.clock.filter(|_| frame == self.frame).unwrap_or(frame);
-        let ctx = EvalCtx { button: self.button_state, ..EvalCtx::new(&self.doc, global) };
+        let ctx = EvalCtx { button: self.button_state, show_hidden: true, ..EvalCtx::new(&self.doc, global) };
         let mut out = Vec::new();
         evaluate(&ctx, self.timeline(), frame, &Matrix::IDENTITY, 1.0, 0, &mut out);
         if self.camera_view && self.editing.is_none() {
@@ -4305,6 +4308,64 @@ impl Editor {
             self.checkpoint("Layer Height");
             self.timeline_mut().layers[i].row_height = h;
         }
+    }
+
+    /// Layer Properties › Effects: the filters applied to the layer's
+    /// composited content (one undo step; no step when nothing changes).
+    pub fn set_layer_filters(&mut self, i: usize, filters: Vec<Filter>) {
+        if self.timeline().layers.get(i).is_some_and(|l| l.filters != filters) {
+            self.checkpoint("Layer Effects");
+            self.timeline_mut().layers[i].filters = filters;
+        }
+    }
+
+    /// Properties › Display / Rendering for the selected objects: Visible,
+    /// Cache as bitmap, Export as bitmap (one undo step).
+    pub fn set_selected_display(&mut self, visible: bool, cache: bool, export: bool) {
+        self.modify_selected("Display Properties", |e| {
+            e.visible = visible;
+            e.cache_as_bitmap = cache;
+            e.export_as_bitmap = export;
+        });
+    }
+
+    /// Symbol Properties › 9-slice scaling: set (or with `None` remove) the
+    /// grid of library symbol `id`. The centre rectangle must have a size.
+    pub fn set_symbol_scale_grid(&mut self, id: SymbolId, grid: Option<ScaleGrid>) -> Result<(), String> {
+        if let Some(g) = grid {
+            if !(g.right > g.left && g.bottom > g.top) || ![g.left, g.right, g.top, g.bottom].iter().all(|v| v.is_finite()) {
+                return Err("the 9-slice grid needs left < right and top < bottom".into());
+            }
+        }
+        let sym = self.doc.symbol(id).ok_or("No such symbol")?;
+        if sym.scale_grid == grid {
+            return Ok(());
+        }
+        self.checkpoint(if grid.is_some() { "9-Slice Grid" } else { "Remove 9-Slice Grid" });
+        self.doc.symbol_mut(id).unwrap().scale_grid = grid;
+        Ok(())
+    }
+
+    /// Like `set_symbol_scale_grid` inside a drag: no undo step of its own
+    /// (call `begin_edit("9-Slice Grid")` when the drag starts).
+    pub fn set_symbol_scale_grid_live(&mut self, id: SymbolId, grid: ScaleGrid) {
+        if grid.right > grid.left && grid.bottom > grid.top {
+            if let Some(s) = self.doc.symbol_mut(id) {
+                self.revision += 1;
+                s.scale_grid = Some(grid);
+            }
+        }
+    }
+
+    /// A starting 9-slice grid for symbol `id`: the middle half of its drawn
+    /// content at its first frame (None for an empty symbol).
+    pub fn default_scale_grid(&self, id: SymbolId) -> Option<ScaleGrid> {
+        let sym = self.doc.symbol(id)?;
+        let mut items = vec![];
+        evaluate(&EvalCtx::new(&self.doc, 0), &sym.timeline, 0, &Matrix::IDENTITY, 1.0, 1, &mut items);
+        let (lo, hi) = items.iter().filter_map(|it| it.path.transformed(&it.matrix).bounds()).reduce(|a, b| (pt(a.0.x.min(b.0.x), a.0.y.min(b.0.y)), pt(a.1.x.max(b.1.x), a.1.y.max(b.1.y))))?;
+        let (w, h) = (hi.x - lo.x, hi.y - lo.y);
+        (w > 1e-3 && h > 1e-3).then(|| ScaleGrid { left: lo.x + w / 4.0, top: lo.y + h / 4.0, right: hi.x - w / 4.0, bottom: hi.y - h / 4.0 })
     }
 
     /// Layer Properties: colour and flags in one undo step.

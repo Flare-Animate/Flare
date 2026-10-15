@@ -2,7 +2,7 @@
 
 This lists Flare's features, where each one lives in the code, and **where it came from**.
 Use it with `THIRD-PARTY-NOTICES.md` (licences and notices) and `CONTRIBUTING.md` (clean-room
-policy). Updated Oct 15 2026, at commit `e2a6aa3`.
+policy). Updated Oct 15 2026 (P2 group 2 added).
 
 **Origin key**
 - **Own:** written for this project. Any behaviour reference is public documentation or what the
@@ -39,6 +39,10 @@ Never used: Adobe code, binaries, icons or sample files (see `CONTRIBUTING.md`).
 | Smooth motion keys | `motion.rs` | Algo | Cubic Hermite with Catmull-Rom tangents |
 | Expression language for curves | `expr.rs` | Port | **OpenToonz** `common/expressions/tgrammar.cpp` |
 | Editing session, undo/redo snapshots, every editor command | `editor.rs` | Own | Animate menu behaviour |
+| Copy / Paste Motion, Copy Motion as JS (per-frame transforms, `Keyframe.motion` + ease, fit to few keys) | `motion_clip.rs` | Own + Algo | Animate's documented Copy/Paste Motion behaviour; Douglas–Peucker key reduction |
+| Motion presets (23 built-in, relative, JSON; save your own) | `motion_presets.rs`, `motion_presets.json` | Own | Our own designs: the keys are written by us, no Adobe preset files used (clean-room) |
+| 9-slice scaling (axis maps, segment/Bezier split at grid lines, bitmap pieces) | `scale9.rs` | Own + Algo | Animate's documented 9-slice behaviour; de Casteljau subdivision |
+| Visible / Cache as Bitmap / Export as Bitmap flags, layer effects | `model.rs` | Own | Animate Properties and Layer Properties behaviour; XFL attributes `isVisible`, `cacheAsBitmap`, `exportAsBitmap`, `scaleGrid*` (public XFL DOM) |
 | Command registry (dotted ids + JSON args, used by scripts/CLI) | `commands.rs` | Own | Our own API; command names follow Animate menu wording |
 | Merge Drawing (cut/merge fills, splitting lines, floating selections) | `merge.rs` | Own + Dep | Flash shape model as documented and observed; booleans by **i_overlay** (crates.io) |
 | Convert Lines to Fills, Expand Fill, Soften Fill Edges | `merge.rs` | Own + Dep | i_overlay stroke outlines and offsets |
@@ -123,6 +127,7 @@ Never used: Adobe code, binaries, icons or sample files (see `CONTRIBUTING.md`).
 | Timeline panel (loop range, seconds, zoom, thumbnails, Shift & Trace) | `timeline.rs` | Own + Approach | Animate timeline; Shift & Trace from **OpenToonz** |
 | Properties, Library (folders, linkage), Transform | `panels.rs` | Own | Animate panels |
 | Motion Editor, ease editor, motion path | `motion_ui.rs` | Own | Animate Motion Editor behaviour |
+| Motion Presets window | `presets.rs` | Own | Our own presets; Animate's Motion Presets panel layout (behaviour only) |
 | Rulers, guides, grid | `rulers.rs` | Own | Animate behaviour |
 | Import: bitmaps, SVG, PSD | `import.rs` | Dep | **image**, **usvg**, **psd** crate |
 | Native file dialogs | `files.rs` | Dep | **rfd** |

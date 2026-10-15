@@ -278,6 +278,8 @@ struct Tables {
     baked_count: usize,
     /// Things the page can't show exactly, for the publish report.
     warnings: Vec<String>,
+    /// Cache-as-bitmap groups: inner display list → cache id (the runtime keeps one picture per id).
+    caches: HashMap<String, usize>,
 }
 
 fn intern(v: &mut Vec<String>, ix: &mut HashMap<String, usize>, s: String) -> usize {
@@ -515,6 +517,13 @@ impl Tables {
             let fx = intern(&mut self.fx, &mut self.fx_ix, fx_json(&g.filters, g.blend, &mut w));
             self.warnings = w;
             let inner = self.list(&items[i..j], level + 1);
+            // Cache as bitmap: the runtime draws this list once and reuses the picture
+            let cb = if g.cache {
+                let n = self.caches.len();
+                format!(",\"cb\":{}", *self.caches.entry(inner.clone()).or_insert(n))
+            } else {
+                String::new()
+            };
             let mb = g
                 .motion
                 .zip(g.filters.iter().find_map(|f| match f {
@@ -532,7 +541,7 @@ impl Tables {
                     format!(",\"mw\":{{\"c\":{},\"r\":{},\"s\":[{}],\"d\":[{}]}}", m.cols, m.rows, flat(&m.src), flat(&m.dst))
                 })
                 .unwrap_or_default();
-            out.push(format!("{{\"x\":{fx},\"c\":{inner}{mb}{mw}}}"));
+            out.push(format!("{{\"x\":{fx},\"c\":{inner}{cb}{mb}{mw}}}"));
             i = j;
         }
         format!("[{}]", out.join(","))
@@ -632,7 +641,7 @@ pub fn publish_report(doc: &Document, o: &Html5Opts) -> Report {
     let total = doc.total_frames();
     let (f0, f1) = o.range.unwrap_or((0, total - 1));
     let (f0, f1) = (f0.min(total - 1), f1.min(total - 1).max(f0.min(total - 1)));
-    let mut t = Tables { paths: vec![], path_ix: HashMap::new(), items: vec![], item_ix: HashMap::new(), fx: vec![], fx_ix: HashMap::new(), clips: vec![], clip_ix: HashMap::new(), images: vec![], image_ix: HashMap::new(), w: doc.width.round().max(1.0) as u32, h: doc.height.round().max(1.0) as u32, baked_ix: HashMap::new(), baked_bytes: 0, baked_count: 0, warnings: vec![] };
+    let mut t = Tables { paths: vec![], path_ix: HashMap::new(), items: vec![], item_ix: HashMap::new(), fx: vec![], fx_ix: HashMap::new(), clips: vec![], clip_ix: HashMap::new(), images: vec![], image_ix: HashMap::new(), w: doc.width.round().max(1.0) as u32, h: doc.height.round().max(1.0) as u32, baked_ix: HashMap::new(), baked_bytes: 0, baked_count: 0, warnings: vec![], caches: HashMap::new() };
     let mut frames = vec![];
     let mut extra = vec![]; // per frame: buttons + named instances + scripts + sounds
     // A script can hold the main timeline while movie clips keep playing:
@@ -947,7 +956,7 @@ mod tests {
 
     #[test]
     fn runtime_defines_every_stage_the_generator_emits() {
-        for needle in ["function adjustColor", "g.k === \"sbevel\"", "g.k === \"glow\"", "g.nm", "g.h ?", "e.sp !== undefined", "st.a)", "function css("] {
+        for needle in ["function adjustColor", "g.k === \"sbevel\"", "g.k === \"glow\"", "g.nm", "g.h ?", "e.sp !== undefined", "e.cb !== undefined", "function drawCached", "st.a)", "function css("] {
             assert!(RUNTIME.contains(needle), "runtime lacks `{needle}`");
         }
     }

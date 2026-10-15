@@ -315,10 +315,13 @@ pub struct FxGroup {
     pub time: f32,
     /// Asset Warp mesh: the layer is drawn deformed (stage space).
     pub mesh: Option<std::sync::Arc<crate::deform::MeshMap>>,
+    /// Cache as bitmap: the group is drawn once to a picture and reused
+    /// (the HTML5 publish keeps it in a canvas cache; drawing is unchanged).
+    pub cache: bool,
 }
 
 impl FxGroup {
     pub fn new(filters: Vec<Filter>, blend: BlendMode) -> FxGroup {
-        FxGroup { filters, blend, motion: None, time: 0.0, mesh: None }
+        FxGroup { filters, blend, motion: None, time: 0.0, mesh: None, cache: false }
     }
 }

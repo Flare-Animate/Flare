@@ -27,8 +27,8 @@ files.
 | Drawing model | ~92% | stroke-style parameters, hairlines and stroke scaling |
 | Tools | ~96% | pressure/tilt, Art/Pattern brushes |
 | Timeline | ~95% | sound envelopes, Auto Keyframe toggle, layer depth |
-| Symbols | ~82% | 9-slice, Visible / Cache as bitmap |
-| Animation | ~88% | tween presets, copy/paste motion, rig mapping, bone springs |
+| Symbols | ~90% | Update library item, Edit Symbols across the library |
+| Animation | ~92% | rig mapping, bone springs, Copy Motion as XML |
 | Text | ~40% | dynamic/input text, rich text, paragraph options |
 | Media | ~78% | envelope editing, video, AI import, bitmap compression settings |
 | Scripting | 🟡 different by design | ActionScript 3 (won't do), full CreateJS API, Code Snippets, debugger, rest of JSFL |
@@ -153,7 +153,7 @@ The two engine milestones that unlock most of the rest:
 | Guide layers and **Classic motion guides** (orient to path, snap) | Yes | Yes (guides don't export; Orient to path) | ✅ | |
 | **Layer parenting** (parent layer view) | Yes | Layer menu ▸ Parent Layer and Show Parenting View (drag link dots) | ✅ | |
 | Layer depth (2.5D, with camera) | Yes | — | ❌ | P2 |
-| Layer properties dialog; layer effects (filters on layers) | Yes | Properties dialog incl. layer height 100/200/300 %; no layer effects | 🟡 | P2 |
+| Layer properties dialog; layer effects (filters on layers) | Yes | Properties dialog incl. layer height 100/200/300 % and **Layer effects**: any filter (incl. EffectCraft) applied to everything the layer draws as one picture, outside the objects' own filters; in `.fla` as a `<filters>` element on the layer (a Flare extension: Animate ignores it), HTML5 through the existing filter runtime (unverified in the app) | ✅ | |
 | Frames: insert/remove (F5), keyframe (F6), blank (F7), clear, convert | Yes | Yes | ✅ | |
 | Select frames, copy/cut/paste/move frames, labels | Yes | Yes | ✅ | |
 | Frame label types: Name / Comment / Anchor | Yes | All three (comments are never jump targets) | ✅ | |
@@ -182,8 +182,8 @@ The two engine milestones that unlock most of the rest:
 | Colour effects: Brightness, Tint, Advanced (RGBA multiply/offset), Alpha | Yes | All five, tweenable | ✅ | |
 | **Filters**: Drop Shadow, Blur, Glow, Bevel, Gradient Glow, Gradient Bevel, Adjust Color; presets; filter tweening | Yes | All seven, presets, tweening (and motion-tween tracks); SVG export of blur/shadow/glow; HTML5 renders every filter: Blur and plain Drop Shadow as canvas `ctx.filter`, Glow / Bevel / inner-knockout-hide shadows / Gradient Glow+Bevel / Adjust Color per pixel in the runtime (ports of the stage formulas), EffectCraft effects baked to PNG sprites at publish time; anything approximated is listed in the Output panel; plus Motion Blur and ~200 EffectCraft effects (beyond Animate) | ✅ | |
 | **Blend modes** (Normal, Layer, Darken, Multiply, Lighten, Screen, Overlay, Hard Light, Add, Subtract, Difference, Invert, Alpha, Erase) | Yes | All 14 | ✅ | |
-| Render: Original / Cache as Bitmap / Export as Bitmap; Visible flag | Yes | — | ❌ | P2 |
-| 9-slice scaling guides | Yes | — | ❌ | P2 |
+| Render: Original / Cache as Bitmap / Export as Bitmap; Visible flag | Yes | Properties ▸ Display and rendering (Modify ▸ Toggle … in command search). Visible off: skipped by renders, Test Movie and every export (still shown while editing so it can be selected); Cache / Export as bitmap: the HTML5 publish draws the object once into a canvas cache and reuses it; Export as bitmap is treated as Cache (no separate bitmap export in SWF/GIF/video). `.fla` `isVisible`, `cacheAsBitmap`, `exportAsBitmap` read and written (unverified in the app) | ✅ | |
+| 9-slice scaling guides | Yes | Symbol field `scale_grid`; Library ▸ Add 9-Slice Grid or Properties ▸ Enable guides; dashed guides drag on the stage while the symbol is open; a scaled instance keeps its corners, edges stretch along one axis, only the centre stretches both (vector shapes are cut at the grid lines, bitmaps drawn in nine clipped pieces; strokes keep their width); same maths in HTML5 publish; `.fla` `scaleGridLeft/Right/Top/Bottom`. The grid applies to the symbol's content at the displayed frame; masks inside the symbol follow it (unverified in the app) | ✅ | |
 | Registration point choice on convert; transformation point vs registration | Yes | 3 × 3 registration grid in Convert to Symbol (remembered), folder choice; `selection.to_symbol registration:` | ✅ | |
 | Edit in Place / Edit Symbols across the library; Update library item | Yes | Edit in place and isolated edit | 🟡 | P3 (Update library item) |
 | Linkage (class name, export for ActionScript/runtime) | Yes | Library item Properties › Export for runtime + class name; read and written in .fla | ✅ | |
@@ -198,8 +198,8 @@ The two engine milestones that unlock most of the rest:
 | Shape tween + **shape hints** | Yes | Yes (first shape on the layer) | ✅ | |
 | **Motion tweens** (object-based, property keyframes, auto-span, motion path you can edit with Selection/Subselection, Orient to path) | Yes | Position/rotation/skew/scale/alpha/brightness, 3D rotation/depth, tint, every filter parameter | ✅ | |
 | **Motion Editor** (per-property graphs, Bezier eases, add anchor, presets, Copy/paste curves) | Yes | Graphs, keys, eases, Bezier handles, copy/paste curves | ✅ | |
-| Motion presets panel (bounce, fly-in…, save your own) | Yes | — | ❌ | P2 |
-| Copy / Paste Motion, Copy Motion as JS/XML | Yes | — | ❌ | P2 |
+| Motion presets panel (bounce, fly-in…, save your own) | Yes | Window ▸ Motion Presets: 23 presets of our own design (bounce drop, fly-ins, pop, zoom, fades, pulse, heartbeat, shake, wobble, spins, swing, hop, float, slides…) stored as JSON, relative to the object they are applied to; save your own from a motion tween (settings.json). 3D, tint and filter keys are not part of a preset (unverified in the app) | ✅ | |
+| Copy / Paste Motion, Copy Motion as JS/XML | Yes | Edit ▸ Timeline: Copy Motion (Ctrl+Alt+Shift+C), Paste Motion (Ctrl+Alt+Shift+V, relative to the target), Paste Motion Special (absolute), Copy Motion as JS (scripting API calls on the clipboard). A classic tween pastes as a motion tween fitted to its frames; a motion tween keeps its keys and ease. **No Copy Motion as XML** (Animate's own motion XML) | 🟡 | P3 (XML) |
 | Convert to Frame-by-Frame Animation, Convert to Keyframes | Yes | Yes | ✅ | |
 | Bones: IK poses on keyframes, joint rotation/translation constraints, **springiness / damping**, bone ease, runtime vs authoring | Yes | Poses + damped-least-squares IK (OpenToonz); joint rotation enable + min/max limits; pinned joints (object and shape bones) | 🟡 | P2 (translation constraints, springs) |
 | Asset Warp: pins, mesh density, tween warped poses, **Create Warped Asset / Reset** | Yes | Pins (rigid MLS) on shapes, bitmaps, symbols, groups; Reset | 🟡 | P2 (tween warped poses of bitmaps/symbols) |
@@ -376,8 +376,8 @@ Started Oct 15 2026 after the P1 gaps; each group is built, tested and checked i
 before the next.
 1. **Timeline** — ✅ loop range, time display, frame widths / timeline zoom, Synchronize
    Symbols, Duplicate Symbol and swap.
-2. Symbols & motion: Copy/Paste Motion, motion presets, Cache as Bitmap / Visible flag,
-   9-slice scaling, layer effects.
+2. **Symbols & motion** — ✅ Copy/Paste Motion (and Copy Motion as JS), motion presets,
+   Cache as Bitmap / Export as Bitmap / Visible flag, 9-slice scaling, layer effects.
 3. Drawing & rigging: hairlines and stroke scaling, Auto Keyframe toggle, 3D global/local,
    Asset Warp mesh options, bone springiness.
 4. Commands: Code Snippets, saved Commands, History replay / save as command, Find and

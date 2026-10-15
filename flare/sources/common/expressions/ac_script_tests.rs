@@ -303,3 +303,36 @@ fl.trace(tl.layers[0].frames.map(function (f) { return f.name; }).join(""));
     assert!(rep.error.is_none(), "{:?} {:?}", rep.error, rep.log);
     assert_eq!(rep.log[0], "cba");
 }
+
+fn one_instance() -> Editor {
+    let mut ed = Editor::new(Document::default());
+    ac_core::commands::execute(&mut ed, "draw.rect", &serde_json::json!({"x": 0, "y": 0, "w": 20, "h": 20})).unwrap();
+    ac_core::commands::execute(&mut ed, "select.all", &serde_json::json!({})).unwrap();
+    ed.convert_to_symbol("A", ac_core::SymbolKind::MovieClip).unwrap();
+    ed.selection.clear();
+    ed
+}
+
+#[test]
+fn copy_motion_as_js_runs_in_the_script_engine_and_rebuilds_the_tween() {
+    let mut src = one_instance();
+    src.select_frames(ac_core::FrameSel::cell(0, 0));
+    src.set_tween(ac_core::Tween::Motion { ease: 0.0 });
+    for (prop, frame, value) in [("x", 24, 300.0), ("y", 24, 80.0), ("rotation", 12, 90.0), ("scale_x", 24, 2.0), ("alpha", 24, 0.5)] {
+        ac_core::commands::execute(&mut src, "motion.set_key", &serde_json::json!({"prop": prop, "frame": frame, "value": value})).unwrap();
+    }
+    ac_core::commands::execute(&mut src, "timeline.set_ease", &serde_json::json!({"ease": "Quad In Out", "frame": 1})).unwrap();
+    src.select_frames(ac_core::FrameSel::cell(0, 5));
+    let js = src.copy_motion_as_js().unwrap();
+    // the script, as the user would paste it into the Script Console
+    let mut dst = one_instance();
+    let r = run_js(&mut dst, &js, &opts());
+    assert!(r.ok(), "{:?}\n{js}", r.error);
+    let at = |ed: &Editor, f: u32| ac_core::layer_elements_at(&ed.timeline().layers[0], f).unwrap().0[0].clone();
+    for f in 0..24 {
+        let (a, b) = (at(&src, f), at(&dst, f));
+        assert!([(a.matrix.a, b.matrix.a), (a.matrix.b, b.matrix.b), (a.matrix.tx, b.matrix.tx), (a.matrix.ty, b.matrix.ty)].iter().all(|(x, y)| (x - y).abs() < 1e-3), "frame {f}");
+        assert!((a.alpha - b.alpha).abs() < 1e-4);
+    }
+    assert_eq!(dst.undo_label(), Some("Run Script"));
+}

@@ -28,6 +28,12 @@ pub mod geom;
 pub mod ik;
 #[path = "../flarelib/model.rs"]
 pub mod model;
+#[path = "../flarelib/scale9.rs"]
+pub mod scale9;
+#[path = "../flarelib/motion_clip.rs"]
+pub mod motion_clip;
+#[path = "../flarelib/motion_presets.rs"]
+pub mod motion_presets;
 #[path = "../common/tvectorimage/merge.rs"]
 pub mod merge;
 #[path = "../flarelib/rig.rs"]

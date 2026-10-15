@@ -77,6 +77,17 @@ const COMMANDS: &[(&str, &str, &str, Run)] = &[
     ("Timeline", "Insert Blank Keyframe", "F7", |a| a.ed.insert_blank_keyframe()),
     ("Timeline", "Reverse Frames", "", |a| a.ed.reverse_frames()),
     ("Timeline", "Synchronize Symbols", "", |a| sync_symbols(a)),
+    ("Timeline", "Copy Motion", "Ctrl+Alt+Shift+C", |a| copy_motion(a)),
+    ("Timeline", "Paste Motion", "Ctrl+Alt+Shift+V", |a| paste_motion(a, true)),
+    ("Timeline", "Paste Motion Special (Absolute Position)", "", |a| paste_motion(a, false)),
+    ("Timeline", "Copy Motion as JS", "", |a| copy_motion_js(a)),
+    ("Window", "Motion Presets", "", |a| a.presets.open = !a.presets.open),
+    ("Modify", "Save Motion as Preset…", "", |a| a.presets.open = true),
+    ("Modify", "Toggle Visible", "", |a| toggle_display(a, 0)),
+    ("Modify", "Toggle Cache as Bitmap", "", |a| toggle_display(a, 1)),
+    ("Modify", "Toggle Export as Bitmap", "", |a| toggle_display(a, 2)),
+    ("Modify", "Toggle 9-Slice Scaling Grid", "", |a| toggle_scale_grid(a)),
+    ("Modify", "Layer Effects…", "", |a| a.open_layer_props(a.ed.layer)),
     ("Timeline", "Show Time in Seconds", "", |a| {
         a.tl.seconds = !a.tl.seconds;
         a.settings.tl_seconds = a.tl.seconds;
@@ -278,6 +289,73 @@ pub(crate) fn window(app: &mut App, ctx: &egui::Context) {
 pub(crate) fn sync_symbols(a: &mut App) {
     let n = a.ed.synchronize_symbols();
     a.status = if n == 0 { "Symbols already in sync (graphic instances of the same symbol on consecutive keyframes)".into() } else { format!("Synchronized {n} keyframe(s)/instance(s)") };
+}
+
+/// Edit › Timeline › Copy Motion, with a status line.
+pub(crate) fn copy_motion(a: &mut App) {
+    a.status = match a.ed.copy_motion() {
+        Ok(n) => format!("Copied motion ({n} frame{})", if n == 1 { "" } else { "s" }),
+        Err(e) => e,
+    };
+}
+
+/// Paste Motion (`relative`: the object moves as the copied one did from where it is) or Paste Motion Special (absolute).
+pub(crate) fn paste_motion(a: &mut App, relative: bool) {
+    a.status = match a.ed.paste_motion(relative) {
+        Ok(()) => "Pasted motion as a new motion tween".into(),
+        Err(e) => e,
+    };
+}
+
+/// Copy Motion as JS: the tween under the selection as scripting API calls, on the clipboard.
+pub(crate) fn copy_motion_js(a: &mut App) {
+    a.status = match a.ed.copy_motion_as_js() {
+        Ok(js) => {
+            let n = js.lines().count().saturating_sub(1);
+            a.ctx.copy_text(js);
+            format!("Copied the motion as {n} script call(s): paste them into the Script Console")
+        }
+        Err(e) => e,
+    };
+}
+
+/// Toggle Visible (0), Cache as bitmap (1) or Export as bitmap (2) on the selected objects.
+fn toggle_display(a: &mut App, which: u8) {
+    let Some(e) = a.ed.selected_element() else {
+        a.status = "Select an object first".into();
+        return;
+    };
+    let (mut v, mut c, mut x) = (e.visible, e.cache_as_bitmap, e.export_as_bitmap);
+    match which {
+        0 => v = !v,
+        1 => c = !c,
+        _ => x = !x,
+    }
+    a.ed.modify_selected(["Visible", "Cache as Bitmap", "Export as Bitmap"][which as usize], |e| match which {
+        0 => e.visible = v,
+        1 => e.cache_as_bitmap = c,
+        _ => e.export_as_bitmap = x,
+    });
+}
+
+/// Add (or remove) the 9-slice grid of the symbol being edited, or of the selected instance.
+fn toggle_scale_grid(a: &mut App) {
+    let id = a.ed.editing.or_else(|| match a.ed.selected_element().map(|e| e.kind) {
+        Some(ac_core::ElementKind::Instance(i)) => Some(i.symbol),
+        _ => None,
+    });
+    let Some(id) = id else {
+        a.status = "Select a symbol instance (or edit a symbol) first".into();
+        return;
+    };
+    let had = a.ed.doc.symbol(id).is_some_and(|s| s.scale_grid.is_some());
+    let grid = if had { None } else { a.ed.default_scale_grid(id) };
+    if !had && grid.is_none() {
+        a.status = "The symbol is empty: draw something in it first".into();
+        return;
+    }
+    let _ = a.ed.set_symbol_scale_grid(id, grid);
+    a.status = if had { "9-slice grid removed".into() } else { "9-slice grid added: edit the symbol and drag the dashed guides".into() };
 }
 
 #[cfg(test)]

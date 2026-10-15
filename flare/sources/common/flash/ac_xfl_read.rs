@@ -12,7 +12,7 @@ use roxmltree::Node;
 use std::collections::HashMap;
 
 pub(crate) fn el(name: &str, matrix: Matrix, kind: ElementKind) -> Element {
-    Element { name: name.into(), matrix, alpha: 1.0, tint: None, kind, three_d: None, filters: vec![], blend: BlendMode::Normal, color_fx: None, mesh: None }
+    Element { name: name.into(), matrix, alpha: 1.0, tint: None, kind, three_d: None, filters: vec![], blend: BlendMode::Normal, color_fx: None, mesh: None, visible: true, cache_as_bitmap: false, export_as_bitmap: false }
 }
 
 struct Reader<'a> {
@@ -547,6 +547,9 @@ impl Reader<'_> {
                     let mut e = el(n.attribute("name").unwrap_or(""), matrix_of(n), ElementKind::Instance(Instance { symbol, loop_mode, first_frame: f(n, "firstFrame", 0.0) as u32 }));
                     self.color_effect(n, &mut e);
                     e.filters = self.filters(n);
+                    e.cache_as_bitmap = flag(n, "cacheAsBitmap");
+                    e.export_as_bitmap = flag(n, "exportAsBitmap");
+                    e.visible = n.attribute("isVisible") != Some("false");
                     if let Some(b) = n.attribute("blendMode") {
                         e.blend = BlendMode::from_name(b).unwrap_or_else(|| {
                             self.warn.push(format!("blend mode {b} not supported"));
@@ -641,6 +644,7 @@ impl Reader<'_> {
             _ => LayerKind::Normal,
         };
         l.parent = n.attribute("parentLayerIndex").and_then(|v| v.parse().ok());
+        l.filters = self.filters(n);
         l.keyframes.clear();
         l.end = 0;
         for fr in child(n, "frames").into_iter().flat_map(|fs| kids(fs, "DOMFrame")) {
@@ -912,7 +916,9 @@ pub(crate) fn read(pkg: &Package) -> Result<crate::Imported, String> {
                 r.doc.linkage.insert(i as SymbolId + 1, c.to_string());
             }
         }
-        r.doc.library.push(Symbol { id: i as SymbolId + 1, name, kind, timeline: tl });
+        // 9-slice scaling grid (pixels, symbol coordinates)
+        let scale_grid = s.attribute("scaleGridLeft").is_some().then(|| ScaleGrid { left: f(s, "scaleGridLeft", 0.0), top: f(s, "scaleGridTop", 0.0), right: f(s, "scaleGridRight", 0.0), bottom: f(s, "scaleGridBottom", 0.0) }).filter(|g| g.right > g.left && g.bottom > g.top);
+        r.doc.library.push(Symbol { id: i as SymbolId + 1, name, kind, timeline: tl, scale_grid });
     }
     r.doc.next_symbol_id = r.doc.library.len() as SymbolId + 1;
 

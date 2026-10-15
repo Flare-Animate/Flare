@@ -98,13 +98,13 @@ fn round_trips_editor_features() {
     bmp.smoothing = false;
     doc.bitmaps.push(bmp);
     // symbols: a movie clip in a folder, a button
-    let mut mc = Symbol { id: 3, name: "Parts/Wheel".into(), kind: SymbolKind::MovieClip, timeline: Timeline::new("Wheel") };
+    let mut mc = Symbol { id: 3, name: "Parts/Wheel".into(), kind: SymbolKind::MovieClip, timeline: Timeline::new("Wheel"), scale_grid: None };
     let mut sq = Shape::new(Path::rect(-5.0, -5.0, 10.0, 10.0), Some(Color::rgb(10, 20, 30)), Some(Stroke { color: Color::rgb(1, 2, 3), width: 2.0 }));
     sq.stroke_style.dash = Dash::Dashed;
     sq.stroke_style.cap = Cap::None;
     mc.timeline.layers[0].keyframes.get_mut(&0).unwrap().elements.push(Element::shape("", sq));
     doc.library.push(mc);
-    doc.library.push(Symbol { id: 9, name: "Btn".into(), kind: SymbolKind::Button, timeline: Timeline::new("Btn") });
+    doc.library.push(Symbol { id: 9, name: "Btn".into(), kind: SymbolKind::Button, timeline: Timeline::new("Btn"), scale_grid: None });
     doc.next_symbol_id = 10;
     // scene: folder > mask > masked layer with a classic tween + custom ease
     let tl = &mut doc.scene;
@@ -204,7 +204,7 @@ fn motion_tweens_are_baked_and_merge_drawings_survive() {
     l2.keyframes.insert(0, k);
     l2.end = 5;
     doc.scene.layers.push(l2);
-    doc.library.push(Symbol { id: 1, name: "Dot".into(), kind: SymbolKind::Graphic, timeline: Timeline::new("Dot") });
+    doc.library.push(Symbol { id: 1, name: "Dot".into(), kind: SymbolKind::Graphic, timeline: Timeline::new("Dot"), scale_grid: None });
     doc.next_symbol_id = 2;
     let (pkg, warn) = write_package(&doc);
     assert!(warn.iter().any(|w| w.contains("frame by frame")));

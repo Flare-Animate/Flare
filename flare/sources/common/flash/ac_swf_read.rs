@@ -95,14 +95,14 @@ pub fn import(bytes: &[u8]) -> Result<Imported, String> {
                 let name = names.get(&ch).cloned().unwrap_or_else(|| format!("Shape {ch}"));
                 let mut tl = Timeline::new(&name);
                 tl.layers[0].keyframes.insert(0, Keyframe::with(shapes.into_iter().map(|s| Element::shape("", s)).collect()));
-                doc.library.push(Symbol { id: symbol_of[&ch], name, kind: SymbolKind::Graphic, timeline: tl });
+                doc.library.push(Symbol { id: symbol_of[&ch], name, kind: SymbolKind::Graphic, timeline: tl, scale_grid: None });
             }
             DEFINE_SPRITE => {
                 let ch = u16::from_le_bytes([t.body[0], t.body[1]]);
                 let inner = parse_tags(&t.body[4.min(t.body.len())..]);
                 let name = names.get(&ch).cloned().unwrap_or_else(|| format!("Sprite {ch}"));
                 let tl = timeline(&name, &inner, &mut ctx);
-                doc.library.push(Symbol { id: symbol_of[&ch], name, kind: SymbolKind::MovieClip, timeline: tl });
+                doc.library.push(Symbol { id: symbol_of[&ch], name, kind: SymbolKind::MovieClip, timeline: tl, scale_grid: None });
             }
             DEFINE_BITS | JPEG_TABLES | DEFINE_BITS_JPEG2 | DEFINE_BITS_JPEG3 | DEFINE_BITS_LOSSLESS | DEFINE_BITS_LOSSLESS2 => {}
             SET_BACKGROUND if t.body.len() >= 3 => doc.background = Color::rgb(t.body[0], t.body[1], t.body[2]),

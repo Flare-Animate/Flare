@@ -148,6 +148,10 @@ cmds! {
     "selection.align", "op ('left'|'hcenter'|'right'|'top'|'vcenter'|'bottom'|'dist_left'|'dist_hcenter'|'dist_right'|'dist_top'|'dist_vcenter'|'dist_bottom'|'match_width'|'match_height'|'match_size'|'space_h'|'space_v'), to_stage?", "Align panel";
     "selection.add_filter", "type ('drop_shadow'|'blur'|'glow'|'bevel'|'gradient_glow'|'gradient_bevel'|'adjust_color'|'motion_blur'|'effect'), …filter fields (blur_x, blur_y, strength, angle, distance, color, kind, stops [[pos, '#RRGGBBAA']…], brightness, contrast, saturation, hue, shutter (degrees), samples…); effect: id (EffectCraft id, e.g. 'ec.blur.radial'; `flare-cli effects` lists them), params {id: number | bool | [x, y] (fraction of the object) | '#RRGGBBAA'}", "Add a filter to the selected objects";
     "selection.clear_filters", "", "Remove all filters";
+    "selection.set_display", "visible?, cache_as_bitmap?, export_as_bitmap?", "Properties display flags of the selected objects: an invisible object is skipped by exports; cached/exported-as-bitmap objects are cached in the HTML5 publish";
+    "layer.add_filter", "type + filter fields (as selection.add_filter), layer?", "Layer effect: add a filter applied to the layer's composited content";
+    "layer.clear_filters", "layer?", "Remove all layer effects";
+    "symbol.set_scale_grid", "symbol (name or id), left, top, right, bottom (symbol coordinates; omit all four to remove)", "9-slice scaling grid: scaled instances keep their corners and stretch only the middle";
     "bitmap.trace", "color_threshold? (0–500, 100), min_area? (px, 8), curve_fit? ('pixels'|'very tight'|'tight'|'normal'|'smooth'|'very smooth'), corners? ('many'|'normal'|'few'), mode? ('outline'|'centerline'), line_threshold? (centerline ink darkness 1–254, 128), uniform_width? (centerline)", "Trace Bitmap: the selected bitmaps become vector fills (outline) or lines (centerline, OpenToonz) in the layer's shape; returns how many fills/lines";
     "selection.set_blend", "mode ('normal'|'multiply'|'screen'|…)", "Blend mode";
     "import.image", "path (PNG, JPEG, GIF, BMP, TGA, TIFF, WebP, OpenEXR), x?, y?, place? (true)", "Import an image into the library (and place it)";
@@ -482,6 +486,44 @@ fn element_json(ed: &Editor, s: Selection) -> Value {
 fn center(ed: &Editor) -> Result<Pt, String> {
     let (lo, hi) = ed.selection_bounds().ok_or("nothing selected")?;
     Ok(pt((lo.x + hi.x) / 2.0, (lo.y + hi.y) / 2.0))
+}
+
+/// A filter from command arguments: `type` plus the fields to override on its defaults.
+fn filter_from_args(a: &Value) -> Result<crate::fx::Filter, String> {
+    let ty = string(a, "type").ok_or("missing 'type'")?;
+    let mut f = crate::fx::Filter::default_of(ty).ok_or_else(|| format!("unknown filter '{ty}' (drop_shadow, blur, glow, bevel, gradient_glow, gradient_bevel, adjust_color, motion_blur, effect)"))?;
+    // overlay given fields onto the defaults
+    let mut v = serde_json::to_value(&f).map_err(|e| e.to_string())?;
+    if let (Some(obj), Some(args)) = (v.as_object_mut(), a.as_object()) {
+        for (k, val) in args {
+            if k == "type" || !obj.contains_key(k) {
+                continue;
+            }
+            let val = match (k.as_str(), val.as_str().and_then(Color::from_hex)) {
+                ("color" | "shadow" | "highlight", Some(c)) => serde_json::to_value(c).map_err(|e| e.to_string())?,
+                // gradient filters: [[position 0..1, "#RRGGBBAA"], …]
+                ("stops", _) => {
+                    let mut st: Vec<(f32, Color)> = vec![];
+                    for s in val.as_array().ok_or("stops: [[position, \"#RRGGBBAA\"], …]")? {
+                        let pos = s.get(0).and_then(|v| v.as_f64()).ok_or("stop position")? as f32;
+                        let c = s.get(1).and_then(|v| v.as_str()).and_then(Color::from_hex).ok_or("stop colour")?;
+                        st.push((pos.clamp(0.0, 1.0), c));
+                    }
+                    st.sort_by(|a, b| a.0.total_cmp(&b.0));
+                    serde_json::to_value(st).map_err(|e| e.to_string())?
+                }
+                ("kind", _) => match val.as_str().map(|x| x.to_ascii_lowercase()).as_deref() {
+                    Some("outer") => json!("Outer"),
+                    Some("full") => json!("Full"),
+                    _ => json!("Inner"),
+                },
+                _ => val.clone(),
+            };
+            obj.insert(k.clone(), val);
+        }
+    }
+    f = serde_json::from_value(v).map_err(|e| format!("bad filter fields: {e}"))?;
+    Ok(f)
 }
 
 fn need_selection(ed: &Editor) -> Result<(), String> {
@@ -1167,40 +1209,44 @@ pub fn execute(ed: &mut Editor, id: &str, a: &Value) -> Result<Value, String> {
         }
         "selection.add_filter" => {
             need_selection(ed)?;
-            let ty = string(a, "type").ok_or("missing 'type'")?;
-            let mut f = crate::fx::Filter::default_of(ty).ok_or_else(|| format!("unknown filter '{ty}' (drop_shadow, blur, glow, bevel, gradient_glow, gradient_bevel, adjust_color, motion_blur, effect)"))?;
-            // overlay given fields onto the defaults
-            let mut v = serde_json::to_value(&f).map_err(|e| e.to_string())?;
-            if let (Some(obj), Some(args)) = (v.as_object_mut(), a.as_object()) {
-                for (k, val) in args {
-                    if k == "type" || !obj.contains_key(k) {
-                        continue;
-                    }
-                    let val = match (k.as_str(), val.as_str().and_then(Color::from_hex)) {
-                        ("color" | "shadow" | "highlight", Some(c)) => serde_json::to_value(c).map_err(|e| e.to_string())?,
-                        // gradient filters: [[position 0..1, "#RRGGBBAA"], …]
-                        ("stops", _) => {
-                            let mut st: Vec<(f32, Color)> = vec![];
-                            for s in val.as_array().ok_or("stops: [[position, \"#RRGGBBAA\"], …]")? {
-                                let pos = s.get(0).and_then(|v| v.as_f64()).ok_or("stop position")? as f32;
-                                let c = s.get(1).and_then(|v| v.as_str()).and_then(Color::from_hex).ok_or("stop colour")?;
-                                st.push((pos.clamp(0.0, 1.0), c));
-                            }
-                            st.sort_by(|a, b| a.0.total_cmp(&b.0));
-                            serde_json::to_value(st).map_err(|e| e.to_string())?
-                        }
-                        ("kind", _) => match val.as_str().map(|x| x.to_ascii_lowercase()).as_deref() {
-                            Some("outer") => json!("Outer"),
-                            Some("full") => json!("Full"),
-                            _ => json!("Inner"),
-                        },
-                        _ => val.clone(),
-                    };
-                    obj.insert(k.clone(), val);
-                }
-            }
-            f = serde_json::from_value(v).map_err(|e| format!("bad filter fields: {e}"))?;
+            let f = filter_from_args(a)?;
             ed.modify_selected("Add Filter", |e| e.filters.push(f.clone()));
+            Ok(Value::Null)
+        }
+        "selection.set_display" => {
+            need_selection(ed)?;
+            let (v, c, x) = (boolean(a, "visible"), boolean(a, "cache_as_bitmap"), boolean(a, "export_as_bitmap"));
+            if v.is_none() && c.is_none() && x.is_none() {
+                return Err("give visible, cache_as_bitmap and/or export_as_bitmap".into());
+            }
+            ed.modify_selected("Display Properties", |e| {
+                e.visible = v.unwrap_or(e.visible);
+                e.cache_as_bitmap = c.unwrap_or(e.cache_as_bitmap);
+                e.export_as_bitmap = x.unwrap_or(e.export_as_bitmap);
+            });
+            Ok(Value::Null)
+        }
+        "layer.add_filter" => {
+            let li = layer_arg(ed, a, "layer")?.unwrap_or(ed.layer);
+            let f = filter_from_args(a)?;
+            let mut list = ed.timeline().layers[li].filters.clone();
+            list.push(f);
+            ed.set_layer_filters(li, list);
+            Ok(Value::Null)
+        }
+        "layer.clear_filters" => {
+            let li = layer_arg(ed, a, "layer")?.unwrap_or(ed.layer);
+            ed.set_layer_filters(li, vec![]);
+            Ok(Value::Null)
+        }
+        "symbol.set_scale_grid" => {
+            let id = symbol_arg(ed, a)?;
+            let grid = match (num(a, "left"), num(a, "top"), num(a, "right"), num(a, "bottom")) {
+                (Some(left), Some(top), Some(right), Some(bottom)) => Some(ScaleGrid { left, top, right, bottom }),
+                (None, None, None, None) => None,
+                _ => return Err("give left, top, right and bottom (or none of them to remove the grid)".into()),
+            };
+            ed.set_symbol_scale_grid(id, grid)?;
             Ok(Value::Null)
         }
         "bitmap.trace" => {

@@ -101,7 +101,7 @@ fn held_doc() -> Document {
         tl.layers[0].keyframes.insert(i as u32, Keyframe::with(vec![Element::shape("", Shape::new(Path::rect(0.0, 0.0, 40.0, 40.0), Some(*c), None))]));
     }
     tl.layers[0].end = 4;
-    d.library.push(Symbol { id: 1, name: "Blink".into(), kind: SymbolKind::MovieClip, timeline: tl });
+    d.library.push(Symbol { id: 1, name: "Blink".into(), kind: SymbolKind::MovieClip, timeline: tl, scale_grid: None });
     d.next_symbol_id = 2;
     let mut k = Keyframe::with(vec![Element::instance("", 1, Matrix::IDENTITY)]);
     k.script = Some("this.stop();".into());

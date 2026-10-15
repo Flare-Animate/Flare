@@ -14,7 +14,7 @@ fn doc() -> Document {
         l.keyframes.insert(f, Keyframe::with(vec![sq]));
     }
     l.end = 6;
-    d.library.push(Symbol { id: 1, name: "Stepper".into(), kind: SymbolKind::Graphic, timeline: tl });
+    d.library.push(Symbol { id: 1, name: "Stepper".into(), kind: SymbolKind::Graphic, timeline: tl, scale_grid: None });
     let mut inst = Layer::new("inst", 0);
     inst.keyframes.insert(0, Keyframe::with(vec![Element::instance("", 1, Matrix::translate(10.0, 10.0))]));
     inst.end = 20;
@@ -174,7 +174,7 @@ fn text_fields_folders_and_linkage_round_trip() {
         t.field.link = Some("https://example.org".into());
     }
     d.scene.layers[0].keyframes.get_mut(&0).unwrap().elements.push(el);
-    d.library.push(Symbol { id: 1, name: "Cast/Hero".into(), kind: SymbolKind::MovieClip, timeline: Timeline::new("Hero") });
+    d.library.push(Symbol { id: 1, name: "Cast/Hero".into(), kind: SymbolKind::MovieClip, timeline: Timeline::new("Hero"), scale_grid: None });
     d.next_symbol_id = 2;
     d.folders = vec!["Cast".into(), "Empty".into()];
     d.linkage.insert(1, "HeroClip".into());

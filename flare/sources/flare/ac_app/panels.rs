@@ -715,6 +715,7 @@ fn object_properties(app: &mut App, ui: &mut egui::Ui) {
                     if ui.button("Edit Symbol").clicked() { app.edit_symbol(id); }
                     if ui.button("Break Apart").on_hover_text("Ctrl+B").clicked() { app.ed.break_apart(); }
                 });
+                scale_grid_section(app, ui, id);
             }
             ElementKind::Group(_) if n == 1 => {
                 section(ui, "Group");
@@ -738,6 +739,7 @@ fn object_properties(app: &mut App, ui: &mut egui::Ui) {
             _ => {}
         }
 
+        display_section(app, ui, &el);
         filters_section(app, ui, &el);
         if let Some(w) = &el.mesh {
             ui.horizontal(|ui| {
@@ -1681,6 +1683,12 @@ fn library(app: &mut App, ui: &mut egui::Ui) {
                         if ui.button("Place on Stage").clicked() { app.ed.place_symbol(id, stage_center); ui.close_menu(); }
                         if ui.button("Rename…").clicked() { app.dialog = Dialog::RenameSymbol { id, name: leaf.clone() }; ui.close_menu(); }
                         if ui.button("Duplicate").clicked() { app.lib_selected = app.ed.duplicate_symbol(id); ui.close_menu(); }
+                        let has_grid = app.ed.doc.symbol(id).is_some_and(|s| s.scale_grid.is_some());
+                        if ui.button(if has_grid { "Remove 9-Slice Grid" } else { "Add 9-Slice Grid" }).on_hover_text("Scaled instances keep their corners; edit the symbol to drag the guides").clicked() {
+                            let g = if has_grid { None } else { app.ed.default_scale_grid(id) };
+                            let _ = app.ed.set_symbol_scale_grid(id, g);
+                            ui.close_menu();
+                        }
                         ui.menu_button("Type", |ui| {
                             for (k, l) in [(SymbolKind::Graphic, "Graphic"), (SymbolKind::MovieClip, "Movie Clip"), (SymbolKind::Button, "Button")] {
                                 if ui.radio(kind == k, l).clicked() { app.ed.set_symbol_kind(id, k); ui.close_menu(); }
@@ -2662,10 +2670,100 @@ fn effect_param_ui(ui: &mut egui::Ui, kind: &ac_render::effectcraft::ParamKind, 
     }
 }
 
+/// Properties › Display and Rendering: Visible, Cache as bitmap, Export as bitmap
+/// (each change applies to every selected object, one undo step).
+fn display_section(app: &mut App, ui: &mut egui::Ui, el: &Element) {
+    section(ui, "Display and rendering");
+    let (mut v, mut c, mut x) = (el.visible, el.cache_as_bitmap, el.export_as_bitmap);
+    let vis = ui.checkbox(&mut v, "Visible").on_hover_text("Off: the object is hidden in Test Movie and every export (it still shows here so you can select it)").changed();
+    let cache = ui.checkbox(&mut c, "Cache as bitmap").on_hover_text("Draw the object once and reuse the picture while it doesn't change (HTML5 publish)").changed();
+    let exp = ui.checkbox(&mut x, "Export as bitmap").on_hover_text("Publish the object as a bitmap (treated like Cache as bitmap)").changed();
+    if vis {
+        app.ed.modify_selected("Visible", |e| e.visible = v);
+    }
+    if cache {
+        app.ed.modify_selected("Cache as Bitmap", |e| e.cache_as_bitmap = c);
+    }
+    if exp {
+        app.ed.modify_selected("Export as Bitmap", |e| e.export_as_bitmap = x);
+    }
+}
+
+/// Symbol Properties › 9-slice scaling: switch the grid on/off and set its
+/// edges (symbol coordinates). The guides also show, and drag, on the stage
+/// while the symbol is open for editing.
+pub(crate) fn scale_grid_section(app: &mut App, ui: &mut egui::Ui, id: ac_core::SymbolId) {
+    let Some(grid) = app.ed.doc.symbol(id).map(|s| s.scale_grid) else { return };
+    let mut on = grid.is_some();
+    if ui.checkbox(&mut on, "Enable guides for 9-slice scaling").on_hover_text("Scaled instances keep their four corners at full size; only the middle stretches. Edit the symbol and drag the dashed guides.").changed() {
+        let g = if on { app.ed.default_scale_grid(id) } else { None };
+        if on && g.is_none() {
+            app.status = "The symbol is empty: draw something in it first".into();
+        } else {
+            let _ = app.ed.set_symbol_scale_grid(id, g);
+        }
+    }
+    let Some(mut g) = grid else { return };
+    let before = g;
+    let mut rs = vec![];
+    egui::Grid::new(("scale-grid", id)).num_columns(4).show(ui, |ui| {
+        for (label, v) in [("Left", &mut g.left), ("Right", &mut g.right)] {
+            ui.label(label);
+            rs.push(ui.add(egui::DragValue::new(v).speed(0.5).max_decimals(1)));
+        }
+        ui.end_row();
+        for (label, v) in [("Top", &mut g.top), ("Bottom", &mut g.bottom)] {
+            ui.label(label);
+            rs.push(ui.add(egui::DragValue::new(v).speed(0.5).max_decimals(1)));
+        }
+        ui.end_row();
+    });
+    if rs.iter().any(|r| r.drag_stopped()) {
+        app.prop_dragging = false;
+    }
+    if g != before && rs.iter().any(edited) {
+        if !app.prop_dragging {
+            app.ed.begin_edit("9-Slice Grid");
+            app.prop_dragging = rs.iter().any(|r| r.dragged());
+        }
+        app.ed.set_symbol_scale_grid_live(id, g);
+    }
+}
+
 /// Properties › Filters and Blending (applies to all selected objects).
 fn filters_section(app: &mut App, ui: &mut egui::Ui, el: &Element) {
     section(ui, "Filters and blending");
     let mut list = el.filters.clone();
+    let edit = filter_list_ui(app, ui, &mut list, "filter");
+    if edit.stopped {
+        app.prop_dragging = false;
+    }
+    if edit.changed {
+        if edit.dragging {
+            if !app.prop_dragging {
+                app.ed.begin_edit("Filter");
+                app.prop_dragging = true;
+            }
+            app.ed.modify_selected_continuous(|e| e.filters = list.clone());
+        } else {
+            app.ed.modify_selected(edit.label, |e| e.filters = list.clone());
+        }
+    }
+    blend_row(app, ui, el);
+}
+
+/// What `filter_list_ui` did to the list it was given.
+pub(crate) struct FilterEdit {
+    pub changed: bool,
+    /// A DragValue is being dragged (merge the edits into one undo step).
+    pub dragging: bool,
+    pub stopped: bool,
+    pub label: &'static str,
+}
+
+/// The editable filter list (objects' Filters section and the Layer Properties
+/// effects): one collapsible block per filter, Add / Remove / Presets.
+pub(crate) fn filter_list_ui(app: &mut App, ui: &mut egui::Ui, list: &mut Vec<Filter>, salt: &str) -> FilterEdit {
     let mut changed = false;
     let mut dragging = false;
     let mut stopped = false;
@@ -2684,7 +2782,7 @@ fn filters_section(app: &mut App, ui: &mut egui::Ui, el: &Element) {
             Filter::Effect { id, .. } => ac_render::effectcraft::info(id).map_or_else(|| format!("Effect: {id} (not available)"), |e| e.name.to_string()),
             other => other.name().to_string(),
         };
-        egui::CollapsingHeader::new(RichText::new(title).color(Color32::from_gray(220))).id_salt(("filter", k)).default_open(true).show(ui, |ui| {
+        egui::CollapsingHeader::new(RichText::new(title).color(Color32::from_gray(220))).id_salt((salt, k)).default_open(true).show(ui, |ui| {
             let dv = |ui: &mut egui::Ui, label: &str, v: &mut f32, lo: f32, hi: f32, suffix: &str| {
                 ui.label(label);
                 let r = ui.add(egui::DragValue::new(v).range(lo..=hi).speed(0.5).suffix(suffix).max_decimals(1));
@@ -2701,7 +2799,7 @@ fn filters_section(app: &mut App, ui: &mut egui::Ui, el: &Element) {
             };
             let mut footer_slot: Option<String> = None;
             let footer = &mut footer_slot;
-            egui::Grid::new(("fgrid", k)).num_columns(2).spacing([6.0, 3.0]).show(ui, |ui| match f {
+            egui::Grid::new((salt, "grid", k)).num_columns(2).spacing([6.0, 3.0]).show(ui, |ui| match f {
                 Filter::Blur { blur_x, blur_y, quality } => {
                     track(dv(ui, "Blur X", blur_x, 0.0, 255.0, " px"), &mut changed);
                     track(dv(ui, "Blur Y", blur_y, 0.0, 255.0, " px"), &mut changed);
@@ -2976,20 +3074,10 @@ fn filters_section(app: &mut App, ui: &mut egui::Ui, el: &Element) {
             });
         });
     });
-    if stopped {
-        app.prop_dragging = false;
-    }
-    if changed {
-        if dragging {
-            if !app.prop_dragging {
-                app.ed.begin_edit("Filter");
-                app.prop_dragging = true;
-            }
-            app.ed.modify_selected_continuous(|e| e.filters = list.clone());
-        } else {
-            app.ed.modify_selected(label, |e| e.filters = list.clone());
-        }
-    }
+    FilterEdit { changed, dragging, stopped, label }
+}
+
+fn blend_row(app: &mut App, ui: &mut egui::Ui, el: &Element) {
     let mut blend = el.blend;
     ui.horizontal(|ui| {
         ui.label("Blending");
