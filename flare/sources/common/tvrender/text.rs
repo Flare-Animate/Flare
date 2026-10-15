@@ -24,6 +24,72 @@ pub enum Align {
     Left,
     Center,
     Right,
+    /// Lines of a fixed-width box fill the width (the last line of each paragraph stays left).
+    Justify,
+}
+
+/// Character position: normal, superscript or subscript (smaller, raised or lowered).
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Default)]
+pub enum Baseline {
+    #[default]
+    Normal,
+    Superscript,
+    Subscript,
+}
+
+/// Paragraph and character layout options (Properties › Paragraph / Character).
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Default)]
+#[serde(default)]
+pub struct Paragraph {
+    /// Extra space between lines, in pixels.
+    pub line_spacing: f32,
+    /// First-line indent of each paragraph.
+    pub indent: f32,
+    pub margin_left: f32,
+    pub margin_right: f32,
+    /// Fixed-width text box: words wrap at this width. None = the box grows with the text.
+    pub width: Option<f32>,
+    pub baseline: Baseline,
+    /// Auto-kern off.
+    pub no_kern: bool,
+}
+
+impl Paragraph {
+    pub fn is_default(&self) -> bool {
+        *self == Paragraph::default()
+    }
+}
+
+/// Static, Dynamic (scripts can change its text) or Input (the viewer types into it).
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Default)]
+pub enum TextKind {
+    #[default]
+    Static,
+    Dynamic,
+    Input,
+}
+
+/// Text field options: kind, input limits, border, link.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Default)]
+#[serde(default)]
+pub struct TextField {
+    pub kind: TextKind,
+    /// Input text: most characters accepted (0 = no limit).
+    pub max_chars: u32,
+    /// Dynamic/Input text the viewer can select.
+    pub selectable: bool,
+    /// Draw a border and background around the box.
+    pub border: bool,
+    /// Input text shows bullets instead of the characters.
+    pub password: bool,
+    /// Clicking the text opens this address (published movies).
+    pub link: Option<String>,
+}
+
+impl TextField {
+    pub fn is_default(&self) -> bool {
+        *self == TextField::default()
+    }
 }
 
 fn font(face: FontFace) -> &'static FontRef<'static> {
@@ -69,11 +135,17 @@ pub fn styled_font(family: &str, weight: u16, italic: bool) -> Option<(Arc<FontV
 /// has one, otherwise fakes them (bold grows the outline, italic slants it).
 #[allow(clippy::too_many_arguments)]
 pub fn text_path_styled(text: &str, size: f32, family: Option<&str>, face: FontFace, weight: u16, italic: bool, align: Align, letter_spacing: f32) -> Path {
+    text_path_styled_para(text, size, family, face, weight, italic, align, letter_spacing, &Paragraph::default())
+}
+
+/// `text_path_styled` with paragraph options.
+#[allow(clippy::too_many_arguments)]
+pub fn text_path_styled_para(text: &str, size: f32, family: Option<&str>, face: FontFace, weight: u16, italic: bool, align: Align, letter_spacing: f32, para: &Paragraph) -> Path {
     let (path, have_w, have_i, ascent) = match family.and_then(|fam| styled_font(fam, weight, italic)) {
-        Some((f, w, i)) => (outline_with(&*f, text, size, align, letter_spacing), w, i, f.as_scaled(size.max(1.0)).ascent()),
+        Some((f, w, i)) => (outline_para(&*f, text, size, align, letter_spacing, para), w, i, f.as_scaled(size.max(1.0)).ascent()),
         None => {
             let base_w = if face == FontFace::Sans { 300 } else { 400 };
-            (text_path(text, size, face, align, letter_spacing), base_w, false, font(face).as_scaled(size.max(1.0)).ascent())
+            (outline_para(font(face), text, size, align, letter_spacing, para), base_w, false, font(face).as_scaled(size.max(1.0)).ascent())
         }
     };
     let mut path = path;
@@ -108,28 +180,128 @@ pub fn text_path_family(text: &str, size: f32, family: Option<&str>, face: FontF
     }
 }
 
-fn outline_with<F: Font>(font: &F, text: &str, size: f32, align: Align, letter_spacing: f32) -> Path {
-    let f = font.as_scaled(size.max(1.0));
-    let scale = f.scale_factor();
-    let line_h = f.height() + f.line_gap();
-    let lines: Vec<&str> = text.split('\n').collect();
-    let widths: Vec<f32> = lines.iter().map(|l| line_width(&f, l, letter_spacing)).collect();
-    let max_w = widths.iter().cloned().fold(0.0, f32::max);
-    let mut segs = Vec::new();
-    for (li, line) in lines.iter().enumerate() {
-        let x0 = match align {
-            Align::Left => 0.0,
-            Align::Center => (max_w - widths[li]) / 2.0,
-            Align::Right => max_w - widths[li],
-        };
-        let baseline = f.ascent() + li as f32 * line_h;
-        let mut x = x0;
-        let mut prev: Option<ab_glyph::GlyphId> = None;
-        for ch in line.chars() {
-            let id = f.glyph_id(ch);
-            if let Some(p) = prev {
-                x += f.kern(p, id);
+/// A line before alignment: glyphs (relative x), width without trailing
+/// spaces, last line of its paragraph, first line of its paragraph.
+type RawLine = (Vec<(char, ab_glyph::GlyphId, f32)>, f32, bool, bool);
+
+/// One laid-out line: glyphs with their pen x, the line's baseline.
+struct Line {
+    glyphs: Vec<(char, ab_glyph::GlyphId, f32)>,
+    baseline: f32,
+}
+
+/// Lay text out: paragraphs on '\n', words wrapping in a fixed-width box,
+/// indent, margins, line spacing, alignment (justify), baseline shift and
+/// kerning. Returns the lines and the glyph scale font size used.
+fn layout<F: Font>(font: &F, text: &str, size: f32, align: Align, letter_spacing: f32, para: &Paragraph) -> (Vec<Line>, f32) {
+    let size = size.max(1.0);
+    let full = font.as_scaled(size);
+    let (gsize, shift) = match para.baseline {
+        Baseline::Normal => (size, 0.0),
+        Baseline::Superscript => (size * 0.62, -size * 0.38),
+        Baseline::Subscript => (size * 0.62, size * 0.12),
+    };
+    let f = font.as_scaled(gsize);
+    let line_h = full.height() + full.line_gap() + para.line_spacing;
+    let kern = |a: Option<ab_glyph::GlyphId>, b: ab_glyph::GlyphId| if para.no_kern { 0.0 } else { a.map(|a| f.kern(a, b)).unwrap_or(0.0) };
+    let box_w = para.width.map(|w| (w - para.margin_left - para.margin_right).max(gsize));
+    // (glyphs relative to the line start, width without trailing spaces, last line of its paragraph, first line of its paragraph)
+    let mut raw: Vec<RawLine> = vec![];
+    for paragraph in text.split('\n') {
+        let chars: Vec<char> = paragraph.chars().collect();
+        let mut start = 0;
+        let mut first = true;
+        loop {
+            let avail = box_w.map(|w| w - if first { para.indent } else { 0.0 });
+            let mut x = 0.0;
+            let mut prev = None;
+            let mut line = vec![];
+            let mut last_space: Option<usize> = None;
+            let mut k = start;
+            let mut broke = false;
+            while k < chars.len() {
+                let ch = chars[k];
+                let id = f.glyph_id(ch);
+                let gx = x + kern(prev, id);
+                let adv = f.h_advance(id) + letter_spacing;
+                if let Some(a) = avail {
+                    if gx + adv > a && !ch.is_whitespace() && !line.is_empty() {
+                        broke = true;
+                        break;
+                    }
+                }
+                if ch.is_whitespace() {
+                    last_space = Some(line.len());
+                }
+                line.push((ch, id, gx));
+                x = gx + adv;
+                prev = Some(id);
+                k += 1;
             }
+            if broke {
+                // back up to the last space when there is one on the line
+                if let Some(sp) = last_space.filter(|&sp| sp > 0) {
+                    let keep = sp;
+                    k = start + keep + 1;
+                    line.truncate(keep);
+                }
+            }
+            let width = line.iter().rev().find(|g| !g.0.is_whitespace()).map(|g| g.2 + f.h_advance(g.1)).unwrap_or(0.0);
+            let done = k >= chars.len();
+            raw.push((line, width, done, first));
+            if done {
+                break;
+            }
+            start = k;
+            // spaces at the start of a wrapped line are dropped
+            while start < chars.len() && chars[start] == ' ' {
+                start += 1;
+            }
+            first = false;
+        }
+    }
+    let content_w = box_w.unwrap_or_else(|| raw.iter().map(|l| l.1 + if l.3 { para.indent } else { 0.0 }).fold(0.0, f32::max));
+    let mut lines = vec![];
+    for (li, (glyphs, width, last, first)) in raw.into_iter().enumerate() {
+        let ind = if first { para.indent } else { 0.0 };
+        let room = content_w - ind - width;
+        let x0 = para.margin_left
+            + ind
+            + match align {
+                Align::Left | Align::Justify => 0.0,
+                Align::Center => room / 2.0,
+                Align::Right => room,
+            };
+        let spaces = glyphs.iter().filter(|g| g.0 == ' ').count();
+        let extra = if align == Align::Justify && box_w.is_some() && !last && spaces > 0 { room.max(0.0) / spaces as f32 } else { 0.0 };
+        let mut add = 0.0;
+        let glyphs = glyphs
+            .into_iter()
+            .map(|(ch, id, x)| {
+                let g = (ch, id, x0 + x + add);
+                if ch == ' ' {
+                    add += extra;
+                }
+                g
+            })
+            .collect();
+        lines.push(Line { glyphs, baseline: full.ascent() + li as f32 * line_h + shift });
+    }
+    (lines, gsize)
+}
+
+fn outline_with<F: Font>(font: &F, text: &str, size: f32, align: Align, letter_spacing: f32) -> Path {
+    outline_para(font, text, size, align, letter_spacing, &Paragraph::default())
+}
+
+fn outline_para<F: Font>(font: &F, text: &str, size: f32, align: Align, letter_spacing: f32, para: &Paragraph) -> Path {
+    let (lines, gsize) = layout(font, text, size, align, letter_spacing, para);
+    let f = font.as_scaled(gsize);
+    let scale = f.scale_factor();
+    let mut segs = Vec::new();
+    for line in &lines {
+        let baseline = line.baseline;
+        for &(_, id, x) in &line.glyphs {
             if let Some(outline) = f.font().outline(id) {
                 // Each glyph contour is a chain of curves; start a new subpath at breaks.
                 let mut cur: Option<ab_glyph::Point> = None;
@@ -157,61 +329,53 @@ fn outline_with<F: Font>(font: &F, text: &str, size: f32, align: Align, letter_s
                     segs.push(Seg::Z);
                 }
             }
-            x += f.h_advance(id) + letter_spacing;
-            prev = Some(id);
         }
     }
     Path { segs }
 }
 
+/// Outline with paragraph options (TextEl::outline).
+#[allow(clippy::too_many_arguments)]
+pub fn text_path_para(text: &str, size: f32, family: Option<&str>, face: FontFace, align: Align, letter_spacing: f32, para: &Paragraph) -> Path {
+    match family.and_then(family_font) {
+        Some(f) => outline_para(&*f, text, size, align, letter_spacing, para),
+        None => outline_para(font(face), text, size, align, letter_spacing, para),
+    }
+}
+
+/// The text box size (width × height) for a layout: the fixed width or the
+/// widest line plus margins, by the line count.
+pub fn box_size(text: &str, size: f32, family: Option<&str>, face: FontFace, letter_spacing: f32, para: &Paragraph) -> (f32, f32) {
+    fn go<F: Font>(font: &F, text: &str, size: f32, ls: f32, para: &Paragraph) -> (f32, f32) {
+        let (lines, gsize) = layout(font, text, size, Align::Left, ls, para);
+        let f = font.as_scaled(gsize);
+        let full = font.as_scaled(size.max(1.0));
+        let w = para.width.unwrap_or_else(|| lines.iter().map(|l| l.glyphs.last().map(|g| g.2 + f.h_advance(g.1)).unwrap_or(0.0)).fold(0.0, f32::max) + para.margin_right);
+        let h = lines.len().max(1) as f32 * (full.height() + full.line_gap() + para.line_spacing) - para.line_spacing;
+        (w, h)
+    }
+    match family.and_then(family_font) {
+        Some(f) => go(&*f, text, size, letter_spacing, para),
+        None => go(font(face), text, size, letter_spacing, para),
+    }
+}
+
 /// Top-left position of every visible character (Break Apart: one text
 /// object per letter), same layout as `text_path`.
 pub fn letter_positions(text: &str, size: f32, family: Option<&str>, face: FontFace, align: Align, letter_spacing: f32) -> Vec<(char, Pt)> {
+    letter_positions_para(text, size, family, face, align, letter_spacing, &Paragraph::default())
+}
+
+/// `letter_positions` with paragraph options.
+pub fn letter_positions_para(text: &str, size: f32, family: Option<&str>, face: FontFace, align: Align, letter_spacing: f32, para: &Paragraph) -> Vec<(char, Pt)> {
     match family.and_then(family_font) {
-        Some(f) => letters_with(&*f, text, size, align, letter_spacing),
-        None => letters_with(font(face), text, size, align, letter_spacing),
+        Some(f) => letters_with(&*f, text, size, align, letter_spacing, para),
+        None => letters_with(font(face), text, size, align, letter_spacing, para),
     }
 }
 
-fn letters_with<F: Font>(font: &F, text: &str, size: f32, align: Align, letter_spacing: f32) -> Vec<(char, Pt)> {
-    let f = font.as_scaled(size.max(1.0));
-    let line_h = f.height() + f.line_gap();
-    let lines: Vec<&str> = text.split('\n').collect();
-    let widths: Vec<f32> = lines.iter().map(|l| line_width(&f, l, letter_spacing)).collect();
-    let max_w = widths.iter().cloned().fold(0.0, f32::max);
-    let mut out = vec![];
-    for (li, line) in lines.iter().enumerate() {
-        let mut x = match align {
-            Align::Left => 0.0,
-            Align::Center => (max_w - widths[li]) / 2.0,
-            Align::Right => max_w - widths[li],
-        };
-        let mut prev: Option<ab_glyph::GlyphId> = None;
-        for ch in line.chars() {
-            let id = f.glyph_id(ch);
-            if let Some(p) = prev {
-                x += f.kern(p, id);
-            }
-            if !ch.is_whitespace() {
-                out.push((ch, pt(x, li as f32 * line_h)));
-            }
-            x += f.h_advance(id) + letter_spacing;
-            prev = Some(id);
-        }
-    }
-    out
-}
-
-fn line_width<F: Font, S: ScaleFont<F>>(f: &S, line: &str, spacing: f32) -> f32 {
-    let mut w = 0.0;
-    let mut prev = None;
-    for ch in line.chars() {
-        let id = f.glyph_id(ch);
-        if let Some(p) = prev {
-            w += f.kern(p, id);
-        }
-        w += f.h_advance(id) + spacing;
-        prev = Some(id);
-    }
-    w
+fn letters_with<F: Font>(font: &F, text: &str, size: f32, align: Align, letter_spacing: f32, para: &Paragraph) -> Vec<(char, Pt)> {
+    let (lines, gsize) = layout(font, text, size, align, letter_spacing, para);
+    let asc = font.as_scaled(gsize).ascent();
+    lines.iter().flat_map(|l| l.glyphs.iter().filter(|g| !g.0.is_whitespace()).map(move |&(ch, _, x)| (ch, pt(x, l.baseline - asc)))).collect()
 }

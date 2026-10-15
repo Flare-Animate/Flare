@@ -519,6 +519,58 @@ pub fn convert_to_frame_by_frame(layer: &mut Layer, f0: u32, f1: u32) {
     }
 }
 
+/// Synchronize Symbols: graphic instances keep counting across the keyframes
+/// in `f0..=f1` instead of restarting at their First Frame. Classic tweens get
+/// their Sync option; between untweened keyframes the later instance of the
+/// same symbol (same stacking position) gets its First Frame advanced by the
+/// keyframe gap. Returns how many keyframes or instances changed.
+pub fn synchronize_symbols(layer: &mut Layer, f0: u32, f1: u32) -> usize {
+    type First = Option<(SymbolId, LoopMode, u32)>;
+    let firsts = |els: &[Element]| -> Vec<First> {
+        els.iter()
+            .map(|e| match &e.kind {
+                ElementKind::Instance(i) => Some((i.symbol, i.loop_mode, i.first_frame)),
+                _ => None,
+            })
+            .collect()
+    };
+    let start = layer.keyframes.range(..=f0).next_back().map(|(k, _)| *k).unwrap_or(f0);
+    let keys: Vec<u32> = layer.keyframes.range(start..=f1).map(|(k, _)| *k).collect();
+    let Some(&k0) = keys.first() else { return 0 };
+    // where each instance of the previous keyframe really starts (synced tweens shift it)
+    let mut eff: Vec<First> = firsts(&layer.keyframes[&k0].elements);
+    let mut n = 0;
+    for w in keys.windows(2) {
+        let (pk, k) = (w[0], w[1]);
+        let step = k - pk;
+        let tween = layer.keyframes[&pk].tween;
+        let classic = matches!(tween, Tween::Classic { .. });
+        if classic && !layer.keyframes[&pk].sync {
+            layer.keyframes.get_mut(&pk).expect("key").sync = true;
+            n += 1;
+        }
+        let cur = firsts(&layer.keyframes[&k].elements);
+        let carried = |i: usize, c: &First| match (c, eff.get(i).copied().flatten()) {
+            (Some((sym, mode, _)), Some((psym, pmode, pf))) if *sym == psym && *mode == pmode && matches!(mode, LoopMode::Loop | LoopMode::PlayOnce) => Some((psym, pmode, pf.saturating_add(step))),
+            _ => None,
+        };
+        let next: Vec<First> = cur.iter().enumerate().map(|(i, c)| carried(i, c).or(*c)).collect();
+        if !classic && tween == Tween::None {
+            for (e, to) in layer.keyframes.get_mut(&k).expect("key").elements.iter_mut().zip(&next) {
+                if let (ElementKind::Instance(i), Some((sym, _, f))) = (&mut e.kind, to) {
+                    if i.symbol == *sym && i.first_frame != *f {
+                        i.first_frame = *f;
+                        n += 1;
+                    }
+                }
+            }
+        }
+        // shape and motion tweens break the chain
+        eff = if classic || tween == Tween::None { next } else { cur };
+    }
+    n
+}
+
 /// Reverse Frames: frame f in `f0..=f1` shows what frame `f0 + f1 − f` showed.
 /// Tweens keep working (backwards, with mirrored eases).
 pub fn reverse_frames(layer: &mut Layer, f0: u32, f1: u32) {

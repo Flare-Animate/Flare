@@ -58,3 +58,17 @@ Further adaptations must be listed here and covered by tests. To update, copy
 `crates/ac-core/{src,tests}` and `assets/mypaint` from a newer upstream commit,
 re-apply the adaptations above, and move Studio's `ac-core` / `ac-render` git
 pins to the same commit.
+
+## Update from Flare-Animate/RustConversion-AnimateCraft
+
+`crates/ac-core` of `Flare-Animate/RustConversion-AnimateCraft` commit
+`f636b05` (same crate lineage) was merged in October 2026. Taken verbatim from
+upstream: `expr`, `merge`, `text` (superset: Paragraph / Justify / Baseline /
+TextKind plus Flare's `letter_positions`, `text_path_family`, letter spacing),
+`editor`, `model`, `commands`, `frames`, and the new tests `p1_gaps`,
+`p2_timeline`, `workspace_gaps` and `examples/brush_gallery.rs`. Upstream already
+contains the earlier Flare additions (200-step undo limit, per-letter Break Apart,
+`draw.text` / `selection.to_symbol` / `selection.add_filter`). Flare-only
+adaptations kept: `#[path]` module layout in `ac_core.rs`, the
+`retain-tween-curves` feature (default for `frames::RETAIN`), and the
+`flarelib/assets/mypaint` include path in `tnztools/mypaint.rs`.

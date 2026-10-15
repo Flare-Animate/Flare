@@ -76,6 +76,14 @@ pub struct Editor {
     pub group_edit: Vec<(SymbolId, Option<SymbolId>, Selection, u32)>,
 }
 
+/// A library item (Library panel: symbols, bitmaps and sounds).
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum LibItem {
+    Symbol(SymbolId),
+    Bitmap(crate::bitmap::BitmapId),
+    Sound(crate::sound::SoundId),
+}
+
 /// Name of the temporary symbol that holds a group while it is edited.
 pub const GROUP_EDIT_NAME: &str = "\u{2039}group\u{203A}";
 
@@ -85,7 +93,12 @@ struct Snapshot {
     label: String,
 }
 
-const UNDO_LIMIT: usize = 200;
+static UNDO_LIMIT: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(200);
+
+/// Preferences › General › Undo levels (2…1000; default 200), for every editor.
+pub fn set_undo_limit(n: usize) {
+    UNDO_LIMIT.store(n.clamp(2, 1000), std::sync::atomic::Ordering::Relaxed);
+}
 
 impl Editor {
     pub fn new(doc: Document) -> Self {
@@ -116,7 +129,8 @@ impl Editor {
     fn checkpoint(&mut self, label: &str) {
         self.revision += 1;
         self.undo.push(Snapshot { doc: self.doc.clone(), label: label.into() });
-        if self.undo.len() > UNDO_LIMIT {
+        let limit = UNDO_LIMIT.load(std::sync::atomic::Ordering::Relaxed);
+        while self.undo.len() > limit {
             self.undo.remove(0);
         }
         self.redo.clear();
@@ -142,6 +156,21 @@ impl Editor {
     }
     pub fn redo_label(&self) -> Option<&str> {
         self.redo.last().map(|s| s.label.as_str())
+    }
+    /// History panel: the steps done (oldest first) and the steps that can be
+    /// redone (next first).
+    pub fn history(&self) -> (Vec<&str>, Vec<&str>) {
+        (self.undo.iter().map(|s| s.label.as_str()).collect(), self.redo.iter().rev().map(|s| s.label.as_str()).collect())
+    }
+    /// Undo or redo until `done` steps are done (History panel click).
+    pub fn go_to_step(&mut self, done: usize) {
+        while self.undo.len() > done && self.undo().is_some() {}
+        while self.undo.len() < done && self.redo().is_some() {}
+    }
+    /// History › Clear History: forget every step (the document stays as it is).
+    pub fn clear_history(&mut self) {
+        self.undo.clear();
+        self.redo.clear();
     }
 
     fn fix_indices(&mut self) {
@@ -554,6 +583,18 @@ impl Editor {
     /// Modify ▸ Timeline ▸ Reverse Frames.
     pub fn reverse_frames(&mut self) {
         self.for_each_layer("Reverse Frames", |l, s| frames::reverse_frames(l, s.f0, s.f1));
+    }
+    /// Synchronize Symbols over the selected frames (or the current layer's
+    /// keyframes up to the playhead's span). Returns the number of changes.
+    pub fn synchronize_symbols(&mut self) -> usize {
+        let mut n = 0;
+        let whole = self.frame_sel.is_none();
+        self.for_each_layer("Synchronize Symbols", |l, s| {
+            // a single clicked cell means "this layer", as in Animate's right-click on a tween
+            let (f0, f1) = if whole || s.f0 == s.f1 { (0, l.end) } else { (s.f0, s.f1) };
+            n += frames::synchronize_symbols(l, f0, f1);
+        });
+        n
     }
     /// Convert to Frame-by-Frame Animation (tweens become keyframes).
     pub fn convert_to_frame_by_frame(&mut self) {
@@ -1474,6 +1515,36 @@ impl Editor {
         }
     }
 
+    /// Alt-drag with the Selection tool: leave a copy of the selection where
+    /// it is and keep dragging the selection (objects are cloned on top of
+    /// their layer, merge-shape selections leave their parts in the shape).
+    /// The clipboard is untouched. One undo step together with the move.
+    pub fn alt_drag_copy(&mut self) -> bool {
+        let sel: Vec<Selection> = self.selection.iter().copied().filter(|s| self.layer_editable(s.layer)).collect();
+        if sel.is_empty() {
+            return false;
+        }
+        self.checkpoint("Copy by Dragging");
+        let mut new_sel = vec![];
+        for s in sel {
+            let Some(key) = self.target_keyframe(s.layer, false) else { continue };
+            let Some(kf) = self.timeline_mut().layers[s.layer].keyframes.get_mut(&key) else { continue };
+            let Some(e) = kf.elements.get_mut(s.element) else { continue };
+            if let ElementKind::Canvas(c) = &mut e.kind {
+                if let Some(f) = c.float.clone() {
+                    c.merge_in(&f);
+                }
+                new_sel.push(s);
+                continue;
+            }
+            let copy = e.clone();
+            kf.elements.push(copy);
+            new_sel.push(Selection { layer: s.layer, element: kf.elements.len() - 1 });
+        }
+        self.selection = new_sel;
+        true
+    }
+
     /// Duplicate exactly on top of the original (used by Copy and Transform).
     pub fn duplicate_in_place(&mut self) {
         if self.copy_selected() > 0 {
@@ -1518,6 +1589,12 @@ impl Editor {
     /// F8 – Convert to Symbol. All selected objects on the first selected
     /// layer go into the new symbol; registration point = centre of their bounds.
     pub fn convert_to_symbol(&mut self, name: &str, kind: SymbolKind) -> Option<SymbolId> {
+        self.convert_to_symbol_at(name, kind, [1, 1])
+    }
+
+    /// Convert to Symbol with the registration point on the 3 × 3 grid of the
+    /// selection's bounds (`[column, row]`, 0 = left/top, 2 = right/bottom).
+    pub fn convert_to_symbol_at(&mut self, name: &str, kind: SymbolKind, reg_cell: [u8; 2]) -> Option<SymbolId> {
         self.detach_floats();
         let first = *self.selection.first()?;
         let sels: Vec<Selection> = self.selection.iter().copied().filter(|s| s.layer == first.layer).collect();
@@ -1526,7 +1603,8 @@ impl Editor {
             return None;
         }
         let (lo, hi) = self.bounds_of(&sels)?;
-        let reg = pt((lo.x + hi.x) / 2.0, (lo.y + hi.y) / 2.0);
+        let (cx, cy) = (reg_cell[0].min(2) as f32 / 2.0, reg_cell[1].min(2) as f32 / 2.0);
+        let reg = pt(lo.x + (hi.x - lo.x) * cx, lo.y + (hi.y - lo.y) * cy);
         self.checkpoint("Convert to Symbol");
         // structural edits use visible poses (don't apply a retained correction twice)
         let frame = self.frame;
@@ -1691,11 +1769,13 @@ impl Editor {
     fn break_parts(&self, el: &Element) -> Vec<Element> {
         match &el.kind {
             ElementKind::Text(t) => {
-                let letters = crate::text::letter_positions(&t.text, t.size, t.family.as_deref(), t.font, t.align, t.letter_spacing);
+                let letters = crate::text::letter_positions_para(&t.shown(), t.size, t.family.as_deref(), t.font, t.align, t.letter_spacing, &t.para);
+                // each letter is plain static text at the size it was drawn
+                let size = if t.para.baseline == crate::text::Baseline::Normal { t.size } else { t.size * 0.62 };
                 if letters.len() > 1 {
                     letters
                         .into_iter()
-                        .map(|(ch, at)| Element { kind: ElementKind::Text(TextEl { text: ch.to_string(), align: crate::text::Align::Left, ..t.clone() }), matrix: el.matrix.concat(&Matrix::translate(at.x, at.y)), name: String::new(), ..el.clone() })
+                        .map(|(ch, at)| Element { kind: ElementKind::Text(TextEl { text: ch.to_string(), align: crate::text::Align::Left, size, para: Default::default(), field: Default::default(), ..t.clone() }), matrix: el.matrix.concat(&Matrix::translate(at.x, at.y)), name: String::new(), ..el.clone() })
                         .collect()
                 } else {
                     vec![Element { kind: ElementKind::Shape(Shape::new(t.outline(), Some(t.color), None)), name: String::new(), ..el.clone() }]
@@ -2050,6 +2130,7 @@ impl Editor {
     /// Delete a library item and every instance of it.
     pub fn delete_symbol(&mut self, id: SymbolId) {
         self.checkpoint("Delete Library Item");
+        self.doc.linkage.remove(&id);
         fn strip_els(els: &mut Vec<Element>, id: SymbolId) {
             els.retain(|e| !matches!(&e.kind, ElementKind::Instance(i) if i.symbol == id));
             for e in els {
@@ -2089,6 +2170,43 @@ impl Editor {
         Some(self.doc.add_symbol(&format!("{} copy", s.name), s.kind, s.timeline))
     }
 
+    /// Swap Symbol › Duplicate Symbol: copy the selected instances' symbol
+    /// (into the same library folder) and show the copy, in one undo step.
+    /// An empty `name` gives "<name> copy", numbered if that's taken.
+    pub fn duplicate_and_swap(&mut self, name: &str) -> Option<SymbolId> {
+        let ElementKind::Instance(inst) = self.selected_element()?.kind else { return None };
+        let src = self.doc.symbol(inst.symbol)?.clone();
+        let (folder, base) = split_item_path(&src.name);
+        // "Walk copy" and "Walk copy 3" duplicate as further copies of "Walk"
+        let base = match base.rfind(" copy") {
+            Some(i) if base[i + 5..].trim().chars().all(|c| c.is_ascii_digit()) => &base[..i],
+            _ => base,
+        };
+        let leaf = name.trim();
+        if leaf.contains('/') {
+            return None;
+        }
+        let taken = |n: &str| self.doc.library.iter().any(|s| s.name == n);
+        let first = if leaf.is_empty() { format!("{base} copy") } else { leaf.to_string() };
+        let mut full = join_item_path(folder, &first);
+        let mut k = 2;
+        while taken(&full) {
+            if !leaf.is_empty() {
+                return None; // an explicit name must be free
+            }
+            full = join_item_path(folder, &format!("{base} copy {k}"));
+            k += 1;
+        }
+        self.checkpoint("Duplicate Symbol and Swap");
+        let id = self.doc.add_symbol(&full, src.kind, src.timeline);
+        self.modify_selected_continuous(move |e| {
+            if let ElementKind::Instance(i) = &mut e.kind {
+                i.symbol = id;
+            }
+        });
+        Some(id)
+    }
+
     pub fn set_symbol_kind(&mut self, id: SymbolId, kind: SymbolKind) {
         self.checkpoint("Symbol Type");
         if let Some(s) = self.doc.symbol_mut(id) {
@@ -2104,11 +2222,286 @@ impl Editor {
         self.doc.background = bg;
     }
 
+    // ------------------------------------------------------------ library folders
+
+    /// The full name (folder path + name) of a library item.
+    pub fn item_name(&self, it: LibItem) -> Option<String> {
+        match it {
+            LibItem::Symbol(id) => self.doc.symbol(id).map(|s| s.name.clone()),
+            LibItem::Bitmap(id) => self.doc.bitmap(id).map(|b| b.name.clone()),
+            LibItem::Sound(id) => self.doc.sounds.iter().find(|s| s.id == id).map(|s| s.name.clone()),
+        }
+    }
+    fn set_item_name_raw(&mut self, it: LibItem, name: String) {
+        match it {
+            LibItem::Symbol(id) => {
+                if let Some(s) = self.doc.symbol_mut(id) {
+                    s.name = name;
+                }
+            }
+            LibItem::Bitmap(id) => {
+                if let Some(b) = self.doc.bitmaps.iter_mut().find(|b| b.id == id) {
+                    b.name = name;
+                }
+            }
+            LibItem::Sound(id) => {
+                if let Some(s) = self.doc.sounds.iter_mut().find(|s| s.id == id) {
+                    s.name = name;
+                }
+            }
+        }
+    }
+    fn all_items(&self) -> Vec<(LibItem, String)> {
+        let mut v: Vec<(LibItem, String)> = self.doc.library.iter().filter(|s| s.name != GROUP_EDIT_NAME).map(|s| (LibItem::Symbol(s.id), s.name.clone())).collect();
+        v.extend(self.doc.bitmaps.iter().map(|b| (LibItem::Bitmap(b.id), b.name.clone())));
+        v.extend(self.doc.sounds.iter().map(|s| (LibItem::Sound(s.id), s.name.clone())));
+        v
+    }
+    /// Every folder: the stored ones and every folder an item's name puts it
+    /// in (with their parents), sorted.
+    pub fn library_folders(&self) -> Vec<String> {
+        let mut set: std::collections::BTreeSet<String> = self.doc.folders.iter().cloned().collect();
+        for (_, n) in self.all_items() {
+            let mut f = split_item_path(&n).0;
+            while !f.is_empty() {
+                set.insert(f.to_string());
+                f = split_item_path(f).0;
+            }
+        }
+        for f in self.doc.folders.clone() {
+            let mut p = split_item_path(&f).0;
+            while !p.is_empty() {
+                set.insert(p.to_string());
+                p = split_item_path(p).0;
+            }
+        }
+        set.into_iter().collect()
+    }
+    /// New Folder inside `parent` ("" = root): "untitled folder N"; returns its path.
+    pub fn new_folder(&mut self, parent: &str) -> String {
+        let all = self.library_folders();
+        let mut n = 1;
+        let path = loop {
+            let p = join_item_path(parent, &format!("untitled folder {n}"));
+            if !all.contains(&p) {
+                break p;
+            }
+            n += 1;
+        };
+        self.checkpoint("New Folder");
+        self.doc.folders.push(path.clone());
+        path
+    }
+    /// Rename a folder (its last part); items and subfolders follow. False if
+    /// the name is empty, has a '/', or is taken.
+    pub fn rename_folder(&mut self, path: &str, new_leaf: &str) -> bool {
+        let new_leaf = new_leaf.trim();
+        if new_leaf.is_empty() || new_leaf.contains('/') {
+            return false;
+        }
+        let new_path = join_item_path(split_item_path(path).0, new_leaf);
+        if new_path == path || self.library_folders().contains(&new_path) {
+            return new_path == path;
+        }
+        self.checkpoint("Rename Folder");
+        let re = |n: &str| -> Option<String> { if n == path { Some(new_path.clone()) } else { n.strip_prefix(&format!("{path}/")).map(|rest| format!("{new_path}/{rest}")) } };
+        for f in &mut self.doc.folders {
+            if let Some(n) = re(f) {
+                *f = n;
+            }
+        }
+        for (it, n) in self.all_items() {
+            if let Some(nn) = re(&n) {
+                self.set_item_name_raw(it, nn);
+            }
+        }
+        true
+    }
+    /// Delete a folder: its items and subfolders move up to its parent.
+    pub fn delete_folder(&mut self, path: &str) {
+        let parent = split_item_path(path).0.to_string();
+        self.checkpoint("Delete Folder");
+        let up = |n: &str| -> Option<String> { n.strip_prefix(&format!("{path}/")).map(|rest| join_item_path(&parent, rest)) };
+        self.doc.folders.retain(|f| f != path);
+        for f in &mut self.doc.folders {
+            if let Some(n) = up(f) {
+                *f = n;
+            }
+        }
+        for (it, n) in self.all_items() {
+            if let Some(nn) = up(&n) {
+                self.set_item_name_raw(it, nn);
+            }
+        }
+    }
+    /// Move an item into a folder ("" = root), keeping its own name (made
+    /// unique there with a number).
+    pub fn move_to_folder(&mut self, it: LibItem, folder: &str) -> bool {
+        let Some(name) = self.item_name(it) else { return false };
+        let (cur, leaf) = split_item_path(&name);
+        if cur == folder {
+            return false;
+        }
+        let taken: Vec<String> = self.all_items().into_iter().map(|(_, n)| n).collect();
+        let mut target = join_item_path(folder, leaf);
+        let mut k = 2;
+        while taken.contains(&target) {
+            target = join_item_path(folder, &format!("{leaf} {k}"));
+            k += 1;
+        }
+        self.checkpoint("Move to Folder");
+        if !folder.is_empty() && !self.doc.folders.iter().any(|f| f == folder) {
+            self.doc.folders.push(folder.to_string());
+        }
+        self.set_item_name_raw(it, target);
+        true
+    }
+    /// Library item Properties: name (in its folder), and for symbols the type
+    /// and linkage class (None = not exported).
+    pub fn set_item_props(&mut self, it: LibItem, leaf: &str, kind: Option<SymbolKind>, linkage: Option<String>) -> bool {
+        let Some(name) = self.item_name(it) else { return false };
+        let leaf = leaf.trim();
+        if leaf.is_empty() || leaf.contains('/') {
+            return false;
+        }
+        self.checkpoint("Library Item Properties");
+        let new = join_item_path(split_item_path(&name).0, leaf);
+        self.set_item_name_raw(it, new);
+        if let LibItem::Symbol(id) = it {
+            if let (Some(k), Some(s)) = (kind, self.doc.symbol_mut(id)) {
+                s.kind = k;
+            }
+            match linkage.map(|l| l.trim().to_string()).filter(|l| !l.is_empty()) {
+                Some(l) => {
+                    self.doc.linkage.insert(id, l);
+                }
+                None => {
+                    self.doc.linkage.remove(&id);
+                }
+            }
+        }
+        true
+    }
+
+    /// Modify › Document (Ctrl+J): stage size, frame rate and colour in one
+    /// step. A new size either scales every scene's content with the stage
+    /// (`scale_content`) or keeps it, placed by `anchor` (`[column, row]` on
+    /// the 3 × 3 grid: which part of the old stage stays put). A new frame rate
+    /// with `scale_spans` stretches every timeline so the movie keeps its
+    /// duration (motion tween keys stretch with their spans).
+    #[allow(clippy::too_many_arguments)]
+    pub fn document_settings(&mut self, w: f32, h: f32, anchor: [u8; 2], scale_content: bool, fps: f32, scale_spans: bool, bg: Color) {
+        let (ow, oh, ofps) = (self.doc.width, self.doc.height, self.doc.fps);
+        self.checkpoint("Document Settings");
+        let (w, h) = (w.clamp(1.0, 16_000.0), h.clamp(1.0, 16_000.0));
+        if (w - ow).abs() > 1e-3 || (h - oh).abs() > 1e-3 {
+            let m = if scale_content {
+                Matrix::scale(w / ow.max(1e-3), h / oh.max(1e-3))
+            } else {
+                let (ax, ay) = (anchor[0].min(2) as f32 / 2.0, anchor[1].min(2) as f32 / 2.0);
+                Matrix::translate((w - ow) * ax, (h - oh) * ay)
+            };
+            for tl in self.doc.scenes_mut() {
+                for l in &mut tl.layers {
+                    for kf in l.keyframes.values_mut() {
+                        for e in &mut kf.elements {
+                            e.matrix = m.concat(&e.matrix);
+                        }
+                    }
+                }
+            }
+            for x in &mut self.doc.guides.x {
+                *x = m.apply(pt(*x, 0.0)).x;
+            }
+            for y in &mut self.doc.guides.y {
+                *y = m.apply(pt(0.0, *y)).y;
+            }
+        }
+        self.doc.width = w;
+        self.doc.height = h;
+        self.doc.background = bg;
+        let fps = fps.clamp(0.01, 240.0);
+        if scale_spans && (fps - ofps).abs() > 1e-4 {
+            let r = fps / ofps;
+            let scale = |tl: &mut Timeline| {
+                for l in &mut tl.layers {
+                    let old = std::mem::take(&mut l.keyframes);
+                    let starts: Vec<u32> = old.keys().copied().collect();
+                    let end = l.end;
+                    for (i, (k, mut kf)) in old.into_iter().enumerate() {
+                        let next = starts.get(i + 1).copied().unwrap_or(end.max(k + 1));
+                        let nk = (k as f32 * r).round() as u32;
+                        let nn = ((next as f32 * r).round() as u32).max(nk + 1);
+                        if let Some(m) = kf.motion.as_mut() {
+                            m.fit(next - k, nn - nk, true);
+                        }
+                        l.keyframes.entry(nk).or_insert(kf);
+                    }
+                    l.end = ((end as f32 * r).round() as u32).max(1);
+                }
+            };
+            for tl in self.doc.scenes_mut() {
+                scale(tl);
+            }
+            for s in &mut self.doc.library {
+                scale(&mut s.timeline);
+            }
+            self.frame = ((self.frame as f32 * r).round() as u32).min(self.frame_count().saturating_sub(1));
+        }
+        self.doc.fps = fps;
+    }
+
+    /// Modify › Document › Match Contents: the stage becomes the bounds of
+    /// everything in the current scene, which moves to its top-left.
+    pub fn match_contents(&mut self) -> bool {
+        let Some((lo, hi)) = self.content_bounds() else { return false };
+        self.checkpoint("Match Contents");
+        let m = Matrix::translate(-lo.x, -lo.y);
+        for tl in self.doc.scenes_mut() {
+            for l in &mut tl.layers {
+                for kf in l.keyframes.values_mut() {
+                    for e in &mut kf.elements {
+                        e.matrix = m.concat(&e.matrix);
+                    }
+                }
+            }
+        }
+        self.doc.width = (hi.x - lo.x).ceil().max(1.0);
+        self.doc.height = (hi.y - lo.y).ceil().max(1.0);
+        true
+    }
+
+    /// The bounds of everything on every frame of the current scene.
+    pub fn content_bounds(&self) -> Option<(Pt, Pt)> {
+        let tl = self.doc.scenes().nth(self.scene)?;
+        let n = tl.layers.iter().map(|l| l.end).max().unwrap_or(1).max(1);
+        let base = self.doc.scene_start(self.scene);
+        let (mut lo, mut hi) = (pt(f32::MAX, f32::MAX), pt(f32::MIN, f32::MIN));
+        for f in 0..n.min(2000) {
+            let ctx = crate::model::EvalCtx::new(&self.doc, base + f);
+            let mut items = vec![];
+            crate::model::evaluate(&ctx, tl, base + f, &Matrix::IDENTITY, 1.0, 0, &mut items);
+            for it in &items {
+                if let Some((a, b)) = it.path.transformed(&it.matrix).bounds() {
+                    lo = pt(lo.x.min(a.x), lo.y.min(a.y));
+                    hi = pt(hi.x.max(b.x), hi.y.max(b.y));
+                }
+            }
+        }
+        (lo.x <= hi.x).then_some((lo, hi))
+    }
+
     /// 3D perspective: field of view and vanishing point (`None` = stage centre).
     pub fn set_perspective(&mut self, angle: f32, vanishing: Option<Pt>) {
         self.checkpoint("Perspective");
         self.doc.perspective_angle = angle.clamp(1.0, 179.0);
         self.doc.vanishing_point = vanishing;
+    }
+
+    /// Replace the document's swatches (None = use the app's set); one undo step.
+    pub fn set_swatches(&mut self, label: &str, swatches: Option<Vec<Swatch>>) {
+        self.checkpoint(label);
+        self.doc.swatches = swatches;
     }
 
     /// Paint bucket on an element: sets fill (shapes) or tint (instances).
@@ -2790,6 +3183,95 @@ impl Editor {
 
     /// Modify ▸ Shape ▸ Smooth / Straighten / Optimize on drawing objects and
     /// the floating merge selection.
+    /// Modify › Shape › Convert Lines to Fills / Expand Fill / Soften Fill
+    /// Edges on the selection (merge-shape selections and drawing objects).
+    /// `kind`: "lines_to_fills", "expand" (d > 0 grows, < 0 insets), "soften".
+    pub fn shape_fill_op(&mut self, kind: &str, d: f32, steps: u32, inset: bool) {
+        use crate::merge::{offset_polygons, path_polylines, stroke_outline, subtract_polygons};
+        if self.selection.is_empty() {
+            return;
+        }
+        let label = match kind {
+            "lines_to_fills" => "Convert Lines to Fills",
+            "expand" => "Expand Fill",
+            _ => "Soften Fill Edges",
+        };
+        let k = kind.to_string();
+        let polys_path = |polys: &[Vec<Pt>]| {
+            let mut segs = vec![];
+            for p in polys.iter().filter(|p| p.len() >= 3) {
+                segs.push(crate::geom::Seg::M(p[0]));
+                segs.extend(p[1..].iter().map(|q| crate::geom::Seg::L(*q)));
+                segs.push(crate::geom::Seg::Z);
+            }
+            Path { segs }
+        };
+        self.modify_selected(label, move |e| match &mut e.kind {
+            ElementKind::Canvas(c) => {
+                if let Some(f) = c.float.as_mut() {
+                    match k.as_str() {
+                        "lines_to_fills" => {
+                            f.lines_to_fills();
+                        }
+                        "expand" => f.expand_fills(d),
+                        _ => f.soften_fills(d, steps, inset),
+                    }
+                }
+            }
+            ElementKind::Shape(sh) => match k.as_str() {
+                "lines_to_fills" => {
+                    let Some(st) = sh.stroke.take() else { return };
+                    let mut outline = vec![];
+                    for (pts, closed) in path_polylines(&sh.path) {
+                        outline.extend(stroke_outline(&pts, closed || sh.fill.is_some(), st.width));
+                    }
+                    let line = Shape::new(polys_path(&outline), Some(st.color), None);
+                    if sh.fill.is_none() && sh.gradient.is_none() && sh.bitmap_fill.is_none() {
+                        *sh = line;
+                    } else {
+                        let fill = sh.clone();
+                        e.kind = ElementKind::Group(vec![Element::shape("", fill), Element::shape("", line)]);
+                    }
+                }
+                _ if sh.fill.is_none() && sh.gradient.is_none() => {}
+                "expand" => {
+                    let grown = offset_polygons(&crate::merge::path_polygons(&sh.path), d);
+                    if !grown.is_empty() {
+                        sh.path = polys_path(&grown);
+                    }
+                }
+                _ => {
+                    let base = crate::merge::path_polygons(&sh.path);
+                    let mut parts = vec![];
+                    let mut inner = if inset { offset_polygons(&base, -d) } else { base.clone() };
+                    let mut core = sh.clone();
+                    core.path = polys_path(&inner);
+                    parts.push(Element::shape("", core));
+                    for i in 1..=steps.clamp(1, 50) {
+                        let reach = if inset { -d + d * i as f32 / steps as f32 } else { d * i as f32 / steps as f32 };
+                        let outer = offset_polygons(&base, reach);
+                        let ring = subtract_polygons(&outer, &inner);
+                        let keep = 1.0 - i as f32 / (steps + 1) as f32;
+                        let fade = |c: Color| Color { a: (c.a as f32 * keep).round() as u8, ..c };
+                        if !ring.is_empty() {
+                            let mut r = Shape::new(polys_path(&ring), sh.fill.map(fade), None);
+                            r.gradient = sh.gradient.clone().map(|mut g| {
+                                for s in &mut g.stops {
+                                    s.1 = fade(s.1);
+                                }
+                                g
+                            });
+                            parts.push(Element::shape("", r));
+                        }
+                        inner = outer;
+                    }
+                    e.kind = ElementKind::Group(parts);
+                }
+            },
+            _ => {}
+        });
+    }
+
     pub fn shape_cleanup(&mut self, kind: &str) {
         let label = match kind {
             "smooth" => "Smooth",

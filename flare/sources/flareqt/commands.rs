@@ -83,7 +83,7 @@ cmds! {
     "selection.particles", "any draw.particles setting", "Change the selected particle emitters";
     "assistant.set", "index (1-based), enabled?, magnetism?, points? [[x,y]...] (perspective: vx, vy[, vz]; affine: c0, a0, b0, c1, a1, b1), count?, count_inv?, mirror?, parallel?, concentric?, three_point?, count_a?, count_b?, count_a_inv?, count_b_inv?, period?, amplitude?, keep_first?, keep_last?", "Change a drawing assistant";
     "assistant.remove", "index (1-based) or 'all'", "Delete drawing assistants";
-    "draw.text", "x, y, text, size? (24), color?, font? ('sans'|'mono'|system family), align?, weight? (100–900), bold?, italic?", "Static text";
+    "draw.text", "x, y, text, size? (24), color?, font? ('sans'|'mono'|system family), align? (left|center|right|justify), weight? (100–900), bold?, italic?, width? (fixed-width box, words wrap), line_spacing?, kind? ('static'|'dynamic'|'input'), name?", "Text";
     "select.all", "", "Select everything editable on the current frame";
     "select.none", "", "Clear the selection";
     "select.layer", "layer?", "Select every object on one layer (default: current) at the current frame";
@@ -101,7 +101,7 @@ cmds! {
     "selection.set", "fill?, stroke?, stroke_width?, alpha?, tint?, tint_amount?, name?, text?, size?, weight? (100–900), bold?, italic?", "Change properties of every selected object";
     "selection.delete", "", "Delete the selection";
     "selection.duplicate", "", "Duplicate (offset by 10 px)";
-    "selection.to_symbol", "name, kind? ('graphic'|'movieclip'|'button')", "F8: convert to symbol; returns its id";
+    "selection.to_symbol", "name, kind? ('graphic'|'movieclip'|'button'), registration? ('center'|'top_left'|…|'bottom_right')", "F8: convert to symbol; returns its id";
     "selection.break_apart", "", "Ctrl+B on a symbol instance";
     "selection.skew", "h? (deg), v? (deg)", "Skew horizontally / vertically around the selection centre";
     "selection.set_3d", "rx?, ry?, rz? (deg), z?", "3D rotation and depth (perspective-projected)";
@@ -145,7 +145,7 @@ cmds! {
     "selection.group", "", "Ctrl+G: group the selection (per layer)";
     "selection.ungroup", "", "Ctrl+Shift+G: ungroup";
     "selection.align", "op ('left'|'hcenter'|'right'|'top'|'vcenter'|'bottom'|'dist_left'|'dist_hcenter'|'dist_right'|'dist_top'|'dist_vcenter'|'dist_bottom'|'match_width'|'match_height'|'match_size'|'space_h'|'space_v'), to_stage?", "Align panel";
-    "selection.add_filter", "type ('drop_shadow'|'blur'|'glow'|'bevel'|'gradient_glow'|'gradient_bevel'|'adjust_color'|'motion_blur'|'effect'), …filter fields (blur_x, blur_y, strength, angle, distance, color, kind, stops [[pos, '#RRGGBBAA']…], brightness, contrast, saturation, hue, shutter (degrees), samples…); effect: id (EffectCraft id, e.g. 'ec.blur.radial'; `animationcraft-cli effects` lists them), params {id: number | bool | [x, y] (fraction of the object) | '#RRGGBBAA'}", "Add a filter to the selected objects";
+    "selection.add_filter", "type ('drop_shadow'|'blur'|'glow'|'bevel'|'gradient_glow'|'gradient_bevel'|'adjust_color'|'motion_blur'|'effect'), …filter fields (blur_x, blur_y, strength, angle, distance, color, kind, stops [[pos, '#RRGGBBAA']…], brightness, contrast, saturation, hue, shutter (degrees), samples…); effect: id (EffectCraft id, e.g. 'ec.blur.radial'; `flare-cli effects` lists them), params {id: number | bool | [x, y] (fraction of the object) | '#RRGGBBAA'}", "Add a filter to the selected objects";
     "selection.clear_filters", "", "Remove all filters";
     "bitmap.trace", "color_threshold? (0–500, 100), min_area? (px, 8), curve_fit? ('pixels'|'very tight'|'tight'|'normal'|'smooth'|'very smooth'), corners? ('many'|'normal'|'few'), mode? ('outline'|'centerline'), line_threshold? (centerline ink darkness 1–254, 128), uniform_width? (centerline)", "Trace Bitmap: the selected bitmaps become vector fills (outline) or lines (centerline, OpenToonz) in the layer's shape; returns how many fills/lines";
     "selection.set_blend", "mode ('normal'|'multiply'|'screen'|…)", "Blend mode";
@@ -1360,12 +1360,25 @@ pub fn execute(ed: &mut Editor, id: &str, a: &Value) -> Result<Value, String> {
                 t.align = match string(a, "align") {
                     Some("center") => crate::text::Align::Center,
                     Some("right") => crate::text::Align::Right,
+                    Some("justify") => crate::text::Align::Justify,
                     _ => crate::text::Align::Left,
                 };
+                t.para.width = num(a, "width").filter(|w| *w > 0.0);
+                t.para.line_spacing = num(a, "line_spacing").unwrap_or(0.0);
+                t.field.kind = match string(a, "kind").unwrap_or("static") {
+                    "dynamic" => crate::text::TextKind::Dynamic,
+                    "input" => crate::text::TextKind::Input,
+                    "static" => crate::text::TextKind::Static,
+                    k => return Err(format!("unknown text kind '{k}'")),
+                };
+                t.field.selectable = t.field.kind != crate::text::TextKind::Static;
                 if let Some(w) = text_weight(a) {
                     t.weight = w;
                 }
                 t.italic = boolean(a, "italic").unwrap_or(false);
+            }
+            if let Some(nm) = string(a, "name") {
+                el.name = nm.to_string();
             }
             let s = ed.add_element(el).ok_or("current layer is locked or hidden")?;
             Ok(json!({ "layer": s.layer + 1, "index": s.element }))
@@ -1568,7 +1581,21 @@ pub fn execute(ed: &mut Editor, id: &str, a: &Value) -> Result<Value, String> {
                 k => return Err(format!("unknown symbol kind '{k}'")),
             };
             let name = string(a, "name").ok_or("missing 'name'")?;
-            Ok(json!(ed.convert_to_symbol(name, kind).ok_or("could not convert (locked layer?)")?))
+            // registration: "center" (default), "top_left", "top", "top_right", "left", "right",
+            // "bottom_left", "bottom", "bottom_right"
+            let reg = match string(a, "registration").unwrap_or("center") {
+                "top_left" => [0, 0],
+                "top" => [1, 0],
+                "top_right" => [2, 0],
+                "left" => [0, 1],
+                "center" | "centre" => [1, 1],
+                "right" => [2, 1],
+                "bottom_left" => [0, 2],
+                "bottom" => [1, 2],
+                "bottom_right" => [2, 2],
+                r => return Err(format!("unknown registration '{r}'")),
+            };
+            Ok(json!(ed.convert_to_symbol_at(name, kind, reg).ok_or("could not convert (locked layer?)")?))
         }
         "selection.break_apart" => {
             need_selection(ed)?;

@@ -9,7 +9,7 @@
 //! families `random rnd random_s rnd_s random_p rnd_p random_ps rnd_ps`, and
 //! `cycle(period)`. Variables: `t` (0…1 across the segment), `frame`/`f`
 //! (frame number, 1-based), `rframe`/`r` (frame within the segment, 1-based),
-//! `pi`. AnimationCraft adds `v0`/`v1` (the segment's key values) and the
+//! `pi`. Flare adds `v0`/`v1` (the segment's key values) and the
 //! object's other properties by name (`rotation`, `x`, `alpha`…), optionally
 //! at another frame: `rotation(frame - 5)`.
 

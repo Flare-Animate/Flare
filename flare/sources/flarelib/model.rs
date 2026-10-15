@@ -288,6 +288,14 @@ pub struct Gradient {
     /// Color panel ▸ Flow: what happens past the ends.
     #[serde(default, skip_serializing_if = "Spread::is_pad")]
     pub spread: Spread,
+    /// Radial gradients: the focal point along the gradient's x axis, −1…1 of
+    /// the radius (Animate's focal point; 0 = centred).
+    #[serde(default, skip_serializing_if = "is_zero")]
+    pub focal: f32,
+}
+
+fn is_zero(v: &f32) -> bool {
+    *v == 0.0
 }
 
 /// Gradient overflow (Animate's Extend / Reflect / Repeat).
@@ -326,7 +334,7 @@ impl Gradient {
                 Matrix::scale(r, r)
             }
         };
-        Gradient { kind, stops, matrix: Matrix::translate(c.x, c.y).concat(&s), spread: Spread::Pad }
+        Gradient { kind, stops, matrix: Matrix::translate(c.x, c.y).concat(&s), spread: Spread::Pad, focal: 0.0 }
     }
     pub fn lerp(&self, o: &Gradient, t: f32) -> Gradient {
         if self.kind != o.kind || self.stops.len() != o.stops.len() {
@@ -337,11 +345,46 @@ impl Gradient {
             stops: self.stops.iter().zip(&o.stops).map(|(a, b)| (a.0 + (b.0 - a.0) * t, a.1.lerp(b.1, t))).collect(),
             matrix: self.matrix.interpolate(&o.matrix, t, 0),
             spread: self.spread,
+            focal: self.focal + (o.focal - self.focal) * t,
         }
     }
 }
 
+/// A colour swatch, or a gradient one (its matrix is not used: the gradient
+/// is fitted to whatever it fills).
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct Swatch {
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub name: String,
+    pub color: Color,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub gradient: Option<Gradient>,
+}
+
+impl Swatch {
+    pub fn solid(name: impl Into<String>, color: Color) -> Swatch {
+        Swatch { name: name.into(), color, gradient: None }
+    }
+    pub fn gradient(name: impl Into<String>, kind: GradientKind, stops: Vec<(f32, Color)>) -> Swatch {
+        let color = stops.first().map(|s| s.1).unwrap_or(Color::rgb(0, 0, 0));
+        Swatch { name: name.into(), color, gradient: Some(Gradient { kind, stops, matrix: Matrix::IDENTITY, spread: Spread::Pad, focal: 0.0 }) }
+    }
+}
+
 pub type SymbolId = u32;
+
+/// A library item's folder ("" = the library root) and its own name.
+pub fn split_item_path(name: &str) -> (&str, &str) {
+    match name.rfind('/') {
+        Some(i) => (&name[..i], &name[i + 1..]),
+        None => ("", name),
+    }
+}
+
+/// `folder/leaf`, or `leaf` at the root.
+pub fn join_item_path(folder: &str, leaf: &str) -> String {
+    if folder.is_empty() { leaf.to_string() } else { format!("{folder}/{leaf}") }
+}
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum SymbolKind {
@@ -440,6 +483,12 @@ pub struct TextEl {
     pub weight: u16,
     #[serde(default, skip_serializing_if = "std::ops::Not::not")]
     pub italic: bool,
+    /// Paragraph and character options (line spacing, indent, margins, fixed width, baseline shift, kerning).
+    #[serde(default, skip_serializing_if = "crate::text::Paragraph::is_default")]
+    pub para: crate::text::Paragraph,
+    /// Static / Dynamic / Input and the field options.
+    #[serde(default, skip_serializing_if = "crate::text::TextField::is_default")]
+    pub field: crate::text::TextField,
 }
 
 fn w400() -> u16 {
@@ -450,11 +499,24 @@ fn is_w400(w: &u16) -> bool {
 }
 
 impl TextEl {
-    pub fn outline(&self) -> Path {
-        if self.weight == 400 && !self.italic {
-            return crate::text::text_path_family(&self.text, self.size, self.family.as_deref(), self.font, self.align, self.letter_spacing);
+    /// What the text shows: bullets for password input fields.
+    pub fn shown(&self) -> std::borrow::Cow<'_, str> {
+        if self.field.password && self.field.kind == crate::text::TextKind::Input {
+            std::borrow::Cow::Owned(self.text.chars().map(|c| if c == '\n' { c } else { '•' }).collect())
+        } else {
+            std::borrow::Cow::Borrowed(&self.text)
         }
-        crate::text::text_path_styled(&self.text, self.size, self.family.as_deref(), self.font, self.weight, self.italic, self.align, self.letter_spacing)
+    }
+    pub fn outline(&self) -> Path {
+        let text = self.shown();
+        if self.weight == 400 && !self.italic {
+            return crate::text::text_path_para(&text, self.size, self.family.as_deref(), self.font, self.align, self.letter_spacing, &self.para);
+        }
+        crate::text::text_path_styled_para(&text, self.size, self.family.as_deref(), self.font, self.weight, self.italic, self.align, self.letter_spacing, &self.para)
+    }
+    /// The text box (top-left at the element's origin): width × height.
+    pub fn box_size(&self) -> (f32, f32) {
+        crate::text::box_size(&self.shown(), self.size, self.family.as_deref(), self.font, self.letter_spacing, &self.para)
     }
 }
 
@@ -591,7 +653,7 @@ impl Element {
         Element::base(name, Matrix::IDENTITY, ElementKind::Shape(shape))
     }
     pub fn text(text: &str, size: f32, color: Color, at: Pt) -> Self {
-        Element::base("Text", Matrix::translate(at.x, at.y), ElementKind::Text(TextEl { text: text.into(), size, color, font: Default::default(), align: Default::default(), letter_spacing: 0.0, family: None, weight: 400, italic: false }))
+        Element::base("Text", Matrix::translate(at.x, at.y), ElementKind::Text(TextEl { text: text.into(), size, color, font: Default::default(), align: Default::default(), letter_spacing: 0.0, family: None, weight: 400, italic: false, para: Default::default(), field: Default::default() }))
     }
     pub fn instance(name: &str, symbol: SymbolId, matrix: Matrix) -> Self {
         Element::base(name, matrix, ElementKind::Instance(Instance { symbol, loop_mode: LoopMode::Loop, first_frame: 0 }))
@@ -998,6 +1060,18 @@ pub struct Document {
     /// move around the scene; output still renders through it).
     #[serde(default, skip_serializing_if = "CameraMode::is_stage")]
     pub camera_mode: CameraMode,
+    /// The document's swatches (Animate keeps them in the .fla); None = the
+    /// app's own set.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub swatches: Option<Vec<Swatch>>,
+    /// Library folders, as paths ("Characters/Hero"), including empty ones.
+    /// Items live in a folder by their name: "Characters/Hero/Head" is the
+    /// item "Head" in "Characters/Hero" (Animate's XFL convention).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub folders: Vec<String>,
+    /// Linkage (Export for runtime): a symbol's class name in published code.
+    #[serde(default, skip_serializing_if = "std::collections::BTreeMap::is_empty")]
+    pub linkage: std::collections::BTreeMap<SymbolId, String>,
     /// Drawing assistants and symmetry (OpenToonz): guides and replicators
     /// that shape freehand strokes, in stage coordinates.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -1040,6 +1114,9 @@ impl Default for Document {
             sounds: vec![],
             camera_mode: CameraMode::Stage,
             assistants: vec![],
+            swatches: None,
+            folders: vec![],
+            linkage: Default::default(),
         }
     }
 }
@@ -1697,7 +1774,15 @@ pub fn eval_element(ctx: &EvalCtx, el: &Element, parent: &Matrix, alpha: f32, lo
                 }
             }
         }
-        ElementKind::Text(t) => out.push(DrawItem { fill: Some(t.color), alpha: a, tint: el.tint, outline, ..DrawItem::new(t.outline(), m) }),
+        ElementKind::Text(t) => {
+            if t.field.border {
+                // Show border around text: white box, black hairline, 2 px gutter
+                let (w, h) = t.box_size();
+                let r = Path::rect(-2.0, -2.0, w + 4.0, h + 4.0);
+                out.push(DrawItem { fill: Some(Color::rgb(255, 255, 255)), stroke: Some(Stroke { color: Color::rgb(0, 0, 0), width: 1.0 }), alpha: a, tint: el.tint, outline, ..DrawItem::new(r, m) });
+            }
+            out.push(DrawItem { fill: Some(t.color), alpha: a, tint: el.tint, outline, ..DrawItem::new(t.outline(), m) })
+        }
         ElementKind::Group(children) => {
             for c in children {
                 eval_element(ctx, c, &m, a, local, outline, depth, out);
