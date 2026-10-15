@@ -4,7 +4,6 @@ from Xlib import X, XK, display
 from Xlib.ext import xtest
 import subprocess
 d = display.Display(':99')
-w = d.screen().root.query_pointer().child
 def mv(x,y): xtest.fake_input(d, X.MotionNotify, x=x, y=y); d.sync(); time.sleep(0.06)
 def click(x,y,b=1):
     mv(x,y); xtest.fake_input(d, X.ButtonPress, b); d.sync(); time.sleep(0.06); xtest.fake_input(d, X.ButtonRelease, b); d.sync(); time.sleep(0.3)
