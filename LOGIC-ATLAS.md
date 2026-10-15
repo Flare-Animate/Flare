@@ -7,7 +7,7 @@
 
 **Current state.** Flare is a C++/Qt desktop 2D animation studio (an OpenToonz/Tahoma2D
 fork reworked toward an Adobe Animate workflow) with a Rust backend growing beside it:
-`flare/sources/common/flash/rust` and the other `common/*/rust` modules own content
+`flare/sources/common/flash` and the other `common/*/rust` modules own content
 sniffing and Flash/Moho parsing behind a C ABI declared in
 `flare/sources/include/flare_formats.h`, `flare/sources/common/flash` and
 `flare/sources/common/moho` own the C++ readers, and the top-level app wires them into
@@ -106,7 +106,7 @@ structures → import command (flashimport.cpp / mohoimport.cpp) → scene level
 
 ## flare_formats — Rust content sniffing and format parsing
 
-**Namespace:** crate root  **Dir:** modules sit beside the C++ they port — `flare/sources/common/flash/rust/`, `flare/sources/common/moho/rust/`, `flare/sources/common/tsystem/rust/`, `flare/sources/common/tapptools/rust/`; crate root `flare/sources/rust/flare_formats.rs`, manifest `flare/sources/Cargo.toml`, public header `flare/sources/include/flare_formats.h`  **Deps:** none (leaf)  **Entry points:** `flare_formats.rs`, `flare_formats.h`, `Cargo.toml`.
+**Namespace:** crate root  **Dir:** modules sit beside the C++ they port — `flare/sources/common/flash/`, `flare/sources/common/moho/`, `flare/sources/common/tsystem/`, `flare/sources/common/tapptools/`; crate root `flare/sources/rust/flare_formats.rs`, manifest `flare/sources/Cargo.toml`, public header `flare/sources/include/flare_formats.h`  **Deps:** none (leaf)  **Entry points:** `flare_formats.rs`, `flare_formats.h`, `Cargo.toml`.
 
 **Job:** Decide what a file is from its bytes and answer small structural questions about
 it, exposing everything through `extern "C"` functions declared in `flare_formats.h`.
@@ -117,10 +117,10 @@ matching OpenToonz/Tahoma as the rewrite proceeds — no `rust/` sidecar tree.
 - `detect` (`flare_formats.rs`) — content sniffing: SWF magic, CFBF signature, PK+DOMDocument, bare `DOMDocument`.
 - `flare_detect_format` (`flare_formats.rs`) — the C ABI for `detect`; returns the `Format` discriminant.
 - `flare_flash_frame_count` (`flare_formats.rs`) — timeline length of SWF/FLA/XFL by path; -1 unknown.
-- `frame_count` (`common/flash/rust/framecount.rs`) — the logic behind it, dispatching on `detect`.
-- `cfbf_streams` (`common/flash/rust/framecount.rs`) — CFBF directory walk yielding (name, size) pairs.
+- `frame_count` (`common/flash/framecount.rs`) — the logic behind it, dispatching on `detect`.
+- `cfbf_streams` (`common/flash/framecount.rs`) — CFBF directory walk yielding (name, size) pairs.
 - `flare_cfbf_streams` (`flare_formats.rs`) — the C ABI for it; NUL-terminated text, freed with `flare_moho_free`.
-- `unzip_any` (`common/moho/rust/moho.rs`) — first ZIP entry whose name is in a caller-supplied list.
+- `unzip_any` (`common/moho/moho.rs`) — first ZIP entry whose name is in a caller-supplied list.
 - `swf_frames`, `swf_header`, `cfbf_header`, `xfl_dom_info` (`flare_formats.rs`) — header primitives the above compose.
 
 **Invariants:**

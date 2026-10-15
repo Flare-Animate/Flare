@@ -23,34 +23,17 @@ Where practical, a Rust port should mirror the source file it replaces as closel
 
 The goal is a single application, not multiple competing products.
 
-## The central rule: a ported module lives where the original is/was
+## The central rule: a ported module lives where the original was
 
-There is no separate Rust codebase.
-
-Every Rust file belongs alongside the subsystem it replaces:
+There is no separate Rust codebase and **no `rust/` subfolder**. A ported file takes the original's name and directory with the `.rs` extension:
 
 ```text
-flare/sources/common/<subsystem>/rust/<name>.rs
+flare/sources/<module>/<name>.cpp  ->  flare/sources/<module>/<name>.rs
 ```
 
-A Rust port is considered an implementation replacement for an existing subsystem, not the foundation of a new parallel architecture.
+Examples already in place: `common/flash/{swf,xfl,fcp,framecount,xflrender,symlib,cfbf}.rs`, `common/moho/moho.rs`, `common/tapptools/tenv.rs`, `common/tsystem/tfilepath.rs`, `tnzbase/permissionsmanager.rs`, `sound/tsioutils.rs`. The original `.cpp` is deleted once its Rust replacement is verified; headers remain only as thin C-ABI forwarders while C++ callers exist.
 
-Concretely, the modules currently registered in:
-
-```text
-flare/sources/rust/flare_formats.rs
-```
-
-already follow this pattern:
-
-| Path | Ports |
-|--------|--------|
-| `flare/sources/common/flash/rust/` (`swf`, `xfl`, `fcp`, `framecount`, `xflrender`, `symlib`) | Flash-related readers, formats and rendering |
-| `flare/sources/common/moho/rust/moho.rs` | Lost Marble / Moho support |
-| `flare/sources/common/tapptools/rust/tenv.rs` | Environment helpers |
-| `flare/sources/common/tsystem/rust/tfilepath.rs` | Path and filesystem helpers |
-
-`flare/sources/common/tgame/` currently remains C++ only and has not yet been ported.
+The temporary crate root is `flare/sources/rust/flare_formats.rs` (scaffolding that disappears with the last C++ file). `flare/sources/flare/rust/{core,studio}` is the imported AnimationCraft editor and is scheduled to be decomposed into the matching module directories (see ANIMATIONCRAFT_ABSORPTION.md).
 
 Two rules follow directly from this structure:
 
@@ -305,10 +288,6 @@ A module is only finished when the Rust version becomes the authoritative implem
 
 In short, Flare's end state is a unified Rust implementation of the OpenToonz/Tahoma2D architecture, augmented by functionality derived from AnimationCraft, Next2Flash, and NFlare, while preserving upstream compatibility, subsystem structure, and long-term maintainability.
 
-
-## Placement correction (supersedes the `rust/` subfolder rule above)
-
-Ported files now live **beside** the C++ they replace (e.g. `tnzbase/permissionsmanager.rs`), with no `rust/` subfolder. Existing `common/*/rust/` files migrate to their parent dir as they are touched. C++ files are deleted once ported; headers stay as thin C-ABI forwarders only while C++ callers remain.
 
 ### Ported so far (branch `Conversion-ft-animationCraft`)
 - `tnzbase/permissionsmanager.rs` (cpp deleted; header forwards via C ABI). Tests: `cargo test --lib permissions`.

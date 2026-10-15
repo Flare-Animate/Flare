@@ -17,7 +17,7 @@ A row only says "addressed" when the probe found the code. Where the answer is
 | Issue | Title | What answers it | Where |
 |---|---|---|---|
 | #11 | Custom toolbar | Draggable dock panes, persisted as room `.ini` files, so the toolbar is user-customisable and a profile can be submitted by PR | `flare/sources/flareqt/docklayout.cpp`, `flare/sources/flare/mainwindow.h`, `doc/LAYOUT_CUSTOMIZATION.md` |
-| #15 | Migrate features from Tahoma | Moho project import (layers, groups, switch layers, bones, keyframe tracks) | `flare/sources/common/moho/MohoReader.h`, `flare/sources/common/moho/rust/moho.rs` |
+| #15 | Migrate features from Tahoma | Moho project import (layers, groups, switch layers, bones, keyframe tracks) | `flare/sources/common/moho/MohoReader.h`, `flare/sources/common/moho/moho.rs` |
 | #25 | Pencil tool -> CSP vector brush | Vector/schematic brush node and its rasterisation | `flare/sources/flareqt/schematicnode.cpp` |
 | #47 | Opening FLA files does not work + Animate room layout | FLA (zip) / XFL readers, DOMDocument + LIBRARY parsing, plus the `Animate` room profile | `flare/sources/flare/flashimport.cpp`, `flare/sources/common/flash/XFLReader.cpp`, `stuff/profiles/layouts/rooms/Animate/` |
 | #49 | OpenToonz rigging -> Harmony rigging | Moho bone and switch-layer structures mapped onto xsheet columns | `flare/sources/common/moho/MohoReader.h` (`struct Bone`, `struct Switch`), `flare/sources/common/moho/MohoPlan.h` |

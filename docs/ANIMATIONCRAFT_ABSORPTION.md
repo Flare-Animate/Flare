@@ -23,9 +23,9 @@ The Rust rewrite must preserve Flare's current file structure so that Rust modul
 
 For example:
 
-AnimationCraft	Destination in Flareac-core/geom.rs	common/tcurves/rust/*
+AnimationCraft	Destination in Flareac-core/geom.rs	common/tcurves/*
 ac-core/model.rs	Rust mirrors of existing TXsheet, TXshLevel, TStageObject, styles and paint systems
-ac-core/merge.rs	common/tmerge/rust/*
+ac-core/merge.rs	common/tmerge/*
 ac-core/motion.rs	Existing tweening and function systems
 ac-core/xfl.rs	Existing XFL importer/exporter modules
 ac-core/deform.rs	Existing plastic and skeleton systems
@@ -53,11 +53,11 @@ Measured against Flare at commit bc402dc34.
 
 The question is not "should this crate be ported?" but rather "does this contain functionality that needs to be redistributed into Flare's Rust rewrite?"
 
-AnimationCraft module	Verdict	Integration strategyac-core/merge.rs	Absorb	Break apart and remap into common/tmerge/rust, tcurves, paint systems and editor tooling.
+AnimationCraft module	Verdict	Integration strategyac-core/merge.rs	Absorb	Break apart and remap into common/tmerge, tcurves, paint systems and editor tooling.
 ac-core/editor.rs	Reference only	Features already exist in Flare's command architecture. Extract ideas only if gaps are identified.
 ac-core/commands.rs	Reference only	Merge concepts into existing command systems where useful.
 ac-core/model.rs	Do not import	Functionality must map onto Flare's existing scene and document model.
-ac-core/geom.rs	Absorb selectively	Concepts belong in common/tcurves/rust; avoid introducing competing geometry types.
+ac-core/geom.rs	Absorb selectively	Concepts belong in common/tcurves; avoid introducing competing geometry types.
 ac-core/motion.rs	Compare against existing implementation	Integrate missing behaviour into current tween systems.
 ac-script	Defer	Potential future scripting integration.
 ac-render	Do not import	Rendering belongs to Flare's renderer architecture.

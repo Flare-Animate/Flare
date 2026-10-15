@@ -4,19 +4,19 @@
 //! (`common/<subsystem>/rust/`), so the tree keeps matching OpenToonz/Tahoma.
 use std::slice;
 
-#[path = "../common/flash/rust/cfbf.rs"]
+#[path = "../common/flash/cfbf.rs"]
 pub mod cfbf;
-#[path = "../common/flash/rust/fcp.rs"]
+#[path = "../common/flash/fcp.rs"]
 pub mod fcp;
 #[path = "../sound/tsioutils.rs"]
 pub mod tsioutils;
 #[path = "../tnzbase/permissionsmanager.rs"]
 pub mod permissionsmanager;
-#[path = "../common/moho/rust/moho.rs"]
+#[path = "../common/moho/moho.rs"]
 pub mod moho;
-#[path = "../common/flash/rust/swf.rs"]
+#[path = "../common/flash/swf.rs"]
 pub mod swf;
-#[path = "../common/flash/rust/xfl.rs"]
+#[path = "../common/flash/xfl.rs"]
 pub mod xfl;
 
 /// Parse FlipaClip .fcp; JSON (free with flare_fcp_free) or NULL.
@@ -35,9 +35,9 @@ pub unsafe extern "C" fn flare_fcp_parse(data: *const u8, len: usize) -> *mut st
 pub unsafe extern "C" fn flare_fcp_free(p: *mut std::os::raw::c_char) {
     flare_moho_free(p)
 }
-#[path = "../common/flash/rust/framecount.rs"]
+#[path = "../common/flash/framecount.rs"]
 pub mod framecount;
-#[path = "../common/flash/rust/xflrender.rs"]
+#[path = "../common/flash/xflrender.rs"]
 pub mod xflrender;
 
 /// Frame count of a SWF / FLA / XFL file or folder; -1 if unknown.
@@ -68,11 +68,11 @@ pub unsafe extern "C" fn flare_cfbf_streams(
         .collect();
     std::ffi::CString::new(s).map_or(std::ptr::null_mut(), |c| c.into_raw())
 }
-#[path = "../common/flash/rust/symlib.rs"]
+#[path = "../common/flash/symlib.rs"]
 pub mod symlib;
-#[path = "../common/tapptools/rust/tenv.rs"]
+#[path = "../common/tapptools/tenv.rs"]
 pub mod tenv;
-#[path = "../common/tsystem/rust/tfilepath.rs"]
+#[path = "../common/tsystem/tfilepath.rs"]
 pub mod tfilepath;
 
 /// TFilePath query (see header). Returns full byte length; copies up to `cap` into `out`.
