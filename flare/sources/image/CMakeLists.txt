@@ -88,6 +88,10 @@ if(NOT BUILD_TARGET_BSD AND NOT WIN32)
     set(_flare_tiff_source_dir "${FLARE_ROOT}/thirdparty/tiff-4.0.3")
     set(_flare_tiff_build_dir "${CMAKE_BINARY_DIR}/generated/tiff")
     file(MAKE_DIRECTORY "${_flare_tiff_build_dir}")
+    # CI (workflow_linux.yml) already configures bundled libtiff in-tree, and
+    # configure refuses an out-of-tree run then; the in-tree tif_config.h is
+    # reachable through the -idirafter option above, so skip the second run.
+    if(NOT EXISTS "${_flare_tiff_source_dir}/config.status")
     execute_process(
         COMMAND "${_flare_tiff_source_dir}/configure"
         WORKING_DIRECTORY "${_flare_tiff_build_dir}"
@@ -99,6 +103,7 @@ if(NOT BUILD_TARGET_BSD AND NOT WIN32)
         message(FATAL_ERROR
             "Failed to configure bundled libtiff:\n"
             "${_flare_tiff_configure_output}${_flare_tiff_configure_error}")
+    endif()
     endif()
 endif()
 
