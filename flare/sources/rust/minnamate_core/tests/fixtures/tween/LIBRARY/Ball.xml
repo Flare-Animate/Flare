@@ -1,0 +1,29 @@
+<DOMSymbolItem xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://ns.adobe.com/xfl/2008/" name="Ball" symbolType="graphic">
+  <timeline>
+    <DOMTimeline name="Ball">
+      <layers>
+        <DOMLayer name="Layer 1">
+          <frames>
+            <DOMFrame index="0" keyMode="9728">
+              <elements>
+                <!-- 40x40 square centred on the origin; the left side bulges out to x=-25.
+                     Mixes fillStyle0/1, hex coordinates and a selection marker. -->
+                <DOMShape>
+                  <fills>
+                    <FillStyle index="1"><SolidColor color="#FF0000"/></FillStyle>
+                  </fills>
+                  <edges>
+                    <Edge fillStyle1="1" edges="!#FFFE70 #FFFE70|400 -400"/>
+                    <Edge fillStyle1="1" edges="!400 -400S2|400 400"/>
+                    <Edge fillStyle0="1" edges="!-400 400|400 400"/>
+                    <Edge fillStyle0="1" edges="!-400 -400[-600 0 -400 400"/>
+                  </edges>
+                </DOMShape>
+              </elements>
+            </DOMFrame>
+          </frames>
+        </DOMLayer>
+      </layers>
+    </DOMTimeline>
+  </timeline>
+</DOMSymbolItem>

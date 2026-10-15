@@ -91,3 +91,17 @@ The crate `ac-core` is rooted at `rust/ac_core/` (Cargo.toml, lib.rs with `#[pat
 | `common/` | `expressions/expr`, `tgeometry/geom`, `tvectorimage/merge`, `tparam/{motion,tween_edit}`, `tvrender/text` |
 | `stdfx/` | fx, particles |
 | `tnzext/` `colorfx/` `image/` `flareqt/` `flare/` | deform; strokes; codecs; commands; demodocument (was demo) |
+
+## minnamate import
+
+Crate `minnamate-core` (clean-room, no upstream licence file; see `flare/sources/rust/minnamate_core/ORIGIN.md`) is rooted at `rust/minnamate_core/` (Cargo.toml, lib.rs with `#[path]` mods, tests/ incl. fixtures). All files are prefixed `mm_` pending merge with overlapping AnimationCraft modules.
+
+| Directory (under `flare/sources`) | Files |
+|---|---|
+| `flarelib/` | mm_arrange, mm_display, mm_doc, mm_layer_motion, mm_layer_tree, mm_symbols, mm_xfl, mm_xfl_write |
+| `tnztools/` | mm_draw, mm_erase, mm_hit, mm_paint, mm_pen, mm_transform |
+| `common/tvrender/` | mm_fonts, mm_render, mm_shape_tween, mm_swf_export, mm_text |
+| `common/tparam/` | mm_motion |
+| `flareqt/` `stdfx/` `flare/` | mm_filters; mm_gradient; mm_edit |
+
+Overlap pairs to merge: mm_motion <-> common/tparam/motion.rs; mm_layer_tree <-> flarelib/model.rs (layers); mm_filters <-> stdfx/fx.rs; mm_erase (vs AnimationCraft erase tooling); mm_text <-> common/tvrender/text.rs; mm_doc <-> flarelib/model.rs; mm_edit <-> flarelib/editor.rs.

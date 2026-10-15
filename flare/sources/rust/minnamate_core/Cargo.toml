@@ -1,0 +1,17 @@
+[package]
+name = "minnamate-core"
+description = "minnamate core (imported): XFL/SWF document model, tweens, rendering, editing"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+name = "minnamate_core"
+path = "lib.rs"
+
+[dependencies]
+i_overlay = "9"
+roxmltree = "0.21"
+skrifa = { version = "0.44", default-features = false, features = ["std"] }
+swf = { version = "0.3", default-features = false, features = ["flate2"] }
+tiny-skia = "0.12"
+zip = { version = "9", default-features = false, features = ["deflate-flate2-zlib-rs"] }

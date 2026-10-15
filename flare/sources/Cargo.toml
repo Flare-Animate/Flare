@@ -4,7 +4,7 @@
 # port (common/<subsystem>/rust/), mirroring the OpenToonz/Tahoma source tree.
 # Only the crate scaffolding is here; every module sits with its subsystem.
 [workspace]
-members = ["remote/rust", "rust/ac_core"]
+members = ["remote/rust", "rust/ac_core", "rust/minnamate_core"]
 exclude = ["flare/rust/studio"]  # needs private AnimationCraft git deps
 
 [package]
