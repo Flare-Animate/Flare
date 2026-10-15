@@ -922,3 +922,5 @@ exec \$FLARE_BASE/bin/Flare \"\$@\"
     )
 
 endif()
+# TRandom (trandom.h) is a header forwarder into Rust.
+target_link_libraries(Flare flare_formats)

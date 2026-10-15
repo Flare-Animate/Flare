@@ -12,15 +12,19 @@
 
 using TConsts::epsilon;
 
-#undef DVAPI
-#undef DVVAR
-#ifdef TPARAM_EXPORTS
-#define DVAPI DV_EXPORT_API
-#define DVVAR DV_EXPORT_VAR
-#else
-#define DVAPI DV_IMPORT_API
-#define DVVAR DV_IMPORT_VAR
-#endif
+// Implemented in tcubicbezier.rs (flare_formats); the functions below are thin
+// inline forwarders (TPointD arguments are passed as x/y scalars).
+extern "C" {
+double flare_invCubicBezierX(double x, double ax, double ay, double asx,
+                             double asy, double bsx, double bsy, double bx,
+                             double by);
+double flare_getCubicBezierY(double x, double ax, double ay, double asx,
+                             double asy, double bsx, double bsy, double bx,
+                             double by);
+void flare_getMinMaxCubicBezierY(double ax, double ay, double asx, double asy,
+                                 double bsx, double bsy, double bx, double by,
+                                 double *out);
+}
 
 //-----------------------------------------------------------------------------
 
@@ -37,8 +41,11 @@ using TConsts::epsilon;
   \ret the parameter value u0 of the Bezier curve C(u) for x, that is C(u0) =
   (x,y)
 */
-DVAPI double invCubicBezierX(double x, const TPointD &a, const TPointD &aSpeed,
-                             const TPointD &bSpeed, const TPointD &b);
+inline double invCubicBezierX(double x, const TPointD &a, const TPointD &aSpeed,
+                              const TPointD &bSpeed, const TPointD &b) {
+  return flare_invCubicBezierX(x, a.x, a.y, aSpeed.x, aSpeed.y, bSpeed.x,
+                               bSpeed.y, b.x, b.y);
+}
 
 //-----------------------------------------------------------------------------
 
@@ -53,8 +60,11 @@ DVAPI double invCubicBezierX(double x, const TPointD &a, const TPointD &aSpeed,
   fourth)
   \ret the y-component of a point P(x,y) on the Bezier curve, with C(u0) = P
 */
-DVAPI double getCubicBezierY(double x, const TPointD &a, const TPointD &aSpeed,
-                             const TPointD &bSpeed, const TPointD &b);
+inline double getCubicBezierY(double x, const TPointD &a, const TPointD &aSpeed,
+                              const TPointD &bSpeed, const TPointD &b) {
+  return flare_getCubicBezierY(x, a.x, a.y, aSpeed.x, aSpeed.y, bSpeed.x,
+                               bSpeed.y, b.x, b.y);
+}
 
 //-----------------------------------------------------------------------------
 
@@ -68,10 +78,15 @@ DVAPI double getCubicBezierY(double x, const TPointD &a, const TPointD &aSpeed,
   fourth)
   \ret a pair of points which are the minimum and maximum of the cubic Bezier
 */
-DVAPI std::pair<TPointD, TPointD> getMinMaxCubicBezierY(const TPointD &a,
-                                                        const TPointD &aSpeed,
-                                                        const TPointD &bSpeed,
-                                                        const TPointD &b);
+inline std::pair<TPointD, TPointD> getMinMaxCubicBezierY(
+    const TPointD &a, const TPointD &aSpeed, const TPointD &bSpeed,
+    const TPointD &b) {
+  double out[4];
+  flare_getMinMaxCubicBezierY(a.x, a.y, aSpeed.x, aSpeed.y, bSpeed.x, bSpeed.y,
+                              b.x, b.y, out);
+  return std::pair<TPointD, TPointD>(TPointD(out[0], out[1]),
+                                     TPointD(out[2], out[3]));
+}
 
 //-----------------------------------------------------------------------------
 

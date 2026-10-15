@@ -427,3 +427,6 @@ elseif(BUILD_ENV_UNIXLIKE)
     target_link_libraries(flarelib Qt5::Core Qt5::Gui Qt5::OpenGL Qt5::Script Qt5::Multimedia ${GLUT_LIB} ${GL_LIB} ${GLEW_LIB} ${EXTRA_LIBS} $<$<BOOL:${ENABLE_MYPaint}>:${MYPAINT_LIB_LDFLAGS}>)
 endif()
 
+
+# TRandom (trandom.h) is a header forwarder into Rust.
+target_link_libraries(flarelib flare_formats)

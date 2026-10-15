@@ -5,6 +5,7 @@
 
 //#include "tcommon.h"
 #include "texception.h"
+#include "tconvert.h"
 
 #include <numeric>
 #include <complex>
@@ -28,12 +29,38 @@
 enum TMathError { INFINITE_SOLUTIONS = -1 };
 
 //-----------------------------------------------------------------------------
+// Implemented in tmathutil.rs (flare_formats); the functions below are thin
+// inline forwarders so every C++ caller compiles unchanged.  The Rust side
+// reports a singular matrix with a status code and the forwarders `throw`.
 
-class DVAPI TMathException final : public TException {
+extern "C" {
+int flare_tLUDecomposition(double *A, int n, int *indx, double *d);
+void flare_tbackSubstitution(const double *A, int n, const int *indx,
+                             double *b);
+int flare_tsolveSistem(double *A, int n, double *res);
+int flare_tdet(double *A, int n, double *out);
+double flare_tdet_lu(const double *LUa, int n, double d);
+int flare_rootFinding(const double *poly, int n, double *out, int cap,
+                      int *outCount);
+int flare_solveEquation2(double *roots, double a, double b, double c);
+int flare_solveEquation3(double *roots, double a, double b, double c,
+                         double d);
+int flare_solveEquation4(double *roots, double a, double b, double c, double d,
+                         double e);
+int flare_numberOfRootsInInterval(int order, const double *polyH, double min,
+                                  double max);
+double flare_cubicRoot(double a, double b, double c, double d);
+double flare_quadraticRoot(double a, double b, double c);
+}
+
+//-----------------------------------------------------------------------------
+
+// (header-only now: no DVAPI, the members are inline)
+class TMathException final : public TException {
   TString m_msg;
 
 public:
-  TMathException(std::string msg);
+  TMathException(std::string msg) : m_msg(::to_wstring(msg)) {}
   virtual ~TMathException() {}
 
   TString getMessage() const override { return m_msg; }
@@ -51,7 +78,10 @@ public:
   \note If error a TException is thrown.
   \include mathutils_ex2.cpp
  */
-DVAPI void tLUDecomposition(double *A, int n, int *indx, double &d);
+inline void tLUDecomposition(double *A, int n, int *indx, double &d) {
+  if (flare_tLUDecomposition(A, n, indx, &d))
+    throw TMathException("Singular matrix in routine tLUDecomposition\n");
+}
 
 //-----------------------------------------------------------------------------
 
@@ -66,7 +96,9 @@ DVAPI void tLUDecomposition(double *A, int n, int *indx, double &d);
   \note A is the square matrix [n x n] returned from tLUDecomposition routine.
   \sa tLUDecomposition
  */
-DVAPI void tbackSubstitution(double *A, int n, int *indx, double *b);
+inline void tbackSubstitution(double *A, int n, int *indx, double *b) {
+  flare_tbackSubstitution(A, n, indx, b);
+}
 
 //-----------------------------------------------------------------------------
 
@@ -79,7 +111,10 @@ DVAPI void tbackSubstitution(double *A, int n, int *indx, double *b);
   \note A is square [n x n]
   \include mathutils_ex1.cpp
  */
-DVAPI void tsolveSistem(double *A, int n, double *res);
+inline void tsolveSistem(double *A, int n, double *res) {
+  if (flare_tsolveSistem(A, n, res))
+    throw TMathException("Singular matrix in routine tLUDecomposition\n");
+}
 
 //-----------------------------------------------------------------------------
 
@@ -102,7 +137,12 @@ inline void tsolveSistem(std::vector<double> &A, std::vector<double> &res) {
   \par A is matrix to test
   \par n size of matrix
  */
-DVAPI double tdet(double *A, int n);
+inline double tdet(double *A, int n) {
+  double d;
+  if (flare_tdet(A, n, &d))
+    throw TMathException("Singular matrix in routine tLUDecomposition\n");
+  return d;
+}
 
 //-----------------------------------------------------------------------------
 
@@ -114,7 +154,9 @@ DVAPI double tdet(double *A, int n);
   \par d parameter from tLUDecomposition
   \sa tLUDecomposition
  */
-DVAPI double tdet(double *LUa, int n, double d);
+inline double tdet(double *LUa, int n, double d) {
+  return flare_tdet_lu(LUa, n, d);
+}
 
 //-----------------------------------------------------------------------------
 
@@ -123,8 +165,14 @@ DVAPI double tdet(double *LUa, int n, double d);
   \par poly is a vector with coeff of polynomious in crescent order.
   \ret sol is the vector of solution and contain real found solution.
  */
-DVAPI int rootFinding(const std::vector<double> &poly,
-                      std::vector<double> &sol);
+inline int rootFinding(const std::vector<double> &poly,
+                       std::vector<double> &sol) {
+  double out[16];
+  int count = -1;
+  int ret   = flare_rootFinding(poly.data(), (int)poly.size(), out, 16, &count);
+  if (count >= 0) sol.assign(out, out + count);  // count < 0: sol untouched
+  return ret;
+}
 
 //-----------------------------------------------------------------------------
 
@@ -137,7 +185,10 @@ DVAPI int rootFinding(const std::vector<double> &poly,
     2 if a is not almost zero
     roots may have duplicates, count depends only from type of equation
  */
-DVAPI int solveEquation2(std::complex<double> *roots, double a, double b, double c);
+inline int solveEquation2(std::complex<double> *roots, double a, double b,
+                          double c) {
+  return flare_solveEquation2(reinterpret_cast<double *>(roots), a, b, c);
+}
 
 //-----------------------------------------------------------------------------
 
@@ -151,7 +202,10 @@ DVAPI int solveEquation2(std::complex<double> *roots, double a, double b, double
     3 if a is not almost zero
     roots may have duplicates, count depends only from type of equation
  */
-DVAPI int solveEquation3(std::complex<double> *roots, double a, double b, double c, double d);
+inline int solveEquation3(std::complex<double> *roots, double a, double b,
+                          double c, double d) {
+  return flare_solveEquation3(reinterpret_cast<double *>(roots), a, b, c, d);
+}
 
 //-----------------------------------------------------------------------------
 
@@ -166,7 +220,10 @@ DVAPI int solveEquation3(std::complex<double> *roots, double a, double b, double
     4 if a is not almost zero
     roots may have duplicates, count depends only from type of equation
  */
-DVAPI int solveEquation4(std::complex<double> *roots, double a, double b, double c, double d, double e);
+inline int solveEquation4(std::complex<double> *roots, double a, double b,
+                          double c, double d, double e) {
+  return flare_solveEquation4(reinterpret_cast<double *>(roots), a, b, c, d, e);
+}
 
 //-----------------------------------------------------------------------------
 
@@ -203,8 +260,10 @@ inline bool isAlmostZero(std::complex<double> val, double eps = TConsts::epsilon
   \par greater extreme
   \ret number of root
  */
-DVAPI int numberOfRootsInInterval(int order, const double *polyH, double min,
-                                  double max);
+inline int numberOfRootsInInterval(int order, const double *polyH, double min,
+                                   double max) {
+  return flare_numberOfRootsInInterval(order, polyH, min, max);
+}
 
 //-----------------------------------------------------------------------------
 
@@ -216,7 +275,9 @@ DVAPI int numberOfRootsInInterval(int order, const double *polyH, double min,
   \par d coeff of x^0
   \ret the real root of the poly, or 1.0 if the root is not in [0,1]
 */
-DVAPI double cubicRoot(double a, double b, double c, double d);
+inline double cubicRoot(double a, double b, double c, double d) {
+  return flare_cubicRoot(a, b, c, d);
+}
 
 //-----------------------------------------------------------------------------
 
@@ -227,7 +288,9 @@ DVAPI double cubicRoot(double a, double b, double c, double d);
   \par c coeff of x^0
   \ret the root of the poly, or 1.0 if it does not exist
 */
-DVAPI double quadraticRoot(double a, double b, double c);
+inline double quadraticRoot(double a, double b, double c) {
+  return flare_quadraticRoot(a, b, c);
+}
 
 //-----------------------------------------------------------------------------
 

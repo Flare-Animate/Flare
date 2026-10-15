@@ -66,7 +66,6 @@ set(HEADERS ${MOC_HEADERS}
 
 set(SOURCES
     stringtable.cpp
-    ../common/tparam/tcubicbezier.cpp
     ../common/tparam/tdoublekeyframe.cpp
     ../common/tparam/tdoubleparam.cpp
     ../common/tparam/tdoubleparamfile.cpp

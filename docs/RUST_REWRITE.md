@@ -315,6 +315,7 @@ In short, Flare's end state is a unified Rust implementation of the OpenToonz/Ta
 ### Ported so far (branch `Conversion-ft-animationCraft`)
 - `tnzbase/permissionsmanager.rs` (cpp deleted; header forwards via C ABI). Tests: `cargo test --lib permissions`.
 - `sound/tsioutils.rs` (cpp deleted; header is extern "C"). Tests: `cargo test --lib tsioutils`.
+- Wave 3 (11 files, +62 tests; workspace total 683 -> 745): `common/tcore/{tmathutil,trandom}.rs`, `common/tparam/tcubicbezier.rs`, `common/tcolor/tcolorvalue.rs`, `common/trop/runsmap.rs`, `stdfx/igs_{color_rgb_hls,color_rgb_hsv,math_random,gauss_distribution,negate,density}.rs`. All `.cpp` deleted; headers are inline `extern "C"` forwarders (see PORTING.md). Tests: `cargo test --lib <module>`.
 
 ### Tooling survey
 - Automated C/C++→Rust tools exist (c2rust: rule-based, unsafe output; LLM+static-analysis research tools SACTOR, SmartC2Rust, RustMap, SafeTrans). None handle Qt/C++ class hierarchies; output would violate the safe-idiomatic rule. Port is manual, per file, test-verified.

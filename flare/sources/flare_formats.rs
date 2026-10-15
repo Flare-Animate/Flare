@@ -74,6 +74,28 @@ pub mod symlib;
 pub mod tenv;
 #[path = "common/tsystem/tfilepath.rs"]
 pub mod tfilepath;
+#[path = "common/tcore/tmathutil.rs"]
+pub mod tmathutil;
+#[path = "common/tparam/tcubicbezier.rs"]
+pub mod tcubicbezier;
+#[path = "common/tcore/trandom.rs"]
+pub mod trandom;
+#[path = "common/tcolor/tcolorvalue.rs"]
+pub mod tcolorvalue;
+#[path = "common/trop/runsmap.rs"]
+pub mod runsmap;
+#[path = "stdfx/igs_color_rgb_hls.rs"]
+pub mod igs_color_rgb_hls;
+#[path = "stdfx/igs_color_rgb_hsv.rs"]
+pub mod igs_color_rgb_hsv;
+#[path = "stdfx/igs_math_random.rs"]
+pub mod igs_math_random;
+#[path = "stdfx/igs_gauss_distribution.rs"]
+pub mod igs_gauss_distribution;
+#[path = "stdfx/igs_negate.rs"]
+pub mod igs_negate;
+#[path = "stdfx/igs_density.rs"]
+pub mod igs_density;
 
 /// TFilePath query (see header). Returns full byte length; copies up to `cap` into `out`.
 #[no_mangle]

@@ -5,6 +5,12 @@
 
 #include "traster.h"
 
+// Run-header coding implemented in runsmap.rs (flare_formats).
+extern "C" {
+TUINT32 flare_runsmap_run_length(const unsigned char *run, bool reversed);
+void flare_runsmap_set_run_length(unsigned char *run, TUINT32 length);
+}
+
 //*********************************************************************************************************
 //    Run Maps
 //*********************************************************************************************************
@@ -44,13 +50,17 @@ public:
   const UCHAR &runHeader(int x, int y) const { return pixels(y)[x].value; }
   UCHAR &runHeader(int x, int y) { return pixels(y)[x].value; }
 
-  TUINT32 runLength(const TPixelGR8 *run, bool reversed = false) const;
+  TUINT32 runLength(const TPixelGR8 *run, bool reversed = false) const {
+    return flare_runsmap_run_length(&run->value, reversed);
+  }
   TUINT32 runLength(int x, int y, bool reversed = false) const {
     return runLength(pixels(y) + x, reversed);
   }
 
 public:
-  void setRunLength(TPixelGR8 *run, TUINT32 length);
+  void setRunLength(TPixelGR8 *run, TUINT32 length) {
+    flare_runsmap_set_run_length(&run->value, length);
+  }
   void setRunLength(int x, int y, TUINT32 length) {
     setRunLength(pixels(y) + x, length);
   }

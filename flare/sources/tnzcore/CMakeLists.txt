@@ -153,9 +153,7 @@ set(SOURCES
     ../common/tcore/tdebugmessage.cpp
     ../common/tcore/texception.cpp
     ../common/tcore/threadmessage.cpp
-    ../common/tcore/tmathutil.cpp
     ../common/tproperty.cpp
-    ../common/tcore/trandom.cpp
     ../common/tcore/tsmartpointer.cpp
     ../common/tcore/tstopwatch.cpp
     ../common/tcore/tstring.cpp
@@ -163,7 +161,6 @@ set(SOURCES
     ../common/tcore/tundo.cpp
     ../common/tcore/tfunctorinvoker.cpp
     ../common/tcolor/tcolorfunctions.cpp
-    ../common/tcolor/tcolorvalue.cpp
     ../common/tcolor/tpixel.cpp
     ../common/tcolor/tpixelutils.cpp
     ../common/tcolor/tspectrum.cpp
@@ -253,7 +250,6 @@ set(SOURCES
     ../common/trop/bbox.cpp
     ../common/trop/brush.cpp
     ../common/trop/quickput.cpp
-    ../common/trop/runsmap.cpp
     ../common/trop/tantialias.cpp
     ../common/trop/tblur.cpp
     ../common/trop/tcheckboard.cpp
