@@ -1,6 +1,6 @@
 # C++ -> Rust porting status (C ABI, gated by FLARE_WITH_RUST)
 
-Rust modules live beside the C++ they port, at `flare/sources/common/<subsystem>/rust/`.
+Rust modules live beside the C++ they port: `<name>.cpp` becomes `<name>.rs` in the same directory (e.g. `common/tsystem/tfilepath.rs`). There is no `rust/` subfolder; see RUST_REWRITE.md.
 Crate manifest: `flare/sources/Cargo.toml`. Tests: `python tests/run_rust.py`.
 
 | C++ | Rust | Status |

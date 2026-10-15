@@ -1,3 +1,14 @@
+<!-- UPSTREAM DIVERGENCE NOTE (RustConversion-AnimateCraft @ f636b05)
+Upstream's copy is kept verbatim at docs/animatecraft/ANIMATE-GAP-ANALYSIS.upstream.md.
+This file was NOT overwritten. Differing sections:
+ 1. Title: upstream "Flare vs Adobe Animate"; ours "AnimationCraft vs Adobe Animate".
+ 2. "Phase 4: Interchange and publishing": upstream marks it done (Oct 2026).
+ 3. "Gap closing for Phases 1-4": upstream-only section (done, Oct 2026).
+ 4. "Gaps to close": upstream-only section.
+ 5. "P2 in groups of five": upstream-only section.
+ 6. Body text under the shared headings also differs (about 400 diff lines); merge by hand.
+-->
+
 <!--
 Vendored from https://github.com/KMSDax/AnimationCraft (docs/ANIMATE-GAP-ANALYSIS.md),
 upstream commit e3aadad1c. AnimationCraft is

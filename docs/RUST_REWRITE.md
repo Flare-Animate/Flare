@@ -53,6 +53,8 @@ A crate is the directory holding its `Cargo.toml`; the root `.rs` is named by `[
 | `ac-app` (bin `flare`, egui) | `flare/` | `Cargo.toml` / `ac_app_main.rs` (modules `ac_app/*.rs`, `build.rs`, `assets/`) |
 | `ac-cli` (bin `flare-cli`) | `flareqt/` | `Cargo.toml` / `ac_cli_main.rs` (`examples/`) |
 | `flare-studio` (bin `flare-studio`, egui/wgpu) | `toonzqt/` | `Cargo.toml` / `studio_lib.rs`, `studio_main.rs` (`locales/`, `assets/`, `snapshot.rs` example) |
+| `minnamate-editor` (bin `minnamate`, egui 0.36, edition 2024) | `tnzext/` | `Cargo.toml` / `minnamate_editor_main.rs` (modules `mm_ed_*.rs` via `#[path]`, `assets/logo.png`, `ORIGIN.md`; no upstream licence) |
+| `minnamate-cli` (bin `minnamate-cli`) | `tcomposer/` | `Cargo.toml` / `minnamate_cli_main.rs` (`ORIGIN.md`) |
 
 CMake imports `flare_formats` via `cmake/FlareFormats.cmake` (always on).
 

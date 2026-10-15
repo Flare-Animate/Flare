@@ -122,6 +122,21 @@ Crate `minnamate-core` (clean-room, no upstream licence file; see `flare/sources
 
 Overlap pairs to merge: mm_motion <-> common/tparam/motion.rs; mm_layer_tree <-> flarelib/model.rs (layers); mm_filters <-> stdfx/fx.rs; mm_erase (vs AnimationCraft erase tooling); mm_text <-> common/tvrender/text.rs; mm_doc <-> flarelib/model.rs; mm_edit <-> flarelib/editor.rs.
 
+## minnamate fully imported
+
+`mirvoxtm/minnamate` @ `104f3d3` is now fully imported (read-only upstream, clean-room, **no upstream licence file**; flagged in each `ORIGIN.md`).
+
+| Upstream | Location (under `flare/sources`) |
+|---|---|
+| `crates/core` | `tnztools/` + `mm_*` files in `flarelib/`, `common/tvrender/`, `common/tparam/`, `flareqt/`, `stdfx/`, `flare/` (see above) |
+| `apps/editor` (bin `minnamate`, 26 files) | `tnzext/` (`minnamate_editor_main.rs`, `mm_ed_*.rs`, `assets/logo.png`) |
+| `apps/cli` (bin `minnamate-cli`) | `tcomposer/minnamate_cli_main.rs` |
+| `docs/animate-ui*.md` | `docs/minnamate/` |
+
+Both app crates are workspace members and depend on `minnamate-core` at `../tnztools`.
+
+RustConversion-AnimateCraft @ `f636b05` leftovers: docs in `docs/animatecraft/` (upstream `ANIMATE-GAP-ANALYSIS.md` kept as `.upstream.md`, diverged from ours; see note at top of `docs/ANIMATE-GAP-ANALYSIS.md`), `SCRIPTING.md`, example scripts in `flare/sources/flare/examples/scripts/`, tools in `scripts/animatecraft/`, Rust installer as `packaging/windows/installer.animatecraft.nsi` (differs from the C++ `installer.nsi`).
+
 ## Studio location
 
 The egui/wgpu Studio workspace (`flare-studio`, formerly `flare/rust/studio`) now lives in `flare/sources/toonzqt/` (OpenToonz's Qt widget library: widgets, theme, chrome). Root files are `studio_lib.rs` and `studio_main.rs`; `locales/` and `assets/` sit beside them. It depends on `ac-core` (`flarelib`, feature `retain-tween-curves`) and `ac-render` (`common/tvrender`) by path; the private AnimationCraft git pin and `[patch]` are gone. PhotoCraft/ArtCraft attribution is unchanged (`toonzqt/assets/ATTRIBUTION.md`, `THIRD-PARTY-NOTICES.md`).

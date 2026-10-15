@@ -14,6 +14,8 @@ members = [
     "common/tsystem",      # ac-package
     "flare",               # ac-app (bin flare)
     "flareqt",             # ac-cli (bin flare-cli)
+    "tnzext",              # minnamate-editor (egui, bin minnamate)
+    "tcomposer",           # minnamate-cli
     "toonzqt",             # flare-studio (egui workspace: widgets/theme/chrome)
 ]
 resolver = "2"
