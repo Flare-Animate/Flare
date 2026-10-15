@@ -312,3 +312,8 @@ Ported files now live **beside** the C++ they replace (e.g. `tnzbase/permissions
 
 ### Ported so far (branch `Conversion-ft-animationCraft`)
 - `tnzbase/permissionsmanager.rs` (cpp deleted; header forwards via C ABI). Tests: `cargo test --lib permissions`.
+- `sound/tsioutils.rs` (cpp deleted; header is extern "C"). Tests: `cargo test --lib tsioutils`.
+
+### Tooling survey and state of `flare/rust/`
+- Automated C/C++→Rust tools exist (c2rust: rule-based, unsafe output; LLM+static-analysis research tools SACTOR, SmartC2Rust, RustMap, SafeTrans). None handle Qt/C++ class hierarchies; output would violate the safe-idiomatic rule. Port is manual, per file, test-verified.
+- `flare/rust/core` (≈24k LOC) and `studio` (≈14k LOC) are the AnimationCraft editor, a different architecture from OpenToonz; they are not a line-matching port. Counted against the 2.3k C++ files, the matching rewrite is a few modules deep.

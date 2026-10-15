@@ -8,7 +8,6 @@ set(HEADERS
 
 set(SOURCES
     tsio.cpp
-    tsioutils.cpp
     wav/tsio_wav.cpp
     aiff/tsio_aiff.cpp
     raw/tsio_raw.cpp
@@ -33,3 +32,8 @@ _find_flare_library(EXTRA_LIBS "tnzcore;tnzbase;flarelib")
 message("ToonzCore: " ${EXTRA_LIBS})
 
 target_link_libraries(sound Qt5::Core ${EXTRA_LIBS})
+
+# tsioutils is implemented in Rust (tsioutils.rs, via flare_formats).
+if(TARGET flare_formats)
+    target_link_libraries(sound flare_formats)
+endif()
