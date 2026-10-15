@@ -136,7 +136,7 @@ struct TDeleteObjectFunctor {
         to deduce template
  */
 template <class T>
-inline void clearPointerContainer(T &c) throw() {
+inline void clearPointerContainer(T &c) noexcept {
   T tmp;
   std::for_each(c.begin(), c.end(), TDeleteObjectFunctor());
   c.swap(tmp);

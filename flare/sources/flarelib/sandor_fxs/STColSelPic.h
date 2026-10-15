@@ -36,7 +36,7 @@ public:
 
   void nullSel() { m_sel.reset(); }
 
-  void initSel()  // throw(SMemAllocError)
+  void initSel()  //
   {
     nullSel();
     if (CSTPic<P>::m_lX > 0 && CSTPic<P>::m_lY > 0) {
@@ -63,7 +63,7 @@ public:
       : CSTPic<P>(csp) {}
 
   const CSTColSelPic<P> &operator=(
-      const CSTColSelPic<P> &sp)  // throw(SMemAllocError)
+      const CSTColSelPic<P> &sp)  //
   {
     const CSTPic<P> *spp;
     CSTPic<P> *dpp;
@@ -590,7 +590,7 @@ if (*pSel==(UCHAR)250) {
       }
   }
   /*
-void expand(const int border) throw(SMemAllocError)
+void expand(const int border)
 {	try {
           int olX=m_lX;
           int olY=m_lY;
