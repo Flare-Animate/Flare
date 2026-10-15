@@ -597,7 +597,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Flare-Setup
-          path: Flare-Setup.exe
+          # installer.nsi has its own OutFile; /XOutFile does not always override it
+          path: |
+            Flare-Setup.exe
+            packaging/windows/Flare-Setup.exe
           if-no-files-found: error
 
       - name: Upload smoke test log
