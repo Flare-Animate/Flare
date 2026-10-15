@@ -1,32 +1,58 @@
 //! AnimationCraft core: document model, timeline evaluation, tweens, editing
 //! commands. No UI or rendering dependencies (portable to wasm).
 
+#[path = "../../tnztools/assistants/assist.rs"]
 pub mod assist;
+#[path = "../../flarelib/bitmap.rs"]
 pub mod bitmap;
+#[path = "../../flarelib/centerline.rs"]
 pub mod centerline;
 #[cfg(feature = "codecs")]
+#[path = "../../image/codecs.rs"]
 pub mod codecs;
+#[path = "../../tnzext/deform.rs"]
 pub mod deform;
+#[path = "../../stdfx/fx.rs"]
 pub mod fx;
+#[path = "../../flare/demodocument.rs"]
 pub mod demo;
+#[path = "../../flarelib/editor.rs"]
 pub mod editor;
+#[path = "../../common/expressions/expr.rs"]
 pub mod expr;
+#[path = "../../flarelib/frames.rs"]
 pub mod frames;
+#[path = "../../common/tgeometry/geom.rs"]
 pub mod geom;
+#[path = "../../flarelib/ik.rs"]
 pub mod ik;
+#[path = "../../flarelib/model.rs"]
 pub mod model;
+#[path = "../../common/tvectorimage/merge.rs"]
 pub mod merge;
+#[path = "../../flarelib/rig.rs"]
 pub mod rig;
+#[path = "../../tnztools/sculpt.rs"]
 pub mod sculpt;
+#[path = "../../flarelib/sound.rs"]
 pub mod sound;
+#[path = "../../colorfx/strokes.rs"]
 pub mod strokes;
+#[path = "../../common/tparam/motion.rs"]
 pub mod motion;
+#[path = "../../tnztools/mypaint.rs"]
 pub mod paint;
+#[path = "../../stdfx/particles.rs"]
 pub mod particles;
+#[path = "../../common/tvrender/text.rs"]
 pub mod text;
+#[path = "../../flarelib/trace.rs"]
 pub mod trace;
+#[path = "../../flarelib/xdts.rs"]
 pub mod xdts;
+#[path = "../../common/tparam/tween_edit.rs"]
 pub mod tween_edit;
+#[path = "../../flareqt/commands.rs"]
 pub mod commands;
 
 pub use editor::{Editor, FrameSel, LayerFlag, Selection};
@@ -34,8 +60,10 @@ pub use geom::{pt, Matrix, Path, PointRef, Pt, Seg};
 pub use model::*;
 
 #[cfg(test)]
+#[path = "../../flarelib/flare_frame_clock_tests.rs"]
 mod flare_frame_clock_tests;
 #[cfg(test)]
+#[path = "../../flarelib/flare_tween_boundary_tests.rs"]
 mod flare_tween_boundary_tests;
 
 #[cfg(test)]

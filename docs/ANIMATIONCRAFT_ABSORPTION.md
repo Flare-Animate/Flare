@@ -79,3 +79,15 @@ Flare is retaining the OpenToonz architecture while replacing implementation lay
 Because of that, every absorbed feature must be translated into Flare's architecture. The merge is therefore not a repository merge, crate merge, or file-for-file port. It is a systematic decomposition of AnimationCraft's functionality and redistribution of that functionality into Flare's existing subsystem hierarchy.
 
 The resulting codebase should still look like Flare, still mirror OpenToonz's structure, and still present the same high-level organisation after the Rust rewrite is complete. AnimationCraft's functionality may be present throughout the tree, but AnimationCraft's architecture should not be.
+
+## ac-core file locations (under `flare/sources`)
+
+The crate `ac-core` is rooted at `rust/ac_core/` (Cargo.toml, lib.rs with `#[path]` mods, tests/, assets/, ORIGIN.md, LICENSE-*). Sources live beside the C++ they correspond to:
+
+| Directory | Files |
+|---|---|
+| `flarelib/` | bitmap, centerline, editor, frames, ik, model, rig, sound, trace, xdts, flare_frame_clock_tests, flare_tween_boundary_tests |
+| `tnztools/` | mypaint (was paint), sculpt; `assistants/assist` |
+| `common/` | `expressions/expr`, `tgeometry/geom`, `tvectorimage/merge`, `tparam/{motion,tween_edit}`, `tvrender/text` |
+| `stdfx/` | fx, particles |
+| `tnzext/` `colorfx/` `image/` `flareqt/` `flare/` | deform; strokes; codecs; commands; demodocument (was demo) |

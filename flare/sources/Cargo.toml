@@ -4,7 +4,7 @@
 # port (common/<subsystem>/rust/), mirroring the OpenToonz/Tahoma source tree.
 # Only the crate scaffolding is here; every module sits with its subsystem.
 [workspace]
-members = ["remote/rust", "flare/rust/core"]
+members = ["remote/rust", "rust/ac_core"]
 exclude = ["flare/rust/studio"]  # needs private AnimationCraft git deps
 
 [package]
@@ -24,4 +24,4 @@ roxmltree = "0.20"
 serde_json = "1.0.151"
 
 [patch."https://github.com/KMSDax/AnimationCraft"]
-ac-core = { path = "flare/rust/core" }
+ac-core = { path = "rust/ac_core" }

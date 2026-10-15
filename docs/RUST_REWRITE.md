@@ -295,4 +295,16 @@ In short, Flare's end state is a unified Rust implementation of the OpenToonz/Ta
 
 ### Tooling survey and state of `flare/rust/`
 - Automated C/C++→Rust tools exist (c2rust: rule-based, unsafe output; LLM+static-analysis research tools SACTOR, SmartC2Rust, RustMap, SafeTrans). None handle Qt/C++ class hierarchies; output would violate the safe-idiomatic rule. Port is manual, per file, test-verified.
-- `flare/rust/core` (≈24k LOC) and `studio` (≈14k LOC) are the AnimationCraft editor, a different architecture from OpenToonz; they are not a line-matching port. Counted against the 2.3k C++ files, the matching rewrite is a few modules deep.
+- `ac-core` (≈24k LOC; now spread across the OpenToonz-matching directories, crate root `flare/sources/rust/ac_core/lib.rs`) and `studio` (≈14k LOC) are the AnimationCraft editor, a different architecture from OpenToonz; they are not a line-matching port. Counted against the 2.3k C++ files, the matching rewrite is a few modules deep.
+
+## ac-core file locations (under `flare/sources`)
+
+The crate `ac-core` is rooted at `rust/ac_core/` (Cargo.toml, lib.rs with `#[path]` mods, tests/, assets/, ORIGIN.md, LICENSE-*). Sources live beside the C++ they correspond to:
+
+| Directory | Files |
+|---|---|
+| `flarelib/` | bitmap, centerline, editor, frames, ik, model, rig, sound, trace, xdts, flare_frame_clock_tests, flare_tween_boundary_tests |
+| `tnztools/` | mypaint (was paint), sculpt; `assistants/assist` |
+| `common/` | `expressions/expr`, `tgeometry/geom`, `tvectorimage/merge`, `tparam/{motion,tween_edit}`, `tvrender/text` |
+| `stdfx/` | fx, particles |
+| `tnzext/` `colorfx/` `image/` `flareqt/` `flare/` | deform; strokes; codecs; commands; demodocument (was demo) |
