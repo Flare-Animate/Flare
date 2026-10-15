@@ -2652,7 +2652,7 @@ fn font_style_picker(ui: &mut egui::Ui, family: Option<&str>, weight: u16, itali
 
 /// One EffectCraft parameter editor. Returns the widget's response for
 /// drag/undo tracking (None for widgets that only change on click).
-fn effect_param_ui(ui: &mut egui::Ui, kind: &ac_render::effectcraft::ParamKind, v: &mut ac_core::EffectValue, salt: (usize, &str)) -> Option<egui::Response> {
+fn effect_param_ui(ui: &mut egui::Ui, kind: &ac_render::effectcraft::ParamKind, v: &mut ac_core::EffectValue, id_scope: (usize, &str)) -> Option<egui::Response> {
     use ac_core::EffectValue as V;
     use ac_render::effectcraft::ParamKind as K;
     match (kind, v) {
@@ -2666,7 +2666,7 @@ fn effect_param_ui(ui: &mut egui::Ui, kind: &ac_render::effectcraft::ParamKind, 
         }
         (K::Popup(opts), V::Num(n)) => {
             let i = (*n as usize).min(opts.len().saturating_sub(1));
-            egui::ComboBox::from_id_salt(("fxpop", salt.0, salt.1)).selected_text(opts.get(i).cloned().unwrap_or_default()).show_ui(ui, |ui| {
+            egui::ComboBox::from_id_salt(("fxpop", id_scope.0, id_scope.1)).selected_text(opts.get(i).cloned().unwrap_or_default()).show_ui(ui, |ui| {
                 for (j, o) in opts.iter().enumerate() {
                     if ui.selectable_label(j == i, o).clicked() {
                         *n = j as f64;
