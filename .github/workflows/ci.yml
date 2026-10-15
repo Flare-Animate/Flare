@@ -36,6 +36,9 @@ jobs:
       - name: Check HTML5 runtime JS is in sync with its TypeScript source
         run: scripts/build-html5-runtime.sh --check
 
+      - name: Check JSFL shim JS is in sync with its TypeScript source
+        run: scripts/build-jsfl.sh --check
+
       - name: Setup Python
         uses: actions/setup-python@v7
         with:

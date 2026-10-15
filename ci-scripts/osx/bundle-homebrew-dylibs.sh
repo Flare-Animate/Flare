@@ -205,6 +205,15 @@ collect_targets() {
   fi
 }
 
+# Every Mach-O file in the bundle (Qt frameworks, helpers, plugins ...), not only
+# the ones whose dependencies this script rewrites. Symlinks are skipped.
+collect_all_macho() {
+  local f
+  while IFS= read -r f; do
+    is_macho "$f" && printf '%s\n' "$f"
+  done < <(find "$CONTENTS_DIR" -type f ! -type l -print)
+}
+
 # Iterate to a fixed point: newly copied dylibs bring their own dependencies.
 while :; do
   COPIED=0
@@ -213,6 +222,29 @@ while :; do
   done < <(collect_targets)
   [ "$COPIED" -eq 1 ] || break
 done
+
+# ---- strip host-specific rpaths --------------------------------------------
+# Every dependency now resolves through @rpath, and dyld tries LC_RPATH entries
+# in order. The executable still carries absolute entries from the build
+# (CMAKE_INSTALL_RPATH, /usr/local/lib, Cellar paths), so on a machine with
+# Homebrew installed @rpath/libomp.dylib, libopencv_*, libavdevice, libvtk* ...
+# resolve to the Homebrew copy while bundled dylibs load the bundled copy.
+# Two runtimes in one process: "OMP: Error #15 ... already initialized"
+# aborts the app (SIGABRT, exit 134) and the Obj-C classes of VTK/ffmpeg/OpenCV
+# are registered twice. Only bundle-relative (@...) rpaths may remain.
+STRIPPED=0
+while IFS= read -r target; do
+  while IFS= read -r rp; do
+    [ -n "$rp" ] || continue
+    case "$rp" in
+      @*) ;;
+      *) install_name_tool -delete_rpath "$rp" "$target" 2>/dev/null \
+           && { echo "Removed host rpath $rp from $target"; STRIPPED=$((STRIPPED+1)); } ;;
+    esac
+  done < <(list_rpaths "$target")
+  ensure_rpath "$target"
+done < <(collect_all_macho)
+echo "Stripped $STRIPPED host-specific rpath entries."
 
 # ---- verification -----------------------------------------------------------
 fail=0
@@ -230,6 +262,12 @@ while IFS= read -r target; do
         echo "ERROR: non-portable dependency $dependency in $target" >&2; fail=1 ;;
     esac
   done < <(list_dependencies "$target")
+  while IFS= read -r rp; do
+    case "$rp" in
+      ''|@*) ;;
+      *) echo "ERROR: host rpath $rp left in $target" >&2; fail=1 ;;
+    esac
+  done < <(list_rpaths "$target")
   # a target that links a bundled @rpath/ dylib must carry the app rpath
   uses_bundled=0
   while IFS= read -r dependency; do
@@ -241,6 +279,15 @@ while IFS= read -r target; do
     echo "ERROR: $target links a bundled @rpath dylib but lacks rpath $APP_RPATH" >&2; fail=1
   fi
 done < <(collect_targets)
+
+while IFS= read -r target; do
+  while IFS= read -r rp; do
+    case "$rp" in
+      ''|@*) ;;
+      *) echo "ERROR: host rpath $rp left in $target" >&2; fail=1 ;;
+    esac
+  done < <(list_rpaths "$target")
+done < <(collect_all_macho)
 
 [ "$fail" -eq 0 ] || exit 1
 echo "Homebrew dylib dependencies are bundled and resolved (@rpath)."

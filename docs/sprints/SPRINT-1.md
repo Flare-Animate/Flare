@@ -11,8 +11,9 @@ Goal: advance the Rust rewrite on Conversion-ft-animationCraft with every unit i
 | 4 | Unification plan, step 0 + 3 (mm_bridge) | sonnet | done; reviewed CHANGES -> silent-loss/dup-symbol findings fixed |
 | 5 | html5_runtime.js -> TypeScript | sonnet | done; reviewed OK; CI drift check added |
 | 6 | Batch 4 C++ ports (metnum, predict3d, CIL, CallCircle) | sonnet | done; reviewed APPROVE; lows fixed |
-| 7 | macOS smoke-test abort (SIGABRT, exit 134) | haiku triage, sonnet fix | waiting for diagnostics run on a413c66 |
-| 8 | Merge plan step 2 (single html5 runtime) | sonnet | blocked on 5 |
+| 7 | macOS smoke-test abort (SIGABRT, exit 134) | haiku triage, sonnet fix | cause: host LC_RPATH -> 2 copies of libomp/vtk/ffmpeg/opencv (OMP Error #15). Fix: strip non-@ rpaths from all Mach-O + dyld image check; reviewed APPROVE; awaiting CI |
+| 8 | Merge plan step 2 (single html5 runtime) | sonnet | STOPPED by design: contracts incompatible, see UNIFICATION_PLAN.md s5; needs mm->AC_MOVIE lowering |
+| 9 | jsfl.js -> TypeScript | haiku | done; reviewed APPROVE; CI drift check added |
 
 ## Definition of Done (per item)
 1. Builds and tests pass for touched crates (CI green on Linux, Windows, macOS where applicable).

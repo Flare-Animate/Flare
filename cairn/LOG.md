@@ -3,6 +3,7 @@
 Reverse-chronological, newest first. Summary and pointer only; conclusions live in `cairn/<topic>.md` and `docs/`.
 
 ## 2026-10-15 · Sprint 1 started under strict workflow
+- macOS exit 134 root cause: absolute LC_RPATH left in bundle (two libomp). Fix in ci-scripts/osx/bundle-homebrew-dylibs.sh. jsfl.ts added. Runtime merge deferred (UNIFICATION_PLAN s5).
 - 2026-10-15 Sprint 1 batch pushed after independent reviews (batch3/4 APPROVE, wave2+bridge fixed). See docs/sprints/SPRINT-1.md.
 
 - Cairn initialised (defaults: track, en, no graduation provider, start_fresh). AGENTS.md and CLAUDE.md untouched (project-owned).

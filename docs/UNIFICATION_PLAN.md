@@ -102,3 +102,17 @@ independent; 7 must precede 8; 3 must precede 4, 8 and 12.
 4. Step 0 as a written decision before anyone starts step 7.
 Do not start 8 to 14 this sprint. Licence: mm has no upstream LICENSE; get one before any mm code is relicensed or
 published (ORIGIN.md), and keep `publish = false` until then.
+
+## 5. Step 2 outcome: single `html5_runtime.js` NOT done (contracts incompatible)
+
+Diffed `html5_runtime.ts` (ac, 918 lines) against `mm_html5_runtime.js` (307 lines). mm's runtime was left in place; nothing was ported. Exact incompatibilities:
+
+1. Global and canvas: ac reads `window.AC_MOVIE` and `<canvas id="ac-stage">`; mm reads global `movie` and `<canvas id="movie">`, sets `window.exportRoot`.
+2. Timeline model: ac plays one flat, precomputed `M.frames[]` of display lists (items refer to `M.items`, `M.paths` as SVG path strings, `M.clips`, `M.extra[f]`). mm has `movie.timelines[symbol].frames[]` with nested live MovieClip instances (`item.clip`, `item.k` keys, `item.b` button flag), which are advanced, synced and drawn recursively with per-clip colour transforms. Adapting means flattening nested symbols to per-frame lists on the Rust side (a new export pass, not a small adapter).
+3. Scripts: mm `timelines[s].scripts[frame]` are JS functions called with `this` = the clip; ac `extra[f].js` are strings compiled with a CreateJS-style `this` (`scriptCache`). Different `this` APIs (mm: `scenes`, `frameOf`, `gotoAndPlay(frame, scene)`, `nextScene/prevScene`, `getChildByName` on live clips).
+4. Shapes: mm `movie.shapes[i] = {f:[{d,c,g,b}], s:[{d,w,cap,join,c,g,b}]}` (fills and strokes inline, gradient `{t,m,f,s}`, bitmap fill `{i,m,r}`); ac uses `Item` records (`f`/`s`/`g`/`pat`/`pm`) over `M.paths`.
+5. Masks: mm nests `{mask:[...], items:[...]}` in display lists; ac uses `Group.cb` / `M.clips` clip paths.
+6. Images: mm `movie.images=[{src,w,h}]`; ac `M.images=[[src, smooth]]`.
+7. Features: mm has no real button, sound, text, filter or motion-blur handling (button clips only flagged and never respond), so there is nothing unique to port from mm to ac except scenes with named-scene goto and nested symbol timelines, which ac lacks by design (it precomputes them).
+
+Recommended next step: a Rust-side lowering pass (mm timelines -> ac `AC_MOVIE`), tied to step 3's bridge, then drop `mm_html5_runtime.js`.
