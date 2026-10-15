@@ -9,6 +9,9 @@
 //!   flare-cli xfl    <doc | demo> <out.fla | out.xfl>   (export; any <doc> may also be a .fla / .xfl / XFL folder)
 //!   flare-cli html5  <doc | demo> <out-dir | out.html> [--no-loop]   (HTML5 Canvas; .html = one self-contained file)
 //!   flare-cli sprites <doc | demo> <out(.png)> [scale] [--format hash|array|starling]   (sprite sheet + atlas)
+//!   flare-cli atlas  <out(.png)> <png/jpg files or folders…> [--max-size N] [--padding N] [--rotate] [--pot]   (texture atlas: out.png + out.json)
+//!   flare-cli swf    <doc | demo | in.swf> <out.swf>   (SWF export; character ids of an imported SWF are kept)
+//!   flare-cli swf-font <in.swf | in.ttf> <out.ttf | out.swf>   (DefineFont2/3 <-> TrueType)
 //!   flare-cli svg-anim <doc | demo> <out.svg>   (animated SVG, SMIL)
 //!   flare-cli lottie <doc | demo> <out.json>
 //!   flare-cli convert <in> <out.acx.json | .fla | .xfl>
@@ -151,6 +154,69 @@ fn run(args: &[String]) -> Result<(), String> {
             };
             let (a, b) = ac_render::formats::export_sprite_sheet(&d, &o, &so, Path::new(arg(2)?))?;
             println!("wrote {} and {}", a.display(), b.display());
+        }
+        "atlas" => {
+            // atlas <out> <inputs…> [--max-size N] [--padding N] [--rotate] [--pot]
+            let flag = |n: &str| args.iter().position(|a| a == n).and_then(|i| args.get(i + 1)).and_then(|v| v.parse::<u32>().ok());
+            let mut o = ac_render::formats::AtlasOpts { allow_rotate: args.iter().any(|a| a == "--rotate"), power_of_two: args.iter().any(|a| a == "--pot"), ..Default::default() };
+            if let Some(v) = flag("--max-size") {
+                o.max_size = v.max(1);
+            }
+            if let Some(v) = flag("--padding") {
+                o.padding = v;
+            }
+            let mut inputs = vec![];
+            let mut i = 2;
+            while i < args.len() {
+                if matches!(args[i].as_str(), "--max-size" | "--padding") {
+                    i += 2;
+                } else if args[i].starts_with("--") {
+                    i += 1;
+                } else {
+                    inputs.push(std::path::PathBuf::from(&args[i]));
+                    i += 1;
+                }
+            }
+            if inputs.is_empty() {
+                return Err("atlas: give at least one image or folder".into());
+            }
+            let (p, j, a) = ac_render::formats::export_atlas(&inputs, &o, Path::new(arg(1)?))?;
+            println!("wrote {} and {} ({} images, {}x{})", p.display(), j.display(), a.entries.len(), a.width, a.height);
+        }
+        "swf" => {
+            // swf <doc | in.swf> <out.swf>
+            let src = arg(1)?;
+            let d = if src.to_ascii_lowercase().ends_with(".swf") {
+                let im = ac_xfl::swf_read::import(&std::fs::read(src).map_err(|e| format!("{src}: {e}"))?)?;
+                for w in &im.warnings {
+                    eprintln!("note: {w}");
+                }
+                im.doc
+            } else {
+                load(src)?
+            };
+            let e = ac_xfl::swf_write::export(&d)?;
+            for w in &e.warnings {
+                eprintln!("note: {w}");
+            }
+            std::fs::write(arg(2)?, &e.bytes).map_err(|e| e.to_string())?;
+            println!("wrote {}", arg(2)?);
+        }
+        "swf-font" => {
+            // swf-font <in.swf|in.ttf> <out.ttf|out.swf>
+            let (src, out) = (arg(1)?, arg(2)?);
+            let bytes = std::fs::read(src).map_err(|e| format!("{src}: {e}"))?;
+            if src.to_ascii_lowercase().ends_with(".swf") {
+                let sw = ac_xfl::swf::parse(&bytes)?;
+                let t = sw.tags.iter().find(|t| matches!(t.code, ac_xfl::swf::DEFINE_FONT2 | ac_xfl::swf::DEFINE_FONT3)).ok_or("no DefineFont2/3 in that SWF")?;
+                let f = ac_xfl::swf_font::parse_define_font(t.code, &t.body)?;
+                std::fs::write(out, ac_xfl::swf_font::to_ttf(&f)).map_err(|e| e.to_string())?;
+            } else {
+                let f = ac_xfl::swf_font::from_ttf(&bytes)?;
+                let tag = ac_xfl::swf_font::define_font3(1, &f);
+                std::fs::write(out, ac_xfl::swf::write(ac_xfl::swf_write::VERSION, [0, 8000, 0, 6000], 24.0, 1, &[tag, ac_xfl::swf::RawTag { code: ac_xfl::swf::SHOW_FRAME, body: vec![] }], true)).map_err(|e| e.to_string())?;
+            }
+            println!("wrote {out}");
         }
         "svg-anim" => {
             let d = load(arg(1)?)?;

@@ -256,10 +256,10 @@ The two engine milestones that unlock most of the rest:
 | Export Animated GIF (with settings: size, colours, loop, dither) | Yes (Save for Web) | Size, range, loop, quality, transparency | ✅ | |
 | Export Image (PNG/JPG/GIF/SVG with options, transparency) | Yes | PNG (transparency), JPEG (quality), GIF (palette, transparency) at any size; SVG | ✅ | |
 | PNG sequence | Yes | Yes | ✅ | |
-| Generate Sprite Sheet / Texture Atlas | Yes | PNG + JSON hash / JSON array / Starling XML; trim, padding, duplicate detection, shelf packing | ✅ | (MaxRects, rotation) |
+| Generate Sprite Sheet / Texture Atlas | Yes | PNG + JSON hash / JSON array / Starling XML; trim, padding, duplicate detection, shelf packing. Plus a standalone MaxRects atlas of image files (`ac_formats::pack_atlas`, `flare-cli atlas`: padding, optional 90° rotation, power-of-two, PNG + JSON) | ✅ | (rotation/MaxRects for the frame sheet) |
 | Animated SVG (SMIL) export | Yes | Frame groups with discrete SMIL timing; identical frames shared | ✅ | |
 | WebGL glTF (standard/extended), VR 360/Panorama (deprecated) | Yes | — | ❌ | P3 |
-| SWF / Flash Player, AIR desktop/mobile | Yes | — | ❌ | P3 (SWF via Ruffle crates maybe) |
+| SWF / Flash Player, AIR desktop/mobile | Yes | SWF writer (`ac_swf_write.rs`, `flare-cli swf`): shapes (solid/bitmap fills, strokes, curves), bitmaps (pass-through when unedited), sprites, placement/colour transform, frame labels; imported character ids reused. No text, gradients, filters, buttons, sound, AS yet (reported as warnings). AIR: —  | 🟡 | P3 |
 | Publish to YouTube / social presets (post-2020) | Yes | — | ❌ | P3 |
 | Lottie | No (third-party plug-in) | Shape layers per distinct frame (beziers, fills, strokes/dashes, gradients), embedded bitmaps; verified in lottie-web; no masks/filters | ✅ | (keyframed transforms instead of per-frame layers) |
 | Test Movie (Ctrl+Enter) in a player window, Test Scene | Yes | Control › Test Movie (Ctrl+Enter): publishes one HTML page and opens it in the browser (scripts, buttons, sounds) (unverified) | 🟡 | P3 (own player window, Test Scene) |
@@ -272,7 +272,8 @@ The two engine milestones that unlock most of the rest:
 | **.fla / XFL write** | Yes | Zipped .fla and XFL folders; shared edges; round-trip tested; motion tweens baked frame by frame | 🟡 | P2 (motion objects) |
 | Legacy binary .fla (CS4 and earlier) | Yes | — | ❌ | P3 |
 | Save As .xfl (uncompressed folder) | Yes | Yes (`name.xfl` → folder with the marker file) | ✅ | |
-| Import SWF | Old versions | — | ❌ | P3 |
+| Import SWF | Old versions | `ac_swf_read.rs`: bitmaps (DefineBits, JPEG2/3, Lossless/2), shapes 1-4 (solid/bitmap fills, strokes, curves; gradients → first colour), sprites, placements and the main timeline; keeps character ids and original image bytes. Fonts/text/buttons/sound/AS skipped with a warning | 🟡 | P3 |
+| SWF font ↔ TrueType (DefineFont2/3) | Via Animate's export | `ac_swf_font.rs`: DefineFont2/3 → minimal TTF (glyf, cmap 4, head, hhea, hmtx, maxp, name, post, OS/2); TTF/OTF → DefineFont3 (`flare-cli swf-font`). Not embedded in the SWF writer yet | 🟡 | P3 |
 | Copy/paste with Illustrator/Photoshop (clipboard formats) | Yes | Internal clipboard | ❌ | P3 |
 | Exposure sheets (XDTS: OpenToonz, Clip Studio Paint, TVPaint) | No | Export, and import onto layers (re-time same-named layers, load numbered images, or labelled blank keyframes) | ✅ | |
 | Native format | .fla | `.acx` package (ZIP: manifest, document, one JSON per scene and symbol, PNG/audio files, thumbnail; versioned, atomic save); `.acx.json` still supported | ✅ | |

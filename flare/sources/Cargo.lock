@@ -131,6 +131,7 @@ dependencies = [
  "image",
  "roxmltree 0.20.0",
  "serde_json",
+ "ttf-parser 0.24.1",
  "usvg 0.44.0",
  "zip 2.4.2",
 ]

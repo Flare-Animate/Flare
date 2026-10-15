@@ -7,6 +7,321 @@ use ac_core::model::*;
 use ac_core::{Matrix, Pt, Seg};
 use std::fmt::Write as _;
 
+// ------------------------------------------------------------- texture atlas
+
+/// An image to pack: straight (non-premultiplied) RGBA.
+#[derive(Clone, Debug)]
+pub struct AtlasInput {
+    pub name: String,
+    pub w: u32,
+    pub h: u32,
+    pub rgba: Vec<u8>,
+}
+
+#[derive(Clone, Debug)]
+pub struct AtlasOpts {
+    /// Largest atlas side in pixels.
+    pub max_size: u32,
+    /// Pixels kept clear between images.
+    pub padding: u32,
+    /// Allow turning images 90 degrees clockwise to pack tighter.
+    pub allow_rotate: bool,
+    /// Round the atlas size up to powers of two.
+    pub power_of_two: bool,
+}
+
+impl Default for AtlasOpts {
+    fn default() -> Self {
+        AtlasOpts { max_size: 2048, padding: 1, allow_rotate: false, power_of_two: false }
+    }
+}
+
+/// Where one image sits. `w`/`h` are the size in the atlas (swapped when `rotated`).
+#[derive(Clone, Debug, PartialEq)]
+pub struct AtlasEntry {
+    pub name: String,
+    pub x: u32,
+    pub y: u32,
+    pub w: u32,
+    pub h: u32,
+    pub rotated: bool,
+    pub source_w: u32,
+    pub source_h: u32,
+}
+
+#[derive(Clone, Debug)]
+pub struct Atlas {
+    pub width: u32,
+    pub height: u32,
+    pub entries: Vec<AtlasEntry>,
+    pub rgba: Vec<u8>,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct Rc {
+    x: u32,
+    y: u32,
+    w: u32,
+    h: u32,
+}
+
+impl Rc {
+    fn overlaps(&self, o: &Rc) -> bool {
+        self.x < o.x + o.w && o.x < self.x + self.w && self.y < o.y + o.h && o.y < self.y + self.h
+    }
+    fn contains(&self, o: &Rc) -> bool {
+        o.x >= self.x && o.y >= self.y && o.x + o.w <= self.x + self.w && o.y + o.h <= self.y + self.h
+    }
+}
+
+/// A placement from `max_rects`: top-left corner and whether the rectangle
+/// was turned (its footprint is then `h` wide and `w` tall).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Placement {
+    pub x: u32,
+    pub y: u32,
+    pub rotated: bool,
+}
+
+/// MaxRects bin packing (best short side fit): place every `(w, h)` in a
+/// `bin_w` x `bin_h` bin, or `None` if they don't all fit. Placements keep the
+/// order of `sizes`; rectangles never overlap and stay inside the bin.
+pub fn max_rects(sizes: &[(u32, u32)], bin_w: u32, bin_h: u32, allow_rotate: bool) -> Option<Vec<Placement>> {
+    let mut free = vec![Rc { x: 0, y: 0, w: bin_w, h: bin_h }];
+    let mut out = vec![Placement { x: 0, y: 0, rotated: false }; sizes.len()];
+    // large first
+    let mut order: Vec<usize> = (0..sizes.len()).collect();
+    order.sort_by_key(|&i| std::cmp::Reverse((sizes[i].0.max(sizes[i].1), sizes[i].0 as u64 * sizes[i].1 as u64)));
+    for i in order {
+        let (w, h) = sizes[i];
+        // best short side fit, then best long side fit
+        let mut best: Option<(u32, u32, Rc, bool)> = None;
+        for f in &free {
+            for rot in [false, true] {
+                if rot && (!allow_rotate || w == h) {
+                    continue;
+                }
+                let (rw, rh) = if rot { (h, w) } else { (w, h) };
+                if rw <= f.w && rh <= f.h {
+                    let (lw, lh) = (f.w - rw, f.h - rh);
+                    let key = (lw.min(lh), lw.max(lh));
+                    if best.as_ref().map_or(true, |b| key < (b.0, b.1)) {
+                        best = Some((key.0, key.1, Rc { x: f.x, y: f.y, w: rw, h: rh }, rot));
+                    }
+                }
+            }
+        }
+        let (_, _, placed, rot) = best?;
+        out[i] = Placement { x: placed.x, y: placed.y, rotated: rot };
+        // split every free rect the placement overlaps
+        let mut next: Vec<Rc> = Vec::with_capacity(free.len() + 4);
+        for f in free {
+            if !f.overlaps(&placed) {
+                next.push(f);
+                continue;
+            }
+            if placed.x > f.x {
+                next.push(Rc { x: f.x, y: f.y, w: placed.x - f.x, h: f.h });
+            }
+            if placed.x + placed.w < f.x + f.w {
+                next.push(Rc { x: placed.x + placed.w, y: f.y, w: f.x + f.w - placed.x - placed.w, h: f.h });
+            }
+            if placed.y > f.y {
+                next.push(Rc { x: f.x, y: f.y, w: f.w, h: placed.y - f.y });
+            }
+            if placed.y + placed.h < f.y + f.h {
+                next.push(Rc { x: f.x, y: placed.y + placed.h, w: f.w, h: f.y + f.h - placed.y - placed.h });
+            }
+        }
+        // drop free rects contained in another
+        let mut keep = vec![true; next.len()];
+        for a in 0..next.len() {
+            for b in 0..next.len() {
+                if a != b && keep[a] && keep[b] && next[b].contains(&next[a]) && (next[a] != next[b] || a > b) {
+                    keep[a] = false;
+                }
+            }
+        }
+        free = next.into_iter().zip(keep).filter(|(_, k)| *k).map(|(r, _)| r).collect();
+    }
+    Some(out)
+}
+
+fn next_pow2(v: u32) -> u32 {
+    v.max(1).next_power_of_two()
+}
+
+/// Pack `inputs` into the smallest atlas (up to `max_size` on a side) and
+/// compose its pixels. Entries keep the input order.
+pub fn pack_atlas(inputs: &[AtlasInput], o: &AtlasOpts) -> Result<Atlas, String> {
+    if inputs.is_empty() {
+        return Err("no images to pack".into());
+    }
+    for i in inputs {
+        if i.w == 0 || i.h == 0 || i.rgba.len() != (i.w as usize) * (i.h as usize) * 4 {
+            return Err(format!("image '{}' is empty or its pixel data does not match its size", i.name));
+        }
+        let fits = |w: u32, h: u32| w <= o.max_size && h <= o.max_size;
+        if !fits(i.w, i.h) && !(o.allow_rotate && fits(i.h, i.w)) {
+            return Err(format!("image '{}' ({}x{}) is larger than the maximum atlas size {}", i.name, i.w, i.h, o.max_size));
+        }
+    }
+    let pad = o.padding;
+    let sizes: Vec<(u32, u32)> = inputs.iter().map(|i| (i.w + pad, i.h + pad)).collect();
+    let area: u64 = sizes.iter().map(|s| s.0 as u64 * s.1 as u64).sum();
+    // candidate bins, smallest area first (power-of-two sides, squares and 2:1)
+    let mut bins: Vec<(u32, u32)> = Vec::new();
+    let mut s = 1u32;
+    while s <= o.max_size.next_power_of_two() {
+        for (w, h) in [(s, s), (s * 2, s)] {
+            bins.push((w, h));
+            bins.push((h, w));
+        }
+        s *= 2;
+    }
+    bins.sort_by_key(|b| (b.0 as u64 * b.1 as u64, b.0.max(b.1)));
+    bins.dedup();
+    let mut found = None;
+    for (bw, bh) in bins {
+        // the padded bin: the last image needs no padding after it
+        let (bw, bh) = (bw.min(o.max_size) + pad, bh.min(o.max_size) + pad);
+        if (bw as u64) * (bh as u64) < area {
+            continue;
+        }
+        if let Some(p) = max_rects(&sizes, bw, bh, o.allow_rotate) {
+            found = Some(p);
+            break;
+        }
+    }
+    let placements = found.ok_or_else(|| format!("the images do not fit in a {0}x{0} atlas", o.max_size))?;
+    let (mut w, mut h) = (0u32, 0u32);
+    let mut entries = Vec::with_capacity(inputs.len());
+    for (i, p) in inputs.iter().zip(&placements) {
+        let (ew, eh) = if p.rotated { (i.h, i.w) } else { (i.w, i.h) };
+        w = w.max(p.x + ew);
+        h = h.max(p.y + eh);
+        entries.push(AtlasEntry { name: i.name.clone(), x: p.x, y: p.y, w: ew, h: eh, rotated: p.rotated, source_w: i.w, source_h: i.h });
+    }
+    if o.power_of_two {
+        w = next_pow2(w);
+        h = next_pow2(h);
+    }
+    let mut rgba = vec![0u8; (w as usize) * (h as usize) * 4];
+    for (i, e) in inputs.iter().zip(&entries) {
+        for y in 0..e.h {
+            for x in 0..e.w {
+                // rotated 90 degrees clockwise: atlas (x, y) takes source (y, h_src - 1 - x)
+                let (sx, sy) = if e.rotated { (y, i.h - 1 - x) } else { (x, y) };
+                let s = ((sy * i.w + sx) * 4) as usize;
+                let d = (((e.y + y) * w + e.x + x) * 4) as usize;
+                rgba[d..d + 4].copy_from_slice(&i.rgba[s..s + 4]);
+            }
+        }
+    }
+    Ok(Atlas { width: w, height: h, entries, rgba })
+}
+
+impl Atlas {
+    pub fn png(&self) -> Result<Vec<u8>, String> {
+        let mut out = Vec::new();
+        let mut enc = png::Encoder::new(&mut out, self.width, self.height);
+        enc.set_color(png::ColorType::Rgba);
+        enc.set_depth(png::BitDepth::Eight);
+        let mut w = enc.write_header().map_err(|e| e.to_string())?;
+        w.write_image_data(&self.rgba).map_err(|e| e.to_string())?;
+        drop(w);
+        Ok(out)
+    }
+
+    /// TexturePacker-style JSON hash (`frames` by name, `rotated` = 90 degrees clockwise).
+    pub fn json(&self, image_name: &str) -> String {
+        let esc = |s: &str| s.replace('\\', "\\\\").replace('"', "\\\"");
+        let frames: Vec<String> = self
+            .entries
+            .iter()
+            .map(|e| {
+                format!(
+                    "\n  \"{}\": {{\"frame\":{{\"x\":{},\"y\":{},\"w\":{},\"h\":{}}},\"rotated\":{},\"trimmed\":false,\"spriteSourceSize\":{{\"x\":0,\"y\":0,\"w\":{},\"h\":{}}},\"sourceSize\":{{\"w\":{},\"h\":{}}}}}",
+                    esc(&e.name),
+                    e.x,
+                    e.y,
+                    e.w,
+                    e.h,
+                    e.rotated,
+                    e.source_w,
+                    e.source_h,
+                    e.source_w,
+                    e.source_h
+                )
+            })
+            .collect();
+        format!(
+            "{{\"frames\": {{{}\n}},\n\"meta\": {{\"app\":\"Flare\",\"version\":\"1.0\",\"image\":\"{}\",\"format\":\"RGBA8888\",\"size\":{{\"w\":{},\"h\":{}}},\"scale\":\"1\"}}\n}}\n",
+            frames.join(","),
+            esc(image_name),
+            self.width,
+            self.height
+        )
+    }
+}
+
+/// Decode a PNG or JPEG file's bytes to straight RGBA.
+pub fn decode_atlas_image(name: &str, bytes: &[u8]) -> Result<AtlasInput, String> {
+    if bytes.starts_with(&[0x89, b'P', b'N', b'G']) {
+        let mut dec = png::Decoder::new(bytes);
+        dec.set_transformations(png::Transformations::normalize_to_color8());
+        let mut r = dec.read_info().map_err(|e| format!("{name}: {e}"))?;
+        let mut buf = vec![0; r.output_buffer_size()];
+        let info = r.next_frame(&mut buf).map_err(|e| format!("{name}: {e}"))?;
+        let (w, h) = (info.width, info.height);
+        let px = &buf[..info.buffer_size()];
+        let mut rgba = Vec::with_capacity((w * h * 4) as usize);
+        match info.color_type {
+            png::ColorType::Rgba => rgba.extend_from_slice(px),
+            png::ColorType::Rgb => px.chunks_exact(3).for_each(|p| rgba.extend_from_slice(&[p[0], p[1], p[2], 255])),
+            png::ColorType::GrayscaleAlpha => px.chunks_exact(2).for_each(|p| rgba.extend_from_slice(&[p[0], p[0], p[0], p[1]])),
+            png::ColorType::Grayscale => px.iter().for_each(|&g| rgba.extend_from_slice(&[g, g, g, 255])),
+            png::ColorType::Indexed => return Err(format!("{name}: indexed PNG was not expanded")),
+        }
+        Ok(AtlasInput { name: name.into(), w, h, rgba })
+    } else {
+        let img = image::load_from_memory(bytes).map_err(|e| format!("{name}: {e}"))?.to_rgba8();
+        Ok(AtlasInput { name: name.into(), w: img.width(), h: img.height(), rgba: img.into_raw() })
+    }
+}
+
+/// Pack the PNG/JPEG files (directories are searched one level deep) into
+/// `<out>.png` and `<out>.json`. Names in the atlas are the file stems.
+pub fn export_atlas(paths: &[std::path::PathBuf], o: &AtlasOpts, out: &std::path::Path) -> Result<(std::path::PathBuf, std::path::PathBuf, Atlas), String> {
+    let mut files: Vec<std::path::PathBuf> = Vec::new();
+    for p in paths {
+        if p.is_dir() {
+            let mut v: Vec<_> = std::fs::read_dir(p).map_err(|e| format!("{}: {e}", p.display()))?.filter_map(|e| e.ok().map(|e| e.path())).collect();
+            v.sort();
+            files.extend(v.into_iter().filter(|f| is_atlas_image(f)));
+        } else {
+            files.push(p.clone());
+        }
+    }
+    let mut inputs = Vec::new();
+    for f in &files {
+        let name = f.file_stem().and_then(|s| s.to_str()).unwrap_or("image").to_string();
+        let bytes = std::fs::read(f).map_err(|e| format!("{}: {e}", f.display()))?;
+        inputs.push(decode_atlas_image(&name, &bytes)?);
+    }
+    let atlas = pack_atlas(&inputs, o)?;
+    let png_path = out.with_extension("png");
+    let json_path = out.with_extension("json");
+    let image_name = png_path.file_name().and_then(|s| s.to_str()).unwrap_or("atlas.png").to_string();
+    std::fs::write(&png_path, atlas.png()?).map_err(|e| format!("{}: {e}", png_path.display()))?;
+    std::fs::write(&json_path, atlas.json(&image_name)).map_err(|e| format!("{}: {e}", json_path.display()))?;
+    Ok((png_path, json_path, atlas))
+}
+
+fn is_atlas_image(p: &std::path::Path) -> bool {
+    p.extension().and_then(|e| e.to_str()).map(|e| matches!(e.to_ascii_lowercase().as_str(), "png" | "jpg" | "jpeg")).unwrap_or(false)
+}
+
 // ---------------------------------------------------------------- sprite sheets
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]

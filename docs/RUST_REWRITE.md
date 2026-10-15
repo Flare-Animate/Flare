@@ -45,8 +45,8 @@ A crate is the directory holding its `Cargo.toml`; the root `.rs` is named by `[
 | `ac-core` | `flarelib/` | `Cargo.toml` / `ac_core.rs` (tests in `tests/`, `assets/mypaint/`, `ORIGIN.md`) |
 | `minnamate-core` | `tnztools/` | `Cargo.toml` / `minnamate_core.rs` (tests in `tests/`) |
 | `flare_remote` | `remote/` | `Cargo.toml` / `remote.rs` |
-| `ac-render` | `common/tvrender/` | `Cargo.toml` / `ac_render.rs` (`ac_{fx,formats,html5,fonts,effectcraft}.rs`, `html5_runtime.js`, `tests/`, `examples/`) |
-| `ac-xfl` | `common/flash/` | `Cargo.toml` / `ac_xfl.rs` (`ac_xfl_{read,write,edges,brush,dat,tests}.rs`, `tests/fixtures/`) |
+| `ac-render` | `common/tvrender/` | `Cargo.toml` / `ac_render.rs` (`ac_{fx,formats,html5,fonts,effectcraft}.rs`; `ac_formats.rs` also holds the MaxRects texture atlas, `html5_runtime.js`, `tests/`, `examples/`) |
+| `ac-xfl` | `common/flash/` | `Cargo.toml` / `ac_xfl.rs` (`ac_xfl_{read,write,edges,brush,dat,tests}.rs`, `tests/fixtures/`; SWF: `ac_swf.rs` container + character ids, `ac_swf_{read,write,font,tests}.rs`, from the Next2Flash port, see `docs/NEXT2FLASH_INTEGRATION.md`) |
 | `ac-audio` | `sound/` | `Cargo.toml` / `ac_audio.rs` (`ac_audio_{playback,rhubarb,tests}.rs`) |
 | `ac-script` | `common/expressions/` | `Cargo.toml` / `ac_script.rs` (`ac_script_tests.rs`, `jsfl.js`) |
 | `ac-package` | `common/tsystem/` | `Cargo.toml` / `ac_package.rs` |

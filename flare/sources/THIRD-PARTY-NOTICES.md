@@ -34,6 +34,38 @@ Not taken from Flare: its Qt theme materials (derived from studying Adobe
 binaries) and its Flash/SWF readers (written with GPL/AGPL references). See
 `docs/FLARE-REVIEW-PHASE5.md`.
 
+### Next2Flash (github.com/SSF2-Mods-Official/Next2Flash)
+SWF round-trip features in `common/flash/ac_swf*.rs` were written in Rust from the SWF File Format Specification, informed by
+Next2Flash's behaviour (read under its MIT licence): character-id handling
+(`app/char_id_allocator.py`: id 0 is reserved for the root timeline; Flare keeps
+ids instead of compacting them), the premultiplied-ARGB DefineBitsLossless2
+layout (`app/bitmap_converter.py`) and the DefineFont3 ↔ TrueType unit scaling
+(`app/swf_font_to_ttf.py`, `app/ttf_to_swf_font.py`: 20480-unit SWF em vs. a
+1024-unit TrueType em). No Python is copied. Each such file names its source in
+its header comment. NFlare (GPL-3) was not consulted.
+
+> MIT License
+>
+> Copyright (c) 2026 masterwebx
+>
+> Permission is hereby granted, free of charge, to any person obtaining a copy
+> of this software and associated documentation files (the "Software"), to deal
+> in the Software without restriction, including without limitation the rights
+> to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+> copies of the Software, and to permit persons to whom the Software is
+> furnished to do so, subject to the following conditions:
+>
+> The above copyright notice and this permission notice shall be included in all
+> copies or substantial portions of the Software.
+>
+> THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+> IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+> FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+> AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+> LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+> OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+> SOFTWARE.
+
 ### OpenToonz (github.com/opentoonz/opentoonz)
 Features modelled on OpenToonz subsystems are listed in
 `docs/OPENTOONZ-REVIEW.md`. Files that follow OpenToonz code or formats:
@@ -80,6 +112,10 @@ Pure-Rust port of libmypaint, the brush engine behind the Raster Brush
 ### image (github.com/image-rs/image)
 Decoders for bitmap import (PNG, JPEG, GIF, BMP, TGA, TIFF, WebP, OpenEXR) in
 `ac-core/src/codecs.rs`. crates.io dependency, MIT OR Apache-2.0.
+
+### ttf-parser (github.com/RazrFalcon/ttf-parser)
+Glyph outlines when converting a TrueType font to a SWF font (`ac-xfl`). crates.io
+dependency, MIT OR Apache-2.0.
 
 ### Rust crates
 All other dependencies come from crates.io under their own licences (mostly

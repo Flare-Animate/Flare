@@ -1072,6 +1072,10 @@ pub struct Document {
     /// Linkage (Export for runtime): a symbol's class name in published code.
     #[serde(default, skip_serializing_if = "std::collections::BTreeMap::is_empty")]
     pub linkage: std::collections::BTreeMap<SymbolId, String>,
+    /// Character ids library symbols had in the SWF they were imported from;
+    /// an export reuses them (new items get fresh ids above the largest).
+    #[serde(default, skip_serializing_if = "std::collections::BTreeMap::is_empty")]
+    pub swf_char_ids: std::collections::BTreeMap<SymbolId, u16>,
     /// Drawing assistants and symmetry (OpenToonz): guides and replicators
     /// that shape freehand strokes, in stage coordinates.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -1122,6 +1126,7 @@ impl Default for Document {
             swatches: None,
             folders: vec![],
             linkage: Default::default(),
+            swf_char_ids: Default::default(),
             warnings: vec![],
         }
     }
@@ -1822,14 +1827,14 @@ pub fn eval_element(ctx: &EvalCtx, el: &Element, parent: &Matrix, alpha: f32, lo
         ElementKind::Bitmap(b) => {
             if let Some(asset) = ctx.doc.bitmap(b.bitmap) {
                 let path = Path::rect(0.0, 0.0, asset.width as f32, asset.height as f32);
+                // a clamped placeholder is scaled back to the size the document declared
+                let (dw, dh) = asset.declared_size();
+                let m = if (dw, dh) != (asset.width, asset.height) { m.concat(&Matrix::scale(dw as f32 / asset.width.max(1) as f32, dh as f32 / asset.height.max(1) as f32)) } else { m };
                 let image = asset.image();
                 // outline mode / missing pixels: draw the frame only
                 let fill = image.is_none().then_some(Color::rgb(200, 200, 200));
                 out.push(DrawItem { fill, alpha: a, tint: el.tint, outline, image, ..DrawItem::new(path, m) });
             }
-                // a clamped placeholder is scaled back to the size the document declared
-                let (dw, dh) = asset.declared_size();
-                let m = if (dw, dh) != (asset.width, asset.height) { m.concat(&Matrix::scale(dw as f32 / asset.width.max(1) as f32, dh as f32 / asset.height.max(1) as f32)) } else { m };
         }
         ElementKind::Particles(e) => e.eval(ctx, &m, a, el.tint, local, outline, depth, out),
         ElementKind::Instance(inst) => {

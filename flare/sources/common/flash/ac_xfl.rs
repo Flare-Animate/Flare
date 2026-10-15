@@ -20,6 +20,18 @@ pub mod edges;
 mod read;
 #[path = "ac_xfl_write.rs"]
 mod write;
+/// SWF container, character ids and tag helpers.
+#[path = "ac_swf.rs"]
+pub mod swf;
+/// SWF → Document (character ids and bitmap bytes kept).
+#[path = "ac_swf_read.rs"]
+pub mod swf_read;
+/// Document → SWF (reuses imported character ids, writes bitmaps unchanged).
+#[path = "ac_swf_write.rs"]
+pub mod swf_write;
+/// SWF fonts (DefineFont2/3) ↔ TrueType.
+#[path = "ac_swf_font.rs"]
+pub mod swf_font;
 
 use ac_core::model::Document;
 use std::collections::BTreeMap;
@@ -200,3 +212,6 @@ fn write_dir(pkg: &Package, dir: &Path, stem: &str) -> Result<(), String> {
 #[cfg(test)]
 #[path = "ac_xfl_tests.rs"]
 mod tests;
+#[cfg(test)]
+#[path = "ac_swf_tests.rs"]
+mod swf_tests;
