@@ -378,6 +378,11 @@ jobs:
               143|137) echo "SMOKE TEST PASS: Flare ran 8+ seconds without crashing" | tee -a "$SMOKE_LOG" ;;
               0)       echo "SMOKE TEST PASS: Flare exited cleanly" | tee -a "$SMOKE_LOG" ;;
               *)       echo "SMOKE TEST FAIL: Flare exited with code $EXIT" | tee -a "$SMOKE_LOG"
+                       echo "--- last 80 lines of app output ---"
+                       tail -n 80 "$SMOKE_LOG" || true
+                       for f in "$HOME/Library/Logs/DiagnosticReports"/Flare*.ips "$HOME"/Flare*/startup.log "$HOME/Library/Application Support"/Flare*/startup.log; do
+                         [ -f "$f" ] && { echo "--- $f ---"; head -c 6000 "$f"; }
+                       done
                        exit 1 ;;
             esac
           fi
