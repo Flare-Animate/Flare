@@ -15,6 +15,22 @@ pub struct RigBone {
     /// Pose: rotation about the head relative to rest (radians).
     #[serde(default)]
     pub angle: f32,
+    /// Joint: Rotation ▸ Enable (off: the bone keeps its angle while posing).
+    #[serde(default = "yes", skip_serializing_if = "is_true")]
+    pub rotate: bool,
+    /// Joint: Rotation ▸ Constrain: allowed `angle` range in degrees (min ≤ 0 ≤ max).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub limit: Option<(f32, f32)>,
+    /// Pinned tail: while posing, the bone's tail stays here (posed shape coordinates).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub pin: Option<Pt>,
+}
+
+fn yes() -> bool {
+    true
+}
+fn is_true(b: &bool) -> bool {
+    *b
 }
 
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
@@ -116,18 +132,12 @@ pub fn densify(path: &Path, step: f32) -> Path {
 fn seg_dist(x: Pt, a: Pt, b: Pt) -> f32 {
     let (dx, dy) = (b.x - a.x, b.y - a.y);
     let l2 = dx * dx + dy * dy;
-    let t = if l2 < 1e-9 {
-        0.0
-    } else {
-        (((x.x - a.x) * dx + (x.y - a.y) * dy) / l2).clamp(0.0, 1.0)
-    };
+    let t = if l2 < 1e-9 { 0.0 } else { (((x.x - a.x) * dx + (x.y - a.y) * dy) / l2).clamp(0.0, 1.0) };
     pt(a.x + dx * t, a.y + dy * t).dist(x)
 }
 
 fn rot_about(c: Pt, a: f32) -> Matrix {
-    Matrix::translate(c.x, c.y)
-        .concat(&Matrix::rotate(a))
-        .concat(&Matrix::translate(-c.x, -c.y))
+    Matrix::translate(c.x, c.y).concat(&Matrix::rotate(a)).concat(&Matrix::translate(-c.x, -c.y))
 }
 
 impl ShapeRig {
@@ -147,35 +157,20 @@ impl ShapeRig {
             out[i] = Some(m);
             m
         }
-        (0..self.bones.len())
-            .map(|i| get(self, i, &mut out, 0))
-            .collect()
+        (0..self.bones.len()).map(|i| get(self, i, &mut out, 0)).collect()
     }
     /// Posed head/tail of every bone.
     pub fn posed(&self) -> Vec<(Pt, Pt)> {
         let t = self.transforms();
-        self.bones
-            .iter()
-            .zip(&t)
-            .map(|(b, m)| (m.apply(b.head), m.apply(b.tail)))
-            .collect()
+        self.bones.iter().zip(&t).map(|(b, m)| (m.apply(b.head), m.apply(b.tail))).collect()
     }
 
     /// Weights of a rest point: the Bind tool's choice, else the two nearest bones.
     fn weights(&self, idx: usize, x: Pt) -> Vec<(usize, f32)> {
-        if let Some(&(_, b)) = self
-            .bind
-            .iter()
-            .find(|(i, b)| *i == idx && *b < self.bones.len())
-        {
+        if let Some(&(_, b)) = self.bind.iter().find(|(i, b)| *i == idx && *b < self.bones.len()) {
             return vec![(b, 1.0)];
         }
-        let mut d: Vec<(usize, f32)> = self
-            .bones
-            .iter()
-            .enumerate()
-            .map(|(i, b)| (i, seg_dist(x, b.head, b.tail).max(0.5)))
-            .collect();
+        let mut d: Vec<(usize, f32)> = self.bones.iter().enumerate().map(|(i, b)| (i, seg_dist(x, b.head, b.tail).max(0.5))).collect();
         d.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap());
         d.truncate(2);
         let ws: Vec<(usize, f32)> = d.iter().map(|(i, dd)| (*i, 1.0 / (dd * dd))).collect();
@@ -185,10 +180,7 @@ impl ShapeRig {
 
     /// The bone a point follows most (for showing bindings).
     pub fn main_bone(&self, idx: usize, x: Pt) -> Option<usize> {
-        self.weights(idx, x)
-            .into_iter()
-            .max_by(|a, b| a.1.partial_cmp(&b.1).unwrap())
-            .map(|w| w.0)
+        self.weights(idx, x).into_iter().max_by(|a, b| a.1.partial_cmp(&b.1).unwrap()).map(|w| w.0)
     }
 
     /// Pose `rest` by the bones.
@@ -225,45 +217,35 @@ impl ShapeRig {
             }
             None => (head, tail),
         };
-        self.bones.push(RigBone {
-            parent,
-            head: h,
-            tail: t,
-            angle: 0.0,
-        });
+        self.bones.push(RigBone { parent, head: h, tail: t, angle: 0.0, rotate: true, limit: None, pin: None });
         self.bones.len() - 1
     }
 
     /// Inverse kinematics: move the tail of `bone` toward `target` (posed
-    /// coordinates) by rotating it and its ancestors (CCD).
+    /// coordinates), turning the armature's joints (damped least squares;
+    /// pinned tails stay where they were pinned, limits hold).
     pub fn ik(&mut self, bone: usize, target: Pt) {
-        let mut chain = vec![bone];
-        while let Some(p) = self.bones[*chain.last().unwrap()].parent {
-            if chain.contains(&p) || chain.len() > 64 {
-                break;
-            }
-            chain.push(p);
+        if bone >= self.bones.len() {
+            return;
         }
-        for _ in 0..60 {
-            for &j in &chain {
-                let posed = self.posed();
-                let end = posed[bone].1;
-                let pivot = posed[j].0;
-                let a0 = (end.y - pivot.y).atan2(end.x - pivot.x);
-                let a1 = (target.y - pivot.y).atan2(target.x - pivot.x);
-                let mut d = a1 - a0;
-                while d > std::f32::consts::PI {
-                    d -= 2.0 * std::f32::consts::PI;
-                }
-                while d < -std::f32::consts::PI {
-                    d += 2.0 * std::f32::consts::PI;
-                }
-                self.bones[j].angle += d;
-            }
-            if self.posed()[bone].1.dist(target) < 0.25 {
-                break;
+        let mut eff = vec![crate::ik::Effector { owner: bone, local: self.bones[bone].tail, target, weight: 1.0 }];
+        for (i, b) in self.bones.iter().enumerate() {
+            if let Some(p) = b.pin {
+                eff.push(crate::ik::Effector { owner: i, local: b.tail, target: p, weight: 4.0 });
             }
         }
+        crate::ik::solve_dls(self, &eff, 80);
+    }
+
+    /// Bone `i`'s ancestors, nearest first.
+    fn ancestors(&self, i: usize) -> Vec<usize> {
+        let mut v = vec![];
+        let mut cur = self.bones.get(i).and_then(|b| b.parent);
+        while let Some(p) = cur.filter(|p| *p < self.bones.len() && v.len() < 64) {
+            v.push(p);
+            cur = self.bones[p].parent;
+        }
+        v
     }
 
     /// Bind tool: pin point `idx` to `bone` (None = back to automatic).
@@ -285,6 +267,34 @@ impl ShapeRig {
     }
 }
 
+impl crate::ik::Kinematic for ShapeRig {
+    fn joints(&self) -> Vec<usize> {
+        let mut v: Vec<usize> = (0..self.bones.len()).collect();
+        v.sort_by_key(|&i| self.ancestors(i).len());
+        v
+    }
+    fn pivot(&self, j: usize) -> Pt {
+        self.posed()[j].0
+    }
+    fn moves(&self, j: usize, owner: usize) -> bool {
+        owner == j || self.ancestors(owner).contains(&j)
+    }
+    fn world(&self, owner: usize, local: Pt) -> Pt {
+        self.transforms()[owner].apply(local)
+    }
+    fn turn(&mut self, j: usize, d: f32) {
+        let b = &mut self.bones[j];
+        if !b.rotate {
+            return;
+        }
+        let mut a = b.angle + d;
+        if let Some((lo, hi)) = b.limit {
+            a = a.clamp(lo.min(0.0).to_radians(), hi.max(0.0).to_radians());
+        }
+        b.angle = a;
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -299,40 +309,20 @@ mod tests {
         assert_eq!(r.bones[b2].parent, Some(0));
         // IK: pull the end up
         r.ik(b2, pt(150.0, 120.0));
-        assert!(
-            r.posed()[b2].1.dist(pt(150.0, 120.0)) < 1.0,
-            "{:?}",
-            r.posed()[b2]
-        );
+        assert!(r.posed()[b2].1.dist(pt(150.0, 120.0)) < 1.0, "{:?}", r.posed()[b2]);
         let posed = r.deform(&bar);
         let pts = path_points(&posed);
         // the far corners moved up a lot, the near corners stayed
         assert!(pts.iter().any(|p| p.y > 80.0));
-        assert!(
-            pts.iter().any(|p| p.dist(pt(0.0, 0.0)) < 11.0),
-            "the root end stays at the root"
-        );
+        assert!(pts.iter().any(|p| p.dist(pt(0.0, 0.0)) < 11.0), "the root end stays at the root");
         // Bind: pin the far top-right corner to the root bone
-        let idx = path_points(&bar)
-            .iter()
-            .position(|p| p.dist(pt(200.0, -10.0)) < 0.01)
-            .unwrap();
+        let idx = path_points(&bar).iter().position(|p| p.dist(pt(200.0, -10.0)) < 0.01).unwrap();
         let before = path_points(&posed)[idx];
         r.set_bind(idx, Some(0));
         let after = path_points(&r.deform(&bar))[idx];
-        assert!(
-            before.dist(after) > 10.0,
-            "binding changed what the point follows"
-        );
+        assert!(before.dist(after) > 10.0, "binding changed what the point follows");
         // tween: half-way pose
-        let rest = ShapeRig {
-            bones: r
-                .bones
-                .iter()
-                .map(|b| RigBone { angle: 0.0, ..*b })
-                .collect(),
-            bind: vec![],
-        };
+        let rest = ShapeRig { bones: r.bones.iter().map(|b| RigBone { angle: 0.0, ..*b }).collect(), bind: vec![] };
         let mid = ShapeRig::lerp(&rest, &r, 0.5);
         assert!((mid.bones[0].angle - r.bones[0].angle / 2.0).abs() < 1e-5);
     }

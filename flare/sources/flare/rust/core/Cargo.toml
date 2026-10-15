@@ -13,3 +13,14 @@ ab_glyph = "0.2"
 epaint_default_fonts = "0.29"
 base64 = "0.22"
 png = "0.17"
+# MyPaint brush engine (pure-Rust libmypaint port, MIT OR Apache-2.0), a dependency, not copied
+hokusai = { version = "0.3", default-features = false, features = ["myb-json", "tile-mem"] }
+# image decoders for bitmap import (PNG/JPEG/GIF/BMP/TGA/TIFF/WebP/OpenEXR)
+image = { version = "0.25", default-features = false, features = ["png", "jpeg", "gif", "bmp", "tga", "tiff", "webp", "exr"], optional = true }
+
+[features]
+default = ["codecs"]
+codecs = ["dep:image"]
+# Flare Studio's timeline semantics: splitting / partly copying a tween keeps its
+# original curve by default (frames::set_retain_tween_curves still switches it).
+retain-tween-curves = []

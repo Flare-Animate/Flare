@@ -69,8 +69,7 @@ pub fn bilinear(q: &[Pt; 4], u: f32, v: f32) -> Pt {
 /// Distort: map a path from the box `lo..hi` onto the quad `q`.
 pub fn distort(path: &Path, lo: Pt, hi: Pt, q: &[Pt; 4]) -> Path {
     let (w, h) = ((hi.x - lo.x).max(1e-3), (hi.y - lo.y).max(1e-3));
-    path.subdivided(w.max(h) / 8.0)
-        .map(|p| bilinear(q, (p.x - lo.x) / w, (p.y - lo.y) / h))
+    path.subdivided(w.max(h) / 8.0).map(|p| bilinear(q, (p.x - lo.x) / w, (p.y - lo.y) / h))
 }
 
 /// The 9 envelope handles of a box, row-major (top-left … bottom-right).
@@ -78,10 +77,7 @@ pub fn envelope_grid(lo: Pt, hi: Pt) -> [Pt; 9] {
     let mut g = [Pt::default(); 9];
     for r in 0..3 {
         for c in 0..3 {
-            g[r * 3 + c] = pt(
-                lo.x + (hi.x - lo.x) * c as f32 / 2.0,
-                lo.y + (hi.y - lo.y) * r as f32 / 2.0,
-            );
+            g[r * 3 + c] = pt(lo.x + (hi.x - lo.x) * c as f32 / 2.0, lo.y + (hi.y - lo.y) * r as f32 / 2.0);
         }
     }
     g
@@ -91,8 +87,7 @@ pub fn envelope_grid(lo: Pt, hi: Pt) -> [Pt; 9] {
 pub fn envelope(path: &Path, lo: Pt, hi: Pt, handles: &[Pt; 9]) -> Path {
     // Convert interpolating handles to Bézier control points.
     let mut c = *handles;
-    let mid =
-        |a: Pt, m: Pt, b: Pt| pt(2.0 * m.x - (a.x + b.x) / 2.0, 2.0 * m.y - (a.y + b.y) / 2.0);
+    let mid = |a: Pt, m: Pt, b: Pt| pt(2.0 * m.x - (a.x + b.x) / 2.0, 2.0 * m.y - (a.y + b.y) / 2.0);
     c[1] = mid(handles[0], handles[1], handles[2]);
     c[7] = mid(handles[6], handles[7], handles[8]);
     c[3] = mid(handles[0], handles[3], handles[6]);
@@ -148,18 +143,8 @@ pub fn outline_polyline(pts: &[Pt], widths: &[f32], closed: bool) -> Path {
         let len = (dx * dx + dy * dy).sqrt().max(1e-6);
         pt(-dy / len, dx / len)
     };
-    let left: Vec<Pt> = (0..n)
-        .map(|i| {
-            let nn = normal(i);
-            pt(pts[i].x + nn.x * w(i), pts[i].y + nn.y * w(i))
-        })
-        .collect();
-    let right: Vec<Pt> = (0..n)
-        .map(|i| {
-            let nn = normal(i);
-            pt(pts[i].x - nn.x * w(i), pts[i].y - nn.y * w(i))
-        })
-        .collect();
+    let left: Vec<Pt> = (0..n).map(|i| { let nn = normal(i); pt(pts[i].x + nn.x * w(i), pts[i].y + nn.y * w(i)) }).collect();
+    let right: Vec<Pt> = (0..n).map(|i| { let nn = normal(i); pt(pts[i].x - nn.x * w(i), pts[i].y - nn.y * w(i)) }).collect();
     if closed {
         // two rings; even-odd fill gives the band
         let mut p = Path::polygon(&left);
@@ -184,30 +169,29 @@ pub fn outline_polyline(pts: &[Pt], widths: &[f32], closed: bool) -> Path {
 
 /// Variable-width stroke of a path. `profile` = (t, width) pairs over the
 /// whole path length (t in 0..1), linearly interpolated.
+/// A width profile ((t, width) pairs, sorted) at `t`, linearly interpolated.
+pub fn profile_at(profile: &[(f32, f32)], t: f32) -> f32 {
+    if profile.is_empty() {
+        return 1.0;
+    }
+    let mut prev = profile[0];
+    if t <= prev.0 {
+        return prev.1;
+    }
+    for &(pt_, w) in &profile[1..] {
+        if t <= pt_ {
+            let k = (t - prev.0) / (pt_ - prev.0).max(1e-6);
+            return prev.1 + (w - prev.1) * k;
+        }
+        prev = (pt_, w);
+    }
+    prev.1
+}
+
 pub fn variable_stroke(path: &Path, profile: &[(f32, f32)]) -> Path {
     let polys = path.flatten(10);
-    let total: f32 = polys
-        .iter()
-        .map(|(p, closed)| poly_len(p, *closed))
-        .sum::<f32>()
-        .max(1e-6);
-    let width_at = |t: f32| -> f32 {
-        if profile.is_empty() {
-            return 1.0;
-        }
-        let mut prev = profile[0];
-        if t <= prev.0 {
-            return prev.1;
-        }
-        for &(pt_, w) in &profile[1..] {
-            if t <= pt_ {
-                let k = (t - prev.0) / (pt_ - prev.0).max(1e-6);
-                return prev.1 + (w - prev.1) * k;
-            }
-            prev = (pt_, w);
-        }
-        prev.1
-    };
+    let total: f32 = polys.iter().map(|(p, closed)| poly_len(p, *closed)).sum::<f32>().max(1e-6);
+    let width_at = |t: f32| profile_at(profile, t);
     let mut out = Path::default();
     let mut acc = 0.0;
     // Resample so width points between the path's own vertices take effect.
@@ -249,8 +233,7 @@ pub fn variable_stroke(path: &Path, profile: &[(f32, f32)]) -> Path {
             })
             .collect();
         acc += poly_len(&poly, closed);
-        out.segs
-            .extend(outline_polyline(&poly, &widths, closed).segs);
+        out.segs.extend(outline_polyline(&poly, &widths, closed).segs);
     }
     out
 }
@@ -266,11 +249,7 @@ fn poly_len(p: &[Pt], closed: bool) -> f32 {
 /// Arc-length position (0..1) of the point on `path` nearest to `p`, and the distance.
 pub fn nearest_t(path: &Path, p: Pt) -> Option<(f32, f32)> {
     let polys = path.flatten(16);
-    let total: f32 = polys
-        .iter()
-        .map(|(q, c)| poly_len(q, *c))
-        .sum::<f32>()
-        .max(1e-6);
+    let total: f32 = polys.iter().map(|(q, c)| poly_len(q, *c)).sum::<f32>().max(1e-6);
     let mut acc = 0.0;
     let mut best: Option<(f32, f32)> = None;
     for (poly, closed) in polys {
@@ -280,11 +259,7 @@ pub fn nearest_t(path: &Path, p: Pt) -> Option<(f32, f32)> {
             let (a, b) = (poly[i], poly[(i + 1) % n]);
             let (dx, dy) = (b.x - a.x, b.y - a.y);
             let l2 = dx * dx + dy * dy;
-            let k = if l2 < 1e-9 {
-                0.0
-            } else {
-                (((p.x - a.x) * dx + (p.y - a.y) * dy) / l2).clamp(0.0, 1.0)
-            };
+            let k = if l2 < 1e-9 { 0.0 } else { (((p.x - a.x) * dx + (p.y - a.y) * dy) / l2).clamp(0.0, 1.0) };
             let q = pt(a.x + dx * k, a.y + dy * k);
             let dist = q.dist(p);
             let t = (acc + l2.sqrt() * k) / total;
@@ -310,10 +285,7 @@ pub struct Warp {
 impl Warp {
     pub fn new(base: &Path) -> Warp {
         let (lo, hi) = base.bounds().unwrap_or((pt(0.0, 0.0), pt(1.0, 1.0)));
-        Warp {
-            base: base.subdivided((hi.x - lo.x).max(hi.y - lo.y) / 12.0),
-            pins: vec![],
-        }
+        Warp { base: base.subdivided((hi.x - lo.x).max(hi.y - lo.y) / 12.0), pins: vec![] }
     }
     pub fn apply(&self) -> Path {
         if self.pins.is_empty() {
@@ -322,6 +294,106 @@ impl Warp {
         let pins = self.pins.clone();
         self.base.map(|v| rigid_mls(&pins, v))
     }
+}
+
+/// Asset Warp on bitmaps, symbols and groups: pins in element coordinates
+/// (rest point → where it was dragged) deform a grid laid over what the
+/// element draws, rigidly as possible (moving least squares, as for shapes;
+/// OpenToonz deforms textured meshes the same way with its plastic tool).
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Default)]
+pub struct MeshWarp {
+    pub pins: Vec<(Pt, Pt)>,
+}
+
+/// A deformed grid in stage (or device) space: `src` points are where the
+/// undeformed picture is, `dst` where they go; `cols × rows` cells.
+#[derive(Clone, Debug, PartialEq)]
+pub struct MeshMap {
+    pub cols: usize,
+    pub rows: usize,
+    pub src: Vec<Pt>,
+    pub dst: Vec<Pt>,
+}
+
+impl MeshWarp {
+    /// Where the picture point now shown at `d` was before the warp (the
+    /// inverse of the deformation, by fixed-point iteration), so a new pin
+    /// lands on what is under the pointer without moving anything.
+    pub fn rest_of(&self, d: Pt) -> Pt {
+        if self.pins.is_empty() {
+            return d;
+        }
+        let mut v = d;
+        for _ in 0..40 {
+            let f = rigid_mls(&self.pins, v);
+            let e = pt(d.x - f.x, d.y - f.y);
+            v = pt(v.x + e.x, v.y + e.y);
+            if e.x.abs() + e.y.abs() < 1e-3 {
+                break;
+            }
+        }
+        v
+    }
+
+    /// The grid over local bounds `lo`–`hi`, placed by `m` (local → stage).
+    pub fn map(&self, lo: Pt, hi: Pt, m: &crate::geom::Matrix) -> MeshMap {
+        let (w, h) = ((hi.x - lo.x).max(1.0), (hi.y - lo.y).max(1.0));
+        // about 24 cells along the longer side
+        let cell = w.max(h) / 24.0;
+        let cols = ((w / cell).ceil() as usize).clamp(2, 48);
+        let rows = ((h / cell).ceil() as usize).clamp(2, 48);
+        let mut src = Vec::with_capacity((cols + 1) * (rows + 1));
+        let mut dst = Vec::with_capacity(src.capacity());
+        for r in 0..=rows {
+            for c in 0..=cols {
+                let v = pt(lo.x + w * c as f32 / cols as f32, lo.y + h * r as f32 / rows as f32);
+                src.push(m.apply(v));
+                dst.push(m.apply(rigid_mls(&self.pins, v)));
+            }
+        }
+        MeshMap { cols, rows, src, dst }
+    }
+}
+
+impl MeshMap {
+    pub fn transformed(&self, m: &crate::geom::Matrix) -> MeshMap {
+        MeshMap { cols: self.cols, rows: self.rows, src: self.src.iter().map(|p| m.apply(*p)).collect(), dst: self.dst.iter().map(|p| m.apply(*p)).collect() }
+    }
+    /// The two triangles of every cell: (src, dst) corner triples.
+    pub fn triangles(&self) -> Vec<([Pt; 3], [Pt; 3])> {
+        let mut v = Vec::with_capacity(self.cols * self.rows * 2);
+        let idx = |c: usize, r: usize| r * (self.cols + 1) + c;
+        for r in 0..self.rows {
+            for c in 0..self.cols {
+                let (a, b, d, e) = (idx(c, r), idx(c + 1, r), idx(c, r + 1), idx(c + 1, r + 1));
+                v.push(([self.src[a], self.src[b], self.src[e]], [self.dst[a], self.dst[b], self.dst[e]]));
+                v.push(([self.src[a], self.src[e], self.src[d]], [self.dst[a], self.dst[e], self.dst[d]]));
+            }
+        }
+        v
+    }
+    pub fn dst_bounds(&self) -> Option<(Pt, Pt)> {
+        let mut it = self.dst.iter();
+        let f = *it.next()?;
+        Some(it.fold((f, f), |(lo, hi), p| (pt(lo.x.min(p.x), lo.y.min(p.y)), pt(hi.x.max(p.x), hi.y.max(p.y)))))
+    }
+}
+
+/// The affine map taking triangle `a` onto triangle `b` (None if degenerate).
+pub fn triangle_affine(a: &[Pt; 3], b: &[Pt; 3]) -> Option<crate::geom::Matrix> {
+    let (u1, u2) = (pt(a[1].x - a[0].x, a[1].y - a[0].y), pt(a[2].x - a[0].x, a[2].y - a[0].y));
+    let (v1, v2) = (pt(b[1].x - b[0].x, b[1].y - b[0].y), pt(b[2].x - b[0].x, b[2].y - b[0].y));
+    let det = u1.x * u2.y - u2.x * u1.y;
+    if det.abs() < 1e-9 {
+        return None;
+    }
+    // M · U = V with U = [u1 u2], V = [v1 v2]  →  M = V · U⁻¹
+    let (i11, i12, i21, i22) = (u2.y / det, -u2.x / det, -u1.y / det, u1.x / det);
+    let (ma, mc) = (v1.x * i11 + v2.x * i21, v1.x * i12 + v2.x * i22);
+    let (mb, md) = (v1.y * i11 + v2.y * i21, v1.y * i12 + v2.y * i22);
+    let tx = b[0].x - (ma * a[0].x + mc * a[0].y);
+    let ty = b[0].y - (mb * a[0].x + md * a[0].y);
+    Some(crate::geom::Matrix { a: ma, b: mb, c: mc, d: md, tx, ty })
 }
 
 /// Rigid moving-least-squares deformation (Schaefer, McPhail & Warren 2006).
@@ -394,22 +466,10 @@ impl Transform3D {
         if a.is_none() && b.is_none() {
             return None;
         }
-        let a = a.unwrap_or_else(|| Transform3D {
-            center: b.unwrap().center,
-            ..Default::default()
-        });
-        let b = b.unwrap_or_else(|| Transform3D {
-            center: a.center,
-            ..Default::default()
-        });
+        let a = a.unwrap_or_else(|| Transform3D { center: b.unwrap().center, ..Default::default() });
+        let b = b.unwrap_or_else(|| Transform3D { center: a.center, ..Default::default() });
         let l = |x: f32, y: f32| x + (y - x) * t;
-        Some(Transform3D {
-            rx: l(a.rx, b.rx),
-            ry: l(a.ry, b.ry),
-            rz: l(a.rz, b.rz),
-            z: l(a.z, b.z),
-            center: a.center.lerp(b.center, t),
-        })
+        Some(Transform3D { rx: l(a.rx, b.rx), ry: l(a.ry, b.ry), rz: l(a.rz, b.rz), z: l(a.z, b.z), center: a.center.lerp(b.center, t) })
     }
 }
 
@@ -450,13 +510,7 @@ pub fn project_3d(t: &Transform3D, center: Pt, persp: &Perspective, p: Pt) -> Pt
 }
 
 /// Project a world-space path (curves flattened first so perspective stays accurate).
-pub fn project_path(
-    path: &Path,
-    m: &Matrix,
-    t: &Transform3D,
-    center: Pt,
-    persp: &Perspective,
-) -> Path {
+pub fn project_path(path: &Path, m: &Matrix, t: &Transform3D, center: Pt, persp: &Perspective) -> Path {
     let mut segs = Vec::new();
     for (poly, closed) in path.transformed(m).flatten(12) {
         for (i, q) in poly.iter().enumerate() {

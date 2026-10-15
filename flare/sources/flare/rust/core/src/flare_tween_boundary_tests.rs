@@ -1,3 +1,6 @@
+// Ported from Flare (github.com/Flare-Animate/Flare, flare/sources/flare/rust/core/src,
+// commit a27136a; MIT OR Apache-2.0). Each test switches on Flare's timeline
+// semantics (retained tween curves) for its thread.
 use crate::*;
 
 fn fixture(tween: Tween) -> Layer {
@@ -68,6 +71,7 @@ fn clipped(source: &Layer, len: u32) -> Layer {
 
 #[test]
 fn right_trim_preserves_curves_poses_metadata_and_repeat_copy() {
+    crate::frames::set_retain_tween_curves(true);
     for tween in tweens() {
         let source = fixture(tween);
         for len in [1, 4, 8, 12] {
@@ -99,6 +103,7 @@ fn right_trim_preserves_curves_poses_metadata_and_repeat_copy() {
 
 #[test]
 fn right_trim_retimes_without_mutating_authored_curve() {
+    crate::frames::set_retain_tween_curves(true);
     for tween in tweens() {
         let source = fixture(tween);
         let mut dest = clipped(&source, 6);
@@ -120,6 +125,7 @@ fn right_trim_retimes_without_mutating_authored_curve() {
 
 #[test]
 fn retained_curves_remain_live_when_ease_path_or_start_artwork_is_edited() {
+    crate::frames::set_retain_tween_curves(true);
     for tween in tweens() {
         let mut source = fixture(tween);
         let mut dest = clipped(&source, 8);
@@ -140,6 +146,7 @@ fn retained_curves_remain_live_when_ease_path_or_start_artwork_is_edited() {
 
 #[test]
 fn retained_interval_edits_preserve_curves_and_unedited_poses() {
+    crate::frames::set_retain_tween_curves(true);
     for tween in tweens() {
         let original = clipped(&fixture(tween), 8);
         let mut split = original.clone();
@@ -183,6 +190,7 @@ fn retained_interval_edits_preserve_curves_and_unedited_poses() {
 
 #[test]
 fn interior_intervals_recopy_resize_and_keep_live_authored_properties() {
+    crate::frames::set_retain_tween_curves(true);
     for tween in tweens() {
         let mut source = fixture(tween);
         let clip = frames::copy_frames(&source, 3, 8);
@@ -238,6 +246,7 @@ fn interior_intervals_recopy_resize_and_keep_live_authored_properties() {
 
 #[test]
 fn partial_bake_clear_remove_and_overwrite_preserve_nonlinear_exterior() {
+    crate::frames::set_retain_tween_curves(true);
     for tween in tweens() {
         let source = fixture(tween);
         for operation in 0..4 {
@@ -278,6 +287,7 @@ fn partial_bake_clear_remove_and_overwrite_preserve_nonlinear_exterior() {
 
 #[test]
 fn reverse_retains_exact_curves_metadata_and_supports_recopy_and_double_reverse() {
+    crate::frames::set_retain_tween_curves(true);
     for tween in tweens() {
         for (f0, f1) in [(0, 12), (2, 8), (0, 11), (10, 12)] {
             let source = fixture(tween);
@@ -330,6 +340,7 @@ fn reverse_retains_exact_curves_metadata_and_supports_recopy_and_double_reverse(
 
 #[test]
 fn clearing_split_boundaries_rejoins_matching_authored_intervals() {
+    crate::frames::set_retain_tween_curves(true);
     for tween in tweens() {
         for reverse in [false, true] {
             let mut source = clipped(&fixture(tween), 10);
@@ -352,6 +363,7 @@ fn clearing_split_boundaries_rejoins_matching_authored_intervals() {
 
 #[test]
 fn retained_pose_edits_are_sparse_live_and_preserve_prefix_and_endpoint() {
+    crate::frames::set_retain_tween_curves(true);
     for tween in tweens() {
         for reversed in [false, true] {
             let mut layer = clipped(&fixture(tween), 10);
@@ -416,6 +428,7 @@ fn retained_pose_edits_are_sparse_live_and_preserve_prefix_and_endpoint() {
 
 #[test]
 fn edited_intervals_survive_copy_reverse_resize_and_serialization() {
+    crate::frames::set_retain_tween_curves(true);
     for tween in tweens() {
         let mut doc = Document::default();
         doc.scene.layers[0] = clipped(&fixture(tween), 10);
@@ -460,6 +473,7 @@ fn edited_intervals_survive_copy_reverse_resize_and_serialization() {
 
 #[test]
 fn continuous_retained_pose_edits_coalesce_and_cancel_in_one_undo() {
+    crate::frames::set_retain_tween_curves(true);
     let mut doc = Document::default();
     doc.scene.layers[0] = clipped(&fixture(tweens()[0]), 10);
     let original = doc.clone();
@@ -492,6 +506,7 @@ fn continuous_retained_pose_edits_coalesce_and_cancel_in_one_undo() {
 
 #[test]
 fn unsupported_retained_topology_edit_is_reported_and_preserves_other_poses() {
+    crate::frames::set_retain_tween_curves(true);
     let mut doc = Document::default();
     doc.scene.layers[0] = clipped(&fixture(tweens()[1]), 10);
     let source = doc.clone();
@@ -516,6 +531,7 @@ fn unsupported_retained_topology_edit_is_reported_and_preserves_other_poses() {
 
 #[test]
 fn retained_pose_corrections_survive_parent_space_conversion_and_undo() {
+    crate::frames::set_retain_tween_curves(true);
     let mut doc = Document::default();
     let mut parent = Layer::new("Parent", 0);
     let mut el = fixture(tweens()[0]).keyframes[&0].elements[0].clone();
@@ -551,6 +567,7 @@ fn retained_pose_corrections_survive_parent_space_conversion_and_undo() {
 
 #[test]
 fn retained_pose_object_and_library_deletion_keep_other_corrections_attached() {
+    crate::frames::set_retain_tween_curves(true);
     for library in [false, true] {
         let mut doc = Document::default();
         let a = doc.add_symbol("A", SymbolKind::Graphic, Timeline::new("A"));

@@ -23,8 +23,8 @@ sys-locale = "0.3"
 rfd = "0.17"
 tiny-skia = "0.11"
 tempfile = "3"
-ac-core = { git = "https://github.com/KMSDax/AnimationCraft", rev = "e3aadad1c9cc6451f39746226123fd1021fd889a" }
-ac-render = { git = "https://github.com/KMSDax/AnimationCraft", rev = "e3aadad1c9cc6451f39746226123fd1021fd889a" }
+ac-core = { git = "https://github.com/KMSDax/AnimationCraft", rev = "e3f25db0140ea24590184b117e928e35f5bc6302", features = ["retain-tween-curves"] }
+ac-render = { git = "https://github.com/KMSDax/AnimationCraft", rev = "e3f25db0140ea24590184b117e928e35f5bc6302" }
 
 [dev-dependencies]
 egui_kittest = { version = "=0.36.2", features = ["wgpu", "snapshot", "eframe"] }
@@ -32,3 +32,8 @@ egui_kittest = { version = "=0.36.2", features = ["wgpu", "snapshot", "eframe"] 
 [[example]]
 name = "studio_snapshot"
 path = "snapshot.rs"
+
+# Studio and the pinned ac-render use Flare's copy of the core (../core, see its
+# ORIGIN.md), one shared document type with Flare's timeline semantics.
+[patch."https://github.com/KMSDax/AnimationCraft"]
+ac-core = { path = "../core" }

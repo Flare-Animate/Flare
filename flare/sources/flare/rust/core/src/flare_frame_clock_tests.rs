@@ -1,3 +1,6 @@
+// Ported from Flare (github.com/Flare-Animate/Flare, flare/sources/flare/rust/core/src,
+// commit a27136a; MIT OR Apache-2.0). Each test switches on Flare's timeline
+// semantics (retained tween curves) for its thread.
 //! Graphic playback must survive timeline edits independently of tween timing.
 use crate::*;
 
@@ -81,6 +84,7 @@ fn modes() -> [LoopMode; 3] {
 
 #[test]
 fn nested_graphics_keep_phase_across_partial_copy_and_recopy() {
+    crate::frames::set_retain_tween_curves(true);
     for kind in [
         SymbolKind::Graphic,
         SymbolKind::MovieClip,
@@ -121,6 +125,7 @@ fn nested_graphics_keep_phase_across_partial_copy_and_recopy() {
 
 #[test]
 fn static_symbol_boundaries_survive_split_clear_remove_and_overwrite() {
+    crate::frames::set_retain_tween_curves(true);
     for mode in modes() {
         let source = animated(SymbolKind::Graphic, mode, Tween::None);
         let mut split = source.clone();
@@ -159,6 +164,7 @@ fn static_symbol_boundaries_survive_split_clear_remove_and_overwrite() {
 
 #[test]
 fn baking_nested_tweens_samples_original_curve_and_playback() {
+    crate::frames::set_retain_tween_curves(true);
     for mode in modes() {
         for tween in [
             Tween::Classic {
@@ -198,6 +204,7 @@ fn baking_nested_tweens_samples_original_curve_and_playback() {
 
 #[test]
 fn reverse_static_graphics_runs_clock_backwards_and_twice_restores_playback() {
+    crate::frames::set_retain_tween_curves(true);
     for mode in modes() {
         let source = animated(SymbolKind::Graphic, mode, Tween::None);
         for (f0, f1) in [(0, 14), (3, 8)] {
@@ -221,6 +228,7 @@ fn reverse_static_graphics_runs_clock_backwards_and_twice_restores_playback() {
 
 #[test]
 fn legacy_keyframes_default_to_forward_clock_and_large_instance_offsets_do_not_overflow() {
+    crate::frames::set_retain_tween_curves(true);
     let key = Keyframe::blank();
     let encoded = serde_json::to_string(&key).unwrap();
     assert!(!encoded.contains("playback_"));
@@ -244,6 +252,7 @@ fn legacy_keyframes_default_to_forward_clock_and_large_instance_offsets_do_not_o
 
 #[test]
 fn reverse_tweens_preserve_nested_graphic_phase_and_endpoint_transforms() {
+    crate::frames::set_retain_tween_curves(true);
     for mode in modes() {
         for tween in [
             Tween::Classic {
@@ -269,6 +278,7 @@ fn reverse_tweens_preserve_nested_graphic_phase_and_endpoint_transforms() {
 
 #[test]
 fn animated_mask_uses_preserved_clock_after_split_and_copy() {
+    crate::frames::set_retain_tween_curves(true);
     let mut source = animated(SymbolKind::Graphic, LoopMode::Loop, Tween::None);
     source.scene.layers[0].kind = LayerKind::Mask;
     let mut child = Layer::new("Masked artwork", 1);
