@@ -1,0 +1,19 @@
+[package]
+name = "ac-cli"
+description = "Flare headless CLI: render, export, inspect"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "flare-cli"
+path = "ac_cli_main.rs"
+
+[dependencies]
+tiny-skia.workspace = true
+ac-core.workspace = true
+ac-render.workspace = true
+ac-script.workspace = true
+ac-xfl.workspace = true
+ac-package.workspace = true
+ac-audio.workspace = true

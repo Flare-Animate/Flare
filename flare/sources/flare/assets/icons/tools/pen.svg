@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20">
+<!-- pen nib: original Flare (Rust) icon -->
+<path d="M10 1.5 L15.5 10 L12.8 16 L7.2 16 L4.5 10 Z" fill="black"/>
+<circle cx="10" cy="10.2" r="1.5" fill="white"/>
+<rect x="9.5" y="2.5" width="1" height="6.4" fill="white"/>
+<rect x="6.8" y="16.8" width="6.4" height="2" rx="0.6" fill="black"/>
+</svg>

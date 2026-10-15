@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20">
+<!-- an emitter spraying particles -->
+<path d="M1.5 15.5 L5.5 19.5 L8.5 16.5 L4.5 12.5 Z" fill="black"/>
+<circle cx="9" cy="11" r="1.6" fill="black"/>
+<circle cx="12.6" cy="7.6" r="1.4" fill="black"/>
+<circle cx="13.6" cy="12.6" r="1.2" fill="black"/>
+<circle cx="8.2" cy="5.6" r="1.1" fill="black"/>
+<circle cx="16.8" cy="4" r="1" fill="black"/>
+<circle cx="17.6" cy="9.6" r="0.9" fill="black"/>
+<circle cx="12.4" cy="2.4" r="0.8" fill="black"/>
+<circle cx="17.8" cy="15.2" r="0.8" fill="black"/>
+</svg>

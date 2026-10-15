@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20">
+<!-- a line that gets thicker, with a width point and arrows -->
+<path d="M1.5 12 C6 11 8 6.5 10 6.5 C12 6.5 14 11 18.5 12 C14 13.4 12 15.6 10 15.6 C8 15.6 6 13.4 1.5 12 Z" fill="black"/>
+<circle cx="10" cy="11" r="1.5" fill="white"/>
+<path d="M10 0.8 L12.4 3.6 L7.6 3.6 Z" fill="black"/>
+<path d="M10 19.4 L12.4 16.6 L7.6 16.6 Z" fill="black"/>
+</svg>
