@@ -1191,7 +1191,7 @@ impl Geo {
     fn new(ed: &Editor, frames: Rect, rows_top: f32) -> Self {
         let tl = ed.timeline();
         let rows = (0..tl.layers.len()).filter(|&l| tl.listed(l)).collect();
-        Geo { frames, rows_top, row_h: ed.tl.row_h, cell_w: ed.cell_w, first_frame: ed.first_visible_frame, first_layer: ed.first_visible_layer, rows }
+        Geo { frames, rows_top, row_h: ed.tl.row_h, cell_w: crate::buttons::cell_w(ed), first_frame: ed.first_visible_frame, first_layer: ed.first_visible_layer, rows }
     }
 
     /// The layer listed at `y`.
@@ -1409,6 +1409,13 @@ fn grid(ui: &mut Ui, ed: &mut Editor) {
     theme::context_menu(&names_resp, |ui| picked = picked.or(layer_menu(ui, ed)));
     if let Some(action) = picked {
         ed.run(action, ui.ctx());
+    }
+    // A sound dragged from the Library onto a frame goes on its keyframe.
+    if let Some(item) = cells_resp.dnd_release_payload::<crate::library::Dragged>()
+        && let Some(p) = ui.input(|i| i.pointer.latest_pos())
+        && let Some(row) = geo.layer_at(p.y)
+    {
+        crate::sound::attach(ed, (row, geo.frame_at(p.x)), &item.0);
     }
     layer_tree::parent_menu(ui, ed, open_parents);
 
@@ -1644,6 +1651,7 @@ fn paint(ui: &Ui, ed: &Editor, rect: Rect, geo: &Geo, thumbs: [Option<Rect>; 2])
             p.text(pos2(x + 2.0, tier + 5.0), Align2::LEFT_TOP, number.to_string(), FontId::proportional(11.0), theme::RULER_TEXT);
         }
     }
+    crate::buttons::ruler_labels(&p, ed, tier + 5.0, &x_of);
     for y in [ruler.top() + 0.5, tier] {
         p.hline(ruler.x_range(), y, hairline);
     }
@@ -1728,7 +1736,7 @@ fn paint(ui: &Ui, ed: &Editor, rect: Rect, geo: &Geo, thumbs: [Option<Rect>; 2])
             p.vline(x, top..=top + row_h, hairline);
         }
         if !folder {
-            spans(&p, layer, first, visible, top, geo, &is_selected);
+            spans(&p, ed, layer, first, visible, top, geo, &is_selected);
         }
         p.hline(rect.x_range(), top + row_h - 0.5, hairline);
     }
@@ -1793,7 +1801,7 @@ fn paint(ui: &Ui, ed: &Editor, rect: Rect, geo: &Geo, thumbs: [Option<Rect>; 2])
 
 /// One layer's keyframe spans: fills, the selection over them, keyframe
 /// dots, tween arrows, span ends, labels and frame-script marks.
-fn spans(p: &Painter, layer: &Layer, first: u32, visible: u32, top: f32, geo: &Geo, selected: &dyn Fn(u32) -> bool) {
+fn spans(p: &Painter, ed: &Editor, layer: &Layer, first: u32, visible: u32, top: f32, geo: &Geo, selected: &dyn Fn(u32) -> bool) {
     let (row_h, cell_w, x_of) = (geo.row_h, geo.cell_w, |f: u32| geo.x_of(f));
     let ink = theme::KEYFRAME;
     let dot_y = top + row_h * 0.65;
@@ -1822,6 +1830,8 @@ fn spans(p: &Painter, layer: &Layer, first: u32, visible: u32, top: f32, geo: &G
                 p.rect_filled(Rect::from_min_size(pos2(x_of(f), top), vec2(cell_w, row_h - 1.0)), 0.0, theme::FRAME_SELECTED.gamma_multiply(0.5));
             }
         }
+        // A sound's waveform, under the marks.
+        crate::sound::paint_wave(p, ed, key, span, cell_w);
         p.vline(x0, span.y_range(), Stroke::new(1.0, theme::FRAME_SPAN_EDGE));
         // Tiny dark dots along the top edge, one per frame boundary.
         for f in start + 1..end {
@@ -1945,7 +1955,7 @@ fn frame_menu(ui: &mut Ui, ed: &Editor) -> Option<Action> {
         }
     }
     ui.separator();
-    item(ui, "Actions", "F9", None);
+    item(ui, "Actions", "F9", Some(OpenActions));
     picked.or(keyframes)
 }
 

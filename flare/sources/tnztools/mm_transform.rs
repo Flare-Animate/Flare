@@ -1,7 +1,7 @@
 //! Affine transforms for the Free Transform tool and Modify > Transform: the
 //! matrices, made to turn about any point, and applying one to an element.
 
-use crate::doc::{Element, Instance, Matrix, Point, Shape, Text};
+use crate::doc::{BitmapInstance, Element, Instance, Matrix, Point, Shape, Text};
 
 impl Matrix {
     pub fn translate(dx: f32, dy: f32) -> Matrix {
@@ -56,7 +56,7 @@ impl Matrix {
 /// coordinates staying where it shows.
 pub fn remove_transform(el: &mut Element, fixed: Point) {
     // ponytail: a group has no matrix of its own here (its members carry it), so it stays as it is.
-    if let Element::Shape(Shape { matrix, .. }) | Element::Instance(Instance { matrix, .. }) | Element::Text(Text { matrix, .. }) = el {
+    if let Element::Shape(Shape { matrix, .. }) | Element::Instance(Instance { matrix, .. }) | Element::Text(Text { matrix, .. }) | Element::Bitmap(BitmapInstance { matrix, .. }) = el {
         let (x, y) = matrix.apply(fixed);
         *matrix = Matrix::translate(x - fixed.0, y - fixed.1);
     }
@@ -70,7 +70,7 @@ pub fn transform(el: &mut Element, m: &Matrix) {
     match el {
         // ponytail: strokes go through the matrix too, so a stretched or skewed shape's strokes
         // stretch with it, as inside a symbol. Transform the edges instead to keep widths even.
-        Element::Shape(Shape { matrix, .. }) | Element::Instance(Instance { matrix, .. }) | Element::Text(Text { matrix, .. }) => {
+        Element::Shape(Shape { matrix, .. }) | Element::Instance(Instance { matrix, .. }) | Element::Text(Text { matrix, .. }) | Element::Bitmap(BitmapInstance { matrix, .. }) => {
             *matrix = *m * *matrix
         }
         Element::Group(members) => members.iter_mut().for_each(|el| transform(el, m)),

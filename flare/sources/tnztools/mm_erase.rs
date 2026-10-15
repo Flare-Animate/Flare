@@ -151,6 +151,27 @@ pub fn faucet(s: &mut Shape, at: Point, tolerance: f32) -> bool {
     false
 }
 
+/// The Magic Wand's cut (trace.rs): what `area` covers of the piece of fill under
+/// `at` (both in the coordinates `s` is placed in), taken out of `s` as a shape
+/// of its own in that fill. None if `area` misses it.
+pub fn split(s: &mut Shape, area: &Area, at: Point) -> Option<Shape> {
+    let to_local = s.matrix.inverse()?;
+    let local = |c: &Contour| c.iter().map(|p| xy(to_local.apply((p[0], p[1])))).collect();
+    let area: Vec<Region> = area.0.iter().map(|r| r.iter().map(local).collect()).collect();
+    let p = to_local.apply(at);
+    let (id, piece) = (1..=s.fills.len() as u32).rev().find_map(|id| pieces(s, id).into_iter().find(|r| contains(r, p)).map(|r| (id, r)))?;
+    let cut = area.overlay(&piece, OverlayRule::Intersect, FillRule::EvenOdd);
+    if cut.is_empty() {
+        return None;
+    }
+    let outline = fill_outline(s, id);
+    refill(s, id, outline.overlay(&cut, OverlayRule::Difference, FillRule::EvenOdd));
+    let fills = vec![s.fills[id as usize - 1].clone()];
+    let mut part = Shape { matrix: s.matrix, fills, strokes: Vec::new(), edges: Vec::new(), extra: s.extra.clone() };
+    refill(&mut part, 1, cut);
+    Some(part)
+}
+
 /// Cuts `area` out of the strokes it crosses; true if it crossed any.
 fn cut_strokes(s: &mut Shape, area: &[Region]) -> bool {
     let outside = ClipRule { invert: true, boundary_included: false };

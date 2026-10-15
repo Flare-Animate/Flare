@@ -6,7 +6,7 @@ use std::fs;
 use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
 
-use minnamate_core::doc::{Document, Element, Rotate, TextAlign, TextKind, Tween};
+use minnamate_core::doc::{Document, Element, Matrix, Paint, Rotate, TextAlign, TextKind, Tween};
 use minnamate_core::{render::render, text, xfl, xfl_write};
 
 fn fixture() -> PathBuf {
@@ -39,19 +39,21 @@ fn round_trip() {
 }
 
 const XMLNS: &str = r#"xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://ns.adobe.com/xfl/2008/""#;
-const MEDIA: &str = r#"<media><DOMBitmapItem name="photo.png" href="photo.png" bitmapDataHRef="M 1 1.dat"/></media>"#;
+// Bitmaps are read now (bitmap.rs): their item, instance and fill are written from the model, with
+// what it doesn't read of them. The media list's other items are kept as they were.
+const BITMAP_ITEM: &str = r#"<DOMBitmapItem name="photo.png" itemID="5c2f-0001" href="photo.png" bitmapDataHRef="M 1 1.dat"/>"#;
+const SOUND: &str = r#"<DOMSoundItem name="beep.wav" href="beep.wav" soundDataHRef="M 2 1.dat" format="44kHz 16bit Stereo"/>"#;
 const SCRIPT: &str = "<Actionscript><script><![CDATA[if (a < b) stop();]]></script></Actionscript>";
-const BITMAP: &str = r#"<DOMBitmapInstance libraryItemName="photo.png">
+const BITMAP: &str = r#"<DOMBitmapInstance libraryItemName="photo.png" selected="true">
                   <matrix><Matrix tx="12" ty="3"/></matrix>
                 </DOMBitmapInstance>"#;
-// Gradients are read now (gradients.rs); bitmap fills are still kept as they were.
 const FILL: &str = r#"<BitmapFill bitmapPath="photo.png"><matrix><Matrix a="20" d="20"/></matrix></BitmapFill>"#;
 
 #[test]
 fn unread_xml_survives() {
     let source = format!(
         r##"<DOMDocument {XMLNS} xmlns:a="urn:a" a:x="1" xflVersion="2.97" width="320">
-  {MEDIA}
+  <media>{BITMAP_ITEM}{SOUND}</media>
   <timelines>
     <DOMTimeline name="Scene 1">
       <layers>
@@ -82,16 +84,22 @@ fn unread_xml_survives() {
     let layer = &doc.scenes[0].layers[0];
     assert_eq!(layer.name, "Fish & \"chips\"\n2");
     let el = &layer.frames[0].elements[0];
-    assert!(matches!(el, Element::Unsupported { name, xml } if name == "DOMBitmapInstance" && xml == BITMAP), "{el:?}");
+    assert!(matches!(el, Element::Bitmap(b) if b.name == "photo.png" && (b.matrix.tx, b.matrix.ty) == (12.0, 3.0)), "{el:?}");
+    let Element::Shape(s) = &layer.frames[0].elements[1] else { panic!("not a shape") };
+    // XFL's bitmap fill matrix runs in twips per pixel: 20 is one pixel per pixel.
+    assert!(matches!(&s.fills[0], Paint::Bitmap(f) if f.name == "photo.png" && f.matrix == Matrix::IDENTITY && !f.clipped), "{:?}", s.fills);
 
     xfl_write::save(&doc, &dir.join("saved")).unwrap();
     let saved = fs::read_to_string(dir.join("saved/DOMDocument.xml")).unwrap();
-    let kept = [MEDIA, SCRIPT, BITMAP, FILL, r#"xflVersion="2.97""#, r#"name="intro""#, r#"acceleration="-50""#];
-    for xml in kept {
+    // Without its image file, the bitmap keeps its files' names.
+    let bitmap_parts = [r#"itemID="5c2f-0001""#, r#"href="photo.png""#, r#"bitmapDataHRef="M 1 1.dat""#, r#"selected="true""#, r#"<Matrix a="20" d="20"/>"#];
+    let kept = [SOUND, SCRIPT, r#"xflVersion="2.97""#, r#"name="intro""#, r#"acceleration="-50""#];
+    for xml in kept.into_iter().chain(bitmap_parts) {
         assert!(saved.contains(xml), "{xml} missing from\n{saved}");
     }
     let at = |xml: &str| saved.find(xml);
-    assert!(at(MEDIA) < at("<timelines>") && at("<timelines>") < at("<persistentData>"), "children reordered");
+    assert!(at("<media>") < at("<timelines>") && at("<timelines>") < at("<persistentData>"), "children reordered");
+    assert!(at("<DOMBitmapItem") < at(SOUND), "media in their order");
     assert_eq!(xfl::load(&dir.join("saved")).unwrap(), doc);
 
     // The model wins over kept XML: made a classic tween, the frame drops the shape tween's ease.

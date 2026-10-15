@@ -308,25 +308,15 @@ pub(crate) fn color32(c: Rgba) -> Color32 {
 }
 
 fn doc_props(ui: &mut Ui, ed: &mut Editor) {
-    header(ui, Icon::Layer, &ed.title.clone(), Some("ActionScript 3.0 Document"));
+    let kind = if ed.doc.is_canvas() { "HTML5 Canvas Document" } else { "ActionScript 3.0 Document" };
+    header(ui, Icon::Layer, &ed.title.clone(), Some(kind));
     quick_row(ui, |ui| {
         // ponytail: snapping, rulers and guides belong to the stage view; these light up once it has them.
         for (icon, tip) in [(Icon::Magnet, "Snap to Objects"), (Icon::SnapAlign, "Snap Align"), (Icon::Rulers, "Rulers"), (Icon::Lock, "Lock Guides")] {
             widgets::quick(ui, icon, false, false, tip);
         }
     });
-    theme::section(ui, "Publish Settings", |ui| {
-        widgets::row(ui, |ui| {
-            widgets::label(ui, "Profile", WORD_W);
-            widgets::pick(ui, "Profile", 0, &[(0, "Default", true)], ui.available_width() - 4.0);
-        });
-        widgets::row(ui, |ui| {
-            widgets::label(ui, "Target", WORD_W);
-            widgets::pick(ui, "Target", 0, &[(0, "SWF (Ruffle)", true)], ui.available_width() - 4.0);
-        });
-        // ponytail: there's no Publish Settings dialog yet; File > Publish exports the SWF.
-        widgets::row(ui, |ui| ui.add_enabled_ui(false, |ui| widgets::button(ui, "More settings", ui.available_width())));
-    });
+    theme::section(ui, "Publish Settings", |ui| crate::publish::doc_section(ui, ed));
     theme::section(ui, "Document Settings", |ui| document_settings(ui, ed));
     theme::section_with(ui, "SWF History", false, |ui| {
         ui.label(RichText::new("No SWF published yet.").color(theme::TEXT_DIM));
@@ -466,6 +456,7 @@ fn tool_props(ui: &mut Ui, ed: &mut Editor) {
         Tool::Text => crate::text_tool::options(ui, ed),
         Tool::PaintBucket | Tool::InkBottle | Tool::Eyedropper => crate::paint_tools::options(ui, ed),
         Tool::Eraser => crate::eraser::options(ui, ed),
+        Tool::MagicWand => crate::bitmaps::wand_options(ui, ed),
         _ => {}
     }
 }
@@ -683,6 +674,12 @@ fn object_props(ui: &mut Ui, ed: &mut Editor) {
         }
         [Some(Element::Group(_))] => {
             header(ui, Icon::Group, "Group", None);
+            position_size(ui, ed);
+        }
+        [Some(Element::Bitmap(b))] => {
+            let name = b.name.clone();
+            header(ui, Icon::Bitmap, "Bitmap", None);
+            crate::bitmaps::instance_of(ui, &name);
             position_size(ui, ed);
         }
         [Some(Element::Unsupported { name, .. })] => {
@@ -1099,9 +1096,12 @@ fn instance_props(ui: &mut Ui, ed: &mut Editor, r: hit::ElementRef) {
         ui.label(RichText::new(&inst.symbol).color(theme::TEXT_DISABLED));
         ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
             ui.add_space(16.0);
-            // ponytail: no Swap Symbol or Symbol Properties dialogs yet.
-            widgets::quick(ui, Icon::Swap, false, false, "Swap symbol");
-            widgets::quick(ui, Icon::Sliders, false, false, "Symbol properties");
+            if widgets::quick(ui, Icon::Swap, false, true, "Swap symbol").clicked() {
+                ed.run(Action::SwapSymbol, ui.ctx());
+            }
+            if widgets::quick(ui, Icon::Sliders, false, true, "Symbol properties").clicked() {
+                crate::symbol_dialogs::properties(ed, &inst.symbol);
+            }
         });
     });
     quick_row(ui, |ui| {
@@ -1227,8 +1227,9 @@ fn frame_props(ui: &mut Ui, ed: &mut Editor) {
         let (rect, _) = ui.allocate_exact_size(vec2(ui.available_width() - 48.0, 48.0), Sense::hover());
         let mut child = ui.new_child(egui::UiBuilder::new().max_rect(rect));
         header(&mut child, Icon::Frame, "Frame", None);
-        // ponytail: no Actions panel yet.
-        widgets::quick(ui, Icon::Actions, false, false, "Actions");
+        if widgets::quick(ui, Icon::Actions, ed.actions.open, true, "Actions").clicked() {
+            ed.run(Action::OpenActions, ui.ctx());
+        }
     });
     let (l, f) = (ed.layer, ed.frame);
     let key = ed.timeline().layers.get(l).and_then(|layer| layer.keyframe_at(f).map(|k| (k, layer.frames[k].clone())));
@@ -1348,17 +1349,7 @@ fn frame_props(ui: &mut Ui, ed: &mut Editor) {
             }
         });
     }
-    theme::section_with(ui, "Sound", false, |ui| {
-        // ponytail: sound layers aren't modelled.
-        ui.add_enabled_ui(false, |ui| {
-            for (i, (name, value)) in [("Name", "None"), ("Effect", "None"), ("Sync", "Event"), ("", "Repeat")].into_iter().enumerate() {
-                widgets::row(ui, |ui| {
-                    widgets::label(ui, name, WORD_W);
-                    widgets::pick(ui, &format!("Sound {i}"), 0, &[(0, value, true)], ui.available_width() - 4.0);
-                });
-            }
-        });
-    });
+    crate::sound::section(ui, ed, (l, k), &key);
 
     // One undo step per edited field, until typing or dragging stops. The name
     // is stored as typed (so spaces between words survive) and trimmed at the end.

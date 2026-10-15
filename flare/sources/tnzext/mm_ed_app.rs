@@ -11,7 +11,7 @@ use eframe::egui::{
 use minnamate_core::doc::{Document, Element, LayerKind, Matrix, Paint, Point, Rgba, Shape, Timeline};
 use minnamate_core::hit::{self, ElementRef};
 use minnamate_core::render::{render_layer, render_timeline};
-use minnamate_core::{arrange, draw, swf_export, symbols, transform, xfl, xfl_write};
+use minnamate_core::{arrange, draw, symbols, transform, xfl, xfl_write};
 
 use crate::icons::Icon;
 use crate::tools::Tool;
@@ -40,7 +40,8 @@ pub enum Action {
     Close,
     /// Modify > Document: the Document Settings dialog.
     DocumentSettings,
-    ExportSwf,
+    /// File > Import > Import Video (video.rs).
+    ImportVideo,
     Exit,
     ZoomIn,
     ZoomOut,
@@ -53,6 +54,10 @@ pub enum Action {
     StepForward,
     StepBack,
     LoopPlayback,
+    /// Control > Enable Simple Frame Actions: playback on the stage runs stop, play and goto.
+    SimpleFrameActions,
+    /// The frame menu's and Frame tab's Actions: opens the Actions panel, where F9 toggles it.
+    OpenActions,
     NewLayer,
     DeleteLayer,
     Undo,
@@ -152,6 +157,22 @@ pub enum Action {
     ShowDocument,
     /// View > Rulers, Grid and Guides.
     Stage(crate::stage::Toggle),
+    // File > Import and Modify > Bitmap (bitmaps.rs).
+    ImportToStage,
+    ImportToLibrary,
+    TraceBitmap,
+    // File > Publish Settings, Publish and Export (publish.rs).
+    PublishSettings,
+    Publish,
+    ExportImage,
+    ExportGif,
+    ExportMovie,
+    ExportVideo,
+    // Modify > Symbol (symbol_dialogs.rs).
+    SwapSymbol,
+    DuplicateSymbol,
+    /// Control > Enable Simple Buttons (buttons.rs).
+    SimpleButtons,
 }
 
 /// View > Go To: which scene.
@@ -178,6 +199,10 @@ pub enum PanelId {
     Align,
     Transform,
     Info,
+    /// Window > Actions (F9), a floating panel.
+    Actions,
+    /// A floating panel (scene_panel.rs).
+    Scene,
 }
 
 /// Where Edit > Duplicate puts the copy, from the original [recall].
@@ -322,6 +347,10 @@ pub struct Editor {
     pub error: Option<String>,
     pub about: bool,
     pub test: Option<crate::test_movie::TestMovie>,
+    /// The Actions panel and Enable Simple Frame Actions.
+    pub actions: crate::actions_panel::State,
+    /// The sounds decoded, the sound output, and what playback last did (sound.rs).
+    pub sound: crate::sound::State,
     pub recent: Vec<PathBuf>,
     pub stroke_color: Color32,
     pub fill_color: Color32,
@@ -408,6 +437,15 @@ pub struct Editor {
     untitled: u32,
     /// The Home screen and the New Document and Document Settings dialogs.
     pub home: crate::home::State,
+    /// The bitmap fill default, the Magic Wand's options, Bitmap Properties and Trace Bitmap.
+    pub bitmaps: crate::bitmaps::State,
+    /// The document's publish settings, Publish Settings and the Export dialogs.
+    pub publish: crate::publish::State,
+    /// Symbol Properties, Duplicate Symbol and Swap Symbol, innermost last.
+    pub symbol_dialogs: Vec<crate::symbol_dialogs::Dialog>,
+    pub scene_panel: crate::scene_panel::State,
+    /// Control > Enable Simple Buttons: the stage's buttons answer the pointer.
+    pub simple_buttons: bool,
 }
 
 impl Editor {
@@ -454,6 +492,8 @@ impl Editor {
             error: None,
             about: false,
             test: None,
+            actions: Default::default(),
+            sound: Default::default(),
             recent: load_recent(),
             stroke_color: Color32::BLACK,
             fill_color: Color32::from_rgb(0x00, 0x99, 0xFF),
@@ -508,6 +548,11 @@ impl Editor {
             reported: BTreeSet::new(),
             untitled: 0,
             home: Default::default(),
+            bitmaps: Default::default(),
+            publish: Default::default(),
+            symbol_dialogs: Vec::new(),
+            scene_panel: Default::default(),
+            simple_buttons: false,
         };
         if let Some(path) = path {
             ed.open(path);
@@ -565,6 +610,9 @@ impl Editor {
         crate::text_tool::commit(self);
         self.doc = doc;
         self.title = title;
+        self.publish = crate::publish::State::read(path.as_deref());
+        self.symbol_dialogs.clear();
+        (self.scene_panel.renaming, self.scene_panel.deleting) = (None, None);
         self.path = path;
         self.scene = 0;
         self.frame = 0;
@@ -822,6 +870,7 @@ impl Editor {
                             Element::Instance(i) => return Some((r, i.pivot)),
                             Element::Shape(s) => s.matrix,
                             Element::Text(t) => t.matrix,
+                            Element::Bitmap(b) => b.matrix,
                             Element::Group(_) | Element::Unsupported { .. } => return None,
                         };
                         let b = hit::bounds_through(&self.doc, tl, frame, &[r], matrix.inverse()?)?;
@@ -901,6 +950,10 @@ impl Editor {
     }
 
     pub fn fill(&self) -> Paint {
+        // A bitmap fill while its bitmap is in this document's library.
+        if let Some(b) = self.bitmaps.fill.as_ref().filter(|b| self.doc.bitmap(&b.name).is_some()) {
+            return Paint::Bitmap(b.clone());
+        }
         self.fill_gradient.clone().map_or(Paint::Solid(rgba(self.fill_color)), Paint::Gradient)
     }
 
@@ -932,8 +985,8 @@ impl Editor {
     }
 
     fn save_to(&mut self, path: PathBuf) -> bool {
-        // Media and settings the model doesn't hold come along from the source.
-        match xfl_write::save_preserving(&self.doc, self.path.as_deref(), &path) {
+        // Media and settings the model doesn't hold come along from the source; publish settings are the editor's.
+        match xfl_write::save_with(&self.doc, self.path.as_deref(), &path, self.publish.files(&path)) {
             Ok(()) => {
                 self.log(format!("Saved {}", path.display()));
                 self.title = path.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_default();
@@ -964,27 +1017,6 @@ impl Editor {
             self.discard_ok = true;
             self.run(action, ctx);
             self.discard_ok = false;
-        }
-    }
-
-    pub fn export_swf(&mut self) {
-        let stem = self.path.as_ref().and_then(|p| p.file_stem()).map(|s| s.to_string_lossy().into_owned());
-        let name = format!("{}.swf", stem.unwrap_or_else(|| self.title.clone()));
-        let Some(out) = rfd::FileDialog::new().add_filter("SWF movie", &["swf"]).set_file_name(name).save_file() else {
-            return;
-        };
-        let written = swf_export::export(&self.doc).and_then(|(bytes, skipped)| {
-            std::fs::write(&out, bytes)?;
-            Ok(skipped)
-        });
-        match written {
-            Ok(skipped) => {
-                self.log(format!("Exported {}", out.display()));
-                for s in skipped {
-                    self.log(format!("Warning: SWF export skipped {s}"));
-                }
-            }
-            Err(e) => self.error = Some(format!("Couldn't export the movie.\n\n{e}")),
         }
     }
 
@@ -1113,6 +1145,9 @@ impl Editor {
 
     fn tick(&mut self, ctx: &egui::Context) {
         let Some((start, from)) = self.playing else { return };
+        if self.actions.simple {
+            return crate::actions_panel::simple_tick(self, ctx, start, from);
+        }
         let fps = self.doc.frame_rate.max(0.01) as f64;
         let count = self.frame_count();
         let frame = from + ((ctx.input(|i| i.time) - start) * fps) as u32;
@@ -1186,6 +1221,11 @@ impl Editor {
                 self.show_tools = !self.show_tools;
                 return;
             }
+            PanelId::Actions => return crate::actions_panel::toggle(self),
+            PanelId::Scene => {
+                self.scene_panel.open = !self.scene_panel.open;
+                return;
+            }
             PanelId::Color | PanelId::Swatches | PanelId::Align | PanelId::Transform | PanelId::Info => {
                 let flyout = crate::panels::Flyout::of(panel);
                 self.flyout = if self.flyout == flyout { None } else { flyout };
@@ -1213,6 +1253,8 @@ impl Editor {
             PanelId::Timeline | PanelId::Output => docked(self.show_bottom),
             PanelId::Properties | PanelId::Library | PanelId::Assets => docked(self.show_right),
             PanelId::Tools => self.show_tools,
+            PanelId::Actions => self.actions.open,
+            PanelId::Scene => self.scene_panel.open,
             PanelId::Color | PanelId::Swatches | PanelId::Align | PanelId::Transform | PanelId::Info => {
                 self.show_right && self.flyout.is_some() && self.flyout == crate::panels::Flyout::of(panel)
             }
@@ -1273,7 +1315,7 @@ impl Editor {
             }
             Action::Close => crate::home::close(self),
             Action::DocumentSettings => crate::home::open_settings(self),
-            Action::ExportSwf => self.export_swf(),
+            Action::ImportVideo => crate::video::import_dialog(self),
             Action::Exit => {
                 self.closing = true;
                 ctx.send_viewport_cmd(egui::ViewportCommand::Close);
@@ -1419,11 +1461,13 @@ impl Editor {
             Action::StepForward => {}
             Action::StepBack => self.set_frame(self.frame.saturating_sub(1)),
             Action::LoopPlayback => self.loop_playback = !self.loop_playback,
+            Action::SimpleFrameActions => self.actions.simple = !self.actions.simple,
+            Action::OpenActions => self.actions.open = true,
             Action::NewLayer => self.new_layer(),
             Action::Undo => self.undo(),
             Action::Redo => self.redo(),
             Action::Show(panel) => self.toggle_panel(panel),
-            Action::TestMovie => self.test = Some(crate::test_movie::TestMovie::new(now)),
+            Action::TestMovie => self.test = Some(crate::test_movie::TestMovie::new(now, &self.doc)),
             Action::OpenRecent(i) => {
                 if let Some(path) = self.recent.get(i).cloned() {
                     self.open(path);
@@ -1436,6 +1480,12 @@ impl Editor {
             }
             Action::About => self.about = true,
             Action::Stage(toggle) => self.stage.toggle(toggle),
+            Action::ImportToStage | Action::ImportToLibrary | Action::TraceBitmap => crate::bitmaps::command(self, action),
+            Action::PublishSettings | Action::Publish | Action::ExportImage | Action::ExportGif | Action::ExportMovie | Action::ExportVideo => {
+                crate::publish::command(self, action)
+            }
+            Action::SwapSymbol | Action::DuplicateSymbol => crate::symbol_dialogs::command(self, action),
+            Action::SimpleButtons => self.simple_buttons = !self.simple_buttons,
         }
     }
 
@@ -1544,6 +1594,17 @@ impl Editor {
             return;
         }
         let dropped: Vec<PathBuf> = ctx.input(|i| i.raw.dropped_files.iter().map(|f| f.path().to_path_buf()).filter(|p| !p.as_os_str().is_empty()).collect());
+        // Images and sounds come in on the stage, as File > Import to Stage does; a document opens.
+        let (images, dropped): (Vec<PathBuf>, Vec<PathBuf>) = dropped.into_iter().partition(|p| crate::bitmaps::is_image(p));
+        let (sounds, dropped): (Vec<PathBuf>, Vec<PathBuf>) = dropped.into_iter().partition(|p| crate::sound::is_sound(p));
+        if self.home.allows(Action::ImportToStage) {
+            if !images.is_empty() {
+                crate::bitmaps::import(self, &images, true);
+            }
+            for path in &sounds {
+                crate::sound::import(self, path, true);
+            }
+        }
         if let Some(path) = dropped.into_iter().next() {
             self.dropped = Some(path);
             self.run(Action::OpenDropped, ctx);
@@ -1725,7 +1786,7 @@ impl Editor {
 /// that leave the selection be. The rest are the field's (Ctrl+A, Z...) or wait.
 pub fn runs_while_typing(a: Action) -> bool {
     use Action::*;
-    matches!(a, New | Open | OpenRecent(_) | Close | Save | SaveAs | Exit | ExportSwf | TestMovie | DocumentSettings | Show(_) | About)
+    matches!(a, New | Open | OpenRecent(_) | Close | Save | SaveAs | Exit | Publish | TestMovie | DocumentSettings | Show(_) | About)
         || matches!(a, ZoomIn | ZoomOut | Zoom(_) | FitInWindow | ShowAll | OnionSkin)
 }
 
@@ -1753,6 +1814,7 @@ impl eframe::App for Editor {
         self.dropped_files(&ctx);
         self.shortcuts(&ctx);
         self.tick(&ctx);
+        crate::sound::tick(self);
         // Closing the window with unsaved changes asks first, as File > Exit does.
         if ctx.input(|i| i.viewport().close_requested()) && self.dirty && !self.closing {
             ctx.send_viewport_cmd(egui::ViewportCommand::CancelClose);
@@ -1821,10 +1883,15 @@ impl eframe::App for Editor {
         self.dialogs(&ctx);
         timeline::dialogs(&ctx, self);
         crate::tweens::dialogs(&ctx, self);
+        crate::actions_panel::show(&ctx, self);
         crate::test_movie::show(&ctx, self);
         crate::convert_symbol::show(&ctx, self);
         crate::arrange_panels::show(&ctx, self);
+        crate::scene_panel::show(&ctx, self);
+        crate::publish::dialogs(&ctx, self);
+        crate::symbol_dialogs::show(&ctx, self);
         crate::home::dialogs(&ctx, self);
+        crate::bitmaps::dialogs(&ctx, self);
         // Escape cancels only what was typed since the field took the keyboard.
         let focused = ctx.memory(|m| m.focused());
         if focused != self.focused {

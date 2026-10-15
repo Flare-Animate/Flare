@@ -18,7 +18,7 @@ pub enum Picked {
 
 /// Eyedropper: the stroke or fill drawn at `point` on `frame` of `tl`, from
 /// inside symbols too. Strokes reach `tolerance` past their edges. A gradient
-/// comes with its matrix in `tl`'s coordinates, to paint on as it lies.
+/// or bitmap fill comes with its matrix in `tl`'s coordinates, to paint on as it lies.
 // ponytail: colors come as the shape holds them, before instances' color effects (tint,
 // alpha). Carry display.rs's color transforms through `under` if picking tinted symbols matters.
 pub fn pick(doc: &Document, tl: &Timeline, frame: u32, point: Point, tolerance: f32) -> Option<Picked> {
@@ -27,6 +27,8 @@ pub fn pick(doc: &Document, tl: &Timeline, frame: u32, point: Point, tolerance: 
         let placed = |mut paint: Paint| {
             if let Paint::Gradient(g) = &mut paint {
                 g.matrix = m * g.matrix;
+            } else if let Paint::Bitmap(b) = &mut paint {
+                b.matrix = m * b.matrix;
             }
             paint
         };

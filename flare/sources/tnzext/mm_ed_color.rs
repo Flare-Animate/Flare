@@ -69,7 +69,7 @@ pub fn solid(p: &Paint) -> Color32 {
     match p {
         Paint::Solid(c) => color32(*c),
         Paint::Gradient(g) => g.stops.first().map_or(Color32::BLACK, |s| color32(s.1)),
-        Paint::Unsupported { .. } => Color32::GRAY,
+        Paint::Bitmap(_) | Paint::Unsupported { .. } => Color32::GRAY,
     }
 }
 
@@ -121,12 +121,19 @@ fn opaque([r, g, b, _]: Rgba) -> Color32 {
     color32([r, g, b, 1.0])
 }
 
-/// A colour chip showing `paint`: a gradient as itself, else as `widgets::chip`
-/// shows colours. `label` names it for screen readers.
+/// A colour chip showing `paint`: a gradient as itself, a bitmap fill as the
+/// bitmap glyph, else as `widgets::chip` shows colours. `label` names it for screen readers.
+// ponytail: a bitmap fill's chip shows the glyph, not a thumbnail of the bitmap; that needs the document here.
 pub fn paint_chip(ui: &mut Ui, paint: &Paint, label: &str) -> Response {
-    let Paint::Gradient(g) = paint else { return widgets::chip(ui, solid(paint), label) };
+    let (Paint::Gradient(_) | Paint::Bitmap(_)) = paint else { return widgets::chip(ui, solid(paint), label) };
     let (rect, resp) = ui.allocate_exact_size(vec2(30.0, 16.0), Sense::click());
-    paint_gradient(ui.painter(), rect, g, false);
+    match paint {
+        Paint::Gradient(g) => paint_gradient(ui.painter(), rect, g, false),
+        _ => {
+            ui.painter().rect_filled(rect, 3.0, Color32::GRAY);
+            icons::paint(ui.painter(), Rect::from_center_size(rect.center(), vec2(14.0, 14.0)), Icon::Bitmap, Color32::WHITE);
+        }
+    }
     ui.painter().rect_stroke(rect, 3.0, Stroke::new(1.0, theme::BORDER), StrokeKind::Outside);
     let (label, enabled) = (label.to_string(), ui.is_enabled());
     resp.widget_info(|| WidgetInfo::labeled(WidgetType::ColorButton, enabled, &label));
@@ -425,7 +432,7 @@ pub fn restyle(ed: &mut Editor, style: Style) {
 pub fn restyle_all(ed: &mut Editor, styles: &[Style]) {
     for &style in styles {
         match style {
-            Style::Fill(c) => (ed.fill_color, ed.fill_gradient) = (c, None),
+            Style::Fill(c) => (ed.fill_color, ed.fill_gradient, ed.bitmaps.fill) = (c, None, None),
             Style::Stroke(c) => (ed.stroke_color, ed.stroke_gradient) = (c, None),
             Style::Gradient(_) => {}
             Style::Width(w) => ed.stroke_width = w,
@@ -508,6 +515,9 @@ pub fn set_gradient(ed: &mut Editor, fill: bool, mut g: Gradient) {
         None => g.fit(stage),
     }
     *slot = Some(g);
+    if fill {
+        ed.bitmaps.fill = None;
+    }
     restyle(ed, Style::Gradient(fill));
 }
 
@@ -518,6 +528,8 @@ fn none(ed: &Editor, fill: bool) -> bool {
 
 /// Swap colors: the stroke and fill trade places, gradients too, and so do the selected shapes'.
 fn swap(ed: &mut Editor) {
+    // ponytail: the stroke default has no bitmap, so a bitmap fill goes rather than swapping.
+    ed.bitmaps.fill = None;
     let (s, f) = (ed.stroke_color, ed.fill_color);
     let (sg, fg) = (ed.stroke_gradient.take(), ed.fill_gradient.take());
     (ed.stroke_gradient, ed.fill_gradient) = (fg, sg);
@@ -619,13 +631,14 @@ pub fn color_panel(ui: &mut Ui, ed: &mut Editor) {
     widgets::row(ui, |ui| {
         widgets::label(ui, "Color type:", 64.0);
         let kind = match &ramp {
+            _ if matches!(shown, Paint::Bitmap(_)) => 4,
             Some(Gradient { kind: GradientKind::Linear, .. }) => 2,
             Some(_) => 3,
             None if widgets::is_none(current) => 0,
             None => 1,
         };
-        // ponytail: bitmap fills wait on the model (Paint::Unsupported keeps them as XML).
-        let items = [(0, "None", true), (1, "Solid color", true), (2, "Linear gradient", true), (3, "Radial gradient", true), (4, "Bitmap fill", false)];
+        // ponytail: bitmap fills for strokes come only from files; the stroke default has none.
+        let items = [(0, "None", true), (1, "Solid color", true), (2, "Linear gradient", true), (3, "Radial gradient", true), (4, "Bitmap fill", fill)];
         let last = if fill { ed.fill_color } else { ed.stroke_color };
         let kinds = [GradientKind::Linear, GradientKind::Radial { focal: 0.0 }];
         let Some(picked) = widgets::pick(ui, "Color type", kind, &items, 150.0) else { return };
@@ -636,6 +649,7 @@ pub fn color_panel(ui: &mut Ui, ed: &mut Editor) {
                 let c = if widgets::is_none(last) { Color32::BLACK } else { last };
                 restyle(ed, if fill { Style::Fill(c) } else { Style::Stroke(c) });
             }
+            4 => crate::bitmaps::choose_fill(ed),
             k => {
                 let kind = kinds[k - 2];
                 let g = ramp.clone().map_or_else(|| Gradient::new(kind), |g| Gradient { kind, ..g });
@@ -644,6 +658,10 @@ pub fn color_panel(ui: &mut Ui, ed: &mut Editor) {
         }
         ed.end_gesture();
     });
+    // A bitmap fill shows the library's bitmaps in place of the colour controls (§3.2 item 7).
+    if fill && matches!(shown, Paint::Bitmap(_)) {
+        return crate::bitmaps::fill_swatches(ui, ed, &shown);
+    }
     if let Some(g) = &ramp {
         widgets::row(ui, |ui| {
             widgets::label(ui, "Flow:", 64.0);

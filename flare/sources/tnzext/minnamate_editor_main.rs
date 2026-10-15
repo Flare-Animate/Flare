@@ -1,10 +1,18 @@
 // Release builds are a GUI app, with no console window on Windows.
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+#[path = "mm_ed_actions_panel.rs"]
+mod actions_panel;
 #[path = "mm_ed_app.rs"]
 mod app;
 #[path = "mm_ed_arrange_panels.rs"]
 mod arrange_panels;
+#[path = "mm_ed_audio.rs"]
+mod audio;
+#[path = "mm_ed_bitmaps.rs"]
+mod bitmaps;
+#[path = "mm_ed_buttons.rs"]
+mod buttons;
 #[path = "mm_ed_color.rs"]
 mod color;
 #[path = "mm_ed_convert_symbol.rs"]
@@ -35,8 +43,16 @@ mod paint_tools;
 mod panels;
 #[path = "mm_ed_pen.rs"]
 mod pen;
+#[path = "mm_ed_publish.rs"]
+mod publish;
+#[path = "mm_ed_scene_panel.rs"]
+mod scene_panel;
+#[path = "mm_ed_sound.rs"]
+mod sound;
 #[path = "mm_ed_stage.rs"]
 mod stage;
+#[path = "mm_ed_symbol_dialogs.rs"]
+mod symbol_dialogs;
 #[path = "mm_ed_test_movie.rs"]
 mod test_movie;
 #[path = "mm_ed_text_tool.rs"]
@@ -49,6 +65,8 @@ mod timeline;
 mod tools;
 #[path = "mm_ed_tweens.rs"]
 mod tweens;
+#[path = "mm_ed_video.rs"]
+mod video;
 #[path = "mm_ed_widgets.rs"]
 mod widgets;
 

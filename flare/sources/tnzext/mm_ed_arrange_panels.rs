@@ -114,6 +114,7 @@ pub fn transform(ui: &mut Ui, ed: &mut Editor) {
             Some(Element::Shape(s)) => Some(s.matrix),
             Some(Element::Instance(i)) => Some(i.matrix),
             Some(Element::Text(t)) => Some(t.matrix),
+            Some(Element::Bitmap(b)) => Some(b.matrix),
             Some(Element::Group(_) | Element::Unsupported { .. }) | None => None,
         },
         _ => None,

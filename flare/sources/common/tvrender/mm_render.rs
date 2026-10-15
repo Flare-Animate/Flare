@@ -5,6 +5,7 @@ use std::collections::BTreeSet;
 use tiny_skia::{self as sk, FillRule, PathBuilder, Pixmap, Transform};
 
 use crate::Result;
+use crate::button::Live;
 use crate::display::{Item, Placed, display_list, display_list_shown, layer_items};
 use crate::doc::*;
 use crate::filters::{self, Effects};
@@ -13,6 +14,22 @@ use crate::text;
 /// Renders `frame` (0-based, counted across scenes) at `scale`. Also returns
 /// the features it skipped, so gaps against Animate's own output are visible.
 pub fn render(doc: &Document, frame: u32, scale: f32) -> Result<(Pixmap, BTreeSet<String>)> {
+    render_with(doc, frame, scale, None, None)
+}
+
+/// `render` of a movie playing in `player`: its frame, each movie clip at the frame it has
+/// reached rather than its first, and the buttons under `live`'s pointer hovered or pressed.
+/// Test Movie draws with it.
+pub fn render_playing(doc: &Document, player: &crate::player::Player, scale: f32, live: Option<Live>) -> Result<(Pixmap, BTreeSet<String>)> {
+    render_with(doc, player.root.frame, scale, Some(crate::player::ClipFrames::new(player)), live)
+}
+
+/// `render` as a player shows it, the buttons under `live`'s pointer hovered or pressed (button.rs).
+pub fn render_live(doc: &Document, frame: u32, scale: f32, live: Option<Live>) -> Result<(Pixmap, BTreeSet<String>)> {
+    render_with(doc, frame, scale, None, live)
+}
+
+fn render_with<'a>(doc: &'a Document, frame: u32, scale: f32, clips: Option<crate::player::ClipFrames<'a>>, live: Option<Live>) -> Result<(Pixmap, BTreeSet<String>)> {
     let (mut scene, mut local) = (None, frame);
     for s in &doc.scenes {
         if local < s.frame_count() {
@@ -26,7 +43,7 @@ pub fn render(doc: &Document, frame: u32, scale: f32) -> Result<(Pixmap, BTreeSe
     let size = |v: f32| (v * scale).ceil() as u32;
     let mut pixmap = Pixmap::new(size(doc.width), size(doc.height)).ok_or("bad stage size")?;
     pixmap.fill(color(doc.background));
-    let mut r = Renderer { doc, pixmap, skipped: BTreeSet::new(), shown_only: false, only: None, masking: false, zoom: scale, layers: Vec::new(), under: None };
+    let mut r = Renderer { doc, pixmap, skipped: BTreeSet::new(), shown_only: false, only: None, masking: false, zoom: scale, layers: Vec::new(), under: None, clips, live };
     r.timeline(scene, local, Transform::from_scale(scale, scale), ColorTransform::IDENTITY, 0);
     Ok((r.pixmap, r.skipped))
 }
@@ -41,6 +58,20 @@ pub fn render_timeline(
     matrix: &Matrix,
     (width, height): (f32, f32),
     scale: f32,
+) -> Result<(Pixmap, BTreeSet<String>)> {
+    render_timeline_live(doc, tl, frame, matrix, (width, height), scale, None)
+}
+
+/// `render_timeline` with the buttons under `live`'s pointer hovered or pressed: Control > Enable
+/// Simple Buttons on the stage.
+pub fn render_timeline_live(
+    doc: &Document,
+    tl: &Timeline,
+    frame: u32,
+    matrix: &Matrix,
+    (width, height): (f32, f32),
+    scale: f32,
+    live: Option<Live>,
 ) -> Result<(Pixmap, BTreeSet<String>)> {
     let size = |v: f32| (v * scale).ceil() as u32;
     let pixmap = Pixmap::new(size(width), size(height)).ok_or("bad canvas size")?;
@@ -60,6 +91,8 @@ pub fn render_timeline(
         zoom,
         layers: Vec::new(),
         under: stage.map(|stage| (doc.background, stage)),
+        clips: None,
+        live,
     };
     r.timeline(tl, frame, ts, ColorTransform::IDENTITY, 0);
     Ok((r.pixmap, r.skipped))
@@ -81,7 +114,7 @@ pub fn render_layer(
     let zoom = scale * (matrix.a * matrix.d - matrix.b * matrix.c).abs().sqrt();
     // ponytail: no stage colour under blends here: a layer's canvas goes over the layers below
     // it, which the colour would hide, so its blend modes mix with transparency.
-    let mut r = Renderer { doc, pixmap, skipped: BTreeSet::new(), shown_only: true, only: Some(layer), masking: false, zoom, layers: Vec::new(), under: None };
+    let mut r = Renderer { doc, pixmap, skipped: BTreeSet::new(), shown_only: true, only: Some(layer), masking: false, zoom, layers: Vec::new(), under: None, clips: None, live: None };
     r.timeline(tl, frame, Transform::from_scale(scale, scale).pre_concat(transform(matrix)), ColorTransform::IDENTITY, 0);
     Ok((r.pixmap, r.skipped))
 }
@@ -102,6 +135,10 @@ struct Renderer<'a> {
     layers: Vec<(Pixmap, u32)>,
     /// The stage's colour and where it is, when the canvas is shown over it later.
     under: Option<(Rgba, sk::Rect)>,
+    /// Test Movie's clips, each at its own frame; without, each shows its first, as on the stage.
+    clips: Option<crate::player::ClipFrames<'a>>,
+    /// A player's pointer, which buttons respond to.
+    live: Option<Live>,
 }
 
 impl<'a> Renderer<'a> {
@@ -122,8 +159,12 @@ impl<'a> Renderer<'a> {
     fn items(&mut self, list: Vec<Placed<'a>>, ts: Transform, cx: ColorTransform, depth: u32) {
         for p in list {
             let (ts, cx) = (ts.pre_concat(transform(&p.matrix)), cx * p.color);
-            // Visible unchecked: published, not drawn.
+            // Visible unchecked: published, not drawn. A clip still plays, so Test Movie's count it.
             if p.effects.hidden {
+                if let (Item::Clip(..), Some(c)) = (&p.item, &mut self.clips) {
+                    c.enter(p.source);
+                    c.leave();
+                }
                 continue;
             }
             // Filters and blend modes draw the object in a layer of its own, coloured as a whole.
@@ -135,11 +176,24 @@ impl<'a> Renderer<'a> {
             match p.item {
                 Item::Shape(s) => self.shape(s, ts, cx),
                 Item::Text(t) => self.shape(&text::to_shape(t), ts, cx),
-                // ponytail: clips show frame 1, as on Animate's stage. Playing them
-                // needs per-instance state carried between frames (the SWF export has it).
-                Item::Clip(sym, _) => self.timeline(&sym.timeline, 0, ts, cx, depth + 1),
+                Item::Clip(sym, kind) => {
+                    let mut frame = self.clips.as_mut().map_or(0, |c| c.enter(p.source));
+                    // A button shows Up, Over or Down, as the pointer has it.
+                    if kind == SymbolKind::Button {
+                        frame = crate::button::shown_frame(self.doc, sym, kind, ts, self.live);
+                    }
+                    self.timeline(&sym.timeline, frame, ts, cx, depth + 1);
+                    if let Some(c) = &mut self.clips {
+                        c.leave();
+                    }
+                }
                 Item::Morph(s) => self.shape(&s, ts, cx),
                 Item::Masked { mask, content } => self.masked(mask, content, ts, cx, depth),
+                Item::Bitmap(b) => {
+                    if !crate::bitmap::draw(&mut self.pixmap, b, ts, cx) {
+                        self.skipped.insert(format!("bitmap {:?}, whose image can't be read", b.name));
+                    }
+                }
             }
             if let Some((_, cx)) = layer {
                 self.end_layer(&p.effects, cx);
@@ -195,8 +249,17 @@ impl<'a> Renderer<'a> {
     }
 
     fn shape(&mut self, s: &Shape, ts: Transform, cx: ColorTransform) {
+        // Each fill's edges, gathered once: a traced bitmap (trace.rs) has thousands of fills.
+        let mut edges: Vec<Vec<&Edge>> = vec![Vec::new(); s.fills.len() + 1];
+        for e in &s.edges {
+            edges.get_mut(e.fill0 as usize).into_iter().for_each(|v| v.push(e));
+            if e.fill1 != e.fill0 {
+                edges.get_mut(e.fill1 as usize).into_iter().for_each(|v| v.push(e));
+            }
+        }
         for (i, fill) in s.fills.iter().enumerate() {
-            let (Some(paint), Some(path)) = (self.paint(fill, cx), fill_path(&s.edges, i as u32 + 1)) else {
+            let image = crate::bitmap::fill_pixels(self.doc, fill, cx);
+            let (Some(paint), Some(path)) = (self.paint(fill, cx, image.as_deref()), fill_path(edges[i + 1].iter().copied(), i as u32 + 1)) else {
                 continue;
             };
             self.pixmap.fill_path(&path, &paint, FillRule::EvenOdd, ts, None);
@@ -206,7 +269,8 @@ impl<'a> Renderer<'a> {
         }
         for e in &s.edges {
             let Some(style) = (e.stroke as usize).checked_sub(1).and_then(|i| s.strokes.get(i)) else { continue };
-            let Some(paint) = self.paint(&style.paint, cx) else { continue };
+            let image = crate::bitmap::fill_pixels(self.doc, &style.paint, cx);
+            let Some(paint) = self.paint(&style.paint, cx, image.as_deref()) else { continue };
             let mut pb = PathBuilder::new();
             for p in &e.paths {
                 pb.move_to(p.start.0, p.start.1);
@@ -232,7 +296,8 @@ impl<'a> Renderer<'a> {
         }
     }
 
-    fn paint(&mut self, p: &Paint, cx: ColorTransform) -> Option<sk::Paint<'static>> {
+    /// The paint drawing `p`, its colours through `cx`; a bitmap fill's `image` is its pixels (`bitmap::fill_pixels`).
+    fn paint<'p>(&mut self, p: &Paint, cx: ColorTransform, image: Option<&'p Pixmap>) -> Option<sk::Paint<'p>> {
         match p {
             Paint::Solid(c) => {
                 let mut paint = sk::Paint::default();
@@ -240,6 +305,13 @@ impl<'a> Renderer<'a> {
                 Some(paint)
             }
             Paint::Gradient(g) => crate::gradient::sk_paint(g, cx),
+            Paint::Bitmap(f) => {
+                let paint = image.zip(self.doc.bitmap(&f.name)).map(|(px, b)| crate::bitmap::sk_paint(f, b.smoothing, px));
+                if paint.is_none() {
+                    self.skipped.insert(format!("bitmap fill {:?}, whose bitmap is missing or can't be read", f.name));
+                }
+                paint
+            }
             Paint::Unsupported { name, .. } => {
                 self.skipped.insert(name.clone());
                 None
@@ -250,9 +322,9 @@ impl<'a> Renderer<'a> {
 
 /// The outline of fill `id`: every edge with that fill on either side, chained
 /// end to start into closed loops. Even-odd filling then ignores loop direction.
-pub(crate) fn fill_path(edges: &[Edge], id: u32) -> Option<sk::Path> {
+pub(crate) fn fill_path<'e>(edges: impl IntoIterator<Item = &'e Edge>, id: u32) -> Option<sk::Path> {
     let mut pieces = Vec::new();
-    for e in edges.iter().filter(|e| e.fill0 == id || e.fill1 == id) {
+    for e in edges.into_iter().filter(|e| e.fill0 == id || e.fill1 == id) {
         for p in &e.paths {
             let mut from = p.start;
             for &seg in &p.segs {

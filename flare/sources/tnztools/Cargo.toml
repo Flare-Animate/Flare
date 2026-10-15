@@ -9,9 +9,16 @@ name = "minnamate_core"
 path = "minnamate_core.rs"
 
 [dependencies]
+flate2 = "1"
+nanomp3 = { version = "0.2", default-features = false, features = ["std"] }
 i_overlay = "9"
 roxmltree = "0.21"
 skrifa = { version = "0.44", default-features = false, features = ["std"] }
 swf = { version = "0.3", default-features = false, features = ["flate2"] }
 tiny-skia = "0.12"
+weezl = "0.1"
+zune-jpeg = "0.5"
 zip = { version = "9", default-features = false, features = ["deflate-flate2-zlib-rs"] }
+
+[dev-dependencies]
+zune-core = "0.5"

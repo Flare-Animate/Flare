@@ -53,13 +53,13 @@ pub(crate) fn frame_attrs(tween: &Tween) -> &'static [&'static str] {
 /// Loads a `.fla` file, an XFL folder, or the `.xfl` / `DOMDocument.xml` inside one.
 pub fn load(path: &std::path::Path) -> Result<Document> {
     if let Some(dir) = folder(path) {
-        return read_document(&mut |name| Ok(fs::read_to_string(dir.join(name))?));
+        return read_document(&mut |name| Ok(fs::read(dir.join(name))?));
     }
     let mut zip = zip::ZipArchive::new(fs::File::open(path)?)?;
     read_document(&mut |name| {
-        let mut text = String::new();
-        zip.by_name(name)?.read_to_string(&mut text)?;
-        Ok(text)
+        let mut data = Vec::new();
+        zip.by_name(name)?.read_to_end(&mut data)?;
+        Ok(data)
     })
 }
 
@@ -70,15 +70,16 @@ pub(crate) fn folder(path: &std::path::Path) -> Option<&std::path::Path> {
     if path.is_dir() { Some(path) } else if inside { path.parent() } else { None }
 }
 
-fn read_document(read: &mut dyn FnMut(&str) -> Result<String>) -> Result<Document> {
-    let text = read("DOMDocument.xml")?;
+/// The document from its files, `read` giving one by its path in the XFL.
+fn read_document(read: &mut dyn FnMut(&str) -> Result<Vec<u8>>) -> Result<Document> {
+    let text = String::from_utf8(read("DOMDocument.xml")?)?;
     let xml = roxmltree::Document::parse(text.trim_start_matches('\u{feff}'))?;
     let root = xml.root_element();
 
     let mut library = HashMap::new();
     for include in list(root, "symbols") {
         let name = format!("LIBRARY/{}", attr(include, "href")?);
-        let text = read(&name).map_err(|e| format!("{name}: {e}"))?;
+        let text = read(&name).and_then(|b| Ok(String::from_utf8(b)?)).map_err(|e| format!("{name}: {e}"))?;
         let xml = roxmltree::Document::parse(text.trim_start_matches('\u{feff}'))
             .map_err(|e| format!("{name}: {e}"))?;
         let item = xml.root_element();
@@ -99,15 +100,20 @@ fn read_document(read: &mut dyn FnMut(&str) -> Result<String>) -> Result<Documen
     if scenes.is_empty() {
         return Err("DOMDocument.xml: no timelines".into());
     }
-    Ok(Document {
+    let mut doc = Document {
         width: num(root, "width", 550.0)?,
         height: num(root, "height", 400.0)?,
         frame_rate: num(root, "frameRate", 24.0)?,
         background: [r, g, b, 1.0],
         scenes,
         library,
-        extra: extra(root, DOCUMENT_ATTRS, &["symbols", "timelines"]),
-    })
+        media: child(root, "media").map_or(Ok(Vec::new()), |m| crate::bitmap::read_media(m, read))?,
+        sounds: Default::default(),
+        extra: extra(root, DOCUMENT_ATTRS, &["media", "symbols", "timelines"]),
+    };
+    // The media list's sounds, into the library's sounds.
+    crate::sound::read(&mut doc, read);
+    Ok(doc)
 }
 
 fn timeline_of(n: Node) -> Result<Timeline> {
@@ -184,6 +190,7 @@ fn element(n: Node) -> Result<Element> {
         // ponytail: a group's own attributes aren't kept. Give Group an Extra if they matter.
         "DOMGroup" => Element::Group(list(n, "members").map(element).collect::<Result<_>>()?),
         "DOMStaticText" | "DOMDynamicText" | "DOMInputText" => Element::Text(text(n)?),
+        "DOMBitmapInstance" => Element::Bitmap(crate::bitmap::read_instance(n)?),
         other => Element::Unsupported { name: other.into(), xml: source(n) },
     })
 }
@@ -257,6 +264,7 @@ fn paint(n: Node) -> Result<Paint> {
             Paint::Solid([r, g, b, num(p, "alpha", 1.0)?])
         }
         "LinearGradient" | "RadialGradient" => Paint::Gradient(gradient(p)?),
+        "BitmapFill" => Paint::Bitmap(crate::bitmap::read_fill(p)?),
         other => Paint::Unsupported { name: other.into(), xml: source(p) },
     })
 }
@@ -357,7 +365,7 @@ fn symbol_kind(n: Node) -> SymbolKind {
     }
 }
 
-fn matrix(n: Node) -> Result<Matrix> {
+pub(crate) fn matrix(n: Node) -> Result<Matrix> {
     let Some(m) = child(n, "matrix").and_then(|m| child(m, "Matrix")) else { return Ok(Matrix::IDENTITY) };
     Ok(Matrix {
         a: num(m, "a", 1.0)?,
@@ -448,7 +456,7 @@ pub(crate) fn hex_color(s: &str) -> Result<[f32; 3]> {
 
 /// What the model doesn't read of `n`: attributes other than `attrs`, and child
 /// elements other than `children`.
-fn extra(n: Node, attrs: &[&str], children: &[&str]) -> Extra {
+pub(crate) fn extra(n: Node, attrs: &[&str], children: &[&str]) -> Extra {
     let text = n.document().input_text();
     let mut extra = Extra::default();
     for a in n.attributes().filter(|a| a.namespace().is_some() || !attrs.contains(&a.name())) {
@@ -473,7 +481,7 @@ fn extra(n: Node, attrs: &[&str], children: &[&str]) -> Extra {
 }
 
 /// An element's XML, as it appears in the file.
-fn source(n: Node) -> String {
+pub(crate) fn source(n: Node) -> String {
     n.document().input_text()[n.range()].into()
 }
 
@@ -486,7 +494,7 @@ fn list<'a, 'i>(n: Node<'a, 'i>, wrapper: &str) -> impl Iterator<Item = Node<'a,
     child(n, wrapper).into_iter().flat_map(|w| w.children().filter(Node::is_element))
 }
 
-fn attr<'a>(n: Node<'a, '_>, name: &str) -> Result<&'a str> {
+pub(crate) fn attr<'a>(n: Node<'a, '_>, name: &str) -> Result<&'a str> {
     n.attribute(name).ok_or_else(|| format!("<{}> has no {name}", n.tag_name().name()).into())
 }
 

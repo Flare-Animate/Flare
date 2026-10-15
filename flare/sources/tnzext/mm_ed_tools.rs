@@ -244,7 +244,6 @@ impl Tool {
             self,
             Subselection
                 | Polygon
-                | MagicWand
                 | FluidBrush
                 | RectanglePrimitive
                 | OvalPrimitive
@@ -347,7 +346,7 @@ pub fn select(ed: &mut Editor, tool: Tool) {
 /// D: a black stroke and a white fill.
 fn black_and_white(ed: &mut Editor) {
     (ed.stroke_color, ed.fill_color) = (Color32::BLACK, Color32::WHITE);
-    (ed.stroke_gradient, ed.fill_gradient) = (None, None);
+    (ed.stroke_gradient, ed.fill_gradient, ed.bitmaps.fill) = (None, None, None);
 }
 
 /// "No color": a fully transparent color shows as the swatch with the red slash.
@@ -360,6 +359,8 @@ fn swap_colors(ed: &mut Editor) {
     if swappable(ed) {
         std::mem::swap(&mut ed.stroke_color, &mut ed.fill_color);
         std::mem::swap(&mut ed.stroke_gradient, &mut ed.fill_gradient);
+        // ponytail: the stroke default has no bitmap, so a bitmap fill goes rather than swapping.
+        ed.bitmaps.fill = None;
     }
 }
 
@@ -792,6 +793,7 @@ fn colors(ui: &mut Ui, ed: &mut Editor, more: Rect) {
     let p = ui.painter();
     swatch(p, stroke, ed.stroke_color, ed.stroke_gradient.as_ref(), true);
     swatch(p, fill, ed.fill_color, ed.fill_gradient.as_ref(), false);
+    crate::bitmaps::fill_swatch(ui, ed, fill.shrink(2.0));
     // The swatch popup, as from Properties: a pick sets the tool color and recolors the selection.
     for (resp, fill, label) in [(stroke_resp, false, "Stroke color"), (fill_resp, true, "Fill color")] {
         resp.widget_info(|| WidgetInfo::labeled(WidgetType::Button, true, format!("Tools {}", label.to_lowercase())));

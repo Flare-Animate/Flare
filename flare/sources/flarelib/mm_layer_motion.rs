@@ -140,7 +140,7 @@ fn object(tl: &Timeline, p: usize, frame: u32, depth: u32) -> Option<Matrix> {
 /// An element's transform; a group goes by its top member.
 fn top_matrix(el: &Element) -> Option<Matrix> {
     match el {
-        Element::Shape(Shape { matrix, .. }) | Element::Instance(Instance { matrix, .. }) | Element::Text(Text { matrix, .. }) => Some(*matrix),
+        Element::Shape(Shape { matrix, .. }) | Element::Instance(Instance { matrix, .. }) | Element::Text(Text { matrix, .. }) | Element::Bitmap(BitmapInstance { matrix, .. }) => Some(*matrix),
         Element::Group(members) => top_matrix(members.last()?),
         Element::Unsupported { .. } => None,
     }

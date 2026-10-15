@@ -66,9 +66,13 @@ const TABS: [(&str, Icon, &[(&str, f32, f32, f32)]); 7] = [
 const ADVANCED: usize = 6;
 
 /// New Document > Advanced: name, glyph, and whether minnamate makes it.
-const PLATFORMS: [(&str, Icon, bool); 2] = [("HTML5 Canvas", Icon::NdCanvas, false), ("ActionScript 3.0", Icon::NdActionScript, true)];
+const PLATFORMS: [(&str, Icon, bool); 2] = [("HTML5 Canvas", Icon::NdCanvas, true), ("ActionScript 3.0", Icon::NdActionScript, true)];
+const CANVAS: usize = 0;
 const AS3: usize = 1;
 const AS3_ABOUT: &str = "Vector animation with symbols and scripts, published as a SWF movie.";
+const CANVAS_ABOUT: &str = "Animation and JavaScript frame scripts, published as a web page that draws on a canvas.";
+/// The Ads tab, whose presets are HTML5 Canvas documents.
+const ADS: usize = 4;
 
 /// Home's quick-start tiles: name, glyph, the New Document tab and tile each
 /// stands for, and whether a click creates it straight away (§4.7).
@@ -77,7 +81,7 @@ const QUICK: [(&str, Icon, usize, usize, bool); 6] = [
     ("Android 16:9", Icon::HomeGamepad, 2, 0, false),
     ("Banner", Icon::HomeBanner, 4, 1, false),
     ("iPad 3-4 Gen", Icon::HomeTablet, 3, 0, false),
-    ("Canvas", Icon::HomeCanvas, ADVANCED, AS3, false),
+    ("Canvas", Icon::HomeCanvas, ADVANCED, CANVAS, false),
     ("More Presets", Icon::HomeMore, 0, 0, false),
 ];
 
@@ -101,6 +105,8 @@ pub struct State {
     settings: Option<Settings>,
     /// What Create or a Home tile is opening, waiting on "Save changes?".
     pending: Option<Setup>,
+    /// And whether it's an HTML5 Canvas document.
+    pending_canvas: bool,
     /// How the last frame ended: Home up, a dialog up, the document's revision.
     drawn: Option<(bool, bool, u32)>,
 }
@@ -190,6 +196,8 @@ struct NewDoc {
     h: String,
     fps: String,
     units: Units,
+    /// The Platform Type dropdown (the preset tabs'): HTML5 Canvas rather than ActionScript 3.0.
+    canvas: bool,
 }
 
 impl NewDoc {
@@ -203,9 +211,18 @@ impl NewDoc {
 
     /// Selects `tile` of `tab` and loads its values into Details.
     fn select(&mut self, tab: usize, tile: usize, defaults: Setup) {
+        // A tab brings its platform: the Ads presets are HTML5 Canvas documents.
+        if tab != self.tab {
+            self.canvas = tab == ADS;
+        }
         (self.tab, self.tile) = (tab, tile);
         let s = self.tile_setup(defaults);
         (self.w, self.h, self.fps, self.units) = (s.units.show(s.w), s.units.show(s.h), format!("{:.2}", s.fps), s.units);
+    }
+
+    /// Whether it makes an HTML5 Canvas document: the Advanced tab's tile, or the dropdown.
+    fn is_canvas(&self) -> bool {
+        if self.tab == ADVANCED { self.tile == CANVAS } else { self.canvas }
     }
 
     /// Details as typed, kept in range; the tile's own value where a field doesn't parse.
@@ -241,15 +258,16 @@ struct Settings {
 
 /// File > New and Home's Create New: New Document, with `tab`'s `tile` selected.
 pub fn open_new(ed: &mut Editor, tab: usize, tile: usize) {
-    let mut nd = NewDoc { tab, tile, w: String::new(), h: String::new(), fps: String::new(), units: Units::Pixels };
+    let mut nd = NewDoc { tab, tile, w: String::new(), h: String::new(), fps: String::new(), units: Units::Pixels, canvas: tab == ADS };
     nd.select(tab, tile, ed.home.defaults);
     ed.home.new_doc = Some(nd);
 }
 
-/// Opens `setup` as Untitled-N once "Save changes?" lets the open document go.
-fn create(ed: &mut Editor, ctx: &egui::Context, setup: Setup) {
+/// Opens `setup` as Untitled-N, an HTML5 Canvas document if `canvas`, once "Save changes?"
+/// lets the open document go.
+fn create(ed: &mut Editor, ctx: &egui::Context, setup: Setup, canvas: bool) {
     ed.home.new_doc = None;
-    ed.home.pending = Some(setup);
+    (ed.home.pending, ed.home.pending_canvas) = (Some(setup), canvas);
     ed.run(Action::CreateDocument, ctx);
 }
 
@@ -258,6 +276,7 @@ fn create(ed: &mut Editor, ctx: &egui::Context, setup: Setup) {
 pub fn create_pending(ed: &mut Editor) {
     if let Some(s) = ed.home.pending.take() {
         ed.new_document(s.w, s.h, s.fps);
+        ed.doc.set_canvas(std::mem::take(&mut ed.home.pending_canvas));
         (ed.home.units, ed.props_tab) = (s.units, PropsTab::Doc);
     }
 }
@@ -327,7 +346,7 @@ pub fn screen(ui: &mut Ui, ed: &mut Editor) {
         resp.widget_info(|| WidgetInfo::labeled(WidgetType::Button, true, name));
         if resp.clicked() {
             match TABS[tab].2.get(tile) {
-                Some(&(_, w, h, fps)) if now => create(ed, ui.ctx(), Setup { w, h, fps, units: Units::Pixels }),
+                Some(&(_, w, h, fps)) if now => create(ed, ui.ctx(), Setup { w, h, fps, units: Units::Pixels }, tab == ADS),
                 _ => open_new(ed, tab, tile),
             }
         }
@@ -374,7 +393,7 @@ pub fn dialogs(ctx: &egui::Context, ed: &mut Editor) {
 }
 
 /// A dialog window: our own title bar sits inside the 1 px outline.
-fn dialog(id: &str, ctx: &egui::Context, fill: Color32) -> egui::Modal {
+pub(crate) fn dialog(id: &str, ctx: &egui::Context, fill: Color32) -> egui::Modal {
     let frame = Frame::NONE.fill(fill).inner_margin(1).stroke(Stroke::new(1.0, theme::POPUP_BORDER)).shadow(ctx.global_style().visuals.popup_shadow);
     // Native dialogs don't dim the window behind them.
     egui::Modal::new(Id::new(id)).frame(frame).backdrop_color(Color32::TRANSPARENT)
@@ -382,7 +401,7 @@ fn dialog(id: &str, ctx: &egui::Context, fill: Color32) -> egui::Modal {
 
 /// A dialog's title bar, like the app bar: the title, and a close box that
 /// turns red under the pointer. Returns whether the close box was clicked.
-fn title_bar(ui: &mut Ui, title: &str, width: f32) -> bool {
+pub(crate) fn title_bar(ui: &mut Ui, title: &str, width: f32) -> bool {
     let (rect, _) = ui.allocate_exact_size(vec2(width, TITLE_H), Sense::hover());
     let close = Rect::from_min_max(pos2(rect.right() - 46.0, rect.top()), rect.max);
     let resp = ui.interact(close, ui.id().with((title, "close")), Sense::click());
@@ -400,7 +419,7 @@ fn title_bar(ui: &mut Ui, title: &str, width: f32) -> bool {
 
 /// A push button drawn in `rect`: blue for the main action, else outlined.
 /// Pills (`radius` = half the height) on the web-style pages.
-fn push(ui: &mut Ui, rect: Rect, label: &str, cta: bool, radius: f32) -> Response {
+pub(crate) fn push(ui: &mut Ui, rect: Rect, label: &str, cta: bool, radius: f32) -> Response {
     let resp = ui.interact(rect, ui.id().with(("push", label)), Sense::click());
     let p = ui.painter();
     let down = resp.is_pointer_button_down_on();
@@ -446,13 +465,14 @@ fn new_document(ctx: &egui::Context, ed: &mut Editor) {
         close |= ctx.input(|i| i.key_pressed(Key::Escape));
     }
     let typed = nd.typed(defaults);
+    let canvas = nd.is_canvas();
     if make_default {
         ed.home.defaults = typed;
     }
     if close {
         ed.home.new_doc = None;
     } else if create_now {
-        create(ed, ctx, typed);
+        create(ed, ctx, typed, canvas);
     }
 }
 
@@ -549,7 +569,7 @@ fn tile(ui: &mut Ui, rect: Rect, name: &str, icon: Icon, size: Option<&str>, sel
         p.text(pos2(rect.center().x, rect.bottom() - 32.0), Align2::CENTER_TOP, size, FontId::proportional(12.0), theme::TEXT_DIM);
     }
     resp.widget_info(|| WidgetInfo::selected(WidgetType::Button, enabled, selected, name));
-    if enabled { resp } else { resp.on_hover_text("minnamate makes ActionScript 3.0 documents") }
+    if enabled { resp } else { resp.on_hover_text("minnamate makes ActionScript 3.0 and HTML5 Canvas documents") }
 }
 
 /// New Document's Details panel: size, units, frame rate and platform, then
@@ -591,18 +611,22 @@ fn details(ui: &mut Ui, panel: Rect, nd: &mut NewDoc, defaults: Setup) -> (bool,
     label(left, row(2.0), "Frame Rate");
     field(ui, at(left, 2.0, 93.0), "nd-fps", &mut nd.fps);
 
+    let platform = if nd.is_canvas() { CANVAS } else { AS3 };
     if advanced {
         // Advanced names the platform and says what it makes, instead of a dropdown.
-        p.text(pos2(left, row(3.0)), Align2::LEFT_TOP, PLATFORMS[AS3].0, FontId::proportional(13.0), theme::TEXT_DIM);
-        let about = p.layout(AS3_ABOUT.into(), FontId::proportional(12.0), theme::TEXT_DIM, 211.0);
+        p.text(pos2(left, row(3.0)), Align2::LEFT_TOP, PLATFORMS[platform].0, FontId::proportional(13.0), theme::TEXT_DIM);
+        let about = p.layout([CANVAS_ABOUT, AS3_ABOUT][platform].into(), FontId::proportional(12.0), theme::TEXT_DIM, 211.0);
         p.galley(pos2(left, row(3.0) + 22.0), about, theme::TEXT_DIM);
     } else {
         label(left, row(3.0), "Platform Type");
-        let platform = dropdown(ui, at(left, 3.0, 211.0), "nd-platform", PLATFORMS[AS3].0, true);
-        egui::Popup::menu(&platform).show(|ui| {
+        let field = dropdown(ui, at(left, 3.0, 211.0), "nd-platform", PLATFORMS[platform].0, true);
+        egui::Popup::menu(&field).show(|ui| {
             ui.set_min_width(203.0);
-            let _ = ui.selectable_label(true, PLATFORMS[AS3].0);
-            ui.add_enabled(false, egui::Button::new(PLATFORMS[0].0));
+            for i in [AS3, CANVAS] {
+                if ui.selectable_label(i == platform, PLATFORMS[i].0).clicked() {
+                    nd.canvas = i == CANVAS;
+                }
+            }
         });
     }
 

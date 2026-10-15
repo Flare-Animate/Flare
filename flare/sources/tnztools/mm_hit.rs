@@ -77,12 +77,13 @@ pub fn translate(el: &mut Element, dx: f32, dy: f32) {
         // merge with or cut the shapes they're dropped on. Offset their edges once merging exists.
         Element::Shape(Shape { matrix, .. })
         | Element::Instance(Instance { matrix, .. })
-        | Element::Text(Text { matrix, .. }) => {
+        | Element::Text(Text { matrix, .. })
+        | Element::Bitmap(BitmapInstance { matrix, .. }) => {
             matrix.tx += dx;
             matrix.ty += dy;
         }
         Element::Group(members) => members.iter_mut().for_each(|el| translate(el, dx, dy)),
-        // ponytail: bitmaps and other unsupported elements are kept as raw XML, so they stay
+        // ponytail: unsupported elements (video...) are kept as raw XML, so they stay
         // put while the rest of a selection or group moves. Parse their matrix to move them.
         Element::Unsupported { .. } => {}
     }
@@ -295,13 +296,15 @@ pub(crate) fn shapes<'a>(doc: &'a Document, item: &Item<'a>, m: Matrix, depth: u
             .collect(),
         Item::Clip(..) => Vec::new(),
         Item::Morph(ref s) => vec![(Cow::Owned((**s).clone()), m)],
+        // A bitmap is its box, transparent pixels and all.
+        Item::Bitmap(b) => vec![(Cow::Owned(crate::bitmap::box_shape(b)), m)],
         // ponytail: what a mask hides still hits, and counts toward bounds. The stage locks masked
         // layers while it shows the masking, so only clips and graphics holding masks are off.
         Item::Masked { ref content, .. } => content.iter().flat_map(|p| shapes(doc, &p.item, m * p.matrix, depth)).collect(),
     }
 }
 
-fn shape_hit(s: &Shape, m: &Matrix, point: Point, tolerance: f32) -> bool {
+pub(crate) fn shape_hit(s: &Shape, m: &Matrix, point: Point, tolerance: f32) -> bool {
     let Some(inverse) = m.inverse() else { return false };
     let p = inverse.apply(point);
     // ponytail: the tolerance is scaled as if the matrix scaled evenly, so it stretches under

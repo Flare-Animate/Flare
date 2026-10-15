@@ -30,6 +30,8 @@ pub enum Item<'a> {
     Clip(&'a Symbol, SymbolKind),
     /// A shape tween's in-between, made for this frame (shape_tween.rs).
     Morph(Box<Shape>),
+    /// A library bitmap, its pixels from (0, 0) to its size (bitmap.rs).
+    Bitmap(&'a BitmapItem),
     /// A mask layer at work: `content`, the items of the layers it masks, shows only where
     /// `mask`, its own items, covers. The mask itself isn't drawn. Placed at the identity: the
     /// items carry their own transforms.
@@ -217,6 +219,12 @@ impl<'a> Lister<'a, '_> {
             }),
             Element::Instance(i) => self.instance(i, offset, m, cx, depth),
             Element::Group(members) => members.iter().for_each(|el| self.element(el, offset, m, cx, depth)),
+            Element::Bitmap(b) => match self.doc.bitmap(&b.name) {
+                Some(item) => self.out.push(Placed { item: Item::Bitmap(item), matrix: m * b.matrix, color: cx, source: self.source, effects: Effects::default() }),
+                None => {
+                    self.skipped.insert(format!("missing bitmap {:?}", b.name));
+                }
+            },
             Element::Unsupported { name, .. } => {
                 self.skipped.insert(name.clone());
             }

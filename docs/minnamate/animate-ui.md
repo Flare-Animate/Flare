@@ -2582,3 +2582,7 @@ Measure directly; don't commit screenshots.
 9. Timeline: default row height, cell width, layer-column width, the default toolbar set, and the shape-tween, IK, blank-span, loop and onion colours.
 10. The UI font family and sizes.
 11. The disputed shortcuts: Snap to Objects, Rotation, the onion-skin toggle, Show Shape Hints.
+
+## Import note: Wave 2 (minnamate cd2afd9)
+
+Wave 2 adds bitmaps and trace, sound and video, frame scripts and the player, buttons, library folders and scenes, and publishing (SWF, HTML5 Canvas, GIF/PNG/JPEG/video) to `minnamate-core`, plus the matching editor panels (Actions, Scene, Publish, Symbol dialogs, Bitmaps, Sound, Video) and CLI exports. New core modules live as `mm_<name>.rs` (see `flare/sources/tnztools/minnamate_core.rs` for paths); upstream `html5_runtime.js` is `common/tvrender/mm_html5_runtime.js` (the existing `html5_runtime.js` there belongs to ac-render). Not yet in upstream: bones, 3D, Asset Warp, input text.

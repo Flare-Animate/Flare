@@ -11,32 +11,45 @@ use swf::{
     Sprite, StyleChangeData, Tag, Twips,
 };
 use swf::{GradientInterpolation, GradientRecord, GradientSpread};
+use swf::{ButtonRecord, ButtonState};
 
 use crate::Result;
 use crate::display::{Item, Placed, display_list};
-use crate::doc::{self, Cap, Document, Join, Paint, Seg, Shape, Symbol, SymbolKind, Text};
+use crate::doc::{self, BitmapItem, Cap, Document, Join, Paint, Seg, Shape, Symbol, SymbolKind, Text};
 use crate::filters::{self, Effects};
 use crate::text;
 
 /// The SWF file, plus the features that couldn't be exported.
 pub fn export(doc: &Document) -> Result<(Vec<u8>, BTreeSet<String>)> {
-    let mut ex = Exporter { doc, defs: Vec::new(), ids: HashMap::new(), masks: HashMap::new(), skipped: BTreeSet::new() };
+    // 11 for PlaceObject3's visibility flag.
+    export_with(doc, 11, Compression::Zlib)
+}
+
+/// `export` as Publish Settings ask for it: SWF `version`, compressed or not.
+pub fn export_with(doc: &Document, version: u8, compression: Compression) -> Result<(Vec<u8>, BTreeSet<String>)> {
+    let mut skipped = BTreeSet::new();
+    let sounds = crate::sound_swf::Sounds::new(doc, &mut skipped);
+    let mut ex = Exporter { doc, sounds: &sounds, defs: sounds.defines(), ids: HashMap::new(), masks: HashMap::new(), skipped };
     let mut lists = Vec::new();
     for scene in &doc.scenes {
         for f in 0..scene.frame_count() {
             lists.push(display_list(doc, scene, f, &mut ex.skipped));
         }
     }
-    let main = ex.timeline(&lists)?;
+    let main = sounds.add(&doc.scenes, ex.timeline(&lists)?);
 
     let [r, g, b, _] = rgba(doc.background);
-    let mut tags = vec![Tag::SetBackgroundColor(Color { r, g, b, a: 255 })];
+    // FileAttributes first: no ActionScript 3, so frame scripts run as AVM1.
+    let mut tags = vec![Tag::FileAttributes(swf::FileAttributes::empty()), Tag::SetBackgroundColor(Color { r, g, b, a: 255 })];
     tags.extend(ex.defs);
     tags.extend(main);
+    // Frame labels and scripts go in before each frame's ShowFrame, the movie's and each movie clip's.
+    let sprites = doc.library.values().filter_map(|sym| Some((*ex.ids.get(&(sym as *const Symbol as usize, false))?, sym)));
+    let scripts = crate::script::SwfFrames::new(doc, sprites, &mut ex.skipped);
+    let tags = scripts.splice(tags, None);
     let header = Header {
-        compression: Compression::Zlib,
-        // 11 for PlaceObject3's visibility flag.
-        version: 11,
+        compression,
+        version,
         stage_size: Rectangle { x_min: Twips::ZERO, x_max: twips(doc.width), y_min: Twips::ZERO, y_max: twips(doc.height) },
         frame_rate: Fixed8::from_f32(doc.frame_rate),
         num_frames: lists.len().try_into().map_err(|_| "over 65535 frames")?,
@@ -48,9 +61,12 @@ pub fn export(doc: &Document) -> Result<(Vec<u8>, BTreeSet<String>)> {
 
 struct Exporter<'a> {
     doc: &'a Document,
+    /// The sounds, coded (sound_swf.rs).
+    sounds: &'a crate::sound_swf::Sounds,
     /// Character definitions, each after the ones it uses.
-    defs: Vec<Tag<'static>>,
-    /// Character ids by (address of the shape or symbol, exported as a button).
+    defs: Vec<Tag<'a>>,
+    /// Character ids by (address of the shape or symbol, exported as a button). A
+    /// bitmap's own character goes as (its address, false), the shape placing it as (its address, true).
     ids: HashMap<(usize, bool), CharacterId>,
     /// Sprites holding a mask of several items, by what they place where (color doesn't mask).
     masks: HashMap<Vec<(CharacterId, swf::Matrix, Option<u16>)>, CharacterId>,
@@ -64,7 +80,7 @@ type Slot = (CharacterId, swf::Matrix, swf::ColorTransform, Option<u16>);
 impl<'a> Exporter<'a> {
     /// Control tags that play `lists` (one display list per frame). Item `i`
     /// lives at depth `i + 1`; each frame only sends what changed.
-    fn timeline(&mut self, lists: &[Vec<Placed<'a>>]) -> Result<Vec<Tag<'static>>> {
+    fn timeline(&mut self, lists: &[Vec<Placed<'a>>]) -> Result<Vec<Tag<'a>>> {
         let mut tags = Vec::new();
         let (mut prev, mut prev_fx): (Vec<Slot>, Vec<Effects>) = (Vec::new(), Vec::new());
         for list in lists {
@@ -167,7 +183,33 @@ impl<'a> Exporter<'a> {
                 self.define_shape(id, s);
                 Ok(id)
             }
+            // A bitmap on stage publishes as a shape of its box filled with it, as Animate's does.
+            Item::Bitmap(b) => {
+                let (id, new) = self.id((b as *const BitmapItem as usize, true))?;
+                if new {
+                    self.define_shape(id, &crate::bitmap::placed_shape(b));
+                }
+                Ok(id)
+            }
         }
+    }
+
+    /// The character of library bitmap `name`, defined on first use, and whether it's
+    /// smoothed; None if it's missing or its image can't be read.
+    fn bitmap(&mut self, name: &str) -> Option<(CharacterId, bool)> {
+        let b = self.doc.bitmap(name)?;
+        let key = (b as *const BitmapItem as usize, false);
+        let (id, new) = self.id(key).ok()?;
+        if new {
+            match crate::bitmap::swf_bitmap(id, b) {
+                Some(tag) => self.defs.push(tag),
+                None => {
+                    self.ids.remove(&key);
+                    return None;
+                }
+            }
+        }
+        Some((id, b.smoothing))
     }
 
     /// The id for `key`, and whether it still needs defining.
@@ -187,15 +229,44 @@ impl<'a> Exporter<'a> {
 
     fn sprite(&mut self, sym: &'a Symbol, button: bool) -> Result<CharacterId> {
         let (id, new) = self.id((sym as *const Symbol as usize, button))?;
-        if new {
-            // ponytail: buttons export their Up frame only; DefineButton2 states and hit areas come later.
-            let frames = if button { 1 } else { sym.timeline.frame_count().max(1) };
+        if new && button {
+            self.button(id, sym)?;
+        } else if new {
+            let frames = sym.timeline.frame_count().max(1);
             let lists: Vec<_> = (0..frames).map(|f| display_list(self.doc, &sym.timeline, f, &mut self.skipped)).collect();
             let tags = self.timeline(&lists)?;
+            // ponytail: a button's sounds (DefineButtonSound) aren't exported.
+            let tags = if button { tags } else { self.sounds.add(std::slice::from_ref(&sym.timeline), tags) };
             let num_frames = frames.try_into().map_err(|_| "symbol over 65535 frames")?;
             self.defs.push(Tag::DefineSprite(Sprite { id, num_frames, tags }));
         }
         Ok(id)
+    }
+
+    /// A button as DefineButton2: each of its Up, Over, Down and Hit frames a one-frame sprite
+    /// (masks and all), shown in the states that frame stands for.
+    fn button(&mut self, id: CharacterId, sym: &'a Symbol) -> Result<()> {
+        let flags = [ButtonState::UP, ButtonState::OVER, ButtonState::DOWN, ButtonState::HIT_TEST];
+        let mut frames: Vec<u32> = Vec::new();
+        let mut records: Vec<ButtonRecord> = Vec::new();
+        for (state, flag) in flags.into_iter().enumerate() {
+            let f = crate::button::frame(&sym.timeline, state);
+            if let Some(i) = frames.iter().position(|&g| g == f) {
+                records[i].states |= flag;
+                continue;
+            }
+            let list = display_list(self.doc, &sym.timeline, f, &mut self.skipped);
+            let tags = self.timeline(&[list])?;
+            // Keyed past any address, as a shape tween's in-betweens are.
+            let (sprite, _) = self.id((usize::MAX - self.ids.len(), false))?;
+            self.defs.push(Tag::DefineSprite(Sprite { id: sprite, num_frames: 1, tags }));
+            let depth = records.len() as u16 + 1;
+            let (matrix, color_transform) = (matrix(&doc::Matrix::IDENTITY), color_transform(&doc::ColorTransform::IDENTITY));
+            records.push(ButtonRecord { states: flag, id: sprite, depth, matrix, color_transform, filters: Vec::new(), blend_mode: swf::BlendMode::Normal });
+            frames.push(f);
+        }
+        self.defs.push(Tag::DefineButton2(Box::new(swf::Button { id, is_track_as_menu: false, records, actions: Vec::new() })));
+        Ok(())
     }
 
     fn shape(&mut self, s: &Shape) -> Result<CharacterId> {
@@ -300,6 +371,13 @@ impl<'a> Exporter<'a> {
         match p {
             Paint::Solid(c) => FillStyle::Color(color(*c)),
             Paint::Gradient(g) => gradient(g),
+            Paint::Bitmap(f) => match self.bitmap(&f.name) {
+                Some((id, smoothed)) => crate::bitmap::swf_fill(f, id, smoothed),
+                None => {
+                    self.skipped.insert(format!("bitmap fill {:?}, whose bitmap is missing or can't be read", f.name));
+                    FillStyle::Color(Color { r: 0, g: 0, b: 0, a: 0 })
+                }
+            },
             // Keeps the style's slot, since edges refer to styles by index.
             Paint::Unsupported { name, .. } => {
                 self.skipped.insert(name.clone());

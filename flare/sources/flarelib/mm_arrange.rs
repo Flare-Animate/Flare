@@ -91,12 +91,13 @@ pub fn group(tl: &mut Timeline, refs: &[ElementRef]) -> Option<ElementRef> {
 /// Break Apart (and Ungroup, for groups): what `el` comes apart into, `offset`
 /// frames into its keyframe. A group gives its members. An instance gives what
 /// its symbol shows then (a movie clip or button, its first frame), placed where
-/// the instance shows it. None for the rest: shapes are as far apart as they go,
-/// and bitmaps aren't modelled.
+/// the instance shows it. A bitmap gives a shape filled with it (bitmap.rs). None
+/// for the rest: shapes are as far apart as they go.
 pub fn broken_apart(doc: &Document, el: &Element, offset: u32) -> Option<Vec<Element>> {
     let inst = match el {
         Element::Group(members) => return Some(members.clone()),
         Element::Instance(inst) => inst,
+        Element::Bitmap(b) => return Some(vec![Element::Shape(crate::bitmap::broken_apart(doc, b)?)]),
         // ponytail: Animate breaks text into a text per letter, then those into shapes. That
         // needs the glyph outlines as shapes (text.rs has them for drawing); until then it stays.
         Element::Text(_) | Element::Shape(_) | Element::Unsupported { .. } => return None,

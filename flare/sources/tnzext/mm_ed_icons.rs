@@ -200,11 +200,21 @@ pub enum Icon {
     NewLibrary,
     FolderOpen,
     Tag,
+    /// A sound: a speaker sending out two arcs.
+    Sound,
+    /// Edit Envelope: a speaker and a pencil.
+    EditEnvelope,
+    /// A library bitmap: a frame with a hill and a sun.
+    Bitmap,
     // Document Settings.
     Link,
     // The Filters section's header.
     Plus,
     Gear,
+    // The Actions panel's Code Snippets.
+    Code,
+    // The Scene panel.
+    Duplicate,
 }
 
 /// A gamepad's outline, for Home's Android tile and New Document's Game tab.
@@ -643,12 +653,18 @@ fn parts(icon: Icon) -> Vec<Part> {
         Icon::NewLibrary => vec![Line("M2.5 6 H11.5 V15.5 H2.5 Z M6.5 6 V2.5 H15.5 V11.5 H11.5", 1.2)],
         Icon::FolderOpen => vec![Line("M2 13.5 V4 H7 L8.5 5.5 H14.5 V7.5", 1.1), Fill("M4.6 8.5 H17 L14 14.5 H1.6 Z")],
         Icon::Tag => vec![Line("M2.5 2.5 H9 L15.5 9 L9 15.5 L2.5 9 Z", 1.2), Dot(6.0, 6.0, 1.2)],
+        Icon::Sound => vec![Fill("M2 6.6 H5 L9.4 3 V15 L5 11.4 H2 Z"), Line("M11.6 6.6 C12.7 7.8 12.7 10.2 11.6 11.4 M13.8 4.4 C16 6.8 16 11.2 13.8 13.6", 1.2)],
+        Icon::EditEnvelope => vec![Fill("M1.5 5.6 H3.8 L7.4 2.6 V12.4 L3.8 9.4 H1.5 Z"), Fill("M8.2 16.4 L8.8 13.6 L14.6 7.8 L16.8 10 L11 15.8 Z")],
+        Icon::Bitmap => vec![Line("M2.5 3.5 H15.5 V14.5 H2.5 Z", 1.0), Fill("M4 13 L7.8 7.6 L10.4 10.8 L12 9.2 L14 13 Z"), Dot(12.2, 6.4, 1.3)],
         Icon::Plus => vec![Line("M9 3.5 V14.5 M3.5 9 H14.5", 1.3)],
         // A ring with eight rounded teeth.
         Icon::Gear => vec![
             Ring(9.0, 9.0, 4.4, 2.2),
             Line("M9 3.2 V1.8 M9 14.8 V16.2 M3.2 9 H1.8 M14.8 9 H16.2 M4.9 4.9 L3.9 3.9 M13.1 13.1 L14.1 14.1 M4.9 13.1 L3.9 14.1 M13.1 4.9 L14.1 3.9", 2.4),
         ],
+        Icon::Code => vec![Line("M6 5 L2.5 9 L6 13 M12 5 L15.5 9 L12 13 M10.2 3.5 L7.8 14.5", 1.3)],
+        // Two pages, one over the other.
+        Icon::Duplicate => vec![Line("M6.5 2.5 H15.5 V11.5 H6.5 Z", 1.1), Line("M3.5 6.5 V15.5 H12.5", 1.1)],
     }
 }
 
@@ -871,8 +887,8 @@ mod tests {
         Icon::CapNone, Icon::CapRound, Icon::CapSquare, Icon::JoinMiter, Icon::JoinRound, Icon::JoinBevel,
         Icon::PlayOnce, Icon::SingleFrame, Icon::ReversePlayOnce, Icon::ReverseLoop, Icon::Unlink, Icon::LinesToFills, Icon::Group,
         Icon::BreakApart, Icon::ConvertToSymbol, Icon::CreateBrush, Icon::Shape, Icon::Frame,
-        Icon::Actions, Icon::MotionTween, Icon::ShapeTween, Icon::Sliders, Icon::AlignLeft, Icon::AlignCenter, Icon::AlignRight, Icon::AlignJustify, Icon::Pin, Icon::NewLibrary, Icon::FolderOpen, Icon::Tag,
-        Icon::Plus, Icon::Gear,
+        Icon::Actions, Icon::MotionTween, Icon::ShapeTween, Icon::Sliders, Icon::AlignLeft, Icon::AlignCenter, Icon::AlignRight, Icon::AlignJustify, Icon::Pin, Icon::NewLibrary, Icon::FolderOpen, Icon::Tag, Icon::Sound, Icon::EditEnvelope, Icon::Bitmap,
+        Icon::Plus, Icon::Gear, Icon::Code, Icon::Duplicate,
     ];
 
     #[test]

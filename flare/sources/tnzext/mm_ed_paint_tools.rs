@@ -141,6 +141,20 @@ fn fill(ed: &mut Editor, p: Point) {
             }
         }
     }
+    // A bitmap likewise: with Lock Fill where it lies, else tiled from the area's top left.
+    if let Paint::Bitmap(b) = &mut paint
+        && let Some((area, m)) = paint::area_box(&ed.doc, ed.timeline(), ed.frame, p, gap(ed))
+    {
+        match m.inverse().filter(|_| ed.paint.lock_fill) {
+            Some(inverse) => b.matrix = inverse * b.matrix,
+            None => {
+                (b.matrix.tx, b.matrix.ty) = area.min;
+                if let Some(default) = &mut ed.bitmaps.fill {
+                    default.matrix = m * b.matrix;
+                }
+            }
+        }
+    }
     if let Some((r, shape)) = paint::bucket(&ed.doc, ed.timeline(), ed.frame, p, gap(ed), paint) {
         ed.checkpoint_gesture("paint-bucket");
         if let Some(el) = ed.element_mut(r) {
@@ -156,16 +170,18 @@ fn eyedrop(ed: &mut Editor, picked: Picked) {
     match picked {
         Picked::Fill(Paint::Solid(c)) => {
             (ed.fill_color, ed.fill_gradient, ed.paint.lock_fill, ed.tool) = (color32(c), None, true, Tool::PaintBucket);
+            ed.bitmaps.fill = None;
         }
-        // Lock Fill on, the bucket carries the gradient on from where it was picked.
-        Picked::Fill(Paint::Gradient(g)) => (ed.fill_gradient, ed.paint.lock_fill, ed.tool) = (Some(g), true, Tool::PaintBucket),
+        // Lock Fill on, the bucket carries the gradient (or bitmap) on from where it was picked.
+        Picked::Fill(Paint::Gradient(g)) => (ed.fill_gradient, ed.bitmaps.fill, ed.paint.lock_fill, ed.tool) = (Some(g), None, true, Tool::PaintBucket),
+        Picked::Fill(Paint::Bitmap(b)) => (ed.bitmaps.fill, ed.paint.lock_fill, ed.tool) = (Some(b), true, Tool::PaintBucket),
         Picked::Stroke(Stroke { paint: Paint::Solid(c), width, .. }) => {
             (ed.stroke_color, ed.stroke_gradient, ed.stroke_width, ed.tool) = (color32(c), None, width, Tool::InkBottle);
         }
         Picked::Stroke(Stroke { paint: Paint::Gradient(g), width, .. }) => {
             (ed.stroke_gradient, ed.stroke_width, ed.tool) = (Some(g), width, Tool::InkBottle);
         }
-        _ => ed.log("The Eyedropper can't pick bitmap fills yet."),
+        _ => ed.log("The Eyedropper can't pick a stroke's bitmap, or fills minnamate doesn't read, yet."),
     }
 }
 

@@ -248,6 +248,7 @@ fn moved(then: &Element, now: &Element) -> bool {
     match (then, now) {
         (Element::Shape(a), Element::Shape(b)) => turn(&a.matrix) == turn(&b.matrix) && a.edges == b.edges,
         (Element::Instance(a), Element::Instance(b)) => turn(&a.matrix) == turn(&b.matrix) && a.symbol == b.symbol,
+        (Element::Bitmap(a), Element::Bitmap(b)) => turn(&a.matrix) == turn(&b.matrix) && a.name == b.name,
         (Element::Group(a), Element::Group(b)) => a.len() == b.len() && a.iter().zip(b).all(|(a, b)| moved(a, b)),
         _ => then == now,
     }
@@ -265,6 +266,7 @@ fn own_box(ed: &Editor) -> Option<Matrix> {
     let m = match el {
         Element::Shape(s) => s.matrix,
         Element::Instance(_) => lone_instance(ed)?.matrix,
+        Element::Bitmap(b) => b.matrix,
         _ => return None,
     };
     let local = hit::bounds_through(&ed.doc, ed.timeline(), ed.frame, &[r], m.inverse()?)?;

@@ -42,17 +42,17 @@ const FILE: &[Item] = &[
     Do("Revert", "", Todo),
     Sep,
     Sub("Import", &[
-        Do("Import to Stage...", "Ctrl+R", Todo),
-        Do("Import to Library...", "", Todo),
+        Do("Import to Stage...", "Ctrl+R", ImportToStage),
+        Do("Import to Library...", "", ImportToLibrary),
         Do("Open External Library...", "Ctrl+Shift+O", Todo),
-        Do("Import Video...", "", Todo),
+        Do("Import Video...", "", ImportVideo),
     ]),
     Sub("Export", &[
-        Do("Export Image...", "", Todo),
+        Do("Export Image...", "", ExportImage),
         Do("Export Image (Legacy)...", "", Todo),
-        Do("Export Movie...", "Ctrl+Shift+Alt+S", ExportSwf),
-        Do("Export Video/Media...", "", Todo),
-        Do("Export Animated GIF...", "", Todo),
+        Do("Export Movie...", "Ctrl+Shift+Alt+S", ExportMovie),
+        Do("Export Video/Media...", "", ExportVideo),
+        Do("Export Animated GIF...", "", ExportGif),
     ]),
     Sep,
     Sub("Convert To", &[
@@ -63,8 +63,8 @@ const FILE: &[Item] = &[
         Do("AIR for iOS", "", Todo),
     ]),
     Sep,
-    Do("Publish Settings...", "Ctrl+Shift+F12", Todo),
-    Do("Publish", "Shift+Alt+F12", ExportSwf),
+    Do("Publish Settings...", "Ctrl+Shift+F12", PublishSettings),
+    Do("Publish", "Shift+Alt+F12", Publish),
     Sep,
     Do("AIR Settings...", "", Todo),
     Do("ActionScript Settings...", "", Todo),
@@ -216,8 +216,8 @@ const MODIFY: &[Item] = &[
     Do("Convert to Bitmap", "", Todo),
     Do("Break Apart", "Ctrl+B", BreakApart),
     Sep,
-    Sub("Bitmap", &[Do("Swap Bitmap...", "", Todo), Do("Trace Bitmap...", "", Todo)]),
-    Sub("Symbol", &[Do("Swap Symbol...", "", Todo), Do("Duplicate Symbol...", "", Todo)]),
+    Sub("Bitmap", &[Do("Swap Bitmap...", "", Todo), Do("Trace Bitmap...", "", TraceBitmap)]),
+    Sub("Symbol", &[Do("Swap Symbol...", "", SwapSymbol), Do("Duplicate Symbol...", "", DuplicateSymbol)]),
     Sub("Shape", &[
         Do("Smooth", "", Todo),
         Do("Straighten", "", Todo),
@@ -368,8 +368,8 @@ const CONTROL: &[Item] = &[
     Do("Loop Playback", "", LoopPlayback),
     Do("Play All Scenes", "", Todo),
     Sep,
-    Do("Enable Simple Frame Actions", "Ctrl+Alt+F", Todo),
-    Do("Enable Simple Buttons", "Ctrl+Alt+B", Todo),
+    Do("Enable Simple Frame Actions", "Ctrl+Alt+F", SimpleFrameActions),
+    Do("Enable Simple Buttons", "Ctrl+Alt+B", SimpleButtons),
     Do("Enable Live Preview", "", Todo),
     Do("Mute Sounds", "Ctrl+Alt+M", Todo),
 ];
@@ -414,7 +414,7 @@ const WINDOW: &[Item] = &[
     Do("Frame Picker", "", Todo),
     Do("Layer Depth", "", Todo),
     Sep,
-    Do("Actions", "F9", Todo),
+    Do("Actions", "F9", Show(PanelId::Actions)),
     Do("Code Snippets", "", Todo),
     Do("Compiler Errors", "Alt+F2", Todo),
     Sub("Debug Panels", &[]),
@@ -430,7 +430,7 @@ const WINDOW: &[Item] = &[
     Do("Component Parameters", "", Todo),
     Sep,
     Do("History", "Ctrl+F10", Todo),
-    Do("Scene", "Shift+F2", Todo),
+    Do("Scene", "Shift+F2", Show(PanelId::Scene)),
     Sep,
     Sub("Extensions", &[]),
     Sep,
@@ -477,7 +477,7 @@ const MENUS: &[(&str, &[Item])] = &[
 ];
 
 /// Whether `action` can run now; menus grey out the rest, as Animate does.
-fn enabled(ed: &Editor, action: Action) -> bool {
+pub(crate) fn enabled(ed: &Editor, action: Action) -> bool {
     let picked = !ed.selection.is_empty();
     let lone_instance = matches!(ed.selection[..], [r] if matches!(ed.element(r), Some(Element::Instance(_))));
     ed.home.allows(action)
@@ -493,10 +493,14 @@ fn enabled(ed: &Editor, action: Action) -> bool {
             ConvertToSymbol => picked && ed.editing.is_empty(),
             Ungroup => ed.selection.iter().any(|&r| matches!(ed.element(r), Some(Element::Group(_)))),
             // Shapes and text are as far apart as they go (arrange::broken_apart).
-            BreakApart => ed.selection.iter().any(|&r| matches!(ed.element(r), Some(Element::Group(_) | Element::Instance(_)))),
+            BreakApart => ed.selection.iter().any(|&r| matches!(ed.element(r), Some(Element::Group(_) | Element::Instance(_) | Element::Bitmap(_)))),
+            TraceBitmap => crate::bitmaps::traceable(ed),
             EditInPlace => lone_instance,
             AddShapeHint | RemoveAllHints => crate::tweens::hint_available(ed, action),
             EditSymbol => !ed.editing.is_empty() || lone_instance,
+            // Swap Symbol swaps every selected instance; Duplicate Symbol copies one.
+            SwapSymbol => ed.selection.iter().any(|&r| matches!(ed.element(r), Some(Element::Instance(_)))),
+            DuplicateSymbol => lone_instance,
             // First, Previous, Next and Last need another scene to go to, or a symbol to leave.
             GoToScene(go) => matches!(go, Go::To(_)) || ed.scene_at(go) != ed.scene || !ed.editing.is_empty(),
             _ => true,
@@ -507,10 +511,12 @@ fn enabled(ed: &Editor, action: Action) -> bool {
 fn checked(ed: &Editor, action: Action) -> bool {
     match action {
         LoopPlayback => ed.loop_playback,
+        SimpleFrameActions => ed.actions.simple,
         ClipToStage => ed.clip_to_stage,
         AlignToStage => ed.align_to_stage,
         Show(panel) => ed.panel_shown(panel),
         Stage(t) => ed.stage.on(t),
+        SimpleButtons => ed.simple_buttons,
         Workspace => true,
         _ => false,
     }
@@ -662,7 +668,8 @@ pub fn app_bar(ui: &mut Ui, ed: &mut Editor) {
             if share.clicked() {
                 ui.data_mut(|d| d.remove::<bool>(egui::Id::new("share-publish")));
             }
-            theme::dark_popup(&share).show(|ui| share_and_publish(ui, &mut picked));
+            let canvas = ed.doc.is_canvas();
+            theme::dark_popup(&share).show(|ui| share_and_publish(ui, &mut picked, canvas));
             let test = theme::icon_button(ui, 28.0, false, true, "Test Movie (Ctrl+Enter)", |p, r, c| icons::paint(p, r.shrink(6.0), Icon::TestMovie, c));
             if test.clicked() {
                 picked = Some(TestMovie);
@@ -708,8 +715,8 @@ fn workspaces(ui: &mut Ui, picked: &mut Option<Action>) {
 }
 
 /// Share: Social Share (not built) and Publish, whose page lists the formats
-/// with a Publish button.
-fn share_and_publish(ui: &mut Ui, picked: &mut Option<Action>) {
+/// with a Publish button: an HTML5 Canvas document's web page, or a SWF.
+fn share_and_publish(ui: &mut Ui, picked: &mut Option<Action>, canvas: bool) {
     ui.set_width(240.0);
     ui.spacing_mut().item_spacing.y = 0.0;
     let page = egui::Id::new("share-publish");
@@ -733,7 +740,7 @@ fn share_and_publish(ui: &mut Ui, picked: &mut Option<Action>) {
         ui.data_mut(|d| d.insert_temp(page, false));
     }
     ui.separator();
-    theme::popup_row(ui, "SWF movie", true, true);
+    theme::popup_row(ui, if canvas { "HTML5 Canvas" } else { "SWF movie" }, true, true);
     theme::popup_row(ui, "Video (MP4)", false, false);
     theme::popup_row(ui, "Animated GIF", false, false);
     ui.add_space(8.0);
@@ -741,7 +748,7 @@ fn share_and_publish(ui: &mut Ui, picked: &mut Option<Action>) {
         ui.add_space(8.0);
         let button = egui::Button::new(RichText::new("Publish").color(Color32::WHITE)).fill(theme::CTA).stroke(egui::Stroke::NONE);
         if ui.add(button.min_size(vec2(72.0, 24.0))).clicked() {
-            *picked = Some(ExportSwf);
+            *picked = Some(Publish);
             ui.close();
         }
     });

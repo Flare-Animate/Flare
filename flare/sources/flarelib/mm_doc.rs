@@ -1,9 +1,10 @@
 //! In-memory document model. Follows Animate's concepts (scenes, layers,
 //! keyframes, symbols), but stores geometry in pixels, not XFL's twips.
 
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 use std::ops::Mul;
 
+pub use crate::bitmap::{BitmapData, BitmapFill, BitmapInstance, BitmapItem, Media};
 pub use crate::gradient::{Gradient, GradientKind, Spread};
 
 pub type Point = (f32, f32);
@@ -20,6 +21,11 @@ pub struct Document {
     pub scenes: Vec<Timeline>,
     /// Library symbols by name, including folders: `Folder/Name`.
     pub library: HashMap<String, Symbol>,
+    /// The library's media list: bitmaps (bitmap.rs), and video and the rest kept as XML.
+    pub media: Vec<Media>,
+    /// Library sounds by name, as `library` names symbols (sound.rs). Read out of the media
+    /// list, and written back into it.
+    pub sounds: BTreeMap<String, crate::sound::Sound>,
     pub extra: Extra,
 }
 
@@ -33,6 +39,8 @@ impl Document {
             background: [1.0; 4],
             scenes: vec![Timeline::new("Scene 1")],
             library: HashMap::new(),
+            media: Vec::new(),
+            sounds: Default::default(),
             extra: Extra::default(),
         }
     }
@@ -233,7 +241,9 @@ pub enum Element {
     Instance(Instance),
     Group(Vec<Element>),
     Text(Text),
-    /// Bitmaps, video and so on: the XFL element's name and its XML, saved back as is.
+    /// A library bitmap on stage (bitmap.rs).
+    Bitmap(BitmapInstance),
+    /// Video, components and so on: the XFL element's name and its XML, saved back as is.
     Unsupported { name: String, xml: String },
 }
 
@@ -301,7 +311,9 @@ pub enum Paint {
     Solid(Rgba),
     /// A linear or radial gradient (gradient.rs).
     Gradient(Gradient),
-    /// Bitmap fills: the XFL element's name and its XML, saved back as is.
+    /// A library bitmap, tiled or clipped (bitmap.rs).
+    Bitmap(BitmapFill),
+    /// Fills the model doesn't read: the XFL element's name and its XML, saved back as is.
     Unsupported { name: String, xml: String },
 }
 

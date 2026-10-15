@@ -30,6 +30,12 @@ pub fn save(doc: &Document, path: &Path) -> Result<()> {
 /// `bin/` and `LIBRARY/`, publish settings, `META-INF/` and so on.
 // ponytail: copied files pass through memory; stream zip to zip if huge media makes saving slow.
 pub fn save_preserving(doc: &Document, source: Option<&Path>, path: &Path) -> Result<()> {
+    save_with(doc, source, path, Vec::new())
+}
+
+/// `save_preserving`, also writing `extra` files (path in the XFL, contents) in place of the
+/// source's: the editor's PublishSettings.xml.
+pub fn save_with(doc: &Document, source: Option<&Path>, path: &Path, extra: Vec<(String, Vec<u8>)>) -> Result<()> {
     let ext = |e: &str| path.extension().is_some_and(|x| x.eq_ignore_ascii_case(e));
     let folder = xfl::folder(path);
     let fla = folder.is_none() && ext("fla");
@@ -45,7 +51,17 @@ pub fn save_preserving(doc: &Document, source: Option<&Path>, path: &Path) -> Re
         Some(src) if !in_place => kept(src).map_err(|e| format!("{}: {e}", src.display()))?,
         _ => Vec::new(),
     };
+    files.retain(|(name, _)| !extra.iter().any(|(e, _)| e.eq_ignore_ascii_case(name)));
+    files.extend(extra);
     files.extend(documents(doc)?);
+    // The bitmaps' image files, in place of the source's copies.
+    let images = crate::bitmap::files(&doc.media);
+    files.retain(|(name, _)| !images.iter().any(|(i, _)| i.eq_ignore_ascii_case(name)));
+    files.extend(images);
+    // The sounds' files, likewise.
+    let sounds = crate::sound::files(doc);
+    files.retain(|(name, _)| !sounds.iter().any(|(s, _)| s.eq_ignore_ascii_case(name)));
+    files.extend(sounds);
     // ponytail: no `mimetype` entry for a new .fla, as its content is unconfirmed;
     // one in the source is copied.
     files.push((marker, b"PROXY-CS5".to_vec()));
@@ -176,7 +192,7 @@ fn documents(doc: &Document) -> Result<Vec<(String, Vec<u8>)>> {
 /// characters that aren't safe in a file name, or would lead out of the folder, %-escaped.
 // ponytail: Windows device names (CON, NUL...) and folder names ending in a dot or space
 // (which Windows drops) aren't escaped.
-fn href(name: &str) -> Result<String> {
+pub(crate) fn href(name: &str) -> Result<String> {
     let mut href = String::new();
     for (i, part) in name.split('/').enumerate() {
         if part.is_empty() {
@@ -210,6 +226,7 @@ fn document(doc: &Document, hrefs: &[String]) -> String {
     }
     let mut x = Xml::default();
     x.kept("DOMDocument", &attrs, &doc.extra, xfl::DOCUMENT_ATTRS, |x| {
+        crate::bitmap::write_media(x, &doc.media, &crate::sound::items(doc));
         if !hrefs.is_empty() {
             x.el("symbols", &[], |x| hrefs.iter().for_each(|href| x.el("Include", &[("href", href.clone())], |_| {})));
         }
@@ -326,6 +343,7 @@ fn element(x: &mut Xml, el: &Element) {
             x.el("DOMGroup", &[], |x| x.el("members", &[], |x| members.iter().for_each(|el| element(x, el))));
         }
         Element::Text(t) => text_field(x, t),
+        Element::Bitmap(b) => crate::bitmap::write_instance(x, b),
         Element::Unsupported { xml, .. } => x.raw(xml),
     }
 }
@@ -433,6 +451,7 @@ fn paint(x: &mut Xml, p: &Paint) {
             x.el("SolidColor", &attrs, |_| {});
         }
         Paint::Gradient(g) => gradient(x, g),
+        Paint::Bitmap(f) => crate::bitmap::write_fill(x, f),
         Paint::Unsupported { xml, .. } => x.raw(xml),
     }
 }
@@ -531,7 +550,7 @@ fn symbol_type(kind: SymbolKind) -> Option<(&'static str, String)> {
     Some(("symbolType", name.into()))
 }
 
-fn matrix(x: &mut Xml, m: &Matrix) {
+pub(crate) fn matrix(x: &mut Xml, m: &Matrix) {
     if *m != Matrix::IDENTITY {
         let values =
             [("a", m.a, 1.0), ("b", m.b, 0.0), ("c", m.c, 0.0), ("d", m.d, 1.0), ("tx", m.tx, 0.0), ("ty", m.ty, 0.0)];
@@ -541,13 +560,13 @@ fn matrix(x: &mut Xml, m: &Matrix) {
 
 /// `(name, value, default)`s as attributes, leaving out the defaults. f32's shortest
 /// decimal reads back exactly.
-fn nums<'a>(list: &[(&'a str, f32, f32)]) -> Vec<(&'a str, String)> {
+pub(crate) fn nums<'a>(list: &[(&'a str, f32, f32)]) -> Vec<(&'a str, String)> {
     list.iter().filter(|(_, v, default)| v != default).map(|&(name, v, _)| (name, v.to_string())).collect()
 }
 
 /// What to write for `v` where the reader divides by `k`: an integer if that reads back
 /// exactly, as Animate writes them, else the f32 nearest `v * k` that does, if any.
-fn unscale(v: f32, k: f32) -> f32 {
+pub(crate) fn unscale(v: f32, k: f32) -> f32 {
     let x = v * k;
     [x.round(), x, x.next_down(), x.next_up()].into_iter().find(|x| x / k == v).unwrap_or(x)
 }
@@ -589,7 +608,7 @@ impl Xml {
 
     /// `el` plus what `extra` kept of the element, but none of the `owned` attributes:
     /// those are the model's, which `attrs` has.
-    fn kept(
+    pub(crate) fn kept(
         &mut self,
         tag: &str,
         attrs: &[(&str, String)],

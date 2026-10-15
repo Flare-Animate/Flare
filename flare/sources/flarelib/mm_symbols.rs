@@ -74,7 +74,8 @@ fn check_name(doc: &Document, name: &str) -> Result<()> {
     if name.trim().is_empty() {
         return Err("A symbol needs a name.".into());
     }
-    if doc.library.contains_key(name) {
+    // A folder's name is taken too.
+    if crate::library::in_use(doc, name) {
         return Err(format!("The name \"{name}\" is already in use in the library.").into());
     }
     Ok(())

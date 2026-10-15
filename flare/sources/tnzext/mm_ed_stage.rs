@@ -158,6 +158,11 @@ pub fn panel(ui: &mut Ui, ed: &mut Editor) {
 
     let stage = stage_rect(ed, rect, ppp);
     ed.stage_rect = stage;
+    if let Some(item) = resp.dnd_release_payload::<crate::library::Dragged>()
+        && let Some(pos) = ui.input(|i| i.pointer.latest_pos())
+    {
+        drop_item(ed, &item.0, local_point(ed, stage, pos));
+    }
     let over_guide = guides_input(ui, ed, &resp, full, rect, stage);
     // During a rectangle drag the Up and Down arrows round its corners, a pixel a press.
     if matches!(ed.drag, Some(Drag::Shape { .. })) && ed.tool == Tool::Rectangle {
@@ -186,6 +191,7 @@ pub fn panel(ui: &mut Ui, ed: &mut Editor) {
             Tool::Text => text_tool::input(ui, ed, &resp, stage),
             Tool::Eraser => eraser::input(ui, ed, &resp, stage),
             Tool::PaintBucket | Tool::InkBottle | Tool::Eyedropper => paint_tools::input(ui, ed, &resp, stage),
+            Tool::MagicWand => crate::bitmaps::wand_input(ui, ed, &resp, stage),
             _ => tool_input(ui, ed, &resp, stage),
         }
     }
@@ -233,7 +239,9 @@ pub fn panel(ui: &mut Ui, ed: &mut Editor) {
             }
         }
     } else {
-        let tex = if ed.editing.is_empty() { ed.scene_texture(&ctx, &vp) } else { ed.symbol_texture(&ctx, &vp) };
+        // Enable Simple Buttons: the button under the pointer shows hovered or pressed.
+        let live = crate::buttons::stage_texture(ed, &ctx, &vp, stage, rect);
+        let tex = if ed.editing.is_empty() { live.or_else(|| ed.scene_texture(&ctx, &vp)) } else { ed.symbol_texture(&ctx, &vp) };
         if let Some(tex) = tex {
             art.image(tex, view, uv, Color32::WHITE);
         }
@@ -273,6 +281,7 @@ pub fn panel(ui: &mut Ui, ed: &mut Editor) {
         Tool::Text => text_tool::overlay(&p, ed, stage),
         Tool::Eraser => eraser::overlay(&p, ed, stage),
         Tool::PaintBucket | Tool::InkBottle | Tool::Eyedropper => paint_tools::overlay(&p, ed, stage),
+        Tool::MagicWand => crate::bitmaps::wand_overlay(&p, ed),
         // The brush's tip, at its size and in the fill colour, is its pointer.
         Tool::Brush if !hand && ctx.output(|o| o.cursor_icon == CursorIcon::None) => {
             if let Some(pos) = pointer {
@@ -293,6 +302,10 @@ pub fn panel(ui: &mut Ui, ed: &mut Editor) {
 /// Selection, shape and stroke tools: click, drag and release on the stage.
 /// Other tools can fall back to it for selecting.
 pub fn tool_input(ui: &Ui, ed: &mut Editor, resp: &egui::Response, stage: Rect) {
+    // With Enable Simple Buttons on, a button under the pointer takes its clicks.
+    if ed.drag.is_none() && crate::buttons::takes_pointer(ed, ui.ctx(), stage, resp.rect) {
+        return;
+    }
     // A drag on a selected target's motion path is the path's.
     if crate::tweens::input(ui, ed, resp, stage) {
         return;
@@ -382,6 +395,41 @@ fn grip_at(ed: &Editor, r: ElementRef, p: Point) -> Option<Grip> {
 
 pub(crate) fn show_selection_props(ed: &mut Editor) {
     ed.props_tab = if ed.selection.is_empty() { PropsTab::Doc } else { PropsTab::Object };
+}
+
+/// Library item `name` dropped on the stage at `at`: a symbol's instance or a bitmap goes on
+/// the current layer's keyframe, centred there and selected; a sound goes on the keyframe.
+pub(crate) fn drop_item(ed: &mut Editor, name: &str, at: Point) {
+    if ed.doc.sounds.contains_key(name) {
+        return crate::sound::attach(ed, (ed.layer, ed.frame), name);
+    }
+    let (matrix, extra) = (Matrix::IDENTITY, Default::default());
+    let el = match ed.doc.library.get(name) {
+        Some(s) => {
+            let (color, looping) = (doc::ColorTransform::IDENTITY, doc::Loop::Loop);
+            Element::Instance(Instance { symbol: name.into(), kind: s.kind, matrix, pivot: (0.0, 0.0), color, looping, first_frame: 0, extra })
+        }
+        None if ed.doc.bitmap(name).is_some() => Element::Bitmap(doc::BitmapInstance { name: name.into(), matrix, extra }),
+        None => return,
+    };
+    if !ed.drawable() {
+        return ed.log("Placing a library item needs a normal layer, shown and unlocked: select one in the timeline.");
+    }
+    ed.checkpoint();
+    let (l, f) = (ed.layer, ed.frame);
+    let layer = &mut ed.timeline_mut().layers[l];
+    if layer.keyframe_at(f).is_none() {
+        layer.insert_blank_keyframe(f);
+    }
+    let Some(k) = layer.keyframe_at(f) else { return };
+    layer.frames[k].elements.push(el);
+    let r = ElementRef { layer: l, keyframe: k, element: layer.frames[k].elements.len() - 1 };
+    let center = hit::bounds(&ed.doc, ed.timeline(), f, &[r]).map_or((0.0, 0.0), |b| ((b.min.0 + b.max.0) / 2.0, (b.min.1 + b.max.1) / 2.0));
+    if let Some(el) = ed.timeline_mut().element_mut(r) {
+        hit::translate(el, at.0 - center.0, at.1 - center.1);
+    }
+    ed.selection = vec![r];
+    show_selection_props(ed);
 }
 
 fn click(ed: &mut Editor, p: Point, shift: bool) {
@@ -726,6 +774,12 @@ fn highlights(p: &Painter, ed: &Editor, stage: Rect) {
                     p.circle(corner, 2.5, Color32::WHITE, line);
                 }
             }
+            // A bitmap's box turns with it, as an instance's does.
+            Some(Element::Bitmap(b)) => {
+                if let Some((w, h)) = ed.doc.bitmap(&b.name).and_then(|item| item.size()) {
+                    p.add(egui::Shape::closed_line(quad(&b.matrix, (0.0, 0.0), (w as f32, h as f32)), line));
+                }
+            }
             Some(el) => {
                 if let Some(b) = bounds(r) {
                     p.add(egui::Shape::closed_line(quad(&Matrix::IDENTITY, b.min, b.max), line));
@@ -839,7 +893,7 @@ fn pointer_glyph(ctx: &egui::Context, ed: &Editor, resp: &egui::Response, stage:
         Tool::Text => CursorIcon::Text,
         Tool::Line | Tool::Rectangle | Tool::Oval | Tool::PolyStar | Tool::Pen => CursorIcon::Crosshair,
         // These draw the tool itself as the pointer.
-        Tool::Brush | Tool::PaintBucket | Tool::InkBottle | Tool::Eyedropper => CursorIcon::None,
+        Tool::Brush | Tool::PaintBucket | Tool::InkBottle | Tool::Eyedropper | Tool::MagicWand => CursorIcon::None,
         _ => CursorIcon::Default,
     };
     ctx.set_cursor_icon(icon);
