@@ -22,6 +22,9 @@ TOfflineGL::Imp *MacOfflineGenerator1(const TDimension &dim) {
 #endif
 
 #include <map>
+#include <vector>
+#include <algorithm>
+#include <cstdlib>
 #include <sstream>
 #include <iostream>
 
@@ -40,6 +43,11 @@ const std::map<std::string, std::string> systemPathMap{
     {"FXPRESETS", "fxs"},   {"PROFILES", "profiles"},
     {"CONFIG", "config"},   {"PROJECTS", "projects"}};
 
+extern "C" size_t flare_tenv_resolve_stuff_dir(
+    const char *env_root, const char *ini_root, const char *arg_root,
+    const char *cwd, const char *exe_dir, const char *appdir, int is_macos,
+    unsigned char *out, size_t cap);
+
 class EnvGlobals {  // singleton
 
   FlareVersion m_version;
@@ -55,11 +63,12 @@ class EnvGlobals {  // singleton
   TFilePath *m_stuffDir;
   TFilePath *m_dllRelativeDir;
   bool m_isPortable = false;
+  std::string m_stuffDirTrace;
 
   // path values specified with command line arguments
   std::map<std::string, std::string> m_argPathValues;
 
-  EnvGlobals() : m_stuffDir(0) {
+  EnvGlobals() : m_stuffDir(0), m_dllRelativeDir(0) {
     setWorkingDirectory();
     init();
   }
@@ -167,17 +176,66 @@ public:
     return TFilePath(getSystemVarValue(varName));
   }
 
+  // Discovery lives in Rust (tapptools/tenv.rs, flare_tenv_resolve_stuff_dir);
+  // see the unit tests there for the decision table. Never throws/aborts: an
+  // unresolvable root yields an empty path and the caller shows a message.
+  std::string resolveStuffDir(TFilePath &outPath) {
+    std::string env, ini, exeDir, appDir, cwd;
+    if (const char *v = getenv(m_rootVarName.c_str())) env = v;
+    ini    = getSystemVarValue(m_rootVarName);
+    cwd    = QDir::currentPath().toStdString();
+    if (QCoreApplication::instance())
+      exeDir = QCoreApplication::applicationDirPath().toStdString();
+    if (const char *v = getenv("APPDIR")) appDir = v;
+    std::string arg = getArgPathValue(m_rootVarName);
+#ifdef MACOSX
+    int isMac = 1;
+#else
+    int isMac = 0;
+#endif
+    std::vector<char> buf(8192);
+    size_t n = flare_tenv_resolve_stuff_dir(
+        env.c_str(), ini.c_str(), arg.c_str(), cwd.c_str(), exeDir.c_str(),
+        appDir.c_str(), isMac, (unsigned char *)buf.data(), buf.size());
+    if (n > buf.size()) {
+      buf.resize(n);
+      n = flare_tenv_resolve_stuff_dir(
+          env.c_str(), ini.c_str(), arg.c_str(), cwd.c_str(), exeDir.c_str(),
+          appDir.c_str(), isMac, (unsigned char *)buf.data(), buf.size());
+    }
+    std::string text(buf.data(), std::min(n, buf.size()));
+    // line 1: portable flag, line 2: path, rest: trace
+    size_t a = text.find('\n');
+    size_t b = a == std::string::npos ? a : text.find('\n', a + 1);
+    if (a == std::string::npos || b == std::string::npos) return text;
+    std::string path = text.substr(a + 1, b - a - 1);
+    if (!path.empty()) {
+      outPath = TFilePath(path);
+      if (text[0] == '1') m_isPortable = true;
+    }
+    return text.substr(b + 1);
+  }
+
   TFilePath getStuffDir() {
     if (m_stuffDir) return *m_stuffDir;
+    TFilePath resolved;
+    m_stuffDirTrace = resolveStuffDir(resolved);
+    if (!resolved.isEmpty()) {
+      // Cache only once the application object exists: before that the
+      // executable dir is unknown and a later (better) answer would be lost.
+      if (QCoreApplication::instance()) m_stuffDir = new TFilePath(resolved);
+      return resolved;
+    }
+    // Legacy behaviour as a last resort (keeps the error message path).
     if (m_isPortable) {
       TFilePath p = TFilePath(getWorkingDirectory()) + "portablestuff";
       return TFileStatus(p).doesExist()
                  ? p
                  : TFilePath(getWorkingDirectory()) + "tahomastuff";
     }
-
     return TFilePath(getSystemVarValue(m_rootVarName));
   }
+  std::string getStuffDirTrace() { return m_stuffDirTrace; }
   void setStuffDir(const TFilePath &stuffDir) {
     delete m_stuffDir;
     m_stuffDir = new TFilePath(stuffDir);
@@ -655,6 +713,12 @@ TFilePath TEnv::getWorkingDirectory() {
   return workingDir;
 }
 
+std::string TEnv::getStuffDirTrace() {
+  EnvGlobals *eg = EnvGlobals::instance();
+  eg->getStuffDir();  // make sure discovery ran
+  return eg->getStuffDirTrace();
+}
+
 void TEnv::setStuffDir(const TFilePath &stuffDir) {
   EnvGlobals::instance()->setStuffDir(stuffDir);
 }
@@ -739,11 +803,25 @@ void TEnv::initUserStuffDir() {
 #if !defined(_WIN32) && !defined(MACOSX)
   EnvGlobals *eg = EnvGlobals::instance();
 
+  // EnvGlobals is usually first touched before QApplication exists, so the
+  // "portablestuff next to the executable" check in setWorkingDirectory() could
+  // not run (applicationDirPath() was unavailable). Re-detect now; this is what
+  // left AppImages seeding from a share/ dir they do not ship (#112/#114/#116).
+  {
+    TFilePath resolved;
+    eg->resolveStuffDir(resolved);  // sets the portable flag as a side effect
+  }
+
   // portable builds carry their own stuff; nothing to seed
   if (eg->getIsPortable()) return;
 
   // respect an explicit -TOONZROOT command-line override
   if (eg->getArgPathValue(eg->getRootVarName()) != "") return;
+
+  // respect an explicit FLAREROOT environment variable (issue #112: it used
+  // to be ignored on Linux, only SystemVar.ini was consulted)
+  if (const char *envRoot = getenv(eg->getRootVarName().c_str()))
+    if (*envRoot && TFileStatus(TFilePath(envRoot)).isDirectory()) return;
 
   TFilePath userStuffDir = getUserStuffDir(eg);
 

@@ -106,16 +106,31 @@ pub fn repair_end_record(bytes: &[u8]) -> Option<Vec<u8>> {
     Some(out)
 }
 
+/// Per-entry / whole-package inflate caps for untrusted archives.
+const MAX_ENTRY_BYTES: u64 = 512 * 1024 * 1024;
+const MAX_PACKAGE_BYTES: u64 = 2 * 1024 * 1024 * 1024;
+
 fn read_all(z: &mut zip::ZipArchive<Cursor<&[u8]>>) -> Result<Package, String> {
     let mut pkg = Package::new();
+    let mut total = 0u64;
     for i in 0..z.len() {
         let mut f = z.by_index(i).map_err(|e| e.to_string())?;
         if f.is_dir() {
             continue;
         }
         let name = f.name().replace('\\', "/");
+        // Cap each entry and the whole package: a hostile/corrupt archive can
+        // inflate a few KB into gigabytes (decompression bomb) and take the
+        // app down with it.
         let mut v = vec![];
-        f.read_to_end(&mut v).map_err(|e| format!("{name}: {e}"))?;
+        (&mut f)
+            .take(MAX_ENTRY_BYTES + 1)
+            .read_to_end(&mut v)
+            .map_err(|e| format!("{name}: {e}"))?;
+        total += v.len() as u64;
+        if v.len() as u64 > MAX_ENTRY_BYTES || total > MAX_PACKAGE_BYTES {
+            return Err(format!("{name}: archive too large to import safely"));
+        }
         pkg.insert(name, v);
     }
     Ok(pkg)
@@ -215,3 +230,6 @@ mod tests;
 #[cfg(test)]
 #[path = "ac_swf_tests.rs"]
 mod swf_tests;
+#[cfg(test)]
+#[path = "ac_xfl_fuzz_tests.rs"]
+mod fuzz_tests;

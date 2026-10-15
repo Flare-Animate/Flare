@@ -83,6 +83,11 @@
 #include <QSettings>
 #include <QLibraryInfo>
 #include <QHash>
+#include <QDir>
+#include <QFile>
+#include <QDateTime>
+#include <QStandardPaths>
+#include <QMessageBox>
 
 #ifdef _WIN32
 #ifndef x64
@@ -145,7 +150,9 @@ void qt_mac_set_menubar_merge(bool enable);
 #define NO_LICENSE
 //-----------------------------------------------------------------------------
 
+static void startupLogFwd(const QString &line);
 static void fatalError(QString msg) {
+  startupLogFwd("fatalError: " + msg);
   DVGui::MsgBoxInPopup(
       CRITICAL,
       msg + "\n" +
@@ -214,13 +221,17 @@ static void initFlareEnv(QHash<QString, QString> &argPathValues) {
   TEnv::initUserStuffDir();
 
   TFilePath stuffDir = TEnv::getStuffDir();
+  startupLogFwd("stuff dir: \"" + toQString(stuffDir) + "\"\n" +
+                QString::fromStdString(TEnv::getStuffDirTrace()));
   if (stuffDir == TFilePath())
     fatalError(
         QObject::tr("Could not locate Flare's \"stuff\" folder.\n\n"
                     "Set the %1 environment variable to its full path, or "
                     "reinstall Flare so the folder is placed next to the "
-                    "executable (portablestuff) or under share/flare/stuff.")
-            .arg(QString::fromStdString(TEnv::getRootVarName())));
+                    "executable (portablestuff) or under share/flare/stuff.\n\n"
+                    "Locations tried:\n%2")
+            .arg(QString::fromStdString(TEnv::getRootVarName()))
+            .arg(QString::fromStdString(TEnv::getStuffDirTrace())));
   else if (!TFileStatus(stuffDir).isDirectory())
     fatalError("Folder \"" + toQString(stuffDir) +
                "\" not found or not readable");
@@ -292,7 +303,68 @@ static void script_output(int type, const QString &value) {
 
 //-----------------------------------------------------------------------------
 
-int main(int argc, char *argv[]) {
+//-----------------------------------------------------------------------------
+// Startup log (issues #71, #110, #114, #116): a small plain-text file written
+// as early as possible so a crash/abort before the UI exists still leaves
+// evidence. Location: <GenericDataLocation>/Flare/Flare/startup.log
+// (Linux: ~/.local/share/Flare/Flare/startup.log, next to the crash/ dir).
+// Every operation is best effort and must never throw.
+namespace {
+QString startupLogPath() {
+  try {
+    return QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation) +
+           "/Flare/Flare/startup.log";
+  } catch (...) {
+    return QString();
+  }
+}
+
+void startupLog(const QString &line, bool truncate = false) {
+  try {
+    QString path = startupLogPath();
+    fprintf(stderr, "[startup] %s\n", line.toLocal8Bit().constData());
+    if (path.isEmpty()) return;
+    QDir().mkpath(QFileInfo(path).absolutePath());
+    QFile f(path);
+    QIODevice::OpenMode mode = QIODevice::WriteOnly | QIODevice::Text;
+    mode |= truncate ? QIODevice::Truncate : QIODevice::Append;
+    if (!f.open(mode)) return;
+    f.write((QDateTime::currentDateTime().toString(Qt::ISODate) + " " + line +
+             "\n")
+                .toUtf8());
+  } catch (...) {
+  }
+}
+
+// Report an exception that escaped main(). QApplication is already destroyed
+// here, so use a native box on Windows and a fresh minimal QApplication
+// elsewhere (only when a display exists), else stderr only.
+void reportFatalStartup(const QString &what) {
+  startupLog("FATAL: " + what);
+  QString msg = "Flare could not start:\n\n" + what +
+                "\n\nDetails were written to:\n" + startupLogPath();
+#ifdef Q_OS_WIN
+  MessageBoxW(NULL, (LPCWSTR)msg.utf16(), L"Flare", MB_OK | MB_ICONERROR);
+#else
+  try {
+#if !defined(Q_OS_MAC)
+    if (qgetenv("DISPLAY").isEmpty() && qgetenv("WAYLAND_DISPLAY").isEmpty())
+      return;
+#endif
+    int ac = 1;
+    char name[]  = "Flare";
+    char *av[]   = {name, nullptr};
+    QApplication app(ac, av);
+    QMessageBox::critical(nullptr, "Flare", msg);
+  } catch (...) {
+  }
+#endif
+}
+}  // namespace
+
+static void startupLogFwd(const QString &line) { startupLog(line); }
+
+static int flareMain(int argc, char *argv[]) {
 #ifdef Q_OS_WIN
   // Enable standard input/output on Windows Platform for debug
   if (::AttachConsole(ATTACH_PARENT_PROCESS)) {
@@ -374,6 +446,11 @@ int main(int argc, char *argv[]) {
 #endif
 
   QApplication a(argc, argv);
+  startupLogFwd(QString("QApplication created; platform=%1 libraryPaths=%2 "
+                        "appDir=%3")
+                    .arg(QGuiApplication::platformName())
+                    .arg(QCoreApplication::libraryPaths().join(":"))
+                    .arg(QCoreApplication::applicationDirPath()));
 
 #ifdef MACOSX
   // This workaround is to avoid missing left button problem on Qt5.6.0.
@@ -544,6 +621,9 @@ if (QFileInfo(localSplashPath).exists() && QFileInfo(localSplashPath).isFile()) 
   fmt.setAlpha(true);
   fmt.setStencil(true);
   QGLFormat::setDefaultFormat(fmt);
+  startupLogFwd(QString("OpenGL: QGLFormat::hasOpenGL=%1 OpenGLVersionFlags=0x%2")
+                    .arg(QGLFormat::hasOpenGL())
+                    .arg((int)QGLFormat::openGLVersionFlags(), 0, 16));
 
 #if !defined(__HAIKU__) && !defined(MACOSX)
   glutInit(&argc, argv);
@@ -953,3 +1033,29 @@ if (QFileInfo(localSplashPath).exists() && QFileInfo(localSplashPath).isFile()) 
   return ret;
 }
 
+int main(int argc, char *argv[]) {
+  startupLog(QString("Flare starting; argv0=%1 cwd=%2")
+                 .arg(argc > 0 ? argv[0] : "?")
+                 .arg(QDir::currentPath()),
+             true);
+  startupLog(QString("env FLAREROOT=%1 APPDIR=%2 QT_PLUGIN_PATH=%3 "
+                     "QT_QPA_PLATFORM=%4")
+                 .arg(qgetenv("FLAREROOT").constData())
+                 .arg(qgetenv("APPDIR").constData())
+                 .arg(qgetenv("QT_PLUGIN_PATH").constData())
+                 .arg(qgetenv("QT_QPA_PLATFORM").constData()));
+  // An exception escaping main used to reach std::terminate -> SIGABRT /
+  // "C++ EH exception second chance" with no explanation (#110/#114/#116).
+  try {
+    int rc = flareMain(argc, argv);
+    startupLog(QString("Flare exited normally, code %1").arg(rc));
+    return rc;
+  } catch (TException &e) {
+    reportFatalStartup(QString::fromStdWString(e.getMessage()));
+  } catch (const std::exception &e) {
+    reportFatalStartup(QString("std::exception: %1").arg(e.what()));
+  } catch (...) {
+    reportFatalStartup("unknown C++ exception");
+  }
+  return 1;
+}

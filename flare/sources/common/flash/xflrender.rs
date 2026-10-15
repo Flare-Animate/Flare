@@ -342,13 +342,13 @@ fn frame_at<'a, 'i>(l: Node<'a, 'i>, t: u32) -> Option<Node<'a, 'i>> {
         .filter(|c| c.has_tag_name("DOMFrame"))
         .find(|fr| {
             let i = f(*fr, "index", 0.) as u32;
-            i <= t && t < i + f(*fr, "duration", 1.) as u32
+            i <= t && t < i.saturating_add(f(*fr, "duration", 1.) as u32)
         })
 }
 fn tl_len(tl: Node) -> u32 {
     tl.descendants()
         .filter(|n| n.has_tag_name("DOMFrame"))
-        .map(|fr| f(fr, "index", 0.) as u32 + f(fr, "duration", 1.) as u32)
+        .map(|fr| (f(fr, "index", 0.) as u32).saturating_add(f(fr, "duration", 1.) as u32))
         .max()
         .unwrap_or(0)
 }

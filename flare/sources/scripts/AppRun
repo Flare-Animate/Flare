@@ -22,4 +22,4 @@ then
 fi
 echo "QT_QPA_PLATFORM=$QT_QPA_PLATFORM"
 
-$APPDIR/usr/bin/Tahoma2D "$@"
+exec "$APPDIR/usr/bin/Flare" "$@"

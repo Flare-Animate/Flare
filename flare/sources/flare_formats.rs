@@ -19,16 +19,24 @@ pub mod swf;
 #[path = "common/flash/xfl.rs"]
 pub mod xfl;
 
+/// Run `f`, returning `default` if it panics. A Rust panic unwinding out of an
+/// `extern "C"` function aborts the whole process (SIGABRT / "C++ EH exception"
+/// on the C++ side), so every FFI entry point that parses untrusted files goes
+/// through this (issues #110/#117).
+fn guard<T>(default: T, f: impl FnOnce() -> T) -> T {
+    std::panic::catch_unwind(std::panic::AssertUnwindSafe(f)).unwrap_or(default)
+}
+
 /// Parse FlipaClip .fcp; JSON (free with flare_fcp_free) or NULL.
 #[no_mangle]
 pub unsafe extern "C" fn flare_fcp_parse(data: *const u8, len: usize) -> *mut std::os::raw::c_char {
-    match fcp::parse(bytes(data, len))
+    guard(std::ptr::null_mut(), || match fcp::parse(bytes(data, len))
         .ok()
         .and_then(|s| std::ffi::CString::new(s).ok())
     {
         Some(c) => c.into_raw(),
         None => std::ptr::null_mut(),
-    }
+    })
 }
 
 #[no_mangle]
@@ -49,7 +57,7 @@ pub unsafe extern "C" fn flare_flash_frame_count(path: *const std::os::raw::c_ch
     let p = std::ffi::CStr::from_ptr(path)
         .to_string_lossy()
         .into_owned();
-    framecount::frame_count(std::path::Path::new(&p)).map_or(-1, |n| n as i32)
+    guard(-1, || framecount::frame_count(std::path::Path::new(&p)).map_or(-1, |n| n.min(i32::MAX as u32) as i32))
 }
 
 /// CFBF (legacy FLA) streams as "name\tsize\n" lines; NULL if not CFBF.
@@ -59,14 +67,16 @@ pub unsafe extern "C" fn flare_cfbf_streams(
     data: *const u8,
     len: usize,
 ) -> *mut std::os::raw::c_char {
-    let Some(v) = framecount::cfbf_streams(bytes(data, len)) else {
-        return std::ptr::null_mut();
-    };
-    let s: String = v
-        .iter()
-        .map(|(n, z)| format!("{}\t{}\n", n.replace('\0', ""), z))
-        .collect();
-    std::ffi::CString::new(s).map_or(std::ptr::null_mut(), |c| c.into_raw())
+    guard(std::ptr::null_mut(), || {
+        let Some(v) = framecount::cfbf_streams(bytes(data, len)) else {
+            return std::ptr::null_mut();
+        };
+        let s: String = v
+            .iter()
+            .map(|(n, z)| format!("{}\t{}\n", n.replace('\0', ""), z))
+            .collect();
+        std::ffi::CString::new(s).map_or(std::ptr::null_mut(), |c| c.into_raw())
+    })
 }
 #[path = "common/flash/symlib.rs"]
 pub mod symlib;
@@ -173,7 +183,7 @@ pub unsafe extern "C" fn flare_symlib_add(
 /// Count of SWF tags (incl. End); -1 if not uncompressed SWF.
 #[no_mangle]
 pub unsafe extern "C" fn flare_swf_tag_count(data: *const u8, len: usize) -> i32 {
-    swf::tags(bytes(data, len)).map_or(-1, |t| t.len() as i32)
+    guard(-1, || swf::tags(bytes(data, len)).map_or(-1, |t| t.len() as i32))
 }
 
 /// Write up to `max` tag codes into `codes`; returns total count or -1.
@@ -184,7 +194,7 @@ pub unsafe extern "C" fn flare_swf_tag_codes(
     codes: *mut u16,
     max: usize,
 ) -> i32 {
-    match swf::tags(bytes(data, len)) {
+    guard(-1, || match swf::tags(bytes(data, len)) {
         Some(t) => {
             if !codes.is_null() {
                 for (i, g) in t.iter().take(max).enumerate() {
@@ -194,7 +204,7 @@ pub unsafe extern "C" fn flare_swf_tag_codes(
             t.len() as i32
         }
         None => -1,
-    }
+    })
 }
 
 /// Layer count of first XFL timeline; writes total frame count to `frames`. -1 on error.
@@ -204,15 +214,15 @@ pub unsafe extern "C" fn flare_xfl_layer_count(
     len: usize,
     frames: *mut u32,
 ) -> i32 {
-    match xfl::layers(bytes(data, len)) {
+    guard(-1, || match xfl::layers(bytes(data, len)) {
         Some(l) => {
             if !frames.is_null() {
-                *frames = l.iter().map(|x| x.frames.len() as u32).sum();
+                *frames = l.iter().map(|x| x.frames.len() as u32).fold(0u32, u32::saturating_add);
             }
             l.len() as i32
         }
         None => -1,
-    }
+    })
 }
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
@@ -265,7 +275,7 @@ unsafe fn bytes<'a>(p: *const u8, n: usize) -> &'a [u8] {
 
 #[no_mangle]
 pub unsafe extern "C" fn flare_detect_format(data: *const u8, len: usize) -> i32 {
-    detect(bytes(data, len)) as i32
+    guard(0, || detect(bytes(data, len)) as i32)
 }
 
 #[no_mangle]
@@ -276,7 +286,7 @@ pub unsafe extern "C" fn flare_swf_header(
     v: *mut u8,
     l: *mut u32,
 ) -> i32 {
-    match swf_header(bytes(data, len)) {
+    guard(-1, || match swf_header(bytes(data, len)) {
         Some((a, b, n)) => {
             if !c.is_null() {
                 *c = a;
@@ -290,7 +300,7 @@ pub unsafe extern "C" fn flare_swf_header(
             0
         }
         None => -1,
-    }
+    })
 }
 
 /// Uncompressed SWF: (frame_rate_8.8, frame_count) after the RECT.
@@ -347,7 +357,7 @@ pub unsafe extern "C" fn flare_xfl_dom_info(
     h: *mut f64,
     fps: *mut f64,
 ) -> i32 {
-    match xfl_dom_info(bytes(data, len)) {
+    guard(-1, || match xfl_dom_info(bytes(data, len)) {
         Some((a, b, c)) => {
             if !w.is_null() {
                 *w = a;
@@ -361,7 +371,7 @@ pub unsafe extern "C" fn flare_xfl_dom_info(
             0
         }
         None => -1,
-    }
+    })
 }
 
 /// Parse a Moho project; returns malloc'd-by-Rust NUL-terminated JSON (free with flare_moho_free), or NULL on error.
@@ -370,13 +380,13 @@ pub unsafe extern "C" fn flare_moho_parse(
     data: *const u8,
     len: usize,
 ) -> *mut std::os::raw::c_char {
-    match moho::parse(bytes(data, len))
+    guard(std::ptr::null_mut(), || match moho::parse(bytes(data, len))
         .ok()
         .and_then(|s| std::ffi::CString::new(s).ok())
     {
         Some(c) => c.into_raw(),
         None => std::ptr::null_mut(),
-    }
+    })
 }
 
 #[no_mangle]
@@ -399,10 +409,12 @@ pub unsafe extern "C" fn flare_xfl_export_svg(
     }
     let d = CStr::from_ptr(xfl_dir).to_string_lossy().into_owned();
     let o = CStr::from_ptr(out_dir).to_string_lossy().into_owned();
-    let s = match xflrender::export(std::path::Path::new(&d), std::path::Path::new(&o)) {
-        Ok((n, log)) => format!("ok {n}\n{log}"),
-        Err(e) => format!("error {e}\n"),
-    };
+    let s = guard("error import panicked (corrupt document?)\n".to_string(), || {
+        match xflrender::export(std::path::Path::new(&d), std::path::Path::new(&o)) {
+            Ok((n, log)) => format!("ok {n}\n{log}"),
+            Err(e) => format!("error {e}\n"),
+        }
+    });
     CString::new(s.replace('\0', " ")).map_or(std::ptr::null_mut(), |c| c.into_raw())
 }
 
@@ -501,4 +513,279 @@ pub unsafe extern "C" fn flare_tenv_path_set(
         std::ptr::copy_nonoverlapping(s.as_ptr(), out, n);
     }
     s.len()
+}
+
+unsafe fn opt_cstr(p: *const std::os::raw::c_char) -> Option<String> {
+    if p.is_null() {
+        None
+    } else {
+        Some(std::ffi::CStr::from_ptr(p).to_string_lossy().into_owned())
+    }
+}
+
+/// Resolve the FLAREROOT/"stuff" directory (see tapptools/tenv.rs). Never
+/// aborts: a panic or bad input yields "0\n\n<trace>" (no path).
+/// Output text: line 1 = "1" if portable else "0"; line 2 = path (empty when
+/// not found); remaining lines = decision trace. Returns the full byte length,
+/// copies up to `cap` bytes into `out`.
+#[no_mangle]
+pub unsafe extern "C" fn flare_tenv_resolve_stuff_dir(
+    env_root: *const std::os::raw::c_char,
+    ini_root: *const std::os::raw::c_char,
+    arg_root: *const std::os::raw::c_char,
+    cwd: *const std::os::raw::c_char,
+    exe_dir: *const std::os::raw::c_char,
+    appdir: *const std::os::raw::c_char,
+    is_macos: i32,
+    out: *mut u8,
+    cap: usize,
+) -> usize {
+    let inp = tenv::StuffInputs {
+        env_root: opt_cstr(env_root),
+        ini_root: opt_cstr(ini_root),
+        arg_root: opt_cstr(arg_root),
+        cwd: opt_cstr(cwd).map(std::path::PathBuf::from).unwrap_or_default(),
+        exe_dir: opt_cstr(exe_dir).map(std::path::PathBuf::from),
+        appdir: opt_cstr(appdir),
+        is_macos: is_macos != 0,
+    };
+    let text = std::panic::catch_unwind(|| {
+        let r = tenv::resolve_stuff_dir(&inp, &tenv::fs_is_dir);
+        format!(
+            "{}\n{}\n{}",
+            if r.portable { 1 } else { 0 },
+            r.path.map(|p| p.to_string_lossy().into_owned()).unwrap_or_default(),
+            r.trace.join("\n")
+        )
+    })
+    .unwrap_or_else(|_| "0\n\nresolver panicked".to_string());
+    let n = text.len().min(cap);
+    if !out.is_null() && n > 0 {
+        std::ptr::copy_nonoverlapping(text.as_ptr(), out, n);
+    }
+    text.len()
+}
+
+/// Robustness ("fuzz-ish") tests for issues #110/#117: truncated and
+/// bit-flipped SWF / FLA(zip) / XFL / legacy-CFBF inputs, built in-test, must
+/// never panic (a panic across the FFI boundary aborts the whole app).
+#[cfg(test)]
+mod robustness {
+    use super::*;
+    use std::panic::{catch_unwind, AssertUnwindSafe};
+
+    const DOM: &str = r#"<DOMDocument width="550" height="400" frameRate="24"><timelines><DOMTimeline name="S1"><layers><DOMLayer name="a"><frames><DOMFrame index="0" duration="4294967295"><elements/></DOMFrame><DOMFrame index="4294967295" duration="9"/></frames></DOMLayer></layers></DOMTimeline></timelines></DOMDocument>"#;
+
+    fn swf_raw() -> Vec<u8> {
+        // header, RECT (nbits=0), frame rate, frame count, End tag
+        let mut body = vec![0x00, 0x00, 0x18, 0x01, 0x00, 0x00, 0x00];
+        let mut v = b"FWS".to_vec();
+        v.push(10);
+        let total = (8 + body.len()) as u32;
+        v.extend_from_slice(&total.to_le_bytes());
+        v.append(&mut body);
+        v
+    }
+    fn swf_cws() -> Vec<u8> {
+        let raw = swf_raw();
+        let mut v = b"CWS".to_vec();
+        v.extend_from_slice(&raw[3..8]);
+        v.extend(miniz_oxide::deflate::compress_to_vec_zlib(&raw[8..], 6));
+        v
+    }
+    fn crc32(d: &[u8]) -> u32 {
+        let mut c = !0u32;
+        for &b in d {
+            c ^= b as u32;
+            for _ in 0..8 {
+                c = if c & 1 != 0 { (c >> 1) ^ 0xEDB8_8320 } else { c >> 1 };
+            }
+        }
+        !c
+    }
+    /// Minimal valid stored-entry zip.
+    fn zip(entries: &[(&str, &[u8])]) -> Vec<u8> {
+        let (mut out, mut cd) = (Vec::new(), Vec::new());
+        for (name, data) in entries {
+            let off = out.len() as u32;
+            let crc = crc32(data);
+            out.extend_from_slice(b"PK\x03\x04\x0a\0\0\0\0\0\0\0\0\0");
+            out.extend_from_slice(&crc.to_le_bytes());
+            out.extend_from_slice(&(data.len() as u32).to_le_bytes());
+            out.extend_from_slice(&(data.len() as u32).to_le_bytes());
+            out.extend_from_slice(&(name.len() as u16).to_le_bytes());
+            out.extend_from_slice(&[0, 0]);
+            out.extend_from_slice(name.as_bytes());
+            out.extend_from_slice(data);
+            cd.extend_from_slice(b"PK\x01\x02\x14\0\x0a\0\0\0\0\0\0\0\0\0");
+            cd.extend_from_slice(&crc.to_le_bytes());
+            cd.extend_from_slice(&(data.len() as u32).to_le_bytes());
+            cd.extend_from_slice(&(data.len() as u32).to_le_bytes());
+            cd.extend_from_slice(&(name.len() as u16).to_le_bytes());
+            cd.extend_from_slice(&[0u8; 12]);
+            cd.extend_from_slice(&off.to_le_bytes());
+            cd.extend_from_slice(name.as_bytes());
+        }
+        let cd_off = out.len() as u32;
+        let n = entries.len() as u16;
+        out.extend_from_slice(&cd);
+        out.extend_from_slice(b"PK\x05\x06\0\0\0\0");
+        out.extend_from_slice(&n.to_le_bytes());
+        out.extend_from_slice(&n.to_le_bytes());
+        out.extend_from_slice(&(cd.len() as u32).to_le_bytes());
+        out.extend_from_slice(&cd_off.to_le_bytes());
+        out.extend_from_slice(&[0, 0]);
+        out
+    }
+    /// Legacy binary FLA: CFBF with one stream whose directory name length is ODD
+    /// (corrupt) - the case that used to index out of bounds.
+    fn cfbf(name_len: u16) -> Vec<u8> {
+        let mut d = vec![0u8; 512 * 3];
+        d[..8].copy_from_slice(&[0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1]);
+        d[0x1A] = 3;
+        d[0x1E] = 9;
+        d[0x30..0x34].copy_from_slice(&1u32.to_le_bytes()); // first dir sector
+        d[0x4C..0x50].copy_from_slice(&0u32.to_le_bytes()); // DIFAT[0] = FAT sector 0
+        for i in 1..109 {
+            d[0x4C + i * 4..0x50 + i * 4].copy_from_slice(&0xFFFF_FFFFu32.to_le_bytes());
+        }
+        // FAT sector (at 512): sector0 = FAT, sector1 = end of chain
+        d[512..516].copy_from_slice(&0xFFFF_FFFDu32.to_le_bytes());
+        d[516..520].copy_from_slice(&0xFFFF_FFFEu32.to_le_bytes());
+        // directory sector (at 1024): one stream entry
+        let e = 1024;
+        for (i, ch) in "Contents".encode_utf16().enumerate() {
+            d[e + i * 2..e + i * 2 + 2].copy_from_slice(&ch.to_le_bytes());
+        }
+        d[e + 64..e + 66].copy_from_slice(&name_len.to_le_bytes());
+        d[e + 66] = 2;
+        d[e + 120..e + 124].copy_from_slice(&1234u32.to_le_bytes());
+        d
+    }
+
+    struct Rng(u64);
+    impl Rng {
+        fn next(&mut self) -> u64 {
+            self.0 ^= self.0 << 13;
+            self.0 ^= self.0 >> 7;
+            self.0 ^= self.0 << 17;
+            self.0
+        }
+    }
+
+    fn battery(b: &[u8]) {
+        let _ = detect(b);
+        let _ = swf_header(b);
+        let _ = swf_frames(b);
+        let _ = cfbf_header(b);
+        let _ = swf::tags(b);
+        let _ = framecount::swf_frame_count(b);
+        let _ = framecount::cfbf_streams(b);
+        let _ = framecount::zip_member(b, "DOMDocument.xml");
+        let _ = xfl::layers(b);
+        let _ = xfl_dom_info(b);
+        let _ = moho::parse(b);
+        let _ = fcp::parse(b);
+        unsafe {
+            let p = flare_cfbf_streams(b.as_ptr(), b.len());
+            flare_moho_free(p);
+            let mut f = 0u32;
+            let _ = flare_xfl_layer_count(b.as_ptr(), b.len(), &mut f);
+            let _ = flare_swf_tag_count(b.as_ptr(), b.len());
+        }
+    }
+
+    fn hammer(name: &str, good: &[u8]) {
+        let mut bad = Vec::new();
+        let mut check = |label: String, v: &[u8]| {
+            if catch_unwind(AssertUnwindSafe(|| battery(v))).is_err() {
+                bad.push(label);
+            }
+        };
+        check("empty".into(), &[]);
+        for n in 0..good.len() {
+            check(format!("truncated to {n}"), &good[..n]);
+        }
+        let mut rng = Rng(0x9E37_79B9_7F4A_7C15);
+        for round in 0..600 {
+            let mut v = good.to_vec();
+            for _ in 0..1 + round % 4 {
+                let i = (rng.next() as usize) % v.len();
+                v[i] = rng.next() as u8;
+            }
+            check(format!("mutation round {round}"), &v);
+        }
+        assert!(bad.is_empty(), "{name}: panics on {:?}", &bad[..bad.len().min(5)]);
+    }
+
+    #[test]
+    fn swf_inputs_never_panic() {
+        hammer("swf", &swf_raw());
+        hammer("cws", &swf_cws());
+    }
+    #[test]
+    fn fla_zip_and_xfl_inputs_never_panic() {
+        hammer("fla zip", &zip(&[("DOMDocument.xml", DOM.as_bytes()), ("LIBRARY/x.xml", b"<a/>")]));
+        hammer("xfl xml", DOM.as_bytes());
+    }
+    #[test]
+    fn legacy_cfbf_never_panics_incl_odd_name_length() {
+        for nl in [0u16, 1, 2, 3, 5, 17, 64, 65, 200, 0xFFFF] {
+            hammer(&format!("cfbf nl={nl}"), &cfbf(nl));
+        }
+        // regression: odd length used to panic (index 1 of a 1-byte chunk)
+        let r = framecount::cfbf_streams(&cfbf(3)).expect("directory parses");
+        assert_eq!(r.len(), 1);
+    }
+    #[test]
+    fn huge_frame_durations_do_not_overflow() {
+        // u32::MAX + 9 used to overflow (panic in debug, wrap in release)
+        assert_eq!(framecount::xfl_frames(DOM.as_bytes()), Some(u32::MAX));
+    }
+    #[test]
+    fn zip_member_reads_our_fixture() {
+        let z = zip(&[("DOMDocument.xml", DOM.as_bytes())]);
+        assert_eq!(framecount::zip_member(&z, "DOMDocument.xml").unwrap(), DOM.as_bytes());
+        assert_eq!(detect(&z), Format::XflZip);
+    }
+    #[test]
+    fn xfl_export_survives_corrupt_documents() {
+        let dir = std::env::temp_dir().join(format!("flare_robust_{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).unwrap();
+        let mut rng = Rng(42);
+        for round in 0..60 {
+            let mut v = DOM.as_bytes().to_vec();
+            if round > 0 {
+                let cut = (rng.next() as usize) % v.len();
+                v.truncate(cut.max(1));
+                if round % 3 == 0 {
+                    let i = (rng.next() as usize) % v.len();
+                    v[i] = rng.next() as u8;
+                }
+            }
+            std::fs::write(dir.join("DOMDocument.xml"), &v).unwrap();
+            let (d, o) = (dir.to_string_lossy().to_string(), dir.join("_svg").to_string_lossy().to_string());
+            let (d, o) = (std::ffi::CString::new(d).unwrap(), std::ffi::CString::new(o).unwrap());
+            // via the FFI entry point: must return text, never abort
+            let p = unsafe { flare_xfl_export_svg(d.as_ptr(), o.as_ptr()) };
+            assert!(!p.is_null(), "round {round}");
+            unsafe { flare_moho_free(p) };
+        }
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+    #[test]
+    fn tenv_ffi_resolver_never_null_and_traces() {
+        let cwd = std::ffi::CString::new("/nonexistent-cwd").unwrap();
+        let mut buf = vec![0u8; 4096];
+        let n = unsafe {
+            flare_tenv_resolve_stuff_dir(
+                std::ptr::null(), std::ptr::null(), std::ptr::null(), cwd.as_ptr(),
+                std::ptr::null(), std::ptr::null(), 0, buf.as_mut_ptr(), buf.len(),
+            )
+        };
+        let text = String::from_utf8_lossy(&buf[..n.min(buf.len())]).to_string();
+        assert!(text.lines().count() > 2 && text.contains("cwd"), "{text}");
+        assert!(text.contains("no stuff directory found"));
+    }
 }

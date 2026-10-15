@@ -42,8 +42,9 @@ PROBES = {
                      "DOMDocument.xml", "library.swf")),
     52: ("JSFL / ZXP / MXP integration",
          lambda: has("flare/sources/flare/flashimport.cpp", "zxp", "mxp", "jsfl")),
-    66: ("App completeness: the shipped readers",
-         lambda: has("flare/sources/common/flash/SWFAssets.h", "IsoBmff", "Ole2Fla")),
+    66: ("macOS bundle: portablestuff inside Contents/MacOS, executable verified",
+         lambda: has(".github/workflows/nightly.yml",
+                     "Flare.app/Contents/MacOS/portablestuff", "missing or not executable")),
     15: ("Migrate features from Tahoma (moho import)",
          lambda: has("flare/sources/common/moho/MohoReader.h", "namespace Moho")),
     49: ("OpenToonz rigging (moho bone/switch reading)",
@@ -74,7 +75,39 @@ PROBES = {
     67: ("Crash with unknown cause",
          lambda: (False, "no report to reproduce")),
     71: ("macOS error",
-         lambda: (False, "no report to reproduce")),
+         lambda: (False, "needs repro: probable Intel-only build without Rosetta "
+                         "(prohibited-sign icon); bundle sealing fixed, see ISSUE_MAP")),
+    # --- startup / import crashes (fixed or mitigated from code reading; the
+    # statuses below are what the probe can prove, not that a user confirmed) ---
+    112: ("FIXED: FLAREROOT env var honoured; APPDIR/portable resolution in Rust",
+          lambda: (has("flare/sources/common/tapptools/tenv.rs",
+                       "pub fn resolve_stuff_dir", "APPDIR")[0]
+                   and has("flare/sources/common/tapptools/tenv.cpp",
+                           "flare_tenv_resolve_stuff_dir", "getenv(m_rootVarName")[0],
+                   "tenv.rs resolver + tenv.cpp caller")),
+    114: ("MITIGATED: stuff-dir re-detected after QApplication; uncaught "
+          "exceptions reported; startup.log",
+          lambda: (has("flare/sources/flare/main.cpp", "flareMain", "startup.log")[0]
+                   and has("flare/sources/common/tapptools/tenv.cpp",
+                           "resolveStuffDir")[0], "main.cpp + tenv.cpp")),
+    116: ("MITIGATED: same root cause as #114",
+          lambda: (has("flare/sources/flare/main.cpp", "reportFatalStartup")[0],
+                   "main.cpp top-level handler")),
+    110: ("MITIGATED (needs repro): top-level handler + startup.log + FFI panic guard",
+          lambda: (has("flare/sources/flare/main.cpp", "reportFatalStartup")[0]
+                   and has("flare/sources/flare_formats.rs", "fn guard<T>")[0],
+                   "handler + log + guard present")),
+    117: ("MITIGATED (needs repro): import guarded, Rust readers hardened, fuzz tests",
+          lambda: (has("flare/sources/flare/flashimport.cpp", "executeImpl")[0]
+                   and has("flare/sources/common/flash/framecount.rs",
+                           "chunks_exact", "MAX_INFLATE")[0]
+                   and has("flare/sources/common/flash/ac_xfl_fuzz_tests.rs",
+                           "corrupt_fla_zip_never_panics")[0], "guard + hardening + tests")),
+    98: ("FIXED (unverified on a Mac): dylib bundler resolves via brew --prefix + @rpath",
+         lambda: (has("ci-scripts/osx/bundle-homebrew-dylibs.sh",
+                      "brew --prefix", "@rpath", "non-portable dependency")[0]
+                  and "Cellar/ffmpeg" not in (read("ci-scripts/osx/bundle-homebrew-dylibs.sh") or ""),
+                  "script rewritten")),
 }
 
 
