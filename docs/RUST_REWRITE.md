@@ -254,7 +254,7 @@ A module is considered fully ported when:
 1. A Rust implementation exists under:
 
    ```text
-   common/<subsystem>/rust/<name>.rs
+   <module dir>/<name>.rs  (same dir as the .cpp it replaces)
    ```
 
 2. The module is registered in:
