@@ -1,0 +1,28 @@
+[package]
+name = "ac-render"
+description = "Flare rendering: CPU rasterizer (tiny-skia), SVG and GIF export"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lib]
+name = "ac_render"
+path = "ac_render.rs"
+
+[dependencies]
+ac-core.workspace = true
+ac-audio.workspace = true
+tiny-skia.workspace = true
+gif.workspace = true
+png.workspace = true
+fontdb = "0.22"
+ab_glyph = "0.2"
+image = { version = "0.25", default-features = false, features = ["jpeg"] }
+color_quant = "1.1"
+effectcraft-effects.workspace = true
+effectcraft-raster.workspace = true
+effectcraft-keyframe.workspace = true
+effectcraft-project.workspace = true
+
+[dev-dependencies]
+serde_json.workspace = true

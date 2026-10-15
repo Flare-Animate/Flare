@@ -1,0 +1,20 @@
+[package]
+name = "ac-xfl"
+description = "Flare: XFL / .fla (CS5+) import and export"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lib]
+name = "ac_xfl"
+path = "ac_xfl.rs"
+
+[dependencies]
+ac-core.workspace = true
+roxmltree = "0.20"
+zip = { version = "2", default-features = false, features = ["deflate"] }
+flate2 = "1"
+# art brushes: their artwork is SVG inside PaintBrushDefinitions.xml
+usvg = "0.44"
+serde_json.workspace = true
+image = { version = "0.25", default-features = false, features = ["png", "jpeg", "gif", "bmp"] }

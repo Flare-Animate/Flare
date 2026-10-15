@@ -1,0 +1,24 @@
+[package]
+name = "ac-audio"
+description = "Flare audio: decoding, timeline mixing, waveforms, lip-sync analysis, playback"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lib]
+name = "ac_audio"
+path = "ac_audio.rs"
+
+[features]
+default = []
+# Live playback through the system's audio output (needs ALSA headers on Linux).
+playback = ["dep:cpal"]
+
+[dependencies]
+ac-core.workspace = true
+symphonia = { version = "0.5", default-features = false, features = ["mp3", "ogg", "vorbis", "wav", "pcm", "flac", "aiff"] }
+cpal = { version = "0.15", optional = true }
+serde_json.workspace = true
+
+[dev-dependencies]
+serde_json.workspace = true
