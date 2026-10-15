@@ -126,7 +126,6 @@ set(SOURCES
     gradients.cpp
     hsvkeyfx.cpp
     hsvscalefx.cpp
-    hsvutil.cpp
     kaleido.cpp
     linearwavefx.cpp
     localblurfx.cpp
@@ -184,7 +183,6 @@ set(SOURCES
     igs_motion_wind.cpp
     igs_motion_wind_pixel.cpp
     igs_motion_wind_table.cpp
-    igs_perlin_noise.cpp
     igs_radial_blur.cpp
     igs_resource_msg_from_err.cpp
     igs_resource_multithread.cpp

@@ -104,6 +104,10 @@ pub mod igs_math_random;
 pub mod igs_gauss_distribution;
 #[path = "stdfx/igs_negate.rs"]
 pub mod igs_negate;
+#[path = "stdfx/hsvutil.rs"]
+pub mod hsvutil;
+#[path = "stdfx/igs_perlin_noise.rs"]
+pub mod igs_perlin_noise;
 #[path = "stdfx/igs_density.rs"]
 pub mod igs_density;
 #[path = "stdfx/igs_warp_hori.rs"]

@@ -41,6 +41,8 @@ Crate manifest: `flare/sources/Cargo.toml`. Tests: `python tests/run_rust.py`.
 | stdfx | stdfx/igs_median_filter_smooth.cpp | stdfx/igs_median_filter_smooth.rs | 5 | coarse |
 | stdfx | stdfx/igs_hsv_noise.cpp | stdfx/igs_hsv_noise.rs | 11 | coarse (also hosts the noise plane / limit helpers shared with hls_noise) |
 | stdfx | stdfx/igs_hls_noise.cpp | stdfx/igs_hls_noise.rs | 7 | coarse |
+| stdfx | stdfx/hsvutil.cpp | stdfx/hsvutil.rs | 5 | fine (scalar OLDRGB2HSV/OLDHSV2RGB; 2M random cases bit-identical to C++) |
+| stdfx | stdfx/igs_perlin_noise.cpp | stdfx/igs_perlin_noise.rs | 6 | coarse (8/16-bit + float; carries a private bit-identical copy of `Noise1234::noise(x,y,z)`; `iwa_noise1234.cpp` stays C++ because its per-pixel callers are C++; 150 random images bit-identical) |
 | sound | sound/tsioutils.cpp | sound/tsioutils.rs | (earlier) | coarse |
 | tnzbase | tnzbase/permissionsmanager.cpp | tnzbase/permissionsmanager.rs | (earlier) | fine |
 
@@ -55,3 +57,8 @@ Batch 2 notes (13 `stdfx/igs_*` kernels, +104 tests, workspace 802 -> 906):
 - Deliberate deviations (only where the C++ was undefined behaviour): integer `igs_levels` with `clamp_sw == false` saturates instead of wrapping on x86 (both callers pass `true`); `igs_level_auto_in_camera` clamps the camera rectangle to the image; hue wrap loops skip non-finite / |hue| >= 1e7 values instead of spinning.
 - Rejected candidates: see "Rejected" in RUST_REWRITE.md (Ported so far, wave 4).
 
+Batch 3 notes (`stdfx/hsvutil`, `stdfx/igs_perlin_noise`, +11 tests):
+- Both verified against the old C++ with a differential harness (original .cpp from git linked next to `libflare_formats.a`): 2,000,000 random RGB/HSV cases and 150 random perlin images (8/16/float, 1/3/4 channels, wrap > width, with/without alpha rendering) gave 0 mismatches.
+- `igs_perlin_noise` header forwarder throws `std::domain_error("Bad bits,Not uchar/ushort")` (status 1) or `std::invalid_argument` (status 2: null image, negative size, channels <= 0, misaligned 16-bit/float buffer).
+- Deviations only where the C++ was UB: `OLDRGB2HSV` with NaN input returns hue 0 (C++ read an uninitialised value); null output pointers are skipped.
+- Skipped: `perlinnoise.cpp` (TRaster/TSpectrumParam), `igs_attenuation_distribution`/`igs_motion_wind_table`/`igs_maxmin*` (already rejected, see RUST_REWRITE.md), `gammafx`/`posterizefx` and other `*fx.cpp` (TRasterFx classes, Qt/TRasterFxPort bound).
