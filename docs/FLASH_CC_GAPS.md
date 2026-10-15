@@ -159,7 +159,7 @@ review plus relevant functional/geometry checks. P1 remains open; Flex/SWF P7/P8
 
 ## Module map and pairings
 
-Paths beginning `Studio/` mean `flare/sources/flare/rust/studio/` in this repo.
+Paths beginning `Studio/` mean `flare/sources/toonzqt/` in this repo.
 `AC/`, `VC/`, and `PC/` mean sibling checkouts AnimationCraft, VectorCraft, and
 PhotoCraft. Dependencies below describe implementation order, not separate apps.
 

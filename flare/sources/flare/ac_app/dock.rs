@@ -5,7 +5,7 @@
 //! the standard one.
 //!
 //! The behaviour follows Flare Studio's workspace docking
-//! (`flare/rust/studio/workspace.rs`, Flare-Animate/Flare 8a75f53); this is our
+//! (`toonzqt/workspace.rs`, Flare-Animate/Flare 8a75f53); this is our
 //! own egui code and our own look. Floating panels and arbitrary tab groups
 //! are later work (they need a newer egui).
 

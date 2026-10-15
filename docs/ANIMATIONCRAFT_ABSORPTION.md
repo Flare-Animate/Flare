@@ -121,3 +121,7 @@ Crate `minnamate-core` (clean-room, no upstream licence file; see `flare/sources
 | `flareqt/` `stdfx/` `flare/` | mm_filters; mm_gradient; mm_edit |
 
 Overlap pairs to merge: mm_motion <-> common/tparam/motion.rs; mm_layer_tree <-> flarelib/model.rs (layers); mm_filters <-> stdfx/fx.rs; mm_erase (vs AnimationCraft erase tooling); mm_text <-> common/tvrender/text.rs; mm_doc <-> flarelib/model.rs; mm_edit <-> flarelib/editor.rs.
+
+## Studio location
+
+The egui/wgpu Studio workspace (`flare-studio`, formerly `flare/rust/studio`) now lives in `flare/sources/toonzqt/` (OpenToonz's Qt widget library: widgets, theme, chrome). Root files are `studio_lib.rs` and `studio_main.rs`; `locales/` and `assets/` sit beside them. It depends on `ac-core` (`flarelib`, feature `retain-tween-curves`) and `ac-render` (`common/tvrender`) by path; the private AnimationCraft git pin and `[patch]` are gone. PhotoCraft/ArtCraft attribution is unchanged (`toonzqt/assets/ATTRIBUTION.md`, `THIRD-PARTY-NOTICES.md`).

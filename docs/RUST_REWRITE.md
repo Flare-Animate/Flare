@@ -33,7 +33,7 @@ flare/sources/<module>/<name>.cpp  ->  flare/sources/<module>/<name>.rs
 
 Examples already in place: `common/flash/{swf,xfl,fcp,framecount,xflrender,symlib,cfbf}.rs`, `common/moho/moho.rs`, `common/tapptools/tenv.rs`, `common/tsystem/tfilepath.rs`, `tnzbase/permissionsmanager.rs`, `sound/tsioutils.rs`. The original `.cpp` is deleted once its Rust replacement is verified; headers remain only as thin C-ABI forwarders while C++ callers exist.
 
-The temporary crate root is `flare/sources/flare_formats.rs` (scaffolding that disappears with the last C++ file). `flare/sources/flare/rust/{core,studio}` is the imported AnimationCraft editor and is scheduled to be decomposed into the matching module directories (see ANIMATIONCRAFT_ABSORPTION.md).
+The temporary crate root is `flare/sources/flare_formats.rs` (scaffolding that disappears with the last C++ file). The imported AnimationCraft editor lives in the matching module directories (`flarelib/`, `toonzqt/`, ...; see ANIMATIONCRAFT_ABSORPTION.md). There is no `rust/` folder.
 
 ### Crate roots
 
@@ -52,7 +52,7 @@ A crate is the directory holding its `Cargo.toml`; the root `.rs` is named by `[
 | `ac-package` | `common/tsystem/` | `Cargo.toml` / `ac_package.rs` |
 | `ac-app` (bin `flare`, egui) | `flare/` | `Cargo.toml` / `ac_app_main.rs` (modules `ac_app/*.rs`, `build.rs`, `assets/`) |
 | `ac-cli` (bin `flare-cli`) | `flareqt/` | `Cargo.toml` / `ac_cli_main.rs` (`examples/`) |
-| `studio` (excluded, private git deps) | `flare/rust/studio/` | unchanged |
+| `flare-studio` (bin `flare-studio`, egui/wgpu) | `toonzqt/` | `Cargo.toml` / `studio_lib.rs`, `studio_main.rs` (`locales/`, `assets/`, `snapshot.rs` example) |
 
 CMake imports `flare_formats` via `cmake/FlareFormats.cmake` (always on).
 
@@ -149,7 +149,7 @@ is the product.
 The Studio workspace:
 
 ```text
-flare/sources/flare/rust/studio/
+flare/sources/toonzqt/
 ```
 
 began life as a separate executable but is being merged into the main application rather than being shipped as a second editor.
@@ -314,9 +314,9 @@ In short, Flare's end state is a unified Rust implementation of the OpenToonz/Ta
 - `tnzbase/permissionsmanager.rs` (cpp deleted; header forwards via C ABI). Tests: `cargo test --lib permissions`.
 - `sound/tsioutils.rs` (cpp deleted; header is extern "C"). Tests: `cargo test --lib tsioutils`.
 
-### Tooling survey and state of `flare/rust/`
+### Tooling survey
 - Automated C/C++→Rust tools exist (c2rust: rule-based, unsafe output; LLM+static-analysis research tools SACTOR, SmartC2Rust, RustMap, SafeTrans). None handle Qt/C++ class hierarchies; output would violate the safe-idiomatic rule. Port is manual, per file, test-verified.
-- `ac-core` (≈24k LOC; now spread across the OpenToonz-matching directories, crate root `flare/sources/flarelib/ac_core.rs`) and `studio` (≈14k LOC) are the AnimationCraft editor, a different architecture from OpenToonz; they are not a line-matching port. Counted against the 2.3k C++ files, the matching rewrite is a few modules deep.
+- `ac-core` (≈24k LOC; now spread across the OpenToonz-matching directories, crate root `flare/sources/flarelib/ac_core.rs`) and `flare-studio` (`toonzqt/`, ≈14k LOC) are the AnimationCraft editor, a different architecture from OpenToonz; they are not a line-matching port. Counted against the 2.3k C++ files, the matching rewrite is a few modules deep.
 
 ## ac-core file locations (under `flare/sources`)
 

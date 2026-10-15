@@ -14,9 +14,9 @@ members = [
     "common/tsystem",      # ac-package
     "flare",               # ac-app (bin flare)
     "flareqt",             # ac-cli (bin flare-cli)
+    "toonzqt",             # flare-studio (egui workspace: widgets/theme/chrome)
 ]
 resolver = "2"
-exclude = ["flare/rust/studio"]  # needs private AnimationCraft git deps
 
 [workspace.package]
 version = "0.1.0"

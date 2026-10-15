@@ -6,11 +6,11 @@ license = "BSD-3-Clause"
 description = "Native Flare animation workspace"
 
 [lib]
-path = "lib.rs"
+path = "studio_lib.rs"
 
 [[bin]]
 name = "flare-studio"
-path = "main.rs"
+path = "studio_main.rs"
 
 [dependencies]
 eframe = { version = "=0.36.2", default-features = false, features = ["default_fonts", "wgpu", "persistence", "x11", "wayland", "accesskit"] }
@@ -23,8 +23,8 @@ sys-locale = "0.3"
 rfd = "0.17"
 tiny-skia = "0.11"
 tempfile = "3"
-ac-core = { git = "https://github.com/KMSDax/AnimationCraft", rev = "e3f25db0140ea24590184b117e928e35f5bc6302", features = ["retain-tween-curves"] }
-ac-render = { git = "https://github.com/KMSDax/AnimationCraft", rev = "e3f25db0140ea24590184b117e928e35f5bc6302" }
+ac-core = { path = "../flarelib", features = ["retain-tween-curves"] }
+ac-render = { path = "../common/tvrender" }
 
 [dev-dependencies]
 egui_kittest = { version = "=0.36.2", features = ["wgpu", "snapshot", "eframe"] }
@@ -32,8 +32,3 @@ egui_kittest = { version = "=0.36.2", features = ["wgpu", "snapshot", "eframe"] 
 [[example]]
 name = "studio_snapshot"
 path = "snapshot.rs"
-
-# Studio and the pinned ac-render use Flare's copy of the core (../../../flarelib, see its
-# ORIGIN.md), one shared document type with Flare's timeline semantics.
-[patch."https://github.com/KMSDax/AnimationCraft"]
-ac-core = { path = "../../../flarelib" }

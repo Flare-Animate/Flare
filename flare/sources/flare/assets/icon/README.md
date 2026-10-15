@@ -2,7 +2,7 @@
 
 `flare.png` (256 × 256) is Flare's application icon, taken unchanged from the
 Flare repository (`Flare-Animate/flare`: `flare/sources/flare/Flare.ico`, also
-`flare/sources/flare/rust/studio/assets/flare-icon.png`; added in Flare's
+`flare/sources/toonzqt/assets/flare-icon.png`; added in Flare's
 rebrand, PR #23, March 2026). BSD-3-Clause, © Flare contributors (see
 `THIRD-PARTY-NOTICES.md`). It is Flare's own artwork, not an Adobe resource.
 
