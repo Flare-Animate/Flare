@@ -4,9 +4,12 @@
 #define PERMISSIONSMANAGER_INCLUDED
 
 #include <memory>
+#include <string>
 
 // TnzCore includes
 #include "tcommon.h"
+#include "tenv.h"
+#include "tsystem.h"
 
 #undef DVAPI
 #undef DVVAR
@@ -21,23 +24,42 @@
 extern "C" typedef void (*LICENSE_OBSERVER_CB)(char *);
 
 //************************************************************************
-//    PermissionsManager  declaration
+//    PermissionsManager  declaration (implemented in
+//    tnzbase/permissionsmanager.rs; this header only forwards to it)
 //************************************************************************
+
+extern "C" {
+void flare_permissions_init(const char *configDir, const char *userName);
+char *flare_permissions_svn_username(int index);
+char *flare_permissions_svn_password(int index);
+void flare_permissions_free(char *p);
+}
 
 class DVAPI PermissionsManager  // singleton
 {
 public:
-  static PermissionsManager *instance();
-  std::string getSVNUserName(int index) const;
-  std::string getSVNPassword(int index) const;
+  static PermissionsManager *instance() {
+    static PermissionsManager _instance;
+    return &_instance;
+  }
+  std::string getSVNUserName(int index) const {
+    return take(flare_permissions_svn_username(index));
+  }
+  std::string getSVNPassword(int index) const {
+    return take(flare_permissions_svn_password(index));
+  }
 
 private:
-  class Imp;
-  std::unique_ptr<Imp> m_imp;
-
-private:
-  PermissionsManager();
-  ~PermissionsManager();
+  PermissionsManager() {
+    flare_permissions_init(
+        TEnv::getConfigDir().getQString().toUtf8().constData(),
+        TSystem::getUserName().toUtf8().constData());
+  }
+  static std::string take(char *p) {
+    std::string s = p ? p : "";
+    flare_permissions_free(p);
+    return s;
+  }
 };
 
 #endif

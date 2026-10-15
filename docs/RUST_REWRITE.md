@@ -304,3 +304,11 @@ A module is only finished when the Rust version becomes the authoritative implem
 | OpenToonz / Tahoma2D | Upstream structure, module layout, and subsystem architecture |
 
 In short, Flare's end state is a unified Rust implementation of the OpenToonz/Tahoma2D architecture, augmented by functionality derived from AnimationCraft, Next2Flash, and NFlare, while preserving upstream compatibility, subsystem structure, and long-term maintainability.
+
+
+## Placement correction (supersedes the `rust/` subfolder rule above)
+
+Ported files now live **beside** the C++ they replace (e.g. `tnzbase/permissionsmanager.rs`), with no `rust/` subfolder. Existing `common/*/rust/` files migrate to their parent dir as they are touched. C++ files are deleted once ported; headers stay as thin C-ABI forwarders only while C++ callers remain.
+
+### Ported so far (branch `Conversion-ft-animationCraft`)
+- `tnzbase/permissionsmanager.rs` (cpp deleted; header forwards via C ABI). Tests: `cargo test --lib permissions`.

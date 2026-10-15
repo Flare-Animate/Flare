@@ -65,7 +65,6 @@ set(HEADERS ${MOC_HEADERS}
 )
 
 set(SOURCES
-    permissionsmanager.cpp
     stringtable.cpp
     ../common/tparam/tcubicbezier.cpp
     ../common/tparam/tdoublekeyframe.cpp

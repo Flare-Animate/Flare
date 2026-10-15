@@ -8,6 +8,8 @@ use std::slice;
 pub mod cfbf;
 #[path = "../common/flash/rust/fcp.rs"]
 pub mod fcp;
+#[path = "../tnzbase/permissionsmanager.rs"]
+pub mod permissionsmanager;
 #[path = "../common/moho/rust/moho.rs"]
 pub mod moho;
 #[path = "../common/flash/rust/swf.rs"]
