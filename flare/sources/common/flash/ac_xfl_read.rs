@@ -547,7 +547,7 @@ impl Reader<'_> {
                     let mut e = el(n.attribute("name").unwrap_or(""), matrix_of(n), ElementKind::Instance(Instance { symbol, loop_mode, first_frame: f(n, "firstFrame", 0.0) as u32 }));
                     self.color_effect(n, &mut e);
                     e.filters = self.filters(n);
-                    e.cache_as_bitmap = flag(n, "cacheAsBitmap");
+                    e.cache_as_bitmap = flag(n, "cacheAsBitmap") || n.attribute("bitmapRenderMode") == Some("cache");
                     e.export_as_bitmap = flag(n, "exportAsBitmap");
                     e.visible = n.attribute("isVisible") != Some("false");
                     if let Some(b) = n.attribute("blendMode") {

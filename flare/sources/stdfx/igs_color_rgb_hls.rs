@@ -120,10 +120,12 @@ pub fn hls_to_rgb(hue: f64, lig: f64, sat: f64, cylindrical: bool) -> (f64, f64,
 pub unsafe extern "C" fn flare_igs_rgb_to_hls(
     red: f64, gre: f64, blu: f64, hue: *mut f64, lig: *mut f64, sat: *mut f64, cylindrical: bool,
 ) {
+    let _ = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
     let (h, l, s) = rgb_to_hls(red, gre, blu, cylindrical);
     *hue = h;
     *lig = l;
     *sat = s;
+}));
 }
 
 /// # Safety
@@ -132,10 +134,12 @@ pub unsafe extern "C" fn flare_igs_rgb_to_hls(
 pub unsafe extern "C" fn flare_igs_hls_to_rgb(
     hue: f64, lig: f64, sat: f64, red: *mut f64, gre: *mut f64, blu: *mut f64, cylindrical: bool,
 ) {
+    let _ = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
     let (r, g, b) = hls_to_rgb(hue, lig, sat, cylindrical);
     *red = r;
     *gre = g;
     *blu = b;
+}));
 }
 
 #[cfg(test)]

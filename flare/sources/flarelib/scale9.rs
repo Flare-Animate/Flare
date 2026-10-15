@@ -93,22 +93,38 @@ fn crossings(p: [Pt; 4], line: f32, on_x: bool, out: &mut Vec<f32>) {
         (if on_x { q.x } else { q.y }) - line
     };
     const N: usize = 32;
+    let sign = |v: f32| if v > 0.0 { 1i8 } else if v < 0.0 { -1 } else { 0 };
+    // `last` is the last non-zero sign seen; `zero_at` the first sample of a
+    // run of exact-zero samples (a sample landing exactly on the grid line).
     let mut prev = f(0.0);
+    let mut last = sign(prev);
+    let mut zero_at: Option<usize> = if prev == 0.0 { Some(0) } else { None };
     for i in 1..=N {
         let t1 = i as f32 / N as f32;
         let cur = f(t1);
-        if (prev < 0.0 && cur > 0.0) || (prev > 0.0 && cur < 0.0) {
-            let (mut lo, mut hi) = ((i - 1) as f32 / N as f32, t1);
-            let neg_first = prev < 0.0;
-            for _ in 0..40 {
-                let mid = (lo + hi) / 2.0;
-                if (f(mid) < 0.0) == neg_first {
-                    lo = mid;
-                } else {
-                    hi = mid;
+        if cur == 0.0 {
+            zero_at.get_or_insert(i);
+        } else {
+            if let Some(z) = zero_at.take() {
+                // passed through the line exactly at a sample: a crossing only
+                // when the signs before and after differ (a touch is not one)
+                if last != 0 && last != sign(cur) {
+                    out.push(z as f32 / N as f32);
                 }
+            } else if prev != 0.0 && sign(prev) != sign(cur) {
+                let (mut lo, mut hi) = ((i - 1) as f32 / N as f32, t1);
+                let neg_first = prev < 0.0;
+                for _ in 0..40 {
+                    let mid = (lo + hi) / 2.0;
+                    if (f(mid) < 0.0) == neg_first {
+                        lo = mid;
+                    } else {
+                        hi = mid;
+                    }
+                }
+                out.push((lo + hi) / 2.0);
             }
-            out.push((lo + hi) / 2.0);
+            last = sign(cur);
         }
         prev = cur;
     }

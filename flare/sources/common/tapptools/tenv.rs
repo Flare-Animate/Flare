@@ -88,14 +88,6 @@ pub fn resolve_stuff_dir(inp: &StuffInputs, is_dir: &dyn Fn(&Path) -> bool) -> S
     } else {
         trace.push("command-line FLAREROOT: not set".into());
     }
-    if let Some(v) = nonempty(&inp.env_root) {
-        if let Some(p) = try_dir("env FLAREROOT", absolutize(v, &inp.cwd), &mut trace) {
-            return done(p, false, trace);
-        }
-    } else {
-        trace.push("env FLAREROOT: not set".into());
-    }
-
     // 2. Portable layouts: next to the working dir, then next to the executable
     //    (Windows portable zip, AppImage usr/bin), then the macOS bundle.
     const PORTABLE: [&str; 2] = ["portablestuff", "tahomastuff"];
@@ -120,7 +112,7 @@ pub fn resolve_stuff_dir(inp: &StuffInputs, is_dir: &dyn Fn(&Path) -> bool) -> S
             res.push(e.join("..").join("Resources"));
         }
         for r in res {
-            for leaf in ["tahomastuff", "portablestuff", "stuff"] {
+            for leaf in ["tahomastuff", "portablestuff"] {
                 if let Some(p) = try_dir("macOS bundle Resources", r.join(leaf), &mut trace) {
                     return done(p, true, trace);
                 }
@@ -128,11 +120,26 @@ pub fn resolve_stuff_dir(inp: &StuffInputs, is_dir: &dyn Fn(&Path) -> bool) -> S
         }
     }
 
-    // 3. Per-user root recorded in SystemVar.ini (seeded on first run).
-    if let Some(v) = nonempty(&inp.ini_root) {
-        if let Some(p) = try_dir("SystemVar.ini root", absolutize(v, &inp.cwd), &mut trace) {
+    // 2b. Environment FLAREROOT: only when no portable install was found above
+    //     (a portable install wins over a stray env var).
+    if let Some(v) = nonempty(&inp.env_root) {
+        if let Some(p) = try_dir("env FLAREROOT", absolutize(v, &inp.cwd), &mut trace) {
             return done(p, false, trace);
         }
+    } else {
+        trace.push("env FLAREROOT: not set".into());
+    }
+
+    // 3. Per-user root recorded in SystemVar.ini (seeded on first run).
+    if let Some(v) = nonempty(&inp.ini_root) {
+        // An explicitly configured root that is gone is an error the user must
+        // see ("folder not found"); do not silently use an installed layout.
+        let p = try_dir("SystemVar.ini root", absolutize(v, &inp.cwd), &mut trace);
+        if let Some(p) = p {
+            return done(p, false, trace);
+        }
+        trace.push("SystemVar.ini root is set but missing: not falling back to installed layouts".into());
+        return StuffResolution { path: None, portable: false, trace };
     } else {
         trace.push("SystemVar.ini root: not set".into());
     }
@@ -195,7 +202,7 @@ mod t {
     fn env_var_set_and_valid() {
         let mut i = base();
         i.env_root = Some("/opt/stuff".into());
-        let r = resolve_stuff_dir(&i, &fs(&["/opt/stuff", "/work/portablestuff"]));
+        let r = resolve_stuff_dir(&i, &fs(&["/opt/stuff"]));
         assert_eq!(r.path, Some(PathBuf::from("/opt/stuff")));
         assert!(!r.portable);
     }
@@ -282,15 +289,41 @@ mod t {
         i.exe_dir = Some(PathBuf::from("/Applications/Flare.app/Contents/MacOS"));
         let r = resolve_stuff_dir(
             &i,
-            &fs(&["/Applications/Flare.app/Contents/MacOS/../Resources/stuff"]),
+            &fs(&["/Applications/Flare.app/Contents/MacOS/../Resources/portablestuff"]),
         );
         assert!(r.path.is_some() && r.portable);
+        // plain "stuff" in Resources is NOT portable
+        assert_eq!(
+            resolve_stuff_dir(&i, &fs(&["/Applications/Flare.app/Contents/MacOS/../Resources/stuff"])).path,
+            None
+        );
         // not consulted on other platforms
         i.is_macos = false;
         assert_eq!(
             resolve_stuff_dir(&i, &fs(&["/Applications/Flare.app/Contents/MacOS/../Resources/stuff"])).path,
             None
         );
+    }
+
+    #[test]
+    fn ini_root_missing_does_not_fall_through_to_installed() {
+        let mut i = base();
+        i.ini_root = Some("/gone/stuff".into());
+        let r = resolve_stuff_dir(&i, &fs(&["/usr/share/flare/stuff"]));
+        assert_eq!(r.path, None);
+        assert!(r.trace.iter().any(|l| l.contains("/gone/stuff") && l.contains("missing")));
+        // unset ini root still falls through
+        i.ini_root = None;
+        assert!(resolve_stuff_dir(&i, &fs(&["/usr/share/flare/stuff"])).path.is_some());
+    }
+
+    #[test]
+    fn portable_beats_env_flareroot() {
+        let mut i = base();
+        i.env_root = Some("/opt/stuff".into());
+        let r = resolve_stuff_dir(&i, &fs(&["/opt/stuff", "/work/portablestuff"]));
+        assert_eq!(r.path, Some(PathBuf::from("/work/portablestuff")));
+        assert!(r.portable);
     }
 
     #[test]

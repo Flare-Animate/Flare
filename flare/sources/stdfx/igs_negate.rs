@@ -128,7 +128,10 @@ pub unsafe fn change(image_array: *mut u8, height: i32, width: i32, channels: i3
 pub unsafe extern "C" fn flare_igs_negate_change(
     image_array: *mut u8, height: i32, width: i32, channels: i32, bits: i32, sw_array: *const bool,
 ) -> i32 {
+    // a panic must never unwind into C++: report invalid_argument (3)
+    std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
     change(image_array, height, width, channels, bits, sw_array)
+})).unwrap_or(3)
 }
 
 #[cfg(test)]

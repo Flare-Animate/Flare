@@ -129,7 +129,10 @@ pub unsafe extern "C" fn flare_igs_warp_hori_change(
     alpha_rendering_sw: bool,
     anti_aliasing_sw: bool,
 ) -> i32 {
+    // a panic must never unwind into C++: report invalid_argument (3)
+    std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
     hori_change_raw(image, height, width, channels, refer, refchannels, refcc, maxlen, alpha_rendering_sw, anti_aliasing_sw)
+})).unwrap_or(3)
 }
 
 #[cfg(test)]

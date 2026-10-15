@@ -1,3 +1,4 @@
+#include <mutex>
 #include "tenv.h"
 #include "tsystem.h"
 #include "tconvert.h"
@@ -217,6 +218,9 @@ public:
   }
 
   TFilePath getStuffDir() {
+    // Serialise resolve-and-cache: callers may race at startup.
+    static std::mutex s_stuffDirMutex;
+    std::lock_guard<std::mutex> lock(s_stuffDirMutex);
     if (m_stuffDir) return *m_stuffDir;
     TFilePath resolved;
     m_stuffDirTrace = resolveStuffDir(resolved);

@@ -61,8 +61,12 @@ pub fn to_json(presets: &[MotionPreset]) -> String {
     serde_json::to_string_pretty(presets).expect("presets serialise")
 }
 
+/// Largest frame number a preset may use (guards hostile / corrupt files).
+pub const MAX_PRESET_FRAME: u32 = 100_000;
+
 pub fn from_json(s: &str) -> Result<Vec<MotionPreset>, String> {
-    serde_json::from_str(s).map_err(|e| format!("not a motion preset file: {e}"))
+    let list: Vec<MotionPreset> = serde_json::from_str(s).map_err(|e| format!("not a motion preset file: {e}"))?;
+    Ok(list.into_iter().map(|p| p.sanitized()).collect())
 }
 
 /// Value of a preset track at frame `f` (corner/linear between keys, held outside).
@@ -75,11 +79,26 @@ fn track_value(keys: &[PresetKey], f: f32, neutral: f32) -> f32 {
         return last.v;
     }
     let i = keys.windows(2).position(|w| f >= w[0].f as f32 && f <= w[1].f as f32).unwrap_or(0);
-    let (a, b) = (&keys[i], &keys[i + 1]);
-    a.v + (b.v - a.v) * (f - a.f as f32) / (b.f - a.f).max(1) as f32
+    let Some(b) = keys.get(i + 1) else { return last.v };
+    let a = &keys[i];
+    a.v + (b.v - a.v) * (f - a.f as f32) / b.f.saturating_sub(a.f).max(1) as f32
 }
 
 impl MotionPreset {
+    /// A copy with every track sorted by frame (stable) and frames clamped to
+    /// `MAX_PRESET_FRAME`, so evaluation never sees unsorted or absurd keys.
+    pub fn sanitized(&self) -> MotionPreset {
+        let mut p = self.clone();
+        p.frames = p.frames.min(MAX_PRESET_FRAME);
+        for keys in p.tracks.values_mut() {
+            for k in keys.iter_mut() {
+                k.f = k.f.min(MAX_PRESET_FRAME);
+            }
+            keys.sort_by_key(|k| k.f);
+        }
+        p
+    }
+
     /// The last key frame: the preset runs over `last_frame() + 1` frames.
     pub fn last_frame(&self) -> u32 {
         self.tracks.values().flatten().map(|k| k.f).max().unwrap_or(0).max(self.frames).max(1)
@@ -91,6 +110,10 @@ impl MotionPreset {
 
     /// The motion this preset makes for `base` (pose about `pivot`) over `len` frames.
     pub fn motion_for(&self, base: &Pose, pivot: Pt, len: u32) -> Motion {
+        self.sanitized().motion_for_clean(base, pivot, len)
+    }
+
+    fn motion_for_clean(&self, base: &Pose, pivot: Pt, len: u32) -> Motion {
         let mut m = Motion::new(pivot);
         let src_last = self.last_frame() as f32;
         let len = len.max(2);

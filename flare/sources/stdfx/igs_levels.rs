@@ -373,7 +373,21 @@ pub unsafe fn change_raw(
         Kind::F32 => (4, 4),
     };
     if (image_array as usize) % isz != 0 || (!refp.is_null() && (refp as usize) % rsz != 0) {
-        return BAD_ARG;
+        // Misaligned buffers (the C++ read them byte-wise through casts): work on
+        // aligned copies and write the image back.
+        let copy = |p: *const u8, bytes: usize| -> Vec<u64> {
+            let mut v = vec![0u64; bytes.div_ceil(8)];
+            std::ptr::copy_nonoverlapping(p, v.as_mut_ptr() as *mut u8, bytes);
+            v
+        };
+        let mut img = copy(image_array, n * isz);
+        let rf = if refp.is_null() { None } else { Some(copy(refp, n * rsz)) };
+        let rp = rf.as_ref().map_or(std::ptr::null(), |v| v.as_ptr() as *const u8);
+        let st = change_raw(img.as_mut_ptr() as *mut u8, height, width, channels, bits, rp, ref_bits, ref_mode, lv);
+        if st == OK {
+            std::ptr::copy_nonoverlapping(img.as_ptr() as *const u8, image_array, n * isz);
+        }
+        return st;
     }
     macro_rules! r {
         ($t:ty) => {
@@ -432,6 +446,8 @@ pub unsafe extern "C" fn flare_igs_levels_change(
     alpha_sw: bool,
     add_blend_sw: bool,
 ) -> i32 {
+    // a panic must never unwind into C++: report invalid_argument (3)
+    std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
     let lv = Levels {
         in_min: [r_in_min, g_in_min, b_in_min, a_in_min],
         in_max: [r_in_max, g_in_max, b_in_max, a_in_max],
@@ -443,6 +459,7 @@ pub unsafe extern "C" fn flare_igs_levels_change(
         add_blend_sw,
     };
     change_raw(image_array, height, width, channels, bits, refp, ref_bits, ref_mode, &lv)
+})).unwrap_or(3)
 }
 
 #[cfg(test)]
@@ -620,6 +637,22 @@ mod tests {
     }
 
     #[test]
+    fn misaligned_u16_matches_aligned_result() {
+        let lv = Levels { gamma: [2.0; 4], ..ident() };
+        let vals = [1000u16, 20000, 65535, 0];
+        let mut a = vals;
+        unsafe { assert_eq!(change_raw(a.as_mut_ptr() as *mut u8, 1, 4, 1, 16, std::ptr::null(), 0, 0, &lv), OK) };
+        let mut raw = [0u8; 9];
+        for (k, v) in vals.iter().enumerate() {
+            raw[1 + k * 2..3 + k * 2].copy_from_slice(&v.to_ne_bytes());
+        }
+        unsafe { assert_eq!(change_raw(raw.as_mut_ptr().add(1), 1, 4, 1, 16, std::ptr::null(), 0, 0, &lv), OK) };
+        for (k, want) in a.iter().enumerate() {
+            assert_eq!(u16::from_ne_bytes([raw[1 + k * 2], raw[2 + k * 2]]), *want);
+        }
+    }
+
+    #[test]
     fn errors() {
         let mut b = [0u8; 8];
         let mut w = [0u16; 4];
@@ -630,7 +663,7 @@ mod tests {
             assert_eq!(change_raw(b.as_mut_ptr(), 1, 1, 1, 32, std::ptr::null(), 0, 0, &lv), BAD_BITS); // 32 is not the float code
             assert_eq!(change_raw(std::ptr::null_mut(), 1, 1, 1, 8, std::ptr::null(), 0, 0, &lv), BAD_ARG);
             assert_eq!(change_raw(b.as_mut_ptr(), -1, 1, 1, 8, std::ptr::null(), 0, 0, &lv), BAD_ARG);
-            assert_eq!(change_raw((w.as_mut_ptr() as *mut u8).add(1), 1, 1, 1, 16, std::ptr::null(), 0, 0, &lv), BAD_ARG); // misaligned u16
+            assert_eq!(change_raw((w.as_mut_ptr() as *mut u8).add(1), 1, 1, 1, 16, std::ptr::null(), 0, 0, &lv), OK); // misaligned u16 works on an aligned copy
         }
     }
 }

@@ -203,8 +203,22 @@ pub unsafe fn change_raw(
         return OK;
     }
     let sample = if bits == FLOAT_BITS { 4 } else { bits as usize / 8 };
-    if image_array.is_null() || (image_array as usize) % sample != 0 || n > isize::MAX as usize / 8 {
+    if image_array.is_null() || n > isize::MAX as usize / 8 {
         return BAD_ARG;
+    }
+    if (image_array as usize) % sample != 0 {
+        // Misaligned image: work on an aligned copy and write it back.
+        let bytes = n * sample;
+        let mut copy = vec![0u64; bytes.div_ceil(8)];
+        std::ptr::copy_nonoverlapping(image_array, copy.as_mut_ptr() as *mut u8, bytes);
+        let st = change_raw(
+            copy.as_mut_ptr() as *mut u8, height, width, channels, bits, act_sw, in_min_shift, in_max_shift, out_min, out_max, gamma,
+            camera_x, camera_y, camera_w, camera_h,
+        );
+        if st == OK {
+            std::ptr::copy_nonoverlapping(copy.as_ptr() as *const u8, image_array, bytes);
+        }
+        return st;
     }
     let cam = clamp_camera(w, h, camera_x, camera_y, camera_w, camera_h);
     let act = std::slice::from_raw_parts(act_sw, c);
@@ -244,7 +258,10 @@ pub unsafe extern "C" fn flare_igs_level_auto_in_camera_change(
     camera_w: i32,
     camera_h: i32,
 ) -> i32 {
+    // a panic must never unwind into C++: report invalid_argument (3)
+    std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
     change_raw(image_array, height, width, channels, bits, act_sw, in_min_shift, in_max_shift, out_min, out_max, gamma, camera_x, camera_y, camera_w, camera_h)
+})).unwrap_or(3)
 }
 
 #[cfg(test)]
@@ -314,6 +331,23 @@ mod tests {
         let mut img = [10u8, 20, 30, 40];
         assert_eq!(unsafe { run(img.as_mut_ptr(), 2, 2, 1, 8, [-5, -5, 100, 100]) }, OK);
         assert_eq!(unsafe { run(img.as_mut_ptr(), 2, 2, 1, 8, [50, 50, 3, 3]) }, OK);
+    }
+
+    #[test]
+    fn misaligned_float_buffer_works_like_an_aligned_one() {
+        let vals = [0.2f32, 0.4, 0.6];
+        let mut aligned = vals;
+        assert_eq!(unsafe { run(aligned.as_mut_ptr() as *mut u8, 1, 3, 1, FLOAT_BITS, [0, 0, 3, 1]) }, OK);
+        // same samples stored at an odd byte offset
+        let mut raw = [0u8; 13];
+        for (k, v) in vals.iter().enumerate() {
+            raw[1 + k * 4..5 + k * 4].copy_from_slice(&v.to_ne_bytes());
+        }
+        assert_eq!(unsafe { run(raw.as_mut_ptr().add(1), 1, 3, 1, FLOAT_BITS, [0, 0, 3, 1]) }, OK);
+        for (k, want) in aligned.iter().enumerate() {
+            let got = f32::from_ne_bytes(raw[1 + k * 4..5 + k * 4].try_into().unwrap());
+            assert_eq!(got, *want);
+        }
     }
 
     #[test]

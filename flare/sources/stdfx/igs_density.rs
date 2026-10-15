@@ -88,6 +88,8 @@ fn change_(image: &mut [f32], ref_: Option<&[f32]>, density: f64) {
 pub unsafe extern "C" fn flare_igs_density_change(
     image_array: *mut f32, height: i32, width: i32, channels: i32, ref_: *const f32, density: f64,
 ) -> i32 {
+    // a panic must never unwind into C++: report invalid_argument (3)
+    std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
     if 4 != channels {
         return BAD_CHANNELS;
     }
@@ -103,6 +105,7 @@ pub unsafe extern "C" fn flare_igs_density_change(
     let reference = if ref_.is_null() { None } else { Some(std::slice::from_raw_parts(ref_, pixels)) };
     change_(image, reference, density);
     OK
+})).unwrap_or(3)
 }
 
 #[cfg(test)]

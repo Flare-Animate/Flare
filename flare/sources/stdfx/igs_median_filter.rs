@@ -327,7 +327,10 @@ pub unsafe extern "C" fn flare_igs_median_filter_convert(
     radius: f64,
     out_side_type: i32,
 ) -> i32 {
+    // a panic must never unwind into C++: report invalid_argument (3)
+    std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
     convert_raw(in_image, out_image, height, width, channels, bits, refp, ref_bits, ref_mode, zz, radius, out_side_type)
+})).unwrap_or(3)
 }
 
 #[cfg(test)]

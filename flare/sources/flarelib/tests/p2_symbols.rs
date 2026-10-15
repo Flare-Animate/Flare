@@ -133,6 +133,22 @@ fn axis_map_is_continuous_and_keeps_the_corners_at_size() {
 }
 
 #[test]
+fn map_path_handles_samples_exactly_on_a_grid_line() {
+    let ax = Axis::new(0.0, 64.0, 32.0, 56.0, 2.0).unwrap();
+    // x = 0..64 samples land exactly on x = 32 (t = 0.5): must split there, once
+    let line = Path { segs: vec![Seg::M(pt(0.0, 5.0)), Seg::L(pt(64.0, 5.0))] };
+    let m = map_path(&line, Some(&ax), None);
+    let pts: Vec<Pt> = m.segs.iter().filter_map(|s| match s { Seg::M(p) | Seg::L(p) => Some(*p), _ => None }).collect();
+    assert_eq!(pts.len(), 4, "start + splits at 32 and 56 + end: {pts:?}");
+    assert!((pts[1].x - 32.0).abs() < 1e-3, "{pts:?}");
+    assert!((pts[3].x - 128.0).abs() < 1e-3, "end maps to 128: {pts:?}");
+    // a curve that only touches x = 32 (min exactly 32 at t = 0.5) is not split
+    let touch = Path { segs: vec![Seg::M(pt(44.0, 0.0)), Seg::C(pt(28.0, 10.0), pt(28.0, 20.0), pt(44.0, 30.0))] };
+    let m = map_path(&touch, Some(&ax), None);
+    assert_eq!(m.segs.len(), 2, "no split for a touch: {:?}", m.segs);
+}
+
+#[test]
 fn map_path_splits_segments_at_the_grid_lines() {
     let ax = Axis::new(0.0, 100.0, 25.0, 75.0, 2.0).unwrap();
     // a horizontal line across the grid keeps its end points and bends nowhere (y untouched)
@@ -316,4 +332,14 @@ fn an_invisible_object_still_has_a_centre_for_tweens() {
     let d = Document::default();
     let c = element_local_center(&EvalCtx::new(&d, 0), &e);
     assert!((c.x - 110.0).abs() < 1e-3 && (c.y - 110.0).abs() < 1e-3, "{c:?}");
+}
+
+#[test]
+fn layer_filter_commands_reject_a_stale_layer_instead_of_panicking() {
+    let mut ed = Editor::new(Document::default());
+    ed.layer = 99;
+    assert!(execute(&mut ed, "layer.add_filter", &json!({"type": "blur"})).is_err());
+    assert!(execute(&mut ed, "layer.clear_filters", &json!({})).is_err());
+    ed.layer = 0;
+    execute(&mut ed, "layer.add_filter", &json!({"type": "blur"})).unwrap();
 }

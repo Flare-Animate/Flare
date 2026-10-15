@@ -57,7 +57,9 @@ pub unsafe fn gauss_distribution_1d(
 pub unsafe extern "C" fn flare_igs_gauss_distribution_1d(
     sequence: *mut f64, int_diameter: i32, int_radius: i32, real_radius: f64, sigma: f64,
 ) {
+    let _ = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
     gauss_distribution_1d(sequence, int_diameter, int_radius, real_radius, sigma)
+}));
 }
 
 #[cfg(test)]

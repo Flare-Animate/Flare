@@ -183,6 +183,8 @@ fn copy_motion_as_js_replays_to_the_same_tween() {
     execute(&mut ed, "timeline.set_ease", &json!({"layer": 2, "frame": 1, "ease": "Sine In Out"})).unwrap();
     ed.select_frames(FrameSel::cell(1, 3));
     let js = ed.copy_motion_as_js().unwrap();
+    assert!(ed.motion_clip.is_none(), "Copy as JS must not fill the Copy Motion clipboard");
+    ed.copy_motion().unwrap();
     assert!(js.starts_with("// Flare motion: "), "{js}");
     assert!(js.contains("ac.timeline.set_tween({ kind: \"motion\", layer: 2, frame: 1 });"), "{js}");
     assert!(js.contains("ac.motion.set_key({ prop: \"x\", layer: 2, frame: 24, value: 500 });"), "{js}");
@@ -210,6 +212,7 @@ fn classic_tween_also_copies_as_js() {
     ed.select_frames(FrameSel::cell(1, 0));
     let js = ed.copy_motion_as_js().unwrap();
     assert!(js.contains("kind: \"motion\""), "a classic tween is written as a motion tween");
+    ed.copy_motion().unwrap();
     let clip = ed.motion_clip.clone().unwrap();
     let mut fresh = two_instances(0.0, 200.0);
     for (id, args) in clip.to_commands(2, 1) {
@@ -350,4 +353,43 @@ fn applying_a_preset_without_a_single_object_is_refused() {
     let steps = ed.history().0.len();
     assert!(ed.apply_motion_preset(&p).unwrap_err().contains("one object"));
     assert_eq!(ed.history().0.len(), steps);
+}
+
+#[test]
+fn copy_motion_as_js_keeps_existing_clipboard() {
+    let mut ed = two_instances(0.0, 200.0);
+    // neither a clip nor a tween: error, clipboard untouched
+    ed.select_frames(FrameSel::cell(1, 0));
+    assert!(ed.copy_motion_as_js().is_err());
+    assert!(ed.motion_clip.is_none());
+    ed.set_tween(Tween::Motion { ease: 0.0 });
+    execute(&mut ed, "motion.set_key", &json!({"layer": 2, "prop": "x", "frame": 24, "value": 500})).unwrap();
+    ed.select_frames(FrameSel::cell(1, 3));
+    ed.copy_motion().unwrap();
+    let before = ed.motion_clip.clone().unwrap();
+    // selection moves somewhere without a tween: JS still comes from the clip
+    ed.select_frames(FrameSel::cell(0, 0));
+    let js = ed.copy_motion_as_js().unwrap();
+    assert!(js.contains("ac.motion.set_key("), "{js}");
+    let after = ed.motion_clip.clone().unwrap();
+    assert_eq!(before.len, after.len);
+    assert_eq!(before.frames.len(), after.frames.len());
+}
+
+#[test]
+fn hostile_preset_json_is_sorted_clamped_and_never_panics() {
+    let json = r#"[{"name":"Evil","frames":4000000000,"tracks":{
+        "x":[{"f":4000000000,"v":9},{"f":10,"v":5},{"f":0,"v":-5}],
+        "alpha":[{"f":7,"v":1},{"f":3,"v":0}]}}]"#;
+    let p = motion_presets::from_json(json).unwrap().remove(0);
+    assert!(p.frames <= motion_presets::MAX_PRESET_FRAME);
+    let xs = &p.tracks["x"];
+    assert!(xs.windows(2).all(|w| w[0].f <= w[1].f), "sorted");
+    assert!(xs.iter().all(|k| k.f <= motion_presets::MAX_PRESET_FRAME));
+    assert!(p.last_frame() <= motion_presets::MAX_PRESET_FRAME);
+    let base = ac_core::motion::Pose { pos: ac_core::geom::pt(0.0, 0.0), rotation: 0.0, skew: 0.0, scale_x: 1.0, scale_y: 1.0, alpha: 1.0, brightness: 0.0 };
+    let _ = p.motion_for(&base, ac_core::geom::pt(0.0, 0.0), 24);
+    // unsorted keys built directly (not through from_json) are handled too
+    let raw: MotionPreset = serde_json::from_str::<Vec<MotionPreset>>(json).unwrap().remove(0);
+    let _ = raw.motion_for(&base, ac_core::geom::pt(0.0, 0.0), 24);
 }

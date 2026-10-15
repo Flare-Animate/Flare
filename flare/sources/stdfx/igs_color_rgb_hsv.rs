@@ -130,10 +130,12 @@ pub fn hsv_to_rgb(hue: f64, sat: f64, val: f64, red: &mut f64, gre: &mut f64, bl
 pub unsafe extern "C" fn flare_igs_rgb_to_hsv(
     red: f64, gre: f64, blu: f64, hue: *mut f64, sat: *mut f64, val: *mut f64,
 ) {
+    let _ = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
     let (h, s, v) = rgb_to_hsv(red, gre, blu);
     *hue = h;
     *sat = s;
     *val = v;
+}));
 }
 
 /// # Safety
@@ -142,7 +144,9 @@ pub unsafe extern "C" fn flare_igs_rgb_to_hsv(
 pub unsafe extern "C" fn flare_igs_hsv_to_rgb(
     hue: f64, sat: f64, val: f64, red: *mut f64, gre: *mut f64, blu: *mut f64,
 ) {
+    let _ = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
     hsv_to_rgb(hue, sat, val, &mut *red, &mut *gre, &mut *blu);
+}));
 }
 
 #[cfg(test)]

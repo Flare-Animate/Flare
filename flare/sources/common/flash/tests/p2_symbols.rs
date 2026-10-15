@@ -58,6 +58,16 @@ fn instance_flags_round_trip() {
 }
 
 #[test]
+fn bitmap_render_mode_cache_reads_as_cache_as_bitmap() {
+    let (mut pkg, _) = write_package(&doc());
+    let dom = xml(&pkg, "DOMDocument.xml").replace(r#" cacheAsBitmap="true""#, r#" bitmapRenderMode="cache""#);
+    pkg.insert("DOMDocument.xml".into(), dom.into_bytes());
+    let back = read_package(&pkg).unwrap().doc;
+    let els = &back.scene.layers[0].keyframes[&0].elements;
+    assert!(!els[0].cache_as_bitmap && els[1].cache_as_bitmap && els[2].cache_as_bitmap);
+}
+
+#[test]
 fn files_without_the_attributes_read_as_visible_and_uncached() {
     let (mut pkg, _) = write_package(&doc());
     let dom = xml(&pkg, "DOMDocument.xml").replace(r#" isVisible="false""#, "").replace(r#" cacheAsBitmap="true""#, "").replace(r#" exportAsBitmap="true""#, "");

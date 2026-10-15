@@ -263,7 +263,10 @@ pub unsafe extern "C" fn flare_igs_level_auto_change(
     out_max: *const f64,
     gamma: *const f64,
 ) -> i32 {
+    // a panic must never unwind into C++: report invalid_argument (3)
+    std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
     change_raw(image_array, height, width, channels, bits, act_sw, in_min_shift, in_max_shift, out_min, out_max, gamma)
+})).unwrap_or(3)
 }
 
 #[cfg(test)]

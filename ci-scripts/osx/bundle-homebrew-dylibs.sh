@@ -166,7 +166,7 @@ resolve_target() {
     case "$dependency" in
       @rpath/*)
         # Already bundled -> nothing to do; the rpath added below resolves it.
-        if [ -f "$bundled" ]; then continue; fi
+        if [ -f "$bundled" ]; then ensure_rpath "$target"; continue; fi
         ;;
     esac
 
@@ -230,6 +230,16 @@ while IFS= read -r target; do
         echo "ERROR: non-portable dependency $dependency in $target" >&2; fail=1 ;;
     esac
   done < <(list_dependencies "$target")
+  # a target that links a bundled @rpath/ dylib must carry the app rpath
+  uses_bundled=0
+  while IFS= read -r dependency; do
+    case "$dependency" in
+      @rpath/*) [ -f "$FRAMEWORKS_DIR/${dependency#@rpath/}" ] && uses_bundled=1 ;;
+    esac
+  done < <(list_dependencies "$target")
+  if [ "$uses_bundled" -eq 1 ] && ! list_rpaths "$target" | grep -qx "$APP_RPATH"; then
+    echo "ERROR: $target links a bundled @rpath dylib but lacks rpath $APP_RPATH" >&2; fail=1
+  fi
 done < <(collect_targets)
 
 [ "$fail" -eq 0 ] || exit 1

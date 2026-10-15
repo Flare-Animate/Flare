@@ -326,6 +326,14 @@ void startupLog(const QString &line, bool truncate = false) {
     if (path.isEmpty()) return;
     QDir().mkpath(QFileInfo(path).absolutePath());
     QFile f(path);
+    if (truncate) {
+      // Start a fresh log only when the old one is stale (>10 min) or large
+      // (>1 MB); otherwise append so rapid relaunches keep their history.
+      QFileInfo fi(path);
+      truncate = !fi.exists() ||
+                 fi.lastModified().secsTo(QDateTime::currentDateTime()) > 600 ||
+                 fi.size() > 1024 * 1024;
+    }
     QIODevice::OpenMode mode = QIODevice::WriteOnly | QIODevice::Text;
     mode |= truncate ? QIODevice::Truncate : QIODevice::Append;
     if (!f.open(mode)) return;
@@ -345,12 +353,13 @@ void reportFatalStartup(const QString &what) {
                 "\n\nDetails were written to:\n" + startupLogPath();
 #ifdef Q_OS_WIN
   MessageBoxW(NULL, (LPCWSTR)msg.utf16(), L"Flare", MB_OK | MB_ICONERROR);
+#elif defined(Q_OS_MAC)
+  // No second QApplication on macOS: log + stderr only.
+  fprintf(stderr, "%s\n", msg.toLocal8Bit().constData());
 #else
   try {
-#if !defined(Q_OS_MAC)
     if (qgetenv("DISPLAY").isEmpty() && qgetenv("WAYLAND_DISPLAY").isEmpty())
       return;
-#endif
     int ac = 1;
     char name[]  = "Flare";
     char *av[]   = {name, nullptr};

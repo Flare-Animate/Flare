@@ -23,14 +23,18 @@ pub fn next_d(seed: &mut c_ulong) -> f64 {
 /// `seed` must be valid for reads and writes.
 #[no_mangle]
 pub unsafe extern "C" fn flare_igs_random_next(seed: *mut c_ulong) -> c_long {
+    std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
     next(&mut *seed)
+})).unwrap_or(0)
 }
 
 /// # Safety
 /// `seed` must be valid for reads and writes.
 #[no_mangle]
 pub unsafe extern "C" fn flare_igs_random_next_d(seed: *mut c_ulong) -> f64 {
+    std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
     next_d(&mut *seed)
+})).unwrap_or(0.0)
 }
 
 #[cfg(test)]

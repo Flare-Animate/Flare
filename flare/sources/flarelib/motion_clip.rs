@@ -418,14 +418,23 @@ impl Editor {
         self.layer = li;
     }
 
-    /// Copy Motion as JS: the copied motion (copying the tween under the
-    /// selection first when nothing is on the motion clipboard) as scripting
-    /// API calls, ready to paste into the Script Console.
+    /// Copy Motion as JS: the motion already on the Copy Motion clipboard, or
+    /// (when the clipboard is empty) the tween under the selection, as
+    /// scripting API calls ready to paste into the Script Console. It never
+    /// changes the Copy Motion clipboard; errors only when there is neither a
+    /// clip nor a tween under the selection.
     pub fn copy_motion_as_js(&mut self) -> Result<String, String> {
         let s = self.frame_target();
         let start = self.timeline().layers.get(s.layer0).and_then(|l| l.span_at(s.f0)).map(|(st, _, _)| st);
-        self.copy_motion()?;
-        let clip = self.motion_clip.as_ref().ok_or("Nothing to copy")?;
+        let clip = match self.motion_clip.clone() {
+            Some(c) => c,
+            None => {
+                // build a temporary clip from the selection, then put the
+                // (empty) clipboard back as it was
+                self.copy_motion()?;
+                self.motion_clip.take().ok_or("Nothing to copy")?
+            }
+        };
         Ok(clip.to_js(s.layer0 + 1, start.unwrap_or(s.f0) + 1))
     }
 }

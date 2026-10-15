@@ -475,10 +475,13 @@ pub unsafe extern "C" fn flare_igs_hsv_noise_change(
     alp_type: i32,
     add_blend_sw: bool,
 ) -> i32 {
+    // a panic must never unwind into C++: report invalid_argument (3)
+    std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
     change_raw(
         image_array, height, width, channels, refp, camera_x, camera_y, camera_w, camera_h, hue_range, sat_range, val_range, alp_range, random_seed, near_blur, sat_effective, sat_center, sat_type,
         val_effective, val_center, val_type, alp_effective, alp_center, alp_type, add_blend_sw,
     )
+})).unwrap_or(3)
 }
 
 #[cfg(test)]

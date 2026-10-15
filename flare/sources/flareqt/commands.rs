@@ -1229,13 +1229,16 @@ pub fn execute(ed: &mut Editor, id: &str, a: &Value) -> Result<Value, String> {
         "layer.add_filter" => {
             let li = layer_arg(ed, a, "layer")?.unwrap_or(ed.layer);
             let f = filter_from_args(a)?;
-            let mut list = ed.timeline().layers[li].filters.clone();
+            let mut list = ed.timeline().layers.get(li).ok_or_else(|| format!("layer {} does not exist", li + 1))?.filters.clone();
             list.push(f);
             ed.set_layer_filters(li, list);
             Ok(Value::Null)
         }
         "layer.clear_filters" => {
             let li = layer_arg(ed, a, "layer")?.unwrap_or(ed.layer);
+            if ed.timeline().layers.get(li).is_none() {
+                return Err(format!("layer {} does not exist", li + 1));
+            }
             ed.set_layer_filters(li, vec![]);
             Ok(Value::Null)
         }

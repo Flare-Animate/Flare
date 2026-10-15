@@ -255,8 +255,11 @@ pub unsafe extern "C" fn flare_igs_hsv_add_change(
     alp_scale: f64,
     add_blend_sw: bool,
 ) -> i32 {
+    // a panic must never unwind into C++: report invalid_argument (3)
+    std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
     let p = Params { offset, hue_scale, sat_scale, val_scale, alp_scale, add_blend: add_blend_sw };
     change_raw(image_array, height, width, channels, noi_image_array, refp, xoffset, yoffset, from_rgba, &p)
+})).unwrap_or(3)
 }
 
 #[cfg(test)]

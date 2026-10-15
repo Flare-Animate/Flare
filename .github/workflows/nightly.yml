@@ -682,13 +682,16 @@ jobs:
           BUNDLE_DIR="$(cd "$(dirname "$APPBUNDLE")" && pwd)"
           echo "BUNDLE_DIR=$BUNDLE_DIR" >> $GITHUB_ENV
           cd "$BUNDLE_DIR"
-          # portablestuff must live beside the executable (Contents/MacOS), where
-          # TEnv's portable lookup expects it. A copy at the bundle root is an
+          # portablestuff lives in Contents/Resources, which TEnv's macOS portable
+          # lookup supports (exe dir/../Resources/portablestuff). A copy at the
+          # bundle root is an
           # "unsealed content" that invalidates the code signature and makes
           # Gatekeeper report the app as damaged (issues #66, #71).
-          if [ ! -d "Flare.app/Contents/MacOS/portablestuff" ] && [ -d "$GITHUB_WORKSPACE/stuff" ]; then
-            cp -pr "$GITHUB_WORKSPACE/stuff" Flare.app/Contents/MacOS/portablestuff
+          if [ ! -d "Flare.app/Contents/Resources/portablestuff" ] && [ -d "$GITHUB_WORKSPACE/stuff" ]; then
+            mkdir -p Flare.app/Contents/Resources
+            cp -pr "$GITHUB_WORKSPACE/stuff" Flare.app/Contents/Resources/portablestuff
           fi
+          rm -rf Flare.app/Contents/MacOS/portablestuff
           rm -rf Flare.app/portablestuff
           # Find the real binary name from Info.plist (handles both 'Flare' and legacy names)
           MAIN_BIN=$(defaults read "$BUNDLE_DIR/Flare.app/Contents/Info.plist" CFBundleExecutable 2>/dev/null || echo "Flare")
@@ -711,7 +714,7 @@ jobs:
           # Issue #66: a bundle without an executable file is "incomplete" and
           # shows the prohibited-sign icon. Make the executable bit explicit and
           # fail the build rather than publish such a bundle.
-          chmod +x "Flare.app/Contents/MacOS/"* 2>/dev/null || true
+          chmod +x "Flare.app/Contents/MacOS/$MAIN_BIN" 2>/dev/null || true
           if [ ! -x "Flare.app/Contents/MacOS/$MAIN_BIN" ]; then
             echo "ERROR: Flare.app/Contents/MacOS/$MAIN_BIN missing or not executable"
             ls -la "Flare.app/Contents/MacOS/" || true
