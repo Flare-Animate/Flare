@@ -96,6 +96,59 @@ double getCurrentCameraSize() { return currentCameraSize; }
 
 //========================================================================
 //
+// External compositor integration -- NOT WIRED UP YET
+//
+//------------------------------------------------------------------------
+//
+// The Flare Compositor (https://github.com/Flare-Animate/Compositor) is vendored
+// as a git submodule at flare/sources/tcomposer/Compositor. It recomposites
+// stiff cartoon/anime artwork to recover more natural linework and colour.
+//
+// It is deliberately NOT built, registered or called from this file yet. That
+// is on purpose, not an oversight:
+//
+//   * It is a Next.js/TypeScript + Prisma web application with its own
+//     `bun.lock`, `Caddyfile` and database schema. It is not a C++ library, so
+//     it cannot be linked into the compositor the way an effect is.
+//   * There is no defined interchange between Flare's node-graph composer and a
+//     web service. Nothing here decides where frames go in or out, what happens
+//     on failure, or whether it runs in-process or as a subprocess.
+//
+// TODO(compositor-integration): integrate the external Flare Compositor as an
+// additional compositing feature. Decide, in this order:
+//
+//   1. Execution model -- subprocess over stdio, local HTTP client, or a
+//      native port of the algorithm. Each implies different packaging.
+//   2. Interchange format -- which frames are sent, at what stage of the
+//      graph, and what comes back.
+//   3. Failure behaviour -- the compositor is unreachable, times out, or
+//      returns nothing. Compositing must degrade to the current output, not
+//      break the render.
+//   4. Node type -- one that wraps it, so it appears in the graph like any
+//      other effect, and is registered in the node factory.
+//
+// Until then, callers must see this as unavailable rather than as a feature
+// that works. See isExternalCompositorAvailable() below.
+
+namespace FlareCompositor {
+
+/// Whether the external compositor integration is usable in this build.
+///
+/// Always false: the integration is a stub. Exposed so that a future caller has
+/// a single honest place to ask, rather than assuming that the submodule being
+/// present means the feature works.
+bool isExternalCompositorAvailable() { return false; }
+
+/// Where the submodule is expected, relative to the repository root.
+/// Documented so a future implementation does not have to rediscover it.
+const char *externalCompositorSubmodulePath() {
+  return "flare/sources/tcomposer/Compositor";
+}
+
+}  // namespace FlareCompositor
+
+//========================================================================
+//
 // Application names and versions
 //
 //------------------------------------------------------------------------

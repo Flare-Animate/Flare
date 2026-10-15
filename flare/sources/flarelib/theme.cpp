@@ -27,7 +27,11 @@ const QMap<QString, bool>& lightThemeTable() {
       {"Default", false},
       {"Default-Green", false},
       {"Dark", false},
-      {"Animate", false},
+      // Named for its appearance. This theme used to be called "Animate",
+      // which collided with the "Animate" Layout shown in the same tab -- one
+      // name, two meanings. scripts/check_theme_layout_separation.py keeps the
+      // two namespaces disjoint.
+      {"AnimateDark", false},
       {"Blue", false},
       {"Clay", false},
       {"LiquidGlass", false},

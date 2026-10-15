@@ -53,7 +53,14 @@ def selectors(text: str) -> set[str]:
 
 
 def imports(text: str) -> list[str]:
-    return re.findall(r"""@import\s+(['"])(?!https?:|/|data:)([^'"]+)\1""", text)
+    # Two capture groups, so findall yields (quote, specifier) pairs; take the
+    # specifier. Taking the whole match instead would keep the quote character.
+    return [
+        spec
+        for _, spec in re.findall(
+            r"""@import\s+(['"])(?!https?:|/|data:)([^'"]+)\1""", text
+        )
+    ]
 
 
 def theme_dir(spec: str) -> str:

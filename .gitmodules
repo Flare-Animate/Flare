@@ -1,3 +1,6 @@
 [submodule "vcpkg"]
     path = vcpkg
     url = https://github.com/microsoft/vcpkg.git
+[submodule "flare/sources/tcomposer/Compositor"]
+	path = flare/sources/tcomposer/Compositor
+	url = https://github.com/Flare-Animate/Compositor.git
