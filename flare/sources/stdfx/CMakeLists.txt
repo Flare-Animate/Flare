@@ -174,23 +174,12 @@ set(SOURCES
     igs_color_blend.cpp
     igs_fog.cpp
     igs_gaussian_blur.cpp
-    igs_hls_add.cpp
-    igs_hls_adjust.cpp
-    igs_hls_noise.cpp
     igs_hls_noise_in_camera.cpp
-    igs_hsv_add.cpp
-    igs_hsv_adjust.cpp
-    igs_hsv_noise.cpp
     igs_hsv_noise_in_camera.cpp
-    igs_level_auto.cpp
-    igs_level_auto_in_camera.cpp
-    igs_levels.cpp
     igs_line_blur.cpp
     igs_maxmin.cpp
     igs_maxmin_lens_matrix.cpp
     igs_maxmin_slrender.cpp
-    igs_median_filter.cpp
-    igs_median_filter_smooth.cpp
     igs_motion_blur.cpp
     igs_motion_wind.cpp
     igs_motion_wind_pixel.cpp
@@ -202,8 +191,6 @@ set(SOURCES
     igs_resource_sleep.cpp
     igs_resource_thread.cpp
     igs_rotate_blur.cpp
-    igs_warp_hori.cpp
-    igs_warp_vert.cpp
     ino_blend_add.cpp
     ino_blend_color_burn.cpp
     ino_blend_color_dodge.cpp
@@ -343,8 +330,11 @@ endif()
 _find_flare_library(TNZLIBS "tnzcore;tnzbase;flarelib")
 
 target_link_libraries(tnzstdfx Qt5::Core Qt5::Gui Qt5::OpenGL ${GL_LIB} ${GLEW_LIB} ${TNZLIBS} ${PTHREAD_LIBRARY})
-# igs_* helpers (igs_color_rgb_*, igs_math_random, igs_negate, igs_density,
-# igs_gauss_distribution) are implemented in Rust (flare_formats).
+# igs_* kernels implemented in Rust (flare_formats), headers are inline
+# forwarders: igs_color_rgb_*, igs_math_random, igs_negate, igs_density,
+# igs_gauss_distribution, igs_warp_{hori,vert}, igs_{hls,hsv}_{adjust,add,noise},
+# igs_level_auto, igs_level_auto_in_camera, igs_levels,
+# igs_median_filter, igs_median_filter_smooth.
 target_link_libraries(tnzstdfx flare_formats)
 
 if(OpenCV_FOUND)

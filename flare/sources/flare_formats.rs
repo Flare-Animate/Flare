@@ -96,6 +96,32 @@ pub mod igs_gauss_distribution;
 pub mod igs_negate;
 #[path = "stdfx/igs_density.rs"]
 pub mod igs_density;
+#[path = "stdfx/igs_warp_hori.rs"]
+pub mod igs_warp_hori;
+#[path = "stdfx/igs_warp_vert.rs"]
+pub mod igs_warp_vert;
+#[path = "stdfx/igs_hls_adjust.rs"]
+pub mod igs_hls_adjust;
+#[path = "stdfx/igs_hsv_adjust.rs"]
+pub mod igs_hsv_adjust;
+#[path = "stdfx/igs_hls_add.rs"]
+pub mod igs_hls_add;
+#[path = "stdfx/igs_hsv_add.rs"]
+pub mod igs_hsv_add;
+#[path = "stdfx/igs_level_auto.rs"]
+pub mod igs_level_auto;
+#[path = "stdfx/igs_level_auto_in_camera.rs"]
+pub mod igs_level_auto_in_camera;
+#[path = "stdfx/igs_levels.rs"]
+pub mod igs_levels;
+#[path = "stdfx/igs_median_filter.rs"]
+pub mod igs_median_filter;
+#[path = "stdfx/igs_median_filter_smooth.rs"]
+pub mod igs_median_filter_smooth;
+#[path = "stdfx/igs_hsv_noise.rs"]
+pub mod igs_hsv_noise;
+#[path = "stdfx/igs_hls_noise.rs"]
+pub mod igs_hls_noise;
 
 /// TFilePath query (see header). Returns full byte length; copies up to `cap` into `out`.
 #[no_mangle]

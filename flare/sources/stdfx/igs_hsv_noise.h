@@ -3,13 +3,25 @@
 #ifndef igs_hsv_noise_h
 #define igs_hsv_noise_h
 
-#ifndef IGS_HSV_NOISE_EXPORT
-#define IGS_HSV_NOISE_EXPORT
-#endif
+#include <stdexcept> /* std::domain_error, std::invalid_argument */
+
+// Implemented in igs_hsv_noise.rs (flare_formats); returns 0, 1 (bad channels ->
+// std::domain_error) or 3 (null buffer / negative size -> std::invalid_argument).
+extern "C" {
+int flare_igs_hsv_noise_change(
+    float *image_array, int height, int width, int channels, const float *ref,
+    int camera_x, int camera_y, int camera_w, int camera_h, double hue_range,
+    double sat_range, double val_range, double alp_range,
+    unsigned long random_seed, double near_blur, double sat_effective,
+    double sat_center, int sat_type, double val_effective, double val_center,
+    int val_type, double alp_effective, double alp_center, int alp_type,
+    bool add_blend_sw);
+}
 
 namespace igs {
 namespace hsv_noise {
-IGS_HSV_NOISE_EXPORT void change(
+// (header-only now: IGS_HSV_NOISE_EXPORT is gone, nothing to export)
+inline void change(
     float *image_array, const int height, const int width, const int channels,
     const float *ref, /* 求める画像と同じ高、幅 */
     /* image_arrayに余白が変化してもノイズパターンが変わらない
@@ -46,8 +58,21 @@ IGS_HSV_NOISE_EXPORT void change(
                             合成画 = 下絵 * (1 - alpha) + 上絵 * alpha
                     の場合こちらを使う
             */
-);
+) {
+  switch (flare_igs_hsv_noise_change(
+      image_array, height, width, channels, ref, camera_x, camera_y, camera_w,
+      camera_h, hue_range, sat_range, val_range, alp_range, random_seed,
+      near_blur, sat_effective, sat_center, sat_type, val_effective,
+      val_center, val_type, alp_effective, alp_center, alp_type, add_blend_sw)) {
+  case 0:
+    return;
+  case 1:
+    throw std::domain_error("Bad channels,Not rgba/rgb/grayscale");
+  default:
+    throw std::invalid_argument("igs::hsv_noise::change: bad image");
+  }
 }
+}  // namespace hsv_noise
 }  // namespace igs
 
 #endif /* !igs_hsv_noise_h */
