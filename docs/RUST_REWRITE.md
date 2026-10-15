@@ -322,6 +322,12 @@ In short, Flare's end state is a unified Rust implementation of the OpenToonz/Ta
 - XFL import of a bitmap whose `bin/*.dat` is gone: obvious MISSING placeholder, `BitmapAsset.missing`, `Document.warnings`; both survive .acx and .fla saves (`flareMissing="true"`) and the Library panel flags the item.
 - Publish targets are one enum (`PublishTarget`, ids listed in Publish Settings); the old `"unsupported"` branch is gone, unknown ids list the valid ones; new "Copy as .acx".
 - JSFL `copyLayers` / `cutLayers` / `pasteLayers` / `duplicateLayers` map onto the editor's layer clipboard (`layer.copy|cut|paste|duplicate`).
+- Review follow-ups: (1) HTML5 runtime pixel stages survive a tainted canvas (SecurityError skips the stage, one `console.warn`), links open only http/https/mailto with `noopener,noreferrer`, and a multi-file publish with pixel stages warns about file:// taint.
+- (2) EffectCraft bake is capped (stage <= 4096 px, 2000 sprites, 256 MiB total) with warnings; sprites stay full-stage (cropping to group bounds needs a runtime offset, left for later).
+- (3) `extern "C"` math/runs entry points never panic: n<0 returns status 2 (header throws `std::length_error` like `vector(n)`), null/empty input is a no-op or status 3; `get_hsv` clamps in release.
+- (4) `layer.copy|cut` validate before mutating the editor; `layer` without `to_layer` keeps the frame selection.
+- (5) Missing bitmaps keep their declared size (`declared_width/height`, also in .acp); the renderer scales the clamped placeholder via the item matrix.
+- (6) `tnzext` and `image` link `flare_formats` (Apple links tnzcore by file, so it isn't transitive); `Cplx` documents libstdc++ semantics, MSVC numerics deliberately not emulated.
 - Left as is on purpose: `flarelib/mm_xfl.rs` keeps the raw XML of tweens it can't read (round-trip fidelity).
 
 ### Tooling survey

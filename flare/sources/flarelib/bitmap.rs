@@ -24,6 +24,62 @@ pub struct BitmapAsset {
     pub missing: bool,
     #[serde(serialize_with = "b64_ser", deserialize_with = "b64_de")]
     pub png: Vec<u8>,
+    /// Size the document declared for this bitmap when it differs from the
+    /// pixel buffer (a missing 4000x3000 image gets a clamped placeholder but
+    /// keeps its declared size; the renderer scales the placeholder to it).
+    /// 0 = same as `width` / `height`.
+    #[serde(default, skip_serializing_if = "is_zero")]
+    pub declared_width: u32,
+    #[serde(default, skip_serializing_if = "is_zero")]
+    pub declared_height: u32,
+    /// Character id this bitmap had in the SWF it was imported from (kept so
+    /// an export reuses it; see `ac_xfl::swf`).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub swf_char_id: Option<u16>,
+    /// The encoded data as imported (JPEG/PNG/lossless), written back
+    /// byte-identical while `png` is unedited.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub original: Option<OriginalBitmap>,
+}
+
+/// How an imported bitmap was encoded.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub enum BitmapCodec {
+    /// A JPEG file (SWF DefineBitsJPEG2 / the JPEG part of JPEG3).
+    Jpeg,
+    /// A PNG file.
+    Png,
+    /// A GIF file.
+    Gif,
+    /// SWF DefineBitsLossless body (after the character id).
+    SwfLossless,
+    /// SWF DefineBitsLossless2 body (after the character id).
+    SwfLossless2,
+    /// SWF DefineBitsJPEG3 body (after the character id).
+    SwfJpeg3,
+}
+
+/// The imported encoding of a bitmap, tied to the pixels it was decoded to
+/// (`png_hash`): once the pixels change it no longer applies.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct OriginalBitmap {
+    pub codec: BitmapCodec,
+    #[serde(serialize_with = "b64_ser", deserialize_with = "b64_de")]
+    pub bytes: Vec<u8>,
+    pub png_hash: u64,
+}
+
+/// FNV-1a over all bytes (change detection, not security).
+pub fn fnv64(b: &[u8]) -> u64 {
+    let mut h: u64 = 1469598103934665603;
+    for x in b {
+        h = (h ^ *x as u64).wrapping_mul(1099511628211);
+    }
+    h
+}
+
+fn is_zero(v: &u32) -> bool {
+    *v == 0
 }
 
 fn yes() -> bool {
@@ -58,6 +114,21 @@ fn key(b: &BitmapAsset) -> (u32, usize, u64) {
 }
 
 impl BitmapAsset {
+    /// The size layouts use: the declared one when recorded, else the pixel size.
+    pub fn declared_size(&self) -> (u32, u32) {
+        (if self.declared_width > 0 { self.declared_width } else { self.width }, if self.declared_height > 0 { self.declared_height } else { self.height })
+    }
+
+    /// The imported encoding, if the pixels are still the ones it decodes to.
+    pub fn pristine_original(&self) -> Option<&OriginalBitmap> {
+        self.original.as_ref().filter(|o| o.png_hash == fnv64(&self.png))
+    }
+
+    /// Remember `bytes` (in `codec`) as this bitmap's imported encoding.
+    pub fn set_original(&mut self, codec: BitmapCodec, bytes: Vec<u8>) {
+        self.original = Some(OriginalBitmap { codec, bytes, png_hash: fnv64(&self.png) });
+    }
+
     /// Stand-in for an image whose data is gone: a magenta / black checkerboard
     /// with a white border and a red cross, so it can't be mistaken for
     /// artwork. Flagged `missing` so the Library panel and saves keep track.
@@ -85,6 +156,11 @@ impl BitmapAsset {
         }
         let mut a = BitmapAsset::from_rgba(id, name, w, h, &rgba).expect("placeholder encodes");
         a.missing = true;
+        // the pixel buffer is clamped; the declared size is kept (the renderer scales to it)
+        if (width.max(1), height.max(1)) != (w, h) {
+            a.declared_width = width.max(1);
+            a.declared_height = height.max(1);
+        }
         a
     }
 
@@ -98,13 +174,13 @@ impl BitmapAsset {
             let mut w = enc.write_header().map_err(|e| e.to_string())?;
             w.write_image_data(rgba).map_err(|e| e.to_string())?;
         }
-        Ok(BitmapAsset { id, name: name.into(), width, height, smoothing: true, missing: false, png: out })
+        Ok(BitmapAsset { id, name: name.into(), width, height, smoothing: true, missing: false, png: out, declared_width: 0, declared_height: 0, swf_char_id: None, original: None })
     }
 
     /// Wrap PNG bytes (checked by decoding them once).
     pub fn from_png(name: &str, png: Vec<u8>) -> Result<BitmapAsset, String> {
         let img = decode_png(&png, true).ok_or("not a PNG image this build can read")?;
-        Ok(BitmapAsset { id: 0, name: name.into(), width: img.width, height: img.height, smoothing: true, missing: false, png })
+        Ok(BitmapAsset { id: 0, name: name.into(), width: img.width, height: img.height, smoothing: true, missing: false, png, declared_width: 0, declared_height: 0, swf_char_id: None, original: None })
     }
 
     /// Decoded pixels (cached across frames and undo snapshots).

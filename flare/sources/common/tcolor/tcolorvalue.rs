@@ -58,6 +58,10 @@ impl ColorValue {
         debug_assert!((0.0..=1.0).contains(&r));
         debug_assert!((0.0..=1.0).contains(&g));
         debug_assert!((0.0..=1.0).contains(&b));
+        // release builds: out-of-range / NaN channels are clamped so the HSV
+        // stays inside its documented ranges (the C++ would assert in debug only)
+        let unit = |x: f64| if x.is_nan() { 0.0 } else { x.clamp(0.0, 1.0) };
+        let (r, g, b) = (unit(r), unit(g), unit(b));
 
         let max = max3(r, g, b);
         let min = min3(r, g, b);
@@ -283,6 +287,16 @@ pub unsafe extern "C" fn flare_colorvalue_set_pixel(cv: *mut ColorValue, r: u8, 
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    #[cfg(not(debug_assertions))]
+    fn get_hsv_clamps_out_of_range_channels_in_release() {
+        let mut c = ColorValue::new();
+        c.m_r = 3.0;
+        c.m_g = -2.0;
+        c.m_b = f64::NAN;
+        assert_eq!(c.get_hsv(), (0, 100, 100));
+    }
+
     use super::*;
 
     fn near(a: f64, b: f64) -> bool {

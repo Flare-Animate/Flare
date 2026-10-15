@@ -71,6 +71,25 @@ fn copy_cut_paste_layers_keep_folders_and_parenting() {
 }
 
 #[test]
+fn layer_cut_and_copy_validate_before_touching_the_editor() {
+    let mut ed = Editor::new(Document::default());
+    execute(&mut ed, "layer.add", &json!({"name": "B"})).unwrap();
+    execute(&mut ed, "layer.add", &json!({"name": "C"})).unwrap();
+    ed.layer = 1;
+    ed.frame_sel = Some(FrameSel { layer0: 1, layer1: 1, f0: 2, f1: 3 });
+    let (l0, s0) = (ed.layer, ed.frame_sel);
+    // bad indices and "cut every layer" leave layer + selection as they were
+    assert!(execute(&mut ed, "layer.cut", &json!({"layer": 1, "to_layer": 99})).is_err());
+    assert!(execute(&mut ed, "layer.copy", &json!({"layer": 99})).is_err());
+    assert!(execute(&mut ed, "layer.cut", &json!({"layer": 1, "to_layer": 3})).is_err());
+    assert_eq!((ed.layer, ed.frame_sel), (l0, s0));
+    assert_eq!(ed.timeline().layers.len(), 3);
+    // `layer` alone doesn't clear an existing frame selection
+    execute(&mut ed, "layer.copy", &json!({"layer": 3})).unwrap();
+    assert_eq!(ed.frame_sel, s0);
+}
+
+#[test]
 fn f6_inside_a_graphic_span_keeps_it_playing() {
     // a 4-frame graphic symbol whose frames differ, placed on a 12-frame span
     let mut ed = Editor::new(Document::default());
@@ -109,4 +128,28 @@ fn library_counts_and_clears_bitmap_fills() {
     ed.delete_bitmap(id);
     let ElementKind::Shape(s) = &ed.timeline().layers[0].keyframes[&0].elements[0].kind else { panic!() };
     assert!(s.bitmap_fill.is_none(), "no dangling bitmap reference after deleting it");
+}
+
+#[test]
+fn missing_bitmap_keeps_its_declared_size_on_stage_and_in_json() {
+    let a = bitmap::BitmapAsset::missing_placeholder(1, "big.png", 4000, 3000);
+    assert!(a.missing);
+    assert_eq!((a.width, a.height), (2048, 2048), "pixel buffer is clamped");
+    assert_eq!(a.declared_size(), (4000, 3000));
+    // survives serde; small placeholders record nothing extra
+    let back: bitmap::BitmapAsset = serde_json::from_str(&serde_json::to_string(&a).unwrap()).unwrap();
+    assert_eq!(back.declared_size(), (4000, 3000));
+    let small = bitmap::BitmapAsset::missing_placeholder(2, "s.png", 100, 50);
+    assert_eq!((small.declared_width, small.declared_height), (0, 0));
+    assert_eq!(small.declared_size(), (100, 50));
+    // the item covers the clamped pixels, and its matrix stretches them to 4000x3000
+    let mut d = Document::default();
+    d.bitmaps.push(a);
+    let mut l = Layer::new("a", 0);
+    l.keyframes.insert(0, Keyframe::with(vec![Element::bitmap("b", 1, Matrix::IDENTITY)]));
+    d.scene.layers = vec![l];
+    let items = evaluate_scene(&d, 0);
+    assert_eq!(items.len(), 1);
+    let m = items[0].matrix;
+    assert!((m.a - 4000.0 / 2048.0).abs() < 1e-4 && (m.d - 3000.0 / 2048.0).abs() < 1e-4, "{m:?}");
 }

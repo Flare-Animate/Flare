@@ -8,6 +8,7 @@
 #include "tconvert.h"
 
 #include <numeric>
+#include <stdexcept>
 #include <complex>
 
 #ifndef __sgi
@@ -66,6 +67,15 @@ public:
   TString getMessage() const override { return m_msg; }
 };
 
+// Status of the Rust matrix routines: 0 ok, 1 singular matrix, 2 negative size
+// (what `std::vector<double>(n)` threw), 3 null pointer for a non-empty matrix.
+inline void flare_checkMatrixStatus(int status) {
+  if (status == 0) return;
+  if (status == 2) throw std::length_error("cannot create std::vector larger than max_size()");
+  if (status == 3) throw TMathException("Null matrix in routine tLUDecomposition\n");
+  throw TMathException("Singular matrix in routine tLUDecomposition\n");
+}
+
 //-----------------------------------------------------------------------------
 
 /*!
@@ -79,8 +89,7 @@ public:
   \include mathutils_ex2.cpp
  */
 inline void tLUDecomposition(double *A, int n, int *indx, double &d) {
-  if (flare_tLUDecomposition(A, n, indx, &d))
-    throw TMathException("Singular matrix in routine tLUDecomposition\n");
+  flare_checkMatrixStatus(flare_tLUDecomposition(A, n, indx, &d));
 }
 
 //-----------------------------------------------------------------------------
@@ -112,8 +121,7 @@ inline void tbackSubstitution(double *A, int n, int *indx, double *b) {
   \include mathutils_ex1.cpp
  */
 inline void tsolveSistem(double *A, int n, double *res) {
-  if (flare_tsolveSistem(A, n, res))
-    throw TMathException("Singular matrix in routine tLUDecomposition\n");
+  flare_checkMatrixStatus(flare_tsolveSistem(A, n, res));
 }
 
 //-----------------------------------------------------------------------------
@@ -139,8 +147,7 @@ inline void tsolveSistem(std::vector<double> &A, std::vector<double> &res) {
  */
 inline double tdet(double *A, int n) {
   double d;
-  if (flare_tdet(A, n, &d))
-    throw TMathException("Singular matrix in routine tLUDecomposition\n");
+  flare_checkMatrixStatus(flare_tdet(A, n, &d));
   return d;
 }
 

@@ -48,7 +48,9 @@ pub fn is_almost_zero(val: f64) -> bool {
 }
 
 //-------------------------------------------------------------------------
-// minimal std::complex<double> (libstdc++ semantics for the ops used)
+// minimal std::complex<double> (libstdc++ semantics for the ops used).
+// Note: division/abs/pow follow libstdc++ (C99 Annex G-style scaling); MSVC's
+// STL differs in last-bit and inf/nan edge cases, which is not emulated.
 
 #[repr(C)]
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -928,7 +930,7 @@ pub fn solve_equation4(roots: &mut [Cplx], a: f64, b: f64, c: f64, d: f64, e: f6
 pub fn number_of_roots_in_interval(mut order: i32, poly_h: &[f64], min: f64, max: f64) -> i32 {
     let mut sseq = [Poly::zero(); MAX_ORDER + 2];
 
-    if order > MAX_ORDER as i32 {
+    if order < 0 || order > MAX_ORDER as i32 || poly_h.len() <= order as usize {
         return -1;
     }
 
@@ -1047,74 +1049,129 @@ pub fn cubic_root(a: f64, mut b: f64, mut c: f64, mut d: f64) -> f64 {
 
 use std::slice;
 
-/// Returns 1 when the C++ side must `throw TMathException(...)` (singular matrix).
-///
-/// # Safety
-/// `a` n*n doubles, `indx` n ints, `d` valid.
-#[no_mangle]
-pub unsafe extern "C" fn flare_tLUDecomposition(a: *mut f64, n: i32, indx: *mut i32, d: *mut f64) -> i32 {
-    let nn = n.max(0) as usize;
-    match t_lu_decomposition(
-        slice::from_raw_parts_mut(a, nn * nn),
-        n,
-        slice::from_raw_parts_mut(indx, nn),
-        &mut *d,
-    ) {
-        Ok(()) => 0,
-        Err(()) => 1,
+/// Status codes of the matrix entry points (the header turns them into throws):
+/// 0 ok, 1 singular matrix (TMathException), 2 negative size (C++ `vector(n)`
+/// threw std::length_error), 3 null pointer for a non-empty matrix.
+const ST_OK: i32 = 0;
+const ST_SINGULAR: i32 = 1;
+const ST_LENGTH: i32 = 2;
+const ST_NULL: i32 = 3;
+
+/// `n*n` as a length, or the status to return. Never panics (no overflow).
+fn mat_len(n: i32) -> Result<usize, i32> {
+    if n < 0 {
+        return Err(ST_LENGTH);
+    }
+    (n as usize).checked_mul(n as usize).ok_or(ST_LENGTH)
+}
+
+/// A slice over a C array: empty (even for a null pointer) when `len == 0`,
+/// `Err(ST_NULL)` for a null pointer with `len > 0`.
+unsafe fn c_slice<'a, T>(p: *const T, len: usize) -> Result<&'a [T], i32> {
+    if len == 0 {
+        Ok(&[])
+    } else if p.is_null() {
+        Err(ST_NULL)
+    } else {
+        Ok(slice::from_raw_parts(p, len))
     }
 }
 
-/// # Safety
-/// `a` n*n doubles, `indx` n ints, `b` n doubles.
-#[no_mangle]
-pub unsafe extern "C" fn flare_tbackSubstitution(a: *const f64, n: i32, indx: *const i32, b: *mut f64) {
-    let nn = n.max(0) as usize;
-    t_back_substitution(
-        slice::from_raw_parts(a, nn * nn),
-        n,
-        slice::from_raw_parts(indx, nn),
-        slice::from_raw_parts_mut(b, nn),
-    );
+unsafe fn c_slice_mut<'a, T>(p: *mut T, len: usize) -> Result<&'a mut [T], i32> {
+    if len == 0 {
+        Ok(&mut [])
+    } else if p.is_null() {
+        Err(ST_NULL)
+    } else {
+        Ok(slice::from_raw_parts_mut(p, len))
+    }
 }
 
-/// Returns 1 when the C++ side must throw (singular matrix).
+/// Returns 1 when the C++ side must `throw TMathException(...)` (singular matrix),
+/// 2 for a negative `n` (std::length_error), 3 for a null pointer.
+///
+/// # Safety
+/// `a` n*n doubles, `indx` n ints, `d` valid (null pointers are rejected, n == 0 is a no-op).
+#[no_mangle]
+pub unsafe extern "C" fn flare_tLUDecomposition(a: *mut f64, n: i32, indx: *mut i32, d: *mut f64) -> i32 {
+    let run = || -> Result<i32, i32> {
+        let nn = mat_len(n)?;
+        let a = c_slice_mut(a, nn)?;
+        let indx = c_slice_mut(indx, n as usize)?;
+        if d.is_null() {
+            return Err(ST_NULL);
+        }
+        Ok(match t_lu_decomposition(a, n, indx, &mut *d) {
+            Ok(()) => ST_OK,
+            Err(()) => ST_SINGULAR,
+        })
+    };
+    run().unwrap_or_else(|e| e)
+}
+
+/// # Safety
+/// `a` n*n doubles, `indx` n ints, `b` n doubles. Invalid sizes/null pointers are a no-op.
+#[no_mangle]
+pub unsafe extern "C" fn flare_tbackSubstitution(a: *const f64, n: i32, indx: *const i32, b: *mut f64) {
+    let run = || -> Result<(), i32> {
+        let nn = mat_len(n)?;
+        t_back_substitution(c_slice(a, nn)?, n, c_slice(indx, n as usize)?, c_slice_mut(b, n as usize)?);
+        Ok(())
+    };
+    let _ = run();
+}
+
+/// Returns 1 when the C++ side must throw (singular matrix), 2 / 3 as for the LU.
 ///
 /// # Safety
 /// `a` n*n doubles, `res` n doubles.
 #[no_mangle]
 pub unsafe extern "C" fn flare_tsolveSistem(a: *mut f64, n: i32, res: *mut f64) -> i32 {
-    let nn = n.max(0) as usize;
-    match tsolve_sistem(slice::from_raw_parts_mut(a, nn * nn), n, slice::from_raw_parts_mut(res, nn)) {
-        Ok(()) => 0,
-        Err(()) => 1,
-    }
+    let run = || -> Result<i32, i32> {
+        let nn = mat_len(n)?;
+        let a = c_slice_mut(a, nn)?;
+        let res = c_slice_mut(res, n as usize)?;
+        Ok(match tsolve_sistem(a, n, res) {
+            Ok(()) => ST_OK,
+            Err(()) => ST_SINGULAR,
+        })
+    };
+    run().unwrap_or_else(|e| e)
 }
 
-/// tdet(A, n); returns 1 when the C++ side must throw (singular matrix).
+/// tdet(A, n); returns 1 when the C++ side must throw (singular matrix), 2 / 3 as for the LU.
 ///
 /// # Safety
 /// `a` n*n doubles, `out` valid.
 #[no_mangle]
 pub unsafe extern "C" fn flare_tdet(a: *mut f64, n: i32, out: *mut f64) -> i32 {
-    let nn = n.max(0) as usize;
-    match tdet(slice::from_raw_parts_mut(a, nn * nn), n) {
-        Ok(v) => {
-            *out = v;
-            0
+    let run = || -> Result<i32, i32> {
+        let nn = mat_len(n)?;
+        let a = c_slice_mut(a, nn)?;
+        if out.is_null() {
+            return Err(ST_NULL);
         }
-        Err(()) => 1,
-    }
+        Ok(match tdet(a, n) {
+            Ok(v) => {
+                *out = v;
+                ST_OK
+            }
+            Err(()) => ST_SINGULAR,
+        })
+    };
+    run().unwrap_or_else(|e| e)
 }
 
-/// tdet(LUa, n, d)
+/// tdet(LUa, n, d); `d` for invalid sizes / null pointers.
 ///
 /// # Safety
 /// `lua` n*n doubles.
 #[no_mangle]
 pub unsafe extern "C" fn flare_tdet_lu(lua: *const f64, n: i32, d: f64) -> f64 {
-    let nn = n.max(0) as usize;
-    tdet_lu(slice::from_raw_parts(lua, nn * nn), n, d)
+    match mat_len(n).and_then(|nn| c_slice(lua, nn)) {
+        Ok(m) => tdet_lu(m, n, d),
+        Err(_) => d,
+    }
 }
 
 /// rootFinding. `out` receives the solutions (capacity `cap`, 16 is always enough);
@@ -1167,10 +1224,14 @@ pub unsafe extern "C" fn flare_solveEquation4(roots: *mut Cplx, a: f64, b: f64, 
 /// `poly_h` has `order + 1` doubles (when order <= 12).
 #[no_mangle]
 pub unsafe extern "C" fn flare_numberOfRootsInInterval(order: i32, poly_h: *const f64, min: f64, max: f64) -> i32 {
-    if order > MAX_ORDER as i32 {
+    // -1 (the "can't do it" value) for order > MAX_ORDER, order < 0 or a null poly
+    if !(0..=MAX_ORDER as i32).contains(&order) {
         return -1;
     }
-    number_of_roots_in_interval(order, slice::from_raw_parts(poly_h, (order + 1).max(0) as usize), min, max)
+    match c_slice(poly_h, order as usize + 1) {
+        Ok(p) => number_of_roots_in_interval(order, p, min, max),
+        Err(_) => -1,
+    }
 }
 
 #[no_mangle]
@@ -1349,5 +1410,39 @@ mod tests {
         let rc = unsafe { flare_rootFinding(poly.as_ptr(), 0, out.as_mut_ptr(), 16, &mut cnt) };
         assert_eq!((rc, cnt), (-1, -1));
         assert!(near(flare_cubicRoot(1.0, 0.0, 0.0, -0.125), 0.5));
+    }
+
+    #[test]
+    fn c_abi_never_panics_on_bad_sizes_or_null_pointers() {
+        unsafe {
+            let (mut d, mut v) = (0.0f64, 0.0f64);
+            let mut idx = [0i32; 2];
+            // negative n: std::length_error in C++ (status 2)
+            assert_eq!(flare_tLUDecomposition(std::ptr::null_mut(), -1, idx.as_mut_ptr(), &mut d), 2);
+            assert_eq!(flare_tsolveSistem(std::ptr::null_mut(), -3, std::ptr::null_mut()), 2);
+            assert_eq!(flare_tdet(std::ptr::null_mut(), i32::MIN, &mut v), 2);
+            // n == 0: the empty system, null pointers allowed
+            assert_eq!(flare_tLUDecomposition(std::ptr::null_mut(), 0, std::ptr::null_mut(), &mut d), 0);
+            assert_eq!(d, 1.0);
+            assert_eq!(flare_tdet(std::ptr::null_mut(), 0, &mut v), 0);
+            assert_eq!(v, 1.0);
+            assert_eq!(flare_tsolveSistem(std::ptr::null_mut(), 0, std::ptr::null_mut()), 0);
+            flare_tbackSubstitution(std::ptr::null(), 0, std::ptr::null(), std::ptr::null_mut());
+            flare_tbackSubstitution(std::ptr::null(), -4, std::ptr::null(), std::ptr::null_mut());
+            assert_eq!(flare_tdet_lu(std::ptr::null(), 0, 2.0), 2.0);
+            assert_eq!(flare_tdet_lu(std::ptr::null(), -1, 2.0), 2.0);
+            // null with n > 0: status 3, no deref
+            assert_eq!(flare_tLUDecomposition(std::ptr::null_mut(), 2, idx.as_mut_ptr(), &mut d), 3);
+            assert_eq!(flare_tdet(std::ptr::null_mut(), 2, &mut v), 3);
+            // a real singular matrix is still status 1
+            let mut m = [0.0; 4];
+            assert_eq!(flare_tdet(m.as_mut_ptr(), 2, &mut v), 1);
+            // roots
+            let poly = [1.0, 2.0, 1.0];
+            assert_eq!(flare_numberOfRootsInInterval(-1, poly.as_ptr(), -5.0, 5.0), -1);
+            assert_eq!(flare_numberOfRootsInInterval(2, std::ptr::null(), -5.0, 5.0), -1);
+            assert_eq!(number_of_roots_in_interval(-1, &poly, -5.0, 5.0), -1);
+            assert_eq!(number_of_roots_in_interval(5, &poly, -5.0, 5.0), -1);
+        }
     }
 }

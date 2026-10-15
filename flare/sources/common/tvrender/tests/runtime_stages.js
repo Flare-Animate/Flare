@@ -16,7 +16,7 @@ const cv = mkCanvas(40, 40);
 global.window = { AC_MOVIE: { w: 40, h: 40, frames: [[]], images: [], paths: [], items: [], fx: [], clips: [], scenes: [{ start: 0 }], extra: [], sounds: [] }, devicePixelRatio: 1, addEventListener() {} };
 global.document = { getElementById: () => cv, createElement: () => mkCanvas(40, 40), addEventListener() {} };
 global.DOMMatrix = function () {}; global.Path2D = function () {}; global.Image = function () {}; global.requestAnimationFrame = () => {};
-src = src.replace("  // per-frame: overrides by src", "  window.__t = { rampFilter: rampFilter, adjustColor: adjustColor, css: css };\n  // per-frame: overrides by src");
+src = src.replace("  // per-frame: overrides by src", "  window.__t = { rampFilter: rampFilter, adjustColor: adjustColor, css: css, openUrl: openUrl };\n  // per-frame: overrides by src");
 try { (0, eval)(src); } catch (e) { /* start-up needs more DOM than the stub; the helpers are defined before it */ }
 const t = window.__t;
 assert(t, "runtime helpers not reachable");
@@ -60,3 +60,21 @@ assert.deepStrictEqual(px(c, 10, 10), [255, 255, 255, 255]); assert.deepStrictEq
 // ctx.filter lengths are canvas pixels: css() scales them with the pixel ratio (1 here)
 assert.strictEqual(t.css("blur(2px) drop-shadow(1px -3.5px 2px red)"), "blur(2px) drop-shadow(1px -3.5px 2px red)");
 console.log("runtime stages ok");
+
+// tainted canvas: getImageData throws SecurityError -> stage skipped, one warning, no throw
+{
+  const warns = []; const cw = console.warn; console.warn = (m) => warns.push(m);
+  const tc = mkCanvas(40, 40); fill(tc, 15, 25, [200, 100, 50, 255]);
+  tc.getContext = () => ({ getImageData() { throw new Error("SecurityError"); }, putImageData() { throw new Error("must not write"); } });
+  t.adjustColor(tc, [10, 0, 0, 0]);
+  t.rampFilter(tc, { k: "glow", bx: 4, by: 4, s: 1, q: 1, a: 0, d: 0, ko: false, h: false, nm: true, t: 1, r: [[0, 255, 0, 0, 0], [1, 255, 0, 0, 255]] }, 1);
+  console.warn = cw;
+  assert.strictEqual(warns.length, 1, "warn once per page");
+}
+// links: only http/https/mailto, with noopener
+{
+  const calls = []; window.open = (...a) => calls.push(a);
+  for (const u of ["javascript:alert(1)", "file:///etc/passwd", "data:text/html,x", "http://a.example/", "https://a.example/", "mailto:a@b.c"]) t.openUrl(u);
+  assert.deepStrictEqual(calls.map(c => c[0]), ["http://a.example/", "https://a.example/", "mailto:a@b.c"]);
+  assert(calls.every(c => c[2] === "noopener,noreferrer"));
+}

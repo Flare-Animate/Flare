@@ -1827,6 +1827,9 @@ pub fn eval_element(ctx: &EvalCtx, el: &Element, parent: &Matrix, alpha: f32, lo
                 let fill = image.is_none().then_some(Color::rgb(200, 200, 200));
                 out.push(DrawItem { fill, alpha: a, tint: el.tint, outline, image, ..DrawItem::new(path, m) });
             }
+                // a clamped placeholder is scaled back to the size the document declared
+                let (dw, dh) = asset.declared_size();
+                let m = if (dw, dh) != (asset.width, asset.height) { m.concat(&Matrix::scale(dw as f32 / asset.width.max(1) as f32, dh as f32 / asset.height.max(1) as f32)) } else { m };
         }
         ElementKind::Particles(e) => e.eval(ctx, &m, a, el.tint, local, outline, depth, out),
         ElementKind::Instance(inst) => {

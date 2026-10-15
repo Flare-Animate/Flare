@@ -57,7 +57,7 @@ fn all_filters() -> Vec<Filter> {
 #[test]
 fn every_model_filter_reaches_the_published_page() {
     let r = publish_report(&doc_with(all_filters(), BlendMode::Normal), &Html5Opts::default());
-    assert!(r.warnings.is_empty(), "{:?}", r.warnings);
+    assert!(r.warnings.iter().all(|w| w.contains("file://")), "{:?}", r.warnings);
     let m = movie(&r.files);
     let stages = m["fx"][0]["s"].as_array().expect("pixel stages");
     // blur (css) | inner shadow | glow | bevel | gradient glow | gradient bevel | adjust colour
@@ -135,4 +135,25 @@ fn publish_to_returns_the_report_and_writes_the_files() {
         assert!(dir.join(f).is_file(), "{f}");
     }
     let _ = std::fs::remove_dir_all(&dir);
+}
+
+#[test]
+fn pixel_stages_in_a_multi_file_page_warn_about_file_url_taint() {
+    let glow = || vec![Filter::Glow { blur_x: 3.0, blur_y: 3.0, strength: 100.0, quality: 1, color: RED, knockout: false, inner: false }];
+    let multi = publish_report(&doc_with(glow(), BlendMode::Normal), &Html5Opts::default());
+    assert!(multi.warnings.iter().any(|w| w.contains("file://") && w.contains("single-file")), "{:?}", multi.warnings);
+    let single = publish_report(&doc_with(glow(), BlendMode::Normal), &Html5Opts { single_file: true, ..Default::default() });
+    assert!(single.warnings.is_empty(), "{:?}", single.warnings);
+    // canvas-string filters read nothing back: no warning
+    let blur = publish_report(&doc_with(vec![Filter::Blur { blur_x: 4.0, blur_y: 4.0, quality: 1 }], BlendMode::Normal), &Html5Opts::default());
+    assert!(blur.warnings.is_empty(), "{:?}", blur.warnings);
+}
+
+#[test]
+fn oversized_stage_is_not_baked_and_says_so() {
+    let mut d = doc_with(vec![Filter::Effect { id: "ec.blur.directional".into(), params: vec![] }], BlendMode::Normal);
+    d.width = 4097.0;
+    let r = publish_report(&d, &Html5Opts::default());
+    assert!(r.files.iter().all(|f| !f.0.starts_with("images/fx")), "no sprite");
+    assert!(r.warnings.iter().any(|w| w.contains("4096")), "{:?}", r.warnings);
 }

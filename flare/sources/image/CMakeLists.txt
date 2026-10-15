@@ -235,6 +235,8 @@ elseif(BUILD_ENV_UNIXLIKE)
 endif()
 
 target_link_libraries(image Qt5::Core Qt5::Gui Qt5::Network ${Z_LIB} ${GLUT_LIB} ${GL_LIB} ${JPEG_LIB} ${TIFF_LIB} ${PNG_LIB} ${EXTRA_LIBS})
+# headers it includes forward to Rust; not transitive via $<TARGET_FILE:tnzcore> on Apple
+target_link_libraries(image flare_formats)
 
 # The TIFF reader wants libtiff's 64-bit RGBA entry points, but some libtiff
 # builds (Ubuntu's, for one) do not export them, which is an unresolved

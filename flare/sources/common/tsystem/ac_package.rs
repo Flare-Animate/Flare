@@ -56,8 +56,16 @@ pub struct Manifest {
 #[serde(tag = "type", rename_all = "lowercase")]
 pub enum LibraryEntry {
     Symbol { id: u32, name: String, kind: String, file: String },
-    Bitmap { id: u32, name: String, file: String, width: u32, height: u32, smoothing: bool, #[serde(default)] missing: bool },
+    Bitmap { id: u32, name: String, file: String, width: u32, height: u32, smoothing: bool, #[serde(default)] missing: bool, #[serde(default, skip_serializing_if = "Option::is_none")] declared: Option<(u32, u32)>, #[serde(default, skip_serializing_if = "Option::is_none")] swf_char_id: Option<u16>, #[serde(default, skip_serializing_if = "Option::is_none")] original: Option<OriginalRef> },
     Sound { id: u32, name: String, file: String },
+}
+
+/// An imported bitmap's original encoding, stored beside its PNG.
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+pub struct OriginalRef {
+    pub codec: ac_core::bitmap::BitmapCodec,
+    pub file: String,
+    pub png_hash: u64,
 }
 
 /// A loaded package plus anything that couldn't be read cleanly.
@@ -114,7 +122,12 @@ pub fn parts(doc: &Document, thumbnail: Option<&[u8]>) -> Result<BTreeMap<String
     for b in &doc.bitmaps {
         let file = format!("library/bitmaps/{}.png", b.id);
         files.insert(file.clone(), b.png.clone());
-        index.push(LibraryEntry::Bitmap { id: b.id, name: b.name.clone(), file, width: b.width, height: b.height, smoothing: b.smoothing, missing: b.missing });
+        let original = b.original.as_ref().map(|o| {
+            let f = format!("library/bitmaps/{}.orig", b.id);
+            files.insert(f.clone(), o.bytes.clone());
+            OriginalRef { codec: o.codec, file: f, png_hash: o.png_hash }
+        });
+        index.push(LibraryEntry::Bitmap { id: b.id, name: b.name.clone(), file, width: b.width, height: b.height, smoothing: b.smoothing, missing: b.missing, declared: (b.declared_size() != (b.width, b.height)).then(|| b.declared_size()), swf_char_id: b.swf_char_id, original });
     }
     for s in &doc.sounds {
         let file = format!("library/sounds/{}.{}", s.id, sound_ext(&s.data));
@@ -219,10 +232,14 @@ pub fn from_parts(files: &BTreeMap<String, Vec<u8>>) -> Result<Loaded, String> {
                     None => warnings.push(format!("symbol '{name}' is missing ({file})")),
                 }
             }
-            LibraryEntry::Bitmap { id, name, file, width, height, smoothing, missing } => {
+            LibraryEntry::Bitmap { id, name, file, width, height, smoothing, missing, declared, swf_char_id, original } => {
                 known.push(file);
+                let original = original.as_ref().and_then(|o| {
+                    known.push(&o.file);
+                    files.get(&o.file).map(|b| ac_core::bitmap::OriginalBitmap { codec: o.codec, bytes: b.clone(), png_hash: o.png_hash })
+                });
                 match files.get(file) {
-                    Some(b) => bitmaps.push(BitmapAsset { id: *id, name: name.clone(), width: *width, height: *height, smoothing: *smoothing, missing: *missing, png: b.clone() }),
+                    Some(b) => bitmaps.push(BitmapAsset { id: *id, name: name.clone(), width: *width, height: *height, smoothing: *smoothing, missing: *missing, png: b.clone(), declared_width: declared.map_or(0, |d| d.0), declared_height: declared.map_or(0, |d| d.1), swf_char_id: *swf_char_id, original }),
                     None => warnings.push(format!("bitmap '{name}' is missing ({file})")),
                 }
             }

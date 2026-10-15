@@ -10,8 +10,12 @@
 /// RunsMap::setRunLength(TPixelGR8 *pix, TUINT32 length)
 ///
 /// # Safety
-/// `pix` must point to a run of at least `length` bytes (`length >= 1`).
+/// `pix` must point to a run of at least `length` bytes; `length == 0` or a
+/// null `pix` is a no-op.
 pub unsafe fn set_run_length(pix: *mut u8, length: u32) {
+    if length == 0 || pix.is_null() {
+        return;
+    }
     let orig_pix = pix;
     let mut pix = orig_pix;
 
@@ -122,6 +126,16 @@ mod tests {
             assert_eq!(buf[len as usize - 2], 255);
             assert_eq!(run_length(buf.as_ptr(), false), len);
         }
+    }
+
+    #[test]
+    fn zero_length_and_null_are_no_ops() {
+        let mut buf = [7u8; 4];
+        unsafe {
+            flare_runsmap_set_run_length(buf.as_mut_ptr(), 0);
+            flare_runsmap_set_run_length(std::ptr::null_mut(), 5);
+        }
+        assert_eq!(buf, [7; 4]);
     }
 
     #[test]

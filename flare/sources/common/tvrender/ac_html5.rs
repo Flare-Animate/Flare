@@ -273,6 +273,9 @@ struct Tables {
     h: u32,
     /// Baked sprites already stored, by content hash → index into `images`.
     baked_ix: HashMap<u64, usize>,
+    /// Total PNG bytes and number of distinct baked sprites stored so far.
+    baked_bytes: usize,
+    baked_count: usize,
     /// Things the page can't show exactly, for the publish report.
     warnings: Vec<String>,
 }
@@ -284,6 +287,23 @@ fn intern(v: &mut Vec<String>, ix: &mut HashMap<String, usize>, s: String) -> us
     v.push(s.clone());
     ix.insert(s, v.len() - 1);
     v.len() - 1
+}
+
+/// Largest stage (per side, px) EffectCraft effects are baked for.
+const MAX_BAKE_STAGE: u32 = 4096;
+/// Caps on all baked sprites of one publish: distinct sprites and total PNG bytes.
+const MAX_BAKED_SPRITES: usize = 2000;
+const MAX_BAKED_BYTES: usize = 256 << 20;
+
+/// Why one more baked sprite of `add` bytes doesn't fit the budget (None: it fits).
+fn bake_over_budget(count: usize, bytes: usize, add: usize) -> Option<String> {
+    if count >= MAX_BAKED_SPRITES {
+        Some(format!("{MAX_BAKED_SPRITES} baked effect sprites"))
+    } else if bytes.saturating_add(add) > MAX_BAKED_BYTES {
+        Some(format!("{} MiB of baked effect sprites", MAX_BAKED_BYTES >> 20))
+    } else {
+        None
+    }
 }
 
 /// PNG bytes of premultiplied RGBA pixels.
@@ -325,8 +345,12 @@ impl Tables {
                 }
             }
         }
-        if self.w == 0 || self.h == 0 || self.w > 8192 || self.h > 8192 {
-            self.warn(format!("EffectCraft effects not baked: a {}×{} px stage is outside the 1–8192 px range; the page shows the objects without them", self.w, self.h));
+        if self.w == 0 || self.h == 0 || self.w > MAX_BAKE_STAGE || self.h > MAX_BAKE_STAGE {
+            self.warn(format!("EffectCraft effects not baked: a {}×{} px stage is outside the 1–{MAX_BAKE_STAGE} px range; the page shows the objects without them", self.w, self.h));
+            return None;
+        }
+        if let Some(why) = bake_over_budget(self.baked_count, self.baked_bytes, 0) {
+            self.warn(format!("EffectCraft effects not baked past the cap of {why}; later frames show the objects without them"));
             return None;
         }
         let Some(mut pm) = tiny_skia::Pixmap::new(self.w, self.h) else {
@@ -346,6 +370,12 @@ impl Tables {
                 return Some(i);
             }
         }
+        if let Some(why) = bake_over_budget(self.baked_count, self.baked_bytes, bytes.len()) {
+            self.warn(format!("EffectCraft effects not baked past the cap of {why}; later frames show the objects without them"));
+            return None;
+        }
+        self.baked_count += 1;
+        self.baked_bytes += bytes.len();
         let name = format!("images/fx{}.png", self.images.len() + 1);
         self.images.push((name, bytes, true));
         self.baked_ix.insert(key, self.images.len() - 1);
@@ -602,7 +632,7 @@ pub fn publish_report(doc: &Document, o: &Html5Opts) -> Report {
     let total = doc.total_frames();
     let (f0, f1) = o.range.unwrap_or((0, total - 1));
     let (f0, f1) = (f0.min(total - 1), f1.min(total - 1).max(f0.min(total - 1)));
-    let mut t = Tables { paths: vec![], path_ix: HashMap::new(), items: vec![], item_ix: HashMap::new(), fx: vec![], fx_ix: HashMap::new(), clips: vec![], clip_ix: HashMap::new(), images: vec![], image_ix: HashMap::new(), w: doc.width.round().max(1.0) as u32, h: doc.height.round().max(1.0) as u32, baked_ix: HashMap::new(), warnings: vec![] };
+    let mut t = Tables { paths: vec![], path_ix: HashMap::new(), items: vec![], item_ix: HashMap::new(), fx: vec![], fx_ix: HashMap::new(), clips: vec![], clip_ix: HashMap::new(), images: vec![], image_ix: HashMap::new(), w: doc.width.round().max(1.0) as u32, h: doc.height.round().max(1.0) as u32, baked_ix: HashMap::new(), baked_bytes: 0, baked_count: 0, warnings: vec![] };
     let mut frames = vec![];
     let mut extra = vec![]; // per frame: buttons + named instances + scripts + sounds
     // A script can hold the main timeline while movie clips keep playing:
@@ -740,6 +770,9 @@ pub fn publish_report(doc: &Document, o: &Html5Opts) -> Report {
         .collect();
     let sounds: Vec<String> = doc.sounds.iter().map(|s| format!("[{},{}]", js_str(&s.name), js_str(&format!("data:{};base64,{}", mime_of(&s.data), b64(&s.data))))).collect();
     let bg = doc.background;
+    if !o.single_file && t.fx.iter().any(|f| f.contains("\"g\":{") || f.contains("\"a\":[")) {
+        t.warn("Pixel filters (glow/shadow variants, bevel, adjust color) read the canvas back; a multi-file page opened from file:// may taint the canvas and the browser then skips them. Publish single-file or serve the folder over http".into());
+    }
     let warnings = t.warnings.clone();
     let mut data = String::with_capacity(1 << 16);
     let _ = write!(
@@ -814,6 +847,17 @@ pub fn publish_to_report(doc: &Document, o: &Html5Opts, path: &std::path::Path) 
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn bake_budget_caps_sprite_count_and_total_bytes() {
+        use super::*;
+        assert!(bake_over_budget(0, 0, 1 << 20).is_none());
+        assert!(bake_over_budget(MAX_BAKED_SPRITES - 1, 0, 10).is_none());
+        assert!(bake_over_budget(MAX_BAKED_SPRITES, 0, 10).unwrap().contains("2000"));
+        assert!(bake_over_budget(1, MAX_BAKED_BYTES - 10, 10).is_none());
+        assert!(bake_over_budget(1, MAX_BAKED_BYTES - 10, 11).unwrap().contains("256 MiB"));
+        assert!(bake_over_budget(1, usize::MAX, 5).is_some(), "no overflow");
+    }
+
     use super::*;
 
     fn fx(filters: &[Filter], blend: BlendMode) -> (serde_json::Value, Vec<String>) {

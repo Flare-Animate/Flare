@@ -207,10 +207,21 @@
       else { px[j] = f0; px[j + 1] = f1; px[j + 2] = f2; px[j + 3] = a; }
     }
   }
+  // getImageData throws SecurityError on a tainted canvas (file:// pages with
+  // multi-file output): skip the pixel stage, warn once, keep animating.
+  var warnedTaint = false;
+  function readPixels(x, a, b, w, h) {
+    try { return x.getImageData(a, b, w, h); }
+    catch (e) {
+      if (!warnedTaint) { warnedTaint = true; console.warn("Flare: canvas is tainted, skipping pixel filters (publish single-file or serve over http): " + e); }
+      return null;
+    }
+  }
   function rampFilter(canvas, g, scale) {
     var x = canvas.getContext("2d", { willReadFrequently: true });
     var W = canvas.width, H = canvas.height;
-    var all = x.getImageData(0, 0, W, H), d = all.data;
+    var all = readPixels(x, 0, 0, W, H); if (!all) return;
+    var d = all.data;
     // work on the object's bounds plus the reach of the effect
     var x0 = W, y0 = H, x1 = -1, y1 = -1, xx, yy;
     for (yy = 0; yy < H; yy++) for (xx = 0; xx < W; xx++) if (d[(yy * W + xx) * 4 + 3]) { if (xx < x0) x0 = xx; if (xx > x1) x1 = xx; if (yy < y0) y0 = yy; if (yy > y1) y1 = yy; }
@@ -218,7 +229,8 @@
     var m = Math.ceil((Math.max(g.bx, g.by) * 1.5 + Math.abs(g.d) + 2) * scale);
     x0 = Math.max(0, x0 - m); y0 = Math.max(0, y0 - m); x1 = Math.min(W - 1, x1 + m); y1 = Math.min(H - 1, y1 + m);
     var w = x1 - x0 + 1, h = y1 - y0 + 1, n = w * h;
-    var img = x.getImageData(x0, y0, w, h), p = img.data;
+    var img = readPixels(x, x0, y0, w, h); if (!img) return;
+    var p = img.data;
     var px = new Float32Array(n * 4), alpha = new Float32Array(n), i;
     for (i = 0; i < n; i++) {
       var a = p[i * 4 + 3] / 255;
@@ -275,7 +287,8 @@
   // can't be used alone: CSS brightness() multiplies where Animate adds).
   function adjustColor(canvas, p) {
     var x = canvas.getContext("2d", { willReadFrequently: true });
-    var img = x.getImageData(0, 0, canvas.width, canvas.height), d = img.data;
+    var img = readPixels(x, 0, 0, canvas.width, canvas.height); if (!img) return;
+    var d = img.data;
     var cl = function (v) { return Math.max(-100, Math.min(100, v)); };
     var b = cl(p[0]) / 100, c = 1 + cl(p[1]) / 100, s = 1 + cl(p[2]) / 100;
     var sin = Math.sin(p[3] * Math.PI / 180), cos = Math.cos(p[3] * Math.PI / 180);
@@ -759,11 +772,16 @@
     dirty = true;
   });
   var pressName = null;
+  function openUrl(u) {
+    var ok = false;
+    try { ok = /^(https?|mailto):$/.test(new URL(String(u), window.location && window.location.href).protocol); } catch (e) {}
+    if (ok) window.open(String(u), "_blank", "noopener,noreferrer");
+  }
   cv.addEventListener("pointerup", function (ev) {
     var pt = stagePoint(ev), h = hitTest(pt);
     if (h && h.name === pressName) {
       var nn = extra(frame).n || {};
-      if (nn[h.name] && nn[h.name].tx && nn[h.name].tx.url) window.open(nn[h.name].tx.url, "_blank");
+      if (nn[h.name] && nn[h.name].tx && nn[h.name].tx.url) openUrl(nn[h.name].tx.url);
       fire(h.name, "click", pt);
     }
     press = null; pressName = null;

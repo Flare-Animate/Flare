@@ -882,18 +882,24 @@ pub fn execute(ed: &mut Editor, id: &str, a: &Value) -> Result<Value, String> {
             Ok(json!(ed.layer + 1))
         }
         "layer.copy" | "layer.cut" => {
-            // with no layer given the layers already selected in the timeline are used
-            let given = a.get("layer").is_some() || a.get("to_layer").is_some();
-            if let Some(l) = layer_arg(ed, a, "layer")? {
+            // with no layer given the layers already selected in the timeline are used.
+            // Everything is validated before the editor is touched; `to_layer` alone
+            // decides the new row selection (`layer` alone keeps an existing one).
+            let layer = layer_arg(ed, a, "layer")?;
+            let to = layer_arg(ed, a, "to_layer")?;
+            let (old_layer, old_sel) = (ed.layer, ed.frame_sel);
+            if let Some(l) = layer {
                 ed.layer = l;
             }
-            if given {
-                ed.frame_sel = layer_arg(ed, a, "to_layer")?.map(|to| FrameSel { layer0: ed.layer.min(to), layer1: ed.layer.max(to), f0: 0, f1: 0 });
+            if let Some(to) = to {
+                ed.frame_sel = Some(FrameSel { layer0: ed.layer.min(to), layer1: ed.layer.max(to), f0: 0, f1: 0 });
             }
             if id == "layer.copy" {
                 ed.copy_layers();
             } else {
                 if ed.selected_layer_tree().len() >= ed.timeline().layers.len() {
+                    ed.layer = old_layer;
+                    ed.frame_sel = old_sel;
                     return Err("can't cut every layer: a timeline keeps at least one".into());
                 }
                 ed.cut_layers();
