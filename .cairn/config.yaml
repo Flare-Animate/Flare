@@ -1,0 +1,14 @@
+version: 0.1
+project:
+  name: "Flare"
+  summary: "Flare animation suite: C++ to Rust rewrite with AnimationCraft and minnamate merged in"
+cairn:
+  knowledge_dir: "cairn"
+  skill_spec_date: "2026-10-15"
+  git_policy: "track"
+  language: "en"
+graduation:
+  provider: "none"
+  target: ""
+  index: ""
+migration_mode: "start_fresh"
