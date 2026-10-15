@@ -25,8 +25,8 @@ work where it stopped. Read it together with:
   interchange/publish) are done, along with their gap-closing passes.
 - **Phase 5** (workspace polish) is under way.
 - **P1 gaps** are all done.
-- **P2 gaps** are being worked through in **groups of five** (section 3). Groups 1 and 2 are
-  done; **Group 3 is next**.
+- **P2 gaps** are being worked through in **groups of five** (section 3). Groups 1-3 are
+  done; **Group 4 is next**.
 
 ### What has been done, in order
 (Details for each step are in `log/devlog.md`; commit hashes are in `git log`.)
@@ -127,7 +127,7 @@ The groups are kept to five so each one gets checked properly. Don't merge group
 |---|---|---|---|
 | 1 | Timeline | Loop range, time display (frames/seconds), frame widths / timeline zoom, Synchronize Symbols, Duplicate Symbol and swap | ✅ `e2a6aa3` |
 | 2 | Symbols & motion | Copy/Paste Motion, motion presets, Cache as Bitmap / Export as Bitmap / Visible flag, 9-slice scaling, layer effects (filters on layers) | ✅ this commit (after `1f8ea23`) |
-| 3 | Drawing & rigging | Hairline strokes + stroke scaling (normal/horizontal/vertical/none), Auto Keyframe toggle, 3D global/local toggle, Asset Warp mesh density option, bone springiness/damping | **next** |
+| 3 | Drawing & rigging | Hairline strokes + stroke scaling (normal/horizontal/vertical/none), Auto Keyframe toggle, 3D global/local toggle, Asset Warp mesh density option, bone springiness/damping | ✅ this commit (after `8869365`); UI not driven in a window |
 | 4 | Commands & panels | Code Snippets panel, saved Commands (Run Command / Manage Saved Commands), History replay / Save as Command, Find and Replace, Publish profiles | |
 | 5 | Documents & media | Multiple open documents (tabs), rich text runs, bitmap compression settings, .ai import, motion objects in .fla export (instead of baking frame by frame) | |
 | last | Needs the egui upgrade | Named workspaces + floating panels/tab groups, keyboard shortcut editor, tablet pressure/tilt | |

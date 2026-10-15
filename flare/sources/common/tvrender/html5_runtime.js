@@ -515,7 +515,21 @@
       c.lineWidth = it.w;
       c.setLineDash(it.d || []);
       c.strokeStyle = it.s;
-      c.stroke(p);
+      if (it.hl) {
+        c.lineWidth = 1 / Math.max(1e-3, Math.sqrt(Math.abs(T.a * T.d - T.b * T.c)));
+        c.stroke(p);
+      } else if (it.sm) {
+        // pen follows only part of the instance scale (h = horizontal, v = vertical, n = none)
+        var L = (MB ? MB : new DOMMatrix()).multiply(m);
+        var sx = Math.hypot(L.a, L.b), sy = Math.hypot(L.c, L.d);
+        if (sx > 1e-6 && sy > 1e-6) {
+          var R = it.sm === "h" ? new DOMMatrix([1, 0, 0, sy, 0, 0]) : it.sm === "v" ? new DOMMatrix([sx, 0, 0, 1, 0, 0]) : new DOMMatrix();
+          var p3 = new Path2D();
+          p3.addPath(p, R.inverse().multiply(L));
+          c.setTransform(BASE.multiply(R));
+          c.stroke(p3);
+        } else c.stroke(p);
+      } else c.stroke(p);
     }
     c.restore();
   }

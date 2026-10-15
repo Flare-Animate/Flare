@@ -342,6 +342,7 @@ impl App {
         app.swatch_ui.open = app.settings.swatches_open;
         app.tl.cell_w = app.settings.tl_cell_w;
         app.tl.seconds = app.settings.tl_seconds;
+        app.ed.auto_keyframe = app.settings.auto_keyframe;
         prefs::apply(&mut app, &cc.egui_ctx);
         app.topts.object_draw = app.settings.prefs.object_drawing;
         app.topts.text_size = app.settings.prefs.text_size;

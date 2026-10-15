@@ -60,6 +60,8 @@ pub mod xdts;
 pub mod tween_edit;
 #[path = "../flareqt/commands.rs"]
 pub mod commands;
+#[path = "../flarelib/drawing.rs"]
+pub mod drawing;
 
 pub use editor::{Editor, FrameSel, LayerFlag, Selection};
 pub use geom::{pt, Matrix, Path, PointRef, Pt, Seg};

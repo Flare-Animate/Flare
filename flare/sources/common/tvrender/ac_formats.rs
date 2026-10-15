@@ -642,7 +642,7 @@ fn lottie_item(it: &DrawItem, warn: &mut Vec<&'static str>) -> Option<String> {
                 Join::Round => 2,
                 Join::Bevel => 3,
             };
-            let w = st.width.max(0.1) * line_scale;
+            let w = if ss.hairline { 1.0 } else { st.width.max(0.1) * line_scale };
             let dashes = match ss.dash {
                 Dash::Dashed => format!(",\"d\":[{{\"n\":\"d\",\"nm\":\"dash\",\"v\":{{\"a\":0,\"k\":{}}}}},{{\"n\":\"g\",\"nm\":\"gap\",\"v\":{{\"a\":0,\"k\":{}}}}}]", f3((ss.dash_len * w).max(0.5)), f3((ss.gap * w).max(0.5))),
                 Dash::Dotted => format!(",\"d\":[{{\"n\":\"d\",\"nm\":\"dash\",\"v\":{{\"a\":0,\"k\":0.01}}}},{{\"n\":\"g\",\"nm\":\"gap\",\"v\":{{\"a\":0,\"k\":{}}}}}]", f3((ss.gap * w).max(w * 1.2))),

@@ -88,6 +88,16 @@ const COMMANDS: &[(&str, &str, &str, Run)] = &[
     ("Modify", "Toggle Export as Bitmap", "", |a| toggle_display(a, 2)),
     ("Modify", "Toggle 9-Slice Scaling Grid", "", |a| toggle_scale_grid(a)),
     ("Modify", "Layer Effects…", "", |a| a.open_layer_props(a.ed.layer)),
+    ("Modify", "3D Space: Global", "", |a| a.status = if a.ed.set_3d_local(false) { "3D space: global".into() } else { "3D space for new transforms: global".into() }),
+    ("Modify", "3D Space: Local", "", |a| a.status = if a.ed.set_3d_local(true) { "3D space: local".into() } else { "3D space for new transforms: local".into() }),
+    ("Modify", "Asset Warp: Denser Mesh", "", |a| mesh_density_step(a, true)),
+    ("Modify", "Asset Warp: Coarser Mesh", "", |a| mesh_density_step(a, false)),
+    ("Timeline", "Toggle Auto Keyframe", "", |a| toggle_auto_keyframe(a)),
+    ("Modify", "Stroke Scale: Normal", "", |a| set_stroke_scale(a, ac_core::StrokeScale::Normal)),
+    ("Modify", "Stroke Scale: Horizontal", "", |a| set_stroke_scale(a, ac_core::StrokeScale::Horizontal)),
+    ("Modify", "Stroke Scale: Vertical", "", |a| set_stroke_scale(a, ac_core::StrokeScale::Vertical)),
+    ("Modify", "Stroke Scale: None", "", |a| set_stroke_scale(a, ac_core::StrokeScale::None)),
+    ("Modify", "Toggle Hairline Stroke", "", |a| toggle_hairline(a)),
     ("Timeline", "Show Time in Seconds", "", |a| {
         a.tl.seconds = !a.tl.seconds;
         a.settings.tl_seconds = a.tl.seconds;
@@ -289,6 +299,35 @@ pub(crate) fn window(app: &mut App, ctx: &egui::Context) {
 pub(crate) fn sync_symbols(a: &mut App) {
     let n = a.ed.synchronize_symbols();
     a.status = if n == 0 { "Symbols already in sync (graphic instances of the same symbol on consecutive keyframes)".into() } else { format!("Synchronized {n} keyframe(s)/instance(s)") };
+}
+
+/// Timeline › Auto Keyframe: on, editing a non-keyframe frame sets a keyframe there.
+pub(crate) fn toggle_auto_keyframe(a: &mut App) {
+    a.ed.auto_keyframe = !a.ed.auto_keyframe;
+    a.settings.auto_keyframe = a.ed.auto_keyframe;
+    a.settings.save();
+    a.status = format!("Auto Keyframe {}", if a.ed.auto_keyframe { "on" } else { "off" });
+}
+
+fn mesh_density_step(a: &mut App, up: bool) {
+    let cur = a.ed.selected_element().and_then(|e| e.mesh).map(|w| w.effective_density());
+    a.status = match cur {
+        None => "Select an object with an Asset Warp first".into(),
+        Some(c) => {
+            let n = if up { c + c / 2 } else { c - c / 3 };
+            a.ed.set_mesh_density(n);
+            format!("Warp mesh density {}", a.ed.selected_element().and_then(|e| e.mesh).map(|w| w.effective_density()).unwrap_or(n))
+        }
+    };
+}
+
+fn set_stroke_scale(a: &mut App, m: ac_core::StrokeScale) {
+    a.status = if a.ed.set_stroke_scale(m) { format!("Stroke scaling: {}", m.label()) } else { "Select a drawing object with a stroke first".into() };
+}
+
+fn toggle_hairline(a: &mut App) {
+    let on = !matches!(a.ed.selected_element().map(|e| e.kind), Some(ac_core::ElementKind::Shape(s)) if s.stroke_style.hairline);
+    a.status = if a.ed.set_stroke_hairline(on) { format!("Hairline {}", if on { "on" } else { "off" }) } else { "Select a drawing object with a stroke first".into() };
 }
 
 /// Edit › Timeline › Copy Motion, with a status line.

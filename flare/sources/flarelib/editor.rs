@@ -48,6 +48,11 @@ pub struct Editor {
     pub selection: Vec<Selection>,
     /// Selected timeline cells.
     pub frame_sel: Option<FrameSel>,
+    /// Auto Keyframe: an edit on a non-keyframe frame of a plain hold also sets a
+    /// keyframe there (edits inside tweens always set a pose).
+    pub auto_keyframe: bool,
+    /// Transform tool 3D mode: new 3D transforms start in local (true) or global space.
+    pub three_d_local: bool,
     undo: Vec<Snapshot>,
     redo: Vec<Snapshot>,
     element_clip: Vec<(Element, usize)>,
@@ -111,6 +116,8 @@ impl Editor {
             layer: 0,
             selection: vec![],
             frame_sel: None,
+            auto_keyframe: false,
+            three_d_local: false,
             undo: vec![],
             redo: vec![],
             element_clip: vec![],
@@ -895,7 +902,7 @@ impl Editor {
             }
             Some((s, _, _)) if s == f => f,
             Some((s, kf, _)) => {
-                if pose && !matches!(kf.tween, Tween::None) {
+                if pose && (self.auto_keyframe || !matches!(kf.tween, Tween::None)) {
                     let l = &mut self.timeline_mut().layers[layer];
                     frames::convert_to_keyframes(l, f, f, false);
                     // a retained piece split here still needs a plain pose to edit
@@ -3507,7 +3514,7 @@ impl Editor {
         let pm = els.get(parent).ok_or("no such object")?.matrix.invert().ok_or("object has no size")?;
         let cm = els.get(child).ok_or("no such object")?.matrix.invert().ok_or("object has no size")?;
         let rest = Bone::relative_angle(&els, parent, child).unwrap_or(0.0);
-        let bone = Bone { parent, child, head: pm.apply(head), tail_parent: pm.apply(tail), tail_child: cm.apply(tail), rotate: true, limit: None, rest, pin: None };
+        let bone = Bone { parent, child, head: pm.apply(head), tail_parent: pm.apply(tail), tail_child: cm.apply(tail), rotate: true, limit: None, rest, pin: None, spring: 0.0, damping: 1.0 };
         self.checkpoint("Add Bone");
         self.timeline_mut().layers[layer].bones.push(bone);
         Ok(())

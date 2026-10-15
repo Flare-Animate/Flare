@@ -109,7 +109,7 @@ The two engine milestones that unlock most of the rest:
 | Bitmap fills (and Lock Fill) | Yes | Drawing objects and merge shapes; Gradient Transform edits them; Lock Fill for gradients | ✅ | |
 | Alpha per fill / stroke colour | Yes | Yes (colour alpha) | ✅ | |
 | Pressure / tilt (tablet) | Yes | — | ❌ | P2 |
-| Hairline strokes, stroke scaling (normal / horizontal / vertical / none) | Yes | — (no hairline stroke feature found; only XFL scaleMode read/write in `flarelib/mm_xfl*.rs`, `common/flash/ac_xfl_write.rs`) | ❌ | P2 |
+| Hairline strokes, stroke scaling (normal / horizontal / vertical / none) | Yes | `StrokeStyle.scale/hairline/pixel_hinting`; renderer (hairline = 1 device px at any zoom, scale modes via a pen matrix), HTML5/SVG parity, XFL `scaleMode`/`solidStyle="hairline"`/`pixelHinting`, Properties controls + command search. Hinting is stored only (no pixel snapping); Lottie ignores scale modes | ✅ | done (P2 group 3) |
 | Shape hints (for shape tweens) | Yes | Ctrl+Shift+H, drag + snap to outline | ✅ | |
 
 ## 3. Tools panel
@@ -120,7 +120,7 @@ The two engine milestones that unlock most of the rest:
 | Subselection (A) | Anchors and handles | Same | ✅ | |
 | Free Transform (Q) incl. Distort / Envelope / Rotate & Skew / Scale modes | Yes | Yes (combined mode + Distort + Envelope) | ✅ | |
 | Gradient Transform (F) | Yes (also bitmap fills) | Gradients and bitmap fills | ✅ | |
-| 3D Rotation (W) / 3D Translation (G), global/local toggle | Yes (movie clips) | Yes; no global/local toggle | 🟡 | P2 |
+| 3D Rotation (W) / 3D Translation (G), global/local toggle | Yes (movie clips) | Yes; `Transform3D.local` + Editor 3D mode, Properties Global/Local toggle, command search. Local depth moves along the rotated normal; bitmaps still project as outlines | ✅ | done (P2 group 3) |
 | Lasso (L), Polygon, **Magic Wand** (bitmap) | Yes | Lasso, Polygon, Magic Wand (threshold) on broken-apart bitmaps | ✅ | |
 | Pen (P) + Add / Delete / Convert Anchor | Yes | Yes | ✅ | |
 | Text (T) | Static, Dynamic, Input | Static, Dynamic, Input; click for auto width, drag for a fixed-width box | ✅ | |
@@ -137,7 +137,7 @@ The two engine milestones that unlock most of the rest:
 | Eyedropper (I) incl. bitmap sampling | Yes | Yes (no bitmaps) | ✅ | |
 | Eraser (E): Erase Normal / Fills / Lines / Selected Fills / Inside, Faucet, shape and size | Yes | All modes + Faucet on merge shapes (round eraser) | ✅ | |
 | Width (U) incl. delete width point, copy/paste width | Yes | Add/drag, Alt+click delete, copy/paste profile | ✅ | |
-| Asset Warp (Shift+W) incl. bitmaps/symbols, mesh options, Reset Warped Asset | Yes | Shapes, bitmaps, symbols and groups (pins deform a triangle grid; stage, video, SVG as a picture, HTML5); Remove warp in Properties | 🟡 | P2 (mesh density option; .fla export unwarped) |
+| Asset Warp (Shift+W) incl. bitmaps/symbols, mesh options, Reset Warped Asset | Yes | Shapes, bitmaps, symbols and groups (pins deform a triangle grid; stage, video, SVG as a picture, HTML5); Remove warp in Properties | 🟡 | P2 (.fla export unwarped; mesh density done) |
 | Camera (C), camera colour effects, layer depth (Ctrl+D) | Yes | Pan/zoom/rotate, colour effects + blur; plus a Free (VCam) mode: the camera is a movable frame on the stage, with follow and shake | 🟡 | Layer Depth P2 |
 | Hand (H), Rotation (Shift+H), Zoom (Z) | Yes | Yes | ✅ | |
 | Stroke/Fill swatches, Swap, Black & White, No colour | Yes | Yes | ✅ | |
@@ -159,7 +159,7 @@ The two engine milestones that unlock most of the rest:
 | Frame label types: Name / Comment / Anchor | Yes | All three (comments are never jump targets) | ✅ | |
 | Reverse Frames, Synchronize Symbols, Insert Blank Keyframe on ranges | Yes | All three; Synchronize Symbols turns on classic-tween Sync and advances First Frame between plain keyframes of the same graphic symbol | ✅ | |
 | Drag the end of a span to extend / shorten it | Yes | Any span (Ctrl, or any motion tween); later keyframes move | ✅ | |
-| Auto Keyframe toggle | Yes | Edits auto-key (unverified) | 🟡 | P2 |
+| Auto Keyframe toggle | Yes | `Editor.auto_keyframe` (Timeline menu, command search, saved in settings): on, editing a non-keyframe hold frame sets a keyframe there; tweens always set a pose. Default off | ✅ | done (P2 group 3) |
 | Copy / Paste Layers (with folders) | Yes | Copy/Cut/Paste Layers (folders, masks, parenting kept), Duplicate Layer | ✅ | (cross-document with multiple documents, 5.6) |
 | Onion skin: range markers, Advanced settings, colours, outline mode | Yes | Draggable/anchored markers, Onion 2/5/All, outlines; Shift & Trace ghosts (from OpenToonz) | 🟡 | P3 (colour settings) |
 | **Edit multiple frames** | Yes | Keyframes between markers shown and moved together | ✅ | |
@@ -201,8 +201,8 @@ The two engine milestones that unlock most of the rest:
 | Motion presets panel (bounce, fly-in…, save your own) | Yes | Window ▸ Motion Presets: 23 presets of our own design (bounce drop, fly-ins, pop, zoom, fades, pulse, heartbeat, shake, wobble, spins, swing, hop, float, slides…) stored as JSON, relative to the object they are applied to; save your own from a motion tween (settings.json). 3D, tint and filter keys are not part of a preset (unverified in the app) | ✅ | |
 | Copy / Paste Motion, Copy Motion as JS/XML | Yes | Edit ▸ Timeline: Copy Motion (Ctrl+Alt+Shift+C), Paste Motion (Ctrl+Alt+Shift+V, relative to the target), Paste Motion Special (absolute), Copy Motion as JS (scripting API calls on the clipboard). A classic tween pastes as a motion tween fitted to its frames; a motion tween keeps its keys and ease. **No Copy Motion as XML** (Animate's own motion XML) | 🟡 | P3 (XML) |
 | Convert to Frame-by-Frame Animation, Convert to Keyframes | Yes | Yes | ✅ | |
-| Bones: IK poses on keyframes, joint rotation/translation constraints, **springiness / damping**, bone ease, runtime vs authoring | Yes | Poses + damped-least-squares IK (OpenToonz); joint rotation enable + min/max limits; pinned joints (object and shape bones) | 🟡 | P2 (translation constraints, springs) |
-| Asset Warp: pins, mesh density, tween warped poses, **Create Warped Asset / Reset** | Yes | Pins (rigid MLS) on shapes, bitmaps, symbols, groups; Reset | 🟡 | P2 (tween warped poses of bitmaps/symbols) |
+| Bones: IK poses on keyframes, joint rotation/translation constraints, **springiness / damping**, bone ease, runtime vs authoring | Yes | Poses + damped-least-squares IK (OpenToonz); joint rotation enable + min/max limits; pinned joints (object and shape bones) | 🟡 | P2 (translation constraints). Springiness/damping done: Flare extension (`Bone.spring/damping`, per-frame critically-damped spring, not in XFL) |
+| Asset Warp: pins, mesh density, tween warped poses, **Create Warped Asset / Reset** | Yes | Pins (rigid MLS) on shapes, bitmaps, symbols, groups; Reset | 🟡 | P2 (tween warped poses). Mesh density done (`MeshWarp.density`, 4..64, slider in Properties) |
 | Camera: tween, colour effects, attach layers, layer depth | Yes | Tweenable pan/zoom/rotate, brightness/tint/alpha/blur, VCam follow + shake (beyond Animate) | 🟡 | P2 (attach layers, depth) |
 | **Auto lip-sync** (map visemes from audio) | Yes | Properties ▸ Lip Syncing with a Mouth-shapes picker; Rhubarb Lip Sync (speech-based, external program) when installed, FFT-band heuristic otherwise; `lipsync.apply` | ✅ | |
 | **Rig mapping** (map a rig onto symbols) | Yes | — | ❌ | P3 |

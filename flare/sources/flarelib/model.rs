@@ -224,6 +224,77 @@ pub struct StrokeStyle {
     /// `strokes::params`).
     #[serde(default, skip_serializing_if = "ArtParams::is_default")]
     pub art: ArtParams,
+    /// Properties ▸ Scale: how the stroke thickness follows instance scaling.
+    #[serde(default)]
+    pub scale: StrokeScale,
+    /// Hairline: always 1 device pixel wide, whatever the zoom or scale.
+    #[serde(default)]
+    pub hairline: bool,
+    /// "Stroke hinting" (`pixelHinting` in XFL): snap to pixels. Stored and
+    /// round-tripped; the software renderer does not snap.
+    #[serde(default)]
+    pub pixel_hinting: bool,
+}
+
+/// Stroke scaling mode (XFL `scaleMode`).
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum StrokeScale {
+    /// Thickness scales with the instance (both axes).
+    #[default]
+    Normal,
+    /// Thickness never scales horizontally (follows the vertical scale only).
+    Horizontal,
+    /// Thickness never scales vertically (follows the horizontal scale only).
+    Vertical,
+    /// Thickness never follows the instance's scale.
+    None,
+}
+
+impl StrokeScale {
+    pub const ALL: [StrokeScale; 4] = [StrokeScale::Normal, StrokeScale::Horizontal, StrokeScale::Vertical, StrokeScale::None];
+    pub fn label(self) -> &'static str {
+        match self {
+            StrokeScale::Normal => "Normal",
+            StrokeScale::Horizontal => "Horizontal",
+            StrokeScale::Vertical => "Vertical",
+            StrokeScale::None => "None",
+        }
+    }
+    /// XFL `scaleMode` value.
+    pub fn xfl(self) -> &'static str {
+        match self {
+            StrokeScale::Normal => "normal",
+            StrokeScale::Horizontal => "horizontal",
+            StrokeScale::Vertical => "vertical",
+            StrokeScale::None => "none",
+        }
+    }
+    pub fn from_xfl(s: &str) -> StrokeScale {
+        match s {
+            "horizontal" => StrokeScale::Horizontal,
+            "vertical" => StrokeScale::Vertical,
+            "none" => StrokeScale::None,
+            _ => StrokeScale::Normal,
+        }
+    }
+    /// The matrix the stroke's *pen* is scaled by, given the instance matrix `m`
+    /// (shape space to stage space). Normal returns `m`'s linear part; the other
+    /// modes return a diagonal matrix, so the pen is not stretched by the
+    /// instance in the locked directions. `None` when `m` is degenerate or not finite.
+    pub fn pen(self, m: &Matrix) -> Option<Matrix> {
+        let sx = (m.a * m.a + m.b * m.b).sqrt();
+        let sy = (m.c * m.c + m.d * m.d).sqrt();
+        if !(sx.is_finite() && sy.is_finite()) || sx < 1e-6 || sy < 1e-6 {
+            return None;
+        }
+        Some(match self {
+            StrokeScale::Normal => Matrix { tx: 0.0, ty: 0.0, ..*m },
+            StrokeScale::Horizontal => Matrix::scale(1.0, sy),
+            StrokeScale::Vertical => Matrix::scale(sx, 1.0),
+            StrokeScale::None => Matrix::IDENTITY,
+        })
+    }
 }
 
 /// Parameters and extra colours of a generated stroke style.
@@ -248,13 +319,13 @@ fn default_dash() -> f32 {
 
 impl Default for StrokeStyle {
     fn default() -> Self {
-        StrokeStyle { dash: Dash::Solid, cap: Cap::Round, join: Join::Round, dash_len: 3.0, gap: 3.0, art: ArtParams::default() }
+        StrokeStyle { dash: Dash::Solid, cap: Cap::Round, join: Join::Round, dash_len: 3.0, gap: 3.0, art: ArtParams::default(), scale: StrokeScale::Normal, hairline: false, pixel_hinting: false }
     }
 }
 
 impl StrokeStyle {
     pub fn is_default(&self) -> bool {
-        self.dash == Dash::Solid && self.cap == Cap::Round && self.join == Join::Round
+        self.dash == Dash::Solid && self.cap == Cap::Round && self.join == Join::Round && self.scale == StrokeScale::Normal && !self.hairline && !self.pixel_hinting
     }
 }
 
@@ -898,9 +969,41 @@ pub struct Bone {
     /// Pinned joint: while posing, the joint stays at this point (layer coordinates).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub pin: Option<Pt>,
+    /// Springiness (Flare extension, not in XFL): natural frequency of the child's
+    /// rotation, in radians per frame. 0 = off (the child follows its keys exactly);
+    /// higher = stiffer, snappier follow-through. Clamped to 0..=`Bone::MAX_SPRING`.
+    #[serde(default, skip_serializing_if = "is_zero_f")]
+    pub spring: f32,
+    /// Damping ratio of the spring: 1 = critically damped (no overshoot), below 1
+    /// it overshoots and wobbles, above 1 it creeps. Clamped to 0.05..=4.
+    #[serde(default = "one_f", skip_serializing_if = "is_one_f")]
+    pub damping: f32,
+}
+
+fn is_zero_f(v: &f32) -> bool {
+    *v == 0.0
+}
+fn one_f() -> f32 {
+    1.0
+}
+fn is_one_f(v: &f32) -> bool {
+    *v == 1.0
 }
 
 impl Bone {
+    pub const MAX_SPRING: f32 = 3.0;
+    /// Frames of history the spring is simulated over (from rest at the window's start),
+    /// so the pose at a frame never depends on how the playhead got there.
+    pub const SPRING_WINDOW: u32 = 120;
+    pub fn has_spring(&self) -> bool {
+        self.spring.is_finite() && self.spring > 1e-4
+    }
+    /// (frequency, damping ratio) after validation.
+    pub fn spring_params(&self) -> (f32, f32) {
+        let w = if self.spring.is_finite() { self.spring.clamp(0.0, Self::MAX_SPRING) } else { 0.0 };
+        let z = if self.damping.is_finite() { self.damping.clamp(0.05, 4.0) } else { 1.0 };
+        (w, z)
+    }
     /// The child's rotation relative to the parent (degrees, −180…180).
     pub fn relative_angle(els: &[Element], parent: usize, child: usize) -> Option<f32> {
         let (p, c) = (els.get(parent)?.matrix, els.get(child)?.matrix);
@@ -1391,7 +1494,7 @@ pub struct Clip {
 
 impl DrawItem {
     pub fn new(path: Path, matrix: Matrix) -> DrawItem {
-        DrawItem { path, fill: None, stroke: None, matrix, alpha: 1.0, tint: None, outline: None, src: None, gradient: None, fx: vec![], clips: vec![], image: None, cx: None, stroke_style: StrokeStyle { dash: Dash::Solid, cap: Cap::Round, join: Join::Round, dash_len: 3.0, gap: 3.0, art: ArtParams::default() }, pattern: None }
+        DrawItem { path, fill: None, stroke: None, matrix, alpha: 1.0, tint: None, outline: None, src: None, gradient: None, fx: vec![], clips: vec![], image: None, cx: None, stroke_style: StrokeStyle::default(), pattern: None }
     }
 }
 
@@ -1425,6 +1528,11 @@ impl DrawItem {
 /// Elements of a layer at `frame`, with tweens resolved.
 /// Returns (elements, frames since keyframe start).
 pub fn layer_elements_at(layer: &Layer, frame: u32) -> Option<(Vec<Element>, u32)> {
+    layer_elements_impl(layer, frame, true)
+}
+
+/// `layer_elements_at`; `springs` off skips bone springiness (used to read the keyed targets).
+fn layer_elements_impl(layer: &Layer, frame: u32, springs: bool) -> Option<(Vec<Element>, u32)> {
     let (start, kf, next) = layer.span_at(frame)?;
     let local = frame - start;
     let span_len = next.unwrap_or(layer.end).min(layer.end) - start;
@@ -1461,6 +1569,9 @@ pub fn layer_elements_at(layer: &Layer, frame: u32) -> Option<(Vec<Element>, u32
         crate::tween_edit::apply(&b.pose_edits, b.source_time(local, span_len), &mut els);
     }
     sync_first_frames(layer, start, &mut els);
+    if springs && layer.bones.iter().any(Bone::has_spring) {
+        apply_springs(layer, frame, &mut els);
+    }
     if !layer.bones.is_empty() {
         apply_bones(&layer.bones, &mut els);
     }
@@ -1524,6 +1635,78 @@ pub fn motion_elements(kf: &Keyframe, local: f32, len: u32, simple: f32) -> Vec<
     pose.apply(el, m.pivot);
     m.apply_extra(el, local, len, simple, kf.ease_curve.as_ref());
     els
+}
+
+/// One exact step of a damped spring `e'' = -2ζω e' - ω² e` over one frame
+/// (closed form, so any frequency is stable). State `(e, v)` is the offset from
+/// the target and its speed.
+pub fn spring_step(e: f32, v: f32, w: f32, z: f32) -> (f32, f32) {
+    if w <= 0.0 {
+        return (0.0, 0.0);
+    }
+    if (z - 1.0).abs() < 1e-4 {
+        let k = (-w).exp();
+        let b = v + w * e;
+        ((e + b) * k, (v - b * w) * k)
+    } else if z < 1.0 {
+        let wd = w * (1.0 - z * z).sqrt();
+        let (sn, cs) = wd.sin_cos();
+        let k = (-z * w).exp();
+        let c2 = (v + z * w * e) / wd;
+        let u = e * cs + c2 * sn;
+        (k * u, k * (-z * w * u + wd * (-e * sn + c2 * cs)))
+    } else {
+        let q = (z * z - 1.0).sqrt();
+        let (r1, r2) = (-w * (z - q), -w * (z + q));
+        let b = (v - r1 * e) / (r2 - r1);
+        let a = e - b;
+        let (e1, e2) = (r1.exp(), r2.exp());
+        (a * e1 + b * e2, a * r1 * e1 + b * r2 * e2)
+    }
+}
+
+/// Secondary motion: a sprung bone's child lags its keyed rotation, following it
+/// through a damped spring simulated over the last `Bone::SPRING_WINDOW` frames
+/// (starting at rest on the keyed pose), so the result depends only on `frame`.
+fn apply_springs(layer: &Layer, frame: u32, els: &mut [Element]) {
+    let from = frame.saturating_sub(Bone::SPRING_WINDOW);
+    let mut hist: Vec<Vec<f32>> = vec![]; // per frame, the keyed rotation (degrees) of each sprung child
+    let sprung: Vec<&Bone> = layer.bones.iter().filter(|b| b.has_spring() && b.child < els.len()).collect();
+    for k in from..frame {
+        match layer_elements_impl(layer, k, false) {
+            Some((e, _)) => hist.push(sprung.iter().map(|b| e.get(b.child).map(|x| x.matrix.b.atan2(x.matrix.a).to_degrees()).unwrap_or(0.0)).collect()),
+            None => hist.push(vec![f32::NAN; sprung.len()]),
+        }
+    }
+    for (i, b) in sprung.iter().enumerate() {
+        let (w, z) = b.spring_params();
+        let cur = els[b.child].matrix.b.atan2(els[b.child].matrix.a).to_degrees();
+        // keyed angles for from..=frame, unwrapped so a turn through 180 stays continuous
+        let mut seq: Vec<f32> = hist.iter().map(|h| h[i]).filter(|a| a.is_finite()).collect();
+        seq.push(cur);
+        let mut un = Vec::with_capacity(seq.len());
+        let mut prev = seq[0];
+        un.push(prev);
+        for a in &seq[1..] {
+            prev += wrap_deg(a - prev);
+            un.push(prev);
+        }
+        let (mut e, mut v) = (0.0f32, 0.0f32);
+        let mut last_t = un[0];
+        for t in &un {
+            // the target moved by (t - last_t): the offset grows by the opposite
+            e -= t - last_t;
+            last_t = *t;
+            (e, v) = spring_step(e, v, w, z);
+        }
+        // e is now (displayed - target) in degrees
+        if e.is_finite() && e.abs() > 1e-6 {
+            let m = els[b.child].matrix;
+            let j = m.apply(b.tail_child);
+            let r = Matrix::translate(j.x, j.y).concat(&Matrix::rotate(e.to_radians())).concat(&Matrix::translate(-j.x, -j.y));
+            els[b.child].matrix = r.concat(&m);
+        }
+    }
 }
 
 /// Forward kinematics: move each bone's child so its joint sits on the

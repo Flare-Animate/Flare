@@ -148,6 +148,9 @@ impl Reader<'_> {
                 Some("bevel") => Join::Bevel,
                 _ => Join::Round,
             },
+            scale: StrokeScale::from_xfl(s.attribute("scaleMode").unwrap_or("normal")),
+            hairline: s.attribute("solidStyle") == Some("hairline"),
+            pixel_hinting: matches!(s.attribute("pixelHinting"), Some("true")) || matches!(s.attribute("strokeHinting"), Some("true")),
             ..Default::default()
         };
         match s.tag_name().name() {

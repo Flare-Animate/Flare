@@ -303,6 +303,28 @@ impl Warp {
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Default)]
 pub struct MeshWarp {
     pub pins: Vec<(Pt, Pt)>,
+    /// Grid resolution: cells along the longer side. 0 = the default
+    /// (`DEFAULT_DENSITY`). Higher = smoother deformation, more triangles.
+    #[serde(default, skip_serializing_if = "is_zero")]
+    pub density: u32,
+}
+
+fn is_zero(v: &u32) -> bool {
+    *v == 0
+}
+
+impl MeshWarp {
+    pub const DEFAULT_DENSITY: u32 = 24;
+    pub const MIN_DENSITY: u32 = 4;
+    pub const MAX_DENSITY: u32 = 64;
+    /// The cells along the longer side that `map` uses (clamped to the supported range).
+    pub fn effective_density(&self) -> u32 {
+        if self.density == 0 {
+            Self::DEFAULT_DENSITY
+        } else {
+            self.density.clamp(Self::MIN_DENSITY, Self::MAX_DENSITY)
+        }
+    }
 }
 
 /// A deformed grid in stage (or device) space: `src` points are where the
@@ -338,10 +360,10 @@ impl MeshWarp {
     /// The grid over local bounds `lo`–`hi`, placed by `m` (local → stage).
     pub fn map(&self, lo: Pt, hi: Pt, m: &crate::geom::Matrix) -> MeshMap {
         let (w, h) = ((hi.x - lo.x).max(1.0), (hi.y - lo.y).max(1.0));
-        // about 24 cells along the longer side
-        let cell = w.max(h) / 24.0;
-        let cols = ((w / cell).ceil() as usize).clamp(2, 48);
-        let rows = ((h / cell).ceil() as usize).clamp(2, 48);
+        // `density` cells along the longer side (24 by default)
+        let cell = w.max(h) / self.effective_density() as f32;
+        let cols = ((w / cell).ceil() as usize).clamp(2, 64);
+        let rows = ((h / cell).ceil() as usize).clamp(2, 64);
         let mut src = Vec::with_capacity((cols + 1) * (rows + 1));
         let mut dst = Vec::with_capacity(src.capacity());
         for r in 0..=rows {
@@ -456,6 +478,10 @@ pub struct Transform3D {
     pub z: f32,
     /// 3D centre in the object's local coordinates.
     pub center: Pt,
+    /// Local transform space: rotations and the depth move follow the object's own
+    /// axes (turned by its 2D rotation) instead of the stage's. Default: global.
+    #[serde(default)]
+    pub local: bool,
 }
 
 impl Transform3D {
@@ -466,10 +492,10 @@ impl Transform3D {
         if a.is_none() && b.is_none() {
             return None;
         }
-        let a = a.unwrap_or_else(|| Transform3D { center: b.unwrap().center, ..Default::default() });
-        let b = b.unwrap_or_else(|| Transform3D { center: a.center, ..Default::default() });
+        let a = a.unwrap_or_else(|| Transform3D { center: b.unwrap().center, local: b.unwrap().local, ..Default::default() });
+        let b = b.unwrap_or_else(|| Transform3D { center: a.center, local: a.local, ..Default::default() });
         let l = |x: f32, y: f32| x + (y - x) * t;
-        Some(Transform3D { rx: l(a.rx, b.rx), ry: l(a.ry, b.ry), rz: l(a.rz, b.rz), z: l(a.z, b.z), center: a.center.lerp(b.center, t) })
+        Some(Transform3D { rx: l(a.rx, b.rx), ry: l(a.ry, b.ry), rz: l(a.rz, b.rz), z: l(a.z, b.z), center: a.center.lerp(b.center, t), local: if t < 0.5 { a.local } else { b.local } })
     }
 }
 
@@ -489,20 +515,48 @@ impl Perspective {
     }
 }
 
-/// Project world points of an object with 3D properties. `center` is the
-/// object's 3D centre in world space.
-pub fn project_3d(t: &Transform3D, center: Pt, persp: &Perspective, p: Pt) -> Pt {
-    let (sx, cx) = t.rx.to_radians().sin_cos();
-    let (sy, cy) = t.ry.to_radians().sin_cos();
-    let (sz, cz) = t.rz.to_radians().sin_cos();
-    let (x0, y0) = (p.x - center.x, p.y - center.y);
-    // Rz
+/// The 3D position (before perspective) of world point `p`: rotation about the
+/// 3D centre `center` and the depth move. `local_rot` is the object's 2D
+/// rotation in radians; it only matters when `t.local` is set, where the axes
+/// are the object's own: the point is turned into the object's frame, rotated
+/// there (and the depth move goes along the rotated normal), then turned back.
+/// Non-finite inputs are treated as 0.
+pub fn transform_3d(t: &Transform3D, center: Pt, p: Pt, local_rot: f32) -> (f32, f32, f32) {
+    let fin = |v: f32| if v.is_finite() { v } else { 0.0 };
+    let (sx, cx) = fin(t.rx).to_radians().sin_cos();
+    let (sy, cy) = fin(t.ry).to_radians().sin_cos();
+    let (sz, cz) = fin(t.rz).to_radians().sin_cos();
+    let tz = fin(t.z);
+    let (mut x0, mut y0) = (fin(p.x - center.x), fin(p.y - center.y));
+    let theta = if t.local { fin(local_rot) } else { 0.0 };
+    let (st, ct) = theta.sin_cos();
+    if t.local {
+        // into the object's frame
+        (x0, y0) = (x0 * ct + y0 * st, -x0 * st + y0 * ct);
+    }
+    // Rz, then Ry, then Rx
     let (x1, y1, z1) = (x0 * cz - y0 * sz, x0 * sz + y0 * cz, 0.0f32);
-    // Ry
     let (x2, y2, z2) = (x1 * cy + z1 * sy, y1, -x1 * sy + z1 * cy);
-    // Rx
     let (x3, y3, z3) = (x2, y2 * cx - z2 * sx, y2 * sx + z2 * cx);
-    let (wx, wy, wz) = (center.x + x3, center.y + y3, t.z + z3);
+    if !t.local {
+        return (center.x + x3, center.y + y3, tz + z3);
+    }
+    // the depth move along the object's rotated normal: Rx * Ry * (0, 0, tz)
+    let (zx, zy, zz) = (tz * sy, -(tz * cy) * sx, (tz * cy) * cx);
+    let (lx, ly) = (x3 + zx, y3 + zy);
+    // and back to the stage
+    (center.x + lx * ct - ly * st, center.y + lx * st + ly * ct, z3 + zz)
+}
+
+/// Project world points of an object with 3D properties. `center` is the
+/// object's 3D centre in world space. Global space (see `project_3d_in`).
+pub fn project_3d(t: &Transform3D, center: Pt, persp: &Perspective, p: Pt) -> Pt {
+    project_3d_in(t, center, persp, p, 0.0)
+}
+
+/// `project_3d` with the object's 2D rotation (radians), used by local space.
+pub fn project_3d_in(t: &Transform3D, center: Pt, persp: &Perspective, p: Pt, local_rot: f32) -> Pt {
+    let (wx, wy, wz) = transform_3d(t, center, p, local_rot);
     let f = persp.focal();
     let k = f / (f + wz).max(f * 0.02);
     let v = persp.vanishing;
@@ -512,9 +566,10 @@ pub fn project_3d(t: &Transform3D, center: Pt, persp: &Perspective, p: Pt) -> Pt
 /// Project a world-space path (curves flattened first so perspective stays accurate).
 pub fn project_path(path: &Path, m: &Matrix, t: &Transform3D, center: Pt, persp: &Perspective) -> Path {
     let mut segs = Vec::new();
+    let rot = m.b.atan2(m.a);
     for (poly, closed) in path.transformed(m).flatten(12) {
         for (i, q) in poly.iter().enumerate() {
-            let pp = project_3d(t, center, persp, *q);
+            let pp = project_3d_in(t, center, persp, *q, rot);
             segs.push(if i == 0 { Seg::M(pp) } else { Seg::L(pp) });
         }
         if closed {

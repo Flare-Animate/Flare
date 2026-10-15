@@ -154,7 +154,29 @@ fn draw_item(pix: &mut sk::PixmapMut, it: &DrawItem, opts: &RenderOpts, masks: &
         let mut paint = sk::Paint::default();
         paint.set_color(shade(st.color, alpha, tint));
         paint.anti_alias = true;
-        pix.stroke_path(&path, &paint, &sk_stroke(st.width, &it.stroke_style), ts, mask);
+        let ss = &it.stroke_style;
+        if ss.hairline {
+            // always 1 device pixel: stroke the path after it is in device space
+            if let Some(dp) = path.clone().transform(ts) {
+                pix.stroke_path(&dp, &paint, &sk_stroke(1.0, ss), sk::Transform::identity(), mask);
+            }
+        } else if ss.scale != ac_core::StrokeScale::Normal {
+            // the pen follows only part of the instance's scale: stroke in a space
+            // where the instance matrix is replaced by its pen matrix
+            match ss.scale.pen(&it.matrix).and_then(|pen| pen.invert().map(|inv| (pen, inv))) {
+                Some((pen, inv)) => {
+                    let rel = inv.concat(&it.matrix);
+                    let moved = path.clone().transform(to_sk_transform(&rel));
+                    let pts = to_sk_transform(&opts.view.concat(&pen));
+                    if let Some(mp) = moved {
+                        pix.stroke_path(&mp, &paint, &sk_stroke(st.width, ss), pts, mask);
+                    }
+                }
+                None => pix.stroke_path(&path, &paint, &sk_stroke(st.width, ss), ts, mask),
+            }
+        } else {
+            pix.stroke_path(&path, &paint, &sk_stroke(st.width, ss), ts, mask);
+        }
     }
 }
 
@@ -712,7 +734,7 @@ impl SvgWriter<'_> {
                             Dash::Dotted => format!(" stroke-dasharray=\"0.01 {}\"", (st.gap * s.width).max(s.width * 1.2)),
                             _ => String::new(),
                         };
-                        format!(" stroke=\"{h}\" stroke-opacity=\"{a:.3}\" stroke-width=\"{}\" stroke-linecap=\"{cap}\" stroke-linejoin=\"{join}\"{dash}", s.width)
+                        format!(" stroke=\"{h}\" stroke-opacity=\"{a:.3}\" stroke-width=\"{}\" stroke-linecap=\"{cap}\" stroke-linejoin=\"{join}\"{dash}{}", if st.hairline { 1.0 } else { s.width }, if st.hairline || st.scale == ac_core::StrokeScale::None { " vector-effect=\"non-scaling-stroke\"" } else { "" })
                     }
                 }
                 None => String::new(),

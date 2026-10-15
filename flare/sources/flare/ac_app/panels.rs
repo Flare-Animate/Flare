@@ -351,6 +351,15 @@ fn object_properties(app: &mut App, ui: &mut egui::Ui) {
                 ui.end_row();
             });
             ui.horizontal(|ui| {
+                let mut local = td.map(|t| t.local).unwrap_or(app.ed.three_d_local);
+                let old = local;
+                ui.selectable_value(&mut local, false, "Global").on_hover_text("Rotate and move along the stage's axes");
+                ui.selectable_value(&mut local, true, "Local").on_hover_text("Rotate and move along the object's own axes");
+                if local != old {
+                    app.ed.set_3d_local(local);
+                }
+            });
+            ui.horizontal(|ui| {
                 if ui.add_enabled(td.is_some(), egui::Button::new("Reset 3D")).clicked() {
                     app.ed.modify_selected("Remove 3D", |e| e.three_d = None);
                 }
@@ -748,6 +757,14 @@ fn object_properties(app: &mut App, ui: &mut egui::Ui) {
                     app.ed.modify_selected("Remove Warp", |e| e.mesh = None);
                 }
             });
+            ui.horizontal(|ui| {
+                ui.label("Mesh density");
+                let mut d = w.effective_density();
+                let r = ui.add(egui::Slider::new(&mut d, ac_core::deform::MeshWarp::MIN_DENSITY..=ac_core::deform::MeshWarp::MAX_DENSITY)).on_hover_text("Grid cells along the longer side: higher = smoother, slower");
+                if r.drag_stopped() || (r.changed() && !r.dragged()) {
+                    app.ed.set_mesh_density(d);
+                }
+            });
         }
 
         // Bones (IK)
@@ -773,6 +790,18 @@ fn object_properties(app: &mut App, ui: &mut egui::Ui) {
                         app.ed.set_joint(sel0.layer, sel0.element, rotate, limit);
                     }
                 }
+            }
+            if let Some(b) = bones.iter().find(|b| b.child == sel0.element).copied() {
+                ui.horizontal(|ui| {
+                    let (mut sp, mut dm) = (b.spring, b.damping);
+                    ui.label("Spring");
+                    let r1 = ui.add(egui::DragValue::new(&mut sp).range(0.0..=ac_core::Bone::MAX_SPRING).speed(0.01).max_decimals(2)).on_hover_text("Springiness: how stiffly this joint follows its keys (radians per frame, 0 = off). Flare extension: not saved in .fla");
+                    ui.label("Damping");
+                    let r2 = ui.add(egui::DragValue::new(&mut dm).range(0.05..=4.0).speed(0.01).max_decimals(2)).on_hover_text("1 = no overshoot, below 1 = wobble, above 1 = sluggish");
+                    if r1.drag_stopped() || r2.drag_stopped() || ((r1.changed() || r2.changed()) && !r1.dragged() && !r2.dragged()) {
+                        app.ed.set_bone_spring(sel0.layer, sel0.element, sp, dm);
+                    }
+                });
             }
             ui.horizontal(|ui| {
                 if ui.add_enabled(parent.is_some(), egui::Button::new("Remove bone")).on_hover_text("Detach this object from its parent").clicked() {
@@ -2763,7 +2792,7 @@ pub(crate) struct FilterEdit {
 
 /// The editable filter list (objects' Filters section and the Layer Properties
 /// effects): one collapsible block per filter, Add / Remove / Presets.
-pub(crate) fn filter_list_ui(app: &mut App, ui: &mut egui::Ui, list: &mut Vec<Filter>, salt: &str) -> FilterEdit {
+pub(crate) fn filter_list_ui(app: &mut App, ui: &mut egui::Ui, list: &mut Vec<Filter>, id_scope: &str) -> FilterEdit {
     let mut changed = false;
     let mut dragging = false;
     let mut stopped = false;
@@ -2782,7 +2811,7 @@ pub(crate) fn filter_list_ui(app: &mut App, ui: &mut egui::Ui, list: &mut Vec<Fi
             Filter::Effect { id, .. } => ac_render::effectcraft::info(id).map_or_else(|| format!("Effect: {id} (not available)"), |e| e.name.to_string()),
             other => other.name().to_string(),
         };
-        egui::CollapsingHeader::new(RichText::new(title).color(Color32::from_gray(220))).id_salt((salt, k)).default_open(true).show(ui, |ui| {
+        egui::CollapsingHeader::new(RichText::new(title).color(Color32::from_gray(220))).id_salt((id_scope, k)).default_open(true).show(ui, |ui| {
             let dv = |ui: &mut egui::Ui, label: &str, v: &mut f32, lo: f32, hi: f32, suffix: &str| {
                 ui.label(label);
                 let r = ui.add(egui::DragValue::new(v).range(lo..=hi).speed(0.5).suffix(suffix).max_decimals(1));
@@ -2799,7 +2828,7 @@ pub(crate) fn filter_list_ui(app: &mut App, ui: &mut egui::Ui, list: &mut Vec<Fi
             };
             let mut footer_slot: Option<String> = None;
             let footer = &mut footer_slot;
-            egui::Grid::new((salt, "grid", k)).num_columns(2).spacing([6.0, 3.0]).show(ui, |ui| match f {
+            egui::Grid::new((id_scope, "grid", k)).num_columns(2).spacing([6.0, 3.0]).show(ui, |ui| match f {
                 Filter::Blur { blur_x, blur_y, quality } => {
                     track(dv(ui, "Blur X", blur_x, 0.0, 255.0, " px"), &mut changed);
                     track(dv(ui, "Blur Y", blur_y, 0.0, 255.0, " px"), &mut changed);
@@ -3394,6 +3423,26 @@ fn shape_extras(app: &mut App, ui: &mut egui::Ui, s: &ac_core::Shape) {
             }
             if v != st {
                 app.ed.modify_selected("Stroke Style", move |e| if let ElementKind::Shape(sh) = &mut e.kind { sh.stroke_style = v });
+            }
+        });
+        ui.horizontal(|ui| {
+            ui.label("Scale");
+            let mut m = st.scale;
+            egui::ComboBox::from_id_salt("stroke_scale").width(86.0).selected_text(m.label()).show_ui(ui, |ui| {
+                for k in ac_core::StrokeScale::ALL {
+                    ui.selectable_value(&mut m, k, k.label());
+                }
+            }).response.on_hover_text("Stroke scaling: how the thickness follows the instance's scale");
+            if m != st.scale {
+                app.ed.set_stroke_scale(m);
+            }
+            let mut h = st.hairline;
+            if ui.checkbox(&mut h, "Hairline").on_hover_text("Always 1 pixel wide, at any zoom").changed() {
+                app.ed.set_stroke_hairline(h);
+            }
+            let mut hint = st.pixel_hinting;
+            if ui.checkbox(&mut hint, "Hint").on_hover_text("Stroke hinting (saved in .fla; not applied by the preview)").changed() {
+                app.ed.set_stroke_hinting(hint);
             }
         });
         // OpenToonz styles: their parameters and extra colours

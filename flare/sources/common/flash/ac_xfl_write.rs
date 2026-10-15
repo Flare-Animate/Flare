@@ -137,8 +137,15 @@ impl W<'_> {
         if joints != "round" {
             let _ = write!(caps_a, r#" joints="{joints}""#);
         }
+        if st.hairline {
+            caps_a += r#" solidStyle="hairline""#;
+        }
+        if st.pixel_hinting {
+            caps_a += r#" pixelHinting="true""#;
+        }
         format!(
-            "{ind}<{tag} scaleMode=\"normal\" weight=\"{}\"{caps_a}{extra}>\n{ind}  <fill>\n{ind}    <SolidColor color=\"{}\"{}/>\n{ind}  </fill>\n{ind}</{tag}>\n",
+            "{ind}<{tag} scaleMode=\"{}\" weight=\"{}\"{caps_a}{extra}>\n{ind}  <fill>\n{ind}    <SolidColor color=\"{}\"{}/>\n{ind}  </fill>\n{ind}</{tag}>\n",
+            st.scale.xfl(),
             n(s.width),
             s.color.to_hex(),
             alpha_attr(s.color, "alpha")

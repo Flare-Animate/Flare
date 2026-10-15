@@ -461,6 +461,7 @@ impl App {
 
     /// Give every selected object a 3D centre (its local bounds centre) before a 3D edit.
     pub(crate) fn ensure_3d(&mut self) {
+        let local = self.ed.three_d_local;
         let sels = self.ed.selection.clone();
         for s in &sels {
             let Some(el) = self.ed.element_at(*s) else { continue };
@@ -471,7 +472,7 @@ impl App {
             let Some(inv) = el.matrix.invert() else { continue };
             let c = inv.apply(pt((lo.x + hi.x) / 2.0, (lo.y + hi.y) / 2.0));
             self.ed.selection = vec![*s];
-            self.ed.modify_selected_continuous(|e| e.three_d = Some(Transform3D { center: c, ..Default::default() }));
+            self.ed.modify_selected_continuous(|e| e.three_d = Some(Transform3D { center: c, local, ..Default::default() }));
         }
         self.ed.selection = sels;
     }

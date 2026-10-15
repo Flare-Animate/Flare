@@ -176,6 +176,9 @@ pub(crate) struct Settings {
     pub tl_cell_w: f32,
     #[serde(default)]
     pub tl_seconds: bool,
+    /// Timeline › Auto Keyframe.
+    #[serde(default)]
+    pub auto_keyframe: bool,
 }
 
 fn cell_w() -> f32 {
@@ -219,7 +222,7 @@ fn yes() -> bool {
 
 impl Default for Settings {
     fn default() -> Self {
-        Settings { recent: vec![], last_dir: None, library_left: false, filter_presets: vec![], motion_presets: vec![], retain_tween_curves: false, show_startup: true, layout: None, swatches: None, swatches_open: false, options_bar: false, symbol_reg: [1, 1], doc_units: 0, prefs: Prefs::default(), tl_cell_w: 11.0, tl_seconds: false }
+        Settings { recent: vec![], last_dir: None, library_left: false, filter_presets: vec![], motion_presets: vec![], retain_tween_curves: false, show_startup: true, layout: None, swatches: None, swatches_open: false, options_bar: false, symbol_reg: [1, 1], doc_units: 0, prefs: Prefs::default(), tl_cell_w: 11.0, tl_seconds: false, auto_keyframe: false }
     }
 }
 

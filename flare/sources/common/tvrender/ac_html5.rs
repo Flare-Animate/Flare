@@ -465,6 +465,11 @@ impl Tables {
                 if cap != "round" || join != "round" {
                     let _ = write!(s, ",\"cj\":\"{cap} {join}\"");
                 }
+                if ss.hairline {
+                    s.push_str(",\"hl\":1");
+                } else if ss.scale != ac_core::StrokeScale::Normal {
+                    let _ = write!(s, ",\"sm\":\"{}\"", &ss.scale.xfl()[..1]);
+                }
                 let w = st.width.max(0.1);
                 match ss.dash {
                     Dash::Dashed => {

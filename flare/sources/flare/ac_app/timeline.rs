@@ -333,6 +333,10 @@ fn toolbar(app: &mut App, ui: &mut egui::Ui) {
                 app.settings.tl_seconds = app.tl.seconds;
                 app.settings.save();
             }
+            if ui.checkbox(&mut app.ed.auto_keyframe, "Auto Keyframe").on_hover_text("Editing an object on a non-keyframe frame sets a keyframe there").changed() {
+                app.settings.auto_keyframe = app.ed.auto_keyframe;
+                app.settings.save();
+            }
         })
         .response
         .on_hover_text("Frame View: keyframe thumbnails in the timeline");

@@ -339,6 +339,14 @@ In short, Flare's end state is a unified Rust implementation of the OpenToonz/Ta
 - **Layer effects**: `Layer.filters` wrap the layer's items in one outermost `FxGroup` in `evaluate`; XFL `<filters>` on `DOMLayer` (Flare extension).
 - Tests: `flarelib/tests/{p2_motion,p2_symbols}.rs`, `common/tvrender/tests/p2_symbols.rs`, `common/flash/tests/p2_symbols.rs`.
 
+### P2 group 3: drawing & rigging (Oct 15 2026)
+- **Hairline + stroke scaling**: `StrokeStyle.scale` (`StrokeScale`: normal/horizontal/vertical/none), `hairline`, `pixel_hinting` (serde defaults, skipped when default). `StrokeScale::pen` gives the matrix the pen is scaled by; `ac_render` strokes in a space where the instance matrix is replaced by the pen matrix (hairline: stroked in device space at 1 px). HTML5 (`hl`, `sm` item keys; runtime does the same pen trick with `Path2D.addPath`), SVG (`vector-effect`), Lottie (hairline width only). XFL `scaleMode`, `solidStyle="hairline"`, `pixelHinting`. Hinting is stored, not applied.
+- **Auto Keyframe**: `Editor.auto_keyframe` (default off, saved in settings); `target_keyframe` also keys non-keyframe frames of a plain hold when on. Tweens already set a pose either way.
+- **3D global/local**: `Transform3D.local`; `deform::transform_3d` (rotations in the object's frame, depth along the rotated normal) feeds `project_3d_in`; `Editor.three_d_local` is the tool mode, `set_3d_local` converts the selection.
+- **Asset Warp density**: `MeshWarp.density` (0 = 24, clamped 4..64), `Editor::set_mesh_density`.
+- **Bone springiness/damping** (Flare extension, not in XFL): `Bone.spring` (rad/frame, 0 = off) and `damping` (ratio); `apply_springs` replays the last 120 frames from rest with an exact per-frame spring step, so a pose depends only on the frame index. Filters the child's own rotation about its joint.
+- Commands: `flarelib/drawing.rs`. Tests: `flarelib/tests/p2_drawing.rs`, `common/tvrender/tests/p2_drawing.rs`, `common/flash/tests/p2_drawing.rs`.
+
 ### Tooling survey
 - Automated C/C++→Rust tools exist (c2rust: rule-based, unsafe output; LLM+static-analysis research tools SACTOR, SmartC2Rust, RustMap, SafeTrans). None handle Qt/C++ class hierarchies; output would violate the safe-idiomatic rule. Port is manual, per file, test-verified.
 - `ac-core` (≈24k LOC; now spread across the OpenToonz-matching directories, crate root `flare/sources/flarelib/ac_core.rs`) and `flare-studio` (`toonzqt/`, ≈14k LOC) are the AnimationCraft editor, a different architecture from OpenToonz; they are not a line-matching port. Counted against the 2.3k C++ files, the matching rewrite is a few modules deep.
