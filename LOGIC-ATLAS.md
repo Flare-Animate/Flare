@@ -15,7 +15,7 @@ import commands served from `flare/sources/flare`.
 
 > **Rust layout rule.** Rust never gets a sidecar tree. Each ported module lives at
 > `flare/sources/common/<subsystem>/rust/<name>.rs`, beside the C++ it ports, and is
-> registered in the `#[path]` list at the crate root `flare/sources/rust/flare_formats.rs`.
+> registered in the `#[path]` list at the crate root `flare/sources/flare_formats.rs`.
 > A missing or misspelled `#[path]` is a compile error, so the crate root is the single
 > inventory of what has been ported.
 
@@ -106,7 +106,7 @@ structures → import command (flashimport.cpp / mohoimport.cpp) → scene level
 
 ## flare_formats — Rust content sniffing and format parsing
 
-**Namespace:** crate root  **Dir:** modules sit beside the C++ they port — `flare/sources/common/flash/`, `flare/sources/common/moho/`, `flare/sources/common/tsystem/`, `flare/sources/common/tapptools/`; crate root `flare/sources/rust/flare_formats.rs`, manifest `flare/sources/Cargo.toml`, public header `flare/sources/include/flare_formats.h`  **Deps:** none (leaf)  **Entry points:** `flare_formats.rs`, `flare_formats.h`, `Cargo.toml`.
+**Namespace:** crate root  **Dir:** modules sit beside the C++ they port — `flare/sources/common/flash/`, `flare/sources/common/moho/`, `flare/sources/common/tsystem/`, `flare/sources/common/tapptools/`; crate root `flare/sources/flare_formats.rs`, manifest `flare/sources/Cargo.toml`, public header `flare/sources/include/flare_formats.h`  **Deps:** none (leaf)  **Entry points:** `flare_formats.rs`, `flare_formats.h`, `Cargo.toml`.
 
 **Job:** Decide what a file is from its bytes and answer small structural questions about
 it, exposing everything through `extern "C"` functions declared in `flare_formats.h`.
@@ -265,7 +265,7 @@ C ABI so the C++ dialog can drive it without reimplementing the protocol.
 
 ## flare_remote — Rust remote-protocol crate
 
-**Namespace:** crate root  **Dir:** `flare/sources/remote/rust`  **Deps:** none (leaf)  **Entry points:** `src/lib.rs`, `Cargo.toml`.
+**Namespace:** crate root  **Dir:** `flare/sources/remote`  **Deps:** none (leaf)  **Entry points:** `remote.rs`, `Cargo.toml`.
 
 **Job:** The Rust side of the remote-control protocol. Implements UDP hole-punch,
 pairing-code exchange, message framing, and a C ABI (`flare_remote_host`,

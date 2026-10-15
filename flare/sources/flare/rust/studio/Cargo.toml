@@ -33,7 +33,7 @@ egui_kittest = { version = "=0.36.2", features = ["wgpu", "snapshot", "eframe"] 
 name = "studio_snapshot"
 path = "snapshot.rs"
 
-# Studio and the pinned ac-render use Flare's copy of the core (../../../rust/ac_core, see its
+# Studio and the pinned ac-render use Flare's copy of the core (../../../flarelib, see its
 # ORIGIN.md), one shared document type with Flare's timeline semantics.
 [patch."https://github.com/KMSDax/AnimationCraft"]
-ac-core = { path = "../../../rust/ac_core" }
+ac-core = { path = "../../../flarelib" }

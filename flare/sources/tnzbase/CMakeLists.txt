@@ -208,3 +208,4 @@ elseif(BUILD_ENV_UNIXLIKE)
 endif()
 
 target_link_libraries(tnzbase Qt5::Core Qt5::Gui ${EXTRA_LIBS})
+target_link_libraries(tnzbase flare_formats)

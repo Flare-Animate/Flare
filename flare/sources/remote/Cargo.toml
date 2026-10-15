@@ -3,3 +3,7 @@ name = "flare_remote"
 version = "0.1.0"
 edition = "2021"
 license = "BSD-3-Clause"
+
+[lib]
+name = "flare_remote"
+path = "remote.rs"

@@ -29,7 +29,7 @@ pub struct Preset {
 
 macro_rules! preset {
     ($id:literal, $name:literal, $group:literal) => {
-        Preset { id: $id, name: $name, group: $group, myb: include_str!(concat!("../rust/ac_core/assets/mypaint/", $id, ".myb")) }
+        Preset { id: $id, name: $name, group: $group, myb: include_str!(concat!("../flarelib/assets/mypaint/", $id, ".myb")) }
     };
 }
 

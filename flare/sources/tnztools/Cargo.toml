@@ -6,7 +6,7 @@ edition = "2024"
 
 [lib]
 name = "minnamate_core"
-path = "lib.rs"
+path = "minnamate_core.rs"
 
 [dependencies]
 i_overlay = "9"

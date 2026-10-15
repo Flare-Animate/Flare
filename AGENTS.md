@@ -94,7 +94,7 @@ Use the following response:
 ## Where code lives
 - Rust never gets a sidecar tree. A ported module lives at
   `flare/sources/common/<subsystem>/rust/<name>.rs`, beside the C++ it ports, and must be
-  registered in the `#[path]` list in `flare/sources/rust/flare_formats.rs` (an unregistered
+  registered in the `#[path]` list in `flare/sources/flare_formats.rs` (an unregistered
   file compiles and ships as dead code). Crate manifest: `flare/sources/Cargo.toml`;
   tests: `python tests/run_rust.py`.
 - Before working, read `LOGIC-ATLAS.md` (subsystem map + invariants). If you change a

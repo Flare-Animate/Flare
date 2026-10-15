@@ -82,7 +82,7 @@ The resulting codebase should still look like Flare, still mirror OpenToonz's st
 
 ## ac-core file locations (under `flare/sources`)
 
-The crate `ac-core` is rooted at `rust/ac_core/` (Cargo.toml, lib.rs with `#[path]` mods, tests/, assets/, ORIGIN.md, LICENSE-*). Sources live beside the C++ they correspond to:
+The crate `ac-core` is rooted at `flarelib/` (Cargo.toml, ac_core.rs with `#[path]` mods, tests/, assets/, ORIGIN.md, LICENSE-*). Sources live beside the C++ they correspond to:
 
 | Directory | Files |
 |---|---|
@@ -94,7 +94,7 @@ The crate `ac-core` is rooted at `rust/ac_core/` (Cargo.toml, lib.rs with `#[pat
 
 ## minnamate import
 
-Crate `minnamate-core` (clean-room, no upstream licence file; see `flare/sources/rust/minnamate_core/ORIGIN.md`) is rooted at `rust/minnamate_core/` (Cargo.toml, lib.rs with `#[path]` mods, tests/ incl. fixtures). All files are prefixed `mm_` pending merge with overlapping AnimationCraft modules.
+Crate `minnamate-core` (clean-room, no upstream licence file; see `flare/sources/tnztools/ORIGIN.md`) is rooted at `tnztools/` (Cargo.toml, minnamate_core.rs with `#[path]` mods, tests/ incl. fixtures). All files are prefixed `mm_` pending merge with overlapping AnimationCraft modules.
 
 | Directory (under `flare/sources`) | Files |
 |---|---|

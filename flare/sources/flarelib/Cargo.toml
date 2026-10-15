@@ -7,7 +7,7 @@ license = "MIT OR Apache-2.0"
 
 [lib]
 name = "ac_core"
-path = "lib.rs"
+path = "ac_core.rs"
 
 [dependencies]
 i_overlay = "9"

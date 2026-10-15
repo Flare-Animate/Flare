@@ -4,7 +4,7 @@
 # port (common/<subsystem>/rust/), mirroring the OpenToonz/Tahoma source tree.
 # Only the crate scaffolding is here; every module sits with its subsystem.
 [workspace]
-members = ["remote/rust", "rust/ac_core", "rust/minnamate_core"]
+members = ["flarelib", "tnztools", "remote"]
 exclude = ["flare/rust/studio"]  # needs private AnimationCraft git deps
 
 [package]
@@ -15,7 +15,7 @@ license = "BSD-3-Clause"
 
 [lib]
 name = "flare_formats"
-path = "rust/flare_formats.rs"
+path = "flare_formats.rs"
 crate-type = ["cdylib", "staticlib", "rlib"]
 
 [dependencies]
@@ -24,4 +24,4 @@ roxmltree = "0.20"
 serde_json = "1.0.151"
 
 [patch."https://github.com/KMSDax/AnimationCraft"]
-ac-core = { path = "rust/ac_core" }
+ac-core = { path = "flarelib" }

@@ -34,6 +34,4 @@ message("ToonzCore: " ${EXTRA_LIBS})
 target_link_libraries(sound Qt5::Core ${EXTRA_LIBS})
 
 # tsioutils is implemented in Rust (tsioutils.rs, via flare_formats).
-if(TARGET flare_formats)
-    target_link_libraries(sound flare_formats)
-endif()
+target_link_libraries(sound flare_formats)

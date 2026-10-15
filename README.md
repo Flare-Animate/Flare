@@ -136,7 +136,7 @@ Platform guides: [Windows](./doc/how_to_build_win.md) · [macOS](./doc/how_to_bu
 | `flare/sources/common/flash/` | Format readers: SWF, XFL/FLA, ZIP, shapes, optional AS3 bridge |
 | `flare/sources/common/moho/` | Moho (Lost Marble) project reader |
 | `flare/sources/common/tgame/` | Game engine: entity-component-system, fixed-timestep loop, systems |
-| `flare/sources/common/*/rust/` | Rust backend (`flare_formats`): modules beside the C++ they port, manifest at `flare/sources/Cargo.toml`, behind `-DFLARE_WITH_RUST=ON` |
+| `flare/sources/common/*/rust/` | Rust backend (`flare_formats`): modules beside the C++ they port, manifest at `flare/sources/Cargo.toml`, |
 | `tools/flash/next2flash/` | Optional Python sidecar for ActionScript decompile / string patch / compile |
 | `stuff/` | Runtime data: rooms, profiles, brushes, FX presets |
 | `thirdparty/` | Bundled third-party libraries |
@@ -181,7 +181,7 @@ Status is honest: each row states what is in the tree, not what is intended.
 | Next2Flash SWF round-trip, AS3 decompiler | Shipped as an optional sidecar: decompile, string patch, compile ([doc](./doc/NEXT2FLASH_INTEGRATION.md)) |
 | Beginner-friendly (FlipaClip-style) layout profile | Shipped: **Preferences > Interface > Rooms > FlipaClip** |
 | Game-creation tooling | Scaffolded: `flare/sources/common/tgame` — ECS, fixed-timestep loop, sprite/physics/script/audio/camera/particle/UI systems. Not yet wired into the UI |
-| Rust backend | Shipped in part: `flare_formats` does content-based format sniffing over a C ABI. Opt in with `-DFLARE_WITH_RUST=ON` |
+| Rust backend | Shipped in part: `flare_formats` does content-based format sniffing over a C ABI. Always built (via Corrosion) |
 | Android build | Scaffolded: `flare/android` (Gradle + Qt activity). Not yet building an APK |
 | Windows installer EXE | NSIS script shipped ([packaging/windows/installer.nsi](./packaging/windows/installer.nsi)) |
 | Peer-to-peer remote control | Protocol and tests only (`remote_protocol_tests`); no transport |

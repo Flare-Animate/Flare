@@ -10,5 +10,5 @@ Crate manifest: `flare/sources/Cargo.toml`. Tests: `python tests/run_rust.py`.
 | common/tapptools/tenv.cpp (rest: EnvGlobals/VariableSet/stuff dirs) | - | todo |
 | common/flash (swf/xfl/xflrender/symlib/fcp/framecount) | common/flash/*.rs | done |
 | common/moho (Moho reader) | common/moho/moho.rs | done |
-| flare/sources/remote (remote control) | remote/rust/src/lib.rs | done |
+| flare/sources/remote (remote control) | remote/remote.rs | done |
 | tfilepath non-standard mode (analyzePath), withName/withParentDir | - | todo |

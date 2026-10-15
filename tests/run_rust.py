@@ -29,7 +29,7 @@ def main():
     if not cargo:
         print("SKIP: cargo not found; Rust tests not run (not counted as a pass)")
         return 0
-    # The workspace also contains flare/rust/studio and rust/ac_core, which
+    # The workspace also contains flare/rust/studio and flarelib, which
     # need git dependencies (AnimationCraft) that --offline cannot fetch; they are
     # covered by CI with network, not by this suite. Cargo resolves the whole
     # workspace even for -p, so temporarily strip those members (restored in
@@ -50,7 +50,7 @@ def main():
                 continue
         if line.strip().startswith("members ="):
             line = line.replace(', "flare/rust/studio"', "").replace(
-                ', "rust/ac_core"', "")
+                ', "flarelib"', "")
         lines.append(line)
     stripped = "".join(lines)
     with open(MANIFEST, "w", encoding="utf-8") as f:
