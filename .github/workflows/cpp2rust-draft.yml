@@ -1,0 +1,118 @@
+name: cpp2rust draft
+
+# Manual only: produces draft Rust translations in the job log + artifact.
+# Never commits or pushes. See scripts/cpp2rust-draft.md.
+on:
+  workflow_dispatch:
+    inputs:
+      files:
+        description: "Space-separated C++ paths relative to flare/sources (e.g. stdfx/hsvutil.cpp)"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cpp2rust-draft
+  cancel-in-progress: false
+
+env:
+  LLVM_VERSION: "23"
+  CPP2RUST_REPO: https://github.com/Cpp2Rust/cpp2rust.git
+
+jobs:
+  draft:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    steps:
+      - name: Free runner disk
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/.ghcup /opt/hostedtoolcache/CodeQL
+          sudo apt-get clean
+          df -h /
+
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Install LLVM/clang 23 and build tools
+        run: |
+          wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key | sudo tee /etc/apt/trusted.gpg.d/apt.llvm.org.asc >/dev/null
+          echo "deb http://apt.llvm.org/noble/ llvm-toolchain-noble-${LLVM_VERSION} main" | sudo tee /etc/apt/sources.list.d/llvm23.list
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libclang-${LLVM_VERSION}-dev clang++-${LLVM_VERSION} clang-${LLVM_VERSION} llvm-${LLVM_VERSION}-dev ninja-build cmake
+          pip install ruff==0.15.22
+          df -h /
+
+      - name: Clone cpp2rust
+        run: git clone --depth 1 "$CPP2RUST_REPO" "$RUNNER_TEMP/cpp2rust"
+
+      - name: Read pinned Rust versions
+        id: rv
+        run: |
+          cat "$RUNNER_TEMP/cpp2rust/cmake/rust-toolchain.cmake"
+          echo "sha=$(git -C "$RUNNER_TEMP/cpp2rust" rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache cargo and build dir
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            ~/.rustup/toolchains
+            ${{ runner.temp }}/cpp2rust/build
+          key: cpp2rust-${{ steps.rv.outputs.sha }}-${{ runner.os }}
+
+      - name: Build cpp2rust
+        env:
+          CC: clang-23
+          CXX: clang++-23
+        run: |
+          # CMake runs `rustup toolchain install` for the pinned stable + nightly (rustc-dev, llvm-tools).
+          rustup set profile minimal
+          cd "$RUNNER_TEMP/cpp2rust"
+          mkdir -p build && cd build
+          cmake -GNinja -DCMAKE_BUILD_TYPE=Release ..
+          ninja
+          ls cpp2rust/cpp2rust
+          df -h /
+
+      - name: Translate files
+        env:
+          FILES: ${{ inputs.files }}
+        run: |
+          set -u
+          C2R="$RUNNER_TEMP/cpp2rust/build/cpp2rust/cpp2rust"
+          SRC="$GITHUB_WORKSPACE/flare/sources"
+          OUT="$GITHUB_WORKSPACE/cpp2rust-out"
+          mkdir -p "$OUT"
+          for f in $FILES; do
+            case "$f" in /*|*..*) echo "skip unsafe path: $f"; continue;; esac
+            dir=$(dirname "$f")
+            name=$(echo "$f" | tr '/' '_')
+            rs="$OUT/${name%.*}.rs"
+            err="$OUT/${name%.*}.err.txt"
+            set +e
+            "$C2R" --file="$SRC/$f" -o="$rs" \
+              --cxxflags=-std=c++17 \
+              --cxxflags=-I"$SRC/include" \
+              --cxxflags=-I"$SRC/$dir" \
+              >"$OUT/${name%.*}.out.txt" 2>"$err"
+            rc=$?
+            set -e
+            echo "=== DRAFT $f ==="
+            echo "exit code: $rc"
+            if [ -f "$rs" ]; then head -c 60000 "$rs"; echo; else echo "(no .rs produced)"; fi
+            if [ -s "$err" ]; then echo "--- stderr ---"; head -c 20000 "$err"; echo; fi
+            if [ -s "$OUT/${name%.*}.out.txt" ]; then echo "--- stdout ---"; head -c 5000 "$OUT/${name%.*}.out.txt"; echo; fi
+            echo "=== END ==="
+          done
+
+      - name: Upload drafts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cpp2rust-drafts
+          path: cpp2rust-out/
+          if-no-files-found: warn
