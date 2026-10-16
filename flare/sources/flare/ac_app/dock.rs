@@ -90,14 +90,14 @@ impl Layout {
         true
     }
 
-    pub(crate) fn tools_side(&self) -> egui::panel::Side {
-        if self.tools_right { egui::panel::Side::Right } else { egui::panel::Side::Left }
+    pub(crate) fn tools_panel(&self, id: &'static str) -> egui::Panel {
+        if self.tools_right { egui::Panel::right(id) } else { egui::Panel::left(id) }
     }
-    pub(crate) fn props_side(&self) -> egui::panel::Side {
-        if self.props_left { egui::panel::Side::Left } else { egui::panel::Side::Right }
+    pub(crate) fn props_panel(&self, id: &'static str) -> egui::Panel {
+        if self.props_left { egui::Panel::left(id) } else { egui::Panel::right(id) }
     }
-    pub(crate) fn timeline_side(&self) -> egui::panel::TopBottomSide {
-        if self.timeline_top { egui::panel::TopBottomSide::Top } else { egui::panel::TopBottomSide::Bottom }
+    pub(crate) fn timeline_panel(&self, id: &'static str) -> egui::Panel {
+        if self.timeline_top { egui::Panel::top(id) } else { egui::Panel::bottom(id) }
     }
 }
 
@@ -158,17 +158,17 @@ pub(crate) fn drop_targets(app: &mut App, ctx: &egui::Context) {
         return;
     }
     let Some(m) = app.dock_drag else { return };
-    let area = ctx.screen_rect().shrink(8.0);
+    let area = ctx.content_rect().shrink(8.0);
     let pointer = ctx.input(|i| i.pointer.latest_pos());
     let places = targets(m, area);
     let hit = places.iter().find(|(_, r)| pointer.is_some_and(|p| r.contains(p))).map(|(p, _)| *p);
     let painter = ctx.layer_painter(egui::LayerId::new(egui::Order::Tooltip, egui::Id::new("dock.targets")));
-    painter.rect_filled(ctx.screen_rect(), 0.0, Color32::from_black_alpha(60));
+    painter.rect_filled(ctx.content_rect(), 0.0, Color32::from_black_alpha(60));
     let accent = Color32::from_rgb(0x3D, 0x8E, 0xF0);
     for (p, r) in &places {
         let on = hit == Some(*p);
         painter.rect_filled(*r, 6.0, if on { Color32::from_rgb(0x1E, 0x4F, 0x8A) } else { Color32::from_rgba_unmultiplied(0x26, 0x29, 0x2E, 235) });
-        painter.rect_stroke(*r, 6.0, Stroke::new(if on { 2.5_f32 } else { 1.5 }, accent));
+        painter.rect_stroke(*r, 6.0, Stroke::new(if on { 2.5_f32 } else { 1.5 }, accent), egui::StrokeKind::Inside);
         painter.text(r.center(), egui::Align2::CENTER_CENTER, p.label(), egui::FontId::proportional(13.0), Color32::from_gray(235));
     }
     if let Some(pos) = pointer {

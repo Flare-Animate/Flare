@@ -65,7 +65,7 @@ impl Default for TransformPanel {
 
 /// A panel's title bar, with its grip for moving the panel (dock.rs).
 fn panel_title(app: &mut App, ui: &mut egui::Ui, module: crate::dock::Module, title: &str) {
-    egui::Frame::none().fill(Color32::from_gray(0x2A)).inner_margin(egui::Margin::symmetric(4.0, 2.0)).show(ui, |ui| {
+    egui::Frame::NONE.fill(Color32::from_gray(0x2A)).inner_margin(egui::Margin::symmetric(4, 2)).show(ui, |ui| {
         ui.set_width(ui.available_width());
         ui.horizontal(|ui| {
             crate::dock::grip(app, ui, module, Some(title));
@@ -73,8 +73,9 @@ fn panel_title(app: &mut App, ui: &mut egui::Ui, module: crate::dock::Module, ti
     });
 }
 
-pub fn right_panel(app: &mut App, ctx: &egui::Context) {
-    egui::SidePanel::new(app.layout.props_side(), "props").default_width(300.0).min_width(250.0).max_width((ctx.screen_rect().width() * 0.45).max(320.0)).show(ctx, |ui| {
+pub fn right_panel(app: &mut App, ui: &mut egui::Ui) {
+    let ctx = ui.ctx().clone();
+    app.layout.props_panel("props").default_size(300.0).min_size(250.0).max_size((ctx.content_rect().width() * 0.45).max(320.0)).show(ui, |ui| {
         let lib_here = app.lib.open && app.layout.library == crate::dock::LibraryDock::WithProperties;
         let total = ui.available_height();
         // Properties take what they need (scrolling past a cap); the Library fills the rest.
@@ -110,16 +111,16 @@ pub fn right_panel(app: &mut App, ctx: &egui::Context) {
 }
 
 /// The Library in its own column, left or right (Workspace › Library).
-pub fn library_column(app: &mut App, ctx: &egui::Context) {
-    let side = match app.layout.library {
-        crate::dock::LibraryDock::Left => egui::panel::Side::Left,
-        crate::dock::LibraryDock::Right => egui::panel::Side::Right,
+pub fn library_column(app: &mut App, ui: &mut egui::Ui) {
+    let panel = match app.layout.library {
+        crate::dock::LibraryDock::Left => egui::Panel::left("library-left"),
+        crate::dock::LibraryDock::Right => egui::Panel::right("library-left"),
         crate::dock::LibraryDock::WithProperties => return,
     };
     if !app.lib.open {
         return;
     }
-    egui::SidePanel::new(side, "library-left").default_width(270.0).min_width(220.0).show(ctx, |ui| {
+    panel.default_size(270.0).min_size(220.0).show(ui, |ui| {
         panel_title(app, ui, crate::dock::Module::Library, "Library");
         library(app, ui);
     });
@@ -847,7 +848,7 @@ fn gradient_editor(app: &mut App, ui: &mut egui::Ui, g: &Gradient) {
         add_col(1.0, c32(l.1));
     }
     ui.painter().add(mesh);
-    ui.painter().rect_stroke(r, 0.0, EStroke::new(1.0_f32, Color32::from_gray(90)));
+    ui.painter().rect_stroke(r, 0.0, EStroke::new(1.0_f32, Color32::from_gray(90)), egui::StrokeKind::Inside);
     let mut new_stops = g.stops.clone();
     let mut changed: Option<&str> = None;
     let mut remove: Option<usize> = None;
@@ -1420,7 +1421,7 @@ fn library(app: &mut App, ui: &mut egui::Ui) {
     let frames = app.lib.selected_symbol(app).map(|s| s.timeline.frame_count().max(1));
     if let Some(n) = frames {
         let br = Rect::from_min_size(prev_rect.left_bottom() + vec2(4.0, -24.0), vec2(prev_rect.width() - 8.0, 20.0));
-        ui.allocate_new_ui(egui::UiBuilder::new().max_rect(br), |ui| {
+        ui.scope_builder(egui::UiBuilder::new().max_rect(br), |ui| {
             ui.horizontal(|ui| {
                 if ui.small_button(if app.lib.play { "⏸" } else { "▶" }).on_hover_text("Play the symbol's timeline").clicked() {
                     app.lib.play = !app.lib.play;
@@ -1518,7 +1519,7 @@ fn library(app: &mut App, ui: &mut egui::Ui) {
         if dragging.is_some() && !folders.is_empty() {
             let (r, resp) = ui.allocate_exact_size(vec2(w, 18.0), Sense::hover());
             let hot = resp.contains_pointer();
-            ui.painter().rect_stroke(r.shrink(1.0), 3.0, EStroke::new(1.0_f32, if hot { ACCENT } else { Color32::from_gray(90) }));
+            ui.painter().rect_stroke(r.shrink(1.0), 3.0, EStroke::new(1.0_f32, if hot { ACCENT } else { Color32::from_gray(90) }), egui::StrokeKind::Inside);
             ui.painter().text(r.center(), Align2::CENTER_CENTER, "Drop here: library root", FontId::proportional(11.0), Color32::from_gray(190));
             if hot && released {
                 drop_into = Some(String::new());
@@ -1531,7 +1532,7 @@ fn library(app: &mut App, ui: &mut egui::Ui) {
                 let (r, resp) = ui.allocate_exact_size(vec2(w, 22.0), Sense::click());
                 let hot_drop = dragging.is_some() && resp.contains_pointer();
                 if hot_drop {
-                    ui.painter().rect_stroke(r.shrink(1.0), 2.0, EStroke::new(1.5_f32, ACCENT));
+                    ui.painter().rect_stroke(r.shrink(1.0), 2.0, EStroke::new(1.5_f32, ACCENT), egui::StrokeKind::Inside);
                     if released {
                         drop_into = Some(path.clone());
                     }
@@ -1544,7 +1545,7 @@ fn library(app: &mut App, ui: &mut egui::Ui) {
                 if renaming {
                     let tr = Rect::from_min_max(pos2(r.left() + 20.0 + indent, r.top() + 1.0), pos2(r.right() - 4.0, r.bottom() - 1.0));
                     let mut done = false;
-                    ui.allocate_new_ui(egui::UiBuilder::new().max_rect(tr), |ui| {
+                    ui.scope_builder(egui::UiBuilder::new().max_rect(tr), |ui| {
                         if let Some((_, text)) = app.lib.rename_folder.as_mut() {
                             let te = ui.add(egui::TextEdit::singleline(text).desired_width(tr.width()));
                             te.request_focus();
@@ -1582,15 +1583,15 @@ fn library(app: &mut App, ui: &mut egui::Ui) {
                         let p = app.ed.new_folder(&path);
                         app.lib.open_folders.insert(path.clone());
                         app.lib.rename_folder = Some((p.clone(), ac_core::split_item_path(&p).1.to_string()));
-                        ui.close_menu();
+                        ui.close();
                     }
                     if ui.button("Rename…").clicked() {
                         app.lib.rename_folder = Some((path.clone(), leaf.clone()));
-                        ui.close_menu();
+                        ui.close();
                     }
                     if ui.button("Delete Folder").on_hover_text("Its contents move up a level").clicked() {
                         app.ed.delete_folder(&path);
-                        ui.close_menu();
+                        ui.close();
                     }
                 });
                 continue;
@@ -1626,13 +1627,13 @@ fn library(app: &mut App, ui: &mut egui::Ui) {
                     }
                     let resp = resp.on_hover_text(format!("{name}\nSound · used on {uses} keyframe(s)\nDrag onto the stage to start it on the current keyframe, or onto a folder"));
                     resp.context_menu(|ui| {
-                        if ui.button("Use on Current Keyframe").clicked() { app.ed.set_frame_sound(Some(ac_core::sound::FrameSound::new(id))); ui.close_menu(); }
+                        if ui.button("Use on Current Keyframe").clicked() { app.ed.set_frame_sound(Some(ac_core::sound::FrameSound::new(id))); ui.close(); }
                         item_menu(app, ui, item, &folders);
                         ui.separator();
                         if ui.button("Delete").clicked() {
                             app.ed.delete_sound(id);
                             app.lib.sound = None;
-                            ui.close_menu();
+                            ui.close();
                         }
                     });
                 }
@@ -1666,11 +1667,11 @@ fn library(app: &mut App, ui: &mut egui::Ui) {
                     }
                     let resp = resp.on_hover_text(format!("{name}\nBitmap {bw}×{bh} · used {uses}×{}\nDrag onto the stage to place, or onto a folder", if missing { "\nIMAGE DATA MISSING: this is a placeholder. Import the image again to use the real one." } else { "" }));
                     resp.context_menu(|ui| {
-                        if ui.button("Place on Stage").clicked() { app.ed.place_bitmap(id, center_place); ui.close_menu(); }
-                        if ui.button("Rename…").clicked() { app.dialog = Dialog::RenameBitmap { id, name: leaf.clone() }; ui.close_menu(); }
+                        if ui.button("Place on Stage").clicked() { app.ed.place_bitmap(id, center_place); ui.close(); }
+                        if ui.button("Rename…").clicked() { app.dialog = Dialog::RenameBitmap { id, name: leaf.clone() }; ui.close(); }
                         item_menu(app, ui, item, &folders);
                         ui.separator();
-                        if ui.button("Delete").clicked() { app.dialog = Dialog::DeleteBitmap { id, uses }; ui.close_menu(); }
+                        if ui.button("Delete").clicked() { app.dialog = Dialog::DeleteBitmap { id, uses }; ui.close(); }
                     });
                 }
                 LibItem::Symbol(id) => {
@@ -1708,24 +1709,24 @@ fn library(app: &mut App, ui: &mut egui::Ui) {
                     let link = linked.map(|c| format!("\nLinkage: {c}")).unwrap_or_default();
                     let resp = resp.on_hover_text(format!("{name}\n{} · {frames} frame(s) · used {uses}×{link}\nDrag onto the stage to place, or onto a folder · double-click to edit", kind_name(kind)));
                     resp.context_menu(|ui| {
-                        if ui.button("Edit").clicked() { app.edit_symbol(id); ui.close_menu(); }
-                        if ui.button("Place on Stage").clicked() { app.ed.place_symbol(id, stage_center); ui.close_menu(); }
-                        if ui.button("Rename…").clicked() { app.dialog = Dialog::RenameSymbol { id, name: leaf.clone() }; ui.close_menu(); }
-                        if ui.button("Duplicate").clicked() { app.lib_selected = app.ed.duplicate_symbol(id); ui.close_menu(); }
+                        if ui.button("Edit").clicked() { app.edit_symbol(id); ui.close(); }
+                        if ui.button("Place on Stage").clicked() { app.ed.place_symbol(id, stage_center); ui.close(); }
+                        if ui.button("Rename…").clicked() { app.dialog = Dialog::RenameSymbol { id, name: leaf.clone() }; ui.close(); }
+                        if ui.button("Duplicate").clicked() { app.lib_selected = app.ed.duplicate_symbol(id); ui.close(); }
                         let has_grid = app.ed.doc.symbol(id).is_some_and(|s| s.scale_grid.is_some());
                         if ui.button(if has_grid { "Remove 9-Slice Grid" } else { "Add 9-Slice Grid" }).on_hover_text("Scaled instances keep their corners; edit the symbol to drag the guides").clicked() {
                             let g = if has_grid { None } else { app.ed.default_scale_grid(id) };
                             let _ = app.ed.set_symbol_scale_grid(id, g);
-                            ui.close_menu();
+                            ui.close();
                         }
                         ui.menu_button("Type", |ui| {
                             for (k, l) in [(SymbolKind::Graphic, "Graphic"), (SymbolKind::MovieClip, "Movie Clip"), (SymbolKind::Button, "Button")] {
-                                if ui.radio(kind == k, l).clicked() { app.ed.set_symbol_kind(id, k); ui.close_menu(); }
+                                if ui.radio(kind == k, l).clicked() { app.ed.set_symbol_kind(id, k); ui.close(); }
                             }
                         });
                         item_menu(app, ui, item, &folders);
                         ui.separator();
-                        if ui.button("Delete").clicked() { app.dialog = Dialog::DeleteSymbol { id, uses: app.ed.symbol_usage(id) }; ui.close_menu(); }
+                        if ui.button("Delete").clicked() { app.dialog = Dialog::DeleteSymbol { id, uses: app.ed.symbol_usage(id) }; ui.close(); }
                     });
                 }
             }
@@ -1790,13 +1791,13 @@ fn item_menu(app: &mut App, ui: &mut egui::Ui, it: ac_core::editor::LibItem, fol
     ui.menu_button("Move to Folder", |ui| {
         if ui.button("(Library root)").clicked() {
             app.ed.move_to_folder(it, "");
-            ui.close_menu();
+            ui.close();
         }
         for f in folders {
             if ui.button(f).clicked() {
                 app.ed.move_to_folder(it, f);
                 app.lib.open_folders.insert(f.clone());
-                ui.close_menu();
+                ui.close();
             }
         }
         ui.separator();
@@ -1805,12 +1806,12 @@ fn item_menu(app: &mut App, ui: &mut egui::Ui, it: ac_core::editor::LibItem, fol
             app.ed.move_to_folder(it, &p);
             app.lib.open_folders.insert(p.clone());
             app.lib.rename_folder = Some((p.clone(), ac_core::split_item_path(&p).1.to_string()));
-            ui.close_menu();
+            ui.close();
         }
     });
     if ui.button("Properties…").clicked() {
         open_item_props(app, it);
-        ui.close_menu();
+        ui.close();
     }
 }
 
@@ -1885,7 +1886,7 @@ pub fn library_drag_ghost(app: &mut App, ctx: &egui::Context) {
             let name = app.ed.doc.sound(id).map(|b| b.name.clone()).unwrap_or_default();
             let painter = ctx.layer_painter(egui::LayerId::new(egui::Order::Tooltip, egui::Id::new("libdrag")));
             let r = painter.text(p + vec2(14.0, 8.0), Align2::LEFT_TOP, format!("🔊 {name}"), FontId::proportional(13.0), Color32::WHITE);
-            painter.rect_stroke(r.expand(4.0), 3.0, EStroke::new(1.0_f32, ACCENT));
+            painter.rect_stroke(r.expand(4.0), 3.0, EStroke::new(1.0_f32, ACCENT), egui::StrokeKind::Inside);
             if released {
                 if app.stage_rect.contains(p) {
                     if app.ed.current_keyframe().is_some() {
@@ -1909,7 +1910,7 @@ pub fn library_drag_ghost(app: &mut App, ctx: &egui::Context) {
             let name = app.ed.doc.bitmap(id).map(|b| b.name.clone()).unwrap_or_default();
             let painter = ctx.layer_painter(egui::LayerId::new(egui::Order::Tooltip, egui::Id::new("libdrag")));
             let r = painter.text(p + vec2(14.0, 8.0), Align2::LEFT_TOP, format!("🖼 {name}"), FontId::proportional(13.0), Color32::WHITE);
-            painter.rect_stroke(r.expand(4.0), 3.0, EStroke::new(1.0_f32, ACCENT));
+            painter.rect_stroke(r.expand(4.0), 3.0, EStroke::new(1.0_f32, ACCENT), egui::StrokeKind::Inside);
             if released {
                 if app.stage_rect.contains(p) {
                     let at = app.to_doc(app.stage_rect, p);
@@ -1931,7 +1932,7 @@ pub fn library_drag_ghost(app: &mut App, ctx: &egui::Context) {
         let name = app.ed.doc.symbol(id).map(|s| s.name.clone()).unwrap_or_default();
         let painter = ctx.layer_painter(egui::LayerId::new(egui::Order::Tooltip, egui::Id::new("libdrag")));
         let r = painter.text(p + vec2(14.0, 8.0), Align2::LEFT_TOP, format!("🔷 {name}"), FontId::proportional(13.0), Color32::WHITE);
-        painter.rect_stroke(r.expand(4.0), 3.0, EStroke::new(1.0_f32, ACCENT));
+        painter.rect_stroke(r.expand(4.0), 3.0, EStroke::new(1.0_f32, ACCENT), egui::StrokeKind::Inside);
         if released {
             if app.stage_rect.contains(p) {
                 let at = app.to_doc(app.stage_rect, p);
@@ -3022,7 +3023,7 @@ pub(crate) fn filter_list_ui(app: &mut App, ui: &mut egui::Ui, list: &mut Vec<Fi
                         changed = true;
                         label = "Add Filter";
                     }
-                    ui.close_menu();
+                    ui.close();
                 }
             }
             ui.separator();
@@ -3058,7 +3059,7 @@ pub(crate) fn filter_list_ui(app: &mut App, ui: &mut egui::Ui, list: &mut Vec<Fi
                     list.push(Filter::Effect { id: id.to_string(), params: vec![] });
                     changed = true;
                     label = "Add Effect";
-                    ui.close_menu();
+                    ui.close();
                 }
             });
         });
@@ -3078,7 +3079,7 @@ pub(crate) fn filter_list_ui(app: &mut App, ui: &mut egui::Ui, list: &mut Vec<Fi
                         list.extend(fs.iter().cloned());
                         changed = true;
                         label = "Apply Filter Preset";
-                        ui.close_menu();
+                        ui.close();
                     }
                     if ui.small_button("✕").on_hover_text("Delete preset").clicked() {
                         app.settings.filter_presets.retain(|(n, _)| n != name);
@@ -3097,7 +3098,7 @@ pub(crate) fn filter_list_ui(app: &mut App, ui: &mut egui::Ui, list: &mut Vec<Fi
                         app.settings.save();
                         app.status = format!("Saved filter preset '{name}'");
                         app.preset_name.clear();
-                        ui.close_menu();
+                        ui.close();
                     }
                 });
             });
@@ -3345,7 +3346,7 @@ fn assistant_properties(app: &mut App, ui: &mut egui::Ui) {
 }
 
 /// Joint ▸ Rotation: Enable and Constrain (min/max degrees). Returns a change.
-fn joint_ui(ui: &mut egui::Ui, id: impl std::hash::Hash, rotate: bool, limit: Option<(f32, f32)>, pinned: bool) -> Option<JointEdit> {
+fn joint_ui(ui: &mut egui::Ui, id: impl egui::AsIdSalt, rotate: bool, limit: Option<(f32, f32)>, pinned: bool) -> Option<JointEdit> {
     let mut out = None;
     ui.push_id(id, |ui| {
         ui.horizontal(|ui| {

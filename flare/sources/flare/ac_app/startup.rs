@@ -81,7 +81,7 @@ pub(crate) fn window(app: &mut App, ctx: &egui::Context) {
     let mut close = false;
     let mut action: Option<Pending> = None;
     let mut create = false;
-    let screen = ctx.screen_rect();
+    let screen = ctx.content_rect();
     egui::Window::new("Flare Startup")
         .open(&mut open)
         .collapsible(false)
@@ -151,7 +151,7 @@ pub(crate) fn window(app: &mut App, ctx: &egui::Context) {
                 let (rect, _) = ui.allocate_exact_size(egui::vec2(ui.available_width().min(240.0), 70.0), egui::Sense::hover());
                 let k = (rect.width() / st.width.max(1.0)).min(rect.height() / st.height.max(1.0));
                 let r = egui::Rect::from_center_size(rect.center(), egui::vec2(st.width * k, st.height * k).max(egui::vec2(2.0, 2.0)));
-                ui.painter().rect(r, 1.0, st.background, egui::Stroke::new(1.0_f32, Color32::from_gray(110)));
+                ui.painter().rect(r, 1.0, st.background, egui::Stroke::new(1.0_f32, Color32::from_gray(110)), egui::StrokeKind::Inside);
                 if let Some(e) = &st.error {
                     ui.label(RichText::new(e).color(Color32::from_rgb(0xFF, 0x80, 0x60)));
                 }

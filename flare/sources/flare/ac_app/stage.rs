@@ -754,15 +754,15 @@ pub(crate) fn oval_path(cx: f32, cy: f32, rx: f32, ry: f32, start: f32, end: f32
     Path::polygon(&pts)
 }
 
-pub fn stage(app: &mut App, ctx: &egui::Context) {
+pub fn stage(app: &mut App, ui: &mut egui::Ui) {
     let free = app.ed.doc.camera_mode == ac_core::CameraMode::Free;
     // Stage camera: look through it with the Camera tool and while playing.
     // Free camera (VCam): the scene as authored with the camera frame on it;
     // look through it while playing or with "Preview through camera".
     let through = if free { app.playing || app.vcam_preview } else { app.playing || app.tool == Tool::Camera };
     app.ed.camera_view = app.ed.editing.is_none() && through && app.ed.camera_layer().is_some();
-    egui::CentralPanel::default().frame(egui::Frame::none().fill(Color32::from_gray(0x3C))).show(ctx, |ui| {
-        egui::Frame::none().fill(Color32::from_gray(0x2E)).inner_margin(egui::Margin::symmetric(8.0, 4.0)).show(ui, |ui| {
+    egui::CentralPanel::default().frame(egui::Frame::NONE.fill(Color32::from_gray(0x3C))).show(ui, |ui| {
+        egui::Frame::NONE.fill(Color32::from_gray(0x2E)).inner_margin(egui::Margin::symmetric(8, 4)).show(ui, |ui| {
             ui.set_width(ui.available_width());
             ui.horizontal(|ui| {
                 let crumbs = app.ed.breadcrumb();
@@ -774,13 +774,13 @@ pub fn stage(app: &mut App, ctx: &egui::Context) {
                             if ui.selectable_label(i == app.ed.scene, n).clicked() {
                                 app.ed.goto_scene(i);
                                 app.fit_pending = true;
-                                ui.close_menu();
+                                ui.close();
                             }
                         }
                         ui.separator();
                         if ui.button("Scene panel…").clicked() {
                             app.scene_open = true;
-                            ui.close_menu();
+                            ui.close();
                         }
                     });
                 }
@@ -868,7 +868,7 @@ pub fn stage(app: &mut App, ctx: &egui::Context) {
 
 fn stage_input(app: &mut App, ui: &egui::Ui, rect: Rect, resp: &egui::Response) {
     if let Some(hover) = resp.hover_pos() {
-        let scroll = ui.input(|i| i.raw_scroll_delta.y);
+        let scroll = ui.input(|i| i.smooth_scroll_delta.y);
         if scroll != 0.0 {
             if app.tool == Tool::Camera && app.ed.camera_layer().is_some() && !app.playing && (app.ed.doc.camera_mode == ac_core::CameraMode::Stage || app.ed.camera_view || vcam_quad(app, app.ed.frame).is_some_and(|q| ac_core::geom::point_in_polygon(app.to_doc(rect, hover), &q))) {
                 // Camera tool: scroll zooms the camera, not the view (free camera: over its frame).
@@ -3083,7 +3083,7 @@ fn vcam_knob(s: &[Pos2]) -> Pos2 {
 fn handle_box(painter: &egui::Painter, c: Pos2, size: f32, fill: Color32) {
     let r = Rect::from_center_size(c, vec2(size, size));
     painter.rect_filled(r, 0.0, fill);
-    painter.rect_stroke(r, 0.0, EStroke::new(1.0_f32, ACCENT));
+    painter.rect_stroke(r, 0.0, EStroke::new(1.0_f32, ACCENT), egui::StrokeKind::Inside);
 }
 
 /// A selected merge-shape piece: Flash's dot screen over it.
@@ -3330,7 +3330,7 @@ fn overlays(app: &App, ui: &egui::Ui, rect: Rect) {
                         let r = Rect::from_center_size(c, vec2(7.0, 7.0));
                         painter.rect_filled(r, 0.0, col);
                         if pinned {
-                            painter.rect_stroke(r, 0.0, EStroke::new(1.5_f32, Color32::BLACK));
+                            painter.rect_stroke(r, 0.0, EStroke::new(1.5_f32, Color32::BLACK), egui::StrokeKind::Inside);
                         }
                     }
                 }
@@ -3506,7 +3506,7 @@ fn overlays(app: &App, ui: &egui::Ui, rect: Rect) {
             painter.add(egui::Shape::closed_line(q, preview));
         }
         Drag::ZoomBox { start, cur } => {
-            painter.rect_stroke(Rect::from_two_pos(*start, *cur), 0.0, EStroke::new(1.0_f32, Color32::WHITE));
+            painter.rect_stroke(Rect::from_two_pos(*start, *cur), 0.0, EStroke::new(1.0_f32, Color32::WHITE), egui::StrokeKind::Inside);
         }
         Drag::Draw { start, cur } => {
             let (a, b) = (*start, *cur);
@@ -3665,7 +3665,7 @@ fn overlays(app: &App, ui: &egui::Ui, rect: Rect) {
         }
     }
     if app.lib_drag.is_some() && ui.rect_contains_pointer(rect) {
-        painter.rect_stroke(rect.shrink(2.0), 0.0, EStroke::new(2.0_f32, ACCENT));
+        painter.rect_stroke(rect.shrink(2.0), 0.0, EStroke::new(2.0_f32, ACCENT), egui::StrokeKind::Inside);
     }
 }
 

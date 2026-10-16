@@ -19,7 +19,7 @@ pub(crate) fn apply(app: &mut App, ctx: &egui::Context) {
     let p = app.settings.prefs.clone();
     ac_core::editor::set_undo_limit(p.undo_levels as usize);
     ctx.set_zoom_factor(p.ui_scale.clamp(0.75, 2.0));
-    ctx.style_mut(|s| s.interaction.tooltip_delay = if p.tooltips { 0.5 } else { 1.0e6 });
+    ctx.all_styles_mut(|s| s.interaction.tooltip_delay = if p.tooltips { 0.5 } else { 1.0e6 });
     app.view.snap_px = p.snap_px;
 }
 

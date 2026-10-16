@@ -273,7 +273,7 @@ fn actions_panel(app: &mut App, ctx: &egui::Context) {
                         st.actions_buf.push_str(code);
                         st.actions_buf.push('\n');
                         st.actions_dirty = true;
-                        ui.close_menu();
+                        ui.close();
                     }
                 }
             });

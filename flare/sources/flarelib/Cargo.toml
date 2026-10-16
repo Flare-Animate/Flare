@@ -14,7 +14,7 @@ i_overlay = "9"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 ab_glyph = "0.2"
-epaint_default_fonts = "0.29"
+epaint_default_fonts = "=0.36.2"
 base64 = "0.22"
 png = "0.17"
 # MyPaint brush engine (pure-Rust libmypaint port, MIT OR Apache-2.0), a dependency, not copied

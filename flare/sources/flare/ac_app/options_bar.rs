@@ -12,11 +12,11 @@ fn num(ui: &mut egui::Ui, label: &str, v: &mut f32, range: std::ops::RangeInclus
     ui.add(egui::DragValue::new(v).range(range).speed(0.5).suffix(suffix).max_decimals(1));
 }
 
-pub(crate) fn bar(app: &mut App, ctx: &egui::Context) {
+pub(crate) fn bar(app: &mut App, ui: &mut egui::Ui) {
     if !app.settings.options_bar {
         return;
     }
-    egui::TopBottomPanel::top("tool-options").exact_height(28.0).show(ctx, |ui| {
+    egui::Panel::top("tool-options").exact_size(28.0).show(ui, |ui| {
         ui.horizontal_centered(|ui| {
             let tool = app.tool;
             ui.label(RichText::new(tool.info().name).strong());

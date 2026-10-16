@@ -410,11 +410,11 @@ fn chip(ui: &egui::Ui, r: egui::Rect, s: &Swatch) {
 }
 
 /// The swatch column beside the tools.
-pub(crate) fn panel(app: &mut App, ctx: &egui::Context) {
+pub(crate) fn panel(app: &mut App, ui: &mut egui::Ui) {
     if !app.swatch_ui.open {
         return;
     }
-    egui::SidePanel::new(app.layout.tools_side(), "swatches").exact_width(138.0).resizable(false).show(ctx, |ui| {
+    app.layout.tools_panel("swatches").exact_size(138.0).resizable(false).show(ui, |ui| {
         ui.horizontal(|ui| {
             ui.label(RichText::new("Swatches").strong());
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
@@ -443,17 +443,17 @@ pub(crate) fn panel(app: &mut App, ctx: &egui::Context) {
                         let c = c32(s.color);
                         let current = s.gradient.is_none() && (c == app.fill || c == app.stroke);
                         let edge = if resp.hovered() { Color32::WHITE } else if current { Color32::from_rgb(0x3D, 0x8E, 0xF0) } else { Color32::from_gray(70) };
-                        ui.painter().rect_stroke(r, 0.0, egui::Stroke::new(1.0_f32, edge));
+                        ui.painter().rect_stroke(r, 0.0, egui::Stroke::new(1.0_f32, edge), egui::StrokeKind::Inside);
                         let resp = resp.on_hover_text(label(s));
                         if resp.clicked() {
                             action = Some((i, if ui.input(|inp| inp.modifiers.shift) { 1 } else { 0 }));
                         }
                         resp.context_menu(|ui| {
                             ui.label(RichText::new(label(s)).small());
-                            if ui.button("Use as Fill").clicked() { action = Some((i, 0)); ui.close_menu(); }
-                            if s.gradient.is_none() && ui.button("Use as Stroke").clicked() { action = Some((i, 1)); ui.close_menu(); }
-                            if ui.button("Replace with Current Fill").clicked() { action = Some((i, 2)); ui.close_menu(); }
-                            if ui.button("Delete Swatch").clicked() { action = Some((i, 3)); ui.close_menu(); }
+                            if ui.button("Use as Fill").clicked() { action = Some((i, 0)); ui.close(); }
+                            if s.gradient.is_none() && ui.button("Use as Stroke").clicked() { action = Some((i, 1)); ui.close(); }
+                            if ui.button("Replace with Current Fill").clicked() { action = Some((i, 2)); ui.close(); }
+                            if ui.button("Delete Swatch").clicked() { action = Some((i, 3)); ui.close(); }
                         });
                     }
                 });
@@ -502,22 +502,22 @@ fn add(app: &mut App, s: Swatch) {
 }
 
 fn menu(app: &mut App, ui: &mut egui::Ui) {
-    if ui.button("Add Fill").on_hover_text("The current fill colour or gradient").clicked() { add_fill(app); ui.close_menu(); }
-    if ui.button("Add Stroke Colour").clicked() { let s = Swatch::solid("", from32(app.stroke)); add(app, s); ui.close_menu(); }
+    if ui.button("Add Fill").on_hover_text("The current fill colour or gradient").clicked() { add_fill(app); ui.close(); }
+    if ui.button("Add Stroke Colour").clicked() { let s = Swatch::solid("", from32(app.stroke)); add(app, s); ui.close(); }
     ui.separator();
     if ui.button("Add Colours from File…").on_hover_text(".aco, .ase, .gpl, .act; gradients from .grd").clicked() {
         app.swatch_ui.replace = false;
         app.file(crate::files::FileAction::ImportSwatches);
-        ui.close_menu();
+        ui.close();
     }
     if ui.button("Replace Colours from File…").clicked() {
         app.swatch_ui.replace = true;
         app.file(crate::files::FileAction::ImportSwatches);
-        ui.close_menu();
+        ui.close();
     }
     if ui.button("Save Colours…").on_hover_text("Colours as .ase, .aco or .gpl; gradients as .grd").clicked() {
         app.file(crate::files::FileAction::ExportSwatches);
-        ui.close_menu();
+        ui.close();
     }
     ui.separator();
     if app.ed.doc.swatches.is_some() {
@@ -525,31 +525,31 @@ fn menu(app: &mut App, ui: &mut egui::Ui) {
             app.settings.swatches = app.ed.doc.swatches.clone();
             app.settings.save();
             app.status = "Swatches saved as the app default".into();
-            ui.close_menu();
+            ui.close();
         }
         if ui.button("Use App Swatches").on_hover_text("This document stops keeping its own swatches").clicked() {
             app.ed.set_swatches("Use App Swatches", None);
-            ui.close_menu();
+            ui.close();
         }
     } else if ui.button("Keep with This Document").on_hover_text("Save a copy of these swatches in the document (as Animate does)").clicked() {
         let list = current(app);
         app.ed.set_swatches("Document Swatches", Some(list));
-        ui.close_menu();
+        ui.close();
     }
     ui.separator();
     if ui.button("Sort by Colour").clicked() {
         let mut list = current(app);
         list.sort_by(|a, b| sort_key(a).partial_cmp(&sort_key(b)).unwrap_or(std::cmp::Ordering::Equal));
         store(app, "Sort Swatches", list);
-        ui.close_menu();
+        ui.close();
     }
     if ui.button("Reset to Standard").clicked() {
         store(app, "Reset Swatches", defaults());
-        ui.close_menu();
+        ui.close();
     }
     if ui.button("Clear All").clicked() {
         store(app, "Clear Swatches", Vec::new());
-        ui.close_menu();
+        ui.close();
     }
 }
 

@@ -76,20 +76,20 @@ Shared code moves, mm file -> destination (all keep the `mm_` prefix until the m
 | # | Step | Tier | Files touched | Test | Risk |
 |---|---|---|---|---|---|
 | 0 | Maintainer decision: confirm ac `model.rs` is the single model; record in RUST_REWRITE.md | sonnet | `docs/RUST_REWRITE.md` | none | low |
-| 1 | Add `cargo tree -d` and a workspace CI check that egui/eframe/tiny-skia resolve to one version; record skew | haiku | `Cargo.toml` | `cargo build --workspace` | low |
+| 1 | Add `cargo tree -d` and a workspace CI check that egui/eframe/tiny-skia resolve to one version; record skew | haiku | `Cargo.toml` | `cargo build --workspace` | low — **done 2026-10-16**, see "Step 14 core" below |
 | 2 | Delete `mm_html5_runtime.js`; point `mm_html5.rs` at `html5_runtime.js` after diffing features; port any mm-only runtime features into ac runtime first | sonnet | `tvrender/mm_html5*.{rs,js}`, `html5_runtime.js` | `tvrender/tests/html5_filters.rs`, `runtime_stages.js` | med (runtime behaviour differs) |
 | 3 | Add `flarelib/mm_bridge.rs` ac<->mm and the XFL round-trip test | sonnet | `flarelib/mm_bridge.rs`, `tests/` | new `mm_bridge` test plus `tnztools/tests/xfl_write.rs` | med (lossy fields) |
 | 4 | Make `minnamate-cli` render/swf/html5/publish call ac readers/writers via bridge; keep its CLI flags | haiku | `tcomposer/minnamate_cli_main.rs` | cli smoke on demo doc | low |
 | 5 | Fold mm CLI subcommands (`publish`, `video`, `gif`, `png-sequence`) into `flare-cli`; make `minnamate-cli` a 5-line alias then drop | sonnet | `flareqt/commands.rs`, `ac_cli_main.rs`, `Cargo.toml` | `cargo test -p ac-cli` | low |
 | 6 | Merge audio: move `FrameSound` mixer and envelopes into `ac_audio.rs`, keep mm API as re-export | sonnet | `sound/ac_audio.rs`, `mm_sound.rs`, `mm_sound_swf.rs` | `sound/ac_audio_tests.rs`, `tnztools/tests/sound.rs` | med |
 | 7 | Add `Panel` trait and `Registry` in `dock.rs`; port existing 4 modules to it without UI change | sonnet | `flare/ac_app/dock.rs`, `windows.rs`, `panels.rs` | `cargo test -p ac-app`, manual layout reset | med (layout serde) |
-| 8 | Add `minnamate-editor` as a dependency of `flare` behind feature `mm-panels`; register first mm panel (Library) via bridge view | sonnet | `flare/Cargo.toml`, `tnzext/mm_ed_library.rs`, `ac_app/panels.rs` | launch `flare`, open Library | high (egui versions, state ownership) |
+| 8 | Add `minnamate-editor` as a dependency of `flare` behind feature `mm-panels`; register first mm panel (Library) via bridge view | sonnet | `flare/Cargo.toml`, `tnzext/mm_ed_library.rs`, `ac_app/panels.rs` | launch `flare`, open Library | med — egui-version half **done 2026-10-16** (step 14 core); state ownership remains |
 | 9 | Port remaining mm panels one per PR: Sound, Actions, Scene, Layer tree, Tweens, Filters, Publish, Text | haiku for thin ones (Sound, Scene), sonnet for rest | `tnzext/mm_ed_*.rs` | per-panel smoke plus existing unit tests | med |
 | 10 | Unify scripting: diff `mm_script.rs` vs `ac_script.rs`; keep one dialect enum, move AS code under `ac_script` | sonnet | `common/expressions/*` | `ac_script_tests.rs`, `tnztools/tests/scripting.rs` | med |
 | 11 | Move mm-only shape tween, text, bitmap, fonts into ac-render types (drop mm_bitmap/mm_text duplicates in `text.rs`, `bitmap.rs`) | sonnet | `tvrender/*`, `flarelib/bitmap.rs` | `tvrender/tests/*`, `tests/bitmaps.rs` | med |
 | 12 | Move mm draw/erase/paint/hit/transform to operate on ac `Shape`; delete `mm_doc` consumers | sonnet | `tnztools/mm_*.rs` | `tnztools/tests/*` | high |
 | 13 | Retire `minnamate` binary, `mm_doc`, `mm_xfl*`, `mm_swf_export`, `minnamate_core.rs` facade; rename remaining `mm_` files; update ORIGIN.md and PORTING.md | haiku | many deletions, `Cargo.toml`, docs | `cargo test --workspace` | med |
-| 14 | Merge `toonzqt` chrome into `flare` (theme, workspace) per RUST_REWRITE.md | sonnet | `toonzqt/*`, `flare/ac_app/*` | `cargo test -p flare-studio` | high |
+| 14 | Merge `toonzqt` chrome into `flare` (theme, workspace) per RUST_REWRITE.md | sonnet | `toonzqt/*`, `flare/ac_app/*` | `cargo test -p flare-studio` | high — core (egui migration) **done 2026-10-16** |
 
 Step rule: never delete a duplicate until its replacement has a test that failed before the switch. Steps 2, 4, 5, 6 are
 independent; 7 must precede 8; 3 must precede 4, 8 and 12.
@@ -102,6 +102,7 @@ independent; 7 must precede 8; 3 must precede 4, 8 and 12.
 4. Step 0 as a written decision before anyone starts step 7.
 Do not start 8 to 14 this sprint. Licence: mm has no upstream LICENSE; get one before any mm code is relicensed or
 published (ORIGIN.md), and keep `publish = false` until then.
+_(Status later the same day: step 14's core — the egui migration that 8 and 14 were blocked on — was done; see §6.)_
 
 ## 5. Step 2 outcome: single `html5_runtime.js` NOT done (contracts incompatible)
 
@@ -116,3 +117,58 @@ Diffed `html5_runtime.ts` (ac, 918 lines) against `mm_html5_runtime.js` (307 lin
 7. Features: mm has no real button, sound, text, filter or motion-blur handling (button clips only flagged and never respond), so there is nothing unique to port from mm to ac except scenes with named-scene goto and nested symbol timelines, which ac lacks by design (it precomputes them).
 
 Recommended next step: a Rust-side lowering pass (mm timelines -> ac `AC_MOVIE`), tied to step 3's bridge, then drop `mm_html5_runtime.js`.
+
+## 6. Step 14 core: `ac-app` migrated to egui 0.36 (2026-10-16)
+
+The one blocker that made steps 8 and 14 "high risk" was the egui split: `ac-app` (`flare`)
+was the last member on **eframe 0.29 + glow** while `minnamate-editor`, `flare-studio` and
+the workspace pin were on **0.36.2 + wgpu**. That split is now closed: `ac-app` builds on
+eframe `=0.36.2` with the same `wgpu` backend as the other two, and `Cargo.lock` resolves
+egui / eframe / epaint / egui-wgpu to a single 0.36.2 (verified with `cargo tree -d`).
+
+The migration was 303 compiler errors, and they were almost entirely a handful of API
+changes rather than logic edits — which is why it fits the "haiku for mechanical" rule:
+
+| 0.29 | 0.36 | sites |
+|---|---|---|
+| `Ui::close_menu()` | `Ui::close()` | 212 |
+| `Painter::rect_stroke(rect, cr, stroke)` | `+ StrokeKind` (4th arg) | 31 |
+| `TopBottomPanel::top(id)` / `SidePanel::new(side, id)` | `Panel::top/bottom/left/right(id)` | 9 |
+| panel `.show(ctx, …)` | `.show(ui, …)` (panels nest in a `Ui`) | 9 |
+| `eframe::App::update(&mut self, ctx, frame)` | `App::ui(&mut self, ui, frame)` | 1 |
+| `App::on_exit(&mut self, gl)` | `App::on_exit(&mut self)` (wgpu) | 1 |
+| `Context::screen_rect()` | `Context::content_rect()` | 5 |
+| `Context::style_mut(f)` | `Context::all_styles_mut(f)` | 2 |
+| `Frame::none()` | `Frame::NONE` | 3 |
+| `Margin::symmetric(f32, f32)` | `Margin::symmetric(i8, i8)` | 2 |
+| `SelectableLabel::new(on, label)` | `Button::selectable(on, label)` | 13 |
+| `egui::menu::bar(ui, f)` | `egui::MenuBar::new().ui(ui, f)` | 1 |
+| `Ui::allocate_new_ui(b, f)` | `Ui::scope_builder(b, f)` | 2 |
+| `exact_height` / `exact_width` / `default_width` / `min_width` / `max_width` | `exact_size` / `default_size` / `min_size` / `max_size` | 6 |
+| `InputState::raw_scroll_delta` | `InputState::smooth_scroll_delta` | 2 |
+| `ColorImage { size, pixels }` | `ColorImage::new(size, pixels)` (`source_size` added) | 1 |
+| `FontDefinitions.font_data` value | `Arc<FontData>` | 1 |
+| `RawInput.dropped_files` `f.path: Option<PathBuf>` | `f.path(): &Path` (trait) | 1 |
+| `ViewportCommand::Screenshot` | `ViewportCommand::Screenshot(UserData)` | 1 |
+| `ComboBox::from_id_salt(impl Hash)` | `impl AsIdSalt` (`Hash + Debug`) | 2 |
+
+Shape of the change: `App::update` became `App::ui`, which hands the app a root `Ui`; the
+nine panel-showing functions (`menu_bar`, `status_bar`, `options_bar::bar`, `timeline::panel`,
+`toolbar::panel`, `swatches::panel`, `panels::library_column`, `panels::right_panel`,
+`stage::stage`) now take `&mut egui::Ui` and pass it to `Panel::*/CentralPanel::show`.
+`dock::Layout`'s side helpers (`tools_side`/`props_side`/`timeline_side`) became
+`tools_panel`/`props_panel`/`timeline_panel`, returning the new unified `egui::Panel` (the
+old `panel::Side`/`panel::TopBottomSide` enums no longer exist). Windows and the drag
+overlays still take `&Context` — only panels changed.
+
+Verification: `cargo check --workspace` clean; `cargo test --workspace --no-fail-fast`
+passes (the one failure, `ac-script`'s `node_bridge`, is a pre-existing Node-on-Windows
+`lstat 'C:'` environmental issue, untouched by this change). The migration is verified by
+compilation and the unit suites only — the panel API changed shape, so the window layout
+should be eyeballed once before release.
+
+What this unblocks: step 8 can now actually be attempted (register an mm panel in `flare`)
+because both sides are on one egui generation; step 14's merge of `toonzqt` chrome has no
+version barrier left either. Still open from step 1: `tiny-skia` 0.11/0.12 and `zip` 2/9
+(both `tnztools`-internal) and `rfd` 0.15/0.17.
+

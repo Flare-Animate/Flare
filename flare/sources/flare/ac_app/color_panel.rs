@@ -158,14 +158,14 @@ fn ramp(ui: &mut egui::Ui, p: &mut ColorPanel, stops: &mut Vec<(f32, ac_core::Co
         let t = (i as f32 + 0.5) / n as f32;
         painter.rect_filled(egui::Rect::from_min_size(pos2(bar.left() + bar.width() * i as f32 / n as f32, bar.top()), vec2(bar.width() / n as f32 + 0.5, bar.height())), 0.0, sample(stops, t));
     }
-    painter.rect_stroke(bar, 0.0, Stroke::new(1.0_f32, Color32::from_gray(90)));
+    painter.rect_stroke(bar, 0.0, Stroke::new(1.0_f32, Color32::from_gray(90)), egui::StrokeKind::Inside);
     let x_of = |t: f32| bar.left() + bar.width() * t;
     for (i, (t, c)) in stops.iter().enumerate() {
         let x = x_of(*t);
         let tri = vec![pos2(x, bar.bottom() + 1.0), pos2(x - 6.0, bar.bottom() + 10.0), pos2(x + 6.0, bar.bottom() + 10.0)];
         painter.add(egui::Shape::convex_polygon(tri, if i == p.stop { Color32::WHITE } else { Color32::from_gray(150) }, Stroke::NONE));
         painter.rect_filled(egui::Rect::from_min_size(pos2(x - 6.0, bar.bottom() + 10.0), vec2(12.0, 6.0)), 0.0, c32(*c));
-        painter.rect_stroke(egui::Rect::from_min_size(pos2(x - 6.0, bar.bottom() + 10.0), vec2(12.0, 6.0)), 0.0, Stroke::new(1.0_f32, if i == p.stop { Color32::WHITE } else { Color32::from_gray(80) }));
+        painter.rect_stroke(egui::Rect::from_min_size(pos2(x - 6.0, bar.bottom() + 10.0), vec2(12.0, 6.0)), 0.0, Stroke::new(1.0_f32, if i == p.stop { Color32::WHITE } else { Color32::from_gray(80) }), egui::StrokeKind::Inside);
     }
     let mut changed = false;
     let pos = resp.interact_pointer_pos();

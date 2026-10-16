@@ -170,16 +170,16 @@ Studio also acts as the reference for many target UX features, including:
 The long-term direction is convergence toward a single integrated editor experience.
 
 **UI consolidation (three egui front ends).** As imported, the tree has three egui
-applications: `flare/` (ac-app, bin `flare`, eframe 0.29 - AnimationCraft's editor and
-the interim product), `toonzqt/` (flare-studio, bin `flare-studio`, eframe 0.36), and
-`tnzext/` (`minnamate-editor`, bin `minnamate`). `toonzqt` and `tnzext` are libraries to
-be folded into `flare`; neither stays a shipped second editor. The first blocker is the
-egui generation split (0.29 vs 0.36), so step 1 of `docs/UNIFICATION_PLAN.md` is executed
-first: `flare/sources/Cargo.toml` now carries one `[workspace.dependencies]` pin per
-shared direct dep (egui/eframe/egui_extras pinned to the 0.36 target, plus image, zip,
-flate2, roxmltree, usvg, resvg, rfd) so the fronts cannot drift further. The ac-app
-0.29 -> 0.36 migration that lets `flare` consume `toonzqt`'s chrome is step 14 and remains
-open; the ordered sequence is in `docs/UNIFICATION_PLAN.md`.
+applications: `flare/` (ac-app, bin `flare`, the interim product), `toonzqt/`
+(flare-studio, bin `flare-studio`), and `tnzext/` (`minnamate-editor`, bin `minnamate`).
+`toonzqt` and `tnzext` are libraries to be folded into `flare`; neither stays a shipped
+second editor. The first blocker was the egui generation split (ac-app on 0.29, the other
+two on 0.36); as of 2026-10-16 **ac-app is on eframe 0.36.2 too**, so all three share one
+egui generation (`cargo tree -d` shows none), and the workspace carries one
+`[workspace.dependencies]` pin per shared direct dep (egui/eframe/egui_extras exact 0.36.2,
+plus image, zip, flate2, roxmltree, usvg, resvg, rfd). What remains is the merge itself —
+registering `toonzqt`/`tnzext` panels inside `flare`'s dock — not a version barrier. The
+ordered sequence and the migration record are in `docs/UNIFICATION_PLAN.md` (§6).
 
 ## Upstream sync must accelerate the port
 

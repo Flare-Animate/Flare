@@ -64,3 +64,19 @@ The `[workspace.dependencies]` unification table above is now in `flare/sources/
 resvg, rfd, dirs). Entries are declared but members are not forced onto them yet, so no
 crate's resolved versions changed; the table is the single pin the migration steps move
 members onto. `ac-app` (`flare`, 0.29) remains the last split and is step 14.
+
+## Step 1 follow-up: the last split is closed (2026-10-16)
+
+`ac-app` (`flare`) moved off eframe 0.29 (glow) onto eframe `=0.36.2` with the `wgpu`
+backend, the same generation `minnamate-editor` and `flare-studio` already used (UNIFICATION
+PLAN step 14's core). `Cargo.lock` now resolves **egui / eframe / epaint / egui-wgpu to a
+single 0.36.2** — the 0.29 generation is gone — so the egui row of the table above is no
+longer SPLIT. This audit's three "blocking" rows therefore reduce to: egui **closed**;
+tiny-skia 0.11/0.12 and zip 2/9 remain, both `tnztools`-internal and unrelated to the UI
+merge. `rfd` (ac 0.15 vs mm/studio 0.17) can now follow, since the audit said to move it
+"when egui moves"; it is left as a follow-up rather than bundled here.
+
+The migration is verified by compilation only (`cargo check --workspace`), not by running
+the GUI: the panel API changed shape (see UNIFICATION PLAN step 14), so the layout should be
+eyeballed once before release.
+

@@ -28,7 +28,7 @@ pub struct MotionUi {
 
 /// Ease dropdown. Returns `Some(choice)` when the user picks something;
 /// `None` inside means "simple ease" (the −100…100 slider) / no ease.
-pub fn ease_combo(ui: &mut egui::Ui, id: impl std::hash::Hash, cur: Option<&Ease>, none_label: &str, simple: f32, width: f32) -> Option<Option<Ease>> {
+pub fn ease_combo(ui: &mut egui::Ui, id: impl egui::AsIdSalt, cur: Option<&Ease>, none_label: &str, simple: f32, width: f32) -> Option<Option<Ease>> {
     let text = cur.map(|e| e.name()).unwrap_or_else(|| none_label.to_string());
     let mut pick = None;
     egui::ComboBox::from_id_salt(id).width(width).selected_text(text).height(320.0).show_ui(ui, |ui| {
@@ -126,7 +126,7 @@ pub fn ease_graph(ui: &mut egui::Ui, id: egui::Id, ease: Option<&Ease>, simple: 
         }
         let sq = Rect::from_center_size(ap, vec2(7.0, 7.0));
         p.rect_filled(sq, 0.0, Color32::WHITE);
-        p.rect_stroke(sq, 0.0, Stroke::new(1.0_f32, ACCENT));
+        p.rect_stroke(sq, 0.0, Stroke::new(1.0_f32, ACCENT), egui::StrokeKind::Inside);
         if i == 0 || i + 1 == n {
             continue;
         }
@@ -312,7 +312,7 @@ fn body(app: &App, ui: &mut egui::Ui) -> Vec<Act> {
                 for p in &addable {
                     if ui.button(p.label()).clicked() {
                         acts.push(Act::AddKey(*p));
-                        ui.close_menu();
+                        ui.close();
                     }
                 }
             });
@@ -339,12 +339,12 @@ fn body(app: &App, ui: &mut egui::Ui) -> Vec<Act> {
                         name.on_hover_text("Right-click: copy / paste the curve").context_menu(|ui| {
                             if ui.button("Copy curve").clicked() {
                                 acts.push(Act::Copy(prop));
-                                ui.close_menu();
+                                ui.close();
                             }
                             let can = app.motion.clip.is_some() && !matches!(prop, Prop::X | Prop::Y);
                             if ui.add_enabled(can, egui::Button::new("Paste curve")).on_disabled_hover_text("Copy a curve first (position curves can't be pasted onto)").clicked() {
                                 acts.push(Act::Paste(prop));
-                                ui.close_menu();
+                                ui.close();
                             }
                         });
                         // key toggle (diamond)
@@ -479,21 +479,21 @@ fn body(app: &App, ui: &mut egui::Ui) -> Vec<Act> {
                     r.on_hover_text(format!("frame {} · {:.1}{}", st + f + 1, v * ds, prop.unit())).context_menu(|ui| {
                         if f != 0 && ui.button("Delete keyframe").clicked() {
                             acts.push(Act::Remove(prop, f));
-                            ui.close_menu();
+                            ui.close();
                         }
                         if !matches!(prop, Prop::X | Prop::Y) {
                             let smooth = m.track(prop).and_then(|t| t.keys.iter().find(|k| k.frame == f)).map(|k| k.smooth).unwrap_or(false);
                             if ui.selectable_label(smooth, "Smooth point").clicked() {
                                 acts.push(Act::Smooth(prop, f, true));
-                                ui.close_menu();
+                                ui.close();
                             }
                             if ui.selectable_label(!smooth, "Corner point").clicked() {
                                 acts.push(Act::Smooth(prop, f, false));
-                                ui.close_menu();
+                                ui.close();
                             }
                             if ui.button("Bezier handles").on_hover_text("Show this key's handles (or click the key); drag them to shape the curve, Alt breaks them").clicked() {
                                 acts.push(Act::Select(Some((prop, f))));
-                                ui.close_menu();
+                                ui.close();
                             }
                             let keys_t = m.track(prop).map(|t| t.keys.clone()).unwrap_or_default();
                             if let Some(ki) = keys_t.iter().position(|k| k.frame == f).filter(|ki| ki + 1 < keys_t.len()) {
@@ -504,7 +504,7 @@ fn body(app: &App, ui: &mut egui::Ui) -> Vec<Act> {
                                         if ui.selectable_label(cur == i, *name).clicked() {
                                             acts.push(Act::Interp(prop, f, ac_core::motion::Interp::of_index(i, seg)));
                                             acts.push(Act::Select(Some((prop, f))));
-                                            ui.close_menu();
+                                            ui.close();
                                         }
                                     }
                                 });
@@ -819,7 +819,7 @@ pub fn draw_path(app: &App, painter: &egui::Painter, rect: Rect, handles: bool) 
         }
         let r = Rect::from_center_size(a, vec2(6.0, 6.0));
         painter.rect_filled(r, 0.0, Color32::WHITE);
-        painter.rect_stroke(r, 0.0, Stroke::new(1.0_f32, col));
+        painter.rect_stroke(r, 0.0, Stroke::new(1.0_f32, col), egui::StrokeKind::Inside);
     }
 }
 

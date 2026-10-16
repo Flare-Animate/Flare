@@ -327,8 +327,8 @@ pub fn tool_shortcuts(app: &mut App, ctx: &egui::Context) {
     }
 }
 
-pub fn panel(app: &mut App, ctx: &egui::Context) {
-    egui::SidePanel::new(app.layout.tools_side(), "tools").exact_width(92.0).resizable(false).show(ctx, |ui| {
+pub fn panel(app: &mut App, ui: &mut egui::Ui) {
+    app.layout.tools_panel("tools").exact_size(92.0).resizable(false).show(ui, |ui| {
         ui.vertical_centered(|ui| {
             crate::dock::grip(app, ui, crate::dock::Module::Tools, None);
         });
@@ -370,8 +370,9 @@ pub fn panel(app: &mut App, ctx: &egui::Context) {
             });
         });
     });
-    flyout(app, ctx);
-    edit_toolbar(app, ctx);
+    let ctx = ui.ctx().clone();
+    flyout(app, &ctx);
+    edit_toolbar(app, &ctx);
 }
 
 fn slot_button(app: &mut App, ui: &mut egui::Ui, idx: usize, tools: &[Tool]) {
@@ -459,7 +460,7 @@ fn color_controls(app: &mut App, ui: &mut egui::Ui) {
             ui.add_enabled_ui(*on, |ui| ui.color_edit_button_srgba(c)).response.on_hover_text(tip);
         });
         let (r, resp) = ui.allocate_exact_size(vec2(36.0, 14.0), Sense::click());
-        ui.painter().rect_stroke(r.shrink(1.0), 2.0, Stroke::new(1.0_f32, Color32::from_gray(120)));
+        ui.painter().rect_stroke(r.shrink(1.0), 2.0, Stroke::new(1.0_f32, Color32::from_gray(120)), egui::StrokeKind::Inside);
         if !*on {
             ui.painter().line_segment([r.left_bottom(), r.right_top()], Stroke::new(1.5_f32, Color32::from_rgb(0xE5, 0x3B, 0x3B)));
         }
@@ -586,7 +587,7 @@ fn flare_icon_texture(ctx: &egui::Context, t: Tool) -> Option<egui::TextureHandl
                         Color32::from_rgba_unmultiplied(255, 255, 255, ((c.alpha() as u32 * (255 - lum)) / 255) as u8)
                     })
                     .collect();
-                let img = egui::ColorImage { size: [PX as usize, PX as usize], pixels: px };
+                let img = egui::ColorImage::new([PX as usize, PX as usize], px);
                 Some(ctx.load_texture(format!("flare-tool-{name}"), img, egui::TextureOptions::LINEAR))
             })
             .clone()
@@ -612,7 +613,7 @@ pub fn draw_icon(p: &egui::Painter, r: Rect, t: Tool, col: Color32) {
         Tool::Subselect => { p.add(arrow(vec2(0.0, 0.0), false)); }
         Tool::FreeTransform | Tool::GradientTransform => {
             let rr = Rect::from_center_size(c, vec2(16.0, 14.0));
-            p.rect_stroke(rr, 0.0, thin);
+            p.rect_stroke(rr, 0.0, thin, egui::StrokeKind::Inside);
             for k in [rr.left_top(), rr.right_top(), rr.left_bottom(), rr.right_bottom()] {
                 p.rect_filled(Rect::from_center_size(k, vec2(4.0, 4.0)), 0.0, col);
             }
@@ -658,10 +659,10 @@ pub fn draw_icon(p: &egui::Painter, r: Rect, t: Tool, col: Color32) {
         }
         Tool::Text => { p.text(c, Align2::CENTER_CENTER, "T", FontId::proportional(20.0), col); }
         Tool::Line => { p.line_segment([c + vec2(-8.0, 8.0), c + vec2(8.0, -8.0)], s); }
-        Tool::Rect => { p.rect_stroke(Rect::from_center_size(c, vec2(18.0, 14.0)), 0.0, s); }
+        Tool::Rect => { p.rect_stroke(Rect::from_center_size(c, vec2(18.0, 14.0)), 0.0, s, egui::StrokeKind::Inside); }
         Tool::Oval => { p.circle_stroke(c, 8.0, s); }
         Tool::RectPrimitive => {
-            p.rect_stroke(Rect::from_center_size(c, vec2(18.0, 14.0)), 4.0, s);
+            p.rect_stroke(Rect::from_center_size(c, vec2(18.0, 14.0)), 4.0, s, egui::StrokeKind::Inside);
             for d in [vec2(-9.0, -7.0), vec2(9.0, -7.0), vec2(9.0, 7.0), vec2(-9.0, 7.0)] {
                 p.circle_filled(c + d, 2.0, col);
             }
@@ -706,7 +707,7 @@ pub fn draw_icon(p: &egui::Painter, r: Rect, t: Tool, col: Color32) {
             p.circle_filled(c + vec2(8.0, 6.0), 2.5, col);
         }
         Tool::InkBottle => {
-            p.rect_stroke(Rect::from_center_size(c + vec2(0.0, 3.0), vec2(12.0, 11.0)), 2.0, s);
+            p.rect_stroke(Rect::from_center_size(c + vec2(0.0, 3.0), vec2(12.0, 11.0)), 2.0, s, egui::StrokeKind::Inside);
             p.rect_filled(Rect::from_center_size(c + vec2(0.0, -6.0), vec2(6.0, 5.0)), 1.0, col);
         }
         Tool::Eyedropper => {
@@ -772,7 +773,7 @@ pub fn draw_icon(p: &egui::Painter, r: Rect, t: Tool, col: Color32) {
             }
         }
         Tool::Camera => {
-            p.rect_stroke(Rect::from_center_size(c + vec2(-2.0, 1.0), vec2(14.0, 10.0)), 2.0, s);
+            p.rect_stroke(Rect::from_center_size(c + vec2(-2.0, 1.0), vec2(14.0, 10.0)), 2.0, s, egui::StrokeKind::Inside);
             p.add(poly(vec![c + vec2(5.0, 1.0), c + vec2(10.0, -3.0), c + vec2(10.0, 5.0)], col, Stroke::NONE));
         }
         Tool::Hand => {

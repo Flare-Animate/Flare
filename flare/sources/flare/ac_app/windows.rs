@@ -15,7 +15,7 @@ fn icon_button(ui: &mut egui::Ui, op: AlignOp, tip: &str) -> bool {
     use egui::{pos2, Rect, Sense, Stroke};
     let (r, resp) = ui.allocate_exact_size(egui::vec2(30.0, 24.0), Sense::click());
     let v = ui.style().interact(&resp);
-    ui.painter().rect(r, 3.0, v.weak_bg_fill, v.bg_stroke);
+    ui.painter().rect(r, 3.0, v.weak_bg_fill, v.bg_stroke, egui::StrokeKind::Inside);
     let c = r.center();
     let col = Color32::from_gray(225);
     let line = Stroke::new(1.5_f32, crate::ACCENT);

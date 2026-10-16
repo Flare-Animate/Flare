@@ -229,7 +229,7 @@ pub(crate) fn window(app: &mut App, ctx: &egui::Context) {
     }
     p.cursor = p.cursor.min(found.len().saturating_sub(1));
     let mut run: Option<usize> = enter.then_some(p.cursor);
-    let screen = ctx.screen_rect();
+    let screen = ctx.content_rect();
     egui::Area::new(egui::Id::new("command-search")).order(egui::Order::Foreground).fixed_pos(egui::pos2(screen.center().x - 260.0, screen.top() + 60.0)).show(ctx, |ui| {
         egui::Frame::popup(ui.style()).inner_margin(8.0).show(ui, |ui| {
             ui.set_width(520.0);

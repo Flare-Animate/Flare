@@ -226,7 +226,7 @@ impl App {
             for (name, bytes, index) in fallbacks {
                 let mut fd = egui::FontData::from_owned(bytes);
                 fd.index = index;
-                fonts.font_data.insert(name.clone(), fd);
+                fonts.font_data.insert(name.clone(), std::sync::Arc::new(fd));
                 for fam in [egui::FontFamily::Proportional, egui::FontFamily::Monospace] {
                     fonts.families.entry(fam).or_default().push(name.clone());
                 }
@@ -243,7 +243,7 @@ impl App {
         // style on a light-mode Windows desktop, half-overriding our panel colours.
         cc.egui_ctx.set_theme(egui::Theme::Dark);
         cc.egui_ctx.set_visuals_of(egui::Theme::Dark, v);
-        cc.egui_ctx.style_mut(|s| s.spacing.item_spacing = vec2(6.0, 5.0));
+        cc.egui_ctx.all_styles_mut(|s| s.spacing.item_spacing = vec2(6.0, 5.0));
 
         ac_render::fonts::install_system_fonts();
         ac_audio::register();
@@ -721,30 +721,30 @@ impl App {
 
     pub(crate) fn object_menu(&mut self, ui: &mut egui::Ui) {
         let has_sel = !self.ed.selection.is_empty();
-        if ui.add_enabled(has_sel, egui::Button::new("Cut").shortcut_text("Ctrl+X")).clicked() { self.cut(); ui.close_menu(); }
-        if ui.add_enabled(has_sel, egui::Button::new("Copy").shortcut_text("Ctrl+C")).clicked() { self.copy(); ui.close_menu(); }
-        if ui.add_enabled(self.ed.can_paste(), egui::Button::new("Paste in Center").shortcut_text("Ctrl+V")).clicked() { self.paste(false); ui.close_menu(); }
-        if ui.add_enabled(self.ed.can_paste(), egui::Button::new("Paste in Place").shortcut_text("Ctrl+Shift+V")).clicked() { self.paste(true); ui.close_menu(); }
-        if ui.add_enabled(has_sel, egui::Button::new("Duplicate").shortcut_text("Ctrl+D")).clicked() { self.ed.duplicate(); ui.close_menu(); }
-        if ui.add_enabled(has_sel, egui::Button::new("Delete").shortcut_text("Del")).clicked() { self.delete(); ui.close_menu(); }
+        if ui.add_enabled(has_sel, egui::Button::new("Cut").shortcut_text("Ctrl+X")).clicked() { self.cut(); ui.close(); }
+        if ui.add_enabled(has_sel, egui::Button::new("Copy").shortcut_text("Ctrl+C")).clicked() { self.copy(); ui.close(); }
+        if ui.add_enabled(self.ed.can_paste(), egui::Button::new("Paste in Center").shortcut_text("Ctrl+V")).clicked() { self.paste(false); ui.close(); }
+        if ui.add_enabled(self.ed.can_paste(), egui::Button::new("Paste in Place").shortcut_text("Ctrl+Shift+V")).clicked() { self.paste(true); ui.close(); }
+        if ui.add_enabled(has_sel, egui::Button::new("Duplicate").shortcut_text("Ctrl+D")).clicked() { self.ed.duplicate(); ui.close(); }
+        if ui.add_enabled(has_sel, egui::Button::new("Delete").shortcut_text("Del")).clicked() { self.delete(); ui.close(); }
         ui.separator();
-        if ui.add(egui::Button::new("Select All").shortcut_text("Ctrl+A")).clicked() { self.ed.select_all(); ui.close_menu(); }
-        if ui.add_enabled(has_sel, egui::Button::new("Deselect All").shortcut_text("Esc")).clicked() { self.ed.deselect(); ui.close_menu(); }
+        if ui.add(egui::Button::new("Select All").shortcut_text("Ctrl+A")).clicked() { self.ed.select_all(); ui.close(); }
+        if ui.add_enabled(has_sel, egui::Button::new("Deselect All").shortcut_text("Esc")).clicked() { self.ed.deselect(); ui.close(); }
         ui.separator();
-        if ui.add_enabled(has_sel, egui::Button::new("Convert to Symbol…").shortcut_text("F8")).clicked() { self.open_symbol_dialog(true); ui.close_menu(); }
+        if ui.add_enabled(has_sel, egui::Button::new("Convert to Symbol…").shortcut_text("F8")).clicked() { self.open_symbol_dialog(true); ui.close(); }
         let inst = self.ed.selected_element().and_then(|e| if let ElementKind::Instance(i) = e.kind { Some(i.symbol) } else { None });
-        if ui.add_enabled(inst.is_some(), egui::Button::new("Break Apart").shortcut_text("Ctrl+B")).clicked() { self.ed.break_apart(); ui.close_menu(); }
+        if ui.add_enabled(inst.is_some(), egui::Button::new("Break Apart").shortcut_text("Ctrl+B")).clicked() { self.ed.break_apart(); ui.close(); }
         if let Some(id) = inst {
-            if ui.button("Edit Symbol").clicked() { self.edit_symbol(id); ui.close_menu(); }
+            if ui.button("Edit Symbol").clicked() { self.edit_symbol(id); ui.close(); }
         }
         let has_bitmap = self.ed.selection.iter().any(|s| matches!(self.ed.element_at(*s).map(|e| e.kind), Some(ElementKind::Bitmap(_))));
         if ui.add_enabled(has_bitmap, egui::Button::new("Trace Bitmap…")).on_hover_text("Modify › Bitmap › Trace Bitmap: turn the selected bitmap into vector fills").clicked() {
             self.dialog = Dialog::TraceBitmap { threshold: 100, min_area: 8, fit: 3, corners: 1, centerline: false, ink: 128, uniform: false };
-            ui.close_menu();
+            ui.close();
         }
-        if ui.add_enabled(has_sel, egui::Button::new("Group").shortcut_text("Ctrl+G")).clicked() { self.ed.group_selected(); ui.close_menu(); }
+        if ui.add_enabled(has_sel, egui::Button::new("Group").shortcut_text("Ctrl+G")).clicked() { self.ed.group_selected(); ui.close(); }
         let has_group = self.ed.selection.iter().any(|s| matches!(self.ed.element_at(*s).map(|e| e.kind), Some(ElementKind::Group(_))));
-        if ui.add_enabled(has_group, egui::Button::new("Ungroup").shortcut_text("Ctrl+Shift+G")).clicked() { self.ed.ungroup_selected(); ui.close_menu(); }
+        if ui.add_enabled(has_group, egui::Button::new("Ungroup").shortcut_text("Ctrl+Shift+G")).clicked() { self.ed.ungroup_selected(); ui.close(); }
         ui.menu_button("Combine Objects", |ui| {
             use ac_core::merge::BoolOp;
             let float = self.ed.merge_float().is_some();
@@ -754,47 +754,47 @@ impl App {
                 } else if let Err(e) = self.ed.combine_objects(BoolOp::Union) {
                     self.status = e;
                 }
-                ui.close_menu();
+                ui.close();
             }
             for (label, op) in [("Intersect", BoolOp::Intersect), ("Punch", BoolOp::Punch), ("Crop", BoolOp::Crop)] {
                 if ui.add_enabled(has_sel, egui::Button::new(label)).clicked() {
                     if let Err(e) = self.ed.combine_objects(op) {
                         self.status = e;
                     }
-                    ui.close_menu();
+                    ui.close();
                 }
             }
         });
         ui.menu_button("Shape", |ui| {
-            if ui.add_enabled(has_sel, egui::Button::new("Smooth")).clicked() { self.ed.shape_cleanup("smooth"); ui.close_menu(); }
-            if ui.add_enabled(has_sel, egui::Button::new("Straighten")).clicked() { self.ed.shape_cleanup("straighten"); ui.close_menu(); }
-            if ui.add_enabled(has_sel, egui::Button::new("Optimize")).clicked() { self.ed.shape_cleanup("optimize"); ui.close_menu(); }
+            if ui.add_enabled(has_sel, egui::Button::new("Smooth")).clicked() { self.ed.shape_cleanup("smooth"); ui.close(); }
+            if ui.add_enabled(has_sel, egui::Button::new("Straighten")).clicked() { self.ed.shape_cleanup("straighten"); ui.close(); }
+            if ui.add_enabled(has_sel, egui::Button::new("Optimize")).clicked() { self.ed.shape_cleanup("optimize"); ui.close(); }
             ui.separator();
-            if ui.add_enabled(has_sel, egui::Button::new("Convert Lines to Fills")).on_hover_text("Each selected line becomes a filled outline").clicked() { self.ed.shape_fill_op("lines_to_fills", 0.0, 0, false); ui.close_menu(); }
-            if ui.add_enabled(has_sel, egui::Button::new("Expand Fill…")).clicked() { self.shape_dlg = Some(windows::ShapeDlg { soften: false, dist: 4.0, steps: 4, inset: false }); ui.close_menu(); }
-            if ui.add_enabled(has_sel, egui::Button::new("Soften Fill Edges…")).clicked() { self.shape_dlg = Some(windows::ShapeDlg { soften: true, dist: 4.0, steps: 4, inset: false }); ui.close_menu(); }
+            if ui.add_enabled(has_sel, egui::Button::new("Convert Lines to Fills")).on_hover_text("Each selected line becomes a filled outline").clicked() { self.ed.shape_fill_op("lines_to_fills", 0.0, 0, false); ui.close(); }
+            if ui.add_enabled(has_sel, egui::Button::new("Expand Fill…")).clicked() { self.shape_dlg = Some(windows::ShapeDlg { soften: false, dist: 4.0, steps: 4, inset: false }); ui.close(); }
+            if ui.add_enabled(has_sel, egui::Button::new("Soften Fill Edges…")).clicked() { self.shape_dlg = Some(windows::ShapeDlg { soften: true, dist: 4.0, steps: 4, inset: false }); ui.close(); }
             ui.separator();
             let ok = self.ed.shape_tween_keys().is_some();
-            if ui.add_enabled(ok, egui::Button::new("Add Shape Hint").shortcut_text("Ctrl+Shift+H")).clicked() { self.add_shape_hint(); ui.close_menu(); }
-            if ui.add_enabled(ok, egui::Button::new("Remove All Hints")).clicked() { self.ed.remove_all_shape_hints(); ui.close_menu(); }
+            if ui.add_enabled(ok, egui::Button::new("Add Shape Hint").shortcut_text("Ctrl+Shift+H")).clicked() { self.add_shape_hint(); ui.close(); }
+            if ui.add_enabled(ok, egui::Button::new("Remove All Hints")).clicked() { self.ed.remove_all_shape_hints(); ui.close(); }
         });
         ui.menu_button("Align", |ui| {
             use ac_core::editor::AlignOp::*;
             ui.checkbox(&mut self.align_to_stage, "To Stage");
             ui.separator();
             for (l, o) in [("Left", Left), ("Horizontal Center", HCenter), ("Right", Right), ("Top", Top), ("Vertical Center", VCenter), ("Bottom", Bottom)] {
-                if ui.button(l).clicked() { self.ed.align(o, self.align_to_stage); ui.close_menu(); }
+                if ui.button(l).clicked() { self.ed.align(o, self.align_to_stage); ui.close(); }
             }
             ui.separator();
             for (l, o) in [("Distribute Widths Evenly", SpaceH), ("Distribute Heights Evenly", SpaceV), ("Make Same Width", MatchWidth), ("Make Same Height", MatchHeight)] {
-                if ui.button(l).clicked() { self.ed.align(o, self.align_to_stage); ui.close_menu(); }
+                if ui.button(l).clicked() { self.ed.align(o, self.align_to_stage); ui.close(); }
             }
             ui.separator();
-            if ui.button("Align Panel…").clicked() { self.align_open = true; ui.close_menu(); }
+            if ui.button("Align Panel…").clicked() { self.align_open = true; ui.close(); }
         });
         ui.menu_button("Arrange", |ui| {
-            if ui.button("Bring to Front").clicked() { self.ed.arrange(true); ui.close_menu(); }
-            if ui.button("Send to Back").clicked() { self.ed.arrange(false); ui.close_menu(); }
+            if ui.button("Bring to Front").clicked() { self.ed.arrange(true); ui.close(); }
+            if ui.button("Send to Back").clicked() { self.ed.arrange(false); ui.close(); }
         });
         ui.menu_button("Transform", |ui| self.transform_menu(ui));
     }
@@ -805,25 +805,25 @@ impl App {
         let has_sel = !self.ed.selection.is_empty();
         for (mode, label, key) in [(FtMode::Normal, "Free Transform", "Q"), (FtMode::Distort, "Distort", ""), (FtMode::Envelope, "Envelope", "")] {
             let on = self.tool == Tool::FreeTransform && self.topts.ft_mode == mode;
-            if ui.add(egui::SelectableLabel::new(on, label)).on_hover_text(if key.is_empty() { "Free Transform mode (shapes only)" } else { "Scale, rotate, skew; drag the white dot to move the transformation point" }).clicked() {
+            if ui.add(egui::Button::selectable(on, label)).on_hover_text(if key.is_empty() { "Free Transform mode (shapes only)" } else { "Scale, rotate, skew; drag the white dot to move the transformation point" }).clicked() {
                 self.topts.ft_mode = mode;
                 self.set_tool(Tool::FreeTransform);
-                ui.close_menu();
+                ui.close();
             }
         }
         ui.separator();
-        if ui.add_enabled(has_sel, egui::Button::new("Scale and Rotate…").shortcut_text("Ctrl+Alt+S")).clicked() { self.open_scale_rotate(); ui.close_menu(); }
-        if ui.add_enabled(has_sel, egui::Button::new("Rotate 90° CW")).clicked() { self.rotate_selection(std::f32::consts::FRAC_PI_2); ui.close_menu(); }
-        if ui.add_enabled(has_sel, egui::Button::new("Rotate 90° CCW")).clicked() { self.rotate_selection(-std::f32::consts::FRAC_PI_2); ui.close_menu(); }
+        if ui.add_enabled(has_sel, egui::Button::new("Scale and Rotate…").shortcut_text("Ctrl+Alt+S")).clicked() { self.open_scale_rotate(); ui.close(); }
+        if ui.add_enabled(has_sel, egui::Button::new("Rotate 90° CW")).clicked() { self.rotate_selection(std::f32::consts::FRAC_PI_2); ui.close(); }
+        if ui.add_enabled(has_sel, egui::Button::new("Rotate 90° CCW")).clicked() { self.rotate_selection(-std::f32::consts::FRAC_PI_2); ui.close(); }
         ui.separator();
-        if ui.add_enabled(has_sel, egui::Button::new("Flip Horizontal")).clicked() { self.flip(true); ui.close_menu(); }
-        if ui.add_enabled(has_sel, egui::Button::new("Flip Vertical")).clicked() { self.flip(false); ui.close_menu(); }
+        if ui.add_enabled(has_sel, egui::Button::new("Flip Horizontal")).clicked() { self.flip(true); ui.close(); }
+        if ui.add_enabled(has_sel, egui::Button::new("Flip Vertical")).clicked() { self.flip(false); ui.close(); }
         ui.separator();
         if ui.add_enabled(has_sel, egui::Button::new("Remove Transform")).on_hover_text("Reset scale, rotation, skew and 3D (keeps position)").clicked() {
             self.ed.modify_selected("Remove Transform", |e| { let (x, y) = (e.matrix.tx, e.matrix.ty); e.matrix = Matrix::translate(x, y); e.three_d = None; });
-            ui.close_menu();
+            ui.close();
         }
-        if ui.add(egui::Button::new("Transform Panel").shortcut_text("Ctrl+T")).clicked() { self.transform_open = true; ui.close_menu(); }
+        if ui.add(egui::Button::new("Transform Panel").shortcut_text("Ctrl+T")).clicked() { self.transform_open = true; ui.close(); }
     }
 
     pub(crate) fn open_layer_props(&mut self, i: usize) {
@@ -854,77 +854,77 @@ impl App {
         self.ed.modify_selected("Rotate", |e| e.matrix = m.concat(&e.matrix));
     }
 
-    fn menu_bar(&mut self, ctx: &egui::Context) {
-        egui::TopBottomPanel::top("menu").show(ctx, |ui| {
-            egui::menu::bar(ui, |ui| {
+    fn menu_bar(&mut self, ui: &mut egui::Ui) {
+        egui::Panel::top("menu").show(ui, |ui| {
+            egui::MenuBar::new().ui(ui, |ui| {
                 self.brand(ui);
                 ui.menu_button("File", |ui| {
-                    if ui.add(egui::Button::new("New…").shortcut_text("Ctrl+N")).clicked() { self.guarded(files::Pending::New); ui.close_menu(); }
-                    if ui.add(egui::Button::new("Open…").shortcut_text("Ctrl+O")).clicked() { self.guarded(files::Pending::Open); ui.close_menu(); }
+                    if ui.add(egui::Button::new("New…").shortcut_text("Ctrl+N")).clicked() { self.guarded(files::Pending::New); ui.close(); }
+                    if ui.add(egui::Button::new("Open…").shortcut_text("Ctrl+O")).clicked() { self.guarded(files::Pending::Open); ui.close(); }
                     ui.menu_button("Open Recent", |ui| {
                         if self.settings.recent.is_empty() {
                             ui.label(RichText::new("No recent files").color(Color32::from_gray(140)));
                         }
                         for r in self.settings.recent.clone() {
                             let name = std::path::Path::new(&r).file_name().map(|n| n.to_string_lossy().to_string()).unwrap_or(r.clone());
-                            if ui.button(name).on_hover_text(&r).clicked() { self.guarded(files::Pending::OpenPath(r)); ui.close_menu(); }
+                            if ui.button(name).on_hover_text(&r).clicked() { self.guarded(files::Pending::OpenPath(r)); ui.close(); }
                         }
                         if !self.settings.recent.is_empty() {
                             ui.separator();
-                            if ui.button("Clear Recent").clicked() { self.settings.recent.clear(); self.settings.save(); ui.close_menu(); }
+                            if ui.button("Clear Recent").clicked() { self.settings.recent.clear(); self.settings.save(); ui.close(); }
                         }
                     });
-                    if ui.button("Open Demo Scene").clicked() { self.guarded(files::Pending::OpenDemo); ui.close_menu(); }
+                    if ui.button("Open Demo Scene").clicked() { self.guarded(files::Pending::OpenDemo); ui.close(); }
                     ui.separator();
-                    if ui.add(egui::Button::new("Save").shortcut_text("Ctrl+S")).clicked() { self.save(); ui.close_menu(); }
-                    if ui.add(egui::Button::new("Save As…").shortcut_text("Ctrl+Shift+S")).clicked() { self.file(FileAction::Save); ui.close_menu(); }
+                    if ui.add(egui::Button::new("Save").shortcut_text("Ctrl+S")).clicked() { self.save(); ui.close(); }
+                    if ui.add(egui::Button::new("Save As…").shortcut_text("Ctrl+Shift+S")).clicked() { self.file(FileAction::Save); ui.close(); }
                     ui.separator();
                     ui.menu_button("Import", |ui| {
-                        if ui.add(egui::Button::new("Import to Stage…").shortcut_text("Ctrl+R")).on_hover_text("PNG, JPG, GIF, BMP, TGA, TIFF, WebP, OpenEXR").clicked() { self.file(FileAction::ImportImage); ui.close_menu(); }
-                        if ui.button("Import Image Sequence…").on_hover_text("walk0001.png, walk0002.png, … onto consecutive keyframes").clicked() { self.file(FileAction::ImportSequence); ui.close_menu(); }
-                        if ui.button("Import Photoshop (PSD)…").on_hover_text("Each Photoshop layer becomes a bitmap on its own layer, in place").clicked() { self.file(FileAction::ImportPsd); ui.close_menu(); }
-                        if ui.button("Import XDTS Timing Sheet…").on_hover_text("Exposure sheet from OpenToonz, Clip Studio Paint, TVPaint…: columns named like layers re-time them; others load numbered images next to the sheet (name_0001.png) or become labelled blank keyframes").clicked() { self.file(FileAction::ImportXdts); ui.close_menu(); }
-                        if ui.button("Import SVG…").clicked() { self.file(FileAction::ImportSvg); ui.close_menu(); }
-                        if ui.button("Import Sound…").on_hover_text("WAV, MP3, OGG Vorbis, FLAC, AIFF").clicked() { self.file(FileAction::ImportSound); ui.close_menu(); }
+                        if ui.add(egui::Button::new("Import to Stage…").shortcut_text("Ctrl+R")).on_hover_text("PNG, JPG, GIF, BMP, TGA, TIFF, WebP, OpenEXR").clicked() { self.file(FileAction::ImportImage); ui.close(); }
+                        if ui.button("Import Image Sequence…").on_hover_text("walk0001.png, walk0002.png, … onto consecutive keyframes").clicked() { self.file(FileAction::ImportSequence); ui.close(); }
+                        if ui.button("Import Photoshop (PSD)…").on_hover_text("Each Photoshop layer becomes a bitmap on its own layer, in place").clicked() { self.file(FileAction::ImportPsd); ui.close(); }
+                        if ui.button("Import XDTS Timing Sheet…").on_hover_text("Exposure sheet from OpenToonz, Clip Studio Paint, TVPaint…: columns named like layers re-time them; others load numbered images next to the sheet (name_0001.png) or become labelled blank keyframes").clicked() { self.file(FileAction::ImportXdts); ui.close(); }
+                        if ui.button("Import SVG…").clicked() { self.file(FileAction::ImportSvg); ui.close(); }
+                        if ui.button("Import Sound…").on_hover_text("WAV, MP3, OGG Vorbis, FLAC, AIFF").clicked() { self.file(FileAction::ImportSound); ui.close(); }
                     });
                     ui.menu_button("Export", |ui| {
-                        if ui.button("Export Image…").on_hover_text("The current frame as PNG, JPEG or GIF").clicked() { self.publish.image_open = true; ui.close_menu(); }
-                        if ui.button("Export SVG…").clicked() { self.file(FileAction::ExportSvg); ui.close_menu(); }
-                        if ui.button("Export Animated GIF…").clicked() { self.file(FileAction::ExportGif); ui.close_menu(); }
-                        if ui.button("Export PNG Sequence…").clicked() { self.file(FileAction::ExportPngSequence); ui.close_menu(); }
-                        if ui.button("Export Video…").on_hover_text("MP4 / WebM / MOV (needs ffmpeg)").clicked() { self.file(FileAction::ExportVideo); ui.close_menu(); }
+                        if ui.button("Export Image…").on_hover_text("The current frame as PNG, JPEG or GIF").clicked() { self.publish.image_open = true; ui.close(); }
+                        if ui.button("Export SVG…").clicked() { self.file(FileAction::ExportSvg); ui.close(); }
+                        if ui.button("Export Animated GIF…").clicked() { self.file(FileAction::ExportGif); ui.close(); }
+                        if ui.button("Export PNG Sequence…").clicked() { self.file(FileAction::ExportPngSequence); ui.close(); }
+                        if ui.button("Export Video…").on_hover_text("MP4 / WebM / MOV (needs ffmpeg)").clicked() { self.file(FileAction::ExportVideo); ui.close(); }
                         ui.separator();
-                        if ui.button("Publish HTML5 Canvas…").on_hover_text("A web page that plays the movie: scripts, buttons and sounds included").clicked() { self.file(FileAction::ExportHtml5); ui.close_menu(); }
-                        if ui.button("Generate Sprite Sheet…").on_hover_text("All frames in one PNG + JSON / Starling XML data").clicked() { self.file(FileAction::ExportSpriteSheet); ui.close_menu(); }
-                        if ui.button("Export Animated SVG…").clicked() { self.file(FileAction::ExportAnimatedSvg); ui.close_menu(); }
-                        if ui.button("Export Lottie…").clicked() { self.file(FileAction::ExportLottie); ui.close_menu(); }
-                        if ui.button("Export Timing Sheet (XDTS)…").on_hover_text("Layer timing for exposure-sheet tools (Clip Studio Paint, OpenToonz, TVPaint)").clicked() { self.file(FileAction::ExportXdts); ui.close_menu(); }
+                        if ui.button("Publish HTML5 Canvas…").on_hover_text("A web page that plays the movie: scripts, buttons and sounds included").clicked() { self.file(FileAction::ExportHtml5); ui.close(); }
+                        if ui.button("Generate Sprite Sheet…").on_hover_text("All frames in one PNG + JSON / Starling XML data").clicked() { self.file(FileAction::ExportSpriteSheet); ui.close(); }
+                        if ui.button("Export Animated SVG…").clicked() { self.file(FileAction::ExportAnimatedSvg); ui.close(); }
+                        if ui.button("Export Lottie…").clicked() { self.file(FileAction::ExportLottie); ui.close(); }
+                        if ui.button("Export Timing Sheet (XDTS)…").on_hover_text("Layer timing for exposure-sheet tools (Clip Studio Paint, OpenToonz, TVPaint)").clicked() { self.file(FileAction::ExportXdts); ui.close(); }
                         ui.separator();
-                        if ui.button("Export .fla / XFL…").on_hover_text("CS5+ .fla (zipped) or an uncompressed XFL folder").clicked() { self.file(FileAction::ExportXfl); ui.close_menu(); }
+                        if ui.button("Export .fla / XFL…").on_hover_text("CS5+ .fla (zipped) or an uncompressed XFL folder").clicked() { self.file(FileAction::ExportXfl); ui.close(); }
                     });
-                    if ui.add(egui::Button::new("Publish Settings…").shortcut_text("Ctrl+Shift+F12")).clicked() { self.publish.open = true; ui.close_menu(); }
+                    if ui.add(egui::Button::new("Publish Settings…").shortcut_text("Ctrl+Shift+F12")).clicked() { self.publish.open = true; ui.close(); }
                     ui.separator();
-                    if ui.add(egui::Button::new("Quit").shortcut_text("Ctrl+Q")).clicked() { self.guarded(files::Pending::Quit); ui.close_menu(); }
+                    if ui.add(egui::Button::new("Quit").shortcut_text("Ctrl+Q")).clicked() { self.guarded(files::Pending::Quit); ui.close(); }
                 });
                 ui.menu_button("Edit", |ui| {
                     let u = self.ed.undo_label().map(|l| format!("Undo {l}")).unwrap_or("Undo".into());
-                    if ui.add_enabled(self.ed.undo_label().is_some(), egui::Button::new(u).shortcut_text("Ctrl+Z")).clicked() { self.ed.undo(); ui.close_menu(); }
+                    if ui.add_enabled(self.ed.undo_label().is_some(), egui::Button::new(u).shortcut_text("Ctrl+Z")).clicked() { self.ed.undo(); ui.close(); }
                     let r = self.ed.redo_label().map(|l| format!("Redo {l}")).unwrap_or("Redo".into());
-                    if ui.add_enabled(self.ed.redo_label().is_some(), egui::Button::new(r).shortcut_text("Ctrl+Shift+Z")).clicked() { self.ed.redo(); ui.close_menu(); }
+                    if ui.add_enabled(self.ed.redo_label().is_some(), egui::Button::new(r).shortcut_text("Ctrl+Shift+Z")).clicked() { self.ed.redo(); ui.close(); }
                     ui.separator();
                     self.object_menu(ui);
                     ui.separator();
                     ui.menu_button("Timeline", |ui| timeline::frame_menu(self, ui));
-                    if ui.add_enabled(self.ed.editing.is_some(), egui::Button::new("Edit Document")).clicked() { self.exit_editing(true); ui.close_menu(); }
+                    if ui.add_enabled(self.ed.editing.is_some(), egui::Button::new("Edit Document")).clicked() { self.exit_editing(true); ui.close(); }
                     ui.separator();
-                    if ui.add(egui::Button::new("Preferences…").shortcut_text("Ctrl+U")).clicked() { self.prefs_open = true; ui.close_menu(); }
+                    if ui.add(egui::Button::new("Preferences…").shortcut_text("Ctrl+U")).clicked() { self.prefs_open = true; ui.close(); }
                 });
                 ui.menu_button("View", |ui| {
-                    if ui.add(egui::Button::new("Zoom In").shortcut_text("Ctrl+=")).clicked() { self.zoom *= 1.25; ui.close_menu(); }
-                    if ui.add(egui::Button::new("Zoom Out").shortcut_text("Ctrl+-")).clicked() { self.zoom /= 1.25; ui.close_menu(); }
-                    if ui.add(egui::Button::new("100%").shortcut_text("Ctrl+1")).clicked() { self.zoom = 1.0; ui.close_menu(); }
-                    if ui.add(egui::Button::new("Fit in Window").shortcut_text("Ctrl+2")).clicked() { self.fit_pending = true; ui.close_menu(); }
-                    if ui.add_enabled(self.view_rot != 0.0, egui::Button::new("Reset View Rotation")).clicked() { let r = self.stage_rect; self.set_view_rot(r, 0.0); ui.close_menu(); }
+                    if ui.add(egui::Button::new("Zoom In").shortcut_text("Ctrl+=")).clicked() { self.zoom *= 1.25; ui.close(); }
+                    if ui.add(egui::Button::new("Zoom Out").shortcut_text("Ctrl+-")).clicked() { self.zoom /= 1.25; ui.close(); }
+                    if ui.add(egui::Button::new("100%").shortcut_text("Ctrl+1")).clicked() { self.zoom = 1.0; ui.close(); }
+                    if ui.add(egui::Button::new("Fit in Window").shortcut_text("Ctrl+2")).clicked() { self.fit_pending = true; ui.close(); }
+                    if ui.add_enabled(self.view_rot != 0.0, egui::Button::new("Reset View Rotation")).clicked() { let r = self.stage_rect; self.set_view_rot(r, 0.0); ui.close(); }
                     ui.separator();
                     ui.checkbox(&mut self.topts.show_bones, "Show Bones");
                     ui.add(egui::Checkbox::new(&mut self.view.rulers, "Rulers")).on_hover_text("Ctrl+Alt+Shift+R");
@@ -932,7 +932,7 @@ impl App {
                     ui.menu_button("Grid", |ui| {
                         ui.checkbox(&mut self.view.grid, "Show Grid  (Ctrl+')");
                         ui.checkbox(&mut self.view.snap_grid, "Snap to Grid  (Ctrl+Shift+')");
-                        if ui.button("Edit Grid…").clicked() { self.view.edit_grid_open = true; ui.close_menu(); }
+                        if ui.button("Edit Grid…").clicked() { self.view.edit_grid_open = true; ui.close(); }
                     });
                     ui.menu_button("Snapping", |ui| {
                         ui.checkbox(&mut self.topts.snap, "Snap to Objects");
@@ -944,8 +944,8 @@ impl App {
                         ui.checkbox(&mut self.view.guides, "Show Guides  (Ctrl+;)");
                         ui.checkbox(&mut self.view.lock_guides, "Lock Guides  (Ctrl+Alt+;)");
                         ui.checkbox(&mut self.view.snap_guides, "Snap to Guides  (Ctrl+Shift+;)");
-                        if ui.button("Edit Guides…").clicked() { self.view.edit_guides_open = true; ui.close_menu(); }
-                        if ui.button("Clear Guides").clicked() { self.ed.clear_guides(); ui.close_menu(); }
+                        if ui.button("Edit Guides…").clicked() { self.view.edit_guides_open = true; ui.close(); }
+                        if ui.button("Clear Guides").clicked() { self.ed.clear_guides(); ui.close(); }
                         ui.label(RichText::new("Drag from a ruler to add a guide").small().color(Color32::from_gray(140)));
                     });
                     ui.separator();
@@ -957,82 +957,82 @@ impl App {
                     if self.layout != before { self.save_layout(); }
                 });
                 ui.menu_button("Insert", |ui| {
-                    if ui.add(egui::Button::new("New Symbol…").shortcut_text("Ctrl+F8")).clicked() { self.open_symbol_dialog(false); ui.close_menu(); }
-                    if ui.button("New Layer").clicked() { self.ed.add_layer(); ui.close_menu(); }
-                    if ui.button("Scene").clicked() { self.ed.add_scene(); self.fit_pending = true; self.status = format!("Added {}", self.ed.scene_tl().name); ui.close_menu(); }
-                    if ui.button("Layer Folder").clicked() { self.ed.wrap_layer(ac_core::LayerKind::Folder, "Folder"); ui.close_menu(); }
-                    if ui.button("Classic Motion Guide").clicked() { self.ed.wrap_layer(ac_core::LayerKind::Guide, "Motion Guide"); ui.close_menu(); }
-                    if ui.button("Mask Layer").on_hover_text("Makes a mask above the current layer").clicked() { self.ed.wrap_layer(ac_core::LayerKind::Mask, "Mask"); ui.close_menu(); }
+                    if ui.add(egui::Button::new("New Symbol…").shortcut_text("Ctrl+F8")).clicked() { self.open_symbol_dialog(false); ui.close(); }
+                    if ui.button("New Layer").clicked() { self.ed.add_layer(); ui.close(); }
+                    if ui.button("Scene").clicked() { self.ed.add_scene(); self.fit_pending = true; self.status = format!("Added {}", self.ed.scene_tl().name); ui.close(); }
+                    if ui.button("Layer Folder").clicked() { self.ed.wrap_layer(ac_core::LayerKind::Folder, "Folder"); ui.close(); }
+                    if ui.button("Classic Motion Guide").clicked() { self.ed.wrap_layer(ac_core::LayerKind::Guide, "Motion Guide"); ui.close(); }
+                    if ui.button("Mask Layer").on_hover_text("Makes a mask above the current layer").clicked() { self.ed.wrap_layer(ac_core::LayerKind::Mask, "Mask"); ui.close(); }
                     if self.ed.camera_layer().is_none() {
-                        if ui.add_enabled(self.ed.editing.is_none(), egui::Button::new("Camera Layer")).clicked() { self.ed.add_camera(); self.set_tool(Tool::Camera); ui.close_menu(); }
-                    } else if ui.button("Remove Camera Layer").clicked() { self.ed.remove_camera(); ui.close_menu(); }
+                        if ui.add_enabled(self.ed.editing.is_none(), egui::Button::new("Camera Layer")).clicked() { self.ed.add_camera(); self.set_tool(Tool::Camera); ui.close(); }
+                    } else if ui.button("Remove Camera Layer").clicked() { self.ed.remove_camera(); ui.close(); }
                     ui.separator();
                     timeline::frame_menu(self, ui);
                 });
                 ui.menu_button("Modify", |ui| {
-                    if ui.add(egui::Button::new("Document…").shortcut_text("Ctrl+J")).clicked() { self.doc_dlg = Some(windows::DocDlg::of(self)); ui.close_menu(); }
+                    if ui.add(egui::Button::new("Document…").shortcut_text("Ctrl+J")).clicked() { self.doc_dlg = Some(windows::DocDlg::of(self)); ui.close(); }
                     ui.separator();
                     self.object_menu(ui);
                 });
                 ui.menu_button("Control", |ui| {
-                    if ui.add(egui::Button::new(if self.playing { "Stop" } else { "Play" }).shortcut_text("Enter")).clicked() { self.toggle_play(); ui.close_menu(); }
-                    if ui.add(egui::Button::new("Test Movie").shortcut_text("Ctrl+Enter")).on_hover_text("Plays the movie in your browser (HTML5 publish), with scripts, buttons and sounds").clicked() { publish::test_movie(self); ui.close_menu(); }
+                    if ui.add(egui::Button::new(if self.playing { "Stop" } else { "Play" }).shortcut_text("Enter")).clicked() { self.toggle_play(); ui.close(); }
+                    if ui.add(egui::Button::new("Test Movie").shortcut_text("Ctrl+Enter")).on_hover_text("Plays the movie in your browser (HTML5 publish), with scripts, buttons and sounds").clicked() { publish::test_movie(self); ui.close(); }
                     ui.separator();
-                    if ui.button("Rewind").clicked() { self.step(-100_000); ui.close_menu(); }
-                    if ui.button("Go to End").clicked() { self.step(100_000); ui.close_menu(); }
-                    if ui.add(egui::Button::new("Step Forward One Frame").shortcut_text(".")).clicked() { self.step(1); ui.close_menu(); }
-                    if ui.add(egui::Button::new("Step Backward One Frame").shortcut_text(",")).clicked() { self.step(-1); ui.close_menu(); }
-                    if ui.add(egui::Button::new("Next Keyframe").shortcut_text("Shift+.")).clicked() { self.step_keyframe(true); ui.close_menu(); }
-                    if ui.add(egui::Button::new("Previous Keyframe").shortcut_text("Shift+,")).clicked() { self.step_keyframe(false); ui.close_menu(); }
+                    if ui.button("Rewind").clicked() { self.step(-100_000); ui.close(); }
+                    if ui.button("Go to End").clicked() { self.step(100_000); ui.close(); }
+                    if ui.add(egui::Button::new("Step Forward One Frame").shortcut_text(".")).clicked() { self.step(1); ui.close(); }
+                    if ui.add(egui::Button::new("Step Backward One Frame").shortcut_text(",")).clicked() { self.step(-1); ui.close(); }
+                    if ui.add(egui::Button::new("Next Keyframe").shortcut_text("Shift+.")).clicked() { self.step_keyframe(true); ui.close(); }
+                    if ui.add(egui::Button::new("Previous Keyframe").shortcut_text("Shift+,")).clicked() { self.step_keyframe(false); ui.close(); }
                     ui.separator();
                     ui.checkbox(&mut self.loop_play, "Loop Playback");
-                    if ui.add(egui::Button::new("Loop Range from Selection").shortcut_text("Ctrl+Alt+L")).on_hover_text("Playback loops over the selected frames (drag the orange markers above the frames to change it)").clicked() { self.set_loop_range(); ui.close_menu(); }
-                    if ui.add_enabled(self.tl.loop_range.is_some(), egui::Button::new("Clear Loop Range")).clicked() { self.tl.loop_range = None; ui.close_menu(); }
+                    if ui.add(egui::Button::new("Loop Range from Selection").shortcut_text("Ctrl+Alt+L")).on_hover_text("Playback loops over the selected frames (drag the orange markers above the frames to change it)").clicked() { self.set_loop_range(); ui.close(); }
+                    if ui.add_enabled(self.tl.loop_range.is_some(), egui::Button::new("Clear Loop Range")).clicked() { self.tl.loop_range = None; ui.close(); }
                     ui.checkbox(&mut self.onion, "Onion Skin");
                     ui.checkbox(&mut self.scripting.frame_scripts, "Enable Frame Scripts");
                     ui.checkbox(&mut self.simple_buttons, "Enable Simple Buttons  (Ctrl+Alt+B)");
                 });
                 ui.menu_button("Commands", |ui| {
-                    if ui.button("Run Script…").clicked() { self.scripting.console_open = true; ui.close_menu(); }
-                    if ui.button("Script Console…").clicked() { self.scripting.console_open = true; ui.close_menu(); }
-                    if ui.button("Command Reference").clicked() { self.scripting.reference_open = true; ui.close_menu(); }
+                    if ui.button("Run Script…").clicked() { self.scripting.console_open = true; ui.close(); }
+                    if ui.button("Script Console…").clicked() { self.scripting.console_open = true; ui.close(); }
+                    if ui.button("Command Reference").clicked() { self.scripting.reference_open = true; ui.close(); }
                     ui.separator();
                     ui.menu_button("Run Example", |ui| {
                         for l in ac_script::Language::ALL {
                             if ui.button(l.name()).clicked() {
                                 scripting::request_run(self, scripting::Pending::Code(l, l.example().to_string()));
-                                ui.close_menu();
+                                ui.close();
                             }
                         }
                     });
                 });
                 ui.menu_button("Window", |ui| {
-                    if ui.add(egui::Button::new("Actions").shortcut_text("F9")).clicked() { self.scripting.actions_open = true; ui.close_menu(); }
-                    if ui.add(egui::SelectableLabel::new(self.lib.open, "Library  (Ctrl+L)")).clicked() { self.lib.open = !self.lib.open; ui.close_menu(); }
-                    if ui.add(egui::SelectableLabel::new(self.colors.open, "Color  (Ctrl+Shift+F9)")).clicked() { self.colors.open = !self.colors.open; ui.close_menu(); }
-                    if ui.add(egui::SelectableLabel::new(self.swatch_ui.open, "Swatches  (Ctrl+F9)")).on_hover_text("Colour chips beside the tools").clicked() { self.toggle_swatches(); ui.close_menu(); }
-                    if ui.add(egui::SelectableLabel::new(self.history_open, "History  (Ctrl+F10)")).clicked() { self.history_open = !self.history_open; ui.close_menu(); }
-                    if ui.add(egui::SelectableLabel::new(self.nav.open, "Navigator")).clicked() { self.nav.open = !self.nav.open; ui.close_menu(); }
-                    if ui.add(egui::SelectableLabel::new(self.settings.options_bar, "Tool Options Bar")).clicked() { self.toggle_options_bar(); ui.close_menu(); }
-                    if ui.add(egui::Button::new("Command Search…").shortcut_text("Ctrl+Shift+P")).clicked() { self.palette.open = true; ui.close_menu(); }
+                    if ui.add(egui::Button::new("Actions").shortcut_text("F9")).clicked() { self.scripting.actions_open = true; ui.close(); }
+                    if ui.add(egui::Button::selectable(self.lib.open, "Library  (Ctrl+L)")).clicked() { self.lib.open = !self.lib.open; ui.close(); }
+                    if ui.add(egui::Button::selectable(self.colors.open, "Color  (Ctrl+Shift+F9)")).clicked() { self.colors.open = !self.colors.open; ui.close(); }
+                    if ui.add(egui::Button::selectable(self.swatch_ui.open, "Swatches  (Ctrl+F9)")).on_hover_text("Colour chips beside the tools").clicked() { self.toggle_swatches(); ui.close(); }
+                    if ui.add(egui::Button::selectable(self.history_open, "History  (Ctrl+F10)")).clicked() { self.history_open = !self.history_open; ui.close(); }
+                    if ui.add(egui::Button::selectable(self.nav.open, "Navigator")).clicked() { self.nav.open = !self.nav.open; ui.close(); }
+                    if ui.add(egui::Button::selectable(self.settings.options_bar, "Tool Options Bar")).clicked() { self.toggle_options_bar(); ui.close(); }
+                    if ui.add(egui::Button::new("Command Search…").shortcut_text("Ctrl+Shift+P")).clicked() { self.palette.open = true; ui.close(); }
                     ui.separator();
-                    if ui.add(egui::SelectableLabel::new(self.transform_open, "Transform  (Ctrl+T)")).clicked() { self.transform_open = !self.transform_open; ui.close_menu(); }
-                    if ui.add(egui::SelectableLabel::new(self.align_open, "Align  (Ctrl+K)")).clicked() { self.align_open = !self.align_open; ui.close_menu(); }
-                    if ui.add(egui::SelectableLabel::new(self.info_open, "Info  (Ctrl+I)")).clicked() { self.info_open = !self.info_open; ui.close_menu(); }
-                    if ui.add(egui::SelectableLabel::new(self.motion.open, "Motion Editor")).clicked() { self.motion.open = !self.motion.open; ui.close_menu(); }
-                    if ui.add(egui::SelectableLabel::new(self.presets.open, "Motion Presets")).on_hover_text("Ready-made movements: bounce, fly-in, fade, pulse, shake, spin, slides… and your own").clicked() { self.presets.open = !self.presets.open; ui.close_menu(); }
-                    if ui.add(egui::SelectableLabel::new(self.scene_open, "Scene  (Shift+F2)")).clicked() { self.scene_open = !self.scene_open; ui.close_menu(); }
-                    if ui.add(egui::Button::new("Output").shortcut_text("F2")).clicked() { self.scripting.output_open = true; ui.close_menu(); }
-                    if ui.button("Script Console").clicked() { self.scripting.console_open = true; ui.close_menu(); }
-                    if ui.button("Command Reference").clicked() { self.scripting.reference_open = true; ui.close_menu(); }
+                    if ui.add(egui::Button::selectable(self.transform_open, "Transform  (Ctrl+T)")).clicked() { self.transform_open = !self.transform_open; ui.close(); }
+                    if ui.add(egui::Button::selectable(self.align_open, "Align  (Ctrl+K)")).clicked() { self.align_open = !self.align_open; ui.close(); }
+                    if ui.add(egui::Button::selectable(self.info_open, "Info  (Ctrl+I)")).clicked() { self.info_open = !self.info_open; ui.close(); }
+                    if ui.add(egui::Button::selectable(self.motion.open, "Motion Editor")).clicked() { self.motion.open = !self.motion.open; ui.close(); }
+                    if ui.add(egui::Button::selectable(self.presets.open, "Motion Presets")).on_hover_text("Ready-made movements: bounce, fly-in, fade, pulse, shake, spin, slides… and your own").clicked() { self.presets.open = !self.presets.open; ui.close(); }
+                    if ui.add(egui::Button::selectable(self.scene_open, "Scene  (Shift+F2)")).clicked() { self.scene_open = !self.scene_open; ui.close(); }
+                    if ui.add(egui::Button::new("Output").shortcut_text("F2")).clicked() { self.scripting.output_open = true; ui.close(); }
+                    if ui.button("Script Console").clicked() { self.scripting.console_open = true; ui.close(); }
+                    if ui.button("Command Reference").clicked() { self.scripting.reference_open = true; ui.close(); }
                     ui.separator();
-                    if ui.button("Startup Window…").on_hover_text("New scene or open an existing one").clicked() { self.startup = Some(startup::Startup::new(self)); ui.close_menu(); }
-                    if ui.button("Edit Toolbar…").clicked() { self.topts.edit_toolbar_open = true; ui.close_menu(); }
+                    if ui.button("Startup Window…").on_hover_text("New scene or open an existing one").clicked() { self.startup = Some(startup::Startup::new(self)); ui.close(); }
+                    if ui.button("Edit Toolbar…").clicked() { self.topts.edit_toolbar_open = true; ui.close(); }
                     ui.separator();
-                    if ui.button("Reset Layout").on_hover_text("Tools left, Properties and Library right, Timeline below").clicked() { self.reset_layout(); ui.close_menu(); }
+                    if ui.button("Reset Layout").on_hover_text("Tools left, Properties and Library right, Timeline below").clicked() { self.reset_layout(); ui.close(); }
                 });
                 ui.menu_button("Help", |ui| {
-                    if ui.button("About Flare").clicked() { self.dialog = Dialog::About; ui.close_menu(); }
+                    if ui.button("About Flare").clicked() { self.dialog = Dialog::About; ui.close(); }
                 });
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                     self.workspace_menu(ui);
@@ -1071,12 +1071,12 @@ impl App {
             });
             if self.layout != before { self.save_layout(); }
             ui.separator();
-            if ui.button("Reset Layout").clicked() { self.reset_layout(); ui.close_menu(); }
+            if ui.button("Reset Layout").clicked() { self.reset_layout(); ui.close(); }
         });
     }
 
-    fn status_bar(&mut self, ctx: &egui::Context) {
-        egui::TopBottomPanel::bottom("status").exact_height(22.0).show(ctx, |ui| {
+    fn status_bar(&mut self, ui: &mut egui::Ui) {
+        egui::Panel::bottom("status").exact_size(22.0).show(ui, |ui| {
             ui.horizontal_centered(|ui| {
                 ui.label(egui::RichText::new(&self.status).small());
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
@@ -1436,13 +1436,15 @@ impl App {
 }
 
 impl eframe::App for App {
-    fn on_exit(&mut self, _gl: Option<&eframe::glow::Context>) {
+    fn on_exit(&mut self) {
         // A clean exit leaves no recovery file behind.
         files::clear_recovery();
         self.save_layout();
     }
 
-    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+    fn ui(&mut self, root_ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
+        let ctx_owned = root_ui.ctx().clone();
+        let ctx: &egui::Context = &ctx_owned;
         // Closing the window with unsaved changes asks first.
         if ctx.input(|i| i.viewport().close_requested()) && !self.quit_confirmed && self.dirty() && self.screenshot.is_none() {
             ctx.send_viewport_cmd(egui::ViewportCommand::CancelClose);
@@ -1450,7 +1452,7 @@ impl eframe::App for App {
         }
         self.autosave_tick(ctx);
         // Files dropped onto the window are imported (or opened).
-        let dropped: Vec<String> = ctx.input(|i| i.raw.dropped_files.iter().filter_map(|f| f.path.as_ref().map(|p| p.display().to_string())).collect());
+        let dropped: Vec<String> = ctx.input(|i| i.raw.dropped_files.iter().map(|f| f.path().display().to_string()).collect());
         for p in dropped {
             match import::dropped(self, &p) {
                 Ok(m) if !m.is_empty() => self.status = m,
@@ -1521,15 +1523,15 @@ impl eframe::App for App {
             self.ed.clock = None;
         }
         self.audio_tick();
-        self.menu_bar(ctx);
-        self.status_bar(ctx);
-        options_bar::bar(self, ctx);
-        timeline::panel(self, ctx);
-        toolbar::panel(self, ctx);
-        swatches::panel(self, ctx);
-        panels::library_column(self, ctx);
-        panels::right_panel(self, ctx);
-        stage::stage(self, ctx);
+        self.menu_bar(root_ui);
+        self.status_bar(root_ui);
+        options_bar::bar(self, root_ui);
+        timeline::panel(self, root_ui);
+        toolbar::panel(self, root_ui);
+        swatches::panel(self, root_ui);
+        panels::library_column(self, root_ui);
+        panels::right_panel(self, root_ui);
+        stage::stage(self, root_ui);
         panels::library_drag_ghost(self, ctx);
         dock::drop_targets(self, ctx);
         navigator::window(self, ctx);
@@ -1559,7 +1561,7 @@ impl eframe::App for App {
         if let Some((path, n)) = &mut self.screenshot {
             *n += 1;
             if *n == 6 {
-                ctx.send_viewport_cmd(egui::ViewportCommand::Screenshot);
+                ctx.send_viewport_cmd(egui::ViewportCommand::Screenshot(egui::UserData::default()));
             }
             let shot = ctx.input(|i| i.events.iter().find_map(|e| if let egui::Event::Screenshot { image, .. } = e { Some(image.clone()) } else { None }));
             if let Some(img) = shot {
@@ -1603,14 +1605,14 @@ pub(crate) fn registration_grid(ui: &mut egui::Ui, reg: &mut [u8; 2]) {
     let cell = 12.0;
     let (rect, resp) = ui.allocate_exact_size(egui::vec2(cell * 3.0 + 4.0, cell * 3.0 + 4.0), egui::Sense::click());
     let p = ui.painter();
-    p.rect_stroke(rect, 1.0, egui::Stroke::new(1.0_f32, Color32::from_gray(110)));
+    p.rect_stroke(rect, 1.0, egui::Stroke::new(1.0_f32, Color32::from_gray(110)), egui::StrokeKind::Inside);
     for r in 0..3u8 {
         for c in 0..3u8 {
             let ctr = rect.min + egui::vec2(2.0 + cell * (c as f32 + 0.5), 2.0 + cell * (r as f32 + 0.5));
             let on = *reg == [c, r];
             p.rect_filled(egui::Rect::from_center_size(ctr, egui::vec2(6.0, 6.0)), 0.0, if on { Color32::BLACK } else { Color32::from_gray(200) });
             if on {
-                p.rect_stroke(egui::Rect::from_center_size(ctr, egui::vec2(7.0, 7.0)), 0.0, egui::Stroke::new(1.0_f32, Color32::WHITE));
+                p.rect_stroke(egui::Rect::from_center_size(ctr, egui::vec2(7.0, 7.0)), 0.0, egui::Stroke::new(1.0_f32, Color32::WHITE), egui::StrokeKind::Inside);
             }
         }
     }

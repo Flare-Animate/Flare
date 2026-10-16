@@ -164,27 +164,27 @@ const PLAYHEAD: Color32 = Color32::from_rgb(0xE5, 0x3B, 0x3B);
 /// Frame commands (Insert menu, Edit › Timeline, and the right-click menu).
 pub fn frame_menu(app: &mut App, ui: &mut egui::Ui) {
     let item = |ui: &mut egui::Ui, label: &str, sc: &str| ui.add(egui::Button::new(label).shortcut_text(sc)).clicked();
-    if item(ui, "Insert Frame", "F5") { app.ed.insert_frame(); ui.close_menu(); }
-    if item(ui, "Remove Frames", "Shift+F5") { app.ed.remove_frame(); ui.close_menu(); }
-    if item(ui, "Insert Keyframe", "F6") { app.ed.insert_keyframe(); ui.close_menu(); }
-    if item(ui, "Insert Blank Keyframe", "F7") { app.ed.insert_blank_keyframe(); ui.close_menu(); }
-    if item(ui, "Clear Keyframe", "Shift+F6") { app.ed.clear_keyframe(); ui.close_menu(); }
-    if item(ui, "Clear Frames", "Del") { app.ed.clear_frames(); ui.close_menu(); }
+    if item(ui, "Insert Frame", "F5") { app.ed.insert_frame(); ui.close(); }
+    if item(ui, "Remove Frames", "Shift+F5") { app.ed.remove_frame(); ui.close(); }
+    if item(ui, "Insert Keyframe", "F6") { app.ed.insert_keyframe(); ui.close(); }
+    if item(ui, "Insert Blank Keyframe", "F7") { app.ed.insert_blank_keyframe(); ui.close(); }
+    if item(ui, "Clear Keyframe", "Shift+F6") { app.ed.clear_keyframe(); ui.close(); }
+    if item(ui, "Clear Frames", "Del") { app.ed.clear_frames(); ui.close(); }
     ui.separator();
-    if item(ui, "Create Classic Tween", "") { app.ed.set_tween(Tween::Classic { ease: 0.0, rotate_turns: 0 }); ui.close_menu(); }
-    if item(ui, "Create Motion Tween", "") { app.ed.set_tween(Tween::Motion { ease: 0.0 }); app.status = "Motion tween: move to a frame and change the object to add property keyframes".into(); ui.close_menu(); }
-    if item(ui, "Create Shape Tween", "") { app.ed.set_tween(Tween::Shape { ease: 0.0 }); ui.close_menu(); }
-    if item(ui, "Remove Tween", "") { app.ed.set_tween(Tween::None); ui.close_menu(); }
-    if app.ed.motion_span(app.ed.layer, app.ed.frame).is_some() && item(ui, "Motion Editor…", "") { app.motion.open = true; ui.close_menu(); }
-    if item(ui, "Convert to Frame-by-Frame", "") { app.ed.convert_to_frame_by_frame(); ui.close_menu(); }
-    if item(ui, "Reverse Frames", "") { app.ed.reverse_frames(); ui.close_menu(); }
-    if ui.button("Synchronize Symbols").on_hover_text("Graphic symbols keep playing across the keyframes in the selection (or the whole layer) instead of restarting: classic tweens get Sync, plain keyframes get their First Frame advanced").clicked() { crate::palette::sync_symbols(app); ui.close_menu(); }
+    if item(ui, "Create Classic Tween", "") { app.ed.set_tween(Tween::Classic { ease: 0.0, rotate_turns: 0 }); ui.close(); }
+    if item(ui, "Create Motion Tween", "") { app.ed.set_tween(Tween::Motion { ease: 0.0 }); app.status = "Motion tween: move to a frame and change the object to add property keyframes".into(); ui.close(); }
+    if item(ui, "Create Shape Tween", "") { app.ed.set_tween(Tween::Shape { ease: 0.0 }); ui.close(); }
+    if item(ui, "Remove Tween", "") { app.ed.set_tween(Tween::None); ui.close(); }
+    if app.ed.motion_span(app.ed.layer, app.ed.frame).is_some() && item(ui, "Motion Editor…", "") { app.motion.open = true; ui.close(); }
+    if item(ui, "Convert to Frame-by-Frame", "") { app.ed.convert_to_frame_by_frame(); ui.close(); }
+    if item(ui, "Reverse Frames", "") { app.ed.reverse_frames(); ui.close(); }
+    if ui.button("Synchronize Symbols").on_hover_text("Graphic symbols keep playing across the keyframes in the selection (or the whole layer) instead of restarting: classic tweens get Sync, plain keyframes get their First Frame advanced").clicked() { crate::palette::sync_symbols(app); ui.close(); }
     ui.separator();
-    if item(ui, "Copy Motion", "Ctrl+Alt+Shift+C") { crate::palette::copy_motion(app); ui.close_menu(); }
-    if ui.add_enabled(app.ed.can_paste_motion(), egui::Button::new("Paste Motion").shortcut_text("Ctrl+Alt+Shift+V")).on_hover_text("The copied tween becomes a new motion tween of the selected object, starting from where it is").clicked() { crate::palette::paste_motion(app, true); ui.close_menu(); }
-    if ui.add_enabled(app.ed.can_paste_motion(), egui::Button::new("Paste Motion Special (Absolute Position)")).on_hover_text("The object takes the copied positions as they are").clicked() { crate::palette::paste_motion(app, false); ui.close_menu(); }
-    if item(ui, "Copy Motion as JS", "") { crate::palette::copy_motion_js(app); ui.close_menu(); }
-    if item(ui, "Motion Presets…", "") { app.presets.open = true; ui.close_menu(); }
+    if item(ui, "Copy Motion", "Ctrl+Alt+Shift+C") { crate::palette::copy_motion(app); ui.close(); }
+    if ui.add_enabled(app.ed.can_paste_motion(), egui::Button::new("Paste Motion").shortcut_text("Ctrl+Alt+Shift+V")).on_hover_text("The copied tween becomes a new motion tween of the selected object, starting from where it is").clicked() { crate::palette::paste_motion(app, true); ui.close(); }
+    if ui.add_enabled(app.ed.can_paste_motion(), egui::Button::new("Paste Motion Special (Absolute Position)")).on_hover_text("The object takes the copied positions as they are").clicked() { crate::palette::paste_motion(app, false); ui.close(); }
+    if item(ui, "Copy Motion as JS", "") { crate::palette::copy_motion_js(app); ui.close(); }
+    if item(ui, "Motion Presets…", "") { app.presets.open = true; ui.close(); }
     ui.separator();
     let mut keep = app.settings.retain_tween_curves;
     if ui
@@ -197,15 +197,15 @@ pub fn frame_menu(app: &mut App, ui: &mut egui::Ui) {
         ac_core::frames::set_retain_tween_curves(keep);
     }
     ui.separator();
-    if item(ui, "Cut Frames", "") { app.ed.cut_frames(); ui.close_menu(); }
-    if item(ui, "Copy Frames", "") { app.ed.copy_frames(); ui.close_menu(); }
-    if ui.add_enabled(app.ed.can_paste_frames(), egui::Button::new("Paste Frames")).clicked() { app.ed.paste_frames(); ui.close_menu(); }
-    if ui.add_enabled(app.ed.can_paste_frames(), egui::Button::new("Paste and Overwrite Frames")).clicked() { app.ed.paste_overwrite_frames(); ui.close_menu(); }
+    if item(ui, "Cut Frames", "") { app.ed.cut_frames(); ui.close(); }
+    if item(ui, "Copy Frames", "") { app.ed.copy_frames(); ui.close(); }
+    if ui.add_enabled(app.ed.can_paste_frames(), egui::Button::new("Paste Frames")).clicked() { app.ed.paste_frames(); ui.close(); }
+    if ui.add_enabled(app.ed.can_paste_frames(), egui::Button::new("Paste and Overwrite Frames")).clicked() { app.ed.paste_overwrite_frames(); ui.close(); }
     if item(ui, "Select All Frames", "") {
         let n = app.ed.timeline().layers.len();
         let f = app.ed.frame_count();
         app.ed.select_frames(FrameSel { layer0: 0, layer1: n.saturating_sub(1), f0: 0, f1: f.saturating_sub(1) });
-        ui.close_menu();
+        ui.close();
     }
 }
 
@@ -233,9 +233,9 @@ fn link_dot(rect: Rect, y: f32) -> egui::Pos2 {
 /// Layer commands (right-click a layer name, Insert › Timeline).
 pub fn layer_menu(app: &mut App, ui: &mut egui::Ui, i: usize) {
     let kind = app.ed.timeline().layers.get(i).map(|l| l.kind).unwrap_or(LayerKind::Normal);
-    if ui.button("Insert Layer").clicked() { app.ed.layer = i; app.ed.add_layer(); ui.close_menu(); }
-    if ui.button("Delete Layer").clicked() { app.ed.layer = i; app.ed.delete_layer(); ui.close_menu(); }
-    if ui.button("Duplicate Layer").clicked() { app.ed.layer = i; app.ed.duplicate_layer(); ui.close_menu(); }
+    if ui.button("Insert Layer").clicked() { app.ed.layer = i; app.ed.add_layer(); ui.close(); }
+    if ui.button("Delete Layer").clicked() { app.ed.layer = i; app.ed.delete_layer(); ui.close(); }
+    if ui.button("Duplicate Layer").clicked() { app.ed.layer = i; app.ed.duplicate_layer(); ui.close(); }
     // the clicked layer, or the selected rows when it's one of them
     let pick = |app: &mut App| {
         let in_sel = app.ed.frame_sel.is_some_and(|s| (s.layer0.min(s.layer1)..=s.layer0.max(s.layer1)).contains(&i));
@@ -244,44 +244,44 @@ pub fn layer_menu(app: &mut App, ui: &mut egui::Ui, i: usize) {
         }
         app.ed.layer = i;
     };
-    if ui.button("Cut Layers").clicked() { pick(app); app.ed.cut_layers(); app.status = "Cut layers".into(); ui.close_menu(); }
-    if ui.button("Copy Layers").clicked() { pick(app); app.ed.copy_layers(); app.status = "Copied layers (with their folders' contents)".into(); ui.close_menu(); }
-    if ui.add_enabled(app.ed.can_paste_layers(), egui::Button::new("Paste Layers")).clicked() { app.ed.layer = i; app.ed.paste_layers(); ui.close_menu(); }
+    if ui.button("Cut Layers").clicked() { pick(app); app.ed.cut_layers(); app.status = "Cut layers".into(); ui.close(); }
+    if ui.button("Copy Layers").clicked() { pick(app); app.ed.copy_layers(); app.status = "Copied layers (with their folders' contents)".into(); ui.close(); }
+    if ui.add_enabled(app.ed.can_paste_layers(), egui::Button::new("Paste Layers")).clicked() { app.ed.layer = i; app.ed.paste_layers(); ui.close(); }
     ui.separator();
-    if ui.button("New Folder").on_hover_text("Insert a folder above and put this layer in it").clicked() { app.ed.layer = i; app.ed.wrap_layer(LayerKind::Folder, "Folder"); ui.close_menu(); }
+    if ui.button("New Folder").on_hover_text("Insert a folder above and put this layer in it").clicked() { app.ed.layer = i; app.ed.wrap_layer(LayerKind::Folder, "Folder"); ui.close(); }
     if ui.selectable_label(kind == LayerKind::Guide, "Guide").on_hover_text("Guide layers don't export. A guide with layers under it is a motion guide").clicked() {
         app.ed.set_layer_kind(i, if kind == LayerKind::Guide { LayerKind::Normal } else { LayerKind::Guide });
-        ui.close_menu();
+        ui.close();
     }
     if ui.button("Add Classic Motion Guide").on_hover_text("Classic tweens on this layer follow the first stroke on the guide").clicked() {
         app.ed.layer = i;
         app.ed.wrap_layer(LayerKind::Guide, "Motion Guide");
         app.status = "Draw a path on the Motion Guide layer (Pencil or Pen), then make a classic tween on the layer below.".into();
-        ui.close_menu();
+        ui.close();
     }
     if ui.selectable_label(kind == LayerKind::Mask, "Mask").on_hover_text("Shapes on this layer reveal the layer below; everything else is hidden").clicked() {
         if kind == LayerKind::Mask { app.ed.set_layer_kind(i, LayerKind::Normal) } else { app.ed.make_mask(i) }
-        ui.close_menu();
+        ui.close();
     }
     ui.separator();
     if kind == LayerKind::Normal {
         let cur = app.ed.timeline().layers.get(i).and_then(|l| l.anim_parent);
         ui.menu_button("Parent Layer", |ui| {
-            if ui.selectable_label(cur.is_none(), "None").clicked() { app.ed.set_anim_parent(i, None); ui.close_menu(); }
+            if ui.selectable_label(cur.is_none(), "None").clicked() { app.ed.set_anim_parent(i, None); ui.close(); }
             for p in app.ed.parent_candidates(i) {
                 let name = app.ed.timeline().layers[p].name.clone();
                 if ui.selectable_label(cur == Some(p), name).on_hover_text("This layer's objects follow the first object on that layer").clicked() {
                     app.ed.set_anim_parent(i, Some(p));
-                    ui.close_menu();
+                    ui.close();
                 }
             }
         });
     }
-    if ui.button("Layer Properties…").clicked() { app.open_layer_props(i); ui.close_menu(); }
+    if ui.button("Layer Properties…").clicked() { app.open_layer_props(i); ui.close(); }
 }
 
-pub fn panel(app: &mut App, ctx: &egui::Context) {
-    egui::TopBottomPanel::new(app.layout.timeline_side(), "timeline").resizable(true).default_height(230.0).min_height(120.0).show(ctx, |ui| {
+pub fn panel(app: &mut App, ui: &mut egui::Ui) {
+    app.layout.timeline_panel("timeline").resizable(true).default_size(230.0).min_size(120.0).show(ui, |ui| {
         toolbar(app, ui);
         grid(app, ui);
     });
@@ -315,7 +315,7 @@ fn toolbar(app: &mut App, ui: &mut egui::Ui) {
             ] {
                 if ui.selectable_label(app.tl.frame_view == v, l).on_hover_text(tip).clicked() {
                     app.tl.frame_view = v;
-                    ui.close_menu();
+                    ui.close();
                 }
             }
             ui.separator();
@@ -325,7 +325,7 @@ fn toolbar(app: &mut App, ui: &mut egui::Ui) {
                     app.tl.cell_w = w;
                     app.settings.tl_cell_w = w;
                     app.settings.save();
-                    ui.close_menu();
+                    ui.close();
                 }
             }
             ui.separator();
@@ -352,7 +352,7 @@ fn toolbar(app: &mut App, ui: &mut egui::Ui) {
                 let anchored = app.onion_opts.anchor.is_some();
                 if ui.selectable_label(anchored, "Anchor Markers").clicked() {
                     app.onion_opts.anchor = if anchored { None } else { Some(app.onion_range()) };
-                    ui.close_menu();
+                    ui.close();
                 }
                 ui.checkbox(&mut app.onion_opts.keys_only, "Keyframes Only").on_hover_text("Ghost only the drawings (keyframes), not the in-between frames");
                 ui.separator();
@@ -365,7 +365,7 @@ fn toolbar(app: &mut App, ui: &mut egui::Ui) {
                             app.onion_opts.before = n;
                             app.onion_opts.after = n;
                         }
-                        ui.close_menu();
+                        ui.close();
                     }
                 }
             });
@@ -446,7 +446,7 @@ fn grid(app: &mut App, ui: &mut egui::Ui) {
     }
     let grid_rect = Rect::from_min_max(pos2(grid_x0, rect.top()), rect.max);
     let layer_col = Rect::from_min_max(pos2(rect.left(), rows_top), pos2(grid_x0, rect.bottom()));
-    let d = ui.input(|i| i.raw_scroll_delta);
+    let d = ui.input(|i| i.smooth_scroll_delta);
     let (ctrl, zoom) = ui.input(|i| (i.modifiers.command, i.zoom_delta()));
     let cw = if ui.rect_contains_pointer(grid_rect) && ctrl && (zoom != 1.0 || d.y != 0.0) {
         // Ctrl+wheel: wider or narrower frames, keeping the frame under the pointer in place
@@ -584,11 +584,11 @@ fn grid(app: &mut App, ui: &mut egui::Ui) {
     hresp.context_menu(|ui| {
         if ui.add(egui::Button::new("Loop Range from Selection").shortcut_text("Ctrl+Alt+L")).clicked() {
             app.set_loop_range();
-            ui.close_menu();
+            ui.close();
         }
         if ui.add_enabled(app.tl.loop_range.is_some(), egui::Button::new("Clear Loop Range")).clicked() {
             app.tl.loop_range = None;
-            ui.close_menu();
+            ui.close();
         }
         ui.separator();
         if ui.checkbox(&mut app.tl.seconds, "Show Time in Seconds").changed() {
@@ -744,7 +744,7 @@ fn grid(app: &mut App, ui: &mut egui::Ui) {
                 }
             }
             LayerKind::Mask => {
-                p.rect_stroke(Rect::from_center_size(icon_c, vec2(11.0, 11.0)), 1.0, Stroke::new(1.2_f32, ic));
+                p.rect_stroke(Rect::from_center_size(icon_c, vec2(11.0, 11.0)), 1.0, Stroke::new(1.2_f32, ic), egui::StrokeKind::Inside);
                 p.circle_filled(icon_c, 3.0, ic);
             }
             LayerKind::Guide => {
@@ -755,7 +755,7 @@ fn grid(app: &mut App, ui: &mut egui::Ui) {
                 }
             }
             LayerKind::Camera => {
-                p.rect_stroke(Rect::from_center_size(icon_c - vec2(1.0, 0.0), vec2(9.0, 7.0)), 1.0, Stroke::new(1.2_f32, Color32::from_rgb(0xFF, 0xA0, 0x30)));
+                p.rect_stroke(Rect::from_center_size(icon_c - vec2(1.0, 0.0), vec2(9.0, 7.0)), 1.0, Stroke::new(1.2_f32, Color32::from_rgb(0xFF, 0xA0, 0x30)), egui::StrokeKind::Inside);
             }
             LayerKind::Normal => {
                 if layer.parent.map(|p| layers.get(p).map(|l| l.kind == LayerKind::Mask).unwrap_or(false)).unwrap_or(false) {
@@ -861,7 +861,7 @@ fn grid(app: &mut App, ui: &mut egui::Ui) {
         let ol = icon(2);
         let sq = Rect::from_center_size(ol.center(), vec2(10.0, 10.0));
         if layer.outline {
-            p.rect_stroke(sq, 0.0, Stroke::new(1.5_f32, c32(layer.color)));
+            p.rect_stroke(sq, 0.0, Stroke::new(1.5_f32, c32(layer.color)), egui::StrokeKind::Inside);
         } else {
             p.rect_filled(sq, 0.0, c32(layer.color));
         }
@@ -928,7 +928,7 @@ fn grid(app: &mut App, ui: &mut egui::Ui) {
                 Tween::None => {
                     if end > start + 1 {
                         let r = Rect::from_center_size(pos2(x1 - cw / 2.0, y + rh - 7.0), vec2(5.0, 7.0));
-                        rp.rect_stroke(r, 0.0, Stroke::new(1.0_f32, Color32::from_gray(30)));
+                        rp.rect_stroke(r, 0.0, Stroke::new(1.0_f32, Color32::from_gray(30)), egui::StrokeKind::Inside);
                     }
                 }
             }
@@ -973,7 +973,7 @@ fn grid(app: &mut App, ui: &mut egui::Ui) {
         if let Gesture::SpanEnd { layer: gl, start, end } = app.tl.gesture {
             if gl == i {
                 let r = Rect::from_min_max(pos2(x_of(start), y + 1.0), pos2(x_of(end.max(start + 1)), y + rh - 1.0));
-                rp.rect_stroke(r, 0.0, Stroke::new(2.0_f32, Color32::WHITE));
+                rp.rect_stroke(r, 0.0, Stroke::new(2.0_f32, Color32::WHITE), egui::StrokeKind::Inside);
             }
         }
         // Frame selection highlight (and its ghost while dragging).
@@ -981,10 +981,10 @@ fn grid(app: &mut App, ui: &mut egui::Ui) {
             if (s.layer0..=s.layer1).contains(&i) {
                 let r = Rect::from_min_max(pos2(x_of(s.f0), y), pos2(x_of(s.f1 + 1), y + rh));
                 rp.rect_filled(r, 0.0, ACCENT.gamma_multiply(0.45));
-                rp.rect_stroke(r, 0.0, Stroke::new(1.0_f32, ACCENT));
+                rp.rect_stroke(r, 0.0, Stroke::new(1.0_f32, ACCENT), egui::StrokeKind::Inside);
                 if move_delta != 0 {
                     let g = r.translate(vec2(move_delta as f32 * cw, 0.0));
-                    rp.rect_stroke(g, 0.0, Stroke::new(2.0_f32, Color32::WHITE));
+                    rp.rect_stroke(g, 0.0, Stroke::new(2.0_f32, Color32::WHITE), egui::StrokeKind::Inside);
                 }
             }
         }
