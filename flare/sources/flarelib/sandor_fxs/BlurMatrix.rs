@@ -16,11 +16,14 @@
 //! - **`SBlurMatrixError` is gone.** Every `throw` in the C++ sat in a `catch (exception)`
 //!   around vector allocations, i.e. it only fired on `std::bad_alloc`. Rust has no
 //!   equivalent failure here; allocation failure aborts instead of unwinding.
-//! - **Two C++ bugs are not reproduced as hangs.** `createEqual`'s `xd += b` / `yd += b`
-//!   walk stops advancing once `b < 0.5` (`b` shrinks as `nb` grows, so `nb` in the
-//!   thousands spins forever), and `createRandom`'s `while` loop can never terminate if
-//!   `nb` exceeds the number of distinct points inside the disc. Both now stop instead
-//!   of looping; see the loops.
+//! - **Two C++ loops that could never finish are bounded here.**
+//!   `createEqual`'s `xd += b` / `yd += b` walk stops advancing once `b < 0.5` (`b`
+//!   shrinks as `nb` grows, so `nb` in the thousands spins forever), and
+//!   `createRandom`'s `while` loop never terminates if `nb` exceeds the number of
+//!   distinct points inside the disc -- at `d = 0.5` the disc admits only the origin,
+//!   which the loop rejects, so it spins outright. Both now stop instead of looping:
+//!   `createEqual` on a step that does not move, `createRandom` at
+//!   [`disc_candidates`]. Wherever the C++ did terminate, the output is unchanged.
 //! - `(int)` casts of `double` saturated in Rust where C++ was undefined; every value
 //!   reaching them here is small, and `x * x + y * y` uses wrapping arithmetic so a large
 //!   `d` wraps like the C++ `int` rather than panicking in debug builds.
@@ -79,6 +82,22 @@ fn fallback_rand(state: &mut u64) -> i32 {
         .wrapping_mul(6364136223846793005)
         .wrapping_add(1442695040888963407);
     ((*state >> 33) as i64 & 0x7fff) as i32
+}
+
+/// Lattice points of the box `[-l, l]^2` that satisfy `x*x + y*y <= d2`, minus the
+/// origin (the sample loop rejects it). This is the most samples `create_random` can ever
+/// place, so it is what stops the loop from spinning when the disc is too small.
+fn disc_candidates(l: i32, d2: f64) -> i64 {
+    let mut n = 0i64;
+    for x in -l..=l {
+        let rest = d2 - (x as f64) * (x as f64);
+        if rest < 0.0 {
+            continue;
+        }
+        let ymax = (rest.sqrt() as i64).min(l as i64);
+        n += 2 * ymax + 1;
+    }
+    n - 1
 }
 
 /// Port of the `CBlurMatrix` class.
@@ -162,10 +181,14 @@ impl BlurMatrix {
         if span <= 0 {
             return;
         }
+        // Hard ceiling on samples: the disc holds `candidates` of them. Without this the
+        // C++ spins forever whenever `nb` exceeds what the disc can supply -- d = 0.5
+        // admits only the origin, which the loop rejects, so it never terminates.
+        let ceiling = 1 + disc_candidates(l, d2);
 
         for i in 0..NBRS {
             let mut i_nb = 1;
-            while i_nb < nb && i_nb <= max_nb {
+            while i_nb < nb && i_nb <= max_nb && i_nb <= ceiling {
                 let x = (rand() % span) - l;
                 let y = (rand() % span) - l;
                 let r2 = x.wrapping_mul(x).wrapping_add(y.wrapping_mul(y));
