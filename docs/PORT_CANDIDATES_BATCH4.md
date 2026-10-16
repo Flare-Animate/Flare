@@ -44,8 +44,42 @@ Paths relative to `flare/sources/`. Filter: no sibling `.rs`, no Qt, no TRaster/
 | 38 | common/tvectorimage/cornerdetector.cpp | 292 | Corner detection on 3D point lists | tgeometry.h, cornerdetector.h | med |
 | 39 | common/psdlib/psdutils.cpp | 213 | PSD row RLE unpack and block skip (FILE*) | zlib.h, psdutils.h | med |
 | 40 | stdfx/naru_maxflow.cpp | 188 | Max-flow graph augment/adopt (whole graph) | naru_graph.h | **DONE** (batch 5; see PORTING.md) |
+| 41 | flarelib/sandor_fxs/BlurMatrix.cpp | 247 | Blur kernel matrix build and copy | windows.h (remove), time.h, vector, cmath | **DONE** (batch 7) |
 
 Notes:
 - Risk "med" means a project header or OS API dependency (zlib, pthread, FILE*, tundo/tparam framework, or Windows/posix headers) must be cleared first.
 - Not verified by compilation; purposes come from file names and grep of signatures.
 - Skipped on purpose: igs_motion_wind_pixel.cpp (rejected family), ino_blend_add.cpp (pulls rejected igs_color_blend), cpuextensions.cpp and flarefarm/tfarmclient/util.cpp (Windows headers), FSound.cpp (Macromedia.h, unclear), stringtable.cpp (tw/ UI headers).
+
+## What actually blocks the remaining ~1075 files (survey, Oct 16 2026)
+
+The candidates above look individually portable; surveyed across the directory, the
+blockers are structural and fall into five buckets. Knowing which bucket a file is in
+before starting it saves an hour each time.
+
+1. **C++ base class with virtuals.** `flare/cellkeyframedata.cpp` derives from
+   `DvMimeData`; `stdfx/ino_blend_*.cpp` (22 files) derive from `TBlendForeBackRasterFx`
+   and are pure overrides of one method. A leaf override cannot move to Rust while its
+   base is C++ — the vtable lives in the base. Porting the 22 blend wrappers means
+   porting the fx plugin framework first.
+2. **Templates.** `flarelib/namebuilder.cpp` (`FlexibleNameCreator` derives from
+   `NameCreator`), `common/tcolor/tspectrum.cpp` (`TSpectrumT<>`),
+   `flarelib/sandor_fxs/{PatternPosition,Params,STColSelPic,EraseContour}` (a template
+   ctor over `CSTColSelPic<P>`). The header's public API *is* the template, so it cannot
+   be forwarded through a C ABI.
+3. **`DEFINE_CLASS_CODE` / static data members.** `common/tcore/tdata.cpp`,
+   `common/txsheet/tcolumnset.cpp`, `flareqt/trepetitionguard.cpp`. The macro defines a
+   class-code integer that C++ code reads by symbol; Rust can export a function, not a
+   static data member. These need either a tiny shim or a wider refactor.
+4. **Toonz `RASTER`.** `flarelib/sandor_fxs/patternmap.cpp`, `common/trasterimage/*`,
+   `common/tvectorimage/*`, `common/tmeshimage/*`. `RASTER` is a large C++ class with
+   its own ownership rules; any file taking or returning one is downstream of porting it.
+5. **Qt / platform headers in the body.** `stdfx/igs_radial_blur.cpp`,
+   `igs_rotate_blur.cpp` (`QPointF`, `QTransform`), the `igs_resource_*` thread files.
+
+The genuinely leaf files were already taken by the earlier waves plus batches 5-7
+(`igs_*` kernels, `naru_maxflow`, `igs_color_blend`, `BlurMatrix`, `tmathutil`,
+`tcubicbezier`, `tcolorvalue`, `runsmap`, ...). The cheap next wins are therefore not
+"more small files" but the *bases* the blockers point at: `TBlendForeBackRasterFx` (unlocks
+22 files), `CSTColSelPic`/`CCIL` (already half-done: `CIL.rs` exists), `RASTER`, and the
+`DEFINE_CLASS_CODE` convention.

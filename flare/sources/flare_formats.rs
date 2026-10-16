@@ -695,6 +695,60 @@ mod tests {
         v.extend_from_slice(name);
         v
     }
+    /// The `#[path]` registry must match the tree. A module that is registered but whose
+    /// file moved compiles nowhere; a file that sits beside a deleted `.cpp` but is *not*
+    /// registered still compiles and ships as dead code (see docs/PORTING.md), which is
+    /// the failure mode nobody notices. Both are cheap to catch here.
+    #[test]
+    fn module_registry_matches_the_tree() {
+        // Modules that deliberately keep both a `.rs` and a `.cpp`: the memory-safety
+        // wrapper scripts, which the port policy exempts from deletion.
+        const KEEPS_CPP: &[&str] = &[
+                        "common/tapptools/tenv.rs",
+
+                        "common/tsystem/tfilepath.rs",
+        ];
+
+        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
+        let src = include_str!("flare_formats.rs");
+
+        let mut registered = Vec::new();
+        let mut orphan_paths = Vec::new();
+        for (i, line) in src.lines().enumerate() {
+            let Some(rest) = line.trim().strip_prefix("#[path = \"") else {
+                continue;
+            };
+            let Some(quote) = rest.find('"') else {
+                panic!("malformed #[path] on line {}", i + 1);
+            };
+            let path = &rest[..quote];
+
+            // The attribute must actually declare a module on the next line.
+            let next = src.lines().skip(i + 1).find(|l| !l.trim().is_empty());
+            assert!(
+                next.is_some_and(|l| l.contains("mod ")),
+                "{path}: #[path] on line {} is not followed by a `mod` declaration",
+                i + 1
+            );
+
+            assert!(root.join(path).is_file(), "{path}: registered but not on disk");
+            let cpp = path.strip_suffix(".rs").map(|p| format!("{p}.cpp"));
+            if let Some(cpp) = cpp {
+                if root.join(&cpp).is_file() && !KEEPS_CPP.contains(&path) {
+                    orphan_paths.push(path.to_string());
+                }
+            }
+            registered.push(path.to_string());
+        }
+
+        assert!(registered.len() >= 40, "registry shrank to {}", registered.len());
+        assert!(
+            orphan_paths.is_empty(),
+            "ported C++ still present next to the Rust module: {orphan_paths:?} \
+             (delete the .cpp, or list it in KEEPS_CPP if it is an exempt memory-safety script)"
+        );
+    }
+    #[test]
     fn parse() {
         let d = [b'F', b'W', b'S', 10, 0, 0, 0, 0, 0x08, 0, 0x00, 0x18, 5, 0];
         assert_eq!(swf_frames(&d), Some((0x1800, 5)));
