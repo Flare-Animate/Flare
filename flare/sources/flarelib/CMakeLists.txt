@@ -297,7 +297,6 @@ theme.cpp
     xshhandlemanager.cpp
     vectorizerparameters.cpp
     sandor_fxs/blend.cpp
-    sandor_fxs/BlurMatrix.cpp
     sandor_fxs/CallParam.cpp
     sandor_fxs/EraseContour.cpp
     sandor_fxs/InputParam.cpp

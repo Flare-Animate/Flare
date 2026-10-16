@@ -4,8 +4,13 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-/* 0=unknown 1=SWF 2=CFBF(legacy .fla) 3=XFL zip 4=XFL DOMDocument.xml 5=SOL(shared object) */
+/* 0=unknown 1=SWF 2=CFBF(legacy .fla) 3=XFL zip 4=XFL DOMDocument.xml 5=SOL(shared object)
+   6=XDTS 7=xstage 8=TLV 9=PLI 10=TZP 11=TNZ/TZU 12=Flipnote PPM 13=KWZ 14=Wick
+   15=FlippaClip 16=zipped Moho 17=Moho 18=.anime/.anme 19=Tahoma 20=PLT 21=TPL */
 int32_t flare_detect_format(const uint8_t *data, size_t len);
+/* Same, with the file extension (no dot, any case) as tie-breaker for formats that have no
+   content magic of their own: project folders, .pli vs .plt, .tpl. ext may be NULL. */
+int32_t flare_detect_format_ext(const uint8_t *data, size_t len, const char *ext);
 /* SWF header; returns 0 on success. compression: 'F','C','Z'. */
 int32_t flare_swf_header(const uint8_t *data, size_t len, uint8_t *compression,
                          uint8_t *version, uint32_t *file_length);

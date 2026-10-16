@@ -172,6 +172,8 @@ pub mod predict3d;
 pub mod cil;
 #[path = "flarelib/sandor_fxs/CallCircle.rs"]
 pub mod callcircle;
+#[path = "flarelib/sandor_fxs/BlurMatrix.rs"]
+pub mod blurmatrix;
 #[path = "stdfx/igs_hls_noise.rs"]
 pub mod igs_hls_noise;
 #[path = "stdfx/naru_maxflow.rs"]
@@ -280,9 +282,82 @@ pub enum Format {
     XflZip = 3,
     XflXml = 4,
     Sol = 5,
+    // Project containers and scenes the rewrite is expected to open. Values are frozen:
+    // the C ABI returns them, so append, never renumber.
+    Xdts = 6,    // OpenToonz scene description (XML)
+    Xstage = 7,  // Toon Boom Harmony stage (XML)
+    Tlv = 8,     // OpenToonz / Tahoma project level
+    Pli = 9,     // OpenToonz / Tahoma palette
+    Tzp = 10,    // zipped OpenToonz project (.tnz/.tzp)
+    Tnz = 11,    // OpenToonz project directory (.tnz/.tzu)
+    Ppm = 12,    // Flipnote packed scene (inside .kwz)
+    Kwz = 13,    // zipped Flipnote studio
+    Wick = 14,   // Wick Editor project (JSON)
+    Fc = 15,     // FlippaClip project (zip)
+    MohoZip = 16, // zipped Moho project
+    // Moho binary and its gzip form are both CFBF-free plain data; `Anime` is the
+    // `.anime`/`.anme` spelling OpenToonz/Tahoma use for a gzipped `.moho`.
+    Moho = 17,
+    Anime = 18,
+    Tahoma = 19, // Tahoma2D `.tahoma` (a `.tnz`-shaped folder or zip)
+    // Palette/template spellings shared by more than one host (`.plt` OpenToonz,
+    // `.tpl` OpenToonz *and* Toon Boom Harmony). Content cannot tell them apart, so they
+    // are only reachable through the extension-aware entry point.
+    Plt = 20,
+    Tpl = 21,
 }
 
 const CFBF_SIG: [u8; 8] = [0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1];
+
+/// First entry name of a zip, from the local file header at offset 0 (name length is
+/// bytes 26..28, name starts at 30). `""` when the buffer is not a zip or is truncated.
+fn zip_first_entry(d: &[u8]) -> &[u8] {
+    if !d.starts_with(b"PK\x03\x04") || d.len() < 30 {
+        return &[];
+    }
+    let n = u16::from_le_bytes([d[26], d[27]]) as usize;
+    let end = (30 + n).min(d.len()).max(30);
+    &d[30..end]
+}
+
+fn is_gzip(d: &[u8]) -> bool {
+    d.starts_with(&[0x1F, 0x8B])
+}
+
+/// Text sniffing: the first 512 bytes contain `needle`.
+fn head_contains(d: &[u8], needle: &[u8]) -> bool {
+    let head = &d[..d.len().min(512)];
+    head.windows(needle.len()).any(|w| w == needle)
+}
+
+/// Format implied by a file extension, lower-cased and without the dot. This is the only
+/// way to separate spellings that share a container (`.tnz` folder vs `.tnz` zip, `.pli`
+/// vs `.plt`, `.tpl` as OpenToonz template vs Harmony template), and the only way to name
+/// the folder-shaped formats at all -- a directory has no bytes to sniff.
+pub fn detect_ext(ext: &str) -> Format {
+    match ext.to_ascii_lowercase().as_str() {
+        "swf" => Format::Swf,
+        "fla" => Format::Cfbf,
+        "xfl" => Format::XflZip,
+        "sol" => Format::Sol,
+        "xdts" => Format::Xdts,
+        "xstage" => Format::Xstage,
+        "tlv" => Format::Tlv,
+        "pli" => Format::Pli,
+        "plt" => Format::Plt,
+        "tpl" => Format::Tpl,
+        "tzp" => Format::Tzp,
+        "tnz" | "tzu" => Format::Tnz,
+        "tahoma" => Format::Tahoma,
+        "ppm" => Format::Ppm,
+        "kwz" => Format::Kwz,
+        "wick" => Format::Wick,
+        "fc" => Format::Fc,
+        "moho" => Format::Moho,
+        "anime" | "anme" => Format::Anime,
+        _ => Format::Unknown,
+    }
+}
 
 pub fn detect(d: &[u8]) -> Format {
     if swf_header(d).is_some() {
@@ -295,17 +370,55 @@ pub fn detect(d: &[u8]) -> Format {
         return Format::Sol;
     }
     if d.starts_with(b"PK\x03\x04") {
-        return if d.windows(15).any(|w| w == b"DOMDocument.xml") {
-            Format::XflZip
-        } else {
-            Format::Unknown
-        };
+        let first = zip_first_entry(d);
+        if head_contains(&first, b"DOMDocument.xml") || head_contains(d, b"DOMDocument.xml") {
+            return Format::XflZip;
+        }
+        if head_contains(&first, b".ppm") || head_contains(&first, b".pps") {
+            return Format::Kwz;
+        }
+        if head_contains(&first, b".moho") || head_contains(&first, b".moh") {
+            return Format::MohoZip;
+        }
+        // A zip with no recognisable first entry is still a project archive far more
+        // often than not: `.tzp` (OpenToonz), `.fc` (FlippaClip), `.kwz`. Callers that
+        // know the extension get the precise answer from `detect_ext`.
+        return Format::Tzp;
+    }
+    if is_gzip(d) {
+        // `.anime` / `.anme` is a gzipped Moho project.
+        return Format::Anime;
     }
     let head = &d[..d.len().min(512)];
     if head.windows(12).any(|w| w == b"<DOMDocument") {
         return Format::XflXml;
     }
+    if head_contains(d, b"<xstage") {
+        return Format::Xstage;
+    }
+    if head_contains(d, b"<sceneroot") || head_contains(d, b"<scene") && head_contains(d, b"cell") {
+        return Format::Xdts;
+    }
+    if head_contains(d, b"\"wickEditor\"") || head_contains(d, b"\"wickeditor\"") {
+        return Format::Wick;
+    }
     Format::Unknown
+}
+
+/// Content sniffing, refined by the file extension when the bytes are ambiguous or the
+/// format has no content magic of its own (folders, `.plt`/`.tpl`).
+pub fn detect_with_ext(d: &[u8], ext: &str) -> Format {
+    let by_ext = detect_ext(ext);
+    if by_ext == Format::Unknown {
+        return detect(d);
+    }
+    // Zip-based containers: the extension decides which archive this is.
+    if matches!(by_ext, Format::XflZip | Format::Tzp | Format::Kwz | Format::Fc | Format::MohoZip) {
+        if d.starts_with(b"PK\x03\x04") || d.is_empty() {
+            return by_ext;
+        }
+    }
+    by_ext
 }
 
 pub fn swf_header(d: &[u8]) -> Option<(u8, u8, u32)> {
@@ -326,6 +439,22 @@ unsafe fn bytes<'a>(p: *const u8, n: usize) -> &'a [u8] {
 #[no_mangle]
 pub unsafe extern "C" fn flare_detect_format(data: *const u8, len: usize) -> i32 {
     guard(0, || detect(bytes(data, len)) as i32)
+}
+
+/// `flare_detect_format` with a file extension (no dot, any case) as a tie-breaker, for
+/// the formats whose bytes cannot identify them: project folders (`.tnz`, `.tzu`,
+/// `.tahoma`), the two palettes (`.pli`, `.plt`) and the two templates (`.tpl`). `ext`
+/// may be NULL.
+#[no_mangle]
+pub unsafe extern "C" fn flare_detect_format_ext(
+    data: *const u8,
+    len: usize,
+    ext: *const std::os::raw::c_char,
+) -> i32 {
+    guard(0, || {
+        let ext = if ext.is_null() { "" } else { std::ffi::CStr::from_ptr(ext).to_str().unwrap_or("") };
+        detect_with_ext(bytes(data, len), ext) as i32
+    })
 }
 
 #[no_mangle]
@@ -488,7 +617,8 @@ mod tests {
         d.extend_from_slice(&lso::HEADER_SIGNATURE);
         d.extend_from_slice(&[0, 2, b'S', b'O', 0, 0, 0, 0x00]);
         assert_eq!(detect(&d), Format::Sol);
-        assert_eq!(detect(b"PK\x03\x04nothing"), Format::Unknown);
+        // An unnamed zip is a project archive, not "unknown".
+        assert_eq!(detect(b"PK\x03\x04nothing"), Format::Tzp);
     }
     #[test]
     fn xfl() {
@@ -497,9 +627,74 @@ mod tests {
             detect(b"<?xml version=\"1.0\"?><DOMDocument>"),
             Format::XflXml
         );
-        assert_eq!(detect(b"PK\x03\x04nothing"), Format::Unknown);
+        assert_eq!(detect(b"PK\x03\x04nothing"), Format::Tzp);
     }
+    /// Every project/container type the rewrite is expected to open. Content rules are
+    /// used where the bytes are unambiguous; the rest go through the extension.
     #[test]
+    fn project_file_types() {
+        // --- content-certain ---
+        assert_eq!(detect(b"\x1F\x8B\x08\x00rubbish"), Format::Anime);
+        assert_eq!(
+            detect(b"<?xml version=\"1.0\"?><xstage version=\"2\"/>"),
+            Format::Xstage
+        );
+        assert_eq!(
+            detect(b"<?xml version=\"1.0\"?><sceneroot><cell/></sceneroot>"),
+            Format::Xdts
+        );
+        assert_eq!(
+            detect(br#"{"wickEditor":"wickEditor.fileformat","frames":[]}"#),
+            Format::Wick
+        );
+        // zip first entry decides: .ppm/.pps is Flipnote, .moho is Moho
+        assert_eq!(detect(&zip_with_name(b"movie.ppm")), Format::Kwz);
+        assert_eq!(detect(&zip_with_name(b"doc.moho")), Format::MohoZip);
+        assert_eq!(detect(&zip_with_name(b"DOMDocument.xml")), Format::XflZip);
+
+        // --- extension-only (no content magic: folders, shared spellings) ---
+        assert_eq!(detect_ext("tlv"), Format::Tlv);
+        assert_eq!(detect_ext("pli"), Format::Pli);
+        assert_eq!(detect_ext("plt"), Format::Plt);
+        assert_eq!(detect_ext("tpl"), Format::Tpl);
+        assert_eq!(detect_ext("tnz"), Format::Tnz);
+        assert_eq!(detect_ext("tzu"), Format::Tnz);
+        assert_eq!(detect_ext("tzp"), Format::Tzp);
+        assert_eq!(detect_ext("ppm"), Format::Ppm);
+        assert_eq!(detect_ext("kwz"), Format::Kwz);
+        assert_eq!(detect_ext("wick"), Format::Wick);
+        assert_eq!(detect_ext("fc"), Format::Fc);
+        assert_eq!(detect_ext("moho"), Format::Moho);
+        assert_eq!(detect_ext("anime"), Format::Anime);
+        assert_eq!(detect_ext("anme"), Format::Anime);
+        assert_eq!(detect_ext("tahoma"), Format::Tahoma);
+        assert_eq!(detect_ext("xstage"), Format::Xstage);
+        assert_eq!(detect_ext("xdts"), Format::Xdts);
+        // case-insensitive, and unknown extensions fall back to content
+        assert_eq!(detect_ext("TLV"), Format::Tlv);
+        assert_eq!(detect_ext("bin"), Format::Unknown);
+        assert_eq!(detect_with_ext(b"random", "tnz"), Format::Tnz);
+        // an unrecognised extension still gets content sniffing
+        assert_eq!(
+            detect_with_ext(b"FWS\x09\0\0\0\0", "bin"),
+            Format::Swf
+        );
+        // ... and a zip extension beats the generic "it's a zip" answer
+        assert_eq!(detect_with_ext(&zip_with_name(b"movie.ppm"), "kwz"), Format::Kwz);
+        assert_eq!(detect_with_ext(&zip_with_name(b"project/root.tpl"), "tzp"), Format::Tzp);
+    }
+    /// A minimal zip whose first entry is `name`, enough for `zip_first_entry`.
+    /// Layout: 4-byte signature, 22 bytes of header (through the 4-byte CRC at 14..18 and
+    /// the two size fields at 18..26), then the name length at 26..28, extra length at
+    /// 28..30, then the name.
+    fn zip_with_name(name: &[u8]) -> Vec<u8> {
+        let mut v = b"PK\x03\x04".to_vec();
+        v.extend_from_slice(&[0u8; 22]);
+        v.extend_from_slice(&(name.len() as u16).to_le_bytes());
+        v.extend_from_slice(&[0, 0]); // extra length
+        v.extend_from_slice(name);
+        v
+    }
     fn parse() {
         let d = [b'F', b'W', b'S', 10, 0, 0, 0, 0, 0x08, 0, 0x00, 0x18, 5, 0];
         assert_eq!(swf_frames(&d), Some((0x1800, 5)));
