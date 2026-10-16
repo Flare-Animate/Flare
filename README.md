@@ -13,8 +13,7 @@
 [![Issues](https://img.shields.io/github/issues/Flare-Animate/Flare)](https://github.com/Flare-Animate/Flare/issues)
 ![Platforms](https://img.shields.io/badge/platforms-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey)
 ![Status](https://img.shields.io/badge/status-early%20alpha-red)
-![C++](https://img.shields.io/badge/C%2B%2B-Qt-00599C)
-![Rust](https://img.shields.io/badge/Rust-planned-orange)
+
 
 [Website](https://flare-animate.github.io/website/) · [Discord](https://discord.com/invite/JpeScW8Awa) · [Download](https://github.com/Flare-Animate/Flare/releases/tag/nightly) · [Issues](https://github.com/Flare-Animate/Flare/issues) · [日本語](./doc/README_ja.md) · [简体中文](./doc/README_chs.md)
 
@@ -39,7 +38,7 @@ subscription and no dead runtime.
 - **Open your old work** - native C++ import for the Flash/Animate file family; no Java or external runtime.
 - **OpenToonz power underneath** - vector and raster levels, xsheet/timeline, plastic rigging, FX, rendering pipeline.
 
-## Screenshots
+## Screenshots (WIP)
 
 | Animate-style workspace | Timeline & rigging | Flash import |
 |---|---|---|
