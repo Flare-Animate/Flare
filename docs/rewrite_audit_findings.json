@@ -1,0 +1,1462 @@
+[
+  {
+    "cluster": "core-model",
+    "title": "Core document model & data",
+    "survey": {
+      "subsystem": "Core document model & data (core-model): TXsheet/scene, raster & vector image data, animation params, undo, cache, serialization",
+      "purpose": "This cluster is the OpenToonz/Tahoma \"toonzlib\" core plus its data types. flarelib/ holds the TXsheet document model: a scene is a TXsheet of columns x frames cells, a stage-object (pegbar) tree, a column-fx schematic and a TProject (txsheet.cpp, txshcell.cpp, txshlevel*.cpp, tstageobject*.cpp, toonzscene.cpp, tproject.cpp, tcolumnfx*.cpp and the Qt handles). The common/ subsystems are the data it holds: traster/trasterimage/ttoonzimage/tmeshimage/tmetaimage/timage/timage_io (raster & image data), tvectorimage (bezier strokes + regions), tparam (animatable parameters and keyframes), tcolor (pixel/color), tgeometry, tcache (TImageCache), tstream (.tnz/.pli/.tpl serialization), tcore (TUndo, TSmartPointer, math). RUST_REWRITE.md's own table (line 97) lists \"Core engine, backend, rendering, document model -> Rust\", but line 431 concedes that against the 2.3k C++ files \"the matching rewrite is a few modules deep.\"",
+      "authoritative": "cpp",
+      "rust_today": [
+        {
+          "item": "tmathutil.rs (matrix LU solve, polynomial root finding, equation solvers)",
+          "track": "A-fidelity-port",
+          "status": "retired-cpp-gone",
+          "evidence": "flare_formats.rs:130; git ls-files shows no tmathutil.cpp, only tmathutil.rs + include/tmathutil.h which forwards to extern-C flare_tLUDecomposition/flare_rootFinding; PORTING.md:20 rates fidelity 8 (array helpers coarse)"
+        },
+        {
+          "item": "trandom.rs (TRandom PRNG)",
+          "track": "A-fidelity-port",
+          "status": "retired-cpp-gone",
+          "evidence": "flare_formats.rs:134; trandom.cpp absent, include/trandom.h is the thin forwarder; PORTING.md:22 fidelity 7"
+        },
+        {
+          "item": "tcubicbezier.rs (cubic-bezier inverse/eval/min-max — the only tparam piece ported)",
+          "track": "A-fidelity-port",
+          "status": "retired-cpp-gone",
+          "evidence": "flare_formats.rs:132; tcubicbezier.cpp absent, tcubicbezier.h forwards flare_invCubicBezierX/flare_getCubicBezierY; the other 13 tparam .cpp remain C++"
+        },
+        {
+          "item": "tcolorvalue.rs (TColorValue RGB/HSV/HLS conversions)",
+          "track": "A-fidelity-port",
+          "status": "retired-cpp-gone",
+          "evidence": "flare_formats.rs:136; tcolorvalue.cpp absent, tcolorvalue.h forwards flare_colorvalue_get_hsv/set_rgb; tpixel/tpixelutils/tspectrum/tcolorfunctions still C++"
+        },
+        {
+          "item": "permissionsmanager.rs (tnzbase PermissionsManager)",
+          "track": "A-fidelity-port",
+          "status": "retired-cpp-gone",
+          "evidence": "flare_formats.rs:28; permissionsmanager.cpp absent; this is a permissions table, not document-model data"
+        },
+        {
+          "item": "ac-core model.rs — the ONLY Rust document model, Animate-DOM shaped (Document->Timeline->Layer->Keyframe->Element), NOT TXsheet-shaped",
+          "track": "B-ac-mm-editor",
+          "status": "parallel-working",
+          "evidence": "flarelib/Cargo.toml name=\"ac-core\"; model.rs:1 '//! Document model mirroring Animate's DOM'; 2383 LOC; absent from flare_formats.rs (grep count 0); UNIFICATION_PLAN.md:9 'ac model.rs as the single Rust document until the TXsheet-shaped model lands'"
+        },
+        {
+          "item": "ac-core editor.rs — editing session with snapshot undo/redo (not C++ TUndoManager)",
+          "track": "B-ac-mm-editor",
+          "status": "parallel-working",
+          "evidence": "editor.rs:56-57 'undo: Vec<Snapshot>, redo: Vec<Snapshot>'; 4965 LOC; snapshot model, unlike the command-based tcore/tundo.cpp the Qt app uses"
+        },
+        {
+          "item": "ac-core frames.rs / ik.rs / rig.rs — timeline, inverse kinematics, armature for the ac model",
+          "track": "B-ac-mm-editor",
+          "status": "parallel-working",
+          "evidence": "ac_core.rs:23-40 #[path] decls; 779+222+329 LOC; part of ac-core crate, not in flare_formats.rs"
+        },
+        {
+          "item": "tgeometry/geom.rs — geometry (Matrix/Path/Pt) for the ac model, not a port of tgeometry.cpp",
+          "track": "B-ac-mm-editor",
+          "status": "parallel-working",
+          "evidence": "ac_core.rs:25-26 pulls common/tgeometry/geom.rs into ac-core; tgeometry's 3 .cpp are not retired; not registered"
+        },
+        {
+          "item": "tvectorimage/merge.rs — planar-map shape merge for the ac model, not a port of tvectorimage.cpp",
+          "track": "B-ac-mm-editor",
+          "status": "parallel-working",
+          "evidence": "ac_core.rs:37-38; tvectorimage's 12 .cpp all remain; not registered"
+        },
+        {
+          "item": "tparam/motion.rs + tween_edit.rs — ac tween/motion model",
+          "track": "B-ac-mm-editor",
+          "status": "parallel-working",
+          "evidence": "ac_core.rs:47-48 and 59-60 pull them into ac-core; not registered; not a port of the tparam keyframe classes"
+        },
+        {
+          "item": "tparam/mm_motion.rs — minnamate motion-tween model",
+          "track": "B-ac-mm-editor",
+          "status": "parallel-working",
+          "evidence": "referenced only by tnztools/minnamate_core.rs (grep); mm_=minnamate editor crate; not registered"
+        }
+      ],
+      "cpp_remaining": [
+        {
+          "area": "TXsheet document model: txsheet, txshcell, txshlevel*, tstageobject*, toonzscene, tproject, tcolumnfx*, and the Qt *handle classes",
+          "why_hard": "159 .cpp built into the flarelib SHARED lib (CMakeLists.txt:283 compiles txsheet.cpp); it is the hub every tool, panel, fx and IO path reaches through TSmartPointer intrusive refcounting and Qt handle objects, and there is no C ABI boundary to port behind leaf-by-leaf the way the math helpers were"
+        },
+        {
+          "area": "Raster & image data: traster, trasterimage, ttoonzimage, tmeshimage, tmetaimage, timage, timage_io",
+          "why_hard": "11 .cpp, 0 .rs; carries OpenToonz TRasterGR8/CM32 colormap (ToonzImage ink/paint) semantics and the tile memory manager that the renderer and tools assume"
+        },
+        {
+          "area": "Vector image: tvectorimage (bezier strokes, regions, style refs)",
+          "why_hard": "12 .cpp, 0 fidelity port; stroke outline + region planar map tied to the palette/style system; the Rust merge.rs is a different (ac) model, not a replacement"
+        },
+        {
+          "area": "Animation parameters: tparam, tparamset, tparamcontainer, tdoubleparam(+file/relay), tpointparam, tpixelparam, tspectrumparam, ttonecurveparam, tdoublekeyframe",
+          "why_hard": "13 .cpp, only the tcubicbezier math leaf ported; keyframe interpolation, param sets and expression references are wired into Qt and the fx graph"
+        },
+        {
+          "area": "Undo stack: tcore/tundo.cpp (TUndoManager)",
+          "why_hard": "command-based undo spanning every editing operation app-wide; ac-core's snapshot undo is a different mechanism and is not wired into the Qt app"
+        },
+        {
+          "area": "Image cache: tcache (TImageCache)",
+          "why_hard": "1 .cpp, 0 .rs; a global tile/image cache with a memory budget keyed by the C++ image objects, shared by renderer and tools"
+        },
+        {
+          "area": "Serialization: tstream (TIStream/TOStream)",
+          "why_hard": "3 .cpp; reads and writes existing .tnz/.pli/.tpl project files and must byte-match legacy files or it corrupts user projects"
+        },
+        {
+          "area": "TSmartPointer (tcore/tsmartpointer.cpp)",
+          "why_hard": "intrusive reference-count base class of the entire document model; until there is an ownership bridge, nothing above it can move to Rust cleanly"
+        }
+      ],
+      "parity_gap": "No TXsheet-shaped Rust document model exists at all — the shipped Qt product's scene, cells, stage-object tree, column fx, params, undo, cache and .tnz serialization are entirely C++ (flarelib SHARED + tnzcore). The only Rust document model, ac-core model.rs, is a different Animate-DOM shape (Document/Timeline/Layer/Keyframe) that is never linked into the Qt app (flare_formats, the staticlib the C++ links, has no ac-core dependency) and has never been shown to load, edit, save or render an existing .tnz scene. UNIFICATION_PLAN.md step 0 states this outright: ac model.rs stands in \"until the TXsheet-shaped model lands.\" The Rust that IS in the shipped product is 5 leaf functions (matrix solve, PRNG, cubic-bezier, colorvalue, permissions); even there, tmathutil's array helpers are rated \"coarse\" (PORTING.md:20). So behaviour equivalence between any Rust model and the C++ TXsheet — cell grid, pegbar hierarchy, column-fx evaluation, TUndoManager, and .tnz round-trip — is entirely unproven.",
+      "milestone": {
+        "name": "TXsheet-shaped Rust scene model proven to mirror a loaded .tnz (the UNIFICATION_PLAN step-0 deliverable)",
+        "done_definition": "A golden test loads >=5 representative .tnz scenes through the existing C++ loader, builds a new TXsheet-shaped Rust scene type from the same bytes, and a normalized dump (columns x frame cells, stage-object/pegbar tree, column-fx ids, frame count, scene settings) is identical between the C++ TXsheet and the Rust model; and the Rust model is reachable from C++ behind a FLARE_WITH_RUST accessor on TXsheet (a wired read path), registered in flare_formats.rs — even though no .cpp is retired yet.",
+        "verification": "cargo test core_model_golden passes; grep flare_formats.rs shows the new #[path] scene-model entry; the new TXsheet accessor is guarded by FLARE_WITH_RUST and exercised by a C++ test; dumps are produced by the shared golden-generator already used for BlurMatrix (commit f666cc028).",
+        "depends_on": [
+          "A C ABI / ownership bridge for TSmartPointer-held TXsheet (no boundary exists today)",
+          "A Rust reader for tstream (.tnz)",
+          "Step-0 decision on whether to build on ac model.rs or a fresh TXsheet-shaped type (two parallel Rust models already exist: ac model.rs and mm mm_doc.rs)"
+        ],
+        "effort": "XL"
+      },
+      "risks": [
+        "Doc-vs-tree skew: RUST_REWRITE.md:97 lists the document model as 'Rust'. That refers to the ac-core interim egui editor, not the shipped Qt app; reading the table as shipped status over-reports this cluster by a wide margin. Line 431 is the honest line ('a few modules deep').",
+        "Two parallel Rust document models already exist (ac flarelib/model.rs and mm flarelib/mm_doc.rs) and ABSORPTION.md told contributors 'do not import' model.rs; UNIFICATION_PLAN step 0 is still an unresolved decision, so starting the TXsheet-shaped model on either risks a third throwaway model.",
+        "The fidelity-port method that worked for leaf math (delete .cpp, forward .h to a flare_* FFI) does not scale to TXsheet without first designing a TSmartPointer ownership bridge; there is no C ABI seam in the document model today.",
+        "Serialization parity is unestablished: any Rust scene model that cannot byte-round-trip existing .tnz/.pli/.tpl silently corrupts user projects. This is the data-loss gate and must be proven before any Rust path becomes authoritative.",
+        "Count caveat: the 231 cluster .cpp include flarelib's 159, which mix the document model with cleanup, the centerline vectorizer, renderer and script bindings; do not read 231 as 'document-model files'."
+      ],
+      "cpp_files": 231,
+      "rs_files": 16,
+      "rs_loc": 18255
+    },
+    "verify": {
+      "subsystem": "Core document model & data (core-model): TXsheet/scene, raster & vector image data, animation params, undo, cache, serialization",
+      "confidence": "high",
+      "claim_checks": [
+        {
+          "claim": "tmathutil.rs is a track-A fidelity port, status retired-cpp-gone (flare_formats.rs:130)",
+          "verdict": "confirmed",
+          "evidence": "flare_formats.rs:130 `#[path=\"common/tcore/tmathutil.rs\"]`; `git ls-files **/tmathutil.cpp` returns nothing (only tmathutil.rs); include/tmathutil.h unconditionally forwards to extern-C flare_tLUDecomposition/flare_rootFinding/flare_solveEquation*; no .cmake lists tmathutil.cpp"
+        },
+        {
+          "claim": "trandom.rs track-A retired-cpp-gone (flare_formats.rs:134)",
+          "verdict": "confirmed",
+          "evidence": "flare_formats.rs:134; no trandom.cpp tracked; include/trandom.h is header-only TRandom forwarding this-ptr to flare_trandom_reset/set_seed/get_uint; absent from CMake source lists"
+        },
+        {
+          "claim": "tcubicbezier.rs track-A retired-cpp-gone, only tparam piece ported, other 13 tparam .cpp remain C++ (flare_formats.rs:132)",
+          "verdict": "confirmed",
+          "evidence": "flare_formats.rs:132; no tcubicbezier.cpp; tcubicbezier.h forwards flare_invCubicBezierX/flare_getCubicBezierY/flare_getMinMaxCubicBezierY; `git ls-files common/tparam/*.cpp` = 13 remaining"
+        },
+        {
+          "claim": "tcolorvalue.rs track-A retired-cpp-gone, tpixel/tpixelutils/tspectrum/tcolorfunctions still C++ (flare_formats.rs:136)",
+          "verdict": "confirmed",
+          "evidence": "flare_formats.rs:136; no tcolorvalue.cpp; tcolorvalue.h forwards flare_colorvalue_get_hsv/set_rgb etc.; tcolor/*.cpp still tracks tcolorfunctions.cpp tpixel.cpp tpixelutils.cpp tspectrum.cpp, 0 .rs for them"
+        },
+        {
+          "claim": "permissionsmanager.rs track-A retired-cpp-gone; it is a permissions table not document-model data (flare_formats.rs:28)",
+          "verdict": "confirmed",
+          "evidence": "flare_formats.rs:28; no permissionsmanager.cpp; include/permissionsmanager.h forwards flare_permissions_init/svn_username/svn_password; caveat 'not document-model data' is correct"
+        },
+        {
+          "claim": "Leaf-port evidence cites 'PORTING.md:20 rates fidelity 8' / ':22 fidelity 7'",
+          "verdict": "overclaim",
+          "evidence": "PORTING.md header (line 18) is `| Module | C++ retired | Rust file | Tests | Grain |` — the 8/7/6 are the Tests column, there is no fidelity score. Line 20 grain text 'array helpers coarse' is exact; the numeric 'fidelity' label is fabricated. Status it supports is still confirmed independently."
+        },
+        {
+          "claim": "ac-core model.rs is the ONLY Rust document model, Animate-DOM shaped, absent from flare_formats.rs, track B parallel-working (2383 LOC)",
+          "verdict": "confirmed",
+          "evidence": "flarelib/Cargo.toml name=\"ac-core\"; model.rs:1 '//! Document model mirroring Animate's DOM: Document -> Timeline -> Layer -> Keyframe (DOMFrame) -> Element'; `wc -l`=2383; grep of flare_formats.rs for model.rs/ac_core = 0 hits. (UNIFICATION_PLAN quote is at ~line 11, survey said :9 — minor line drift)"
+        },
+        {
+          "claim": "ac-core editor.rs snapshot undo/redo (not command-based TUndoManager), track B parallel-working (4965 LOC)",
+          "verdict": "confirmed",
+          "evidence": "editor.rs:56-57 `undo: Vec<Snapshot>, redo: Vec<Snapshot>`; `wc -l`=4965; common/tcore/tundo.cpp still tracked (command-based TUndoManager not retired)"
+        },
+        {
+          "claim": "frames.rs/ik.rs/rig.rs track B, in ac-core crate not flare_formats.rs (779+222+329 LOC)",
+          "verdict": "confirmed",
+          "evidence": "ac_core.rs:23-24/27-28/39-40 `#[path=\"../flarelib/{frames,ik,rig}.rs\"]`; wc -l = 779/222/329 exact; 0 hits in flare_formats.rs"
+        },
+        {
+          "claim": "tgeometry/geom.rs track B for the ac model, tgeometry's 3 .cpp not retired, not registered",
+          "verdict": "confirmed",
+          "evidence": "ac_core.rs:25-26 pulls common/tgeometry/geom.rs into ac-core; common/tgeometry/*.cpp = 3 still tracked; geom.rs not among the 5 cluster paths in flare_formats.rs"
+        },
+        {
+          "claim": "tvectorimage/merge.rs track B, tvectorimage's 12 .cpp all remain, not registered",
+          "verdict": "confirmed",
+          "evidence": "ac_core.rs:37-38; common/tvectorimage/*.cpp = 12 tracked, only .rs is merge.rs; not in flare_formats.rs"
+        },
+        {
+          "claim": "tparam/motion.rs + tween_edit.rs track B ac tween/motion, not registered",
+          "verdict": "confirmed",
+          "evidence": "ac_core.rs:47-48 and 59-60 pull them into ac-core; tparam .rs = {motion,tween_edit,mm_motion,tcubicbezier}; only tcubicbezier is in flare_formats.rs"
+        },
+        {
+          "claim": "tparam/mm_motion.rs track B minnamate motion, referenced only by tnztools/minnamate_core.rs, not registered",
+          "verdict": "confirmed",
+          "evidence": "`git grep mm_motion -- *.rs` = single hit tnztools/minnamate_core.rs:39; not in flare_formats.rs"
+        },
+        {
+          "claim": "authoritative = cpp for the cluster (shipped Qt product's document model is entirely C++; the only shipped Rust is the 5 leaf fns)",
+          "verdict": "confirmed",
+          "evidence": "flarelib/CMakeLists.txt:283 compiles txsheet.cpp, :370 add_library(flarelib SHARED), :429 links flare_formats; tnzcore/tnzbase/image/sound/stdfx/tnztools and Flare exe (flare_legacy:924) all link flare_formats; the flare_formats staticlib [dependencies] (Cargo.toml) = miniz_oxide/roxmltree/serde_json/serde/wgpu, NO ac-core; ac-core is depended on only by flare/Cargo.toml (name=\"ac-app\", bin flare, egui/eframe 0.36.2 interim editor)"
+        },
+        {
+          "claim": "parity_gap: no TXsheet-shaped Rust model exists; ac-core never linked into Qt; no .tnz load/edit/save/render proof",
+          "verdict": "confirmed",
+          "evidence": "`git grep -i 'txsheet|TXshCell|TStageObject' -- *.rs` = 0 hits; include/flare/txsheet.h has no flare_*/FLARE_WITH_RUST accessor; ac-core absent from flare_formats staticlib deps; UNIFICATION_PLAN:11 'ac model.rs as the single Rust document until the TXsheet-shaped model lands'; flarelib/mm_doc.rs confirms a 2nd parallel model exists"
+        },
+        {
+          "claim": "milestone (TXsheet-shaped Rust mirror proven against .tnz) is unmet today",
+          "verdict": "confirmed",
+          "evidence": "no `core_model_golden` test anywhere (`git grep -l core_model_golden` empty); flare_formats.rs registers only the 5 cluster leaves, no scene-model #[path]; no FLARE_WITH_RUST accessor on TXsheet; depends_on 'no ownership bridge / no Rust tstream' confirmed (tstream/*.cpp=3 tracked, 0 .rs)"
+        },
+        {
+          "claim": "counts cpp_files=231, rs_files=16, rs_loc=18255",
+          "verdict": "confirmed",
+          "evidence": "measured cluster (listed common dirs + tnzbase + flarelib) .cpp = 230 (claim 231, off by 1); per-area sub-counts exact: raster/image 11, tvectorimage 12, tparam 13, tcache 1, tstream 3, flarelib 159; the 16 document-model .rs sum to 17719 LOC (claim 18255, ~3% high; exact 16-file set unspecified so the 536-line gap is unpinnable). Magnitudes and file count stand."
+        }
+      ],
+      "corrected_authoritative": "cpp — confirmed, no correction needed. The shipped Win64 product is the C++/Qt editor: the scene lives in the flarelib SHARED lib (txsheet.cpp/txshcell/tstageobject/toonzscene/tproject/tcolumnfx) plus tnzcore (TUndoManager, TSmartPointer, TImageCache, tstream .tnz I/O), raster/image (11 .cpp, 0 .rs), tvectorimage (12 .cpp), tparam (13 .cpp). The only Rust that actually ships in this cluster is five leaf functions reached through the flare_formats staticlib: tmathutil (LU solve / root finding), trandom (PRNG), tcubicbezier, tcolorvalue (color conversions), and permissionsmanager (a permissions table, not document data). Those five are genuinely retired — the .cpp are deleted, the headers forward unconditionally to extern-C flare_* symbols (no #ifdef fallback), and flarelib/tnzcore/tnzbase link flare_formats — so for those leaves Rust is authoritative, but they are not the document model. The ac-core Rust document model (model.rs/editor.rs/frames/ik/rig, Animate-DOM shaped) is compiled only into the egui ac-app bin (flare/Cargo.toml name=\"ac-app\", eframe 0.36.2), which UNIFICATION_PLAN labels the interim product; it is not a dependency of the flare_formats staticlib the Qt app links, and nothing wires it into the Qt scene. Reading RUST_REWRITE.md:97 (\"document model | Rust\") as shipped status over-reports this cluster; RUST_REWRITE.md:431 (\"the matching rewrite is a few modules deep\") is the accurate line. Every track-B \"parallel-working\" item is real Rust but makes zero progress toward retiring the C++ document model, since no caller in the Qt product reaches it.",
+      "milestone_notes": "The survey's step-0 milestone is sound and currently unmet; tighten the done-definition so it cannot pass while still corrupting projects: (1) The golden check must assert against the C++ TStream decode of the same bytes (round-trip through TIStream), not only a normalized TXsheet dump — a normalized-dump match can hold while serialization diverges, and serialization is the data-loss gate. Add a save path: Rust model -> bytes must byte-match the C++ TOStream output for the same scene, on all 5+ .tnz plus at least one .pli (vector) and one .tpl (palette), since tstream handles all three. (2) \"Reachable from C++ behind a FLARE_WITH_RUST accessor on TXsheet\" must mean exercised by a production call site, not merely compiled — today there is no flare_* symbol in txsheet.h at all, so the accessor is net-new and must be proven in-use or it is compiled-but-unused. (3) depends_on understates two blockers, both verified absent today: there is no Rust tstream reader (tstream/*.cpp=3, 0 .rs) and no TSmartPointer ownership bridge (no flare_* seam in the document-model headers); the Rust tstream reader must itself be golden-tested against the 3 tstream.cpp before any scene dump built on it is trustworthy. (4) The step-0 \"build on ac model.rs vs fresh TXsheet type\" decision is genuinely unresolved and higher-risk than stated: two parallel Rust models already exist (flarelib/model.rs ac, flarelib/mm_doc.rs mm) and ABSORPTION.md marks model.rs \"do not import\", so a TXsheet-shaped model is a likely third model — the milestone should name which of the three it extends. Effort XL is right. The leaf-port method (delete .cpp, forward .h to flare_* FFI) does not transfer here because it needs a C ABI seam, and TSmartPointer intrusive refcounting gives none."
+    }
+  },
+  {
+    "cluster": "effects-fx",
+    "title": "Effects & FX framework",
+    "survey": {
+      "subsystem": "Effects & FX framework (effects-fx): flare/sources/{stdfx, common/tfx, colorfx}",
+      "purpose": "stdfx is the OpenToonz/IWA standard raster-effect library: ~215 TRasterFx plugin classes (blur, blend, levels, warp, particles, bokeh, etc.) plus the low-level igs_*/ino_*/iwa_* numeric kernels they call. common/tfx is the raster-FX framework those plugins plug into: the TRasterFx render-graph node types (zerary/unary/binary/macro fx), the tile/render cache (tcacheresource*, t*cachemanager, trenderer) and resource pool. colorfx is the TColorStyle library: artistic stroke, region, raster and zigzag styles drawn with OpenGL. Built as the tnzstdfx and colorfx Qt libraries linked into the Win64 flare app.",
+      "authoritative": "mixed",
+      "rust_today": [
+        {
+          "item": "23 stdfx leaf kernels (igs_color_rgb_hls/hsv, igs_math_random, igs_gauss_distribution, igs_negate, igs_density, igs_warp_hori/vert, igs_hls/hsv_adjust/add/noise, igs_level_auto[_in_camera], igs_levels, igs_median_filter[_smooth], hsvutil, igs_perlin_noise, naru_maxflow, igs_color_blend)",
+          "track": "A-fidelity-port",
+          "status": "retired-cpp-gone",
+          "evidence": "23 #[path] entries in flare_formats.rs lines 140-194; `git log --diff-filter=D -- stdfx/*.cpp` returns exactly those 23 deleted .cpp; headers are thin extern \"C\" forwarders (igs_negate.h/igs_color_blend.h); tnzstdfx CMakeLists line 336 `target_link_libraries(tnzstdfx flare_formats)`, FlareFormats.cmake sets FLARE_WITH_RUST=1 (staticlib)"
+        },
+        {
+          "item": "igs_color_blend.rs: all 22 Photoshop/PDF blend-mode kernels used by ino_blend_* FX",
+          "track": "A-fidelity-port",
+          "status": "retired-cpp-gone",
+          "evidence": "stdfx/igs_color_blend_cases.txt committed golden = 440 rows (22 fns x 20 cases); igs_color_blend.cpp absent from git ls-files; 22 ino_blend_*.cpp still compiled and still call igs::color:: via the forwarder header"
+        },
+        {
+          "item": "naru_maxflow.rs: Boykov-Kolmogorov max-flow/min-cut behind flare_graph_* C ABI",
+          "track": "A-fidelity-port",
+          "status": "retired-cpp-gone",
+          "evidence": "stdfx/naru_maxflow.rs registered (flare_formats.rs:192); naru_maxflow.cpp deleted; naru_graph.h forwards Graph class; caller naru_lazybrush.cpp still C++ in tnzstdfx SOURCES"
+        },
+        {
+          "item": "stdfx/fx.rs: layer filters + 14 BlendMode enum (Animate-style)",
+          "track": "B-ac-mm-editor",
+          "status": "parallel-working",
+          "evidence": "flarelib/ac_core.rs:16 `pub mod fx;` and common/tvrender/ac_render.rs:8 `mod fx;`; uses crate::model::Color; NOT in flare_formats.rs, not linked into tnzstdfx"
+        },
+        {
+          "item": "stdfx/particles.rs: closed-form particle emitter for the egui editor",
+          "track": "B-ac-mm-editor",
+          "status": "parallel-working",
+          "evidence": "ac_core.rs:51 `#[path=\"../stdfx/particles.rs\"] pub mod particles;`; C++ particles.cpp + particlesfx.cpp both still tracked and in tnzstdfx SOURCES; particles.rs is a deliberately different closed-form model, not a port"
+        },
+        {
+          "item": "stdfx/mm_gradient.rs: linear/radial gradient fills for minnamate",
+          "track": "B-ac-mm-editor",
+          "status": "parallel-working",
+          "evidence": "tnztools/minnamate_core.rs:27 `#[path=\"../stdfx/mm_gradient.rs\"]`; uses tiny_skia; not registered in flare_formats.rs"
+        },
+        {
+          "item": "colorfx/strokes.rs: artistic stroke styles (Ragged/Stipple/Hatched + OpenToonz Herringbone..Curl)",
+          "track": "B-ac-mm-editor",
+          "status": "parallel-working",
+          "evidence": "flarelib/ac_core.rs:45 `#[path=\"../colorfx/strokes.rs\"] pub mod strokes;`; all 7 colorfx/*.cpp incl strokestyles.cpp still compiled in colorfx SHARED lib; retires nothing"
+        }
+      ],
+      "parity_gap": "No test renders a whole effect end-to-end through the real tnzstdfx TRasterFx pipeline and diffs it against the pre-port C++. Parity is proven only for the leaf kernels in isolation: igs_color_blend has a 440-row bit-for-bit golden (igs_color_blend_cases.txt) and the batch-2 kernels were differentially checked (1670 bit-identical outputs per PORTING.md), but a forwarder-signature or call-site bug inside an effect class (ino_*/[i]wa_*fx) would not be caught. Separately, the Track-B editor code (fx.rs, particles.rs, mm_gradient.rs, strokes.rs) is a different architecture (closed-form evaluator, tiny_skia geometry) and is not proven equivalent to the C++ TRasterFx effects at all; particles.rs is designed not to match particlesfx.cpp pixel-for-pixel.",
+      "cpp_remaining": [
+        {
+          "area": "common/tfx TRasterFx framework (13 .cpp / 8282 LOC: tfx.cpp, trenderer.cpp, tcacheresource[pool].cpp, t{passive,predictive}cachemanager.cpp, tfxcachemanager.cpp, trenderresourcemanager.cpp, tmacrofx.cpp, ttzpimagefx.cpp, binaryFx/unaryFx/zeraryFx.cpp; base class also in tnzbase/trasterfx.cpp)",
+          "why_hard": "0 Rust, no flare_formats/FLARE_WITH_RUST reference anywhere in the dir. This is the render-graph + tile-cache every effect derives from and evaluates through; it is bound to Qt, TRasterP tiles, TParamContainer and the cache-invalidation protocol. Nothing downstream (any effect class) can be retired until this is ported, and it has no leaf-kernel character to make a clean C ABI."
+        },
+        {
+          "area": "stdfx effect classes: 90 *fx.cpp (incl. 35 iwa_*.cpp advanced effects and 47 ino_*.cpp, of which 22 are ino_blend_*)",
+          "why_hard": "All derive from TRasterFx (common/tfx) and bind Qt + TRasterFxPort parameter/port objects; they already delegate math to the Rust kernels through the forwarder headers, so the remaining C++ is the plugin/param/caching shell, which cannot move until common/tfx moves. 180 stdfx .cpp are still tracked and ~170 are in the tnzstdfx SOURCES list (0 effect classes retired)."
+        },
+        {
+          "area": "colorfx color styles: all 7 .cpp (strokestyles, regionstyles, rasterstyles, zigzagstyles, flowlinestrokestyle, colorfx, colorfxutils)",
+          "why_hard": "TColorStyle/TStroke subclasses that rasterize with OpenGL each frame; strokes.rs reimplements some of them in ac-core as plain geometry but retires none of the C++ (all 7 remain in the colorfx SHARED lib SOURCES)."
+        }
+      ],
+      "milestone": {
+        "name": "In-situ render-parity gate for the 23 Rust-backed FX kernels",
+        "done_definition": "A checked-in headless test renders each effect that consumes a ported kernel (ino_negate, the 22 ino_blend_*, the median/levels/warp/hls-hsv ino_* and igs_perlin-driven FX) through the real tnzstdfx TRasterFx pipeline and asserts its output equals a golden captured from the pre-port C++ revision; green for all 23 kernels. Verifiable artifact: the test target plus committed goldens, not a compile.",
+        "verification": "Run the new ctest/cargo target in CI; capture each golden by building the effect at the last commit before that kernel's .cpp was deleted (reuse the gen_igs_color_blend_cases.py approach that already rebuilds reference C++ from git history), then diff bit/epsilon against the current Rust-backed build.",
+        "depends_on": [
+          "a headless render entry point that instantiates a TRasterFx effect and runs it on a fixed TTile (partly exists under tests/graphics: graphics_reference.cpp, bloom_profile_smoke.cpp)",
+          "golden capture from the pre-port C++ commits named in PORTING.md waves 3-4 and batches 5-6",
+          "common/tfx + TRasterFxPort kept as the C++ driver (this milestone tests through the existing framework, it does not port it)"
+        ],
+        "effort": "L"
+      },
+      "risks": [
+        "common/tfx (8282 LOC) is 0% ported and is the hard prerequisite for retiring any of the ~215 effect/style .cpp; the 23 kernel wins do not shrink it, so a file-count view overstates progress for this cluster.",
+        "Two parallel effect implementations now coexist: C++ TRasterFx classes (shipped Qt app) vs Track-B fx.rs/particles.rs/mm_gradient.rs/strokes.rs (ac-core/minnamate, interim egui app). They can drift, and particles.rs/strokes.rs use a different architecture than their C++ namesakes by design, so they will never match pixel-for-pixel.",
+        "Kernel parity is proven only in unit/differential isolation; the forwarder headers call the C ABI unconditionally (no C++ fallback, since the .cpp are deleted), so any signature or call-site regression ships silently until an in-situ render test exists.",
+        "The naru_maxflow and igs_color_blend goldens are regenerated by rebuilding reference C++ from git history; as those commits age or the MSVC/toolchain env changes, regeneration can break and leave the goldens unverifiable.",
+        "colorfx links flare_formats but retires nothing there; the link only serves kernels used elsewhere, which can read as more ported than it is."
+      ],
+      "cpp_files": 200,
+      "rs_files": 27,
+      "rs_loc": 9477
+    },
+    "verify": {
+      "subsystem": "Effects & FX framework (effects-fx): flare/sources/{stdfx, common/tfx, colorfx}",
+      "confidence": "high",
+      "claim_checks": [
+        {
+          "claim": "23 stdfx leaf kernels = Track-A fidelity-ports, status retired-cpp-gone",
+          "verdict": "confirmed",
+          "evidence": "flare_formats.rs lines 140-194 = 23 stdfx #[path] entries; `git log --diff-filter=D -- stdfx/*.cpp` = exactly those 23 .cpp and no others; igs_negate.h/igs_color_blend.h are unconditional extern \"C\" forwarders (no #ifdef, no C++ fallback); stdfx/CMakeLists.txt:336 target_link_libraries(tnzstdfx flare_formats); cmake/FlareFormats.cmake:10-12 corrosion CRATE_TYPES staticlib + FLARE_WITH_RUST=1; the 23 kernel .cpp are absent from the 170-file tnzstdfx SOURCES list"
+        },
+        {
+          "claim": "igs_color_blend.rs retired-cpp-gone; 22 blend modes; 440-row golden; 22 ino_blend_*.cpp still compiled and call igs::color via forwarder",
+          "verdict": "confirmed",
+          "evidence": "igs_color_blend.cpp among the D-filter deletions; igs_color_blend_cases.txt = 440 lines (wc -l) = 22 fns x 20 cases; 22 ino_blend_*.cpp tracked and in SOURCES; `git grep -l igs::color -- stdfx/ino_blend_*.cpp` hits add/color_burn/darken/... (26 stdfx .cpp total use igs::color); registered flare_formats.rs:194; tests/native/gen_igs_color_blend_cases.py present"
+        },
+        {
+          "claim": "naru_maxflow.rs retired-cpp-gone; naru_graph.h forwards Graph; caller naru_lazybrush.cpp still C++",
+          "verdict": "confirmed",
+          "evidence": "naru_maxflow.cpp among D-filter deletions; flare_formats.rs:192; naru_graph.h = extern \"C\" flare_graph_* + inline Graph class forwarder (no naru_maxflow.h); naru_lazybrush.cpp tracked and present in tnzstdfx SOURCES"
+        },
+        {
+          "claim": "stdfx/fx.rs = Track-B parallel-working (ac-core), not in flare_formats.rs",
+          "verdict": "confirmed",
+          "evidence": "flarelib/ac_core.rs:15-16 `#[path=\"../stdfx/fx.rs\"] pub mod fx;` (14-variant BlendMode, uses crate::model::Color); 0 hits for stdfx/fx.rs in flare_formats.rs #[path] list; flarelib [lib] name=ac_core has no crate-type => rlib, not C-callable, so unreachable from the Qt app. CAVEAT: survey's second citation is wrong - ac_render.rs:7-8 is `#[path=\"ac_fx.rs\"] mod fx;`, which resolves to common/tvrender/ac_fx.rs, a different file, NOT stdfx/fx.rs. Status unaffected."
+        },
+        {
+          "claim": "stdfx/particles.rs = Track-B parallel-working; particles.cpp + particlesfx.cpp still C++ (closed-form, not a port)",
+          "verdict": "confirmed",
+          "evidence": "ac_core.rs:51-52 `#[path=\"../stdfx/particles.rs\"] pub mod particles;`; particles.cpp/particlesengine.cpp/particlesfx.cpp/particlesmanager.cpp all tracked, particlesfx.cpp in SOURCES; particles.rs header: 'Our own design ... nothing is simulated step by step ... closed formula' (by-design non-match); not in flare_formats.rs"
+        },
+        {
+          "claim": "stdfx/mm_gradient.rs = Track-B parallel-working (minnamate)",
+          "verdict": "confirmed",
+          "evidence": "tnztools/minnamate_core.rs:27 `#[path=\"../stdfx/mm_gradient.rs\"]`; not in flare_formats.rs; tnztools is a workspace member (Cargo.toml members list) producing a Rust lib, not linked into the Qt effect path"
+        },
+        {
+          "claim": "colorfx/strokes.rs = Track-B parallel-working; all 7 colorfx .cpp still compiled",
+          "verdict": "confirmed",
+          "evidence": "ac_core.rs:45-46 `#[path=\"../colorfx/strokes.rs\"] pub mod strokes;`; strokes.rs absent from colorfx/CMakeLists.txt SOURCES; all 7 colorfx .cpp (colorfx, colorfxutils, flowlinestrokestyle, rasterstyles, regionstyles, strokestyles, zigzagstyles) in the colorfx SHARED lib; colorfx/CMakeLists.txt:48 links flare_formats but retires none of its own .cpp"
+        },
+        {
+          "claim": "authoritative = mixed",
+          "verdict": "confirmed",
+          "evidence": "Shipped Qt product links flare_formats via tnzstdfx:336 and colorfx:48, so the 23 Rust leaf kernels do ship; but common/tfx (8282 LOC, 0 .rs), 170 effect .cpp in tnzstdfx SOURCES, and all 7 colorfx .cpp are C++ with 0 classes retired. Track-B Rust is ac-core/minnamate rlibs behind the separate egui bin. So cpp for the framework and every effect/style class, rust only for the 23 C-ABI leaf kernels - 'mixed' is accurate, not an overclaim."
+        },
+        {
+          "claim": "parity_gap: no end-to-end render test through the real tnzstdfx TRasterFx pipeline; parity proven only for leaf kernels in isolation",
+          "verdict": "confirmed",
+          "evidence": "`git grep -l 'TRasterFx|getBBox|doCompute|compute(' -- tests/*` = no hits; tests/graphics holds only graphics_reference.cpp, bloom_profile_smoke.cpp, canvas_gl_reference.cpp (none instantiate an fx); the only effect-level goldens are igs_color_blend_cases.txt (440 rows) and PORTING.md batch-2's 1670 bit-identical differential outputs - both leaf-kernel, not in-situ"
+        },
+        {
+          "claim": "common/tfx framework: 13 .cpp / 8282 LOC, 0% ported, no flare_formats/FLARE_WITH_RUST reference",
+          "verdict": "confirmed",
+          "evidence": "`git ls-files common/tfx/*.cpp` = 13 (tfx, trenderer, tcacheresource[pool], t{passive,predictive}cachemanager, tfxcachemanager, trenderresourcemanager, tmacrofx, ttzpimagefx, binary/unary/zeraryFx); `xargs wc -l` = 8282 total; 0 .rs in dir; `git grep FLARE_WITH_RUST|flare_formats|.rs -- common/tfx/*` = no hits"
+        },
+        {
+          "claim": "stdfx effect classes: 90 *fx.cpp (35 iwa, 47 ino incl 22 ino_blend); 180 stdfx .cpp tracked, ~170 in SOURCES, 0 effect classes retired",
+          "verdict": "confirmed",
+          "evidence": "git ls-files counts: *fx.cpp=90, iwa_*.cpp=35, ino_*.cpp=47, ino_blend_*.cpp=22, stdfx *.cpp=180; tnzstdfx SOURCES .cpp count=170; particlesfx.cpp/ino_negate.cpp/iwa_particlesfx.cpp/naru_lazybrush.cpp all still in SOURCES"
+        },
+        {
+          "claim": "counts cpp_files=200, rs_files=27, rs_loc=9477",
+          "verdict": "confirmed",
+          "evidence": "cpp 180(stdfx)+13(tfx)+7(colorfx)=200; rs 26(stdfx)+0(tfx)+1(colorfx)=27; `git ls-files {stdfx,tfx,colorfx}/*.rs | xargs wc -l` tail = 9477 total"
+        }
+      ],
+      "corrected_authoritative": "Verdict stands at 'mixed', and this survey is well-calibrated - it does not overclaim. No underclaim found either: the true ports already carry the strongest status (retired-cpp-gone) and Track-B Rust is honestly not credited with retiring any C++.\n\nSharpen 'mixed' for the shipped-product question. The Win64 product is the Qt `Flare` executable (its link list is assembled in flare/sources/flare_legacy/CMakeLists.txt: add_dependencies(Flare ... colorfx ... tnzstdfx ...) and $<TARGET_FILE:tnzstdfx>). A user of that app today gets: the FX render graph + tile cache = C++ (common/tfx, 8282 LOC, 0% Rust); all ~215 effect classes = C++ (170 effect .cpp in tnzstdfx SOURCES, 0 retired); all 7 TColorStyle styles = C++ (colorfx SHARED lib). The only Rust in their effect path is the 23 leaf numeric kernels, invoked through unconditional extern \\\"C\\\" forwarder headers in tnzstdfx/colorfx (both link the flare_formats staticlib, FLARE_WITH_RUST=1). Those 23 are genuinely retired-to-Rust and genuinely ship.\n\nTrack-B Rust (stdfx/fx.rs, particles.rs, mm_gradient.rs, colorfx/strokes.rs) ships in neither sense: it lives in the ac-core/minnamate rlibs (flarelib/ac_core.rs, tnztools/minnamate_core.rs), which are consumed only by the separate egui `flare` bin (ac-app, flare/sources/flare/Cargo.toml) and the minnamate editor - the interim products. Those crates are rlibs (no crate-type), so the Qt C++ app cannot call them, and they do not run the TRasterFx pipeline at all. particles.rs and strokes.rs are a different architecture by design and will never match their C++ namesakes pixel-for-pixel. So: authoritative = cpp for the framework and every effect/style class in the shipped product; rust only for the 23 C-ABI leaf kernels; Track-B = parallel egui/minnamate app, retiring nothing. A file-count reading (27 .rs vs 200 .cpp, or '23 kernels done') overstates progress because the 8282-LOC framework that every effect evaluates through is untouched.",
+      "milestone_notes": "The proposed milestone ('in-situ render-parity gate for the 23 Rust-backed kernels') is the right next artifact and its done-definition is already testable - and currently unmet: no test instantiates a TRasterFx (empty grep for TRasterFx/doCompute/compute over tests/; tests/graphics has only graphics_reference.cpp / bloom_profile_smoke.cpp / canvas_gl_reference.cpp, none driving the fx graph). Push it toward something a CI run settles:\n\n1. The gate must build each ported kernel's consuming effect (ino_negate, the 22 ino_blend_*, the median/levels/warp/hls-hsv ino_*, and the igs_perlin-driven iwa_fractalnoisefx/iwa_pnperspectivefx), run it through the real tnzstdfx TRasterFx::compute on a fixed TTile, and diff against a golden captured at the pre-deletion commit - reuse the gen_igs_color_blend_cases.py pattern that already rebuilds reference C++ from git history (proven for the 440-row blend golden and the gen_blurmatrix_cases.py twin).\n2. Pin each golden to the commit named in RUST_REWRITE.md waves 3-4 / batch 5-6, and commit the goldens; a green compile is not the artifact.\n3. State explicitly that the gate tests THROUGH common/tfx and does not port it, so passing it does not shrink the 8282-LOC framework debt - that framework remains the hard prerequisite before any of the 170 effect .cpp can be retired.\n4. Add the regression rationale: because the forwarder headers call the C ABI unconditionally (the .cpp are deleted, no C++ fallback), a signature or call-site bug in any effect class ships silently today; the in-situ render test is the only thing that would catch it. This makes the milestone a safety gate, not just a progress marker."
+    }
+  },
+  {
+    "cluster": "tools",
+    "title": "Drawing tools & TTool framework",
+    "survey": {
+      "subsystem": "Drawing tools & TTool framework (flare/sources/tnztools)",
+      "purpose": "OpenToonz/Tahoma's interactive editing layer: the TTool base class and input/event routing (tool.cpp, toolhandle.cpp, toolutils.cpp, inputmanager.cpp, inputstate.cpp, track.cpp, tooloptions*.cpp, cursormanager.cpp, tooltimer.cpp) plus every drawing/editing tool - brush, eraser, fill, geometric, selection, edit/control-point, skeleton, plastic rig, deformation (magnet/pinch/pump/bender/iron), tape, hook, type, picker, ruler, shift-trace - and the drawing assistants/guidelines and stroke modifiers. Built as the Qt SHARED library tnztools and linked into the shipped Flare editor.",
+      "authoritative": "cpp",
+      "cpp_files": 89,
+      "rs_files": 21,
+      "rs_loc": 7077,
+      "rust_today": [
+        {
+          "item": "minnamate-core tool modules (mm_draw, mm_erase, mm_hit, mm_paint, mm_pen, mm_transform)",
+          "track": "B-ac-mm-editor",
+          "status": "parallel-working",
+          "evidence": "flare/sources/tnztools/mm_*.rs = 2776 LOC (wc -l); declared via #[path] in minnamate_core.rs; crate name 'minnamate-core' per tnztools/Cargo.toml; consumed only by tnzext (bin minnamate) + tcomposer + flarelib/mm_bridge.rs; NOT in flare_formats.rs"
+        },
+        {
+          "item": "ac-core tool modules (sculpt=magnet/pinch/pump/bender/iron, mypaint=raster brush, assistants/assist=guidelines+replicators)",
+          "track": "B-ac-mm-editor",
+          "status": "parallel-working",
+          "evidence": "flare/sources/tnztools/{sculpt,mypaint,assistants/assist}.rs = 1765 LOC (wc -l); #[path]-included by flarelib/ac_core.rs lines 4-5,41-42,49 so they belong to crate ac-core (egui ac-app); NOT in flare_formats.rs"
+        },
+        {
+          "item": "tnztools Rust test suite (bitmaps/buttons/filters/gradients/layers/mm_bridge/tweens/scripting/sound/xfl_write)",
+          "track": "scaffold",
+          "status": "parallel-working",
+          "evidence": "11 files flare/sources/tnztools/tests/*.rs; mm_bridge.rs is an ac->mm->xfl->ac round-trip inside track B; grep for extern \"C\"/golden/libtnztools/ffi found no hit, so no C++ parity harness"
+        },
+        {
+          "item": "solveEquation4 (quartic solver) - the ONLY Rust the shipped C++ tools call",
+          "track": "A-fidelity-port",
+          "status": "retired-cpp-gone",
+          "evidence": "guidelineellipse.cpp calls solveEquation4; it is tmathutil.rs (flare_formats.rs line 130), a math util, NOT a tool port; tnztools/CMakeLists.txt line 214 comment 'header forwarder into Rust' + target_link_libraries(tnztools flare_formats)"
+        }
+      ],
+      "cpp_remaining": [
+        {
+          "area": "TTool framework core (tool.cpp 1617, toolutils.cpp 1943, inputmanager.cpp 675, toolhandle.cpp, inputstate.cpp 143, track.cpp 177, tooloptions*.cpp, cursormanager.cpp, tooltimer.cpp)",
+          "why_hard": "TTool is a Qt QObject hierarchy coupled to the GL viewer overlay, TApplication, the current TXshLevel/column, undo (TUndo) and the Qt tool-options widgets. It is interactive UI state, not a pure function, so the C-ABI leaf-port pattern that works for kernels (BlurMatrix, solveEquation4) does not map onto it; porting needs the C++ document model and undo ported first."
+        },
+        {
+          "area": "Selection/edit tools (selectiontool, edittool, vector/rasterselectiontool, controlpointeditortool, controlpointselection, strokeselection, rasterselection, levelselection)",
+          "why_hard": "Operate directly on TStroke/TVectorImage/TRasterImage/TXshLevel with in-place undo and Qt drag gadgets; no Rust equivalent of those data types is exposed over the C ABI."
+        },
+        {
+          "area": "Plastic rig (plastictool + _animate/_build/_meshedit/_rigidity) and skeleton (skeletontool, skeletonsubtools)",
+          "why_hard": "Mesh skinning/rigidity solve depends on SuperLU (include_directories superlu in CMakeLists) and the mesh/skeleton document model; large, numerically sensitive, no Rust port exists."
+        },
+        {
+          "area": "Brush/fill tools (toonzrasterbrushtool, toonzvectorbrushtool, fullcolorbrushtool, paintbrushtool, bluredbrush, mypainttoonzbrush, filltool, fullcolorfilltool, autofillpli/tlv)",
+          "why_hard": "Bound to libmypaint (ENABLE_MYPaint gate) and the raster/vector fill engine; the Rust mypaint.rs uses a different engine (hokusai) on the editor's own bitmap model, so it is not a drop-in for the C++ raster brush."
+        },
+        {
+          "area": "Assistants, guidelines, replicators, modifiers (assistant.cpp, editassistantstool, assistants/*.cpp, modifiers/*.cpp)",
+          "why_hard": "Closest to portable (mostly geometry, and assist.rs already reimplements it for track B), but the C++ classes are TAssistant/TReplicator subclasses tied to the tool framework and operate on TStroke input; needs a point/stroke C-ABI shim and a golden fixture before the math body can be retired."
+        }
+      ],
+      "parity_gap": "No tool behaviour is proven equivalent between the C++ TTool implementation and any Rust code. The Rust tool modules (minnamate-core mm_* and ac-core sculpt/mypaint/assist) act on the editors' own document models (minnamate_core::doc, ac_core::model), never on OpenToonz TStroke/TVectorImage/TXshLevel, and no test feeds the same input through a C++ tool and its Rust counterpart to compare output. The tnztools/tests/*.rs are pure-Rust round-trips within track B. So snapping/guideline projection, stroke smoothing and simplification, selection and control-point editing, and deformation falloff are all unverified against the shipped C++ tools - the only cross-checked Rust path in the whole cluster is the solveEquation4 quartic solver, which is a math util, not tool logic.",
+      "milestone": {
+        "name": "First shipped-product Rust tool path: retire the C++ guideline projection math behind a registered flare_formats leaf-port, proven by a golden test",
+        "done_definition": "The guideline point-projection math used by the shipped tools (the snap/getGuideline bodies in assistant.cpp, assistants/guidelineline.cpp and assistants/guidelineellipse.cpp) is implemented as a Rust module registered in flare_formats.rs and called by the C++ guideline classes over the C ABI (the solveEquation4 forwarder pattern, extended from projecting a point to returning the snapped point); a golden test drives a fixed set of strokes through the pre-port C++ build and the new Rust path and asserts the projected points match within tolerance; and the three C++ math bodies are deleted with their headers left as thin forwarders. Not 'it compiles' and not a new egui tool - a wired path in Flare.exe plus retired C++ lines.",
+        "done_definition_note": "verifiable via the three artifacts below",
+        "verification": "grep -n 'path =' flare/sources/flare_formats.rs shows the new guideline entry; cargo test -p flare_formats <guideline> passes the golden comparison; git shows the snap/getGuideline bodies removed from the three .cpp (headers reduced to forwarders) while libtnztools still builds and Flare still links it (flare_legacy/CMakeLists.txt target_link_libraries Flare ... tnztools).",
+        "depends_on": [
+          "A C-ABI shim for TPointD/stroke sample arrays between C++ tnztools and flare_formats (none exists today; only scalar solveEquation4 crosses)",
+          "A golden-stroke fixture captured from the current C++ build to compare against",
+          "A decision on reusing/adapting ac-core assist.rs vs writing a fresh leaf-port, since assist.rs works on the editor model, not TStroke"
+        ],
+        "effort": "L"
+      },
+      "risks": [
+        "The leaf-port pattern fits pure kernels, not TTool classes: ~84 of the 89 files are interactive Qt tools coupled to TStroke/TVectorImage/TXshLevel/TUndo and the GL viewer, so any real tools milestone is blocked on core-system (document model + undo) migration, not achievable inside tnztools alone.",
+        "Two parallel Rust tool codebases already overlap in scope - minnamate-core mm_* (tnztools crate) and ac-core sculpt/mypaint/assist (flarelib) - and UNIFICATION_PLAN.md has not merged them; porting a tool to the shipped product risks adding a third divergent implementation.",
+        "No golden/parity harness exists for tools (tnztools/tests are track-B round-trips), so 'equivalent to C++' is currently unmeasured and silent regressions are easy.",
+        "mypaint.rs uses the hokusai engine, a different brush engine from the C++ libmypaint path (ENABLE_MYPaint), so raster-brush output parity is unlikely to be bit-exact.",
+        "RUST_REWRITE.md and the ac-core file table (line 440) list tnztools as holding mypaint/sculpt/assist, which can read as 'ported' though none is registered in flare_formats.rs or linked into Flare.exe - the docs describe track-B presence, not shipped-product replacement."
+      ]
+    },
+    "verify": {
+      "subsystem": "Drawing tools & TTool framework (flare/sources/tnztools)",
+      "confidence": "High. Every count and structural claim in the survey reproduced exactly by command. No overclaim found in the survey itself; the one correction is to the task preamble (flare/ vs flare_legacy/), and the survey's own milestone text already has it right.",
+      "claim_checks": [
+        {
+          "claim": "cpp_files=89, rs_files=21, rs_loc=7077",
+          "verdict": "confirmed",
+          "evidence": "git ls-files 'flare/sources/tnztools/**/*.cpp'|wc -l =89; 21 .rs; xargs wc -l tail =7077 total. All three exact."
+        },
+        {
+          "claim": "authoritative = cpp (users get C++ tools today)",
+          "verdict": "confirmed",
+          "evidence": "tnztools/CMakeLists.txt:188 add_library(tnztools SHARED ...) Qt5 lib; flare_legacy/CMakeLists.txt:524 add_executable(Flare WIN32 ...) links tnztools (lines 526/625/630). All 89 tool .cpp tracked and in CMake SOURCES (e.g. assistant.cpp:144, selectiontool/plastictool/tool.cpp all `git ls-files`=1)."
+        },
+        {
+          "claim": "minnamate-core mm_* = 2776 LOC, track B, declared in minnamate_core.rs, crate 'minnamate-core', consumed by tnzext bin minnamate, NOT in flare_formats.rs",
+          "verdict": "confirmed",
+          "evidence": "wc -l mm_{draw,erase,hit,paint,pen,transform}.rs=2776; minnamate_core.rs lines 13/19/29/41/43/69 #[path] them; tnztools/Cargo.toml name='minnamate-core'; tnzext/Cargo.toml name='minnamate-editor' bin 'minnamate' dep minnamate-core={path='../tnztools'}; no tnztools path in flare_formats.rs grep."
+        },
+        {
+          "claim": "ac-core sculpt/mypaint/assist = 1765 LOC, included by flarelib/ac_core.rs lines 4-5,41-42,49, crate ac-core (egui ac-app), NOT in flare_formats.rs",
+          "verdict": "confirmed",
+          "evidence": "wc -l sculpt.rs+mypaint.rs+assistants/assist.rs=1765; ac_core.rs:4-5 assist,41-42 sculpt,49 mypaint; Cargo.toml member 'flarelib'=ac-core, 'flare'=ac-app bin flare (eframe/wgpu); not in flare_formats.rs."
+        },
+        {
+          "claim": "tnztools test suite = 11 tests/*.rs, mm_bridge is ac->mm->xfl->ac round-trip, no C++ parity harness",
+          "verdict": "confirmed",
+          "evidence": "11 files in tests/; mm_bridge.rs:1 '//! Step 3 of UNIFICATION_PLAN: ac model -> mm -> XFL write -> XFL read -> ac'; git grep -E 'extern \"C\"|golden|libtnztools|ffi' on tests/*.rs = no match (rc1)."
+        },
+        {
+          "claim": "solveEquation4 is the ONLY Rust the shipped C++ tools call; tmathutil.cpp retired; tmathutil.h a forwarder; flare_formats.rs line 130",
+          "verdict": "confirmed",
+          "evidence": "only caller guidelineellipse.cpp:44; of tmathutil Rust fns tnztools hits solveEquation4=1, solveEquation2/3/LUDecomposition/backSubstitution=0; norm/tdistance/cross are tgeometry.h inlines (147/173/106); TCubicBezier/TRandom/TColorValue unused in tnztools; tmathutil.cpp git ls-files=0; tmathutil.h:37 extern \"C\" flare_* + inline forwarders; flare_formats.rs:130 common/tcore/tmathutil.rs; CMakeLists:214 comment + :215 target_link_libraries(tnztools flare_formats)."
+        },
+        {
+          "claim": "status 'parallel-working'/track B for the Rust tool modules (not wired into the Qt product)",
+          "verdict": "confirmed",
+          "evidence": "tnztools/CMakeLists.txt SOURCES contain no .rs (grep '\\.rs'=0 hits; only C++ assistant.cpp/mypaint headers); FLARE_WITH_RUST=1 is an INTERFACE define on flare_formats only (FlareFormats.cmake:12), and tnztools links flare_formats solely for solveEquation4."
+        },
+        {
+          "claim": "parity_gap: no tool behaviour proven equivalent; Rust modules act on own models, never TStroke/TVectorImage/TXshLevel; only cross-checked path is solveEquation4",
+          "verdict": "confirmed",
+          "evidence": "git grep -E 'TStroke|TVectorImage|TXshLevel' on all tnztools/*.rs = no match (rc1); tests are track-B pure-Rust round-trips; no C++<->Rust golden harness exists."
+        },
+        {
+          "claim": "risks: SuperLU for plastic rig; ENABLE_MYPaint gate; mypaint.rs uses hokusai not libmypaint (parity not bit-exact); two parallel Rust tool codebases",
+          "verdict": "confirmed",
+          "evidence": "CMakeLists.txt include_directories(SYSTEM .../superlu/SupperLU_4.1/SRC); link guarded by $<BOOL:${ENABLE_MYPaint}>:${MYPAINT_LIB_LDFLAGS}; mypaint.rs:3 'brush engine is hokusai, a pure-Rust ... port of libmypaint' (self-described 'pixel-faithful'; no test proves bit-exactness); mm_* in crate minnamate-core and sculpt/mypaint/assist in crate ac-core coexist, both outside flare_formats.rs."
+        },
+        {
+          "claim": "[task-preamble, not survey] shipped Qt product is flare/sources/flare/",
+          "verdict": "overclaim",
+          "evidence": "flare/sources/flare/Cargo.toml name='ac-app' desc 'Flare desktop editor (egui)' bin 'flare' eframe/wgpu = the interim egui app. The Qt Flare.exe is add_executable(Flare WIN32) in flare/sources/flare_legacy/CMakeLists.txt:524, which links tnztools. The survey's milestone verification already names flare_legacy, so the survey is correct; only the preamble's location is wrong."
+        }
+      ],
+      "corrected_authoritative": "authoritative = cpp (confirmed, unchanged). The shipped Win64 editor is the Qt executable target `Flare` built from flare/sources/flare_legacy/CMakeLists.txt (add_executable Flare WIN32, Qt5), which links the C++ `tnztools` SHARED library; all 89 tool .cpp remain tracked and in the CMake SOURCES list, so none is retired. The only Rust that reaches Flare.exe from this cluster is the scalar solveEquation4 quartic solver, reached through the tmathutil.h extern-\"C\" forwarder under FLARE_WITH_RUST=1 — and that .rs lives in common/tcore/tmathutil.rs (flare_formats.rs:130), a different cluster, not in tnztools. Sharpening worth recording: 0 of the 21 tnztools .rs (7077 LOC) ship in the Qt product; every one belongs to a track-B crate — mm_*/minnamate_core.rs to `minnamate-core`, sculpt/mypaint/assist to `ac-core` — compiled only into the egui bins `minnamate` (tnzext) and `flare` (ac-app). The survey is accurate and appropriately skeptical; I found no overclaim in it and no underclaim (the one genuinely wired+retired path, solveEquation4, is already credited as A-fidelity-port/retired-cpp-gone, and the survey correctly declines to count it as tool logic).",
+      "milestone_notes": "The done_definition is testable and the artifacts exist: assistant.cpp, assistants/guidelineline.cpp, assistants/guidelineellipse.cpp are all tracked, and solveEquation4 already crosses to Rust in guidelineellipse.cpp:44, giving a forwarder precedent to extend. Three sharpenings toward something verifiable: (1) The method names resolve in assistant.cpp (the TAssistant base getGuideline/snap bodies); guidelineline.cpp/guidelineellipse.cpp hold the per-shape getGuideline overrides and projection math — so the grep in the verification step should target each file's own body, not assume getGuideline appears literally in all three. (2) The claimed dependency \"a C-ABI shim for TPointD/stroke sample arrays — none exists today, only scalar solveEquation4 crosses\" is confirmed: tmathutil.h's extern-\"C\" block is entirely scalar double*/int math, so the milestone genuinely requires a new point/sample-array marshaller, which is the real work and the right thing to size as effort L. (3) Capture the golden fixture from the pre-port target `Flare` in flare_legacy (not from flare/ac-app) and assert projected TPointD within tolerance; and prefer a fresh leaf-port keyed to TStroke input over reusing ac-core assist.rs, because assist.rs is #[path]-wired into the ac-core/ac-app editor model and reusing it would either couple the Qt port to that crate or spawn a third divergent copy."
+    }
+  },
+  {
+    "cluster": "editors",
+    "title": "Rust editors & UI unification",
+    "survey": {
+      "subsystem": "Rust editors & UI unification (editors): flare/sources/{flare, tnzext, toonzqt, flareqt, tcomposer}",
+      "purpose": "Consolidate the imported Rust front ends into one editor. RUST_REWRITE.md \"One application\": the Qt app at flare/sources/flare/ \"is the product\"; the tree \"has three egui applications: flare/ (ac-app, bin flare, the interim product), toonzqt/ (flare-studio, bin flare-studio), and tnzext/ (minnamate-editor, bin minnamate)\", and \"toonzqt and tnzext are libraries to be folded into flare; neither stays a shipped second editor.\" UNIFICATION_PLAN.md title: \"AnimationCraft + minnamate -> one Flare app.\" So the cluster's job is to merge three parallel egui editors + two Rust CLIs down to one editor + one CLI, while the shipped Win64 product stays the C++/Qt Flare.exe until the panel merge (steps 7-14) lands.",
+      "authoritative": "cpp",
+      "cpp_files": 346,
+      "rs_files": 92,
+      "rs_loc": 64546,
+      "rust_today": [
+        {
+          "item": "ac-app, egui editor, bin `flare` (RUST_REWRITE calls it the interim product)",
+          "track": "B-ac-mm-editor",
+          "status": "parallel-working",
+          "evidence": "flare/sources/flare/Cargo.toml [[bin]] name=flare path=ac_app_main.rs, eframe =0.36.2; 24 editor .rs (ac_app_main.rs + ac_app/*.rs); not built by CMake, not in flare_formats.rs"
+        },
+        {
+          "item": "flare-studio, egui workspace, bin `flare-studio` (fresh Rust in the repurposed toonzqt/ dir)",
+          "track": "B-ac-mm-editor",
+          "status": "parallel-working",
+          "evidence": "git ls-files flare/sources/toonzqt/*.rs = 24 files / 13,934 LOC, 0 .cpp; Cargo.toml bin flare-studio eframe =0.36.2; README: 'a separate executable alongside the existing Qt application', 'PhotoCraft informed the immediate-mode Rust panel'"
+        },
+        {
+          "item": "minnamate-editor, egui editor, bin `minnamate` (Rust sits in tnzext/ beside the active C++ ext lib)",
+          "track": "B-ac-mm-editor",
+          "status": "parallel-working",
+          "evidence": "flare/sources/tnzext/*.rs = 36 files / 28,255 LOC (mm_ed_*.rs); Cargo.toml name=minnamate-editor bin minnamate eframe 0.36; not in flare_formats.rs"
+        },
+        {
+          "item": "ac-cli, headless CLI, bin `flare-cli` (Rust in flareqt/ beside the C++ widget lib)",
+          "track": "B-ac-mm-editor",
+          "status": "parallel-working",
+          "evidence": "flare/sources/flareqt/{ac_cli_main.rs,commands.rs,mm_filters.rs}; Cargo.toml name=ac-cli bin flare-cli; 4 .rs / 3,642 LOC"
+        },
+        {
+          "item": "minnamate-cli, CLI, bin `minnamate-cli`",
+          "track": "B-ac-mm-editor",
+          "status": "scaffold-unwired",
+          "evidence": "flare/sources/tcomposer/minnamate_cli_main.rs = 110 LOC single file; Cargo.toml name=minnamate-cli; UNIFICATION_PLAN step 4/5 (fold into flare-cli) open"
+        },
+        {
+          "item": "metnum.rs + predict3d.rs (the only Track-A leaf-ports in the flare/ dir; numerical/3D math, not UI)",
+          "track": "A-fidelity-port",
+          "status": "retired-cpp-gone",
+          "evidence": "flare_formats.rs lines 180,182 register flare/metnum.rs & flare/predict3d.rs; git ls-files shows only metnum.h/predict3d.h remain (no .cpp); flare/CMakeLists SOURCES lists only the .h"
+        },
+        {
+          "item": "mm_bridge ac<->mm document adapter + XFL round-trip test (UNIFICATION_PLAN step 3)",
+          "track": "scaffold",
+          "status": "partial",
+          "evidence": "flare/sources/flarelib/mm_bridge.rs 607 LOC + flare/sources/tnztools/tests/mm_bridge.rs 181 LOC; module header lists lossy fields (renamed duplicate symbols, shape extras, dangling parents)"
+        },
+        {
+          "item": "Single egui generation pin + dedup (UNIFICATION_PLAN step 1, step 14 core, done 2026-10-16)",
+          "track": "scaffold",
+          "status": "partial",
+          "evidence": "Cargo.lock: egui, eframe, epaint, egui-wgpu all resolve to exactly 0.36.2 (one version each); workspace.dependencies pins egui/eframe/egui_extras =0.36.2"
+        },
+        {
+          "item": "dock.rs Panel registry (UNIFICATION_PLAN step 7, prerequisite for the panel merge)",
+          "track": "scaffold",
+          "status": "scaffold-unwired",
+          "evidence": "flare/sources/flare/ac_app/dock.rs line 38 still a closed `enum Module {Tools, Properties, Library, Timeline}`; grep finds no `trait Panel` or `struct Registry` — step 7 not started"
+        }
+      ],
+      "cpp_remaining": [
+        {
+          "area": "Qt editor app: flare/sources/flare/ (211 .cpp, 197 .h) compiled into Flare.exe by flare_legacy/CMakeLists.txt add_executable(Flare WIN32 ...)",
+          "why_hard": "This is the shipped UI itself: every panel, popup, viewer, menu. flare/CMakeLists.txt has no add_executable; flare_legacy's resolve_flare_legacy_paths pulls these sources from ../flare/ and links flare_formats + the C++ libs. No Rust editor is wired into this binary; replacing it means proving panel-by-panel and project-load parity (UNIFICATION_PLAN steps 7-14, all open)."
+        },
+        {
+          "area": "flareqt Qt widget library: 96 .cpp building add_library(flareqt SHARED)",
+          "why_hard": "These are the classic OpenToonz/toonzqt widgets (checkbox.cpp, colorfield.cpp, addfxcontextmenu.cpp, schematicviewer.cpp, styleeditor.cpp...). flare_legacy links flareqt into Flare.exe (add_dependencies/_find_flare_library both list it). flare-studio reimplements some of this in egui but is not linked; Qt widgets have no C-ABI forwarder path the way the format/math kernels do."
+        },
+        {
+          "area": "tnzext C++ ext library: 36 .cpp building add_library(tnzext SHARED), add_subdirectory(tnzext) active",
+          "why_hard": "Plastic/mesh deformation (StrokeParametricDeformer, LinearPotential, DeformationSelector) used by the Qt app. The 36 Rust files in the same directory are the minnamate egui editor, unrelated to this library; deform.rs is at most a partial parallel. mm_*.rs must stay out of the ac crates' mod lists, so the dir mixes an active C++ lib with an unwired Rust editor."
+        },
+        {
+          "area": "tcomposer C++ CLI: 3 .cpp building add_executable(tcomposer) -> tcomposer.exe (shipped in FlarePortable/)",
+          "why_hard": "Headless compositor shipped alongside Flare.exe. minnamate_cli_main.rs (110 LOC) is a thin parallel that is not wired and, per UNIFICATION_PLAN step 5, is meant to be folded into flare-cli and deleted, not shipped."
+        }
+      ],
+      "parity_gap": "No egui editor is in the shipped Flare.exe. The Win64 product is built by flare_legacy/CMakeLists.txt from flare/sources/flare/ C++, linking tnzcore;tnzbase;flarelib;colorfx;tnzext;image;sound;flareqt;tnztools;tnzstdfx;tfarm plus the Rust flare_formats (which carries only the leaf-ports — formats, color, math kernels, metnum, predict3d — not any editor UI). All three egui apps (flare, flare-studio, minnamate) are standalone cargo bins, absent from flare_formats.rs and from the CMake Flare target. So \"open, edit, save, render an existing project identically to the Qt app\" is unproven for every egui editor: flare-studio's README states \"the existing Flare SWF/XFL/Moho import pipeline is not connected to this executable\", and mm_bridge round-trips ac<->mm in memory with declared lossy fields (renamed duplicate symbols, shape extras, dangling parents) rather than establishing egui-vs-Qt equivalence. UNIFICATION_PLAN §5 also records that the ac and mm HTML5 export runtimes are behaviourally incompatible and were not merged.",
+      "milestone": {
+        "name": "One editor binary, first wired panel: register a minnamate panel inside bin `flare` through a Panel registry (UNIFICATION_PLAN steps 7 + 8)",
+        "done_definition": "flare/sources/flare/ac_app/dock.rs exposes `trait Panel` + `struct Registry`, the existing Tools/Properties/Library/Timeline modules are ported onto it, and dock::Layout stores panel ids via `#[serde(default)] panels: Vec<(String, DockSlot)>`; then at least one mm_ed_* panel (Library) renders inside bin `flare`, reading ac::Document through the bridge view -- a wired code path, not a standalone `minnamate` launch. Measured by: grep 'trait Panel' flare/sources/flare/ac_app/dock.rs is non-empty (today empty -- closed enum Module), and the ported Library panel appears in bin `flare`.",
+        "verification": "cargo test -p ac-app covering registry construction and a dock::Layout serde round-trip that keeps saved layouts valid; launch bin `flare`, open the Library panel, confirm it shows minnamate-sourced content fed through flarelib/mm_bridge.rs; cargo tree -d still shows a single egui 0.36.2.",
+        "depends_on": [
+          "UNIFICATION_PLAN step 1 egui single-generation pin (done 2026-10-16, Cargo.lock dedup confirmed)",
+          "UNIFICATION_PLAN step 3 flarelib/mm_bridge.rs + round-trip test (implemented)",
+          "UNIFICATION_PLAN step 7 Panel trait/Registry in dock.rs (NOT started -- dock.rs still a closed enum Module)"
+        ],
+        "effort": "L"
+      },
+      "risks": [
+        "The shipped Win64 product (FlarePortable/Flare.exe, built 2026-10-16 by flare_legacy, links flareqt + tnzext + flare_formats) is C++/Qt. None of the ~64.5k LOC of Rust editor code across the five in-scope dirs is in that binary, so egui-side progress does not shrink or retire the Qt app until UNIFICATION_PLAN steps 9-14 land.",
+        "Three parallel egui editors are diverging reimplementations of the same editor (flare 18.6k, minnamate 28.3k, flare-studio 13.9k rs LOC). The panel merge (steps 7-14) has not begun -- step 7's Panel trait does not exist yet -- so the merge target keeps growing while all three are edited independently.",
+        "toonzqt/CMakeLists.txt is a stale leftover: it still lists ~95 widget .cpp as SOURCES and calls add_library(toonzqt SHARED), but those .cpp were deleted on 2026-03-05 (commit 99cae22a0) and the dir now holds only flare-studio Rust. It configures today only because the parent CMakeLists.txt does not add_subdirectory(toonzqt); re-enabling it would fail configuration.",
+        "Licensing: minnamate (minnamate-core/minnamate-editor/minnamate-cli) has no upstream LICENSE; UNIFICATION_PLAN step 4-section and the crate manifests keep publish=false until cleared. Shipping any minnamate-derived panel in Flare is blocked until this is resolved.",
+        "mm_bridge.rs documents lossy fields (renamed duplicate symbols, shape extras, dangling parents). The plan deletes mm readers/writers/doc only after migrating mm-only features onto ac types; doing that before an end-to-end project round-trip test risks silent data loss when real .fla/.tnz projects are opened and saved.",
+        "Correction to a stated premise: toonzqt/ is NOT a case of 'C++ Studio never imported'. 95 C++ widget .cpp were present at the rebrand (b2bbd5da6) and deleted in 99cae22a0; the same filenames now build as flareqt SHARED and are linked into Flare.exe. flare-studio is fresh egui Rust occupying the emptied directory, so the 'fresh Rust, not a port' conclusion holds, but the reason is 'imported then deleted and the widget C++ moved to flareqt/', not 'never there'."
+      ]
+    },
+    "verify": {
+      "subsystem": "Rust editors & UI unification (editors): flare/sources/{flare, tnzext, toonzqt, flareqt, tcomposer}",
+      "claim_checks": [
+        {
+          "claim": "cpp_files=346, rs_files=92, rs_loc=64546 across the five dirs",
+          "verdict": "confirmed",
+          "evidence": "git ls-files per dir: flare 211cpp/27rs, tnzext 36/36, toonzqt 0/24, flareqt 96/4, tcomposer 3/1 => 346 cpp, 92 rs; xargs wc -l tail => 64546 total"
+        },
+        {
+          "claim": "authoritative='cpp' (shipped Win64 for this cluster is the Qt Flare.exe, not an egui bin)",
+          "verdict": "confirmed",
+          "evidence": "flare_legacy/CMakeLists.txt:524 add_executable(Flare WIN32 ...); flare/CMakeLists.txt has no add_executable/add_library; only flare_formats is corrosion-imported (FlareFormats.cmake:10); flare_legacy has zero refs to cargo/ac-app/flare-studio/minnamate/corrosion/TARGET_FILE:flare"
+        },
+        {
+          "claim": "ac-app (bin `flare`) is track-B parallel, not wired into the Qt product",
+          "verdict": "confirmed",
+          "evidence": "flare/Cargo.toml name=ac-app [[bin]] name=flare path=ac_app_main.rs eframe='=0.36.2'; workspace member 'flare'; absent from flare_formats.rs #[path] list and from every CMake target"
+        },
+        {
+          "claim": "flare-studio (toonzqt/, bin flare-studio) = 24 rs / 13,934 LOC, 0 cpp, parallel-working",
+          "verdict": "confirmed",
+          "evidence": "toonzqt/Cargo.toml name=flare-studio bin flare-studio eframe='=0.36.2'; git ls-files 24 rs, wc -l=13934, 0 cpp; README.md:9 'a separate executable alongside the existing Qt application', :13 'import pipeline is not connected to this executable'"
+        },
+        {
+          "claim": "minnamate-editor (tnzext/, bin minnamate) = 36 rs / 28,255 LOC, parallel-working",
+          "verdict": "confirmed",
+          "evidence": "tnzext/Cargo.toml name=minnamate-editor bin minnamate path=minnamate_editor_main.rs eframe='0.36' (unpinned, not =0.36.2) publish=false; wc -l=28255; not in flare_formats.rs; sits beside the active C++ deform lib (StrokeParametricDeformer.cpp, LinearPotential.cpp, plasticdeformer.cpp)"
+        },
+        {
+          "claim": "ac-cli (flareqt/, bin flare-cli) = 4 rs / 3,642 LOC, parallel-working",
+          "verdict": "confirmed",
+          "evidence": "flareqt/Cargo.toml name=ac-cli bin flare-cli path=ac_cli_main.rs; rs = ac_cli_main.rs, commands.rs, mm_filters.rs, examples/render_symbol.rs (4); wc -l=3642; workspace member 'flareqt'"
+        },
+        {
+          "claim": "minnamate-cli (tcomposer/) = 110 LOC single file, scaffold-unwired",
+          "verdict": "confirmed",
+          "evidence": "tcomposer/minnamate_cli_main.rs=110 LOC; Cargo.toml name=minnamate-cli publish=false; UNIFICATION_PLAN.md:82 step 4 open (make it call ac readers/writers via bridge)"
+        },
+        {
+          "claim": "metnum.rs + predict3d.rs are the only Track-A leaf-ports in flare/ and are retired-cpp-gone",
+          "verdict": "confirmed",
+          "evidence": "flare_formats.rs:180,182 register flare/metnum.rs & flare/predict3d.rs; git ls-files shows only metnum.h/predict3d.h, no .cpp; both .h are extern \"C\" forwarders calling flare_metnum_*/flare_predict3d; flare/CMakeLists.txt lists only the .h (no .cpp). These are numerical/3D math, not editor UI, so they do not flip the cluster to rust"
+        },
+        {
+          "claim": "mm_bridge adapter + XFL round-trip test = partial, lossy fields",
+          "verdict": "confirmed",
+          "evidence": "flarelib/mm_bridge.rs=607 LOC + tnztools/tests/mm_bridge.rs=181 LOC; module header enumerates lossy fields incl ac.symbol.renamed ('Name~2'), ac.shape.extras, mm.layer.dangling_parent, counted in BridgeReport"
+        },
+        {
+          "claim": "Single egui-generation pin (step 1) = partial",
+          "verdict": "confirmed",
+          "evidence": "Cargo.lock: egui/eframe/epaint/egui-wgpu/egui-winit/egui_extras all =0.36.2, one version each (grep -c '^name = \"egui\"$'=1; the 0.29.0 in lock is atspi, not egui); workspace.dependencies pins =0.36.2. Narrow dedup is actually DONE; 'partial' refers to broader step-14 consolidation. NB: the Cargo.toml:44 comment calling ac-app 'still 0.29' is stale -- ac-app/Cargo.toml is =0.36.2"
+        },
+        {
+          "claim": "dock.rs Panel registry (step 7) = scaffold-unwired, not started",
+          "verdict": "confirmed",
+          "evidence": "flare/ac_app/dock.rs:38 closed `enum Module {Tools,Properties,Library,Timeline}`; grep finds no 'trait Panel', 'struct Registry', 'DockSlot'; Layout struct:26 has 4 serde(default) scalar fields, no `panels: Vec<(String,DockSlot)>`"
+        },
+        {
+          "claim": "Qt editor app flare/ (211 cpp) compiled into Flare.exe by flare_legacy",
+          "verdict": "confirmed",
+          "evidence": "flare/CMakeLists.txt no add_executable; flare_legacy/CMakeLists.txt:495 resolve_flare_legacy_paths(SOURCES) + :524 add_executable(Flare WIN32 ${SOURCES}); no egui editor wired in"
+        },
+        {
+          "claim": "flareqt = 96 cpp building add_library(flareqt SHARED), linked into Flare.exe",
+          "verdict": "confirmed",
+          "evidence": "flareqt/CMakeLists.txt:242 add_library(flareqt SHARED); classic widgets present (checkbox.cpp, colorfield.cpp, addfxcontextmenu.cpp, schematicviewer.cpp, styleeditor.cpp); flare_legacy:526/625 link flareqt; parent CMakeLists:1259 add_subdirectory(flareqt)"
+        },
+        {
+          "claim": "tnzext C++ ext lib = 36 cpp add_library(tnzext SHARED), active; the 36 rs are the unrelated minnamate editor",
+          "verdict": "confirmed",
+          "evidence": "tnzext/CMakeLists.txt:80 add_library(tnzext SHARED); parent:1248 add_subdirectory(tnzext); deform cpp present; rs are deform.rs + minnamate_editor_main.rs + mm_ed_*.rs (editor, not the lib)"
+        },
+        {
+          "claim": "tcomposer = 3 cpp add_executable(tcomposer), shipped alongside Flare.exe",
+          "verdict": "confirmed",
+          "evidence": "tcomposer cpp = stub.cpp, tcomposer.cpp, tests.cpp; tcomposer/CMakeLists.txt:1 add_executable(tcomposer; flare_legacy:735 'copy $<TARGET_FILE:tcomposer> to output dir'. The literal name 'FlarePortable/' is not in git (runtime output dir), so that exact path is unverifiable; the ship-alongside is confirmed"
+        },
+        {
+          "claim": "parity_gap: no egui editor is in shipped Flare.exe; HTML5 runtimes incompatible/not merged",
+          "verdict": "confirmed",
+          "evidence": "flare_legacy links tnzcore;tnzbase;flarelib;colorfx;tnzext;image;sound;flareqt;tnztools;tnzstdfx;tfarm + flare_formats only (:625,:924); UNIFICATION_PLAN.md:107 'Step 2 outcome: single html5_runtime.js NOT done (contracts incompatible)', :109 'mm runtime was left in place; nothing was ported'"
+        },
+        {
+          "claim": "risk: toonzqt/CMakeLists.txt is a stale leftover (add_library(toonzqt SHARED) + ~95 cpp, parent does not add_subdirectory it; cpp moved to flareqt on 2026-03-05 in 99cae22a0)",
+          "verdict": "confirmed",
+          "evidence": "toonzqt/CMakeLists.txt:240 add_library(toonzqt SHARED), 96 .cpp referenced but 0 tracked in dir; parent CMakeLists.txt has no add_subdirectory(toonzqt); git show 99cae22a0 (2026-03-05) = 210 'toonzqt => flareqt' renames; rebrand b2bbd5da6 2026-03-01"
+        },
+        {
+          "claim": "risk: licensing -- minnamate crates publish=false, no upstream LICENSE",
+          "verdict": "confirmed",
+          "evidence": "tnzext/Cargo.toml (minnamate-editor) and tcomposer/Cargo.toml (minnamate-cli) both publish=false; license='MIT OR Apache-2.0' declared but UNIFICATION_PLAN keeps them gated"
+        },
+        {
+          "claim": "risk: three egui editors sized flare 18.6k / minnamate 28.3k / flare-studio 13.9k rs LOC",
+          "verdict": "confirmed",
+          "evidence": "toonzqt=13934 (13.9k ok), tnzext=28255 (28.3k ok); flare editor LOC (excl metnum/predict3d/build) = 18181 incl mm_edit.rs(857, actually owned by minnamate-core) + demodocument -- i.e. ~18.2k, the 18.6k is a rounded approximation, not material"
+        },
+        {
+          "claim": "mm_edit.rs in flare/ is an already-wired minnamate path in bin flare (potential underclaim)",
+          "verdict": "confirmed",
+          "evidence": "REFUTED as a wiring: flare/mm_edit.rs (857 LOC) is referenced only by tnztools/minnamate_core.rs, uses crate::doc/crate::display, and is NOT in ac_app_main.rs or ac_app/*.rs -- it is a minnamate-core file physically in flare/ (same mixing as deform.rs in tnzext), not wired into bin flare. No mm_ed_* panel renders in bin flare; no underclaim"
+        }
+      ],
+      "corrected_authoritative": "cpp (unchanged -- confirmed correct). The Win64 product for this cluster's users today is the C++/Qt Flare.exe: flare_legacy/CMakeLists.txt:524 add_executable(Flare WIN32) from flare/sources/flare/ (211 cpp), linking flareqt + tnzext + the other C++ libs + flare_formats. flare_formats is the only Rust in that binary and it is corrosion-imported as a staticlib under FLARE_WITH_RUST=1; it carries only leaf-ports (formats, color, math kernels, metnum, predict3d), no editor UI. All three egui editors (flare/ac-app, flare-studio, minnamate-editor) and both Rust CLIs (ac-cli, minnamate-cli) are standalone cargo workspace bins, absent from flare_formats.rs #[path] and from every CMake target. metnum.rs + predict3d.rs are genuine Track-A retirements (cpp gone, .h forwarders) but are math, not UI, so they do not flip the editor cluster to rust. Net: the survey does NOT overclaim -- every rust_today status and the cpp verdict hold under command.",
+      "milestone_notes": "The milestone (one wired minnamate panel in bin `flare` via a Panel registry, steps 7+8) is correctly gated and its today-state is verified (dock.rs:38 closed enum Module, no trait Panel/Registry/DockSlot). Sharpen the done-definition so it is pass/fail and cannot pass while silently dropping data:\n1) serde round-trip must test backward-compat with a fixture, both directions: an OLD saved Layout JSON with no `panels` field must still deserialize (the point of #[serde(default)]) AND a new layout carrying panels must survive save->load unchanged. 'Registry construction' alone is too weak.\n2) The Library panel reads ac::Document through mm_bridge.rs, which is documented-lossy. Require the test to assert BridgeReport is EMPTY for the library-symbol subset the panel actually reads (name/kind/timeline/symbol ids), else 'renders minnamate content' passes while losing fields.\n3) Add the licensing precondition as a hard gate: shipping any minnamate-derived panel in bin `flare` is blocked until minnamate-core's publish=false is lifted / an upstream LICENSE lands. Rendering it in a dev build is not the same as being shippable.\n4) Assert the bridge invariant mechanically: mm_* / mm_ed_* modules must NOT appear in ac-app's mod list -- the panel must reach minnamate code only through minnamate-core + mm_bridge (mm_edit.rs already lives in flare/ but belongs to minnamate-core; the test should prevent anyone wiring it into ac-app directly).\n5) 'grep trait Panel non-empty' is a comment-matchable gate; strengthen to: the four existing modules dispatch through Registry and the closed `enum Module` no longer drives the dock match (grep that the match on Module is gone).\n6) Keep the `cargo tree -d` single-egui-0.36.2 check -- it passes today (lock has one 0.36.2), so it is a regression guard, not a step to complete.",
+      "confidence": "high"
+    }
+  },
+  {
+    "cluster": "formats-compat",
+    "title": "Format readers & project compatibility",
+    "survey": {
+      "subsystem": "Format readers & project compatibility (formats-compat): common/flash (SWF/XFL/FLA + ac-xfl + lso + cfbf), common/moho, common/tsystem, common/tapptools, common/psdlib, image, remote",
+      "purpose": "Read and identify the formats Flare must interoperate with and preserve. In the project's own words: flare_formats.rs is \"Flare format sniffing (SWF/CFBF/XFL)\"; RUST_REWRITE.md:398-422 says \"flare_formats::detect now covers all of them\" (SWF/XFL/FLA/Moho/SOL/Tzp) and detection is \"deliberately conservative: where no reader exists in this tree\" it declines to guess. common/flash/Cargo.toml: ac-xfl = \"Flare: XFL / .fla (CS5+) import and export\"; common/tsystem/Cargo.toml: ac-package = \"Flare native document package (.acx): a ZIP of JSON parts and media files\"; moho header: Moho (Lost Marble) 2D project import. The cluster is the \"prove loading/editing/saving/rendering existing projects preserves behavior\" leg of the rewrite.",
+      "authoritative": "mixed",
+      "rust_today": [
+        {
+          "item": "Format detection/sniffing (flare_formats::detect, flare_detect_format)",
+          "track": "A-fidelity-port",
+          "status": "parallel-working",
+          "evidence": "registered flare_formats.rs; sole C++ caller XFLReader.cpp:80 `flare_detect_format(...)==2`; RUST_REWRITE.md:398. This is the one reader stage the Qt product takes from Rust as authoritative."
+        },
+        {
+          "item": "XFL->SVG import export (xflrender.rs / flare_xfl_export_svg)",
+          "track": "A-fidelity-port",
+          "status": "parallel-working",
+          "evidence": "flare_formats.rs:91 #[path]; called flashimport.cpp:231 flare_xfl_export_svg"
+        },
+        {
+          "item": "Flash frame count for thumbnails (framecount.rs / flare_flash_frame_count)",
+          "track": "A-fidelity-port",
+          "status": "parallel-working",
+          "evidence": "flare_formats.rs:89; called filebrowser.cpp:852"
+        },
+        {
+          "item": "Symbol-library ingest (symlib.rs / flare_symlib_add)",
+          "track": "A-fidelity-port",
+          "status": "parallel-working",
+          "evidence": "flare_formats.rs:124; called castviewer.cpp:969"
+        },
+        {
+          "item": "CFBF legacy-FLA stream listing (cfbf.rs / flare_cfbf_streams)",
+          "track": "A-fidelity-port",
+          "status": "parallel-working",
+          "evidence": "flare_formats.rs:20; called flashimport.cpp:462"
+        },
+        {
+          "item": "SWF header/tag sniff metadata (swf.rs / flare_swf_header, flare_swf_tag_count)",
+          "track": "A-fidelity-port",
+          "status": "partial",
+          "evidence": "include/flare_formats.h:19-25; the SWF *writer/exporter* stays C++ (tnzcore tflash.cpp + FObj/FDT*/SWFShape, CMakeLists.txt:220-244). swf.rs only sniffs."
+        },
+        {
+          "item": "Moho reader (moho.rs / flare_moho_parse)",
+          "track": "A-fidelity-port",
+          "status": "parallel-working",
+          "evidence": "flare_formats.rs:30; mohoimport.cpp:126 uses it only for a `rustSummary()` cross-check string (comment L119: 'Rust backend cross-check'), while the actual import runs C++ `Moho::read`/`makePlan`/`writeManifest` (mohoimport.cpp:223-235). MohoReader.cpp still built tnzcore CMakeLists:241."
+        },
+        {
+          "item": ".sol / Flash LSO reader (lso.rs / flare_lso_parse)",
+          "track": "A-fidelity-port",
+          "status": "scaffold-unwired",
+          "evidence": "flare_formats.rs:24, 6 inline tests, RUST_REWRITE.md:426; grep flare_lso_parse/flare_lso_is_lso across *.cpp/*.h finds only include/flare_formats.h -- no C++ caller in the shipped app. Detect returns Sol=5 but nothing consumes the parse."
+        },
+        {
+          "item": "FlipaClip .fcp reader (fcp.rs / flare_fcp_parse)",
+          "track": "A-fidelity-port",
+          "status": "scaffold-unwired",
+          "evidence": "flare_formats.rs:22; grep flare_fcp_parse finds no C++ caller (only the header + a Python profile test tests/test_flipaclip_profile.py)"
+        },
+        {
+          "item": "TFilePath query (tfilepath.rs / flare_tfilepath_query)",
+          "track": "A-fidelity-port",
+          "status": "scaffold-unwired",
+          "evidence": "flare_formats.rs:128; grep flare_tfilepath finds no C++ caller; tfilepath.cpp + tfilepath_io.cpp still built tnzcore CMakeLists:176-177"
+        },
+        {
+          "item": "Stuff-dir discovery (tenv.rs / flare_tenv_resolve_stuff_dir)",
+          "track": "A-fidelity-port",
+          "status": "partial",
+          "evidence": "tenv.cpp:198 delegates discovery to the Rust fn (comment L180 'Discovery lives in Rust'); the rest of tenv.cpp and tenv.cpp itself still built tnzcore CMakeLists:292"
+        },
+        {
+          "item": "ac-xfl crate: full XFL/.fla + SWF read/write/edit (ac_xfl*.rs, ac_swf*.rs, ~50 tests incl. round-trips)",
+          "track": "B-ac-mm-editor",
+          "status": "parallel-working",
+          "evidence": "common/flash/Cargo.toml name=ac-xfl (workspace member, Cargo.toml:10); grep ac_xfl/ac_swf across the C++ tree + flare_formats.rs is empty -> not in the shipped product; 50 #[test] across ac_xfl_tests.rs(10)/ac_swf_tests.rs(18)/ac_xfl_fuzz_tests.rs(4)/tests/*.rs(18)"
+        },
+        {
+          "item": "ac-package: native .acx document (ac_package.rs)",
+          "track": "B-ac-mm-editor",
+          "status": "parallel-working",
+          "evidence": "common/tsystem/Cargo.toml name=ac-package; it is a NEW ZIP-of-JSON format, not .tnz; not in flare_formats.rs"
+        },
+        {
+          "item": "Still-image import codecs (image/codecs.rs: png/jpeg/gif/bmp/tga/tiff/webp/exr)",
+          "track": "B-ac-mm-editor",
+          "status": "parallel-working",
+          "evidence": "included into ac-core via flarelib/ac_core.rs:10-11 #[path]../image/codecs.rs (feature codecs); used by ac_app/import.rs:15 and files.rs:99 (egui ac-app only). The 39 C++ tiio_*.cpp in image/ stay authoritative for the Qt product."
+        },
+        {
+          "item": "Remote playback transport (remote.rs / crate flare_remote)",
+          "track": "scaffold",
+          "status": "scaffold-unwired",
+          "evidence": "remote/Cargo.toml name=flare_remote (workspace member); remote/ has 0 .cpp (only 3 headers, git ls-files); no CMakeLists references 'remote'; run_rust.py tests it standalone but it is linked into nothing"
+        }
+      ],
+      "parity_gap": "No test proves a real project survives a full cycle, and none proves the Rust readers reproduce the shipped C++ reader's result on a real file. Concretely: (1) The Qt product's actual project reading/writing/rendering is still C++ -- XFLReader.cpp/SWFShape.cpp/ZipArchive.cpp import .fla/.xfl, MohoReader.cpp imports .moho, toonzscene.cpp (flarelib) is the native .tnz scene, and .tnz has NO Rust reader/writer at all (grep for a .tnz Rust reader hits only the detect table). Rust supplies only detection, frame-count, symbol-library and the xfl->svg/cfbf import helpers. (2) The ~50 round-trips that exist are all in ac-xfl (track B): read_package->write_package->read_package in ac-xfl's OWN document model (e.g. ac_xfl_tests.rs:78 round_trips_through_a_zipped_fla asserts DOMDocument.xml is byte-stable on a second write; flare_semantics.rs:47). They prove ac-xfl self-consistency and its own ac-render evaluate, not Qt-product behaviour and not equivalence to the legacy reader. (3) run_rust.py runs only `-p flare_formats -p flare_remote`, so even those ac-xfl round-trips don't run in the default suite. (4) The golden/differential harness that does exist (gen_blurmatrix_cases.py, gen_igs_color_blend_cases.py, msvc_reference.py) is for the stdfx math kernels only; it has never been pointed at a format reader. So \"parses the format\" is demonstrated for SWF/XFL/Moho/SOL in isolation; \"preserves the project through open+edit+save+render\" is demonstrated for nothing in the shipped path.",
+      "milestone": {
+        "name": "Reader-parity gate on real fixtures: prove the Rust readers reproduce the shipped C++ reader's parsed project, not just that each parses",
+        "done_definition": "A differential test loads the committed real fixtures (tests/flash_fixtures/sample.fla, sample.swf, sample_xfl/, sample.psd, and a .moho) through BOTH the shipped C++ tnzcore path (FlashAssets/XFLReader/SWFShape, MohoReader) and the Rust readers (flare_formats, ac-xfl), and asserts equal structure -- scene/layer/frame/symbol counts, bone counts, and per-shape geometry -- failing on any divergence; the test is added under tests/native + the ac-xfl suite and invoked by tests/run_all.py (and ac-xfl added to run_rust.py's -p list).",
+        "verification": "`python tests/run_all.py` reports the parity test passing with assertions active; a one-line mutation to either reader's output flips it to FAIL, confirmed the same way as tests/native/mutation_check.py. Count of divergences reported must be 0.",
+        "depends_on": [
+          "a structural dump from the C++ reader comparable to the Rust JSON (MohoReader already has the cross-check shape via flare_moho_parse; SWF/XFL need a scene-structure serialiser on the C++ side)",
+          "ac-xfl added to the default Rust test run (run_rust.py currently runs only flare_formats + flare_remote, so its round-trips are untested by default)"
+        ],
+        "effort": "L"
+      },
+      "risks": [
+        "Three parsers for the same bytes can drift with nothing to catch it: C++ XFLReader.cpp (shipped import), Rust ac-xfl (track-B editor), and the Rust flare_formats sniffer. No gate compares them.",
+        "Detection is Rust and authoritative, but consumed shallowly: XFLReader.cpp:80 treats only detect==2 (zip) specially. A false result from flare_detect_format silently routes a real project down the wrong C++ branch, and no test exercises that routing on real files.",
+        "lso.rs, fcp.rs and tfilepath.rs are compiled into the shipped flare_formats staticlib yet have no C++ caller -- surface that reads as 'done' in RUST_REWRITE.md (SOL 'wired', line 426) but that the Qt product never executes.",
+        "ac-xfl's ~50 round-trip tests are not run by run_rust.py (only flare_formats + flare_remote); regressions in the one place that actually round-trips .fla won't appear in the default suite.",
+        "The native project format .tnz and PSD/image codecs have no Rust in the shipped product (toonzscene.cpp, psdlib/psd.cpp, 39 image/tiio_*.cpp). 'Project compatibility' currently rests entirely on unretired C++; ac-package's .acx is a different format, not .tnz.",
+        "Zero C++ files in scope are retired: all 76 in-scope .cpp are still tracked and the ones with CMake entries are still built (tnzcore CMakeLists lists FObj/FSWFStream/XFLReader/SWFShape/MohoReader/tfilepath/tenv). The registered flash leaf ports (swf/xfl/cfbf/lso/fcp) are NEW sniffer/metadata modules, not 1:1 replacements of a deleted .cpp, so none left a thin-forwarder .h behind."
+      ],
+      "cpp_files": 76,
+      "rs_files": 31,
+      "rs_loc": 10367,
+      "cpp_remaining": [
+        {
+          "area": "SWF export engine (tnzcore): tflash.cpp + FObj/FAction/FCT/FDTBitmaps/FDTButtons/FDTFonts/FDTShapes/FDTSounds/FDTSprite/FDTText/FPrimitive/FSWFStream/FSound/SWFShape/SWFAssets/As3Bridge/ZipArchive",
+          "why_hard": "~20 interlocked writer classes plus an ActionScript bridge, all emitting the SWF tag stream; the Rust swf.rs only reads headers/tag counts. Replacing it means porting the whole character/tag model, not a leaf."
+        },
+        {
+          "area": "XFL/.fla importer into the Qt scene: common/flash/XFLReader.cpp, XFLShape.cpp",
+          "why_hard": "Builds a ToonzScene/TXsheet directly (not a standalone document), and is already a hybrid that calls flare_detect_format. A real port needs the OpenToonz scene/column/xsheet model in Rust, which does not exist on the shipped side (ac-xfl has its own unrelated model)."
+        },
+        {
+          "area": "Moho importer: common/moho/MohoReader.cpp (+ MohoPlan.h)",
+          "why_hard": "Authoritative import builds pegbars/columns/cells into the live TXsheet via MohoPlan; moho.rs only emits a JSON summary used as an on-screen cross-check. Retiring the C++ needs the scene-building half ported and wired into mohoimport.cpp's execute()."
+        },
+        {
+          "area": "PSD import: common/psdlib/psd.cpp, psdutils.cpp (feeds image/psd/tiio_psd.cpp, psdsettingspopup.cpp, txshsimplelevel.cpp)",
+          "why_hard": "Full layered-PSD model consumed by the level/codec pipeline. The Rust photocraft-psd dep is used only by ac-app swatches.rs for .grd/.aco/.ase swatches -- it does not read PSD rasters or layers. No Rust covers the raster path."
+        },
+        {
+          "area": "Image & movie codecs: image/*.cpp (39 files: tiio_bmp/png/tga/tif/exr/psd/svg/pli/tzp/tzl/tzm/3gp/avi/mov/ffmpeg(apng,gif,mp4,webm,ff_mov)/quantel/sgi/sprite/mesh/zcc)",
+          "why_hard": "Each wraps a heavy external library (ffmpeg, OpenEXR, libtiff, libpng, quantel) through OpenToonz's TImageReader/TImageWriter framework. image/codecs.rs (track B, ac-core) only does still-image import for the egui ac-app and stores everything as PNG."
+        },
+        {
+          "area": "tsystem core infra: tfilepath.cpp, tfilepath_io.cpp, tfiletype.cpp, tsystem.cpp, tsystempd.cpp, tbigmemorymanager.cpp, tpluginmanager.cpp, tlogger.cpp, cpuextensions.cpp, uncpath.cpp",
+          "why_hard": "Pervasive dependency of the entire C++ tree; tfilepath.rs exists but is unwired (no C++ caller). Porting any of these requires replacing the type across every consumer, so they can't be retired piecemeal."
+        },
+        {
+          "area": "Native scene document .tnz: flarelib/toonzscene.cpp, tscenehandle.cpp",
+          "why_hard": "This is the actual project format the compatibility claim is about (open->edit->save->render), and there is no Rust for it at all. It carries the full xsheet/column/undo/level model; ac-package's .acx is a separate new format, not a .tnz reader/writer."
+        }
+      ]
+    },
+    "verify": {
+      "subsystem": "Format readers & project compatibility (formats-compat): common/flash, moho, tsystem, tapptools, psdlib, image, remote",
+      "confidence": "high",
+      "claim_checks": [
+        {
+          "claim": "cpp_files=76, rs_files=31, rs_loc=10367 across the 7 in-scope dirs",
+          "verdict": "confirmed",
+          "evidence": "git ls-files quoted globs: flash 20+moho 1+tsystem 10+tapptools 4+psdlib 2+image 39+remote 0 = 76 cpp; 31 rs; `xargs wc -l | tail -1` = 10367 total"
+        },
+        {
+          "claim": "flash leaf-ports registered in flare_formats.rs #[path] at the cited lines (cfbf:20, fcp:22, lso:24, moho:30, swf:32, xfl:34, framecount:89, xflrender:91, symlib:124, tenv:126, tfilepath:128)",
+          "verdict": "confirmed",
+          "evidence": "grep -n 'path =' flare/sources/flare_formats.rs: every cited line matches; no image/* or remote/* path in the registry"
+        },
+        {
+          "claim": "flare_detect_format is registered, sole .cpp caller XFLReader.cpp:80 ==2, the one point in the Qt read flow that defers to Rust",
+          "verdict": "confirmed",
+          "evidence": "grep flare_detect_format: only .cpp hit XFLReader.cpp:80; header decls only otherwise. Note: it is 1 of 5 Rust FFIs the Qt app actually calls (detect, xfl_export_svg, flash_frame_count, symlib_add, cfbf_streams) — not literally the only Rust stage, but the only one inside the reader itself"
+        },
+        {
+          "claim": "xfl->svg export (flare_xfl_export_svg) wired into the Qt product at flashimport.cpp:231",
+          "verdict": "confirmed",
+          "evidence": "grep: flare/sources/flare/flashimport.cpp:231 char *res = flare_xfl_export_svg(...)"
+        },
+        {
+          "claim": "flash frame count (flare_flash_frame_count) wired at filebrowser.cpp:852",
+          "verdict": "confirmed",
+          "evidence": "grep: flare/sources/flare/filebrowser.cpp:852 flare_flash_frame_count(...)"
+        },
+        {
+          "claim": "symbol-library ingest (flare_symlib_add) wired at castviewer.cpp:969",
+          "verdict": "confirmed",
+          "evidence": "grep: castviewer.cpp:969 and :974 flare_symlib_add(...)"
+        },
+        {
+          "claim": "CFBF stream listing (flare_cfbf_streams) wired at flashimport.cpp:462",
+          "verdict": "confirmed",
+          "evidence": "grep: flashimport.cpp:462 flare_cfbf_streams(...)"
+        },
+        {
+          "claim": "swf.rs status 'partial' — only sniffs; SWF writer stays C++",
+          "verdict": "confirmed",
+          "evidence": "flare_swf_header/flare_swf_tag_count appear ONLY in include/flare_formats.h:19,24 (no .cpp caller — the named exports are unwired; swf.rs reaches the Qt app only through detect). SWF writer C++ still built: tflash.cpp + FObj/FSWFStream/SWFShape/As3Bridge/ZipArchive all in tnzcore CMakeLists.txt:220-244"
+        },
+        {
+          "claim": "moho.rs is a cross-check only; real import is C++",
+          "verdict": "confirmed",
+          "evidence": "mohoimport.cpp:119-140 flare_moho_parse feeds only rustSummary() display string; actual import = Moho::read (223), makePlan (148), writeManifest (235), buildScene (144-194) into live TXsheet. MohoReader.cpp built tnzcore CMakeLists:241"
+        },
+        {
+          "claim": "lso.rs scaffold-unwired (no C++ consumer of the parse)",
+          "verdict": "confirmed",
+          "evidence": "grep flare_lso_parse/flare_lso_is_lso: only include/flare_formats.h:52,54. 6 inline tests in lso.rs. Detect returns Sol=5 (flare_formats.rs:299) but nothing reads the parse"
+        },
+        {
+          "claim": "fcp.rs scaffold-unwired",
+          "verdict": "confirmed",
+          "evidence": "grep flare_fcp_parse: only include/flare_formats.h:61; plus python test tests/test_flipaclip_profile.py (run_all.py:29). No C++ caller"
+        },
+        {
+          "claim": "tfilepath.rs scaffold-unwired; tfilepath.cpp + tfilepath_io.cpp still built",
+          "verdict": "confirmed",
+          "evidence": "grep flare_tfilepath_query: only include/flare_formats.h:37. tnzcore CMakeLists:176-177 build both .cpp"
+        },
+        {
+          "claim": "tenv.rs status 'partial' — tenv.cpp delegates discovery but is still built",
+          "verdict": "confirmed",
+          "evidence": "tenv.cpp:180 comment 'Discovery lives in Rust', :198/:203 call flare_tenv_resolve_stuff_dir; tenv.cpp built tnzcore CMakeLists:292"
+        },
+        {
+          "claim": "ac-xfl is track B: workspace member, NOT in flare_formats.rs, not wired into the Qt product; ~50 tests",
+          "verdict": "confirmed",
+          "evidence": "Cargo.toml member common/flash name ac-xfl/ac_xfl; grep ac_xfl/ac_swf across *.cpp/*.h and flare_formats.rs = empty; named test files sum exactly 50 (ac_xfl_tests 10 + ac_swf_tests 18 + ac_xfl_fuzz_tests 4 + tests/*.rs 18); total #[test] in common/flash = 75 (rest are inline unit tests)"
+        },
+        {
+          "claim": "ac-package is track B; .acx is a new ZIP-of-JSON format, not .tnz",
+          "verdict": "confirmed",
+          "evidence": "common/tsystem/Cargo.toml name ac-package, description 'Flare native document package (.acx): a ZIP of JSON parts and media files'; not in flare_formats.rs"
+        },
+        {
+          "claim": "image/codecs.rs is track B into ac-core, consumed only by the egui ac-app; 39 image .cpp stay authoritative",
+          "verdict": "confirmed",
+          "evidence": "flarelib/ac_core.rs:10-12 #[cfg(feature=codecs)] #[path]../image/codecs.rs; consumers ac_app/files.rs:99, import.rs:15 only; image/CMakeLists.txt builds the 39 tiio_*.cpp; no image path in flare_formats.rs"
+        },
+        {
+          "claim": "remote.rs scaffold-unwired: 0 .cpp, no CMake reference, tested standalone",
+          "verdict": "confirmed",
+          "evidence": "git ls-files remote/ = Cargo.toml + remote.rs + 3 headers, 0 .cpp; grep 'remote' in CMakeLists.txt = empty; flare_remote is a workspace member run only by run_rust.py:68"
+        },
+        {
+          "claim": ".tnz has no Rust reader/writer; toonzscene.cpp (flarelib) is the native scene",
+          "verdict": "confirmed",
+          "evidence": "grep '.tnz'/toonzscene in *.rs hits only flare_formats.rs (detect table); toonzscene.cpp + tscenehandle.cpp live in flare/sources/flarelib/ (C++)"
+        },
+        {
+          "claim": "Zero in-scope .cpp retired; the flash leaf-ports are additive new modules with no thin-forwarder .h",
+          "verdict": "confirmed",
+          "evidence": "all 76 in-scope .cpp tracked and CMake-listed ones still built; no swf/xfl/cfbf/lso/fcp/symlib/framecount/xflrender .cpp ever existed (git ls-files + git log --diff-filter=D empty), so nothing was deleted or forwarded"
+        },
+        {
+          "claim": "ac-xfl round-trips do not run in the default suite",
+          "verdict": "confirmed",
+          "evidence": "run_rust.py:68 runs `cargo test -p flare_formats -p flare_remote` only; run_all.py:34 invokes run_rust.py; ac-xfl absent from both"
+        },
+        {
+          "claim": "parity_gap: 'the golden/differential harness that exists (gen_blurmatrix, gen_igs_color_blend, msvc_reference) is stdfx-only; never pointed at a format reader'",
+          "verdict": "overclaim",
+          "evidence": "tests/native/differential_shape.py IS a format-reader differential — 'the C++ XFL shape decoder against an independent Python one' over a real FLA, fed by C++ dumper shape_census.cpp (uses XFLShape.h). Plus C++ reader unit tests flash_reader_tests/swfshape_*_tests/xfl_shape_tests/moho_reader_tests.cpp. The Rust-parity conclusion still holds: none compare Rust ac-xfl/flare_formats against the C++ reader, and differential_shape is C++-vs-Python and not run by default (needs an extracted FLA, run_all.py:56)"
+        },
+        {
+          "claim": "risk: 'XFLReader.cpp:80 treats only detect==2 (zip) specially'",
+          "verdict": "overclaim",
+          "evidence": "Cfbf=2 in flare_formats.rs:296 (XflZip=3). XFLReader.cpp:74-84 comment 'reject legacy CFBF .fla early' — ==2 REJECTS a legacy binary .fla, it does not route a zip. The substance (detect consumed shallowly, only one discriminant special-cased, rest falls to C++) is correct; the '(zip)' label is wrong"
+        },
+        {
+          "claim": "cpp_remaining PSD: 'No Rust covers the raster path'",
+          "verdict": "overclaim",
+          "evidence": "ac_app/import.rs:53-60 import_psd reads PSD layers/rasters via the `psd` crate (psd=\"0.3\", flare/Cargo.toml:35): psd.width()/height()/layers(). It is track B (egui ac-app) only — the shipped Qt PSD path (psd.cpp/psdutils.cpp, tiio_psd.cpp) is still C++, and psdlib has 0 .rs. The photocraft-psd-is-swatches-only half is correct (swatches.rs .grd/.aco/.ase)"
+        },
+        {
+          "claim": "authoritative = 'mixed' for the compatibility cluster",
+          "verdict": "overclaim",
+          "evidence": "The shipped Qt product's project read/edit/save/render is C++ throughout: XFLReader/XFLShape/SWFShape/MohoReader/psd.cpp/39 image codecs/toonzscene.cpp(.tnz). Rust is authoritative only at the detection gate and 4 import helpers. 'mixed' implies Rust shares the read/write/render path; it does not — see corrected_authoritative"
+        },
+        {
+          "claim": "milestone fixtures (sample.fla, sample.swf, sample_xfl/, sample.psd, a .moho) are committed real fixtures",
+          "verdict": "overclaim",
+          "evidence": "sample.fla/sample.swf/sample_xfl(DOMDocument.xml,sample.xfl)/sample.psd ARE tracked under tests/flash_fixtures/; but NO .moho/.mohoproj/.anme is tracked — only the generator generate_moho_fixtures.py. The .moho leg needs a committed (or generated) fixture before the gate can run"
+        },
+        {
+          "claim": "users today get Rust for formats-compat",
+          "verdict": "confirmed",
+          "evidence": "The shipped Win64 app is the Qt app at flare/sources/flare/ linking the flare_formats staticlib (FlareFormats.cmake:10, FLARE_WITH_RUST=1 at :12): users get C++ readers + Rust detection/4 helpers. ac-xfl/ac-package/codecs serve only the egui interim 'flare' bin (ac-app, workspace member 'flare')"
+        }
+      ],
+      "corrected_authoritative": "For the compatibility claim (open/edit/save/render real projects), the shipped Win64 Qt product is C++, not mixed. Every actual reader/writer is C++ and still built: XFLReader/XFLShape and the SWF writer stack (tflash+FObj/FSWFStream/SWFShape/As3Bridge/ZipArchive), MohoReader, psd.cpp/psdutils.cpp, the 39 image/tiio_*.cpp, and toonzscene.cpp for the native .tnz scene. Rust is authoritative in the shipped path only at the detection gate (flare_detect_format, used at XFLReader.cpp:80 to reject legacy CFBF .fla) and four import helpers (xfl->svg export, flash frame-count for thumbnails, symbol-library ingest, CFBF stream listing); moho.rs runs only as an on-screen cross-check while C++ does the import. Everything heavier — ac-xfl/ac-swf full read-write-edit, ac-package .acx, image codecs.rs, the PSD layer reader in ac_app/import.rs, remote.rs — is track B (separate workspace crates) wired only into the egui interim 'flare' binary, absent from flare_formats.rs and from the C++ tree. Zero in-scope .cpp are retired (all 76 tracked and CMake-built); the registered flash leaf-ports are additive sniffer/metadata modules, not 1:1 replacements. lso.rs/fcp.rs/tfilepath.rs compile into the shipped staticlib but have no C++ caller. So: authoritative = cpp for the project read/write/render path; rust only at detection + a handful of import helpers.",
+      "milestone_notes": "The reader-parity milestone is the right gate but its premises need three corrections to be testable. (1) A C++-side structural dumper already exists for XFL shape geometry — tests/native/shape_census.cpp (via XFLShape.h), feeding tests/native/differential_shape.py — so the depends_on 'SWF/XFL need a scene-structure serialiser on the C++ side' is already met for XFL edge geometry; what is missing is a scene/layer/frame/symbol-level dump and the SWF/Moho equivalents (MohoReader already has moho_reader_tests.cpp and the flare_moho_parse JSON shape, making Moho the cheapest first differential). (2) The gap to close is specifically Rust-vs-C++: differential_shape.py today compares C++ against an independent Python decoder, not against ac-xfl/flare_formats, and it is not run by default (needs an extracted FLA). Point a differential at the C++ dump vs the Rust reader's JSON. (3) Fixtures: sample.fla/swf/.xfl/.psd are committed, but no .moho is — commit one or run generate_moho_fixtures.py in the test. Also wire ac-xfl into run_rust.py's -p list (currently flare_formats + flare_remote only) or its round-trips never run. Verification by mutation (flip one reader's output, expect FAIL) mirrors the existing tests/native/mutation_check.py and is sound."
+    }
+  },
+  {
+    "cluster": "render",
+    "title": "Render pipeline, codecs & farm",
+    "survey": {
+      "subsystem": "Render pipeline, codecs & farm (common/tvrender, tgl, tiio, tsound, sound, image, flarefarm, t32bitsrv, stopmotion, trop)",
+      "purpose": "Turn a scene/document into pixels and files: the offline rasteriser and vector/region renderer (tvrender), raster operators (trop: blur, convolve, resample, over, raylit, antialias, distance transform), OpenGL helpers (tgl), image file I/O and codecs (tiio, image), audio decode/mix/playback (tsound, sound), the distributed render farm (flarefarm), the out-of-process 32-bit movie/QuickTime/font helper (t32bitsrv), and camera capture (stopmotion). RUST_REWRITE.md line 97 states the intent: \"Core engine, backend, rendering, document model -> Rust (primary implementation language moving forward)\". The Rust ac-render crate describes itself (Cargo.toml) as \"Flare rendering: CPU rasterizer (tiny-skia), SVG and GIF export\"; ac-audio as \"Flare audio: decoding, timeline mixing, waveforms, lip-sync analysis, playback\".",
+      "authoritative": "cpp",
+      "cpp_files": 152,
+      "rs_files": 39,
+      "rs_loc": 12685,
+      "rust_today": [
+        {
+          "item": "ac-render (common/tvrender): renders the ac/XFL document model to HTML5/SVG/Lottie/GIF/video; 30 .rs, 10558 LOC",
+          "track": "B-ac-mm-editor",
+          "status": "parallel-working",
+          "evidence": "flare/sources/common/tvrender/Cargo.toml name=ac-render; git ls-files tvrender/*.rs | wc -l = 30, xargs wc -l = 10558; it is a dependency only of flare bin ac-app (flare/sources/flare/Cargo.toml ac-render.workspace=true) and absent from the flare_formats [dependencies]; ORIGIN.md: imported verbatim from Flare-Animate/RustConversion-AnimateCraft @f636b05 crates/ac-render"
+        },
+        {
+          "item": "ac-audio (sound/): decode, timeline mix, waveforms, lip-sync, playback; 7 .rs, 1893 LOC",
+          "track": "B-ac-mm-editor",
+          "status": "parallel-working",
+          "evidence": "flare/sources/sound/Cargo.toml name=ac-audio; the shipped Qt app still builds C++ audio: common/tsound/*.cpp (5) + sound codecs tsio_{aiff,ffmpeg,mp3,raw,wav}.cpp (6 tracked .cpp)"
+        },
+        {
+          "item": "runsmap.rs (common/trop): run-length run-header codec for raster greymaps",
+          "track": "A-fidelity-port",
+          "status": "retired-cpp-gone",
+          "evidence": "git ls-files 'common/trop/*runsmap*' returns only runsmap.h + runsmap.rs (no .cpp); runsmap.h is a thin extern-C forwarder to flare_runsmap_run_length/set_run_length; registered flare_formats.rs:138; PORTING.md:24 lists trop/runsmap.cpp -> runsmap.rs"
+        },
+        {
+          "item": "tsioutils.rs (sound/): sound I/O utility",
+          "track": "A-fidelity-port",
+          "status": "retired-cpp-gone",
+          "evidence": "git ls-files 'sound/tsioutils.*' returns only tsioutils.h + tsioutils.rs (no .cpp); registered flare_formats.rs:26; RUST_REWRITE.md:34 lists it among retired .cpp"
+        },
+        {
+          "item": "canvas.rs (common/tvrender/rust): backend-neutral canvas Frame/Vertex/Draw validator",
+          "track": "scaffold",
+          "status": "scaffold-unwired",
+          "evidence": "registered flare_formats.rs:7 (compiled into the staticlib) but grep for flare_canvas / canvas:: across *.cpp,*.h returns zero C++ callers; its own doc says 'No textures, antialiasing, color management, or native window integration yet'; the file is untracked (git status ?? common/tvrender/rust/) on branch graphics-upgrades"
+        },
+        {
+          "item": "graphics_profile.rs (common/trop/rust): CPU wall-clock spans for the bloom effect",
+          "track": "scaffold",
+          "status": "parallel-working",
+          "evidence": "flare_graphics_profile_begin/end declared flare_formats.h:8-9 and called only from stdfx/iwa_bloomfx.cpp:17,20 (BloomProfileScope); it writes JSONL timing when FLARE_PROFILE_BLOOM is set, the bloom render itself stays C++/OpenCV; file untracked on graphics-upgrades"
+        },
+        {
+          "item": "vulkan_canvas.rs + vulkan_trial.rs (tvrender/rust, trop/rust): wgpu/Vulkan trial backend and gaussian trial, 672 LOC",
+          "track": "scaffold",
+          "status": "scaffold-unwired",
+          "evidence": "both guarded by #[cfg(feature=\"vulkan-trial\")] (flare_formats.rs:9-15); the feature is not in default features and cmake/FlareFormats.cmake's corrosion_import_crate passes no FEATURES, so they are excluded from the shipped build; files untracked; exercised only by examples graphics_trial/canvas_trial and the untracked tests/graphics harness"
+        }
+      ],
+      "cpp_remaining": [
+        {
+          "area": "tnzcore render engine: tofflinegl.cpp / qtofflinegl.cpp / tinbetween.cpp / tflash.cpp + TRasterFX graph driven by flare/rendercommand.cpp and moviegenerator.cpp",
+          "why_hard": "The scene->raster/movie engine: an offline OpenGL context plus the fx-node graph. No Rust equivalent exists; ac-render renders a different (ac/XFL) document model, not the OpenToonz TRasterFX pipeline. Compiled into tnzcore (CMakeLists lines 202-220) and linked by the Qt app."
+        },
+        {
+          "area": "TRop raster operators (common/trop, 22 .cpp: tblur, tconvolve, tresample, tover, traylit, tantialias, tdistancetransform, terodilate, tropcm ...)",
+          "why_hard": "Perf-sensitive per-pixel kernels called throughout the render engine. Isolated Rust kernels exist elsewhere (stdfx/igs_*, flarelib BlurMatrix) but the TRop C++ wrappers the engine actually calls are untouched, so the Rust is compiled-but-unused for production render."
+        },
+        {
+          "area": "flarefarm render farm (39 .cpp, 0 .rs): tfarm server/controller/executor/proxy + TCP transport + Qt tfarmclient",
+          "why_hard": "Distributed rendering across machines: TCP servers, process management, a Qt submission UI. Entirely C++, no Rust started; has its own live CMake target."
+        },
+        {
+          "area": "Image/video codecs: image/ (39 .cpp) and common/tiio (7 .cpp: tiio_bmp/jpg/exif/std, movsettings) plus t32bitsrv (4 .cpp)",
+          "why_hard": "File-format read/write with external libs (libjpeg, ffmpeg/mov) and format fidelity; t32bitsrv is an out-of-process 32-bit helper (IPC + legacy ABI) for movie/QuickTime/font on Win64. image/codecs.rs (85 LOC) is editor-side bitmap import in ac-app, not a codec port into the Qt app."
+        },
+        {
+          "area": "stopmotion (7 .cpp: canon, webcam, serial, jpgconverter) and tgl (3 .cpp)",
+          "why_hard": "stopmotion binds vendor hardware SDKs (Canon EDSDK, webcam, serial DMX); tgl holds the OpenGL display-list/stencil helpers under the GL rasteriser. Both are hardware/driver-coupled."
+        }
+      ],
+      "parity_gap": "No scene-to-image output of the shipped pipeline has been reproduced in Rust. ac-render (track B) renders the ac/XFL document model to HTML5/SVG/Lottie/GIF, not the OpenToonz TRasterFX graph that rendercommand.cpp and moviegenerator.cpp drive through tnzcore + stdfx + flarefarm; no test shows any Rust path producing the same frames as the C++ renderer on an existing .tnz project. The only render-cluster Rust reaching the Qt product is runsmap.rs (a RLE header helper) and the graphics_profile.rs bloom timer (records duration, does not render). The graphics-upgrades branch is only now building a canvas-fixture diagnostic (tests/graphics/canvas_gl_reference.cpp, Qt OpenGL, vs a wgpu canvas trial) and bloom profiling; neither is wired to production and the wgpu path is off by default.",
+      "milestone": {
+        "name": "Port one complete TRop raster operator to a registered Rust leaf with C++-golden parity, and retire its C++",
+        "done_definition": "A chosen operator (e.g. common/trop/tblur.cpp) is deleted from the tree and from tnzcore's CMake source list, its .h becomes a thin extern-C forwarder (the runsmap.h pattern), the Rust module is in the #[path] registry of flare_formats.rs, the tnzcore render path calls the new flare_* symbol under FLARE_WITH_RUST, and a committed golden test asserts Rust output byte-matches frames recorded from the original C++ across edge cases (empty raster, 32/64-bit/float pixels, boundary clamp). Done is a retired-file count, not a compile: git ls-files 'flare/sources/common/trop/*.cpp' | wc -l returns 21 (down from 22).",
+        "verification": "git ls-files 'flare/sources/common/trop/*.cpp' | wc -l == 21; cargo test for the operator's golden passes; grep shows the operator's symbol in include/flare_formats.h and a caller in tnzcore; a FLARE_WITH_RUST build links and runs it (the untracked canvas/graphics_profile modules it already registers must be committed first, see risks).",
+        "depends_on": [
+          "golden-generator plumbing already in the repo (commits f666cc0 'share the golden-generator plumbing', ee4a543 'prove it against the original C++')",
+          "a TRaster <-> Rust C-ABI bridge for passing pixel buffers over FFI",
+          "the runsmap.rs track-A pattern as the template"
+        ],
+        "effort": "M"
+      },
+      "risks": [
+        "Build-breaking commit hazard: flare_formats.rs is modified (M) to register common/tvrender/rust/canvas.rs and common/trop/rust/graphics_profile.rs with unconditional #[path], but those files are untracked (git status ??). A fresh clone of this branch, or committing flare_formats.rs without the rust/ dirs, fails to build the flare_formats staticlib that the whole Qt app links via tnzcore.",
+        "flarefarm distributed rendering is 0% ported (39 .cpp, 0 .rs); retiring the C++ app cannot complete until the farm is replaced or dropped.",
+        "Compiled-but-unused Rust: TRop-adjacent kernels exist in Rust (stdfx/igs_*, flarelib BlurMatrix) while the engine still calls the C++ TRop wrappers, so those ports do not change what the product renders and can silently drift from the C++ they shadow.",
+        "ac-render tracks an external upstream (ORIGIN.md Flare-Animate/RustConversion-AnimateCraft; git deps to storytold/effectcraft and a KMSDax/AnimationCraft patch), so its 10.5k LOC is a parallel editor renderer aimed at a moving target, not a port of this tree's C++ render path.",
+        "The graphics-upgrades branch's canvas/vulkan trial is diagnostic only (canvas_gl_reference.cpp comment: 'not application dispatch'); treating 'wgpu canvas matches GL reference on fixtures' as render parity would overstate progress, since it does not touch the TRasterFX/stdfx/farm production path."
+      ]
+    },
+    "verify": {
+      "subsystem": "Render pipeline, codecs & farm (common/tvrender, tgl, tiio, tsound, sound, image, flarefarm, t32bitsrv, stopmotion, trop)",
+      "confidence": "high",
+      "claim_checks": [
+        {
+          "claim": "authoritative = cpp: the shipped render cluster is the C++/Qt app, not Rust",
+          "verdict": "confirmed",
+          "evidence": "flare/sources/flare/CMakeLists.txt builds the Qt app (moviegenerator.cpp, rendercommand.cpp, ObjectTracker.cpp + ~100 popups); render engine tofflinegl/qtofflinegl/tinbetween/tflash compiled via tnzcore/CMakeLists.txt:202-207; cmake/FlareFormats.cmake:10-12 imports only crate flare_formats as staticlib with FLARE_WITH_RUST=1; ac-render/ac-audio are NOT flare_formats deps (Cargo.toml:78-82 lists only miniz_oxide/roxmltree/serde/wgpu), they feed only the ac-app egui 'flare' bin"
+        },
+        {
+          "claim": "cluster counts: 152 cpp, 39 tracked rs",
+          "verdict": "confirmed",
+          "evidence": "git ls-files per-dir: tvrender 20/30, tgl 3/0, tiio 7/0, tsound 5/0, sound 6/7, image 39/1, flarefarm 39/0, t32bitsrv 4/0, stopmotion 7/0, trop 22/1 -> 152 cpp / 39 rs"
+        },
+        {
+          "claim": "rs_loc = 12685",
+          "verdict": "confirmed",
+          "evidence": "ac-render 10558 + sound 1893 + image/codecs.rs 85 + trop/runsmap ~149 = 12685 (git ls-files '<dir>/*.rs' | xargs wc -l)"
+        },
+        {
+          "claim": "ac-render (tvrender) is track B parallel-working: 30 rs, 10558 LOC, dep of ac-app only, not retiring C++",
+          "verdict": "confirmed",
+          "evidence": "tvrender/Cargo.toml name=ac-render; wc -l=10558; absent from flare_formats [dependencies]; flare/Cargo.toml (package ac-app, bin 'flare') lists ac-render.workspace; tvrender/ORIGIN.md: 'Imported from Flare-Animate/RustConversion-AnimateCraft @ f636b05, crates/ac-render ... Source text otherwise verbatim'"
+        },
+        {
+          "claim": "ac-audio (sound/) is track B parallel-working; Qt still builds C++ audio",
+          "verdict": "confirmed",
+          "evidence": "sound/Cargo.toml name=ac-audio; Qt app still compiles tsound/*.cpp (5: tsop,tsound,tsound_io,tsound_nt,tsound_qt) and sound/*.cpp codecs (6: tsio.cpp + tsio_aiff/ffmpeg/mp3/raw/wav)"
+        },
+        {
+          "claim": "ac-audio = 7 rs / 1893 LOC",
+          "verdict": "overclaim",
+          "evidence": "the 7th file in sound/ is tsioutils.rs (76 LOC), a flare_formats track-A module (registered flare_formats.rs:26, not referenced by ac_audio.rs); ac-audio proper is 6 rs / 1817 LOC. Minor double-count: tsioutils is also (correctly) listed separately as a retired track-A port"
+        },
+        {
+          "claim": "runsmap.rs (trop): track A, retired-cpp-gone",
+          "verdict": "confirmed",
+          "evidence": "git ls-files common/trop/*runsmap* = runsmap.h + runsmap.rs only (no .cpp); runsmap.h declares extern-C flare_runsmap_run_length/set_run_length 'implemented in runsmap.rs' and the RunsMap class calls them; registered flare_formats.rs:138"
+        },
+        {
+          "claim": "tsioutils.rs (sound): track A, retired-cpp-gone",
+          "verdict": "confirmed",
+          "evidence": "git ls-files sound/tsioutils.* = tsioutils.h + tsioutils.rs only (no .cpp); tsioutils.h is extern-C forwarder (swapAndCopy16/24/32Bits, 'implemented in tsioutils.rs'); registered flare_formats.rs:26"
+        },
+        {
+          "claim": "canvas.rs: scaffold-unwired, compiled into staticlib but no C++ callers",
+          "verdict": "confirmed",
+          "evidence": "flare_formats.rs:7 unconditional #[path]; grep -rln flare_canvas over *.cpp/*.h returns nothing (rc=1); file untracked (git status '?? common/tvrender/rust/')"
+        },
+        {
+          "claim": "graphics_profile.rs: scaffold, parallel-working, times the C++ bloom only",
+          "verdict": "confirmed",
+          "evidence": "declared include/flare_formats.h:8-9; the only caller is stdfx/iwa_bloomfx.cpp (BloomProfileScope, ~12 sites 267-419); bloom render is C++/OpenCV (cv::Mat/warpAffine/getRotationMatrix2D in iwa_bloomfx.cpp); file untracked. Survey cited call sites :17,20 only; actually used throughout that one file (immaterial)"
+        },
+        {
+          "claim": "vulkan_canvas.rs + vulkan_trial.rs: scaffold-unwired, excluded from shipped build",
+          "verdict": "confirmed",
+          "evidence": "flare_formats.rs:9-10,13-14 both #[cfg(feature=\"vulkan-trial\")]; Cargo.toml has no default feature set (vulkan-trial off) and FlareFormats.cmake passes no FEATURES; exercised only by required-features examples graphics_trial/canvas_trial + untracked tests/graphics"
+        },
+        {
+          "claim": "vulkan trial = 672 LOC",
+          "verdict": "overclaim",
+          "evidence": "wc -l of the two files on disk (untracked) = 802 total (vulkan_canvas.rs + vulkan_trial.rs). Immaterial to the 'excluded from build' status"
+        },
+        {
+          "claim": "cpp_remaining: tnzcore render engine (tofflinegl/qtofflinegl/tinbetween/tflash + TRasterFX) still C++, no Rust equivalent",
+          "verdict": "confirmed",
+          "evidence": "all four .cpp tracked under common/tvrender/; in tnzcore/CMakeLists.txt active source list (qtofflinegl.cpp:204, tinbetween.cpp:207, ...); ac-render renders ac/XFL model, not this TRasterFX graph"
+        },
+        {
+          "claim": "TRop = 22 .cpp still C++ (only runsmap ported)",
+          "verdict": "confirmed",
+          "evidence": "git ls-files 'common/trop/*.cpp' | wc -l = 22; only trop/*.rs is runsmap.rs"
+        },
+        {
+          "claim": "flarefarm 0% ported (39 cpp, 0 rs)",
+          "verdict": "confirmed",
+          "evidence": "git ls-files flarefarm: 39 .cpp, 0 .rs"
+        },
+        {
+          "claim": "image 39 / tiio 7 / t32bitsrv 4 cpp; image/codecs.rs (85 LOC) is editor-side, not a Qt codec port",
+          "verdict": "confirmed",
+          "evidence": "counts match; image/codecs.rs 85 LOC, NOT in flare_formats.rs (grep -c=0); it is a module of ac-core via flarelib/ac_core.rs:11 '#[path=\"../image/codecs.rs\"]' feature 'codecs'. Survey said 'ac-app'; precisely it is ac-core (which ac-app depends on) - still track B"
+        },
+        {
+          "claim": "stopmotion 7 cpp / tgl 3 cpp, hardware/GL-coupled, 0 rs",
+          "verdict": "confirmed",
+          "evidence": "git ls-files: stopmotion 7 .cpp / 0 .rs, tgl 3 .cpp / 0 .rs"
+        },
+        {
+          "claim": "parity_gap: no Rust reproduces the shipped scene-to-image path; only runsmap + graphics_profile reach the Qt product",
+          "verdict": "confirmed",
+          "evidence": "ac-render (track B, ac/XFL model) not wired into Qt; of 39 cluster rs only runsmap.rs + tsioutils.rs are flare_formats leaf ports linked by Qt, plus idle canvas.rs and the bloom timer; no golden test of any Rust render path vs C++ frames on a .tnz exists"
+        },
+        {
+          "claim": "RISK: build-break hazard - modified flare_formats.rs registers untracked scaffolds with unconditional #[path]",
+          "verdict": "confirmed",
+          "evidence": "flare_formats.rs is ' M' (unstaged); lines 7 and 17 are unconditional #[path] to common/tvrender/rust/canvas.rs and common/trop/rust/graphics_profile.rs; both files present on disk but git ls-files of both rust/ dirs is empty (untracked '??'). Committing flare_formats.rs without the rust/ dirs breaks the flare_formats staticlib from a clean clone, failing the whole Qt link"
+        },
+        {
+          "claim": "RISK: compiled-but-unused Rust (stdfx igs_*, BlurMatrix) while engine calls C++ TRop",
+          "verdict": "confirmed",
+          "evidence": "igs_* and BlurMatrix are registered (flare_formats.rs:140-194) but are effect kernels, not the TRop raster operators; trop still has 22 C++ operators (tblur/tconvolve/tresample/tover/traylit/...) that the render engine calls, none replaced"
+        },
+        {
+          "claim": "RISK: ac-render tracks an external moving upstream",
+          "verdict": "confirmed",
+          "evidence": "tvrender/ORIGIN.md (verbatim import @f636b05); workspace Cargo.toml:56-60 git deps to storytold/effectcraft (effectcraft-effects/raster/keyframe/project) and storytold/photocraft; patch for https://github.com/KMSDax/AnimationCraft"
+        },
+        {
+          "claim": "RISK: graphics-upgrades canvas/vulkan trial is diagnostic-only, not render parity",
+          "verdict": "confirmed",
+          "evidence": "tests/graphics/canvas_gl_reference.cpp:1 '// Diagnostic OpenGL adapter for the shared canvas fixtures, not application dispatch.'; whole tests/graphics/ dir untracked; wgpu path off by default"
+        },
+        {
+          "claim": "milestone depends_on golden-generator plumbing commits f666cc0, ee4a543",
+          "verdict": "confirmed",
+          "evidence": "git log: f666cc028 'Streamline: share the golden-generator plumbing, guard the port registry'; ee4a543b3 'BlurMatrix port: bound the sample loop, prove it against the original C++'"
+        }
+      ],
+      "corrected_authoritative": "cpp (survey correct, no change). The render cluster ships today as the C++/Qt app: flare/sources/flare/ (CMakeLists builds moviegenerator.cpp, rendercommand.cpp and the popups), driving the TRasterFX graph through tnzcore (tofflinegl/qtofflinegl/tinbetween/tflash + the 22 TRop operators) + stdfx (bloom on OpenCV) + flarefarm (39 C++, 0 Rust). It links the flare_formats staticlib (FLARE_WITH_RUST=1) for exactly two retired leaf helpers in this cluster - runsmap.rs (RLE run-header codec) and tsioutils.rs (byte-swap) - plus two compiled-but-idle scaffolds: canvas.rs (no C++ caller) and graphics_profile.rs (times the C++ bloom, does not render). The Rust ac-render (10558 LOC) and ac-audio (1817 LOC) are separate workspace crates wired only into the ac-app egui 'flare' binary, the interim product; they do not retire any C++ in the shipped app. So a user running the shipped Win64 product gets C++ for every pixel this cluster produces.",
+      "milestone_notes": "The done-definition is already testable (trop .cpp 22->21, golden byte-match, symbol in include/flare_formats.h + caller in tnzcore, FLARE_WITH_RUST build runs it). Sharpen three ways. (1) Make committing the untracked scaffolds a precondition, not a listed risk: before any flare_formats.rs change ships, commit common/tvrender/rust/ and common/trop/rust/ (and decide whether canvas.rs/vulkan belong in the shipped staticlib at all, or should move behind a cfg like the vulkan modules) - otherwise a clean clone fails to build flare_formats and the whole Qt link dies. (2) Pick a pure per-pixel operator with no OpenCV/GL dependency so the golden is a deterministic CPU byte-compare: tblur, tconvolve, tresample or tdistancetransform qualify; avoid anything the GL rasteriser (tofflinegl) touches. (3) Record the C++ golden frames now via the existing golden-generator plumbing (f666cc0) and commit the fixtures, so CI byte-compares Rust output without needing a C++ build; assert the edge cases the survey names (empty raster, 8/16/float pixels, boundary clamp). Verification command to gate the milestone: git ls-files 'flare/sources/common/trop/*.cpp' | wc -l == 21 AND cargo test passes AND grep finds the flare_* symbol in include/flare_formats.h and a tnzcore caller."
+    }
+  },
+  {
+    "cluster": "process",
+    "title": "Port machinery, gating & retirement",
+    "survey": {
+      "subsystem": "Port machinery, gating & retirement (process)",
+      "purpose": "The pipeline that moves a C++ leaf into Rust and keeps the swap honest: per PORTING.md, \"<name>.cpp becomes <name>.rs in the same directory\", exposed over a C ABI, \"gated by FLARE_WITH_RUST\", registered in the #[path] list of flare/sources/flare_formats.rs, with the .cpp deleted and its header turned into a thin forwarder. Supporting pieces: a Rust registry-guard test (module_registry_matches_the_tree), a differential harness run by tests/run_rust.py, scripts/atlas_check.py (keeps LOGIC-ATLAS.md truthful), and RUST_REWRITE.md's goal that \"upstream sync must accelerate the port\" by turning each upstream change into a draft Rust PR (tools/sync/upstream_agent.py + the cpp2rust-draft workflow).",
+      "authoritative": "mixed",
+      "cpp_files": 1079,
+      "rs_files": 269,
+      "rs_loc": 139667,
+      "rust_today": [
+        {
+          "item": "flare_formats crate + 50 #[path] leaf modules; 35 of them retire a real C++ file",
+          "track": "A-fidelity-port",
+          "status": "retired-cpp-gone",
+          "evidence": "grep '#[path' flare_formats.rs = 50 regs (51st hit is the guard test's own parser literal); 35 sibling .cpp absent now AND present in git history (git log --all), headers forward via `extern \"C\" flare_*` with no #else C++ fallback (the 2 #else in permissionsmanager.h/tmathutil.h are DLL-export macros); leaf modules+root = 16,765 LOC of the 139,667 total"
+        },
+        {
+          "item": "FLARE_WITH_RUST gate makes Rust the only linked impl for the 35 retired modules",
+          "track": "A-fidelity-port",
+          "status": "retired-cpp-gone",
+          "evidence": "flare/sources/cmake/FlareFormats.cmake:12 sets `FLARE_WITH_RUST=1` INTERFACE + line 8 FATAL_ERROR without Corrosion; included unconditionally at flare/sources/CMakeLists.txt:114; nightly.yml configures `cmake -S flare/sources` and ships Flare-Windows-Portable/Flare-Setup.exe linked against it"
+        },
+        {
+          "item": "module_registry_matches_the_tree (the #[path] registration guard)",
+          "track": "A-fidelity-port",
+          "status": "partial",
+          "evidence": "flare_formats.rs:716 asserts every #[path] is on disk, is followed by `mod`, has no orphan sibling .cpp (KEEPS_CPP exempts tenv,tfilepath), and >=40 entries; runs only via tests/run_rust.py (cargo test), which no file in .github/workflows invokes"
+        },
+        {
+          "item": "tests/run_rust.py + tests/native differential/robustness harness (golden captured from original C++)",
+          "track": "A-fidelity-port",
+          "status": "partial",
+          "evidence": "run_rust.py runs `cargo test -p flare_formats -p flare_remote --offline`; flare_formats.rs carries robustness/fuzz tests (lines 892-1110); grep across .github/workflows/*.yml for run_rust/cargo test = 0 hits, so parity is proven by hand, never in CI"
+        },
+        {
+          "item": "upstream_agent.py + sync_upstream.yml (the actual upstream pipeline)",
+          "track": "scaffold",
+          "status": "partial",
+          "evidence": "upstream_agent.py cherry-picks opentoonz/tahoma2d C++, rebrands toonz->flare, remaps paths, opens a PR; it contains zero references to .rs or flare_formats; .github/upstream_sync_state.json records 34 opentoonz + 48 tahoma2d synced commits; ci.yml `pytest tools/sync/tests` pins only rebrand/path transforms (test_upstream_agent.py)"
+        },
+        {
+          "item": "cpp2rust-draft.yml + scripts/port_batch.py (auto-translate drafts)",
+          "track": "scaffold",
+          "status": "scaffold-unwired",
+          "evidence": "workflow opens a --draft PR of UNported files (port_batch.py skips any .cpp that already has a .rs sibling) and never registers them; triggered by cron/dispatch, not by upstream; docs/CPP2RUST_TRIAL.md (2026-10-15) verdict: 'Neither tool is a usable drafting aid for this codebase today'; no landed port traceable to it"
+        },
+        {
+          "item": "scripts/atlas_check.py (LOGIC-ATLAS.md consistency linter)",
+          "track": "scaffold",
+          "status": "partial",
+          "evidence": "validates cited-file resolution, 5 CODE_DIRS (common/flash, common/moho, common/tgame, remote, tools/flash/next2flash) section<->dir match, pinned constants, snapshot SHA; no check of flare_formats.rs, FLARE_WITH_RUST, or the retired-cpp invariant; absent from all .github/workflows"
+        },
+        {
+          "item": "RUST_REWRITE.md 'sync becomes a migration assistant' (detect Rust replacement -> propose Rust-side equivalent -> draft PR)",
+          "track": "scaffold",
+          "status": "scaffold-unwired",
+          "evidence": "RUST_REWRITE.md:196-219 specifies steps 2-4 (detect corresponding Rust replacement, analyse change, propose Rust equivalent); no code in tools/sync maps an upstream path to its .rs; the two halves that exist (C++ mirror, unported-file drafter) are never connected"
+        }
+      ],
+      "parity_gap": "No automated proof that a retired module still matches its origin after any change, and no link from upstream to the Rust port. CI builds and ships the Qt+Rust binary (nightly.yml) without ever running tests/run_rust.py, so the registry guard and the differential goldens (the only equivalence evidence) are manual; a regression in one of the 35 Rust modules can ship green. Separately, upstream_agent.py is Rust-unaware: an upstream commit touching a path whose .cpp was retired (e.g. common/tcolor/tcolorvalue.cpp) is remapped onto a file Flare deleted, so the cherry-pick re-creates that .cpp beside the live Rust module (an orphan the registry test would reject if it ran) while the Rust port silently drifts from upstream, and nothing flags it.",
+      "cpp_remaining": [
+        {
+          "area": "Core app, scene/document, tools and the TRasterFx effect framework: ~1,044 of the 1,079 tracked .cpp (1079 minus 35 retired, and tenv/tfilepath still compiled)",
+          "why_hard": "The leaf-port process only retires Qt-free, pure-computation files that fit a flat whole-buffer C ABI and have a captured differential golden. Class graphs bound to Qt, TRasterFx, TPointD/TnzCore cannot cross that ABI, and cpp2rust fails on Qt/STL/templates (CPP2RUST_TRIAL.md), so the process by construction cannot reach the core."
+        },
+        {
+          "area": "tenv.cpp and tfilepath.cpp (KEEPS_CPP partial ports, still in tnzcore/CMakeLists.txt:176,292)",
+          "why_hard": "Only sub-functions are delegated to Rust (path-set split; standard-mode getType/getName/getDots/getFrame). The rest (EnvGlobals/VariableSet/stuff dirs, analyzePath, withName/withParentDir) stay C++, so both .rs and .cpp ship and the .cpp cannot be deleted; PORTING.md marks them 'partial, tested'."
+        },
+        {
+          "area": "Deferred stdfx kernels (igs_fog, igs_maxmin*, igs_motion_wind_table, igs_radial_blur/rotate_blur, perlinnoise.cpp callers)",
+          "why_hard": "Per-pixel C++ callers (FFI-per-call cost), thread pools, template class trees, pointer-into-vector APIs, or QPointF/QTransform in the body; PORTING.md and RUST_REWRITE.md 'Rejected' list document each one."
+        }
+      ],
+      "milestone": {
+        "name": "Make the port invariants a required CI gate (run the registry guard + differential goldens on every PR)",
+        "done_definition": "ci.yml gains a job that runs `python tests/run_rust.py`; a PR that re-adds any one retired .cpp (e.g. stdfx/igs_negate.cpp) or perturbs one registered Rust kernel turns the check red via module_registry_matches_the_tree or a failing differential test, while a clean tree passes.",
+        "verification": "On a scratch branch, (a) `git revert` the deletion of one retired .cpp and confirm the new CI job fails on the orphan/duplicate-symbol, (b) flip one constant in a registered .rs kernel and confirm the differential test in tests/native fails, (c) confirm the unmodified branch is green.",
+        "depends_on": [
+          "tests/run_rust.py already exists and passes locally",
+          "tests/native goldens are captured from the original C++",
+          "a cargo toolchain is available on the CI runner"
+        ],
+        "effort": "S"
+      },
+      "risks": [
+        "The registry guard iterates only REGISTERED #[path] entries, so an unregistered .rs sitting beside a deleted .cpp ships as dead code and is caught by nothing - the exact failure its own docstring says 'nobody notices'.",
+        "Equivalence for all 35 retired modules rests on manual `tests/run_rust.py`; nightly.yml builds and ships the Qt+Rust binary without running it, so a divergence can reach a release.",
+        "upstream_agent.py has no knowledge of the 35 Rust replacements; an upstream change to a retired path re-creates the deleted .cpp (orphan) or is dropped, and the Rust port drifts from upstream unflagged.",
+        "The 'upstream sync becomes a migration assistant' claim (RUST_REWRITE.md:219) oversells reality: cpp2rust was unbuildable/unusable in the trial and is disconnected from upstream, so the headline capability does not run.",
+        "Only 35 of 1,079 .cpp are retired (~3.2%); docs lag the tree (PORTING.md:76 still lists BlurMatrix.cpp as 'Skipped' though it is deleted, ported, registered and forwarding; igs_color_blend appears only in prose), so a file-count read of the ledger understates and misstates progress."
+      ]
+    },
+    "verify": {
+      "subsystem": "Port machinery, gating & retirement (process)",
+      "confidence": "high",
+      "claim_checks": [
+        {
+          "claim": "authoritative = mixed",
+          "verdict": "confirmed",
+          "evidence": "Retirement mechanism is real and shipped (35 sibling .cpp deleted, headers forward via extern \"C\", FLARE_WITH_RUST=1 links Rust into the Qt Flare.exe per nightly.yml) while the honesty layer around it (CI gate, differential goldens for 33/35, upstream linkage) is absent -> mixed is accurate."
+        },
+        {
+          "claim": "cpp_files=1079",
+          "verdict": "confirmed",
+          "evidence": "git ls-files 'flare/sources/*.cpp' | wc -l = 1079 (repo-wide *.cpp = 1103)"
+        },
+        {
+          "claim": "rs_files=269",
+          "verdict": "confirmed",
+          "evidence": "git ls-files '*.rs' | wc -l = 269"
+        },
+        {
+          "claim": "rs_loc=139667",
+          "verdict": "confirmed",
+          "evidence": "git ls-files '*.rs' | xargs wc -l | tail -1 = 139669 (off by 2, CRLF/trailing-newline noise; untracked graphics .rs not counted)"
+        },
+        {
+          "claim": "50 #[path] leaf modules; '51st hit is the guard test parser literal'",
+          "verdict": "overclaim",
+          "evidence": "grep -E '#\\[path = \".*\\.rs\"\\]' flare_formats.rs = 51 real registrations (not 50); the parser literal at line 733 plus docstring/panic text at 713/737/745 make the bare '#[path' grep = 55. The '50, 51st is a literal' arithmetic is wrong. Substantive count below is right."
+        },
+        {
+          "claim": "35 of them retire a real C++ file (.cpp absent now AND in git history)",
+          "verdict": "confirmed",
+          "evidence": "Per-registration check: 35 paths have tree_cpp=0 AND git-log-history>=3 commits (e.g. igs_negate 0/3, tcolorvalue 0/3, BlurMatrix 0/3, tmathutil 0/3). Exactly 35. Remaining 16 = 2 partial (tenv/tfilepath still tracked) + 14 with no sibling .cpp ever (hist=0: flash cfbf/fcp/lso/swf/xfl/framecount/xflrender/symlib, moho, + 5 untracked graphics tvrender/trop)."
+        },
+        {
+          "claim": "headers forward via extern \"C\" with no #else C++ fallback; the 2 #else in permissionsmanager.h/tmathutil.h are DLL-export macros",
+          "verdict": "confirmed",
+          "evidence": "igs_negate.h: extern \"C\" flare_igs_negate_change, 0 #else, no C++ impl. permissionsmanager.h #else at line 19 is inside '#ifdef TNZBASE_EXPORTS' DLL-macro; tmathutil.h #else are '__sgi' platform + 'TNZCORE_EXPORTS' DLL-macro; both forward via extern \"C\" (line 31/37). Headers actually live in flare/sources/include/, not beside the .rs."
+        },
+        {
+          "claim": "leaf modules + root = 16,765 LOC",
+          "verdict": "confirmed",
+          "evidence": "Sum of registered .rs on disk + flare_formats.rs = 17,084 on graphics-upgrades (includes 5 untracked graphics modules); ~12% of 139.7k. Order matches; variance is branch/untracked. Point (leaf ports are a small slice; bulk is track-B editor crates) holds."
+        },
+        {
+          "claim": "FLARE_WITH_RUST gate makes Rust the only linked impl for the 35 retired modules",
+          "verdict": "confirmed",
+          "evidence": "flare/sources/cmake/FlareFormats.cmake: FATAL_ERROR if no Corrosion, corrosion_import_crate(... flare_formats staticlib), target_compile_definitions(... INTERFACE FLARE_WITH_RUST=1); nightly.yml 'cmake -S flare/sources' builds Flare.exe, packages FlarePortable, makes Flare-Setup.exe. No C++ fallback behind the gate (headers unconditionally forward)."
+        },
+        {
+          "claim": "module_registry_matches_the_tree guard (status partial)",
+          "verdict": "confirmed",
+          "evidence": "flare_formats.rs:716: asserts each #[path] on disk, followed by 'mod', no orphan sibling .cpp except KEEPS_CPP=[tenv.rs,tfilepath.rs], registered.len()>=40. Runs only under cargo test; grep run_rust/cargo across .github/workflows = 0. Its own docstring (712-716): an unregistered .rs beside a deleted .cpp 'is the failure mode nobody notices'."
+        },
+        {
+          "claim": "run_rust.py + tests/native differential/robustness harness, golden captured from original C++ (status partial)",
+          "verdict": "confirmed",
+          "evidence": "run_rust.py runs cargo test -p flare_formats -p flare_remote --offline (skips exit-0 if no cargo). flare_formats.rs has mod robustness (non-panic fuzz for #110/#117). But C++-captured differential goldens exist for only 2 of 35 retired kernels: tests/native/{blurmatrix_ref.cpp,gen_blurmatrix_cases.py,igs_color_blend_ref.cpp,gen_igs_color_blend_cases.py}. 0 workflow runs either suite. Parity is weaker than 'partial' implies."
+        },
+        {
+          "claim": "upstream_agent.py is Rust-unaware (zero .rs/flare_formats refs); records 34 opentoonz + 48 tahoma2d",
+          "verdict": "overclaim",
+          "evidence": "grep -c '\\.rs|flare_formats' tools/sync/upstream_agent.py = 0 (confirmed Rust-unaware; cherry-pick + toonz->flare rebrand + toonz/sources->flare/sources remap + PR). upstream_sync_state.json: opentoonz synced_commits=34 CONFIRMED but tahoma2d=47, not 48."
+        },
+        {
+          "claim": "cpp2rust-draft.yml + port_batch.py (scaffold-unwired)",
+          "verdict": "confirmed",
+          "evidence": "cpp2rust-draft.yml: on schedule(cron 17 4 * * *)/workflow_dispatch/repository_dispatch (NOT upstream); comments 'never register ... so a draft cannot break the build' and 'never draft a file that already has a .rs sibling'. port_batch.py has_sibling_rs() 'always refuse files that already have a .rs'. docs/CPP2RUST_TRIAL.md (2026-10-15) Verdict: 'Neither tool is a usable drafting aid for this codebase today.'"
+        },
+        {
+          "claim": "atlas_check.py: 5 CODE_DIRS, no flare_formats/FLARE_WITH_RUST/retired check, absent from workflows (partial)",
+          "verdict": "confirmed",
+          "evidence": "CODE_DIRS = common/flash, common/moho, common/tgame, remote, tools/flash/next2flash (exactly 5). grep flare_formats/FLARE_WITH_RUST/retired in atlas_check.py = 0. grep atlas_check in .github/workflows = 0 hits (exit 1)."
+        },
+        {
+          "claim": "RUST_REWRITE.md 'sync becomes a migration assistant' oversells (scaffold-unwired)",
+          "verdict": "confirmed",
+          "evidence": "RUST_REWRITE.md ~196-219 lists the 6-step ideal (upstream C++ change -> detect corresponding Rust replacement -> analyse -> propose Rust equivalent -> draft PR). No code in tools/sync maps an upstream path to its .rs (upstream_agent 0 .rs refs); the C++ mirror and the unported-file drafter are never connected."
+        },
+        {
+          "claim": "ci.yml pins only rebrand/path transforms (pytest tools/sync/tests), never run_rust",
+          "verdict": "confirmed",
+          "evidence": "ci.yml line 54: 'pytest tools/flash/tests tools/sync/tests -q'; a separate job reads Cargo.lock only (no cargo, no network). No run_rust/cargo test anywhere in .github/workflows."
+        },
+        {
+          "claim": "parity_gap: CI ships Qt+Rust binary without running the registry guard or differential goldens; upstream change to a retired path re-creates the deleted .cpp and the Rust port drifts unflagged",
+          "verdict": "confirmed",
+          "evidence": "nightly.yml builds/ships Flare.exe + Flare-Setup.exe; 0 workflow invokes run_rust.py or tests/native. upstream_agent.py remaps toonz/sources/*->flare/sources/* with 0 .rs awareness, so an upstream touch of e.g. common/tcolor/tcolorvalue.cpp (retired: tree=0,hist=3) remaps onto a deleted path -> re-creates the orphan the registry test would reject (if it ran) while the Rust silently diverges."
+        },
+        {
+          "claim": "risk: registry guard only iterates registered entries; an unregistered .rs beside a deleted .cpp ships as dead code, caught by nothing",
+          "verdict": "confirmed",
+          "evidence": "Loop in flare_formats.rs iterates only lines matching '#[path = \"'; docstring states verbatim 'a file that sits beside a deleted .cpp but is not registered still compiles and ships as dead code ... the failure mode nobody notices.'"
+        },
+        {
+          "claim": "risk: only 35/1079 (~3.2%) retired; PORTING.md lags the tree",
+          "verdict": "confirmed",
+          "evidence": "35/1079 = 3.24%. PORTING.md:76 still lists BlurMatrix.cpp under 'Skipped' ('rand()-driven createRandom and vector<vector<SXYD>>') although BlurMatrix.rs is registered (line 190), the .cpp is deleted (tree=0,hist=3), BlurMatrix.h forwards, and recent commits are 'BlurMatrix port'. igs_color_blend is retired+registered+has a differential golden yet grep igs_color_blend docs/PORTING.md = 0 (absent entirely, not merely 'prose')."
+        },
+        {
+          "claim": "track B (ac-app/flare-studio/minnamate editor crates) is separate and not in flare_formats #[path]",
+          "verdict": "confirmed",
+          "evidence": "flare/sources/Cargo.toml members include flare(ac-app), toonzqt(flare-studio), tnzext(minnamate-editor), etc.; grep 'ac-app|flare-studio|minnamate' flare_formats.rs = 0. RUST_REWRITE.md: Qt application 'is the product'; flare egui bin is 'the interim product'. Survey correctly claims none of these as port progress."
+        },
+        {
+          "claim": "underclaim hunt: any genuinely wired+retired Rust mislabeled partial?",
+          "verdict": "confirmed",
+          "evidence": "None found that inflate the gap. The 2 partials (tenv/tfilepath) are correctly partial: tenv.cpp/tfilepath.cpp still tracked AND in tnzcore/CMakeLists.txt:292/176. If anything the 14 new-Rust flash/moho modules replace real C++ subsystems in the shipped product but are excluded from the 35 by the strict same-dir sibling rule; survey's 'done' count is conservative, not inflated, here."
+        }
+      ],
+      "corrected_authoritative": "mixed (confirmed). Concretely: the shipped Win64 product is the Qt Flare.exe built from flare/sources (nightly.yml), and for the 35 retired leaf modules it genuinely links Rust only -- the sibling .cpp is deleted, the header forwards over a C ABI, and FLARE_WITH_RUST=1 is unconditional with no C++ fallback. So those 35 kernels are 'rust in the shipped cpp/Qt product'. Everything else in this subsystem is cpp/manual: the registry guard and the (2-of-35) differential goldens run only by hand (0 CI invocations), the upstream pipeline is Rust-unaware, and cpp2rust is unusable per its own trial. The parallel egui editor crates (ac-app bin 'flare', flare-studio, minnamate) are the 'interim product', not registered in flare_formats.rs, and wire nothing into the Qt build -- they do not move the cpp->rust retirement number. Net retired: 35/1079 cpp = 3.2%.",
+      "milestone_notes": "The done-definition ('ci.yml runs python tests/run_rust.py; re-adding a retired .cpp or perturbing a kernel turns it red') is the right shape but has four holes to close before it proves what it claims:\n1. run_rust.py runs ONLY cargo test -p flare_formats -p flare_remote. That exercises the registry guard + inline non-panic robustness, but NOT the tests/native differential goldens, which are a separate CMake+python suite (tests/native/run_tests.py, blurmatrix_ref.cpp/igs_color_blend_ref.cpp). Verification step (b) 'flip a constant -> differential test fails' will NOT trigger under run_rust.py alone; the CI job must run tests/native too.\n2. C++-captured differential goldens exist for only 2 of the 35 retired kernels (BlurMatrix, igs_color_blend). For step (b) pick one of those two; the other 33 have no value-level equivalence test. A truthful gate either states 2/35 coverage or requires a captured-from-original golden per retired kernel.\n3. The registry guard catches a re-added .cpp only for REGISTERED paths (step (a) with igs_negate works because igs_negate.rs is registered and not in KEEPS_CPP). It cannot catch an unregistered .rs beside a deleted .cpp -- its own docstring's 'nobody notices' case. Add an independent tree-scan for that to the gate.\n4. run_rust.py returns exit 0 ('SKIP: cargo not found') when cargo is absent, so a toolchain-less runner yields a green job without running anything. The CI job must assert cargo is present (hard-fail on skip), else the gate is defeated by a missing toolchain.\nSeparately, the upstream-drift hole is not addressed by this milestone at all: add a check in tools/sync that flags when an upstream cherry-pick touches a path whose .cpp is retired (map it to the registered .rs) -- otherwise green CI still lets the 35 Rust ports drift from upstream."
+    }
+  }
+]
