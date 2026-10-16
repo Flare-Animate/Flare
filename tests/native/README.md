@@ -226,3 +226,16 @@ Two things worth knowing if you touch that test:
 * A tag record's length matters as much as its code. Bodies over 62 bytes need
   the long form (`| 0x3F` then a 32-bit length); writing `size & 0x3F` truncates,
   and the extractor then bails on a short tag and writes nothing.
+
+## Rust port goldens
+
+`gen_igs_color_blend_cases.py` regenerates
+`flare/sources/stdfx/igs_color_blend_cases.txt` -- the golden output of the
+*original* C++ blend kernels. The Rust port
+(`igs_color_blend::tests::matches_the_cpp_reference_bit_for_bit`) is checked
+against it bit for bit, so a transcription slip fails the build. The original
+`.cpp` is deleted, so the script rebuilds the reference from
+`git log -1 -- flare/sources/stdfx/igs_color_blend.cpp`; it needs MSVC and,
+like `make_jpeg3_fixture.py`, is not part of the test run. The golden is
+committed. `--check` reports drift without writing. `igs_color_blend_ref.cpp`
+is the harness; its case table is mirrored in the Rust test.

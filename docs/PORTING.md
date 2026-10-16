@@ -49,6 +49,7 @@ Crate manifest: `flare/sources/Cargo.toml`. Tests: `python tests/run_rust.py`.
 | flarelib | flarelib/sandor_fxs/CallCircle.cpp | flarelib/sandor_fxs/CallCircle.rs | 4 | coarse (builds the sorted offset list; class, ctor, draw and templates inline in the header) |
 | sound | sound/tsioutils.cpp | sound/tsioutils.rs | (earlier) | coarse |
 | tnzbase | tnzbase/permissionsmanager.cpp | tnzbase/permissionsmanager.rs | (earlier) | fine |
+| stdfx | stdfx/naru_maxflow.cpp | stdfx/naru_maxflow.rs | 6 | coarse (whole graph; opaque C-ABI handle, naru_graph.h forwards) |
 
 Notes: the C++ `throw`s (TMathException, std::domain_error) stay in the inline header
 forwarders; Rust returns a status code. Modules that call the forwarders link `flare_formats`

@@ -66,6 +66,34 @@ its header comment. NFlare (GPL-3) was not consulted.
 > OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 > SOFTWARE.
 
+### rust-flash-lso (github.com/ruffle-rs/rust-flash-lso)
+`common/flash/lso.rs` reads and writes Flash Local Shared Objects (`.sol`): the
+SOL container header and the AMF0 body. The container constants and the AMF0
+type handling follow the `flash-lso` crate (v0.7.0), re-expressed with
+bounds-checked reads instead of `nom`. Upstream is MIT:
+
+> MIT License
+>
+> Copyright (c) 2020 Callum Thomson
+>
+> Permission is hereby granted, free of charge, to any person obtaining a copy
+> of this software and associated documentation files (the "Software"), to deal
+> in the Software without restriction, including without limitation the rights
+> to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+> copies of the Software, and to permit persons to whom the Software is
+> furnished to do so, subject to the following conditions:
+>
+> The above copyright notice and this permission notice shall be included in all
+> copies or substantial portions of the Software.
+>
+> THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+> IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+> FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+> AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+> LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+> OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+> SOFTWARE.
+
 ### OpenToonz (github.com/opentoonz/opentoonz)
 Features modelled on OpenToonz subsystems are listed in
 `docs/OPENTOONZ-REVIEW.md`. Files that follow OpenToonz code or formats:

@@ -56,3 +56,11 @@ Add to the root `Cargo.toml` (existing entries: serde, serde_json, tiny-skia 0.1
 - Feature unification: `image` is enabled with different features in 3 crates; the lock shows one version, so codecs are shared, but each crate's features should be kept in the workspace table to avoid silent additions.
 - Step 1 CI check: `cargo tree -d --workspace -e normal` (or a script over `Cargo.lock`) on the three direct groups above; fail on new splits in egui, tiny-skia, zip, image, roxmltree.
 - Existing `[patch."https://github.com/KMSDax/AnimationCraft"]` in root `Cargo.toml` and git deps (effectcraft-*, photocraft-psd) are not version-checked here; they should be pinned to a rev in the table.
+
+## Step 1 status: workspace table added (2026-10-16)
+
+The `[workspace.dependencies]` unification table above is now in `flare/sources/Cargo.toml`
+(egui/eframe/egui_extras = exact 0.36.2 target, plus image, zip, flate2, roxmltree, usvg,
+resvg, rfd, dirs). Entries are declared but members are not forced onto them yet, so no
+crate's resolved versions changed; the table is the single pin the migration steps move
+members onto. `ac-app` (`flare`, 0.29) remains the last split and is step 14.

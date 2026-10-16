@@ -170,7 +170,6 @@ set(SOURCES
     warp.cpp
     warpfx.cpp
     igs_attenuation_distribution.cpp
-    igs_color_blend.cpp
     igs_fog.cpp
     igs_gaussian_blur.cpp
     igs_hls_noise_in_camera.cpp
@@ -271,7 +270,6 @@ set(SOURCES
     iwa_motionflowfx.cpp
     iwa_smootherfx.cpp
     naru_lazybrush.cpp
-    naru_maxflow.cpp
 )
 
 if(OpenCV_FOUND)
@@ -333,6 +331,8 @@ target_link_libraries(tnzstdfx Qt5::Core Qt5::Gui Qt5::OpenGL ${GL_LIB} ${GLEW_L
 # igs_gauss_distribution, igs_warp_{hori,vert}, igs_{hls,hsv}_{adjust,add,noise},
 # igs_level_auto, igs_level_auto_in_camera, igs_levels,
 # igs_median_filter, igs_median_filter_smooth.
+# naru_maxflow.rs implements the boykov-kolmogorov min-cut used by
+# naru_lazybrush.cpp (naru_graph.h forwards to the C ABI).
 target_link_libraries(tnzstdfx flare_formats)
 
 if(OpenCV_FOUND)

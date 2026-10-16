@@ -169,6 +169,18 @@ Studio also acts as the reference for many target UX features, including:
 
 The long-term direction is convergence toward a single integrated editor experience.
 
+**UI consolidation (three egui front ends).** As imported, the tree has three egui
+applications: `flare/` (ac-app, bin `flare`, eframe 0.29 - AnimationCraft's editor and
+the interim product), `toonzqt/` (flare-studio, bin `flare-studio`, eframe 0.36), and
+`tnzext/` (`minnamate-editor`, bin `minnamate`). `toonzqt` and `tnzext` are libraries to
+be folded into `flare`; neither stays a shipped second editor. The first blocker is the
+egui generation split (0.29 vs 0.36), so step 1 of `docs/UNIFICATION_PLAN.md` is executed
+first: `flare/sources/Cargo.toml` now carries one `[workspace.dependencies]` pin per
+shared direct dep (egui/eframe/egui_extras pinned to the 0.36 target, plus image, zip,
+flate2, roxmltree, usvg, resvg, rfd) so the fronts cannot drift further. The ac-app
+0.29 -> 0.36 migration that lets `flare` consume `toonzqt`'s chrome is step 14 and remains
+open; the ordered sequence is in `docs/UNIFICATION_PLAN.md`.
+
 ## Upstream sync must accelerate the port
 
 Flare continues tracking upstream OpenToonz and Tahoma2D.
@@ -309,6 +321,25 @@ A module is only finished when the Rust version becomes the authoritative implem
 | NFlare | Architectural and behavioural reference |
 | OpenToonz / Tahoma2D | Upstream structure, module layout, and subsystem architecture |
 
+### Candidate absorption sources (requested 2026-10-16)
+
+These are queued as sources of functionality, ideas or workflows, mapped onto the
+matching Rust subsystem rather than vendored as separate products (see "Code absorption
+and redistribution"). Licence must be confirmed before any code is copied; until then they
+are reference-only.
+
+| Source | Intended subsystem | Licence |
+|----------|----------|----------|
+| [ruffle-rs/rust-flash-lso](https://github.com/ruffle-rs/rust-flash-lso) | Flash Local Shared Object (.sol) reads/writes in `common/flash` (fills the SOL gap in FEATURE_STATUS #9) | MIT, **absorbed** (`common/flash/lso.rs`) |
+| [ruffle-rs/ruffle](https://github.com/ruffle-rs/ruffle) | SWF/AVM behaviour already cross-referenced in `common/flash/*` | MIT/Apache-2.0 |
+| [storytold/effectcraft](https://github.com/storytold/effectcraft) | Effects already consumed via `effectcraft-*` deps, rendered by `common/tvrender/ac_effectcraft.rs` | verify |
+| [storytold/vectorcraft](https://github.com/storytold/vectorcraft) | Vector path/merge model (Flash planar shapes, `docs/ANIMATIONCRAFT_ABSORPTION.md`) | verify |
+| [storytold/craft-libs](https://github.com/storytold/craft-libs) | Shared craft crate helpers (cross-check against effectcraft/vectorcraft) | verify |
+| [mirvoxtm/minnamate](https://github.com/mirvoxtm/minnamate) | Imported as `minnamate-core` (tnztools); merge tracked in `docs/UNIFICATION_PLAN.md` | none upstream; `publish = false` until cleared |
+| [anthony-hyo/animaty](https://github.com/anthony-hyo/animaty) | Animation curves/tweening ideas for `common/tparam`, `flarelib/motion_clip.rs` | verify |
+| [Bauxitedev/bitmapflow](https://github.com/Bauxitedev/bitmapflow) | Bitmap morphing / inbetweening for the bitmap pass-through path | verify |
+| [ruvnet/Rash](https://github.com/ruvnet/Rash) | Scripting/tooling reference only (Rash is a shell-agent framework, not an animation lib) | verify |
+
 In short, Flare's end state is a unified Rust implementation of the OpenToonz/Tahoma2D architecture, augmented by functionality derived from AnimationCraft, Next2Flash, and NFlare, while preserving upstream compatibility, subsystem structure, and long-term maintainability.
 
 
@@ -316,7 +347,7 @@ In short, Flare's end state is a unified Rust implementation of the OpenToonz/Ta
 - `tnzbase/permissionsmanager.rs` (cpp deleted; header forwards via C ABI). Tests: `cargo test --lib permissions`.
 - `sound/tsioutils.rs` (cpp deleted; header is extern "C"). Tests: `cargo test --lib tsioutils`.
 - Wave 3 (11 files, +62 tests; workspace total 683 -> 745): `common/tcore/{tmathutil,trandom}.rs`, `common/tparam/tcubicbezier.rs`, `common/tcolor/tcolorvalue.rs`, `common/trop/runsmap.rs`, `stdfx/igs_{color_rgb_hls,color_rgb_hsv,math_random,gauss_distribution,negate,density}.rs`. All `.cpp` deleted; headers are inline `extern "C"` forwarders (see PORTING.md). Tests: `cargo test --lib <module>`.
-- Wave 4 (13 files, +104 tests; workspace total 802 -> 906): `stdfx/igs_{warp_hori,warp_vert,hls_adjust,hsv_adjust,hls_add,hsv_add,level_auto,level_auto_in_camera,levels,median_filter,median_filter_smooth,hsv_noise,hls_noise}.rs` (24 retired C++ files in total across waves 3 and 4 incl. batch 1's 11). All coarse-grained whole-buffer kernels; only `tnzstdfx` includes these headers and it already links `flare_formats`. Verified bit-identical to the old C++ with a differential harness (see PORTING.md, "Batch 2 notes"). Rejected in this wave: `igs_motion_wind_table` (per-line, takes `igs::math::random` objects), `igs_attenuation_distribution` (`#include`d by igs_fog, pointer-into-vector API), `igs_maxmin*` (thread pool + template class tree), `igs_radial_blur`/`igs_rotate_blur` (QPointF/QTransform/TPointD in body), `igs_perlin_noise` + `iwa_noise1234` (Noise1234 is called per pixel from `iwa_fractalnoisefx`/`iwa_pnperspectivefx`: FFI per call), `igs_{hls,hsv}_noise_in_camera` (public `noise_reference` class + `void*` templates), `igs_fog`/`igs_color_blend`/`igs_line_blur` (large, multi-class, deferred), `igs_resource_*` (OS threads / messages).
+- Wave 4 (13 files, +104 tests; workspace total 802 -> 906): `stdfx/igs_{warp_hori,warp_vert,hls_adjust,hsv_adjust,hls_add,hsv_add,level_auto,level_auto_in_camera,levels,median_filter,median_filter_smooth,hsv_noise,hls_noise}.rs` (24 retired C++ files in total across waves 3 and 4 incl. batch 1's 11). All coarse-grained whole-buffer kernels; only `tnzstdfx` includes these headers and it already links `flare_formats`. Verified bit-identical to the old C++ with a differential harness (see PORTING.md, "Batch 2 notes"). Rejected in this wave: `igs_motion_wind_table` (per-line, takes `igs::math::random` objects), `igs_attenuation_distribution` (`#include`d by igs_fog, pointer-into-vector API), `igs_maxmin*` (thread pool + template class tree), `igs_radial_blur`/`igs_rotate_blur` (QPointF/QTransform/TPointD in body), `igs_perlin_noise` + `iwa_noise1234` (Noise1234 is called per pixel from `iwa_fractalnoisefx`/`iwa_pnperspectivefx`: FFI per call), `igs_{hls,hsv}_noise_in_camera` (public `noise_reference` class + `void*` templates), `igs_fog`/`igs_line_blur` (large, multi-class, deferred), `igs_resource_*` (OS threads / messages). (Of the deferred set, `igs_color_blend` has since been ported whole — see Batch 6.)
 
 ### Gaps closed (audit follow-up)
 - HTML5 publish no longer discards filters: every `Filter` reaches the page. Blur / plain Drop Shadow use canvas `ctx.filter`; Glow, Bevel, inner / knockout / hide-object shadows and Adjust Color run as per-pixel stages in `html5_runtime.js` (same box-blur + shift + strength formulas as `ac_fx.rs`); EffectCraft effects are rendered at publish time by the stage rasteriser into a PNG sprite (deduplicated). `publish_report` returns a `Report { files, warnings }`; the warnings (Subtract / Invert blend approximations, unknown effect ids) appear in the Output panel.
@@ -346,6 +377,17 @@ In short, Flare's end state is a unified Rust implementation of the OpenToonz/Ta
 - **Asset Warp density**: `MeshWarp.density` (0 = 24, clamped 4..64), `Editor::set_mesh_density`.
 - **Bone springiness/damping** (Flare extension, not in XFL): `Bone.spring` (rad/frame, 0 = off) and `damping` (ratio); `apply_springs` replays the last 120 frames from rest with an exact per-frame spring step, so a pose depends only on the frame index. Filters the child's own rotation about its joint.
 - Commands: `flarelib/drawing.rs`. Tests: `flarelib/tests/p2_drawing.rs`, `common/tvrender/tests/p2_drawing.rs`, `common/flash/tests/p2_drawing.rs`.
+
+### Batch 5: min-cut graph (Oct 16 2026)
+- `stdfx/naru_maxflow.cpp` -> `stdfx/naru_maxflow.rs`: the Boykov-Kolmogorov max-flow / min-cut used by `naru_lazybrush.cpp`, ported whole with an opaque-handle C ABI (`flare_graph_*`). `stdfx/naru_graph.h` keeps the `Graph` class as an inline forwarder, so `naru_lazybrush.cpp` is unchanged; `naru_maxflow.cpp` is deleted and removed from the `tnzstdfx` source list. Deviations only where the C++ was UB (out-of-range node index, null parent during chain descent). Tests: `cargo test --lib naru_maxflow` (max-flow/min-cut values, capacity overflow, node-index bounds, FFI null handling).
+
+### Batch 6: blend-mode kernels (Oct 16 2026)
+- `stdfx/igs_color_blend.cpp` -> `stdfx/igs_color_blend.rs`: all 22 Photoshop / PDF blend modes (`over`, `darken`, `multiply`, `color_burn`, `linear_burn`, `darker_color`, `lighten`, `screen`, `color_dodge`, `linear_dodge`, `lighter_color`, `overlay`, `soft_light`, `hard_light`, `vivid_light`, `linear_light`, `pin_light`, `hard_mix`, `cross_dissolve`, `subtract`, `add`, `divide`) used by the `ino_blend_*` FX through `TBlendForeBackRasterFx::brendKernel`. The 13 anonymous-namespace helpers (`blend_transp_`, `up_add_dn_ch_`, …) are transcribed as private functions; the C ABI is `flare_igs_color_<name>` over a 4-double `[r,g,b,a]` in/out buffer. `stdfx/igs_color_blend.h` keeps `namespace igs::color` as inline forwarders, so the ~20 `ino_blend_*.cpp` files are unchanged; `igs_color_blend.cpp` is deleted and removed from the `tnzstdfx` source list.
+- Verified bit-for-bit: the original C++ was compiled with MSVC into a differential harness (`tests/native/igs_color_blend_ref.cpp`, 22 functions x 20 cases = 440 rows, outputs as raw IEEE-754 bits), and both the Rust functions and the full C++->header-forwarder->C-ABI->Rust chain reproduce it exactly. The golden is `stdfx/igs_color_blend_cases.txt` (regenerated by `tests/native/gen_igs_color_blend_cases.py`, which rebuilds the reference from git history since the `.cpp` is gone). A 1e-12 perturbation is caught.
+- Tests: `cargo test -p flare_formats igs_color_blend` (golden conformance; C ABI in-place update and null guard).
+
+### SOL / LSO absorption (Oct 16 2026)
+- `common/flash/lso.rs`: `.sol` (Flash Local Shared Object) reader/writer, absorbed from `ruffle-rs/rust-flash-lso` (`flash-lso` 0.7.0, MIT; recorded in `common/flash/ORIGIN.md`). Implements the SOL container header and the AMF0 body (number, bool, string / long string, object, ECMA array, strict array, date, null, undefined, reference, XML, typed object). Pure Rust with bounds-checked reads (no `nom`). Wired into format sniffing (`Format::Sol`, `flare_detect_format` now returns 5) and exposed through `flare_lso_is_lso` / `flare_lso_parse` / `flare_lso_free` (`include/flare_formats.h`). Tests: `cargo test -p flare_formats lso` (6 tests: hand-built layout, round-trip, every AMF0 type, JSON view, sniff/reject, truncation never panics).
 
 ### Tooling survey
 - Automated C/C++→Rust tools exist (c2rust: rule-based, unsafe output; LLM+static-analysis research tools SACTOR, SmartC2Rust, RustMap, SafeTrans). None handle Qt/C++ class hierarchies; output would violate the safe-idiomatic rule. Port is manual, per file, test-verified.

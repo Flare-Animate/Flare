@@ -8,6 +8,8 @@ use std::slice;
 pub mod cfbf;
 #[path = "common/flash/fcp.rs"]
 pub mod fcp;
+#[path = "common/flash/lso.rs"]
+pub mod lso;
 #[path = "sound/tsioutils.rs"]
 pub mod tsioutils;
 #[path = "tnzbase/permissionsmanager.rs"]
@@ -41,6 +43,34 @@ pub unsafe extern "C" fn flare_fcp_parse(data: *const u8, len: usize) -> *mut st
 
 #[no_mangle]
 pub unsafe extern "C" fn flare_fcp_free(p: *mut std::os::raw::c_char) {
+    flare_moho_free(p)
+}
+
+/// 1 if `data` is a Flash Local Shared Object (`.sol`), 0 otherwise.
+#[no_mangle]
+pub unsafe extern "C" fn flare_lso_is_lso(data: *const u8, len: usize) -> i32 {
+    guard(0, || i32::from(lso::is_lso(bytes(data, len))))
+}
+
+/// Parse a `.sol` file to normalised JSON (`{name, formatVersion, body}`).
+/// Returns a Rust-owned NUL-terminated string (free with `flare_lso_free`) or
+/// NULL if the bytes are not a decodable AMF0 LSO.
+#[no_mangle]
+pub unsafe extern "C" fn flare_lso_parse(data: *const u8, len: usize) -> *mut std::os::raw::c_char {
+    guard(std::ptr::null_mut(), || {
+        match lso::parse(bytes(data, len))
+            .ok()
+            .and_then(|l| std::ffi::CString::new(l.to_json().to_string()).ok())
+        {
+            Some(c) => c.into_raw(),
+            None => std::ptr::null_mut(),
+        }
+    })
+}
+
+/// Free a string returned by [`flare_lso_parse`].
+#[no_mangle]
+pub unsafe extern "C" fn flare_lso_free(p: *mut std::os::raw::c_char) {
     flare_moho_free(p)
 }
 #[path = "common/flash/framecount.rs"]
@@ -144,6 +174,10 @@ pub mod cil;
 pub mod callcircle;
 #[path = "stdfx/igs_hls_noise.rs"]
 pub mod igs_hls_noise;
+#[path = "stdfx/naru_maxflow.rs"]
+pub mod naru_maxflow;
+#[path = "stdfx/igs_color_blend.rs"]
+pub mod igs_color_blend;
 
 /// TFilePath query (see header). Returns full byte length; copies up to `cap` into `out`.
 #[no_mangle]
@@ -245,6 +279,7 @@ pub enum Format {
     Cfbf = 2,
     XflZip = 3,
     XflXml = 4,
+    Sol = 5,
 }
 
 const CFBF_SIG: [u8; 8] = [0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1];
@@ -255,6 +290,9 @@ pub fn detect(d: &[u8]) -> Format {
     }
     if d.starts_with(&CFBF_SIG) {
         return Format::Cfbf;
+    }
+    if lso::is_lso(d) {
+        return Format::Sol;
     }
     if d.starts_with(b"PK\x03\x04") {
         return if d.windows(15).any(|w| w == b"DOMDocument.xml") {
@@ -443,6 +481,14 @@ mod tests {
     #[test]
     fn cfbf() {
         assert_eq!(detect(&CFBF_SIG), Format::Cfbf);
+    }
+    #[test]
+    fn sol() {
+        let mut d = vec![0x00, 0xbf, 0, 0, 0, 0];
+        d.extend_from_slice(&lso::HEADER_SIGNATURE);
+        d.extend_from_slice(&[0, 2, b'S', b'O', 0, 0, 0, 0x00]);
+        assert_eq!(detect(&d), Format::Sol);
+        assert_eq!(detect(b"PK\x03\x04nothing"), Format::Unknown);
     }
     #[test]
     fn xfl() {

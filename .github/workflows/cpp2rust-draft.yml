@@ -89,6 +89,8 @@ jobs:
           mkdir -p "$OUT"
           for f in $FILES; do
             case "$f" in /*|*..*) echo "skip unsafe path: $f"; continue;; esac
+            # Never re-draft a file that already has a Rust sibling (scripts/port_batch.py).
+            if [ -f "${SRC}/${f%.*}.rs" ]; then echo "skip already-ported: $f"; continue; fi
             dir=$(dirname "$f")
             name=$(echo "$f" | tr '/' '_')
             rs="$OUT/${name%.*}.rs"

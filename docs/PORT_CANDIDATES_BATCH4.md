@@ -43,7 +43,7 @@ Paths relative to `flare/sources/`. Filter: no sibling `.rs`, no Qt, no TRaster/
 | 37 | common/tcore/tthread_x.cpp | 279 | pthread mutex/condition wrapper (unix) | tthread.h, pthread.h | med |
 | 38 | common/tvectorimage/cornerdetector.cpp | 292 | Corner detection on 3D point lists | tgeometry.h, cornerdetector.h | med |
 | 39 | common/psdlib/psdutils.cpp | 213 | PSD row RLE unpack and block skip (FILE*) | zlib.h, psdutils.h | med |
-| 40 | stdfx/naru_maxflow.cpp | 188 | Max-flow graph augment/adopt (whole graph) | naru_graph.h | med |
+| 40 | stdfx/naru_maxflow.cpp | 188 | Max-flow graph augment/adopt (whole graph) | naru_graph.h | **DONE** (batch 5; see PORTING.md) |
 
 Notes:
 - Risk "med" means a project header or OS API dependency (zlib, pthread, FILE*, tundo/tparam framework, or Windows/posix headers) must be cleared first.

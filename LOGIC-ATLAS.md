@@ -19,7 +19,7 @@ import commands served from `flare/sources/flare`.
 > A missing or misspelled `#[path]` is a compile error, so the crate root is the single
 > inventory of what has been ported.
 
-> Snapshot: Flare @ b213689c4 (remote crate C ABI + tests, all suites pass)
+> Snapshot: Flare @ 35c0912c6 (blend-mode kernels, min-cut graph + SOL/AMF0 reader; Rust suites pass)
 > listing port): Rust format sniffing over a C ABI, C++ SWF/XFL/Moho readers, an
 > optional Python AS3 sidecar, a scaffolded game engine, and a P2P protocol with tests.
 
@@ -114,12 +114,16 @@ The module paths are `#[path]`-mapped from the crate root precisely so the tree 
 matching OpenToonz/Tahoma as the rewrite proceeds — no `rust/` sidecar tree.
 
 **Key functions/types:**
-- `detect` (`flare_formats.rs`) — content sniffing: SWF magic, CFBF signature, PK+DOMDocument, bare `DOMDocument`.
+- `detect` (`flare_formats.rs`) — content sniffing: SWF magic, CFBF signature, `00 BF`+TCSO SOL signature, PK+DOMDocument, bare `DOMDocument`.
 - `flare_detect_format` (`flare_formats.rs`) — the C ABI for `detect`; returns the `Format` discriminant.
 - `flare_flash_frame_count` (`flare_formats.rs`) — timeline length of SWF/FLA/XFL by path; -1 unknown.
 - `frame_count` (`common/flash/framecount.rs`) — the logic behind it, dispatching on `detect`.
 - `cfbf_streams` (`common/flash/framecount.rs`) — CFBF directory walk yielding (name, size) pairs.
 - `flare_cfbf_streams` (`flare_formats.rs`) — the C ABI for it; NUL-terminated text, freed with `flare_moho_free`.
+- `is_lso`, `parse`, `Lso::to_bytes`, `Lso::to_json` (`common/flash/lso.rs`) — Flash Local Shared Object (`.sol`) container + AMF0 body reader/writer, absorbed from `ruffle-rs/rust-flash-lso`.
+- `flare_lso_is_lso`, `flare_lso_parse`, `flare_lso_free` (`flare_formats.rs`) — the C ABI for the `.sol` reader.
+- `naru_maxflow` (`stdfx/naru_maxflow.rs`) — Boykov-Kolmogorov min-cut max-flow behind the `flare_graph_*` C ABI; `stdfx/naru_graph.h` forwards the `Graph` class.
+- `igs_color_blend` (`stdfx/igs_color_blend.rs`) — the 22 Photoshop / PDF blend-mode kernels used by the `ino_blend_*` FX, behind the `flare_igs_color_*` C ABI; `stdfx/igs_color_blend.h` forwards `namespace igs::color`.
 - `unzip_any` (`common/moho/moho.rs`) — first ZIP entry whose name is in a caller-supplied list.
 - `swf_frames`, `swf_header`, `cfbf_header`, `xfl_dom_info` (`flare_formats.rs`) — header primitives the above compose.
 
@@ -127,6 +131,8 @@ matching OpenToonz/Tahoma as the rewrite proceeds — no `rust/` sidecar tree.
 - `detect` reads magic bytes only, never the extension — the content-over-extension contract lives here.
 - Every `*mut c_char` a `flare_*` function returns is owned by the caller and freed with `flare_moho_free`; a NULL return always means "not this format / error", never partial data.
 - `cfbf_streams` walks the header DIFAT only, so files past ~7MB at 512-byte sectors are out of reach by construction.
+- `Format::Sol` is 5; `detect` returns it only when both the `00 BF` magic and the 10-byte `TCSO` signature match, so a bare `00 BF` prefix is not enough.
+- The ported kernels (`naru_maxflow`, `igs_color_blend`) are bit-identical to the retired C++, pinned by committed goldens (`stdfx/igs_color_blend_cases.txt`); their `.cpp` files are gone, only the headers remain as forwarders.
 - `kTwipsPerPixel` is 20.0 — one twip is 1/20th of a pixel per the SWF spec, and shape coordinates divide by it.
 
 **State:** stateless; no globals, no handles. All functions are pure over their inputs.
@@ -144,6 +150,7 @@ census the import command can report on. Handles the containers Rust only sniffs
 
 **Key functions/types:**
 - `cfbf.rs` (Rust) — legacy-FLA CFBF stream reader + image carver; C ABI `flare_cfbf_open/count/stream/bitmaps/free`.
+- `lso.rs` (Rust) — Flash Local Shared Object (`.sol`) container + AMF0 reader/writer, absorbed from `ruffle-rs/rust-flash-lso` (MIT); sniffed as `Format::Sol`.
 - `extractSwfShapes` (`SWFAssets.h`) — shapes out of an SWF tag stream.
 - `extractLegacyFlaBitmaps` (`SWFAssets.h`) — bitmap carving from OLE2/CFBF binary FLAs.
 - `Reader` (`XFLReader.h`) — `read`, `readFromZip`, `readFromDirectory`, `parseDOMDocument`, `parseSymbol`.
@@ -289,7 +296,7 @@ and C ABI shape checks).
 
 These flows span subsystems: the class of bug a single-file read misses, because both ends of a coupling have to agree and they sit in different files.
 
-**Import spine.** file bytes → `flare_detect_format` → reader for the `Format` → parsed structures → `flashimport.cpp`/`mohoimport.cpp` → scene levels. Risky edge: **the Rust/C++ header mirror** — `flare_formats.h` must declare exactly what `lib.rs` exports; a drifted signature links or, worse, misreads memory. Both change in one commit.
+**Import spine.** file bytes → `flare_detect_format` → reader for the `Format` → parsed structures → `flashimport.cpp`/`mohoimport.cpp` → scene levels. Risky edge: **the Rust/C++ header mirror** — `flare_formats.h` must declare exactly what `flare_formats.rs` exports; a drifted signature links or, worse, misreads memory. Both change in one commit.
 
 **Rust string ownership.** Rust allocates → C++ uses → C++ frees with `flare_moho_free`. Risky edge: **the single free** — freeing twice or never freeing is invisible to the compiler on both sides.
 

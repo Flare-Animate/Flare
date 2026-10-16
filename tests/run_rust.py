@@ -12,6 +12,7 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.abspath(os.path.join(HERE, ".."))
 MANIFEST = os.path.join(REPO, "flare", "sources", "Cargo.toml")
+LOCK = os.path.join(REPO, "flare", "sources", "Cargo.lock")
 
 
 def find_cargo():
@@ -36,6 +37,12 @@ def main():
     # finally) and test only the offline-capable crates.
     with open(MANIFEST, encoding="utf-8") as f:
         orig = f.read()
+    # cargo rewrites Cargo.lock to match the stripped member list below; snapshot
+    # it too so the suite leaves the working tree clean.
+    lock_orig = None
+    if os.path.isfile(LOCK):
+        with open(LOCK, "rb") as f:
+            lock_orig = f.read()
     lines = []
     skip_patch = False
     for line in orig.splitlines(keepends=True):
@@ -64,6 +71,9 @@ def main():
     finally:
         with open(MANIFEST, "w", encoding="utf-8") as f:
             f.write(orig)
+        if lock_orig is not None:
+            with open(LOCK, "wb") as f:
+                f.write(lock_orig)
     out = (r.stdout or "") + (r.stderr or "")
     fails = [l for l in out.splitlines() if "test result: FAILED" in l or l.startswith("error")]
     passed = sum(int(l.split()[3]) for l in out.splitlines()

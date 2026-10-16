@@ -38,6 +38,21 @@ serde_json = "1"
 tiny-skia = "0.11"
 gif = "0.13"
 png = "0.17"
+# UNIFICATION_PLAN step 1 (see docs/DEP_SKEW_AUDIT.md): one pin per direct
+# dependency the ac / mm / studio crates share, so the three UI codebases cannot
+# drift apart. `egui`/`eframe`/`egui_extras` are the 0.36 migration target for
+# ac-app (`flare`, still 0.29); they are declared here but not yet forced on it.
+egui = "=0.36.2"
+eframe = "=0.36.2"
+egui_extras = "=0.36.2"
+image = { version = "0.25", default-features = false }
+zip = "2"
+flate2 = "1"
+roxmltree = "0.20"
+usvg = "0.44"
+resvg = "0.44"
+rfd = "0.17"
+dirs = "5"
 effectcraft-effects = { git = "https://github.com/storytold/effectcraft", branch = "main" }
 effectcraft-raster = { git = "https://github.com/storytold/effectcraft", branch = "main" }
 effectcraft-keyframe = { git = "https://github.com/storytold/effectcraft", branch = "main" }
