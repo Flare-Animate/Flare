@@ -48,9 +48,16 @@ static void dump(char kind, const CBlurMatrix& m, double d, int nb) {
 
 int main() {
   // (d, nb) pairs that cover: below the d < 1.0 cutoff, nb <= 0, the nb <= 0 / d <= 0.01
-  // cutoffs in createRandom, a disc too small to hold nb samples, and ordinary sizes.
+  // cutoffs in createRandom, and ordinary sizes.
   const double ds[]  = {0.0, 0.5, 1.0, 2.0, 3.0, 4.5, 7.0};
   const int    nbs[] = {-1, 0, 1, 2, 5, 12};
+
+  // createRandom's sample loop never terminates when the disc cannot supply nb distinct
+  // points, and at d <= 0.5 the only point it admits is the origin, which the loop
+  // rejects -- so the original C++ spins outright there. The random cases therefore
+  // only use d >= 1. The Rust port bounds that loop (disc_candidates); the C++ reference
+  // cannot, so it is not asked to reproduce a hang.
+  const double ds_rand[] = {1.0, 2.0, 3.0, 4.5, 7.0};
 
   for (double d : ds) {
     for (int nb : nbs) {
@@ -62,11 +69,13 @@ int main() {
         CBlurMatrix m(d, nb, true, false);
         dump('P', m, d, nb);
       }
-      {
-        std::srand(12345);
-        CBlurMatrix m(d, nb, true, true);
-        dump('R', m, d, nb);
-      }
+    }
+  }
+  for (double d : ds_rand) {
+    for (int nb : nbs) {
+      std::srand(12345);
+      CBlurMatrix m(d, nb, true, true);
+      dump('R', m, d, nb);
     }
   }
   return 0;

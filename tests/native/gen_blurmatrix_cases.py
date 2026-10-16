@@ -48,11 +48,20 @@ def git(*args: str) -> str:
 
 
 def pre_deletion_revision() -> str:
-    """The last commit whose tree still contained the C++ implementation."""
-    rev = git("log", "-1", "--format=%H", "--", SRC)
-    if not rev:
-        sys.exit(f"no history for {SRC}; cannot locate the original")
-    return rev
+    """The newest commit whose tree still contained the C++ implementation.
+
+    `git log -1 -- <path>` alone is wrong once the deletion is committed: it returns the
+    commit that *removed* the file, and `git show` on it fails. So walk the history and
+    take the first revision where the path actually exists.
+    """
+    for rev in git("log", "--format=%H", "--", SRC).splitlines():
+        if not rev:
+            continue
+        if subprocess.run(
+            ["git", "cat-file", "-e", f"{rev}:{SRC}"], cwd=ROOT
+        ).returncode == 0:
+            return rev
+    sys.exit(f"no revision of {SRC} to build the reference from")
 
 
 def vcvars() -> str:
@@ -111,7 +120,7 @@ def main() -> int:
         with open(GOLDEN, "r", newline="") as fh:
             old = fh.read()
 
-    blocks = len([b for b in fresh.split("\n\n") if b.strip()])
+    blocks = len([b for b in fresh.replace("\r\n", "\n").split("\n\n") if b.strip()])
     if fresh == old:
         print(f"unchanged: {GOLDEN} ({blocks} cases)")
         return 0

@@ -16,14 +16,13 @@
 //! - **`SBlurMatrixError` is gone.** Every `throw` in the C++ sat in a `catch (exception)`
 //!   around vector allocations, i.e. it only fired on `std::bad_alloc`. Rust has no
 //!   equivalent failure here; allocation failure aborts instead of unwinding.
-//! - **Two C++ loops that could never finish are bounded here.**
-//!   `createEqual`'s `xd += b` / `yd += b` walk stops advancing once `b < 0.5` (`b`
-//!   shrinks as `nb` grows, so `nb` in the thousands spins forever), and
-//!   `createRandom`'s `while` loop never terminates if `nb` exceeds the number of
-//!   distinct points inside the disc -- at `d = 0.5` the disc admits only the origin,
-//!   which the loop rejects, so it spins outright. Both now stop instead of looping:
-//!   `createEqual` on a step that does not move, `createRandom` at
+//! - **`createRandom`'s sample loop is bounded.** It draws until it has found `nb`
+//!   distinct points inside the disc, which never finishes when the disc cannot supply
+//!   that many: at `d = 0.5` the only admissible point is the origin, which the loop
+//!   rejects, so the original C++ spins outright. The port stops at
 //!   [`disc_candidates`]. Wherever the C++ did terminate, the output is unchanged.
+//!   (`createEqual` needed no such guard — `b` is always positive, so its walk always
+//!   advances eventually, and `I_ROUND(1.0) == 1` means it legitimately revisits points.)
 //! - `(int)` casts of `double` saturated in Rust where C++ was undefined; every value
 //!   reaching them here is small, and `x * x + y * y` uses wrapping arithmetic so a large
 //!   `d` wraps like the C++ `int` rather than panicking in debug builds.
@@ -184,7 +183,7 @@ impl BlurMatrix {
         // Hard ceiling on samples: the disc holds `candidates` of them. Without this the
         // C++ spins forever whenever `nb` exceeds what the disc can supply -- d = 0.5
         // admits only the origin, which the loop rejects, so it never terminates.
-        let ceiling = 1 + disc_candidates(l, d2);
+        let ceiling = 1 + disc_candidates(l, d2) as i32;
 
         for i in 0..NBRS {
             let mut i_nb = 1;
@@ -238,20 +237,13 @@ impl BlurMatrix {
                         self.m[0].push(vec![SXyd { x, y: -y, d: dist }]);
                     }
                 }
-                let prev = x;
+                // NB: `I_ROUND(1.0) == 1`, so a step can land on the same x twice and emit
+                // the same sample twice. That is what the C++ does; do not skip it.
                 xd += b;
                 x = i_round(xd);
-                // `b < 0.5` makes `I_ROUND` return the same x forever; the C++ hung here.
-                if x == prev {
-                    break;
-                }
             }
-            let prev = y;
             yd += b;
             y = i_round(yd);
-            if y == prev {
-                break;
-            }
         }
     }
 
@@ -498,8 +490,10 @@ impl MsvcRand {
         out
     }
 
-    fn golden() -> &'static str {
-        include_str!("BlurMatrix_cases.txt")
+    fn golden() -> String {
+    // The harness writes through MSVC's stdout, which turns every \n into \r\n on
+        // Windows. Normalise so the block splitting (and the byte comparison) are stable.
+        include_str!("BlurMatrix_cases.txt").replace("\r\n", "\n")
     }
 
     /// Parse the golden into (kind, d, nb) per case. Blocks are separated by blank
@@ -521,7 +515,8 @@ impl MsvcRand {
 
     #[test]
     fn matches_the_cpp_reference_bit_for_bit() {
-        let blocks = golden_blocks(golden());
+        let text = golden();
+        let blocks = golden_blocks(&text);
         assert!(!blocks.is_empty(), "golden fixture is empty");
         for (kind, d, nb) in &blocks {
             // Recompute from scratch: the golden is never read into the value under test.
@@ -551,7 +546,7 @@ impl MsvcRand {
             };
             assert_eq!(
                 dump(*kind, &bm, *d, *nb),
-                block_text(golden(), *kind, *d, *nb),
+                block_text(&text, *kind, *d, *nb),
                 "mismatch for {kind} d={d} nb={nb}"
             );
         }
