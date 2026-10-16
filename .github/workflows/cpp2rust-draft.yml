@@ -1,18 +1,52 @@
-name: cpp2rust draft
+name: cpp2rust draft PR
 
-# Manual only: produces draft Rust translations in the job log + artifact.
-# Never commits or pushes. See scripts/cpp2rust-draft.md.
+# Runs cpp2rust over the next batch of unported C++ and opens a **draft** pull request
+# with the auto-converted Rust, placed at the path the port policy requires: beside the
+# C++ it came from, with the identical base name.
+#
+# What this workflow deliberately does NOT do:
+#   * never merge, and always opens the PR as a draft;
+#   * never delete or modify the original .cpp;
+#   * never register the module in flare_formats.rs, so a draft cannot break the build
+#     (an unregistered .rs compiles nowhere and ships as nothing);
+#   * never draft a file that already has a .rs sibling.
+#
+# The output is a *draft*: cpp2rust output has to be reviewed line by line against the
+# original (docs/CPP2RUST_TRIAL.md), then finished by hand against docs/PORTING.md --
+# a C ABI, a header forwarder, and the registration. Do not merge it as-is.
+#
+# Automatic runs are nightly; `workflow_dispatch` takes an explicit file list or a batch
+# size. See scripts/cpp2rust-draft.md.
 on:
+  schedule:
+    # 04:17 UTC nightly. Off the hour on purpose: scheduled workflows queue behind the
+    # busiest minutes and get delayed.
+    - cron: "17 4 * * *"
   workflow_dispatch:
     inputs:
       files:
-        description: "Space-separated C++ paths relative to flare/sources (e.g. stdfx/hsvutil.cpp)"
-        required: true
+        description: "Space-separated C++ paths relative to flare/sources. Empty = take the next batch."
+        required: false
         type: string
+        default: ""
+      batch_size:
+        description: "How many unported files to take when `files` is empty"
+        required: false
+        type: string
+        default: "3"
+      base:
+        description: "Branch to base the draft PR on (default: the branch this ran on)"
+        required: false
+        type: string
+        default: ""
+  repository_dispatch:
+    types: [cpp2rust-draft]
 
 permissions:
-  contents: read
+  contents: write
+  pull-requests: write
 
+# One run at a time: the build is heavy and two concurrent runs would race on the branch.
 concurrency:
   group: cpp2rust-draft
   cancel-in-progress: false
@@ -34,7 +68,9 @@ jobs:
 
       - uses: actions/checkout@v4
         with:
+          # No token in .git/config; `gh auth setup-git` below supplies one for the push.
           persist-credentials: false
+          fetch-depth: 0
 
       - name: Install LLVM/clang 23 and build tools
         run: |
@@ -78,43 +114,176 @@ jobs:
           ls cpp2rust/cpp2rust
           df -h /
 
-      - name: Translate files
+      - name: Resolve the batch
+        id: pick
         env:
           FILES: ${{ inputs.files }}
+          BATCH: ${{ inputs.batch_size || '3' }}
+        run: |
+          set -eu
+          if [ -n "${FILES:-}" ]; then
+            printf '%s\n' $FILES > "$RUNNER_TEMP/picked.txt"
+          else
+            # Machine-readable list of the next unported candidates. Never parses the
+            # human-facing `--batch` table, whose format is free to change.
+            python scripts/port_batch.py --paths "$BATCH" > "$RUNNER_TEMP/picked.txt"
+          fi
+          echo "### files to draft:"
+          cat "$RUNNER_TEMP/picked.txt"
+          {
+            echo "count=$(wc -l < "$RUNNER_TEMP/picked.txt" | tr -d ' ')"
+            echo "list<<EOF"
+            cat "$RUNNER_TEMP/picked.txt"
+            echo EOF
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Translate files
+        id: draft
+        env:
+          CPP2RUST_SHA: ${{ steps.rv.outputs.sha }}
         run: |
           set -u
           C2R="$RUNNER_TEMP/cpp2rust/build/cpp2rust/cpp2rust"
           SRC="$GITHUB_WORKSPACE/flare/sources"
-          OUT="$GITHUB_WORKSPACE/cpp2rust-out"
-          mkdir -p "$OUT"
-          for f in $FILES; do
+          LOG="$RUNNER_TEMP/manifest.md"
+          : > "$LOG"
+          drafted=0
+          while read -r f; do
+            [ -n "$f" ] || continue
             case "$f" in /*|*..*) echo "skip unsafe path: $f"; continue;; esac
             # Never re-draft a file that already has a Rust sibling (scripts/port_batch.py).
-            if [ -f "${SRC}/${f%.*}.rs" ]; then echo "skip already-ported: $f"; continue; fi
+            if [ -f "${SRC}/${f%.*}.rs" ]; then
+              echo "skip already-ported: $f"
+              continue
+            fi
+            [ -f "$SRC/$f" ] || { echo "skip missing: $f"; continue; }
+
             dir=$(dirname "$f")
-            name=$(echo "$f" | tr '/' '_')
-            rs="$OUT/${name%.*}.rs"
-            err="$OUT/${name%.*}.err.txt"
+            name=$(basename "$f")
+            stem="${name%.*}"
+            mkdir -p "$GITHUB_WORKSPACE/flare/sources/$dir"
+            rs="$GITHUB_WORKSPACE/flare/sources/$dir/$stem.rs"
+            raw="$RUNNER_TEMP/$stem.raw.rs"
+
             set +e
-            "$C2R" --file="$SRC/$f" -o="$rs" \
+            "$C2R" --file="$SRC/$f" -o="$raw" \
               --cxxflags=-std=c++17 \
               --cxxflags=-I"$SRC/include" \
               --cxxflags=-I"$SRC/$dir" \
-              >"$OUT/${name%.*}.out.txt" 2>"$err"
+              >"$RUNNER_TEMP/$stem.out.txt" 2>"$RUNNER_TEMP/$stem.err.txt"
             rc=$?
             set -e
+
             echo "=== DRAFT $f ==="
             echo "exit code: $rc"
-            if [ -f "$rs" ]; then head -c 60000 "$rs"; echo; else echo "(no .rs produced)"; fi
-            if [ -s "$err" ]; then echo "--- stderr ---"; head -c 20000 "$err"; echo; fi
-            if [ -s "$OUT/${name%.*}.out.txt" ]; then echo "--- stdout ---"; head -c 5000 "$OUT/${name%.*}.out.txt"; echo; fi
+            if [ -s "$raw" ]; then head -c 60000 "$raw"; echo; fi
+            if [ -s "$RUNNER_TEMP/$stem.err.txt" ]; then echo "--- stderr ---"; head -c 20000 "$RUNNER_TEMP/$stem.err.txt"; echo; fi
+            if [ -s "$RUNNER_TEMP/$stem.out.txt" ]; then echo "--- stdout ---"; head -c 5000 "$RUNNER_TEMP/$stem.out.txt"; echo; fi
             echo "=== END ==="
-          done
 
-      - name: Upload drafts
+            if [ -s "$raw" ]; then
+              {
+                echo "// ============================================================================"
+                echo "// AI-GENERATED DRAFT -- cpp2rust, commit $CPP2RUST_SHA. DO NOT MERGE AS-IS."
+                echo "//"
+                echo "// Source:   $f   (the original .cpp is untouched and still in the tree)"
+                echo "//"
+                echo "// cpp2rust output is a starting point, not a port. Before this becomes the"
+                echo "// port, someone has to, against the C++ (see docs/PORTING.md):"
+                echo "//   1. read the two side by side and fix every mistranslation;"
+                echo "//   2. check bit-exactness -- see the differential-harness pattern in"
+                echo "//      tests/native/ (a golden captured from the original C++ is the only"
+                echo "//      real proof; docs/CPP2RUST_TRIAL.md records why that matters);"
+                echo "//   3. give it a C ABI (extern \"C\" + the guard, never panic across FFI);"
+                echo "//   4. rewrite $f's header as a thin forwarder to that ABI;"
+                echo "//   5. delete the .cpp and register the module in flare_formats.rs;"
+                echo "//   6. delete this banner."
+                echo "//"
+                echo "// Not registered yet on purpose: an unregistered .rs compiles nowhere, so this"
+                echo "// draft cannot break the build until it has been reviewed."
+                echo "// ============================================================================"
+                cat "$raw"
+              } > "$rs"
+              drafted=$((drafted + 1))
+              echo "| \`$f\` | \`flare/sources/$dir/$stem.rs\` | $rc | draft |" >> "$LOG"
+            else
+              echo "| \`$f\` | -- | $rc | **no output** |" >> "$LOG"
+            fi
+          done < "$RUNNER_TEMP/picked.txt"
+
+          echo "drafted=$drafted" >> "$GITHUB_OUTPUT"
+          echo "### manifest"
+          cat "$LOG"
+
+      - name: Upload drafts and logs
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: cpp2rust-drafts
-          path: cpp2rust-out/
+          name: cpp2rust-drafts-${{ github.run_number }}
+          path: |
+            ${{ runner.temp }}/*.txt
+            ${{ runner.temp }}/*.rs
           if-no-files-found: warn
+
+      - name: Open the draft pull request
+        if: steps.pick.outputs.count != '0'
+        env:
+          DRAFTED: ${{ steps.draft.outputs.drafted }}
+          CPP2RUST_SHA: ${{ steps.rv.outputs.sha }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -eu
+          if [ "${DRAFTED:-0}" = "0" ]; then
+            echo "cpp2rust produced no Rust for any file; nothing to propose."
+            exit 0
+          fi
+
+          # github.ref_name is the branch the run is on: the dispatch branch for
+          # workflow_dispatch, the default branch for schedule. The drafts have to base
+          # off whatever is actually being rewritten, or the planner picks files that a
+          # different branch has already ported.
+          BASE="${{ inputs.base || github.ref_name }}"
+          BRANCH="cpp2rust/draft-${{ github.run_number }}"
+          git config user.name  "cpp2rust-draft[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          gh auth setup-git
+          git checkout -B "$BRANCH" "$BASE"
+          git add -A "flare/sources"
+          if git diff --cached --quiet; then
+            echo "no differences to propose."
+            exit 0
+          fi
+          git commit -m "cpp2rust: auto-draft Rust for ${DRAFTED} C++ file(s)"
+          # The branch is per-run, so force-push is safe and keeps reruns idempotent.
+          git push --force origin "$BRANCH"
+
+          {
+            echo "Automatic \`cpp2rust\` draft. **Do not merge as-is** — every line needs review."
+            echo
+            echo "cpp2rust commit: \`$CPP2RUST_SHA\`  •  run: ${GITHUB_RUN_NUMBER}"
+            echo
+            echo "| C++ source | drafted Rust | cpp2rust exit | state |"
+            echo "|---|---|---|---|"
+            cat "$RUNNER_TEMP/manifest.md"
+            echo
+            echo "### To finish one of these ports"
+            echo
+            echo "1. Read the draft and the original \`.cpp\` side by side and fix the mistranslations."
+            echo "2. Prove bit-exactness with a differential harness (see \`tests/native/\`) — a"
+            echo "   golden captured from the *original* C++ is the only real proof."
+            echo "3. Give the module a C ABI (\`extern \"C\"\` + the panic guard)."
+            echo "4. Rewrite the header as a thin forwarder, delete the \`.cpp\`, register the"
+            echo "   module in \`flare_formats.rs\`."
+            echo "5. Delete the AI banner."
+            echo
+            echo "Neither the original \`.cpp\` nor \`flare_formats.rs\` is touched by this PR, and the"
+            echo "drafts are deliberately **not registered**, so they cannot break the build."
+            echo "Background: \`docs/CPP2RUST_TRIAL.md\`, \`docs/PORTING.md\`."
+          } > "$RUNNER_TEMP/body.md"
+
+          gh pr create \
+            --draft \
+            --base "$BASE" \
+            --head "$BRANCH" \
+            --title "cpp2rust draft: auto-converted Rust for ${DRAFTED} C++ file(s)" \
+            --body-file "$RUNNER_TEMP/body.md"

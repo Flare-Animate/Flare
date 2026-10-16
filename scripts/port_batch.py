@@ -114,6 +114,16 @@ def cmd_batch(n):
     return 0
 
 
+def cmd_paths(n):
+    """Print just the candidate paths, one per line — for CI, which should not have to
+    parse the human-facing table above."""
+    rows = [(l, p, r) for (p, l, r) in candidates() if not r]
+    rows.sort()
+    for _lines, path, _risky in rows[:n]:
+        print(rel(path))
+    return 0
+
+
 def cmd_check(files):
     rc = 0
     for f in files:
@@ -172,12 +182,20 @@ def main(argv=None):
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     g = p.add_mutually_exclusive_group(required=True)
     g.add_argument("--batch", type=int, metavar="N", help="list the N smallest candidates")
+    g.add_argument(
+        "--paths",
+        type=int,
+        metavar="N",
+        help="print the N candidate paths, one per line (machine-readable)",
+    )
     g.add_argument("--check", nargs="+", metavar="FILE", help="classify files as PORT/SKIP/MISSING")
     g.add_argument("--register", nargs="+", metavar="FILE", help="print #[path] registration lines")
     g.add_argument("--draft", nargs="+", metavar="FILE", help="run crust/cpp2rust on unported files")
     args = p.parse_args(argv)
     if args.batch is not None:
         return cmd_batch(args.batch)
+    if args.paths is not None:
+        return cmd_paths(args.paths)
     if args.check:
         return cmd_check(args.check)
     if args.register:
