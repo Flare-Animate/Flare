@@ -226,3 +226,32 @@ Two things worth knowing if you touch that test:
 * A tag record's length matters as much as its code. Bodies over 62 bytes need
   the long form (`| 0x3F` then a 32-bit length); writing `size & 0x3F` truncates,
   and the extractor then bails on a short tag and writes nothing.
+
+## Rust port goldens
+
+`gen_igs_color_blend_cases.py` and `gen_blurmatrix_cases.py` regenerate the committed
+goldens that Rust ports are checked against: `flare/sources/stdfx/igs_color_blend_cases.txt`
+and `flare/sources/flarelib/sandor_fxs/BlurMatrix_cases.txt`. Both are the output of the
+*original* C++ compiled with MSVC, written as raw IEEE-754 bit patterns so the comparison is
+exact rather than decimal-rounded. The Rust tests
+(`igs_color_blend::tests::matches_the_cpp_reference_bit_for_bit`,
+`blurmatrix::tests::matches_the_cpp_reference_bit_for_bit`) recompute from scratch and
+compare byte for byte, so a transcription slip fails the build. The original `.cpp` files
+are deleted, so each script rebuilds its reference from
+`git log -1 -- <path>`; they need MSVC and, like `make_jpeg3_fixture.py`, are not part of
+the test run. `--check` reports drift without writing. `igs_color_blend_ref.cpp` and
+`blurmatrix_ref.cpp` are the harnesses; their case tables are mirrored in the Rust tests.
+
+Two traps these harnesses hit, both now encoded in them:
+
+- A port's golden fixture is written through MSVC's stdout, so on Windows it arrives
+  **CRLF**. The Rust tests normalise `\r\n` before splitting on blank lines, and the
+  generators count cases the same way — otherwise every block collapses into one.
+- `BlurMatrix.cpp` `#include`s `<windows.h>`, whose `min`/`max` macros break its
+  `std::max(std::abs(x), std::abs(y))`; the generator compiles with `/DNOMINMAX`.
+
+Worth knowing before adding a case to `blurmatrix_ref.cpp`: the original `createRandom`
+**spins forever** when the disc of radius `d` cannot supply `nb` distinct points, and at
+`d = 0.5` the only admissible point is the origin, which it rejects. The random cases
+therefore only use `d >= 1`; the Rust port bounds that loop (`disc_candidates`), but the
+C++ reference cannot be asked to reproduce a hang.

@@ -6,7 +6,7 @@
 #include <cmath>
 #include "igs_ifx_common.h" /* igs::image::rgba */
 #include "igs_gaussian_blur.h"
-#include "igs_gauss_distribution.cpp"
+#include "igs_gauss_distribution.h"
 
 namespace {
 const int diameter_from_radius_(const int radius) {

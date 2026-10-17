@@ -1,105 +1,52 @@
-#include "stdfx.h"
-#include <queue>
+#pragma once
 
-#define TERMINAL ((Graph::arc*)1)
-#define ORPHAN ((Graph::arc*)2)
+// naru_graph.h: Boykov-Kolmogorov max-flow / min-cut graph used by
+// naru_lazybrush.cpp.
+//
+// Implemented in naru_maxflow.rs (flare_formats): the C++ Graph held node and
+// arc arrays and linked them with raw pointers; the implementation now lives in
+// Rust behind an opaque handle and the class below is a thin forwarder, so
+// naru_lazybrush.cpp is unchanged. See docs/PORTING.md.
+
+#include "stdfx.h"
+#include <stdexcept>
+
+extern "C" {
+struct FlareGraph;
+FlareGraph *flare_graph_new(int maxNodeNum);
+void flare_graph_free(FlareGraph *g);
+// 0 ok, -1 edge capacity exceeded, -2 node index out of range.
+int flare_graph_add_edge(FlareGraph *g, int from, int to, int cap, int revCap);
+void flare_graph_add_terminal(FlareGraph *g, int nodeIndex, int tCap);
+int flare_graph_get_segment(FlareGraph *g, int nodeIndex, int defaultType);
+void flare_graph_mincut(FlareGraph *g);
+}
 
 class Graph {
 public:
   typedef enum { SOURCE = 0, SINK = 1 } terminalType;
 
-  Graph(int maxNodeNum);
-  ~Graph();
+  Graph(int maxNodeNum) : m_g(flare_graph_new(maxNodeNum)) {}
+  ~Graph() { flare_graph_free(m_g); }
 
-private:
-  struct node;
-  struct arc;
-
-  struct node {
-    arc* firstArc;
-    arc* parentArc;
-    bool isSink : 1;
-    int tCap;
-  };
-
-  struct arc {
-    node* headNode;
-    arc* nextArc;
-    arc* revArc;
-    int rCap;
-  };
-
-  node *nodes, *nodeLast;
-  arc *arcs, *arcLast;
-  int nodesNum, arcsNum;
-
-  std::queue<node*> activeQueue;
-  std::queue<node*> orphanQueue;
-
-  int flow;
-
-public:
   void addEdge(int from, int to, int cap, int revCap) {
-    if ((arcLast - arcs) + 2 >= arcsNum) {
-      throw std::runtime_error("Maximum number of edges exceeded");
-    }
-    node* fromNode = nodes + from;
-    node* toNode   = nodes + to;
-
-    arc* newArc = arcLast++;
-    arc* revArc = arcLast++;
-
-    newArc->headNode   = toNode;
-    newArc->rCap       = cap;
-    newArc->nextArc    = fromNode->firstArc;
-    newArc->revArc     = revArc;
-    fromNode->firstArc = newArc;
-
-    revArc->headNode = fromNode;
-    revArc->rCap     = revCap;
-    revArc->nextArc  = toNode->firstArc;
-    revArc->revArc   = newArc;
-    toNode->firstArc = revArc;
+    int rc = flare_graph_add_edge(m_g, from, to, cap, revCap);
+    if (rc == -1) throw std::runtime_error("Maximum number of edges exceeded");
+    if (rc == -2) throw std::out_of_range("Graph::addEdge: node index out of range");
   }
 
-  void addTerminal(int nodeIndex, int tCap) { nodes[nodeIndex].tCap = tCap; }
+  void addTerminal(int nodeIndex, int tCap) {
+    flare_graph_add_terminal(m_g, nodeIndex, tCap);
+  }
 
   terminalType getSegment(int nodeIndex, terminalType defaultType) {
-    if (nodes[nodeIndex].parentArc)
-      return nodes[nodeIndex].isSink ? SINK : SOURCE;
-    else
-      return defaultType;
+    return (terminalType)flare_graph_get_segment(m_g, nodeIndex, (int)defaultType);
   }
 
-  void mincut();
+  void mincut() { flare_graph_mincut(m_g); }
 
 private:
-  void setActive(node* n) { activeQueue.push(n); }
-
-  node* nextActive() {
-    while (!activeQueue.empty()) {
-      node* n = activeQueue.front();
-      activeQueue.pop();
-      if (n->parentArc == ORPHAN) continue;
-      return n;
-    }
-    return nullptr;
-  }
-
-  void setOrphan(node* n) {
-    n->parentArc = ORPHAN;
-    orphanQueue.push(n);
-  }
-
-  node* nextOrphan() {
-    if (!orphanQueue.empty()) {
-      node* n = orphanQueue.front();
-      orphanQueue.pop();
-      return n;
-    } else
-      return nullptr;
-  }
-
-  void augment(arc* midArc);
-  void adopt();
+  Graph(const Graph &);
+  Graph &operator=(const Graph &);
+  FlareGraph *m_g;
 };

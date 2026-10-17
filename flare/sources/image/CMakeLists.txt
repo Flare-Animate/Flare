@@ -88,6 +88,10 @@ if(NOT BUILD_TARGET_BSD AND NOT WIN32)
     set(_flare_tiff_source_dir "${FLARE_ROOT}/thirdparty/tiff-4.0.3")
     set(_flare_tiff_build_dir "${CMAKE_BINARY_DIR}/generated/tiff")
     file(MAKE_DIRECTORY "${_flare_tiff_build_dir}")
+    # CI (workflow_linux.yml) already configures bundled libtiff in-tree, and
+    # configure refuses an out-of-tree run then; the in-tree tif_config.h is
+    # reachable through the -idirafter option above, so skip the second run.
+    if(NOT EXISTS "${_flare_tiff_source_dir}/config.status")
     execute_process(
         COMMAND "${_flare_tiff_source_dir}/configure"
         WORKING_DIRECTORY "${_flare_tiff_build_dir}"
@@ -99,6 +103,7 @@ if(NOT BUILD_TARGET_BSD AND NOT WIN32)
         message(FATAL_ERROR
             "Failed to configure bundled libtiff:\n"
             "${_flare_tiff_configure_output}${_flare_tiff_configure_error}")
+    endif()
     endif()
 endif()
 
@@ -230,6 +235,8 @@ elseif(BUILD_ENV_UNIXLIKE)
 endif()
 
 target_link_libraries(image Qt5::Core Qt5::Gui Qt5::Network ${Z_LIB} ${GLUT_LIB} ${GL_LIB} ${JPEG_LIB} ${TIFF_LIB} ${PNG_LIB} ${EXTRA_LIBS})
+# headers it includes forward to Rust; not transitive via $<TARGET_FILE:tnzcore> on Apple
+target_link_libraries(image flare_formats)
 
 # The TIFF reader wants libtiff's 64-bit RGBA entry points, but some libtiff
 # builds (Ubuntu's, for one) do not export them, which is an unresolved

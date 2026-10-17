@@ -33,6 +33,12 @@ jobs:
         run: |
           git tag -l | xargs -r git tag -d
 
+      - name: Check HTML5 runtime JS is in sync with its TypeScript source
+        run: scripts/build-html5-runtime.sh --check
+
+      - name: Check JSFL shim JS is in sync with its TypeScript source
+        run: scripts/build-jsfl.sh --check
+
       - name: Setup Python
         uses: actions/setup-python@v7
         with:
@@ -50,6 +56,13 @@ jobs:
       - name: Lint repository scripts
         run: |
           python tools/flash/lint_repo_scripts.py
+
+      - name: Check the Rust workspace uses one egui generation
+        # Reads flare/sources/Cargo.lock only (no cargo, no network). Guards
+        # UNIFICATION_PLAN step 1: the three UI front ends must not drift back onto
+        # different egui versions, which silently compiles but blocks panel sharing.
+        run: |
+          python scripts/dep_skew_check.py
 
       - name: Upload script problems
         uses: actions/upload-artifact@v4

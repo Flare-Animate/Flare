@@ -134,3 +134,7 @@ elseif(BUILD_ENV_UNIXLIKE)
         ${GLUT_LIB} ${GL_LIB} ${SUPERLU_LIB} ${OPENBLAS_LIB} ${EXTRA_LIBS}
     )
 endif()
+
+# tmathutil.h (and friends) forward to Rust in flare_formats; on Apple tnzcore is
+# linked by $<TARGET_FILE:...>, which does not carry that dependency along.
+target_link_libraries(tnzext flare_formats)

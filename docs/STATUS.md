@@ -1,6 +1,6 @@
 # Stub audit status
 
-Scope: flare/sources/{rust,common/*/rust,remote/rust}, tools/flash, flare/sources/flare/{flashimport,mohoimport,castviewer}.cpp.
+Scope: flare/sources/{flare_formats.rs,common/*/rust,remote}, tools/flash, flare/sources/flare/{flashimport,mohoimport,castviewer}.cpp.
 Method: rg for todo!/unimplemented!/"not yet"/"not implemented"/stub/placeholder.
 
 ## Result

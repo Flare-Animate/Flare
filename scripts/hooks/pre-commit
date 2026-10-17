@@ -7,7 +7,7 @@ staged=$(git diff --cached --name-only --diff-filter=ACMR)
 [ -z "$staged" ] && exit 0
 
 subsys=$(printf '%s\n' "$staged" \
-  | grep -E '^(flare/sources/rust/[^/]+\.rs|flare/sources/remote/rust/.*\.rs|flare/sources/common/(flash|moho|tgame)/rust/.*\.rs|flare/sources/common/(flash|moho|tgame)/.*\.(cpp|h)|flare/sources/remote/.*\.h|tools/flash/next2flash/.*\.py)$' \
+  | grep -E '^(flare/sources/flare_formats\.rs|flare/sources/remote/remote\.rs|flare/sources/common/(flash|moho|tgame)/rust/.*\.rs|flare/sources/common/(flash|moho|tgame)/.*\.(cpp|h)|flare/sources/remote/.*\.h|tools/flash/next2flash/.*\.py)$' \
   | grep -v '/tests/')
 
 atlas_staged=$(printf '%s\n' "$staged" | grep -x 'LOGIC-ATLAS.md')

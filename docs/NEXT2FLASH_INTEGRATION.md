@@ -1,6 +1,6 @@
 # Merging Next2Flash into Flare — Integration Plan
 
-Status: **AS3 track merged**; SWF round-trip port still to do
+Status: **AS3 track merged; Track 1 re-implemented in Rust** (see the table below)
 
 [Next2Flash](https://github.com/SSF2-Mods-Official/Next2Flash) and Flare are being
 brought together as the Flare-Animate org consolidates its Flash tooling. This
@@ -106,8 +106,8 @@ note. The bundled **Flex SDK** is Apache-2.0 and must ship with its own NOTICE.
       Verified: 1043 AS3 classes recovered from a 3.5 MB SWF.
 - [x] Credit Next2Flash in `README.md` and `doc/FLASH_SUPPORT.md`.
 - [x] Add bridge tests (`tools/flash/tests/test_as3_bridge.py`).
-- [ ] Port `char_id_allocator.py` character-ID preservation into
-      `common/flash/tflash` (Track 1.1). Not started.
+- [x] Character-ID preservation (Track 1.1), done in Rust instead of `tflash`:
+      `common/flash/ac_swf*.rs`. See the table.
 - [ ] Port `app/swf_to_n2d.py` and `app/compile_n2d.py` natively (Track 1.2).
       These two are ~400 KB of SWF<->XML conversion and are where most of
       Next2Flash's remaining value sits; see "What is still upstream-only" in
@@ -119,3 +119,28 @@ note. The bundled **Flex SDK** is Apache-2.0 and must ship with its own NOTICE.
 > This plan keeps Flare installable with zero extra runtime for the common case
 > (open a FLA, get the art), while still delivering Next2Flash's AS3 superpowers to
 > users who opt in — and leaves a clean path to fully native C++ later.
+
+## Rust re-implementation status (Track 1)
+
+Done in Rust inside the `ac-xfl` and `ac-render` crates, from the public SWF
+File Format Specification and Next2Flash's observable behaviour (MIT notice kept
+in `flare/sources/THIRD-PARTY-NOTICES.md`; NFlare, which is GPL-3, was not
+consulted). No SWF shape/tag code is copied from Python.
+
+| Feature | Done | File | Test |
+|---|---|---|---|
+| SWF character-id preservation (ids stored on import in `BitmapAsset::swf_char_id` / `Document::swf_char_ids`, reused by the writer, fresh ids above the max, never colliding, 0 reserved) | yes | `common/flash/ac_swf.rs` (`CharIds`), `ac_swf_read.rs`, `ac_swf_write.rs`; model fields in `flarelib/{bitmap,model}.rs`; saved in `.acx` by `common/tsystem/ac_package.rs` | `ac_swf_tests.rs`: `export_reuses_remembered_character_ids`, `fresh_ids_are_above_the_maximum_and_unique`, `duplicate_and_missing_ids_never_collide`, `import_export_import_keeps_ids`; `ac_swf.rs`: `ids_*` |
+| Minimal SWF tag writer (DefineShape3, DefineBitsLossless2/JPEG2/JPEG3, DefineSprite, PlaceObject2, RemoveObject2, FrameLabel, ShowFrame, End; CWS/zlib) | yes | `ac_swf.rs`, `ac_swf_write.rs`, CLI `flare-cli swf` | `multi_frame_timeline_moves_and_removes`, `bitmap_fill_and_stroke_survive_export`, `curves_and_cubics_export_as_quadratics_and_return`, `container_roundtrip_both_compressions` |
+| SWF reader for the above (+ DefineBits, Lossless v1, shapes 1-4, sprites, timeline) | yes | `ac_swf_read.rs` | `imported_sprite_keeps_children_and_placement`, `jpeg3_alpha_and_8bit_lossless_import`, `lossless_pixels_round_trip_through_swf` |
+| Bitmap pass-through (original JPEG/PNG/GIF/lossless/JPEG3 bytes kept in `BitmapAsset::original`, written back byte-identical while the pixels are unedited; an edit invalidates it via a pixel hash) | yes | `flarelib/bitmap.rs`, `ac_swf_write.rs`, `ac_package.rs` | `jpeg_png_and_lossless_bitmaps_are_written_back_byte_identical`, `edited_bitmap_is_reencoded_not_passed_through` |
+| SWF font (DefineFont2/3) ↔ TrueType, pure Rust | yes (standalone; not yet embedded as a font in exported SWFs, no text import/export) | `ac_swf_font.rs`, CLI `flare-cli swf-font` | `define_font3_round_trip`, `swf_font_to_ttf_is_a_valid_font`, `ttf_checksum_adjustment_is_consistent`, `ttf_to_define_font3_and_back_round_trip` |
+| Texture atlas (MaxRects, optional rotation, padding, power of two) + `flare-cli atlas` (PNG + JSON) | yes | `common/tvrender/ac_formats.rs`, `flareqt/ac_cli_main.rs` | `common/tvrender/tests/atlas.rs` |
+
+Not done / known limits: text, buttons, gradients, filters, blend modes,
+sounds and ActionScript are not written or read by the Rust SWF code (each is
+reported as a warning; the AS3 sidecar path above is unchanged); graphic-symbol
+playback options are exported as looping sprites; ZWS (LZMA) SWFs are refused;
+mask/guide layers are skipped; a DefineBitsJPEG (tag 6) is passed through as
+the spliced JPEG, not as a tag-6 record. The output has been checked only by
+this crate's own reader (no Flash Player / Ruffle in the build sandbox); the
+generated TrueType was checked with FreeType (`fc-scan`).

@@ -460,9 +460,7 @@ set(SOURCES
     layoutUtils.cpp
 # Tracker file
     dummyprocessor.cpp
-    metnum.cpp
     ObjectTracker.cpp
-    predict3d.cpp
 )
 
 if(PLATFORM EQUAL 64)
@@ -922,3 +920,5 @@ exec \$FLARE_BASE/bin/Flare \"\$@\"
     )
 
 endif()
+# TRandom (trandom.h) is a header forwarder into Rust.
+target_link_libraries(Flare flare_formats)

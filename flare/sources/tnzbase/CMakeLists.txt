@@ -65,9 +65,7 @@ set(HEADERS ${MOC_HEADERS}
 )
 
 set(SOURCES
-    permissionsmanager.cpp
     stringtable.cpp
-    ../common/tparam/tcubicbezier.cpp
     ../common/tparam/tdoublekeyframe.cpp
     ../common/tparam/tdoubleparam.cpp
     ../common/tparam/tdoubleparamfile.cpp
@@ -209,3 +207,4 @@ elseif(BUILD_ENV_UNIXLIKE)
 endif()
 
 target_link_libraries(tnzbase Qt5::Core Qt5::Gui ${EXTRA_LIBS})
+target_link_libraries(tnzbase flare_formats)

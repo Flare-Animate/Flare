@@ -1,0 +1,42 @@
+[package]
+name = "ac-app"
+description = "Flare desktop editor (egui)"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+build = "build.rs"
+
+[[bin]]
+name = "flare"
+path = "ac_app_main.rs"
+
+[features]
+default = ["audio"]
+# Sound playback through the system output (needs ALSA headers on Linux: libasound2-dev).
+audio = ["ac-audio/playback"]
+
+[dependencies]
+ac-audio.workspace = true
+ac-core.workspace = true
+ac-render.workspace = true
+ac-script.workspace = true
+ac-xfl.workspace = true
+ac-package.workspace = true
+tiny-skia.workspace = true
+eframe = { version = "=0.36.2", default-features = false, features = ["default_fonts", "wgpu", "x11", "wayland"] }
+rfd = { version = "0.15", default-features = false, features = ["xdg-portal", "tokio"] }
+dirs = "5"
+image = { version = "0.25", default-features = false, features = ["png", "jpeg", "gif", "bmp"] }
+usvg = "0.44"
+# draws Flare's tool icons (SVG) into textures
+resvg = { version = "0.44", default-features = false }
+# PSD import (MIT/Apache-2.0)
+psd = "0.3"
+# Swatches: Photoshop .aco and Adobe Swatch Exchange .ase (PhotoCraft, MIT/Apache-2.0)
+photocraft-psd.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+
+[build-dependencies]
+winresource = "0.1"

@@ -109,10 +109,9 @@ endif()
 option(WITH_SYSTEM_LZO "Use the system LZO library instead of 'thirdparty'" ${_init_SYSTEM_LZO})
 option(WITH_SYSTEM_SUPERLU "Use the system SuperLU library instead of 'thirdparty'" ${_init_SYSTEM_SUPERLU})
 option(WITH_CANON "Build with Canon DSLR support - Requires Canon SDK" OFF)
-option(FLARE_WITH_RUST "Build optional Rust backend (flare/sources/Cargo.toml, needs cargo)" OFF)
-if(FLARE_WITH_RUST)
-    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/rust ${CMAKE_BINARY_DIR}/flare_rust)
-endif()
+# The Rust backend (flare_formats) is required: sound/tnzcore/tnzbase link its
+# symbols. Import it here, before any add_subdirectory that links it.
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/FlareFormats.cmake)
 option(WITH_TRANSLATION "Generate translation projects as well" ON)
 option(WITH_WINTAB "(Windows only) Build with customized Qt with WinTab support. https://github.com/shun-iwasawa/qt5/releases/tag/v5.15.2_wintab" OFF)
 

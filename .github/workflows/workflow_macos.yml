@@ -296,6 +296,9 @@ jobs:
             echo "--- ldd / otool -L output (direct dependencies) ---" | tee -a "$SMOKE_LOG"
             otool -L "$APP_BINARY" 2>&1 | tee -a "$SMOKE_LOG"
             echo "" | tee -a "$SMOKE_LOG"
+            echo "--- LC_RPATH entries (only @-relative ones may remain) ---" | tee -a "$SMOKE_LOG"
+            otool -l "$APP_BINARY" 2>&1 | awk '/cmd LC_RPATH/ { getline; getline; print "  " $2 }' | tee -a "$SMOKE_LOG"
+            echo "" | tee -a "$SMOKE_LOG"
 
             # For the main executable both @executable_path and @loader_path
             # resolve to its own directory, so those CAN be checked — the old
@@ -357,7 +360,10 @@ jobs:
             export QT_QPA_PLATFORM=offscreen
             export QT_OPENGL=software
             export LIBGL_ALWAYS_SOFTWARE=1
-            "$APP_BINARY" >>"$SMOKE_LOG" 2>&1 &
+            # DYLD_PRINT_LIBRARIES lists every image dyld loads, so a second
+            # (Homebrew) copy of a bundled library shows up as evidence.
+            RAW_LOG="$(dirname "$SMOKE_LOG")/smoke_raw.log"
+            DYLD_PRINT_LIBRARIES=1 "$APP_BINARY" >"$RAW_LOG" 2>&1 &
             APP_PID=$!
             ( sleep 8
               kill -TERM "$APP_PID" 2>/dev/null
@@ -372,12 +378,25 @@ jobs:
             kill "$WATCHDOG_PID" 2>/dev/null || true
             wait "$WATCHDOG_PID" 2>/dev/null || true
 
+            grep -v '^dyld' "$RAW_LOG" >>"$SMOKE_LOG" || true
+            HOST_IMAGES=$(grep '^dyld' "$RAW_LOG" | grep -E ' (/usr/local|/opt/homebrew)/' | sort -u || true)
+            if [ -n "$HOST_IMAGES" ]; then
+              echo "SMOKE TEST FAIL: images loaded from the build machine's Homebrew, not the bundle:" | tee -a "$SMOKE_LOG"
+              echo "$HOST_IMAGES" | head -n 40 | tee -a "$SMOKE_LOG"
+              exit 1
+            fi
+
             # 143 = SIGTERM, 137 = SIGKILL: the watchdog fired, so the app was
             # still running at the end of the window.
             case "$EXIT" in
               143|137) echo "SMOKE TEST PASS: Flare ran 8+ seconds without crashing" | tee -a "$SMOKE_LOG" ;;
               0)       echo "SMOKE TEST PASS: Flare exited cleanly" | tee -a "$SMOKE_LOG" ;;
               *)       echo "SMOKE TEST FAIL: Flare exited with code $EXIT" | tee -a "$SMOKE_LOG"
+                       echo "--- last 80 lines of app output ---"
+                       tail -n 80 "$SMOKE_LOG" || true
+                       for f in "$HOME/Library/Logs/DiagnosticReports"/Flare*.ips "$HOME"/Flare*/startup.log "$HOME/Library/Application Support"/Flare*/startup.log; do
+                         [ -f "$f" ] && { echo "--- $f ---"; head -c 6000 "$f"; }
+                       done
                        exit 1 ;;
             esac
           fi

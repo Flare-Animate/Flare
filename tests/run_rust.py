@@ -12,6 +12,7 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.abspath(os.path.join(HERE, ".."))
 MANIFEST = os.path.join(REPO, "flare", "sources", "Cargo.toml")
+LOCK = os.path.join(REPO, "flare", "sources", "Cargo.lock")
 
 
 def find_cargo():
@@ -29,13 +30,19 @@ def main():
     if not cargo:
         print("SKIP: cargo not found; Rust tests not run (not counted as a pass)")
         return 0
-    # The workspace also contains flare/rust/studio and flare/rust/core, which
-    # need git dependencies (AnimationCraft) that --offline cannot fetch; they are
-    # covered by CI with network, not by this suite. Cargo resolves the whole
+    # The workspace also contains toonzqt (egui/wgpu) and flarelib, which
+    # need crates --offline may not have cached; they are covered by the
+    # full workspace run, not by this suite. Cargo resolves the whole
     # workspace even for -p, so temporarily strip those members (restored in
     # finally) and test only the offline-capable crates.
     with open(MANIFEST, encoding="utf-8") as f:
         orig = f.read()
+    # cargo rewrites Cargo.lock to match the stripped member list below; snapshot
+    # it too so the suite leaves the working tree clean.
+    lock_orig = None
+    if os.path.isfile(LOCK):
+        with open(LOCK, "rb") as f:
+            lock_orig = f.read()
     lines = []
     skip_patch = False
     for line in orig.splitlines(keepends=True):
@@ -48,9 +55,11 @@ def main():
                 skip_patch = False
             else:
                 continue
+        if s.startswith('"toonzqt"'):
+            continue
         if line.strip().startswith("members ="):
-            line = line.replace(', "flare/rust/studio"', "").replace(
-                ', "flare/rust/core"', "")
+            line = line.replace(', "toonzqt"', "").replace(
+                ', "flarelib"', "")
         lines.append(line)
     stripped = "".join(lines)
     with open(MANIFEST, "w", encoding="utf-8") as f:
@@ -62,6 +71,9 @@ def main():
     finally:
         with open(MANIFEST, "w", encoding="utf-8") as f:
             f.write(orig)
+        if lock_orig is not None:
+            with open(LOCK, "wb") as f:
+                f.write(lock_orig)
     out = (r.stdout or "") + (r.stderr or "")
     fails = [l for l in out.splitlines() if "test result: FAILED" in l or l.startswith("error")]
     passed = sum(int(l.split()[3]) for l in out.splitlines()

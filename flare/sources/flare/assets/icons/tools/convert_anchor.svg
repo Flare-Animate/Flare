@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20">
+<!-- corner point between two segments, with a handle -->
+<path d="M2 17 L10 5 L18 17" fill="none" stroke="black" stroke-width="2" stroke-linejoin="miter"/>
+<rect x="8" y="3" width="4" height="4" fill="black"/>
+<path d="M3 5 L17 5" stroke="black" stroke-width="1.2" stroke-dasharray="1.6 1.2"/>
+<circle cx="3" cy="5" r="1.6" fill="black"/>
+<circle cx="17" cy="5" r="1.6" fill="black"/>
+</svg>

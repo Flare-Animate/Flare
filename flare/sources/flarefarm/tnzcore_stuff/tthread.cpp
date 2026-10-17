@@ -44,7 +44,7 @@ public:
 #pragma warning(disable : 4290)
 #endif
 
-  static void milestone() throw(TThread::Interrupt);
+  static void milestone();
 
 #if defined(_MSC_VER) && (_MSC_VER == 1200)
 #pragma warning(default : 4290)
@@ -244,7 +244,7 @@ void Thread::cancel() {
 #pragma warning(disable : 4290)
 #endif
 
-void Thread::milestone() throw(TThread::Interrupt) {
+void Thread::milestone() {
   boost::mutex::scoped_lock sl(Thread::Imp::m_mutex);
   Thread::Imp::Key key = *Thread::Imp::m_key.get();
   Thread::Imp::m_state.find(key.m_id);
@@ -282,7 +282,7 @@ void ThreadGroup::joinAll() { m_imp->m_boostThreadGroup.join_all(); }
 #pragma warning(disable : 4290)
 #endif
 
-void TThread::milestone() throw(TThread::Interrupt) { Thread::milestone(); }
+void TThread::milestone() { Thread::milestone(); }
 
 #if defined(_MSC_VER) && (_MSC_VER == 1200)
 #pragma warning(default : 4290)

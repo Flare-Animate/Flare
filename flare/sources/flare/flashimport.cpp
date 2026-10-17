@@ -342,8 +342,14 @@ static void importXFLScene(ToonzScene *scene, TXsheet *xsheet,
                     QString::fromStdString(el.libraryItemName), nullptr);
                 if (!sl) continue;
                 TXshCell cell(sl, TFrameId(1));  // PNG = single frame, id=1
-                for (int r = frame.index; r < frame.index + frame.duration; ++r)
-                    xsheet->setCell(r, col, cell);
+                // Corrupt documents can carry negative or absurd spans; an
+                // unbounded loop here allocates until the process dies.
+                const int kMaxRows = 100000;
+                const long long r0 = std::max(0, (int)frame.index);
+                const long long r1 = std::min<long long>(
+                    r0 + std::max(0, (int)frame.duration), kMaxRows);
+                for (long long r = r0; r < r1; ++r)
+                    xsheet->setCell((int)r, col, cell);
                 break;
             }
         }
@@ -365,9 +371,27 @@ class ImportFlashVectorCommand final : public MenuItemHandler {
 public:
     ImportFlashVectorCommand() : MenuItemHandler(MI_ImportFlashVector) {}
     void execute() override;
+    void executeImpl();
 } g_importFlashVectorCommand;
 
+// Any exception escaping a menu command ends in std::terminate (SIGABRT, or an
+// unhandled "C++ EH exception" on Windows) and takes the unsaved scene with it
+// (issue #117: crash ~1% into a FLA/SWF import). Report it instead.
 void ImportFlashVectorCommand::execute() {
+    try {
+        executeImpl();
+    } catch (const TException &e) {
+        DVGui::error(QObject::tr("Flash import failed: %1")
+                         .arg(QString::fromStdWString(e.getMessage())));
+    } catch (const std::exception &e) {
+        DVGui::error(QObject::tr("Flash import failed: %1").arg(e.what()));
+    } catch (...) {
+        DVGui::error(QObject::tr("Flash import failed with an unknown error. "
+                                 "The file may be corrupt or unsupported."));
+    }
+}
+
+void ImportFlashVectorCommand::executeImpl() {
     TApp *app = TApp::instance();
     TSceneHandle *sceneHandle = app->getCurrentScene();
     ToonzScene *scene = sceneHandle->getScene();
@@ -393,6 +417,11 @@ void ImportFlashVectorCommand::execute() {
 
     TFilePath outDir = makeTempImportDir("flare_flash_import_");
     QString   outPath = outDir.getQString();
+    if (!QFileInfo(outPath).isDir()) {
+        DVGui::error(QObject::tr("Could not create a temporary import folder: %1")
+                         .arg(outPath));
+        return;
+    }
     QString   srcPath = fp.getQString();
     QString   ext     = QString::fromStdString(fp.getType()).toLower();
     QStringList exported;

@@ -20,6 +20,7 @@ set(HEADERS
     igs_color_rgb_hsv.h
     igs_density.h
     igs_fog.h
+    igs_gauss_distribution.h
     igs_gaussian_blur.h
     igs_hls_add.h
     igs_hls_adjust.h
@@ -125,7 +126,6 @@ set(SOURCES
     gradients.cpp
     hsvkeyfx.cpp
     hsvscalefx.cpp
-    hsvutil.cpp
     kaleido.cpp
     linearwavefx.cpp
     localblurfx.cpp
@@ -170,45 +170,24 @@ set(SOURCES
     warp.cpp
     warpfx.cpp
     igs_attenuation_distribution.cpp
-    igs_color_blend.cpp
-    igs_color_rgb_hls.cpp
-    igs_color_rgb_hsv.cpp
-    igs_density.cpp
     igs_fog.cpp
-    igs_gauss_distribution.cpp
     igs_gaussian_blur.cpp
-    igs_hls_add.cpp
-    igs_hls_adjust.cpp
-    igs_hls_noise.cpp
     igs_hls_noise_in_camera.cpp
-    igs_hsv_add.cpp
-    igs_hsv_adjust.cpp
-    igs_hsv_noise.cpp
     igs_hsv_noise_in_camera.cpp
-    igs_level_auto.cpp
-    igs_level_auto_in_camera.cpp
-    igs_levels.cpp
     igs_line_blur.cpp
-    igs_math_random.cpp
     igs_maxmin.cpp
     igs_maxmin_lens_matrix.cpp
     igs_maxmin_slrender.cpp
-    igs_median_filter.cpp
-    igs_median_filter_smooth.cpp
     igs_motion_blur.cpp
     igs_motion_wind.cpp
     igs_motion_wind_pixel.cpp
     igs_motion_wind_table.cpp
-    igs_negate.cpp
-    igs_perlin_noise.cpp
     igs_radial_blur.cpp
     igs_resource_msg_from_err.cpp
     igs_resource_multithread.cpp
     igs_resource_sleep.cpp
     igs_resource_thread.cpp
     igs_rotate_blur.cpp
-    igs_warp_hori.cpp
-    igs_warp_vert.cpp
     ino_blend_add.cpp
     ino_blend_color_burn.cpp
     ino_blend_color_dodge.cpp
@@ -291,7 +270,6 @@ set(SOURCES
     iwa_motionflowfx.cpp
     iwa_smootherfx.cpp
     naru_lazybrush.cpp
-    naru_maxflow.cpp
 )
 
 if(OpenCV_FOUND)
@@ -348,6 +326,14 @@ endif()
 _find_flare_library(TNZLIBS "tnzcore;tnzbase;flarelib")
 
 target_link_libraries(tnzstdfx Qt5::Core Qt5::Gui Qt5::OpenGL ${GL_LIB} ${GLEW_LIB} ${TNZLIBS} ${PTHREAD_LIBRARY})
+# igs_* kernels implemented in Rust (flare_formats), headers are inline
+# forwarders: igs_color_rgb_*, igs_math_random, igs_negate, igs_density,
+# igs_gauss_distribution, igs_warp_{hori,vert}, igs_{hls,hsv}_{adjust,add,noise},
+# igs_level_auto, igs_level_auto_in_camera, igs_levels,
+# igs_median_filter, igs_median_filter_smooth.
+# naru_maxflow.rs implements the boykov-kolmogorov min-cut used by
+# naru_lazybrush.cpp (naru_graph.h forwards to the C ABI).
+target_link_libraries(tnzstdfx flare_formats)
 
 if(OpenCV_FOUND)
     include_directories(SYSTEM ${OpenCV_INCLUDE_DIRS})

@@ -145,6 +145,8 @@ DVAPI TFilePath getSystemVarPathValue(std::string varName);
 DVAPI TFilePathSet getSystemVarPathSetValue(std::string varName);
 
 DVAPI TFilePath getStuffDir();
+//! Human-readable trace of how the stuff dir was (not) found; for diagnostics.
+DVAPI std::string getStuffDirTrace();
 DVAPI TFilePath getConfigDir();
 // Upstream: used when TEnv resolves its working directory on first
 // run. Tahoma2D declares it, Flare does not, and the synced

@@ -3,13 +3,23 @@
 #ifndef igs_median_filter_smooth_h
 #define igs_median_filter_smooth_h
 
-#ifndef IGS_MEDIAN_FILTER_SMOOTH_EXPORT
-#define IGS_MEDIAN_FILTER_SMOOTH_EXPORT
-#endif
+#include <stdexcept> /* std::domain_error, std::invalid_argument */
+
+// Implemented in igs_median_filter_smooth.rs (flare_formats); returns 0, 1 (bad channels),
+// 2 (bad bits) -> std::domain_error, or 3 (null/overlapping buffers, bad
+// geometry, bad radius) -> std::invalid_argument. `in_image` and `out_image`
+// must not overlap.
+extern "C" {
+int flare_igs_median_filter_smooth_convert(const unsigned char *in_image, unsigned char *out_image,
+          int height, int width, int channels, int bits,
+          const unsigned char *ref, int ref_bits, int ref_mode, int zz,
+          double radius, int out_side_type);
+}
 
 namespace igs {
 namespace median_filter_smooth {
-IGS_MEDIAN_FILTER_SMOOTH_EXPORT void convert(
+// (header-only now: IGS_MEDIAN_FILTER_SMOOTH_EXPORT is gone, nothing to export)
+inline void convert(
     const unsigned char *in_image, unsigned char *out_image
 
     ,
@@ -29,11 +39,23 @@ IGS_MEDIAN_FILTER_SMOOTH_EXPORT void convert(
     ,
     const int out_side_type /* =0	0(Spread),1(Flip),2(bk),3(Repeat) */
     /* 2013-11-11現在0(Spread)のみ使用 */
-    );
+) {
+  switch (flare_igs_median_filter_smooth_convert(in_image, out_image, height, width, channels, bits, ref,
+                ref_bits, ref_mode, zz, radius, out_side_type)) {
+  case 0:
+    return;
+  case 1:
+    throw std::domain_error("Bad channels,Not rgba/rgb/grayscale");
+  case 2:
+    throw std::domain_error("Bad bits,Not uchar/ushort");
+  default:
+    throw std::invalid_argument("igs::median_filter_smooth::convert: bad image/radius");
+  }
+}
 /*
         2013-11-13 igs::median_filter::convert(-)に比べて11倍遅い
   */
-}
-}
+}  // namespace median_filter_smooth
+}  // namespace igs
 
 #endif /* !igs_median_filter_smooth_h */

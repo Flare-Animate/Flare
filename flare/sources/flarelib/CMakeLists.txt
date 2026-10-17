@@ -297,9 +297,6 @@ theme.cpp
     xshhandlemanager.cpp
     vectorizerparameters.cpp
     sandor_fxs/blend.cpp
-    sandor_fxs/BlurMatrix.cpp
-    sandor_fxs/CIL.cpp
-    sandor_fxs/CallCircle.cpp
     sandor_fxs/CallParam.cpp
     sandor_fxs/EraseContour.cpp
     sandor_fxs/InputParam.cpp
@@ -427,3 +424,6 @@ elseif(BUILD_ENV_UNIXLIKE)
     target_link_libraries(flarelib Qt5::Core Qt5::Gui Qt5::OpenGL Qt5::Script Qt5::Multimedia ${GLUT_LIB} ${GL_LIB} ${GLEW_LIB} ${EXTRA_LIBS} $<$<BOOL:${ENABLE_MYPaint}>:${MYPAINT_LIB_LDFLAGS}>)
 endif()
 
+
+# TRandom (trandom.h) is a header forwarder into Rust.
+target_link_libraries(flarelib flare_formats)

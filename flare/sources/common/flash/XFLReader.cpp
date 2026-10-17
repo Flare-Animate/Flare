@@ -299,6 +299,10 @@ bool Reader::parseDOMDocument(const std::string &xmlContent) {
                 frame.index    = attrs.value("index").toInt();
                 frame.duration = attrs.hasAttribute("duration")
                                     ? attrs.value("duration").toInt() : 1;
+                // corrupt documents: keep spans sane (negative / absurd values)
+                if (frame.index < 0) frame.index = 0;
+                if (frame.duration < 1) frame.duration = 1;
+                if (frame.duration > 1000000) frame.duration = 1000000;
                 frame.keyFrame = (attrs.value("keyFrame").toString() == "true");
                 if (attrs.hasAttribute("name"))
                     frame.name = attrs.value("name").toString().toStdString();

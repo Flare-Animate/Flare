@@ -153,9 +153,7 @@ set(SOURCES
     ../common/tcore/tdebugmessage.cpp
     ../common/tcore/texception.cpp
     ../common/tcore/threadmessage.cpp
-    ../common/tcore/tmathutil.cpp
     ../common/tproperty.cpp
-    ../common/tcore/trandom.cpp
     ../common/tcore/tsmartpointer.cpp
     ../common/tcore/tstopwatch.cpp
     ../common/tcore/tstring.cpp
@@ -163,7 +161,6 @@ set(SOURCES
     ../common/tcore/tundo.cpp
     ../common/tcore/tfunctorinvoker.cpp
     ../common/tcolor/tcolorfunctions.cpp
-    ../common/tcolor/tcolorvalue.cpp
     ../common/tcolor/tpixel.cpp
     ../common/tcolor/tpixelutils.cpp
     ../common/tcolor/tspectrum.cpp
@@ -253,7 +250,6 @@ set(SOURCES
     ../common/trop/bbox.cpp
     ../common/trop/brush.cpp
     ../common/trop/quickput.cpp
-    ../common/trop/runsmap.cpp
     ../common/trop/tantialias.cpp
     ../common/trop/tblur.cpp
     ../common/trop/tcheckboard.cpp
@@ -421,9 +417,7 @@ target_link_libraries(tnzcore
     ${GL_LIB} ${GLUT_LIB} ${QT_LIB} ${Z_LIB} ${JPEG_LIB} ${LZ4_LIB}
     ${EXTRA_LIBS}
 )
-if(TARGET flare_formats)
-    target_link_libraries(tnzcore flare_formats)
-endif()
+target_link_libraries(tnzcore flare_formats)
 
 # The common/flash and common/moho headers guard their API with TFLASH_EXPORTS
 # to pick dllexport vs dllimport. Nothing ever defined it, so those modules were

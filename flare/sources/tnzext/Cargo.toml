@@ -1,0 +1,26 @@
+[package]
+name = "minnamate-editor"
+description = "minnamate editor (imported): egui XFL animation editor"
+version = "0.1.0"
+edition = "2024"
+license = "MIT OR Apache-2.0"
+publish = false
+autobins = false
+autolib = false
+autotests = false
+autoexamples = false
+
+[[bin]]
+name = "minnamate"
+path = "minnamate_editor_main.rs"
+
+[dependencies]
+minnamate-core = { path = "../tnztools" }
+# No "links" feature: its webbrowser crate needs shlwapi, which the bundled MinGW linker lacks.
+eframe = { version = "0.36", default-features = false, features = ["accesskit", "default_fonts", "wgpu", "wayland", "x11"] }
+rfd = "0.17"
+# Sound output: DirectSound on Windows, ALSA on Linux, Core Audio on macOS.
+tinyaudio = "2"
+
+[dev-dependencies]
+egui_kittest = { version = "0.36", features = ["wgpu", "snapshot", "eframe"] }

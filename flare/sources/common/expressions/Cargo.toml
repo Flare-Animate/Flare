@@ -1,0 +1,18 @@
+[package]
+name = "ac-script"
+description = "Flare scripting: sandboxed frame scripts (JS) and authoring scripts in JS, Python or any language"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lib]
+name = "ac_script"
+path = "ac_script.rs"
+
+[dependencies]
+ac-core.workspace = true
+ac-render.workspace = true
+ac-package.workspace = true
+serde_json.workspace = true
+rquickjs = "0.14"
+serde.workspace = true

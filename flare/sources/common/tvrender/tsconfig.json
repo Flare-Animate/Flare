@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "target": "ES2017",
+    "module": "none",
+    "ignoreDeprecations": "6.0",
+    "lib": ["ES2017", "DOM"],
+    "strict": true,
+    "alwaysStrict": false,
+    "noEmitOnError": true,
+    "removeComments": false,
+    "newLine": "lf",
+    "types": []
+  },
+  "files": ["html5_runtime.ts"]
+}

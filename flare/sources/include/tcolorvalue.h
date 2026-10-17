@@ -5,33 +5,46 @@
 
 #include "tpixel.h"
 
-#undef DVAPI
-#undef DVVAR
-#ifdef TCOLOR_EXPORTS
-#define DVAPI DV_EXPORT_API
-#define DVVAR DV_EXPORT_VAR
-#else
-#define DVAPI DV_IMPORT_API
-#define DVVAR DV_IMPORT_VAR
-#endif
+class TColorValue;
 
-class DVAPI TColorValue {
+// Implemented in tcolorvalue.rs (flare_formats); TColorValue is header-only and
+// forwards `this` (four doubles: r, g, b, m -- same layout as the Rust struct).
+extern "C" {
+void flare_colorvalue_get_hsv(const TColorValue *cv, int *h, int *s, int *v);
+void flare_colorvalue_get_hls(const TColorValue *cv, double *h, double *l,
+                              double *s);
+void flare_colorvalue_set_hsv(TColorValue *cv, int h, int s, int v);
+void flare_colorvalue_get_rgb(const TColorValue *cv, int *r, int *g, int *b);
+int flare_colorvalue_get_pixel_m(const TColorValue *cv);
+void flare_colorvalue_set_rgb(TColorValue *cv, int r, int g, int b);
+void flare_colorvalue_set_pixel(TColorValue *cv, unsigned char r,
+                                unsigned char g, unsigned char b,
+                                unsigned char m);
+}
+
+class TColorValue {
   double m_r, m_g, m_b, m_m;
 
 public:
   TColorValue() : m_r(0), m_g(0), m_b(0), m_m(1){};
   TColorValue(const TPixel32 &src) { setPixel(src); }
 
-  void getHsv(int &h, int &s, int &v) const;
+  void getHsv(int &h, int &s, int &v) const {
+    flare_colorvalue_get_hsv(this, &h, &s, &v);
+  }
   void getHsv(int hsv[3]) const { getHsv(hsv[0], hsv[1], hsv[2]); }
 
   void getHls(double hls[3]) const { getHls(hls[0], hls[1], hls[2]); }
-  void getHls(double &h, double &l, double &s) const;
+  void getHls(double &h, double &l, double &s) const {
+    flare_colorvalue_get_hls(this, &h, &l, &s);
+  }
 
-  void setHsv(int h, int s, int v);
+  void setHsv(int h, int s, int v) { flare_colorvalue_set_hsv(this, h, s, v); }
   void setHsv(int hsv[3]) { setHsv(hsv[0], hsv[1], hsv[2]); }
 
-  void getRgb(int &r, int &g, int &b) const;
+  void getRgb(int &r, int &g, int &b) const {
+    flare_colorvalue_get_rgb(this, &r, &g, &b);
+  }
   /*Sposto in tcolorvalue.cpp
 {
 r = (int)(m_r*255+0.5);
@@ -42,7 +55,11 @@ b = (int)(m_b*255+0.5);
 
   void getRgb(int rgb[3]) const { getRgb(rgb[0], rgb[1], rgb[2]); }
 
-  TPixel32 getPixel() const;
+  TPixel32 getPixel() const {
+    int r, g, b;
+    getRgb(r, g, b);
+    return TPixel32(r, g, b, flare_colorvalue_get_pixel_m(this));
+  }
   /*Sposto in tcolorvalue.cpp
 {
 int r,g,b; getRgb(r,g,b);
@@ -50,7 +67,7 @@ return TPixel32(r,g,b,(int)(m_m*255.0+0.5));
 }
 */
 
-  void setRgb(int r, int g, int b);
+  void setRgb(int r, int g, int b) { flare_colorvalue_set_rgb(this, r, g, b); }
   /*Sposto in tcolorvalue.cpp
 {
 m_r = r/255.0;
@@ -61,7 +78,9 @@ m_b = b/255.0;
 
   void setRgb(int rgb[3]) { setRgb(rgb[0], rgb[1], rgb[2]); }
 
-  void setPixel(const TPixel32 &src);
+  void setPixel(const TPixel32 &src) {
+    flare_colorvalue_set_pixel(this, src.r, src.g, src.b, src.m);
+  }
   /*Sposto in tcolorvalue.cpp
 {
 setRgb(src.r, src.g,src.b);

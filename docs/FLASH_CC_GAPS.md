@@ -31,7 +31,7 @@ Implementation snapshots inspected:
 | Source | Revision | What it establishes |
 |---|---|---|
 | Flare | `cfae5de41` + current working tree | Reachable Studio commands, panels, document validation and rendering |
-| AnimationCraft | `e3aadad1c9cc6451f39746226123fd1021fd889a` | ac-render is pinned; ac-core is copied locally with a Cargo patch and backward-compatible layer row height; see `flare/sources/flare/rust/core/ORIGIN.md` |
+| AnimationCraft | `e3aadad1c9cc6451f39746226123fd1021fd889a` | ac-render is pinned; ac-core is copied locally with a Cargo patch and backward-compatible layer row height; see `flare/sources/flarelib/ORIGIN.md` |
 | PhotoCraft | `56b192453e04994666d6532efb43a03d4f1d494f` | Raster/vector algorithms and transaction patterns |
 | VectorCraft | `2ac3ba2b866ad9d34b2252dd8024f73e34f4b2b8` | Vector gesture, path editing, snapping and boolean implementations |
 
@@ -159,7 +159,7 @@ review plus relevant functional/geometry checks. P1 remains open; Flex/SWF P7/P8
 
 ## Module map and pairings
 
-Paths beginning `Studio/` mean `flare/sources/flare/rust/studio/` in this repo.
+Paths beginning `Studio/` mean `flare/sources/toonzqt/` in this repo.
 `AC/`, `VC/`, and `PC/` mean sibling checkouts AnimationCraft, VectorCraft, and
 PhotoCraft. Dependencies below describe implementation order, not separate apps.
 

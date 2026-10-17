@@ -27,7 +27,7 @@ Missing bitmaps fall back to an empty vector level so the column still exists.
 Tested by `tests/native/moho_plan_tests.cpp` (flatten, bone inherit, switch
 gating, keyless switch).
 
-## Rust parser (`flare/sources/common/moho/rust/moho.rs`)
+## Rust parser (`flare/sources/common/moho/moho.rs`)
 
 With `-DFLARE_WITH_RUST=ON` the import dialog also reports a parse by the Rust
 module (`flare_moho_parse` / `flare_moho_free`, C ABI in `flare_formats.h`).
