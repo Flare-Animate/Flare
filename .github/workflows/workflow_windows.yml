@@ -258,7 +258,7 @@ jobs:
       # and the compiler output was nowhere to be found.
       - name: Archive build logs
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: build-logs-windows
           path: |
@@ -268,7 +268,7 @@ jobs:
 
       - name: Archive build logs (after build)
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: build-logs-windows-postbuild
           path: |
@@ -296,7 +296,7 @@ jobs:
 
       - name: Upload build logs (always)
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: build-logs-windows-final
           path: |
@@ -594,7 +594,7 @@ jobs:
           & "${env:ProgramFiles(x86)}\NSIS\makensis.exe" "/XOutFile $PWD\Flare-Setup.exe" /DVERSION=${{ github.run_number }} "/DSRCDIR=$PWD\FlarePortable" packaging\windows\installer.nsi
 
       - name: Upload installer
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: Flare-Setup
           # installer.nsi has its own OutFile; /XOutFile does not always override it
@@ -605,7 +605,7 @@ jobs:
 
       - name: Upload smoke test log
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: smoke-test-windows
           path: smoke_test.log
@@ -613,7 +613,7 @@ jobs:
 
 
       - name: Upload Flare Portable
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: Flare-Windows-Portable
           path: FlarePortable/

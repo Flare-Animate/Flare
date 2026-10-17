@@ -65,7 +65,7 @@ jobs:
           python scripts/dep_skew_check.py
 
       - name: Upload script problems
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: repo-script-problems
           path: repo_script_problems.json
