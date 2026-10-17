@@ -365,7 +365,7 @@ jobs:
           if ($failed) { exit 1 }
 
       - name: Upload Windows portable
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: Flare-Windows-Portable-nightly
           path: FlarePortable/
@@ -382,7 +382,7 @@ jobs:
           & "${env:ProgramFiles(x86)}\NSIS\makensis.exe" "/XOutFile $PWD\Flare-Setup.exe" /DVERSION=${{ github.run_number }} "/DSRCDIR=$PWD\FlarePortable" packaging\windows\installer.nsi
 
       - name: Upload installer
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: Flare-Setup-nightly
           path: Flare-Setup.exe
@@ -390,7 +390,7 @@ jobs:
 
       - name: Upload smoke test log
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: smoke-test-windows-nightly
           path: smoke_test.log
@@ -573,14 +573,14 @@ jobs:
           esac
 
       - name: Upload Linux AppImage
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: Flare-Linux-nightly
           path: flare/build/Flare-Linux-nightly.tar.gz
           if-no-files-found: ignore
 
       - name: Upload standalone AppImage
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: Flare-Linux-AppImage
           path: Flare-x86_64.AppImage
@@ -588,7 +588,7 @@ jobs:
 
       - name: Upload smoke test log
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: smoke-test-linux-nightly
           path: flare/build/smoke_test.log
@@ -817,7 +817,7 @@ jobs:
 
       - name: Upload macOS DMG
         if: ${{ env.DMG != '' }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: Flare-macOS-nightly
           path: ${{ env.DMG }}
@@ -825,7 +825,7 @@ jobs:
 
       - name: Upload smoke test log
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: smoke-test-macos-nightly
           path: flare/build/smoke_test.log
