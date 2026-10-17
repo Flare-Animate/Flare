@@ -11,7 +11,7 @@ Goal: advance the Rust rewrite on Conversion-ft-animationCraft with every unit i
 | 4 | Unification plan, step 0 + 3 (mm_bridge) | sonnet | done; reviewed CHANGES -> silent-loss/dup-symbol findings fixed |
 | 5 | html5_runtime.js -> TypeScript | sonnet | done; reviewed OK; CI drift check added |
 | 6 | Batch 4 C++ ports (metnum, predict3d, CIL, CallCircle) | sonnet | done; reviewed APPROVE; lows fixed |
-| 7 | macOS smoke-test abort (SIGABRT, exit 134) | haiku triage, sonnet fix | cause: host LC_RPATH -> 2 copies of libomp/vtk/ffmpeg/opencv (OMP Error #15). Fix: strip non-@ rpaths from all Mach-O + dyld image check; reviewed APPROVE; awaiting CI |
+| 7 | macOS smoke-test abort (SIGABRT, exit 134) | haiku triage, sonnet fix | cause: host LC_RPATH -> 2 copies of libomp/vtk/ffmpeg/opencv (OMP Error #15). Fix: strip non-@ rpaths from all Mach-O + dyld image check; reviewed APPROVE; VERIFIED green on macOS+Windows+Linux (98bd964, b9e7fae) |
 | 8 | Merge plan step 2 (single html5 runtime) | sonnet | STOPPED by design: contracts incompatible, see UNIFICATION_PLAN.md s5; needs mm->AC_MOVIE lowering |
 | 9 | jsfl.js -> TypeScript | haiku | done; reviewed APPROVE; CI drift check added |
 
@@ -34,3 +34,6 @@ CI notification noise and repeated pushes burned the most; hold pushes until a r
 
 ## Verification before push
 flare_formats 254, minnamate-core all suites green, html5 runtime --check up to date. CI on the pushed head is the remaining gate (macOS smoke abort still open).
+
+## Close
+Branch renamed Conversion-ft-animationCraft -> Rust-Rewrite (PR #122 closed by the rename). Lesson: build* in .gitignore hid new build scripts; reviewers must read from git, not the working tree. Loop stopped at user request; next sprint awaits user instructions.
