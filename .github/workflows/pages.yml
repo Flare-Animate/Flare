@@ -24,7 +24,7 @@ jobs:
       # configure-pages sets up. Without this step the upload succeeds and the
       # deploy then fails, which is exactly what was happening: the build and
       # upload steps were green and only `actions/deploy-pages@v4` was red.
-      - uses: actions/configure-pages@v5
+      - uses: actions/configure-pages@v6
       - uses: actions/upload-pages-artifact@v5
         with: { path: tools/flash/webapp/dist }
       - id: d
