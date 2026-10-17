@@ -361,7 +361,7 @@ jobs:
 
     - name: Post build logs to PR
       if: ${{ github.event_name == 'pull_request' && always() }}
-      uses: actions/github-script@v7
+      uses: actions/github-script@v9
       env:
         MATRIX_COMPILER: ${{ matrix.compiler }}
       with:
