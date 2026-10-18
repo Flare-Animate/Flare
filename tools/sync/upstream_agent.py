@@ -29,7 +29,14 @@ from pathlib import Path
 from dataclasses import dataclass, field
 
 if sys.version_info < (3, 11):
-    sys.exit("upstream_agent.py requires Python 3.11+")
+    # Raise rather than sys.exit(): this module is imported by pytest during collection,
+    # and SystemExit there aborts the whole session (INTERNALERROR), hiding every other
+    # test in the run. ImportError is reportable by the caller; see tests/conftest.py,
+    # which skips collection under an older interpreter.
+    raise ImportError(
+        "upstream_agent.py requires Python 3.11+ (running %d.%d)"
+        % sys.version_info[:2]
+    )
 
 # ── repo root ─────────────────────────────────────────────────────────────────
 REPO_ROOT  = Path(__file__).resolve().parents[2]
