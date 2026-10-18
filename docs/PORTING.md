@@ -74,3 +74,38 @@ Batch 4 notes (`metnum`, `predict3d`, `CIL`, `CallCircle`, +18 tests):
 - `CallCircle` order of equal-distance offsets depended on `qsort`; it is now defined: stable sort of row-major generation order (y then x), which matches glibc 2.39 (0 mismatches) but may differ from old MSVC/macOS (unstable qsort) tie order. Pinned by a radius-1 unit test. The 5000 radius cap is kept (CCallCircle radius comes from the user-set `CallParam::m_thickness`, so no static bound on callers).
 - `CCIL` `atoi` now clamps to the `i32` range (old code truncated a saturated `long` to `int`); the old overflow was `strcpy` of the whole remaining list tail into a 100-byte buffer, so any list > 100 chars could overflow.
 - Skipped: `CallParam.cpp` (atof argv parsing + embeds two `CCIL`; wrapper would exceed the logic, strtod parity not worth it), `BlurMatrix.cpp` (`rand()`-driven createRandom and `vector<vector<SXYD>>` class graph), `PatternPosition.cpp` (rand(), SPOINT/SRECT vectors, CSTColSelPic templates), `namebuilder.cpp` (class hierarchy with `std::wstring` virtual interface; Windows-only invalid-name list; wrapper bigger than the logic).
+
+Batch 5 notes (`stdfx/igs_motion_wind_table`, `stdfx/igs_attenuation_distribution`, `stdfx/igs_motion_wind_pixel`, +14 tests):
+- The two files wave 4 rejected as "not worth bridging" are ported after all: `igs_attenuation_distribution` now returns flat `f64`/`i32` arrays allocated by Rust (`flare_igs_attenuation_free` frees them) and `igs_attenuation_distribution.h` rebuilds the old `vector<vector<double>>` + `vector<double*>` API inline, so `igs_fog.cpp` only changed its `#include` from `.cpp` to `.h`.
+- `igs_motion_wind_pixel` is a stateful class, so `igs_motion_wind_pixel.h` keeps the original constructor / `change()` / `clear()` API as an inline class over an opaque Rust handle (`flare_igs_motion_wind_pixel_new` / `_change` / `_clear` / `_free`). `igs_motion_wind.cpp` still owns the scanline walk; only the per-pixel decision moved to Rust.
+- `igs_motion_wind_table.h` was deleted: `table_size` / `make_table` are now an internal helper of the pixel port (`make_table_inplace`), with no remaining C++ caller. `igs_motion_wind.cpp` now includes `igs_ifx_common.h` directly (the old pixel header used to supply it transitively).
+- Deviations only where the C++ was UB or would throw: `make_table_inplace` returns 0 instead of `std::out_of_range` when `ceil(length) > table.size()`; `pixel::clear` resets the table length/position instead of `table_.clear()` (the C++ left `table_array_` dangling, and `clear()` only ran immediately before destruction); every FFI entry point is panic-guarded through `crate::guard` (0 / NULL on panic).
+- Build note: the crate's staticlib is linked into `libtnzcore.dylib`, so `libtnzstdfx.dylib` carries `U _flare_igs_*` and resolves them at load. Also `-DOpenCV_DIR="$(brew --prefix opencv@4)/lib/cmake/opencv4"` is required on macOS: a stale `build/` configured against OpenCV 5 fails to compile `iwa_bloomfx.cpp` (`cv::getRotationMatrix2D`).
+- Differential parity for batch 5 (goldens committed, replayed by Rust tests — see `docs/sprints/SPRINT-2.md`): `igs_attenuation_cases.txt` (62 cases, structural fields exact) and `igs_motion_wind_cases.txt` (3 configs × 400 pixels). The harness found three real defects that unit tests had missed: `lens_starts` pointed at the row start instead of the first covered pixel; `rgb_to_lightness` had been normalised to `(max+min)/2` although the original is channel-order dependent; and the port assumed r,g,b while the tree is Toonz6 (`blu=0, gre, red, alp`). `tests/native/msvc_reference.build_and_run_host` builds the reference on POSIX with `-ffp-contract=off` so clang FMA contraction does not record a 1-ULP artifact.
+
+- Both C++ bridges are **transitional**: `igs_attenuation_distribution.h` + the two
+  `flare_igs_attenuation_*` exports exist only because `igs_fog.cpp` is still C++, and
+  `igs_motion_wind_pixel.h` + the four `flare_igs_motion_wind_pixel_*` exports exist only
+  because `igs_motion_wind.cpp` is. Each side carries a `TRANSITIONAL FFI` marker naming
+  the deletion set; when those two callers are ported, remove both halves together (and
+  `tests/native/igs_attenuation_wrapper_probe.cpp`). The `*_cases.txt` goldens stay — they
+  keep pinning the Rust against the archived C++ (same as `igs_color_blend`).
+
+### Build notes (macOS, Ninja + Corrosion)
+
+- Pin OpenCV 4: `-DOpenCV_DIR="$(brew --prefix opencv@4)/lib/cmake/opencv4"`. A `build/`
+  cached against OpenCV 5 fails in `iwa_bloomfx.cpp` (`cv::getRotationMatrix2D` is gone in 5.x).
+- **Corrosion's byproduct copy preserves mtime, so a Rust-only edit can leave the C++
+  binaries stale while `ninja` still exits 0.** After touching a `.rs` file, `ninja` runs
+  `cargo rustc`, copies `libflare_formats.a`, then prunes the dependent link edges because
+  the archive's timestamp looks unchanged; `libtnzcore`/`libtnzstdfx`/`Flare` stay one edit
+  behind. Force it with `touch build/libflare_formats.a && ninja -C build -j2`, and confirm
+  the artifacts' mtimes are newer than the `.rs` you changed before trusting the build.
+- Verify the FFI reached the shipping binary rather than assuming: the entry points are
+  `U` (undefined) in `libtnzstdfx.dylib` and `T` in `libtnzcore.dylib` — the crate's
+  staticlib links into tnzcore, and tnzstdfx resolves at load.
+- `igs_motion_wind_cases.txt` is POSIX-only: `igs_math_random` follows the C++ ABI, so
+  `unsigned long` is 64-bit here and 32-bit on Windows, which changes both the wrap modulus
+  and the `next_d` denominator. The replay test is `#[cfg(not(windows))]`; do not "fix" the
+  mismatch by widening the RNG to `u64` — that would diverge from what the Windows C++
+  original actually did. Regenerate and replay on a POSIX host.

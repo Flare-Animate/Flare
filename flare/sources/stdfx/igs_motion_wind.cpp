@@ -1,5 +1,6 @@
 #include <limits>
 #include <stdexcept> /* std::domain_error(-) */
+#include "igs_ifx_common.h" /* igs::image::rgba, igs::color::ref_value */
 #include "igs_motion_wind_pixel.h"
 
 namespace {

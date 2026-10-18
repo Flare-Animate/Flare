@@ -15,6 +15,7 @@ set(HEADERS
     texturefxP.h
     warp.h
     motionawarebasefx.h
+    igs_attenuation_distribution.h
     igs_color_blend.h
     igs_color_rgb_hls.h
     igs_color_rgb_hsv.h
@@ -46,7 +47,6 @@ set(HEADERS
     igs_motion_blur.h
     igs_motion_wind.h
     igs_motion_wind_pixel.h
-    igs_motion_wind_table.h
     igs_negate.h
     igs_os_type.h
     igs_perlin_noise.h
@@ -169,7 +169,6 @@ set(SOURCES
     unmultiplyfx.cpp
     warp.cpp
     warpfx.cpp
-    igs_attenuation_distribution.cpp
     igs_fog.cpp
     igs_gaussian_blur.cpp
     igs_hls_noise_in_camera.cpp
@@ -180,8 +179,6 @@ set(SOURCES
     igs_maxmin_slrender.cpp
     igs_motion_blur.cpp
     igs_motion_wind.cpp
-    igs_motion_wind_pixel.cpp
-    igs_motion_wind_table.cpp
     igs_radial_blur.cpp
     igs_resource_msg_from_err.cpp
     igs_resource_multithread.cpp

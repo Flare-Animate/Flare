@@ -1694,6 +1694,7 @@ dependencies = [
 name = "flare_formats"
 version = "0.1.0"
 dependencies = [
+ "libc",
  "miniz_oxide 0.9.1",
  "roxmltree 0.20.0",
  "serde_json",

@@ -6,7 +6,7 @@
 #include "igs_resource_multithread.h"
 #include "igs_ifx_common.h"
 #include "igs_fog.h"
-#include "igs_attenuation_distribution.cpp"
+#include "igs_attenuation_distribution.h"
 
 namespace {  //---------------------------------------------------------
 void sl_track_render_dark_(
