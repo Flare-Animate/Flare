@@ -19,7 +19,7 @@ import commands served from `flare/sources/flare`.
 > A missing or misspelled `#[path]` is a compile error, so the crate root is the single
 > inventory of what has been ported.
 
-> Snapshot: Flare @ 4c86b7dd7 (motion-wind + attenuation ported; 301 lib tests; 3 goldens gated; cross-platform CI)
+> Snapshot: Flare @ e7394d49c (motion-wind + attenuation ported; 301 lib tests; 3 goldens gated; cross-platform CI)
 > listing port): Rust format sniffing over a C ABI, C++ SWF/XFL/Moho readers, an
 > optional Python AS3 sidecar, a scaffolded game engine, and a P2P protocol with tests.
 
