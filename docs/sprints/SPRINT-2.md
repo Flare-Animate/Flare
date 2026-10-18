@@ -39,24 +39,24 @@ Environment fault, unrelated to the ports: macOS must pin `-DOpenCV_DIR="$(brew 
 ```
 cargo test --manifest-path flare/sources/Cargo.toml --lib   # 301 passed, 0 failed
 python3 tests/run_stdfx_goldens.py                          # 3 goldens reproduce
-python3 tests/run_all.py                                    # 11 of 11 suites, exit 0
+python3 tests/run_all.py                                    # 10 of 11 suites, 1 skipped
 ninja -C build -j2                                          # exit 0
 python3 scripts/atlas_check.py                              # 0 hard, 0 soft
 ```
 
-Test-spine detail, because "11 of 11" alone overstates one of them:
+Test-spine detail. The runner now tallies a self-skipped suite as `SKIP`, not `PASS`, so the
+summary below is true without a footnote:
 
-- `rust (cargo test)` — 305 tests pass.
+- `rust (cargo test)` — 305 tests pass (301 of them in the `flare_formats` lib target).
 - `flash/bridge (pytest)` — 60 passed, 2 skipped. Both skips come from the Python 3.11 gate
   (`tools/sync/tests/test_interpreter.py`), which is recorded rather than silent. Before the
   fix this suite exited 3 with `INTERNALERROR` and collected **zero** tests, because
   `upstream_agent.py` called `sys.exit()` during collection and took `tools/flash/tests` down
   with it.
-- `native readers (C++)` — **skipped, not passed**: `tests/native/CMakeLists.txt` is
-  MSVC-only by construction (`<target>.lib` imports, vcpkg `x64-windows` zlib, staged DLL, no
-  platform branch in 475 lines), so nothing executed on macOS. `run_all.py` reports it as a
-  pass because the runner exits 0; read it as unrun here. Porting it needs dylib linking,
-  rpath and a system zlib.
+- `native readers (C++)` — **SKIP**, not a pass: `tests/native/CMakeLists.txt` is MSVC-only by
+  construction (`<target>.lib` imports, vcpkg `x64-windows` zlib, staged DLL, no platform
+  branch in 475 lines), so nothing executed on macOS. The runner returns 77 and `run_all.py`
+  reports it as skipped. Porting it needs dylib linking, rpath and a system zlib.
 - `issue map` — exits 0, "14 of 23 open issues have code answering them". It skips loudly when
   `gh` is unavailable; on this host `gh` was authenticated, so it really ran.
 - `stdfx goldens (C++)` — all three goldens reproduce from the archived C++.
