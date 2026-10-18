@@ -1116,8 +1116,6 @@ void ColorSlider::paintEvent(QPaintEvent *event) {
   int y          = rect().y();
   int w          = width();
   int h          = height();
-  int handleSize = svgToPixmap(":Resources/h_chandle_center.svg").width();
-
   bool isVertical = orientation() == Qt::Vertical;
 
   if (isVertical) {
