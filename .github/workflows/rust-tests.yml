@@ -1,0 +1,68 @@
+# Rust backend tests - the cross-platform gate for the Rust ports.
+#
+# The C++/Qt builds live in workflow_{linux,macos,windows}.yml and take a long time.
+# This workflow is deliberately narrow so it can run on every push: compile the
+# flare_formats crate and run its unit tests, which is where the ported kernels are
+# covered. No Qt, no OpenCV, no vcpkg, no C++ build.
+#
+# Three platforms because these tests are not platform-neutral by construction:
+# `c_ulong` is 64-bit on the POSIX runners and 32-bit on Windows (LLP64), and the
+# motion-wind golden is selected on that width at runtime. Without Windows here, the
+# 32-bit golden would never be replayed by anything.
+name: Rust tests
+
+on:
+  push:
+    branches: [main, master, rust-rewrite, "verify/**"]
+  pull_request:
+    branches: [main, master, rust-rewrite]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  cargo-test:
+    name: cargo test --lib (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          lfs: false
+          submodules: false
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: cargo test --lib
+        run: cargo test --lib --manifest-path flare/sources/Cargo.toml
+
+  golden-drift:
+    # Goldens are recorded bytes: the reference is compiled with the host compiler and
+    # its libm, so a different libm legitimately changes the last bits of `pow`/`cos`.
+    # This check therefore runs only on the platform that recorded them (macOS), which
+    # is stated in docs/PORTING.md. The port's own tests above are what run everywhere.
+    name: golden drift (recorded on macOS)
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # The generators recover the pre-deletion C++ from git history.
+          fetch-depth: 0
+          lfs: false
+          submodules: false
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Regenerate every golden from the archived C++ and diff
+        env:
+          CXX: clang++
+        run: python3 tests/run_stdfx_goldens.py

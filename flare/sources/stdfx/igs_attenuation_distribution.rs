@@ -7,7 +7,40 @@ use std::f64::consts::PI;
 
 pub const ERR_CURVE_ZERO: i32 = -1;
 pub const ERR_DIAMETER_TOO_SMALL: i32 = -2;
+/// An out-parameter was NULL (nothing was written).
+pub const ERR_BAD_OUTPUT: i32 = -3;
+/// Refused because an allocation of the matrix failed (`malloc` returned NULL).
+pub const ERR_ALLOC: i32 = -4;
+/// Refused before allocating: the matrix would exceed [`MAX_MATRIX_BYTES`], or its
+/// diameter does not fit the `c_int` the C ABI carries. This is a caller bug, not an
+/// allocation failure, and the header maps it to `std::invalid_argument`.
+pub const ERR_TOO_LARGE: i32 = -5;
 pub const OK: i32 = 0;
+
+/// Largest lens matrix we will build: 1 GiB of `f64`, i.e. about 11.5k x 11.5k
+/// (radius ~5.8k px). Real fog radii are a few hundred pixels; anything near this
+/// is a caller bug, and refusing it is better than attempting the allocation.
+pub const MAX_MATRIX_BYTES: usize = 1 << 30;
+
+/// Bytes a `diam x diam` matrix of `f64` needs, or `None` on overflow.
+pub fn checked_matrix_bytes(diam: usize) -> Option<usize> {
+    diam.checked_mul(diam)?.checked_mul(std::mem::size_of::<f64>())
+}
+
+/// Matrix diameter for `radius`: odd, `>= ceil(2 * radius)`, mirroring the original
+/// `odd_diameter` derivation. `None` when the radius cannot produce a usable matrix
+/// (non-finite, or a diameter <= 1).
+pub fn diameter_for(radius: f64) -> Option<usize> {
+    let d = (radius * 2.0).ceil();
+    if !d.is_finite() || d <= 1.0 {
+        return None;
+    }
+    let mut d = d as i64;
+    if d % 2 == 0 {
+        d += 1;
+    }
+    Some(d as usize)
+}
 
 /// Point-in-polygon test for regular N-gon inscribed in circle at `radius`,
 /// rotated by `degree` (CCW). Scanline intersection count.
@@ -94,13 +127,20 @@ pub fn attenuation_distribution(
         return (vec![], vec![], vec![], 0, ERR_CURVE_ZERO);
     }
 
-    // Compute odd diameter
-    let mut odd_diameter = (radius * 2.0).ceil() as i32;
-    if odd_diameter <= 1 {
-        return (vec![], vec![], vec![], 0, ERR_DIAMETER_TOO_SMALL);
-    }
-    if odd_diameter % 2 == 0 {
-        odd_diameter += 1;
+    // Compute odd diameter. The cast to the C ABI's `c_int` happens only after the
+    // range check: a bare `usize as i32` would wrap an absurd radius to a tiny
+    // diameter and silently build a 1x1 matrix.
+    let odd_diameter = match diameter_for(radius) {
+        Some(d) if d <= i32::MAX as usize => d as i32,
+        Some(_) => return (vec![], vec![], vec![], 0, ERR_TOO_LARGE),
+        None => return (vec![], vec![], vec![], 0, ERR_DIAMETER_TOO_SMALL),
+    };
+
+    // Refuse absurd sizes before allocating: a bad radius must return a status, not
+    // abort the process inside the allocator.
+    match checked_matrix_bytes(odd_diameter as usize) {
+        Some(b) if b <= MAX_MATRIX_BYTES => {}
+        _ => return (vec![], vec![], vec![], 0, ERR_TOO_LARGE),
     }
 
     let size = odd_diameter as usize;
@@ -175,11 +215,6 @@ pub fn attenuation_distribution(
 // git history, so the golden keeps pinning the Rust port after the C++ caller is gone.
 // Do not add new callers.
 use std::os::raw::{c_double, c_int};
-
-/// An out-parameter was NULL; nothing was written.
-pub const ERR_BAD_OUTPUT: i32 = -3;
-/// An allocation failed; nothing is published and all out-parameters are NULL.
-pub const ERR_ALLOC: i32 = -4;
 
 /// C-compatible wrapper: computes the lens matrix and publishes three arrays plus
 /// the odd diameter. All-or-nothing: either every out-parameter is set, or none is
@@ -349,6 +384,141 @@ mod tests {
         // Check mid-radius: 0.5 curve should brighten mid-range
         let mid = 3;
         assert!(mat_dark[5][mid] > mat_lin[5][mid], "curve=0.5 should brighten vs linear");
+    }
+
+    // ---- FFI contract: all-or-nothing publishing, and both refusal paths ----
+
+    #[test]
+    fn ffi_rejects_a_null_out_param_and_writes_nothing() {
+        for which in 0..4usize {
+            let mut mat: Vec<f64> = vec![-7.0; 16];
+            let mut off: Vec<i32> = vec![-7; 8];
+            let mut siz: Vec<i32> = vec![-7; 8];
+            let mut pm: *mut f64 = mat.as_mut_ptr();
+            let mut po: *mut i32 = off.as_mut_ptr();
+            let mut ps: *mut i32 = siz.as_mut_ptr();
+            let mut pd: i32 = -7;
+
+            let p_mat: *mut *mut f64 = if which == 0 { std::ptr::null_mut() } else { &mut pm };
+            let p_off: *mut *mut i32 = if which == 1 { std::ptr::null_mut() } else { &mut po };
+            let p_siz: *mut *mut i32 = if which == 2 { std::ptr::null_mut() } else { &mut ps };
+            let p_dia: *mut i32 = if which == 3 { std::ptr::null_mut() } else { &mut pd };
+
+            let status = unsafe {
+                flare_igs_attenuation_distribution(2.0, 1.0, 2, 0.0, p_mat, p_off, p_siz, p_dia)
+            };
+            assert_eq!(status, ERR_BAD_OUTPUT, "null position {which}");
+            assert_eq!(pd, -7, "null position {which}: diameter must stay untouched");
+            assert_eq!(pm, mat.as_mut_ptr(), "null position {which}: matrix must stay untouched");
+        }
+    }
+
+    #[test]
+    fn ffi_refuses_an_absurd_radius_without_allocating() {
+        let mut pm: *mut f64 = std::ptr::null_mut();
+        let mut po: *mut i32 = std::ptr::null_mut();
+        let mut ps: *mut i32 = std::ptr::null_mut();
+        let mut pd: i32 = -7;
+        let status = unsafe {
+            flare_igs_attenuation_distribution(20_000.0, 1.0, 2, 0.0, &mut pm, &mut po, &mut ps, &mut pd)
+        };
+        assert_eq!(status, ERR_TOO_LARGE);
+        assert!(pm.is_null() && po.is_null() && ps.is_null(), "nothing may be published");
+        assert_eq!(pd, 0, "diameter is zeroed before the refusal");
+        // A refused call must still be releasable without branching.
+        unsafe { flare_igs_attenuation_free(pm, po, ps) };
+    }
+
+    /// Regression: `diameter_for` returns `usize` and the C ABI carries `c_int`. For a
+    /// radius whose diameter is 2^32 + 1 the cast wraps to 1, which used to build a
+    /// 1x1 matrix and return OK. The range check must reject it instead.
+    #[test]
+    fn absurd_radius_does_not_wrap_into_a_tiny_matrix() {
+        let mut pd: i32 = -7;
+        let mut pm: *mut f64 = std::ptr::null_mut();
+        let mut po: *mut i32 = std::ptr::null_mut();
+        let mut ps: *mut i32 = std::ptr::null_mut();
+        let status = unsafe {
+            flare_igs_attenuation_distribution(
+                2_147_483_649.0, 1.0, 2, 0.0, &mut pm, &mut po, &mut ps, &mut pd,
+            )
+        };
+        assert_eq!(status, ERR_TOO_LARGE, "must refuse, not wrap to diameter 1");
+        assert_eq!(pd, 0);
+        assert!(pm.is_null() && po.is_null() && ps.is_null());
+    }
+
+    #[test]
+    fn ffi_publishes_all_four_on_success() {
+        let mut pm: *mut f64 = std::ptr::null_mut();
+        let mut po: *mut i32 = std::ptr::null_mut();
+        let mut ps: *mut i32 = std::ptr::null_mut();
+        let mut pd: i32 = -7;
+        let status = unsafe {
+            flare_igs_attenuation_distribution(2.0, 1.0, 2, 0.0, &mut pm, &mut po, &mut ps, &mut pd)
+        };
+        assert_eq!(status, OK);
+        let (m, o, s, diam, _) = attenuation_distribution(2.0, 1.0, 2, 0.0);
+        assert_eq!(pd, diam, "all four out-params must be published together");
+        assert_eq!(pd as usize, m.len());
+        unsafe {
+            for y in 0..diam as usize {
+                for x in 0..diam as usize {
+                    assert_eq!(*pm.add(y * diam as usize + x), m[y][x], "matrix[{y}][{x}]");
+                }
+            }
+            for i in 0..diam as usize {
+                assert_eq!(*po.add(i), o[i]);
+                assert_eq!(*ps.add(i), s[i]);
+            }
+            flare_igs_attenuation_free(pm, po, ps);
+        }
+    }
+
+    /// Invariants that hold for every input on every target: no golden, no RNG, no
+    /// libm comparison — so this is real coverage on Windows and Linux too.
+    #[test]
+    fn invariants_hold_across_a_parameter_grid() {
+        for radius in [1.01, 2.0, 5.0, 8.9] {
+            for curve in [0.5, 1.0, 2.5] {
+                for polygon in [2, 3, 6, 16] {
+                    for degree in [0.0, 90.0] {
+                        let (m, off, sz, diam, status) =
+                            attenuation_distribution(radius, curve, polygon, degree);
+                        assert_eq!(status, OK);
+                        let n = diam as usize;
+                        assert_eq!(m.len(), n);
+                        assert_eq!(diam % 2, 1, "diameter must be odd");
+                        assert!(diam as f64 >= radius * 2.0);
+
+                        let mut total = 0.0;
+                        for y in 0..n {
+                            // Uncovered rows keep the initialiser's -1 for BOTH arrays
+                            // (see `lens_offsets`/`lens_sizes` init); a covered row has
+                            // offset >= 0 and size > 0. Assert each case explicitly.
+                            if off[y] < 0 {
+                                assert_eq!(off[y], -1, "uncovered row {y} must use offset -1");
+                                assert_eq!(sz[y], -1, "uncovered row {y} must keep size -1");
+                            } else {
+                                assert!(sz[y] > 0, "covered row {y} has size {}", sz[y]);
+                                assert!(
+                                    off[y] + sz[y] <= diam,
+                                    "row {y} runs past the matrix (off={} size={} diam={diam})",
+                                    off[y],
+                                    sz[y]
+                                );
+                            }
+                            for x in 0..n {
+                                let v = m[y][x];
+                                assert!((0.0..=1.0).contains(&v), "value {v} out of [0,1]");
+                                total += v;
+                            }
+                        }
+                        assert!((total - 1.0).abs() < 1e-9, "matrix sums to {total}");
+                    }
+                }
+            }
+        }
     }
 
     /// Golden from the original C++ (`tests/native/gen_igs_attenuation_cases.py`).

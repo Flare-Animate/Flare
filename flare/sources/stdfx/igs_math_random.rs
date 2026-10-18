@@ -69,6 +69,38 @@ mod tests {
         assert_eq!(next(&mut s), 12345);
     }
 
+    /// The port must reproduce the *C++ ABI of this target*, not one global stream:
+    /// `unsigned long` is 64-bit on LP64 (macOS, Linux) and 32-bit on LLP64 (Windows), and
+    /// both the wrap modulus and the `next_d` denominator derive from that width. Assert
+    /// the width-correct recurrence from the closed form, so Windows gets real RNG
+    /// coverage even where no golden can be recorded for it.
+    #[test]
+    fn follows_the_cpp_unsigned_long_abi_on_this_platform() {
+        let bits = 8 * std::mem::size_of::<c_ulong>() as u32;
+        assert!(bits == 32 || bits == 64, "unexpected c_ulong width: {bits}");
+        let mask: u128 = if bits == 64 { u64::MAX as u128 } else { u32::MAX as u128 };
+        let modulus: u128 = 1u128 << (bits - 1); // LONG_MAX + 1
+        let denominator: u128 = modulus - 1; // LONG_MAX
+
+        for seed0 in [0u64, 1, 42, 12345, u32::MAX as u64] {
+            let mut got = seed0 as c_ulong;
+            let mut want: u128 = seed0 as u128;
+            for step in 0..8 {
+                want = (want * 1103515245 + 12345) & mask;
+                let expect = (want % modulus) as i64;
+                assert_eq!(next(&mut got) as i64, expect, "next(): seed {seed0} step {step}");
+            }
+
+            let mut got = seed0 as c_ulong;
+            let mut want: u128 = seed0 as u128;
+            for step in 0..8 {
+                want = (want * 1103515245 + 12345) & mask;
+                let expect = (want % modulus) as f64 / denominator as f64;
+                assert_eq!(next_d(&mut got), expect, "next_d(): seed {seed0} step {step}");
+            }
+        }
+    }
+
     #[test]
     fn ffi() {
         let mut s: c_ulong = 1;
