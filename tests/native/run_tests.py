@@ -191,11 +191,14 @@ def main():
     # it -- there is no platform branch anywhere in the project. Nothing in a Ninja/Make
     # tree can satisfy that, so say so plainly and exit 0 without printing a pass count
     # that was not measured. Porting it needs dylib/.so linking, rpath and a system zlib.
+    # 77 is the conventional "skipped" exit code. run_all.py maps it to SKIP instead of
+    # reading it as "0 = ran and passed", which is the difference between a suite that
+    # executed nothing and a green line in the summary.
     if sys.platform != "win32":
         print("   SKIP: native C++ reader tests are MSVC-only by construction "
               "(tests/native/CMakeLists.txt links *.lib import libraries and a vcpkg "
               "x64-windows zlib); nothing to run on %s" % sys.platform)
-        return 0
+        return 77
 
     tnzcore_lib = find_lib(flare_build, "tnzcore")
     flareqt_lib = find_lib(flare_build, "flareqt")
