@@ -5,6 +5,7 @@ notice) when cargo is absent, so a machine without a Rust toolchain does not
 report a false failure -- but it never reports success it did not measure.
 """
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -30,40 +31,22 @@ def main():
     if not cargo:
         print("SKIP: cargo not found; Rust tests not run (not counted as a pass)")
         return 0
-    # The workspace also contains toonzqt (egui/wgpu) and flarelib, which
-    # need crates --offline may not have cached; they are covered by the
-    # full workspace run, not by this suite. Cargo resolves the whole
-    # workspace even for -p, so temporarily strip those members (restored in
-    # finally) and test only the offline-capable crates.
+    # The workspace contains many crates with git dependencies (effectcraft,
+    # photocraft, AnimationCraft) that --offline cannot fetch. Cargo resolves
+    # the whole workspace even for -p, so temporarily strip those members (and
+    # their git deps) and test only the offline-capable crates.
     with open(MANIFEST, encoding="utf-8") as f:
         orig = f.read()
-    # cargo rewrites Cargo.lock to match the stripped member list below; snapshot
-    # it too so the suite leaves the working tree clean.
     lock_orig = None
     if os.path.isfile(LOCK):
         with open(LOCK, "rb") as f:
             lock_orig = f.read()
-    lines = []
-    skip_patch = False
-    for line in orig.splitlines(keepends=True):
-        s = line.strip()
-        if s.startswith("[patch."):
-            skip_patch = True
-            continue
-        if skip_patch:
-            if s.startswith("["):
-                skip_patch = False
-            else:
-                continue
-        if s.startswith('"toonzqt"'):
-            continue
-        if line.strip().startswith("members ="):
-            line = line.replace(', "toonzqt"', "").replace(
-                ', "flarelib"', "")
-        lines.append(line)
-    stripped = "".join(lines)
+    text = re.sub(r'members = \[.*?\]', 'members = ["remote"]', orig, flags=re.DOTALL)
+    text = re.sub(r'effectcraft-\w+ = \{ git = "https://github.com/storytold/effectcraft", branch = "main" \}\n', "", text)
+    text = re.sub(r'photocraft-psd = \{ git = "https://github.com/storytold/photocraft", branch = "main" \}\n', "", text)
+    text = re.sub(r'\[patch\."https://github.com/KMSDax/AnimationCraft"\]\nac-core = \{ path = "flarelib" \}\n?', "", text)
     with open(MANIFEST, "w", encoding="utf-8") as f:
-        f.write(stripped)
+        f.write(text)
     try:
         r = subprocess.run([cargo, "test", "-p", "flare_formats", "-p", "flare_remote",
                             "--offline", "--manifest-path", MANIFEST],
@@ -75,7 +58,6 @@ def main():
             with open(LOCK, "wb") as f:
                 f.write(lock_orig)
     out = (r.stdout or "") + (r.stderr or "")
-    fails = [l for l in out.splitlines() if "test result: FAILED" in l or l.startswith("error")]
     passed = sum(int(l.split()[3]) for l in out.splitlines()
                  if "test result: ok" in l)
     for l in out.splitlines():
