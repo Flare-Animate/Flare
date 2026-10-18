@@ -137,7 +137,9 @@ def main():
     for num in sorted(by_num):
         probe = PROBES.get(num)
         if not probe:
-            open_items.append((num, by_num[num]["title"], "no probe defined"))
+            open_items.append(
+                (num, by_num[num]["title"], "(no probe)", "no probe defined")
+            )
             continue
         desc, fn = probe
         try:
