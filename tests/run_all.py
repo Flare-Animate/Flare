@@ -32,6 +32,10 @@ SUITES = [
     # Rust format/remote crates. Cargo is not on PATH in every environment, so
     # resolve it rather than reporting a failure for a missing toolchain.
     ("rust (cargo test)", [sys.executable, "tests/run_rust.py"], REPO),
+    # Golden drift: rebuilds each differential golden from the archived C++ and fails on
+    # any byte of difference, so a hand-edited golden cannot turn a red port test green.
+    # Skips loudly (exit 0) without a host C++ compiler: an environment gap, not a defect.
+    ("stdfx goldens (C++)", [sys.executable, "tests/run_stdfx_goldens.py"], REPO),
     # atlas_check: resolves LOGIC-ATLAS.md's own file/symbol/constant claims
     # against the tree. Runs last so the docs are checked after the code.
     ("logic atlas", [sys.executable, "scripts/atlas_check.py"], REPO),

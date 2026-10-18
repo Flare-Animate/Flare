@@ -104,8 +104,28 @@ Batch 5 notes (`stdfx/igs_motion_wind_table`, `stdfx/igs_attenuation_distributio
 - Verify the FFI reached the shipping binary rather than assuming: the entry points are
   `U` (undefined) in `libtnzstdfx.dylib` and `T` in `libtnzcore.dylib` — the crate's
   staticlib links into tnzcore, and tnzstdfx resolves at load.
-- `igs_motion_wind_cases.txt` is POSIX-only: `igs_math_random` follows the C++ ABI, so
-  `unsigned long` is 64-bit here and 32-bit on Windows, which changes both the wrap modulus
-  and the `next_d` denominator. The replay test is `#[cfg(not(windows))]`; do not "fix" the
-  mismatch by widening the RNG to `u64` — that would diverge from what the Windows C++
-  original actually did. Regenerate and replay on a POSIX host.
+- `igs_math_random` follows the C++ ABI: `unsigned long` is 64-bit on LP64 (macOS, Linux)
+  and 32-bit on LLP64 (Windows), which changes both the wrap modulus and the `next_d`
+  denominator. There are therefore two motion-wind goldens, both recorded on a POSIX host:
+  `igs_motion_wind_cases.txt` (`--rng-bits 64`) and `igs_motion_wind_cases_32.txt`
+  (`--rng-bits 32`). The replay picks one on `size_of::<c_ulong>()`, not on
+  `cfg(target_os)`, so i686 Linux is covered too. Do not "fix" the mismatch by widening the
+  RNG to `u64` — that would diverge from what the Windows C++ original actually did.
+  `gen_igs_motion_wind_cases.py` builds the reference against a generated
+  `igs_math_random.h` stub of the requested width, so it needs no `libflare_formats.a` and
+  both goldens regenerate on any POSIX host. The 32-bit stream is not a guess: it reruns
+  the original recurrence with a 32-bit word, and it differs from the 64-bit golden in 724
+  of 1,206 lines, so a Windows run is testing something real.
+- Golden drift is gated. `tests/run_stdfx_goldens.py` (a suite in `tests/run_all.py`)
+  re-derives every golden from the archived C++ with `--check` and fails on any byte of
+  difference, so a hand-edited golden cannot turn a red test green. It skips (exit 0)
+  without a host C++ compiler. In CI it runs only on macOS, because the recorded bytes
+  include that machine's libm; the port's own tests are what execute on all three
+  platforms (`.github/workflows/rust-tests.yml`, `cargo test --lib` on ubuntu, macos and
+  windows).
+- The attenuation FFI guards the matrix size: anything above `MAX_MATRIX_BYTES` (1 GiB,
+  ~11.5k px, radius ~5.8k), and any diameter that does not fit the C ABI's `c_int`, is
+  refused with `ERR_TOO_LARGE` (-5) *before* allocating. That is a deliberate divergence
+  from the original, which would attempt the allocation; it is compatible because
+  `igs_fog.cpp` never asks for a lens near that size, and it converts a process abort into
+  a mapped `std::invalid_argument`. `-4` now means only "malloc failed" (`std::bad_alloc`).

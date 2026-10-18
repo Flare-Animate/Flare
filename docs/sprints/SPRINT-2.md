@@ -37,10 +37,24 @@ Environment fault, unrelated to the ports: macOS must pin `-DOpenCV_DIR="$(brew 
 
 ## Verification
 ```
-cargo test --manifest-path flare/sources/Cargo.toml --lib   # 294 passed, 0 failed
+cargo test --manifest-path flare/sources/Cargo.toml --lib   # 301 passed, 0 failed
+python3 tests/run_stdfx_goldens.py                          # 3 goldens reproduce
 ninja -C build -j2                                          # exit 0
 python3 scripts/atlas_check.py                              # 0 hard, 0 soft
 ```
+
+### Cross-platform coverage
+| Kernel | macOS | Linux | Windows | What the platform-independent tests prove |
+|---|---|---|---|---|
+| `igs_attenuation_distribution` | golden (62 cases) + invariants + FFI | same | same — this kernel has no RNG, so the golden replays | parity, all-or-nothing publish, `-3`/`-5` refusals |
+| `igs_motion_wind_pixel` (+ table) | 64-bit golden + invariants | 64-bit golden + invariants | 32-bit golden + invariants | table/pixel arithmetic under the ABI-correct LCG stream |
+| `igs_math_random` | closed-form conformance | closed-form conformance | closed-form conformance | width-correct modulus and `next_d` denominator |
+
+`cargo test --lib` runs on ubuntu-latest, macos-latest and windows-latest
+(`.github/workflows/rust-tests.yml`). The motion-wind golden is selected at runtime by
+`size_of::<c_ulong>()` — 64-bit on LP64, 32-bit on LLP64 — not by `cfg(target_os)`, so
+i686 Linux is covered as well. Golden *drift* checking runs only on macOS in CI because the
+recorded bytes include that machine's libm. A render is still unproven everywhere: see Open.
 - `Flare.app/Contents/MacOS/Flare` (11 MB) built; binary newer than every touched source.
 - `nm -g libtnzcore.dylib` shows `T _flare_igs_motion_wind_pixel_{new,change,clear,free}` and `T _flare_igs_attenuation_{distribution,free}`. `libtnzstdfx.dylib` carries them as `U` and resolves at load — expected, the Rust staticlib links into `libtnzcore`.
 - Smoke test: app launched, stayed alive 14 s, no crash report, empty log.
@@ -70,35 +84,43 @@ records a 1-ULP artifact that Rust never had).
    (`igs_ifx_common.h:23`). `get_lightness` now reads `pixel[RED/GRE/BLU]`.
 
 ## Open
+- **No render-level check.** Fog and Motion Wind are unexercised on a real `.tnz`: a
+  `lens_starts` regression shows as an offset or black fog frame, not a crash, so nothing
+  here would catch it. The goldens pin the kernel and the wrapper probe pins the header's
+  contract, but the consumer (`igs_fog.cpp`) is covered only by reading it. Close this with a
+  scene that has Fog applied, rendered through `tcomposer`.
 - `ninja` re-runs the Corrosion byproduct copy on every invocation (`[2/19] Copying byproducts libflare_formats.a`) — exits 0, pre-existing churn, not a failure.
 - Goldens were recorded with Apple clang/libm; MSVC's CRT may differ in the last bits for
   `sqrt`/`pow`/`cos`/`sin`, hence the 1e-12 tolerance on matrix/channel values. Structural
-  fields and the two arithmetic-only pixel configs are compared bit-exactly.
+  fields and the two arithmetic-only pixel configs are compared bit-exactly. This is also why
+  the golden-drift gate runs only on macOS; the port's own tests run on all three platforms.
 - Follow-up (not this commit): `BLU/GRE/RED` are local constants in `igs_motion_wind_pixel.rs`.
   Promoting them (or a shared `igs::image` channel-order helper) would stop the next port
   from re-inventing the wrong order. Audited the other ref-taking ports for the same defect:
   `igs_levels.rs` already indexes through `RED/GRE/BLU`, `igs_color_blend`/`median_filter*`
   take r,g,b as parameters, `igs_hls_*`/`igs_hsv_*` use memory position 0 deliberately.
-- Not pinned by a test: the new FFI error paths (`-3` null out-parameter, `-4` allocation
-  failure) are verified by inspection only. `igs_fog.cpp` never passes NULL and the
-  diameters are small, so neither branch is reachable from the shipping call site, but the
-  all-or-nothing publish contract should get a direct unit test before it is relied on.
+- Closed: the attenuation FFI contract is pinned by unit tests — each of the four NULL
+  out-parameter positions, the oversized-radius refusal, the all-four-published success path,
+  and the `2^32 + 1` diameter that used to wrap to a 1x1 matrix. `-4` now means malloc failure
+  only; oversized requests are `-5 ERR_TOO_LARGE`, refused before any allocation is attempted.
 - Separate defect found while running the gate, not touched here: `tests/check_issue_fixes.py:154`
   unpacks 3 values from a 4-tuple (`for num, title, desc, detail in open_items`), so the whole
   "issue map" suite dies with `ValueError` before checking anything. Two-line fix, own commit.
 - `tests/native/igs_attenuation_wrapper_probe.cpp` exists because the golden encodes where the
   *original* `lens_starts` points, but the line that was actually fixed lives in the C++ wrapper —
   nothing in CI executes it. The probe asserts that contract (null rows, in-bounds sizes,
-  normalisation, exception mapping); it is manual, not a suite target.
+  normalisation, exception mapping); it is manual, not a suite target. Wiring it needs a built
+  `libflare_formats.a`, which is why it is not in `run_all.py` with the goldens.
 - The three `u64::from` calls sit behind `#[allow(clippy::useless_conversion)]` on purpose:
   `c_ulong` is 64-bit here and 32-bit on Windows, so removing them "because clippy says so"
   would break the Windows build.
-- `crate::guard`'s panic default for the attenuation FFI is `ERR_ALLOC`, which the header
-  reports as `std::bad_alloc`. Unreachable from `igs_fog.cpp` today, but a panic would be
-  mislabelled as an allocation failure; give it a distinct status if that path ever matters.
-- Follow-up: nothing in CI runs `gen_igs_*_cases.py --check`, so a hand-edited golden would
-  make a red test green with no gate noticing. Wire both generators into `tests/run_all.py`,
-  skipping cleanly when no host C++ compiler is present.
+- `crate::guard`'s panic default for the attenuation FFI is `ERR_ALLOC`, which the header now
+  reports as `std::bad_alloc`. Since `-4` is genuinely "malloc failed", a panic in that body
+  would still be mislabelled as an allocation failure; give it its own status if that path
+  ever becomes reachable.
+- Closed: `tests/run_stdfx_goldens.py` runs all three generator `--check`s as a
+  `tests/run_all.py` suite and skips (exit 0) without a host C++ compiler, so a hand-edited
+  golden can no longer make a red test green.
 - Follow-up (not this commit): the `TRANSITIONAL FFI` marker was applied only to the three
   batch-5 modules. `metnum.rs`, `predict3d.rs`, `CIL.rs`, `CallCircle.rs`, `BlurMatrix.rs` and
   the wave-3/4 stdfx kernels have the same shape — a C ABI export plus an inline forwarder

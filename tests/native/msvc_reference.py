@@ -45,7 +45,12 @@ def pre_deletion_revision(src: str) -> str:
     for rev in git("log", "--format=%H", "--", src).splitlines():
         if not rev:
             continue
-        if subprocess.run(["git", "cat-file", "-e", f"{rev}:{src}"], cwd=ROOT).returncode == 0:
+        if subprocess.run(
+            ["git", "cat-file", "-e", f"{rev}:{src}"],
+            cwd=ROOT,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        ).returncode == 0:
             return rev
     sys.exit(f"no revision of {src} exists to build a reference from")
 

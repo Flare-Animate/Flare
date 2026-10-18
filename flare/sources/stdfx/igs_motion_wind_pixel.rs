@@ -475,23 +475,68 @@ mod tests {
         assert!((proc.key_lightness - 0.4).abs() < 1e-9);
     }
 
+    /// Platform-independent invariants for the pixel arithmetic: no golden, no recorded
+    /// RNG stream, no libm comparison. This runs on Windows and Linux as well as macOS,
+    /// which is what "covered on three platforms" has to mean for the port itself.
+    #[test]
+    fn invariants_hold_for_every_channel_count() {
+        for dark in [false, true] {
+            for channels in 1..=4i32 {
+                let mut proc = MotionWindPixel::new(
+                    dark, true, 1, 2.0, 6.0, 1.0, false, 1, 1.0, 1.0, 1.0, false, 1, 1.0, 1.0,
+                    1.0, false,
+                );
+                for step in 0..200usize {
+                    let mut px = vec![0.0f64; channels as usize];
+                    for (c, v) in px.iter_mut().enumerate() {
+                        *v = ((step * 37 + c * 11) % 101) as f64 / 100.0;
+                    }
+                    proc.change(step % 16 == 0, -1.0, channels, &mut px);
+                    for (c, v) in px.iter().enumerate() {
+                        assert!(
+                            v.is_finite() && (0.0..=1.0).contains(v),
+                            "dark={dark} channels={channels} step={step} ch={c}: {v}"
+                        );
+                    }
+                    if proc.table_len > 0 {
+                        assert!(
+                            proc.table_pos <= proc.table_len,
+                            "dark={dark} channels={channels} step={step}: pos {} > len {}",
+                            proc.table_pos,
+                            proc.table_len
+                        );
+                    }
+                }
+                proc.clear();
+                assert_eq!(proc.table_len, 0);
+                assert_eq!(proc.table_pos, 0);
+            }
+        }
+    }
+
     /// Golden from the original C++ (`tests/native/gen_igs_motion_wind_cases.py`).
     ///
-    /// Three fixed configurations driven over a deterministic 400-pixel sequence.
-    /// The LCG is shared (the original `igs_math_random.h` already forwards into
-    /// `flare_formats`), so this isolates the table/pixel arithmetic. `inside` must
-    /// match exactly; channels must match exactly for the arithmetic-only configs and
-    /// within 1e-12 for the gamma (`pow`) config.
+    /// Three fixed configurations driven over a deterministic 400-pixel sequence, in both
+    /// `unsigned long` widths the original was ever built with. `inside` must match
+    /// exactly; channels must match exactly for the arithmetic-only configs and within
+    /// 1e-12 for the gamma (`pow`) config.
     ///
-    /// POSIX only: `igs_math_random` follows the C++ ABI, so `unsigned long` is 64-bit
-    /// here and 32-bit on Windows. The golden was recorded against the 64-bit stream, and
-    /// the wrap modulus / `next_d` denominator differ per platform — a large divergence,
-    /// not an ULP one. Gating the replay is correct; changing the RNG to `u64` would
-    /// diverge from what the Windows C++ original actually did.
-    #[cfg(not(windows))]
+    /// The original LCG derives *both* its modulus and its `next_d` denominator from
+    /// `unsigned long`, so the stream is 64-bit on LP64 (macOS, Linux) and 32-bit on LLP64
+    /// (Windows). Two goldens, both recorded on POSIX by
+    /// `gen_igs_motion_wind_cases.py --rng-bits {64,32}`, which rebuilds the reference
+    /// against an RNG stub of the requested width. Selecting on `size_of::<c_ulong>()`
+    /// rather than `cfg(target_os)` also covers i686 Linux, where `c_ulong` is 32-bit too.
+    ///
+    /// Do not widen the RNG to `u64` to make one golden replay everywhere: the Windows
+    /// original used a 32-bit `unsigned long`, and reproducing it is the point.
     #[test]
     fn matches_the_cpp_reference() {
-        const GOLDEN: &str = include_str!("igs_motion_wind_cases.txt");
+        let golden: &str = if std::mem::size_of::<std::os::raw::c_ulong>() == 8 {
+            include_str!("igs_motion_wind_cases.txt")
+        } else {
+            include_str!("igs_motion_wind_cases_32.txt")
+        };
 
         // cfg index -> (blow_dark, blow_alpha, length seed/min/max/bias/ref,
         //              force seed/min/max/bias/ref, density seed/min/max/bias/ref,
@@ -509,7 +554,7 @@ mod tests {
             (false, false, 3, 3.0, 9.0, 1.0, true, 3, 1.0, 1.0, 1.0, false, 3, 1.0, 1.0, 1.0, false, true),
         ];
 
-        let mut blocks = GOLDEN.split("\n\n").filter(|b| !b.trim().is_empty());
+        let mut blocks = golden.split("\n\n").filter(|b| !b.trim().is_empty());
         for (ci, cfg) in CFGS.iter().enumerate() {
             let block = blocks.next().unwrap_or_else(|| panic!("missing block {ci}"));
             let mut lines = block.lines();

@@ -8,6 +8,20 @@
 // caller. Delete this header, its `#include` in `igs_fog.cpp`, its CMake HEADERS entry,
 // `tests/native/igs_attenuation_wrapper_probe.cpp`, and the two exports in
 // `igs_attenuation_distribution.rs`. Keep the `igs_attenuation_cases.txt` golden.
+//
+// Status contract (all-or-nothing):
+//   0   OK         - all four out-parameters are published together
+//  -1   curve is zero                      -> std::domain_error
+//  -2   diameter <= 1                      -> std::domain_error
+//  -3   null out-parameter; nothing written -> std::invalid_argument
+//  -4   malloc failed; nothing published    -> std::bad_alloc
+//  -5   matrix exceeds 1 GiB (~11.5k px, radius ~5.8k) -> std::invalid_argument
+// The Rust side null-checks first, then zeroes all four out-parameters, then computes,
+// then publishes. So on every failure path the caller can free unconditionally, and
+// `-5` is deliberately distinct from `-4`: an absurd radius is a caller bug, not an
+// allocation failure. The 1 GiB guard is a divergence from the original (which would
+// attempt the allocation and let bad_alloc propagate); it is compatible because
+// igs_fog.cpp never asks for a lens anywhere near that size.
 
 #include <vector>
 #include <stdexcept>
@@ -63,8 +77,13 @@ inline void attenuation_distribution_(
             throw std::domain_error("attenuation_distribution: diameter is <= 1");
         case -3:
             throw std::invalid_argument("attenuation_distribution: null out-parameter");
+        case -5:
+            throw std::invalid_argument(
+                "attenuation_distribution: matrix too large (1 GiB guard)");
+        case -4:
+            throw std::bad_alloc(); // malloc failed
         default:
-            throw std::bad_alloc(); // -4: allocation failed
+            throw std::runtime_error("attenuation_distribution: unknown status");
         }
     }
 
