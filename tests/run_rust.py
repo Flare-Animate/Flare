@@ -62,6 +62,10 @@ def main():
     finally:
         with open(MANIFEST, "w", encoding="utf-8") as f:
             f.write(orig)
+        # cargo may have regenerated the lock file; restore it from git so the
+        # working tree stays clean.
+        subprocess.run(["git", "checkout", "--", "flare/sources/Cargo.lock"],
+                       cwd=REPO, capture_output=True)
     out = (r.stdout or "") + (r.stderr or "")
     fails = [l for l in out.splitlines() if "test result: FAILED" in l or l.startswith("error")]
     passed = sum(int(l.split()[3]) for l in out.splitlines()
