@@ -19,7 +19,7 @@ import commands served from `flare/sources/flare`.
 > A missing or misspelled `#[path]` is a compile error, so the crate root is the single
 > inventory of what has been ported.
 
-> Snapshot: Flare @ e7394d49c (motion-wind + attenuation ported; 301 lib tests; 3 goldens gated; cross-platform CI)
+> Snapshot: Flare @ c55161403 (motion-wind + attenuation ported; 301 lib tests; 3 goldens gated; test spine 11/11, native suite skipped off Windows)
 > listing port): Rust format sniffing over a C ABI, C++ SWF/XFL/Moho readers, an
 > optional Python AS3 sidecar, a scaffolded game engine, and a P2P protocol with tests.
 
@@ -135,7 +135,7 @@ matching OpenToonz/Tahoma as the rewrite proceeds — no `rust/` sidecar tree.
 - `cfbf_streams` walks the header DIFAT only, so files past ~7MB at 512-byte sectors are out of reach by construction.
 - `Format::Sol` is 5; `detect` returns it only when both the `00 BF` magic and the 10-byte `TCSO` signature match, so a bare `00 BF` prefix is not enough.
 - `Format` discriminants are **frozen** (the C ABI returns them): 0..5 are the original six, 6..21 are the OpenToonz/Tahoma/Moho/Harmony/Flipnote/Wick/FlippaClip types. `detect` only claims a magic it can verify from the bytes; folders, `.pli`/`.plt` and the shared `.tpl` spelling go through `detect_ext` / `flare_detect_format_ext`, because a directory has no bytes and two formats share a container.
-- The ported kernels (`naru_maxflow`, `igs_color_blend`, `igs_attenuation_distribution`, `igs_motion_wind_pixel`+`igs_motion_wind_table`) are bit-identical to the retired C++, pinned by committed goldens (`stdfx/igs_color_blend_cases.txt`, `stdfx/igs_attenuation_cases.txt`, `stdfx/igs_motion_wind_cases.txt`); their `.cpp` files are gone, only the headers remain as forwarders. The motion-wind golden is POSIX-only (the RNG follows the C++ `unsigned long` ABI); replayed under `#[cfg(not(windows))]`.
+- The ported kernels (`naru_maxflow`, `igs_color_blend`, `igs_attenuation_distribution`, `igs_motion_wind_pixel`+`igs_motion_wind_table`) are bit-identical to the retired C++, pinned by committed goldens (`stdfx/igs_color_blend_cases.txt`, `stdfx/igs_attenuation_cases.txt`, `stdfx/igs_motion_wind_cases.txt`, `stdfx/igs_motion_wind_cases_32.txt`); their `.cpp` files are gone, only the headers remain as forwarders. The motion-wind replay is **not** platform-gated: its RNG follows the C++ `unsigned long` ABI (64-bit on LP64, 32-bit on LLP64), so two goldens exist and the test selects one on `size_of::<c_ulong>()`. `gen_igs_motion_wind_cases.py --rng-bits {32,64}` records them, and `tests/run_stdfx_goldens.py` fails on any byte of drift. The attenuation FFI refuses a matrix above 1 GiB, or a diameter wider than the C ABI's `c_int`, with `ERR_TOO_LARGE` before allocating.
 - `kTwipsPerPixel` is 20.0 — one twip is 1/20th of a pixel per the SWF spec, and shape coordinates divide by it.
 
 **State:** stateless; no globals, no handles. All functions are pure over their inputs.
@@ -318,3 +318,4 @@ These flows span subsystems: the class of bug a single-file read misses, because
    - **The staged-DLL rule** — the fresh `tnzcore.dll` is staged beside the test binaries, because Windows resolves imports from the exe directory first and a stale copy dies with `0xC0000135`/`0xC0000139` before `main`.
    - **The local-source default** — `FLASH_LOCAL_SRC=ON` compiles checked-out sources into the tests; `--no-local-src` exercises the export/ABI path instead and needs freshly built DLLs.
    - **The skip is not a pass** — `run_rust.py` exits 0 with a SKIP notice when cargo is missing; it never prints a pass count it did not measure.
+   - **The native suite is MSVC-only by construction** — `tests/native/CMakeLists.txt` resolves only `<target>.lib` import libraries, links `vcpkg/installed/x64-windows/lib/zlib.lib` from all ten targets, and stages `tnzcore.dll`, with no platform branch in the project. `run_tests.py` therefore resolves Qt (`QT_BIN`, then `<brew>/opt/qt@5`, then `/usr/local/opt/qt@5`) and the build tree (`build_local`, then `build`), and reports a loud SKIP off Windows rather than a failure. Porting it needs dylib linking, rpath and a system zlib.
