@@ -70,6 +70,12 @@ NEEDS_INPUT = [
 ]
 
 
+# Exit code a suite returns when it intentionally ran nothing (tests/native/run_tests.py
+# returns it for the MSVC-only native suite off Windows). Tallied apart from both passes
+# and failures: a suite that executed nothing is neither.
+SKIP_RC = 77
+
+
 def native_runner_finds_qt():
     """Ask the native runner for the Qt root rather than duplicating the search.
 
@@ -113,14 +119,21 @@ def main():
         results.append((label, r.returncode, out))
 
     print()
-    failed = [(l, rc) for l, rc, _ in results if rc != 0]
+    # A suite that intentionally ran nothing returns SKIP_RC. Counting it as a pass is how
+    # "N of N suites passed" ends up overstating coverage; label it and tally it apart.
+    failed = [(l, rc) for l, rc, _ in results if rc not in (0, SKIP_RC)]
+    skipped = [(l, rc) for l, rc, _ in results if rc == SKIP_RC]
     for label, rc, out in results:
-        print(f"   {'PASS' if rc == 0 else 'FAIL'}  {label}")
+        state = "PASS" if rc == 0 else ("SKIP" if rc == SKIP_RC else "FAIL")
+        print(f"   {state}  {label}")
     print()
+    passed = len(results) - len(skipped) - len(failed)
     if failed:
-        print(f"FAILED: {len(failed)} of {len(results)} suites")
+        print(f"FAILED: {len(failed)} of {len(results)} suites "
+              f"({passed} passed, {len(skipped)} skipped)")
     else:
-        print(f"PASSED: all {len(results)} suites")
+        print(f"PASSED: {passed} of {len(results)} suites"
+              + (f", {len(skipped)} skipped" if skipped else ""))
     print()
     print("not covered here (each needs input a clean checkout does not have):")
     for name, why in NEEDS_INPUT:
