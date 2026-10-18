@@ -4,5 +4,10 @@
 # Ensure .bat files use CRLF line endings
 *.bat text eol=crlf
 
+# Differential goldens are byte-sensitive: the Rust tests `include_str!` them and
+# `tests/run_stdfx_goldens.py` fails on a single differing byte. A CRLF checkout on
+# Windows would break both, so never convert these.
+flare/sources/stdfx/*_cases*.txt -text
+
 # Agentic workflow lock files should be treated as generated and merge-ours
 .github/workflows/*.lock.yml linguist-generated=true merge=ours
