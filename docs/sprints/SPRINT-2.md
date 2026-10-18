@@ -46,7 +46,7 @@ python3 scripts/atlas_check.py                              # 0 hard, 0 soft
 ### Cross-platform coverage
 | Kernel | macOS | Linux | Windows | What the platform-independent tests prove |
 |---|---|---|---|---|
-| `igs_attenuation_distribution` | golden (62 cases) + invariants + FFI | same | same — this kernel has no RNG, so the golden replays | parity, all-or-nothing publish, `-3`/`-5` refusals |
+| `igs_attenuation_distribution` | golden (62 cases) + invariants + FFI | invariants + FFI; golden expected, see note | invariants + FFI; golden expected, see note | parity, all-or-nothing publish, `-3`/`-5` refusals |
 | `igs_motion_wind_pixel` (+ table) | 64-bit golden + invariants | 64-bit golden + invariants | 32-bit golden + invariants | table/pixel arithmetic under the ABI-correct LCG stream |
 | `igs_math_random` | closed-form conformance | closed-form conformance | closed-form conformance | width-correct modulus and `next_d` denominator |
 
@@ -55,6 +55,14 @@ python3 scripts/atlas_check.py                              # 0 hard, 0 soft
 `size_of::<c_ulong>()` — 64-bit on LP64, 32-bit on LLP64 — not by `cfg(target_os)`, so
 i686 Linux is covered as well. Golden *drift* checking runs only on macOS in CI because the
 recorded bytes include that machine's libm. A render is still unproven everywhere: see Open.
+
+Note on the attenuation row: having no RNG is necessary but not sufficient for a golden to
+replay off the recording platform. `point_in_polygon` and the circle mask rest on
+`cos`/`sin`/`sqrt`, and an exact boundary tie can flip whether a pixel row is covered at all
+— that changes `lens_offsets`/`lens_sizes` structurally, not by 1e-12. If that comparison
+fails on Linux or Windows CI, gate it to the recording platform and rely on the invariant
+grid there; do not widen the tolerance, because the tolerance is what makes the matrix
+comparison meaningful.
 - `Flare.app/Contents/MacOS/Flare` (11 MB) built; binary newer than every touched source.
 - `nm -g libtnzcore.dylib` shows `T _flare_igs_motion_wind_pixel_{new,change,clear,free}` and `T _flare_igs_attenuation_{distribution,free}`. `libtnzstdfx.dylib` carries them as `U` and resolves at load — expected, the Rust staticlib links into `libtnzcore`.
 - Smoke test: app launched, stayed alive 14 s, no crash report, empty log.

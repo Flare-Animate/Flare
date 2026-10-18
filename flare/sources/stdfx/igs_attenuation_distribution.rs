@@ -429,23 +429,30 @@ mod tests {
         unsafe { flare_igs_attenuation_free(pm, po, ps) };
     }
 
-    /// Regression: `diameter_for` returns `usize` and the C ABI carries `c_int`. For a
-    /// radius whose diameter is 2^32 + 1 the cast wraps to 1, which used to build a
-    /// 1x1 matrix and return OK. The range check must reject it instead.
+    /// Regression: `diameter_for` returns `usize` and the C ABI carries `c_int`, so a
+    /// diameter above 2^32 used to wrap in the cast. Both radii below overflow it:
+    /// 2_147_483_648.0 gives 4_294_967_297 (wraps to 1) and 2_147_483_649.0 gives
+    /// 4_294_967_299 (wraps to 3). Before the range check each built a tiny matrix and
+    /// returned OK; the check now runs before the cast, so both are refused.
     #[test]
     fn absurd_radius_does_not_wrap_into_a_tiny_matrix() {
-        let mut pd: i32 = -7;
-        let mut pm: *mut f64 = std::ptr::null_mut();
-        let mut po: *mut i32 = std::ptr::null_mut();
-        let mut ps: *mut i32 = std::ptr::null_mut();
-        let status = unsafe {
-            flare_igs_attenuation_distribution(
-                2_147_483_649.0, 1.0, 2, 0.0, &mut pm, &mut po, &mut ps, &mut pd,
-            )
-        };
-        assert_eq!(status, ERR_TOO_LARGE, "must refuse, not wrap to diameter 1");
-        assert_eq!(pd, 0);
-        assert!(pm.is_null() && po.is_null() && ps.is_null());
+        for radius in [2_147_483_648.0, 2_147_483_649.0] {
+            let mut pd: i32 = -7;
+            let mut pm: *mut f64 = std::ptr::null_mut();
+            let mut po: *mut i32 = std::ptr::null_mut();
+            let mut ps: *mut i32 = std::ptr::null_mut();
+            let status = unsafe {
+                flare_igs_attenuation_distribution(
+                    radius, 1.0, 2, 0.0, &mut pm, &mut po, &mut ps, &mut pd,
+                )
+            };
+            assert_eq!(status, ERR_TOO_LARGE, "radius {radius}: must refuse, not wrap");
+            assert_eq!(pd, 0, "radius {radius}: diameter must stay zeroed");
+            assert!(
+                pm.is_null() && po.is_null() && ps.is_null(),
+                "radius {radius}: nothing may be published"
+            );
+        }
     }
 
     #[test]
