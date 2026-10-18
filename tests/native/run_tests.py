@@ -15,24 +15,51 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.abspath(os.path.join(HERE, "..", ".."))
-FLARE_BUILD = os.environ.get("FLARE_BUILD", os.path.join(REPO, "build_local"))
+def _default_flare_build():
+    """The dev tree if it exists, else the tree the documented build produces.
+
+    The old default was build_local unconditionally, so a stock `cmake -S flare/sources -B
+    build` was invisible and the runner said "tnzcore has not been built" about a tree that
+    was sitting right there.
+    """
+    for name in ("build_local", "build"):
+        path = os.path.join(REPO, name)
+        if os.path.isdir(path):
+            return path
+    return os.path.join(REPO, "build_local")
+
+
+FLARE_BUILD = os.environ.get("FLARE_BUILD") or _default_flare_build()
 DEFAULT_BUILD = os.path.join(HERE, "build")
+
+# MSVC writes an import library; CMake with Ninja or Make writes a shared or static
+# library directly into the target's directory, with no configuration subdirectory in a
+# single-config generator.
+if sys.platform == "win32":
+    LIB_PATTERNS = ("{n}.lib",)
+elif sys.platform == "darwin":
+    LIB_PATTERNS = ("lib{n}.dylib", "lib{n}.a")
+else:
+    LIB_PATTERNS = ("lib{n}.so", "lib{n}.a")
+
+CONFIG_DIRS = ("", "RelWithDebInfo", "Release", "Debug")
 
 
 def find_lib(build, name):
-    """Locate a target's import library in either supported build layout.
+    """Locate a target's linkable artifact, whatever the generator and layout.
 
-    A tree configured from flare/sources -- which is what CI does -- writes to
-    <build>/<target>/RelWithDebInfo. The older build_local tree nests it under
-    <build>/sources/<target>/RelWithDebInfo. Probing both means pointing
-    --flare-build at either tree works, instead of reporting "tnzcore has not
-    been built" for a build that is sitting right there. tests/native/CMakeLists.txt
-    already probes both for the same reason.
+    MSVC writes <build>/<target>/RelWithDebInfo/<name>.lib. Ninja/Make write
+    <build>/<target>/lib<name>.dylib (or .so/.a) with no config level. The older build_local
+    tree nests the target under <build>/sources. Probing all three means --flare-build works
+    against any real tree, instead of reporting "has not been built" for an artifact that is
+    lying right there.
     """
     for sub in (name, os.path.join("sources", name)):
-        candidate = os.path.join(build, sub, "RelWithDebInfo", name + ".lib")
-        if os.path.isfile(candidate):
-            return candidate
+        for config in CONFIG_DIRS:
+            for pattern in LIB_PATTERNS:
+                candidate = os.path.join(build, sub, config, pattern.format(n=name))
+                if os.path.isfile(candidate):
+                    return candidate
     return None
 
 
@@ -101,6 +128,20 @@ def find_qt_root():
         roots.append(os.environ["QT_BIN"])
     if sys.platform == "win32":
         roots.append(os.environ.get("QTDIR", r"C:\Qt"))
+    elif sys.platform == "darwin":
+        # Homebrew keeps Qt out of /usr and /usr/local on Apple silicon: the keg lives at
+        # <brew>/opt/qt@5 and is only symlinked to <brew>/opt when it is the selected
+        # version. Naming the keg first turns this into one stat instead of a walk of the
+        # whole prefix, which also contains every other formula's Cellar.
+        brew = os.environ.get("HOMEBREW_PREFIX") or "/opt/homebrew"
+        roots += [
+            os.path.join(brew, "opt", "qt@5"),
+            "/usr/local/opt/qt@5",  # Intel homebrew
+            brew,
+            "/usr/local",
+            "/opt/Qt",
+            "/usr",
+        ]
     else:
         roots += ["/usr", "/opt/Qt", "/usr/local"]
 
@@ -143,6 +184,19 @@ def main():
     args = ap.parse_args()
 
     flare_build = os.path.abspath(args.flare_build)
+
+    # tests/native/CMakeLists.txt is MSVC-only by construction, not merely misconfigured:
+    # _flare_find_target_lib accepts only "<target>.lib", ZLIB_IMPORT_LIB points at
+    # vcpkg/installed/x64-windows/lib/zlib.lib, and every one of the ten test targets links
+    # it -- there is no platform branch anywhere in the project. Nothing in a Ninja/Make
+    # tree can satisfy that, so say so plainly and exit 0 without printing a pass count
+    # that was not measured. Porting it needs dylib/.so linking, rpath and a system zlib.
+    if sys.platform != "win32":
+        print("   SKIP: native C++ reader tests are MSVC-only by construction "
+              "(tests/native/CMakeLists.txt links *.lib import libraries and a vcpkg "
+              "x64-windows zlib); nothing to run on %s" % sys.platform)
+        return 0
+
     tnzcore_lib = find_lib(flare_build, "tnzcore")
     flareqt_lib = find_lib(flare_build, "flareqt")
     if not tnzcore_lib:
