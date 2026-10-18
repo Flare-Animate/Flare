@@ -180,6 +180,12 @@ pub mod igs_hls_noise;
 pub mod naru_maxflow;
 #[path = "stdfx/igs_color_blend.rs"]
 pub mod igs_color_blend;
+#[path = "stdfx/igs_motion_wind_table.rs"]
+pub mod igs_motion_wind_table;
+#[path = "stdfx/igs_attenuation_distribution.rs"]
+pub mod igs_attenuation_distribution;
+#[path = "stdfx/igs_motion_wind_pixel.rs"]
+pub mod igs_motion_wind_pixel;
 
 /// TFilePath query (see header). Returns full byte length; copies up to `cap` into `out`.
 #[no_mangle]

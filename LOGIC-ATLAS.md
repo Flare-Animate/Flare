@@ -124,6 +124,7 @@ matching OpenToonz/Tahoma as the rewrite proceeds — no `rust/` sidecar tree.
 - `flare_lso_is_lso`, `flare_lso_parse`, `flare_lso_free` (`flare_formats.rs`) — the C ABI for the `.sol` reader.
 - `naru_maxflow` (`stdfx/naru_maxflow.rs`) — Boykov-Kolmogorov min-cut max-flow behind the `flare_graph_*` C ABI; `stdfx/naru_graph.h` forwards the `Graph` class.
 - `igs_color_blend` (`stdfx/igs_color_blend.rs`) — the 22 Photoshop / PDF blend-mode kernels used by the `ino_blend_*` FX, behind the `flare_igs_color_*` C ABI; `stdfx/igs_color_blend.h` forwards `namespace igs::color`.
+- `igs_attenuation_distribution`, `igs_motion_wind_pixel` and `igs_motion_wind_table` (`stdfx/igs_attenuation_distribution.rs`, `stdfx/igs_motion_wind_pixel.rs`, `stdfx/igs_motion_wind_table.rs`) — the fog lens kernel (flat-array FFI, `flare_igs_attenuation_*`, all-or-nothing publish) and the stateful motion-wind streak machine (opaque handle, `flare_igs_motion_wind_pixel_*`), used by `igs_fog.cpp` / `igs_motion_wind.cpp`. The attenuation and pixel headers forward the old C++ APIs; the decay-table header was deleted (the table is internal to the pixel port).
 - `blurmatrix` (`flarelib/sandor_fxs/BlurMatrix.rs`) — `CBlurMatrix` (even disc / 10-slot random sampling / stop-at-contour path), behind `flare_blurmatrix_*`; `sandor_fxs/BlurMatrix.h` keeps the C++ class.
 - `unzip_any` (`common/moho/moho.rs`) — first ZIP entry whose name is in a caller-supplied list.
 - `swf_frames`, `swf_header`, `cfbf_header`, `xfl_dom_info` (`flare_formats.rs`) — header primitives the above compose.
@@ -134,7 +135,7 @@ matching OpenToonz/Tahoma as the rewrite proceeds — no `rust/` sidecar tree.
 - `cfbf_streams` walks the header DIFAT only, so files past ~7MB at 512-byte sectors are out of reach by construction.
 - `Format::Sol` is 5; `detect` returns it only when both the `00 BF` magic and the 10-byte `TCSO` signature match, so a bare `00 BF` prefix is not enough.
 - `Format` discriminants are **frozen** (the C ABI returns them): 0..5 are the original six, 6..21 are the OpenToonz/Tahoma/Moho/Harmony/Flipnote/Wick/FlippaClip types. `detect` only claims a magic it can verify from the bytes; folders, `.pli`/`.plt` and the shared `.tpl` spelling go through `detect_ext` / `flare_detect_format_ext`, because a directory has no bytes and two formats share a container.
-- The ported kernels (`naru_maxflow`, `igs_color_blend`) are bit-identical to the retired C++, pinned by committed goldens (`stdfx/igs_color_blend_cases.txt`); their `.cpp` files are gone, only the headers remain as forwarders.
+- The ported kernels (`naru_maxflow`, `igs_color_blend`, `igs_attenuation_distribution`, `igs_motion_wind_pixel`+`igs_motion_wind_table`) are bit-identical to the retired C++, pinned by committed goldens (`stdfx/igs_color_blend_cases.txt`, `stdfx/igs_attenuation_cases.txt`, `stdfx/igs_motion_wind_cases.txt`); their `.cpp` files are gone, only the headers remain as forwarders. The motion-wind golden is POSIX-only (the RNG follows the C++ `unsigned long` ABI); replayed under `#[cfg(not(windows))]`.
 - `kTwipsPerPixel` is 20.0 — one twip is 1/20th of a pixel per the SWF spec, and shape coordinates divide by it.
 
 **State:** stateless; no globals, no handles. All functions are pure over their inputs.

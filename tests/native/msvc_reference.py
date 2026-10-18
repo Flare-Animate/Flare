@@ -92,6 +92,47 @@ def build_and_run(workdir: str, sources: list[str], harness: str, exe: str = "re
         return fh.read()
 
 
+def build_and_run_host(
+    workdir: str,
+    sources: list[str],
+    harness: str,
+    include_dirs: list[str] | None = None,
+    link_archives: list[str] | None = None,
+    exe: str = "ref",
+) -> str:
+    """Same as `build_and_run` but with the host C++ compiler (clang++/g++), for POSIX.
+
+    Goldens captured this way depend on the host libm for `sqrt`/`pow`/`cos`/`sin`;
+    callers comparing transcendental output must allow a few ULP rather than raw bits
+    (see the generator docstrings).
+    """
+    shutil.copyfile(harness, os.path.join(workdir, "ref.cpp"))
+    cxx = os.environ.get("CXX") or shutil.which("clang++") or shutil.which("g++")
+    if not cxx:
+        sys.exit("no host C++ compiler found (set CXX)")
+    argv = [
+        cxx,
+        "-O2",
+        "-std=c++17",
+        # No FMA contraction: the C++ source expresses these as separate mul+add, and
+        # Rust does not fuse them either. Without this the reference binary records a
+        # 1-ULP artifact of the host compiler, not a property of the original logic.
+        "-ffp-contract=off",
+        "-o",
+        exe,
+        "ref.cpp",
+        *sources,
+    ]
+    for d in include_dirs or []:
+        argv += ["-I", d]
+    argv += [*(link_archives or [])]
+    subprocess.run(argv, cwd=workdir, check=True)
+    out = subprocess.run(
+        [os.path.join(workdir, exe)], cwd=workdir, check=True, capture_output=True, text=True
+    ).stdout
+    return out
+
+
 def normalize(text: str) -> str:
     """CRLF -> LF, so golden comparison and blank-line splitting behave the same."""
     return text.replace("\r\n", "\n")
