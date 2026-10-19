@@ -23,7 +23,7 @@ extern "C" int flare_casm_range(const char *filename, int bufsize, int *start,
 
 class CasmFileInfo {
 public:
-  CasmFileInfo(const TFilePath &fp);
+  CasmFileInfo(const TFilePath &fp) : m_fp(fp) {}
   void getFrameRange(int &startFrame, int &endFrame, bool &interlaced) {
     startFrame = endFrame = 0;
     interlaced            = false;
