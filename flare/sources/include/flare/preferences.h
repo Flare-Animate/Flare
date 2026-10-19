@@ -270,6 +270,9 @@ public:
   bool isRestoreViewerViewFromLastSessionEnabled() const {
     return getBoolValue(restoreViewerViewFromLastSession);
   }
+  bool isRestoreStyleEditorTabEnabled() const {
+    return getBoolValue(RestoreStyleEditorTab);
+  }
 
   // Visualization  tab
   bool getShow0ThickLines() const { return getBoolValue(show0ThickLines); }
@@ -327,6 +330,9 @@ public:
   bool isUseQuickTimeBackend() const { return getBoolValue(quickTimeBackend); }
   QString getRhubarbPath() const { return getStringValue(rhubarbPath); }
   int getRhubarbTimeout() { return getIntValue(rhubarbTimeout); }
+  bool isLazyNezumiCanvasFocusEnabled() {
+    return getBoolValue(lazyNezumiCanvasFocusEnabled);
+  }
 
   // Drawing  tab
   QString getDefRasterFormat() const { return getStringValue(DefRasterFormat); }
@@ -502,7 +508,7 @@ public:
   bool isShowFrameNumberWithLettersEnabled() const {
     return getBoolValue(showFrameNumberWithLetters);
   }
-  // Ported from tahoma2d: xshcellviewer.cpp reads both of these.
+  // Ported from flare: xshcellviewer.cpp reads both of these.
   bool isShowDragBarsEnabled() const {
     return getBoolValue(showDragBars);
   }

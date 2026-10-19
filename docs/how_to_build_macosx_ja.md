@@ -31,8 +31,8 @@ $ git lfs install
 ### リポジトリを clone
 
 ```
-$ git clone https://github.com/Flare-Animate/Flare
-$ cd Flare
+$ git clone https://github.com/flare/flare
+$ cd flare
 $ git lfs pull
 $ cd thirdparty/lzo
 $ cp -r 2.03/include/lzo driver
@@ -72,21 +72,28 @@ $ sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
 $ cmake -G Xcode ../sources -B. -DQT_PATH='/usr/local/opt/qt/lib' -DWITH_TRANSLATION=OFF
 ```
 - オプション `-DWITH_TRANSLATION=OFF` はXcode12以降で必要です。
-- Xcodeでプロジェクト `/Flare/flare/build/Flare.xcodeproj` を開き、ビルドします。
+- Xcodeでプロジェクト `/flare/toonz/build/Flare.xcodeproj` を開き、ビルドします。
 
 ### stuff ディレクトリの設置 (任意)
 
-`/Applications/Flare/Flare_stuff` というディレクトリが存在していない場合は以下のコマンド等でリポジトリのひな形を設置する必要があります。
+`/Applications/Flare/OpenToonz_stuff` というディレクトリが存在していない場合は以下のコマンド等でリポジトリのひな形を設置する必要があります。
 
 ```
-$ sudo cp -r Flare/stuff /Applications/Flare/Flare_stuff
+$ sudo cp -r flare/stuff /Applications/Flare/OpenToonz_stuff
 $ sudo chmod -R 777 /Applications/Flare
 ```
 
 ### アプリケーションの実行
 
 ```
-$ open ./flare/Flare.app
+$ open ./toonz/Flare.app
 ```
 
 - Xcode でビルドしている場合、アプリケーションは　`.toonz/build/Debug/Flare.app` にあります。
+## Translation workflow / 翻訳
+
+See [Contributing and maintaining translations](../toonz/sources/translations/README.md)
+for contributor and maintainer workflows. Keep the Xcode `WITH_TRANSLATION=OFF`
+workaround above until translation-enabled Xcode builds are verified. That option
+disables this build's translation generation; do not assume bundled catalogs were
+updated. Qt Linguist and manual `lrelease` remain available for catalog testing.

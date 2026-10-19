@@ -2097,11 +2097,11 @@ What do you want to do? </source>
     </message>
     <message>
         <source>When activated, styles of the default palette
-($TOONZSTUDIOPALETTE\cleanup_default.tpl) will 
+($FLARESTUDIOPALETTE\cleanup_default.tpl) will 
 be appended to the palette after conversion in 
 order to save the effort of creating styles 
 before color designing.</source>
-        <translation type="vanished">このオプションがONのとき、デフォルトパレット ($TOONZSTUDIOPALETTE\cleanup_default.tpl)
+        <translation type="vanished">このオプションがONのとき、デフォルトパレット ($FLARESTUDIOPALETTE\cleanup_default.tpl)
 のスタイルが変換後のパレットに追加されます。色見本を作成する際に、スタイルを新規作成する
 手間を省くことができます。</translation>
     </message>
@@ -2140,7 +2140,7 @@ contain the dpi information, then the current camera dpi will be used.
     </message>
     <message>
         <source>When activated, styles of the default palette
-($TOONZSTUDIOPALETTE\Global Palettes\Default Palettes\Cleanup_Palette.tpl) will 
+($FLARESTUDIOPALETTE\Global Palettes\Default Palettes\Cleanup_Palette.tpl) will 
 be appended to the palette after conversion in 
 order to save the effort of creating styles 
 before color designing.</source>
@@ -18136,6 +18136,41 @@ Hold F3 Key on the Viewer to Show This Frame Only</source>
     <message>
         <source> Frame</source>
         <translation> フレーム</translation>
+    </message>
+</context>
+<context>
+    <name>FileBrowserLocations</name>
+    <message>
+        <source>My Computer</source>
+        <translation>コンピューター</translation>
+    </message>
+    <message>
+        <source>Network</source>
+        <translation>ネットワーク</translation>
+    </message>
+    <message>
+        <source>My Documents</source>
+        <translation>ドキュメント</translation>
+    </message>
+    <message>
+        <source>Desktop</source>
+        <translation>デスクトップ</translation>
+    </message>
+    <message>
+        <source>Library</source>
+        <translation>ライブラリ</translation>
+    </message>
+    <message>
+        <source>History</source>
+        <translation>履歴</translation>
+    </message>
+    <message>
+        <source>Project root (%1)</source>
+        <translation>プロジェクトルート (%1)</translation>
+    </message>
+    <message>
+        <source>Scene Folder</source>
+        <translation>シーンフォルダー</translation>
     </message>
 </context>
 </TS>

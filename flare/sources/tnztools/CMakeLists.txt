@@ -27,6 +27,7 @@ endif()
 set(HEADERS
     ${MOC_HEADERS}
     autofill.h
+    typetooltext.h
     bluredbrush.h
     hookselection.h
     rasterselectiontool.h
@@ -122,6 +123,7 @@ set(SOURCES
     stylepickertool.cpp
     trackertool.cpp
     typetool.cpp
+    typetooltext.cpp
     tooloptionscontrols.cpp
     tooloptions.cpp
     vectorerasertool.cpp

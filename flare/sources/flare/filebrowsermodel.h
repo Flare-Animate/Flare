@@ -6,7 +6,7 @@
 #include <QAbstractItemModel>
 #include <QPixmap>
 #include <QMap>
-// std::set for m_projectPaths, added with the tahoma2d port of the root node.
+// std::set for m_projectPaths, added with the flare port of the root node.
 #include <set>
 #include <vector>
 #include "tfilepath.h"
@@ -20,9 +20,25 @@ class DvDirVersionControlRootNode;
 //-----------------------------------------------------------------------------
 
 class DvDirModelNode {
+public:
+  enum class DisplayLocation {
+    None,
+    Computer,
+    Network,
+    Documents,
+    Desktop,
+    Library,
+    History,
+    ProjectRoot,
+    SceneFolder
+  };
+
+private:
   DvDirModelNode *m_parent;
   int m_row;
   bool m_renameEnabled;
+  DisplayLocation m_displayLocation = DisplayLocation::None;
+  QString m_displayDetail;
 
 protected:
   std::wstring m_name;
@@ -37,6 +53,12 @@ public:
 
   DvDirModelNode *getParent() const { return m_parent; }
   std::wstring getName() const { return m_name; }
+  QString getDisplayName() const;
+  void setDisplayLocation(DisplayLocation location,
+                          const QString &detail = QString()) {
+    m_displayLocation = location;
+    m_displayDetail   = detail;
+  }
   virtual bool setName(std::wstring newName) { return false; }
 
   void setTemporaryName(const std::wstring &newName);
@@ -133,7 +155,7 @@ class DvDirModelSpecialFileFolderNode : public DvDirModelFileFolderNode {
 private:
   QString m_iconName;
   QSize m_iconSize;
-  // Ported from tahoma2d: the special-file nodes (Devices, Volume Information)
+  // Ported from flare: the special-file nodes (Devices, Volume Information)
   // can carry a pixmap as well as an icon, and filebrowsermodel.cpp sets it.
   QPixmap m_pixmap;
 
@@ -295,7 +317,7 @@ public:
 
 //-----------------------------------------------------------------------------
 
-// Ported from tahoma2d. filebrowsermodel.cpp constructs this node and the local
+// Ported from flare. filebrowsermodel.cpp constructs this node and the local
 // header never declared it, so every use failed with "is not a class or
 // namespace name".
 class DvDirModelStuffFolderNode final : public DvDirModelNode {
@@ -333,7 +355,7 @@ class DvDirModelRootNode final : public DvDirModelNode {
   DvDirModelMyComputerNode *m_myComputerNode;
   DvDirModelNetworkNode *m_networkNode;
   DvDirModelProjectNode *m_sandboxProjectNode;
-  // Ported from tahoma2d: filebrowsermodel.cpp tracks the open projects and the
+  // Ported from flare: filebrowsermodel.cpp tracks the open projects and the
   // per-project folder nodes, which this header did not declare.
   std::vector<DvDirModelProjectNode *> m_projectNodes;
   DvDirModelProjectNode *m_currentProjectNode;

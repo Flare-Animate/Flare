@@ -26,7 +26,7 @@ Visual Studio 2019构建的工程文件可以使用2022版本打开。
 ### boost库
 - 1.55.0 以上版本
 (已测试可行的最高版本是1.73.0)
-- 下载 [boost_1_73_0.zip](http://www.boost.org/users/history/version_1_73_0.html) 后解压到 '$Flare/thirdparty/boost' 文件夹。
+- 下载 [boost_1_73_0.zip](http://www.boost.org/users/history/version_1_73_0.html) 后解压到 '$flare/thirdparty/boost' 文件夹。
 
 ### OpenCV
 - 4.1.0 以上版本
@@ -35,7 +35,7 @@ Visual Studio 2019构建的工程文件可以使用2022版本打开。
 
 ## 获取源码
 - 使用VS或者git命令行从github上克隆仓库到本地。
-- `$Flare` 代表仓库的根目录。
+- `$flare` 代表仓库的根目录。
 
 ### 库文件（.lib和.dll）
 
@@ -48,8 +48,8 @@ Visual Studio 2019构建的工程文件可以使用2022版本打开。
 
 ### 使用CMake生成VS2019项目文件
 - 启动 CMake
-- 设置源码文件夹位置为 `$Flare/flare/sources`
-- 设置构建文件夹位置为`$Flare/flare/build`
+- 设置源码文件夹位置为 `$flare/toonz/sources`
+- 设置构建文件夹位置为`$flare/toonz/build`
 - （或者你自己常用的位置）
 - 如果构建文件夹处于仓库文件夹内,确保将其添加到 .gitignore，避免提交到仓库内。
 - 如果不使用推荐的构建文件夹，注意在下面的步骤中替换相应的路径。
@@ -61,21 +61,21 @@ Visual Studio 2019构建的工程文件可以使用2022版本打开。
 
 ## 配置外部头文件
 （复制并）重命名以下文件:
-- `$Flare/thirdparty/LibJPEG/jpeg-9/jconfig.vc` 重命名为 `$Flare/thirdparty/LibJPEG/jpeg-9/jconfig.h`
-- `$Flare/thirdparty/tiff-4.0.3/libtiff/tif_config.vc.h` 重命名为 `$Flare/thirdparty/tiff-4.0.3/libtiff/tif_config.h`
-- `$Flare/thirdparty/tiff-4.0.3/libtiff/tiffconf.vc.h` 重命名为 `$Flare/thirdparty/tiff-4.0.3/libtiff/tiffconf.h`
-- `$Flare/thirdparty/libpng-1.6.21/scripts/pnglibconf.h.prebuilt ` 重命名为 `$Flare/thirdparty/libpng-1.6.21/pnglibconf.h`
+- `$flare/thirdparty/LibJPEG/jpeg-9/jconfig.vc` 重命名为 `$flare/thirdparty/LibJPEG/jpeg-9/jconfig.h`
+- `$flare/thirdparty/tiff-4.0.3/libtiff/tif_config.vc.h` 重命名为 `$flare/thirdparty/tiff-4.0.3/libtiff/tif_config.h`
+- `$flare/thirdparty/tiff-4.0.3/libtiff/tiffconf.vc.h` 重命名为 `$flare/thirdparty/tiff-4.0.3/libtiff/tiffconf.h`
+- `$flare/thirdparty/libpng-1.6.21/scripts/pnglibconf.h.prebuilt ` 重命名为 `$flare/thirdparty/libpng-1.6.21/pnglibconf.h`
 - 注意：最后一个文件所处的文件夹和之前不一样
 
 ## 构建
-- 打开 `$Flare/flare/build/Flare.sln` 并在顶部切换到 `Debug` 或 `Release`。
+- 打开 `$flare/toonz/build/Flare.sln` 并在顶部切换到 `Debug` 或 `Release`。
 - 编译。
-- 完成后结果会输出到 `$Flare/flare/build/`
+- 完成后结果会输出到 `$flare/toonz/build/`
 
 ## 构建 Canon DSLR 相机支持
 下载 Canon SDK 需要先申请加入 Canon 开发者计划。
 
-- 复制 Canon SDK 中的头文件夹和库文件夹 到 `$Flare/thirdparty/canon`
+- 复制 Canon SDK 中的头文件夹和库文件夹 到 `$flare/thirdparty/canon`
   - 确保是来自 **EDSDK_64** 文件夹。
 
 在CMake中选中 `WITH_CANON` 复选框来启用 Canon DSLR 相机支持。
@@ -84,9 +84,9 @@ Visual Studio 2019构建的工程文件可以使用2022版本打开。
 
 ## 运行程序
 ### 配置程序目录
-1. 复制 $Flare/flare/build/Release 内的所有内容到一个指定文件夹。
+1. 复制 $flare/toonz/build/Release 内的所有内容到一个指定文件夹。
 
-2. 打开命令行并进入 `QT_DIR/msvc2015_64/bin`目录。运行 `windeployqt.exe`，使用`Flare.exe` 的路径作为参数。（另一种方式是先进入`Flare.exe`所在的文件夹然后拖动`Flare.exe`到`windeployqt.exe`的头上。这样会自动拉取所需文件。）
+2. 打开命令行并进入 `QT_DIR/msvc2015_64/bin`目录。运行 `windeployqt.exe`，使用`Flare.exe` 的路径作为参数。（另一种方式是先进入`Flare.exe`所在的文件夹然后拖动`Opentoonz.exe`到`windeployqt.exe`的头上。这样会自动拉取所需文件。）
  - 以下Qt 库文件必须放在和`Flare.exe`同一个文件夹内：
   - `D3Dcompiler_**.dll`
   - `Qt5Core.dll`
@@ -134,23 +134,23 @@ Visual Studio 2019构建的工程文件可以使用2022版本打开。
 │   └── qwindowsvistastyled.dll
 
 3. 将下列文件复制到与 `Flare.exe` 相同目录下
-  - `$Flare/thirdparty/glut/3.7.6/lib/glut64.dll`
-  - `$Flare/thirdparty/glew/glew-1.9.0/bin/64bit/glew32.dll`
-  - `$Flarethirdparty/libmypaint/dist/64/*.dll`
+  - `$flare/thirdparty/glut/3.7.6/lib/glut64.dll`
+  - `$flare/thirdparty/glew/glew-1.9.0/bin/64bit/glew32.dll`
+  - `$opentoonzthirdparty/libmypaint/dist/64/*.dll`
   - libjpeg-turbo的 `turbojpeg.dll` 
   - OpenCV的 `opencv_world***.dll`
 
-4. 从之前安装的Flare的安装目录中复制 `srv` 文件夹到与 `Flare.exe` 相同目录下
+4. 从之前安装的OpenToonz的安装目录中复制 `srv` 文件夹到与 `Flare.exe` 相同目录下
   - 如果没有 `srv` 文件夹， Flare 也可以正常使用，但是会缺少一些媒体文件格式的支持，比如`mov`格式。
   - 关于这点稍后会做说明。
 
 ### 创建Stuff文件夹
-如果之前已经安装过Flare，注册表已经创建好了的话，可以跳过这个步骤。
+如果之前已经安装过OpenToonz，注册表已经创建好了的话，可以跳过这个步骤。
 
-1. 复制 `$Flare/stuff` 的内容到一个指定文件夹。
+1. 复制 `$flare/stuff` 的内容到一个指定文件夹。
 
 ### 创建注册表
-1. 打开注册表编辑器，创建下列键名，并将键值设为`$Flare/stuff`的绝对路径。
+1. 打开注册表编辑器，创建下列键名，并将键值设为`$flare/stuff`的绝对路径。
   - HKEY_LOCAL_MACHINE\SOFTWARE\Flare\Flare\FLAREROOT
 
 ### 运行
@@ -172,31 +172,45 @@ Flare 使用 QuickTime SDK 提供的 MOV 及相关文件格式。由于 QuickTim
 ### QuickTime SDK
 1. 登录Apple开发者账号后下载 `QuickTime 7.3 SDK for Windows.zip` from the following url.
   - https://developer.apple.com/downloads/?q=quicktime
-2. QuickTime SDK安装完成后, 复制 `C:\Program Files (x86)\QuickTime SDK` 到 `$Flare/thirdparty/quicktime/QT73SDK`
+2. QuickTime SDK安装完成后, 复制 `C:\Program Files (x86)\QuickTime SDK` 到 `$flare/thirdparty/quicktime/QT73SDK`
 
 ### 使用CMake 构建32位版本的VS2019工程
 - 替换以下内容，其余步骤与构建64位版本时相同
-  - `$Flare/flare/build` to `$Flare/flare/build32`
+  - `$flare/toonz/build` to `$flare/toonz/build32`
   - `Visual Studio 16 2019 x64` to `Visual Studio 16 2019 Win32`
 - 指定 `QT_PATH` 为32位Qt的Build目录
 
 ### 构建 32位版本程序
-1. 打开 `$Flare/flare/build32/Flare.sln`
+1. 打开 `$flare/toonz/build32/Flare.sln`
 
 ### 配置 `srv` 文件夹（MOV视频支持）
 - 如果是64位程序, 复制下列文件到 `srv` 文件夹：
-  - `$Flare/flare/build32/Release`
+  - `$flare/toonz/build32/Release`
     - t32bitsrv.exe
     - image.dll
     - tnzbase.dll
     - tnzcore.dll
     - tnzext.dll
-    - flarelib.dll
+    - toonzlib.dll
   - 32位版本的Qt：
     - 使用 `windeployqt.exe` 运行`t32bitsrv.exe`，自动复制相关文件。
     - 另外需要手动复制 Qt5Gui.dll
-  - `$Flare/thirdparty/glut/3.7.6/lib/glut32.dll`
+  - `$flare/thirdparty/glut/3.7.6/lib/glut32.dll`
 
 ## 创建翻译文件
-Qt 翻译文件首先使用源码生成.ts文件, 然后使用这些.tx文件生成 .qm 文件。这些文件可以在Visual Studio中创建，只要 `translation_` 项目以及 `Build translation_??? only` (`translation_???`のみをビルド」) 被启用。
-这些文件不会在默认的 `Build Project Solution` 中生成。
+
+贡献者如何提交翻译，以及维护者如何审核、合并和更新翻译，请参阅
+[翻译指南（英文）](../toonz/sources/translations/README.md)。
+仍可使用 Qt Linguist 编辑 `.ts` 文件并手动运行 `lrelease`。
+
+启用 `WITH_TRANSLATION=ON` 后，在 Visual Studio 中显式构建
+`translate_update_*` 项目可以提取源码中的翻译字符串。例如，从仓库根目录运行：
+
+```sh
+cmake --build toonz/build --config Release --target translate_update_toonz
+```
+
+请使用实际配置的构建目录和配置名称。提取可能更新该模块所有已注册语言的
+`.ts` 文件，提交前应检查差异。当前应用程序目标在链接后生成 `.qm`，
+但只修改翻译可能不会触发重新链接。请手动生成受影响的目录文件，
+或确认输出确实已更新。测试路径和打包说明见上述指南。

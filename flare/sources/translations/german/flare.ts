@@ -2002,7 +2002,7 @@ Was möchten Sie tun?</translation>
     </message>
     <message>
         <source>When activated, styles of the default palette
-($TOONZSTUDIOPALETTE\cleanup_default.tpl) will 
+($FLARESTUDIOPALETTE\cleanup_default.tpl) will 
 be appended to the palette after conversion in 
 order to save the effort of creating styles 
 before color designing.</source>
@@ -6685,7 +6685,7 @@ Please use the frame numbers for reference.</source>
     </message>
     <message>
         <source>&amp;Timeline</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Zeitleiste</translation>
     </message>
     <message>
         <source>Linear Interpolation</source>
@@ -17146,11 +17146,11 @@ Genaueres können Sie aus der Nutzerhilfe entnehmen.</translation>
     </message>
     <message>
         <source>Toggle Xsheet/Timeline</source>
-        <translation type="unfinished"></translation>
+        <translation>Zwischen Xsheet und Zeitleiste wechseln</translation>
     </message>
     <message>
         <source>Add New Memo</source>
-        <translation type="unfinished"></translation>
+        <translation>Neue Notiz hinzufügen</translation>
     </message>
     <message>
         <source>Previous Memo</source>
@@ -17332,6 +17332,41 @@ Hold F3 Key on the Viewer to Show This Frame Only</source>
     <message>
         <source> Frame</source>
         <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>FileBrowserLocations</name>
+    <message>
+        <source>My Computer</source>
+        <translation>Arbeitsplatz</translation>
+    </message>
+    <message>
+        <source>Network</source>
+        <translation>Netzwerk</translation>
+    </message>
+    <message>
+        <source>My Documents</source>
+        <translation>Eigene Dokumente</translation>
+    </message>
+    <message>
+        <source>Desktop</source>
+        <translation>Desktop</translation>
+    </message>
+    <message>
+        <source>Library</source>
+        <translation>Bibliothek</translation>
+    </message>
+    <message>
+        <source>History</source>
+        <translation>Verlauf</translation>
+    </message>
+    <message>
+        <source>Project root (%1)</source>
+        <translation>Projektstamm (%1)</translation>
+    </message>
+    <message>
+        <source>Scene Folder</source>
+        <translation>Szenenordner</translation>
     </message>
 </context>
 </TS>

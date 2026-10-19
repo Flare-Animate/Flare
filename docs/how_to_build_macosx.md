@@ -33,19 +33,11 @@ Check site for any changes in installation instructions, but they will probably 
 
 In a Terminal window, execute the following statements:
 ```sh
-brew install glew lz4 libjpeg libpng lzo pkg-config libusb cmake git-lfs libmypaint boost jpeg-turbo opencv
-brew unlink qt qtbase qtdeclarative qtsvg qttools qt5compat qtmultimedia qtshadertools qtimageformats 2>/dev/null
-brew install qt@5
+brew install glew lz4 libjpeg libpng lzo pkg-config libusb cmake git-lfs libmypaint qt@5 boost jpeg-turbo opencv
 git lfs install
 ```
 
 NOTE: This will install the latest version of QT v5.x which may not be compatible with older OS versions.
-
-NOTE (issue #63): install `qt@5` **after** `opencv`, not in the same command.
-`opencv` depends on Qt 6 and links `qtbase`/`qtsvg`/`qtdeclarative`; installing
-`qt@5` while those are linked fails with "Cannot install qt@5 because
-conflicting formulae are installed." The `brew unlink` step above clears them
-first.
 
 If you cannot use the most recent version, download the online installer from https://www.qt.io/download and install the appropriate `macOS` version (min 5.15).  If installing via this method, be sure to install the `Qt Script (Deprecated)` libraries.
 
@@ -61,8 +53,8 @@ rm /usr/local/lib/cmake/glew
 These steps will put the Flare repository under /Users/yourlogin/Documents.
 ```sh
 cd ~/Documents   #or where you want to store the repository#
-git clone https://github.com/Flare-Animate/Flare
-cd Flare
+git clone https://github.com/flare/flare
+cd flare
 git lfs pull
 cd thirdparty/lzo
 cp -r 2.03/include/lzo driver
@@ -70,7 +62,7 @@ cd ../tiff-4.0.3
 ./configure --disable-lzma && make
 ```
 
-If you downloaded and installed boost from https://boost.org instead of homebrew, move the package under `thirdparty/boost` as follows:
+If you downloaded and installed boost from https://boost.org instead of homebrew, move the package under `thirdparty/boost` as follows: 
 ```sh
 cd thirdparty/boost
 mv ~/Downloads/boost_1_72_0.tar.bz2 .   #or whatever the boost filename you downloaded is#
@@ -81,7 +73,7 @@ tar xvjf boost_1_72_0.tar.bz2
 
 1. Create the build directory with the following:
 ```sh
-cd ~/Documents/Flare/flare
+cd ~/Documents/flare/toonz
 mkdir build
 cd build
 ```
@@ -93,37 +85,28 @@ export PKG_CONFIG_PATH="/opt/homebrew/opt/jpeg-turbo/lib/pkgconfig:$PKG_CONFIG_P
 
 3. Set up build environment
 
-⚠️ **IMPORTANT: Resource Usage Warning**
-
-Building Flare is memory-intensive. Using too many parallel jobs can exhaust system memory and cause instability, especially on systems with limited RAM.
-
-**Recommended parallel job settings:**
-- Systems with **< 8GB RAM**: Use `make -j2` (2 parallel jobs)
-- Systems with **> 8GB RAM**: Use `make -j4` or `make -j$(sysctl -n hw.ncpu)` (all cores)
-
 To build from command line, do the following:
 ```sh
-cmake ../sources -DQT_PATH='/opt/homebrew/opt/qt@5/lib'  # replace QT path with your installed QT version
-make -j2
+cmake ../sources -DQT_PATH='/opt/homebrew/opt/qt@5/lib'  #replace QT path with your installed QT version#
+make
 ```
 - If you downloaded the QT installer and installed to `/Users/yourlogin/Qt` instead of by using homebrew, your lib path may look something like this: `~/Qt/5.12.2/clang_64/lib` or `~/Qt/5.12.2/clang_32/lib`
 
 To build using Xcode, do the following:
 ```sh
 sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
-cmake -G Xcode ../sources -B. -DQT_PATH='/opt/homebrew/opt/qt@5/lib' \
-  -DWITH_TRANSLATION=OFF  # replace QT path with your installed QT version
+cmake -G Xcode ../sources -B. -DQT_PATH='/opt/homebrew/opt/qt@5/lib' -DWITH_TRANSLATION=OFF   #replace QT path with your installed QT version#
 ```
 - Note that the option `-DWITH_TRANSLATION=OFF` is needed to avoid error when using XCode 12+ which does not allow to add the same source to multiple targets.
-- Open Xcode app and open project /Users/yourlogin/Documents/Flare/flare/build/Flare.xcodeproj
+- Open Xcode app and open project /Users/yourlogin/Documents/flare/toonz/build/Flare.xcodeproj
 - Change `ALL_BUILD` to `Flare`
 - Start build with: Product -> Build
 
     - NOTE about rebuilding in Xcode: The initial build should succeed without any errors.  There after, the build will succeed but the following 3 errors can be ignored:
 
 ```
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/install_name_tool: for: /Users/yourlogin/Documents/Flare/flare/build/flare/Debug/Flare.app/Contents/MacOS/Flare (for architecture x86_64) option "-add_rpath @executable_path/." would duplicate path, file already has LC_RPATH for: @executable_path/.
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/install_name_tool: for: /Users/yourlogin/Documents/Flare/flare/build/flare/Debug/Flare.app/Contents/MacOS/Flare (for architecture x86_64) option "-add_rpath /usr/local/Cellar/qt/5.12.2/lib/" would duplicate path, file already has LC_RPATH for: /usr/local/Cellar/qt/5.12.2/lib/
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/install_name_tool: for: /Users/yourlogin/Documents/flare/toonz/build/toonz/Debug/Flare.app/Contents/MacOS/Flare (for architecture x86_64) option "-add_rpath @executable_path/." would duplicate path, file already has LC_RPATH for: @executable_path/.
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/install_name_tool: for: /Users/yourlogin/Documents/flare/toonz/build/toonz/Debug/Flare.app/Contents/MacOS/Flare (for architecture x86_64) option "-add_rpath /usr/local/Cellar/qt/5.12.2/lib/" would duplicate path, file already has LC_RPATH for: /usr/local/Cellar/qt/5.12.2/lib/
 Command /bin/sh emitted errors but did not return a nonzero exit code to indicate failure
 ```
 
@@ -133,9 +116,9 @@ Side note: If you want the option to build by command line and Xcode, create a s
 
 If you have installed Flare on the machine already, you can skip this.  Otherwise, you need to create the stuff folder with the following:
 ```sh
-cd ~/Documents/Flare
+cd ~/Documents/flare
 sudo mkdir /Applications/Flare
-sudo cp -r stuff /Applications/Flare/Flare_stuff
+sudo cp -r stuff /Applications/Flare/OpenToonz_stuff
 sudo chmod -R 777 /Applications/Flare
 ```
 
@@ -143,7 +126,7 @@ sudo chmod -R 777 /Applications/Flare
 
 - If built using command line, run the following:
 ```sh
-open ~/Documents/Flare/flare/build/Flare.app
+open ~/Documents/flare/build/toonz/Flare.app
 ```
 
 - If built using Xcode, do the following:
@@ -152,4 +135,12 @@ open ~/Documents/Flare/flare/build/Flare.app
     - Uncheck: Run -> Options -> Document Versions
     - Run in Debug mode: Product -> Run
 
-    - To open with command line or from Finder window, the application is found in `/Users/yourlogin/Documents/Flare/flare/build/Debug/Flare.app`
+    - To open with command line or from Finder window, the application is found in `/Users/yourlogin/Documents/flare/toonz/build/Debug/Flare.app`
+
+## Translation workflow / 翻訳
+
+See [Contributing and maintaining translations](../toonz/sources/translations/README.md)
+for contributor and maintainer workflows. Keep the Xcode `WITH_TRANSLATION=OFF`
+workaround above until translation-enabled Xcode builds are verified. That option
+disables this build's translation generation; do not assume bundled catalogs were
+updated. Qt Linguist and manual `lrelease` remain available for catalog testing.

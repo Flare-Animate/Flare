@@ -13,7 +13,6 @@ enum PreferencesItemId {
   projectRoot,
   customProjectRoot,
   pathAliasPriority,
-  showAdvancedOptions,
   lazyLoadRooms,
 
   //----------
@@ -46,6 +45,7 @@ enum PreferencesItemId {
   displayIn30bit,
   viewerIndicatorEnabled,
   restoreViewerViewFromLastSession,
+  togglePanelWithShortcut,
 
   //----------
   // Visualization
@@ -79,9 +79,6 @@ enum PreferencesItemId {
   backupKeepCount,
   rasterBackgroundColor,
   resetUndoOnSavingLevel,
-  defaultProjectPath,
-  recordFileHistory,
-  recordAsUsername,
 
   //----------
   // Import / Export
@@ -92,19 +89,13 @@ enum PreferencesItemId {
   quickTimeBackend,
   rhubarbPath,
   rhubarbTimeout,
-  // Dropped by the upstream-sync merge and put back here: PreferencesPopup reads
-  // it through Preferences::getFlashDecompilerPath to locate the SWF decompiler.
-  flashDecompilerPath,
+  lazyNezumiCanvasFocusEnabled,
 
   //----------
   // Drawing
   DefRasterFormat,
   // scanLevelType,// deprecated
   DefLevelType,
-  // Dropped by the upstream-sync merge and put back here: levelcreatepopup.cpp
-  // and txshsimplelevel.cpp both read it through
-  // Preferences::getDefLevelSizePolicy.
-  DefLevelSizePolicy,
   DefAssistantType,
   newLevelSizeToCameraSizeEnabled,
   DefLevelWidth,
@@ -139,6 +130,7 @@ enum PreferencesItemId {
   useStrokeEndCursor,
   clickTwiceToCreateArcs,
   tempToolSwitchTimer,
+  compressInputEvents,
   animateToolHandleSize,
   animateToolColor,
   defaultStartupTool,
@@ -175,10 +167,6 @@ enum PreferencesItemId {
   currentColumnOutlineColor,
   levelNameDisplayType,
   showFrameNumberWithLetters,
-  // Ported from tahoma2d: xshcellviewer.cpp reads these two, through
-  // Preferences::isShowDragBarsEnabled and getTimelineLayoutPreference.
-  showDragBars,
-  timelineLayoutPreference,
   linkColumnNameWithLevel,
 
   //----------
@@ -227,7 +215,6 @@ enum PreferencesItemId {
   SVNEnabled,
   automaticSVNFolderRefreshEnabled,
   latestVersionCheckEnabled,
-  updateNightlyChannel,
 
   //----------
   // Touch / Tablet Settings
@@ -258,6 +245,9 @@ enum PreferencesItemId {
   // textureSize, // set to 0
   // LineTestFpsCapture,
   // guidedDrawingType,
+
+  // Tape Tool confirmation (stored only; no Preferences popup control)
+  tapeToolFillRiskPolicy,
 
   PreferencesItemCount
 };

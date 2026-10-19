@@ -105,6 +105,7 @@ public:
 
   void onActivate() override;
   void onDeactivate() override;
+  void onImageChanged() override;
 
   bool preLeftButtonDown() override;
   void leftButtonDown(const TPointD &pos, const TMouseEvent &e) override;
@@ -192,6 +193,14 @@ protected:
   TEnumProperty m_joinStyle;
   TIntProperty m_miterJoinLimit;
   TBoolProperty m_assistants;
+  TBoolProperty m_autoClose;
+  TBoolProperty m_autoGroup;
+  TBoolProperty m_autoFill;
+
+  bool m_bypassAutoClose = false;
+  bool autoCloseEnabled() const {
+    return m_autoClose.getValue() && !m_bypassAutoClose;
+  }
 
   TInputManager m_inputmanager;
   TSmartPointerT<TModifierLine> m_modifierLine;
@@ -230,6 +239,7 @@ protected:
       m_presetsManager;  //!< Manager for presets of this tool instance
 
   bool m_active, m_firstTime, m_isPath, m_presetsLoaded, m_firstFrameRange;
+  bool m_skipStrokeUntilDown = false;
 
   bool m_propertyUpdating;
   double m_cameraDpi;

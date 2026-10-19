@@ -1,7 +1,6 @@
 
 
 #include "flare/preferences.h"
-#include "flare/theme.h"
 
 // TnzLib includes
 #include "flare/tscenehandle.h"
@@ -23,7 +22,6 @@
 
 // Qt includes
 #include <QSettings>
-#include <QStandardPaths>
 #include <QStringList>
 #include <QAction>
 #include <QColor>
@@ -393,7 +391,6 @@ void Preferences::definePreferenceItems() {
   define(customProjectRoot, "customProjectRoot", QMetaType::QString, "");
   define(pathAliasPriority, "pathAliasPriority", QMetaType::Int,
          static_cast<int>(ProjectFolderOnly));
-  define(showAdvancedOptions, "showAdvancedOptions", QMetaType::Bool, false);
 
   setCallBack(undoMemorySize, &Preferences::setUndoMemorySize);
   define(lazyLoadRooms, "lazyLoadRooms", QMetaType::Bool, true);
@@ -416,7 +413,7 @@ void Preferences::definePreferenceItems() {
   define(oldCameraUnits, "oldCameraUnits", QMetaType::QString, "inch");
   define(linearUnits, "linearUnits", QMetaType::QString, "mm");
   define(cameraUnits, "cameraUnits", QMetaType::QString, "inch");
-  define(CurrentRoomChoice, "CurrentRoomChoice", QMetaType::QString, "Animate");
+  define(CurrentRoomChoice, "CurrentRoomChoice", QMetaType::QString, "Default");
   define(functionEditorToggle, "functionEditorToggle", QMetaType::Int,
          static_cast<int>(ShowGraphEditorInPopup));
   define(moveCurrentFrameByClickCellArea, "moveCurrentFrameByClickCellArea",
@@ -468,6 +465,8 @@ void Preferences::definePreferenceItems() {
          true);
   define(restoreViewerViewFromLastSession, "restoreViewerViewFromLastSession",
          QMetaType::Bool, false);
+  define(togglePanelWithShortcut, "togglePanelWithShortcut", QMetaType::Bool,
+         false);
 
   // Visualization
   define(show0ThickLines, "show0ThickLines", QMetaType::Bool, true);
@@ -512,20 +511,6 @@ void Preferences::definePreferenceItems() {
   setCallBack(autosaveEnabled, &Preferences::enableAutosave);
   setCallBack(autosavePeriod, &Preferences::setAutosavePeriod);
 
-  // Upstream bb63d765b: the default location new projects and the browser open
-  // in. Defaults to the OS documents folder, like upstream.
-  {
-    const QStringList docs =
-        QStandardPaths::standardLocations(QStandardPaths::DocumentsLocation);
-    define(defaultProjectPath, "defaultProjectPath", QMetaType::QString,
-           docs.isEmpty() ? QString() : docs.first());
-
-  define(recordFileHistory, "recordFileHistory", QMetaType::Bool, true);
-
-  QString userName = TSystem::getUserName();
-  define(recordAsUsername, "recordAsUsername", QMetaType::QString, userName);
-  }
-
   // Import / Export
   define(ffmpegPath, "ffmpegPath", QMetaType::QString, "");
   define(ffmpegTimeout, "ffmpegTimeout", QMetaType::Int, 600, 1,
@@ -536,6 +521,10 @@ void Preferences::definePreferenceItems() {
   define(rhubarbPath, "rhubarbPath", QMetaType::QString, "");
   define(rhubarbTimeout, "rhubarbTimeout", QMetaType::Int, 600, 0,
          std::numeric_limits<int>::max());
+#ifdef _WIN32
+  define(lazyNezumiCanvasFocusEnabled, "lazyNezumiCanvasFocusEnabled",
+         QMetaType::Bool, false);
+#endif
 
   // Drawing
   define(DefRasterFormat, "DefRasterFormat", QMetaType::QString, "tif");
@@ -573,6 +562,7 @@ void Preferences::definePreferenceItems() {
          QMetaType::Bool, false);
 
   // Tools
+  define(compressInputEvents, "compressInputEvents", QMetaType::Bool, true);
   define(FillOnlysavebox, "FillOnlysavebox", QMetaType::Bool, false);
   define(DefRegionWithPaint, "FillDefRegionWithPaint", QMetaType::Bool, true);
   define(ReferFillPrevailing, "ReferFillPrevailing", QMetaType::Bool, false);
@@ -726,7 +716,6 @@ void Preferences::definePreferenceItems() {
          QMetaType::Bool, true);
   define(latestVersionCheckEnabled, "latestVersionCheckEnabled",
          QMetaType::Bool, true);
-  define(updateNightlyChannel, "updateNightlyChannel", QMetaType::Bool, false);
 
   // Touch / Tablet Settings
   define(winInkEnabled, "winInkEnabled", QMetaType::Bool, false);
@@ -734,6 +723,8 @@ void Preferences::definePreferenceItems() {
   define(useQtNativeWinInk, "useQtNativeWinInk", QMetaType::Bool, false);
 
   // Others (not appearing in the popup)
+  // Tape Tool: 0 = ask, 1 = continue, 2 = cancel.
+  define(tapeToolFillRiskPolicy, "tapeToolFillRiskPolicy", QMetaType::Int, 0);
   // Shortcut popup settings
   define(shortcutPreset, "shortcutPreset", QMetaType::QString, "defopentoonz");
   // Viewer context menu
@@ -1088,37 +1079,6 @@ QString Preferences::getCurrentLanguage() const {
 
 //-----------------------------------------------------------------
 
-//-----------------------------------------------------------------------------
-// Theme / Layout access.
-//
-// These are two independent axes of the Interface tab, named so call sites read
-// correctly: a Theme is the colour and shape of the widgets, a Layout is where
-// the panels sit. The preference keys behind them were already separate; these
-// accessors make that explicit and keep the two namespaces distinct.
-
-QStringList Preferences::getThemeNames() const {
-  return FlareTheme::themeNames();
-}
-
-QString Preferences::getCurrentThemeName() const {
-  return getStringValue(CurrentStyleSheetName);
-}
-
-void Preferences::setCurrentThemeName(const QString& name) {
-  if (!FlareTheme::isThemeName(name)) return;
-  setValue(CurrentStyleSheetName, name);
-}
-
-QStringList Preferences::getLayoutNames() const {
-  return FlareTheme::layoutNames();
-}
-
-QString Preferences::getCurrentLayoutName() const {
-  return getStringValue(CurrentRoomChoice);
-}
-
-//-----------------------------------------------------------------------------
-
 QString Preferences::getCurrentStyleSheet() const {
   QString currentStyleSheetName = getStringValue(CurrentStyleSheetName);
   if (currentStyleSheetName.isEmpty()) return QString();
@@ -1149,18 +1109,6 @@ QString Preferences::getCurrentStyleSheet() const {
 
   styleSheetStr.replace(QRegularExpression("url\\(['\"]([^'\"]+)['\"]\\)"),
                         "url(\"" + currentStyleFolderPath + QString("/\\1\")"));
-
-  // Same for @import, so a theme can build on another one instead of restating
-  // all ~3350 lines. Without this, @import resolved against the process working
-  // directory rather than the theme's own folder, so a composed theme loaded
-  // nothing. LiquidGlass is the first user: a small set of overrides on top of
-  // a complete theme.
-  //
-  // Only relative specifiers are rewritten, so an @import naming a site
-  // style (scheme or leading slash) is left alone.
-  styleSheetStr.replace(
-      QRegularExpression("@import\\s+(['\"])(?!https?:|/)([^'\"]+)\\1"),
-      QString("@import \"") + currentStyleFolderPath + QString("/\\2\""));
 
   return styleSheetStr;
 }

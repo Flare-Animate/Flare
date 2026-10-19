@@ -26,6 +26,7 @@
 
 class PaletteViewer;
 class TPaletteHandle;
+class TPalette;
 
 //=====================================================
 
@@ -52,6 +53,7 @@ class DVAPI PaletteController final : public QObject {
 
   TPixel32 m_colorSample;
   bool m_colorAutoApplyEnabled;
+  bool m_skipCleanupEdit;
 
 public:
   PaletteController();
@@ -66,6 +68,9 @@ public:
   TPaletteHandle *getCurrentPalette() const { return m_currentPalette; }
 
   void setCurrentPalette(TPaletteHandle *paletteHandle);
+
+  // Load cleanup without selecting it.
+  void assignCleanupPalette(TPalette *palette);
 
   // centralized handling of color auto-apply. see StyleEditor.
   // when ColorAutoApply is disabled then changes should made on the ColorSample

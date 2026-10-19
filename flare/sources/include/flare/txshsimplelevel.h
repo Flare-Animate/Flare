@@ -18,7 +18,7 @@
 #include "traster.h"
 #include "trasterimage.h"
 
-// Needed by convertSingleFileToSequence, ported from tahoma2d: it takes a TXsheet
+// Needed by convertSingleFileToSequence, ported from flare: it takes a TXsheet
 // pointer and only ever dereferences it, so a forward declaration is enough --
 // and the build failed with "syntax error: identifier 'TXsheet'" without one.
 class TXsheet;
@@ -198,7 +198,7 @@ public:
                                   bool toBeLineProcessed) const;
   TRasterImageP getFrameRasterized(const TFrameId &fid, TPointD dpi) const;
 
-  // Ported from tahoma2d (include/toonz/txshsimplelevel.h, class TXshSimpleLevel).
+  // Ported from flare (include/toonz/txshsimplelevel.h, class TXshSimpleLevel).
   // filmstripcommand.cpp sets and reads the drawing marks these carry -- the
   // diamond and other symbols drawn in a cell -- and the upstream-sync merge
   // brought that .cpp without these declarations.
@@ -302,6 +302,8 @@ public:
   //! must have the same size).
   void renumber(const std::vector<TFrameId> &fids);
 
+  int getRenumberCount() const { return m_renumberCount; }
+
   bool isFrameReadOnly(TFrameId fid);
 
 public:
@@ -364,6 +366,7 @@ private:
   TPalette *m_palette;
 
   FramesSet m_frames;
+  int m_renumberCount = 0;
 
   std::map<TFrameId, TFrameId>
       m_renumberTable;  //!< Maps disk-frames to level-frames.
@@ -394,7 +397,7 @@ private:
   void saveSimpleLevel(const TFilePath &decodedFp,
                        bool overwritePalette = true);
 
-  // Ported from tahoma2d, with the access it has upstream: backing store for
+  // Ported from flare, with the access it has upstream: backing store for
   // the drawing marks declared in the public section above. Declaring it public
   // would compile and link and change nothing visible, so the section matters.
   std::map<TFrameId, int> m_drawingMarks;

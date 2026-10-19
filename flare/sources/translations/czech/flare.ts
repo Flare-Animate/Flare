@@ -2064,12 +2064,12 @@ Co chcete dělat?</translation>
     </message>
     <message>
         <source>When activated, styles of the default palette
-($TOONZSTUDIOPALETTE\cleanup_default.tpl) will 
+($FLARESTUDIOPALETTE\cleanup_default.tpl) will 
 be appended to the palette after conversion in 
 order to save the effort of creating styles 
 before color designing.</source>
         <translation>Když je zapnuta, styly výchozí palety
-($TOONZSTUDIOPALETTE\cleanup_default.tpl) budou
+($FLARESTUDIOPALETTE\cleanup_default.tpl) budou
 po převodu připojeny k paletě,
 aby se šetřilo úsilím při vytváření stylů
 před barevným návrhem.</translation>
@@ -17755,6 +17755,41 @@ Podržte klávesu F3 v prohlížeči pro ukázání pouze tohoto snímku</transl
     <message>
         <source> Frame</source>
         <translation> Snímek</translation>
+    </message>
+</context>
+<context>
+    <name>FileBrowserLocations</name>
+    <message>
+        <source>My Computer</source>
+        <translation>Tento počítač</translation>
+    </message>
+    <message>
+        <source>Network</source>
+        <translation>Síť</translation>
+    </message>
+    <message>
+        <source>My Documents</source>
+        <translation>Dokumenty</translation>
+    </message>
+    <message>
+        <source>Desktop</source>
+        <translation>Plocha</translation>
+    </message>
+    <message>
+        <source>Library</source>
+        <translation>Knihovna</translation>
+    </message>
+    <message>
+        <source>History</source>
+        <translation>Historie</translation>
+    </message>
+    <message>
+        <source>Project root (%1)</source>
+        <translation>Kořen projektu (%1)</translation>
+    </message>
+    <message>
+        <source>Scene Folder</source>
+        <translation>Složka scény</translation>
     </message>
 </context>
 </TS>

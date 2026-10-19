@@ -14,7 +14,7 @@ Visual Studio 2019 (2015以降) と Qt 5.15 でビルドできることを確認
 
 ## ソースコードの取得
 - 本リポジトリを `git clone` します
-- 以下の説明中の `$Flare` は、本リポジトリの root を表します
+- 以下の説明中の `$flare` は、本リポジトリの root を表します
 - Visual Studio は BOM の無い UTF-8 のソースコードを正しく認識できず、改行コードが LF で、1行コメントの末尾が日本語の場合に、改行が無視されて次の行もコメントとして扱われる問題があるため、Git に下記の設定をして改行コードを CRLF に変換すると良いでしょう
   - `git config core.safecrlf true`
 
@@ -43,14 +43,14 @@ Visual Studio 2019 (2015以降) と Qt 5.15 でビルドできることを確認
 
 ### boost
 - http://www.boost.org/users/history/version_1_73_0.html
-- 上記の URL から boost_1_73_0.zip をダウンロードして解凍し、 boost_1_61_0 を `$Flare/thirdparty/boost` にコピーします
+- 上記の URL から boost_1_73_0.zip をダウンロードして解凍し、 boost_1_61_0 を `$flare/thirdparty/boost` にコピーします
 
 ## ビルド
 
 ### CMake で Visual Studio のプロジェクトを生成する
 1. CMake を立ち上げる
-2. Where is the source code に `$Flare/flare/sources` を指定する
-3. Where to build the binaries に `$Flare/flare/build` を指定する
+2. Where is the source code に `$flare/toonz/sources` を指定する
+3. Where to build the binaries に `$flare/toonz/build` を指定する
   - 他の場所でも構いません
   - チェックアウトしたフォルダ内に作成する場合は、buildから開始するフォルダ名にするとgitから無視されます
   - ビルド先を変更した場合は、以下の説明を適宜読み替えてください
@@ -61,14 +61,14 @@ Visual Studio 2019 (2015以降) と Qt 5.15 でビルドできることを確認
 
 ## ライブラリの設定
 下記のファイルをコピーします
-  - `$Flare/thirdparty/LibJPEG/jpeg-9/jconfig.vc` → `$Flare/thirdparty/LibJPEG/jpeg-9/jconfig.h`
-  - `$Flare/thirdparty/tiff-4.0.3/libtiff/tif_config.vc.h` → `$Flare/thirdparty/tiff-4.0.3/libtiff/tif_config.h`
-  - `$Flare/thirdparty/tiff-4.0.3/libtiff/tiffconf.vc.h` → `$Flare/thirdparty/tiff-4.0.3/libtiff/tiffconf.h`
-  - `$Flare/thirdparty/libpng-1.6.21/scripts/pnglibconf.h.prebuilt` → `$Flare/thirdparty/libpng-1.6.21/pnglibconf.h`
+  - `$flare/thirdparty/LibJPEG/jpeg-9/jconfig.vc` → `$flare/thirdparty/LibJPEG/jpeg-9/jconfig.h`
+  - `$flare/thirdparty/tiff-4.0.3/libtiff/tif_config.vc.h` → `$flare/thirdparty/tiff-4.0.3/libtiff/tif_config.h`
+  - `$flare/thirdparty/tiff-4.0.3/libtiff/tiffconf.vc.h` → `$flare/thirdparty/tiff-4.0.3/libtiff/tiffconf.h`
+  - `$flare/thirdparty/libpng-1.6.21/scripts/pnglibconf.h.prebuilt` → `$flare/thirdparty/libpng-1.6.21/pnglibconf.h`
 
 ## ビルド
-1. `$Flare/flare/build/Flare.sln` を開いて Release 構成を選択してビルドします
-2. `$Flare/flare/build/Release` にファイルが生成されます
+1. `$flare/toonz/build/Flare.sln` を開いて Release 構成を選択してビルドします
+2. `$flare/toonz/build/Release` にファイルが生成されます
 
 ## キヤノン製デジタルカメラのサポートを有効にするには
 
@@ -81,13 +81,13 @@ CMake上で、`WITH_CANON` オプションをONにします。
 
 ## 実行
 ### 実行可能ファイルなどの配置
-1. `$oepntoonz/flare/build/Release` の中身を適当なフォルダにコピーします
+1. `$oepntoonz/toonz/build/Release` の中身を適当なフォルダにコピーします
 2. `Flare.exe` のパスを引数にして Qt に付属の `windeployqt.exe` を実行します
   - 必要な Qt のライブラリなどが `Flare.exe` と同じフォルダに集められます
 3. 下記のファイルを `Flare.exe` と同じフォルダにコピーします
-  - `$Flare/thirdparty/glut/3.7.6/lib/glut64.dll`
-  - `$Flare/thirdparty/glew/glew-1.9.0/bin/64bit/glew32.dll`
-  - `$Flarethirdparty/libmypaint/dist/64/*.dll`
+  - `$flare/thirdparty/glut/3.7.6/lib/glut64.dll`
+  - `$flare/thirdparty/glew/glew-1.9.0/bin/64bit/glew32.dll`
+  - `$opentoonzthirdparty/libmypaint/dist/64/*.dll`
   - OpenCV、libjpeg-turboの.dllファイル
 4. バイナリ版の Flare のインストール先にある `srv` フォルダを `Flare.exe` と同じフォルダにコピーします
   - `srv` が無くても Flare は動作しますが、 mov 形式などに対応できません
@@ -96,7 +96,7 @@ CMake上で、`WITH_CANON` オプションをONにします。
 ### Stuffフォルダの作成
 既にバイナリ版の Flare をインストールしている場合、この手順とレジストリキーの作成と同様の処理が行われているため、これらの手順は不要です。
 
-1. `$Flare/stuff` を適当なフォルダにコピーします
+1. `$flare/stuff` を適当なフォルダにコピーします
 
 ### レジストリキーの作成
 1. レジストリエディタで下記のキーを作成し、 Stuff フォルダの作成でコピーした stuff フォルダのパスを記載します
@@ -119,27 +119,43 @@ Flare は QuickTime SDK を用いて mov 形式などへ対応しています。
 
 ### CMake で Visual Studio の 32 ビット版のプロジェクトを生成する
 - 64 ビット版と同様の手順で、次のようにフォルダ名とターゲットを読み替えます
-  - `$Flare/flare/build` → `$Flare/flare/build32`
+  - `$flare/toonz/build` → `$flare/toonz/build32`
   - Visual Studio 16 2019 x64 → Visual Studio 16 2019 Win32
 - `QT_PATH` には 32 ビット版の Qt のパスを指定します
 
 ### 32 ビット版のビルド
-1. `$Flare/flare/build32/Flare.sln`を開いてビルドします
+1. `$flare/toonz/build32/Flare.sln`を開いてビルドします
 
 ### `srv` フォルダの配置
 - 64 ビット版の `srv` フォルダの中に下記のファイルをコピーします
-  - `$Flare/flare/build32/Release` から
+  - `$flare/toonz/build32/Release` から
     - t32bitsrv.exe
     - image.dll
     - tnzbase.dll
     - tnzcore.dll
     - tnzext.dll
-    - flarelib.dll
+    - toonzlib.dll
   - Qt の 32ビット版のインストール先から
     - `windeployqt.exe`を実行して必要なライブラリを入手
     - 追加で Qt5Gui.dll
-  - `$Flare/thirdparty/glut/3.7.6/lib/glut32.dll`
+  - `$flare/thirdparty/glut/3.7.6/lib/glut32.dll`
 
 ## 翻訳ファイルの生成
-Qt の翻訳ファイルは、ソースコードから `.ts` ファイルを生成して、 `.ts` ファイルに対して翻訳作業を行い、 `.ts` ファイルから `.qm` ファイルを生成します。Visual Studioソリューション中の`translation_`から始まるプロジェクトに対して「 `translation_???` のみをビルド」を実行すると、 `.ts` ファイルと `.qm` ファイルの生成が行われます。これらのプロジェクトはソリューションのビルドではビルドされないようになっています。
 
+翻訳の提出とメンテナーによる確認・更新については、
+[翻訳ガイド（英語）](../toonz/sources/translations/README.md)を参照してください。
+Qt Linguist での編集と手動の `lrelease` は引き続き利用できます。
+
+`WITH_TRANSLATION=ON` のビルドでは、Visual Studio の `translate_update_*`
+プロジェクトを明示的にビルドすると、ソースから翻訳文字列を抽出できます。
+例（リポジトリのルートから実行）:
+
+```sh
+cmake --build toonz/build --config Release --target translate_update_toonz
+```
+
+実際のビルドディレクトリと構成名に置き換えてください。抽出は対象モジュールの
+複数言語の `.ts` を変更するため、コミット前に差分を確認してください。
+現在、アプリケーションのターゲットはリンク後に `.qm` を生成しますが、
+翻訳のみの変更では再リンクされない場合があります。手動でリリースするか、
+生成ファイルが更新されたことを確認してください。

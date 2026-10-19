@@ -1,3 +1,5 @@
+
+
 #include "preferencespopup.h"
 
 // Tnz6 includes
@@ -36,6 +38,10 @@
 #include "tsystem.h"
 #include "tfont.h"
 
+// TnzTools includes
+#include "tools/toolhandle.h"
+#include "tools/toolcommandids.h"
+
 #include "kis_tablet_support_win8.h"
 
 // Qt includes
@@ -43,6 +49,8 @@
 #include <QComboBox>
 #include <QFontComboBox>
 #include <QLabel>
+#include <QScreen>
+#include <QScrollArea>
 #include <QStackedWidget>
 #include <QLineEdit>
 #include <QFileDialog>
@@ -54,6 +62,7 @@
 #include <QListWidget>
 #include <QGroupBox>
 #include <QKeySequence>
+#include <QSignalBlocker>
 
 using namespace DVGui;
 
@@ -283,11 +292,18 @@ PreferencesPopup::AdditionalStyleEdit::AdditionalStyleEdit(
     : DVGui::Dialog(parent, true, false, "AdditionalStyleEdit") {
   setWindowTitle(tr("Additional Style Sheet"));
   setModal(true);
+  setMinimumWidth(460);
 
   m_edit                   = new QTextEdit(this);
+  QPushButton* loadButton  = new QPushButton(tr("Load..."), this);
+  QPushButton* saveButton  = new QPushButton(tr("Save..."), this);
   QPushButton* okButton    = new QPushButton(tr("OK"), this);
   QPushButton* applyButton = new QPushButton(tr("Apply"), this);
   QPushButton* closeButton = new QPushButton(tr("Close"), this);
+
+  loadButton->setToolTip(tr("Load a CSS, QSS, or formatted theme file."));
+  saveButton->setToolTip(
+      tr("Save the current style sheet as a CSS, QSS, or theme file."));
 
   QString placeHolderTxt(
       "/* Type additional style sheet here to customize GUI. \n"
@@ -298,8 +314,44 @@ PreferencesPopup::AdditionalStyleEdit::AdditionalStyleEdit(
 
   m_topLayout->addWidget(m_edit);
 
-  addButtonBarWidget(okButton, applyButton, closeButton);
+  addButtonBarWidget(loadButton, saveButton, okButton, applyButton);
+  addButtonBarWidget(closeButton);
 
+  connect(loadButton, &QPushButton::pressed, this, [this]() {
+    const QString filter =
+        tr("Style Sheets (*.qss *.css *.theme);;Theme Files (*.qss *.css "
+           "*.theme *.txt);;All Files (*)");
+    const QString fileName = QFileDialog::getOpenFileName(
+        this, tr("Load Style Sheet"), QString(), filter);
+    if (fileName.isEmpty()) return;
+
+    QFile file(fileName);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+      DVGui::warning(
+          tr("Could not load the style sheet:\n%1").arg(file.errorString()));
+      return;
+    }
+    m_edit->setPlainText(QString::fromUtf8(file.readAll()));
+  });
+  connect(saveButton, &QPushButton::pressed, this, [this]() {
+    const QString filter =
+        tr("Style Sheets (*.qss *.css *.theme);;Theme Files (*.qss *.css "
+           "*.theme *.txt);;All Files (*)");
+    const QString fileName = QFileDialog::getSaveFileName(
+        this, tr("Save Style Sheet"), tr("additional-style-sheet.qss"), filter);
+    if (fileName.isEmpty()) return;
+
+    QFile file(fileName);
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+      DVGui::warning(
+          tr("Could not save the style sheet:\n%1").arg(file.errorString()));
+      return;
+    }
+    if (file.write(m_edit->toPlainText().toUtf8()) < 0) {
+      DVGui::warning(
+          tr("Could not save the style sheet:\n%1").arg(file.errorString()));
+    }
+  });
   connect(okButton, &QPushButton::pressed, this, &AdditionalStyleEdit::onOK);
   connect(applyButton, &QPushButton::pressed, this,
           &AdditionalStyleEdit::onApply);
@@ -381,7 +433,7 @@ PreferencesPopup::Display30bitChecker::Display30bitChecker(
   GLView* view10bit     = new GLView(this, true);
   QPushButton* closeBtn = new QPushButton(tr("Close"), this);
   QString infoLabel     = tr(
-      "If the lower gradient looks smooth and has no banding compared to the upper gradient,\n\
+          "If the lower gradient looks smooth and has no banding compared to the upper gradient,\n\
 30bit display is available in the current configuration.");
 
   QVBoxLayout* lay = new QVBoxLayout();
@@ -618,6 +670,8 @@ void PreferencesPopup::beforeRoomChoiceChanged() {
 //-----------------------------------------------------------------------------
 
 void PreferencesPopup::onColorCalibrationChanged() {
+  CommandManager::instance()->setChecked(MI_ToggleColorCalibration,
+                                         m_pref->isColorCalibrationEnabled());
   LutManager::instance()->update();
   TApp::instance()->getCurrentScene()->notifyPreferenceChanged(
       "ColorCalibration");
@@ -627,7 +681,7 @@ void PreferencesPopup::onColorCalibrationChanged() {
 
 void PreferencesPopup::onDefLevelTypeChanged() {
   bool isRaster = m_pref->getIntValue(DefLevelType) != PLI_XSHLEVEL &&
-                  m_pref->getIntValue(DefLevelSizePolicy) == 0;
+                  !m_pref->getBoolValue(newLevelSizeToCameraSizeEnabled);
   m_controlIdMap.key(DefLevelWidth)->setEnabled(isRaster);
   m_controlIdMap.key(DefLevelHeight)->setEnabled(isRaster);
   if (!m_pref->getBoolValue(pixelsOnly))
@@ -684,8 +738,20 @@ void PreferencesPopup::onLevelBasedToolsDisplayChanged() {
 
 //-----------------------------------------------------------------------------
 
+void PreferencesPopup::onDefaultStartupToolChanged() {
+  m_pref->setValue(defaultNewSceneTool,
+                   m_pref->getStringValue(defaultStartupTool));
+}
+
+//-----------------------------------------------------------------------------
+
 void PreferencesPopup::onShowKeyframesOnCellAreaChanged() {
   TApp::instance()->getCurrentScene()->notifyPreferenceChanged("XsheetCamera");
+}
+
+void PreferencesPopup::onCurrentCellColorChanged() {
+  TApp::instance()->getCurrentScene()->notifyPreferenceChanged(
+      "CurrentCellColor");
 }
 
 //-----------------------------------------------------------------------------
@@ -1021,6 +1087,16 @@ QWidget* PreferencesPopup::createUI(PreferencesItemId id,
           combo, &QFontComboBox::currentFontChanged, this,
           [this](const QFont& font) { onInterfaceFontChanged(font.family()); });
       widget = combo;
+    } else if (id == customHelpLink) {
+      DVGui::FileField* field =
+          new DVGui::FileField(this, item.value.toString());
+      field->setFileMode(QFileDialog::ExistingFile);
+      field->setFilters(QStringList() << "html"
+                                      << "htm"
+                                      << "pdf");
+      connect(field, &FileField::pathChanged, this,
+              &PreferencesPopup::onChange);
+      widget = field;
     } else if (!comboItems.isEmpty()) {  // create QComboBox
       QComboBox* combo = new QComboBox(this);
       for (const ComboBoxItem& item : comboItems)
@@ -1050,7 +1126,8 @@ QWidget* PreferencesPopup::createUI(PreferencesItemId id,
   case QMetaType::QColor:  // create ColorField
   {
     ColorField* field =
-        new ColorField(this, false, colorToTPixel(item.value.value<QColor>()));
+        new ColorField(this, false, colorToTPixel(item.value.value<QColor>()),
+                       24, true, 44, true);
     connect(field, &ColorField::colorChanged, this,
             &PreferencesPopup::onColorFieldChanged);
     widget = field;
@@ -1059,12 +1136,13 @@ QWidget* PreferencesPopup::createUI(PreferencesItemId id,
   case QMetaType::QVariantMap:  // used in colorCalibrationLutPaths
   {
     DVGui::FileField* field = new DVGui::FileField(
-        this, QString("- Please specify 3DLUT file (.3dl) -"), false, true);
+        this, QString("- Please specify 3D LUT file (.3dl or .cube) -"), false,
+        true);
     QString lutPath = m_pref->getColorCalibrationLutPath(
         LutManager::instance()->getMonitorName());
     if (!lutPath.isEmpty()) field->setPath(lutPath);
     field->setFileMode(QFileDialog::ExistingFile);
-    QStringList lutFileTypes = {"3dl"};
+    QStringList lutFileTypes = {"3dl", "cube"};
     field->setFilters(lutFileTypes);
     connect(field, &FileField::pathChanged, this,
             &PreferencesPopup::onLutPathChanged);
@@ -1237,7 +1315,12 @@ QString PreferencesPopup::getUIString(PreferencesItemId id) {
            .arg(LutManager::instance()->getMonitorName())},
       {displayIn30bit, tr("30bit Display*")},
       {showIconsInMenu, tr("Show Icons In Menu*")},
+      {showRoomBindButtons, tr("Show Room Bind Buttons*")},
+      {togglePanelWithShortcut, tr("Toggle Panels with Shortcut")},
+      {customHelpLink, tr("Quicklink URL:")},
       {viewerIndicatorEnabled, tr("Show Viewer Indicators")},
+      {restoreViewerViewFromLastSession,
+       tr("Restore Viewer Zoom and Pan from Last Session")},
 
       // Visualization
       {show0ThickLines, tr("Show Lines with Thickness 0")},
@@ -1274,13 +1357,13 @@ QString PreferencesPopup::getUIString(PreferencesItemId id) {
        tr("Use QuickTime to decode/code .mov and .3gp (If Installed)")},
       {rhubarbPath, tr("Rhubarb Path:")},
       {rhubarbTimeout, tr("Rhubarb Timeout:")},
-      {flashDecompilerPath, tr("Flash Decompiler Path:")},
 
       // Drawing
       {DefRasterFormat, tr("Default Raster / Scan Level Format:")},
       //{scanLevelType, tr("Scan File Format:")},
       {DefLevelType, tr("Default Level Type:")},
-      {DefLevelSizePolicy, tr("Default Level Size Priority:")},
+      {newLevelSizeToCameraSizeEnabled,
+       tr("New Levels Default to the Current Camera Size")},
       {DefLevelWidth, tr("Width:")},
       {DefLevelHeight, tr("Height:")},
       {DefLevelDpi, tr("DPI:")},
@@ -1293,7 +1376,7 @@ QString PreferencesPopup::getUIString(PreferencesItemId id) {
       {saveUnpaintedInCleanup,
        tr("Keep Original Cleaned Up Drawings As Backup")},
       {minimizeSaveboxAfterEditing,
-       tr("Minimize Savebox after Editing (Flare Raster Level)")},
+       tr("Minimize Savebox after Editing (Toonz Raster Level)")},
       {useNumpadForSwitchingStyles,
        tr("Use Numpad and Tab keys for Switching Styles")},
       {downArrowInLevelStripCreatesNewFrame,
@@ -1304,9 +1387,11 @@ QString PreferencesPopup::getUIString(PreferencesItemId id) {
        tr("Use higher DPI for calculations - Slower but more accurate")},
 
       // Tools
+      {compressInputEvents, tr("Compress Input Events*")},
       // {dropdownShortcutsCycleOptions, tr("Dropdown Shortcuts:")}, //
       // removed
-      {FillOnlysavebox, tr("Use the TLV Savebox to Limit Filling Operations")},
+      {FillOnlysavebox,
+       tr("Use the TLV Savebox to Limit Fill and Segment Eraser Operations")},
       {DefRegionWithPaint,
        tr("Define Filling Region Using both Lines and Areas")},
       {ReferFillPrevailing, tr("Paint Under Lines in Refer Fill")},
@@ -1323,6 +1408,9 @@ QString PreferencesPopup::getUIString(PreferencesItemId id) {
        tr("Geometric Tool: Click Twice to Create Arcs")},
       {tempToolSwitchTimer,
        tr("Switch Tool Temporarily Keypress Length (ms):")},
+      {animateToolHandleSize, tr("Handle Size (%):")},
+      {animateToolColor, tr("Handle Color:")},
+      {defaultStartupTool, tr("Default Startup and New Scene Tool:")},
 
       // Xsheet
       {xsheetLayoutPreference, tr("Column Header Layout*:")},
@@ -1354,7 +1442,11 @@ QString PreferencesPopup::getUIString(PreferencesItemId id) {
       {syncLevelRenumberWithXsheet,
        tr("Sync Level Strip Drawing Number Changes with the Xsheet")},
       {currentTimelineEnabled, tr("Show Current Time Indicator")},
-      {currentColumnColor, tr("Current Column Color:")},
+      {currentColumnColor, tr("Current Column Text Color:")},
+      {customCurrentCellColorEnabled, tr("Custom")},
+      {currentCellColor, tr("Current Cell Outline:")},
+      {customCurrentColumnOutlineColorEnabled, tr("Custom")},
+      {currentColumnOutlineColor, tr("Current Header Outline:")},
       //{ levelNameOnEachMarkerEnabled, tr("Display Level Name on Each
       // Marker")
       //},
@@ -1403,6 +1495,9 @@ QString PreferencesPopup::getUIString(PreferencesItemId id) {
       {transpCheckInkOnWhite, tr("Ink Color on White BG:")},
       {transpCheckInkOnBlack, tr("Ink Color on Black BG:")},
       {transpCheckPaint, tr("Paint Color:")},
+      {inkCheckColor, tr("Ink Check Color:")},
+      {ink1CheckColor, tr("Ink#1 Check Color:")},
+      {paintCheckColor, tr("Paint Check Color:")},
 
       // Version Control
       {SVNEnabled, tr("Enable Version Control*")},
@@ -1474,13 +1569,9 @@ QList<ComboBoxItem> PreferencesPopup::getComboItemList(
       {DefRasterFormat, {{"tif", "tif"}, {"png", "png"}}},
       //{scanLevelType, {{"tif", "tif"}, {"png", "png"}}},
       {DefLevelType,
-       {{tr("Flare Vector Level"), PLI_XSHLEVEL},
-        {tr("Flare Raster Level"), TZP_XSHLEVEL},
+       {{tr("Toonz Vector Level"), PLI_XSHLEVEL},
+        {tr("Toonz Raster Level"), TZP_XSHLEVEL},
         {tr("Raster Level"), OVL_XSHLEVEL}}},
-      {DefLevelSizePolicy,
-       {{tr("Custom"), 0},
-        {tr("Current Camera Size"), 1},
-        {tr("Current Layout Template Size"), 2}}},
       {NumberingSystem,
        {{tr("Incremental"), 0}, {tr("Use Xsheet as Animation Sheet"), 1}}},
       {vectorSnappingTarget,
@@ -1508,6 +1599,35 @@ QList<ComboBoxItem> PreferencesPopup::getComboItemList(
        {{tr("Default"), 0},
         {tr("Enable Tools For Level Only"), 1},
         {tr("Show Tools For Level Only"), 2}}},
+      {defaultStartupTool,
+       {{tr("Edit Tool"), T_Edit},
+        {tr("Selection Tool"), T_Selection},
+        {tr("Brush Tool"), T_Brush},
+        {tr("Geometric Tool"), T_Geometric},
+        {tr("Type Tool"), T_Type},
+        {tr("Fill Tool"), T_Fill},
+        {tr("Paint Brush Tool"), T_PaintBrush},
+        {tr("Eraser Tool"), T_Eraser},
+        {tr("Tape Tool"), T_Tape},
+        {tr("Style Picker Tool"), T_StylePicker},
+        {tr("RGB Picker Tool"), T_RGBPicker},
+        {tr("Control Point Editor Tool"), T_ControlPointEditor},
+        {tr("Pinch Tool"), T_Pinch},
+        {tr("Pump Tool"), T_Pump},
+        {tr("Magnet Tool"), T_Magnet},
+        {tr("Bender Tool"), T_Bender},
+        {tr("Iron Tool"), T_Iron},
+        {tr("Cutter Tool"), T_Cutter},
+        {tr("Hook Tool"), T_Hook},
+        {tr("Skeleton Tool"), T_Skeleton},
+        {tr("Tracker Tool"), T_Tracker},
+        {tr("Plastic Tool"), T_Plastic},
+        {tr("Zoom Tool"), T_Zoom},
+        {tr("Rotate Tool"), T_Rotate},
+        {tr("Hand Tool"), T_Hand},
+        {tr("Ruler Tool"), T_Ruler},
+        {tr("Finger Tool"), T_Finger},
+        {tr("Edit Assistants Tool"), T_EditAssistants}}},
       {xsheetLayoutPreference,
        {{tr("Classic"), "Classic"},
         {tr("Classic-revised"), "Classic-revised"},
@@ -1585,28 +1705,43 @@ PreferencesPopup::PreferencesPopup()
              << tr("Animation") << tr("Auto Lip-Sync") << tr("Colors")
              << tr("Vector Visualize") << tr("Version Control")
              << tr("Touch/Tablet Settings");
+#ifdef _WIN32
+  categories << tr("Addons");
+#endif
   categoryList->addItems(categories);
   categoryList->setFixedWidth(160);
   categoryList->setCurrentRow(0);
   categoryList->setAlternatingRowColors(true);
 
   QStackedWidget* stackedWidget = new QStackedWidget(this);
-  stackedWidget->addWidget(createGeneralPage());
-  stackedWidget->addWidget(createInterfacePage());
-  stackedWidget->addWidget(createPreviewPage());
-  stackedWidget->addWidget(createLoadingPage());
-  stackedWidget->addWidget(createSavingPage());
-  stackedWidget->addWidget(createCodecPage());
-  stackedWidget->addWidget(createDrawingPage());
-  stackedWidget->addWidget(createToolsPage());
-  stackedWidget->addWidget(createXsheetPage());
-  stackedWidget->addWidget(createOnionSkinPage());
-  stackedWidget->addWidget(createAnimationPage());
-  stackedWidget->addWidget(createAutoLipSyncPage());
-  stackedWidget->addWidget(createColorsPage());
-  stackedWidget->addWidget(createVisualizationPage());
-  stackedWidget->addWidget(createVersionControlPage());
-  stackedWidget->addWidget(createTouchTabletPage());
+  auto addPage                  = [stackedWidget](QWidget* page) {
+    QScrollArea* scrollArea = new QScrollArea(stackedWidget);
+    scrollArea->setFrameShape(QFrame::NoFrame);
+    scrollArea->setWidgetResizable(true);
+    scrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    scrollArea->setWidget(page);
+    stackedWidget->addWidget(scrollArea);
+  };
+  addPage(createGeneralPage());
+  addPage(createInterfacePage());
+  addPage(createPreviewPage());
+  addPage(createLoadingPage());
+  addPage(createSavingPage());
+  addPage(createCodecPage());
+  addPage(createDrawingPage());
+  addPage(createToolsPage());
+  addPage(createXsheetPage());
+  addPage(createOnionSkinPage());
+  addPage(createAnimationPage());
+  addPage(createAutoLipSyncPage());
+  addPage(createColorsPage());
+  addPage(createVisualizationPage());
+  addPage(createVersionControlPage());
+  addPage(createTouchTabletPage());
+#ifdef _WIN32
+  addPage(createAddonsPage());
+#endif  // WIN32
 
   QHBoxLayout* mainLayout = new QHBoxLayout();
   mainLayout->setContentsMargins(0, 0, 0, 0);
@@ -1622,12 +1757,22 @@ PreferencesPopup::PreferencesPopup()
   }
   setLayout(mainLayout);
 
-#ifdef MACOSX
-  setWindowFlags(Qt::Tool);
-#endif
+  // Keep the dialog within the current screen so overflowing pages can scroll.
+  QSize preferredSize = sizeHint().expandedTo(QSize(1060, 860));
+  if (QScreen* currentScreen = parentWidget()->screen())
+    preferredSize = preferredSize.boundedTo(
+        currentScreen->availableGeometry().size() - QSize(40, 60));
+  resize(preferredSize);
 
   connect(categoryList, &QListWidget::currentRowChanged, stackedWidget,
           &QStackedWidget::setCurrentIndex);
+  connect(m_pref, &Preferences::fillOnlySaveboxChanged, this,
+          [this](bool enabled) {
+            CheckBox* saveboxCheck = getUI<CheckBox*>(FillOnlysavebox);
+            if (!saveboxCheck || saveboxCheck->isChecked() == enabled) return;
+            QSignalBlocker blocker(saveboxCheck);
+            saveboxCheck->setChecked(enabled);
+          });
 }
 
 //-----------------------------------------------------------------------------
@@ -1795,10 +1940,20 @@ QWidget* PreferencesPopup::createInterfacePage() {
 
   QGridLayout* colorCalibLay = insertGroupBoxUI(colorCalibrationEnabled, lay);
   { insertUI(colorCalibrationLutPaths, colorCalibLay); }
+  connect(CommandManager::instance()->getAction(MI_ToggleColorCalibration),
+          &QAction::triggered, getUI<QGroupBox*>(colorCalibrationEnabled),
+          &QGroupBox::setChecked);
   insertUI(displayIn30bit, lay);
   row = lay->rowCount();
   lay->addWidget(check30bitBtn, row - 1, 2, Qt::AlignRight);
   insertUI(showIconsInMenu, lay);
+  insertUI(showRoomBindButtons, lay);
+  insertUI(togglePanelWithShortcut, lay);
+  insertUI(customHelpLink, lay);
+  getUI<FileField*>(customHelpLink)
+      ->setToolTip(
+          tr("Leave blank to use the local Flare documentation index. "
+             "To open a PDF at a specific page, append #page=12."));
 
   lay->setRowStretch(lay->rowCount(), 1);
   insertFootNote(lay);
@@ -1973,7 +2128,6 @@ QWidget* PreferencesPopup::createCodecPage() {
       tr("Note: FFmpeg begins working once all images have been processed."),
       lay);
   insertUI(ffmpegTimeout, lay);
-  insertUI(flashDecompilerPath, lay);
 
   putLabel("", lay);
   putLabel(
@@ -2034,8 +2188,9 @@ QWidget* PreferencesPopup::createDrawingPage() {
   {
     insertDualUIs(DefLevelWidth, DefLevelHeight, defaultLevelSizeLay);
     insertUI(DefLevelDpi, defaultLevelSizeLay);
-    insertUI(DefLevelSizePolicy, defaultLevelSizeLay, getComboItemList(DefLevelSizePolicy));
+    insertUI(newLevelSizeToCameraSizeEnabled, defaultLevelSizeLay);
   }
+
   QGridLayout* autoCreationLay = insertGroupBoxUI(EnableAutocreation, lay);
   {
     insertUI(NumberingSystem, autoCreationLay,
@@ -2053,7 +2208,7 @@ QWidget* PreferencesPopup::createDrawingPage() {
 
   m_onEditedFuncMap.insert(DefLevelType,
                            &PreferencesPopup::onDefLevelTypeChanged);
-  m_onEditedFuncMap.insert(DefLevelSizePolicy,
+  m_onEditedFuncMap.insert(newLevelSizeToCameraSizeEnabled,
                            &PreferencesPopup::onDefLevelTypeChanged);
 
   onDefLevelTypeChanged();
@@ -2078,8 +2233,17 @@ QWidget* PreferencesPopup::createToolsPage() {
   //         getComboItemList(dropdownShortcutsCycleOptions));
   insertUI(levelBasedToolsDisplay, lay,
            getComboItemList(levelBasedToolsDisplay));
+  insertUI(defaultStartupTool, lay, getComboItemList(defaultStartupTool));
+  QComboBox* defaultToolCombo = getUI<QComboBox*>(defaultStartupTool);
+  defaultToolCombo->setToolTip(
+      tr("This menu sets both events. To set them independently, edit "
+         "preferences.ini and use:\n"
+         "defaultStartupTool=T_Hand\n"
+         "defaultNewSceneTool=T_Brush"));
+  m_onEditedFuncMap.insert(defaultStartupTool,
+                           &PreferencesPopup::onDefaultStartupToolChanged);
   QGridLayout* fillToolOptionsLay =
-      insertGroupBox(tr("Fill Tool Options (Flare Raster Level)"), lay);
+      insertGroupBox(tr("Fill Tool Options (Toonz Raster Level)"), lay);
   {
     insertUI(DefRegionWithPaint, fillToolOptionsLay);
     insertUI(ReferFillPrevailing, fillToolOptionsLay);
@@ -2109,6 +2273,42 @@ QWidget* PreferencesPopup::createToolsPage() {
   insertUI(useCtrlAltToResizeBrush, lay);
   insertUI(clickTwiceToCreateArcs, lay);
   insertUI(tempToolSwitchTimer, lay);
+  insertUI(compressInputEvents, lay);
+  getUI<CheckBox*>(compressInputEvents)
+      ->setToolTip(
+          tr("Combines frequent input events to reduce processing load. "
+             "Disabling may improve stroke tracking but can affect "
+             "responsiveness and brush behavior. Support varies by platform; "
+             "ordinary mouse movement on Windows is unaffected. "
+             "Separate tool-level input limits remain in effect. "
+             "Changes take effect after restarting Flare."));
+
+  QGridLayout* animateToolLay = insertGroupBox(tr("Animate Tool"), lay);
+  {
+    // Use IntField to display 100% instead of 1.0
+    IntField* handleSizeSlider = new IntField(this);
+    handleSizeSlider->setRange(100, 600);  // scale range: 100% to 600%
+    handleSizeSlider->setInputRange(1, 600);
+
+    // Get the decimal value (e.g., 1.0) and multiply by 100 for the slider
+    double currentVal = Preferences::instance()->getAnimateToolHandleSize();
+    handleSizeSlider->setValue((int)(currentVal * 100.0));
+
+    // Divide by 100 before saving to maintain the decimal standard
+    connect(handleSizeSlider, &IntField::valueChanged, [=](bool dragging) {
+      double decimalVal = handleSizeSlider->getValue() / 100.0;
+      Preferences::instance()->setValue(animateToolHandleSize, decimalVal);
+      onAnimateToolChanged();
+    });
+
+    int row = animateToolLay->rowCount();
+    animateToolLay->addWidget(new QLabel(getUIString(animateToolHandleSize)),
+                              row, 0);
+    animateToolLay->addWidget(handleSizeSlider, row, 1);
+
+    insertUI(animateToolColor, animateToolLay);
+  }
+  // -------------------------------------------
 
   lay->setRowStretch(lay->rowCount(), 1);
   widget->setLayout(lay);
@@ -2117,6 +2317,11 @@ QWidget* PreferencesPopup::createToolsPage() {
                            &PreferencesPopup::notifySceneChanged);
   m_onEditedFuncMap.insert(levelBasedToolsDisplay,
                            &PreferencesPopup::onLevelBasedToolsDisplayChanged);
+
+  m_onEditedFuncMap.insert(animateToolHandleSize,
+                           &PreferencesPopup::onAnimateToolChanged);
+  m_onEditedFuncMap.insert(animateToolColor,
+                           &PreferencesPopup::onAnimateToolChanged);
 
   return widget;
 }
@@ -2127,6 +2332,25 @@ QWidget* PreferencesPopup::createXsheetPage() {
   QWidget* widget  = new QWidget(this);
   QGridLayout* lay = new QGridLayout();
   setupLayout(lay);
+
+  auto createOutlineControls = [this](PreferencesItemId enabledId,
+                                      PreferencesItemId colorId,
+                                      const QString& label) {
+    QCheckBox* customCheck = qobject_cast<QCheckBox*>(createUI(enabledId));
+    QWidget* colorField    = createUI(colorId);
+    colorField->setEnabled(customCheck->isChecked());
+    connect(customCheck, &QCheckBox::toggled, colorField, &QWidget::setEnabled);
+    customCheck->setToolTip(tr("When unchecked, use the theme color."));
+
+    QHBoxLayout* controls = new QHBoxLayout();
+    controls->setContentsMargins(0, 0, 0, 0);
+    controls->setSpacing(5);
+    controls->addWidget(new QLabel(label, this));
+    controls->addWidget(customCheck);
+    controls->addWidget(colorField);
+    controls->addStretch(1);
+    return controls;
+  };
 
   insertUI(xsheetLayoutPreference, lay,
            getComboItemList(xsheetLayoutPreference));
@@ -2145,12 +2369,24 @@ QWidget* PreferencesPopup::createXsheetPage() {
     insertUI(showColumnNumbers, xshColHeaderLay);
     insertUI(unifyColumnVisibilityToggles, xshColHeaderLay);
     insertUI(parentColorsInXsheetColumn, xshColHeaderLay);
+    insertUI(currentColumnColor, xshColHeaderLay);
+
+    // The header outline control shares the existing column text color row.
+    xshColHeaderLay->addLayout(
+        createOutlineControls(customCurrentColumnOutlineColorEnabled,
+                              currentColumnOutlineColor,
+                              tr("Current Header Outline:")),
+        xshColHeaderLay->rowCount() - 1, 2);
   }
   QGridLayout* xshCellAreaLay = insertGroupBox(tr("Xsheet Cell Area"), lay);
   {
     insertUI(highlightLineEverySecond, xshCellAreaLay);
     insertUI(currentTimelineEnabled, xshCellAreaLay);
     insertUI(showFrameNumberWithLetters, xshCellAreaLay);
+    xshCellAreaLay->addLayout(
+        createOutlineControls(customCurrentCellColorEnabled, currentCellColor,
+                              tr("Current Cell Outline:")),
+        xshCellAreaLay->rowCount(), 0, 1, 3);
   }
 
   QGridLayout* showKeyLay =
@@ -2167,7 +2403,6 @@ QWidget* PreferencesPopup::createXsheetPage() {
   insertUI(useArrowKeyToShiftCellSelection, lay);
   insertUI(shortcutCommandsWhileRenamingCellEnabled, lay);
   insertUI(syncLevelRenumberWithXsheet, lay);
-  insertUI(currentColumnColor, lay);
 
   lay->setRowStretch(lay->rowCount(), 1);
   insertFootNote(lay);
@@ -2177,6 +2412,14 @@ QWidget* PreferencesPopup::createXsheetPage() {
                            &PreferencesPopup::onShowKeyframesOnCellAreaChanged);
   m_onEditedFuncMap.insert(showXsheetCameraColumn,
                            &PreferencesPopup::onShowKeyframesOnCellAreaChanged);
+  m_onEditedFuncMap.insert(customCurrentCellColorEnabled,
+                           &PreferencesPopup::onCurrentCellColorChanged);
+  m_onEditedFuncMap.insert(currentCellColor,
+                           &PreferencesPopup::onCurrentCellColorChanged);
+  m_onEditedFuncMap.insert(customCurrentColumnOutlineColorEnabled,
+                           &PreferencesPopup::onCurrentCellColorChanged);
+  m_onEditedFuncMap.insert(currentColumnOutlineColor,
+                           &PreferencesPopup::onCurrentCellColorChanged);
   m_onEditedFuncMap.insert(
       unifyColumnVisibilityToggles,
       &PreferencesPopup::onUnifyColumnVisibilityTogglesChanged);
@@ -2231,6 +2474,7 @@ QWidget* PreferencesPopup::createPreviewPage() {
     insertUI(actualPixelViewOnSceneEditingMode, viewerLay);
     insertUI(showRasterImagesDarkenBlendedInViewer, viewerLay);
     insertUI(viewerIndicatorEnabled, viewerLay);
+    insertUI(restoreViewerViewFromLastSession, viewerLay);
   }
   QGridLayout* palyControlLay = insertGroupBox(tr("Play Control"), lay);
   {
@@ -2327,6 +2571,14 @@ QWidget* PreferencesPopup::createColorsPage() {
     insertUI(transpCheckInkOnBlack, tcLay);
     insertUI(transpCheckPaint, tcLay);
   }
+
+  QGridLayout* ipcLay = insertGroupBox(tr("Ink and Paint Check"), lay);
+  {
+    insertUI(inkCheckColor, ipcLay);
+    insertUI(ink1CheckColor, ipcLay);
+    insertUI(paintCheckColor, ipcLay);
+  }
+
   lay->setRowStretch(lay->rowCount(), 1);
   widget->setLayout(lay);
 
@@ -2345,6 +2597,12 @@ QWidget* PreferencesPopup::createColorsPage() {
   m_onEditedFuncMap.insert(chessboardColor2,
                            &PreferencesPopup::onChessboardChanged);
 
+  m_onEditedFuncMap.insert(inkCheckColor,
+                           &PreferencesPopup::onTranspCheckDataChanged);
+  m_onEditedFuncMap.insert(ink1CheckColor,
+                           &PreferencesPopup::onTranspCheckDataChanged);
+  m_onEditedFuncMap.insert(paintCheckColor,
+                           &PreferencesPopup::onTranspCheckDataChanged);
   return widget;
 }
 
@@ -2480,6 +2738,92 @@ QWidget* PreferencesPopup::createTouchTabletPage() {
   return widget;
 }
 
+#ifdef _WIN32
+#include <windows.h>
+QWidget* PreferencesPopup::createAddonsPage() {
+  QWidget* widget  = new QWidget(this);
+  QGridLayout* lay = new QGridLayout();
+
+  static auto CheckToonzPreview = []() -> bool {
+    HKEY h;
+    bool r = RegOpenKeyW(HKEY_CLASSES_ROOT,
+                         L"CLSID\\{A20E2270-0FE1-421D-A34E-98C26C13F9DB}",
+                         &h) == ERROR_SUCCESS;
+    if (r) RegCloseKey(h);
+    return r;
+  };
+
+  QGroupBox* groupBox =
+      new QGroupBox(tr("Windows Explorer Thumbnails (Shell Extension)"));
+  QVBoxLayout* gbLayout = new QVBoxLayout(groupBox);
+  gbLayout->setMargin(10);
+
+  QLabel* infoLabel =
+      new QLabel(tr("Enable thumbnails for Flare files (.tnz, .pli, .tlv) "
+                    "in Windows Explorer. \n"
+                    "Administrator privileges are required; you may need to "
+                    "restart Explorer for changes to take effect."));
+  gbLayout->addWidget(infoLabel);
+
+  QPushButton* previewButton = new QPushButton(this);
+  previewButton->setText(CheckToonzPreview() ? tr("Uninstall") : tr("Install"));
+
+  gbLayout->addWidget(previewButton);
+
+  connect(previewButton, &QPushButton::clicked, this, [previewButton]() {
+    bool install = !CheckToonzPreview();
+    QString dllPath_raw =
+        QApplication::applicationDirPath() + "/toonzpreview.dll";
+
+    QString dllPath = dllPath_raw.replace("/", "\\");
+
+    if (install && !QFile::exists(dllPath)) {
+      DVGui::warning("toonzpreview.dll not found!");
+      return;
+    }
+
+    QString quotedDllPath = QString("\"%1\"").arg(dllPath);
+
+    QStringList args =
+        install ? QStringList{quotedDllPath} : QStringList{"/u", quotedDllPath};
+
+    QString command = "regsvr32";
+
+    QString paramStr = args.join(" ");
+
+    SHELLEXECUTEINFO sei = {sizeof(sei)};
+
+    sei.lpVerb = L"runas";
+
+    std::wstring commandW  = command.toStdWString();
+    std::wstring paramStrW = paramStr.toStdWString();
+
+    sei.hProcess     = NULL;
+    sei.lpFile       = commandW.c_str();   // regsvr32.exe
+    sei.lpParameters = paramStrW.c_str();  // param
+    sei.nShow        = SW_SHOWNORMAL;      // UAC
+    sei.fMask        = SEE_MASK_NOCLOSEPROCESS;
+
+    bool operationSuccess = false;
+    if (ShellExecuteEx(&sei)) {
+      if (sei.hProcess) {
+        WaitForSingleObject(sei.hProcess, 60000);
+      }
+    }
+
+    previewButton->setText(CheckToonzPreview() ? tr("Uninstall")
+                                               : tr("Install"));
+  });
+
+  lay->addWidget(groupBox, lay->rowCount(), 0, 2, 4, Qt::AlignLeft);
+  lay->setRowStretch(lay->rowCount(), 1);
+
+  widget->setLayout(lay);
+
+  return widget;
+}
+#endif  // _WIN32
+
 //-----------------------------------------------------------------------------
 
 void PreferencesPopup::onChange() {
@@ -2536,3 +2880,9 @@ void PreferencesPopup::onColorFieldChanged(const TPixel32& color,
 
 OpenPopupCommandHandler<PreferencesPopup> openPreferencesPopup(MI_Preferences);
 
+void PreferencesPopup::onAnimateToolChanged() {
+  ToolHandle* toolHandle = TApp::instance()->getCurrentTool();
+  if (toolHandle && toolHandle->getTool()) {
+    toolHandle->getTool()->invalidate();
+  }
+}
