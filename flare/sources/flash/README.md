@@ -1,7 +1,7 @@
 # Flash / Adobe Animate (FLA/XFL) import
 
-This module imports Adobe Flash / Animate documents into OpenToonz as an
-ordinary, editable OpenToonz scene: PLI vector levels, raster levels,
+This module imports Adobe Flash / Animate documents into Flare as an
+ordinary, editable Flare scene: PLI vector levels, raster levels,
 palettes, Xsheet columns, sub-xsheets, stage keyframes and FX. No Adobe
 software is needed. Scripts in the document are never executed, and archive
 members are read in memory without being extracted.
@@ -24,9 +24,9 @@ first unmapped detail (`ImportOptions::bestEffort = false`).
 | CS4 and earlier binary `.fla` (OLE/CFB records) | Not supported; rejected with a clear message |
 | `.swf` | Not supported (a published movie, not an authoring document) |
 
-## How Flash concepts become OpenToonz data
+## How Flash concepts become Flare data
 
-| Flash / Animate | OpenToonz | Notes |
+| Flash / Animate | Flare | Notes |
 | --- | --- | --- |
 | Stage size, frame rate, background | Camera resolution, scene frame rate, background color | |
 | Several scenes | One sub-xsheet per scene, played back to back in a "Flash scenes" column | |
@@ -54,7 +54,7 @@ first unmapped detail (`ImportOptions::bestEffort = false`).
 | Symbol alpha | Column opacity, also applied in final renders | Changing alpha is keyed on the column's new animatable *Opacity* curve (Function Editor, under the column) |
 | Color effects: tint, brightness, advanced | Tint and brightness: the stock *RGB Fade* FX; advanced multipliers and offsets: the new *Color Matrix* FX | Keyed across classic tweens |
 | Filters on movie clips and buttons, in order | Blur: the stock *Blur* FX; drop shadow and glow: the new *Drop Shadow* FX; bevel: the new *Bevel* FX; adjust color: *Color Matrix* with Animate's matrix | *Drop Shadow* and *Bevel* compute as the Flash Player does (box blur passes, distance, angle, strength, inner, knockout, hide object) |
-| Blend modes: multiply, screen, lighten, darken, add, subtract; layer | OpenToonz's layer blending FX on the column's output, blending with the columns below through the Xsheet port; a locked *Flash stage background* color card lies below everything on the document timeline | Editable in the FX schematic |
+| Blend modes: multiply, screen, lighten, darken, add, subtract; layer | Flare's layer blending FX on the column's output, blending with the columns below through the Xsheet port; a locked *Flash stage background* color card lies below everything on the document timeline | Editable in the FX schematic |
 | Embedded PNG/JPEG and lossless bitmap data | Shared raster levels | |
 | Frame labels and comments | Xsheet frame labels | Anchor labels are dropped and reported |
 | Static, dynamic and input text | Editable Text FX columns (*Text Iwa* with its new *Transform with Column* option and layout options), placed by the element's stage keys; the glyph outlines stay in a `[text outlines]` reference column shown in the editor and left out of renders | Mixed fonts or colors get one FX per run piece of each line. Flash's paragraph layout maps to the new FX options *Kerning*, *Letter Spacing*, *Line Spacing*, *Indent* and *Shrink to Fit*. The editor viewer draws Text FX only in Preview mode; after editing a Text FX, hide its outlines column |
@@ -89,7 +89,7 @@ first unmapped detail (`ImportOptions::bestEffort = false`).
   gradient glows and bevels use the gradient's end colors; filter lengths
   inside symbols scale with the placement.
 - Blend modes difference, invert, overlay, hardlight, alpha and erase are
-  drawn in normal mode; antialiased edges blend with OpenToonz's formulas;
+  drawn in normal mode; antialiased edges blend with Flare's formulas;
   inside graphic symbols and groups blending is an approximation.
 - Masks: bitmaps and videos in mask artwork clip by their alpha.
 - Cubic (Bezier) editing data: the equivalent quadratic outline that Flash
@@ -142,7 +142,7 @@ containing:
 - `import-report.json` (source info, every approximation and omission),
 - `field-accounting.json` / `field-bindings.json` (source-to-native bindings).
 
-The scene is an ordinary OpenToonz scene: saving, Save As, editing and undo
+The scene is an ordinary Flare scene: saving, Save As, editing and undo
 work as usual. If the `source/` copy is moved or deleted the scene still
 saves; it just loses its link to the original. Symbol instances can be
 retimed later in **Windows > Flash Instance**.
@@ -158,7 +158,7 @@ Stock scenes, palettes and drawings are unchanged and keep the stock formats.
 - Scenes with Flash instance controls are saved as scene version 71.2 or
   later and need this build to keep those controls.
 - Drawings imported with exact source topology are saved as PLI version 151
-  frames, which stock OpenToonz cannot read.
+  frames, which stock Flare cannot read.
 - A mask column clipping more than one column and an animated column opacity
   are saved as the column tags `mask_scope` and `opacity_curve`, which older
   builds reject ("unknown tag") rather than misread.
@@ -173,7 +173,7 @@ Stock scenes, palettes and drawings are unchanged and keep the stock formats.
 - Column opacity inside a sub-xsheet now multiplies with the parent column's
   opacity in the viewer.
 
-## OpenToonz extensions added for the import
+## Flare extensions added for the import
 
 - Column *mask scope*: a mask column can clip several columns above it.
 - Animatable column opacity (an *Opacity* curve under each column).

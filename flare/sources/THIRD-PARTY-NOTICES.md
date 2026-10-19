@@ -118,6 +118,7 @@ Features modelled on OpenToonz subsystems are listed in
 | `ac-core/src/centerline.rs` | `toonz/sources/toonzlib/tcenterline*.cpp` (approach) |
 | `ac-core/src/trace.rs` | `toonz/sources/toonzlib/toutlinevectorizer.cpp` (approach) |
 | `ac-core/src/xdts.rs` | `toonz/sources/toonz/xdtsio.cpp` (format, cell rules for import), `xdtsimportpopup.cpp` (level lookup, approach) |
+| `flare/sources/flash/*`, `flare/sources/flarelib/flash*.{cpp,h}`, `flare/sources/flare/flash{importpopup,instancepane,instancecontrols}.*`, `flare/sources/stdfx/{colormatrixfx,dropshadowfx}.cpp`, `flare/sources/include/{tflashgradientstyle.h,flare/flashinstance*.h}` | OpenAnimationLibrary/opentoonz-dev `feature/fla-xfl-import` @ `48eddb42` (FLA/XFL import, Flash Instance panel, Flash filter FXs), BSD-3-Clause as OpenToonz; see `docs/OPENTOONZ_FLASH_IMPORT.md` |
 
 Where code is ported (not just the approach), the file says so and carries
 this notice:
