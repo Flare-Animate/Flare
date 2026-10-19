@@ -41,7 +41,7 @@ class CPatternPosition {
       }
     } catch (...) {
       flare_pattern_position_free(xy, n);
-      throw;
+      throw SMemAllocError("in Pattern Position Generation");
     }
     flare_pattern_position_free(xy, n);
   }
