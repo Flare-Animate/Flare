@@ -54,7 +54,7 @@ def main():
         for l in out.splitlines():
             head, rest = l.split("], ", 1)
             head = re.sub(r"-?\d+(?:\.\d+)?(?:e[+-]?\d+)?", fl, head[len("        (&["):])
-            rest = re.sub(r"^(\d+, \d+, \d+, )(\d+)(, &\[)", r"\1\2.0\3", rest)
+            rest = re.sub(r"^(-?\d+, -?\d+, -?\d+, )(\d+)(, &\[)", r"\1\2.0\3", rest)
             lines.append("        (&[" + head + "], " + rest)
         ok &= splice(os.path.join(SRC, "common/tvectorimage/cornerdetector.rs"), "\n".join(lines) + "\n", check)
         # --- casmfileinfo
