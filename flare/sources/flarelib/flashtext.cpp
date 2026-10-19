@@ -632,7 +632,11 @@ Glyphs glyphs(const QTextLine &line, const QTransform &toSource, int from = -1,
 
 // The largest distance between matching glyphs; -1 when the glyphs differ.
 double deviation(const Glyphs &a, const Glyphs &b) {
-  if (a.indexes != b.indexes || a.positions.size() != b.positions.size())
+  // Element-wise compare: QVector::operator== does not compile on MSVC STLs
+  // that dropped stdext::make_checked_array_iterator.
+  if (!std::equal(a.indexes.cbegin(), a.indexes.cend(), b.indexes.cbegin(),
+                  b.indexes.cend()) ||
+      a.positions.size() != b.positions.size())
     return -1;
   double result = 0;
   for (int i = 0; i < a.positions.size(); ++i)

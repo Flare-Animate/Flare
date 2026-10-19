@@ -493,8 +493,13 @@ void verifySourceSnapshot(const SourceSnapshot &snapshot,
          DirectoryIdentity::read(snapshot.originalRoot))))
     throw Flash::Error("Original source input directory or link changed.");
   Flash::Package original(snapshot.originalInput, options.limits);
-  if (original.isUncompressed() != snapshot.uncompressed ||
-      original.names() != snapshot.members)
+  if (original.isUncompressed() != snapshot.uncompressed)
+    throw Flash::Error("Original source package membership changed.");
+  // Element-wise compare: QStringList::operator== does not compile on MSVC
+  // STLs that dropped stdext::make_checked_array_iterator.
+  const QStringList originalNames = original.names();
+  if (!std::equal(originalNames.cbegin(), originalNames.cend(),
+                  snapshot.members.cbegin(), snapshot.members.cend()))
     throw Flash::Error("Original source package membership changed.");
   for (const auto &file : snapshot.files) {
     requireSourceFile(file.originalPath, snapshot.originalRoot);
