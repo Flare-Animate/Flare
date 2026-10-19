@@ -293,9 +293,14 @@ jobs:
             echo "Background: \`docs/CPP2RUST_TRIAL.md\`, \`docs/PORTING.md\`."
           } > "$RUNNER_TEMP/body.md"
 
-          gh pr create \
+          # The repo setting "Allow GitHub Actions to create and approve pull
+          # requests" may be off. The draft branch is already pushed, so report the
+          # compare link instead of failing the run.
+          if ! gh pr create \
             --draft \
             --base "$BASE" \
             --head "$BRANCH" \
             --title "cpp2rust draft: auto-converted Rust for ${DRAFTED} C++ file(s)" \
-            --body-file "$RUNNER_TEMP/body.md"
+            --body-file "$RUNNER_TEMP/body.md"; then
+            echo "::warning::could not open the PR (enable Settings > Actions > General > 'Allow GitHub Actions to create and approve pull requests'). Draft branch: https://github.com/${GITHUB_REPOSITORY}/compare/${BASE}...${BRANCH}"
+          fi
