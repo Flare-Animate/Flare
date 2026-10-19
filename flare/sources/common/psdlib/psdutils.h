@@ -38,8 +38,6 @@ int flare_psd_unzip(const unsigned char *src, int src_len, unsigned char *dst,
 int flare_psd_unzip_pred(const unsigned char *src, int src_len,
                          unsigned char *dst, int dst_len, int row_size,
                          int color_depth);
-void *flare_psd_malloc(long n);
-void *flare_psd_calloc(long n, int size);
 }
 
 inline int unpackrow(unsigned char *out, unsigned char *in, psdPixel outlen,
@@ -110,8 +108,12 @@ inline void skipBlock(FILE *f) {
   if (n) fseek(f, n, SEEK_CUR);
 }
 
-inline void *mymalloc(long n) { return flare_psd_malloc(n); }
-inline void *mycalloc(long n, int size) { return flare_psd_calloc(n, size); }
+// Kept in C++ on purpose: callers release these with free(), so the allocator
+// must come from the same C runtime as the caller.
+inline void *mymalloc(long n) { return ::malloc((size_t)n); }
+inline void *mycalloc(long n, int size) {
+  return ::calloc((size_t)n, (size_t)size);
+}
 
 inline int psdUnzipWithoutPrediction(unsigned char *src_buf, int src_len,
                                      unsigned char *dst_buf, int dst_len) {

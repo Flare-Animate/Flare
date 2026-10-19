@@ -7,7 +7,9 @@
 //!   buffer, with the exact success/failure mapping of the old `inflate` loop);
 //! * `psdUnzipWithPrediction` -> `flare_psd_unzip_pred` (unzip + the 8/16-bit
 //!   horizontal delta undo);
-//! * `mymalloc` / `mycalloc` -> `flare_psd_malloc` / `flare_psd_calloc`.
+//! * `mymalloc` / `mycalloc` are intentionally NOT ported: they stay inline C++
+//!   (`::malloc` / `::calloc`) in `psdutils.h`, because psd.cpp releases the blocks
+//!   with C++ `free()` and the allocator must belong to the same C runtime.
 //!
 //! Kept in C++ (inline in `psdutils.h`): `readrow`, `skipBlock`, `read2UBytes`,
 //! `read2Bytes`, `read4Bytes`. They are nothing but `fseek`/`fread`/`fgetc` on a
@@ -49,7 +51,7 @@ use miniz_oxide::inflate::core::inflate_flags::{
 };
 use miniz_oxide::inflate::core::{decompress, decompress_with_limit, DecompressorOxide};
 use miniz_oxide::inflate::TINFLStatus;
-use std::os::raw::{c_int, c_long, c_void};
+use std::os::raw::{c_int, c_long};
 use std::panic::{catch_unwind, AssertUnwindSafe};
 
 /// PackBits row decoder. Returns the number of output bytes produced (`i`).
@@ -125,10 +127,7 @@ pub fn unzip(src: &[u8], dst: &mut [u8]) -> bool {
 
 /// `psdUnzipWithPrediction`.
 pub fn unzip_pred(src: &[u8], dst: &mut [u8], row_size: i32, color_depth: i32) -> bool {
-    if !unzip(src, dst) {
-        return false;
-    }
-    if row_size <= 0 {
+    if row_size <= 0 || !unzip(src, dst) {
         return false;
     }
     let total = dst.len();
@@ -230,19 +229,6 @@ pub unsafe extern "C" fn flare_psd_unzip_pred(
     })
 }
 
-/// `mymalloc(n)`: `malloc` (NULL on failure; a negative `n` converts to a huge
-/// `size_t`, which fails). Release with `free`.
-#[no_mangle]
-pub extern "C" fn flare_psd_malloc(n: c_long) -> *mut c_void {
-    guard(std::ptr::null_mut(), || unsafe { libc::malloc(n as usize) })
-}
-
-/// `mycalloc(n, size)`: `calloc`. Release with `free`.
-#[no_mangle]
-pub extern "C" fn flare_psd_calloc(n: c_long, size: c_int) -> *mut c_void {
-    guard(std::ptr::null_mut(), || unsafe { libc::calloc(n as usize, size as usize) })
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -339,24 +325,10 @@ mod tests {
         let s = stored_stream(&raw);
         let mut d = [0u8; 8];
         assert!(unzip_pred(&s, &mut d, 4, 16));
-        // pos 0: d[2] = 3 + 1 + ((2 + 0xFF) >> 8) = 5, d[3] = 0xFF + 2 = 1
-        // pos 2: d[4] = 1 + 5 + ((1 + 0x10 [d[1]=2 is not used] ...) uses the updated bytes
-        assert_eq!(d[2], 5);
-        assert_eq!(d[3], 0x01);
-    }
-
-    #[test]
-    fn alloc_helpers() {
-        unsafe {
-            let p = flare_psd_calloc(4, 4);
-            assert!(!p.is_null());
-            assert_eq!(*(p as *const u8), 0);
-            libc::free(p);
-            let p = flare_psd_malloc(16);
-            assert!(!p.is_null());
-            libc::free(p);
-            assert!(flare_psd_malloc(-1).is_null());
-        }
+        // pos 0: carry (02+FF)>>8 = 1: d2 = 03+01+1 = 05, d3 = FF+02 = 01
+        // pos 2: carry (01+10)>>8 = 0: d4 = 01+05 = 06, d5 = 10+01 = 11
+        // pos 4: carry 0: d6 = 00+06 = 06, d7 = 00+11 = 11
+        assert_eq!(d, [0x01, 0x02, 0x05, 0x01, 0x06, 0x11, 0x06, 0x11]);
     }
 
     fn unhex(s: &str) -> Vec<u8> {
