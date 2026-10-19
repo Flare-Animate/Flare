@@ -109,7 +109,19 @@ jobs:
           rustup set profile minimal
           cd "$RUNNER_TEMP/cpp2rust"
           mkdir -p build && cd build
-          cmake -GNinja -DCMAKE_BUILD_TYPE=Release ..
+          # The runner image ships llvm-18 CMake configs. Without these hints find_package(Clang)
+          # picks them up (and dies on the image's missing libclangBasic.a) instead of the
+          # llvm-${LLVM_VERSION} just installed from apt.llvm.org; CC/CXX only choose the compiler.
+          LLVM_ROOT="/usr/lib/llvm-${LLVM_VERSION}"
+          if [ ! -d "$LLVM_ROOT/lib/cmake/clang" ] || [ ! -d "$LLVM_ROOT/lib/cmake/llvm" ]; then
+            echo "::error::no LLVM ${LLVM_VERSION} CMake configs under $LLVM_ROOT; installed:"
+            ls -d /usr/lib/llvm-*/lib/cmake/* 2>&1 || true
+            exit 1
+          fi
+          cmake -GNinja -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_PREFIX_PATH="$LLVM_ROOT" \
+            -DClang_DIR="$LLVM_ROOT/lib/cmake/clang" \
+            -DLLVM_DIR="$LLVM_ROOT/lib/cmake/llvm" ..
           ninja
           ls cpp2rust/cpp2rust
           df -h /
