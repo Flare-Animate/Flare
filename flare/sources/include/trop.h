@@ -267,7 +267,7 @@ DVAPI void brush(TRaster32P ras, const TPoint &a, const TPoint &b, int radius,
                  const TPixel32 &color);
 
 //! Get \b bbox of \b ras raster
-DVAPI void computeBBox(TRasterP ras, TRect &bbox);
+inline void computeBBox(TRasterP ras, TRect &bbox);
 
 //********************************************************************************
 //    TRop::computeBBox  implementation
@@ -290,7 +290,7 @@ void flare_trop_bbox_cm32(const void *ras, int wrap, int lx, int ly,
                           struct FlareTRect *out);
 }
 
-void TRop::computeBBox(TRasterP ras, TRect &bbox) {
+inline void computeBBox(TRasterP ras, TRect &bbox) {
   const int lx = ras->getLx(), ly = ras->getLy();
 
   // GR8 has no matte, so every pixel is opaque: the bounds are the answer.
@@ -331,8 +331,8 @@ DVAPI bool isOpaque(TRasterP ras);
 //! The pixel kernels live in common/trop/rust/invert.rs (flare_formats); only
 //! the raster-type dispatch remains, in common/trop/trop.cpp. There is no
 //! invert.cpp any more.
-DVAPI void invert(TRasterP ras, bool invRed = true, bool invGreen = true,
-                  bool invBlue = true, bool invMatte = false);
+inline void invert(TRasterP ras, bool invRed = true, bool invGreen = true,
+                   bool invBlue = true, bool invMatte = false);
 
 //! Add \b rdown pixels to \b rup pixels in according with the factor \b v and
 //! put the resulting raster in \b rout
@@ -540,8 +540,10 @@ void flare_trop_invert_f32(void *pixels, int wrap, int lx, int ly, bool invR,
 void flare_trop_invert_gr8(void *pixels, int wrap, int lx, int ly);
 }
 
-void TRop::invert(TRasterP ras, bool invRed, bool invGreen, bool invBlue,
-                  bool invMatte) {
+namespace TRop {
+
+inline void invert(TRasterP ras, bool invRed, bool invGreen, bool invBlue,
+                   bool invMatte) {
   // Matches the original: a matte flag on its own is a no-op, and GR8 ignores
   // the channel flags entirely.
   if (!invRed && !invGreen && !invBlue) return;
@@ -563,3 +565,5 @@ void TRop::invert(TRasterP ras, bool invRed, bool invGreen, bool invBlue,
     throw TRopException("unsupported pixel type");
   }
 }
+
+}  // namespace TRop
