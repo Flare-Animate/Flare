@@ -43,6 +43,8 @@
 #include <QJsonObject>
 #include <QJsonParseError>
 #include <QUuid>
+#include <algorithm>
+#include <cmath>
 
 // STD includes
 #include <set>

@@ -201,13 +201,13 @@ Stock scenes, palettes and drawings are unchanged and keep the stock formats.
 | `video.*` | Embedded video container parser and FFmpeg frame decoding |
 | `effects.*` | Color effects, filters and blend modes: parsing and tween interpolation |
 | `fieldaccounting.*` | Inventory of every XML field for provenance |
-| `../toonzlib/flashpreflight.*` | Compatibility guards and issue handling (blocking / approximated / omitted) |
-| `../toonzlib/flashscene.*`, `flashvector.*`, `flashbitmap.*` | Native scene, vector and raster construction |
-| `../toonzlib/flasheffects.*` | Native FX chains and keys for color effects, filters and blend modes |
-| `../toonzlib/flashtext.*` | Text: glyph outlines and Text FX parameters |
-| `../toonzlib/flashimport.*`, `flashbundle.*`, `flashprovenance.*`, `flashfieldbindings.*`, `flashhandoff.*` | Transactional import bundle, report, provenance and Save As handling |
-| `../toonzlib/flashinstance*`, `../toonz/flashinstance*` | Per-instance playback data, undoable edits and the Flash Instance panel |
-| `../toonz/flashimportpopup.*` | Import dialog |
+| `../flarelib/flashpreflight.*` | Compatibility guards and issue handling (blocking / approximated / omitted) |
+| `../flarelib/flashscene.*`, `flashvector.*`, `flashbitmap.*` | Native scene, vector and raster construction |
+| `../flarelib/flasheffects.*` | Native FX chains and keys for color effects, filters and blend modes |
+| `../flarelib/flashtext.*` | Text: glyph outlines and Text FX parameters |
+| `../flarelib/flashimport.*`, `flashbundle.*`, `flashprovenance.*`, `flashfieldbindings.*`, `flashhandoff.*` | Transactional import bundle, report, provenance and Save As handling |
+| `../flarelib/flashinstance*`, `../flare/flashinstance*` | Per-instance playback data, undoable edits and the Flash Instance panel |
+| `../flare/flashimportpopup.*` | Import dialog |
 | `../stdfx/colormatrixfx.cpp`, `../stdfx/dropshadowfx.cpp` | Color Matrix, Drop Shadow and Bevel FX |
 | `../stdfx/iwa_textfx.*`, `../stdfx/iwa_textfxlayout.h` | Text FX *Transform with Column* and layout options; the layout (header only) is shared with the importer |
 | `../common/tvrender/tflashgradientstyle.*` | `TFlashGradientStyle` and `TFlashBitmapStyle` palette styles |

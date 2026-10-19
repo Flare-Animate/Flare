@@ -72,6 +72,14 @@
 #include <QMenu>
 #include <QUrl>
 #include <QToolTip>
+#include <QComboBox>
+#include <QDialog>
+#include <QDialogButtonBox>
+#include <QFormLayout>
+#include <QHelpEvent>
+#include <QLineEdit>
+#include <QMap>
+#include <QMessageBox>
 #include <QApplication>
 #include <QClipboard>
 

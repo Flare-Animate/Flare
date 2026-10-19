@@ -1866,7 +1866,7 @@ bool IoCmd::saveAll(int flags) {
 // IoCmd::saveNonSceneFiles()
 //---------------------------------------------------------------------------
 // This command should not change any content in scene!
-void IoCmd::saveNonSceneFiles() {
+bool IoCmd::saveNonSceneFiles() {
   // try to save non scene files
 
   TApp *app         = TApp::instance();
@@ -1875,14 +1875,21 @@ void IoCmd::saveNonSceneFiles() {
   // Must wait for current save to finish, just in case
   while (TApp::instance()->isSaveInProgress());
 
+  bool result = true;
   TApp::instance()->setSaveInProgress(true);
-  resources.save(scene->getScenePath());
+  try {
+    resources.save(scene->getScenePath());
+  } catch (...) {
+    result = false;
+  }
   TApp::instance()->setSaveInProgress(false);
-  resources.updatePaths();
+  if (result) resources.updatePaths();
+  if (!result) app->getCurrentScene()->setDirtyFlag(true);
 
   // for update title bar
   app->getCurrentLevel()->notifyLevelTitleChange();
   app->getCurrentPalette()->notifyPaletteTitleChanged();
+  return result;
 }
 
 //===========================================================================

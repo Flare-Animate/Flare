@@ -7,7 +7,7 @@
 // TRasterImage's header selects its own DLL decoration; these APIs belong to
 // flarelib and are called from the scene importer and preflight.
 #undef DVAPI
-#ifdef TOONZLIB_EXPORTS
+#ifdef FLARELIB_EXPORTS
 #define DVAPI DV_EXPORT_API
 #else
 #define DVAPI DV_IMPORT_API
