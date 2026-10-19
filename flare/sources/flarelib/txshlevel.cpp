@@ -3,6 +3,7 @@
 #include "flare/txshlevel.h"
 #include "flare/txshleveltypes.h"
 #include "flare/hook.h"
+#include <QUuid>
 
 //-----------------------------------------------------------------------------
 
@@ -28,6 +29,23 @@ void TXshLevel::setScene(ToonzScene *scene) { m_scene = scene; }
 void TXshLevel::setName(std::wstring name) {
   m_name = name;
   updateShortName();
+}
+
+bool TXshLevel::setFlashNativeId(const QString &id) {
+  if (!id.isEmpty()) {
+    const QUuid uuid(id);
+    if (id.size() != 36 || uuid.isNull() ||
+        uuid.toString(QUuid::WithoutBraces) != id)
+      return false;
+  }
+  m_flashNativeId = id;
+  return true;
+}
+
+QString TXshLevel::ensureFlashNativeId() {
+  if (m_flashNativeId.isEmpty())
+    m_flashNativeId = QUuid::createUuid().toString(QUuid::WithoutBraces);
+  return m_flashNativeId;
 }
 
 //-----------------------------------------------------------------------------

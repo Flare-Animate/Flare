@@ -4,6 +4,7 @@
 #define TOONZSCENE_H
 
 #include <memory>
+#include <string>
 
 // TnzCore includes
 #include "tfilepath.h"
@@ -255,12 +256,32 @@ If \b scene is in +scenes/name.tnz return name,
 
   //! gets the contentHistory. possibly creates a new one (if createIfNeeded)
   TContentHistory *getContentHistory(bool createIfNeeded = false);
+  //! Takes ownership; used to restore the exact pre-save history on failure.
+  void setContentHistory(TContentHistory *history);
 
   // shifts camera offset, returning old value; usend for steroscophy
   double shiftCameraX(double val);
 
   void setVersionNumber(VersionNumber version) { m_versionNumber = version; }
   VersionNumber getVersionNumber() { return m_versionNumber; }
+
+  // A verified import bundle is addressed relative to this scene, so moving
+  // its folder does not detach the exact Flash source and import report.
+  struct FlashSourceBundle {
+    std::string reportPath;
+    std::string reportSha256;
+    std::string manifestSha256;
+    bool empty() const { return reportPath.empty(); }
+  };
+  const FlashSourceBundle &flashSourceBundle() const {
+    return m_flashSourceBundle;
+  }
+  void setFlashSourceBundle(const FlashSourceBundle &bundle) {
+    m_flashSourceBundle = bundle;
+  }
+  // Set by the last save() when the Flash source bundle reference had to be
+  // dropped (the save itself still succeeded); empty otherwise.
+  const QString &flashSaveWarning() const { return m_flashSaveWarning; }
 
   // if the path is codable with $scenefolder alias, replace it and return true
   bool codeFilePathWithSceneFolder(TFilePath &path) const;
@@ -289,6 +310,8 @@ private:
                      // is used when loading PSD levels, for defining whether to
                      // convert a layerId in the path to the layer name. See
                      // TXshSimpleLevel::load().
+  FlashSourceBundle m_flashSourceBundle;
+  QString m_flashSaveWarning;
 
 private:
   // noncopyable

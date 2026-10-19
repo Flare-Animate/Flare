@@ -39,16 +39,30 @@ TXshChildLevel::~TXshChildLevel() {
 //-----------------------------------------------------------------------------
 
 void TXshChildLevel::loadData(TIStream &is) {
+  setFlashNativeId({});
   if (m_xsheet) m_xsheet->release();
   m_xsheet = 0;
   is >> m_xsheet;
   m_xsheet->addRef();
   std::string tagName;
-  if (is.matchTag(tagName)) {
+  bool readFlashNativeId = false;
+  while (is.matchTag(tagName)) {
     if (tagName == "name") {
       std::wstring name;
       is >> name;
       setName(name);
+    } else if (tagName == "flashNativeId") {
+      if (readFlashNativeId)
+        throw TException("Repeated Flash native level identifier.");
+      std::string id;
+      is >> id;
+      if (!setFlashNativeId(QString::fromStdString(id)))
+        throw TException("Invalid Flash native level identifier.");
+      readFlashNativeId = true;
+    } else {
+      // Tolerate unknown tags, as before.
+      is.skipCurrentTag();
+      continue;
     }
     is.closeChild();
   }
@@ -59,6 +73,8 @@ void TXshChildLevel::loadData(TIStream &is) {
 void TXshChildLevel::saveData(TOStream &os) {
   os << m_xsheet;
   os.child("name") << getName();
+  if (!flashNativeId().isEmpty())
+    os.child("flashNativeId") << flashNativeId().toStdString();
 }
 
 //-----------------------------------------------------------------------------

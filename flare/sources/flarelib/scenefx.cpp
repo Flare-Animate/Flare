@@ -971,15 +971,16 @@ PlacedFx FxBuilder::makePF(TLevelColumnFx *lcfx) {
 
     // Apply column's color filter and semi-transparency for rendering
     TXshLevelColumn *column = lcfx->getColumn();
+    // The column opacity may be animated (TXshColumn::getOpacityCurve()).
+    const int opacity = column->getOpacityAt(m_frame);
     if (m_scene->getProperties()->isColumnColorFilterOnRenderEnabled() &&
         (column->getColorFilterId() != 0 ||  // None
-         (column->isCamstandVisible() && column->getOpacity() != 255))) {
+         (column->isCamstandVisible() && opacity != 255))) {
       TPixel32 colorScale = m_scene->getProperties()->getColorFilterColor(
           column->getColorFilterId());
-      if (colorScale != TPixel::Black || column->getOpacity() != 255) {
-        colorScale.m = (typename TPixel32::Channel)((int)colorScale.m *
-                                                    (int)column->getOpacity() /
-                                                    TPixel32::maxChannelValue);
+      if (colorScale != TPixel::Black || opacity != 255) {
+        colorScale.m = (typename TPixel32::Channel)(
+            (int)colorScale.m * opacity / TPixel32::maxChannelValue);
         pf.m_fx      = TFxUtil::makeColumnColorFilter(pf.m_fx, colorScale);
       }
     }

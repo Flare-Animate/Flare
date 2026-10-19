@@ -449,7 +449,7 @@ void StageBuilder::addCell(PlayerSet &players, ToonzScene *scene, TXsheet *xsh,
     player.m_isCurrentColumn     = isCurrent;
     player.m_ancestorColumnIndex = m_ancestorColumnIndex;
     player.m_masks               = m_masks;
-    player.m_opacity             = column->getOpacity();
+    player.m_opacity             = column->getOpacityAt(row);
     player.m_filterColor =
         scene->getProperties()->getColorFilterColor(column->getColorFilterId());
 
@@ -523,10 +523,13 @@ void StageBuilder::addCell(PlayerSet &players, ToonzScene *scene, TXsheet *xsh,
     double childCameraZ       = childCamera->getZ(childRow);
 
     std::vector<UCHAR> originalOpacity(childXsheet->getColumnCount());
+    const int parentOpacity = column->getOpacityAt(row);
 
     for (int c = 0; c < childXsheet->getColumnCount(); c++) {
       originalOpacity[c] = childXsheet->getColumn(c)->getOpacity();
-      childXsheet->getColumn(c)->setOpacity(column->getOpacity());
+      // A nested column keeps its own transparency within its parent's.
+      childXsheet->getColumn(c)->setOpacity(
+          UCHAR(int(originalOpacity[c]) * parentOpacity / 255));
     }
 
     SubXSheet subXSheet;
@@ -690,6 +693,9 @@ void StageBuilder::addFrame(PlayerSet &players, ToonzScene *scene, TXsheet *xsh,
                             bool checkPreviewVisibility, int subSheetColIndex) {
   int columnCount        = xsh->getColumnCount();
   unsigned int maskCount = m_masks.size();
+  // Masks opened on this xsheet, in m_masks order after maskCount: how many
+  // more columns each one clips (see TXshColumn::getMaskScope()).
+  std::vector<int> maskScopes;
 
   std::vector<std::pair<double, int>> shuffle;
   for (int c = 0; c < columnCount; c++) {
@@ -728,15 +734,23 @@ void StageBuilder::addFrame(PlayerSet &players, ToonzScene *scene, TXsheet *xsh,
           std::stable_sort(mask->begin(), mask->end(), PlayerLt());
           saveMasks.swap(m_masks);
           m_masks.push_back(maskIndex);
+          maskScopes.push_back(std::max(1, column->getMaskScope()));
         } else
           addCellWithOnionSkin(players, scene, xsh, row, c, level,
                                subSheetColIndex);
       }
     }
     if (!isMask) {
-      while (m_masks.size() > maskCount) m_masks.pop_back();
+      // Each other column uses up one column of every open mask's scope.
+      for (int k = (int)maskScopes.size() - 1; k >= 0; --k)
+        if (--maskScopes[k] == 0) {
+          maskScopes.erase(maskScopes.begin() + k);
+          m_masks.erase(m_masks.begin() + maskCount + k);
+        }
     }
   }
+  // Masks never reach past their own xsheet.
+  m_masks.resize(maskCount);
   if (level == 0) std::stable_sort(players.begin(), players.end(), PlayerLt());
 }
 

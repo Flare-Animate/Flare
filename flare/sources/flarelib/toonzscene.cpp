@@ -29,6 +29,7 @@
 #include "flare/txshpalettecolumn.h"
 #include "flare/txshpalettelevel.h"
 #include "flare/toonzfolders.h"
+#include "flashbundle.h"
 
 // TnzCore includes
 #include "timagecache.h"
@@ -49,6 +50,7 @@
 TOfflineGL *currentOfflineGL = 0;
 
 #include <QProgressDialog>
+#include <QFileInfo>
 
 #ifdef MACOSX
 #include <QSurfaceFormat>
@@ -63,6 +65,9 @@ namespace {
 // tentatively update the scene file version from 71.0 to 71.1 in order to
 // manage PNG level settings
 const VersionNumber l_currentVersion(71, 1);
+const VersionNumber l_flashInstanceVersion(71, 2);
+const VersionNumber l_flashNativeIdVersion(71, 3);
+const VersionNumber l_flashSourceBundleVersion(71, 4);
 // TODO: Revise VersionNumber with OT version (converting 71.0 -> 14.0 , 71.1
 // -> 15.0)
 
@@ -81,6 +86,63 @@ std::string getFolderName(int levelType) {
   default:
     return TProject::Extras;
   }
+}
+
+namespace {
+bool hasFlashInstanceColumns(const TXsheet *xsheet) {
+  if (!xsheet) return false;
+  for (int index = 0; index < xsheet->getColumnCount(); ++index) {
+    auto *column      = xsheet->getColumn(index);
+    auto *levelColumn = column ? column->getLevelColumn() : nullptr;
+    if (levelColumn && !levelColumn->flashInstances().empty()) return true;
+  }
+  return false;
+}
+}  // namespace
+
+VersionNumber savedSceneVersion(ToonzScene *scene, TXsheet *subxsheet) {
+  if (!subxsheet && !scene->flashSourceBundle().empty())
+    return l_flashSourceBundleVersion;
+  // Level IDs live in the cast, not in a particular xsheet. Check even when
+  // saving a subxsheet so a scene containing imported levels advertises its
+  // native serialization extension. Ordinary scenes still save as 71.1.
+  auto *levels = scene->getLevelSet();
+  std::vector<TXsheet *> childXsheets;
+  for (int index = 0; index < levels->getLevelCount(); ++index) {
+    auto *level = levels->getLevel(index);
+    if (!level) continue;
+    if (!level->flashNativeId().isEmpty()) return l_flashNativeIdVersion;
+    if (auto *child = level->getChildLevel())
+      if (child->getXsheet()) childXsheets.push_back(child->getXsheet());
+  }
+  // Every sub-xsheet is a child level in the cast, so checking column
+  // metadata (never cells) of the top and cast xsheets is a cheap early-out.
+  bool anyInstances = hasFlashInstanceColumns(scene->getTopXsheet()) ||
+                      hasFlashInstanceColumns(subxsheet);
+  for (size_t i = 0; !anyInstances && i < childXsheets.size(); ++i)
+    anyInstances = hasFlashInstanceColumns(childXsheets[i]);
+  if (!anyInstances) return l_currentVersion;
+  if (!subxsheet) return l_flashInstanceVersion;
+  // Saving a sub-xsheet: only the xsheets it actually reaches matter.
+  std::set<TXsheet *> pending, visited;
+  pending.insert(subxsheet);
+  while (!pending.empty()) {
+    auto *xsheet = *pending.begin();
+    pending.erase(pending.begin());
+    if (!xsheet || !visited.insert(xsheet).second) continue;
+    if (hasFlashInstanceColumns(xsheet)) return l_flashInstanceVersion;
+    for (int index = 0; index < xsheet->getColumnCount(); ++index) {
+      auto *column = xsheet->getColumn(index);
+      auto *cells  = column ? column->getCellColumn() : nullptr;
+      int first, last;
+      if (!cells || !cells->getRange(first, last)) continue;
+      for (int row = first; row <= last; ++row)
+        if (auto *child = cells->getCell(row).getChildLevel())
+          if (child->getXsheet() && !visited.count(child->getXsheet()))
+            pending.insert(child->getXsheet());
+    }
+  }
+  return l_currentVersion;
 }
 
 //-----------------------------------------------------------------------------
@@ -277,7 +339,10 @@ static void deleteAllUntitledScenes() {
 // ToonzScene
 
 ToonzScene::ToonzScene()
-    : m_contentHistory(0), m_isUntitled(true), m_isLoading(false) {
+    : m_contentHistory(0)
+    , m_isUntitled(true)
+    , m_standAlone(false)
+    , m_isLoading(false) {
   m_childStack = new ChildStack(this);
   m_properties = new TSceneProperties();
   m_levelSet   = new TLevelSet();
@@ -311,6 +376,7 @@ void ToonzScene::clear() {
   m_properties                 = new TSceneProperties();
   delete properties;
   m_levelSet->clear();
+  m_flashSourceBundle = FlashSourceBundle();
 }
 
 //-----------------------------------------------------------------------------
@@ -487,7 +553,17 @@ void ToonzScene::loadTnzFile(const TFilePath &fp) {
           }
         } else if (tagName == "xsheet")
           is >> *getXsheet();
-        else if (tagName == "history") {
+        else if (tagName == "flashSourceBundle") {
+          if (is.getTagAttribute("version") != "1")
+            throw TException("Unsupported Flash source bundle reference");
+          FlashSourceBundle bundle;
+          bundle.reportPath     = is.getTagAttribute("report");
+          bundle.reportSha256   = is.getTagAttribute("reportSha256");
+          bundle.manifestSha256 = is.getTagAttribute("manifestSha256");
+          if (!FlashNative::validSourceBundleReference(bundle))
+            throw TException("Invalid Flash source bundle reference");
+          m_flashSourceBundle = bundle;
+        } else if (tagName == "history") {
           std::string historyData, s;
           while (!is.eos()) {
             is >> s;
@@ -583,116 +659,152 @@ public:
 void ToonzScene::save(const TFilePath &fp, TXsheet *subxsh) {
   TFilePath oldScenePath = getScenePath();
   TFilePath newScenePath = fp;
-
-  if (newScenePath != oldScenePath)
-    TProjectManager::instance()->loadSceneProject(fp, &m_standAlone);
+  const bool oldStandAlone = m_standAlone;
+  // The Flash source bundle never fails a save: a same-folder save does not
+  // read it, and an unusable bundle is dropped with a warning.
+  m_flashSaveWarning.clear();
+  FlashSourceBundle savedBundle;
+  QString newSceneDirectory;
+  if (!subxsh && !m_flashSourceBundle.empty()) {
+    try {
+      newSceneDirectory =
+          QFileInfo(decodeFilePath(newScenePath).getQString()).absolutePath();
+      savedBundle = FlashNative::prepareSourceBundleSave(
+          *this, oldScenePath, newScenePath, &m_flashSaveWarning);
+    } catch (...) {
+      savedBundle = FlashSourceBundle();
+    }
+  }
 
   CameraRedirection redir(this, subxsh);
 
   bool wasUntitled = isUntitled();
 
-  setScenePath(fp);
-
-  TFileStatus fs(newScenePath);
-  if (fs.doesExist() && !fs.isWritable())
-    throw TSystemException(newScenePath,
-                           "The scene cannot be saved: it is a read only "
-                           "scene.\n All resources have been saved.");
-
-  TFilePath scenePath = decodeFilePath(fp);
-  TFilePath scenePathTemp(scenePath.getWideString() +
-                          QString(".tmp").toStdWString());
-
-  if (Preferences::instance()->isBackupEnabled() &&
-      oldScenePath == newScenePath && TFileStatus(scenePath).doesExist())
-    saveBackup(scenePath);
-
-  if (TFileStatus(scenePathTemp).doesExist())
-    TSystem::removeFileOrLevel(scenePathTemp);
-
-  //  TSystem::touchFile(scenePath);
-  TSystem::touchFile(scenePathTemp);
-  makeSceneIcon(this);
-
-  // TOStream os(scenePath, compressionEnabled);
-  //  TOStream os(scenePath, false);
+  VersionNumber saveVersion;
   {
-    TOStream os(scenePathTemp, false);
-    if (!os.checkStatus())
-      throw TException("Could not open temporary save file");
+    // Version the file by the bundle reference actually being written.
+    const FlashSourceBundle current = m_flashSourceBundle;
+    if (!subxsh) m_flashSourceBundle = savedBundle;
+    saveVersion         = savedSceneVersion(this, subxsh);
+    m_flashSourceBundle = current;
+  }
 
-    TXsheet *xsh = subxsh;
-    if (xsh == 0) xsh = m_childStack->getTopXsheet();
+  try {
+    if (newScenePath != oldScenePath)
+      TProjectManager::instance()->loadSceneProject(fp, &m_standAlone);
+    setScenePath(fp);
 
-    std::map<std::string, std::string> attr;
-    attr["version"] =
-        (QString::number(l_currentVersion.first) +
-         "."  // From now on, version numbers in saved files will have
-         + QString::number(
-               l_currentVersion.second))  // the signature "MAJOR.MINOR", where:
-            .toStdString();               //
-    attr["framecount"] =
-        QString::number(  //    MAJOR = Toonz version number * 10 (eg 7.0 => 70)
-            xsh->getFrameCount())
-            .toStdString();  //    MINOR = Reset to 0 after each major
-                             //    increment,
-                             //    and
-    //            advancing on its own when fixing bugs.
-    os.openChild("tnz", attr);
+    TFileStatus fs(newScenePath);
+    if (fs.doesExist() && !fs.isWritable())
+      throw TSystemException(newScenePath,
+                             "The scene cannot be saved: it is a read only "
+                             "scene.\n All resources have been saved.");
 
-    os.child("generator") << TEnv::getApplicationFullName();
-    os.openChild("properties");
-    m_properties->saveData(os);
-    os.closeChild();
+    TFilePath scenePath = decodeFilePath(fp);
+    TFilePath scenePathTemp(scenePath.getWideString() +
+                            QString(".tmp").toStdWString());
+
+    if (Preferences::instance()->isBackupEnabled() &&
+        oldScenePath == newScenePath && TFileStatus(scenePath).doesExist())
+      saveBackup(scenePath);
+
+    if (TFileStatus(scenePathTemp).doesExist())
+      TSystem::removeFileOrLevel(scenePathTemp);
+
+    //  TSystem::touchFile(scenePath);
+    TSystem::touchFile(scenePathTemp);
+    makeSceneIcon(this);
+
+    // TOStream os(scenePath, compressionEnabled);
+    //  TOStream os(scenePath, false);
+    {
+      TOStream os(scenePathTemp, false);
+      if (!os.checkStatus())
+        throw TException("Could not open temporary save file");
+
+      TXsheet *xsh = subxsh;
+      if (xsh == 0) xsh = m_childStack->getTopXsheet();
+
+      std::map<std::string, std::string> attr;
+      attr["version"] = (QString::number(saveVersion.first) + "." +
+                         QString::number(saveVersion.second))
+                            .toStdString();
+      attr["framecount"] = QString::number(xsh->getFrameCount()).toStdString();
+      os.openChild("tnz", attr);
+
+      os.child("generator") << TEnv::getApplicationFullName();
+      if (!savedBundle.empty()) {
+        std::map<std::string, std::string> bundleAttributes;
+        bundleAttributes["version"]        = "1";
+        bundleAttributes["report"]         = savedBundle.reportPath;
+        bundleAttributes["reportSha256"]   = savedBundle.reportSha256;
+        bundleAttributes["manifestSha256"] = savedBundle.manifestSha256;
+        os.openChild("flashSourceBundle", bundleAttributes);
+        os.closeChild();
+      }
+      os.openChild("properties");
+      m_properties->saveData(os);
+      os.closeChild();
+
+      if (subxsh) {
+        std::set<TXshLevel *> saveSet;
+        subxsh->getUsedLevels(saveSet);
+        m_levelSet->setSaveSet(saveSet);
+      }
+      os.openChild("levelSet");
+      m_levelSet->saveData(os);
+      os.closeChild();
+      std::set<TXshLevel *> emptySaveSet;
+      m_levelSet->setSaveSet(emptySaveSet);
+
+      os.openChild("xsheet");
+      os << *xsh;
+      os.closeChild();
+
+      if (getContentHistory()) {
+        os.openChild("history");
+        QString data = getContentHistory()->serialize();
+        int i        = 0, j;
+        // non scrivo tutta la std::string di seguito per evitare problemi se
+        // diventa
+        // troppo lunga. Cerco di spezzarla in modo che sia "bella da leggere"
+        // nel tnz
+        while ((j = data.indexOf("||", i)) >= i) {
+          os << data.mid(i, j - i + 1).toStdWString();
+          os.cr();
+          i = j + 1;
+        }
+        os << data.mid(i).toStdWString();
+        os.closeChild();
+      }
+
+      os.closeChild();
+      bool status = os.checkStatus();
+      if (!status) throw TException("Could not complete the temporary save");
+    }
+
+    if (TFileStatus(scenePathTemp).doesExist())
+      TSystem::renameFile(scenePath, scenePathTemp, true);
 
     if (subxsh) {
-      std::set<TXshLevel *> saveSet;
-      subxsh->getUsedLevels(saveSet);
-      m_levelSet->setSaveSet(saveSet);
+      setScenePath(oldScenePath);
+      if (wasUntitled) setUntitled();
+    } else {
+      if (wasUntitled) deleteUntitledScene(oldScenePath.getParentDir());
     }
-    os.openChild("levelSet");
-    m_levelSet->saveData(os);
-    os.closeChild();
-    std::set<TXshLevel *> emptySaveSet;
-    m_levelSet->setSaveSet(emptySaveSet);
-
-    os.openChild("xsheet");
-    os << *xsh;
-    os.closeChild();
-
-    if (getContentHistory()) {
-      os.openChild("history");
-      QString data = getContentHistory()->serialize();
-      int i        = 0, j;
-      // non scrivo tutta la std::string di seguito per evitare problemi se
-      // diventa
-      // troppo lunga. Cerco di spezzarla in modo che sia "bella da leggere" nel
-      // tnz
-      while ((j = data.indexOf("||", i)) >= i) {
-        os << data.mid(i, j - i + 1).toStdWString();
-        os.cr();
-        i = j + 1;
-      }
-      os << data.mid(i).toStdWString();
-      os.closeChild();
-    }
-
-    os.closeChild();
-    bool status = os.checkStatus();
-    if (!status) throw TException("Could not complete the temporary save");
+    // update the last saved version
+    setVersionNumber(saveVersion);
+    if (!subxsh) m_flashSourceBundle = savedBundle;
+  } catch (...) {
+    m_scenePath  = oldScenePath;
+    m_isUntitled = wasUntitled;
+    m_standAlone = oldStandAlone;
+    // A source copy made for this failed Save As must not be orphaned.
+    if (!subxsh)
+      FlashNative::discardSourceBundleCopy(m_flashSourceBundle, savedBundle,
+                                           newSceneDirectory);
+    throw;
   }
-
-  if (TFileStatus(scenePathTemp).doesExist())
-    TSystem::renameFile(scenePath, scenePathTemp, true);
-
-  if (subxsh) {
-    setScenePath(oldScenePath);
-    if (wasUntitled) setUntitled();
-  } else {
-    if (wasUntitled) deleteUntitledScene(oldScenePath.getParentDir());
-  }
-  // update the last saved version
-  setVersionNumber(l_currentVersion);
 }
 
 //-----------------------------------------------------------------------------
@@ -1512,6 +1624,12 @@ TContentHistory *ToonzScene::getContentHistory(bool createIfNeeded) {
     m_contentHistory = new TContentHistory(false, altUsername, recordEdit);
   }
   return m_contentHistory;
+}
+
+void ToonzScene::setContentHistory(TContentHistory *history) {
+  if (m_contentHistory == history) return;
+  delete m_contentHistory;
+  m_contentHistory = history;
 }
 
 //-----------------------------------------------------------------------------

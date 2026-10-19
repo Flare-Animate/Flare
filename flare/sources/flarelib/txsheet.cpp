@@ -38,6 +38,12 @@
 #include "flare/txsheet.h"
 #include "flare/preferences.h"
 
+#include <QJsonDocument>
+#include <QHash>
+#include <QJsonObject>
+#include <QJsonParseError>
+#include <QUuid>
+
 // STD includes
 #include <set>
 
@@ -48,6 +54,101 @@ DEFINE_CLASS_CODE(TXsheet, 18)
 //-----------------------------------------------------------------------------
 namespace {
 //-----------------------------------------------------------------------------
+
+constexpr size_t maxFlashFrameLabels      = 100000;
+constexpr int maxFlashFrameLabelBytes     = 65536;
+constexpr qint64 maxFlashFrameLabelsBytes = 64ll * 1024 * 1024;
+constexpr int maxFlashFrameLabelRow       = 10000000;
+
+bool validFlashFrameLabelType(const QString &type) {
+  return type == "name" || type == "comment" || type == "anchor";
+}
+
+QJsonObject flashFrameLabelJson(const FlashFrameLabelData &label) {
+  return {{"nativeLabelId", label.nativeLabelId},
+          {"sourceTimelineId", label.sourceTimelineId},
+          {"sourceLayerId", label.sourceLayerId},
+          {"sourceFrameId", label.sourceFrameId},
+          {"sourceFrameXmlId", label.sourceFrameXmlId},
+          {"sourceLayerName", label.sourceLayerName},
+          {"name", label.name},
+          {"type", label.type},
+          {"sourceFrameIndex", label.sourceFrameIndex},
+          {"row", label.row},
+          {"nativeColumn", label.nativeColumn},
+          {"detached", label.detached}};
+}
+
+QByteArray encodedFlashFrameLabel(const FlashFrameLabelData &label) {
+  const bool linked = !label.sourceTimelineId.isEmpty() &&
+                      !label.sourceLayerId.isEmpty() &&
+                      !label.sourceFrameId.isEmpty();
+  const bool detached = label.sourceTimelineId.isEmpty() &&
+                        label.sourceLayerId.isEmpty() &&
+                        label.sourceFrameId.isEmpty();
+  if (label.nativeLabelId.isEmpty() || (!linked && !detached) ||
+      (detached && !label.sourceFrameXmlId.isEmpty()) ||
+      label.sourceFrameXmlId.size() > 2048 || label.name.isEmpty() ||
+      !validFlashFrameLabelType(label.type) || label.sourceFrameIndex < 0 ||
+      label.sourceFrameIndex > maxFlashFrameLabelRow || label.row < 0 ||
+      label.row > maxFlashFrameLabelRow || label.nativeColumn < -1 ||
+      label.nativeColumn > maxFlashFrameLabelRow)
+    throw TException("Invalid Flash frame label metadata.");
+  const QByteArray encoded =
+      QJsonDocument(flashFrameLabelJson(label)).toJson(QJsonDocument::Compact);
+  if (encoded.size() > maxFlashFrameLabelBytes)
+    throw TException("Flash frame label metadata record is too large.");
+  return encoded;
+}
+
+FlashFrameLabelData decodeFlashFrameLabel(const QByteArray &encoded,
+                                          bool versionTwo) {
+  if (encoded.size() > maxFlashFrameLabelBytes)
+    throw TException("Flash frame label metadata record is too large.");
+  QJsonParseError error;
+  const auto document = QJsonDocument::fromJson(encoded, &error);
+  if (error.error != QJsonParseError::NoError || !document.isObject())
+    throw TException("Invalid Flash frame label metadata JSON.");
+  const auto json       = document.object();
+  const char *strings[] = {"nativeLabelId", "sourceTimelineId", "sourceLayerId",
+                           "sourceFrameId", "sourceLayerName",  "name",
+                           "type"};
+  for (const char *key : strings)
+    if (!json.value(key).isString())
+      throw TException("Invalid Flash frame label metadata string.");
+  if (!json.value("sourceFrameXmlId").isUndefined() &&
+      !json.value("sourceFrameXmlId").isString())
+    throw TException("Invalid Flash frame label source locator.");
+  const auto integralField = [&](const char *key, int minimum,
+                                 bool optional = false) {
+    const QJsonValue value = json.value(key);
+    if (optional && value.isUndefined()) return -1;
+    if (!value.isDouble())
+      throw TException("Invalid Flash frame label metadata row.");
+    const double number = value.toDouble();
+    if (!std::isfinite(number) || number < minimum ||
+        number > maxFlashFrameLabelRow || std::floor(number) != number)
+      throw TException("Invalid Flash frame label metadata row.");
+    return static_cast<int>(number);
+  };
+  FlashFrameLabelData label;
+  label.nativeLabelId    = json.value("nativeLabelId").toString();
+  label.sourceTimelineId = json.value("sourceTimelineId").toString();
+  label.sourceLayerId    = json.value("sourceLayerId").toString();
+  label.sourceFrameId    = json.value("sourceFrameId").toString();
+  label.sourceFrameXmlId = json.value("sourceFrameXmlId").toString();
+  label.sourceLayerName  = json.value("sourceLayerName").toString();
+  label.name             = json.value("name").toString();
+  label.type             = json.value("type").toString();
+  label.sourceFrameIndex = integralField("sourceFrameIndex", 0);
+  label.row              = integralField("row", 0);
+  label.nativeColumn     = integralField("nativeColumn", -1, true);
+  if (versionTwo && !json.value("detached").isBool())
+    throw TException("Invalid Flash frame label detached state.");
+  label.detached = versionTwo && json.value("detached").toBool();
+  encodedFlashFrameLabel(label);
+  return label;
+}
 
 string getColumnDefaultName(TXsheet *xsh, int col, QString oldName) {
   TXshColumn *column = xsh->getColumn(col);
@@ -457,6 +558,10 @@ void TXsheet::clearCells(int row, int col, int rowCount) {
 //-----------------------------------------------------------------------------
 
 void TXsheet::clearAll() {
+  m_flashFrameLabels.clear();
+  m_flashFrameLabelIds.clear();
+  m_flashFrameLabelBytes = 0;
+  m_removedColumnFlashLabels.clear();
   int c0 = 0, c1 = m_imp->m_columnSet.getColumnCount() - 1;
   int r0 = 0, r1 = getFrameCount() - 1;
   m_imp->m_columnSet.clear();
@@ -517,10 +622,26 @@ void TXsheet::getUsedLevels(set<TXshLevel *> &levels) const {
     const TXsheet *xsh = todoXshs.back();
     todoXshs.pop_back();
 
+    auto retainLevel = [&](TXshLevel *level) {
+      if (!level) return;
+      levels.insert(level);
+      if (auto *child = level->getChildLevel()) {
+        TXsheet *childXsh = child->getXsheet();
+        if (visitedXshs.insert(childXsh).second) todoXshs.push_back(childXsh);
+      }
+    };
+
     int c0 = 0, c1 = xsh->getColumnCount() - 1;
     for (int c = c0; c <= c1; ++c) {
       TXshColumnP column = const_cast<TXsheet *>(xsh)->getColumn(c);
       if (!column) continue;
+
+      // Deleted Flash artwork keeps a detached source occurrence in an empty
+      // native column. Keep its level (and nested sheet) in the cast so Remove
+      // Unused cannot make that lineage impossible to resolve after reopen.
+      if (auto *native = column->getLevelColumn())
+        for (const auto &placement : native->flashPlacements())
+          if (placement.detached) retainLevel(placement.level.getPointer());
 
       TXshCellColumn *cellColumn = column->getCellColumn();
       if (!cellColumn) continue;
@@ -535,14 +656,7 @@ void TXsheet::getUsedLevels(set<TXshLevel *> &levels) const {
 
         if (level != cell.m_level.getPointer()) {
           level = cell.m_level.getPointer();
-          levels.insert(level);
-          if (level->getChildLevel()) {
-            TXsheet *childXsh = level->getChildLevel()->getXsheet();
-            if (visitedXshs.count(childXsh) == 0) {
-              visitedXshs.insert(childXsh);
-              todoXshs.push_back(childXsh);
-            }
-          }
+          retainLevel(level);
         }
       }
     }
@@ -1203,6 +1317,8 @@ void TXsheet::loadData(TIStream &is) {
 
   int col = 0;
   string tagName;
+  bool readFlashFrameLabels    = false;
+  qint64 flashFrameLabelsBytes = 0;
   while (is.openChild(tagName)) {
     if (tagName == "columns") {
       while (!is.eos()) {
@@ -1286,6 +1402,23 @@ void TXsheet::loadData(TIStream &is) {
       m_notes->loadData(is);
     } else if (tagName == "navigationTags") {
       m_navigationTags->loadData(is);
+    } else if (tagName == "flashFrameLabels") {
+      const std::string version = is.getTagAttribute("version");
+      if (readFlashFrameLabels || (version != "1" && version != "2"))
+        throw TException("Unsupported or repeated Flash frame labels.");
+      readFlashFrameLabels = true;
+      while (is.openChild(tagName)) {
+        if (tagName != "label")
+          throw TException("Unknown Flash frame label metadata tag.");
+        std::string encoded;
+        is >> encoded;
+        flashFrameLabelsBytes += encoded.size();
+        if (flashFrameLabelsBytes > maxFlashFrameLabelsBytes)
+          throw TException("Flash frame label metadata budget exceeded.");
+        addFlashFrameLabel(decodeFlashFrameLabel(
+            QByteArray::fromStdString(encoded), version == "2"));
+        is.closeChild();
+      }
     } else {
       throw TException("xsheet, unknown tag: " + tagName);
     }
@@ -1342,6 +1475,21 @@ void TXsheet::saveData(TOStream &os) {
     navigationTags->saveData(os);
     os.closeChild();
   }
+
+  if (!m_flashFrameLabels.empty()) {
+    os.openChild("flashFrameLabels", {{"version", "2"}});
+    qint64 encodedBytes = 0;
+    for (const auto &label : m_flashFrameLabels) {
+      const QByteArray encoded = encodedFlashFrameLabel(label);
+      encodedBytes += encoded.size();
+      if (encodedBytes > maxFlashFrameLabelsBytes)
+        throw TException("Flash frame label metadata budget exceeded.");
+      os.openChild("label");
+      os << encoded.toStdString();
+      os.closeChild();
+    }
+    os.closeChild();
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -1356,8 +1504,44 @@ void TXsheet::insertColumn(int col, TXshColumn::ColumnType type) {
 
 //-----------------------------------------------------------------------------
 
+void TXsheet::pruneRemovedColumnFlashLabels() {
+  // Only the deletion undo keeps a removed column alive. Once it is gone,
+  // this list is the last owner and its labels can never be re-anchored.
+  m_removedColumnFlashLabels.erase(
+      std::remove_if(m_removedColumnFlashLabels.begin(),
+                     m_removedColumnFlashLabels.end(),
+                     [](const std::pair<TXshColumnP, std::vector<QString>> &e) {
+                       return !e.first || e.first->getRefCount() <= 1;
+                     }),
+      m_removedColumnFlashLabels.end());
+}
+
 void TXsheet::insertColumn(int col, TXshColumn *column) {
   if (col < 0) col = 0;
+  pruneRemovedColumnFlashLabels();
+  // Re-inserting a column object removed earlier (column deletion undo)
+  // re-anchors the frame labels that removeColumn orphaned.
+  QSet<QString> reanchored;
+  auto stashed = m_removedColumnFlashLabels.end();
+  for (auto it = m_removedColumnFlashLabels.begin();
+       it != m_removedColumnFlashLabels.end(); ++it)
+    if (it->first.getPointer() == column) {
+      stashed = it;
+      for (const auto &id : it->second) reanchored.insert(id);
+      break;
+    }
+  std::vector<FlashFrameLabelData> remapped = m_flashFrameLabels;
+  qint64 remappedBytes                      = 0;
+  for (auto &label : remapped) {
+    if (label.nativeColumn >= col)
+      ++label.nativeColumn;
+    else if (label.nativeColumn == -1 &&
+             reanchored.contains(label.nativeLabelId))
+      label.nativeColumn = col;
+    remappedBytes += encodedFlashFrameLabel(label).size();
+    if (remappedBytes > maxFlashFrameLabelsBytes)
+      throw TException("Flash frame label metadata budget exceeded.");
+  }
   column->setXsheet(this);
   m_imp->m_columnSet.insertColumn(col, column);
   m_imp->m_pegTree->insertColumn(col);
@@ -1373,13 +1557,37 @@ void TXsheet::insertColumn(int col, TXshColumn *column) {
                                    m_imp->m_columnSet.getColumnCount() - col);
   }
 
+  m_flashFrameLabels.swap(remapped);
+  m_flashFrameLabelBytes = remappedBytes;
+  if (stashed != m_removedColumnFlashLabels.end())
+    m_removedColumnFlashLabels.erase(stashed);
+
   notify(TXsheetColumnChange(TXsheetColumnChange::Insert, col));
 }
 
 //-----------------------------------------------------------------------------
 
 void TXsheet::removeColumn(int col) {
+  pruneRemovedColumnFlashLabels();
+  std::vector<FlashFrameLabelData> remapped = m_flashFrameLabels;
+  std::vector<QString> orphaned;
+  qint64 remappedBytes = 0;
+  for (auto &label : remapped) {
+    if (label.nativeColumn == col) {
+      label.nativeColumn = -1;
+      orphaned.push_back(label.nativeLabelId);
+    } else if (label.nativeColumn > col)
+      --label.nativeColumn;
+    remappedBytes += encodedFlashFrameLabel(label).size();
+    if (remappedBytes > maxFlashFrameLabelsBytes)
+      throw TException("Flash frame label metadata budget exceeded.");
+  }
   TXshColumn *column = getColumn(col);
+  // Keep the label anchors with the removed column object so that undo,
+  // which re-inserts this same object, restores them.
+  if (column && col >= 0 && !orphaned.empty())
+    m_removedColumnFlashLabels.emplace_back(TXshColumnP(column),
+                                            std::move(orphaned));
   if (column) {
     TFx *fx = column->getFx();
     if (fx) {
@@ -1397,6 +1605,9 @@ void TXsheet::removeColumn(int col) {
     columnFan.rollLeftFoldedState(col,
                                   m_imp->m_columnSet.getColumnCount() - col);
   }
+
+  m_flashFrameLabels.swap(remapped);
+  m_flashFrameLabelBytes = remappedBytes;
 
   notify(TXsheetColumnChange(TXsheetColumnChange::Remove, col));
 }
@@ -1421,6 +1632,22 @@ void TXsheet::moveColumn(int srcIndex, int dstIndex) {
   assert(m_imp->m_columnSet.getColumnCount() > srcIndex);
   assert(m_imp->m_columnSet.getColumnCount() > dstIndex);
 
+  std::vector<FlashFrameLabelData> remapped = m_flashFrameLabels;
+  qint64 remappedBytes                      = 0;
+  for (auto &label : remapped) {
+    if (label.nativeColumn == srcIndex)
+      label.nativeColumn = dstIndex;
+    else if (srcIndex < dstIndex && label.nativeColumn > srcIndex &&
+             label.nativeColumn <= dstIndex)
+      --label.nativeColumn;
+    else if (srcIndex > dstIndex && label.nativeColumn >= dstIndex &&
+             label.nativeColumn < srcIndex)
+      ++label.nativeColumn;
+    remappedBytes += encodedFlashFrameLabel(label).size();
+    if (remappedBytes > maxFlashFrameLabelsBytes)
+      throw TException("Flash frame label metadata budget exceeded.");
+  }
+
   if (srcIndex < dstIndex) {
     int c0 = srcIndex;
     int c1 = dstIndex;
@@ -1438,6 +1665,9 @@ void TXsheet::moveColumn(int srcIndex, int dstIndex) {
       columnFan.rollRightFoldedState(c0, c1 - c0 + 1);
     for (int c = c1 - 1; c >= c0; --c) m_imp->m_pegTree->swapColumns(c, c + 1);
   }
+
+  m_flashFrameLabels.swap(remapped);
+  m_flashFrameLabelBytes = remappedBytes;
 
   notify(TXsheetColumnChange(TXsheetColumnChange::Move, srcIndex, dstIndex));
 }
@@ -1459,7 +1689,18 @@ int TXsheet::getColumnCount() const {
 
 int TXsheet::getFirstFreeColumnIndex() const {
   int i = getColumnCount();
-  while (i > 0 && isColumnEmpty(i - 1)) --i;
+  while (i > 0 && isColumnEmpty(i - 1)) {
+    // A label-only Flash layer is an editable native column even though it
+    // has no drawing cells. Include it in scene serialization and keep its
+    // Xsheet layer available after reopen.
+    const bool labeled =
+        std::any_of(m_flashFrameLabels.begin(), m_flashFrameLabels.end(),
+                    [i](const FlashFrameLabelData &label) {
+                      return !label.detached && label.nativeColumn == i - 1;
+                    });
+    if (labeled) break;
+    --i;
+  }
   return i;
 }
 
@@ -1874,6 +2115,120 @@ bool TXsheet::isFrameTagged(int frame) const {
   if (frame < 0) return false;
 
   return m_navigationTags->isTagged(frame);
+}
+
+QString TXsheet::addFlashFrameLabel(FlashFrameLabelData label) {
+  if (m_flashFrameLabels.size() >= maxFlashFrameLabels)
+    throw TException("Flash frame label count budget exceeded.");
+  if (label.nativeLabelId.isEmpty())
+    label.nativeLabelId = QUuid::createUuid().toString(QUuid::WithoutBraces);
+  const qint64 encodedBytes = encodedFlashFrameLabel(label).size();
+  if (encodedBytes > maxFlashFrameLabelsBytes - m_flashFrameLabelBytes)
+    throw TException("Flash frame label metadata budget exceeded.");
+  if (m_flashFrameLabelIds.contains(label.nativeLabelId))
+    throw TException("Duplicate native Flash frame label ID.");
+  m_flashFrameLabelIds.insert(label.nativeLabelId);
+  m_flashFrameLabels.push_back(std::move(label));
+  m_flashFrameLabelBytes += encodedBytes;
+  return m_flashFrameLabels.back().nativeLabelId;
+}
+
+bool TXsheet::editFlashFrameLabel(const QString &nativeLabelId,
+                                  const QString &name, const QString &type,
+                                  int row) {
+  for (auto &label : m_flashFrameLabels) {
+    if (label.nativeLabelId != nativeLabelId) continue;
+    FlashFrameLabelData edited = label;
+    edited.name                = name;
+    edited.type                = type;
+    edited.row                 = row;
+    const qint64 oldBytes      = encodedFlashFrameLabel(label).size();
+    const qint64 newBytes      = encodedFlashFrameLabel(edited).size();
+    if (newBytes >
+        maxFlashFrameLabelsBytes - (m_flashFrameLabelBytes - oldBytes))
+      throw TException("Flash frame label metadata budget exceeded.");
+    label = std::move(edited);
+    m_flashFrameLabelBytes += newBytes - oldBytes;
+    return true;
+  }
+  return false;
+}
+
+std::pair<std::vector<FlashFrameLabelData>, qint64>
+TXsheet::prepareFlashFrameLabelPositions(
+    const std::vector<FlashFrameLabelPosition> &positions) const {
+  QHash<QString, FlashFrameLabelPosition> changes;
+  for (const auto &entry : positions) {
+    if (!m_flashFrameLabelIds.contains(entry.id) ||
+        changes.contains(entry.id) || entry.row < 0 ||
+        entry.row > maxFlashFrameLabelRow)
+      throw TException("Invalid Flash frame label position edit.");
+    changes.insert(entry.id, entry);
+  }
+  std::vector<FlashFrameLabelData> remapped = m_flashFrameLabels;
+  qint64 remappedBytes                      = 0;
+  for (auto &label : remapped) {
+    const auto changed = changes.constFind(label.nativeLabelId);
+    if (changed != changes.constEnd()) {
+      label.row      = changed.value().row;
+      label.detached = changed.value().detached;
+    }
+    remappedBytes += encodedFlashFrameLabel(label).size();
+    if (remappedBytes > maxFlashFrameLabelsBytes)
+      throw TException("Flash frame label metadata budget exceeded.");
+  }
+  return {std::move(remapped), remappedBytes};
+}
+
+void TXsheet::validateFlashFrameLabelPositions(
+    const std::vector<FlashFrameLabelPosition> &positions) const {
+  if (!positions.empty()) prepareFlashFrameLabelPositions(positions);
+}
+
+void TXsheet::setFlashFrameLabelPositions(
+    const std::vector<FlashFrameLabelPosition> &positions) {
+  if (positions.empty()) return;
+  // Undo/redo replays positions captured earlier; a label that no longer
+  // exists (deleted, or its xsheet was reloaded) is skipped, not an error.
+  std::vector<FlashFrameLabelPosition> known;
+  known.reserve(positions.size());
+  for (const auto &entry : positions)
+    if (m_flashFrameLabelIds.contains(entry.id)) known.push_back(entry);
+  if (known.empty()) return;
+  auto remapped = prepareFlashFrameLabelPositions(known);
+  m_flashFrameLabels.swap(remapped.first);
+  m_flashFrameLabelBytes = remapped.second;
+}
+
+void TXsheet::cloneFlashFrameLabelsFrom(const TXsheet &source) {
+  if (this == &source)
+    throw TException("Cannot clone Flash frame labels onto themselves.");
+  if (source.m_flashFrameLabels.size() >
+      maxFlashFrameLabels - m_flashFrameLabels.size())
+    throw TException("Flash frame label count budget exceeded.");
+  std::vector<FlashFrameLabelData> staged;
+  staged.reserve(source.m_flashFrameLabels.size());
+  QSet<QString> stagedIds;
+  qint64 addedBytes = 0;
+  for (const auto &original : source.m_flashFrameLabels) {
+    FlashFrameLabelData clone = original;
+    do {
+      clone.nativeLabelId = QUuid::createUuid().toString(QUuid::WithoutBraces);
+    } while (m_flashFrameLabelIds.contains(clone.nativeLabelId) ||
+             stagedIds.contains(clone.nativeLabelId));
+    clone.sourceTimelineId.clear();
+    clone.sourceLayerId.clear();
+    clone.sourceFrameId.clear();
+    clone.sourceFrameXmlId.clear();
+    clone.sourceLayerName.clear();
+    clone.sourceFrameIndex = clone.row;
+    addedBytes += encodedFlashFrameLabel(clone).size();
+    if (addedBytes > maxFlashFrameLabelsBytes - m_flashFrameLabelBytes)
+      throw TException("Flash frame label metadata budget exceeded.");
+    stagedIds.insert(clone.nativeLabelId);
+    staged.push_back(std::move(clone));
+  }
+  for (auto &clone : staged) addFlashFrameLabel(std::move(clone));
 }
 
 //---------------------------------------------------------

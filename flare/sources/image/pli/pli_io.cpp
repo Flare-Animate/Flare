@@ -30,7 +30,7 @@ typedef TVectorImage::IntersectionBranch IntersectionBranch;
 TNZ_LITTLE_ENDIAN undefined !!
 #endif
 
-    static const int c_majorVersionNumber = 150;
+    static const int c_majorVersionNumber = 151;
 static const int c_minorVersionNumber     = 0;
 
 /*=====================================================================*/
@@ -350,6 +350,7 @@ public:
   PliTag *readOutlineOptionsTag();
   PliTag *readPrecisionScaleTag();
   PliTag *readAutoCloseToleranceTag();
+  PliTag *readRegionFindingModeTag();
 
   inline void readDynamicData(TUINT32 &val, TUINT32 &bufOffs);
   inline bool readDynamicData(TINT32 &val, TUINT32 &bufOffs);
@@ -376,6 +377,7 @@ public:
   TUINT32 writeOutlineOptionsTag(StrokeOutlineOptionsTag *tag);
   TUINT32 writePrecisionScaleTag(PrecisionScaleTag *tag);
   TUINT32 writeAutoCloseToleranceTag(AutoCloseToleranceTag *tag);
+  TUINT32 writeRegionFindingModeTag(RegionFindingModeTag *tag);
 
   inline void writeDynamicData(TUINT32 val);
   inline void writeDynamicData(TINT32 val, bool isNegative);
@@ -998,6 +1000,9 @@ TagElem *ParsedPliImp::readTag() {
   case PliTag::AUTOCLOSE_TOLERANCE_GOBJ:
     newTag = readAutoCloseToleranceTag();
     break;
+  case PliTag::REGION_FINDING_MODE_GOBJ:
+    newTag = readRegionFindingModeTag();
+    break;
   case PliTag::END_CNTRL:
     return 0;
   }
@@ -1481,6 +1486,23 @@ PliTag *ParsedPliImp::readAutoCloseToleranceTag() {
 
 /*=====================================================================*/
 
+PliTag *ParsedPliImp::readRegionFindingModeTag() {
+  if (m_majorVersionNumber < 151 || m_tagLength != 2 || m_buf[0] != 1)
+    throw TImageException(m_filePath, "Invalid PLI region finding mode tag");
+
+  switch (m_buf[1]) {
+  case 0:
+    return new RegionFindingModeTag(TVectorImage::RegionFindingMode::Default);
+  case 1:
+    return new RegionFindingModeTag(
+        TVectorImage::RegionFindingMode::PreserveSource);
+  default:
+    throw TImageException(m_filePath, "Unsupported PLI region finding mode");
+  }
+}
+
+/*=====================================================================*/
+
 void ParsedPliImp::readFloatData(double &val, TUINT32 &bufOffs) {
   // UCHAR currDynamicTypeBytesNumSaved = m_currDynamicTypeBytesNum;
   // m_currDynamicTypeBytesNum = 2;
@@ -1899,6 +1921,10 @@ void ParsedPliImp::writeTag(TagElem *elem) {
     elem->m_offset =
         writeAutoCloseToleranceTag((AutoCloseToleranceTag *)elem->m_tag);
     break;
+  case PliTag::REGION_FINDING_MODE_GOBJ:
+    elem->m_offset =
+        writeRegionFindingModeTag((RegionFindingModeTag *)elem->m_tag);
+    break;
   default:
     assert(false);
     // m_error = UNKNOWN_TAG;
@@ -2085,14 +2111,23 @@ TUINT32 ParsedPliImp::writeThickQuadraticChainTag(ThickQuadraticChainTag *tag) {
   /*for ( i=0; i<tag->m_numCurves; i++)
 tag->m_curve[i] =  aff*tag->m_curve[i];*/
 
+  // The first point is truncated below, while following deltas are rounded.
+  // Choose the dynamic width from those exact stored integers. Truncating the
+  // width probe could select an 8/16-bit field for a rounded value that needs
+  // 16/32 bits.
   p = scale * tag->m_curve[0].getP0();
-  SET_MINMAX
+  minval = std::min({minval, (int)p.x, (int)p.y});
+  maxval = std::max({maxval, (int)p.x, (int)p.y});
 
   for (i = 0; i < (int)tag->m_numCurves; i++) {
-    p = scale * (tag->m_curve[i].getP1() - tag->m_curve[i].getP0());
-    SET_MINMAX
-    p = scale * (tag->m_curve[i].getP2() - tag->m_curve[i].getP1());
-    SET_MINMAX
+    const TPoint firstDelta =
+        convert(scale * (tag->m_curve[i].getP1() - tag->m_curve[i].getP0()));
+    const TPoint secondDelta =
+        convert(scale * (tag->m_curve[i].getP2() - tag->m_curve[i].getP1()));
+    minval = std::min(
+        {minval, firstDelta.x, firstDelta.y, secondDelta.x, secondDelta.y});
+    maxval = std::max(
+        {maxval, firstDelta.x, firstDelta.y, secondDelta.x, secondDelta.y});
   }
 
   setDynamicTypeBytesNum(minval, maxval);
@@ -2112,14 +2147,16 @@ tag->m_curve[i] =  aff*tag->m_curve[i];*/
   // (double)(TINT32)(scale*tag->m_curve[0].getThickP0().x));
   // assert(scale*tag->m_curve[0].getThickP0().y ==
   // (double)(TINT32)(scale*tag->m_curve[0].getThickP0().y));
-  double thickRatio = tag->m_maxThickness / 255.0;
-
   assert(tag->m_maxThickness <= 255);
-  assert(tag->m_maxThickness > 0);
-  UCHAR maxThickness = (UCHAR)(tceil(tag->m_maxThickness));
+  assert(tag->m_maxThickness >= 0);
+  // Zero-thickness contours are ordinary filled Flash outlines. They need a
+  // nonzero scale for the thickness-byte calculation, while every stored
+  // control thickness remains zero.
+  UCHAR maxThickness =
+      (UCHAR)(tag->m_maxThickness == 0 ? 1 : tceil(tag->m_maxThickness));
 
   *m_oChan << maxThickness;
-  thickRatio = maxThickness / 255.0;
+  const double thickRatio = maxThickness / 255.0;
   writeDynamicData((TINT32)(scale * tag->m_curve[0].getThickP0().x));
   writeDynamicData((TINT32)(scale * tag->m_curve[0].getThickP0().y));
   double thick = tag->m_curve[0].getThickP0().thick / thickRatio;
@@ -2468,6 +2505,9 @@ TUINT32 ParsedPliImp::writePrecisionScaleTag(PrecisionScaleTag *tag) {
       (int)writeTagHeader((UCHAR)PliTag::PRECISION_SCALE_GOBJ, tagLength);
 
   writeDynamicData((TINT32)tag->m_precisionScale);
+  // Frames are queued before writePli(). Geometry emitted after this tag must
+  // use this frame's scale, just as the reader does when it encounters the tag.
+  m_precisionScale = tag->m_precisionScale;
   return offset;
 }
 
@@ -2482,6 +2522,30 @@ TUINT32 ParsedPliImp::writeAutoCloseToleranceTag(AutoCloseToleranceTag *tag) {
       (int)writeTagHeader((UCHAR)PliTag::AUTOCLOSE_TOLERANCE_GOBJ, tagLength);
 
   writeDynamicData((TINT32)tag->m_autoCloseTolerance);
+  return offset;
+}
+
+/*=====================================================================*/
+
+TUINT32 ParsedPliImp::writeRegionFindingModeTag(RegionFindingModeTag *tag) {
+  assert(m_oChan);
+  if (m_majorVersionNumber < 151)
+    throw TImageException(m_filePath,
+                          "PLI region finding mode requires version 151");
+  UCHAR mode;
+  switch (tag->m_mode) {
+  case TVectorImage::RegionFindingMode::Default:
+    mode = 0;
+    break;
+  case TVectorImage::RegionFindingMode::PreserveSource:
+    mode = 1;
+    break;
+  default:
+    throw TImageException(m_filePath, "Unsupported PLI region finding mode");
+  }
+
+  TUINT32 offset = writeTagHeader((UCHAR)PliTag::REGION_FINDING_MODE_GOBJ, 2);
+  *m_oChan << (UCHAR)1 << mode;
   return offset;
 }
 

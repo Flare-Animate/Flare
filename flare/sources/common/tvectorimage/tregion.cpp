@@ -14,6 +14,8 @@
 
 // STD includes
 #include <set>
+#include <cmath>
+#include <limits>
 
 // DEFINE_CLASS_CODE(TEdge, 40)
 
@@ -48,6 +50,7 @@ public:
 
   mutable TRectD m_bBox;
   mutable bool m_isValidBBox;
+  bool m_sourceContainment;
 
   std::vector<TEdge *> m_edge;
   std::vector<TRegion *> m_includedRegionArray;
@@ -58,6 +61,7 @@ public:
       , m_prop(0)
       , m_bBox()
       , m_isValidBBox(true)
+      , m_sourceContainment(false)
       , m_edge()
       , m_includedRegionArray() {}
 
@@ -97,6 +101,9 @@ public:
   }
 
   bool contains(const TPointD &p) const;
+  bool containsSource(const TPointD &p) const;
+  enum class SourceLocation { Outside, Inside, Boundary, Unresolved };
+  SourceLocation locateSource(const TPointD &p) const;
   bool contains(const TRegion::Imp &p) const;
 
   // this function returns true only if p is contained in the region, taking
@@ -139,6 +146,12 @@ TRegion::TRegion() : m_imp(new TRegion::Imp()) {
 //-----------------------------------------------------------------------------
 
 TRegion::~TRegion() {}
+
+void TRegion::setSourceContainment(bool enabled) {
+  m_imp->m_sourceContainment = enabled;
+  for (TRegion *child : m_imp->m_includedRegionArray)
+    child->setSourceContainment(enabled);
+}
 
 //-----------------------------------------------------------------------------
 /*
@@ -676,7 +689,173 @@ void TRegion::Imp::computeScanlineIntersections(
 }
 
 //-----------------------------------------------------------------------------
+namespace {
+
+// A source region is a closed walk of exact quadratic subranges and the
+// straight connectors between them. The ordinary drawing-region predicate
+// intentionally uses stroke-proximity heuristics; those heuristics must not
+// decide membership for an imported source path.
+bool sourceRayCrossing(const TPointD &p0, const TPointD &p1, const TPointD &p2,
+                       double start, double end, const TPointD &point,
+                       bool &odd, bool &boundary) {
+  if (!std::isfinite(start) || !std::isfinite(end) || start < 0 || start > 1 ||
+      end < 0 || end > 1 || !std::isfinite(p0.x) || !std::isfinite(p0.y) ||
+      !std::isfinite(p1.x) || !std::isfinite(p1.y) || !std::isfinite(p2.x) ||
+      !std::isfinite(p2.y))
+    return false;
+
+  // Subtract before forming polynomial coefficients: an arbitrarily large
+  // stage offset must not erase a small local loop.
+  const long double x0 = (long double)p0.x - point.x;
+  const long double x1 = (long double)p1.x - point.x;
+  const long double x2 = (long double)p2.x - point.x;
+  const long double y0 = (long double)p0.y - point.y;
+  const long double y1 = (long double)p1.y - point.y;
+  const long double y2 = (long double)p2.y - point.y;
+  if (!std::isfinite(x0) || !std::isfinite(x1) || !std::isfinite(x2) ||
+      !std::isfinite(y0) || !std::isfinite(y1) || !std::isfinite(y2))
+    return false;
+  auto value = [](long double a, long double b, long double c, long double t) {
+    const long double u = 1 - t;
+    return u * (u * a + t * b) + t * (u * b + t * c);
+  };
+  auto xAt    = [&](long double t) { return value(x0, x1, x2, t); };
+  auto yAt    = [&](long double t) { return value(y0, y1, y2, t); };
+  auto xRange = [&](long double a, long double b, long double &lowest,
+                    long double &highest) {
+    const long double xa = xAt(a), xb = xAt(b);
+    lowest                        = std::min(xa, xb);
+    highest                       = std::max(xa, xb);
+    const long double denominator = x0 - 2 * x1 + x2;
+    if (denominator != 0) {
+      const long double extreme = (x0 - x1) / denominator;
+      if (extreme > a && extreme < b) {
+        const long double x = xAt(extreme);
+        lowest              = std::min(lowest, x);
+        highest             = std::max(highest, x);
+      }
+    }
+  };
+
+  long double cuts[3] = {std::min((long double)start, (long double)end),
+                         std::max((long double)start, (long double)end), 0};
+  if (cuts[0] == cuts[1]) return true;
+  int cutCount                  = 2;
+  const long double denominator = y0 - 2 * y1 + y2;
+  if (denominator != 0) {
+    const long double extreme = (y0 - y1) / denominator;
+    if (extreme > cuts[0] && extreme < cuts[1]) {
+      cuts[2]  = cuts[1];
+      cuts[1]  = extreme;
+      cutCount = 3;
+    }
+  }
+  const long double xScale =
+      std::max(std::max(std::abs(x0), std::abs(x1)), std::abs(x2));
+  const long double xError =
+      64 * std::numeric_limits<long double>::epsilon() * xScale;
+  for (int piece = 1; piece < cutCount; ++piece) {
+    long double low = cuts[piece - 1], high = cuts[piece];
+    const long double lowY = yAt(low), highY = yAt(high);
+    if (!std::isfinite(lowY) || !std::isfinite(highY)) return false;
+    if (lowY == 0 && std::abs(xAt(low)) <= xError) boundary = true;
+    if (highY == 0 && std::abs(xAt(high)) <= xError) boundary = true;
+    if (lowY == highY) {
+      if (lowY == 0) {
+        long double xmin, xmax;
+        xRange(low, high, xmin, xmax);
+        if (xmin <= xError && xmax >= -xError) boundary = true;
+      }
+      continue;
+    }
+    // Include the lower Y endpoint and exclude the upper one. This counts a
+    // through-vertex once and an extremum zero or twice, without predecessor
+    // state or an assertion at a tangent.
+    if (!(std::min(lowY, highY) <= 0 && 0 < std::max(lowY, highY))) continue;
+    if (lowY != 0 && highY != 0) {
+      const bool rising = highY > lowY;
+      for (int step = 0; step < 96; ++step) {
+        const long double middle = low + (high - low) * 0.5L;
+        if (middle == low || middle == high) break;
+        const long double middleY = yAt(middle);
+        if (!std::isfinite(middleY)) return false;
+        if (middleY == 0) {
+          low = high = middle;
+          break;
+        }
+        if ((middleY < 0) == rising)
+          low = middle;
+        else
+          high = middle;
+      }
+    } else if (lowY == 0)
+      high = low;
+    else
+      low = high;
+    long double xmin, xmax;
+    xRange(low, high, xmin, xmax);
+    if (!std::isfinite(xmin) || !std::isfinite(xmax)) return false;
+    if (xmax < -xError)
+      odd = !odd;
+    else if (xmin <= xError)
+      boundary = true;  // No guessed parity for a boundary/uncertain root.
+  }
+  return true;
+}
+
+}  // namespace
+
+TRegion::Imp::SourceLocation TRegion::Imp::locateSource(
+    const TPointD &p) const {
+  if (!std::isfinite(p.x) || !std::isfinite(p.y) || m_edge.empty())
+    return SourceLocation::Unresolved;
+  if (!getBBox().contains(p)) return SourceLocation::Outside;
+  bool odd = false, boundary = false;
+  for (size_t index = 0; index < m_edge.size(); ++index) {
+    const TEdge *edge = m_edge[index];
+    if (!edge || !edge->m_s || !std::isfinite(edge->m_w0) ||
+        !std::isfinite(edge->m_w1) || edge->m_w0 < 0 || edge->m_w0 > 1 ||
+        edge->m_w1 < 0 || edge->m_w1 > 1)
+      return SourceLocation::Unresolved;
+    const TStroke *stroke = edge->m_s;
+    int firstChunk, lastChunk;
+    double firstT, lastT;
+    if (stroke->getChunkAndT(edge->m_w0, firstChunk, firstT) ||
+        stroke->getChunkAndT(edge->m_w1, lastChunk, lastT) || firstChunk < 0 ||
+        lastChunk < 0 || firstChunk >= stroke->getChunkCount() ||
+        lastChunk >= stroke->getChunkCount())
+      return SourceLocation::Unresolved;
+    const bool forward = firstChunk <= lastChunk;
+    for (int chunk = firstChunk;; chunk += forward ? 1 : -1) {
+      const auto *curve = stroke->getChunk(chunk);
+      if (!curve) return SourceLocation::Unresolved;
+      const double from = chunk == firstChunk ? firstT : (forward ? 0 : 1);
+      const double to   = chunk == lastChunk ? lastT : (forward ? 1 : 0);
+      if (!sourceRayCrossing(curve->getP0(), curve->getP1(), curve->getP2(),
+                             from, to, p, odd, boundary))
+        return SourceLocation::Unresolved;
+      if (chunk == lastChunk) break;
+    }
+    const TEdge *next = m_edge[(index + 1) % m_edge.size()];
+    if (!next || !next->m_s) return SourceLocation::Unresolved;
+    const TPointD a = stroke->getPoint(edge->m_w1);
+    const TPointD b = next->m_s->getPoint(next->m_w0);
+    if (a != b &&
+        !sourceRayCrossing(a, 0.5 * (a + b), b, 0, 1, p, odd, boundary))
+      return SourceLocation::Unresolved;
+  }
+  if (boundary) return SourceLocation::Boundary;
+  return odd ? SourceLocation::Inside : SourceLocation::Outside;
+}
+
+bool TRegion::Imp::containsSource(const TPointD &p) const {
+  const SourceLocation location = locateSource(p);
+  return location == SourceLocation::Inside ||
+         location == SourceLocation::Boundary;
+}
+
 bool TRegion::Imp::contains(const TPointD &p) const {
+  if (m_sourceContainment) return containsSource(p);
   bool leftAreOdd = false;
 
   if (!getBBox().contains(p)) return false;
@@ -1014,6 +1193,57 @@ bool TRegion::contains(const TEdge &e) const {
 // della seconda e' contenuto nella prima.
 
 bool TRegion::Imp::contains(const TRegion::Imp &r) const {
+  if (m_sourceContainment) {
+    if (r.m_edge.empty()) return false;
+    // Ink thickness is not part of source fill geometry, so do not compare
+    // outline-expanded region bounding boxes here.
+    for (const TEdge *inner : r.m_edge) {
+      if (!inner || !inner->m_s) return false;
+      for (const TEdge *outer : m_edge) {
+        if (!outer || !outer->m_s) return false;
+        if (inner->m_s != outer->m_s) continue;
+        const double innerLow  = std::min(inner->m_w0, inner->m_w1);
+        const double innerHigh = std::max(inner->m_w0, inner->m_w1);
+        const double outerLow  = std::min(outer->m_w0, outer->m_w1);
+        const double outerHigh = std::max(outer->m_w0, outer->m_w1);
+        if (std::max(innerLow, outerLow) < std::min(innerHigh, outerHigh))
+          return false;
+      }
+    }
+    // Both faces come from the same planar arrangement. Their boundaries
+    // cannot cross, so the first strict witness decides nesting. Boundary or
+    // numerically unresolved samples never establish a parent relationship.
+    // Boundaries meet only at chunk knots (source vertices), where a sample
+    // a rounding error off a shared vertex could land in a narrow wedge of
+    // the other face, so samples lie inside the chunks of each edge.
+    static const double samples[] = {0.5, 0.25, 0.75, 0.125, 0.875};
+    for (const TEdge *inner : r.m_edge) {
+      int firstChunk, lastChunk;
+      double firstT, lastT;
+      if (inner->m_s->getChunkAndT(inner->m_w0, firstChunk, firstT) ||
+          inner->m_s->getChunkAndT(inner->m_w1, lastChunk, lastT) ||
+          firstChunk < 0 || lastChunk < 0 ||
+          firstChunk >= inner->m_s->getChunkCount() ||
+          lastChunk >= inner->m_s->getChunkCount())
+        continue;
+      const bool forward = firstChunk <= lastChunk;
+      for (double fraction : samples)
+        for (int chunk = firstChunk;; chunk += forward ? 1 : -1) {
+          const double from =
+              chunk == firstChunk ? firstT : (forward ? 0.0 : 1.0);
+          const double to = chunk == lastChunk ? lastT : (forward ? 1.0 : 0.0);
+          if (from != to) {
+            const SourceLocation location =
+                locateSource(inner->m_s->getChunk(chunk)->getPoint(
+                    from + (to - from) * fraction));
+            if (location == SourceLocation::Inside) return true;
+            if (location == SourceLocation::Outside) return false;
+          }
+          if (chunk == lastChunk) break;
+        }
+    }
+    return false;
+  }
   if (!getBBox().contains(r.getBBox())) return false;
 
   for (UINT i = 0; i < r.m_edge.size(); i++)

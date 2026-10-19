@@ -199,6 +199,7 @@ set(SOURCES
     ../common/trasterimage/tcodec.cpp
     ../common/trasterimage/trasterimage.cpp
     ../common/tvrender/tcolorstyles.cpp
+    ../common/tvrender/tflashgradientstyle.cpp
     ../common/tvrender/tellipticbrush.cpp
     ../common/tvrender/qtofflinegl.cpp
     ../common/tvrender/tglcurves.cpp

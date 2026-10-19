@@ -6,6 +6,7 @@
 #include "tcolumnset.h"
 #include "tpersist.h"
 #include "traster.h"
+#include "tdoubleparam.h"
 
 #include <QPair>
 #include <QString>
@@ -67,6 +68,10 @@ class DVAPI TXshColumn : public TColumnHeader, public TPersist {
   TXsheet *m_xsheet;
   int m_colorTag;  // Usato solo in tabkids
   UCHAR m_opacity;
+  // Number of following columns (in stacking order) a mask column clips.
+  int m_maskScope;
+  // Animatable opacity factor (1 = unchanged), applied on top of m_opacity.
+  TDoubleParamP m_opacityCurve;
 
 public:
 private:
@@ -98,13 +103,7 @@ public:
   /*!
 Constructs a TXshColumn with default value.
 */
-  TXshColumn()
-      : m_status(0)
-      , m_xsheet(0)
-      , m_colorTag(0)
-      , m_opacity(255)
-      , m_colorFilterId(0)  // None
-  {}
+  TXshColumn();
 
   enum ColumnType {
     eLevelType = 0,
@@ -162,6 +161,18 @@ relevant if camerastandVisible is off.
 */
   void setOpacity(UCHAR val) { m_opacity = val; }
 
+  /*!
+The animatable opacity of the column: a factor in [0, 1] (shown as a
+percentage, default 1) that multiplies getOpacity(). It is edited like any
+other curve (Function Editor) and saved with level columns when animated.
+*/
+  TDoubleParam *getOpacityCurve() const { return m_opacityCurve.getPointer(); }
+  /*!
+Opacity at \b frame: getOpacity() times the opacity curve at that frame.
+Viewer, playback and render use this value.
+*/
+  UCHAR getOpacityAt(double frame) const;
+
   // switch to next camera stand state. It's a 3-state-toggle: notvisible ->
   // visible+nottransparent -> visible+transparent
   // void setCamstandNextState();
@@ -198,6 +209,15 @@ Set column status mask to \b on.
 */
   void setIsMask(bool on);
 
+  /*!
+Number of columns a mask column clips: the next \b scope columns in stacking
+order (default 1, the next column only). Consecutive masks intersect. A row
+where the mask column has no cell clips nothing.
+\sa isMask()
+*/
+  int getMaskScope() const { return m_maskScope; }
+  void setMaskScope(int scope) { m_maskScope = scope < 1 ? 1 : scope; }
+
   virtual bool isEmpty() const { return true; }
 
   /*!
@@ -222,7 +242,7 @@ If r0=r1=row return false.
 Set \b m_xsheet to \b xsheet.
 \sa getXsheet()
 */
-  virtual void setXsheet(TXsheet *xsheet) { m_xsheet = xsheet; }
+  virtual void setXsheet(TXsheet *xsheet);
   /*!
 Return \b m_xsheet.
 \sa setXsheet()

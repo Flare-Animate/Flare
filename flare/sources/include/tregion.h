@@ -180,6 +180,10 @@ public:
   TRegion();
   ~TRegion();
 
+  // Use the exact source-curve containment rule for regions reconstructed
+  // from imported vector paths. Propagates to already attached subregions.
+  void setSourceContainment(bool enabled);
+
   TRectD getBBox() const;
 
   bool contains(const TPointD &p) const;

@@ -80,6 +80,7 @@ public:
     OUTLINE_OPTIONS_GOBJ,
     PRECISION_SCALE_GOBJ,
     AUTOCLOSE_TOLERANCE_GOBJ,
+    REGION_FINDING_MODE_GOBJ,
     // ...
     HOW_MANY_TAG_TYPES
   };
@@ -436,6 +437,16 @@ public:
 
   AutoCloseToleranceTag();
   AutoCloseToleranceTag(int tolerance);
+};
+
+//=====================================================================
+
+// PLI 151: two bytes, schema version 1 followed by RegionFindingMode (0 or 1).
+class RegionFindingModeTag final : public PliObjectTag {
+public:
+  TVectorImage::RegionFindingMode m_mode;
+
+  explicit RegionFindingModeTag(TVectorImage::RegionFindingMode mode);
 };
 
 //=====================================================================

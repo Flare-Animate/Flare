@@ -1,0 +1,14 @@
+<fxlayout>
+  <page name="Bevel">
+     <control>highlight_color</control>
+     <control>shadow_color</control>
+     <control>blur_x</control>
+     <control>blur_y</control>
+     <control>quality</control>
+     <control>strength</control>
+     <control>angle</control>
+     <control>distance</control>
+     <control>type</control>
+     <control>knockout</control>
+  </page>
+</fxlayout>

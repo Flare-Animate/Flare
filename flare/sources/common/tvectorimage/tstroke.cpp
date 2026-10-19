@@ -1,6 +1,8 @@
 
 
 #include "tmathutil.h"
+
+#include <atomic>
 #include "tstrokeutil.h"
 #include "tstrokeoutline.h"
 #include "tcurves.h"
@@ -726,7 +728,8 @@ private:
 //-----------------------------------------------------------------------------
 
 namespace {
-int maxStrokeId = 0;
+// Atomic: strokes may be created on several threads at once.
+std::atomic<int> maxStrokeId{0};
 }
 
 /*! init() is required to initialize all variable

@@ -7,6 +7,7 @@
 #include "tpersist.h"
 #include "tsmartpointer.h"
 #include <QObject>
+#include <QString>
 
 #undef DVAPI
 #undef DVVAR
@@ -52,6 +53,9 @@ class DVAPI TXshLevel : public QObject, public TSmartObject, public TPersist {
 protected:
   std::wstring m_name;
   std::wstring m_shortName;
+  // Optional identity for levels created by the Flash importer. Ordinary
+  // native levels remain without this extension.
+  QString m_flashNativeId;
 
   /*!
 Identify level types defined in \b txshleveltypes.h
@@ -116,6 +120,11 @@ Set scene to which level belongs to \b scene.
 
   //! Return level short name. \sa getName()
   std::wstring getShortName() const { return m_shortName; }
+
+  const QString &flashNativeId() const { return m_flashNativeId; }
+  // Used by native scene loading; accepts empty for legacy/ordinary levels.
+  bool setFlashNativeId(const QString &id);
+  QString ensureFlashNativeId();
 
   //! Return the file path associated with the level
   virtual TFilePath getPath() const { return TFilePath(); }

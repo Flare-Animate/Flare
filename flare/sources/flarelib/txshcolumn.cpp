@@ -17,8 +17,11 @@
 #include "flare/tcolumnfxset.h"
 #include "flare/preferences.h"
 #include "flare/txshleveltypes.h"
+#include "flare/tstageobjecttree.h"
 
 #include <QMap>
+#include <algorithm>
+#include <cmath>
 #include "tstream.h"
 
 namespace {
@@ -491,6 +494,41 @@ void TXshCellColumn::clearCellMarks() { m_cellMarkIds.clear(); }
 //=============================================================================
 // TXshColumn
 
+TXshColumn::TXshColumn()
+    : m_status(0)
+    , m_xsheet(0)
+    , m_colorTag(0)
+    , m_opacity(255)
+    , m_maskScope(1)
+    , m_opacityCurve(new TDoubleParam(1.0))
+    , m_colorFilterId(0)  // None
+{
+  m_opacityCurve->setName("opacity");
+  m_opacityCurve->setUILabel("Opacity");
+  m_opacityCurve->setMeasureName("percentage");
+  m_opacityCurve->setValueRange(0.0, 1.0);
+}
+
+//-----------------------------------------------------------------------------
+
+void TXshColumn::setXsheet(TXsheet *xsheet) {
+  m_xsheet = xsheet;
+  // Expression keyframes of the opacity curve use the xsheet's grammar, as
+  // the column's stage object curves do.
+  if (xsheet && xsheet->getStageObjectTree())
+    xsheet->getStageObjectTree()->setGrammar(m_opacityCurve);
+}
+
+//-----------------------------------------------------------------------------
+
+UCHAR TXshColumn::getOpacityAt(double frame) const {
+  const double factor =
+      std::min(1.0, std::max(0.0, m_opacityCurve->getValue(frame)));
+  return (UCHAR)std::lround(m_opacity * factor);
+}
+
+//-----------------------------------------------------------------------------
+
 void TXshColumn::setStatusWord(int status) { m_status = status; }
 
 //-----------------------------------------------------------------------------
@@ -699,6 +737,9 @@ void TXshColumn::setIsMask(bool on) {
 void TXshColumn::resetColumnProperties() {
   setStatusWord(0);
   setOpacity(255);
+  setMaskScope(1);
+  m_opacityCurve->clearKeyframes();
+  m_opacityCurve->setDefaultValue(1.0);
   setColorTag(0);
   setColorFilterId(0);  // None
 }
