@@ -19,9 +19,9 @@
 //!   caller frees with `flare_pattern_position_free`.
 //! - `SMemAllocError` is mapped to a negative status; the header rethrows it. The C++ only
 //!   threw it on `std::bad_alloc`. Deviations, all where the C++ never finished or was UB:
-//!   a distance circle that does not contain its own centre (NaN radius, or radius below
-//!   -1) made the original stamp the same pixel until memory ran out, so that now returns
-//!   an error immediately; radii whose disc would exceed `MAX_RADIUS_CELLS` per side
+//!   a distance circle that cannot clear the pixel it just stamped (empty disc, e.g. NaN
+//!   or a radius <= -2; detected dynamically as `NoProgress`) made the original stamp the
+//!   same pixel until memory ran out, so that now returns an error immediately; radii whose disc would exceed `MAX_RADIUS_CELLS` per side
 //!   (an unreasonable ~8k-pixel stamp) are refused instead of looping for hours;
 //!   `lX * lY` overflowing `int` is refused.
 //! - Private helpers that nothing called (`isInSet`, `getPosAroundThis`, which was only
@@ -31,7 +31,7 @@ use std::os::raw::c_int;
 
 const MAXNBDDC: usize = 20;
 /// Largest `(int)r + 1` accepted for a distance disc.
-pub const MAX_RADIUS_CELLS: i32 = 8192;
+pub const MAX_RADIUS_CELLS: i32 = 1024;
 
 /// `SRECT` from `SDef.h`.
 #[derive(Clone, Copy, Debug, PartialEq)]

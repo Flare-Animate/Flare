@@ -182,6 +182,15 @@ mod tests {
         assert_eq!((g.is_random_dir, g.is_keep_contour, g.is_use_ink_color, g.is_include_alpha), (1, 1, 0, 1));
     }
 
+    /// glibc's `atoi` wraps out-of-range values ("3000000000" -> negative), Windows' UCRT
+    /// saturates; kept out of the shared golden for that reason.
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn atoi_overflow_wraps_on_glibc() {
+        let g = run(["i", "1", "1", "0", "0", "3000000000", "1", "1", "0", "3000000000", "1", "1"], 0);
+        assert_eq!((g.is_random_dir, g.is_keep_contour, g.is_use_ink_color), (0, 0, 1));
+    }
+
     #[test]
     fn distances_are_floored_at_one() {
         let g = run(["i", "1", "1", "0", "0", "0", "0.2", "-5", "0", "0", "0", "0"], 0);

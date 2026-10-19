@@ -10,6 +10,7 @@
 #include "SDef.h"
 
 #include <memory>
+#include <limits.h>
 #include <string.h>
 #include "SError.h"
 #include <algorithm>
@@ -48,6 +49,10 @@ class CSDirection {
   void init(const int lX, const int lY, const UCHAR *sel, const int sens,
             const int border) {
     if (m_lX > 0 && m_lY > 0) {
+      if ((long long)m_lX * (long long)m_lY > (long long)INT_MAX) {
+        null();
+        throw SMemAllocError("in directionMap");
+      }
       const size_t n = (size_t)m_lX * (size_t)m_lY;
       m_dir.reset(new UCHAR[n]);
       memcpy(m_dir.get(), sel, sizeof(UCHAR) * n);
