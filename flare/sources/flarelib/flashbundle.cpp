@@ -709,12 +709,13 @@ void discardSourceBundleCopy(const ToonzScene::FlashSourceBundle &original,
 namespace {
 
 struct PortableDrawing {
-  // A defaulted (not aggregate) default constructor, so value-initializing
-  // this struct zero-initializes `level` and default-constructs the
-  // TFilePath members through their own (explicit) default constructor
-  // directly, rather than through aggregate-initialization's copy-init of
-  // each member, which an explicit constructor cannot satisfy.
-  PortableDrawing()      = default;
+  // A user-provided (not merely defaulted) default constructor: in C++17 a
+  // defaulted constructor leaves the struct an aggregate, so `record{}`
+  // would copy-initialize each member from an empty list, which TFilePath's
+  // explicit-only constructor cannot satisfy. A user-provided constructor
+  // removes aggregate status in every C++ version, so the members are
+  // default-initialized directly instead.
+  PortableDrawing() {}
   TXshSimpleLevel *level = nullptr;
   TFilePath original;
   TFilePath destination;
