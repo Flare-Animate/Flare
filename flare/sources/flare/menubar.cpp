@@ -1139,6 +1139,7 @@ QMenuBar *StackedMenuBar::createFullMenuBar() {
     addMenuItem(importMenu, MI_ImportMagpieFile); 
     addMenuItem(importMenu, MI_ImportOCA);
     addMenuItem(importMenu, MI_ImportFlashVector);
+    addMenuItem(importMenu, MI_ImportFlash);
     addMenuItem(importMenu, MI_SwfRoundTrip);
     addMenuItem(importMenu, MI_ImportMohoProject);
   }
@@ -1478,6 +1479,7 @@ QMenuBar *StackedMenuBar::createFullMenuBar() {
 #endif
   addMenuItem(windowsMenu, MI_StartupPopup);
   addMenuItem(windowsMenu, MI_OpenGuidedDrawingControls);
+  addMenuItem(windowsMenu, MI_OpenFlashInstancePanel);
   addMenuItem(windowsMenu, MI_OpenCustomPanels);
   // windowsMenu->addSeparator();
   // addMenuItem(windowsMenu, MI_OpenExport);

@@ -120,6 +120,9 @@ set(MOC_HEADERS
     toolbar.h
     tpanels.h
     trackerpopup.h
+    flashinstancecontrols.h
+    flashinstancepane.h
+    flashimportpopup.h
     vectorguideddrawingpane.h
     vectorizerpopup.h
     vectorizerswatch.h
@@ -314,6 +317,9 @@ set(SOURCES
     tasksviewer.cpp
     testpanel.cpp
     tpanels.cpp
+    flashinstancecontrols.cpp
+    flashinstancepane.cpp
+    flashimportpopup.cpp
     xshcellmover.cpp
     xshcellviewer.cpp
     xshcolumnviewer.cpp
@@ -526,6 +532,9 @@ set(SOURCES
     tasksviewer.cpp
     testpanel.cpp
     tpanels.cpp
+    flashinstancecontrols.cpp
+    flashinstancepane.cpp
+    flashimportpopup.cpp
     xshcellmover.cpp
     xshcellviewer.cpp
     xshcolumnviewer.cpp
@@ -738,6 +747,9 @@ set(SOURCES
     tasksviewer.cpp
     testpanel.cpp
     tpanels.cpp
+    flashinstancecontrols.cpp
+    flashinstancepane.cpp
+    flashimportpopup.cpp
     xshcellmover.cpp
     xshcellviewer.cpp
     xshcolumnviewer.cpp
@@ -950,6 +962,9 @@ set(SOURCES
     tasksviewer.cpp
     testpanel.cpp
     tpanels.cpp
+    flashinstancecontrols.cpp
+    flashinstancepane.cpp
+    flashimportpopup.cpp
     xshcellmover.cpp
     xshcellviewer.cpp
     xshcolumnviewer.cpp
@@ -1162,6 +1177,9 @@ set(SOURCES
     tasksviewer.cpp
     testpanel.cpp
     tpanels.cpp
+    flashinstancecontrols.cpp
+    flashinstancepane.cpp
+    flashimportpopup.cpp
     xshcellmover.cpp
     xshcellviewer.cpp
     xshcolumnviewer.cpp
@@ -1374,6 +1392,9 @@ set(SOURCES
     tasksviewer.cpp
     testpanel.cpp
     tpanels.cpp
+    flashinstancecontrols.cpp
+    flashinstancepane.cpp
+    flashimportpopup.cpp
     xshcellmover.cpp
     xshcellviewer.cpp
     xshcolumnviewer.cpp
@@ -1586,6 +1607,9 @@ set(SOURCES
     tasksviewer.cpp
     testpanel.cpp
     tpanels.cpp
+    flashinstancecontrols.cpp
+    flashinstancepane.cpp
+    flashimportpopup.cpp
     xshcellmover.cpp
     xshcellviewer.cpp
     xshcolumnviewer.cpp
@@ -1798,6 +1822,9 @@ set(SOURCES
     tasksviewer.cpp
     testpanel.cpp
     tpanels.cpp
+    flashinstancecontrols.cpp
+    flashinstancepane.cpp
+    flashimportpopup.cpp
     xshcellmover.cpp
     xshcellviewer.cpp
     xshcolumnviewer.cpp
@@ -2010,6 +2037,9 @@ set(SOURCES
     tasksviewer.cpp
     testpanel.cpp
     tpanels.cpp
+    flashinstancecontrols.cpp
+    flashinstancepane.cpp
+    flashimportpopup.cpp
     xshcellmover.cpp
     xshcellviewer.cpp
     xshcolumnviewer.cpp
@@ -2222,6 +2252,9 @@ set(SOURCES
     tasksviewer.cpp
     testpanel.cpp
     tpanels.cpp
+    flashinstancecontrols.cpp
+    flashinstancepane.cpp
+    flashimportpopup.cpp
     xshcellmover.cpp
     xshcellviewer.cpp
     xshcolumnviewer.cpp
@@ -2434,6 +2467,9 @@ set(SOURCES
     tasksviewer.cpp
     testpanel.cpp
     tpanels.cpp
+    flashinstancecontrols.cpp
+    flashinstancepane.cpp
+    flashimportpopup.cpp
     xshcellmover.cpp
     xshcellviewer.cpp
     xshcolumnviewer.cpp
@@ -2646,6 +2682,9 @@ set(SOURCES
     tasksviewer.cpp
     testpanel.cpp
     tpanels.cpp
+    flashinstancecontrols.cpp
+    flashinstancepane.cpp
+    flashimportpopup.cpp
     xshcellmover.cpp
     xshcellviewer.cpp
     xshcolumnviewer.cpp

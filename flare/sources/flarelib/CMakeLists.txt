@@ -41,6 +41,20 @@ endif()
 
 set(HEADERS
     ${MOC_HEADERS}
+    flashvector.h
+    flashtext.h
+    flashbitmap.h
+    flashscene.h
+    flasheffects.h
+    flashpreflight.h
+    flashimport.h
+    flashbundle.h
+    flashprovenance.h
+    flashhandoff.h
+    flashfieldbindings.h
+    flashloadingrange.h
+    ../include/flare/flashinstance.h
+    ../include/flare/flashinstanceedit.h
     autoadjust.h
     autopos.h
     cleanupcommon.h
@@ -205,6 +219,19 @@ set(SOURCES
     dpiscale.cpp
     fill.cpp
     fillutil.cpp
+    flashvector.cpp
+    flashtext.cpp
+    flashbitmap.cpp
+    flashscene.cpp
+    flasheffects.cpp
+    flashpreflight.cpp
+    flashimport.cpp
+    flashfieldbindings.cpp
+    flashbundle.cpp
+    flashprovenance.cpp
+    flashhandoff.cpp
+    flashinstance.cpp
+    flashinstanceedit.cpp
     fullcolorpalette.cpp
     fxdag.cpp
     glrasterpainter.cpp
@@ -362,6 +389,7 @@ endif()
 qt5_wrap_cpp(SOURCES ${MOC_HEADERS})
 
 add_library(flarelib SHARED ${HEADERS} ${SOURCES})
+target_link_libraries(flarelib tnzflash)
 if(BUILD_ENV_APPLE)
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-install_name,@executable_path/libflarelib.dylib")
     add_dependencies(flarelib tnzcore tnzbase tnzext)

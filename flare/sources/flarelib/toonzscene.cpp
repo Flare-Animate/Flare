@@ -656,7 +656,8 @@ public:
 
 //-----------------------------------------------------------------------------
 
-void ToonzScene::save(const TFilePath &fp, TXsheet *subxsh) {
+void ToonzScene::save(const TFilePath &fp, TXsheet *subxsh,
+                      bool saveSceneIcon) {
   TFilePath oldScenePath = getScenePath();
   TFilePath newScenePath = fp;
   const bool oldStandAlone = m_standAlone;
@@ -713,7 +714,7 @@ void ToonzScene::save(const TFilePath &fp, TXsheet *subxsh) {
 
     //  TSystem::touchFile(scenePath);
     TSystem::touchFile(scenePathTemp);
-    makeSceneIcon(this);
+    if (saveSceneIcon) makeSceneIcon(this);
 
     // TOStream os(scenePath, compressionEnabled);
     //  TOStream os(scenePath, false);
