@@ -2,6 +2,7 @@
 
 #include "trastercm.h"
 #include "texception.h"
+#include "tpixelutils.h"
 
 #undef DVAPI
 #undef DVVAR
@@ -115,8 +116,8 @@ DVAPI void rgbmAdjust(TRasterP rout, TRasterP rin, const int *in0,
 /*! Two variables \b TPixel32 describe the checkboard color,
       \b TDimension are checkboard dimension and \b TPoinD the position
   \include checkBoard_ex.cpp*/
-DVAPI void checkBoard(TRasterP rout, const TPixel32 &, const TPixel32 &,
-                      const TDimensionD &, const TPointD &);
+inline void checkBoard(TRasterP rout, const TPixel32 &, const TPixel32 &,
+                       const TDimensionD &, const TPointD &);
 
 //********************************************************************************
 //    TRop::checkBoard  implementation
@@ -139,8 +140,9 @@ void flare_trop_checkboard_f32(void *out, int wrap, int lx, int ly,
                                double dimLy, double offsetX, double offsetY);
 }
 
-void TRop::checkBoard(TRasterP rout, const TPixel32 &pix1, const TPixel32 &pix2,
-                      const TDimensionD &dim, const TPointD &offset) {
+inline void checkBoard(TRasterP rout, const TPixel32 &pix1,
+                       const TPixel32 &pix2, const TDimensionD &dim,
+                       const TPointD &offset) {
   const int wrap = rout->getWrap(), lx = rout->getLx(), ly = rout->getLy();
   const double dimLx = dim.lx, dimLy = dim.ly, offX = offset.x,
                offY = offset.y;

@@ -52,8 +52,8 @@ subscription and no dead runtime.
 | Vector + raster drawing, xsheet, timeline | Available (inherited) |
 | Plastic/skeleton rigging, FX schematic, motion tracking, script console | Available (inherited) |
 | Flash/Animate import (table below) | Shipped; fidelity improving |
-| Next2Flash SWF round-trip + AS3 decompiler | Shipped as optional sidecar, see [`doc/NEXT2FLASH_INTEGRATION.md`](./doc/NEXT2FLASH_INTEGRATION.md) |
-| Moho project support | Shipped: structure, rig, asset manifest (no rendering), see [`doc/MOHO_SUPPORT.md`](./doc/MOHO_SUPPORT.md) |
+| Next2Flash SWF round-trip + AS3 decompiler | Shipped as optional sidecar, see [`docs/NEXT2FLASH_INTEGRATION.md`](./docs/NEXT2FLASH_INTEGRATION.md) |
+| Moho project support | Shipped: structure, rig, asset manifest (no rendering), see [`docs/MOHO_SUPPORT.md`](./docs/MOHO_SUPPORT.md) |
 
 ### Newly Supported file types
 
@@ -82,10 +82,10 @@ signature, and the ISO-BMFF `ftyp` box.
 tracks, and the artwork it references — and writes a manifest. It does **not**
 render the rig; reproducing Moho's skeleton solve, region-weight deformation and
 Smart Bones is a much larger project than reading the file, and
-[`doc/MOHO_SUPPORT.md`](./doc/MOHO_SUPPORT.md) explains why.
+[`docs/MOHO_SUPPORT.md`](./docs/MOHO_SUPPORT.md) explains why.
 
 Complex documents will not round-trip cleanly yet. Details and limits:
-[`doc/FLASH_SUPPORT.md`](./doc/FLASH_SUPPORT.md), [`doc/how_to_import_swf.md`](./doc/how_to_import_swf.md).
+[`docs/FLASH_SUPPORT.md`](./docs/FLASH_SUPPORT.md), [`docs/how_to_import_swf.md`](./docs/how_to_import_swf.md).
 Tracking issues: [#16](https://github.com/Flare-Animate/Flare/issues/16), [#47](https://github.com/Flare-Animate/Flare/issues/47).
 
 ## Install
@@ -125,7 +125,7 @@ cmake -S flare/sources -B build -G "Ninja" -DCMAKE_BUILD_TYPE=Release
 cmake --build build -j2
 ```
 
-Platform guides: [Windows](./doc/how_to_build_win.md) · [macOS](./doc/how_to_build_macosx.md) · [Linux](./doc/how_to_build_linux.md) · [BSD](./doc/how_to_build_bsd.md)
+Platform guides: [Windows](./docs/how_to_build_win.md) · [macOS](./docs/how_to_build_macosx.md) · [Linux](./docs/how_to_build_linux.md) · [BSD](./docs/how_to_build_bsd.md)
 
 ## Architecture
 
@@ -143,7 +143,7 @@ Platform guides: [Windows](./doc/how_to_build_win.md) · [macOS](./doc/how_to_bu
 | `packaging/` | Installer / AppImage / DMG packaging |
 | `ci-scripts/`, `scripts/` | CI and developer helper scripts |
 | `tests/`, `tools/` | Test suites and utilities |
-| `doc/` | Build guides and design docs |
+| `docs/` | Build guides and design docs |
 
 Dev tip: `python scripts/log_watcher.py` tails build `*.log` files (VS Code task "watch logs", `Ctrl+Shift+B`).
 
@@ -176,8 +176,8 @@ Status is honest: each row states what is in the tree, not what is intended.
 | Feature | Status |
 |---------|--------|
 | Flash/Animate import — `.fla` `.xfl` `.swf` `.swc` `.flv` `.f4v` `.as`, plus CFBF legacy `.fla`, AIR/ZXP/MXP/ANE packages | Shipped; fidelity improving |
-| Moho project import | Shipped: structure, rig and asset manifest. Rendering not implemented ([doc](./doc/MOHO_SUPPORT.md)) |
-| Next2Flash SWF round-trip, AS3 decompiler | Shipped as an optional sidecar: decompile, string patch, compile ([doc](./doc/NEXT2FLASH_INTEGRATION.md)) |
+| Moho project import | Shipped: structure, rig and asset manifest. Rendering not implemented ([doc](./docs/MOHO_SUPPORT.md)) |
+| Next2Flash SWF round-trip, AS3 decompiler | Shipped as an optional sidecar: decompile, string patch, compile ([doc](./docs/NEXT2FLASH_INTEGRATION.md)) |
 | Beginner-friendly (FlipaClip-style) layout profile | Shipped: **Preferences > Interface > Rooms > FlipaClip** |
 | Game-creation tooling | Scaffolded: `flare/sources/common/tgame` — ECS, fixed-timestep loop, sprite/physics/script/audio/camera/particle/UI systems. Not yet wired into the UI |
 | Rust backend | Shipped in part: `flare_formats` does content-based format sniffing over a C ABI. Always built (via Corrosion) |
