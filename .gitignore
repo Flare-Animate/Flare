@@ -9,6 +9,7 @@ GeneratedFiles
 build*
 !scripts/build-html5-runtime.sh
 !scripts/build-jsfl.sh
+!scripts/build-mm-html5-runtime.sh
 flare/android/.gradle/
 !flare/android/build.gradle
 !flare/android/app/build.gradle
