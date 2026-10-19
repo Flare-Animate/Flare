@@ -180,7 +180,6 @@ set(SOURCES
     ../common/tsystem/tlogger.cpp
     ../common/tsystem/tpluginmanager.cpp
     ../common/tsystem/tsystem.cpp
-    ../common/tvectorimage/cornerdetector.cpp
     ../common/tvectorimage/drawutil.cpp
     ../common/tvectorimage/tcomputeregions.cpp
     ../common/tvectorimage/tregion.cpp

@@ -130,6 +130,12 @@ pub mod trop_invert;
 pub mod trop_checkboard;
 #[path = "common/trop/rust/bbox.rs"]
 pub mod trop_bbox;
+#[path = "common/tvectorimage/cornerdetector.rs"]
+pub mod cornerdetector;
+#[path = "tnzext/Types.rs"]
+pub mod ext_types;
+#[path = "flarefarm/tfarmclient/casmfileinfo.rs"]
+pub mod casmfileinfo;
 #[path = "stdfx/igs_color_rgb_hls.rs"]
 pub mod igs_color_rgb_hls;
 #[path = "stdfx/igs_color_rgb_hsv.rs"]
