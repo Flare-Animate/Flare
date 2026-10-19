@@ -1,0 +1,43 @@
+[package]
+name = "vc-pathops"
+description = "Boolean path operations (Pathfinder), shape builder regions, offset, outline stroke, simplify; absorbed from VectorCraft pathops"
+version.workspace = true
+# Upstream is edition 2024 (let-chains); kept as-is so the sources stay verbatim.
+edition = "2024"
+rust-version = "1.85"
+license.workspace = true
+repository = "https://github.com/storytold/vectorcraft"
+
+[lib]
+name = "vc_pathops"
+path = "src/lib.rs"
+
+[dependencies]
+kurbo = "0.13"
+linesweeper = "0.5"
+serde = { version = "1", features = ["derive"] }
+thiserror = "2"
+ac-core = { path = "../../../flarelib", optional = true }
+
+[features]
+default = ["flare"]
+# Adapter module `flare` over `ac_core::geom::Path`.
+flare = ["dep:ac-core"]
+
+[dev-dependencies]
+proptest = "1"
+serde_json = "1"
+
+# Upstream's workspace lints (VectorCraft never panics in shipped code), copied here
+# because the Flare workspace defines none.
+[lints.rust]
+unsafe_code = "deny"
+
+[lints.clippy]
+dbg_macro = "warn"
+unwrap_used = "deny"
+expect_used = "deny"
+panic = "deny"
+todo = "deny"
+unimplemented = "deny"
+unreachable = "deny"

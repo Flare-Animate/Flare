@@ -17,6 +17,7 @@ members = [
     "tnzext",              # minnamate-editor (egui, bin minnamate)
     "tcomposer",           # minnamate-cli
     "toonzqt",             # flare-studio (egui workspace: widgets/theme/chrome)
+    "common/tvectorimage/pathops",  # vc-pathops (absorbed from vectorcraft)
 ]
 resolver = "2"
 

@@ -1,0 +1,5 @@
+# Tests may unwrap, expect and panic: a failing assertion is the point of a test. Shipped code may
+# not (workspace lints in Cargo.toml; AGENTS.md › Robustness).
+allow-unwrap-in-tests = true
+allow-expect-in-tests = true
+allow-panic-in-tests = true

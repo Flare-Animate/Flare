@@ -19,6 +19,14 @@ were merged back so both share one engine:
 
 Source: `flare/sources/flare/rust/core`, commit `a27136a` (October 2026).
 
+### VectorCraft pathops (github.com/storytold/vectorcraft)
+Boolean path operations (Pathfinder union/intersect/subtract/xor), shape-builder regions, offset,
+outline stroke and simplify, MIT OR Apache-2.0, Copyright (c) 2026 ArtCraft Team and the VectorCraft
+contributors. Source: `crates/pathops` at commit `a466625c8987550635cda951ebf36e08e1e80a56`, with the
+`path`/`bez`/`hit` modules of `crates/geom` at the same commit inlined. Lives at
+`flare/sources/common/tvectorimage/pathops` (package `vc-pathops`; see its `ORIGIN.md`, `LICENSE-MIT`,
+`LICENSE-APACHE`). It depends on `kurbo` (Apache-2.0 OR MIT) and `linesweeper` (MIT OR Apache-2.0).
+
 Artwork from Flare (BSD-3-Clause, © Flare contributors; Flare's tool icons
 descend from OpenToonz's, © DWANGO Co., Ltd. and OpenToonz contributors):
 
