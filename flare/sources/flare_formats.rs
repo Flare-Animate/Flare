@@ -138,6 +138,8 @@ pub mod cornerdetector;
 pub mod ext_types;
 #[path = "flarefarm/tfarmclient/casmfileinfo.rs"]
 pub mod casmfileinfo;
+#[path = "common/psdlib/psdutils.rs"]
+pub mod psdutils;
 #[path = "stdfx/igs_color_rgb_hls.rs"]
 pub mod igs_color_rgb_hls;
 #[path = "stdfx/igs_color_rgb_hsv.rs"]
