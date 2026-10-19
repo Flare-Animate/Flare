@@ -255,3 +255,8 @@ Worth knowing before adding a case to `blurmatrix_ref.cpp`: the original `create
 `d = 0.5` the only admissible point is the origin, which it rejects. The random cases
 therefore only use `d >= 1`; the Rust port bounds that loop (`disc_candidates`), but the
 C++ reference cannot be asked to reproduce a hang.
+
+`gen_sandor_fxs_cases.py` does the same for `PatternPosition`, `SDirection` and
+`PatternMapParam` (goldens `*_cases.txt` next to the `.rs`; harnesses `patternposition_ref.cpp`,
+`sdirection_ref.cpp`, `patternmapparam_ref.cpp`). It uses the host compiler, mocks the raster-heavy
+headers (`STColSelPic.h`, `CIL.h`, `Pattern.h`) and redirects the original's `rand()` to a fixed LCG.
