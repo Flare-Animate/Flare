@@ -78,6 +78,7 @@ public:
       rs.push_back(y->r.x);
       rs.push_back(y->r.y);
     }
+    s = r;  // the original seeded s with r before walking the ancestors
     double out[2] = {r.x, r.y};
     if (flare_iknode_compute_s(r.x, r.y, thetas.size(), thetas.data(),
                                rs.data(), out) != 0)
