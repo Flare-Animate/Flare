@@ -1196,7 +1196,7 @@ dependencies = [
 [[package]]
 name = "effectcraft-color"
 version = "0.9.2"
-source = "git+https://github.com/storytold/effectcraft?branch=main#549e9d825132986d6167c1432cd3328efcbb0278"
+source = "git+https://github.com/storytold/effectcraft?rev=549e9d825132986d6167c1432cd3328efcbb0278#549e9d825132986d6167c1432cd3328efcbb0278"
 dependencies = [
  "serde",
 ]
@@ -1204,7 +1204,7 @@ dependencies = [
 [[package]]
 name = "effectcraft-effects"
 version = "0.9.2"
-source = "git+https://github.com/storytold/effectcraft?branch=main#549e9d825132986d6167c1432cd3328efcbb0278"
+source = "git+https://github.com/storytold/effectcraft?rev=549e9d825132986d6167c1432cd3328efcbb0278#549e9d825132986d6167c1432cd3328efcbb0278"
 dependencies = [
  "effectcraft-color",
  "effectcraft-geom",
@@ -1222,7 +1222,7 @@ dependencies = [
 [[package]]
 name = "effectcraft-geom"
 version = "0.9.2"
-source = "git+https://github.com/storytold/effectcraft?branch=main#549e9d825132986d6167c1432cd3328efcbb0278"
+source = "git+https://github.com/storytold/effectcraft?rev=549e9d825132986d6167c1432cd3328efcbb0278#549e9d825132986d6167c1432cd3328efcbb0278"
 dependencies = [
  "serde",
 ]
@@ -1230,7 +1230,7 @@ dependencies = [
 [[package]]
 name = "effectcraft-keyframe"
 version = "0.9.2"
-source = "git+https://github.com/storytold/effectcraft?branch=main#549e9d825132986d6167c1432cd3328efcbb0278"
+source = "git+https://github.com/storytold/effectcraft?rev=549e9d825132986d6167c1432cd3328efcbb0278#549e9d825132986d6167c1432cd3328efcbb0278"
 dependencies = [
  "effectcraft-color",
  "effectcraft-geom",
@@ -1242,7 +1242,7 @@ dependencies = [
 [[package]]
 name = "effectcraft-project"
 version = "0.9.2"
-source = "git+https://github.com/storytold/effectcraft?branch=main#549e9d825132986d6167c1432cd3328efcbb0278"
+source = "git+https://github.com/storytold/effectcraft?rev=549e9d825132986d6167c1432cd3328efcbb0278#549e9d825132986d6167c1432cd3328efcbb0278"
 dependencies = [
  "effectcraft-color",
  "effectcraft-geom",
@@ -1256,7 +1256,7 @@ dependencies = [
 [[package]]
 name = "effectcraft-raster"
 version = "0.9.2"
-source = "git+https://github.com/storytold/effectcraft?branch=main#549e9d825132986d6167c1432cd3328efcbb0278"
+source = "git+https://github.com/storytold/effectcraft?rev=549e9d825132986d6167c1432cd3328efcbb0278#549e9d825132986d6167c1432cd3328efcbb0278"
 dependencies = [
  "effectcraft-color",
  "effectcraft-geom",
@@ -1266,7 +1266,7 @@ dependencies = [
 [[package]]
 name = "effectcraft-segment"
 version = "0.9.2"
-source = "git+https://github.com/storytold/effectcraft?branch=main#549e9d825132986d6167c1432cd3328efcbb0278"
+source = "git+https://github.com/storytold/effectcraft?rev=549e9d825132986d6167c1432cd3328efcbb0278#549e9d825132986d6167c1432cd3328efcbb0278"
 dependencies = [
  "miniz_oxide 0.8.9",
  "ndarray",
@@ -1276,7 +1276,7 @@ dependencies = [
 [[package]]
 name = "effectcraft-time"
 version = "0.9.2"
-source = "git+https://github.com/storytold/effectcraft?branch=main#549e9d825132986d6167c1432cd3328efcbb0278"
+source = "git+https://github.com/storytold/effectcraft?rev=549e9d825132986d6167c1432cd3328efcbb0278#549e9d825132986d6167c1432cd3328efcbb0278"
 dependencies = [
  "serde",
 ]
@@ -1284,7 +1284,7 @@ dependencies = [
 [[package]]
 name = "effectcraft-track"
 version = "0.9.2"
-source = "git+https://github.com/storytold/effectcraft?branch=main#549e9d825132986d6167c1432cd3328efcbb0278"
+source = "git+https://github.com/storytold/effectcraft?rev=549e9d825132986d6167c1432cd3328efcbb0278#549e9d825132986d6167c1432cd3328efcbb0278"
 dependencies = [
  "effectcraft-raster",
  "effectcraft-segment",
