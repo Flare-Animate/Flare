@@ -18,6 +18,8 @@ pub mod permissionsmanager;
 pub mod moho;
 #[path = "common/flash/swf.rs"]
 pub mod swf;
+#[path = "common/flash/FDT.rs"]
+pub mod fdt;
 #[path = "common/flash/xfl.rs"]
 pub mod xfl;
 
