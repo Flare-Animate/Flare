@@ -176,7 +176,14 @@ public:
       sample.status = FillStatus::Boundary;
       sample.reason = "source-fill-boundary";
     } else if (m_options.rule == FillRule::RequireAgreement &&
-               sample.evenOddFillIndices != sample.nonZeroFillIndices) {
+               // QVector<int>::operator== (so !=) hits a broken MSVC/Qt
+               // 5.15 combination on some toolchains; compare the raw
+               // ranges directly instead (the iterators are plain
+               // pointers).
+               !std::equal(sample.evenOddFillIndices.cbegin(),
+                           sample.evenOddFillIndices.cend(),
+                           sample.nonZeroFillIndices.cbegin(),
+                           sample.nonZeroFillIndices.cend())) {
       sample.status = FillStatus::Unresolved;
       sample.reason = "unverified-source-fill-rule";
     } else {

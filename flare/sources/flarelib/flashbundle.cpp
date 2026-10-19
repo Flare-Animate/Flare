@@ -709,7 +709,13 @@ void discardSourceBundleCopy(const ToonzScene::FlashSourceBundle &original,
 namespace {
 
 struct PortableDrawing {
-  TXshSimpleLevel *level;
+  // A defaulted (not aggregate) default constructor, so value-initializing
+  // this struct zero-initializes `level` and default-constructs the
+  // TFilePath members through their own (explicit) default constructor
+  // directly, rather than through aggregate-initialization's copy-init of
+  // each member, which an explicit constructor cannot satisfy.
+  PortableDrawing() = default;
+  TXshSimpleLevel *level = nullptr;
   TFilePath original;
   TFilePath destination;
   TFilePath originalDecoded;
