@@ -1,7 +1,7 @@
 {
   "upstreams": {
     "opentoonz": {
-      "last_synced_sha": "cd8ce1288a94ed5dee9209dbd59f1107e16784ff",
+      "last_synced_sha": "829d1f4cd4f517b43b191ebee03de65382a07ed9",
       "synced_commits": [
         "2a1cff6ba3f05b6a5aa53e72ee408209e2649ee9",
         "5989bf2ead06a12ae2f698b249b27780f305b717",
@@ -36,11 +36,61 @@
         "8c5345182b1c3d2ff011a1cf08dad067b6700f08",
         "9da6ce9f33af5f7f67341708d7000d0f0ae2b450",
         "f41cf2782ac3c5adead5b72997180ab86da15f5e",
-        "cd8ce1288a94ed5dee9209dbd59f1107e16784ff"
+        "cd8ce1288a94ed5dee9209dbd59f1107e16784ff",
+        "5661d233c44262f0226a316d39eb317c2c97f817",
+        "61dc72d7c972be3853a9b96cf5c6f469e9cb9c20",
+        "adae4d762dd2bb6e2d9210d610f5c7d2e7e5cfbb",
+        "1abd807d0f5749a2a9fc9f38347d4940453ae2d6",
+        "e4f049495a1b765ce6203ba3a378e901b5bc0770",
+        "820fb13c550715d2e9385dd995d261e93a621aea",
+        "fb7fd5c518316c24a5241d62c5041f8fd6338f0c",
+        "d7e3583fd2b63c4a063dc41a83377d546eb610d6",
+        "7fa4c28a1540c6d032e214d8a8fa33d18b1271c5",
+        "163e3dd192be58e40e7cdd968fd0ee91146a32b7",
+        "c28db8874e5201eee584b15266a60ab5b3961630",
+        "23a02c617bfd64d77cca6bdf88b5c94c741aa544",
+        "4e8a7e7714715a0ca017e6918cca5e0a0e51c59b",
+        "1de79458ade9dff1aadcc68e17dfeeb7be0043f3",
+        "0da4e709bcbe23802a029a5d001905af2aaa8189",
+        "8022374ec9c0809e7457e68456c5ed4189a04f9f",
+        "81657e3f6ce05ad48d80c9a5fdc9f116c7794fd0",
+        "6fece0cf0ebf669ac2bb3c1dcac0379f6f2c7df9",
+        "78469a7c27e0ecb42870ad6cc7eb4e0eaa8a518e",
+        "ed0d0102efc6c9b1d07711dfc5558d46f92557e3",
+        "d0999eb54306d1d92e32941e406b5e701fe955aa",
+        "db9d5e3812ab95b7a4ce2f29bd4d830d725bd0e8",
+        "debdda8c2293b0de2f885fb229c5e30ac75a01b1",
+        "33fc70bc0e364b36aca7564ab2e322663c77d224",
+        "8b4008fd36d8d9a94f3ffc77e245c5da8b1e6fff",
+        "ddce315a48e8a991f64a20636ba04c15f8bde077",
+        "07b5b8008f1ba47fd15e589ef6358d53b773792c",
+        "56ee25b0ff3158058eb086ce91f91a61da77fd30",
+        "3ad10854f25df9d5b829ddd8924ee7295da77009",
+        "08675c0d003278182a250e353623aba69246705a",
+        "d95170abc8c0c0a17cfe1bb121b701c7dd24951e",
+        "db4c979d48ef62156ea3f6e03062243cfe8a7198",
+        "f9473cfafaa92cbd115ba3530bd2d9d3cf1ce69a",
+        "5c020b6863e6ea27e09bc936d8ae05c0d85d48be",
+        "4e9c50c03a5d1106b671691cbbcec58c07479b95",
+        "a1f392e27d1aef2f9ece16fe283e4a7d90185a5a",
+        "0bf7e61d2bdba0622e8504a8d5c39aee3c6b8063",
+        "a656cf86927e2d73141981d91c91cb0586aeacc4",
+        "8a74d2c9ca0c11e471e2c34b3e0557abbf5d9280",
+        "56d88501a78b78b95891c6be7c898907b6b3b299",
+        "dc43707dc34072820979d22cddb0fd89733420e6",
+        "4cc175ad5127ec943f61bb0032c96035ac271d2a",
+        "a73d89a4ee40348ba6fccfc5145469c75196c190",
+        "939db24e9a1688886d63242170809447a8f0a4e3",
+        "bc64c12b2d3a548a050f91c6283bdc39d5349d6b",
+        "42178a199a8de1d75ff65f5a31fbedac8d1c4e1f",
+        "a010fd6952d9d86eec4ff16a0c188548ad5c4166",
+        "7755ea2e33de68648566cc69564e4a07fd72a634",
+        "c1b12a71a109b00927c35f818b15045503dce9bd",
+        "829d1f4cd4f517b43b191ebee03de65382a07ed9"
       ]
     },
     "tahoma2d": {
-      "last_synced_sha": "a20fcfd91ba5e361dece91168958746d4a364533",
+      "last_synced_sha": "a3170dca9f939ce745fde40b3c11f550bd6a9788",
       "synced_commits": [
         "df79afba3035b447cd542f9293f7e338db1527b0",
         "a3848a88af8bcf7f56493cb6ea070deda91fe73d",
@@ -88,7 +138,11 @@
         "d2dea06f60c7ed2a4727c667e8f77ac28f9b525e",
         "51f21f42905557e987a123b0d83b25a1b1e27bc8",
         "5d8dfa1f362455fe445864e82fb844bc60a41c30",
-        "a20fcfd91ba5e361dece91168958746d4a364533"
+        "a20fcfd91ba5e361dece91168958746d4a364533",
+        "51f21f42905557e987a123b0d83b25a1b1e27bc8",
+        "2f79d9aff4237fca3f7357e811211c5427eba2cf",
+        "25181b536a1bf785591787e293627046f2755321",
+        "a3170dca9f939ce745fde40b3c11f550bd6a9788"
       ]
     }
   }

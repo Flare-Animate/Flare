@@ -2605,12 +2605,12 @@ What do you want to do? </source>
     <message>
         <location filename="../../toonz/convertpopup.cpp" line="607"/>
         <source>When activated, styles of the default palette
-($TOONZSTUDIOPALETTE\cleanup_default.tpl) will 
+($FLARESTUDIOPALETTE\cleanup_default.tpl) will 
 be appended to the palette after conversion in 
 order to save the effort of creating styles 
 before color designing.</source>
         <translation>При активации стили палитры по умолчанию
-($ TOONZSTUDIOPALETTE \ cleanup_default.tpl)
+($ FLARESTUDIOPALETTE \ cleanup_default.tpl)
  будут добавлены в палитру после преобразования, чтобы
  сохранить попытки по созданию стилей перед рисованием цветом.</translation>
     </message>
@@ -21898,6 +21898,41 @@ Hold F3 Key on the Viewer to Show This Frame Only</source>
         <location filename="../../toonz/xsheetviewer.cpp" line="1807"/>
         <source> columns</source>
         <translation> столбцы</translation>
+    </message>
+</context>
+<context>
+    <name>FileBrowserLocations</name>
+    <message>
+        <source>My Computer</source>
+        <translation>Мой компьютер</translation>
+    </message>
+    <message>
+        <source>Network</source>
+        <translation>Сеть</translation>
+    </message>
+    <message>
+        <source>My Documents</source>
+        <translation>Мои документы</translation>
+    </message>
+    <message>
+        <source>Desktop</source>
+        <translation>Рабочий стол</translation>
+    </message>
+    <message>
+        <source>Library</source>
+        <translation>Библиотека</translation>
+    </message>
+    <message>
+        <source>History</source>
+        <translation>История</translation>
+    </message>
+    <message>
+        <source>Project root (%1)</source>
+        <translation>Корень проекта (%1)</translation>
+    </message>
+    <message>
+        <source>Scene Folder</source>
+        <translation>Папка сцены</translation>
     </message>
 </context>
 </TS>

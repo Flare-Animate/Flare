@@ -538,12 +538,6 @@ static int flareMain(int argc, char *argv[]) {
 
   // Enable to render smooth icons on high dpi monitors
   a.setAttribute(Qt::AA_UseHighDpiPixmaps);
-#if defined(_WIN32)
-  // Compress tablet events with application attributes instead of implementing
-  // the delay-timer by ourselves
-  a.setAttribute(Qt::AA_CompressHighFrequencyEvents);
-  a.setAttribute(Qt::AA_CompressTabletEvents);
-#endif
 
 #ifdef _WIN32
   // BUG_WORKAROUND: #20230627
@@ -662,6 +656,20 @@ if (QFileInfo(localSplashPath).exists() && QFileInfo(localSplashPath).isFile()) 
   } catch (...) {
     fatalError("Startup failed: unknown exception during initialization");
   }
+
+  // Read the saved preference only after the Toonz environment is initialized.
+  // Preserve existing platform defaults when enabled; disabling also prevents
+  // tablet compression, which depends on high-frequency event compression.
+  if (!Preferences::instance()->getBoolValue(compressInputEvents)) {
+    a.setAttribute(Qt::AA_CompressHighFrequencyEvents, false);
+    a.setAttribute(Qt::AA_CompressTabletEvents, false);
+  }
+#if defined(_WIN32)
+  else {
+    a.setAttribute(Qt::AA_CompressHighFrequencyEvents, true);
+    a.setAttribute(Qt::AA_CompressTabletEvents, true);
+  }
+#endif
 
   // prepare for 30bit display
   if (Preferences::instance()->is30bitDisplayEnabled()) {

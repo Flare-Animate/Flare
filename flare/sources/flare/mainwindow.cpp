@@ -1,4 +1,8 @@
+
+
 #include "mainwindow.h"
+#include "convertlinestoareascommand.h"
+#include "customhelplink.h"
 
 // Tnz6 includes
 #include "menubar.h"
@@ -13,6 +17,9 @@
 #include "startuppopup.h"
 #include "tooloptionsshortcutinvoker.h"
 #include "custompanelmanager.h"
+#include "audiorecordingpopup.h"
+#include "pltgizmopopup.h"
+#include "shortcutpopup.h"
 
 // TnzTools includes
 #include "tools/toolcommandids.h"
@@ -23,10 +30,8 @@
 #include "flareqt/icongenerator.h"
 #include "flareqt/viewcommandids.h"
 #include "flareqt/updatechecker.h"
-#include "flareqt/flareupdater.h"
-
-#include <QProgressDialog>
 #include "flareqt/paletteviewer.h"
+#include "flareqt/lutcalibrator.h"
 #include "flareqt/seethroughwindow.h"
 
 // TnzLib includes
@@ -57,6 +62,7 @@
 #include <QPushButton>
 #include <QLabel>
 #include <QMessageBox>
+#include <QTimer>
 #ifdef _WIN32
 #include <QtPlatformHeaders/QWindowsWindowFunctions>
 #endif
@@ -68,7 +74,7 @@ TEnv::IntVar FieldGuideToggleAction("FieldGuideToggleAction", 0);
 TEnv::IntVar ViewBBoxToggleAction("ViewBBoxToggleAction1", 1);
 TEnv::IntVar EditInPlaceToggleAction("EditInPlaceToggleAction", 0);
 TEnv::IntVar RasterizePliToggleAction("RasterizePliToggleAction", 0);
-TEnv::IntVar LayoutGuideToggleAction("LayoutGuideToggleAction", 0);
+TEnv::IntVar SafeAreaToggleAction("SafeAreaToggleAction", 0);
 TEnv::IntVar ViewColorcardToggleAction("ViewColorcardToggleAction", 1);
 TEnv::IntVar ViewGuideToggleAction("ViewGuideToggleAction", 1);
 TEnv::IntVar ViewRulerToggleAction("ViewRulerToggleAction", 1);
@@ -193,16 +199,10 @@ void makePrivate(Room *room) {
           FlareFolder::getTemplateRoomsDir() + "menubar_template.xml";
       if (TFileStatus(templateFullMBPath).doesExist())
         TSystem::copyFile(myMBPath, templateFullMBPath);
-      else {
-        TFilePath builtinMBPath =
-            TEnv::getStuffDir() + "profiles/layouts/rooms/Animate/menubar_template.xml";
-        if (TFileStatus(builtinMBPath).doesExist())
-          TSystem::copyFile(myMBPath, builtinMBPath);
-        else
-          DVGui::warning(
-              QObject::tr("Cannot open menubar settings template file. "
-                          "Re-installing Flare will solve this problem."));
-      }
+      else
+        DVGui::warning(
+            QObject::tr("Cannot open menubar settings template file. "
+                        "Re-installing Toonz will solve this problem."));
     }
   }
 }
@@ -308,6 +308,11 @@ void Room::save() {
     TPanel *pane = static_cast<TPanel *>(layout->itemAt(i)->widget());
     settings.setValue("name", pane->objectName());
     settings.setValue("geometry", geometries[i]);  // Use passed geometry
+    // Room binding state persistence (custom panel feature)
+    settings.setValue("roomBound", pane->isRoomBound());
+    settings.setValue("boundRoomName", pane->getBoundRoomName());
+    settings.setValue("ignorePanelShortcutToggle",
+                      pane->ignoresPanelShortcutToggle());
     if (SaveLoadQSettings *persistent =
             dynamic_cast<SaveLoadQSettings *>(pane->widget()))
       persistent->save(settings);
@@ -389,6 +394,12 @@ void Room::load(const TFilePath &fp, RoomLoadParams &params) {
 
     pane->setObjectName(paneObjectName);
 
+    // Restore room binding state (custom panel feature)
+    pane->setRoomBound(m_settings->value("roomBound", false).toBool());
+    pane->setBoundRoomName(m_settings->value("boundRoomName", "").toString());
+    pane->setIgnorePanelShortcutToggle(
+        m_settings->value("ignorePanelShortcutToggle", false).toBool());
+
     // Add panel to room
     addDockWidget(pane);
 
@@ -416,7 +427,30 @@ void Room::load(const TFilePath &fp, RoomLoadParams &params) {
 
   layout->restoreState(state);
 
+  // Store layout state for deferred re-apply after the first show.
+  // Without this, TMainWindow::resizeEvent → redistribute() recalculates
+  // panel sizes before the window has reached its final geometry.
+  m_pendingLayoutState      = state;
+  m_hasPendingLayoutRestore = true;
+
   m_initialized = true;
+}
+
+//-----------------------------------------------------------------------------
+
+void Room::showEvent(QShowEvent *event) {
+  TMainWindow::showEvent(event);
+
+  if (m_hasPendingLayoutRestore) {
+    m_hasPendingLayoutRestore    = false;
+    DockLayout::State savedState = m_pendingLayoutState;
+    DockLayout *layout           = dockLayout();
+    QTimer::singleShot(0, this, [layout, savedState]() {
+      // restoreState() already applies the saved panel geometry. Redistributing
+      // here would recalculate it and discard the user's saved panel positions.
+      layout->restoreState(savedState);
+    });
+  }
 }
 
 //=============================================================================
@@ -505,13 +539,11 @@ centralWidget->setLayout(centralWidgetLayout);*/
   setCommandHandler(MI_AutoFillToggle, this, &MainWindow::autofillToggle);
 
   setCommandHandler(MI_About, this, &MainWindow::onAbout);
-  setCommandHandler(MI_CheckForUpdates, this, &MainWindow::onCheckForUpdates);
   setCommandHandler(MI_OpenOnlineManual, this, &MainWindow::onOpenOnlineManual);
   setCommandHandler(MI_OpenWhatsNew, this, &MainWindow::onOpenWhatsNew);
+  setCommandHandler(MI_Quicklink, this, &MainWindow::onOpenQuicklink);
   setCommandHandler(MI_OpenCommunityForum, this,
                     &MainWindow::onOpenCommunityForum);
-  setCommandHandler(MI_OpenDiscord, this, &MainWindow::onOpenDiscord);
-  setCommandHandler(MI_OpenWebsite, this, &MainWindow::onOpenWebsite);
   setCommandHandler(MI_OpenReportABug, this, &MainWindow::onOpenReportABug);
 
   setCommandHandler(MI_MaximizePanel, this, &MainWindow::maximizePanel);
@@ -656,6 +688,11 @@ void MainWindow::readSettings(const QString &argumentLayoutFileName) {
   params.activeRoomName = currentRoomName;
   params.forceBuildGui  = !Preferences::instance()->isLazyLoadRoomsEnabled();
 
+  // === CRITICAL FIX: Register dynamic commands BEFORE loading rooms ===
+  // Custom Panels in rooms will try to link to these commands during load.
+  // If commands don't exist yet, buttons become "empty shells".
+  CustomPanelManager::instance()->loadCustomPanelEntries();
+
   for (int i = 0; i < (int)roomPaths.size(); i++) {
     TFilePath roomPath = roomPaths[i];
     if (TFileStatus(roomPath).doesExist()) {
@@ -738,8 +775,13 @@ void MainWindow::readSettings(const QString &argumentLayoutFileName) {
     }
   }
 
+  // Register room shortcuts after all rooms are loaded
+  // This allows users to assign keyboard shortcuts to switch between rooms
+  registerRoomCommands();
+
   RecentFiles::instance()->loadRecentFiles();
-  CustomPanelManager::instance()->loadCustomPanelEntries();
+  // Note: loadCustomPanelEntries() now called BEFORE loading rooms
+  // to ensure dynamic commands exist when Custom Panels initialize
 }
 
 //-----------------------------------------------------------------------------
@@ -1011,8 +1053,7 @@ Room *MainWindow::getCurrentRoom() const {
 //-----------------------------------------------------------------------------
 
 void MainWindow::onUndo() {
-  // Must wait for current save to finish, just in case
-  while (TApp::instance()->isSaveInProgress());
+  if (TApp::instance()->isSaveInProgress()) return;
 
   ToolHandle *toolH = TApp::instance()->getCurrentTool();
 
@@ -1026,8 +1067,7 @@ void MainWindow::onUndo() {
 //-----------------------------------------------------------------------------
 
 void MainWindow::onRedo() {
-  // Must wait for current save to finish, just in case
-  while (TApp::instance()->isSaveInProgress());
+  if (TApp::instance()->isSaveInProgress()) return;
 
   bool ret = TUndoManager::manager()->redo();
   if (!ret) DVGui::error(QObject::tr("No more Redo operations available."));
@@ -1095,36 +1135,26 @@ void MainWindow::onAbout() {
 
 //-----------------------------------------------------------------------------
 
-void MainWindow::onCheckForUpdates() { checkForUpdates(true); }
-
 void MainWindow::onOpenOnlineManual() {
-  QDesktopServices::openUrl(QUrl(tr("http://flare-animate.readthedocs.io")));
+  QDesktopServices::openUrl(QUrl(tr("http://flare.readthedocs.io")));
 }
 
 //-----------------------------------------------------------------------------
 
 void MainWindow::onOpenWhatsNew() {
   QDesktopServices::openUrl(
-      QUrl(tr("https://github.com/Flare-Animate/Flare/releases/latest")));
+      QUrl(tr("https://github.com/flare/flare/releases/latest")));
 }
+
+//-----------------------------------------------------------------------------
+
+void MainWindow::onOpenQuicklink() { CustomHelpLink::open(); }
 
 //-----------------------------------------------------------------------------
 
 void MainWindow::onOpenCommunityForum() {
   QDesktopServices::openUrl(
-      QUrl(tr("https://github.com/Flare-Animate/Flare/discussions")));
-}
-
-//-----------------------------------------------------------------------------
-
-void MainWindow::onOpenDiscord() {
-  QDesktopServices::openUrl(QUrl("https://discord.com/invite/JpeScW8Awa"));
-}
-
-//-----------------------------------------------------------------------------
-
-void MainWindow::onOpenWebsite() {
-  QDesktopServices::openUrl(QUrl("https://flare-animate.github.io/website/"));
+      QUrl(tr("https://groups.google.com/forum/#!forum/opentoonz_en")));
 }
 
 //-----------------------------------------------------------------------------
@@ -1140,7 +1170,7 @@ void MainWindow::onOpenReportABug() {
   int ret = DVGui::MsgBox(DVGui::INFORMATION, str, buttons, 1);
   if (ret == 1)
     QDesktopServices::openUrl(
-        QUrl("https://github.com/Flare-Animate/Flare/issues"));
+        QUrl("https://github.com/flare/flare/issues"));
 }
 //-----------------------------------------------------------------------------
 
@@ -1237,11 +1267,54 @@ void MainWindow::onCurrentRoomChanged(int newRoomIndex) {
   Room *oldRoom = getRoom(m_oldRoomIndex);
   Room *newRoom = getRoom(newRoomIndex);
 
+  QString newRoomName = newRoom->getName();
+
+  // Handle room-bound panels (all panels with binding enabled)
+  // Use DockLayout directly instead of findChildren to avoid deep widget tree
+  // traversal which can trigger expensive operations in complex panels like
+  // FileBrowser
+  QList<TPanel *> panelsToUpdate;
+  for (int i = 0; i < m_stackedWidget->count(); i++) {
+    Room *room         = getRoom(i);
+    DockLayout *layout = room->dockLayout();
+    if (!layout) continue;
+
+    // Iterate only through docked panels (shallow traversal, not recursive)
+    for (int j = 0; j < layout->count(); j++) {
+      TPanel *panel = static_cast<TPanel *>(layout->itemAt(j)->widget());
+      if (panel && panel->isRoomBound()) {
+        panelsToUpdate.append(panel);
+      }
+    }
+  }
+
+  // Process room-bound panels (only visibility changes, no reparenting)
+  for (TPanel *panel : panelsToUpdate) {
+    QString boundRoomName = panel->getBoundRoomName();
+
+    if (boundRoomName == newRoomName) {
+      // Show panel when entering its bound room
+      if (panel->isHidden()) {
+        panel->show();
+        panel->raise();
+      }
+    } else {
+      // Hide panel when leaving its bound room
+      if (!panel->isHidden()) {
+        panel->hide();
+      }
+    }
+  }
+
   QList<TPanel *> paneList = oldRoom->findChildren<TPanel *>();
 
-  // Change the parent of all the floating dockWidgets
+  // Change the parent of all the floating dockWidgets (non-room-bound)
   for (int i = 0; i < paneList.size(); i++) {
     TPanel *pane = paneList.at(i);
+    // Skip room-bound panels (already handled above)
+    if (pane->isRoomBound()) {
+      continue;
+    }
     if (pane->isFloating() && !pane->isHidden()) {
       // Close floating Locator panes
       if (pane->getPanelType() == "Locator") {
@@ -1261,8 +1334,276 @@ void MainWindow::onCurrentRoomChanged(int newRoomIndex) {
       pane->show();
     }
   }
+
+  // Handle room-bound persistent popups (DVGui::Dialog-based)
+  // AudioRecordingPopup
+  AudioRecordingPopup *audioPopup = findChild<AudioRecordingPopup *>();
+  if (audioPopup && audioPopup->isRoomBound()) {
+    QString boundRoomName = audioPopup->getBoundRoomName();
+    if (boundRoomName == newRoomName) {
+      if (!audioPopup->isVisible()) {
+        audioPopup->show();
+      }
+    } else {
+      if (audioPopup->isVisible()) {
+        audioPopup->hide();
+      }
+    }
+  }
+
+  // PltGizmoPopup
+  PltGizmoPopup *pltGizmoPopup = findChild<PltGizmoPopup *>();
+  if (pltGizmoPopup && pltGizmoPopup->isRoomBound()) {
+    QString boundRoomName = pltGizmoPopup->getBoundRoomName();
+    if (boundRoomName == newRoomName) {
+      if (!pltGizmoPopup->isVisible()) {
+        pltGizmoPopup->show();
+      }
+    } else {
+      if (pltGizmoPopup->isVisible()) {
+        pltGizmoPopup->hide();
+      }
+    }
+  }
+
   m_oldRoomIndex = newRoomIndex;
   TSelection::setCurrent(0);
+}
+
+//-----------------------------------------------------------------------------
+
+void MainWindow::updatePanelVisibility() {
+  Room *currentRoom = getCurrentRoom();
+  if (!currentRoom) return;
+
+  QString currentRoomName = currentRoom->getName();
+
+  // Use DockLayout directly to avoid expensive findChildren() traversal
+  QList<TPanel *> panelsToUpdate;
+  for (int i = 0; i < m_stackedWidget->count(); i++) {
+    Room *room         = getRoom(i);
+    DockLayout *layout = room->dockLayout();
+    if (!layout) continue;
+
+    // Iterate only through docked panels (shallow, not recursive)
+    for (int j = 0; j < layout->count(); j++) {
+      TPanel *panel = static_cast<TPanel *>(layout->itemAt(j)->widget());
+      if (panel && panel->isRoomBound()) {
+        panelsToUpdate.append(panel);
+      }
+    }
+  }
+
+  // Update visibility of all room-bound panels
+  for (TPanel *panel : panelsToUpdate) {
+    QString boundRoomName = panel->getBoundRoomName();
+
+    if (boundRoomName == currentRoomName) {
+      // Show panel in its bound room
+      if (panel->isHidden()) {
+        panel->show();
+        panel->raise();
+      }
+    } else {
+      // Hide panel outside its bound room
+      if (!panel->isHidden()) {
+        panel->hide();
+      }
+    }
+  }
+}
+
+//-----------------------------------------------------------------------------
+// Register room shortcuts for all existing rooms
+// This function creates shortcut commands with [Room] prefix for each room
+// allowing users to switch between rooms using keyboard shortcuts
+
+void MainWindow::registerRoomCommands() {
+  // Build list of current room command IDs
+  QList<QString> currentRoomIds;
+  for (int i = 0; i < m_stackedWidget->count(); i++) {
+    Room *room = getRoom(i);
+    if (!room) continue;
+    QString roomName  = room->getName();
+    QString commandId = "MI_Room_" + roomName;
+    currentRoomIds.append(commandId);
+  }
+
+  // Disable old room commands that no longer exist
+  // We can't actually remove them from CommandManager, but we can hide them
+  // by removing them from m_registeredRoomIds and their actions from the main
+  // window
+  for (const QString &oldId : m_registeredRoomIds) {
+    if (!currentRoomIds.contains(oldId)) {
+      QAction *oldAction = CommandManager::instance()->getAction(
+          oldId.toStdString().c_str(), false);
+      if (oldAction) {
+        // Remove the action from this widget to prevent it from being triggered
+        removeAction(oldAction);
+        // Hide the action so it won't appear in menus
+        oldAction->setVisible(false);
+      }
+    }
+  }
+
+  m_registeredRoomIds.clear();
+
+  // Iterate through all existing rooms
+  for (int i = 0; i < m_stackedWidget->count(); i++) {
+    Room *room = getRoom(i);
+    if (!room) continue;
+
+    QString roomName  = room->getName();
+    QString commandId = "MI_Room_" + roomName;
+
+    // Check if command already exists
+    QAction *existingAction = CommandManager::instance()->getAction(
+        commandId.toStdString().c_str(), false);
+    if (existingAction) {
+      // Make sure it's visible and added to this widget
+      existingAction->setVisible(true);
+      if (!actions().contains(existingAction)) {
+        addAction(existingAction);
+      }
+      m_registeredRoomIds.append(commandId);
+      continue;
+    }
+
+    // Clean up room name for better display
+    // Replace underscores and hyphens with spaces for readability
+    QString cleanName = roomName;
+    cleanName.replace('_', ' ');
+    cleanName.replace('-', ' ');
+
+    // Create display name with [Room] prefix
+    QString displayName = "[Room] " + cleanName;
+
+    QAction *action = new DVAction(displayName, this);
+    addAction(action);
+
+    // Define command with RoomCommandType for proper categorization
+    CommandManager::instance()->define(commandId.toStdString().c_str(),
+                                       RoomCommandType, "", action, "");
+
+    // Create handler that switches to this room when shortcut is triggered
+    class RoomSwitchHandler : public CommandHandlerInterface {
+      QString m_roomName;
+      MainWindow *m_mainWindow;
+
+    public:
+      RoomSwitchHandler(const QString &name, MainWindow *mainWin)
+          : m_roomName(name), m_mainWindow(mainWin) {}
+
+      void execute() override {
+        if (!m_mainWindow) return;
+
+        // Find room by name and switch to it
+        for (int i = 0; i < m_mainWindow->getRoomCount(); i++) {
+          Room *room = m_mainWindow->getRoom(i);
+          if (room && room->getName() == m_roomName) {
+            m_mainWindow->m_topBar->getRoomTabWidget()->setCurrentIndex(i);
+            return;
+          }
+        }
+      }
+    };
+
+    CommandManager::instance()->setHandler(
+        commandId.toStdString().c_str(), new RoomSwitchHandler(roomName, this));
+
+    m_registeredRoomIds.append(commandId);
+  }
+
+  // Load saved shortcuts for room commands
+  TFilePath shortcutsFile =
+      FlareFolder::getMyModuleDir() + TFilePath("shortcuts.ini");
+  if (!TFileStatus(shortcutsFile).doesExist()) {
+    // Refresh ShortcutPopup if it's open to show new room commands
+    ShortcutPopup::refreshIfOpen();
+    return;
+  }
+
+  QSettings settings(toQString(shortcutsFile), QSettings::IniFormat);
+  settings.beginGroup("shortcuts");
+
+  for (const QString &commandId : m_registeredRoomIds) {
+    QString savedShortcut = settings.value(commandId, "").toString();
+    if (!savedShortcut.isEmpty()) {
+      QAction *action = CommandManager::instance()->getAction(
+          commandId.toStdString().c_str(), false);
+      if (action) {
+        action->setShortcut(QKeySequence(savedShortcut));
+      }
+    }
+  }
+
+  settings.endGroup();
+
+  // Refresh ShortcutPopup if it's open to show new room commands
+  ShortcutPopup::refreshIfOpen();
+}
+
+//-----------------------------------------------------------------------------
+// Unregister a room shortcut command when a room is deleted
+
+void MainWindow::unregisterRoomCommand(const QString &roomName) {
+  QString commandId = "MI_Room_" + roomName;
+
+  // Remove from registered list
+  m_registeredRoomIds.removeAll(commandId);
+
+  // Note: We don't actually remove the command from CommandManager
+  // as Qt doesn't provide a clean way to unregister QActions
+  // The command will simply do nothing if triggered after room deletion
+
+  // Clear the shortcut from settings file
+  TFilePath shortcutsFile =
+      FlareFolder::getMyModuleDir() + TFilePath("shortcuts.ini");
+  if (TFileStatus(shortcutsFile).doesExist()) {
+    QSettings settings(toQString(shortcutsFile), QSettings::IniFormat);
+    settings.beginGroup("shortcuts");
+    settings.remove(commandId);
+    settings.endGroup();
+  }
+
+  // Refresh ShortcutPopup if it's open
+  ShortcutPopup::refreshIfOpen();
+}
+
+//-----------------------------------------------------------------------------
+// Update a room shortcut command when a room is renamed
+
+void MainWindow::updateRoomCommand(const QString &oldName,
+                                   const QString &newName) {
+  QString oldCommandId = "MI_Room_" + oldName;
+  QString newCommandId = "MI_Room_" + newName;
+
+  // Save and migrate the old shortcut if it exists
+  TFilePath shortcutsFile =
+      FlareFolder::getMyModuleDir() + TFilePath("shortcuts.ini");
+  QString oldShortcut;
+
+  if (TFileStatus(shortcutsFile).doesExist()) {
+    QSettings settings(toQString(shortcutsFile), QSettings::IniFormat);
+    settings.beginGroup("shortcuts");
+    oldShortcut = settings.value(oldCommandId, "").toString();
+
+    // Migrate the shortcut to the new command ID
+    if (oldCommandId != newCommandId) {
+      settings.remove(oldCommandId);
+      if (!oldShortcut.isEmpty()) {
+        settings.setValue(newCommandId, oldShortcut);
+      }
+    }
+    settings.endGroup();
+  }
+
+  // Re-register all room commands
+  // This will clean up the old command and create the new one
+  registerRoomCommands();
+
+  // The shortcut was already saved in shortcuts.ini above,
+  // so registerRoomCommands() will load it automatically
 }
 
 //-----------------------------------------------------------------------------
@@ -1284,12 +1625,18 @@ void MainWindow::insertNewRoom() {
 
   // Finally, old room index is increased by 1
   m_oldRoomIndex++;
+
+  // Register shortcut for the newly created room
+  registerRoomCommands();
 }
 
 //-----------------------------------------------------------------------------
 
 void MainWindow::deleteRoom(int index) {
   Room *room = getRoom(index);
+
+  // Store room name before deletion for unregistering the shortcut
+  QString roomName = room->getName();
 
   TFilePath fp = room->getPath();
   try {
@@ -1311,13 +1658,46 @@ void MainWindow::deleteRoom(int index) {
 
   m_stackedWidget->removeWidget(room);
   delete room;
+
+  // Unregister shortcut for the deleted room
+  unregisterRoomCommand(roomName);
 }
 
 //-----------------------------------------------------------------------------
 
 void MainWindow::renameRoom(int index, const QString name) {
   Room *room = getRoom(index);
+
+  // Store the old name before renaming
+  QString oldName = room->getName();
+
+  // Rename the room
   room->setName(name);
+
+  // Update all room-bound panels with the new room name
+  // This ensures the panel-room link persists after renaming
+  for (int i = 0; i < m_stackedWidget->count(); i++) {
+    Room *currentRoom  = getRoom(i);
+    DockLayout *layout = currentRoom->dockLayout();
+    if (!layout) continue;
+
+    // Iterate through all docked panels
+    for (int j = 0; j < layout->count(); j++) {
+      TPanel *panel = static_cast<TPanel *>(layout->itemAt(j)->widget());
+      if (panel && panel->isRoomBound() &&
+          panel->getBoundRoomName() == oldName) {
+        // Update the bound room name to the new name
+        panel->setBoundRoomName(name);
+      }
+    }
+  }
+
+  // Update visibility immediately to reflect the change
+  updatePanelVisibility();
+
+  // Update room shortcut with new name
+  updateRoomCommand(oldName, name);
+
   if (m_saveSettingsOnQuit) room->save();
 }
 
@@ -1343,8 +1723,8 @@ void MainWindow::onMenuCheckboxChanged() {
   else if (cm->getAction(MI_RasterizePli) == action) {
     if (!QGLPixelBuffer::hasOpenGLPbuffers()) isChecked = 0;
     RasterizePliToggleAction = isChecked;
-  } else if (cm->getAction(MI_LayoutGuide) == action)
-    LayoutGuideToggleAction = isChecked;
+  } else if (cm->getAction(MI_SafeArea) == action)
+    SafeAreaToggleAction = isChecked;
   else if (cm->getAction(MI_ViewColorcard) == action)
     ViewColorcardToggleAction = isChecked;
   else if (cm->getAction(MI_ViewGuide) == action)
@@ -1398,167 +1778,50 @@ void MainWindow::showEvent(QShowEvent *event) {
 extern const char *applicationName;
 extern const char *applicationVersion;
 //-----------------------------------------------------------------------------
+void MainWindow::checkForUpdates() {
+  // Since there is only a single version of Opentoonz, we can do a simple check
+  // against a string
+  QString updateUrl("http://flare.github.io/flare-version.txt");
 
-/*!
-    Asks GitHub whether a newer Flare has been published, and offers to install
-    it.
-
-    This replaces the previous behaviour, which fetched a bare version string
-    from flare-version.txt and could only open a web page in the user's browser.
-    That could not deliver an update -- it made the user download and install one
-    by hand -- and it could not tell a release candidate from a final release.
-
-    The GitHub Releases API gives us the tag and the per-platform downloads, so
-    the comparison is done with FlareUpdater::compareVersions and the right
-    binary is fetched and installed in place. Failures here are deliberately
-    silent: a user who is offline or rate-limited should not be interrupted, and
-    an update check is not something they asked for on this particular launch.
-*/
-void MainWindow::checkForUpdates(bool manual) {
-  if (m_flareUpdater)
-    return;  // a check is already in flight
-  m_manualUpdateCheck = manual;
-
-  m_flareUpdater = new FlareUpdater(this);
-  connect(m_flareUpdater, &FlareUpdater::releaseReady, this,
-          &MainWindow::onFlareReleaseReady);
-  connect(m_flareUpdater, &FlareUpdater::failed, this,
-          &MainWindow::onFlareUpdateFailed);
-  connect(m_flareUpdater, &FlareUpdater::downloadProgress, this,
-          &MainWindow::onFlareUpdateProgress);
-  connect(m_flareUpdater, &FlareUpdater::downloadFinished, this,
-          &MainWindow::onFlareUpdateFinished);
-
-  m_flareUpdater->checkForRelease(
-      QUrl(Preferences::instance()->getBoolValue(updateNightlyChannel)
-               ? QStringLiteral("https://api.github.com/repos/Flare-Animate/"
-                                "Flare/releases?per_page=10")
-               : QStringLiteral("https://api.github.com/repos/Flare-Animate/"
-                                "Flare/releases/latest")));
+  m_updateChecker = new UpdateChecker(updateUrl);
+  connect(m_updateChecker, SIGNAL(done(bool)), this,
+          SLOT(onUpdateCheckerDone(bool)));
 }
-
 //-----------------------------------------------------------------------------
 
-void MainWindow::onFlareReleaseReady(const FlareUpdater::Release& release) {
-  if (release.draft)
-    return;  // a draft is not published yet
-
-  const QString current = QString::fromStdString(TEnv::getApplicationVersion());
-
-  if (FlareUpdater::compareVersions(release.tag, current) <= 0) {
-    if (m_manualUpdateCheck)
-      DVGui::info(QObject::tr("Flare is up to date (%1).").arg(current));
-    return;  // up to date, or the published build is older
-  }
-
-  // Don't nag about a release candidate unless the installed build is older
-  // than it: offering "1.8.0-rc1" to someone on "1.7.1" is reasonable, offering
-  // it to someone already on the final "1.8.0" is not.
-  QString why;
-  const auto asset =
-      FlareUpdater::pickAssetForCurrentPlatform(release.assets, &why);
-  if (!asset.isValid()) {
-    // Nothing for this platform. Not an error worth interrupting anyone over --
-    // the check simply cannot help this user.
-    DVGui::info(
-        QObject::tr("Flare %1 is available, but there is no download for this "
-                    "platform (%2).")
-            .arg(release.tag, why.isEmpty() ? QObject::tr("unknown reason") : why));
+void MainWindow::onUpdateCheckerDone(bool error) {
+  if (error) {
+    // Get the last update date
     return;
   }
 
-  QStringList buttons;
-  buttons.push_back(QObject::tr("Install Now"));
-  buttons.push_back(QObject::tr("Release Notes"));
-  buttons.push_back(QObject::tr("Later"));
-
-  auto* dialog = DVGui::createMsgandCheckbox(
-      DVGui::INFORMATION,
-      QObject::tr("Flare %1 is available.\n\nYou have %2.\n\n%3")
-          .arg(release.tag, current,
-               release.notes.isEmpty()
-                   ? QObject::tr("Download: %1").arg(asset.name)
-                   : release.notes.left(400)),
-      QObject::tr("Check for the latest version on launch."), buttons, 0,
-      Qt::Checked);
-
-  const int ret = dialog->exec();
-  if (dialog->getChecked() == Qt::Unchecked)
-    Preferences::instance()->setValue(latestVersionCheckEnabled, false);
-  dialog->deleteLater();
-
-  if (ret == 0)
-    startFlareUpdateDownload(asset);
-  else if (ret == 1 && !release.notes.isEmpty())
-    DVGui::info(release.notes);
-}
-
-//-----------------------------------------------------------------------------
-
-void MainWindow::startFlareUpdateDownload(const FlareUpdater::Asset& asset) {
-  if (!m_flareUpdater)
-    return;
-
-  // Download beside the executable rather than into the user's temp area, so the
-  // installer does not have to move the file across volumes -- which is what
-  // makes a same-directory replace fail while the old one is still running.
-  const QDir target = QFileInfo(QCoreApplication::applicationFilePath())
-                          .absoluteDir();
-  m_flareUpdater->download(asset, QUrl::fromLocalFile(target.path()));
-}
-
-//-----------------------------------------------------------------------------
-
-void MainWindow::onFlareUpdateProgress(qint64 received, qint64 total) {
-  static QProgressDialog* progress = nullptr;
-  if (!progress) {
-    progress = new QProgressDialog(
-        QObject::tr("Downloading the update..."), QString(), 0, 100, this);
-    progress->setWindowModality(Qt::WindowModal);
-    progress->setAutoClose(false);
-    progress->setAutoReset(false);
+  int const software_version =
+      get_version_code_from(TEnv::getApplicationVersion());
+  int const latest_version =
+      get_version_code_from(m_updateChecker->getLatestVersion().toStdString());
+  if (software_version < latest_version) {
+    QStringList buttons;
+    buttons.push_back(QObject::tr("Visit Web Site"));
+    buttons.push_back(QObject::tr("Cancel"));
+    DVGui::MessageAndCheckboxDialog *dialog = DVGui::createMsgandCheckbox(
+        DVGui::INFORMATION,
+        QObject::tr("An update is available for this software.\nVisit the Web "
+                    "site for more information."),
+        QObject::tr("Check for the latest version on launch."), buttons, 0,
+        Qt::Checked);
+    int ret = dialog->exec();
+    if (dialog->getChecked() == Qt::Unchecked)
+      Preferences::instance()->setValue(latestVersionCheckEnabled, false);
+    dialog->deleteLater();
+    if (ret == 1) {
+      // Write the new last date to file
+      QDesktopServices::openUrl(QObject::tr("https://flare.github.io/e/"));
+    }
   }
-  progress->setMaximum(static_cast<int>(total > 0 ? total : 0));
-  progress->setValue(static_cast<int>(received));
-  progress->show();
+
+  disconnect(m_updateChecker);
+  m_updateChecker->deleteLater();
 }
-
-//-----------------------------------------------------------------------------
-
-void MainWindow::onFlareUpdateFinished(const QString& savedPath) {
-  DVGui::info(QObject::tr("The update has been downloaded.\n\nFlare will "
-                          "restart to finish installing it."));
-  applyFlareUpdate(savedPath);
-}
-
-//-----------------------------------------------------------------------------
-
-void MainWindow::applyFlareUpdate(const QString& downloadedPath) {
-  QString error;
-  if (!FlareUpdater::applyUpdate(downloadedPath, &error)) {
-    // A failed install is the one case that must not be quiet: the user asked
-    // for this explicitly and is now looking at a stale binary.
-    DVGui::error(QObject::tr("The update could not be installed.\n\n%1\n\nThe "
-                            "download is still at:\n%2")
-                    .arg(error, downloadedPath));
-  }
-}
-
-//-----------------------------------------------------------------------------
-
-void MainWindow::onFlareUpdateFailed(const QString& message) {
-  // Only speak up if the user asked for this update by hand; a background check
-  // that cannot reach the network is not worth a dialog.
-  if (m_manualUpdateCheck)
-    DVGui::warning(QObject::tr("Flare could not check for updates.\n\n%1")
-                       .arg(message));
-  if (m_flareUpdater) {
-    m_flareUpdater->deleteLater();
-    m_flareUpdater = nullptr;
-  }
-}
-
-//-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
 
@@ -1875,6 +2138,25 @@ QAction *MainWindow::createStopMotionAction(const char *id, const char *name,
 
 //-----------------------------------------------------------------------------
 
+QAction *MainWindow::createSpecialModifierAction(
+    const char *id, const char *name, const QString &defaultShortcut) {
+  return createAction(id, name, defaultShortcut, SpecialModifierKeyType);
+}
+
+//-----------------------------------------------------------------------------
+
+void MainWindow::setCommandToWIP(QAction *action) {
+  if (!action) return;
+  action->setText(action->text() + tr(" [WIP]"));
+  action->setToolTip(
+      tr("This feature is a work in progress.\n"
+         "Please be advised that it may have incomplete implementation or "
+         "cause unexpected behavior.\n"
+         "We welcome your feedback and assistance with its development!"));
+}
+
+//-----------------------------------------------------------------------------
+
 QAction *MainWindow::createToggle(const char *id, const char *name,
                                   const QString &defaultShortcut,
                                   bool startStatus, CommandType type,
@@ -1938,7 +2220,7 @@ void MainWindow::defineActions() {
   createMenuFileAction(MI_SaveScene, QT_TR_NOOP("&Save Scene Only"),
                        "Ctrl+Shift+S", "save_scene");
   createMenuFileAction(MI_SaveSceneAs, QT_TR_NOOP("&Save Scene As..."), "",
-                       "save_scene");
+                       "save_scene_as");
   menuAct = createMenuFileAction(MI_RevertScene, QT_TR_NOOP("&Revert Scene"),
                                  "", "revert_scene");
   menuAct->setEnabled(false);
@@ -1963,17 +2245,8 @@ void MainWindow::defineActions() {
   createMenuFileAction(MI_LoadColorModel, QT_TR_NOOP("&Load Color Model..."),
                        "", "load_colormodel");
   createMenuFileAction(MI_ImportMagpieFile,
-                       QT_TR_NOOP("&Import Flare Lip Sync File..."), "",
+                       QT_TR_NOOP("&Import Toonz Lip Sync File..."), "",
                        "dialogue_import");
-  createMenuFileAction(MI_ImportFlashVector,
-                       QT_TR_NOOP("&Import Flash (FLA / XFL / SWF / SWC / FLV / F4V / AS)..."), "",
-                       "import_flash");
-  createMenuFileAction(MI_SwfRoundTrip,
-                       QT_TR_NOOP("SWF &ActionScript Round Trip (Next2Flash)..."),
-                       "", "import_flash");
-  createMenuFileAction(MI_ImportMohoProject,
-                       QT_TR_NOOP("Import &Moho Project (rig structure and assets)..."), "",
-                       "import_moho");
   createMenuFileAction(MI_NewProject, QT_TR_NOOP("&New Project..."), "",
                        "new_project");
   createMenuFileAction(MI_ProjectSettings, QT_TR_NOOP("&Project Settings..."),
@@ -1999,7 +2272,8 @@ void MainWindow::defineActions() {
       "");
   createMenuFileAction(
       MI_ExportSXF,
-      QT_TRANSLATE_NOOP("MainWindow", "Export Stylos Exchange Format(SXF)"), "");
+      QT_TRANSLATE_NOOP("MainWindow", "Export Stylos Exchange Format(SXF)"),
+      "");
   createMenuFileAction(
       MI_ExportOCA,
       QT_TRANSLATE_NOOP("MainWindow", "Export Open Cel Animation (OCA)"), "",
@@ -2008,12 +2282,6 @@ void MainWindow::defineActions() {
       MI_ImportOCA,
       QT_TRANSLATE_NOOP("MainWindow", "Import Open Cel Animation (OCA)"), "",
       "import_oca");
-  createMenuFileAction(
-      MI_ExportFlash,
-      QT_TRANSLATE_NOOP(
-          "MainWindow",
-          "Export for Flash / Adobe Animate Workflow..."),
-      "", "export_flash");
   createMenuFileAction(
       MI_ExportTvpJson,
       QT_TRANSLATE_NOOP("MainWindow", "Export TVPaint JSON File"), "");
@@ -2040,6 +2308,27 @@ void MainWindow::defineActions() {
 
   // Menu - Edit
 
+  createMenuEditAction(MI_AlignLeft, QT_TR_NOOP("Align Left"), "",
+                       "select_align_left");
+  createMenuEditAction(MI_AlignRight, QT_TR_NOOP("Align Right"), "",
+                       "select_align_right");
+  createMenuEditAction(MI_AlignTop, QT_TR_NOOP("Align Top"), "",
+                       "select_align_top");
+  createMenuEditAction(MI_AlignBottom, QT_TR_NOOP("Align Bottom"), "",
+                       "select_align_bottom");
+  createMenuEditAction(MI_AlignCenterHorizontal,
+                       QT_TR_NOOP("Align Center Horizontally"), "",
+                       "select_align_center_h");
+  createMenuEditAction(MI_AlignCenterVertical,
+                       QT_TR_NOOP("Align Center Vertically"), "",
+                       "select_align_center_v");
+  createMenuEditAction(MI_DistributeHorizontal,
+                       QT_TR_NOOP("Distribute Horizontally"), "",
+                       "select_distribute_h");
+  createMenuEditAction(MI_DistributeVertical,
+                       QT_TR_NOOP("Distribute Vertically"), "",
+                       "select_distribute_v");
+
   createMenuEditAction(MI_SelectAll, QT_TR_NOOP("&Select All"), "Ctrl+A",
                        "select_all");
   createMenuEditAction(MI_InvertSelection, QT_TR_NOOP("&Invert Selection"), "",
@@ -2057,14 +2346,15 @@ void MainWindow::defineActions() {
   createMenuEditAction(MI_PasteInto, QT_TR_NOOP("&Paste Into"), "",
                        "paste_into");
   createMenuEditAction(MI_Clear, QT_TR_NOOP("&Delete"), "Del", "delete");
-  createMenuEditAction(MI_ClearViewerContent, QT_TR_NOOP("&Clear Viewer Content"), "", "clear_viewer");
+  createMenuEditAction(MI_ClearViewerContent,
+                       QT_TR_NOOP("&Clear Viewer Content"), "", "clear_viewer");
   createMenuEditAction(MI_Insert, QT_TR_NOOP("&Insert"), "Ins", "insert");
   createMenuEditAction(MI_InsertAbove, QT_TR_NOOP("&Insert Above/After"),
                        "Shift+Ins", "insert_above_after");
   createMenuEditAction(MI_Group, QT_TR_NOOP("&Group"), "Ctrl+G", "group");
   createMenuEditAction(MI_Ungroup, QT_TR_NOOP("&Ungroup"), "Ctrl+Shift+G",
                        "ungroup");
-   createMenuEditAction(MI_EnterGroup, QT_TR_NOOP("&Enter Group"), "",
+  createMenuEditAction(MI_EnterGroup, QT_TR_NOOP("&Enter Group"), "",
                        "enter_group");
   createMenuEditAction(MI_ExitGroup, QT_TR_NOOP("&Exit Group"), "",
                        "leave_group");
@@ -2117,12 +2407,12 @@ void MainWindow::defineActions() {
   createMenuLevelAction(MI_NewVectorLevel, QT_TR_NOOP("&New Vector Level"), "",
                         "new_vector_level");
   createMenuLevelAction(MI_NewToonzRasterLevel,
-                        QT_TR_NOOP("&New Flare Raster Level"), "",
-                        "new_flare_raster_level");
+                        QT_TR_NOOP("&New Toonz Raster Level"), "",
+                        "new_toonz_raster_level");
   createMenuLevelAction(MI_NewRasterLevel, QT_TR_NOOP("&New Raster Level"), "",
                         "new_raster_level");
-  createMenuFileAction(MI_NewMetaLevel, QT_TR_NOOP("&New Assistant Level"),
-                       "new_meta_level");
+  createMenuLevelAction(MI_NewMetaLevel, QT_TR_NOOP("&New Assistant Level"), "",
+                        "assistant");
   createMenuLevelAction(MI_LoadLevel, QT_TR_NOOP("&Load Level..."), "",
                         "load_level");
   createMenuLevelAction(MI_SaveLevel, QT_TR_NOOP("&Save Level"), "",
@@ -2186,14 +2476,14 @@ void MainWindow::defineActions() {
   createMenuLevelAction(MI_ConvertToVectors,
                         QT_TR_NOOP("Convert to Vectors..."), "", "convert");
   createMenuLevelAction(MI_ConvertToToonzRaster,
-                        QT_TR_NOOP("Convert to Flare Raster..."), "");
+                        QT_TR_NOOP("Convert to Toonz Raster..."), "");
   createMenuLevelAction(
       MI_ConvertVectorToVector,
       QT_TRANSLATE_NOOP("MainWindow",
                         "Replace Vectors with Simplified Vectors"),
       "");
   createMenuLevelAction(MI_FillHoles, QT_TR_NOOP("&Fill Holes..."), "",
-                        "Fill small holes in Flare Raster Level");
+                        "Fill small holes in Toonz Raster Level");
   createMenuLevelAction(MI_Tracking, QT_TR_NOOP("Tracking..."), "", "focus");
 
   // Menu - Xsheet
@@ -2208,8 +2498,8 @@ void MainWindow::defineActions() {
                          "sub_leave");
   createMenuXsheetAction(MI_ExplodeChild, QT_TR_NOOP("Explode Sub-Xsheet"), "",
                          "sub_explode");
-  createMenuXsheetAction(MI_Collapse, QT_TR_NOOP("Convert to Symbol / Sub-Xsheet"),
-                         "Ctrl+Alt+G", "sub_collapse");
+  createMenuXsheetAction(MI_Collapse, QT_TR_NOOP("Collapse"), "",
+                         "sub_collapse");
   createToggle(MI_ToggleEditInPlace, QT_TR_NOOP("&Toggle Edit In Place"), "",
                EditInPlaceToggleAction ? 1 : 0, MenuXsheetCommandType,
                "sub_edit_in_place");
@@ -2238,6 +2528,9 @@ void MainWindow::defineActions() {
   createMenuXsheetAction(MI_InsertSceneFrame, QT_TR_NOOP("Insert Frame"), "",
                          "insert_frame");
   createMenuXsheetAction(MI_RemoveSceneFrame, QT_TR_NOOP("Remove Frame"), "",
+                         "remove_frame");
+  createMenuXsheetAction(MI_RemoveSelectedSceneFrames,
+                         QT_TR_NOOP("Remove Selected Frames"), "",
                          "remove_frame");
   createMenuXsheetAction(MI_InsertGlobalKeyframe,
                          QT_TR_NOOP("Insert Multiple Keys"), "",
@@ -2379,11 +2672,34 @@ void MainWindow::defineActions() {
 
   createRightClickMenuAction(MI_OpenPltGizmo, QT_TR_NOOP("&Palette Gizmo"), "",
                              "palettegizmo");
+  createRightClickMenuAction(MI_SetLinearControlPoint,
+                             QT_TR_NOOP("Set Linear Control Point"), "",
+                             "set_linear_cp");
+  createRightClickMenuAction(MI_SetNonLinearControlPoint,
+                             QT_TR_NOOP("Set Nonlinear Control Point"), "",
+                             "set_nonlinear_cp");
   createRightClickMenuAction(MI_EraseUnusedStyles,
                              QT_TR_NOOP("&Delete Unused Styles"), "",
                              "delete_unused_styles");
+  initConvertLineAreaCommands(
+      createRightClickMenuAction(MI_ConvertLinesToAreas,
+                                 QT_TR_NOOP("Convert Lines to Areas"), ""),
+      createRightClickMenuAction(MI_ConvertAreasToLines,
+                                 QT_TR_NOOP("Convert Areas to Lines"), ""));
 
   // Menu - View
+
+  menuAct =
+      createToggle(MI_ToggleColorCalibration, QT_TR_NOOP("Toggle Active LUT"),
+                   "", Preferences::instance()->isColorCalibrationEnabled(),
+                   MenuViewCommandType);
+  connect(menuAct, &QAction::triggered, this, [](bool enabled) {
+    Preferences::instance()->setValue(colorCalibrationEnabled, enabled);
+    LutManager::instance()->update();
+    TApp::instance()->getCurrentScene()->notifyPreferenceChanged(
+        "ColorCalibration");
+  });
+  menuAct->setEnabled(true);
 
   createToggle(MI_ViewCamera, QT_TR_NOOP("&Camera Box"), "",
                ViewCameraToggleAction ? 1 : 0, MenuViewCommandType);
@@ -2393,8 +2709,8 @@ void MainWindow::defineActions() {
                FieldGuideToggleAction ? 1 : 0, MenuViewCommandType);
   createToggle(MI_ViewBBox, QT_TR_NOOP("&Raster Bounding Box"), "",
                ViewBBoxToggleAction ? 1 : 0, MenuViewCommandType);
-  createToggle(MI_LayoutGuide, QT_TR_NOOP("&Layout Guide"), "",
-               LayoutGuideToggleAction ? 1 : 0, MenuViewCommandType);
+  createToggle(MI_SafeArea, QT_TR_NOOP("&Safe Area"), "",
+               SafeAreaToggleAction ? 1 : 0, MenuViewCommandType);
   createToggle(MI_ViewColorcard, QT_TR_NOOP("&Camera BG Color"), "",
                ViewColorcardToggleAction ? 1 : 0, MenuViewCommandType);
   createToggle(MI_ViewGuide, QT_TR_NOOP("&Guide"), "",
@@ -2503,6 +2819,18 @@ void MainWindow::defineActions() {
                           "comboviewer");
   createMenuWindowsAction(MI_OpenHistoryPanel, QT_TR_NOOP("&History"), "Ctrl+H",
                           "history");
+
+  // Shortcut keys will be assigned once the feature is complete.
+  QAction *brushPresetAct = createMenuWindowsAction(
+      MI_OpenBrushPresetPanel, QT_TR_NOOP("&Brush Presets"),
+      "" /* Ctrl+Shift+B */, "brush");
+  QAction *ToolPropertiesAct = createMenuWindowsAction(
+      MI_OpenToolPropertiesPanel, QT_TR_NOOP("&Tool Properties"),
+      "" /* Ctrl+Shift+P */, "properties");
+  // set WIP label
+  setCommandToWIP(brushPresetAct);
+  setCommandToWIP(ToolPropertiesAct);
+
   createMenuWindowsAction(MI_AudioRecording, QT_TR_NOOP("Record Audio"),
                           "Alt+A", "recordaudio");
   createMenuWindowsAction(MI_ResetRoomLayout,
@@ -2516,10 +2844,10 @@ void MainWindow::defineActions() {
                           QT_TR_NOOP("Toggle Main Window's See Through Mode"),
                           "Alt+`", "toggle_seethroughwin_on");
   createMenuHelpAction(MI_About, QT_TR_NOOP("&About Flare..."), "", "info");
-  createMenuHelpAction(MI_FlashGuide, QT_TR_NOOP("&Flash Format Guide..."), "",
-                       "flash_guide");
   createMenuWindowsAction(MI_StartupPopup, QT_TR_NOOP("&Startup Popup..."),
                           "Alt+S", "flare");
+  createMenuWindowsAction(MI_OpenAlignmentPanel,
+                          QT_TR_NOOP("Align and Distribute Panel"), "", "");
   createMenuWindowsAction(MI_OpenGuidedDrawingControls,
                           QT_TR_NOOP("Guided Drawing Controls"), "",
                           "guided_drawing");
@@ -2538,18 +2866,13 @@ void MainWindow::defineActions() {
 
   // Menu - Help
 
-  createMenuHelpAction(MI_CheckForUpdates, QT_TR_NOOP("Check for &Updates..."),
-                       "", "web");
   createMenuHelpAction(MI_OpenOnlineManual, QT_TR_NOOP("&Online Manual..."),
                        "F1", "manual");
   createMenuHelpAction(MI_OpenWhatsNew, QT_TR_NOOP("&What's New..."), "",
                        "web");
+  createMenuHelpAction(MI_Quicklink, QT_TR_NOOP("&Quicklink"), "", "web");
   createMenuHelpAction(MI_OpenCommunityForum, QT_TR_NOOP("&Community Forum..."),
                        "", "web");
-  createMenuHelpAction(MI_OpenDiscord, QT_TR_NOOP("Join us on &Discord..."), "",
-                       "web");
-  createMenuHelpAction(MI_OpenWebsite, QT_TR_NOOP("Flare &Website..."), "",
-                       "web");
   createMenuHelpAction(MI_OpenReportABug, QT_TR_NOOP("&Report a Bug..."), "",
                        "web");
 
@@ -2577,6 +2900,8 @@ void MainWindow::defineActions() {
   CommandManager::instance()->setToggleTexts(
       MI_FreezePreview, tr("Freeze Preview"), tr("Unfreeze Preview"));
   createRightClickMenuAction(MI_SavePreset, QT_TR_NOOP("&Save As Preset"), "");
+  createRightClickMenuAction(MI_SaveAsCustomVectorBrush,
+                             QT_TR_NOOP("Save as Custom Vector Brush..."), "");
   createRightClickMenuAction(MI_PreviewFx, QT_TR_NOOP("Preview Fx"), "");
   createRightClickMenuAction(MI_PasteValues, QT_TR_NOOP("&Paste Color && Name"),
                              "", "paste_color_and_name");
@@ -2771,7 +3096,7 @@ void MainWindow::defineActions() {
   createToolAction(T_Skeleton, "skeleton", QT_TR_NOOP("Skeleton Tool"), "V");
   createToolAction(T_Tracker, "radar", QT_TR_NOOP("Tracker Tool"), "");
   createToolAction(T_Hook, "hook", QT_TR_NOOP("Hook Tool"), "O");
-  createToolAction(T_Zoom, "zoom", QT_TR_NOOP("Zoom Tool"), "R");
+  createToolAction(T_Zoom, "zoom", QT_TR_NOOP("Zoom Tool"), "Z");
   createToolAction(T_Rotate, "rotate", QT_TR_NOOP("Rotate Tool"), "R");
   createToolAction(T_Hand, "hand", QT_TR_NOOP("Hand Tool"), "H");
   createToolAction(T_Plastic, "plastic", QT_TR_NOOP("Plastic Tool"), "X");
@@ -2959,6 +3284,37 @@ void MainWindow::defineActions() {
   createAction(MI_PlasticAnimate, QT_TR_NOOP("Plastic Tool - Animate"), "",
                ToolCommandType);
 
+  /*-- Edit Assistants tool + type switching shortcuts --*/
+  createAction(MI_AssistantNextType, QT_TR_NOOP("Assistant Type - Cycle"), "",
+               ToolCommandType);
+  createAction(MI_AssistantLine, QT_TR_NOOP("Assistant Type - Line"), "",
+               ToolCommandType, "assistant_line");
+  createAction(MI_AssistantEllipse, QT_TR_NOOP("Assistant Type - Ellipse"), "",
+               ToolCommandType, "assistant_ellipse");
+  createAction(MI_AssistantPerspective,
+               QT_TR_NOOP("Assistant Type - Perspective"), "", ToolCommandType,
+               "assistant_perspective");
+  createAction(MI_AssistantVanishingPoint,
+               QT_TR_NOOP("Assistant Type - Vanishing Point"), "",
+               ToolCommandType, "assistant_vanishingpoint");
+  createAction(MI_AssistantFisheye, QT_TR_NOOP("Assistant Type - Fisheye"), "",
+               ToolCommandType, "assistant_fisheye");
+  createAction(MI_AssistantReplicatorStar,
+               QT_TR_NOOP("Assistant Type - Replicator Star"), "",
+               ToolCommandType, "replicator_star");
+  createAction(MI_AssistantReplicatorMirror,
+               QT_TR_NOOP("Assistant Type - Replicator Mirror"), "",
+               ToolCommandType, "replicator_mirror");
+  createAction(MI_AssistantReplicatorJitter,
+               QT_TR_NOOP("Assistant Type - Replicator Jitter"), "",
+               ToolCommandType, "replicator_jitter");
+  createAction(MI_AssistantReplicatorGrid,
+               QT_TR_NOOP("Assistant Type - Replicator Grid"), "",
+               ToolCommandType, "replicator_grid");
+  createAction(MI_AssistantReplicatorAffine,
+               QT_TR_NOOP("Assistant Type - Replicator Affine"), "",
+               ToolCommandType, "replicator_affine");
+
   // Tool Modifiers
 
   createToolOptionsAction(MI_SelectNextGuideStroke,
@@ -3064,6 +3420,28 @@ void MainWindow::defineActions() {
                           QT_TR_NOOP("Geometric Shape Polygon"), "");
   createToolOptionsAction("A_ToolOption_GeometricEdge",
                           QT_TR_NOOP("Geometric Edge"), "");
+  createToolOptionsAction("A_ToolOption_AssistantType",
+                          QT_TR_NOOP("Assistant Type"), "");
+  createToolOptionsAction("A_ToolOption_AssistantType:assistantLine",
+                          QT_TR_NOOP("Assistant Type - Line"), "");
+  createToolOptionsAction("A_ToolOption_AssistantType:assistantEllipse",
+                          QT_TR_NOOP("Assistant Type - Ellipse"), "");
+  createToolOptionsAction("A_ToolOption_AssistantType:assistantPerspective",
+                          QT_TR_NOOP("Assistant Type - Perspective"), "");
+  createToolOptionsAction("A_ToolOption_AssistantType:assistantVanishingPoint",
+                          QT_TR_NOOP("Assistant Type - Vanishing Point"), "");
+  createToolOptionsAction("A_ToolOption_AssistantType:assistantFisheye",
+                          QT_TR_NOOP("Assistant Type - Fisheye"), "");
+  createToolOptionsAction("A_ToolOption_AssistantType:replicatorStar",
+                          QT_TR_NOOP("Assistant Type - Replicator Star"), "");
+  createToolOptionsAction("A_ToolOption_AssistantType:replicatorMirror",
+                          QT_TR_NOOP("Assistant Type - Replicator Mirror"), "");
+  createToolOptionsAction("A_ToolOption_AssistantType:replicatorJitter",
+                          QT_TR_NOOP("Assistant Type - Replicator Jitter"), "");
+  createToolOptionsAction("A_ToolOption_AssistantType:replicatorGrid",
+                          QT_TR_NOOP("Assistant Type - Replicator Grid"), "");
+  createToolOptionsAction("A_ToolOption_AssistantType:replicatorAffine",
+                          QT_TR_NOOP("Assistant Type - Replicator Affine"), "");
   createToolOptionsAction("A_ToolOption_Mode", QT_TR_NOOP("Mode"), "");
   menuAct = createToolOptionsAction(
       "A_ToolOption_Mode:Areas", QT_TR_NOOP("Mode - Areas"), "", "mode_areas");
@@ -3183,8 +3561,8 @@ void MainWindow::defineActions() {
   createViewerAction(V_ActualPixelSize, QT_TR_NOOP("Actual Pixel Size"), "N");
   createViewerAction(V_FlipX, QT_TR_NOOP("Flip Viewer Horizontally"), "");
   createViewerAction(V_FlipY, QT_TR_NOOP("Flip Viewer Vertically"), "");
-  createViewerAction(V_RotateLeft, QT_TR_NOOP("Rotate View Left"), "");
-  createViewerAction(V_RotateRight, QT_TR_NOOP("Rotate View Right"), "");
+  createViewerAction(V_RotateLeft, QT_TR_NOOP("Rotate Viewer Left"), "");
+  createViewerAction(V_RotateRight, QT_TR_NOOP("Rotate Viewer Right"), "");
   createViewerAction(V_ShowHideFullScreen, QT_TR_NOOP("Show//Hide Full Screen"),
                      "Alt+F");
   CommandManager::instance()->setToggleTexts(V_ShowHideFullScreen,
@@ -3288,6 +3666,9 @@ void MainWindow::defineActions() {
                          QT_TR_NOOP("Show original live view images."), "");
 #endif  // x64
 
+  // Special Modifier Keys
+  createSpecialModifierAction(V_Scrub, QT_TR_NOOP("Viewer Scrub"), "#");
+
   // create cell mark actions
   for (int markId = 0; markId < 12; markId++) {
     std::string cmdId = (std::string)MI_SetCellMark + std::to_string(markId);
@@ -3357,7 +3738,7 @@ void MainWindow::clearCacheFolder() {
   // So, this function will delete all files / folders in $CACHE
   // except the following items:
   // 1. $CACHE/[Current ProcessID]
-  //   // 2. $CACHE/temp/[Current scene folder] if the current scene is untitled
+  // 2. $CACHE/temp/[Current scene folder] if the current scene is untitled
 
   TFilePath cacheRoot = FlareFolder::getCacheRootFolder();
   if (cacheRoot.isEmpty()) cacheRoot = TEnv::getStuffDir() + "cache";
@@ -3479,7 +3860,6 @@ void RecentFiles::addFilePath(QString path, FileType fileType,
                               QString projectName) {
   QList<QString> files = (fileType == Scene)   ? m_recentScenes
                          : (fileType == Level) ? m_recentLevels
-                         : (fileType == Project) ? m_recentProjects
                                                : m_recentFlipbookImages;
   int i;
   for (i = 0; i < files.size(); i++)
@@ -3499,8 +3879,6 @@ void RecentFiles::addFilePath(QString path, FileType fileType,
     m_recentScenes = files;
   else if (fileType == Level)
     m_recentLevels = files;
-  else if (fileType == Project)
-    m_recentProjects = files;
   else
     m_recentFlipbookImages = files;
 
@@ -3627,8 +4005,6 @@ void RecentFiles::loadRecentFiles() {
     if (!flipImage.isEmpty()) m_recentFlipbookImages.append(flipImage);
   }
 
-  m_recentProjects = settings.value(QString("Projects")).toStringList();
-
   refreshRecentFilesMenu(Scene);
   refreshRecentFilesMenu(Level);
   refreshRecentFilesMenu(Flip);
@@ -3642,7 +4018,6 @@ void RecentFiles::saveRecentFiles() {
   settings.setValue(QString("Scenes"), QVariant(m_recentScenes));
   settings.setValue(QString("SceneProjects"), QVariant(m_recentSceneProjects));
   settings.setValue(QString("Levels"), QVariant(m_recentLevels));
-  settings.setValue(QString("Projects"), QVariant(m_recentProjects));
   settings.setValue(QString("FlipbookImages"),
                     QVariant(m_recentFlipbookImages));
 }
@@ -3652,7 +4027,6 @@ void RecentFiles::saveRecentFiles() {
 QList<QString> RecentFiles::getFilesNameList(FileType fileType) {
   QList<QString> files = (fileType == Scene)   ? m_recentScenes
                          : (fileType == Level) ? m_recentLevels
-                         : (fileType == Project) ? m_recentProjects
                                                : m_recentFlipbookImages;
   QList<QString> names;
   int i;
@@ -3668,7 +4042,6 @@ QList<QString> RecentFiles::getFilesNameList(FileType fileType) {
 //-----------------------------------------------------------------------------
 
 void RecentFiles::refreshRecentFilesMenu(FileType fileType) {
-  if (fileType == Project) return;
   CommandId id = (fileType == Scene)   ? MI_OpenRecentScene
                  : (fileType == Level) ? MI_OpenRecentLevel
                                        : MI_LoadRecentImage;
@@ -3691,4 +4064,3 @@ void RecentFiles::refreshRecentFilesMenu(FileType fileType) {
     if (!menu->isEnabled()) menu->setEnabled(true);
   }
 }
-

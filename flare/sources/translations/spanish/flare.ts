@@ -2060,12 +2060,12 @@ What do you want to do? </source>
     </message>
     <message>
         <source>When activated, styles of the default palette
-($TOONZSTUDIOPALETTE\cleanup_default.tpl) will 
+($FLARESTUDIOPALETTE\cleanup_default.tpl) will 
 be appended to the palette after conversion in 
 order to save the effort of creating styles 
 before color designing.</source>
         <translation>Si esta activa, los estilos de la paleta predefinida
-($TOONZSTUDIOPALETTE\cleanup_default.tpl) serán 
+($FLARESTUDIOPALETTE\cleanup_default.tpl) serán 
 anexados a la paleta, luego de la conversión para 
 ahorrar el esfuerzo de tener que crear estilos antes 
 de diseñar el color.</translation>
@@ -17791,6 +17791,41 @@ Mantener presionada la tecla F3 para ver sólo este fotograma en el visor</trans
     <message>
         <source> Frame</source>
         <translation> Fotograma</translation>
+    </message>
+</context>
+<context>
+    <name>FileBrowserLocations</name>
+    <message>
+        <source>My Computer</source>
+        <translation>Mi PC</translation>
+    </message>
+    <message>
+        <source>Network</source>
+        <translation>Red</translation>
+    </message>
+    <message>
+        <source>My Documents</source>
+        <translation>Mis documentos</translation>
+    </message>
+    <message>
+        <source>Desktop</source>
+        <translation>Escritorio</translation>
+    </message>
+    <message>
+        <source>Library</source>
+        <translation>Biblioteca</translation>
+    </message>
+    <message>
+        <source>History</source>
+        <translation>Historial</translation>
+    </message>
+    <message>
+        <source>Project root (%1)</source>
+        <translation>Raíz del proyecto (%1)</translation>
+    </message>
+    <message>
+        <source>Scene Folder</source>
+        <translation>Carpeta de la escena</translation>
     </message>
 </context>
 </TS>

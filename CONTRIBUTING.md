@@ -2,24 +2,6 @@
 
 This document describes some points about the contribution process for Flare.
 
-## Contents
-
-- [Pull-requests](#pull-requests) (incl. [Workflow](#workflow))
-- [Bugs](#bugs)
-- [Features](#features)
-- [Translations](#translations)
-- [Beginner-friendly tasks](#beginner-friendly-tasks)
-
-## New here? Start with a labelled issue
-
-- `good first issue`: small, scoped fixes. Good first PR.
-- `beginner friendly`: easy tasks, often no coding (text, docs, translations).
-- `translation`: help translate Flare.
-- `help wanted`: maintainers want help here.
-- `priority`: important, take these first.
-
-Not a programmer? Translation, docs and bug reports all count. Comment on an issue before starting so work is not duplicated.
-
 ## Pull-requests
 
 The Flare organization loves any kind of contributions, such as fixing typos and code refactoring.
@@ -28,76 +10,54 @@ We will first review the request, then we will accept it, add comments for rewor
 
 ### Workflow
 
-0. `fork` Flare to your GitHub account from `Flare-Animate/Flare`.
-   - (use the `fork` button at the https://github.com/Flare-Animate/Flare)
+0. `fork` Flare to your GitHub account from `flare/flare`.
+  - (use the `fork` button at the https://github.com/flare/flare)
 0. `clone` the repository.
-   - `git clone git@github.com:your-github-account/Flare.git`
-   - `git remote add upstream https://github.com/Flare-Animate/Flare.git`, additionally.
+  - `git clone git@github.com:your-github-account/flare.git`
+  - `git remote add upstream https://github.com/flare/flare.git`, additionally.
 0. modify the codes.
-   - `git checkout -b your-branch-name`
-     - `your-branch-name` is a name of your modifications, for example,
-       `fix/fatal-bugs`, `feature/new-useful-gui` and so on.
-   - fix codes, then test them.
-   - `git commit` them with good commit messages.
-0. `pull` the latest changes from the `master` branch of the upstream.
-   - `git pull upstream master` or `git pull --rebase upstream master`.
-   - apply [clang-format](http://clang.llvm.org/docs/ClangFormat.html) with `flare/sources/.clang-format`.
-     - `cd flare/sources`
-     - `./beautification.sh` or `beautification.bat`.
-   - `git commit` them.
-   - `git push origin your-branch-name`.
+  - `git checkout -b your-branch-name`
+    - `your-branch-name` is a name of your modifications, for example,
+      `fix/fatal-bugs`, `feature/new-useful-gui` and so on.
+  - fix codes, then test them.
+  - `git commit` them with good commit messages.
+0. `pull` the latest changes form the `master` branch of the upstream.
+  - `git pull upstream master` or `git pull --rebase upstream master`.
+  - apply [clang-format](http://clang.llvm.org/docs/ClangFormat.html) with `toonz/sources/.clang-format`.
+    - `cd toonz/sources`
+    - `./beautification.sh` or `beautification.bat`.
+  - `git commit` them.
+  - `git push origin your-branch-name`.
 0. make a pull request.
 
 ## Bugs
 
-If you find bugs, please report details about them using [issues](https://github.com/Flare-Animate/Flare/issues).
-Please include information needed to reproduce the bug, including the operating system
-and information directly relating to the issue. Links to screen captures of what is
-observed on screen or video of specific steps to produce the problem are very helpful.
-
+If you find bugs, please report details about them using [issues](https://github.com/flare/flare/issues).
+Please include information needed to reproduce the bug, including the operating system 
+and information directly relating to the issue. Links to screen captures of what is 
+observed on screen or video of specific steps to produce the problem are very helpful.  
 Then we will try to reproduce the bugs and fix them.
-Unfortunately, bugs can sometimes only be reproduced in your own environment,
-so we cannot reproduce them.
-
+Unfortunately, bugs can sometimes only be reproduced in your own environment, 
+so we cannot reproduce them. 
 If you believe you can fix the bug, please submit a pull request.
 
 ## Features
 
 If you had an idea about a new feature, please implement it and send a pull request to us.
-If you cannot implement the feature, please open a topic on the [Google Group Page](https://groups.google.com/forum/#!forum/Flare_en).
+If you cannot implement the feature, please open a topic on the [Google Group Page](https://groups.google.com/forum/#!forum/opentoonz_en).
 It enables us to discuss implementations of the feature there.
-Feature requests posted on GitHub without an active developer or funding will be closed
+Feature requests posted on GitHub without an active developer or funding will be closed 
 to keep the issue tracker from becoming cluttered with unfulfilled feature requests.
-
-## Beginner-friendly tasks
-
-New to contributing? Start with issues labeled:
-
-- `beginner friendly`: small, self-contained tasks that need little prior knowledge. Use the "Beginner task" issue template to propose one.
-- `good first issue`: real, important problems with a clear scope, good entry points for new contributors.
-- `translation`: translating the Flare UI or docs (see [Translations](#translations)).
-- `help wanted`: maintainers would welcome help here.
-- `priority`: important issues to take first.
-
-Comment on an issue before starting so work is not duplicated, then open a pull request as described in [Pull-requests](#pull-requests).
 
 ## Translations
 
-Translation source (`.ts`) files for Flare GUI are located in `flare/sources/translations`.
-If you create new `.ts` files for your language or update an existing one,
-please send us those modifications as pull-requests.
-[Qt Linguist](http://doc.qt.io/qt-5.6/linguist-translators.html) is useful for translating them.
+Translation sources (`.ts`) are in `toonz/sources/translations`. Contributors can
+edit them with Qt Linguist and submit a PR, or attach the updated files to an
+issue/discussion for a maintainer to integrate. A full application build is not
+required to contribute wording. Share editable sources; compiled `.qm` files are
+optional test artifacts unless a maintainer requests them.
 
-Please send us Qt message (`.qm`) files with `.ts` files if you can make the following modifications.
-
-Flare uses `.qm` files generated from `.ts` files.
-You can generate `.qm` files by using [Qt Linguist](http://doc.qt.io/qt-5.6/linguist-translators.html).
-Please locate generated `.qm` files in `stuff/config/loc`.
-It enables the Flare installer to install them into the `stuff` directory.
-
-
-## Submitting a layout
-
-Layouts live in `stuff/profiles/layouts/rooms/<Name>/`. Build yours (by hand or with an AI agent, see `doc/LAYOUT_CUSTOMIZATION.md`),
-check it with `python tools/layout_tool.py validate <dir>` and `python tests/test_layout_tool.py`, then send a PR containing only that directory.
-Never name it `Default`.
+See [Contributing and maintaining translations](toonz/sources/translations/README.md)
+for the two workflows: sharing translations, and reviewing/merging/updating them.
+The guide includes existing Qt Linguist, shell-script, and CMake/Visual Studio
+processes, validation, runtime paths, and packaging checks.
