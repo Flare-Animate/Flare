@@ -53,10 +53,10 @@ usvg = "0.44"
 resvg = "0.44"
 rfd = "0.17"
 dirs = "5"
-effectcraft-effects = { git = "https://github.com/storytold/effectcraft", branch = "main" }
-effectcraft-raster = { git = "https://github.com/storytold/effectcraft", branch = "main" }
-effectcraft-keyframe = { git = "https://github.com/storytold/effectcraft", branch = "main" }
-effectcraft-project = { git = "https://github.com/storytold/effectcraft", branch = "main" }
+effectcraft-effects = { git = "https://github.com/storytold/effectcraft", rev = "549e9d825132986d6167c1432cd3328efcbb0278" }
+effectcraft-raster = { git = "https://github.com/storytold/effectcraft", rev = "549e9d825132986d6167c1432cd3328efcbb0278" }
+effectcraft-keyframe = { git = "https://github.com/storytold/effectcraft", rev = "549e9d825132986d6167c1432cd3328efcbb0278" }
+effectcraft-project = { git = "https://github.com/storytold/effectcraft", rev = "549e9d825132986d6167c1432cd3328efcbb0278" }
 photocraft-psd = { git = "https://github.com/storytold/photocraft", branch = "main" }
 
 [profile.dev.package."*"]
