@@ -300,9 +300,6 @@ theme.cpp
     sandor_fxs/InputParam.cpp
     sandor_fxs/Params.cpp
     sandor_fxs/Pattern.cpp
-    sandor_fxs/PatternMapParam.cpp
-    sandor_fxs/PatternPosition.cpp
-    sandor_fxs/SDirection.cpp
     sandor_fxs/SError.cpp
     sandor_fxs/STColSelPic.cpp
     sandor_fxs/STPic.cpp

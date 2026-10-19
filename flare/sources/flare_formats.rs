@@ -186,6 +186,12 @@ pub mod cil;
 pub mod callcircle;
 #[path = "flarelib/sandor_fxs/BlurMatrix.rs"]
 pub mod blurmatrix;
+#[path = "flarelib/sandor_fxs/PatternPosition.rs"]
+pub mod patternposition;
+#[path = "flarelib/sandor_fxs/SDirection.rs"]
+pub mod sdirection;
+#[path = "flarelib/sandor_fxs/PatternMapParam.rs"]
+pub mod patternmapparam;
 #[path = "stdfx/igs_hls_noise.rs"]
 pub mod igs_hls_noise;
 #[path = "stdfx/naru_maxflow.rs"]

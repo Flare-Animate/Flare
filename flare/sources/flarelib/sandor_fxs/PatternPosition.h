@@ -15,26 +15,62 @@
 #include "SError.h"
 #include "SDef.h"
 
+// Implemented in PatternPosition.rs (flare_formats). Both return the number of
+// positions and store 2*n ints (x, y pairs) in *out, to be released with
+// flare_pattern_position_free; negative = failure (the old SMemAllocError).
+// The generator is passed in (::rand here) so the Rust side is testable.
+extern "C" {
+int flare_pattern_position_random(int nbPat, int nbPixel, int lX, int lY,
+                                  const unsigned char *sel, int (*randfn)(void),
+                                  int randMax, int **out);
+int flare_pattern_position_dd(int lX, int lY, const unsigned char *sel,
+                              double minD, double maxD, int (*randfn)(void),
+                              int **out);
+void flare_pattern_position_free(int *p, int n);
+}
+
 class CPatternPosition {
-  bool isInSet(const int nbSet, const int *set, const int val);
+  static int rand_source() { return rand(); }
+
+  void takePositions(int n, int *xy) {
+    if (n < 0) throw SMemAllocError("in Pattern Position Generation");
+    try {
+      for (int i = 0; i < n; i++) {
+        SPOINT xyp = {xy[2 * i], xy[2 * i + 1]};
+        m_pos.push_back(xyp);
+      }
+    } catch (...) {
+      flare_pattern_position_free(xy, n);
+      throw;
+    }
+    flare_pattern_position_free(xy, n);
+  }
+
+  bool isInSet(const int nbSet, const int *set, const int val) {
+    for (int i = 0; i < nbSet; i++)
+      if (set[i] == val) return true;
+    return false;
+  }
   void makeRandomPositions(const int nbPat, const int nbPixel, const int lX,
-                           const int lY, const UCHAR *sel);
+                           const int lY, const UCHAR *sel) {
+    int *xy = nullptr;
+    int n   = flare_pattern_position_random(nbPat, nbPixel, lX, lY, sel,
+                                          &rand_source, RAND_MAX, &xy);
+    takePositions(n, xy);
+  }
   void makeDDPositions(const int lX, const int lY, UCHAR *sel,
-                       const double minD, const double maxD);
-  void getPosAroundThis(const int lX, const int lY, const UCHAR *lSel,
-                        const int xx, const int yy, int &xPos, int &yPos);
-  bool findEmptyPos(const int lX, const int lY, const UCHAR *lSel, int &xPos,
-                    int &yPos, SRECT &bb);
-  void eraseCurrentArea(const int lX, const int lY, UCHAR *lSel,
-                        std::vector<SPOINT> &ddc, const int xx, const int yy);
-  void sel0255To01(const int lX, const int lY, UCHAR *sel, SRECT &bb);
-  void prepareCircle(std::vector<SPOINT> &v, const double r);
+                       const double minD, const double maxD) {
+    int *xy = nullptr;
+    int n   = flare_pattern_position_dd(lX, lY, sel, minD, maxD, &rand_source,
+                                      &xy);
+    takePositions(n, xy);
+  }
 
 public:
   std::vector<SPOINT> m_pos;
 
   CPatternPosition() : m_pos(0){};
-  virtual ~CPatternPosition();
+  virtual ~CPatternPosition() { m_pos.clear(); }
 
   template <class P>
   CPatternPosition(CSTColSelPic<P> &p, const int nbPixel, const double dens,
