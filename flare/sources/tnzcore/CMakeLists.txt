@@ -221,7 +221,6 @@ set(SOURCES
     # Legacy Flash support sources (restored from upstream commit)
     ../common/flash/FAction.cpp
     ../common/flash/FCT.cpp
-    ../common/flash/FDT.cpp
     ../common/flash/FDTBitmaps.cpp
     ../common/flash/FDTButtons.cpp
     ../common/flash/FDTFonts.cpp
