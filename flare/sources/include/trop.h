@@ -267,6 +267,56 @@ DVAPI void brush(TRaster32P ras, const TPoint &a, const TPoint &b, int radius,
 //! Get \b bbox of \b ras raster
 DVAPI void computeBBox(TRasterP ras, TRect &bbox);
 
+//********************************************************************************
+//    TRop::computeBBox  implementation
+//
+// The scan lives in common/trop/rust/bbox.rs (flare_formats); only the
+// raster-type dispatch remains here. TRectT<int>() is (0,0,-1,-1), which is
+// what the Rust reports as Rect::EMPTY, and getBounds() is (0,0,lx-1,ly-1).
+//********************************************************************************
+
+struct FlareTRect {
+  int x0, y0, x1, y1;
+};
+
+extern "C" {
+void flare_trop_bbox_u8(const void *ras, int wrap, int lx, int ly,
+                        struct FlareTRect *out);
+void flare_trop_bbox_u16(const void *ras, int wrap, int lx, int ly,
+                         struct FlareTRect *out);
+void flare_trop_bbox_cm32(const void *ras, int wrap, int lx, int ly,
+                          struct FlareTRect *out);
+}
+
+void TRop::computeBBox(TRasterP ras, TRect &bbox) {
+  const int lx = ras->getLx(), ly = ras->getLy();
+
+  // GR8 has no matte, so every pixel is opaque: the bounds are the answer.
+  if (ras) {
+    bbox = ras->getBounds();
+  }
+
+  FlareTRect r = {0, 0, 0, 0};
+  if (TRaster32P ras32 = ras) {
+    flare_trop_bbox_u8(ras32->pixels(), ras32->getWrap(), lx, ly, &r);
+  } else if (TRaster64P ras64 = ras) {
+    flare_trop_bbox_u16(ras64->pixels(), ras64->getWrap(), lx, ly, &r);
+  } else if (TRasterCM32P rasCM32 = ras) {
+    flare_trop_bbox_cm32(rasCM32->pixels(), rasCM32->getWrap(), lx, ly, &r);
+  } else if (ras) {
+    // Not a raster we can scan (GR8 and friends): bounds already assigned.
+    return;
+  } else {
+    assert(0);
+    return;
+  }
+
+  bbox.x0 = r.x0;
+  bbox.y0 = r.y0;
+  bbox.x1 = r.x1;
+  bbox.y1 = r.y1;
+}
+
 //! Add background of color \b col to the \b ras raster
 DVAPI void addBackground(TRasterP ras, const TPixel32 &col);
 
