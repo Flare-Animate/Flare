@@ -2,6 +2,7 @@
 
 #include "trastercm.h"
 #include "texception.h"
+#include "tpixelutils.h"
 
 #undef DVAPI
 #undef DVVAR
@@ -115,8 +116,53 @@ DVAPI void rgbmAdjust(TRasterP rout, TRasterP rin, const int *in0,
 /*! Two variables \b TPixel32 describe the checkboard color,
       \b TDimension are checkboard dimension and \b TPoinD the position
   \include checkBoard_ex.cpp*/
-DVAPI void checkBoard(TRasterP rout, const TPixel32 &, const TPixel32 &,
-                      const TDimensionD &, const TPointD &);
+inline void checkBoard(TRasterP rout, const TPixel32 &, const TPixel32 &,
+                       const TDimensionD &, const TPointD &);
+
+//********************************************************************************
+//    TRop::checkBoard  implementation
+//
+// The pattern computation lives in common/trop/rust/checkboard.rs
+// (flare_formats); only the raster-type dispatch remains here. Note that
+// \b dim drives the pattern frequency while the loop runs over the raster's
+// own size -- the C++ treated these as independent and so does this.
+//********************************************************************************
+
+extern "C" {
+void flare_trop_checkboard_u8(void *out, int wrap, int lx, int ly,
+                              const void *pix1, const void *pix2, double dimLx,
+                              double dimLy, double offsetX, double offsetY);
+void flare_trop_checkboard_u16(void *out, int wrap, int lx, int ly,
+                               const void *pix1, const void *pix2, double dimLx,
+                               double dimLy, double offsetX, double offsetY);
+void flare_trop_checkboard_f32(void *out, int wrap, int lx, int ly,
+                               const void *pix1, const void *pix2, double dimLx,
+                               double dimLy, double offsetX, double offsetY);
+}
+
+inline void checkBoard(TRasterP rout, const TPixel32 &pix1,
+                       const TPixel32 &pix2, const TDimensionD &dim,
+                       const TPointD &offset) {
+  const int wrap = rout->getWrap(), lx = rout->getLx(), ly = rout->getLy();
+  const double dimLx = dim.lx, dimLy = dim.ly, offX = offset.x,
+               offY = offset.y;
+
+  if (TRaster32P rout32 = rout) {
+    flare_trop_checkboard_u8(rout32->pixels(), wrap, lx, ly, &pix1, &pix2, dimLx,
+                             dimLy, offX, offY);
+  } else if (TRaster64P rout64 = rout) {
+    // Convert first, exactly as the original did, then hand over the bytes.
+    const TPixel64 p1 = toPixel64(pix1), p2 = toPixel64(pix2);
+    flare_trop_checkboard_u16(rout64->pixels(), wrap, lx, ly, &p1, &p2, dimLx,
+                              dimLy, offX, offY);
+  } else if (TRasterFP routF = rout) {
+    const TPixelF p1 = toPixelF(pix1), p2 = toPixelF(pix2);
+    flare_trop_checkboard_f32(routF->pixels(), wrap, lx, ly, &p1, &p2, dimLx,
+                              dimLy, offX, offY);
+  } else {
+    throw TRopException("unsupported pixel type");
+  }
+}
 
 //! Make the image over of the \b up raster on the \b dn raster and put the
 //! resulting raster in \b rout
@@ -222,6 +268,56 @@ DVAPI void brush(TRaster32P ras, const TPoint &a, const TPoint &b, int radius,
 
 //! Get \b bbox of \b ras raster
 DVAPI void computeBBox(TRasterP ras, TRect &bbox);
+
+//********************************************************************************
+//    TRop::computeBBox  implementation
+//
+// The scan lives in common/trop/rust/bbox.rs (flare_formats); only the
+// raster-type dispatch remains here. TRectT<int>() is (0,0,-1,-1), which is
+// what the Rust reports as Rect::EMPTY, and getBounds() is (0,0,lx-1,ly-1).
+//********************************************************************************
+
+struct FlareTRect {
+  int x0, y0, x1, y1;
+};
+
+extern "C" {
+void flare_trop_bbox_u8(const void *ras, int wrap, int lx, int ly,
+                        struct FlareTRect *out);
+void flare_trop_bbox_u16(const void *ras, int wrap, int lx, int ly,
+                         struct FlareTRect *out);
+void flare_trop_bbox_cm32(const void *ras, int wrap, int lx, int ly,
+                          struct FlareTRect *out);
+}
+
+void TRop::computeBBox(TRasterP ras, TRect &bbox) {
+  const int lx = ras->getLx(), ly = ras->getLy();
+
+  // GR8 has no matte, so every pixel is opaque: the bounds are the answer.
+  if (ras) {
+    bbox = ras->getBounds();
+  }
+
+  FlareTRect r = {0, 0, 0, 0};
+  if (TRaster32P ras32 = ras) {
+    flare_trop_bbox_u8(ras32->pixels(), ras32->getWrap(), lx, ly, &r);
+  } else if (TRaster64P ras64 = ras) {
+    flare_trop_bbox_u16(ras64->pixels(), ras64->getWrap(), lx, ly, &r);
+  } else if (TRasterCM32P rasCM32 = ras) {
+    flare_trop_bbox_cm32(rasCM32->pixels(), rasCM32->getWrap(), lx, ly, &r);
+  } else if (ras) {
+    // Not a raster we can scan (GR8 and friends): bounds already assigned.
+    return;
+  } else {
+    assert(0);
+    return;
+  }
+
+  bbox.x0 = r.x0;
+  bbox.y0 = r.y0;
+  bbox.x1 = r.x1;
+  bbox.y1 = r.y1;
+}
 
 //! Add background of color \b col to the \b ras raster
 DVAPI void addBackground(TRasterP ras, const TPixel32 &col);

@@ -247,12 +247,11 @@ set(SOURCES
     ${SDKROOT}/zlib-1.2.8/contrib/minizip/zip.c
     ../common/psdlib/psd.cpp
     ../common/psdlib/psdutils.cpp
-    ../common/trop/bbox.cpp
     ../common/trop/brush.cpp
     ../common/trop/quickput.cpp
     ../common/trop/tantialias.cpp
     ../common/trop/tblur.cpp
-    ../common/trop/tcheckboard.cpp
+    
     ../common/trop/tconvert.cpp
     ../common/trop/tconvolve.cpp
     ../common/trop/tdespeckle.cpp
