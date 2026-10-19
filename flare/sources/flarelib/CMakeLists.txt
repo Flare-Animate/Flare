@@ -211,7 +211,6 @@ set(SOURCES
     hook.cpp
     ikengine.cpp
     ikjacobian.cpp
-    iknode.cpp
     ikskeleton.cpp
     imagebuilders.cpp
     imagelocation.cpp
@@ -239,7 +238,6 @@ theme.cpp
     sceneresources.cpp
 
     skeleton.cpp
-    skeletonlut.cpp
     stage.cpp
     stage2.cpp
     stageobjectutil.cpp

@@ -5,7 +5,14 @@
 
 #include <math.h>
 #include <assert.h>
+#include <vector>
 #include "tgeometry.h"
+
+// Implemented in flarelib/iknode.rs (flare_formats). Return 0 on success.
+extern "C" int flare_iknode_rotate_point(double *x, double *y, double theta);
+extern "C" int flare_iknode_compute_s(double rx, double ry, size_t n,
+                                      const double *thetas, const double *rs,
+                                      double *outS);
 
 #undef DVAPI
 #undef DVVAR
@@ -43,7 +50,7 @@ public:
 
   void setPos(const TPointD &pos) { m_pos = pos; }
   TPointD getPos() const { return m_pos; }
-  void setPurpose(Purpose purpose);
+  void setPurpose(Purpose purpose) { m_purpose = purpose; }
 
   void setSeqNumJoint(int number) { m_seqNumJoint = number; }
   void setSeqNumEffector(int number) { m_seqNumEffector = number; }
@@ -62,7 +69,22 @@ public:
   void setR(TPointD pos) { r = pos; }
   void setS(TPointD pos) { s = pos; }
 
-  void computeS(void);
+  // Global position of this node. The ancestor chain (nearest first) is
+  // gathered here and the rotate/translate arithmetic runs in Rust.
+  void computeS(void) {
+    std::vector<double> thetas, rs;
+    for (IKNode *y = getParent(); y; y = y->getParent()) {
+      thetas.push_back(y->theta);
+      rs.push_back(y->r.x);
+      rs.push_back(y->r.y);
+    }
+    double out[2] = {r.x, r.y};
+    if (flare_iknode_compute_s(r.x, r.y, thetas.size(), thetas.data(),
+                               rs.data(), out) != 0)
+      return;
+    s = TPointD(out[0], out[1]);
+    if (!thetas.empty()) m_pos = s;  // the original only set m_pos inside the walk
+  }
 
   double AddToTheta(double delta) {
     theta += delta;
@@ -94,5 +116,11 @@ private:
 
   bool freezed;  
 };
+
+// Free function of the original iknode.cpp: rotates `point` in place and returns it.
+inline TPointD rotatePoint(TPointD &point, double theta) {
+  flare_iknode_rotate_point(&point.x, &point.y, theta);
+  return point;
+}
 
 #endif  // IKNODE_H
