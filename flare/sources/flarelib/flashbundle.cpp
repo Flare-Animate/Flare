@@ -714,7 +714,7 @@ struct PortableDrawing {
   // TFilePath members through their own (explicit) default constructor
   // directly, rather than through aggregate-initialization's copy-init of
   // each member, which an explicit constructor cannot satisfy.
-  PortableDrawing() = default;
+  PortableDrawing()      = default;
   TXshSimpleLevel *level = nullptr;
   TFilePath original;
   TFilePath destination;
