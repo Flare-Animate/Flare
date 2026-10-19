@@ -43,7 +43,6 @@ set(SOURCES
     ExtUtil.cpp
     Selector.cpp
     StrokeParametricDeformer.cpp
-    Types.cpp
     LinearPotential.cpp
     NotSymmetricBezierPotential.cpp
     NotSymmetricExpPotential.cpp

@@ -30,6 +30,13 @@
 #pragma warning(disable : 4290)
 #endif
 
+// Parity tests live in tnzext/Types.rs (flare_formats); the range_error throws
+// stay here because a C++ exception cannot cross the C ABI.
+extern "C" {
+bool flare_ext_is_odd(int v);
+bool flare_ext_is_even(int v);
+}
+
 namespace ToonzExt {
 namespace Type {
 enum Corner { STRAIGHT, SPIRE, UNKNOWN };
@@ -61,23 +68,29 @@ class DVAPI OddInt {
   int val_;
 
 public:
-  OddInt(int);
+  OddInt(int v) : val_(v) {}
   /**
 *@brief Cast an integer, if is not an even exception is
 *       thrown.
 */
-  operator int() const;
+  operator int() const {
+    if (!isOdd()) throw std::range_error("Value is Even!!!");
+    return val_;
+  }
 
   /**
 *@copydoc operator int() const
 */
-  operator int();
+  operator int() {
+    if (!isOdd()) throw std::range_error("Value is Even!!!");
+    return val_;
+  }
 
   /**
 *@brief Simple check to verify that a number is odd,
 *       without exception.
 */
-  bool isOdd() const;
+  bool isOdd() const { return flare_ext_is_odd(val_); }
 };
 
 /**
@@ -92,24 +105,30 @@ class DVAPI EvenInt {
   int val_;
 
 public:
-  EvenInt(int);
+  EvenInt(int v) : val_(v) {}
 
   /**
 *@brief Cast an integer, if is not an even exception is
 *       thrown.
 */
-  operator int() const;
+  operator int() const {
+    if (!isEven()) throw std::range_error("Value is Odd!!!");
+    return val_;
+  }
 
   /**
 *@copydoc operator int() const
 */
-  operator int();
+  operator int() {
+    if (!isEven()) throw std::range_error("Value is Odd!!!");
+    return val_;
+  }
 
   /**
 *@brief Simple check to verify that a number is even,
 *       without exception.
 */
-  bool isEven() const;
+  bool isEven() const { return flare_ext_is_even(val_); }
 };
 }
 
