@@ -118,6 +118,50 @@ DVAPI void rgbmAdjust(TRasterP rout, TRasterP rin, const int *in0,
 DVAPI void checkBoard(TRasterP rout, const TPixel32 &, const TPixel32 &,
                       const TDimensionD &, const TPointD &);
 
+//********************************************************************************
+//    TRop::checkBoard  implementation
+//
+// The pattern computation lives in common/trop/rust/checkboard.rs
+// (flare_formats); only the raster-type dispatch remains here. Note that
+// \b dim drives the pattern frequency while the loop runs over the raster's
+// own size -- the C++ treated these as independent and so does this.
+//********************************************************************************
+
+extern "C" {
+void flare_trop_checkboard_u8(void *out, int wrap, int lx, int ly,
+                              const void *pix1, const void *pix2, double dimLx,
+                              double dimLy, double offsetX, double offsetY);
+void flare_trop_checkboard_u16(void *out, int wrap, int lx, int ly,
+                               const void *pix1, const void *pix2, double dimLx,
+                               double dimLy, double offsetX, double offsetY);
+void flare_trop_checkboard_f32(void *out, int wrap, int lx, int ly,
+                               const void *pix1, const void *pix2, double dimLx,
+                               double dimLy, double offsetX, double offsetY);
+}
+
+void TRop::checkBoard(TRasterP rout, const TPixel32 &pix1, const TPixel32 &pix2,
+                      const TDimensionD &dim, const TPointD &offset) {
+  const int wrap = rout->getWrap(), lx = rout->getLx(), ly = rout->getLy();
+  const double dimLx = dim.lx, dimLy = dim.ly, offX = offset.x,
+               offY = offset.y;
+
+  if (TRaster32P rout32 = rout) {
+    flare_trop_checkboard_u8(rout32->pixels(), wrap, lx, ly, &pix1, &pix2, dimLx,
+                             dimLy, offX, offY);
+  } else if (TRaster64P rout64 = rout) {
+    // Convert first, exactly as the original did, then hand over the bytes.
+    const TPixel64 p1 = toPixel64(pix1), p2 = toPixel64(pix2);
+    flare_trop_checkboard_u16(rout64->pixels(), wrap, lx, ly, &p1, &p2, dimLx,
+                              dimLy, offX, offY);
+  } else if (TRasterFP routF = rout) {
+    const TPixelF p1 = toPixelF(pix1), p2 = toPixelF(pix2);
+    flare_trop_checkboard_f32(routF->pixels(), wrap, lx, ly, &p1, &p2, dimLx,
+                              dimLy, offX, offY);
+  } else {
+    throw TRopException("unsupported pixel type");
+  }
+}
+
 //! Make the image over of the \b up raster on the \b dn raster and put the
 //! resulting raster in \b rout
 /*! \include over_ex1.cpp*/

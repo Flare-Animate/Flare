@@ -126,6 +126,8 @@ pub mod tcolorvalue;
 pub mod runsmap;
 #[path = "common/trop/rust/invert.rs"]
 pub mod trop_invert;
+#[path = "common/trop/rust/checkboard.rs"]
+pub mod trop_checkboard;
 #[path = "stdfx/igs_color_rgb_hls.rs"]
 pub mod igs_color_rgb_hls;
 #[path = "stdfx/igs_color_rgb_hsv.rs"]
