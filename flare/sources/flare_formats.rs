@@ -124,6 +124,8 @@ pub mod trandom;
 pub mod tcolorvalue;
 #[path = "common/trop/runsmap.rs"]
 pub mod runsmap;
+#[path = "common/trop/rust/invert.rs"]
+pub mod trop_invert;
 #[path = "stdfx/igs_color_rgb_hls.rs"]
 pub mod igs_color_rgb_hls;
 #[path = "stdfx/igs_color_rgb_hsv.rs"]

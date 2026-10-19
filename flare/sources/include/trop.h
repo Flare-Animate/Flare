@@ -231,6 +231,10 @@ DVAPI bool isOpaque(TRasterP ras);
 
 //! Invert \b ras color in according with \b invRed, \b invGreen, \b invBlue, \b
 //! invMatte
+//!
+//! The pixel kernels live in common/trop/rust/invert.rs (flare_formats); only
+//! the raster-type dispatch remains, in common/trop/trop.cpp. There is no
+//! invert.cpp any more.
 DVAPI void invert(TRasterP ras, bool invRed = true, bool invGreen = true,
                   bool invBlue = true, bool invMatte = false);
 
@@ -421,3 +425,45 @@ DVAPI void tosRGB(TRasterP raster, double gamma,
 DVAPI void adjustGain(TRasterP raster, int gainStep, double gamma);
 
 }  // namespace TRop
+
+//********************************************************************************
+//    TRop::invert  implementation
+//
+// The pixel kernels live in common/trop/rust/invert.rs (flare_formats); only
+// the raster-type dispatch remains here. \b wrap, \b lx and \b ly are in
+// pixels, as TRasterT reports them.
+//********************************************************************************
+
+extern "C" {
+void flare_trop_invert_u8(void *pixels, int wrap, int lx, int ly, bool invR,
+                          bool invG, bool invB, bool invM);
+void flare_trop_invert_u16(void *pixels, int wrap, int lx, int ly, bool invR,
+                           bool invG, bool invB, bool invM);
+void flare_trop_invert_f32(void *pixels, int wrap, int lx, int ly, bool invR,
+                           bool invG, bool invB, bool invM);
+void flare_trop_invert_gr8(void *pixels, int wrap, int lx, int ly);
+}
+
+void TRop::invert(TRasterP ras, bool invRed, bool invGreen, bool invBlue,
+                  bool invMatte) {
+  // Matches the original: a matte flag on its own is a no-op, and GR8 ignores
+  // the channel flags entirely.
+  if (!invRed && !invGreen && !invBlue) return;
+
+  const int wrap = ras->getWrap(), lx = ras->getLx(), ly = ras->getLy();
+
+  if (TRaster32P ras32 = ras) {
+    flare_trop_invert_u8(ras32->pixels(), wrap, lx, ly, invRed, invGreen, invBlue,
+                         invMatte);
+  } else if (TRaster64P ras64 = ras) {
+    flare_trop_invert_u16(ras64->pixels(), wrap, lx, ly, invRed, invGreen, invBlue,
+                          invMatte);
+  } else if (TRasterFP rasF = ras) {
+    flare_trop_invert_f32(rasF->pixels(), wrap, lx, ly, invRed, invGreen, invBlue,
+                          invMatte);
+  } else if (TRasterGR8P ras8 = ras) {
+    flare_trop_invert_gr8(ras8->pixels(), wrap, lx, ly);
+  } else {
+    throw TRopException("unsupported pixel type");
+  }
+}

@@ -258,7 +258,7 @@ set(SOURCES
     ../common/trop/tdespeckle.cpp
     ../common/trop/tdistancetransform.cpp
     ../common/trop/terodilate.cpp
-    ../common/trop/tinvert.cpp
+    
     ../common/trop/toperators.cpp
     ../common/trop/tover.cpp
     ../common/trop/traylit.cpp
