@@ -192,6 +192,10 @@ pub mod igs_motion_wind_table;
 pub mod igs_attenuation_distribution;
 #[path = "stdfx/igs_motion_wind_pixel.rs"]
 pub mod igs_motion_wind_pixel;
+#[path = "flarelib/skeletonlut.rs"]
+pub mod skeletonlut;
+#[path = "flarelib/iknode.rs"]
+pub mod iknode;
 
 /// TFilePath query (see header). Returns full byte length; copies up to `cap` into `out`.
 #[no_mangle]

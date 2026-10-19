@@ -50,6 +50,8 @@ Crate manifest: `flare/sources/Cargo.toml`. Tests: `python tests/run_rust.py`.
 | sound | sound/tsioutils.cpp | sound/tsioutils.rs | (earlier) | coarse |
 | tnzbase | tnzbase/permissionsmanager.cpp | tnzbase/permissionsmanager.rs | (earlier) | fine |
 | stdfx | stdfx/naru_maxflow.cpp | stdfx/naru_maxflow.rs | 6 | coarse (whole graph; opaque C-ABI handle, naru_graph.h forwards) |
+| flarelib | flarelib/skeletonlut.cpp | flarelib/skeletonlut.rs | 3 | data (8 constant LUTs exported as C symbols; `skeletonlut.h` rebinds `SkeletonLut::*` as array references; hashes pinned to the original) |
+| flarelib | flarelib/iknode.cpp | flarelib/iknode.rs | 7 | coarse (`IKNode::computeS` ancestor chain + `rotatePoint`; class stays in `iknode.h`; bit-identical to a literal transcription of the C++ walk) |
 
 Notes: the C++ `throw`s (TMathException, std::domain_error) stay in the inline header
 forwarders; Rust returns a status code. Modules that call the forwarders link `flare_formats`
