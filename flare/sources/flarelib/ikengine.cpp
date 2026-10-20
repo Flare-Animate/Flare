@@ -3,6 +3,8 @@
 #include "flare/ikengine.h"
 #include "flare/ikjacobian.h"
 
+#include <stdexcept>
+
 enum Method { JACOB_TRANS, PURE_PSEUDO, DLS, SDLS, COMPARE };
 
 IKEngine::IKEngine() {}
@@ -43,19 +45,23 @@ bool IKEngine::isLocked(int index) {
   return m_skeleton.getNode(index)->IsEffector();
 }
 
+// The angle arithmetic (normalize, perpendicular, atan2) is in ikjacobian.rs.
+extern "C" int flare_ikengine_joint_angle(double px, double py, int hasPrev, double prx,
+                                          double pry, double nx, double ny, double *out);
+
 double IKEngine::getJointAngle(int index) {
   assert(index > -1 && index < m_skeleton.getNodeCount());
   TPointD pos = m_skeleton.getNode(index)->getPos();
-  TPointD u(1, 0);
+  TPointD prevPos;
   if (index != 0) {
-    int parent      = getJointParent(index);
-    TPointD prevPos = m_skeleton.getNode(parent)->getPos();
-    u               = normalize(pos - prevPos);
+    int parent = getJointParent(index);
+    prevPos    = m_skeleton.getNode(parent)->getPos();
   }
-  TPointD v(-u.y, u.x);
   TPointD nextPos = m_skeleton.getNode(index + 1)->getPos();
-  TPointD d       = nextPos - pos;
-  double theta    = atan2(d * v, d * u);
+  double theta    = 0.0;
+  if (flare_ikengine_joint_angle(pos.x, pos.y, index != 0 ? 1 : 0, prevPos.x, prevPos.y,
+                                 nextPos.x, nextPos.y, &theta) != 0)
+    throw std::runtime_error("IKEngine::getJointAngle failed");
   return theta;
 }
 

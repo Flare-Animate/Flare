@@ -214,6 +214,8 @@ pub mod igs_motion_wind_pixel;
 pub mod skeletonlut;
 #[path = "flarelib/iknode.rs"]
 pub mod iknode;
+#[path = "flarelib/ikjacobian.rs"]
+pub mod ikjacobian;
 
 /// TFilePath query (see header). Returns full byte length; copies up to `cap` into `out`.
 #[no_mangle]
