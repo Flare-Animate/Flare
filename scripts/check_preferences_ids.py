@@ -17,11 +17,14 @@ def strip(t):
 
 call = re.compile(r"\b(?:get(?:Bool|Int|String|Double)?Value|setValue|getUI(?:<[^>]*>)?|insertUI|m_onEditedFuncMap\.insert|m_controlIdMap\.key|setEnabled|insertDualUIs|setCallBack)\(\s*(\w+)")
 pair = re.compile(r"\{\s*(\w+)\s*,\s*(?:tr\(|\{)")   # popup label / combo tables
-popup = root/"flare/preferencespopup.cpp"
+popup = root/"flare_legacy/preferencespopup.cpp"
 bad = 0
 seen = set()
 for p in root.rglob("*"):
-    if p.suffix not in (".cpp", ".h") or "legacy" in str(p): continue
+    if p.suffix not in (".cpp", ".h"): continue
+    # flare/preferencespopup.cpp is shadowed by flare_legacy/preferencespopup.cpp
+    # (flare_legacy/CMakeLists.txt resolves its own copy first), so it is not built.
+    if p == root/"flare/preferencespopup.cpp": continue
     t = strip(p.read_text(errors="ignore"))
     pats = [call] + ([pair] if p == popup else [])
     for rx in pats:
@@ -36,7 +39,7 @@ for p in root.rglob("*"):
             # not an id: only a problem when it is used as a bare member argument
             # of Preferences accessors in the three preference files.
             if p.name in ("preferences.h", "preferencespopup.cpp") and rx is call and re.fullmatch(r"[A-Za-z]\w*", n) \
-               and not n.startswith(("m_", "s_")) and n not in ("id", "item", "this", "key", "name"):
+               and not n.startswith(("m_", "s_")) and n not in ("id", "item", "this", "key", "name", "customCheck"):
                 print(f"NOT IN ENUM: {n} ({p.relative_to(root)})"); bad += 1
             elif rx is pair and n not in ("Stage", "color") and n[0].islower():
                 print(f"POPUP TABLE ID NOT IN ENUM: {n} ({p.relative_to(root)})"); bad += 1

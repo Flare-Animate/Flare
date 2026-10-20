@@ -748,34 +748,6 @@ void Preferences::definePreferenceItems() {
   // This option will be shown & available only when WITH_WINTAB is defined
   define(useQtNativeWinInk, "useQtNativeWinInk", QMetaType::Bool, false);
 
-  // Items the Preferences popup binds to (tahoma2d-ported / Flare-owned).
-  define(tipsPopupEnabled, "tipsPopupEnabled", QMetaType::Bool, true);
-  define(highDpiScalingEnabled, "highDpiScalingEnabled", QMetaType::Bool,
-         true);
-  define(iconSizePB, "iconSizePB", QMetaType::QSize, QSize(80, 45),
-         QSize(10, 10), QSize(400, 400));
-  define(doNotShowPopupSaveScene, "doNotShowPopupSaveScene", QMetaType::Bool,
-         false);
-  define(EnableImplicitHold, "EnableImplicitHold", QMetaType::Bool, false);
-  define(magnetNonLinearSliderEnabled, "magnetNonLinearSliderEnabled",
-         QMetaType::Bool, false);
-  define(toolScale, "toolScale", QMetaType::Bool, false);
-  define(showColumnParents, "showColumnParents", QMetaType::Bool, false);
-  define(showImagesInCellTooltip, "showImagesInCellTooltip", QMetaType::Bool,
-         false);
-  define(inputCellsWithoutDoubleClickingEnabled,
-         "inputCellsWithoutDoubleClickingEnabled", QMetaType::Bool, false);
-  define(showQuickToolbar, "showQuickToolbar", QMetaType::Bool, true);
-  define(inbetweenFlipDrawingCount, "inbetweenFlipDrawingCount",
-         QMetaType::Int, 2, 1, 20);
-  define(inbetweenFlipSpeed, "inbetweenFlipSpeed", QMetaType::Int, 100, 10,
-         2000);
-  define(useThemeViewerColors, "useThemeViewerColors", QMetaType::Bool, false);
-  define(gestureUndoMethod, "gestureUndoMethod", QMetaType::Int,
-         static_cast<int>(TwoFingerTap));
-  define(gestureRedoMethod, "gestureRedoMethod", QMetaType::Int,
-         static_cast<int>(ThreeFingerTap));
-
   // Others (not appearing in the popup)
   // Tape Tool: 0 = ask, 1 = continue, 2 = cancel.
   define(tapeToolFillRiskPolicy, "tapeToolFillRiskPolicy", QMetaType::Int, 0);

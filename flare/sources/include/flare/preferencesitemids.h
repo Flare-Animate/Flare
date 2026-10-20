@@ -263,24 +263,6 @@ enum PreferencesItemId {
   // LineTestFpsCapture,
   // guidedDrawingType,
 
-  // Flare-owned / tahoma2d-ported items the Preferences popup binds to.
-  tipsPopupEnabled,
-  highDpiScalingEnabled,
-  iconSizePB,
-  doNotShowPopupSaveScene,
-  EnableImplicitHold,
-  magnetNonLinearSliderEnabled,
-  toolScale,
-  showColumnParents,
-  showImagesInCellTooltip,
-  inputCellsWithoutDoubleClickingEnabled,
-  showQuickToolbar,
-  inbetweenFlipDrawingCount,
-  inbetweenFlipSpeed,
-  useThemeViewerColors,
-  gestureUndoMethod,
-  gestureRedoMethod,
-
   // Tape Tool confirmation (stored only; no Preferences popup control)
   tapeToolFillRiskPolicy,
 

@@ -127,13 +127,6 @@ public:
     ShowLevelNameOnColumnHeader
   };
 
-  enum TouchGestureMethod {
-    TwoFingerTap = 0,
-    ThreeFingerTap,
-    ThreeFingerDragLeft,
-    ThreeFingerDragRight
-  };
-
   //--- callbacks
   // General
   void enableAutosave();

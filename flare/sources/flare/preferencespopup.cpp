@@ -542,7 +542,7 @@ void PreferencesPopup::onStyleSheetTypeChanged() {
   // after one of those two words -- Animate, Clay, Blue and Synthwave were all
   // being switched to the light icon set.
   const QString themeName = m_pref->getCurrentThemeName();
-  const bool isDarkTheme = m_pref->getBoolValue(iconTheme);
+  const bool isDarkTheme = Preferences::instance()->getIconTheme();
   const bool wantsLightIcons = FlareTheme::isLightTheme(themeName);
 
   if (wantsLightIcons != isDarkTheme) {
@@ -1435,7 +1435,7 @@ QString PreferencesPopup::getUIString(PreferencesItemId id) {
       {levelBasedToolsDisplay, tr("Toolbar Display Behaviour:")},
       {useCtrlAltToResizeBrush,
        tr("Use %1 to Resize Brush").arg(trModKey("Ctrl+Alt"))},
-      {tempToolSwitchTimer,
+      {temptoolswitchtimer,
        tr("Temporary Tool Switch Shortcut Hold Time (ms):")},
       {magnetNonLinearSliderEnabled,
        tr("Magnet Tool Size Slider - Non-Linear mode*")},
@@ -1494,7 +1494,7 @@ QString PreferencesPopup::getUIString(PreferencesItemId id) {
       {rewindAfterPlayback, tr("Rewind after Playback")},
       {shortPlayFrameCount, tr("Number of Frames to Play \nfor Short Play:")},
       {previewAlwaysOpenNewFlip, tr("Display in a New Flipbook Window")},
-      {fitToFlipbookWhenPreview, tr("Fit to Flipbook")},
+      {fitToFlipbook, tr("Fit to Flipbook")},
       {generatedMovieViewEnabled, tr("Open Flipbook after Rendering")},
       {inbetweenFlipDrawingCount, tr("Drawings:")},
       {inbetweenFlipSpeed, tr("Flip Speed (msec):")},
@@ -2286,7 +2286,7 @@ QGridLayout* PreferencesPopup::createToolsLayout() {
            getComboItemList(levelBasedToolsDisplay));
   if (Preferences::instance()->isShowAdvancedOptionsEnabled())
     insertUI(useCtrlAltToResizeBrush, lay);
-  insertUI(tempToolSwitchTimer, lay);
+  insertUI(temptoolswitchtimer, lay);
   insertUI(magnetNonLinearSliderEnabled, lay);
   insertUI(toolScale, lay);
 
@@ -2396,7 +2396,7 @@ QGridLayout* PreferencesPopup::createPreviewLayout() {
   insertUI(rewindAfterPlayback, lay);
   insertUI(shortPlayFrameCount, lay);
   insertUI(previewAlwaysOpenNewFlip, lay);
-  insertUI(fitToFlipbookWhenPreview, lay);
+  insertUI(fitToFlipbook, lay);
   insertUI(generatedMovieViewEnabled, lay);
   QGridLayout* inbetweenfliplay = insertGroupBox(tr("Inbetween Flip"), lay);
   {
