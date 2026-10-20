@@ -15,6 +15,7 @@
 
 // TnzLib includes
 #include "flareqt/selection.h"
+#include "flareqt/tselectionhandle.h"
 #include "flare/tobjecthandle.h"
 #include "flare/txsheethandle.h"
 #include "flare/txshlevelhandle.h"
