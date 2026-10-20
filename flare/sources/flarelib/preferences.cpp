@@ -1,6 +1,7 @@
 
 
 #include "flare/preferences.h"
+#include "flare/theme.h"
 
 // TnzLib includes
 #include "flare/tscenehandle.h"
@@ -22,6 +23,7 @@
 
 // Qt includes
 #include <QSettings>
+#include <QStandardPaths>
 #include <QStringList>
 #include <QAction>
 #include <QColor>
@@ -391,6 +393,7 @@ void Preferences::definePreferenceItems() {
   define(customProjectRoot, "customProjectRoot", QMetaType::QString, "");
   define(pathAliasPriority, "pathAliasPriority", QMetaType::Int,
          static_cast<int>(ProjectFolderOnly));
+  define(showAdvancedOptions, "showAdvancedOptions", QMetaType::Bool, false);
 
   setCallBack(undoMemorySize, &Preferences::setUndoMemorySize);
   define(lazyLoadRooms, "lazyLoadRooms", QMetaType::Bool, true);
@@ -413,7 +416,7 @@ void Preferences::definePreferenceItems() {
   define(oldCameraUnits, "oldCameraUnits", QMetaType::QString, "inch");
   define(linearUnits, "linearUnits", QMetaType::QString, "mm");
   define(cameraUnits, "cameraUnits", QMetaType::QString, "inch");
-  define(CurrentRoomChoice, "CurrentRoomChoice", QMetaType::QString, "Default");
+  define(CurrentRoomChoice, "CurrentRoomChoice", QMetaType::QString, "Animate");
   define(functionEditorToggle, "functionEditorToggle", QMetaType::Int,
          static_cast<int>(ShowGraphEditorInPopup));
   define(moveCurrentFrameByClickCellArea, "moveCurrentFrameByClickCellArea",
@@ -467,6 +470,8 @@ void Preferences::definePreferenceItems() {
          QMetaType::Bool, false);
   define(togglePanelWithShortcut, "togglePanelWithShortcut", QMetaType::Bool,
          false);
+  // Upstream fix(style-editor): remember the Style Editor tab between sessions.
+  define(RestoreStyleEditorTab, "RestoreStyleEditorTab", QMetaType::Bool, true);
 
   // Visualization
   define(show0ThickLines, "show0ThickLines", QMetaType::Bool, true);
@@ -511,6 +516,20 @@ void Preferences::definePreferenceItems() {
   setCallBack(autosaveEnabled, &Preferences::enableAutosave);
   setCallBack(autosavePeriod, &Preferences::setAutosavePeriod);
 
+  // Upstream bb63d765b: the default location new projects and the browser open
+  // in. Defaults to the OS documents folder, like upstream.
+  {
+    const QStringList docs =
+        QStandardPaths::standardLocations(QStandardPaths::DocumentsLocation);
+    define(defaultProjectPath, "defaultProjectPath", QMetaType::QString,
+           docs.isEmpty() ? QString() : docs.first());
+  }
+
+  define(recordFileHistory, "recordFileHistory", QMetaType::Bool, true);
+
+  QString userName = TSystem::getUserName();
+  define(recordAsUsername, "recordAsUsername", QMetaType::QString, userName);
+
   // Import / Export
   define(ffmpegPath, "ffmpegPath", QMetaType::QString, "");
   define(ffmpegTimeout, "ffmpegTimeout", QMetaType::Int, 600, 1,
@@ -521,6 +540,7 @@ void Preferences::definePreferenceItems() {
   define(rhubarbPath, "rhubarbPath", QMetaType::QString, "");
   define(rhubarbTimeout, "rhubarbTimeout", QMetaType::Int, 600, 0,
          std::numeric_limits<int>::max());
+  define(flashDecompilerPath, "flashDecompilerPath", QMetaType::QString, "");
 #ifdef _WIN32
   define(lazyNezumiCanvasFocusEnabled, "lazyNezumiCanvasFocusEnabled",
          QMetaType::Bool, false);
@@ -529,6 +549,7 @@ void Preferences::definePreferenceItems() {
   // Drawing
   define(DefRasterFormat, "DefRasterFormat", QMetaType::QString, "tif");
   define(DefLevelType, "DefLevelType", QMetaType::Int, TZP_XSHLEVEL);
+  define(DefLevelSizePolicy, "DefLevelSizePolicy", QMetaType::Int, 0);
   define(DefAssistantType, "DefAssistantType", QMetaType::QString, "");
   define(newLevelSizeToCameraSizeEnabled, "newLevelSizeToCameraSizeEnabled",
          QMetaType::Bool, false);
@@ -646,6 +667,10 @@ void Preferences::definePreferenceItems() {
          0);  // default
   define(showFrameNumberWithLetters, "showFrameNumberWithLetters",
          QMetaType::Bool, false);
+  // Ported from tahoma2d: xshcellviewer.cpp reads both of these.
+  define(showDragBars, "showDragBars", QMetaType::Bool, false);
+  define(timelineLayoutPreference, "timelineLayoutPreference",
+         QMetaType::QString, "NoDragMinimum");
   // This option will do the following:
   // - When setting a cell in the empty column, level name will be copied to the
   // column name
@@ -716,11 +741,40 @@ void Preferences::definePreferenceItems() {
          QMetaType::Bool, true);
   define(latestVersionCheckEnabled, "latestVersionCheckEnabled",
          QMetaType::Bool, true);
+  define(updateNightlyChannel, "updateNightlyChannel", QMetaType::Bool, false);
 
   // Touch / Tablet Settings
   define(winInkEnabled, "winInkEnabled", QMetaType::Bool, false);
   // This option will be shown & available only when WITH_WINTAB is defined
   define(useQtNativeWinInk, "useQtNativeWinInk", QMetaType::Bool, false);
+
+  // Items the Preferences popup binds to (tahoma2d-ported / Flare-owned).
+  define(tipsPopupEnabled, "tipsPopupEnabled", QMetaType::Bool, true);
+  define(highDpiScalingEnabled, "highDpiScalingEnabled", QMetaType::Bool,
+         true);
+  define(iconSizePB, "iconSizePB", QMetaType::QSize, QSize(80, 45),
+         QSize(10, 10), QSize(400, 400));
+  define(doNotShowPopupSaveScene, "doNotShowPopupSaveScene", QMetaType::Bool,
+         false);
+  define(EnableImplicitHold, "EnableImplicitHold", QMetaType::Bool, false);
+  define(magnetNonLinearSliderEnabled, "magnetNonLinearSliderEnabled",
+         QMetaType::Bool, false);
+  define(toolScale, "toolScale", QMetaType::Bool, false);
+  define(showColumnParents, "showColumnParents", QMetaType::Bool, false);
+  define(showImagesInCellTooltip, "showImagesInCellTooltip", QMetaType::Bool,
+         false);
+  define(inputCellsWithoutDoubleClickingEnabled,
+         "inputCellsWithoutDoubleClickingEnabled", QMetaType::Bool, false);
+  define(showQuickToolbar, "showQuickToolbar", QMetaType::Bool, true);
+  define(inbetweenFlipDrawingCount, "inbetweenFlipDrawingCount",
+         QMetaType::Int, 2, 1, 20);
+  define(inbetweenFlipSpeed, "inbetweenFlipSpeed", QMetaType::Int, 100, 10,
+         2000);
+  define(useThemeViewerColors, "useThemeViewerColors", QMetaType::Bool, false);
+  define(gestureUndoMethod, "gestureUndoMethod", QMetaType::Int,
+         static_cast<int>(TwoFingerTap));
+  define(gestureRedoMethod, "gestureRedoMethod", QMetaType::Int,
+         static_cast<int>(ThreeFingerTap));
 
   // Others (not appearing in the popup)
   // Tape Tool: 0 = ask, 1 = continue, 2 = cancel.
@@ -1079,6 +1133,37 @@ QString Preferences::getCurrentLanguage() const {
 
 //-----------------------------------------------------------------
 
+//-----------------------------------------------------------------------------
+// Theme / Layout access.
+//
+// These are two independent axes of the Interface tab, named so call sites read
+// correctly: a Theme is the colour and shape of the widgets, a Layout is where
+// the panels sit. The preference keys behind them were already separate; these
+// accessors make that explicit and keep the two namespaces distinct.
+
+QStringList Preferences::getThemeNames() const {
+  return FlareTheme::themeNames();
+}
+
+QString Preferences::getCurrentThemeName() const {
+  return getStringValue(CurrentStyleSheetName);
+}
+
+void Preferences::setCurrentThemeName(const QString& name) {
+  if (!FlareTheme::isThemeName(name)) return;
+  setValue(CurrentStyleSheetName, name);
+}
+
+QStringList Preferences::getLayoutNames() const {
+  return FlareTheme::layoutNames();
+}
+
+QString Preferences::getCurrentLayoutName() const {
+  return getStringValue(CurrentRoomChoice);
+}
+
+//-----------------------------------------------------------------------------
+
 QString Preferences::getCurrentStyleSheet() const {
   QString currentStyleSheetName = getStringValue(CurrentStyleSheetName);
   if (currentStyleSheetName.isEmpty()) return QString();
@@ -1109,6 +1194,18 @@ QString Preferences::getCurrentStyleSheet() const {
 
   styleSheetStr.replace(QRegularExpression("url\\(['\"]([^'\"]+)['\"]\\)"),
                         "url(\"" + currentStyleFolderPath + QString("/\\1\")"));
+
+  // Same for @import, so a theme can build on another one instead of restating
+  // all ~3350 lines. Without this, @import resolved against the process working
+  // directory rather than the theme's own folder, so a composed theme loaded
+  // nothing. LiquidGlass is the first user: a small set of overrides on top of
+  // a complete theme.
+  //
+  // Only relative specifiers are rewritten, so an @import naming a site
+  // style (scheme or leading slash) is left alone.
+  styleSheetStr.replace(
+      QRegularExpression("@import\\s+(['\"])(?!https?:|/)([^'\"]+)\\1"),
+      QString("@import \"") + currentStyleFolderPath + QString("/\\2\""));
 
   return styleSheetStr;
 }
