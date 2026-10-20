@@ -1,6 +1,7 @@
 
 
 // TnzQt includes
+#include "flareqt/seethroughwindow.h"
 #include "flareqt/menubarcommand.h"
 #include "flareqt/viewcommandids.h"
 #include "flareqt/imageutils.h"
@@ -51,6 +52,8 @@
 
 // boost includes
 #include <boost/iterator/transform_iterator.hpp>
+
+#include <unordered_map>
 
 //**********************************************************************************
 //    Local namespace  stuff
@@ -149,8 +152,7 @@ TFilePath duplicate(const TFilePath &levelPath) {
   NameBuilder *nameBuilder =
       NameBuilder::getBuilder(::to_wstring(levelPath.getName()));
   std::wstring levelNameOut;
-  do
-    levelNameOut = nameBuilder->getNext();
+  do levelNameOut = nameBuilder->getNext();
   while (TSystem::doesExistFileOrLevel(levelPath.withName(levelNameOut)));
 
   TFilePath levelPathOut = levelPath.withName(levelNameOut);
@@ -638,11 +640,72 @@ void convert(const TFilePath &source, const TFilePath &dest,
 
 //=============================================================================
 
+bool isAAImage(TFilePath path) {
+  QImage img(path.getQString());
+  if (img.isNull()) return false;
+
+  uint16_t width            = img.width();
+  uint16_t height           = img.height();
+  uint32_t lonelyPixelCount = 0;
+  uint32_t totalPixels      = width * height;
+
+  std::unordered_map<uint32_t, uint32_t> colorCount;
+
+  const QRgb *imgData = reinterpret_cast<const QRgb *>(img.bits());
+
+  for (int y = 0; y < height; ++y) {
+    for (int x = 0; x < width; ++x) {
+      QRgb color = imgData[y * width + x];
+      colorCount[color]++;
+    }
+  }
+
+  uint32_t maxCount    = 0;
+  QRgb mostCommonColor = 0;
+  for (const auto &pair : colorCount) {
+    if (pair.second > maxCount) {
+      maxCount        = pair.second;
+      mostCommonColor = pair.first;
+    }
+  }
+
+  for (int y = 1; y < height - 1; ++y) {
+    int xcount = 0;
+    for (int x = 1; x < width - 1; ++x) {
+      QRgb centerColor = imgData[y * width + x];
+
+      if (centerColor == mostCommonColor) {
+        ++xcount;
+        continue;
+      }
+
+      int diffCount = 0;
+
+      if (imgData[y * width + (x - 1)] != centerColor) ++diffCount;
+      if (imgData[y * width + (x + 1)] != centerColor) ++diffCount;
+      if (imgData[(y - 1) * width + x] != centerColor) ++diffCount;
+      if (imgData[(y + 1) * width + x] != centerColor) ++diffCount;
+
+      if (diffCount == 4) {
+        lonelyPixelCount++;
+      }
+    }
+    if (xcount == width - 2) totalPixels -= width;
+  }
+
+  double ratio = double(lonelyPixelCount) / (totalPixels + 1);
+
+  const double value = 0.05 / 100;
+  return ratio > value;
+}
+
 void convertNaa2Tlv(const TFilePath &source, const TFilePath &dest,
                     const TFrameId &from, const TFrameId &to,
                     FrameTaskNotifier *frameNotifier, TPalette *palette,
                     bool removeUnusedStyles, double dpi) {
-  std::string dstExt = dest.getType(), srcExt = source.getType();
+  // std::string dstExt = dest.getType(), srcExt = source.getType();
+  if (TSystem::doesExistFileOrLevel(dest.withType("tpl")))
+    TSystem::deleteFile(dest.withType("tpl"));
 
   // Load source level structure
   TLevelReaderP lr(source);
@@ -760,22 +823,16 @@ void convertOldLevel2Tlv(const TFilePath &source, const TFilePath &dest,
     if (TSystem::doesExistFileOrLevel(dest)) TSystem::removeFileOrLevel(dest);
     frameNotifier->notifyError();
     return;
-  } catch (...) {
-    DVGui::warning("Unknown exception encountered");
-    lw = TLevelWriterP();
-    if (TSystem::doesExistFileOrLevel(dest)) TSystem::removeFileOrLevel(dest);
-    frameNotifier->notifyError();
-    return;
   }
   lw = TLevelWriterP();
 }
 
 //=============================================================================
 
-#define ZOOMLEVELS 17
+#define ZOOMLEVELS 13
 #define NOZOOMINDEX 6
 double ZoomFactors[ZOOMLEVELS] = {
-    0.015625, 0.03125, 0.0625, 0.125, 0.25, 0.375, 0.5, 0.625, 1, 1.5, 2, 2.5, 4, 8, 16, 32, 64};
+    0.015625, 0.03125, 0.0625, 0.125, 0.25, 0.5, 1, 2, 4, 8, 16, 32, 64};
 
 double getQuantizedZoomFactor(double zf, bool forward) {
   if (forward && (zf > ZoomFactors[ZOOMLEVELS - 1] ||
@@ -814,8 +871,8 @@ namespace {
 
 void getViewerShortcuts(int &zoomIn, int &zoomOut, int &viewReset, int &zoomFit,
                         int &showHideFullScreen, int &actualPixelSize,
-                        int &flipX, int &flipY, int &zoomReset,
-                        int &rotateReset, int &positionReset) {
+                        int &flipX, int &flipY, int &rotateL, int &rotateR,
+                        int &zoomReset, int &rotateReset, int &positionReset) {
   CommandManager *cManager = CommandManager::instance();
 
   zoomIn = cManager->getKeyFromShortcut(cManager->getShortcutFromId(V_ZoomIn));
@@ -831,6 +888,10 @@ void getViewerShortcuts(int &zoomIn, int &zoomOut, int &viewReset, int &zoomFit,
       cManager->getShortcutFromId(V_ActualPixelSize));
   flipX = cManager->getKeyFromShortcut(cManager->getShortcutFromId(V_FlipX));
   flipY = cManager->getKeyFromShortcut(cManager->getShortcutFromId(V_FlipY));
+  rotateL =
+      cManager->getKeyFromShortcut(cManager->getShortcutFromId(V_RotateLeft));
+  rotateR =
+      cManager->getKeyFromShortcut(cManager->getShortcutFromId(V_RotateRight));
   zoomReset =
       cManager->getKeyFromShortcut(cManager->getShortcutFromId(V_ZoomReset));
   rotateReset =
@@ -851,58 +912,34 @@ ShortcutZoomer::ShortcutZoomer(QWidget *zoomingWidget)
 //--------------------------------------------------------------------------
 
 bool ShortcutZoomer::exec(QKeyEvent *event) {
+  int zoomInKey, zoomOutKey, viewResetKey, zoomFitKey, showHideFullScreenKey,
+      actualPixelSize, flipX, flipY, rotateL, rotateR, zoomReset, rotateReset,
+      positionReset;
+  getViewerShortcuts(zoomInKey, zoomOutKey, viewResetKey, zoomFitKey,
+                     showHideFullScreenKey, actualPixelSize, flipX, flipY,
+                     rotateL, rotateR, zoomReset, rotateReset, positionReset);
+
   int key = event->key();
   if (key == Qt::Key_Control || key == Qt::Key_Shift || key == Qt::Key_Alt)
     return false;
 
-  int zoomInKey, zoomOutKey, viewResetKey, zoomFitKey, showHideFullScreenKey,
-      actualPixelSize, flipX, flipY, zoomReset, rotateReset, positionReset;
-  getViewerShortcuts(zoomInKey, zoomOutKey, viewResetKey, zoomFitKey,
-                     showHideFullScreenKey, actualPixelSize, flipX, flipY,
-                     zoomReset, rotateReset, positionReset);
+  key = key | event->modifiers() &
+                  (~0xf0000000);  // Ignore if the key is a numpad key
 
-  if ((event->modifiers() & Qt::ControlModifier) ||
-      (event->modifiers() & Qt::AltModifier) ||
-      (event->modifiers() & Qt::MetaModifier)) {
-    key = key | event->modifiers();
-  } else if ((event->modifiers() & Qt::ShiftModifier)) {
-    // A shifted key may be represented differently here vs what is in the
-    // defined shortcuts. For example + (Shift+=) and + (numpad) or M and
-    // Shift+M.
-    // Check key w/ SHIFT included and use that if it matches one of the
-    // shortcuts otherwise use the original key
-    int key2 = key | event->modifiers();
-    if (key2 == zoomInKey || key2 == zoomOutKey || key2 == viewResetKey ||
-        key2 == zoomFitKey || key2 == showHideFullScreenKey ||
-        key2 == actualPixelSize || key2 == flipX || key2 == flipY ||
-        key2 == zoomReset || key2 == rotateReset || key2 == positionReset)
-      key = key2;
-  }
-
-  return (key == showHideFullScreenKey)
-             ? toggleFullScreen()
-             : (key == Qt::Key_Escape)
-                   ? toggleFullScreen(true)
-                   : (key == actualPixelSize)
-                         ? setActualPixelSize()
-                         : (key == zoomFitKey)
-                               ? fit()
-                               : (key == zoomInKey || key == zoomOutKey ||
-                                  key == viewResetKey)
-                                     ? zoom(key == zoomInKey,
-                                            key == viewResetKey)
-                                     : (key == flipX)
-                                           ? setFlipX()
-                                           : (key == flipY)
-                                                 ? setFlipY()
-                                                 : (key == zoomReset)
-                                                       ? resetZoom()
-                                                       : (key == rotateReset)
-                                                             ? resetRotation()
-                                                             : (key ==
-                                                                positionReset)
-                                                                   ? resetPosition()
-                                                                   : false;
+  return (key == showHideFullScreenKey) ? toggleFullScreen()
+         : (key == Qt::Key_Escape)      ? toggleFullScreen(true)
+         : (key == actualPixelSize)     ? setActualPixelSize()
+         : (key == zoomFitKey)          ? fit()
+         : (key == zoomInKey || key == zoomOutKey || key == viewResetKey)
+             ? zoom(key == zoomInKey, key == viewResetKey)
+         : (key == flipX)         ? setFlipX()
+         : (key == flipY)         ? setFlipY()
+         : (key == rotateL)       ? rotateLeft()
+         : (key == rotateR)       ? rotateRight()
+         : (key == zoomReset)     ? resetZoom()
+         : (key == rotateReset)   ? resetRotation()
+         : (key == positionReset) ? resetPosition()
+                                  : false;
   ;
 }
 
@@ -923,6 +960,10 @@ FullScreenWidget::FullScreenWidget(QWidget *parent) : QWidget(parent) {
   QHBoxLayout *layout = new QHBoxLayout(this);
   layout->setContentsMargins(0, 0, 0, 0);
   layout->setSpacing(0);
+
+  // Attach see-through window signal so this can detect opacity changes
+  connect(SeeThroughWindowMode::instance(), SIGNAL(opacityChanged(int, bool &)),
+          this, SLOT(opacityChanged(int, bool &)));
 
   setLayout(layout);
 }
@@ -945,6 +986,8 @@ bool FullScreenWidget::toggleFullScreen(
 
 /*
  *  DESCRIPTION:
+ *
+ * Sets the size and location of the widget to either full screen or normal.
  *
  * Entering full screen has to be done manually in order to avoid having the
  * window placed on the wrong monitor on systems running X11 with multiple
@@ -976,6 +1019,9 @@ bool FullScreenWidget::toggleFullScreen(
     // Set the return value to indicate that the full screen mode has been
     // changed.
     fFullScreenStateToggled = true;
+
+    // Refresh see-through window opacity
+    SeeThroughWindowMode::instance()->refreshOpacity();
   } else {
     // There's no point to switching into full screen if the
     // application is in the process of quitting.
@@ -1063,6 +1109,7 @@ bool FullScreenWidget::toggleFullScreen(
             this->window()->windowHandle()->setScreen(ptrScreenThisWindowIsOn);
 
             // http://doc.qt.io/qt-5/windows-issues.html#fullscreen-opengl-based-windows
+            this->winId();
             QWindowsWindowFunctions::setHasBorderInFullScreen(
                 this->windowHandle(), true);
 
@@ -1075,10 +1122,19 @@ bool FullScreenWidget::toggleFullScreen(
       // Set the return value to indicate that the full screen mode has been
       // changed.
       fFullScreenStateToggled = true;
+
+      // Refresh see-through window opacity
+      SeeThroughWindowMode::instance()->refreshOpacity();
     }
   }
 
   return (fFullScreenStateToggled);
 }
 
- }  // namespace ImageUtils
+void FullScreenWidget::opacityChanged(int value, bool &hideMain) {
+  this->setWindowOpacity((double)value / 100);
+  if (this->windowState() & Qt::WindowFullScreen) hideMain = true;
+}
+
+}  // namespace ImageUtils
+
