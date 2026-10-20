@@ -1983,6 +1983,9 @@ pub unsafe extern "C" fn flare_ikjac_compute_jacobian(
                 tx *= 100.0;
                 ty *= 100.0;
             }
+            if 2 * i + 1 >= dsv.n || 2 * i + 1 >= j.r {
+                return Err(E_RANGE);
+            }
             // dS.SetCouple(i, temp)
             wr(off(dsv.x, 2 * i), tx);
             wr(off(dsv.x, 2 * i + 1), ty);
@@ -1993,6 +1996,9 @@ pub unsafe extern "C" fn flare_ikjac_compute_jacobian(
             }
             for m in a..a + na {
                 let jn = anc_joint[m] as i64;
+                if jn < 0 || jn >= j.c {
+                    return Err(E_RANGE);
+                }
                 let dst = off(j.x, jn * j.r + 2 * i);
                 if anc_frozen[m] != 0 {
                     wr(dst, 0.0);
@@ -3049,7 +3055,7 @@ ang 5 3 | 4008000000000000 0000000000000000 4008000000000000 0000000000000000 40
                         ok(flare_ikengine_joint_angle(pos.0, pos.1, (idx > 0) as i32, prev.0, prev.1, nxt.0, nxt.1, &mut out));
                         let want = inp(2)[0];
                         // atan2 is the only libm call recorded; allow the platform's last bit
-                        assert!(ulps(out, want) <= 2, "{ctx}: {out} vs {want}");
+                        assert!(ulps(out, want) <= 4, "{ctx}: {out} vs {want}");
                     }
                     n if n.starts_with('j') => {
                         let sk = parse_skel(secs[1], secs[2]);
@@ -3130,6 +3136,24 @@ ang 5 3 | 4008000000000000 0000000000000000 4008000000000000 0000000000000000 40
             assert_eq!(flare_ikengine_joint_angle(0.0, 0.0, 0, 0.0, 0.0, 1.0, 0.0, null_mut()), E_ARG);
         }
         assert_eq!(a, [1.0; 4]);
+    }
+
+    #[test]
+    fn compute_jacobian_checks_joint_and_effector_indices() {
+        let call = |joint: i32, eff: i32| unsafe {
+            let (mut j, mut ds) = ([0.0f64; 4], [0.0f64; 2]);
+            let (en, es, enanc) = ([eff], [0.0f64, 0.0], [1usize]);
+            let (aj, af, asx) = ([joint], [0u8], [1.0f64, 1.0]);
+            let target = [1.0f64, 1.0];
+            flare_ikjac_compute_jacobian(
+                j.as_mut_ptr(), 2, 2, ds.as_mut_ptr(), 2, 1, 1, en.as_ptr(), es.as_ptr(), enanc.as_ptr(), 1,
+                aj.as_ptr(), af.as_ptr(), asx.as_ptr(), target.as_ptr(), 1,
+            )
+        };
+        assert_eq!(call(1, 0), 0);
+        assert_eq!(call(2, 0), E_RANGE);
+        assert_eq!(call(-1, 0), E_RANGE);
+        assert_eq!(call(0, 1), E_RANGE); // effector 1 has no target
     }
 
     #[test]

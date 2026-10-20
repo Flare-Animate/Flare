@@ -127,7 +127,9 @@ inline void flareIkjacCheck(int rc) {
 // CLASS VectorRN
 // void DVAPI Dump(const TPointD &point, double* v);
 
-class DVAPI VectorRn {
+// Header-only now (every member is inline): no DVAPI, so MSVC never sees a dllimport
+// class whose members are defined inline out of class.
+class VectorRn {
   friend class MatrixRmn;
 
 public:
@@ -316,7 +318,7 @@ inline double VectorRn::NormSq() const {
   return res;
 }
 
-inline double DVAPI Dot(const VectorRn &u, const VectorRn &v) {
+inline double Dot(const VectorRn &u, const VectorRn &v) {
   assert(u.GetLength() == v.GetLength());
   double res      = 0.0;
   const double *p = u.GetPtr();
@@ -330,7 +332,7 @@ inline double DVAPI Dot(const VectorRn &u, const VectorRn &v) {
 //*******************************************************************
 // MatrixRmn
 
-class DVAPI MatrixRmn {
+class MatrixRmn {
 public:
   MatrixRmn();                            // Null constructor
   MatrixRmn(long numRows, long numCols);  // Constructor with length
@@ -856,7 +858,7 @@ inline bool MatrixRmn::DebugCheckSVD(const MatrixRmn &U, const VectorRn &w,
 
 //=============================================================================
 
-class DVAPI Jacobian {
+class Jacobian {
 public:
   enum UpdateMode {
     JACOB_Undefined         = 0,
