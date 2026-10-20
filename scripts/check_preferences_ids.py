@@ -15,7 +15,7 @@ def strip(t):
     t = re.sub(r"//[^\n]*", "", t)
     return re.sub(r'"(?:\\.|[^"\\])*"', '""', t)
 
-call = re.compile(r"\b(?:get(?:Bool|Int|String|Double)?Value|setValue|getUI(?:<[^>]*>)?|insertUI|m_onEditedFuncMap\.insert|m_controlIdMap\.key|setEnabled|insertDualUIs|setCallBack)\(\s*(\w+)")
+call = re.compile(r"\b(?:get(?:Bool|Int|String|Double)?Value|setValue|getUI(?:<[^>]*>)?|insertUI|m_onEditedFuncMap\.insert|m_controlIdMap\.key|setEnabled|insertDualUIs|setCallBack)\(\s*(?:PreferencesItemId::)?(\w+)")
 pair = re.compile(r"\{\s*(\w+)\s*,\s*(?:tr\(|\{)")   # popup label / combo tables
 popup = root/"flare_legacy/preferencespopup.cpp"
 bad = 0

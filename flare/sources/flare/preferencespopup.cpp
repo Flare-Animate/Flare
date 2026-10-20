@@ -1391,7 +1391,9 @@ QString PreferencesPopup::getUIString(PreferencesItemId id) {
        tr("Allow Multi-Thread in FFMPEG Rendering (UNSTABLE)")},
       {rhubarbPath, tr("Executable Directory:")},
       {rhubarbTimeout, tr("Analyze Audio Timeout (seconds):")},
+#ifdef _WIN32
       {lazyNezumiCanvasFocusEnabled, tr("Enable Lazy Nezumi Canvas Focus* (Intel/AMD systems only)")},
+#endif
 
       // Drawing
       {DefRasterFormat, tr("Default Raster Level Format:")},
@@ -2191,7 +2193,9 @@ QGridLayout* PreferencesPopup::createImportExportLayout() {
     insertUI(rhubarbTimeout, rhubarbOptionsLay);
   }
 
+#ifdef _WIN32
   insertUI(lazyNezumiCanvasFocusEnabled, lay);
+#endif
 
   lay->setRowStretch(lay->rowCount(), 1);
   return lay;
