@@ -149,7 +149,8 @@ set(HEADERS ${MOC_HEADERS}
 )
 
 set(SOURCES
-    ../common/tcore/tdata.cpp
+    ../common/tcore/# tdata.cpp ported: methods are now inline in tdata.h; the to_wstring conversion
+# lives in common/tcore/texception.rs (flare_to_wstring). See docs/PORTING.md.
     ../common/tcore/tdebugmessage.cpp
     ../common/tcore/texception.cpp
     ../common/tcore/threadmessage.cpp

@@ -43,9 +43,15 @@ class DVAPI TTextData final : public TData {
 
 public:
   TTextData(TString text) : m_text(text) {}
-  TTextData(std::string text);
+  TTextData(std::string text) {
+    wchar_t *p = flare_to_wstring(text.c_str());
+    if (p) {
+      m_text = p;
+      flare_to_wstring_free(p);
+    }
+  }
 
-  TDataP clone() const override;
+  TDataP clone() const override { return new TTextData(m_text); }
 
   TString getText() const { return m_text; }
 };
