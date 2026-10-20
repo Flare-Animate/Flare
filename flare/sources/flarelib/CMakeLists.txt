@@ -210,7 +210,6 @@ set(SOURCES
     glrasterpainter.cpp
     hook.cpp
     ikengine.cpp
-    ikjacobian.cpp
     ikskeleton.cpp
     imagebuilders.cpp
     imagelocation.cpp
