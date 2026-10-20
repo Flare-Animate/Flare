@@ -5,6 +5,7 @@
 
 #include "tsmartpointer.h"
 #include "tfilepath.h"
+#include "texception.h"
 
 #undef DVAPI
 #undef DVVAR
