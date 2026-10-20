@@ -38,7 +38,7 @@ Implementation snapshots inspected:
 The older [absorption assessment](ANIMATIONCRAFT_ABSORPTION.md) evaluated the Qt
 application. Its “skip Editor/model/renderer/UI” decisions do not describe the
 user-selected native Rust architecture. The vendored
-[AnimationCraft audit](../doc/ANIMATE-GAP-ANALYSIS.md) targets Animate 24.x and
+[AnimationCraft audit](./ANIMATE-GAP-ANALYSIS.md) targets Animate 24.x and
 reports upstream coverage; its percentages must not be presented as Flare coverage.
 No percentage is assigned here until individual workflows have evidence.
 

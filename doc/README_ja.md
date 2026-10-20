@@ -2,14 +2,14 @@
 
 ## ⚠️ **重要**
 
-**公式配布元からのみダウンロードしてください：** Flare の公式ウェブサイトは [**flare.github.io**](https://flare.github.io/) と、この [GitHub リポジトリ](https://github.com/flare/flare) のみです。安全のため、その他のドメインから Flare をダウンロードしないでください。公式のミラーサイトや提携ダウンロードサイトはほかにありません。
+**公式配布元からのみダウンロードしてください：** Flare の公式ウェブサイトは [**flare-animate.github.io/website**](https://flare-animate.github.io/website/) と、この [GitHub リポジトリ](https://github.com/Flare-Animate/Flare) のみです。安全のため、その他のドメインから Flare をダウンロードしないでください。公式のミラーサイトや提携ダウンロードサイトはほかにありません。
 
 [English](../README.md)
 
 [![](https://ci.appveyor.com/api/projects/status/oa5l5pc964h8fv49/branch/master?svg=true)](https://ci.appveyor.com/project/flare/flare)
-[![Build Windows](https://github.com/flare/flare/actions/workflows/workflow_windows.yml/badge.svg?branch=master)](https://github.com/flare/flare/actions/workflows/workflow_windows.yml)
-[![Build macOS](https://github.com/flare/flare/actions/workflows/workflow_macos.yml/badge.svg?branch=master)](https://github.com/flare/flare/actions/workflows/workflow_macos.yml)
-[![Build Linux](https://github.com/flare/flare/actions/workflows/workflow_linux.yml/badge.svg?branch=master)](https://github.com/flare/flare/actions/workflows/workflow_linux.yml)
+[![Build Windows](https://github.com/Flare-Animate/Flare/actions/workflows/workflow_windows.yml/badge.svg?branch=Rust-Rewrite)](https://github.com/Flare-Animate/Flare/actions/workflows/workflow_windows.yml)
+[![Build macOS](https://github.com/Flare-Animate/Flare/actions/workflows/workflow_macos.yml/badge.svg?branch=Rust-Rewrite)](https://github.com/Flare-Animate/Flare/actions/workflows/workflow_macos.yml)
+[![Build Linux](https://github.com/Flare-Animate/Flare/actions/workflows/workflow_linux.yml/badge.svg?branch=Rust-Rewrite)](https://github.com/Flare-Animate/Flare/actions/workflows/workflow_linux.yml)
 [![Translation status](https://hosted.weblate.org/widgets/flare/-/svg-badge.svg)](https://hosted.weblate.org/engage/flare/)
 
 ## これは何？
@@ -19,13 +19,13 @@
 
 ## 動作条件
 
-<https://flare.github.io/> を参照してください。
+<https://flare-animate.github.io/website/> を参照してください。
 
 ## インストール
 
-<https://flare.github.io/> から最新安定版のインストーラーをダウンロードしてインストールしてください。
+<https://flare-animate.github.io/website/> から最新安定版のインストーラーをダウンロードしてインストールしてください。
 
-過去のバージョンと不安定な最新版も <https://github.com/flare/flare/releases> から利用することができます。
+過去のバージョンと不安定な最新版も <https://github.com/Flare-Animate/Flare/releases> から利用することができます。
 
 ## ビルド方法
 

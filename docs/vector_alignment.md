@@ -1,6 +1,6 @@
 # Vector alignment and distribution
 
-Adapted for Flare from [Flare PR #1275](https://github.com/flare/flare/pull/1275),
+Adapted for Flare from [OpenToonz PR #1275](https://github.com/opentoonz/opentoonz/pull/1275),
 **Vector Control Point/Stroke Alignment Commands**, by **John Dancel (manongjohn)**.
 The original panel, icons and alignment behavior are the source of this port.
 The commit preserves co-author credit; the applicable BSD copyright notice is

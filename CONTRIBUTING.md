@@ -10,21 +10,21 @@ We will first review the request, then we will accept it, add comments for rewor
 
 ### Workflow
 
-0. `fork` Flare to your GitHub account from `flare/flare`.
-  - (use the `fork` button at the https://github.com/flare/flare)
+0. `fork` Flare to your GitHub account from `Flare-Animate/Flare`.
+  - (use the `fork` button at the https://github.com/Flare-Animate/Flare)
 0. `clone` the repository.
   - `git clone git@github.com:your-github-account/flare.git`
-  - `git remote add upstream https://github.com/flare/flare.git`, additionally.
+  - `git remote add upstream https://github.com/Flare-Animate/Flare.git`, additionally.
 0. modify the codes.
   - `git checkout -b your-branch-name`
     - `your-branch-name` is a name of your modifications, for example,
       `fix/fatal-bugs`, `feature/new-useful-gui` and so on.
   - fix codes, then test them.
   - `git commit` them with good commit messages.
-0. `pull` the latest changes form the `master` branch of the upstream.
-  - `git pull upstream master` or `git pull --rebase upstream master`.
-  - apply [clang-format](http://clang.llvm.org/docs/ClangFormat.html) with `toonz/sources/.clang-format`.
-    - `cd toonz/sources`
+0. `pull` the latest changes form the `Rust-Rewrite` branch of the upstream.
+  - `git pull upstream Rust-Rewrite` or `git pull --rebase upstream Rust-Rewrite`.
+  - apply [clang-format](http://clang.llvm.org/docs/ClangFormat.html) with `flare/sources/.clang-format`.
+    - `cd flare/sources`
     - `./beautification.sh` or `beautification.bat`.
   - `git commit` them.
   - `git push origin your-branch-name`.
@@ -32,7 +32,7 @@ We will first review the request, then we will accept it, add comments for rewor
 
 ## Bugs
 
-If you find bugs, please report details about them using [issues](https://github.com/flare/flare/issues).
+If you find bugs, please report details about them using [issues](https://github.com/Flare-Animate/Flare/issues).
 Please include information needed to reproduce the bug, including the operating system 
 and information directly relating to the issue. Links to screen captures of what is 
 observed on screen or video of specific steps to produce the problem are very helpful.  
@@ -51,13 +51,13 @@ to keep the issue tracker from becoming cluttered with unfulfilled feature reque
 
 ## Translations
 
-Translation sources (`.ts`) are in `toonz/sources/translations`. Contributors can
+Translation sources (`.ts`) are in `flare/sources/translations`. Contributors can
 edit them with Qt Linguist and submit a PR, or attach the updated files to an
 issue/discussion for a maintainer to integrate. A full application build is not
 required to contribute wording. Share editable sources; compiled `.qm` files are
 optional test artifacts unless a maintainer requests them.
 
-See [Contributing and maintaining translations](toonz/sources/translations/README.md)
+See [Contributing and maintaining translations](flare/sources/translations/README.md)
 for the two workflows: sharing translations, and reviewing/merging/updating them.
 The guide includes existing Qt Linguist, shell-script, and CMake/Visual Studio
 processes, validation, runtime paths, and packaging checks.
