@@ -118,6 +118,8 @@ pub mod tenv;
 pub mod tfilepath;
 #[path = "common/tcore/tmathutil.rs"]
 pub mod tmathutil;
+#[path = "common/tcore/texception.rs"]
+pub mod texception;
 #[path = "common/tparam/tcubicbezier.rs"]
 pub mod tcubicbezier;
 #[path = "common/tcore/trandom.rs"]
