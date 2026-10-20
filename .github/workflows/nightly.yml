@@ -493,7 +493,7 @@ jobs:
             export LD_LIBRARY_PATH="appdir/usr/lib/flare:${LD_LIBRARY_PATH:-}"
           fi
           if [ -f appdir/usr/bin/Flare ]; then BINNAME=Flare; else BINNAME=$(ls appdir/usr/bin | head -n1); fi
-          printf '#!/usr/bin/env bash\nexec "${APPDIR}/usr/bin/%s"\n' "${BINNAME}" > apprun.sh
+          printf '#!/usr/bin/env bash\nexec "${APPDIR}/usr/bin/%s" "$@"\n' "${BINNAME}" > apprun.sh
           chmod 755 apprun.sh
           export PATH="$(pwd):$PATH"
 
