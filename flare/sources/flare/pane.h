@@ -3,47 +3,56 @@
 #ifndef PANE_H
 #define PANE_H
 
-// TODO: change the file name to tpanel.h
+// TODO: cambiare il nome del file in tpanel.h
 
-#include "../toonzqt/tdockwindows.h"
-
-#include <QMap>
-#include <QStringList>
-#include <QtGlobal>
-#include <QColor>
-#include <vector>
-#include <utility>
+// #include <QDockWidget>
+#include "../flareqt/tdockwindows.h"
 
 class TPanelTitleBarButtonSet;
-class TPanelTitleBarButton;
 class Room;
 
-//-----------------------------------------------------------------------------
 //! icon buttons placed on the panel titlebar (cfr. viewerpane.h)
 class TPanelTitleBarButton : public QWidget {
   Q_OBJECT
-  Q_PROPERTY(QColor OffColor READ getOffColor WRITE setOffColor)
-  Q_PROPERTY(QColor OverColor READ getOverColor WRITE setOverColor)
-  Q_PROPERTY(QColor PressedColor READ getPressedColor WRITE setPressedColor)
-  Q_PROPERTY(QColor FreezeColor READ getFreezeColor WRITE setFreezeColor)
-  Q_PROPERTY(QColor PreviewColor READ getPreviewColor WRITE setPreviewColor)
+
+  // Filepath
+  QString m_standardPixmapName;
+
+  // Colors
+  QColor m_offColor;
+  QColor m_overColor;
+  QColor m_pressedColor;
+  QColor m_freezeColor;
+  QColor m_previewColor;
+
+  QSize m_baseSize;
+  QColor m_bgColor;
+
+  // Methods
+  void updatePixmaps();
+
+  // Stylesheet
+  Q_PROPERTY(QColor OffColor READ getOffColor WRITE setOffColor);
+  Q_PROPERTY(QColor OverColor READ getOverColor WRITE setOverColor);
+  Q_PROPERTY(QColor PressedColor READ getPressedColor WRITE setPressedColor);
+  Q_PROPERTY(QColor FreezeColor READ getFreezeColor WRITE setFreezeColor);
+  Q_PROPERTY(QColor PreviewColor READ getPreviewColor WRITE setPreviewColor);
+
+  bool m_rollover;
+  TPanelTitleBarButtonSet *m_buttonSet;
+  int m_id;
+
+protected:
+  bool m_pressed;
 
 public:
-  explicit TPanelTitleBarButton(QWidget *parent,
-                                const QString &standardPixmapName);
-  ~TPanelTitleBarButton() override = default;
-
-  // Prohibit copy and move (Qt doesn't support move for QWidget)
-  TPanelTitleBarButton(const TPanelTitleBarButton &)            = delete;
-  TPanelTitleBarButton &operator=(const TPanelTitleBarButton &) = delete;
-  TPanelTitleBarButton(TPanelTitleBarButton &&)                 = delete;
-  TPanelTitleBarButton &operator=(TPanelTitleBarButton &&)      = delete;
+  TPanelTitleBarButton(QWidget *parent, const QString &standardPixmapName);
 
   //! call this method to make a radio button. id is the button identifier
   void setButtonSet(TPanelTitleBarButtonSet *buttonSet, int id);
-  int getId() const noexcept { return m_id; }
+  int getId() const { return m_id; }
 
-  // Stylesheet properties
+  // Stylesheet
   void setOffColor(const QColor &color);
   QColor getOffColor() const;
 
@@ -60,267 +69,218 @@ public:
   QColor getPreviewColor() const;
 
 public slots:
-  // n.b. doesn't emit signals, only calls update()
-  void setPressed(bool pressed);
-
-signals:
-  //! emitted when the user press the button
-  //! n.b. the signal is not emitted if the button is part of a buttonset
-  void toggled(bool pressed);
+  void setPressed(bool pressed);  // n.b. doesn't emit signals. calls update()
 
 protected:
   void paintEvent(QPaintEvent *event) override;
+
   void mouseMoveEvent(QMouseEvent *event) override;
   void enterEvent(QEvent *) override;
   void leaveEvent(QEvent *) override;
   void mousePressEvent(QMouseEvent *event) override;
 
-  QString m_standardPixmapName;
-  QColor m_offColor;
-  QColor m_overColor;
-  QColor m_pressedColor;
-  QColor m_freezeColor;
-  QColor m_previewColor;
-  QSize m_baseSize;
-  TPanelTitleBarButtonSet *m_buttonSet;
-  int m_id;
-  bool m_rollover;
-  bool m_pressed;
-};
-
-//-----------------------------------------------------------------------------
-/*! specialized button for Bind to Room feature with a simple circle indicator
- */
-class TPanelTitleBarButtonForBindToRoom final : public TPanelTitleBarButton {
-  Q_OBJECT
-  Q_DISABLE_COPY(TPanelTitleBarButtonForBindToRoom)
-
-public:
-  explicit TPanelTitleBarButtonForBindToRoom(QWidget *parent);
-  ~TPanelTitleBarButtonForBindToRoom() override = default;
-
-protected:
-  void paintEvent(QPaintEvent *) override;
+signals:
+  //! emitted when the user press the button
+  //! n.b. the signal is not emitted if the button is part of a buttonset
+  void toggled(bool pressed);
 };
 
 //-----------------------------------------------------------------------------
 /*! specialized button for safe area which enables to choose safe area size by
  * context menu
  */
-class TPanelTitleBarButtonForSafeArea final : public TPanelTitleBarButton {
+
+class TPanelTitleBarButtonForLayoutGuide final : public TPanelTitleBarButton {
   Q_OBJECT
-  Q_DISABLE_COPY(TPanelTitleBarButtonForSafeArea)
+
+  QString m_originalLayoutPresetName;
+  bool m_isPreviewing = false;
 
 public:
-  explicit TPanelTitleBarButtonForSafeArea(QWidget *parent,
-                                           const QString &standardPixmapName);
-  ~TPanelTitleBarButtonForSafeArea() override = default;
-
-  void getSafeAreaNameList(QList<QString> &nameList) const;
+  TPanelTitleBarButtonForLayoutGuide(QWidget *parent,
+                                     const QString &standardPixmapName)
+      : TPanelTitleBarButton(parent, standardPixmapName) {}
 
 protected:
   void contextMenuEvent(QContextMenuEvent *event) override;
   void mousePressEvent(QMouseEvent *event) override;
 
 protected slots:
-  void onSetSafeArea();
+  void onSetLayout();
+  void onEditLayouts();
+  void onAddToXsheet();
+  void onMenuActionHovered(QAction *action);
+  void onMenuAboutToHide();
 };
 
 //-----------------------------------------------------------------------------
-/*! specialized button for preview which enables to choose preview behavior by
+/*! specialized button for safe area which enables to choose safe area size by
  * context menu
  */
+
 class TPanelTitleBarButtonForPreview final : public TPanelTitleBarButton {
   Q_OBJECT
-  Q_DISABLE_COPY(TPanelTitleBarButtonForPreview)
-
 public:
-  explicit TPanelTitleBarButtonForPreview(QWidget *parent,
-                                          const QString &standardPixmapName);
-  ~TPanelTitleBarButtonForPreview() override = default;
+  TPanelTitleBarButtonForPreview(QWidget *parent,
+                                 const QString &standardPixmapName)
+      : TPanelTitleBarButton(parent, standardPixmapName) {}
 
-  bool isChecked() const noexcept { return m_pressed; }
+  bool isChecked() { return m_pressed; }
 
 protected:
   void contextMenuEvent(QContextMenuEvent *event) override;
   void mousePressEvent(QMouseEvent *event) override;
-
 protected slots:
   void onSetPreviewBehavior();
 };
 
 //-----------------------------------------------------------------------------
+
 //! a buttonset can group different TPanelTitleBarButton
 class TPanelTitleBarButtonSet final : public QObject {
   Q_OBJECT
-  Q_DISABLE_COPY(TPanelTitleBarButtonSet)
+  std::vector<TPanelTitleBarButton *> m_buttons;
 
 public:
   TPanelTitleBarButtonSet();
-  ~TPanelTitleBarButtonSet() override = default;
+  ~TPanelTitleBarButtonSet();
 
   void add(TPanelTitleBarButton *button);
   void select(TPanelTitleBarButton *button);
-  bool select(int id);
 
 signals:
   //! emitted when the current button changes. id is the button identifier
   void selected(int id);
-
-private:
-  std::vector<TPanelTitleBarButton *> m_buttons;
 };
 
 //-----------------------------------------------------------------------------
+
 class TPanelTitleBar final : public QFrame {
   Q_OBJECT
-  Q_DISABLE_COPY(TPanelTitleBar)
 
-  // Pixmap properties
-  Q_PROPERTY(QPixmap BorderPixmap READ getBorderPixmap WRITE setBorderPixmap)
-  Q_PROPERTY(QPixmap ActiveBorderPixmap READ getActiveBorderPixmap WRITE
-                 setActiveBorderPixmap)
-  Q_PROPERTY(QPixmap FloatBorderPixmap READ getFloatBorderPixmap WRITE
-                 setFloatBorderPixmap)
-  Q_PROPERTY(QPixmap FloatActiveBorderPixmap READ getFloatActiveBorderPixmap
-                 WRITE setFloatActiveBorderPixmap)
+  bool m_closeButtonHighlighted;
+  std::vector<std::pair<QPoint, QWidget *>> m_buttons;
 
-  // Color properties
-  Q_PROPERTY(QColor TitleColor READ getTitleColor WRITE setTitleColor)
-  Q_PROPERTY(QColor ActiveTitleColor READ getActiveTitleColor WRITE
-                 setActiveTitleColor)
-  Q_PROPERTY(
-      QColor CloseOverColor READ getCloseOverColor WRITE setCloseOverColor)
+  QColor m_titleColor, m_activeTitleColor, m_closeOverColor;
 
 public:
-  explicit TPanelTitleBar(
-      QWidget *parent                      = nullptr,
-      TDockWidget::Orientation orientation = TDockWidget::vertical);
-  ~TPanelTitleBar() override = default;
+  TPanelTitleBar(QWidget *parent                      = 0,
+                 TDockWidget::Orientation orientation = TDockWidget::vertical);
 
   QSize sizeHint() const override { return minimumSizeHint(); }
   QSize minimumSizeHint() const override;
 
-  // pos = widget position. n.b. if pos.x()<0 then origin is top-right corner
+  // pos = widget position. n.b. if pos.x()<0 then origin is topright corner
   void add(const QPoint &pos, QWidget *widget);
 
-  // --- Pixmap getters/setters ---
-  QPixmap getBorderPixmap() const { return m_borderPm; }
-  void setBorderPixmap(const QPixmap &pixmap) { m_borderPm = pixmap; }
-
-  QPixmap getActiveBorderPixmap() const { return m_activeBorderPm; }
-  void setActiveBorderPixmap(const QPixmap &pixmap) {
-    m_activeBorderPm = pixmap;
-  }
-
-  QPixmap getFloatBorderPixmap() const { return m_floatBorderPm; }
-  void setFloatBorderPixmap(const QPixmap &pixmap) { m_floatBorderPm = pixmap; }
-
-  QPixmap getFloatActiveBorderPixmap() const { return m_floatActiveBorderPm; }
-  void setFloatActiveBorderPixmap(const QPixmap &pixmap) {
-    m_floatActiveBorderPm = pixmap;
-  }
-
-  // --- Color getters/setters ---
-  QColor getTitleColor() const noexcept { return m_titleColor; }
-  void setTitleColor(const QColor &color) noexcept { m_titleColor = color; }
-
-  QColor getActiveTitleColor() const noexcept { return m_activeTitleColor; }
-  void setActiveTitleColor(const QColor &color) noexcept {
-    m_activeTitleColor = color;
-  }
+  QColor getTitleColor() const { return m_titleColor; }
+  void setTitleColor(const QColor &color) { m_titleColor = color; }
+  QColor getActiveTitleColor() const { return m_activeTitleColor; }
+  void setActiveTitleColor(const QColor &color) { m_activeTitleColor = color; }
 
   QColor getCloseOverColor() const;
   void setCloseOverColor(const QColor &color);
 
-signals:
-  void closeButtonPressed();
-  void doubleClick(QMouseEvent *me);
-
 protected:
   void resizeEvent(QResizeEvent *e) override;
-  void contextMenuEvent(QContextMenuEvent *) override {
-  }  // disable default menu
+
+  // To Disable the default context Menu
+  void contextMenuEvent(QContextMenuEvent *) override {}
+
   void paintEvent(QPaintEvent *event) override;
   void leaveEvent(QEvent *) override;
   void mouseMoveEvent(QMouseEvent *event) override;
   void mousePressEvent(QMouseEvent *event) override;
   void mouseDoubleClickEvent(QMouseEvent *) override;
 
-private:
-  bool m_closeButtonHighlighted;
-  std::vector<std::pair<QPoint, QWidget *>> m_buttons;
+  Q_PROPERTY(QColor TitleColor READ getTitleColor WRITE setTitleColor);
+  Q_PROPERTY(QColor ActiveTitleColor READ getActiveTitleColor WRITE
+                 setActiveTitleColor);
+  Q_PROPERTY(
+      QColor CloseOverColor READ getCloseOverColor WRITE setCloseOverColor);
 
-  QPixmap m_borderPm, m_activeBorderPm, m_floatBorderPm, m_floatActiveBorderPm;
-  QColor m_titleColor, m_activeTitleColor, m_closeOverColor;
+signals:
+
+  void closeButtonPressed();
+  void doubleClick(QMouseEvent *me);
 };
 
 //-----------------------------------------------------------------------------
+
 class TPanel : public TDockWidget {
   Q_OBJECT
-  Q_DISABLE_COPY(TPanel)
+
+  QColor
+      m_bgcolor;  // overrides palette background color in paint event - Mac fix
 
   Q_PROPERTY(QColor BGColor READ getBGColor WRITE setBGColor)
 
-public:
   QColor getBGColor() const { return m_bgcolor; }
   void setBGColor(const QColor &color) { m_bgcolor = color; }
 
-  explicit TPanel(QWidget *parent                      = nullptr,
-                  Qt::WindowFlags flags                = Qt::WindowFlags(),
-                  TDockWidget::Orientation orientation = TDockWidget::vertical);
-  ~TPanel() override;
+  std::string m_panelType;
+  bool m_isMaximizable;
+  bool m_isMaximized;
+  bool m_multipleInstancesAllowed;
+  // Upstream "toggle panels with shortcut": floating panels flagged here are
+  // left alone when the panel shortcut toggles panels of the same type.
+  bool m_ignorePanelShortcutToggle = false;
 
-  // Panel type identification
+  TPanelTitleBar *m_panelTitleBar;
+
+  QList<TPanel *> m_hiddenDockWidgets;
+  QByteArray m_currentRoomOldState;
+
+public:
+  TPanel(QWidget *parent = 0, Qt::WindowFlags flags = Qt::WindowFlags(),
+         TDockWidget::Orientation orientation = TDockWidget::vertical);
+  ~TPanel();
+
   void setPanelType(const std::string &panelType) { m_panelType = panelType; }
-  std::string getPanelType() const { return m_panelType; }
+  std::string getPanelType() { return m_panelType; }
 
-  // Maximize support
-  void setIsMaximizable(bool value) noexcept { m_isMaximizable = value; }
-  bool isMaximizable() const noexcept { return m_isMaximizable; }
+  void setIsMaximizable(bool value) { m_isMaximizable = value; }
+  bool isMaximizable() { return m_isMaximizable; }
+  // bool isMaximized() { return m_isMaximized; }
+  // void setMaximized(bool isMaximized, Room *room = 0);
 
-  // Hidden dock widgets management
   QList<TPanel *> getHiddenDockWidget() const { return m_hiddenDockWidgets; }
   QByteArray getSavedOldState() const { return m_currentRoomOldState; }
 
-  // Multiple instances of floating panels; default = true
-  void allowMultipleInstances(bool allowed) noexcept {
+  // void setTitleBarWidget(TPanelTitleBar *newTitleBar);
+
+  // si riferisce a istanze multiple dei pannelli floating; default = true
+  void allowMultipleInstances(bool allowed) {
     m_multipleInstancesAllowed = allowed;
   }
-  bool areMultipleInstancesAllowed() const noexcept {
+  bool areMultipleInstancesAllowed() const {
     return m_multipleInstancesAllowed;
   }
 
-  // Title bar access
-  TPanelTitleBar *getTitleBar() const noexcept { return m_panelTitleBar; }
-
-  // Room binding methods (for all panels)
-  bool isRoomBound() const noexcept { return m_isRoomBound; }
-  void setRoomBound(bool bound);
-  QString getBoundRoomName() const { return m_boundRoomName; }
-  void setBoundRoomName(const QString &roomName);
-  void setRoomBindButton(TPanelTitleBarButton *button) noexcept {
-    m_roomBindButton = button;
-  }
-
-  bool ignoresPanelShortcutToggle() const noexcept {
+  bool ignoresPanelShortcutToggle() const {
     return m_ignorePanelShortcutToggle;
   }
-  void setIgnorePanelShortcutToggle(bool ignore);
-
+  void setIgnorePanelShortcutToggle(bool ignore) {
+    m_ignorePanelShortcutToggle = ignore;
+  }
+  //! hides a floating panel as if its close button was pressed
   void dismissFloatingPanel();
 
-  // Add room binding toggle button to the title bar
-  // This enables the "Bind to Room" feature for any panel
-  void addRoomBindButton();
+  TPanelTitleBar *getTitleBar() const { return m_panelTitleBar; }
 
-  // Virtuals that may be overridden
-  virtual void reset() {}
-  virtual int getViewType() { return -1; }
-  virtual void setViewType(int viewType) {}
+  virtual void reset() {};
+
+  virtual int getViewType() { return -1; };
+  virtual void setViewType(int viewType) {};
+
   virtual bool widgetInThisPanelIsFocused() {
-    return widget() ? widget()->hasFocus() : false;
-  }
+    // by default, check if the panel content itself has focus
+    if (widget())
+      return widget()->hasFocus();
+    else
+      return false;
+  };
+
   virtual void restoreFloatingPanelState();
   virtual void zoomContentsAndFitGeometry(bool forward);
 
@@ -329,62 +289,40 @@ protected:
   void enterEvent(QEvent *) override;
   void leaveEvent(QEvent *) override;
 
-  // BTR grip visibility follows floating/docked state (dock + workspace
-  // restore).
-  void setFloatingAppearance() override;
-  void setDockedAppearance() override;
-
   virtual bool isActivatableOnEnter() { return false; }
 
 protected slots:
+
   void onCloseButtonPressed();
-  void onCustomContextMenuRequested(const QPoint &pos);
   virtual void widgetFocusOnEnter() {
+    // by default, focus the panel content
     if (widget()) widget()->setFocus();
-  }
+  };
   virtual void widgetClearFocusOnLeave() {
     if (widget()) widget()->clearFocus();
-  }
+  };
 
 signals:
+
   void doubleClick(QMouseEvent *me);
   void closeButtonPressed();
-
-private:
-  QColor
-      m_bgcolor;  // overrides palette background color in paint event - Mac fix
-  std::string m_panelType;
-  bool m_isMaximizable;
-  bool m_isMaximized;  // currently unused
-  bool m_multipleInstancesAllowed;
-  TPanelTitleBar *m_panelTitleBar;
-  QList<TPanel *> m_hiddenDockWidgets;
-  QByteArray m_currentRoomOldState;
-
-  // Room binding for custom panels
-  bool m_isRoomBound;
-  QString m_boundRoomName;
-  TPanelTitleBarButton *m_roomBindButton;
-  bool m_ignorePanelShortcutToggle;
 };
 
 //-----------------------------------------------------------------------------
+
 class TPanelFactory {
-  Q_DISABLE_COPY(TPanelFactory)
+  QString m_panelType;
+  static QMap<QString, TPanelFactory *> &tableInstance();
 
 public:
-  explicit TPanelFactory(const QString &panelType);
-  virtual ~TPanelFactory();
+  TPanelFactory(QString panelType);
+  ~TPanelFactory();
 
   QString getPanelType() const { return m_panelType; }
 
   virtual void initialize(TPanel *panel) = 0;
   virtual TPanel *createPanel(QWidget *parent);
-  static TPanel *createPanel(QWidget *parent, const QString &panelType);
-
-private:
-  static QMap<QString, TPanelFactory *> &tableInstance();
-  QString m_panelType;
+  static TPanel *createPanel(QWidget *parent, QString panelType);
 };
 
 //-----------------------------------------------------------------------------

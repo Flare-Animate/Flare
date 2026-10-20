@@ -15,7 +15,7 @@
 #include <QMainWindow>
 #include <QDesktopWidget>
 #include <QApplication>
-#include <../toonzqt/tdockwindows.h>
+#include "tdockwindows.h"
 
 //=============================================================================
 
