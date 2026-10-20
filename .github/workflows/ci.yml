@@ -60,6 +60,12 @@ jobs:
         run: |
           python tools/flash/lint_repo_scripts.py
 
+      - name: CMake lists no ported (.rs) sources
+        # A port deletes the .cpp; a stale CMake entry breaks configure on every
+        # platform ("Cannot find source file"). Fail here in seconds instead.
+        run: |
+          python scripts/check_cmake_sources.py
+
       - name: Check the Rust workspace uses one egui generation
         # Reads flare/sources/Cargo.lock only (no cargo, no network). Guards
         # UNIFICATION_PLAN step 1: the three UI front ends must not drift back onto
