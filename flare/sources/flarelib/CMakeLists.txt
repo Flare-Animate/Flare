@@ -213,7 +213,6 @@ set(SOURCES
     ikjacobian.cpp
     ikskeleton.cpp
     imagebuilders.cpp
-    imagelocation.cpp
     imagemanager.cpp
     imagepainter.cpp
     imagestyles.cpp
