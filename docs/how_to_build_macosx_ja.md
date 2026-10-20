@@ -31,7 +31,7 @@ $ git lfs install
 ### リポジトリを clone
 
 ```
-$ git clone https://github.com/flare/flare
+$ git clone https://github.com/Flare-Animate/Flare
 $ cd flare
 $ git lfs pull
 $ cd thirdparty/lzo

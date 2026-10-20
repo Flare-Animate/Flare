@@ -2,14 +2,14 @@
 
 ## ⚠️ **重要提示**
 
-**请仅从官方来源下载：** Flare 的官方网站只有 [**flare.github.io**](https://flare.github.io/) 和此 [GitHub 仓库](https://github.com/flare/flare)。为保障安全，请勿从其他域名下载 Flare；Flare 没有其他官方镜像或合作下载站点。
+**请仅从官方来源下载：** Flare 的官方网站只有 [**flare-animate.github.io/website**](https://flare-animate.github.io/website/) 和此 [GitHub 仓库](https://github.com/Flare-Animate/Flare)。为保障安全，请勿从其他域名下载 Flare；Flare 没有其他官方镜像或合作下载站点。
 
 [English](../README.md) [日本語](./README_ja.md) 
 
 [![](https://ci.appveyor.com/api/projects/status/oa5l5pc964h8fv49/branch/master?svg=true)](https://ci.appveyor.com/project/flare/flare)
-[![Build Windows](https://github.com/flare/flare/actions/workflows/workflow_windows.yml/badge.svg?branch=master)](https://github.com/flare/flare/actions/workflows/workflow_windows.yml)
-[![Build macOS](https://github.com/flare/flare/actions/workflows/workflow_macos.yml/badge.svg?branch=master)](https://github.com/flare/flare/actions/workflows/workflow_macos.yml)
-[![Build Linux](https://github.com/flare/flare/actions/workflows/workflow_linux.yml/badge.svg?branch=master)](https://github.com/flare/flare/actions/workflows/workflow_linux.yml)
+[![Build Windows](https://github.com/Flare-Animate/Flare/actions/workflows/workflow_windows.yml/badge.svg?branch=Rust-Rewrite)](https://github.com/Flare-Animate/Flare/actions/workflows/workflow_windows.yml)
+[![Build macOS](https://github.com/Flare-Animate/Flare/actions/workflows/workflow_macos.yml/badge.svg?branch=Rust-Rewrite)](https://github.com/Flare-Animate/Flare/actions/workflows/workflow_macos.yml)
+[![Build Linux](https://github.com/Flare-Animate/Flare/actions/workflows/workflow_linux.yml/badge.svg?branch=Rust-Rewrite)](https://github.com/Flare-Animate/Flare/actions/workflows/workflow_linux.yml)
 [![Translation status](https://hosted.weblate.org/widgets/flare/-/svg-badge.svg)](https://hosted.weblate.org/engage/flare/)
 
 ## 关于OpenToonz
@@ -20,15 +20,15 @@ Flare 是一个由[DWANGO](http://dwango.co.jp/english/)公开发布的二维动
 
 请参考OpenToonz的官方网站：
 
-<https://flare.github.io/e/index.html>
+<https://flare-animate.github.io/website/e/index.html>
 
 ## 安装
 
 最新的安装包可以从这里下载：
 
-<https://flare.github.io/e/index.html>.
+<https://flare-animate.github.io/website/e/index.html>.
 
-旧版本以及夜间构建版可以从下面的链接下载: <https://github.com/flare/flare/releases>
+旧版本以及夜间构建版可以从下面的链接下载: <https://github.com/Flare-Animate/Flare/releases>
 
 ## 如何在本地构建
 
@@ -44,7 +44,7 @@ Flare 是一个由[DWANGO](http://dwango.co.jp/english/)公开发布的二维动
 ## 社区
 
 - 分享使用心得或进行问题排查，请加入 [谷歌OpenToonz用户论坛](https://groups.google.com/forum/#!forum/opentoonz_en)。
-- 如果你在问题排查后发现了bug，或者你是个开发者，可以在 [Github issues](https://github.com/flare/flare/issues) 页搜索或发布。
+- 如果你在问题排查后发现了bug，或者你是个开发者，可以在 [Github issues](https://github.com/Flare-Animate/Flare/issues) 页搜索或发布。
 
 ## 许可证
 
