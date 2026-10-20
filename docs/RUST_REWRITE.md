@@ -335,9 +335,11 @@ are reference-only.
 | [storytold/effectcraft](https://github.com/storytold/effectcraft) | Effects already consumed via `effectcraft-*` deps, rendered by `common/tvrender/ac_effectcraft.rs` | verify |
 | [storytold/vectorcraft](https://github.com/storytold/vectorcraft) | Vector path/merge model (Flash planar shapes, `docs/ANIMATIONCRAFT_ABSORPTION.md`) | verify |
 | [storytold/craft-libs](https://github.com/storytold/craft-libs) | Shared craft crate helpers (cross-check against effectcraft/vectorcraft) | verify |
+| [storytold/filmcraft](https://github.com/storytold/filmcraft) | Film/timeline export and compositing pipeline (cross-check against `ac_html5.rs` / `publish.rs`) | verify |
 | [mirvoxtm/minnamate](https://github.com/mirvoxtm/minnamate) | Imported as `minnamate-core` (tnztools); merge tracked in `docs/UNIFICATION_PLAN.md` | none upstream; `publish = false` until cleared |
 | [anthony-hyo/animaty](https://github.com/anthony-hyo/animaty) | Animation curves/tweening ideas for `common/tparam`, `flarelib/motion_clip.rs` | verify |
 | [Bauxitedev/bitmapflow](https://github.com/Bauxitedev/bitmapflow) | Bitmap morphing / inbetweening for the bitmap pass-through path | verify |
+| [vyfor/animate](https://github.com/vyfor/animate) | Terminal/CLI animation tooling reference for `flareqt` (ac-cli) | verify |
 | [ruvnet/Rash](https://github.com/ruvnet/Rash) | Scripting/tooling reference only (Rash is a shell-agent framework, not an animation lib) | verify |
 
 In short, Flare's end state is a unified Rust implementation of the OpenToonz/Tahoma2D architecture, augmented by functionality derived from AnimationCraft, Next2Flash, and NFlare, while preserving upstream compatibility, subsystem structure, and long-term maintainability.
