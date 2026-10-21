@@ -36,6 +36,12 @@ HARNESS = os.path.join(HERE, "igs_motion_blur_ref.cpp")
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--check", action="store_true", help="do not write; exit 1 on drift")
+    ap.add_argument(
+        "--verify-chain",
+        action="store_true",
+        help="also build the harness against the LIVE inline header + libflare_formats.a "
+        "and require the golden's output (needs cargo, works offline)",
+    )
     args = ap.parse_args()
 
     rev = ms.pre_deletion_tree(SRCS[0])
@@ -44,7 +50,11 @@ def main() -> int:
         ms.extract(rev, SRCS, workdir)
         # igs_motion_blur.cpp is #included by the harness; nothing else to compile.
         fresh = ms.build_and_run_host(workdir, [], HARNESS, include_dirs=[workdir, stdfx])
-    return ms.check_or_write(GOLDEN, fresh, rev, args.check, count="lines")
+    rc = ms.check_or_write(GOLDEN, fresh, rev, args.check, count="lines")
+    if rc == 0 and args.verify_chain:
+        # only the image lines: the kernel arrays live in the original's anonymous namespace
+        rc = ms.verify_chain(HARNESS, GOLDEN, [stdfx], keep=lambda l: l.startswith("img "))
+    return rc
 
 
 if __name__ == "__main__":

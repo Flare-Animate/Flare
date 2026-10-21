@@ -11,7 +11,11 @@
 #include <cstring>
 #include <vector>
 
+#ifdef CHAIN
+#include "igs_motion_blur.h"  // the live inline forwarder over the Rust port
+#else
 #include "igs_motion_blur.cpp"
+#endif
 
 static unsigned val(int bits, int i, int y) {
   if (bits == 8) return (unsigned)((i * 37 + (i / 3) * 11 + y * 5) % 256);
@@ -59,6 +63,7 @@ int main() {
   const int w = 13, h = 9;
   for (int ci = 0; ci < (int)(sizeof(cfgs) / sizeof(cfgs[0])); ++ci) {
     const Cfg &c = cfgs[ci];
+#ifndef CHAIN  // the anonymous-namespace kernel builder only exists in the original
     std::vector<double> ra;
     std::vector<int> xa, ya;
     set_smooth_(c.xv, c.yv, c.scale, c.curve, c.zl, c.zp, ra, xa, ya);
@@ -73,6 +78,7 @@ int main() {
     std::printf("\ny");
     for (int v : ya) std::printf(" %d", v);
     std::printf("\n");
+#endif
     for (int bits = 8; bits <= 16; bits += 8)
       for (int cc : {4, 3, 1})
         for (int alpha = 0; alpha < 2; ++alpha) {

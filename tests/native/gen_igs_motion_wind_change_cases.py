@@ -47,6 +47,13 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--rng-bits", type=int, choices=(32, 64), default=64)
     ap.add_argument("--check", action="store_true", help="do not write; exit 1 on drift")
+    ap.add_argument(
+        "--verify-chain",
+        action="store_true",
+        help="also build the harness against the LIVE inline header + libflare_formats.a "
+        "(needs cargo; the live RNG is as wide as this host's unsigned long, so the "
+        "golden of that width is the one compared)",
+    )
     args = ap.parse_args()
 
     walk_rev = ms.pre_deletion_tree(WALK_SRCS[0])
@@ -63,9 +70,15 @@ def main() -> int:
             HARNESS,
             include_dirs=[stdfx, workdir],
         )
-    return ms.check_or_write(
+    rc = ms.check_or_write(
         GOLDENS[args.rng_bits], fresh, f"{walk_rev}+{pix_rev}", args.check, count="lines"
     )
+    if rc == 0 and args.verify_chain:
+        import ctypes
+
+        host_bits = ctypes.sizeof(ctypes.c_ulong) * 8
+        rc = ms.verify_chain(HARNESS, GOLDENS[host_bits], [stdfx])
+    return rc
 
 
 if __name__ == "__main__":

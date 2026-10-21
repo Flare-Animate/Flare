@@ -38,10 +38,6 @@ set(HEADERS
     igs_line_blur.h
     igs_math_random.h
     igs_maxmin.h
-    igs_maxmin_getput.h
-    igs_maxmin_lens_matrix.h
-    igs_maxmin_multithread.h
-    igs_maxmin_slrender.h
     igs_median_filter.h
     igs_median_filter_smooth.h
     igs_motion_blur.h
@@ -172,9 +168,6 @@ set(SOURCES
     warpfx.cpp
     igs_fog.cpp
     igs_line_blur.cpp
-    igs_maxmin.cpp
-    igs_maxmin_lens_matrix.cpp
-    igs_maxmin_slrender.cpp
     igs_radial_blur.cpp
     igs_resource_msg_from_err.cpp
     igs_resource_multithread.cpp

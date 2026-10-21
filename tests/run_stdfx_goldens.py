@@ -34,6 +34,7 @@ CHECKS = [
         "motion wind (32-bit word)",
         ["tests/native/gen_igs_motion_wind_cases.py", "--rng-bits", "32", "--check"],
     ),
+    ("maxmin", ["tests/native/gen_igs_maxmin_cases.py", "--check"]),
     ("gaussian blur", ["tests/native/gen_igs_gaussian_blur_cases.py", "--check"]),
     ("motion blur", ["tests/native/gen_igs_motion_blur_cases.py", "--check"]),
     (

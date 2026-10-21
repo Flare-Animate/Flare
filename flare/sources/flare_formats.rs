@@ -216,6 +216,12 @@ pub mod igs_color_blend;
 pub mod igs_motion_wind_table;
 #[path = "stdfx/igs_attenuation_distribution.rs"]
 pub mod igs_attenuation_distribution;
+#[path = "stdfx/igs_maxmin_lens_matrix.rs"]
+pub mod igs_maxmin_lens_matrix;
+#[path = "stdfx/igs_maxmin_slrender.rs"]
+pub mod igs_maxmin_slrender;
+#[path = "stdfx/igs_maxmin.rs"]
+pub mod igs_maxmin;
 #[path = "stdfx/igs_gaussian_blur.rs"]
 pub mod igs_gaussian_blur;
 #[path = "stdfx/igs_motion_blur.rs"]
