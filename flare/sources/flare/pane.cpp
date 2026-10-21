@@ -8,37 +8,27 @@
 #include "tenv.h"
 #include "saveloadqsettings.h"
 #include "custompanelmanager.h"
-
+#include "layoutUtils.h"
 #include "flareqt/gutil.h"
 
 // TnzLib includes
-#include "flare/preferences.h"
-#include "flare/preferencesitemids.h"
 #include "flare/toonzfolders.h"
 #include "flare/tscenehandle.h"
+#include "flare/toonzscene.h"
+#include "flare/sceneproperties.h"
+#include "layoutPresetsEditorPopup.h"
 
 // TnzCore includes
 #include "tsystem.h"
+#include "tmsgcore.h"
 
 // Qt includes
 #include <QPainter>
-#include <QMouseEvent>
-#include <QMainWindow>
-#include <QSettings>
-#include <QMap>
-#include <QMenu>
-#include <QApplication>
-#include <qdrawutil.h>
-#include <assert.h>
-#include <QDialog>
 #include <QLineEdit>
 #include <QTextEdit>
 #include <QScreen>
-#include <QGlobalStatic>
-#include <memory>
-#include <utility>
+#include <QDesktopServices>
 
-extern TEnv::StringVar EnvSafeAreaName;
 extern TEnv::IntVar EnvViewerPreviewBehavior;
 
 //=============================================================================
@@ -51,31 +41,19 @@ TPanel::TPanel(QWidget *parent, Qt::WindowFlags flags,
     , m_panelType("")
     , m_isMaximizable(true)
     , m_isMaximized(false)
-    , m_panelTitleBar(nullptr)
-    , m_multipleInstancesAllowed(true)
-    , m_isRoomBound(false)
-    , m_boundRoomName("")
-    , m_roomBindButton(nullptr)
-    , m_ignorePanelShortcutToggle(false) {
+    , m_panelTitleBar(0)
+    , m_multipleInstancesAllowed(true) {
+  // setFeatures(QDockWidget::DockWidgetMovable |
+  // QDockWidget::DockWidgetFloatable);
+  // setFloating(false);
   m_panelTitleBar = new TPanelTitleBar(this, orientation);
   setTitleBarWidget(m_panelTitleBar);
-  connect(m_panelTitleBar, &TPanelTitleBar::doubleClick, this,
-          &TPanel::doubleClick);
-  connect(m_panelTitleBar, &TPanelTitleBar::closeButtonPressed, this,
-          &TPanel::onCloseButtonPressed);
+  // connect(m_panelTitleBar,SIGNAL(doubleClick()),this,SLOT(onDoubleClick()));
+  connect(m_panelTitleBar, SIGNAL(doubleClick(QMouseEvent *)), this,
+          SIGNAL(doubleClick(QMouseEvent *)));
+  connect(m_panelTitleBar, SIGNAL(closeButtonPressed()), this,
+          SLOT(onCloseButtonPressed()));
   setOrientation(orientation);
-
-  m_panelTitleBar->setContextMenuPolicy(Qt::CustomContextMenu);
-  connect(m_panelTitleBar, &QWidget::customContextMenuRequested, this,
-          [this](const QPoint &pos) {
-            onCustomContextMenuRequested(
-                mapFromGlobal(m_panelTitleBar->mapToGlobal(pos)));
-          });
-
-  // Enable context menu for room binding
-  setContextMenuPolicy(Qt::CustomContextMenu);
-  connect(this, &QWidget::customContextMenuRequested, this,
-          &TPanel::onCustomContextMenuRequested);
 }
 
 //-----------------------------------------------------------------------------
@@ -84,14 +62,15 @@ TPanel::~TPanel() {
   // On quitting, save the floating panel's geometry and state in order to
   // restore them when opening the floating panel next time
   if (isFloating()) {
-    const TFilePath savePath =
+    TFilePath savePath =
         FlareFolder::getMyModuleDir() + TFilePath("popups.ini");
     QSettings settings(QString::fromStdWString(savePath.getWideString()),
                        QSettings::IniFormat);
-    settings.beginGroup(QStringLiteral("Panels"));
+    settings.beginGroup("Panels");
     settings.beginGroup(QString::fromStdString(m_panelType));
-    settings.setValue(QStringLiteral("geometry"), geometry());
-    if (auto *persistent = dynamic_cast<SaveLoadQSettings *>(widget()))
+    settings.setValue("geometry", geometry());
+    if (SaveLoadQSettings *persistent =
+            dynamic_cast<SaveLoadQSettings *>(widget()))
       persistent->save(settings);
   }
 }
@@ -103,6 +82,7 @@ void TPanel::paintEvent(QPaintEvent *e) {
 
   if (widget()) {
     QRect dockRect = widget()->geometry();
+
     dockRect.adjust(0, 0, -1, -1);
     painter.fillRect(dockRect, m_bgcolor);
     painter.setPen(Qt::black);
@@ -110,20 +90,6 @@ void TPanel::paintEvent(QPaintEvent *e) {
   }
 
   painter.end();
-}
-
-//-----------------------------------------------------------------------------
-
-void TPanel::onCloseButtonPressed() {
-  emit closeButtonPressed();
-
-  // Currently, Toonz panels that get closed indeed just remain hidden -
-  // ready to reappear if they are needed again. However, the user expects
-  // a new panel to be created - so we just reset the panel here.
-  // reset();    //Moved to panel invocation in floatingpanelcommand.cpp
-
-  // Also, remove widget from its dock layout control
-  if (parentLayout()) parentLayout()->removeWidget(this);
 }
 
 //-----------------------------------------------------------------------------
@@ -136,48 +102,16 @@ void TPanel::dismissFloatingPanel() {
 
 //-----------------------------------------------------------------------------
 
-void TPanel::onCustomContextMenuRequested(const QPoint &pos) {
-  QMenu menu(this);
+void TPanel::onCloseButtonPressed() {
+  emit closeButtonPressed();
 
-  if (isFloating() &&
-      Preferences::instance()->getBoolValue(togglePanelWithShortcut)) {
-    QAction *ignoreAction = menu.addAction(tr("Ignore Panel Shortcut Toggle"));
-    ignoreAction->setCheckable(true);
-    ignoreAction->setChecked(m_ignorePanelShortcutToggle);
-    connect(ignoreAction, &QAction::triggered,
-            [this](bool checked) { setIgnorePanelShortcutToggle(checked); });
-    menu.addSeparator();
-  }
+  // Currently, Toonz panels that get closed indeed just remain hidden -
+  // ready to reappair if they are needed again. However, the user expects
+  // a new panel to be created - so we just reset the panel here.
+  // reset();    //Moved to panel invocation in floatingpanelcommand.cpp
 
-  // Add "Bind to Current Room" option
-  QAction *bindAction = menu.addAction(tr("Bind to Current Room"));
-  bindAction->setCheckable(true);
-  bindAction->setChecked(m_isRoomBound);
-
-  connect(bindAction, &QAction::triggered, [this](bool checked) {
-    auto *mw = dynamic_cast<MainWindow *>(TApp::instance()->getMainWindow());
-    if (!mw) return;
-
-    Room *currentRoom = mw->getCurrentRoom();
-    if (!currentRoom) return;
-
-    // Update binding state
-    setRoomBound(checked);
-    if (checked) {
-      // Bind panel to current room
-      setBoundRoomName(currentRoom->getName());
-      // Update visibility immediately for all bound panels
-      mw->updatePanelVisibility();
-    } else {
-      // Unbind panel from room
-      setBoundRoomName(QString());
-      // Show panel if it was hidden
-      if (isHidden()) show();
-    }
-  });
-
-  menu.exec(mapToGlobal(pos));
-  // menu is automatically deleted by unique_ptr
+  // Also, remove widget from its dock layout control
+  if (parentLayout()) parentLayout()->removeWidget(this);
 }
 
 //-----------------------------------------------------------------------------
@@ -185,12 +119,12 @@ void TPanel::onCustomContextMenuRequested(const QPoint &pos) {
  */
 void TPanel::enterEvent(QEvent *event) {
   // Only when Toonz application is active
-  QWidget *w = QApplication::activeWindow();
+  QWidget *w = qApp->activeWindow();
   if (w) {
     // grab the focus, unless a line-edit is focused currently
-    QWidget *focusWidget = QApplication::focusWidget();
-    if (focusWidget && (qobject_cast<QLineEdit *>(focusWidget) ||
-                        qobject_cast<QTextEdit *>(focusWidget))) {
+    QWidget *focusWidget = qApp->focusWidget();
+    if (focusWidget && (dynamic_cast<QLineEdit *>(focusWidget) ||
+                        dynamic_cast<QTextEdit *>(focusWidget))) {
       event->accept();
       return;
     }
@@ -201,7 +135,7 @@ void TPanel::enterEvent(QEvent *event) {
     // activated when mouse enters. Viewer is activatable only when being
     // docked.
     // Active windows will NOT switch when the current active window is dialog.
-    if (qobject_cast<QDialog *>(w) == nullptr && isActivatableOnEnter())
+    if (qobject_cast<QDialog *>(w) == 0 && isActivatableOnEnter())
       activateWindow();
     event->accept();
   } else
@@ -212,9 +146,8 @@ void TPanel::enterEvent(QEvent *event) {
 /*! clear focus when mouse leaves
  */
 void TPanel::leaveEvent(QEvent *event) {
-  QWidget *focusWidget = QApplication::focusWidget();
-  if (focusWidget && (qobject_cast<QLineEdit *>(focusWidget) ||
-                      qobject_cast<QTextEdit *>(focusWidget))) {
+  QWidget *focusWidget = qApp->focusWidget();
+  if (focusWidget && dynamic_cast<QLineEdit *>(focusWidget)) {
     return;
   }
   widgetClearFocusOnLeave();
@@ -226,31 +159,23 @@ void TPanel::leaveEvent(QEvent *event) {
     in floatingpanelcommand.cpp
 */
 void TPanel::restoreFloatingPanelState() {
-  const TFilePath savePath =
-      FlareFolder::getMyModuleDir() + TFilePath("popups.ini");
+  TFilePath savePath = FlareFolder::getMyModuleDir() + TFilePath("popups.ini");
   QSettings settings(QString::fromStdWString(savePath.getWideString()),
                      QSettings::IniFormat);
-  settings.beginGroup(QStringLiteral("Panels"));
+  settings.beginGroup("Panels");
 
   if (!settings.childGroups().contains(QString::fromStdString(m_panelType)))
     return;
 
   settings.beginGroup(QString::fromStdString(m_panelType));
 
-  QRect geom = settings.value(QStringLiteral("geometry"), geometry()).toRect();
-
-  // Check if the geometry is visible on any available screen (modern API)
-  bool visible = false;
-  for (QScreen *screen : QGuiApplication::screens()) {
-    if (screen->availableGeometry().intersects(geom)) {
-      visible = true;
-      break;
-    }
-  }
-  if (visible) setGeometry(geom);
-
+  QRect geom = settings.value("geometry", saveGeometry()).toRect();
+  // check if it can be visible in the current screen
+  if (!(geom & QApplication::desktop()->availableGeometry(this)).isEmpty())
+    setGeometry(geom);
   // load optional settings
-  if (auto *persistent = dynamic_cast<SaveLoadQSettings *>(widget()))
+  if (SaveLoadQSettings *persistent =
+          dynamic_cast<SaveLoadQSettings *>(widget()))
     persistent->load(settings);
 }
 
@@ -258,9 +183,9 @@ void TPanel::restoreFloatingPanelState() {
 // if the panel has no contents to be zoomed, simply resize the panel here
 // currently only Flipbook and Color Model panels support resizing of contents
 void TPanel::zoomContentsAndFitGeometry(bool forward) {
-  if (!isFloating()) return;
+  if (!m_floating) return;
 
-  auto getScreen = [&]() -> QScreen * {
+  auto getScreen = [&]() {
     QScreen *ret = nullptr;
     ret          = QGuiApplication::screenAt(geometry().topLeft());
     if (ret) return ret;
@@ -277,7 +202,7 @@ void TPanel::zoomContentsAndFitGeometry(bool forward) {
   // Get screen geometry
   QScreen *screen = getScreen();
   if (!screen) return;
-  const QRect screenGeom = screen->availableGeometry();
+  QRect screenGeom = screen->availableGeometry();
 
   QSize newSize;
   if (forward)
@@ -306,89 +231,6 @@ void TPanel::zoomContentsAndFitGeometry(bool forward) {
   setGeometry(newGeom);
 }
 
-//-----------------------------------------------------------------------------
-
-void TPanel::setRoomBound(bool bound) {
-  m_isRoomBound = bound;
-  if (m_roomBindButton) m_roomBindButton->setPressed(bound);
-}
-
-//-----------------------------------------------------------------------------
-
-void TPanel::setIgnorePanelShortcutToggle(bool ignore) {
-  m_ignorePanelShortcutToggle = ignore;
-}
-
-//-----------------------------------------------------------------------------
-
-void TPanel::setBoundRoomName(const QString &roomName) {
-  m_boundRoomName = roomName;
-}
-
-//-----------------------------------------------------------------------------
-
-void TPanel::addRoomBindButton() {
-  // Prevent adding button twice
-  if (m_roomBindButton) return;
-
-  // Check preference to see if room bind buttons should be shown
-  Preferences *prefs = Preferences::instance();
-  if (!prefs->getBoolValue(showRoomBindButtons)) return;
-
-  auto *titleBar = getTitleBar();
-  if (!titleBar) return;
-
-  // Create toggle button with simple circle indicator
-  m_roomBindButton = new TPanelTitleBarButtonForBindToRoom(titleBar);
-  m_roomBindButton->setToolTip(QObject::tr("Bind to Current Room"));
-  m_roomBindButton->setPressed(
-      m_isRoomBound);  // Restore state if loaded from file
-
-  // Position: -60 pixels from right edge (before close button)
-  titleBar->add(QPoint(-60, 0), m_roomBindButton);
-  // Sync initial visibility with current dock state at button creation time.
-  m_roomBindButton->setVisible(isFloating());
-
-  // Connect toggle signal to handle room binding state changes (modern lambda)
-  connect(m_roomBindButton, &TPanelTitleBarButton::toggled,
-          [this](bool checked) {
-            auto *mw =
-                dynamic_cast<MainWindow *>(TApp::instance()->getMainWindow());
-            if (!mw) return;
-
-            Room *currentRoom = mw->getCurrentRoom();
-            if (!currentRoom) return;
-
-            // Update binding state
-            setRoomBound(checked);
-            if (checked) {
-              // Bind panel to current room
-              setBoundRoomName(currentRoom->getName());
-              // Update visibility immediately for all bound panels
-              mw->updatePanelVisibility();
-            } else {
-              // Unbind panel from room
-              setBoundRoomName(QString());
-              // Show panel if it was hidden
-              if (isHidden()) show();
-            }
-          });
-}
-
-//-----------------------------------------------------------------------------
-
-void TPanel::setFloatingAppearance() {
-  TDockWidget::setFloatingAppearance();
-  if (m_roomBindButton) m_roomBindButton->setVisible(true);
-}
-
-//-----------------------------------------------------------------------------
-
-void TPanel::setDockedAppearance() {
-  TDockWidget::setDockedAppearance();
-  if (m_roomBindButton) m_roomBindButton->setVisible(false);
-}
-
 //=============================================================================
 // TPanelTitleBarButton
 //-----------------------------------------------------------------------------
@@ -399,14 +241,13 @@ TPanelTitleBarButton::TPanelTitleBarButton(QWidget *parent,
     , m_standardPixmapName(standardPixmapName)
     , m_rollover(false)
     , m_pressed(false)
-    , m_buttonSet(nullptr)
+    , m_buttonSet(0)
     , m_id(0) {
   setMouseTracking(true);
 
   // Determine button size
   m_baseSize = QSize(20, 18);
-  if (m_standardPixmapName.contains(QLatin1String("preview"),
-                                    Qt::CaseInsensitive)) {
+  if (m_standardPixmapName.contains("preview", Qt::CaseInsensitive)) {
     m_baseSize = QSize(30, 18);
   }
 
@@ -440,9 +281,7 @@ void TPanelTitleBarButton::setOffColor(const QColor &color) {
   }
 }
 
-QColor TPanelTitleBarButton::getOffColor() const {
-  return m_offColor.isValid() ? m_offColor : Qt::transparent;
-}
+QColor TPanelTitleBarButton::getOffColor() const { return m_offColor; }
 
 //-----------------------------------------------------------------------------
 
@@ -484,25 +323,6 @@ void TPanelTitleBarButton::setPreviewColor(const QColor &color) {
 
 QColor TPanelTitleBarButton::getPreviewColor() const { return m_previewColor; }
 
-//=============================================================================
-// Implementation of the Constructors of the Specialized Classes
-//-----------------------------------------------------------------------------
-
-// Constructor for BindToRoom
-TPanelTitleBarButtonForBindToRoom::TPanelTitleBarButtonForBindToRoom(
-    QWidget *parent)
-    : TPanelTitleBarButton(parent, QStringLiteral()) {}
-
-// Constructor for SafeArea
-TPanelTitleBarButtonForSafeArea::TPanelTitleBarButtonForSafeArea(
-    QWidget *parent, const QString &standardPixmapName)
-    : TPanelTitleBarButton(parent, standardPixmapName) {}
-
-// Constructor for Preview
-TPanelTitleBarButtonForPreview::TPanelTitleBarButtonForPreview(
-    QWidget *parent, const QString &standardPixmapName)
-    : TPanelTitleBarButton(parent, standardPixmapName) {}
-
 //-----------------------------------------------------------------------------
 
 void TPanelTitleBarButton::paintEvent(QPaintEvent *event) {
@@ -515,13 +335,14 @@ void TPanelTitleBarButton::paintEvent(QPaintEvent *event) {
   QIcon::State state = m_pressed ? QIcon::On : QIcon::Off;
 
   // Get DPR and sizes
-  const qreal dpr    = getDevicePixelRatio(this);
-  auto &tm           = ThemeManager::getInstance();
-  const QSize iconSz = tm.getIconSize(m_standardPixmapName);
-  const QSize btnSz  = size() * dpr;
+  qreal dpr    = getDevicePixelRatio(this);
+  auto &tm     = ThemeManager::getInstance();
+  QSize iconSz = tm.getIconSize(m_standardPixmapName);
+  QSize physSz = iconSz * dpr;
+  QSize btnSz  = size() * dpr;
 
   // Cache key with DPR
-  const QString cacheKey =
+  QString cacheKey =
       generateCacheKey(m_standardPixmapName, btnSz, mode, state) +
       QString::number(dpr);
 
@@ -530,26 +351,20 @@ void TPanelTitleBarButton::paintEvent(QPaintEvent *event) {
   if (finalPm.isNull()) {
     QPixmap pm = SvgIconEngine(m_standardPixmapName, false, dpr, iconSz)
                      .pixmap(iconSz, mode, state);
+    pm.scaled(iconSz, Qt::KeepAspectRatio);
 
     if (!pm.isNull()) {
       QColor bgColor = getOffColor();
-
       if (m_pressed) {
-        QColor tgtColor;
-        if (m_standardPixmapName.contains(QLatin1String("freeze"))) {
-          tgtColor = getFreezeColor();
-        } else if (m_standardPixmapName.contains(QLatin1String("preview"))) {
-          tgtColor = getPreviewColor();
+        if (m_standardPixmapName.contains("freeze")) {
+          bgColor = getFreezeColor();
+        } else if (m_standardPixmapName.contains("preview")) {
+          bgColor = getPreviewColor();
         } else {
-          tgtColor = getPressedColor();
+          bgColor = getPressedColor();
         }
-
-        // Only overwrite if stylesheet actually provided valid color
-        if (tgtColor.isValid()) bgColor = tgtColor;
       } else if (m_rollover) {
-        QColor overColor = getOverColor();
-        // Only overwrite if valid, or keep the safe transparent color
-        if (overColor.isValid()) bgColor = overColor;
+        bgColor = getOverColor();
       }
 
       pm.setDevicePixelRatio(dpr);
@@ -601,73 +416,12 @@ void TPanelTitleBarButton::mousePressEvent(QMouseEvent *e) {
 }
 
 //=============================================================================
-// TPanelTitleBarButtonForBindToRoom
+// TPanelTitleBarButtonForLayoutGuide
 //-----------------------------------------------------------------------------
-
-void TPanelTitleBarButtonForBindToRoom::paintEvent(QPaintEvent *) {
-  QPainter p(this);
-  p.setRenderHint(QPainter::Antialiasing);
-
-  // Get title bar to access theme colors
-  auto *titleBar = qobject_cast<TPanelTitleBar *>(parentWidget());
-
-  // Determine circle color based on state
-  QColor circleColor;
-  if (m_pressed) {
-    // When bound, use active title color
-    circleColor =
-        titleBar ? titleBar->getActiveTitleColor() : QColor(0, 150, 255);
-  } else {
-    // When not bound, use dimmed title color
-    circleColor = titleBar ? titleBar->getTitleColor() : QColor(160, 160, 160);
-    circleColor.setAlpha(m_rollover ? 200 : 120);  // Fade when not hovering
-  }
-
-  // Draw small circle in the center of the button
-  const QRect rect   = this->rect();
-  const int diameter = 8;  // Small circle (8px diameter)
-  const int centerX  = rect.center().x();
-  const int centerY  = rect.center().y();
-
-  p.setPen(Qt::NoPen);
-  p.setBrush(circleColor);
-  p.drawEllipse(QPoint(centerX, centerY), diameter / 2, diameter / 2);
-}
-
-//=============================================================================
-// TPanelTitleBarButtonForSafeArea
-//-----------------------------------------------------------------------------
-
-void TPanelTitleBarButtonForSafeArea::getSafeAreaNameList(
-    QList<QString> &nameList) const {
-  TFilePath fp                      = TEnv::getConfigDir();
-  const QString currentSafeAreaName = QString::fromStdString(EnvSafeAreaName);
-
-  const std::string safeAreaFileName = "safearea.ini";
-
-  while (!TFileStatus(fp + safeAreaFileName).doesExist() && !fp.isRoot() &&
-         fp.getParentDir() != TFilePath())
-    fp = fp.getParentDir();
-
-  fp = fp + safeAreaFileName;
-
-  if (TFileStatus(fp).doesExist()) {
-    QSettings settings(toQString(fp), QSettings::IniFormat);
-
-    // find the current safearea name from the list
-    const QStringList groups = settings.childGroups();
-    for (const QString &group : groups) {
-      settings.beginGroup(group);
-      nameList.push_back(
-          settings.value(QStringLiteral("name"), QString()).toString());
-      settings.endGroup();
-    }
-  }
-}
 
 //-----------------------------------------------------------------------------
 
-void TPanelTitleBarButtonForSafeArea::mousePressEvent(QMouseEvent *e) {
+void TPanelTitleBarButtonForLayoutGuide::mousePressEvent(QMouseEvent *e) {
   if (e->button() != Qt::RightButton) {
     m_pressed = !m_pressed;
     emit toggled(m_pressed);
@@ -675,40 +429,170 @@ void TPanelTitleBarButtonForSafeArea::mousePressEvent(QMouseEvent *e) {
   }
 }
 
+void TPanelTitleBarButtonForLayoutGuide::onEditLayouts() {
+  QWidget *parent = TApp::instance()->getMainWindow();
+
+  LayoutPresetsEditorPopup *popup = LayoutPresetsEditorPopup::instance(parent);
+
+  QPoint globalMousePos = QCursor::pos();
+
+  popup->showAndPosition(globalMousePos);
+
+  return;
+}
+
+void TPanelTitleBarButtonForLayoutGuide::onAddToXsheet() {
+  layoutUtils::addLayoutToXsheet();
+}
+
 //-----------------------------------------------------------------------------
 
-void TPanelTitleBarButtonForSafeArea::contextMenuEvent(QContextMenuEvent *e) {
+void TPanelTitleBarButtonForLayoutGuide::contextMenuEvent(
+    QContextMenuEvent *e) {
   QMenu menu(this);
 
-  QList<QString> safeAreaNameList;
-  getSafeAreaNameList(safeAreaNameList);
-  for (const QString &name : safeAreaNameList) {
-    QAction *action = menu.addAction(name);
-    action->setData(name);
-    connect(action, &QAction::triggered, this,
-            &TPanelTitleBarButtonForSafeArea::onSetSafeArea);
-    if (name == QString::fromStdString(EnvSafeAreaName)) {
-      action->setCheckable(true);
+  QString currentLayoutPresetName = TApp::instance()
+                                        ->getCurrentScene()
+                                        ->getScene()
+                                        ->getProperties()
+                                        ->getLayoutPresetName();
+  QList<QString> layoutNameList;
+  layoutUtils::loadLayoutPresetList(layoutNameList);
+  QActionGroup *behaviorGroup = new QActionGroup(this);
+
+  m_originalLayoutPresetName = currentLayoutPresetName;
+
+  bool framesPresetFound = false;
+
+  for (int i = 0; i < layoutNameList.size(); i++) {
+    QAction *action = new QAction(layoutNameList.at(i), this);
+    action->setData(layoutNameList.at(i));
+    connect(action, SIGNAL(triggered()), this, SLOT(onSetLayout()));
+    action->setCheckable(true);
+    behaviorGroup->addAction(action);
+    menu.addAction(action);
+    if (layoutNameList.at(i) == currentLayoutPresetName) {
+      framesPresetFound = true;
       action->setChecked(true);
     }
   }
+
+  if (!framesPresetFound && !currentLayoutPresetName.isEmpty()) {
+    QString framesPresetMissingTemplate = tr("%1 (Missing)");
+    QString invalidActionText =
+        framesPresetMissingTemplate.arg(currentLayoutPresetName);
+    QAction *invalidAction = new QAction(invalidActionText, this);
+
+    QPixmap redDot(16, 16);
+    redDot.fill(Qt::transparent);
+    QPainter p(&redDot);
+    p.setRenderHint(QPainter::Antialiasing);
+    p.setBrush(QBrush(Qt::red));
+    p.setPen(Qt::NoPen);
+    p.drawEllipse(2, 2, 12, 12);
+    p.end();
+    invalidAction->setIcon(redDot);
+
+    invalidAction->setEnabled(true);
+
+    connect(invalidAction, &QAction::triggered, this,
+            &TPanelTitleBarButtonForLayoutGuide::onEditLayouts);
+
+    invalidAction->setChecked(true);
+    behaviorGroup->addAction(invalidAction);
+    menu.addAction(invalidAction);
+  }
+
+  menu.addSeparator();
+  QAction *clearAction = new QAction(tr("Clear current"), this);
+  connect(clearAction, &QAction::triggered, this, []() {
+    TApp::instance()
+        ->getCurrentScene()
+        ->getScene()
+        ->getProperties()
+        ->setLayoutPresetName(QString());
+    layoutUtils::invalidateCurrent();
+    TApp::instance()->getCurrentScene()->notifySceneChanged(true);
+  });
+  menu.addAction(clearAction);
+
+  QAction *editAction = new QAction(tr("Edit Layout Presets..."), this);
+  connect(editAction, SIGNAL(triggered()), this, SLOT(onEditLayouts()));
+  menu.addAction(editAction);
+
+  QAction *addLayoutAction = new QAction(tr("Add Layout to XSheet"), this);
+  connect(addLayoutAction, SIGNAL(triggered()), this, SLOT(onAddToXsheet()));
+  menu.addAction(addLayoutAction);
+
+  connect(&menu, SIGNAL(hovered(QAction *)), this,
+          SLOT(onMenuActionHovered(QAction *)));
+  connect(&menu, SIGNAL(aboutToHide()), this, SLOT(onMenuAboutToHide()));
 
   menu.exec(e->globalPos());
 }
 
 //-----------------------------------------------------------------------------
 
-void TPanelTitleBarButtonForSafeArea::onSetSafeArea() {
-  const QString safeAreaName =
+void TPanelTitleBarButtonForLayoutGuide::onSetLayout() {
+  QString framesPresetName =
       qobject_cast<QAction *>(sender())->data().toString();
-  // change safearea if the different one is selected
-  if (QString::fromStdString(EnvSafeAreaName) != safeAreaName) {
-    EnvSafeAreaName = safeAreaName.toStdString();
-    // emit sceneChanged without setting dirty flag
-    TApp::instance()->getCurrentScene()->notifySceneChanged(false);
+  // change framesPreset if the different one is selected
+  QString currentframesPresetName = TApp::instance()
+                                        ->getCurrentScene()
+                                        ->getScene()
+                                        ->getProperties()
+                                        ->getLayoutPresetName();
+  if (currentframesPresetName != framesPresetName) {
+    TApp::instance()
+        ->getCurrentScene()
+        ->getScene()
+        ->getProperties()
+        ->setLayoutPresetName(framesPresetName);
+    layoutUtils::invalidateCurrent();
+    TApp::instance()->getCurrentScene()->notifySceneChanged(true);
   }
 }
 
+void TPanelTitleBarButtonForLayoutGuide::onMenuActionHovered(QAction *action) {
+  if (!action || action->data().isNull() ||
+      action->text() == tr("Edit Frames Presets...")) {
+    if (m_isPreviewing) {
+      TApp::instance()
+          ->getCurrentScene()
+          ->getScene()
+          ->getProperties()
+          ->setLayoutPresetName(m_originalLayoutPresetName);
+      layoutUtils::invalidateCurrent();
+      TApp::instance()->getCurrentScene()->notifySceneChanged(false);
+      m_isPreviewing = false;
+    }
+    return;
+  }
+
+  QString framesPresetName = action->data().toString();
+
+  TApp::instance()
+      ->getCurrentScene()
+      ->getScene()
+      ->getProperties()
+      ->setLayoutPresetName(framesPresetName);
+  layoutUtils::invalidateCurrent();
+  TApp::instance()->getCurrentScene()->notifySceneChanged(false);
+  m_isPreviewing = true;
+}
+
+void TPanelTitleBarButtonForLayoutGuide::onMenuAboutToHide() {
+  if (m_isPreviewing) {
+    TApp::instance()
+        ->getCurrentScene()
+        ->getScene()
+        ->getProperties()
+        ->setLayoutPresetName(m_originalLayoutPresetName);
+    layoutUtils::invalidateCurrent();
+    TApp::instance()->getCurrentScene()->notifySceneChanged(false);
+    m_isPreviewing = false;
+  }
+}
 //-----------------------------------------------------------------------------
 
 //=============================================================================
@@ -731,19 +615,16 @@ void TPanelTitleBarButtonForPreview::contextMenuEvent(QContextMenuEvent *e) {
   // 0: current frame
   // 1: all frames in the preview range
   // 2: selected cell, auto play once & stop
-  const QStringList behaviorsStrList = {tr("Current frame"),
-                                        tr("All preview range frames"),
-                                        tr("Selected cells - Auto play")};
+  QStringList behaviorsStrList = {tr("Current frame"),
+                                  tr("All preview range frames"),
+                                  tr("Selected cells - Auto play")};
 
-  // QActionGroup with menu as parent ensures proper cleanup
-  auto *behaviorGroup = new QActionGroup(&menu);
-  behaviorGroup->setExclusive(true);
+  QActionGroup *behaviorGroup = new QActionGroup(this);
 
-  for (int i = 0; i < behaviorsStrList.size(); ++i) {
+  for (int i = 0; i < behaviorsStrList.size(); i++) {
     QAction *action = menu.addAction(behaviorsStrList.at(i));
     action->setData(i);
-    connect(action, &QAction::triggered, this,
-            &TPanelTitleBarButtonForPreview::onSetPreviewBehavior);
+    connect(action, SIGNAL(triggered()), this, SLOT(onSetPreviewBehavior()));
     action->setCheckable(true);
     behaviorGroup->addAction(action);
     if (i == EnvViewerPreviewBehavior) action->setChecked(true);
@@ -755,8 +636,8 @@ void TPanelTitleBarButtonForPreview::contextMenuEvent(QContextMenuEvent *e) {
 //-----------------------------------------------------------------------------
 
 void TPanelTitleBarButtonForPreview::onSetPreviewBehavior() {
-  const int behaviorId = qobject_cast<QAction *>(sender())->data().toInt();
-  // change safearea if the different one is selected
+  int behaviorId = qobject_cast<QAction *>(sender())->data().toInt();
+  // change framesPreset if the different one is selected
   if (EnvViewerPreviewBehavior != behaviorId) {
     EnvViewerPreviewBehavior = behaviorId;
     // emit sceneChanged without setting dirty flag
@@ -770,25 +651,19 @@ void TPanelTitleBarButtonForPreview::onSetPreviewBehavior() {
 // TPanelTitleBarButtonSet
 //-----------------------------------------------------------------------------
 
-TPanelTitleBarButtonSet::TPanelTitleBarButtonSet() = default;
+TPanelTitleBarButtonSet::TPanelTitleBarButtonSet() {}
+
+TPanelTitleBarButtonSet::~TPanelTitleBarButtonSet() {}
 
 void TPanelTitleBarButtonSet::add(TPanelTitleBarButton *button) {
   m_buttons.push_back(button);
 }
 
 void TPanelTitleBarButtonSet::select(TPanelTitleBarButton *button) {
-  for (auto *btn : m_buttons) btn->setPressed(button == btn);
+  int i;
+  for (i = 0; i < (int)m_buttons.size(); i++)
+    m_buttons[i]->setPressed(button == m_buttons[i]);
   emit selected(button->getId());
-}
-
-bool TPanelTitleBarButtonSet::select(int id) {
-  for (auto *btn : m_buttons) {
-    if (btn->getId() == id) {
-      select(btn);
-      return true;
-    }
-  }
-  return false;
 }
 
 //=============================================================================
@@ -810,24 +685,20 @@ QSize TPanelTitleBar::minimumSizeHint() const { return QSize(20, 18); }
 
 void TPanelTitleBar::paintEvent(QPaintEvent *) {
   QPainter painter(this);
-  const QRect rect = this->rect();
+  QRect rect = this->rect();
 
   bool isPanelActive;
-  auto *dw = qobject_cast<TPanel *>(parentWidget());
-  Q_ASSERT(dw != nullptr);
+  TPanel *dw = qobject_cast<TPanel *>(parentWidget());
+  Q_ASSERT(dw != 0);
 
   if (!dw->isFloating()) {  // docked panel
     isPanelActive = dw->widgetInThisPanelIsFocused();
-    qDrawBorderPixmap(&painter, rect, QMargins(3, 3, 3, 3),
-                      isPanelActive ? m_activeBorderPm : m_borderPm);
   } else {  // floating panel
     isPanelActive = isActiveWindow();
-    qDrawBorderPixmap(&painter, rect, QMargins(3, 3, 3, 3),
-                      isPanelActive ? m_floatActiveBorderPm : m_floatBorderPm);
   }
 
   if (dw->getOrientation() == TDockWidget::vertical) {
-    const QString titleText = painter.fontMetrics().elidedText(
+    QString titleText = painter.fontMetrics().elidedText(
         dw->windowTitle(), Qt::ElideRight, rect.width() - 50);
 
     painter.setBrush(Qt::NoBrush);
@@ -836,20 +707,20 @@ void TPanelTitleBar::paintEvent(QPaintEvent *) {
   }
 
   if (dw->isFloating()) {
-    const QPoint btnPos(rect.right() - 19, rect.top());
-    const qreal dpr    = getDevicePixelRatio(this);
-    const QSize btnSz  = minimumSizeHint() * dpr;
-    const QSize iconSz = QSize(16, 16);
+    QPoint btnPos(rect.right() - 19, rect.top());
+    qreal dpr    = getDevicePixelRatio(this);
+    QSize btnSz  = minimumSizeHint() * dpr;
+    QSize iconSz = QSize(16, 16);
 
     // Icon mode and background color
-    const bool highlighted = m_closeButtonHighlighted;
-    const QIcon::Mode mode = highlighted ? QIcon::Active : QIcon::Normal;
-    const QColor bgColor = highlighted ? getCloseOverColor() : Qt::transparent;
+    bool highlighted = m_closeButtonHighlighted;
+    QIcon::Mode mode = highlighted ? QIcon::Active : QIcon::Normal;
+    QColor bgColor   = highlighted ? getCloseOverColor() : Qt::transparent;
 
     // Cache key
-    const QString cacheKey = generateCacheKey(QStringLiteral("closewindow"),
-                                              btnSz, mode, QIcon::Off) +
-                             QString::number(dpr);
+    QString cacheKey =
+        generateCacheKey("closewindow", btnSz, mode, QIcon::Off) +
+        QString::number(dpr);
 
     // Check cache first
     QPixmap finalPm = getFromPixmapCache(cacheKey);
@@ -859,9 +730,8 @@ void TPanelTitleBar::paintEvent(QPaintEvent *) {
     }
 
     // Load icon at logical size
-    QPixmap pm =
-        SvgIconEngine(QStringLiteral("closewindow"), false, dpr, iconSz)
-            .pixmap(iconSz, mode, QIcon::Off);
+    QPixmap pm = SvgIconEngine("closewindow", false, dpr, iconSz)
+                     .pixmap(iconSz, mode, QIcon::Off);
     if (pm.isNull()) return;
 
     pm.setDevicePixelRatio(dpr);
@@ -887,8 +757,8 @@ QColor TPanelTitleBar::getCloseOverColor() const { return m_closeOverColor; }
 //-----------------------------------------------------------------------------
 
 void TPanelTitleBar::leaveEvent(QEvent *) {
-  auto *dw = qobject_cast<TPanel *>(parentWidget());
-  Q_ASSERT(dw != nullptr);
+  TPanel *dw = qobject_cast<TPanel *>(parentWidget());
+  Q_ASSERT(dw != 0);
 
   // Mouse left the widget, reset the highlighted flag
   if (dw->isFloating()) {
@@ -900,13 +770,13 @@ void TPanelTitleBar::leaveEvent(QEvent *) {
 //-----------------------------------------------------------------------------
 
 void TPanelTitleBar::mousePressEvent(QMouseEvent *event) {
-  auto *dw = static_cast<TDockWidget *>(parentWidget());
+  TDockWidget *dw = static_cast<TDockWidget *>(parentWidget());
 
-  const QPoint pos = event->pos();
+  QPoint pos = event->pos();
 
   if (dw->isFloating()) {
-    const QRect rect = this->rect();
-    const QRect closeButtonRect(rect.right() - 20, rect.top() + 1, 20, 18);
+    QRect rect = this->rect();
+    QRect closeButtonRect(rect.right() - 20, rect.top() + 1, 20, 18);
     if (closeButtonRect.contains(pos) && dw->isFloating()) {
       event->accept();
       dw->hide();
@@ -921,12 +791,12 @@ void TPanelTitleBar::mousePressEvent(QMouseEvent *event) {
 //-----------------------------------------------------------------------------
 
 void TPanelTitleBar::mouseMoveEvent(QMouseEvent *event) {
-  auto *dw = static_cast<TDockWidget *>(parentWidget());
+  TDockWidget *dw = static_cast<TDockWidget *>(parentWidget());
 
   if (dw->isFloating()) {
-    const QPoint pos = event->pos();
-    const QRect rect = this->rect();
-    const QRect closeButtonRect(rect.right() - 18, rect.top() + 1, 18, 18);
+    QPoint pos = event->pos();
+    QRect rect = this->rect();
+    QRect closeButtonRect(rect.right() - 18, rect.top() + 1, 18, 18);
 
     if (closeButtonRect.contains(pos) && dw->isFloating())
       m_closeButtonHighlighted = true;
@@ -948,37 +818,27 @@ void TPanelTitleBar::mouseDoubleClickEvent(QMouseEvent *me) {
 //-----------------------------------------------------------------------------
 
 void TPanelTitleBar::add(const QPoint &pos, QWidget *widget) {
-  m_buttons.emplace_back(pos, widget);
+  m_buttons.push_back(std::make_pair(pos, widget));
 }
 
 //-----------------------------------------------------------------------------
 
 void TPanelTitleBar::resizeEvent(QResizeEvent *e) {
   QWidget::resizeEvent(e);
-  for (const auto &[pos, widget] : m_buttons) {
-    QPoint p = pos;
+  int i;
+  for (i = 0; i < (int)m_buttons.size(); i++) {
+    QPoint p   = m_buttons[i].first;
+    QWidget *w = m_buttons[i].second;
     if (p.x() < 0) p.setX(p.x() + width());
-    widget->move(p);
+    w->move(p);
   }
 }
 
 //=============================================================================
-// TPanelFactory - using Q_GLOBAL_STATIC for thread-safe singleton map
+// TPanelFactory
 //-----------------------------------------------------------------------------
 
-typedef QMap<QString, TPanelFactory *> FactoryTable;
-Q_GLOBAL_STATIC(FactoryTable, factoryTable)
-
-//-----------------------------------------------------------------------------
-
-QMap<QString, TPanelFactory *> &TPanelFactory::tableInstance() {
-  return *factoryTable();
-}
-
-//-----------------------------------------------------------------------------
-
-TPanelFactory::TPanelFactory(const QString &panelType)
-    : m_panelType(panelType) {
+TPanelFactory::TPanelFactory(QString panelType) : m_panelType(panelType) {
   assert(tableInstance().count(panelType) == 0);
   tableInstance()[m_panelType] = this;
 }
@@ -989,39 +849,44 @@ TPanelFactory::~TPanelFactory() { tableInstance().remove(m_panelType); }
 
 //-----------------------------------------------------------------------------
 
-TPanel *TPanelFactory::createPanel(QWidget *parent, const QString &panelType) {
-  auto it = tableInstance().find(panelType);
-  if (it != tableInstance().end()) {
-    TPanel *panel = it.value()->createPanel(parent);
+QMap<QString, TPanelFactory *> &TPanelFactory::tableInstance() {
+  static QMap<QString, TPanelFactory *> table;
+  return table;
+}
+
+//-----------------------------------------------------------------------------
+
+TPanel *TPanelFactory::createPanel(QWidget *parent, QString panelType) {
+  TPanel *panel = 0;
+
+  QMap<QString, TPanelFactory *>::iterator it = tableInstance().find(panelType);
+  if (it == tableInstance().end()) {
+    if (panelType.startsWith("Custom_")) {
+      panelType = panelType.right(panelType.size() - 7);
+      return CustomPanelManager::instance()->createCustomPanel(panelType,
+                                                               parent);
+    }
+
+    TPanel *panel = new TPanel(parent);
+    panel->setPanelType(panelType.toStdString());
+    return panel;
+  } else {
+    TPanelFactory *factory = it.value();
+    TPanel *panel          = factory->createPanel(parent);
     panel->setPanelType(panelType.toStdString());
     return panel;
   }
-
-  if (panelType.startsWith(QStringLiteral("Custom_"))) {
-    QString customType = panelType.mid(7);
-    return CustomPanelManager::instance()->createCustomPanel(customType,
-                                                             parent);
-  }
-
-  // Fallback: generic panel
-  TPanel *panel = new TPanel(parent);
-  panel->setPanelType(panelType.toStdString());
-  panel->addRoomBindButton();
-  return panel;
 }
 
 //-----------------------------------------------------------------------------
 
 TPanel *TPanelFactory::createPanel(QWidget *parent) {
-  auto *panel = new TPanel(parent);
+  TPanel *panel = new TPanel(parent);
   panel->setObjectName(getPanelType());
   panel->setWindowTitle(getPanelType());
   initialize(panel);
-
-  // Enable room binding feature for all native panels
-  panel->addRoomBindButton();
-
   return panel;
 }
 
 //-----------------------------------------------------------------------------
+

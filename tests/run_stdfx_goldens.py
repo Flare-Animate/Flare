@@ -23,7 +23,10 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.abspath(os.path.join(HERE, ".."))
 
 CHECKS = [
+    ("swf writer (FSWFStream, FPrimitive, FObj, FSound, FCT, FDTBitmaps)", ["tests/native/gen_swfwriter_cases.py", "--check"]),
     ("attenuation", ["tests/native/gen_igs_attenuation_cases.py", "--check"]),
+    ("noise (64-bit word)", ["tests/native/gen_noise_cases.py", "--rng-bits", "64", "--check"]),
+    ("noise in camera (32-bit word)", ["tests/native/gen_noise_cases.py", "--rng-bits", "32", "--check"]),
     (
         "motion wind (64-bit word)",
         ["tests/native/gen_igs_motion_wind_cases.py", "--rng-bits", "64", "--check"],
@@ -31,6 +34,17 @@ CHECKS = [
     (
         "motion wind (32-bit word)",
         ["tests/native/gen_igs_motion_wind_cases.py", "--rng-bits", "32", "--check"],
+    ),
+    ("maxmin", ["tests/native/gen_igs_maxmin_cases.py", "--check"]),
+    ("gaussian blur", ["tests/native/gen_igs_gaussian_blur_cases.py", "--check"]),
+    ("motion blur", ["tests/native/gen_igs_motion_blur_cases.py", "--check"]),
+    (
+        "motion wind scanline walk (64-bit word)",
+        ["tests/native/gen_igs_motion_wind_change_cases.py", "--rng-bits", "64", "--check"],
+    ),
+    (
+        "motion wind scanline walk (32-bit word)",
+        ["tests/native/gen_igs_motion_wind_change_cases.py", "--rng-bits", "32", "--check"],
     ),
 ]
 

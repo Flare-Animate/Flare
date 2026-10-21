@@ -17,6 +17,7 @@
 #include "tcomputeregions.h"
 
 #include <memory>
+#include <stdexcept>
 #include <QSet>
 
 //=============================================================================
@@ -89,6 +90,7 @@ TVectorImage::Imp::Imp(TVectorImage *vi)
     , m_notIntersectingStrokes(false)
     , m_computeRegions(true)
     , m_autocloseTolerance(c_newAutocloseTolerance)
+    , m_regionFindingMode(TVectorImage::RegionFindingMode::Default)
     , m_maxGroupId(1)
     , m_maxGhostGroupId(1)
     , m_mutex(new TThread::Mutex())
@@ -844,6 +846,7 @@ bool TVectorImage::Imp::selectFill(const TRectD &selArea, TStroke *s,
 
   if (s) {
     TVectorImage aux;
+    aux.setRegionFindingMode(m_regionFindingMode);
     aux.addStroke(s);
     aux.findRegions();
     for (UINT j = 0; j < aux.getRegionCount(); j++) {
@@ -1189,6 +1192,8 @@ void TVectorImage::findRegions() {
 //-----------------------------------------------------------------------------
 
 void TVectorImage::putRegion(TRegion *region) {
+  region->setSourceContainment(m_imp->m_regionFindingMode ==
+                               RegionFindingMode::PreserveSource);
   m_imp->m_regions.push_back(region);
 }
 
@@ -1215,6 +1220,7 @@ TImage *TVectorImage::cloneImage() const {
   TVectorImage *out = new TVectorImage;
 
   out->m_imp->m_autocloseTolerance = m_imp->m_autocloseTolerance;
+  out->m_imp->m_regionFindingMode  = m_imp->m_regionFindingMode;
   out->m_imp->m_maxGroupId         = m_imp->m_maxGroupId;
   out->m_imp->m_maxGhostGroupId    = m_imp->m_maxGhostGroupId;
 
@@ -1311,6 +1317,27 @@ int TVectorImage::mergeImage(const TVectorImageP &img, const TAffine &affine,
   int imageSize = img->getStrokeCount();
   if (imageSize == 0) return 0;
   QMutexLocker sl(m_imp->m_mutex);
+
+  // An empty drawing can adopt the source policy even after its last stroke
+  // was erased. Discard that empty graph before changing reconstruction mode.
+  // A destination containing geometry retains its existing policy. Ordinary
+  // (Default-to-Default) merges keep the destination settings untouched.
+  const bool sourcePolicyInvolved =
+      m_imp->m_regionFindingMode == RegionFindingMode::PreserveSource ||
+      img->m_imp->m_regionFindingMode == RegionFindingMode::PreserveSource;
+  if (sourcePolicyInvolved && m_imp->m_strokes.empty() &&
+      (!m_imp->m_computedAlmostOnce ||
+       m_imp->m_regionFindingMode != img->m_imp->m_regionFindingMode)) {
+    if (m_imp->m_regionFindingMode != img->m_imp->m_regionFindingMode) {
+      m_imp->deleteRegionsData();
+      m_imp->initRegionsData();
+      m_imp->m_areValidRegions    = false;
+      m_imp->m_computedAlmostOnce = false;
+      m_imp->m_justLoaded         = false;
+    }
+    m_imp->m_regionFindingMode  = img->m_imp->m_regionFindingMode;
+    m_imp->m_autocloseTolerance = img->m_imp->m_autocloseTolerance;
+  }
 
   m_imp->m_computedAlmostOnce |= img->m_imp->m_computedAlmostOnce;
 
@@ -1587,6 +1614,10 @@ TVectorImageP TVectorImage::splitImage(const std::vector<int> &indices,
   out->m_imp->m_maxGroupId      = m_imp->m_maxGroupId;
   out->m_imp->m_maxGhostGroupId = m_imp->m_maxGhostGroupId;
 
+  out->m_imp->m_regionFindingMode = m_imp->m_regionFindingMode;
+  if (m_imp->m_regionFindingMode == RegionFindingMode::PreserveSource)
+    out->m_imp->m_autocloseTolerance = m_imp->m_autocloseTolerance;
+
   std::vector<int> toBeRemoved;
 
   TPalette *vp = getPalette();
@@ -1610,6 +1641,9 @@ TVectorImageP TVectorImage::splitImage(const std::vector<int> &indices,
 
 TVectorImageP TVectorImage::splitSelected(bool removeFlag) {
   TVectorImageP out = new TVectorImage;
+  out->m_imp->m_regionFindingMode = m_imp->m_regionFindingMode;
+  if (m_imp->m_regionFindingMode == RegionFindingMode::PreserveSource)
+    out->m_imp->m_autocloseTolerance = m_imp->m_autocloseTolerance;
   std::vector<int> toBeRemoved;
 
   for (UINT i = 0; i < getStrokeCount(); ++i) {
@@ -2465,6 +2499,22 @@ double TVectorImage::getAutocloseTolerance() const {
   return m_imp->m_autocloseTolerance;
 }
 
+void TVectorImage::setRegionFindingMode(RegionFindingMode mode) {
+  if (mode != RegionFindingMode::Default &&
+      mode != RegionFindingMode::PreserveSource)
+    throw std::invalid_argument("Unknown vector region finding mode");
+  if (mode == m_imp->m_regionFindingMode) return;
+  if (m_imp->m_computedAlmostOnce)
+    throw std::logic_error(
+        "Vector region finding mode must be selected before region "
+        "construction");
+  m_imp->m_regionFindingMode = mode;
+}
+
+TVectorImage::RegionFindingMode TVectorImage::getRegionFindingMode() const {
+  return m_imp->m_regionFindingMode;
+}
+
 //-------------------------------------------------------------------
 
 TThread::Mutex *TVectorImage::getMutex() const { return m_imp->m_mutex; }
@@ -2473,6 +2523,7 @@ TThread::Mutex *TVectorImage::getMutex() const { return m_imp->m_mutex; }
 
 void TVectorImage::areaFill(TStroke *stroke, int index, bool m_onlyUnfilled) {
   TVectorImage v;
+  v.setRegionFindingMode(getRegionFindingMode());
   v.addStroke(stroke);
   v.findRegions();
 

@@ -1,3 +1,4 @@
+#include <cmath>  // std::ceil (not pulled in transitively by newer libstdc++)
 #include <string>
 #include <vector>
 #include <limits>     // std::numeric_limits

@@ -1465,6 +1465,12 @@
   <item>"STD_iwa_TextFx.textColor" "Text Color"</item>
   <item>"STD_iwa_TextFx.boxColor" "Box Color"</item>
   <item>"STD_iwa_TextFx.showBorder" "Show Border"</item>
+  <item>"STD_iwa_TextFx.transformWithColumn" "Transform with Column"</item>
+  <item>"STD_iwa_TextFx.kerning" "Kerning"</item>
+  <item>"STD_iwa_TextFx.letterSpacing" "Letter Spacing"</item>
+  <item>"STD_iwa_TextFx.lineSpacing" "Line Spacing"</item>
+  <item>"STD_iwa_TextFx.indent" "Indent"</item>
+  <item>"STD_iwa_TextFx.shrinkToFit" "Shrink to Fit"</item>
 
   <item>"STD_iwa_CorridorGradientFx" 			"Corridor Gradient Iwa" 	</item>
   <item>"STD_iwa_CorridorGradientFx.shape"	"Shape"		</item>
@@ -1741,6 +1747,52 @@
   <item>"STD_naru_LazyBrushFx.alpha"	 	"Difficulty Passing Through Ink"			</item>
   <item>"STD_naru_LazyBrushFx.auto_scribble_length" 	"Auto Scribble Margin"	</item>
   <item>"STD_naru_LazyBrushFx.auto_scribble_threshold" 	"Auto Scribble Outline Threshold"	</item>
+
+  <!------------------------------ Flash filter FXs ------------------------------------------->
+
+  <item>"STD_colorMatrixFx"		"Color Matrix"	</item>
+  <item>"STD_colorMatrixFx.red_red"	"Red from Red"	</item>
+  <item>"STD_colorMatrixFx.red_green"	"Red from Green"	</item>
+  <item>"STD_colorMatrixFx.red_blue"	"Red from Blue"	</item>
+  <item>"STD_colorMatrixFx.red_alpha"	"Red from Alpha"	</item>
+  <item>"STD_colorMatrixFx.red_offset"	"Red Offset"	</item>
+  <item>"STD_colorMatrixFx.green_red"	"Green from Red"	</item>
+  <item>"STD_colorMatrixFx.green_green"	"Green from Green"	</item>
+  <item>"STD_colorMatrixFx.green_blue"	"Green from Blue"	</item>
+  <item>"STD_colorMatrixFx.green_alpha"	"Green from Alpha"	</item>
+  <item>"STD_colorMatrixFx.green_offset"	"Green Offset"	</item>
+  <item>"STD_colorMatrixFx.blue_red"	"Blue from Red"	</item>
+  <item>"STD_colorMatrixFx.blue_green"	"Blue from Green"	</item>
+  <item>"STD_colorMatrixFx.blue_blue"	"Blue from Blue"	</item>
+  <item>"STD_colorMatrixFx.blue_alpha"	"Blue from Alpha"	</item>
+  <item>"STD_colorMatrixFx.blue_offset"	"Blue Offset"	</item>
+  <item>"STD_colorMatrixFx.alpha_red"	"Alpha from Red"	</item>
+  <item>"STD_colorMatrixFx.alpha_green"	"Alpha from Green"	</item>
+  <item>"STD_colorMatrixFx.alpha_blue"	"Alpha from Blue"	</item>
+  <item>"STD_colorMatrixFx.alpha_alpha"	"Alpha from Alpha"	</item>
+  <item>"STD_colorMatrixFx.alpha_offset"	"Alpha Offset"	</item>
+  <item>"STD_dropShadowFx"		"Drop Shadow"	</item>
+  <item>"STD_dropShadowFx.color"	"Color"	</item>
+  <item>"STD_dropShadowFx.blur_x"	"Blur X"	</item>
+  <item>"STD_dropShadowFx.blur_y"	"Blur Y"	</item>
+  <item>"STD_dropShadowFx.quality"	"Quality"	</item>
+  <item>"STD_dropShadowFx.strength"	"Strength"	</item>
+  <item>"STD_dropShadowFx.angle"	"Angle"	</item>
+  <item>"STD_dropShadowFx.distance"	"Distance"	</item>
+  <item>"STD_dropShadowFx.inner"	"Inner Shadow"	</item>
+  <item>"STD_dropShadowFx.knockout"	"Knockout"	</item>
+  <item>"STD_dropShadowFx.hide_object"	"Hide Object"	</item>
+  <item>"STD_bevelFx"		"Bevel"	</item>
+  <item>"STD_bevelFx.highlight_color"	"Highlight"	</item>
+  <item>"STD_bevelFx.shadow_color"	"Shadow"	</item>
+  <item>"STD_bevelFx.blur_x"	"Blur X"	</item>
+  <item>"STD_bevelFx.blur_y"	"Blur Y"	</item>
+  <item>"STD_bevelFx.quality"	"Quality"	</item>
+  <item>"STD_bevelFx.strength"	"Strength"	</item>
+  <item>"STD_bevelFx.angle"	"Angle"	</item>
+  <item>"STD_bevelFx.distance"	"Distance"	</item>
+  <item>"STD_bevelFx.type"	"Type"	</item>
+  <item>"STD_bevelFx.knockout"	"Knockout"	</item>
 
 </stringtable> 
 

@@ -347,6 +347,8 @@ public:
   TStageObject *m_stageObject;  //!< (not owned) Referenced stage object
   FunctionTreeModel::ChannelGroup
       *m_plasticGroup;  //!< (not owned) Eventual plastic channels group
+  FunctionTreeModel::Channel
+      *m_opacityChannel;  //!< (not owned) Level column opacity, if any
 
 public:
   StageObjectChannelGroup(TStageObject *pegbar);

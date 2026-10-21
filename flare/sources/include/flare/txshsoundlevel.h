@@ -77,6 +77,8 @@ public:
 
   void setSoundTrack(TSoundTrackP st) {
     m_soundTrack = st;
+    // Keep getFrameCount() consistent with a track built in memory.
+    m_duration = st ? st->getDuration() : 0.0;
     computeValues();
   }
   TSoundTrackP getSoundTrack() { return m_soundTrack; }

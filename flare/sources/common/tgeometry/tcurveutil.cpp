@@ -28,8 +28,10 @@ int intersect(const TPointD &p1, const TPointD &p2, const TPointD &p3,
               const TPointD &p4, std::vector<DoublePair> &intersections) {
   // This algorithm is presented in Graphics Geems III pag 199
 
-  static double Ax, Bx, Ay, By, Cx, Cy, d, f, e;
-  static double x1lo, x1hi, y1lo, y1hi;
+  // Plain locals: this is reentrant scratch state (threads intersect curves
+  // concurrently during parallel region computation).
+  double Ax, Bx, Ay, By, Cx, Cy, d, f, e;
+  double x1lo, x1hi, y1lo, y1hi;
 
   Ax = p2.x - p1.x;
   Bx = p3.x - p4.x;

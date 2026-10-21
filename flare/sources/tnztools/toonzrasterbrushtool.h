@@ -62,6 +62,7 @@ struct BrushData final : public TPersist {
   int m_drawOrder;
   double m_modifierSize, m_modifierOpacity;
   bool m_modifierEraser, m_modifierLockAlpha;
+  int m_eraserMode;
   bool m_assistants;
   
   // Style snapshot information (for strict preset restoration)
@@ -216,6 +217,7 @@ protected:
 #endif
   TInputModifier::List m_modifierReplicate;
 
+#ifdef HAVE_MYPaint
   class MyPaintStroke : public TTrackHandler {
   public:
     MyPaintToonzBrush brush;
@@ -225,6 +227,7 @@ protected:
                          bool interpolation = false)
         : brush(ras, controller, brush, interpolation) {}
   };
+#endif
 
   class PencilStroke : public TTrackHandler {
   public:
@@ -273,7 +276,11 @@ protected:
 
     struct MyPaint {
       bool isActive = false;
+      bool eraser   = false;
+#ifdef HAVE_MYPaint
+      MyPaintToonzEraserMode eraserMode = MyPaintToonzEraserMode::Lines;
       mypaint::Brush baseBrush;
+#endif
       TRect strokeSegmentRect;
     } myPaint;
   } m_painting;
@@ -288,6 +295,8 @@ protected:
   TBoolProperty m_pencil;
   TBoolProperty m_pressure;
   TDoubleProperty m_modifierSize;
+  TBoolProperty m_modifierEraser;
+  TEnumProperty m_eraserMode;
   TBoolProperty m_modifierLockAlpha;
   TBoolProperty m_assistants;
 

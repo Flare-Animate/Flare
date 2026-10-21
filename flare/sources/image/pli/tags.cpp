@@ -331,6 +331,11 @@ AutoCloseToleranceTag::AutoCloseToleranceTag()
 AutoCloseToleranceTag::AutoCloseToleranceTag(int tolerance)
     : PliObjectTag(AUTOCLOSE_TOLERANCE_GOBJ), m_autoCloseTolerance(tolerance) {}
 
+//-----------------------------------------------------------------------------
+
+RegionFindingModeTag::RegionFindingModeTag(TVectorImage::RegionFindingMode mode)
+    : PliObjectTag(REGION_FINDING_MODE_GOBJ), m_mode(mode) {}
+
 /*=====================================================================*/
 /*=====================================================================*/
 

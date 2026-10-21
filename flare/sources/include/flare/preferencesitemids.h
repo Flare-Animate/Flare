@@ -13,6 +13,7 @@ enum PreferencesItemId {
   projectRoot,
   customProjectRoot,
   pathAliasPriority,
+  showAdvancedOptions,
   lazyLoadRooms,
 
   //----------
@@ -45,6 +46,8 @@ enum PreferencesItemId {
   displayIn30bit,
   viewerIndicatorEnabled,
   restoreViewerViewFromLastSession,
+  // Upstream fix(style-editor): remember the Style Editor tab between sessions.
+  RestoreStyleEditorTab,
   togglePanelWithShortcut,
 
   //----------
@@ -79,6 +82,9 @@ enum PreferencesItemId {
   backupKeepCount,
   rasterBackgroundColor,
   resetUndoOnSavingLevel,
+  defaultProjectPath,
+  recordFileHistory,
+  recordAsUsername,
 
   //----------
   // Import / Export
@@ -89,6 +95,9 @@ enum PreferencesItemId {
   quickTimeBackend,
   rhubarbPath,
   rhubarbTimeout,
+  // PreferencesPopup reads it through Preferences::getFlashDecompilerPath to
+  // locate the SWF decompiler.
+  flashDecompilerPath,
   lazyNezumiCanvasFocusEnabled,
 
   //----------
@@ -96,6 +105,9 @@ enum PreferencesItemId {
   DefRasterFormat,
   // scanLevelType,// deprecated
   DefLevelType,
+  // levelcreatepopup.cpp and txshsimplelevel.cpp read it through
+  // Preferences::getDefLevelSizePolicy.
+  DefLevelSizePolicy,
   DefAssistantType,
   newLevelSizeToCameraSizeEnabled,
   DefLevelWidth,
@@ -167,6 +179,10 @@ enum PreferencesItemId {
   currentColumnOutlineColor,
   levelNameDisplayType,
   showFrameNumberWithLetters,
+  // Ported from tahoma2d: xshcellviewer.cpp reads these two, through
+  // Preferences::isShowDragBarsEnabled and getTimelineLayoutPreference.
+  showDragBars,
+  timelineLayoutPreference,
   linkColumnNameWithLevel,
 
   //----------
@@ -215,6 +231,7 @@ enum PreferencesItemId {
   SVNEnabled,
   automaticSVNFolderRefreshEnabled,
   latestVersionCheckEnabled,
+  updateNightlyChannel,
 
   //----------
   // Touch / Tablet Settings

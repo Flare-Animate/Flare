@@ -20,6 +20,18 @@ pub mod moho;
 pub mod swf;
 #[path = "common/flash/FDT.rs"]
 pub mod fdt;
+#[path = "common/flash/FSWFStream.rs"]
+pub mod fswfstream;
+#[path = "common/flash/FPrimitive.rs"]
+pub mod fprimitive;
+#[path = "common/flash/FObj.rs"]
+pub mod fobj;
+#[path = "common/flash/FSound.rs"]
+pub mod fsound;
+#[path = "common/flash/FCT.rs"]
+pub mod fct;
+#[path = "common/flash/FDTBitmaps.rs"]
+pub mod fdtbitmaps;
 #[path = "common/flash/xfl.rs"]
 pub mod xfl;
 
@@ -142,6 +154,10 @@ pub mod ext_types;
 pub mod casmfileinfo;
 #[path = "common/psdlib/psdutils.rs"]
 pub mod psdutils;
+#[path = "image/tzp/avl.rs"]
+pub mod avl;
+#[path = "image/tzp/toonzrle.rs"]
+pub mod toonzrle;
 #[path = "stdfx/igs_color_rgb_hls.rs"]
 pub mod igs_color_rgb_hls;
 #[path = "stdfx/igs_color_rgb_hsv.rs"]
@@ -200,6 +216,14 @@ pub mod sdirection;
 pub mod patternmapparam;
 #[path = "stdfx/igs_hls_noise.rs"]
 pub mod igs_hls_noise;
+#[path = "stdfx/igs_hsv_noise_in_camera.rs"]
+pub mod igs_hsv_noise_in_camera;
+#[path = "stdfx/igs_hls_noise_in_camera.rs"]
+pub mod igs_hls_noise_in_camera;
+#[path = "stdfx/iwa_noise1234.rs"]
+pub mod iwa_noise1234;
+#[path = "stdfx/iwa_simplexnoise.rs"]
+pub mod iwa_simplexnoise;
 #[path = "stdfx/naru_maxflow.rs"]
 pub mod naru_maxflow;
 #[path = "stdfx/igs_color_blend.rs"]
@@ -208,12 +232,26 @@ pub mod igs_color_blend;
 pub mod igs_motion_wind_table;
 #[path = "stdfx/igs_attenuation_distribution.rs"]
 pub mod igs_attenuation_distribution;
+#[path = "stdfx/igs_maxmin_lens_matrix.rs"]
+pub mod igs_maxmin_lens_matrix;
+#[path = "stdfx/igs_maxmin_slrender.rs"]
+pub mod igs_maxmin_slrender;
+#[path = "stdfx/igs_maxmin.rs"]
+pub mod igs_maxmin;
+#[path = "stdfx/igs_gaussian_blur.rs"]
+pub mod igs_gaussian_blur;
+#[path = "stdfx/igs_motion_blur.rs"]
+pub mod igs_motion_blur;
+#[path = "stdfx/igs_motion_wind.rs"]
+pub mod igs_motion_wind;
 #[path = "stdfx/igs_motion_wind_pixel.rs"]
 pub mod igs_motion_wind_pixel;
 #[path = "flarelib/skeletonlut.rs"]
 pub mod skeletonlut;
 #[path = "flarelib/iknode.rs"]
 pub mod iknode;
+#[path = "flarelib/ikjacobian.rs"]
+pub mod ikjacobian;
 
 /// TFilePath query (see header). Returns full byte length; copies up to `cap` into `out`.
 #[no_mangle]
@@ -736,11 +774,12 @@ mod tests {
     #[test]
     fn module_registry_matches_the_tree() {
         // Modules that deliberately keep both a `.rs` and a `.cpp`: the memory-safety
-        // wrapper scripts, which the port policy exempts from deletion.
+        // wrapper scripts (exempt from deletion) and partial ports.
         const KEEPS_CPP: &[&str] = &[
-                        "common/tapptools/tenv.rs",
-
-                        "common/tsystem/tfilepath.rs",
+            "common/tapptools/tenv.rs",
+            "common/tsystem/tfilepath.rs",
+            // partial port: the libtiff codec registration (private `TIFF` struct) stays C++
+            "image/tzp/toonzrle.rs",
         ];
 
         let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));

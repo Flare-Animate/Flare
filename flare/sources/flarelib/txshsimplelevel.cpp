@@ -910,6 +910,8 @@ void TXshSimpleLevel::clearFrames() {
 void TXshSimpleLevel::loadData(TIStream& is) {
   std::string tagName;
   bool flag = false;
+  bool readFlashNativeId = false;
+  setFlashNativeId({});
 
   int type = UNKNOWN_XSHLEVEL;
 
@@ -920,6 +922,15 @@ void TXshSimpleLevel::loadData(TIStream& is) {
         is.matchEndTag();
       } else if (tagName == "scannedPath") {
         is >> m_scannedPath;
+        is.matchEndTag();
+      } else if (tagName == "flashNativeId") {
+        if (readFlashNativeId)
+          throw TException("Repeated Flash native level identifier.");
+        std::string id;
+        is >> id;
+        if (!setFlashNativeId(QString::fromStdString(id)))
+          throw TException("Invalid Flash native level identifier.");
+        readFlashNativeId = true;
         is.matchEndTag();
       } else if (tagName == "info") {
         std::string v;
@@ -1407,6 +1418,8 @@ void TXshSimpleLevel::saveData(TOStream& os) {
 
   os.child("path") << m_path;
   if (m_scannedPath != TFilePath()) os.child("scannedPath") << m_scannedPath;
+  if (!flashNativeId().isEmpty())
+    os.child("flashNativeId") << flashNativeId().toStdString();
 }
 
 //-----------------------------------------------------------------------------

@@ -136,6 +136,7 @@ public:
 
   std::vector<VIStroke *> m_strokes;
   double m_autocloseTolerance;
+  TVectorImage::RegionFindingMode m_regionFindingMode;
   IntersectionData *m_intersectionData;
   std::vector<TRegion *> m_regions;
   TThread::Mutex *m_mutex;

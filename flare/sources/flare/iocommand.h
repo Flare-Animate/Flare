@@ -235,7 +235,8 @@ void newScene();
 
 bool loadScene(ToonzScene &scene, const TFilePath &scenePath, bool import);
 bool loadScene(const TFilePath &scenePath, bool updateRecentFile = true,
-               bool checkSaveOldScene = true);
+               bool checkSaveOldScene         = true,
+               bool preserveOldSceneOnFailure = false);
 bool loadScene();
 
 bool loadSubScene();
@@ -264,7 +265,7 @@ bool saveLevel(TXshSimpleLevel *sl);
 
 bool saveAll(int flags = 0);
 
-void saveNonSceneFiles();
+bool saveNonSceneFiles();  //!< false if the resources could not be saved
 
 bool saveSound(const TFilePath &fp, TXshSoundLevel *sc, bool overwrite);
 bool saveSound(TXshSoundLevel *sc);
@@ -321,9 +322,12 @@ bool importLipSync(TFilePath levelPath, QList<TFrameId> frameList,
 // cast.
 // if the cast contains the level specified with $scenefolder alias,
 // open a warning popup notifying that such level will lose link.
+// Levels in skipLevels are relocated by another path (Flash Save As) and are
+// neither prompted for nor re-coded here.
 bool takeCareSceneFolderItemsOnSaveSceneAs(
     ToonzScene *scene, const TFilePath &newPath, TXsheet *subxsh,
-    QHash<TXshLevel *, TFilePath> &orgLevelPaths);
+    QHash<TXshLevel *, TFilePath> &orgLevelPaths,
+    const std::set<TXshLevel *> *skipLevels = nullptr);
 
 }  // namespace IoCmd
 

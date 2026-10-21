@@ -3,9 +3,112 @@
 #ifndef JACOBIAN_H
 #define JACOBIAN_H
 
+#include <stdint.h>
+#include <stddef.h>
+#include <math.h>
+#include <assert.h>
+#include <algorithm>
+#include <stdexcept>
+#include <vector>
+
 #include "iknode.h"
 #include "ikskeleton.h"
 #include "tgeometry.h"
+
+// The numeric kernels of the former flarelib/ikjacobian.cpp live in
+// flarelib/ikjacobian.rs (flare_formats). Every function returns 0 on success, 1 for a
+// null / negative / oversized argument, 2 for an out-of-range access or caught panic,
+// 3 for a shape the original only assert()ed on. `long` travels as int64_t.
+extern "C" {
+int flare_ikjac_vec_max_abs(double *x, int64_t n, double *out);
+int flare_ikjac_set_diagonal(double *x, int64_t r, int64_t c, double d);
+int flare_ikjac_set_diagonal_vec(double *x, int64_t r, int64_t c, double *d, int64_t dn);
+int flare_ikjac_set_super_diagonal(double *x, int64_t r, int64_t c, double d);
+int flare_ikjac_set_super_diagonal_vec(double *x, int64_t r, int64_t c, double *d, int64_t dn);
+int flare_ikjac_set_sub_diagonal(double *x, int64_t r, int64_t c, double d);
+int flare_ikjac_set_sub_diagonal_vec(double *x, int64_t r, int64_t c, double *d, int64_t dn);
+int flare_ikjac_set_column(double *x, int64_t r, int64_t c, int64_t i, double *d, int64_t dn);
+int flare_ikjac_set_row(double *x, int64_t r, int64_t c, int64_t i, double *d, int64_t dn);
+int flare_ikjac_set_sequence(double *x, int64_t r, int64_t c, double *d, int64_t dn,
+                             int64_t startRow, int64_t startCol, int64_t deltaRow,
+                             int64_t deltaCol);
+int flare_ikjac_load_as_submatrix(double *x, int64_t r, int64_t c, double *a, int64_t ar,
+                                  int64_t ac);
+int flare_ikjac_load_as_submatrix_transpose(double *x, int64_t r, int64_t c, double *a,
+                                            int64_t ar, int64_t ac);
+int flare_ikjac_frobenius_norm(double *x, int64_t r, int64_t c, double *out);
+int flare_ikjac_multiply_vec(double *x, int64_t r, int64_t c, double *v, int64_t vn,
+                             double *res, int64_t rn);
+int flare_ikjac_multiply_transpose_vec(double *x, int64_t r, int64_t c, double *v,
+                                       int64_t vn, double *res, int64_t rn);
+int flare_ikjac_dot_product_column(double *x, int64_t r, int64_t c, double *v, int64_t vn,
+                                   int64_t col, double *out);
+int flare_ikjac_add_to_diagonal(double *x, int64_t r, int64_t c, double d);
+int flare_ikjac_add_to_diagonal_vec(double *x, int64_t r, int64_t c, double *v, int64_t vn);
+int flare_ikjac_multiply_scalar(double *a, int64_t ar, int64_t ac, double k, double *dst,
+                                int64_t dr, int64_t dc);
+int flare_ikjac_multiply(double *a, int64_t ar, int64_t ac, double *b, int64_t br,
+                         int64_t bc, double *dst, int64_t dr, int64_t dc);
+int flare_ikjac_transpose_multiply(double *a, int64_t ar, int64_t ac, double *b,
+                                   int64_t br, int64_t bc, double *dst, int64_t dr,
+                                   int64_t dc);
+int flare_ikjac_multiply_transpose(double *a, int64_t ar, int64_t ac, double *b,
+                                   int64_t br, int64_t bc, double *dst, int64_t dr,
+                                   int64_t dc);
+int flare_ikjac_solve(double *x, int64_t r, int64_t c, double *b, int64_t bn, double *xv,
+                      int64_t xn);
+int flare_ikjac_convert_to_ref_no_free(double *x, int64_t r, int64_t c);
+int flare_ikjac_calc_givens_values(double a, double b, double *c, double *s);
+int flare_ikjac_post_apply_givens(double *x, int64_t r, int64_t c, double cs, double sn,
+                                  int64_t idx1, int64_t idx2);
+int flare_ikjac_compute_svd(double *a, int64_t ar, int64_t ac, double *u, int64_t ur,
+                            int64_t uc, double *w, int64_t wn, double *v, int64_t vr,
+                            int64_t vc);
+int flare_ikjac_debug_check_svd(double *a, int64_t ar, int64_t ac, double *u, int64_t ur,
+                                int64_t uc, double *w, int64_t wn, double *v, int64_t vr,
+                                int64_t vc, int *ok);
+int flare_ikjac_reset(double *lambda, double *lambdaSq, double *dampSqV, int64_t dn,
+                      double *diagId, int64_t in, double *dsClamp, int64_t cn);
+int flare_ikjac_compute_jacobian(double *jend, int64_t nrow, int64_t ncol, double *ds,
+                                 int64_t dsn, int64_t effectorCount, size_t nEff,
+                                 const int *effNum, const double *effS,
+                                 const size_t *effNanc, size_t nAnc, const int *ancJoint,
+                                 const unsigned char *ancFrozen, const double *ancS,
+                                 const double *target, size_t ntarget);
+int flare_ikjac_calc_transpose(double *jx, int64_t jr, int64_t jc, double *ds, int64_t dsn,
+                               double *dt, int64_t dtn, double *dth, int64_t dthn);
+int flare_ikjac_calc_pseudoinverse(double *jx, int64_t jr, int64_t jc, int64_t numEffector,
+                                   double *ds, int64_t dsn, double *dth, int64_t dthn,
+                                   double *diagId, int64_t din);
+int flare_ikjac_calc_dls(double *jx, int64_t jr, int64_t jc, double *ux, int64_t ur,
+                         int64_t uc, double *dampV, int64_t dampn, double *ds, int64_t dsn,
+                         double *dt, int64_t dtn, double *dth, int64_t dthn);
+int flare_ikjac_calc_dls_with_svd(double *jx, int64_t jr, int64_t jc, double *ux,
+                                  int64_t ur, int64_t uc, double *w, int64_t wn, double *vx,
+                                  int64_t vr, int64_t vc, double dampingLambdaSq,
+                                  double *ds, int64_t dsn, double *dth, int64_t dthn);
+int flare_ikjac_calc_sdls(double *jx, int64_t jr, int64_t jc, double *ux, int64_t ur,
+                          int64_t uc, double *w, int64_t wn, double *vx, int64_t vr,
+                          int64_t vc, int64_t numEffector, double *jn, int64_t jnr,
+                          int64_t jnc, double *ds, int64_t dsn, double *dt, int64_t dtn,
+                          double *dsClamp, int64_t dcn, double *dpre, int64_t dpn,
+                          double *dth, int64_t dthn);
+int flare_ikjac_calc_dt_clamped(double *ds, int64_t dsn, double *dt, int64_t dtn,
+                                double *dsClamp, int64_t dcn);
+int flare_ikjac_updated_sclamp_one(int64_t i, double sx, double sy, double tx, double ty,
+                                   double *ds, int64_t dsn, double *dsClamp, int64_t dcn);
+}
+
+// Status of a flare_ikjac_* call: the old code had undefined behaviour (or an assert) on
+// the inputs that make Rust return non-zero, so those become exceptions.
+inline void flareIkjacCheck(int rc) {
+  if (rc == 0) return;
+  if (rc == 1)
+    throw std::invalid_argument("ikjacobian: null or invalid buffer argument");
+  if (rc == 3)
+    throw std::invalid_argument("ikjacobian: matrix/vector shape mismatch");
+  throw std::out_of_range("ikjacobian: out-of-range access in IK kernel");
+}
 
 #undef DVAPI
 #undef DVVAR
@@ -24,7 +127,9 @@
 // CLASS VectorRN
 // void DVAPI Dump(const TPointD &point, double* v);
 
-class DVAPI VectorRn {
+// Header-only now (every member is inline): no DVAPI, so MSVC never sees a dllimport
+// class whose members are defined inline out of class.
+class VectorRn {
   friend class MatrixRmn;
 
 public:
@@ -80,19 +185,16 @@ public:
   double NormSq() const;
   double Norm() const { return sqrt(NormSq()); }
 
-  double MaxAbs() const;
+  double MaxAbs() const {
+    double result = 0.0;
+    flareIkjacCheck(flare_ikjac_vec_max_abs(x, (int64_t)length, &result));
+    return result;
+  }
 
 private:
   long length;       // Logical or actual length
   long AllocLength;  // Allocated length
   double *x;         // Array of vector entries
-
-  static VectorRn WorkVector;  // Serves as a temporary vector
-  static VectorRn &GetWorkVector() { return WorkVector; }
-  static VectorRn &GetWorkVector(long len) {
-    WorkVector.SetLength(len);
-    return WorkVector;
-  }
 };
 
 inline VectorRn::VectorRn() {
@@ -216,7 +318,7 @@ inline double VectorRn::NormSq() const {
   return res;
 }
 
-inline double DVAPI Dot(const VectorRn &u, const VectorRn &v) {
+inline double Dot(const VectorRn &u, const VectorRn &v) {
   assert(u.GetLength() == v.GetLength());
   double res      = 0.0;
   const double *p = u.GetPtr();
@@ -230,7 +332,7 @@ inline double DVAPI Dot(const VectorRn &u, const VectorRn &v) {
 //*******************************************************************
 // MatrixRmn
 
-class DVAPI MatrixRmn {
+class MatrixRmn {
 public:
   MatrixRmn();                            // Null constructor
   MatrixRmn(long numRows, long numCols);  // Constructor with length
@@ -377,38 +479,10 @@ private:
   double *x;       // Array of vector entries - stored in column order
   long AllocSize;  // Allocated size of the x array
 
-  static MatrixRmn WorkMatrix;  // Temporary work matrix
-  static MatrixRmn &GetWorkMatrix() { return WorkMatrix; }
-  static MatrixRmn &GetWorkMatrix(long numRows, long numCols) {
-    WorkMatrix.SetSize(numRows, numCols);
-    return WorkMatrix;
-  }
-
-  // Internal helper routines for SVD calculations
-  static void CalcBidiagonal(MatrixRmn &U, MatrixRmn &V, VectorRn &w,
-                             VectorRn &superDiag);
-  void ConvertBidiagToDiagonal(MatrixRmn &U, MatrixRmn &V, VectorRn &w,
-                               VectorRn &superDiag) const;
-  static void SvdHouseholder(double *basePt, long colLength, long numCols,
-                             long colStride, long rowStride,
-                             double *retFirstEntry);
-  void ExpandHouseholders(long numXforms, int numZerosSkipped,
-                          const double *basePt, long colStride, long rowStride);
-  static bool UpdateBidiagIndices(long *firstDiagIdx, long *lastBidiagIdx,
-                                  VectorRn &w, VectorRn &superDiag, double eps);
-  static void ApplyGivensCBTD(double cosine, double sine, double *a, double *b,
-                              double *c, double *d);
-  static void ApplyGivensCBTD(double cosine, double sine, double *a, double *b,
-                              double *c, double d, double *e, double *f);
-  static void ClearRowWithDiagonalZero(long firstBidiagIdx, long lastBidiagIdx,
-                                       MatrixRmn &U, double *wPtr,
-                                       double *sdPtr, double eps);
-  static void ClearColumnWithDiagonalZero(long endIdx, MatrixRmn &V,
-                                          double *wPtr, double *sdPtr,
-                                          double eps);
-  bool DebugCalcBidiagCheck(const MatrixRmn &U, const VectorRn &w,
-                            const VectorRn &superDiag,
-                            const MatrixRmn &V) const;
+  // The SVD helpers (CalcBidiagonal, ConvertBidiagToDiagonal, SvdHouseholder,
+  // ExpandHouseholders, UpdateBidiagIndices, ApplyGivensCBTD, Clear*WithDiagonalZero) and
+  // the static WorkMatrix / WorkVector scratch objects were private to ikjacobian.cpp; they
+  // are internal to ikjacobian.rs now (scratch buffers are locals there).
 };
 
 inline MatrixRmn::MatrixRmn() {
@@ -632,9 +706,159 @@ inline void MatrixRmn::AddArrayScale(long length, const double *from,
   }
 }
 
+
+//-----------------------------------------------------------------------------
+// MatrixRmn members that used to live in ikjacobian.cpp: forwarders into Rust.
+
+#define IKJAC_M(m) (m).x, (int64_t)(m).NumRows, (int64_t)(m).NumCols
+
+inline void MatrixRmn::SetDiagonalEntries(double d) {
+  flareIkjacCheck(flare_ikjac_set_diagonal(IKJAC_M(*this), d));
+}
+inline void MatrixRmn::SetDiagonalEntries(const VectorRn &d) {
+  flareIkjacCheck(
+      flare_ikjac_set_diagonal_vec(IKJAC_M(*this), d.x, (int64_t)d.length));
+}
+inline void MatrixRmn::SetSuperDiagonalEntries(double d) {
+  flareIkjacCheck(flare_ikjac_set_super_diagonal(IKJAC_M(*this), d));
+}
+inline void MatrixRmn::SetSuperDiagonalEntries(const VectorRn &d) {
+  flareIkjacCheck(
+      flare_ikjac_set_super_diagonal_vec(IKJAC_M(*this), d.x, (int64_t)d.length));
+}
+inline void MatrixRmn::SetSubDiagonalEntries(double d) {
+  flareIkjacCheck(flare_ikjac_set_sub_diagonal(IKJAC_M(*this), d));
+}
+inline void MatrixRmn::SetSubDiagonalEntries(const VectorRn &d) {
+  flareIkjacCheck(
+      flare_ikjac_set_sub_diagonal_vec(IKJAC_M(*this), d.x, (int64_t)d.length));
+}
+inline void MatrixRmn::SetColumn(long i, const VectorRn &d) {
+  flareIkjacCheck(
+      flare_ikjac_set_column(IKJAC_M(*this), (int64_t)i, d.x, (int64_t)d.length));
+}
+inline void MatrixRmn::SetRow(long i, const VectorRn &d) {
+  flareIkjacCheck(
+      flare_ikjac_set_row(IKJAC_M(*this), (int64_t)i, d.x, (int64_t)d.length));
+}
+inline void MatrixRmn::SetSequence(const VectorRn &d, long startRow, long startCol,
+                                   long deltaRow, long deltaCol) {
+  flareIkjacCheck(flare_ikjac_set_sequence(IKJAC_M(*this), d.x, (int64_t)d.length,
+                                           (int64_t)startRow, (int64_t)startCol,
+                                           (int64_t)deltaRow, (int64_t)deltaCol));
+}
+inline void MatrixRmn::LoadAsSubmatrix(const MatrixRmn &A) {
+  flareIkjacCheck(flare_ikjac_load_as_submatrix(IKJAC_M(*this), A.x, (int64_t)A.NumRows,
+                                                (int64_t)A.NumCols));
+}
+inline void MatrixRmn::LoadAsSubmatrixTranspose(const MatrixRmn &A) {
+  flareIkjacCheck(flare_ikjac_load_as_submatrix_transpose(
+      IKJAC_M(*this), A.x, (int64_t)A.NumRows, (int64_t)A.NumCols));
+}
+inline double MatrixRmn::FrobeniusNorm() const {
+  double r = 0.0;
+  flareIkjacCheck(flare_ikjac_frobenius_norm(IKJAC_M(*this), &r));
+  return r;
+}
+inline void MatrixRmn::Multiply(const VectorRn &v, VectorRn &result) const {
+  assert(v.GetLength() == NumCols && result.GetLength() == NumRows);
+  flareIkjacCheck(flare_ikjac_multiply_vec(IKJAC_M(*this), v.x, (int64_t)v.length,
+                                           result.x, (int64_t)result.length));
+}
+inline void MatrixRmn::MultiplyTranspose(const VectorRn &v, VectorRn &result) const {
+  assert(v.GetLength() == NumRows && result.GetLength() == NumCols);
+  flareIkjacCheck(flare_ikjac_multiply_transpose_vec(
+      IKJAC_M(*this), v.x, (int64_t)v.length, result.x, (int64_t)result.length));
+}
+inline double MatrixRmn::DotProductColumn(const VectorRn &v, long colNum) const {
+  assert(v.GetLength() == NumRows);
+  double r = 0.0;
+  flareIkjacCheck(flare_ikjac_dot_product_column(IKJAC_M(*this), v.x, (int64_t)v.length,
+                                                 (int64_t)colNum, &r));
+  return r;
+}
+inline MatrixRmn &MatrixRmn::AddToDiagonal(double d) {
+  flareIkjacCheck(flare_ikjac_add_to_diagonal(IKJAC_M(*this), d));
+  return *this;
+}
+inline MatrixRmn &MatrixRmn::AddToDiagonal(const VectorRn &v) {
+  flareIkjacCheck(
+      flare_ikjac_add_to_diagonal_vec(IKJAC_M(*this), v.x, (int64_t)v.length));
+  return *this;
+}
+inline MatrixRmn &MatrixRmn::MultiplyScalar(const MatrixRmn &A, double k,
+                                            MatrixRmn &dst) {
+  flareIkjacCheck(flare_ikjac_multiply_scalar(A.x, (int64_t)A.NumRows, (int64_t)A.NumCols,
+                                              k, IKJAC_M(dst)));
+  return dst;
+}
+inline MatrixRmn &MatrixRmn::Multiply(const MatrixRmn &A, const MatrixRmn &B,
+                                      MatrixRmn &dst) {
+  assert(A.NumCols == B.NumRows && A.NumRows == dst.NumRows && B.NumCols == dst.NumCols);
+  flareIkjacCheck(flare_ikjac_multiply(A.x, (int64_t)A.NumRows, (int64_t)A.NumCols, B.x,
+                                       (int64_t)B.NumRows, (int64_t)B.NumCols,
+                                       IKJAC_M(dst)));
+  return dst;
+}
+inline MatrixRmn &MatrixRmn::TransposeMultiply(const MatrixRmn &A, const MatrixRmn &B,
+                                               MatrixRmn &dst) {
+  assert(A.NumRows == B.NumRows && A.NumCols == dst.NumRows && B.NumCols == dst.NumCols);
+  flareIkjacCheck(flare_ikjac_transpose_multiply(
+      A.x, (int64_t)A.NumRows, (int64_t)A.NumCols, B.x, (int64_t)B.NumRows,
+      (int64_t)B.NumCols, IKJAC_M(dst)));
+  return dst;
+}
+inline MatrixRmn &MatrixRmn::MultiplyTranspose(const MatrixRmn &A, const MatrixRmn &B,
+                                               MatrixRmn &dst) {
+  assert(A.NumCols == B.NumCols && A.NumRows == dst.NumRows && B.NumRows == dst.NumCols);
+  flareIkjacCheck(flare_ikjac_multiply_transpose(
+      A.x, (int64_t)A.NumRows, (int64_t)A.NumCols, B.x, (int64_t)B.NumRows,
+      (int64_t)B.NumCols, IKJAC_M(dst)));
+  return dst;
+}
+inline void MatrixRmn::Solve(const VectorRn &b, VectorRn *xVec) const {
+  assert(NumRows == NumCols && NumCols == xVec->GetLength() && NumRows == b.GetLength());
+  flareIkjacCheck(flare_ikjac_solve(IKJAC_M(*this), b.x, (int64_t)b.length, xVec->x,
+                                    (int64_t)xVec->length));
+}
+inline void MatrixRmn::ConvertToRefNoFree() {
+  flareIkjacCheck(flare_ikjac_convert_to_ref_no_free(IKJAC_M(*this)));
+}
+inline void MatrixRmn::CalcGivensValues(double a, double b, double *c, double *s) {
+  flareIkjacCheck(flare_ikjac_calc_givens_values(a, b, c, s));
+}
+inline void MatrixRmn::PostApplyGivens(double c, double s, long idx) {
+  assert(0 <= idx && idx < NumCols);
+  flareIkjacCheck(
+      flare_ikjac_post_apply_givens(IKJAC_M(*this), c, s, (int64_t)idx, (int64_t)idx + 1));
+}
+inline void MatrixRmn::PostApplyGivens(double c, double s, long idx1, long idx2) {
+  assert(idx1 != idx2 && 0 <= idx1 && idx1 < NumCols && 0 <= idx2 && idx2 < NumCols);
+  flareIkjacCheck(flare_ikjac_post_apply_givens(IKJAC_M(*this), c, s, (int64_t)idx1,
+                                                (int64_t)idx2));
+}
+inline void MatrixRmn::ComputeSVD(MatrixRmn &U, VectorRn &w, MatrixRmn &V) const {
+  assert(U.NumRows == NumRows && V.NumCols == NumCols && U.NumRows == U.NumCols &&
+         V.NumRows == V.NumCols && w.GetLength() == std::min(NumRows, NumCols));
+  flareIkjacCheck(flare_ikjac_compute_svd(IKJAC_M(*this), IKJAC_M(U), w.x,
+                                          (int64_t)w.length, V.x, (int64_t)V.NumRows,
+                                          (int64_t)V.NumCols));
+}
+inline bool MatrixRmn::DebugCheckSVD(const MatrixRmn &U, const VectorRn &w,
+                                     const MatrixRmn &V) const {
+  int ok = 0;
+  flareIkjacCheck(flare_ikjac_debug_check_svd(
+      IKJAC_M(*this), U.x, (int64_t)U.NumRows, (int64_t)U.NumCols, w.x, (int64_t)w.length,
+      V.x, (int64_t)V.NumRows, (int64_t)V.NumCols, &ok));
+  assert(ok);
+  return ok != 0;
+}
+
+#undef IKJAC_M
+
 //=============================================================================
 
-class DVAPI Jacobian {
+class Jacobian {
 public:
   enum UpdateMode {
     JACOB_Undefined         = 0,
@@ -704,25 +928,195 @@ private:
 
   VectorRn dPreTheta;  // (vale solo per SDLS)
 
-  // Parameters for pseudoinverse
-  static const double PseudoInverseThresholdFactor;
+  // The tuning constants (pseudo-inverse threshold factor, default damping 1.1, the
+  // MaxAngle* per-step limits, BaseMaxTargetDist) are private to ikjacobian.rs now.
 
   // Parameters for the Damped Least Squares method
-  static const double DefaultDampingLambda;
   double DampingLambda;
   double DampingLambdaSq;
   VectorRn DampingLambdaSqV;
   VectorRn diagMatIdentity;
   // double DampingLambdaSDLS;
 
-  static const double MaxAngleJtranspose;
-  static const double MaxAnglePseudoinverse;
-  static const double MaxAngleDLS;
-  static const double MaxAngleSDLS;
   // MatrixRmn* Jactive;
 
   void CalcdTClampedFromdS();
-  static const double BaseMaxTargetDist;
 };
+
+//=============================================================================
+// Jacobian members that used to live in ikjacobian.cpp. The skeleton walks stay
+// here (they traverse IKNode pointers); the arithmetic is in ikjacobian.rs.
+
+inline Jacobian::Jacobian(IKSkeleton *skeleton, std::vector<TPointD> &targetPos) {
+  Jacobian::skeleton = skeleton;
+  nEffector          = skeleton->getNumEffector();
+  nJoint             = skeleton->getNodeCount() -
+           nEffector;  // numero dei giunti meno gli effettori
+  nRow = 2 * nEffector;
+  nCol = nJoint;
+
+  target = (targetPos);
+
+  Jend.SetSize(nRow, nCol);  // Matrice jacobiana
+  Jend.SetZero();
+
+  Jtarget.SetSize(
+      nRow,
+      nCol);  // Matrice jacobiana basta sulle posizioni dei targets (non usata)
+  Jtarget.SetZero();
+
+  U.SetSize(nRow, nRow);  // matrice U per il calcolo SVD
+  w.SetLength(std::min(nRow, nCol));
+  V.SetSize(nCol, nCol);  // matrice V per il calcolo SVD
+
+  dS.SetLength(nRow);      // (Posizione Target ) - (posizione End effector)
+  dTheta.SetLength(nCol);  // Cambiamenti degli angoli dei Joints
+  dPreTheta.SetLength(nCol);
+
+  // Usato nel: metodo del trasposto dello Jacobiano  & DLS & SDLS
+  dT.SetLength(nRow);
+
+  // Usato nel Selectively Damped Least Squares Method
+  dSclamp.SetLength(nEffector);
+
+  Jnorms.SetSize(nEffector, nCol);  // Memorizza le norme della matrice attiva J
+
+  DampingLambdaSqV.SetLength(nRow);
+  diagMatIdentity.SetLength(nCol);
+
+  Reset();
+}
+
+inline void Jacobian::Reset() {
+  // DampingLambda = 1.1, DampingLambdaSq = its square, DampingLambdaSqV and
+  // diagMatIdentity filled, dSclamp = HUGE_VAL.
+  flareIkjacCheck(flare_ikjac_reset(
+      &DampingLambda, &DampingLambdaSq, DampingLambdaSqV.GetPtr(),
+      (int64_t)DampingLambdaSqV.GetLength(), diagMatIdentity.GetPtr(),
+      (int64_t)diagMatIdentity.GetLength(), dSclamp.GetPtr(), (int64_t)dSclamp.GetLength()));
+}
+
+// Calcola il vettore deltaS vector, dS, (l' errore tra end effector e target
+// Calcola le matrce jacobiana J
+inline void Jacobian::computeJacobian() {
+  // Scorro tutto lo skeleton per trovare tutti gli end effectors, e raccolgo per
+  // ognuno la catena degli antenati (dal piu' vicino): numero del giunto, flag
+  // "frozen" e posizione globale. Il calcolo e' in Rust.
+  std::vector<int> effNum;
+  std::vector<double> effS;
+  std::vector<size_t> effNanc;
+  std::vector<int> ancJoint;
+  std::vector<unsigned char> ancFrozen;
+  std::vector<double> ancS;
+
+  int numNode = skeleton->getNodeCount();
+  for (int index = 0; index < numNode; index++) {
+    IKNode *n = skeleton->getNode(index);
+    if (!n->IsEffector()) continue;
+    effNum.push_back(n->getEffectorNum());
+    effS.push_back(n->GetS().x);
+    effS.push_back(n->GetS().y);
+    size_t count = 0;
+    for (IKNode *m = skeleton->getParent(n); m; m = skeleton->getParent(m)) {
+      ancJoint.push_back(m->getJointNum());
+      ancFrozen.push_back(m->isFrozen() ? 1 : 0);
+      ancS.push_back(m->GetS().x);
+      ancS.push_back(m->GetS().y);
+      count++;
+    }
+    effNanc.push_back(count);
+  }
+  std::vector<double> tgt;
+  for (size_t k = 0; k < target.size(); k++) {
+    tgt.push_back(target[k].x);
+    tgt.push_back(target[k].y);
+  }
+  flareIkjacCheck(flare_ikjac_compute_jacobian(
+      Jend.GetPtr(), (int64_t)Jend.getNumRows(), (int64_t)Jend.getNumColumns(),
+      dS.GetPtr(), (int64_t)dS.GetLength(), (int64_t)skeleton->getNumEffector(),
+      effNum.size(), effNum.data(), effS.data(), effNanc.data(), ancJoint.size(),
+      ancJoint.data(), ancFrozen.data(), ancS.data(), tgt.data(), target.size()));
+}
+
+// The delta theta values have been computed in dTheta array
+// Apply the delta theta values to the joints
+// Nothing is done about joint limits for now.
+inline void Jacobian::UpdateThetas() {
+  // Update the joint angles
+  for (int index = 0; index < skeleton->getNodeCount(); index++) {
+    IKNode *n = skeleton->getNode(index);
+    if (n->IsJoint()) {
+      int i = n->getJointNum();
+      n->AddToTheta(dTheta[i]);
+    }
+  }
+  // Aggiorno le posizioni dei joint
+  skeleton->compute();
+}
+
+inline bool Jacobian::checkJointsLimit() {
+  // The joint-limit code was commented out in the original; no limit is ever hit.
+  bool clampingDetected = false;
+  return clampingDetected;
+}
+
+inline void Jacobian::ZeroDeltaThetas() { dTheta.SetZero(); }
+
+#define IKJAC_J(m) (m).GetPtr(), (int64_t)(m).getNumRows(), (int64_t)(m).getNumColumns()
+#define IKJAC_VEC(v) (v).GetPtr(), (int64_t)(v).GetLength()
+
+// Find the delta theta values using inverse Jacobian method
+// Uses a greedy method to decide scaling factor
+inline void Jacobian::CalcDeltaThetasTranspose() {
+  flareIkjacCheck(flare_ikjac_calc_transpose(IKJAC_J(Jend), IKJAC_VEC(dS), IKJAC_VEC(dT),
+                                             IKJAC_VEC(dTheta)));
+}
+
+inline void Jacobian::CalcDeltaThetasPseudoinverse() {
+  flareIkjacCheck(flare_ikjac_calc_pseudoinverse(
+      IKJAC_J(Jend), (int64_t)skeleton->getNumEffector(), IKJAC_VEC(dS), IKJAC_VEC(dTheta),
+      IKJAC_VEC(diagMatIdentity)));
+}
+
+inline void Jacobian::CalcDeltaThetasDLS() {
+  flareIkjacCheck(flare_ikjac_calc_dls(IKJAC_J(Jend), IKJAC_J(U), IKJAC_VEC(DampingLambdaSqV),
+                                       IKJAC_VEC(dS), IKJAC_VEC(dT), IKJAC_VEC(dTheta)));
+}
+
+inline void Jacobian::CalcDeltaThetasDLSwithSVD() {
+  flareIkjacCheck(flare_ikjac_calc_dls_with_svd(
+      IKJAC_J(Jend), IKJAC_J(U), IKJAC_VEC(w), IKJAC_J(V), DampingLambdaSq, IKJAC_VEC(dS),
+      IKJAC_VEC(dTheta)));
+}
+
+inline void Jacobian::CalcDeltaThetasSDLS() {
+  flareIkjacCheck(flare_ikjac_calc_sdls(
+      IKJAC_J(Jend), IKJAC_J(U), IKJAC_VEC(w), IKJAC_J(V),
+      (int64_t)skeleton->getNumEffector(), IKJAC_J(Jnorms), IKJAC_VEC(dS), IKJAC_VEC(dT),
+      IKJAC_VEC(dSclamp), IKJAC_VEC(dPreTheta), IKJAC_VEC(dTheta)));
+}
+
+inline void Jacobian::CalcdTClampedFromdS() {
+  flareIkjacCheck(flare_ikjac_calc_dt_clamped(IKJAC_VEC(dS), IKJAC_VEC(dT),
+                                              IKJAC_VEC(dSclamp)));
+}
+
+inline void Jacobian::UpdatedSClampValue() {
+  // Traverse skeleton to find all end effectors
+  int numNode = skeleton->getNodeCount();
+  for (int k = 0; k < numNode; k++) {
+    IKNode *n = skeleton->getNode(k);
+    if (n->IsEffector()) {
+      int i                    = n->getEffectorNum();
+      const TPointD &targetPos = target[i];
+      flareIkjacCheck(flare_ikjac_updated_sclamp_one(
+          i, n->GetS().x, n->GetS().y, targetPos.x, targetPos.y, IKJAC_VEC(dS),
+          IKJAC_VEC(dSclamp)));
+    }
+  }
+}
+
+#undef IKJAC_J
+#undef IKJAC_VEC
 
 #endif  // JACOBIAN_H

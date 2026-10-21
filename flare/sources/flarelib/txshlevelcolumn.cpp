@@ -4,6 +4,7 @@
 
 // TnzLib includes
 #include "flare/txshsimplelevel.h"
+#include "flare/txshchildlevel.h"
 #include "flare/txshcell.h"
 #include "flare/tcolumnfxset.h"
 #include "flare/tcolumnfx.h"
@@ -14,10 +15,42 @@
 
 // Qt includes
 #include <QRegularExpression>
+#include <QJsonDocument>
+#include <QJsonParseError>
+#include <QCryptographicHash>
+#include <QSet>
+#include <QUuid>
+#include <algorithm>
+#include <iterator>
+#include <limits>
 
 //-----------------------------------------------------------------------------
 
 namespace {
+bool placementDigest(const TXshLevelColumn &column,
+                     const FlashPlacementData &placement,
+                     quint64 maxCellsToCheck, QString &digest) {
+  if (placement.start < 0 || placement.duration < 1 ||
+      quint64(placement.duration) > maxCellsToCheck ||
+      qint64(placement.start) + placement.duration >
+          std::numeric_limits<int>::max())
+    return false;
+  QCryptographicHash hash(QCryptographicHash::Sha256);
+  for (int row = placement.start; row < placement.start + placement.duration;
+       ++row) {
+    const TXshCell &cell = column.getCell(row);
+    if (cell.m_level != placement.level ||
+        !cell.m_frameId.getLetter().isEmpty() || cell.m_frameId.getNumber() < 1)
+      return false;
+    const quint32 frame = quint32(cell.m_frameId.getNumber());
+    const char bytes[4] = {char(frame), char(frame >> 8), char(frame >> 16),
+                           char(frame >> 24)};
+    hash.addData(bytes, 4);
+  }
+  digest = QString::fromLatin1(hash.result().toHex());
+  return true;
+}
+
 TFrameId qstringToFrameId(const QString &str) {
   if (str.isEmpty() || str == "-1") {
     return TFrameId::EMPTY_FRAME;
@@ -66,6 +99,13 @@ TXshColumn::ColumnType TXshLevelColumn::getColumnType() const {
   return ColumnType::eLevelType;
 }
 
+bool TXshLevelColumn::isEmpty() const {
+  if (!TXshCellColumn::isEmpty()) return false;
+  for (const auto &placement : m_flashPlacements)
+    if (placement.detached) return false;
+  return true;
+}
+
 //----------------------------------------------------------------------------
 
 bool TXshLevelColumn::canSetCell(const TXshCell &cell) const {
@@ -79,6 +119,264 @@ bool TXshLevelColumn::canSetCell(const TXshCell &cell) const {
   }
 
   return cell.getChildLevel() != nullptr;
+}
+
+void TXshLevelColumn::flashCellsChanged() {
+  if (++m_flashRevision == 0) m_flashChecks.clear();
+}
+
+bool TXshLevelColumn::setCell(int row, const TXshCell &cell) {
+  const bool result = TXshCellColumn::setCell(row, cell);
+  if (result) flashCellsChanged();
+  return result;
+}
+
+bool TXshLevelColumn::setCells(int row, int count, const TXshCell cells[]) {
+  const bool result = TXshCellColumn::setCells(row, count, cells);
+  if (result) flashCellsChanged();
+  return result;
+}
+
+void TXshLevelColumn::insertEmptyCells(int row, int count) {
+  TXshCellColumn::insertEmptyCells(row, count);
+  flashCellsChanged();
+}
+
+void TXshLevelColumn::removeCells(int row, int count) {
+  TXshCellColumn::removeCells(row, count);
+  flashCellsChanged();
+}
+
+void TXshLevelColumn::clearCells(int row, int count) {
+  TXshCellColumn::clearCells(row, count);
+  flashCellsChanged();
+}
+
+void TXshLevelColumn::addFlashInstance(const FlashInstanceData &instance) {
+  instance.toJson();
+  if (m_flashInstances.size() >= 100000)
+    throw Flash::Error("Flash instance metadata budget exceeded.");
+  const int end       = instance.timing.start + instance.timing.duration;
+  const auto position = std::lower_bound(
+      m_flashInstances.begin(), m_flashInstances.end(), instance.timing.start,
+      [](const FlashInstanceData &existing, int start) {
+        return existing.timing.start < start;
+      });
+  if ((position != m_flashInstances.end() && position->timing.start < end) ||
+      (position != m_flashInstances.begin() &&
+       std::prev(position)->timing.start +
+               std::prev(position)->timing.duration >
+           instance.timing.start))
+    throw Flash::Error("Overlapping Flash instance metadata spans.");
+  FlashInstanceData inserted = instance;
+  // Adding a placement is a native copy/new-object operation. Retain its
+  // source reference, but never reuse the identity of an existing placement.
+  inserted.nativeInstanceId =
+      QUuid::createUuid().toString(QUuid::WithoutBraces);
+  m_flashInstances.insert(position, std::move(inserted));
+  m_flashChecks.clear();
+}
+
+void TXshLevelColumn::replaceFlashInstances(
+    std::vector<FlashInstanceData> instances) {
+  if (instances.size() > 100000)
+    throw Flash::Error("Flash instance metadata budget exceeded.");
+  int end = 0;
+  QSet<QString> identities;
+  for (auto &instance : instances) {
+    if (instance.nativeInstanceId.isEmpty())
+      instance.nativeInstanceId =
+          QUuid::createUuid().toString(QUuid::WithoutBraces);
+    instance.toJson();
+    if (identities.contains(instance.nativeInstanceId))
+      throw Flash::Error("Duplicate native Flash instance identifier.");
+    identities.insert(instance.nativeInstanceId);
+    if (instance.timing.start < end)
+      throw Flash::Error(
+          "Unsorted or overlapping Flash instance metadata spans.");
+    end = instance.timing.start + instance.timing.duration;
+  }
+  m_flashInstances = std::move(instances);
+  m_flashChecks.clear();
+}
+
+QString TXshLevelColumn::addFlashPlacement(
+    const FlashPlacementData &placement) {
+  if (m_flashPlacements.size() >= 1000000 || placement.start < 0 ||
+      placement.detached || placement.duration < 1 ||
+      placement.duration > 20000000 ||
+      qint64(placement.start) + placement.duration >
+          std::numeric_limits<int>::max())
+    throw Flash::Error("Invalid or excessive Flash placement metadata.");
+  FlashPlacementData inserted = placement;
+  inserted.nativePlacementId =
+      QUuid::createUuid().toString(QUuid::WithoutBraces);
+  if (!placementDigest(*this, inserted, 20000000, inserted.framesSha256))
+    throw Flash::Error("Flash placement does not match native exposures.");
+  inserted.toJson();
+  const int end       = inserted.start + inserted.duration;
+  const auto position = std::lower_bound(
+      m_flashPlacements.begin(), m_flashPlacements.end(), inserted.start,
+      [](const FlashPlacementData &existing, int start) {
+        return existing.start < start;
+      });
+  auto next = position;
+  while (next != m_flashPlacements.end() && next->detached) ++next;
+  auto previous    = position;
+  bool hasPrevious = false;
+  while (previous != m_flashPlacements.begin()) {
+    --previous;
+    if (!previous->detached) {
+      hasPrevious = true;
+      break;
+    }
+  }
+  if ((next != m_flashPlacements.end() && next->start < end) ||
+      (hasPrevious && previous->start + previous->duration > inserted.start))
+    throw Flash::Error("Overlapping Flash placement metadata spans.");
+  const QString id = inserted.nativePlacementId;
+  m_flashPlacements.insert(position, std::move(inserted));
+  return id;
+}
+
+void TXshLevelColumn::replaceFlashPlacements(
+    std::vector<FlashPlacementData> placements) {
+  if (placements.size() > 1000000)
+    throw Flash::Error("Flash placement metadata budget exceeded.");
+  QSet<QString> identities;
+  int end           = 0;
+  int previousStart = -1;
+  for (const auto &placement : placements) {
+    placement.toJson();
+    if (placement.start < previousStart ||
+        identities.contains(placement.nativePlacementId) ||
+        (!placement.detached && placement.start < end))
+      throw Flash::Error("Invalid Flash placement metadata ordering or ID.");
+    if (!placement.detached) end = placement.start + placement.duration;
+    previousStart = placement.start;
+    identities.insert(placement.nativePlacementId);
+  }
+  m_flashPlacements = std::move(placements);
+}
+
+bool TXshLevelColumn::isFlashPlacementLinked(int index,
+                                             quint64 maxCellsToCheck) const {
+  if (index < 0 || index >= int(m_flashPlacements.size()) ||
+      m_flashPlacements[index].detached)
+    return false;
+  QString digest;
+  return placementDigest(*this, m_flashPlacements[index], maxCellsToCheck,
+                         digest) &&
+         digest == m_flashPlacements[index].framesSha256;
+}
+
+int TXshLevelColumn::flashInstanceIndexAt(int row) const {
+  auto position =
+      std::upper_bound(m_flashInstances.begin(), m_flashInstances.end(), row,
+                       [](int frame, const FlashInstanceData &instance) {
+                         return frame < instance.timing.start;
+                       });
+  if (position == m_flashInstances.begin()) return -1;
+  --position;
+  if (row >= position->timing.start + position->timing.duration) return -1;
+  return int(position - m_flashInstances.begin());
+}
+
+bool TXshLevelColumn::flashCellsMatch(const FlashInstanceData &instance,
+                                      int frameCount) const {
+  if (frameCount < 0) frameCount = instance.symbolFrameCount;
+  const auto &timing = instance.timing;
+  for (int row = timing.start; row < timing.start + timing.duration; ++row) {
+    const TXshCell &cell = TXshCellColumn::getCell(row);
+    if (cell.m_level != instance.level ||
+        cell.m_frameId != TFrameId(*timing.sourceFrameAt(row, frameCount) + 1))
+      return false;
+  }
+  return true;
+}
+
+bool TXshLevelColumn::isFlashInstanceLinked(int index) const {
+  if (index < 0 || index >= int(m_flashInstances.size())) return false;
+  const auto &instance = m_flashInstances[index];
+  auto *child          = instance.level->getChildLevel();
+  const int count      = child ? child->getFrameCount() : 0;
+  m_flashChecks.resize(m_flashInstances.size());
+  auto &check = m_flashChecks[index];
+  if (check.revision != m_flashRevision || check.frameCount != count) {
+    check.linked =
+        count > instance.timing.firstFrame && flashCellsMatch(instance, count);
+    check.revision   = m_flashRevision;
+    check.frameCount = count;
+  }
+  return check.linked;
+}
+
+bool TXshLevelColumn::materializeFlashInstance(
+    int index, const Flash::GraphicTiming &timing, int count, bool honorLock) {
+  if ((honorLock && isLocked()) || index < 0 ||
+      index >= int(m_flashInstances.size()) || count <= 0)
+    return false;
+  auto candidate = m_flashInstances[index];
+  if (timing.start != candidate.timing.start ||
+      timing.duration != candidate.timing.duration)
+    throw Flash::Error(
+        "Changing a Flash instance span requires a native exposure edit.");
+  candidate.timing           = timing;
+  candidate.symbolFrameCount = count;
+  candidate.toJson();
+  std::vector<TXshCell> cells;
+  cells.reserve(timing.duration);
+  for (int row = timing.start; row < timing.start + timing.duration; ++row)
+    cells.emplace_back(candidate.level.getPointer(),
+                       TFrameId(*timing.sourceFrameAt(row, count) + 1));
+  if (!setCells(timing.start, timing.duration, cells.data())) return false;
+  m_flashInstances[index] = std::move(candidate);
+  return true;
+}
+
+bool TXshLevelColumn::setFlashInstanceTiming(
+    int index, const Flash::GraphicTiming &timing) {
+  if (!canEditFlashInstance(index)) return false;
+  const auto &instance = m_flashInstances[index];
+  auto *child          = instance.level->getChildLevel();
+  return child &&
+         materializeFlashInstance(index, timing, child->getFrameCount());
+}
+
+bool TXshLevelColumn::canEditFlashInstance(int index) const {
+  if (isLocked() || index < 0 || index >= int(m_flashInstances.size()))
+    return false;
+  const auto &instance = m_flashInstances[index];
+  const auto *child    = instance.level->getChildLevel();
+  if (!child || child->getFrameCount() <= 0) return false;
+  m_flashChecks.resize(m_flashInstances.size());
+  auto &check = m_flashChecks[index];
+  if (check.compiledRevision != m_flashRevision ||
+      check.compiledFrameCount != instance.symbolFrameCount) {
+    check.compiledMatch      = flashCellsMatch(instance);
+    check.compiledRevision   = m_flashRevision;
+    check.compiledFrameCount = instance.symbolFrameCount;
+  }
+  return check.compiledMatch;
+}
+
+bool TXshLevelColumn::canRefreshFlashInstance(int index) const {
+  if (!canEditFlashInstance(index)) return false;
+  const auto &instance = m_flashInstances[index];
+  const int count      = instance.level->getChildLevel()->getFrameCount();
+  return count != instance.symbolFrameCount &&
+         count > instance.timing.firstFrame;
+}
+
+bool TXshLevelColumn::refreshFlashInstance(int index) {
+  if (index < 0 || index >= int(m_flashInstances.size())) return false;
+  const auto &instance = m_flashInstances[index];
+  auto *child          = instance.level->getChildLevel();
+  if (!child || !flashCellsMatch(instance) ||
+      child->getFrameCount() <= instance.timing.firstFrame)
+    return false;
+  return materializeFlashInstance(index, instance.timing,
+                                  child->getFrameCount());
 }
 
 //-----------------------------------------------------------------------------
@@ -95,8 +393,18 @@ TXshColumn *TXshLevelColumn::clone() const {
   TXshLevelColumn *column = new TXshLevelColumn;
   column->setStatusWord(getStatusWord());
   column->setOpacity(getOpacity());
+  column->setMaskScope(getMaskScope());
+  column->getOpacityCurve()->copy(getOpacityCurve());
   column->m_cells = m_cells;
   column->m_first = m_first;
+  column->m_flashInstances = m_flashInstances;
+  for (auto &instance : column->m_flashInstances)
+    instance.nativeInstanceId =
+        QUuid::createUuid().toString(QUuid::WithoutBraces);
+  column->m_flashPlacements = m_flashPlacements;
+  for (auto &placement : column->m_flashPlacements)
+    placement.nativePlacementId =
+        QUuid::createUuid().toString(QUuid::WithoutBraces);
   column->setColorTag(getColorTag());
   column->setColorFilterId(getColorFilterId());
 
@@ -107,6 +415,13 @@ TXshColumn *TXshLevelColumn::clone() const {
 
 void TXshLevelColumn::loadData(TIStream &is) {
   std::string tagName;
+  bool readFlashInstances  = false;
+  bool readFlashPlacements = false;
+  std::vector<FlashInstanceData> loadedFlashInstances;
+  std::vector<FlashPlacementData> loadedFlashPlacements;
+  m_flashInstances.clear();
+  m_flashPlacements.clear();
+  m_flashChecks.clear();
   while (is.openChild(tagName)) {
     if (tagName == "status") {
       int status = 0;
@@ -124,6 +439,12 @@ void TXshLevelColumn::loadData(TIStream &is) {
       int id = 0;
       is >> id;
       setColorFilterId(id);
+    } else if (tagName == "mask_scope") {
+      int scope = 1;
+      is >> scope;
+      setMaskScope(scope);
+    } else if (tagName == "opacity_curve") {
+      is >> *getOpacityCurve();
     } else if (tagName == "cells") {
       while (is.openChild(tagName)) {
         if (tagName == "cell") {
@@ -152,6 +473,74 @@ void TXshLevelColumn::loadData(TIStream &is) {
           throw TException("TXshLevelColumn, unknown tag(2): " + tagName);
         }
         is.closeChild();
+      }
+    } else if (tagName == "flashInstances") {
+      if (readFlashInstances || is.getTagAttribute("version") != "1")
+        throw TException("Unsupported or repeated Flash instance metadata.");
+      readFlashInstances = true;
+      while (is.openChild(tagName)) {
+        if (tagName != "instance")
+          throw TException("Unknown Flash instance metadata tag: " + tagName);
+        // Preserve UTF-8 bytes: the native QString reader appends individual
+        // bytes as QChars and cannot round-trip this Unicode JSON payload.
+        std::string encoded;
+        TPersist *persist = nullptr;
+        is >> encoded >> persist;
+        if (encoded.size() > 1024 * 1024)
+          throw TException("Flash instance metadata record is too large.");
+        QJsonParseError parseError;
+        const auto document = QJsonDocument::fromJson(
+            QByteArray::fromStdString(encoded), &parseError);
+        if (parseError.error != QJsonParseError::NoError ||
+            !document.isObject())
+          throw TException("Invalid Flash instance metadata JSON.");
+        try {
+          loadedFlashInstances.push_back(FlashInstanceData::fromJson(
+              document.object(), dynamic_cast<TXshLevel *>(persist)));
+        } catch (const Flash::Error &error) {
+          throw TException(std::string("Invalid Flash instance metadata: ") +
+                           error.what());
+        }
+        is.closeChild();
+      }
+      try {
+        replaceFlashInstances(std::move(loadedFlashInstances));
+      } catch (const Flash::Error &error) {
+        throw TException(std::string("Invalid Flash instance metadata: ") +
+                         error.what());
+      }
+    } else if (tagName == "flashPlacements") {
+      if (readFlashPlacements || is.getTagAttribute("version") != "1")
+        throw TException("Unsupported or repeated Flash placement metadata.");
+      readFlashPlacements = true;
+      while (is.openChild(tagName)) {
+        if (tagName != "placement")
+          throw TException("Unknown Flash placement metadata tag: " + tagName);
+        std::string encoded;
+        TPersist *persist = nullptr;
+        is >> encoded >> persist;
+        if (encoded.size() > 1024 * 1024)
+          throw TException("Flash placement metadata record is too large.");
+        QJsonParseError parseError;
+        const auto document = QJsonDocument::fromJson(
+            QByteArray::fromStdString(encoded), &parseError);
+        if (parseError.error != QJsonParseError::NoError ||
+            !document.isObject())
+          throw TException("Invalid Flash placement metadata JSON.");
+        try {
+          loadedFlashPlacements.push_back(FlashPlacementData::fromJson(
+              document.object(), dynamic_cast<TXshLevel *>(persist)));
+        } catch (const Flash::Error &error) {
+          throw TException(std::string("Invalid Flash placement metadata: ") +
+                           error.what());
+        }
+        is.closeChild();
+      }
+      try {
+        replaceFlashPlacements(std::move(loadedFlashPlacements));
+      } catch (const Flash::Error &error) {
+        throw TException(std::string("Invalid Flash placement metadata: ") +
+                         error.what());
       }
     } else if (tagName == "fx") {
       TPersist *p = nullptr;
@@ -189,6 +578,13 @@ void TXshLevelColumn::saveData(TOStream &os) {
   if (getColorFilterId() != 0) {
     os.child("filter_color_id") << static_cast<int>(getColorFilterId());
   }
+
+  // Written only when used, so ordinary scenes keep the stock format. Older
+  // builds reject these tags ("unknown tag") instead of misreading them.
+  if (getMaskScope() != 1) os.child("mask_scope") << getMaskScope();
+  if (getOpacityCurve()->hasKeyframes() ||
+      getOpacityCurve()->getDefaultValue() != 1.0)
+    os.child("opacity_curve") << *getOpacityCurve();
 
   int r0 = 0, r1 = 0;
   if (getRange(r0, r1)) {
@@ -236,6 +632,27 @@ void TXshLevelColumn::saveData(TOStream &os) {
     os.closeChild();
   }
 
+  if (!m_flashInstances.empty()) {
+    os.openChild("flashInstances", {{"version", "1"}});
+    for (int index = 0; index < int(m_flashInstances.size()); ++index) {
+      const auto &instance = m_flashInstances[index];
+      auto json            = instance.toJson();
+      json["linked"]       = isFlashInstanceLinked(index);
+      os.child("instance")
+          << QJsonDocument(json).toJson(QJsonDocument::Compact).toStdString()
+          << instance.level.getPointer();
+    }
+    os.closeChild();
+  }
+  if (!m_flashPlacements.empty()) {
+    os.openChild("flashPlacements", {{"version", "1"}});
+    for (const auto &placement : m_flashPlacements)
+      os.child("placement") << QJsonDocument(placement.toJson())
+                                   .toJson(QJsonDocument::Compact)
+                                   .toStdString()
+                            << placement.level.getPointer();
+    os.closeChild();
+  }
   os.child("fx") << m_fx;
 
   // Save cell marks
@@ -353,6 +770,7 @@ bool TXshLevelColumn::setNumbers(int row, int rowCount, const TXshCell cells[],
     }
   }
 
+  flashCellsChanged();
   // Update the cell container
   while (!m_cells.empty() && m_cells.back().isEmpty()) {
     m_cells.pop_back();

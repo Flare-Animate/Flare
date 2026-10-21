@@ -62,6 +62,11 @@ class DVAPI TVectorImage final : public TImage {
 public:
   std::unique_ptr<Imp> m_imp;
 
+  // PreserveSource uses explicit curve topology: no coordinate snapping or
+  // proximity gap repair, and analytic area validation without a fixed area
+  // floor. Default retains the ordinary drawing/automatic-fill behavior.
+  enum class RegionFindingMode { Default = 0, PreserveSource = 1 };
+
   struct IntersectionBranch {
     int m_strokeIndex;
     int m_style;
@@ -377,6 +382,11 @@ existing stroke. this method is used for undoing removeEndpoints . */
   void setAutocloseTolerance(double val);
   //! Return the autoclose tolerance.
   double getAutocloseTolerance() const;
+
+  // Choose before the first region computation. Changing an established
+  // intersection graph would require a separate paint-preserving conversion.
+  void setRegionFindingMode(RegionFindingMode mode);
+  RegionFindingMode getRegionFindingMode() const;
 
   //! forces the recomputing of all regions (it is actually done only after
   //! having loaded the vectorimage)

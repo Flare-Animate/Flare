@@ -38,15 +38,10 @@ set(HEADERS
     igs_line_blur.h
     igs_math_random.h
     igs_maxmin.h
-    igs_maxmin_getput.h
-    igs_maxmin_lens_matrix.h
-    igs_maxmin_multithread.h
-    igs_maxmin_slrender.h
     igs_median_filter.h
     igs_median_filter_smooth.h
     igs_motion_blur.h
     igs_motion_wind.h
-    igs_motion_wind_pixel.h
     igs_negate.h
     igs_os_type.h
     igs_perlin_noise.h
@@ -112,10 +107,12 @@ set(SOURCES
     channelmixerfx.cpp
     cloudsfx.cpp
     colorembossfx.cpp
+    colormatrixfx.cpp
     cornerpinfx.cpp
     despecklefx.cpp
     diamondgradientfx.cpp
     dissolvefx.cpp
+    dropshadowfx.cpp
     embossfx.cpp
     erodilatefx.cpp
     externalpalettefx.cpp
@@ -170,15 +167,7 @@ set(SOURCES
     warp.cpp
     warpfx.cpp
     igs_fog.cpp
-    igs_gaussian_blur.cpp
-    igs_hls_noise_in_camera.cpp
-    igs_hsv_noise_in_camera.cpp
     igs_line_blur.cpp
-    igs_maxmin.cpp
-    igs_maxmin_lens_matrix.cpp
-    igs_maxmin_slrender.cpp
-    igs_motion_blur.cpp
-    igs_motion_wind.cpp
     igs_radial_blur.cpp
     igs_resource_msg_from_err.cpp
     igs_resource_multithread.cpp
@@ -243,8 +232,6 @@ set(SOURCES
     iwa_perspectivedistortfx.cpp
     iwa_spectrumfx.cpp
     iwa_tilefx.cpp
-    iwa_simplexnoise.cpp
-    iwa_noise1234.cpp
     iwa_pnperspectivefx.cpp
     iwa_soapbubblefx.cpp
     iwa_bokehfx.cpp

@@ -48,6 +48,7 @@
 #include "flare/autoclose.h"
 #include "flare/txshleveltypes.h"
 #include "imagebuilders.h"
+#include "rasteralphautils.h"
 #include "flare/tframehandle.h"
 #include "flare/preferences.h"
 
@@ -1263,6 +1264,41 @@ void OpenGlPainter::onRasterImage(TRasterImage *ri,
     bbox = player.m_placement * player.m_dpiAff * bbox;
 
     draw3DShadow(bbox, player.m_z, m_phi);
+  }
+
+  // Flash-imported bitmap levels carry premultiplied pixels. Ordinary levels
+  // keep the legacy path below unchanged.
+  if (player.m_sl && player.m_sl->getType() == OVL_XSHLEVEL &&
+      !player.m_sl->flashNativeId().isEmpty() && TRaster32P(ri->getRaster())) {
+    const TRaster32P source = ri->getRaster();
+    double opacity          = 1.0;
+    if (player.m_onionSkinDistance != c_noOnionSkin) {
+      const int distance = abs(player.m_onionSkinDistance);
+      opacity            = player.m_onionSkinOpacity >= 0.0
+                               ? player.m_onionSkinOpacity
+                               : 0.5 - 0.45 * (1 - 1 / (1 + 0.15 * distance));
+    }
+    const TRaster32P raster = RasterAlphaUtils::prepareRaster(
+        source, player.m_sl->getProperties()->doPremultiply(), opacity);
+    TRasterImageP image(ri);
+    if (raster.getPointer() != source.getPointer()) {
+      image = TRasterImageP(raster);
+      double dpix, dpiy;
+      ri->getDpi(dpix, dpiy);
+      image->setDpi(dpix, dpiy);
+      image->setOffset(ri->getOffset());
+      image->setSubsampling(ri->getSubsampling());
+      image->setSavebox(ri->getSavebox());
+    }
+    // PNG and native full-color artwork already contain premultiplied pixels.
+    // Straight sources and onion ghosts are normalized on a temporary copy.
+    glPushAttrib(GL_ALL_ATTRIB_BITS);
+    GLRasterPainter::drawRaster(m_viewAff * player.m_placement *
+                                    player.m_dpiAff *
+                                    TTranslation(convert(ri->getOffset())),
+                                image, true);
+    glPopAttrib();
+    return;
   }
 
   bool tlvFlag = player.m_sl && player.m_sl->getType() == TZP_XSHLEVEL;

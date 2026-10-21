@@ -31,6 +31,7 @@ import os
 import shutil
 import subprocess
 import sys
+import tempfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(os.path.dirname(HERE))
@@ -53,6 +54,19 @@ def pre_deletion_revision(src: str) -> str:
         ).returncode == 0:
             return rev
     sys.exit(f"no revision of {src} exists to build a reference from")
+
+
+def pre_deletion_tree(src: str) -> str:
+    """The tree immediately before `src` was deleted (or HEAD while it still exists).
+
+    Unlike `pre_deletion_revision` (the newest commit that *touched* `src`), this also
+    reflects later edits to the headers that sat next to it, which is what a reference
+    build of the original needs.
+    """
+    deleted = git("log", "--format=%H", "--diff-filter=D", "-1", "--", src)
+    if deleted:
+        return git("rev-parse", f"{deleted}^")
+    return git("rev-parse", "HEAD")
 
 
 def vcvars() -> str:
@@ -104,6 +118,7 @@ def build_and_run_host(
     include_dirs: list[str] | None = None,
     link_archives: list[str] | None = None,
     exe: str = "ref",
+    extra_args: list[str] | None = None,
 ) -> str:
     """Same as `build_and_run` but with the host C++ compiler (clang++/g++), for POSIX.
 
@@ -130,6 +145,7 @@ def build_and_run_host(
     ]
     for d in include_dirs or []:
         argv += ["-I", d]
+    argv += [*(extra_args or [])]
     argv += [*(link_archives or [])]
     subprocess.run(argv, cwd=workdir, check=True)
     out = subprocess.run(
@@ -169,4 +185,50 @@ def check_or_write(golden: str, fresh: str, rev: str, check: bool, count: str = 
     with open(golden, "w", newline="") as fh:
         fh.write(fresh)
     print(f"wrote {golden} ({n} {count}) from {rev[:12]}")
+    return 0
+
+
+def rust_archive() -> str:
+    """Build `libflare_formats.a` (offline, debug) and return its path."""
+    src = os.path.join(ROOT, "flare", "sources")
+    subprocess.run(["cargo", "build", "-p", "flare_formats", "--offline", "-q"], cwd=src, check=True)
+    return os.path.join(src, "target", "debug", "libflare_formats.a")
+
+
+def verify_chain(
+    harness: str,
+    golden: str,
+    include_dirs: list[str],
+    keep=None,
+    extra_args: list[str] | None = None,
+) -> int:
+    """Build `harness -DCHAIN` against the LIVE inline headers + the Rust static library
+    and require the (optionally `keep`-filtered) output to equal the committed golden.
+
+    This proves the C++ forwarders marshal exactly like the original functions did. The
+    harnesses guard the parts that need the original sources (`#ifndef CHAIN`).
+    """
+    archive = rust_archive()
+    with open(golden, "r", newline="") as fh:
+        want = normalize(fh.read()).splitlines()
+    if keep:
+        want = [l for l in want if keep(l)]
+    with tempfile.TemporaryDirectory(prefix="chain-") as workdir:
+        got = normalize(
+            build_and_run_host(
+                workdir,
+                [],
+                harness,
+                include_dirs=include_dirs,
+                link_archives=[archive, "-lpthread", "-ldl", "-lm"],
+                extra_args=["-DCHAIN", *(extra_args or [])],
+            )
+        ).splitlines()
+    if keep:
+        got = [l for l in got if keep(l)]
+    if got != want:
+        n = next((i for i, (a, b) in enumerate(zip(got, want)) if a != b), min(len(got), len(want)))
+        print(f"CHAIN MISMATCH at line {n}: got {got[n:n+1]} want {want[n:n+1]}", file=sys.stderr)
+        return 1
+    print(f"chain ok: new headers + Rust reproduce {len(want)} golden lines")
     return 0

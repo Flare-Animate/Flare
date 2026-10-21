@@ -20,6 +20,10 @@
 #include "tcurveutil.h"
 
 #include <algorithm>
+#include <array>
+#include <cmath>
+#include <limits>
+#include <set>
 #include <unordered_map>
 
 #if !defined(TNZ_LITTLE_ENDIAN)
@@ -402,14 +406,14 @@ void checkInterList(list<Intersection> &intersectionList) {
 // void addFakeIntersection(list<Intersection>& intersectionList,TStroke* s,
 // UINT ii, double w);
 
-void addIntersections(IntersectionData &intersectionData,
-                      const vector<VIStroke *> &s, int ii, int jj,
-                      const vector<DoublePair> &intersections, int numStrokes,
-                      bool isVectorized);
+static void addIntersections(IntersectionData &intersectionData,
+                             const vector<VIStroke *> &s, int ii, int jj,
+                             vector<DoublePair> &intersections, int numStrokes,
+                             bool isVectorized, bool preserveSource = false);
 
 void addIntersection(IntersectionData &intData, const vector<VIStroke *> &s,
                      int ii, int jj, DoublePair intersections, int strokeSize,
-                     bool isVectorized);
+                     bool isVectorized, bool preserveSource = false);
 
 //-----------------------------------------------------------------------------
 
@@ -1087,8 +1091,11 @@ static double getAngle(const TPointD &p0, const TPointD &p1) {
 //-----------------------------------------------------------------------------
 // nel caso l'angolo tra due stroke in un certo w sia nullo,
 // si va un po' avanti per vedere come sono orientate....
+// With `wrap` (source-preserving regions), an angle a rounding error below
+// zero, which getAngle() returns as almost 360, also counts as no angle.
 static double getNearAngle(const TStroke *s1, double w1, bool out1,
-                           const TStroke *s2, double w2, bool out2) {
+                           const TStroke *s2, double w2, bool out2,
+                           bool wrap = false) {
   bool verse1  = (out1 && w1 < 1) || (!out1 && w1 == 0);
   bool verse2  = (out2 && w2 < 1) || (!out2 && w2 == 0);
   double ltot1 = s1->getLength();
@@ -1106,7 +1113,9 @@ static double getNearAngle(const TStroke *s1, double w1, bool out1,
     TPointD p1   = (out1 ? 1 : -1) * s1->getSpeed(s1->getParameterAtLength(l1));
     TPointD p2   = (out2 ? 1 : -1) * s2->getSpeed(s2->getParameterAtLength(l2));
     double angle = getAngle(p1, p2);
-    if (!areAlmostEqual(angle, 0, 1e-9)) return angle;
+    if (!areAlmostEqual(angle, 0, 1e-9) &&
+        !(wrap && areAlmostEqual(angle, 360, 1e-9)))
+      return angle;
   }
   return 0;
 }
@@ -1117,55 +1126,88 @@ static bool makeEdgeIntersection(Intersection &interList,
                                  IntersectedStroke &item1,
                                  IntersectedStroke &item2, const TPointD &p1a,
                                  const TPointD &p1b, const TPointD &p2a,
-                                 const TPointD &p2b) {
+                                 const TPointD &p2b,
+                                 bool preserveSource = false) {
   double angle1 = getAngle(p1a, p1b);
   double angle2 = getAngle(p1a, p2a);
   double angle3 = getAngle(p1a, p2b);
   double angle;
 
+  // getSpeedTwoValues supplies an opposite tangent even at an open endpoint.
+  // That direction is useful as an angular reference, but it has no graph
+  // branch. Never let a tie involving it erase a real branch on the other
+  // stroke. insertBranch below already excludes these absent directions.
+  // Only source-preserving region finding uses this; Default keeps the
+  // legacy tie handling.
+  const bool hasP1a = !preserveSource || item1.m_edge.m_w0 != 1.0;
+  const bool hasP1b = !preserveSource || item1.m_edge.m_w0 != 0.0;
+  const bool hasP2a = !preserveSource || item2.m_edge.m_w0 != 1.0;
+  const bool hasP2b = !preserveSource || item2.m_edge.m_w0 != 0.0;
+
   bool eraseP1b = false, eraseP2a = false, eraseP2b = false;
 
-  if (areAlmostEqual(angle1, 0, 1e-9)) {
+  // Angles lie in [0, 360): equal directions can differ by almost 360 when
+  // rounding puts one just below the other. Source-preserving mode treats
+  // those as ties too (Default keeps the legacy comparisons).
+  auto tie = [preserveSource](double a, double b) {
+    return areAlmostEqual(a, b, 1e-9) ||
+           (preserveSource && areAlmostEqual(std::abs(a - b), 360, 1e-9));
+  };
+  if (hasP1a && hasP1b && tie(angle1, 0)) {
     angle1 = getNearAngle(item1.m_edge.m_s, item1.m_edge.m_w0, true,
-                          item1.m_edge.m_s, item1.m_edge.m_w0, false);
+                          item1.m_edge.m_s, item1.m_edge.m_w0, false,
+                          preserveSource);
     if (areAlmostEqual(angle1, 1e-9)) eraseP1b = true;
   }
-  if (areAlmostEqual(angle2, 0, 1e-9)) {
-    angle2 = getNearAngle(item1.m_edge.m_s, item1.m_edge.m_w0, true,
-                          item2.m_edge.m_s, item2.m_edge.m_w0, true);
+  if (hasP1a && hasP2a && tie(angle2, 0)) {
+    angle2 =
+        getNearAngle(item1.m_edge.m_s, item1.m_edge.m_w0, true,
+                     item2.m_edge.m_s, item2.m_edge.m_w0, true, preserveSource);
     if (areAlmostEqual(angle2, 1e-9)) eraseP2a = true;
   }
-  if (areAlmostEqual(angle3, 0, 1e-9)) {
+  if (hasP1a && hasP2b && tie(angle3, 0)) {
     angle3 = getNearAngle(item1.m_edge.m_s, item1.m_edge.m_w0, true,
-                          item2.m_edge.m_s, item2.m_edge.m_w0, false);
+                          item2.m_edge.m_s, item2.m_edge.m_w0, false,
+                          preserveSource);
     if (areAlmostEqual(angle3, 1e-9)) eraseP2b = true;
   }
 
-  if (areAlmostEqual(angle1, angle2, 1e-9)) {
-    angle = getNearAngle(item1.m_edge.m_s, item1.m_edge.m_w0, false,
-                         item2.m_edge.m_s, item2.m_edge.m_w0, true);
+  // A tie between two real branches is resolved further along the strokes
+  // even when the reference direction p1a is absent (it only measures the
+  // angles): two source contours that end at one point with the same tangent
+  // must still be ordered by where they go. Without p1a an unresolved tie
+  // erases nothing, as before. (Default mode has every branch.)
+  if (hasP1b && hasP2a && tie(angle1, angle2)) {
+    angle =
+        getNearAngle(item1.m_edge.m_s, item1.m_edge.m_w0, false,
+                     item2.m_edge.m_s, item2.m_edge.m_w0, true, preserveSource);
     if (angle != 0) {
+      if (preserveSource) angle2 = angle1;
       angle2 += angle;
       if (angle2 > 360) angle2 -= 360;
-    } else
+    } else if (hasP1a)
       eraseP2a = true;
   }
-  if (areAlmostEqual(angle1, angle3, 1e-9)) {
+  if (hasP1b && hasP2b && tie(angle1, angle3)) {
     angle = getNearAngle(item1.m_edge.m_s, item1.m_edge.m_w0, false,
-                         item2.m_edge.m_s, item2.m_edge.m_w0, false);
+                         item2.m_edge.m_s, item2.m_edge.m_w0, false,
+                         preserveSource);
     if (angle != 0) {
+      if (preserveSource) angle3 = angle1;
       angle3 += angle;
       if (angle3 > 360) angle3 -= 360;
-    } else
+    } else if (hasP1a)
       eraseP2b = true;
   }
-  if (areAlmostEqual(angle2, angle3, 1e-9)) {
-    angle = getNearAngle(item1.m_edge.m_s, item1.m_edge.m_w0, false,
-                         item2.m_edge.m_s, item2.m_edge.m_w0, true);
+  if (hasP2a && hasP2b && tie(angle2, angle3)) {
+    angle =
+        getNearAngle(item1.m_edge.m_s, item1.m_edge.m_w0, false,
+                     item2.m_edge.m_s, item2.m_edge.m_w0, true, preserveSource);
     if (angle != 0) {
+      if (preserveSource) angle3 = angle2;
       angle3 += angle;
       if (angle3 > 360) angle3 -= 360;
-    } else
+    } else if (hasP1a)
       eraseP2b = true;
   }
 
@@ -1227,7 +1269,8 @@ static bool makeEdgeIntersection(Intersection &interList,
 static bool makeIntersection(IntersectionData &intData,
                              const vector<VIStroke *> &s, int ii, int jj,
                              DoublePair inter, int strokeSize,
-                             Intersection &interList) {
+                             Intersection &interList,
+                             bool preserveSource = false) {
   IntersectedStroke item1, item2;
 
   interList.m_intersection = s[ii]->m_s->getPoint(inter.first);
@@ -1271,7 +1314,8 @@ static bool makeIntersection(IntersectionData &intData,
   bool ret2 = item2.m_edge.m_s->getSpeedTwoValues(item2.m_edge.m_w0, p1, p1b);
 
   if (ret1 || ret2)  // punto angoloso!!!!
-    return makeEdgeIntersection(interList, item1, item2, p0, p0b, p1, p1b);
+    return makeEdgeIntersection(interList, item1, item2, p0, p0b, p1, p1b,
+                                preserveSource);
 
   double crossVal = cross(p0, p1);
 
@@ -1296,7 +1340,8 @@ static bool makeIntersection(IntersectionData &intData,
     // item2.m_edge.m_s, item2.m_edge.m_w0);
     // if (areAlmostEqual(crossVal, 0.0))
     // return false;
-    return makeEdgeIntersection(interList, item1, item2, p0, p0b, p1, p1b);
+    return makeEdgeIntersection(interList, item1, item2, p0, p0b, p1, p1b,
+                                preserveSource);
   }
 
   if (crossVal > 0)
@@ -1954,7 +1999,8 @@ TPointD inline getTangent(const IntersectedStroke &item) {
 static void addBranch(IntersectionData &intData,
                       VIList<IntersectedStroke> &strokeList,
                       const vector<VIStroke *> &s, int ii, double w,
-                      int strokeSize, bool gettingOut) {
+                      int strokeSize, bool gettingOut,
+                      bool preserveSource = false) {
   IntersectedStroke *p1, *p2;
   TPointD tanRef, lastTan;
 
@@ -2039,18 +2085,37 @@ return;
     double angle0  = getAngle(lastTan, curTan);
     double angle1  = getAngle(lastTan, tanRef);
 
-    if (areAlmostEqual(angle1, 0, 1e-8)) {
-      double angle =
+    // Source-preserving mode also takes directions a rounding error apart
+    // across 0/360 as ties (see makeEdgeIntersection()). Two consecutive
+    // branches with one tangent (strokes meeting tangentially) are a few
+    // rounding errors apart, either way round: their gap is measured further
+    // along the strokes, so a branch is never inserted between them unless it
+    // belongs there.
+    auto zero = [preserveSource](double a) {
+      return areAlmostEqual(a, 0, 1e-8) ||
+             (preserveSource && areAlmostEqual(a, 360, 1e-8));
+    };
+    if (preserveSource && p1 != p2 && zero(angle0)) {
+      const double gap =
           getNearAngle(p2->m_edge.m_s, p2->m_edge.m_w0, p2->m_gettingOut,
-                       item->m_edge.m_s, item->m_edge.m_w0, item->m_gettingOut);
+                       p1->m_edge.m_s, p1->m_edge.m_w0, p1->m_gettingOut, true);
+      if (gap != 0) angle0 = gap;
+    }
+
+    if (zero(angle1)) {
+      double angle = getNearAngle(
+          p2->m_edge.m_s, p2->m_edge.m_w0, p2->m_gettingOut, item->m_edge.m_s,
+          item->m_edge.m_w0, item->m_gettingOut, preserveSource);
+      if (preserveSource) angle1 = 0;
       angle1 += angle;
       if (angle1 > 360) angle1 -= 360;
     }
 
-    if (areAlmostEqual(angle0, angle1, 1e-8)) {
-      double angle =
-          getNearAngle(p1->m_edge.m_s, p1->m_edge.m_w0, p1->m_gettingOut,
-                       item->m_edge.m_s, item->m_edge.m_w0, item->m_gettingOut);
+    if (zero(angle0 - angle1) || (preserveSource && zero(angle1 - angle0))) {
+      double angle = getNearAngle(
+          p1->m_edge.m_s, p1->m_edge.m_w0, p1->m_gettingOut, item->m_edge.m_s,
+          item->m_edge.m_w0, item->m_gettingOut, preserveSource);
+      if (preserveSource) angle1 = angle0;
       angle1 += angle;
       if (angle1 > 360) angle1 -= 360;
     }
@@ -2071,7 +2136,8 @@ return;
 
 static void addBranches(IntersectionData &intData, Intersection &intersection,
                         const vector<VIStroke *> &s, int ii, int jj,
-                        DoublePair intersectionPair, int strokeSize) {
+                        DoublePair intersectionPair, int strokeSize,
+                        bool preserveSource = false) {
   bool foundS1 = false, foundS2 = false;
   IntersectedStroke *p;
 
@@ -2121,19 +2187,19 @@ IntersectedStroke app;
   if (!foundS1) {
     if (intersectionPair.first != 1)
       addBranch(intData, intersection.m_strokeList, s, ii,
-                intersectionPair.first, strokeSize, true);
+                intersectionPair.first, strokeSize, true, preserveSource);
     if (intersectionPair.first != 0)
       addBranch(intData, intersection.m_strokeList, s, ii,
-                intersectionPair.first, strokeSize, false);
+                intersectionPair.first, strokeSize, false, preserveSource);
     // assert(intersection.m_strokeList.size()-size>0);
   }
   if (!foundS2) {
     if (intersectionPair.second != 1)
       addBranch(intData, intersection.m_strokeList, s, jj,
-                intersectionPair.second, strokeSize, true);
+                intersectionPair.second, strokeSize, true, preserveSource);
     if (intersectionPair.second != 0)
       addBranch(intData, intersection.m_strokeList, s, jj,
-                intersectionPair.second, strokeSize, false);
+                intersectionPair.second, strokeSize, false, preserveSource);
     // intersection.m_numInter+=intersection.m_strokeList.size()-size;
     // assert(intersection.m_strokeList.size()-size>0);
   }
@@ -2144,7 +2210,7 @@ IntersectedStroke app;
 static void addIntersections(IntersectionData &intData,
                              const vector<VIStroke *> &s, int ii, int jj,
                              vector<DoublePair> &intersections, int strokeSize,
-                             bool isVectorized) {
+                             bool isVectorized, bool preserveSource) {
   for (int k = 0; k < (int)intersections.size(); k++) {
     if (ii >= strokeSize && (areAlmostEqual(intersections[k].first, 0.0) ||
                              areAlmostEqual(intersections[k].first, 1.0)))
@@ -2154,7 +2220,7 @@ static void addIntersections(IntersectionData &intData,
       continue;
 
     addIntersection(intData, s, ii, jj, intersections[k], strokeSize,
-                    isVectorized);
+                    isVectorized, preserveSource);
   }
 }
 
@@ -2177,7 +2243,7 @@ inline double truncate(double x) {
 
 void addIntersection(IntersectionData &intData, const vector<VIStroke *> &s,
                      int ii, int jj, DoublePair intersection, int strokeSize,
-                     bool isVectorized) {
+                     bool isVectorized, bool preserveSource) {
   Intersection *p;
   TPointD point;
 
@@ -2190,15 +2256,17 @@ void addIntersection(IntersectionData &intData, const vector<VIStroke *> &s,
 
   // intersection.second = truncate(intersection.second);
 
-  if (areAlmostEqual(intersection.first, 0.0, 1e-5))
-    intersection.first = 0.0;
-  else if (areAlmostEqual(intersection.first, 1.0, 1e-5))
-    intersection.first = 1.0;
+  if (!preserveSource) {
+    if (areAlmostEqual(intersection.first, 0.0, 1e-5))
+      intersection.first = 0.0;
+    else if (areAlmostEqual(intersection.first, 1.0, 1e-5))
+      intersection.first = 1.0;
 
-  if (areAlmostEqual(intersection.second, 0.0, 1e-5))
-    intersection.second = 0.0;
-  else if (areAlmostEqual(intersection.second, 1.0, 1e-5))
-    intersection.second = 1.0;
+    if (areAlmostEqual(intersection.second, 0.0, 1e-5))
+      intersection.second = 0.0;
+    else if (areAlmostEqual(intersection.second, 1.0, 1e-5))
+      intersection.second = 1.0;
+  }
 
   point = s[ii]->m_s->getPoint(intersection.first);
 
@@ -2210,58 +2278,476 @@ void addIntersection(IntersectionData &intData, const vector<VIStroke *> &s,
              1e-2)))  // devono essere rigorosamente uguali, altrimenti
     // il calcolo dell'ordine dei rami con le tangenti sballa
     {
-      addBranches(intData, *p, s, ii, jj, intersection, strokeSize);
+      addBranches(intData, *p, s, ii, jj, intersection, strokeSize,
+                  preserveSource);
       return;
     }
 
   intData.m_intList.pushBack(new Intersection);
 
   if (!makeIntersection(intData, s, ii, jj, intersection, strokeSize,
-                        *intData.m_intList.last()))
+                        *intData.m_intList.last(), preserveSource))
     intData.m_intList.erase(intData.m_intList.last());
 }
 
 //-----------------------------------------------------------------------------
+
+namespace {
+
+struct SourceIntersectionSample {
+  long double x, y;
+  long double xScale, yScale;
+};
+
+bool sourceIntersectionSample(const TStroke *stroke, double w,
+                              const TPointD &origin,
+                              SourceIntersectionSample &sample) {
+  if (!std::isfinite(w) || w < 0 || w > 1) return false;
+  int chunk = -1;
+  double t  = 0;
+  if (stroke->getChunkAndT(w, chunk, t) || chunk < 0 ||
+      chunk >= stroke->getChunkCount() || !std::isfinite(t) || t < 0 || t > 1)
+    return false;
+  const auto *curve = stroke->getChunk(chunk);
+  const auto p0 = curve->getP0(), p1 = curve->getP1(), p2 = curve->getP2();
+  const long double x0 = static_cast<long double>(p0.x) - origin.x;
+  const long double x1 = static_cast<long double>(p1.x) - origin.x;
+  const long double x2 = static_cast<long double>(p2.x) - origin.x;
+  const long double y0 = static_cast<long double>(p0.y) - origin.y;
+  const long double y1 = static_cast<long double>(p1.y) - origin.y;
+  const long double y2 = static_cast<long double>(p2.y) - origin.y;
+  const long double v = t, u = 1 - v;
+  // Evaluate the stored controls after translating into a shared frame. In
+  // particular, do not subtract two already rounded world-space evaluations.
+  sample.x      = u * (u * x0 + v * x1) + v * (u * x1 + v * x2);
+  sample.y      = u * (u * y0 + v * y1) + v * (u * y1 + v * y2);
+  sample.xScale = std::abs(x0) + std::abs(x1) + std::abs(x2);
+  sample.yScale = std::abs(y0) + std::abs(y1) + std::abs(y2);
+  return std::isfinite(sample.x) && std::isfinite(sample.y) &&
+         std::isfinite(sample.xScale) && std::isfinite(sample.yScale);
+}
+
+bool sourceIntersectionCoincides(const TStroke *first, double firstW,
+                                 const TStroke *second, double secondW) {
+  if (!std::isfinite(firstW) || firstW < 0 || firstW > 1 ||
+      !std::isfinite(secondW) || secondW < 0 || secondW > 1)
+    return false;
+  const bool secondEndpoint = secondW == 0 || secondW == 1;
+  const bool firstEndpoint  = firstW == 0 || firstW == 1;
+  const TPointD origin      = !firstEndpoint && secondEndpoint
+                                  ? second->getPoint(secondW)
+                                  : first->getPoint(firstW);
+  if (!std::isfinite(origin.x) || !std::isfinite(origin.y)) return false;
+  SourceIntersectionSample a, b;
+  if (!sourceIntersectionSample(first, firstW, origin, a) ||
+      !sourceIntersectionSample(second, secondW, origin, b))
+    return false;
+  // This conservative allowance covers double-precision parameter/evaluation
+  // roundoff using only local per-axis control magnitudes. Absolute world
+  // translation does not enter the tolerance, and there is no fixed distance
+  // or unit floor. This remains a finite-precision coincidence policy, not
+  // proof of exact incidence or a certified error bound for the native solver.
+  const long double rounding = 64 * std::numeric_limits<double>::epsilon();
+  return std::abs(a.x - b.x) <= rounding * (a.xScale + b.xScale) &&
+         std::abs(a.y - b.y) <= rounding * (a.yScale + b.yScale);
+}
+
+// If two authored quadratic chunks meet at an exact control knot, a raw
+// intersection very close to that knot may be a second numerical rendering of
+// the same point. Certify only a local interval that contains the raw pair:
+// strict half-plane separation of its two Bezier control hulls rules out any
+// other exact intersection in those intervals. A genuine nearby second
+// crossing therefore remains distinct, however close its parameters are.
+bool separatedLocalSourceKnots(const TThickQuadratic *first, int firstEndpoint,
+                               long double firstDistance,
+                               const TThickQuadratic *second,
+                               int secondEndpoint, long double secondDistance,
+                               const TPointD &shared) {
+  if (!first || !second || !std::isfinite(firstDistance) ||
+      !std::isfinite(secondDistance) || firstDistance < 0 || secondDistance < 0)
+    return false;
+  struct Vector {
+    long double x, y;
+  };
+  auto hull = [&](const TThickQuadratic *curve, int endpoint, long double h) {
+    const TPointD nearPoint = curve->getP1();
+    const TPointD farPoint  = endpoint == 0 ? curve->getP2() : curve->getP0();
+    const Vector n{static_cast<long double>(nearPoint.x) - shared.x,
+                   static_cast<long double>(nearPoint.y) - shared.y};
+    const Vector f{static_cast<long double>(farPoint.x) - shared.x,
+                   static_cast<long double>(farPoint.y) - shared.y};
+    return std::array<Vector, 2>{{{h * n.x, h * n.y},
+                                  {2 * h * (1 - h) * n.x + h * h * f.x,
+                                   2 * h * (1 - h) * n.y + h * h * f.y}}};
+  };
+  const TPointD controls[] = {first->getP0(),  first->getP1(),
+                              first->getP2(),  second->getP0(),
+                              second->getP1(), second->getP2()};
+  long double worldX = 0, worldY = 0;
+  for (const TPointD &point : controls) {
+    if (!std::isfinite(point.x) || !std::isfinite(point.y)) return false;
+    worldX = std::max(worldX, std::abs(static_cast<long double>(point.x)));
+    worldY = std::max(worldY, std::abs(static_cast<long double>(point.y)));
+  }
+  const long double epsilon = std::numeric_limits<long double>::epsilon();
+  auto side                 = [&](Vector v, Vector normal, long double h) {
+    const long double projection = v.x * normal.x + v.y * normal.y;
+    const long double magnitude =
+        std::abs(v.x * normal.x) + std::abs(v.y * normal.y);
+    // Include conversion/subtraction and dyadic hull arithmetic in the
+    // margin. Ambiguous near-zero signs fail closed instead of certifying.
+    const long double error = 512 * epsilon *
+                              (magnitude + h * (std::abs(normal.x) * worldX +
+                                                std::abs(normal.y) * worldY));
+    return projection > error ? 1 : (projection < -error ? -1 : 0);
+  };
+  for (int depth = 1; depth <= 48; ++depth) {
+    const long double h = std::ldexp(1.0L, -depth);
+    if (firstDistance > h || secondDistance > h) break;
+    const auto a = hull(first, firstEndpoint, h);
+    const auto b = hull(second, secondEndpoint, h);
+    std::vector<Vector> normals{{1, 0}, {0, 1}};
+    for (Vector av : a)
+      for (Vector bv : b) {
+        const long double alen = std::hypot(av.x, av.y);
+        const long double blen = std::hypot(bv.x, bv.y);
+        if (alen > 0 && blen > 0 && std::isfinite(alen) && std::isfinite(blen))
+          normals.push_back(
+              {av.x / alen - bv.x / blen, av.y / alen - bv.y / blen});
+      }
+    for (Vector normal : normals) {
+      if (!std::isfinite(normal.x) || !std::isfinite(normal.y) ||
+          (normal.x == 0 && normal.y == 0))
+        continue;
+      const int sign = side(a[0], normal, h);
+      if (sign && side(a[1], normal, h) == sign &&
+          side(b[0], normal, h) == -sign && side(b[1], normal, h) == -sign)
+        return true;
+    }
+  }
+  return false;
+}
+
+bool canonicalSourceEndpoint(const TStroke *first, const TStroke *second,
+                             DoublePair &pair) {
+  int firstChunk = -1, secondChunk = -1;
+  double firstT = 0, secondT = 0;
+  if (!first || !second || !std::isfinite(pair.first) ||
+      !std::isfinite(pair.second) || pair.first < 0 || pair.first > 1 ||
+      pair.second < 0 || pair.second > 1 ||
+      first->getChunkAndT(pair.first, firstChunk, firstT) ||
+      second->getChunkAndT(pair.second, secondChunk, secondT) ||
+      firstChunk < 0 || secondChunk < 0 ||
+      firstChunk >= first->getChunkCount() ||
+      secondChunk >= second->getChunkCount() || !std::isfinite(firstT) ||
+      !std::isfinite(secondT) || firstT < 0 || firstT > 1 || secondT < 0 ||
+      secondT > 1)
+    return false;
+  const auto *firstCurve  = first->getChunk(firstChunk);
+  const auto *secondCurve = second->getChunk(secondChunk);
+  if (!firstCurve || !secondCurve) return false;
+  const TPointD a[3] = {firstCurve->getP0(), firstCurve->getP1(),
+                        firstCurve->getP2()};
+  const TPointD b[3] = {secondCurve->getP0(), secondCurve->getP1(),
+                        secondCurve->getP2()};
+  for (int control = 0; control < 3; ++control)
+    if (!std::isfinite(a[control].x) || !std::isfinite(a[control].y) ||
+        !std::isfinite(b[control].x) || !std::isfinite(b[control].y))
+      return false;
+
+  auto side = [](const TPointD(&controls)[3], int endpoint, bool useY) {
+    const double shared = useY ? controls[endpoint].y : controls[endpoint].x;
+    bool less = true, greater = true;
+    for (int control = 0; control < 3; ++control) {
+      if (control == endpoint) continue;
+      const double coordinate =
+          useY ? controls[control].y : controls[control].x;
+      less    = less && coordinate < shared;
+      greater = greater && coordinate > shared;
+    }
+    return less ? -1 : (greater ? 1 : 0);
+  };
+  auto separatedByNormal =
+      [](const TPointD(&firstControls)[3], int firstEndpoint,
+         const TPointD(&secondControls)[3], int secondEndpoint, long double nx,
+         long double ny) {
+        if (!std::isfinite(nx) || !std::isfinite(ny) || (nx == 0 && ny == 0))
+          return false;
+        const TPointD shared = firstControls[firstEndpoint];
+        int firstSign = 0, secondSign = 0;
+        auto strictSide = [&](const TPointD &point) {
+          const long double dx = static_cast<long double>(point.x) - shared.x;
+          const long double dy = static_cast<long double>(point.y) - shared.y;
+          const long double projection = nx * dx + ny * dy;
+          const long double magnitude  = std::abs(nx * dx) + std::abs(ny * dy);
+          const long double error =
+              128 * std::numeric_limits<long double>::epsilon() * magnitude;
+          return projection > error ? 1 : (projection < -error ? -1 : 0);
+        };
+        for (int control = 0; control < 3; ++control) {
+          if (control == firstEndpoint) continue;
+          const int sign = strictSide(firstControls[control]);
+          if (!sign || (firstSign && sign != firstSign)) return false;
+          firstSign = sign;
+        }
+        for (int control = 0; control < 3; ++control) {
+          if (control == secondEndpoint) continue;
+          const int sign = strictSide(secondControls[control]);
+          if (!sign || (secondSign && sign != secondSign)) return false;
+          secondSign = sign;
+        }
+        return firstSign && secondSign == -firstSign;
+      };
+  for (int firstEndpoint : {0, 2})
+    for (int secondEndpoint : {0, 2}) {
+      if (a[firstEndpoint] != b[secondEndpoint]) continue;
+      bool separated = false;
+      for (bool useY : {false, true}) {
+        const int firstSide = side(a, firstEndpoint, useY);
+        if (!firstSide || side(b, secondEndpoint, useY) != -firstSide) continue;
+        separated = true;
+        break;
+      }
+      if (!separated) {
+        // An arbitrary line through the exact shared endpoint can separate
+        // the two complete control hulls even when neither coordinate axis
+        // does. Candidate normals bisect control-vector directions; each is
+        // accepted only after all four controls pass a strict half-plane test.
+        // This certifies a unique endpoint intersection without a parameter
+        // snap distance, preserving genuine nearby second crossings.
+        const TPointD shared = a[firstEndpoint];
+        for (int ai = 0; ai < 3 && !separated; ++ai) {
+          if (ai == firstEndpoint) continue;
+          const long double ax   = static_cast<long double>(a[ai].x) - shared.x;
+          const long double ay   = static_cast<long double>(a[ai].y) - shared.y;
+          const long double alen = std::hypot(ax, ay);
+          if (!(alen > 0) || !std::isfinite(alen)) continue;
+          for (int bi = 0; bi < 3 && !separated; ++bi) {
+            if (bi == secondEndpoint) continue;
+            const long double bx = static_cast<long double>(b[bi].x) - shared.x;
+            const long double by = static_cast<long double>(b[bi].y) - shared.y;
+            const long double blen = std::hypot(bx, by);
+            if (!(blen > 0) || !std::isfinite(blen)) continue;
+            separated =
+                separatedByNormal(a, firstEndpoint, b, secondEndpoint,
+                                  ax / alen - bx / blen, ay / alen - by / blen);
+          }
+        }
+      }
+      if (!separated) {
+        // Two quadratic arcs can share both their endpoint and adjacent
+        // control. Their full control hulls then share the tangent segment,
+        // so no strict hull-separating line exists even when the actual arcs
+        // meet only at the endpoint. Parameterizing either arc outward from
+        // the shared endpoint J with adjacent control C and far control F
+        // gives Q(t) = J + 2t(C-J) + t*t(F-2C+J). The signed distance to the
+        // line J--C is t*t*cross(C-J, F-J). Strict opposite signs for both
+        // far controls therefore prove that the arcs lie in opposite open
+        // half-planes for every t > 0, with J their only intersection.
+        if (a[1] == b[1]) {
+          const TPointD shared = a[firstEndpoint];
+          const long double tx = static_cast<long double>(a[1].x) - shared.x;
+          const long double ty = static_cast<long double>(a[1].y) - shared.y;
+          if (std::isfinite(tx) && std::isfinite(ty) && (tx != 0 || ty != 0)) {
+            auto sideOfTangent = [&](const TPointD &oppositeControl) {
+              const long double fx =
+                  static_cast<long double>(oppositeControl.x) - shared.x;
+              const long double fy =
+                  static_cast<long double>(oppositeControl.y) - shared.y;
+              const long double signedArea = tx * fy - ty * fx;
+              const long double magnitude =
+                  std::abs(tx * fy) + std::abs(ty * fx);
+              const long double world =
+                  (std::abs(tx) + std::abs(ty)) *
+                  (std::abs(static_cast<long double>(shared.x)) +
+                   std::abs(static_cast<long double>(shared.y)) +
+                   std::abs(static_cast<long double>(oppositeControl.x)) +
+                   std::abs(static_cast<long double>(oppositeControl.y)) +
+                   std::abs(static_cast<long double>(a[1].x)) +
+                   std::abs(static_cast<long double>(a[1].y)));
+              const long double error =
+                  512 * std::numeric_limits<long double>::epsilon() *
+                  (magnitude + world);
+              if (!std::isfinite(signedArea) || !std::isfinite(error)) return 0;
+              return signedArea > error ? 1 : signedArea < -error ? -1 : 0;
+            };
+            const int firstSign = sideOfTangent(a[firstEndpoint == 0 ? 2 : 0]);
+            const int secondSign =
+                sideOfTangent(b[secondEndpoint == 0 ? 2 : 0]);
+            separated = firstSign && secondSign == -firstSign;
+          }
+        }
+      }
+      if (!separated) {
+        const long double firstDistance =
+            firstEndpoint == 0 ? firstT : 1 - firstT;
+        const long double secondDistance =
+            secondEndpoint == 0 ? secondT : 1 - secondT;
+        separated = separatedLocalSourceKnots(
+            firstCurve, firstEndpoint, firstDistance, secondCurve,
+            secondEndpoint, secondDistance, a[firstEndpoint]);
+      }
+      if (!separated) continue;
+      // The complete or candidate-containing local control hulls can meet
+      // only at their exact shared control knot. No root-distance test is
+      // used; uncertified pairs keep their distinct in-range parameters.
+      pair.first =
+          first->getParameterAtControlPoint(2 * firstChunk + firstEndpoint);
+      pair.second =
+          second->getParameterAtControlPoint(2 * secondChunk + secondEndpoint);
+      return true;
+    }
+  return false;
+}
+
+bool intersectPreservingSource(const TStroke *first, const TStroke *second,
+                               vector<DoublePair> &intersections) {
+  vector<DoublePair> raw;
+  // The existing native solver has no cumulative work/cancellation budget.
+  // Avoid adding a quadratic duplicate scan here: collect witnesses, then
+  // exact-deduplicate in O(K log K) time and O(K) storage.
+  intersect(first, second, raw, false);
+  intersections.clear();
+  std::set<DoublePair> seen;
+  auto append = [&](const DoublePair &candidate) {
+    DoublePair canonical = candidate;
+    canonicalSourceEndpoint(first, second, canonical);
+    // Distinct in-range parameters remain separate unless an exact shared
+    // endpoint/control-hull certificate proves the same unique intersection.
+    // Native tangent branch construction depends on insertion order: retain
+    // the solver's raw order and append recovered witnesses afterwards.
+    if (seen.insert(canonical).second) intersections.push_back(canonical);
+  };
+  const bool closedSelf = first == second && [&] {
+    const auto a = first->getControlPoint(0);
+    const auto b = first->getControlPoint(first->getControlPointCount() - 1);
+    return a.x == b.x && a.y == b.y;
+  }();
+  // On a closed centerline whose ends meet tangentially (a cusp), the solver
+  // can report the seam itself a rounding error away from (0, 1). Such a pair
+  // in the first and last chunks whose points both coincide with the seam
+  // point is that seam, appended once below; keeping both splits the loop
+  // into a zero-length edge and a face that walks the contour twice.
+  auto seamDuplicate = [&](const DoublePair &pair) {
+    if (!closedSelf) return false;
+    const int last = first->getChunkCount() - 1;
+    int chunkA = -1, chunkB = -1;
+    double tA = 0, tB = 0;
+    if (first->getChunkAndT(pair.first, chunkA, tA) ||
+        first->getChunkAndT(pair.second, chunkB, tB))
+      return false;
+    if (!((chunkA == 0 && chunkB == last) || (chunkA == last && chunkB == 0)))
+      return false;
+    return sourceIntersectionCoincides(first, pair.first, first, 0.0) &&
+           sourceIntersectionCoincides(first, pair.second, first, 1.0);
+  };
+  for (const auto &pair : raw) {
+    if (!std::isfinite(pair.first) || !std::isfinite(pair.second)) continue;
+    DoublePair candidate(std::max(0.0, std::min(1.0, pair.first)),
+                         std::max(0.0, std::min(1.0, pair.second)));
+    // The native quadratic routine admits slightly out-of-range roots. Only
+    // normalize those after the clamped points geometrically coincide; never
+    // snap an in-range parameter toward an endpoint by a fixed tolerance.
+    if ((candidate.first != pair.first || candidate.second != pair.second) &&
+        !sourceIntersectionCoincides(first, candidate.first, second,
+                                     candidate.second))
+      continue;
+    if (seamDuplicate(candidate)) continue;
+    append(candidate);
+  }
+
+  if (first == second) {
+    const auto a = first->getControlPoint(0);
+    const auto b = first->getControlPoint(first->getControlPointCount() - 1);
+    // Legacy self-intersection code can mistake a nearby self-crossing for
+    // the seam when both parameters lie within 0.1 of (0, 1). Preserve that
+    // real crossing and separately retain the exact seam of a genuinely closed
+    // centerline; the isSelfLoop flag alone does not prove endpoint equality.
+    if (a.x == b.x && a.y == b.y) append(DoublePair(0, 1));
+    return !intersections.empty();
+  }
+
+  auto endpoint = [&](const TStroke *from, const TStroke *onto, double w,
+                      bool reversed) {
+    const TPointD point = from->getPoint(w);
+    double nearestW = 0, distance2 = 0;
+    if (!onto->getNearestW(point, nearestW, distance2, false) ||
+        !std::isfinite(distance2) || distance2 < 0 ||
+        !sourceIntersectionCoincides(from, w, onto, nearestW))
+      return;
+    append(reversed ? DoublePair(nearestW, w) : DoublePair(w, nearestW));
+  };
+  for (double w : {0.0, 1.0}) {
+    endpoint(first, second, w, false);
+    endpoint(second, first, w, true);
+  }
+  return !intersections.empty();
+}
+
+}  // namespace
 
 void TVectorImage::Imp::findIntersections() {
   vector<VIStroke *> &strokeArray = m_strokes;
   IntersectionData &intData       = *m_intersectionData;
   int strokeSize                  = (int)strokeArray.size();
   int i, j;
-  bool isVectorized = (m_autocloseTolerance < 0);
+  const bool preserveSource =
+      m_regionFindingMode == TVectorImage::RegionFindingMode::PreserveSource;
+  bool isVectorized = !preserveSource && (m_autocloseTolerance < 0);
 
   assert(intData.m_intersectedStrokeArray.empty());
 #define AUTOCLOSE_ATTIVO
 #ifdef AUTOCLOSE_ATTIVO
-  intData.maxAutocloseId++;
+  if (!preserveSource) {
+    intData.maxAutocloseId++;
 
-  map<int, VIStroke *>::iterator it, it_b = intData.m_autocloseMap.begin();
-  map<int, VIStroke *>::iterator it_e = intData.m_autocloseMap.end();
+    map<int, VIStroke *>::iterator it, it_b = intData.m_autocloseMap.begin();
+    map<int, VIStroke *>::iterator it_e = intData.m_autocloseMap.end();
 
-  // prima cerco le intersezioni tra nuove strokes e vecchi autoclose
-  for (i = 0; i < strokeSize; i++) {
-    TStroke *s1 = strokeArray[i]->m_s;
-    if (!strokeArray[i]->m_isNewForFill || strokeArray[i]->m_isPoint) continue;
-
-    TRectD bBox   = s1->getBBox();
-    double thick2 = s1->getThickPoint(0).thick *
-                    2.1;  // 2.1 instead of 2.0, for usual problems of approx...
-    if (bBox.getLx() <= thick2 && bBox.getLy() <= thick2) {
-      strokeArray[i]->m_isPoint = true;
-      continue;
-    }
-
-    roundStroke(s1);
-
-    for (it = it_b; it != it_e; ++it) {
-      if (!it->second || it->second->m_groupId != strokeArray[i]->m_groupId)
+    // prima cerco le intersezioni tra nuove strokes e vecchi autoclose
+    for (i = 0; i < strokeSize; i++) {
+      TStroke *s1 = strokeArray[i]->m_s;
+      if (!strokeArray[i]->m_isNewForFill || strokeArray[i]->m_isPoint)
         continue;
 
-      TStroke *s2 = it->second->m_s;
-      vector<DoublePair> parIntersections;
-      if (intersect(s1, s2, parIntersections, true))
-        addIntersections(intData, strokeArray, i, it->first, parIntersections,
-                         strokeSize, isVectorized);
+      TRectD bBox = s1->getBBox();
+      double thick2 =
+          s1->getThickPoint(0).thick *
+          2.1;  // 2.1 instead of 2.0, for usual problems of approx...
+      if (bBox.getLx() <= thick2 && bBox.getLy() <= thick2) {
+        strokeArray[i]->m_isPoint = true;
+        continue;
+      }
+
+      roundStroke(s1);
+
+      for (it = it_b; it != it_e; ++it) {
+        if (!it->second || it->second->m_groupId != strokeArray[i]->m_groupId)
+          continue;
+
+        TStroke *s2 = it->second->m_s;
+        vector<DoublePair> parIntersections;
+        if (intersect(s1, s2, parIntersections, true))
+          addIntersections(intData, strokeArray, i, it->first, parIntersections,
+                           strokeSize, isVectorized, preserveSource);
+      }
+    }
+  } else {
+    // Ink thickness does not make a small closed contour a point. Only an
+    // actually constant centerline is degenerate for explicit topology.
+    for (auto *stroke : strokeArray) {
+      if (!stroke->m_isNewForFill) continue;
+      const auto first = stroke->m_s->getControlPoint(0);
+      bool isPoint     = true;
+      for (int point = 1; point < stroke->m_s->getControlPointCount();
+           ++point) {
+        const auto value = stroke->m_s->getControlPoint(point);
+        if (value.x != first.x || value.y != first.y) {
+          isPoint = false;
+          break;
+        }
+      }
+      stroke->m_isPoint = isPoint;
     }
   }
 #endif
@@ -2288,11 +2774,12 @@ void TVectorImage::Imp::findIntersections() {
       if (s1->getBBox().overlaps(s2->getBBox())) {
         UINT size = intData.m_intList.size();
 
-        if (intersect(s1, s2, parIntersections, false)) {
+        if (preserveSource ? intersectPreservingSource(s1, s2, parIntersections)
+                           : intersect(s1, s2, parIntersections, false)) {
           // if (i==0 && j==1) parIntersections.erase(parIntersections.begin());
           intersectionMap[pair<int, int>(i, j)] = parIntersections;
           addIntersections(intData, strokeArray, i, j, parIntersections,
-                           strokeSize, isVectorized);
+                           strokeSize, isVectorized, preserveSource);
         } else
           intersectionMap[pair<int, int>(i, j)] = vector<DoublePair>();
 
@@ -2313,39 +2800,43 @@ void TVectorImage::Imp::findIntersections() {
   }
 
 #ifdef AUTOCLOSE_ATTIVO
-  TL2LAutocloser l2lautocloser;
+  if (!preserveSource) {
+    TL2LAutocloser l2lautocloser;
 
-  for (i = 0; i < strokeSize; i++) {
-    TStroke *s1 = strokeArray[i]->m_s;
-    if (strokeArray[i]->m_isPoint) continue;
-    for (j = i; j < strokeSize; j++) {
-      if (strokeArray[i]->m_groupId != strokeArray[j]->m_groupId) continue;
+    for (i = 0; i < strokeSize; i++) {
+      TStroke *s1 = strokeArray[i]->m_s;
+      if (strokeArray[i]->m_isPoint) continue;
+      for (j = i; j < strokeSize; j++) {
+        if (strokeArray[i]->m_groupId != strokeArray[j]->m_groupId) continue;
 
-      TStroke *s2 = strokeArray[j]->m_s;
-      if (strokeArray[j]->m_isPoint) continue;
-      if (!(strokeArray[i]->m_isNewForFill || strokeArray[j]->m_isNewForFill))
-        continue;
+        TStroke *s2 = strokeArray[j]->m_s;
+        if (strokeArray[j]->m_isPoint) continue;
+        if (!(strokeArray[i]->m_isNewForFill || strokeArray[j]->m_isNewForFill))
+          continue;
 
-      double enlarge1 =
-          (m_autocloseTolerance + 0.7) *
-          (s1->getMaxThickness() > 0 ? s1->getMaxThickness() : 2.5);
-      double enlarge2 =
-          (m_autocloseTolerance + 0.7) *
-          (s2->getMaxThickness() > 0 ? s2->getMaxThickness() : 2.5);
+        double enlarge1 =
+            (m_autocloseTolerance + 0.7) *
+            (s1->getMaxThickness() > 0 ? s1->getMaxThickness() : 2.5);
+        double enlarge2 =
+            (m_autocloseTolerance + 0.7) *
+            (s2->getMaxThickness() > 0 ? s2->getMaxThickness() : 2.5);
 
-      if (s1->getBBox().enlarge(enlarge1).overlaps(
-              s2->getBBox().enlarge(enlarge2))) {
-        map<pair<int, int>, vector<DoublePair>>::iterator it =
-            intersectionMap.find(pair<int, int>(i, j));
-        if (it == intersectionMap.end())
-          autoclose(m_autocloseTolerance, strokeArray, i, j, intData,
-                    strokeSize, l2lautocloser, 0, isVectorized);
-        else
-          autoclose(m_autocloseTolerance, strokeArray, i, j, intData,
-                    strokeSize, l2lautocloser, &(it->second), isVectorized);
+        if (s1->getBBox().enlarge(enlarge1).overlaps(
+                s2->getBBox().enlarge(enlarge2))) {
+          map<pair<int, int>, vector<DoublePair>>::iterator it =
+              intersectionMap.find(pair<int, int>(i, j));
+          if (it == intersectionMap.end())
+            autoclose(m_autocloseTolerance, strokeArray, i, j, intData,
+                      strokeSize, l2lautocloser, 0, isVectorized);
+          else
+            autoclose(m_autocloseTolerance, strokeArray, i, j, intData,
+                      strokeSize, l2lautocloser, &(it->second), isVectorized);
+        }
       }
+      strokeArray[i]->m_isNewForFill = false;
     }
-    strokeArray[i]->m_isNewForFill = false;
+  } else {
+    for (auto *stroke : strokeArray) stroke->m_isNewForFill = false;
   }
 #endif
 
@@ -2372,7 +2863,7 @@ void TVectorImage::Imp::findIntersections() {
       vector<DoublePair> parIntersections;
       if (intersect(s1, s2, parIntersections, true))
         addIntersections(intData, strokeArray, i, j, parIntersections,
-                         strokeSize, isVectorized);
+                         strokeSize, isVectorized, preserveSource);
     }
     for (j = 0; j < strokeSize; ++j)  // intersezione segmento-curva
     {
@@ -2383,7 +2874,7 @@ void TVectorImage::Imp::findIntersections() {
       vector<DoublePair> parIntersections;
       if (intersect(s1, s2, parIntersections, true))
         addIntersections(intData, strokeArray, i, j, parIntersections,
-                         strokeSize, isVectorized);
+                         strokeSize, isVectorized, preserveSource);
     }
   }
 }
@@ -2678,7 +3169,152 @@ void computeRegionFeature(const TRegion &r, TRegionFeatureFormula &formula) {
 
 //----------------------------------------------------------------------------------
 
-static bool isValidArea(const TRegion &r) {
+namespace {
+
+// Accumulate signed twice-area in one local coordinate system. Keeping the
+// default feature sampler separate preserves ordinary drawing's existing
+// topology policy; source-preserving imports need the actual quadratic arcs.
+class SourceRegionArea {
+  using Real = long double;
+  struct Point {
+    Real x, y;
+  };
+
+  TPointD m_origin;
+  Point m_first{0, 0}, m_previous{0, 0};
+  Real m_sum = 0, m_correction = 0, m_error = 0;
+  bool m_started = false;
+
+  static Point add(Point a, Point b) { return {a.x + b.x, a.y + b.y}; }
+  static Point subtract(Point a, Point b) { return {a.x - b.x, a.y - b.y}; }
+  static Point multiply(Point p, Real amount) {
+    return {p.x * amount, p.y * amount};
+  }
+  static Real cross(Point a, Point b) { return a.x * b.y - a.y * b.x; }
+  static Point interpolate(Point a, Point b, Real t) {
+    return add(multiply(a, 1 - t), multiply(b, t));
+  }
+  static bool finite(Point p) {
+    return std::isfinite(p.x) && std::isfinite(p.y);
+  }
+  Point local(const TPointD &p) const {
+    return {Real(p.x) - Real(m_origin.x), Real(p.y) - Real(m_origin.y)};
+  }
+  void accumulate(Real value, Real error) {
+    // Neumaier summation retains small contributions beside larger arcs.
+    const Real sum = m_sum + value;
+    if (std::abs(m_sum) >= std::abs(value))
+      m_correction += (m_sum - sum) + value;
+    else
+      m_correction += (value - sum) + m_sum;
+    m_sum = sum;
+    m_error += error;
+  }
+  void connector(Point a, Point b) {
+    const Real magnitude = std::abs(a.x * b.y) + std::abs(a.y * b.x);
+    accumulate(cross(a, b),
+               64 * std::numeric_limits<Real>::epsilon() * magnitude);
+  }
+
+public:
+  explicit SourceRegionArea(const TPointD &origin) : m_origin(origin) {}
+
+  bool append(const TQuadratic &curve, double from, double to,
+              bool startsEdge) {
+    const Point p0 = local(curve.getP0()), p1 = local(curve.getP1()),
+                p2 = local(curve.getP2());
+    if (!finite(p0) || !finite(p1) || !finite(p2) || !std::isfinite(from) ||
+        !std::isfinite(to) || from < 0 || from > 1 || to < 0 || to > 1)
+      return false;
+    const Real a = from, step = Real(to) - a;
+    const Point first =
+        interpolate(interpolate(p0, p1, a), interpolate(p1, p2, a), a);
+    const Point difference0 = subtract(p1, p0), difference1 = subtract(p2, p1);
+    const Point d =
+        multiply(interpolate(difference0, difference1, a), 2 * step);
+    const Point e = multiply(subtract(difference1, difference0), step * step);
+    const Point displacement = add(d, e);
+    const Point last         = add(first, displacement);
+    if (!finite(first) || !finite(last) || !finite(d) || !finite(e))
+      return false;
+
+    if (!m_started) {
+      m_first   = first;
+      m_started = true;
+    } else if (startsEdge) {
+      // Regions can contain small gaps between consecutive directed edges.
+      // Match the boundary connectors used by the existing feature formula,
+      // including the last-to-first connector below; never drop one by epsilon.
+      connector(m_previous, first);
+    }
+
+    // For B(a+u*step) = first + d*u + e*u*u, integrate x*dy-y*dx
+    // exactly over u in[0,1]. Negative step naturally reverses orientation.
+    const Real twiceArea    = cross(first, displacement) + cross(d, e) / 3;
+    const Real xScale       = std::abs(p0.x) + std::abs(p1.x) + std::abs(p2.x);
+    const Real yScale       = std::abs(p0.y) + std::abs(p1.y) + std::abs(p2.y);
+    const Real absoluteStep = std::abs(step);
+    // A scale-relative roundoff allowance has no fixed native-area floor.
+    // Separate X/Y scales retain very thin axis-aligned regions; all arithmetic
+    // uses translated coordinates so a large world offset does not dominate.
+    const Real conditioning =
+        xScale * yScale * absoluteStep * (1 + absoluteStep + step * step);
+    accumulate(twiceArea,
+               512 * std::numeric_limits<Real>::epsilon() * conditioning);
+    m_previous = last;
+    return true;
+  }
+
+  bool positive() {
+    if (!m_started) return false;
+    connector(m_previous, m_first);
+    const Real twiceArea = m_sum + m_correction;
+    return std::isfinite(twiceArea) && std::isfinite(m_error) &&
+           twiceArea > m_error;
+  }
+};
+
+bool isValidSourceArea(const TRegion &r) {
+  if (!r.getEdgeCount()) return false;
+  const auto *first = r.getEdge(0);
+  if (!first || !first->m_s || first->m_s->getChunkCount() == 0 ||
+      !std::isfinite(first->m_w0) || first->m_w0 < 0 || first->m_w0 > 1)
+    return false;
+  const TPointD origin = first->m_s->getPoint(first->m_w0);
+  if (!std::isfinite(origin.x) || !std::isfinite(origin.y)) return false;
+  SourceRegionArea area(origin);
+  for (UINT index = 0; index < r.getEdgeCount(); ++index) {
+    const auto *edge = r.getEdge(index);
+    if (!edge || !edge->m_s || !std::isfinite(edge->m_w0) ||
+        !std::isfinite(edge->m_w1) || edge->m_w0 < 0 || edge->m_w0 > 1 ||
+        edge->m_w1 < 0 || edge->m_w1 > 1)
+      return false;
+    const auto *stroke = edge->m_s;
+    int firstChunk = -1, lastChunk = -1;
+    double firstT = 0, lastT = 0;
+    // This native API returns false on success, true on lookup failure.
+    if (stroke->getChunkAndT(edge->m_w0, firstChunk, firstT) ||
+        stroke->getChunkAndT(edge->m_w1, lastChunk, lastT) || firstChunk < 0 ||
+        lastChunk < 0 || firstChunk >= stroke->getChunkCount() ||
+        lastChunk >= stroke->getChunkCount())
+      return false;
+    const bool forward = firstChunk <= lastChunk;
+    for (int chunk = firstChunk;; chunk += forward ? 1 : -1) {
+      const double from     = chunk == firstChunk ? firstT : (forward ? 0 : 1);
+      const double to       = chunk == lastChunk ? lastT : (forward ? 1 : 0);
+      const auto *quadratic = stroke->getChunk(chunk);
+      if (!quadratic || !area.append(*quadratic, from, to, chunk == firstChunk))
+        return false;
+      if (chunk == lastChunk) break;
+    }
+  }
+  return area.positive();
+}
+
+}  // namespace
+
+static bool isValidArea(const TRegion &r, bool preserveSource) {
+  if (preserveSource) return isValidSourceArea(r);
   TRegionClockWiseFormula formula;
   computeRegionFeature(r, formula);
   return formula.isClockwise();
@@ -2879,8 +3515,13 @@ return true;
       // regione
       if (!p2->m_visited &&
           (region = ::findRegion(intList, p1, p2, m_minimizeEdges))) {
+        region->setSourceContainment(
+            m_regionFindingMode ==
+            TVectorImage::RegionFindingMode::PreserveSource);
         // Se la regione e' valida la aggiunge al vettore delle regioni
-        if (isValidArea(*region)) {
+        if (isValidArea(*region,
+                        m_regionFindingMode ==
+                            TVectorImage::RegionFindingMode::PreserveSource)) {
           added++;
 
           addRegion(region);
@@ -3037,6 +3678,12 @@ void TVectorImage::Imp::addRegion(TRegion *region) {
       region->addSubregion(*it);
       it = m_regions.erase(it);
       while (it != m_regions.end()) {
+        if (m_regionFindingMode ==
+                TVectorImage::RegionFindingMode::PreserveSource &&
+            getGroupId(region, m_strokes) != getGroupId(*it, m_strokes)) {
+          ++it;
+          continue;
+        }
         if (region->contains(**it)) {
           region->addSubregion(*it);
           // region->addSubregion(*it);

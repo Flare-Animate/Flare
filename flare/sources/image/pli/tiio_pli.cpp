@@ -1,6 +1,7 @@
 
 
 #include "tiio_pli.h"
+#include "pli_precision.h"
 //#include "tstrokeoutline.h"
 #include "tsystem.h"
 #include "pli_io.h"
@@ -345,9 +346,6 @@ static void createGroup(GroupTag *groupTag, TVectorImage *vi,
 TImageP TImageReaderPli::doLoad() {
   CreateStrokeData strokeData;
 
-  // preparo l'immagine da restituire
-  TVectorImage *outVectImage = new TVectorImage(true);
-  TImageP outImage(outVectImage);
   // fisso il colore di default a nero opaco
   // TPixel currentColor=TPixel::Black;
   // TStrokeStyle *currStyle = NULL;
@@ -357,13 +355,43 @@ TImageP TImageReaderPli::doLoad() {
   //{
   // un contatore
   UINT i;
-  outVectImage->setAutocloseTolerance(m_lrp->m_pli->getAutocloseTolerance());
-
   ImageTag *imageTag;
 
   imageTag = m_lrp->m_pli->loadFrame(m_frameId);
   if (!imageTag)
     throw TImageException(m_path, "Corrupted or invalid image data");
+
+  // Policy applies to the whole frame, including setFillData(), which can
+  // compute regions immediately. Do not depend on the serialized tag order.
+  TVectorImage::RegionFindingMode regionFindingMode =
+      TVectorImage::RegionFindingMode::Default;
+  bool hasRegionFindingMode = false;
+  for (i = 0; i < imageTag->m_numObjects; ++i) {
+    if (imageTag->m_object[i]->m_type != PliTag::REGION_FINDING_MODE_GOBJ)
+      continue;
+    if (hasRegionFindingMode)
+      throw TImageException(m_path, "Duplicate PLI region finding mode tag");
+    hasRegionFindingMode = true;
+    regionFindingMode = ((RegionFindingModeTag *)imageTag->m_object[i])->m_mode;
+  }
+  if (regionFindingMode == TVectorImage::RegionFindingMode::PreserveSource) {
+    for (i = 0; i < imageTag->m_numObjects; ++i) {
+      if (imageTag->m_object[i]->m_type != PliTag::INTERSECTION_DATA_GOBJ)
+        continue;
+      const IntersectionDataTag *tag =
+          (IntersectionDataTag *)imageTag->m_object[i];
+      for (UINT j = 0; j < tag->m_branchCount; ++j)
+        if (tag->m_branchArray[j].m_strokeIndex < 0)
+          throw TImageException(
+              m_path, "Source-preserving PLI contains synthetic fill edges");
+    }
+  }
+
+  // preparo l'immagine da restituire
+  TVectorImage *outVectImage = new TVectorImage(true);
+  TImageP outImage(outVectImage);
+  outVectImage->setRegionFindingMode(regionFindingMode);
+  outVectImage->setAutocloseTolerance(m_lrp->m_pli->getAutocloseTolerance());
 
   if (m_lrp->m_mapOfImage[m_frameId].second == false)
     m_lrp->m_mapOfImage[m_frameId].second = true;
@@ -413,6 +441,9 @@ TImageP TImageReaderPli::doLoad() {
           ((double)toleranceTag->m_autoCloseTolerance) / 1000);
       break;
     }
+    case PliTag::REGION_FINDING_MODE_GOBJ:
+      // Applied before any stroke or intersection data is reconstructed.
+      break;
     default:
       break;
     }  // switch(groupTag->m_object[j]->m_type)
@@ -462,7 +493,8 @@ TImageWriterPli::TImageWriterPli(const TFilePath &f, const TFrameId &frameId,
 //-----------------------------------------------------------------------------
 
 static void putStroke(TStroke *stroke, int &currStyleId,
-                      std::vector<PliObjectTag *> &tags) {
+                      std::vector<PliObjectTag *> &tags,
+                      int sourcePrecisionScale) {
   double maxThickness = 0;
   bool nonStdOutline  = false;
   assert(stroke);
@@ -494,11 +526,28 @@ static void putStroke(TStroke *stroke, int &currStyleId,
   }
 
   UINT k;
+  auto anchored = [sourcePrecisionScale](const TThickPoint &point) {
+    TThickPoint result = point;
+    result.x =
+        double(int(point.x * sourcePrecisionScale)) / sourcePrecisionScale;
+    result.y =
+        double(int(point.y * sourcePrecisionScale)) / sourcePrecisionScale;
+    return result;
+  };
   for (k = 0; k < (UINT)chunkCount; ++k) {
     const TThickQuadratic *q = stroke->getChunk(k);
     maxThickness =
         std::max({maxThickness, q->getThickP0().thick, q->getThickP1().thick});
-    strokeChain[k] = *q;
+    // Legacy PLI rounds every delta independently. Over long chains that
+    // drifts; across distinct source strokes it can unjoin one authored
+    // endpoint and erase a face. The existing PLI wire format can store
+    // integer differences of absolute grid controls without a reader change.
+    if (sourcePrecisionScale)
+      strokeChain[k] =
+          TThickQuadratic(anchored(q->getThickP0()), anchored(q->getThickP1()),
+                          anchored(q->getThickP2()));
+    else
+      strokeChain[k] = *q;
   }
   maxThickness = std::max(maxThickness,
                           stroke->getChunk(chunkCount - 1)->getThickP2().thick);
@@ -523,7 +572,7 @@ static void putStroke(TStroke *stroke, int &currStyleId,
 
 //-----------------------------------------------------------------------------
 GroupTag *makeGroup(TVectorImageP &vi, int &currStyleId, int &index,
-                    int currDepth);
+                    int currDepth, int sourcePrecisionScale);
 
 void TImageWriterPli::save(const TImageP &img) {
   // Allocate an image
@@ -531,12 +580,33 @@ void TImageWriterPli::save(const TImageP &img) {
   int currStyleId          = -1;
   if (!tempVecImg) throw TImageException(m_path, "No data to save");
 
-  //  Check that the frame about to insert is not already present
-  //   So you do not increase the number of current frames
-  ++m_lwp->m_frameNumber;
+  const TVectorImage::RegionFindingMode regionFindingMode =
+      tempVecImg->getRegionFindingMode();
+  if (regionFindingMode != TVectorImage::RegionFindingMode::Default &&
+      regionFindingMode != TVectorImage::RegionFindingMode::PreserveSource)
+    throw TImageException(m_path, "Unsupported PLI region finding mode");
+
+  int precisionScale = PliCodec::precisionScaleForImage(tempVecImg);
+  if (precisionScale == 0) {
+    // Ordinary frames always save on the legacy grid, as before.
+    if (regionFindingMode == TVectorImage::RegionFindingMode::PreserveSource)
+      throw TImageException(m_path,
+                            "Vector coordinate exceeds PLI codec limits");
+    precisionScale = PliCodec::defaultPrecisionScale;
+  }
 
   std::unique_ptr<IntersectionBranch[]> v;
   UINT intersectionSize = tempVecImg->getFillData(v);
+  if (regionFindingMode == TVectorImage::RegionFindingMode::PreserveSource) {
+    for (UINT i = 0; i < intersectionSize; ++i)
+      if (v[i].m_strokeIndex < 0)
+        throw TImageException(
+            m_path, "Source-preserving PLI contains synthetic fill edges");
+  }
+
+  //  Check that the frame about to insert is not already present
+  //   So you do not increase the number of current frames
+  ++m_lwp->m_frameNumber;
 
   // alloco l'oggetto m_lwp->m_pli ( di tipo ParsedPli ) che si occupa di
   // costruire la struttura
@@ -560,9 +630,11 @@ solo nel costruttore)
   std::vector<PliObjectTag *> tags;
   // tags = new   std::vector<PliObjectTag *>;
 
-  // Store the precision scale to be used in saving the quadratics
+  // Imported source contours may have faces much thinner than the legacy
+  // 1/16384 grid, or long chains whose rounded deltas accumulate. Choose a
+  // finer per-frame grid only when every value cast by the PLI codec fits a
+  // signed 32-bit integer. Ordinary Flare frames keep their old grid.
   {
-    int precisionScale    = sq(128);
     pli->precisionScale() = precisionScale;
 
     PliTag *tag = new PrecisionScaleTag(precisionScale);
@@ -586,15 +658,27 @@ solo nel costruttore)
   } else {
     pli->setVersion(71, 0);
   }
+  if (regionFindingMode == TVectorImage::RegionFindingMode::PreserveSource) {
+    tags.push_back(new RegionFindingModeTag(regionFindingMode));
+    // setVersion locks upgrades, so later ordinary frames cannot downgrade a
+    // mixed-policy level. Ordinary frames retain their legacy tag/version data.
+    pli->setVersion(151, 0);
+  }
   // recupero il numero di stroke dall'immagine
   int numStrokes = tempVecImg->getStrokeCount();
 
   int i = 0;
+  const int sourcePrecisionScale =
+      regionFindingMode == TVectorImage::RegionFindingMode::PreserveSource
+          ? precisionScale
+          : 0;
   while (i < (UINT)numStrokes) {
     if (tempVecImg->isStrokeGrouped(i))
-      tags.push_back(makeGroup(tempVecImg, currStyleId, i, 1));
+      tags.push_back(
+          makeGroup(tempVecImg, currStyleId, i, 1, sourcePrecisionScale));
     else
-      putStroke(tempVecImg->getStroke(i++), currStyleId, tags);
+      putStroke(tempVecImg->getStroke(i++), currStyleId, tags,
+                sourcePrecisionScale);
   }
 
   if (intersectionSize > 0) {
@@ -856,16 +940,17 @@ TImageReaderPli::TImageReaderPli(const TFilePath &f, const TFrameId &frameId,
 //=============================================================================
 
 GroupTag *makeGroup(TVectorImageP &vi, int &currStyleId, int &index,
-                    int currDepth) {
+                    int currDepth, int sourcePrecisionScale) {
   std::vector<PliObjectTag *> tags;
   int i = index;
   while (i < (UINT)vi->getStrokeCount() &&
          vi->getCommonGroupDepth(i, index) >= currDepth) {
     int strokeDepth = vi->getGroupDepth(i);
     if (strokeDepth == currDepth)
-      putStroke(vi->getStroke(i++), currStyleId, tags);
+      putStroke(vi->getStroke(i++), currStyleId, tags, sourcePrecisionScale);
     else if (strokeDepth > currDepth)
-      tags.push_back(makeGroup(vi, currStyleId, i, currDepth + 1));
+      tags.push_back(
+          makeGroup(vi, currStyleId, i, currDepth + 1, sourcePrecisionScale));
     else
       assert(false);
   }

@@ -49,6 +49,7 @@
 #include "flare/txshsoundlevel.h"
 #include "flare/txshnoteset.h"
 #include "flare/txshcolumn.h"
+#include "flare/txshlevelcolumn.h"
 #include "flare/tcolumnfx.h"
 #include "flare/txshchildlevel.h"
 #include "flare/txshzeraryfxcolumn.h"
@@ -71,6 +72,14 @@
 #include <QMenu>
 #include <QUrl>
 #include <QToolTip>
+#include <QComboBox>
+#include <QDialog>
+#include <QDialogButtonBox>
+#include <QFormLayout>
+#include <QHelpEvent>
+#include <QLineEdit>
+#include <QMap>
+#include <QMessageBox>
 #include <QApplication>
 #include <QClipboard>
 
@@ -547,6 +556,39 @@ public:
     return QObject::tr("Change Text at Column %1  Frame %2")
         .arg(QString::number(m_col + 1))
         .arg(QString::number(m_row + 1));
+  }
+  int getHistoryType() override { return HistoryType::Xsheet; }
+};
+
+class EditFlashFrameLabelUndo final : public TUndo {
+  TXsheetP m_xsheet;
+  QString m_id;
+  QString m_beforeName, m_beforeType;
+  QString m_afterName, m_afterType;
+  int m_row;
+
+  void apply(const QString &name, const QString &type) const {
+    if (!m_xsheet->editFlashFrameLabel(m_id, name, type, m_row)) return;
+    TApp::instance()->getCurrentScene()->setDirtyFlag(true);
+    TApp::instance()->getCurrentXsheet()->notifyXsheetChanged();
+  }
+
+public:
+  EditFlashFrameLabelUndo(TXsheet *xsheet, const FlashFrameLabelData &label,
+                          const QString &name, const QString &type)
+      : m_xsheet(xsheet)
+      , m_id(label.nativeLabelId)
+      , m_beforeName(label.name)
+      , m_beforeType(label.type)
+      , m_afterName(name)
+      , m_afterType(type)
+      , m_row(label.row) {}
+
+  void undo() const override { apply(m_beforeName, m_beforeType); }
+  void redo() const override { apply(m_afterName, m_afterType); }
+  int getSize() const override { return sizeof *this; }
+  QString getHistoryString() override {
+    return QObject::tr("Edit Flash Frame Label at Frame %1").arg(m_row + 1);
   }
   int getHistoryType() override { return HistoryType::Xsheet; }
 };
@@ -3110,6 +3152,131 @@ void CellArea::drawNotes(QPainter &p, const QRect toBeUpdated) {
   }
 }
 
+void CellArea::drawFlashFrameLabels(QPainter &p, const QRect toBeUpdated) {
+  TXsheet *xsh = m_viewer->getXsheet();
+  if (!xsh) return;
+  const CellRange visible = m_viewer->xyRectToRange(toBeUpdated);
+  const Orientation *o    = m_viewer->orientation();
+  struct CellLabels {
+    const FlashFrameLabelData *first = nullptr;
+    int count                        = 0;
+  };
+  QMap<quint64, CellLabels> cells;
+  for (const auto &label : xsh->flashFrameLabels()) {
+    if (label.detached || label.nativeColumn < visible.from().layer() ||
+        label.nativeColumn > visible.to().layer() ||
+        label.row < visible.from().frame() ||
+        label.row > visible.to().frame() || !xsh->getColumn(label.nativeColumn))
+      continue;
+    const quint64 key =
+        (quint64(label.row) << 32) | quint32(label.nativeColumn);
+    auto &entry = cells[key];
+    if (!entry.first) entry.first = &label;
+    ++entry.count;
+  }
+  for (auto it = cells.cbegin(); it != cells.cend(); ++it) {
+    const auto &label = *it.value().first;
+    const int count   = it.value().count;
+    const QPoint origin =
+        m_viewer->positionToXY(CellPosition(label.row, label.nativeColumn));
+    QRect rect =
+        o->rect(PredefinedRect::CELL).translated(origin).adjusted(2, 2, -2, -2);
+    if (!rect.isValid()) continue;
+    const QColor color = label.type == "anchor"    ? QColor(95, 77, 169)
+                         : label.type == "comment" ? QColor(44, 110, 124)
+                                                   : QColor(37, 95, 156);
+    p.save();
+    p.setPen(Qt::NoPen);
+    p.setBrush(color);
+    if (o->isVerticalTimeline()) {
+      rect.setWidth(std::min(rect.width(), 15));
+      p.drawRoundedRect(rect, 2, 2);
+      p.setPen(Qt::white);
+      p.drawText(rect, Qt::AlignCenter,
+                 count > 1 ? QString::number(count) : QStringLiteral("L"));
+    } else {
+      rect.setHeight(std::min(rect.height(), 17));
+      p.drawRoundedRect(rect, 2, 2);
+      p.setPen(Qt::white);
+      p.drawText(rect.adjusted(3, 0, -3, 0), Qt::AlignVCenter,
+                 p.fontMetrics().elidedText(
+                     count > 1 ? tr("%1 labels").arg(count) : label.name,
+                     Qt::ElideRight, rect.width() - 6));
+    }
+    p.restore();
+  }
+}
+
+bool CellArea::chooseFlashFrameLabel(int row, int col,
+                                     const QPoint &globalPos) {
+  TXsheet *xsh = m_viewer->getXsheet();
+  if (!xsh) return false;
+  QString singleId;
+  QMenu choices(this);
+  int count = 0;
+  for (const auto &label : xsh->flashFrameLabels()) {
+    if (label.detached || label.row != row || label.nativeColumn != col)
+      continue;
+    singleId = label.nativeLabelId;
+    ++count;
+    QAction *action = choices.addAction(tr("%1 [%2] — %3 (%4)")
+                                            .arg(label.name, label.type,
+                                                 label.sourceLayerName,
+                                                 label.nativeLabelId.left(8)));
+    action->setData(label.nativeLabelId);
+  }
+  if (count == 1) {
+    editFlashFrameLabel(singleId);
+  } else if (count > 1) {
+    QAction *chosen = choices.exec(globalPos);
+    if (chosen) editFlashFrameLabel(chosen->data().toString());
+  }
+  return count > 0;
+}
+
+void CellArea::editFlashFrameLabel(const QString &nativeLabelId) {
+  TXsheet *xsh = m_viewer->getXsheet();
+  if (!xsh) return;
+  for (const auto &label : xsh->flashFrameLabels()) {
+    if (label.nativeLabelId != nativeLabelId) continue;
+    const FlashFrameLabelData before = label;
+    QDialog dialog(this);
+    dialog.setWindowTitle(tr("Flash Frame Label"));
+    QFormLayout layout(&dialog);
+    QLineEdit name(before.name, &dialog);
+    QComboBox type(&dialog);
+    type.addItem(tr("Name"), "name");
+    type.addItem(tr("Comment"), "comment");
+    // Imported anchors are gated because native playback has no matching
+    // navigation behavior. Preserve legacy annotations without offering a
+    // new anchor conversion from an otherwise supported passive label.
+    if (before.type == "anchor")
+      type.addItem(tr("Anchor (navigation unsupported)"), "anchor");
+    type.setCurrentIndex(type.findData(before.type));
+    layout.addRow(tr("Label:"), &name);
+    layout.addRow(tr("Type:"), &type);
+    auto *buttons = new QDialogButtonBox(
+        QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dialog);
+    layout.addRow(buttons);
+    connect(buttons, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
+    connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+    if (dialog.exec() != QDialog::Accepted) return;
+    const QString newName = name.text();
+    const QString newType = type.currentData().toString();
+    if (newName == before.name && newType == before.type) return;
+    auto *undo = new EditFlashFrameLabelUndo(xsh, before, newName, newType);
+    try {
+      undo->redo();
+      TUndoManager::manager()->add(undo);
+    } catch (const TException &error) {
+      delete undo;
+      QMessageBox::warning(this, tr("Flash Frame Label"),
+                           QString::fromStdWString(error.getMessage()));
+    }
+    return;
+  }
+}
+
 //-----------------------------------------------------------------------------
 
 bool CellArea::getEaseHandles(int r0, int r1, double e0, double e1, int &rh0,
@@ -3168,6 +3335,7 @@ void CellArea::paintEvent(QPaintEvent *event) {
   if (Preferences::instance()->isShowKeyframesOnXsheetCellAreaEnabled())
     drawKeyframe(p, toBeUpdated);
   drawNotes(p, toBeUpdated);
+  drawFlashFrameLabels(p, toBeUpdated);
 
   // focus cell border
   drawFocusCellBorder(p);
@@ -3612,6 +3780,7 @@ void CellArea::mouseDoubleClickEvent(QMouseEvent *event) {
   CellPosition cellPosition = m_viewer->xyToPosition(event->pos());
   int row                   = cellPosition.frame();
   int col                   = cellPosition.layer();
+  if (chooseFlashFrameLabel(row, col, event->globalPos())) return;
   // Se la colonna e' sound non devo fare nulla
   TXshColumn *column = m_viewer->getXsheet()->getColumn(col);
   if (column && column->getSoundColumn()) return;
@@ -3659,6 +3828,7 @@ void CellArea::contextMenuEvent(QContextMenuEvent *event) {
   CellPosition cellPosition = m_viewer->xyToPosition(event->pos());
   int row                   = cellPosition.frame();
   int col                   = cellPosition.layer();
+  if (chooseFlashFrameLabel(row, col, event->globalPos())) return;
   TXshCell cell             = m_viewer->getXsheet()->getCell(row, col);
 
   QMenu menu(this);
@@ -3800,6 +3970,29 @@ void CellArea::dropEvent(QDropEvent *e) {
 bool CellArea::event(QEvent *event) {
   QEvent::Type type = event->type();
   if (type == QEvent::ToolTip) {
+    const auto *help        = static_cast<QHelpEvent *>(event);
+    const CellPosition cell = m_viewer->xyToPosition(help->pos());
+    TXsheet *xsh            = m_viewer->getXsheet();
+    if (xsh) {
+      QStringList labels;
+      int count = 0;
+      for (const auto &label : xsh->flashFrameLabels()) {
+        if (label.detached || label.row != cell.frame() ||
+            label.nativeColumn != cell.layer())
+          continue;
+        ++count;
+        if (labels.size() < 10)
+          labels.append(
+              tr("%1 [%2] — %3")
+                  .arg(label.name, label.type, label.sourceLayerName));
+      }
+      if (count > 0) {
+        if (count > labels.size())
+          labels.append(tr("...and %1 more").arg(count - labels.size()));
+        QToolTip::showText(help->globalPos(), labels.join('\n'), this);
+        return true;
+      }
+    }
     if (!m_tooltip.isEmpty())
       QToolTip::showText(mapToGlobal(m_pos), m_tooltip);
     else
@@ -4012,6 +4205,20 @@ void CellArea::createCellMenu(QMenu &menu, bool isCellSelected, TXshCell cell,
 
     if (!cell.isEmpty() && cell.m_level && cell.m_level->getChildLevel()) {
       menu.addAction(cmdManager->getAction(MI_OpenChild));
+
+      auto *nativeColumn = m_viewer->getXsheet()->getColumn(col);
+      auto *levelColumn =
+          nativeColumn ? nativeColumn->getLevelColumn() : nullptr;
+      if (levelColumn && levelColumn->flashInstanceIndexAt(row) >= 0) {
+        QAction *instance = menu.addAction(tr("Flash Instance"));
+        connect(instance, &QAction::triggered, this, [this, row, col] {
+          m_viewer->setCurrentColumn(col);
+          m_viewer->setCurrentRow(row);
+          auto *action =
+              CommandManager::instance()->getAction(MI_OpenFlashInstancePanel);
+          if (action) action->trigger();
+        });
+      }
 
       menu.addSeparator();
     }

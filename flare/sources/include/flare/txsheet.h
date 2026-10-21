@@ -19,6 +19,10 @@
 
 // STD includes
 #include <set>
+#include <utility>
+#include <QSet>
+#include <QString>
+#include <vector>
 
 #undef DVAPI
 #undef DVVAR
@@ -29,6 +33,34 @@
 #define DVAPI DV_IMPORT_API
 #define DVVAR DV_IMPORT_VAR
 #endif
+
+// An authored Flash frame label belongs to a layer and keyframe in one
+// timeline, not to a drawing cell or the scene-wide navigation-tag row.
+// The source IDs stay fixed when the editable native row/name changes.
+struct DVAPI FlashFrameLabelData {
+  QString nativeLabelId;
+  QString sourceTimelineId;
+  QString sourceLayerId;
+  QString sourceFrameId;
+  // Canonical XML-tree locator for authored frame attributes. Older native
+  // scenes may lack it; only new imports assert per-field source bindings.
+  QString sourceFrameXmlId;
+  QString sourceLayerName;
+  QString name;
+  QString type         = "name";
+  int sourceFrameIndex = 0;
+  int row              = 0;
+  int nativeColumn     = -1;
+  // A deleted native keyframe retains its source identity without displaying
+  // a label on unrelated cells now occupying the old row.
+  bool detached = false;
+};
+
+struct DVAPI FlashFrameLabelPosition {
+  QString id;
+  int row       = 0;
+  bool detached = false;
+};
 
 //=============================================================================
 
@@ -160,6 +192,18 @@ private:
   TXshNoteSet *m_notes;
   SoundProperties *m_soundProperties;
   NavigationTags *m_navigationTags;
+  std::vector<FlashFrameLabelData> m_flashFrameLabels;
+  QSet<QString> m_flashFrameLabelIds;
+  qint64 m_flashFrameLabelBytes = 0;
+  // Labels orphaned by removeColumn, keyed by the removed column object. Undo
+  // of a column deletion re-inserts that same object, which re-anchors them.
+  // Entries are dropped once nothing but this list references the column.
+  std::vector<std::pair<TXshColumnP, std::vector<QString>>>
+      m_removedColumnFlashLabels;
+  void pruneRemovedColumnFlashLabels();
+  std::pair<std::vector<FlashFrameLabelData>, qint64>
+  prepareFlashFrameLabelPositions(
+      const std::vector<FlashFrameLabelPosition> &positions) const;
 
   int m_cameraColumnIndex;
   TXshColumn *m_cameraColumn;
@@ -585,6 +629,22 @@ in TXsheetImp.
   NavigationTags *getNavigationTags() const { return m_navigationTags; }
   bool isFrameTagged(int frame) const;
   void toggleTaggedFrame(int frame);
+
+  const std::vector<FlashFrameLabelData> &flashFrameLabels() const {
+    return m_flashFrameLabels;
+  }
+  // Import and UI edits share bounded, validated metadata. Rows are zero-based.
+  QString addFlashFrameLabel(FlashFrameLabelData label);
+  bool editFlashFrameLabel(const QString &nativeLabelId, const QString &name,
+                           const QString &type, int row);
+  // Apply row/visibility changes atomically, preserving source IDs.
+  void validateFlashFrameLabelPositions(
+      const std::vector<FlashFrameLabelPosition> &positions) const;
+  void setFlashFrameLabelPositions(
+      const std::vector<FlashFrameLabelPosition> &positions);
+  // Cloned labels remain editable annotations, but no longer claim the
+  // original Flash keyframe as their unique source.
+  void cloneFlashFrameLabelsFrom(const TXsheet &source);
 
 protected:
   bool checkCircularReferences(TXsheet *childCandidate);

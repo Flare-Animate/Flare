@@ -64,6 +64,7 @@
 #include <QLabel>
 #include <QComboBox>
 #include <QCheckBox>
+#include <QSpinBox>
 #include <QPushButton>
 #include <QDesktopWidget>
 
@@ -222,6 +223,37 @@ public:
   QString getHistoryString() override {
     QString str = QObject::tr("Toggle vector column as mask. ");
     return str;
+  }
+  int getHistoryType() override { return HistoryType::Xsheet; }
+};
+
+//=============================================================================
+// ColumnMaskScopeUndo
+//-----------------------------------------------------------------------------
+
+class ColumnMaskScopeUndo final : public TUndo {
+  TXshColumnP m_column;
+  int m_oldScope, m_newScope;
+
+  void apply(int scope) const {
+    m_column->setMaskScope(scope);
+    TApp::instance()->getCurrentScene()->notifySceneChanged();
+    TApp::instance()->getCurrentXsheet()->notifyXsheetChanged();
+    TApp::instance()->getCurrentScene()->setDirtyFlag(true);
+  }
+
+public:
+  ColumnMaskScopeUndo(TXshColumn *column, int oldScope, int newScope)
+      : m_column(column), m_oldScope(oldScope), m_newScope(newScope) {}
+
+  void undo() const override { apply(m_oldScope); }
+  void redo() const override { apply(m_newScope); }
+  int getSize() const override { return sizeof(*this); }
+
+  QString getHistoryString() override {
+    return QObject::tr("Set Mask Scope  %1 > %2")
+        .arg(m_oldScope)
+        .arg(m_newScope);
   }
   int getHistoryType() override { return HistoryType::Xsheet; }
 };
@@ -1952,6 +1984,16 @@ m_value->setFont(font);*/
   // contents of the combo box will be updated in setColumn
   m_filterColorCombo = new QComboBox(this);
 
+  // Shown for mask columns: how many following columns the mask clips.
+  m_maskScopeLabel = new QLabel(tr("Mask Clips:"), this);
+  m_maskScopeField = new QSpinBox(this);
+  m_maskScopeField->setRange(1, 999);
+  m_maskScopeField->setSuffix(tr(" column(s)"));
+  m_maskScopeField->setKeyboardTracking(false);
+  m_maskScopeField->setToolTip(
+      tr("Number of columns following this mask column in stacking order "
+         "that it clips"));
+
   // Lock button is moved in the popup for Minimum layout
   QPushButton *lockExtraBtn = nullptr;
   if (m_viewer->getXsheetLayout() == "Minimum") {
@@ -1994,6 +2036,11 @@ m_value->setFont(font);*/
     mainLayout->addWidget(m_filterColorCombo, 1, 1,
                           Qt::AlignLeft | Qt::AlignVCenter);
 
+    mainLayout->addWidget(m_maskScopeLabel, 2, 0,
+                          Qt::AlignRight | Qt::AlignVCenter);
+    mainLayout->addWidget(m_maskScopeField, 2, 1,
+                          Qt::AlignLeft | Qt::AlignVCenter);
+
     if (m_lockBtn) {
       QHBoxLayout *lockLay = new QHBoxLayout();
       lockLay->setContentsMargins(0, 0, 0, 0);
@@ -2002,7 +2049,7 @@ m_value->setFont(font);*/
         lockLay->addWidget(m_lockBtn, 0);
         lockLay->addWidget(lockExtraBtn, 0);
       }
-      mainLayout->addLayout(lockLay, 2, 1, Qt::AlignLeft | Qt::AlignVCenter);
+      mainLayout->addLayout(lockLay, 3, 1, Qt::AlignLeft | Qt::AlignVCenter);
     }
   }
   setLayout(mainLayout);
@@ -2018,6 +2065,8 @@ m_value->setFont(font);*/
 
   ret = ret && connect(m_filterColorCombo, SIGNAL(activated(int)), this,
                        SLOT(onFilterColorChanged()));
+  ret = ret && connect(m_maskScopeField, SIGNAL(valueChanged(int)), this,
+                       SLOT(onMaskScopeChanged()));
   if (m_lockBtn)
     ret = ret && connect(m_lockBtn, SIGNAL(clicked(bool)), this,
                          SLOT(onLockButtonClicked(bool)));
@@ -2074,6 +2123,19 @@ void ColumnTransparencyPopup::onFilterColorChanged() {
 
 //----------------------------------------------------------------
 
+void ColumnTransparencyPopup::onMaskScopeChanged() {
+  const int scope = m_maskScopeField->value();
+  if (!m_column || !m_column->isMask() || scope == m_column->getMaskScope())
+    return;
+  ColumnMaskScopeUndo *undo =
+      new ColumnMaskScopeUndo(m_column, m_column->getMaskScope(), scope);
+  undo->redo();
+  TUndoManager::manager()->add(undo);
+  ((ColumnArea *)parent())->update();
+}
+
+//----------------------------------------------------------------
+
 void ColumnTransparencyPopup::onLockButtonClicked(bool on) {
   assert(m_lockBtn);
   if (!m_lockBtn) return;
@@ -2116,6 +2178,13 @@ void ColumnTransparencyPopup::setColumn(TXshColumn *column) {
       m_filterColorCombo->findData(m_column->getColorFilterId()));
 
   if (m_lockBtn) m_lockBtn->setChecked(m_column->isLocked());
+
+  const bool mask = m_column->isMask();
+  m_maskScopeLabel->setVisible(mask);
+  m_maskScopeField->setVisible(mask);
+  m_maskScopeField->blockSignals(true);
+  m_maskScopeField->setValue(m_column->getMaskScope());
+  m_maskScopeField->blockSignals(false);
 }
 
 /*void ColumnTransparencyPopup::mouseMoveEvent ( QMouseEvent * e )
