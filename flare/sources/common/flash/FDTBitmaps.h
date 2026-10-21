@@ -30,7 +30,12 @@
 
 #endif
 
+#include <stdexcept>
+#include <string.h>
+
 #include "FDT.h"
+#include "FSWFStream.h"
+#include "FObj.h"
 
 #include "tcommon.h"
 
@@ -47,6 +52,29 @@
 struct FRGB;
 struct FRGBA;
 
+// FDTBitmaps.cpp was ported to FDTBitmaps.rs: the tag bodies and the lossless bitmap
+// compression are written there; the classes (buffer ownership, character IDs) stay inline.
+extern "C" {
+int flare_fdt_define_bits(void *out, unsigned short character_id, const unsigned char *image, unsigned int size);
+int flare_fdt_define_bits_jpeg2(void *out, unsigned short character_id, const unsigned char *jpeg, unsigned int jpeg_size);
+int flare_fdt_define_bits_jpeg3(void *out, unsigned short character_id, const unsigned char *jpeg, unsigned int jpeg_size,
+								const unsigned char *alpha, unsigned int alpha_size);
+int flare_fdt_jpeg_tables(void *out, const unsigned char *data, unsigned int size);
+long long flare_fdt_lossless_capacity(unsigned char format, unsigned short width, unsigned short height, int color_table_count, int alpha);
+int flare_fdt_lossless_compress(unsigned char format, unsigned short width, unsigned short height, int color_table_count, int alpha,
+								const unsigned char *color_table, const unsigned char *image, unsigned char *out,
+								unsigned int out_cap, unsigned int *out_len);
+int flare_fdt_define_bits_lossless(void *out, unsigned short character_id, unsigned char format, unsigned short width,
+								   unsigned short height, int color_table_count, const unsigned char *compressed,
+								   unsigned int compressed_size, int alpha);
+}
+
+inline void flare_fdt_check(int status)
+{
+	if (status)
+		throw std::invalid_argument("FDTBitmaps: invalid argument");
+}
+
 // A flash object which defines a jpeg bitmap image (flash 1.0)
 
 class DVAPI FDTDefineBits : public FDT
@@ -54,9 +82,17 @@ class DVAPI FDTDefineBits : public FDT
 
 public:
 	// constructed with image size and a pointer to the actual jpeg stream
-	FDTDefineBits(U32 _size, U8 *_image);
-	U16 ID(void);
-	virtual void WriteToSWFStream(FSWFStream *_SWFStream);
+	FDTDefineBits(U32 _size, U8 *_image)
+	{
+		size = _size;
+		image = _image;
+		characterID = FObjCollection::Increment();
+	}
+	U16 ID(void) { return characterID; }
+	virtual void WriteToSWFStream(FSWFStream *_SWFStream)
+	{
+		flare_fdt_check(flare_fdt_define_bits(_SWFStream->Handle(), characterID, image, size));
+	}
 
 private:
 	U16 characterID;
@@ -72,10 +108,21 @@ class DVAPI FDTDefineBitsJPEG2 : public FDT
 {
 
 public:
-	FDTDefineBitsJPEG2(U8 *_JPEGStream, U32 _JPEGSize);
-	U16 ID(void);
-	virtual void WriteToSWFStream(FSWFStream *_SWFStream);
-	~FDTDefineBitsJPEG2();
+	FDTDefineBitsJPEG2(U8 *_JPEGStream, U32 _JPEGSize)
+	{
+		JPEGStream = new U8[_JPEGSize];
+		memcpy(JPEGStream, _JPEGStream, _JPEGSize);
+		JPEGSize = _JPEGSize;
+		characterID = FObjCollection::Increment();
+	}
+	U16 ID(void) { return characterID; }
+	virtual void WriteToSWFStream(FSWFStream *_SWFStream)
+	{
+		flare_fdt_check(flare_fdt_define_bits_jpeg2(_SWFStream->Handle(), characterID, JPEGStream, JPEGSize));
+	}
+	// (the copy of the JPEG stream is still never freed, as in the original: streams written
+	// later point into it)
+	~FDTDefineBitsJPEG2() {}
 
 private:
 	U16 characterID;
@@ -91,9 +138,19 @@ class DVAPI FDTDefineBitsJPEG3 : public FDT
 
 public:
 	FDTDefineBitsJPEG3(U8 *_JPEGStream, U32 _JPEGSize,
-					   U8 *_alphaStream, U32 _alphaSize);
-	U16 ID(void);
-	virtual void WriteToSWFStream(FSWFStream *_SWFStream);
+					   U8 *_alphaStream, U32 _alphaSize)
+	{
+		JPEGStream = _JPEGStream;
+		JPEGSize = _JPEGSize;
+		alphaStream = _alphaStream;
+		alphaSize = _alphaSize;
+		characterID = FObjCollection::Increment();
+	}
+	U16 ID(void) { return characterID; }
+	virtual void WriteToSWFStream(FSWFStream *_SWFStream)
+	{
+		flare_fdt_check(flare_fdt_define_bits_jpeg3(_SWFStream->Handle(), characterID, JPEGStream, JPEGSize, alphaStream, alphaSize));
+	}
 
 private:
 	U16 characterID;
@@ -129,9 +186,37 @@ public:
 							  int _colorTableCount,
 							  const void *_colorTableData,
 							  const void *_imageData,
-							  bool alpha);
-	virtual ~FDTDefineBitsLosslessBase();
-	virtual void WriteToSWFStream(FSWFStream *_SWFStream);
+							  bool _alpha)
+	{
+		format = _format;
+		width = _width;
+		height = _height;
+		colorTableCount = _colorTableCount;
+		alpha = _alpha;
+		characterID = FObjCollection::Increment();
+
+		// a compressed buffer - the allocated size is based on a zlib formula
+		long long cap = flare_fdt_lossless_capacity(format, width, height, colorTableCount, alpha);
+		if (cap < 0)
+			throw std::invalid_argument("FDTDefineBitsLosslessBase: invalid bitmap size");
+		compressedSize = (TUINT32)cap;
+		compressed = new unsigned char[compressedSize];
+
+		// copy the table and the image into one block and compress it - this changes compressedSize
+		int ret = flare_fdt_lossless_compress(format, width, height, colorTableCount, alpha,
+											  (const unsigned char *)_colorTableData, (const unsigned char *)_imageData,
+											  compressed, (unsigned int)cap, &compressedSize);
+		if (ret) {
+			delete[] compressed;
+			throw std::invalid_argument("FDTDefineBitsLosslessBase: invalid bitmap data");
+		}
+	}
+	virtual ~FDTDefineBitsLosslessBase() { delete[] compressed; }
+	virtual void WriteToSWFStream(FSWFStream *_SWFStream)
+	{
+		flare_fdt_check(flare_fdt_define_bits_lossless(_SWFStream->Handle(), characterID, format, width, height,
+													   colorTableCount, compressed, compressedSize, alpha));
+	}
 
 private:
 	U16 characterID;
@@ -159,7 +244,10 @@ public:
 													   // with format. May be 0.
 						  const FRGB *_colorTableData, // Null if no color cable. RGB data
 						  const void *_imageData	   // Pointer to the image. (byte aligned.)
-						  );
+						  )
+		: FDTDefineBitsLosslessBase(_format, _width, _height, _colorTableCount, _colorTableData, _imageData, false)
+	{
+	}
 };
 
 // Defines a loss-less bitmap object, like a GIF, BMP, or PCT.
@@ -177,7 +265,10 @@ public:
 														 // with format. May be 0.
 						   const FRGBA *_colorTableData, // Null if no color cable. RGB data
 						   const void *_imageData		 // Pointer to the image. (byte aligned.)
-						   );
+						   )
+		: FDTDefineBitsLosslessBase(_format, _width, _height, _colorTableCount, _colorTableData, _imageData, true)
+	{
+	}
 };
 
 //the JPEGTable structure (contains the encoding scheme for all JPEGs defined using DefineBits
@@ -186,8 +277,17 @@ class DVAPI FDTJPEGTables : public FDT
 {
 
 public:
-	FDTJPEGTables(U32 encodingDataSize, U8 *encodingData);
-	virtual void WriteToSWFStream(FSWFStream *_SWFStream);
+	//	Constructor.  Currently takes in a U32 indicating the size of the data in bytes, and
+	//	a pointer to the beginning of the stream of data.
+	FDTJPEGTables(U32 encodingDataSize, U8 *encodingData)
+	{
+		this->encodingData = encodingData;
+		this->encodingDataSize = encodingDataSize;
+	}
+	virtual void WriteToSWFStream(FSWFStream *_SWFStream)
+	{
+		flare_fdt_check(flare_fdt_jpeg_tables(_SWFStream->Handle(), encodingData, encodingDataSize));
+	}
 
 private:
 	U32 encodingDataSize;

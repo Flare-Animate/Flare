@@ -5,6 +5,8 @@
 // #include <mmreg.h>
 #include <assert.h>
 #include <stdio.h>
+#include <stddef.h>
+#include <stdexcept>
 #include <vector>
 
 #include "Macromedia.h"
@@ -75,11 +77,18 @@ public:
 	S32 dataLen;   // length in bytes of samples - set only if needed
 	S32 delay;	 // MP3 compression has a delay before the real sound data
 
-	static const S32 kRateTable[4];
-	static const int kRateShiftTable[4];
+	static constexpr S32 kRateTable[4] = {sndRate5K, sndRate11K, sndRate22K, sndRate44K};
+	static constexpr int kRateShiftTable[4] = {3, 2, 1, 0};
 
 public:
-	void Init();
+	void Init()
+	{
+		format = 0;
+		nSamples = 0;
+		samples = 0;
+		dataLen = 0;
+		delay = 0;
+	}
 
 	S32 Rate() { return kRateTable[(format >> 2) & 0x3]; }
 	int RateShift() { return kRateShiftTable[(format >> 2) & 0x3]; }
@@ -98,48 +107,91 @@ public:
 	int BytesPerBlock() { return BytesPerSample() * NChannels(); }
 	S32 SizeBytes() { return nSamples * BytesPerBlock(); }
 
-	void Set(WaveFormat *);
+	void Set(WaveFormat *wfmt)
+	{
+		wfmt->wFormatTag = 1; //WAVE_FORMAT_PCM;
+		wfmt->nSamplesPerSec = Rate();
+		wfmt->nChannels = NChannels();
+		wfmt->wBitsPerSample = BitsPerSample();
+		wfmt->nBlockAlign = (wfmt->wBitsPerSample * wfmt->nChannels) / 8;
+		wfmt->nAvgBytesPerSec = wfmt->nBlockAlign * wfmt->nSamplesPerSec;
+
+		//wfmt->cbSize = 0;
+	}
 };
+
+// FSound.cpp was ported to FSound.rs: the ADPCM compressor kernels take the plain state struct
+// below and append to a scratch buffer that the shell copies onto the caller's std::vector.
+extern "C" {
+struct FlareSoundCompState {
+	int isStereo;
+	int is8Bit;
+	int nBits; // number of bits in each sample
+	int nSamples; // samples compressed so far
+	int valpred[2]; // ADPCM state
+	int index[2];
+	int len; // default is to just calculate the size
+	unsigned int bitBuf; // State for writing bits
+	int bitPos;
+};
+size_t flare_soundcomp_max_out(const FlareSoundCompState *st, int n);
+int flare_soundcomp_compress(FlareSoundCompState *st, const unsigned char *src, int n, unsigned char *out, size_t out_cap, size_t *out_len);
+int flare_soundcomp_flush(FlareSoundCompState *st, unsigned char *out, size_t out_cap, size_t *out_len);
+}
 
 class FSoundComp
 {
 private:
-	BOOL isStereo;
-	BOOL is8Bit;
-	int nBits; // number of bits in each sample
-
-	S32 nSamples; // samples compressed so far
-
-	S32 valpred[2]; // ADPCM state
-	int index[2];
-
-	// The Destination
-	S32 len; // default is to just calculate the size
-
-	// State for writing bits
-	unsigned int bitBuf;
-	int bitPos;
+	FlareSoundCompState s;
 
 public:
-	FSoundComp(FSound *snd, S32 numberBits); // numberBits from 2-5
-	~FSoundComp() { assert(bitPos == 0); }
+	FSoundComp(FSound *snd, S32 nb) // numberBits from 2-5
+	{
+		// 	assert(snd->CompressFormat() == sndCompressADPCM);
+		s.isStereo = snd->Stereo();
+		s.is8Bit = snd->Is8Bit();
 
-	void Compress(void *src, S32 n, std::vector<U8> *stream);
-	void Flush(std::vector<U8> *stream);
+		s.nBits = nb;
+		s.nSamples = 0;
+
+		s.valpred[0] = s.valpred[1] = 0; // the original left these uninitialised
+		s.index[0] = s.index[1] = 0;
+
+		s.len = 0;
+
+		s.bitBuf = 0;
+		s.bitPos = 0;
+	}
+	~FSoundComp() { assert(s.bitPos == 0); }
+
+	void Compress(void *src, S32 n, std::vector<U8> *stream)
+	{
+		if (!stream) { // Just counting...
+			check(flare_soundcomp_compress(&s, (const unsigned char *)src, n, 0, 0, 0));
+			return;
+		}
+		size_t cap = flare_soundcomp_max_out(&s, n), len = 0;
+		std::vector<U8> tmp(cap ? cap : 1);
+		check(flare_soundcomp_compress(&s, (const unsigned char *)src, n, tmp.data(), cap, &len));
+		stream->insert(stream->end(), tmp.begin(), tmp.begin() + len);
+	}
+	void Flush(std::vector<U8> *stream)
+	{
+		if (!stream) {
+			check(flare_soundcomp_flush(&s, 0, 0, 0));
+			return;
+		}
+		size_t cap = flare_soundcomp_max_out(&s, 0), len = 0;
+		std::vector<U8> tmp(cap ? cap : 1);
+		check(flare_soundcomp_flush(&s, tmp.data(), cap, &len));
+		stream->insert(stream->end(), tmp.begin(), tmp.begin() + len);
+	}
 
 private:
-	void Compress16(S16 *src, S32 n, std::vector<U8> *stream);
-
-	// Write variable width bit fields
-	void WriteBits(std::vector<U8> *stream); // empty the buffer of whole bytes
-
-	void PutBits(S32 v, int n, std::vector<U8> *stream)
+	static void check(int status)
 	{
-		assert(n <= 16);
-		if (bitPos + n > 32)
-			WriteBits(stream);
-		bitBuf = (bitBuf << n) | (v & ~(0xFFFFFFFFL << n));
-		bitPos += n;
+		if (status)
+			throw std::invalid_argument("FSoundComp: invalid argument (numberBits must be 2..5)");
 	}
 };
 
