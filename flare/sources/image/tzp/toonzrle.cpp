@@ -18,14 +18,18 @@
 #endif
 
 extern "C" {
-static int tif_toonz1_decode_cm24(UCHAR* buf_in, int* buf_in_len,
-                                  TUINT32* buf_out);
+// The pure decoding kernels live in toonzrle.rs (flare_formats). `in_len` and
+// `out_cap` are the extents of the two buffers (the old C++ kernels trusted the
+// caller); `*in_used` receives the consumed input bytes; the result is the number
+// of pixels written, 0 (and *in_used == 0) on a decoding error or an overrun.
+int flare_toonz1_decode_cm24(const UCHAR* buf_in, size_t in_len, int* in_used,
+                             TUINT32* buf_out, size_t out_cap);
 
-static int tif_toonz1_decode_cm16(UCHAR* buf_in, int* buf_in_len,
-                                  USHORT* buf_out, int tone_bits,
-                                  int color_offs, int color_bits,
-                                  int pencil_offs, int pencil_bits,
-                                  USHORT offset_mask);
+int flare_toonz1_decode_cm16(const UCHAR* buf_in, size_t in_len, int* in_used,
+                             USHORT* buf_out, size_t out_cap, int tone_bits,
+                             int color_offs, int color_bits, int pencil_offs,
+                             int pencil_bits, USHORT offset_mask);
+
 static int Toonz1Decode(TIFF* tif, tidataval_t* buffer, tsize_t bytes,
                         tsample_t s);
 
@@ -47,6 +51,15 @@ static int Toonz1Decode(TIFF* tif, tidataval_t* buffer, tsize_t bytes,
   // USHORT *palette;
   int tone_bits, color_offs, color_bits, pencil_offs, pencil_bits;
   USHORT offset_mask;
+  // extents handed to the Rust kernels: the unread part of the raw strip
+  // buffer, and the row being filled
+  size_t avail = 0;
+  if (tif->tif_rawdata && tif->tif_rawdatasize > 0 &&
+      tif->tif_rawcp >= tif->tif_rawdata) {
+    const unsigned char* rawEnd = tif->tif_rawdata + tif->tif_rawdatasize;
+    if (tif->tif_rawcp <= rawEnd) avail = (size_t)(rawEnd - tif->tif_rawcp);
+  }
+  size_t outBytes = bytes > 0 ? (size_t)bytes : 0;
 
   if (!TIFFGetField(tif, TIFFTAG_BITSPERSAMPLE, &bitspersample)) assert(0);
   enc = dec = 0;
@@ -77,14 +90,15 @@ dec = tif_toonz1_decode_extra ((UCHAR *)tif->tif_rawcp, &enc,
       pencil_bits = 5;
       offset_mask = 0;
     }
-    dec = tif_toonz1_decode_cm16((UCHAR*)tif->tif_rawcp, &enc, (USHORT*)buffer,
-                                 tone_bits, color_offs, color_bits, pencil_offs,
-                                 pencil_bits, offset_mask);
+    dec = flare_toonz1_decode_cm16((UCHAR*)tif->tif_rawcp, avail, &enc,
+                                   (USHORT*)buffer, outBytes / sizeof(USHORT),
+                                   tone_bits, color_offs, color_bits,
+                                   pencil_offs, pencil_bits, offset_mask);
   } break;
 
   case 32:
-    dec =
-        tif_toonz1_decode_cm24((UCHAR*)tif->tif_rawcp, &enc, (TUINT32*)buffer);
+    dec = flare_toonz1_decode_cm24((UCHAR*)tif->tif_rawcp, avail, &enc,
+                                   (TUINT32*)buffer, outBytes / sizeof(TUINT32));
     break;
 
   default:
@@ -98,422 +112,6 @@ dec = tif_toonz1_decode_extra ((UCHAR *)tif->tif_rawcp, &enc,
   return 1;
 }
 
-//-------------------- DECODE CM16 ----------------------------
-
-static int tif_toonz1_decode_cm16(UCHAR* buf_in, int* buf_in_len,
-                                  USHORT* buf_out, int tone_bits,
-                                  int color_offs, int color_bits,
-                                  int pencil_offs, int pencil_bits,
-                                  USHORT offset_mask)
-
-{
-  UCHAR* in;
-  USHORT* out;
-  int count, col_offs, pen_offs;
-  UINT inval, in0, in1, tmp, not_colmask, not_penmask;
-  UINT outval, maxtone, outval_maxtone;
-
-#define GET_IN0 (inval = *in++, in1 = inval & 0xF, in0 = inval >> 4)
-
-  maxtone     = (1U << tone_bits) - 1U;
-  col_offs    = color_offs;
-  pen_offs    = pencil_offs;
-  not_colmask = ~(((1U << color_bits) - 1U) << color_offs);
-  not_penmask = ~(((1U << pencil_bits) - 1U) << pencil_offs);
-  assert(maxtone <= 0xF);
-  outval         = offset_mask;
-  outval_maxtone = outval | maxtone;
-
-  in  = buf_in;
-  out = buf_out;
-
-  goto start_from_in0;
-
-count_out_and_start_from_in0:
-  outval_maxtone = outval | maxtone;
-  *out++         = (USHORT)outval_maxtone;
-  while (count--) *out++ = (USHORT)outval_maxtone;
-
-start_from_in0:
-  if (GET_IN0 == 0xF) {
-    switch (in1) {
-    case 0x0:
-      *out++ = (USHORT)(outval | maxtone);
-      goto start_from_in0;
-      break;
-
-    case 0x1:
-      count = GET_IN0;
-      goto count_out_and_start_from_in1;
-      break;
-
-    case 0x2:
-      count = *in++;
-      goto count_out_and_start_from_in0;
-      break;
-
-    case 0x3:
-      count = *in++ << 4;
-      count += GET_IN0;
-      goto count_out_and_start_from_in1;
-      break;
-
-    case 0x4:
-      count = *in++ << 8;
-      count += *in++;
-      goto count_out_and_start_from_in0;
-      break;
-
-    case 0x5:
-      count = *in++ << 12;
-      count += *in++ << 4;
-      count += GET_IN0;
-      goto count_out_and_start_from_in1;
-
-      break;
-
-    case 0x6:
-      count = *in++ << 16;
-      count += *in++ << 8;
-      count += *in++;
-      goto count_out_and_start_from_in0;
-
-      break;
-
-    case 0x7:
-      count = *in++ << 20;
-      count += *in++ << 12;
-      count += *in++ << 4;
-      count += GET_IN0;
-      goto count_out_and_start_from_in1;
-
-      break;
-
-    case 0x8:
-      outval &= not_colmask;
-      goto start_from_in0;
-
-      break;
-
-    case 0x9:
-      outval &= not_penmask;
-      goto start_from_in0;
-
-      break;
-
-    case 0xA:
-      outval = outval & not_colmask | GET_IN0 << col_offs;
-      goto start_from_in1;
-
-      break;
-
-    case 0xB:
-      outval = outval & not_penmask | GET_IN0 << pen_offs;
-      goto start_from_in1;
-
-      break;
-
-    case 0xC:
-      outval = outval & not_colmask | *in++ << col_offs;
-      goto start_from_in0;
-
-      break;
-
-    case 0xD:
-      outval = outval & not_penmask | *in++ << pen_offs;
-      goto start_from_in0;
-
-      break;
-
-    case 0xE:
-      *out++ = (USHORT)(outval | maxtone);
-      goto end_rle_decoding;
-
-      break;
-
-    case 0xF:
-      switch (GET_IN0) {
-      case 0:
-        break;
-      case 1:
-        tmp    = in1 << 12 | *in++ << 4;
-        *out++ = (USHORT)(tmp | GET_IN0);
-        break;
-      default:
-        goto rle_decoding_error;
-      }
-      goto end_rle_decoding;
-
-      break;
-    default:
-      goto rle_decoding_error;
-    }
-  } else {
-    *out++ = (USHORT)(outval | in0);
-    goto start_from_in1;
-  }
-
-count_out_and_start_from_in1:
-  outval_maxtone = outval | maxtone;
-  *out++         = (USHORT)(outval_maxtone);
-  while (count--) *out++ = (USHORT)(outval_maxtone);
-
-start_from_in1:
-  if (in1 == 0xF) {
-    switch (GET_IN0) {
-    case 0x0:
-      *out++ = (USHORT)(outval | maxtone);
-      goto start_from_in1;
-
-      break;
-
-    case 0x1:
-      count = in1;
-      goto count_out_and_start_from_in0;
-
-      break;
-
-    case 0x2:
-      count = in1 << 4;
-      count += GET_IN0;
-      goto count_out_and_start_from_in1;
-
-      break;
-
-    case 0x3:
-      count = in1 << 8;
-      count += *in++;
-      goto count_out_and_start_from_in0;
-
-      break;
-
-    case 0x4:
-      count = in1 << 12;
-      count += *in++ << 4;
-      count += GET_IN0;
-      goto count_out_and_start_from_in1;
-
-      break;
-
-    case 0x5:
-      count = in1 << 16;
-      count += *in++ << 8;
-      count += *in++;
-      goto count_out_and_start_from_in0;
-
-      break;
-
-    case 0x6:
-      count = in1 << 20;
-      count += *in++ << 12;
-      count += *in++ << 4;
-      count += GET_IN0;
-      goto count_out_and_start_from_in1;
-
-      break;
-
-    case 0x7:
-      count = in1 << 24;
-      count += *in++ << 16;
-      count += *in++ << 8;
-      count += *in++;
-      goto count_out_and_start_from_in0;
-
-      break;
-
-    case 0x8:
-      outval &= not_colmask;
-      goto start_from_in1;
-
-      break;
-
-    case 0x9:
-      outval &= not_penmask;
-      goto start_from_in1;
-
-      break;
-
-    case 0xA:
-      outval = outval & not_colmask | in1 << col_offs;
-      goto start_from_in0;
-
-      break;
-
-    case 0xB:
-      outval = outval & not_penmask | in1 << pen_offs;
-      goto start_from_in0;
-
-      break;
-
-    case 0xC:
-      tmp    = in1 << 4;
-      outval = outval & not_colmask | (tmp | GET_IN0) << col_offs;
-      goto start_from_in1;
-
-      break;
-
-    case 0xD:
-      tmp    = in1 << 4;
-      outval = outval & not_penmask | (tmp | GET_IN0) << pen_offs;
-      goto start_from_in1;
-
-      break;
-
-    case 0xE:
-      *out++ = (USHORT)(outval | maxtone);
-      goto end_rle_decoding;
-
-      break;
-
-    case 0xF:
-      switch (in1) {
-      case 0:
-        break;
-      case 1:
-        tmp    = *in++ << 8;
-        *out++ = (USHORT)(tmp | *in++);
-        break;
-      default:
-        goto rle_decoding_error;
-      }
-      goto end_rle_decoding;
-
-      break;
-    default:
-      return 0;
-    }
-  } else {
-    *out++ = (USHORT)(outval | in1);
-    goto start_from_in0;
-  }
-
-end_rle_decoding:
-  if (buf_in_len) *buf_in_len = (int)(in - buf_in);
-  return (int)(out - buf_out);
-
-rle_decoding_error:
-  if (buf_in_len) *buf_in_len = 0;
-  return 0;
-}
-
-//-------------------- DECODE CM24 ----------------------------
-
-static int tif_toonz1_decode_cm24(UCHAR* buf_in, int* buf_in_len,
-                                  TUINT32* buf_out) {
-  UCHAR* in;
-  TUINT32* out;
-  int count;
-  TUINT32 inval, tmp;
-  TUINT32 outval, outval_maxtone;
-  const int col_offs        = 8;
-  const int pen_offs        = 16;
-  const int xub_offs        = 24;
-  const TUINT32 not_colmask = 0xffff00ff;
-  const TUINT32 not_penmask = 0xff00ffff;
-  const TUINT32 not_xubmask = 0x00ffffff;
-  const TUINT32 maxtone     = 0x000000ff;
-
-  outval         = 0;
-  outval_maxtone = outval | maxtone;
-
-  in  = buf_in;
-  out = buf_out;
-
-  for (;;) {
-    inval = *in++;
-    switch (inval) {
-    case 0xF6:
-      outval = outval & not_xubmask | *in++ << xub_offs;
-
-      break;
-
-    case 0xF7:
-      count = *in++;
-      goto count_out;
-
-      break;
-
-    case 0xF8:
-      count = *in++ << 8;
-      count += *in++;
-      goto count_out;
-
-      break;
-
-    case 0xF9:
-      count = *in++ << 16;
-      count += *in++ << 8;
-      count += *in++;
-      goto count_out;
-
-      break;
-
-    case 0xFA:
-      outval &= not_colmask;
-
-      break;
-
-    case 0xFB:
-      outval &= not_penmask;
-
-      break;
-
-    case 0xFC:
-      outval = outval & not_colmask | *in++ << col_offs;
-
-      break;
-
-    case 0xFD:
-      outval = outval & not_penmask | *in++ << pen_offs;
-
-      break;
-
-    case 0xFE:
-      switch (*in++) {
-      case 0:
-        break;
-      case 1:
-        *out++ = outval | maxtone;
-        break;
-
-      case 2:
-        tmp    = *in++;
-        tmp    = tmp << 8 | *in++;
-        tmp    = tmp << 8 | *in++;
-        *out++ = tmp << 8 | *in++;
-        break;
-
-      default:
-        goto rle_decoding_error;
-      }
-      goto end_rle_decoding;
-
-      break;
-
-    case 0xFF:
-      *out++ = outval | *in++;
-
-      break;
-
-    default:
-      *out++ = outval | inval;
-    }
-    continue;
-
-  count_out:
-    outval_maxtone = outval | maxtone;
-    *out++         = outval_maxtone;
-    while (count--) *out++ = outval_maxtone;
-  }
-
-end_rle_decoding:
-  if (buf_in_len) *buf_in_len = (int)(in - buf_in);
-  return (int)(out - buf_out);
-
-rle_decoding_error:
-  if (buf_in_len) *buf_in_len = 0;
-  return 0;
-}
 }
 
 //=============================================================================

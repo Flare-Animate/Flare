@@ -75,7 +75,6 @@ if(NOT BUILD_TARGET_BSD)
         tzp/tiio_plt.cpp
         tzp/tiio_tzp.cpp
         tzp/toonzrle.cpp
-        tzp/avl.c
     )
     # private tiffiop.h (system libtiff-dev lacks it); needs configure-generated tif_config.h
     if(NOT WIN32)
