@@ -260,6 +260,124 @@ DVAPI void fracmove(TRasterP rout, TRasterP rin, double dx, double dy);
 //! Convert \b src raster in raster type \b dst
 DVAPI void convert(TRasterP dst, const TRasterP &src);
 
+//********************************************************************************
+//    TRop::convert  implementation
+//
+// The per-conversion kernels live in common/trop/rust/convert.rs (flare_formats);
+// only the raster-type dispatch (and locking) remains here.
+//********************************************************************************
+
+extern "C" {
+void flare_convert_64_from_32(const void *src, void *dst, int wrapSrc,
+                              int wrapDst, int lx, int ly);
+void flare_convert_gr8_from_32(const void *src, void *dst, int wrapSrc,
+                               int wrapDst, int lx, int ly);
+void flare_convert_gr16_from_32(const void *src, void *dst, int wrapSrc,
+                                int wrapDst, int lx, int ly);
+void flare_convert_gr16_from_64(const void *src, void *dst, int wrapSrc,
+                                int wrapDst, int lx, int ly);
+void flare_convert_32_from_gr8(const void *src, void *dst, int wrapSrc,
+                               int wrapDst, int lx, int ly);
+void flare_dither_convert_64_to_32(const void *src, void *dst, int wrapSrc,
+                                   int wrapDst, int lx, int ly);
+void flare_convert_cm32_from_gr8(const void *src, void *dst, int wrapSrc,
+                                 int wrapDst, int lx, int ly);
+void flare_convert_cm32_from_32(const void *src, void *dst, int wrapSrc,
+                                int wrapDst, int lx, int ly);
+void flare_convert_yuv_from_32(const void *src, void *dst, int wrapSrc,
+                               int wrapDst, int lx, int ly);
+void flare_convert_32_from_yuv(const void *src, void *dst, int wrapSrc,
+                               int wrapDst, int lx, int ly);
+void flare_convert_fp_from_32(const void *src, void *dst, int wrapSrc,
+                              int wrapDst, int lx, int ly);
+void flare_convert_fp_from_64(const void *src, void *dst, int wrapSrc,
+                              int wrapDst, int lx, int ly);
+void flare_convert_32_from_fp(const void *src, void *dst, int wrapSrc,
+                              int wrapDst, int lx, int ly);
+void flare_convert_64_from_fp(const void *src, void *dst, int wrapSrc,
+                              int wrapDst, int lx, int ly);
+}
+
+void TRop::convert(TRasterP dst, const TRasterP &src) {
+  if (dst->getSize() != src->getSize())
+    throw TRopException("convert: size mismatch");
+
+  TRaster32P dst32 = dst;
+  TRasterGR8P dst8 = dst;
+  TRasterGR16P dst16 = dst;
+  TRaster64P dst64 = dst;
+  TRasterCM32P dstCm = dst;
+  TRasterYUV422P dstYUV = dst;
+  TRasterFP dstF = dst;
+
+  TRaster32P src32 = src;
+  TRasterGR8P src8 = src;
+  TRaster64P src64 = src;
+  TRasterYUV422P srcYUV = src;
+  TRasterFP srcF = src;
+
+  const int lx = src->getLx(), ly = src->getLy();
+  src->lock();
+  dst->lock();
+
+  bool handled = true;
+  if (dst64 && src32) {
+    flare_convert_64_from_32(src32->pixels(), dst64->pixels(),
+                             src32->getWrap(), dst64->getWrap(), lx, ly);
+  } else if (dst8 && src32) {
+    flare_convert_gr8_from_32(src32->pixels(), dst8->pixels(),
+                              src32->getWrap(), dst8->getWrap(), lx, ly);
+  } else if (dst16 && src32) {
+    flare_convert_gr16_from_32(src32->pixels(), dst16->pixels(),
+                               src32->getWrap(), dst16->getWrap(), lx, ly);
+  } else if (dst32 && src64) {
+    flare_dither_convert_64_to_32(src64->pixels(), dst32->pixels(),
+                                  src64->getWrap(), dst32->getWrap(), lx, ly);
+  } else if (dst16 && src64) {
+    flare_convert_gr16_from_64(src64->pixels(), dst16->pixels(),
+                               src64->getWrap(), dst16->getWrap(), lx, ly);
+  } else if (dst32 && src8) {
+    flare_convert_32_from_gr8(src8->pixels(), dst32->pixels(),
+                              src8->getWrap(), dst32->getWrap(), lx, ly);
+  } else if (dstYUV && src32) {
+    flare_convert_yuv_from_32(src32->pixels(), dstYUV->getRawData(),
+                              src32->getWrap(), dstYUV->getRowSize(), lx, ly);
+  } else if (dst32 && srcYUV) {
+    flare_convert_32_from_yuv(srcYUV->getRawData(), dst32->pixels(),
+                              srcYUV->getRowSize(), dst32->getWrap(), lx, ly);
+  } else if (dstCm && src32) {
+    flare_convert_cm32_from_32(src32->pixels(), dstCm->pixels(),
+                               src32->getWrap(), dstCm->getWrap(), lx, ly);
+  } else if (dstCm && src8) {
+    flare_convert_cm32_from_gr8(src8->pixels(), dstCm->pixels(),
+                                src8->getWrap(), dstCm->getWrap(), lx, ly);
+  } else if (dstF && src32) {
+    flare_convert_fp_from_32(src32->pixels(), dstF->pixels(),
+                             src32->getWrap(), dstF->getWrap(), lx, ly);
+  } else if (dstF && src64) {
+    flare_convert_fp_from_64(src64->pixels(), dstF->pixels(),
+                             src64->getWrap(), dstF->getWrap(), lx, ly);
+  } else if (dst32 && srcF) {
+    flare_convert_32_from_fp(srcF->pixels(), dst32->pixels(),
+                             srcF->getWrap(), dst32->getWrap(), lx, ly);
+  } else if (dst64 && srcF) {
+    flare_convert_64_from_fp(srcF->pixels(), dst64->pixels(),
+                             srcF->getWrap(), dst64->getWrap(), lx, ly);
+  } else {
+    handled = false;
+  }
+
+  if (!handled) {
+    dst->unlock();
+    src->unlock();
+    throw TRopException("unsupported pixel type");
+  }
+
+  dst->setLinear(src->isLinear());
+  dst->unlock();
+  src->unlock();
+}
+
 //! Copy \b src in \b dst
 DVAPI void copy(TRasterP dst, const TRasterP &src);
 

@@ -243,8 +243,6 @@ set(SOURCES
     ../common/trop/quickput.cpp
     ../common/trop/tantialias.cpp
     ../common/trop/tblur.cpp
-    
-    ../common/trop/tconvert.cpp
     ../common/trop/tconvolve.cpp
     ../common/trop/tdespeckle.cpp
     ../common/trop/tdistancetransform.cpp
