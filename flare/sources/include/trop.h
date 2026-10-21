@@ -548,6 +548,63 @@ DVAPI int getBlurBorder(double blur);
 DVAPI void antialias(const TRasterP &src, const TRasterP &dst, int threshold,
                      int softness);
 
+//********************************************************************************
+//    TRop::antialias  implementation
+//
+// The morphological antialias lives in common/trop/rust/antialias.rs
+// (flare_formats); only the raster-type dispatch remains here.
+//********************************************************************************
+
+extern "C" {
+void flare_antialias(const void *src, void *dst, int wrapSrc, int wrapDst,
+                     int lx, int ly, int threshold, int softness, int isCm32,
+                     int is64);
+}
+
+void TRop::antialias(const TRasterP &src, const TRasterP &dst, int threshold,
+                     int softness) {
+  assert(src->getSize() == dst->getSize());
+
+  TRaster32P src32(src), dst32(dst);
+  TRaster64P src64(src), dst64(dst);
+  TRasterCM32P srcCM(src), dstCM(dst);
+
+  const bool is_cm32 = (bool)srcCM && (bool)dstCM;
+  const bool is_64 = (bool)src64 && (bool)dst64;
+
+  const void *srcPix = nullptr;
+  void *dstPix = nullptr;
+  int srcWrap = 0, dstWrap = 0;
+  if (src32 && dst32) {
+    srcPix = src32->pixels();
+    dstPix = dst32->pixels();
+    srcWrap = src32->getWrap();
+    dstWrap = dst32->getWrap();
+  } else if (src64 && dst64) {
+    srcPix = src64->pixels();
+    dstPix = dst64->pixels();
+    srcWrap = src64->getWrap();
+    dstWrap = dst64->getWrap();
+  } else if (srcCM && dstCM) {
+    srcPix = srcCM->pixels();
+    dstPix = dstCM->pixels();
+    srcWrap = srcCM->getWrap();
+    dstWrap = dstCM->getWrap();
+  } else {
+    assert(!"Source and destination rasters must be of the same type!");
+    return;
+  }
+
+  src->lock();
+  dst->lock();
+
+  flare_antialias(srcPix, dstPix, srcWrap, dstWrap, src->getLx(), src->getLy(),
+                  threshold, softness, is_cm32 ? 1 : 0, is_64 ? 1 : 0);
+
+  dst->unlock();
+  src->unlock();
+}
+
 //! Performs despeckling by replacing the color of small uniform areas (those
 //! enclosable in a
 //! square of specified edge length) with that most occurring along the area

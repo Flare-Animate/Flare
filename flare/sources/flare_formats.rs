@@ -144,6 +144,8 @@ pub mod runsmap;
 pub mod trop_invert;
 #[path = "common/trop/rust/checkboard.rs"]
 pub mod trop_checkboard;
+#[path = "common/trop/rust/antialias.rs"]
+pub mod trop_antialias;
 #[path = "common/trop/rust/convert.rs"]
 pub mod trop_convert;
 #[path = "common/trop/rust/bbox.rs"]

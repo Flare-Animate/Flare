@@ -241,7 +241,6 @@ set(SOURCES
     ../common/psdlib/psd.cpp
     ../common/trop/brush.cpp
     ../common/trop/quickput.cpp
-    ../common/trop/tantialias.cpp
     ../common/trop/tblur.cpp
     ../common/trop/tconvolve.cpp
     ../common/trop/tdespeckle.cpp
