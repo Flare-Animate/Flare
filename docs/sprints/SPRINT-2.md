@@ -19,7 +19,7 @@ Goal: continue the Rust rewrite with FX kernel ports, following the Sprint 1 DoD
 
 **`stdfx/igs_attenuation_distribution.rs`** — `attenuation_distribution()` (circle / N-gon conical mask, normalized to sum 1). C ABI `flare_igs_attenuation_distribution` marshals a flat `f64` matrix + `i32` offsets/sizes allocated by Rust; `flare_igs_attenuation_free` releases them. `igs_attenuation_distribution.h` rebuilds the original `vector<vector<double>>` + `vector<double*>` signature inline, so `igs_fog.cpp` only changed its include from `.cpp` to `.h`.
 
-**`stdfx/igs_motion_wind_pixel.rs`** — stateful per-pixel wind trail (`MotionWindPixel`). The original API is a C++ class, so `igs_motion_wind_pixel.h` is now an inline class over an opaque Rust handle: `flare_igs_motion_wind_pixel_{new,change,clear,free}`. `igs_motion_wind.cpp` still walks the scanlines; only the per-pixel decision moved to Rust.
+**`stdfx/igs_motion_wind_pixel.rs`** — stateful per-pixel wind trail (`MotionWindPixel`). The original API is a C++ class, so `igs_motion_wind_pixel.h` is now an inline class over an opaque Rust handle: `flare_igs_motion_wind_pixel_{new,change,clear,free}`. `igs_motion_wind.cpp` still walks the scanlines; only the per-pixel decision moved to Rust. **Removed in Batch 8:** the C++ bridge (`igs_motion_wind_pixel.h` and the four `flare_igs_motion_wind_pixel_*` exports) was deleted when `igs_motion_wind.cpp` was ported; the Rust drives `MotionWindPixel` directly.
 
 ## Deviations (only where C++ was UB / would throw)
 - `make_table_inplace` returns 0 instead of `std::out_of_range` when `ceil(length) > table.len()`.
