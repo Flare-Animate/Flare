@@ -44,6 +44,7 @@ CHECKS = [
     ("maxmin", ["tests/native/gen_igs_maxmin_cases.py", "--check"]),
     ("gaussian blur", ["tests/native/gen_igs_gaussian_blur_cases.py", "--check"]),
     ("motion blur", ["tests/native/gen_igs_motion_blur_cases.py", "--check"]),
+    ("line blur", ["tests/native/gen_igs_line_blur_cases.py", "--check"]),
     (
         "motion wind scanline walk (64-bit word)",
         ["tests/native/gen_igs_motion_wind_change_cases.py", "--rng-bits", "64", "--check"],

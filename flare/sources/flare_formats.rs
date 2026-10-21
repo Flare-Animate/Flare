@@ -264,6 +264,8 @@ pub mod igs_maxmin;
 pub mod igs_gaussian_blur;
 #[path = "stdfx/igs_motion_blur.rs"]
 pub mod igs_motion_blur;
+#[path = "stdfx/igs_line_blur.rs"]
+pub mod igs_line_blur;
 #[path = "stdfx/igs_motion_wind.rs"]
 pub mod igs_motion_wind;
 #[path = "stdfx/igs_motion_wind_pixel.rs"]
