@@ -239,7 +239,6 @@ set(SOURCES
     ${SDKROOT}/zlib-1.2.8/contrib/minizip/unzip.c
     ${SDKROOT}/zlib-1.2.8/contrib/minizip/zip.c
     ../common/psdlib/psd.cpp
-    ../common/trop/brush.cpp
     ../common/trop/quickput.cpp
     ../common/trop/tblur.cpp
     ../common/trop/tconvolve.cpp

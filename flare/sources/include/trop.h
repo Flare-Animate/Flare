@@ -384,6 +384,25 @@ DVAPI void copy(TRasterP dst, const TRasterP &src);
 DVAPI void brush(TRaster32P ras, const TPoint &a, const TPoint &b, int radius,
                  const TPixel32 &color);
 
+//********************************************************************************
+//    TRop::brush  implementation
+//
+// The brush rasteriser lives in common/trop/rust/brush.rs (flare_formats); only
+// the TPixel32 dispatch remains here.
+//********************************************************************************
+
+extern "C" {
+void flare_brush(void *ras, int wrap, int lx, int ly, int ax, int ay, int bx,
+                 int by, int radius, unsigned char cr, unsigned char cg,
+                 unsigned char cb, unsigned char cm);
+}
+
+void TRop::brush(TRaster32P ras, const TPoint &a, const TPoint &b, int radius,
+                 const TPixel32 &color) {
+  flare_brush(ras->pixels(), ras->getWrap(), ras->getLx(), ras->getLy(), a.x,
+              a.y, b.x, b.y, radius, color.r, color.g, color.b, color.m);
+}
+
 //! Get \b bbox of \b ras raster
 inline void computeBBox(TRasterP ras, TRect &bbox);
 
