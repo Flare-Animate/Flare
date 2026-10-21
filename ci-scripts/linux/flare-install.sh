@@ -25,7 +25,7 @@ cd ..
 ## Then build in Qt Creator, or use
 #export PATH=$(readlink -f /tmp/.mount_QtCreator-*-x86_64/*/gcc_64/bin/):$PATH
 #cd linuxdeployqt
-#git checkout tahoma2d_version
+#git checkout flare_version
 #qmake
 #make
 #sudo make install

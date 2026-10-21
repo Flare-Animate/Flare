@@ -1,5 +1,5 @@
 #!/bin/bash
-export TAHOMA2DVERSION=1.6.3
+export FLAREVERSION=1.6.3
 #source /opt/qt515/bin/qt515-env.sh
 
 echo ">>> Temporary install of Flare"
@@ -121,12 +121,12 @@ echo ">>> Creating Flare Debian Package"
 chmod +x ../installer/linux/deb-creator/debcreator.sh 
 
 ../installer/linux/deb-creator/debcreator.sh \
- -p $TAHOMA2DVERSION \
- -v $TAHOMA2DVERSION \
+ -p $FLAREVERSION \
+ -v $FLAREVERSION \
  -t ../installer/linux/deb-creator/deb-template \
  -x ./appdir \
  -f ./Flare/ffmpeg \
  -r ./Flare/rhubarb \
  -s ../../stuff
 
- mv tahoma2d_*_amd64.deb Flare-linux.deb
+ mv ./*_amd64.deb Flare-linux.deb
