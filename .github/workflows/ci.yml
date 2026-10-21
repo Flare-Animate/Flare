@@ -66,6 +66,12 @@ jobs:
         run: |
           python scripts/check_cmake_sources.py
 
+      - name: Headers have no non-inline out-of-class definitions
+        # TRop::f(...) {} defined in trop.h broke gcc (explicit qualification) and
+        # clang/MSVC/ld (duplicate symbols) three times after Rust ports.
+        run: |
+          python scripts/check_header_defs.py
+
       - name: Preference ids are declared and defined
         # Every id used by Preferences accessors/popups must be in the enum and have a
         # define(...). An upstream sync once dropped several, breaking all platforms.

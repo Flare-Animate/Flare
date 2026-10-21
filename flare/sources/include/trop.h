@@ -258,7 +258,7 @@ DVAPI void convolve_i(TRasterP rout, TRasterP rin, int dx, int dy,
 DVAPI void fracmove(TRasterP rout, TRasterP rin, double dx, double dy);
 
 //! Convert \b src raster in raster type \b dst
-DVAPI void convert(TRasterP dst, const TRasterP &src);
+inline void convert(TRasterP dst, const TRasterP &src);
 
 //********************************************************************************
 //    TRop::convert  implementation
@@ -298,7 +298,7 @@ void flare_convert_64_from_fp(const void *src, void *dst, int wrapSrc,
                               int wrapDst, int lx, int ly);
 }
 
-void TRop::convert(TRasterP dst, const TRasterP &src) {
+inline void convert(TRasterP dst, const TRasterP &src) {
   if (dst->getSize() != src->getSize())
     throw TRopException("convert: size mismatch");
 
@@ -381,7 +381,7 @@ void TRop::convert(TRasterP dst, const TRasterP &src) {
 //! Copy \b src in \b dst
 DVAPI void copy(TRasterP dst, const TRasterP &src);
 
-DVAPI void brush(TRaster32P ras, const TPoint &a, const TPoint &b, int radius,
+inline void brush(TRaster32P ras, const TPoint &a, const TPoint &b, int radius,
                  const TPixel32 &color);
 
 //********************************************************************************
@@ -397,7 +397,7 @@ void flare_brush(void *ras, int wrap, int lx, int ly, int ax, int ay, int bx,
                  unsigned char cb, unsigned char cm);
 }
 
-void TRop::brush(TRaster32P ras, const TPoint &a, const TPoint &b, int radius,
+inline void brush(TRaster32P ras, const TPoint &a, const TPoint &b, int radius,
                  const TPixel32 &color) {
   flare_brush(ras->pixels(), ras->getWrap(), ras->getLx(), ras->getLy(), a.x,
               a.y, b.x, b.y, radius, color.r, color.g, color.b, color.m);
@@ -564,7 +564,7 @@ DVAPI int getBlurBorder(double blur);
 //! Inserts antialias around jaggy lines. Threshold is a pixel distance intended
 //! from 0 to 256.
 //! Softness may vary from 0 to 100.
-DVAPI void antialias(const TRasterP &src, const TRasterP &dst, int threshold,
+inline void antialias(const TRasterP &src, const TRasterP &dst, int threshold,
                      int softness);
 
 //********************************************************************************
@@ -580,7 +580,7 @@ void flare_antialias(const void *src, void *dst, int wrapSrc, int wrapDst,
                      int is64);
 }
 
-void TRop::antialias(const TRasterP &src, const TRasterP &dst, int threshold,
+inline void antialias(const TRasterP &src, const TRasterP &dst, int threshold,
                      int softness) {
   assert(src->getSize() == dst->getSize());
 
