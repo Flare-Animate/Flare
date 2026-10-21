@@ -7,7 +7,7 @@ root = pathlib.Path(__file__).resolve().parent.parent / "flare" / "sources"
 ids_h = (root/"include/flare/preferencesitemids.h").read_text()
 body = ids_h[ids_h.index("enum PreferencesItemId"):]
 body = re.sub(r"//.*", "", body); body = re.sub(r"/\*.*?\*/", "", body, flags=re.S)
-ids = set(re.findall(r"^\s*([A-Za-z_]\w*)\s*,", body, flags=re.M)) | {"PreferencesItemCount", "PreferencesItemId"}
+ids = set(re.findall(r"^\s*([A-Za-z_]\w*)\s*,", body, flags=re.M)) | {"PreferencesItemCount"}
 cpp = (root/"flarelib/preferences.cpp").read_text()
 defined = set(re.findall(r"\bdefine\(\s*(\w+)\s*,", cpp))
 def strip(t):
@@ -30,6 +30,7 @@ for p in root.rglob("*"):
     for rx in pats:
         for m in rx.finditer(t):
             n = m.group(1)
+            if n == "PreferencesItemId": continue
             if n in seen or n in ids: 
                 if n in ids and n not in defined and n not in seen and n != "PreferencesItemCount":
                     print(f"NO define(): {n} ({p.relative_to(root)})"); bad += 1
