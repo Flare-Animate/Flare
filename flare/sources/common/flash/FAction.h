@@ -75,6 +75,10 @@
 
 #include "Macromedia.h"
 #include "FSWFStream.h"
+#include "FPrimitive.h"
+
+#include <list>
+#include <stdexcept>
 
 #ifdef WIN32 // added from DV
 #pragma warning(push)
@@ -1343,4 +1347,440 @@ private:
 	U32 eventFlags;
 	U8 keyCode;
 };
+
+//=============================================================================
+//   Member definitions (FAction.cpp was ported to FAction.rs)
+//
+// The byte layout of every record is written by FAction.rs (flare_faction_* / flare_fclip_*); the
+// classes stay here because they own FString operands and lists of virtual FActionRecord /
+// FClipActionRecord objects.
+//=============================================================================
+
+extern "C" {
+int flare_faction_unparsed(void *out, unsigned char code, unsigned short length, const unsigned char *data);
+int flare_faction_get_url_finish(void *out, void *body);
+int flare_faction_get_url2(void *out, unsigned char method);
+int flare_faction_goto_frame(void *out, unsigned short frame_index);
+int flare_faction_goto_frame2(void *out, unsigned char play);
+int flare_faction_goto_label_head(void *out);
+int flare_faction_if(void *out, short branch_offset);
+int flare_faction_jump(void *out, short branch_offset);
+int flare_faction_set_target_head(void *out, unsigned int length_plus_one);
+int flare_faction_wait_for_frame(void *out, unsigned short frame_index, unsigned short skip_count);
+int flare_faction_wait_for_frame2(void *out, unsigned char skip_count);
+int flare_faction_push(void *out, unsigned char kind, int has_text, const unsigned char *text, size_t text_len, float number,
+					   unsigned char value, const unsigned char *double_bytes);
+unsigned int flare_faction_condition_bit(unsigned short condition);
+unsigned short flare_faction_condition_key(unsigned short flags, unsigned int key_code);
+int flare_faction_condition_head(void *body, unsigned short flags);
+int flare_faction_condition_finish(void *out, void *body);
+int flare_faction_condition_last_head(void *out, unsigned short flags);
+int flare_faction_condition_last_tail(void *out);
+int flare_faction_constant_pool_finish(void *out, void *body, unsigned int count);
+int flare_fclip_action_head(void *body, unsigned int event_flags);
+int flare_fclip_action_finish(void *out, void *body);
+int flare_fclip_action_record_finish(void *out, void *actions, unsigned int event_flags, unsigned char key_code);
+}
+
+inline void flare_faction_check(int status)
+{
+	if (status)
+		throw std::invalid_argument("FAction: invalid argument");
+}
+
+inline FActionUnparsed::FActionUnparsed(UCHAR _code, USHORT _length, UCHAR *_data) : code(_code)
+{
+	if (code >= 0x80)
+		length = _length, data = _data;
+	else
+		length = 0, data = 0;
+}
+
+inline void FActionUnparsed::WriteToSWFStream(FSWFStream *_SWFStream)
+{
+	flare_faction_check(flare_faction_unparsed(_SWFStream->Handle(), code, length, data));
+}
+
+inline FActionGetURL::FActionGetURL(FString *_url, FString *_window)
+{
+	url = _url;
+	window = _window;
+}
+
+inline FActionGetURL::~FActionGetURL()
+{
+	delete url;
+	delete window;
+}
+
+inline void FActionGetURL::WriteToSWFStream(FSWFStream *_SWFStream)
+{
+	FSWFStream body;
+
+	url->WriteToSWFStream(&body, true);
+
+	window->WriteToSWFStream(&body, true);
+
+	flare_faction_check(flare_faction_get_url_finish(_SWFStream->Handle(), body.Handle()));
+}
+
+inline FActionGetURL2::FActionGetURL2(U8 _method)
+{
+	method = _method;
+}
+
+inline void FActionGetURL2::WriteToSWFStream(FSWFStream *_SWFStream)
+{
+	flare_faction_check(flare_faction_get_url2(_SWFStream->Handle(), method));
+}
+
+inline FActionGotoFrame::FActionGotoFrame(U16 _frameIndex)
+{
+	frameIndex = _frameIndex;
+}
+
+inline void FActionGotoFrame::WriteToSWFStream(FSWFStream *_SWFStream)
+{
+	flare_faction_check(flare_faction_goto_frame(_SWFStream->Handle(), frameIndex));
+}
+
+inline FActionGotoFrame2::FActionGotoFrame2(U8 _play)
+{
+	play = _play;
+}
+
+inline void FActionGotoFrame2::WriteToSWFStream(FSWFStream *_SWFStream)
+{
+	flare_faction_check(flare_faction_goto_frame2(_SWFStream->Handle(), play));
+}
+
+inline FActionGotoLabel::FActionGotoLabel(FString *_label)
+{
+	label = _label;
+}
+
+inline FActionGotoLabel::~FActionGotoLabel()
+{
+	delete label;
+}
+
+inline void FActionGotoLabel::WriteToSWFStream(FSWFStream *_SWFStream)
+{
+	flare_faction_check(flare_faction_goto_label_head(_SWFStream->Handle()));
+
+	label->WriteToSWFStream(_SWFStream, true);
+}
+
+inline FActionIf::FActionIf(S16 _branchOffset)
+{
+	branchOffset = _branchOffset;
+}
+
+inline void FActionIf::WriteToSWFStream(FSWFStream *_SWFStream)
+{
+	flare_faction_check(flare_faction_if(_SWFStream->Handle(), branchOffset));
+}
+
+inline FActionJump::FActionJump(S16 _branchOffset)
+{
+	branchOffset = _branchOffset;
+}
+
+inline void FActionJump::WriteToSWFStream(FSWFStream *_SWFStream)
+{
+	flare_faction_check(flare_faction_jump(_SWFStream->Handle(), branchOffset));
+}
+
+inline FActionPush::FActionPush(FString *_string)
+{
+	string = _string;
+	number = 0;
+	cValue = 0;
+	dValue = 0;
+	type = 0;
+}
+
+inline FActionPush::FActionPush(FLOAT _number)
+{
+	number = _number;
+	string = 0;
+	cValue = 0;
+	dValue = 0;
+	type = 1;
+}
+
+inline FActionPush::FActionPush(U8 _type, FLOAT _number)
+{
+	number = _number;
+	string = 0;
+	cValue = 0;
+	dValue = 0;
+	type = _type;
+}
+
+inline FActionPush::FActionPush(double _number)
+{
+	number = 0;
+	string = 0;
+	cValue = 0;
+	dValue = _number;
+	type = 6;
+}
+
+inline FActionPush::FActionPush(U8 _type, U8 _value)
+{
+	number = 0;
+	string = 0;
+	cValue = _value;
+	dValue = 0;
+	type = _type;
+}
+
+inline void FActionPush::WriteToSWFStream(FSWFStream *_SWFStream)
+{
+	// Type 6 (double): the original wrote the low byte of the ADDRESS of each operand byte
+	// (WriteByte((U32)(bPtr + n)) instead of bPtr[n]) -- a bug that makes the output depend on where
+	// the object lives. The same eight values are computed here and handed to FAction.rs, which
+	// writes them in the original order (4..7, then 0..3); see FAction.rs.
+	U8 doubleBytes[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+	if (type == 6) {
+		U8 *bPtr = (U8 *)&dValue;
+		static const int order[8] = {4, 5, 6, 7, 0, 1, 2, 3};
+		for (int i = 0; i < 8; i++)
+			doubleBytes[i] = (U8)((size_t)(bPtr + order[i]) & 0xff);
+	}
+
+	std::string text;
+	if (type == 0 && string)
+		text = string->GetString();
+
+	// the operand size and the Length() truncation to 16 bits are applied by the writer
+	flare_faction_check(flare_faction_push(_SWFStream->Handle(), type, (type == 0 && string) ? 1 : 0,
+										   (const unsigned char *)text.data(), text.length(), number, cValue, doubleBytes));
+}
+
+inline FActionSetTarget::FActionSetTarget(FString *_targetName)
+{
+	targetName = _targetName;
+}
+
+inline FActionSetTarget::~FActionSetTarget()
+{
+	delete targetName;
+}
+
+inline void FActionSetTarget::WriteToSWFStream(FSWFStream *_SWFStream)
+{
+	flare_faction_check(flare_faction_set_target_head(_SWFStream->Handle(), targetName->Length() + 1));
+	targetName->WriteToSWFStream(_SWFStream, true);
+}
+
+inline FActionWaitForFrame::FActionWaitForFrame(U16 index, U16 count)
+{
+	frameIndex = index; // fixed from DV
+	skipCount = count;
+}
+
+inline void FActionWaitForFrame::WriteToSWFStream(FSWFStream *_SWFStream)
+{
+	flare_faction_check(flare_faction_wait_for_frame(_SWFStream->Handle(), frameIndex, skipCount));
+}
+
+inline FActionWaitForFrame2::FActionWaitForFrame2(U8 _skipCount)
+{
+	skipCount = _skipCount;
+}
+
+inline void FActionWaitForFrame2::WriteToSWFStream(FSWFStream *_SWFStream)
+{
+	flare_faction_check(flare_faction_wait_for_frame2(_SWFStream->Handle(), skipCount));
+}
+
+inline FActionCondition::FActionCondition()
+{
+	conditionFlags = 0;
+}
+
+inline FActionCondition::~FActionCondition()
+{
+	while (!actionRecordList.empty()) {
+
+		delete actionRecordList.front();
+		actionRecordList.pop_front();
+	}
+}
+
+inline void FActionCondition::Clear()
+{
+	while (!actionRecordList.empty()) {
+
+		delete actionRecordList.front();
+		actionRecordList.pop_front();
+	}
+}
+
+inline void FActionCondition::AddActionRecord(FActionRecord *_ActionRecord)
+{
+	actionRecordList.push_back(_ActionRecord);
+}
+
+inline void FActionCondition::AddKeyCode(U32 keyCode)
+{
+	conditionFlags = flare_faction_condition_key(conditionFlags, keyCode);
+}
+
+inline void FActionCondition::AddCondition(U16 _condition)
+{
+	// OverDownToIdle sets bit 8 ... IdleToOverUp sets bit 0; anything else leaves the flags alone
+	conditionFlags = conditionFlags | flare_faction_condition_bit(_condition);
+}
+
+inline void FActionCondition::WriteToSWFStream(FSWFStream *_SWFStream)
+{
+	FSWFStream temp;
+
+	flare_faction_check(flare_faction_condition_head(temp.Handle(), conditionFlags));
+
+	std::list<FActionRecord *>::iterator cursor;
+	for (cursor = actionRecordList.begin(); cursor != actionRecordList.end(); cursor++) {
+
+		(*cursor)->WriteToSWFStream(&temp);
+	}
+
+	flare_faction_check(flare_faction_condition_finish(_SWFStream->Handle(), temp.Handle()));
+}
+
+inline void FActionCondition::WriteToSWFStream(FSWFStream *_SWFStream, int /*lastFlag*/)
+{
+	flare_faction_check(flare_faction_condition_last_head(_SWFStream->Handle(), conditionFlags));
+
+	std::list<FActionRecord *>::iterator cursor;
+	for (cursor = actionRecordList.begin(); cursor != actionRecordList.end(); cursor++) {
+
+		(*cursor)->WriteToSWFStream(_SWFStream);
+	}
+
+	flare_faction_check(flare_faction_condition_last_tail(_SWFStream->Handle()));
+}
+
+inline FActionConstantPool::FActionConstantPool(FString *string)
+{
+	constantList.push_back(string);
+}
+
+inline FActionConstantPool::~FActionConstantPool()
+{
+	while (!constantList.empty()) {
+		delete constantList.front();
+		constantList.pop_front();
+	}
+}
+
+inline void FActionConstantPool::addConstant(FString *string)
+{
+	constantList.push_back(string);
+}
+
+inline void FActionConstantPool::WriteToSWFStream(FSWFStream *_SWFStream)
+{
+	FSWFStream temp;
+	std::list<FString *>::iterator it = constantList.begin();
+	while (it != constantList.end()) {
+		(*it)->WriteToSWFStream(&temp, true);
+		++it;
+	}
+
+	flare_faction_check(flare_faction_constant_pool_finish(_SWFStream->Handle(), temp.Handle(), (unsigned int)constantList.size()));
+}
+
+inline FClipActionRecord::FClipActionRecord()
+{
+	eventFlags = 0;
+	keyCode = 0;
+}
+
+inline FClipActionRecord::~FClipActionRecord()
+{
+	Clear();
+}
+
+inline void FClipActionRecord::Clear()
+{
+	while (!actionRecordList.empty()) {
+		delete actionRecordList.front();
+		actionRecordList.pop_front();
+	}
+}
+
+inline void FClipActionRecord::AddActionRecord(FActionRecord *_actionRecord)
+{
+	actionRecordList.push_back(_actionRecord);
+}
+
+inline void FClipActionRecord::AddKeyCode(U8 _keyCode)
+{
+	keyCode |= _keyCode;
+}
+
+inline void FClipActionRecord::AddFlags(U32 _flags)
+{
+	eventFlags |= _flags;
+}
+
+inline void FClipActionRecord::WriteToSWFStream(FSWFStream *_SWFStream)
+{
+	FSWFStream temp;
+	std::list<FActionRecord *>::iterator it = actionRecordList.begin();
+	while (it != actionRecordList.end()) {
+		(*it)->WriteToSWFStream(&temp);
+		++it;
+	}
+
+	// end byte, then flags, size (+ key code for key-press events) and the actions
+	flare_faction_check(flare_fclip_action_record_finish(_SWFStream->Handle(), temp.Handle(), eventFlags, keyCode));
+}
+
+inline FClipAction::FClipAction()
+{
+	eventFlags = 0;
+}
+
+inline FClipAction::~FClipAction()
+{
+	Clear();
+}
+
+inline void FClipAction::Clear()
+{
+	while (!clipActionRecordList.empty()) {
+		delete clipActionRecordList.front();
+		clipActionRecordList.pop_front();
+	}
+}
+
+inline void FClipAction::AddClipActionRecord(FClipActionRecord *_clipActionRecord)
+{
+	clipActionRecordList.push_back(_clipActionRecord);
+}
+
+inline void FClipAction::AddFlags(U32 _flags)
+{
+	eventFlags |= _flags;
+}
+
+inline void FClipAction::WriteToSWFStream(FSWFStream *_SWFStream)
+{
+	FSWFStream temp;
+
+	flare_faction_check(flare_fclip_action_head(temp.Handle(), eventFlags));
+
+	std::list<FClipActionRecord *>::iterator it = clipActionRecordList.begin();
+	while (it != clipActionRecordList.end()) {
+		(*it)->WriteToSWFStream(&temp);
+		++it;
+	}
+
+	flare_faction_check(flare_fclip_action_finish(_SWFStream->Handle(), temp.Handle()));
+}
+
 #endif

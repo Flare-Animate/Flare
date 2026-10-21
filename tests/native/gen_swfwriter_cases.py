@@ -2,8 +2,9 @@
 FObj, FSound, FCT, FDTBitmaps -> *.rs) from the ORIGINAL C++.
 
 The six deleted .cpp files (and the headers as they were before the port) are rebuilt from git
-with the host g++ together with the three unported ones the harness needs (FDTShapes.cpp for
-FCXForm, FAction.cpp for FClipAction, FDTSounds.cpp for FSoundInfo), driven by
+with the host g++ together with the three classes the harness needs from files that were retired
+afterwards (FDTShapes.cpp for FCXForm, FAction.cpp for FClipAction, FDTSounds.cpp for FSoundInfo;
+see gen_swfshapes_cases.py), driven by
 ``swfwriter_ref.cpp`` (random byte-stream op sequences, primitives, collections, ADPCM, tags,
 bitmaps). The output is written to ``flare/sources/common/flash/swfwriter_cases.txt``, which the
 Rust tests of the six modules replay.
@@ -41,7 +42,7 @@ GOLDEN = os.path.join(SRC, "common", "flash", "swfwriter_cases.txt")
 CXXFLAGS = ["-O2", "-std=c++17", "-ffp-contract=off", "-DLINUX", "-DTNZ_LITTLE_ENDIAN", "-DNDEBUG", "-w",
             "-include", "string", "-include", "cstdint", "-include", "cstring", "-include", "cstdlib"]
 PORTED = ["FSWFStream", "FPrimitive", "FObj", "FSound", "FCT", "FDTBitmaps"]
-KEPT = ["FDTShapes", "FAction", "FDTSounds"]
+KEPT = ["FDTShapes", "FAction", "FDTSounds"]  # original builds only: now inline headers in the tree
 
 
 def cxx() -> str | None:
@@ -126,7 +127,7 @@ def main() -> int:
         if args.verify_chain:
             lib = rust_staticlib()
             flash = os.path.join(SRC, "common", "flash")
-            new = build(t, "ref_new", [os.path.join(flash, n + ".cpp") for n in KEPT], [flash, os.path.join(SRC, "include")], [lib, "-lpthread", "-ldl", "-lm"])
+            new = build(t, "ref_new", [], [flash, os.path.join(SRC, "include")], [lib, "-lpthread", "-ldl", "-lm"])
             if run(new) != out:
                 print("CHAIN MISMATCH: new headers + Rust differ from the original", file=sys.stderr)
                 rc = 1

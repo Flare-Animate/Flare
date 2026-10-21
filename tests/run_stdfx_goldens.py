@@ -29,6 +29,7 @@ LINUX_RECORDED = ("swf writer", "maxmin", "motion blur")
 
 CHECKS = [
     ("swf writer (FSWFStream, FPrimitive, FObj, FSound, FCT, FDTBitmaps)", ["tests/native/gen_swfwriter_cases.py", "--check"]),
+    ("swf shapes/actions/sprite/sounds (FDTShapes, FAction, FDTSprite, FDTSounds)", ["tests/native/gen_swfshapes_cases.py", "--check"]),
     ("attenuation", ["tests/native/gen_igs_attenuation_cases.py", "--check"]),
     ("noise (64-bit word)", ["tests/native/gen_noise_cases.py", "--rng-bits", "64", "--check"]),
     ("noise in camera (32-bit word)", ["tests/native/gen_noise_cases.py", "--rng-bits", "32", "--check"]),
