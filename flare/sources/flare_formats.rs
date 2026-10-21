@@ -142,6 +142,10 @@ pub mod ext_types;
 pub mod casmfileinfo;
 #[path = "common/psdlib/psdutils.rs"]
 pub mod psdutils;
+#[path = "image/tzp/avl.rs"]
+pub mod avl;
+#[path = "image/tzp/toonzrle.rs"]
+pub mod toonzrle;
 #[path = "stdfx/igs_color_rgb_hls.rs"]
 pub mod igs_color_rgb_hls;
 #[path = "stdfx/igs_color_rgb_hsv.rs"]
@@ -763,6 +767,8 @@ mod tests {
                         "common/tapptools/tenv.rs",
 
                         "common/tsystem/tfilepath.rs",
+        // partial port: the libtiff codec registration (private `TIFF` struct) stays C++
+        "image/tzp/toonzrle.rs",
         ];
 
         let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
