@@ -176,7 +176,6 @@ set(SOURCES
     igs_maxmin.cpp
     igs_maxmin_lens_matrix.cpp
     igs_maxmin_slrender.cpp
-    igs_motion_blur.cpp
     igs_radial_blur.cpp
     igs_resource_msg_from_err.cpp
     igs_resource_multithread.cpp

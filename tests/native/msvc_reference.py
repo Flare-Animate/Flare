@@ -55,6 +55,19 @@ def pre_deletion_revision(src: str) -> str:
     sys.exit(f"no revision of {src} exists to build a reference from")
 
 
+def pre_deletion_tree(src: str) -> str:
+    """The tree immediately before `src` was deleted (or HEAD while it still exists).
+
+    Unlike `pre_deletion_revision` (the newest commit that *touched* `src`), this also
+    reflects later edits to the headers that sat next to it, which is what a reference
+    build of the original needs.
+    """
+    deleted = git("log", "--format=%H", "--diff-filter=D", "-1", "--", src)
+    if deleted:
+        return git("rev-parse", f"{deleted}^")
+    return git("rev-parse", "HEAD")
+
+
 def vcvars() -> str:
     for var in ("VCVARS64", "VCVARSALL"):
         if os.environ.get(var):
