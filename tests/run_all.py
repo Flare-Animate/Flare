@@ -28,6 +28,7 @@ SUITES = [
     ("moho menu wiring", [sys.executable, "tests/moho/test_moho_menu.py"], REPO),
     ("flipaclip profile", [sys.executable, "tests/test_flipaclip_profile.py"], REPO),
     ("layout tool", [sys.executable, "tests/test_layout_tool.py"], REPO),
+    ("layout profiles (coverage + preservation)", [sys.executable, "tests/test_layout_profiles.py"], REPO),
     ("game export", [sys.executable, "tests/test_game_export.py"], REPO),
     # Rust format/remote crates. Cargo is not on PATH in every environment, so
     # resolve it rather than reporting a failure for a missing toolchain.

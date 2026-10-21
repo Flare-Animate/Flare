@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Command bar preset "Animate": import it from the Command Bar editor (Windows > Workspace > Command Bar, Import Layout). -->
+<commandbar>
+    <command>MI_NewScene</command>
+    <command>MI_LoadScene</command>
+    <command>MI_SaveAll</command>
+    <separator/>
+    <command>MI_Undo</command>
+    <command>MI_Redo</command>
+    <separator/>
+    <command>MI_Copy</command>
+    <command>MI_Cut</command>
+    <command>MI_Paste</command>
+    <command>MI_Clear</command>
+    <separator/>
+    <command>MI_OnionSkin</command>
+    <command>MI_Play</command>
+    <command>MI_Pause</command>
+    <command>MI_Loop</command>
+    <separator/>
+    <command>MI_Preview</command>
+    <command>MI_Render</command>
+    <separator/>
+    <command>MI_OpenXshView</command>
+    <command>MI_OpenTimelineView</command>
+    <command>MI_OpenSchematic</command>
+    <command>MI_OpenFunctionEditor</command>
+    <command>MI_FxParamEditor</command>
+    <separator/>
+    <command>MI_ShortcutPopup</command>
+    <command>MI_Preferences</command>
+</commandbar>

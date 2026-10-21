@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Command bar preset "FlipaClip": import it from the Command Bar editor (Windows > Workspace > Command Bar, Import Layout). -->
+<commandbar>
+    <command>MI_Undo</command>
+    <command>MI_Redo</command>
+    <separator/>
+    <command>MI_OnionSkin</command>
+    <command>MI_Play</command>
+    <command>MI_Loop</command>
+    <command>MI_Insert</command>
+    <command>MI_Duplicate</command>
+    <separator/>
+    <command>MI_Preview</command>
+    <command>MI_SaveAll</command>
+</commandbar>

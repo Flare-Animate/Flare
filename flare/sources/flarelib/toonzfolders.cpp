@@ -185,8 +185,10 @@ TFilePath FlareFolder::getTemplateRoomsDir() {
       Preferences::instance()->getCurrentRoomChoice().toStdWString();
   if (TFileStatus(candidate).doesExist()) return candidate;
 
-  // fall back to default room template if customized room path is missing
-  TFilePath fallback = getRoomsDir() + "Default";
+  // fall back to the default profile if the chosen one is missing (the stock
+  // profiles are Animate, AnimateLegacy, OpenToonz, FlipaClip, StudioGhibli;
+  // there is no longer a profile called "Default")
+  TFilePath fallback = getRoomsDir() + "Animate";
   if (TFileStatus(fallback).doesExist()) return fallback;
 
   // last resort, use the rooms directory itself

@@ -72,6 +72,15 @@ jobs:
         run: |
           python scripts/check_header_defs.py
 
+      - name: Layout profiles expose every UI option and stay preserved
+        # Every profile under stuff/profiles/layouts/rooms/ must reach 100 % of the
+        # registered commands/panels from each room's menubar, have valid rooms, and the
+        # preserved profiles must be byte-stable. Pure Python, no Qt.
+        run: |
+          python scripts/check_layout_profiles.py
+          python tests/test_layout_profiles.py
+          python scripts/check_theme_layout_separation.py
+
       - name: Preference ids are declared and defined
         # Every id used by Preferences accessors/popups must be in the enum and have a
         # define(...). An upstream sync once dropped several, breaking all platforms.

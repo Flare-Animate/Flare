@@ -293,7 +293,11 @@ Preferences::Preferences() {
 
   if (m_roomMaps.key(getStringValue(CurrentRoomChoice), -1) == -1) {
     assert(!m_roomMaps.isEmpty());
-    setValue(CurrentRoomChoice, m_roomMaps[0]);
+    // The chosen profile no longer exists: fall back to the stock default
+    // profile when it is installed, otherwise to the first one found.
+    setValue(CurrentRoomChoice, m_roomMaps.key(QString("Animate"), -1) != -1
+                                    ? QString("Animate")
+                                    : m_roomMaps[0]);
   }
 
   if (!m_styleSheetList.contains(getStringValue(CurrentStyleSheetName)))
