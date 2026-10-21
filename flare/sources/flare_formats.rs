@@ -762,13 +762,12 @@ mod tests {
     #[test]
     fn module_registry_matches_the_tree() {
         // Modules that deliberately keep both a `.rs` and a `.cpp`: the memory-safety
-        // wrapper scripts, which the port policy exempts from deletion.
+        // wrapper scripts (exempt from deletion) and partial ports.
         const KEEPS_CPP: &[&str] = &[
-                        "common/tapptools/tenv.rs",
-
-                        "common/tsystem/tfilepath.rs",
-        // partial port: the libtiff codec registration (private `TIFF` struct) stays C++
-        "image/tzp/toonzrle.rs",
+            "common/tapptools/tenv.rs",
+            "common/tsystem/tfilepath.rs",
+            // partial port: the libtiff codec registration (private `TIFF` struct) stays C++
+            "image/tzp/toonzrle.rs",
         ];
 
         let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));

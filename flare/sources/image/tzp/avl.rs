@@ -88,8 +88,11 @@ pub struct Tree {
     pub path: *mut Path,
 }
 
-/// `double Avl_Dummy[(AVL_MAX_SAFE_OFFSET / sizeof(double)) + 1]` (avl.h, non-WIN32).
-#[cfg(not(windows))]
+/// `double Avl_Dummy[(AVL_MAX_SAFE_OFFSET / sizeof(double)) + 1]` (avl.h).
+/// avl.h defines it itself only under `#ifdef WIN32`, which the MSVC build sets
+/// (tmacro.h maps `_WIN32` to it); every other toolchain, MinGW included, gets
+/// the symbol from here. A MinGW build that does define `WIN32` must drop this.
+#[cfg(not(all(windows, target_env = "msvc")))]
 #[no_mangle]
 pub static mut Avl_Dummy: [f64; 1024 / 8 + 1] = [0.0; 1024 / 8 + 1];
 
@@ -188,7 +191,9 @@ const PREALLOC_SIZE: usize = PREALLOC_LONGS * size_of::<c_long>();
 const MALLOC_LONGS: usize = 0x7FE0 / size_of::<c_long>();
 const MALLOC_SIZE: usize = MALLOC_LONGS * size_of::<c_long>();
 
-static mut PREALLOC: [c_long; PREALLOC_LONGS] = [0; PREALLOC_LONGS];
+#[repr(align(16))]
+struct PoolBlock([c_long; PREALLOC_LONGS]);
+static mut PREALLOC: PoolBlock = PoolBlock([0; PREALLOC_LONGS]);
 static mut FREE_LIST: [*mut c_void; FREE_LISTS] = [null_mut(); FREE_LISTS];
 static mut AVAIL_BASE: *mut c_char = null_mut(); // lazily = PREALLOC
 static mut AVAIL_SIZE: usize = PREALLOC_SIZE;
