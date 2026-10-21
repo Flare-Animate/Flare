@@ -216,6 +216,8 @@ pub mod igs_color_blend;
 pub mod igs_motion_wind_table;
 #[path = "stdfx/igs_attenuation_distribution.rs"]
 pub mod igs_attenuation_distribution;
+#[path = "stdfx/igs_motion_wind.rs"]
+pub mod igs_motion_wind;
 #[path = "stdfx/igs_motion_wind_pixel.rs"]
 pub mod igs_motion_wind_pixel;
 #[path = "flarelib/skeletonlut.rs"]

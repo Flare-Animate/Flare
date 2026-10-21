@@ -52,6 +52,7 @@ Crate manifest: `flare/sources/Cargo.toml`. Tests: `python tests/run_rust.py`.
 | flarelib | flarelib/sandor_fxs/PatternMapParam.cpp | flarelib/sandor_fxs/PatternMapParam.rs | 4 + 400-case golden | coarse (argv 1..11 parsing via libc `atof`/`atoi` into a `repr(C)` struct; ink list stays `CCIL::set`) |
 | flarelib | flarelib/ikjacobian.cpp | flarelib/ikjacobian.rs | 8 + 413 recorded C++ cases | coarse (every non-inline `VectorRn`/`MatrixRmn` member, the Golub-Reinsch SVD, and the `Jacobian` solvers: transpose, task-priority pseudo-inverse, DLS, DLS-via-SVD, SDLS, plus the `computeJacobian` / `UpdatedSClampValue` arithmetic; raw `(ptr, rows, cols)` C ABI with a bounds registry + `catch_unwind`; the classes, `new double[]` ownership and the `IKSkeleton`/`IKNode` gather loops stay inline in `ikjacobian.h`; goldens by `tests/native/gen_ikjacobian_cases.py --check`, `--verify-chain` proves the new headers + Rust match the original bytes, incl. a 250-step engine drag) |
 | flarelib | flarelib/ikengine.cpp (partial: `getJointAngle` only) | flarelib/ikjacobian.rs (`flare_ikengine_joint_angle`) | 1 + 45 recorded C++ cases | `ikengine.cpp` stays: everything else in it (`addJoint`, `lock`, `drag`'s 250-step loop, `doUpdateStep`, `setSequenceJoints`) is `IKSkeleton`/`IKNode` pointer-graph orchestration over the C++ classes with no numeric kernel of its own |
+| stdfx | stdfx/igs_motion_wind.cpp | stdfx/igs_motion_wind.rs | 8 + 576 recorded C++ cases (x2 `unsigned long` widths) | coarse (the whole scanline walk, 8/16-bit, 4/3/1 channels, 4 directions, optional 8/16-bit reference; drives `MotionWindPixel` directly; `igs_motion_wind.h` is an inline forwarder over `flare_igs_motion_wind_change`; goldens by `tests/native/gen_igs_motion_wind_change_cases.py --check`) |
 | sound | sound/tsioutils.cpp | sound/tsioutils.rs | (earlier) | coarse |
 | tnzbase | tnzbase/permissionsmanager.cpp | tnzbase/permissionsmanager.rs | (earlier) | fine |
 | stdfx | stdfx/naru_maxflow.cpp | stdfx/naru_maxflow.rs | 6 | coarse (whole graph; opaque C-ABI handle, naru_graph.h forwards) |
@@ -98,13 +99,14 @@ Batch 5 notes (`stdfx/igs_motion_wind_table`, `stdfx/igs_attenuation_distributio
 - Build note: the crate's staticlib is linked into `libtnzcore.dylib`, so `libtnzstdfx.dylib` carries `U _flare_igs_*` and resolves them at load. Also `-DOpenCV_DIR="$(brew --prefix opencv@4)/lib/cmake/opencv4"` is required on macOS: a stale `build/` configured against OpenCV 5 fails to compile `iwa_bloomfx.cpp` (`cv::getRotationMatrix2D`).
 - Differential parity for batch 5 (goldens committed, replayed by Rust tests — see `docs/sprints/SPRINT-2.md`): `igs_attenuation_cases.txt` (62 cases, structural fields exact) and `igs_motion_wind_cases.txt` (3 configs × 400 pixels). The harness found three real defects that unit tests had missed: `lens_starts` pointed at the row start instead of the first covered pixel; `rgb_to_lightness` had been normalised to `(max+min)/2` although the original is channel-order dependent; and the port assumed r,g,b while the tree is Toonz6 (`blu=0, gre, red, alp`). `tests/native/msvc_reference.build_and_run_host` builds the reference on POSIX with `-ffp-contract=off` so clang FMA contraction does not record a 1-ULP artifact.
 
-- Both C++ bridges are **transitional**: `igs_attenuation_distribution.h` + the two
-  `flare_igs_attenuation_*` exports exist only because `igs_fog.cpp` is still C++, and
-  `igs_motion_wind_pixel.h` + the four `flare_igs_motion_wind_pixel_*` exports exist only
-  because `igs_motion_wind.cpp` is. Each side carries a `TRANSITIONAL FFI` marker naming
-  the deletion set; when those two callers are ported, remove both halves together (and
-  `tests/native/igs_attenuation_wrapper_probe.cpp`). The `*_cases.txt` goldens stay — they
-  keep pinning the Rust against the archived C++ (same as `igs_color_blend`).
+- One of the two C++ bridges is **transitional**: `igs_attenuation_distribution.h` + the two
+  `flare_igs_attenuation_*` exports exist only because `igs_fog.cpp` is still C++. Each side
+  carries a `TRANSITIONAL FFI` marker naming the deletion set; when `igs_fog.cpp` is ported,
+  remove both halves together (and `tests/native/igs_attenuation_wrapper_probe.cpp`). The
+  `*_cases.txt` goldens stay: they keep pinning the Rust against the archived C++ (same as
+  `igs_color_blend`). The other bridge (`igs_motion_wind_pixel.h` + the four
+  `flare_igs_motion_wind_pixel_*` exports) was deleted when `igs_motion_wind.cpp` was ported
+  (Batch 8); `igs_motion_wind_cases*.txt` stay as the pixel-level golden.
 
 ### Build notes (macOS, Ninja + Corrosion)
 
@@ -167,3 +169,8 @@ Batch 8 notes (`iwa_noise1234`, `iwa_simplexnoise`, `igs_hsv_noise_in_camera`, `
 - Not C++-built here (no Qt): `iwa_glarefx.cpp`, `iwa_pnperspectivefx.cpp`, `iwa_fractalnoisefx.cpp` still call the unchanged `SimplexNoise::` / `Noise1234::` signatures; the four headers were checked with `g++ -fsyntax-only` and the originals/goldens with the harness above. The noise calls were already out-of-line calls into a separate .cpp, so the per-sample call cost is unchanged.
 
 **CMake guard:** after deleting a `.cpp`, remove it from every `CMakeLists.txt`. `python scripts/check_cmake_sources.py` (also run in CI) fails if a listed source is gone while a same-name `.rs` exists.
+
+Batch 8 notes (`igs_motion_wind`, `igs_motion_blur`, `igs_gaussian_blur`, `igs_maxmin*`):
+- `igs_motion_wind.cpp`: the scanline walk is now Rust and calls `MotionWindPixel` directly, so `igs_motion_wind_pixel.h`, its CMake entry and the four `flare_igs_motion_wind_pixel_*` exports are gone. Golden: 576 cases x 2 `unsigned long` widths (`igs_motion_wind_change_cases{,_32}.txt`), FNV-1a of the output bytes, arithmetic-only configs (bias 1, force 1) so it is exact on any libm; the original `.cpp` + pixel + table are rebuilt from git with g++ `-ffp-contract=off` (pixel/table from the older revision, since they were retired earlier).
+- Quirks kept: the vertical walk resets the wind key on `xx <= 0` (first column only, not first row); both walks sample the reference at `(xx, yy + refprev)`; `length_max <= 0 && length_min <= 0` returns before the `bits` check; unknown `direction` is a no-op.
+- Deviations (C++ UB / could not finish): `channels` outside 1..=4 refused (stack `double[4]` overrun); a sampled reference with `rw`/`rh`/`rc` < 1 refused (the C++ wrap loop never ends); wind table above 2^26 doubles refused (status 4 -> `std::bad_alloc`); the push-back `static_cast<T>(double)` saturates.

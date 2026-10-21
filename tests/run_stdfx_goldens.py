@@ -34,6 +34,14 @@ CHECKS = [
         "motion wind (32-bit word)",
         ["tests/native/gen_igs_motion_wind_cases.py", "--rng-bits", "32", "--check"],
     ),
+    (
+        "motion wind scanline walk (64-bit word)",
+        ["tests/native/gen_igs_motion_wind_change_cases.py", "--rng-bits", "64", "--check"],
+    ),
+    (
+        "motion wind scanline walk (32-bit word)",
+        ["tests/native/gen_igs_motion_wind_change_cases.py", "--rng-bits", "32", "--check"],
+    ),
 ]
 
 

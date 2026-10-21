@@ -46,7 +46,6 @@ set(HEADERS
     igs_median_filter_smooth.h
     igs_motion_blur.h
     igs_motion_wind.h
-    igs_motion_wind_pixel.h
     igs_negate.h
     igs_os_type.h
     igs_perlin_noise.h
@@ -178,7 +177,6 @@ set(SOURCES
     igs_maxmin_lens_matrix.cpp
     igs_maxmin_slrender.cpp
     igs_motion_blur.cpp
-    igs_motion_wind.cpp
     igs_radial_blur.cpp
     igs_resource_msg_from_err.cpp
     igs_resource_multithread.cpp
