@@ -23,6 +23,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.abspath(os.path.join(HERE, ".."))
 
 CHECKS = [
+    ("swf writer (FSWFStream, FPrimitive, FObj, FSound, FCT, FDTBitmaps)", ["tests/native/gen_swfwriter_cases.py", "--check"]),
     ("attenuation", ["tests/native/gen_igs_attenuation_cases.py", "--check"]),
     (
         "motion wind (64-bit word)",

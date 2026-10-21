@@ -221,18 +221,12 @@ set(SOURCES
 
     # Legacy Flash support sources (restored from upstream commit)
     ../common/flash/FAction.cpp
-    ../common/flash/FCT.cpp
-    ../common/flash/FDTBitmaps.cpp
     ../common/flash/FDTButtons.cpp
     ../common/flash/FDTFonts.cpp
     ../common/flash/FDTShapes.cpp
     ../common/flash/FDTSounds.cpp
     ../common/flash/FDTSprite.cpp
     ../common/flash/FDTText.cpp
-    ../common/flash/FObj.cpp
-    ../common/flash/FPrimitive.cpp
-    ../common/flash/FSWFStream.cpp
-    ../common/flash/FSound.cpp
     ../common/flash/XFLReader.cpp
     ../common/flash/XFLShape.cpp
     ../common/flash/SWFShape.h

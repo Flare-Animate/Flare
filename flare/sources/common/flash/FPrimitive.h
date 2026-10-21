@@ -28,7 +28,21 @@
 #include "tcommon.h"
 #include "Macromedia.h"
 #include <string>
-class FSWFStream;
+#include "FSWFStream.h"
+
+// FPrimitive.cpp was ported to FPrimitive.rs: the record writers below take the fields and
+// the FSWFStream handle (FSWFStream::Handle()); constructors stay inline here.
+extern "C" {
+int flare_fcolor_write(void *h, unsigned int red, unsigned int green, unsigned int blue, unsigned int alpha, int alpha_t);
+unsigned int flare_fmatrix_min_bits(int x, int y);
+int flare_fmatrix_write(void *h, unsigned short identity, unsigned int has_scale, unsigned int n_scale_bits,
+						int scale_x, int scale_y, unsigned int has_rotate, unsigned int n_rotate_bits,
+						int rotate_skew0, int rotate_skew1, unsigned int n_translate_bits,
+						int translate_x, int translate_y);
+unsigned int flare_frect_min_bits(int xmin, int xmax, int ymin, int ymax);
+int flare_frect_write(void *h, int xmin, int xmax, int ymin, int ymax);
+int flare_fstring_write(void *h, const unsigned char *text, size_t len, int null_end);
+}
 
 #ifdef WIN32 // added from DV
 #pragma warning(push)
@@ -91,16 +105,20 @@ class DVAPI FColor
 {
 public:
 	//! Default FColor is white (0xff, 0xff, 0xff), construct a FColor with Alpha channel off.
-	FColor(U32 _red = 0xff, U32 _green = 0xff, U32 _blue = 0xff);
+	FColor(U32 _red = 0xff, U32 _green = 0xff, U32 _blue = 0xff)
+		: red(_red), green(_green), blue(_blue), alpha(0xff), alphaT(false) {}
 
 	//! Construct a FColor with Alpha channel on.
-	FColor(U32 _red, U32 _green, U32 _blue, U32 _alpha);
+	FColor(U32 _red, U32 _green, U32 _blue, U32 _alpha)
+		: red(_red), green(_green), blue(_blue), alpha(_alpha), alphaT(true) {}
 
 	//! Construct a FColor with Alpha channel off.
-	FColor(FRGB rgb);
+	FColor(FRGB rgb)
+		: red(rgb.red), green(rgb.green), blue(rgb.blue), alpha(0xff), alphaT(false) {}
 
 	//! Construct a FColor with Alpha channel on.
-	FColor(FRGBA rgba);
+	FColor(FRGBA rgba)
+		: red(rgba.red), green(rgba.green), blue(rgba.blue), alpha(rgba.alpha), alphaT(true) {}
 
 	//! Returns red component.
 	int Red() { return (int)red; }
@@ -132,7 +150,10 @@ public:
 	};
 */
 	// Method for internal use.
-	void WriteToSWFStream(FSWFStream *_SWFStream);
+	void WriteToSWFStream(FSWFStream *_SWFStream)
+	{
+		flare_fcolor_write(_SWFStream->Handle(), red, green, blue, alpha, alphaT ? 1 : 0);
+	}
 
 private:
 	U32 red;	 // should be U8
@@ -146,8 +167,26 @@ class DVAPI FMatrix
 {
 
 public:
-	FMatrix(void);
+	//	Creates an identity matrix. (The fields the original left uninitialised are zeroed.)
+	FMatrix(void)
+	{
+		identity = true;
+		hasScale = false;
+		nScaleBits = 0;
+		scaleX = 1;
+		scaleY = 1;
 
+		hasRotate = false;
+		nRotateBits = 0;
+		rotateSkew0 = 0;
+		rotateSkew1 = 0;
+
+		nTranslateBits = 0;
+		translateX = 0;
+		translateY = 0;
+	}
+
+	//	The Matrix class constructor
 	FMatrix(U32 _hasScale,
 			SFIXED _scaleX,
 			SFIXED _scaleY,
@@ -155,11 +194,48 @@ public:
 			SFIXED _rotateSkew0,
 			SFIXED _rotateSkew1,
 			SCOORD _translateX,
-			SCOORD _translateY);
+			SCOORD _translateY)
+	{
+		hasScale = _hasScale;
 
-	void WriteToSWFStream(FSWFStream *_SWFStream);
+		scaleX = _scaleX;
+		scaleY = _scaleY;
 
-	FMatrix operator*(const FMatrix &b) const;
+		hasRotate = _hasRotate;
+		rotateSkew0 = _rotateSkew0;
+		rotateSkew1 = _rotateSkew1;
+
+		translateX = _translateX;
+		translateY = _translateY;
+
+		nScaleBits = MinBits(scaleX, scaleY);
+		nRotateBits = MinBits(rotateSkew0, rotateSkew1);
+		nTranslateBits = MinBits(translateX, translateY);
+
+		identity = false;
+	}
+
+	//	Writes the Matrix to the given _SWFStream.
+	void WriteToSWFStream(FSWFStream *_SWFStream)
+	{
+		flare_fmatrix_write(_SWFStream->Handle(), identity, hasScale, nScaleBits, scaleX, scaleY,
+							hasRotate, nRotateBits, rotateSkew0, rotateSkew1,
+							nTranslateBits, translateX, translateY);
+	}
+
+	FMatrix operator*(const FMatrix &b) const
+	{
+		SFIXED _scaleX = scaleX * b.scaleX + rotateSkew0 * b.rotateSkew1;
+		SFIXED _scaleY = scaleY * b.scaleY + rotateSkew0 * b.rotateSkew1;
+		SFIXED _rot0 = scaleX * b.rotateSkew0 + rotateSkew0 * b.scaleY;
+		SFIXED _rot1 = rotateSkew1 * b.scaleX + scaleY * b.rotateSkew1;
+
+		return FMatrix(
+			_scaleX != 1 || scaleY != 1, _scaleX, _scaleY,
+			_rot0 != 0 || _rot1 != 0, _rot0, _rot1,
+			scaleX * b.translateX + rotateSkew0 * b.translateY + translateX,
+			rotateSkew1 * b.translateX + scaleY * b.translateY + translateY);
+	}
 
 public:
 	U32 hasScale;
@@ -177,7 +253,8 @@ public:
 	SCOORD translateX;
 	SCOORD translateY;
 
-	U32 MinBits(S32 x, S32 y);
+	// Minimum number of bits for two signed numbers (the larger magnitude, signed).
+	U32 MinBits(S32 x, S32 y) { return flare_fmatrix_min_bits(x, y); }
 	U16 identity;
 };
 
@@ -187,7 +264,13 @@ class DVAPI FRect
 {
 public:
 	FRect() { xmin = ymin = xmax = ymax = 0; }
-	FRect(SCOORD xmin, SCOORD ymin, SCOORD xmax, SCOORD ymax);
+	FRect(SCOORD _xmin, SCOORD _ymin, SCOORD _xmax, SCOORD _ymax)
+	{
+		xmin = _xmin;
+		xmax = _xmax;
+		ymin = _ymin;
+		ymax = _ymax;
+	}
 
 	SCOORD Xmin() { return xmin; }
 	SCOORD Ymin() { return ymin; }
@@ -201,7 +284,10 @@ public:
 	void SetXmax(SCOORD val) { xmax = val; }
 	void SetYmax(SCOORD val) { ymax = val; }
 
-	void WriteToSWFStream(FSWFStream *_SWFStream);
+	void WriteToSWFStream(FSWFStream *_SWFStream)
+	{
+		flare_frect_write(_SWFStream->Handle(), xmin, xmax, ymin, ymax);
+	}
 
 private:
 	SCOORD xmin;
@@ -209,7 +295,7 @@ private:
 	SCOORD ymin;
 	SCOORD ymax;
 
-	U32 MinBits(void);
+	U32 MinBits(void) { return flare_frect_min_bits(xmin, xmax, ymin, ymax); }
 };
 
 // a flash string
@@ -218,11 +304,14 @@ class DVAPI FString
 {
 
 public:
-	FString(const U8 *_string);
-	FString(const char *_string);
+	FString(const U8 *_string) { text = (const char *)_string; }
+	FString(const char *_string) { text = _string; }
 	std::string GetString() { return text; }
 
-	void WriteToSWFStream(FSWFStream *_SWFStream, bool writeNull);
+	void WriteToSWFStream(FSWFStream *_SWFStream, bool null_end)
+	{
+		flare_fstring_write(_SWFStream->Handle(), (const unsigned char *)text.data(), text.length(), null_end ? 1 : 0);
+	}
 	U16 Length() { return text.length(); }
 
 private:

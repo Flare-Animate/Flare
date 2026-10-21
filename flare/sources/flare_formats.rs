@@ -20,6 +20,18 @@ pub mod moho;
 pub mod swf;
 #[path = "common/flash/FDT.rs"]
 pub mod fdt;
+#[path = "common/flash/FSWFStream.rs"]
+pub mod fswfstream;
+#[path = "common/flash/FPrimitive.rs"]
+pub mod fprimitive;
+#[path = "common/flash/FObj.rs"]
+pub mod fobj;
+#[path = "common/flash/FSound.rs"]
+pub mod fsound;
+#[path = "common/flash/FCT.rs"]
+pub mod fct;
+#[path = "common/flash/FDTBitmaps.rs"]
+pub mod fdtbitmaps;
 #[path = "common/flash/xfl.rs"]
 pub mod xfl;
 
