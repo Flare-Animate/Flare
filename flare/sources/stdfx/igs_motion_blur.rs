@@ -736,6 +736,7 @@ mod tests {
             let mine = set_smooth(cfg.0, cfg.1, cfg.2, cfg.3, cfg.4, cfg.5).unwrap();
             // pixel selection depends on libm comparisons: hard requirement only on glibc
             let strict = cfg!(all(target_os = "linux", target_env = "gnu"));
+            let max_ulps = if strict { 4 } else { 64 }; // other libms drift a few ULP
             let structure = mine.xs == rec.xs && mine.ys == rec.ys && mine.ratio.len() == rec.ratio.len();
             if strict {
                 assert_eq!(mine.xs, rec.xs, "cfg {ci}: pixels");
@@ -745,7 +746,7 @@ mod tests {
             }
             if structure {
                 for (i, (a, b)) in mine.ratio.iter().zip(&rec.ratio).enumerate() {
-                    assert!(ulps(*a, *b) <= 4, "cfg {ci} weight {i}: {a:e} vs {b:e}");
+                    assert!(ulps(*a, *b) <= max_ulps, "cfg {ci} weight {i}: {a:e} vs {b:e}");
                 }
             }
             let same = structure && mine.ratio.iter().zip(&rec.ratio).all(|(a, b)| a.to_bits() == b.to_bits());
