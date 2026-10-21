@@ -167,7 +167,6 @@ set(SOURCES
     warp.cpp
     warpfx.cpp
     igs_fog.cpp
-    igs_line_blur.cpp
     igs_radial_blur.cpp
     igs_resource_msg_from_err.cpp
     igs_resource_multithread.cpp
