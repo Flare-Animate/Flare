@@ -19,11 +19,31 @@
 
 > **Early alpha.** Expect bugs and incomplete Flash/Animate import fidelity. Back up your work.
 
+# What is Flare?
+
+## Introduction
+
+Flare is a (Work In Progress) Animation Suite, designed to make the transition from software like *Adobe Animate*, *Adobe/Macromedia Flash* and *Moho* easier for Artists and Animators. 
+
+We are planning to do this by implementing support for all formats used by those tools (so users can use all the same project files as if nothing has changed), and redesigning the UI to have a more simplistic and familiar layout, which can also be further customised to match exactly how you want it. 
+
+It is currently being rewritten in **Rust**, and is based predominantly on *OpenToonz* and *Tahoma*, with many features being merged in from *AnimationCraft* and *Next2Flash*, which have been absorbed into Flare.
+
+## Why does this exist?
+
+Well, for a few reasons.
+
+First and foremost, due to the [Announcement](https://community.adobe.com/announcements-539/adobe-animate-end-of-life-and-support-timeline-1548220) by Adobe earlier this year to discontinue Adobe Animate. While this was later [u-turned on](https://community.adobe.com/announcements-539/update-on-the-status-of-adobe-animate-1548459), in my opinion it shows how volatile the Animation Industry is and displays how much of a monopoly certain companies have on it. There was legitimate panic over it, and I think that people shouldn't have to be concerned for their careers just because one product isn't being sold anymore.
+
+Secondly, it was for personal use, I used Flare in the first few months as a playground to experiment with making Animation easier for me to learn, so I could basically finetune it to what I liked  best, and I decided to Open Source it, to which many people liked it, and with one Discord and the announcement of ArtCraft later, interest in contributing to Flare went up quite a bit!
+
+I had been slowly just experimenting with Flare with minimal focus over the previous months, but now that I had finished with another side-project, I decided to put more time into fleshing out Flare.
+
 ## Features
 
 - Animate-style workspace with Drawing / Animation / Rigging / Compositing rooms (other room layouts under **Preferences > Interface > Rooms**).
 - Vector and raster drawing, xsheet/timeline, plastic rigging, FX schematic, motion tracking, script console (inherited).
-- Flash/Animate import: `.fla`, `.xfl`, `.swf`, `.swc`, `.flv`/`.f4v`, `.as`, legacy binary `.fla`, AIR/ZXP/MXP packages. Fidelity is partial; vector shapes are not yet converted to levels ([STATUS.md](docs/STATUS.md), [FLASH_SUPPORT.md](docs/FLASH_SUPPORT.md)).
+- Flash/Animate File Support: `.fla`, `.xfl`, `.swf`, `.swc`, `.flv`/`.f4v`, `.as`, legacy binary `.fla`, AIR/ZXP/MXP packages. Fidelity is partial; vector shapes are not yet converted to levels ([STATUS.md](docs/STATUS.md), [FLASH_SUPPORT.md](docs/FLASH_SUPPORT.md)).
 - Moho project reading: structure, rig and asset manifest, no rendering atm ([MOHO_SUPPORT.md](docs/MOHO_SUPPORT.md)).
 
 Full format table, repository layout, tests and roadmap: [docs/FEATURES.md](docs/FEATURES.md).
@@ -37,8 +57,10 @@ Nightly builds: **[latest nightly release](https://github.com/Flare-Animate/Flar
 | Windows 10/11 x64 | `Flare-Windows-Portable-nightly.zip` |
 | Linux x86_64 (glibc 2.35+) | `Flare-x86_64.AppImage` |
 | macOS 13+ | `Flare.dmg` |
+| FreeBSD | `Coming Soon` |
+| Android | `Coming Soon` |
+| Web | `Coming Soon` |
 
-Optional: FFmpeg on `PATH` for `.swf`/`.flv`/`.f4v` playback. macOS and Linux first-launch notes: [docs/FEATURES.md](docs/FEATURES.md#install-notes).
 
 ## Build
 
@@ -49,10 +71,18 @@ cmake --build build -j2   # builds are memory-heavy; use -j1 below 4 GB RAM
 
 Guides: [Windows](docs/how_to_build_win.md) · [macOS](docs/how_to_build_macosx.md) · [Linux](docs/how_to_build_linux.md) · [BSD](docs/how_to_build_bsd.md) · [local builds](docs/LOCAL_BUILD.md)
 
-## Rust rewrite status
+## Rust Rewrite Status
 
 The C++ code is being ported to Rust incrementally: 329 tracked `.rs` files vs 1107 remaining `.c`/`.cpp` files under `flare/sources` (counted on `Rust-Rewrite`).
-Details: [RUST_REWRITE.md](docs/RUST_REWRITE.md) · [PORTING.md](docs/PORTING.md) · [REWRITE_BACKLOG.md](docs/REWRITE_BACKLOG.md)
+Details: [RUST_REWRITE.md](docs/RUST_REWRITE.md) · [PORTING.md](docs/PORTING.md) · [REWRITE_BACKLOG.md](docs/REWRITE_BACKLOG.md
+
+## Is this Vibecoded?
+
+Yes and No.
+
+While it is true that Agents such as Claude have been used during Flare's development, and at times carrying the bulk of development, the project is built ontop of a human-written codebase and is overseen and, when we are able, worked on by people.
+
+We actively try our best to put as much human output into the project as possible and are currently looking for more developers that can donate their time to the project.
 
 ## Contributing and community
 
