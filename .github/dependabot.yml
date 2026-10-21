@@ -12,11 +12,8 @@ updates:
     schedule:
       interval: "weekly"
 
-  # Node/npm dependencies
-  - package-ecosystem: "npm"
-    directory: "/"
-    schedule:
-      interval: "weekly"
+  # (npm removed: no package.json exists in the repo; the webapp under
+  #  tools/flash/webapp has no dependencies.)
 
   # vcpkg dependencies (if you keep a vcpkg.json manifest)
   - package-ecosystem: "gitsubmodule"

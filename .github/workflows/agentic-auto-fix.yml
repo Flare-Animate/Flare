@@ -7,6 +7,9 @@ on:
 
 jobs:
   auto-fix:
+    # Intentionally opt-in: shows as 'skipped' on every PR that lacks the
+    # 'agentic-auto-fix' label. (The .lock.yml sibling is the compiled
+    # workflow; it is currently a placeholder that always runs.)
     if: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'agentic-auto-fix') }}
     runs-on: windows-2022
     steps:
