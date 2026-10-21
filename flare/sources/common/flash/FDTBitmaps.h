@@ -69,11 +69,7 @@ int flare_fdt_define_bits_lossless(void *out, unsigned short character_id, unsig
 								   unsigned int compressed_size, int alpha);
 }
 
-inline void flare_fdt_check(int status)
-{
-	if (status)
-		throw std::invalid_argument("FDTBitmaps: invalid argument");
-}
+// flare_fdt_check() (throws std::invalid_argument on a non-zero status) is declared in FDT.h.
 
 // A flash object which defines a jpeg bitmap image (flash 1.0)
 

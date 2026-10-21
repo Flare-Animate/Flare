@@ -41,7 +41,7 @@ FLASH = "flare/sources/common/flash"
 GOLDEN = os.path.join(SRC, "common", "flash", "swfwriter_cases.txt")
 CXXFLAGS = ["-O2", "-std=c++17", "-ffp-contract=off", "-DLINUX", "-DTNZ_LITTLE_ENDIAN", "-DNDEBUG", "-w",
             "-include", "string", "-include", "cstdint", "-include", "cstring", "-include", "cstdlib"]
-PORTED = ["FSWFStream", "FPrimitive", "FObj", "FSound", "FCT", "FDTBitmaps"]
+PORTED = ["FSWFStream", "FPrimitive", "FObj", "FSound", "FCT", "FDTBitmaps", "FDTFonts", "FDTText", "FDTButtons"]
 KEPT = ["FDTShapes", "FAction", "FDTSounds"]  # original builds only: now inline headers in the tree
 
 

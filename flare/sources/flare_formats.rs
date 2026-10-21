@@ -40,6 +40,12 @@ pub mod faction;
 pub mod fdtsprite;
 #[path = "common/flash/FDTSounds.rs"]
 pub mod fdtsounds;
+#[path = "common/flash/FDTFonts.rs"]
+pub mod fdtfonts;
+#[path = "common/flash/FDTText.rs"]
+pub mod fdttext;
+#[path = "common/flash/FDTButtons.rs"]
+pub mod fdtbuttons;
 #[path = "common/flash/xfl.rs"]
 pub mod xfl;
 
