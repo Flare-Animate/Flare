@@ -49,7 +49,7 @@ def main() -> int:
     ap.add_argument("--check", action="store_true", help="do not write; exit 1 on drift")
     args = ap.parse_args()
 
-    walk_rev = ms.pre_deletion_revision(WALK_SRCS[0])
+    walk_rev = ms.pre_deletion_tree(WALK_SRCS[0])
     pix_rev = ms.pre_deletion_revision(pix.SRCS[0])
     stdfx = os.path.join(ms.ROOT, "flare", "sources", "stdfx")
     with tempfile.TemporaryDirectory(prefix="igswindchg-") as workdir:
