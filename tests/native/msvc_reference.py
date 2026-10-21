@@ -130,6 +130,17 @@ def build_and_run_host(
     cxx = os.environ.get("CXX") or shutil.which("g++") or shutil.which("clang++")
     if not cxx:
         sys.exit("no host C++ compiler found (set CXX)")
+    # Verify the compiler can actually find standard headers; some environments
+    # (scoop clang on Windows, minimal containers) have the binary but not the
+    # C++ standard library development headers.
+    _probe = os.path.join(workdir, "_probe.cpp")
+    with open(_probe, "w") as fh:
+        fh.write("#include <cstdint>\n#include <vector>\n#include <cmath>\nint main(){return 0;}\n")
+    try:
+        subprocess.run([cxx, "-std=c++17", "-c", _probe, "-o", os.path.join(workdir, "_probe.o")],
+                       cwd=workdir, check=True, capture_output=True)
+    except subprocess.CalledProcessError:
+        sys.exit("host C++ compiler cannot find standard headers; skipping golden check")
     argv = [
         cxx,
         "-O2",
