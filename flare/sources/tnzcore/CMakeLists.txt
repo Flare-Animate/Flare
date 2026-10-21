@@ -220,12 +220,8 @@ set(SOURCES
     ../common/tvrender/tflash.cpp
 
     # Legacy Flash support sources (restored from upstream commit)
-    ../common/flash/FAction.cpp
     ../common/flash/FDTButtons.cpp
     ../common/flash/FDTFonts.cpp
-    ../common/flash/FDTShapes.cpp
-    ../common/flash/FDTSounds.cpp
-    ../common/flash/FDTSprite.cpp
     ../common/flash/FDTText.cpp
     ../common/flash/XFLReader.cpp
     ../common/flash/XFLShape.cpp

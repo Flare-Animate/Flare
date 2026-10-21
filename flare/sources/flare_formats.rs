@@ -32,6 +32,14 @@ pub mod fsound;
 pub mod fct;
 #[path = "common/flash/FDTBitmaps.rs"]
 pub mod fdtbitmaps;
+#[path = "common/flash/FDTShapes.rs"]
+pub mod fdtshapes;
+#[path = "common/flash/FAction.rs"]
+pub mod faction;
+#[path = "common/flash/FDTSprite.rs"]
+pub mod fdtsprite;
+#[path = "common/flash/FDTSounds.rs"]
+pub mod fdtsounds;
 #[path = "common/flash/xfl.rs"]
 pub mod xfl;
 

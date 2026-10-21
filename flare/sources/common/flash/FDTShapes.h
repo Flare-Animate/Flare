@@ -54,6 +54,75 @@
 #include "FPrimitive.h"
 #include "tpixel.h"
 
+#include <assert.h>
+#include <list>
+#include <map>
+#include <stdexcept>
+#include <vector>
+
+// FDTShapes.cpp was ported to FDTShapes.rs: the record layouts (colour transforms, style array
+// counts, fill / line style heads, shape records, the DefineShape / DefineMorphShape tag assembly)
+// are written there. The classes (the owning pointer graph of styles and shape records, virtual
+// WriteToSWFStream / IncludeNFillBitInfo, FColor / FMatrix / FRect sub-objects) stay in this
+// header with inline member definitions at the end of the file.
+extern "C" {
+unsigned int flare_fcxform_min_bits(int rm, int gm, int bm, int ra, int ga, int ba);
+unsigned int flare_fcxform_alpha_min_bits(int rm, int gm, int bm, int am, int ra, int ga, int ba, int aa);
+int flare_fcxform_write(void *out, unsigned int has_add, unsigned int has_mult, unsigned int n_bits, int rm, int gm, int bm,
+						int ra, int ga, int ba);
+int flare_fcxform_alpha_write(void *out, unsigned int has_add, unsigned int has_mult, unsigned int n_bits, int rm, int gm,
+							  int bm, int am, int ra, int ga, int ba, int aa);
+int flare_fstyle_array_count(void *out, unsigned int size);
+int flare_ffill_style_head(void *out, int kind, int flag, unsigned short bitmap_id);
+int flare_fgradient_head(void *out, unsigned int count);
+int flare_fgrad_ratio(void *out, unsigned int ratio);
+int flare_fline_style_head(void *out, unsigned int width);
+int flare_fmorph_line_style_head(void *out, unsigned int width1, unsigned int width2);
+int flare_fshape_head(void *out, unsigned int n_fill_bits, unsigned int n_line_bits);
+unsigned int flare_fshaperec_change_min_bits(int dx, int dy);
+int flare_fshaperec_change_head(void *out, unsigned int state_new_styles, unsigned int state_line_style,
+								unsigned int state_fill_style1, unsigned int state_fill_style0, unsigned int state_move_to,
+								unsigned int n_move_bits, int move_dx, int move_dy, unsigned int fill0_style,
+								unsigned int fill1_style, unsigned int line_style, unsigned int n_fill_bits,
+								unsigned int n_line_bits);
+int flare_fshaperec_change_new_styles(void *out, unsigned int fill_count, unsigned int line_count, unsigned int *n_fill_bits,
+									  unsigned int *n_line_bits);
+// layout shared with StraightEdge in FDTShapes.rs
+struct FlareStraightEdge {
+	unsigned int general_line_flag;
+	int general_delta_x;
+	int general_delta_y;
+	unsigned int vertical_line_flag;
+	int horizontal_delta_x;
+	int vertical_delta_y;
+	unsigned int n_bits;
+};
+int flare_fedge_straight_new(int dx, int dy, FlareStraightEdge *edge);
+int flare_fedge_straight_write(void *out, const FlareStraightEdge *edge);
+unsigned int flare_fedge_curved_min_bits(int control_dx, int control_dy, int anchor_dx, int anchor_dy);
+int flare_fedge_curved_write(void *out, unsigned int n_bits, int control_dx, int control_dy, int anchor_dx, int anchor_dy);
+int flare_fshaperec_end_write(void *out);
+int flare_fdt_shape_head(void *body, unsigned short character_id);
+int flare_fdt_shape_finish(void *out, int kind, void *body);
+int flare_fdt_morph_join(void *body, void *temp);
+}
+enum {
+	FLARE_FILL_KIND_SOLID = 0,
+	FLARE_FILL_KIND_BITMAP = 1,
+	FLARE_FILL_KIND_GRADIENT = 2
+};
+enum {
+	FLARE_SHAPE_TAG_SHAPE = 0,
+	FLARE_SHAPE_TAG_SHAPE2 = 1,
+	FLARE_SHAPE_TAG_SHAPE3 = 2,
+	FLARE_SHAPE_TAG_MORPH = 3
+};
+inline void flare_fshapes_check(int status)
+{
+	if (status)
+		throw std::invalid_argument("FDTShapes: invalid argument");
+}
+
 class FMorphFillStyle;
 class FMorphLineStyle;
 class FShapeRec;
@@ -1185,14 +1254,7 @@ public:
 	virtual void IncludeNLineBitInfo(U32 _nLineBits);
 
 private:
-	U32 edgeFlag;
-	U32 nBits;
-	U32 generalLineFlag;
-	S32 generalDeltaX;
-	S32 generalDeltaY;
-	U32 verticalLineFlag;
-	S32 horizontalDeltaX;
-	S32 verticalDeltaY;
+	FlareStraightEdge edge; // flags, deltas and nBits (computed by flare_fedge_straight_new)
 	U32 MinBits(void);
 };
 
@@ -1226,7 +1288,6 @@ public:
 	virtual void IncludeNLineBitInfo(U32 _nLineBits);
 
 private:
-	U32 edgeFlag;
 	U32 nBits;
 	S32 controlDeltaX;
 	S32 controlDeltaY;
@@ -1271,6 +1332,1458 @@ private:
 	U32 nLineBits;
 	std::vector<FShapeRec *> shapeRecs; //see comments, will need to be changed
 };
+
+
+//=============================================================================
+//   Member definitions (FDTShapes.cpp was ported to FDTShapes.rs)
+//=============================================================================
+
+//////////////////////////////////////////////////////////////////////////////////////
+//  --------  FCXForm ----------------------------------------------------------------
+
+inline FCXForm::FCXForm(U32 _hasAdd, U32 _hasMult, S32 _redMultTerm, S32 _greenMultTerm, S32 _blueMultTerm, S32 _redAddTerm, S32 _greenAddTerm, S32 _blueAddTerm)
+{
+	hasAdd = _hasAdd;
+	hasMult = _hasMult;
+	redMultTerm = _redMultTerm;
+	greenMultTerm = _greenMultTerm;
+	blueMultTerm = _blueMultTerm;
+	redAddTerm = _redAddTerm;
+	greenAddTerm = _greenAddTerm;
+	blueAddTerm = _blueAddTerm;
+	nBits = MinBits();
+}
+
+//
+inline U32 FCXForm::MinBits()
+{
+
+	return flare_fcxform_min_bits(redMultTerm, greenMultTerm, blueMultTerm, redAddTerm, greenAddTerm, blueAddTerm);
+}
+
+//
+inline void FCXForm::WriteToSWFStream(FSWFStream *_SWFStream)
+{
+
+	flare_fshapes_check(flare_fcxform_write(_SWFStream->Handle(), hasAdd, hasMult, nBits, redMultTerm, greenMultTerm,
+											blueMultTerm, redAddTerm, greenAddTerm, blueAddTerm));
+}
+
+//////////////////////////////////////////////////////////////////////////////////////
+//  --------  FCXFormWAlpha ----------------------------------------------------------
+
+inline FCXFormWAlpha::FCXFormWAlpha(U32 _hasAdd, U32 _hasMult, S32 _redMultTerm, S32 _greenMultTerm, S32 _blueMultTerm, S32 _alphaMultTerm,
+							 S32 _redAddTerm, S32 _greenAddTerm, S32 _blueAddTerm, S32 _alphaAddTerm)
+	: FCXForm(_hasAdd, _hasMult, _redMultTerm, _greenMultTerm, _blueMultTerm,
+			  _redAddTerm, _greenAddTerm, _blueAddTerm)
+{
+	alphaMultTerm = _alphaMultTerm;
+
+	alphaAddTerm = _alphaAddTerm;
+
+	nBits = MinBits();
+}
+
+inline U32 FCXFormWAlpha::MinBits()
+{
+
+	return flare_fcxform_alpha_min_bits(redMultTerm, greenMultTerm, blueMultTerm, alphaMultTerm,
+										redAddTerm, greenAddTerm, blueAddTerm, alphaAddTerm);
+}
+
+inline void FCXFormWAlpha::WriteToSWFStream(FSWFStream *_SWFStream)
+{
+
+	//fill? I think so (the flush comes first here, not last as in FCXForm)
+	flare_fshapes_check(flare_fcxform_alpha_write(_SWFStream->Handle(), hasAdd, hasMult, nBits, redMultTerm, greenMultTerm,
+												  blueMultTerm, alphaMultTerm, redAddTerm, greenAddTerm, blueAddTerm,
+												  alphaAddTerm));
+}
+
+//////////////////////////////////////////////////////////////////////////////////////
+//  --------  FDTDefineMorphShape ----------------------------------------------------
+
+inline FDTDefineMorphShape::FDTDefineMorphShape(FRect *_rect1, FRect *_rect2)
+{
+
+	characterID = FObjCollection::Increment();
+	shapeBounds_1 = _rect1;
+	shapeBounds_2 = _rect2;
+	morphFillStyleArray = new FFillStyleArray();
+	morphLineStyleArray = new FLineStyleArray();
+	styleArraysFinished = false;
+}
+
+inline FDTDefineMorphShape::~FDTDefineMorphShape()
+{
+
+	delete shapeBounds_1;
+	delete shapeBounds_2;
+	delete morphFillStyleArray;
+	delete morphLineStyleArray;
+}
+
+inline U32 FDTDefineMorphShape::AddFillStyle(FMorphFillStyle *fillStyle)
+{
+
+	assert(!styleArraysFinished);
+	return morphFillStyleArray->Add(fillStyle);
+}
+
+inline U32 FDTDefineMorphShape::AddLineStyle(U32 startLineWidth, FColor *startLineColor,
+									  U32 finalLineWidth, FColor *finalLineColor)
+{
+	assert(!styleArraysFinished);
+
+	// here changed.
+	// morph shape always has RGBA color.
+	startLineColor->AlphaChannel(true);
+	finalLineColor->AlphaChannel(true);
+
+	// Create a morph line style (one which contains both "morph from" and "morph to" line style information
+	FMorphLineStyle *startToFinalLine = new FMorphLineStyle(startLineWidth, finalLineWidth,
+															startLineColor, finalLineColor);
+	return morphLineStyleArray->Add(startToFinalLine);
+}
+
+inline void FDTDefineMorphShape::FinishStyleArrays(void)
+{
+
+	styleArraysFinished = true;
+	nFillBits = FSWFStream::MinBits(morphFillStyleArray->Size(), 0);
+	nLineBits = FSWFStream::MinBits(morphLineStyleArray->Size(), 0);
+
+	shape1.SetFillBits(nFillBits);
+	shape1.SetLineBits(nLineBits);
+
+	// asumption: shape2 will never contain fill or line syle info and this means no need
+	// for fill or line style bits
+}
+
+inline void FDTDefineMorphShape::AddShapeRec_1(FShapeRec *_shapeRec)
+{
+
+	assert(styleArraysFinished);
+	shape1.AddShapeRec(_shapeRec);
+}
+
+inline void FDTDefineMorphShape::AddEdgeRec_2(FShapeRec *_shapeRec)
+{
+
+	assert(styleArraysFinished);
+	_shapeRec->IncludeNFillBitInfo(0); // Always Zero
+	_shapeRec->IncludeNLineBitInfo(0);
+	shape2.AddShapeRec(_shapeRec);
+}
+
+inline U16 FDTDefineMorphShape::ID(void)
+{
+
+	return characterID;
+}
+
+inline void FDTDefineMorphShape::WriteToSWFStream(FSWFStream *_SWFStream)
+{
+	FSWFStream body;
+
+	flare_fshapes_check(flare_fdt_shape_head(body.Handle(), characterID));
+
+	shapeBounds_1->WriteToSWFStream(&body);
+
+	shapeBounds_2->WriteToSWFStream(&body);
+
+	FSWFStream temp;
+
+	morphFillStyleArray->WriteToSWFStream(&temp);
+	morphLineStyleArray->WriteToSWFStream(&temp);
+
+	shape1.WriteToSWFStream(&temp);
+
+	flare_fshapes_check(flare_fdt_morph_join(body.Handle(), temp.Handle()));
+
+	shape2.WriteToSWFStream(&body);
+
+	flare_fshapes_check(flare_fdt_shape_finish(_SWFStream->Handle(), FLARE_SHAPE_TAG_MORPH, body.Handle()));
+}
+
+//////////////////////////////////////////////////////////////////////////////////////
+//  --------  FDTDefineShape ---------------------------------------------------------
+
+inline FDTDefineShape::FDTDefineShape(FRect *_rect)
+{
+
+	characterID = FObjCollection::Increment();
+	shapeBounds = _rect;
+	fillStyleArray = new FFillStyleArray();
+	lineStyleArray = new FLineStyleArray();
+	shapeWithStyle = NULL;
+	styleArraysFinished = false;
+}
+
+inline FDTDefineShape::~FDTDefineShape()
+{
+
+	delete fillStyleArray;
+	delete lineStyleArray;
+	delete shapeBounds;
+	delete shapeWithStyle;
+}
+
+inline void FDTDefineShape::AddShapeRec(FShapeRec *_shapeRec)
+{
+
+	//you must be done creating the fill style and line style arrays
+	//before you can begin adding shape records
+	assert(styleArraysFinished);
+
+	//Change rec doesn't know how many bits for saving the FillStyle0
+	//and FillStyle1.  It gets this from the ShapeWithStyle which contains
+	//it.  What happens when the change Rec also contains Fill and Line
+	//Syles???  The other types of ShapeRecs just use the "current style"
+	//and don't need this info so their methods don't actually do anything.
+	//Why not just go to the container when writing?
+	_shapeRec->IncludeNFillBitInfo(shapeWithStyle->NumFillBits());
+	_shapeRec->IncludeNLineBitInfo(shapeWithStyle->NumLineBits());
+	//now have the shapeWithStyle add the ShapeRec
+	shapeWithStyle->AddShapeRec(_shapeRec);
+}
+
+//This shapes internal fillStyleArray adds a fillStyle to itself.
+inline U32 FDTDefineShape::AddFillStyle(FFillStyle *fillStyle)
+{
+
+	assert(!styleArraysFinished); //once complete, cannot change
+	return fillStyleArray->Add(fillStyle);
+}
+// here changed.
+inline U32 FDTDefineShape::AddSolidFillStyle(FColor *fillColor)
+{
+	fillColor->AlphaChannel(false);
+	FFillStyle *fillStyle = new FFillStyleSolid(fillColor);
+
+	assert(!styleArraysFinished); //once complete, cannot change
+	return fillStyleArray->Add(fillStyle);
+}
+
+inline U32 FDTDefineShape::AddLineStyle(U32 lineWidth, FColor *lineColor)
+{
+
+	assert(!styleArraysFinished); //once complete, cannot change
+
+	// here changed.
+	lineColor->AlphaChannel(false);
+	FLineStyle *lineStyle = new FLineStyle(lineWidth, lineColor);
+
+	//add line style to rectangle, remembering to store the position of the line style
+	//just as in the fill style
+	return lineStyleArray->Add(lineStyle);
+}
+
+/*!	Creates the shape with style.  Can only do this once the fill style
+	and line style arrays are complete because the shapeWithStyle constructor
+	takes in complete fill and line style arrays. 
+*/
+inline void FDTDefineShape::FinishStyleArrays(void)
+{
+
+	styleArraysFinished = true;
+	shapeWithStyle = new FShapeWStyle(fillStyleArray, lineStyleArray);
+	fillStyleArray = NULL; /*AMM*/
+	lineStyleArray = NULL;
+}
+
+inline U16 FDTDefineShape::ID(void)
+{
+
+	return characterID;
+}
+
+//Called by the FObjCollection when writing to the stream
+//In turn, it calls the WriteToSWFStream methods of its embedded objects.
+
+inline void FDTDefineShape::WriteToSWFStream(FSWFStream *_SWFStream)
+{
+	FSWFStream tempBuffer;
+
+	flare_fshapes_check(flare_fdt_shape_head(tempBuffer.Handle(), characterID));
+	shapeBounds->WriteToSWFStream(&tempBuffer);
+	shapeWithStyle->WriteToSWFStream(&tempBuffer);
+
+	flare_fshapes_check(flare_fdt_shape_finish(_SWFStream->Handle(), FLARE_SHAPE_TAG_SHAPE, tempBuffer.Handle()));
+}
+
+inline bool FDTDefineShape::IsDefineShape()
+{
+	return true;
+}
+
+//////////////////////////////////////////////////////////////////////////////////////
+//  --------  FDTDefineShape2 --------------------------------------------------------
+inline FDTDefineShape2::FDTDefineShape2(FRect *_rect)
+{
+
+	characterID = FObjCollection::Increment();
+	shapeBounds = _rect;
+	fillStyleArray = new FFillStyleArray();
+	lineStyleArray = new FLineStyleArray();
+	shapeWithStyle = NULL;
+	styleArraysFinished = false;
+}
+
+inline FDTDefineShape2::~FDTDefineShape2()
+{
+
+	delete fillStyleArray;
+	delete lineStyleArray;
+	delete shapeBounds;
+	delete shapeWithStyle;
+}
+
+inline void FDTDefineShape2::AddShapeRec(FShapeRec *_shapeRec)
+{
+
+	//you must be done creating the fill style and line style arrays
+	//before you can begin adding shape records
+	assert(styleArraysFinished);
+
+	_shapeRec->IncludeNFillBitInfo(shapeWithStyle->NumFillBits());
+	_shapeRec->IncludeNLineBitInfo(shapeWithStyle->NumLineBits());
+	shapeWithStyle->AddShapeRec(_shapeRec);
+}
+
+inline U32 FDTDefineShape2::AddFillStyle(FFillStyle *fillStyle)
+{
+
+	assert(!styleArraysFinished); //once complete, cannot change
+	return fillStyleArray->Add(fillStyle);
+}
+// here changed.
+inline U32 FDTDefineShape2::AddSolidFillStyle(FColor *fillColor)
+{
+	fillColor->AlphaChannel(false);
+	FFillStyle *fillStyle = new FFillStyleSolid(fillColor);
+
+	assert(!styleArraysFinished); //once complete, cannot change
+	return fillStyleArray->Add(fillStyle);
+}
+
+inline U32 FDTDefineShape2::AddLineStyle(U32 lineWidth, FColor *lineColor)
+{
+
+	assert(!styleArraysFinished); //once complete, cannot change
+
+	// here changed.
+	lineColor->AlphaChannel(false);
+	FLineStyle *lineStyle = new FLineStyle(lineWidth, lineColor);
+
+	//add line style to rectangle, remembering to store the position of the line style
+	//just as in the fill style
+	return lineStyleArray->Add(lineStyle);
+}
+
+//	Creates the shape with style.  Can only do this once the fill style
+//	and line style arrays are complete because the shapeWithStyle constructor
+//	takes in complete fill and line style arrays.
+
+inline void FDTDefineShape2::FinishStyleArrays(void)
+{
+
+	styleArraysFinished = true;
+	shapeWithStyle = new FShapeWStyle(fillStyleArray, lineStyleArray);
+	fillStyleArray = NULL; /*AMM*/
+	lineStyleArray = NULL;
+}
+
+inline U16 FDTDefineShape2::ID(void)
+{
+
+	return characterID;
+}
+
+inline bool FDTDefineShape2::IsDefineShape()
+{
+	assert(false);
+	return true;
+}
+
+inline void FDTDefineShape2::WriteToSWFStream(FSWFStream *_SWFStream)
+{
+	FSWFStream body;
+
+	flare_fshapes_check(flare_fdt_shape_head(body.Handle(), characterID));
+	shapeBounds->WriteToSWFStream(&body);
+	shapeWithStyle->WriteToSWFStream(&body);
+
+	flare_fshapes_check(flare_fdt_shape_finish(_SWFStream->Handle(), FLARE_SHAPE_TAG_SHAPE2, body.Handle()));
+}
+
+//////////////////////////////////////////////////////////////////////////////////////
+//  --------  FDTDefineShape3 --------------------------------------------------------
+inline FDTDefineShape3::FDTDefineShape3(FRect *_rect)
+{
+	characterID = FObjCollection::Increment();
+	shapeBounds = _rect;
+	fillStyleArray = new FFillStyleArray();
+	lineStyleArray = new FLineStyleArray();
+	shapeWithStyle = NULL;
+	styleArraysFinished = false;
+}
+
+//////////////////////////////////////////////////////////////////////////////////////
+
+inline FDTDefineShape3::FDTDefineShape3()
+{
+
+	characterID = FObjCollection::Increment();
+	shapeBounds = 0;
+	fillStyleArray = new FFillStyleArray();
+	lineStyleArray = new FLineStyleArray();
+	shapeWithStyle = NULL;
+	styleArraysFinished = false;
+}
+
+inline FDTDefineShape3::~FDTDefineShape3()
+{
+
+	delete fillStyleArray;
+	delete lineStyleArray;
+	delete shapeBounds;
+	delete shapeWithStyle;
+}
+
+inline void FDTDefineShape3::setBounds(FRect *_rect)
+{
+	if (shapeBounds)
+		delete shapeBounds;
+	shapeBounds = _rect;
+}
+
+//////////////////////////////////////////////////////////////////////////////////////
+
+inline bool FDTDefineShape3::IsDefineShape()
+{
+	return true;
+}
+
+//////////////////////////////////////////////////////////////////////////////////////
+
+inline FColor tpixel2fcolor(const TPixel &color)
+{
+	return FColor(color.r, color.g, color.b, color.m);
+}
+
+//////////////////////////////////////////////////////////////////////////////////////
+
+inline TPixel fcolor2tpixel(FColor &color)
+{
+	return TPixel(color.Red(), color.Green(), color.Blue(), color.Alpha());
+}
+
+//////////////////////////////////////////////////////////////////////////////////////
+
+inline void FDTDefineShape3::changeColor(const std::map<TPixel, TPixel> &table)
+{
+	unsigned int i;
+	if (fillStyleArray)
+		for (i = 0; i < fillStyleArray->Size(); i++) {
+			FAFillStyle *style = fillStyleArray->get(i);
+			if (style->IsSolidStyle()) {
+				TPixel oldColor = fcolor2tpixel(*(((FFillStyleSolid *)style)->getColor()));
+				std::map<TPixel, TPixel>::const_iterator it = table.find(oldColor);
+				if (it != table.end())
+					((FFillStyleSolid *)style)->setColor(new FColor(tpixel2fcolor(it->second)));
+			}
+		}
+
+	shapeWithStyle->changeColor(table);
+}
+
+//////////////////////////////////////////////////////////////////////////////////////
+
+inline void FDTDefineShape3::changeColor(const FColor &oldColor, const FColor &newColor)
+{
+	unsigned int i;
+	if (fillStyleArray)
+		for (i = 0; i < fillStyleArray->Size(); i++) {
+			FAFillStyle *style = fillStyleArray->get(i);
+			if (style->IsSolidStyle() && (*((FFillStyleSolid *)style)->getColor()) == oldColor)
+				((FFillStyleSolid *)style)->setColor(new FColor(newColor));
+		}
+
+	shapeWithStyle->changeColor(oldColor, newColor);
+}
+
+//////////////////////////////////////////////////////////////////////////////////////
+
+inline void FDTDefineShape3::AddShapeRec(FShapeRec *_shapeRec)
+{
+
+	//you must be done creating the fill style and line style arrays
+	//before you can begin adding shape records
+	assert(styleArraysFinished);
+
+	_shapeRec->IncludeNFillBitInfo(shapeWithStyle->NumFillBits());
+	_shapeRec->IncludeNLineBitInfo(shapeWithStyle->NumLineBits());
+	shapeWithStyle->AddShapeRec(_shapeRec);
+}
+
+inline U32 FDTDefineShape3::AddFillStyle(FFillStyle *fillStyle)
+{
+
+	assert(!styleArraysFinished); //once complete, cannot change
+	return fillStyleArray->Add(fillStyle);
+}
+
+// here changed.
+inline U32 FDTDefineShape3::AddSolidFillStyle(FColor *fillColor)
+{
+	fillColor->AlphaChannel(true);
+	FFillStyle *fillStyle = new FFillStyleSolid(fillColor);
+
+	assert(!styleArraysFinished); //once complete, cannot change
+	return fillStyleArray->Add(fillStyle);
+}
+
+inline U32 FDTDefineShape3::AddLineStyle(U32 lineWidth, FColor *lineColor)
+{
+
+	assert(!styleArraysFinished); //once complete, cannot change
+
+	// here changed.
+	lineColor->AlphaChannel(true);
+	FLineStyle *lineStyle = new FLineStyle(lineWidth, lineColor);
+
+	//add line style to rectangle, remembering to store the position of the line style
+	//just as in the fill style
+	return lineStyleArray->Add(lineStyle);
+}
+
+//	Creates the shape with style.  Can only do this once the fill style
+//	and line style arrays are complete because the shapeWithStyle constructor
+//	takes in complete fill and line style arrays.
+
+inline void FDTDefineShape3::FinishStyleArrays(void)
+{
+
+	styleArraysFinished = true;
+	shapeWithStyle = new FShapeWStyle(fillStyleArray, lineStyleArray);
+	fillStyleArray = NULL;
+	lineStyleArray = NULL;
+}
+
+inline U16 FDTDefineShape3::ID(void)
+{
+
+	return characterID;
+}
+
+inline void FDTDefineShape3::WriteToSWFStream(FSWFStream *_SWFStream)
+{
+	FSWFStream body;
+
+	flare_fshapes_check(flare_fdt_shape_head(body.Handle(), characterID));
+	shapeBounds->WriteToSWFStream(&body);
+	shapeWithStyle->WriteToSWFStream(&body);
+
+	flare_fshapes_check(flare_fdt_shape_finish(_SWFStream->Handle(), FLARE_SHAPE_TAG_SHAPE3, body.Handle()));
+}
+
+//////////////////////////////////////////////////////////////////////////////////////
+//  --------  FFillStyleArray --------------------------------------------------------
+
+inline FFillStyleArray::~FFillStyleArray()
+{
+	while (!fillStyleArray.empty()) {
+		delete fillStyleArray.back();
+		fillStyleArray.pop_back();
+	}
+}
+
+//	Returns the size of the fill style list.
+inline U32 FFillStyleArray::Size(void)
+{
+	return (U32)fillStyleArray.size();
+}
+
+//	The given fill style is added to the end of the fill style array.  The position of
+//  the added fill style is returned so that the fill style can later be referenced.
+
+inline U32 FFillStyleArray::Add(FAFillStyle *fillStyle)
+{
+	FLASHASSERT(fillStyle);
+
+	fillStyleArray.push_back(fillStyle);
+	return ((U32)fillStyleArray.size());
+}
+
+//////////////////////////////////////////////////////////////////////////////////////
+
+inline FAFillStyle *FFillStyleArray::get(unsigned int index)
+{
+	return fillStyleArray[index];
+}
+
+//	Writes to the stream by travelling through all of the nodes in the array and writing
+//  their fill styles.  First has to write the count of fill style arrays.  See's if count
+//  is small enough to fit in to an 8 bit field, and either writes the count into an 8 bit
+//  field, or writes all 1's into an 8 bit field and writes the real count into a 16 bit
+//  field.
+
+inline void FFillStyleArray::WriteToSWFStream(FSWFStream *_SWFStream)
+{
+
+	//write the size
+	U32 size = fillStyleArray.size();
+
+	flare_fshapes_check(flare_fstyle_array_count(_SWFStream->Handle(), size));
+
+	//write the fill styles
+	std::vector<FAFillStyle *>::iterator cursor;
+
+	for (cursor = fillStyleArray.begin(); cursor != fillStyleArray.end(); cursor++) {
+		(*cursor)->WriteToSWFStream(_SWFStream);
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////////////////
+//  --------  FFillStyleBitmap -------------------------------------------------------
+
+//	The tiledFlag indicates if the Bitmap fill style is tiled (tiledFlag==1) or
+//	clipped (tiledFlag==0).
+inline FFillStyleBitmap::FFillStyleBitmap(int tiled, U16 ID, FMatrix *matrix)
+{
+
+	tiledFlag = tiled;
+	bitmapID = ID;
+	bitmapMatrix = matrix;
+}
+
+//	Deletes the matrix.
+
+inline FFillStyleBitmap::~FFillStyleBitmap(void)
+{
+
+	delete bitmapMatrix;
+	bitmapMatrix = NULL;
+}
+
+//	Writes the bitmap fill style to the given FSWFStream.
+
+inline void FFillStyleBitmap::WriteToSWFStream(FSWFStream *_SWFStream)
+{
+
+	//write the type and the bitmap id
+	flare_fshapes_check(flare_ffill_style_head(_SWFStream->Handle(), FLARE_FILL_KIND_BITMAP, tiledFlag, bitmapID));
+
+	//write the matrix
+	bitmapMatrix->WriteToSWFStream(_SWFStream);
+}
+
+//////////////////////////////////////////////////////////////////////////////////////
+//  --------  FFillStyleGradient -----------------------------------------------------
+
+//	The linearFlag indicates if the gradient fill style is linear (linearFlag==1) or
+//	radial (linearFlag==0).
+inline FFillStyleGradient::FFillStyleGradient(int linear, FMatrix *matrix, FGradient *gradient)
+{
+	linearFlag = linear;
+	gradFillMatrix = matrix;
+	gradFill = gradient;
+}
+
+//	Deletes the matrix and gradient.
+
+inline FFillStyleGradient::~FFillStyleGradient(void)
+{
+	delete gradFillMatrix;
+	delete gradFill;
+}
+
+//	Writes the Gradient fill style to the given FSWFStream.
+
+inline void FFillStyleGradient::WriteToSWFStream(FSWFStream *_SWFStream)
+{
+	//write the type
+	flare_fshapes_check(flare_ffill_style_head(_SWFStream->Handle(), FLARE_FILL_KIND_GRADIENT, linearFlag, 0));
+
+	//write the matrix
+	gradFillMatrix->WriteToSWFStream(_SWFStream);
+
+	//write the gradient
+	gradFill->WriteToSWFStream(_SWFStream);
+}
+
+//////////////////////////////////////////////////////////////////////////////////////
+//  --------  FFillStyleSolid --------------------------------------------------------
+
+//	Stores the color of the solid fill style.
+inline FFillStyleSolid::FFillStyleSolid(FColor *_color) : color(_color) {}
+
+inline FFillStyleSolid::~FFillStyleSolid()
+{
+	delete color;
+}
+
+//	Writes the solid fill style to the given FSWFStream.
+
+inline void FFillStyleSolid::WriteToSWFStream(FSWFStream *_SWFStream)
+{
+
+	//write the type
+	flare_fshapes_check(flare_ffill_style_head(_SWFStream->Handle(), FLARE_FILL_KIND_SOLID, 0, 0));
+
+	//write the color
+	color->WriteToSWFStream(_SWFStream); //, FColor::WRITE_SMALLEST ); changed here.
+}
+
+//////////////////////////////////////////////////////////////////////////////////////
+//  --------  FGradient --------------------------------------------------------------
+
+//	Constructor.  The grad record list is automatically constructed.
+inline FGradient::FGradient(void) {}
+
+//	Removes and deletes all the grad records from the grad record list.
+
+inline FGradient::~FGradient(void)
+{
+
+	while (!gradRecords.empty()) {
+
+		delete gradRecords.front();
+
+		gradRecords.pop_front();
+	}
+}
+
+//	Adds the given grad record to the end of the grad record list.
+
+inline void FGradient::Add(FAGradRecord *gradRec)
+{
+
+	gradRecords.push_back(gradRec);
+}
+
+//	Writes the grad records to the given _SWFStream.
+
+inline void FGradient::WriteToSWFStream(FSWFStream *_SWFStream)
+{
+
+	//write the size
+
+	flare_fshapes_check(flare_fgradient_head(_SWFStream->Handle(), (U32)gradRecords.size()));
+
+	//write the grad records
+
+	std::list<FAGradRecord *>::iterator cursor;
+
+	for (cursor = gradRecords.begin(); cursor != gradRecords.end(); cursor++) {
+
+		(*cursor)->WriteToSWFStream(_SWFStream);
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////////////////
+//  --------  FGradientRecord --------------------------------------------------------
+
+//	FGradRecord class constructor.
+inline FGradRecord::FGradRecord(U32 _ratio, FColor *_color)
+{
+	color = _color;
+	ratio = _ratio;
+}
+
+inline FGradRecord::~FGradRecord()
+{
+	delete color;
+}
+
+//	Writes the grad record to the given buffer.
+
+inline void FGradRecord::WriteToSWFStream(FSWFStream *_SWFStream)
+{
+
+	flare_fshapes_check(flare_fgrad_ratio(_SWFStream->Handle(), ratio));
+
+	color->WriteToSWFStream(_SWFStream); //, FColor::WRITE_SMALLEST ); changed here.
+}
+
+//////////////////////////////////////////////////////////////////////////////////////
+//  --------  FLineStyle -------------------------------------------------------------
+
+//	LineStyle class constructor.
+inline FLineStyle::FLineStyle(U32 _width, FColor *_color)
+{
+	color = _color;
+	width = _width; //in TWIPS
+}
+
+inline FLineStyle::~FLineStyle()
+{
+	delete color;
+}
+
+//	Writes the object to the given _SWFStream.
+
+inline void FLineStyle::WriteToSWFStream(FSWFStream *_SWFStream)
+{
+
+	flare_fshapes_check(flare_fline_style_head(_SWFStream->Handle(), width));
+	color->WriteToSWFStream(_SWFStream); //, FColor::WRITE_SMALLEST ); changed here.
+}
+
+//////////////////////////////////////////////////////////////////////////////////////
+//  --------  FLineStyleArray --------------------------------------------------------
+
+//	The line style array is automatically constructed
+inline FLineStyleArray::FLineStyleArray(void) {}
+
+//	Removes and deletes every element in the list.
+
+inline FLineStyleArray::~FLineStyleArray(void)
+{
+
+	while (!lineStyleArray.empty()) {
+
+		delete lineStyleArray.front();
+		lineStyleArray.pop_front();
+	}
+}
+
+//  Returns the size of the line style list.
+
+inline U32 FLineStyleArray::Size(void)
+{
+
+	return (U32)lineStyleArray.size();
+}
+
+//	The given line style is added to the end of the line style array.  The position of
+//	the added line style is returned so that the line style can later be referenced.
+
+inline U32 FLineStyleArray::Add(FALineStyle *lineStyle)
+{
+
+	lineStyleArray.push_back(lineStyle);
+	return ((U32)lineStyleArray.size());
+}
+
+//	Writes to the stream by travelling through all of the nodes in the array and writing
+//  their line styles.  First has to write the count of line style arrays.  See's if count
+//  is small enough to fit in to an 8 bit field, and either writes the count into an 8 bit
+//  field, or writes all 1's into an 8 bit field and writes the real count into a 16 bit
+//  field.
+
+inline void FLineStyleArray::WriteToSWFStream(FSWFStream *_SWFStream)
+{
+
+	//write the size
+	U32 size = lineStyleArray.size();
+
+	flare_fshapes_check(flare_fstyle_array_count(_SWFStream->Handle(), size));
+
+	//write the line styles
+	std::list<FALineStyle *>::iterator cursor;
+
+	for (cursor = lineStyleArray.begin(); cursor != lineStyleArray.end(); cursor++) {
+
+		(*cursor)->WriteToSWFStream(_SWFStream);
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////////////////
+//  --------  FMorphFillStyleBitmap --------------------------------------------------
+
+//	The tiledFlag indicates if the Bitmap fill style is tiled (tiledFlag==1) or
+//	clipped (tiledFlag==0).
+inline FMorphFillStyleBitmap::FMorphFillStyleBitmap(int tiled, U16 ID,
+											 FMatrix *matrix1, FMatrix *matrix2)
+{
+
+	tiledFlag = tiled;
+	bitmapID = ID;
+	bitmapMatrix1 = matrix1;
+	bitmapMatrix2 = matrix2;
+}
+
+//	Deletes the matrices.
+
+inline FMorphFillStyleBitmap::~FMorphFillStyleBitmap(void)
+{
+
+	delete bitmapMatrix1;
+	bitmapMatrix1 = NULL;
+
+	delete bitmapMatrix2;
+	bitmapMatrix2 = NULL;
+}
+
+//	Writes the bitmap fill style to the given FSWFStream.
+
+inline void FMorphFillStyleBitmap::WriteToSWFStream(FSWFStream *_SWFStream)
+{
+
+	//write the type and the bitmap id
+	flare_fshapes_check(flare_ffill_style_head(_SWFStream->Handle(), FLARE_FILL_KIND_BITMAP, tiledFlag, bitmapID));
+
+	//write the matrices
+	bitmapMatrix1->WriteToSWFStream(_SWFStream);
+	bitmapMatrix2->WriteToSWFStream(_SWFStream);
+}
+
+//////////////////////////////////////////////////////////////////////////////////////
+//  --------  FMorphFillStyleGradient ------------------------------------------------
+
+//	The linearFlag indicates if the gradient fill style is linear (linearFlag==1) or
+//	radial (linearFlag==0).
+inline FMorphFillStyleGradient::FMorphFillStyleGradient(int linear, FMatrix *matrix1, FMatrix *matrix2,
+												 FGradient *gradient)
+{
+
+	linearFlag = linear;
+	gradFillMatrix1 = matrix1;
+	gradFillMatrix2 = matrix2;
+	gradFill = gradient;
+}
+
+//	Deletes the matrices and gradient.
+
+inline FMorphFillStyleGradient::~FMorphFillStyleGradient(void)
+{
+
+	delete gradFillMatrix1;
+	gradFillMatrix1 = NULL;
+	delete gradFillMatrix2;
+	gradFillMatrix2 = NULL;
+	delete gradFill;
+	gradFill = NULL;
+}
+
+//	Writes the Gradient fill style to the given FSWFStream.
+
+inline void FMorphFillStyleGradient::WriteToSWFStream(FSWFStream *_SWFStream)
+{
+
+	//write the type
+	flare_fshapes_check(flare_ffill_style_head(_SWFStream->Handle(), FLARE_FILL_KIND_GRADIENT, linearFlag, 0));
+
+	//write the matrices
+	gradFillMatrix1->WriteToSWFStream(_SWFStream);
+	gradFillMatrix2->WriteToSWFStream(_SWFStream);
+
+	//write the gradient
+	gradFill->WriteToSWFStream(_SWFStream);
+}
+
+//////////////////////////////////////////////////////////////////////////////////////
+//  --------  FMorphFillStyleSolid ---------------------------------------------------
+
+//	Stores the colors of the solid fill style.
+inline FMorphFillStyleSolid::FMorphFillStyleSolid(FColor *_color1, FColor *_color2)
+{
+	color1 = _color1;
+	color2 = _color2;
+}
+
+inline FMorphFillStyleSolid::~FMorphFillStyleSolid()
+{
+	delete color1;
+	delete color2;
+}
+
+//	Writes the solid fill style to the given FSWFStream.
+
+inline void FMorphFillStyleSolid::WriteToSWFStream(FSWFStream *_SWFStream)
+{
+
+	//write the type
+	flare_fshapes_check(flare_ffill_style_head(_SWFStream->Handle(), FLARE_FILL_KIND_SOLID, 0, 0));
+
+	//write the colors
+	color1->WriteToSWFStream(_SWFStream); //, FColor::WRITE_SMALLEST ); changed here.
+	color2->WriteToSWFStream(_SWFStream); //, FColor::WRITE_SMALLEST ); changed here.
+}
+
+//////////////////////////////////////////////////////////////////////////////////////
+//  --------  FMorphGradRecord -------------------------------------------------------
+
+//	Constructor.
+inline FMorphGradRecord::FMorphGradRecord(U32 _ratio1, FColor *_color1, U32 _ratio2, FColor *_color2)
+{
+
+	ratio1 = _ratio1;
+	ratio2 = _ratio2;
+
+	color1 = _color1;
+	color2 = _color2;
+}
+
+inline FMorphGradRecord::~FMorphGradRecord()
+{
+	delete color1;
+	delete color2;
+}
+
+//  Writes to the given _SWFStream.
+
+inline void FMorphGradRecord::WriteToSWFStream(FSWFStream *_SWFStream)
+{
+
+	flare_fshapes_check(flare_fgrad_ratio(_SWFStream->Handle(), ratio1));
+	color1->WriteToSWFStream(_SWFStream); //, FColor::WRITE_SMALLEST ); changed here.
+
+	flare_fshapes_check(flare_fgrad_ratio(_SWFStream->Handle(), ratio2));
+	color2->WriteToSWFStream(_SWFStream); //, FColor::WRITE_SMALLEST ); changed here.
+}
+
+//////////////////////////////////////////////////////////////////////////////////////
+//  --------  FMorphLineStyle --------------------------------------------------------
+
+//The line style used by morph shapes
+inline FMorphLineStyle::FMorphLineStyle(U32 _width1, U32 _width2, FColor *_color1,
+								 FColor *_color2) : color1(_color1), color2(_color2)
+{
+	width1 = _width1;
+	width2 = _width2;
+
+	color1 = _color1;
+	color2 = _color2;
+}
+
+inline FMorphLineStyle::~FMorphLineStyle()
+{
+	delete color1;
+	delete color2;
+}
+
+//	Writes to the given _SWFStream.
+
+inline void FMorphLineStyle::WriteToSWFStream(FSWFStream *_SWFStream)
+{
+	//write the widths
+	flare_fshapes_check(flare_fmorph_line_style_head(_SWFStream->Handle(), width1, width2));
+
+	//write the colors
+	color1->WriteToSWFStream(_SWFStream); //, FColor::WRITE_SMALLEST ); changed here.
+	color2->WriteToSWFStream(_SWFStream); //, FColor::WRITE_SMALLEST ); changed here.
+}
+
+//////////////////////////////////////////////////////////////////////////////////////
+//  --------  FShape -----------------------------------------------------------------
+
+//	Shape class constructor.  The shape record list is automatically constructed
+inline FShape::FShape(void)
+{
+
+	nFillBits = 0;
+	nLineBits = 0;
+}
+
+//	Removes and deletes every element in the list.
+
+inline FShape::~FShape(void)
+{
+
+	while (!shapeRecs.empty()) {
+
+		delete shapeRecs.back();
+		shapeRecs.pop_back();
+	}
+}
+
+//	Sets the nFillBits field.
+
+inline void FShape::SetFillBits(U32 _nFillBits)
+{
+
+	nFillBits = _nFillBits;
+}
+
+//	Sets the nLineBits field.
+
+inline void FShape::SetLineBits(U32 _nLineBits)
+{
+
+	nLineBits = _nLineBits;
+}
+
+//	Adds a shape record to the end of the shape record list.
+
+inline void FShape::AddShapeRec(FShapeRec *shapeRec)
+{
+
+	shapeRecs.push_back(shapeRec);
+}
+
+//	Writes the object to the given buffer.
+
+inline void FShape::WriteToSWFStream(FSWFStream *_SWFStream)
+{
+
+	flare_fshapes_check(flare_fshape_head(_SWFStream->Handle(), nFillBits, nLineBits));
+
+	std::vector<FShapeRec *>::iterator cursor;
+
+	for (cursor = shapeRecs.begin(); cursor != shapeRecs.end(); cursor++) {
+		//the shape rec might be referring to a fillor line style arry
+		//external (ShapesWStyle) and will need the # of fillBits.
+		(*cursor)->IncludeNFillBitInfo(nFillBits); //enter fillbits
+		(*cursor)->IncludeNLineBitInfo(nLineBits); //enter linebits
+		(*cursor)->WriteToSWFStream(_SWFStream);
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////////////////
+//  --------  FShapeRecChange --------------------------------------------------------
+
+//	FShapeRecChange class constructor.  It is passed the nFillBits and nLineBits values.
+inline FShapeRecChange::FShapeRecChange(U32 _stateNewStyles,
+								 U32 _stateLineStyle,
+								 U32 _stateFillStyle1,
+								 U32 _stateFillStyle0,
+								 U32 _stateMoveTo,
+								 S32 _moveDeltaX,
+								 S32 _moveDeltaY,
+								 U32 _fill0Style,
+								 U32 _fill1Style,
+								 U32 _lineStyle,
+								 FFillStyleArray *_fillStyles,
+								 FLineStyleArray *_lineStyles)
+{
+	stateNewStyles = _stateNewStyles;
+	stateLineStyle = _stateLineStyle;
+	stateFillStyle1 = _stateFillStyle1;
+	stateFillStyle0 = _stateFillStyle0;
+	stateMoveTo = _stateMoveTo;
+
+	moveDeltaX = _moveDeltaX;
+	moveDeltaY = _moveDeltaY;
+	fill0Style = _fill0Style;
+	fill1Style = _fill1Style;
+	lineStyle = _lineStyle;
+	fillStyles = _fillStyles;
+	lineStyles = _lineStyles;
+	nMoveBits = MinBits();
+}
+
+inline FFillStyleArray *FShapeRecChange::GetFillStyles()
+{
+	return fillStyles;
+}
+
+//	Deletes fillStyles and lineStyles if they exist.
+
+inline FShapeRecChange::~FShapeRecChange(void)
+{
+
+	if (fillStyles) { //if fillStyles isn't NULL
+
+		delete fillStyles;
+		fillStyles = NULL;
+	}
+
+	if (lineStyles) { //if lineStyles isn't NULL
+
+		delete lineStyles;
+		lineStyles = NULL;
+	}
+}
+
+//!Change Rec needs to know how many bits to write for the Fill and Line Styles
+/*!Change Rec doesn't actually store the nLineBits or nFillBits, but needs to know
+	them when it writes the active style fields so that it knows how many bits
+	to write
+	\param	_nFillBits the size in bits of the index into the FillStyleArray
+*/
+inline void FShapeRecChange::IncludeNFillBitInfo(U32 _nFillBits)
+{
+
+	nFillBits = _nFillBits;
+}
+
+//!Change Rec needs to know how many bits to write for the Fill and Line Styles
+/*!Change Rec doesn't actually store the nLineBits or nFillBits, but needs to know
+	them when it writes the active style fields so that it knows how many bits
+	to write
+	\param	_nLineBits the size in bits of the index into the LineStyleArray
+*/
+inline void FShapeRecChange::IncludeNLineBitInfo(U32 _nLineBits)
+{
+
+	nLineBits = _nLineBits;
+}
+
+//	Calculates nMoveBits by returning the number of bits needed to store the larger of
+//	moveDeltaX and moveDeltaY.
+
+inline U32 FShapeRecChange::MinBits(void)
+{
+
+	return flare_fshaperec_change_min_bits(moveDeltaX, moveDeltaY);
+}
+
+//	Writes the shape record to the given _SWFStream.
+
+inline void FShapeRecChange::WriteToSWFStream(FSWFStream *_SWFStream)
+{
+
+	// the non-edge record flag, the five state flags, the move delta and the active styles
+	flare_fshapes_check(flare_fshaperec_change_head(_SWFStream->Handle(), stateNewStyles, stateLineStyle, stateFillStyle1,
+													stateFillStyle0, stateMoveTo, nMoveBits, moveDeltaX, moveDeltaY,
+													fill0Style, fill1Style, lineStyle, nFillBits, nLineBits));
+
+	if (stateNewStyles) {
+
+		fillStyles->WriteToSWFStream(_SWFStream);
+		lineStyles->WriteToSWFStream(_SWFStream);
+
+		// the widths of the new arrays, written (4 + 4 bits) and kept as the current ones
+		// ("dimenticavano" di mettere questi...)
+		flare_fshapes_check(flare_fshaperec_change_new_styles(_SWFStream->Handle(), fillStyles->Size(), lineStyles->Size(),
+															  &nFillBits, &nLineBits));
+	}
+
+	//NO FILLING IN BETWEEN SHAPE RECORDS
+}
+
+//////////////////////////////////////////////////////////////////////////////////////
+//  --------  FShapeRecEdgeStraight --------------------------------------------------
+
+inline FShapeRecEdgeStraight::FShapeRecEdgeStraight(S32 dx, S32 dy)
+{
+	// classifies the line (general / vertical / horizontal) and derives nBits
+	flare_fshapes_check(flare_fedge_straight_new(dx, dy, &edge));
+	assert(edge.n_bits < 16 + 2); //vincenzo: se no non entra nei quattro bits riservati per scrivere questo valore...
+}
+
+inline U32 FShapeRecEdgeStraight::MinBits(void)
+{
+
+	return FSWFStream::MinBits(FSWFStream::MaxNum(edge.general_delta_x, edge.general_delta_y,
+												  edge.horizontal_delta_x, edge.vertical_delta_y), 1);
+}
+
+inline void FShapeRecEdgeStraight::IncludeNFillBitInfo(U32 /*_nFillBits*/)
+{
+}
+
+inline void FShapeRecEdgeStraight::IncludeNLineBitInfo(U32 /*_nLineBits*/)
+{
+}
+
+inline void FShapeRecEdgeStraight::WriteToSWFStream(FSWFStream *_SWFStream)
+{
+	// edge record, straight edge, nBits - 2, then a general / vertical / horizontal line
+	// (verticalFlag is supposed to be signed but don't think it matters)
+	flare_fshapes_check(flare_fedge_straight_write(_SWFStream->Handle(), &edge));
+
+	//NO FILLING IN BETWEEN SHAPE RECORDS
+}
+
+//////////////////////////////////////////////////////////////////////////////////////
+//  --------  FShapeRecEdgeCurved  ---------------------------------------------------
+
+//	FShapeRecEdge class constructor.
+inline FShapeRecEdgeCurved::FShapeRecEdgeCurved(S32 controlDX, S32 controlDY, S32 anchorDX, S32 anchorDY)
+{
+	controlDeltaX = controlDX;
+	controlDeltaY = controlDY;
+	anchorDeltaX = anchorDX;
+	anchorDeltaY = anchorDY;
+
+	nBits = MinBits();
+}
+//	Finds the min bits necessary to represent the 4 fields, by seeing how many bits are
+//	necessary to represent the largest field of the four.
+
+inline U32 FShapeRecEdgeCurved::MinBits(void)
+{
+
+	return flare_fedge_curved_min_bits(controlDeltaX, controlDeltaY, anchorDeltaX, anchorDeltaY);
+}
+
+inline void FShapeRecEdgeCurved::IncludeNFillBitInfo(U32 /*_nFillBits*/)
+{
+}
+
+inline void FShapeRecEdgeCurved::IncludeNLineBitInfo(U32 /*_nLineBits*/)
+{
+}
+
+//	Writes the shape record to the given _SWFStream.
+
+inline void FShapeRecEdgeCurved::WriteToSWFStream(FSWFStream *_SWFStream)
+{
+	// edge record, curved edge, nBits - 2, then control and anchor deltas
+	flare_fshapes_check(flare_fedge_curved_write(_SWFStream->Handle(), nBits, controlDeltaX, controlDeltaY, anchorDeltaX,
+												 anchorDeltaY));
+
+	//NO FILLING IN BETWEEN SHAPE RECORDS
+}
+
+//////////////////////////////////////////////////////////////////////////////////////
+//  --------  FShapeRecEnd  ----------------------------------------------------------
+
+//	ShapeRecEnd class constructor.  Doesn't take in anything because the
+//	object serves as an end tag and has no details.
+inline FShapeRecEnd::FShapeRecEnd(void) {}
+
+inline void FShapeRecEnd::IncludeNFillBitInfo(U32 /*_nFillBits*/)
+{
+	// does nothing
+	//virtual method needed for shape rec change
+}
+
+inline void FShapeRecEnd::IncludeNLineBitInfo(U32 /*_nLineBits*/)
+{
+	//same deal
+}
+
+//	Writes the object to the given buffer.
+
+inline void FShapeRecEnd::WriteToSWFStream(FSWFStream *_SWFStream)
+{
+
+	//stream of 0's signifies the end; filled to end the shape rec array structure.
+	flare_fshapes_check(flare_fshaperec_end_write(_SWFStream->Handle()));
+}
+
+//////////////////////////////////////////////////////////////////////////////////////
+//  --------  FShapeWStyle  ----------------------------------------------------------
+
+//	FShapeWStyle class constructor.  The shape record list is automatically constructed.
+inline FShapeWStyle::FShapeWStyle(FFillStyleArray *_fillStyles, FLineStyleArray *_lineStyles)
+{
+
+	fillStyles = _fillStyles;
+	lineStyles = _lineStyles;
+
+	nFillBits = FSWFStream::MinBits(fillStyles->Size(), 0);
+	nLineBits = FSWFStream::MinBits(lineStyles->Size(), 0);
+}
+
+//	Deleted the fill style array, line style array, and shape records.
+
+inline FShapeWStyle::~FShapeWStyle(void)
+{
+
+	delete fillStyles;
+	fillStyles = NULL;
+
+	delete lineStyles;
+	lineStyles = NULL;
+
+	while (!shapeRecs.empty()) {
+
+		delete shapeRecs.back();
+		shapeRecs.pop_back();
+	}
+}
+
+//	Adds a shape record to the end of the shape record list.
+
+inline void FShapeWStyle::AddShapeRec(FShapeRec *shapeRec)
+{
+
+	shapeRecs.push_back(shapeRec);
+}
+
+inline U32 FShapeWStyle::NumFillBits()
+{
+
+	return nFillBits;
+}
+
+inline U32 FShapeWStyle::NumLineBits()
+{
+
+	return nLineBits;
+}
+
+//////////////////////////////////////////////////////////////////////
+
+inline void FShapeWStyle::changeColor(const std::map<TPixel, TPixel> &table)
+{
+	unsigned int i, j;
+	if (fillStyles)
+		for (i = 0; i < fillStyles->Size(); i++) {
+			FAFillStyle *style = fillStyles->get(i);
+			//FColor* color = ((FFillStyleSolid*)style)->getColor();
+			if (style->IsSolidStyle()) {
+				TPixel oldColor = fcolor2tpixel(*(((FFillStyleSolid *)style)->getColor()));
+				std::map<TPixel, TPixel>::const_iterator it = table.find(oldColor);
+				if (it != table.end())
+					((FFillStyleSolid *)style)->setColor(new FColor(tpixel2fcolor(it->second)));
+			}
+		}
+
+	for (i = 0; i < shapeRecs.size(); i++) {
+		FShapeRec *rec = shapeRecs[i];
+		if (rec->isFShapeRecChange() && ((FShapeRecChange *)rec)->GetFillStyles())
+			for (j = 0; j < ((FShapeRecChange *)rec)->GetFillStyles()->Size(); j++) {
+				FAFillStyle *style = ((FShapeRecChange *)rec)->GetFillStyles()->get(j);
+				//FColor* color = ((FFillStyleSolid*)style)->getColor();
+				if (style->IsSolidStyle()) {
+					TPixel oldColor = fcolor2tpixel(*(((FFillStyleSolid *)style)->getColor()));
+					std::map<TPixel, TPixel>::const_iterator it = table.find(oldColor);
+					if (it != table.end())
+						((FFillStyleSolid *)style)->setColor(new FColor(tpixel2fcolor(it->second)));
+				}
+			}
+	}
+}
+
+/////////////////////////////////////////////////////////////////////
+
+inline void FShapeWStyle::changeColor(const FColor &oldColor, const FColor &newColor)
+{
+	unsigned int i, j;
+	if (fillStyles)
+		for (i = 0; i < fillStyles->Size(); i++) {
+			FAFillStyle *style = fillStyles->get(i);
+			FColor *color = ((FFillStyleSolid *)style)->getColor();
+			if (style->IsSolidStyle() && *color == oldColor)
+				((FFillStyleSolid *)style)->setColor(new FColor(newColor));
+			color = ((FFillStyleSolid *)style)->getColor();
+		}
+
+	for (i = 0; i < shapeRecs.size(); i++) {
+		FShapeRec *rec = shapeRecs[i];
+		if (rec->isFShapeRecChange() && ((FShapeRecChange *)rec)->GetFillStyles())
+			for (j = 0; j < ((FShapeRecChange *)rec)->GetFillStyles()->Size(); j++) {
+				FAFillStyle *style = ((FShapeRecChange *)rec)->GetFillStyles()->get(j);
+				FColor *color = ((FFillStyleSolid *)style)->getColor();
+				if (style->IsSolidStyle() && *color == oldColor)
+					((FFillStyleSolid *)style)->setColor(new FColor(newColor));
+				color = ((FFillStyleSolid *)style)->getColor();
+			}
+	}
+}
+
+/////////////////////////////////////////////////////////////////////
+
+//	Writes the shape with style to the given _SWFStream.
+
+inline void FShapeWStyle::WriteToSWFStream(FSWFStream *_SWFStream)
+{
+
+	fillStyles->WriteToSWFStream(_SWFStream);
+	lineStyles->WriteToSWFStream(_SWFStream);
+
+	flare_fshapes_check(flare_fshape_head(_SWFStream->Handle(), nFillBits, nLineBits));
+
+	//write the shape records
+	std::vector<FShapeRec *>::iterator cursor;
+
+	for (cursor = shapeRecs.begin(); cursor != shapeRecs.end(); cursor++) {
+		(*cursor)->IncludeNFillBitInfo(nFillBits); //vincenzo
+		(*cursor)->IncludeNLineBitInfo(nLineBits); //vincenzo
+
+		(*cursor)->WriteToSWFStream(_SWFStream);
+		if ((*cursor)->isFShapeRecChange())										   //vincenzo
+			((FShapeRecChange *)(*cursor))->getFillLineBits(nFillBits, nLineBits); //vincenzo
+	}
+	_SWFStream->FlushBits();
+}
 
 #ifdef WIN32 // added from DV
 #pragma warning(pop)
