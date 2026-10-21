@@ -1,5 +1,5 @@
 #!/bin/bash
-export TAHOMA2DVERSION=1.6.1
+export FLAREVERSION=1.6.1
 
 if [ -d /usr/local/Cellar/qt@5 ]
 then
@@ -201,7 +201,7 @@ codesign --deep --force --sign - $TOONZDIR/Flare.app
 
 echo ">>> Creating Flare-install-osx.pkg"
 
-toonz/installer/osx/app.rb $TOONZDIR stuff toonz/installer/osx/scripts $TAHOMA2DVERSION
+toonz/installer/osx/app.rb $TOONZDIR stuff toonz/installer/osx/scripts $FLAREVERSION
 
 mv $TOONZDIR/Flare-install-osx.pkg $TOONZDIR/..
 

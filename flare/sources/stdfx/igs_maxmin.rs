@@ -791,6 +791,9 @@ mod tests {
             eprintln!("note: libm differs from the recording: {what}: lens structure not compared");
             return false;
         }
+        // goldens were recorded with glibc libm: exact-ish there (4 ULP), looser elsewhere
+        // (macOS/MSVC libm differ by a few ULP in cos/sin/atan2/pow)
+        let max_ulps = if cfg!(all(target_os = "linux", target_env = "gnu")) { 4 } else { 64 };
         let mut same = true;
         for yy in 0..want.sizes.len() {
             let n = want.sizes[yy].max(0) as usize;
@@ -798,7 +801,7 @@ mod tests {
                 let (a, b) = (got.ratio[yy][i], want.ratio[yy][i]);
                 if a.to_bits() != b.to_bits() {
                     same = false;
-                    assert!(ulps(a, b) <= 4, "{what}: row {yy} weight {i}: {a:e} vs {b:e}");
+                    assert!(ulps(a, b) <= max_ulps, "{what}: row {yy} weight {i}: {a:e} vs {b:e}");
                 }
             }
         }

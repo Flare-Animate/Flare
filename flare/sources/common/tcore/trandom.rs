@@ -46,7 +46,7 @@ impl TRandom {
         self.idx2 = 31;
     }
 
-    fn get_next_uint(&mut self) -> u32 {
+    pub fn get_next_uint(&mut self) -> u32 {
         self.idx1 += 1;
         if self.idx1 == 56 {
             self.idx1 = 1;

@@ -144,15 +144,23 @@ jobs:
               '</details>',
             ].join('\n');
 
-            const { data: pr } = await github.rest.pulls.create({
-              owner: context.repo.owner,
-              repo:  context.repo.repo,
-              title: `🔄 Sync ${count} upstream commit(s) from ${srcLabel}`,
-              head:  process.env.BRANCH_NAME,
-              base:  'master',
-              body,
-            });
-            core.info(`PR created: ${pr.html_url}`);
+            try {
+              const { data: pr } = await github.rest.pulls.create({
+                owner: context.repo.owner,
+                repo:  context.repo.repo,
+                title: `🔄 Sync ${count} upstream commit(s) from ${srcLabel}`,
+                head:  process.env.BRANCH_NAME,
+                base:  'master',
+                body,
+              });
+              core.info(`PR created: ${pr.html_url}`);
+            } catch (e) {
+              // Repo setting "Allow GitHub Actions to create and approve pull
+              // requests" is off: the branch is already pushed, so degrade to a
+              // warning with a compare link instead of failing the run.
+              const slug = `${context.repo.owner}/${context.repo.repo}`;
+              core.warning(`could not open the PR (${e.message}). Enable Settings > Actions > General > 'Allow GitHub Actions to create and approve pull requests'. Sync branch: https://github.com/${slug}/compare/master...${process.env.BRANCH_NAME}`);
+            }
 
       - name: Dry-run complete
         if: inputs.dry_run == 'true'

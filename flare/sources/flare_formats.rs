@@ -144,6 +144,14 @@ pub mod runsmap;
 pub mod trop_invert;
 #[path = "common/trop/rust/checkboard.rs"]
 pub mod trop_checkboard;
+#[path = "common/trop/rust/rgbmscale.rs"]
+pub mod trop_rgbmscale;
+#[path = "common/trop/rust/brush.rs"]
+pub mod trop_brush;
+#[path = "common/trop/rust/antialias.rs"]
+pub mod trop_antialias;
+#[path = "common/trop/rust/convert.rs"]
+pub mod trop_convert;
 #[path = "common/trop/rust/bbox.rs"]
 pub mod trop_bbox;
 #[path = "common/tvectorimage/cornerdetector.rs"]

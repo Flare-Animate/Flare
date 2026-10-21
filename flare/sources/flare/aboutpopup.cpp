@@ -31,7 +31,7 @@ AboutPopup::AboutPopup(QWidget* parent)
   setTopMargin(0);
 
   TFilePath baseLicensePath   = TEnv::getStuffDir() + "doc/LICENSE";
-  TFilePath tahomaLicensePath = baseLicensePath + "LICENSE.txt";
+  TFilePath licensePath = baseLicensePath + "LICENSE.txt";
 
   QVBoxLayout* mainLayout = new QVBoxLayout();
 
@@ -53,12 +53,12 @@ AboutPopup::AboutPopup(QWidget* parent)
   licenseLink->setText(tr("Flare License"));
 
   connect(licenseLink, &AboutClickableLabel::clicked, [=]() {
-    if (TSystem::isUNC(tahomaLicensePath))
+    if (TSystem::isUNC(licensePath))
       QDesktopServices::openUrl(
-          QUrl(QString::fromStdWString(tahomaLicensePath.getWideString())));
+          QUrl(QString::fromStdWString(licensePath.getWideString())));
     else
       QDesktopServices::openUrl(QUrl::fromLocalFile(
-          QString::fromStdWString(tahomaLicensePath.getWideString())));
+          QString::fromStdWString(licensePath.getWideString())));
   });
 
   mainLayout->addWidget(licenseLink);

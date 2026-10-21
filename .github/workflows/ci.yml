@@ -8,9 +8,9 @@ name: CI - Tests & Lint
 
 on:
   push:
-    branches: [ main, master, rebrand-to-flare-mass, restore-flash-9e73b8, rename-to-flare-full ]
+    branches: [ main, master, Rust-Rewrite, rebrand-to-flare-mass, restore-flash-9e73b8, rename-to-flare-full ]
   pull_request:
-    branches: [ main, master, rename-to-flare-full ]
+    branches: [ main, master, Rust-Rewrite, rename-to-flare-full ]
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -65,6 +65,12 @@ jobs:
         # platform ("Cannot find source file"). Fail here in seconds instead.
         run: |
           python scripts/check_cmake_sources.py
+
+      - name: Headers have no non-inline out-of-class definitions
+        # TRop::f(...) {} defined in trop.h broke gcc (explicit qualification) and
+        # clang/MSVC/ld (duplicate symbols) three times after Rust ports.
+        run: |
+          python scripts/check_header_defs.py
 
       - name: Preference ids are declared and defined
         # Every id used by Preferences accessors/popups must be in the enum and have a
