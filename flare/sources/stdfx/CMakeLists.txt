@@ -171,7 +171,6 @@ set(SOURCES
     warp.cpp
     warpfx.cpp
     igs_fog.cpp
-    igs_gaussian_blur.cpp
     igs_line_blur.cpp
     igs_maxmin.cpp
     igs_maxmin_lens_matrix.cpp
