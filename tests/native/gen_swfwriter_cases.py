@@ -54,6 +54,16 @@ def extract_original(workdir: str) -> str:
     names = ms.git("ls-tree", "--name-only", rev, FLASH + "/").splitlines()
     wanted = [p for p in names if p.endswith(".h") or os.path.splitext(os.path.basename(p))[0] in PORTED + KEPT and p.endswith(".cpp")]
     ms.extract(rev, wanted, workdir)
+    # Patch FCT.h: the archived version includes <string.h> (C header) but uses
+    # std::string, which requires <string>. Fixed in the current tree; patch here
+    # so the golden reference compiles.
+    fct_path = os.path.join(workdir, "FCT.h")
+    if os.path.exists(fct_path):
+        with open(fct_path) as f:
+            content = f.read()
+        content = content.replace("#include <string.h>", "#include <string>")
+        with open(fct_path, "w") as f:
+            f.write(content)
     return rev
 
 
