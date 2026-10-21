@@ -293,11 +293,10 @@ mod tests {
     // See igs_hsv_noise_in_camera.rs; ranges / terms are hue, lightness, saturation, alpha here.
     #[test]
     fn matches_recorded_cpp() {
-        if std::mem::size_of::<c_ulong>() != 8 {
-            return;
-        }
         let mut n = 0;
-        for line in GOLDEN.lines() {
+        // igs_math_random wraps at the width of `unsigned long`: pick the matching golden
+        let golden = if std::mem::size_of::<c_ulong>() == 8 { GOLDEN } else { GOLDEN_32 };
+        for line in golden.lines() {
             let t: Vec<&str> = line.split_whitespace().collect();
             let i = |s: &str| s.parse::<i32>().unwrap();
             let f = |s: &str| f64::from_bits(u64::from_str_radix(s, 16).unwrap());
@@ -317,4 +316,5 @@ mod tests {
     }
 
     const GOLDEN: &str = include_str!("igs_hls_noise_in_camera_cases.txt");
+    const GOLDEN_32: &str = include_str!("igs_hls_noise_in_camera_cases_32.txt");
 }
