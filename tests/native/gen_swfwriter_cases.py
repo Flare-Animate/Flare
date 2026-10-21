@@ -43,7 +43,23 @@ KEPT = ["FDTShapes", "FAction", "FDTSounds"]
 
 
 def cxx() -> str:
-    return os.environ.get("CXX") or "g++"
+    c = os.environ.get("CXX") or "g++"
+    # Verify the compiler can actually find standard headers; some environments
+    # (scoop clang on Windows, minimal containers) have the binary but not the
+    # C++ standard library development headers.
+    import tempfile
+    probe_dir = tempfile.mkdtemp(prefix="cxxprobe-")
+    probe = os.path.join(probe_dir, "probe.cpp")
+    with open(probe, "w") as fh:
+        fh.write("#include <cstdint>\n#include <vector>\n#include <cmath>\nint main(){return 0;}\n")
+    try:
+        subprocess.run([c, "-std=c++17", "-c", probe, "-o", os.path.join(probe_dir, "probe.o")],
+                       check=True, capture_output=True)
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        shutil.rmtree(probe_dir, ignore_errors=True)
+        sys.exit("host C++ compiler cannot find standard headers; skipping golden check")
+    shutil.rmtree(probe_dir, ignore_errors=True)
+    return c
 
 
 def extract_original(workdir: str) -> str:
