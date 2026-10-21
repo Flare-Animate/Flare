@@ -171,7 +171,6 @@ set(SOURCES
     warp.cpp
     warpfx.cpp
     igs_fog.cpp
-    igs_gaussian_blur.cpp
     igs_hls_noise_in_camera.cpp
     igs_hsv_noise_in_camera.cpp
     igs_line_blur.cpp
