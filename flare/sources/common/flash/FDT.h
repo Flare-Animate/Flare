@@ -16,6 +16,8 @@
 #ifndef F_D_T_H_
 #define F_D_T_H_
 
+#include <stdexcept>
+
 #include "FObj.h"
 
 // A "define type" flash object
@@ -40,6 +42,19 @@
 #define DVAPI DV_IMPORT_API
 #define DVVAR DV_IMPORT_VAR
 #endif
+
+// FDT.cpp was empty; the one helper the FDTxxx classes share lives in FDT.rs: wrap a tag body
+// built in a scratch FSWFStream (optionally flushing the bit writer and adding the final zero
+// byte) with AppendTag. Statuses: 0 ok, 1 NULL/aliased handle, 2 internal error.
+extern "C" {
+int flare_fdt_finish_tag(void *out, unsigned short tag_id, void *body, int flush_bits, int trailing_zero_byte);
+}
+
+inline void flare_fdt_check(int status)
+{
+	if (status)
+		throw std::invalid_argument("FDT: invalid argument");
+}
 
 class DVAPI FDT : public FObj
 {

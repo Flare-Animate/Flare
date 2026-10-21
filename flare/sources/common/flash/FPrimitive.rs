@@ -33,14 +33,17 @@ unsafe fn with(h: *mut c_void, f: impl FnOnce(&mut Stream)) -> i32 {
 /// `h` must be NULL or a live `FSWFStream` handle.
 #[no_mangle]
 pub unsafe extern "C" fn flare_fcolor_write(h: *mut c_void, red: u32, green: u32, blue: u32, alpha: u32, alpha_t: i32) -> i32 {
-    with(h, |s| {
-        s.write_byte(red);
-        s.write_byte(green);
-        s.write_byte(blue);
-        if alpha_t != 0 {
-            s.write_byte(alpha);
-        }
-    })
+    with(h, |s| color_write(s, red, green, blue, alpha, alpha_t != 0))
+}
+
+/// `FColor::WriteToSWFStream` on a Rust-side stream (used by `FDTText`).
+pub fn color_write(s: &mut Stream, red: u32, green: u32, blue: u32, alpha: u32, alpha_t: bool) {
+    s.write_byte(red);
+    s.write_byte(green);
+    s.write_byte(blue);
+    if alpha_t {
+        s.write_byte(alpha);
+    }
 }
 
 /// `FMatrix::MinBits(x, y)`.
@@ -123,15 +126,18 @@ pub extern "C" fn flare_frect_min_bits(xmin: i32, xmax: i32, ymin: i32, ymax: i3
 /// `h` must be NULL or a live `FSWFStream` handle.
 #[no_mangle]
 pub unsafe extern "C" fn flare_frect_write(h: *mut c_void, xmin: i32, xmax: i32, ymin: i32, ymax: i32) -> i32 {
-    with(h, |s| {
-        let n_bits = rect_min_bits(xmin, xmax, ymin, ymax);
-        s.write_bits(n_bits, 5);
-        s.write_bits(xmin as u32, n_bits);
-        s.write_bits(xmax as u32, n_bits);
-        s.write_bits(ymin as u32, n_bits);
-        s.write_bits(ymax as u32, n_bits);
-        s.flush_bits();
-    })
+    with(h, |s| rect_write(s, xmin, xmax, ymin, ymax))
+}
+
+/// `FRect::WriteToSWFStream` on a Rust-side stream (used by `FDTFonts`).
+pub fn rect_write(s: &mut Stream, xmin: i32, xmax: i32, ymin: i32, ymax: i32) {
+    let n_bits = rect_min_bits(xmin, xmax, ymin, ymax);
+    s.write_bits(n_bits, 5);
+    s.write_bits(xmin as u32, n_bits);
+    s.write_bits(xmax as u32, n_bits);
+    s.write_bits(ymin as u32, n_bits);
+    s.write_bits(ymax as u32, n_bits);
+    s.flush_bits();
 }
 
 /// `FString::WriteToSWFStream`: the bytes, then a NUL when `null_end != 0`.

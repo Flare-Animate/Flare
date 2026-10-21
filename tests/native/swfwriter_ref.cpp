@@ -1,8 +1,8 @@
 // Differential reference harness for the SWF writer port (common/flash/FSWFStream, FPrimitive,
-// FObj, FSound, FCT, FDTBitmaps -> *.rs).
+// FObj, FSound, FCT, FDTBitmaps, FDTFonts, FDTText, FDTButtons -> *.rs).
 //
 // Compiled twice by gen_swfwriter_cases.py:
-//   * against the ORIGINAL six .cpp files (+ their headers) rebuilt from git -> the golden;
+//   * against the ORIGINAL nine .cpp files (+ their headers) rebuilt from git -> the golden;
 //   * (--verify-chain) against the NEW inline headers + libflare_formats.a -> must print the
 //     same bytes (this proves the C++ shells marshal like the old members did).
 // FDTShapes.cpp, FAction.cpp and FDTSounds.cpp are not ported; they are linked from the same
@@ -31,6 +31,9 @@
 #include "FSound.h"
 #include "FCT.h"
 #include "FDTBitmaps.h"
+#include "FDTFonts.h"
+#include "FDTText.h"
+#include "FDTButtons.h"
 #include "FDTShapes.h"
 #include "FDTSounds.h"
 #include "FAction.h"
@@ -846,6 +849,409 @@ static void bitmapCases()
 	}
 }
 
+
+// ---------------------------------------------------------------------------------------
+// FDTFonts / FDTText / FDTButtons
+
+// DefineFont2 hands the stream a buffer it frees before the stream is written (a use-after-free
+// in the original; the freed block is overwritten by the allocator, so the output would differ
+// from run to run). Array deletes are leaked here so the reference reads the intended offsets;
+// the Rust port copies them into the body.
+void operator delete[](void *) noexcept {}
+void operator delete[](void *, std::size_t) noexcept {}
+
+// A glyph shape that writes a fixed byte string (FShape's real writer needs a whole drawing).
+struct RawShape : FShape {
+	std::vector<uint8_t> b;
+	explicit RawShape(const std::vector<uint8_t> &v) : b(v) {}
+	virtual void WriteToSWFStream(FSWFStream *s)
+	{
+		for (uint8_t x : b)
+			s->WriteByte(x);
+	}
+};
+
+static std::string alnum(Lcg &r, size_t n)
+{
+	static const char *c = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 _-";
+	std::string s;
+	for (size_t i = 0; i < n; i++)
+		s += c[r(64)];
+	return s;
+}
+
+static std::string namecol(const std::string &s) { return s.empty() ? "-" : s; }
+
+// Advance the shared character-id counter by n and return the id the next object will get.
+static unsigned nextId(Lcg &r, unsigned skip)
+{
+	for (unsigned i = 0; i < skip; i++)
+		FObjCollection::Increment();
+	(void)r;
+	return FObjCollection::Increment() + 1;
+}
+
+static std::string matrixSpec(FMatrix *m)
+{
+	if (m->identity)
+		return "id";
+	return num(m->hasScale) + "," + num((int)m->scaleX) + "," + num((int)m->scaleY) + "," + num(m->hasRotate) + "," + num((int)m->rotateSkew0) + "," + num((int)m->rotateSkew1) + "," + num((int)m->translateX) + "," + num((int)m->translateY);
+}
+
+static std::string csvList(const std::vector<std::string> &v, const char *sep)
+{
+	if (v.empty())
+		return "-";
+	std::string t;
+	for (size_t i = 0; i < v.size(); i++)
+		t += (i ? sep : "") + v[i];
+	return t;
+}
+
+static void fontCases()
+{
+	Lcg r(0x5EED0007);
+	// DefineFont (1.0): 1..6 glyph shapes. (A font without glyphs dereferences the list's end
+	// sentinel in the original, so it is not recorded.)
+	for (int i = 0; i < 16; i++) {
+		resetIds();
+		unsigned skip = i < 4 ? 0 : r(300);
+		unsigned id = nextId(r, skip);
+		FDTDefineFont f;
+		unsigned n = 1 + r(6);
+		std::vector<std::string> hs;
+		for (unsigned g = 0; g < n; g++) {
+			std::vector<uint8_t> b(g == 1 && i % 4 == 0 ? 0 : r(i < 8 ? 12 : 90));
+			for (auto &x : b)
+				x = r(256);
+			hs.push_back(hex(b));
+			f.AddShapeGlyph(new RawShape(b));
+		}
+		FSWFStream s;
+		f.WriteToSWFStream(&s);
+		std::printf("font|%u|%s|%u|%s\n", id, csvList(hs, ";").c_str(), (unsigned)f.ID(), dump(s).c_str());
+	}
+	// DefineFont2
+	for (int i = 0; i < 48; i++) {
+		resetIds();
+		unsigned id = nextId(r, i < 8 ? 0 : r(300));
+		static const unsigned encs[] = {1, 2, 3, 1, 2, 3, 0, 9};
+		unsigned enc = encs[i % 8];
+		std::vector<uint32_t> fl = draw(r, {4, 4});
+		std::string name = alnum(r, i % 5 == 0 ? 0 : r(14));
+		std::vector<uint32_t> lay = draw(r, {2000, 2000, 2000});
+		FDTDefineFont2 f(name.c_str(), enc, fl[0], fl[1], (S16)((int)lay[0] - 1000), (S16)((int)lay[1] - 1000), (S16)((int)lay[2] - 1000));
+		unsigned n = i % 6 == 0 ? 0 : r(7);
+		std::vector<std::string> gs;
+		for (unsigned g = 0; g < n; g++) {
+			std::vector<uint32_t> d = draw(r, {65536, 3000, 10000, 10000, 10000, 10000, i < 24 ? 14u : 60u});
+			std::vector<uint8_t> b(d[6]);
+			for (auto &x : b)
+				x = r(256);
+			int xa = (int)d[2] - 5000, xb = (int)d[3] - 5000, ya = (int)d[4] - 5000, yb = (int)d[5] - 5000;
+			FRect *bd = new FRect(xa, ya, xb, yb);
+			f.AddShapeGlyph(new RawShape(b), (U16)d[0], (S16)((int)d[1] - 1500), bd);
+			gs.push_back(num(d[0]) + "," + num((int)d[1] - 1500) + "," + num(bd->Xmin()) + "," + num(bd->Xmax()) + "," + num(bd->Ymin()) + "," + num(bd->Ymax()) + "," + hex(b));
+		}
+		unsigned nk = r(4);
+		std::vector<std::string> ks;
+		for (unsigned k = 0; k < nk; k++) {
+			std::vector<uint32_t> d = draw(r, {65536, 65536, 2000});
+			f.AddKerningRec(new FKerningRec((U16)d[0], (U16)d[1], (S16)((int)d[2] - 1000)));
+			ks.push_back(num((U16)d[0]) + "," + num((U16)d[1]) + "," + num((int)d[2] - 1000));
+		}
+		FSWFStream s;
+		f.WriteToSWFStream(&s);
+		std::printf("font2|%u|%u|%u|%u|%s|%d,%d,%d|%s|%s|%s|%u|%u\n", id, enc, fl[0], fl[1], namecol(name).c_str(), (int)lay[0] - 1000, (int)lay[1] - 1000, (int)lay[2] - 1000, csvList(gs, ";").c_str(), csvList(ks, ";").c_str(), dump(s).c_str(), (unsigned)f.ID(), (unsigned)f.nIndexBits());
+	}
+	// DefineFontInfo (the second write shows that the code table is consumed)
+	for (int i = 0; i < 24; i++) {
+		resetIds();
+		unsigned id = nextId(r, i < 4 ? 0 : r(300));
+		static const unsigned encs[] = {1, 2, 3, 0};
+		unsigned enc = encs[i % 4];
+		std::vector<uint32_t> d = draw(r, {65536, 4, 4});
+		std::string name = alnum(r, i % 6 == 0 ? 0 : r(10));
+		FDTDefineFontInfo f(name.c_str(), (U16)d[0], enc, d[1], d[2]);
+		unsigned n = i % 5 == 0 ? 0 : r(9);
+		std::vector<std::string> cs;
+		for (unsigned k = 0; k < n; k++) {
+			unsigned c = (i % 3 == 0 && k == n / 2) ? 65531 + r(5) : (i % 3 == 1 ? r(256) : r(65531));
+			f.AddCode((U16)c);
+			cs.push_back(num(c));
+		}
+		FSWFStream s, s2;
+		f.WriteToSWFStream(&s);
+		f.WriteToSWFStream(&s2);
+		std::printf("fontinfo|%u|%u|%u|%u|%s|%s|%s|%s|%u\n", (unsigned)d[0], enc, d[1], d[2], namecol(name).c_str(), csvList(cs, ",").c_str(), dump(s).c_str(), dump(s2).c_str(), (unsigned)f.ID());
+		(void)id;
+	}
+}
+
+static void textCases()
+{
+	Lcg r(0x5EED0008);
+	// DefineEditText
+	for (int i = 0; i < 48; i++) {
+		resetIds();
+		unsigned id = nextId(r, i < 6 ? 0 : r(300));
+		std::vector<uint32_t> bd = draw(r, {6000, 6000, 6000, 6000});
+		int xa = (int)bd[0] - 3000, xb = (int)bd[1] - 3000, ya = (int)bd[2] - 3000, yb = (int)bd[3] - 3000;
+		// the U8 flags: mostly 0/1, sometimes 2/3 (only the low bit is stored, any non-zero value passes the if)
+		unsigned fl[12];
+		for (int k = 0; k < 12; k++)
+			fl[k] = i < 12 ? ((i >> (k % 4)) & 1) : (i % 7 == 0 ? r(4) : r(2));
+		if (i == 0)
+			for (int k = 0; k < 12; k++)
+				fl[k] = 1;
+		if (i == 1)
+			for (int k = 0; k < 12; k++)
+				fl[k] = 0;
+		std::vector<uint32_t> nm = draw(r, {65536, 65536, 65536, 4, 65536, 65536, 65536, 65536});
+		std::vector<uint32_t> c = draw(r, {256, 256, 256, 256, 2});
+		FColor *col = c[4] ? new FColor(c[0], c[1], c[2], c[3]) : new FColor(c[0], c[1], c[2]);
+		unsigned alpha = col->Alpha();
+		std::string name = alnum(r, i % 5 == 0 ? 0 : r(9));
+		std::string init = alnum(r, i % 4 == 0 ? 0 : r(12));
+		FDTDefineEditText t(new FRect(xa, ya, xb, yb), fl[0], fl[1], fl[2], fl[3], fl[4], fl[5], fl[6], fl[7], fl[8], fl[9], fl[10], fl[11], (U16)nm[0], (U16)nm[1], col, (U16)nm[2], (U8)nm[3], (U16)nm[4], (U16)nm[5], (U16)nm[6], (U16)nm[7], new FString(name.c_str()), new FString(init.c_str()));
+		FSWFStream s;
+		t.WriteToSWFStream(&s);
+		std::vector<uint8_t> nb(name.begin(), name.end()), ib(init.begin(), init.end());
+		std::printf("edittext|%u|%d,%d,%d,%d|", id, xa, xb, ya, yb);
+		for (int k = 0; k < 12; k++)
+			std::printf("%s%u", k ? "," : "", fl[k]);
+		std::printf("|%u,%u,%u,%u,%u,%u,%u,%u|%u,%u,%u,%u|%s|%s|%s|%u\n", nm[0], nm[1], nm[2], nm[3], nm[4], nm[5], nm[6], nm[7], c[0], c[1], c[2], alpha, hex(nb).c_str(), hex(ib).c_str(), dump(s).c_str(), (unsigned)t.ID());
+	}
+	// DefineText / DefineText2 with glyph and change records
+	for (int i = 0; i < 40; i++) {
+		resetIds();
+		unsigned id = nextId(r, i < 6 ? 0 : r(300));
+		bool two = i % 2;
+		std::vector<uint32_t> bd = draw(r, {6000, 6000, 6000, 6000});
+		int xa = (int)bd[0] - 3000, xb = (int)bd[1] - 3000, ya = (int)bd[2] - 3000, yb = (int)bd[3] - 3000;
+		FRect *rect = new FRect(xa, ya, xb, yb);
+		FDTDefineText *t1 = two ? 0 : new FDTDefineText(rect, new FMatrix(), 40);
+		FDTDefineText2 *t2 = two ? new FDTDefineText2(rect, new FMatrix(), 40) : 0;
+		unsigned nrec = i < 4 ? i : 1 + r(4);
+		std::vector<std::string> rs;
+		for (unsigned k = 0; k < nrec; k++) {
+			FTextRecord *rec;
+			if (r(3)) {
+				FTextGlyphRecord *g = new FTextGlyphRecord;
+				unsigned ne = (i == 7 && k == 0) ? 130 : (i % 9 == 0 && k == 0 ? 0 : r(i < 20 ? 6 : 24));
+				std::string d = "G:";
+				unsigned codeScale = (k + i) % 3 == 0 ? 256 : (k + i) % 3 == 1 ? 40 : 65536;
+				unsigned advScale = (k + i) % 4 == 0 ? 4 : (k + i) % 4 == 1 ? 300 : 65536;
+				for (unsigned e = 0; e < ne; e++) {
+					std::vector<uint32_t> v = draw(r, {codeScale, advScale});
+					g->AddGlyphEntry((U16)v[0], (U16)v[1]);
+					d += (e ? "." : "") + num(v[0]) + "." + num(v[1]);
+				}
+				rec = g;
+				rs.push_back(d);
+			} else {
+				std::vector<uint32_t> v = draw(r, {2, 2, 2, 2, 65536, 65536, 256, 256, 256, 256, 2, 20000, 20000});
+				bool hasColor = v[1];
+				FColor *col = hasColor ? (v[10] ? new FColor(v[6], v[7], v[8], v[9]) : new FColor(v[6], v[7], v[8])) : (r(2) ? 0 : new FColor(1, 2, 3));
+				unsigned alpha = col ? col->Alpha() : 0;
+				unsigned cr = hasColor ? v[6] : 0, cg = hasColor ? v[7] : 0, cb = hasColor ? v[8] : 0;
+				rec = new FTextChangeRecord(v[0], v[1], v[2], v[3], (U16)v[4], (U16)v[5], col, (S16)((int)v[11] - 10000), (S16)((int)v[12] - 10000));
+				rs.push_back("C:" + num(v[0]) + "," + num(v[1]) + "," + num(v[2]) + "," + num(v[3]) + "," + num(v[4]) + "," + num(v[5]) + "," + num(cr) + "," + num(cg) + "," + num(cb) + "," + num(hasColor ? alpha : 0) + "," + num((int)v[11] - 10000) + "," + num((int)v[12] - 10000));
+			}
+			if (two)
+				t2->AddTextRecord(rec);
+			else
+				t1->AddTextRecord(rec);
+		}
+		FSWFStream s;
+		if (two)
+			t2->WriteToSWFStream(&s);
+		else
+			t1->WriteToSWFStream(&s);
+		std::printf("text|%u|%u|%d,%d,%d,%d|%s|%s\n", two ? 33u : 11u, id, xa, xb, ya, yb, csvList(rs, ";").c_str(), dump(s).c_str());
+		delete t1;
+		delete t2;
+	}
+}
+
+// A colour transform, drawn once and built twice (one copy goes into the button, the other
+// is written alone to record the bytes the Rust replay appends).
+struct CxSpec {
+	bool alpha;
+	std::vector<uint32_t> d;
+};
+static CxSpec drawCx(Lcg &r)
+{
+	CxSpec c;
+	c.alpha = r(2);
+	c.d = c.alpha ? draw(r, {2, 2, 512, 512, 512, 512, 512, 512, 512, 512}) : draw(r, {2, 2, 512, 512, 512, 512, 512, 512});
+	return c;
+}
+static FCXForm *buildCx(const CxSpec &c)
+{
+	const std::vector<uint32_t> &d = c.d;
+	if (c.alpha)
+		return new FCXFormWAlpha(d[0], d[1], (int)d[2] - 256, (int)d[3] - 256, (int)d[4] - 256, (int)d[5] - 256, (int)d[6] - 256, (int)d[7] - 256, (int)d[8] - 256, (int)d[9] - 256);
+	return new FCXForm(d[0], d[1], (int)d[2] - 256, (int)d[3] - 256, (int)d[4] - 256, (int)d[5] - 256, (int)d[6] - 256, (int)d[7] - 256);
+}
+// The colour transform leaves a partial byte; "<flushed bytes>:<bits of the last byte in use>"
+// (0 when it ends on a byte boundary). The partial bits are found by padding with zero bits
+// until the stream grows by a byte.
+static std::string cxBytes(const CxSpec &c)
+{
+	FCXForm *x = buildCx(c);
+	FSWFStream s;
+	x->WriteToSWFStream(&s);
+	U32 before = s.Size();
+	unsigned pad = 0;
+	while (s.Size() == before && pad < 9) {
+		s.WriteBits(0, 1);
+		pad++;
+	}
+	unsigned partial = pad == 8 ? 0 : 8 - pad;
+	FSWFStream t;
+	x->WriteToSWFStream(&t);
+	t.FlushBits();
+	delete x;
+	return dump(t) + ":" + num(partial);
+}
+
+struct CondSpec {
+	std::vector<unsigned> conds;
+	unsigned key;
+	std::vector<std::vector<uint8_t> > actions;
+};
+static CondSpec drawCond(Lcg &r)
+{
+	CondSpec c;
+	unsigned nc = r(4);
+	for (unsigned k = 0; k < nc; k++)
+		c.conds.push_back(1 + r(9));
+	c.key = r(3) ? 0 : r(128);
+	unsigned na = r(4);
+	for (unsigned k = 0; k < na; k++) {
+		std::vector<uint8_t> v(1 + r(6));
+		for (auto &x : v)
+			x = r(256);
+		c.actions.push_back(v);
+	}
+	return c;
+}
+static FActionCondition *buildCond(const CondSpec &c)
+{
+	FActionCondition *f = new FActionCondition;
+	for (unsigned x : c.conds)
+		f->AddCondition((U16)x);
+	if (c.key)
+		f->AddKeyCode(c.key);
+	for (auto &a : c.actions)
+		f->AddActionRecord(new ByteAction(a));
+	return f;
+}
+
+static void buttonCases()
+{
+	Lcg r(0x5EED0009);
+	// DefineButton (1.0)
+	for (int i = 0; i < 24; i++) {
+		resetIds();
+		unsigned id = nextId(r, i < 4 ? 0 : r(300));
+		FDTDefineButton b;
+		unsigned nrec = i % 6 == 0 ? 0 : 1 + r(4);
+		std::vector<std::string> rs, as;
+		for (unsigned k = 0; k < nrec; k++) {
+			std::vector<uint32_t> v = draw(r, {2, 2, 2, 2, 400, 3});
+			FMatrix *m = v[5] == 0 ? new FMatrix() : mkMatrix(r);
+			// FButtonRecord1 takes the next character id when it is constructed
+			unsigned rid = nextId(r, 0);
+			FButtonRecord1 *rec = new FButtonRecord1(v[0], v[1], v[2], v[3], (U16)v[4], m);
+			rs.push_back(num(v[0]) + "," + num(v[1]) + "," + num(v[2]) + "," + num(v[3]) + "," + num(v[4]) + "," + num(rid) + "/" + matrixSpec(m));
+			b.AddButtonRecord(rec);
+		}
+		unsigned na = i % 5 == 0 ? 0 : r(4);
+		for (unsigned k = 0; k < na; k++) {
+			std::vector<uint8_t> v(1 + r(8));
+			for (auto &x : v)
+				x = r(256);
+			b.AddActionRecord(new ByteAction(v));
+			as.push_back(hex(v));
+		}
+		FSWFStream s;
+		b.WriteToSWFStream(&s);
+		std::printf("button|%u|%s|%s|%s|%u\n", id, csvList(rs, ";").c_str(), csvList(as, ";").c_str(), dump(s).c_str(), (unsigned)b.ID());
+	}
+	// DefineButton2
+	for (int i = 0; i < 32; i++) {
+		resetIds();
+		unsigned id = nextId(r, i < 4 ? 0 : r(300));
+		unsigned menu = r(3) ? 0 : 1 + r(254);
+		FDTDefineButton2 b((U8)menu);
+		unsigned nrec = i % 7 == 0 ? 0 : 1 + r(3);
+		std::vector<std::string> rs, cs;
+		for (unsigned k = 0; k < nrec; k++) {
+			std::vector<uint32_t> v = draw(r, {2, 2, 2, 2, 65536, 400, 3});
+			FMatrix *m = v[6] == 0 ? new FMatrix() : mkMatrix(r);
+			CxSpec cx = drawCx(r);
+			rs.push_back(num(v[0]) + "," + num(v[1]) + "," + num(v[2]) + "," + num(v[3]) + "," + num(v[5]) + "," + num(v[4]) + "/" + matrixSpec(m) + "/" + cxBytes(cx));
+			b.AddButtonRecord(new FButtonRecord2(v[0], v[1], v[2], v[3], (U16)v[4], (U16)v[5], m, buildCx(cx)));
+		}
+		unsigned nc = i % 4 == 0 ? 0 : 1 + r(3);
+		std::vector<CondSpec> conds;
+		for (unsigned k = 0; k < nc; k++)
+			conds.push_back(drawCond(r));
+		for (unsigned k = 0; k < nc; k++) {
+			b.AddActionCondition(buildCond(conds[k]));
+			// the bytes each condition writes: all but the last use the offset form
+			FActionCondition *twin = buildCond(conds[k]);
+			FSWFStream t;
+			if (k + 1 == nc)
+				twin->WriteToSWFStream(&t, 1);
+			else
+				twin->WriteToSWFStream(&t);
+			t.FlushBits();
+			cs.push_back(dump(t));
+			delete twin;
+		}
+		FSWFStream s;
+		b.WriteToSWFStream(&s);
+		std::printf("button2|%u|%u|%s|%s|%s|%u\n", id, menu, csvList(rs, ";").c_str(), csvList(cs, ";").c_str(), dump(s).c_str(), (unsigned)b.ID());
+	}
+	// DefineButtonCXForm
+	for (int i = 0; i < 12; i++) {
+		resetIds();
+		unsigned cid = r(65536);
+		CxSpec cx = drawCx(r);
+		FDTDefineButtonCXForm b((U16)cid, buildCx(cx));
+		FSWFStream s;
+		b.WriteToSWFStream(&s);
+		std::printf("buttoncx|%u|%s|%s\n", cid, cxBytes(cx).c_str(), dump(s).c_str());
+	}
+	// DefineButtonSound
+	for (int i = 0; i < 12; i++) {
+		resetIds();
+		unsigned bid = r(65536);
+		unsigned sid[4];
+		std::vector<std::vector<uint32_t> > ids;
+		FSoundInfo *infos[4];
+		std::vector<std::string> parts;
+		for (int k = 0; k < 4; k++) {
+			sid[k] = r(65536);
+			std::vector<uint32_t> d = draw(r, {16, 2, 2, 2, 0, 0, 65536});
+			ids.push_back(d);
+			infos[k] = new FSoundInfo(d[0], 0, d[1], d[2], d[3], d[4], d[5], d[6], 1, 0);
+			FSoundInfo twin(d[0], 0, d[1], d[2], d[3], d[4], d[5], d[6], 1, 0);
+			FSWFStream t;
+			twin.WriteToSWFStream(&t);
+			t.FlushBits();
+			parts.push_back(num(sid[k]) + "/" + dump(t));
+		}
+		FDTDefineButtonSound b((U16)bid, (U16)sid[0], infos[0], (U16)sid[1], infos[1], (U16)sid[2], infos[2], (U16)sid[3], infos[3]);
+		FSWFStream s;
+		b.WriteToSWFStream(&s);
+		std::printf("buttonsound|%u|%s|%s\n", bid, csvList(parts, ";").c_str(), dump(s).c_str());
+	}
+}
+
 int main()
 {
 	streamCases();
@@ -854,5 +1260,8 @@ int main()
 	soundCases();
 	fctCases();
 	bitmapCases();
+	fontCases();
+	textCases();
+	buttonCases();
 	return 0;
 }
