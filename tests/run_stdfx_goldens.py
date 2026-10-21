@@ -24,6 +24,7 @@ REPO = os.path.abspath(os.path.join(HERE, ".."))
 
 CHECKS = [
     ("attenuation", ["tests/native/gen_igs_attenuation_cases.py", "--check"]),
+    ("noise (noise1234, simplex, hsv/hls in camera)", ["tests/native/gen_noise_cases.py", "--check"]),
     (
         "motion wind (64-bit word)",
         ["tests/native/gen_igs_motion_wind_cases.py", "--rng-bits", "64", "--check"],

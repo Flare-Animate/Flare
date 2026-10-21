@@ -57,34 +57,37 @@ struct CellIds {
   }
 };
 
+// Implemented in iwa_simplexnoise.rs (flare_formats).
+extern "C" {
+double flare_simplex_noise2(double x, double y);
+double flare_simplex_noise3(double x, double y, double z);
+double flare_simplex_noise4(double x, double y, double z, double w);
+// writes i, j, k, i1, j1, k1, i2, j2, k2; returns 0 (-1 for a null `out`)
+int flare_simplex_cell_ids(double x, double y, double z, int *out);
+}
+
 class SimplexNoise {
-  // This method is a *lot* faster than using (int)Math.floor(x)
-  static int fastfloor(double x) {
-    int xi = (int)x;
-    return x < xi ? xi - 1 : xi;
-  }
-
-  static double dot(Grad g, double x, double y) { return g.x * x + g.y * y; }
-
-  static double dot(Grad g, double x, double y, double z) {
-    return g.x * x + g.y * y + g.z * z;
-  }
-
-  static double dot(Grad g, double x, double y, double z, double w) {
-    return g.x * x + g.y * y + g.z * z + g.w * w;
-  }
-
 public:
   SimplexNoise();
   // 2D simplex noise
-  static double noise(double xin, double yin);
+  static double noise(double xin, double yin) {
+    return flare_simplex_noise2(xin, yin);
+  }
   // 3D simplex noise
-  static double noise(double xin, double yin, double zin);
+  static double noise(double xin, double yin, double zin) {
+    return flare_simplex_noise3(xin, yin, zin);
+  }
   // 4D simplex noise
-  static double noise(double x, double y, double z, double w);
+  static double noise(double x, double y, double z, double w) {
+    return flare_simplex_noise4(x, y, z, w);
+  }
 
   /*- セルまたぎを防ぐために、現在の所属セルを得る -*/
-  static CellIds getCellIds(double xin, double yin, double zin);
+  static CellIds getCellIds(double xin, double yin, double zin) {
+    int v[9] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+    flare_simplex_cell_ids(xin, yin, zin, v);
+    return CellIds(v[0], v[1], v[2], v[3], v[4], v[5], v[6], v[7], v[8]);
+  }
 };
 
 #endif

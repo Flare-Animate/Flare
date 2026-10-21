@@ -1,9 +1,9 @@
 //! Port of stdfx/igs_perlin_noise.cpp: fill a whole 8/16-bit or float image with
 //! 3D Perlin noise (octave sum, affine-mapped pixel coordinates).
 //!
-//! `iwa_noise1234.cpp` stays C++ (its `Noise1234::noise` is called per pixel from
-//! `iwa_fractalnoisefx`/`iwa_pnperspectivefx`, so an FFI hop per sample is not worth it).
-//! This file therefore carries a private, bit-identical copy of the 3D case
+//! `iwa_noise1234.cpp` is now `iwa_noise1234.rs`, but this file keeps a private copy
+//! so the whole-buffer call does not take an FFI hop per sample. It is a
+//! private, bit-identical copy of the 3D case
 //! (`Noise1234::noise(x, y, z)`, Stefan Gustavson, public domain), which the
 //! whole-buffer call uses without leaving Rust. Channel order is Toonz6 (b,g,r,a).
 

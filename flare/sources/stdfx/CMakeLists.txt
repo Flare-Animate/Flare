@@ -173,8 +173,6 @@ set(SOURCES
     warpfx.cpp
     igs_fog.cpp
     igs_gaussian_blur.cpp
-    igs_hls_noise_in_camera.cpp
-    igs_hsv_noise_in_camera.cpp
     igs_line_blur.cpp
     igs_maxmin.cpp
     igs_maxmin_lens_matrix.cpp
@@ -245,8 +243,6 @@ set(SOURCES
     iwa_perspectivedistortfx.cpp
     iwa_spectrumfx.cpp
     iwa_tilefx.cpp
-    iwa_simplexnoise.cpp
-    iwa_noise1234.cpp
     iwa_pnperspectivefx.cpp
     iwa_soapbubblefx.cpp
     iwa_bokehfx.cpp
