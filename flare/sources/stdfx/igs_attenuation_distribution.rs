@@ -214,7 +214,12 @@ pub fn attenuation_distribution(
 // KEEP `stdfx/igs_attenuation_cases.txt`: the generator recovers the original C++ from
 // git history, so the golden keeps pinning the Rust port after the C++ caller is gone.
 // Do not add new callers.
-use std::os::raw::{c_double, c_int};
+use std::os::raw::{c_double, c_int, c_void};
+
+extern "C" {
+    fn malloc(size: usize) -> *mut c_void;
+    fn free(ptr: *mut c_void);
+}
 
 /// C-compatible wrapper: computes the lens matrix and publishes three arrays plus
 /// the odd diameter. All-or-nothing: either every out-parameter is set, or none is
@@ -269,14 +274,14 @@ pub unsafe extern "C" fn flare_igs_attenuation_distribution(
             _ => return ERR_ALLOC,
         };
 
-        let flat_mat = libc::malloc(mat_bytes) as *mut c_double;
-        let offs_ptr = libc::malloc(int_bytes) as *mut c_int;
-        let sizes_ptr = libc::malloc(int_bytes) as *mut c_int;
+        let flat_mat = malloc(mat_bytes) as *mut c_double;
+        let offs_ptr = malloc(int_bytes) as *mut c_int;
+        let sizes_ptr = malloc(int_bytes) as *mut c_int;
         if flat_mat.is_null() || offs_ptr.is_null() || sizes_ptr.is_null() {
             // free(NULL) is a no-op, so this covers partial allocation too.
-            libc::free(flat_mat as *mut libc::c_void);
-            libc::free(offs_ptr as *mut libc::c_void);
-            libc::free(sizes_ptr as *mut libc::c_void);
+            free(flat_mat as *mut std::os::raw::c_void);
+            free(offs_ptr as *mut std::os::raw::c_void);
+            free(sizes_ptr as *mut std::os::raw::c_void);
             return ERR_ALLOC;
         }
 
@@ -315,13 +320,13 @@ pub unsafe extern "C" fn flare_igs_attenuation_free(
 ) {
     unsafe {
         if !matrix.is_null() {
-            libc::free(matrix as *mut libc::c_void);
+            free(matrix as *mut std::os::raw::c_void);
         }
         if !offsets.is_null() {
-            libc::free(offsets as *mut libc::c_void);
+            free(offsets as *mut std::os::raw::c_void);
         }
         if !sizes.is_null() {
-            libc::free(sizes as *mut libc::c_void);
+            free(sizes as *mut std::os::raw::c_void);
         }
     }
 }

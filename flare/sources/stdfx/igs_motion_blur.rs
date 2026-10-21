@@ -339,7 +339,11 @@ pub(crate) fn convert_template<T: Sample>(
 ) {
     if k.ratio.is_empty() {
         let n = hh as usize * ww as usize * cc;
-        out[..n].copy_from_slice(&inn[..n]);
+        if std::ptr::eq(inn.as_ptr(), out.as_ptr()) {
+            // identical buffers: nothing to do
+        } else {
+            out[..n].copy_from_slice(&inn[..n]);
+        }
         return;
     }
     let pv = |xx: i32, yy: i32, zz: usize| pixel_value(inn, hh, ww, cc, xx, yy, zz, k);

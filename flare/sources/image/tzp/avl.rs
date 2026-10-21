@@ -49,6 +49,19 @@ use std::mem::size_of;
 use std::os::raw::{c_char, c_int, c_long, c_short, c_uint, c_ulong, c_ushort, c_void};
 use std::ptr::{addr_of_mut, null_mut};
 
+extern "C" {
+    fn malloc(size: usize) -> *mut c_void;
+    fn free(ptr: *mut c_void);
+    fn calloc(nmemb: usize, size: usize) -> *mut c_void;
+    fn strcmp(a: *const c_char, b: *const c_char) -> c_int;
+    fn strlen(s: *const c_char) -> usize;
+    fn strcpy(dst: *mut c_char, src: *const c_char) -> *mut c_char;
+    fn strncpy(dst: *mut c_char, src: *const c_char, n: usize) -> *mut c_char;
+    fn strchr(s: *const c_char, c: c_int) -> *mut c_char;
+    fn strstr(haystack: *const c_char, needle: *const c_char) -> *mut c_char;
+    fn atoi(s: *const c_char) -> c_int;
+}
+
 pub type UsrCmp = Option<unsafe extern "C" fn(*mut c_void, *mut c_void) -> c_int>;
 pub type UsrFun = Option<unsafe extern "C" fn(*mut c_void)>;
 
@@ -219,7 +232,7 @@ unsafe fn new_memory(size: usize) -> *mut c_void {
         *(base as *mut *mut c_void) = *fl.add(NODE_LIST);
         *fl.add(NODE_LIST) = base as *mut c_void;
     }
-    AVAIL_BASE = libc::malloc(MALLOC_SIZE) as *mut c_char;
+    AVAIL_BASE = malloc(MALLOC_SIZE) as *mut c_char;
     if !AVAIL_BASE.is_null() {
         AVAIL_SIZE = MALLOC_SIZE - size;
         AVAIL_BASE.add(AVAIL_SIZE) as *mut c_void
@@ -275,7 +288,7 @@ unsafe fn free_path(p: *mut Path) {
 
 #[inline]
 unsafe fn strcmp_(a: *mut c_void, b: *mut c_void) -> c_int {
-    libc::strcmp(a as *const c_char, b as *const c_char)
+    strcmp(a as *const c_char, b as *const c_char)
 }
 
 /// `SET_PTRCMP`: the user comparator when set, `strcmp` otherwise.
@@ -1576,34 +1589,34 @@ unsafe fn strsave(s: *const c_char) -> *mut c_char {
     if s.is_null() {
         return null_mut();
     }
-    let n = libc::strlen(s) + 1;
-    let neww = libc::malloc(n) as *mut c_char;
+    let n = strlen(s) + 1;
+    let neww = malloc(n) as *mut c_char;
     if neww.is_null() {
         return neww;
     }
-    libc::strcpy(neww, s);
+    strcpy(neww, s);
     neww
 }
 
 unsafe fn strnsave(s: *const c_char, n: isize) -> *mut c_char {
     let n = n.max(0) as usize; // negative lengths were UB in the C
-    let neww = libc::malloc(n + 1) as *mut c_char;
+    let neww = malloc(n + 1) as *mut c_char;
     if neww.is_null() {
         return neww;
     }
-    libc::strncpy(neww, s, n);
+    strncpy(neww, s, n);
     *neww.add(n) = 0;
     neww
 }
 
 #[inline]
 unsafe fn calloc1<T>(n: usize) -> *mut T {
-    libc::calloc(n, size_of::<T>()) as *mut T
+    calloc(n, size_of::<T>()) as *mut T
 }
 
 /// Returns false for the C's `goto error`.
 unsafe fn decode_items(names: *mut c_char, tcm: TcmInfo, tree: *mut Tree) -> bool {
-    let endstr = libc::strchr(names, 0);
+    let endstr = strchr(names, 0);
     let mut c1 = names;
     let total = tcm.n_colors as c_int + tcm.n_pencils as c_int;
     let mut i: c_int = 0;
@@ -1614,11 +1627,11 @@ unsafe fn decode_items(names: *mut c_char, tcm: TcmInfo, tree: *mut Tree) -> boo
         }
         (*item).index = i;
 
-        let mut endcol = libc::strchr(c1, b'|' as c_int);
+        let mut endcol = strchr(c1, b'|' as c_int);
         if endcol.is_null() {
             endcol = endstr;
         }
-        let mut c2 = libc::strchr(c1, b'\t' as c_int);
+        let mut c2 = strchr(c1, b'\t' as c_int);
         if c2.is_null() {
             c2 = endcol;
         }
@@ -1629,7 +1642,7 @@ unsafe fn decode_items(names: *mut c_char, tcm: TcmInfo, tree: *mut Tree) -> boo
                 (*item).group = strnsave(c1, c2.offset_from(c1));
             }
             c1 = c2.add(1);
-            c2 = libc::strchr(c1, b'\t' as c_int);
+            c2 = strchr(c1, b'\t' as c_int);
             if c2.is_null() {
                 c2 = endcol;
             }
@@ -1638,7 +1651,7 @@ unsafe fn decode_items(names: *mut c_char, tcm: TcmInfo, tree: *mut Tree) -> boo
         }
         while *c1 == b'<' as c_char && *c1.add(1) == b'!' as c_char {
             c1 = c1.add(2);
-            let ct = libc::strstr(c1, c"!>".as_ptr());
+            let ct = strstr(c1, c"!>".as_ptr());
             if ct.is_null() {
                 return false;
             }
@@ -1665,15 +1678,15 @@ unsafe fn decode_items(names: *mut c_char, tcm: TcmInfo, tree: *mut Tree) -> boo
         } else {
             (*item).effects = avl__tree(AVL_NODUP_STR, std::mem::offset_of!(CdbEffect, name) as c_uint, None);
             loop {
-                let mut ct = libc::strstr(c1, c" ! ".as_ptr());
+                let mut ct = strstr(c1, c" ! ".as_ptr());
                 if !ct.is_null() && endcol > ct {
                     endcol = ct;
                 }
-                ct = libc::strstr(c1, c"#! ".as_ptr());
+                ct = strstr(c1, c"#! ".as_ptr());
                 if !ct.is_null() && endcol > ct {
                     endcol = ct;
                 }
-                c2 = libc::strchr(c1, b'#' as c_int);
+                c2 = strchr(c1, b'#' as c_int);
                 if c2.is_null() || c2 >= endcol {
                     break;
                 }
@@ -1684,7 +1697,7 @@ unsafe fn decode_items(names: *mut c_char, tcm: TcmInfo, tree: *mut Tree) -> boo
                 (*effect).name = strnsave(c1, c2.offset_from(c1));
 
                 c1 = c2.add(1);
-                c2 = libc::strchr(c1, b'#' as c_int);
+                c2 = strchr(c1, b'#' as c_int);
                 if c2.is_null() {
                     return false;
                 }
@@ -1692,29 +1705,29 @@ unsafe fn decode_items(names: *mut c_char, tcm: TcmInfo, tree: *mut Tree) -> boo
                 let len = c2.offset_from(c1) as usize;
                 let mut tmp: Vec<u8> = std::slice::from_raw_parts(c1 as *const u8, len).to_vec();
                 tmp.push(0);
-                (*effect).num_params = libc::atoi(tmp.as_ptr() as *const c_char);
+                (*effect).num_params = atoi(tmp.as_ptr() as *const c_char);
                 if (*effect).num_params != 0 {
-                    (*effect).param = libc::calloc((*effect).num_params as isize as usize, size_of::<CdbParam>())
+                    (*effect).param = calloc((*effect).num_params as isize as usize, size_of::<CdbParam>())
                         as *mut CdbParam;
                 }
                 c1 = c2.add(1);
                 let np = (*effect).num_params;
                 let mut p: c_int = 0;
                 while p < np {
-                    c2 = libc::strchr(c1, b'#' as c_int);
+                    c2 = strchr(c1, b'#' as c_int);
                     if c2.is_null() {
                         return false;
                     }
                     let prm = (*effect).param.add(p as usize);
                     (*prm).name = strnsave(c1, c2.offset_from(c1));
                     c1 = c2.add(1);
-                    c2 = if p == np - 1 { endcol } else { libc::strstr(c1, c" : ".as_ptr()) };
+                    c2 = if p == np - 1 { endcol } else { strstr(c1, c" : ".as_ptr()) };
                     if c2.is_null() {
                         return false;
                     }
                     (*prm).value = strnsave(c1, c2.offset_from(c1));
                     let value = (*prm).value;
-                    let mut k = libc::strlen(value) as isize - 1;
+                    let mut k = strlen(value) as isize - 1;
                     while k >= 0 && (*value.offset(k) == b' ' as c_char || *value.offset(k) == b'\t' as c_char) {
                         *value.offset(k) = 0;
                         k -= 1;
@@ -1746,7 +1759,7 @@ pub unsafe extern "C" fn cdb_decode_all(names_in_plt_file: *mut c_char, tcm: Tcm
             return tree;
         }
         if !decode_items(names_in_plt_file, tcm, tree) {
-            libc::printf(c"error parsing color names and fx\n".as_ptr());
+            eprintln!("error parsing color names and fx");
         }
         tree
     })
