@@ -47,7 +47,7 @@
 #ifndef _F_C_T_H_
 #define _F_C_T_H_
 
-#include <string.h>
+#include <string>
 #include <stdexcept>
 
 #include "Macromedia.h"
