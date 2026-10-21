@@ -298,26 +298,33 @@ fn valcmp(a: c_long, b: c_long) -> c_int {
     }
 }
 
+/// Lookup keys are pointer-wide internally. The C ABI passes them as `long`, which is
+/// 32-bit on LLP64 (Windows) and so cannot carry the pointer a string/user-comparator
+/// tree needs there (a truncated pointer fed to `strcmp` is an access violation). The
+/// `extern "C"` entry points widen their `long`; in-process callers (and the tests) use
+/// the `*_k` functions and pass a full-width key. Integer keys still compare as `long`.
+type K = isize;
+
 #[inline]
-fn kptr(v: c_long) -> *mut c_void {
-    v as isize as *mut c_void
+fn kptr(v: K) -> *mut c_void {
+    v as *mut c_void
 }
 
 /// Comparison of a lookup key against a node, as the `avl__locate*` family does it:
 /// user comparator (must be set) for USR trees, `strcmp` for STR, integer for the rest.
 #[inline]
-unsafe fn locate_cmp(tree: *mut Tree, ct: c_int, keyval: c_long, node: *mut Node) -> c_int {
+unsafe fn locate_cmp(tree: *mut Tree, ct: c_int, keyval: K, node: *mut Node) -> c_int {
     match ct {
         USR_CMP => (*tree).usrcmp.expect("avl: NULL user comparator")(kptr(keyval), (*node).key.ptr),
         STR_CMP => strcmp_(kptr(keyval), (*node).key.ptr),
-        _ => valcmp(keyval, (*node).key.val),
+        _ => valcmp(keyval as c_long, (*node).key.val),
     }
 }
 
 #[inline]
-fn prep_key(ct: c_int, keyval: c_long) -> c_long {
+fn prep_key(ct: c_int, keyval: K) -> K {
     if ct == COR_CMP {
-        correct(keyval)
+        correct(keyval as c_long) as K
     } else {
         keyval
     }
@@ -605,7 +612,7 @@ pub unsafe extern "C" fn avl_insert(tree: *mut Tree, data: *mut c_void) -> c_int
 
 /// Which neighbour a `locate` returns.
 #[derive(Clone, Copy, PartialEq)]
-enum Rel {
+pub(crate) enum Rel {
     Eq,
     Ge,
     Gt,
@@ -613,7 +620,7 @@ enum Rel {
     Lt,
 }
 
-unsafe fn locate_rel(tree: *mut Tree, keyval: c_long, rel: Rel) -> *mut c_void {
+pub(crate) unsafe fn locate_rel(tree: *mut Tree, keyval: K, rel: Rel) -> *mut c_void {
     if tree.is_null() {
         return null_mut();
     }
@@ -700,23 +707,23 @@ unsafe fn locate_rel(tree: *mut Tree, keyval: c_long, rel: Rel) -> *mut c_void {
 
 #[no_mangle]
 pub unsafe extern "C" fn avl__locate(tree: *mut Tree, keyval: c_long) -> *mut c_void {
-    crate::guard(null_mut(), || locate_rel(tree, keyval, Rel::Eq))
+    crate::guard(null_mut(), || locate_rel(tree, keyval as K, Rel::Eq))
 }
 #[no_mangle]
 pub unsafe extern "C" fn avl__locate_ge(tree: *mut Tree, keyval: c_long) -> *mut c_void {
-    crate::guard(null_mut(), || locate_rel(tree, keyval, Rel::Ge))
+    crate::guard(null_mut(), || locate_rel(tree, keyval as K, Rel::Ge))
 }
 #[no_mangle]
 pub unsafe extern "C" fn avl__locate_gt(tree: *mut Tree, keyval: c_long) -> *mut c_void {
-    crate::guard(null_mut(), || locate_rel(tree, keyval, Rel::Gt))
+    crate::guard(null_mut(), || locate_rel(tree, keyval as K, Rel::Gt))
 }
 #[no_mangle]
 pub unsafe extern "C" fn avl__locate_le(tree: *mut Tree, keyval: c_long) -> *mut c_void {
-    crate::guard(null_mut(), || locate_rel(tree, keyval, Rel::Le))
+    crate::guard(null_mut(), || locate_rel(tree, keyval as K, Rel::Le))
 }
 #[no_mangle]
 pub unsafe extern "C" fn avl__locate_lt(tree: *mut Tree, keyval: c_long) -> *mut c_void {
-    crate::guard(null_mut(), || locate_rel(tree, keyval, Rel::Lt))
+    crate::guard(null_mut(), || locate_rel(tree, keyval as K, Rel::Lt))
 }
 
 #[no_mangle]
@@ -898,6 +905,10 @@ unsafe fn remove_rec(rootaddr: *mut *mut Node, key: RemKey, dup: bool) -> *mut N
 
 #[no_mangle]
 pub unsafe extern "C" fn avl__remove(tree: *mut Tree, keyval: c_long) -> *mut c_void {
+    remove_k(tree, keyval as K)
+}
+
+pub(crate) unsafe fn remove_k(tree: *mut Tree, keyval: K) -> *mut c_void {
     crate::guard(null_mut(), || {
         if tree.is_null() || (*tree).root.is_null() {
             return null_mut();
@@ -907,8 +918,8 @@ pub unsafe extern "C" fn avl__remove(tree: *mut Tree, keyval: c_long) -> *mut c_
         let key = match cmptype(keyinfo) {
             USR_CMP => RemKey::Ptr(kptr(keyval), (*tree).usrcmp),
             STR_CMP => RemKey::Ptr(kptr(keyval), None),
-            COR_CMP => RemKey::Val(correct(keyval)),
-            _ => RemKey::Val(keyval),
+            COR_CMP => RemKey::Val(correct(keyval as c_long)),
+            _ => RemKey::Val(keyval as c_long),
         };
         let node = remove_rec(&mut (*tree).root, key, dup);
         if !node.is_null() {
@@ -1080,6 +1091,10 @@ unsafe fn down(
 
 #[no_mangle]
 pub unsafe extern "C" fn avl__start(tree: *mut Tree, keyval: c_long, back: c_int) -> *mut c_void {
+    start_k(tree, keyval as K, back)
+}
+
+pub(crate) unsafe fn start_k(tree: *mut Tree, keyval: K, back: c_int) -> *mut c_void {
     crate::guard(null_mut(), || {
         if tree.is_null() || (*tree).root.is_null() {
             return null_mut();
@@ -1112,7 +1127,7 @@ pub unsafe extern "C" fn avl__start(tree: *mut Tree, keyval: c_long, back: c_int
             // sign of (key - node)
             let cmp = match ct {
                 USR_CMP | STR_CMP => ptrcmp(usrcmp, kptr(keyval), (*node).key.ptr),
-                _ => valcmp(keyval, (*node).key.val),
+                _ => valcmp(keyval as c_long, (*node).key.val),
             };
             if !dup {
                 if back {
@@ -1876,7 +1891,7 @@ mod tests {
                 p = avl_next(st) as *mut S;
             }
             assert_eq!(v, ["apple", "fig", "pear"]);
-            assert!(!avl__locate(st, c"fig".as_ptr() as c_long).is_null());
+            assert!(!locate_rel(st, c"fig".as_ptr() as K, Rel::Eq).is_null());
             avl_close(st);
             avl_close(t);
         }
@@ -2102,13 +2117,13 @@ mod tests {
             let op = tok.next().unwrap();
             let mut res = String::from("-");
             unsafe {
-                let mut key = |t: &str| -> c_long {
+                let mut key = |t: &str| -> K {
                     if is_str {
                         keep = std::ffi::CString::new(t).unwrap();
-                        keep.as_ptr() as c_long
+                        keep.as_ptr() as K
                     } else if user {
                         probe = t.parse().unwrap();
-                        &mut probe as *mut c_int as c_long
+                        &mut probe as *mut c_int as K
                     } else {
                         t.parse().unwrap()
                     }
@@ -2153,11 +2168,11 @@ mod tests {
                         let rel = tok.next().unwrap();
                         let k = key(tok.next().unwrap());
                         let r = match rel {
-                            "eq" => avl__locate(tree, k),
-                            "ge" => avl__locate_ge(tree, k),
-                            "gt" => avl__locate_gt(tree, k),
-                            "le" => avl__locate_le(tree, k),
-                            _ => avl__locate_lt(tree, k),
+                            "eq" => locate_rel(tree, k, Rel::Eq),
+                            "ge" => locate_rel(tree, k, Rel::Ge),
+                            "gt" => locate_rel(tree, k, Rel::Gt),
+                            "le" => locate_rel(tree, k, Rel::Le),
+                            _ => locate_rel(tree, k, Rel::Lt),
                         };
                         res = rid(r).to_string();
                     }
@@ -2165,7 +2180,7 @@ mod tests {
                     "Z" => res = rid(avl_locate_last(tree)).to_string(),
                     "R" => {
                         let k = key(tok.next().unwrap());
-                        res = rid(avl__remove(tree, k)).to_string();
+                        res = rid(remove_k(tree, k)).to_string();
                     }
                     "S" | "B" => {
                         COLLECTED.lock().unwrap().clear();
@@ -2179,7 +2194,7 @@ mod tests {
                         if op == "W" {
                             let k = key(tok.next().unwrap());
                             back = tok.next().unwrap() == "1";
-                            p = avl__start(tree, k, back as c_int);
+                            p = start_k(tree, k, back as c_int);
                         } else {
                             back = tok.next().unwrap() == "1";
                             p = if back { avl_last(tree) } else { avl_first(tree) };
