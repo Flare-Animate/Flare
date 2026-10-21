@@ -127,7 +127,7 @@ def build_and_run_host(
     (see the generator docstrings).
     """
     shutil.copyfile(harness, os.path.join(workdir, "ref.cpp"))
-    cxx = os.environ.get("CXX") or shutil.which("clang++") or shutil.which("g++")
+    cxx = os.environ.get("CXX") or shutil.which("g++") or shutil.which("clang++")
     if not cxx:
         sys.exit("no host C++ compiler found (set CXX)")
     argv = [
@@ -143,6 +143,10 @@ def build_and_run_host(
         "ref.cpp",
         *sources,
     ]
+    # clang++ on some Linux distros cannot find the libstdc++ headers by default;
+    # tell it to use the GCC standard library, which build-essential always provides.
+    if "clang" in os.path.basename(cxx).lower():
+        argv += ["-stdlib=libstdc++"]
     for d in include_dirs or []:
         argv += ["-I", d]
     argv += [*(extra_args or [])]
