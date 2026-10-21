@@ -3,13 +3,29 @@
 #ifndef igs_hls_noise_in_camera_h
 #define igs_hls_noise_in_camera_h
 
+#include <stdexcept> /* std::domain_error, std::invalid_argument */
+
 #ifndef IGS_HLS_NOISE_IN_CAMERA_EXPORT
 #define IGS_HLS_NOISE_IN_CAMERA_EXPORT
 #endif
 
+// Implemented in igs_hls_noise_in_camera.rs (flare_formats); returns 0, 1 (bad
+// channels -> std::domain_error), 2 (bad bits -> std::domain_error) or 3 (null
+// buffer / negative size / misaligned buffer -> std::invalid_argument).
+extern "C" {
+int flare_igs_hls_noise_in_camera_change(
+    void *image_array, int height, int width, int channels, int bits,
+    int camera_x, int camera_y, int camera_w, int camera_h, double hue_range,
+    double lig_range, double sat_range, double alp_range,
+    unsigned long random_seed, double near_blur,
+    double lig_effective, double lig_center, int lig_type,
+    double sat_effective, double sat_center, int sat_type,
+    double alp_effective, double alp_center, int alp_type);
+}
+
 namespace igs {
 namespace hls_noise_in_camera {
-IGS_HLS_NOISE_IN_CAMERA_EXPORT void change(
+inline void change(
     void *image_array
 
     ,
@@ -53,8 +69,20 @@ IGS_HLS_NOISE_IN_CAMERA_EXPORT void change(
     ,
     const int alp_type = 0
     // 0(shift_whole),1(shift_term),2(decrease_whole),3(decrease_term)
-    );
+    ) {
+  switch (flare_igs_hls_noise_in_camera_change(
+      image_array, height, width, channels, bits, camera_x, camera_y, camera_w, camera_h, hue_range, lig_range, sat_range, alp_range, random_seed, near_blur, lig_effective, lig_center, lig_type, sat_effective, sat_center, sat_type, alp_effective, alp_center, alp_type)) {
+  case 0:
+    return;
+  case 1:
+    throw std::domain_error("Bad channels,Not rgba/rgb/grayscale");
+  case 2:
+    throw std::domain_error("Bad bits,Not uchar/ushort");
+  default:
+    throw std::invalid_argument("igs::hls_noise_in_camera::change: bad image");
+  }
 }
-}
+}  // namespace hls_noise_in_camera
+}  // namespace igs
 
 #endif /* !igs_hls_noise_in_camera_h */
