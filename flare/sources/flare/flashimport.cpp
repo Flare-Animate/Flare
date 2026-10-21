@@ -346,8 +346,9 @@ static void importXFLScene(ToonzScene *scene, TXsheet *xsheet,
                 // unbounded loop here allocates until the process dies.
                 const int kMaxRows = 100000;
                 const long long r0 = std::max(0, (int)frame.index);
+                const int dur = std::max(1, (int)frame.duration);
                 const long long r1 = std::min<long long>(
-                    r0 + std::max(0, (int)frame.duration), kMaxRows);
+                    r0 + dur, kMaxRows);
                 for (long long r = r0; r < r1; ++r)
                     xsheet->setCell((int)r, col, cell);
                 break;
