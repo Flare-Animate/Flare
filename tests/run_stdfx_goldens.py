@@ -65,10 +65,24 @@ def main() -> int:
         if which not in ("all", "linux", "macos"):
             print("usage: run_stdfx_goldens.py [--set all|linux|macos]")
             return 2
-    cxx = os.environ.get("CXX") or shutil.which("clang++") or shutil.which("g++")
+    cxx = os.environ.get("CXX") or shutil.which("g++") or shutil.which("clang++")
     if not cxx:
         print("SKIP: no host C++ compiler (set CXX); golden drift not checked")
         return 0
+    # Verify the compiler can actually find standard headers.
+    import tempfile
+    probe_dir = tempfile.mkdtemp(prefix="cxxprobe-")
+    probe = os.path.join(probe_dir, "probe.cpp")
+    with open(probe, "w") as fh:
+        fh.write("#include <cstdint>\n#include <vector>\n#include <cmath>\nint main(){return 0;}\n")
+    try:
+        subprocess.run([cxx, "-std=c++17", "-c", probe, "-o", os.path.join(probe_dir, "probe.o")],
+                       check=True, capture_output=True)
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        shutil.rmtree(probe_dir, ignore_errors=True)
+        print("SKIP: host C++ compiler cannot find standard headers; golden drift not checked")
+        return 0
+    shutil.rmtree(probe_dir, ignore_errors=True)
 
     failed = []
     for label, argv in CHECKS:
