@@ -26,6 +26,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -42,8 +43,10 @@ PORTED = ["FSWFStream", "FPrimitive", "FObj", "FSound", "FCT", "FDTBitmaps"]
 KEPT = ["FDTShapes", "FAction", "FDTSounds"]
 
 
-def cxx() -> str:
-    c = os.environ.get("CXX") or "g++"
+def cxx() -> str | None:
+    c = os.environ.get("CXX") or shutil.which("g++") or shutil.which("clang++")
+    if not c:
+        return None
     # Verify the compiler can actually find standard headers; some environments
     # (scoop clang on Windows, minimal containers) have the binary but not the
     # C++ standard library development headers.
@@ -57,7 +60,7 @@ def cxx() -> str:
                        check=True, capture_output=True)
     except (subprocess.CalledProcessError, FileNotFoundError):
         shutil.rmtree(probe_dir, ignore_errors=True)
-        sys.exit("host C++ compiler cannot find standard headers; skipping golden check")
+        return None
     shutil.rmtree(probe_dir, ignore_errors=True)
     return c
 
@@ -84,8 +87,11 @@ def extract_original(workdir: str) -> str:
 
 
 def build(workdir: str, exe: str, sources: list[str], includes: list[str], extra: list[str], shim: bool = False) -> str:
+    _cxx = cxx()
+    if _cxx is None:
+        sys.exit(0)  # skip: no usable compiler
     out = os.path.join(workdir, exe)
-    argv = [cxx(), *CXXFLAGS]
+    argv = [_cxx, *CXXFLAGS]
     if shim:  # original only: 32-bit uLongf semantics, see swfwriter_zlib_shim.h
         argv += ["-include", os.path.join(HERE, "swfwriter_zlib_shim.h")]
     for i in includes:
