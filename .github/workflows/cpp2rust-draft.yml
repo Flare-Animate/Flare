@@ -91,7 +91,7 @@ jobs:
           echo "sha=$(git -C "$RUNNER_TEMP/cpp2rust" rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
       - name: Cache cargo and build dir
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             ~/.cargo/registry
