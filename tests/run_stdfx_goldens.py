@@ -22,6 +22,11 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.abspath(os.path.join(HERE, ".."))
 
+# Which host recorded each golden. Libm- and zlib-dependent goldens are only byte-stable
+# on the platform that recorded them, so each is checked there: `linux` = glibc + the
+# zlib shim, `macos` = Apple libm/clang. `--set` selects one; the default checks all.
+LINUX_RECORDED = ("swf writer", "maxmin", "motion blur")
+
 CHECKS = [
     ("swf writer (FSWFStream, FPrimitive, FObj, FSound, FCT, FDTBitmaps)", ["tests/native/gen_swfwriter_cases.py", "--check"]),
     ("attenuation", ["tests/native/gen_igs_attenuation_cases.py", "--check"]),
@@ -49,7 +54,17 @@ CHECKS = [
 ]
 
 
+def recorded_on(label: str) -> str:
+    return "linux" if label.startswith(LINUX_RECORDED) and not label.startswith("motion wind") else "macos"
+
+
 def main() -> int:
+    which = "all"
+    if "--set" in sys.argv:
+        which = sys.argv[sys.argv.index("--set") + 1]
+        if which not in ("all", "linux", "macos"):
+            print("usage: run_stdfx_goldens.py [--set all|linux|macos]")
+            return 2
     cxx = os.environ.get("CXX") or shutil.which("clang++") or shutil.which("g++")
     if not cxx:
         print("SKIP: no host C++ compiler (set CXX); golden drift not checked")
@@ -57,6 +72,8 @@ def main() -> int:
 
     failed = []
     for label, argv in CHECKS:
+        if which != "all" and recorded_on(label) != which:
+            continue
         print(f"--- {label}", flush=True)
         result = subprocess.run([sys.executable, *argv], cwd=REPO)
         if result.returncode != 0:

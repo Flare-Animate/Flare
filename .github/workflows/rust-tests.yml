@@ -45,11 +45,19 @@ jobs:
 
   golden-drift:
     # Goldens are recorded bytes: the reference is compiled with the host compiler and
-    # its libm, so a different libm legitimately changes the last bits of `pow`/`cos`.
-    # This check therefore runs only on the platform that recorded them (macOS), which
-    # is stated in docs/PORTING.md. The port's own tests above are what run everywhere.
-    name: golden drift (recorded on macOS)
-    runs-on: macos-latest
+    # its libm/zlib, so a different libm legitimately changes the last bits of
+    # `pow`/`cos`. Each golden is therefore checked on the platform that recorded it:
+    # the swf writer (zlib shim), maxmin and motion blur were recorded on Linux/glibc,
+    # the rest on macOS (see recorded_on() in tests/run_stdfx_goldens.py). The port's
+    # own tests above are what run everywhere.
+    name: golden drift (recorded on ${{ matrix.set }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: ubuntu-latest, set: linux, cxx: g++ }
+          - { os: macos-latest, set: macos, cxx: clang++ }
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -62,7 +70,7 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Regenerate every golden from the archived C++ and diff
+      - name: Regenerate the goldens recorded on this platform and diff
         env:
-          CXX: clang++
-        run: python3 tests/run_stdfx_goldens.py
+          CXX: ${{ matrix.cxx }}
+        run: python3 tests/run_stdfx_goldens.py --set ${{ matrix.set }}
