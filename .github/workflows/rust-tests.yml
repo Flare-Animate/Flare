@@ -13,9 +13,9 @@ name: Rust tests
 
 on:
   push:
-    branches: [main, master, rust-rewrite, "verify/**"]
+    branches: [main, master, Rust-Rewrite, "verify/**"]
   pull_request:
-    branches: [main, master, rust-rewrite]
+    branches: [main, master, Rust-Rewrite]
   workflow_dispatch:
 
 concurrency:

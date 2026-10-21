@@ -1,8 +1,9 @@
 name: pages
 on:
   push:
-    branches: [master]
+    branches: [master, main, Rust-Rewrite]
     paths: [tools/flash/ts/**, tools/flash/webapp/**]
+  workflow_dispatch:
   workflow_dispatch:
 permissions: { contents: read, pages: write, id-token: write }
 jobs:
