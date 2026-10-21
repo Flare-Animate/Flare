@@ -8,7 +8,10 @@
 !define UNINST "Software\Microsoft\Windows\CurrentVersion\Uninstall\Flare"
 
 Name "Flare ${VERSION}"
-OutFile "Flare-Setup.exe"
+!ifndef OUTFILE
+  !define OUTFILE "Flare-Setup.exe"
+!endif
+OutFile "${OUTFILE}"
 InstallDir "$PROGRAMFILES64\Flare"
 InstallDirRegKey HKLM "Software\Flare" "InstallDir"
 RequestExecutionLevel admin
