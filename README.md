@@ -4,7 +4,7 @@
 
 <img width="610" height="344" alt="Flare" src="docs/images/banner.svg" />
 
-**Free, open-source animation suite with an Adobe Animate-style workflow and Flash/Animate file import.**
+**Free, open-source animation suite with continuity for Adobe Animate and Flash users.**
 
 [![Discord](https://img.shields.io/discord/1500316971802296430?label=Discord&logo=discord&logoColor=white&color=5865F2)](https://discord.com/invite/JpeScW8Awa)
 [![Nightly](https://img.shields.io/badge/release-nightly-brightgreen)](https://github.com/Flare-Animate/Flare/releases/tag/nightly)
@@ -24,8 +24,7 @@
 - Animate-style workspace with Drawing / Animation / Rigging / Compositing rooms (other room layouts under **Preferences > Interface > Rooms**).
 - Vector and raster drawing, xsheet/timeline, plastic rigging, FX schematic, motion tracking, script console (inherited).
 - Flash/Animate import: `.fla`, `.xfl`, `.swf`, `.swc`, `.flv`/`.f4v`, `.as`, legacy binary `.fla`, AIR/ZXP/MXP packages. Fidelity is partial; vector shapes are not yet converted to levels ([STATUS.md](docs/STATUS.md), [FLASH_SUPPORT.md](docs/FLASH_SUPPORT.md)).
-- Moho project reading: structure, rig and asset manifest, no rendering ([MOHO_SUPPORT.md](docs/MOHO_SUPPORT.md)).
-- Optional Next2Flash sidecar for SWF round-trip and AS3 decompile ([NEXT2FLASH_INTEGRATION.md](docs/NEXT2FLASH_INTEGRATION.md)).
+- Moho project reading: structure, rig and asset manifest, no rendering atm ([MOHO_SUPPORT.md](docs/MOHO_SUPPORT.md)).
 
 Full format table, repository layout, tests and roadmap: [docs/FEATURES.md](docs/FEATURES.md).
 
