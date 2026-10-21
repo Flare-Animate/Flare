@@ -23,7 +23,7 @@
 
 ## Introduction
 
-Flare is a (Work In Progress) Animation Suite, designed to make the transition from software like *Adobe Animate*, *Adobe/Macromedia Flash* and *Moho* easier for Artists and Animators. 
+Flare, also referred to as *FlareCraft*, is a (Work In Progress) Animation Suite, designed to make the transition from software like *Adobe Animate*, *Adobe/Macromedia Flash* and *Moho* easier for Artists and Animators. 
 
 We are planning to do this by implementing support for all formats used by those tools (so users can use all the same project files as if nothing has changed), and redesigning the UI to have a more simplistic and familiar layout, which can also be further customised to match exactly how you want it. 
 
