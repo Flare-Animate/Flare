@@ -3,13 +3,27 @@
 #ifndef igs_maxmin_h
 #define igs_maxmin_h
 
-#ifndef IGS_MAXMIN_EXPORT
-#define IGS_MAXMIN_EXPORT
-#endif
+#include <stdexcept> /* std::domain_error, std::invalid_argument */
+#include <new>       /* std::bad_alloc */
+
+// Implemented in igs_maxmin.rs (flare_formats), which also carries the lens matrix,
+// the scanline renderer and the threading that used to live in igs_maxmin_*.{cpp,h}.
+// Returns 0, or 1 / 2 for the std::domain_error cases below, 3 for
+// std::invalid_argument and 4 for std::bad_alloc.
+extern "C" {
+int flare_igs_maxmin_convert(const unsigned char *inn, unsigned char *out,
+                             int height, int width, int channels, int bits,
+                             const unsigned char *ref, int ref_bits,
+                             int ref_mode, double radius,
+                             double smooth_outer_range, int polygon_number,
+                             double roll_degree, bool min_sw,
+                             bool alpha_rendering_sw, bool add_blend_sw,
+                             int number_of_thread);
+}
 
 namespace igs {
 namespace maxmin {
-IGS_MAXMIN_EXPORT void convert(
+inline void convert(
     /* 入出力画像 */
     const unsigned char *inn, unsigned char *out
 
@@ -67,7 +81,21 @@ alphaのマスクによってエッジが残ってしまう。
     /* 高速化のためのスレッド指定(thread count for speed up) */
     ,
     const int number_of_thread /* =1    1...24...INT_MAX */
-    );
+    ) {
+  switch (flare_igs_maxmin_convert(
+      inn, out, height, width, channels, bits, ref, ref_bits, ref_mode, radius,
+      smooth_outer_range, polygon_number, roll_degree, min_sw,
+      alpha_rendering_sw, add_blend_sw, number_of_thread)) {
+  case 1:
+    throw std::domain_error("Bad channels,Not rgba/rgb/grayscale");
+  case 2:
+    throw std::domain_error("Bad bits,Not uchar/ushort/float");
+  case 3:
+    throw std::invalid_argument("igs::maxmin::convert: bad argument");
+  case 4:
+    throw std::bad_alloc();
+  }
+}
 }
 }
 
