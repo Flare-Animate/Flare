@@ -594,13 +594,18 @@ void ImportFlashVectorCommand::executeImpl() {
                     // Native scene import: map FLA layers → Flare columns
                     info += describeUnconverted(doc.census);
                     if (tlCount > 0) {
-                        TXsheet *xsheet = TApp::instance()->getCurrentXsheet()->getXsheet();
-                        importXFLScene(scene, xsheet, doc, extractedXfl, outPath);
+                        TXsheetHandle *xshHandle = TApp::instance()->getCurrentXsheet();
+                        if (xshHandle && xshHandle->getXsheet()) {
+                            TXsheet *xsheet = xshHandle->getXsheet();
+                            importXFLScene(scene, xsheet, doc, extractedXfl, outPath);
+                        }
                     }
                 } else {
                     QString err = QString::fromStdString(r2.getError());
                     info = QObject::tr("Failed to parse XFL metadata: %1").arg(err);
-                    importXflSvg(TApp::instance()->getCurrentXsheet()->getXsheet(), extractedXfl, outPath);
+                    TXsheetHandle *xshHandle = TApp::instance()->getCurrentXsheet();
+                    if (xshHandle && xshHandle->getXsheet())
+                        importXflSvg(xshHandle->getXsheet(), extractedXfl, outPath);
                 }
             }
             // Extract binary media from FLA's bin/ directory (.dat → PNG/JPG)
@@ -672,8 +677,11 @@ void ImportFlashVectorCommand::executeImpl() {
 
         // Native scene import for XFL directory
         if (!doc.timelines.empty()) {
-            TXsheet *xsheet = TApp::instance()->getCurrentXsheet()->getXsheet();
-            importXFLScene(scene, xsheet, doc, xflDir, outPath);
+            TXsheetHandle *xshHandle = TApp::instance()->getCurrentXsheet();
+            if (xshHandle && xshHandle->getXsheet()) {
+                TXsheet *xsheet = xshHandle->getXsheet();
+                importXFLScene(scene, xsheet, doc, xflDir, outPath);
+            }
         }
 
         // Copy assets to output dir using recursive iteration
