@@ -344,6 +344,27 @@ jobs:
                    exit 1 ;;
         esac
 
+    - name: GUI smoke test (Xvfb screenshot)
+      if: success()
+      timeout-minutes: 5
+      continue-on-error: true  # installed-launcher path is unvalidated in CI; flip to false after it passes there
+      env:
+        FLARE_BIN: /opt/flare/bin/flare
+        SMOKE_TIMEOUT: '30'
+      run: |
+        sudo apt-get install -y --no-install-recommends xvfb xdotool imagemagick x11-utils 2>&1 | tail -3
+        # FLAREROOT defaults to the checked-out repo's stuff/ folder.
+        mkdir -p gui_smoke_out
+        bash scripts/dev/gui_smoke.sh gui_smoke_out
+
+    - name: Upload GUI smoke screenshots
+      if: always()
+      uses: actions/upload-artifact@v7
+      with:
+        name: gui-smoke-linux-${{ matrix.compiler }}
+        path: gui_smoke_out/
+        if-no-files-found: ignore
+
     - name: Upload smoke test log
       if: always()
       uses: actions/upload-artifact@v7
