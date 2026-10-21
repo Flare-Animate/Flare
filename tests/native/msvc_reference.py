@@ -104,6 +104,7 @@ def build_and_run_host(
     include_dirs: list[str] | None = None,
     link_archives: list[str] | None = None,
     exe: str = "ref",
+    extra_args: list[str] | None = None,
 ) -> str:
     """Same as `build_and_run` but with the host C++ compiler (clang++/g++), for POSIX.
 
@@ -130,6 +131,7 @@ def build_and_run_host(
     ]
     for d in include_dirs or []:
         argv += ["-I", d]
+    argv += [*(extra_args or [])]
     argv += [*(link_archives or [])]
     subprocess.run(argv, cwd=workdir, check=True)
     out = subprocess.run(
