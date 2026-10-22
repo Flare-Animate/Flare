@@ -144,6 +144,8 @@ pub mod runsmap;
 pub mod trop_invert;
 #[path = "common/trop/rust/checkboard.rs"]
 pub mod trop_checkboard;
+#[path = "common/trop/rust/convolve.rs"]
+pub mod trop_convolve;
 #[path = "common/trop/rust/trop_utils.rs"]
 pub mod trop_utils;
 #[path = "common/trop/rust/rgbmscale.rs"]
@@ -792,6 +794,8 @@ mod tests {
             "image/tzp/toonzrle.rs",
             // partial port: trop.cpp still holds copy/shrink/makeStereoRaster/toLinearRGB
             "common/trop/trop.rs",
+            // partial port: tconvolve.cpp keeps CM32/palette path
+            "common/trop/tconvolve.rs",
         ];
 
         let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
