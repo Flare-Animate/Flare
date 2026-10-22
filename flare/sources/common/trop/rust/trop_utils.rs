@@ -153,6 +153,34 @@ pub extern "C" fn flare_set_channel_u8(
     set_channel_u8(src, dst, ws.max(0) as usize, wd.max(0) as usize, lx, ly, chan)
 }
 
+/// copyAndSwapRBChannels: returns a new raster with R and B swapped.
+pub fn copy_and_swap_rb_channels(
+    src: *const u8, dst: *mut u8, wrap_src: usize, wrap_dst: usize,
+    lx: i32, ly: i32,
+) {
+    for y in 0..ly as usize {
+        let s = unsafe { src.add(y * wrap_src) };
+        let d = unsafe { dst.add(y * wrap_dst) };
+        for x in 0..lx as usize {
+            let so = x * 4;
+            let do_ = x * 4;
+            unsafe {
+                *d.add(do_ + R) = *s.add(so + B);
+                *d.add(do_ + G) = *s.add(so + G);
+                *d.add(do_ + B) = *s.add(so + R);
+                *d.add(do_ + M) = *s.add(so + M);
+            }
+        }
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn flare_copy_and_swap_rb_channels(
+    src: *const u8, dst: *mut u8, ws: i32, wd: i32, lx: i32, ly: i32,
+) {
+    copy_and_swap_rb_channels(src, dst, ws.max(0) as usize, wd.max(0) as usize, lx, ly)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
