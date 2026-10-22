@@ -38,7 +38,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 SRC = os.path.join(ms.ROOT, "flare", "sources")
 FLASH = "flare/sources/common/flash"
 GOLDEN = os.path.join(SRC, "common", "flash", "swfwriter_cases.txt")
-CXXFLAGS = ["-O2", "-std=c++17", "-ffp-contract=off", "-DLINUX", "-DTNZ_LITTLE_ENDIAN", "-DNDEBUG", "-w"]
+CXXFLAGS = ["-O2", "-std=c++17", "-ffp-contract=off", "-DLINUX", "-DTNZ_LITTLE_ENDIAN", "-DNDEBUG", "-w",
+            "-include", "string", "-include", "cstdint", "-include", "cstring", "-include", "cstdlib"]
 PORTED = ["FSWFStream", "FPrimitive", "FObj", "FSound", "FCT", "FDTBitmaps"]
 KEPT = ["FDTShapes", "FAction", "FDTSounds"]
 

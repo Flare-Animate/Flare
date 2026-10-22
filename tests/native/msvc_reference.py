@@ -156,7 +156,8 @@ def build_and_run_host(
     ]
     # clang++ on some Linux distros cannot find the libstdc++ headers by default;
     # tell it to use the GCC standard library, which build-essential always provides.
-    if "clang" in os.path.basename(cxx).lower():
+    # Never on macOS: Apple clang ships libc++ only and has no libstdc++ headers.
+    if "clang" in os.path.basename(cxx).lower() and sys.platform.startswith("linux"):
         argv += ["-stdlib=libstdc++"]
     for d in include_dirs or []:
         argv += ["-I", d]
