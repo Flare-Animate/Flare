@@ -21,7 +21,7 @@ import commands served from `flare/sources/flare`.
 
 > Snapshot: Flare @ c55161403 (motion-wind + attenuation ported; 301 lib tests; 3 goldens gated; test spine 11/11, native suite skipped off Windows)
 > listing port): Rust format sniffing over a C ABI, C++ SWF/XFL/Moho readers, an
-> optional Python AS3 sidecar, a scaffolded game engine, and a P2P protocol with tests.
+> native Rust AS3 core, a scaffolded game engine, and a P2P protocol with tests.
 
 > **How to read this atlas.** Each `## ` heading is one subsystem, ordered by dependency
 > (foundation → … → top-level app). Start at **L0** for the shape and its **SPINE** block
@@ -37,7 +37,7 @@ import commands served from `flare/sources/flare`.
 > broken one, so the map stays honest.
 
 > **Scope.** Flare-owned subsystems: the Rust format crates, the Flash/Moho readers, the
-> game-engine scaffold, the AS3 sidecar, and the remote protocol. The inherited
+> game-engine scaffold, the AS3 core, and the remote protocol. The inherited
 > OpenToonz/Tahoma2D core (`tnzcore`, `tnzbase`, `flarelib`, the app itself) is covered
 > only where Flare's code couples to it. Build output, vendored third-party code, and
 > translations are out of scope.
@@ -51,7 +51,7 @@ import commands served from `flare/sources/flare`.
 - [flash — C++ SWF/XFL readers](#flash--c-swfxxfl-readers)
 - [moho — Moho project reader](#moho--moho-project-reader)
 - [tgame — game-engine scaffold](#tgame--game-engine-scaffold)
-- [next2flash — optional AS3 sidecar](#next2flash--optional-as3-sidecar)
+- [next2flash — native AS3 core](#next2flash--native-as3-core)
 - [remote — P2P remote-control protocol](#remote--p2p-remote-control-protocol)
 - [flare_remote — Rust remote-protocol crate](#flare_remote--rust-remote-protocol-crate)
 - [Cross-cutting flows (where the bugs live)](#cross-cutting-flows-where-the-bugs-live)
@@ -74,7 +74,7 @@ graph TD
     subgraph data["readers"]
         flash["flash<br/>(C++ SWF/XFL)"]
         moho["moho<br/>(C++ Moho)"]
-        sidecar["next2flash<br/>(Python AS3)"]
+        sidecar["next2flash<br/>(Rust AS3)"]
     end
     subgraph app["app + scaffolds"]
         cmds["import commands<br/>(flashimport/mohoimport)"]
@@ -85,7 +85,7 @@ graph TD
     formats -->|"parsed JSON, freed by caller"| moho
     flash -->|"bitmaps, shapes, census"| cmds
     moho -->|"manifest, gathered images"| cmds
-    sidecar -->|"decompiled .as (optional)"| cmds
+    sidecar -->|"decompiled .as"| cmds
 ```
 
 **Boot (once, before the loop):**
@@ -158,7 +158,7 @@ census the import command can report on. Handles the containers Rust only sniffs
 - `extractLegacyFlaBitmaps` (`SWFAssets.h`) — bitmap carving from OLE2/CFBF binary FLAs.
 - `Reader` (`XFLReader.h`) — `read`, `readFromZip`, `readFromDirectory`, `parseDOMDocument`, `parseSymbol`.
 - `decodeEdges`, `decodeShapeXml`, `toSvgPath`, `toSvgDocument` (`XFLShape.h`) — edge-string geometry to SVG.
-- `decompile`, `patchStrings`, `isAvailable` (`As3Bridge.h`) — the optional AS3 sidecar client; every entry degrades to "unavailable", never throws.
+- `decompile`, `patchStrings`, `isAvailable` (`As3Bridge.h`) — the C++ client of the native Rust AS3 core; errors come back in `Result`, never thrown.
 - `TFlash` (`tflash.h`) — render-data wrapper; its copy operations are declared private and unimplemented (pre-C++11 `= delete` idiom), so it is move-only by construction.
 
 **Invariants:**
@@ -169,7 +169,7 @@ census the import command can report on. Handles the containers Rust only sniffs
 
 **State:** `Reader` holds the parsed `Document` (timelines, bitmaps, census); `TFlash` holds render tables. Nothing global.
 
-**Coupling:** consumes `flare_formats` (detection, frame counts, CFBF stream lists) and the Python sidecar (AS3 only). Consumed by the import commands.
+**Coupling:** consumes `flare_formats` (detection, frame counts, CFBF stream lists) and the native AS3 core (`flare_as3_*`). Consumed by the import commands.
 
 ---
 
@@ -225,29 +225,26 @@ not reachable from the application UI.
 
 ---
 
-## next2flash — optional AS3 sidecar
+## next2flash — native AS3 core
 
-**Namespace:** n/a (Python)  **Dir:** `tools/flash/next2flash`  **Deps:** none (vendored `as3_decompiler`, MIT)  **Entry points:** `flare_as3_bridge.py`, `README.md`.
+**Namespace:** n/a (Rust)  **Dir:** `flare/sources/common/flash`  **Deps:** `flate2`, `regex`, `serde_json` (in `flare_formats`)  **Entry points:** `ac_as3_api.rs`, `flare_as3_*` in `flare_formats.rs`, `As3Bridge.{h,cpp}`.
 
-**Job:** Decompile AS3 from ABC blocks, rewrite constant strings, and compile back via the
-Flex SDK — through one JSON object on stdout per invocation, the same probing model as
-FFmpeg detection.
+**Job:** Parse ABC, decompile AS3 to source, disassemble, rewrite constant strings, write an edited class back into the SWF (string-literal edits natively, other edits via transplant of a Flex-compiled class), all derived from Next2Flash (MIT).
 
 **Key functions/types:**
-- `cmd_status`, `cmd_capabilities`, `cmd_decompile`, `cmd_compile`, `cmd_patch` (`flare_as3_bridge.py`) — the five commands; `compile` needs an undiscovered Flex SDK and says where it looked.
-- `find_flex_sdk`, `find_mxmlc` (`flare_as3_bridge.py`) — SDK discovery order: env override, SDK variables, install root, well-known locations, PATH.
-- `VENDOR_DIR`, `_vendor_available` (`flare_as3_bridge.py`) — the vendored package gate; missing or unimportable degrades every command to "unavailable".
+- `AbcFile::parse` / `serialize` (`ac_as3_abc.rs`) — byte-faithful round trip.
+- `MethodDecompiler`, `As3Decompiler` (`ac_as3_decompile.rs`) — stack simulation then the structuring passes.
+- `transplant_class`, `patch_strings`, `patch_class_source`, `compile_sources` (`ac_as3_patch.rs`).
 
 **Invariants:**
-- One JSON object on stdout per invocation; diagnostics go to stderr so stdout stays machine-readable.
-- `status` keeps a fixed two-key schema (`available`, `version`); capability reporting lives in `capabilities`, never in `status`.
-- `decompile` isolates DoABC blocks into per-block subdirectories; class names can collide across blocks and sharing one directory would silently overwrite.
-- ABC string index 0 is the "any" sentinel and is never rewritten by `patch`.
-- The bridge never raises to its caller; every failure is a JSON error object.
+- Malformed input is an `Err` (readers unwind with a private marker caught at the API edge); FFI entry points also `catch_unwind`.
+- ABC string index 0 is the "any" sentinel and is never rewritten.
+- Patches keep every untouched class, tag and pool index byte-identical.
+- Goldens come from the Python original (`tests/native/gen_as3_cases.py`).
 
-**State:** stateless per invocation. The C++ client probes once and caches.
+**State:** stateless.
 
-**Coupling:** consumed only by `As3Bridge`; the vendor package's `LICENSE` is shipped beside it and the top-level `LICENSE.txt` points at it.
+**Coupling:** `As3Bridge` (C++), `ac_swf.rs` (tag container).
 
 ---
 
@@ -295,7 +292,7 @@ and C ABI shape checks).
 
 ## Cross-cutting flows (where the bugs live)
 
-**Namespace:** n/a  **Dir:** `flare/sources/flare/flashimport.cpp` wires readers, Rust, and sidecar  **Deps:** this section is the wiring between subsystems and owns no code of its own.  **Entry points:** `flashimport.cpp`, `mohoimport.cpp`, `tests/run_all.py`.
+**Namespace:** n/a  **Dir:** `flare/sources/flare/flashimport.cpp` wires readers and Rust  **Deps:** this section is the wiring between subsystems and owns no code of its own.  **Entry points:** `flashimport.cpp`, `mohoimport.cpp`, `tests/run_all.py`.
 
 These flows span subsystems: the class of bug a single-file read misses, because both ends of a coupling have to agree and they sit in different files.
 
@@ -303,7 +300,7 @@ These flows span subsystems: the class of bug a single-file read misses, because
 
 **Rust string ownership.** Rust allocates → C++ uses → C++ frees with `flare_moho_free`. Risky edge: **the single free** — freeing twice or never freeing is invisible to the compiler on both sides.
 
-**AS3 availability chain.** Python helper presence → `As3Bridge::isAvailable` → menu greying. Risky edge: **the dev-build path walk** — the helper sits four levels above a dev `Flare.exe`, and the candidate list plus the bounded upward walk must keep covering both dev and bundle layouts or SWF imports silently lose ActionScript.
+**AS3 chain.** `As3Bridge` → `flare_as3_*` (statically linked Rust) → `ac_as3_api.rs`. No lookup of a helper on disk any more; only `compile` probes for the Flex SDK.
 
 **Moho asset gathering.** `referencedImages` → sibling-folder lookup → `imagesFound`/`imagesMissing` → manifest. Risky edge: **the missing-artwork message** — a bare `.moho` is incomplete by format design, and silence here reads as a Flare bug.
 

@@ -1,84 +1,25 @@
-# Next2Flash merge
+# Next2Flash in Flare
 
-`flare/sources/common/flash/As3Bridge.{h,cpp}` (C++ client) ·
-`tools/flash/next2flash/flare_as3_bridge.py` (JSON CLI) ·
-`tools/flash/next2flash/vendor/as3_decompiler/` (vendored, MIT)
+Next2Flash (MIT) is being **chopped up and re-implemented inside Flare's own
+Rust code**; nothing of it runs as a separate program any more (no Python
+sidecar, no vendored package, no Flask / Electron / Flex bridge).
 
-## What is merged
+Where things are now:
 
-**Vendored: `vendor/as3_decompiler/`** — Next2Flash's ABC/AS3 decompiler
-package (MIT, `LICENSE` included alongside). 12 modules, ~12.6k lines:
-`swf_reader.py` (SWF tag streaming, DoABC/DoABC2 extraction), `abc_parser.py`
-(AVM2 ABC binary parser), `opcodes.py`, `helpers.py`, `method_decompiler.py`,
-`class_decompiler.py`, `abc_editor.py`, `abc_patcher.py`, `swf_patcher.py`,
-`cli.py`. Provenance and the local lint deltas are recorded in
-`vendor/as3_decompiler/VENDORED.md`.
+| Capability | Flare file |
+|---|---|
+| ABC parse / serialize, constant pools, opcodes, assembler, disassembler, editor | `flare/sources/common/flash/ac_as3_abc.rs` |
+| Method + class + script decompiler (AS3 source out) | `ac_as3_decompile.rs` |
+| Pool merge, class transplant, inline constant patch, string patch, SWF tag write-back, `mxmlc` driver | `ac_as3_patch.rs` |
+| JSON API used by the FFI (`flare_as3_*` in `flare_formats.rs`) | `ac_as3_api.rs` |
+| C++ client (`As3Bridge::decompile / patchStrings / patchClassSource / compile`) | `common/flash/As3Bridge.{h,cpp}` |
+| Goldens recorded from the Python original | `as3_cases.json` via `tests/native/gen_as3_cases.py` |
 
-**`flare_as3_bridge.py`** (Flare-authored) — the `flare-as3` CLI contract from
-[`doc/NEXT2FLASH_INTEGRATION.md`](../../../doc/NEXT2FLASH_INTEGRATION.md).
-One JSON object on stdout per invocation; every failure path returns a JSON
-error rather than a traceback, so a caller can probe it the way Flare probes
-FFmpeg.
+Status table, remaining stages and licence notes:
+[`docs/NEXT2FLASH_INTEGRATION.md`](../../../docs/NEXT2FLASH_INTEGRATION.md).
 
-**`As3Bridge.{h,cpp}`** (Flare-authored) — the C++ client. `As3Bridge::isAvailable()`
-is probed once and cached; when the helper or a Python interpreter is missing,
-every entry point returns a clear "unavailable" result and the rest of the
-import is unaffected. Script resolution walks the executable directory, then
-`$FLAREROOT`, then `PATH`, with `$FLARE_AS3_BRIDGE` as an explicit override.
+`ts/` holds Flare's TypeScript SWF/FCP importers (unrelated to the removed
+sidecar; kept, they are the TS side of the JS-to-TS rule).
 
-## Command status
-
-| Command   | State | Notes |
-|-----------|-------|-------|
-| `status`  | live  | `{"available": bool, "version": str}` |
-| `decompile` | live | Verified end to end: 1043 AS3 classes recovered from a 3.5 MB SWF. |
-| `patch`   | live  | Real AS3 constant-string retexting pass. Re-emits the SWF with every other tag byte-identical. Pure Python, no Flex SDK. |
-| `compile` | stub  | Needs the Flex SDK `mxmlc` toolchain, which is not part of the vendored slice. `abc_patcher.transplant_class` and `swf_patcher.recompile_class` are already the bridge to it — only the toolchain is missing. |
-
-### Verified end to end, from C++
-
-`decompile` was previously only ever demonstrated from the Python command line.
-It now runs through the shipped entry point, `As3Bridge::decompile()`, against a
-real 3.5 MB SWF that Moho exported:
-
-```
-isAvailable      : 1
-version          : next2flash-as3-decompiler
-decompile ok     : 1
-files written    : 1043 (787930 bytes)
-```
-
-The output is real ActionScript, not stubs — the largest class, `MarioExt.as` at
-185 KB, opens with `public class MarioExt extends SSF2Character`, typed members and
-a constructor.
-
-Getting there needed a fix. `As3Bridge::isAvailable()` looked for the helper
-beside the executable, one level up, and in `FLAREROOT` or `PATH` — but a
-development build puts `Flare.exe` in `build_local/RelWithDebInfo`, four levels
-below `tools/flash/next2flash/`. So the bridge reported unavailable with the helper
-sitting in the tree, every SWF import silently lost its ActionScript, and the
-dialog said the helper "is not installed", which is false and points the user at
-reinstalling something already present. A portable bundle happened to work,
-because there the script really is beside the executable, which is why it went
-unnoticed. The candidate list now walks up from the executable, bounded at six
-levels.
-
-## How it is wired in
-
-`flashimport.cpp`'s SWF branch calls `As3Bridge::isAvailable()` after bitmap
-extraction and, when present, `As3Bridge::decompile()` to write `.as` files into
-`as3/` in the import directory, adding them to the manifest and the asset list.
-When it is absent the dialog says so and says nothing else changes.
-
-This is the "optional, auto-detected sidecar" shape Track 2 of the integration
-plan describes: no Python, no Java, no JPEXS required to import a Flash file.
-
-## Not merged, and why
-
-Next2Flash's larger body of work is its `app/*.py` SWF pipeline —
-`swf_to_n2d.py` (213 KB), `compile_n2d.py` (186 KB), `swf_writer.py`,
-`shape_converter.py`, `char_id_allocator.py` — plus an Electron/Next2D editor
-shell. The editor shell is redundant (Flare already has a native timeline and
-xsheet) and the `app/` pipeline is still being ported natively; see
-[`doc/NEXT2FLASH_INTEGRATION.md`](../../../doc/NEXT2FLASH_INTEGRATION.md) for
-the per-component port plan.
+Regenerating the goldens needs a Next2Flash checkout (`NEXT2FLASH_DIR`):
+`python tests/native/gen_as3_cases.py [--check]`.

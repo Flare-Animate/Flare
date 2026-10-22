@@ -1,6 +1,6 @@
 # Merging Next2Flash into Flare — Integration Plan
 
-Status: **AS3 track merged; Track 1 re-implemented in Rust** (see the table below)
+Status: **stage 1 done: AS3/ABC core is native Rust; sidecar removed**
 
 [Next2Flash](https://github.com/SSF2-Mods-Official/Next2Flash) and Flare are being
 brought together as the Flare-Animate org consolidates its Flash tooling. This
@@ -54,37 +54,13 @@ component between *porting* and *bridging*.
 | SWF *export* / round-trip | `common/flash/tflash` (writer) | Port N2F's `swf_patcher` ID-preservation approach |
 | Visual timeline editor | Flare xsheet/timeline (native) | Already covered by Flare — no port needed |
 
-## Recommended approach
+## Direction (changed)
 
-**Two tracks, in order:**
-
-### Track 1 — Port the native-friendly pieces (no new runtime)
-Improve Flare's existing C++ SWF reader/writer using Next2Flash's parsing logic as
-a reference implementation. Targets, in priority order:
-
-1. **Character-ID preservation on export** — port the `char_id_allocator` /
-   `swf_patcher` strategy into `tflash` so re-exported SWFs keep working.
-2. **Fuller SWF tag coverage** in `extractSwfBitmaps` / `FDT*` (shapes, sprites,
-   placements) cross-referenced against `swf-parse-worker.js`.
-3. **Bitmap pass-through** (`bitmap_converter.py`) so embedded images survive a
-   round-trip byte-for-byte.
-
-These are pure C++ changes, keep the zero-dependency promise, and directly move
-the needle on issues #16 and #47.
-
-### Track 2 — AS3 round-tripping as an *optional* bridge
-A native C++ ABC decompiler is a large project. Next2Flash already has a working
-Python one. Rather than reverse the no-runtime decision globally, expose AS3
-features through an **optional, auto-detected helper**, exactly like Flare already
-treats FFmpeg:
-
-- Ship the `app/as3_decompiler/` Python package as an optional `flare-as3` sidecar.
-- Flare calls it over a small CLI/JSON boundary (it already has a `cli.py`).
-- If the helper isn't present, AS3 import/export is simply greyed out — core FLA
-  import still works with no Python at all.
-
-This gives users N2F's AS3 power immediately without forcing the dependency, and
-buys time to port the decompiler to C++ later if desired.
+The first plan bridged AS3 through an optional Python sidecar. That is gone.
+Next2Flash is now **chopped up and re-implemented in Flare's Rust code** to
+extend Flare during the rewrite. No Python, Flask, Electron or Flex bridge is
+used as the integration; Flex's `mxmlc` is the only external tool left, and
+only for compiling brand-new ActionScript.
 
 ## Licensing
 
@@ -93,32 +69,51 @@ incorporated into a BSD project provided the MIT copyright notice is preserved.
 Any ported file or bundled sidecar must keep Next2Flash's `LICENSE` and a header
 note. The bundled **Flex SDK** is Apache-2.0 and must ship with its own NOTICE.
 
-## Status of the plan
+## Status of the plan (stage 1 done: AS3 / ABC core)
 
-- [x] Vendor the AS3 decompiler under `tools/flash/next2flash/vendor/` so the
-      Python helper can be packaged optionally. Provenance recorded in
-      `vendor/as3_decompiler/VENDORED.md`.
-- [x] Define the `flare-as3` CLI contract (one JSON object on stdout:
-      `status`, `decompile`, `patch`, `compile`).
-- [x] Wire the optional "ActionScript (via Next2Flash)" path into
-      `flashimport.cpp`, detected like FFmpeg.
-      `common/flash/As3Bridge.{h,cpp}` + the SWF branch of the import dialog.
-      Verified: 1043 AS3 classes recovered from a 3.5 MB SWF.
-- [x] Credit Next2Flash in `README.md` and `doc/FLASH_SUPPORT.md`.
-- [x] Add bridge tests (`tools/flash/tests/test_as3_bridge.py`).
-- [x] Character-ID preservation (Track 1.1), done in Rust instead of `tflash`:
-      `common/flash/ac_swf*.rs`. See the table.
-- [ ] Port `app/swf_to_n2d.py` and `app/compile_n2d.py` natively (Track 1.2).
-      These two are ~400 KB of SWF<->XML conversion and are where most of
-      Next2Flash's remaining value sits; see "What is still upstream-only" in
-      `tools/flash/next2flash/README.md`.
-- [ ] `compile`: blocked only on the Flex SDK `mxmlc` toolchain. The patcher
-      side (`abc_patcher.transplant_class`, `swf_patcher.recompile_class`)
-      is already vendored and reachable.
+| Next2Flash piece | Flare | State |
+|---|---|---|
+| `abc_parser.py`, `opcodes.py`, `abc_editor.py`, serializer + instruction tables of `abc_patcher.py`, DoABC extraction of `swf_reader.py` | `common/flash/ac_as3_abc.rs` | ported, goldens vs Python |
+| `helpers.py`, `method_decompiler.py`, `class_decompiler.py` | `common/flash/ac_as3_decompile.rs` | ported (all structuring passes), goldens vs Python on 148 methods / 33 ABC files incl. a seeded random-method generator |
+| `abc_patcher.py` (pool merge, transplant, inline constant patch, `difflib`), `swf_patcher.py` (tags, string patch) | `common/flash/ac_as3_patch.rs` | ported, goldens vs Python; SWF container comes from `ac_swf.rs` (`swf_reader.py` tag streaming not re-ported) |
+| `cli.py`, `flare_as3_bridge.py` | `ac_as3_api.rs` + `flare_as3_*` C ABI | replaced: `As3Bridge.cpp` calls Rust directly (no process, no JSON-over-stdout) |
+| `swf_patcher.recompile_class(es)` (mxmlc JVM shell, decompile-all-then-compile) | `ac_as3_patch.rs::compile_sources` (one-shot mxmlc) | partial: JVM shell manager and the full recompile workflow not ported |
 
-> This plan keeps Flare installable with zero extra runtime for the common case
-> (open a FLA, get the art), while still delivering Next2Flash's AS3 superpowers to
-> users who opt in — and leaves a clean path to fully native C++ later.
+New functionality beyond the Python CLI:
+
+- class / member / script inventory with signatures and code sizes (`flare_as3_list`)
+- P-code disassembly of any method (`flare_as3_disasm`)
+- script-level (top-level function / variable) decompile
+- **`patch_class_source`: write an edited class back into the SWF with no Flex
+  SDK** when the edit is expressible (string literals; ID-preserving: only the
+  changed methods' constants are repointed, every other class, tag and pool
+  index keeps its bytes). Anything else reports `needs compiler`.
+- `.abc` bare blocks and SWFs go through one entry point
+
+Deviations from the Python: `// decompile error:` text differs; ZWS (LZMA) SWFs
+are refused (`ac_swf` has no LZMA); diagnostics are returned as a log instead
+of printed; the SWF writer re-compresses with flate2 (same content as Python's
+zlib, different bytes); an `inf` `pushdouble` is a decompile error instead of
+a Python crash.
+
+Remaining stages (not started):
+
+- [ ] `swf_to_n2d.py`, `compile_n2d.py`: Next2D-specific export. Do **not**
+      port the Next2D format; replace with Flare-native SWF / HTML5 exports via
+      the existing `ac_swf_write.rs` and `html5_runtime.ts`.
+- [ ] `shape_converter.py`, `swf_shape_to_recodes.py`: compare with the shape
+      code in `ac_swf_read.rs` / `ac_swf_write.rs` and merge improvements.
+- [ ] `fla_xfl.py`: compare with `ac_xfl*.rs`.
+- [ ] `bitmap_converter.py`: byte pass-through already done (see below); check
+      the remaining lossless variants.
+- [ ] `char_id_allocator.py`: `CharIds` in `ac_swf.rs` already keeps ids; check
+      the compaction edge cases only.
+- [ ] `cycle_detector.py`, `conversion_service.py`, `compilation_pipeline.py`.
+- [ ] `swf-parse-worker.js`, `swf-timeline-importer.js`: TS only if still
+      needed after the Rust SWF reader covers them.
+- [ ] `nflare`: the request mentioned it, but nothing named `nflare` exists in
+      this repository (only `sunflare` shader files match). Unidentified; no
+      action taken.
 
 ## Rust re-implementation status (Track 1)
 
@@ -138,7 +133,7 @@ consulted). No SWF shape/tag code is copied from Python.
 
 Not done / known limits: text, buttons, gradients, filters, blend modes,
 sounds and ActionScript are not written or read by the Rust SWF code (each is
-reported as a warning; the AS3 sidecar path above is unchanged); graphic-symbol
+reported as a warning; AS3 is covered by the native core above); graphic-symbol
 playback options are exported as looping sprites; ZWS (LZMA) SWFs are refused;
 mask/guide layers are skipped; a DefineBitsJPEG (tag 6) is passed through as
 the spliced JPEG, not as a tag-6 record. The output has been checked only by

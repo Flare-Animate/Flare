@@ -605,24 +605,19 @@ static void test_malformed_inputs(const QString &dir) {
 }
 
 // ---------------------------------------------------------------------------
-// The AS3 bridge must degrade gracefully when the helper is absent: no throw,
-// no empty result presented as success.
+// The AS3 core is native Rust now: it is always available, and a bad input must
+// come back as an explained failure, never an exception or an empty "success".
 // ---------------------------------------------------------------------------
-static void test_as3_bridge_degrades() {
-    fprintf(stderr, "\n-- AS3 bridge --\n");
+static void test_as3_bridge_native() {
+    fprintf(stderr, "\n-- AS3 core --\n");
     const As3Bridge::Result r =
         As3Bridge::decompile(TFilePath("nope.swf"), TFilePath("out"));
     check(!r.ok, "decompile on a missing file reports failure");
     check(!r.error.isEmpty(), "the failure explains itself", r.error);
-    if (As3Bridge::isAvailable()) {
-        check(!As3Bridge::version().isEmpty(), "version reported when available");
-        check(As3Bridge::unavailableReason().isEmpty(),
-              "no reason recorded when the helper is available");
-    } else {
-        check(!As3Bridge::unavailableReason().isEmpty(),
-              "unavailableReason explains itself",
-              As3Bridge::unavailableReason());
-    }
+    check(As3Bridge::isAvailable(), "the native AS3 core is linked in");
+    check(!As3Bridge::version().isEmpty(), "version reported");
+    check(As3Bridge::unavailableReason().isEmpty(),
+          "no unavailability reason when the core answers");
 }
 
 int main(int argc, char **argv) {
@@ -640,7 +635,7 @@ int main(int argc, char **argv) {
     test_supported_extensions();
     test_zip_extraction(dir);
     test_malformed_inputs(dir);
-    test_as3_bridge_degrades();
+    test_as3_bridge_native();
 
     fprintf(stderr, "\n%s: %d checks, %d failure(s)\n",
             gFail ? "FAILED" : "PASSED", gChecks, gFail);

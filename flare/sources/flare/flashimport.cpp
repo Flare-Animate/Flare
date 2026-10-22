@@ -797,12 +797,12 @@ void ImportFlashVectorCommand::executeImpl() {
                                 .arg(c.abc);
             }
 
-            // ActionScript: needs the optional flare-as3 helper (Next2Flash
-            // merge). Probed the same way FFmpeg is - when it is absent the
-            // rest of the import is unaffected and AS3 is simply skipped.
+            // ActionScript: decompiled by the native Rust AS3 core (derived
+            // from Next2Flash). A failure here never affects the rest of the
+            // import; the reason is reported in the log.
             if (As3Bridge::isAvailable()) {
-                const As3Bridge::Result as3 =
-                    As3Bridge::decompile(fp, outDir);
+                const As3Bridge::Result as3 = As3Bridge::decompile(
+                    fp, TFilePath((outPath + "/as3").toStdWString()));
                 if (as3.ok && !as3.classes.isEmpty()) {
                     const QString asDir = outPath + "/as3";
                     QDir().mkpath(asDir);
@@ -829,8 +829,7 @@ void ImportFlashVectorCommand::executeImpl() {
                 const QString why = As3Bridge::unavailableReason();
                 info += QObject::tr("\n  ActionScript decompilation unavailable: %1")
                             .arg(why.isEmpty()
-                                     ? QObject::tr("the optional flare-as3 helper "
-                                                   "is not installed")
+                                     ? QObject::tr("the native AS3 core did not respond")
                                      : why);
             }
         }
@@ -1051,7 +1050,7 @@ void ImportFlashVectorCommand::executeImpl() {
 // ---------------------------------------------------------------------------
 // Command: SWF ActionScript round trip (Next2Flash). Decompiles AS3 next to
 // the SWF, then optionally re-emits it with a {"strings":{...}} patch; all
-// non-ABC tags stay byte-identical. Degrades with a message without Python.
+// non-ABC tags stay byte-identical. Runs on the native Rust AS3 core.
 // ---------------------------------------------------------------------------
 
 class SwfRoundTripCommand final : public MenuItemHandler {

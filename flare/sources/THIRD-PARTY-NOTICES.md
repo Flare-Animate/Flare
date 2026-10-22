@@ -43,14 +43,34 @@ binaries) and its Flash/SWF readers (written with GPL/AGPL references). See
 `docs/FLARE-REVIEW-PHASE5.md`.
 
 ### Next2Flash (github.com/SSF2-Mods-Official/Next2Flash)
-SWF round-trip features in `common/flash/ac_swf*.rs` were written in Rust from the SWF File Format Specification, informed by
-Next2Flash's behaviour (read under its MIT licence): character-id handling
-(`app/char_id_allocator.py`: id 0 is reserved for the root timeline; Flare keeps
-ids instead of compacting them), the premultiplied-ARGB DefineBitsLossless2
-layout (`app/bitmap_converter.py`) and the DefineFont3 ↔ TrueType unit scaling
-(`app/swf_font_to_ttf.py`, `app/ttf_to_swf_font.py`: 20480-unit SWF em vs. a
-1024-unit TrueType em). No Python is copied. Each such file names its source in
-its header comment. NFlare (GPL-3) was not consulted.
+Two kinds of use, both under Next2Flash's MIT licence (notice below, kept):
+
+1. **Derived Rust (AS3 / ABC core).** These files are Rust re-implementations
+   of Next2Flash's `app/lib/as3_decompiler/*.py`, following the Python logic
+   function by function (the Python is the oracle for the golden tests):
+   - `common/flash/ac_as3_abc.rs`: `abc_parser.py`, `opcodes.py`, the ABC
+     serializer / instruction tables of `abc_patcher.py`, `abc_editor.py`
+     (assembler, disassembler, pool editor), DoABC extraction from
+     `swf_reader.py`
+   - `common/flash/ac_as3_decompile.rs`: `helpers.py`, `method_decompiler.py`,
+     `class_decompiler.py`
+   - `common/flash/ac_as3_patch.rs`: `abc_patcher.py` (pool merge, bytecode
+     translation, class transplant, inline constant patching, `difflib`
+     matcher), `swf_patcher.py` (tag read/write, string patch, mxmlc driver)
+   - `common/flash/ac_as3_api.rs`, `ac_as3_tests.rs`, `as3_cases.json`: Flare
+     glue and the goldens recorded from the Python original
+     (`tests/native/gen_as3_cases.py`)
+2. **Behaviour only.** SWF round-trip features in `common/flash/ac_swf*.rs`
+   were written in Rust from the SWF File Format Specification, informed by
+   Next2Flash's behaviour: character-id handling (`app/char_id_allocator.py`:
+   id 0 is reserved for the root timeline; Flare keeps ids instead of
+   compacting them), the premultiplied-ARGB DefineBitsLossless2 layout
+   (`app/bitmap_converter.py`) and the DefineFont3 / TrueType unit scaling
+   (`app/swf_font_to_ttf.py`, `app/ttf_to_swf_font.py`). No Python is copied
+   there. NFlare (GPL-3) was not consulted.
+
+The test fixtures in `tests/flash_fixtures/as3/` are small SWFs from the Ruffle
+`swf` crate test suite (MIT OR Apache-2.0).
 
 > MIT License
 >
