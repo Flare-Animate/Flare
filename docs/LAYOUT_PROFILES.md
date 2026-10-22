@@ -136,3 +136,22 @@ room once (see the checklist in the commit message / PR).
    every menubar; `python scripts/check_layout_profiles.py` must print `RESULT: OK`.
 4. After adding a command or panel to the C++ code, run step 3 again: the check fails until every
    profile lists it.
+
+## Screenshots (Animate profile)
+
+Captured under Xvfb with `scripts/dev/gui_layouts.sh` (software GL, empty scene).
+
+| Room | Screenshot |
+|---|---|
+| Draw | ![Draw](images/layouts/Animate-Draw.png) |
+| Animate | ![Animate](images/layouts/Animate-Animate.png) |
+| Timing | ![Timing](images/layouts/Animate-Timing.png) |
+| Rigging | ![Rigging](images/layouts/Animate-Rigging.png) |
+| Compose | ![Compose](images/layouts/Animate-Compose.png) |
+| Cleanup | ![Cleanup](images/layouts/Animate-Cleanup.png) |
+| Sound | ![Sound](images/layouts/Animate-Sound.png) |
+| Library | ![Library](images/layouts/Animate-Library.png) |
+| Windows menu | ![Windows](images/layouts/Animate-menu-Windows.png) |
+| All Commands menu | ![All Commands](images/layouts/Animate-menu-AllCommands.png) |
+
+Preserved profiles: `images/layouts/OpenToonz-Drawing.png`, `images/layouts/StudioGhibli-Cleanup.png`.
