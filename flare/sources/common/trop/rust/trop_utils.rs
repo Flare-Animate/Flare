@@ -181,6 +181,60 @@ pub extern "C" fn flare_copy_and_swap_rb_channels(
     copy_and_swap_rb_channels(src, dst, ws.max(0) as usize, wd.max(0) as usize, lx, ly)
 }
 
+/// shrink: downsample by taking every `shrink`-th pixel (nearest-neighbor).
+/// Operates on raw bytes; pixel_size bytes per pixel.
+pub fn shrink(
+    src: *const u8, dst: *mut u8, wrap_src: usize, wrap_dst: usize,
+    lx_src: i32, ly_src: i32, pixel_size: usize, shrink: i32,
+) {
+    let lx = (lx_src - 1) / shrink + 1;
+    let ly = (ly_src - 1) / shrink + 1;
+    for i in 0..ly as usize {
+        let bufin = unsafe { src.add((i * shrink as usize) * wrap_src) };
+        let bufout = unsafe { dst.add(i * wrap_dst) };
+        for j in 0..lx as usize {
+            unsafe {
+                std::ptr::copy_nonoverlapping(
+                    bufin.add(j * shrink as usize * pixel_size),
+                    bufout.add(j * pixel_size),
+                    pixel_size,
+                );
+            }
+        }
+    }
+}
+
+/// makeStereoRaster: left.g = right.g, left.b = right.b (in place on left).
+pub fn make_stereo_raster(left: *mut u8, right: *const u8, wrap: usize,
+                          lx: i32, ly: i32, bpp: usize) {
+    for i in 0..ly as usize {
+        let pl = unsafe { left.add(i * wrap) };
+        let pr = unsafe { right.add(i * wrap) };
+        for j in 0..lx as usize {
+            unsafe {
+                *pl.add(j * bpp + G) = *pr.add(j * bpp + G);
+                *pl.add(j * bpp + B) = *pr.add(j * bpp + B);
+            }
+        }
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn flare_shrink(
+    src: *const u8, dst: *mut u8, ws: i32, wd: i32,
+    lx: i32, ly: i32, pixel_size: i32, shrink: i32,
+) {
+    shrink(src, dst, ws.max(0) as usize, wd.max(0) as usize, lx, ly,
+           pixel_size as usize, shrink)
+}
+
+#[no_mangle]
+pub extern "C" fn flare_make_stereo_raster(
+    left: *mut u8, right: *const u8, wrap: i32, lx: i32, ly: i32, bpp: i32,
+) {
+    make_stereo_raster(left, right, wrap.max(0) as usize, lx, ly, bpp as usize)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
