@@ -1508,3 +1508,15 @@ void TRop::eraseRefInks(const TRasterCM32P &r) {
   delete id;
 }
 /*-----------------------------------------------------------------------------*/
+
+// TRop::expandPaint: distance-transform paint propagation, implemented in Rust
+// (rust/distancetransform.rs, flare_expand_paint). wrap is passed in bytes.
+extern "C" void flare_expand_paint(unsigned char *ras, int wrap, int lx, int ly);
+
+void TRop::expandPaint(const TRasterCM32P &rasCM) {
+  if (!rasCM) return;
+  rasCM->lock();
+  flare_expand_paint((unsigned char *)rasCM->pixels(), rasCM->getWrap() * 4,
+                     rasCM->getLx(), rasCM->getLy());
+  rasCM->unlock();
+}
