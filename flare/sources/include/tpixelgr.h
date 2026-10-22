@@ -144,4 +144,26 @@ public:
   }
 };
 
+// The grey conversions of tpixel.cpp live in tpixel.rs (flare_formats); the members are
+// defined inline here, after the full pixel types, and pass scalar channels.
+extern "C" {
+unsigned int flare_pixel_gr8_from_rgbm32(unsigned int r, unsigned int g, unsigned int b);
+unsigned int flare_pixel_gr16_from_rgbm64(unsigned int r, unsigned int g, unsigned int b);
+float flare_pixel_grf_from_rgbmf(float r, float g, float b);
+}
+
+#include "tpixel.h"
+
+inline TPixelGR8 TPixelGR8::from(const TPixelRGBM32 &pix) {
+  return TPixelGR8((int)flare_pixel_gr8_from_rgbm32(pix.r, pix.g, pix.b));
+}
+
+inline TPixelGR16 TPixelGR16::from(const TPixelRGBM64 &pix) {
+  return TPixelGR16((int)flare_pixel_gr16_from_rgbm64(pix.r, pix.g, pix.b));
+}
+
+inline TPixelGRF TPixelGRF::from(const TPixelF &pix) {
+  return TPixelGRF(flare_pixel_grf_from_rgbmf(pix.r, pix.g, pix.b));
+}
+
 #endif

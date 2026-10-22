@@ -270,3 +270,7 @@ endif()
 
 target_link_libraries(flareqt Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Network Qt5::OpenGL Qt5::Svg ${EXTRA_LIBS} ${GL_LIB})
 
+# tpixelutils.h / tcolorfunctions.h forward to Rust (flare_formats); tnzcore is linked by file
+# name on Apple, which does not carry that dependency along.
+target_link_libraries(flareqt flare_formats)
+
