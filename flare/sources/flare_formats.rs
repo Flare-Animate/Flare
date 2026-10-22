@@ -144,6 +144,8 @@ pub mod runsmap;
 pub mod trop_invert;
 #[path = "common/trop/rust/checkboard.rs"]
 pub mod trop_checkboard;
+#[path = "common/trop/rust/trop_utils.rs"]
+pub mod trop_utils;
 #[path = "common/trop/rust/rgbmscale.rs"]
 pub mod trop_rgbmscale;
 #[path = "common/trop/rust/brush.rs"]
@@ -788,6 +790,8 @@ mod tests {
             "common/tsystem/tfilepath.rs",
             // partial port: the libtiff codec registration (private `TIFF` struct) stays C++
             "image/tzp/toonzrle.rs",
+            // partial port: trop.cpp still holds copy/shrink/makeStereoRaster/toLinearRGB
+            "common/trop/trop.rs",
         ];
 
         let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
