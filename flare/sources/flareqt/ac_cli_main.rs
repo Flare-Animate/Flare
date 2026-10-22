@@ -24,27 +24,22 @@
 use ac_core::{demo::demo_document, Document, ElementKind, Tween};
 use std::path::Path;
 
+#[path = "ac_cli_input.rs"]
+mod input;
+
 fn load(src: &str) -> Result<Document, String> {
     if src == "demo" {
         return Ok(demo_document());
     }
     let p = Path::new(src);
-    if p.is_dir() || [".fla", ".xfl"].iter().any(|e| src.to_ascii_lowercase().ends_with(e)) {
+    if p.is_dir() {
         let im = ac_xfl::open(p)?;
         for w in &im.warnings {
             eprintln!("note: {w}");
         }
         return Ok(im.doc);
     }
-    if src.to_ascii_lowercase().ends_with(".acx") {
-        let l = ac_package::open(p)?;
-        for w in &l.warnings {
-            eprintln!("note: {w}");
-        }
-        return Ok(l.doc);
-    }
-    let s = std::fs::read_to_string(src).map_err(|e| format!("{src}: {e}"))?;
-    Document::from_json(&s).map_err(|e| format!("{src}: {e}"))
+    input::load_file(src)
 }
 
 /// Save as .acx (package), .acx.json (plain JSON), or .fla / .xfl by extension.
@@ -67,6 +62,10 @@ fn run(args: &[String]) -> Result<(), String> {
     let arg = |i: usize| args.get(i).map(String::as_str).ok_or_else(|| format!("missing argument {i}; run with no args for usage"));
     match arg(0)? {
         "info" => {
+            if let Some(report) = input::info_if_swf(arg(1)?)? {
+                print!("{report}");
+                return Ok(());
+            }
             let d = load(arg(1)?)?;
             println!("Stage {}x{} @ {} fps, {} frames", d.width, d.height, d.fps, d.total_frames());
             println!("Layers (top first):");
@@ -186,15 +185,7 @@ fn run(args: &[String]) -> Result<(), String> {
         "swf" => {
             // swf <doc | in.swf> <out.swf>
             let src = arg(1)?;
-            let d = if src.to_ascii_lowercase().ends_with(".swf") {
-                let im = ac_xfl::swf_read::import(&std::fs::read(src).map_err(|e| format!("{src}: {e}"))?)?;
-                for w in &im.warnings {
-                    eprintln!("note: {w}");
-                }
-                im.doc
-            } else {
-                load(src)?
-            };
+            let d = load(src)?;
             let e = ac_xfl::swf_write::export(&d)?;
             for w in &e.warnings {
                 eprintln!("note: {w}");

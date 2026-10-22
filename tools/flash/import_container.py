@@ -334,11 +334,41 @@ def builtin_swf_extract(path: str, outdir: str) -> list:
         body = raw[8:]
     else:
         raise RuntimeError("Not a SWF file")
+    name = os.path.basename(path)
+    declared = struct.unpack_from("<I", raw, 4)[0]
+    if declared != 8 + len(body):
+        raise RuntimeError(
+            f"{name}: malformed SWF: header FileLength={declared} but "
+            f"{'decompressed ' if sig != b'FWS' else ''}length is {8 + len(body)}")
+    if not body:
+        raise RuntimeError(f"{name}: malformed SWF: no data after header")
     nbits = body[0] >> 3
     pos = (5 + 4 * nbits + 7) // 8
+    if pos + 4 > len(body):
+        raise RuntimeError(f"{name}: malformed SWF: truncated header")
     rate, count = body[pos + 1], struct.unpack_from("<H", body, pos + 2)[0]
     pos += 4
     tags, exported = {}, []
+    saw_end = False
+    # validate the whole tag stream before writing anything
+    p = pos
+    while p + 2 <= len(body):
+        cl = struct.unpack_from("<H", body, p)[0]
+        c, n = cl >> 6, cl & 0x3F
+        p += 2
+        if n == 0x3F:
+            if p + 4 > len(body):
+                raise RuntimeError(f"{name}: malformed SWF: tag stream runs past end of file")
+            n = struct.unpack_from("<I", body, p)[0]
+            p += 4
+        if p + n > len(body):
+            raise RuntimeError(f"{name}: malformed SWF: tag {c} (length {n}) runs past end of file")
+        p += n
+        if c == 0:
+            saw_end = True
+            break
+    if not saw_end:
+        raise RuntimeError(f"{name}: malformed SWF: missing End tag")
     os.makedirs(outdir, exist_ok=True)
     while pos + 2 <= len(body):
         code_len = struct.unpack_from("<H", body, pos)[0]

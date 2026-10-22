@@ -159,13 +159,22 @@ pub fn zip(pkg: &Package) -> Result<Vec<u8>, String> {
 pub fn open(path: &Path) -> Result<Imported, String> {
     let pkg = if path.is_dir() {
         read_dir(path)?
-    } else if path.extension().map(|e| e.eq_ignore_ascii_case("xfl")).unwrap_or(false) {
-        read_dir(path.parent().ok_or("no folder")?)?
     } else {
         let bytes = std::fs::read(path).map_err(|e| format!("{}: {e}", path.display()))?;
-        unzip(&bytes)?
+        let is_xfl = path.extension().map(|e| e.eq_ignore_ascii_case("xfl")).unwrap_or(false);
+        // Dispatch on content: a zipped .xfl/.fla starts with "PK"; a small
+        // .xfl marker file (not a zip) stands for the folder it sits in.
+        if is_xfl && !bytes.starts_with(b"PK") {
+            let dir = match path.parent() {
+                Some(p) if !p.as_os_str().is_empty() => p,
+                _ => Path::new("."),
+            };
+            read_dir(dir).map_err(|e| format!("{}: {e}", path.display()))?
+        } else {
+            unzip(&bytes).map_err(|e| format!("{}: {e}", path.display()))?
+        }
     };
-    read_package(&pkg)
+    read_package(&pkg).map_err(|e| format!("{}: {e}", path.display()))
 }
 
 /// Save as `.fla` (zip) or, for a path ending in `.xfl` or a folder, an
@@ -204,7 +213,7 @@ fn read_dir(dir: &Path) -> Result<Package, String> {
     let mut pkg = Package::new();
     walk(dir, dir, &mut pkg)?;
     if !pkg.contains_key("DOMDocument.xml") {
-        return Err(format!("{} has no DOMDocument.xml", dir.display()));
+        return Err(format!("no DOMDocument.xml in {} (not an XFL folder; a zipped .xfl/.fla must start with PK)", dir.display()));
     }
     Ok(pkg)
 }

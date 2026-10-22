@@ -1104,3 +1104,75 @@ def test_read_swf_header_decodes_negative_stage_origin():
         assert h["width"] == 400 and h["height"] == 200, h
     finally:
         shutil.rmtree(td)
+
+
+# ---------------------------------------------------------------------------
+# Malformed SWF validation (built-in fallback); synthetic files only
+# ---------------------------------------------------------------------------
+
+def _run_swf(data, name="t.swf"):
+    td = tempfile.mkdtemp(prefix="flare_test_badswf_")
+    try:
+        p = os.path.join(td, name)
+        with open(p, "wb") as f:
+            f.write(data)
+        return run_script(["--input", p, "--output", os.path.join(td, "out")]), os.path.join(td, "out")
+    finally:
+        pass
+
+
+def test_swf_valid_still_imports():
+    proc, out = _run_swf(_build_swf(100, 50, 24, 1))
+    try:
+        assert proc.returncode in (0, 4, 5) and b"malformed SWF" not in proc.stderr
+    finally:
+        shutil.rmtree(os.path.dirname(out), ignore_errors=True)
+
+
+def test_swf_length_zero_rejected():
+    import struct
+    d = bytearray(_build_swf(100, 50, 24, 1))
+    d[4:8] = struct.pack("<I", 0)
+    proc, out = _run_swf(bytes(d))
+    shutil.rmtree(os.path.dirname(out), ignore_errors=True)
+    assert proc.returncode == 4
+    assert b"malformed SWF" in proc.stderr and b"FileLength=0" in proc.stderr
+    assert not os.path.exists(os.path.join(out, "swf_info.json"))
+
+
+def test_swf_length_too_long_rejected():
+    import struct
+    d = bytearray(_build_swf(100, 50, 24, 1))
+    d[4:8] = struct.pack("<I", len(d) + 100)
+    proc, out = _run_swf(bytes(d))
+    shutil.rmtree(os.path.dirname(out), ignore_errors=True)
+    assert proc.returncode == 4 and b"FileLength" in proc.stderr
+
+
+def test_swf_compressed_length_mismatch_rejected():
+    import struct
+    d = bytearray(_build_swf(100, 50, 24, 1, compress=True))
+    d[4:8] = struct.pack("<I", 7)
+    proc, out = _run_swf(bytes(d))
+    shutil.rmtree(os.path.dirname(out), ignore_errors=True)
+    assert proc.returncode == 4 and b"FileLength" in proc.stderr
+
+
+def test_swf_missing_end_tag_rejected():
+    import struct
+    d = bytearray(_build_swf(100, 50, 24, 1))
+    d = d[:-2]  # drop End tag, keep header length consistent
+    d[4:8] = struct.pack("<I", len(d))
+    proc, out = _run_swf(bytes(d))
+    shutil.rmtree(os.path.dirname(out), ignore_errors=True)
+    assert proc.returncode == 4 and b"End tag" in proc.stderr
+
+
+def test_swf_tag_past_eof_rejected():
+    import struct
+    d = bytearray(_build_swf(100, 50, 24, 1))
+    d = d[:-2] + struct.pack("<H", (1 << 6) | 0x3F) + struct.pack("<I", 500)
+    d[4:8] = struct.pack("<I", len(d))
+    proc, out = _run_swf(bytes(d))
+    shutil.rmtree(os.path.dirname(out), ignore_errors=True)
+    assert proc.returncode == 4 and b"past end of file" in proc.stderr

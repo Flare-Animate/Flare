@@ -319,6 +319,69 @@ pub fn parse(bytes: &[u8]) -> Result<Swf, String> {
     Ok(Swf { version, stage, frame_rate: rate as f32 / 256.0, frame_count, tags })
 }
 
+/// Header facts found by `validate`.
+#[derive(Clone, Debug, PartialEq)]
+pub struct SwfCheck {
+    /// "FWS", "CWS" or "ZWS".
+    pub signature: String,
+    pub version: u8,
+    pub declared_len: u32,
+    /// Total length with the 8-byte header, after decompression.
+    pub actual_len: usize,
+}
+
+/// Strict structural check: signature, FileLength equal to the (decompressed)
+/// length, header present, tag stream inside the data and closed by End.
+pub fn validate(bytes: &[u8]) -> Result<SwfCheck, String> {
+    if bytes.len() < 8 {
+        return Err("too short to be a SWF".into());
+    }
+    let sig = String::from_utf8_lossy(&bytes[..3]).into_owned();
+    let body = match &bytes[..3] {
+        b"FWS" => bytes[8..].to_vec(),
+        b"CWS" => unzlib(&bytes[8..])?,
+        b"ZWS" => return Err("LZMA-compressed SWF (ZWS) is not supported yet; recompress it as FWS/CWS first".into()),
+        _ => return Err("not a SWF file (bad signature)".into()),
+    };
+    let declared = u32::from_le_bytes([bytes[4], bytes[5], bytes[6], bytes[7]]);
+    let actual = 8 + body.len();
+    if declared as usize != actual {
+        return Err(format!("malformed SWF: header FileLength={declared} but the {}length is {actual}", if sig == "FWS" { "" } else { "decompressed " }));
+    }
+    if body.is_empty() {
+        return Err("malformed SWF: no data after the header".into());
+    }
+    let mut r = BitR::new(&body);
+    let _ = rect(&mut r);
+    r.u32();
+    let mut p = r.pos;
+    if p > body.len() {
+        return Err("malformed SWF: truncated header".into());
+    }
+    loop {
+        if p + 2 > body.len() {
+            return Err("malformed SWF: missing End tag".into());
+        }
+        let h = u16::from_le_bytes([body[p], body[p + 1]]);
+        p += 2;
+        let (code, mut len) = (h >> 6, (h & 0x3F) as usize);
+        if len == 0x3F {
+            if p + 4 > body.len() {
+                return Err("malformed SWF: tag stream runs past end of file".into());
+            }
+            len = u32::from_le_bytes([body[p], body[p + 1], body[p + 2], body[p + 3]]) as usize;
+            p += 4;
+        }
+        if p.saturating_add(len) > body.len() {
+            return Err(format!("malformed SWF: tag {code} (length {len}) runs past end of file"));
+        }
+        p += len;
+        if code == END {
+            return Ok(SwfCheck { signature: sig, version: bytes[3], declared_len: declared, actual_len: actual });
+        }
+    }
+}
+
 /// Serialize with the given tags (End is appended). `compress` writes CWS.
 pub fn write(version: u8, stage: [i32; 4], frame_rate: f32, frame_count: u16, tags: &[RawTag], compress: bool) -> Vec<u8> {
     let mut w = BitW::new();
