@@ -48,6 +48,19 @@ pub mod fdttext;
 pub mod fdtbuttons;
 #[path = "common/flash/xfl.rs"]
 pub mod xfl;
+#[path = "common/flash/ac_swf.rs"]
+pub mod ac_swf;
+#[path = "common/flash/ac_as3_abc.rs"]
+pub mod ac_as3_abc;
+#[path = "common/flash/ac_as3_decompile.rs"]
+pub mod ac_as3_decompile;
+#[path = "common/flash/ac_as3_patch.rs"]
+pub mod ac_as3_patch;
+#[path = "common/flash/ac_as3_api.rs"]
+pub mod ac_as3_api;
+#[cfg(test)]
+#[path = "common/flash/ac_as3_tests.rs"]
+mod ac_as3_tests;
 
 /// Run `f`, returning `default` if it panics. A Rust panic unwinding out of an
 /// `extern "C"` function aborts the whole process (SIGABRT / "C++ EH exception"
@@ -1212,4 +1225,163 @@ mod robustness {
         assert!(text.lines().count() > 2 && text.contains("cwd"), "{text}");
         assert!(text.contains("no stuff directory found"));
     }
+}
+
+// ---- AS3 / ABC (native Rust; replaces the old Python sidecar) -------------
+
+/// Opaque result of a patch call: optional output bytes plus a JSON status.
+pub struct FlareAs3Result {
+    bytes: Vec<u8>,
+    json: std::ffi::CString,
+}
+
+fn cstr(s: String) -> *mut std::os::raw::c_char {
+    std::ffi::CString::new(s.replace('\0', "")).map(|c| c.into_raw()).unwrap_or(std::ptr::null_mut())
+}
+
+fn as3_json(v: serde_json::Value) -> *mut std::os::raw::c_char {
+    cstr(v.to_string())
+}
+
+fn as3_result(r: Result<(Vec<u8>, serde_json::Value), String>) -> *mut FlareAs3Result {
+    let (bytes, v) = match r {
+        Ok(x) => x,
+        Err(e) => (Vec::new(), serde_json::json!({"ok": false, "error": e})),
+    };
+    let json = std::ffi::CString::new(v.to_string().replace('\0', "")).unwrap_or_default();
+    Box::into_raw(Box::new(FlareAs3Result { bytes, json }))
+}
+
+/// Version string of the native AS3 core. Free with `flare_as3_free`.
+#[no_mangle]
+pub extern "C" fn flare_as3_version() -> *mut std::os::raw::c_char {
+    guard(std::ptr::null_mut(), || cstr(ac_as3_api::VERSION.to_string()))
+}
+
+/// Class / member inventory as JSON. NULL on bad arguments.
+#[no_mangle]
+pub unsafe extern "C" fn flare_as3_list(data: *const u8, len: usize) -> *mut std::os::raw::c_char {
+    if data.is_null() || len == 0 {
+        return std::ptr::null_mut();
+    }
+    guard(std::ptr::null_mut(), || as3_json(ac_as3_api::list(bytes(data, len))))
+}
+
+/// Decompile everything; JSON with sources. NULL on bad arguments.
+#[no_mangle]
+pub unsafe extern "C" fn flare_as3_decompile(data: *const u8, len: usize) -> *mut std::os::raw::c_char {
+    if data.is_null() || len == 0 {
+        return std::ptr::null_mut();
+    }
+    guard(std::ptr::null_mut(), || as3_json(ac_as3_api::decompile_all(bytes(data, len))))
+}
+
+/// Source of one class (UTF-8), NULL on error.
+#[no_mangle]
+pub unsafe extern "C" fn flare_as3_decompile_class(data: *const u8, len: usize, block: i32, class_idx: i32) -> *mut std::os::raw::c_char {
+    if data.is_null() || len == 0 || block < 0 || class_idx < 0 {
+        return std::ptr::null_mut();
+    }
+    guard(std::ptr::null_mut(), || match ac_as3_api::decompile_class(bytes(data, len), block as usize, class_idx as usize) {
+        Ok(s) => cstr(s),
+        Err(_) => std::ptr::null_mut(),
+    })
+}
+
+/// P-code listing of one method, NULL on error.
+#[no_mangle]
+pub unsafe extern "C" fn flare_as3_disasm(data: *const u8, len: usize, block: i32, method: i32) -> *mut std::os::raw::c_char {
+    if data.is_null() || len == 0 || block < 0 || method < 0 {
+        return std::ptr::null_mut();
+    }
+    guard(std::ptr::null_mut(), || match ac_as3_api::disassemble_method(bytes(data, len), block as usize, method as u32) {
+        Ok(s) => cstr(s),
+        Err(_) => std::ptr::null_mut(),
+    })
+}
+
+/// Rewrite AS3 constant strings ({"strings":{old:new}}). Free with `flare_as3_result_free`.
+#[no_mangle]
+pub unsafe extern "C" fn flare_as3_patch_strings(data: *const u8, len: usize, patch_json: *const std::os::raw::c_char) -> *mut FlareAs3Result {
+    if data.is_null() || len == 0 || patch_json.is_null() {
+        return std::ptr::null_mut();
+    }
+    guard(std::ptr::null_mut(), || {
+        let pj = std::ffi::CStr::from_ptr(patch_json).to_string_lossy().into_owned();
+        as3_result(ac_as3_api::patch_strings(bytes(data, len), &pj))
+    })
+}
+
+/// Write an edited class (string-literal edits only, no compiler) back into the SWF.
+#[no_mangle]
+pub unsafe extern "C" fn flare_as3_patch_class(
+    data: *const u8,
+    len: usize,
+    block: i32,
+    class_idx: i32,
+    edited_src: *const std::os::raw::c_char,
+) -> *mut FlareAs3Result {
+    if data.is_null() || len == 0 || edited_src.is_null() || block < 0 || class_idx < 0 {
+        return std::ptr::null_mut();
+    }
+    guard(std::ptr::null_mut(), || {
+        let src = std::ffi::CStr::from_ptr(edited_src).to_string_lossy().into_owned();
+        as3_result(ac_as3_api::patch_class(bytes(data, len), block as usize, class_idx as usize, &src))
+    })
+}
+
+/// Compile a source tree with the Flex SDK (optional external tool). JSON status.
+#[no_mangle]
+pub unsafe extern "C" fn flare_as3_compile(src_dir: *const std::os::raw::c_char, out_swf: *const std::os::raw::c_char) -> *mut std::os::raw::c_char {
+    if src_dir.is_null() || out_swf.is_null() {
+        return std::ptr::null_mut();
+    }
+    guard(std::ptr::null_mut(), || {
+        let s = std::ffi::CStr::from_ptr(src_dir).to_string_lossy().into_owned();
+        let o = std::ffi::CStr::from_ptr(out_swf).to_string_lossy().into_owned();
+        match ac_as3_patch::compile_sources(std::path::Path::new(&s), std::path::Path::new(&o)) {
+            Ok(log) => as3_json(serde_json::json!({"ok": true, "error": null, "log": log})),
+            Err(e) => as3_json(serde_json::json!({"ok": false, "error": e})),
+        }
+    })
+}
+
+/// 1 when a Flex `mxmlc` can be found (only `flare_as3_compile` needs it).
+#[no_mangle]
+pub extern "C" fn flare_as3_has_compiler() -> i32 {
+    guard(0, || i32::from(ac_as3_patch::find_mxmlc().is_some()))
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn flare_as3_free(p: *mut std::os::raw::c_char) {
+    flare_moho_free(p)
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn flare_as3_result_free(r: *mut FlareAs3Result) {
+    if !r.is_null() {
+        drop(Box::from_raw(r));
+    }
+}
+
+/// Output SWF bytes of a result (NULL / len 0 when the call failed). Valid until freed.
+#[no_mangle]
+pub unsafe extern "C" fn flare_as3_result_bytes(r: *const FlareAs3Result, len: *mut usize) -> *const u8 {
+    if r.is_null() {
+        return std::ptr::null();
+    }
+    let r = &*r;
+    if !len.is_null() {
+        *len = r.bytes.len();
+    }
+    if r.bytes.is_empty() { std::ptr::null() } else { r.bytes.as_ptr() }
+}
+
+/// NUL-terminated JSON status of a result. Valid until freed.
+#[no_mangle]
+pub unsafe extern "C" fn flare_as3_result_json(r: *const FlareAs3Result) -> *const std::os::raw::c_char {
+    if r.is_null() {
+        return std::ptr::null();
+    }
+    (*r).json.as_ptr()
 }
