@@ -15,8 +15,7 @@
 
 </div>
 
-![Flare main window](<img width="1200" height="675" alt="image" src="https://github.com/user-attachments/assets/3e2053cf-74d7-4b3e-8f0b-c6194577a13d" />
-)
+![Flare main window](<img width="1200" height="675" alt="image" src="https://github.com/user-attachments/assets/3e2053cf-74d7-4b3e-8f0b-c6194577a13d" />)
 
 > **Early alpha.** Expect bugs and incomplete Flash/Animate import fidelity. Back up your work.
 
