@@ -152,6 +152,12 @@ pub mod tcubicbezier;
 pub mod trandom;
 #[path = "common/tcolor/tcolorvalue.rs"]
 pub mod tcolorvalue;
+#[path = "common/tcolor/tpixel.rs"]
+pub mod tpixel;
+#[path = "common/tcolor/tcolorfunctions.rs"]
+pub mod tcolorfunctions;
+#[path = "common/tcolor/tpixelutils.rs"]
+pub mod tpixelutils;
 #[path = "common/trop/runsmap.rs"]
 pub mod runsmap;
 #[path = "common/trop/rust/invert.rs"]

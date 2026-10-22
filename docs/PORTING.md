@@ -88,6 +88,9 @@ Crate manifest: `flare/sources/Cargo.toml`. Tests: `python tests/run_rust.py`.
 | tnzcore | common/flash/FDTFonts.cpp | common/flash/FDTFonts.rs | 5 + 88 recorded tags | coarse (DefineFont/DefineFont2/DefineFontInfo bodies, kerning record); shapes, bounds, names and the virtual `FShape`/`FKerningRec` writers inline |
 | tnzcore | common/flash/FDTText.cpp | common/flash/FDTText.rs | 3 + 88 recorded tags | coarse (DefineEditText whole tag, text change and glyph records); DefineText/DefineText2 orchestration inline |
 | tnzcore | common/flash/FDTButtons.cpp | common/flash/FDTButtons.rs | 4 + 80 recorded tags | coarse (record heads, DefineButton2 record block + offset, tag selection); matrices, colour transforms, actions, conditions and sound infos inline |
+| tnzcore | common/tcolor/tpixelutils.cpp | common/tcolor/tpixelutils.rs | 9 + 8,200 recorded cases | fine (HSV/HLS, 16 `toPixel*`, 5 `toLinear`; inline forwarders in `tpixelutils.h`, no tnzcore export any more) |
+| tnzcore | common/tcolor/tcolorfunctions.cpp | common/tcolor/tcolorfunctions.rs | 5 + 900 recorded cases | fine (per-pixel arithmetic of the 5 `TColorFunction`s; classes inline) |
+| tnzcore | common/tcolor/tpixel.cpp (the three `from()` grey conversions only; the file stays for the static constant pixel objects) | common/tcolor/tpixel.rs | 4 + 400 recorded cases | fine (`TPixelGR8/GR16/GRF::from`, inline in `tpixelgr.h`) |
 
 Notes: the C++ `throw`s (TMathException, std::domain_error) stay in the inline header
 forwarders; Rust returns a status code. Modules that call the forwarders link `flare_formats`
@@ -211,6 +214,13 @@ Batch 9 notes (SWF writer, second half: `FDTFonts`, `FDTText`, `FDTButtons`; +13
 - Quirks kept: `DefineFont2` truncates glyph offsets to `(S8)` (wrong above 127); `ShiftJIS` flag bit order differs between `DefineFont2` and `DefineFontInfo`; an unknown encoding writes no encoding bits; `FDTDefineFont::ID()`/`FDTDefineFontInfo::ID()` return the low byte; `DefineFontInfo` consumes its code table when written; `DefineEditText` flags store only the low bit of each `U8`; the 7-bit glyph count wraps at 128; `FDTDefineButton` (1.0) writes tag 34 (`DefineButton2`); `FCXForm` leaves a partial byte so the tag size drops it.
 - Deviations (C++ UB): `DefineFont2` freed its offset table before the stream was written (use-after-free; the reference build leaks array deletes, the port copies the table into the body); `DefineFont` with no glyphs dereferenced the list end sentinel (now writes id + offset 0); null `FRect*` glyph bounds / edit-text bounds, names and colours are treated as empty rectangle / empty string / black instead of dereferenced.
 - Not built here: the Qt tree (`tvrender/tflash.cpp`, `flashimport.cpp`); the three headers, `F3SDK.h` and `FDTBitmaps.h` compile with g++ together.
+
+Batch 10 notes (`tpixelutils`, `tcolorfunctions`, `tpixel` grey conversions; goldens `common/tcolor/tcolor_cases.txt` from `tests/native/gen_tcolor_cases.py [--check] [--verify-chain]`, 12,800 lines):
+- Header forwarders keep every public signature; `DVAPI` exports of tnzcore are gone, so every consumer must link `flare_formats`: tnzcore/tnzbase/stdfx/colorfx/tnztools/flarelib/image/tnzext/Flare already did, `flareqt` (links tnzcore by file name on Apple, no transitive dependency) now links it explicitly.
+- `tpixel.cpp` is NOT deleted: the `static const` pixel objects (`TPixelRGBM32::Red`, `TPixelGR8::White`, `maxChannelValue`, ...) are C++-constructed class statics. Only the three `from()` bodies moved; the dead `operator<<` helpers were dropped.
+- Quirks kept: `hsv2rgb`/`HSV2RGB` leave their outputs untouched when the hue is still outside every sector after one wrap; `RGB2HSV`/`rgb2hls` read `*h` back when no channel is the maximum; `std::max({..})` is first-of-equal; `troundp` rounds negatives toward zero, `tround` away; the fader blends store the int into the byte (low byte).
+- Deviations (C++ UB): `(int)` of NaN/out-of-range doubles gives the x86 `INT_MIN` on every platform; `(unsigned char/short)` casts in `toLinear` keep the low bits of that int; null output pointers throw `std::invalid_argument` instead of crashing.
+- `toLinear` uses libm `pow`: goldens hard-asserted on linux-gnu only (1 integer step / 4 ULP elsewhere). Not built here: the Qt tree; headers compile with g++ and `--verify-chain` passes.
 
 **CMake guard:** after deleting a `.cpp`, remove it from every `CMakeLists.txt`. `python scripts/check_cmake_sources.py` (also run in CI) fails if a listed source is gone while a same-name `.rs` exists.
 

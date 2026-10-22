@@ -160,9 +160,7 @@ set(SOURCES
     ../common/tcore/tthread.cpp
     ../common/tcore/tundo.cpp
     ../common/tcore/tfunctorinvoker.cpp
-    ../common/tcolor/tcolorfunctions.cpp
     ../common/tcolor/tpixel.cpp
-    ../common/tcolor/tpixelutils.cpp
     ../common/tcolor/tspectrum.cpp
     ../common/tgeometry/tcurves.cpp
     ../common/tgeometry/tcurveutil.cpp

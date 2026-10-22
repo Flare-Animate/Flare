@@ -3,6 +3,9 @@
 #ifndef T_PIXELUTILS_INCLUDED
 #define T_PIXELUTILS_INCLUDED
 
+#include <cassert>
+#include <stdexcept>
+
 #include "tpixel.h"
 #include "tpixelgr.h"
 
@@ -500,8 +503,59 @@ inline TPixelF depremultiply(const TPixelF &pix) {
 
 //-----------------------------------------------------------------------------
 
-//! onversion between RGB and HSV colorspace
-DVAPI void hsv2rgb(TPixel32 &dstRgb, int srcHsv[3], int maxHsv = 255);
+//! Conversion between RGB and HSV colorspace
+
+// The colour-space and pixel-type conversions below were implemented in
+// common/tcolor/tpixelutils.cpp; they now live in tpixelutils.rs (flare_formats) and the
+// public C++ signatures are inline forwarders. Every entry point returns 0 on success and
+// non-zero for a NULL pointer / internal error (reported as std::invalid_argument).
+extern "C" {
+int flare_hsv2rgb_pixel(int h, int s, int v, int max_hsv, unsigned char *rgb);
+int flare_hsv2rgb(double hue, double sat, double value, double *red, double *green, double *blue);
+int flare_rgb2hsv(double r, double g, double b, double *h, double *s, double *v);
+int flare_rgb2hsv_pixel(unsigned int r, unsigned int g, unsigned int b, int max_hsv, int *dst);
+int flare_hls2rgb(double h, double l, double s, double *r, double *g, double *b);
+int flare_rgb2hls(double r, double g, double b, double *h, double *l, double *s);
+
+int flare_topixel32_from_pixel64(unsigned short r, unsigned short g, unsigned short b, unsigned short m, unsigned char *out);
+int flare_topixel32_from_pixeld(double r, double g, double b, double m, unsigned char *out);
+int flare_topixel32_from_gr8(unsigned char v, unsigned char *out);
+int flare_topixel32_from_pixelf(float r, float g, float b, float m, unsigned char *out);
+int flare_topixel64_from_pixel32(unsigned char r, unsigned char g, unsigned char b, unsigned char m, unsigned short *out);
+int flare_topixel64_from_pixeld(double r, double g, double b, double m, unsigned short *out);
+int flare_topixel64_from_gr8(unsigned char v, unsigned short *out);
+int flare_topixel64_from_pixelf(float r, float g, float b, float m, unsigned short *out);
+int flare_topixeld_from_pixel32(unsigned char r, unsigned char g, unsigned char b, unsigned char m, double *out);
+int flare_topixeld_from_pixel64(unsigned short r, unsigned short g, unsigned short b, unsigned short m, double *out);
+int flare_topixeld_from_gr8(unsigned char v, double *out);
+int flare_topixeld_from_pixelf(float r, float g, float b, float m, double *out);
+int flare_topixelf_from_pixel32(unsigned char r, unsigned char g, unsigned char b, unsigned char m, float *out);
+int flare_topixelf_from_pixeld(double r, double g, double b, double m, float *out);
+int flare_topixelf_from_pixel64(unsigned short r, unsigned short g, unsigned short b, unsigned short m, float *out);
+int flare_topixelf_from_gr8(unsigned char v, float *out);
+
+int flare_tolinear32(unsigned char r, unsigned char g, unsigned char b, unsigned char m, double gamma, unsigned char *out);
+int flare_tolinear64(unsigned short r, unsigned short g, unsigned short b, unsigned short m, double gamma, unsigned short *out);
+int flare_tolinear_d(double r, double g, double b, double m, double gamma, double *out);
+int flare_tolinear_f(float r, float g, float b, float m, double gamma, float *out);
+int flare_tolinear_gr8(unsigned char v, double gamma, unsigned char *out);
+}
+
+inline void flare_tpixelutils_check(int status) {
+  if (status) throw std::invalid_argument("tpixelutils: invalid argument");
+}
+
+inline void hsv2rgb(TPixel32 &dstRgb, int srcHsv[3], int maxHsv = 255) {
+  assert(maxHsv);
+  // (the destination r/g/b are left as they were when the hue is outside every sector)
+  unsigned char rgb[3] = {dstRgb.r, dstRgb.g, dstRgb.b};
+  flare_tpixelutils_check(
+      flare_hsv2rgb_pixel(srcHsv[0], srcHsv[1], srcHsv[2], maxHsv, rgb));
+  dstRgb.r = rgb[0];
+  dstRgb.g = rgb[1];
+  dstRgb.b = rgb[2];
+  dstRgb.m = 255;  // matte
+}
 
 //-------------------------------------------------------------------
 
@@ -509,15 +563,22 @@ DVAPI void hsv2rgb(TPixel32 &dstRgb, int srcHsv[3], int maxHsv = 255);
   IN : h in [0..360], s and v in [0..1]
   OUT: r,g,b in [0..1]
 */
-DVAPI void HSV2RGB(double hue, double sat, double value, double *red,
-                   double *green, double *blue);
+inline void HSV2RGB(double hue, double sat, double value, double *red,
+                    double *green, double *blue) {
+  flare_tpixelutils_check(flare_hsv2rgb(hue, sat, value, red, green, blue));
+}
 
 //-----------------------------------------------------------------------------
 
-DVAPI void rgb2hsv(int dstHsv[3], const TPixel32 &srcRgb, int maxHsv = 255);
+inline void rgb2hsv(int dstHsv[3], const TPixel32 &srcRgb, int maxHsv = 255) {
+  flare_tpixelutils_check(
+      flare_rgb2hsv_pixel(srcRgb.r, srcRgb.g, srcRgb.b, maxHsv, dstHsv));
+}
 
-DVAPI void RGB2HSV(double r, double g, double b, double *h, double *s,
-                   double *v);
+inline void RGB2HSV(double r, double g, double b, double *h, double *s,
+                    double *v) {
+  flare_tpixelutils_check(flare_rgb2hsv(r, g, b, h, s, v));
+}
 
 //--------------------------------
 
@@ -526,8 +587,10 @@ DVAPI void RGB2HSV(double r, double g, double b, double *h, double *s,
   OUT: r,g,b in [0..1]
 */
 
-DVAPI void HLS2RGB(double h, double l, double s, double *r, double *g,
-                   double *b);
+inline void HLS2RGB(double h, double l, double s, double *r, double *g,
+                    double *b) {
+  flare_tpixelutils_check(flare_hls2rgb(h, l, s, r, g, b));
+}
 
 //--------------------------------
 
@@ -536,34 +599,138 @@ DVAPI void HLS2RGB(double h, double l, double s, double *r, double *g,
   OUT: h in [0..360], l and s in [0..1]
 */
 
-DVAPI void rgb2hls(double r, double g, double b, double *h, double *l,
-                   double *s);
+inline void rgb2hls(double r, double g, double b, double *h, double *l,
+                    double *s) {
+  flare_tpixelutils_check(flare_rgb2hls(r, g, b, h, l, s));
+}
 
-DVAPI TPixel32 toPixel32(const TPixel64 &);
-DVAPI TPixel32 toPixel32(const TPixelD &);
-DVAPI TPixel32 toPixel32(const TPixelGR8 &);
-DVAPI TPixel32 toPixel32(const TPixelF &);
+//-----------------------------------------------------------------------------
 
-DVAPI TPixel64 toPixel64(const TPixel32 &);
-DVAPI TPixel64 toPixel64(const TPixelD &);
-DVAPI TPixel64 toPixel64(const TPixelGR8 &);
-DVAPI TPixel64 toPixel64(const TPixelF &);
+inline TPixel32 toPixel32(const TPixel64 &src) {
+  unsigned char o[4];
+  flare_tpixelutils_check(
+      flare_topixel32_from_pixel64(src.r, src.g, src.b, src.m, o));
+  return TPixel32(o[0], o[1], o[2], o[3]);
+}
+inline TPixel32 toPixel32(const TPixelD &src) {
+  unsigned char o[4];
+  flare_tpixelutils_check(
+      flare_topixel32_from_pixeld(src.r, src.g, src.b, src.m, o));
+  return TPixel32(o[0], o[1], o[2], o[3]);
+}
+inline TPixel32 toPixel32(const TPixelGR8 &src) {
+  unsigned char o[4];
+  flare_tpixelutils_check(flare_topixel32_from_gr8(src.value, o));
+  return TPixel32(o[0], o[1], o[2], o[3]);
+}
+inline TPixel32 toPixel32(const TPixelF &src) {
+  unsigned char o[4];
+  flare_tpixelutils_check(
+      flare_topixel32_from_pixelf(src.r, src.g, src.b, src.m, o));
+  return TPixel32(o[0], o[1], o[2], o[3]);
+}
 
-DVAPI TPixelD toPixelD(const TPixel32 &);
-DVAPI TPixelD toPixelD(const TPixel64 &);
-DVAPI TPixelD toPixelD(const TPixelGR8 &);
-DVAPI TPixelD toPixelD(const TPixelF &);
+inline TPixel64 toPixel64(const TPixel32 &src) {
+  unsigned short o[4];
+  flare_tpixelutils_check(
+      flare_topixel64_from_pixel32(src.r, src.g, src.b, src.m, o));
+  return TPixel64(o[0], o[1], o[2], o[3]);
+}
+inline TPixel64 toPixel64(const TPixelD &src) {
+  unsigned short o[4];
+  flare_tpixelutils_check(
+      flare_topixel64_from_pixeld(src.r, src.g, src.b, src.m, o));
+  return TPixel64(o[0], o[1], o[2], o[3]);
+}
+inline TPixel64 toPixel64(const TPixelGR8 &src) {
+  unsigned short o[4];
+  flare_tpixelutils_check(flare_topixel64_from_gr8(src.value, o));
+  return TPixel64(o[0], o[1], o[2], o[3]);
+}
+inline TPixel64 toPixel64(const TPixelF &src) {
+  unsigned short o[4];
+  flare_tpixelutils_check(
+      flare_topixel64_from_pixelf(src.r, src.g, src.b, src.m, o));
+  return TPixel64(o[0], o[1], o[2], o[3]);
+}
 
-DVAPI TPixelF toPixelF(const TPixel32 &);
-DVAPI TPixelF toPixelF(const TPixelD &);
-DVAPI TPixelF toPixelF(const TPixel64 &);
-DVAPI TPixelF toPixelF(const TPixelGR8 &);
+inline TPixelD toPixelD(const TPixel32 &src) {
+  double o[4];
+  flare_tpixelutils_check(
+      flare_topixeld_from_pixel32(src.r, src.g, src.b, src.m, o));
+  return TPixelD(o[0], o[1], o[2], o[3]);
+}
+inline TPixelD toPixelD(const TPixel64 &src) {
+  double o[4];
+  flare_tpixelutils_check(
+      flare_topixeld_from_pixel64(src.r, src.g, src.b, src.m, o));
+  return TPixelD(o[0], o[1], o[2], o[3]);
+}
+inline TPixelD toPixelD(const TPixelGR8 &src) {
+  double o[4];
+  flare_tpixelutils_check(flare_topixeld_from_gr8(src.value, o));
+  return TPixelD(o[0], o[1], o[2], o[3]);
+}
+inline TPixelD toPixelD(const TPixelF &src) {
+  double o[4];
+  flare_tpixelutils_check(
+      flare_topixeld_from_pixelf(src.r, src.g, src.b, src.m, o));
+  return TPixelD(o[0], o[1], o[2], o[3]);
+}
 
-DVAPI TPixel32 toLinear(const TPixel32 &, const double);
-DVAPI TPixel64 toLinear(const TPixel64 &, const double);
-DVAPI TPixelD toLinear(const TPixelD &, const double);
-DVAPI TPixelF toLinear(const TPixelF &, const double);
-DVAPI TPixelGR8 toLinear(const TPixelGR8 &, const double);
+inline TPixelF toPixelF(const TPixel32 &src) {
+  float o[4];
+  flare_tpixelutils_check(
+      flare_topixelf_from_pixel32(src.r, src.g, src.b, src.m, o));
+  return TPixelF(o[0], o[1], o[2], o[3]);
+}
+inline TPixelF toPixelF(const TPixelD &src) {
+  float o[4];
+  flare_tpixelutils_check(
+      flare_topixelf_from_pixeld(src.r, src.g, src.b, src.m, o));
+  return TPixelF(o[0], o[1], o[2], o[3]);
+}
+inline TPixelF toPixelF(const TPixel64 &src) {
+  float o[4];
+  flare_tpixelutils_check(
+      flare_topixelf_from_pixel64(src.r, src.g, src.b, src.m, o));
+  return TPixelF(o[0], o[1], o[2], o[3]);
+}
+inline TPixelF toPixelF(const TPixelGR8 &src) {
+  float o[4];
+  flare_tpixelutils_check(flare_topixelf_from_gr8(src.value, o));
+  return TPixelF(o[0], o[1], o[2], o[3]);
+}
+
+inline TPixel32 toLinear(const TPixel32 &pix, const double gamma) {
+  unsigned char o[4];
+  flare_tpixelutils_check(
+      flare_tolinear32(pix.r, pix.g, pix.b, pix.m, gamma, o));
+  return TPixel32(o[0], o[1], o[2], o[3]);
+}
+inline TPixel64 toLinear(const TPixel64 &pix, const double gamma) {
+  unsigned short o[4];
+  flare_tpixelutils_check(
+      flare_tolinear64(pix.r, pix.g, pix.b, pix.m, gamma, o));
+  return TPixel64(o[0], o[1], o[2], o[3]);
+}
+inline TPixelD toLinear(const TPixelD &pix, const double gamma) {
+  double o[4];
+  flare_tpixelutils_check(
+      flare_tolinear_d(pix.r, pix.g, pix.b, pix.m, gamma, o));
+  return TPixelD(o[0], o[1], o[2], o[3]);
+}
+inline TPixelF toLinear(const TPixelF &pix, const double gamma) {
+  float o[4];
+  flare_tpixelutils_check(
+      flare_tolinear_f(pix.r, pix.g, pix.b, pix.m, gamma, o));
+  return TPixelF(o[0], o[1], o[2], o[3]);
+}
+inline TPixelGR8 toLinear(const TPixelGR8 &pix, const double gamma) {
+  unsigned char o;
+  flare_tpixelutils_check(flare_tolinear_gr8(pix.value, gamma, &o));
+  return TPixelGR8(o);
+}
 //
 // nel caso in cui il tipo di destinazione sia il parametro di un template
 // es. template<PIXEL> ....
