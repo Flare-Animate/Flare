@@ -25,7 +25,7 @@ REPO = os.path.abspath(os.path.join(HERE, ".."))
 # Which host recorded each golden. Libm- and zlib-dependent goldens are only byte-stable
 # on the platform that recorded them, so each is checked there: `linux` = glibc + the
 # zlib shim, `macos` = Apple libm/clang. `--set` selects one; the default checks all.
-LINUX_RECORDED = ("swf writer", "maxmin", "motion blur")
+LINUX_RECORDED = ("swf writer", "swf shapes", "maxmin", "motion blur", "line blur", "gaussian blur")
 
 CHECKS = [
     ("swf writer (FSWFStream, FPrimitive, FObj, FSound, FCT, FDTBitmaps)", ["tests/native/gen_swfwriter_cases.py", "--check"]),
