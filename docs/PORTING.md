@@ -88,7 +88,7 @@ Crate manifest: `flare/sources/Cargo.toml`. Tests: `python tests/run_rust.py`.
 | tnzcore | common/flash/FDTFonts.cpp | common/flash/FDTFonts.rs | 5 + 88 recorded tags | coarse (DefineFont/DefineFont2/DefineFontInfo bodies, kerning record); shapes, bounds, names and the virtual `FShape`/`FKerningRec` writers inline |
 | tnzcore | common/flash/FDTText.cpp | common/flash/FDTText.rs | 3 + 88 recorded tags | coarse (DefineEditText whole tag, text change and glyph records); DefineText/DefineText2 orchestration inline |
 | tnzcore | common/flash/FDTButtons.cpp | common/flash/FDTButtons.rs | 4 + 80 recorded tags | coarse (record heads, DefineButton2 record block + offset, tag selection); matrices, colour transforms, actions, conditions and sound infos inline |
-| tnzcore | common/tcolor/tpixelutils.cpp | common/tcolor/tpixelutils.rs | 9 + 8,200 recorded cases | fine (HSV/HLS, 16 `toPixel*`, 5 `toLinear`; inline forwarders in `tpixelutils.h`, no tnzcore export any more) |
+| tnzcore | common/tcolor/tpixelutils.cpp | common/tcolor/tpixelutils.rs | 9 + 11,500 recorded cases | fine (HSV/HLS, 16 `toPixel*`, 5 `toLinear`; inline forwarders in `tpixelutils.h`, no tnzcore export any more) |
 | tnzcore | common/tcolor/tcolorfunctions.cpp | common/tcolor/tcolorfunctions.rs | 5 + 900 recorded cases | fine (per-pixel arithmetic of the 5 `TColorFunction`s; classes inline) |
 | tnzcore | common/tcolor/tpixel.cpp (the three `from()` grey conversions only; the file stays for the static constant pixel objects) | common/tcolor/tpixel.rs | 4 + 400 recorded cases | fine (`TPixelGR8/GR16/GRF::from`, inline in `tpixelgr.h`) |
 
