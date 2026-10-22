@@ -235,6 +235,18 @@ pub extern "C" fn flare_make_stereo_raster(
     make_stereo_raster(left, right, wrap.max(0) as usize, lx, ly, bpp as usize)
 }
 
+/// copy: if pixel sizes match, memcpy; else convert. This Rust version handles
+/// the same-pixel-size fast path (memcpy). Cross-type conversion delegates
+/// to the existing convert kernels (not duplicated here).
+pub fn copy_same_size(src: *const u8, dst: *mut u8, total_bytes: usize) {
+    unsafe { std::ptr::copy_nonoverlapping(src, dst, total_bytes); }
+}
+
+#[no_mangle]
+pub extern "C" fn flare_copy_same_size(src: *const u8, dst: *mut u8, n: usize) {
+    copy_same_size(src, dst, n)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
