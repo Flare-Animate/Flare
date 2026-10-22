@@ -27,3 +27,7 @@ static inline int swf_compress2_32(Bytef *dest, uLongf *destLen, const Bytef *so
 }
 #define compress swf_compress32
 #define compress2 swf_compress2_32
+
+// The original headers use unqualified `string`; newer libstdc++ no longer leaks it.
+#include <string>
+using std::string;
