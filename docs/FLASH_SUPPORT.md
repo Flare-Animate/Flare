@@ -25,7 +25,7 @@ drift apart.
 | Component library | `.swc` | ZIP + `catalog.xml` + `library.swf` images and sounds |
 | Mislabeled SWF | `.ssf` / `.dat` | Sniffed as SWF |
 | Re-zipped FLA | `.zip` | Sniffed, trailer repaired if needed, imported as FLA |
-| ActionScript 3 | inside `.swf` | Decompiled to `.as` via the optional `flare-as3` helper |
+| ActionScript 3 | inside `.swf` | Decompiled to `.as` by the native Rust AS3 core |
 
 ### What a `.swf` does and does not become
 
@@ -289,16 +289,13 @@ decodable.
 
 ## ActionScript
 
-AS3 lives in AVM2 bytecode inside DoABC/DoABC2 tags. Decompiling it needs a real
-AVM2 decompiler, so Flare treats it as an *optional* sidecar: the Next2Flash
-`as3_decompiler` package is vendored under
-`tools/flash/next2flash/vendor/as3_decompiler/` (MIT) and driven through
-`common/flash/As3Bridge.{h,cpp}`.
-
-`As3Bridge::isAvailable()` is probed once and cached, exactly the way FFmpeg is
-detected. When the helper or a Python interpreter is absent, the import dialog
-says so and everything else — FLA/XFL/SWF bitmaps, the timeline — works
-unchanged with no Python at all. See
+AS3 lives in AVM2 bytecode inside DoABC/DoABC2 tags. Flare decompiles and
+patches it with its own Rust AVM2 code (`common/flash/ac_as3_{abc,decompile,
+patch,api}.rs`, derived from Next2Flash, MIT), called directly by
+`common/flash/As3Bridge.{h,cpp}` through the `flare_as3_*` C ABI. There is no
+helper process and nothing to install. Only compiling brand-new ActionScript
+needs an external tool (the Flex SDK's `mxmlc`); editing string literals of a
+decompiled class is written back natively. See
 [`NEXT2FLASH_INTEGRATION.md`](./NEXT2FLASH_INTEGRATION.md).
 
 ## SWC component libraries (Apache Flex SDK format)
@@ -321,7 +318,7 @@ flare/sources/common/flash/
                             audio, content census, legacy OLE2/CFBF FLA
                             carving, container sniffing, extension list
     ZipArchive.h/cpp        ZIP trailer repair + hardened extraction
-    As3Bridge.h/cpp         optional client for the flare-as3 helper
+    As3Bridge.h/cpp         C++ client of the native Rust AS3 core (ac_as3_*.rs)
     FSWFStream.h/cpp        SWF binary stream
     FDT*.h/cpp              Flash data-type tags
     FCT.h/cpp               Character tables

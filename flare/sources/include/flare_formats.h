@@ -49,6 +49,23 @@ int32_t flare_lso_is_lso(const uint8_t *data, size_t len);
 /* .sol -> JSON {name, formatVersion, body}; NULL if not AMF0. Free with flare_lso_free. */
 char *flare_lso_parse(const uint8_t *data, size_t len);
 void flare_lso_free(char *p);
+/* AS3 / ABC, native Rust (common/flash/ac_as3_*.rs). data = SWF image or bare ABC block.
+   JSON-returning calls give NULL on bad arguments; free strings with flare_as3_free. */
+char *flare_as3_version(void);
+char *flare_as3_list(const uint8_t *data, size_t len);
+char *flare_as3_decompile(const uint8_t *data, size_t len);
+char *flare_as3_decompile_class(const uint8_t *data, size_t len, int32_t block, int32_t class_idx);
+char *flare_as3_disasm(const uint8_t *data, size_t len, int32_t block, int32_t method);
+char *flare_as3_compile(const char *src_dir_utf8, const char *out_swf_utf8);
+int32_t flare_as3_has_compiler(void);
+void flare_as3_free(char *p);
+typedef struct FlareAs3Result FlareAs3Result;
+FlareAs3Result *flare_as3_patch_strings(const uint8_t *data, size_t len, const char *patch_json_utf8);
+FlareAs3Result *flare_as3_patch_class(const uint8_t *data, size_t len, int32_t block, int32_t class_idx,
+                                      const char *edited_src_utf8);
+const uint8_t *flare_as3_result_bytes(const FlareAs3Result *r, size_t *len);
+const char *flare_as3_result_json(const FlareAs3Result *r);
+void flare_as3_result_free(FlareAs3Result *r);
 #ifdef __cplusplus
 }
 #endif

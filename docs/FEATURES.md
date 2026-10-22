@@ -59,7 +59,7 @@ xattr -dr com.apple.quarantine /Applications/Flare.app
 | `flare/sources/common/moho/` | Moho (Lost Marble) project reader |
 | `flare/sources/common/tgame/` | Game engine: entity-component-system, fixed-timestep loop, systems |
 | `flare/sources/common/*/rust/` | Rust backend (`flare_formats`): modules beside the C++ they port, manifest at `flare/sources/Cargo.toml`, |
-| `tools/flash/next2flash/` | Optional Python sidecar for ActionScript decompile / string patch / compile |
+| `flare/sources/common/flash/ac_as3_*.rs` | Native Rust AS3 core: decompile, disassemble, string / literal patch, transplant |
 | `stuff/` | Runtime data: rooms, profiles, brushes, FX presets |
 | `thirdparty/` | Bundled third-party libraries |
 | `plugins/` | Plugin SDK and samples |
@@ -100,7 +100,7 @@ Status is honest: each row states what is in the tree, not what is intended.
 |---------|--------|
 | Flash/Animate import — `.fla` `.xfl` `.swf` `.swc` `.flv` `.f4v` `.as`, plus CFBF legacy `.fla`, AIR/ZXP/MXP/ANE packages | Shipped; fidelity improving |
 | Moho project import | Shipped: structure, rig and asset manifest. Rendering not implemented ([doc](./MOHO_SUPPORT.md)) |
-| Next2Flash SWF round-trip, AS3 decompiler | Shipped as an optional sidecar: decompile, string patch, compile ([doc](./NEXT2FLASH_INTEGRATION.md)) |
+| Next2Flash SWF round-trip, AS3 decompiler | Native Rust: decompile, disassemble, string patch, class literal edit without Flex, transplant; compile needs mxmlc ([doc](./NEXT2FLASH_INTEGRATION.md)) |
 | Beginner-friendly (FlipaClip-style) layout profile | Shipped: **Preferences > Interface > Rooms > FlipaClip** |
 | Game-creation tooling | Scaffolded: `flare/sources/common/tgame` — ECS, fixed-timestep loop, sprite/physics/script/audio/camera/particle/UI systems. Not yet wired into the UI |
 | Rust backend | Shipped in part: `flare_formats` does content-based format sniffing over a C ABI. Always built (via Corrosion) |
