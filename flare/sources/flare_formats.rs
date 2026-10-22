@@ -800,6 +800,8 @@ mod tests {
             "common/tsystem/tfilepath.rs",
             // partial port: the libtiff codec registration (private `TIFF` struct) stays C++
             "image/tzp/toonzrle.rs",
+            // partial port: the static constant pixel objects of tpixel.cpp stay C++
+            "common/tcolor/tpixel.rs",
         ];
 
         let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
