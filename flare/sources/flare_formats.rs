@@ -822,6 +822,8 @@ mod tests {
             "common/trop/fracmove.rs",
             // partial port: tconvolve.cpp keeps CM32/palette path
             "common/trop/tconvolve.rs",
+            // partial port: the static constant pixel objects of tpixel.cpp stay C++
+            "common/tcolor/tpixel.rs",
         ];
 
         let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
