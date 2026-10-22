@@ -64,7 +64,7 @@ public:
   static TPixelGR8 from(const TPixelRGBM64 &pix,
                         TUINT32 randomNumber);  // per il dithering
   //! Converts TPixelRGBM32 into TPixelGR8
-  static TPixelGR8 from(const TPixelRGBM32 &pix);
+  static inline TPixelGR8 from(const TPixelRGBM32 &pix);
   //! Converts TPixelGR16 into TPixelGR8
   static inline TPixelGR8 from(const TPixelGR16 &pix);
   //! Converts TPixelD into TPixelGR8
@@ -102,7 +102,7 @@ public:
   };
 
   inline void setValue(int _value) { value = (USHORT)_value; }
-  static TPixelGR16 from(const TPixelRGBM64 &pix);
+  static inline TPixelGR16 from(const TPixelRGBM64 &pix);
 
   static TPixelGR16 from(const TPixelD &pix);
 
@@ -123,7 +123,7 @@ public:
   inline bool operator<(const TPixelGRF &p) const { return value < p.value; };
 
   inline void setValue(float _value) { value = (float)_value; }
-  static TPixelGRF from(const TPixelF &pix);
+  static inline TPixelGRF from(const TPixelF &pix);
 };
 
 //-----------------------------------------------------------------------------
