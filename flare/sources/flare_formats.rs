@@ -177,6 +177,8 @@ pub mod runsmap;
 pub mod trop_invert;
 #[path = "common/trop/rust/checkboard.rs"]
 pub mod trop_checkboard;
+#[path = "common/trop/rust/distancetransform.rs"]
+pub mod trop_distancetransform;
 #[path = "common/trop/rust/fracmove.rs"]
 pub mod trop_fracmove;
 #[path = "common/trop/rust/convolve.rs"]

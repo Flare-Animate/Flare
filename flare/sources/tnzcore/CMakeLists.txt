@@ -234,7 +234,6 @@ set(SOURCES
     ../common/trop/tblur.cpp
     ../common/trop/tconvolve.cpp
     ../common/trop/tdespeckle.cpp
-    ../common/trop/tdistancetransform.cpp
     ../common/trop/terodilate.cpp
     
     ../common/trop/toperators.cpp
