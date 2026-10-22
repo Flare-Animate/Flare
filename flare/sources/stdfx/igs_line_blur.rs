@@ -3850,6 +3850,9 @@ mod tests {
     }
 
     const STRICT: bool = cfg!(all(target_os = "linux", target_env = "gnu"));
+    // Other libms (Apple, UCRT) differ from the glibc recording by a few ULP; accumulated
+    // counts (`acc`) amplify that, so allow more outside STRICT.
+    const MAX_ULP: u64 = if STRICT { 4 } else { 256 };
 
     fn golden() -> &'static str {
         include_str!("igs_line_blur_cases.txt")
@@ -3867,7 +3870,7 @@ mod tests {
                 Some("rad") => {
                     let (x, y, want) = (hex_f64(t[1]), hex_f64(t[2]), hex_f64(t[3]));
                     let got = CAPTURE_SILENT(|| get_d_radian(x, y));
-                    assert!(ulp_dist(got, want) <= 4, "{l}: {got:e}");
+                    assert!(ulp_dist(got, want) <= MAX_ULP, "{l}: {got:e}");
                     exact &= got.to_bits() == want.to_bits();
                     n += 1;
                 }
@@ -3882,7 +3885,7 @@ mod tests {
                     assert_eq!(cb.ratio.len(), count as usize);
                     for (i, w) in t[3..].iter().enumerate() {
                         let want = hex_f64(w);
-                        assert!(ulp_dist(cb.ratio[i], want) <= 4, "{l}: [{i}] {:e}", cb.ratio[i]);
+                        assert!(ulp_dist(cb.ratio[i], want) <= MAX_ULP, "{l}: [{i}] {:e}", cb.ratio[i]);
                         exact &= cb.ratio[i].to_bits() == want.to_bits();
                     }
                     n += 1;
@@ -3903,7 +3906,7 @@ mod tests {
                         reverse: false,
                     };
                     let got = CurveSelRoot::line_accum_count(&sel, &lines, bc);
-                    assert!(ulp_dist(got, want) <= 4, "{l}: {got:e}");
+                    assert!(ulp_dist(got, want) <= MAX_ULP, "{l}: {got:e}");
                     exact &= got.to_bits() == want.to_bits();
                     n += 1;
                 }
