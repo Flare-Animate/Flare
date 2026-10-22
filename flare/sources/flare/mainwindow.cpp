@@ -666,7 +666,15 @@ void MainWindow::readSettings(const QString &argumentLayoutFileName) {
 
       /*- ここでMenuBarファイルをロードする -*/
       std::string mbFileName = roomPath.getName() + "_menubar.xml";
-      stackedMenuBar->loadAndAddMenubar(FlareFolder::getRoomsFile(mbFileName));
+      TFilePath mbPath = FlareFolder::getRoomsFile(mbFileName);
+      // profiles ship one menubar_template.xml for all rooms; the per-room
+      // copy only exists after makePrivate(), i.e. from the second start on
+      if (!TFileStatus(mbPath).doesExist()) {
+        TFilePath tpl =
+            FlareFolder::getTemplateRoomsDir() + "menubar_template.xml";
+        if (TFileStatus(tpl).doesExist()) mbPath = tpl;
+      }
+      stackedMenuBar->loadAndAddMenubar(mbPath);
 
       // room->setDockOptions(QMainWindow::DockOptions(
       //  (QMainWindow::AnimatedDocks | QMainWindow::AllowNestedDocks) &

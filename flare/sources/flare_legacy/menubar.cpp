@@ -245,7 +245,7 @@ void StackedMenuBar::createMenuBarByName(const QString &roomName) {
 //---------------------------------------------------------------------------------
 
 void StackedMenuBar::loadAndAddMenubar(const TFilePath &fp) {
-#if defined(_WIN32) || defined(_CYGWIN_)
+#if !defined(__APPLE__)
   QMenuBar *menuBar = loadMenuBar(fp);
   if (menuBar)
     addWidget(menuBar);
