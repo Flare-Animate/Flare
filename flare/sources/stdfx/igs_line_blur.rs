@@ -67,7 +67,27 @@ use std::cell::Cell;
 use std::f64::consts::PI;
 use std::ffi::c_void;
 use std::io::Write as _;
-use std::os::raw::{c_char, c_int};
+use std::os::raw::c_int;
+use std::os::raw::c_long;
+use std::os::raw::c_char;
+
+extern "C" {
+    fn time(t: *mut std::os::raw::c_long) -> std::os::raw::c_long;
+    fn localtime_r(t: *const std::os::raw::c_long, result: *mut tm) -> *mut tm;
+}
+
+#[repr(C)]
+struct tm {
+    tm_sec: c_int,
+    tm_min: c_int,
+    tm_hour: c_int,
+    tm_mday: c_int,
+    tm_mon: c_int,
+    tm_year: c_int,
+    tm_wday: c_int,
+    tm_yday: c_int,
+    tm_isdst: c_int,
+}
 use std::path::{Path, PathBuf};
 
 // ---------------------------------------------------------------------------------------
@@ -210,9 +230,9 @@ fn timestamp() -> String {
     let (wd, mo, md, h, mi, s, y) = {
         // SAFETY: localtime_r writes a plain `tm`; `t` is a valid time_t.
         unsafe {
-            let t: libc::time_t = libc::time(std::ptr::null_mut());
-            let mut tm: libc::tm = std::mem::zeroed();
-            libc::localtime_r(&t, &mut tm);
+            let t: time_t = time(std::ptr::null_mut());
+            let mut tm: tm = std::mem::zeroed();
+            localtime_r(&t, &mut tm);
             (tm.tm_wday, tm.tm_mon, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, tm.tm_year + 1900)
         }
     };

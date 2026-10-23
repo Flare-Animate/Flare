@@ -42,9 +42,10 @@ def main():
         with open(LOCK, "rb") as f:
             lock_orig = f.read()
     text = re.sub(r'members = \[.*?\]', 'members = ["remote"]', orig, flags=re.DOTALL)
-    text = re.sub(r'effectcraft-\w+ = \{ git = "https://github.com/storytold/effectcraft", branch = "main" \}\n', "", text)
-    text = re.sub(r'photocraft-psd = \{ git = "https://github.com/storytold/photocraft", branch = "main" \}\n', "", text)
-    text = re.sub(r'\[patch\."https://github.com/KMSDax/AnimationCraft"\]\nac-core = \{ path = "flarelib" \}\n?', "", text)
+    # Remove effectcraft and photocraft git dependencies (multi-line)
+    text = re.sub(r'effectcraft-\w+ = \{.*?\}\n', '', text, flags=re.DOTALL)
+    text = re.sub(r'photocraft-psd = \{.*?\}\n', '', text, flags=re.DOTALL)
+    text = re.sub(r'\[patch\..*?\]\n.*?\n', '', text, flags=re.DOTALL)
     with open(MANIFEST, "w", encoding="utf-8") as f:
         f.write(text)
     try:

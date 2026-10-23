@@ -4,21 +4,7 @@
 # port (common/<subsystem>/rust/), mirroring the OpenToonz/Tahoma source tree.
 # Only the crate scaffolding is here; every module sits with its subsystem.
 [workspace]
-members = [
-    "flarelib", "tnztools", "remote",
-    # wave 2: AnimationCraft crates, rooted in their OpenToonz-matching dirs
-    "common/tvrender",     # ac-render
-    "common/flash",        # ac-xfl
-    "sound",               # ac-audio
-    "common/expressions",  # ac-script
-    "common/tsystem",      # ac-package
-    "flare",               # ac-app (bin flare)
-    "flareqt",             # ac-cli (bin flare-cli)
-    "tnzext",              # minnamate-editor (egui, bin minnamate)
-    "tcomposer",           # minnamate-cli
-    "toonzqt",             # flare-studio (egui workspace: widgets/theme/chrome)
-    "common/tvectorimage/pathops",  # vc-pathops (absorbed from vectorcraft)
-]
+members = ["remote"]
 resolver = "2"
 
 [workspace.package]
@@ -54,11 +40,6 @@ usvg = "0.44"
 resvg = "0.44"
 rfd = "0.17"
 dirs = "5"
-effectcraft-effects = { git = "https://github.com/storytold/effectcraft", rev = "549e9d825132986d6167c1432cd3328efcbb0278" }
-effectcraft-raster = { git = "https://github.com/storytold/effectcraft", rev = "549e9d825132986d6167c1432cd3328efcbb0278" }
-effectcraft-keyframe = { git = "https://github.com/storytold/effectcraft", rev = "549e9d825132986d6167c1432cd3328efcbb0278" }
-effectcraft-project = { git = "https://github.com/storytold/effectcraft", rev = "549e9d825132986d6167c1432cd3328efcbb0278" }
-photocraft-psd = { git = "https://github.com/storytold/photocraft", branch = "main" }
 
 [profile.dev.package."*"]
 opt-level = 2
@@ -84,5 +65,3 @@ serde_json = "1.0.151"
 flate2 = "1"
 regex = "1"
 
-[patch."https://github.com/KMSDax/AnimationCraft"]
-ac-core = { path = "flarelib" }
