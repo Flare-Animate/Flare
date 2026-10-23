@@ -9,5 +9,5 @@
 # Windows would break both, so never convert these.
 flare/sources/stdfx/*_cases*.txt -text
 
-# Agentic workflow lock files should be treated as generated and merge-ours
-.github/workflows/*.lock.yml linguist-generated=true merge=ours
+# Ensure consistent line endings for test manifests
+tests/*.json text eol=lf
