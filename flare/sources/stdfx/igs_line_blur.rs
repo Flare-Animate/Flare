@@ -73,11 +73,11 @@ use std::os::raw::c_char;
 
 extern "C" {
     fn time(t: *mut std::os::raw::c_long) -> std::os::raw::c_long;
-    fn localtime_r(t: *const std::os::raw::c_long, result: *mut tm) -> *mut tm;
+    fn localtime_r(t: *const std::os::raw::c_long, result: *mut Tm) -> *mut Tm;
 }
 
 #[repr(C)]
-struct tm {
+struct Tm {
     tm_sec: c_int,
     tm_min: c_int,
     tm_hour: c_int,
@@ -230,8 +230,8 @@ fn timestamp() -> String {
     let (wd, mo, md, h, mi, s, y) = {
         // SAFETY: localtime_r writes a plain `tm`; `t` is a valid time_t.
         unsafe {
-            let t: time_t = time(std::ptr::null_mut());
-            let mut tm: tm = std::mem::zeroed();
+            let t: c_long = time(std::ptr::null_mut());
+            let mut tm: Tm = std::mem::zeroed();
             localtime_r(&t, &mut tm);
             (tm.tm_wday, tm.tm_mon, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, tm.tm_year + 1900)
         }
