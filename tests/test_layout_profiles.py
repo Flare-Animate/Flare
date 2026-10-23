@@ -33,8 +33,8 @@ def fingerprint(pdir: Path) -> dict:
     out = {}
     for f in sorted(pdir.iterdir()):
         if f.suffix in (".ini", ".txt", ".xml"):
-            data = f.read_bytes().decode("utf-8")
-            data = GEN.sub("", data).replace("\r\n", "\n")
+            data = f.read_bytes().decode("utf-8").replace("\r\n", "\n")
+            data = GEN.sub("", data)
             out[f.name] = hashlib.sha256(data.encode("utf-8")).hexdigest()
     return out
 

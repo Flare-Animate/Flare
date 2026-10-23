@@ -1,7 +1,7 @@
 {
  "AnimateLegacy": {
   "layouts.txt": "f8195eef498bdf077536a9f35701fe7311144a5e83ca041e47ebeca4841fcbb2",
-  "menubar_template.xml": "d7f8d082123b2d406135347023d698287ee1eec7985e49f6eac6763b12c0ee79",
+  "menubar_template.xml": "8746b39b221225c8bee7f1a698a9faf7e7d1a87dcaea6a3d5372055e635112aa",
   "room1.ini": "dc7f247522b978086d99faf32e6c0f1d0fbf9b73cc2367707d21d4c34afddcfd",
   "room2.ini": "774a0abb15e59b70bf63acd49930d13fe5fcb80bff16332b226d23a684a1e0dd",
   "room3.ini": "0fee60f850b4623a6395c1375b7fce0a32d07d1e341feb78b5cffaaad1b8eddd",
@@ -9,12 +9,12 @@
  },
  "FlipaClip": {
   "layouts.txt": "dc41d78a97c555e716b69d2ad27121881b31ddf8a0243ef3faa4a4f13dceb64c",
-  "menubar_template.xml": "d7f8d082123b2d406135347023d698287ee1eec7985e49f6eac6763b12c0ee79",
+  "menubar_template.xml": "8746b39b221225c8bee7f1a698a9faf7e7d1a87dcaea6a3d5372055e635112aa",
   "room1.ini": "fb2d7d113dc9e2b190cad8007d9fd63d5c091dadebe4ce238f1a7f0c8ab6255d"
  },
  "OpenToonz": {
   "layouts.txt": "dfb9fe5edc345121dc58b56461aee9f443f2514e89c81278e2311a2dae87c9a7",
-  "menubar_template.xml": "f719adc13ca3c392a7a9600d3aafa9acb41640a34ddd248e5aad656c082529b2",
+  "menubar_template.xml": "5cb89b8429c595630c7094b0bd57ff6311043308edf9c7b359f5b80fb2ed87b6",
   "room1.ini": "3e80f61a7afe4a81ee4a8196e3bf40781f3e719b9c0ab502a6dbab6deb9994b5",
   "room2.ini": "aa439c7b976dc659ddc0e0b2881829fc69b6b99aed952a227f9a23bb493246bd",
   "room3.ini": "a63307b44bf148bf8f476811f1b602157598cce4866345c671635575f7553036",
@@ -27,18 +27,18 @@
  },
  "StudioGhibli": {
   "layouts.txt": "87fb426498f6f88354d94ddb2dcc0bfb0e83dac214365989fefebc2548d67701",
-  "menubar_template.xml": "33a379a481d2ac3ba2d64e2a6172a5c95fe59ef433f3b6417e0eedd348241cc5",
+  "menubar_template.xml": "780fcfb985d5c0edd6d54e723f007cfdeddabc3b95ccab0010dde51b0b8b56f6",
   "room1.ini": "7e7e2d154f1fb12cbf8f1a9ee102fe75a9a7f92fcf886ab9dcc07615185d6df9",
-  "room1_menubar.xml": "a10f0c3d493d3fee75f7f112b58ceb78012c64677960370e5ea4e2d7a7f9329d",
+  "room1_menubar.xml": "b4205ba773af44fd12cced17fe3534c1ce147a7a3b5032a52c0e09373030d01a",
   "room2.ini": "3a323b582305e6c7948234f4010aa1937f255165177df25a8539357899bf7c64",
-  "room2_menubar.xml": "8ed479fc833de9b65abdbd93d54a8fe5832e7bbd870448f580c888afdd2fdb2f",
+  "room2_menubar.xml": "d92f394449625223d68ac5f1836f6ea9036f6686d899baf8a407a734b9e230db",
   "room3.ini": "a81297a14d419c40caf9810fac223d24bb3e0bcdac58cba0015ccdf6ffb53e1c",
-  "room3_menubar.xml": "72f8acdff698f23f86227c41b7d132dd9597de944bdd60e128fecd93752181c7",
+  "room3_menubar.xml": "f9867f2ff4397e649e49f18a85bd4f09df4a092d1ff1943e11b145c0cf044d5c",
   "room4.ini": "7c25ad5247336b9b7f38c6dd90e6ed55e5115abb6a9464ea8909c8ebc4accd07",
-  "room4_menubar.xml": "1c979e94db1760c0bb06b390f8c98d856a230d8edb86070f9a923ffb510e6a16",
+  "room4_menubar.xml": "748b62958a13ad8227a0c740e3cd4725e2f6dcf3a095978ba5736596a2aa3960",
   "room5.ini": "189c8ef0d98b2ece1c5e135571ff80bd032d027c68c34ba48accbc4ffc2c3edb",
-  "room5_menubar.xml": "7ad3790e7a745d439a22fe6d1d287078ffa97f405d7e57760892ba81723de5eb",
+  "room5_menubar.xml": "df5c18f45dd523bf92f7fb2aa678b8dfb630cc6a6dcba7bcf6d60436597e76b7",
   "room6.ini": "949ea68ff8acb5fb992094d5e84e91a8ea6e0d2bbe71c72fe3df2ed35bf40d4c",
-  "room6_menubar.xml": "ff9527ebf1ad052059cfc6eb641cc4eefb881449a091802c93010aeb4d09c565"
+  "room6_menubar.xml": "864ec36bcafb6a4783959c2306031766c5f4227c412fab23a8c064c2693e60eb"
  }
 }
