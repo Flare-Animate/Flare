@@ -255,8 +255,8 @@ pub mod predict3d;
 pub mod cil;
 #[path = "flarelib/sandor_fxs/CallCircle.rs"]
 pub mod callcircle;
-#[path = "flarelib/sandor_fxs/BlurMatrix.rs"]
-pub mod blurmatrix;
+#[path = "flarelib/sandor_fxs/InputParam.rs"]
+pub mod inputparam;
 #[path = "flarelib/sandor_fxs/PatternPosition.rs"]
 pub mod patternposition;
 #[path = "flarelib/sandor_fxs/SDirection.rs"]
@@ -837,10 +837,11 @@ mod tests {
             "common/trop/fracmove.rs",
             // partial port: tconvolve.cpp keeps CM32/palette path
             "common/trop/tconvolve.rs",
+// partial port: InputParam.cpp is an empty stub; Rust port is scaffolded
+            "flarelib/sandor_fxs/InputParam.rs",
             // partial port: the static constant pixel objects of tpixel.cpp stay C++
             "common/tcolor/tpixel.rs",
         ];
-
         let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
         let src = include_str!("flare_formats.rs");
 
