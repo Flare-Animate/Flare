@@ -13,6 +13,17 @@ reviewer reads from git (never the working tree) before a push; push once per ro
 - Issues: close #112, #98 once Linux+macOS+Windows builds are green on the tip; #66/#71 need a macOS launch proof;
   #116/#114/#110/#117 need a regression test or guard before closing. Do not close feature requests.
 
+## QA coverage (docs/TEST_REPORT_FULL.md, screenshots docs/images/qa/)
+Haiku QA pass reached only ~25% of 478 command ids (155 invocations, 0 crashes in menu walk). Remaining: fix the
+walker wrap-around bug, per-command dialog detection via window titles, tool-by-tool loop with relaunch per tool,
+Preferences tabs, import/export/render, save/load, undo/redo, playback, xsheet edit, Fx schematic, Flash Instance
+panel, script console, IK/rigging, cleanup, sound, remaining Animate rooms (5 of 8 unverified).
+Defects found: CRASH `FATAL bad QImage format` after draw+undo with the 6th toolbar tool (y=262)
+(`common/tvrender/tfont_qt.cpp:186`); Style editor "My Favorites" overlaps "Texture" tab (`flareqt/styleeditor.cpp`
+~6178); LiquidGlass clipped labels (`LiquidGlass.qss`, `flare/startuppopup.cpp:132`); StudioGhibli Cleanup room
+clipped labels and FlipaClip overlapping panels (`rooms/*/room1.ini`); AnimateLegacy viewer "Zoom" header clipped;
+Light theme low-contrast toolbar icons; Blue ~ AnimateDark.
+
 ## Code scanning (readable via check-run annotations: `gh api repos/Flare-Animate/Flare/check-runs/<CodeQL run id>/annotations`)
 Found 2026-10-24 on PR #151 (check run 120971320646, 29 high + 2 medium):
 - 29x "Access of invalid pointer" in `flare/sources/image/tzp/avl.rs` (raw pointer derefs in the faithful AVL port;
