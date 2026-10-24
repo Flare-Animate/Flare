@@ -2,22 +2,27 @@
 
 Scope: real app under Xvfb :77, isolated HOME and stuff/ copy per run. Binary rebuilt from tip (local_build.sh, linked 19:54 UTC 2026-10-24; the build log's final "RUNNING" line was a pgrep self-match, binary was fresh). Harness: /tmp/qa/ (not in repo).
 
-## Summary (honest)
+## Summary (update 2, real counts)
 
 | Bucket | Count |
 |---|---|
 | Menu command IDs in menu XML (checklist) | 478 |
-| Command IDs individually triggered | 0 (not done, see Not tested) |
-| Themes launched and screenshotted | 10 of 10 (all alive) |
-| Themes visually read | 5 (AnimateDark, Blue, Light, LiquidGlass, Synthwave) |
-| Layout profiles launched | 5 of 5 (Animate, AnimateLegacy, OpenToonz, FlipaClip, StudioGhibli) |
-| Room tabs clicked and verified | 3 (Rigging, Sound, Draw/Animate main); others not verified |
-| Top-level menus opened | 9 of 9 + All Commands (screenshots taken, only All Commands read) |
-| Crashes | 0 observed in ~25 app launches |
-| Broken layout / clipped text defects | 6 |
-| Tools drawn on canvas | 0 (not tested) |
+| Command invocations via All Commands walker | 155 (15 categories) |
+| Invocations with no visible change | 90 |
+| Invocations with visible change (no dialog detected) | 65 |
+| Invocations that crashed the app | 0 |
+| Distinct commands verified by name | not established (walker stopped early in most categories, see D12) |
+| Toolbar tools (left column, 22 icons) | 5 tested + 1 crash; 16 not tested |
+| Tools with canvas change (pixel diff > 0) | 3 of 5 (tools 2,3,4); 2 no change (tools 0,1) |
+| Themes launched and visually read | 10 of 10 |
+| Layout profiles launched | 5 of 5 |
+| Animate rooms visually verified | 3 of 8 (Draw, Rigging, Sound; Timing seen via side effect) |
+| Top-level menus opened | 9 of 9 + All Commands |
+| Preferences dialog | not tested |
+| Import/export/render, save/load, undo/redo, playback, xsheet edit, Fx, Flash Instance, script console, IK, cleanup, sound, stop-motion | not tested |
+| Crashes observed | 1 (toolbar tool 6, FATAL bad QImage format, D11) |
 
-Verdict: app launches and survives every launch, theme and profile tested. Layout and text-clipping defects found in several themes and profiles. Command-level coverage is NOT done; this report does not claim it.
+Coverage estimate of the 478 command IDs: at most 155 invocations attempted, real distinct coverage well under 30 percent. Overall project coverage well under 25 percent. Verdict: the app survives every launch and most menu entries, but layout clipping, a crash on tool use, and most tools/dialogs remain unverified.
 
 ## Themes (Preferences > Interface, via CurrentStyleSheetName)
 
@@ -66,6 +71,8 @@ Verdict: app launches and survives every launch, theme and profile tested. Layou
 | D8 | Top toolbar icons low contrast on Light theme | Light | stuff/config/qss/Light/Light.qss (icon tint) |
 | D9 | Room tabs ignore clicks while startup popup is open | Animate | startup dialog modality (flare/sources/flareqt); needs Escape first. Confirmed by Compose tab not switching in first run, switching after Escape in second run |
 | D10 | Windows and Panels submenu item activation unverified | All Commands | flare/sources/flare/menubarcommandids.h; command handlers unverified |
+| D11 | CRASH: "FATAL: bad QImage format" after drag/undo sequence on toolbar tool at y=262 (paint/fill icon, index 5). Not reproduced by single click | Animate, New Scene | flare/sources/common/tvrender/tfont_qt.cpp:186 (throw site); caller in tool/viewer draw path; main.cpp prints FATAL |
+| D12 | Walker test tooling: All Commands submenu enumeration stops early (wrap-around detection); a room switched to Timing during walk (side effect unexplained) | harness | /tmp/qa/walk.sh (not repo) ; investigate Room tab shortcut bindings in stuff/profiles/layouts/shortcuts |
 
 Note: D9 is intended modal behaviour per design, listed for awareness only.
 
