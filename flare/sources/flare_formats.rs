@@ -273,6 +273,8 @@ pub mod igs_hls_noise_in_camera;
 pub mod iwa_noise1234;
 #[path = "stdfx/iwa_simplexnoise.rs"]
 pub mod iwa_simplexnoise;
+#[path = "flareqt/trepetitionguard.rs"]
+pub mod trepetitionguard;
 #[path = "stdfx/naru_maxflow.rs"]
 pub mod naru_maxflow;
 #[path = "stdfx/igs_color_blend.rs"]
@@ -839,6 +841,8 @@ mod tests {
             "common/trop/tconvolve.rs",
 // partial port: InputParam.cpp is an empty stub; Rust port is scaffolded
             "flarelib/sandor_fxs/InputParam.rs",
+            // partial port: trepetitionguard.cpp still present
+            "flareqt/trepetitionguard.rs",
             // partial port: the static constant pixel objects of tpixel.cpp stay C++
             "common/tcolor/tpixel.rs",
         ];
