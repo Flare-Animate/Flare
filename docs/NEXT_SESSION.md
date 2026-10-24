@@ -13,6 +13,13 @@ reviewer reads from git (never the working tree) before a push; push once per ro
 - Issues: close #112, #98 once Linux+macOS+Windows builds are green on the tip; #66/#71 need a macOS launch proof;
   #116/#114/#110/#117 need a regression test or guard before closing. Do not close feature requests.
 
+## Code scanning (readable via check-run annotations: `gh api repos/Flare-Animate/Flare/check-runs/<CodeQL run id>/annotations`)
+Found 2026-10-24 on PR #151 (check run 120971320646, 29 high + 2 medium):
+- 29x "Access of invalid pointer" in `flare/sources/image/tzp/avl.rs` (raw pointer derefs in the faithful AVL port;
+  add null/bounds guards or safe wrappers at the C ABI edge), 1x `flarelib/sandor_fxs/PatternPosition.rs:422`,
+  1x `common/flash/FSWFStream.rs:664`.
+- 2x "Workflow does not contain permissions" in `.github/workflows/rust-tests.yml` (lines 27, 53): add `permissions: contents: read`.
+
 ## Known defects (from docs/TEST_REPORT_FLASH.md)
 - AS3-only SWF import reports 0x0 px / 0 frames (header parse).
 - PSD import only copies the file; no layers.
