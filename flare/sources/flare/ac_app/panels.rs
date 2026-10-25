@@ -1360,8 +1360,8 @@ pub fn frame_picker_window(app: &mut App, ctx: &egui::Context) {
 /// The Frame Picker docked in its own column, left or right (drag its grip, or Workspace › Frame Picker).
 pub fn frame_picker_column(app: &mut App, ui: &mut egui::Ui) {
     let panel = match app.layout.frame_picker {
-        crate::dock::FramePickerDock::Left => egui::Panel::left("frame-picker-col"),
-        crate::dock::FramePickerDock::Right => egui::Panel::right("frame-picker-col"),
+        crate::dock::FramePickerDock::Left => egui::Panel::left("frame-picker-col-left"),
+        crate::dock::FramePickerDock::Right => egui::Panel::right("frame-picker-col-right"),
         _ => return,
     };
     if !app.frame_picker_open {
