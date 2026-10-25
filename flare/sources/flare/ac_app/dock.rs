@@ -1,5 +1,5 @@
-//! Movable docks. Each docked module (Tools, Properties, Library, Timeline)
-//! has a grip; dragging it shows the places it can go, and releasing over one
+//! Movable docks. Each docked module (Tools, Properties, Library, Timeline,
+//! Frame Picker) has a grip; dragging it shows the places it can go, and releasing over one
 //! moves it there. Escape, or releasing anywhere else, leaves the layout as it
 //! was. The layout is saved in the settings; Window › Reset Layout restores
 //! the standard one.
@@ -23,6 +23,17 @@ pub(crate) enum LibraryDock {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Default)]
+pub(crate) enum FramePickerDock {
+    /// A floating window.
+    #[default]
+    Floating,
+    /// Under Properties (and the Library), in the same dock.
+    WithProperties,
+    Left,
+    Right,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub(crate) struct Layout {
     #[serde(default)]
     pub tools_right: bool,
@@ -32,6 +43,8 @@ pub(crate) struct Layout {
     pub timeline_top: bool,
     #[serde(default)]
     pub library: LibraryDock,
+    #[serde(default)]
+    pub frame_picker: FramePickerDock,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -40,6 +53,7 @@ pub(crate) enum Module {
     Properties,
     Library,
     Timeline,
+    FramePicker,
 }
 
 impl Module {
@@ -49,6 +63,7 @@ impl Module {
             Module::Properties => "Properties",
             Module::Library => "Library",
             Module::Timeline => "Timeline",
+            Module::FramePicker => "Frame Picker",
         }
     }
 }
@@ -61,6 +76,8 @@ pub(crate) enum Place {
     Top,
     Bottom,
     WithProperties,
+    /// Out of the dock, as a window (Frame Picker).
+    Floating,
 }
 
 impl Place {
@@ -71,6 +88,7 @@ impl Place {
             Place::Top => "Dock above the stage",
             Place::Bottom => "Dock below the stage",
             Place::WithProperties => "Under Properties",
+            Place::Floating => "Float as a window",
         }
     }
 }
@@ -85,6 +103,10 @@ impl Layout {
             (Module::Library, Place::Left) => self.library = LibraryDock::Left,
             (Module::Library, Place::Right) => self.library = LibraryDock::Right,
             (Module::Library, Place::WithProperties) => self.library = LibraryDock::WithProperties,
+            (Module::FramePicker, Place::Left) => self.frame_picker = FramePickerDock::Left,
+            (Module::FramePicker, Place::Right) => self.frame_picker = FramePickerDock::Right,
+            (Module::FramePicker, Place::WithProperties) => self.frame_picker = FramePickerDock::WithProperties,
+            (Module::FramePicker, Place::Floating) => self.frame_picker = FramePickerDock::Floating,
             _ => return false,
         }
         true
@@ -110,6 +132,12 @@ pub(crate) fn targets(m: Module, area: Rect) -> Vec<(Place, Rect)> {
     match m {
         Module::Tools | Module::Properties => vec![(Place::Left, left), (Place::Right, right)],
         Module::Library => vec![(Place::Left, left), (Place::WithProperties, Rect::from_center_size(c, side)), (Place::Right, right)],
+        Module::FramePicker => vec![
+            (Place::Left, left),
+            (Place::WithProperties, Rect::from_center_size(c, side)),
+            (Place::Right, right),
+            (Place::Floating, Rect::from_center_size(pos2(c.x, c.y + 80.0), side)),
+        ],
         Module::Timeline => vec![
             (Place::Top, Rect::from_center_size(pos2(c.x, area.top() + 60.0), vec2(220.0, 44.0))),
             (Place::Bottom, Rect::from_center_size(pos2(c.x, area.bottom() - 60.0), vec2(220.0, 44.0))),
@@ -180,6 +208,7 @@ pub(crate) fn drop_targets(app: &mut App, ctx: &egui::Context) {
         match hit {
             Some(p) if app.layout.apply(m, p) => {
                 app.lib.open |= m == Module::Library;
+                app.frame_picker_open |= m == Module::FramePicker;
                 app.save_layout();
                 app.status = format!("{} moved: {}", m.name(), p.label().to_lowercase());
             }
@@ -204,7 +233,16 @@ mod tests {
         assert!(l.apply(Module::Properties, Place::Left));
         assert!(l.apply(Module::Timeline, Place::Top));
         assert!(l.apply(Module::Library, Place::Right));
-        assert_eq!(l, Layout { tools_right: true, props_left: true, timeline_top: true, library: LibraryDock::Right });
+        assert_eq!(l, Layout { tools_right: true, props_left: true, timeline_top: true, library: LibraryDock::Right, frame_picker: FramePickerDock::Floating });
+        // the Frame Picker docks left, right or under Properties, or floats; nowhere else
+        assert!(l.apply(Module::FramePicker, Place::WithProperties));
+        assert_eq!(l.frame_picker, FramePickerDock::WithProperties);
+        assert!(l.apply(Module::FramePicker, Place::Left));
+        assert_eq!(l.frame_picker, FramePickerDock::Left);
+        assert!(!l.apply(Module::FramePicker, Place::Top));
+        assert!(!l.apply(Module::Library, Place::Floating));
+        assert!(l.apply(Module::FramePicker, Place::Floating));
+        assert_eq!(l.frame_picker, FramePickerDock::Floating);
         let json = serde_json::to_string(&l).unwrap();
         assert_eq!(serde_json::from_str::<Layout>(&json).unwrap(), l);
         // older settings without the field read as the standard layout
@@ -214,7 +252,7 @@ mod tests {
     #[test]
     fn every_module_has_distinct_non_overlapping_targets() {
         let area = Rect::from_min_size(pos2(0.0, 0.0), vec2(1280.0, 800.0));
-        for m in [Module::Tools, Module::Properties, Module::Library, Module::Timeline] {
+        for m in [Module::Tools, Module::Properties, Module::Library, Module::Timeline, Module::FramePicker] {
             let t = targets(m, area);
             assert!(t.len() >= 2);
             for (i, a) in t.iter().enumerate() {

@@ -149,6 +149,7 @@ const COMMANDS: &[(&str, &str, &str, Run)] = &[
     ("Window", "History", "Ctrl+F10", |a| a.history_open = !a.history_open),
     ("Window", "Tool Options Bar", "", |a| a.toggle_options_bar()),
     ("Window", "Transform", "Ctrl+T", |a| a.transform_open = !a.transform_open),
+    ("Window", "Frame Picker", "", |a| a.frame_picker_open = !a.frame_picker_open),
     ("Window", "Align", "Ctrl+K", |a| a.align_open = !a.align_open),
     ("Window", "Info", "Ctrl+I", |a| a.info_open = !a.info_open),
     ("Window", "Motion Editor", "", |a| a.motion.open = !a.motion.open),

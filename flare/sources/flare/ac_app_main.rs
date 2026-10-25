@@ -182,6 +182,7 @@ pub struct App {
     /// Free Transform's transformation point for a given selection.
     pub(crate) ft_pivot: Option<(Vec<ac_core::Selection>, Pt)>,
     pub(crate) transform_open: bool,
+    pub(crate) frame_picker_open: bool,
     pub(crate) xf: panels::TransformPanel,
     pub(crate) lib: panels::LibraryState,
     pub(crate) publish: publish::PublishSettings,
@@ -307,6 +308,7 @@ impl App {
             view_rot: 0.0,
             ft_pivot: None,
             transform_open: false,
+            frame_picker_open: false,
             xf: Default::default(),
             lib: Default::default(),
             publish: Default::default(),
@@ -954,6 +956,11 @@ impl App {
                     ui.radio_value(&mut self.layout.library, dock::LibraryDock::WithProperties, "Under Properties");
                     ui.radio_value(&mut self.layout.library, dock::LibraryDock::Left, "Own panel on the left");
                     ui.radio_value(&mut self.layout.library, dock::LibraryDock::Right, "Own panel on the right");
+                    ui.label(RichText::new("Frame Picker position").small().color(Color32::from_gray(150)));
+                    ui.radio_value(&mut self.layout.frame_picker, dock::FramePickerDock::Floating, "Floating window");
+                    ui.radio_value(&mut self.layout.frame_picker, dock::FramePickerDock::WithProperties, "Under Properties");
+                    ui.radio_value(&mut self.layout.frame_picker, dock::FramePickerDock::Left, "Own panel on the left");
+                    ui.radio_value(&mut self.layout.frame_picker, dock::FramePickerDock::Right, "Own panel on the right");
                     if self.layout != before { self.save_layout(); }
                 });
                 ui.menu_button("Insert", |ui| {
@@ -1017,6 +1024,7 @@ impl App {
                     if ui.add(egui::Button::new("Command Search…").shortcut_text("Ctrl+Shift+P")).clicked() { self.palette.open = true; ui.close(); }
                     ui.separator();
                     if ui.add(egui::Button::selectable(self.transform_open, "Transform  (Ctrl+T)")).clicked() { self.transform_open = !self.transform_open; ui.close(); }
+                    if ui.add(egui::Button::selectable(self.frame_picker_open, "Frame Picker")).on_hover_text("Thumbnails of a graphic symbol's frames; click one to set the instance's First frame").clicked() { self.frame_picker_open = !self.frame_picker_open; ui.close(); }
                     if ui.add(egui::Button::selectable(self.align_open, "Align  (Ctrl+K)")).clicked() { self.align_open = !self.align_open; ui.close(); }
                     if ui.add(egui::Button::selectable(self.info_open, "Info  (Ctrl+I)")).clicked() { self.info_open = !self.info_open; ui.close(); }
                     if ui.add(egui::Button::selectable(self.motion.open, "Motion Editor")).clicked() { self.motion.open = !self.motion.open; ui.close(); }
@@ -1068,6 +1076,12 @@ impl App {
                 ui.radio_value(&mut self.layout.library, dock::LibraryDock::WithProperties, "Under Properties");
                 ui.radio_value(&mut self.layout.library, dock::LibraryDock::Left, "Own panel on the left");
                 ui.radio_value(&mut self.layout.library, dock::LibraryDock::Right, "Own panel on the right");
+            });
+            ui.menu_button("Frame Picker", |ui| {
+                ui.radio_value(&mut self.layout.frame_picker, dock::FramePickerDock::Floating, "Floating window");
+                ui.radio_value(&mut self.layout.frame_picker, dock::FramePickerDock::WithProperties, "Under Properties");
+                ui.radio_value(&mut self.layout.frame_picker, dock::FramePickerDock::Left, "Own panel on the left");
+                ui.radio_value(&mut self.layout.frame_picker, dock::FramePickerDock::Right, "Own panel on the right");
             });
             if self.layout != before { self.save_layout(); }
             ui.separator();
@@ -1530,6 +1544,7 @@ impl eframe::App for App {
         toolbar::panel(self, root_ui);
         swatches::panel(self, root_ui);
         panels::library_column(self, root_ui);
+        panels::frame_picker_column(self, root_ui);
         panels::right_panel(self, root_ui);
         stage::stage(self, root_ui);
         panels::library_drag_ghost(self, ctx);
@@ -1548,6 +1563,7 @@ impl eframe::App for App {
         publish::image_window(self, ctx);
         scripting::windows(self, ctx);
         panels::transform_window(self, ctx);
+        panels::frame_picker_window(self, ctx);
         self.ed.multi_frame = self.onion_opts.multi.then(|| self.onion_range());
         windows::align_window(self, ctx);
         motion_ui::motion_editor(self, ctx);
