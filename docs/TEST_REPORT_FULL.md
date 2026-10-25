@@ -111,3 +111,7 @@ Note: D9 is intended modal behaviour per design, listed for awareness only.
 1. Full per-command pass with a driver that records dialog/no-op/error per MI_ id (checklist at /tmp/qa/checklist.md).
 2. Tool-by-tool canvas draw test with pixel compare.
 3. Fix D1-D6 (layout and clipping) in QSS and panel sizing, then re-run theme and profile sweep.
+
+## D11 regression note (bad QImage format)
+
+Root cause: `TFont::drawChar` (tfont_qt.cpp) threw on any `alphaMapForGlyph` image that was not Indexed8/Alpha8, and the message built `L"..." + image.format()` (wide-literal pointer arithmetic, hence the empty "bad QImage format " in the log). Fix: null/invalid glyph images return an empty advance; other formats are converted with `convertToFormat(Format_Grayscale8)`. Verification: rebuilt; scripted Xvfb run (tool at y=262, drag, click, ctrl+z x3) stayed alive with no FATAL. The original crash was not deterministically reproducible before the fix (matches D11 "not reproduced by single click").

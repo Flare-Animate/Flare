@@ -181,9 +181,16 @@ TPoint TFont::drawChar(QImage &outImage, TPoint &unused, wchar_t charcode,
     return getDistance(charcode, nextCharCode);
   }
   QImage image = raw.alphaMapForGlyph(indices[0], QRawFont::PixelAntialiasing);
+  if (image.isNull()) return TPoint(0, 0);
+  // alphaMapForGlyph may hand back other 8-bit-or-wider formats depending on
+  // the Qt build / font engine (Mono, Grayscale8, ARGB32, RGB32 ...). Normalise
+  // to Alpha8 instead of throwing (was fatal: "bad QImage format", D11).
   if (image.format() != QImage::Format_Indexed8 &&
-      image.format() != QImage::Format_Alpha8)
-    throw TException(L"bad QImage format " + image.format());
+      image.format() != QImage::Format_Alpha8) {
+    if (image.format() == QImage::Format_Invalid) return TPoint(0, 0);
+    image = image.convertToFormat(QImage::Format_Grayscale8);
+    if (image.isNull()) return TPoint(0, 0);
+  }
 
   QRectF boundingRect = raw.boundingRect(indices[0]);
 
