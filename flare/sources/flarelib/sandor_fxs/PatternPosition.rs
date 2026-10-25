@@ -419,7 +419,7 @@ mod tests {
             let mut out: *mut i32 = std::ptr::null_mut();
             let n = flare_pattern_position_dd(3, 3, sel.as_ptr(), 1.0, 1.0, Some(counter), &mut out);
             assert!(n > 0 && !out.is_null());
-            let first = (*out, *out.add(1));
+            let first = (*out.as_ref().unwrap(), *out.add(1).as_ref().unwrap());
             assert_eq!(first, (0, 0));
             flare_pattern_position_free(out, n);
             assert_eq!(flare_pattern_position_dd(3, 3, std::ptr::null(), 1.0, 1.0, Some(counter), &mut out), 0);

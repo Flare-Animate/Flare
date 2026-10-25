@@ -714,7 +714,7 @@ pub(crate) unsafe fn locate_rel(tree: *mut Tree, keyval: K, rel: Rel) -> *mut c_
     if save.is_null() {
         null_mut()
     } else {
-        (*save).data
+        nd(save).map_or(null_mut(), |n| n.data)
     }
 }
 
@@ -808,12 +808,18 @@ unsafe fn right_shrunk(rootaddr: *mut *mut Node, root: *mut Node, node: *mut Nod
     }
 }
 
+/// Null-safe node accessor: `None` for a null pointer.
+#[inline]
+unsafe fn nd<'a>(p: *mut Node) -> Option<&'a mut Node> {
+    p.as_mut()
+}
+
 unsafe fn leftmost(rootaddr: *mut *mut Node) -> *mut Node {
     let root = *rootaddr;
     if !root.is_null() {
         if !(*root).left.is_null() {
             let node = leftmost(&mut (*root).left);
-            if (*node).bal == LESS {
+            if nd(node).map_or(false, |n| n.bal == LESS) {
                 // left subtree depth decreased
                 left_shrunk(rootaddr, root, node);
             }
@@ -852,7 +858,7 @@ unsafe fn remove_rec(rootaddr: *mut *mut Node, key: RemKey, dup: bool) -> *mut N
             return null_mut();
         }
         node = remove_rec(&mut (*root).left, key, dup);
-        if !node.is_null() && (*node).bal == LESS {
+        if nd(node).map_or(false, |n| n.bal == LESS) {
             left_shrunk(rootaddr, root, node);
         }
     } else if cmp > 0 {
@@ -860,7 +866,7 @@ unsafe fn remove_rec(rootaddr: *mut *mut Node, key: RemKey, dup: bool) -> *mut N
             return null_mut();
         }
         node = remove_rec(&mut (*root).right, key, dup);
-        if !node.is_null() && (*node).bal == LESS {
+        if nd(node).map_or(false, |n| n.bal == LESS) {
             right_shrunk(rootaddr, root, node);
         }
     } else {
@@ -869,7 +875,7 @@ unsafe fn remove_rec(rootaddr: *mut *mut Node, key: RemKey, dup: bool) -> *mut N
         if dup && !(*root).left.is_null() {
             node = remove_rec(&mut (*root).left, key, dup);
             if !node.is_null() {
-                if (*node).bal == LESS {
+                if nd(node).map_or(false, |n| n.bal == LESS) {
                     left_shrunk(rootaddr, root, node);
                 }
                 done = true;
@@ -886,7 +892,7 @@ unsafe fn remove_rec(rootaddr: *mut *mut Node, key: RemKey, dup: bool) -> *mut N
             } else {
                 // replace by the leftmost node of the right subtree
                 root = leftmost(&mut (*node).right);
-                (*root).left = (*node).left;
+                if let Some(r) = nd(root) { r.left = (*node).left; }
                 (*root).right = (*node).right;
                 if (*root).bal == LESS {
                     // right subtree depth decreased
@@ -1767,6 +1773,11 @@ pub unsafe extern "C" fn cdb_decode_all(names_in_plt_file: *mut c_char, tcm: Tcm
 
 #[cfg(test)]
 mod tests {
+    /// Null-checked shared reference (panics on null instead of dereferencing it).
+    unsafe fn rf<'a, T>(p: *mut T) -> &'a T {
+        p.as_ref().expect("unexpected null pointer")
+    }
+
     use super::*;
     use std::sync::Mutex;
 
@@ -1833,7 +1844,7 @@ mod tests {
             for it in &its {
                 assert_eq!(avl_insert(t, &**it as *const Item as *mut c_void), 1);
             }
-            assert_eq!((*t).nodes, 200);
+            assert_eq!(rf(t).nodes, 200);
             check((*t).root, None, None);
             // duplicate key rejected
             let dup = items(&[keys[3]]);
@@ -1846,7 +1857,7 @@ mod tests {
             let mut back = vec![];
             let mut p = avl_last(t) as *mut Item;
             while !p.is_null() {
-                back.push((*p).id);
+                back.push(rf(p).id);
                 p = avl_prev(t) as *mut Item;
             }
             back.reverse();
@@ -1900,7 +1911,7 @@ mod tests {
             let mut v = vec![];
             let mut p = avl_first(st) as *mut S;
             while !p.is_null() {
-                v.push(std::ffi::CStr::from_ptr((*p).p).to_str().unwrap().to_string());
+                v.push(std::ffi::CStr::from_ptr(rf(p).p).to_str().unwrap().to_string());
                 p = avl_next(st) as *mut S;
             }
             assert_eq!(v, ["apple", "fig", "pear"]);
@@ -1921,7 +1932,7 @@ mod tests {
             }
             let c = avl_copy(t);
             assert_eq!(all(c), all(t));
-            assert_eq!((*c).nodes, 7);
+            assert_eq!(rf(c).nodes, 7);
             let mut dat = [null_mut::<c_void>(); 8];
             let (mut lev, mut pos) = ([0 as c_int; 8], [0 as c_int; 8]);
             let depth = avl_dump(t, dat.as_mut_ptr(), lev.as_mut_ptr(), pos.as_mut_ptr());
@@ -1932,7 +1943,7 @@ mod tests {
             let mut keys = vec![];
             let mut p = head;
             while !p.is_null() {
-                keys.push((*p).key);
+                keys.push(rf(p).key);
                 p = (*p).next as *mut Item;
             }
             assert_eq!(keys, [1, 2, 3, 4, 5, 6, 7]);
@@ -1942,7 +1953,7 @@ mod tests {
             }
             avl_release(t, Some(cnt));
             assert_eq!(COUNT.load(std::sync::atomic::Ordering::SeqCst), 7);
-            assert_eq!((*t).nodes, 0);
+            assert_eq!(rf(t).nodes, 0);
             assert!(avl_first(t).is_null());
             avl_close(t);
             avl_close(c);
@@ -1987,7 +1998,7 @@ mod tests {
                 for it in &its {
                     avl_insert(t, &**it as *const Item as *mut c_void);
                 }
-                check((*t).root, None, None);
+                check(rf(t).root, None, None);
                 avl_close(t);
             }
         }
@@ -2015,13 +2026,13 @@ mod tests {
             let mut out = vec![];
             let mut p = avl_first(t) as *mut CdbTreeItem;
             while !p.is_null() {
-                let it = &*p;
+                let it = rf(p);
                 let mut fx = vec![];
                 if !it.effects.is_null() {
                     let mut e = avl_first(it.effects) as *mut CdbEffect;
                     while !e.is_null() {
                         let mut params = vec![];
-                        for k in 0..(*e).num_params {
+                        for k in 0..rf(e).num_params {
                             let pr = &*(*e).param.add(k as usize);
                             params.push((s(pr.name), s(pr.value)));
                         }
@@ -2225,7 +2236,7 @@ mod tests {
                         let mut v = vec![];
                         while !p.is_null() && v.len() < 80 {
                             v.push(rid(p));
-                            p = (*(p as *mut RItem)).next;
+                            p = rf(p as *mut RItem).next;
                         }
                         res = ids(&v);
                     }
@@ -2234,7 +2245,7 @@ mod tests {
                         let (mut lev, mut pos) = ([0 as c_int; 80], [0 as c_int; 80]);
                         let depth = avl_dump(tree, dat.as_mut_ptr(), lev.as_mut_ptr(), pos.as_mut_ptr());
                         res = depth.to_string();
-                        for k in 0..(*tree).nodes as usize {
+                        for k in 0..rf(tree).nodes as usize {
                             res += &format!(" {}:{}:{}", rid(dat[k]), lev[k], pos[k]);
                         }
                     }
@@ -2242,18 +2253,18 @@ mod tests {
                         let c = avl_copy(tree);
                         COLLECTED.lock().unwrap().clear();
                         avl__scan(c, Some(collect), 0);
-                        res = format!("{} {}", (*c).nodes, ids(&COLLECTED.lock().unwrap()));
+                        res = format!("{} {}", rf(c).nodes, ids(&COLLECTED.lock().unwrap()));
                         avl_close(c);
                     }
-                    "N" => res = (*tree).nodes.to_string(),
+                    "N" => res = rf(tree).nodes.to_string(),
                     "E" => {
                         COLLECTED.lock().unwrap().clear();
                         avl_release(tree, Some(collect));
-                        res = format!("{} {}", ids(&COLLECTED.lock().unwrap()), (*tree).nodes);
+                        res = format!("{} {}", ids(&COLLECTED.lock().unwrap()), rf(tree).nodes);
                     }
                     "Q" => {
                         avl_reset(tree);
-                        res = (*tree).nodes.to_string();
+                        res = rf(tree).nodes.to_string();
                     }
                     "P" => {
                         n_p += 1;
@@ -2282,12 +2293,12 @@ mod tests {
                         res.clear();
                         let mut p = avl_first(t) as *mut CdbTreeItem;
                         while !p.is_null() {
-                            let it = &*p;
+                            let it = rf(p);
                             res += &format!("{}|{}|{}|{}|{}|", it.index, cs(it.group), cs(it.name), cs(it.accelerator), it.num_effects);
                             if !it.effects.is_null() {
                                 let mut e = avl_first(it.effects) as *mut CdbEffect;
                                 while !e.is_null() {
-                                    res += &format!("{}:{}(", cs((*e).name), (*e).num_params);
+                                    res += &format!("{}:{}(", cs(rf(e).name), rf(e).num_params);
                                     for k in 0..(*e).num_params {
                                         let pr = &*(*e).param.add(k as usize);
                                         res += &format!("{}{}={}", if k > 0 { "," } else { "" }, cs(pr.name), cs(pr.value));

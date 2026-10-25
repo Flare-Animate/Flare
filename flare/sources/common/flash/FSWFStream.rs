@@ -661,7 +661,7 @@ mod tests {
             assert_eq!(flare_swfs_write_to_memory(c, ok.as_mut_ptr(), 2), 0);
             assert_eq!(ok, [0xEF, 0xBE]);
             assert_eq!(flare_swfs_write_to_memory(c, std::ptr::null_mut(), 4), 1);
-            assert_eq!(*flare_swfs_memory(h), 0xEF);
+            assert_eq!(*flare_swfs_memory(h).as_ref().expect("null"), 0xEF);
             let mut out_len = 7u32;
             assert_eq!(flare_swfs_v6_pack(std::ptr::null(), 4, std::ptr::null_mut(), 4, &mut out_len), 1);
             flare_swfs_free(h);
