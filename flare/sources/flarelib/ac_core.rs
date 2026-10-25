@@ -375,6 +375,16 @@ mod tests {
         ac_core_render_smoke(&ed);
     }
 
+    #[test]
+    fn symbol_usage_all_matches_per_symbol_counts() {
+        let ed = Editor::new(demo::demo_document());
+        let all = ed.symbol_usage_all();
+        for s in &ed.doc.library {
+            assert_eq!(all.get(&s.id).copied().unwrap_or(0), ed.symbol_usage(s.id), "{}", s.name);
+        }
+        assert!(all.values().any(|&n| n > 0));
+    }
+
     fn ac_core_render_smoke(ed: &Editor) {
         for f in 0..ed.frame_count() {
             let _ = ed.evaluate_current(f);
