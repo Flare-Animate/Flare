@@ -122,6 +122,16 @@ bounds-checked reads instead of `nom`. Upstream is MIT:
 > OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 > SOFTWARE.
 
+### Flare-RustBase-icats-fix (github.com/icats5000/Flare-RustBase-icats-fix)
+Fork of the AnimationCraft base by icats5000, MIT OR Apache-2.0. Three
+improvements were ported by hand into the matching Flare files: sound in/out cut
+points (`inPoint44`/`outPoint44`: `flarelib/sound.rs`, `common/flash/ac_xfl_read.rs`,
+`ac_xfl_write.rs`, `sound/ac_audio.rs`, `common/tvrender/ac_html5.rs`,
+`html5_runtime.ts`, `flare/ac_app/timeline.rs`), the Library one-pass symbol
+usage count with off-screen row skipping (`flarelib/editor.rs`,
+`flare/ac_app/panels.rs`), and the dockable Frame Picker (`flare/ac_app/dock.rs`,
+`panels.rs`, `palette.rs`, `ac_app_main.rs`).
+
 ### OpenToonz (github.com/opentoonz/opentoonz)
 Features modelled on OpenToonz subsystems are listed in
 `docs/OPENTOONZ-REVIEW.md`. Files that follow OpenToonz code or formats:

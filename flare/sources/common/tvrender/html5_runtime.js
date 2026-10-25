@@ -832,16 +832,28 @@
             return;
         var src = actx.createBufferSource();
         src.buffer = b;
-        src.loop = e.l || e.r > 1;
+        // the cut made in the sound: it starts e.o seconds in and plays e.d seconds (0 = to the end)
+        var off = Math.min(e.o || 0, b.duration), seg = e.d > 0 ? Math.min(e.d, b.duration - off) : b.duration - off;
+        var cut = off > 0 || (e.d > 0 && seg < b.duration);
+        if (!(seg > 0)) {
+            off = 0;
+            seg = b.duration;
+            cut = false;
+        }
+        src.loop = !!e.l || e.r > 1;
+        if (src.loop && cut) {
+            src.loopStart = off;
+            src.loopEnd = off + seg;
+        }
         var t0 = actx.currentTime;
-        var total = e.l ? Infinity : b.duration * e.r;
+        var total = e.l ? Infinity : seg * e.r;
         if (e.y === "stream")
             total = Math.min(total, Math.max(0, (e.e - f) / M.fps));
         var out = src;
         if (e.fx) {
             // Properties > Sound > Effect: pan and fades over one play of the sound
             var gain = actx.createGain(), pan = actx.createStereoPanner ? actx.createStereoPanner() : null;
-            var span = isFinite(total) ? total : b.duration;
+            var span = isFinite(total) ? total : seg;
             if (e.fx === "LeftChannel" && pan)
                 pan.pan.value = -1;
             if (e.fx === "RightChannel" && pan)
@@ -856,10 +868,10 @@
             }
             if (e.fx === "FadeIn") {
                 gain.gain.setValueAtTime(0, t0);
-                gain.gain.linearRampToValueAtTime(1, t0 + b.duration);
+                gain.gain.linearRampToValueAtTime(1, t0 + seg);
             }
             if (e.fx === "FadeOut" && isFinite(total)) {
-                var d = Math.min(b.duration, total);
+                var d = Math.min(seg, total);
                 gain.gain.setValueAtTime(1, t0 + total - d);
                 gain.gain.linearRampToValueAtTime(0, t0 + total);
             }
@@ -871,9 +883,9 @@
             }
         }
         out.connect(actx.destination);
-        src.start(t0);
-        if (!e.l && e.r > 1)
-            src.stop(t0 + b.duration * e.r);
+        src.start(t0, off);
+        if (!e.l && (e.r > 1 || cut))
+            src.stop(t0 + seg * e.r);
         var v = { s: e.s, src: src, alive: true, stream: e.y === "stream", from: f, end: e.e };
         src.onended = function () { v.alive = false; };
         voices.push(v);

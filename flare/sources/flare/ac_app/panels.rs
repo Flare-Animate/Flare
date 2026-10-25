@@ -1138,7 +1138,8 @@ fn sound_section(app: &mut App, ui: &mut egui::Ui, kf: &ac_core::Keyframe) {
     if let Some(p) = pick {
         match (p, &cur) {
             (None, _) => app.ed.set_frame_sound(None),
-            (Some(id), Some(c)) => app.ed.set_frame_sound(Some(FrameSound { sound: id, ..c.clone() })),
+            // a different sound starts uncut (the old cut points belong to the old sound)
+            (Some(id), Some(c)) => app.ed.set_frame_sound(Some(FrameSound { sound: id, in_point: if id == c.sound { c.in_point } else { 0 }, out_point: if id == c.sound { c.out_point } else { 0 }, ..c.clone() })),
             (Some(id), None) => app.ed.set_frame_sound(Some(FrameSound::new(id))),
         }
         return;

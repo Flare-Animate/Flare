@@ -716,6 +716,11 @@ impl Reader<'_> {
                         fs.sync = fr.attribute("soundSync").and_then(ac_core::sound::SoundSync::from_name).unwrap_or_default();
                         fs.forever = fr.attribute("soundLoopMode") == Some("loop");
                         fs.repeat = f(fr, "soundLoop", 1.0).max(1.0) as u32;
+                        // the cut Animate made in the sound (samples at 44.1 kHz); parsed as integers
+                        // because f32 loses exactness past about six minutes of audio
+                        let point = |a: &str| fr.attribute(a).and_then(|v| v.trim().parse::<u32>().ok()).unwrap_or(0);
+                        fs.in_point = point("inPoint44");
+                        fs.out_point = point("outPoint44");
                         kf.sound = Some(fs);
                     }
                     None => self.warn.push(format!("frame sound '{sn}' not in the library")),
