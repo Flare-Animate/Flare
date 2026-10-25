@@ -779,30 +779,32 @@ pub unsafe extern "C" fn avl_locate_last(tree: *mut Tree) -> *mut c_void {
 
 /// Left subtree depth decreased: adjust `root` and the signal in `node->bal`.
 unsafe fn left_shrunk(rootaddr: *mut *mut Node, root: *mut Node, node: *mut Node) {
-    match (*root).bal {
-        LEFT => (*root).bal = BAL,
+    let (Some(r), Some(n)) = (nd(root), nd(node)) else { return };
+    match r.bal {
+        LEFT => r.bal = BAL,
         BAL => {
-            (*root).bal = RIGHT;
-            (*node).bal = SAME;
+            r.bal = RIGHT;
+            n.bal = SAME;
         }
         RIGHT => {
-            (*root).bal = RIGHTUNBAL;
-            (*node).bal = rebalance(rootaddr);
+            r.bal = RIGHTUNBAL;
+            n.bal = rebalance(rootaddr);
         }
         _ => {}
     }
 }
 
 unsafe fn right_shrunk(rootaddr: *mut *mut Node, root: *mut Node, node: *mut Node) {
-    match (*root).bal {
-        RIGHT => (*root).bal = BAL,
+    let (Some(r), Some(n)) = (nd(root), nd(node)) else { return };
+    match r.bal {
+        RIGHT => r.bal = BAL,
         BAL => {
-            (*root).bal = LEFT;
-            (*node).bal = SAME;
+            r.bal = LEFT;
+            n.bal = SAME;
         }
         LEFT => {
-            (*root).bal = LEFTUNBAL;
-            (*node).bal = rebalance(rootaddr);
+            r.bal = LEFTUNBAL;
+            n.bal = rebalance(rootaddr);
         }
         _ => {}
     }
@@ -892,28 +894,30 @@ unsafe fn remove_rec(rootaddr: *mut *mut Node, key: RemKey, dup: bool) -> *mut N
             } else {
                 // replace by the leftmost node of the right subtree
                 root = leftmost(&mut (*node).right);
-                if let Some(r) = nd(root) { r.left = (*node).left; }
-                (*root).right = (*node).right;
-                if (*root).bal == LESS {
-                    // right subtree depth decreased
-                    match (*node).bal {
-                        RIGHT => {
-                            (*root).bal = BAL;
-                            (*node).bal = LESS;
+                if let (Some(r), Some(n)) = (nd(root), nd(node)) {
+                    r.left = n.left;
+                    r.right = n.right;
+                    if r.bal == LESS {
+                        // right subtree depth decreased
+                        match n.bal {
+                            RIGHT => {
+                                r.bal = BAL;
+                                n.bal = LESS;
+                            }
+                            BAL => {
+                                r.bal = LEFT;
+                                n.bal = SAME;
+                            }
+                            LEFT => {
+                                r.bal = LEFTUNBAL;
+                                n.bal = rebalance(&mut root);
+                            }
+                            _ => {}
                         }
-                        BAL => {
-                            (*root).bal = LEFT;
-                            (*node).bal = SAME;
-                        }
-                        LEFT => {
-                            (*root).bal = LEFTUNBAL;
-                            (*node).bal = rebalance(&mut root);
-                        }
-                        _ => {}
+                    } else {
+                        r.bal = n.bal;
+                        n.bal = SAME;
                     }
-                } else {
-                    (*root).bal = (*node).bal;
-                    (*node).bal = SAME;
                 }
                 *rootaddr = root;
             }
@@ -1813,7 +1817,7 @@ mod tests {
         let mut v = vec![];
         let mut p = avl_first(t) as *mut Item;
         while !p.is_null() {
-            v.push((*p).id);
+            v.push(p.as_ref().unwrap().id);
             p = avl_next(t) as *mut Item;
         }
         v
@@ -1824,13 +1828,13 @@ mod tests {
         if n.is_null() {
             return 0;
         }
-        let k = (*n).key.val;
+        let k = n.as_ref().unwrap().key.val;
         assert!(lo.map_or(true, |l| k >= l) && hi.map_or(true, |h| k <= h));
-        let l = check((*n).left, lo, Some(k));
-        let r = check((*n).right, Some(k), hi);
+        let l = check(n.as_ref().unwrap().left, lo, Some(k));
+        let r = check(n.as_ref().unwrap().right, Some(k), hi);
         assert!((l - r).abs() <= 1, "unbalanced");
         let want = if l == r { BAL } else if l > r { LEFT } else { RIGHT };
-        assert_eq!((*n).bal, want, "bad bal field");
+        assert_eq!(n.as_ref().unwrap().bal, want, "bad bal field");
         1 + l.max(r)
     }
 
@@ -1845,7 +1849,7 @@ mod tests {
                 assert_eq!(avl_insert(t, &**it as *const Item as *mut c_void), 1);
             }
             assert_eq!(rf(t).nodes, 200);
-            check((*t).root, None, None);
+            check(t.as_ref().unwrap().root, None, None);
             // duplicate key rejected
             let dup = items(&[keys[3]]);
             assert_eq!(avl_insert(t, &*dup[0] as *const Item as *mut c_void), 0);
@@ -1863,7 +1867,7 @@ mod tests {
             back.reverse();
             assert_eq!(back, fwd);
             // neighbours
-            let at = |p: *mut c_void| if p.is_null() { -1 } else { (*(p as *mut Item)).key };
+            let at = |p: *mut c_void| if p.is_null() { -1 } else { (p as *mut Item).as_ref().unwrap().key };
             assert_eq!(at(avl__locate(t, 37)), 37);
             assert_eq!(at(avl__locate(t, 1000)), -1);
             assert_eq!(at(avl__locate_ge(t, 38)), sorted.iter().map(|i| i.key).find(|&k| k >= 38).unwrap());
@@ -1875,9 +1879,9 @@ mod tests {
             // remove half, keeping the invariant
             for it in its.iter().step_by(2) {
                 assert_eq!(avl__remove(t, it.key as c_long), &**it as *const Item as *mut c_void);
-                check((*t).root, None, None);
+                check(t.as_ref().unwrap().root, None, None);
             }
-            assert_eq!((*t).nodes, 100);
+            assert_eq!(t.as_ref().unwrap().nodes, 100);
             assert!(avl__remove(t, keys[0] as c_long).is_null());
             avl_close(t);
         }
@@ -1894,9 +1898,9 @@ mod tests {
             }
             assert_eq!(all(t), vec![4, 1, 5, 0, 2, 3]); // equal keys keep insertion order
             let first5 = avl__locate(t, 5) as *mut Item;
-            assert_eq!((*first5).id, 0);
-            assert_eq!((*(avl__start(t, 5, 0) as *mut Item)).id, 0);
-            assert_eq!((*(avl__start(t, 5, 1) as *mut Item)).id, 3);
+            assert_eq!(first5.as_ref().unwrap().id, 0);
+            assert_eq!((avl__start(t, 5, 0) as *mut Item).as_ref().unwrap().id, 0);
+            assert_eq!((avl__start(t, 5, 1) as *mut Item).as_ref().unwrap().id, 3);
             avl_stop(t);
             // string keys
             let st = avl__tree(AVL_NODUP_STR, 0, None);
@@ -1944,7 +1948,7 @@ mod tests {
             let mut p = head;
             while !p.is_null() {
                 keys.push(rf(p).key);
-                p = (*p).next as *mut Item;
+                p = p.as_ref().unwrap().next as *mut Item;
             }
             assert_eq!(keys, [1, 2, 3, 4, 5, 6, 7]);
             static COUNT: std::sync::atomic::AtomicI32 = std::sync::atomic::AtomicI32::new(0);
@@ -2033,10 +2037,10 @@ mod tests {
                     while !e.is_null() {
                         let mut params = vec![];
                         for k in 0..rf(e).num_params {
-                            let pr = &*(*e).param.add(k as usize);
+                            let pr = &*e.as_ref().unwrap().param.add(k as usize);
                             params.push((s(pr.name), s(pr.value)));
                         }
-                        fx.push((s((*e).name), params));
+                        fx.push((s(e.as_ref().unwrap().name), params));
                         e = avl_next(it.effects) as *mut CdbEffect;
                     }
                 }
@@ -2085,13 +2089,13 @@ mod tests {
 
     static COLLECTED: Mutex<Vec<c_int>> = Mutex::new(Vec::new());
     unsafe extern "C" fn collect(p: *mut c_void) {
-        COLLECTED.lock().unwrap().push((*(p as *mut RItem)).id);
+        COLLECTED.lock().unwrap().push((p as *mut RItem).as_ref().unwrap().id);
     }
     unsafe extern "C" fn cmpint(a: *mut c_void, b: *mut c_void) -> c_int {
         *(a as *const c_int) - *(b as *const c_int)
     }
     fn rid(p: *mut c_void) -> c_int {
-        if p.is_null() { -1 } else { unsafe { (*(p as *mut RItem)).id } }
+        if p.is_null() { -1 } else { unsafe { (p as *mut RItem).as_ref().unwrap().id } }
     }
     fn ids(v: &[c_int]) -> String {
         if v.is_empty() { "-".into() } else { v.iter().map(|x| x.to_string()).collect::<Vec<_>>().join(",") }
@@ -2299,8 +2303,8 @@ mod tests {
                                 let mut e = avl_first(it.effects) as *mut CdbEffect;
                                 while !e.is_null() {
                                     res += &format!("{}:{}(", cs(rf(e).name), rf(e).num_params);
-                                    for k in 0..(*e).num_params {
-                                        let pr = &*(*e).param.add(k as usize);
+                                    for k in 0..e.as_ref().unwrap().num_params {
+                                        let pr = &*e.as_ref().unwrap().param.add(k as usize);
                                         res += &format!("{}{}={}", if k > 0 { "," } else { "" }, cs(pr.name), cs(pr.value));
                                     }
                                     res += ");";
