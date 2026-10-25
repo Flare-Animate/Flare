@@ -115,3 +115,55 @@ Note: D9 is intended modal behaviour per design, listed for awareness only.
 ## D11 regression note (bad QImage format)
 
 Root cause: `TFont::drawChar` (tfont_qt.cpp) threw on any `alphaMapForGlyph` image that was not Indexed8/Alpha8, and the message built `L"..." + image.format()` (wide-literal pointer arithmetic, hence the empty "bad QImage format " in the log). Fix: null/invalid glyph images return an empty advance; other formats are converted with `convertToFormat(Format_Grayscale8)`. Verification: rebuilt; scripted Xvfb run (tool at y=262, drag, click, ctrl+z x3) stayed alive with no FATAL. The original crash was not deterministically reproducible before the fix (matches D11 "not reproduced by single click").
+
+---
+
+## QA update 2026-10-25 (Rust-Rewrite, HEAD 62d1e91; requested tip 1872fda is its ancestor, 62d1e91 only touches .gitignore)
+
+Method: `scripts/dev/local_build.sh` rebuilt into /home/user/bld (build ok, fix d661d7c present). Samples downloaded to a scratch dir (untrusted, not committed): ruffle-rs/ruffle `tests/tests/swfs` (SWF, FLA), mozilla/shumway `test/swfs` (FLA, XFL folder, MP4, SVG), psd-tools/psd-tools `tests/psd_files` (PSD), repo `stuff/library` (PLI), github.com GIF from ruffle. Import via `tools/flash/import_container.py`; GUI via `scripts/dev/gui_smoke.sh` and a per-tool relaunch loop (xdotool).
+
+### Command/tool/format results
+
+| Area | Item | Result | Evidence / note |
+|---|---|---|---|
+| Build | `local_build.sh` | PASS | build ok in 26s, /home/user/bld |
+| Tools | Toolbar tools 0-21 (22), relaunch each, click tool, drag canvas, ctrl+z, ctrl+y | PASS (no crash) / effect UNVERIFIED | all ALIVE, no FATAL in logs. Process survival only; canvas change not measured. Prior D11 (tool 5 crash) not reproduced |
+| Import (helper) | FLA (acid.fla, ruffle test.fla) | PASS | 16 / 19 files exported |
+| Import (helper) | XFL zipped (packed .xfl) | PASS | 4 files |
+| Import (helper) | XFL folder (DOMDocument.xml) | PASS | 4 files |
+| Import (helper) | PSD (1layer, 2layers) | PASS | 1 file each, copy only, no layers |
+| Import (helper) | SWF AS2 / AS3 / blend | PASS with warning | JPEXS not on PATH, built-in extractor used, 1 file each |
+| Import (helper) | GIF, MP4, PLI, SVG | FAIL | `Unsupported file type: .<ext>` rc=3 |
+| Import (GUI) | FLA (acid.fla) load arg | FAIL | "File .../acid.fla doesn't look like a TOONZ Scene" (docs/images/qa/load-fla-not-toonz-error.png) |
+| Import (GUI) | PSD (1layer.psd) load arg | FAIL | "... doesn't look like a TOONZ Scene" (docs/images/qa/load-psd-not-toonz-error.png) |
+| Import (GUI) | SWF (blend test.swf) load arg | FAIL | same dialog text |
+| Import (GUI) | XFL folder load arg | UNTESTED | launched only, file not passed (harness -f check) |
+| Import (GUI) | GIF, MP4, PLI, SVG | UNTESTED | not run |
+| CLI | `flare-cli` (ac-cli) | BLOCKED | `cargo build` fails: flareqt/Cargo.toml not in flare/sources workspace. No info/convert/export possible |
+| Save/load | Ctrl+S scene save, reload .tnz | BLOCKED | no save dialog reached via xdotool; no .tnz written. Needs Save As menu path |
+| Export | Flash SWF / XFL / HTML5 | UNTESTED | only via GUI Export dialog, not driven. CLI blocked |
+| Preferences, undo/redo beyond tool loop, playback, xsheet, Fx, Flash Instance, script console, IK, cleanup, sound, render, all rooms | | UNTESTED | time budget; not driven |
+| Moho (.moho/.anme), Adobe .ai, .tnz, .tlv, Lottie .json, .air/.ane | | UNTESTED | no usable online sample found (moho/AI searches gave pages, no direct files). Local fixtures sample.ai/sample.air exist, not re-run |
+| Themes, layouts | | UNCHANGED | see prior sections |
+
+### Defects (new)
+
+- **D13 (high). Native Flare cannot open non-TNZ files.** `Flare <file.fla|.psd|.swf>` shows "doesn't look like a TOONZ Scene". Repro: `FLAREROOT=/home/user/Flare/stuff /home/user/bld/bin/Flare /path/to/acid.fla`. Consistent with the prior note that the command line accepts only `.tnz`. Import of these formats in the GUI is therefore not reachable from the CLI argument path; check File > Import path separately.
+- **D14 (high, harness). `scripts/dev/gui_smoke.sh` reports SMOKE PASS when the load dialog appears.** It only checks for a main window, crashes, and fatal log markers. Fix the harness to detect modal error dialogs (title/window text) and fail on them.
+- **D15 (medium). `flare-cli` does not build from this checkout.** `flare/sources/flareqt/Cargo.toml` is not a workspace member and `flare/sources/Cargo.toml` does not list it. `cargo build -p ac-cli` errors "did not match any packages"; building from flareqt errors "believes it's in a workspace". Fix: add `flareqt` to `workspace.members` or `workspace.exclude` in `flare/sources/Cargo.toml`.
+- **D16 (low). Import helper rejects GIF, MP4, PLI, SVG** with `Unsupported file type`. PLI is a brush library format, not a scene. Confirm which of these Flare claims to import (docs/ and the import dialog) and align the claim.
+- **D17 (low). SWF import helper needs JPEXS (`ffdec`) on PATH** and silently falls back to the built-in extractor with a warning. Document or bundle.
+
+### Coverage
+
+- Menu command IDs (478 in XML): no new command IDs exercised this pass; estimate unchanged at about 25 percent.
+- Toolbar tools: 22 of 22 relaunched and exercised (effect unverified). Prior: 5 of 22.
+- Import formats: 15 samples through the helper, 10 pass, 5 fail (4 unsupported, 1 SWF warning-only is pass). GUI load: 3 of 3 attempted fail.
+- Overall project coverage estimate: about 27 percent (up from about 25 percent). Most of the remaining scope is still UNTESTED.
+
+### Next steps
+
+1. Fix D15 (workspace membership) so flare-cli can run info/convert/export; then add Flash/XFL/HTML5 round-trip tests.
+2. Add Save As + reload test (File menu, not Ctrl+S) for .tnz.
+3. Make gui_smoke fail on modal error dialogs (D14) before trusting it.
+4. Find Moho, AI, Lottie, TLV samples or generate minimal ones and say so.
