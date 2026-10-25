@@ -248,7 +248,6 @@ set(SOURCES
     logger.cpp
     movierenderer.cpp
     multimediarenderer.cpp
-    namebuilder.cpp
     Naa2TlvConverter.cpp
     observer.cpp
     onionskinmask.cpp

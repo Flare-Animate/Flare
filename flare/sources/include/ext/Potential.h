@@ -19,11 +19,19 @@
 #define DVVAR DV_IMPORT_VAR
 #endif
 
+#include <algorithm>
 #include <assert.h>
 #include <stdexcept>
 #include <string>
 
 class TStroke;
+
+// Implemented in tnzext/Potential.rs (flare_formats).
+extern "C" {
+int flare_potential_check_params(int has_stroke, double w, double action_length,
+                                 double *action_length_out);
+double flare_potential_clamp_value(double at);
+}
 
 #if defined(_MSC_VER) && (_MSC_VER <= 1200)
 // to avoid annoying warning
@@ -63,19 +71,34 @@ protected:
                               double actionLength) = 0;
 
 public:
-  Potential();
+  Potential() { isValid_ = false; }
 
   /**
 *@brief Just a wrapper for setParameters_.
 *@sa setParameters_
 */
-  void setParameters(const TStroke *ref, double w, double actionLength);
+  void setParameters(const TStroke *ref, double w, double actionLength) {
+    isValid_ = true;
+    assert(ref);
+    double al = actionLength;
+    switch (flare_potential_check_params(ref != 0, w, actionLength, &al)) {
+    case 1:
+      throw std::invalid_argument("Not valid stroke!!!");
+    case 2:
+      throw std::invalid_argument("Not valid parameter!!!");
+    }
+    this->setParameters_(ref, w, al);
+  }
 
   /**
 *@brief Just a wrapper for value_.
 *@sa value_
 */
-  double value(double at) const;
+  double value(double at) const {
+    if (!isValid_) throw std::range_error("Not yet initialized potential!");
+    assert(0.0 <= at && at <= 1.0);
+    return this->value_(flare_potential_clamp_value(at));
+  }
 
   /**
 *@brief This is method required to use a Prototype Pattern.

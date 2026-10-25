@@ -307,6 +307,20 @@ pub mod skeletonlut;
 pub mod iknode;
 #[path = "flarelib/ikjacobian.rs"]
 pub mod ikjacobian;
+#[path = "flarelib/namebuilder.rs"]
+pub mod namebuilder;
+#[path = "stdfx/perlinnoise.rs"]
+pub mod perlinnoise;
+#[path = "tnzext/Potential.rs"]
+pub mod potential;
+#[path = "tnzext/LinearPotential.rs"]
+pub mod linearpotential;
+#[path = "tnzext/SquarePotential.rs"]
+pub mod squarepotential;
+#[path = "tnzext/NotSymmetricBezierPotential.rs"]
+pub mod nsbezierpotential;
+#[path = "tnzext/NotSymmetricExpPotential.rs"]
+pub mod nsexppotential;
 
 /// TFilePath query (see header). Returns full byte length; copies up to `cap` into `out`.
 #[no_mangle]
@@ -845,6 +859,8 @@ mod tests {
             "flarelib/sandor_fxs/InputParam.rs",
             // partial port: trepetitionguard.cpp still present
             "flareqt/trepetitionguard.rs",
+            // partial port: perlinnoise.cpp keeps the table fill, statics and doClouds
+            "stdfx/perlinnoise.rs",
             // partial port: the static constant pixel objects of tpixel.cpp stay C++
             "common/tcolor/tpixel.rs",
         ];
