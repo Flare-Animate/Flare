@@ -10,6 +10,26 @@ http://www.sentex.net/~mwandel/jhead/
 #define TIIO_JPG_EXIF_H
 
 #include <stdlib.h>
+#include <string.h>
+
+#include <iostream>
+
+// Implemented in common/tiio/tiio_jpg_exif.rs (flare_formats).
+extern "C" {
+struct FlareExifState {
+  float x_resolution;
+  float y_resolution;
+  int resolution_unit;
+  int motorola_order;
+};
+int flare_jpg_exif_process(const unsigned char *data, unsigned int length,
+                           FlareExifState *st, char *log, size_t log_cap,
+                           size_t *log_len);
+int flare_jpg_exif_process_dir(const unsigned char *base,
+                               unsigned int exif_length, long long dir_offset,
+                               int nesting, FlareExifState *st, char *log,
+                               size_t log_cap, size_t *log_len);
+}
 
 // undefining ReadAllTags will load only resolution information
 #define ReadAllTags
@@ -49,7 +69,7 @@ class JpgExifReader {
   struct ExifImageInfo {
     float xResolution = 0.0;
     float yResolution = 0.0;
-    int ResolutionUnit;
+    int ResolutionUnit = 0;
 #ifdef ReadAllTags
     char FileName[PATH_MAX + 1];
     time_t FileDateTime;
@@ -118,16 +138,39 @@ class JpgExifReader {
 
   int MotorolaOrder = 0;
 
-  int Get16u(void* Short);
-  unsigned Get32u(void* Long);
-  int Get32s(void* Long);
-  void PrintFormatNumber(void* ValuePtr, int Format, int ByteCount);
-  double ConvertAnyFormat(void* ValuePtr, int Format);
+  // Runs one of the Rust entry points over the three resolution fields and
+  // prints the diagnostics the original wrote to std::cout.
+  template <typename F>
+  void run_(F call) {
+    FlareExifState st = {ImageInfo.xResolution, ImageInfo.yResolution,
+                         ImageInfo.ResolutionUnit, MotorolaOrder};
+    char log[16384];
+    size_t n = 0;
+    call(&st, log, sizeof log, &n);
+    ImageInfo.xResolution   = st.x_resolution;
+    ImageInfo.yResolution   = st.y_resolution;
+    ImageInfo.ResolutionUnit = st.resolution_unit;
+    MotorolaOrder           = st.motorola_order;
+    if (n) std::cout.write(log, n);
+  }
 
 public:
-  void process_EXIF(unsigned char* ExifSection, unsigned int length);
+  // ExifSection points two bytes before the "Exif\0\0" signature (as the JPEG
+  // reader passes `marker->data - 2`); `length` bytes are readable from the
+  // signature on.
+  void process_EXIF(unsigned char* ExifSection, unsigned int length) {
+    run_([&](FlareExifState* st, char* log, size_t cap, size_t* n) {
+      flare_jpg_exif_process(ExifSection + 2, length, st, log, cap, n);
+    });
+  }
   void ProcessExifDir(unsigned char* DirStart, unsigned char* OffsetBase,
-                      unsigned ExifLength, int NestingLevel);
+                      unsigned ExifLength, int NestingLevel) {
+    run_([&](FlareExifState* st, char* log, size_t cap, size_t* n) {
+      flare_jpg_exif_process_dir(OffsetBase, ExifLength,
+                                 (long long)(DirStart - OffsetBase),
+                                 NestingLevel, st, log, cap, n);
+    });
+  }
 
   // obtaining resolution info
   bool containsResolution() { return ImageInfo.xResolution != 0.0; }

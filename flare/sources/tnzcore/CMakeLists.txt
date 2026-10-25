@@ -251,7 +251,6 @@ set(SOURCES
     ../common/tiio/tiio_bmp.cpp
     ../common/tiio/tiio_jpg.cpp
     ../common/tiio/tiio_jpg_util.cpp
-    ../common/tiio/tiio_jpg_exif.cpp
     ../common/tiio/tiio_std.cpp
     ../common/tiio/movsettings.cpp
     ../common/tiio/compatibility/tfile_io.c

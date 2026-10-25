@@ -321,6 +321,8 @@ pub mod squarepotential;
 pub mod nsbezierpotential;
 #[path = "tnzext/NotSymmetricExpPotential.rs"]
 pub mod nsexppotential;
+#[path = "common/tiio/tiio_jpg_exif.rs"]
+pub mod tiio_jpg_exif;
 
 /// TFilePath query (see header). Returns full byte length; copies up to `cap` into `out`.
 #[no_mangle]
