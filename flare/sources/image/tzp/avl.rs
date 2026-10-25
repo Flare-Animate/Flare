@@ -378,7 +378,9 @@ pub unsafe extern "C" fn avl__tree(treetype: c_int, keyoffs: c_uint, usrcmp: Usr
 // ---------------------------------------------------------------------------
 
 unsafe fn rebalance(rootaddr: *mut *mut Node) -> c_int {
-    let root = *rootaddr;
+    let Some(root) = rootaddr.as_ref().copied() else {
+        return SAME;
+    };
     if root.is_null() {
         return SAME;
     }
