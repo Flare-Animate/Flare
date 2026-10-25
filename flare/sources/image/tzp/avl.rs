@@ -379,6 +379,9 @@ pub unsafe extern "C" fn avl__tree(treetype: c_int, keyoffs: c_uint, usrcmp: Usr
 
 unsafe fn rebalance(rootaddr: *mut *mut Node) -> c_int {
     let root = *rootaddr;
+    if root.is_null() {
+        return SAME;
+    }
     match (*root).bal {
         LEFTUNBAL => match (*(*root).left).bal {
             LEFT => {
