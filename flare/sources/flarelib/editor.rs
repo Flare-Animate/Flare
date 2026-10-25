@@ -2137,6 +2137,37 @@ impl Editor {
         self.doc.scenes().map(count).sum::<usize>() + self.doc.library.iter().map(|s| count(&s.timeline)).sum::<usize>()
     }
 
+    /// Instance counts for every symbol from a single walk over the document. The Library
+    /// panel needs all of them every frame; calling `symbol_usage` once per symbol walks the
+    /// whole document once per symbol.
+    pub fn symbol_usage_all(&self) -> std::collections::HashMap<SymbolId, usize> {
+        fn walk(els: &[Element], out: &mut std::collections::HashMap<SymbolId, usize>) {
+            for e in els {
+                match &e.kind {
+                    ElementKind::Instance(i) => *out.entry(i.symbol).or_insert(0) += 1,
+                    ElementKind::Group(c) => walk(c, out),
+                    _ => {}
+                }
+            }
+        }
+        let mut out = std::collections::HashMap::new();
+        let mut count = |tl: &Timeline| {
+            for k in tl.layers.iter().flat_map(|l| l.keyframes.values()) {
+                walk(&k.elements, &mut out);
+                if let Some(b) = &k.tween_boundary {
+                    walk(&b.elements, &mut out);
+                }
+            }
+        };
+        for tl in self.doc.scenes() {
+            count(tl);
+        }
+        for s in &self.doc.library {
+            count(&s.timeline);
+        }
+        out
+    }
+
     /// Delete a library item and every instance of it.
     pub fn delete_symbol(&mut self, id: SymbolId) {
         self.checkpoint("Delete Library Item");

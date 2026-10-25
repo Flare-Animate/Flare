@@ -1457,20 +1457,22 @@ fn library(app: &mut App, ui: &mut egui::Ui) {
         }
     }
     let q = app.lib.search.to_lowercase();
+    // one walk over the document for every symbol's use count (not one walk per symbol)
+    let usage = app.ed.symbol_usage_all();
     let mut syms: Vec<(u32, String, SymbolKind, u32, usize)> = app
         .ed
         .doc
         .library
         .iter()
         .filter(|s| s.name != ac_core::editor::GROUP_EDIT_NAME && (q.is_empty() || s.name.to_lowercase().contains(&q)))
-        .map(|s| (s.id, s.name.clone(), s.kind, s.timeline.frame_count(), app.ed.symbol_usage(s.id)))
+        .map(|s| (s.id, s.name.clone(), s.kind, s.timeline.frame_count(), usage.get(&s.id).copied().unwrap_or(0)))
         .collect();
     let kind_name = |k: SymbolKind| match k { SymbolKind::Graphic => "Graphic", SymbolKind::MovieClip => "Movie Clip", SymbolKind::Button => "Button" };
     match app.lib.sort.0 {
         1 => syms.sort_by(|a, b| kind_name(a.2).cmp(kind_name(b.2))),
         2 => syms.sort_by_key(|s| s.4),
         3 => syms.sort_by_key(|s| s.3),
-        _ => syms.sort_by_key(|s| s.1.to_lowercase()),
+        _ => syms.sort_by_cached_key(|s| s.1.to_lowercase()),
     }
     if !app.lib.sort.1 {
         syms.reverse();
@@ -1492,22 +1494,28 @@ fn library(app: &mut App, ui: &mut egui::Ui) {
     let searching = !q.is_empty();
     // rows: (depth, Some(folder path) | None, item)
     let mut rows: Vec<(usize, Option<String>, Option<LibItem>)> = vec![];
-    fn walk(path: &str, depth: usize, folders: &[String], items: &[(LibItem, String)], open: &std::collections::BTreeSet<String>, rows: &mut Vec<(usize, Option<String>, Option<LibItem>)>) {
+    // items grouped by their folder once, instead of scanning every item for every folder
+    let mut by_folder: std::collections::HashMap<&str, Vec<LibItem>> = Default::default();
+    for (it, n) in &items {
+        by_folder.entry(ac_core::split_item_path(n).0).or_default().push(*it);
+    }
+    fn walk(path: &str, depth: usize, folders: &[String], by_folder: &std::collections::HashMap<&str, Vec<LibItem>>, open: &std::collections::BTreeSet<String>, rows: &mut Vec<(usize, Option<String>, Option<LibItem>)>) {
         for f in folders.iter().filter(|f| ac_core::split_item_path(f).0 == path) {
             rows.push((depth, Some(f.clone()), None));
             if open.contains(f) {
-                walk(f, depth + 1, folders, items, open, rows);
+                walk(f, depth + 1, folders, by_folder, open, rows);
             }
         }
-        for (it, n) in items.iter().filter(|(_, n)| ac_core::split_item_path(n).0 == path) {
-            let _ = n;
-            rows.push((depth, None, Some(*it)));
+        if let Some(list) = by_folder.get(path) {
+            for it in list {
+                rows.push((depth, None, Some(*it)));
+            }
         }
     }
     if searching {
         rows.extend(items.iter().map(|(it, _)| (0, None, Some(*it))));
     } else {
-        walk("", 0, &folders, &items, &app.lib.open_folders, &mut rows);
+        walk("", 0, &folders, &by_folder, &app.lib.open_folders, &mut rows);
     }
     let dragging = app.lib_drag.map(LibItem::Symbol).or(app.lib.drag_bitmap.map(LibItem::Bitmap)).or(app.lib.drag_sound.map(LibItem::Sound));
     let released = ui.input(|i| i.pointer.any_released());
@@ -1525,7 +1533,15 @@ fn library(app: &mut App, ui: &mut egui::Ui) {
                 drop_into = Some(String::new());
             }
         }
+        // Rows are all 22 px tall. Only build the ones in view; the rest just keep their place
+        // (this also skips their per-item usage scans).
+        let visible = ui.clip_rect();
         for (depth, folder, item) in rows {
+            let row_top = ui.cursor().top();
+            if row_top + 22.0 < visible.top() || row_top > visible.bottom() {
+                ui.allocate_exact_size(vec2(w, 22.0), Sense::hover());
+                continue;
+            }
             let indent = 14.0 * depth as f32;
             if let Some(path) = folder {
                 let leaf = ac_core::split_item_path(&path).1.to_string();
@@ -1678,7 +1694,7 @@ fn library(app: &mut App, ui: &mut egui::Ui) {
                     let Some(s) = app.ed.doc.symbol(id) else { continue };
                     let (name, kind, frames) = (s.name.clone(), s.kind, s.timeline.frame_count());
                     let leaf = ac_core::split_item_path(&name).1.to_string();
-                    let uses = app.ed.symbol_usage(id);
+                    let uses = usage.get(&id).copied().unwrap_or(0);
                     let linked = app.ed.doc.linkage.get(&id).cloned();
                     let (r, resp) = ui.allocate_exact_size(vec2(w, 22.0), Sense::click_and_drag());
                     let selected = app.lib_selected == Some(id);
