@@ -323,6 +323,8 @@ pub mod nsbezierpotential;
 pub mod nsexppotential;
 #[path = "common/tiio/tiio_jpg_exif.rs"]
 pub mod tiio_jpg_exif;
+#[path = "common/tgeometry/tgeometry.rs"]
+pub mod tgeometry;
 
 /// TFilePath query (see header). Returns full byte length; copies up to `cap` into `out`.
 #[no_mangle]
@@ -861,6 +863,8 @@ mod tests {
             "flarelib/sandor_fxs/InputParam.rs",
             // partial port: trepetitionguard.cpp still present
             "flareqt/trepetitionguard.rs",
+            // partial port: tgeometry.cpp keeps the TConsts objects and the hot TAffine members
+            "common/tgeometry/tgeometry.rs",
             // partial port: perlinnoise.cpp keeps the table fill, statics and doClouds
             "stdfx/perlinnoise.rs",
             // partial port: the static constant pixel objects of tpixel.cpp stay C++

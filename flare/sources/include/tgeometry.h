@@ -1514,9 +1514,8 @@ private:
   bool m_flip;
   List m_angles;
 
-  int find(Type a) const;
-  void insert(Type a);
-  void doAdd(Type a0, Type a1);
+  // find / insert / doAdd live in tgeometry.rs; this runs one op there
+  int angleOp_(int op, Type a0, Type a1, const TAngleRangeSet *x, bool argFlip);
 
 public:
   inline explicit TAngleRangeSet(bool fill = false): m_flip(fill) { }
@@ -1555,6 +1554,212 @@ public:
   inline void intersect(const Range &x) { intersect(x.a0, x.a1); }
   void intersect(const TAngleRangeSet &x);
 };
+
+//=============================================================================
+// Inline definitions (formerly tgeometry.cpp); the arithmetic is in tgeometry.rs.
+//
+// Matrices cross the C ABI as the row-major double arrays they already are:
+// TAffine = {a11 a12 a13 a21 a22 a23}, TAffine3 = a[9], TAffine4 = a[16].
+
+extern "C" {
+int flare_taffine_inv(const double *a, double *out);
+int flare_taffine_rotation(double angle, double *out);
+int flare_trotation(const double *center, double degrees, double *out);
+int flare_tscale_about(const double *center, double sx, double sy, double *out);
+int flare_taffine3_op(int op, const double *a, const double *b, double *out);
+int flare_taffine4_op(int op, const double *a, const double *b, double *out);
+int flare_angle_set_op(int op, unsigned a0, unsigned a1, int *flip,
+                       unsigned *angles, size_t *len, size_t cap,
+                       const unsigned *xa, size_t xlen, int xflip,
+                       int arg_flip, int same);
+}
+
+inline TAffine TAffine::inv() const {
+  double in[6] = {a11, a12, a13, a21, a22, a23}, o[6];
+  flare_taffine_inv(in, o);
+  return TAffine(o[0], o[1], o[2], o[3], o[4], o[5]);
+}
+
+inline TAffine TAffine::rotation(double angle) {
+  double o[6];
+  flare_taffine_rotation(angle, o);
+  return TAffine(o[0], o[1], o[2], o[3], o[4], o[5]);
+}
+
+inline TRotation::TRotation(double degrees) {
+  double o[6];
+  flare_trotation(0, degrees, o);
+  a11 = o[0]; a12 = o[1]; a13 = o[2];
+  a21 = o[3]; a22 = o[4]; a23 = o[5];
+}
+
+inline TRotation::TRotation(const TPointD &center, double degrees) {
+  double c[2] = {center.x, center.y}, o[6];
+  flare_trotation(c, degrees, o);
+  a11 = o[0]; a12 = o[1]; a13 = o[2];
+  a21 = o[3]; a22 = o[4]; a23 = o[5];
+}
+
+inline TScale::TScale(const TPointD &center, double sx, double sy) {
+  double c[2] = {center.x, center.y}, o[6];
+  flare_tscale_about(c, sx, sy, o);
+  a11 = o[0]; a12 = o[1]; a13 = o[2];
+  a21 = o[3]; a22 = o[4]; a23 = o[5];
+}
+
+inline TScale::TScale(const TPointD &center, double s) {
+  double c[2] = {center.x, center.y}, o[6];
+  flare_tscale_about(c, s, s, o);
+  a11 = o[0]; a12 = o[1]; a13 = o[2];
+  a21 = o[3]; a22 = o[4]; a23 = o[5];
+}
+
+inline T3DPointD TAffine3::operator*(const T3DPointD &b) const {
+  double v[3] = {b.x, b.y, b.z}, o[3];
+  flare_taffine3_op(6, a, v, o);
+  return T3DPointD(o[0], o[1], o[2]);
+}
+inline TAffine3 TAffine3::operator*(const TAffine3 &b) const {
+  TAffine3 r;
+  flare_taffine3_op(0, a, b.a, r.a);
+  return r;
+}
+inline TAffine3 TAffine3::operator*=(const TAffine3 &b) {
+  return *this = *this * b;
+}
+inline TAffine3 TAffine3::inv() const {
+  TAffine3 r;
+  flare_taffine3_op(1, a, 0, r.a);
+  return r;
+}
+inline TAffine TAffine3::get2d() const {
+  double o[6];
+  flare_taffine3_op(2, a, 0, o);
+  return TAffine(o[0], o[1], o[2], o[3], o[4], o[5]);
+}
+inline TAffine3 TAffine3::translation2d(double x, double y) {
+  double v[2] = {x, y};
+  TAffine3 r;
+  flare_taffine3_op(3, v, 0, r.a);
+  return r;
+}
+inline TAffine3 TAffine3::scale2d(double x, double y) {
+  double v[2] = {x, y};
+  TAffine3 r;
+  flare_taffine3_op(4, v, 0, r.a);
+  return r;
+}
+inline TAffine3 TAffine3::rotation2d(double angle) {
+  TAffine3 r;
+  flare_taffine3_op(5, &angle, 0, r.a);
+  return r;
+}
+
+inline T4DPointD TAffine4::operator*(const T4DPointD &b) const {
+  double v[4] = {b.x, b.y, b.z, b.w}, o[4];
+  flare_taffine4_op(10, a, v, o);
+  return T4DPointD(o[0], o[1], o[2], o[3]);
+}
+inline TAffine4 TAffine4::operator*(const TAffine4 &b) const {
+  TAffine4 r;
+  flare_taffine4_op(0, a, b.a, r.a);
+  return r;
+}
+inline TAffine4 TAffine4::operator*=(const TAffine4 &b) {
+  return *this = *this * b;
+}
+inline TAffine4 TAffine4::inv() const {
+  TAffine4 r;
+  flare_taffine4_op(1, a, 0, r.a);
+  return r;
+}
+inline TAffine TAffine4::get2d(double z) const {
+  double o[6];
+  flare_taffine4_op(2, a, &z, o);
+  return TAffine(o[0], o[1], o[2], o[3], o[4], o[5]);
+}
+inline TAffine3 TAffine4::get2dPersp(double z) const {
+  TAffine3 r;
+  flare_taffine4_op(3, a, &z, r.a);
+  return r;
+}
+inline TAffine4 TAffine4::translation(double x, double y, double z) {
+  double v[3] = {x, y, z};
+  TAffine4 r;
+  flare_taffine4_op(4, v, 0, r.a);
+  return r;
+}
+inline TAffine4 TAffine4::scale(double x, double y, double z) {
+  double v[3] = {x, y, z};
+  TAffine4 r;
+  flare_taffine4_op(5, v, 0, r.a);
+  return r;
+}
+inline TAffine4 TAffine4::rotation(double x, double y, double z, double angle) {
+  double v[4] = {x, y, z, angle};
+  TAffine4 r;
+  flare_taffine4_op(6, v, 0, r.a);
+  return r;
+}
+inline TAffine4 TAffine4::rotationX(double angle) {
+  TAffine4 r;
+  flare_taffine4_op(7, &angle, 0, r.a);
+  return r;
+}
+inline TAffine4 TAffine4::rotationY(double angle) {
+  TAffine4 r;
+  flare_taffine4_op(8, &angle, 0, r.a);
+  return r;
+}
+inline TAffine4 TAffine4::rotationZ(double angle) {
+  TAffine4 r;
+  flare_taffine4_op(9, &angle, 0, r.a);
+  return r;
+}
+
+// TAngleRangeSet: every operation runs on a copy of the boundary list with room
+// for the operand's boundaries (+2), then adopts the result.
+inline int TAngleRangeSet::angleOp_(int op, Type a0, Type a1,
+                                    const TAngleRangeSet *x, bool argFlip) {
+  const size_t xlen = x ? x->m_angles.size() : 0;
+  const size_t n    = m_angles.size();
+  std::vector<Type> buf(m_angles);
+  buf.resize(n + xlen + 2);
+  int flip     = m_flip;
+  size_t len   = n;
+  int r = flare_angle_set_op(op, a0, a1, &flip, buf.data(), &len, buf.size(),
+                             x ? x->m_angles.data() : 0, xlen,
+                             x ? (int)x->m_flip : 0, argFlip, x == this);
+  if (r < 0) return 0;
+  buf.resize(len);
+  m_angles.swap(buf);
+  m_flip = flip != 0;
+  return r;
+}
+
+// read-only queries: no copy, nothing written back
+inline bool TAngleRangeSet::contains(Type a) const {
+  int flip   = m_flip;
+  size_t len = m_angles.size();
+  return flare_angle_set_op(1, a, 0, &flip, const_cast<Type *>(m_angles.data()),
+                            &len, len, 0, 0, 0, 0, 0) > 0;
+}
+inline bool TAngleRangeSet::check() const {
+  int flip   = m_flip;
+  size_t len = m_angles.size();
+  return flare_angle_set_op(2, 0, 0, &flip, const_cast<Type *>(m_angles.data()),
+                            &len, len, 0, 0, 0, 0, 0) > 0;
+}
+inline void TAngleRangeSet::set(Type a0, Type a1) { angleOp_(3, a0, a1, 0, false); }
+inline void TAngleRangeSet::set(const TAngleRangeSet &x, bool flip) { angleOp_(4, 0, 0, &x, flip); }
+inline void TAngleRangeSet::invert(Type a0, Type a1) { angleOp_(5, a0, a1, 0, false); }
+inline void TAngleRangeSet::invert(const TAngleRangeSet &x) { angleOp_(6, 0, 0, &x, false); }
+inline void TAngleRangeSet::add(Type a0, Type a1) { angleOp_(7, a0, a1, 0, false); }
+inline void TAngleRangeSet::add(const TAngleRangeSet &x) { angleOp_(8, 0, 0, &x, false); }
+inline void TAngleRangeSet::subtract(Type a0, Type a1) { angleOp_(9, a0, a1, 0, false); }
+inline void TAngleRangeSet::subtract(const TAngleRangeSet &x) { angleOp_(10, 0, 0, &x, false); }
+inline void TAngleRangeSet::intersect(Type a0, Type a1) { angleOp_(11, a0, a1, 0, false); }
+inline void TAngleRangeSet::intersect(const TAngleRangeSet &x) { angleOp_(12, 0, 0, &x, false); }
 
 
 #endif  //  __T_GEOMETRY_INCLUDED__

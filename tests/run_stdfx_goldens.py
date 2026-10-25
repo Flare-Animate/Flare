@@ -55,6 +55,7 @@ CHECKS = [
     ),
     ("namebuilder", ["tests/native/gen_namebuilder_cases.py", "--check"]),
     ("perlinnoise", ["tests/native/gen_perlinnoise_cases.py", "--check"]),
+    ("tgeometry", ["tests/native/gen_tgeometry_cases.py", "--check"]),
     ("jpg exif", ["tests/native/gen_jpgexif_cases.py", "--check"]),
     ("potentials (tnzext, libm exp)", ["tests/native/gen_potentials_cases.py", "--check"]),
 ]

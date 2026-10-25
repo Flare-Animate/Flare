@@ -27,7 +27,7 @@ SRC_ROOT = os.path.join(ms.ROOT, "flare", "sources")
 
 
 def run(name, golden_rel, srcs, hdr_as=None, stubs=None, includes=None, extra=None,
-        keep=None, compile=None):
+        keep=None, compile=None, chain_compile=None):
     ap = argparse.ArgumentParser()
     ap.add_argument("--check", action="store_true")
     ap.add_argument("--verify-chain", action="store_true")
@@ -58,6 +58,29 @@ def run(name, golden_rel, srcs, hdr_as=None, stubs=None, includes=None, extra=No
                 p = os.path.join(cd, rel)
                 os.makedirs(os.path.dirname(p), exist_ok=True)
                 open(p, "w").write(text)
-            rc = ms.verify_chain(harness, golden, [cd] + incs, keep=keep,
-                                 extra_args=["-DNDEBUG", "-DLINUX"] + (extra or []))
+            rc = _verify_chain(harness, golden, [cd] + incs, keep, ["-DNDEBUG", "-DLINUX"] + (extra or []),
+                               [os.path.join(ms.ROOT, c) for c in (chain_compile or [])])
     return rc
+
+
+def _verify_chain(harness, golden, include_dirs, keep, extra_args, sources):
+    """`ms.verify_chain` plus live C++ sources linked next to the Rust archive (partial ports)."""
+    archive = ms.rust_archive()
+    with open(golden, "r", newline="") as fh:
+        want = ms.normalize(fh.read()).splitlines()
+    if keep:
+        want = [l for l in want if keep(l)]
+    with tempfile.TemporaryDirectory(prefix="chain-") as wd:
+        got = ms.normalize(
+            ms.build_and_run_host(wd, sources, harness, include_dirs=include_dirs,
+                                  link_archives=[archive, "-lpthread", "-ldl", "-lm"],
+                                  extra_args=["-DCHAIN", *extra_args])
+        ).splitlines()
+    if keep:
+        got = [l for l in got if keep(l)]
+    if got != want:
+        n = next((i for i, (a, b) in enumerate(zip(got, want)) if a != b), min(len(got), len(want)))
+        print(f"CHAIN MISMATCH at line {n}: got {got[n:n+1]} want {want[n:n+1]}", file=sys.stderr)
+        return 1
+    print(f"chain ok: new headers + Rust reproduce {len(want)} golden lines")
+    return 0
