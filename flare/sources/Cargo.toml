@@ -4,7 +4,7 @@
 # port (common/<subsystem>/rust/), mirroring the OpenToonz/Tahoma source tree.
 # Only the crate scaffolding is here; every module sits with its subsystem.
 [workspace]
-members = ["remote"]
+members = ["remote", "flareqt"]
 resolver = "2"
 
 [workspace.package]
@@ -40,6 +40,10 @@ usvg = "0.44"
 resvg = "0.44"
 rfd = "0.17"
 dirs = "5"
+effectcraft-effects = { git = "https://github.com/storytold/effectcraft", rev = "549e9d825132986d6167c1432cd3328efcbb0278" }
+effectcraft-raster = { git = "https://github.com/storytold/effectcraft", rev = "549e9d825132986d6167c1432cd3328efcbb0278" }
+effectcraft-keyframe = { git = "https://github.com/storytold/effectcraft", rev = "549e9d825132986d6167c1432cd3328efcbb0278" }
+effectcraft-project = { git = "https://github.com/storytold/effectcraft", rev = "549e9d825132986d6167c1432cd3328efcbb0278" }
 
 [profile.dev.package."*"]
 opt-level = 2
