@@ -1036,7 +1036,9 @@ fn draw_waveform(rp: &egui::Painter, doc: &ac_core::Document, fs: &ac_core::soun
         return;
     }
     let Some(p) = doc.sound(fs.sound).and_then(ac_audio::pcm) else { return };
-    let len = p.seconds().max(1e-3);
+    // only the part of the sound that was cut for this keyframe is drawn
+    let (off, len) = fs.segment(p.seconds().max(1e-3) as f64);
+    let (off, len) = (off as f32, (len as f32).max(1e-3));
     let total = if fs.forever { f32::INFINITY } else { len * fs.repeat.max(1) as f32 };
     let fps = doc.fps.max(1.0);
     let n = (x1 - x0).max(1.0) as usize;
@@ -1045,11 +1047,11 @@ fn draw_waveform(rp: &egui::Painter, doc: &ac_core::Document, fs: &ac_core::soun
     let h = rh / 2.0 - 4.0;
     let col = Color32::from_rgb(0x3A, 0x8F, 0xD8);
     // per-pixel peaks; cached per (sound, width, span) since this runs every repaint
-    type Key = (u32, usize, u32, u32, u32, bool);
+    type Key = (u32, usize, u32, u32, u32, bool, u32, u32);
     thread_local! {
         static CACHE: std::cell::RefCell<std::collections::HashMap<Key, Vec<(f32, f32)>>> = Default::default();
     }
-    let key = (fs.sound, n, end - start, fps.to_bits(), fs.repeat, fs.forever);
+    let key = (fs.sound, n, end - start, fps.to_bits(), fs.repeat, fs.forever, fs.in_point, fs.out_point);
     let pk = CACHE.with(|c| {
         let mut c = c.borrow_mut();
         if c.len() > 256 {
@@ -1064,7 +1066,7 @@ fn draw_waveform(rp: &egui::Painter, doc: &ac_core::Document, fs: &ac_core::soun
                             return (0.0, 0.0);
                         }
                         let lt = t % len;
-                        ac_audio::peaks(&p, lt, (lt + secs / n as f32).min(len), 1)[0]
+                        ac_audio::peaks(&p, off + lt, (off + lt + secs / n as f32).min(off + len), 1)[0]
                     })
                     .collect()
             })

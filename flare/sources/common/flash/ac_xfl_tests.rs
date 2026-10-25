@@ -142,7 +142,7 @@ fn round_trips_editor_features() {
     tl.layers.extend([folder, mask, body]);
     doc.more_scenes.push(Timeline::new("Scene 2"));
     doc.sounds.push(ac_core::sound::SoundAsset { id: 4, name: "voice.wav".into(), data: b"RIFF....WAVE".to_vec() });
-    doc.scene.layers[2].keyframes.get_mut(&12).unwrap().sound = Some(ac_core::sound::FrameSound { sound: 4, sync: ac_core::sound::SoundSync::Stream, repeat: 3, forever: false, effect: Default::default() });
+    doc.scene.layers[2].keyframes.get_mut(&12).unwrap().sound = Some(ac_core::sound::FrameSound { sound: 4, sync: ac_core::sound::SoundSync::Stream, repeat: 3, forever: false, effect: Default::default(), in_point: 22050, out_point: 66150 });
 
     let (pkg, warn) = write_package(&doc);
     assert!(warn.is_empty(), "{warn:?}");
@@ -185,6 +185,7 @@ fn round_trips_editor_features() {
     assert_eq!(d.sounds[0].data, b"RIFF....WAVE");
     let fs = l[2].keyframes[&12].sound.as_ref().unwrap();
     assert_eq!((fs.sync, fs.repeat, fs.forever, fs.sound), (ac_core::sound::SoundSync::Stream, 3, false, d.sounds[0].id));
+    assert_eq!((fs.in_point, fs.out_point), (22050, 66150), "the cut Animate made in the sound survives");
 }
 
 #[test]

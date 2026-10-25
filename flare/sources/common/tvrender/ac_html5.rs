@@ -742,7 +742,10 @@ pub fn publish_report(doc: &Document, o: &Html5Opts) -> Report {
                 let fs = cue.sound;
                 let ix = doc.sounds.iter().position(|s| s.id == fs.sound)?;
                 let fx = if fs.effect == ac_core::sound::SoundEffect::None { String::new() } else { format!(",\"fx\":\"{:?}\"", fs.effect) };
-                Some(format!("{{\"s\":{ix},\"y\":\"{}\",\"r\":{},\"l\":{},\"e\":{}{fx}}}", fs.sync.name().to_lowercase(), fs.repeat.max(1), fs.forever, cue.stream_end.saturating_sub(f0)))
+                // the cut made in the sound: where it starts and how long it plays (0 = to the end), seconds
+                let (o, d) = fs.trim_seconds();
+                let trim = if o > 0.0 || d > 0.0 { format!(",\"o\":{o},\"d\":{d}") } else { String::new() };
+                Some(format!("{{\"s\":{ix},\"y\":\"{}\",\"r\":{},\"l\":{},\"e\":{}{fx}{trim}}}", fs.sync.name().to_lowercase(), fs.repeat.max(1), fs.forever, cue.stream_end.saturating_sub(f0)))
             })
             .collect();
         for l in &scene.layers {

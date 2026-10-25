@@ -55,6 +55,30 @@ fn event_start_stop_and_stream_follow_animate() {
 }
 
 #[test]
+fn a_cut_sound_plays_from_where_it_was_cut() {
+    let rms = |s: &[f32]| (s.iter().map(|v| v * v).sum::<f32>() / s.len().max(1) as f32).sqrt();
+    // half a second of silence, then half a second of tone; the cut starts at 0.5 s (22 050 at 44.1 kHz)
+    let mut s = tone(0.0, 0.5, 0.0);
+    s.extend(tone(440.0, 0.5, 0.5));
+    let mut d = doc_with(vec![(0, FrameSound { in_point: 22050, ..FrameSound::new(1) })], 10);
+    d.sounds[0].data = wav(&s, 22050);
+    let v = schedule(&d, &|_| Some(1.0));
+    assert!((v[0].offset - 0.5).abs() < 1e-9 && (v[0].seg - 0.5).abs() < 1e-9 && (v[0].end - 0.5).abs() < 1e-9, "{v:?}");
+    let m = mix(&d, 0, 22050);
+    assert!(rms(&m[..8820 * 2]) > 0.3, "the tone is heard at once, not after the silence");
+    assert!(rms(&m[13230 * 2..]) < 1e-3, "and it ends where the cut ends");
+    // an end point cuts the tail, and repeats repeat the cut part only
+    let len = |_| Some(1.0);
+    let d = doc_with(vec![(0, FrameSound { in_point: 11025, out_point: 33075, repeat: 2, ..FrameSound::new(1) })], 30);
+    let v = schedule(&d, &len);
+    assert!((v[0].offset - 0.25).abs() < 1e-9 && (v[0].seg - 0.5).abs() < 1e-9 && (v[0].end - 1.0).abs() < 1e-9, "{v:?}");
+    // a cut that doesn't fit the sound plays all of it
+    let d = doc_with(vec![(0, FrameSound { in_point: 441_000, ..FrameSound::new(1) })], 30);
+    let v = schedule(&d, &len);
+    assert!((v[0].offset).abs() < 1e-9 && (v[0].seg - 1.0).abs() < 1e-9, "{v:?}");
+}
+
+#[test]
 fn mixes_the_timeline_and_joins_streams_midway() {
     let d = doc_with(vec![(0, FrameSound { sync: SoundSync::Stream, ..FrameSound::new(1) })], 20);
     let all = mix(&d, 0, 22050);

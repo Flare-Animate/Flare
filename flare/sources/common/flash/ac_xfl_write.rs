@@ -695,6 +695,12 @@ impl W<'_> {
                     } else if fs.repeat > 1 {
                         let _ = write!(fa, r#" soundLoopMode="repeat" soundLoop="{}""#, fs.repeat);
                     }
+                    if fs.in_point > 0 {
+                        let _ = write!(fa, r#" inPoint44="{}""#, fs.in_point);
+                    }
+                    if fs.out_point > 0 {
+                        let _ = write!(fa, r#" outPoint44="{}""#, fs.out_point);
+                    }
                 }
             }
             if let Some(lb) = &kf.label {

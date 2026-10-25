@@ -143,6 +143,10 @@ pub struct Voice {
     pub effect: ac_core::sound::SoundEffect,
     /// Planned length before any cut (for fades), seconds; infinite = loop.
     pub planned: f64,
+    /// Where in the sound it starts (the keyframe's cut) and how much of it plays per
+    /// repeat, seconds.
+    pub offset: f64,
+    pub seg: f64,
 }
 
 /// The sounds the movie plays, in Animate's semantics, for linear playback
@@ -161,7 +165,9 @@ pub fn schedule(doc: &Document, length: &dyn Fn(SoundId) -> Option<f64>) -> Vec<
         for cue in ac_core::sound::frame_sounds(doc, f) {
             let fs = cue.sound;
             let Some(len) = length(fs.sound) else { continue };
-            let total = if fs.forever { f64::INFINITY } else { len * fs.repeat.max(1) as f64 };
+            // the cut made in the sound (Animate's in/out points): only that part plays, and repeats
+            let (offset, seg) = fs.segment(len);
+            let total = if fs.forever { f64::INFINITY } else { seg * fs.repeat.max(1) as f64 };
             let playing = |v: &Voice| v.sound == fs.sound && v.start <= t && v.end > t;
             match fs.sync {
                 SoundSync::Stop => {
@@ -170,10 +176,10 @@ pub fn schedule(doc: &Document, length: &dyn Fn(SoundId) -> Option<f64>) -> Vec<
                     }
                 }
                 SoundSync::Start if voices.iter().any(playing) => {}
-                SoundSync::Event | SoundSync::Start => voices.push(Voice { sound: fs.sound, start: t, end: (t + total).min(movie_end), sync: fs.sync, effect: fs.effect, planned: total }),
+                SoundSync::Event | SoundSync::Start => voices.push(Voice { sound: fs.sound, start: t, end: (t + total).min(movie_end), sync: fs.sync, effect: fs.effect, planned: total, offset, seg }),
                 SoundSync::Stream => {
                     let span_end = cue.stream_end as f64 / fps;
-                    voices.push(Voice { sound: fs.sound, start: t, end: (t + total).min(span_end).min(movie_end), sync: fs.sync, effect: fs.effect, planned: total.min(span_end - t) })
+                    voices.push(Voice { sound: fs.sound, start: t, end: (t + total).min(span_end).min(movie_end), sync: fs.sync, effect: fs.effect, planned: total.min(span_end - t), offset, seg })
                 }
             }
         }
@@ -198,12 +204,12 @@ pub fn mix(doc: &Document, from: u32, rate: u32) -> Vec<f32> {
             continue;
         }
         let p = &pcms[&v.sound];
-        let len = p.seconds() as f64;
+        let len = v.seg;
         let a = ((v.start.max(t0) - t0) * rate as f64) as usize;
         let b = (((v.end - t0) * rate as f64) as usize).min(n);
         for i in a..b {
             let t = t0 + i as f64 / rate as f64 - v.start;
-            let local = if len > 0.0 { t % len } else { 0.0 };
+            let local = v.offset + if len > 0.0 { t % len } else { 0.0 };
             let (l, r) = p.at(local * p.rate as f64);
             let (gl, gr) = v.effect.gains(t, len, v.planned);
             out[i * 2] += l * gl;

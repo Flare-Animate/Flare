@@ -120,10 +120,21 @@ pub struct FrameSound {
     pub forever: bool,
     #[serde(default, skip_serializing_if = "is_no_effect")]
     pub effect: SoundEffect,
+    /// Where the sound was cut to start (Animate's `inPoint44`): samples at 44.1 kHz from
+    /// the start of the file, whatever the file's own rate.
+    #[serde(default, skip_serializing_if = "is_zero")]
+    pub in_point: u32,
+    /// Where it was cut to end (`outPoint44`), same units; 0 = the end of the sound.
+    #[serde(default, skip_serializing_if = "is_zero")]
+    pub out_point: u32,
 }
 
 fn is_no_effect(e: &SoundEffect) -> bool {
     *e == SoundEffect::None
+}
+
+fn is_zero(n: &u32) -> bool {
+    *n == 0
 }
 
 fn one() -> u32 {
@@ -132,7 +143,30 @@ fn one() -> u32 {
 
 impl FrameSound {
     pub fn new(sound: SoundId) -> Self {
-        FrameSound { sound, sync: SoundSync::Event, repeat: 1, forever: false, effect: SoundEffect::None }
+        FrameSound { sound, sync: SoundSync::Event, repeat: 1, forever: false, effect: SoundEffect::None, in_point: 0, out_point: 0 }
+    }
+
+    /// The cut in seconds: (where it starts, how long it plays; 0 = to the end of the sound).
+    /// An end at or before the start is ignored.
+    pub fn trim_seconds(&self) -> (f64, f64) {
+        const RATE: f64 = 44_100.0;
+        let a = self.in_point as f64 / RATE;
+        if self.out_point == 0 {
+            (a, 0.0)
+        } else if self.out_point > self.in_point {
+            (a, (self.out_point - self.in_point) as f64 / RATE)
+        } else {
+            (0.0, 0.0)
+        }
+    }
+
+    /// The part of a `len`-second sound this keyframe plays: (offset, length), seconds.
+    /// A cut that doesn't fit the sound plays all of it.
+    pub fn segment(&self, len: f64) -> (f64, f64) {
+        let (a, d) = self.trim_seconds();
+        let a = a.min(len);
+        let seg = if d > 0.0 { d.min(len - a) } else { len - a };
+        if seg > 0.0 { (a, seg) } else { (0.0, len) }
     }
 }
 
