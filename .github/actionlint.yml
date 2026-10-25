@@ -1,3 +1,7 @@
+# actionlint v1.7.7 (pinned in workflow_actionlint.yml) predates the macos-15-intel hosted runner label.
+self-hosted-runner:
+  labels:
+    - macos-15-intel
 paths:
   .github/workflows/**:
     ignore:
