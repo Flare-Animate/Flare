@@ -31,10 +31,10 @@ def main():
     if not cargo:
         print("SKIP: cargo not found; Rust tests not run (not counted as a pass)")
         return 0
-    # The workspace contains many crates with git dependencies (effectcraft,
-    # photocraft, AnimationCraft) that --offline cannot fetch. Cargo resolves
-    # the whole workspace even for -p, so temporarily strip those members (and
-    # their git deps) and test only the offline-capable crates.
+    # The workspace contains many crates with git/path dependencies that
+    # --offline cannot fetch. Cargo resolves the whole workspace even for -p,
+    # so temporarily strip those members (and their deps) and test only the
+    # offline-capable crates.
     with open(MANIFEST, encoding="utf-8") as f:
         orig = f.read()
     lock_orig = None
@@ -42,9 +42,12 @@ def main():
         with open(LOCK, "rb") as f:
             lock_orig = f.read()
     text = re.sub(r'members = \[.*?\]', 'members = ["remote"]', orig, flags=re.DOTALL)
-    # Remove effectcraft and photocraft git dependencies (multi-line)
     text = re.sub(r'effectcraft-\w+ = \{.*?\}\n', '', text, flags=re.DOTALL)
     text = re.sub(r'photocraft-psd = \{.*?\}\n', '', text, flags=re.DOTALL)
+    text = re.sub(r'ac-\w+ = \{ path = ".*?" \}\n', '', text, flags=re.DOTALL)
+    text = re.sub(r'ac-\w+ = \{ workspace = true, optional = true \}\n', '', text, flags=re.DOTALL)
+    text = re.sub(r'ac = \["dep:ac-core", "dep:ac-xfl", "dep:ac-render", "dep:ac-audio", "dep:resvg"\]\n', '', text, flags=re.DOTALL)
+    text = re.sub(r'default = \["ac"\]\n', 'default = []\n', text)
     text = re.sub(r'\[patch\..*?\]\n.*?\n', '', text, flags=re.DOTALL)
     with open(MANIFEST, "w", encoding="utf-8") as f:
         f.write(text)

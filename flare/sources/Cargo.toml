@@ -37,7 +37,6 @@ zip = "2"
 flate2 = "1"
 roxmltree = "0.20"
 usvg = "0.44"
-resvg = "0.44"
 rfd = "0.17"
 dirs = "5"
 effectcraft-effects = { git = "https://github.com/storytold/effectcraft", rev = "549e9d825132986d6167c1432cd3328efcbb0278" }
@@ -74,9 +73,7 @@ ac-core = { workspace = true, optional = true }
 ac-xfl = { workspace = true, optional = true }
 ac-render = { workspace = true, optional = true }
 ac-audio = { workspace = true, optional = true }
-resvg = { workspace = true, optional = true }
 
 [features]
-default = ["ac"]
-ac = ["dep:ac-core", "dep:ac-xfl", "dep:ac-render", "dep:ac-audio", "dep:resvg"]
+default = []
 

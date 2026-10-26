@@ -945,7 +945,6 @@ mod tests {
             "stdfx/perlinnoise.rs",
             // partial port: sleep uses platform Sleep()/nanosleep(); Rust port is scaffolded
             "stdfx/igs_resource_sleep.rs",
-        ];
             // partial port: the static constant pixel objects of tpixel.cpp stay C++
             "common/tcolor/tpixel.rs",
         ];
