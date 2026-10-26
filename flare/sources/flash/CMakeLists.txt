@@ -5,6 +5,7 @@ add_library(tnzflash STATIC
     timing.cpp
     geometry.cpp
     model.cpp
+    placement.cpp
     fill.cpp
     media.cpp
     video.cpp
