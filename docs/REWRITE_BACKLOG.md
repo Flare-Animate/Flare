@@ -4,6 +4,22 @@
 
 Generated read-only from branch `Rust-Rewrite` (HEAD 95dd5e2). Not committed. Source tree: `flare/sources`.
 
+## AnimationCraft wiring status (2026-10-26, branch acwire)
+
+Wired (reachable from the C++ app through `flare_formats`, cargo feature `ac`, CMake `FLARE_WITH_AC`, default ON):
+- `ac-core`, `ac-xfl`, `ac-render`, `ac-audio` (no `playback`) are linked into `flare_formats` (`common/flash/ac_bridge.rs`).
+- C API in `include/flare_formats.h`: `flare_ac_available`, `flare_ac_xfl_import`, `flare_ac_xfl_export`, `flare_ac_html5_export`, `flare_ac_html5_export_xfl`.
+- Import Flash / Open XFL (`flare/flashimport.cpp`): tries the ac path first (real layers, keyframe spans, tween frames, nested symbols, bitmaps inside the SVG, sound voices with in/out cuts as sound-column cells); falls back to the old `flare_xfl_export_svg` + bitmap-only path.
+- File > Export > "Export as XFL (Animate)..." (`MI_ExportXFL`) and "Export HTML5..." (`MI_ExportHTML5`), `flare_legacy/flashexport.cpp` (the app target is `flare_legacy`; `flare/` copies are kept in sync). Menu XML for every profile synced with `scripts/check_layout_profiles.py --sync-all-commands`.
+- Tests: `cargo test --lib ac_bridge` (folder + zip import, garbage input, XFL -> scene manifest -> XFL round trip, HTML5 smoke, FFI null checks). Fixture: `tests/flash_fixtures/handmade.fla` / `handmade_xfl/`.
+
+Not wired / known limits:
+- Export from the xsheet carries raster (png/jpg/gif/bmp/tga/tif/webp) and SVG levels only; Toonz raster/vector levels and sound columns are skipped and named in the dialog. SVG cells are rasterised into XFL bitmaps (vectors are not re-vectorised), so XFL -> Flare -> XFL is lossy for vector art.
+- Import renders each layer's keyframe/tween frames to SVG (a static span = one SVG held over its rows); symbols are flattened, not kept as Flare sub-xsheets.
+- ac-core has no sound in-point; the in-cut is dropped on export (warning), the out-cut becomes a Stop keyframe.
+- `ac-app` (egui editor, `flare/sources/flare/Cargo.toml`) does not parse: it inherits `photocraft-psd` from workspace dependencies that do not declare it, and it is not a workspace member. "Open in Flare Animate" is therefore not a build target yet (see NEXT_SESSION.md).
+- Windows/macOS compile of the new Rust dependency set (effectcraft git deps, resvg) was not run locally; CI is the first check.
+
 ## Method
 
 - Scope: all git-tracked `.c .cc .cpp .cxx .h .hpp .hh` under `flare/sources`, excluding `flare_legacy/` (6 files, note only). No thirdparty directory exists under `flare/sources`.

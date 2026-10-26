@@ -43,6 +43,12 @@ Found 2026-10-24 on PR #151 (check run 120971320646, 29 high + 2 medium):
 - Animate layout: empty black Flash Instance strip in room 2; existing users keep old personal layouts until
   Windows > Workspace > Reset Room Layout; shared `settings/commandbar.xml` is still the OpenToonz default.
 
+## AnimationCraft wiring (see "AnimationCraft wiring status" in docs/REWRITE_BACKLOG.md)
+- Verify in a real GUI session (scripts/dev/gui_smoke.sh): Import Flash on `tests/flash_fixtures/handmade.fla`, File > Export > Export as XFL / Export HTML5.
+- Fix `flare/sources/flare/Cargo.toml` (missing `photocraft-psd` workspace dep, egui 0.29 vs 0.36 pin) and add ac-app as an optional workspace member, then add "Open in Flare Animate" that launches it on an exported XFL.
+- Export Toonz raster/vector levels and sound columns (render to PNG/WAV in C++ before the manifest), keep symbols as symbols.
+- Check Windows + macOS CI for the new `flare_formats` deps.
+
 ## Rewrite (docs/REWRITE_BACKLOG.md, docs/PORTING.md)
 - ~1100 C/C++ files remain; most are Qt/OpenGL bound. Qt-free logic files are nearly exhausted; next: Qt UI strategy
   (egui crates) rather than file-by-file ports. The owner's own agent ports `common/trop/*` and `common/tcore/*`.

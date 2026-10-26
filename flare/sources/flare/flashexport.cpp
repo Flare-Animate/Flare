@@ -37,6 +37,12 @@
 #include "tfilepath.h"
 
 #include "XFLReader.h"   // XFL::writeFLA()
+#include "flare_formats.h"  // flare_ac_* (AnimationCraft bridge)
+#include "flare/txshcolumn.h"
+#include "flare/tstageobject.h"
+#include "flare/txshcell.h"
+#include "flare/txsheet.h"
+#include "flare/preferences.h"
 
 #include <QXmlStreamWriter>
 #include <QFile>
@@ -45,6 +51,9 @@
 #include <QDesktopServices>
 #include <QUrl>
 #include <QString>
+#include <QSet>
+#include <QDateTime>
+#include <QFileInfo>
 #include <QMap>
 
 #include "tlevel_io.h"
@@ -451,3 +460,137 @@ void FlashExportCommand::execute() {
             QDesktopServices::openUrl(QUrl::fromLocalFile(folder.getQString()));
     }
 }
+
+// ---------------------------------------------------------------------------
+// Export as XFL / Export HTML5 (AnimationCraft bridge, Rust: common/flash/ac_bridge.rs)
+//
+// The xsheet is written as a small TSV manifest (doc / cell lines); the Rust side rebuilds an
+// ac-core Document from it and writes XFL or the HTML5 publish. Raster levels (png, jpg, gif, bmp,
+// tga, tif, webp) and SVG levels are carried; other level types (toonz raster/vector, sound
+// columns) are skipped and named in the result message.
+// ---------------------------------------------------------------------------
+namespace {
+
+static bool acImageExt(const QString &ext) {
+    static const QSet<QString> k = {"png", "jpg", "jpeg", "gif", "bmp", "tga", "tif", "tiff", "webp", "svg"};
+    return k.contains(ext.toLower());
+}
+
+// Writes the manifest into `manifest`; returns the number of cells carried (0 = nothing to export).
+static int writeAcManifest(ToonzScene *scene, TXsheet *xsheet, const QString &manifest, QStringList &skipped) {
+    QFile f(manifest);
+    if (!f.open(QIODevice::WriteOnly | QIODevice::Text)) return 0;
+    QString out;
+    const TDimension res = scene->getCurrentCamera()->getRes();
+    const double fps = scene->getProperties()->getOutputProperties()->getFrameRate();
+    out += QString("doc\t%1\t%2\t%3\n").arg(res.lx).arg(res.ly).arg(fps);
+    int carried = 0;
+    int outCol = 0;
+    for (int c = 0; c < xsheet->getColumnCount(); ++c) {
+        TXshColumn *column = xsheet->getColumn(c);
+        TXshCellColumn *cc = column ? column->getCellColumn() : nullptr;
+        if (!cc || column->isEmpty() || !column->isPreviewVisible()) continue;
+        if (column->getSoundColumn()) { skipped << QObject::tr("sound column %1").arg(c + 1); continue; }
+        QString name = QString::fromStdString(xsheet->getStageObject(TStageObjectId::ColumnId(c))->getName());
+        int r0 = 0, r1 = -1;
+        cc->getRange(r0, r1);
+        bool any = false;
+        int row = r0;
+        while (row <= r1) {
+            TXshCell cell = cc->getCell(row);
+            int run = 1;
+            while (row + run <= r1 && cc->getCell(row + run) == cell) ++run;
+            TXshSimpleLevel *sl = cell.getSimpleLevel();
+            if (sl) {
+                TFilePath fp = scene->decodeFilePath(sl->getPath());
+                if (sl->getFrameCount() > 1 || fp.isLevelName()) fp = fp.withFrame(cell.getFrameId());
+                const QString path = QString::fromStdWString(fp.getWideString());
+                if (acImageExt(QFileInfo(path).suffix()) && QFile::exists(path)) {
+                    out += QString("cell\t%1\t%2\t%3\t%4\t%5\n").arg(outCol).arg(QString(name).replace('\t', ' ')).arg(row).arg(run).arg(path);
+                    ++carried;
+                    any = true;
+                } else {
+                    const QString lv = QString::fromStdWString(sl->getName());
+                    if (!skipped.contains(lv)) skipped << lv;
+                }
+            }
+            row += run;
+        }
+        if (any) ++outCol;
+    }
+    f.write(out.toUtf8());
+    return carried;
+}
+
+static QString takeLog(char *res) {
+    const QString s = res ? QString::fromUtf8(res) : QString("error: no result (bad arguments)\n");
+    if (res) flare_moho_free(res);
+    return s;
+}
+
+class ExportXflCommand final : public MenuItemHandler {
+public:
+    ExportXflCommand() : MenuItemHandler(MI_ExportXFL) {}
+    void execute() override { run(false); }
+    static void run(bool html5);
+} g_exportXflCommand;
+
+class ExportHtml5Command final : public MenuItemHandler {
+public:
+    ExportHtml5Command() : MenuItemHandler(MI_ExportHTML5) {}
+    void execute() override { ExportXflCommand::run(true); }
+} g_exportHtml5Command;
+
+void ExportXflCommand::run(bool html5) {
+    ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
+    TXsheet *xsheet = TApp::instance()->getCurrentXsheet()->getXsheet();
+    if (!scene || !xsheet) return;
+    if (!flare_ac_available()) {
+        DVGui::error(QObject::tr("This build does not include the AnimationCraft bridge (CMake option FLARE_WITH_AC)."));
+        return;
+    }
+    if (xsheet->getFrameCount() == 0 || xsheet->getColumnCount() == 0) {
+        DVGui::warning(QObject::tr("The scene has no content to export."));
+        return;
+    }
+    static GenericSaveFilePopup *xflPopup = nullptr, *htmlPopup = nullptr;
+    GenericSaveFilePopup *&popup = html5 ? htmlPopup : xflPopup;
+    if (!popup) {
+        popup = new GenericSaveFilePopup(html5 ? QObject::tr("Export HTML5") : QObject::tr("Export as XFL"));
+        popup->addFilterType(html5 ? "html" : "fla");
+        if (!html5) popup->addFilterType("xfl");
+    }
+    if (!scene->isUntitled())
+        popup->setFolder(scene->getScenePath().getParentDir());
+    else
+        popup->setFolder(TProjectManager::instance()->getCurrentProject()->getScenesPath());
+    TFilePath fp = popup->getPath();
+    if (fp.isEmpty()) return;
+    if (fp.getType().empty()) fp = fp.withType(html5 ? "html" : "fla");
+
+    const QString manifest = QDir::tempPath() + QString("/flare_ac_manifest_%1.tsv").arg(QDateTime::currentMSecsSinceEpoch());
+    QStringList skipped;
+    if (writeAcManifest(scene, xsheet, manifest, skipped) == 0) {
+        QFile::remove(manifest);
+        DVGui::error(QObject::tr("Nothing to export: no raster or SVG cells found.\nUnsupported levels: %1")
+                         .arg(skipped.join(", ")));
+        return;
+    }
+    const QByteArray out = fp.getQString().toUtf8();
+    const QByteArray man = manifest.toUtf8();
+    const QString log = takeLog(html5 ? flare_ac_html5_export(man.constData(), out.constData(), 1)
+                                      : flare_ac_xfl_export(man.constData(), out.constData()));
+    QFile::remove(manifest);
+    if (!log.startsWith("ok")) {
+        DVGui::error(QObject::tr("Export failed:\n%1").arg(log));
+        return;
+    }
+    QString msg = QObject::tr("Exported to:\n%1").arg(fp.getQString());
+    if (!skipped.isEmpty()) msg += QObject::tr("\n\nNot carried over (unsupported level or column type): %1").arg(skipped.join(", "));
+    const QStringList lines = log.split('\n', Qt::SkipEmptyParts);
+    if (lines.size() > 1) msg += "\n\n" + lines.mid(1, 8).join("\n");
+    std::vector<QString> okBtn = {QObject::tr("OK")};
+    DVGui::MsgBox(DVGui::INFORMATION, msg, okBtn, 0);
+}
+
+}  // namespace

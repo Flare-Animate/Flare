@@ -44,6 +44,8 @@
 #define MI_ImportMohoProject "MI_ImportMohoProject"
 #define MI_FlashGuide "MI_FlashGuide"
 #define MI_ExportFlash "MI_ExportFlash"
+#define MI_ExportXFL "MI_ExportXFL"
+#define MI_ExportHTML5 "MI_ExportHTML5"
 #define MI_NewNoteLevel "MI_NewNoteLevel"
 #define MI_RemoveEmptyColumns "MI_RemoveEmptyColumns"
 #define MI_NewProject "MI_NewProject"

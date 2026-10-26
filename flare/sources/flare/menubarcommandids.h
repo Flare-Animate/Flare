@@ -492,6 +492,8 @@
 #define MI_ExportXsheetPDF "MI_ExportXsheetPDF"
 #define MI_ExportCameraTrack "MI_ExportCameraTrack"
 #define MI_ExportFlash "MI_ExportFlash"
+#define MI_ExportXFL "MI_ExportXFL"
+#define MI_ExportHTML5 "MI_ExportHTML5"
 
 // mark id is added for each actual command (i.g. MI_SetCellMark1)
 #define MI_SetCellMark "MI_SetCellMark"

@@ -2024,6 +2024,12 @@ void MainWindow::defineActions() {
           "MainWindow",
           "Export for Flash / Adobe Animate Workflow..."),
       "", "export_flash");
+  createMenuFileAction(MI_ExportXFL,
+                       QT_TRANSLATE_NOOP("MainWindow", "Export as XFL (Animate)..."),
+                       "", "export_flash");
+  createMenuFileAction(MI_ExportHTML5,
+                       QT_TRANSLATE_NOOP("MainWindow", "Export HTML5..."), "",
+                       "export_flash");
   createMenuFileAction(
       MI_ExportTvpJson,
       QT_TRANSLATE_NOOP("MainWindow", "Export TVPaint JSON File"), "");

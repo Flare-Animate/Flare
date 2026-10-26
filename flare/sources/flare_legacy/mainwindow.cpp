@@ -2518,6 +2518,11 @@ void MainWindow::defineActions() {
   createMenuFileAction(MI_ExportFlash,
                        QT_TR_NOOP("&Export for Flash / Adobe Animate Workflow..."), "",
                        "export_flash");
+  createMenuFileAction(MI_ExportXFL,
+                       QT_TR_NOOP("Export as XFL (Animate)..."), "",
+                       "export_flash");
+  createMenuFileAction(MI_ExportHTML5, QT_TR_NOOP("Export HTML5..."), "",
+                       "export_flash");
 
   // Fill
 

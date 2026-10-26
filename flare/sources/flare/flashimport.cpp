@@ -23,6 +23,10 @@
 #include "flare/txshcell.h"
 #include "flare/txshsimplelevel.h"
 #include "flare/txshlevelcolumn.h"
+#include "flare/txshsoundcolumn.h"
+#include "flare/txshsoundlevel.h"
+#include "flare/sceneproperties.h"
+#include "toutputproperties.h"
 #include "flare/tstageobject.h"
 
 #include "flareqt/gutil.h"
@@ -222,14 +226,54 @@ static void appendImportLog(const QString &text) {
         f.write((QDateTime::currentDateTime().toString(Qt::ISODate) + "\n" + text + "\n\n").toUtf8());
 }
 
-static void importXflSvg(TXsheet *xsheet, const TFilePath &xflBaseDir, const QString &outPath) {
+// sound.tsv (row, file, startOffset, endOffset in frames) from flare_ac_xfl_import: one sound column
+// per voice, with the voice's in/out cut points as the column level's offsets.
+static void importXflSounds(TXsheet *xsheet, const QString &svgDir) {
+    QFile tsv(svgDir + "/sound.tsv");
+    if (!tsv.open(QIODevice::ReadOnly)) return;
+    for (const QString &line : QString::fromUtf8(tsv.readAll()).split('\n', Qt::SkipEmptyParts)) {
+        const QStringList f = line.split('\t');
+        if (f.size() < 4) continue;
+        IoCmd::LoadResourceArguments args;
+        args.expose = false;
+        args.resourceDatas.emplace_back(TFilePath((svgDir + "/" + f[1]).toStdWString()));
+        IoCmd::loadResources(args);
+        if (args.loadedLevels.empty()) { g_xflLog += "sound load failed: " + f[1] + "\n"; continue; }
+        TXshSoundLevel *level = dynamic_cast<TXshSoundLevel *>(*args.loadedLevels.begin());
+        if (!level) continue;
+        TXshSoundColumn *col = new TXshSoundColumn();
+        xsheet->insertColumn(xsheet->getFirstFreeColumnIndex(), col);
+        // Cells address the sound level's frames: skipping the first `in` and the last `out` frames
+        // is the cut; the first kept frame sits at the voice's start row.
+        const int start = std::max(0, f[0].toInt());
+        const int in = std::max(0, f[2].toInt());
+        const int last = level->getFrameCount() - std::max(0, f[3].toInt());
+        for (int i = in; i < last; ++i) col->setCell(start + i - in, TXshCell(level, TFrameId(i)));
+    }
+}
+
+// Returns true when the AnimationCraft bridge (flare_ac_xfl_import, ac-xfl + ac-render) built the
+// timeline; false when the older flare_xfl_export_svg path ran instead.
+static bool importXflSvg(TXsheet *xsheet, const TFilePath &xflBaseDir, const QString &outPath) {
     // Vector art (DOMShape + nested symbols) -> per-frame SVG via Rust flare_formats.
     // Without this, CS6 FLA/XFL files (art lives in LIBRARY symbols) import blank.
+    bool usedAc = false;
 #ifdef FLARE_WITH_RUST
     {
         const QString svgDir = outPath + "/xfl_svg";
-        char *res = flare_xfl_export_svg(xflBaseDir.getQString().toUtf8().constData(),
-                                         svgDir.toUtf8().constData());
+        // Preferred: the ac-core document model (real layers, keyframe spans, tweens, sounds).
+        char *res = flare_ac_available()
+                        ? flare_ac_xfl_import(xflBaseDir.getQString().toUtf8().constData(),
+                                              svgDir.toUtf8().constData())
+                        : nullptr;
+        usedAc = res && strncmp(res, "ok", 2) == 0;
+        if (!usedAc) {
+            const QString acLog = res ? QString::fromUtf8(res) : QString();
+            flare_moho_free(res);
+            res = flare_xfl_export_svg(xflBaseDir.getQString().toUtf8().constData(),
+                                       svgDir.toUtf8().constData());
+            if (!acLog.isEmpty()) qWarning().noquote() << "[XFL import] ac bridge failed, legacy path:" << acLog;
+        }
         g_xflLog = res ? QString::fromUtf8(res) : QStringLiteral("error: no result\n");
         flare_moho_free(res);
         QMap<QString, TXshSimpleLevel *> svgLevels;
@@ -265,9 +309,11 @@ static void importXflSvg(TXsheet *xsheet, const TFilePath &xflBaseDir, const QSt
         QFile lf(outPath + "/flare_import_log.txt");
         if (lf.open(QIODevice::WriteOnly | QIODevice::Text)) lf.write(g_xflLog.toUtf8());
         qDebug().noquote() << "[XFL import]" << g_xflLog;
+        if (usedAc) importXflSounds(xsheet, svgDir);
         xsheet->updateFrameCount();
         TApp::instance()->getCurrentXsheet()->notifyXsheetChanged();
     }
+    return usedAc;
 #else
     // Built without the Rust backend (-DFLARE_WITH_RUST=OFF): no SVG export, so
     // CS6 vector art living in LIBRARY symbols cannot be placed. Say so in the
@@ -277,13 +323,15 @@ static void importXflSvg(TXsheet *xsheet, const TFilePath &xflBaseDir, const QSt
     QFile lf(outPath + "/flare_import_log.txt");
     if (lf.open(QIODevice::WriteOnly | QIODevice::Text)) lf.write(g_xflLog.toUtf8());
     qDebug().noquote() << "[XFL import]" << g_xflLog;
+    return false;
 #endif
 }
 
 static void importXFLScene(ToonzScene *scene, TXsheet *xsheet,
                             const XFL::Document &doc,
                             const TFilePath &xflBaseDir, const QString &outPath) {
-    importXflSvg(xsheet, xflBaseDir, outPath);
+    // The ac bridge already converted layers, spans, vector symbols, bitmaps and sounds.
+    if (importXflSvg(xsheet, xflBaseDir, outPath)) return;
     if (doc.timelines.empty()) return;
 
     // Build libraryItemName → absolute file path

@@ -429,11 +429,13 @@
             <command>MI_ExportCameraTrack</command>
             <command>MI_ExportCurrentScene</command>
             <command>MI_ExportFlash</command>
+            <command>MI_ExportHTML5</command>
             <command>MI_ExportOCA</command>
             <command>MI_ExportSXF</command>
             <command>MI_ExportScenes</command>
             <command>MI_ExportTvpJson</command>
             <command>MI_ExportXDTS</command>
+            <command>MI_ExportXFL</command>
             <command>MI_ExportXsheetPDF</command>
             <command>MI_ImportFlash</command>
             <command>MI_ImportFlashVector</command>
