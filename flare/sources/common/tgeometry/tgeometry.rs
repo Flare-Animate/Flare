@@ -984,11 +984,26 @@ mod tests {
         t.iter().map(|x| f64::from_bits(u64::from_str_radix(x, 16).unwrap())).collect()
     }
 
-    fn same_bits(got: &[f64], want: &[f64], ctx: &str) {
+    /// Exact on the glibc host that recorded the golden; elsewhere (MSVC / Apple libm) the
+    /// libm-dependent records (sin / cos) may differ in the last bits, so they get 1e-12.
+    fn same_bits_libm(got: &[f64], want: &[f64], ctx: &str, libm: bool) {
         assert_eq!(got.len(), want.len(), "{ctx}");
+        let exact = !libm || cfg!(all(target_os = "linux", target_env = "gnu"));
         for (g, w) in got.iter().zip(want) {
-            assert_eq!(g.to_bits(), w.to_bits(), "{ctx}: {got:?} vs {want:?}");
+            // NaN sign is host-defined (x86 default NaN is negative, ARM's positive)
+            if g.is_nan() && w.is_nan() {
+                continue;
+            }
+            if exact {
+                assert_eq!(g.to_bits(), w.to_bits(), "{ctx}: {got:?} vs {want:?}");
+            } else {
+                assert!((g - w).abs() <= 1e-12 * w.abs().max(1.0), "{ctx}: {got:?} vs {want:?}");
+            }
         }
+    }
+
+    fn same_bits(got: &[f64], want: &[f64], ctx: &str) {
+        same_bits_libm(got, want, ctx, false)
     }
 
     fn parse_set(t: &mut std::slice::Iter<&str>) -> AngleSet {
@@ -1017,7 +1032,7 @@ mod tests {
                 }
                 "a-rot" => {
                     let a = hv(&l[1..]);
-                    same_bits(&affine_rotation(a[0]), &hv(&rhs.trim().split(' ').collect::<Vec<_>>()), line);
+                    same_bits_libm(&affine_rotation(a[0]), &hv(&rhs.trim().split(' ').collect::<Vec<_>>()), line, true);
                 }
                 "a-deg" | "a-degc" | "a-sc2" | "a-sc1" => {
                     let a = hv(&l[1..]);
@@ -1030,7 +1045,7 @@ mod tests {
                         }
                     };
                     assert_eq!(r, 0);
-                    same_bits(&out[..6], &hv(&rhs.trim().split(' ').collect::<Vec<_>>()), line);
+                    same_bits_libm(&out[..6], &hv(&rhs.trim().split(' ').collect::<Vec<_>>()), line, l[0] != "a-sc2" && l[0] != "a-sc1");
                 }
                 "m3" | "m4" => {
                     let op3 = ["mul", "inv", "get2d", "tr", "sc", "rot", "vec"];
@@ -1059,7 +1074,8 @@ mod tests {
                         }
                     };
                     assert_eq!(rc, 0, "{line}");
-                    same_bits(&out[..want.len()], &want, line);
+                    let libm = matches!((l[0], l[1]), ("m3", "rot") | ("m4", "rot") | ("m4", "rx") | ("m4", "ry") | ("m4", "rz"));
+                    same_bits_libm(&out[..want.len()], &want, line, libm);
                 }
                 "as" => {
                     let op: i32 = l[1].parse().unwrap();

@@ -143,7 +143,12 @@ mod tests {
                     "bez" => bez::flare_nsbezier_potential_value(x, len(l, 1.0), len(l, 0.0), al, stroke, lap, left, right),
                     _ => nsexp::flare_nsexp_potential_value(x, len(l, 1.0), len(l, 0.0), al, stroke, lap, left, right, range),
                 };
-                assert_eq!(got.to_bits(), f(vh).to_bits(), "{line} w={w}");
+                // `exp` is the platform libm: exact on the recording host (glibc), 1e-12 elsewhere
+                if kind != "exp" || cfg!(all(target_os = "linux", target_env = "gnu")) {
+                    assert_eq!(got.to_bits(), f(vh).to_bits(), "{line} w={w}");
+                } else {
+                    assert!((got - f(vh)).abs() <= 1e-12, "{line} w={w}");
+                }
                 values += 1;
             }
         }

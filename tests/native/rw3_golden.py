@@ -27,14 +27,27 @@ SRC_ROOT = os.path.join(ms.ROOT, "flare", "sources")
 
 
 def run(name, golden_rel, srcs, hdr_as=None, stubs=None, includes=None, extra=None,
-        keep=None, compile=None, chain_compile=None):
+        keep=None, compile=None, chain_compile=None, orig_marker=None):
     ap = argparse.ArgumentParser()
     ap.add_argument("--check", action="store_true")
     ap.add_argument("--verify-chain", action="store_true")
     args = ap.parse_args()
     harness = os.path.join(HERE, f"{name}_ref.cpp")
     golden = os.path.join(SRC_ROOT, golden_rel)
-    rev = ms.pre_deletion_tree(srcs[0])
+    if orig_marker:
+        # partial port: the .cpp still exists, so HEAD already holds the trimmed file. Take the
+        # newest revision whose copy still contains `orig_marker` (text only the original has).
+        import subprocess
+        rev = None
+        for r in ms.git("log", "--format=%H", "--", srcs[0]).splitlines():
+            data = subprocess.run(["git", "show", f"{r}:{srcs[0]}"], cwd=ms.ROOT, capture_output=True).stdout
+            if orig_marker.encode() in data:
+                rev = r
+                break
+        if rev is None:
+            sys.exit("no revision with the original " + srcs[0])
+    else:
+        rev = ms.pre_deletion_tree(srcs[0])
     incs = [os.path.join(SRC_ROOT, "include")] + [os.path.join(SRC_ROOT, i) for i in (includes or [])]
     with tempfile.TemporaryDirectory(prefix=name + "-") as wd:
         ms.extract(rev, srcs, wd)

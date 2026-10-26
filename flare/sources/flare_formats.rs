@@ -325,6 +325,8 @@ pub mod nsexppotential;
 pub mod tiio_jpg_exif;
 #[path = "common/tgeometry/tgeometry.rs"]
 pub mod tgeometry;
+#[path = "flash/placement.rs"]
+pub mod flash_placement;
 
 /// TFilePath query (see header). Returns full byte length; copies up to `cap` into `out`.
 #[no_mangle]
