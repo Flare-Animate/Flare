@@ -258,32 +258,49 @@ def _scan_local_headers(path: str):
         pos = buf.find(ZIP_LOCAL, max(end, pos + 4))
 
 
-def handle_cfb_fla(path: str, outdir: str) -> list:
-    """Legacy (Flash 8/CS3) FLAs are OLE compound files; dump their streams.
+class PartialImport(Exception):
+    """Raised when only part of a file could be recovered; carries the exported files."""
 
-    Stream layout follows JPEXS' FLA notes: Contents, Page N, Symbol N, Media N.
+    def __init__(self, message: str, files: list, extra: dict | None = None):
+        super().__init__(message)
+        self.files = files
+        self.extra = extra or {}
+
+
+def handle_cfb_fla(path: str, outdir: str) -> list:
+    """Legacy (Flash 8 / CS3 / CS4) binary FLA = OLE2 compound document.
+
+    Read natively (cfbf_reader.py, no olefile). The proprietary timeline /
+    library records inside the streams are NOT decoded, so this never reports
+    success: embedded JPEG/PNG bitmaps are recovered to fla_media/ and the
+    import ends as PARTIAL (exit 6) with the stream inventory in the manifest.
     """
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    import cfbf_reader
+    name = os.path.basename(path)
+    with open(path, "rb") as f:
+        buf = f.read()
     try:
-        import olefile
-    except ImportError:
-        import site  # python -I drops user site; retry there
-        sys.path.append(site.getusersitepackages())
-        try:
-            import olefile
-        except ImportError:
-            olefile = None
-    if olefile is None:
-        raise RuntimeError("Legacy binary FLA needs 'olefile' (pip install olefile), or resave as XFL in Animate.")
-    out = os.path.join(outdir, "fla_streams")
-    os.makedirs(out, exist_ok=True)
-    exported = []
-    with olefile.OleFileIO(path) as ole:
-        for parts in ole.listdir():
-            rel = "_".join(parts)
-            with open(os.path.join(out, rel), "wb") as f:
-                f.write(ole.openstream(parts).read())
-            exported.append("fla_streams/" + rel)
-    return exported
+        streams = cfbf_reader.read_streams(buf)
+    except cfbf_reader.CfbfError as e:
+        raise RuntimeError(f"{name}: damaged binary FLA ({e})")
+    media_dir = os.path.join(outdir, "fla_media")
+    exported, n = [], 0
+    for sname, data in streams:
+        for ext, img in cfbf_reader.carve_images(data):
+            if n >= 5000:
+                break
+            n += 1
+            os.makedirs(media_dir, exist_ok=True)
+            rel = "fla_media/%04d%s" % (n, ext)
+            with open(os.path.join(outdir, rel), "wb") as f:
+                f.write(img)
+            exported.append(rel)
+    inv = [{"name": sname, "size": len(data)} for sname, data in streams]
+    msg = (f"{name}: legacy binary FLA (Flash CS4 or earlier, OLE2). Timeline, layers and library are NOT "
+           f"decoded (format is proprietary; {len(streams)} streams found). Recovered {n} embedded bitmap(s). "
+           "Open it in Adobe Animate and save as a CS5+ .fla or XFL to import everything.")
+    raise PartialImport(msg, exported, {"fla_streams": inv, "partial": True})
 
 
 def handle_fla(path: str, outdir: str, decompiler: str | None) -> list:
@@ -296,6 +313,7 @@ def handle_fla(path: str, outdir: str, decompiler: str | None) -> list:
     if magic == bytes.fromhex("d0cf11e0a1b11ae1"):
         return handle_cfb_fla(path, outdir)
     if magic[:4] == ZIP_LOCAL or zipfile.is_zipfile(path):
+        check_flash_zip(path)
         extract_dir = os.path.join(outdir, "fla_extracted")
         os.makedirs(extract_dir, exist_ok=True)
         _safe_extract_zip(path, extract_dir)
@@ -313,29 +331,49 @@ def handle_fla(path: str, outdir: str, decompiler: str | None) -> list:
     return exported
 
 
-def builtin_swf_extract(path: str, outdir: str) -> list:
-    """Dependency-free SWF fallback (tag walk per SWF spec, as in ruffle/swf2js).
+MAX_STAGE_PX = 16384
+MAX_BODY = 512 * 1024 * 1024
 
-    Writes swf_info.json (header + tag histogram) and dumps embedded JPEG/PNG/GIF
-    images from DefineBits* tags (6/21/35/90). DefineBitsJPEG3/4 alpha is dropped.
+
+def read_swf(raw: bytes, name: str) -> dict:
+    """Validate a SWF and return header facts + decompressed body (F3/F4/F6/F7).
+
+    Raises RuntimeError with a plain message for empty/short/corrupt/truncated
+    input, FileLength mismatch (also after zlib/LZMA decompression), and
+    inverted or absurd (> 16384 px) stage rectangles.
     """
     import struct
     import zlib
-    with open(path, "rb") as f:
-        raw = f.read()
+    if len(raw) == 0:
+        raise RuntimeError(f"{name}: empty file (0 bytes), not a SWF")
+    if len(raw) < 8:
+        raise RuntimeError(f"{name}: too short to be a SWF ({len(raw)} bytes)")
     sig, ver = raw[:3], raw[3]
-    if sig == b"CWS":
-        body = zlib.decompress(raw[8:])
-    elif sig == b"ZWS":
-        import lzma
-        props = raw[12:17]
-        body = lzma.LZMADecompressor(lzma.FORMAT_RAW, filters=[lzma._decode_filter_properties(lzma.FILTER_LZMA1, props)]).decompress(raw[17:])
-    elif sig == b"FWS":
-        body = raw[8:]
-    else:
-        raise RuntimeError("Not a SWF file")
-    name = os.path.basename(path)
     declared = struct.unpack_from("<I", raw, 4)[0]
+    want = max(declared - 8, 0)
+    limit = min(want, MAX_BODY) + 1
+    warnings = []
+    try:
+        if sig == b"FWS":
+            body = raw[8:]
+        elif sig == b"CWS":
+            d = zlib.decompressobj()
+            body = d.decompress(raw[8:], limit)
+            if not d.eof and len(body) <= want:
+                raise RuntimeError(f"{name}: malformed SWF: zlib stream truncated")
+            if d.eof and d.unused_data:
+                warnings.append(f"{len(d.unused_data)} trailing byte(s) after the compressed stream ignored")
+        elif sig == b"ZWS":
+            import lzma
+            if len(raw) < 17:
+                raise RuntimeError(f"{name}: malformed SWF: truncated LZMA header")
+            flt = lzma._decode_filter_properties(lzma.FILTER_LZMA1, raw[12:17])
+            dec = lzma.LZMADecompressor(lzma.FORMAT_RAW, filters=[flt])
+            body = dec.decompress(raw[17:], limit)
+        else:
+            raise RuntimeError(f"{name}: not a SWF file (bad signature)")
+    except (zlib.error, EOFError, OSError, ValueError) as e:
+        raise RuntimeError(f"{name}: malformed SWF: compressed data damaged or truncated ({e})")
     if declared != 8 + len(body):
         raise RuntimeError(
             f"{name}: malformed SWF: header FileLength={declared} but "
@@ -343,11 +381,44 @@ def builtin_swf_extract(path: str, outdir: str) -> list:
     if not body:
         raise RuntimeError(f"{name}: malformed SWF: no data after header")
     nbits = body[0] >> 3
-    pos = (5 + 4 * nbits + 7) // 8
-    if pos + 4 > len(body):
+    rect_len = (5 + 4 * nbits + 7) // 8
+    if rect_len + 4 > len(body):
         raise RuntimeError(f"{name}: malformed SWF: truncated header")
-    rate, count = body[pos + 1], struct.unpack_from("<H", body, pos + 2)[0]
-    pos += 4
+    bits = int.from_bytes(body[:rect_len], "big")
+    total = rect_len * 8
+
+    def sb(i):
+        v = (bits >> (total - 5 - nbits * (i + 1))) & ((1 << nbits) - 1) if nbits else 0
+        return v - (1 << nbits) if nbits and v >> (nbits - 1) else v
+    xmin, xmax, ymin, ymax = (sb(i) for i in range(4))
+    w, h = xmax - xmin, ymax - ymin
+    if w < 0 or h < 0:
+        raise RuntimeError(f"{name}: malformed SWF: negative stage size ({w}x{h} twips)")
+    if w > MAX_STAGE_PX * 20 or h > MAX_STAGE_PX * 20:
+        raise RuntimeError(f"{name}: malformed SWF: absurd stage size {w // 20}x{h // 20} px (limit {MAX_STAGE_PX} px)")
+    rate = body[rect_len + 1] + body[rect_len] / 256.0
+    count = struct.unpack_from("<H", body, rect_len + 2)[0]
+    return {"sig": sig.decode(), "version": ver, "declared": declared, "body": body,
+            "tags_at": rect_len + 4, "width": w / 20, "height": h / 20,
+            "frame_rate": round(rate, 3), "frame_count": count, "warnings": warnings}
+
+
+def builtin_swf_extract(path: str, outdir: str, hdr: dict | None = None) -> list:
+    """Dependency-free SWF fallback (tag walk per SWF spec, as in ruffle/swf2js).
+
+    Writes swf_info.json (size, fps, frames, tag histogram), dumps embedded
+    JPEG/PNG/GIF from DefineBits* tags (6/21/35/90; JPEG3/4 alpha dropped) and
+    each AS3 DoABC/DoABC2 block as raw abc/*.abc. ABC is NOT decompiled to
+    .as source without JPEXS; the result says so.
+    """
+    import struct
+    with open(path, "rb") as f:
+        raw = f.read()
+    name = os.path.basename(path)
+    hdr = hdr or read_swf(raw, name)
+    body, pos = hdr["body"], hdr["tags_at"]
+    for w in hdr["warnings"]:
+        print(f"Warning: {name}: {w}", file=sys.stderr)
     tags, exported = {}, []
     saw_end = False
     # validate the whole tag stream before writing anything
@@ -370,6 +441,7 @@ def builtin_swf_extract(path: str, outdir: str) -> list:
     if not saw_end:
         raise RuntimeError(f"{name}: malformed SWF: missing End tag")
     os.makedirs(outdir, exist_ok=True)
+    abc_n = 0
     while pos + 2 <= len(body):
         code_len = struct.unpack_from("<H", body, pos)[0]
         code, ln = code_len >> 6, code_len & 0x3F
@@ -382,6 +454,18 @@ def builtin_swf_extract(path: str, outdir: str) -> list:
         tags[code] = tags.get(code, 0) + 1
         if code == 0:
             break
+        if code in (72, 82):
+            blk = data
+            if code == 82:  # DoABC2: flags u32, cstring name, then ABC
+                z = data.find(b"\0", 4)
+                blk = data[z + 1:] if z >= 0 else b""
+            if len(blk) >= 4:
+                abc_n += 1
+                os.makedirs(os.path.join(outdir, "abc"), exist_ok=True)
+                rel = "abc/block_%03d.abc" % abc_n
+                with open(os.path.join(outdir, rel), "wb") as f:
+                    f.write(blk)
+                exported.append(rel)
         if code in (6, 21, 35, 90) and len(data) > 2:
             cid = struct.unpack_from("<H", data)[0]
             img = data[2:]
@@ -390,12 +474,18 @@ def builtin_swf_extract(path: str, outdir: str) -> list:
                 img = img[4 + (2 if code == 90 else 0):][:alen]
             img = img.replace(bytes.fromhex("ffd9ffd8"), b"", 1) if img[:4] == bytes.fromhex("ffd9ffd8") else img
             ext = ".png" if img[1:4] == b"PNG" else ".gif" if img[:3] == b"GIF" else ".jpg"
-            name = f"image_{cid}{ext}"
-            with open(os.path.join(outdir, name), "wb") as f:
+            iname = f"image_{cid}{ext}"
+            with open(os.path.join(outdir, iname), "wb") as f:
                 f.write(img)
-            exported.append(name)
-    info = {"version": ver, "frame_rate": rate, "frame_count": count,
-            "has_as3": 82 in tags or 72 in tags, "tags": tags}
+            exported.append(iname)
+    info = {"version": hdr["version"], "compression": {"FWS": "none", "CWS": "zlib", "ZWS": "lzma"}[hdr["sig"]],
+            "width": hdr["width"], "height": hdr["height"], "frame_rate": hdr["frame_rate"],
+            "frame_count": hdr["frame_count"], "has_as3": 82 in tags or 72 in tags,
+            "abc_blocks": abc_n, "tags": tags}
+    if abc_n:
+        info["as3_note"] = ("ActionScript 3 bytecode exported as raw abc/*.abc; decompiling to .as source "
+                            "needs JPEXS (ffdec) and is unsupported in the built-in extractor")
+        print(f"Note: {name}: {abc_n} AS3 ABC block(s) saved as raw .abc; no .as source without JPEXS.", file=sys.stderr)
     with open(os.path.join(outdir, "swf_info.json"), "w", encoding="utf-8") as f:
         json.dump(info, f, indent=2)
     return exported + ["swf_info.json"]
@@ -403,6 +493,9 @@ def builtin_swf_extract(path: str, outdir: str) -> list:
 
 def handle_swf(path: str, outdir: str, decompiler: str | None) -> list:
     exported = []
+    with open(path, "rb") as f:
+        raw = f.read()
+    hdr = read_swf(raw, os.path.basename(path))  # reject empty/corrupt/truncated/absurd first
     tmp = os.path.join(outdir, "swf_decomp")
     os.makedirs(tmp, exist_ok=True)
     try:
@@ -410,8 +503,9 @@ def handle_swf(path: str, outdir: str, decompiler: str | None) -> list:
     except RuntimeError as e:
         if decompiler:
             raise
+        shutil.rmtree(tmp, ignore_errors=True)
         print(f"Warning: JPEXS unavailable, using built-in SWF extractor ({str(e).splitlines()[0]})", file=sys.stderr)
-        return builtin_swf_extract(path, outdir)
+        return builtin_swf_extract(path, outdir, hdr)
     # include script files from decompiler output too
     exported += copy_tree(tmp, outdir, patterns=(".svg", ".png", ".jpg", ".jpeg", ".xml", ".as", ".jsfl", ".js"))
     return exported
@@ -443,10 +537,49 @@ def handle_media(path: str, outdir: str, ext: str) -> list:
     return handle_as(path, outdir)
 
 
+FLASH_EXT = (".swf", ".fla", ".xfl", ".swc", ".as", ".jsfl")
+FLASH_ROOT_NAMES = ("domdocument.xml", "catalog.xml", "meta-inf/air/application.xml", "library.swf")
+MAX_UNPACKED = 2 << 30
+
+
+def check_flash_zip(path: str, need_dom: bool = False) -> None:
+    """Cheap central-directory check (F9): reject non-Flash zips before extracting anything.
+
+    A Flash package has a Flash marker at the archive root or one wrapper folder
+    down (DOMDocument.xml, catalog.xml, AIR descriptor, or .swf/.fla/.xfl/.swc/.as
+    files). Deeper-only content (e.g. a source tree with test SWFs) is rejected.
+    """
+    name = os.path.basename(path)
+    try:
+        z = zipfile.ZipFile(path, "r")
+    except zipfile.BadZipFile:
+        return  # damaged directory: _safe_extract_zip salvages via local headers
+    with z:
+        infos = z.infolist()
+        if sum(i.file_size for i in infos) > MAX_UNPACKED:
+            raise RuntimeError(f"{name}: archive expands past {MAX_UNPACKED >> 30} GiB; refusing to extract")
+        found = False
+        for i in infos:
+            n = i.filename.replace("\\", "/").lstrip("./").lower()
+            if n.endswith("/"):
+                continue
+            parts = n.split("/")
+            if len(parts) > 2:
+                continue
+            if need_dom:
+                found |= parts[-1] == "domdocument.xml"
+            else:
+                found |= n in FLASH_ROOT_NAMES or parts[-1] in FLASH_ROOT_NAMES or n.endswith(FLASH_EXT)
+        if not found:
+            what = "an XFL-based FLA (no DOMDocument.xml)" if need_dom else "a Flash package (no DOMDocument.xml, SWF, FLA, XFL, SWC or AS at its top level)"
+            raise RuntimeError(f"{name}: zip is not {what}; {len(infos)} entries, nothing extracted")
+
+
 def handle_air(path: str, outdir: str, decompiler: str | None) -> list:
     """AIR/ANE packages are ZIPs holding SWF/SWC/XML; extract then recurse."""
     if not zipfile.is_zipfile(path):
         raise RuntimeError(f"{os.path.basename(path)}: AIR/ANE package is not a ZIP archive")
+    check_flash_zip(path)
     extract_dir = os.path.join(outdir, "pkg_extracted")
     os.makedirs(extract_dir, exist_ok=True)
     _safe_extract_zip(path, extract_dir)
@@ -487,9 +620,13 @@ def main():
         print(f"Input {inp} not found", file=sys.stderr)
         sys.exit(2)
 
+    if not os.path.isdir(inp) and os.path.getsize(inp) == 0:
+        print(f"{os.path.basename(inp)}: empty file (0 bytes), nothing to import", file=sys.stderr)
+        sys.exit(4)
     os.makedirs(outdir, exist_ok=True)
 
     files = []
+    partial_msg, manifest_extra = None, {}
     try:
         if os.path.isdir(inp):
             # Treat as XFL folder
@@ -535,6 +672,9 @@ def main():
             else:
                 print(f"Unsupported file type: {ext}", file=sys.stderr)
                 sys.exit(3)
+    except PartialImport as e:
+        files += e.files
+        partial_msg, manifest_extra, container_type = str(e), e.extra, "fla-binary"
     except RuntimeError as e:
         print(str(e), file=sys.stderr)
         sys.exit(4)
@@ -574,6 +714,7 @@ def main():
         "type": container_type,
         "problems": problems,
     }
+    manifest.update(manifest_extra)
     if jsfl_metadata:
         manifest["jsfl_scripts"] = jsfl_metadata
     mf = os.path.join(outdir, "manifest.json")
@@ -586,6 +727,9 @@ def main():
         with open(pf, "w", encoding="utf-8") as f:
             json.dump(problems, f, indent=2)
 
+    if partial_msg:
+        print(f"Import PARTIAL: {partial_msg}", file=sys.stderr)
+        sys.exit(6)
     print(f"Import complete. Exported {len(files)} files.")
     sys.exit(0)
 

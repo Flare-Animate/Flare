@@ -5,6 +5,9 @@ Patterns (entity/update loop, AABB hitTest, key state) follow Citrus-Engine
 (MIT), Adobe-Flash--Simple-Game-Engine and swf2js (MIT) timeline playback;
 scripting is an AS3-like subset translated to JS by `as3_to_js`.
 
+An import_container.py output folder of a SWF is accepted in place of scene.json
+(bitmaps only, see scene_from_import).
+
 Scene JSON (all keys but width/height/sprites-or-scenes optional):
 {"width":550,"height":400,"fps":24,"bg":"#fff","sounds":{"ding":"d.mp3"},
  "scenes":[{"name":"a","sprites":[ ... ]}],   # or top-level "sprites"
@@ -103,10 +106,61 @@ def export(scene):
             '<script>%s</script>' % js)
 
 
+def scene_from_import(outdir):
+    """Build a scene dict from an import_container.py output folder (swf_info.json + image_*).
+
+    Producer path for imported Flash files (F11). Honest scope: stage size and
+    fps come from the SWF header; each extracted bitmap becomes a static sprite
+    (laid out in a grid when the SWF placement is unknown). Timelines, vector
+    shapes and ActionScript are NOT converted.
+    """
+    import os
+    info_p = os.path.join(outdir, 'swf_info.json')
+    if not os.path.isfile(info_p):
+        raise ValueError('%s has no swf_info.json: not the output of import_container.py on a SWF' % outdir)
+    try:
+        with open(info_p, encoding='utf-8') as f:
+            info = json.load(f)
+    except ValueError as e:
+        raise ValueError('swf_info.json is not valid JSON: %s' % e)
+    w, h = int(info.get('width') or 0), int(info.get('height') or 0)
+    if not (0 < w <= 16384 and 0 < h <= 16384):
+        raise ValueError('swf_info.json has no usable stage size (%sx%s)' % (w, h))
+    sprites, x, y, rowh = [], 0, 0, 0
+    for i, n in enumerate(sorted(os.listdir(outdir))):
+        if not n.startswith('image_') or not n.lower().endswith(('.png', '.jpg', '.gif')):
+            continue
+        sw, sh = min(96, w), min(96, h)
+        if x + sw > w:
+            x, y, rowh = 0, y + rowh, 0
+        sprites.append({'name': 'img%d' % i, 'x': x, 'y': y, 'w': sw, 'h': sh, 'image': n})
+        x, rowh = x + sw, max(rowh, sh)
+    return {'width': w, 'height': h, 'fps': info.get('frame_rate') or 24, 'sprites': sprites,
+            'note': 'imported: bitmaps only; timeline, shapes and scripts not converted'}
+
+
+def load_scene(path):
+    import os
+    if os.path.isdir(path):
+        return scene_from_import(path)
+    try:
+        with open(path, encoding='utf-8') as f:
+            scene = json.load(f)
+    except OSError as e:
+        raise ValueError('cannot read %s: %s' % (path, e.strerror or e))
+    except ValueError as e:  # JSONDecodeError and bad UTF-8
+        raise ValueError('%s is not valid scene JSON: %s' % (path, e))
+    if not isinstance(scene, dict) or not ('sprites' in scene or 'scenes' in scene):
+        raise ValueError('%s is JSON but not a scene (needs a top-level object with "sprites" or "scenes")' % path)
+    return scene
+
+
 if __name__ == '__main__':
     if len(sys.argv) != 3:
-        sys.exit('usage: game_export.py scene.json out.html')
-    with open(sys.argv[1]) as f:
-        html = export(json.load(f))
-    with open(sys.argv[2], 'w') as f:
+        sys.exit('usage: game_export.py <scene.json | import_output_dir> out.html')
+    try:
+        html = export(load_scene(sys.argv[1]))
+    except ValueError as e:
+        sys.exit('game_export: %s' % e)
+    with open(sys.argv[2], 'w', encoding='utf-8') as f:
         f.write(html)

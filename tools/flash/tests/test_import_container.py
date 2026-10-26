@@ -1031,7 +1031,7 @@ def test_convert_swf_to_xfl_fallback_writes_matching_stage():
         with open(swf, "wb") as f:
             f.write(_build_swf(640, 480, 12.0, 5, bg=(0x00, 0x00, 0x00)))
         out = os.path.join(td, "out_xfl")
-        assert convert_swf_to_xfl(swf, out, use_jpexs=False) is True
+        assert convert_swf_to_xfl(swf, out, use_jpexs=False, stage_only=True, use_native=False) is True
         assert os.path.isfile(os.path.join(out, "DOMDocument.xml"))
 
         doc = XFLReader(out).read()

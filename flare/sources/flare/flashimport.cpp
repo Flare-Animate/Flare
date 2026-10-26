@@ -1112,6 +1112,28 @@ public:
 // ---------------------------------------------------------------------------
 
 bool openNonSceneFile(const TFilePath &path) {
+    // A folder on the command line (F10): an XFL project folder imports as
+    // XFL; any other folder gets a visible error instead of a silent no-op.
+    {
+        const QFileInfo fi(path.getQString());
+        if (fi.isDir() && fi.suffix().compare("tnz", Qt::CaseInsensitive) != 0) {
+            const QDir dir(fi.absoluteFilePath());
+            if (dir.exists("DOMDocument.xml") ||
+                !dir.entryList(QStringList() << "*.xfl", QDir::Files).isEmpty()) {
+                try {
+                    importFlashFile(path);
+                } catch (const std::exception &e) {
+                    DVGui::error(QObject::tr("Flash import failed: %1").arg(e.what()));
+                }
+            } else {
+                DVGui::error(QObject::tr(
+                                 "%1 is a folder but not an XFL project (no "
+                                 "DOMDocument.xml or .xfl file inside); nothing was opened.")
+                                 .arg(path.getQString()));
+            }
+            return true;
+        }
+    }
     const QString ext = QString::fromStdString(path.getType()).toLower();
     if (ext == "tnz" || ext == "xdts" || ext == "sxf" || ext.isEmpty())
         return false;

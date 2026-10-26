@@ -48,6 +48,8 @@ pub mod fdttext;
 pub mod fdtbuttons;
 #[path = "common/flash/xfl.rs"]
 pub mod xfl;
+#[path = "common/flash/ac_lzma.rs"]
+pub mod lzma;
 #[path = "common/flash/ac_swf.rs"]
 pub mod ac_swf;
 #[path = "common/flash/ac_as3_abc.rs"]

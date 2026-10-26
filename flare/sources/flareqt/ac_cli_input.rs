@@ -192,7 +192,7 @@ mod tests {
         let mut b = tiny(false);
         b[..3].copy_from_slice(b"ZWS");
         let e = swf_info("z.swf", &b).unwrap_err();
-        assert!(e.contains("ZWS") && !e.contains("UTF-8"), "{e}");
+        assert!(e.contains("malformed SWF") && !e.contains("UTF-8"), "{e}");
     }
 
     #[test]

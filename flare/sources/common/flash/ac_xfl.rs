@@ -20,6 +20,9 @@ pub mod edges;
 mod read;
 #[path = "ac_xfl_write.rs"]
 mod write;
+/// LZMA1 decoder (ZWS files).
+#[path = "ac_lzma.rs"]
+pub mod lzma;
 /// SWF container, character ids and tag helpers.
 #[path = "ac_swf.rs"]
 pub mod swf;

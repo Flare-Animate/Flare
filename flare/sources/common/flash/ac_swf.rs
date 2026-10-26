@@ -299,20 +299,70 @@ pub fn write_rect(w: &mut BitW, r: [i32; 4]) {
     w.align();
 }
 
-/// Read an FWS or CWS file (ZWS/LZMA is reported as unsupported).
-pub fn parse(bytes: &[u8]) -> Result<Swf, String> {
-    if bytes.len() < 8 {
-        return Err("too short to be a SWF".into());
+/// Largest stage edge accepted, in pixels (Flash Player's own limit is 8191
+/// px; 16384 leaves room for odd but real files).
+pub const MAX_STAGE_PX: i64 = 16384;
+
+/// Cap on a decompressed SWF body (decompression-bomb guard): 512 MiB.
+pub const MAX_BODY: usize = 512 * 1024 * 1024;
+
+/// Reject stage rectangles that are inverted, overflow, or are absurdly large.
+pub fn check_stage(stage: [i32; 4]) -> Result<(), String> {
+    let w = stage[1] as i64 - stage[0] as i64;
+    let h = stage[3] as i64 - stage[2] as i64;
+    if w < 0 || h < 0 {
+        return Err(format!("malformed SWF: negative stage size ({}x{} twips)", w, h));
     }
-    let version = bytes[3];
+    if w > MAX_STAGE_PX * 20 || h > MAX_STAGE_PX * 20 {
+        return Err(format!("malformed SWF: absurd stage size {}x{} px (limit {} px)", w / 20, h / 20, MAX_STAGE_PX));
+    }
+    Ok(())
+}
+
+/// Signature and decompressed body (everything after the 8-byte header) of an
+/// FWS, CWS or ZWS file. For compressed files the body must be exactly
+/// `FileLength - 8` bytes, so a truncated zlib or LZMA stream is an error,
+/// the same as a truncated FWS.
+pub fn body_of(bytes: &[u8]) -> Result<(String, Vec<u8>), String> {
+    if bytes.is_empty() {
+        return Err("empty file (0 bytes), not a SWF".into());
+    }
+    if bytes.len() < 8 {
+        return Err(format!("too short to be a SWF ({} bytes)", bytes.len()));
+    }
+    let sig = String::from_utf8_lossy(&bytes[..3]).into_owned();
+    let declared = u32::from_le_bytes([bytes[4], bytes[5], bytes[6], bytes[7]]) as usize;
+    let want = declared.saturating_sub(8);
+    let limit = want.min(MAX_BODY);
     let body = match &bytes[..3] {
         b"FWS" => bytes[8..].to_vec(),
-        b"CWS" => unzlib(&bytes[8..])?,
-        b"ZWS" => return Err("LZMA-compressed SWF (ZWS) is not supported".into()),
-        _ => return Err("not a SWF file".into()),
+        b"CWS" => {
+            let mut out = Vec::new();
+            // one byte past the declared size: detects an over-long stream without inflating a bomb
+            ZlibDecoder::new(&bytes[8..]).take(limit as u64 + 1).read_to_end(&mut out).map_err(|e| format!("malformed SWF: zlib stream damaged or truncated ({e})"))?;
+            out
+        }
+        b"ZWS" => {
+            if bytes.len() < 17 {
+                return Err("malformed SWF: truncated LZMA header".into());
+            }
+            if want > MAX_BODY {
+                return Err("malformed SWF: declared length too large".into());
+            }
+            super::lzma::decode(&bytes[12..17], &bytes[17..], want).map_err(|e| format!("malformed SWF: {e}"))?
+        }
+        _ => return Err("not a SWF file (bad signature)".into()),
     };
+    Ok((sig, body))
+}
+
+/// Read an FWS, CWS or ZWS file.
+pub fn parse(bytes: &[u8]) -> Result<Swf, String> {
+    let version = bytes.get(3).copied().unwrap_or(0);
+    let (_, body) = body_of(bytes)?;
     let mut r = BitR::new(&body);
     let stage = rect(&mut r);
+    check_stage(stage)?;
     let rate = r.u16();
     let frame_count = r.u16();
     let tags = parse_tags(&body[r.pos.min(body.len())..]);
@@ -333,16 +383,7 @@ pub struct SwfCheck {
 /// Strict structural check: signature, FileLength equal to the (decompressed)
 /// length, header present, tag stream inside the data and closed by End.
 pub fn validate(bytes: &[u8]) -> Result<SwfCheck, String> {
-    if bytes.len() < 8 {
-        return Err("too short to be a SWF".into());
-    }
-    let sig = String::from_utf8_lossy(&bytes[..3]).into_owned();
-    let body = match &bytes[..3] {
-        b"FWS" => bytes[8..].to_vec(),
-        b"CWS" => unzlib(&bytes[8..])?,
-        b"ZWS" => return Err("LZMA-compressed SWF (ZWS) is not supported yet; recompress it as FWS/CWS first".into()),
-        _ => return Err("not a SWF file (bad signature)".into()),
-    };
+    let (sig, body) = body_of(bytes)?;
     let declared = u32::from_le_bytes([bytes[4], bytes[5], bytes[6], bytes[7]]);
     let actual = 8 + body.len();
     if declared as usize != actual {
@@ -352,7 +393,8 @@ pub fn validate(bytes: &[u8]) -> Result<SwfCheck, String> {
         return Err("malformed SWF: no data after the header".into());
     }
     let mut r = BitR::new(&body);
-    let _ = rect(&mut r);
+    let stage = rect(&mut r);
+    check_stage(stage)?;
     r.u32();
     let mut p = r.pos;
     if p > body.len() {

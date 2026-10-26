@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import json
 import os
+import sys
 from dataclasses import dataclass
 from typing import Dict, List, Optional
 import zipfile
@@ -440,6 +441,7 @@ def read_swf_header(swf_path: str) -> Optional[Dict]:
                 return None
             version = head[3]
             body = f.read()
+        declared = int.from_bytes(head[4:8], 'little')
     except OSError:
         return None
 
@@ -450,6 +452,8 @@ def read_swf_header(swf_path: str) -> Optional[Dict]:
             body = zlib.decompress(body)
         except Exception:
             return None
+        if declared != 8 + len(body):
+            return None  # truncated / lying FileLength
     elif signature == b'ZWS':
         # LZMA-compressed SWF uses a non-standard container; callers decide how
         # to handle it rather than guessing at a decode here.
@@ -486,6 +490,8 @@ def read_swf_header(swf_path: str) -> Optional[Dict]:
     xmin, xmax, ymin, ymax = fields
     width = round((xmax - xmin) / 20)
     height = round((ymax - ymin) / 20)
+    if width < 0 or height < 0 or width > 16384 or height > 16384:
+        return None  # negative or absurd stage (F7)
 
     frame_rate = body[rect_len + 1] + body[rect_len] / 256.0
     frame_count = int.from_bytes(body[rect_len + 2:rect_len + 4], 'little')
@@ -515,56 +521,76 @@ def read_swf_header(swf_path: str) -> Optional[Dict]:
             'frame_count': frame_count, 'background_color': background_color}
 
 
-def convert_swf_to_xfl(swf_path: str, xfl_output: str, use_jpexs: bool = True) -> bool:
-    """Convert a SWF file to XFL format.
-    
-    This is a high-level function that can use either:
-    1. JPEXS decompiler (if available and use_jpexs=True)
-    2. Basic conversion using openfl/swf-like parsing (future enhancement)
-    
-    Args:
-        swf_path: Path to input SWF file
-        xfl_output: Path for output XFL (directory or .xfl file)
-        use_jpexs: Whether to attempt using JPEXS decompiler
-    
-    Returns:
-        True if conversion succeeded, False otherwise
+def find_flare_cli() -> Optional[str]:
+    """Locate the native converter: $FLARE_CLI, PATH, then common cargo target dirs."""
+    import shutil
+    cand = [os.environ.get('FLARE_CLI'), shutil.which('flare-cli')]
+    here = os.path.dirname(os.path.abspath(__file__))
+    root = os.path.abspath(os.path.join(here, '..', '..'))
+    for d in ('cargo/debug', 'cargo/release'):
+        for base in (os.environ.get('CARGO_TARGET_DIR'), os.path.join(root, 'target')):
+            if base:
+                cand.append(os.path.join(base, d.split('/')[-1], 'flare-cli'))
+                cand.append(os.path.join(base, 'flare-cli'))
+    return next((c for c in cand if c and os.path.isfile(c) and os.access(c, os.X_OK)), None)
+
+
+def convert_swf_to_xfl(swf_path: str, xfl_output: str, use_jpexs: bool = True,
+                       stage_only: bool = False, use_native: bool = True) -> bool:
+    """Convert a SWF file to XFL. Never reports success for dropped content.
+
+    Order: (1) JPEXS/ffdec if installed, (2) the native ``flare-cli convert``
+    (Rust SWF importer: timeline, shapes, bitmaps), (3) only when the caller
+    passes ``stage_only=True``: a stage-only XFL (size / fps / background, NO
+    frames, shapes or symbols), reported as such. Otherwise returns False.
     """
-    if use_jpexs:
-        # Try to use JPEXS if available
-        try:
-            import subprocess
-            # Check if jpexs/ffdec is available
-            result = subprocess.run(['ffdec', '-help'], capture_output=True, timeout=5)
-            if result.returncode == 0:
-                # Use JPEXS to export to XFL
-                cmd = ['ffdec', '-export', 'fla', xfl_output, swf_path]
-                result = subprocess.run(cmd, capture_output=True, timeout=60)
-                return result.returncode == 0
-        except (FileNotFoundError, subprocess.TimeoutExpired):
-            pass
-    
-    # Fallback: no decompiler available. Rebuilding shapes, symbols and
-    # timelines from SWF tags is JPEXS' job; what we can always do without it is
-    # read the SWF header and emit a valid, openable XFL whose document
-    # properties (stage size, frame rate, background colour) match the source,
-    # so the artwork can be re-imported into a correctly configured stage.
+    import subprocess
+    # always validate first so corrupt / absurd files fail the same way everywhere
     header = read_swf_header(swf_path)
     if header is None:
-        print(f"Error: {swf_path} is not a readable SWF file")
+        print(f"Error: {swf_path} is not a readable, valid SWF file")
+        return False
+    if use_jpexs:
+        try:
+            result = subprocess.run(['ffdec', '-help'], capture_output=True, timeout=5)
+            if result.returncode == 0:
+                cmd = ['ffdec', '-export', 'fla', xfl_output, swf_path]
+                result = subprocess.run(cmd, capture_output=True, timeout=60)
+                if result.returncode == 0:
+                    return True
+        except (FileNotFoundError, subprocess.TimeoutExpired):
+            pass
+    cli = find_flare_cli() if use_native else None
+    if cli:
+        target = xfl_output if xfl_output.lower().endswith(('.fla', '.xfl')) else xfl_output + '.xfl'
+        r = subprocess.run([cli, 'convert', swf_path, target], capture_output=True, timeout=300)
+        produced = target if os.path.exists(target) else os.path.splitext(target)[0]
+        if r.returncode == 0 and os.path.exists(produced):
+            notes = [l for l in r.stderr.decode('utf-8', 'replace').splitlines() if l.startswith('note:')]
+            print(f"Converted natively with flare-cli to {produced}")
+            if notes:
+                print(f"Not carried over ({len(notes)} note(s)):")
+                for n in notes[:20]:
+                    print("  " + n)
+            return True
+        print("Error: flare-cli could not convert this SWF: " +
+              (r.stderr or r.stdout).decode('utf-8', 'replace').strip()[:300])
+        return False
+    if not stage_only:
+        print("Error: cannot convert timeline, shapes or symbols: no JPEXS/ffdec and no flare-cli found "
+              "(set FLARE_CLI). Nothing was written. Use --stage-only to write only the stage "
+              "size/fps/background (no frames).")
         return False
     if header['compression'] == 'lzma':
-        print("Error: LZMA-compressed SWF (ZWS) is not supported by this "
-              "fallback; install JPEXS/ffdec to convert it")
+        print("Error: LZMA-compressed SWF (ZWS) stage-only fallback is unavailable; install JPEXS/ffdec")
         return False
-
     document = XFLDocument(width=header['width'], height=header['height'],
                            frame_rate=header['frame_rate'],
                            background_color=header['background_color'])
     XFLWriter(xfl_output, document).write()
-    print(f"Note: wrote stage-only XFL ({header['width']}x{header['height']} @ "
-          f"{header['frame_rate']}fps, {header['frame_count']} frame(s)). "
-          "Install JPEXS/ffdec to also convert shapes, symbols and timelines.")
+    print(f"PARTIAL: wrote stage-only XFL ({header['width']}x{header['height']} @ "
+          f"{header['frame_rate']}fps). The source has {header['frame_count']} frame(s); "
+          "NONE of its frames, shapes or symbols were converted.")
     return True
 
 
@@ -574,7 +600,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='XFL format reader/writer utility')
     parser.add_argument('--read', help='Read and display XFL structure')
     parser.add_argument('--write', help='Create a basic XFL structure')
-    parser.add_argument('--convert-swf', help='Convert SWF to XFL (requires JPEXS)')
+    parser.add_argument('--convert-swf', help='Convert SWF to XFL (JPEXS or flare-cli; fails if neither)')
+    parser.add_argument('--stage-only', action='store_true', help='with --convert-swf: allow a stage-only XFL (no frames) when no converter exists')
     parser.add_argument('--output', help='Output path for write/convert operations')
     
     args = parser.parse_args()
@@ -597,11 +624,10 @@ if __name__ == '__main__':
         print(f"Created XFL structure at: {args.output}")
     
     elif args.convert_swf and args.output:
-        success = convert_swf_to_xfl(args.convert_swf, args.output)
-        if success:
-            print(f"Converted {args.convert_swf} to {args.output}")
-        else:
-            print("Conversion failed - ensure JPEXS (ffdec) is installed")
+        success = convert_swf_to_xfl(args.convert_swf, args.output, stage_only=args.stage_only)
+        if not success:
+            print("Conversion failed; nothing was claimed as converted.")
+            sys.exit(1)
     
     else:
         parser.print_help()

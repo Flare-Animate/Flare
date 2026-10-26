@@ -165,6 +165,25 @@ mod t {
         assert!(parse(b"nope").is_none());
     }
     #[test]
+    fn tiny_cs3_fixture_lists_streams_and_carves_the_png() {
+        // fixture from tools/flash/tests/make_flash_fixtures.py
+        let d = std::fs::read(concat!(env!("CARGO_MANIFEST_DIR"), "/common/flash/tests/fixtures/swf/cs3_tiny.fla")).unwrap();
+        let s = parse(&d).expect("valid CFBF");
+        let names: Vec<&str> = s.iter().map(|x| x.name.as_str()).collect();
+        assert_eq!(names, ["Contents", "Media 1", "Symbol 1"]);
+        let m = s.iter().find(|x| x.name == "Media 1").unwrap();
+        assert!(carve(&m.data).iter().any(|&(_, _, png)| png));
+        // truncated and bit-flipped copies never panic
+        for n in [600usize, 1024, 5000] {
+            let _ = parse(&d[..n]);
+        }
+        let mut b = d.clone();
+        for i in (512..b.len()).step_by(97) {
+            b[i] ^= 0xFF;
+        }
+        let _ = parse(&b);
+    }
+    #[test]
     fn samples() {
         let base = "C:/Users/charl/Downloads/Flare Samples";
         for p in ["assets_2-2.fla", "online/fla/icons.fla", "online/fla/branding.fla"] {

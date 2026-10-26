@@ -425,3 +425,80 @@ fn ttf_to_define_font3_and_back_round_trip() {
 fn font_parse_rejects_other_tags() {
     assert!(parse_define_font(swf::DEFINE_SHAPE3, &[]).is_err());
 }
+
+// ---- Flash QA section 8 fixes (F3/F4/F6/F7): fixtures made by tools/flash/tests/make_flash_fixtures.py ----
+
+fn fixture(name: &str) -> Vec<u8> {
+    let p = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/swf").join(name);
+    std::fs::read(&p).unwrap_or_else(|e| panic!("{}: {e}", p.display()))
+}
+
+#[test]
+fn all_three_compressions_parse_to_the_same_header() {
+    for n in ["tiny_fws.swf", "tiny_cws.swf", "tiny_zws.swf", "mix_zws.swf", "mix_cws.swf"] {
+        let b = fixture(n);
+        let c = swf::validate(&b).unwrap_or_else(|e| panic!("{n}: {e}"));
+        assert_eq!(c.declared_len as usize, c.actual_len, "{n}");
+        let s = swf::parse(&b).unwrap();
+        assert_eq!(s.stage, [0, 11000, 0, 8000], "{n}"); // 550x400 px
+        assert_eq!(s.frame_rate, 12.0, "{n}");
+        assert_eq!(s.frame_count, 2, "{n}");
+        assert!(s.tags.iter().any(|t| t.code == 82), "{n}: DoABC2 present");
+    }
+}
+
+#[test]
+fn lzma_and_zlib_bodies_are_identical_to_the_plain_one() {
+    let plain = swf::body_of(&fixture("mix_cws.swf")).unwrap().1;
+    assert!(plain.len() > 2000);
+    assert_eq!(swf::body_of(&fixture("mix_zws.swf")).unwrap().1, plain);
+}
+
+#[test]
+fn truncated_compressed_swf_is_rejected_like_truncated_fws() {
+    for n in ["tiny_fws_trunc.swf", "mix_cws_trunc.swf", "mix_zws_trunc.swf"] {
+        let e = swf::validate(&fixture(n)).unwrap_err();
+        assert!(e.contains("malformed SWF") || e.contains("FileLength"), "{n}: {e}");
+        assert!(swf::parse(&fixture(n)).is_err() || n.starts_with("tiny_fws"), "{n}");
+    }
+    // zlib stream complete but FileLength claims more: also rejected
+    let e = swf::validate(&fixture("cws_filelength_lie.swf")).unwrap_err();
+    assert!(e.contains("FileLength"), "{e}");
+}
+
+#[test]
+fn trailing_junk_after_a_complete_zlib_stream_is_not_truncation() {
+    // QA's "truncated CWS accepted" (F4) was this shape: nothing missing from the SWF.
+    assert!(swf::validate(&fixture("cws_trailing_junk.swf")).is_ok());
+}
+
+#[test]
+fn absurd_or_inverted_stage_rect_is_rejected_with_a_message() {
+    let e = swf::validate(&fixture("bad_rect_huge.swf")).unwrap_err();
+    assert!(e.contains("absurd stage size") && e.contains("16384"), "{e}");
+    assert!(swf::parse(&fixture("bad_rect_huge.swf")).is_err());
+    let e = swf::validate(&fixture("bad_rect_negative.swf")).unwrap_err();
+    assert!(e.contains("negative stage size"), "{e}");
+    assert!(swf::check_stage([i32::MIN, i32::MAX, 0, 0]).is_err()); // overflow in i32 math
+    assert!(swf::check_stage([-8000, 8000, -100, 100]).is_ok()); // negative origin is legal
+}
+
+#[test]
+fn empty_and_short_input_give_plain_messages() {
+    let e = swf::validate(&fixture("empty.swf")).unwrap_err();
+    assert!(e.contains("empty file"), "{e}");
+    let e = swf::parse(&fixture("short.swf")).unwrap_err();
+    assert!(e.contains("too short"), "{e}");
+    assert!(swf::validate(b"XYZ\x09\0\0\0\0\0").unwrap_err().contains("bad signature"));
+}
+
+#[test]
+fn lzma_rejects_garbage_without_panicking() {
+    let mut b = fixture("mix_zws.swf");
+    for i in (20..b.len()).step_by(7) {
+        b[i] ^= 0x5A;
+    }
+    let _ = swf::validate(&b); // Ok or Err, never a panic
+    assert!(super::lzma::decode(&[0xFF, 0, 0, 0, 0], &[0, 0, 0, 0, 0], 4).is_err());
+    assert!(super::lzma::decode(&[0x5D, 0, 0, 1, 0], &[1, 0, 0, 0, 0], 4).is_err());
+}
