@@ -1,5 +1,7 @@
 # Flare Rewrite Backlog (C/C++ -> Rust)
 
+> Update 2026-10-26 (rw3): 9 more files ported (namebuilder, perlinnoise [partial], 5 tnzext potentials, tiio_jpg_exif, tgeometry [partial]); the counts below are the 2026-10-24 snapshot (77 ported) and are now 86 of 2335. Not viable this round: igs_radial_blur/igs_rotate_blur (QTransform), tvariant/tunit/tcli (class-state heavy), pli/tags, sound tsio_* (TSoundTrack), ikengine (glue over ported kernels). Candidates left: igs_fog (924, pure), tcurves/tcurveutil, flash/placement.cpp.
+
 Generated read-only from branch `Rust-Rewrite` (HEAD 95dd5e2). Not committed. Source tree: `flare/sources`.
 
 ## Method
