@@ -184,7 +184,7 @@ StartupPopup::StartupPopup()
   m_recentBox->setFixedWidth(200);
   m_scenesTab->setMinimumWidth(480);
   m_projectBox->setMinimumWidth(480);
-  m_buttonFrame->setFixedHeight(34);
+  m_buttonFrame->setMinimumHeight(34);
 
   //--- layout
   m_topLayout->setContentsMargins(0, 0, 0, 0);

@@ -2643,7 +2643,7 @@ RGBPickerToolOptionsBox::RGBPickerToolOptionsBox(
 
   QPushButton *button = new QPushButton(tr("Pick Screen"));
   int buttonWidth     = fontMetrics().horizontalAdvance(button->text()) + 10;
-  button->setFixedWidth(buttonWidth);
+  button->setMinimumWidth(buttonWidth);  // theme padding widens the hint
   button->setFixedHeight(20);
   button->addAction(pickScreenAction);
   connect(button, SIGNAL(clicked()), pickScreenAction, SLOT(trigger()));
@@ -2924,7 +2924,7 @@ ZoomToolOptionsBox::ZoomToolOptionsBox(QWidget *parent, TTool *tool,
 
   QPushButton *button = new QPushButton(tr("Reset Zoom"));
   int buttonWidth     = fontMetrics().horizontalAdvance(button->text()) + 10;
-  button->setFixedWidth(buttonWidth);
+  button->setMinimumWidth(buttonWidth);  // theme padding widens the hint
   button->setFixedHeight(20);
   button->addAction(resetZoomAction);
 
@@ -2957,7 +2957,7 @@ RotateToolOptionsBox::RotateToolOptionsBox(QWidget *parent, TTool *tool,
 
   QPushButton *button = new QPushButton(tr("Reset Rotation"));
   int buttonWidth     = fontMetrics().horizontalAdvance(button->text()) + 10;
-  button->setFixedWidth(buttonWidth);
+  button->setMinimumWidth(buttonWidth);  // theme padding widens the hint
   button->setFixedHeight(20);
   button->addAction(resetRotationAction);
 
@@ -2984,7 +2984,7 @@ HandToolOptionsBox::HandToolOptionsBox(QWidget *parent, TTool *tool,
 
   QPushButton *button = new QPushButton(tr("Reset Position"));
   int buttonWidth     = fontMetrics().horizontalAdvance(button->text()) + 10;
-  button->setFixedWidth(buttonWidth);
+  button->setMinimumWidth(buttonWidth);  // theme padding widens the hint
   button->setFixedHeight(20);
   button->addAction(resetPositionAction);
 
