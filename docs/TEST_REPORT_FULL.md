@@ -167,3 +167,54 @@ Method: `scripts/dev/local_build.sh` rebuilt into /home/user/bld (build ok, fix 
 2. Add Save As + reload test (File menu, not Ctrl+S) for .tnz.
 3. Make gui_smoke fail on modal error dialogs (D14) before trusting it.
 4. Find Moho, AI, Lottie, TLV samples or generate minimal ones and say so.
+
+---
+
+## QA update 2026-10-26 (QA2, Rust-Rewrite tip 7e93bc2, AnimationCraft bridge)
+
+Partial pass. Most of the requested scope is UNTESTED; coverage below is honest, not padded.
+
+Method: worktree `/home/user/wt-qa2` (detached at origin/Rust-Rewrite 7e93bc2). Build via `BUILD_DIR=/home/user/bld-qa2 scripts/dev/local_build.sh` (ok, 793 s, 1072 targets). Xvfb `:77` via `scripts/dev/gui_smoke.sh`. Samples: `/tmp/qa2/` (untrusted; ruffle SWF paths returned 404, so no SWF; Moho/AI/GIF/MP4/Lottie samples not obtained). Disk: 9.1G free at start, 8.0G at last check.
+
+### Results
+
+| Item | Result | Evidence |
+|---|---|---|
+| Build from worktree | PASS | build ok 793 s, `/home/user/bld-qa2/bin/Flare` |
+| GUI main window launch | PASS | `gui_smoke` main phase, title `untitled [sandbox] : Flare 1.7.1` |
+| GUI smoke harness verdict | FAIL (harness) | Harness says PASS for every case below, but each one leaves a modal dialog open. See D18. |
+| Load `tests/flash_fixtures/handmade.fla` (arg) | PARTIAL | Log shows `xfl_svg/L0_F0.svg` created (AC bridge runs). Then modal "doesn't belong to the current project. Import / Load / Cancel" blocks the scene. Layer/frame counts not read. docs/images/qa/qa2-handmade-fla-prompt.png |
+| Load `sample.fla` (470 B) | PARTIAL | Info dialog "Flash import complete. 550x400, 0 layers, 0 frames, 0 sounds". docs/images/qa/qa2-sample-fla-info.png |
+| Load PSD (`gray0.psd`) | PARTIAL | Same "doesn't belong to project" prompt. Import outcome not run. docs/images/qa/qa2-psd-prompt.png |
+| Load SVG (US flag) | PARTIAL | Same prompt. Not run past prompt. |
+| Click Import on prompt, read xsheet | UNTESTED | no xdotool click path written |
+| Export XFL / Export HTML5 / re-import / HTML5 in chromium | UNTESTED | playwright not installed in this env (`ModuleNotFoundError`). Export not driven. |
+| 22 tools with canvas stroke + pixel diff | UNTESTED | |
+| Save/reload .tnz, undo/redo, playback, xsheet edit, Preferences tabs, LiquidGlass across rooms, layout profile rooms | UNTESTED | time budget |
+| Moho (.moho/.anme) | Importer exists (`flare/sources/flare/mohoimport.cpp`, `common/moho/`), no sample, not run | UNTESTED |
+| Lottie (.json) | No importer found (grep `lottie` hits only particle/test code) | UNSUPPORTED (grep evidence) |
+| GIF / MP4 / SVG / PLI as levels | Routed as levels in `openNonSceneFile` (`flashimport.cpp:1193`). SVG load hits the project prompt; GIF/MP4 not run | PARTIAL |
+| AI (.ai) | fixture `tests/flash_fixtures/sample.ai` exists; no GUI run | UNTESTED |
+
+Coverage: about 8 of roughly 100 checklist items touched, about 3 fully PASS (build, main launch, sample.fla opens without crash). Overall estimate: about 10 percent of the requested scope.
+
+### Defects (new, QA2)
+
+- **D18 (high, harness). `scripts/dev/gui_smoke.sh` returns PASS while a modal dialog is open.** Repro: `BUILD_DIR=/home/user/bld-qa2 SMOKE_FILE=tests/flash_fixtures/handmade.fla scripts/dev/gui_smoke.sh /tmp/x` prints `SMOKE PASS`, but the screenshot shows the "doesn't belong to the current project" prompt. `detect_modal_error` matches only titles with error/warning/failed. This prompt is a question dialog, so it is not caught. Fix: also fail on any visible non-main Flare window in phase 2, or set a per-case expected-dialog list.
+- **D19 (high). Passing a file outside the project opens a Import/Load/Cancel prompt rather than importing.** Repro: `Flare /tmp/qa2/3/p.psd` (or any `.svg`, `.fla` in `tests/flash_fixtures/`). Same for FLA-derived SVG. Expected: route straight to the importer, or make the prompt answerable from CLI.
+- **D20 (medium). Printf-style string bug in import path.** Log: `QString::arg: Argument missing: Always do this action., /tmp/flare_flash_import_.../xfl_svg/L0_F0.svg`. A `.arg()` call has one placeholder too few. Find the caller of the "Always do this action" prompt in `flashimport.cpp` or the file-open dialog code.
+- **D21 (medium). Import of `sample.fla` reports 0 layers, 0 frames, 0 sounds with no error.** Either the fixture is empty or the importer drops content silently. Needs a check against `tests/flash_fixtures/README.md`.
+- **D15 still open** (`flare-cli` workspace membership), not rechecked this pass.
+
+### Screenshots
+
+- docs/images/qa/qa2-handmade-fla-prompt.png
+- docs/images/qa/qa2-psd-prompt.png
+- docs/images/qa/qa2-sample-fla-info.png
+
+### Next steps
+
+1. Fix D18 so the harness fails on the prompt, then D19 routing.
+2. Install playwright (or chromium) in the QA env; export HTML5 and render-check it.
+3. Write an xdotool tool-loop with pixel diff for the 22 tools (`import -window root` before/after).
+4. Get Moho and AI samples, or record them as UNSUPPORTED with evidence.
