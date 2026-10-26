@@ -276,8 +276,8 @@ pub mod igs_hsv_noise_in_camera;
 pub mod igs_hls_noise_in_camera;
 #[path = "stdfx/iwa_noise1234.rs"]
 pub mod iwa_noise1234;
-#[path = "stdfx/iwa_simplexnoise.rs"]
-pub mod iwa_simplexnoise;
+#[path = "stdfx/igs_resource_sleep.rs"]
+pub mod igs_resource_sleep;
 #[path = "flareqt/trepetitionguard.rs"]
 pub mod trepetitionguard;
 #[path = "stdfx/naru_maxflow.rs"]
@@ -943,6 +943,9 @@ mod tests {
             "common/tgeometry/tgeometry.rs",
             // partial port: perlinnoise.cpp keeps the table fill, statics and doClouds
             "stdfx/perlinnoise.rs",
+            // partial port: sleep uses platform Sleep()/nanosleep(); Rust port is scaffolded
+            "stdfx/igs_resource_sleep.rs",
+        ];
             // partial port: the static constant pixel objects of tpixel.cpp stay C++
             "common/tcolor/tpixel.rs",
         ];
