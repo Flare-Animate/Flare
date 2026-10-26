@@ -1956,6 +1956,10 @@ bool IoCmd::loadScene(ToonzScene &scene, const TFilePath &scenePath,
 // IoCmd::loadScene(scenePath)
 //---------------------------------------------------------------------------
 
+// Defined in flashimport.cpp: routes FLA/XFL/SWF/PSD/GIF/MP4/SVG/PLI... to the
+// importers. Returns true if the file was handled there.
+bool openNonSceneFile(const TFilePath &path);
+
 bool IoCmd::loadScene(const TFilePath &path, bool updateRecentFile,
                       bool checkSaveOldScene, bool preserveOldSceneOnFailure) {
   RenderingSuspender suspender;
@@ -1971,6 +1975,9 @@ bool IoCmd::loadScene(const TFilePath &path, bool updateRecentFile,
   bool isSxf          = scenePath.getType() == "sxf";
   if (scenePath.getType() == "") scenePath = scenePath.withType("tnz");
   if (scenePath.getType() != "tnz" && !isXdts && !isSxf) {
+    // Non-scene files (opened from the command line or "open file") go to the
+    // importers instead of failing as "not a TOONZ Scene".
+    if (openNonSceneFile(path)) return true;
     QString msg;
     msg = QObject::tr("File %1 doesn't look like a TOONZ Scene")
               .arg(QString::fromStdWString(scenePath.getWideString()));

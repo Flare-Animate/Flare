@@ -368,6 +368,8 @@ static void importXFLScene(ToonzScene *scene, TXsheet *xsheet,
 // Command: Import Flash (FLA / XFL / SWC / SWF / AS) — fully native
 // ---------------------------------------------------------------------------
 
+static void importFlashFile(const TFilePath &fp);
+
 class ImportFlashVectorCommand final : public MenuItemHandler {
 public:
     ImportFlashVectorCommand() : MenuItemHandler(MI_ImportFlashVector) {}
@@ -415,7 +417,13 @@ void ImportFlashVectorCommand::executeImpl() {
 
     TFilePath fp = loadPopup->getPath();
     if (fp.isEmpty()) return;
+    importFlashFile(fp);
+}
 
+// Shared by File > Import Flash and the command-line / open-file path
+// (openNonSceneFile), so both dispatch identically.
+static void importFlashFile(const TFilePath &fp) {
+    ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
     TFilePath outDir = makeTempImportDir("flare_flash_import_");
     QString   outPath = outDir.getQString();
     if (!QFileInfo(outPath).isDir()) {
@@ -1095,3 +1103,48 @@ public:
                             .arg(p.replaced).arg(p.blocks).arg(out));
     }
 } g_swfRoundTripCommand;
+
+// ---------------------------------------------------------------------------
+// Open-file / command-line routing for non-.tnz files (defect D13).
+// Returns true if the file was recognised as a foreign format and handled
+// (successfully or with its own error dialog); false if it should go to the
+// scene loader. Magic bytes win over the extension, as in the import command.
+// ---------------------------------------------------------------------------
+
+bool openNonSceneFile(const TFilePath &path) {
+    const QString ext = QString::fromStdString(path.getType()).toLower();
+    if (ext == "tnz" || ext == "xdts" || ext == "sxf" || ext.isEmpty())
+        return false;
+    const QString src = path.getQString();
+    const FlashAssets::Format fmt = FlashAssets::detectFormat(src);
+
+    // Raster/vector level formats the app loads natively as levels. PSD, GIF,
+    // MP4, SVG and PLI go here (magic-sniffed PSD included).
+    static const QSet<QString> levelExts = {"psd", "gif", "mp4", "svg", "pli",
+                                            "png", "jpg", "jpeg", "tif", "tiff",
+                                            "bmp", "tga", "webp"};
+    if (levelExts.contains(ext) || fmt == FlashAssets::Format::Psd) {
+        if (fmt == FlashAssets::Format::Swf || fmt == FlashAssets::Format::Zip ||
+            fmt == FlashAssets::Format::Ole2Fla) {
+            importFlashFile(path);  // mislabeled Flash payload
+            return true;
+        }
+        IoCmd::LoadResourceArguments args;
+        args.resourceDatas.push_back(
+            IoCmd::LoadResourceArguments::ResourceData(path));
+        IoCmd::loadResources(args);
+        return true;
+    }
+    if (fmt != FlashAssets::Format::Unknown ||
+        FlashAssets::supportedExtensions().contains(ext)) {
+        try {
+            importFlashFile(path);
+        } catch (const std::exception &e) {
+            DVGui::error(QObject::tr("Flash import failed: %1").arg(e.what()));
+        } catch (...) {
+            DVGui::error(QObject::tr("Flash import failed with an unknown error."));
+        }
+        return true;
+    }
+    return false;
+}

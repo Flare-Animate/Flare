@@ -1,0 +1,96 @@
+
+/* ===========================================================================
+   Liquid Glass shape + surface layer (appended after the remapped Dark base)
+   Rules: solid layered surfaces (Qt cannot blur), a 1px light top edge for
+   depth, soft radii 4/6/8, one accent family, NO padding / min-size changes so
+   the compact Dark metrics (and label fit) stay intact.
+   Surface ramp  : #0f1621 well  #172131 base  #1f2b3f raised  #283750 hover
+   Edge          : #3a4c6b border  #5d7396 light edge
+   Accent        : #2a6fb0 (fill)  #5fb4f0 (focus / checked text)
+   Text          : #e6edf6 primary  #9fb0c8 secondary  #7886a0 disabled
+   =========================================================================== */
+QWidget:disabled { color: #7886a0; }
+
+QToolTip, #helpToolTip {
+  background-color: #1f2b3f; border: 1 solid #5d7396; border-radius: 6px;
+  color: #f2f7fd; padding: 3px 6px;
+}
+
+QMenu {
+  background-color: #172131; border: 1 solid #3a4c6b; border-radius: 8px; padding: 4px;
+}
+QMenu::item { border-radius: 5px; }
+QMenu::item:selected { background-color: #2a6fb0; color: #ffffff; }
+QMenu::item:disabled { color: #7886a0; background-color: transparent; }
+QMenu::separator { background-color: #2c3b55; height: 1px; margin: 3px 8px; }
+
+#TopBarTab::tab {
+  border-radius: 6px; margin: 0 2 0 0; border-color: #3a4c6b; border-width: 1;
+  border-bottom-width: 1; background-color: #1f2b3f; color: #cdd8e8;
+}
+#TopBarTab::tab:hover { background-color: #283750; color: #ffffff; }
+#TopBarTab::tab:selected {
+  background-color: qlineargradient(x1:0,y1:0,x2:0,y2:1, stop:0 #3a86c8, stop:1 #235f97);
+  border-color: #8fd0ff; color: #ffffff;
+}
+
+QPushButton {
+  background-color: qlineargradient(x1:0,y1:0,x2:0,y2:1, stop:0 #2d3d58, stop:1 #222f45);
+  border-color: #4a5e80; border-radius: 6px; color: #e6edf6;
+}
+QPushButton:hover {
+  background-color: qlineargradient(x1:0,y1:0,x2:0,y2:1, stop:0 #384b6b, stop:1 #2a3a56);
+  border-color: #7fa6d6; color: #ffffff;
+}
+QPushButton:pressed { background-color: #172131; border-color: #5fb4f0; color: #ffffff; }
+QPushButton:checked { background-color: #172131; border-color: #5fb4f0; color: #8fd0ff; }
+QPushButton:disabled { background-color: #1b2536; border-color: #2c3b55; color: #7886a0; }
+QPushButton:focus { border-color: #5fb4f0; }
+
+QToolButton { border-radius: 6px; }
+QToolButton:hover { background-color: #283750; border-color: #4a5e80; }
+QToolButton:pressed { background-color: #0f1621; border-color: #3a4c6b; }
+QToolButton:checked {
+  background-color: qlineargradient(x1:0,y1:0,x2:0,y2:1, stop:0 #3a86c8, stop:1 #2a6fb0);
+  border-color: #8fd0ff; color: #ffffff;
+}
+QToolButton:checked:hover { background-color: #4a98dc; border-color: #b5e0ff; }
+QToolButton:checked:pressed { background-color: #235f97; }
+
+QComboBox {
+  background-color: qlineargradient(x1:0,y1:0,x2:0,y2:1, stop:0 #2d3d58, stop:1 #222f45);
+  border-color: #4a5e80; border-radius: 6px;
+}
+QComboBox:hover { border-color: #7fa6d6; }
+QComboBox:focus, QComboBox:pressed { border-color: #5fb4f0; }
+QComboBox QAbstractItemView {
+  background-color: #172131; border: 1 solid #3a4c6b; border-radius: 6px;
+  selection-background-color: #2a6fb0; selection-color: #ffffff;
+}
+
+QLineEdit, QTextEdit[readOnly="false"] {
+  background-color: #0f1621; border-color: #3a4c6b; border-radius: 5px; color: #f2f7fd;
+  selection-background-color: #2a6fb0; selection-color: #ffffff;
+}
+QLineEdit:hover, QTextEdit[readOnly="false"]:hover { border-color: #5d7396; background-color: #0f1621; }
+QLineEdit:focus, QTextEdit[readOnly="false"]:focus { border-color: #5fb4f0; background-color: #0f1621; }
+QLineEdit:disabled { background-color: #131b28; color: #7886a0; border-color: #25324a; }
+
+QGroupBox { border-color: #3a4c6b; border-radius: 8px; }
+QGroupBox::title { color: #b9c8de; }
+
+QScrollBar::handle:horizontal, QScrollBar::handle:vertical { border-radius: 4px; background-color: #4a5e80; }
+QScrollBar::handle:horizontal:hover, QScrollBar::handle:vertical:hover { background-color: #7fa6d6; }
+QScrollBar::handle:horizontal:pressed, QScrollBar::handle:vertical:pressed { background-color: #5fb4f0; }
+
+QTabBar::tab { border-top-left-radius: 6px; border-top-right-radius: 6px; }
+
+QCheckBox::indicator { background-color: #0f1621; border: 1 solid #7d8fb0; border-radius: 3px; }
+QCheckBox::indicator:hover { background-color: #1f2b3f; border-color: #a9bbd8; }
+QCheckBox::indicator:checked { background-color: #2a6fb0; border-color: #8fd0ff; }
+QCheckBox::indicator:checked:hover { background-color: #4a98dc; border-color: #b5e0ff; }
+QCheckBox::indicator:indeterminate { background-color: #2a6fb0; border-color: #8fd0ff; }
+QCheckBox::indicator:disabled { background-color: #131b28; border-color: #3a4c6b; }
+QTabBar::tab { color: #c3d0e4; background-color: #1f2b3f; border-color: #3a4c6b; }
+QTabBar::tab:hover { background-color: #283750; color: #ffffff; }
+QTabBar::tab:selected { color: #ffffff; background-color: #2a6fb0; border-color: #8fd0ff; }

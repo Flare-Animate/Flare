@@ -111,3 +111,8 @@ tmp.txt
 stuff/config/loc/
 tools/flash/webapp/dist/
 flare/sources/target/
+
+# runtime state written when the app runs from the source tree
+stuff/profiles/layouts/personal/
+stuff/profiles/layouts/settings.none/
+stuff/sandbox/

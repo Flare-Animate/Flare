@@ -6,7 +6,8 @@
 #        FLAREROOT (default <repo>/stuff)      SMOKE_TIMEOUT (secs, default 30)
 #        SMOKE_FILE (file passed as the load argument in phase 2; default
 #        tests/flash_fixtures/sample.fla; set to "" to skip phase 2)
-# Exit: 0 pass, 1 crash/early exit, 2 hang (no window within timeout), 3 setup error.
+# Exit: 0 pass, 1 crash/early exit, 2 hang (no window within timeout), 3 setup error,
+#       4 modal error/warning dialog visible (set SMOKE_ALLOW_DIALOG=1 to skip this check).
 set -u
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 BUILD_DIR="${BUILD_DIR:-/home/user/bld}"
@@ -55,6 +56,24 @@ fail() { # fail <code> <msg>
   exit "$1"
 }
 
+
+# detect_modal_error: succeed (rc 0) and print a description if the app shows a
+# modal error/warning dialog. Heuristics (any one is enough):
+#  a visible, non-main window of the app whose title matches
+#  error|warning|critical|failed (DVGui::error/warning and Qt message boxes).
+#  Generic transient windows are NOT flagged: the 'Flare Startup' popup is one.
+detect_modal_error() { # detect_modal_error <pid> <main_win>
+  local pid="$1" main="$2" w name
+  for w in $(xdotool search --onlyvisible --pid "$pid" 2>/dev/null); do
+    [ "$w" = "$main" ] && continue
+    name="$(xdotool getwindowname "$w" 2>/dev/null)"
+    if echo "$name" | grep -qiE 'error|warning|critical|failed|can.?t|cannot'; then
+      echo "window $w title='$name'"; return 0
+    fi
+  done
+  return 1
+}
+
 # run_phase <name> [args...]: launch, wait for window, screenshot, hold, terminate.
 run_phase() {
   local name="$1"; shift
@@ -81,6 +100,10 @@ run_phase() {
   sleep 5   # let panels / deferred init paint
   kill -0 "$APP_PID" 2>/dev/null || { wait "$APP_PID"; local rc=$?; APP_PID=""; fail 1 "Flare died after window appeared during $name (rc=$rc)"; }
   $SHOT -window root "$OUT/$name.png" || fail 3 "screenshot failed"
+  if [ "${SMOKE_ALLOW_DIALOG:-0}" != 1 ]; then
+    local dlg; dlg="$(detect_modal_error "$APP_PID" "$win")" \
+      && { kill -KILL "$APP_PID" 2>/dev/null; APP_PID=""; fail 4 "modal error dialog showing during $name: $dlg"; }
+  fi
   sleep 3
   kill -0 "$APP_PID" 2>/dev/null || { wait "$APP_PID"; local rc=$?; APP_PID=""; fail 1 "Flare died after screenshot during $name (rc=$rc)"; }
   kill -TERM "$APP_PID" 2>/dev/null

@@ -35,7 +35,9 @@ Found 2026-10-24 on PR #151 (check run 120971320646, 29 high + 2 medium):
 - AS3-only SWF import reports 0x0 px / 0 frames (header parse).
 - PSD import only copies the file; no layers.
 - Unzipped XFL folder cannot be chosen in the import dialog; typed filename in the file browser is ignored.
-- Command line accepts only `.tnz`.
+- Command line / open-file: non-.tnz files are routed (magic bytes first) to the importers via `openNonSceneFile` (flashimport.cpp): FLA/XFL/SWF/SWC/AI etc. use the Flash import; PSD/GIF/MP4/SVG/PLI/raster load as levels. Verify GIF/MP4 decoding in a real session.
+- `flare-cli`: `cd flare/sources && cargo build -p ac-cli`; needs network for the effectcraft git deps (pinned in flare/sources/Cargo.toml). Binary: flare/sources/target/debug/flare-cli.
+- `tools/flash/import_container.py` (D16) intentionally handles Flash containers/media only; GIF/MP4/PLI/SVG are not Flash containers and are opened by the app itself (File > Load Level, or as an argument), so the helper still reports "Unsupported file type" for them.
 - About dialog loads `:Resources/tahoma2d_about.png` which does not exist (blank logo).
 - Packaging: `.deb` rename in `ci-scripts/linux/flare-buildpkg.sh` is a guess; macOS bundle must provide `Flare.real`.
 - Animate layout: empty black Flash Instance strip in room 2; existing users keep old personal layouts until
