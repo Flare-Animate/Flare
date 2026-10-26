@@ -60,6 +60,9 @@ pub mod ac_as3_decompile;
 pub mod ac_as3_patch;
 #[path = "common/flash/ac_as3_api.rs"]
 pub mod ac_as3_api;
+#[cfg(feature = "ac")]
+#[path = "common/flash/ac_bridge.rs"]
+pub mod ac_bridge;
 #[cfg(test)]
 #[path = "common/flash/ac_as3_tests.rs"]
 mod ac_as3_tests;
@@ -740,6 +743,79 @@ pub unsafe extern "C" fn flare_xfl_export_svg(
         }
     });
     CString::new(s.replace('\0', " ")).map_or(std::ptr::null_mut(), |c| c.into_raw())
+}
+
+// ---- AnimationCraft bridge (ac-core / ac-xfl / ac-render / ac-audio) ----------------------------
+// All calls: NULL arguments -> NULL result; panics are caught; the returned log starts with "ok" or
+// "error". Free results with flare_moho_free. Built only with the `ac` cargo feature (default).
+
+/// 1 when this build carries the AnimationCraft bridge, else 0.
+#[no_mangle]
+pub extern "C" fn flare_ac_available() -> i32 {
+    cfg!(feature = "ac") as i32
+}
+
+unsafe fn c_arg(p: *const std::os::raw::c_char) -> Option<String> {
+    if p.is_null() {
+        None
+    } else {
+        Some(std::ffi::CStr::from_ptr(p).to_string_lossy().into_owned())
+    }
+}
+
+#[cfg(feature = "ac")]
+fn ac_call(f: impl FnOnce() -> Result<String, String>) -> *mut std::os::raw::c_char {
+    let s = guard("error panicked (corrupt or unsupported document?)\n".to_string(), || match f() {
+        Ok(l) => l,
+        Err(e) => format!("error {e}\n"),
+    });
+    cstr(s)
+}
+
+#[cfg(not(feature = "ac"))]
+fn ac_call(_f: impl FnOnce() -> Result<String, String>) -> *mut std::os::raw::c_char {
+    cstr("error built without the AnimationCraft bridge (cargo feature `ac`)\n".to_string())
+}
+
+/// XFL / FLA (zip, folder, DOMDocument.xml or .xfl marker) -> per-layer SVG frames + frames.tsv,
+/// sound.tsv and meta.tsv in out_dir (see common/flash/ac_bridge.rs).
+#[no_mangle]
+pub unsafe extern "C" fn flare_ac_xfl_import(path: *const std::os::raw::c_char, out_dir: *const std::os::raw::c_char) -> *mut std::os::raw::c_char {
+    let (Some(p), Some(o)) = (c_arg(path), c_arg(out_dir)) else { return std::ptr::null_mut() };
+    #[cfg(feature = "ac")]
+    return ac_call(|| ac_bridge::import_to_dir(std::path::Path::new(&p), std::path::Path::new(&o)));
+    #[cfg(not(feature = "ac"))]
+    return ac_call(|| Err(format!("{p} {o}")));
+}
+
+/// Scene manifest (TSV, see ac_bridge.rs) -> XFL: `.fla` zip, or folder when out ends in .xfl.
+#[no_mangle]
+pub unsafe extern "C" fn flare_ac_xfl_export(manifest: *const std::os::raw::c_char, out_path: *const std::os::raw::c_char) -> *mut std::os::raw::c_char {
+    let (Some(m), Some(o)) = (c_arg(manifest), c_arg(out_path)) else { return std::ptr::null_mut() };
+    #[cfg(feature = "ac")]
+    return ac_call(|| ac_bridge::export_xfl(std::path::Path::new(&m), std::path::Path::new(&o)));
+    #[cfg(not(feature = "ac"))]
+    return ac_call(|| Err(format!("{m} {o}")));
+}
+
+/// Scene manifest -> HTML5 (single_file != 0: one self-contained .html at out_path; else a folder).
+#[no_mangle]
+pub unsafe extern "C" fn flare_ac_html5_export(manifest: *const std::os::raw::c_char, out_path: *const std::os::raw::c_char, single_file: i32) -> *mut std::os::raw::c_char {
+    let (Some(m), Some(o)) = (c_arg(manifest), c_arg(out_path)) else { return std::ptr::null_mut() };
+    #[cfg(feature = "ac")]
+    return ac_call(|| ac_bridge::export_html5_manifest(std::path::Path::new(&m), std::path::Path::new(&o), single_file != 0));
+    #[cfg(not(feature = "ac"))]
+    return ac_call(|| Err(format!("{m} {o} {single_file}")));
+}
+
+/// XFL / FLA -> HTML5 directly.
+#[no_mangle]
+pub unsafe extern "C" fn flare_ac_html5_export_xfl(xfl: *const std::os::raw::c_char, out_path: *const std::os::raw::c_char, single_file: i32) -> *mut std::os::raw::c_char {
+    let (Some(m), Some(o)) = (c_arg(xfl), c_arg(out_path)) else { return std::ptr::null_mut() };
+    #[cfg(feature = "ac")]
+    return ac_call(|| ac_bridge::export_html5_xfl(std::path::Path::new(&m), std::path::Path::new(&o), single_file != 0));
+    #[cfg(not(feature = "ac"))]
+    return ac_call(|| Err(format!("{m} {o} {single_file}")));
 }
 
 #[cfg(test)]

@@ -68,4 +68,15 @@ roxmltree = "0.20"
 serde_json = "1.0.151"
 flate2 = "1"
 regex = "1"
+# AnimationCraft crates (document model, XFL, HTML5/SVG render, audio). Pure Rust;
+# the `ac` feature is on by default and can be turned off to build without them.
+ac-core = { workspace = true, optional = true }
+ac-xfl = { workspace = true, optional = true }
+ac-render = { workspace = true, optional = true }
+ac-audio = { workspace = true, optional = true }
+resvg = { workspace = true, optional = true }
+
+[features]
+default = ["ac"]
+ac = ["dep:ac-core", "dep:ac-xfl", "dep:ac-render", "dep:ac-audio", "dep:resvg"]
 

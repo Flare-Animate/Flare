@@ -50,3 +50,11 @@ are the inputs; they are not the tests. See `tests/README.md`.
 > These fixtures are intentionally tiny. They validate that each format is
 > recognised and its metadata parsed — not full visual fidelity, which is the
 > ongoing Flash-import work (see `doc/FLASH_SUPPORT.md`).
+
+## AnimationCraft bridge fixtures
+
+`handmade_xfl/` (folder) and `handmade.fla` (the same files zipped) are a hand-written
+Animate-style document: a Graphic symbol with a radial-gradient drawing object, a classic
+tween with ease, a labelled keyframe with a frame script, a drop-shadow filter and a merge-drawing
+layer. They feed `flare_ac_xfl_import` / `flare_ac_xfl_export` / `flare_ac_html5_export`
+(`flare/sources/common/flash/ac_bridge.rs`, tests in `ac_bridge_tests.rs`).

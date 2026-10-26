@@ -66,6 +66,18 @@ FlareAs3Result *flare_as3_patch_class(const uint8_t *data, size_t len, int32_t b
 const uint8_t *flare_as3_result_bytes(const FlareAs3Result *r, size_t *len);
 const char *flare_as3_result_json(const FlareAs3Result *r);
 void flare_as3_result_free(FlareAs3Result *r);
+/* AnimationCraft bridge (ac-core/ac-xfl/ac-render/ac-audio; common/flash/ac_bridge.rs). Results are logs
+   starting "ok" or "error"; NULL on NULL arguments. Free with flare_moho_free. */
+int32_t flare_ac_available(void);
+/* XFL/FLA (zip, folder, DOMDocument.xml, .xfl) -> out_dir/{frames.tsv (layer,name,row,file), sound.tsv
+   (row,file,startOffset,endOffset in frames), meta.tsv (w,h,fps,frames)} plus one SVG per drawing/tween frame. */
+char *flare_ac_xfl_import(const char *path_utf8, const char *out_dir_utf8);
+/* Scene manifest TSV (doc/cell/sound lines) -> .fla zip, or an XFL folder when out ends in .xfl. */
+char *flare_ac_xfl_export(const char *manifest_utf8, const char *out_utf8);
+/* Scene manifest -> HTML5 publish (single_file: one .html at out_path, else a folder). */
+char *flare_ac_html5_export(const char *manifest_utf8, const char *out_utf8, int32_t single_file);
+/* XFL/FLA -> HTML5 publish. */
+char *flare_ac_html5_export_xfl(const char *xfl_utf8, const char *out_utf8, int32_t single_file);
 #ifdef __cplusplus
 }
 #endif
