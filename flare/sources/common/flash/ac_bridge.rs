@@ -49,7 +49,7 @@ pub fn import_to_dir(path: &Path, out_dir: &Path) -> Result<String, String> {
     let doc = imp.doc;
     std::fs::create_dir_all(out_dir).map_err(|e| format!("{}: {e}", out_dir.display()))?;
     let mut tsv = String::new();
-    let (mut files, mut layers_out) = (0usize, 0usize);
+    let (mut files, mut layers_out, mut layers_empty) = (0usize, 0usize, 0usize);
     let mut log = String::new();
     let mut col = 0usize;
     for (si, tl) in doc.scenes().enumerate() {
@@ -59,6 +59,7 @@ pub fn import_to_dir(path: &Path, out_dir: &Path) -> Result<String, String> {
                 continue;
             }
             if layer.keyframes.values().all(|k| k.elements.is_empty()) {
+                layers_empty += 1;
                 continue;
             }
             // Render the layer on its own: everything else hidden (a mask or folder
@@ -129,6 +130,10 @@ pub fn import_to_dir(path: &Path, out_dir: &Path) -> Result<String, String> {
     std::fs::write(out_dir.join("sound.tsv"), stsv).map_err(|e| e.to_string())?;
     std::fs::write(out_dir.join("meta.tsv"), format!("{}\t{}\t{}\t{}\n", doc.width, doc.height, doc.fps, doc.total_frames())).map_err(|e| e.to_string())?;
     log += &format!("ok {layers_out} layers {files} frames {sounds} sounds {}x{} @{}\n", doc.width, doc.height, doc.fps);
+    if layers_empty > 0 {
+        // Honest report (D21): the document does have layers, they just hold no drawable content.
+        let _ = writeln!(log, "note: {layers_empty} layer(s) in the document contain only empty keyframes (no shapes, symbols or bitmaps), so no columns were created for them");
+    }
     for w in imp.warnings.iter().chain(doc.warnings.iter()) {
         let _ = writeln!(log, "warning: {w}");
     }

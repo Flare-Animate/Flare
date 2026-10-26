@@ -218,3 +218,26 @@ Coverage: about 8 of roughly 100 checklist items touched, about 3 fully PASS (bu
 2. Install playwright (or chromium) in the QA env; export HTML5 and render-check it.
 3. Write an xdotool tool-loop with pixel diff for the 22 tools (`import -window root` before/after).
 4. Get Moho and AI samples, or record them as UNSUPPORTED with evidence.
+
+
+---
+
+## QA update 2026-10-26 (QA3, automated harness `scripts/dev/qa/run_all.sh`, Rust-Rewrite)
+
+Full run: 118 PASS, 1 FAIL, 1 UNTESTED (552 s). Machine-readable results, screenshots and crash logs are written by the
+harness to its `--out` directory; see docs/NEXT_SESSION.md for the coverage list and how to run it.
+
+| Area | Result |
+|---|---|
+| 22 toolbar tools, stroke + pixel diff | 22 PASS (PaintBrush/Finger: correct warning on a Vector level) |
+| Brush on empty cell (level auto-create) | PASS after fix (was SIGSEGV) |
+| Undo/redo (keys + command), next frame, .tnz save/reload | PASS |
+| Playback frame counter | FAIL (constant under Xvfb; may be environment related) |
+| Preferences (16 pages), all rooms of 5 layout profiles (28 rooms) | PASS |
+| Imports: FLA, XFL folder, SWF, PSD, SVG, GIF, JPG, PNG, AI/AIR/ANE/F4V/FLV, 3 Moho | PASS (empty documents and unconverted morph shapes are explained in the import result) |
+| Export XFL/FLA/HTML5, re-import counts, HTML5 in chromium | PASS |
+
+Defects found and fixed in this pass: use-after-free of the level palette (`include/flare/txshsimplelevel.h`, raw `TPalette*`
+instead of `TPaletteP`) that crashed every SVG/PSD/Toonz Raster level load, hence every XFL/FLA/SWF import and the first Brush
+stroke on an empty cell; PSD 1x1 image divide by zero; XFL import added each bitmap twice; extension-less XFL folder argument
+ignored; D18-D21 from QA2.

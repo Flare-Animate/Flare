@@ -268,6 +268,7 @@ set(SOURCES
     sxfio.cpp
     ocaio.cpp
     flashexport.cpp
+    qahook.cpp
     xdtsimportpopup.cpp
     expressionreferencemanager.cpp
     tooloptionsshortcutinvoker.cpp

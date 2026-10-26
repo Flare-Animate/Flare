@@ -13,16 +13,31 @@ reviewer reads from git (never the working tree) before a push; push once per ro
 - Issues: close #112, #98 once Linux+macOS+Windows builds are green on the tip; #66/#71 need a macOS launch proof;
   #116/#114/#110/#117 need a regression test or guard before closing. Do not close feature requests.
 
-## QA coverage (docs/TEST_REPORT_FULL.md, screenshots docs/images/qa/)
-Haiku QA pass reached only ~25% of 478 command ids (155 invocations, 0 crashes in menu walk). Remaining: fix the
-walker wrap-around bug, per-command dialog detection via window titles, tool-by-tool loop with relaunch per tool,
-Preferences tabs, import/export/render, save/load, undo/redo, playback, xsheet edit, Fx schematic, Flash Instance
-panel, script console, IK/rigging, cleanup, sound, remaining Animate rooms (5 of 8 unverified).
-Defects found: CRASH `FATAL bad QImage format` after draw+undo with the 6th toolbar tool (y=262)
-(`common/tvrender/tfont_qt.cpp:186`); Style editor "My Favorites" overlaps "Texture" tab (`flareqt/styleeditor.cpp`
-~6178); LiquidGlass clipped labels (`LiquidGlass.qss`, `flare/startuppopup.cpp:132`); StudioGhibli Cleanup room
-clipped labels and FlipaClip overlapping panels (`rooms/*/room1.ini`); AnimateLegacy viewer "Zoom" header clipped;
-Light theme low-contrast toolbar icons; Blue ~ AnimateDark.
+## GUI QA harness (scripts/dev/qa/, added in QA3)
+`BUILD_DIR=<build> scripts/dev/qa/run_all.sh [--tools|--import|--export|--prefs|--rooms|--all] [--dir DIR] [--out OUT]`
+runs the app under Xvfb with a fresh HOME and `stuff/` copy per launch and writes `OUT/results.{json,md}`, `shots/`, `logs/`,
+`crash/` (backtraces), `artifacts/` (exports); exit 1 on any FAIL. About 9 minutes for `--all`. Haiku just runs it.
+- It drives the app with xdotool; widget rectangles come from the app itself through the QA hook (`FLARE_QA_HOOK=<dir>`, only
+  active when set; `flare/sources/flare/qahook.cpp`: save/load/new/frame/cmd/geom/rooms/prefs/export/moho/button commands).
+- Covers: 22 tools (stroke + pixel diff, mid-drag shot for selection tools), Brush auto-create on an empty cell, undo/redo
+  (Ctrl+Z/Y and MI_Undo), next-frame, playback, .tnz save/reload, Preferences pages, all rooms of all 5 layout profiles,
+  imports of `tests/flash_fixtures/*`, 3 Moho samples (`tests/flash_fixtures/moho_samples`) and synthetic PNG/JPG/GIF/SVG,
+  XFL/FLA/HTML5 export + re-import count check, HTML5 in headless chromium (`html5_check.js`, no console errors, non-blank).
+- `FLARE_QUIET_IMPORT=1` logs the import result instead of showing the modal summary (set by gui_smoke and the harness).
+- `gui_smoke.sh` now fails (rc 4) when ANY dialog/modal window of the app is open, except the "Flare Startup" popup (`qa/dialogs.sh`).
+- Last run (QA3): 118 PASS, 1 FAIL, 1 UNTESTED. Open: playback (MI_Play / the P shortcut leaves the frame counter
+  constant under Xvfb; the Pause button stays active; may be environment related, check on a real display),
+  `T_PaintBrush`/`T_Finger` only checked for the correct "raster levels only" warning on a Vector level (not draw-tested on a Toonz
+  Raster level), `MI_NextFrame` via the command path needs viewer focus (works from the keyboard).
+- Known app behaviours the harness records but does not call defects: XFL export `X.xfl` writes folder `X/` containing `X.xfl`;
+  `ruffle_DefineShape4.swf` reports 0x0 px / 0 fps (header parse of that compressed SWF v12) and "1 morph shape(s) not converted".
+- Fixed in QA3 (all were crashes or blockers found by the harness): `TXshSimpleLevel::m_palette` was a raw pointer (use after free in
+  `load()`: SVG/PSD/Toonz Raster levels, every XFL/FLA/SWF import and Brush auto-create crashed); PSD 1-pixel image SIGFPE
+  (`common/psdlib/psd.cpp`); StyleEditor null-style guard; XFL import duplicated bitmap layers; extension-less XFL folder
+  argument; D19 (no Import/Load prompt for importer/CLI loads, PSD options popup skipped for them), D20 (QString::arg without
+  placeholder), D21 (empty-layer FLA now says so), D18 (smoke fails on any dialog).
+- Still to do: raster-level drawing tests (PaintBrush, Finger), Fx schematic, xsheet cell edits, Flash Instance panel, script console,
+  IK tools, cleanup, sound, render; remaining style defects D1-D8 from the earlier report (layout clipping, theme contrast).
 
 ## Code scanning (readable via check-run annotations: `gh api repos/Flare-Animate/Flare/check-runs/<CodeQL run id>/annotations`)
 Found 2026-10-24 on PR #151 (check run 120971320646, 29 high + 2 medium):
@@ -33,7 +48,7 @@ Found 2026-10-24 on PR #151 (check run 120971320646, 29 high + 2 medium):
 
 ## Known defects (from docs/TEST_REPORT_FLASH.md)
 - AS3-only SWF import reports 0x0 px / 0 frames (header parse).
-- PSD import only copies the file; no layers.
+- PSD import loads the flattened image as a level (layer/group options use the PSD popup defaults for CLI loads).
 - Unzipped XFL folder cannot be chosen in the import dialog; typed filename in the file browser is ignored.
 - Command line / open-file: non-.tnz files are routed (magic bytes first) to the importers via `openNonSceneFile` (flashimport.cpp): FLA/XFL/SWF/SWC/AI etc. use the Flash import; PSD/GIF/MP4/SVG/PLI/raster load as levels. Verify GIF/MP4 decoding in a real session.
 - `flare-cli`: `cd flare/sources && cargo build -p ac-cli`; needs network for the effectcraft git deps (pinned in flare/sources/Cargo.toml). Binary: flare/sources/target/debug/flare-cli.

@@ -16,6 +16,7 @@
 
 // TnzCore includes
 #include "traster.h"
+#include "tpalette.h"
 #include "trasterimage.h"
 
 // Needed by convertSingleFileToSequence, ported from flare: it takes a TXsheet
@@ -363,7 +364,7 @@ private:
   std::unique_ptr<LevelProperties> m_properties;
   std::unique_ptr<TContentHistory> m_contentHistory;
 
-  TPalette *m_palette;
+  TPaletteP m_palette;  // ref-counted: the level shares its palette with readers/undo (was a raw pointer -> use-after-free in load())
 
   FramesSet m_frames;
   int m_renumberCount = 0;

@@ -237,6 +237,7 @@ static void importXflSounds(TXsheet *xsheet, const QString &svgDir) {
         IoCmd::LoadResourceArguments args;
         args.expose = false;
         args.resourceDatas.emplace_back(TFilePath((svgDir + "/" + f[1]).toStdWString()));
+        args.importPolicy = IoCmd::LoadResourceArguments::IMPORT;  // D19: no Import/Load prompt for CLI/importer paths
         IoCmd::loadResources(args);
         if (args.loadedLevels.empty()) { g_xflLog += "sound load failed: " + f[1] + "\n"; continue; }
         TXshSoundLevel *level = dynamic_cast<TXshSoundLevel *>(*args.loadedLevels.begin());
@@ -254,6 +255,10 @@ static void importXflSounds(TXsheet *xsheet, const QString &svgDir) {
 
 // Returns true when the AnimationCraft bridge (flare_ac_xfl_import, ac-xfl + ac-render) built the
 // timeline; false when the older flare_xfl_export_svg path ran instead.
+// True when the AnimationCraft bridge already placed the whole timeline (layers, vector symbols and
+// bitmaps) for the current import, so the media auto-load below must not add the same bitmaps again.
+static bool g_acPlacedTimeline = false;
+
 static bool importXflSvg(TXsheet *xsheet, const TFilePath &xflBaseDir, const QString &outPath) {
     // Vector art (DOMShape + nested symbols) -> per-frame SVG via Rust flare_formats.
     // Without this, CS6 FLA/XFL files (art lives in LIBRARY symbols) import blank.
@@ -267,6 +272,7 @@ static bool importXflSvg(TXsheet *xsheet, const TFilePath &xflBaseDir, const QSt
                                               svgDir.toUtf8().constData())
                         : nullptr;
         usedAc = res && strncmp(res, "ok", 2) == 0;
+        if (usedAc) g_acPlacedTimeline = true;
         if (!usedAc) {
             const QString acLog = res ? QString::fromUtf8(res) : QString();
             flare_moho_free(res);
@@ -288,6 +294,7 @@ static bool importXflSvg(TXsheet *xsheet, const TFilePath &xflBaseDir, const QSt
                     IoCmd::LoadResourceArguments args;
                     args.expose = false;
                     args.resourceDatas.emplace_back(TFilePath((svgDir + "/" + f[3]).toStdWString()));
+                    args.importPolicy = IoCmd::LoadResourceArguments::IMPORT;  // D19: no Import/Load prompt for CLI/importer paths
                     IoCmd::loadResources(args);
                     if (!args.loadedLevels.empty())
                         sl = dynamic_cast<TXshSimpleLevel *>(*args.loadedLevels.begin());
@@ -352,6 +359,7 @@ static void importXFLScene(ToonzScene *scene, TXsheet *xsheet,
         IoCmd::LoadResourceArguments args;
         args.expose = false;
         args.resourceDatas.emplace_back(it.value());
+        args.importPolicy = IoCmd::LoadResourceArguments::IMPORT;  // D19: no Import/Load prompt for CLI/importer paths
         IoCmd::loadResources(args);
         if (!args.loadedLevels.empty()) {
             TXshLevel *lv = *args.loadedLevels.begin();
@@ -471,6 +479,7 @@ void ImportFlashVectorCommand::executeImpl() {
 // Shared by File > Import Flash and the command-line / open-file path
 // (openNonSceneFile), so both dispatch identically.
 static void importFlashFile(const TFilePath &fp) {
+    g_acPlacedTimeline = false;
     ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
     TFilePath outDir = makeTempImportDir("flare_flash_import_");
     QString   outPath = outDir.getQString();
@@ -1055,12 +1064,14 @@ static void importFlashFile(const TFilePath &fp) {
             QString e    = QFileInfo(full).suffix().toLower();
             // Only load image formats that Flare supports as levels
             if (rel.startsWith("xfl_svg/")) continue;  // already placed in xsheet
+            if (g_acPlacedTimeline) continue;           // bitmaps are already layers of the AC timeline (no duplicate column)
             if (e == "png" || e == "jpg" || e == "jpeg" || e == "svg") {
                 args.resourceDatas.push_back(
                     IoCmd::LoadResourceArguments::ResourceData(TFilePath(full.toStdWString())));
             }
         }
         if (!args.resourceDatas.empty()) {
+            args.importPolicy = IoCmd::LoadResourceArguments::IMPORT;  // D19: no Import/Load prompt for CLI/importer paths
             imported = IoCmd::loadResources(args);
         }
     }
@@ -1079,6 +1090,12 @@ static void importFlashFile(const TFilePath &fp) {
     if (imported > 0)
         msg += QObject::tr("\n%1 asset(s) added to the scene.").arg(imported);
 
+    // Automation (gui_smoke / scripts/dev/qa): FLARE_QUIET_IMPORT=1 logs the result instead of
+    // showing the modal summary, so unattended runs are never blocked by it.
+    if (qEnvironmentVariableIntValue("FLARE_QUIET_IMPORT") == 1) {
+        qWarning().noquote() << "[Flash import result]" << msg;
+        return;
+    }
     std::vector<QString> btns = {QObject::tr("Open folder"), QObject::tr("Save as FLA"), QObject::tr("OK")};
     int ret = DVGui::MsgBox(DVGui::INFORMATION, msg, btns);
     if (ret == 1) {
@@ -1159,6 +1176,8 @@ public:
 // scene loader. Magic bytes win over the extension, as in the import command.
 // ---------------------------------------------------------------------------
 
+int flareImportMoho(const TFilePath &fp, bool quiet);  // mohoimport.cpp
+
 bool openNonSceneFile(const TFilePath &path) {
     // A folder on the command line (F10): an XFL project folder imports as
     // XFL; any other folder gets a visible error instead of a silent no-op.
@@ -1185,6 +1204,10 @@ bool openNonSceneFile(const TFilePath &path) {
     const QString ext = QString::fromStdString(path.getType()).toLower();
     if (ext == "tnz" || ext == "xdts" || ext == "sxf" || ext.isEmpty())
         return false;
+    if (ext == "moho" || ext == "mohoproj" || ext == "anme" || ext == "anime" || ext == "animeproj") {
+        flareImportMoho(path, qEnvironmentVariableIntValue("FLARE_QUIET_IMPORT") == 1);
+        return true;
+    }
     const QString src = path.getQString();
     const FlashAssets::Format fmt = FlashAssets::detectFormat(src);
 
@@ -1202,6 +1225,7 @@ bool openNonSceneFile(const TFilePath &path) {
         IoCmd::LoadResourceArguments args;
         args.resourceDatas.push_back(
             IoCmd::LoadResourceArguments::ResourceData(path));
+        args.importPolicy = IoCmd::LoadResourceArguments::IMPORT;  // D19: no Import/Load prompt for CLI/importer paths
         IoCmd::loadResources(args);
         return true;
     }

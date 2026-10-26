@@ -199,6 +199,8 @@ int buildScene(const TFilePath &fp, const Moho::Document &doc) {
 // Command
 // ---------------------------------------------------------------------------
 
+int flareImportMoho(const TFilePath &fp, bool quiet);
+
 class ImportMohoProjectCommand final : public MenuItemHandler {
 public:
     ImportMohoProjectCommand() : MenuItemHandler(MI_ImportMohoProject) {}
@@ -218,12 +220,21 @@ void ImportMohoProjectCommand::execute() {
 
     TFilePath fp = loadPopup->getPath();
     if (fp.isEmpty()) return;
+    flareImportMoho(fp, false);
+}
 
+// Shared by the menu command, the command-line / open-file path (openNonSceneFile) and the
+// QA hook. quiet: no dialogs (automation); the result is the number of columns created, or -1
+// when the project could not be read.
+int flareImportMoho(const TFilePath &fp, bool quiet) {
     Moho::Document doc;
     if (!Moho::read(fp, doc)) {
-        DVGui::error(QObject::tr("Could not read the Moho project:\n\n%1")
-                         .arg(doc.error));
-        return;
+        if (!quiet)
+            DVGui::error(QObject::tr("Could not read the Moho project:\n\n%1")
+                             .arg(doc.error));
+        else
+            qWarning().noquote() << "[Moho import] read failed:" << doc.error;
+        return -1;
     }
 
     // Write the manifest and gather the bitmaps beside the project, so the
@@ -234,6 +245,10 @@ void ImportMohoProjectCommand::execute() {
         fp.getName() + "_flare_import");
     const int written = Moho::writeManifest(fp, doc, outDir);
     const int columns = buildScene(fp, doc);
+    if (quiet) {
+        qWarning().noquote() << "[Moho import]" << describe(doc) << "columns=" << columns << "written=" << written;
+        return columns;
+    }
 
     // One dialog, not two. The previous version showed the output directory in
     // the message box and then popped a second modal saying the same thing --
@@ -261,4 +276,5 @@ void ImportMohoProjectCommand::execute() {
     box->setTextInteractionFlags(Qt::TextSelectableByMouse);
     box->exec();
     box->deleteLater();
+    return columns;
 }

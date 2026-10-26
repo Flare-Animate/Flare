@@ -90,6 +90,7 @@
 // Qt includes
 #include <QLabel>
 #include <QApplication>
+#include <QFileInfo>
 #include <QByteArray>
 #include <QClipboard>
 #include <QDirIterator>
@@ -182,8 +183,7 @@ public:
               "Do you want to import it or load it from its original location?")
               .arg(QString::fromStdWString(path.getWideString()));
       QString checkBoxLabel =
-          QObject::tr("Always do this action.")
-              .arg(QString::fromStdWString(path.getWideString()));
+          QObject::tr("Always do this action.");
       QString addSeparatorLabel = QObject::tr("Add separator for Frames");
       QStringList buttons;
       buttons << QObject::tr("Import") << QObject::tr("Load")
@@ -1973,6 +1973,11 @@ bool IoCmd::loadScene(const TFilePath &path, bool updateRecentFile,
   TFilePath scenePath = path;
   bool isXdts         = scenePath.getType() == "xdts";
   bool isSxf          = scenePath.getType() == "sxf";
+  // A folder on the command line (e.g. an extension-less XFL project folder) is not a scene:
+  // route it to the importers before the missing extension is defaulted to .tnz.
+  if (scenePath.getType() == "" && QFileInfo(path.getQString()).isDir() &&
+      openNonSceneFile(path))
+    return true;
   if (scenePath.getType() == "") scenePath = scenePath.withType("tnz");
   if (scenePath.getType() != "tnz" && !isXdts && !isSxf) {
     // Non-scene files (opened from the command line or "open file") go to the
@@ -2850,7 +2855,13 @@ int IoCmd::loadResources(LoadResourceArguments &args, bool updateRecentFile,
       }
       popup->setPath(path);
 
-      int ret = popup->exec();
+      // Command-line / importer callers pass an explicit import policy: take the popup's default
+      // load mode instead of blocking on it (interactive loads still show the settings).
+      int ret = 1;
+      if (args.importPolicy != LoadResourceArguments::ASK_USER)
+        popup->onOk();  // parse the PSD with the default options, no dialog
+      else
+        ret = popup->exec();
       if (ret == 0) continue;
 
       loadedCount += loadPSDResource(args, updateRecentFile, popup);

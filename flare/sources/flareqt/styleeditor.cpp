@@ -5719,6 +5719,10 @@ bool StyleEditor::setStyle(TColorStyle *currentStyle) {
 //-----------------------------------------------------------------------------
 
 void StyleEditor::setEditedStyleToStyle(const TColorStyle *style) {
+  if (!style) {  // empty palette slot (seen when a level is created in a fresh scene)
+    m_editedStyle = TColorStyleP();
+    return;
+  }
   if (style == m_editedStyle.getPointer()) return;
 
   m_editedStyle = TColorStyleP(style->clone());
@@ -5727,6 +5731,10 @@ void StyleEditor::setEditedStyleToStyle(const TColorStyle *style) {
 //-----------------------------------------------------------------------------
 
 void StyleEditor::setOldStyleToStyle(const TColorStyle *style) {
+  if (!style) {
+    m_oldStyle = TColorStyleP();
+    return;
+  }
   if (style == m_oldStyle.getPointer()) return;
   m_oldStyle = TColorStyleP(style->clone());
 }

@@ -167,7 +167,7 @@ bool TXshSimpleLevel::m_fillFullColorRaster = false;
 TXshSimpleLevel::TXshSimpleLevel(const std::wstring& name)
     : TXshLevel(m_classCode, name)
     , m_properties(std::make_unique<LevelProperties>())
-    , m_palette(nullptr)
+    , m_palette()
     , m_idBase(std::to_string(idBaseCode++))
     , m_editableRangeUserInfo(L"")
     , m_isSubsequence(false)
@@ -403,7 +403,7 @@ void TXshSimpleLevel::clonePropertiesFrom(const TXshSimpleLevel* oldSl) {
 
 //-----------------------------------------------------------------------------
 
-TPalette* TXshSimpleLevel::getPalette() const { return m_palette; }
+TPalette* TXshSimpleLevel::getPalette() const { return m_palette.getPointer(); }
 
 //-----------------------------------------------------------------------------
 
@@ -594,7 +594,7 @@ TImageP TXshSimpleLevel::getFrameIcon(const TFrameId& fid) const {
       imgId, ImageManager::dontPutInCache, &extData);
 
   if (TToonzImageP timg = img) {
-    if (m_palette) timg->setPalette(m_palette);
+    if (m_palette) timg->setPalette(m_palette.getPointer());
   }
 
   return img;

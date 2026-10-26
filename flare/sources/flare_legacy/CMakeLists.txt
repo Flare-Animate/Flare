@@ -442,6 +442,7 @@ set(SOURCES
     flashimport.cpp
     mohoimport.cpp
     flashexport.cpp
+    qahook.cpp
     flashguidedialog.cpp
     scriptconsolepanel_stub.cpp
     ${SDKROOT}/zlib-1.2.8/contrib/minizip/ioapi.c

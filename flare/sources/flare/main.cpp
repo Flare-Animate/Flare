@@ -3,6 +3,7 @@
 // Tnz6 includes
 #include "crashhandler.h"
 #include "mainwindow.h"
+#include "qahook.h"
 #include "flipbook.h"
 #include "tapp.h"
 #include "iocommand.h"
@@ -959,6 +960,7 @@ if (QFileInfo(localSplashPath).exists() && QFileInfo(localSplashPath).isFile()) 
   if (Preferences::instance()->isLatestVersionCheckEnabled())
     w.checkForUpdates();
 
+  installQaHook();  // before show(): the startup popup can run a nested loop inside it
   w.show();
 
   // Show floating panels only after the main window has been shown

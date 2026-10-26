@@ -4,6 +4,8 @@
 #define _CRT_SECURE_NO_DEPRECATE 1
 #endif
 
+#include <cstring>
+#include <algorithm>
 #include "psd.h"
 #include "trasterimage.h"
 #include "trop.h"
@@ -348,6 +350,15 @@ void TPSDReader::doImage(TRasterP &rasP, int layerId) {
   if (li == NULL)
     fseek(m_file, m_headerInfo.lmistart + m_headerInfo.lmilen, SEEK_SET);
 
+  {  // a truncated/malformed file has no pixel data where the header says it starts
+    long here = ftell(m_file);
+    fseek(m_file, 0, SEEK_END);
+    long fileEnd = ftell(m_file);
+    fseek(m_file, here, SEEK_SET);
+    if (here < 0 || here >= fileEnd)
+      throw TImageException(m_path, "PSD file is truncated: no image data");
+  }
+
   psdPixel rows = pixh;
   psdPixel cols = pixw;
 
@@ -400,6 +411,8 @@ void TPSDReader::doImage(TRasterP &rasP, int layerId) {
   if (!li || m_headerInfo.linfoBlockEmpty) {  // merged channel
     TPSDChannelInfo *mergedChans =
         (TPSDChannelInfo *)mymalloc(channels * sizeof(struct TPSDChannelInfo));
+    // zero it: a truncated file leaves readChannel() without data and rowbytes must not be garbage
+    memset(mergedChans, 0, channels * sizeof(struct TPSDChannelInfo));
 
     readChannel(m_file, NULL, mergedChans, channels, &m_headerInfo);
     imageDataEnd = ftell(m_file);
@@ -522,6 +535,7 @@ void TPSDReader::readImageData(TRasterP &rasP, TPSDLayerInfo *li,
 
   psdByte savepos = ftell(m_file);
   if (rows == 0 || cols == 0) return;
+  if (!chan || chan->rowbytes <= 0) return;  // truncated / malformed file: no channel data
   psdPixel j;
 
   unsigned char *inrows[4], *rledata;
@@ -570,8 +584,9 @@ void TPSDReader::readImageData(TRasterP &rasP, TPSDLayerInfo *li,
     // controllo che y1 rimanga all'interno dell'immagine
     if (y1 >= m_headerInfo.rows) y1 = m_headerInfo.rows - 1;
   }
-  if (m_shrinkX > x1 - x0) m_shrinkX = x1 - x0;
-  if (m_shrinkY > y1 - y0) m_shrinkY = y1 - y0;
+  // a 1-pixel-wide/high image gives x1 - x0 == 0: never let the shrink factor reach 0 (SIGFPE below)
+  if (m_shrinkX > x1 - x0) m_shrinkX = std::max(1, x1 - x0);
+  if (m_shrinkY > y1 - y0) m_shrinkY = std::max(1, y1 - y0);
   assert(m_shrinkX > 0 && m_shrinkY > 0);
   if (m_shrinkX > 1) {
     x1 -= (x1 - x0) % m_shrinkX;

@@ -561,7 +561,8 @@ bool StudioPalette::updateLinkedColors(TPalette *palette) {
   std::map<std::wstring, TPaletteP> table;
 
   for (int i = 0; i < palette->getStyleCount(); i++) {
-    TColorStyle *cs    = palette->getStyle(i);
+    TColorStyle *cs = palette->getStyle(i);
+    if (!cs) continue;
     std::wstring gname = cs->getGlobalName();
     if (gname == L"" || gname[0] != L'+') continue;
     int k = gname.find_first_of(L'-', 1);

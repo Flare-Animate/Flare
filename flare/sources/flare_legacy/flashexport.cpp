@@ -541,6 +541,8 @@ public:
     void execute() override { ExportXflCommand::run(true); }
 } g_exportHtml5Command;
 
+static QString g_qaExportPath;  // set by flareQaExportTo: skip the file popup and result dialog
+
 void ExportXflCommand::run(bool html5) {
     ToonzScene *scene = TApp::instance()->getCurrentScene()->getScene();
     TXsheet *xsheet = TApp::instance()->getCurrentXsheet()->getXsheet();
@@ -555,16 +557,19 @@ void ExportXflCommand::run(bool html5) {
     }
     static GenericSaveFilePopup *xflPopup = nullptr, *htmlPopup = nullptr;
     GenericSaveFilePopup *&popup = html5 ? htmlPopup : xflPopup;
-    if (!popup) {
+    const bool qa = !g_qaExportPath.isEmpty();
+    if (!popup && !qa) {
         popup = new GenericSaveFilePopup(html5 ? QObject::tr("Export HTML5") : QObject::tr("Export as XFL"));
         popup->addFilterType(html5 ? "html" : "fla");
         if (!html5) popup->addFilterType("xfl");
     }
-    if (!scene->isUntitled())
-        popup->setFolder(scene->getScenePath().getParentDir());
-    else
-        popup->setFolder(TProjectManager::instance()->getCurrentProject()->getScenesPath());
-    TFilePath fp = popup->getPath();
+    if (!qa) {
+        if (!scene->isUntitled())
+            popup->setFolder(scene->getScenePath().getParentDir());
+        else
+            popup->setFolder(TProjectManager::instance()->getCurrentProject()->getScenesPath());
+    }
+    TFilePath fp = qa ? TFilePath(g_qaExportPath.toStdWString()) : popup->getPath();
     if (fp.isEmpty()) return;
     if (fp.getType().empty()) fp = fp.withType(html5 ? "html" : "fla");
 
@@ -589,8 +594,22 @@ void ExportXflCommand::run(bool html5) {
     if (!skipped.isEmpty()) msg += QObject::tr("\n\nNot carried over (unsupported level or column type): %1").arg(skipped.join(", "));
     const QStringList lines = log.split('\n', Qt::SkipEmptyParts);
     if (lines.size() > 1) msg += "\n\n" + lines.mid(1, 8).join("\n");
+    if (qa) { g_qaExportPath = "ok"; return; }  // QA hook: no result dialog
     std::vector<QString> okBtn = {QObject::tr("OK")};
     DVGui::MsgBox(DVGui::INFORMATION, msg, okBtn, 0);
 }
+
+}  // namespace
+
+// QA hook entry (qahook.cpp): export the current scene to `path` with no dialogs.
+bool flareQaExportTo(bool html5, const QString &path) {
+    g_qaExportPath = path;
+    ExportXflCommand::run(html5);
+    const bool ok = g_qaExportPath == "ok";
+    g_qaExportPath.clear();
+    return ok;
+}
+
+namespace {
 
 }  // namespace
