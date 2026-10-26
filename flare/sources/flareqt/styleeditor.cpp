@@ -6438,6 +6438,14 @@ void StyleEditor::createStylePage(StylePageType pageType, TFilePath styleFolder,
           m_rasterMenu->actions()[m_rasterPages.size() - 1], menuAction);
       break;
     }
+#else
+    case StylePageType::Raster:
+      // Without MyPaint no page owns these; as children of this they were
+      // painted at (0,0) over the style editor tab bar ("My Favorites" bug).
+      delete label;
+      delete button;
+      delete checkBox;
+      break;
 #endif  // HAVE_MYPaint
     }
   }

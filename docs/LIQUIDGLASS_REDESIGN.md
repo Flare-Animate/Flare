@@ -34,6 +34,11 @@ Before (measured): white on old accent #3c88ad 3.95:1 (fails 4.5); unchecked che
 ## Verification
 Screenshots in `docs/images/qa/liquidglass-{before,after}-*.png` (100% and 125% font). No clipped labels in Draw/Rigging rooms, startup dialog, Preferences at 100% and 125%.
 
+## Style Editor "My Favorites" overlap (fixed)
+`StyleEditor::createStylePages` (flareqt/styleeditor.cpp) builds a label, toggle button and menu checkbox per style set as children of the editor. In builds without `HAVE_MYPaint` the Raster case is compiled out, so those three widgets were never placed in a layout or menu and were painted at (0,0) over the tab bar, in every theme. They are now deleted in that case. Before/after crops: `liquidglass-{before,after}-styleeditor-tabs-{100,125}.png`.
+
+## Other rooms
+Animate, Timing, Cleanup, Library at 100% and 125% font: no clipped labels found (Timing/Cleanup 125% shots included).
+
 ## Known remaining
-- Style Editor "My Favorites" checkbox overlaps the Texture tab (and clips at 125%): layout bug in `flareqt/styleeditor.cpp`, present in Dark too. Follow-up.
 - Dialog/menu corner radii are not visible without a compositing window manager.
