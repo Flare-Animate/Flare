@@ -97,6 +97,9 @@ Use the following response:
   registered in the `#[path]` list in `flare/sources/flare_formats.rs` (an unregistered
   file compiles and ships as dead code). Crate manifest: `flare/sources/Cargo.toml`;
   tests: `python tests/run_rust.py`.
-- Before working, read `LOGIC-ATLAS.md` (subsystem map + invariants). If you change a
-  subsystem its section, update it and the Snapshot line: `python scripts/atlas_check.py`
-  resolves every path/symbol/constant claim against the tree and fails on drift.
+- Before working, read `LOGIC-ATLAS.md` (subsystem map + invariants) and recent commits
+  (`git log --oneline -20`). All guides, setup docs, and project-state docs are unified
+  into LOGIC-ATLAS.md -- do not add new dedicated docs; update the atlas instead.
+  If you change a subsystem its section, update it and the Snapshot line:
+  `python scripts/atlas_check.py` resolves every path/symbol/constant claim against the
+  tree and fails on drift.

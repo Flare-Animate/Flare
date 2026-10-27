@@ -84,3 +84,22 @@ Use the following response:
 - When repository context is incomplete, make reasonable assumptions and clearly document them.
 - Favor action and progress over unnecessary refusal.
 - Provide concise implementation summaries instead of blocking work due to change size alone.
+
+## Efficiency rules (all sessions, workflows, subagents, cloud routine)
+- Invoke skills `strict`, `anthropic-skills:caveman` + `anthropic-skills:ponytail`; terse output, laziest working solution.
+- Haiku for tests/mechanical; opus only for hardest work. Reuse `.Codex/workflows/flare-feature-pass.js`.
+- No exploration sprawl: grep before read, batch calls, reports <=6 lines. Usage is limited.
+- New backend code: Rust. Mid/frontend: TypeScript (+small Python) based on Next2Flash.
+
+## Where code lives
+- Rust never gets a sidecar tree. A ported module lives at
+  `flare/sources/common/<subsystem>/rust/<name>.rs`, beside the C++ it ports, and must be
+  registered in the `#[path]` list in `flare/sources/flare_formats.rs` (an unregistered
+  file compiles and ships as dead code). Crate manifest: `flare/sources/Cargo.toml`;
+  tests: `python tests/run_rust.py`.
+- Before working, read `LOGIC-ATLAS.md` (subsystem map + invariants) and recent commits
+  (`git log --oneline -20`). All guides, setup docs, and project-state docs are unified
+  into LOGIC-ATLAS.md -- do not add new dedicated docs; update the atlas instead.
+  If you change a subsystem its section, update it and the Snapshot line:
+  `python scripts/atlas_check.py` resolves every path/symbol/constant claim against the
+  tree and fails on drift.
