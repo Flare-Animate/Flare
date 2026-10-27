@@ -70,6 +70,9 @@ def main():
         print("atlas_check: cannot read %s" % ATLAS)
         return 1
     body = strip_fences(atlas)
+    # Only check the atlas proper, not the consolidated docs appended at the end.
+    if "\n# Consolidated Documentation\n" in body:
+        body = body.split("\n# Consolidated Documentation\n")[0]
     files = tree_files()
     by_base, suffixes = {}, set()
     for f in files:
