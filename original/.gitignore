@@ -1,0 +1,118 @@
+# ---------------------------------------------------------------------------
+# Build output
+# ---------------------------------------------------------------------------
+Debug
+Debug64
+Release
+Release64
+GeneratedFiles
+build*
+!scripts/build-html5-runtime.sh
+!scripts/build-jsfl.sh
+!scripts/build-mm-html5-runtime.sh
+flare/android/.gradle/
+!flare/android/build.gradle
+!flare/android/app/build.gradle
+# `build*` above is meant for build output, but it also swallowed the web
+# app's build scripts -- which .github/workflows/pages.yml runs, so the deploy
+# failed on a clean checkout with "cannot find module". Keep the sources, still
+# ignore their output (see tools/flash/webapp/dist/ further down).
+!tools/flash/webapp/build.ts
+!tools/flash/webapp/build.test.ts
+/build
+/.scripts
+/FlarePortable
+/LocalTest
+/LocalTest-*
+/target/ghidra-ui-study/
+
+# Editor / IDE
+.vs
+*.opensdf
+*.sdf
+*.suo
+*.user
+.idea
+.clang_complete
+Debug/
+Debug Library/
+Release/
+Release Library/
+ipch/
+*.config
+*.creator
+*.files
+*.includes
+Thumbs.db
+
+# macOS
+.DS_Store
+
+# Python
+*.pyc
+__pycache__/
+
+# ---------------------------------------------------------------------------
+# Bundled third-party libraries (large, fetched/built out of band)
+# ---------------------------------------------------------------------------
+/thirdparty/boost
+/thirdparty/libjpeg-turbo64
+/thirdparty/lzo
+/thirdparty/tiff-4.0.3
+/thirdparty/LibJPEG/jpeg-9
+/thirdparty/Lz4/Lz4_131
+/thirdparty/libusb/libusb-1.0.9
+/thirdparty/glew/glew-1.9.0
+/thirdparty/qt
+/thirdparty/qt/**
+lzo-2.09
+
+# ---------------------------------------------------------------------------
+# Scratch output from CI, agents and local debugging.
+#
+# This used to be an ever-growing list of one-off filenames
+# (run_68428401017.log, ci_monitor.log, debug_output.txt, gitlog.txt, ...),
+# each added by whatever run happened to produce it. Patterns cover the whole
+# class instead, so nothing new has to be added by hand.
+# ---------------------------------------------------------------------------
+*.log
+# CI log bundles dropped in the repo root (runlogs.zip, joblog.zip, ...)
+/*.zip
+run-*.txt
+run_*.txt
+run_*-jobs.json
+linux_run_*.txt
+cmake_*log*.txt
+debug_output.txt
+gitlog.txt
+rebrand_debug.txt
+runmeta.json
+check_suites.json
+orig_CMake.txt
+sparse.patch
+tflash_base.cpp
+tflash_ours.cpp
+tflash_theirs.cpp
+actions_page.html
+pr_page.html
+repo_script_problems.json
+.github/workflows/faileubuntu.txt
+show_diff.py
+show_log.py
+move_thirdparty.py
+ci_build_monitor.ps1
+ci_full_loop.ps1
+test_package.bat
+test_package_root.bat
+appveyor.yml
+requirements.txt
+Qt5*.zip
+tmp.txt
+stuff/config/loc/
+tools/flash/webapp/dist/
+flare/sources/target/
+
+# runtime state written when the app runs from the source tree
+stuff/profiles/layouts/personal/
+stuff/profiles/layouts/settings.none/
+stuff/sandbox/
