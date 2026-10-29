@@ -81,13 +81,20 @@ grid is on.
 
 ## Home
 
-A plain launch opens on the Home page: sizes for a new project (HD, 720p, Square, Portrait,
-Classic, all at 24 fps), Open and Import, and the eight most recent projects. Choosing one leaves
-Home; starting a new project over an untouched document replaces it instead of adding a tab. The
-house and "Flare" at the left of the top bar, and Window > Home, bring Home back over the document
-you were working on, and "Back to the document" returns to it. A project named on the command line
-or recovered after a crash opens straight to its document. Home is a view, not a document: it is
-not saved and it is not part of a tab.
+A plain launch opens on the Home page, laid out like Animate's: a sidebar with the app name and
+version, Home (and Learn, dimmed: not built), and the buttons New File, Open and Import; in the main
+area **Create new** (cards for Character Animation 1920 x 1080 at 24 fps, Social 1080 x 1080 at 30,
+Portrait 1080 x 1920 at 30, Web 1280 x 720 at 24, Classic 550 x 400 at 24, each drawn with the
+proportions of its stage), then **Recent** (up to twelve project cards, newest first, with a
+Clear the list button). The presets are Flare's own, not Animate's. Choosing a card, New File,
+Open or Import leaves Home; a new project over an untouched document replaces it instead of adding a tab.
+
+Home is a view, not a document, and none of the document's controls show on it: the top bar has
+no undo, redo, play or document name, there is no status bar, and the window is titled just
+"Flare" (a document's title is its saved name, or Untitled, with `*` when unsaved). Keys and commands
+that act on the document are off while it is up. The house and "Flare" at the left of the top bar
+and Window > Home toggle it; choosing a tab, even the current one, goes to that tab's document. A
+project named on the command line or recovered after a crash opens straight to its document.
 
 ## Spacing
 

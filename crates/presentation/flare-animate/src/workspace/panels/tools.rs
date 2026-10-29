@@ -356,6 +356,8 @@ impl Workspace {
             ui.add(egui::DragValue::new(&mut center.y).prefix("y ").speed(1.0));
         });
         if center != before && center.x.is_finite() && center.y.is_finite() {
+            // Far beyond any stage, and kept small enough for the geometry to stay exact.
+            center = center.clamp(egui::pos2(-1.0e6, -1.0e6), egui::pos2(1.0e6, 1.0e6));
             self.paint.symmetry_center = Some(center);
         }
         if ui.small_button("Center on stage").clicked() {

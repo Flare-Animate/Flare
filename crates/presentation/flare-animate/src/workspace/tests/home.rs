@@ -3,21 +3,22 @@ use crate::workspace::home::PRESETS;
 
 #[test]
 fn every_preset_is_a_stage_the_document_accepts() {
-    for (name, w, h) in PRESETS {
+    for (name, w, h, fps) in PRESETS {
         let mut ws = workspace();
-        ws.new_project(w, h);
+        ws.new_project(w, h, fps);
         let stage = ws.document().stage();
         assert_eq!((stage.width(), stage.height()), (w, h), "{name}");
+        assert_eq!(ws.document().frame_rate().numerator(), fps, "{name}");
     }
 }
 
 #[test]
 fn a_new_project_replaces_an_untouched_document_and_otherwise_opens_a_tab() {
     let mut ws = workspace();
-    ws.new_project(1280, 720);
+    ws.new_project(1280, 720, 24);
     assert_eq!(ws.tabs().len(), 1, "the blank document is replaced");
     rect(&mut ws);
-    ws.new_project(800, 600);
+    ws.new_project(800, 600, 24);
     assert_eq!(ws.tabs().len(), 2, "a document with work in it is kept");
     assert_eq!(ws.document().stage().width(), 800);
 }
@@ -26,7 +27,7 @@ fn a_new_project_replaces_an_untouched_document_and_otherwise_opens_a_tab() {
 fn an_impossible_size_is_reported_and_changes_nothing() {
     let mut ws = workspace();
     let before = ws.document().stage();
-    ws.new_project(0, 100);
+    ws.new_project(0, 100, 24);
     assert_eq!(ws.document().stage(), before);
     assert!(ws.status().is_some());
 }
@@ -40,7 +41,7 @@ fn the_home_page_shows_over_the_document_and_goes_away_when_a_project_starts() {
     let ctx = egui::Context::default();
     run(&mut ws, &ctx, 0.0);
     assert!(ws.home_shown(), "drawing the page does not dismiss it");
-    ws.new_project(1920, 1080);
+    ws.new_project(1920, 1080, 24);
     assert!(!ws.home_shown(), "starting a project leaves Home");
 }
 
@@ -104,4 +105,82 @@ fn home_has_no_undo_play_or_document_name_in_the_top_bar() {
         ws.document_controls_shown(),
         "they come back with the document"
     );
+}
+
+#[test]
+fn keys_and_commands_leave_the_hidden_document_alone_while_home_is_up() {
+    let mut ws = two_rectangles();
+    ws.perform(MenuAction::SelectAll);
+    ws.set_home(true);
+    for action in [
+        MenuAction::Delete,
+        MenuAction::Paste,
+        MenuAction::Cut,
+        MenuAction::SelectAll,
+        MenuAction::ToolBrush,
+        MenuAction::PlayPause,
+        MenuAction::FlipHorizontal,
+        MenuAction::MirrorCopyHorizontal,
+    ] {
+        assert!(!ws.is_enabled(action), "{action:?}");
+    }
+    for action in [
+        MenuAction::New,
+        MenuAction::Open,
+        MenuAction::ShowHome,
+        MenuAction::Quit,
+    ] {
+        assert!(ws.is_enabled(action), "{action:?}");
+    }
+    let ctx = egui::Context::default();
+    pass(
+        &mut ws,
+        &ctx,
+        input(0.0, vec![key(Key::Delete, Modifiers::NONE)]),
+    );
+    assert_eq!(layer_count(&ws), 3, "Delete did not reach the document");
+    assert_eq!(ws.tool(), Tool::Select);
+}
+
+#[test]
+fn choosing_a_tab_leaves_home_even_the_current_one() {
+    let mut ws = workspace();
+    rect(&mut ws);
+    ws.new_project(800, 600, 24);
+    assert_eq!(ws.tabs().len(), 2);
+    ws.set_home(true);
+    ws.switch_to_tab(1);
+    assert!(!ws.home_shown(), "the current tab shows its document");
+    ws.set_home(true);
+    ws.switch_to_tab(0);
+    assert!(!ws.home_shown());
+    ws.switch_to_tab(1);
+    assert!(!ws.home_shown(), "Home does not come back with the tab");
+}
+
+#[test]
+fn the_home_page_draws_with_and_without_recent_projects_at_small_and_large_sizes() {
+    for (recent, size) in [
+        (false, 1280.0),
+        (true, 1280.0),
+        (true, 340.0),
+        (true, 4000.0),
+    ] {
+        let mut ws = workspace();
+        if recent {
+            ws.note_recent(std::path::Path::new("/a/one.flare"));
+            ws.note_recent(std::path::Path::new(
+                "/a/a-very-long-name-that-goes-on-and-on.flare",
+            ));
+        }
+        ws.set_home(true);
+        let ctx = egui::Context::default();
+        let raw = RawInput {
+            time: Some(0.0),
+            screen_rect: Some(Rect::from_min_size(Pos2::ZERO, Vec2::new(size, 700.0))),
+            ..RawInput::default()
+        };
+        pass(&mut ws, &ctx, raw);
+        assert!(ws.home_shown());
+    }
 }

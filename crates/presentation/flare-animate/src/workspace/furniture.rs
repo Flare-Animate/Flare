@@ -24,7 +24,10 @@ impl Workspace {
         self.ensure_sounds_decoded();
         self.sync_audio();
         self.autosave(now);
-        self.handle_shortcuts(&ctx);
+        // Keys act on the document, which Home hides.
+        if !self.windows.home {
+            self.handle_shortcuts(&ctx);
+        }
         // Only a changed document can make the selection stale; checking it every frame cost
         // time in proportion to the selection times the layers.
         if self.selection_checked != Some((self.context_serial, self.active().revision())) {
@@ -32,9 +35,11 @@ impl Workspace {
         }
         self.ensure_stage_texture(&ctx);
 
-        egui::Panel::bottom("status")
-            .exact_size(24.0)
-            .show(ui, |ui| self.status_bar(ui));
+        if self.document_controls_shown() {
+            egui::Panel::bottom("status")
+                .exact_size(24.0)
+                .show(ui, |ui| self.status_bar(ui));
+        }
         egui::Panel::top("menu")
             .exact_size(if self.titlebar_inset > 0.0 {
                 INTEGRATED_TOP_BAR_HEIGHT

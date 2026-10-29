@@ -101,7 +101,12 @@ impl Workspace {
 
     /// Makes tab `index` the one being edited.
     pub fn switch_to_tab(&mut self, index: usize) {
-        if index == self.position || index > self.parked.len() {
+        if index > self.parked.len() {
+            return;
+        }
+        // Choosing a tab, even the current one, goes to its document.
+        self.windows.home = false;
+        if index == self.position {
             return;
         }
         if self.has_pending_io() {
@@ -114,6 +119,7 @@ impl Workspace {
             index - 1
         };
         let mut other = self.parked.remove(slot);
+        other.windows.home = false;
         other.adopt_environment(self);
         other.parked = std::mem::take(&mut self.parked);
         let before = self.position;

@@ -27,6 +27,23 @@ impl Workspace {
                 .iter()
                 .position(|c| c.id() == l.id())
         });
+        // Home hides the document, so only commands that do not act on it are offered.
+        if self.windows.home
+            && !matches!(
+                action,
+                MenuAction::Open
+                    | MenuAction::New
+                    | MenuAction::ImportProject
+                    | MenuAction::OpenRecent
+                    | MenuAction::Quit
+                    | MenuAction::ShowHome
+                    | MenuAction::Preferences
+                    | MenuAction::About
+                    | MenuAction::KeyboardShortcuts
+            )
+        {
+            return false;
+        }
         match action {
             MenuAction::Open | MenuAction::Save | MenuAction::SaveAs | MenuAction::Quit => true,
             MenuAction::ImportSound => !self.in_symbol(),

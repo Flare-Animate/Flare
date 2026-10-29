@@ -229,6 +229,43 @@ mod stroke_preview {
             ws.push_freehand(sample(10.0 + i as f64), 1.0);
         }
         assert_eq!(ws.freehand.len(), MAX_FREEHAND_SAMPLES);
+        let end = sample(99_999.0);
+        ws.push_freehand(end, 1.0);
+        assert_eq!(
+            ws.freehand.last(),
+            Some(&end),
+            "the stroke still ends at the pointer"
+        );
+    }
+
+    #[test]
+    fn a_tiny_last_move_moves_the_end_instead_of_being_lost() {
+        let mut ws = workspace();
+        let sample = |x: f64| InputSample::new(x, 0.0, 1.0, PointerKind::Mouse).expect("sample");
+        ws.push_freehand(sample(0.0), 1.0);
+        ws.push_freehand(sample(10.0), 1.0);
+        ws.push_freehand(sample(10.2), 1.0);
+        assert_eq!(ws.freehand.len(), 2);
+        assert_eq!(ws.freehand[1].x, 10.2);
+    }
+
+    #[test]
+    fn a_see_through_stroke_is_not_held_because_its_overlaps_would_show() {
+        let mut ws = workspace();
+        ws.set_tool(Tool::Brush);
+        ws.paint.fill = Color32::from_rgba_unmultiplied(200, 0, 0, 120);
+        drag(&mut ws);
+        assert!(ws.paint.settling.is_none());
+    }
+
+    #[test]
+    fn a_held_stroke_is_dropped_after_enough_passes_whatever_the_picture_does() {
+        let mut ws = workspace();
+        drag(&mut ws);
+        for _ in 0..700 {
+            ws.retire_settled();
+        }
+        assert!(ws.paint.settling.is_none());
     }
 
     #[test]

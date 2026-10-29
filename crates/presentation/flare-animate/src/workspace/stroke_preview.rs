@@ -14,13 +14,13 @@ use super::*;
 
 /// Most samples one stroke keeps. A longer drag stops growing the stroke (it can be finished and
 /// continued), so memory and the work per frame stay bounded.
-pub(super) const MAX_FREEHAND_SAMPLES: usize = 20_000;
+pub(super) const MAX_FREEHAND_SAMPLES: usize = 8_000;
 
 /// A point closer than this to the last one, in screen pixels, adds nothing the eye can see.
 const MIN_STEP_PX: f32 = 0.5;
 
-/// Corners of the polygon that stands for a round end or joint.
-const ROUND: usize = 14;
+/// Passes a committed stroke may stay up for.
+const SETTLE_PASSES: u32 = 600;
 
 /// One stroke to show: where it goes and how wide it is at each point, in stage units.
 #[derive(Clone, Debug, PartialEq)]
@@ -35,6 +35,9 @@ pub(super) struct Settling {
     pub(super) strokes: Vec<PreviewStroke>,
     pub(super) context: u64,
     pub(super) revision: u64,
+    /// Passes left before it is dropped whatever happens, so a picture that never shows the
+    /// stroke (a failed render, a playhead beyond it) cannot leave it up for good.
+    pub(super) passes_left: u32,
 }
 
 /// `strokes` as one mesh in screen space: a quad along each segment and a round end at each
@@ -71,20 +74,30 @@ fn vertex(pos: Pos2, color: Color32) -> Vertex {
     }
 }
 
+/// Corners of the polygon that stands for a round end or joint: a thin line needs few.
+fn corners(radius: f32) -> usize {
+    match radius {
+        r if r < 2.0 => 6,
+        r if r < 8.0 => 10,
+        _ => 14,
+    }
+}
+
 fn disc(mesh: &mut Mesh, at: Pos2, radius: f32, color: Color32) {
     if !(radius.is_finite() && at.is_finite()) {
         return;
     }
+    let round = corners(radius);
     let first = mesh.vertices.len() as u32;
     mesh.vertices.push(vertex(at, color));
-    for k in 0..ROUND {
-        let angle = std::f32::consts::TAU * k as f32 / ROUND as f32;
+    for k in 0..round {
+        let angle = std::f32::consts::TAU * k as f32 / round as f32;
         mesh.vertices
             .push(vertex(at + Vec2::angled(angle) * radius, color));
     }
-    for k in 0..ROUND as u32 {
+    for k in 0..round as u32 {
         mesh.indices
-            .extend([first, first + 1 + k, first + 1 + (k + 1) % ROUND as u32]);
+            .extend([first, first + 1 + k, first + 1 + (k + 1) % round as u32]);
     }
 }
 
@@ -111,14 +124,17 @@ impl Workspace {
     /// Adds a sample to the stroke being drawn, unless it is too close to the last one to matter
     /// at this zoom or the stroke is as long as it may get.
     pub(super) fn push_freehand(&mut self, sample: InputSample, scale: f32) {
-        if self.freehand.len() >= MAX_FREEHAND_SAMPLES {
-            return;
-        }
         let near = self.freehand.last().is_some_and(|last| {
             let step = Vec2::new((sample.x - last.x) as f32, (sample.y - last.y) as f32);
             step.length() * scale < MIN_STEP_PX
         });
-        if !near {
+        let full = self.freehand.len() >= MAX_FREEHAND_SAMPLES;
+        if (near || full) && self.freehand.len() > 1 {
+            // The stroke ends where the pointer is, even if it adds no new point.
+            if let Some(last) = self.freehand.last_mut() {
+                *last = sample;
+            }
+        } else if !near && !full {
             self.freehand.push(sample);
         }
     }
@@ -176,10 +192,15 @@ impl Workspace {
 
     /// Remembers what was just committed so it stays on screen until the stage shows it.
     pub(super) fn settle(&mut self, strokes: Vec<PreviewStroke>) {
+        // Overlapping parts of a see-through preview would show darker than the stroke does.
+        if strokes.iter().any(|s| s.color.a() < 255) {
+            return;
+        }
         self.paint.settling = Some(Settling {
             strokes,
             context: self.context_serial,
             revision: self.active().revision(),
+            passes_left: SETTLE_PASSES,
         });
     }
 
@@ -192,11 +213,14 @@ impl Workspace {
         let drawn = self
             .texture
             .as_ref()
-            .is_some_and(|t| t.key.0 == settling.context && t.key.1 == settling.revision);
+            .is_some_and(|t| t.key.0 == settling.context && t.key.1 >= settling.revision);
         let current = settling.context == self.context_serial
             && settling.revision == self.active().revision();
-        if drawn || !current {
+        let spent = settling.passes_left == 0;
+        if drawn || !current || spent {
             self.paint.settling = None;
+        } else if let Some(settling) = &mut self.paint.settling {
+            settling.passes_left -= 1;
         }
     }
 }
