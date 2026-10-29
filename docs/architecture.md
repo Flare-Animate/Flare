@@ -92,6 +92,11 @@ side and 100 million pixels. Hit testing uses the fill with the same non-zero ru
 returns candidates topmost first so callers can skip locked layers. Strokes are not
 hit-tested yet.
 
+Onion skinning composites translucent copies of neighbouring frames (up to 8 before and
+after, fainter with distance) beneath the current one using straight-alpha source-over
+blending in `flare-render`. It is a display aid only: it is off while playing and never
+affects exports.
+
 ## Storage
 
 A `.flare` file is a SQLite database (`application_id` "FLAR", `user_version` 1) with a
